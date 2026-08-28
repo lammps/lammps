@@ -32,6 +32,7 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
+#include <algorithm>
 #include <array>
 #include <cmath>
 #include <cstdio>
@@ -491,6 +492,81 @@ TEST_F(TSpinTest, DipoleCutProvidesFullGradient)
         ASSERT_NEAR(lattice_force[d], numerical_force, 1.0e-12);
         position_energy(d, x1[d]);
     }
+}
+
+// With a fixed separation along x and spring/tspin centered at zero, the
+// two-spin dipole Hamiltonian is quadratic in the Cartesian spin vectors.  For
+// equal spins and masses, the symmetric x and y modes are independent harmonic
+// oscillators with known frequencies.
+
+TEST_F(TSpinTest, DipoleCoupledModesConvergeToAnalyticSolution)
+{
+    if (!info->has_style("pair", "spin/dipole/cut"))
+        GTEST_SKIP() << "pair spin/dipole/cut missing";
+
+    constexpr double r = 1.5;
+    constexpr double spring_k = 1.0e-4;
+    constexpr double final_time = 1.0;
+    const double isqrt2 = 1.0 / std::sqrt(2.0);
+
+    auto run_mode = [&](double dt, int nsteps) {
+        BEGIN_HIDE_OUTPUT();
+        command("clear");
+        command("units metal");
+        command("atom_style spin");
+        command("boundary f f f");
+        command("region box block -5 5 -5 5 -5 5 units box");
+        command("create_box 1 box");
+        command("create_atoms 1 single -0.75 0 0 units box");
+        command("create_atoms 1 single 0.75 0 0 units box");
+        command("mass 1 1.0");
+        command(fmt::format("set group all spin/atom {} {} {} 0.0", std::sqrt(2.0),
+                            isqrt2, isqrt2));
+        command("pair_style spin/dipole/cut 4.0");
+        command("pair_coeff * * 4.0");
+        command(fmt::format("fix pin all spring/tspin {:.17g} 0.0", spring_k));
+        command("fix 1 all nve/tspin lattice frozen spinmass 1.0");
+        command("set group all d2_tspin_vs[1] 0.0");
+        command("set group all d2_tspin_vs[2] 0.0");
+        command("set group all d2_tspin_vs[3] 0.0");
+        command(fmt::format("timestep {:.17g}", dt));
+        command(fmt::format("run {} post no", nsteps));
+        END_HIDE_OUTPUT();
+
+        const double prefactor = 9.274e-4 * 9.274e-4 * 784.15 / (4.0 * MathConst::MY_PI);
+        const double dipole_k = prefactor / (r * r * r);
+        const double omega_x = std::sqrt(lmp->force->ftm2v * (spring_k - 2.0 * dipole_k));
+        const double omega_y = std::sqrt(lmp->force->ftm2v * (spring_k + dipole_k));
+        const std::array<double, 3> spin_exact = {
+            std::cos(omega_x * final_time), std::cos(omega_y * final_time), 0.0};
+        const std::array<double, 3> velocity_exact = {
+            -omega_x * std::sin(omega_x * final_time),
+            -omega_y * std::sin(omega_y * final_time), 0.0};
+
+        double error = 0.0;
+        int count = 0;
+        double **sp = lmp->atom->sp;
+        double **vs = vspin();
+        for (int i = 0; i < lmp->atom->nlocal; ++i) {
+            if ((lmp->atom->tag[i] != 1) && (lmp->atom->tag[i] != 2)) continue;
+            count++;
+            for (int d = 0; d < 3; ++d) {
+                const double spin_value = sp[i][3] * sp[i][d];
+                error = std::max(error, std::abs(spin_value - spin_exact[d]));
+                error = std::max(error, std::abs(vs[i][d] - velocity_exact[d]));
+            }
+        }
+        EXPECT_EQ(count, 2);
+        return error;
+    };
+
+    const double error_dt = run_mode(0.002, 500);
+    const double error_half = run_mode(0.001, 1000);
+    const double error_quarter = run_mode(0.0005, 2000);
+
+    EXPECT_LT(error_dt, 1.0e-6);
+    EXPECT_NEAR(error_dt / error_half, 4.0, 0.05);
+    EXPECT_NEAR(error_half / error_quarter, 4.0, 0.05);
 }
 
 // lattice and spin select the sectors independently; both frozen is an error

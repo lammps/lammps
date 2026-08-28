@@ -129,5 +129,9 @@ cp log.lammps log.${DATE}.spin.tspin.g++.4
 cp log.lammps log.${DATE}.spin.tspin_nvt.g++.1
 ../../../src/lmp_serial -in in.spin.tspin_nvt
 cp log.lammps log.${DATE}.spin.tspin_nvt.g++.4
+../../../src/lmp_serial -in in.spin.tspin_dipole
+cp log.lammps log.${DATE}.spin.tspin_dipole.g++.1
+../../../src/lmp_serial -in in.spin.tspin_dipole
+cp log.lammps log.${DATE}.spin.tspin_dipole.g++.4
 rm log.lammps log.cite
 cd ..

@@ -47,7 +47,8 @@ using MathConst::MY_2PI;
 FixSpringTSpin::FixSpringTSpin(LAMMPS *lmp, int narg, char **arg) :
     Fix(lmp, narg, arg), k(0.0), s0(0.0), espring(0.0), ilevel_respa(0), index_sm(-1)
 {
-  if (narg != 5) utils::missing_cmd_args(FLERR, "fix spring/tspin", error);
+  if (narg < 5) utils::missing_cmd_args(FLERR, "fix spring/tspin", error);
+  if (narg > 5) error->all(FLERR, 5, "Unknown fix spring/tspin keyword: {}", arg[5]);
 
   if (!atom->sp_flag)
     error->all(FLERR, "Fix spring/tspin requires atom style spin");

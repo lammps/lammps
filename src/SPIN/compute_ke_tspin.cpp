@@ -37,7 +37,7 @@ using namespace LAMMPS_NS;
 ComputeKETSpin::ComputeKETSpin(LAMMPS *lmp, int narg, char **arg) :
     Compute(lmp, narg, arg), index_vs(-1), index_sm(-1), pfactor(0.0)
 {
-  if (narg != 3) error->all(FLERR, "Illegal compute ke/tspin command");
+  if (narg != 3) error->all(FLERR, "Incorrect number of arguments for compute ke/tspin");
 
   if (!atom->sp_flag)
     error->all(FLERR, "Compute ke/tspin requires atom style spin");

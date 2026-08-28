@@ -79,16 +79,17 @@ static int dof_moving(int iarg, char **arg, LAMMPS *lmp)
 /* ---------------------------------------------------------------------- */
 
 FixNVETSpin::FixNVETSpin(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg)
+    Fix(lmp, narg, arg), lattice_flag(1), spin_flag(1), spinmass_flag(0), spinmass(1.0),
+    index_vs(-1), index_sm(-1), dtv(0.0), dtf(0.0), hbar(0.0)
 {
   if (!atom->sp_flag) error->all(FLERR, "Fix {} requires atom style spin", style);
 
   time_integrate = 1;
 
-  lattice_flag = 1;
-  spin_flag = 1;
-  spinmass_flag = 0;
-  spinmass = 1.0;
+  // an atom joining the group mid-run would carry no spin mass and its spin
+  // would then be silently left out of the integration
+
+  dynamic_group_allow = 0;
 
   int iarg = 3;
   while (iarg < narg) {

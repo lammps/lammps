@@ -67,7 +67,6 @@ Examples
 
    labelmap atom 1 Li
    fix 2 ion gcmc 10 1000 1000 Li 29494 298.0 -0.5 0.01
-
    fix 5 co2 gcmc 10 100 100 0 7672 300.0 -9.7 0.1 mol gasmix molindex 2 full_energy 
 
 Description
@@ -134,8 +133,7 @@ containing multiple :doc:`molecule` definitions is used by this fix.
       mol gasmix molindex 2
 
    selects ``co2.mol``. If ``molindex`` is not specified, the first
-   molecule in the template is used, preserving the previous behavior. 
-
+   molecule in the template is used, preserving the previous behavior.
    When used together with the rigid keyword, the rigid/small fix 
    must use the same molecule template. The selected molindex identifies 
    the corresponding molecule within that template.

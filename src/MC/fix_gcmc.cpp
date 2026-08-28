@@ -618,10 +618,8 @@ void FixGCMC::init()
       error->all(FLERR, "Fix gcmc molecule command requires that atoms have molecule attributes");
 
   // if rigidflag defined, check for rigid/small fix
-  // its molecule template must be same as this one / old
   // Both fixes must reference the same multi-molecule template set.
   // molindex selects which member of that set is used via this GCMC fix.
-
 
   fixrigid = nullptr;
   if (rigidflag) {
@@ -1533,16 +1531,6 @@ void FixGCMC::attempt_molecule_insertion()
     // FixRigidSmall::set_molecule stores rigid body attributes
     // FixShake::set_molecule stores shake info for molecule
 
-    /*
-    // GCMC fix prevents using molecule template array whose length is larger than 1 internally.
-    // the for-loop is removed and molindex is replaced
-    for (int submol = 0; submol < nmol; ++submol) {
-      if (rigidflag)
-        fixrigid->set_molecule(nlocalprev,maxtag_all,submol,com_coord,vnew,quat);
-      else if (shakeflag)
-        fixshake->set_molecule(nlocalprev,maxtag_all,submol,com_coord,vnew,quat);
-    }
-    */
     if (rigidflag)
       fixrigid->set_molecule(nlocalprev,maxtag_all,molindex,com_coord,vnew,quat);
     else if (shakeflag)
@@ -2243,15 +2231,7 @@ void FixGCMC::attempt_molecule_insertion_full()
 
   // FixRigidSmall::set_molecule stores rigid body attributes
   // FixShake::set_molecule stores shake info for molecule
-  /*
-  // As before, we replaced for-loop with molindex
-  for (int submol = 0; submol < nmol; ++submol) {
-    if (rigidflag)
-      fixrigid->set_molecule(nlocalprev,maxtag_all,submol,com_coord,vnew,quat);
-    else if (shakeflag)
-      fixshake->set_molecule(nlocalprev,maxtag_all,submol,com_coord,vnew,quat);
-  }
-  */
+
   if (rigidflag)
     fixrigid->set_molecule(nlocalprev,maxtag_all,molindex,com_coord,vnew,quat);
   else if (shakeflag)

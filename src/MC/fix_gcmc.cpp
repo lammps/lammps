@@ -281,9 +281,10 @@ void FixGCMC::options(int narg, char **arg)
   while (iarg < narg) {
     if (strcmp(arg[iarg], "mol") == 0) {
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix gcmc", error);
-      imol_base = atom->find_molecule(arg[iarg+1]);
+      imol_base = atom->find_molecule(arg[iarg + 1]);
       if (imol_base == -1)
-        error->all(FLERR,"Molecule template ID for fix gcmc does not exist");
+        error->all(FLERR, iarg + 1, "Molecule template ID {} for fix gcmc does not exist",
+                   arg[iarg + 1]);
       // This flag is deactivated, since GCMC can handle multiple molecule arrays from now on
       //if (atom->molecules[imol]->nset > 1 && comm->me == 0)
       //  error->warning(FLERR,"Molecule template for "

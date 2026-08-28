@@ -2,6 +2,7 @@
   lmp_binary: ""
   nprocs: "1"
   args: "-cite none"
+  kokkos: false
   mpiexec: ""
   mpiexec_numproc_flag: ""
   tolerance:
@@ -37,6 +38,9 @@
       in.*_imd*,
       in.bucky-plus-cnt*,
       in.gREM,
+      in.rerun,
+      in.rdf.rerun,
+      in.read_dump,
       in.peptide-plumed,
       in.mliap.pytorch*,
       in.mliap.unified*,

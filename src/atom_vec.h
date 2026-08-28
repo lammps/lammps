@@ -15,7 +15,6 @@
 #define LMP_ATOM_VEC_H
 
 #include "pointers.h"    // IWYU pragma: export
-#include <vector>
 
 namespace LAMMPS_NS {
 

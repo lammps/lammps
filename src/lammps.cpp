@@ -126,6 +126,13 @@ LAMMPS::LAMMPS(int narg, char **arg, MPI_Comm communicator) :
   // idempotent and thread-safe; runs only on the first LAMMPS instance.
   register_builtin_styles();
 
+  // copy arguments for use with FENIX package
+  num_in_arg = narg;
+  in_args = num_in_arg ? new char*[num_in_arg] : nullptr;
+  for (int i = 0; i < num_in_arg; i++) {
+    in_args[i] = utils::strdup(arg[i]);
+  }
+
   memory = new Memory(this);
   error = new Error(this);
   universe = new Universe(this,communicator);
@@ -825,6 +832,11 @@ LAMMPS::~LAMMPS() noexcept(false)
   delete memory;
 
   delete[] exename;
+
+  if (num_in_arg) {
+    for (int i = 0; i < num_in_arg; i++) delete[] in_args[i];
+    delete[] in_args;
+  }
 }
 
 /* ----------------------------------------------------------------------

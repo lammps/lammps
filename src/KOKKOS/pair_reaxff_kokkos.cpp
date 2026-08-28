@@ -2155,8 +2155,8 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxBondOrder2, const int &
       }
 
       if (v13cor >= 0.001) {
-        exp_f4 =exp(-(p_boc4*(d_BO(i,j_index)*d_BO(i,j_index))-d_Deltap_boc[i])*p_boc3+p_boc5);
-        exp_f5 =exp(-(p_boc4*(d_BO(i,j_index)*d_BO(i,j_index))-d_Deltap_boc[j])*p_boc3+p_boc5);
+        exp_f4 =exp((double)(-(p_boc4*(d_BO(i,j_index)*d_BO(i,j_index))-d_Deltap_boc[i])*p_boc3+p_boc5));
+        exp_f5 =exp((double)(-(p_boc4*(d_BO(i,j_index)*d_BO(i,j_index))-d_Deltap_boc[j])*p_boc3+p_boc5));
         f4 = 1. / (1. + exp_f4);
         f5 = 1. / (1. + exp_f5);
         f4f5 = f4 * f5;
@@ -2312,8 +2312,8 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeMulti2<NEIGHFLAG
 
   // lone pair
   const KK_FLOAT p_lp2 = paramssing(itype).p_lp2;
-  const KK_FLOAT expvd2 = exp(-75 * d_Delta_lp[i]);
-  const KK_FLOAT inv_expvd2 = 1.0 / (1.0+expvd2);
+  const double expvd2 = exp(-75.0 * (double)d_Delta_lp[i]);
+  const double inv_expvd2 = 1.0 / (1.0+expvd2);
 
   int numbonds = d_bo_num[i];
 
@@ -2331,11 +2331,11 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeMulti2<NEIGHFLAG
   //if (eflag_atom) this->template e_tally<NEIGHFLAG>(ev,i,i,e_lp);
 
   // over coordination
-  const double exp_ovun1 = p_ovun3 * exp(p_ovun4 * d_sum_ovun(i,2));
+  const double exp_ovun1 = p_ovun3 * exp((double)(p_ovun4 * d_sum_ovun(i,2)));
   const double inv_exp_ovun1 = 1.0 / (1 + exp_ovun1);
   const KK_FLOAT Delta_lpcorr  = d_Delta[i] - (dfvl * d_Delta_lp_temp[i]) * inv_exp_ovun1;
 
-  const double exp_ovun2 = exp(p_ovun2 * Delta_lpcorr);
+  const double exp_ovun2 = exp((double)(p_ovun2 * Delta_lpcorr));
   const double inv_exp_ovun2 = 1.0 / (1.0 + exp_ovun2);
   const KK_FLOAT DlpVi = 1.0 / (Delta_lpcorr + val_i + 1e-8);
 
@@ -2354,8 +2354,8 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeMulti2<NEIGHFLAG
   // under coordination
 
   const double exp_ovun2n = 1.0 / exp_ovun2;
-  const double exp_ovun6 = exp(p_ovun6 * Delta_lpcorr);
-  const double exp_ovun8 = p_ovun7 * exp(p_ovun8 * d_sum_ovun(i,2));
+  const double exp_ovun6 = exp((double)(p_ovun6 * Delta_lpcorr));
+  const double exp_ovun8 = p_ovun7 * exp((double)(p_ovun8 * d_sum_ovun(i,2)));
   const double inv_exp_ovun2n = 1.0 / (1.0 + exp_ovun2n);
   const double inv_exp_ovun8 = 1.0 / (1.0 + exp_ovun8);
 
@@ -2708,9 +2708,9 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeAngularPreproces
   KK_FLOAT p_val6, p_val7, p_val10;
   KK_FLOAT p_pen1, p_pen2, p_pen3, p_pen4;
   KK_FLOAT p_coa1, p_coa2, p_coa3, p_coa4;
-  KK_FLOAT expval6, expval7, expval2theta, expval12theta, exp3ij, exp3jk;
+  KK_FLOAT expval2theta, expval12theta, exp3ij, exp3jk;
   // FP64 to prevent overflow in single precision
-  double exp_pen2ij, exp_pen2jk, exp_pen3, exp_pen4, trm_pen34, exp_coa2;
+  double expval6, expval7, exp_pen2ij, exp_pen2jk, exp_pen3, exp_pen4, trm_pen34, exp_coa2;
   KK_FLOAT dSBO1, dSBO2, SBO2, CSBO2;
   KK_FLOAT CEval1, CEval2, CEval3, CEval4, CEval5, CEval6, CEval7, CEval8;
   KK_FLOAT CEpen1, CEpen2, CEpen3;
@@ -2762,7 +2762,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeAngularPreproces
   dSBO1 = d_angular_intermediates(i, 2);
   dSBO2 = d_angular_intermediates(i, 3);
 
-  expval6 = exp(p_val6 * d_Delta_boc[i]);
+  expval6 = exp((double)(p_val6 * d_Delta_boc[i]));
 
   KK_ACC_FLOAT CdDelta_i = 0.0;
   KK_ACC_FLOAT fitmp[3],fjtmp[3];
@@ -2826,7 +2826,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeAngularPreproces
   exp3jk = exp(-p_val3 * pow(BOA_ik, p_val4));
   f7_jk = 1.0 - exp3jk;
   Cf7jk = p_val3 * p_val4 * pow(BOA_ik, p_val4 - 1.0) * exp3jk;
-  expval7 = exp(-p_val7 * d_Delta_boc[i]);
+  expval7 = exp((double)(-p_val7 * d_Delta_boc[i]));
   trm8 = 1.0 + expval6 + expval7;
   f8_Dj = p_val5 - ((p_val5 - 1.0) * (2.0 + expval6) / trm8);
   Cf8j = ((1.0 - p_val5) / (trm8*trm8)) *
@@ -2859,8 +2859,8 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeAngularPreproces
 
   exp_pen2ij = exp(-p_pen2 * (BOA_ij - 2.0)*(BOA_ij - 2.0));
   exp_pen2jk = exp(-p_pen2 * (BOA_ik - 2.0)*(BOA_ik - 2.0));
-  exp_pen3 = exp(-p_pen3 * d_Delta[i]);
-  exp_pen4 = exp(p_pen4 * d_Delta[i]);
+  exp_pen3 = exp((double)(-p_pen3 * d_Delta[i]));
+  exp_pen4 = exp((double)(p_pen4 * d_Delta[i]));
   trm_pen34 = 1.0 + exp_pen3 + exp_pen4;
   f9_Dj = (2.0 + exp_pen3) / trm_pen34;
   Cf9j = (-p_pen3 * exp_pen3 * trm_pen34 - (2.0 + exp_pen3) *
@@ -2877,7 +2877,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeAngularPreproces
   // ConjAngle energy
 
   p_coa1 = paramsthbp(jtype,itype,ktype).p_coa1;
-  exp_coa2 = exp(p_coa2 * Delta_val);
+  exp_coa2 = exp((double)(p_coa2 * Delta_val));
   e_coa = p_coa1 / (1. + exp_coa2) *
           exp(-p_coa3 * SQR(d_total_bo[j]-BOA_ij)) *
           exp(-p_coa3 * SQR(d_total_bo[k]-BOA_ik)) *
@@ -3016,8 +3016,8 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsionPreproces
   Delta_j = d_Delta_boc[j];
   exp_tor2_ij = exp(-p_tor2 * BOA_ij);
   exp_cot2_ij = exp(-p_cot2 * SQR(BOA_ij - 1.5));
-  exp_tor3_DiDj = exp(-p_tor3 * (Delta_i + Delta_j));
-  exp_tor4_DiDj = exp(p_tor4  * (Delta_i + Delta_j));
+  exp_tor3_DiDj = exp((double)(-p_tor3 * (Delta_i + Delta_j)));
+  exp_tor4_DiDj = exp((double)(p_tor4  * (Delta_i + Delta_j)));
   exp_tor34_inv = 1.0 / (1.0 + exp_tor3_DiDj + exp_tor4_DiDj);
   f11_DiDj = (2.0 + exp_tor3_DiDj) * exp_tor34_inv;
 

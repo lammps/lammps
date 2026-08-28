@@ -78,8 +78,8 @@ if(BUILD_LAMMPS_GUI)
   # packaging support for LAMMPS-GUI when compiled with LAMMPS
   option(BUILD_WHAM "Download and compile WHAM executable from Grossfield Lab" YES)
   if(BUILD_WHAM)
-    set(WHAM_URL "https://download.lammps.org/thirdparty/wham-release-2.1.0.tar.gz" CACHE STRING "URL for WHAM tarball")
-    set(WHAM_SHA256 "a25f574fdbcc15ad5d44fe20bc5f9383da0f8f29bc36803aa62c66a43806b629" CACHE STRING "SHA256 checksum of WHAM tarball")
+    set(WHAM_URL "https://download.lammps.org/thirdparty/wham-release-2.1.1.tar.gz" CACHE STRING "URL for WHAM tarball")
+    set(WHAM_SHA256 "3c02fb854bf17f6d4bd2aafedcf3e1996cd3384d998e368be03a59b06d39f8d4" CACHE STRING "SHA256 checksum of WHAM tarball")
     mark_as_advanced(WHAM_URL)
     mark_as_advanced(WHAM_SHA256)
 

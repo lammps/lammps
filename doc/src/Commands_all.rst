@@ -116,6 +116,7 @@ additional letter in parentheses: k = KOKKOS.
    :columns: 6
 
    * :doc:`dynamical_matrix (k) <dynamical_matrix>`
+   * :doc:`fenix <fenix>`
    * :doc:`group2ndx <group2ndx>`
    * :doc:`hyper <hyper>`
    * :doc:`kim <kim_commands>`

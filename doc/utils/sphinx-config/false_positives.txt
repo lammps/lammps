@@ -397,6 +397,7 @@ boostostat
 boostostatting
 Boresch
 borophene
+Bosilca
 bosonic
 bosons
 Botero
@@ -404,6 +405,7 @@ Botu
 Bouguet
 Bourasseau
 Bourne
+Bouteiller
 boxcolor
 boxhi
 boxlo
@@ -954,6 +956,7 @@ dof
 doi
 Donadio
 Donev
+Dongarra
 dotc
 Doty
 downarrow
@@ -1257,6 +1260,8 @@ femtosecond
 femtoseconds
 fene
 Feng
+fenix
+Fenix
 Fennell
 fep
 FEP
@@ -1467,6 +1472,7 @@ Ghahremanpour
 Ghoufi
 Giacomo
 GiB
+Giem
 gif
 gifsicle
 Gillan
@@ -1629,6 +1635,7 @@ Henkes
 Hennig
 henrich
 Henrich
+Herault
 Hermitian
 Herrmann
 Hershchel
@@ -2815,6 +2822,7 @@ nhc
 nhi
 NiAlH
 Nicklas
+Nicolae
 Nieto
 Niklasson
 Nikolas
@@ -3714,6 +3722,7 @@ Sanyal
 Sanz
 Saomoto
 Sarath
+Sarkar
 sawteeth
 sc
 scafacos
@@ -4103,6 +4112,7 @@ templating
 Templeton
 Tencer
 Tequil
+Teranishi
 Terentyev
 ters
 tersoff
@@ -4379,6 +4389,7 @@ Uttormark
 uval
 uvm
 uwo
+uworld
 Uzdin
 vacf
 Vaid

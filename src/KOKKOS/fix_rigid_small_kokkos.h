@@ -31,7 +31,6 @@ FixStyle(rigid/small/kk/host,FixRigidSmallKokkos<LMPHostType>);
 #ifdef LMP_KOKKOS_DEBUG_RNG
 #include "rand_pool_wrap_kokkos.h"
 #endif
-#include <vector>
 
 struct TagInitialIntegrate {};
 template <int SETXFLAG> struct TagSetXV {};

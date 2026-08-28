@@ -1,4 +1,4 @@
-LAMMPS (4 Jul 2026 - Development - 0a9184baf7-modified)
+LAMMPS (4 Jul 2026 - Development - c817842e5b)
 # Two coupled variable-magnitude spins driven by the native dipole interaction
 #
 # The dipole energy depends on the complete spin vectors S_i = |S_i| s_i.
@@ -14,7 +14,7 @@ atom_style      spin
 region          box block -5.0 5.0 -5.0 5.0 -5.0 5.0 units box
 create_box      1 box
 Created orthogonal box = (-5 -5 -5) to (5 5 5)
-  1 by 1 by 1 MPI processor grid
+  1 by 2 by 2 MPI processor grid
 create_atoms    1 single -0.75 0.0 0.0 units box
 Created 1 atoms
   using box units in orthogonal box = (-5 -5 -5) to (5 5 5)
@@ -101,8 +101,8 @@ Neighbor list info ...
       pair build: full/bin/atomonly
       stencil: full/bin/3d
       bin: standard
-Per MPI rank memory allocation (min/avg/max) = 5.162 | 5.162 | 5.162 Mbytes
-   Step          Time           Temp          PotEng         KinEng         c_ske       v_conserved     c_smodavg       c_mag[4]
+Per MPI rank memory allocation (min/avg/max) = 4.801 | 4.895 | 5.176 Mbytes
+   Step          Time           Temp          PotEng         KinEng         c_ske       v_conserved     c_smodavg       c_mag[4]   
          0                     0                    0 -8.09593825560551e-05                    0                    0 -8.09593825560551e-05                  2.5    0.843879158621638
        200                   0.1  3.3224146860605e-05 -8.12819054336368e-05 4.29455804070309e-09 3.18227827035842e-07 -8.09593830485602e-05     2.50150241657834    0.843805157719104
        400                   0.2 0.000133600818892501 -8.20223988125775e-05 1.72692612221635e-08 1.04574636994631e-06 -8.09593831814091e-05     2.50469267544065    0.843585872524445
@@ -124,29 +124,29 @@ Per MPI rank memory allocation (min/avg/max) = 5.162 | 5.162 | 5.162 Mbytes
       3600                   1.8   0.0142206203065033 -0.000143854718531531 1.83815944280856e-06 6.10571747079676e-05 -8.09593843807548e-05     2.50734645163652    0.838459130650356
       3800                   1.9    0.016218819812125 -0.000148739936510439 2.09644700064416e-06 6.56841054634006e-05 -8.09593840463938e-05     2.50577235685683    0.839966856617198
       4000                     2   0.0183894874618245 -0.000153315531508025 2.37702781579112e-06 6.99791190908822e-05 -8.09593846013514e-05     2.50708942665303    0.841928283472595
-Loop time of 0.00141592 on 1 procs for 4000 steps with 2 atoms
+Loop time of 0.00389936 on 4 procs for 4000 steps with 2 atoms
 
-Performance: 122041.052 ns/day, 0.000 hours/ns, 2825024.348 timesteps/s, 5.650 Matom-step/s
-98.9% CPU use with 1 MPI tasks x no OpenMP threads
+Performance: 44314.911 ns/day, 0.001 hours/ns, 1025808.114 timesteps/s, 2.052 Matom-step/s
+99.3% CPU use with 4 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.0002573  | 0.0002573  | 0.0002573  |   0.0 | 18.17
+Pair    | 8.743e-05  | 0.00015319 | 0.00034685 |   0.0 |  3.93
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.00017299 | 0.00017299 | 0.00017299 |   0.0 | 12.22
-Output  | 7.6792e-05 | 7.6792e-05 | 7.6792e-05 |   0.0 |  5.42
-Modify  | 0.00056145 | 0.00056145 | 0.00056145 |   0.0 | 39.65
-Other   |            | 0.0003474  |            |       | 24.53
+Comm    | 0.00093152 | 0.001359   | 0.0018485  |   1.1 | 34.85
+Output  | 0.00013267 | 0.00014848 | 0.00018583 |   0.0 |  3.81
+Modify  | 0.00018236 | 0.00026462 | 0.0005056  |   0.0 |  6.79
+Other   |            | 0.001974   |            |       | 50.62
 
-Nlocal:              2 ave           2 max           2 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:              0 ave           0 max           0 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
+Nlocal:            0.5 ave           2 max           0 min
+Histogram: 3 0 0 0 0 0 0 0 0 1
+Nghost:            1.5 ave           2 max           0 min
+Histogram: 1 0 0 0 0 0 0 0 0 3
 Neighs:              0 ave           0 max           0 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-FullNghs:            2 ave           2 max           2 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
+Histogram: 4 0 0 0 0 0 0 0 0 0
+FullNghs:          0.5 ave           2 max           0 min
+Histogram: 3 0 0 0 0 0 0 0 0 1
 
 Total # of neighbors = 2
 Ave neighs/atom = 1

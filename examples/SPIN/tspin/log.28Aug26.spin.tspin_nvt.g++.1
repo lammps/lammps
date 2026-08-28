@@ -1,4 +1,4 @@
-LAMMPS (4 Jul 2026 - Development - c229a2a242-modified)
+LAMMPS (4 Jul 2026 - Development - c817842e5b)
 # bcc iron in an inertial spin dynamics simulation (NVT)
 #
 # fix nvt/tspin drives the lattice and the spin degrees of freedom with two
@@ -71,7 +71,7 @@ Neighbor list info ...
       stencil: half/bin/3d
       bin: standard
 Per MPI rank memory allocation (min/avg/max) = 5.478 | 5.478 | 5.478 Mbytes
-   Step          Time           Temp        v_magnorm        PotEng         c_ske          v_etot
+   Step          Time           Temp        v_magnorm        PotEng         c_ske          v_etot    
          0                     0                  300    0.155361980793619    -527.557932950689          4.963589568    -517.669531858189
        500                  0.05     100.247501280844    0.121374110199838    -522.206851619064     3.86999946506393    -517.669421392403
       1000                   0.1     192.994614810786   0.0363313275437135    -523.698880441572     5.41526400637358    -517.669495213991
@@ -113,20 +113,20 @@ Per MPI rank memory allocation (min/avg/max) = 5.478 | 5.478 | 5.478 Mbytes
      19000                   1.9     323.952607762293   0.0646855754587443    -521.856580302154     4.98933237253465    -517.669469096221
      19500                  1.95     254.340227219964   0.0549878450704126    -519.991535276095     4.86236569896309    -517.669437133772
      20000                     2     369.669172170419   0.0711378194160667    -521.476101128658     5.58514090322099    -517.669465876329
-Loop time of 1.03595 on 1 procs for 20000 steps with 128 atoms
+Loop time of 1.06811 on 1 procs for 20000 steps with 128 atoms
 
-Performance: 166.804 ns/day, 0.144 hours/ns, 19306.006 timesteps/s, 2.471 Matom-step/s
-98.1% CPU use with 1 MPI tasks x no OpenMP threads
+Performance: 161.781 ns/day, 0.148 hours/ns, 18724.684 timesteps/s, 2.397 Matom-step/s
+95.0% CPU use with 1 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.76957    | 0.76957    | 0.76957    |   0.0 | 74.29
-Neigh   | 0.021447   | 0.021447   | 0.021447   |   0.0 |  2.07
-Comm    | 0.1551     | 0.1551     | 0.1551     |   0.0 | 14.97
-Output  | 0.00049208 | 0.00049208 | 0.00049208 |   0.0 |  0.05
-Modify  | 0.065784   | 0.065784   | 0.065784   |   0.0 |  6.35
-Other   |            | 0.02355    |            |       |  2.27
+Pair    | 0.79546    | 0.79546    | 0.79546    |   0.0 | 74.47
+Neigh   | 0.021836   | 0.021836   | 0.021836   |   0.0 |  2.04
+Comm    | 0.16161    | 0.16161    | 0.16161    |   0.0 | 15.13
+Output  | 0.00064892 | 0.00064892 | 0.00064892 |   0.0 |  0.06
+Modify  | 0.064104   | 0.064104   | 0.064104   |   0.0 |  6.00
+Other   |            | 0.02445    |            |       |  2.29
 
 Nlocal:            128 ave         128 max         128 min
 Histogram: 1 0 0 0 0 0 0 0 0 0

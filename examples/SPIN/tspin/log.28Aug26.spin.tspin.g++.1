@@ -1,4 +1,4 @@
-LAMMPS (4 Jul 2026 - Development - c229a2a242-modified)
+LAMMPS (4 Jul 2026 - Development - c817842e5b)
 # bcc iron in an inertial spin dynamics simulation (NVE)
 #
 # The spin modulus is a dynamical degree of freedom here, so every spin needs a
@@ -24,7 +24,7 @@ Created orthogonal box = (0 0 0) to (11.466 11.466 11.466)
 create_atoms    1 box
 Created 128 atoms
   using lattice units in orthogonal box = (0 0 0) to (11.466 11.466 11.466)
-  create_atoms CPU = 0.000 seconds
+  create_atoms CPU = 0.001 seconds
 
 # setting mass, mag. moments, and interactions for bcc iron
 
@@ -78,7 +78,7 @@ Neighbor list info ...
       stencil: half/bin/3d
       bin: standard
 Per MPI rank memory allocation (min/avg/max) = 5.478 | 5.478 | 5.478 Mbytes
-   Step          Time           Temp        v_magnorm        PotEng         c_ske          v_etot
+   Step          Time           Temp        v_magnorm        PotEng         c_ske          v_etot    
          0                     0                  300    0.155361980793619    -527.557932950689          4.963589568    -517.669531858189
        200                  0.02     148.217190701089    0.153091555286318    -524.767227417691     4.66457246821848     -517.66951585316
        400                  0.04     51.5846331936905     0.13729184311476    -523.439346713408     4.92302031000156    -517.669511083275
@@ -90,20 +90,20 @@ Per MPI rank memory allocation (min/avg/max) = 5.478 | 5.478 | 5.478 Mbytes
       1600                  0.16     135.511365818595   0.0579234673340528    -524.321471776553     4.42742554333824    -517.669486446268
       1800                  0.18     142.701380881067   0.0566262675947366     -524.01125174056     3.99917962384388    -517.669480766299
       2000                   0.2     133.644866320184    0.049811439209158    -524.076137194616     4.21274514209214    -517.669472793045
-Loop time of 0.0925462 on 1 procs for 2000 steps with 128 atoms
+Loop time of 0.0942413 on 1 procs for 2000 steps with 128 atoms
 
-Performance: 186.718 ns/day, 0.129 hours/ns, 21610.836 timesteps/s, 2.766 Matom-step/s
-99.4% CPU use with 1 MPI tasks x no OpenMP threads
+Performance: 183.359 ns/day, 0.131 hours/ns, 21222.111 timesteps/s, 2.716 Matom-step/s
+99.9% CPU use with 1 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.070116   | 0.070116   | 0.070116   |   0.0 | 75.76
-Neigh   | 0.0014429  | 0.0014429  | 0.0014429  |   0.0 |  1.56
-Comm    | 0.015238   | 0.015238   | 0.015238   |   0.0 | 16.47
-Output  | 0.00013821 | 0.00013821 | 0.00013821 |   0.0 |  0.15
-Modify  | 0.0033723  | 0.0033723  | 0.0033723  |   0.0 |  3.64
-Other   |            | 0.002239   |            |       |  2.42
+Pair    | 0.071293   | 0.071293   | 0.071293   |   0.0 | 75.65
+Neigh   | 0.001372   | 0.001372   | 0.001372   |   0.0 |  1.46
+Comm    | 0.015756   | 0.015756   | 0.015756   |   0.0 | 16.72
+Output  | 8.7582e-05 | 8.7582e-05 | 8.7582e-05 |   0.0 |  0.09
+Modify  | 0.0033784  | 0.0033784  | 0.0033784  |   0.0 |  3.58
+Other   |            | 0.002355   |            |       |  2.50
 
 Nlocal:            128 ave         128 max         128 min
 Histogram: 1 0 0 0 0 0 0 0 0 0

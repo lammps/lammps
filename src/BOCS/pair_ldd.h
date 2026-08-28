@@ -26,8 +26,6 @@ PairStyle(ldd,PairLdd);
 #ifndef LMP_PAIR_LDD_H
 #define LMP_PAIR_LDD_H
 
-#include <map>
-
 #include "pair.h"
 
 namespace LAMMPS_NS {
@@ -35,6 +33,26 @@ namespace LAMMPS_NS {
 //Forward Declarations
 class LddIndicator;
 class LddPotential;
+
+// the registration tables below use LMP_REGISTRY_CONST (see lmptype.h): const,
+// except in a GPU-enabled Kokkos build where the host-only factory function
+// pointers must not be shadowed into device memory.
+
+typedef LddIndicator *(*IndicatorCreator)(LAMMPS *);
+struct LddIndicatorInfo {
+  const char *name;
+  IndicatorCreator creator;
+};
+extern LMP_REGISTRY_CONST LddIndicatorInfo ldd_indicator_table[];
+extern LMP_REGISTRY_CONST int num_ldd_indicator;
+
+typedef LddPotential *(*PotentialCreator)(LAMMPS *);
+struct LddPotentialInfo {
+  const char *name;
+  PotentialCreator creator;
+};
+extern LMP_REGISTRY_CONST LddPotentialInfo ldd_potential_table[];
+extern LMP_REGISTRY_CONST int num_ldd_potential;
 
 class PairLdd : public Pair {
  public:
@@ -49,16 +67,7 @@ class PairLdd : public Pair {
   void *extract_peratom(const char *, int &) override;
   void coeff_ldd(int si, int sj, int narg, char **arg);
 
-  // factory maps for the indicator and potential subclasses,
-  // built the same way as the style maps in force.cpp
-  using IndicatorCreator = LddIndicator *(*) (LAMMPS *);
-  using IndicatorCreatorMap = std::map<std::string, IndicatorCreator>;
-  IndicatorCreatorMap *indicator_map;
   class LddIndicator *new_indicator(const std::string &);
-
-  using PotentialCreator = LddPotential *(*) (LAMMPS *);
-  using PotentialCreatorMap = std::map<std::string, PotentialCreator>;
-  PotentialCreatorMap *potential_map;
   class LddPotential *new_potential(const std::string &);
 
   // Functions to calculate the local densities, the gradients,
@@ -100,11 +109,6 @@ class PairLdd : public Pair {
   void ErrorNumKeywordArgs(const char *, const char *);
   void read_file(char *filename);    // reads ldd potential file, executes coeff_ldd per entry
 
- private:
-  // Again, the same as done in force.h
-  void LDD_factory();
-  template <typename T> static LddIndicator *indicator_creator(LAMMPS *);
-  template <typename T> static LddPotential *potential_creator(LAMMPS *);
 };
 
 }    // namespace LAMMPS_NS

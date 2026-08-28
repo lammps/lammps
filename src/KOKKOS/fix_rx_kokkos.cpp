@@ -240,24 +240,24 @@ void FixRxKokkos<DeviceType>::k_rk4(const double t_stop, VectorType& y, VectorTy
 
     // k2
     for (int ispecies = 0; ispecies < nspecies; ispecies++)
-      yp[ispecies] = y[ispecies] + 0.5*h*k1[ispecies];
+      yp[ispecies] = static_cast<KK_FLOAT>(static_cast<double>(y[ispecies]) + 0.5*h*static_cast<double>(k1[ispecies]));
 
     k_rhs(0.0,yp,k2, userData);
 
     // k3
     for (int ispecies = 0; ispecies < nspecies; ispecies++)
-      yp[ispecies] = y[ispecies] + 0.5*h*k2[ispecies];
+      yp[ispecies] = static_cast<KK_FLOAT>(static_cast<double>(y[ispecies]) + 0.5*h*static_cast<double>(k2[ispecies]));
 
     k_rhs(0.0,yp,k3, userData);
 
     // k4
     for (int ispecies = 0; ispecies < nspecies; ispecies++)
-      yp[ispecies] = y[ispecies] + h*k3[ispecies];
+      yp[ispecies] = static_cast<KK_FLOAT>(static_cast<double>(y[ispecies]) + h*static_cast<double>(k3[ispecies]));
 
     k_rhs(0.0,yp,k4, userData);
 
     for (int ispecies = 0; ispecies < nspecies; ispecies++)
-      y[ispecies] += h*(k1[ispecies]/6.0 + k2[ispecies]/3.0 + k3[ispecies]/3.0 + k4[ispecies]/6.0);
+      y[ispecies] += static_cast<KK_FLOAT>(h*(static_cast<double>(k1[ispecies])/6.0 + static_cast<double>(k2[ispecies])/3.0 + static_cast<double>(k3[ispecies])/3.0 + static_cast<double>(k4[ispecies])/6.0));
 
   } // end for (int step...
 
@@ -323,40 +323,40 @@ void FixRxKokkos<DeviceType>::k_rkf45_step (const int neq, const double h, Vecto
    k_rhs (0.0, y, f1, userData);
 
    for (int k = 0; k < neq; k++) {
-      f1[k] *= h;
-      ytmp[k] = y[k] + c21 * f1[k];
+      f1[k] = static_cast<KK_FLOAT>(static_cast<double>(f1[k]) * h);
+      ytmp[k] = static_cast<KK_FLOAT>(static_cast<double>(y[k]) + c21 * static_cast<double>(f1[k]));
    }
 
    // 2)
    k_rhs(0.0, ytmp, f2, userData);
 
    for (int k = 0; k < neq; k++) {
-      f2[k] *= h;
-      ytmp[k] = y[k] + c31 * f1[k] + c32 * f2[k];
+      f2[k] = static_cast<KK_FLOAT>(static_cast<double>(f2[k]) * h);
+      ytmp[k] = static_cast<KK_FLOAT>(static_cast<double>(y[k]) + c31 * static_cast<double>(f1[k]) + c32 * static_cast<double>(f2[k]));
    }
 
    // 3)
    k_rhs(0.0, ytmp, f3, userData);
 
    for (int k = 0; k < neq; k++) {
-      f3[k] *= h;
-      ytmp[k] = y[k] + c41 * f1[k] + c42 * f2[k] + c43 * f3[k];
+      f3[k] = static_cast<KK_FLOAT>(static_cast<double>(f3[k]) * h);
+      ytmp[k] = static_cast<KK_FLOAT>(static_cast<double>(y[k]) + c41 * static_cast<double>(f1[k]) + c42 * static_cast<double>(f2[k]) + c43 * static_cast<double>(f3[k]));
    }
 
    // 4)
    k_rhs(0.0, ytmp, f4, userData);
 
    for (int k = 0; k < neq; k++) {
-      f4[k] *= h;
-      ytmp[k] = y[k] + c51 * f1[k] + c52 * f2[k] + c53 * f3[k] + c54 * f4[k];
+      f4[k] = static_cast<KK_FLOAT>(static_cast<double>(f4[k]) * h);
+      ytmp[k] = static_cast<KK_FLOAT>(static_cast<double>(y[k]) + c51 * static_cast<double>(f1[k]) + c52 * static_cast<double>(f2[k]) + c53 * static_cast<double>(f3[k]) + c54 * static_cast<double>(f4[k]));
    }
 
    // 5)
    k_rhs(0.0, ytmp, f5, userData);
 
    for (int k = 0; k < neq; k++) {
-      f5[k] *= h;
-      ytmp[k] = y[k] + c61*f1[k] + c62*f2[k] + c63*f3[k] + c64*f4[k] + c65*f5[k];
+      f5[k] = static_cast<KK_FLOAT>(static_cast<double>(f5[k]) * h);
+      ytmp[k] = static_cast<KK_FLOAT>(static_cast<double>(y[k]) + c61*static_cast<double>(f1[k]) + c62*static_cast<double>(f2[k]) + c63*static_cast<double>(f3[k]) + c64*static_cast<double>(f4[k]) + c65*static_cast<double>(f5[k]));
    }
 
    // 6)
@@ -365,20 +365,20 @@ void FixRxKokkos<DeviceType>::k_rkf45_step (const int neq, const double h, Vecto
    for (int k = 0; k < neq; k++)
    {
       //const double f6 = h * ydot[k];
-      f6[k] *= h;
+      f6[k] = static_cast<KK_FLOAT>(static_cast<double>(f6[k]) * h);
 
       // 5th-order solution.
-      const double r5 = b1*f1[k] + b3*f3[k] + b4*f4[k] + b5*f5[k] + b6*f6[k];
+      const double r5 = b1*static_cast<double>(f1[k]) + b3*static_cast<double>(f3[k]) + b4*static_cast<double>(f4[k]) + b5*static_cast<double>(f5[k]) + b6*static_cast<double>(f6[k]);
 
       // 4th-order solution.
-      const double r4 = a1*f1[k] + a3*f3[k] + a4*f4[k] + a5*f5[k];
+      const double r4 = a1*static_cast<double>(f1[k]) + a3*static_cast<double>(f3[k]) + a4*static_cast<double>(f4[k]) + a5*static_cast<double>(f5[k]);
 
       // Truncation error: difference between 4th and 5th-order solutions.
-      rwk[k] = fabs(r5 - r4);
+      rwk[k] = static_cast<KK_FLOAT>(fabs(r5 - r4));
 
       // Update solution.
     //y_out[k] = y[k] + r5; // Local extrapolation
-      y_out[k] = y[k] + r4;
+      y_out[k] = static_cast<KK_FLOAT>(static_cast<double>(y[k]) + r4);
    }
 }
 
@@ -421,7 +421,7 @@ int FixRxKokkos<DeviceType>::k_rkf45_h0 (const int neq, const double t, const do
       // Estimate y'' with finite-difference ...
 
       for (int k = 0; k < neq; k++)
-         y1[k] = y[k] + hg * ydot[k];
+         y1[k] = static_cast<KK_FLOAT>(static_cast<double>(y[k]) + hg * static_cast<double>(ydot[k]));
 
       // compute y' at t1
       k_rhs (t + hg, y1, ydot1, userData);
@@ -429,8 +429,8 @@ int FixRxKokkos<DeviceType>::k_rkf45_h0 (const int neq, const double t, const do
       // Compute WRMS norm of y''
       double yddnrm = 0.0;
       for (int k = 0; k < neq; k++) {
-         double ydd = (ydot1[k] - ydot[k]) / hg;
-         double wterr = ydd / (relTol * fabs( y[k] ) + absTol);
+         double ydd = static_cast<double>(ydot1[k] - ydot[k]) / hg;
+         double wterr = ydd / (relTol * fabs( static_cast<double>(y[k]) ) + absTol);
          yddnrm += wterr * wterr;
       }
 
@@ -517,7 +517,7 @@ void FixRxKokkos<DeviceType>::k_rkf45(const int neq, const double t_stop, Vector
       // ... weighted 2-norm of the error.
       double err2 = 0.0;
       for (int k = 0; k < neq; k++) {
-        const double wterr = eout[k] / (relTol * fabs( y[k] ) + absTol);
+        const double wterr = static_cast<double>(eout[k]) / (relTol * fabs( static_cast<double>(y[k]) ) + absTol);
         err2 += wterr * wterr;
       }
 
@@ -900,7 +900,7 @@ int FixRxKokkos<DeviceType>::rhs_dense(double /*t*/, const double *y, double *dy
 
     for (int ispecies=0; ispecies<nspecies; ispecies++) {
       const double concentration = y[ispecies]/VDPD;
-      rxnRateLawForward *= pow( concentration, d_kineticsData.stoichReactants(jrxn,ispecies) );
+      rxnRateLawForward *= pow( concentration, static_cast<double>(d_kineticsData.stoichReactants(jrxn,ispecies)) );
     }
     rxnRateLaw[jrxn] = rxnRateLawForward;
   }
@@ -909,7 +909,7 @@ int FixRxKokkos<DeviceType>::rhs_dense(double /*t*/, const double *y, double *dy
   for (int ispecies=0; ispecies<nspecies; ispecies++)
     for (int jrxn=0; jrxn<nreactions; jrxn++)
     {
-      dydt[ispecies] += d_kineticsData.stoich(jrxn,ispecies) *VDPD*rxnRateLaw[jrxn];
+      dydt[ispecies] += static_cast<double>(d_kineticsData.stoich(jrxn,ispecies)) *VDPD*rxnRateLaw[jrxn];
     }
 
   return 0;
@@ -949,11 +949,11 @@ int FixRxKokkos<DeviceType>::rhs_sparse(double /*t*/, const double *y, double *d
                rxnRateLawForward *= powint( conc[k], inu(i,kk) );
          }
       } else {
-         rxnRateLawForward = kFor[i] * pow( conc[ nuk(i,0) ], nu(i,0) );
+         rxnRateLawForward = kFor[i] * pow( conc[ nuk(i,0) ], static_cast<double>(nu(i,0)) );
          for (int kk = 1; kk < maxReactants; ++kk) {
             const int k = nuk(i,kk);
             if (k == SparseKinetics_invalidIndex) break;
-               rxnRateLawForward *= pow( conc[k], nu(i,kk) );
+               rxnRateLawForward *= pow( conc[k], static_cast<double>(nu(i,kk)) );
          }
       }
 
@@ -967,19 +967,19 @@ int FixRxKokkos<DeviceType>::rhs_sparse(double /*t*/, const double *y, double *d
 
    for (int i = 0; i < nreactions; ++i) {
       // Reactants ...
-      dydt[ nuk(i,0) ] -= nu(i,0) * rxnRateLaw[i];
+      dydt[ nuk(i,0) ] -= static_cast<double>(nu(i,0)) * rxnRateLaw[i];
       for (int kk = 1; kk < maxReactants; ++kk) {
          const int k = nuk(i,kk);
          if (k == SparseKinetics_invalidIndex) break;
-            dydt[k] -= nu(i,kk) * rxnRateLaw[i];
+            dydt[k] -= static_cast<double>(nu(i,kk)) * rxnRateLaw[i];
       }
 
       // Products ...
-      dydt[ nuk(i,maxReactants) ] += nu(i,maxReactants) * rxnRateLaw[i];
+      dydt[ nuk(i,maxReactants) ] += static_cast<double>(nu(i,maxReactants)) * rxnRateLaw[i];
       for (int kk = maxReactants+1; kk < maxSpecies; ++kk) {
          const int k = nuk(i,kk);
          if (k == SparseKinetics_invalidIndex) break;
-            dydt[k] += nu(i,kk) * rxnRateLaw[i];
+            dydt[k] += static_cast<double>(nu(i,kk)) * rxnRateLaw[i];
       }
    }
 
@@ -1033,20 +1033,20 @@ int FixRxKokkos<DeviceType>::k_rhs_dense(double /*t*/, const VectorType& y, Vect
 
   // Construct the reaction rate laws
   for (int jrxn=0; jrxn<nreactions; jrxn++) {
-    double rxnRateLawForward = kFor[jrxn];
+    double rxnRateLawForward = static_cast<double>(kFor[jrxn]);
 
     for (int ispecies=0; ispecies<nspecies; ispecies++) {
-      const double concentration = y[ispecies]/VDPD;
-      rxnRateLawForward *= pow( concentration, d_kineticsData.stoichReactants(jrxn,ispecies) );
+      const double concentration = static_cast<double>(y[ispecies])/VDPD;
+      rxnRateLawForward *= pow( concentration, static_cast<double>(d_kineticsData.stoichReactants(jrxn,ispecies)) );
     }
-    rxnRateLaw[jrxn] = rxnRateLawForward;
+    rxnRateLaw[jrxn] = static_cast<KK_FLOAT>(rxnRateLawForward);
   }
 
   // Construct the reaction rates for each species
   for (int ispecies=0; ispecies<nspecies; ispecies++)
     for (int jrxn=0; jrxn<nreactions; jrxn++)
     {
-      dydt[ispecies] += d_kineticsData.stoich(jrxn,ispecies) *VDPD*rxnRateLaw[jrxn];
+      dydt[ispecies] += static_cast<KK_FLOAT>(static_cast<double>(d_kineticsData.stoich(jrxn,ispecies)) *VDPD*static_cast<double>(rxnRateLaw[jrxn]));
     }
 
   #undef rxnRateLaw
@@ -1076,29 +1076,29 @@ int FixRxKokkos<DeviceType>::k_rhs_sparse(double /*t*/, const VectorType& y, Vec
                              && this->d_kineticsData.isIntegral(idx) )
 
    for (int k = 0; k < nspecies; ++k)
-      conc[k] = y[k] / VDPD;
+      conc[k] = static_cast<KK_FLOAT>(static_cast<double>(y[k]) / VDPD);
 
    // Construct the reaction rate laws
    for (int i = 0; i < nreactions; ++i)
    {
       double rxnRateLawForward;
       if (isIntegral(i)) {
-         rxnRateLawForward = kFor[i] * powint( conc[ nuk(i,0) ], inu(i,0) );
+         rxnRateLawForward = static_cast<double>(kFor[i] * powint( conc[ nuk(i,0) ], inu(i,0) ));
          for (int kk = 1; kk < maxReactants; ++kk) {
             const int k = nuk(i,kk);
             if (k == SparseKinetics_invalidIndex) break;
-               rxnRateLawForward *= powint( conc[k], inu(i,kk) );
+               rxnRateLawForward *= static_cast<double>(powint( conc[k], inu(i,kk) ));
          }
       } else {
-         rxnRateLawForward = kFor[i] * pow( conc[ nuk(i,0) ], nu(i,0) );
+         rxnRateLawForward = static_cast<double>(kFor[i] * Kokkos::pow( conc[ nuk(i,0) ], nu(i,0) ));
          for (int kk = 1; kk < maxReactants; ++kk) {
             const int k = nuk(i,kk);
             if (k == SparseKinetics_invalidIndex) break;
-               rxnRateLawForward *= pow( conc[k], nu(i,kk) );
+               rxnRateLawForward *= static_cast<double>(Kokkos::pow( conc[k], nu(i,kk) ));
          }
       }
 
-      rxnRateLaw[i] = rxnRateLawForward;
+      rxnRateLaw[i] = static_cast<KK_FLOAT>(rxnRateLawForward);
    }
 
    // Construct the reaction rates for each species from the
@@ -1126,7 +1126,7 @@ int FixRxKokkos<DeviceType>::k_rhs_sparse(double /*t*/, const VectorType& y, Vec
 
    // Add in the volume factor to convert to the proper units.
    for (int k = 0; k < nspecies; ++k)
-      dydt[k] *= VDPD;
+      dydt[k] = static_cast<KK_FLOAT>(static_cast<double>(dydt[k]) * VDPD);
 
    #undef kFor
    #undef kRev
@@ -1153,9 +1153,9 @@ void FixRxKokkos<DeviceType>::create_kinetics_data()
 
   for (int i = 0; i < nreactions; ++i)
   {
-    h_kineticsData.Arr[i]  = Arr[i];
-    h_kineticsData.nArr[i] = nArr[i];
-    h_kineticsData.Ea[i]   = Ea[i];
+    h_kineticsData.Arr[i]  = static_cast<KK_FLOAT>(Arr[i]);
+    h_kineticsData.nArr[i] = static_cast<KK_FLOAT>(nArr[i]);
+    h_kineticsData.Ea[i]   = static_cast<KK_FLOAT>(Ea[i]);
   }
 
   Kokkos::deep_copy( d_kineticsData.Arr, h_kineticsData.Arr );
@@ -1171,7 +1171,7 @@ void FixRxKokkos<DeviceType>::create_kinetics_data()
     for (int i = 0; i < nreactions; ++i)
       for (int k = 0; k < sparseKinetics_maxSpecies; ++k)
       {
-        h_kineticsData.nu (i,k) = sparseKinetics_nu [i][k];
+        h_kineticsData.nu (i,k) = static_cast<KK_FLOAT>(sparseKinetics_nu [i][k]);
         h_kineticsData.nuk(i,k) = sparseKinetics_nuk[i][k];
       }
 
@@ -1207,9 +1207,9 @@ void FixRxKokkos<DeviceType>::create_kinetics_data()
     for (int i = 0; i < nreactions; ++i)
       for (int k = 0; k < nspecies; ++k)
       {
-        h_kineticsData.stoich(i,k) = stoich[i][k];
-        h_kineticsData.stoichReactants(i,k) = stoichReactants[i][k];
-        h_kineticsData.stoichProducts(i,k) = stoichProducts[i][k];
+        h_kineticsData.stoich(i,k) = static_cast<KK_FLOAT>(stoich[i][k]);
+        h_kineticsData.stoichReactants(i,k) = static_cast<KK_FLOAT>(stoichReactants[i][k]);
+        h_kineticsData.stoichProducts(i,k) = static_cast<KK_FLOAT>(stoichProducts[i][k]);
       }
 
     Kokkos::deep_copy( d_kineticsData.stoich, h_kineticsData.stoich );
@@ -1272,7 +1272,7 @@ void FixRxKokkos<DeviceType>::operator()(Tag_FixRxKokkos_solveSystems<ZERO_RATES
 
     CounterType counter_i;
 
-    const double theta = (localTempFlag) ? d_dpdThetaLocal(i) : d_dpdTheta(i);
+    const double theta = (localTempFlag) ? static_cast<double>(d_dpdThetaLocal(i)) : static_cast<double>(d_dpdTheta(i));
 
     //Compute the reaction rate constants
     for (int irxn = 0; irxn < nreactions; irxn++)
@@ -1281,9 +1281,9 @@ void FixRxKokkos<DeviceType>::operator()(Tag_FixRxKokkos_solveSystems<ZERO_RATES
         userData.kFor[irxn] = 0.0;
       else
       {
-        userData.kFor[irxn] = d_kineticsData.Arr(irxn) *
-                               pow(theta, d_kineticsData.nArr(irxn)) *
-                               exp(-d_kineticsData.Ea(irxn) / boltz / theta);
+        userData.kFor[irxn] = static_cast<KK_FLOAT>(static_cast<double>(d_kineticsData.Arr(irxn)) *
+                               pow(theta, static_cast<double>(d_kineticsData.nArr(irxn))) *
+                               exp(-static_cast<double>(d_kineticsData.Ea(irxn)) / boltz / theta));
       }
     }
 
@@ -1293,9 +1293,9 @@ void FixRxKokkos<DeviceType>::operator()(Tag_FixRxKokkos_solveSystems<ZERO_RATES
       const auto atom_ind = d_species_ind_to_atom_prop_ind(ispecies);
       const auto atom_ind_old = d_species_ind_to_atom_prop_ind_old(ispecies);
 
-      const double tmp = d_dvector(atom_ind, i);
-      d_dvector(atom_ind_old, i) = tmp;
-      y[ispecies] = tmp;
+      const double tmp = static_cast<double>(d_dvector(atom_ind, i));
+      d_dvector(atom_ind_old, i) = static_cast<KK_FLOAT>(tmp);
+      y[ispecies] = static_cast<KK_FLOAT>(tmp);
     }
 
     // Solver the ODE system.
@@ -1317,13 +1317,13 @@ void FixRxKokkos<DeviceType>::operator()(Tag_FixRxKokkos_solveSystems<ZERO_RATES
     // Store the solution back in dvector.
     for (int ispecies = 0; ispecies < nspecies; ispecies++)
     {
-      if (y[ispecies] < -1.0e-10)
+      if (y[ispecies] < static_cast<KK_FLOAT>(-1.0e-10))
       {
         //error->one(FLERR,"Computed concentration in RK solver is < -1.0e-10");
         k_error_flag.template view<DeviceType>()() = 2;
         // This should be an atomic update.
       }
-      else if (y[ispecies] < MY_EPSILON)
+      else if (y[ispecies] < static_cast<KK_FLOAT>(MY_EPSILON))
         y[ispecies] = 0.0;
 
       const auto atom_ind = d_species_ind_to_atom_prop_ind(ispecies);
@@ -1693,9 +1693,9 @@ void FixRxKokkos<DeviceType>::operator()(Tag_FixRxKokkos_firstPairOperator<WT_FL
 
   const int i = d_ilist(ii);
 
-  const double xtmp = d_x(i,0);
-  const double ytmp = d_x(i,1);
-  const double ztmp = d_x(i,2);
+  const double xtmp = static_cast<double>(d_x(i,0));
+  const double ytmp = static_cast<double>(d_x(i,1));
+  const double ztmp = static_cast<double>(d_x(i,2));
   const int itype = d_type(i);
 
   const int jnum = d_numneigh(i);
@@ -1705,12 +1705,12 @@ void FixRxKokkos<DeviceType>::operator()(Tag_FixRxKokkos_firstPairOperator<WT_FL
     const int j = (d_neighbors(i,jj) & NEIGHMASK);
     const int jtype = d_type(j);
 
-    const double delx = xtmp - d_x(j,0);
-    const double dely = ytmp - d_x(j,1);
-    const double delz = ztmp - d_x(j,2);
+    const double delx = xtmp - static_cast<double>(d_x(j,0));
+    const double dely = ytmp - static_cast<double>(d_x(j,1));
+    const double delz = ztmp - static_cast<double>(d_x(j,2));
     const double rsq = delx*delx + dely*dely + delz*delz;
 
-    const double cutsq_ij = d_cutsq(itype,jtype);
+    const double cutsq_ij = static_cast<double>(d_cutsq(itype,jtype));
 
     if (rsq < cutsq_ij)
     {
@@ -1724,20 +1724,20 @@ void FixRxKokkos<DeviceType>::operator()(Tag_FixRxKokkos_firstPairOperator<WT_FL
       if (WT_FLAG == LUCY)
       {
         wij = (1.0+3.0*ratio) * (1.0-ratio)*(1.0-ratio)*(1.0-ratio);
-        i_dpdThetaLocal += wij / d_dpdTheta(j);
+        i_dpdThetaLocal += wij / static_cast<double>(d_dpdTheta(j));
         if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal))
-          a_dpdThetaLocal(j) += wij / d_dpdTheta(i);
+          a_dpdThetaLocal(j) += static_cast<KK_FLOAT>(wij / static_cast<double>(d_dpdTheta(i)));
       }
 
       i_sumWeights += wij;
       if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal))
-        a_sumWeights(j) += wij;
+        a_sumWeights(j) += static_cast<KK_FLOAT>(wij);
     }
   }
 
   // Update, don't assign, the array value (because another iteration may have hit it).
-  a_dpdThetaLocal(i) += i_dpdThetaLocal;
-  a_sumWeights(i) += i_sumWeights;
+  a_dpdThetaLocal(i) += static_cast<KK_FLOAT>(i_dpdThetaLocal);
+  a_sumWeights(i) += static_cast<KK_FLOAT>(i_sumWeights);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1754,15 +1754,15 @@ void FixRxKokkos<DeviceType>::operator()(Tag_FixRxKokkos_2ndPairOperator<WT_FLAG
   if (WT_FLAG == LUCY)
   {
     wij = 1.0;
-    d_dpdThetaLocal(i) += wij / d_dpdTheta(i);
+    d_dpdThetaLocal(i) += static_cast<KK_FLOAT>(wij / static_cast<double>(d_dpdTheta(i)));
   }
-  d_sumWeights(i) += wij;
+  d_sumWeights(i) += static_cast<KK_FLOAT>(wij);
 
   // Normalized local temperature
   d_dpdThetaLocal(i) = d_dpdThetaLocal(i) / d_sumWeights(i);
 
   if (LOCAL_TEMP_FLAG == HARMONIC)
-    d_dpdThetaLocal(i) = 1.0 / d_dpdThetaLocal(i);
+    d_dpdThetaLocal(i) = static_cast<KK_FLOAT>(1.0) / d_dpdThetaLocal(i);
 }
 
 /* ---------------------------------------------------------------------- */

@@ -339,7 +339,7 @@ void PairHybrid::settings(int narg, char **arg)
 
     jarg = iarg + 1;
     while ((jarg < narg)
-           && !force->pair_map->count(arg[jarg])
+           && !Force::pair_styles().contains(arg[jarg])
            && !lmp->match_style("pair", arg[jarg])) jarg++;
 
     styles[nstyles]->settings(jarg-iarg-1,&arg[iarg+1]);
@@ -762,7 +762,7 @@ double PairHybrid::init_one(int i, int j)
 
         for (const auto &request : neighbor->get_pair_requests()) {
           if (styles[istyle] == request->get_requestor()) {
-            request->set_cutoff(cutmax_style[istyle]);
+            request->set_cutoff_max(cutmax_style[istyle]);
             break;
           }
         }

@@ -152,13 +152,19 @@ static constexpr double INERTIA = 0.2;          // moment of inertia prefactor f
 /* ---------------------------------------------------------------------- */
 
 FixNVEAsphereGPU::FixNVEAsphereGPU(LAMMPS *lmp, int narg, char **arg) :
-  FixNVE(lmp, narg, arg)
+FixNVE(lmp, narg, arg), _dtfm(nullptr), _inertia0(nullptr), _inertia1(nullptr), _inertia2(nullptr)
 {
-  _dtfm = nullptr;
   _nlocal_max = 0;
-  _inertia0 = nullptr;
-  _inertia1 = nullptr;
-  _inertia2 = nullptr;
+}
+
+/* ---------------------------------------------------------------------- */
+
+FixNVEAsphereGPU::~FixNVEAsphereGPU()
+{
+  memory->destroy(_dtfm);
+  memory->destroy(_inertia0);
+  memory->destroy(_inertia1);
+  memory->destroy(_inertia2);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -167,10 +173,10 @@ void FixNVEAsphereGPU::init()
 {
   avec = dynamic_cast<AtomVecEllipsoid *>(atom->style_match("ellipsoid"));
   if (!avec)
-    error->all(FLERR,"Compute nve/asphere requires atom style ellipsoid");
+    error->all(FLERR, Error::NOLASTLINE, "Compute nve/asphere requires atom style ellipsoid");
 
   if (atom->superellipsoid_flag)
-    error->all(FLERR, "Fix nve/asphere_gpu does not support superellipsoids");
+    error->all(FLERR, Error::NOLASTLINE, "Fix nve/asphere_gpu does not support superellipsoids");
 
   // check that all particles are finite-size ellipsoids
   // no point particles allowed, spherical is OK
@@ -182,7 +188,7 @@ void FixNVEAsphereGPU::init()
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit)
       if (ellipsoid[i] < 0)
-        error->one(FLERR,"Fix nve/asphere requires extended particles");
+        error->one(FLERR, Error::NOLASTLINE, "Fix nve/asphere requires extended particles");
 
   FixNVE::init();
 }

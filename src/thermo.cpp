@@ -1033,37 +1033,21 @@ void Thermo::parse_fields(const std::string &str)
       addfield("CellGamma", &Thermo::compute_cellgamma, FLOAT);
 
     } else if (word == "pxx") {
-      if (triclinic_general)
-        addfield("Pxx", &Thermo::compute_pxx_triclinic_general, FLOAT);
-      else
-        addfield("Pxx", &Thermo::compute_pxx, FLOAT);
+      addfield("Pxx", &Thermo::compute_pxx, FLOAT);
       index_press_vector = add_compute(id_press, VECTOR);
     } else if (word == "pyy") {
-      if (triclinic_general)
-        addfield("Pyy", &Thermo::compute_pyy_triclinic_general, FLOAT);
-      else
-        addfield("Pyy", &Thermo::compute_pyy, FLOAT);
+      addfield("Pyy", &Thermo::compute_pyy, FLOAT);
       index_press_vector = add_compute(id_press, VECTOR);
     } else if (word == "pzz") {
-      if (triclinic_general)
-        addfield("Pzz", &Thermo::compute_pzz_triclinic_general, FLOAT);
-      else
-        addfield("Pzz", &Thermo::compute_pzz, FLOAT);
+      addfield("Pzz", &Thermo::compute_pzz, FLOAT);
       index_press_vector = add_compute(id_press, VECTOR);
     } else if (word == "pxy") {
-      if (triclinic_general)
-        addfield("Pxy", &Thermo::compute_pxy_triclinic_general, FLOAT);
-      else
-        addfield("Pxy", &Thermo::compute_pxy, FLOAT);
+      addfield("Pxy", &Thermo::compute_pxy, FLOAT);
       index_press_vector = add_compute(id_press, VECTOR);
     } else if (word == "pxz") {
-      if (triclinic_general)
-        addfield("Pxz", &Thermo::compute_pxz_triclinic_general, FLOAT);
-      else
-        addfield("Pxz", &Thermo::compute_pxz, FLOAT);
+      addfield("Pxz", &Thermo::compute_pxz, FLOAT);
       index_press_vector = add_compute(id_press, VECTOR);
     } else if (word == "pyz") {
-      if (triclinic_general) addfield("Pyz", &Thermo::compute_pyz_triclinic_general, FLOAT);
       addfield("Pyz", &Thermo::compute_pyz, FLOAT);
       index_press_vector = add_compute(id_press, VECTOR);
 
@@ -1352,17 +1336,6 @@ void Thermo::check_press_vector(const std::string &keyword)
   if (!(pressure->invoked_flag & Compute::INVOKED_VECTOR)) {
     pressure->compute_vector();
     pressure->invoked_flag |= Compute::INVOKED_VECTOR;
-
-    // store 3x3 matrix form of symmetric pressure tensor for use in triclinic_general()
-
-    if (triclinic_general) {
-      press_tensor[0][0] = pressure->vector[0];
-      press_tensor[1][1] = pressure->vector[1];
-      press_tensor[2][2] = pressure->vector[2];
-      press_tensor[0][1] = press_tensor[1][0] = pressure->vector[3];
-      press_tensor[0][2] = press_tensor[2][0] = pressure->vector[4];
-      press_tensor[1][2] = press_tensor[2][1] = pressure->vector[5];
-    }
   }
 }
 
@@ -1610,45 +1583,27 @@ int Thermo::evaluate_keyword(const std::string &word, double *answer)
 
   else if (word == "pxx") {
     check_press_vector(word);
-    if (triclinic_general)
-      compute_pxx_triclinic_general();
-    else
-      compute_pxx();
+    compute_pxx();
 
   } else if (word == "pyy") {
     check_press_vector(word);
-    if (triclinic_general)
-      compute_pyy_triclinic_general();
-    else
-      compute_pyy();
+    compute_pyy();
 
   } else if (word == "pzz") {
     check_press_vector(word);
-    if (triclinic_general)
-      compute_pzz_triclinic_general();
-    else
-      compute_pzz();
+    compute_pzz();
 
   } else if (word == "pxy") {
     check_press_vector(word);
-    if (triclinic_general)
-      compute_pxy_triclinic_general();
-    else
-      compute_pxy();
+    compute_pxy();
 
   } else if (word == "pxz") {
     check_press_vector(word);
-    if (triclinic_general)
-      compute_pxz_triclinic_general();
-    else
-      compute_pxz();
+    compute_pxz();
 
   } else if (word == "pyz") {
     check_press_vector(word);
-    if (triclinic_general)
-      compute_pyz_triclinic_general();
-    else
-      compute_pyz();
+    compute_pyz();
 
   } else if (word == "bonds") {
     compute_bonds();
@@ -2480,102 +2435,80 @@ void Thermo::compute_cellgamma()
 
 void Thermo::compute_pxx()
 {
-  dvalue = pressure->vector[0];
+  if (triclinic_general)
+    dvalue = press_tensor_general(0, 0);
+  else
+    dvalue = pressure->vector[0];
 }
 
 /* ---------------------------------------------------------------------- */
 
 void Thermo::compute_pyy()
 {
-  dvalue = pressure->vector[1];
+  if (triclinic_general)
+    dvalue = press_tensor_general(1, 1);
+  else
+    dvalue = pressure->vector[1];
 }
 
 /* ---------------------------------------------------------------------- */
 
 void Thermo::compute_pzz()
 {
-  dvalue = pressure->vector[2];
+  if (triclinic_general)
+    dvalue = press_tensor_general(2, 2);
+  else
+    dvalue = pressure->vector[2];
 }
 
 /* ---------------------------------------------------------------------- */
 
 void Thermo::compute_pxy()
 {
-  dvalue = pressure->vector[3];
+  if (triclinic_general)
+    dvalue = press_tensor_general(0, 1);
+  else
+    dvalue = pressure->vector[3];
 }
 
 /* ---------------------------------------------------------------------- */
 
 void Thermo::compute_pxz()
 {
-  dvalue = pressure->vector[4];
+  if (triclinic_general)
+    dvalue = press_tensor_general(0, 2);
+  else
+    dvalue = pressure->vector[4];
 }
 
 /* ---------------------------------------------------------------------- */
 
 void Thermo::compute_pyz()
 {
-  dvalue = pressure->vector[5];
+  if (triclinic_general)
+    dvalue = press_tensor_general(1, 2);
+  else
+    dvalue = pressure->vector[5];
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   component (i,j) of the pressure tensor rotated from the restricted
+   triclinic frame of the simulation into the general triclinic frame
+   the box was created in.  uses the current pressure compute vector.
+------------------------------------------------------------------------- */
 
-void Thermo::compute_pxx_triclinic_general()
+double Thermo::press_tensor_general(int i, int j)
 {
-  double middle[3][3], final[3][3];
-  MathExtra::times3(domain->rotate_r2g, press_tensor, middle);
+  double tensor[3][3], middle[3][3], final[3][3];
+  tensor[0][0] = pressure->vector[0];
+  tensor[1][1] = pressure->vector[1];
+  tensor[2][2] = pressure->vector[2];
+  tensor[0][1] = tensor[1][0] = pressure->vector[3];
+  tensor[0][2] = tensor[2][0] = pressure->vector[4];
+  tensor[1][2] = tensor[2][1] = pressure->vector[5];
+  MathExtra::times3(domain->rotate_r2g, tensor, middle);
   MathExtra::times3(middle, domain->rotate_g2r, final);
-  dvalue = final[0][0];
-}
-
-/* ---------------------------------------------------------------------- */
-
-void Thermo::compute_pyy_triclinic_general()
-{
-  double middle[3][3], final[3][3];
-  MathExtra::times3(domain->rotate_r2g, press_tensor, middle);
-  MathExtra::times3(middle, domain->rotate_g2r, final);
-  dvalue = final[1][1];
-}
-
-/* ---------------------------------------------------------------------- */
-
-void Thermo::compute_pzz_triclinic_general()
-{
-  double middle[3][3], final[3][3];
-  MathExtra::times3(domain->rotate_r2g, press_tensor, middle);
-  MathExtra::times3(middle, domain->rotate_g2r, final);
-  dvalue = final[2][2];
-}
-
-/* ---------------------------------------------------------------------- */
-
-void Thermo::compute_pxy_triclinic_general()
-{
-  double middle[3][3], final[3][3];
-  MathExtra::times3(domain->rotate_r2g, press_tensor, middle);
-  MathExtra::times3(middle, domain->rotate_g2r, final);
-  dvalue = final[0][1];
-}
-
-/* ---------------------------------------------------------------------- */
-
-void Thermo::compute_pxz_triclinic_general()
-{
-  double middle[3][3], final[3][3];
-  MathExtra::times3(domain->rotate_r2g, press_tensor, middle);
-  MathExtra::times3(middle, domain->rotate_g2r, final);
-  dvalue = final[0][2];
-}
-
-/* ---------------------------------------------------------------------- */
-
-void Thermo::compute_pyz_triclinic_general()
-{
-  double middle[3][3], final[3][3];
-  MathExtra::times3(domain->rotate_r2g, press_tensor, middle);
-  MathExtra::times3(middle, domain->rotate_g2r, final);
-  dvalue = final[1][2];
+  return final[i][j];
 }
 
 /* ---------------------------------------------------------------------- */

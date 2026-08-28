@@ -30,6 +30,7 @@
 #include "update.h"
 #include "variable.h"
 
+#include <algorithm>
 #include <cctype>
 #include <cerrno>
 #include <cmath>
@@ -1416,6 +1417,65 @@ std::string utils::uppercase(const std::string &text)
   std::string converted(text);
   for (auto &c : converted) c = ::toupper(c);
   return converted;
+}
+
+/* ----------------------------------------------------------------------
+   Arrange a list of words into aligned, ls-style columns (column-major)
+------------------------------------------------------------------------- */
+
+std::string utils::columnize(const std::vector<std::string> &words, int width, int gap)
+{
+  if (words.empty()) return "(none)\n";
+  if (gap < 1) gap = 1;
+  if (width < 1) width = 1;
+  const int nwords = (int) words.size();
+
+  // pick the largest number of columns whose summed per-column widths fit the
+  // line.  with a column-major layout, column c spans words[c*nrows .. ].
+
+  int ncols = 1;
+  for (int cols = std::min(nwords, width); cols >= 1; --cols) {
+    const int nrows = (nwords + cols - 1) / cols;
+    int total = gap * (cols - 1);
+    for (int c = 0; c < cols; ++c) {
+      std::size_t cw = 0;
+      for (int r = 0; r < nrows; ++r) {
+        const int idx = c * nrows + r;
+        if (idx < nwords) cw = std::max(cw, words[idx].size());
+      }
+      total += (int) cw;
+    }
+    if (total <= width) { ncols = cols; break; }
+  }
+
+  const int nrows = (nwords + ncols - 1) / ncols;
+
+  // per-column field widths (widest entry in the column plus the gap)
+
+  std::vector<std::size_t> field(ncols, 0);
+  for (int c = 0; c < ncols; ++c) {
+    for (int r = 0; r < nrows; ++r) {
+      const int idx = c * nrows + r;
+      if (idx < nwords) field[c] = std::max(field[c], words[idx].size());
+    }
+    field[c] += gap;
+  }
+
+  std::string out;
+  for (int r = 0; r < nrows; ++r) {
+    std::string line;
+    for (int c = 0; c < ncols; ++c) {
+      const int idx = c * nrows + r;
+      if (idx >= nwords) break;
+      line += fmt::format("{:<{}}", words[idx], field[c]);
+    }
+    // strip the trailing gap (and any padding) from the last column in the row
+    const auto last = line.find_last_not_of(' ');
+    if (last != std::string::npos) line.erase(last + 1);
+    out += line;
+    out += '\n';
+  }
+  return out;
 }
 
 /* ----------------------------------------------------------------------

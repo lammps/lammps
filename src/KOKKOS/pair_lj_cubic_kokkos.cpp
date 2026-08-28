@@ -155,7 +155,7 @@ compute_fpair(const KK_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
       ((STACKPARAMS?m_params[itype][jtype].lj1:params(itype,jtype).lj1)*r6inv -
        (STACKPARAMS?m_params[itype][jtype].lj2:params(itype,jtype).lj2));
   } else {
-    const KK_FLOAT r = sqrt(rsq);
+    const KK_FLOAT r = Kokkos::sqrt(rsq);
     const KK_FLOAT rmin = (STACKPARAMS?m_params[itype][jtype].sigma:params(itype,jtype).sigma) *
       static_cast<KK_FLOAT>(RT6TWO);
     const KK_FLOAT t = (r - (STACKPARAMS?m_params[itype][jtype].cut_inner:params(itype,jtype).cut_inner)) / rmin;
@@ -183,7 +183,7 @@ compute_evdwl(const KK_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
       ((STACKPARAMS?m_params[itype][jtype].lj3:params(itype,jtype).lj3)*r6inv -
        (STACKPARAMS?m_params[itype][jtype].lj4:params(itype,jtype).lj4));
   } else {
-    const KK_FLOAT r = sqrt(rsq);
+    const KK_FLOAT r = Kokkos::sqrt(rsq);
     const KK_FLOAT rmin = (STACKPARAMS?m_params[itype][jtype].sigma:params(itype,jtype).sigma) *
       static_cast<KK_FLOAT>(RT6TWO);
     const KK_FLOAT t = (r - (STACKPARAMS?m_params[itype][jtype].cut_inner:params(itype,jtype).cut_inner)) / rmin;
@@ -265,7 +265,7 @@ double PairLJCubicKokkos<DeviceType>::init_one(int i, int j)
     m_cutsq[j][i] = m_cutsq[i][j] = static_cast<KK_FLOAT>(cutone*cutone);
   }
 
-  k_cutsq.view_host()(i,j) = k_cutsq.view_host()(j,i) = static_cast<KK_FLOAT>(cutone*cutone);
+  k_cutsq.view_host()(i,j) = k_cutsq.view_host()(j,i) = cutone*cutone;
   k_cutsq.modify_host();
   k_params.modify_host();
 

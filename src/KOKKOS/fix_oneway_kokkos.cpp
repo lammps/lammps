@@ -95,9 +95,9 @@ void FixOneWayKokkos<DeviceType>::operator()(TagFixOneWay, const int &i) const
     // bits 0-1 = coordinate index (0=x, 1=y, 2=z), bit 2 = minus direction
     const int idx = direction & 3;
     if (direction & 4) {
-      if (v(i,idx) > 0.0) v(i,idx) = -v(i,idx);
+      if (v(i,idx) > static_cast<KK_FLOAT>(0.0)) v(i,idx) = -v(i,idx);
     } else {
-      if (v(i,idx) < 0.0) v(i,idx) = -v(i,idx);
+      if (v(i,idx) < static_cast<KK_FLOAT>(0.0)) v(i,idx) = -v(i,idx);
     }
   }
 }

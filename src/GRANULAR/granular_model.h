@@ -44,6 +44,25 @@ class GranSubModTangential;
 class GranSubModRolling;
 class GranSubModTwisting;
 class GranSubModHeat;
+class GranularModel;
+
+// factory function signature and registration table for granular sub-models.
+// the table has one entry per sub-model and is defined in the checked-in file
+// gran_sub_mod_register.cpp (which is also where new sub-models are registered).
+
+typedef GranSubMod *(*GranSubModCreator)(GranularModel *, LAMMPS *);
+
+struct GranSubModInfo {
+  const char *name;             // keyword used in the input script
+  GranSubModCreator creator;    // factory function for the sub-model class
+  int type;                     // sub-model type (SubModelType enum value)
+};
+
+// LMP_REGISTRY_CONST (see lmptype.h): const, except in a GPU-enabled Kokkos
+// build where the host-only factory function pointers in the table below must
+// not be shadowed into device memory.
+extern LMP_REGISTRY_CONST GranSubModInfo gran_sub_mod_table[];
+extern LMP_REGISTRY_CONST int num_gran_sub_mod;
 
 class GranularModel : protected Pointers {
  public:
@@ -105,13 +124,6 @@ class GranularModel : protected Pointers {
   int rolling_defined, twisting_defined, heat_defined; // Flag optional sub models
   int classic_model;                                   // Flag original pair/gran calculations
   int contact_radius_flag;                             // Flag whether contact radius is needed
-
-  int nclass;
-
-  using GranSubModCreator = GranSubMod *(*)(GranularModel *, LAMMPS *);
-  GranSubModCreator *gran_sub_mod_class;
-  char **gran_sub_mod_names;
-  int *gran_sub_mod_types;
 };
 
 } // namespace LAMMPS_NS::Granular_NS

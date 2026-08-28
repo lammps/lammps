@@ -113,15 +113,15 @@ void PairLJCutDipoleCutKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   type = atomKK->k_type.view<DeviceType>();
   nlocal = atom->nlocal;
   nall = atom->nlocal + atom->nghost;
-  special_lj[0] = force->special_lj[0];
-  special_lj[1] = force->special_lj[1];
-  special_lj[2] = force->special_lj[2];
-  special_lj[3] = force->special_lj[3];
-  special_coul[0] = force->special_coul[0];
-  special_coul[1] = force->special_coul[1];
-  special_coul[2] = force->special_coul[2];
-  special_coul[3] = force->special_coul[3];
-  qqrd2e = force->qqrd2e;
+  special_lj[0] = static_cast<KK_FLOAT>(force->special_lj[0]);
+  special_lj[1] = static_cast<KK_FLOAT>(force->special_lj[1]);
+  special_lj[2] = static_cast<KK_FLOAT>(force->special_lj[2]);
+  special_lj[3] = static_cast<KK_FLOAT>(force->special_lj[3]);
+  special_coul[0] = static_cast<KK_FLOAT>(force->special_coul[0]);
+  special_coul[1] = static_cast<KK_FLOAT>(force->special_coul[1]);
+  special_coul[2] = static_cast<KK_FLOAT>(force->special_coul[2]);
+  special_coul[3] = static_cast<KK_FLOAT>(force->special_coul[3]);
+  qqrd2e = static_cast<KK_FLOAT>(force->qqrd2e);
   newton_pair = force->newton_pair;
 
   // get the neighbor list and neighbors used in operator()
@@ -204,17 +204,17 @@ void PairLJCutDipoleCutKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   }
 
   if (eflag_global) {
-    eng_vdwl += ev.evdwl;
-    eng_coul += ev.ecoul;
+    eng_vdwl += static_cast<double>(ev.evdwl);
+    eng_coul += static_cast<double>(ev.ecoul);
   }
 
   if (vflag_global) {
-    virial[0] += ev.v[0];
-    virial[1] += ev.v[1];
-    virial[2] += ev.v[2];
-    virial[3] += ev.v[3];
-    virial[4] += ev.v[4];
-    virial[5] += ev.v[5];
+    virial[0] += static_cast<double>(ev.v[0]);
+    virial[1] += static_cast<double>(ev.v[1]);
+    virial[2] += static_cast<double>(ev.v[2]);
+    virial[3] += static_cast<double>(ev.v[3]);
+    virial[4] += static_cast<double>(ev.v[4]);
+    virial[5] += static_cast<double>(ev.v[5]);
   }
 
   if (eflag_atom) {
@@ -279,7 +279,7 @@ void PairLJCutDipoleCutKokkos<DeviceType>::operator()(TagPairLJCutDipoleCutKerne
     KK_FLOAT cutsq_ij = STACKPARAMS?m_cutsq[itype][jtype]:d_cutsq(itype,jtype);
 
     if (rsq < cutsq_ij) {
-      const KK_FLOAT r2inv = 1.0/rsq;
+      const KK_FLOAT r2inv = static_cast<KK_FLOAT>(1.0)/rsq;
       const KK_FLOAT r6inv = r2inv*r2inv*r2inv;
       KK_FLOAT forcelj = 0;
       KK_FLOAT evdwl = 0;
@@ -309,7 +309,7 @@ void PairLJCutDipoleCutKokkos<DeviceType>::operator()(TagPairLJCutDipoleCutKerne
                           (STACKPARAMS?m_params[itype][jtype].lj4:params(itype,jtype).lj4)) -
                           (STACKPARAMS?m_params[itype][jtype].offset:params(itype,jtype).offset);
           evdwl *= factor_lj;
-          ev.evdwl += (((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD)&&(NEWTON_PAIR||(j<nlocal)))?1.0:0.5)*evdwl;
+          ev.evdwl += (((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD)&&(NEWTON_PAIR||(j<nlocal)))?static_cast<KK_ACC_FLOAT>(1.0):static_cast<KK_ACC_FLOAT>(0.5))*static_cast<KK_ACC_FLOAT>(evdwl);
         }
       } // cutsq_ljsq_ij
 
@@ -319,14 +319,14 @@ void PairLJCutDipoleCutKokkos<DeviceType>::operator()(TagPairLJCutDipoleCutKerne
 
       if (rsq < cut_coulsq_ij) {
 
-        const KK_FLOAT r2inv = 1.0/rsq;
-        const KK_FLOAT rinv = sqrt(r2inv);
+        const KK_FLOAT r2inv = static_cast<KK_FLOAT>(1.0)/rsq;
+        const KK_FLOAT rinv = Kokkos::sqrt(r2inv);
         const KK_FLOAT qj = q[j];
 
         KK_FLOAT r3inv = r2inv*rinv;
 
         // charge-charge
-        if (qtmp != 0.0 && qj != 0.0) {
+        if (qtmp != static_cast<KK_FLOAT>(0.0) && qj != static_cast<KK_FLOAT>(0.0)) {
           KK_FLOAT pre1 = qtmp*qj*r3inv;
           forcecoulx += pre1*delx;
           forcecouly += pre1*dely;
@@ -338,7 +338,7 @@ void PairLJCutDipoleCutKokkos<DeviceType>::operator()(TagPairLJCutDipoleCutKerne
         KK_FLOAT pdotp, pidotr, pjdotr;
         KK_FLOAT r5inv = r3inv*r2inv;
 
-       if (mui > 0.0 && muj > 0.0) {
+       if (mui > static_cast<KK_FLOAT>(0.0) && muj > static_cast<KK_FLOAT>(0.0)) {
 
           KK_FLOAT r7inv = r5inv*r2inv;
 
@@ -346,10 +346,10 @@ void PairLJCutDipoleCutKokkos<DeviceType>::operator()(TagPairLJCutDipoleCutKerne
           pidotr = mu(i,0)*delx + mu(i,1)*dely + mu(i,2)*delz;
           pjdotr = mu(j,0)*delx + mu(j,1)*dely + mu(j,2)*delz;
 
-          KK_FLOAT pre1 = 3.0*r5inv*pdotp - 15.0*r7inv*pidotr*pjdotr;
-          KK_FLOAT pre2 = 3.0*r5inv*pjdotr;
-          KK_FLOAT pre3 = 3.0*r5inv*pidotr;
-          KK_FLOAT pre4 = -1.0*r3inv;
+          KK_FLOAT pre1 = static_cast<KK_FLOAT>(3.0)*r5inv*pdotp - static_cast<KK_FLOAT>(15.0)*r7inv*pidotr*pjdotr;
+          KK_FLOAT pre2 = static_cast<KK_FLOAT>(3.0)*r5inv*pjdotr;
+          KK_FLOAT pre3 = static_cast<KK_FLOAT>(3.0)*r5inv*pidotr;
+          KK_FLOAT pre4 = static_cast<KK_FLOAT>(-1.0)*r3inv;
 
           forcecoulx += pre1*delx + pre2*mu(i,0) + pre3*mu(j,0);
           forcecouly += pre1*dely + pre2*mu(i,1) + pre3*mu(j,1);
@@ -371,7 +371,7 @@ void PairLJCutDipoleCutKokkos<DeviceType>::operator()(TagPairLJCutDipoleCutKerne
 
         if (mui > 0 && qj != 0) {
           pidotr = mu(i,0)*delx + mu(i,1)*dely + mu(i,2)*delz;
-          KK_FLOAT pre1 = 3.0*qj*r5inv * pidotr;
+          KK_FLOAT pre1 = static_cast<KK_FLOAT>(3.0)*qj*r5inv * pidotr;
           KK_FLOAT pre2 = qj*r3inv;
 
           forcecoulx += pre2*mu(i,0) - pre1*delx;
@@ -386,7 +386,7 @@ void PairLJCutDipoleCutKokkos<DeviceType>::operator()(TagPairLJCutDipoleCutKerne
 
         if (qtmp != 0 && muj > 0) {
           pjdotr = mu(j,0)*delx + mu(j,1)*dely + mu(j,2)*delz;
-          KK_FLOAT pre1 = 3.0*qtmp*r5inv * pjdotr;
+          KK_FLOAT pre1 = static_cast<KK_FLOAT>(3.0)*qtmp*r5inv * pjdotr;
           KK_FLOAT pre2 = qtmp*r3inv;
 
           forcecoulx += pre1*delx - pre2*mu(j,0);
@@ -404,32 +404,32 @@ void PairLJCutDipoleCutKokkos<DeviceType>::operator()(TagPairLJCutDipoleCutKerne
 
         // force & torque accumulation
 
-        fx_i += fx;
-        fy_i += fy;
-        fz_i += fz;
-        torquex_i += fq*tixcoul;
-        torquey_i += fq*tiycoul;
-        torquez_i += fq*tizcoul;
+        fx_i += static_cast<KK_ACC_FLOAT>(fx);
+        fy_i += static_cast<KK_ACC_FLOAT>(fy);
+        fz_i += static_cast<KK_ACC_FLOAT>(fz);
+        torquex_i += static_cast<KK_ACC_FLOAT>(fq*tixcoul);
+        torquey_i += static_cast<KK_ACC_FLOAT>(fq*tiycoul);
+        torquez_i += static_cast<KK_ACC_FLOAT>(fq*tizcoul);
 
         if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal)) {
-          a_f(j,0) -= fx;
-          a_f(j,1) -= fy;
-          a_f(j,2) -= fz;
-          a_torque(j,0) += fq*tjxcoul;
-          a_torque(j,1) += fq*tjycoul;
-          a_torque(j,2) += fq*tjzcoul;
+          a_f(j,0) -= static_cast<KK_ACC_FLOAT>(fx);
+          a_f(j,1) -= static_cast<KK_ACC_FLOAT>(fy);
+          a_f(j,2) -= static_cast<KK_ACC_FLOAT>(fz);
+          a_torque(j,0) += static_cast<KK_ACC_FLOAT>(fq*tjxcoul);
+          a_torque(j,1) += static_cast<KK_ACC_FLOAT>(fq*tjycoul);
+          a_torque(j,2) += static_cast<KK_ACC_FLOAT>(fq*tjzcoul);
         }
 
         if (EVFLAG && eflag_global) {
           ecoul = qtmp*qj*rinv;
-          if (mu(i,3) > 0.0 && mu(j,3) > 0.0)
-            ecoul += r3inv*pdotp - 3.0*r5inv*pidotr*pjdotr;
-          if (mu(i,3) > 0.0 && qj != 0.0)
+          if (mu(i,3) > static_cast<KK_FLOAT>(0.0) && mu(j,3) > static_cast<KK_FLOAT>(0.0))
+            ecoul += r3inv*pdotp - static_cast<KK_FLOAT>(3.0)*r5inv*pidotr*pjdotr;
+          if (mu(i,3) > static_cast<KK_FLOAT>(0.0) && qj != static_cast<KK_FLOAT>(0.0))
             ecoul += -qj*r3inv*pidotr;
-          if (mu(j,3) > 0.0 && qtmp != 0.0)
+          if (mu(j,3) > static_cast<KK_FLOAT>(0.0) && qtmp != static_cast<KK_FLOAT>(0.0))
             ecoul += qtmp*r3inv*pjdotr;
           ecoul *= factor_coul*qqrd2e;
-          ev.ecoul += (((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD)&&(NEWTON_PAIR||(j<nlocal)))?1.0:0.5)*ecoul;
+          ev.ecoul += (((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD)&&(NEWTON_PAIR||(j<nlocal)))?static_cast<KK_ACC_FLOAT>(1.0):static_cast<KK_ACC_FLOAT>(0.5))*static_cast<KK_ACC_FLOAT>(ecoul);
         }
       } // cutsq_coulsq_ij
 
@@ -522,7 +522,7 @@ void PairLJCutDipoleCutKokkos<DeviceType>::operator()(TagPairLJCutDipoleCutKerne
     KK_FLOAT tz = 0.0;
 
     if (rsq < cutsq_ij) {
-      const KK_FLOAT r2inv = 1.0/rsq;
+      const KK_FLOAT r2inv = static_cast<KK_FLOAT>(1.0)/rsq;
       const KK_FLOAT r6inv = r2inv*r2inv*r2inv;
       KK_FLOAT forcelj = 0;
       KK_FLOAT evdwl = 0;
@@ -550,7 +550,7 @@ void PairLJCutDipoleCutKokkos<DeviceType>::operator()(TagPairLJCutDipoleCutKerne
                           (STACKPARAMS?m_params[itype][jtype].lj4:params(itype,jtype).lj4)) -
                           (STACKPARAMS?m_params[itype][jtype].offset:params(itype,jtype).offset);
           evdwl *= factor_lj;
-          ev.evdwl += (((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD)&&(NEWTON_PAIR||(j<nlocal)))?1.0:0.5)*evdwl;
+          ev.evdwl += (((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD)&&(NEWTON_PAIR||(j<nlocal)))?static_cast<KK_ACC_FLOAT>(1.0):static_cast<KK_ACC_FLOAT>(0.5))*static_cast<KK_ACC_FLOAT>(evdwl);
         }
       } // cutsq_ljsq_ij
 
@@ -560,14 +560,14 @@ void PairLJCutDipoleCutKokkos<DeviceType>::operator()(TagPairLJCutDipoleCutKerne
 
       if (rsq < cut_coulsq_ij) {
 
-        const KK_FLOAT r2inv = 1.0/rsq;
-        const KK_FLOAT rinv = sqrt(r2inv);
+        const KK_FLOAT r2inv = static_cast<KK_FLOAT>(1.0)/rsq;
+        const KK_FLOAT rinv = Kokkos::sqrt(r2inv);
         const KK_FLOAT qj = q[j];
 
         KK_FLOAT r3inv = r2inv*rinv;
 
         // charge-charge
-        if (qtmp != 0.0 && qj != 0.0) {
+        if (qtmp != static_cast<KK_FLOAT>(0.0) && qj != static_cast<KK_FLOAT>(0.0)) {
           KK_FLOAT pre1 = qtmp*qj*r3inv;
           forcecoulx += pre1*delx;
           forcecouly += pre1*dely;
@@ -579,7 +579,7 @@ void PairLJCutDipoleCutKokkos<DeviceType>::operator()(TagPairLJCutDipoleCutKerne
         KK_FLOAT pdotp, pidotr, pjdotr;
         KK_FLOAT r5inv = r3inv*r2inv;
 
-       if (mui > 0.0 && muj > 0.0) {
+       if (mui > static_cast<KK_FLOAT>(0.0) && muj > static_cast<KK_FLOAT>(0.0)) {
 
           KK_FLOAT r7inv = r5inv*r2inv;
 
@@ -587,10 +587,10 @@ void PairLJCutDipoleCutKokkos<DeviceType>::operator()(TagPairLJCutDipoleCutKerne
           pidotr = mu(i,0)*delx + mu(i,1)*dely + mu(i,2)*delz;
           pjdotr = mu(j,0)*delx + mu(j,1)*dely + mu(j,2)*delz;
 
-          KK_FLOAT pre1 = 3.0*r5inv*pdotp - 15.0*r7inv*pidotr*pjdotr;
-          KK_FLOAT pre2 = 3.0*r5inv*pjdotr;
-          KK_FLOAT pre3 = 3.0*r5inv*pidotr;
-          KK_FLOAT pre4 = -1.0*r3inv;
+          KK_FLOAT pre1 = static_cast<KK_FLOAT>(3.0)*r5inv*pdotp - static_cast<KK_FLOAT>(15.0)*r7inv*pidotr*pjdotr;
+          KK_FLOAT pre2 = static_cast<KK_FLOAT>(3.0)*r5inv*pjdotr;
+          KK_FLOAT pre3 = static_cast<KK_FLOAT>(3.0)*r5inv*pidotr;
+          KK_FLOAT pre4 = static_cast<KK_FLOAT>(-1.0)*r3inv;
 
           forcecoulx += pre1*delx + pre2*mu(i,0) + pre3*mu(j,0);
           forcecouly += pre1*dely + pre2*mu(i,1) + pre3*mu(j,1);
@@ -612,7 +612,7 @@ void PairLJCutDipoleCutKokkos<DeviceType>::operator()(TagPairLJCutDipoleCutKerne
 
         if (mui > 0 && qj != 0) {
           pidotr = mu(i,0)*delx + mu(i,1)*dely + mu(i,2)*delz;
-          KK_FLOAT pre1 = 3.0*qj*r5inv * pidotr;
+          KK_FLOAT pre1 = static_cast<KK_FLOAT>(3.0)*qj*r5inv * pidotr;
           KK_FLOAT pre2 = qj*r3inv;
 
           forcecoulx += pre2*mu(i,0) - pre1*delx;
@@ -627,7 +627,7 @@ void PairLJCutDipoleCutKokkos<DeviceType>::operator()(TagPairLJCutDipoleCutKerne
 
         if (qtmp != 0 && muj > 0) {
           pjdotr = mu(j,0)*delx + mu(j,1)*dely + mu(j,2)*delz;
-          KK_FLOAT pre1 = 3.0*qtmp*r5inv * pjdotr;
+          KK_FLOAT pre1 = static_cast<KK_FLOAT>(3.0)*qtmp*r5inv * pjdotr;
           KK_FLOAT pre2 = qtmp*r3inv;
 
           forcecoulx += pre1*delx - pre2*mu(j,0);
@@ -647,36 +647,36 @@ void PairLJCutDipoleCutKokkos<DeviceType>::operator()(TagPairLJCutDipoleCutKerne
         tz = fq*tizcoul;
 
         if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal)) {
-          a_f(j,0) -= fx;
-          a_f(j,1) -= fy;
-          a_f(j,2) -= fz;
-          a_torque(j,0) += fq*tjxcoul;
-          a_torque(j,1) += fq*tjycoul;
-          a_torque(j,2) += fq*tjzcoul;
+          a_f(j,0) -= static_cast<KK_ACC_FLOAT>(fx);
+          a_f(j,1) -= static_cast<KK_ACC_FLOAT>(fy);
+          a_f(j,2) -= static_cast<KK_ACC_FLOAT>(fz);
+          a_torque(j,0) += static_cast<KK_ACC_FLOAT>(fq*tjxcoul);
+          a_torque(j,1) += static_cast<KK_ACC_FLOAT>(fq*tjycoul);
+          a_torque(j,2) += static_cast<KK_ACC_FLOAT>(fq*tjzcoul);
         }
 
         if (EVFLAG && eflag_global) {
           ecoul = qtmp*qj*rinv;
-          if (mu(i,3) > 0.0 && mu(j,3) > 0.0)
-            ecoul += r3inv*pdotp - 3.0*r5inv*pidotr*pjdotr;
-          if (mu(i,3) > 0.0 && qj != 0.0)
+          if (mu(i,3) > static_cast<KK_FLOAT>(0.0) && mu(j,3) > static_cast<KK_FLOAT>(0.0))
+            ecoul += r3inv*pdotp - static_cast<KK_FLOAT>(3.0)*r5inv*pidotr*pjdotr;
+          if (mu(i,3) > static_cast<KK_FLOAT>(0.0) && qj != static_cast<KK_FLOAT>(0.0))
             ecoul += -qj*r3inv*pidotr;
-          if (mu(j,3) > 0.0 && qtmp != 0.0)
+          if (mu(j,3) > static_cast<KK_FLOAT>(0.0) && qtmp != static_cast<KK_FLOAT>(0.0))
             ecoul += qtmp*r3inv*pjdotr;
           ecoul *= factor_coul*qqrd2e;
-          ev.ecoul += (((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD)&&(NEWTON_PAIR||(j<nlocal)))?1.0:0.5)*ecoul;
+          ev.ecoul += (((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD)&&(NEWTON_PAIR||(j<nlocal)))?static_cast<KK_ACC_FLOAT>(1.0):static_cast<KK_ACC_FLOAT>(0.5))*static_cast<KK_ACC_FLOAT>(ecoul);
         }
       } // cutsq_coulsq_ij
 
       if (EVFLAG && (eflag_atom || vflag_either))
         ev_tally_xyz<NEIGHFLAG, NEWTON_PAIR>(ev, i, j, ecoul+evdwl, fx, fy, fz, delx, dely, delz);
 
-      fx_acc += fx;
-      fy_acc += fy;
-      fz_acc += fz;
-      tx_acc += tx;
-      ty_acc += ty;
-      tz_acc += tz;
+      fx_acc += static_cast<KK_ACC_FLOAT>(fx);
+      fy_acc += static_cast<KK_ACC_FLOAT>(fy);
+      fz_acc += static_cast<KK_ACC_FLOAT>(fz);
+      tx_acc += static_cast<KK_ACC_FLOAT>(tx);
+      ty_acc += static_cast<KK_ACC_FLOAT>(ty);
+      tz_acc += static_cast<KK_ACC_FLOAT>(tz);
 
     } // cutsq_ij
   }, fx_i, fy_i, fz_i, torquex_i, torquey_i, torquez_i);
@@ -703,7 +703,7 @@ void PairLJCutDipoleCutKokkos<DeviceType>::ev_tally_xyz(EV_FLOAT & ev, int i, in
   Kokkos::View<KK_ACC_FLOAT*[6], typename DAT::t_kkacc_1d_6::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > v_vatom = d_vatom;
 
   if (eflag_atom) {
-    const KK_FLOAT epairhalf = 0.5 * epair;
+    const KK_ACC_FLOAT epairhalf = static_cast<KK_ACC_FLOAT>(0.5) * static_cast<KK_ACC_FLOAT>(epair);
     if (NEIGHFLAG == FULL || newton_pair || i < nlocal)
       v_eatom[i] += epairhalf;
     if (NEIGHFLAG != FULL && (newton_pair || j < nlocal))
@@ -711,12 +711,12 @@ void PairLJCutDipoleCutKokkos<DeviceType>::ev_tally_xyz(EV_FLOAT & ev, int i, in
   }
 
   if (vflag_either) {
-    const KK_FLOAT v0 = delx*fx;
-    const KK_FLOAT v1 = dely*fy;
-    const KK_FLOAT v2 = delz*fz;
-    const KK_FLOAT v3 = delx*fy;
-    const KK_FLOAT v4 = delx*fz;
-    const KK_FLOAT v5 = dely*fz;
+    const KK_ACC_FLOAT v0 = static_cast<KK_ACC_FLOAT>(delx*fx);
+    const KK_ACC_FLOAT v1 = static_cast<KK_ACC_FLOAT>(dely*fy);
+    const KK_ACC_FLOAT v2 = static_cast<KK_ACC_FLOAT>(delz*fz);
+    const KK_ACC_FLOAT v3 = static_cast<KK_ACC_FLOAT>(delx*fy);
+    const KK_ACC_FLOAT v4 = static_cast<KK_ACC_FLOAT>(delx*fz);
+    const KK_ACC_FLOAT v5 = static_cast<KK_ACC_FLOAT>(dely*fz);
 
     if (vflag_global) {
       if (NEIGHFLAG != FULL) {
@@ -729,49 +729,49 @@ void PairLJCutDipoleCutKokkos<DeviceType>::ev_tally_xyz(EV_FLOAT & ev, int i, in
           ev.v[5] += v5;
         } else { // neigh half, newton off
           if (i < nlocal) {
-            ev.v[0] += 0.5*v0;
-            ev.v[1] += 0.5*v1;
-            ev.v[2] += 0.5*v2;
-            ev.v[3] += 0.5*v3;
-            ev.v[4] += 0.5*v4;
-            ev.v[5] += 0.5*v5;
+            ev.v[0] += static_cast<KK_ACC_FLOAT>(0.5)*v0;
+            ev.v[1] += static_cast<KK_ACC_FLOAT>(0.5)*v1;
+            ev.v[2] += static_cast<KK_ACC_FLOAT>(0.5)*v2;
+            ev.v[3] += static_cast<KK_ACC_FLOAT>(0.5)*v3;
+            ev.v[4] += static_cast<KK_ACC_FLOAT>(0.5)*v4;
+            ev.v[5] += static_cast<KK_ACC_FLOAT>(0.5)*v5;
           }
           if (j < nlocal) {
-            ev.v[0] += 0.5*v0;
-            ev.v[1] += 0.5*v1;
-            ev.v[2] += 0.5*v2;
-            ev.v[3] += 0.5*v3;
-            ev.v[4] += 0.5*v4;
-            ev.v[5] += 0.5*v5;
+            ev.v[0] += static_cast<KK_ACC_FLOAT>(0.5)*v0;
+            ev.v[1] += static_cast<KK_ACC_FLOAT>(0.5)*v1;
+            ev.v[2] += static_cast<KK_ACC_FLOAT>(0.5)*v2;
+            ev.v[3] += static_cast<KK_ACC_FLOAT>(0.5)*v3;
+            ev.v[4] += static_cast<KK_ACC_FLOAT>(0.5)*v4;
+            ev.v[5] += static_cast<KK_ACC_FLOAT>(0.5)*v5;
           }
         }
       } else { //neigh full
-        ev.v[0] += 0.5*v0;
-        ev.v[1] += 0.5*v1;
-        ev.v[2] += 0.5*v2;
-        ev.v[3] += 0.5*v3;
-        ev.v[4] += 0.5*v4;
-        ev.v[5] += 0.5*v5;
+        ev.v[0] += static_cast<KK_ACC_FLOAT>(0.5)*v0;
+        ev.v[1] += static_cast<KK_ACC_FLOAT>(0.5)*v1;
+        ev.v[2] += static_cast<KK_ACC_FLOAT>(0.5)*v2;
+        ev.v[3] += static_cast<KK_ACC_FLOAT>(0.5)*v3;
+        ev.v[4] += static_cast<KK_ACC_FLOAT>(0.5)*v4;
+        ev.v[5] += static_cast<KK_ACC_FLOAT>(0.5)*v5;
       }
     }
 
     if (vflag_atom) {
 
       if (NEIGHFLAG == FULL || NEWTON_PAIR || i < nlocal) {
-        v_vatom(i,0) += 0.5*v0;
-        v_vatom(i,1) += 0.5*v1;
-        v_vatom(i,2) += 0.5*v2;
-        v_vatom(i,3) += 0.5*v3;
-        v_vatom(i,4) += 0.5*v4;
-        v_vatom(i,5) += 0.5*v5;
+        v_vatom(i,0) += static_cast<KK_ACC_FLOAT>(0.5)*v0;
+        v_vatom(i,1) += static_cast<KK_ACC_FLOAT>(0.5)*v1;
+        v_vatom(i,2) += static_cast<KK_ACC_FLOAT>(0.5)*v2;
+        v_vatom(i,3) += static_cast<KK_ACC_FLOAT>(0.5)*v3;
+        v_vatom(i,4) += static_cast<KK_ACC_FLOAT>(0.5)*v4;
+        v_vatom(i,5) += static_cast<KK_ACC_FLOAT>(0.5)*v5;
       }
       if (NEIGHFLAG != FULL && (NEWTON_PAIR || j < nlocal)) {
-        v_vatom(j,0) += 0.5*v0;
-        v_vatom(j,1) += 0.5*v1;
-        v_vatom(j,2) += 0.5*v2;
-        v_vatom(j,3) += 0.5*v3;
-        v_vatom(j,4) += 0.5*v4;
-        v_vatom(j,5) += 0.5*v5;
+        v_vatom(j,0) += static_cast<KK_ACC_FLOAT>(0.5)*v0;
+        v_vatom(j,1) += static_cast<KK_ACC_FLOAT>(0.5)*v1;
+        v_vatom(j,2) += static_cast<KK_ACC_FLOAT>(0.5)*v2;
+        v_vatom(j,3) += static_cast<KK_ACC_FLOAT>(0.5)*v3;
+        v_vatom(j,4) += static_cast<KK_ACC_FLOAT>(0.5)*v4;
+        v_vatom(j,5) += static_cast<KK_ACC_FLOAT>(0.5)*v5;
       }
     }
   }
@@ -848,20 +848,20 @@ double PairLJCutDipoleCutKokkos<DeviceType>::init_one(int i, int j)
   double cut_ljsqm = cut_ljsq[i][j];
   double cut_coulsqm = cut_coulsq[i][j];
 
-  k_params.view_host()(i,j).lj1 = lj1[i][j];
-  k_params.view_host()(i,j).lj2 = lj2[i][j];
-  k_params.view_host()(i,j).lj3 = lj3[i][j];
-  k_params.view_host()(i,j).lj4 = lj4[i][j];
-  k_params.view_host()(i,j).offset = offset[i][j];
-  k_params.view_host()(i,j).cut_ljsq = cut_ljsqm;
-  k_params.view_host()(i,j).cut_coulsq = cut_coulsqm;
+  k_params.view_host()(i,j).lj1 = static_cast<KK_FLOAT>(lj1[i][j]);
+  k_params.view_host()(i,j).lj2 = static_cast<KK_FLOAT>(lj2[i][j]);
+  k_params.view_host()(i,j).lj3 = static_cast<KK_FLOAT>(lj3[i][j]);
+  k_params.view_host()(i,j).lj4 = static_cast<KK_FLOAT>(lj4[i][j]);
+  k_params.view_host()(i,j).offset = static_cast<KK_FLOAT>(offset[i][j]);
+  k_params.view_host()(i,j).cut_ljsq = static_cast<KK_FLOAT>(cut_ljsqm);
+  k_params.view_host()(i,j).cut_coulsq = static_cast<KK_FLOAT>(cut_coulsqm);
 
   k_params.view_host()(j,i) = k_params.view_host()(i,j);
   if (i<MAX_TYPES_STACKPARAMS+1 && j<MAX_TYPES_STACKPARAMS+1) {
     m_params[i][j] = m_params[j][i] = k_params.view_host()(i,j);
-    m_cutsq[j][i] = m_cutsq[i][j] = cutone*cutone;
-    m_cut_ljsq[j][i] = m_cut_ljsq[i][j] = cut_ljsqm;
-    m_cut_coulsq[j][i] = m_cut_coulsq[i][j] = cut_coulsqm;
+    m_cutsq[j][i] = m_cutsq[i][j] = static_cast<KK_FLOAT>(cutone*cutone);
+    m_cut_ljsq[j][i] = m_cut_ljsq[i][j] = static_cast<KK_FLOAT>(cut_ljsqm);
+    m_cut_coulsq[j][i] = m_cut_coulsq[i][j] = static_cast<KK_FLOAT>(cut_coulsqm);
   }
 
   k_cutsq.view_host()(i,j) = k_cutsq.view_host()(j,i) = cutone*cutone;

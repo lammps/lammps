@@ -251,14 +251,14 @@ template <class DeviceType> class MEAMKokkos : public MEAM {
 KOKKOS_INLINE_FUNCTION
 static bool iszero_kk(const KK_FLOAT f)
 {
-  return fabs(f) < 1e-20;
+  return Kokkos::fabs(f) < static_cast<KK_FLOAT>(1e-20);
 }
 
 // NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 static bool isone_kk(const KK_FLOAT f)
 {
-  return fabs(f - 1.0) < 1e-20;
+  return Kokkos::fabs(f - static_cast<KK_FLOAT>(1.0)) < static_cast<KK_FLOAT>(1e-20);
 }
 
 // NOLINTNEXTLINE

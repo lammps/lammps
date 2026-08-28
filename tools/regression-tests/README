@@ -109,6 +109,51 @@ means anything. Those cases are recognized and reported rather than counted as f
       universe style variables, ...) are skipped: they write one log file per partition
       and need their own test configuration with "-partition NxM" and a matching number
       of MPI processes
+    + input scripts that use styles or commands not included in the tested binary can
+      never run, so they are skipped without being run. The styles included in the
+      binary are read from its -help output and compared with the styles that exist in
+      the source tree (scanned from the style macros in the headers of all packages),
+      so the reason names the style and the package it comes from. Only definite
+      mismatches are screened out this way: a style name hidden behind a variable
+      substitution or in an included file is not visible to this check. The optional
+      --preflight flag closes that gap by validating every remaining input script with
+      a "-skiprun" dry run first, which parses the whole script and instantiates every
+      style with the actual binary while all run and minimize commands end after one
+      step. A preflight failure only skips the input when the error says that a style
+      or command is part of a package that is not enabled (or missing because of a
+      dependency); any other failure is inconclusive and the input is tested normally.
+      The preflight verdicts only depend on the binary configuration, so they can be
+      cached in a file with --preflight-cache and are shared between workers and
+      reused as long as the version and installed packages of the binary stay the same.
+      In an --analyze run the statically screened out input scripts are left out of
+      the generated input lists entirely and recorded with the reason for leaving
+      them out in input-list-incompatible.txt
+    + a test configuration that declares its runs use the KOKKOS package by setting
+      "kokkos: true" additionally screens the input scripts for commands that can
+      never work in a KOKKOS run, since with "-k on" LAMMPS replaces core classes
+      instead of falling back to the plain implementation: atom styles (including
+      the sub-styles of atom_style hybrid) without a Kokkos-enabled variant,
+      neighbor list styles other than "bin", min styles without a KOKKOS version,
+      run style respa, and the labelmap command.  A --preflight run recognizes the
+      corresponding error messages as well.  Inputs that trigger the same errors
+      through files the static screening cannot see (e.g. type labels in a data
+      file) still fail in the actual run
+    + input scripts under examples/COUPLE are always left out: they couple LAMMPS to
+      another code (or drive it from one), so they cannot be tested standalone, and
+      several of them are not even LAMMPS input scripts
+    + with --preflight-only the "-skiprun" run is the whole test: every input script
+      runs with the configured MPI setup, but the loops of all run and minimize
+      commands end after one step. This tests that the input script parses, that
+      every style exists, that the setup (reading files, building neighbor lists,
+      domain decomposition and initial communication) works, and that one step runs
+      without crashing, at a small fraction of the cost of the full runs and without
+      any numerical checks. Runs that complete are recorded with the "runtest"
+      category (see REPORTING.md). Post-run analysis in some inputs (e.g. variables
+      dividing by averages accumulated over the full run) cannot work with runs cut
+      short: failures whose error message shows that are recorded as skipped rather
+      than failed, and inputs that cannot work with -skiprun for other reasons are
+      listed in the skip list of config_skiprun.yaml with the reasons documented
+      there. The check-examples.yml workflow runs this over the whole examples tree.
     + input scripts without a reference log file cannot be checked against anything, so
       they are run with their run commands shortened to "smoke_steps" steps, which only
       tests that they do not crash. If the shortened run fails, which happens when a
@@ -332,3 +377,12 @@ An example of the list of input scripts in a text file `input_list.txt`
     /home/codes/lammps/examples/PACKAGES/tally/in.pe
     /home/codes/lammps/examples/PACKAGES/tally/in.force
 
+
+Creating compatible log files
+-----------------------------
+
+The script `create_example_logs.sh` can be used to create or
+recreate compatible example logs from all files in the current
+folder that start with `in.` or from a list given on the
+command line. The first argument is the LAMMPS executable
+which is being launced using 1 and 4 MPI tasks.

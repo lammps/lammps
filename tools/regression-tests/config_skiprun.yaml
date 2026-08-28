@@ -1,0 +1,81 @@
+---
+  # configuration for checking that all example input scripts parse, set up, and
+  # take one step without crashing: run_tests.py --preflight-only appends -skiprun
+  # to the arguments below, so the loops of all run and minimize commands end
+  # after one step.  Two MPI processes exercise the domain decomposition and the
+  # initial communication, matching the GitHub actions runners (check-examples.yml).
+  lmp_binary: ""
+  nprocs: "2"
+  args: "-cite none"
+  kokkos: false
+  mpiexec: "mpirun"
+  mpiexec_numproc_flag: "--host localhost:2 -np"
+  # only used without --preflight-only; kept so the file works as a regular test
+  # configuration as well
+  tolerance:
+    PotEng:
+      abs: 1e-4
+      rel: 1e-7
+    TotEng:
+      abs: 1e-4
+      rel: 1e-7
+  overrides:
+  # in addition to the entries shared with the other configurations, this skips
+  # input scripts that cannot work with -skiprun or in an ephemeral CI runner:
+  # - inputs reading files that only a full run of another input script writes
+  #   (in.gREM, in.pinning, in.rerun, in.rdf.rerun, in.read_dump)
+  # - inputs needing training data or models that are not in the repository
+  #   (in.fitpod.InP, in.kim-sm.melt)
+  # - inputs querying openkim.org over the network (in.kim-query, in.kim-pm-query*)
+  # - commands running their own outer loops that -skiprun does not shorten, so
+  #   they hit the timeout (in.hyper.global, in.hyper.local)
+  # - embedded python that needs modules or an environment that is not always
+  #   available (in.fix_python*, in.python*, in.mliap.unified*)
+  # - deleting computes that only exist after complete runs (in.compute,
+  #   in.mliap.*.compute, in.reaxff.tatb*, in.bpm.peri.*)
+  # - post-run analysis reading state that runs cut short do not produce
+  #   (in.elastic, in.ljcov)
+  # - serial only (in.pod.compute)
+  skip:
+    [
+      in.*pod.InP,
+      in.disp,
+      in.disp2,
+      in.dos,
+      in.*_imd*,
+      in.bucky-plus-cnt*,
+      in.gREM,
+      in.pinning,
+      in.rerun,
+      in.rdf.rerun,
+      in.read_dump,
+      in.fitpod.InP,
+      in.kim-sm.melt,
+      in.kim-query,
+      in.kim-pm-query*,
+      in.hyper.global,
+      in.hyper.local,
+      in.fix_python*,
+      in.python*,
+      in.mliap.unified*,
+      in.compute,
+      in.mliap.*.compute,
+      in.reaxff.tatb*,
+      in.elastic,
+      in.ljcov,
+      in.pod.compute,
+    ]
+
+  timeout: 120
+  # input scripts in these folders must be run by the same worker in the listed
+  # order, since they read files written by another input script in the folder
+  # or would overwrite each other's output files
+  keep_together:
+    [
+      PACKAGES/bocs/4_sites_LD_SG,
+      PACKAGES/rhok,
+      SPIN/read_restart,
+    ]
+
+  nugget: 1.0
+  epsilon: 1e-16

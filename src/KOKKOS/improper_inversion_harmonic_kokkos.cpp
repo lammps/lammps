@@ -151,21 +151,21 @@ void ImproperInversionHarmonicKokkos<DeviceType>::operator()(TagImproperInversio
   const KK_FLOAT vb1x = x(i2,0) - x(i1,0);
   const KK_FLOAT vb1y = x(i2,1) - x(i1,1);
   const KK_FLOAT vb1z = x(i2,2) - x(i1,2);
-  const KK_FLOAT rrvb1 = static_cast<KK_FLOAT>(1.0)/sqrt(vb1x*vb1x + vb1y*vb1y + vb1z*vb1z);
+  const KK_FLOAT rrvb1 = static_cast<KK_FLOAT>(1.0)/Kokkos::sqrt(vb1x*vb1x + vb1y*vb1y + vb1z*vb1z);
   const KK_FLOAT rr2vb1 = rrvb1*rrvb1;
 
   // 2nd bond: IK
   const KK_FLOAT vb2x = x(i3,0) - x(i1,0);
   const KK_FLOAT vb2y = x(i3,1) - x(i1,1);
   const KK_FLOAT vb2z = x(i3,2) - x(i1,2);
-  const KK_FLOAT rrvb2 = static_cast<KK_FLOAT>(1.0)/sqrt(vb2x*vb2x + vb2y*vb2y + vb2z*vb2z);
+  const KK_FLOAT rrvb2 = static_cast<KK_FLOAT>(1.0)/Kokkos::sqrt(vb2x*vb2x + vb2y*vb2y + vb2z*vb2z);
   const KK_FLOAT rr2vb2 = rrvb2*rrvb2;
 
   // 3rd bond: IL
   const KK_FLOAT vb3x = x(i4,0) - x(i1,0);
   const KK_FLOAT vb3y = x(i4,1) - x(i1,1);
   const KK_FLOAT vb3z = x(i4,2) - x(i1,2);
-  const KK_FLOAT rrvb3 = static_cast<KK_FLOAT>(1.0)/sqrt(vb3x*vb3x + vb3y*vb3y + vb3z*vb3z);
+  const KK_FLOAT rrvb3 = static_cast<KK_FLOAT>(1.0)/Kokkos::sqrt(vb3x*vb3x + vb3y*vb3y + vb3z*vb3z);
   const KK_FLOAT rr2vb3 = rrvb3*rrvb3;
 
   invang<NEWTON_BOND,EVFLAG>(ev, i1,i2,i3,i4, type,
@@ -221,28 +221,28 @@ void ImproperInversionHarmonicKokkos<DeviceType>::invang(EV_FLOAT &ev,
   upx = vb2x*rrvb2 + vb1x*rrvb1;
   upy = vb2y*rrvb2 + vb1y*rrvb1;
   upz = vb2z*rrvb2 + vb1z*rrvb1;
-  upn = static_cast<KK_FLOAT>(1.0)/sqrt(upx*upx + upy*upy + upz*upz);
+  upn = static_cast<KK_FLOAT>(1.0)/Kokkos::sqrt(upx*upx + upy*upy + upz*upz);
   upx *= upn; upy *= upn; upz *= upn;
   rup = vb3x*upx + vb3y*upy + vb3z*upz;
 
   umx = vb2x*rrvb2 - vb1x*rrvb1;
   umy = vb2y*rrvb2 - vb1y*rrvb1;
   umz = vb2z*rrvb2 - vb1z*rrvb1;
-  umn = static_cast<KK_FLOAT>(1.0)/sqrt(umx*umx + umy*umy + umz*umz);
+  umn = static_cast<KK_FLOAT>(1.0)/Kokkos::sqrt(umx*umx + umy*umy + umz*umz);
   umx *= umn; umy *= umn; umz *= umn;
   rum = vb3x*umx + vb3y*umy + vb3z*umz;
 
-  wwr = sqrt(rup*rup + rum*rum);
+  wwr = Kokkos::sqrt(rup*rup + rum*rum);
   cosomega = wwr*rrvb3;
   if (cosomega > static_cast<KK_FLOAT>(1.0)) cosomega = static_cast<KK_FLOAT>(1.0);
-  omega = acos(cosomega);
+  omega = Kokkos::acos(cosomega);
 
   domega = omega - d_w0[type];
   if (EVFLAG && eflag) eimproper = d_kw[type]*(domega*domega);
 
   gomega = static_cast<KK_FLOAT>(0.0);
   if (omega*omega > static_cast<KK_FLOAT>(1.0e-24))
-    gomega = static_cast<KK_FLOAT>(2.0)*d_kw[type]*domega/sin(omega);
+    gomega = static_cast<KK_FLOAT>(2.0)*d_kw[type]*domega/Kokkos::sin(omega);
 
   rucb = rjk - rup*(vb2x*upx + vb2y*upy + vb2z*upz);
   rudb = rjl - rup*(vb1x*upx + vb1y*upy + vb1z*upz);

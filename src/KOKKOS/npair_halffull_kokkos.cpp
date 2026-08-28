@@ -91,9 +91,9 @@ void NPairHalffullKokkos<DeviceType,NEWTON,TRI,TRIM>::operator()(TagNPairHalfful
   const int i = d_ilist_full(ii);
   double xtmp,ytmp,ztmp;
   if (NEWTON || TRIM) {
-    xtmp = x(i,0);
-    ytmp = x(i,1);
-    ztmp = x(i,2);
+    xtmp = static_cast<double>(x(i,0));
+    ytmp = static_cast<double>(x(i,1));
+    ztmp = static_cast<double>(x(i,2));
   }
 
   // loop over full neighbor list
@@ -114,25 +114,25 @@ void NPairHalffullKokkos<DeviceType,NEWTON,TRI,TRIM>::operator()(TagNPairHalfful
       if (j < nlocal) {
         if (i > j) continue;
       } else if (TRI) {
-        if (fabs(x(j,2)-ztmp) > delta) {
-          if (x(j,2) < ztmp) continue;
-        } else if (fabs(x(j,1)-ytmp) > delta) {
-          if (x(j,1) < ytmp) continue;
+        if (fabs(static_cast<double>(x(j,2))-ztmp) > delta) {
+          if (static_cast<double>(x(j,2)) < ztmp) continue;
+        } else if (fabs(static_cast<double>(x(j,1))-ytmp) > delta) {
+          if (static_cast<double>(x(j,1)) < ytmp) continue;
         } else {
-          if (x(j,0) < xtmp) continue;
+          if (static_cast<double>(x(j,0)) < xtmp) continue;
         }
       } else {
-        if (x(j,2) < ztmp) continue;
-        if (x(j,2) == ztmp) {
-          if (x(j,1) < ytmp) continue;
-          if (x(j,1) == ytmp && x(j,0) < xtmp) continue;
+        if (static_cast<double>(x(j,2)) < ztmp) continue;
+        if (static_cast<double>(x(j,2)) == ztmp) {
+          if (static_cast<double>(x(j,1)) < ytmp) continue;
+          if (static_cast<double>(x(j,1)) == ytmp && static_cast<double>(x(j,0)) < xtmp) continue;
         }
       }
 
       if (TRIM) {
-        const double delx = xtmp - x(j,0);
-        const double dely = ytmp - x(j,1);
-        const double delz = ztmp - x(j,2);
+        const double delx = xtmp - static_cast<double>(x(j,0));
+        const double dely = ytmp - static_cast<double>(x(j,1));
+        const double delz = ztmp - static_cast<double>(x(j,2));
         const double rsq = delx*delx + dely*dely + delz*delz;
 
         if (rsq > cutsq_custom) continue;
@@ -142,9 +142,9 @@ void NPairHalffullKokkos<DeviceType,NEWTON,TRI,TRIM>::operator()(TagNPairHalfful
     } else if (j > i) {
 
       if (TRIM) {
-        const double delx = xtmp - x(j,0);
-        const double dely = ytmp - x(j,1);
-        const double delz = ztmp - x(j,2);
+        const double delx = xtmp - static_cast<double>(x(j,0));
+        const double dely = ytmp - static_cast<double>(x(j,1));
+        const double delz = ztmp - static_cast<double>(x(j,2));
         const double rsq = delx*delx + dely*dely + delz*delz;
 
         if (rsq > cutsq_custom) continue;

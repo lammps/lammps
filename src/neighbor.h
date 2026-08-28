@@ -284,6 +284,7 @@ class Neighbor : protected Pointers {
   int copymode;
 
   virtual void init_cutneighsq_kokkos(int) {}
+  virtual void init_cutneighghostsq_kokkos(int) {}
   virtual void create_kokkos_list(int);
   virtual void init_ex_type_kokkos(int) {}
   virtual void init_ex_bit_kokkos() {}

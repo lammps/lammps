@@ -143,14 +143,14 @@ void DihedralSphericalKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   if (h_warning_flag())
     error->warning(FLERR,"Dihedral problem");
 
-  if (eflag_global) energy += ev.evdwl;
+  if (eflag_global) energy += static_cast<double>(ev.evdwl);
   if (vflag_global) {
-    virial[0] += ev.v[0];
-    virial[1] += ev.v[1];
-    virial[2] += ev.v[2];
-    virial[3] += ev.v[3];
-    virial[4] += ev.v[4];
-    virial[5] += ev.v[5];
+    virial[0] += static_cast<double>(ev.v[0]);
+    virial[1] += static_cast<double>(ev.v[1]);
+    virial[2] += static_cast<double>(ev.v[2]);
+    virial[3] += static_cast<double>(ev.v[3]);
+    virial[4] += static_cast<double>(ev.v[4]);
+    virial[5] += static_cast<double>(ev.v[5]);
   }
 
   if (eflag_atom) {
@@ -185,28 +185,28 @@ KK_FLOAT DihedralSphericalKokkos<DeviceType>::CalcGeneralizedForcesKK(
     KK_FLOAT cp = 1.0;
     KK_FLOAT sp = 0.0;
     const KK_FLOAT pm = d_phi_mult(type,j);
-    if (pm != 0.0) {
+    if (pm != static_cast<KK_FLOAT>(0.0)) {
       const KK_FLOAT p = pm * (phi - d_phi_shift(type,j));
-      cp = cos(p);
-      sp = sin(p);
+      cp = Kokkos::cos(p);
+      sp = Kokkos::sin(p);
     }
 
     KK_FLOAT ct1 = 1.0;
     KK_FLOAT st1 = 0.0;
     const KK_FLOAT t1m = d_theta1_mult(type,j);
-    if (t1m != 0.0) {
+    if (t1m != static_cast<KK_FLOAT>(0.0)) {
       const KK_FLOAT t1 = t1m * (theta1 - d_theta1_shift(type,j));
-      ct1 = cos(t1);
-      st1 = sin(t1);
+      ct1 = Kokkos::cos(t1);
+      st1 = Kokkos::sin(t1);
     }
 
     KK_FLOAT ct2 = 1.0;
     KK_FLOAT st2 = 0.0;
     const KK_FLOAT t2m = d_theta2_mult(type,j);
-    if (t2m != 0.0) {
+    if (t2m != static_cast<KK_FLOAT>(0.0)) {
       const KK_FLOAT t2 = t2m * (theta2 - d_theta2_shift(type,j));
-      ct2 = cos(t2);
-      st2 = sin(t2);
+      ct2 = Kokkos::cos(t2);
+      st2 = Kokkos::sin(t2);
     }
 
     const KK_FLOAT C = d_Ccoeff(type,j);
@@ -265,28 +265,28 @@ void DihedralSphericalKokkos<DeviceType>::operator()(TagDihedralSphericalCompute
 
   // Normalize n123 and n234
   KK_FLOAT inv_scale;
-  inv_scale = sqrt(n123[0]*n123[0] + n123[1]*n123[1] + n123[2]*n123[2]);
-  if (inv_scale > 0.0) {
-    KK_FLOAT scale = 1.0/inv_scale;
+  inv_scale = Kokkos::sqrt(n123[0]*n123[0] + n123[1]*n123[1] + n123[2]*n123[2]);
+  if (inv_scale > static_cast<KK_FLOAT>(0.0)) {
+    KK_FLOAT scale = static_cast<KK_FLOAT>(1.0)/inv_scale;
     n123[0] *= scale; n123[1] *= scale; n123[2] *= scale;
   }
-  inv_scale = sqrt(n234[0]*n234[0] + n234[1]*n234[1] + n234[2]*n234[2]);
-  if (inv_scale > 0.0) {
-    KK_FLOAT scale = 1.0/inv_scale;
+  inv_scale = Kokkos::sqrt(n234[0]*n234[0] + n234[1]*n234[1] + n234[2]*n234[2]);
+  if (inv_scale > static_cast<KK_FLOAT>(0.0)) {
+    KK_FLOAT scale = static_cast<KK_FLOAT>(1.0)/inv_scale;
     n234[0] *= scale; n234[1] *= scale; n234[2] *= scale;
   }
 
   // Dihedral angle phi
   KK_FLOAT cos_phi = -(n123[0]*n234[0] + n123[1]*n234[1] + n123[2]*n234[2]);
-  if (cos_phi > 1.0) cos_phi = 1.0;
-  else if (cos_phi < -1.0) cos_phi = -1.0;
-  KK_FLOAT phi = acos(cos_phi);
+  if (cos_phi > static_cast<KK_FLOAT>(1.0)) cos_phi = 1.0;
+  else if (cos_phi < -static_cast<KK_FLOAT>(1.0)) cos_phi = -1.0;
+  KK_FLOAT phi = Kokkos::acos(cos_phi);
 
   // Determine sign: if n123 . vb34 > 0 => negative dihedral
   KK_FLOAT n123_dot_vb34 = n123[0]*vb34[0] + n123[1]*vb34[1] + n123[2]*vb34[2];
-  if (n123_dot_vb34 > 0.0) {
+  if (n123_dot_vb34 > static_cast<KK_FLOAT>(0.0)) {
     phi = -phi;
-    phi += MY_2PI;
+    phi += static_cast<KK_FLOAT>(MY_2PI);
   }
 
   // Dot products needed for bond lengths
@@ -297,16 +297,16 @@ void DihedralSphericalKokkos<DeviceType>::operator()(TagDihedralSphericalCompute
   KK_FLOAT L23sqr = vb23[0]*vb23[0] + vb23[1]*vb23[1] + vb23[2]*vb23[2];
   KK_FLOAT L34sqr = vb34[0]*vb34[0] + vb34[1]*vb34[1] + vb34[2]*vb34[2];
 
-  KK_FLOAT L12 = sqrt(L12sqr);
-  KK_FLOAT L23 = sqrt(L23sqr);
-  KK_FLOAT L34 = sqrt(L34sqr);
+  KK_FLOAT L12 = Kokkos::sqrt(L12sqr);
+  KK_FLOAT L23 = Kokkos::sqrt(L23sqr);
+  KK_FLOAT L34 = Kokkos::sqrt(L34sqr);
 
-  KK_FLOAT inv_L12sqr = (L12sqr != 0.0) ? 1.0/L12sqr : 0.0;
-  KK_FLOAT inv_L12    = (L12sqr != 0.0) ? 1.0/L12    : 0.0;
-  KK_FLOAT inv_L23sqr = (L23sqr != 0.0) ? 1.0/L23sqr : 0.0;
-  KK_FLOAT inv_L23    = (L23sqr != 0.0) ? 1.0/L23    : 0.0;
-  KK_FLOAT inv_L34sqr = (L34sqr != 0.0) ? 1.0/L34sqr : 0.0;
-  KK_FLOAT inv_L34    = (L34sqr != 0.0) ? 1.0/L34    : 0.0;
+  KK_FLOAT inv_L12sqr = (L12sqr != static_cast<KK_FLOAT>(0.0)) ? static_cast<KK_FLOAT>(1.0)/L12sqr : static_cast<KK_FLOAT>(0.0);
+  KK_FLOAT inv_L12    = (L12sqr != static_cast<KK_FLOAT>(0.0)) ? static_cast<KK_FLOAT>(1.0)/L12    : static_cast<KK_FLOAT>(0.0);
+  KK_FLOAT inv_L23sqr = (L23sqr != static_cast<KK_FLOAT>(0.0)) ? static_cast<KK_FLOAT>(1.0)/L23sqr : static_cast<KK_FLOAT>(0.0);
+  KK_FLOAT inv_L23    = (L23sqr != static_cast<KK_FLOAT>(0.0)) ? static_cast<KK_FLOAT>(1.0)/L23    : static_cast<KK_FLOAT>(0.0);
+  KK_FLOAT inv_L34sqr = (L34sqr != static_cast<KK_FLOAT>(0.0)) ? static_cast<KK_FLOAT>(1.0)/L34sqr : static_cast<KK_FLOAT>(0.0);
+  KK_FLOAT inv_L34    = (L34sqr != static_cast<KK_FLOAT>(0.0)) ? static_cast<KK_FLOAT>(1.0)/L34    : static_cast<KK_FLOAT>(0.0);
 
   KK_FLOAT neg_inv_L23 = -inv_L23;
 
@@ -333,15 +333,15 @@ void DihedralSphericalKokkos<DeviceType>::operator()(TagDihedralSphericalCompute
     perp23on34[d] = vb23[d] - proj23on34[d];
   }
 
-  KK_FLOAT perp12on23_len = sqrt(perp12on23[0]*perp12on23[0] + perp12on23[1]*perp12on23[1] + perp12on23[2]*perp12on23[2]);
-  KK_FLOAT perp34on23_len = sqrt(perp34on23[0]*perp34on23[0] + perp34on23[1]*perp34on23[1] + perp34on23[2]*perp34on23[2]);
-  KK_FLOAT perp23on12_len = sqrt(perp23on12[0]*perp23on12[0] + perp23on12[1]*perp23on12[1] + perp23on12[2]*perp23on12[2]);
-  KK_FLOAT perp23on34_len = sqrt(perp23on34[0]*perp23on34[0] + perp23on34[1]*perp23on34[1] + perp23on34[2]*perp23on34[2]);
+  KK_FLOAT perp12on23_len = Kokkos::sqrt(perp12on23[0]*perp12on23[0] + perp12on23[1]*perp12on23[1] + perp12on23[2]*perp12on23[2]);
+  KK_FLOAT perp34on23_len = Kokkos::sqrt(perp34on23[0]*perp34on23[0] + perp34on23[1]*perp34on23[1] + perp34on23[2]*perp34on23[2]);
+  KK_FLOAT perp23on12_len = Kokkos::sqrt(perp23on12[0]*perp23on12[0] + perp23on12[1]*perp23on12[1] + perp23on12[2]*perp23on12[2]);
+  KK_FLOAT perp23on34_len = Kokkos::sqrt(perp23on34[0]*perp23on34[0] + perp23on34[1]*perp23on34[1] + perp23on34[2]*perp23on34[2]);
 
-  KK_FLOAT inv_perp12on23 = (perp12on23_len != 0.0) ? 1.0/perp12on23_len : 0.0;
-  KK_FLOAT inv_perp34on23 = (perp34on23_len != 0.0) ? 1.0/perp34on23_len : 0.0;
-  KK_FLOAT inv_perp23on12 = (perp23on12_len != 0.0) ? 1.0/perp23on12_len : 0.0;
-  KK_FLOAT inv_perp23on34 = (perp23on34_len != 0.0) ? 1.0/perp23on34_len : 0.0;
+  KK_FLOAT inv_perp12on23 = (perp12on23_len != static_cast<KK_FLOAT>(0.0)) ? static_cast<KK_FLOAT>(1.0)/perp12on23_len : static_cast<KK_FLOAT>(0.0);
+  KK_FLOAT inv_perp34on23 = (perp34on23_len != static_cast<KK_FLOAT>(0.0)) ? static_cast<KK_FLOAT>(1.0)/perp34on23_len : static_cast<KK_FLOAT>(0.0);
+  KK_FLOAT inv_perp23on12 = (perp23on12_len != static_cast<KK_FLOAT>(0.0)) ? static_cast<KK_FLOAT>(1.0)/perp23on12_len : static_cast<KK_FLOAT>(0.0);
+  KK_FLOAT inv_perp23on34 = (perp23on34_len != static_cast<KK_FLOAT>(0.0)) ? static_cast<KK_FLOAT>(1.0)/perp23on34_len : static_cast<KK_FLOAT>(0.0);
 
   // Gradients of phi
   KK_FLOAT dphi_dx1[g_dim], dphi_dx2[g_dim], dphi_dx3[g_dim], dphi_dx4[g_dim];
@@ -385,14 +385,14 @@ void DihedralSphericalKokkos<DeviceType>::operator()(TagDihedralSphericalCompute
 
   // Bond angles theta1 and theta2
   KK_FLOAT ct1 = -dot123 * inv_L12 * inv_L23;
-  if (ct1 < -1.0) ct1 = -1.0;
-  else if (ct1 > 1.0) ct1 = 1.0;
-  KK_FLOAT theta1 = acos(ct1);
+  if (ct1 < -static_cast<KK_FLOAT>(1.0)) ct1 = -1.0;
+  else if (ct1 > static_cast<KK_FLOAT>(1.0)) ct1 = 1.0;
+  KK_FLOAT theta1 = Kokkos::acos(ct1);
 
   KK_FLOAT ct2 = -dot234 * inv_L23 * inv_L34;
-  if (ct2 < -1.0) ct2 = -1.0;
-  else if (ct2 > 1.0) ct2 = 1.0;
-  KK_FLOAT theta2 = acos(ct2);
+  if (ct2 < -static_cast<KK_FLOAT>(1.0)) ct2 = -1.0;
+  else if (ct2 > static_cast<KK_FLOAT>(1.0)) ct2 = 1.0;
+  KK_FLOAT theta2 = Kokkos::acos(ct2);
 
   // Generalized forces
   KK_FLOAT m_du_dth1 = 0.0, m_du_dth2 = 0.0, m_du_dphi = 0.0;
@@ -411,27 +411,27 @@ void DihedralSphericalKokkos<DeviceType>::operator()(TagDihedralSphericalCompute
   // Apply force to each of 4 atoms
 
   if (NEWTON_BOND || i1 < nlocal) {
-    a_f(i1,0) += f1[0];
-    a_f(i1,1) += f1[1];
-    a_f(i1,2) += f1[2];
+    a_f(i1,0) += static_cast<KK_ACC_FLOAT>(f1[0]);
+    a_f(i1,1) += static_cast<KK_ACC_FLOAT>(f1[1]);
+    a_f(i1,2) += static_cast<KK_ACC_FLOAT>(f1[2]);
   }
 
   if (NEWTON_BOND || i2 < nlocal) {
-    a_f(i2,0) += f2[0];
-    a_f(i2,1) += f2[1];
-    a_f(i2,2) += f2[2];
+    a_f(i2,0) += static_cast<KK_ACC_FLOAT>(f2[0]);
+    a_f(i2,1) += static_cast<KK_ACC_FLOAT>(f2[1]);
+    a_f(i2,2) += static_cast<KK_ACC_FLOAT>(f2[2]);
   }
 
   if (NEWTON_BOND || i3 < nlocal) {
-    a_f(i3,0) += f3[0];
-    a_f(i3,1) += f3[1];
-    a_f(i3,2) += f3[2];
+    a_f(i3,0) += static_cast<KK_ACC_FLOAT>(f3[0]);
+    a_f(i3,1) += static_cast<KK_ACC_FLOAT>(f3[1]);
+    a_f(i3,2) += static_cast<KK_ACC_FLOAT>(f3[2]);
   }
 
   if (NEWTON_BOND || i4 < nlocal) {
-    a_f(i4,0) += f4[0];
-    a_f(i4,1) += f4[1];
-    a_f(i4,2) += f4[2];
+    a_f(i4,0) += static_cast<KK_ACC_FLOAT>(f4[0]);
+    a_f(i4,1) += static_cast<KK_ACC_FLOAT>(f4[1]);
+    a_f(i4,2) += static_cast<KK_ACC_FLOAT>(f4[2]);
   }
 
   // ev_tally uses vb12 as vb1, vb23 as vb2, vb34 as vb3
@@ -524,16 +524,16 @@ void DihedralSphericalKokkos<DeviceType>::coeff(int narg, char **arg)
   for (int i = ilo; i <= ihi; i++) {
     k_nterms.view_host()[i] = nterms[i];
     for (int j = 0; j < nterms[i]; j++) {
-      k_Ccoeff.view_host()(i,j) = Ccoeff[i][j];
-      k_phi_mult.view_host()(i,j) = phi_mult[i][j];
-      k_phi_shift.view_host()(i,j) = phi_shift[i][j];
-      k_phi_offset.view_host()(i,j) = phi_offset[i][j];
-      k_theta1_mult.view_host()(i,j) = theta1_mult[i][j];
-      k_theta1_shift.view_host()(i,j) = theta1_shift[i][j];
-      k_theta1_offset.view_host()(i,j) = theta1_offset[i][j];
-      k_theta2_mult.view_host()(i,j) = theta2_mult[i][j];
-      k_theta2_shift.view_host()(i,j) = theta2_shift[i][j];
-      k_theta2_offset.view_host()(i,j) = theta2_offset[i][j];
+      k_Ccoeff.view_host()(i,j) = static_cast<KK_FLOAT>(Ccoeff[i][j]);
+      k_phi_mult.view_host()(i,j) = static_cast<KK_FLOAT>(phi_mult[i][j]);
+      k_phi_shift.view_host()(i,j) = static_cast<KK_FLOAT>(phi_shift[i][j]);
+      k_phi_offset.view_host()(i,j) = static_cast<KK_FLOAT>(phi_offset[i][j]);
+      k_theta1_mult.view_host()(i,j) = static_cast<KK_FLOAT>(theta1_mult[i][j]);
+      k_theta1_shift.view_host()(i,j) = static_cast<KK_FLOAT>(theta1_shift[i][j]);
+      k_theta1_offset.view_host()(i,j) = static_cast<KK_FLOAT>(theta1_offset[i][j]);
+      k_theta2_mult.view_host()(i,j) = static_cast<KK_FLOAT>(theta2_mult[i][j]);
+      k_theta2_shift.view_host()(i,j) = static_cast<KK_FLOAT>(theta2_shift[i][j]);
+      k_theta2_offset.view_host()(i,j) = static_cast<KK_FLOAT>(theta2_offset[i][j]);
     }
   }
 
@@ -564,16 +564,16 @@ void DihedralSphericalKokkos<DeviceType>::read_restart(FILE *fp)
   for (int i = 1; i <= n; i++) {
     k_nterms.view_host()[i] = nterms[i];
     for (int j = 0; j < nterms[i]; j++) {
-      k_Ccoeff.view_host()(i,j) = Ccoeff[i][j];
-      k_phi_mult.view_host()(i,j) = phi_mult[i][j];
-      k_phi_shift.view_host()(i,j) = phi_shift[i][j];
-      k_phi_offset.view_host()(i,j) = phi_offset[i][j];
-      k_theta1_mult.view_host()(i,j) = theta1_mult[i][j];
-      k_theta1_shift.view_host()(i,j) = theta1_shift[i][j];
-      k_theta1_offset.view_host()(i,j) = theta1_offset[i][j];
-      k_theta2_mult.view_host()(i,j) = theta2_mult[i][j];
-      k_theta2_shift.view_host()(i,j) = theta2_shift[i][j];
-      k_theta2_offset.view_host()(i,j) = theta2_offset[i][j];
+      k_Ccoeff.view_host()(i,j) = static_cast<KK_FLOAT>(Ccoeff[i][j]);
+      k_phi_mult.view_host()(i,j) = static_cast<KK_FLOAT>(phi_mult[i][j]);
+      k_phi_shift.view_host()(i,j) = static_cast<KK_FLOAT>(phi_shift[i][j]);
+      k_phi_offset.view_host()(i,j) = static_cast<KK_FLOAT>(phi_offset[i][j]);
+      k_theta1_mult.view_host()(i,j) = static_cast<KK_FLOAT>(theta1_mult[i][j]);
+      k_theta1_shift.view_host()(i,j) = static_cast<KK_FLOAT>(theta1_shift[i][j]);
+      k_theta1_offset.view_host()(i,j) = static_cast<KK_FLOAT>(theta1_offset[i][j]);
+      k_theta2_mult.view_host()(i,j) = static_cast<KK_FLOAT>(theta2_mult[i][j]);
+      k_theta2_shift.view_host()(i,j) = static_cast<KK_FLOAT>(theta2_shift[i][j]);
+      k_theta2_offset.view_host()(i,j) = static_cast<KK_FLOAT>(theta2_offset[i][j]);
     }
   }
 
@@ -616,21 +616,21 @@ void DihedralSphericalKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int i1, c
 
   if (eflag_either) {
     if (eflag_global) {
-      if (newton_bond) ev.evdwl += edihedral;
+      if (newton_bond) ev.evdwl += static_cast<KK_ACC_FLOAT>(edihedral);
       else {
-        edihedralquarter = 0.25*edihedral;
-        if (i1 < nlocal) ev.evdwl += edihedralquarter;
-        if (i2 < nlocal) ev.evdwl += edihedralquarter;
-        if (i3 < nlocal) ev.evdwl += edihedralquarter;
-        if (i4 < nlocal) ev.evdwl += edihedralquarter;
+        edihedralquarter = static_cast<KK_FLOAT>(0.25)*edihedral;
+        if (i1 < nlocal) ev.evdwl += static_cast<KK_ACC_FLOAT>(edihedralquarter);
+        if (i2 < nlocal) ev.evdwl += static_cast<KK_ACC_FLOAT>(edihedralquarter);
+        if (i3 < nlocal) ev.evdwl += static_cast<KK_ACC_FLOAT>(edihedralquarter);
+        if (i4 < nlocal) ev.evdwl += static_cast<KK_ACC_FLOAT>(edihedralquarter);
       }
     }
     if (eflag_atom) {
-      edihedralquarter = 0.25*edihedral;
-      if (newton_bond || i1 < nlocal) v_eatom[i1] += edihedralquarter;
-      if (newton_bond || i2 < nlocal) v_eatom[i2] += edihedralquarter;
-      if (newton_bond || i3 < nlocal) v_eatom[i3] += edihedralquarter;
-      if (newton_bond || i4 < nlocal) v_eatom[i4] += edihedralquarter;
+      edihedralquarter = static_cast<KK_FLOAT>(0.25)*edihedral;
+      if (newton_bond || i1 < nlocal) v_eatom[i1] += static_cast<KK_ACC_FLOAT>(edihedralquarter);
+      if (newton_bond || i2 < nlocal) v_eatom[i2] += static_cast<KK_ACC_FLOAT>(edihedralquarter);
+      if (newton_bond || i3 < nlocal) v_eatom[i3] += static_cast<KK_ACC_FLOAT>(edihedralquarter);
+      if (newton_bond || i4 < nlocal) v_eatom[i4] += static_cast<KK_ACC_FLOAT>(edihedralquarter);
     }
   }
 
@@ -644,80 +644,80 @@ void DihedralSphericalKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int i1, c
 
     if (vflag_global) {
       if (newton_bond) {
-        ev.v[0] += v[0];
-        ev.v[1] += v[1];
-        ev.v[2] += v[2];
-        ev.v[3] += v[3];
-        ev.v[4] += v[4];
-        ev.v[5] += v[5];
+        ev.v[0] += static_cast<KK_ACC_FLOAT>(v[0]);
+        ev.v[1] += static_cast<KK_ACC_FLOAT>(v[1]);
+        ev.v[2] += static_cast<KK_ACC_FLOAT>(v[2]);
+        ev.v[3] += static_cast<KK_ACC_FLOAT>(v[3]);
+        ev.v[4] += static_cast<KK_ACC_FLOAT>(v[4]);
+        ev.v[5] += static_cast<KK_ACC_FLOAT>(v[5]);
       } else {
         if (i1 < nlocal) {
-          ev.v[0] += 0.25*v[0];
-          ev.v[1] += 0.25*v[1];
-          ev.v[2] += 0.25*v[2];
-          ev.v[3] += 0.25*v[3];
-          ev.v[4] += 0.25*v[4];
-          ev.v[5] += 0.25*v[5];
+          ev.v[0] += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[0]);
+          ev.v[1] += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[1]);
+          ev.v[2] += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[2]);
+          ev.v[3] += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[3]);
+          ev.v[4] += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[4]);
+          ev.v[5] += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[5]);
         }
         if (i2 < nlocal) {
-          ev.v[0] += 0.25*v[0];
-          ev.v[1] += 0.25*v[1];
-          ev.v[2] += 0.25*v[2];
-          ev.v[3] += 0.25*v[3];
-          ev.v[4] += 0.25*v[4];
-          ev.v[5] += 0.25*v[5];
+          ev.v[0] += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[0]);
+          ev.v[1] += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[1]);
+          ev.v[2] += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[2]);
+          ev.v[3] += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[3]);
+          ev.v[4] += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[4]);
+          ev.v[5] += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[5]);
         }
         if (i3 < nlocal) {
-          ev.v[0] += 0.25*v[0];
-          ev.v[1] += 0.25*v[1];
-          ev.v[2] += 0.25*v[2];
-          ev.v[3] += 0.25*v[3];
-          ev.v[4] += 0.25*v[4];
-          ev.v[5] += 0.25*v[5];
+          ev.v[0] += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[0]);
+          ev.v[1] += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[1]);
+          ev.v[2] += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[2]);
+          ev.v[3] += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[3]);
+          ev.v[4] += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[4]);
+          ev.v[5] += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[5]);
         }
         if (i4 < nlocal) {
-          ev.v[0] += 0.25*v[0];
-          ev.v[1] += 0.25*v[1];
-          ev.v[2] += 0.25*v[2];
-          ev.v[3] += 0.25*v[3];
-          ev.v[4] += 0.25*v[4];
-          ev.v[5] += 0.25*v[5];
+          ev.v[0] += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[0]);
+          ev.v[1] += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[1]);
+          ev.v[2] += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[2]);
+          ev.v[3] += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[3]);
+          ev.v[4] += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[4]);
+          ev.v[5] += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[5]);
         }
       }
     }
 
     if (vflag_atom) {
       if (newton_bond || i1 < nlocal) {
-        v_vatom(i1,0) += 0.25*v[0];
-        v_vatom(i1,1) += 0.25*v[1];
-        v_vatom(i1,2) += 0.25*v[2];
-        v_vatom(i1,3) += 0.25*v[3];
-        v_vatom(i1,4) += 0.25*v[4];
-        v_vatom(i1,5) += 0.25*v[5];
+        v_vatom(i1,0) += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[0]);
+        v_vatom(i1,1) += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[1]);
+        v_vatom(i1,2) += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[2]);
+        v_vatom(i1,3) += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[3]);
+        v_vatom(i1,4) += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[4]);
+        v_vatom(i1,5) += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[5]);
       }
       if (newton_bond || i2 < nlocal) {
-        v_vatom(i2,0) += 0.25*v[0];
-        v_vatom(i2,1) += 0.25*v[1];
-        v_vatom(i2,2) += 0.25*v[2];
-        v_vatom(i2,3) += 0.25*v[3];
-        v_vatom(i2,4) += 0.25*v[4];
-        v_vatom(i2,5) += 0.25*v[5];
+        v_vatom(i2,0) += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[0]);
+        v_vatom(i2,1) += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[1]);
+        v_vatom(i2,2) += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[2]);
+        v_vatom(i2,3) += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[3]);
+        v_vatom(i2,4) += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[4]);
+        v_vatom(i2,5) += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[5]);
       }
       if (newton_bond || i3 < nlocal) {
-        v_vatom(i3,0) += 0.25*v[0];
-        v_vatom(i3,1) += 0.25*v[1];
-        v_vatom(i3,2) += 0.25*v[2];
-        v_vatom(i3,3) += 0.25*v[3];
-        v_vatom(i3,4) += 0.25*v[4];
-        v_vatom(i3,5) += 0.25*v[5];
+        v_vatom(i3,0) += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[0]);
+        v_vatom(i3,1) += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[1]);
+        v_vatom(i3,2) += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[2]);
+        v_vatom(i3,3) += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[3]);
+        v_vatom(i3,4) += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[4]);
+        v_vatom(i3,5) += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[5]);
       }
       if (newton_bond || i4 < nlocal) {
-        v_vatom(i4,0) += 0.25*v[0];
-        v_vatom(i4,1) += 0.25*v[1];
-        v_vatom(i4,2) += 0.25*v[2];
-        v_vatom(i4,3) += 0.25*v[3];
-        v_vatom(i4,4) += 0.25*v[4];
-        v_vatom(i4,5) += 0.25*v[5];
+        v_vatom(i4,0) += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[0]);
+        v_vatom(i4,1) += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[1]);
+        v_vatom(i4,2) += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[2]);
+        v_vatom(i4,3) += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[3]);
+        v_vatom(i4,4) += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[4]);
+        v_vatom(i4,5) += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[5]);
       }
     }
   }

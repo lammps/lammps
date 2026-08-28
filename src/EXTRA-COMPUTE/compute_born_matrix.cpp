@@ -291,7 +291,7 @@ void ComputeBornMatrix::init()
 {
   if (!numflag) {
 
-    // need an occasional half neighbor list
+    // need an occasional full neighbor list
 
     neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
 
@@ -449,7 +449,8 @@ void ComputeBornMatrix::compute_pairs()
 
       pair_pref = dupair = du2pair = 0.0;
       pair->born_matrix(i, j, itype, jtype, rsq, factor_coul, factor_lj, dupair, du2pair);
-      pair_pref = 0.5 * du2pair - dupair * rinv;
+      // a full neighbor list visits each pair twice, so both terms are halved
+      pair_pref = 0.5 * (du2pair - dupair * rinv);
 
       // See albemunu in compute_born_matrix.h for indices order.
 

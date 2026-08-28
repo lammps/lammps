@@ -186,9 +186,9 @@ void ImproperHarmonicKokkos<DeviceType>::operator()(TagImproperHarmonicCompute<N
   const KK_FLOAT ss2 = static_cast<KK_FLOAT>(1.0) / (vb2x*vb2x + vb2y*vb2y + vb2z*vb2z);
   const KK_FLOAT ss3 = static_cast<KK_FLOAT>(1.0) / (vb3x*vb3x + vb3y*vb3y + vb3z*vb3z);
 
-  const KK_FLOAT r1 = sqrt(ss1);
-  const KK_FLOAT r2 = sqrt(ss2);
-  const KK_FLOAT r3 = sqrt(ss3);
+  const KK_FLOAT r1 = Kokkos::sqrt(ss1);
+  const KK_FLOAT r2 = Kokkos::sqrt(ss2);
+  const KK_FLOAT r3 = Kokkos::sqrt(ss3);
 
   // sin and cos of improper
 
@@ -204,7 +204,7 @@ void ImproperHarmonicKokkos<DeviceType>::operator()(TagImproperHarmonicCompute<N
   if (s2 < static_cast<KK_FLOAT>(SMALL)) s2 = static_cast<KK_FLOAT>(SMALL);
   s2 = static_cast<KK_FLOAT>(1.0) / s2;
 
-  KK_FLOAT s12 = sqrt(s1*s2);
+  KK_FLOAT s12 = Kokkos::sqrt(s1*s2);
   KK_FLOAT c = (c1*c2 + c0) * s12;
 
   // error check
@@ -215,12 +215,12 @@ void ImproperHarmonicKokkos<DeviceType>::operator()(TagImproperHarmonicCompute<N
   if (c > static_cast<KK_FLOAT>(1.0)) c = static_cast<KK_FLOAT>(1.0);
   if (c < -static_cast<KK_FLOAT>(1.0)) c = -static_cast<KK_FLOAT>(1.0);
 
-  KK_FLOAT s = sqrt(static_cast<KK_FLOAT>(1.0) - c*c);
+  KK_FLOAT s = Kokkos::sqrt(static_cast<KK_FLOAT>(1.0) - c*c);
   if (s < static_cast<KK_FLOAT>(SMALL)) s = static_cast<KK_FLOAT>(SMALL);
 
   // force & energy
 
-  const KK_FLOAT domega = acos(c) - d_chi[type];
+  const KK_FLOAT domega = Kokkos::acos(c) - d_chi[type];
   KK_FLOAT a = d_k[type] * domega;
 
   KK_FLOAT eimproper = 0;

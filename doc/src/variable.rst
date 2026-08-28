@@ -967,6 +967,16 @@ around its center of mass, ordered as Ixx,Iyy,Izz,Ixy,Iyz,Ixz.
 Omega() returns components of the angular velocity of the group of
 atoms around its center of mass.
 
+.. versionchanged:: TBD
+
+The inertia() and angmom() functions now include the contributions of
+:doc:`finite-size particles <Howto_spherical>`; previously all atoms
+were treated as point masses.  This is independent of (and does not
+change) the angular-momentum removal performed by :doc:`fix momentum
+<fix_momentum>`, :doc:`velocity zero <velocity>`, and :doc:`compute
+temp/rotate <compute_temp_rotate>`, which continue to act on the
+point-mass (translational) angular momentum only.
+
 Region functions are specified exactly the same way as group functions
 except they take an extra final argument *IDR* which is the region ID.
 The function is computed for all atoms that are in both the group and

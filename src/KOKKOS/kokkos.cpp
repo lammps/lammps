@@ -153,7 +153,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   // unified memory
 
-#if ((defined(KOKKOS_ENABLE_CUDA) && defined(KOKKOS_ENABLE_CUDA_UVM)) || \
+#if ((defined(KOKKOS_ENABLE_CUDA) && defined(KOKKOS_ENABLE_IMPL_CUDA_UNIFIED_MEMORY)) || \
      (defined(KOKKOS_ENABLE_HIP) && defined(KOKKOS_ARCH_AMD_GFX942_APU)))
   if (me == 0)
     utils::logmesg(lmp,"  using unified memory\n");

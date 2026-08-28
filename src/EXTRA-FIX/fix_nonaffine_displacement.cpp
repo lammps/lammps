@@ -242,7 +242,8 @@ void FixNonaffineDisplacement::init()
         if (mycutneigh > cutghost)
           error->all(FLERR,"Fix nonaffine/displacement D2Min option cutoff exceeds ghost atom range - use comm_modify cutoff command");
 
-        req->set_cutoff(mycutneigh);
+        // the cutoff is required for all types
+        req->set_cutoff_fixed(mycutneigh);
       }
     }
   }

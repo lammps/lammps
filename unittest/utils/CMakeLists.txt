@@ -26,7 +26,6 @@ if(BUILD_MPI)
   add_executable(test_nbody_mpi test_nbody_mpi.cpp)
   target_link_libraries(test_nbody_mpi PRIVATE lammps GTest::GMockMain MPI::MPI_CXX)
   add_mpi_test(NAME NbodyMPI NUM_PROCS 4 COMMAND $<TARGET_FILE:test_nbody_mpi>)
-  set_tests_properties(NbodyMPI PROPERTIES LABELS "mpi")
 endif()
 
 add_executable(test_argutils test_argutils.cpp)
@@ -111,15 +110,9 @@ if(PKG_KSPACE)
   if(BUILD_MPI)
     # Test with 2 processes
     add_mpi_test(NAME FFT3D_MPI_2proc NUM_PROCS 2 COMMAND $<TARGET_FILE:test_fft3d>)
-    set_tests_properties(FFT3D_MPI_2proc PROPERTIES
-      LABELS "fft;kspace;mpi;utils"
-      ENVIRONMENT "OMP_PROC_BIND=false")
 
     # Test with 4 processes
     add_mpi_test(NAME FFT3D_MPI_4proc NUM_PROCS 4 COMMAND $<TARGET_FILE:test_fft3d>)
-    set_tests_properties(FFT3D_MPI_4proc PROPERTIES
-      LABELS "fft;kspace;mpi;utils"
-      ENVIRONMENT "OMP_PROC_BIND=false")
   endif()
 endif()
 
@@ -182,15 +175,9 @@ if(PKG_KSPACE AND PKG_KOKKOS)
   if(BUILD_MPI)
     # Test with 2 processes
     add_mpi_test(NAME FFT3DKokkos_MPI_2proc NUM_PROCS 2 COMMAND $<TARGET_FILE:test_fft3d_kokkos>)
-    set_tests_properties(FFT3DKokkos_MPI_2proc PROPERTIES
-      LABELS "fft;kokkos;kspace;mpi;utils"
-      ENVIRONMENT "OMP_PROC_BIND=false")
 
     # Test with 4 processes
     add_mpi_test(NAME FFT3DKokkos_MPI_4proc NUM_PROCS 4 COMMAND $<TARGET_FILE:test_fft3d_kokkos>)
-    set_tests_properties(FFT3DKokkos_MPI_4proc PROPERTIES
-      LABELS "fft;kokkos;kspace;mpi;utils"
-      ENVIRONMENT "OMP_PROC_BIND=false")
   endif()
 endif()
 

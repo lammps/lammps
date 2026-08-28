@@ -202,9 +202,9 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void ComputeTempDeformKokkos<DeviceType>::operator()(TagComputeTempDeformRemoveBias, const int &i) const {
   if (mask[i] & groupbit) {
-    vbiasall(i,0) = h_rate[0]*x(i,0) + h_rate[5]*x(i,1) + h_rate[4]*x(i,2) + h_ratelo[0];
-    vbiasall(i,1) = h_rate[1]*x(i,1) + h_rate[3]*x(i,2) + h_ratelo[1];
-    vbiasall(i,2) = h_rate[2]*x(i,2) + h_ratelo[2];
+    vbiasall(i,0) = static_cast<KK_FLOAT>(h_rate[0]*static_cast<double>(x(i,0)) + h_rate[5]*static_cast<double>(x(i,1)) + h_rate[4]*static_cast<double>(x(i,2)) + h_ratelo[0]);
+    vbiasall(i,1) = static_cast<KK_FLOAT>(h_rate[1]*static_cast<double>(x(i,1)) + h_rate[3]*static_cast<double>(x(i,2)) + h_ratelo[1]);
+    vbiasall(i,2) = static_cast<KK_FLOAT>(h_rate[2]*static_cast<double>(x(i,2)) + h_ratelo[2]);
     v(i,0) -= vbiasall(i,0);
     v(i,1) -= vbiasall(i,1);
     v(i,2) -= vbiasall(i,2);
@@ -294,9 +294,9 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void ComputeTempDeformKokkos<DeviceType>::operator()(TagComputeTempDeformApplyBias, const int &i) const {
   if (mask[i] & groupbit) {
-    v(i,0) += (x(i,0) - d_xref[0]) * d_grad_u[0] + (x(i,1) - d_xref[3]) * d_grad_u[5] + (x(i,2) - d_xref[4]) * d_grad_u[4];
-    v(i,1) += (x(i,1) - d_xref[1]) * d_grad_u[1] + (x(i,2) - d_xref[4]) * d_grad_u[3];
-    v(i,2) += (x(i,2) - d_xref[2]) * d_grad_u[2];
+    v(i,0) += static_cast<KK_FLOAT>((static_cast<double>(x(i,0)) - d_xref[0]) * d_grad_u[0] + (static_cast<double>(x(i,1)) - d_xref[3]) * d_grad_u[5] + (static_cast<double>(x(i,2)) - d_xref[4]) * d_grad_u[4]);
+    v(i,1) += static_cast<KK_FLOAT>((static_cast<double>(x(i,1)) - d_xref[1]) * d_grad_u[1] + (static_cast<double>(x(i,2)) - d_xref[4]) * d_grad_u[3]);
+    v(i,2) += static_cast<KK_FLOAT>((static_cast<double>(x(i,2)) - d_xref[2]) * d_grad_u[2]);
   }
 }
 

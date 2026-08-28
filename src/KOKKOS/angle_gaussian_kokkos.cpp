@@ -184,14 +184,14 @@ void AngleGaussianKokkos<DeviceType>::operator()(TagAngleGaussianCompute<NEWTON_
   const KK_FLOAT delz1 = x(i1,2) - x(i2,2);
 
   const KK_FLOAT rsq1 = delx1*delx1 + dely1*dely1 + delz1*delz1;
-  const KK_FLOAT r1 = sqrt(rsq1);
+  const KK_FLOAT r1 = Kokkos::sqrt(rsq1);
 
   const KK_FLOAT delx2 = x(i3,0) - x(i2,0);
   const KK_FLOAT dely2 = x(i3,1) - x(i2,1);
   const KK_FLOAT delz2 = x(i3,2) - x(i2,2);
 
   const KK_FLOAT rsq2 = delx2*delx2 + dely2*dely2 + delz2*delz2;
-  const KK_FLOAT r2 = sqrt(rsq2);
+  const KK_FLOAT r2 = Kokkos::sqrt(rsq2);
 
   KK_FLOAT c = delx1*delx2 + dely1*dely2 + delz1*delz2;
   c /= r1*r2;
@@ -199,11 +199,11 @@ void AngleGaussianKokkos<DeviceType>::operator()(TagAngleGaussianCompute<NEWTON_
   if (c > static_cast<KK_FLOAT>(1.0)) c = static_cast<KK_FLOAT>(1.0);
   if (c < static_cast<KK_FLOAT>(-1.0)) c = static_cast<KK_FLOAT>(-1.0);
 
-  KK_FLOAT s = sqrt(static_cast<KK_FLOAT>(1.0) - c*c);
+  KK_FLOAT s = Kokkos::sqrt(static_cast<KK_FLOAT>(1.0) - c*c);
   if (s < static_cast<KK_FLOAT>(SMALL)) s = static_cast<KK_FLOAT>(SMALL);
   s = static_cast<KK_FLOAT>(1.0)/s;
 
-  const KK_FLOAT theta = acos(c);
+  const KK_FLOAT theta = Kokkos::acos(c);
 
   KK_FLOAT sum_g_i = static_cast<KK_FLOAT>(0.0);
   KK_FLOAT sum_numerator = static_cast<KK_FLOAT>(0.0);
@@ -211,9 +211,9 @@ void AngleGaussianKokkos<DeviceType>::operator()(TagAngleGaussianCompute<NEWTON_
   for (int i = 0; i < nt; i++) {
     const KK_FLOAT dtheta    = theta - d_theta0(type,i);
     const KK_FLOAT w         = d_width(type,i);
-    const KK_FLOAT prefactor = d_alpha(type,i) / (w * sqrt(static_cast<KK_FLOAT>(MY_PI2)));
+    const KK_FLOAT prefactor = d_alpha(type,i) / (w * Kokkos::sqrt(static_cast<KK_FLOAT>(MY_PI2)));
     const KK_FLOAT exponent  = static_cast<KK_FLOAT>(-2.0) * dtheta * dtheta / (w * w);
-    const KK_FLOAT g_i       = prefactor * exp(exponent);
+    const KK_FLOAT g_i       = prefactor * Kokkos::exp(exponent);
     sum_g_i       += g_i;
     sum_numerator += g_i * dtheta / (w * w);
   }
@@ -225,7 +225,7 @@ void AngleGaussianKokkos<DeviceType>::operator()(TagAngleGaussianCompute<NEWTON_
   const KK_FLOAT kbt = boltz * d_angle_temperature[type];
 
   KK_FLOAT eangle = static_cast<KK_FLOAT>(0.0);
-  if (eflag) eangle = -kbt * log(sum_g_i);
+  if (eflag) eangle = -kbt * Kokkos::log(sum_g_i);
 
   const KK_FLOAT a   = static_cast<KK_FLOAT>(-4.0) * kbt * (sum_numerator / sum_g_i) * s;
   const KK_FLOAT a11 = a*c / rsq1;
@@ -302,11 +302,11 @@ void AngleGaussianKokkos<DeviceType>::coeff(int narg, char **arg)
 
   for (int i = ilo; i <= ihi; i++) {
     k_nterms.view_host()[i]             = nterms[i];
-    k_angle_temperature.view_host()[i]  = angle_temperature[i];
+    k_angle_temperature.view_host()[i]  = static_cast<KK_FLOAT>(angle_temperature[i]);
     for (int j = 0; j < nterms[i]; j++) {
-      k_alpha.view_host()(i,j)  = alpha[i][j];
-      k_width.view_host()(i,j)  = width[i][j];
-      k_theta0.view_host()(i,j) = theta0[i][j];
+      k_alpha.view_host()(i,j)  = static_cast<KK_FLOAT>(alpha[i][j]);
+      k_width.view_host()(i,j)  = static_cast<KK_FLOAT>(width[i][j]);
+      k_theta0.view_host()(i,j) = static_cast<KK_FLOAT>(theta0[i][j]);
     }
   }
 
@@ -330,11 +330,11 @@ void AngleGaussianKokkos<DeviceType>::read_restart(FILE *fp)
   int n = atom->nangletypes;
   for (int i = 1; i <= n; i++) {
     k_nterms.view_host()[i]             = nterms[i];
-    k_angle_temperature.view_host()[i]  = angle_temperature[i];
+    k_angle_temperature.view_host()[i]  = static_cast<KK_FLOAT>(angle_temperature[i]);
     for (int j = 0; j < nterms[i]; j++) {
-      k_alpha.view_host()(i,j)  = alpha[i][j];
-      k_width.view_host()(i,j)  = width[i][j];
-      k_theta0.view_host()(i,j) = theta0[i][j];
+      k_alpha.view_host()(i,j)  = static_cast<KK_FLOAT>(alpha[i][j]);
+      k_width.view_host()(i,j)  = static_cast<KK_FLOAT>(width[i][j]);
+      k_theta0.view_host()(i,j) = static_cast<KK_FLOAT>(theta0[i][j]);
     }
   }
 

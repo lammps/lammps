@@ -169,7 +169,7 @@ void AngleClass2P6Kokkos<DeviceType>::operator()(TagAngleClass2P6Compute<NEWTON_
   const KK_FLOAT delz1 = x(i1,2) - x(i2,2);
 
   const KK_FLOAT rsq1 = delx1*delx1 + dely1*dely1 + delz1*delz1;
-  const KK_FLOAT r1 = sqrt(rsq1);
+  const KK_FLOAT r1 = Kokkos::sqrt(rsq1);
 
   // 2nd bond
 
@@ -178,7 +178,7 @@ void AngleClass2P6Kokkos<DeviceType>::operator()(TagAngleClass2P6Compute<NEWTON_
   const KK_FLOAT delz2 = x(i3,2) - x(i2,2);
 
   const KK_FLOAT rsq2 = delx2*delx2 + dely2*dely2 + delz2*delz2;
-  const KK_FLOAT r2 = sqrt(rsq2);
+  const KK_FLOAT r2 = Kokkos::sqrt(rsq2);
 
   // cos and sin of angle
 
@@ -186,13 +186,13 @@ void AngleClass2P6Kokkos<DeviceType>::operator()(TagAngleClass2P6Compute<NEWTON_
   if (c > static_cast<KK_FLOAT>(1.0))  c = static_cast<KK_FLOAT>(1.0);
   if (c < static_cast<KK_FLOAT>(-1.0)) c = static_cast<KK_FLOAT>(-1.0);
 
-  KK_FLOAT s = sqrt(static_cast<KK_FLOAT>(1.0) - c*c);
+  KK_FLOAT s = Kokkos::sqrt(static_cast<KK_FLOAT>(1.0) - c*c);
   if (s < static_cast<KK_FLOAT>(SMALL)) s = static_cast<KK_FLOAT>(SMALL);
   s = static_cast<KK_FLOAT>(1.0)/s;
 
   // angle term
 
-  const KK_FLOAT dtheta  = acos(c) - d_theta0[type];
+  const KK_FLOAT dtheta  = Kokkos::acos(c) - d_theta0[type];
   const KK_FLOAT dtheta2 = dtheta*dtheta;
   const KK_FLOAT dtheta3 = dtheta2*dtheta;
   const KK_FLOAT dtheta4 = dtheta3*dtheta;
@@ -434,14 +434,14 @@ void AngleClass2P6Kokkos<DeviceType>::ev_tally(EV_FLOAT &ev,
     if (eflag_global) {
       if (newton_bond) ev.evdwl += static_cast<KK_ACC_FLOAT>(eangle);
       else {
-        const KK_ACC_FLOAT et = static_cast<KK_ACC_FLOAT>(THIRD*eangle);
+        const KK_ACC_FLOAT et = static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(THIRD)*eangle);
         if (i < nlocal) ev.evdwl += et;
         if (j < nlocal) ev.evdwl += et;
         if (k < nlocal) ev.evdwl += et;
       }
     }
     if (eflag_atom) {
-      const KK_ACC_FLOAT et = static_cast<KK_ACC_FLOAT>(THIRD*eangle);
+      const KK_ACC_FLOAT et = static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(THIRD)*eangle);
       if (newton_bond || i < nlocal) v_eatom[i] += et;
       if (newton_bond || j < nlocal) v_eatom[j] += et;
       if (newton_bond || k < nlocal) v_eatom[k] += et;
@@ -461,14 +461,14 @@ void AngleClass2P6Kokkos<DeviceType>::ev_tally(EV_FLOAT &ev,
       if (newton_bond) {
         for (int m = 0; m < 6; m++) ev.v[m] += static_cast<KK_ACC_FLOAT>(v[m]);
       } else {
-        const KK_FLOAT vt = THIRD;
+        const KK_FLOAT vt = static_cast<KK_FLOAT>(THIRD);
         if (i < nlocal) for (int m = 0; m < 6; m++) ev.v[m] += static_cast<KK_ACC_FLOAT>(vt*v[m]);
         if (j < nlocal) for (int m = 0; m < 6; m++) ev.v[m] += static_cast<KK_ACC_FLOAT>(vt*v[m]);
         if (k < nlocal) for (int m = 0; m < 6; m++) ev.v[m] += static_cast<KK_ACC_FLOAT>(vt*v[m]);
       }
     }
     if (vflag_atom) {
-      const KK_FLOAT vt = THIRD;
+      const KK_FLOAT vt = static_cast<KK_FLOAT>(THIRD);
       if (newton_bond || i < nlocal)
         for (int m = 0; m < 6; m++) v_vatom(i,m) += static_cast<KK_ACC_FLOAT>(vt*v[m]);
       if (newton_bond || j < nlocal)

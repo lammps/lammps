@@ -15,7 +15,11 @@ if(ENABLE_TESTING)
   # them buries the actual defects under thousands of one-time initializations in
   # OpenSSL, libcurl, CPython, and GoogleTest, plus everything that is still in use
   # when a command like "quit" or an error exit terminates the process on purpose.
-  set(VALGRIND_DEFAULT_OPTIONS "--leak-check=full --show-leak-kinds=definite,indirect,possible --track-origins=yes --suppressions=${CMAKE_BINARY_DIR}/lammps.supp")
+  # --max-stackframe is raised because Fortran libraries (e.g. QUIP) place large
+  # automatic arrays on the stack; with the default limit valgrind misreads the
+  # resulting stack pointer jump as a stack switch and then floods the log with
+  # millions of bogus invalid access and uninitialized value errors.
+  set(VALGRIND_DEFAULT_OPTIONS "--leak-check=full --show-leak-kinds=definite,indirect,possible --track-origins=yes --max-stackframe=16777216 --suppressions=${CMAKE_BINARY_DIR}/lammps.supp")
 
   set(MEMORYCHECK_COMMAND "${VALGRIND_BINARY}" CACHE FILEPATH "Memory Check Command")
   set(MEMORYCHECK_COMMAND_OPTIONS "${VALGRIND_DEFAULT_OPTIONS}" CACHE STRING "Memory Check Command Options")

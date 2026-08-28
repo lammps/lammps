@@ -262,7 +262,7 @@ void PairYLZKokkos<DeviceType>::operator()(TagPairYLZKernel<NEIGHFLAG,NEWTON_PAI
     const KK_FLOAT zt          = STACKPARAMS ? m_params[itype][jtype].zeta    : d_params(itype,jtype).zeta;
     const KK_FLOAT muu         = STACKPARAMS ? m_params[itype][jtype].mu      : d_params(itype,jtype).mu;
     const KK_FLOAT sint        = STACKPARAMS ? m_params[itype][jtype].beta    : d_params(itype,jtype).beta;
-    const KK_FLOAT rmin        = MY_TWOBYSIXTH * sig;
+    const KK_FLOAT rmin        = static_cast<KK_FLOAT>(MY_TWOBYSIXTH) * sig;
     const KK_FLOAT rcut        = Kokkos::sqrt(cutsq_ij);
 
     // rotation matrix for atom j
@@ -321,14 +321,14 @@ void PairYLZKokkos<DeviceType>::operator()(TagPairYLZKernel<NEIGHFLAG,NEWTON_PAI
       dUdr   = static_cast<KK_FLOAT>(4.0)*(t2 - t4)/r*energy_well;
       dUdphi = -energy_well;
     } else {
-      const KK_FLOAT t   = MY_PI2*(r - rmin)/(rcut - rmin);
+      const KK_FLOAT t   = static_cast<KK_FLOAT>(MY_PI2)*(r - rmin)/(rcut - rmin);
       const KK_FLOAT cos_t = Kokkos::cos(t);
       // t1 = cos_t^(2*zt-1)
       KK_FLOAT t1 = cos_t;
       for (int k = 1; k <= static_cast<int>(static_cast<KK_FLOAT>(2.0)*zt) - 2; k++) t1 *= cos_t;
       const KK_FLOAT uA = -energy_well*t1*cos_t;
       U      = uA*phi;
-      dUdr   = MY_PI*zt/(rcut - rmin)*t1*Kokkos::sin(t)*phi*energy_well;
+      dUdr   = static_cast<KK_FLOAT>(MY_PI)*zt/(rcut - rmin)*t1*Kokkos::sin(t)*phi*energy_well;
       dUdphi = uA;
     }
 
@@ -352,12 +352,12 @@ void PairYLZKokkos<DeviceType>::operator()(TagPairYLZKernel<NEIGHFLAG,NEWTON_PAI
     const KK_FLOAT ttor_y = dUdni1z*ni1x - dUdni1x*ni1z;
     const KK_FLOAT ttor_z = dUdni1x*ni1y - dUdni1y*ni1x;
 
-    fx_i   += ff_x;
-    fy_i   += ff_y;
-    fz_i   += ff_z;
-    torx_i += ttor_x;
-    tory_i += ttor_y;
-    torz_i += ttor_z;
+    fx_i   += static_cast<KK_ACC_FLOAT>(ff_x);
+    fy_i   += static_cast<KK_ACC_FLOAT>(ff_y);
+    fz_i   += static_cast<KK_ACC_FLOAT>(ff_z);
+    torx_i += static_cast<KK_ACC_FLOAT>(ttor_x);
+    tory_i += static_cast<KK_ACC_FLOAT>(ttor_y);
+    torz_i += static_cast<KK_ACC_FLOAT>(ttor_z);
 
     if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal)) {
       // torque on j: cross(dU/dnj1, nj1)
@@ -368,12 +368,12 @@ void PairYLZKokkos<DeviceType>::operator()(TagPairYLZKernel<NEIGHFLAG,NEWTON_PAI
       const KK_FLOAT rtor_y = dUdnj1z*nj1x - dUdnj1x*nj1z;
       const KK_FLOAT rtor_z = dUdnj1x*nj1y - dUdnj1y*nj1x;
 
-      a_f(j,0) -= ff_x;
-      a_f(j,1) -= ff_y;
-      a_f(j,2) -= ff_z;
-      a_torque(j,0) += rtor_x;
-      a_torque(j,1) += rtor_y;
-      a_torque(j,2) += rtor_z;
+      a_f(j,0) -= static_cast<KK_ACC_FLOAT>(ff_x);
+      a_f(j,1) -= static_cast<KK_ACC_FLOAT>(ff_y);
+      a_f(j,2) -= static_cast<KK_ACC_FLOAT>(ff_z);
+      a_torque(j,0) += static_cast<KK_ACC_FLOAT>(rtor_x);
+      a_torque(j,1) += static_cast<KK_ACC_FLOAT>(rtor_y);
+      a_torque(j,2) += static_cast<KK_ACC_FLOAT>(rtor_z);
     }
 
     if (EVFLAG) {
@@ -418,9 +418,9 @@ void PairYLZKokkos<DeviceType>::ev_tally_xyz(EV_FLOAT &ev, int i, int j, const K
 
   if (eflag_atom) {
     const KK_FLOAT epairhalf = half*epair;
-    Kokkos::atomic_add(&d_eatom[i], epairhalf);
+    Kokkos::atomic_add(&d_eatom[i], static_cast<KK_ACC_FLOAT>(epairhalf));
     if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal))
-      Kokkos::atomic_add(&d_eatom[j], epairhalf);
+      Kokkos::atomic_add(&d_eatom[j], static_cast<KK_ACC_FLOAT>(epairhalf));
   }
 
   if (vflag_either) {
@@ -433,34 +433,34 @@ void PairYLZKokkos<DeviceType>::ev_tally_xyz(EV_FLOAT &ev, int i, int j, const K
 
     if (vflag_global) {
       if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal)) {
-        ev.v[0] += v0; ev.v[1] += v1; ev.v[2] += v2;
-        ev.v[3] += v3; ev.v[4] += v4; ev.v[5] += v5;
+        ev.v[0] += static_cast<KK_ACC_FLOAT>(v0); ev.v[1] += static_cast<KK_ACC_FLOAT>(v1); ev.v[2] += static_cast<KK_ACC_FLOAT>(v2);
+        ev.v[3] += static_cast<KK_ACC_FLOAT>(v3); ev.v[4] += static_cast<KK_ACC_FLOAT>(v4); ev.v[5] += static_cast<KK_ACC_FLOAT>(v5);
       } else {
-        ev.v[0] += half*v0; ev.v[1] += half*v1; ev.v[2] += half*v2;
-        ev.v[3] += half*v3; ev.v[4] += half*v4; ev.v[5] += half*v5;
+        ev.v[0] += static_cast<KK_ACC_FLOAT>(half*v0); ev.v[1] += static_cast<KK_ACC_FLOAT>(half*v1); ev.v[2] += static_cast<KK_ACC_FLOAT>(half*v2);
+        ev.v[3] += static_cast<KK_ACC_FLOAT>(half*v3); ev.v[4] += static_cast<KK_ACC_FLOAT>(half*v4); ev.v[5] += static_cast<KK_ACC_FLOAT>(half*v5);
       }
     }
 
     if (vflag_atom) {
-      Kokkos::atomic_add(&d_vatom(i,0), half*v0);
-      Kokkos::atomic_add(&d_vatom(i,1), half*v1);
-      Kokkos::atomic_add(&d_vatom(i,2), half*v2);
-      Kokkos::atomic_add(&d_vatom(i,3), half*v3);
-      Kokkos::atomic_add(&d_vatom(i,4), half*v4);
-      Kokkos::atomic_add(&d_vatom(i,5), half*v5);
+      Kokkos::atomic_add(&d_vatom(i,0), static_cast<KK_ACC_FLOAT>(half*v0));
+      Kokkos::atomic_add(&d_vatom(i,1), static_cast<KK_ACC_FLOAT>(half*v1));
+      Kokkos::atomic_add(&d_vatom(i,2), static_cast<KK_ACC_FLOAT>(half*v2));
+      Kokkos::atomic_add(&d_vatom(i,3), static_cast<KK_ACC_FLOAT>(half*v3));
+      Kokkos::atomic_add(&d_vatom(i,4), static_cast<KK_ACC_FLOAT>(half*v4));
+      Kokkos::atomic_add(&d_vatom(i,5), static_cast<KK_ACC_FLOAT>(half*v5));
       if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal)) {
-        Kokkos::atomic_add(&d_vatom(j,0), half*v0);
-        Kokkos::atomic_add(&d_vatom(j,1), half*v1);
-        Kokkos::atomic_add(&d_vatom(j,2), half*v2);
-        Kokkos::atomic_add(&d_vatom(j,3), half*v3);
-        Kokkos::atomic_add(&d_vatom(j,4), half*v4);
-        Kokkos::atomic_add(&d_vatom(j,5), half*v5);
+        Kokkos::atomic_add(&d_vatom(j,0), static_cast<KK_ACC_FLOAT>(half*v0));
+        Kokkos::atomic_add(&d_vatom(j,1), static_cast<KK_ACC_FLOAT>(half*v1));
+        Kokkos::atomic_add(&d_vatom(j,2), static_cast<KK_ACC_FLOAT>(half*v2));
+        Kokkos::atomic_add(&d_vatom(j,3), static_cast<KK_ACC_FLOAT>(half*v3));
+        Kokkos::atomic_add(&d_vatom(j,4), static_cast<KK_ACC_FLOAT>(half*v4));
+        Kokkos::atomic_add(&d_vatom(j,5), static_cast<KK_ACC_FLOAT>(half*v5));
       }
     }
   }
 
   if (eflag_global)
-    ev.evdwl += efactor*epair;
+    ev.evdwl += static_cast<KK_ACC_FLOAT>(efactor*epair);
 }
 
 /* ---------------------------------------------------------------------- */

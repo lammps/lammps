@@ -140,8 +140,8 @@ FixElectronStoppingKokkos<DeviceType>::operator()(TagFixElectronStopping, const 
     if (region && !d_match(i)) return;
 
     int itype = type(i);
-    double massone = (d_rmass.data()) ? d_rmass(i) : d_mass(itype);
-    double v2 = v(i, 0) * v(i, 0) + v(i, 1) * v(i, 1) + v(i, 2) * v(i, 2);
+    double massone = (d_rmass.data()) ? static_cast<double>(d_rmass(i)) : static_cast<double>(d_mass(itype));
+    double v2 = static_cast<double>(v(i, 0) * v(i, 0) + v(i, 1) * v(i, 1) + v(i, 2) * v(i, 2));
     double energy = 0.5 * mvv2e * massone * v2;
 
     if (energy < Ecut) return;
@@ -174,9 +174,9 @@ FixElectronStoppingKokkos<DeviceType>::operator()(TagFixElectronStopping, const 
     double vabs = Kokkos::sqrt(v2);
     double factor = -Se / vabs;
 
-    f(i, 0) += v(i, 0) * factor;
-    f(i, 1) += v(i, 1) * factor;
-    f(i, 2) += v(i, 2) * factor;
+    f(i, 0) += static_cast<KK_ACC_FLOAT>(v(i, 0) * static_cast<KK_FLOAT>(factor));
+    f(i, 1) += static_cast<KK_ACC_FLOAT>(v(i, 1) * static_cast<KK_FLOAT>(factor));
+    f(i, 2) += static_cast<KK_ACC_FLOAT>(v(i, 2) * static_cast<KK_FLOAT>(factor));
 
     seloss += Se * vabs * dt;
   }

@@ -693,22 +693,38 @@ double ComputeReduce::compute_one(int m, int flag)
 
 /* ---------------------------------------------------------------------- */
 
-std::string ComputeReduce::get_thermo_colname(int m) {
-  if (replace && replace[m] >= 0) {
-    auto &val1 = values[m];
-    auto &val2 = values[replace[m]];
-    std::string val1string = fmt::format("c_{}", val1.id);
-    if (val1.argindex) val1string += fmt::format("[{}]", val1.argindex);
-    std::string val2string = fmt::format("c_{}", val2.id);
-    if (val2.argindex) val2string += fmt::format("[{}]", val2.argindex);
-    return fmt::format("c_{}:{}<-{}({})", id, val1string, modestr, val2string);
-  }
+// name of an input value as given in the compute command, e.g. vy, c_ID[2], f_ID, v_name
 
+std::string ComputeReduce::valstring(int m) const
+{
+  static const char *xyz[] = {"x", "y", "z"};
+  const auto &val = values[m];
+  switch (val.which) {
+    case ArgInfo::X:
+      return xyz[val.argindex];
+    case ArgInfo::V:
+      return fmt::format("v{}", xyz[val.argindex]);
+    case ArgInfo::F:
+      return fmt::format("f{}", xyz[val.argindex]);
+    case ArgInfo::FIX:
+      return val.argindex ? fmt::format("f_{}[{}]", val.id, val.argindex) : fmt::format("f_{}", val.id);
+    case ArgInfo::VARIABLE:
+      return fmt::format("v_{}", val.id);
+    case ArgInfo::DNAME:
+      return val.argindex ? fmt::format("d2_{}[{}]", val.id, val.argindex) : fmt::format("d_{}", val.id);
+    case ArgInfo::INAME:
+      return val.argindex ? fmt::format("i2_{}[{}]", val.id, val.argindex) : fmt::format("i_{}", val.id);
+    default:
+      return val.argindex ? fmt::format("c_{}[{}]", val.id, val.argindex) : fmt::format("c_{}", val.id);
+  }
+}
+
+std::string ComputeReduce::get_thermo_colname(int m) {
   if (m == -1) m = 0; // scalar
-  auto &val = values[m];
-  std::string valstring = fmt::format("c_{}", val.id);
-  if (val.argindex) valstring += fmt::format("[{}]", val.argindex);
-  return fmt::format("c_{}:{}({})", id, modestr, valstring);
+  if (replace && replace[m] >= 0)
+    return fmt::format("c_{}:{}<-{}({})", id, valstring(m), modestr, valstring(replace[m]));
+
+  return fmt::format("c_{}:{}({})", id, modestr, valstring(m));
 }
 
 /* ---------------------------------------------------------------------- */

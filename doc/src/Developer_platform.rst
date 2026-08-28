@@ -89,6 +89,9 @@ to the path as a C++ string class instance.
 .. doxygenfunction:: is_console
    :project: progguide
 
+.. doxygenfunction:: terminal_width
+   :project: progguide
+
 .. doxygenfunction:: disk_free
    :project: progguide
 

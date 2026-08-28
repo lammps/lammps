@@ -411,7 +411,7 @@ void FixShakeKokkos<DeviceType>::min_post_force(int vflag)
 
   if (need_dup) Kokkos::Experimental::contribute(d_f, dup_f);
   comm->reverse_comm(this);
-  this->ebond = ev.evdwl;
+  this->ebond = static_cast<double>(ev.evdwl);
 
   if (vflag_global) {
     virial[0] += static_cast<double>(ev.v[0]);
@@ -452,10 +452,10 @@ void FixShakeKokkos<DeviceType>::operator()(TagFixShakeMinPostForce<NEIGHFLAG,VF
     const KK_FLOAT delx = d_x(idx0, 0) - d_x(idx1, 0);
     const KK_FLOAT dely = d_x(idx0, 1) - d_x(idx1, 1);
     const KK_FLOAT delz = d_x(idx0, 2) - d_x(idx1, 2);
-    const KK_FLOAT r = sqrt(delx*delx + dely*dely + delz*delz);
+    const KK_FLOAT r = Kokkos::sqrt(delx*delx + dely*dely + delz*delz);
     const KK_FLOAT dr = r - d0;
-    const KK_FLOAT rk = kbond * dr;
-    const KK_FLOAT fbond = (r > 0.0) ? -2.0 * rk / r : 0.0;
+    const KK_FLOAT rk = static_cast<KK_FLOAT>(kbond) * dr;
+    const KK_FLOAT fbond = (r > static_cast<KK_FLOAT>(0.0)) ? static_cast<KK_FLOAT>(-2.0) * rk / r : static_cast<KK_FLOAT>(0.0);
     const KK_FLOAT eb = rk * dr;
     a_f(idx0, 0) += static_cast<KK_ACC_FLOAT>(delx * fbond);
     a_f(idx0, 1) += static_cast<KK_ACC_FLOAT>(dely * fbond);
@@ -463,14 +463,14 @@ void FixShakeKokkos<DeviceType>::operator()(TagFixShakeMinPostForce<NEIGHFLAG,VF
     a_f(idx1, 0) -= static_cast<KK_ACC_FLOAT>(delx * fbond);
     a_f(idx1, 1) -= static_cast<KK_ACC_FLOAT>(dely * fbond);
     a_f(idx1, 2) -= static_cast<KK_ACC_FLOAT>(delz * fbond);
-    ev.evdwl += eb;
+    ev.evdwl += static_cast<KK_ACC_FLOAT>(eb);
     if (VFLAG) {
-      ev.v[0] += static_cast<KK_ACC_FLOAT>(0.5 * delx * delx * fbond);
-      ev.v[1] += static_cast<KK_ACC_FLOAT>(0.5 * dely * dely * fbond);
-      ev.v[2] += static_cast<KK_ACC_FLOAT>(0.5 * delz * delz * fbond);
-      ev.v[3] += static_cast<KK_ACC_FLOAT>(0.5 * delx * dely * fbond);
-      ev.v[4] += static_cast<KK_ACC_FLOAT>(0.5 * delx * delz * fbond);
-      ev.v[5] += static_cast<KK_ACC_FLOAT>(0.5 * dely * delz * fbond);
+      ev.v[0] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * delx * delx * fbond);
+      ev.v[1] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * dely * dely * fbond);
+      ev.v[2] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * delz * delz * fbond);
+      ev.v[3] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * delx * dely * fbond);
+      ev.v[4] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * delx * delz * fbond);
+      ev.v[5] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * dely * delz * fbond);
     }
     if (output_every && !is_angle) {
       Kokkos::atomic_add(&d_b_stats(type_idx, 0), 1.0);
@@ -499,12 +499,12 @@ void FixShakeKokkos<DeviceType>::operator()(TagFixShakeMinPostForce<NEIGHFLAG,VF
     KK_FLOAT r2 = apply_restraint(i0, i2, d_shake_type(m, 1), false);
     KK_FLOAT r3 = apply_restraint(i1, i2, d_shake_type(m, 2), true);
     if (output_every) {
-      KK_FLOAT angle = acos((r1*r1 + r2*r2 - r3*r3) / (2.0*r1*r2)) * 180.0/MY_PI;
+      KK_FLOAT angle = Kokkos::acos((r1*r1 + r2*r2 - r3*r3) / (static_cast<KK_FLOAT>(2.0)*r1*r2)) * static_cast<KK_FLOAT>(180.0)/static_cast<KK_FLOAT>(MY_PI);
       int mt = d_shake_type(m, 2);
       int count = (i0 < nlocal) + (i1 < nlocal) + (i2 < nlocal);
       if (count > 0) {
         Kokkos::atomic_add(&d_a_stats(mt, 0), (double)count);
-        Kokkos::atomic_add(&d_a_stats(mt, 1), (double)count * angle);
+        Kokkos::atomic_add(&d_a_stats(mt, 1), (double)count * static_cast<double>(angle));
         Kokkos::atomic_max(&d_a_stats(mt, 2), (double)angle);
         Kokkos::atomic_min(&d_a_stats(mt, 3), (double)angle);
       }
@@ -875,10 +875,10 @@ void FixShakeKokkos<DeviceType>::shake(int ilist, EV_FLOAT& ev) const
   // exact quadratic solution for lamda
 
   KK_FLOAT lamda,lamda1,lamda2;
-  lamda1 = (-b+sqrt(determ)) / (static_cast<KK_FLOAT>(2.0)*a);
-  lamda2 = (-b-sqrt(determ)) / (static_cast<KK_FLOAT>(2.0)*a);
+  lamda1 = (-b+Kokkos::sqrt(determ)) / (static_cast<KK_FLOAT>(2.0)*a);
+  lamda2 = (-b-Kokkos::sqrt(determ)) / (static_cast<KK_FLOAT>(2.0)*a);
 
-  if (fabs(lamda1) <= fabs(lamda2)) lamda = lamda1;
+  if (Kokkos::fabs(lamda1) <= Kokkos::fabs(lamda2)) lamda = lamda1;
   else lamda = lamda2;
 
   // update forces if atom is owned by this processor
@@ -1040,14 +1040,14 @@ void FixShakeKokkos<DeviceType>::shake3(int ilist, EV_FLOAT& ev) const
     lamda02_new = a21inv*b1 + a22inv*b2;
 
     done = 1;
-    if (fabs(lamda01_new-lamda01) > tolerance_kk) done = 0;
-    if (fabs(lamda02_new-lamda02) > tolerance_kk) done = 0;
+    if (Kokkos::fabs(lamda01_new-lamda01) > tolerance_kk) done = 0;
+    if (Kokkos::fabs(lamda02_new-lamda02) > tolerance_kk) done = 0;
 
     lamda01 = lamda01_new;
     lamda02 = lamda02_new;
 
     // stop iterations before we have a floating point overflow
-    if (fabs(lamda01) > overflow_kk || fabs(lamda02) > overflow_kk) done = 1;
+    if (Kokkos::fabs(lamda01) > overflow_kk || Kokkos::fabs(lamda02) > overflow_kk) done = 1;
 
     niter++;
   }
@@ -1285,16 +1285,16 @@ void FixShakeKokkos<DeviceType>::shake4(int ilist, EV_FLOAT& ev) const
     lamda03_new = a31inv*b1 + a32inv*b2 + a33inv*b3;
 
     done = 1;
-    if (fabs(lamda01_new-lamda01) > tolerance_kk) done = 0;
-    if (fabs(lamda02_new-lamda02) > tolerance_kk) done = 0;
-    if (fabs(lamda03_new-lamda03) > tolerance_kk) done = 0;
+    if (Kokkos::fabs(lamda01_new-lamda01) > tolerance_kk) done = 0;
+    if (Kokkos::fabs(lamda02_new-lamda02) > tolerance_kk) done = 0;
+    if (Kokkos::fabs(lamda03_new-lamda03) > tolerance_kk) done = 0;
 
     lamda01 = lamda01_new;
     lamda02 = lamda02_new;
     lamda03 = lamda03_new;
 
     // stop iterations before we have a floating point overflow
-    if (fabs(lamda01) > overflow_kk || fabs(lamda02) > overflow_kk || fabs(lamda03) > overflow_kk) done = 1;
+    if (Kokkos::fabs(lamda01) > overflow_kk || Kokkos::fabs(lamda02) > overflow_kk || Kokkos::fabs(lamda03) > overflow_kk) done = 1;
 
     niter++;
   }
@@ -1538,16 +1538,16 @@ void FixShakeKokkos<DeviceType>::shake3angle(int ilist, EV_FLOAT& ev) const
     lamda12_new = a31inv*b1 + a32inv*b2 + a33inv*b3;
 
     done = 1;
-    if (fabs(lamda01_new-lamda01) > tolerance_kk) done = 0;
-    if (fabs(lamda02_new-lamda02) > tolerance_kk) done = 0;
-    if (fabs(lamda12_new-lamda12) > tolerance_kk) done = 0;
+    if (Kokkos::fabs(lamda01_new-lamda01) > tolerance_kk) done = 0;
+    if (Kokkos::fabs(lamda02_new-lamda02) > tolerance_kk) done = 0;
+    if (Kokkos::fabs(lamda12_new-lamda12) > tolerance_kk) done = 0;
 
     lamda01 = lamda01_new;
     lamda02 = lamda02_new;
     lamda12 = lamda12_new;
 
     // stop iterations before we have a floating point overflow
-    if (fabs(lamda01) > overflow_kk || fabs(lamda02) > overflow_kk || fabs(lamda12) > overflow_kk) done = 1;
+    if (Kokkos::fabs(lamda01) > overflow_kk || Kokkos::fabs(lamda02) > overflow_kk || Kokkos::fabs(lamda12) > overflow_kk) done = 1;
 
     niter++;
   }

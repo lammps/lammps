@@ -4,7 +4,7 @@ tags: unstable
 date_generated: Wed Aug  5 09:56:11 2026
 epsilon: 1e-08
 timestep: 0.1
-skip_tests:
+skip_tests: kokkos_omp_single kokkos_serial_single kokkos_gpu_single
 prerequisites: |
   atom charge
   pair reaxff

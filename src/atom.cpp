@@ -14,7 +14,9 @@
 
 #include "atom.h"
 #include "atom_vec.h"
-#include "style_atom.h"  // IWYU pragma: keep
+#include "atom_vec_body.h"
+#include "atom_vec_ellipsoid.h"
+#include "atom_vec_hybrid.h"
 
 #include "comm.h"
 #include "compute.h"
@@ -53,12 +55,15 @@ static constexpr double EPSILON = 1.0e-6;
 static constexpr double EPS_ZCOORD = 1.0e-12;
 
 /* ----------------------------------------------------------------------
-   one instance per AtomVec style in style_atom.h
+   process-global registry of atom (AtomVec) style factory functions.  Shared by
+   all LAMMPS instances and persistent across the "clear" command.  Built-in
+   styles are registered once by the generated register_atom_styles().
 ------------------------------------------------------------------------- */
 
-template <typename T> static AtomVec *avec_creator(LAMMPS *_lmp)
+CreatorRegistry<Atom::AtomVecCreator> &Atom::avec_styles()
 {
-  return new T(_lmp);
+  static CreatorRegistry<Atom::AtomVecCreator> registry;
+  return registry;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -90,7 +95,7 @@ are updated by the AtomVec class as needed.
  *
  * \param  _lmp  pointer to the base LAMMPS class */
 
-Atom::Atom(LAMMPS *_lmp) : Pointers(_lmp), atom_style(nullptr), avec(nullptr), avec_map(nullptr)
+Atom::Atom(LAMMPS *_lmp) : Pointers(_lmp), atom_style(nullptr), avec(nullptr)
 {
   natoms = 0;
   nlocal = nghost = nmax = 0;
@@ -286,14 +291,6 @@ Atom::Atom(LAMMPS *_lmp) : Pointers(_lmp), atom_style(nullptr), avec(nullptr), a
   unique_tags = nullptr;
   reset_image_flag[0] = reset_image_flag[1] = reset_image_flag[2] = false;
 
-  avec_map = new AtomVecCreatorMap();
-
-#define ATOM_CLASS
-#define AtomStyle(key,Class) \
-  (*avec_map)[#key] = &avec_creator<Class>;
-#include "style_atom.h"  // IWYU pragma: keep
-#undef AtomStyle
-#undef ATOM_CLASS
 }
 
 /* ---------------------------------------------------------------------- */
@@ -302,7 +299,6 @@ Atom::~Atom()
 {
   delete[] atom_style;
   delete avec;
-  delete avec_map;
 
   delete[] firstgroupname;
   memory->destroy(binhead);
@@ -730,27 +726,20 @@ AtomVec *Atom::new_avec(const std::string &style, int trysuffix, int &sflag)
     if (lmp->non_pair_suffix()) {
       sflag = 1 + 2*lmp->pair_only_flag;
       std::string estyle = style + "/" + lmp->non_pair_suffix();
-      if (avec_map->find(estyle) != avec_map->end()) {
-        AtomVecCreator &avec_creator = (*avec_map)[estyle];
-        return avec_creator(lmp);
-      }
+      AtomVecCreator avec_creator = avec_styles().find(estyle);
+      if (avec_creator) return avec_creator(lmp);
     }
 
     if (lmp->suffix2) {
       sflag = 2;
       std::string estyle = style + "/" + lmp->suffix2;
-      if (avec_map->find(estyle) != avec_map->end()) {
-        AtomVecCreator &avec_creator = (*avec_map)[estyle];
-        return avec_creator(lmp);
-      }
+      AtomVecCreator avec_creator = avec_styles().find(estyle);
+      if (avec_creator) return avec_creator(lmp);
     }
   }
 
   sflag = 0;
-  if (avec_map->find(style) != avec_map->end()) {
-    AtomVecCreator &avec_creator = (*avec_map)[style];
-    return avec_creator(lmp);
-  }
+  if (AtomVecCreator avec_creator = avec_styles().find(style)) return avec_creator(lmp);
 
   error->all(FLERR,utils::check_packages_for_style("atom",style,lmp));
   return nullptr;

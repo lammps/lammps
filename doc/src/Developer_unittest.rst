@@ -693,6 +693,20 @@ quantities cannot be meaningfully compared in reduced precision, for
 example global force totals that are the cancellation sum of large
 per-atom contributions in a charge-neutral system.
 
+.. note::
+
+   CTest reports a test as *passed* when all of its GoogleTest cases were
+   skipped, since skipping is not a failure.  A test that skips because a
+   prerequisite style is missing in the current build is expected, but a
+   test that *always* skips (for example because the prerequisites list
+   names a style that does not exist) never compares anything and still
+   shows up as passing.  When adding or changing tests, run them with
+   ``ctest -V`` at least once and confirm the output contains
+   ``[ OK ]`` lines and not only ``[ SKIPPED ]`` lines; a grep for
+   ``SKIPPED`` over the verbose output of the whole suite finds such cases
+   in bulk.  Malformed YAML files (e.g. a missing ``input_coeffs`` entry
+   where the tester requires one) are reported as failures, not skips.
+
 The test fixture names accepted by ``skip_tests`` (each fixture runs the
 corresponding variant or check and self-skips when its package or back end
 is not available) are listed below.  Not every fixture exists for every

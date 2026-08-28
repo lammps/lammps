@@ -131,15 +131,15 @@ void ImproperClass2Kokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagImproperClass2Compute<0,0> >(0,nimproperlist),*this);
     }
   }
-  if (eflag_global) energy += ev.evdwl;
+  if (eflag_global) energy += static_cast<double>(ev.evdwl);
 
   if (vflag_global) {
-    virial[0] += ev.v[0];
-    virial[1] += ev.v[1];
-    virial[2] += ev.v[2];
-    virial[3] += ev.v[3];
-    virial[4] += ev.v[4];
-    virial[5] += ev.v[5];
+    virial[0] += static_cast<double>(ev.v[0]);
+    virial[1] += static_cast<double>(ev.v[1]);
+    virial[2] += static_cast<double>(ev.v[2]);
+    virial[3] += static_cast<double>(ev.v[3]);
+    virial[4] += static_cast<double>(ev.v[4]);
+    virial[5] += static_cast<double>(ev.v[5]);
   }
 
   // error check
@@ -164,15 +164,15 @@ void ImproperClass2Kokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagImproperClass2AngleAngle<0,0> >(0,nimproperlist),*this);
     }
   }
-  if (eflag_global) energy += ev.evdwl;
+  if (eflag_global) energy += static_cast<double>(ev.evdwl);
 
   if (vflag_global) {
-    virial[0] += ev.v[0];
-    virial[1] += ev.v[1];
-    virial[2] += ev.v[2];
-    virial[3] += ev.v[3];
-    virial[4] += ev.v[4];
-    virial[5] += ev.v[5];
+    virial[0] += static_cast<double>(ev.v[0]);
+    virial[1] += static_cast<double>(ev.v[1]);
+    virial[2] += static_cast<double>(ev.v[2]);
+    virial[3] += static_cast<double>(ev.v[3]);
+    virial[4] += static_cast<double>(ev.v[4]);
+    virial[5] += static_cast<double>(ev.v[5]);
   }
 
   if (eflag_atom) {
@@ -227,7 +227,7 @@ void ImproperClass2Kokkos<DeviceType>::operator()(TagImproperClass2Compute<NEWTO
   const int i4 = improperlist(n,3);
   const int type = improperlist(n,4);
 
-  if (d_k0[type] != 0.0) {
+  if (d_k0[type] != static_cast<KK_FLOAT>(0.0)) {
 
     for (i = 0; i < 3; i++)
       for (j = 0; j < 4; j++)
@@ -256,8 +256,8 @@ void ImproperClass2Kokkos<DeviceType>::operator()(TagImproperClass2Compute<NEWTO
 
     for (i = 0; i < 3; i++) {
       rmag2[i] = delr[i][0]*delr[i][0] + delr[i][1]*delr[i][1] + delr[i][2]*delr[i][2];
-      rmag[i] = sqrt(rmag2[i]);
-      rinvmag[i] = 1.0/rmag[i];
+      rmag[i] = Kokkos::sqrt(rmag2[i]);
+      rinvmag[i] = static_cast<KK_FLOAT>(1.0)/rmag[i];
     }
 
     // angle ABC, CBD, ABD
@@ -271,16 +271,16 @@ void ImproperClass2Kokkos<DeviceType>::operator()(TagImproperClass2Compute<NEWTO
 
     // error check
 
-    if ((costheta[0] == -1.0 || costheta[1] == -1.0 || costheta[2] == -1.0) && !d_warning_flag())
+    if ((costheta[0] == -static_cast<KK_FLOAT>(1.0) || costheta[1] == -static_cast<KK_FLOAT>(1.0) || costheta[2] == -static_cast<KK_FLOAT>(1.0)) && !d_warning_flag())
       d_warning_flag() = 1;
 
     for (i = 0; i < 3; i++) {
-      if (costheta[i] > 1.0)  costheta[i] = 1.0;
-      if (costheta[i] < -1.0) costheta[i] = -1.0;
-      theta[i] = acos(costheta[i]);
+      if (costheta[i] > static_cast<KK_FLOAT>(1.0))  costheta[i] = 1.0;
+      if (costheta[i] < -static_cast<KK_FLOAT>(1.0)) costheta[i] = -1.0;
+      theta[i] = Kokkos::acos(costheta[i]);
       cossqtheta[i] = costheta[i]*costheta[i];
-      sintheta[i] = sin(theta[i]);
-      invstheta[i] = 1.0/sintheta[i];
+      sintheta[i] = Kokkos::sin(theta[i]);
+      invstheta[i] = static_cast<KK_FLOAT>(1.0)/sintheta[i];
       sinsqtheta[i] = sintheta[i]*sintheta[i];
     }
 
@@ -311,7 +311,7 @@ void ImproperClass2Kokkos<DeviceType>::operator()(TagImproperClass2Compute<NEWTO
     dotABCBDB = rABxrCB[0]*delr[2][0] + rABxrCB[1]*delr[2][1] + rABxrCB[2]*delr[2][2];
 
     t = rmag[0] * rmag[1] * rmag[2];
-    inv3r = 1.0/t;
+    inv3r = static_cast<KK_FLOAT>(1.0)/t;
     invs3r[0] = invstheta[1] * inv3r;
     invs3r[1] = invstheta[2] * inv3r;
     invs3r[2] = invstheta[0] * inv3r;
@@ -319,13 +319,13 @@ void ImproperClass2Kokkos<DeviceType>::operator()(TagImproperClass2Compute<NEWTO
     // chi ABCD, CBDA, DBAC: final chi is average of three
 
     schiABCD = dotCBDBAB * invs3r[0];
-    chiABCD = asin(schiABCD);
+    chiABCD = Kokkos::asin(schiABCD);
     schiCBDA = dotDBABCB * invs3r[1];
-    chiCBDA = asin(schiCBDA);
+    chiCBDA = Kokkos::asin(schiCBDA);
     schiDBAC = dotABCBDB * invs3r[2];
-    chiDBAC = asin(schiDBAC);
+    chiDBAC = Kokkos::asin(schiDBAC);
 
-    chi = (chiABCD + chiCBDA + chiDBAC) / 3.0;
+    chi = (chiABCD + chiCBDA + chiDBAC) / static_cast<KK_FLOAT>(3.0);
     deltachi = chi - d_chi0[type];
     d2chi = deltachi * deltachi;
 
@@ -368,7 +368,7 @@ void ImproperClass2Kokkos<DeviceType>::operator()(TagImproperClass2Compute<NEWTO
 
     tt1 = costheta[0] / rmag2[0];
     tt3 = costheta[0] / rmag2[1];
-    sc1 = 1.0 / sqrt(1.0 - cossqtheta[0]);
+    sc1 = static_cast<KK_FLOAT>(1.0) / Kokkos::sqrt(static_cast<KK_FLOAT>(1.0) - cossqtheta[0]);
 
     dthetadr[0][0][0] = sc1 * ((tt1 * delr[0][0]) -
                                (delr[1][0] * rinvmag[0] * rinvmag[1]));
@@ -400,7 +400,7 @@ void ImproperClass2Kokkos<DeviceType>::operator()(TagImproperClass2Compute<NEWTO
 
     tt1 = costheta[1] / rmag2[1];
     tt3 = costheta[1] / rmag2[2];
-    sc1 = 1.0 / sqrt(1.0 - cossqtheta[1]);
+    sc1 = static_cast<KK_FLOAT>(1.0) / Kokkos::sqrt(static_cast<KK_FLOAT>(1.0) - cossqtheta[1]);
 
     dthetadr[1][2][0] = sc1 * ((tt1 * delr[1][0]) -
                                (delr[2][0] * rinvmag[1] * rinvmag[2]));
@@ -431,7 +431,7 @@ void ImproperClass2Kokkos<DeviceType>::operator()(TagImproperClass2Compute<NEWTO
 
     tt1 = costheta[2] / rmag2[0];
     tt3 = costheta[2] / rmag2[2];
-    sc1 = 1.0 / sqrt(1.0 - cossqtheta[2]);
+    sc1 = static_cast<KK_FLOAT>(1.0) / Kokkos::sqrt(static_cast<KK_FLOAT>(1.0) - cossqtheta[2]);
 
     dthetadr[2][0][0] = sc1 * ((tt1 * delr[0][0]) -
                                (delr[2][0] * rinvmag[0] * rinvmag[2]));
@@ -572,17 +572,17 @@ void ImproperClass2Kokkos<DeviceType>::operator()(TagImproperClass2Compute<NEWTO
     for (i = 0; i < 4; i++)
       for (j = 0; j < 3; j++) {
         ftmp = (fdot[0][i][j] * invs3r[0]) + (dinvs3r[0][i][j] * dotCBDBAB);
-        dchi[0][i][j] = ftmp / cos(chiABCD);
+        dchi[0][i][j] = ftmp / Kokkos::cos(chiABCD);
         ftmp = (fdot[1][i][j] * invs3r[1]) + (dinvs3r[1][i][j] * dotDBABCB);
-        dchi[1][i][j] = ftmp / cos(chiCBDA);
+        dchi[1][i][j] = ftmp / Kokkos::cos(chiCBDA);
         ftmp = (fdot[2][i][j] * invs3r[2]) + (dinvs3r[2][i][j] * dotABCBDB);
-        dchi[2][i][j] = ftmp / cos(chiDBAC);
-        dtotalchi[i][j] = (dchi[0][i][j]+dchi[1][i][j]+dchi[2][i][j]) / 3.0;
+        dchi[2][i][j] = ftmp / Kokkos::cos(chiDBAC);
+        dtotalchi[i][j] = (dchi[0][i][j]+dchi[1][i][j]+dchi[2][i][j]) / static_cast<KK_FLOAT>(3.0);
       }
 
     for (i = 0; i < 4; i++)
       for (j = 0; j < 3; j++)
-        fabcd[i][j] = -2.0*d_k0[type] * deltachi*dtotalchi[i][j];
+        fabcd[i][j] = -static_cast<KK_FLOAT>(2.0)*d_k0[type] * deltachi*dtotalchi[i][j];
 
     // apply force to each of 4 atoms
 
@@ -596,27 +596,27 @@ void ImproperClass2Kokkos<DeviceType>::operator()(TagImproperClass2Compute<NEWTO
     }
 
     if (NEWTON_BOND || i1 < nlocal) {
-      a_f(i1,0) += f1[0];
-      a_f(i1,1) += f1[1];
-      a_f(i1,2) += f1[2];
+      a_f(i1,0) += static_cast<KK_ACC_FLOAT>(f1[0]);
+      a_f(i1,1) += static_cast<KK_ACC_FLOAT>(f1[1]);
+      a_f(i1,2) += static_cast<KK_ACC_FLOAT>(f1[2]);
     }
 
     if (NEWTON_BOND || i2 < nlocal) {
-      a_f(i2,0) += f2[0];
-      a_f(i2,1) += f2[1];
-      a_f(i2,2) += f2[2];
+      a_f(i2,0) += static_cast<KK_ACC_FLOAT>(f2[0]);
+      a_f(i2,1) += static_cast<KK_ACC_FLOAT>(f2[1]);
+      a_f(i2,2) += static_cast<KK_ACC_FLOAT>(f2[2]);
     }
 
     if (NEWTON_BOND || i3 < nlocal) {
-      a_f(i3,0) += f3[0];
-      a_f(i3,1) += f3[1];
-      a_f(i3,2) += f3[2];
+      a_f(i3,0) += static_cast<KK_ACC_FLOAT>(f3[0]);
+      a_f(i3,1) += static_cast<KK_ACC_FLOAT>(f3[1]);
+      a_f(i3,2) += static_cast<KK_ACC_FLOAT>(f3[2]);
     }
 
     if (NEWTON_BOND || i4 < nlocal) {
-      a_f(i4,0) += f4[0];
-      a_f(i4,1) += f4[1];
-      a_f(i4,2) += f4[2];
+      a_f(i4,0) += static_cast<KK_ACC_FLOAT>(f4[0]);
+      a_f(i4,1) += static_cast<KK_ACC_FLOAT>(f4[1]);
+      a_f(i4,2) += static_cast<KK_ACC_FLOAT>(f4[2]);
     }
 
     if (EVFLAG)
@@ -666,7 +666,7 @@ void ImproperClass2Kokkos<DeviceType>::operator()(TagImproperClass2AngleAngle<NE
   const int i4 = improperlist(n,3);
   const int type = improperlist(n,4);
 
-  if ((d_aa_k1[type] != 0.0) || (d_aa_k2[type] != 0.0) || (d_aa_k3[type] != 0.0)) {
+  if ((d_aa_k1[type] != static_cast<KK_FLOAT>(0.0)) || (d_aa_k2[type] != static_cast<KK_FLOAT>(0.0)) || (d_aa_k3[type] != static_cast<KK_FLOAT>(0.0))) {
 
     // difference vectors
 
@@ -685,28 +685,28 @@ void ImproperClass2Kokkos<DeviceType>::operator()(TagImproperClass2AngleAngle<NE
     // bond lengths
 
     rABmag2 = delxAB*delxAB + delyAB*delyAB + delzAB*delzAB;
-    rAB = sqrt(rABmag2);
+    rAB = Kokkos::sqrt(rABmag2);
     rBCmag2 = delxBC*delxBC + delyBC*delyBC + delzBC*delzBC;
-    rBC = sqrt(rBCmag2);
+    rBC = Kokkos::sqrt(rBCmag2);
     rBDmag2 = delxBD*delxBD + delyBD*delyBD + delzBD*delzBD;
-    rBD = sqrt(rBDmag2);
+    rBD = Kokkos::sqrt(rBDmag2);
 
     // angle ABC, ABD, CBD
 
     costhABC = (delxAB*delxBC + delyAB*delyBC + delzAB*delzBC) / (rAB * rBC);
-    if (costhABC > 1.0)  costhABC = 1.0;
-    if (costhABC < -1.0) costhABC = -1.0;
-    thetaABC = acos(costhABC);
+    if (costhABC > static_cast<KK_FLOAT>(1.0))  costhABC = 1.0;
+    if (costhABC < -static_cast<KK_FLOAT>(1.0)) costhABC = -1.0;
+    thetaABC = Kokkos::acos(costhABC);
 
     costhABD = (delxAB*delxBD + delyAB*delyBD + delzAB*delzBD) / (rAB * rBD);
-    if (costhABD > 1.0)  costhABD = 1.0;
-    if (costhABD < -1.0) costhABD = -1.0;
-    thetaABD = acos(costhABD);
+    if (costhABD > static_cast<KK_FLOAT>(1.0))  costhABD = 1.0;
+    if (costhABD < -static_cast<KK_FLOAT>(1.0)) costhABD = -1.0;
+    thetaABD = Kokkos::acos(costhABD);
 
     costhCBD = (delxBC*delxBD + delyBC*delyBD + delzBC*delzBD) /(rBC * rBD);
-    if (costhCBD > 1.0)  costhCBD = 1.0;
-    if (costhCBD < -1.0) costhCBD = -1.0;
-    thetaCBD = acos(costhCBD);
+    if (costhCBD > static_cast<KK_FLOAT>(1.0))  costhCBD = 1.0;
+    if (costhCBD < -static_cast<KK_FLOAT>(1.0)) costhCBD = -1.0;
+    thetaCBD = Kokkos::acos(costhCBD);
 
     dthABC = thetaABC - d_aa_theta0_1[type];
     dthABD = thetaABD - d_aa_theta0_2[type];
@@ -727,10 +727,10 @@ void ImproperClass2Kokkos<DeviceType>::operator()(TagImproperClass2AngleAngle<NE
 
     // angle ABC
 
-    sc1 = sqrt(1.0/(1.0 - costhABC*costhABC));
+    sc1 = Kokkos::sqrt(static_cast<KK_FLOAT>(1.0)/(static_cast<KK_FLOAT>(1.0) - costhABC*costhABC));
     t1 = costhABC / rABmag2;
     t3 = costhABC / rBCmag2;
-    r12 = 1.0 / (rAB * rBC);
+    r12 = static_cast<KK_FLOAT>(1.0) / (rAB * rBC);
 
     dthetadr[0][0][0] = sc1 * ((t1 * delxAB) - (delxBC * r12));
     dthetadr[0][0][1] = sc1 * ((t1 * delyAB) - (delyBC * r12));
@@ -747,10 +747,10 @@ void ImproperClass2Kokkos<DeviceType>::operator()(TagImproperClass2AngleAngle<NE
 
     // angle CBD
 
-    sc1 = sqrt(1.0/(1.0 - costhCBD*costhCBD));
+    sc1 = Kokkos::sqrt(static_cast<KK_FLOAT>(1.0)/(static_cast<KK_FLOAT>(1.0) - costhCBD*costhCBD));
     t1 = costhCBD / rBCmag2;
     t3 = costhCBD / rBDmag2;
-    r12 = 1.0 / (rBC * rBD);
+    r12 = static_cast<KK_FLOAT>(1.0) / (rBC * rBD);
 
     dthetadr[1][2][0] = sc1 * ((t1 * delxBC) - (delxBD * r12));
     dthetadr[1][2][1] = sc1 * ((t1 * delyBC) - (delyBD * r12));
@@ -767,10 +767,10 @@ void ImproperClass2Kokkos<DeviceType>::operator()(TagImproperClass2AngleAngle<NE
 
     // angle ABD
 
-    sc1 = sqrt(1.0/(1.0 - costhABD*costhABD));
+    sc1 = Kokkos::sqrt(static_cast<KK_FLOAT>(1.0)/(static_cast<KK_FLOAT>(1.0) - costhABD*costhABD));
     t1 = costhABD / rABmag2;
     t3 = costhABD / rBDmag2;
-    r12 = 1.0 / (rAB * rBD);
+    r12 = static_cast<KK_FLOAT>(1.0) / (rAB * rBD);
 
     dthetadr[2][0][0] = sc1 * ((t1 * delxAB) - (delxBD * r12));
     dthetadr[2][0][1] = sc1 * ((t1 * delyAB) - (delyBD * r12));
@@ -806,27 +806,27 @@ void ImproperClass2Kokkos<DeviceType>::operator()(TagImproperClass2AngleAngle<NE
     }
 
     if (NEWTON_BOND || i1 < nlocal) {
-      a_f(i1,0) += f1[0];
-      a_f(i1,1) += f1[1];
-      a_f(i1,2) += f1[2];
+      a_f(i1,0) += static_cast<KK_ACC_FLOAT>(f1[0]);
+      a_f(i1,1) += static_cast<KK_ACC_FLOAT>(f1[1]);
+      a_f(i1,2) += static_cast<KK_ACC_FLOAT>(f1[2]);
     }
 
     if (NEWTON_BOND || i2 < nlocal) {
-      a_f(i2,0) += f2[0];
-      a_f(i2,1) += f2[1];
-      a_f(i2,2) += f2[2];
+      a_f(i2,0) += static_cast<KK_ACC_FLOAT>(f2[0]);
+      a_f(i2,1) += static_cast<KK_ACC_FLOAT>(f2[1]);
+      a_f(i2,2) += static_cast<KK_ACC_FLOAT>(f2[2]);
     }
 
     if (NEWTON_BOND || i3 < nlocal) {
-      a_f(i3,0) += f3[0];
-      a_f(i3,1) += f3[1];
-      a_f(i3,2) += f3[2];
+      a_f(i3,0) += static_cast<KK_ACC_FLOAT>(f3[0]);
+      a_f(i3,1) += static_cast<KK_ACC_FLOAT>(f3[1]);
+      a_f(i3,2) += static_cast<KK_ACC_FLOAT>(f3[2]);
     }
 
     if (NEWTON_BOND || i4 < nlocal) {
-      a_f(i4,0) += f4[0];
-      a_f(i4,1) += f4[1];
-      a_f(i4,2) += f4[2];
+      a_f(i4,0) += static_cast<KK_ACC_FLOAT>(f4[0]);
+      a_f(i4,1) += static_cast<KK_ACC_FLOAT>(f4[1]);
+      a_f(i4,2) += static_cast<KK_ACC_FLOAT>(f4[2]);
     }
 
     if (EVFLAG)
@@ -897,14 +897,14 @@ void ImproperClass2Kokkos<DeviceType>::coeff(int narg, char **arg)
   utils::bounds(FLERR,arg[0],1,atom->nimpropertypes,ilo,ihi,error);
 
   for (int i = ilo; i <= ihi; i++) {
-    k_k0.view_host()[i] = k0[i];
-    k_chi0.view_host()[i] = chi0[i];
-    k_aa_k1.view_host()[i] = aa_k1[i];
-    k_aa_k2.view_host()[i] = aa_k2[i];
-    k_aa_k3.view_host()[i] = aa_k3[i];
-    k_aa_theta0_1.view_host()[i] = aa_theta0_1[i];
-    k_aa_theta0_2.view_host()[i] = aa_theta0_2[i];
-    k_aa_theta0_3.view_host()[i] = aa_theta0_3[i];
+    k_k0.view_host()[i] = static_cast<KK_FLOAT>(k0[i]);
+    k_chi0.view_host()[i] = static_cast<KK_FLOAT>(chi0[i]);
+    k_aa_k1.view_host()[i] = static_cast<KK_FLOAT>(aa_k1[i]);
+    k_aa_k2.view_host()[i] = static_cast<KK_FLOAT>(aa_k2[i]);
+    k_aa_k3.view_host()[i] = static_cast<KK_FLOAT>(aa_k3[i]);
+    k_aa_theta0_1.view_host()[i] = static_cast<KK_FLOAT>(aa_theta0_1[i]);
+    k_aa_theta0_2.view_host()[i] = static_cast<KK_FLOAT>(aa_theta0_2[i]);
+    k_aa_theta0_3.view_host()[i] = static_cast<KK_FLOAT>(aa_theta0_3[i]);
     k_setflag.view_host()[i] = setflag[i];
     k_setflag_i.view_host()[i] = setflag_i[i];
     k_setflag_aa.view_host()[i] = setflag_aa[i];
@@ -958,14 +958,14 @@ void ImproperClass2Kokkos<DeviceType>::read_restart(FILE *fp)
   d_setflag_aa = k_setflag_aa.template view<DeviceType>();
 
   for (int i = 1; i <= n; i++) {
-    k_k0.view_host()[i] = k0[i];
-    k_chi0.view_host()[i] = chi0[i];
-    k_aa_k1.view_host()[i] = aa_k1[i];
-    k_aa_k2.view_host()[i] = aa_k2[i];
-    k_aa_k3.view_host()[i] = aa_k3[i];
-    k_aa_theta0_1.view_host()[i] = aa_theta0_1[i];
-    k_aa_theta0_2.view_host()[i] = aa_theta0_2[i];
-    k_aa_theta0_3.view_host()[i] = aa_theta0_3[i];
+    k_k0.view_host()[i] = static_cast<KK_FLOAT>(k0[i]);
+    k_chi0.view_host()[i] = static_cast<KK_FLOAT>(chi0[i]);
+    k_aa_k1.view_host()[i] = static_cast<KK_FLOAT>(aa_k1[i]);
+    k_aa_k2.view_host()[i] = static_cast<KK_FLOAT>(aa_k2[i]);
+    k_aa_k3.view_host()[i] = static_cast<KK_FLOAT>(aa_k3[i]);
+    k_aa_theta0_1.view_host()[i] = static_cast<KK_FLOAT>(aa_theta0_1[i]);
+    k_aa_theta0_2.view_host()[i] = static_cast<KK_FLOAT>(aa_theta0_2[i]);
+    k_aa_theta0_3.view_host()[i] = static_cast<KK_FLOAT>(aa_theta0_3[i]);
     k_setflag.view_host()[i] = setflag[i];
     k_setflag_i.view_host()[i] = setflag_i[i];
     k_setflag_aa.view_host()[i] = setflag_aa[i];
@@ -1010,21 +1010,21 @@ void ImproperClass2Kokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int i1, cons
 
   if (eflag_either) {
     if (eflag_global) {
-      if (newton_bond) ev.evdwl += eimproper;
+      if (newton_bond) ev.evdwl += static_cast<KK_ACC_FLOAT>(eimproper);
       else {
-        eimproperquarter = 0.25*eimproper;
-        if (i1 < nlocal) ev.evdwl += eimproperquarter;
-        if (i2 < nlocal) ev.evdwl += eimproperquarter;
-        if (i3 < nlocal) ev.evdwl += eimproperquarter;
-        if (i4 < nlocal) ev.evdwl += eimproperquarter;
+        eimproperquarter = static_cast<KK_FLOAT>(0.25)*eimproper;
+        if (i1 < nlocal) ev.evdwl += static_cast<KK_ACC_FLOAT>(eimproperquarter);
+        if (i2 < nlocal) ev.evdwl += static_cast<KK_ACC_FLOAT>(eimproperquarter);
+        if (i3 < nlocal) ev.evdwl += static_cast<KK_ACC_FLOAT>(eimproperquarter);
+        if (i4 < nlocal) ev.evdwl += static_cast<KK_ACC_FLOAT>(eimproperquarter);
       }
     }
     if (eflag_atom) {
-      eimproperquarter = 0.25*eimproper;
-      if (newton_bond || i1 < nlocal) v_eatom[i1] += eimproperquarter;
-      if (newton_bond || i2 < nlocal) v_eatom[i2] += eimproperquarter;
-      if (newton_bond || i3 < nlocal) v_eatom[i3] += eimproperquarter;
-      if (newton_bond || i4 < nlocal) v_eatom[i4] += eimproperquarter;
+      eimproperquarter = static_cast<KK_FLOAT>(0.25)*eimproper;
+      if (newton_bond || i1 < nlocal) v_eatom[i1] += static_cast<KK_ACC_FLOAT>(eimproperquarter);
+      if (newton_bond || i2 < nlocal) v_eatom[i2] += static_cast<KK_ACC_FLOAT>(eimproperquarter);
+      if (newton_bond || i3 < nlocal) v_eatom[i3] += static_cast<KK_ACC_FLOAT>(eimproperquarter);
+      if (newton_bond || i4 < nlocal) v_eatom[i4] += static_cast<KK_ACC_FLOAT>(eimproperquarter);
     }
   }
 
@@ -1038,80 +1038,80 @@ void ImproperClass2Kokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int i1, cons
 
     if (vflag_global) {
       if (newton_bond) {
-        ev.v[0] += v[0];
-        ev.v[1] += v[1];
-        ev.v[2] += v[2];
-        ev.v[3] += v[3];
-        ev.v[4] += v[4];
-        ev.v[5] += v[5];
+        ev.v[0] += static_cast<KK_ACC_FLOAT>(v[0]);
+        ev.v[1] += static_cast<KK_ACC_FLOAT>(v[1]);
+        ev.v[2] += static_cast<KK_ACC_FLOAT>(v[2]);
+        ev.v[3] += static_cast<KK_ACC_FLOAT>(v[3]);
+        ev.v[4] += static_cast<KK_ACC_FLOAT>(v[4]);
+        ev.v[5] += static_cast<KK_ACC_FLOAT>(v[5]);
       } else {
         if (i1 < nlocal) {
-          ev.v[0] += 0.25*v[0];
-          ev.v[1] += 0.25*v[1];
-          ev.v[2] += 0.25*v[2];
-          ev.v[3] += 0.25*v[3];
-          ev.v[4] += 0.25*v[4];
-          ev.v[5] += 0.25*v[5];
+          ev.v[0] += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[0]);
+          ev.v[1] += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[1]);
+          ev.v[2] += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[2]);
+          ev.v[3] += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[3]);
+          ev.v[4] += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[4]);
+          ev.v[5] += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[5]);
         }
         if (i2 < nlocal) {
-          ev.v[0] += 0.25*v[0];
-          ev.v[1] += 0.25*v[1];
-          ev.v[2] += 0.25*v[2];
-          ev.v[3] += 0.25*v[3];
-          ev.v[4] += 0.25*v[4];
-          ev.v[5] += 0.25*v[5];
+          ev.v[0] += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[0]);
+          ev.v[1] += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[1]);
+          ev.v[2] += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[2]);
+          ev.v[3] += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[3]);
+          ev.v[4] += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[4]);
+          ev.v[5] += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[5]);
         }
         if (i3 < nlocal) {
-          ev.v[0] += 0.25*v[0];
-          ev.v[1] += 0.25*v[1];
-          ev.v[2] += 0.25*v[2];
-          ev.v[3] += 0.25*v[3];
-          ev.v[4] += 0.25*v[4];
-          ev.v[5] += 0.25*v[5];
+          ev.v[0] += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[0]);
+          ev.v[1] += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[1]);
+          ev.v[2] += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[2]);
+          ev.v[3] += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[3]);
+          ev.v[4] += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[4]);
+          ev.v[5] += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[5]);
         }
         if (i4 < nlocal) {
-          ev.v[0] += 0.25*v[0];
-          ev.v[1] += 0.25*v[1];
-          ev.v[2] += 0.25*v[2];
-          ev.v[3] += 0.25*v[3];
-          ev.v[4] += 0.25*v[4];
-          ev.v[5] += 0.25*v[5];
+          ev.v[0] += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[0]);
+          ev.v[1] += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[1]);
+          ev.v[2] += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[2]);
+          ev.v[3] += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[3]);
+          ev.v[4] += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[4]);
+          ev.v[5] += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[5]);
         }
       }
     }
 
     if (vflag_atom) {
       if (newton_bond || i1 < nlocal) {
-        v_vatom(i1,0) += 0.25*v[0];
-        v_vatom(i1,1) += 0.25*v[1];
-        v_vatom(i1,2) += 0.25*v[2];
-        v_vatom(i1,3) += 0.25*v[3];
-        v_vatom(i1,4) += 0.25*v[4];
-        v_vatom(i1,5) += 0.25*v[5];
+        v_vatom(i1,0) += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[0]);
+        v_vatom(i1,1) += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[1]);
+        v_vatom(i1,2) += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[2]);
+        v_vatom(i1,3) += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[3]);
+        v_vatom(i1,4) += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[4]);
+        v_vatom(i1,5) += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[5]);
       }
       if (newton_bond || i2 < nlocal) {
-        v_vatom(i2,0) += 0.25*v[0];
-        v_vatom(i2,1) += 0.25*v[1];
-        v_vatom(i2,2) += 0.25*v[2];
-        v_vatom(i2,3) += 0.25*v[3];
-        v_vatom(i2,4) += 0.25*v[4];
-        v_vatom(i2,5) += 0.25*v[5];
+        v_vatom(i2,0) += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[0]);
+        v_vatom(i2,1) += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[1]);
+        v_vatom(i2,2) += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[2]);
+        v_vatom(i2,3) += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[3]);
+        v_vatom(i2,4) += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[4]);
+        v_vatom(i2,5) += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[5]);
       }
       if (newton_bond || i3 < nlocal) {
-        v_vatom(i3,0) += 0.25*v[0];
-        v_vatom(i3,1) += 0.25*v[1];
-        v_vatom(i3,2) += 0.25*v[2];
-        v_vatom(i3,3) += 0.25*v[3];
-        v_vatom(i3,4) += 0.25*v[4];
-        v_vatom(i3,5) += 0.25*v[5];
+        v_vatom(i3,0) += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[0]);
+        v_vatom(i3,1) += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[1]);
+        v_vatom(i3,2) += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[2]);
+        v_vatom(i3,3) += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[3]);
+        v_vatom(i3,4) += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[4]);
+        v_vatom(i3,5) += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[5]);
       }
       if (newton_bond || i4 < nlocal) {
-        v_vatom(i4,0) += 0.25*v[0];
-        v_vatom(i4,1) += 0.25*v[1];
-        v_vatom(i4,2) += 0.25*v[2];
-        v_vatom(i4,3) += 0.25*v[3];
-        v_vatom(i4,4) += 0.25*v[4];
-        v_vatom(i4,5) += 0.25*v[5];
+        v_vatom(i4,0) += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[0]);
+        v_vatom(i4,1) += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[1]);
+        v_vatom(i4,2) += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[2]);
+        v_vatom(i4,3) += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[3]);
+        v_vatom(i4,4) += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[4]);
+        v_vatom(i4,5) += static_cast<KK_ACC_FLOAT>(0.25)*static_cast<KK_ACC_FLOAT>(v[5]);
       }
     }
   }

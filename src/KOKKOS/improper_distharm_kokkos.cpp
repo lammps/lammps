@@ -172,7 +172,7 @@ void ImproperDistHarmKokkos<DeviceType>::operator()(TagImproperDistHarmCompute<N
   KK_FLOAT xna =   ybc*zcd - zbc*ycd;
   KK_FLOAT yna = -(xbc*zcd - zbc*xcd);
   KK_FLOAT zna =   xbc*ycd - ybc*xcd;
-  const KK_FLOAT rna = static_cast<KK_FLOAT>(1.0) / sqrt(xna*xna + yna*yna + zna*zna);
+  const KK_FLOAT rna = static_cast<KK_FLOAT>(1.0) / Kokkos::sqrt(xna*xna + yna*yna + zna*zna);
   xna *= rna;
   yna *= rna;
   zna *= rna;

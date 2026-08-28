@@ -358,14 +358,14 @@ void SNAKokkos<DeviceType, real_type, accum_type, vector_length>::compute_cayley
   const real_type y = rij(iatom,jnbor,1);
   const real_type z = rij(iatom,jnbor,2);
   const real_type rsq = x * x + y * y + z * z;
-  const real_type r = sqrt(rsq);
+  const real_type r = Kokkos::sqrt(rsq);
   const real_type rcut = rcutij(iatom, jnbor);
   const real_type sinner = sinnerij(iatom, jnbor);
   const real_type dinner = dinnerij(iatom, jnbor);
   const real_type rscale0 = rfac0 * static_cast<real_type>(MY_PI) / (rcut - rmin0);
   const real_type theta0 = (r - rmin0) * rscale0;
-  const real_type sn = sin(theta0);
-  const real_type cs = cos(theta0);
+  const real_type sn = Kokkos::sin(theta0);
+  const real_type cs = Kokkos::cos(theta0);
   const real_type z0 = r * cs / sn;
   const real_type dz0dr = z0 / r - (r*rscale0) * (rsq + z0 * z0) / rsq;
 
@@ -380,7 +380,7 @@ void SNAKokkos<DeviceType, real_type, accum_type, vector_length>::compute_cayley
   const real_type uy = y * rinv;
   const real_type uz = z * rinv;
 
-  const real_type r0inv = static_cast<real_type>(1.0) / sqrt(r * r + z0 * z0);
+  const real_type r0inv = static_cast<real_type>(1.0) / Kokkos::sqrt(r * r + z0 * z0);
 
   const complex a = { z0 * r0inv, -z * r0inv };
   const complex b = { r0inv * y, -r0inv * x };
@@ -761,16 +761,16 @@ void SNAKokkos<DeviceType, real_type, accum_type, vector_length>::compute_ui_cpu
   const real_type y = rij(iatom,jnbor,1);
   const real_type z = rij(iatom,jnbor,2);
   const real_type rsq = x * x + y * y + z * z;
-  const real_type r = sqrt(rsq);
+  const real_type r = Kokkos::sqrt(rsq);
 
   const real_type theta0 = (r - rmin0) * rfac0 * static_cast<real_type>(MY_PI) / (rcutij(iatom,jnbor) - rmin0);
   //    theta0 = (r - rmin0) * rscale0;
-  const real_type z0 = r / tan(theta0);
+  const real_type z0 = r / Kokkos::tan(theta0);
 
   // begin what was "compute_uarray_cpu"
 
   // compute Cayley-Klein parameters for unit quaternion
-  real_type r0inv = static_cast<real_type>(1.0) / sqrt(r * r + z0 * z0);
+  real_type r0inv = static_cast<real_type>(1.0) / Kokkos::sqrt(r * r + z0 * z0);
   complex a = { r0inv * z0, -r0inv * z };
   complex b = { r0inv * y, -r0inv * x };
 
@@ -1688,11 +1688,11 @@ void SNAKokkos<DeviceType, real_type, accum_type, vector_length>::compute_duidrj
   const real_type y = rij(iatom,jnbor,1);
   const real_type z = rij(iatom,jnbor,2);
   const real_type rsq = x * x + y * y + z * z;
-  const real_type r = sqrt(rsq);
+  const real_type r = Kokkos::sqrt(rsq);
   const real_type rscale0 = rfac0 * static_cast<real_type>(MY_PI) / (rcutij(iatom,jnbor) - rmin0);
   const real_type theta0 = (r - rmin0) * rscale0;
-  const real_type sn = sin(theta0);
-  const real_type cs = cos(theta0);
+  const real_type sn = Kokkos::sin(theta0);
+  const real_type cs = Kokkos::cos(theta0);
   const real_type z0 = r * cs / sn;
   const real_type dz0dr = z0 / r - (r*rscale0) * (rsq + z0 * z0) / rsq;
 
@@ -1703,7 +1703,7 @@ void SNAKokkos<DeviceType, real_type, accum_type, vector_length>::compute_duidrj
   u[1] = y * rinv;
   u[2] = z * rinv;
 
-  real_type r0inv = static_cast<real_type>(1.0) / sqrt(r * r + z0 * z0);
+  real_type r0inv = static_cast<real_type>(1.0) / Kokkos::sqrt(r * r + z0 * z0);
   complex a = { z0 * r0inv, -z * r0inv };
   complex b = { y * r0inv, -x * r0inv };
 
@@ -2228,7 +2228,7 @@ real_type SNAKokkos<DeviceType, real_type, accum_type, vector_length>::compute_s
     else if (r > rcut) return zero;
     else {
       real_type rcutfac = static_cast<real_type>(MY_PI) / (rcut - rmin0);
-      sfac_outer = onehalf * (cos((r - rmin0) * rcutfac) + one);
+      sfac_outer = onehalf * (Kokkos::cos((r - rmin0) * rcutfac) + one);
     }
   } else sfac_outer = zero; // switch_flag is always 0 or 1
 
@@ -2239,7 +2239,7 @@ real_type SNAKokkos<DeviceType, real_type, accum_type, vector_length>::compute_s
     else if (r > sinner - dinner) {
       real_type rcutfac = static_cast<real_type>(MY_PI2) / dinner;
       return sfac_outer *
-        onehalf * (one - cos(static_cast<real_type>(MY_PI2) + (r - sinner) * rcutfac));
+        onehalf * (one - Kokkos::cos(static_cast<real_type>(MY_PI2) + (r - sinner) * rcutfac));
     } else return zero;
   }
   return zero; // dummy return
@@ -2313,8 +2313,8 @@ void SNAKokkos<DeviceType, real_type, accum_type, vector_length>::compute_s_dsfa
     else {
       const real_type rcutfac = static_cast<real_type>(MY_PI) / (rcut - rmin0);
       const real_type theta0 = (r - rmin0) * rcutfac;
-      const real_type sn = sin(theta0);
-      const real_type cs = cos(theta0);
+      const real_type sn = Kokkos::sin(theta0);
+      const real_type cs = Kokkos::cos(theta0);
       sfac_outer = onehalf * (cs + one);
       dsfac_outer = -onehalf * sn * rcutfac;
     }
@@ -2325,8 +2325,8 @@ void SNAKokkos<DeviceType, real_type, accum_type, vector_length>::compute_s_dsfa
     if (r >= sinner + dinner) { sfac = sfac_outer; dsfac = dsfac_outer; return; }
     else if (r > sinner - dinner) {
       real_type rcutfac = static_cast<real_type>(MY_PI2) / dinner;
-      sfac_inner = onehalf * (one - cos(static_cast<real_type>(MY_PI2) + (r - sinner) * rcutfac));
-      dsfac_inner = onehalf * rcutfac * sin(static_cast<real_type>(MY_PI2) + (r - sinner) * rcutfac);
+      sfac_inner = onehalf * (one - Kokkos::cos(static_cast<real_type>(MY_PI2) + (r - sinner) * rcutfac));
+      dsfac_inner = onehalf * rcutfac * Kokkos::sin(static_cast<real_type>(MY_PI2) + (r - sinner) * rcutfac);
       sfac = sfac_outer * sfac_inner;
       dsfac = dsfac_outer * sfac_inner + sfac_outer * dsfac_inner;
       return;

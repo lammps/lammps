@@ -23,9 +23,6 @@ PairStyle(hybrid/scaled/omp,PairHybridScaled);
 
 #include "pair_hybrid.h"
 
-#include <string>
-#include <vector>
-
 namespace LAMMPS_NS {
 
 class PairHybridScaled : public PairHybrid {

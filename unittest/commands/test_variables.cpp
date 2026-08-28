@@ -28,6 +28,8 @@
 
 #include <cstdio>
 #include <cstring>
+#include <set>
+#include <string>
 #include <vector>
 
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
@@ -904,6 +906,170 @@ TEST_F(VariableTest, Set)
     variable->internal_set(variable->find("ten"), -2.5);
     ASSERT_THAT(variable->retrieve("ten"), StrEq("-2.5"));
 }
+// Records which of the accelerator seams in Variable a formula routes
+// through, and with what name.  VariableKokkos overrides exactly these to
+// decide what to copy back from the device, so this pins down the behavior
+// that matters without needing a device.
+
+class RecordingVariable : public Variable {
+public:
+    RecordingVariable(LAMMPS *lmp) : Variable(lmp) {}
+    std::set<std::string> seen;
+    void reset() { seen.clear(); }
+
+    void compute_atom(int ivar, int igroup, double *result, int stride, int sumflag) override
+    {
+        seen.insert("mask");
+        Variable::compute_atom(ivar, igroup, result, stride, sumflag);
+    }
+
+protected:
+    void atom_vector(char *word, Tree **tree, Tree **treestack, int &ntreestack) override
+    {
+        seen.insert(word);
+        Variable::atom_vector(word, tree, treestack, ntreestack);
+    }
+
+    int group_function(char *word, char *contents, Tree **tree, Tree **treestack, int &ntreestack,
+                       double *argstack, int &nargstack, int ivar) override
+    {
+        if (is_group_function(word)) seen.insert("<all>");
+        return Variable::group_function(word, contents, tree, treestack, ntreestack, argstack,
+                                        nargstack, ivar);
+    }
+
+    int special_function(const std::string &word, char *contents, Tree **tree, Tree **treestack,
+                         int &ntreestack, double *argstack, int &nargstack, int ivar, char *str,
+                         int &i, char *&ptr) override
+    {
+        // record the name of any special function reached, so this test
+        // measures which seams a formula uses rather than duplicating the
+        // mask policy that lives in VariableKokkos
+        if (is_special_function(word)) seen.insert(word);
+        return Variable::special_function(word, contents, tree, treestack, ntreestack, argstack,
+                                          nargstack, ivar, str, i, ptr);
+    }
+
+    void peratom2global(int flag, char *word, double *vector, int nstride, tagint id, Tree **tree,
+                        Tree **treestack, int &ntreestack, double *argstack, int &nargstack) override
+    {
+        seen.insert("<all>");
+        Variable::peratom2global(flag, word, vector, nstride, id, tree, treestack, ntreestack,
+                                 argstack, nargstack);
+    }
+
+    void custom2global(int *ivector, double *dvector, int nstride, tagint id, Tree **tree,
+                       Tree **treestack, int &ntreestack, double *argstack, int &nargstack) override
+    {
+        seen.insert("<all>");
+        Variable::custom2global(ivector, dvector, nstride, id, tree, treestack, ntreestack,
+                                argstack, nargstack);
+    }
+
+    void sync_peratom(const char *word) override { seen.insert(word ? word : "<all>"); }
+};
+
+class VariableSyncTest : public LAMMPSTest {
+protected:
+    RecordingVariable *rec;
+    Group *group;
+
+    void SetUp() override
+    {
+        testbinary = "VariableSyncTest";
+        args       = {"-log", "none", "-echo", "screen", "-nocite"};
+        LAMMPSTest::SetUp();
+        group = lmp->group;
+
+        // swap in the recording subclass before any variable is defined
+        delete lmp->input->variable;
+        rec                  = new RecordingVariable(lmp);
+        lmp->input->variable = rec;
+
+        BEGIN_HIDE_OUTPUT();
+        command("fix props all property/atom mol rmass q d_dm_val");
+        command("atom_modify map array");    // needed for x[N] style access
+        command("units real");
+        command("lattice sc 1.0 origin 0.125 0.125 0.125");
+        command("region box block -2 2 -2 2 -2 2");
+        command("create_box 8 box");
+        command("create_atoms 1 box");
+        command("mass * 1.0");
+        command("region left block -2.0 -1.0 INF INF INF INF");
+        command("compute dm_ke all ke/atom");
+        command("compute dm_msd all msd");
+        command("run 0 post no");
+        END_HIDE_OUTPUT();
+    }
+
+    std::set<std::string> seams_for(const std::string &formula)
+    {
+        static int n = 0;
+        std::string name = fmt::format("vsync{}", n++);
+        BEGIN_HIDE_OUTPUT();
+        command(fmt::format("variable {} atom \"{}\"", name, formula));
+        END_HIDE_OUTPUT();
+        const int ivar   = rec->find(name.c_str());
+        const int nlocal = lmp->atom->nlocal;
+        std::vector<double> buf(nlocal > 0 ? nlocal : 1);
+        rec->reset();
+        rec->compute_atom(ivar, group->find("all"), buf.data(), 1, 0);
+        return rec->seen;
+    }
+};
+
+using StrSet = std::set<std::string>;
+
+TEST_F(VariableSyncTest, AcceleratorSeams)
+{
+    // compute_atom() always reads atom->mask for the group test
+
+    EXPECT_EQ(seams_for("x"), (StrSet{"x", "mask"}));
+    EXPECT_EQ(seams_for("x*y+z"), (StrSet{"x", "y", "z", "mask"}));
+    EXPECT_EQ(seams_for("vx*vy+vz"), (StrSet{"vx", "vy", "vz", "mask"}));
+    EXPECT_EQ(seams_for("fx+fy+fz"), (StrSet{"fx", "fy", "fz", "mask"}));
+    EXPECT_EQ(seams_for("q"), (StrSet{"q", "mask"}));
+    EXPECT_EQ(seams_for("type"), (StrSet{"type", "mask"}));
+    EXPECT_EQ(seams_for("id"), (StrSet{"id", "mask"}));
+    EXPECT_EQ(seams_for("mol"), (StrSet{"mol", "mask"}));
+    EXPECT_EQ(seams_for("mass"), (StrSet{"mass", "mask"}));
+
+    // only the arrays the formula actually names
+
+    EXPECT_EQ(seams_for("x*vy"), (StrSet{"x", "vy", "mask"}));
+    EXPECT_EQ(seams_for("sqrt(x*x)+q*type"), (StrSet{"x", "q", "type", "mask"}));
+
+    // group and region tests route through special_function()
+
+    EXPECT_EQ(seams_for("gmask(all)"), (StrSet{"gmask", "mask"}));
+    EXPECT_EQ(seams_for("rmask(left)"), (StrSet{"rmask", "mask"}));
+    EXPECT_EQ(seams_for("grmask(all,left)"), (StrSet{"grmask", "mask"}));
+
+    // custom per-atom properties are named by their prefix
+
+    EXPECT_EQ(seams_for("d_dm_val"), (StrSet{"d_dm_val", "mask"}));
+
+    // data that cannot be accounted for falls back to everything
+
+    EXPECT_THAT(seams_for("c_dm_ke"), ::testing::Contains("<all>"));
+    EXPECT_THAT(seams_for("x*count(all)"), ::testing::Contains("<all>"));
+    EXPECT_THAT(seams_for("x[1]+y[2]"), ::testing::Contains("<all>"));
+
+    // special functions that reduce a compute or fix invoke it, and thermo
+    // keywords invoke the thermo computes; both read per-atom data on the host
+
+    EXPECT_THAT(seams_for("sum(c_dm_msd)"), ::testing::Contains("sum"));
+    EXPECT_THAT(seams_for("x*temp"), ::testing::Contains("<all>"));
+
+    // special functions that touch no per-atom data must not force a sync
+
+    EXPECT_EQ(seams_for("x*is_os(^Linux)"), (StrSet{"x", "is_os", "mask"}));
+
+    // constant-folded formulas touch no per-atom data beyond the group test
+
+    EXPECT_EQ(seams_for("1.0+2.0"), (StrSet{"mask"}));
+}
+
 } // namespace LAMMPS_NS
 
 int main(int argc, char **argv)

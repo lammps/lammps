@@ -132,8 +132,6 @@ void FixAddForceKokkos<DeviceType>::post_force(int vflag)
 
   } else {
 
-    atomKK->sync(Host,ALL_MASK); // this can be removed when variable class is ported to Kokkos
-
     modify->clearstep_compute();
 
     if (xstyle == EQUAL) xvalue = input->variable->compute_equal(xvar);
@@ -149,7 +147,11 @@ void FixAddForceKokkos<DeviceType>::post_force(int vflag)
 
     modify->addstep_compute(update->ntimestep + 1);
 
-    if (varflag == ATOM) {  // this can be removed when variable class is ported to Kokkos
+    // atom-style variables are evaluated on the host, so the result has to be
+    // copied to the device for the kernel below.  this is a real copy, not a
+    // stale flag: it can only go away if variables are evaluated on the device.
+
+    if (varflag == ATOM) {
       k_sforce.modify_host();
       k_sforce.sync<DeviceType>();
     }
@@ -185,22 +187,25 @@ template<class DeviceType>
 // NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixAddForceKokkos<DeviceType>::operator()(TagFixAddForceConstant, const int &i, value_type result) const {
+  const KK_FLOAT xvalue_kk = static_cast<KK_FLOAT>(xvalue);
+  const KK_FLOAT yvalue_kk = static_cast<KK_FLOAT>(yvalue);
+  const KK_FLOAT zvalue_kk = static_cast<KK_FLOAT>(zvalue);
   if (mask[i] & groupbit) {
     if (region && !d_match[i]) return;
 
     Few<double,3> x_i;
-    x_i[0] = x(i,0);
-    x_i[1] = x(i,1);
-    x_i[2] = x(i,2);
+    x_i[0] = static_cast<double>(x(i,0));
+    x_i[1] = static_cast<double>(x(i,1));
+    x_i[2] = static_cast<double>(x(i,2));
     auto unwrapKK = DomainKokkos::unmap(prd,h,triclinic,x_i,image(i));
 
     result[0] -= xvalue * unwrapKK[0] + yvalue * unwrapKK[1] + zvalue * unwrapKK[2];
-    result[1] += f(i,0);
-    result[2] += f(i,1);
-    result[3] += f(i,2);
-    if (xstyle) f(i,0) += xvalue;
-    if (ystyle) f(i,1) += yvalue;
-    if (zstyle) f(i,2) += zvalue;
+    result[1] += static_cast<double>(f(i,0));
+    result[2] += static_cast<double>(f(i,1));
+    result[3] += static_cast<double>(f(i,2));
+    if (xstyle) f(i,0) += static_cast<KK_ACC_FLOAT>(xvalue_kk);
+    if (ystyle) f(i,1) += static_cast<KK_ACC_FLOAT>(yvalue_kk);
+    if (zstyle) f(i,2) += static_cast<KK_ACC_FLOAT>(zvalue_kk);
   }
 }
 
@@ -208,34 +213,37 @@ template<class DeviceType>
 // NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixAddForceKokkos<DeviceType>::operator()(TagFixAddForceNonConstant, const int &i, value_type result) const {
+  const KK_FLOAT xvalue_kk = static_cast<KK_FLOAT>(xvalue);
+  const KK_FLOAT yvalue_kk = static_cast<KK_FLOAT>(yvalue);
+  const KK_FLOAT zvalue_kk = static_cast<KK_FLOAT>(zvalue);
   if (mask[i] & groupbit) {
     if (region && !d_match[i]) return;
 
     Few<double,3> x_i;
-    x_i[0] = x(i,0);
-    x_i[1] = x(i,1);
-    x_i[2] = x(i,2);
+    x_i[0] = static_cast<double>(x(i,0));
+    x_i[1] = static_cast<double>(x(i,1));
+    x_i[2] = static_cast<double>(x(i,2));
     auto unwrapKK = DomainKokkos::unmap(prd,h,triclinic,x_i,image(i));
 
     if (estyle == ATOM) {
-      result[0] += d_sforce(i,3);
+      result[0] += static_cast<double>(d_sforce(i,3));
     } else {
       if (xstyle == EQUAL) result[0] -= xvalue * unwrapKK[0];
       if (ystyle == EQUAL) result[0] -= yvalue * unwrapKK[1];
       if (zstyle == EQUAL) result[0] -= zvalue * unwrapKK[2];
-      if (xstyle == ATOM) result[0] -= d_sforce(i,0) * unwrapKK[0];
-      if (ystyle == ATOM) result[0] -= d_sforce(i,1) * unwrapKK[1];
-      if (zstyle == ATOM) result[0] -= d_sforce(i,2) * unwrapKK[2];
+      if (xstyle == ATOM) result[0] -= static_cast<double>(d_sforce(i,0)) * unwrapKK[0];
+      if (ystyle == ATOM) result[0] -= static_cast<double>(d_sforce(i,1)) * unwrapKK[1];
+      if (zstyle == ATOM) result[0] -= static_cast<double>(d_sforce(i,2)) * unwrapKK[2];
     }
-    result[1] += f(i,0);
-    result[2] += f(i,1);
-    result[3] += f(i,2);
-    if (xstyle == ATOM) f(i,0) += d_sforce(i,0);
-    else if (xstyle) f(i,0) += xvalue;
-    if (ystyle == ATOM) f(i,1) += d_sforce(i,1);
-    else if (ystyle) f(i,1) += yvalue;
-    if (zstyle == ATOM) f(i,2) += d_sforce(i,2);
-    else if (zstyle) f(i,2) += zvalue;
+    result[1] += static_cast<double>(f(i,0));
+    result[2] += static_cast<double>(f(i,1));
+    result[3] += static_cast<double>(f(i,2));
+    if (xstyle == ATOM) f(i,0) += static_cast<KK_ACC_FLOAT>(d_sforce(i,0));
+    else if (xstyle) f(i,0) += static_cast<KK_ACC_FLOAT>(xvalue_kk);
+    if (ystyle == ATOM) f(i,1) += static_cast<KK_ACC_FLOAT>(d_sforce(i,1));
+    else if (ystyle) f(i,1) += static_cast<KK_ACC_FLOAT>(yvalue_kk);
+    if (zstyle == ATOM) f(i,2) += static_cast<KK_ACC_FLOAT>(d_sforce(i,2));
+    else if (zstyle) f(i,2) += static_cast<KK_ACC_FLOAT>(zvalue_kk);
   }
 }
 
@@ -256,12 +264,12 @@ KOKKOS_INLINE_FUNCTION
 void FixAddForceKokkos<DeviceType>::v_tally(value_type result, int i, KK_FLOAT *v) const
 {
   if (vflag_global) {
-    result[4] += static_cast<KK_ACC_FLOAT>(v[0]);
-    result[5] += static_cast<KK_ACC_FLOAT>(v[1]);
-    result[6] += static_cast<KK_ACC_FLOAT>(v[2]);
-    result[7] += static_cast<KK_ACC_FLOAT>(v[3]);
-    result[8] += static_cast<KK_ACC_FLOAT>(v[4]);
-    result[9] += static_cast<KK_ACC_FLOAT>(v[5]);
+    result[4] += static_cast<double>(v[0]);
+    result[5] += static_cast<double>(v[1]);
+    result[6] += static_cast<double>(v[2]);
+    result[7] += static_cast<double>(v[3]);
+    result[8] += static_cast<double>(v[4]);
+    result[9] += static_cast<double>(v[5]);
   }
 
   if (vflag_atom) {

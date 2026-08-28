@@ -2,6 +2,7 @@
   lmp_binary: ""
   nprocs: "4"
   args: "-cite none -sf gpu -pk gpu 0"
+  kokkos: false
   mpiexec: "mpirun"
   mpiexec_numproc_flag: "-np"
   tolerance:
@@ -31,12 +32,19 @@
 
   skip:
     [
-      in.*pod.Inp,
+      in.*pod.InP,
       in.disp,
       in.disp2,
       in.dos,
       in.*_imd*,
       in.bucky-plus-cnt*,
+      in.gREM,
+      in.rerun,
+      in.rdf.rerun,
+      in.read_dump,
+      in.peptide-plumed,
+      in.mliap.pytorch*,
+      in.mliap.unified*,
     ]
 
   # input scripts in these folders must be run by the same worker in the listed

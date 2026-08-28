@@ -23,9 +23,6 @@ PairStyle(hybrid/scaled/kk,PairHybridScaledKokkos);
 
 #include "pair_hybrid_kokkos.h"
 
-#include <string>
-#include <vector>
-
 namespace LAMMPS_NS {
 
 class PairHybridScaledKokkos : public PairHybridKokkos {

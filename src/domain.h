@@ -16,6 +16,8 @@
 
 #include "pointers.h"
 
+#include "creator_registry.h"
+
 #include <cmath>
 #include <map>
 #include <unordered_set>
@@ -112,8 +114,9 @@ class Domain : protected Pointers {
   enum { NO_REMAP, X_REMAP, V_REMAP };
 
   using RegionCreator = Region *(*) (LAMMPS *, int, char **);
-  using RegionCreatorMap = std::map<std::string, RegionCreator>;
-  RegionCreatorMap *region_map;
+
+  // global registry of region style factory functions
+  static CreatorRegistry<RegionCreator> &region_styles();
 
   Domain(class LAMMPS *);
   ~Domain() override;

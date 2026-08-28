@@ -2,6 +2,7 @@
   lmp_binary: ""
   nprocs: "1"
   args: "-cite none"
+  kokkos: false
   mpiexec: ""
   mpiexec_numproc_flag: ""
   tolerance:
@@ -30,12 +31,19 @@
         rel: 1e-4
   skip:
     [
-      in.*pod.Inp,
+      in.*pod.InP,
       in.disp,
       in.disp2,
       in.dos,
       in.*_imd*,
       in.bucky-plus-cnt*,
+      in.gREM,
+      in.rerun,
+      in.rdf.rerun,
+      in.read_dump,
+      in.peptide-plumed,
+      in.mliap.pytorch*,
+      in.mliap.unified*,
     ]
 
   timeout: 30

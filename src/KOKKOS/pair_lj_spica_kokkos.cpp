@@ -100,10 +100,10 @@ void PairLJSPICAKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   nlocal = atom->nlocal;
   nall = atom->nlocal + atom->nghost;
   newton_pair = force->newton_pair;
-  special_lj[0] = force->special_lj[0];
-  special_lj[1] = force->special_lj[1];
-  special_lj[2] = force->special_lj[2];
-  special_lj[3] = force->special_lj[3];
+  special_lj[0] = static_cast<KK_FLOAT>(force->special_lj[0]);
+  special_lj[1] = static_cast<KK_FLOAT>(force->special_lj[1]);
+  special_lj[2] = static_cast<KK_FLOAT>(force->special_lj[2]);
+  special_lj[3] = static_cast<KK_FLOAT>(force->special_lj[3]);
 
   // loop over neighbors of my atoms
 
@@ -111,14 +111,14 @@ void PairLJSPICAKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   EV_FLOAT ev = pair_compute<PairLJSPICAKokkos<DeviceType>,void >(this,(NeighListKokkos<DeviceType>*)list);
 
-  if (eflag) eng_vdwl += ev.evdwl;
+  if (eflag) eng_vdwl += static_cast<double>(ev.evdwl);
   if (vflag_global) {
-    virial[0] += ev.v[0];
-    virial[1] += ev.v[1];
-    virial[2] += ev.v[2];
-    virial[3] += ev.v[3];
-    virial[4] += ev.v[4];
-    virial[5] += ev.v[5];
+    virial[0] += static_cast<double>(ev.v[0]);
+    virial[1] += static_cast<double>(ev.v[1]);
+    virial[2] += static_cast<double>(ev.v[2]);
+    virial[3] += static_cast<double>(ev.v[3]);
+    virial[4] += static_cast<double>(ev.v[4]);
+    virial[5] += static_cast<double>(ev.v[5]);
   }
 
   if (eflag_atom) {
@@ -146,7 +146,7 @@ template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
 KK_FLOAT PairLJSPICAKokkos<DeviceType>::
 compute_fpair(const KK_FLOAT &rsq, const int &, const int &, const int &itype, const int &jtype) const {
-  const KK_FLOAT r2inv = 1.0/rsq;
+  const KK_FLOAT r2inv = static_cast<KK_FLOAT>(1.0)/rsq;
   const int ljt = (STACKPARAMS?m_params[itype][jtype].lj_type:params(itype,jtype).lj_type);
 
   const KK_FLOAT lj_1 =  (STACKPARAMS?m_params[itype][jtype].lj1:params(itype,jtype).lj1);
@@ -154,8 +154,8 @@ compute_fpair(const KK_FLOAT &rsq, const int &, const int &, const int &itype, c
 
   const KK_FLOAT r4inv=r2inv*r2inv;
   const KK_FLOAT r6inv=r2inv*r4inv;
-  const KK_FLOAT a = ljt==LJ12_4?r4inv:(ljt==LJ12_5?r4inv*sqrt(r2inv):r6inv);
-  const KK_FLOAT b = ljt==LJ12_4?r4inv:(ljt==LJ9_6?1.0/sqrt(r2inv):(ljt==LJ12_5?r2inv*sqrt(r2inv):r2inv));
+  const KK_FLOAT a = ljt==LJ12_4?r4inv:(ljt==LJ12_5?r4inv*Kokkos::sqrt(r2inv):r6inv);
+  const KK_FLOAT b = ljt==LJ12_4?r4inv:(ljt==LJ9_6?static_cast<KK_FLOAT>(1.0)/Kokkos::sqrt(r2inv):(ljt==LJ12_5?r2inv*Kokkos::sqrt(r2inv):r2inv));
   return a* ( lj_1*r6inv*b - lj_2 * r2inv);
 }
 
@@ -169,7 +169,7 @@ template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
 KK_FLOAT PairLJSPICAKokkos<DeviceType>::
 compute_evdwl(const KK_FLOAT &rsq, const int &, const int &, const int &itype, const int &jtype) const {
-  const KK_FLOAT r2inv = 1.0/rsq;
+  const KK_FLOAT r2inv = static_cast<KK_FLOAT>(1.0)/rsq;
   const int ljt = (STACKPARAMS?m_params[itype][jtype].lj_type:params(itype,jtype).lj_type);
 
   const KK_FLOAT lj_3 =  (STACKPARAMS?m_params[itype][jtype].lj3:params(itype,jtype).lj3);
@@ -180,14 +180,14 @@ compute_evdwl(const KK_FLOAT &rsq, const int &, const int &, const int &itype, c
     const KK_FLOAT r4inv=r2inv*r2inv;
     return r4inv*(lj_3*r4inv*r4inv - lj_4) - offset;
   } else if (ljt == LJ9_6) {
-    const KK_FLOAT r3inv = r2inv*sqrt(r2inv);
+    const KK_FLOAT r3inv = r2inv*Kokkos::sqrt(r2inv);
     const KK_FLOAT r6inv = r3inv*r3inv;
     return r6inv*(lj_3*r3inv - lj_4) - offset;
   } else if (ljt == LJ12_6) {
     const KK_FLOAT r6inv = r2inv*r2inv*r2inv;
     return r6inv*(lj_3*r6inv - lj_4) - offset;
   } else if (ljt == LJ12_5) {
-    const KK_FLOAT r5inv = r2inv*r2inv*sqrt(r2inv);
+    const KK_FLOAT r5inv = r2inv*r2inv*Kokkos::sqrt(r2inv);
     const KK_FLOAT r7inv = r5inv*r2inv;
     return r5inv*(lj_3*r7inv - lj_4) - offset;
   } else
@@ -249,17 +249,17 @@ double PairLJSPICAKokkos<DeviceType>::init_one(int i, int j)
 {
   double cutone = PairLJSPICA::init_one(i,j);
 
-  k_params.view_host()(i,j).lj1 = lj1[i][j];
-  k_params.view_host()(i,j).lj2 = lj2[i][j];
-  k_params.view_host()(i,j).lj3 = lj3[i][j];
-  k_params.view_host()(i,j).lj4 = lj4[i][j];
-  k_params.view_host()(i,j).offset = offset[i][j];
-  k_params.view_host()(i,j).cutsq = cutone*cutone;
+  k_params.view_host()(i,j).lj1 = static_cast<KK_FLOAT>(lj1[i][j]);
+  k_params.view_host()(i,j).lj2 = static_cast<KK_FLOAT>(lj2[i][j]);
+  k_params.view_host()(i,j).lj3 = static_cast<KK_FLOAT>(lj3[i][j]);
+  k_params.view_host()(i,j).lj4 = static_cast<KK_FLOAT>(lj4[i][j]);
+  k_params.view_host()(i,j).offset = static_cast<KK_FLOAT>(offset[i][j]);
+  k_params.view_host()(i,j).cutsq = static_cast<KK_FLOAT>(cutone*cutone);
   k_params.view_host()(i,j).lj_type = lj_type[i][j];
   k_params.view_host()(j,i) = k_params.view_host()(i,j);
   if (i<MAX_TYPES_STACKPARAMS+1 && j<MAX_TYPES_STACKPARAMS+1) {
     m_params[i][j] = m_params[j][i] = k_params.view_host()(i,j);
-    m_cutsq[j][i] = m_cutsq[i][j] = cutone*cutone;
+    m_cutsq[j][i] = m_cutsq[i][j] = static_cast<KK_FLOAT>(cutone*cutone);
   }
 
   k_cutsq.view_host()(i,j) = k_cutsq.view_host()(j,i) = cutone*cutone;

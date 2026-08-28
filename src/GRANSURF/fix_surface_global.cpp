@@ -445,6 +445,9 @@ FixSurfaceGlobal::~FixSurfaceGlobal()
   memory->destroy(fflag_c1);
   memory->destroy(fflag_c2);
   memory->destroy(fflag_c3);
+  memory->destroy(nside_c1);
+  memory->destroy(nside_c2);
+  memory->destroy(nside_c3);
 
   memory->sfree(connect2d);
   memory->sfree(connect3d);

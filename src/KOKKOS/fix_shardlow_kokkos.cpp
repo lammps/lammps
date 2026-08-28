@@ -142,17 +142,17 @@ void FixShardlowKokkos<DeviceType>::init()
   for (int i = 1; i <= ntypes; i++) {
     for (int j = i; j <= ntypes; j++) {
       double cutone = k_pairDPDE->cut[i][j];
-      if (cutone > EPSILON) k_params.view_host()(i,j).cutinv = 1.0/cutone;
+      if (cutone > EPSILON) k_params.view_host()(i,j).cutinv = static_cast<KK_FLOAT>(1.0/cutone);
       else k_params.view_host()(i,j).cutinv = FLT_MAX;
-      k_params.view_host()(i,j).halfsigma = 0.5*k_pairDPDE->sigma[i][j];
-      k_params.view_host()(i,j).kappa = k_pairDPDE->kappa[i][j];
-      k_params.view_host()(i,j).alpha = k_pairDPDE->alpha[i][j];
+      k_params.view_host()(i,j).halfsigma = static_cast<KK_FLOAT>(0.5*k_pairDPDE->sigma[i][j]);
+      k_params.view_host()(i,j).kappa = static_cast<KK_FLOAT>(k_pairDPDE->kappa[i][j]);
+      k_params.view_host()(i,j).alpha = static_cast<KK_FLOAT>(k_pairDPDE->alpha[i][j]);
 
       k_params.view_host()(j,i) = k_params.view_host()(i,j);
 
       if (i<MAX_TYPES_STACKPARAMS+1 && j<MAX_TYPES_STACKPARAMS+1) {
         m_params[i][j] = m_params[j][i] = k_params.view_host()(i,j);
-        m_cutsq[j][i] = m_cutsq[i][j] = k_pairDPDE->k_cutsq.view_host()(i,j);
+        m_cutsq[j][i] = m_cutsq[i][j] = static_cast<KK_FLOAT>(k_pairDPDE->k_cutsq.view_host()(i,j));
       }
     }
   }
@@ -411,10 +411,10 @@ void FixShardlowKokkos<DeviceType>::ssa_update_dpde(
     KK_FLOAT uCond_i = uCond(i);
     const int itype = type(i);
 
-    const KK_FLOAT theta_i_inv = 1.0/dpdTheta(i);
+    const KK_FLOAT theta_i_inv = static_cast<KK_FLOAT>(1.0)/dpdTheta(i);
     const KK_FLOAT mass_i = masses(massPerI ? i : itype);
-    const KK_FLOAT massinv_i = 1.0 / mass_i;
-    const KK_FLOAT mass_i_div_neg4_ftm2v = mass_i*(-0.25)/ftm2v;
+    const KK_FLOAT massinv_i = static_cast<KK_FLOAT>(1.0) / mass_i;
+    const KK_FLOAT mass_i_div_neg4_ftm2v = mass_i*static_cast<KK_FLOAT>(-0.25)/ftm2v;
 
     // Loop over Directional Neighbors only
     for (int jj = 0; jj < jlen; jj++) {
@@ -437,46 +437,46 @@ void FixShardlowKokkos<DeviceType>::ssa_update_dpde(
 
       // NOTE: r can be 0.0 in DPD systems, so do EPSILON_SQUARED test
       if ((rsq < (STACKPARAMS?m_cutsq[itype][jtype]:d_cutsq(itype,jtype)))
-        && (rsq >= EPSILON_SQUARED)) {
+        && (rsq >= static_cast<KK_FLOAT>(EPSILON_SQUARED))) {
 #ifdef DEBUG_SSA_PAIR_CT
         if ((i < nlocal) && (j < nlocal)) Kokkos::atomic_inc(&(d_counters(1, 0)));
         else Kokkos::atomic_inc(&(d_counters(1, 1)));
         Kokkos::atomic_inc(&(d_counters(1, 2)));
 #endif
 
-        KK_FLOAT r = sqrt(rsq);
-        KK_FLOAT rinv = 1.0/r;
+        KK_FLOAT r = Kokkos::sqrt(rsq);
+        KK_FLOAT rinv = static_cast<KK_FLOAT>(1.0)/r;
         KK_FLOAT delx_rinv = delx*rinv;
         KK_FLOAT dely_rinv = dely*rinv;
         KK_FLOAT delz_rinv = delz*rinv;
 
-        KK_FLOAT wr = 1.0 - r*(STACKPARAMS?m_params[itype][jtype].cutinv:params(itype,jtype).cutinv);
+        KK_FLOAT wr = static_cast<KK_FLOAT>(1.0) - r*(STACKPARAMS?m_params[itype][jtype].cutinv:params(itype,jtype).cutinv);
         KK_FLOAT wdt = wr*wr*dt;
 
         // Compute the current temperature
-        KK_FLOAT theta_j_inv = 1.0/dpdTheta(j);
-        KK_FLOAT theta_ij_inv = 0.5*(theta_i_inv + theta_j_inv);
+        KK_FLOAT theta_j_inv = static_cast<KK_FLOAT>(1.0)/dpdTheta(j);
+        KK_FLOAT theta_ij_inv = static_cast<KK_FLOAT>(0.5)*(theta_i_inv + theta_j_inv);
 
         KK_FLOAT halfsigma_ij = STACKPARAMS?m_params[itype][jtype].halfsigma:params(itype,jtype).halfsigma;
         KK_FLOAT halfgamma_ij = halfsigma_ij*halfsigma_ij*boltz_inv*theta_ij_inv;
 
-        KK_FLOAT sigmaRand = halfsigma_ij*wr*dtsqrt*ftm2v * es_normal(RNGstate);
+        KK_FLOAT sigmaRand = halfsigma_ij*wr*dtsqrt*ftm2v * static_cast<KK_FLOAT>(es_normal(RNGstate));
 
         const KK_FLOAT mass_j = masses(massPerI ? j : jtype);
         KK_FLOAT mass_ij_div_neg4_ftm2v = mass_j*mass_i_div_neg4_ftm2v;
-        KK_FLOAT massinv_j = 1.0 / mass_j;
+        KK_FLOAT massinv_j = static_cast<KK_FLOAT>(1.0) / mass_j;
 
         // Compute uCond
         KK_FLOAT kappa_ij = STACKPARAMS?m_params[itype][jtype].kappa:params(itype,jtype).kappa;
         KK_FLOAT alpha_ij = STACKPARAMS?m_params[itype][jtype].alpha:params(itype,jtype).alpha;
-        KK_FLOAT del_uCond = alpha_ij*wr*dtsqrt * es_normal(RNGstate);
+        KK_FLOAT del_uCond = alpha_ij*wr*dtsqrt * static_cast<KK_FLOAT>(es_normal(RNGstate));
 
         del_uCond += kappa_ij*(theta_i_inv - theta_j_inv)*wdt;
         uCond[j] -= del_uCond;
         uCond_i += del_uCond;
 
         KK_FLOAT gammaFactor = halfgamma_ij*wdt*ftm2v;
-        KK_FLOAT inv_1p_mu_gammaFactor = 1.0/(1.0 + (massinv_i + massinv_j)*gammaFactor);
+        KK_FLOAT inv_1p_mu_gammaFactor = static_cast<KK_FLOAT>(1.0)/(static_cast<KK_FLOAT>(1.0) + (massinv_i + massinv_j)*gammaFactor);
 
         KK_FLOAT vxj = v(j, 0);
         KK_FLOAT vyj = v(j, 1);
@@ -558,7 +558,7 @@ void FixShardlowKokkos<DeviceType>::initial_integrate(int /*vflag*/)
 
   copymode = 1;
 
-  dtsqrt = sqrt(update->dt);
+  dtsqrt = static_cast<KK_FLOAT>(sqrt(update->dt));
 
   NPairSSAKokkos<DeviceType> *np_ssa = dynamic_cast<NPairSSAKokkos<DeviceType>*>(list->np);
   if (!np_ssa) error->one(FLERR, "NPair wasn't a NPairSSAKokkos object");
@@ -609,9 +609,9 @@ void FixShardlowKokkos<DeviceType>::initial_integrate(int /*vflag*/)
 #endif
 
   //theta_ij_inv = 1.0/k_pairDPD->temperature; // independent of i,j
-  boltz_inv = 1.0/force->boltz;
-  ftm2v = force->ftm2v;
-  dt     = update->dt;
+  boltz_inv = static_cast<KK_FLOAT>(1.0/force->boltz);
+  ftm2v = static_cast<KK_FLOAT>(force->ftm2v);
+  dt     = static_cast<KK_FLOAT>(update->dt);
 
   k_params.template sync<DeviceType>();
 
@@ -731,9 +731,9 @@ void FixShardlowKokkos<DeviceType>::unpack_forward_comm(int n, int first, double
   m = 0;
   last = first + n ;
   for (ii = first; ii < last; ii++) {
-    h_v_t0(ii - nlocal, 0) = h_v(ii, 0) = buf[m++];
-    h_v_t0(ii - nlocal, 1) = h_v(ii, 1) = buf[m++];
-    h_v_t0(ii - nlocal, 2) = h_v(ii, 2) = buf[m++];
+    h_v_t0(ii - nlocal, 0) = static_cast<KK_FLOAT>(h_v(ii, 0) = buf[m++]);
+    h_v_t0(ii - nlocal, 1) = static_cast<KK_FLOAT>(h_v(ii, 1) = buf[m++]);
+    h_v_t0(ii - nlocal, 2) = static_cast<KK_FLOAT>(h_v(ii, 2) = buf[m++]);
   }
 }
 
@@ -747,9 +747,9 @@ int FixShardlowKokkos<DeviceType>::pack_reverse_comm(int n, int first, double *b
   m = 0;
   last = first + n;
   for (i = first; i < last; i++) {
-    buf[m++] = h_v(i, 0) - h_v_t0(i - nlocal, 0);
-    buf[m++] = h_v(i, 1) - h_v_t0(i - nlocal, 1);
-    buf[m++] = h_v(i, 2) - h_v_t0(i - nlocal, 2);
+    buf[m++] = h_v(i, 0) - static_cast<double>(h_v_t0(i - nlocal, 0));
+    buf[m++] = h_v(i, 1) - static_cast<double>(h_v_t0(i - nlocal, 1));
+    buf[m++] = h_v(i, 2) - static_cast<double>(h_v_t0(i - nlocal, 2));
     if (k_pairDPDE) {
       buf[m++] = h_uCond(i); // for ghosts, this is an accumulated delta
       buf[m++] = h_uMech(i); // for ghosts, this is an accumulated delta

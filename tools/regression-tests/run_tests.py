@@ -13,6 +13,14 @@ With the current features, users can:
     + specify tolerances for individual quantities for any input script to override the global values
     + launch tests with `mpirun` with all supported command line features (multiple procs, multiple paritions, and suffixes)
     + skip certain input files (whose names match specified patterns) if not interested, or package not installed, or no reference log file exists
+    + skip input scripts that use styles or commands not included in the tested binary without
+      running them, detected by comparing the -help output of the binary with the styles that
+      exist in the source tree, and optionally validated with a "-skiprun" dry run of every
+      input script (--preflight, with cacheable verdicts via --preflight-cache)
+    + check that every example input script parses, sets up, and takes one step without
+      crashing by running all of them with "-skiprun" (--preflight-only); together with
+      a small MPI setup this exercises the domain decomposition and communication at a
+      small fraction of the cost of the full runs (see the check-examples.yml workflow)
     + set a timeout for every input script run if they may take too long
     + skip numerical checks if the goal is just to check if the runs do not fail
 
@@ -99,6 +107,7 @@ from argparse import ArgumentParser
 import datetime
 import fnmatch
 import glob
+import hashlib
 import heapq
 import json
 import logging
@@ -138,8 +147,10 @@ import get_quick_list
              'passed'    all numerical checks passed
              'failed'    the run completed but numerical checks failed
              'error'     the run did not complete (crash, timeout, missing log file)
-             'completed' the run completed but no numerical checks were possible
-                         (e.g. no reference log file, skipped numerical checks)
+             'runtest'   the run completed but no numerical checks were possible
+                         (e.g. no reference log file, skipped numerical checks), so
+                         only the run itself was tested; reported separately from
+                         'passed' since nothing was verified beyond not crashing
              'skipped'   the input script was not run at all
    status  : human readable description of the outcome (stored in the progress file)
    message : additional details (e.g. the individual failed checks)
@@ -247,9 +258,13 @@ def write_junit_xml(output_file, results, suite_name, properties=None):
         elif result.category == 'error':
             elem = ET.SubElement(case, 'error')
             num_errors += 1
-        elif result.category in ('skipped', 'completed'):
-            # 'completed' means the run finished but nothing could be verified,
-            # so it is reported as skipped rather than as passed
+        elif result.category in ('skipped', 'runtest'):
+            # 'runtest' means the run finished but nothing could be verified, so
+            # it must not be reported as passed; JUnit XML has no separate element
+            # for that, so it is written as skipped with a status attribute that
+            # merge_results.py reads back to keep the two apart
+            if result.category == 'runtest':
+                case.set('status', 'runtest')
             elem = ET.SubElement(case, 'skipped')
             num_skipped += 1
         else:
@@ -393,6 +408,16 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
                 test_id = test_id + 1
                 continue
 
+        # the input scripts that couple LAMMPS to other codes or are graphics demos can or should not be tested standalone
+        if excluded_example(input_test):
+            msg = "   + " + input + f" ({test_id+1}/{num_tests}): skipped, {EXCLUDED_REASON}"
+            print(msg)
+            logger.info(msg)
+            result.status = f'skipped, {EXCLUDED_REASON}'
+            record(result)
+            test_id = test_id + 1
+            continue
+
         # input scripts that need a multi-partition run write one log file per partition
         # and cannot be tested with a configuration that runs them in a single partition
         if not ({'-p', '-partition'} & set(config['args'].split())):
@@ -403,6 +428,107 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
                 print(msg)
                 logger.info(msg)
                 result.status = f'skipped, needs a multi-partition run ("{command}")'
+                record(result)
+                test_id = test_id + 1
+                continue
+
+        # skip the input script if it uses styles or commands that are known to be
+        # missing from the tested binary (static screening via the -help output)
+        incompat = incompatible_style_usage(input_test, config.get('missing_styles', {}),
+                                            config.get('installed_packages'))
+        if incompat:
+            msg = "   + " + input + f" ({test_id+1}/{num_tests}): skipped, {incompat}"
+            print(msg)
+            logger.info(msg)
+            result.status = f'skipped, {incompat}'
+            record(result)
+            test_id = test_id + 1
+            continue
+
+        # with --preflight-only the "-skiprun" run is the whole test: the input script
+        # runs with the configured MPI setup, but the loops of all run and minimize
+        # commands end after one step.  This tests that the input script parses, that
+        # every style exists, that the setup (reading files, building neighbor lists,
+        # initial communication) works, and that one step runs without crashing --
+        # without the cost of the full runs and without any numerical checks
+        if config.get('preflight_only', False):
+            str_t = "   + " + input_test + f" ({test_id+1}/{num_tests}) [-skiprun check]"
+            logger.info(str_t)
+            print(str_t)
+            skconfig = dict(config)
+            skconfig['args'] = (config['args'] + " -skiprun").strip()
+            status = execute(lmp_binary, skconfig, input_test)
+            result.elapsed = status['elapsed']
+            output = status['stdout']
+            if "ERROR" in output:
+                error_line = ""
+                for line in output.split('\n'):
+                    if "ERROR" in line:
+                        error_line = line
+                        break
+                # a style from a package missing in the binary, hidden where the
+                # static screening cannot see it: skipped, like with --preflight
+                if any(pattern in error_line for pattern in PREFLIGHT_SKIP_PATTERNS):
+                    result.status = f'skipped, -skiprun check: {shorten(error_line)}'
+                # post-run analysis that cannot work with the runs cut short
+                elif any(pattern in error_line for pattern in SKIPRUN_ARTIFACT_PATTERNS):
+                    result.status = ('skipped, cannot be checked with -skiprun: '
+                                     + shorten(error_line))
+                else:
+                    result.category = 'error'
+                    result.status = f"failed, {shorten(error_line)}"
+                    result.message = error_line
+                    logger.info(f"     Output:")
+                    logger.info(f"     {output}")
+                print(f"     {result.status}")
+            elif status['timedout']:
+                result.category = 'error'
+                result.status = "failed, timeout in the -skiprun check"
+                result.message = shorten(status['stderr'], maxlen=1000)
+                print(f"     {result.status}")
+            elif int(status['returncode']) != 0:
+                result.category = 'error'
+                result.status = (f"failed, -skiprun check stopped with return code"
+                                 f" {status['returncode']}, {shorten(status['stderr'])}")
+                result.message = shorten(status['stderr'], maxlen=1000)
+                logger.info(f"     Error:\n{status['stderr']}")
+                print(f"     {result.status}")
+            else:
+                result.category = 'runtest'
+                result.status = 'completed, -skiprun check only'
+                result.time = 0.0
+                for line in output.split('\n'):
+                    if "Total wall time" in line:
+                        hms = line.split('time:')[1].split(':')
+                        result.time = float(hms[0]) * 3600.0 + float(hms[1]) * 60.0 \
+                            + float(hms[2])
+                        break
+            record(result)
+            test_id = test_id + 1
+            continue
+
+        # optionally validate the input script with a "-skiprun" dry run, which parses
+        # the whole script and instantiates every style with the actual binary; this
+        # also catches missing styles that the static screening cannot see, e.g.
+        # behind variable substitutions or in included files
+        preflight_elapsed = 0.0
+        if config.get('preflight', False):
+            key = example_key(os.path.abspath(input_test), None)
+            cached = config.get('preflight_verdicts', {})
+            if key in cached:
+                incompat = cached[key]
+            else:
+                incompat, preflight_elapsed = preflight_run(lmp_binary, config, input_test,
+                                                            config.get('known_commands'))
+                append_preflight_cache(config.get('preflight_cache', ""),
+                                       config.get('binary_signature', ""), key, incompat)
+            if incompat:
+                msg = ("   + " + input + f" ({test_id+1}/{num_tests}): skipped, "
+                       f"-skiprun preflight: {incompat}")
+                print(msg)
+                logger.info(msg)
+                result.status = f'skipped, -skiprun preflight: {incompat}'
+                result.elapsed = preflight_elapsed
                 record(result)
                 test_id = test_id + 1
                 continue
@@ -534,7 +660,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
         returncode = int(status['returncode'])
         logfilename = status['logfilename']
         result.timeout = status['timedout']
-        result.elapsed = status['elapsed']
+        result.elapsed = status['elapsed'] + preflight_elapsed
 
         # Many example inputs are older contributions that were never trimmed for
         # testing: they run a production number of steps, which costs most of the time
@@ -644,7 +770,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
         # if skip numerical checks, then skip the rest
         if skip_numerical_check == True:
             msg = "completed, skipping numerical checks"
-            result.category = 'completed'
+            result.category = 'runtest'
             if use_valgrind == True:
                 if "All heap blocks were freed" in error:
                     msg += ", no memory leak"
@@ -682,7 +808,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             logger.info(f"\n    Output:\n{output}")
             logger.info(f"\n    Error:\n{error}")
 
-            result.category = 'completed'
+            result.category = 'runtest'
             result.status = 'completed, but no Step nor Loop in the output'
             record(result, walltime_norm=walltime_norm)
             test_id = test_id + 1
@@ -698,7 +824,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             logger.info(f"     {output}")
 
             msg = "completed"
-            result.category = 'completed'
+            result.category = 'runtest'
             if use_valgrind == True:
                 if "All heap blocks were freed" in error:
                     msg += ", no memory leak"
@@ -725,7 +851,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             else:
                 # the thermo_ref dictionary is empty
                 logger.info(f"    failed, error parsing the reference log file {thermo_ref_file}.")
-                result.category = 'completed'
+                result.category = 'runtest'
                 result.status = 'completed, numerical checks skipped, unsupported log file format'
                 record(result, walltime_norm=walltime_norm)
                 test_id = test_id + 1
@@ -743,7 +869,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
             else:
                 # most likely to reach here if the reference log file does not exist
                 logger.info(f"       {thermo_ref_file} also does not exist in the working directory.")
-                result.category = 'completed'
+                result.category = 'runtest'
                 if smoke_input:
                     result.status = (f"completed, no reference log file, only checked that a run"
                                      f" shortened to {smoke_steps} steps does not crash")
@@ -805,7 +931,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
                    f" {logfilename} or {thermo_ref_file}.")
             print(msg)
             logger.info(msg)
-            result.category = 'completed'
+            result.category = 'runtest'
             result.status = 'completed, numerical checks skipped, unsupported log file format'
             record(result, walltime_norm=walltime_norm)
             test_id = test_id + 1
@@ -948,6 +1074,7 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
     # collect statistics over the results recorded in this call
     stat = { 'num_completed': 0,
              'num_passed': 0,
+             'num_runtest': 0,
              'num_skipped': 0,
              'num_error': 0,
              'num_timeout': 0,
@@ -955,10 +1082,12 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
              'num_memleak': 0,
            }
     for result in results[num_results_initial:]:
-        if result.category in ('passed', 'failed', 'completed'):
+        if result.category in ('passed', 'failed', 'runtest'):
             stat['num_completed'] += 1
         if result.category == 'passed':
             stat['num_passed'] += 1
+        elif result.category == 'runtest':
+            stat['num_runtest'] += 1
         elif result.category == 'failed':
             stat['num_failed'] += 1
         elif result.category == 'error':
@@ -1007,6 +1136,370 @@ def needs_partitions(input_file):
     except OSError:
         pass
     return ""
+
+# input scripts under these folders under examples/ couple LAMMPS to another code
+# or are not meant for showing physics, but as GRAPHICS package demos.
+EXCLUDED_FOLDERS = ('COUPLE', 'mdi', 'QUANTUM', 'GRAPHICS', 'PACKAGES/ipi')
+EXCLUDED_REASON = "couples LAMMPS to another code or is a graphics demo and cannot be tested standalone"
+
+'''
+    check whether a path is under one of the EXCLUDED_FOLDERS under examples/
+    entries may be a single folder name or a path of multiple folders separated by '/'
+'''
+def excluded_example(path):
+    parts = os.path.abspath(path).split(os.sep)
+    for folder in EXCLUDED_FOLDERS:
+        subpath = folder.split('/')
+        num = len(subpath)
+        if any(parts[i:i+num] == subpath for i in range(len(parts) - num + 1)):
+            return True
+    return False
+
+# STATIC AND DYNAMIC SCREENING FOR STYLES MISSING FROM THE TESTED BINARY
+#
+# An input script that uses a style from a package that is not included in the tested
+# binary can never run, so testing it only produces noise.  The help output of the
+# binary lists every style it includes, and scanning the headers of all packages in
+# the source tree gives the styles that exist in the LAMMPS distribution.  An input
+# script that uses a style from the difference of the two is skipped without being
+# run (static screening).  The optional "-skiprun" preflight additionally parses the
+# whole input script with the actual binary, which also catches styles hidden behind
+# variable substitutions or in included files (dynamic screening).
+
+# input script commands whose argument names a style: maps the command to the style
+# category and the position of the style name among the whitespace-separated words
+STYLE_TAKING_COMMANDS = {
+    'pair_style': ('pair', 1),
+    'bond_style': ('bond', 1),
+    'angle_style': ('angle', 1),
+    'dihedral_style': ('dihedral', 1),
+    'improper_style': ('improper', 1),
+    'kspace_style': ('kspace', 1),
+    'atom_style': ('atom', 1),
+    'run_style': ('integrate', 1),
+    'min_style': ('minimize', 1),
+    'region': ('region', 2),
+    'fix': ('fix', 3),
+    'compute': ('compute', 3),
+    'dump': ('dump', 3),
+}
+
+# style categories with hybrid styles that name their sub-styles as arguments
+HYBRID_CATEGORIES = ('pair', 'bond', 'angle', 'dihedral', 'improper', 'atom')
+
+# "package <arg>" commands and the package they require
+ACCELERATOR_PACKAGES = {'gpu': 'GPU', 'omp': 'OPENMP', 'intel': 'INTEL', 'kokkos': 'KOKKOS'}
+
+'''
+    determine which styles of the LAMMPS distribution are missing from the tested binary
+
+    build_config: the dictionary returned by get_lammps_build_configuration(), whose
+                  'styles' entry holds the style names parsed from the -help output
+    universe    : the dictionary returned by get_quick_list.get_style_universe()
+
+    return a nested dictionary: category -> style name -> package folder name with the
+    styles that exist in the source tree but not in the binary.  Categories that the
+    help output does not report (e.g. body styles) are left out, so they are never
+    screened.  An empty dictionary disables the screening entirely.
+'''
+def compute_missing_styles(build_config, universe):
+    available = build_config.get('styles', {})
+    # if styles that are always compiled in are absent, parsing the help output
+    # failed (e.g. its format changed), so do not screen anything
+    if ('verlet' not in available.get('integrate', set())) \
+            or ('nve' not in available.get('fix', set())):
+        print("WARNING: cannot parse the style lists from the help output of the binary, "
+              "not screening the input scripts for missing styles")
+        # report why the "-h" run failed or what was found, to make the cause diagnosable
+        returncode = build_config.get('help_returncode')
+        if returncode is not None and returncode != 0:
+            print(f"         the \"-h\" run exited with status {returncode}")
+        stderr = (build_config.get('help_stderr') or '').strip()
+        if stderr:
+            print("         stderr of the \"-h\" run (first lines):")
+            for line in stderr.split('\n')[:5]:
+                print("           " + line)
+        if available:
+            found = ', '.join(f"{cat}: {len(names)}" for cat, names in sorted(available.items()))
+            print(f"         style categories found: {found}")
+        else:
+            print("         no style lists found in the help output (format changed?)")
+        return {}
+    missing = {}
+    for category, names in universe.items():
+        binary_has = available.get(category)
+        if not binary_has:
+            continue
+        gone = {name: package for name, package in names.items() if name not in binary_has}
+        if gone:
+            missing[category] = gone
+    return missing
+
+'''
+    iterate over the lines of an input script the way the LAMMPS parser sees them:
+    continuation lines (ending in '&') are joined and comments ('#') are removed
+'''
+def logical_lines(filename):
+    with open(filename, errors='ignore') as f:
+        joined = ""
+        for line in f:
+            line = line.strip()
+            if line.endswith('&'):
+                joined += line[:-1] + ' '
+                continue
+            joined += line
+            yield joined.split('#', 1)[0]
+            joined = ""
+        if joined:
+            yield joined.split('#', 1)[0]
+
+'''
+    format the reason for skipping an input script that uses a missing style
+'''
+def style_reason(category, name, package):
+    if category == 'command':
+        what = f'the "{name}" command'
+    else:
+        what = f'{category} style "{name}"'
+    if package:
+        return f'uses {what} from the {package} package, which is not included in the tested binary'
+    return f'uses {what}, which is not included in the tested binary'
+
+'''
+    statically check an input script for styles missing from the tested binary
+
+    Only definite mismatches are reported: a style name in the style position of a
+    command that exists in the source tree but not in the binary.  Names that contain
+    a variable reference are never flagged, and only the plain style name is checked,
+    since a run with an accelerator suffix falls back to the plain style when the
+    suffixed variant does not exist.  Styles hidden behind variable substitutions or
+    in included files pass the screening and fail in the actual run instead.
+
+    input_file        : path of the input script
+    missing_styles    : dictionary from compute_missing_styles()
+    installed_packages: list of packages included in the binary (optional, used to
+                        check "package gpu/omp/intel/kokkos" commands)
+
+    return the reason for skipping the input script, or an empty string
+'''
+def incompatible_style_usage(input_file, missing_styles, installed_packages=None):
+    if not missing_styles:
+        return ""
+    missing_commands = missing_styles.get('command', {})
+    try:
+        for line in logical_lines(input_file):
+            tokens = line.split()
+            if not tokens:
+                continue
+            cmd = tokens[0]
+            if '$' in cmd:
+                continue
+            if cmd in missing_commands:
+                return style_reason('command', cmd, missing_commands[cmd])
+            if (cmd == 'package') and installed_packages and (len(tokens) > 1):
+                package = ACCELERATOR_PACKAGES.get(tokens[1])
+                if package and (package not in installed_packages):
+                    return (f'uses the "package {tokens[1]}" command, which needs the '
+                            f'{package} package that is not included in the tested binary')
+            if cmd not in STYLE_TAKING_COMMANDS:
+                continue
+            category, pos = STYLE_TAKING_COMMANDS[cmd]
+            gone = missing_styles.get(category)
+            if (not gone) or (len(tokens) <= pos):
+                continue
+            style = tokens[pos]
+            if '$' in style:
+                continue
+            if style in gone:
+                return style_reason(category, style, gone[style])
+            # hybrid styles name their sub-styles in the remaining arguments
+            if (category in HYBRID_CATEGORIES) and style.startswith('hybrid'):
+                for token in tokens[pos+1:]:
+                    if ('$' not in token) and (token in gone):
+                        return style_reason(category, token, gone[token])
+    except OSError:
+        return ""
+    return ""
+
+'''
+    statically check an input script for commands that cannot work in a KOKKOS run
+
+    A run with the KOKKOS package active ("-k on") replaces core classes rather
+    than falling back to the plain implementation for everything, so a number of
+    commands become hard errors: every atom style (and every sub-style of
+    atom_style hybrid) must have a Kokkos-enabled variant
+    (src/KOKKOS/atom_kokkos.cpp), only "bin" neighbor lists are supported
+    (src/KOKKOS/neighbor_kokkos.cpp), minimization requires a Kokkos-enabled min
+    style (src/min.cpp), run style respa is not supported (src/respa.cpp), and
+    label maps do not work (src/atom.cpp).  As with incompatible_style_usage(),
+    only definite mismatches are reported: a style name is only flagged when the
+    plain style exists in the binary but its "/kk" variant does not, and names
+    with a variable reference are never flagged.
+
+    input_file: path of the input script
+    styles    : the style lists of the binary from get_lammps_build_configuration()
+
+    return the reason for skipping the input script, or an empty string
+'''
+def kokkos_incompatible_usage(input_file, styles):
+    atom_styles = styles.get('atom', set())
+    min_styles = styles.get('minimize', set())
+    try:
+        for line in logical_lines(input_file):
+            tokens = line.split()
+            if not tokens:
+                continue
+            cmd = tokens[0]
+            if '$' in cmd:
+                continue
+            if cmd == 'labelmap':
+                return 'uses the labelmap command, but label maps are not supported with KOKKOS'
+            if (cmd == 'neighbor') and (len(tokens) > 2):
+                style = tokens[2]
+                if ('$' not in style) and (style != 'bin'):
+                    return (f'uses "{style}" neighbor lists, but the KOKKOS package'
+                            f' only supports "bin"')
+            if (cmd == 'run_style') and (len(tokens) > 1) and tokens[1].startswith('respa'):
+                return 'uses run style respa, which is not supported by the KOKKOS package'
+            if (cmd == 'min_style') and (len(tokens) > 1):
+                style = tokens[1]
+                if ('$' not in style) and (style in min_styles) \
+                        and (style + '/kk' not in min_styles):
+                    return f'uses min style "{style}", which has no KOKKOS version'
+            if (cmd == 'atom_style') and (len(tokens) > 1) and ('$' not in tokens[1]):
+                # a KOKKOS run requires a Kokkos-enabled atom style, and every
+                # sub-style of atom_style hybrid must be Kokkos-enabled as well
+                if tokens[1] == 'hybrid':
+                    check = [t for t in tokens[2:] if ('$' not in t) and (t in atom_styles)]
+                else:
+                    check = [tokens[1]] if tokens[1] in atom_styles else []
+                for style in check:
+                    if style + '/kk' not in atom_styles:
+                        return f'uses atom style "{style}", which has no KOKKOS version'
+    except OSError:
+        return ""
+    return ""
+
+# a "-skiprun" preflight failing with one of these messages means that the input
+# script cannot work with the tested binary; any other failure is inconclusive
+# (e.g. an artifact of the runs being cut short) and the input is tested normally
+PREFLIGHT_SKIP_PATTERNS = ("package which is not enabled",
+                           "missing because of a dependency",
+                           "requires ML-IAP with python support",
+                           "Must enable ML-PACE package",
+                           # hard errors from running with the KOKKOS package active
+                           "KOKKOS package requires a Kokkos-enabled atom_style",
+                           "KOKKOS package only supports 'bin' neighbor lists",
+                           "Must use a Kokkos-enabled min style",
+                           "not supported by the KOKKOS package",
+                           "Label maps are currently not supported with Kokkos")
+
+# error messages that are a consequence of the run and minimize loops being cut
+# short by -skiprun: post-run analysis (e.g. variables dividing by averages that a
+# fix accumulates over the full run, or energies tallied on the expected timestep
+# schedule) cannot work with runs that end after one step.  Such an input script
+# cannot be checked with -skiprun, which is not a failure of the input script.
+SKIPRUN_ARTIFACT_PATTERNS = ("was not tallied on needed timestep",
+                             "Divide by 0 in variable formula",
+                             "compute cannot be invoked before initialization",
+                             "in variable requires thermo to use/init")
+
+'''
+    validate an input script with a "-skiprun" dry run of the tested binary
+
+    With -skiprun the whole input script is parsed and every style instantiated, but
+    the loops of all run and minimize commands end after one step, so this costs
+    little more than the setup.  The run is launched in serial (without mpiexec),
+    since which styles exist does not depend on the number of processes.
+
+    lmp_binary    : full path to the LAMMPS binary
+    config        : the test configuration (for the command line arguments and timeout)
+    input_file    : name of the input script in the current working directory
+    known_commands: dictionary command name -> package from the style universe, used
+                    to tell a command from a missing package apart from a typo
+
+    return a tuple of the reason for skipping the input script (or an empty string
+    if the preflight passed or was inconclusive) and the elapsed time in seconds
+'''
+def preflight_run(lmp_binary, config, input_file, known_commands=None):
+    cmd_str = lmp_binary + " -in " + input_file + " -skiprun -log none"
+    if config['args']:
+        cmd_str += " " + config['args']
+    timeout = int(config['timeout']) if str(config.get('timeout', "")) != "" else 60
+    start = monotonic()
+    p = subprocess.Popen(cmd_str, shell=True, text=True, stdout=subprocess.PIPE,
+                         stderr=subprocess.PIPE, start_new_session=True)
+    try:
+        stdout, stderr = p.communicate(timeout=timeout)
+    except subprocess.TimeoutExpired:
+        try:
+            os.killpg(os.getpgid(p.pid), signal.SIGKILL)
+        except (ProcessLookupError, PermissionError):
+            p.kill()
+        p.communicate()
+        return "", monotonic() - start
+    elapsed = monotonic() - start
+    if p.returncode == 0:
+        return "", elapsed
+
+    error_line = ""
+    for line in (stdout + '\n' + stderr).split('\n'):
+        if "ERROR" in line:
+            error_line = line
+            break
+    if not error_line:
+        return "", elapsed
+    # strip the "ERROR:" or "ERROR on proc N:" prefix for the status message
+    error_text = shorten(error_line.split(':', 1)[1] if ':' in error_line else error_line)
+
+    for pattern in PREFLIGHT_SKIP_PATTERNS:
+        if pattern in error_line:
+            return error_text, elapsed
+    # "Unknown command" also happens for typos and non-input files, so only skip
+    # when the command exists in a package of the LAMMPS distribution
+    if ("Unknown command:" in error_line) and known_commands:
+        tokens = error_line.split("Unknown command:", 1)[1].split()
+        if tokens and (tokens[0] in known_commands):
+            return style_reason('command', tokens[0], known_commands[tokens[0]]), elapsed
+    return "", elapsed
+
+'''
+    read the cached preflight verdicts written by previous runs
+
+    The cache is a JSON lines file, so that concurrent workers can append to it.
+    Only entries whose signature matches the current binary configuration are used.
+
+    return a dictionary input script key -> reason (an empty reason means that the
+    input script passed the preflight and does not have to be validated again)
+'''
+def load_preflight_cache(filename, signature):
+    verdicts = {}
+    if not filename:
+        return verdicts
+    try:
+        with open(filename) as f:
+            for line in f:
+                try:
+                    entry = json.loads(line)
+                except ValueError:
+                    continue
+                if entry.get('sig') == signature:
+                    verdicts[entry.get('key')] = entry.get('reason', "")
+    except OSError:
+        pass
+    return verdicts
+
+'''
+    append one preflight verdict to the cache file (a no-op without a file name)
+'''
+def append_preflight_cache(filename, signature, key, reason):
+    if not filename:
+        return
+    try:
+        with open(filename, 'a') as f:
+            f.write(json.dumps({'sig': signature, 'key': key, 'reason': reason}) + '\n')
+    except OSError:
+        pass
 
 '''
     find the reference log files in a folder that belong to none of its input scripts
@@ -1497,6 +1990,9 @@ def get_lammps_build_configuration(lmp_binary):
     cmd_str = lmp_binary + " -h"
     p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True)
     output = p.stdout.split('\n')
+    # the header that starts the style lists; older versions print "List of individual
+    # style options included in ...", newer ones "Lists of individual styles included in ..."
+    style_header = re.compile(r'^Lists? of individual styles?\b.*included in this LAMMPS executable')
     packages = ""
     reading = False
     operating_system = ""
@@ -1509,7 +2005,7 @@ def get_lammps_build_configuration(lmp_binary):
             if line == "Installed packages:":
                 reading = True
                 n = row
-            if "List of individual style options" in line:
+            if style_header.match(line):
                 reading = False
             if reading == True and row > n:
                 packages += line.strip() + " "
@@ -1522,7 +2018,7 @@ def get_lammps_build_configuration(lmp_binary):
             compiler_full = line
             if "GNU" in line:
                 compiler = "g++"
-            if "Intel" in line: 
+            if "Intel" in line:
                 compiler = "icc"
         row += 1
 
@@ -1537,14 +2033,38 @@ def get_lammps_build_configuration(lmp_binary):
 
         row += 1
 
+    # the styles included in the binary, as listed in the "List of individual style
+    # options" part of the help output, e.g. styles['pair'] = {'lj/cut', 'eam', ...};
+    # section headers look like "* Pair styles:" ("* Command styles" has no colon);
+    # a trailing "*" marks a style provided by a plugin and is not part of the name
+    styles = {}
+    category = None
+    reading = False
+    section = re.compile(r'^\* (\S+) styles:?\s*$')
+    for line in output:
+        if style_header.match(line):
+            reading = True
+            continue
+        if not reading:
+            continue
+        match = section.match(line)
+        if match:
+            category = match.group(1).lower()
+            styles[category] = set()
+        elif category is not None:
+            styles[category].update(name.rstrip('*') for name in line.split())
+
     installed_packages = packages.split(" ")
     build_config = {
         'installed_packages': installed_packages,
         'operating_system': operating_system,
-        'git_info': GitInfo, 
+        'git_info': GitInfo,
         'compiler': compiler,
         'compiler_full': compiler_full,
         'compile_flags': compile_flags,
+        'styles': styles,
+        'help_returncode': p.returncode,
+        'help_stderr': p.stderr,
     }
 
     return build_config
@@ -1962,6 +2482,17 @@ if __name__ == "__main__":
                              "if not given, it is measured by running bench/in.lj")
     parser.add_argument("--skip-numerical-check",dest="skip_numerical_check", action='store_true', default=False,
                         help="Skip numerical checks")
+    parser.add_argument("--preflight", dest="preflight", action='store_true', default=False,
+                        help="Validate every input script with a \"-skiprun\" dry run first and skip "
+                             "those that use styles not included in the tested binary")
+    parser.add_argument("--preflight-cache", dest="preflight_cache", default="",
+                        help="JSON lines file caching the -skiprun preflight verdicts; it can be "
+                             "shared between workers and is reused as long as the binary "
+                             "configuration stays the same")
+    parser.add_argument("--preflight-only", dest="preflight_only", action='store_true', default=False,
+                        help="Run every input script with \"-skiprun\" appended and only test "
+                             "that it parses, sets up, and takes one step without crashing; "
+                             "no numerical checks are performed")
     parser.add_argument("--gen-ref",dest="genref", action='store_true', default=False,
                         help="Generating reference log files")
     parser.add_argument("--verbose",dest="verbose", action='store_true', default=False,
@@ -2031,6 +2562,75 @@ if __name__ == "__main__":
 
     # folders whose input scripts must be run by the same worker in the listed order
     keep_together = config['keep_together'] if 'keep_together' in config else []
+
+    # determine which styles of the LAMMPS distribution are missing from the tested
+    # binary, so that input scripts using them can be skipped without being run;
+    # an empty missing_styles dictionary disables this screening
+    style_universe = get_quick_list.get_style_universe(LAMMPS_DIR)
+    build_config = None
+    missing_styles = {}
+    if os.path.isfile(lmp_binary):
+        build_config = get_lammps_build_configuration(lmp_binary)
+        missing_styles = compute_missing_styles(build_config, style_universe)
+        if missing_styles:
+            num_missing = sum(len(names) for names in missing_styles.values())
+            num_known = sum(len(names) for names in style_universe.values())
+            msg = (f"\nStatic screening: {num_missing} of the {num_known} styles in the LAMMPS"
+                   f" distribution are not included in the tested binary; input scripts"
+                   f" using them are skipped without being run.")
+            print(msg)
+            logger.info(msg)
+
+    # a run with the KOKKOS package active cannot fall back to the plain styles for
+    # everything, so a test configuration that declares it uses the KOKKOS package
+    # ("kokkos: true") also screens the input scripts for commands that can never
+    # work in a KOKKOS run (see kokkos_incompatible_usage())
+    kokkos_screen = bool(config.get('kokkos', False)) and bool(build_config)
+    if kokkos_screen:
+        msg = ("\nThe test configuration uses the KOKKOS package: input scripts using"
+               " commands that cannot work in a KOKKOS run are skipped as well.")
+        print(msg)
+        logger.info(msg)
+
+    '''
+        leave the input scripts that use styles missing from the tested binary out of
+        a list of input scripts to test, recording them with the reason for leaving
+        them out in input-list-incompatible.txt
+
+        return the list without those input scripts
+    '''
+    def screen_input_list(input_list):
+        # the input scripts that couple LAMMPS to other codes or are graphics demos can or should not be tested standalone
+        exclude = [inp for inp in input_list if excluded_example(inp)]
+        if exclude:
+            input_list = [inp for inp in input_list if not excluded_example(inp)]
+            msg = (f"\n{len(exclude)} input script(s) under " +
+                   ", ".join("examples/" + f for f in EXCLUDED_FOLDERS) + " are left out.")
+            print(msg)
+            logger.info(msg)
+        if not (missing_styles or kokkos_screen):
+            return input_list
+        packages = build_config['installed_packages'] if build_config else None
+        keep = []
+        excluded = []
+        for inp in input_list:
+            reason = incompatible_style_usage(inp, missing_styles, packages)
+            if (not reason) and kokkos_screen:
+                reason = kokkos_incompatible_usage(inp, build_config['styles'])
+            if reason:
+                excluded.append((inp, reason))
+            else:
+                keep.append(inp)
+        if excluded:
+            with open("input-list-incompatible.txt", "w") as f:
+                for inp, reason in excluded:
+                    f.write(f"{inp}  # {reason}\n")
+            msg = (f"\n{len(excluded)} input script(s) use styles or commands that cannot"
+                   f" work with the tested binary and are left out"
+                   f" (see input-list-incompatible.txt)")
+            print(msg)
+            logger.info(msg)
+        return keep
 
     '''
         split a list of input scripts over the workers and write one input-list-{idx}.txt
@@ -2118,6 +2718,9 @@ if __name__ == "__main__":
             print(msg)
             logger.info(msg)
 
+            # leave out the input scripts that cannot work with the tested binary
+            input_list = screen_input_list(input_list)
+
             # distribute the input scripts over the workers by their estimated cost
             write_input_lists(input_list)
         else:
@@ -2161,10 +2764,15 @@ if __name__ == "__main__":
             cmd_str = f"find {example_toplevel} -name \"in.*\" "
             p = subprocess.run(cmd_str, shell=True, text=True, capture_output=True)
             # sort the list, since find returns the input scripts in file system order
-            input_list = sorted(inp for inp in p.stdout.split('\n') if inp)
+            # leave out editor backup copies (e.g. in.melt~) of input scripts
+            input_list = sorted(inp for inp in p.stdout.split('\n')
+                                if inp and not inp.endswith('~'))
             msg = f"\nThere are {len(input_list)} input scripts in total under the {example_toplevel} folder."
             print(msg)
             logger.info(msg)
+
+            # leave out the input scripts that cannot work with the tested binary
+            input_list = screen_input_list(input_list)
 
             # get the list of folders that contain the input scripts
             folder_list = []
@@ -2278,7 +2886,9 @@ if __name__ == "__main__":
             lmp_binary = os.path.abspath(config['lmp_binary'])
 
     # print out the binary info
-    build_config = get_lammps_build_configuration(lmp_binary)
+    if build_config is None:
+        build_config = get_lammps_build_configuration(lmp_binary)
+        missing_styles = compute_missing_styles(build_config, style_universe)
     packages = build_config['installed_packages']
     operating_system = build_config['operating_system']
     GitInfo = build_config['git_info']
@@ -2300,6 +2910,23 @@ if __name__ == "__main__":
     # augment config with additional keys
     config['compiler'] = compiler
     config['genref'] = genref
+
+    # keys for screening out input scripts that use styles missing from the binary
+    config['missing_styles'] = missing_styles
+    config['installed_packages'] = packages
+    config['preflight'] = args.preflight
+    config['preflight_cache'] = args.preflight_cache
+    config['preflight_only'] = args.preflight_only
+    if args.preflight:
+        config['known_commands'] = style_universe['command']
+        # the preflight verdicts only depend on which styles the binary includes, so
+        # cached verdicts are reused as long as version and packages stay the same
+        signature = hashlib.md5((GitInfo + ' '.join(sorted(packages))).encode()).hexdigest()
+        config['binary_signature'] = signature
+        config['preflight_verdicts'] = load_preflight_cache(args.preflight_cache, signature)
+        if config['preflight_verdicts']:
+            print(f"Preflight: reusing {len(config['preflight_verdicts'])} cached verdict(s) "
+                  f"from {args.preflight_cache}")
 
     all_results = []
 
@@ -2340,6 +2967,7 @@ if __name__ == "__main__":
     total_tests = 0
     completed_tests = 0
     passed_tests = 0
+    runtest_tests = 0
     skipped_tests = 0
     error_tests = 0
     timeout_tests = 0
@@ -2390,9 +3018,11 @@ if __name__ == "__main__":
             logger.info("Entering " + directory)
             os.chdir(directory)
 
-            # test all input scripts in the folder if none were selected explicitly
+            # test all input scripts in the folder if none were selected explicitly,
+            # leaving out editor backup copies (e.g. in.melt~)
             if input_list is None:
-                input_list = sorted(glob.glob("in.*"))
+                input_list = sorted(inp for inp in glob.glob("in.*")
+                                    if not inp.endswith('~'))
             else:
                 input_list = [inp for inp in input_list if os.path.isfile(inp)]
 
@@ -2407,6 +3037,7 @@ if __name__ == "__main__":
             completed_tests += stat['num_completed']
             skipped_tests += stat['num_skipped']
             passed_tests += stat['num_passed']
+            runtest_tests += stat['num_runtest']
             error_tests += stat['num_error']
             timeout_tests += stat['num_timeout']
             failed_tests += stat['num_failed']
@@ -2429,6 +3060,7 @@ if __name__ == "__main__":
         completed_tests = stat['num_completed']
         skipped_tests = stat['num_skipped']
         passed_tests = stat['num_passed']
+        runtest_tests = stat['num_runtest']
         error_tests = stat['num_error']
         timeout_tests += stat['num_timeout']
         failed_tests = stat['num_failed']
@@ -2448,12 +3080,14 @@ if __name__ == "__main__":
     msg += f"     - timeout  : {timeout_tests}\n"
     msg += f"  - Completed: {completed_tests}\n"
     msg += f"     - failed   : {failed_tests}\n"
+    msg += f"     - runtest  : {runtest_tests} (run completed, nothing checked)\n"
 
     # print notice to GitHub
     if 'GITHUB_STEP_SUMMARY' in os.environ:
         with open(os.environ.get('GITHUB_STEP_SUMMARY'), 'a') as f:
             print(f"Total: {total_tests}  Skipped: {skipped_tests}  Error: {error_tests}  Timeout: {timeout_tests}"
-                  f"  Failed: {failed_tests}  Passed: {passed_tests}  Completed: {completed_tests}", file=f)
+                  f"  Failed: {failed_tests}  Passed: {passed_tests}  Runtest: {runtest_tests}"
+                  f"  Completed: {completed_tests}", file=f)
 
     if 'valgrind' in config['mpiexec']:
         msg += f"     - memory leak detected  : {memleak_tests}\n"

@@ -82,7 +82,7 @@ template <class DeviceType>
 void FixWallHarmonicKokkos<DeviceType>::wall_particle(int m_in, int which, double coord_in)
 {
   m = m_in;
-  coord = coord_in;
+  coord = static_cast<KK_FLOAT>(coord_in);
 
   atomKK->sync(execution_space, datamask_read);
   d_x = atomKK->k_x.template view<DeviceType>();
@@ -126,13 +126,13 @@ void FixWallHarmonicKokkos<DeviceType>::operator()(const int &i, value_type resu
     if (side < 0) delta = d_x(i,dim) - coord;
     else delta = coord - d_x(i,dim);
     if (delta >= (KK_FLOAT) cutoff[m]) return;
-    if (delta <= 0.0)
+    if (delta <= static_cast<KK_FLOAT>(0.0))
       Kokkos::abort("Particle on or inside fix wall surface");
     KK_FLOAT dr = (KK_FLOAT) cutoff[m] - delta;
-    KK_FLOAT fwall = (KK_FLOAT) side * 2.0 * (KK_FLOAT) epsilon[m] * dr;
-    d_f(i,dim) -= fwall;
-    result[0] += (KK_FLOAT) epsilon[m] * dr * dr;
-    result[m+1] += fwall;
+    KK_FLOAT fwall = (KK_FLOAT) side * static_cast<KK_FLOAT>(2.0) * (KK_FLOAT) epsilon[m] * dr;
+    d_f(i,dim) -= static_cast<KK_ACC_FLOAT>(fwall);
+    result[0] += static_cast<double>((KK_FLOAT) epsilon[m] * dr * dr);
+    result[m+1] += static_cast<double>(fwall);
 
     if (evflag) {
       KK_FLOAT vn;
@@ -154,10 +154,10 @@ void FixWallHarmonicKokkos<DeviceType>::v_tally(value_type result, int n, int i,
                                                 KK_FLOAT vn) const
 {
   if (vflag_global)
-    result[n+7] += vn;
+    result[n+7] += static_cast<double>(vn);
 
   if (vflag_atom)
-    Kokkos::atomic_add(&(d_vatom(i,n)), vn);
+    Kokkos::atomic_add(&(d_vatom(i,n)), static_cast<KK_ACC_FLOAT>(vn));
 }
 
 namespace LAMMPS_NS {

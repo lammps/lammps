@@ -97,7 +97,8 @@ if(BUILD_MPI)
     add_test(NAME ${MPI_TEST_NAME}
              WORKING_DIRECTORY ${MPI_TEST_WORKING_DIRECTORY}
              COMMAND ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} ${MPI_TEST_NUM_PROCS}
-                     ${MPIEXEC_PREFLAGS} ${EXECUTABLE} ${MPIEXEC_POSTFLAGS} ${ARGS})
+             ${MPIEXEC_PREFLAGS} ${EXECUTABLE} ${MPIEXEC_POSTFLAGS} ${ARGS})
+    set_tests_properties(${MPI_TEST_NAME} PROPERTIES LABELS "mpi" ENVIRONMENT "OMP_PROC_BIND=false")
   endfunction()
 else()
   function(add_mpi_test)

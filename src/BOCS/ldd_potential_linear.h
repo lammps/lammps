@@ -16,12 +16,6 @@
     and Maria C. Lesniewski, mjl6766@psu.edu
     The Pennsylvania State University
    ------------------------------------------------------ */
-#ifdef LDD_POTENTIAL_CLASS
-// clang-format off
-LddPotentialStyle(linear,LddPotentialLinear);
-// clang-format on
-#else
-
 #ifndef LDD_POTENTIAL_LINEAR
 #define LDD_POTENTIAL_LINEAR
 
@@ -43,5 +37,4 @@ class LddPotentialLinear : public LddPotential {
 };
 }    // namespace LAMMPS_NS
 
-#endif
 #endif

@@ -127,19 +127,19 @@ void FixSpringSelfKokkos<DeviceType>::post_force(int /*vflag*/)
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType>(0,nlocal), LAMMPS_LAMBDA(const int& i, double& espring_kk) {
         if (l_mask[i] & l_groupbit) {
           Few<double,3> x_i;
-          x_i[0] = l_x(i,0);
-          x_i[1] = l_x(i,1);
-          x_i[2] = l_x(i,2);
+          x_i[0] = static_cast<double>(l_x(i,0));
+          x_i[1] = static_cast<double>(l_x(i,1));
+          x_i[2] = static_cast<double>(l_x(i,2));
           auto unwrap = DomainKokkos::unmap(prd,h,triclinic,x_i,l_image(i));
-          auto dx = unwrap[0] - l_xoriginal(i, 0);
-          auto dy = unwrap[1] - l_xoriginal(i, 1);
-          auto dz = unwrap[2] - l_xoriginal(i, 2);
+          auto dx = unwrap[0] - static_cast<double>(l_xoriginal(i, 0));
+          auto dy = unwrap[1] - static_cast<double>(l_xoriginal(i, 1));
+          auto dz = unwrap[2] - static_cast<double>(l_xoriginal(i, 2));
           if (!l_xflag) dx = 0.0;
           if (!l_yflag) dy = 0.0;
           if (!l_zflag) dz = 0.0;
-          l_f(i,0) -= l_k*dx;
-          l_f(i,1) -= l_k*dy;
-          l_f(i,2) -= l_k*dz;
+          l_f(i,0) -= static_cast<KK_ACC_FLOAT>(l_k*dx);
+          l_f(i,1) -= static_cast<KK_ACC_FLOAT>(l_k*dy);
+          l_f(i,2) -= static_cast<KK_ACC_FLOAT>(l_k*dz);
           espring_kk += l_k * (dx*dx + dy*dy + dz*dz);
         }
       },espring_kk);
@@ -186,9 +186,9 @@ void FixSpringSelfKokkos<DeviceType>::pack_exchange_item(const int &mysend, int 
 
   int m = nsend + offset;
   d_buf[mysend] = m;
-  d_buf[m++] = d_xoriginal(i,0);
-  d_buf[m++] = d_xoriginal(i,1);
-  d_buf[m++] = d_xoriginal(i,2);
+  d_buf[m++] = static_cast<double>(d_xoriginal(i,0));
+  d_buf[m++] = static_cast<double>(d_xoriginal(i,1));
+  d_buf[m++] = static_cast<double>(d_xoriginal(i,2));
   if (mysend == nsend-1) d_count() = m;
   offset = m - nsend;
 

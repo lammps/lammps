@@ -50,6 +50,7 @@
 
 #include <cmath>
 #include <exception>
+#include <stdexcept>
 #include <iostream>
 
 using ::testing::HasSubstr;
@@ -127,10 +128,12 @@ static LAMMPS *init_lammps(LAMMPS::argv &args, const TestConfig &cfg)
     // set up the molecular system force field from the coeffs file
     // indicated by the YAML file (the input template only defines the geometry)
 
+    // a missing coeffs file is a malformed YAML file, not a missing
+    // prerequisite: fail loudly instead of returning nullptr, which the
+    // callers would report as a (silently passing) skipped test
     if (cfg.input_coeffs.empty()) {
-        std::cerr << "ERROR: no 'input_coeffs' file given in the YAML file\n";
         cleanup_lammps(lmp);
-        return nullptr;
+        throw std::runtime_error("no 'input_coeffs' file given in the YAML file");
     }
     std::string coeffs_file = platform::path_join(INPUT_FOLDER, cfg.input_coeffs);
     lmp->input->file(coeffs_file.c_str());

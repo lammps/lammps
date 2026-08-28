@@ -130,7 +130,7 @@ namespace LAMMPS_NS::MathSpecialKokkos {
   {
   #if defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)
       if (x < -1022.0/FM_DOUBLE_LOG2OFE) return 0;
-      if (x > 1023.0/FM_DOUBLE_LOG2OFE) return INFINITY;
+      if (x > 1023.0/FM_DOUBLE_LOG2OFE) return static_cast<double>(INFINITY);
       return exp2_x86(FM_DOUBLE_LOG2OFE * x);
   #else
       return ::exp(x);

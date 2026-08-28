@@ -226,6 +226,18 @@ action fix_reaxff_species_kokkos.cpp fix_reaxff_species.cpp
 action fix_reaxff_species_kokkos.h fix_reaxff_species.h
 action fix_recenter_kokkos.cpp
 action fix_recenter_kokkos.h
+action fix_rigid_small_kokkos.cpp fix_rigid_small.cpp
+action fix_rigid_small_kokkos.h fix_rigid_small.h
+action fix_rigid_nh_small_kokkos.cpp fix_rigid_nh_small.cpp
+action fix_rigid_nh_small_kokkos.h fix_rigid_nh_small.h
+action fix_rigid_nve_small_kokkos.cpp fix_rigid_nve_small.cpp
+action fix_rigid_nve_small_kokkos.h fix_rigid_nve_small.h
+action fix_rigid_nvt_small_kokkos.cpp fix_rigid_nvt_small.cpp
+action fix_rigid_nvt_small_kokkos.h fix_rigid_nvt_small.h
+action fix_rigid_npt_small_kokkos.cpp fix_rigid_npt_small.cpp
+action fix_rigid_npt_small_kokkos.h fix_rigid_npt_small.h
+action fix_rigid_nph_small_kokkos.cpp fix_rigid_nph_small.cpp
+action fix_rigid_nph_small_kokkos.h fix_rigid_nph_small.h
 action fix_rx_kokkos.cpp fix_rx.cpp
 action fix_rx_kokkos.h fix_rx.h
 action fix_setforce_kokkos.cpp
@@ -574,6 +586,8 @@ action sna_kokkos.h sna.h
 action third_order_kokkos.cpp dynamical_matrix.cpp
 action third_order_kokkos.h dynamical_matrix.h
 action transpose_helper_kokkos.h
+action variable_kokkos.cpp
+action variable_kokkos.h
 action verlet_kokkos.cpp
 action verlet_kokkos.h
 

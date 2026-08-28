@@ -192,13 +192,33 @@ internally by :doc:`Peridynamics pair styles <pair_peri>`:
 
 It is also possible to request a neighbor list that uses a different cutoff
 than what is usually inferred from the pair style settings (largest cutoff of
-all pair styles plus neighbor list skin).  The following is used in the
-:doc:`compute rdf <compute_rdf>` command implementation:
+all pair styles plus neighbor list skin).  Since the default neighbor list is
+built with a cutoff *per pair of atom types*, such a request must also state
+how its cutoff is to be interpreted, by calling exactly one of:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 75
+
+   * - Function
+     - Interpretation of the requested cutoff
+   * - ``set_cutoff_max(cutoff)``
+     - the maximum across atom types, individual type pairs may use a shorter
+       cutoff.  This is the typical case for pair styles.
+   * - ``set_cutoff_fixed(cutoff)``
+     - applies uniformly to every pair of atom types.  This is the typical
+       case for a fix or compute analyzing a fixed range, e.g. an RDF.
+
+Using ``set_cutoff_max()`` where a uniform cutoff is meant will silently
+truncate the list for those type pairs that use a shorter pair style cutoff.
+
+The following is used in the :doc:`compute rdf <compute_rdf>` command
+implementation, where the requested cutoff applies to all atom types:
 
 .. code-block:: c++
 
   if (cutflag)
-    neighbor->add_request(this, NeighConst::REQ_OCCASIONAL)->set_cutoff(mycutneigh);
+    neighbor->add_request(this, NeighConst::REQ_OCCASIONAL)->set_cutoff_fixed(mycutneigh);
   else
     neighbor->add_request(this, NeighConst::REQ_OCCASIONAL);
 

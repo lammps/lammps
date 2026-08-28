@@ -68,6 +68,8 @@ class LAMMPS {
   [[nodiscard]] const char *non_pair_suffix() const;
   char *exename;    // pointer to argv[0]
 
+  char **in_args;      // copy of arguments passed to constructor
+  int num_in_arg;      // number of arguments passed to constructor
   char ***packargs;    // arguments for cmdline package commands
   int num_package;     // number of cmdline package commands
 
@@ -95,11 +97,9 @@ class LAMMPS {
   void post_create();
   void init();
   void destroy();
-  void print_config(FILE *);    // print compile time settings
+  void print_config(FILE *, int width = 80);    // print compile time settings
 
  private:
-  struct package_styles_lists *pkg_lists;
-  void init_pkg_lists();
   void help();
   /// Default constructor. Declared private to prohibit its use
   LAMMPS() {};

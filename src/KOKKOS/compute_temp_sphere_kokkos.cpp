@@ -96,13 +96,13 @@ void ComputeTempSphereKokkos<DeviceType>::operator()(TagComputeTempSphereScalar<
                                                      const int &i, CTEMP &t_kk) const
 {
   if (mask[i] & groupbit) {
-    const KK_FLOAT inertiaone = INERTIA * rmass_kk[i] * radius_kk[i] * radius_kk[i];
+    const KK_FLOAT inertiaone = static_cast<KK_FLOAT>(INERTIA) * rmass_kk[i] * radius_kk[i] * radius_kk[i];
     if (MODE) {    // ALL: translational + rotational
-      t_kk.t0 += (v(i, 0) * v(i, 0) + v(i, 1) * v(i, 1) + v(i, 2) * v(i, 2)) * rmass_kk[i];
+      t_kk.t0 += static_cast<double>((v(i, 0) * v(i, 0) + v(i, 1) * v(i, 1) + v(i, 2) * v(i, 2)) * rmass_kk[i]);
     }
-    t_kk.t0 += (omega_kk(i, 0) * omega_kk(i, 0) + omega_kk(i, 1) * omega_kk(i, 1) +
+    t_kk.t0 += static_cast<double>((omega_kk(i, 0) * omega_kk(i, 0) + omega_kk(i, 1) * omega_kk(i, 1) +
                 omega_kk(i, 2) * omega_kk(i, 2)) *
-        inertiaone;
+        inertiaone);
   }
 }
 
@@ -165,21 +165,21 @@ void ComputeTempSphereKokkos<DeviceType>::operator()(TagComputeTempSphereVector<
 {
   if (mask[i] & groupbit) {
     const KK_FLOAT massone    = rmass_kk[i];
-    const KK_FLOAT inertiaone = INERTIA * massone * radius_kk[i] * radius_kk[i];
+    const KK_FLOAT inertiaone = static_cast<KK_FLOAT>(INERTIA) * massone * radius_kk[i] * radius_kk[i];
     if (MODE) {    // ALL: translational + rotational
-      t_kk.t0 += massone * v(i, 0) * v(i, 0);
-      t_kk.t1 += massone * v(i, 1) * v(i, 1);
-      t_kk.t2 += massone * v(i, 2) * v(i, 2);
-      t_kk.t3 += massone * v(i, 0) * v(i, 1);
-      t_kk.t4 += massone * v(i, 0) * v(i, 2);
-      t_kk.t5 += massone * v(i, 1) * v(i, 2);
+      t_kk.t0 += static_cast<double>(massone * v(i, 0) * v(i, 0));
+      t_kk.t1 += static_cast<double>(massone * v(i, 1) * v(i, 1));
+      t_kk.t2 += static_cast<double>(massone * v(i, 2) * v(i, 2));
+      t_kk.t3 += static_cast<double>(massone * v(i, 0) * v(i, 1));
+      t_kk.t4 += static_cast<double>(massone * v(i, 0) * v(i, 2));
+      t_kk.t5 += static_cast<double>(massone * v(i, 1) * v(i, 2));
     }
-    t_kk.t0 += inertiaone * omega_kk(i, 0) * omega_kk(i, 0);
-    t_kk.t1 += inertiaone * omega_kk(i, 1) * omega_kk(i, 1);
-    t_kk.t2 += inertiaone * omega_kk(i, 2) * omega_kk(i, 2);
-    t_kk.t3 += inertiaone * omega_kk(i, 0) * omega_kk(i, 1);
-    t_kk.t4 += inertiaone * omega_kk(i, 0) * omega_kk(i, 2);
-    t_kk.t5 += inertiaone * omega_kk(i, 1) * omega_kk(i, 2);
+    t_kk.t0 += static_cast<double>(inertiaone * omega_kk(i, 0) * omega_kk(i, 0));
+    t_kk.t1 += static_cast<double>(inertiaone * omega_kk(i, 1) * omega_kk(i, 1));
+    t_kk.t2 += static_cast<double>(inertiaone * omega_kk(i, 2) * omega_kk(i, 2));
+    t_kk.t3 += static_cast<double>(inertiaone * omega_kk(i, 0) * omega_kk(i, 1));
+    t_kk.t4 += static_cast<double>(inertiaone * omega_kk(i, 0) * omega_kk(i, 2));
+    t_kk.t5 += static_cast<double>(inertiaone * omega_kk(i, 1) * omega_kk(i, 2));
   }
 }
 

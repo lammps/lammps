@@ -599,7 +599,7 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelA<NEIGHFLAG,NEWTON_PA
     const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
 
     if (rsq < cutforcesq_kk) {
-      KK_FLOAT p = sqrt(rsq)*rdr_kk + static_cast<KK_FLOAT>(1.0);
+      KK_FLOAT p = Kokkos::sqrt(rsq)*rdr_kk + static_cast<KK_FLOAT>(1.0);
       int m = static_cast<int> (p);
       m = MIN(m,nr-1);
       p -= static_cast<KK_FLOAT>(m);
@@ -693,7 +693,7 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelAB<EFLAG>, const int 
     const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
 
     if (rsq < cutforcesq_kk) {
-      KK_FLOAT p = sqrt(rsq)*rdr_kk + static_cast<KK_FLOAT>(1.0);
+      KK_FLOAT p = Kokkos::sqrt(rsq)*rdr_kk + static_cast<KK_FLOAT>(1.0);
       int m = static_cast<int> (p);
       m = MIN(m,nr-1);
       p -= static_cast<KK_FLOAT>(m);
@@ -773,7 +773,7 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelC<NEIGHFLAG,NEWTON_PA
     const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
 
     if (rsq < cutforcesq_kk) {
-      const KK_FLOAT r = sqrt(rsq);
+      const KK_FLOAT r = Kokkos::sqrt(rsq);
       KK_FLOAT p = r*rdr_kk + static_cast<KK_FLOAT>(1.0);
       int m = static_cast<int> (p);
       m = MIN(m,nr-1);
@@ -898,7 +898,7 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelAB<EFLAG>,
       const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
 
       if (rsq < cutforcesq_kk) {
-        KK_FLOAT p = sqrt(rsq)*rdr_kk + static_cast<KK_FLOAT>(1.0);
+        KK_FLOAT p = Kokkos::sqrt(rsq)*rdr_kk + static_cast<KK_FLOAT>(1.0);
         int m = static_cast<int> (p);
         m = MIN(m,nr-1);
         p -= m;

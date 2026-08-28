@@ -89,9 +89,9 @@ void PairCoulWolfKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   // shifted coulombic energy
 
-  e_shift = erfc(alf*cut_coul)/cut_coul;
-  f_shift = -(e_shift+ 2.0*alf/MY_PIS * exp(-alf*alf*cut_coul*cut_coul)) /
-    cut_coul;
+  e_shift = static_cast<KK_FLOAT>(erfc(alf*cut_coul)/cut_coul);
+  f_shift = static_cast<KK_FLOAT>(-(static_cast<double>(e_shift)+ 2.0*alf/MY_PIS * exp(-alf*alf*cut_coul*cut_coul)) /
+    cut_coul);
 
   x = atomKK->k_x.view<DeviceType>();
   f = atomKK->k_f.view<DeviceType>();
@@ -105,11 +105,11 @@ void PairCoulWolfKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   d_neighbors = k_list->d_neighbors;
   d_ilist = k_list->d_ilist;
 
-  special_coul[0] = force->special_coul[0];
-  special_coul[1] = force->special_coul[1];
-  special_coul[2] = force->special_coul[2];
-  special_coul[3] = force->special_coul[3];
-  qqrd2e = force->qqrd2e;
+  special_coul[0] = static_cast<KK_FLOAT>(force->special_coul[0]);
+  special_coul[1] = static_cast<KK_FLOAT>(force->special_coul[1]);
+  special_coul[2] = static_cast<KK_FLOAT>(force->special_coul[2]);
+  special_coul[3] = static_cast<KK_FLOAT>(force->special_coul[3]);
+  qqrd2e = static_cast<KK_FLOAT>(force->qqrd2e);
 
   int inum = list->inum;
 
@@ -163,14 +163,14 @@ void PairCoulWolfKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     }
   }
 
-  if (eflag_global) eng_coul += ev.ecoul;
+  if (eflag_global) eng_coul += static_cast<double>(ev.ecoul);
   if (vflag_global) {
-    virial[0] += ev.v[0];
-    virial[1] += ev.v[1];
-    virial[2] += ev.v[2];
-    virial[3] += ev.v[3];
-    virial[4] += ev.v[4];
-    virial[5] += ev.v[5];
+    virial[0] += static_cast<double>(ev.v[0]);
+    virial[1] += static_cast<double>(ev.v[1]);
+    virial[2] += static_cast<double>(ev.v[2]);
+    virial[3] += static_cast<double>(ev.v[3]);
+    virial[4] += static_cast<double>(ev.v[4]);
+    virial[5] += static_cast<double>(ev.v[5]);
   }
 
   if (eflag_atom) {
@@ -220,6 +220,9 @@ void PairCoulWolfKokkos<DeviceType>::operator()(TagPairCoulWolfKernelA<NEIGHFLAG
   Kokkos::View<KK_ACC_FLOAT*[3], typename DAT::t_kkacc_1d_3::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_f = f;
   Kokkos::View<KK_ACC_FLOAT*, typename DAT::t_kkacc_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > v_eatom = d_eatom;
 
+  const KK_FLOAT cut_coulsq_kk = static_cast<KK_FLOAT>(cut_coulsq);
+  const KK_FLOAT alf_kk = static_cast<KK_FLOAT>(alf);
+
   const int i = d_ilist[ii];
   const KK_FLOAT xtmp = x(i,0);
   const KK_FLOAT ytmp = x(i,1);
@@ -228,11 +231,11 @@ void PairCoulWolfKokkos<DeviceType>::operator()(TagPairCoulWolfKernelA<NEIGHFLAG
 
   if (eflag) {
     const KK_FLOAT qisq = qtmp*qtmp;
-    const KK_FLOAT e_self = -(e_shift/2.0 + alf/MY_PIS) * qisq*qqrd2e;
+    const KK_FLOAT e_self = -(e_shift/static_cast<KK_FLOAT>(2.0) + alf_kk/static_cast<KK_FLOAT>(MY_PIS)) * qisq*qqrd2e;
     if (eflag_global)
-      ev.ecoul += e_self;
+      ev.ecoul += static_cast<KK_ACC_FLOAT>(e_self);
     if (eflag_atom)
-      v_eatom[i] += e_self;
+      v_eatom[i] += static_cast<KK_ACC_FLOAT>(e_self);
   }
 
   //const AtomNeighborsConst d_neighbors_i = k_list.get_neighbors_const(i);
@@ -252,34 +255,34 @@ void PairCoulWolfKokkos<DeviceType>::operator()(TagPairCoulWolfKernelA<NEIGHFLAG
     const KK_FLOAT delz = ztmp - x(j,2);
     const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
 
-    if (rsq < cut_coulsq) {
-      const KK_FLOAT r = sqrt(rsq);
+    if (rsq < cut_coulsq_kk) {
+      const KK_FLOAT r = Kokkos::sqrt(rsq);
       const KK_FLOAT prefactor = qqrd2e*qtmp*q[j]/r;
-      const KK_FLOAT erfcc = erfc(alf*r);
-      const KK_FLOAT erfcd = exp(-alf*alf*r*r);
+      const KK_FLOAT erfcc = Kokkos::erfc(alf_kk*r);
+      const KK_FLOAT erfcd = Kokkos::exp(-alf_kk*alf_kk*r*r);
       const KK_FLOAT v_sh = (erfcc - e_shift*r) * prefactor;
-      const KK_FLOAT dvdrr = (erfcc/rsq + 2.0*alf/MY_PIS * erfcd/r) + f_shift;
+      const KK_FLOAT dvdrr = (erfcc/rsq + static_cast<KK_FLOAT>(2.0)*alf_kk/static_cast<KK_FLOAT>(MY_PIS) * erfcd/r) + f_shift;
       KK_FLOAT forcecoul = dvdrr*rsq*prefactor;
-      if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
+      if (factor_coul < static_cast<KK_FLOAT>(1.0)) forcecoul -= (static_cast<KK_FLOAT>(1.0)-factor_coul)*prefactor;
       const KK_FLOAT fpair = forcecoul / rsq;
 
 
 
-      fxtmp += delx*fpair;
-      fytmp += dely*fpair;
-      fztmp += delz*fpair;
+      fxtmp += static_cast<KK_ACC_FLOAT>(delx*fpair);
+      fytmp += static_cast<KK_ACC_FLOAT>(dely*fpair);
+      fztmp += static_cast<KK_ACC_FLOAT>(delz*fpair);
 
       if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal)) {
-        a_f(j,0) -= delx*fpair;
-        a_f(j,1) -= dely*fpair;
-        a_f(j,2) -= delz*fpair;
+        a_f(j,0) -= static_cast<KK_ACC_FLOAT>(delx*fpair);
+        a_f(j,1) -= static_cast<KK_ACC_FLOAT>(dely*fpair);
+        a_f(j,2) -= static_cast<KK_ACC_FLOAT>(delz*fpair);
       }
 
       if (EVFLAG) {
         KK_FLOAT ecoul = v_sh;
         if (eflag) {
-          if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
-          ev.ecoul += (((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD)&&(NEWTON_PAIR||(j<nlocal)))?1.0:0.5)*ecoul;
+          if (factor_coul < static_cast<KK_FLOAT>(1.0)) ecoul -= (static_cast<KK_FLOAT>(1.0)-factor_coul)*prefactor;
+          ev.ecoul += static_cast<KK_ACC_FLOAT>((((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD)&&(NEWTON_PAIR||(j<nlocal)))?static_cast<KK_FLOAT>(1.0):static_cast<KK_FLOAT>(0.5))*ecoul);
         }
 
         if (vflag_either || eflag_atom) this->template ev_tally<NEIGHFLAG,NEWTON_PAIR>(ev,i,j,ecoul,fpair,delx,dely,delz);
@@ -321,12 +324,12 @@ void PairCoulWolfKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const 
 
   if (EFLAG) {
     if (eflag_atom) {
-      const KK_FLOAT epairhalf = 0.5 * epair;
+      const KK_FLOAT epairhalf = static_cast<KK_FLOAT>(0.5) * epair;
       if (NEIGHFLAG!=FULL) {
-        if (NEWTON_PAIR || i < nlocal) v_eatom[i] += epairhalf;
-        if (NEWTON_PAIR || j < nlocal) v_eatom[j] += epairhalf;
+        if (NEWTON_PAIR || i < nlocal) v_eatom[i] += static_cast<KK_ACC_FLOAT>(epairhalf);
+        if (NEWTON_PAIR || j < nlocal) v_eatom[j] += static_cast<KK_ACC_FLOAT>(epairhalf);
       } else {
-        v_eatom[i] += epairhalf;
+        v_eatom[i] += static_cast<KK_ACC_FLOAT>(epairhalf);
       }
     }
   }
@@ -342,56 +345,56 @@ void PairCoulWolfKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const 
     if (vflag_global) {
       if (NEIGHFLAG!=FULL) {
         if (NEWTON_PAIR || i < nlocal) {
-          ev.v[0] += 0.5*v0;
-          ev.v[1] += 0.5*v1;
-          ev.v[2] += 0.5*v2;
-          ev.v[3] += 0.5*v3;
-          ev.v[4] += 0.5*v4;
-          ev.v[5] += 0.5*v5;
+          ev.v[0] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v0);
+          ev.v[1] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v1);
+          ev.v[2] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v2);
+          ev.v[3] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v3);
+          ev.v[4] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v4);
+          ev.v[5] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v5);
         }
         if (NEWTON_PAIR || j < nlocal) {
-        ev.v[0] += 0.5*v0;
-        ev.v[1] += 0.5*v1;
-        ev.v[2] += 0.5*v2;
-        ev.v[3] += 0.5*v3;
-        ev.v[4] += 0.5*v4;
-        ev.v[5] += 0.5*v5;
+        ev.v[0] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v0);
+        ev.v[1] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v1);
+        ev.v[2] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v2);
+        ev.v[3] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v3);
+        ev.v[4] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v4);
+        ev.v[5] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v5);
         }
       } else {
-        ev.v[0] += 0.5*v0;
-        ev.v[1] += 0.5*v1;
-        ev.v[2] += 0.5*v2;
-        ev.v[3] += 0.5*v3;
-        ev.v[4] += 0.5*v4;
-        ev.v[5] += 0.5*v5;
+        ev.v[0] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v0);
+        ev.v[1] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v1);
+        ev.v[2] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v2);
+        ev.v[3] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v3);
+        ev.v[4] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v4);
+        ev.v[5] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v5);
       }
     }
 
     if (vflag_atom) {
       if (NEIGHFLAG!=FULL) {
         if (NEWTON_PAIR || i < nlocal) {
-          v_vatom(i,0) += 0.5*v0;
-          v_vatom(i,1) += 0.5*v1;
-          v_vatom(i,2) += 0.5*v2;
-          v_vatom(i,3) += 0.5*v3;
-          v_vatom(i,4) += 0.5*v4;
-          v_vatom(i,5) += 0.5*v5;
+          v_vatom(i,0) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v0);
+          v_vatom(i,1) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v1);
+          v_vatom(i,2) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v2);
+          v_vatom(i,3) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v3);
+          v_vatom(i,4) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v4);
+          v_vatom(i,5) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v5);
         }
         if (NEWTON_PAIR || j < nlocal) {
-        v_vatom(j,0) += 0.5*v0;
-        v_vatom(j,1) += 0.5*v1;
-        v_vatom(j,2) += 0.5*v2;
-        v_vatom(j,3) += 0.5*v3;
-        v_vatom(j,4) += 0.5*v4;
-        v_vatom(j,5) += 0.5*v5;
+        v_vatom(j,0) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v0);
+        v_vatom(j,1) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v1);
+        v_vatom(j,2) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v2);
+        v_vatom(j,3) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v3);
+        v_vatom(j,4) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v4);
+        v_vatom(j,5) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v5);
         }
       } else {
-        v_vatom(i,0) += 0.5*v0;
-        v_vatom(i,1) += 0.5*v1;
-        v_vatom(i,2) += 0.5*v2;
-        v_vatom(i,3) += 0.5*v3;
-        v_vatom(i,4) += 0.5*v4;
-        v_vatom(i,5) += 0.5*v5;
+        v_vatom(i,0) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v0);
+        v_vatom(i,1) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v1);
+        v_vatom(i,2) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v2);
+        v_vatom(i,3) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v3);
+        v_vatom(i,4) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v4);
+        v_vatom(i,5) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v5);
       }
     }
   }

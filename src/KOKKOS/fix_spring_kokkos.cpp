@@ -199,11 +199,14 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void FixSpringKokkos<DeviceType>::operator()(TagFixSpringTether, const int &i) const
 {
+  const KK_FLOAT l_fx_kk = static_cast<KK_FLOAT>(l_fx);
+  const KK_FLOAT l_fy_kk = static_cast<KK_FLOAT>(l_fy);
+  const KK_FLOAT l_fz_kk = static_cast<KK_FLOAT>(l_fz);
   if (mask[i] & groupbit) {
-    const double massone = mass[type[i]];
-    f(i,0) -= l_fx * massone;
-    f(i,1) -= l_fy * massone;
-    f(i,2) -= l_fz * massone;
+    const KK_FLOAT massone = mass[type[i]];
+    f(i,0) -= static_cast<KK_ACC_FLOAT>(l_fx_kk * massone);
+    f(i,1) -= static_cast<KK_ACC_FLOAT>(l_fy_kk * massone);
+    f(i,2) -= static_cast<KK_ACC_FLOAT>(l_fz_kk * massone);
   }
 }
 
@@ -214,11 +217,14 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void FixSpringKokkos<DeviceType>::operator()(TagFixSpringTetherRmass, const int &i) const
 {
+  const KK_FLOAT l_fx_kk = static_cast<KK_FLOAT>(l_fx);
+  const KK_FLOAT l_fy_kk = static_cast<KK_FLOAT>(l_fy);
+  const KK_FLOAT l_fz_kk = static_cast<KK_FLOAT>(l_fz);
   if (mask[i] & groupbit) {
-    const double massone = rmass[i];
-    f(i,0) -= l_fx * massone;
-    f(i,1) -= l_fy * massone;
-    f(i,2) -= l_fz * massone;
+    const KK_FLOAT massone = rmass[i];
+    f(i,0) -= static_cast<KK_ACC_FLOAT>(l_fx_kk * massone);
+    f(i,1) -= static_cast<KK_ACC_FLOAT>(l_fy_kk * massone);
+    f(i,2) -= static_cast<KK_ACC_FLOAT>(l_fz_kk * massone);
   }
 }
 
@@ -229,16 +235,22 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void FixSpringKokkos<DeviceType>::operator()(TagFixSpringCouple, const int &i) const
 {
-  const double massone = mass[type[i]];
+  const KK_FLOAT l_fx_kk = static_cast<KK_FLOAT>(l_fx);
+  const KK_FLOAT l_fy_kk = static_cast<KK_FLOAT>(l_fy);
+  const KK_FLOAT l_fz_kk = static_cast<KK_FLOAT>(l_fz);
+  const KK_FLOAT l_fx2_kk = static_cast<KK_FLOAT>(l_fx2);
+  const KK_FLOAT l_fy2_kk = static_cast<KK_FLOAT>(l_fy2);
+  const KK_FLOAT l_fz2_kk = static_cast<KK_FLOAT>(l_fz2);
+  const KK_FLOAT massone = mass[type[i]];
   if (mask[i] & groupbit) {
-    f(i,0) += l_fx * massone;
-    f(i,1) += l_fy * massone;
-    f(i,2) += l_fz * massone;
+    f(i,0) += static_cast<KK_ACC_FLOAT>(l_fx_kk * massone);
+    f(i,1) += static_cast<KK_ACC_FLOAT>(l_fy_kk * massone);
+    f(i,2) += static_cast<KK_ACC_FLOAT>(l_fz_kk * massone);
   }
   if (mask[i] & l_group2bit) {
-    f(i,0) -= l_fx2 * massone;
-    f(i,1) -= l_fy2 * massone;
-    f(i,2) -= l_fz2 * massone;
+    f(i,0) -= static_cast<KK_ACC_FLOAT>(l_fx2_kk * massone);
+    f(i,1) -= static_cast<KK_ACC_FLOAT>(l_fy2_kk * massone);
+    f(i,2) -= static_cast<KK_ACC_FLOAT>(l_fz2_kk * massone);
   }
 }
 
@@ -249,16 +261,22 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void FixSpringKokkos<DeviceType>::operator()(TagFixSpringCoupleRmass, const int &i) const
 {
-  const double massone = rmass[i];
+  const KK_FLOAT l_fx_kk = static_cast<KK_FLOAT>(l_fx);
+  const KK_FLOAT l_fy_kk = static_cast<KK_FLOAT>(l_fy);
+  const KK_FLOAT l_fz_kk = static_cast<KK_FLOAT>(l_fz);
+  const KK_FLOAT l_fx2_kk = static_cast<KK_FLOAT>(l_fx2);
+  const KK_FLOAT l_fy2_kk = static_cast<KK_FLOAT>(l_fy2);
+  const KK_FLOAT l_fz2_kk = static_cast<KK_FLOAT>(l_fz2);
+  const KK_FLOAT massone = rmass[i];
   if (mask[i] & groupbit) {
-    f(i,0) += l_fx * massone;
-    f(i,1) += l_fy * massone;
-    f(i,2) += l_fz * massone;
+    f(i,0) += static_cast<KK_ACC_FLOAT>(l_fx_kk * massone);
+    f(i,1) += static_cast<KK_ACC_FLOAT>(l_fy_kk * massone);
+    f(i,2) += static_cast<KK_ACC_FLOAT>(l_fz_kk * massone);
   }
   if (mask[i] & l_group2bit) {
-    f(i,0) -= l_fx2 * massone;
-    f(i,1) -= l_fy2 * massone;
-    f(i,2) -= l_fz2 * massone;
+    f(i,0) -= static_cast<KK_ACC_FLOAT>(l_fx2_kk * massone);
+    f(i,1) -= static_cast<KK_ACC_FLOAT>(l_fy2_kk * massone);
+    f(i,2) -= static_cast<KK_ACC_FLOAT>(l_fz2_kk * massone);
   }
 }
 

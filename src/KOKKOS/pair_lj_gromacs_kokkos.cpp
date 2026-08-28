@@ -105,10 +105,10 @@ void PairLJGromacsKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   type = atomKK->k_type.view<DeviceType>();
   nlocal = atom->nlocal;
   nall = atom->nlocal + atom->nghost;
-  special_lj[0] = force->special_lj[0];
-  special_lj[1] = force->special_lj[1];
-  special_lj[2] = force->special_lj[2];
-  special_lj[3] = force->special_lj[3];
+  special_lj[0] = static_cast<KK_FLOAT>(force->special_lj[0]);
+  special_lj[1] = static_cast<KK_FLOAT>(force->special_lj[1]);
+  special_lj[2] = static_cast<KK_FLOAT>(force->special_lj[2]);
+  special_lj[3] = static_cast<KK_FLOAT>(force->special_lj[3]);
   qqrd2e = force->qqrd2e;
   newton_pair = force->newton_pair;
 
@@ -120,16 +120,16 @@ void PairLJGromacsKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       (this,(NeighListKokkos<DeviceType>*)list);
 
   if (eflag) {
-    eng_vdwl += ev.evdwl;
+    eng_vdwl += static_cast<double>(ev.evdwl);
     eng_coul += 0.0;
   }
   if (vflag_global) {
-    virial[0] += ev.v[0];
-    virial[1] += ev.v[1];
-    virial[2] += ev.v[2];
-    virial[3] += ev.v[3];
-    virial[4] += ev.v[4];
-    virial[5] += ev.v[5];
+    virial[0] += static_cast<double>(ev.v[0]);
+    virial[1] += static_cast<double>(ev.v[1]);
+    virial[2] += static_cast<double>(ev.v[2]);
+    virial[3] += static_cast<double>(ev.v[3]);
+    virial[4] += static_cast<double>(ev.v[4]);
+    virial[5] += static_cast<double>(ev.v[5]);
   }
 
   if (eflag_atom) {
@@ -158,14 +158,14 @@ KK_FLOAT PairLJGromacsKokkos<DeviceType>::
 compute_fpair(const KK_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
               const int& itype, const int& jtype) const {
 
-  const KK_FLOAT r2inv = 1.0/rsq;
+  const KK_FLOAT r2inv = static_cast<KK_FLOAT>(1.0)/rsq;
   const KK_FLOAT r6inv = r2inv*r2inv*r2inv;
   KK_FLOAT forcelj = r6inv *
     ((STACKPARAMS?m_params[itype][jtype].lj1:params(itype,jtype).lj1)*r6inv -
      (STACKPARAMS?m_params[itype][jtype].lj2:params(itype,jtype).lj2));
 
   if (rsq > (STACKPARAMS?m_params[itype][jtype].cut_inner_sq:params(itype,jtype).cut_inner_sq)) {
-    const KK_FLOAT r = sqrt(rsq);
+    const KK_FLOAT r = Kokkos::sqrt(rsq);
     const KK_FLOAT tlj = r - (STACKPARAMS?m_params[itype][jtype].cut_inner:params(itype,jtype).cut_inner);
     const KK_FLOAT fswitch = r*tlj*tlj*
             ((STACKPARAMS?m_params[itype][jtype].ljsw1:params(itype,jtype).ljsw1) +
@@ -186,7 +186,7 @@ KK_FLOAT PairLJGromacsKokkos<DeviceType>::
 compute_evdwl(const KK_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
               const int& itype, const int& jtype) const {
 
-  const KK_FLOAT r2inv = 1.0/rsq;
+  const KK_FLOAT r2inv = static_cast<KK_FLOAT>(1.0)/rsq;
   const KK_FLOAT r6inv = r2inv*r2inv*r2inv;
   KK_FLOAT englj = r6inv *
     ((STACKPARAMS?m_params[itype][jtype].lj3:params(itype,jtype).lj3)*r6inv -
@@ -194,7 +194,7 @@ compute_evdwl(const KK_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
   englj += (STACKPARAMS?m_params[itype][jtype].ljsw5:params(itype,jtype).ljsw5);
 
   if (rsq > (STACKPARAMS?m_params[itype][jtype].cut_inner_sq:params(itype,jtype).cut_inner_sq)) {
-    const KK_FLOAT r = sqrt(rsq);
+    const KK_FLOAT r = Kokkos::sqrt(rsq);
     const KK_FLOAT tlj = r - (STACKPARAMS?m_params[itype][jtype].cut_inner:params(itype,jtype).cut_inner);
     const KK_FLOAT eswitch = tlj*tlj*tlj *
             ((STACKPARAMS?m_params[itype][jtype].ljsw3:params(itype,jtype).ljsw3) +
@@ -270,22 +270,22 @@ double PairLJGromacsKokkos<DeviceType>::init_one(int i, int j)
   double cutone = PairLJGromacs::init_one(i,j);
   double cut_inner_sqm = cut_inner_sq[i][j];
 
-  k_params.view_host()(i,j).lj1 = lj1[i][j];
-  k_params.view_host()(i,j).lj2 = lj2[i][j];
-  k_params.view_host()(i,j).lj3 = lj3[i][j];
-  k_params.view_host()(i,j).lj4 = lj4[i][j];
-  k_params.view_host()(i,j).ljsw1 = ljsw1[i][j];
-  k_params.view_host()(i,j).ljsw2 = ljsw2[i][j];
-  k_params.view_host()(i,j).ljsw3 = ljsw3[i][j];
-  k_params.view_host()(i,j).ljsw4 = ljsw4[i][j];
-  k_params.view_host()(i,j).ljsw5 = ljsw5[i][j];
-  k_params.view_host()(i,j).cut_inner_sq = cut_inner_sqm;
-  k_params.view_host()(i,j).cut_inner = cut_inner[i][j];
+  k_params.view_host()(i,j).lj1 = static_cast<KK_FLOAT>(lj1[i][j]);
+  k_params.view_host()(i,j).lj2 = static_cast<KK_FLOAT>(lj2[i][j]);
+  k_params.view_host()(i,j).lj3 = static_cast<KK_FLOAT>(lj3[i][j]);
+  k_params.view_host()(i,j).lj4 = static_cast<KK_FLOAT>(lj4[i][j]);
+  k_params.view_host()(i,j).ljsw1 = static_cast<KK_FLOAT>(ljsw1[i][j]);
+  k_params.view_host()(i,j).ljsw2 = static_cast<KK_FLOAT>(ljsw2[i][j]);
+  k_params.view_host()(i,j).ljsw3 = static_cast<KK_FLOAT>(ljsw3[i][j]);
+  k_params.view_host()(i,j).ljsw4 = static_cast<KK_FLOAT>(ljsw4[i][j]);
+  k_params.view_host()(i,j).ljsw5 = static_cast<KK_FLOAT>(ljsw5[i][j]);
+  k_params.view_host()(i,j).cut_inner_sq = static_cast<KK_FLOAT>(cut_inner_sqm);
+  k_params.view_host()(i,j).cut_inner = static_cast<KK_FLOAT>(cut_inner[i][j]);
 
   k_params.view_host()(j,i) = k_params.view_host()(i,j);
   if (i<MAX_TYPES_STACKPARAMS+1 && j<MAX_TYPES_STACKPARAMS+1) {
     m_params[i][j] = m_params[j][i] = k_params.view_host()(i,j);
-    m_cutsq[j][i] = m_cutsq[i][j] = cutone*cutone;
+    m_cutsq[j][i] = m_cutsq[i][j] = static_cast<KK_FLOAT>(cutone*cutone);
     m_cut_inner_sq[j][i] = m_cut_inner_sq[i][j] = cut_inner_sqm;
   }
 

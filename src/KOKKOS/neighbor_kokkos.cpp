@@ -26,6 +26,7 @@
 #include "kokkos.h"
 #include "memory_kokkos.h"
 #include "neigh_request.h"
+#include "npair.h"
 #include "style_nbin.h"
 #include "style_npair.h"
 #include "style_nstencil.h"
@@ -54,6 +55,9 @@ NeighborKokkos::~NeighborKokkos()
     memoryKK->destroy_kokkos(k_cutneighsq,cutneighsq);
     cutneighsq = nullptr;
 
+    memoryKK->destroy_kokkos(k_cutneighghostsq,cutneighghostsq);
+    cutneighghostsq = nullptr;
+
     memoryKK->destroy_kokkos(k_ex_type,ex_type);
     memoryKK->destroy_kokkos(k_ex1_type,ex1_type);
     memoryKK->destroy_kokkos(k_ex2_type,ex2_type);
@@ -72,6 +76,25 @@ void NeighborKokkos::init()
   atomKK = (AtomKokkos *) atom;
   Neighbor::init();
 
+  // the pairwise neighbor list build of the KOKKOS package looks up special
+  // bonds in the per-atom special list only.  with a molecule template that
+  // list does not exist, so all special bonds would be silently ignored.
+  // atom styles using a molecule template have no KOKKOS version (yet) and
+  // are already rejected by AtomKokkos::new_avec(), but check here as well,
+  // so that adding one cannot make the neighbor lists silently incorrect
+
+  if (atom->molecular == Atom::TEMPLATE)
+    error->all(FLERR,Error::NOLASTLINE,
+               "KOKKOS package does not support atom styles with a molecule template");
+
+  // Neighbor::init() allocates the host-side xhold array, but KOKKOS stores
+  // the positions of the last build in its own view of the same name and
+  // never fills the host array.  free it, so that Neighbor::get_xhold()
+  // returns a null pointer instead of an array that was never written to
+
+  memory->destroy(Neighbor::xhold);
+  Neighbor::xhold = nullptr;
+
   // 1st time allocation of xhold
 
   if (dist_check)
@@ -84,6 +107,14 @@ void NeighborKokkos::init_cutneighsq_kokkos(int n)
 {
   memoryKK->create_kokkos(k_cutneighsq,cutneighsq,n+1,n+1,"neigh:cutneighsq");
   k_cutneighsq.modify_host();
+}
+
+/* ---------------------------------------------------------------------- */
+
+void NeighborKokkos::init_cutneighghostsq_kokkos(int n)
+{
+  memoryKK->create_kokkos(k_cutneighghostsq,cutneighghostsq,n+1,n+1,"neigh:cutneighghostsq");
+  k_cutneighghostsq.modify_host();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -140,6 +171,7 @@ void NeighborKokkos::grow_ex_mol_intra_kokkos()
    conservative shrink procedure:
      compute distance each of 8 corners of box has moved since last reneighbor
      reduce skin distance by sum of 2 largest of the 8 values
+     if reduced skin distance is negative, set to zero
      new trigger = 1/2 of reduced skin distance
    for orthogonal box, only need 2 lo/hi corners
    for triclinic, need all 8 corners since deformations can displace all 8
@@ -170,6 +202,7 @@ int NeighborKokkos::check_distance_kokkos()
       delz = bboxhi[2] - boxhi_hold[2];
       delta2 = sqrt(delx*delx + dely*dely + delz*delz);
       delta = 0.5 * (skin - (delta1+delta2));
+      if (delta < 0.0) delta = 0.0;
       deltasq = delta*delta;
     } else {
       domain->box_corners();
@@ -183,6 +216,7 @@ int NeighborKokkos::check_distance_kokkos()
         else if (delta > delta2) delta2 = delta;
       }
       delta = 0.5 * (skin - (delta1+delta2));
+      if (delta < 0.0) delta = 0.0;
       deltasq = delta*delta;
     }
   } else deltasq = triggersq;
@@ -208,9 +242,9 @@ template<class DeviceType>
 // NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void NeighborKokkos::operator()(TagNeighborCheckDistance<DeviceType>, const int &i, int &flag) const {
-  const double delx = x.view<DeviceType>()(i,0) - xhold.view<DeviceType>()(i,0);
-  const double dely = x.view<DeviceType>()(i,1) - xhold.view<DeviceType>()(i,1);
-  const double delz = x.view<DeviceType>()(i,2) - xhold.view<DeviceType>()(i,2);
+  const double delx = static_cast<double>(x.view<DeviceType>()(i,0) - xhold.view<DeviceType>()(i,0));
+  const double dely = static_cast<double>(x.view<DeviceType>()(i,1) - xhold.view<DeviceType>()(i,1));
+  const double delz = static_cast<double>(x.view<DeviceType>()(i,2) - xhold.view<DeviceType>()(i,2));
   const double rsq = delx*delx + dely*dely + delz*delz;
   if (rsq > deltasq) flag = 1;
 }
@@ -245,7 +279,7 @@ void NeighborKokkos::build_kokkos(int topoflag)
   // check that using special bond flags will not overflow neigh lists
 
   if (nall > NEIGHMASK)
-    error->one(FLERR,"Too many local+ghost atoms for neighbor list");
+    error->one(FLERR,Error::NOLASTLINE,"Too many local+ghost atoms for neighbor list");
 
   // store current atom positions and box size if needed
 
@@ -283,12 +317,13 @@ void NeighborKokkos::build_kokkos(int topoflag)
   }
 
   // bin atoms for all NBin instances
-  // not just NBin associated with perpetual lists
+  // not just NBin associated with perpetual lists, also occasional lists
   // b/c cannot wait to bin occasional lists in build_one() call
   // if bin then, atoms may have moved outside of proc domain & bin extent,
   //   leading to errors or even a crash
 
   if (style != Neighbor::NSQ) {
+    if (last_setup_bins < 0) setup_bins();
     for (int i = 0; i < nbin; i++) {
       if (!neigh_bin[i]->kokkos) atomKK->sync(Host,ALL_MASK);
       neigh_bin[i]->bin_atoms_setup(nall);
@@ -311,6 +346,16 @@ void NeighborKokkos::build_kokkos(int topoflag)
   // build topology lists for bonds/angles/etc
 
   if ((atom->molecular != Atom::ATOMIC) && topoflag) build_topology();
+
+  // reset last_build in all occasional lists
+  // this will force them rebuild on next request
+  // all occasional lists are now out-of-date b/c
+  //   comm->exchange() occurred before neighbor->build()
+
+  for (i = 0; i < npair_occasional; i++) {
+    m = olist[i];
+    neigh_pair[m]->last_build = -1;
+  }
 }
 
 template<class DeviceType>

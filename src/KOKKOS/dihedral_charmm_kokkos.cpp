@@ -249,14 +249,14 @@ void DihedralCharmmKokkos<DeviceType>::operator()(TagDihedralCharmmCompute<NEWTO
   const KK_FLOAT rasq = ax*ax + ay*ay + az*az;
   const KK_FLOAT rbsq = bx*bx + by*by + bz*bz;
   const KK_FLOAT rgsq = vb2xm*vb2xm + vb2ym*vb2ym + vb2zm*vb2zm;
-  const KK_FLOAT rg = sqrt(rgsq);
+  const KK_FLOAT rg = Kokkos::sqrt(rgsq);
 
   KK_FLOAT rginv,ra2inv,rb2inv;
   rginv = ra2inv = rb2inv = 0;
   if (rg > 0) rginv = static_cast<KK_FLOAT>(1.0)/rg;
   if (rasq > 0) ra2inv = static_cast<KK_FLOAT>(1.0)/rasq;
   if (rbsq > 0) rb2inv = static_cast<KK_FLOAT>(1.0)/rbsq;
-  const KK_FLOAT rabinv = sqrt(ra2inv*rb2inv);
+  const KK_FLOAT rabinv = Kokkos::sqrt(ra2inv*rb2inv);
 
   KK_FLOAT c = (ax*bx + ay*by + az*bz)*rabinv;
   KK_FLOAT s = rg*rabinv*(ax*vb3x + ay*vb3y + az*vb3z);
@@ -379,7 +379,7 @@ void DihedralCharmmKokkos<DeviceType>::operator()(TagDihedralCharmmCompute<NEWTO
 
     KK_FLOAT forcecoul;
     if (implicit) forcecoul = qqrd2e * q[i1]*q[i4]*r2inv;
-    else forcecoul = qqrd2e * q[i1]*q[i4]*sqrt(r2inv);
+    else forcecoul = qqrd2e * q[i1]*q[i4]*Kokkos::sqrt(r2inv);
     const KK_FLOAT forcelj = r6inv * (d_lj14_1(itype,jtype)*r6inv - d_lj14_2(itype,jtype));
     const KK_FLOAT fpair = d_weight[type] * (forcelj+forcecoul)*r2inv;
 

@@ -1,9 +1,9 @@
-variable number	equal 6
-variable ofreq	equal 1000
-variable efreq	equal 100
+variable number equal 6
+variable ofreq  equal 1000
+variable efreq  equal 100
 variable T      equal 300.0
 variable rhos   equal 0.2
-variable nsteps equal 500000
+variable nsteps equal 50000
 
 units real
 
@@ -41,7 +41,7 @@ pair_coeff 1 4 oxdna3/hbond    oxdna3_real.cgdna
 pair_coeff 2 3 oxdna3/hbond    oxdna3_real.cgdna
 pair_coeff * * oxdna3/xstk     oxdna3_real.cgdna
 pair_coeff * * oxdna3/coaxstk  oxdna3_real.cgdna
-pair_coeff * * oxdna3/dh       ${T} ${rhos} oxdna2_real.cgdna
+pair_coeff * * oxdna3/dh       ${T} ${rhos} oxdna3_real.cgdna
 
 # NVE ensemble
 fix 1 all nve/asphere
@@ -83,9 +83,9 @@ variable edh equal c_edh
 
 fix 5 all print ${efreq} "$(step)  ekin = ${ekin} |  erot = ${erot} | edyn = ${edyn} | ebond = ${ebond} | eexcv = ${eexcv} | estk = ${estk} | ehbond = ${ehbond} | exstk = ${exstk} | ecoaxstk = ${ecoaxstk} | edh = ${edh} | epot = ${epot} | etot = ${etot}" screen yes
 
-dump out all custom ${ofreq} out.${number}.lammpstrj id mol type x y z ix iy iz vx vy vz c_quat[1] c_quat[2] c_quat[3] c_quat[4] angmomx angmomy angmomz
-dump_modify out sort id
-dump_modify out format line "%d %d %d  %22.15le %22.15le %22.15le  %d %d %d  %22.15le %22.15le %22.15le  %22.15le %22.15le %22.15le %22.15le  %22.15le %22.15le %22.15le"
+# dump out all custom ${ofreq} out.${number}.lammpstrj id mol type x y z ix iy iz vx vy vz c_quat[1] c_quat[2] c_quat[3] c_quat[4] angmomx angmomy angmomz
+# dump_modify out sort id
+# dump_modify out format line "%d %d %d  %22.15le %22.15le %22.15le  %d %d %d  %22.15le %22.15le %22.15le  %22.15le %22.15le %22.15le %22.15le  %22.15le %22.15le %22.15le"
 
 run ${nsteps}
 

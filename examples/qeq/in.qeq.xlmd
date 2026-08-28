@@ -1,0 +1,35 @@
+# This example demonstrates extended-Lagrangian charge equilibration
+# (fix qeq/shielded/xlmd) with pair style reaxff.
+#
+# Auxiliary charge degrees of freedom propagated alongside the atoms replace
+# the iteration to self-consistency: after a short warm-up with fully
+# converged solves, each step applies only *xlcg* (default 1) conjugate
+# gradient iterations.  The fix scalar (f_2 below) shows the number of
+# iterations per step and thus warm-up and savings directly.  Compare with
+# fix qeq/shielded (commented out below), which converges every step.
+
+units           real
+atom_style      charge
+
+read_data       data.CHO
+
+pair_style      reaxff NULL checkqeq no
+pair_coeff      * * ffield.reax.cho H C O
+
+neighbor        1 bin
+neigh_modify    every 1 delay 0 check yes
+
+variable        qtot equal charge(all)
+
+velocity        all create 300.0 1281937
+fix             1 all nve
+
+fix             2 all qeq/shielded/xlmd 1 10.0 1.0e-6 400 reaxff
+#fix             2 all qeq/shielded/xlmd 1 10.0 1.0e-6 400 reaxff xlcg 2
+#fix             2 all qeq/shielded 1 10.0 1.0e-8 400 reaxff
+
+thermo_style    custom step temp pe etotal f_2 v_qtot
+thermo          10
+timestep        0.25
+
+run             200

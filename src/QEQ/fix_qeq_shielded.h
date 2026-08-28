@@ -14,6 +14,7 @@
 #ifdef FIX_CLASS
 // clang-format off
 FixStyle(qeq/shielded,FixQEqShielded);
+FixStyle(qeq/shielded/xlmd,FixQEqShielded);
 // clang-format on
 #else
 

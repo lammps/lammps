@@ -73,9 +73,7 @@ void FixQEqCTIPOMP::pre_force(int /*vflag*/)
 
   for (i = 1; i <= maxrepeat; i++) {
     init_matvec_thr();
-    matvecs = CG(b_s, s);
-    matvecs += CG(b_t, t);
-    matvecs /= 2;
+    matvecs = solve_st();
     n = calculate_check_Q();
     MPI_Allreduce(&n, &nout, 1, MPI_INT, MPI_SUM, world);
     if (nout == 0) break;

@@ -68,9 +68,7 @@ void FixQEqPointOMP::pre_force(int /*vflag*/)
   }
 
   init_matvec_thr();
-  matvecs = CG(b_s, s);         // CG on s - parallel
-  matvecs += CG(b_t, t);        // CG on t - parallel
-  matvecs /= 2;
+  matvecs = solve_st();
   calculate_Q();
 
   if (force->kspace) force->kspace->qsum_qsq();

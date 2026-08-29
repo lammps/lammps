@@ -138,7 +138,7 @@ Creating a virtualenv with lammps installed
 
 .. code-block:: bash
 
-   # create virtual envrionment named 'testing'
+   # create virtual environment named 'testing'
    python3 -m venv $HOME/python/testing
 
    # activate 'testing' environment

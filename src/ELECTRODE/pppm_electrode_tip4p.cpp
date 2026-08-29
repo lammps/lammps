@@ -71,7 +71,7 @@ PPPMElectrodeTIP4P::PPPMElectrodeTIP4P(LAMMPS *lmp) :
 
   group_group_enable = 0;
   tip4pflag = 1;
- 
+
 }
 /* ----------------------------------------------------------------------
    called once before run

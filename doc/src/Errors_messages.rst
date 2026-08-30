@@ -2279,10 +2279,6 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
 *Found no restart file matching pattern*
    When using a "\*" in the restart file name, no matching file was found.
 
-*GPU particle split must be set to 1 for this pair style.*
-   For this pair style, you cannot run part of the force calculation on
-   the host.  See the package command.
-
 *GPUs are requested but Kokkos has not been compiled for CUDA*
    Re-compile Kokkos with CUDA support to use GPUs.
 

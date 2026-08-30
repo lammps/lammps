@@ -28,7 +28,6 @@ class PairDPDGPU : public PairDPD {
  public:
   PairDPDGPU(LAMMPS *lmp);
   ~PairDPDGPU() override;
-  void cpu_compute(int, int, int, int, int *, int *, int **);
   void compute(int, int) override;
   void init_style() override;
   double memory_usage() override;
@@ -37,7 +36,6 @@ class PairDPDGPU : public PairDPD {
 
  private:
   int gpu_mode;
-  double cpu_time;
 };
 
 }    // namespace LAMMPS_NS

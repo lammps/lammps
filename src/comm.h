@@ -20,9 +20,10 @@ namespace LAMMPS_NS {
 
 class Comm : protected Pointers {
  public:
-  enum { BRICK, TILED };
+  enum { BRICK, TILED, BRICK_DIRECT };
   int style;    // BRICK = 6-way stencil communication
                 // TILED = irregular tiling communication
+                // BRICK_DIRECT = direct comm to nearby procs with ghost atoms
 
   enum { LAYOUT_UNIFORM, LAYOUT_NONUNIFORM, LAYOUT_TILED };
   int layout;    // LAYOUT_UNIFORM = equal-sized bricks

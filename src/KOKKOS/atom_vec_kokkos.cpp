@@ -16,7 +16,7 @@
 
 #include "atom_kokkos.h"
 #include "atom_masks.h"
-#include "comm_kokkos.h"
+#include "comm_brick_kokkos.h"
 #include "domain.h"
 #include "error.h"
 #include "kokkos.h"
@@ -588,6 +588,162 @@ int AtomVecKokkos::pack_comm_self_kokkos(const int &n, const DAT::tdual_int_1d &
   if (bonus_flag) pack_comm_self_bonus_kokkos(n, list, nfirst);
 
   return n*size_forward;
+}
+
+/* ---------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------
+   fused pack of every direct swap in one kernel, for comm_style brick/direct
+   each swap writes into its own rows of buf; swaps with self are copied
+   straight into the ghost region of x instead
+------------------------------------------------------------------------- */
+
+template<class DeviceType,int TRICLINIC>
+struct AtomVecKokkos_PackCommDirect {
+  typedef DeviceType device_type;
+  typedef ArrayTypes<DeviceType> AT;
+
+  typename AT::t_kkfloat_1d_3_lr _x;
+  typename AT::t_double_2d_lr _buf;
+  typename AT::t_int_2d_lr_const _list;
+  typename AT::t_int_2d_const _pbc;
+  typename AT::t_int_1d_const _pbc_flag;
+  typename AT::t_int_1d_const _firstrecv;
+  typename AT::t_int_1d_const _sendnum_scan;
+  typename AT::t_int_1d_const _swap2list;
+  typename AT::t_int_1d_const _self_flag;
+  double _xprd,_yprd,_zprd,_xy,_xz,_yz;
+
+  AtomVecKokkos_PackCommDirect(
+      const AtomKokkos* atomKK,
+      const typename DAT::tdual_double_2d_lr &buf,
+      const typename DAT::tdual_int_2d_lr &list,
+      const typename DAT::tdual_int_2d &pbc,
+      const typename DAT::tdual_int_1d &pbc_flag,
+      const typename DAT::tdual_int_1d &firstrecv,
+      const typename DAT::tdual_int_1d &sendnum_scan,
+      const typename DAT::tdual_int_1d &swap2list,
+      const typename DAT::tdual_int_1d &self_flag,
+      const double &xprd, const double &yprd, const double &zprd,
+      const double &xy, const double &xz, const double &yz):
+      _x(atomKK->k_x.view<DeviceType>()),
+      _buf(buf.view<DeviceType>()),
+      _list(list.view<DeviceType>()),
+      _pbc(pbc.view<DeviceType>()),
+      _pbc_flag(pbc_flag.view<DeviceType>()),
+      _firstrecv(firstrecv.view<DeviceType>()),
+      _sendnum_scan(sendnum_scan.view<DeviceType>()),
+      _swap2list(swap2list.view<DeviceType>()),
+      _self_flag(self_flag.view<DeviceType>()),
+      _xprd(xprd),_yprd(yprd),_zprd(zprd),
+      _xy(xy),_xz(xz),_yz(yz) {};
+
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  void operator() (const int& ii) const {
+
+    int iswap = 0;
+    while (ii >= _sendnum_scan[iswap]) iswap++;
+
+    int i = ii;
+    if (iswap > 0) i = ii - _sendnum_scan[iswap-1];
+
+    const int ilist = _swap2list[iswap];
+    const int j = _list(ilist,i);
+
+    if (_self_flag(iswap)) {
+
+      // swap with self: copy straight into the ghost region of x
+
+      const int nfirst = _firstrecv[iswap];
+      if (_pbc_flag(iswap) == 0) {
+        _x(i+nfirst,0) = _x(j,0);
+        _x(i+nfirst,1) = _x(j,1);
+        _x(i+nfirst,2) = _x(j,2);
+      } else {
+        if (TRICLINIC == 0) {
+          _x(i+nfirst,0) = _x(j,0) + static_cast<KK_FLOAT>(_pbc(iswap,0)*_xprd);
+          _x(i+nfirst,1) = _x(j,1) + static_cast<KK_FLOAT>(_pbc(iswap,1)*_yprd);
+          _x(i+nfirst,2) = _x(j,2) + static_cast<KK_FLOAT>(_pbc(iswap,2)*_zprd);
+        } else {
+          _x(i+nfirst,0) = _x(j,0) + static_cast<KK_FLOAT>(_pbc(iswap,0)*_xprd) +
+            static_cast<KK_FLOAT>(_pbc(iswap,5)*_xy) + static_cast<KK_FLOAT>(_pbc(iswap,4)*_xz);
+          _x(i+nfirst,1) = _x(j,1) + static_cast<KK_FLOAT>(_pbc(iswap,1)*_yprd) +
+            static_cast<KK_FLOAT>(_pbc(iswap,3)*_yz);
+          _x(i+nfirst,2) = _x(j,2) + static_cast<KK_FLOAT>(_pbc(iswap,2)*_zprd);
+        }
+      }
+
+    } else {
+
+      // swap with another proc: pack into this swap's rows of the send buffer
+
+      if (_pbc_flag(iswap) == 0) {
+        _buf(ii,0) = static_cast<double>(_x(j,0));
+        _buf(ii,1) = static_cast<double>(_x(j,1));
+        _buf(ii,2) = static_cast<double>(_x(j,2));
+      } else {
+        if (TRICLINIC == 0) {
+          _buf(ii,0) = static_cast<double>(_x(j,0)) + _pbc(iswap,0)*_xprd;
+          _buf(ii,1) = static_cast<double>(_x(j,1)) + _pbc(iswap,1)*_yprd;
+          _buf(ii,2) = static_cast<double>(_x(j,2)) + _pbc(iswap,2)*_zprd;
+        } else {
+          _buf(ii,0) = static_cast<double>(_x(j,0)) + _pbc(iswap,0)*_xprd +
+            _pbc(iswap,5)*_xy + _pbc(iswap,4)*_xz;
+          _buf(ii,1) = static_cast<double>(_x(j,1)) + _pbc(iswap,1)*_yprd + _pbc(iswap,3)*_yz;
+          _buf(ii,2) = static_cast<double>(_x(j,2)) + _pbc(iswap,2)*_zprd;
+        }
+      }
+    }
+  }
+};
+
+/* ---------------------------------------------------------------------- */
+
+int AtomVecKokkos::pack_comm_direct(const int &n,
+                                    const DAT::tdual_int_2d_lr &list,
+                                    const DAT::tdual_int_1d &sendnum_scan,
+                                    const DAT::tdual_int_1d &firstrecv,
+                                    const DAT::tdual_int_1d &pbc_flag,
+                                    const DAT::tdual_int_2d &pbc,
+                                    const DAT::tdual_int_1d &swap2list,
+                                    const DAT::tdual_double_2d_lr &buf,
+                                    const DAT::tdual_int_1d &self_flag)
+{
+  // only the comm_x_only case is packed on device; CommBrickDirectKokkos
+  // routes every other case to the host path
+
+  if (lmp->kokkos->forward_comm_on_host) {
+    atomKK->sync(HostKK,X_MASK);
+    if (domain->triclinic) {
+      struct AtomVecKokkos_PackCommDirect<LMPHostType,1>
+        f(atomKK,buf,list,pbc,pbc_flag,firstrecv,sendnum_scan,swap2list,self_flag,
+          domain->xprd,domain->yprd,domain->zprd,domain->xy,domain->xz,domain->yz);
+      Kokkos::parallel_for(n,f);
+    } else {
+      struct AtomVecKokkos_PackCommDirect<LMPHostType,0>
+        f(atomKK,buf,list,pbc,pbc_flag,firstrecv,sendnum_scan,swap2list,self_flag,
+          domain->xprd,domain->yprd,domain->zprd,domain->xy,domain->xz,domain->yz);
+      Kokkos::parallel_for(n,f);
+    }
+    atomKK->modified(HostKK,X_MASK);
+  } else {
+    atomKK->sync(Device,X_MASK);
+    if (domain->triclinic) {
+      struct AtomVecKokkos_PackCommDirect<LMPDeviceType,1>
+        f(atomKK,buf,list,pbc,pbc_flag,firstrecv,sendnum_scan,swap2list,self_flag,
+          domain->xprd,domain->yprd,domain->zprd,domain->xy,domain->xz,domain->yz);
+      Kokkos::parallel_for(n,f);
+    } else {
+      struct AtomVecKokkos_PackCommDirect<LMPDeviceType,0>
+        f(atomKK,buf,list,pbc,pbc_flag,firstrecv,sendnum_scan,swap2list,self_flag,
+          domain->xprd,domain->yprd,domain->zprd,domain->xy,domain->xz,domain->yz);
+      Kokkos::parallel_for(n,f);
+    }
+    atomKK->modified(Device,X_MASK);
+  }
+
+  return n*3;
 }
 
 /* ---------------------------------------------------------------------- */

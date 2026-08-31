@@ -25,7 +25,7 @@ FixStyle(rigid/small/kk/host,FixRigidSmallKokkos<LMPHostType>);
 #include "Kokkos_Random.hpp"
 #include "atom_masks.h"
 #include "atom_vec_ellipsoid_kokkos.h"
-#include "comm_kokkos.h"
+#include "comm_brick_kokkos.h"
 #include "fix_rigid_small.h"
 #include "kokkos_base.h"
 #ifdef LMP_KOKKOS_DEBUG_RNG
@@ -46,7 +46,7 @@ namespace LAMMPS_NS {
 //    and has no per-timestep cost, so a device reimplementation would add
 //    complexity with no runtime benefit.  The tied DualViews make the host
 //    setup results directly visible to the device kernels.
-//  - Atom exchange (migration) runs on whichever side CommKokkos/AtomKokkos
+//  - Atom exchange (migration) runs on whichever side CommBrickKokkos/AtomKokkos
 //    select: the device path (pack/unpack_exchange_kokkos) when comm and sort
 //    are both on device (GPU default, or "-pk kokkos comm device sort device"),
 //    and the host FixRigidSmall::pack/unpack_exchange path otherwise (CPU
@@ -279,7 +279,7 @@ template <class DeviceType> class FixRigidSmallKokkos : public FixRigidSmall, pu
   typename AT::t_double_1d_um d_buf;
   int first;
 
-  CommKokkos *commKK;
+  CommBrickKokkos *commKK;
 
   // body DualView (struct array); not tied to base `body` (different allocator),
   // bridged by copy_body_host()/copy_body_device()

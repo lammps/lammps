@@ -49,6 +49,15 @@ class AtomVecKokkos : virtual public AtomVec {
                             const int nfirst,
                             const int &pbc_flag, const int pbc[]);
 
+  virtual int pack_comm_direct(const int &n, const DAT::tdual_int_2d_lr &list,
+                               const DAT::tdual_int_1d &sendnum_scan,
+                               const DAT::tdual_int_1d &firstrecv,
+                               const DAT::tdual_int_1d &pbc_flag,
+                               const DAT::tdual_int_2d &pbc,
+                               const DAT::tdual_int_1d &swap2list,
+                               const DAT::tdual_double_2d_lr &buf,
+                               const DAT::tdual_int_1d &self_flag);
+
   int pack_comm_self_fused_kokkos(const int &n, const DAT::tdual_int_2d_lr &list,
                                   const DAT::tdual_int_1d &sendnum_scan,
                                   const DAT::tdual_int_1d &firstrecv,
@@ -136,7 +145,7 @@ class AtomVecKokkos : virtual public AtomVec {
                                             DAT::tdual_int_1d &k_indices) {}
 
 
-  // 'status' functions used in CommKokkos::exchange_device() for bonus data
+  // 'status' functions used in CommBrickKokkos::exchange_device() for bonus data
 
   virtual int get_status_nlocal_bonus() { return 0; }
   virtual void set_status_nlocal_bonus(int) {}

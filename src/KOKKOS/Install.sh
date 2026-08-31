@@ -85,8 +85,10 @@ action bond_hybrid_kokkos.cpp bond_hybrid.cpp
 action bond_hybrid_kokkos.h bond_hybrid.h
 action bond_quartic_exp_kokkos.cpp bond_quartic_exp.cpp
 action bond_quartic_exp_kokkos.h bond_quartic_exp.h
-action comm_kokkos.cpp
-action comm_kokkos.h
+action comm_brick_kokkos.cpp
+action comm_brick_kokkos.h
+action comm_brick_direct_kokkos.cpp
+action comm_brick_direct_kokkos.h
 action comm_tiled_kokkos.cpp
 action comm_tiled_kokkos.h
 action compute_ave_sphere_atom_kokkos.cpp compute_ave_sphere_atom.cpp

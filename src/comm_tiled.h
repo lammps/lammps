@@ -114,6 +114,9 @@ class CommTiled : public Comm {
   double *sublo, *subhi;
   int dimension;
 
+  // NOTE: init_pointers and init_buffers are called from a constructor
+  //  and must not be made virtual
+
   void init_pointers();
   void init_buffers();
   int init_buffers_flag;

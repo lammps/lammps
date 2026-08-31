@@ -108,7 +108,7 @@ class AtomVecEllipsoidKokkos : public AtomVecKokkos, public AtomVecEllipsoid {
                                     DAT::tdual_int_1d &k_indices) override;
 
   int get_status_nlocal_bonus() override;     // Using these for use in
-  void set_status_nlocal_bonus(int) override; // CommKokkos::exchange_device()
+  void set_status_nlocal_bonus(int) override; // CommBrickKokkos::exchange_device()
 
   // Bonus struct
 

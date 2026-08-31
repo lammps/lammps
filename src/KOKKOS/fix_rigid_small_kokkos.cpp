@@ -59,7 +59,7 @@ FixRigidSmallKokkos<DeviceType>::FixRigidSmallKokkos(LAMMPS *lmp, int narg, char
 {
   kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
-  commKK = (CommKokkos *) comm;
+  commKK = (CommBrickKokkos *) comm;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = X_MASK | F_MASK | V_MASK | VIRIAL_MASK | TYPE_MASK | TAG_MASK;
   datamask_modify = X_MASK | V_MASK | VIRIAL_MASK;
@@ -68,7 +68,7 @@ FixRigidSmallKokkos<DeviceType>::FixRigidSmallKokkos(LAMMPS *lmp, int narg, char
   // per-sent-atom header (1 double, the offset of that atom's data) followed by
   // the atom's variable-length payload.  The largest payload is a body owner:
   // bodytag + xcmimage + displace[3] + vatom[6] + own-flag (12) + Body
-  // (bodysize).  maxexchange must bound header + payload so CommKokkos sizes the
+  // (bodysize).  maxexchange must bound header + payload so CommBrickKokkos sizes the
   // send buffer (nsend*maxexchange) large enough.  (The host path uses the base
   // class's own smaller variable packing; over-sizing the buffer is harmless.)
   maxexchange = 1 + 12 + bodysize;
@@ -76,7 +76,7 @@ FixRigidSmallKokkos<DeviceType>::FixRigidSmallKokkos(LAMMPS *lmp, int narg, char
   grow_arrays(atom->nmax);
 
   // For the device instantiation, declare device-exchange support immediately so
-  // CommKokkos::exchange() does not permanently switch to exchange_comm_legacy=true
+  // CommBrickKokkos::exchange() does not permanently switch to exchange_comm_legacy=true
   // on the first (setup-time) call, and declare sort_device before the first
   // AtomKokkos::sort() (which Verlet::setup() runs before modify->setup() reaches
   // setup_device_push()).  init() then pairs the two -- see the reasoning there --
@@ -87,7 +87,7 @@ FixRigidSmallKokkos<DeviceType>::FixRigidSmallKokkos(LAMMPS *lmp, int narg, char
   // is NOT a no-op for body data, and the host arrays create_bodies() wrote are
   // the authoritative copy until they are first pushed to the device.
   //
-  // forward/reverse comm flags are dispatched per-call by CommKokkos and so can
+  // forward/reverse comm flags are dispatched per-call by CommBrickKokkos and so can
   // safely be set later in setup_device_push().
   if (std::is_same<DeviceType,LMPDeviceType>::value) {
     exchange_comm_device = 1;
@@ -227,7 +227,7 @@ void FixRigidSmallKokkos<DeviceType>::pre_exchange()
 
   // Device exchange path: pack_exchange_kokkos reads from the device DualViews
   // which are always authoritative during the run; no host flush needed.
-  // Only skip the flush when CommKokkos is actually using the device exchange
+  // Only skip the flush when CommBrickKokkos is actually using the device exchange
   // path (exchange_comm_legacy==false).  For OpenMP/Serial builds the global
   // default is exchange_comm_legacy=1 even though we set exchange_comm_device=1,
   // so CommBrick::exchange() is called and the base-class pack_exchange() reads
@@ -289,7 +289,7 @@ void FixRigidSmallKokkos<DeviceType>::setup_pre_neighbor()
 
   // Re-assert the exchange/sort pairing chosen in init() (see the reasoning
   // there).  This only catches a side that changed after init() -- e.g.
-  // CommKokkos deciding on a host exchange once it has seen every fix.  It
+  // CommBrickKokkos deciding on a host exchange once it has seen every fix.  It
   // cannot protect the setup-time sort, which Verlet::setup() has already run by
   // the time we get here; that is why the decision is made in init().
   if (std::is_same<DeviceType,LMPDeviceType>::value) {
@@ -577,13 +577,13 @@ void FixRigidSmallKokkos<DeviceType>::setup_device_push()
 
   // Before this, the non-Kokkos (host) setup routines populated the host
   // arrays; from now on the run uses device communication and sorting.
-  // Only the device instantiation enables these flags; CommKokkos / AtomKokkos
+  // Only the device instantiation enables these flags; CommBrickKokkos / AtomKokkos
   // dispatch per-fix on them, so no global "comm device"/"sort device"
   // command-line override is needed and other fixes may use their own setting.
   // (The rigid/small/host instantiation keeps host comm/sort, execution_space
-  // == Host, which CommKokkos already forces.)
+  // == Host, which CommBrickKokkos already forces.)
   // exchange_comm_device is already 1 for the device instantiation (set in
-  // the constructor) so CommKokkos doesn't fall back to the legacy path.
+  // the constructor) so CommBrickKokkos doesn't fall back to the legacy path.
   if (std::is_same<DeviceType,LMPDeviceType>::value) {
     forward_comm_device = 1;
     reverse_comm_device = 1;
@@ -650,7 +650,7 @@ void FixRigidSmallKokkos<DeviceType>::pre_neighbor(){
 
   nghost_body = 0;
 
-  // True when CommKokkos is actually executing the device exchange path.
+  // True when CommBrickKokkos is actually executing the device exchange path.
   // For OpenMP/Serial, exchange_comm_legacy defaults to 1 so CommBrick::exchange()
   // runs host pack/unpack even though exchange_comm_device=1; for GPU builds
   // with exchange_comm_legacy=0 the device path is used.
@@ -1184,9 +1184,9 @@ bigint FixRigidSmallKokkos<DeviceType>::dof(int tgroup)
   }
 
   // Route the DOF reverse_comm through the host comm path: with
-  // reverse_comm_device set for the run, CommKokkos would send it to
+  // reverse_comm_device set for the run, CommBrickKokkos would send it to
   // pack_reverse_comm_kokkos, which only handles FORCE_TORQUE.  Clearing the
-  // flag around the base call makes CommKokkos use CommBrick::reverse_comm and
+  // flag around the base call makes CommBrickKokkos use CommBrick::reverse_comm and
   // the base host packer (which handles commflag == DOF).  dof() is an
   // infrequent diagnostic query (compute temp), so the host path is fine.
   const int saved_reverse_comm_device = reverse_comm_device;

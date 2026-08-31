@@ -1199,14 +1199,19 @@ void PPPMDisp::compute(int eflag, int vflag)
                  virial_1,vg,vg2,
                  u_brick,v0_brick,v1_brick,v2_brick,v3_brick,v4_brick,v5_brick);
 
-      gc->forward_comm(Grid3d::KSPACE,this,FORWARD_AD,1,sizeof(FFT_SCALAR),
-                       gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+      // poisson_ad() has tallied the requested global values.  Skip force
+      // communication and interpolation for global energy-only requests.
 
-      fieldforce_c_ad();
-
-      if (vflag_atom)
-        gc->forward_comm(Grid3d::KSPACE,this,FORWARD_AD_PERATOM,6,sizeof(FFT_SCALAR),
+      if (!eflag_only || evflag_atom) {
+        gc->forward_comm(Grid3d::KSPACE,this,FORWARD_AD,1,sizeof(FFT_SCALAR),
                          gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+
+        fieldforce_c_ad();
+
+        if (vflag_atom)
+          gc->forward_comm(Grid3d::KSPACE,this,FORWARD_AD_PERATOM,6,sizeof(FFT_SCALAR),
+                           gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+      }
 
     } else {
       poisson_ik(work1,work2,density_fft,fft1,fft2,
@@ -1218,14 +1223,16 @@ void PPPMDisp::compute(int eflag, int vflag)
                  vdx_brick,vdy_brick,vdz_brick,virial_1,vg,vg2,
                  u_brick,v0_brick,v1_brick,v2_brick,v3_brick,v4_brick,v5_brick);
 
-      gc->forward_comm(Grid3d::KSPACE,this,FORWARD_IK,3,sizeof(FFT_SCALAR),
-                       gc_buf1,gc_buf2,MPI_FFT_SCALAR);
-
-      fieldforce_c_ik();
-
-      if (evflag_atom)
-        gc->forward_comm(Grid3d::KSPACE,this,FORWARD_IK_PERATOM,7,sizeof(FFT_SCALAR),
+      if (!eflag_only || evflag_atom) {
+        gc->forward_comm(Grid3d::KSPACE,this,FORWARD_IK,3,sizeof(FFT_SCALAR),
                          gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+
+        fieldforce_c_ik();
+
+        if (evflag_atom)
+          gc->forward_comm(Grid3d::KSPACE,this,FORWARD_IK_PERATOM,7,sizeof(FFT_SCALAR),
+                           gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+      }
     }
 
     if (evflag_atom) fieldforce_c_peratom();
@@ -1258,14 +1265,16 @@ void PPPMDisp::compute(int eflag, int vflag)
                  u_brick_g,v0_brick_g,v1_brick_g,v2_brick_g,
                  v3_brick_g,v4_brick_g,v5_brick_g);
 
-      gc6->forward_comm(Grid3d::KSPACE,this,FORWARD_AD_GEOM,1,sizeof(FFT_SCALAR),
-                        gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
-
-      fieldforce_g_ad();
-
-      if (vflag_atom)
-        gc6->forward_comm(Grid3d::KSPACE,this,FORWARD_AD_PERATOM_GEOM,6,sizeof(FFT_SCALAR),
+      if (!eflag_only || evflag_atom) {
+        gc6->forward_comm(Grid3d::KSPACE,this,FORWARD_AD_GEOM,1,sizeof(FFT_SCALAR),
                           gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
+
+        fieldforce_g_ad();
+
+        if (vflag_atom)
+          gc6->forward_comm(Grid3d::KSPACE,this,FORWARD_AD_PERATOM_GEOM,6,sizeof(FFT_SCALAR),
+                            gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
+      }
 
     } else {
       poisson_ik(work1_6,work2_6,density_fft_g,fft1_6,fft2_6,
@@ -1278,14 +1287,16 @@ void PPPMDisp::compute(int eflag, int vflag)
                  u_brick_g,v0_brick_g,v1_brick_g,v2_brick_g,
                  v3_brick_g,v4_brick_g,v5_brick_g);
 
-      gc6->forward_comm(Grid3d::KSPACE,this,FORWARD_IK_GEOM,3,sizeof(FFT_SCALAR),
-                        gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
-
-      fieldforce_g_ik();
-
-      if (evflag_atom)
-        gc6->forward_comm(Grid3d::KSPACE,this,FORWARD_IK_PERATOM_GEOM,7,sizeof(FFT_SCALAR),
+      if (!eflag_only || evflag_atom) {
+        gc6->forward_comm(Grid3d::KSPACE,this,FORWARD_IK_GEOM,3,sizeof(FFT_SCALAR),
                           gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
+
+        fieldforce_g_ik();
+
+        if (evflag_atom)
+          gc6->forward_comm(Grid3d::KSPACE,this,FORWARD_IK_PERATOM_GEOM,7,sizeof(FFT_SCALAR),
+                            gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
+      }
     }
 
     if (evflag_atom) fieldforce_g_peratom();
@@ -1332,14 +1343,16 @@ void PPPMDisp::compute(int eflag, int vflag)
                     u_brick_a4,v0_brick_a4,v1_brick_a4,v2_brick_a4,
                     v3_brick_a4,v4_brick_a4,v5_brick_a4);
 
-      gc6->forward_comm(Grid3d::KSPACE,this,FORWARD_AD_ARITH,7,sizeof(FFT_SCALAR),
-                        gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
-
-      fieldforce_a_ad();
-
-      if (evflag_atom)
-        gc6->forward_comm(Grid3d::KSPACE,this,FORWARD_AD_PERATOM_ARITH,42,sizeof(FFT_SCALAR),
+      if (!eflag_only || evflag_atom) {
+        gc6->forward_comm(Grid3d::KSPACE,this,FORWARD_AD_ARITH,7,sizeof(FFT_SCALAR),
                           gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
+
+        fieldforce_a_ad();
+
+        if (evflag_atom)
+          gc6->forward_comm(Grid3d::KSPACE,this,FORWARD_AD_PERATOM_ARITH,42,sizeof(FFT_SCALAR),
+                            gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
+      }
 
     }  else {
       poisson_ik(work1_6,work2_6,density_fft_a3,fft1_6,fft2_6,
@@ -1373,14 +1386,16 @@ void PPPMDisp::compute(int eflag, int vflag)
                     u_brick_a4,v0_brick_a4,v1_brick_a4,v2_brick_a4,
                     v3_brick_a4,v4_brick_a4,v5_brick_a4);
 
-      gc6->forward_comm(Grid3d::KSPACE,this,FORWARD_IK_ARITH,21,sizeof(FFT_SCALAR),
-                        gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
-
-      fieldforce_a_ik();
-
-      if (evflag_atom)
-        gc6->forward_comm(Grid3d::KSPACE,this,FORWARD_IK_PERATOM_ARITH,49,sizeof(FFT_SCALAR),
+      if (!eflag_only || evflag_atom) {
+        gc6->forward_comm(Grid3d::KSPACE,this,FORWARD_IK_ARITH,21,sizeof(FFT_SCALAR),
                           gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
+
+        fieldforce_a_ik();
+
+        if (evflag_atom)
+          gc6->forward_comm(Grid3d::KSPACE,this,FORWARD_IK_PERATOM_ARITH,49,sizeof(FFT_SCALAR),
+                            gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
+      }
     }
 
     if (evflag_atom) fieldforce_a_peratom();
@@ -1412,14 +1427,16 @@ void PPPMDisp::compute(int eflag, int vflag)
         n += 2;
       }
 
-      gc6->forward_comm(Grid3d::KSPACE,this,FORWARD_AD_NONE,1*nsplit_alloc,sizeof(FFT_SCALAR),
-                        gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
-
-      fieldforce_none_ad();
-
-      if (vflag_atom)
-        gc6->forward_comm(Grid3d::KSPACE,this,FORWARD_AD_PERATOM_NONE,6*nsplit_alloc,sizeof(FFT_SCALAR),
+      if (!eflag_only || evflag_atom) {
+        gc6->forward_comm(Grid3d::KSPACE,this,FORWARD_AD_NONE,1*nsplit_alloc,sizeof(FFT_SCALAR),
                           gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
+
+        fieldforce_none_ad();
+
+        if (vflag_atom)
+          gc6->forward_comm(Grid3d::KSPACE,this,FORWARD_AD_PERATOM_NONE,6*nsplit_alloc,sizeof(FFT_SCALAR),
+                            gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
+      }
 
     } else {
       int n = 0;
@@ -1432,14 +1449,16 @@ void PPPMDisp::compute(int eflag, int vflag)
         n += 2;
       }
 
-      gc6->forward_comm(Grid3d::KSPACE,this,FORWARD_IK_NONE,3*nsplit_alloc,sizeof(FFT_SCALAR),
-                        gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
-
-      fieldforce_none_ik();
-
-      if (evflag_atom)
-        gc6->forward_comm(Grid3d::KSPACE,this,FORWARD_IK_PERATOM_NONE,7*nsplit_alloc,sizeof(FFT_SCALAR),
+      if (!eflag_only || evflag_atom) {
+        gc6->forward_comm(Grid3d::KSPACE,this,FORWARD_IK_NONE,3*nsplit_alloc,sizeof(FFT_SCALAR),
                           gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
+
+        fieldforce_none_ik();
+
+        if (evflag_atom)
+          gc6->forward_comm(Grid3d::KSPACE,this,FORWARD_IK_PERATOM_NONE,7*nsplit_alloc,sizeof(FFT_SCALAR),
+                            gc6_buf1,gc6_buf2,MPI_FFT_SCALAR);
+      }
     }
 
     if (evflag_atom) fieldforce_none_peratom();
@@ -4881,6 +4900,11 @@ void PPPMDisp::poisson_ik(FFT_SCALAR* wk1, FFT_SCALAR* wk2,
     }
   }
 
+  // Global tallies are complete.  Energy-only calls need no E-field, force,
+  // or per-atom data, so the inverse transforms can be skipped.
+
+  if (eflag_only && !evflag_atom) return;
+
   // scale by 1/total-grid-pts to get rho(k)
   // multiply by Green's function to get V(k)
 
@@ -5105,6 +5129,11 @@ void PPPMDisp::poisson_ad(FFT_SCALAR* wk1, FFT_SCALAR* wk2,
     }
   }
 
+  // Global tallies are complete.  Energy-only calls need no potential,
+  // force, or per-atom data, so the inverse transform can be skipped.
+
+  if (eflag_only && !evflag_atom) return;
+
   // scale by 1/total-grid-pts to get rho(k)
   // multiply by Green's function to get V(k)
 
@@ -5259,6 +5288,11 @@ poisson_2s_ik(FFT_SCALAR* dfft_1, FFT_SCALAR* dfft_2,
       }
     }
 
+    // Global tallies are complete.  Energy-only calls need no gradients,
+    // potential, or per-atom data, so the inverse transforms can be skipped.
+
+    if (eflag_only && !evflag_atom) return;
+
     // gradients + per-atom potential for each density; density 1's V(k) is
     // already in work1_6, density 2 is re-transformed (work2_6 is scratch)
     for (int pass = 0; pass < 2; pass++) {
@@ -5381,6 +5415,8 @@ poisson_2s_ik(FFT_SCALAR* dfft_1, FFT_SCALAR* dfft_2,
       work1_6[i] += work2_6[i];
     }
   }
+
+  if (eflag_only && !evflag_atom) return;
 
   n = 0;
   for (i = 0; i < nfft_6; i++) {
@@ -5529,6 +5565,8 @@ poisson_none_ik(int n1, int n2,FFT_SCALAR* dfft_1, FFT_SCALAR* dfft_2,
       }
     }
 
+    if (eflag_only && !evflag_atom) return;
+
     for (int pass = 0; pass < 2; pass++) {
       FFT_SCALAR *dfft = (pass == 0) ? dfft_1 : dfft_2;
       int np = (pass == 0) ? n1 : n2;
@@ -5649,6 +5687,8 @@ poisson_none_ik(int n1, int n2,FFT_SCALAR* dfft_1, FFT_SCALAR* dfft_2,
     for ( i = 0; i < 2*nfft_6; i++)
       work1_6[i] += work2_6[i];
   }
+
+  if (eflag_only && !evflag_atom) return;
 
   n = 0;
   for (i = 0; i < nfft_6; i++) {
@@ -5823,6 +5863,8 @@ poisson_2s_ad(FFT_SCALAR* dfft_1, FFT_SCALAR* dfft_2,
   }
 
 
+  if (eflag_only && !evflag_atom) return;
+
   n = 0;
   for (i = 0; i < nfft_6; i++) {
     work1_6[n++] *= scaleinv * greensfn_6[i];
@@ -5924,6 +5966,8 @@ poisson_none_ad(int n1, int n2, FFT_SCALAR* dfft_1, FFT_SCALAR* dfft_2,
     for (i = 0; i < 2*nfft_6; i++)
       work1_6[i] += work2_6[i];
   }
+
+  if (eflag_only && !evflag_atom) return;
 
   n = 0;
   for (i = 0; i < nfft_6; i++) {
@@ -8696,10 +8740,12 @@ void PPPMDisp::slabcorr(int /*eflag*/)
 
   // add on force corrections
 
-  double ffact = qscale * (-4.0*MY_PI/volume);
-  double **f = atom->f;
+  if (!eflag_only || evflag_atom) {
+    double ffact = qscale * (-4.0*MY_PI/volume);
+    double **f = atom->f;
 
-  for (int i = 0; i < nlocal; i++) f[i][2] += ffact * q[i]*(dipole_all - qsum*x[i][2]);
+    for (int i = 0; i < nlocal; i++) f[i][2] += ffact * q[i]*(dipole_all - qsum*x[i][2]);
+  }
 }
 
 /* ----------------------------------------------------------------------

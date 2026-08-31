@@ -730,34 +730,41 @@ void PPPM::compute(int eflag, int vflag)
 
   poisson();
 
-  // all procs communicate E-field values
-  // to fill ghost cells surrounding their 3d bricks
+  // poisson() has already tallied the global energy and virial.  Skip the
+  // E-field communication and force interpolation when only global energy
+  // was requested.  Per-atom requests retain the full path.
 
-  if (differentiation_flag == 1)
-    gc->forward_comm(Grid3d::KSPACE,this,FORWARD_AD,1,sizeof(FFT_SCALAR),
-                     gc_buf1,gc_buf2,MPI_FFT_SCALAR);
-  else
-    gc->forward_comm(Grid3d::KSPACE,this,FORWARD_IK,3,sizeof(FFT_SCALAR),
-                     gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+  if (!eflag_only || evflag_atom) {
 
-  // extra per-atom energy/virial communication
+    // all procs communicate E-field values
+    // to fill ghost cells surrounding their 3d bricks
 
-  if (evflag_atom) {
-    if (differentiation_flag == 1 && vflag_atom)
-      gc->forward_comm(Grid3d::KSPACE,this,FORWARD_AD_PERATOM,6,sizeof(FFT_SCALAR),
+    if (differentiation_flag == 1)
+      gc->forward_comm(Grid3d::KSPACE,this,FORWARD_AD,1,sizeof(FFT_SCALAR),
                        gc_buf1,gc_buf2,MPI_FFT_SCALAR);
-    else if (differentiation_flag == 0)
-      gc->forward_comm(Grid3d::KSPACE,this,FORWARD_IK_PERATOM,7,sizeof(FFT_SCALAR),
+    else
+      gc->forward_comm(Grid3d::KSPACE,this,FORWARD_IK,3,sizeof(FFT_SCALAR),
                        gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+
+    // extra per-atom energy/virial communication
+
+    if (evflag_atom) {
+      if (differentiation_flag == 1 && vflag_atom)
+        gc->forward_comm(Grid3d::KSPACE,this,FORWARD_AD_PERATOM,6,sizeof(FFT_SCALAR),
+                         gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+      else if (differentiation_flag == 0)
+        gc->forward_comm(Grid3d::KSPACE,this,FORWARD_IK_PERATOM,7,sizeof(FFT_SCALAR),
+                         gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+    }
+
+    // calculate the force on my particles
+
+    fieldforce();
+
+    // extra per-atom energy/virial communication
+
+    if (evflag_atom) fieldforce_peratom();
   }
-
-  // calculate the force on my particles
-
-  fieldforce();
-
-  // extra per-atom energy/virial communication
-
-  if (evflag_atom) fieldforce_peratom();
 
   // sum global energy across procs and add in volume-dependent term
 
@@ -2049,6 +2056,12 @@ void PPPM::poisson_ik()
     }
   }
 
+  // The requested global tallies are complete.  Energy-only calls need no
+  // E-field, forces, or per-atom data, so the inverse transforms can be
+  // skipped.
+
+  if (eflag_only && !evflag_atom) return;
+
   // scale by 1/total-grid-pts to get rho(k)
   // multiply by Green's function to get V(k)
 
@@ -2250,6 +2263,12 @@ void PPPM::poisson_ad()
       }
     }
   }
+
+  // The requested global tallies are complete.  Energy-only calls need no
+  // potential gradient, forces, or per-atom data, so the inverse transform
+  // can be skipped.
+
+  if (eflag_only && !evflag_atom) return;
 
   // scale by 1/total-grid-pts to get rho(k)
   // multiply by Green's function to get V(k)
@@ -2995,10 +3014,12 @@ void PPPM::slabcorr()
 
   // add on force corrections
 
-  double ffact = qscale * (-4.0*MY_PI/volume);
-  double **f = atom->f;
+  if (!eflag_only || evflag_atom) {
+    double ffact = qscale * (-4.0*MY_PI/volume);
+    double **f = atom->f;
 
-  for (int i = 0; i < nlocal; i++) f[i][2] += ffact * q[i]*(dipole_all - qsum*x[i][2]);
+    for (int i = 0; i < nlocal; i++) f[i][2] += ffact * q[i]*(dipole_all - qsum*x[i][2]);
+  }
 }
 
 /* ----------------------------------------------------------------------

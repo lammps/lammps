@@ -772,7 +772,12 @@ void EwaldDisp::compute(int eflag, int vflag)
   // is no surface dipole correction term
 
   eik_dot_r();
-  compute_force();
+
+  // The global energy and virial are computed from the structure factors.
+  // Avoid the force and torque evaluation for global energy-only requests;
+  // per-atom tallies still require the full path.
+
+  if (!eflag_only || evflag_atom) compute_force();
 
   // update qsum and qsqsum, if atom count has changed and energy needed
 

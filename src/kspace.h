@@ -267,6 +267,13 @@ class KSpace : protected Pointers {
   double **gcons, **dgcons;    // accumulated per-atom energy/virial
 
   int evflag, evflag_atom;
+  // eflag_only is set when the caller requested the global energy via the
+  // ENERGY_ONLY flag (e.g. Monte Carlo fixes evaluating trial-move energies).
+  // Contract: when (eflag_only && !evflag_atom) a style must still produce the
+  // global energy and requested global virial, but may skip force-producing
+  // work (inverse FFTs, E-field interpolation, or Ewald force loops).  When
+  // per-atom energy/virial is requested (evflag_atom), the full path is taken.
+  // Styles that cannot separate energy from force simply ignore eflag_only.
   int eflag_either, eflag_global, eflag_atom, eflag_only;
   int vflag_either, vflag_global, vflag_atom;
   int maxeatom, maxvatom;

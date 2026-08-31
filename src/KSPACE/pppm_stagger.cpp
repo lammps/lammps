@@ -158,34 +158,41 @@ void PPPMStagger::compute(int eflag, int vflag)
 
     poisson();
 
-    // all procs communicate E-field values
-    // to fill ghost cells surrounding their 3d bricks
+    // poisson() has already tallied this stagger's global energy and virial.
+    // Skip E-field communication and force interpolation for global
+    // energy-only requests.  Per-atom requests retain the full path.
 
-    if (differentiation_flag == 1)
-      gc->forward_comm(Grid3d::KSPACE,this,FORWARD_AD,1,sizeof(FFT_SCALAR),
-                       gc_buf1,gc_buf2,MPI_FFT_SCALAR);
-    else
-      gc->forward_comm(Grid3d::KSPACE,this,FORWARD_IK,3,sizeof(FFT_SCALAR),
-                       gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+    if (!eflag_only || evflag_atom) {
 
-    // extra per-atom energy/virial communication
+      // all procs communicate E-field values
+      // to fill ghost cells surrounding their 3d bricks
 
-    if (evflag_atom) {
-      if (differentiation_flag == 1 && vflag_atom)
-        gc->forward_comm(Grid3d::KSPACE,this,FORWARD_AD_PERATOM,6,sizeof(FFT_SCALAR),
+      if (differentiation_flag == 1)
+        gc->forward_comm(Grid3d::KSPACE,this,FORWARD_AD,1,sizeof(FFT_SCALAR),
                          gc_buf1,gc_buf2,MPI_FFT_SCALAR);
-      else if (differentiation_flag == 0)
-        gc->forward_comm(Grid3d::KSPACE,this,FORWARD_IK_PERATOM,7,sizeof(FFT_SCALAR),
+      else
+        gc->forward_comm(Grid3d::KSPACE,this,FORWARD_IK,3,sizeof(FFT_SCALAR),
                          gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+
+      // extra per-atom energy/virial communication
+
+      if (evflag_atom) {
+        if (differentiation_flag == 1 && vflag_atom)
+          gc->forward_comm(Grid3d::KSPACE,this,FORWARD_AD_PERATOM,6,sizeof(FFT_SCALAR),
+                           gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+        else if (differentiation_flag == 0)
+          gc->forward_comm(Grid3d::KSPACE,this,FORWARD_IK_PERATOM,7,sizeof(FFT_SCALAR),
+                           gc_buf1,gc_buf2,MPI_FFT_SCALAR);
+      }
+
+      // calculate the force on my particles
+
+      fieldforce();
+
+      // extra per-atom energy/virial communication
+
+      if (evflag_atom) fieldforce_peratom();
     }
-
-    // calculate the force on my particles
-
-    fieldforce();
-
-    // extra per-atom energy/virial communication
-
-    if (evflag_atom) fieldforce_peratom();
 
     stagger += 1.0/nstagger;
   }

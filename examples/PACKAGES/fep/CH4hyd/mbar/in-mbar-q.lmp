@@ -1,0 +1,81 @@
+# created by fftool
+
+print "Methane in TIP4P water"
+
+units real
+boundary p p p
+
+atom_style full
+bond_style harmonic
+angle_style harmonic
+special_bonds lj/coul 0.0 0.0 0.5
+
+read_data data-mbar-lj.lmp
+
+pair_style hybrid &
+  lj/cut/coul/long 10.0 10.0 &
+  lj/cut/tip4p/long/soft 3 4 2 2 0.125 1 0.5 10.0 10.0 10.0
+pair_modify tail no
+kspace_style pppm/tip4p 1.0e-4
+
+pair_coeff    1    1  lj/cut/coul/long    0.0660   3.5000  # C4H C4H
+pair_coeff    1    2  lj/cut/coul/long    0.0445   2.9580  # C4H H
+pair_coeff    2    2  lj/cut/coul/long    0.0300   2.5000  # H H
+pair_coeff    3    3  lj/cut/tip4p/long/soft   0.1628   3.1644  1.0  # Ow Ow
+pair_coeff    3    4  lj/cut/tip4p/long/soft   0.0000   1.0000  1.0  # Ow Hw
+pair_coeff    4    4  lj/cut/tip4p/long/soft   0.0000   1.0000  1.0  # Hw Hw
+
+pair_coeff    1    3  lj/cut/tip4p/long/soft   0.1036   3.3279  1.0  # C4H Ow
+pair_coeff    1    4  lj/cut/tip4p/long/soft   0.0000   1.0000  1.0  # C4H Hw
+pair_coeff    2    3  lj/cut/tip4p/long/soft   0.0699   2.8126  1.0  # H Ow
+pair_coeff    2    4  lj/cut/tip4p/long/soft   0.0000   1.0000  1.0  # H Hw
+
+variable TK equal 300.0
+variable PBAR equal 1.0
+
+fix SHAKE all shake 0.0001 20 0 b 2 a 2
+
+neighbor 2.0 bin
+
+timestep 1.0
+
+velocity all create ${TK} 12345
+
+thermo_style custom step cpu etotal ke pe evdwl ecoul elong temp press density
+thermo 5000
+
+fix TPSTAT all npt temp ${TK} ${TK} 100 iso ${PBAR} ${PBAR} 1000
+
+# Coulomb
+# ramp to 1.1 (not 1.0) so that lambda = 1.0 is held for a full 20000-step
+# sampling window; the final 1.1 value is set only at the last step and is
+# not a sampled state
+variable lambda equal ramp(0.0,1.1)
+variable q1 equal -0.24*v_lambda
+variable q2 equal  0.06*v_lambda
+
+fix ADAPT all adapt/fep 20000 &
+  atom charge 1 v_q1 &
+  atom charge 2 v_q2 &
+  after yes
+
+fix PRINT all print 20000 "adapt  lambda = ${lambda}"
+
+# MBAR grids: absolute charges of each type at every state, 11 values equally
+# spaced from 0 to the fully-coupled charge (-0.24 for type 1, 0.06 for type 2)
+compute MBAR all mbar ${TK} &
+  atom charge 1 0.0 -0.24 11 &
+  atom charge 2 0.0 0.06 11
+
+# instantaneous reduced potentials at every state, written every 20 steps
+# (Nrepeat = 1, no time averaging) so pymbar gets the raw samples; equilibration
+# and decorrelation are detected per state during post-processing.
+# Samples are grouped into states by timestep: state k = (step-1)/20000
+fix MBAR all ave/time 20 1 20 c_MBAR mode vector file mbar01-q.lmp
+
+dump TRAJ all custom 20000 dump-mbar-q.lammpstrj id mol type element x y z ix iy iz
+dump_modify TRAJ element C H O H
+
+run 220000
+
+write_data data-mbar-q.lmp

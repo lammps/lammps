@@ -44,7 +44,7 @@ enum { MAX_VALUE=0, AVERAGE_VALUE=1, MEDIAN_VALUE=2 };
 
 TuneGPU::TuneGPU(LAMMPS *lmp, int nevery, int _nsamples, int _mode,
                  double _rel_tol, int max_nthreads) : Pointers(lmp),
-  interval(nevery), performance(nullptr), tuning_logfile(nullptr)
+  interval(nevery), performance(nullptr)
 {
   nsamples = _nsamples;
   mode = _mode;
@@ -116,11 +116,6 @@ TuneGPU::TuneGPU(LAMMPS *lmp, int nevery, int _nsamples, int _mode,
 TuneGPU::~TuneGPU()
 {
   memory->destroy(performance);
-
-  if (tuning_logfile) {
-    fclose(tuning_logfile);
-    tuning_logfile = nullptr;
-  }
 }
 
 /* ----------------------------------------------------------------------

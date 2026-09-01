@@ -132,6 +132,8 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
   int perf_nsamples = 5;
   int perf_mode = 0;
   double perf_rel_tol = 0.2;
+  int tpa_iarg = -1;
+  int blocksize_iarg = -1;
 
   int iarg = 4;
   int ioffs = -2;
@@ -171,6 +173,7 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"tpa") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"package gpu tpa", error);
       threads_per_atom = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      tpa_iarg = iarg;
       iarg += 2;
     } else if (strcmp(arg[iarg],"omp") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"package gpu omp", error);
@@ -189,6 +192,7 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"blocksize") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"package gpu blocksize", error);
       block_pair = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      blocksize_iarg = iarg;
       iarg += 2;
     } else if (strcmp(arg[iarg],"pair/only") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"package gpu pair/only", error);
@@ -210,6 +214,18 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
       opencl_args = arg[iarg+1];
       iarg += 2;
     } else error->all(FLERR,iarg+ioffs,"Unknown package gpu keyword {}", arg[iarg]);
+  }
+
+  // the tuner scans the threads per atom and the pair block size, so a value
+  // set with those keywords would be silently overridden
+
+  if (autotuning > 0) {
+    if (tpa_iarg >= 0)
+      error->all(FLERR,tpa_iarg+ioffs,"Cannot use package gpu tpa together "
+                 "with auto/tuning, the tuner scans this setting");
+    if (blocksize_iarg >= 0)
+      error->all(FLERR,blocksize_iarg+ioffs,"Cannot use package gpu blocksize "
+                 "together with auto/tuning, the tuner scans this setting");
   }
 
 #if (LAL_USE_OMP == 0)

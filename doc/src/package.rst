@@ -370,10 +370,11 @@ correspondingly large number of timesteps.
 
 .. note::
 
-   Do not use *auto/tuning* in tandem with *tpa* or *blocksize* in the
-   same command, since the scanning process overrides those settings.  The
-   *Nthreads* value of the *omp* keyword is not overridden; it is used as
-   the upper limit of the values scanned for the number of threads.
+   Using *auto/tuning* in tandem with *tpa* or *blocksize* in the same
+   command is an error, since the scanning process would override those
+   settings.  The *Nthreads* value of the *omp* keyword is not overridden;
+   it is used as the upper limit of the values scanned for the number of
+   threads, so that keyword may be combined with *auto/tuning*.
 
 The *platform* keyword is only used with OpenCL to specify the ID for
 an OpenCL platform. See the output from ocl\_get\_devices in the lib/gpu

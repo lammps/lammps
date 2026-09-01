@@ -259,7 +259,5 @@ void FixNVEGPU::reset_dt_omp(const int ifrom, const int ito, const int tid) {
 
 double FixNVEGPU::memory_usage()
 {
-  const int nlocal = (igroup == atom->firstgroup) ? atom->nfirst :
-    atom->nlocal;
-  return FixNVE::memory_usage() + nlocal * sizeof(double);
+  return FixNVE::memory_usage() + _nlocal_max * sizeof(double);
 }

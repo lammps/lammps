@@ -16,6 +16,7 @@
 #define LMP_TUNE_GPU_H
 
 #include "pointers.h"
+#include "safe_pointers.h"
 
 #include <vector>
 
@@ -57,7 +58,7 @@ class TuneGPU : protected Pointers {
   bigint window_step;        // timestep at which the timing window started
   double window_cpu;         // elapsed CPU time when the window started
 
-  FILE *tuning_logfile;      // logfile for the tuning history
+  SafeFilePtr tuning_logfile; // logfile for the tuning history
 
  private:
   void allocate();

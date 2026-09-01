@@ -17,6 +17,12 @@ add_executable(test_error_class test_error_class.cpp)
 target_link_libraries(test_error_class PRIVATE lammps GTest::GMock)
 add_test(NAME ErrorClass COMMAND test_error_class)
 
+add_executable(test_kspace_styles test_kspace_styles.cpp)
+target_link_libraries(test_kspace_styles PRIVATE lammps GTest::GMock)
+add_test(NAME KSpaceStyles COMMAND test_kspace_styles)
+set_tests_properties(KSpaceStyles PROPERTIES LABELS "slow"
+  ENVIRONMENT "OMP_NUM_THREADS=2;OMP_PROC_BIND=false")
+
 add_executable(test_neighbor_class test_neighbor_class.cpp)
 target_link_libraries(test_neighbor_class PRIVATE lammps GTest::GMock)
 if(PKG_OPENMP)

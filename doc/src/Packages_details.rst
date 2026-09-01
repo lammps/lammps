@@ -3129,7 +3129,7 @@ VORONOI package
 
 **Contents:**
 
-A compute command which calculates the Voronoi tesselation of a
+A compute command which calculates the Voronoi tessellation of a
 collection of atoms by wrapping the `Voro++ library
 <https://math.lbl.gov/voro++/>`_.  This can be used to calculate the
 local volume of atoms or their near neighbors.

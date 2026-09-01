@@ -30,13 +30,11 @@ def main():
     anchors = {}
 
     for filename in parsed_args.files:
-        #print("filename: %s" % filename)
         with open(filename, 'rt') as f:
             for line_number, line in enumerate(f):
                 m = anchor_pattern.match(line)
                 if m:
                     label = m.group(1)
-                    #print("found label: %s" % label)
                     if label in anchors:
                         anchors[label].append((filename, line_number+1))
                     else:

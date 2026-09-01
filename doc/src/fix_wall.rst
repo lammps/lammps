@@ -370,19 +370,19 @@ easy to specify a time-dependent wall interaction.
 
 .. note::
 
-   For all of the styles (except wall/harmonic/outside), you must ensure that r is always > 0 for
-   all particles in the group, or LAMMPS will generate an error.  This
-   means you cannot start your simulation with particles at the wall
-   position *coord* (r = 0) or with particles on the wrong side of the
-   wall (r < 0).  For the *wall/lj93* and *wall/lj126* styles, the energy
-   of the wall/particle interaction (and hence the force on the particle)
-   blows up as r -> 0.  The *wall/colloid* style is even more
-   restrictive, since the energy blows up as D = r-R -> 0.  This means
-   the finite-size particles of radius R must be a distance larger than R
-   from the wall position *coord*\ .  The *harmonic* style is a softer
-   potential and does not blow up as r -> 0, but you must use a large
-   enough :math:`\epsilon` that particles always reamin on the correct side of
-   the wall (r > 0).
+   For all of the styles (except wall/harmonic/outside), you must ensure
+   that r is always > 0 for all particles in the group, or LAMMPS will
+   generate an error.  This means you cannot start your simulation with
+   particles at the wall position *coord* (r = 0) or with particles on
+   the wrong side of the wall (r < 0).  For the *wall/lj93* and
+   *wall/lj126* styles, the energy of the wall/particle interaction (and
+   hence the force on the particle) blows up as r -> 0.  The
+   *wall/colloid* style is even more restrictive, since the energy blows
+   up as D = r-R -> 0.  This means the finite-size particles of radius R
+   must be a distance larger than R from the wall position *coord*\ .
+   The *harmonic* style is a softer potential and does not blow up as r
+   -> 0, but you must use a large enough :math:`\epsilon` that particles
+   always remain on the correct side of the wall (r > 0).
 
 The *units* keyword determines the meaning of the distance units used
 to define a wall position, but only when a numeric constant or

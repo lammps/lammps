@@ -32,8 +32,8 @@ OPT.
    * :doc:`cnp/atom (o) <compute_cnp_atom>`
    * :doc:`com <compute_com>`
    * :doc:`com/chunk <compute_com_chunk>`
-   * :doc:`composition/atom (k) <compute_composition_atom>`
-   * :doc:`contact/atom <compute_contact_atom>`
+   * :doc:`composition/atom (ko) <compute_composition_atom>`
+   * :doc:`contact/atom (o) <compute_contact_atom>`
    * :doc:`coord/atom (ko) <compute_coord_atom>`
    * :doc:`count/type <compute_count_type>`
    * :doc:`damage/atom <compute_damage_atom>`
@@ -61,6 +61,7 @@ OPT.
    * :doc:`fep/ta <compute_fep_ta>`
    * :doc:`force/tally <compute_tally>`
    * :doc:`fragment/atom <compute_cluster_atom>`
+   * :doc:`frenkel <compute_frenkel>`
    * :doc:`gaussian/grid/local (k) <compute_gaussian_grid_local>`
    * :doc:`global/atom <compute_global_atom>`
    * :doc:`group/group <compute_group_group>`

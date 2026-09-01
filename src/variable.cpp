@@ -552,8 +552,9 @@ void Variable::set(int narg, char **arg)
       error->all(FLERR, "Variable {}: format variable {} does not exist", arg[0], arg[2]);
     if (!equalstyle(jvar))
       error->all(FLERR, "Variable {}: format variable {} has incompatible style", arg[0], arg[2]);
-    if (!utils::strmatch(arg[3], "^% ?-?[0-9]*\\.?[0-9]*[efgEFG]$"))
-      error->all(FLERR, "Incorrect conversion in format string: {}", arg[3]);
+    auto errmsg = utils::check_format(arg[3], utils::FmtArg::FLOAT);
+    if (!errmsg.empty())
+      error->all(FLERR, 3, "Invalid format string for format style variable: {}", errmsg);
 
     newvar.num = 3;
     newvar.which = 0;

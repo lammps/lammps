@@ -219,7 +219,7 @@ Notice that the CG parameters are mixed only for interactions between atom
 types associated with hybrid sites, and that the cutoffs are
 mixed on the cluster basis.
 
-More examples can be found in the *examples/relres* folder.
+More examples can be found in the *examples/PACKAGES/relres* folder.
 
 ----------
 

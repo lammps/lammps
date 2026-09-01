@@ -12,91 +12,29 @@
 ------------------------------------------------------------------------- */
 
 // Run the input scripts of the examples/rerun folder in the order the README
-// there prescribes and check the claims it makes.  The regression tests skip
-// the three dependent inputs (in.rerun, in.read_dump, in.rdf.rerun): they
-// read the lj.dump file that only a full run of in.first or in.rdf.first
-// writes, and since both writers use the same file name, running the folder
-// with independent workers makes the results depend on scheduling.
+// there prescribes and check the claims it makes.  The box length is reduced
+// from 20 to 6 lattice cells (864 instead of 32000 atoms): the workflow only
+// needs to be seen at work, not converged.
 
-#include "../testing/core.h"
-#include "../testing/utils.h"
-
-#include "output.h"
-#include "thermo.h"
-#include "update.h"
-#include "utils.h"
-#include "gmock/gmock.h"
-#include "gtest/gtest.h"
-
-#include <cmath>
-#include <cstdlib>
-#include <cstring>
-#include <fstream>
-#include <mpi.h>
-#include <string>
-#include <vector>
-
-// whether to print verbose output (i.e. not capturing LAMMPS screen output).
-bool verbose = false;
+#include "example_tests.h"
 
 namespace LAMMPS_NS {
 
-#define STRINGIFY(val) XSTR(val)
-#define XSTR(val) #val
-
-class RerunExamplesTest : public LAMMPSTest {
+class RerunExamplesTest : public ExampleTest {
 protected:
     void SetUp() override
     {
         testbinary = "RerunExamplesTest";
         LAMMPSTest::SetUp();
-    }
-
-    void run_input(const std::string &script)
-    {
-        BEGIN_HIDE_OUTPUT();
-        command("clear");
-        command("include \"" STRINGIFY(TEST_EXAMPLES_FOLDER) "/" + script + "\"");
-        END_HIDE_OUTPUT();
-    }
-
-    double thermo_value(const std::string &keyword)
-    {
-        double value = 0.0;
-        lmp->output->thermo->evaluate_keyword(keyword, &value);
-        return value;
+        // abbreviate: 6^3 fcc cells instead of 20^3.  the box must still be
+        // at least twice the 5 sigma g(r) cutoff of in.rdf.rerun across
+        preset("len", "6");
     }
 };
 
-// last output block of a fix ave/time "mode vector" file, as rows of columns
-static std::vector<std::vector<double>> last_vector_block(const std::string &filename)
-{
-    std::vector<std::vector<double>> block;
-    std::ifstream data(filename);
-    if (!data.is_open()) return block;
-
-    std::string line;
-    std::size_t nrows = 0;
-    while (std::getline(data, line)) {
-        auto words = utils::split_words(line);
-        if (words.empty() || (words[0][0] == '#')) continue;
-        if (words.size() == 2) { // "timestep number-of-rows" starts a block
-            nrows = std::stoul(words[1]);
-            block.clear();
-        } else {
-            std::vector<double> row;
-            for (const auto &word : words)
-                row.push_back(std::stod(word));
-            block.push_back(row);
-        }
-    }
-    EXPECT_EQ(block.size(), nrows);
-    return block;
-}
-
 TEST_F(RerunExamplesTest, first_rerun_read_dump)
 {
-    // writes the snapshots 0 to 1000 of a 32000 atom LJ melt to lj.dump
+    // writes the snapshots 0 to 1000 of an LJ melt to lj.dump
     run_input("in.first");
     ASSERT_FILE_EXISTS("lj.dump");
     ASSERT_EQ(lmp->update->ntimestep, 1000);
@@ -173,24 +111,4 @@ TEST_F(RerunExamplesTest, rdf_first_rerun)
 
 } // namespace LAMMPS_NS
 
-int main(int argc, char **argv)
-{
-    MPI_Init(&argc, &argv);
-    ::testing::InitGoogleMock(&argc, argv);
-
-    // handle arguments passed via environment variable
-    if (const char *var = getenv("TEST_ARGS")) {
-        std::vector<std::string> env = LAMMPS_NS::utils::split_words(var);
-        for (auto arg : env) {
-            if (arg == "-v") {
-                verbose = true;
-            }
-        }
-    }
-
-    if ((argc > 1) && (strcmp(argv[1], "-v") == 0)) verbose = true;
-
-    int rv = RUN_ALL_TESTS();
-    MPI_Finalize();
-    return rv;
-}
+EXAMPLE_TEST_MAIN()

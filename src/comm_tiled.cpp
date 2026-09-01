@@ -1823,7 +1823,7 @@ void CommTiled::box_drop_brick(int idim, double *lo, double *hi, int &indexme)
   } else if (lo[idim] == boxlo[idim]) {
     index = 0;
     dir = 1;
-  } else error->one(FLERR,"Comm tiled mis-match in box drop brick");
+  } else error->one(FLERR,"Comm tiled mismatch in box drop brick");
 
   int other1,other2,proc;
   double lower,upper;

@@ -12,12 +12,18 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
 
    * :doc:`none <pair_none>`
    * :doc:`zero <pair_zero>`
+   * :doc:`zero/coul <pair_zero>`
    * :doc:`hybrid (ko) <pair_hybrid>`
    * :doc:`hybrid/molecular (o) <pair_hybrid>`
    * :doc:`hybrid/overlay (ko) <pair_hybrid>`
    * :doc:`hybrid/scaled (ko) <pair_hybrid>`
    * :doc:`kim <pair_kim>`
+   * :doc:`lepton (o) <pair_lepton>`
+   * :doc:`lepton/coul (o) <pair_lepton>`
+   * :doc:`lepton/sphere (o) <pair_lepton>`
    * :doc:`list <pair_list>`
+   * :doc:`python <pair_python>`
+   * :doc:`table (gko) <pair_table>`
    * :doc:`tracker <pair_tracker>`
    *
    *
@@ -139,9 +145,6 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`ldd <pair_ldd>`
    * :doc:`lebedeva/z <pair_lebedeva_z>`
    * :doc:`lennard/mdf (ko) <pair_mdf>`
-   * :doc:`lepton (o) <pair_lepton>`
-   * :doc:`lepton/coul (o) <pair_lepton>`
-   * :doc:`lepton/sphere (o) <pair_lepton>`
    * :doc:`line/lj (o) <pair_line_lj>`
    * :doc:`lj/charmm/coul/charmm (giko) <pair_charmm>`
    * :doc:`lj/charmm/coul/charmm/implicit (ko) <pair_charmm>`
@@ -268,7 +271,6 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`peri/pmb (o) <pair_peri>`
    * :doc:`peri/ves <pair_peri>`
    * :doc:`polymorphic <pair_polymorphic>`
-   * :doc:`python <pair_python>`
    * :doc:`quip <pair_quip>`
    * :doc:`reaxff (ko) <pair_reaxff>`
    * :doc:`rebo (io) <pair_airebo>`
@@ -308,7 +310,6 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`sw (giko) <pair_sw>`
    * :doc:`sw/angle/table <pair_sw_angle_table>`
    * :doc:`sw/mod (o) <pair_sw>`
-   * :doc:`table (gko) <pair_table>`
    * :doc:`table/rx (k) <pair_table_rx>`
    * :doc:`tdpd <pair_mesodpd>`
    * :doc:`tersoff (giko) <pair_tersoff>`

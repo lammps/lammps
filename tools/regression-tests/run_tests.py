@@ -408,12 +408,13 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
                 test_id = test_id + 1
                 continue
 
-        # the input scripts that couple LAMMPS to other codes or are graphics demos can or should not be tested standalone
-        if excluded_example(input_test):
-            msg = "   + " + input + f" ({test_id+1}/{num_tests}): skipped, {EXCLUDED_REASON}"
+        # skip the input scripts under the EXCLUDED_FOLDERS, reporting the category reason
+        excluded_reason = excluded_example(input_test)
+        if excluded_reason:
+            msg = "   + " + input + f" ({test_id+1}/{num_tests}): skipped, {excluded_reason}"
             print(msg)
             logger.info(msg)
-            result.status = f'skipped, {EXCLUDED_REASON}'
+            result.status = f'skipped, {excluded_reason}'
             record(result)
             test_id = test_id + 1
             continue
@@ -1137,23 +1138,38 @@ def needs_partitions(input_file):
         pass
     return ""
 
-# input scripts under these folders under examples/ couple LAMMPS to another code
-# or are not meant for showing physics, but as GRAPHICS package demos.
-EXCLUDED_FOLDERS = ('COUPLE', 'mdi', 'QUANTUM', 'GRAPHICS', 'PACKAGES/ipi')
-EXCLUDED_REASON = "couples LAMMPS to another code or is a graphics demo and cannot be tested standalone"
+# input scripts under these folders under examples/ are not regression tested.  Each
+# category maps the reason for the exclusion to the affected folders: the first group
+# couples LAMMPS to another code or shows GRAPHICS package output rather than physics;
+# the second group demonstrates complex simulation or property calculation workflows
+# with production-like settings (long runs whose value lies in converged averages, not
+# in reproducing reference thermo output).  Abbreviated versions of those workflows
+# and the styles they exercise are covered by the tests in the unittest tree instead.
+EXCLUDED_FOLDERS = {
+    "couples LAMMPS to another code or is a graphics demo and cannot be tested standalone":
+        ('COUPLE', 'mdi', 'QUANTUM', 'GRAPHICS', 'PACKAGES/ipi'),
+    # the bare 'rerun' entry deliberately also matches examples/PACKAGES/adios/rerun,
+    # the ADIOS clone of examples/rerun with the same input interdependencies
+    "demonstrates a complex property calculation workflow with production-like settings"
+    " that is covered by abbreviated unit tests instead":
+        ('DIFFUSE', 'ELASTIC', 'ELASTIC_T', 'HEAT', 'KAPPA', 'MC-LOOP', 'VISCOSITY', 'rerun'),
+}
 
 '''
     check whether a path is under one of the EXCLUDED_FOLDERS under examples/
     entries may be a single folder name or a path of multiple folders separated by '/'
+
+    return the reason for the exclusion, or an empty string if the path is not excluded
 '''
 def excluded_example(path):
     parts = os.path.abspath(path).split(os.sep)
-    for folder in EXCLUDED_FOLDERS:
-        subpath = folder.split('/')
-        num = len(subpath)
-        if any(parts[i:i+num] == subpath for i in range(len(parts) - num + 1)):
-            return True
-    return False
+    for reason, folders in EXCLUDED_FOLDERS.items():
+        for folder in folders:
+            subpath = folder.split('/')
+            num = len(subpath)
+            if any(parts[i:i+num] == subpath for i in range(len(parts) - num + 1)):
+                return reason
+    return ""
 
 # STATIC AND DYNAMIC SCREENING FOR STYLES MISSING FROM THE TESTED BINARY
 #
@@ -2600,12 +2616,13 @@ if __name__ == "__main__":
         return the list without those input scripts
     '''
     def screen_input_list(input_list):
-        # the input scripts that couple LAMMPS to other codes or are graphics demos can or should not be tested standalone
+        # the input scripts under the EXCLUDED_FOLDERS can or should not be tested standalone
         exclude = [inp for inp in input_list if excluded_example(inp)]
         if exclude:
             input_list = [inp for inp in input_list if not excluded_example(inp)]
+            all_folders = sorted(f for folders in EXCLUDED_FOLDERS.values() for f in folders)
             msg = (f"\n{len(exclude)} input script(s) under " +
-                   ", ".join("examples/" + f for f in EXCLUDED_FOLDERS) + " are left out.")
+                   ", ".join("examples/" + f for f in all_folders) + " are left out.")
             print(msg)
             logger.info(msg)
         if not (missing_styles or kokkos_screen):

@@ -104,6 +104,7 @@ class PairLdd : public Pair {
 
   void allocate();
   void allocate_species();
+  void deallocate_species();
   void grow_peratom();
   void ErrorDoubleKeyword(const char *);
   void ErrorNumKeywordArgs(const char *, const char *);

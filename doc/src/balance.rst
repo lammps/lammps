@@ -207,7 +207,7 @@ methods can only be used with :doc:`comm_style tiled <comm_style>`.
 Note that it can be useful to use a "grid" method with
 :doc:`comm_style tiled <comm_style>` to return the domain partitioning
 to a logical 3d grid of processors so that "comm_style brick" can
-afterwords be specified for subsequent :doc:`run <run>` commands.
+afterwards be specified for subsequent :doc:`run <run>` commands.
 
 When a "grid" method is specified, the current domain partitioning can
 be either a logical 3d grid or a tiled partitioning.  In the former
@@ -448,7 +448,7 @@ on the *time* weights.  As a rule of thumb, effective values to use
 are typically between 0.5 and 1.2.  Note that the timer quantities
 mentioned above can be affected by communication which occurs in the
 middle of the operations, e.g. pair styles with intermediate exchange
-of data witin the force computation, and likewise for KSpace solves.
+of data within the force computation, and likewise for KSpace solves.
 
 When using the *time* weight style with the *balance* command, the
 timing data is taken from the preceding run command, i.e. the timings

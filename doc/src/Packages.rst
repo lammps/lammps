@@ -529,7 +529,7 @@ whether an extra library is needed to build and use the package:
      - ``PACKAGES/uef``
      - no
    * - :ref:`VORONOI <PKG-VORONOI>`
-     - Voronoi tesselation
+     - Voronoi tessellation
      - :doc:`compute voronoi/atom <compute_voronoi_atom>`
      - n/a
      - ext

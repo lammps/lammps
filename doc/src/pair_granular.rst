@@ -220,7 +220,7 @@ The model requires the following inputs:
    when the bulk elastic response is triggered.  Lower values of
    :math:`\psi_b` delay the onset of the bulk elastic response.
 
-   6. *Damping coefficent* :math:`\eta_{n0} \ge 0` : The damping
+   6. *Damping coefficient* :math:`\eta_{n0} \ge 0` : The damping
    coefficient is a tunable parameter that controls damping in the
    normal direction.
 

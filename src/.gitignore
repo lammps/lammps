@@ -758,6 +758,8 @@
 /compute_fep_ta.h
 /compute_force_tally.cpp
 /compute_force_tally.h
+/compute_frenkel.cpp
+/compute_frenkel.h
 /compute_gyration_shape.cpp
 /compute_gyration_shape.h
 /compute_gyration_shape_chunk.cpp

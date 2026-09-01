@@ -1051,6 +1051,38 @@ void Dump::balance()
 }
 
 /* ----------------------------------------------------------------------
+   map the type of a dump column to the type of value its format consumes
+------------------------------------------------------------------------- */
+
+utils::FmtArg Dump::fmtarg_type(int vtype)
+{
+  switch (vtype) {
+    case Dump::INT: return utils::FmtArg::INTEGER;
+    case Dump::BIGINT: return utils::FmtArg::BIGINT;
+    case Dump::STRING:      // fallthrough
+    case Dump::STRING2: return utils::FmtArg::STRING;
+    default: return utils::FmtArg::FLOAT;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   check the format string of a single dump column against the type of its
+   value and adjust the length modifier to the size of the integer types.
+   the format strings may come from the user, so passing an argument that
+   does not match its conversion must be ruled out before it is used.
+------------------------------------------------------------------------- */
+
+void Dump::check_column_format(std::string &colformat, int vtype, int icol)
+{
+  const auto expect = fmtarg_type(vtype);
+  auto errmsg = utils::check_format(colformat, expect);
+  if (!errmsg.empty())
+    error->all(FLERR, Error::NOLASTLINE, "Invalid dump {} format for column {}: {}", id,
+               icol + 1, errmsg);
+  colformat = utils::adjust_format(colformat, expect);
+}
+
+/* ----------------------------------------------------------------------
    process params common to all dumps here
    if unknown param, call modify_param specific to the dump
 ------------------------------------------------------------------------- */

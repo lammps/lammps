@@ -307,6 +307,13 @@ printed to a file via the *file* keyword.  Note that all values are
 floating point quantities.  The default format is " %g".  You can specify
 a higher precision if desired (e.g., " %20.16g").
 
+.. versionchanged:: TBD
+
+The format string is checked when it is set and LAMMPS will stop with an
+error if its conversion does not match a floating-point value.  Previously
+a mismatched format string was not detected and silently produced
+incorrect output.  Literal text without a conversion remains valid.
+
 The *title1* and *title2* and *title3* keywords allow specification of
 the strings that will be printed as the first 2 or 3 lines of the
 output file, assuming the *file* keyword was used.  LAMMPS uses

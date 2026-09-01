@@ -93,7 +93,7 @@ if(BUILD_LAMMPS_GUI)
       file(DOWNLOAD ${WHAM_URL} ${CMAKE_BINARY_DIR}/_deps/${archive} STATUS DL_STATUS SHOW_PROGRESS)
       file(SHA256 ${CMAKE_BINARY_DIR}/_deps/${archive} DL_SHA256)
       if((NOT DL_STATUS EQUAL 0) OR (NOT "${DL_SHA256}" STREQUAL "${WHAM_SHA256}"))
-        message(ERROR "Download of WHAM sources from ${WHAM_URL} failed")
+        message(ERROR ": Download of WHAM sources from ${WHAM_URL} failed")
       endif()
     else()
       message(STATUS "Using already downloaded archive ${CMAKE_BINARY_DIR}/_deps/${archive}")
@@ -106,7 +106,7 @@ if(BUILD_LAMMPS_GUI)
     if(PATCH_FOUND)
       message(STATUS "Apply patch to customize WHAM using ${Patch_EXECUTABLE}")
       execute_process(
-        COMMAND ${Patch_EXECUTABLE} -p1 -i ${CMAKE_SOURCE_DIR}/cmake/packaging/update-wham-2.1.0.patch
+        COMMAND ${Patch_EXECUTABLE} -p1 -i ${LAMMPS_PACKAGING_DIR}/update-wham-2.1.0.patch
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/_deps/src/wham/
       )
     endif()
@@ -132,7 +132,7 @@ if(BUILD_LAMMPS_GUI)
       COMMAND ${FLATPAK_BUILDER} --force-clean --verbose --repo=${CMAKE_CURRENT_BINARY_DIR}/flatpak-repo
                                --install-deps-from=flathub --state-dir=${CMAKE_CURRENT_BINARY_DIR}
                                --user --ccache --default-branch=${LAMMPS_RELEASE}
-                               flatpak-build ${LAMMPS_DIR}/cmake/packaging/org.lammps.lammps-gui.yml
+                               flatpak-build ${LAMMPS_PACKAGING_DIR}/org.lammps.lammps-gui.yml
       COMMAND ${FLATPAK_COMMAND} build-bundle --runtime-repo=https://flathub.org/repo/flathub.flatpakrepo --verbose
                                ${CMAKE_CURRENT_BINARY_DIR}/flatpak-repo
                                ${FLATPAK_BUNDLE} org.lammps.lammps-gui ${LAMMPS_RELEASE}
@@ -166,10 +166,10 @@ if(BUILD_LAMMPS_GUI)
         COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_BINARY_DIR}/phana ${APP_CONTENTS}/bin/
         COMMAND ${CMAKE_COMMAND} -E create_symlink ../MacOS/lammps-gui ${APP_CONTENTS}/bin/lammps-gui
         COMMAND ${CMAKE_COMMAND} -E make_directory ${APP_CONTENTS}/Resources
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LAMMPS_DIR}/cmake/packaging/README.macos ${APP_CONTENTS}/Resources/README.txt
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LAMMPS_DIR}/cmake/packaging/lammps.icns ${APP_CONTENTS}/Resources
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LAMMPS_DIR}/cmake/packaging/lammps-gui.icns ${APP_CONTENTS}/Resources
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LAMMPS_DIR}/cmake/packaging/LAMMPS_DMG_Background.png ${APP_CONTENTS}/Resources
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LAMMPS_PACKAGING_DIR}/README.macos ${APP_CONTENTS}/Resources/README.txt
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LAMMPS_PACKAGING_DIR}/lammps.icns ${APP_CONTENTS}/Resources
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LAMMPS_PACKAGING_DIR}/lammps-gui.icns ${APP_CONTENTS}/Resources
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LAMMPS_PACKAGING_DIR}/LAMMPS_DMG_Background.png ${APP_CONTENTS}/Resources
         COMMAND ${CMAKE_COMMAND} -E make_directory ${APP_CONTENTS}/share/lammps
         COMMAND ${CMAKE_COMMAND} -E make_directory ${APP_CONTENTS}/share/lammps/man/man1
         COMMAND ${CMAKE_COMMAND} -E copy_directory ${LAMMPS_DIR}/potentials ${APP_CONTENTS}/share/lammps/potentials
@@ -203,7 +203,7 @@ if(BUILD_LAMMPS_GUI)
       set(FFMPEG_TARGET copy-ffmpeg)
     endif()
     add_custom_target(dmg
-      COMMAND ${LAMMPS_DIR}/cmake/packaging/build_macos_dmg.sh ${LAMMPS_RELEASE} ${CMAKE_BINARY_DIR}/lammps-gui_build-prefix/bin/lammps-gui.app
+      COMMAND ${LAMMPS_PACKAGING_DIR}/build_macos_dmg.sh ${LAMMPS_RELEASE} ${CMAKE_BINARY_DIR}/lammps-gui_build-prefix/bin/lammps-gui.app
       DEPENDS complete-bundle ${WHAM_TARGET} ${FFMPEG_TARGET}
       COMMENT "Create Drag-n-Drop installer disk image from app bundle"
       BYPRODUCT LAMMPS-macOS-multiarch-GUI-${LAMMPS_RELEASE}.dmg
@@ -235,7 +235,7 @@ if(BUILD_LAMMPS_GUI)
     endif()
     install(FILES $<TARGET_RUNTIME_DLLS:lmp> TYPE BIN)
     add_custom_target(zip
-      COMMAND sh -vx ${LAMMPS_DIR}/cmake/packaging/build_windows_cross_zip.sh ${CMAKE_INSTALL_PREFIX} ${LAMMPS_RELEASE}
+      COMMAND sh -vx ${LAMMPS_PACKAGING_DIR}/build_windows_cross_zip.sh ${CMAKE_INSTALL_PREFIX} ${LAMMPS_RELEASE}
       DEPENDS lmp lammps-gui_build ${WHAM_EXE}
       COMMENT "Create zip file with windows binaries"
       BYPRODUCT LAMMPS-Win10-amd64-${LAMMPS_VERSION}.zip
@@ -275,7 +275,7 @@ if(BUILD_LAMMPS_GUI)
 
     if(USE_INTERNAL_LINALG AND (NOT DOWNLOAD_POTENTIALS))
       add_custom_target(tgz
-        COMMAND ${LAMMPS_DIR}/cmake/packaging/build_linux_tgz.sh ${LAMMPS_RELEASE}
+        COMMAND ${LAMMPS_PACKAGING_DIR}/build_linux_tgz.sh ${LAMMPS_RELEASE}
         DEPENDS lmp tools lammps-gui_build ${WHAM_EXE}
         COMMENT "Create compressed tar file of LAMMPS-GUI with dependent libraries and wrapper"
         BYPRODUCT LAMMPS-Linux-x86_64-GUI-${LAMMPS_RELEASE}.tar.gz

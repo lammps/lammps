@@ -200,9 +200,10 @@ void ComputeHexOrderAtom::compute_peratom()
         }
       }
 
-      // if not nnn neighbors, order parameter = 0;
+      // if not nnn neighbors (or no neighbor at all with nnn = NULL),
+      // order parameter = 0;
 
-      if (ncount < nnn) {
+      if ((ncount < nnn) || (ncount == 0)) {
         qn[0] = qn[1] = 0.0;
         continue;
       }
@@ -228,8 +229,8 @@ void ComputeHexOrderAtom::compute_peratom()
         usum += u;
         vsum += v;
       }
-      qn[0] = usum/nnn;
-      qn[1] = vsum/nnn;
+      qn[0] = usum/ncount;
+      qn[1] = vsum/ncount;
     } else qn[0] = qn[1] = 0.0;
   }
 }

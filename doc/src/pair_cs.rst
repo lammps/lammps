@@ -191,7 +191,7 @@ Mixing, shift, table, tail correction, restart, rRESPA info
 
 See the corresponding doc pages for pair styles without the "cs"
 suffix to see how mixing, shifting, tabulation, tail correction,
-restarting, and rRESPA are handled by theses pair styles.
+restarting, and rRESPA are handled by these pair styles.
 
 ----------
 

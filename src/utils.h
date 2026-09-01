@@ -262,6 +262,125 @@ template <typename... Args> std::string sprintf(const std::string &format, Args 
   return varargs_sprintf(format.c_str(), sprintf_arg(args)...);
 }
 
+/*! Type of value consumed by a printf() style conversion
+
+\verbatim embed:rst
+
+.. versionadded:: TBD
+
+Conversions are grouped by the kind of value they consume: the d, i, o, u,
+x, X, and c conversions consume integers, the e, E, f, F, g, G, a, and A
+conversions consume floating-point numbers, the s conversion consumes a
+string, and the p conversion consumes a pointer.  For checking a format
+string with :cpp:func:`utils::check_format()
+<LAMMPS_NS::utils::check_format>` the two integer types are equivalent,
+since a mismatch in the *width* of an integer argument is corrected by
+:cpp:func:`utils::adjust_format() <LAMMPS_NS::utils::adjust_format>`.
+
+\endverbatim */
+
+enum class FmtArg {
+  NONE,       /*!< no value, i.e. an invalid or literal conversion */
+  INTEGER,    /*!< value of type int */
+  BIGINT,     /*!< value of type bigint, i.e. a 64-bit integer */
+  FLOAT,      /*!< value of type double */
+  STRING,     /*!< string value, i.e. a char pointer */
+  POINTER     /*!< pointer value */
+};
+
+/*! Check a printf() style format string against the expected argument types
+
+\verbatim embed:rst
+
+.. versionadded:: TBD
+
+LAMMPS accepts printf() style format strings from users in multiple
+places, for example with :doc:`dump_modify format <dump_modify>` or
+:doc:`thermo_modify format <thermo_modify>`.  Passing an argument that
+does not match its conversion to a printf() style function has undefined
+behavior; in practice it silently produces incorrect output.  Since the
+format strings are only known at runtime, they must be checked before
+they are used.
+
+This function compares the conversions in *format* against the list of
+value types in *expect* and returns an empty string if they agree.  If
+they do not, or if the format string is malformed, the returned string
+describes the problem and is meant to be included in an error message.
+
+A format string may have *fewer* conversions than there are values, down
+to none at all: printf() simply ignores the surplus values, so literal
+text without any conversion is valid and may be used to label or decorate
+the output.  Having *more* conversions than values is an error, since
+those would consume arguments that were never passed.  For the same
+reason the ``n`` conversion, variable field widths or precisions given as
+``*``, length modifiers on ``s`` and ``p`` conversions, unknown conversion
+characters, and incomplete conversions at the end of the string are
+rejected.  A ``%%`` sequence is a literal percent sign and consumes no
+value.
+
+.. code-block:: c++
+
+   auto errmsg = utils::check_format(arg[2], {utils::FmtArg::FLOAT});
+   if (!errmsg.empty())
+     error->all(FLERR, 2, "Invalid dump_modify format float argument: {}", errmsg);
+
+\endverbatim
+ *
+ *  \param  format  printf() style format string
+ *  \param  expect  list of value types the format string must consume
+ *  \return         empty string if the format string is valid, otherwise a
+ *                  description of the problem */
+
+std::string check_format(const std::string &format, const std::vector<FmtArg> &expect);
+
+/*! \overload
+ *
+ *  \param  format  printf() style format string
+ *  \param  expect  single value type the format string must consume */
+
+std::string check_format(const std::string &format, FmtArg expect);
+
+/*! Adjust the length modifiers of a format string to the expected arguments
+
+\verbatim embed:rst
+
+.. versionadded:: TBD
+
+The C library derives the size of the value consumed by an integer
+conversion from its length modifier, so ``%d`` and ``%ld`` must be used
+with an ``int`` and a ``long`` argument, respectively.  Requiring users to
+get this right would make format strings depend on how LAMMPS was
+compiled, since types like ``bigint`` and ``tagint`` change size with the
+:ref:`size settings <size>`.  Worse, the correct modifier for a 64-bit
+integer is platform dependent: ``int64_t`` is ``long int`` on LP64
+platforms like Linux and macOS, but ``long long int`` on LLP64 platforms
+like Windows.  The modifier applied here is therefore taken from
+``BIGINT_FORMAT``, which is built from the ``PRId64`` macro of
+``<cinttypes>`` and thus spelled correctly on every platform.
+
+This function therefore replaces the length modifier of every conversion
+in *format* with the one matching the corresponding entry of *expect*, so
+that a user may write ``%d`` regardless of the integer size in use.  Any
+flags, field width, precision, and surrounding text are preserved.  The
+format string should be validated with :cpp:func:`utils::check_format()
+<LAMMPS_NS::utils::check_format>` first; a format string that does not
+match *expect* is returned unchanged.
+
+\endverbatim
+ *
+ *  \param  format  printf() style format string
+ *  \param  expect  list of value types the format string is used with
+ *  \return         format string with length modifiers adjusted */
+
+std::string adjust_format(const std::string &format, const std::vector<FmtArg> &expect);
+
+/*! \overload
+ *
+ *  \param  format  printf() style format string
+ *  \param  expect  single value type the format string is used with */
+
+std::string adjust_format(const std::string &format, FmtArg expect);
+
 /*! Return text redirecting the user to a specific paragraph in the manual
  *
  * The LAMMPS manual contains detailed explanations for errors and

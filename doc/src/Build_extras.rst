@@ -1265,8 +1265,8 @@ module included in the LAMMPS source distribution.
       .. code-block:: bash
 
          -D PKG_COLVARS=yes          # enable the package itself
-         -D COLVARS_LEPTON=yes       # use the Lepton library for custom expression (on by defaul)
-         -D COLVARS_DEBUG=no         # eneable debugging message (verbose, off by default)
+         -D COLVARS_LEPTON=yes       # use the Lepton library for custom expression (on by default)
+         -D COLVARS_DEBUG=no         # enable debugging message (verbose, off by default)
 
    .. tab:: Traditional make
 

@@ -3,6 +3,12 @@
 # Created by Axel Kohlmeyer and Richard Berger
 ########################################
 
+# set policy to use the time of extraction as timestamps of files unpacked from downloaded
+# archives, so that updating an archive version triggers rebuilding all dependent objects
+if(POLICY CMP0135)
+  cmake_policy(SET CMP0135 NEW)
+endif()
+
 # download and build googletest framework
 # cannot compile googletest anymore with the default GCC on RHEL 7.x
 if((CMAKE_CXX_COMPILER_ID STREQUAL "GNU") AND (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.3))
@@ -10,8 +16,8 @@ if((CMAKE_CXX_COMPILER_ID STREQUAL "GNU") AND (CMAKE_CXX_COMPILER_VERSION VERSIO
 endif()
 
 message(STATUS "Downloading and building googletest framework")
-set(GTEST_URL "https://github.com/google/googletest/releases/download/v1.17.0/googletest-1.17.0.tar.gz" CACHE STRING "URL of googletest source")
-set(GTEST_SHA256 "65fab701d9829d38cb77c14acdc431d2108bfdbf8979e40eb8ae567edf10b27c" CACHE STRING "SHA256 sum for googletest source")
+set(GTEST_URL "https://github.com/google/googletest/releases/download/v1.18.0/googletest-1.18.0.tar.gz" CACHE STRING "URL of googletest source")
+set(GTEST_SHA256 "6e3191c1455468b3fc35a417fb565c1c5071aee1b7e7f85e30cf48a98d37d8b5" CACHE STRING "SHA256 sum for googletest source")
 mark_as_advanced(GTEST_URL)
 mark_as_advanced(GTEST_SHA256)
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
@@ -112,6 +118,7 @@ endif()
 add_subdirectory(utils)
 add_subdirectory(formats)
 add_subdirectory(commands)
+add_subdirectory(examples)
 add_subdirectory(c-library)
 add_subdirectory(cplusplus)
 add_subdirectory(fortran)

@@ -1,4 +1,10 @@
 
+# set policy to use the time of extraction as timestamps of files unpacked from downloaded
+# archives, so that updating an archive version triggers rebuilding all dependent objects
+ if(POLICY CMP0135)
+  cmake_policy(SET CMP0135 NEW)
+endif()
+
 # Silence CMake warnings about FindCUDA being obsolete.
 # We may need to eventually rewrite this section to use enable_language(CUDA)
 if(POLICY CMP0146)

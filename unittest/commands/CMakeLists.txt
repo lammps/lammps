@@ -109,6 +109,10 @@ target_compile_definitions(test_labelmap PRIVATE -DTEST_INPUT_FOLDER=${CMAKE_CUR
 target_link_libraries(test_labelmap PRIVATE lammps GTest::GMock)
 add_test(NAME Labelmap COMMAND test_labelmap)
 
+add_executable(test_compute_frenkel test_compute_frenkel.cpp)
+target_link_libraries(test_compute_frenkel PRIVATE lammps GTest::GMock)
+add_test(NAME ComputeFrenkel COMMAND test_compute_frenkel)
+
 add_executable(test_variables test_variables.cpp)
 target_link_libraries(test_variables PRIVATE lammps GTest::GMock)
 add_test(NAME Variables COMMAND test_variables)
@@ -152,11 +156,3 @@ add_test(NAME RestartSettings COMMAND test_restart_settings)
 add_executable(test_input_validation test_input_validation.cpp)
 target_link_libraries(test_input_validation PRIVATE lammps GTest::GMock)
 add_test(NAME InputValidation COMMAND test_input_validation)
-
-# runs the example inputs from examples/rerun in the required order; the
-# regression tests skip the inputs there that read files written by others
-add_executable(test_rerun_examples test_rerun_examples.cpp)
-target_compile_definitions(test_rerun_examples PRIVATE -DTEST_EXAMPLES_FOLDER=${LAMMPS_DIR}/examples/rerun)
-target_link_libraries(test_rerun_examples PRIVATE lammps GTest::GMock)
-add_test(NAME RerunExamples COMMAND test_rerun_examples)
-set_tests_properties(RerunExamples PROPERTIES LABELS "slow")

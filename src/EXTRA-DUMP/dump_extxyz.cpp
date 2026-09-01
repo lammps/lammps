@@ -83,12 +83,28 @@ void DumpExtXYZ::update_properties()
 
   // The output printf-style format
   delete[] format;
+  std::string lineformat;
   if (format_line_user)
-    format = utils::strdup(fmt::format("{}\n", format_line_user));
+    lineformat = fmt::format("{}\n", format_line_user);
   else {
-    format = utils::strdup(fmt::format("%s %g %g %g{}{}{}\n", (with_vel ? " %g %g %g" : ""),
-                                       (with_forces ? " %g %g %g" : ""), (with_mass ? " %g" : "")));
+    lineformat = fmt::format("%s %g %g %g{}{}{}\n", (with_vel ? " %g %g %g" : ""),
+                             (with_forces ? " %g %g %g" : ""), (with_mass ? " %g" : ""));
   }
+
+  // the line format may come from the user, so it has to be checked against
+  // the values it is used with: the element name and a variable number of
+  // coordinates, velocities, forces, and the mass
+
+  std::vector<utils::FmtArg> expect = {utils::FmtArg::STRING, utils::FmtArg::FLOAT,
+                                       utils::FmtArg::FLOAT, utils::FmtArg::FLOAT};
+  if (with_vel) expect.insert(expect.end(), 3, utils::FmtArg::FLOAT);
+  if (with_forces) expect.insert(expect.end(), 3, utils::FmtArg::FLOAT);
+  if (with_mass) expect.push_back(utils::FmtArg::FLOAT);
+
+  auto errmsg = utils::check_format(lineformat, expect);
+  if (!errmsg.empty())
+    error->all(FLERR, Error::NOLASTLINE, "Invalid dump {} format line: {}", id, errmsg);
+  format = utils::strdup(lineformat);
 }
 
 /* ---------------------------------------------------------------------- */

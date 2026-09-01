@@ -85,6 +85,12 @@ LAMMPS:
    format string is not specified, a high-precision ``%.20g`` is used as
    the default format.
 
+   .. versionchanged:: TBD
+
+   A conversion in the format string must match a floating-point value.
+   Format strings with a second conversion, such as ``:%.3f%d``, were
+   previously accepted and produced bogus output.
+
    This can be useful for formatting print output to a desired precision:
 
    .. code-block:: LAMMPS

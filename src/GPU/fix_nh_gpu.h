@@ -27,16 +27,21 @@ class FixNHGPU : public FixNH {
   FixNHGPU(class LAMMPS *, int, char **);
   void setup(int vflag) override;
   void reset_dt() override;
+  void initial_integrate(int vflag) override;
   void final_integrate() override;
   double memory_usage() override;
 
  protected:
   double *_dtfm;
-  int _nlocal3, _nlocal_max, _respa_on;
+  int _nlocal, _nlocal3, _nlocal_max, _respa_on;
+
+  /// 1 when all atoms share the same mass, so that _dtfm is not needed
+  int _uniform_dtfm;
 
   void remap() override;
   void nve_x() override;
   void nve_v() override;
+  void nve_v_x();
   void nh_v_press() override;
   void nh_v_temp() override;
 };

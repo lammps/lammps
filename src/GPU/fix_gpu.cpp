@@ -26,6 +26,7 @@
 #include "pair_hybrid.h"
 #include "respa.h"
 #include "timer.h"
+#include "tune_gpu.h"
 #include "universe.h"
 #include "update.h"
 
@@ -127,6 +128,10 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
   int block_pair = -1;
   int ocl_platform = -1;
   char *device_type_flags = nullptr;
+  int autotuning = 0;
+  int perf_nsamples = 5;
+  int perf_mode = 0;
+  double perf_rel_tol = 0.2;
 
   int iarg = 4;
   int ioffs = -2;
@@ -189,6 +194,17 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"package gpu pair/only", error);
       lmp->pair_only_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
+    } else if (strcmp(arg[iarg],"auto/tuning") == 0) {
+      if (iarg+5 > narg) utils::missing_cmd_args(FLERR,"package gpu auto/tuning", error);
+      autotuning = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      perf_nsamples = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
+      if (strcmp(arg[iarg+3],"max") == 0) perf_mode = 0;
+      else if (strcmp(arg[iarg+3],"ave") == 0) perf_mode = 1;
+      else if (strcmp(arg[iarg+3],"median") == 0) perf_mode = 2;
+      else error->all(FLERR,iarg+3+ioffs,"Unknown package gpu auto/tuning mode {}: "
+                      "must be 'max', 'ave', or 'median'", arg[iarg+3]);
+      perf_rel_tol = utils::numeric(FLERR,arg[iarg+4],false,lmp);
+      iarg += 5;
     } else if (strcmp(arg[iarg],"ocl_args") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"package gpu ocl_args", error);
       opencl_args = arg[iarg+1];
@@ -233,12 +249,30 @@ FixGPU::FixGPU(LAMMPS *lmp, int narg, char **arg) :
                                  binsize, opencl_args, ocl_platform,
                                  device_type_flags, block_pair);
   GPU_EXTRA::check_flag(gpu_flag,error,world);
+
+  // set up run time tuning of the kernel parameters
+  // must happen after the device is initialized and before any pair style
+  // sets up its neighbor data on the device, because the neighbor arrays
+  // have to be padded for the largest threads per atom value the tuner
+  // may select
+
+  lmp_gpu_enable_tuning(autotuning > 0);
+
+  _tuner = nullptr;
+  if (autotuning > 0) {
+    _tuner = new TuneGPU(lmp, autotuning, perf_nsamples, perf_mode, perf_rel_tol, nthreads);
+    if (comm->me == 0)
+      utils::logmesg(lmp,"  auto-tuning of the GPU kernel parameters is enabled: "
+                     "nevery = {} samples = {} mode = {}\n", autotuning, perf_nsamples,
+                     (perf_mode == 0) ? "max" : (perf_mode == 1) ? "ave" : "median");
+  }
 }
 
 /* ---------------------------------------------------------------------- */
 
 FixGPU::~FixGPU()
 {
+  delete _tuner;
   lmp_clear_device();
 }
 
@@ -353,6 +387,10 @@ void FixGPU::post_force(int /* vflag */)
   force->pair->virial[5] += lvirial[5];
 
   timer->stamp(Timer::PAIR);
+
+  // scan the kernel parameters during regular dynamics only
+
+  if (_tuner && (update->whichflag == 1)) _tuner->tuning_kernel_params();
 }
 
 /* ---------------------------------------------------------------------- */

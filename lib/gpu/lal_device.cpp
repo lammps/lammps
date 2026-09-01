@@ -69,7 +69,8 @@ template <class numtyp, class acctyp>
 DeviceT::Device() : _init_count(0), _device_init(false),
                     _comm_gpu_allocated(false),
                     _gpu_mode(GPU_FORCE), _first_device(0),
-                    _last_device(0), _platform_id(-1), _compiled(false),
+                    _last_device(0), _platform_id(-1), _tpa_stamp(0),
+                    _tuning(0), _compiled(false),
                     _use_old_nbor_build(0), _use_device_sort(0) {
 }
 
@@ -633,6 +634,11 @@ int DeviceT::init_nbor(Neighbor *nbor, const int nlocal,
     return -17;
   #endif
 
+  // when tuning threads per atom at run time, pad the neighbor arrays for the
+  // largest value that can be selected, so that no reallocation is needed
+
+  nbor->set_max_threads_per_atom(_tuning ? _simd_size : threads_per_atom);
+
   if (!nbor->init(&_neighbor_shared,nlocal,host_nlocal,max_nbors,maxspecial,
                   *gpu,gpu_nbor,gpu_host,pre_cut,_block_cell_2d,
                   _block_cell_id, _block_nbor_build, threads_per_atom,
@@ -1170,6 +1176,25 @@ int DeviceT::compile_kernels() {
   return flag;
 }
 
+/* ----------------------------------------------------------------------
+   change the number of threads per atom used by the pair kernels
+   the setting is shared by all pair styles using the accelerator library,
+   the new value is picked up by a pair style at its next neighbor rebuild
+------------------------------------------------------------------------- */
+
+template <class numtyp, class acctyp>
+void DeviceT::set_threads_per_atom(const int t_per_atom) {
+  if (t_per_atom < 1) return;
+  if (t_per_atom & (t_per_atom - 1)) return;
+  if (t_per_atom > _simd_size) return;
+  if (_simd_size % t_per_atom != 0) return;
+  if (t_per_atom == _threads_per_atom) return;
+
+  _threads_per_atom = t_per_atom;
+  _threads_per_charge = t_per_atom;
+  _tpa_stamp++;
+}
+
 template <class numtyp, class acctyp>
 double DeviceT::host_memory_usage() const {
   return atom.host_memory_usage()+4*sizeof(numtyp)+
@@ -1255,6 +1280,24 @@ void lmp_gpu_defer_device_clear(int flag) {
 double lmp_gpu_forces(double **f, double **tor, double *eatom, double **vatom,
                       double *virial, double &ecoul, int &error_flag) {
   return global_device.fix_gpu(f,tor,eatom,vatom,virial,ecoul,error_flag);
+}
+
+// run time tuning of the kernel parameters
+
+void lmp_gpu_enable_tuning(const int flag) {
+  global_device.set_tuning(flag);
+}
+
+void lmp_gpu_set_threads_per_atom(const int t_per_atom) {
+  global_device.set_threads_per_atom(t_per_atom);
+}
+
+int lmp_gpu_threads_per_atom() {
+  return global_device.threads_per_atom();
+}
+
+int lmp_gpu_simd_size() {
+  return global_device.simd_size();
 }
 
 double lmp_gpu_update_bin_size(const double subx, const double suby,

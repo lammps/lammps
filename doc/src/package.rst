@@ -22,7 +22,7 @@ Syntax
     *gpu* args = Ngpu keyword value ...
       Ngpu = # of GPUs per node
       zero or more keyword/value pairs may be appended
-      keywords = *neigh* or *newton* or *pair/only* or *binsize* or *gpuID* or *tpa* or *blocksize* or *omp* or *platform* or *device_type* or *ocl_args* or *split* (deprecated)
+      keywords = *neigh* or *newton* or *pair/only* or *binsize* or *gpuID* or *tpa* or *blocksize* or *omp* or *auto/tuning* or *platform* or *device_type* or *ocl_args* or *split* (deprecated)
         *neigh* value = *yes* or *no* or *hybrid*
           *yes* = neighbor list build on GPU (default)
           *no* = neighbor list build on CPU
@@ -42,6 +42,11 @@ Syntax
           size = thread block size for pair force computation
         *omp* value = Nthreads
           Nthreads = number of OpenMP threads to use on CPU (default = 0)
+        *auto/tuning* = nevery nsamples mode reltol
+          nevery = # timesteps between auto-tuning adjustments (default = 0, no auto-tuning)
+          nsamples = # samples the tuner collects for each parameter combination
+          mode = how to pick a performance value from the samples collected, i.e. maximum, average or median value
+          reltol = relative tolerance for performance degradation that triggers re-tuning of parameter values
         *platform* value = id
           id = For OpenCL, platform ID for the GPU or accelerator
         *gpuID* values = id
@@ -318,6 +323,48 @@ setting the number of OpenMP threads, see the discussion of the
 *Nthreads* setting on this page for the "package omp" command.
 The meaning of *Nthreads* is exactly the same for the GPU, INTEL,
 and GPU packages.
+
+.. versionadded:: TBD
+
+The *auto/tuning* keyword enables auto-tuning of the kernel launch
+parameters of the pair styles of the GPU package.  The tuner scans the
+possible values of the *tpa* and *omp* settings, measures the resulting
+simulation rate in timesteps per second, and then keeps the combination
+that performed best.
+
+The values scanned for *tpa* are the powers of two from 1 up to the SIMD
+width of the accelerator.  The values scanned for *omp* are the powers of
+two from 1 up to the *Nthreads* value given with the *omp* keyword, or up
+to the number of OpenMP threads available to the MPI process when the
+*omp* keyword is not used.  Since these two settings are shared by all
+pair styles of the GPU package, there is a single tuner per MPI process
+and the timing measurements cover the whole timestep, not an individual
+kernel.  The measured performance is reduced across all MPI processes, so
+that all processes select the same parameter combination.
+
+A change of the *tpa* setting only takes effect at the next neighbor list
+build, because the layout of the neighbor list on the accelerator depends
+on it.  Timing windows therefore begin and end on a neighbor list build,
+which means that a window covers at least *nevery* timesteps and always
+spans whole reneighboring cycles.  Auto-tuning is skipped during energy
+minimization.
+
+The tuner writes the current parameter combination and the measured
+performance to a file named *tuning-gpu.log*.  This output can also be
+used as a hint for choosing *tpa* and *omp* values to set directly,
+without enabling auto-tuning.
+
+The *nevery*, *nsamples*, *mode* and *reltol* parameters have the same
+meaning as for the :ref:`KOKKOS package <package_kokkos_autotuning>`.
+It is recommended to enable auto-tuning only when the simulated system is
+in steady state.
+
+.. note::
+
+   Do not use *auto/tuning* in tandem with *tpa* in the same command,
+   since the scanning process overrides the *tpa* setting.  The
+   *Nthreads* value of the *omp* keyword is not overridden; it is used as
+   the upper limit of the values scanned for the number of threads.
 
 The *platform* keyword is only used with OpenCL to specify the ID for
 an OpenCL platform. See the output from ocl\_get\_devices in the lib/gpu
@@ -613,6 +660,8 @@ of this parameter is determined based on the GPU architecture at runtime.
 
 .. versionadded:: 4Jul2026
 
+.. _package_kokkos_autotuning:
+
 The *auto/tuning* keyword enables the auto-tuning feature of
 the KOKKOS package when using GPUs.  The following KOKKOS styles
 currently support auto-tuning:
@@ -841,7 +890,7 @@ For the GPU package, the default parameters and settings are:
 
 .. parsed-literal::
 
-   Ngpu = 0, neigh = yes, newton = on, binsize = 0.0, gpuID = 0 to Ngpu-1, tpa = 1, omp = 0, platform=-1.
+   Ngpu = 0, neigh = yes, newton = on, binsize = 0.0, gpuID = 0 to Ngpu-1, tpa = 1, omp = 0, auto/tuning = disabled, platform=-1.
 
 These settings are made automatically if the "-sf gpu"
 :doc:`command-line switch <Run_options>` is used.  If it is not used,

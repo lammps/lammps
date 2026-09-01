@@ -55,6 +55,10 @@ extern double lmp_gpu_forces(double **f, double **tor, double *eatom, double **v
                              double *virial, double &ecoul, int &error_flag);
 extern double lmp_gpu_update_bin_size(const double subx, const double suby, const double subz,
                                       const int nlocal, const double cut);
+extern void lmp_gpu_enable_tuning(const int flag);
+extern void lmp_gpu_set_threads_per_atom(const int t_per_atom);
+extern int lmp_gpu_threads_per_atom();
+extern int lmp_gpu_simd_size();
 extern bool lmp_gpu_config(const std::string &category, const std::string &setting);
 
 // Per-style entry points

@@ -67,6 +67,8 @@ int BaseAtomicT::init_atomic(const int nlocal, const int nall,
 
 
   _threads_per_atom=device->threads_per_atom();
+  _tpa_stamp=device->tpa_stamp();
+  _max_tpa=device->simd_size();
 
   bool charge = false;
   bool rot = false;
@@ -82,7 +84,10 @@ int BaseAtomicT::init_atomic(const int nlocal, const int nall,
   _block_size=device->pair_block_size();
   compile_kernels(*ucl_device,pair_program,k_name,onetype);
 
-  if (_threads_per_atom>1 && gpu_nbor==0) {
+  // the packed neighbor list layout is valid for any threads per atom value,
+  // so it is also used when tpa may be changed at run time by the tuner
+
+  if ((_threads_per_atom>1 || device->tuning()) && gpu_nbor==0) {
     nbor->packing(true);
     _nbor_data=&(nbor->dev_packed);
   } else
@@ -124,6 +129,20 @@ void BaseAtomicT::clear_atomic() {
 
   nbor->clear();
   ans->clear();
+}
+
+// ---------------------------------------------------------------------------
+// Pick up a threads per atom setting changed by the run time tuner
+// ---------------------------------------------------------------------------
+template <class numtyp, class acctyp>
+void BaseAtomicT::update_tpa() {
+  if (device->tpa_stamp() == _tpa_stamp) return;
+  _tpa_stamp=device->tpa_stamp();
+  int t_per_atom=device->threads_per_atom();
+  if (t_per_atom > _max_tpa) t_per_atom=_max_tpa;
+  if (t_per_atom == _threads_per_atom) return;
+  _threads_per_atom=t_per_atom;
+  nbor->set_threads_per_atom(t_per_atom);
 }
 
 // ---------------------------------------------------------------------------
@@ -237,6 +256,7 @@ void BaseAtomicT::compute(const int f_ago, const int inum_full,
   ans->inum(inum);
 
   if (ago==0) {
+    update_tpa();
     reset_nbors(nall, inum, ilist, numj, firstneigh, success);
     if (!success)
       return;
@@ -291,6 +311,7 @@ int **BaseAtomicT::compute(const int ago, const int inum_full,
 
   // Build neighbor list on GPU if necessary
   if (ago==0) {
+    update_tpa();
     build_nbor_list(inum, inum_full-inum, nall, host_x, host_type,
                     sublo, subhi, tag, nspecial, special,
                     prd, periodicity, success);
@@ -354,6 +375,7 @@ void BaseAtomicT::compile_kernels(UCL_Device &dev, const void *pair_str,
     mx_subgroup_sz = std::min(mx_subgroup_sz, k_pair_noev.max_subgroup_size(_block_size));
     #endif
     if (_threads_per_atom > (int)mx_subgroup_sz) _threads_per_atom = mx_subgroup_sz;
+    if (_max_tpa > (int)mx_subgroup_sz) _max_tpa = mx_subgroup_sz;
     device->set_simd_size(mx_subgroup_sz);
   }
   #endif

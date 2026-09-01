@@ -289,26 +289,37 @@ by a plastic overlap range, specified as a user input :math:`\phi_f`, with typic
 ----------------------
 
 The *epa_nonlinear* model is very similar to the nonlinear elastic-plastic-adhesive model proposed
-by :ref:`(Thakur et al) <Thakur2014>` model, where the force is computed according to:
+by :ref:`Thakur et al <Thakur2014>`, also known as the Edinburgh elasto-plastic adhesive (EEPA) model.
+The force is computed according to:
 
 .. math::
 
    F_{ne}(\delta) =
    \begin{cases}
    -f_0+k_1\delta^m & \text{if } k_2(\delta^m-\delta_p^m) \ge k_1\delta^m \\
-   -f_0+k_2(\delta^m-\delta_p^m) & \text{if } k_1\delta^m > k_2(\delta^m-\delta_p^m) > -k_c\delta^m \\
-   -f0-k_c\delta^m & \text{if } -k_c\delta^m \ge k_2(\delta^m-\delta_p^m)
+   -f_0+k_2(\delta^m-\delta_p^m) & \text{if } k_1\delta^m > k_2(\delta^m-\delta_p^m) > -k_c\delta^n \\
+   -f0-k_c\delta^n & \text{if } -k_c\delta^n \ge k_2(\delta^m-\delta_p^m)
    \end{cases}
 
 where
 .. math::
+
    k_1 = \frac{4E_\text{eff}a}{3}R_\text{eff}^{2-m}
+
+Here, :math:`E_\text{eff}` and :math:`R_\text{eff}` are the effective elastic modulus and effective radius.
+This definition of :math:`k_1` is not present in the original 
+:ref:`(Thakur et al) <Thakur2014>` paper, but appears in other formulations of the EEPA model 
+(e.g. :ref:`(Morrisey thesis) <Morrisey2013>`).
+The exponent :math:`2-m` is added here to ensure dimensional consistency for varying :math:`m`
+values, while retaining particle radius dependence. For :math:`m=3/2`, the model recovers the
+Hertzian limit; for other values of :math:`m`, the modulus should be treated as a calibrated 
+parameter, since such models do not have a direct connection to material properties.
 
 Initial loading proceeds along the :math:`k_1\delta^m` branch. The maximum overlap
 :math:`\delta_\text{max}` is stored and updated throughout the duration of 
 the contact. Unloading proceeds along :math:`k_2(\delta^m-\delta_p^m)`, and 
 re-loading proceeds along the same branch, until :math:`\delta_\text{max}` is 
-reached, at which point further loading proceeds along :math:`k_1\delta^m` again.
+reached, at which point further loading proceeds along :math:`k_1\delta^m` again. 
 
 .. image:: img/epa_nonlinear.png
    :width: 90%
@@ -341,6 +352,11 @@ contact models for tension. Granular matter, 10(4), 235.
 Micromechanical analysis of cohesive granular materials using 
 the discrete element method with an adhesive  elasto-plastic contact 
 model. Granular Matter 16, 383-400.
+
+.. _Morrisey2013:
+**(Morrisey thesis)** Morrissey, J. P. (2013). Discrete Element Modelling of 
+Iron Ore Pellets to Include the Effects of Moisture and Fines.
+PhD thesis, Edinburgh, Scotland: University of Edinburgh.
 
 .. _Zunker2024I:
 

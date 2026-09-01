@@ -1111,7 +1111,9 @@ void GranSubModNormalEPANonlinear::coeffs_to_local()
   lambda_p = coeffs[3];
   f0 = coeffs[4];
   kadh = coeffs[5];
-  mexp = coeffs[6];  
+  mexp = coeffs[6]; 
+  nexp = coeffs[7];
+   
   if (!mixed_coefficients) {
     if (gm->contact_type == PAIR) {
       k1 = FOURTHIRDS * mix_stiffnessE(Emod, Emod, poiss, poiss);
@@ -1120,7 +1122,8 @@ void GranSubModNormalEPANonlinear::coeffs_to_local()
     }   
   }
   if (Emod < 0.0 || damp < 0.0 || lambda_p < 0.0 || 
-      lambda_p >= 1.0 || f0 < 0.0 || kadh < 0.0 || mexp < 1)
+      lambda_p >= 1.0 || f0 < 0.0 || kadh < 0.0 || 
+      mexp < 1 || nexp < 1)
         error->all(FLERR, "Illegal EPA nonlinear normal model");  
   
   minv = 1.0/mexp;
@@ -1147,7 +1150,7 @@ void GranSubModNormalEPANonlinear::mix_coeffs(double *icoeffs, double *jcoeffs)
 
 void GranSubModNormalEPANonlinear::set_fncrit()
 {
-  Fncrit = fabs(gm->Fntot + ka_dm + f0);  
+  Fncrit = fabs(gm->Fntot + ka_dn + f0);  
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1173,29 +1176,31 @@ double GranSubModNormalEPANonlinear::calculate_contact_radius()
 double GranSubModNormalEPANonlinear::calculate_forces()
 {
   double k2, delta_max;
-  double dm, dpm, dchi, k2_dmdpm, k1_dm;  
+  double dm, dn, dpm, dchi, k2_dmdpm, k1_dm, Reff_2m;  
   double *history = & gm->history[history_index];
   double delta = gm->delta;
   double Fmin, Fmin_lim, Fne;
 
-  k2 = k2fac*gm->Reff;
+  Reff_2m = pow(gm->Reff, 2-mexp)
+  k2 = k2fac*Reff_2m;
   
   dm = pow(delta, mexp);  
   dpm = pow(delta_p, mexp);
 
-  k1_dm = k1*gm->Reff*dm;
+  k1_dm = k1*Reff_2m*dm;
   k2_dmdpm = k2*(dm-dpm);  
 
   if (k2_dmdpm >= k1_dm){ 
     Fne = k1_dm;
   }
   else{ //Could be on adhesive branch
-    ka_dm = kadh*gm->Reff*dm;
-    if ((k1_dm > k2_dmdpm) && (k2_dmdpm > -ka_dm)){
+    dn = pow(delta, nexp)
+    ka_dn = kadh*gm->Reff*dn;
+    if ((k1_dm > k2_dmdpm) && (k2_dmdpm > -ka_dn)){
       Fne = k2_dmdpm;     
     }    
-    else if (-ka_dm >= k2_dmdpm){
-      Fne = -ka_dm;      
+    else if (-ka_dn >= k2_dmdpm){
+      Fne = -ka_dn;      
     }
   }  
   Fne -= f0;

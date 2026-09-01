@@ -67,7 +67,7 @@ int BaseChargeT::init_atomic(const int nlocal, const int nall,
 
 
   _threads_per_atom=device->threads_per_charge();
-  _tpa_stamp=device->tpa_stamp();
+  _param_stamp=device->param_stamp();
   _max_tpa=device->simd_size();
 
   bool charge = true;
@@ -134,12 +134,16 @@ void BaseChargeT::clear_atomic() {
 }
 
 // ---------------------------------------------------------------------------
-// Pick up a threads per atom setting changed by the run time tuner
+// Pick up kernel parameters changed by the run time tuner
 // ---------------------------------------------------------------------------
 template <class numtyp, class acctyp>
-void BaseChargeT::update_tpa() {
-  if (device->tpa_stamp() == _tpa_stamp) return;
-  _tpa_stamp=device->tpa_stamp();
+void BaseChargeT::update_kernel_params() {
+  if (device->param_stamp() == _param_stamp) return;
+  _param_stamp=device->param_stamp();
+
+  _block_size=device->pair_block_size();
+  _block_bio_size=device->block_bio_pair();
+
   int t_per_atom=device->threads_per_charge();
   if (t_per_atom > _max_tpa) t_per_atom=_max_tpa;
   if (t_per_atom == _threads_per_atom) return;
@@ -259,7 +263,7 @@ void BaseChargeT::compute(const int f_ago, const int inum_full,
   ans->inum(inum);
 
   if (ago==0) {
-    update_tpa();
+    update_kernel_params();
     reset_nbors(nall, inum, ilist, numj, firstneigh, success);
     if (!success)
       return;
@@ -319,7 +323,7 @@ int** BaseChargeT::compute(const int ago, const int inum_full,
 
   // Build neighbor list on GPU if necessary
   if (ago==0) {
-    update_tpa();
+    update_kernel_params();
     build_nbor_list(inum, inum_full-inum, nall, host_x, host_type,
                     sublo, subhi, tag, nspecial, special,
                     prd, periodicity, success);

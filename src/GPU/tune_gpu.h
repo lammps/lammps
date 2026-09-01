@@ -34,6 +34,7 @@ class TuneGPU : protected Pointers {
                                 //   small enough to keep the scan affordable
 
   std::vector<int> tpa_values;      // candidate values for threads per atom
+  std::vector<int> block_values;    // candidate values for the pair block size
   std::vector<int> nthreads_values; // candidate values for host OpenMP threads
 
   double **performance;      // performance data for each parameter set
@@ -60,12 +61,12 @@ class TuneGPU : protected Pointers {
 
  private:
   void allocate();
-  void check_simd_size();              // trim tpa values to the SIMD width
-  double close_window();               // steps per second of the current window
-  void get_params(int, int &, int &);  // parameters of a combination index
-  void set_param_values(int);          // apply the parameters of a combination
-  int get_optimal_combination_idx();   // best performing combination
-  void regular_performance_check();    // watch for performance degradation
+  void check_simd_size();                     // trim tpa values to SIMD width
+  double close_window();                      // steps per second of a window
+  void get_params(int, int &, int &, int &);  // parameters of a combination
+  void set_param_values(int);                 // apply them to the GPU library
+  int get_optimal_combination_idx();          // best performing combination
+  void regular_performance_check();           // watch for degradation
 };
 
 }    // namespace LAMMPS_NS

@@ -16,6 +16,7 @@
 #include "lal_device.h"
 #include "lal_precision.h"
 #include "lammps_gpu.h"
+#include <algorithm>
 #include <map>
 #include <cmath>
 #include <cstdlib>
@@ -69,8 +70,9 @@ template <class numtyp, class acctyp>
 DeviceT::Device() : _init_count(0), _device_init(false),
                     _comm_gpu_allocated(false),
                     _gpu_mode(GPU_FORCE), _first_device(0),
-                    _last_device(0), _platform_id(-1), _tpa_stamp(0),
-                    _tuning(0), _compiled(false),
+                    _last_device(0), _platform_id(-1), _param_stamp(0),
+                    _tuning(0), _max_block_pair(0), _max_block_bio_pair(0),
+                    _compiled(false),
                     _use_old_nbor_build(0), _use_device_sort(0) {
 }
 
@@ -1117,6 +1119,13 @@ int DeviceT::compile_kernels() {
   if (_threads_per_three<1)
     _threads_per_three=gpu_lib_data[8];
 
+  // remember the block sizes the kernels were compiled for, the shared memory
+  // used by the pair kernels is sized with them and they are the upper limit
+  // for any block size selected later on
+
+  _max_block_pair=gpu_lib_data[9];
+  _max_block_bio_pair=gpu_lib_data[10];
+
   if (_block_pair == -1) {
     _block_pair=gpu_lib_data[9];
     _block_bio_pair=gpu_lib_data[10];
@@ -1192,7 +1201,56 @@ void DeviceT::set_threads_per_atom(const int t_per_atom) {
 
   _threads_per_atom = t_per_atom;
   _threads_per_charge = t_per_atom;
-  _tpa_stamp++;
+  _param_stamp++;
+}
+
+/* ----------------------------------------------------------------------
+   range of thread block sizes the pair kernels can be launched with
+   the limits are the same conditions that init_device() enforces for the
+   block size given with the "blocksize" keyword
+------------------------------------------------------------------------- */
+
+template <class numtyp, class acctyp>
+void DeviceT::pair_block_size_range(int &lo, int &hi, int &step) const {
+  step = _simd_size;
+
+  // the "fast" pair kernels load the per type coefficients into shared memory
+  // with one thread per entry, and the "bio" variants with two entries per
+  // thread, so the block must be large enough for both
+
+  lo = _max_shared_types * _max_shared_types;
+  const int lo_bio = (_max_bio_shared_types + 1) / 2;
+  if (lo < lo_bio) lo = lo_bio;
+  if (lo < step) lo = step;
+  lo = ((lo + step - 1) / step) * step;
+
+  // the shared memory of the pair kernels is sized at compile time, so the
+  // block size can be lowered but never raised beyond that
+
+  hi = std::min(_max_block_pair, _max_block_bio_pair);
+  if (static_cast<size_t>(hi) > gpu->group_size_dim(0))
+    hi = static_cast<int>(gpu->group_size_dim(0));
+  hi = (hi / step) * step;
+
+  if (hi < lo) hi = lo;
+}
+
+/* ----------------------------------------------------------------------
+   change the thread block size used by the pair kernels
+------------------------------------------------------------------------- */
+
+template <class numtyp, class acctyp>
+void DeviceT::set_pair_block_size(const int block_pair) {
+  int lo, hi, step;
+  pair_block_size_range(lo, hi, step);
+
+  if (block_pair < lo || block_pair > hi) return;
+  if (block_pair % step != 0) return;
+  if (block_pair == _block_pair) return;
+
+  _block_pair = block_pair;
+  _block_bio_pair = block_pair;
+  _param_stamp++;
 }
 
 template <class numtyp, class acctyp>
@@ -1292,12 +1350,16 @@ void lmp_gpu_set_threads_per_atom(const int t_per_atom) {
   global_device.set_threads_per_atom(t_per_atom);
 }
 
-int lmp_gpu_threads_per_atom() {
-  return global_device.threads_per_atom();
-}
-
 int lmp_gpu_simd_size() {
   return global_device.simd_size();
+}
+
+void lmp_gpu_set_pair_block_size(const int block_pair) {
+  global_device.set_pair_block_size(block_pair);
+}
+
+void lmp_gpu_pair_block_size_range(int &lo, int &hi, int &step) {
+  global_device.pair_block_size_range(lo, hi, step);
 }
 
 double lmp_gpu_update_bin_size(const double subx, const double suby,

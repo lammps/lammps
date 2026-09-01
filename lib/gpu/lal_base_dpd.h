@@ -195,14 +195,15 @@ class BaseDPD {
  protected:
   bool _compiled;
   int _block_size, _threads_per_atom, _onetype, _extra_fields;
-  int _tpa_stamp, _max_tpa;
+  int _param_stamp, _max_tpa;
   double  _max_bytes, _max_an_bytes;
   double _gpu_overhead, _driver_overhead;
   UCL_D_Vec<int> *_nbor_data;
 
-  /// Pick up a threads per atom setting changed by the run time tuner
-  /** Must only be called right before the neighbor list is rebuilt **/
-  void update_tpa();
+  /// Pick up kernel parameters changed by the run time tuner
+  /** Must only be called right before the neighbor list is rebuilt, since
+    * the layout of the packed neighbor list depends on threads per atom **/
+  void update_kernel_params();
 
   void compile_kernels(UCL_Device &dev, const void *pair_string,
                        const char *k, const int onetype);

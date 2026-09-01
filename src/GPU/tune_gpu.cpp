@@ -78,6 +78,14 @@ TuneGPU::TuneGPU(LAMMPS *lmp, int nevery, int _nsamples, int _mode,
   for (int tpa = 1; tpa <= max_tpa; tpa *= 2) tpa_values.push_back(tpa);
   if (tpa_values.empty()) tpa_values.push_back(1);
 
+  // candidate values for the pair block size: the shared memory of the pair
+  // kernels is sized at compile time, so the accelerator library reports the
+  // range that can be launched without recompiling them
+
+  int lo = 0, hi = 0, step = 0;
+  lmp_gpu_pair_block_size_range(lo, hi, step);
+  for (int bs = lo; bs <= hi; bs += step) block_values.push_back(bs);
+
   // candidate values for the host threads used by the GPU library:
   // powers of two up to the thread count requested with the "omp" keyword,
   // or up to what OpenMP offers this MPI rank when "omp" was not used
@@ -121,10 +129,11 @@ TuneGPU::~TuneGPU()
 
 void TuneGPU::allocate()
 {
-  ncombinations = tpa_values.size() * nthreads_values.size();
+  ncombinations = tpa_values.size() * block_values.size() * nthreads_values.size();
 
   // rows = parameter combinations, ordered with threads per atom varying
-  //   fastest, cols = samples collected for that combination
+  //   fastest, then the pair block size, then the host threads
+  // cols = samples collected for that combination
 
   memory->destroy(performance);
   memory->create(performance, ncombinations, nsamples, "tune_gpu:performance");
@@ -226,11 +235,12 @@ void TuneGPU::tuning_kernel_params()
     performance[combination_idx][sample_idx] = perf;
 
     if (tuning_logfile) {
-      int tpa, nthreads;
-      get_params(combination_idx, tpa, nthreads);
+      int tpa, block, nthreads;
+      get_params(combination_idx, tpa, block, nthreads);
       utils::print(tuning_logfile,"t = {}: combination_idx {} sample {}: "
-                   "tpa = {} omp = {} perf = {:.1f} TPS\n", update->ntimestep,
-                   combination_idx, sample_idx, tpa, nthreads, perf);
+                   "tpa = {} blocksize = {} omp = {} perf = {:.1f} TPS\n",
+                   update->ntimestep, combination_idx, sample_idx, tpa, block,
+                   nthreads, perf);
       fflush(tuning_logfile);
     }
 
@@ -255,11 +265,12 @@ void TuneGPU::tuning_kernel_params()
     set_param_values(opt_combination_idx);
 
     if (tuning_logfile) {
-      int tpa, nthreads;
-      get_params(opt_combination_idx, tpa, nthreads);
+      int tpa, block, nthreads;
+      get_params(opt_combination_idx, tpa, block, nthreads);
       utils::print(tuning_logfile,"Finished tuning at t = {}. Found the "
-                   "optimal params: tpa = {} omp = {} perf = {:.1f} TPS\n",
-                   update->ntimestep, tpa, nthreads, opt_perf);
+                   "optimal params: tpa = {} blocksize = {} omp = {} "
+                   "perf = {:.1f} TPS\n", update->ntimestep, tpa, block,
+                   nthreads, opt_perf);
       fflush(tuning_logfile);
     }
 
@@ -300,26 +311,30 @@ double TuneGPU::close_window()
    parameter values of a combination index
 ------------------------------------------------------------------------- */
 
-void TuneGPU::get_params(int cidx, int &tpa, int &nthreads)
+void TuneGPU::get_params(int cidx, int &tpa, int &block, int &nthreads)
 {
   const int ntpa = tpa_values.size();
+  const int nblock = block_values.size();
   tpa = tpa_values[cidx % ntpa];
-  nthreads = nthreads_values[cidx / ntpa];
+  block = block_values[(cidx / ntpa) % nblock];
+  nthreads = nthreads_values[cidx / (ntpa * nblock)];
 }
 
 /* ----------------------------------------------------------------------
    apply the parameter values of a combination index
 
    the number of host threads takes effect right away, the threads per atom
-   value is picked up by the pair styles at the next neighbor list rebuild
+   and pair block size values are picked up by the pair styles at the next
+   neighbor list rebuild
 ------------------------------------------------------------------------- */
 
 void TuneGPU::set_param_values(int cidx)
 {
-  int tpa, nthreads;
-  get_params(cidx, tpa, nthreads);
+  int tpa, block, nthreads;
+  get_params(cidx, tpa, block, nthreads);
 
   lmp_gpu_set_threads_per_atom(tpa);
+  lmp_gpu_set_pair_block_size(block);
 
   #if (LAL_USE_OMP == 1)
   omp_set_num_threads(nthreads);
@@ -392,11 +407,11 @@ void TuneGPU::regular_performance_check()
   if (perf <= 0.0) return;
 
   if (tuning_logfile) {
-    int tpa, nthreads;
-    get_params(opt_combination_idx, tpa, nthreads);
+    int tpa, block, nthreads;
+    get_params(opt_combination_idx, tpa, block, nthreads);
     utils::print(tuning_logfile,"Using the optimal params at timestep {}: "
-                 "tpa = {} omp = {} current perf = {:.1f} TPS\n",
-                 update->ntimestep, tpa, nthreads, perf);
+                 "tpa = {} blocksize = {} omp = {} current perf = {:.1f} TPS\n",
+                 update->ntimestep, tpa, block, nthreads, perf);
     fflush(tuning_logfile);
   }
 

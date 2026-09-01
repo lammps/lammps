@@ -328,19 +328,26 @@ and GPU packages.
 
 The *auto/tuning* keyword enables auto-tuning of the kernel launch
 parameters of the pair styles of the GPU package.  The tuner scans the
-possible values of the *tpa* and *omp* settings, measures the resulting
-simulation rate in timesteps per second, and then keeps the combination
-that performed best.
+possible values of the *tpa*, *blocksize* and *omp* settings, measures the
+resulting simulation rate in timesteps per second, and then keeps the
+combination that performed best.
 
 The values scanned for *tpa* are the powers of two from 1 up to the SIMD
-width of the accelerator.  The values scanned for *omp* are the powers of
-two from 1 up to the *Nthreads* value given with the *omp* keyword, or up
-to the number of OpenMP threads available to the MPI process when the
-*omp* keyword is not used.  Since these two settings are shared by all
-pair styles of the GPU package, there is a single tuner per MPI process
-and the timing measurements cover the whole timestep, not an individual
-kernel.  The measured performance is reduced across all MPI processes, so
-that all processes select the same parameter combination.
+width of the accelerator.  The values scanned for *blocksize* are the
+multiples of the SIMD width that the pair kernels can be launched with:
+the largest of them is the block size the kernels were compiled for, since
+their shared memory is sized at compile time, and the smallest is the one
+needed to load the per type coefficients into shared memory.  On many GPUs
+this leaves a handful of values between 128 and 256.  The values scanned
+for *omp* are the powers of two from 1 up to the *Nthreads* value given
+with the *omp* keyword, or up to the number of OpenMP threads available to
+the MPI process when the *omp* keyword is not used.
+
+Since these settings are shared by all pair styles of the GPU package,
+there is a single tuner per MPI process and the timing measurements cover
+the whole timestep, not an individual kernel.  The measured performance is
+reduced across all MPI processes, so that all processes select the same
+parameter combination.
 
 A change of the *tpa* setting only takes effect at the next neighbor list
 build, because the layout of the neighbor list on the accelerator depends
@@ -351,18 +358,20 @@ minimization.
 
 The tuner writes the current parameter combination and the measured
 performance to a file named *tuning-gpu.log*.  This output can also be
-used as a hint for choosing *tpa* and *omp* values to set directly,
-without enabling auto-tuning.
+used as a hint for choosing *tpa*, *blocksize* and *omp* values to set
+directly, without enabling auto-tuning.
 
 The *nevery*, *nsamples*, *mode* and *reltol* parameters have the same
 meaning as for the :ref:`KOKKOS package <package_kokkos_autotuning>`.
 It is recommended to enable auto-tuning only when the simulated system is
-in steady state.
+in steady state.  Note that the number of parameter combinations is the
+product of the three value sets, so a full scan of all of them takes a
+correspondingly large number of timesteps.
 
 .. note::
 
-   Do not use *auto/tuning* in tandem with *tpa* in the same command,
-   since the scanning process overrides the *tpa* setting.  The
+   Do not use *auto/tuning* in tandem with *tpa* or *blocksize* in the
+   same command, since the scanning process overrides those settings.  The
    *Nthreads* value of the *omp* keyword is not overridden; it is used as
    the upper limit of the values scanned for the number of threads.
 

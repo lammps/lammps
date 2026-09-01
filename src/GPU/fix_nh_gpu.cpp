@@ -310,27 +310,6 @@ void FixNHGPU::remap()
    2nd half of Verlet update
 ------------------------------------------------------------------------- */
 
-/* ----------------------------------------------------------------------
-   1st half of Verlet update
------------------------------------------------------------------------*/
-
-void FixNHGPU::initial_integrate(int vflag)
-{
-  // without a barostat the velocity and position updates are consecutive and
-  // can be fused, everything else is handled by the base class
-
-  if (_respa_on || pstat_flag) { FixNH::initial_integrate(vflag); return; }
-
-  if (tstat_flag) {
-    compute_temp_target();
-    nhc_temp_integrate();
-  }
-
-  nve_v_x();
-}
-
-/* ---------------------------------------------------------------------- */
-
 void FixNHGPU::final_integrate() {
   if (neighbor->ago == 0 && _respa_on == 0) reset_dt();
   FixNH::final_integrate();
@@ -491,49 +470,6 @@ void FixNHGPU::nve_v()
       v[n] += dtfm * f[n];
       v[n+1] += dtfm * f[n+1];
       v[n+2] += dtfm * f[n+2];
-    }
-  }
-}
-
-/* ----------------------------------------------------------------------
-   fused half-step velocity and full-step position update
-
-   the two updates are consecutive in initial_integrate() when there is no
-   barostat, so doing them in a single pass over the atoms avoids reading
-   the velocities twice
------------------------------------------------------------------------*/
-
-void FixNHGPU::nve_v_x()
-{
-  double * _noalias const x = atom->x[0];
-  double * _noalias const v = atom->v[0];
-  const double * _noalias const f = atom->f[0];
-
-  if (_uniform_dtfm) {
-    const double dtfm = dtf / atom->mass[1];
-    #if (LAL_USE_OMP == 1) && (LAL_USE_OMP_SIMD == 1)
-    #pragma omp parallel for simd schedule(static)
-    #elif (LAL_USE_OMP_SIMD == 1)
-    #pragma omp simd
-    #endif
-    for (int i = 0; i < _nlocal3; i++) {
-      v[i] += dtfm * f[i];
-      x[i] += dtv * v[i];
-    }
-  } else {
-    #if (LAL_USE_OMP == 1)
-    #pragma omp parallel for schedule(static)
-    #endif
-    for (int i = 0; i < _nlocal; i++) {
-      const double dtfm = _dtfm[i];
-      if (dtfm == 0.0) continue;
-      const int n = i * 3;
-      v[n] += dtfm * f[n];
-      v[n+1] += dtfm * f[n+1];
-      v[n+2] += dtfm * f[n+2];
-      x[n] += dtv * v[n];
-      x[n+1] += dtv * v[n+1];
-      x[n+2] += dtv * v[n+2];
     }
   }
 }

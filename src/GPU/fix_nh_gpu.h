@@ -27,7 +27,6 @@ class FixNHGPU : public FixNH {
   FixNHGPU(class LAMMPS *, int, char **);
   void setup(int vflag) override;
   void reset_dt() override;
-  void initial_integrate(int vflag) override;
   void final_integrate() override;
   double memory_usage() override;
 
@@ -41,7 +40,6 @@ class FixNHGPU : public FixNH {
   void remap() override;
   void nve_x() override;
   void nve_v() override;
-  void nve_v_x();
   void nh_v_press() override;
   void nh_v_temp() override;
 };

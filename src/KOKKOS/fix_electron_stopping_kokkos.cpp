@@ -92,12 +92,12 @@ template <class DeviceType> void FixElectronStoppingKokkos<DeviceType>::post_for
   // update region if necessary
 
   if (region) {
-    if (!(utils::strmatch(region->style, "^block") || utils::strmatch(region->style, "^sphere")))
-      error->all(FLERR, "Cannot (yet) use {}-style region with fix electron/stopping/kk",
+    KokkosBase *regionKKBase = dynamic_cast<KokkosBase *>(region);
+    if (!regionKKBase)
+      error->all(FLERR, "Cannot use fix electron/stopping/kk with region style {} that has no KOKKOS support",
                  region->style);
     region->prematch();
     DAT::tdual_int_1d k_match = DAT::tdual_int_1d("electron_stopping:k_match", nlocal);
-    KokkosBase *regionKKBase = dynamic_cast<KokkosBase *>(region);
     regionKKBase->match_all_kokkos(groupbit, k_match);
     k_match.template sync<DeviceType>();
     d_match = k_match.template view<DeviceType>();

@@ -849,12 +849,20 @@ void FixRigidSmallKokkos<DeviceType>::operator()(TagInitialIntegrate, const int 
   KK_FLOAT inertia[3] = {(KK_FLOAT)b.inertia[0],(KK_FLOAT)b.inertia[1],(KK_FLOAT)b.inertia[2]};
   KK_FLOAT omega[3];
   MathExtraKokkos::angmom_to_omega(angmom,ex,ey,ez,inertia,omega);
-  MathExtraKokkos::richardson(b.quat,angmom,omega,inertia,dtq);
+  MathExtraKokkos::richardson(b.quat,angmom,omega,inertia,static_cast<KK_FLOAT>(dtq));
   MathExtraKokkos::q_to_exyz(b.quat,ex,ey,ez);
-  b.ex_space[0]=ex[0]; b.ex_space[1]=ex[1]; b.ex_space[2]=ex[2];
-  b.ey_space[0]=ey[0]; b.ey_space[1]=ey[1]; b.ey_space[2]=ey[2];
-  b.ez_space[0]=ez[0]; b.ez_space[1]=ez[1]; b.ez_space[2]=ez[2];
-  b.omega[0]=omega[0]; b.omega[1]=omega[1]; b.omega[2]=omega[2];
+  b.ex_space[0]=static_cast<double>(ex[0]);
+  b.ex_space[1]=static_cast<double>(ex[1]);
+  b.ex_space[2]=static_cast<double>(ex[2]);
+  b.ey_space[0]=static_cast<double>(ey[0]);
+  b.ey_space[1]=static_cast<double>(ey[1]);
+  b.ey_space[2]=static_cast<double>(ey[2]);
+  b.ez_space[0]=static_cast<double>(ez[0]);
+  b.ez_space[1]=static_cast<double>(ez[1]);
+  b.ez_space[2]=static_cast<double>(ez[2]);
+  b.omega[0]=static_cast<double>(omega[0]);
+  b.omega[1]=static_cast<double>(omega[1]);
+  b.omega[2]=static_cast<double>(omega[2]);
 }
 
 /* ----------------------------------------------------------------------
@@ -907,16 +915,19 @@ void FixRigidSmallKokkos<DeviceType>::apply_langevin_thermostat_kokkos()
       KK_FLOAT omega[3] = {(KK_FLOAT)b.omega[0],(KK_FLOAT)b.omega[1],(KK_FLOAT)b.omega[2]};
       KK_FLOAT wbody[3], tbody[3], lang[3];
       MathExtraKokkos::transpose_matvec(ex,ey,ez,omega,wbody);
-      tbody[0] = b.inertia[0]*gamma1*wbody[0] + sqrt(b.inertia[0])*gamma2*(rand_gen.drand()-0.5);
-      tbody[1] = b.inertia[1]*gamma1*wbody[1] + sqrt(b.inertia[1])*gamma2*(rand_gen.drand()-0.5);
-      tbody[2] = b.inertia[2]*gamma1*wbody[2] + sqrt(b.inertia[2])*gamma2*(rand_gen.drand()-0.5);
+      tbody[0] = static_cast<KK_FLOAT>(b.inertia[0]*gamma1*static_cast<double>(wbody[0]) +
+                                       sqrt(b.inertia[0])*gamma2*(rand_gen.drand()-0.5));
+      tbody[1] = static_cast<KK_FLOAT>(b.inertia[1]*gamma1*static_cast<double>(wbody[1]) +
+                                       sqrt(b.inertia[1])*gamma2*(rand_gen.drand()-0.5));
+      tbody[2] = static_cast<KK_FLOAT>(b.inertia[2]*gamma1*static_cast<double>(wbody[2]) +
+                                       sqrt(b.inertia[2])*gamma2*(rand_gen.drand()-0.5));
 
       // convert langevin torque from body frame back to space frame
 
       MathExtraKokkos::matvec(ex,ey,ez,tbody,lang);
-      l_d_langextra(ibody,3) = lang[0];
-      l_d_langextra(ibody,4) = lang[1];
-      l_d_langextra(ibody,5) = lang[2];
+      l_d_langextra(ibody,3) = static_cast<double>(lang[0]);
+      l_d_langextra(ibody,4) = static_cast<double>(lang[1]);
+      l_d_langextra(ibody,5) = static_cast<double>(lang[2]);
 
       l_rand_pool.free_state(rand_gen);
     });
@@ -1026,28 +1037,28 @@ void FixRigidSmallKokkos<DeviceType>::compute_forces_and_torques_kokkos()
       if (d_atom2body(i) < 0) return;
       Body &b = d_body(d_atom2body(i));
 
-      Kokkos::atomic_add(&b.fcm[0], d_f(i,0));
-      Kokkos::atomic_add(&b.fcm[1], d_f(i,1));
-      Kokkos::atomic_add(&b.fcm[2], d_f(i,2));
+      Kokkos::atomic_add(&b.fcm[0], static_cast<double>(d_f(i,0)));
+      Kokkos::atomic_add(&b.fcm[1], static_cast<double>(d_f(i,1)));
+      Kokkos::atomic_add(&b.fcm[2], static_cast<double>(d_f(i,2)));
 
       Few<double,3> x_i;
-      x_i[0] = d_x(i,0);
-      x_i[1] = d_x(i,1);
-      x_i[2] = d_x(i,2);
+      x_i[0] = static_cast<double>(d_x(i,0));
+      x_i[1] = static_cast<double>(d_x(i,1));
+      x_i[2] = static_cast<double>(d_x(i,2));
       auto unwrap = DomainKokkos::unmap(prd,h,triclinic,x_i,d_xcmimage(i));
       double dx = unwrap[0] - b.xcm[0];
       double dy = unwrap[1] - b.xcm[1];
       double dz = unwrap[2] - b.xcm[2];
 
-      Kokkos::atomic_add(&b.torque[0], dy*d_f(i,2) - dz*d_f(i,1));
-      Kokkos::atomic_add(&b.torque[1], dz*d_f(i,0) - dx*d_f(i,2));
-      Kokkos::atomic_add(&b.torque[2], dx*d_f(i,1) - dy*d_f(i,0));
+      Kokkos::atomic_add(&b.torque[0], dy*static_cast<double>(d_f(i,2)) - dz*static_cast<double>(d_f(i,1)));
+      Kokkos::atomic_add(&b.torque[1], dz*static_cast<double>(d_f(i,0)) - dx*static_cast<double>(d_f(i,2)));
+      Kokkos::atomic_add(&b.torque[2], dx*static_cast<double>(d_f(i,1)) - dy*static_cast<double>(d_f(i,0)));
 
       // extended particle's own torque (e.g. granular/dipole) adds to the body
       if (ext_torque && (d_eflags_l(i) & RigidConst::TORQUE)) {
-        Kokkos::atomic_add(&b.torque[0], d_torque_l(i,0));
-        Kokkos::atomic_add(&b.torque[1], d_torque_l(i,1));
-        Kokkos::atomic_add(&b.torque[2], d_torque_l(i,2));
+        Kokkos::atomic_add(&b.torque[0], static_cast<double>(d_torque_l(i,0)));
+        Kokkos::atomic_add(&b.torque[1], static_cast<double>(d_torque_l(i,1)));
+        Kokkos::atomic_add(&b.torque[2], static_cast<double>(d_torque_l(i,2)));
       }
     }
   );
@@ -1143,7 +1154,9 @@ void FixRigidSmallKokkos<DeviceType>::final_integrate()
       KK_FLOAT inertia[3] = {(KK_FLOAT)b.inertia[0],(KK_FLOAT)b.inertia[1],(KK_FLOAT)b.inertia[2]};
       KK_FLOAT omega[3];
       MathExtraKokkos::angmom_to_omega(angmom,ex,ey,ez,inertia,omega);
-      b.omega[0]=omega[0]; b.omega[1]=omega[1]; b.omega[2]=omega[2];
+      b.omega[0]=static_cast<double>(omega[0]);
+      b.omega[1]=static_cast<double>(omega[1]);
+      b.omega[2]=static_cast<double>(omega[2]);
     }
   );
 
@@ -1334,7 +1347,7 @@ void FixRigidSmallKokkos<DeviceType>::set_xv_kokkos(int setxflag)
   if(evflag){
     if(vflag_global){
       for(int i = 0; i < 6; i++){
-        virial[i] += ev.v[i];
+        virial[i] += static_cast<double>(ev.v[i]);
       }
     }
     if(vflag_atom){
@@ -1368,17 +1381,17 @@ void FixRigidSmallKokkos<DeviceType>::operator()(TagSetXV<SETXFLAG>, const int i
 
   if (evflag) {
     if (triclinic == 0) {
-      x0 = d_x(i,0) + xbox*xprd;
-      x1 = d_x(i,1) + ybox*yprd;
-      x2 = d_x(i,2) + zbox*zprd;
+      x0 = static_cast<double>(d_x(i,0)) + xbox*xprd;
+      x1 = static_cast<double>(d_x(i,1)) + ybox*yprd;
+      x2 = static_cast<double>(d_x(i,2)) + zbox*zprd;
     } else {
-      x0 = d_x(i,0) + xbox*xprd + ybox*xy + zbox*xz;
-      x1 = d_x(i,1) + ybox*yprd + zbox*yz;
-      x2 = d_x(i,2) + zbox*zprd;
+      x0 = static_cast<double>(d_x(i,0)) + xbox*xprd + ybox*xy + zbox*xz;
+      x1 = static_cast<double>(d_x(i,1)) + ybox*yprd + zbox*yz;
+      x2 = static_cast<double>(d_x(i,2)) + zbox*zprd;
     }
-    v0 = d_v(i,0);
-    v1 = d_v(i,1);
-    v2 = d_v(i,2);
+    v0 = static_cast<double>(d_v(i,0));
+    v1 = static_cast<double>(d_v(i,1));
+    v2 = static_cast<double>(d_v(i,2));
   }
 
   // x = displacement from center-of-mass, based on body orientation
@@ -1391,9 +1404,12 @@ void FixRigidSmallKokkos<DeviceType>::operator()(TagSetXV<SETXFLAG>, const int i
   KK_FLOAT delta[3];
   MathExtraKokkos::matvec(ex,ey,ez,displace,delta);
 
-  d_v(i,0) = b.omega[1]*delta[2] - b.omega[2]*delta[1] + b.vcm[0];
-  d_v(i,1) = b.omega[2]*delta[0] - b.omega[0]*delta[2] + b.vcm[1];
-  d_v(i,2) = b.omega[0]*delta[1] - b.omega[1]*delta[0] + b.vcm[2];
+  d_v(i,0) = static_cast<KK_FLOAT>(b.omega[1]*static_cast<double>(delta[2]) -
+                                   b.omega[2]*static_cast<double>(delta[1]) + b.vcm[0]);
+  d_v(i,1) = static_cast<KK_FLOAT>(b.omega[2]*static_cast<double>(delta[0]) -
+                                   b.omega[0]*static_cast<double>(delta[2]) + b.vcm[1]);
+  d_v(i,2) = static_cast<KK_FLOAT>(b.omega[0]*static_cast<double>(delta[1]) -
+                                   b.omega[1]*static_cast<double>(delta[0]) + b.vcm[2]);
 
   // add center of mass to displacement
   // map back into periodic box via xbox,ybox,zbox
@@ -1401,13 +1417,13 @@ void FixRigidSmallKokkos<DeviceType>::operator()(TagSetXV<SETXFLAG>, const int i
 
   if constexpr(SETXFLAG) {
     if (triclinic == 0) {
-      d_x(i,0) = delta[0] + b.xcm[0] - xbox*xprd;
-      d_x(i,1) = delta[1] + b.xcm[1] - ybox*yprd;
-      d_x(i,2) = delta[2] + b.xcm[2] - zbox*zprd;
+      d_x(i,0) = static_cast<KK_FLOAT>(static_cast<double>(delta[0]) + b.xcm[0] - xbox*xprd);
+      d_x(i,1) = static_cast<KK_FLOAT>(static_cast<double>(delta[1]) + b.xcm[1] - ybox*yprd);
+      d_x(i,2) = static_cast<KK_FLOAT>(static_cast<double>(delta[2]) + b.xcm[2] - zbox*zprd);
     } else {
-      d_x(i,0) = delta[0] + b.xcm[0] - xbox*xprd - ybox*xy - zbox*xz;
-      d_x(i,1) = delta[1] + b.xcm[1] - ybox*yprd - zbox*yz;
-      d_x(i,2) = delta[2] + b.xcm[2] - zbox*zprd;
+      d_x(i,0) = static_cast<KK_FLOAT>(static_cast<double>(delta[0]) + b.xcm[0] - xbox*xprd - ybox*xy - zbox*xz);
+      d_x(i,1) = static_cast<KK_FLOAT>(static_cast<double>(delta[1]) + b.xcm[1] - ybox*yprd - zbox*yz);
+      d_x(i,2) = static_cast<KK_FLOAT>(static_cast<double>(delta[2]) + b.xcm[2] - zbox*zprd);
     }
   }
 
@@ -1419,11 +1435,11 @@ void FixRigidSmallKokkos<DeviceType>::operator()(TagSetXV<SETXFLAG>, const int i
 
   if (evflag) {
     double massone;
-    if (d_rmass.data()) massone = d_rmass(i);
-    else massone = d_mass(d_type(i));
-    double fc0 = massone*(d_v(i,0) - v0)/dtf - d_f(i,0);
-    double fc1 = massone*(d_v(i,1) - v1)/dtf - d_f(i,1);
-    double fc2 = massone*(d_v(i,2) - v2)/dtf - d_f(i,2);
+    if (d_rmass.data()) massone = static_cast<double>(d_rmass(i));
+    else massone = static_cast<double>(d_mass(d_type(i)));
+    double fc0 = massone*(static_cast<double>(d_v(i,0)) - v0)/dtf - static_cast<double>(d_f(i,0));
+    double fc1 = massone*(static_cast<double>(d_v(i,1)) - v1)/dtf - static_cast<double>(d_f(i,1));
+    double fc2 = massone*(static_cast<double>(d_v(i,2)) - v2)/dtf - static_cast<double>(d_f(i,2));
 
     double vr[6];
     vr[0] = 0.5*x0*fc0;
@@ -1443,9 +1459,9 @@ void FixRigidSmallKokkos<DeviceType>::operator()(TagSetXV<SETXFLAG>, const int i
   if (extended) {
     const int ef = d_eflags(i);
     if (ef & RigidConst::SPHERE) {
-      d_omega(i,0) = b.omega[0];
-      d_omega(i,1) = b.omega[1];
-      d_omega(i,2) = b.omega[2];
+      d_omega(i,0) = static_cast<KK_FLOAT>(b.omega[0]);
+      d_omega(i,1) = static_cast<KK_FLOAT>(b.omega[1]);
+      d_omega(i,2) = static_cast<KK_FLOAT>(b.omega[2]);
     }
     // ellipsoid: compose body orientation with the particle's body-frame
     // orientation to get its space-frame quaternion, and set its angmom
@@ -1458,9 +1474,12 @@ void FixRigidSmallKokkos<DeviceType>::operator()(TagSetXV<SETXFLAG>, const int i
       MathExtraKokkos::qnormalize(quatatom);
       const KK_FLOAT rm = d_rmass(i);
       KK_FLOAT ione[3];
-      ione[0] = RigidConst::EINERTIA*rm * (shape[1]*shape[1] + shape[2]*shape[2]);
-      ione[1] = RigidConst::EINERTIA*rm * (shape[0]*shape[0] + shape[2]*shape[2]);
-      ione[2] = RigidConst::EINERTIA*rm * (shape[0]*shape[0] + shape[1]*shape[1]);
+      ione[0] = static_cast<KK_FLOAT>(RigidConst::EINERTIA*static_cast<double>(rm) *
+                                      (shape[1]*shape[1] + shape[2]*shape[2]));
+      ione[1] = static_cast<KK_FLOAT>(RigidConst::EINERTIA*static_cast<double>(rm) *
+                                      (shape[0]*shape[0] + shape[2]*shape[2]));
+      ione[2] = static_cast<KK_FLOAT>(RigidConst::EINERTIA*static_cast<double>(rm) *
+                                      (shape[0]*shape[0] + shape[1]*shape[1]));
       KK_FLOAT exone[3], eyone[3], ezone[3], am[3];
       KK_FLOAT omegae[3] = {(KK_FLOAT)b.omega[0],(KK_FLOAT)b.omega[1],(KK_FLOAT)b.omega[2]};
       MathExtraKokkos::q_to_exyz(quatatom, exone, eyone, ezone);
@@ -1494,9 +1513,9 @@ void FixRigidSmallKokkos<DeviceType>::operator()(TagUpdateXGC, const int ibody) 
   KK_FLOAT xgc_body[3] = {(KK_FLOAT)b.xgc_body[0],(KK_FLOAT)b.xgc_body[1],(KK_FLOAT)b.xgc_body[2]};
   KK_FLOAT xgc[3];
   MathExtraKokkos::matvec(ex,ey,ez,xgc_body,xgc);
-  b.xgc[0] = xgc[0] + b.xcm[0];
-  b.xgc[1] = xgc[1] + b.xcm[1];
-  b.xgc[2] = xgc[2] + b.xcm[2];
+  b.xgc[0] = static_cast<double>(xgc[0]) + b.xcm[0];
+  b.xgc[1] = static_cast<double>(xgc[1]) + b.xcm[1];
+  b.xgc[2] = static_cast<double>(xgc[2]) + b.xcm[2];
 }
 
 
@@ -2976,14 +2995,15 @@ double FixRigidSmallKokkos<DeviceType>::extract_erotational()
       MathExtraKokkos::quat_to_mat(d_body(i).quat,rot);
       MathExtraKokkos::transpose_matvec(rot,angmom,wbody);
       if (inertia[0] == 0.0) wbody[0] = 0.0;
-      else wbody[0] /= inertia[0];
+      else wbody[0] = static_cast<KK_FLOAT>(static_cast<double>(wbody[0]) / inertia[0]);
       if (inertia[1] == 0.0) wbody[1] = 0.0;
-      else wbody[1] /= inertia[1];
+      else wbody[1] = static_cast<KK_FLOAT>(static_cast<double>(wbody[1]) / inertia[1]);
       if (inertia[2] == 0.0) wbody[2] = 0.0;
-      else wbody[2] /= inertia[2];
+      else wbody[2] = static_cast<KK_FLOAT>(static_cast<double>(wbody[2]) / inertia[2]);
 
-      erotate += inertia[0]*wbody[0]*wbody[0] + inertia[1]*wbody[1]*wbody[1] +
-        inertia[2]*wbody[2]*wbody[2];
+      erotate += inertia[0]*static_cast<double>(wbody[0])*static_cast<double>(wbody[0]) +
+        inertia[1]*static_cast<double>(wbody[1])*static_cast<double>(wbody[1]) +
+        inertia[2]*static_cast<double>(wbody[2])*static_cast<double>(wbody[2]);
     },
     erotate
   );
@@ -3028,14 +3048,15 @@ double FixRigidSmallKokkos<DeviceType>::compute_scalar()
       MathExtraKokkos::quat_to_mat(d_body(i).quat,rot);
       MathExtraKokkos::transpose_matvec(rot,angmom,wbody);
       if (inertia[0] == 0.0) wbody[0] = 0.0;
-      else wbody[0] /= inertia[0];
+      else wbody[0] = static_cast<KK_FLOAT>(static_cast<double>(wbody[0]) / inertia[0]);
       if (inertia[1] == 0.0) wbody[1] = 0.0;
-      else wbody[1] /= inertia[1];
+      else wbody[1] = static_cast<KK_FLOAT>(static_cast<double>(wbody[1]) / inertia[1]);
       if (inertia[2] == 0.0) wbody[2] = 0.0;
-      else wbody[2] /= inertia[2];
+      else wbody[2] = static_cast<KK_FLOAT>(static_cast<double>(wbody[2]) / inertia[2]);
 
-      t += inertia[0]*wbody[0]*wbody[0] + inertia[1]*wbody[1]*wbody[1] +
-        inertia[2]*wbody[2]*wbody[2];
+      t += inertia[0]*static_cast<double>(wbody[0])*static_cast<double>(wbody[0]) +
+        inertia[1]*static_cast<double>(wbody[1])*static_cast<double>(wbody[1]) +
+        inertia[2]*static_cast<double>(wbody[2])*static_cast<double>(wbody[2]);
     },
     t
   );
@@ -3107,12 +3128,12 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void FixRigidSmallKokkos<DeviceType>::v_tally(EV_FLOAT &ev, int i, double vtot[6]) const{
   if (vflag_global) {
-    ev.v[0] += vtot[0];
-    ev.v[1] += vtot[1];
-    ev.v[2] += vtot[2];
-    ev.v[3] += vtot[3];
-    ev.v[4] += vtot[4];
-    ev.v[5] += vtot[5];
+    ev.v[0] += static_cast<KK_ACC_FLOAT>(vtot[0]);
+    ev.v[1] += static_cast<KK_ACC_FLOAT>(vtot[1]);
+    ev.v[2] += static_cast<KK_ACC_FLOAT>(vtot[2]);
+    ev.v[3] += static_cast<KK_ACC_FLOAT>(vtot[3]);
+    ev.v[4] += static_cast<KK_ACC_FLOAT>(vtot[4]);
+    ev.v[5] += static_cast<KK_ACC_FLOAT>(vtot[5]);
   }
 
   if (vflag_atom) {

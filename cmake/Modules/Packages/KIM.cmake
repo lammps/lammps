@@ -1,3 +1,10 @@
+
+# set policy to use the time of extraction as timestamps of files unpacked from downloaded
+# archives, so that updating an archive version triggers rebuilding all dependent objects
+ if(POLICY CMP0135)
+  cmake_policy(SET CMP0135 NEW)
+endif()
+
 set(KIM-API_MIN_VERSION 2.1.3)
 find_package(CURL)
 if(CURL_FOUND)

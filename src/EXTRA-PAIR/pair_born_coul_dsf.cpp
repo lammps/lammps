@@ -50,6 +50,8 @@ PairBornCoulDSF::PairBornCoulDSF(LAMMPS *lmp) :
 
 PairBornCoulDSF::~PairBornCoulDSF()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);

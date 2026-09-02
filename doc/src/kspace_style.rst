@@ -603,6 +603,11 @@ versions of these styles.
 The *pppm/xtb* and *pppm/tip4p/xtb* styles currently require an orthorhombic
 simulation box, as does :doc:`fix qmmm/xtb <fix_qmmm_xtb>`.
 
+.. versionchanged:: TBD
+
+The *pppm/cg/omp* style now supports triclinic simulation boxes in the
+same way as the *pppm/cg* and *pppm/omp* styles.
+
 .. versionchanged:: 4Jul2026
 
 Triclinic (non-orthogonal) box support was added to the *pppm/disp*

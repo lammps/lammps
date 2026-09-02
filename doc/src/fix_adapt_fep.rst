@@ -265,10 +265,13 @@ all types from 1 to :math:`N`.  A leading asterisk means all types from 1 to n
 :math:`I \le J` are considered; if asterisks imply type pairs where
 :math:`J < I`, they are ignored.
 
-IMPROTANT NOTE: If :doc:`pair_style hybrid or hybrid/overlay <pair_hybrid>` is
-being used, then the *pstyle* will be a sub-style name.  You must specify
-:math:`I,J` arguments that correspond to type pair values defined (via the
-:doc:`pair_coeff <pair_coeff>` command) for that sub-style.
+.. admonition:: IMPORTANT NOTE
+   :class: note
+
+   If :doc:`pair_style hybrid or hybrid/overlay <pair_hybrid>` is being
+   used, then the *pstyle* will be a sub-style name.  You must specify
+   :math:`I,J` arguments that correspond to type pair values defined
+   (via the :doc:`pair_coeff <pair_coeff>` command) for that sub-style.
 
 The *v_name* argument for keyword *pair* is the name of an
 :doc:`equal-style variable <variable>` which will be evaluated each time

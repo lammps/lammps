@@ -3,7 +3,7 @@
 region command
 ==============
 
-Accelerator Variants: *block/kk*, *sphere/kk*
+Accelerator Variants: *block/kk*, *cone/kk*, *cylinder/kk*, *ellipsoid/kk*, *plane/kk*, *prism/kk*, *sphere/kk*
 
 Syntax
 """"""
@@ -72,12 +72,12 @@ Syntax
        *move* args = v_x v_y v_z
          v_x,v_y,v_z = equal-style variables for x,y,z displacement of region over time (distance units)
        *rotate* args = v_theta Px Py Pz Rx Ry Rz
-         v_theta = equal-style variable for rotaton of region over time (in radians)
+         v_theta = equal-style variable for rotation of region over time (in radians)
          Px,Py,Pz = origin for axis of rotation (distance units)
          Rx,Ry,Rz = axis of rotation vector
        *open* value = integer from 1-6 corresponding to face index (see below)
 
-* accelerated styles (with same args) = *block/kk, sphere/kk*
+* accelerated styles (with same args) = *block/kk, cone/kk, cylinder/kk, ellipsoid/kk, plane/kk, prism/kk, sphere/kk*
 
 Examples
 """"""""

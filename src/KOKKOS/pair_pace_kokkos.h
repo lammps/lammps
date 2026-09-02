@@ -15,7 +15,11 @@
 // clang-format off
 PairStyle(pace/kk,PairPACEKokkos<LMPDeviceType>);
 PairStyle(pace/kk/device,PairPACEKokkos<LMPDeviceType>);
+#ifdef LMP_KOKKOS_GPU
 PairStyle(pace/kk/host,PairPACEKokkos<LMPHostType>);
+#else
+PairStyle(pace/kk/host,PairPACEKokkos<LMPDeviceType>);
+#endif
 // clang-format on
 #else
 
@@ -35,13 +39,21 @@ template<class DeviceType>
 class PairPACEKokkos : public PairPACE {
  public:
   struct TagPairPACEComputeNeigh{};
-  struct TagPairPACEComputeRadial{};
   struct TagPairPACEComputeAi{};
-  struct TagPairPACEConjugateAi{};
   struct TagPairPACEComputeRho{};
   struct TagPairPACEComputeFS{};
   struct TagPairPACEComputeWeights{};
   struct TagPairPACEComputeDerivative{};
+
+  // CPU backend variants: one atom per thread, neighbours and basis functions
+  // looped over serially inside the kernel.  That removes every atomic and
+  // makes the per-atom accumulators the innermost working set.
+  struct TagPairPACEComputeAiCPU{};
+  struct TagPairPACEConjugateAi{};   // host only: builds the full A from A_sph
+  struct TagPairPACEComputeRadialCPU{};
+  struct TagPairPACEComputeRhoCPU{};   // fused rho -> F(rho) -> weights
+  struct TagPairPACEComputeRhoBatchCPU{};   // same, 8 atoms per work item
+  struct TagPairPACEComputeDerivativeCPU{};
 
   template<int NEIGHFLAG, int EVFLAG>
   struct TagPairPACEComputeForce{};
@@ -65,15 +77,7 @@ class PairPACEKokkos : public PairPACE {
 
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
-  void operator() (TagPairPACEComputeRadial,const typename Kokkos::TeamPolicy<DeviceType, TagPairPACEComputeRadial>::member_type& team) const;
-
-// NOLINTNEXTLINE
-  KOKKOS_INLINE_FUNCTION
   void operator() (TagPairPACEComputeAi,const typename Kokkos::TeamPolicy<DeviceType, TagPairPACEComputeAi>::member_type& team) const;
-
-// NOLINTNEXTLINE
-  KOKKOS_INLINE_FUNCTION
-  void operator() (TagPairPACEConjugateAi,const int& ii) const;
 
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
@@ -86,6 +90,31 @@ class PairPACEKokkos : public PairPACE {
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (TagPairPACEComputeWeights,const int& iter) const;
+
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  void operator() (TagPairPACEComputeAiCPU,const int& ii) const;
+
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  void operator() (TagPairPACEConjugateAi,const int& ii) const;
+
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  void operator() (TagPairPACEComputeRadialCPU,const int& ii) const;
+
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  void operator() (TagPairPACEComputeRhoCPU,const int& ii) const;
+
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  void operator() (TagPairPACEComputeRhoBatchCPU,const int& ib) const;
+
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  void operator() (TagPairPACEComputeDerivativeCPU,const int& ii) const;
+
 
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
@@ -103,12 +132,41 @@ class PairPACEKokkos : public PairPACE {
 
  protected:
   int inum, maxneigh, chunk_size, chunk_offset, idx_ms_combs_max, idx_sph_max;
-  int host_flag;
+
+  // compile-time host/device switch, so the branches below are "if constexpr"
+  // and the unused kernel set is never instantiated (cf. pair_snap_kokkos.h)
+  static constexpr int host_flag =
+      (ExecutionSpaceFromDevice<DeviceType>::space == LAMMPS_NS::HostKK);
+
+  // set by init_style() when a CPU backend has to defer to the non-accelerated
+  // base class because there are no KOKKOS kernels for the requested case
+  int host_fallback;
 
   int eflag, vflag;
 
   int neighflag, max_ndensity;
   int nelements, lmax, nradmax, nradbase;
+
+  // ------------------------------------------------------------------
+  // GPU performance tuning constants (per-architecture).
+  //
+  // These set the team size used to launch each TeamPolicy kernel. They
+  // replace a single hard-coded team size (formerly 32 for every GPU
+  // kernel) so that occupancy can be tuned per kernel and per backend.
+  //
+  // They are selected by host_flag, not by the build configuration: in a GPU
+  // build the host instantiation (pace/kk/host) is a CPU backend and wants
+  // team size 1. Keying them off KOKKOS_ENABLE_CUDA and friends would give it
+  // team size 32, which for ComputeNeigh also means requesting 32x the team
+  // scratch it actually needs.
+  //
+  // NOTE: the GPU values intentionally reproduce the previous behaviour
+  // (team size 32 on all GPU kernels). They are the hook for the empirical
+  // per-architecture tuning sweep; do not change them without benchmarking.
+  // ------------------------------------------------------------------
+  static constexpr int team_size_compute_neigh = host_flag ? 1 : 32;
+  static constexpr int team_size_compute_ai = host_flag ? 1 : 32;
+  static constexpr int team_size_compute_derivative = host_flag ? 1 : 32;
 
   typename AT::t_neighbors_2d d_neighbors;
   typename AT::t_int_1d_randomread d_ilist;
@@ -188,6 +246,95 @@ class PairPACEKokkos : public PairPACE {
   KOKKOS_INLINE_FUNCTION
   void evaluate_splines(const int, const int, KK_FLOAT, int, int, int, int) const;
 
+  // Shared inner radial loop for ComputeDerivative. Accumulates the gradient
+  // contribution of a single (l, m) spherical-harmonic channel into f_ji for
+  // all radial functions n. wscale folds in the factor-of-2 used for m > 0.
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  void compute_derivative_radial(const int ii, const int jj, const int mu_j,
+      const int idx_sph, const int l, const complex &ylm, const complex (&dylm)[3],
+      const KK_FLOAT rinv, const KK_FLOAT (&r_hat)[3], const KK_FLOAT wscale,
+      KK_ACC_FLOAT (&f_ji)[3]) const;
+
+  // Read A(l,m) for atom-slot ii, element mu, radial index n from the half-basis
+  // A_sph using conjugate symmetry A(l,-p) = (-1)^p * conj(A(l,p)). Shared by
+  // ComputeRho (product) and ComputeWeights (leave-one-out product recompute).
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  complex read_A(const int ii, const int mu, const int l, const int m, const int n) const;
+  // shared body of ComputeAi.  NEED_ATOMICS is true when several threads may
+  // accumulate into the same atom (device backends), false when one thread
+  // owns the atom (CPU backends), following the sna_kokkos pattern.
+  template<bool NEED_ATOMICS>
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  void compute_ai_one(const int, const int) const;
+
+  // Base pointers and strides for one atom, hoisted out of the basis-function
+  // loops so the multi-dimensional View subscripts are not recomputed for
+  // every access.  Host only, where the layout is LayoutRight.
+  struct BasisPtrs {
+    const complex *A;
+    const KK_FLOAT *A_rank1;
+    complex *dB;
+    complex *w;
+    KK_FLOAT *w_rank1;
+    KK_FLOAT *rho;
+    const KK_FLOAT *dF;
+    const int *mus, *ns, *ls, *ms, *idx_funcs, *rank, *idx_sph;
+    const int *A_off, *w_off, *wm_off, *r1_off, *dB_off;
+    const KK_FLOAT *ctildes;
+    int A_l, A_n, w_l, w_n, rankmax, ndensitymax;
+  };
+
+  KOKKOS_INLINE_FUNCTION
+  void set_basis_ptrs(BasisPtrs &, const int, const int) const;
+
+  // CPU-only bodies for one (atom, ms-combination): the rank-length products
+  // live on the stack instead of in chunk-sized global arrays.  NDENSITY
+  // fixes the density count at compile time (0 = runtime).
+  template<int NDENSITY>
+  KOKKOS_INLINE_FUNCTION
+  void rho_fs_weights_cpu(const int) const;
+
+  template<int NDENSITY>
+  KOKKOS_INLINE_FUNCTION
+  void rho_fs_weights_batch_cpu(const int, const int, const int) const;
+
+  template<int NDENSITY>
+  KOKKOS_INLINE_FUNCTION
+  void compute_rho_one_cpu(const BasisPtrs &, const int, const int) const;
+
+  template<int NDENSITY>
+  KOKKOS_INLINE_FUNCTION
+  void compute_weights_one_cpu(const BasisPtrs &, const int, const int) const;
+
+  template<int NDENSITY>
+  KOKKOS_INLINE_FUNCTION
+  void rho_one_rank1_cpu(const BasisPtrs &, const int, const int) const;
+
+  template<int NDENSITY>
+  KOKKOS_INLINE_FUNCTION
+  void weights_one_rank1_cpu(const BasisPtrs &, const int, const int) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void compute_fs_one(const int) const;
+
+  KOKKOS_INLINE_FUNCTION
+  void compute_derivative_one(const int, const int) const;
+
+  // upper bound on the ACE correlation order, for the stack temporaries above
+  static constexpr int MAX_RANK_CPU = 16;
+
+  // flat one-atom-per-thread policy used by the CPU kernels.  A dynamic
+  // schedule matters because the per-atom cost follows the neighbor count,
+  // which is ragged (cf. snap_get_policy in pair_snap_kokkos.h).
+  template<class TagStyle>
+  auto host_atom_policy() const {
+    return Kokkos::RangePolicy<DeviceType, Kokkos::Schedule<Kokkos::Dynamic>,
+                               TagStyle>(0, chunk_size);
+  }
+
   template<class TagStyle>
   void check_team_size_for(int, int&, int);
 
@@ -224,19 +371,20 @@ class PairPACEKokkos : public PairPACE {
   typedef typename Kokkos::View<KK_FLOAT*, DeviceType>::host_mirror_type th_ace_1d;
 
   t_ace_3d A_rank1;
-  t_ace_4c A;
 
-  t_ace_3c A_list;
-  t_ace_3c A_forward_prod;
 
   t_ace_3d weights_rank1;
-  t_ace_4c weights;
+  // Spherical-harmonic weights, stored as separate real/imaginary arrays
+  // (rather than an interleaved complex array) so that the atomic
+  // accumulation in ComputeWeights is coalesced across the (innermost) atom
+  // index on GPUs. Mirrors the ulisttot_re/ulisttot_im layout in Kokkos SNAP.
+  t_ace_4d weights_re;
+  t_ace_4d weights_im;
 
   t_ace_1d e_atom;
   t_ace_2d rhos;
   t_ace_2d dF_drho;
 
-  t_ace_3c dB_flatten;
 
   // hard-core repulsion
   t_ace_1d rho_core;
@@ -248,8 +396,8 @@ class PairPACEKokkos : public PairPACE {
   th_ace_1d h_corerep;
 
   // radial functions
-  t_ace_4d fr;
-  t_ace_4d dfr;
+  t_ace_3d fr;
+  t_ace_3d dfr;
   t_ace_3d gr;
   t_ace_3d dgr;
   t_ace_3d d_values;
@@ -259,8 +407,29 @@ class PairPACEKokkos : public PairPACE {
 
   void pre_compute_harmonics(int);
 
-  t_ace_4c A_sph;
+  // Spherical-harmonic basis A, stored as separate real/imaginary arrays
+  // (rather than an interleaved complex array) so that the atomic
+  // accumulation over neighbors in ComputeAi is coalesced across the
+  // (innermost) atom index on GPUs. Mirrors Kokkos SNAP's ulisttot_re/im.
+  // ------------------------------------------------------------------
+  // Host-only ("dual layout") arrays.
+  //
+  // The CPU kernels keep the original interleaved-complex layout, which is
+  // what a single thread walking one atom wants: re/im land in the same
+  // cache line. The device kernels use the split re/im arrays below, which
+  // is what a warp scattering across atoms wants (coalescing). Only one set
+  // is ever allocated -- see grow() -- so the duplication is in the
+  // declarations, not in memory.
+  // ------------------------------------------------------------------
+  t_ace_4c A;           // full (l,m) A basis, host only
+  t_ace_4c A_sph;       // interleaved half-basis A, host only
+  t_ace_4c weights;     // interleaved weights, host only
+  t_ace_3c dB_flatten;  // stored leave-one-out products, host only
+
+  t_ace_4d A_sph_re;
+  t_ace_4d A_sph_im;
   t_ace_1d d_idx_sph;
+  t_ace_1i d_idx_sph_cpu;   // int copy, sentinel -1 remapped to a trash row
   t_ace_1d alm;
   t_ace_1d blm;
   t_ace_1d cl;
@@ -289,6 +458,7 @@ class PairPACEKokkos : public PairPACE {
 
   // tilde
   t_ace_1i d_idx_ms_combs_count;
+  t_ace_1i d_nms_rank1;   // number of rank-1 ms-combinations, which come first
   t_ace_2i_lr d_rank;
   t_ace_2i_lr d_num_ms_combs;
   t_ace_2i_lr d_idx_funcs;
@@ -297,6 +467,23 @@ class PairPACEKokkos : public PairPACE {
   t_ace_3i_lr d_ls;
   t_ace_3i_lr d_ms_combs;
   t_ace_3d d_ctildes;
+
+  // CPU only: the flattened offset of each (ms-combination, rank) term into an
+  // atom's A and weights blocks, precomputed once so the inner loops do a
+  // single load instead of walking mus/ns/ls/ms_combs and rebuilding the
+  // subscript.  d_wm_off carries the (l,-m) offset with the sign of the
+  // half-basis factor packed into its low bit.
+  t_ace_3i_lr d_A_off, d_w_off, d_wm_off;
+  t_ace_2i_lr d_r1_off;
+  // prefix offsets into the rank-compacted dB store: entry idx begins at
+  // d_dB_off(mu,idx).  Compaction halves the dB stream for typical bases,
+  // where most ms-combinations have rank ~3 but the padded stride is rankmax.
+  t_ace_2i_lr d_dB_off;
+  int dB_total_max;
+  // whether the basis fits the stack buffers of the batched CPU kernels
+  bool use_batched_cpu = false;
+
+  void build_cpu_offset_tables();
 
   t_ace_3d3 f_ij;
 

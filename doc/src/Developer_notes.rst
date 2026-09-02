@@ -562,7 +562,7 @@ each processor owns a brick and the union of all the bricks is the
 global grid.  Tiled decompositions are produced by load balancing with
 the RCB algorithm; see the :doc:`balance rcb <balance>` command.
 
-For the ``FFT decompostion`` of the grid, each processor owns a brick
+For the ``FFT decomposition`` of the grid, each processor owns a brick
 that spans the entire x dimension of the grid while the y and z
 dimensions are partitioned as a regular 2d array (P1 by P2), where P =
 P1 * P2.

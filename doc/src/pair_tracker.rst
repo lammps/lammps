@@ -137,6 +137,9 @@ means all types from 1 to M.  A leading asterisk means all types from
 (inclusive).  Note that the *type/include* keyword can be specified
 multiple times.
 
+An example input script using this pair style can be found in the
+``examples/PACKAGES/tracker`` folder.
+
 Mixing, shift, table, tail correction, restart, rRESPA info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 

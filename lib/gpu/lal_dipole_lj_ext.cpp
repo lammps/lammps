@@ -18,6 +18,7 @@
 #include <cmath>
 
 #include "lal_dipole_lj.h"
+#include "lammps_gpu.h"
 
 using namespace std;
 using namespace LAMMPS_AL;
@@ -27,6 +28,8 @@ static DipoleLJ<PRECISION,ACC_PRECISION> DPLMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
+
+namespace LAMMPS_GPU {
 int dpl_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
                  double **host_lj2, double **host_lj3, double **host_lj4,
                  double **offset, double *special_lj, const int inum,
@@ -36,7 +39,6 @@ int dpl_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
                  double *host_special_coul, const double qqrd2e) {
   DPLMF.clear();
   gpu_mode=DPLMF.device->gpu_mode();
-  double gpu_split=DPLMF.device->particle_split();
   int first_gpu=DPLMF.device->first_device();
   int last_gpu=DPLMF.device->last_device();
   int world_me=DPLMF.device->world_me();
@@ -58,7 +60,7 @@ int dpl_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
   if (world_me==0)
     init_ok=DPLMF.init(ntypes, cutsq, host_lj1, host_lj2, host_lj3,
                        host_lj4, offset, special_lj, inum, nall, max_nbors,
-                       maxspecial, cell_size, gpu_split, screen, host_cut_ljsq,
+                       maxspecial, cell_size, screen, host_cut_ljsq,
                        host_cut_coulsq, host_special_coul, qqrd2e);
 
   DPLMF.device->world_barrier();
@@ -77,7 +79,7 @@ int dpl_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
     if (gpu_rank==i && world_me!=0)
       init_ok=DPLMF.init(ntypes, cutsq, host_lj1, host_lj2, host_lj3, host_lj4,
                          offset, special_lj, inum, nall, max_nbors, maxspecial,
-                         cell_size, gpu_split, screen, host_cut_ljsq,
+                         cell_size, screen, host_cut_ljsq,
                          host_cut_coulsq, host_special_coul, qqrd2e);
 
     DPLMF.device->serialize_init();
@@ -96,28 +98,25 @@ void dpl_gpu_clear() {
   DPLMF.clear();
 }
 
-int** dpl_gpu_compute_n(const int ago, const int inum_full,
-                        const int nall, double **host_x, int *host_type,
-                        double *sublo, double *subhi, tagint *tag, int **nspecial,
-                        tagint **special, const bool eflag, const bool vflag,
-                        const bool eatom, const bool vatom, int &host_start,
-                        int **ilist, int **jnum, const double cpu_time,
-                        bool &success, double *host_q, double **host_mu,
-                        double *boxlo, double *prd) {
+int **dpl_gpu_compute_n(const int ago, const int inum_full, const int nall, double **host_x,
+                        int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
+                        tagint **special, const bool eflag, const bool vflag, const bool eatom,
+                        const bool vatom, int **ilist, int **jnum, bool &success, double *host_q,
+                        double **host_mu, double *boxlo, double *prd)
+{
   return DPLMF.compute(ago, inum_full, nall, host_x, host_type, sublo,
                        subhi, tag, nspecial, special, eflag, vflag, eatom,
-                       vatom, host_start, ilist, jnum, cpu_time, success,
+                       vatom, ilist, jnum, success,
                        host_q, host_mu, boxlo, prd);
 }
 
 void dpl_gpu_compute(const int ago, const int inum_full, const int nall,
                      double **host_x, int *host_type, int *ilist, int *numj,
                      int **firstneigh, const bool eflag, const bool vflag,
-                     const bool eatom, const bool vatom, int &host_start,
-                     const double cpu_time, bool &success, double *host_q,
+                     const bool eatom, const bool vatom, bool &success, double *host_q,
                      double **host_mu, const int nlocal, double *boxlo, double *prd) {
   DPLMF.compute(ago,inum_full,nall,host_x,host_type,ilist,numj,firstneigh,eflag,
-                vflag,eatom,vatom,host_start,cpu_time,success,host_q,host_mu,
+                vflag,eatom,vatom,success,host_q,host_mu,
                 nlocal,boxlo,prd);
 }
 
@@ -125,4 +124,4 @@ double dpl_gpu_bytes() {
   return DPLMF.host_memory_usage();
 }
 
-
+} // namespace LAMMPS_GPU

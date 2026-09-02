@@ -194,17 +194,13 @@ Guidelines for best performance
   particles), it can be more efficient to run with fewer MPI tasks per
   GPU, even if you do not use all the cores on the compute node.
 * The :doc:`package gpu <package>` command has several options for tuning
-  performance.  Neighbor lists can be built on the GPU or CPU.  Force
-  calculations can be dynamically balanced across the CPU cores and
-  GPUs.  GPU-specific settings can be made which can be optimized
+  performance.  Neighbor lists can be built on the GPU or CPU.
+  GPU-specific settings can be made which can be optimized
   for different hardware.  See the :doc:`package <package>` command
   page for details.
 * As described by the :doc:`package gpu <package>` command, GPU
   accelerated pair styles can perform computations asynchronously with
-  CPU computations. The "Pair" time reported by LAMMPS will be the
-  maximum of the time required to complete the CPU pair style
-  computations and the time required to complete the GPU pair style
-  computations. Any time spent for GPU-enabled pair styles for
+  CPU computations.  Any time spent for GPU-enabled pair styles for
   computations that run simultaneously with :doc:`bond <bond_style>`,
   :doc:`angle <angle_style>`, :doc:`dihedral <dihedral_style>`,
   :doc:`improper <improper_style>`, and :doc:`long-range <kspace_style>`

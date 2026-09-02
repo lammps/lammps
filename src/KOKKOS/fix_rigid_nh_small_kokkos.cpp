@@ -662,11 +662,11 @@ void FixRigidNHSmallKokkos<DeviceType>::nh_initial_integrate_bodies(
 
       // step 1.4 to 1.13 - use no_squish rotate to update p and q
 
-      MathExtraKokkos::no_squish_rotate(3,b.conjqm,b.quat,inertia,l_dtq);
-      MathExtraKokkos::no_squish_rotate(2,b.conjqm,b.quat,inertia,l_dtq);
-      MathExtraKokkos::no_squish_rotate(1,b.conjqm,b.quat,inertia,l_dtv);
-      MathExtraKokkos::no_squish_rotate(2,b.conjqm,b.quat,inertia,l_dtq);
-      MathExtraKokkos::no_squish_rotate(3,b.conjqm,b.quat,inertia,l_dtq);
+      MathExtraKokkos::no_squish_rotate(3,b.conjqm,b.quat,inertia,static_cast<KK_FLOAT>(l_dtq));
+      MathExtraKokkos::no_squish_rotate(2,b.conjqm,b.quat,inertia,static_cast<KK_FLOAT>(l_dtq));
+      MathExtraKokkos::no_squish_rotate(1,b.conjqm,b.quat,inertia,static_cast<KK_FLOAT>(l_dtv));
+      MathExtraKokkos::no_squish_rotate(2,b.conjqm,b.quat,inertia,static_cast<KK_FLOAT>(l_dtq));
+      MathExtraKokkos::no_squish_rotate(3,b.conjqm,b.quat,inertia,static_cast<KK_FLOAT>(l_dtq));
 
       // update exyz_space, transform p back to angmom, update angular velocity
 
@@ -674,18 +674,28 @@ void FixRigidNHSmallKokkos<DeviceType>::nh_initial_integrate_bodies(
       MathExtraKokkos::invquatvec(b.quat,b.conjqm,mbody);
       MathExtraKokkos::matvec(ex,ey,ez,mbody,angmom);
 
-      angmom[0] *= 0.5;
-      angmom[1] *= 0.5;
-      angmom[2] *= 0.5;
+      angmom[0] *= static_cast<KK_FLOAT>(0.5);
+      angmom[1] *= static_cast<KK_FLOAT>(0.5);
+      angmom[2] *= static_cast<KK_FLOAT>(0.5);
 
       MathExtraKokkos::angmom_to_omega(angmom,ex,ey,ez,inertia,omega);
 
       // store the updated rotational state back to the (double) body
-      b.ex_space[0]=ex[0]; b.ex_space[1]=ex[1]; b.ex_space[2]=ex[2];
-      b.ey_space[0]=ey[0]; b.ey_space[1]=ey[1]; b.ey_space[2]=ey[2];
-      b.ez_space[0]=ez[0]; b.ez_space[1]=ez[1]; b.ez_space[2]=ez[2];
-      b.angmom[0]=angmom[0]; b.angmom[1]=angmom[1]; b.angmom[2]=angmom[2];
-      b.omega[0]=omega[0]; b.omega[1]=omega[1]; b.omega[2]=omega[2];
+      b.ex_space[0]=static_cast<double>(ex[0]);
+      b.ex_space[1]=static_cast<double>(ex[1]);
+      b.ex_space[2]=static_cast<double>(ex[2]);
+      b.ey_space[0]=static_cast<double>(ey[0]);
+      b.ey_space[1]=static_cast<double>(ey[1]);
+      b.ey_space[2]=static_cast<double>(ey[2]);
+      b.ez_space[0]=static_cast<double>(ez[0]);
+      b.ez_space[1]=static_cast<double>(ez[1]);
+      b.ez_space[2]=static_cast<double>(ez[2]);
+      b.angmom[0]=static_cast<double>(angmom[0]);
+      b.angmom[1]=static_cast<double>(angmom[1]);
+      b.angmom[2]=static_cast<double>(angmom[2]);
+      b.omega[0]=static_cast<double>(omega[0]);
+      b.omega[1]=static_cast<double>(omega[1]);
+      b.omega[2]=static_cast<double>(omega[2]);
     });
 }
 
@@ -750,15 +760,19 @@ void FixRigidNHSmallKokkos<DeviceType>::nh_final_integrate_bodies(
       MathExtraKokkos::invquatvec(b.quat,b.conjqm,mbody);
       MathExtraKokkos::matvec(ex,ey,ez,mbody,angmom);
 
-      angmom[0] *= 0.5;
-      angmom[1] *= 0.5;
-      angmom[2] *= 0.5;
+      angmom[0] *= static_cast<KK_FLOAT>(0.5);
+      angmom[1] *= static_cast<KK_FLOAT>(0.5);
+      angmom[2] *= static_cast<KK_FLOAT>(0.5);
 
       MathExtraKokkos::angmom_to_omega(angmom,ex,ey,ez,inertia,omega);
 
       // store the updated rotational state back to the (double) body
-      b.angmom[0]=angmom[0]; b.angmom[1]=angmom[1]; b.angmom[2]=angmom[2];
-      b.omega[0]=omega[0]; b.omega[1]=omega[1]; b.omega[2]=omega[2];
+      b.angmom[0]=static_cast<double>(angmom[0]);
+      b.angmom[1]=static_cast<double>(angmom[1]);
+      b.angmom[2]=static_cast<double>(angmom[2]);
+      b.omega[0]=static_cast<double>(omega[0]);
+      b.omega[1]=static_cast<double>(omega[1]);
+      b.omega[2]=static_cast<double>(omega[2]);
     });
 }
 

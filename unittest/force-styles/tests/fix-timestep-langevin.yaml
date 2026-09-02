@@ -3,7 +3,7 @@ lammps_version: 4 Jul 2026
 tags: no_respa no_restart
 date_generated: Fri Jul 10 18:22:56 2026
 epsilon: 5e-14
-skip_tests: kokkos_gpu kokkos_omp kokkos_serial omp
+skip_tests: kokkos_gpu kokkos_omp kokkos_serial
 prerequisites: |
   atom full
   fix langevin

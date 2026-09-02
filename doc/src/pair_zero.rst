@@ -1,16 +1,20 @@
 .. index:: pair_style zero
+.. index:: pair_style zero/coul
 
 pair_style zero command
 =======================
+
+pair_style zero/coul command
+============================
 
 Syntax
 """"""
 
 .. code-block:: LAMMPS
 
-   pair_style zero cutoff [nocoeff] [full]
+   pair_style style cutoff [nocoeff] [full]
 
-* zero = style name of this pair style
+* style = *zero* or *zero/coul*
 * cutoff = global cutoff (distance units)
 * nocoeff = ignore all pair_coeff parameters (optional)
 * full = build full neighbor list (optional)
@@ -24,6 +28,7 @@ Examples
    pair_style zero 5.0 nocoeff
    pair_coeff * *
    pair_coeff 1 2*4 3.0
+   pair_style zero/coul 12.0
 
 Description
 """""""""""
@@ -50,6 +55,23 @@ In this case, only the global cutoff will be used.
 
 The optional *full* flag builds a full neighbor list instead of the default
 half neighbor list.
+
+.. versionadded:: TBD
+
+Pair style *zero/coul* behaves exactly like pair style *zero*, but
+additionally presents itself as a Coulombic pair style: it declares
+compatibility with :doc:`kspace styles <kspace_style>` and provides its
+cutoff as the real-space Coulomb cutoff, while still computing no
+pairwise interactions.  This allows computing only the k-space
+contribution to forces and energies, or satisfying commands that require
+the presence of a Coulombic pair style, for example for testing and
+debugging purposes.  Note that the k-space calculation then misses the
+compensating real-space contribution, so the resulting forces and
+energies do not correspond to a complete Coulomb interaction.  Since the
+compatibility checks between kspace and pair styles are applied in both
+directions, pair style *zero/coul* cannot be used with kspace styles
+that require a pair style providing dispersion or TIP4P support (e.g.
+*pppm/disp* or *pppm/tip4p*).
 
 The following coefficients must be defined for each pair of atoms
 types via the :doc:`pair_coeff <pair_coeff>` command as in the examples

@@ -37,7 +37,7 @@ class FixBAOAB : public Fix {
   void restart(char *) override;
   double compute_scalar() override;
 
- private:
+ protected:
   double t_start, t_stop;    // temperature ramp endpoints
   double t_target;           // current target temperature
   double gamma;              // friction coefficient = 1/damp

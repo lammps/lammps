@@ -192,6 +192,7 @@ void FixQEqReaxFFOMP::compute_H()
 
         for (int jj = 0; jj < jnum; jj++) {
           int j = jlist[jj];
+          j &= NEIGHMASK;
 
           dx = x[j][0] - x[i][0];
           dy = x[j][1] - x[i][1];
@@ -459,7 +460,7 @@ int FixQEqReaxFFOMP::CG(double *b, double *x)
     beta = sig_new / sig_old;
 
 #if defined(_OPENMP)
-#pragma omp for schedule(dynamic,50)
+#pragma omp parallel for schedule(dynamic,50)
 #endif
     for (int jj = 0; jj < nn; jj++) {
       int ii = ilist[jj];
@@ -762,7 +763,7 @@ int FixQEqReaxFFOMP::dual_CG(double *b1, double *b2, double *x1, double *x2)
     beta_t = sig_new_t / sig_old_t;
 
 #if defined(_OPENMP)
-#pragma omp for schedule(dynamic,50)
+#pragma omp parallel for schedule(dynamic,50)
 #endif
     for (int jj = 0; jj < nn; jj++) {
       int ii = ilist[jj];

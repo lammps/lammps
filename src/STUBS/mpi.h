@@ -55,9 +55,12 @@
 #define MPI_COMM_NULL (-1)
 #define MPI_GROUP_EMPTY (-1)
 #define MPI_GROUP_NULL (-1)
+#define MPI_PROC_NULL (-2)
+#define MPI_REQUEST_NULL 0
 
 #define MPI_ANY_SOURCE (-1)
 #define MPI_STATUS_IGNORE NULL
+#define MPI_STATUSES_IGNORE NULL
 
 #define MPI_Comm int
 #define MPI_Request int

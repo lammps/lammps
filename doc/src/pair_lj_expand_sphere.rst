@@ -1,10 +1,11 @@
 .. index:: pair_style lj/expand/sphere
+.. index:: pair_style lj/expand/sphere/kk
 .. index:: pair_style lj/expand/sphere/omp
 
 pair_style lj/expand/sphere command
 ===================================
 
-Accelerator Variants: *lj/expand/sphere/omp*
+Accelerator Variants: *lj/expand/sphere/kk*, *lj/expand/sphere/omp*
 
 Syntax
 """"""

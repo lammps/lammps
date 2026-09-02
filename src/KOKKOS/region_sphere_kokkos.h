@@ -27,6 +27,7 @@ RegionStyle(sphere/kk/host,RegSphereKokkos<LMPHostType>);
 
 #include "kokkos_base.h"
 #include "kokkos_type.h"
+#include "region_remap_kokkos.h"
 
 namespace LAMMPS_NS {
 
@@ -45,6 +46,12 @@ class RegSphereKokkos : public RegSphere, public KokkosBase  {
 
   void match_all_kokkos(int, DAT::tdual_int_1d) override;
 
+  void prematch() override
+  {
+    Region::prematch();
+    boxremap.capture(domain);
+  }
+
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagRegSphereMatchAll, const int&) const;
@@ -53,6 +60,7 @@ class RegSphereKokkos : public RegSphere, public KokkosBase  {
   KOKKOS_INLINE_FUNCTION
   int match_kokkos(double x, double y, double z) const
   {
+    boxremap.remap(x,y,z);
     if (dynamic) inverse_transform(x,y,z);
     if (openflag) return 1;
     return !(k_inside(x,y,z) ^ interior);
@@ -66,6 +74,8 @@ class RegSphereKokkos : public RegSphere, public KokkosBase  {
     double xs, ys, zs;
     double xnear[3], xorig[3];
 
+    boxremap.remap(x, y, z);
+
     xorig[0] = x; xorig[1] = y; xorig[2] = z;
     if (dynamic)
       inverse_transform(x, y, z);
@@ -77,9 +87,11 @@ class RegSphereKokkos : public RegSphere, public KokkosBase  {
     else
       ncontact = surface_exterior_kokkos(xnear, cutoff);
     } else {
-      // one of surface_int/ext() will return 0
-      // so no need to worry about offset of contact indices
-      ncontact = surface_exterior_kokkos(xnear, cutoff) + surface_interior_kokkos(xnear, cutoff);
+      // most of the time, one of surface_int/ext() will return 0
+      //   however, when exactly on top of a periodic boundary
+      //   both could return 1, so run exterior then interior
+      ncontact = surface_exterior_kokkos(xnear, cutoff);
+      if (ncontact == 0) ncontact = surface_interior_kokkos(xnear, cutoff);
     }
 
     if (rotateflag && ncontact) {
@@ -101,6 +113,7 @@ class RegSphereKokkos : public RegSphere, public KokkosBase  {
 
  private:
   int groupbit;
+  RegionRemapKokkos boxremap;
   typename AT::t_int_1d d_match;
   typename AT::t_kkfloat_1d_3_lr_randomread d_x;
   typename AT::t_int_1d_randomread d_mask;

@@ -39,7 +39,7 @@ class FixTempCSLD : public Fix {
   void *extract(const char *, int &) override;
   double memory_usage() override;
 
- private:
+ protected:
   double t_start, t_stop, t_period, t_target;
   double **vhold;
   double energy;

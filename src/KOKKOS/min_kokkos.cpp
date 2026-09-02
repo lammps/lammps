@@ -697,8 +697,9 @@ double MinKokkos::fnorm_max()
 
     if constexpr (F_LAYOUTRIGHT) {
       auto l_fvec = fvec;
-      Kokkos::parallel_reduce(nvec, LAMMPS_LAMBDA(int i, double& local_norm_max) {
-        double fdotf = static_cast<double>(l_fvec[i]*l_fvec[i]+l_fvec[i+1]*l_fvec[i+1]+l_fvec[i+2]*l_fvec[i+2]);
+      Kokkos::parallel_reduce(nvec/3, LAMMPS_LAMBDA(int i, double& local_norm_max) {
+        const int n = 3*i;
+        double fdotf = static_cast<double>(l_fvec[n]*l_fvec[n]+l_fvec[n+1]*l_fvec[n+1]+l_fvec[n+2]*l_fvec[n+2]);
         local_norm_max = MAX(fdotf,local_norm_max);
       },Kokkos::Max<double>(local_norm_max));
     } else {

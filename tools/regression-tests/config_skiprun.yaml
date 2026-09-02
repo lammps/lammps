@@ -23,7 +23,7 @@
   # in addition to the entries shared with the other configurations, this skips
   # input scripts that cannot work with -skiprun or in an ephemeral CI runner:
   # - inputs reading files that only a full run of another input script writes
-  #   (in.gREM, in.pinning, in.rerun, in.rdf.rerun, in.read_dump)
+  #   (in.gREM, in.pinning)
   # - inputs needing training data or models that are not in the repository
   #   (in.fitpod.InP, in.kim-sm.melt)
   # - inputs querying openkim.org over the network (in.kim-query, in.kim-pm-query*)
@@ -33,8 +33,6 @@
   #   available (in.fix_python*, in.python*, in.mliap.unified*)
   # - deleting computes that only exist after complete runs (in.compute,
   #   in.mliap.*.compute, in.reaxff.tatb*, in.bpm.peri.*)
-  # - post-run analysis reading state that runs cut short do not produce
-  #   (in.elastic, in.ljcov)
   # - serial only (in.pod.compute)
   skip:
     [
@@ -46,9 +44,6 @@
       in.bucky-plus-cnt*,
       in.gREM,
       in.pinning,
-      in.rerun,
-      in.rdf.rerun,
-      in.read_dump,
       in.fitpod.InP,
       in.kim-sm.melt,
       in.kim-query,
@@ -61,8 +56,6 @@
       in.compute,
       in.mliap.*.compute,
       in.reaxff.tatb*,
-      in.elastic,
-      in.ljcov,
       in.pod.compute,
     ]
 

@@ -941,6 +941,7 @@ and fix styles:
    :columns: 4
 
    * :doc:`compute chunk/atom <compute_chunk_atom>`
+   * :doc:`compute frenkel <compute_frenkel>`
    * :doc:`compute hbond/local <compute_hbond_local>`
    * :doc:`fix graphics/arrows <fix_graphics_arrows>`
    * :doc:`fix graphics/chunk <fix_graphics_chunk>`

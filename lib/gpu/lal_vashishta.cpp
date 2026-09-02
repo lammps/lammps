@@ -44,7 +44,7 @@ int VashishtaT::bytes_per_atom(const int max_nbors) const {
 
 template <class numtyp, class acctyp>
 int VashishtaT::init(const int ntypes, const int nlocal, const int nall, const int max_nbors,
-           const double cell_size, const double gpu_split, FILE *_screen,
+           const double cell_size, FILE *_screen,
            int* host_map, const int nelements, int*** host_elem2param, const int nparams,
            const double* cutsq, const double* r0,
            const double* gamma, const double* eta,
@@ -57,8 +57,8 @@ int VashishtaT::init(const int ntypes, const int nlocal, const int nall, const i
            const double* big2b, const double* bigc)
 {
   int success=0;
-  success=this->init_three(nlocal,nall,max_nbors,0,cell_size,gpu_split,
-                           _screen,vashishta,"k_vashishta","k_vashishta_three_center",
+  success=this->init_three(nlocal,nall,max_nbors,0,cell_size,
+                            _screen,vashishta,"k_vashishta","k_vashishta_three_center",
                            "k_vashishta_three_end","k_vashishta_short_nbor");
   if (success!=0)
     return success;

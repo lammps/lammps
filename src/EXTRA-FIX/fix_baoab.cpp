@@ -94,6 +94,8 @@ FixBAOAB::FixBAOAB(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg), ran
 
 FixBAOAB::~FixBAOAB()
 {
+  if (copymode) return;
+
   delete random;
 }
 

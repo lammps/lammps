@@ -36,6 +36,8 @@ using namespace MathSpecial;
 
 PairMorseSoft::~PairMorseSoft()
 {
+  if (copymode) return;
+
   if (allocated) memory->destroy(lambda);
 }
 

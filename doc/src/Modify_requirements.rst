@@ -296,7 +296,7 @@ input scripts include:
 - the total file size of all the inputs and outputs should be small
 
 - where possible, potential files from the "potentials" folder or data
-  file from other folders should be re-used through symbolic links
+  file from other folders should be reused through symbolic links
 
 .. _ReqErrorMessages:
 

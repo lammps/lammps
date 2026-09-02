@@ -216,17 +216,29 @@ else the *line* setting (if specified) for that value is used, else
 the default setting is used.  A setting of *none* clears all previous
 settings, reverting all values to their default format.
 
+.. versionchanged:: TBD
+
+Format strings are checked when the thermo output is set up and LAMMPS
+will stop with an error if a format string does not match the kind of
+value it is applied to, for example when a "%d" conversion is used for a
+floating-point value.  Previously such a mismatch was not detected and
+silently produced incorrect output.  A format string may still contain
+arbitrary literal text, and may leave trailing values unformatted.
+
 .. note::
 
    The thermo output values *step* and *atoms* are stored internally as
    8-byte signed integers, rather than the usual 4-byte signed integers.
-   When specifying the *format int* option you can use a "%d"-style
-   format identifier in the format string and LAMMPS will convert this
-   to the corresponding 8-byte form when it is applied to those
-   keywords.  However, when specifying the *line* option or *format ID
-   string* option for *step* and *natoms*, you should specify a format
-   string appropriate for an 8-byte signed integer (i.e., one with "%ld"
-   or "%lld", depending on the platform).
+   You can use a "%d"-style format identifier for them in all variants of
+   the *format* keyword and LAMMPS will convert it to the corresponding
+   8-byte form when it is applied to those keywords.
+
+   .. versionchanged:: TBD
+
+   This conversion is now also applied to the *line* option and the
+   *format ID string* option.  Previously those required a format string
+   appropriate for an 8-byte signed integer (i.e., one with "%ld" or
+   "%lld", depending on the platform).
 
 The *temp* keyword is used to determine how thermodynamic temperature is
 calculated, which is used by all thermo quantities that require a

@@ -1,15 +1,17 @@
 .. index:: pair_style gran/hooke
+.. index:: pair_style gran/hooke/kk
 .. index:: pair_style gran/hooke/omp
 .. index:: pair_style gran/hooke/history
 .. index:: pair_style gran/hooke/history/omp
 .. index:: pair_style gran/hooke/history/kk
 .. index:: pair_style gran/hertz/history
+.. index:: pair_style gran/hertz/history/kk
 .. index:: pair_style gran/hertz/history/omp
 
 pair_style gran/hooke command
 =============================
 
-Accelerator Variants: *gran/hooke/omp*
+Accelerator Variants: *gran/hooke/kk*, *gran/hooke/omp*
 
 pair_style gran/hooke/history command
 =====================================
@@ -19,7 +21,7 @@ Accelerator Variants: *gran/hooke/history/omp*, *gran/hooke/history/kk*
 pair_style gran/hertz/history command
 =====================================
 
-Accelerator Variants: *gran/hertz/history/omp*
+Accelerator Variants: *gran/hertz/history/kk*, *gran/hertz/history/omp*
 
 Syntax
 """"""

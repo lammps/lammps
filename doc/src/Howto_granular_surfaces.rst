@@ -100,7 +100,7 @@ along with any particles the data file includes, assuming an appropriate
 .. image:: img/mixer-drum.jpg
    :width: 50%
 
-.. admonition:: Re-using STL files for 3d-printing
+.. admonition:: Reusing STL files created for 3d-printing
 
    There are a large number of STL files published and available for
    download that were generated for 3d-printing (see the cement mixer

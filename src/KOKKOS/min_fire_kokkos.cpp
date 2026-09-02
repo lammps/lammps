@@ -120,9 +120,28 @@ int MinFireKokkos::run_iterate(int maxiter) {
   auto l_type = atomKK->k_type.view_device();
   int nlocal = atom->nlocal;
 
+  // energy_force() runs the communication, the neighbor build and the fixes.
+  // Any of those can leave the newest per-atom data on the host -- a fix
+  // without KOKKOS support writes there -- and can grow or reorder the arrays,
+  // so the data and the views both have to be taken again after every call.
+  // Without this the kernels below integrate a device copy that the host has
+  // since overtaken, and the modified() that follows finds both sides claimed.
+
+  auto refresh = [&]() {
+    atomKK->sync(Device, X_MASK | V_MASK | F_MASK | RMASS_MASK | TYPE_MASK);
+    l_x = atomKK->k_x.view_device();
+    l_v = atomKK->k_v.view_device();
+    l_f = atomKK->k_f.view_device();
+    l_rmass = atomKK->k_rmass.view_device();
+    l_mass = atomKK->k_mass.view_device();
+    l_type = atomKK->k_type.view_device();
+    nlocal = atom->nlocal;
+  };
+
   if constexpr (INTEGRATOR == LEAPFROG) {
     energy_force(0);
     neval++;
+    refresh();
     double dtf = -0.5 * dt * force->ftm2v;
     const KK_FLOAT dtf_kk = static_cast<KK_FLOAT>(dtf);
     Kokkos::parallel_for("min_fire/leapfrog_init", atom->nlocal, LAMMPS_LAMBDA(const int i) {
@@ -131,10 +150,13 @@ int MinFireKokkos::run_iterate(int maxiter) {
       l_v(i,1) = dtfm * static_cast<KK_FLOAT>(l_f(i,1));
       l_v(i,2) = dtfm * static_cast<KK_FLOAT>(l_f(i,2));
     });
+    atomKK->modified(Device, V_MASK);
   }
 
   for (int iter = 0; iter < maxiter; iter++) {
     if (timer->check_timeout(niter)) return TIMEOUT;
+
+    refresh();
 
     bigint ntimestep = ++update->ntimestep;
     niter++;
@@ -210,12 +232,14 @@ int MinFireKokkos::run_iterate(int maxiter) {
         }
         l_v(i,0) = l_v(i,1) = l_v(i,2) = 0.0;
       });
+      atomKK->modified(Device, X_MASK | V_MASK);
       flagv0 = 1;
     }
 
     if (!ABCFLAG && flagv0) {
       energy_force(0);
       neval++;
+      refresh();
       double dtf_init = dt * force->ftm2v;
       const KK_FLOAT dtf_init_kk = static_cast<KK_FLOAT>(dtf_init);
       Kokkos::parallel_for("min_fire/v_init", nlocal, LAMMPS_LAMBDA(const int i) {
@@ -224,6 +248,7 @@ int MinFireKokkos::run_iterate(int maxiter) {
         l_v(i,1) = dtfm * static_cast<KK_FLOAT>(l_f(i,1));
         l_v(i,2) = dtfm * static_cast<KK_FLOAT>(l_f(i,2));
       });
+      atomKK->modified(Device, V_MASK);
     }
 
     // cannot use "if constexpr" below because CUDA device lambdas
@@ -237,7 +262,7 @@ int MinFireKokkos::run_iterate(int maxiter) {
         KK_FLOAT vmax = Kokkos::fmax(Kokkos::fabs(l_v(i,0)), Kokkos::fmax(Kokkos::fabs(l_v(i,1)), Kokkos::fabs(l_v(i,2))));
         if (dtmin_local * static_cast<double>(vmax) > l_dmax) dtmin_local = l_dmax / static_cast<double>(vmax);
       }, Kokkos::Min<double>(dtvone));
-      dtvone = Kokkos::min(dtvone, dt);
+      dtvone = Kokkos::fmin(dtvone, dt);
     }
     MPI_Allreduce(&dtvone, &dtv, 1, MPI_DOUBLE, MPI_MIN, world);
     if (update->multireplica == 1) {
@@ -249,6 +274,7 @@ int MinFireKokkos::run_iterate(int maxiter) {
       Kokkos::parallel_for("min_fire/final_v_zero", nlocal, LAMMPS_LAMBDA(const int i) {
         l_v(i,0) = l_v(i,1) = l_v(i,2) = 0.0;
       });
+      atomKK->modified(Device, V_MASK);
     }
 
     KK_FLOAT dtf_final = dtv * static_cast<KK_FLOAT>(force->ftm2v);
@@ -318,9 +344,9 @@ int MinFireKokkos::run_iterate(int maxiter) {
     eprevious = ecurrent;
     ecurrent = energy_force(0);
     neval++;
+    refresh();
 
     if constexpr (INTEGRATOR == VERLET) {
-      atomKK->sync(Device, V_MASK | F_MASK);
       Kokkos::parallel_for("min_fire/verlet_v_final", nlocal, LAMMPS_LAMBDA(const int i) {
         KK_FLOAT dtfm_half = dtf_half / (l_rmass.data() ? l_rmass(i) : l_mass(l_type(i)));
         l_v(i,0) += dtfm_half * static_cast<KK_FLOAT>(l_f(i,0));
@@ -368,7 +394,11 @@ int MinFireKokkos::run_iterate(int maxiter) {
       }
     }
 
+    // output for thermo, dump, restart files
+
     if (output->next == ntimestep) {
+      atomKK->sync(Host,ALL_MASK);
+
       timer->stamp();
       output->write(ntimestep);
       timer->stamp(Timer::OUTPUT);

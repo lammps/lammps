@@ -1,8 +1,9 @@
 # Plumed2 support for PLUMED package
 
-# set policy to silence warnings about timestamps of downloaded files. review occasionally if it may be set to NEW
+# set policy to use the time of extraction as timestamps of files unpacked from downloaded
+# archives, so that updating an archive version triggers rebuilding all dependent objects
 if(POLICY CMP0135)
-  cmake_policy(SET CMP0135 OLD)
+  cmake_policy(SET CMP0135 NEW)
 endif()
 
 # for supporting multiple concurrent plumed2 installations for debugging and testing

@@ -176,7 +176,7 @@ is the default, then each processor writes its output into an internal
 text buffer, which is then sent to the processor(s) which perform file
 writes, and written by those processors(s) as one large chunk of text.
 If specified as *no*, each processor sends its per-atom data in binary
-format to the processor(s) which perform file wirtes, and those
+format to the processor(s) which perform file writes, and those
 processor(s) format and write it line by line into the output file.
 
 The buffering mode is typically faster since each processor does the
@@ -455,17 +455,29 @@ else the *line* setting (if specified) for that value is used, else
 the default setting is used.  A setting of *none* clears all previous
 settings, reverting all values to their default format.
 
+.. versionchanged:: TBD
+
+Format strings are checked when they are set and LAMMPS will stop with an
+error if a format string does not match the kind of value it is applied
+to, for example when a "%d" conversion is used for a floating-point value.
+Previously such a mismatch was not detected and silently produced
+incorrect output.  A format string may still contain arbitrary literal
+text, and may leave trailing values unformatted.
+
 .. note::
 
    Atom and molecule IDs are stored internally as 4-byte or 8-byte
-   signed integers, depending on how LAMMPS was compiled.  When
-   specifying the *format int* option you can use a "%d"-style format
-   identifier in the format string and LAMMPS will convert this to the
-   corresponding 8-byte form if it is needed when outputting those
-   values.  However, when specifying the *line* option or *format M
-   string* option for those values, you should specify a format string
-   appropriate for an 8-byte signed integer (e.g., one with "%ld") if
-   LAMMPS was compiled with the -DLAMMPS_BIGBIG option for 8-byte IDs.
+   signed integers, depending on how LAMMPS was compiled.  You can use a
+   "%d"-style format identifier for them in all variants of the *format*
+   keyword and LAMMPS will convert it to the corresponding 8-byte form
+   where needed.
+
+   .. versionchanged:: TBD
+
+   This conversion is now also applied to the *line* option and the
+   *format M string* option.  Previously those required a format string
+   for an 8-byte signed integer (e.g., one with "%ld") if LAMMPS was
+   compiled with the -DLAMMPS_BIGBIG option for 8-byte IDs.
 
 .. note::
 

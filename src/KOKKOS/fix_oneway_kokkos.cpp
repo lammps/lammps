@@ -51,8 +51,8 @@ void FixOneWayKokkos<DeviceType>::init()
 {
   FixOneWay::init();
 
-  if (!(utils::strmatch(region->style, "^block") || utils::strmatch(region->style, "^sphere")))
-    error->all(FLERR, "Cannot (yet) use {}-style region with fix oneway/kk", region->style);
+  if (!dynamic_cast<KokkosBase*>(region))
+    error->all(FLERR, "Cannot use fix oneway/kk with region style {} that has no KOKKOS support", region->style);
 }
 
 /* ---------------------------------------------------------------------- */

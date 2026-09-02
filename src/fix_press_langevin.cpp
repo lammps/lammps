@@ -384,6 +384,8 @@ FixPressLangevin::FixPressLangevin(LAMMPS *lmp, int narg, char **arg) :
 
 FixPressLangevin::~FixPressLangevin()
 {
+  if (copymode) return;
+
   delete random;
   delete irregular;
 

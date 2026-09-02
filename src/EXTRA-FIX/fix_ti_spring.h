@@ -56,7 +56,7 @@ class FixTISpring : public Fix {
   int size_restart(int) override;
   int maxsize_restart() override;
 
- private:
+ protected:
   double switch_func(double);     // Switching function.
   double dswitch_func(double);    // Switching function derivative.
 

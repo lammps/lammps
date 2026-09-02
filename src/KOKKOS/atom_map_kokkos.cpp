@@ -426,6 +426,7 @@ void AtomKokkos::map_delete()
 {
   memoryKK->destroy_kokkos(k_sametag, sametag);
   sametag = nullptr;
+  max_same = 0;
 
   if (map_style == MAP_ARRAY) {
     memoryKK->destroy_kokkos(k_map_array, map_array);

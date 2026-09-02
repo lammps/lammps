@@ -1,7 +1,10 @@
 .. index:: compute inertia
+.. index:: compute inertia/kk
 
 compute inertia command
 =======================
+
+Accelerator Variants: *inertia/kk*
 
 Syntax
 """"""
@@ -73,6 +76,8 @@ LAMMPS output options.
 
 The vector values calculated by this compute are "intensive".  The vector
 values will be in mass\*distance\ :math:`^2` :doc:`units <units>`.
+
+.. include:: accel_styles.rst
 
 Restrictions
 """"""""""""

@@ -33,7 +33,7 @@ class FixPropelSelf : public Fix {
   void setup(int) override;
   int setmask() override;
 
- private:
+ protected:
   double magnitude;
   double sx, sy, sz;
   int mode;

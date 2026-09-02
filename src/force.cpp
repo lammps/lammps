@@ -343,18 +343,34 @@ Bond *Force::new_bond(const std::string &style, int trysuffix, int &sflag)
 }
 
 /* ----------------------------------------------------------------------
-   return ptr to current bond class or hybrid sub-class if matches style
+   return ptr to Bond class if matches word or matches hybrid sub-style
+   if exact, then style name must be exact match to word
+   if not exact, style name must contain word
+   if nsub > 0, match Nth hybrid sub-style
+   return nullptr if no match or if nsub=0 and multiple sub-styles match
 ------------------------------------------------------------------------- */
 
-Bond *Force::bond_match(const std::string &style)
+Bond *Force::bond_match(const std::string &word, int exact, int nsub)
 {
-  if (style == bond_style)
+  int iwhich, count;
+
+  if (exact && (word == bond_style))
     return bond;
-  else if (strcmp(bond_style, "hybrid") == 0) {
+  else if (!exact && utils::strmatch(bond_style, word))
+    return bond;
+  else if (utils::strmatch(bond_style, "^hybrid")) {
     auto *hybrid = dynamic_cast<BondHybrid *>(bond);
+    count = 0;
     for (int i = 0; i < hybrid->nstyles; i++)
-      if (style == hybrid->keywords[i]) return hybrid->styles[i];
+      if ((exact && (word == hybrid->keywords[i])) ||
+          (!exact && utils::strmatch(hybrid->keywords[i], word))) {
+        iwhich = i;
+        count++;
+        if (nsub == count) return hybrid->styles[iwhich];
+      }
+    if (count == 1) return hybrid->styles[iwhich];
   }
+
   return nullptr;
 }
 

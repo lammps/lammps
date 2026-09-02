@@ -473,9 +473,9 @@ void FixAdapt::init()
 
       char *bstyle = utils::strdup(ad->bstyle);
       if (lmp->suffix_enable)
-        ad->bond = force->bond_match(fmt::format("{}/{}",bstyle,lmp->suffix));
+        ad->bond = force->bond_match(fmt::format("{}/{}",bstyle,lmp->suffix), 1);
 
-      if (ad->bond == nullptr) ad->bond = force->bond_match(bstyle);
+      if (ad->bond == nullptr) ad->bond = force->bond_match(bstyle, 1);
       if (ad->bond == nullptr )
         error->all(FLERR, Error::NOLASTLINE,"Fix adapt bond style {} does not exist", bstyle);
 

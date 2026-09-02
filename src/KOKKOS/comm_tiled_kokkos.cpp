@@ -19,6 +19,7 @@
 #include "atom_vec_kokkos.h"
 #include "compute.h"
 #include "dump.h"
+#include "error.h"
 #include "fix.h"
 #include "force.h"
 #include "kokkos.h"
@@ -84,6 +85,12 @@ void CommTiledKokkos::init()
   exchange_comm_on_host = lmp->kokkos->exchange_comm_on_host;
   forward_comm_on_host = lmp->kokkos->forward_comm_on_host;
   reverse_comm_on_host = lmp->kokkos->reverse_comm_on_host;
+
+  const int bonus_flag = atom->avec->bonus_flag;
+  if (bonus_flag)
+    error->all(FLERR,"comm_style tiled does not (yet) support atom_styles with bonus data. "
+                   "Switch to comm_style brick in the input script (explicit), or just "
+                   "remove comm_style all together (implicit comm_style brick).");
 
   CommTiled::init();
 }

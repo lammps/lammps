@@ -16,7 +16,6 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_oxdna2_dh.h"
-#include "atom_vec_oxdna.h"
 #include "nucleotide_oxdna.h"
 
 #include "atom.h"
@@ -54,7 +53,7 @@ PairOxdna2Dh::PairOxdna2Dh(LAMMPS *lmp) :
 
 PairOxdna2Dh::~PairOxdna2Dh()
 {
-  if (allocated) {
+  if (allocated && !copymode) {
 
     memory->destroy(setflag);
     memory->destroy(cutsq);

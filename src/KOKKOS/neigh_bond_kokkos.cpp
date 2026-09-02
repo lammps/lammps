@@ -142,7 +142,7 @@ void NeighBondKokkos<DeviceType>::init_topology_kk() {
     if (utils::strmatch(ifix->style,"^shake") || utils::strmatch(ifix->style,"^rattle") ||
         utils::strmatch(ifix->style,"^ilves"))
       bond_off = angle_off = 1;
-  if (force->bond && force->bond_match("quartic")) bond_off = 1;
+  if (force->bond && force->bond_match("quartic", 1)) bond_off = 1;
 
   if (atom->avec->bonds_allow && atom->molecular == Atom::MOLECULAR) {
     for (i = 0; i < atom->nlocal; i++) {

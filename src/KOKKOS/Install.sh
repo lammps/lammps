@@ -73,6 +73,8 @@ action atom_vec_kokkos.cpp
 action atom_vec_kokkos.h
 action atom_vec_molecular_kokkos.cpp atom_vec_molecular.cpp
 action atom_vec_molecular_kokkos.h atom_vec_molecular.h
+action atom_vec_oxdna_kokkos.cpp atom_vec_oxdna.cpp
+action atom_vec_oxdna_kokkos.h atom_vec_oxdna.h
 action atom_vec_sphere_kokkos.cpp atom_vec_sphere.cpp
 action atom_vec_sphere_kokkos.h atom_vec_sphere.h
 action atom_vec_spin_kokkos.cpp atom_vec_spin.cpp
@@ -87,6 +89,12 @@ action bond_harmonic_kokkos.cpp bond_harmonic.cpp
 action bond_harmonic_kokkos.h bond_harmonic.h
 action bond_hybrid_kokkos.cpp bond_hybrid.cpp
 action bond_hybrid_kokkos.h bond_hybrid.h
+action bond_oxdna_fene_kokkos.cpp bond_oxdna_fene.cpp
+action bond_oxdna_fene_kokkos.h bond_oxdna_fene.h
+action bond_oxdna2_fene_kokkos.h bond_oxdna_fene_kokkos.h
+action bond_oxrna2_fene_kokkos.h bond_oxdna_fene_kokkos.h
+action bond_oxdna3_fene_kokkos.cpp bond_oxdna3_fene.cpp
+action bond_oxdna3_fene_kokkos.h bond_oxdna_fene_kokkos.h
 action bond_quartic_exp_kokkos.cpp bond_quartic_exp.cpp
 action bond_quartic_exp_kokkos.h bond_quartic_exp.h
 action comm_kokkos.cpp
@@ -268,6 +276,12 @@ action fix_nvk_kokkos.cpp fix_nvk.cpp
 action fix_nvk_kokkos.h fix_nvk.h
 action fix_oneway_kokkos.cpp fix_oneway.cpp
 action fix_oneway_kokkos.h fix_oneway.h
+action fix_oxdna_lrf_kokkos.cpp
+action fix_oxdna_lrf_kokkos.h
+action fix_oxdna_npair_kokkos.cpp
+action fix_oxdna_npair_kokkos.h
+action fix_oxdna_prime_neighs_kokkos.cpp
+action fix_oxdna_prime_neighs_kokkos.h
 action fix_planeforce_kokkos.cpp
 action fix_planeforce_kokkos.h
 action fix_press_berendsen_kokkos.cpp
@@ -387,6 +401,7 @@ action meam_impl_kokkos.h meam_impl.cpp
 action meam_kokkos.h meam.h
 action meam_setup_done_kokkos.h meam_setup_done.cpp
 action memory_kokkos.h
+action mf_oxdna_kokkos.h mf_oxdna.h
 action min_cg_kokkos.cpp
 action min_cg_kokkos.h
 action min_fire_kokkos.cpp
@@ -661,6 +676,37 @@ action pair_nm_cut_coul_cut_kokkos.cpp pair_nm_cut_coul_cut.cpp
 action pair_nm_cut_coul_cut_kokkos.h pair_nm_cut_coul_cut.h
 action pair_nm_cut_coul_long_kokkos.cpp pair_nm_cut_coul_long.cpp
 action pair_nm_cut_coul_long_kokkos.h pair_nm_cut_coul_long.h
+action pair_oxdna_coaxstk_kokkos.cpp pair_oxdna_coaxstk.cpp
+action pair_oxdna_coaxstk_kokkos.h pair_oxdna_coaxstk.h
+action pair_oxdna_excv_kokkos.cpp pair_oxdna_excv.cpp
+action pair_oxdna_excv_kokkos.h pair_oxdna_excv.h
+action pair_oxdna_hbond_kokkos.cpp pair_oxdna_hbond.cpp
+action pair_oxdna_hbond_kokkos.h pair_oxdna_hbond.h
+action pair_oxdna_stk_kokkos.cpp pair_oxdna_stk.cpp
+action pair_oxdna_stk_kokkos.h pair_oxdna_stk.h
+action pair_oxdna_xstk_kokkos.cpp pair_oxdna_xstk.cpp
+action pair_oxdna_xstk_kokkos.h pair_oxdna_xstk.h
+action pair_oxdna2_coaxstk_kokkos.cpp pair_oxdna2_coaxstk.cpp
+action pair_oxdna2_coaxstk_kokkos.h pair_oxdna2_coaxstk.h
+action pair_oxdna2_dh_kokkos.cpp pair_oxdna2_dh.cpp
+action pair_oxdna2_dh_kokkos.h pair_oxdna2_dh.h
+action pair_oxdna2_excv_kokkos.h pair_oxdna_excv_kokkos.h
+action pair_oxrna2_excv_kokkos.h pair_oxdna_excv_kokkos.h
+action pair_oxrna2_hbond_kokkos.h pair_oxdna_hbond_kokkos.h
+action pair_oxrna2_stk_kokkos.cpp pair_oxrna2_stk.cpp
+action pair_oxrna2_stk_kokkos.h pair_oxrna2_stk.h
+action pair_oxrna2_xstk_kokkos.cpp pair_oxrna2_xstk.cpp
+action pair_oxrna2_xstk_kokkos.h pair_oxrna2_xstk.h
+action pair_oxdna3_coaxstk_kokkos.h pair_oxdna2_coaxstk_kokkos.h
+action pair_oxdna3_excv_kokkos.cpp pair_oxdna_excv_kokkos.cpp
+action pair_oxdna3_excv_kokkos.h pair_oxdna_excv_kokkos.h
+action pair_oxdna3_hbond_kokkos.cpp pair_oxdna_hbond_kokkos.cpp
+action pair_oxdna3_hbond_kokkos.h pair_oxdna_hbond_kokkos.h
+action pair_oxdna3_stk_kokkos.cpp pair_oxdna_stk_kokkos.cpp
+action pair_oxdna3_stk_kokkos.h pair_oxdna_stk_kokkos.h
+action pair_oxdna3_xstk_kokkos.cpp pair_oxdna3_xstk.cpp
+action pair_oxdna3_xstk_kokkos.h pair_oxdna3_xstk.h
+action pair_oxrna2_dh_kokkos.h pair_oxdna_dh_kokkos.h
 action pair_pace_extrapolation_kokkos.cpp pair_pace_extrapolation.cpp
 action pair_pace_extrapolation_kokkos.h pair_pace_extrapolation.h
 action pair_pedone_kokkos.cpp pair_pedone.cpp

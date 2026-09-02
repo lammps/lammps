@@ -236,29 +236,29 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`nm/cut/coul/cut (ko) <pair_nm>`
    * :doc:`nm/cut/coul/long (ko) <pair_nm>`
    * :doc:`nm/cut/split (ko) <pair_nm>`
-   * :doc:`oxdna/coaxstk <pair_oxdna>`
-   * :doc:`oxdna/excv <pair_oxdna>`
-   * :doc:`oxdna/hbond <pair_oxdna>`
-   * :doc:`oxdna/stk <pair_oxdna>`
-   * :doc:`oxdna/xstk <pair_oxdna>`
-   * :doc:`oxdna2/coaxstk <pair_oxdna2>`
-   * :doc:`oxdna2/dh <pair_oxdna2>`
-   * :doc:`oxdna2/excv <pair_oxdna2>`
-   * :doc:`oxdna2/hbond <pair_oxdna2>`
-   * :doc:`oxdna2/stk <pair_oxdna2>`
-   * :doc:`oxdna2/xstk <pair_oxdna2>`
-   * :doc:`oxdna3/coaxstk <pair_oxdna3>`
-   * :doc:`oxdna3/dh <pair_oxdna3>`
-   * :doc:`oxdna3/excv <pair_oxdna3>`
-   * :doc:`oxdna3/hbond <pair_oxdna3>`
-   * :doc:`oxdna3/stk <pair_oxdna3>`
-   * :doc:`oxdna3/xstk <pair_oxdna3>`
-   * :doc:`oxrna2/excv <pair_oxrna2>`
-   * :doc:`oxrna2/hbond <pair_oxrna2>`
-   * :doc:`oxrna2/dh <pair_oxrna2>`
-   * :doc:`oxrna2/stk <pair_oxrna2>`
-   * :doc:`oxrna2/xstk <pair_oxrna2>`
-   * :doc:`oxrna2/coaxstk <pair_oxrna2>`
+   * :doc:`oxdna/coaxstk (k) <pair_oxdna>`
+   * :doc:`oxdna/excv (k) <pair_oxdna>`
+   * :doc:`oxdna/hbond (k) <pair_oxdna>`
+   * :doc:`oxdna/stk (k) <pair_oxdna>`
+   * :doc:`oxdna/xstk (k) <pair_oxdna>`
+   * :doc:`oxdna2/coaxstk (k) <pair_oxdna2>`
+   * :doc:`oxdna2/dh (k) <pair_oxdna2>`
+   * :doc:`oxdna2/excv (k) <pair_oxdna2>`
+   * :doc:`oxdna2/hbond (k) <pair_oxdna2>`
+   * :doc:`oxdna2/stk (k) <pair_oxdna2>`
+   * :doc:`oxdna2/xstk (k) <pair_oxdna2>`
+   * :doc:`oxdna3/coaxstk (k) <pair_oxdna3>`
+   * :doc:`oxdna3/dh (k) <pair_oxdna3>`
+   * :doc:`oxdna3/excv (k) <pair_oxdna3>`
+   * :doc:`oxdna3/hbond (k) <pair_oxdna3>`
+   * :doc:`oxdna3/stk (k) <pair_oxdna3>`
+   * :doc:`oxdna3/xstk (k) <pair_oxdna3>`
+   * :doc:`oxrna2/coaxstk (k) <pair_oxrna2>`
+   * :doc:`oxrna2/dh (k) <pair_oxrna2>`
+   * :doc:`oxrna2/excv (k) <pair_oxrna2>`
+   * :doc:`oxrna2/hbond (k) <pair_oxrna2>`
+   * :doc:`oxrna2/stk (k) <pair_oxrna2>`
+   * :doc:`oxrna2/xstk (k) <pair_oxrna2>`
    * :doc:`pace (k) <pair_pace>`
    * :doc:`pace/extrapolation (k) <pair_pace>`
    * :doc:`pace/apip <pair_pace_apip>`

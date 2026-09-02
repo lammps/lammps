@@ -44,8 +44,8 @@ class BondHybridKokkos : public BondHybrid {
 
   class NeighborKokkos *neighborKK;
 
-  DAT::tdual_int_1d k_map;       // which style each bond type points to
-  DAT::tdual_int_1d k_nbondlist; // # of bonds in sub-style bondlists
+  DAT::tdual_int_1d k_map;          // which style each bond type points to
+  DAT::tdual_int_1d k_nbondlist;    // # of bonds in sub-style bondlists
   DAT::tdual_int_3d_lr k_bondlist;  // bondlist for each sub-style
 
   void allocate() override;

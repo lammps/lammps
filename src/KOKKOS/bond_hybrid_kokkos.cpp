@@ -68,7 +68,7 @@ void BondHybridKokkos::compute(int eflag, int vflag)
   // realloc sub-style bondlist if necessary
   // load sub-style bondlist with 3 values from original bondlist
 
-  if (neighbor->ago == 0) {
+  if (neighbor->ago == 0 || (int)k_bondlist.view_device().extent(0) == 0) {
     Kokkos::deep_copy(d_nbondlist,0);
 
     k_map.sync_device();
@@ -160,6 +160,8 @@ void BondHybridKokkos::allocate()
   for (int i = 1; i < np1; i++) setflag[i] = 0;
 
   k_nbondlist = DAT::tdual_int_1d("bond:nbondlist", nstyles);
+  memoryKK->create_kokkos(k_bondlist, bondlist, nstyles, EXTRA, 3,
+                          "bond_hybrid:bondlist");
 }
 
 /* ---------------------------------------------------------------------- */

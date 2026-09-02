@@ -432,12 +432,29 @@ modelling of single- and double-stranded DNA and RNA based on the oxDNA and
 oxRNA model of Doye, Louis and Ouldridge. The package includes Langevin-type
 rigid-body integrators with improved stability.
 
-**Author:** Oliver Henrich (University of Strathclyde, Glasgow).
+The CG-DNA package supports acceleration with the :ref:`KOKKOS <PKG-KOKKOS>`
+package.
+
+**Authors:**
+
+Oliver Henrich (University of Strathclyde, Glasgow),
+Lewis M. Russell (University of Strathclyde, Glasgow)
 
 **Install:**
 
 The CG-DNA package requires that also the :ref:`MOLECULE <PKG-MOLECULE>`
 and :ref:`ASPHERE <PKG-ASPHERE>` packages are installed.
+For KOKKOS acceleration also the :ref:`KOKKOS <PKG-KOKKOS>` has to be installed.
+
+.. Note::
+
+   For performance reasons we strongly advise to always run with *half* neighbor lists and
+   setting the Newton flag to *on* when using the CG-DNA package in combination with KOKKOS.
+   This can be achieved through the :doc:`package <package>` command or appropriate command-line flag.
+   The skin size can also significantly affect the performance. Using a small skin size
+   of around 0.2-0.4 (in LJ units) set via :doc:`neighbor <neighbor>` is recommended as a starting point.
+
+Further details can be found on the :doc:`Speed_kokkos <Speed_kokkos>` page.
 
 **Supporting info:**
 

@@ -2,6 +2,12 @@
 .. index:: bond_style oxdna2/fene
 .. index:: bond_style oxdna3/fene
 .. index:: bond_style oxrna2/fene
+.. index:: bond_style oxdna/fene/kk
+.. index:: bond_style oxdna2/fene/kk
+.. index:: bond_style oxdna3/fene/kk
+.. index:: bond_style oxrna2/fene/kk
+
+Accelerator Variants: *oxdna/fene/kk*, *oxdna2/fene/kk*, *oxdna3/fene/kk*, *oxrna2/fene/kk*
 
 bond_style oxdna/fene command
 =============================
@@ -147,6 +153,10 @@ and for sequence-specific hydrogen-bonding and stacking interactions
 
 ----------
 
+.. include:: accel_styles.rst
+
+----------
+
 Potential file reading
 """"""""""""""""""""""
 
@@ -184,7 +194,9 @@ Restrictions
 """"""""""""
 
 This bond style can only be used if LAMMPS was built with the
-CG-DNA package and the MOLECULE and ASPHERE package.  See the
+:ref:`CG-DNA <PKG-CG-DNA>` package and the :ref:`MOLECULE <PKG-MOLECULE>`
+and :ref:`ASPHERE <PKG-ASPHERE>` package. For KOKKOS acceleration also
+the :ref:`KOKKOS <PKG-KOKKOS>` package has to be included. See the
 :doc:`Build package <Build_package>` page for more info.
 
 Related commands

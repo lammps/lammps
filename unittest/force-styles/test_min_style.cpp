@@ -105,7 +105,18 @@ static LAMMPS *init_lammps(LAMMPS::argv &args, const TestConfig &cfg)
     Info *info = new Info(lmp);
     int nfail  = 0;
     for (const auto &prerequisite : cfg.prerequisites) {
-        if (!info->has_style(prerequisite.first, prerequisite.second)) ++nfail;
+        std::string style = prerequisite.second;
+
+        // this is a test for minimizer styles, so if the suffixed
+        // version is not available, there is no reason to test.
+        if (prerequisite.first == "minimize") {
+            if (lmp->suffix_enable) {
+                style += "/";
+                style += lmp->suffix;
+            }
+        }
+
+        if (!info->has_style(prerequisite.first, style)) ++nfail;
     }
     delete info;
     if (nfail > 0) {
@@ -159,12 +170,8 @@ static void run_minimize(LAMMPS *lmp)
     lmp->input->one("run 0 post no");
 }
 
-TEST(MinStyle, plain)
+static void run_min_test(LAMMPS::argv &args, double epsilon)
 {
-    if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
-
-    LAMMPS::argv args = {"MinStyle", "-log", "none", "-echo", "screen", "-nocite"};
-
     ::testing::internal::CaptureStdout();
     LAMMPS *lmp = nullptr;
     try {
@@ -192,7 +199,6 @@ TEST(MinStyle, plain)
     const int nlocal = lmp->atom->nlocal;
     ASSERT_EQ(lmp->atom->natoms, nlocal);
 
-    const double epsilon = test_config.epsilon;
     ErrorStats stats;
 
     const double init_pe = potential_energy(lmp);
@@ -233,6 +239,118 @@ TEST(MinStyle, plain)
     if (print_stats) std::cerr << "min_style stats:" << stats << std::endl;
 
     cleanup_lammps(lmp);
+}
+
+TEST(MinStyle, plain)
+{
+    if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
+
+    LAMMPS::argv args = {"MinStyle", "-log", "none", "-echo", "screen", "-nocite"};
+
+    run_min_test(args, test_config.epsilon);
+}
+
+// precision of the KOKKOS package as selected with -D KOKKOS_PREC at compile time
+static std::string kokkos_precision()
+{
+    if (Info::has_accelerator_feature("KOKKOS", "precision", "mixed")) return "mixed";
+    if (Info::has_accelerator_feature("KOKKOS", "precision", "single")) return "single";
+    return "double";
+}
+
+// the KOKKOS minimizers descend along a different (but equally valid) path
+// than their plain counterparts, so the tolerances have to be relaxed the
+// same way as for the other KOKKOS force style tests
+
+static double kokkos_epsilon()
+{
+    // relax error a bit for KOKKOS package
+    double epsilon = 10.0 * test_config.epsilon;
+    // relax error a lot for reduced precision KOKKOS builds
+    const std::string kk_precision = kokkos_precision();
+    if (kk_precision == "mixed")
+        epsilon *= 2.0e9;
+    else if (kk_precision == "single")
+        epsilon *= 1.0e10;
+    return epsilon;
+}
+
+TEST(MinStyle, kokkos_omp)
+{
+    if (!Info::has_package("KOKKOS")) GTEST_SKIP();
+    if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
+    // skip entries may also be qualified by the KOKKOS package precision,
+    // e.g. "kokkos_omp_single" skips only single precision KOKKOS builds
+    if (test_config.skip_tests.count(std::string(test_info_->name()) + "_" + kokkos_precision()))
+        GTEST_SKIP();
+    // this test requires the OpenMP backend of KOKKOS
+    if (!Info::has_accelerator_feature("KOKKOS", "api", "openmp"))
+        GTEST_SKIP() << "KOKKOS OpenMP backend not enabled";
+    // if KOKKOS has GPU support enabled, it *must* be used. We cannot test OpenMP only.
+    if (Info::has_accelerator_feature("KOKKOS", "api", "cuda") ||
+        Info::has_accelerator_feature("KOKKOS", "api", "hip") ||
+        Info::has_accelerator_feature("KOKKOS", "api", "sycl")) {
+        GTEST_SKIP() << "Cannot test KOKKOS/OpenMP with GPU support enabled";
+    }
+
+    LAMMPS::argv args = {"MinStyle", "-log", "none", "-echo", "screen", "-nocite",
+                         "-k",       "on",   "t",    "4",     "-sf",    "kk"};
+
+    run_min_test(args, kokkos_epsilon());
+}
+
+TEST(MinStyle, kokkos_serial)
+{
+    if (!Info::has_package("KOKKOS")) GTEST_SKIP();
+    if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
+    // skip entries may also be qualified by the KOKKOS package precision,
+    // e.g. "kokkos_serial_single" skips only single precision KOKKOS builds
+    if (test_config.skip_tests.count(std::string(test_info_->name()) + "_" + kokkos_precision()))
+        GTEST_SKIP();
+    // this test requires the KOKKOS package compiled with only the Serial backend: when the
+    // OpenMP (or a GPU) backend is enabled, the host execution space is not Serial
+    if (!Info::has_accelerator_feature("KOKKOS", "api", "serial"))
+        GTEST_SKIP() << "KOKKOS Serial backend not enabled";
+    if (Info::has_accelerator_feature("KOKKOS", "api", "openmp") ||
+        Info::has_accelerator_feature("KOKKOS", "api", "pthreads"))
+        GTEST_SKIP() << "Cannot test KOKKOS/Serial with threading support enabled";
+    if (Info::has_accelerator_feature("KOKKOS", "api", "cuda") ||
+        Info::has_accelerator_feature("KOKKOS", "api", "hip") ||
+        Info::has_accelerator_feature("KOKKOS", "api", "sycl")) {
+        GTEST_SKIP() << "Cannot test KOKKOS/Serial with GPU support enabled";
+    }
+
+    LAMMPS::argv args = {"MinStyle", "-log", "none", "-echo", "screen", "-nocite",
+                         "-k",       "on",   "t",    "1",     "-sf",    "kk"};
+
+    run_min_test(args, kokkos_epsilon());
+}
+
+TEST(MinStyle, kokkos_gpu)
+{
+    if (!Info::has_package("KOKKOS")) GTEST_SKIP();
+    if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
+    // skip entries may also be qualified by the KOKKOS package precision,
+    // e.g. "kokkos_gpu_single" skips only single precision KOKKOS builds
+    if (test_config.skip_tests.count(std::string(test_info_->name()) + "_" + kokkos_precision()))
+        GTEST_SKIP();
+    // this test requires a GPU backend of the KOKKOS package
+    if (!Info::has_accelerator_feature("KOKKOS", "api", "cuda") &&
+        !Info::has_accelerator_feature("KOKKOS", "api", "hip") &&
+        !Info::has_accelerator_feature("KOKKOS", "api", "sycl"))
+        GTEST_SKIP() << "KOKKOS GPU backend not enabled";
+    // transparently skip when no compatible GPU device is present
+    if (!Info::has_kokkos_gpu_device())
+        GTEST_SKIP() << "No compatible GPU device available";
+
+    // use a half neighbor list so the GPU kernels run with the input's default
+    // "newton on"; with the default "neigh full" the KOKKOS package requires
+    // newton off, which the force-style input templates do not use
+    LAMMPS::argv args = {"MinStyle", "-log",   "none", "-echo", "screen", "-nocite", "-k", "on",
+                         "g",        "1",      "-sf",  "kk",    "-pk",    "kokkos",  "neigh",
+                         "half",     "newton", "on"};
+
+    run_min_test(args, kokkos_epsilon());
 }
 
 void generate_yaml_file(const char *outfile, const TestConfig &config)

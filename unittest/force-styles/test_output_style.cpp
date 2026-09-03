@@ -50,6 +50,7 @@
 #include <iostream>
 #include <vector>
 
+using ::testing::HasSubstr;
 using ::testing::StartsWith;
 
 using namespace LAMMPS_NS;
@@ -257,12 +258,8 @@ static void compare_rows(const std::string &name,
     }
 }
 
-TEST(OutputStyle, plain)
+static void run_output_test(LAMMPS::argv &args, double epsilon, bool kokkos)
 {
-    if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
-
-    LAMMPS::argv args = {"OutputStyle", "-log", "none", "-echo", "screen", "-nocite"};
-
     ::testing::internal::CaptureStdout();
     LAMMPS *lmp = nullptr;
     try {
@@ -286,6 +283,10 @@ TEST(OutputStyle, plain)
 
     EXPECT_THAT(output, StartsWith("LAMMPS ("));
 
+    // init_lammps() always runs the system for RUN_STEPS steps, so the
+    // timing summary of that run has to be part of the output
+    if (kokkos) EXPECT_THAT(output, HasSubstr("Loop time"));
+
     // abort if running in parallel and not all atoms are local
     ASSERT_EQ(lmp->atom->natoms, lmp->atom->nlocal);
 
@@ -295,7 +296,6 @@ TEST(OutputStyle, plain)
         FAIL() << "no compute or fix with ID 'test' defined";
     }
 
-    const double epsilon = test_config.epsilon;
     ErrorStats stats;
 
     if (data.has_scalar) EXPECT_FP_LE_WITH_EPS(data.scalar, test_config.global_scalar, epsilon);
@@ -314,6 +314,120 @@ TEST(OutputStyle, plain)
     if (print_stats) std::cerr << "output stats:" << stats << std::endl;
 
     cleanup_lammps(lmp);
+}
+
+TEST(OutputStyle, plain)
+{
+    if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
+
+    LAMMPS::argv args = {"OutputStyle", "-log", "none", "-echo", "screen", "-nocite"};
+
+    run_output_test(args, test_config.epsilon, false);
+}
+
+// precision of the KOKKOS package as selected with -D KOKKOS_PREC at compile time
+static std::string kokkos_precision()
+{
+    if (Info::has_accelerator_feature("KOKKOS", "precision", "mixed")) return "mixed";
+    if (Info::has_accelerator_feature("KOKKOS", "precision", "single")) return "single";
+    return "double";
+}
+
+// the KOKKOS package accumulates in a different order and - depending on how it
+// was compiled - with reduced precision, so the tolerance has to be relaxed
+static double kokkos_epsilon()
+{
+    double epsilon                 = 5.0 * test_config.epsilon;
+    const std::string kk_precision = kokkos_precision();
+    if (kk_precision == "mixed")
+        epsilon *= 2.0e9;
+    else if (kk_precision == "single")
+        epsilon *= 1.0e10;
+    return epsilon;
+}
+
+// the KOKKOS tests below use the same prerequisites as the plain test, i.e. no
+// "/kk" suffix is appended to them.  Unlike the other force style test drivers
+// this one has no single tested style category, and a compute or fix without a
+// KOKKOS variant is still worth running inside a KOKKOS enabled run: it
+// exercises the automatic synchronization between the host and device copies
+// of the atom data.
+
+TEST(OutputStyle, kokkos_omp)
+{
+    if (!Info::has_package("KOKKOS")) GTEST_SKIP();
+    if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
+    // skip entries may also be qualified by the KOKKOS package precision,
+    // e.g. "kokkos_omp_single" skips only single precision KOKKOS builds
+    if (test_config.skip_tests.count(std::string(test_info_->name()) + "_" + kokkos_precision()))
+        GTEST_SKIP();
+    // this test requires the OpenMP backend of KOKKOS
+    if (!Info::has_accelerator_feature("KOKKOS", "api", "openmp"))
+        GTEST_SKIP() << "KOKKOS OpenMP backend not enabled";
+    // if KOKKOS has GPU support enabled, it *must* be used. We cannot test OpenMP only.
+    if (Info::has_accelerator_feature("KOKKOS", "api", "cuda") ||
+        Info::has_accelerator_feature("KOKKOS", "api", "hip") ||
+        Info::has_accelerator_feature("KOKKOS", "api", "sycl")) {
+        GTEST_SKIP() << "Cannot test KOKKOS/OpenMP with GPU support enabled";
+    }
+
+    LAMMPS::argv args = {"OutputStyle", "-log", "none", "-echo", "screen", "-nocite",
+                         "-k",          "on",   "t",    "4",     "-sf",    "kk"};
+
+    run_output_test(args, kokkos_epsilon(), true);
+}
+
+TEST(OutputStyle, kokkos_serial)
+{
+    if (!Info::has_package("KOKKOS")) GTEST_SKIP();
+    if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
+    // skip entries may also be qualified by the KOKKOS package precision,
+    // e.g. "kokkos_serial_single" skips only single precision KOKKOS builds
+    if (test_config.skip_tests.count(std::string(test_info_->name()) + "_" + kokkos_precision()))
+        GTEST_SKIP();
+    // this test requires the KOKKOS package compiled with only the Serial backend: when the
+    // OpenMP (or a GPU) backend is enabled, the host execution space is not Serial
+    if (!Info::has_accelerator_feature("KOKKOS", "api", "serial"))
+        GTEST_SKIP() << "KOKKOS Serial backend not enabled";
+    if (Info::has_accelerator_feature("KOKKOS", "api", "openmp") ||
+        Info::has_accelerator_feature("KOKKOS", "api", "pthreads"))
+        GTEST_SKIP() << "Cannot test KOKKOS/Serial with threading support enabled";
+    if (Info::has_accelerator_feature("KOKKOS", "api", "cuda") ||
+        Info::has_accelerator_feature("KOKKOS", "api", "hip") ||
+        Info::has_accelerator_feature("KOKKOS", "api", "sycl")) {
+        GTEST_SKIP() << "Cannot test KOKKOS/Serial with GPU support enabled";
+    }
+
+    LAMMPS::argv args = {"OutputStyle", "-log", "none", "-echo", "screen", "-nocite",
+                         "-k",          "on",   "t",    "1",     "-sf",    "kk"};
+
+    run_output_test(args, kokkos_epsilon(), true);
+}
+
+TEST(OutputStyle, kokkos_gpu)
+{
+    if (!Info::has_package("KOKKOS")) GTEST_SKIP();
+    if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
+    // skip entries may also be qualified by the KOKKOS package precision,
+    // e.g. "kokkos_gpu_single" skips only single precision KOKKOS builds
+    if (test_config.skip_tests.count(std::string(test_info_->name()) + "_" + kokkos_precision()))
+        GTEST_SKIP();
+    // this test requires a GPU backend of the KOKKOS package
+    if (!Info::has_accelerator_feature("KOKKOS", "api", "cuda") &&
+        !Info::has_accelerator_feature("KOKKOS", "api", "hip") &&
+        !Info::has_accelerator_feature("KOKKOS", "api", "sycl"))
+        GTEST_SKIP() << "KOKKOS GPU backend not enabled";
+    // transparently skip when no compatible GPU device is present
+    if (!Info::has_kokkos_gpu_device()) GTEST_SKIP() << "No compatible GPU device available";
+
+    // use a half neighbor list so the GPU kernels run with the input's default
+    // "newton on"; with the default "neigh full" the KOKKOS package requires
+    // newton off, which the force-style input templates do not use
+    LAMMPS::argv args = {"OutputStyle", "-log",   "none",  "-echo", "screen", "-nocite",
+                         "-k",          "on",     "g",     "1",     "-sf",    "kk",
+                         "-pk",         "kokkos", "neigh", "half",  "newton", "on"};
+
+    run_output_test(args, kokkos_epsilon(), true);
 }
 
 static void write_rows(YamlWriter &writer, const std::string &key,

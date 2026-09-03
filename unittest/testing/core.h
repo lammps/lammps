@@ -18,10 +18,12 @@
 #include "input.h"
 #include "lammps.h"
 #include "platform.h"
+#include "utils.h"
 #include "variable.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
+#include <cstdlib>
 #include <functional>
 #include <string>
 #include <vector>
@@ -122,6 +124,16 @@ protected:
     {
         LAMMPS::argv full_args = {testbinary};
         full_args.insert(full_args.end(), args.begin(), args.end());
+
+        // append the accelerator command line flags given in the environment.
+        // this lets CTest run the very same fixtures a second time with, e.g.,
+        // LAMMPS_ACCELERATOR_ARGS="-k on t 1 -sf kk" so that the KOKKOS styles
+        // and commands are exercised without duplicating any test bodies.
+        const char *accel_args = std::getenv("LAMMPS_ACCELERATOR_ARGS");
+        if (accel_args && (accel_args[0] != '\0')) {
+            auto accel = LAMMPS_NS::utils::split_words(accel_args);
+            full_args.insert(full_args.end(), accel.begin(), accel.end());
+        }
 
         HIDE_OUTPUT([&] {
             lmp  = new LAMMPS(full_args, MPI_COMM_WORLD);

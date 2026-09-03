@@ -113,6 +113,27 @@ else()
   endfunction()
 endif()
 
+# environment setting that makes the LAMMPSTest fixture in unittest/testing/core.h
+# append accelerator flags to the LAMMPS command line arguments, so that the very
+# same test bodies also exercise the KOKKOS versions of styles and commands
+set(KOKKOS_TEST_ENVIRONMENT "LAMMPS_ACCELERATOR_ARGS=-k on t 1 -sf kk")
+
+# convenience function for adding a second, KOKKOS enabled run of a test that is
+# based on the LAMMPSTest fixture.  The added test is called <NAME>Kokkos and uses
+# the same command.  Environment settings of the original test are not inherited
+# and thus must be repeated in the optional ENVIRONMENT argument.
+function(add_kokkos_test)
+  if(NOT PKG_KOKKOS)
+    return()
+  endif()
+  cmake_parse_arguments(KKTEST "" "NAME" "COMMAND;ENVIRONMENT" ${ARGN})
+  add_test(NAME ${KKTEST_NAME}Kokkos COMMAND ${KKTEST_COMMAND})
+  set(KKTEST_ENV "${KOKKOS_TEST_ENVIRONMENT}")
+  list(APPEND KKTEST_ENV ${KKTEST_ENVIRONMENT})
+  set_tests_properties(${KKTEST_NAME}Kokkos PROPERTIES LABELS "kokkos"
+                       ENVIRONMENT "${KKTEST_ENV}")
+endfunction()
+
 # incorporate categories of specific tests from subdirectories
 
 add_subdirectory(utils)

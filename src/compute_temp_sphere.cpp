@@ -15,6 +15,7 @@
 
 #include "atom.h"
 #include "atom_masks.h"
+#include "compute_temp_region.h"
 #include "domain.h"
 #include "error.h"
 #include "force.h"
@@ -103,7 +104,7 @@ void ComputeTempSphere::init()
     if (tbias->tempbias == 0) error->all(FLERR, "Bias compute does not calculate a velocity bias");
     if (tbias->igroup != igroup)
       error->all(FLERR, "Bias compute group does not match compute group");
-    if (strcmp(tbias->style, "temp/region") == 0)
+    if (dynamic_cast<ComputeTempRegion *>(tbias) != nullptr)
       tempbias = 2;
     else
       tempbias = 1;

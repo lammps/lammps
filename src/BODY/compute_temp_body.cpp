@@ -20,6 +20,7 @@
 
 #include "atom.h"
 #include "atom_vec_body.h"
+#include "compute_temp_region.h"
 #include "domain.h"
 #include "error.h"
 #include "force.h"
@@ -110,7 +111,7 @@ void ComputeTempBody::init()
       error->all(FLERR,"Bias compute {} does not calculate a velocity bias", id_bias);
     if (tbias->igroup != igroup)
       error->all(FLERR,"Bias compute group does not match compute group");
-    if (strcmp(tbias->style,"temp/region") == 0) tempbias = 2;
+    if (dynamic_cast<ComputeTempRegion *>(tbias) != nullptr) tempbias = 2;
     else tempbias = 1;
 
     // init and setup bias compute because

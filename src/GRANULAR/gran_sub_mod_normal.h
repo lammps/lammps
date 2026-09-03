@@ -42,7 +42,6 @@ namespace LAMMPS_NS::Granular_NS {
     double Emod, poiss;
     double Fncrit;
     int material_properties, cohesive_flag;
-    double Fncrit;
   };
 
   /* ---------------------------------------------------------------------- */

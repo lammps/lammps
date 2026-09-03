@@ -72,7 +72,7 @@ namespace LAMMPS_NS::Granular_NS {
     void coeffs_to_local() override;
     double calculate_forces() override;
 
-   protected:
+  protected:
     double k;
   };
 
@@ -104,64 +104,25 @@ namespace LAMMPS_NS::Granular_NS {
   };
 
   /* ---------------------------------------------------------------------- */
-
+  
   class GranSubModNormalJKR : public GranSubModNormal {
    public:
     GranSubModNormalJKR(class GranularModel *, class LAMMPS *);
     void coeffs_to_local() override;
-    void mix_coeffs(double *, double *) override;
+    void mix_coeffs(double*, double*) override;
     bool touch() override;
     double pulloff_distance(double, double) override;
     double calculate_contact_radius() override;
-    double calculate_forces() override;
+    double calculate_forces();
     void set_fncrit() override;
-class GranSubModNormalJKR : public GranSubModNormal {
- public:
-  GranSubModNormalJKR(class GranularModel *, class LAMMPS *);
-  void coeffs_to_local() override;
-  void mix_coeffs(double*, double*) override;
-  bool touch() override;
-  double pulloff_distance(double, double) override;
-  double calculate_contact_radius() override;
-  double calculate_forces();
-  void set_fncrit() override;
- protected:
-  double k, cohesion;
-  double Emix, F_pulloff, Fne;
-};
-
-/* ---------------------------------------------------------------------- */
-
-class GranSubModNormalEPALinear : public GranSubModNormal {
- public:
-  GranSubModNormalEPALinear(class GranularModel *, class LAMMPS *);
-  void coeffs_to_local() override;
-  double calculate_forces();
-  void set_fncrit() override;
-  bool adhesive;
-
- protected:
-  double k1, k2_hat, kc, phi_f, f0;
-};
-
-/* ---------------------------------------------------------------------- */
-
-/*class GranSubModNormalEPA : public GranSubModNormal {
- public:
-  GranSubModNormalEPA(class GranularModel *, class LAMMPS *);
-  void coeffs_to_local() override;
-  void mix_coeffs(double*, double*) override;
-  double calculate_forces();
-  void set_fncrit() override;
-  bool adhesive;
 
    protected:
     double k, cohesion;
     double Emix, F_pulloff, Fne;
-    int mixed_coefficients;
+    int mixed_coefficients;   
   };
 
-  /* ---------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
 
   class GranSubModNormalMDR : public GranSubModNormal {
    public:
@@ -193,50 +154,37 @@ class GranSubModNormalEPALinear : public GranSubModNormal {
 
 /* ---------------------------------------------------------------------- */
 
-class GranSubModNormalEPALinear : public GranSubModNormal {
- public:
-  GranSubModNormalEPALinear(class GranularModel *, class LAMMPS *);
-  void coeffs_to_local() override;
-  double calculate_forces();
-  void set_fncrit() override;
-  bool adhesive;
+  class GranSubModNormalEPALinear : public GranSubModNormal {
+   public:
+    GranSubModNormalEPALinear(class GranularModel *, class LAMMPS *);
+    void coeffs_to_local() override;
+    double calculate_forces() override;
+    void set_fncrit() override;
+    bool adhesive;
 
- protected:
-  double k1, k2_hat, kc, phi_f, f0;
-};
+   protected:
+    double k1, k2_hat, kc, kc_delta, phi_f, f0;
+    int mixed_coefficients;
+  };
 
 /* ---------------------------------------------------------------------- */
 
-class GranSubModNormalEEPA : public GranSubModNormal {
- public:
-  GranSubModNormalEEPA(class GranularModel *, class LAMMPS *);
-  void coeffs_to_local() override;
-  double calculate_forces();
-  double calculate_contact_radius();
-  void set_fncrit() override;
-  bool adhesive;
+  class GranSubModNormalEPANonlinear : public GranSubModNormal {
+   public:
+    GranSubModNormalEPANonlinear(class GranularModel *, class LAMMPS *);
+    void coeffs_to_local() override;
+    void mix_coeffs(double *, double *) override;
+    double calculate_forces() override;
+    double calculate_contact_radius() override;
+    void set_fncrit() override;
+    bool adhesive;
 
  protected:
-  double E, poiss, lambda_p, f0, kadh, mexp;
-  double delta_p;
-  double minv, lp_minv;
+  double k1, Emod, poiss, damp, lambda_p, f0, kadh, mexp, nexp;
+  double k2fac, delta_p, minv, lp_minv, ka_dn;
+  int mixed_coefficients;   
 };
 
-/*class GranSubModNormalEPA : public GranSubModNormal {
- public:
-  GranSubModNormalEPA(class GranularModel *, class LAMMPS *);
-  void coeffs_to_local() override;
-  void mix_coeffs(double*, double*) override;
-  double calculate_forces();
-  void set_fncrit() override;
-  bool adhesive;
-
- protected:
-  double k, cohesion;
-  double Emix, F_pulloff, Fne;
-};
-*/
-}    // namespace Granular_NS
-}    // namespace LAMMPS_NS
+}    // namespace LAMMPS_NS::Granular_NS
 
 #endif /*GRAN_SUB_MOD_NORMAL_H */

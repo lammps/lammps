@@ -220,22 +220,20 @@ void GranSubModTangentialLinearHistoryStatic::calculate_forces()
   double magfs, magfs_inv, rsht, shrmag, prjmag, temp_dbl, temp_array[3];
   int frame_update = 0;
 
-  damp = xt * gm->damping_model->damp_prefactor;
+  damp = xt * gm->damping_model->get_damp_prefactor();
 
   double Fncrit_static = gm->normal_model->Fncrit * mu_static;
   double Fncrit_dynamic = gm->normal_model->Fncrit * mu_dynamic;
   double *history = & gm->history[history_index];
-  double Fscrit_static = gm->normal_model->Fncrit * mu_static;
-  double Fscrit_dynamic = gm->normal_model->Fncrit * mu_dynamic;
   double Fscrit;
   int dynamic;
 
   dynamic = history[3];
 
   if (dynamic) {
-	  Fscrit = gm->normal_model->Fncrit * mu_dynamic;
+	  Fscrit = gm->normal_model->get_fncrit() * mu_dynamic;
   } else {
-	  Fscrit = gm->normal_model->Fncrit * mu_static;
+	  Fscrit = gm->normal_model->get_fncrit() * mu_static;
   }
 
   // rotate and update displacements / force.
@@ -563,11 +561,11 @@ void GranSubModTangentialMindlinStatic::coeffs_to_local()
   mu_dynamic = coeffs[3];
 
   if (k == -1) {
-    if (!gm->normal_model->material_properties)
+    if (!gm->normal_model->get_material_properties())
       error->all(FLERR, "Must either specify tangential stiffness or material properties for normal model for the Mindlin tangential style");
 
-    double Emod = gm->normal_model->Emod;
-    double poiss = gm->normal_model->poiss;
+    double Emod = gm->normal_model->get_emod();
+    double poiss = gm->normal_model->get_poiss();
 
     if (gm->contact_type == PAIR) {
       k = 8.0 * mix_stiffnessG(Emod, Emod, poiss, poiss);
@@ -600,11 +598,9 @@ void GranSubModTangentialMindlinStatic::calculate_forces()
   double temp_array[3];
   int frame_update = 0;
 
-  damp = xt * gm->damping_model->damp_prefactor;
+  damp = xt * gm->damping_model->get_damp_prefactor();
 
   double *history = & gm->history[history_index];
-  double Fscrit_static = gm->normal_model->Fncrit * mu_static;
-  double Fscrit_dynamic = gm->normal_model->Fncrit * mu_dynamic;
   double Fscrit;
   int dynamic;
 
@@ -612,9 +608,9 @@ void GranSubModTangentialMindlinStatic::calculate_forces()
   dynamic = history[3];
 
   if (dynamic) {
-	  Fscrit = gm->normal_model->Fncrit * mu_dynamic;
+	  Fscrit = gm->normal_model->get_fncrit() * mu_dynamic;
   } else {
-	  Fscrit = gm->normal_model->Fncrit * mu_static;
+	  Fscrit = gm->normal_model->get_fncrit() * mu_static;
   }
 
   // rotate and update displacements / force.
@@ -686,9 +682,6 @@ void GranSubModTangentialMindlinStatic::calculate_forces()
   }
 }
 
-/*-----------------------------------------------------------------------
- * Mindlin with static friction coefficient
- */
 
 GranSubModTangentialMindlinStatic::GranSubModTangentialMindlinStatic(GranularModel *gm, LAMMPS *lmp) : GranSubModTangentialMindlin(gm, lmp)
 {

@@ -113,7 +113,7 @@ class GranSubModTangentialMindlinStatic : public GranSubModTangentialMindlin {
   GranSubModTangentialMindlinStatic(class GranularModel *, class LAMMPS *);
   void coeffs_to_local() override;
   void mix_coeffs(double*, double*) override;
-  void calculate_forces();
+  void calculate_forces() override;
  protected:
   int mindlin_rescale, mindlin_force;
   double xt;

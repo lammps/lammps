@@ -440,7 +440,6 @@ void GranSubModNormalJKR::set_fncrit()
   Fncrit = fabs(Fne + 2.0 * F_pulloff);
 }
 
-<<<<<<< HEAD
 /* ----------------------------------------------------------------------
    MDR contact model
 
@@ -1009,9 +1008,6 @@ double GranSubModNormalMDR::round_up_negative_epsilon(double value)
   return value;
 }
 
->>>>>>> c873c1226b (Updates for epa_linear and static granular contact models)
-=======
->>>>>>> 53ab9568c8 (Added EPA nonlinear model)
 /* ----------------------------------------------------------------------
    Elastic-plastic-adhesive, linear
 ------------------------------------------------------------------------- */
@@ -1046,19 +1042,14 @@ void GranSubModNormalEPALinear::coeffs_to_local()
 
 void GranSubModNormalEPALinear::set_fncrit()
 {
-  if (adhesive){
-    Fncrit = fabs(gm->Fntot + kc*gm->delta + f0);
-  }
-  else{
-    Fncrit = fabs(gm->Fntot + f0);
-  }
+  Fncrit = gm->Fntot + kc_delta + f0;  
 }
 /* ---------------------------------------------------------------------- */
 
 double GranSubModNormalEPALinear::calculate_forces()
 {
   double dmax, dmax_star, k2;
-  double d0, k1delta, kcdelta, k2_dd0;
+  double d0, k1delta, k2_dd0;
   double *history = & gm->history[history_index];
   double delta = gm->delta;
   double Fne;
@@ -1077,18 +1068,16 @@ double GranSubModNormalEPALinear::calculate_forces()
   }
   d0 = (1-k1/k2)*dmax;
   k1delta = k1*delta;  
-  kcdelta = -kc*delta;
+  kc_delta = kc*delta;
   k2_dd0 = k2*(delta-d0);
   if (k2_dd0 >= k1delta){
     Fne = k1delta;
   }
-  else if ((k1delta > k2_dd0) && (k2_dd0 > kcdelta)){
-    Fne = k2_dd0;
-    adhesive = false;
+  else if ((k1delta > k2_dd0) && (k2_dd0 > -kc_delta)){
+    Fne = k2_dd0;    
   }
-  else if (kcdelta >= k2_dd0){
-    Fne = kcdelta;
-    adhesive = true;
+  else if (-kc_delta >= k2_dd0){
+    Fne = -kc_delta;    
   }
   Fne -= f0;
   return Fne;
@@ -1098,12 +1087,14 @@ double GranSubModNormalEPALinear::calculate_forces()
    Edinburgh elastic-plastic-adhesive, non-linear
 ------------------------------------------------------------------------- */
 
-GranSubModNormalEEPA::GranSubModNormalEEPA(GranularModel *gm, LAMMPS *lmp) : GranSubModNormal(gm, lmp)
+GranSubModNormalEPANonlinear::GranSubModNormalEPANonlinear(GranularModel *gm, LAMMPS *lmp) : GranSubModNormal(gm, lmp)
 {
   cohesive_flag = 1;
-  num_coeffs = 8; //E, poiss, lambda_p, F0, gamma, m, chi
+  num_coeffs = 7; //E, poiss, damp, lambda_p, f0, kadh, mexp
   size_history = 1;
   contact_radius_flag = 1;
+  material_properties = 1;
+  mixed_coefficients = 0;
 
   nondefault_history_transfer = 1;
   transfer_history_factor = new double[size_history];
@@ -1112,39 +1103,56 @@ GranSubModNormalEEPA::GranSubModNormalEEPA(GranularModel *gm, LAMMPS *lmp) : Gra
 
 /* ---------------------------------------------------------------------- */
 
-void GranSubModNormalEEPA::coeffs_to_local()
+void GranSubModNormalEPANonlinear::coeffs_to_local()
 {
-  E = coeffs[0];
-  poiss = coeffs[1];
-  damp = coeffs[2];
+  Emod = coeffs[0];
+  damp = coeffs[1];
+  poiss = coeffs[2];  
   lambda_p = coeffs[3];
   f0 = coeffs[4];
   kadh = coeffs[5];
   mexp = coeffs[6];  
-  if (E < 0.0 || damp < 0.0 || lambda_p < 0.0 || 
-      lambda_p >= 1.0 || F0 < 0.0 || gamma < 0.0 || m < 1 || chi < 1)
-        error->all(FLERR, "Illegal EPA linear normal model");  
+  if (!mixed_coefficients) {
+    if (gm->contact_type == PAIR) {
+      k1 = FOURTHIRDS * mix_stiffnessE(Emod, Emod, poiss, poiss);
+    } else {
+      k1 = FOURTHIRDS * mix_stiffnessE_wall(Emod, poiss);
+    }   
+  }
+  if (Emod < 0.0 || damp < 0.0 || lambda_p < 0.0 || 
+      lambda_p >= 1.0 || f0 < 0.0 || kadh < 0.0 || mexp < 1)
+        error->all(FLERR, "Illegal EPA nonlinear normal model");  
   
   minv = 1.0/mexp;
   lp_minv = pow(lambda_p, minv);
+  k2fac = k1/(1-lambda_p);
 }
 
 /* ---------------------------------------------------------------------- */
 
-
-void GranSubModNormalEEPA::set_fncrit()
+void GranSubModNormalEPANonlinear::mix_coeffs(double *icoeffs, double *jcoeffs)
 {
-  if (adhesive){
-    Fncrit = fabs(gm->Fntot + kc*gm->delta + f0);
+  coeffs[0] = mix_stiffnessE(icoeffs[0], jcoeffs[0], icoeffs[2], jcoeffs[2]);
+  for (int i = 1; i < num_coeffs; i++) {
+    coeffs[i] = mix_geom(icoeffs[i], jcoeffs[i]);
   }
-  else{
-    Fncrit = fabs(gm->Fntot + f0);
-  }
+
+  k1 = FOURTHIRDS * coeffs[0];
+  mixed_coefficients = 1;
+
+  coeffs_to_local();
 }
 
 /* ---------------------------------------------------------------------- */
 
-double GranSubModNormalEEPA::calculate_contact_radius()
+void GranSubModNormalEPANonlinear::set_fncrit()
+{
+  Fncrit = fabs(gm->Fntot + ka_dm + f0);  
+}
+
+/* ---------------------------------------------------------------------- */
+
+double GranSubModNormalEPANonlinear::calculate_contact_radius()
 {
   double *history = & gm->history[history_index];
   double delta_max = history[0];
@@ -1162,34 +1170,32 @@ double GranSubModNormalEEPA::calculate_contact_radius()
 
 /* ---------------------------------------------------------------------- */
 
-double GranSubModNormalEEPA::calculate_forces()
+double GranSubModNormalEPANonlinear::calculate_forces()
 {
-  double delta_max, delta_p;
-  double dm, dpm, dchi, k2_dmdpm, k1_dm, ka_dm;  
+  double k2, delta_max;
+  double dm, dpm, dchi, k2_dmdpm, k1_dm;  
   double *history = & gm->history[history_index];
   double delta = gm->delta;
   double Fmin, Fmin_lim, Fne;
 
-  k2 = k1*gm->Reff/(1-lambda_p);
+  k2 = k2fac*gm->Reff;
   
   dm = pow(delta, mexp);  
   dpm = pow(delta_p, mexp);
 
-  k1_dm = k1*dm;
+  k1_dm = k1*gm->Reff*dm;
   k2_dmdpm = k2*(dm-dpm);  
 
   if (k2_dmdpm >= k1_dm){ 
     Fne = k1_dm;
   }
   else{ //Could be on adhesive branch
-    ka_dm = -f0+kadh*dm;
+    ka_dm = kadh*gm->Reff*dm;
     if ((k1_dm > k2_dmdpm) && (k2_dmdpm > -ka_dm)){
-      Fne = k2_dmdpm;
-      adhesive = false;
+      Fne = k2_dmdpm;     
     }    
     else if (-ka_dm >= k2_dmdpm){
-      Fne = - ka_dm;
-      adhesive = true;
+      Fne = -ka_dm;      
     }
   }  
   Fne -= f0;

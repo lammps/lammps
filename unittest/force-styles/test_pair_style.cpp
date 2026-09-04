@@ -1000,6 +1000,172 @@ TEST(PairStyle, eatom_only_omp)
     eatom_only_test(args, test_config);
 }
 
+/* ----------------------------------------------------------------------
+   the per-atom virial of a pair style has to add up to its global
+   virial.  this is a self-consistency check that needs no stored
+   reference data and it is the only place in this driver where a
+   per-atom virial is requested at all: without it the "vflag_atom"
+   branches of the pair styles and of their accelerated variants are
+   never executed, so a style that computes the global virial correctly
+   but does not fill (or wrongly fills) its per-atom virial array is
+   not detected
+------------------------------------------------------------------------- */
+
+// "compute stress/atom" reports the per-atom virial of the selected
+// contributions scaled by -nktv2p, so the sum has to be scaled back to
+// the units of Pair::virial before it can be compared with it
+
+static void vatom_sum(LAMMPS *lmp, double *sum)
+{
+    auto *vas = lmp->modify->get_compute_by_id("vasum");
+    ASSERT_NE(vas, nullptr);
+    vas->compute_vector();
+    const double scale = -1.0 / lmp->force->nktv2p;
+    for (int k = 0; k < 6; ++k)
+        sum[k] = scale * vas->vector[k];
+}
+
+static void vatom_only_test(LAMMPS::argv args, const TestConfig &cfg, double epsilon)
+{
+    ::testing::internal::CaptureStdout();
+    LAMMPS *lmp = nullptr;
+    try {
+        lmp = init_lammps(args, cfg, true);
+    } catch (std::exception &e) {
+        std::string output = ::testing::internal::GetCapturedStdout();
+        if (verbose) std::cout << output;
+        if (full_neigh_unsupported(e.what())) GTEST_SKIP() << e.what();
+        FAIL() << e.what();
+    }
+    std::string output = ::testing::internal::GetCapturedStdout();
+    if (verbose) std::cout << output;
+    if (!lmp) GTEST_SKIP();
+
+    // exception safety matters here: leaving the capturer active on a
+    // throw aborts the whole test program at the next captured section
+    ::testing::internal::CaptureStdout();
+    double sum[6], reference[6];
+    for (int k = 0; k < 6; ++k)
+        sum[k] = reference[k] = 0.0;
+    try {
+        // the "nofdotr" token in skip_tests marks styles whose global virial
+        // from ev_tally() differs from the fdotr one, because they have force
+        // contributions that are not tallied (random or dissipative forces).
+        // for those the per-atom virial can only be compared with the global
+        // virial that ev_tally() accumulates, so request that one here
+        if (cfg.skip_tests.count("nofdotr")) lmp->input->one("pair_modify nofdotr");
+        lmp->input->one("compute vaonly all stress/atom NULL pair");
+        lmp->input->one("compute vasum all reduce sum c_vaonly[1] c_vaonly[2] c_vaonly[3] "
+                        "c_vaonly[4] c_vaonly[5] c_vaonly[6]");
+        lmp->input->one("run 0 post no");
+        vatom_sum(lmp, sum);
+        for (int k = 0; k < 6; ++k)
+            reference[k] = lmp->force->pair->virial[k];
+    } catch (std::exception &e) {
+        std::string errout = ::testing::internal::GetCapturedStdout();
+        if (verbose) std::cout << errout;
+        cleanup_lammps(lmp, cfg);
+        FAIL() << e.what();
+    }
+    cleanup_lammps(lmp, cfg);
+    ::testing::internal::GetCapturedStdout();
+
+    double scale = 1.0;
+    for (int k = 0; k < 6; ++k)
+        if (fabs(reference[k]) > scale) scale = fabs(reference[k]);
+
+    const char *label[6] = {"xx", "yy", "zz", "xy", "xz", "yz"};
+    for (int k = 0; k < 6; ++k)
+        EXPECT_NEAR(sum[k], reference[k], scale * epsilon)
+            << "sum of the per-atom virial differs from the global virial "
+            << "for the " << label[k] << " component";
+}
+
+TEST(PairStyle, vatom_only)
+{
+    if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
+
+    LAMMPS::argv args = {"PairStyle", "-log", "none", "-echo", "screen", "-nocite"};
+    vatom_only_test(args, test_config, 10.0 * test_config.epsilon);
+}
+
+TEST(PairStyle, vatom_only_omp)
+{
+    if (!Info::has_package("OPENMP")) GTEST_SKIP();
+    if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
+    if (test_config.skip_tests.count("omp")) GTEST_SKIP();
+    // a style that cannot tally a per-atom virial at all cannot do so with
+    // an accelerated variant either, so the plain "vatom_only" skip entries
+    // apply to this test case as well
+    if (test_config.skip_tests.count("vatom_only")) GTEST_SKIP();
+
+    LAMMPS::argv args = {"PairStyle", "-log", "none", "-echo", "screen", "-nocite",
+                         "-pk",       "omp",  "4",    "-sf",   "omp"};
+    if (test_config.has_tag("single_thread")) args[8] = "1";
+    vatom_only_test(args, test_config, 50.0 * test_config.epsilon);
+}
+
+TEST(PairStyle, vatom_only_kokkos)
+{
+    if (!Info::has_package("KOKKOS")) GTEST_SKIP();
+    if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
+    // a style that cannot tally a per-atom virial at all cannot do so with
+    // an accelerated variant either, so the plain "vatom_only" skip entries
+    // apply to this test case as well
+    if (test_config.skip_tests.count("vatom_only")) GTEST_SKIP();
+    // skip entries may also be qualified by the KOKKOS package precision,
+    // e.g. "vatom_only_kokkos_single" skips only single precision builds
+    if (test_config.skip_tests.count(std::string(test_info_->name()) + "_" + kokkos_precision()))
+        GTEST_SKIP();
+    // skip entries qualified with "_devicerng" apply only to builds where the
+    // KOKKOS styles use the device random number generator
+    if (Info::has_accelerator_feature("KOKKOS", "rng", "device") &&
+        test_config.skip_tests.count(std::string(test_info_->name()) + "_devicerng"))
+        GTEST_SKIP();
+
+    // a style that cannot be tested with KOKKOS at all cannot have its
+    // per-atom virial tested with KOKKOS either, so the skip entries of the
+    // regular KOKKOS test case for the backend in use apply here as well
+    const bool kk_gpu = Info::has_accelerator_feature("KOKKOS", "api", "cuda") ||
+                        Info::has_accelerator_feature("KOKKOS", "api", "hip") ||
+                        Info::has_accelerator_feature("KOKKOS", "api", "sycl");
+    const bool kk_threads = Info::has_accelerator_feature("KOKKOS", "api", "openmp") ||
+                            Info::has_accelerator_feature("KOKKOS", "api", "pthreads");
+    std::string base = "kokkos_serial";
+    if (kk_gpu)
+        base = "kokkos_gpu";
+    else if (kk_threads)
+        base = "kokkos_omp";
+    if (test_config.skip_tests.count(base)) GTEST_SKIP();
+    if (test_config.skip_tests.count(base + "_" + kokkos_precision())) GTEST_SKIP();
+    if (Info::has_accelerator_feature("KOKKOS", "rng", "device") &&
+        test_config.skip_tests.count(base + "_devicerng"))
+        GTEST_SKIP();
+    // transparently skip when no compatible GPU device is present
+    if (kk_gpu && !Info::has_kokkos_gpu_device())
+        GTEST_SKIP() << "No compatible GPU device available";
+
+    // use a half neighbor list with newton on, as in the regular KOKKOS
+    // test cases, so the setup matches what the input templates expect
+    LAMMPS::argv args = {"PairStyle", "-log", "none", "-echo", "screen", "-nocite",
+                         "-k",        "on",   "t",    "1",     "-sf",    "kk"};
+    if (kk_gpu)
+        args = {"PairStyle", "-log", "none",   "-echo",  "screen", "-nocite", "-k",
+                "on",        "g",    "1",      "-sf",    "kk",     "-pk",     "kokkos",
+                "neigh",     "half", "newton", "on"};
+    else if (kk_threads && !test_config.has_tag("single_thread"))
+        args[9] = "4";
+
+    // relax error a lot for reduced precision KOKKOS builds
+    double epsilon                 = 50.0 * test_config.epsilon;
+    const std::string kk_precision = kokkos_precision();
+    if (kk_precision == "mixed")
+        epsilon *= 2.0e9;
+    else if (kk_precision == "single")
+        epsilon *= 1.0e10;
+    vatom_only_test(args, test_config, epsilon);
+}
+
 TEST(PairStyle, kokkos_omp)
 {
     if (!Info::has_package("KOKKOS")) GTEST_SKIP();

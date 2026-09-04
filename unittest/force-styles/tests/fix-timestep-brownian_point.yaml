@@ -5,6 +5,7 @@ date_generated: Fri Jul 10 18:20:04 2026
 epsilon: 5e-14
 skip_tests: kokkos_gpu_devicerng kokkos_omp_devicerng kokkos_serial_devicerng
 prerequisites: |
+  atom dipole
   atom sphere
   fix brownian
 pre_commands: ""

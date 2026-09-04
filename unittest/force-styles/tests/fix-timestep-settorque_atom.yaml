@@ -6,6 +6,7 @@ epsilon: 5e-14
 timestep: 5e-04
 skip_tests:
 prerequisites: |
+  atom dipole
   atom sphere
   fix settorque/atom
   fix nve/sphere

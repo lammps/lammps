@@ -737,7 +737,7 @@ struct AtomVecEllipsoidKokkos_BackfillEllipsoid {
   void operator() (const int &mysend) const {
     const int i = _sendlist(mysend);
 
-    // if atom J has bonus data, reset J’s bonus.ilocal to loc I
+    // if atom J has bonus data, reset J's bonus.ilocal to loc I
 
     int j = _copylist(mysend);
     if (j > -1) {

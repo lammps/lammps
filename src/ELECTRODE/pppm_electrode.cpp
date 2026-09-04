@@ -97,24 +97,18 @@ PPPMElectrode::~PPPMElectrode()
    called once before run
 ------------------------------------------------------------------------- */
 
-void PPPMElectrode::init_tip4p()
-{
-}
-
 void PPPMElectrode::init()
 {
-  const char *style = tip4pflag ? "pppm/electrode/tip4p" : "PPPM/electrode";
-
-  if (me == 0) utils::logmesg(lmp, "{} initialization ...\n", style);
+  if (me == 0) utils::logmesg(lmp, "{} initialization ...\n", force->kspace_style);
 
   // error check
   if (slabflag == 3)
-    error->all(FLERR, "Cannot (yet) use {} with 'kspace_modify slab ew2d'", style);
+    error->all(FLERR, "Cannot (yet) use {} with 'kspace_modify slab ew2d'", force->kspace_style);
 
   triclinic_check();
   triclinic = domain->triclinic;
-  if (triclinic) error->all(FLERR, "Cannot (yet) use {} with triclinic box ", style);
-  if (domain->dimension == 2) error->all(FLERR, "Cannot use {} with 2d simulation", style);
+  if (triclinic) error->all(FLERR, "Cannot (yet) use {} with triclinic box ", force->kspace_style);
+  if (domain->dimension == 2) error->all(FLERR, "Cannot use {} with 2d simulation", force->kspace_style);
 
   if (!atom->q_flag) error->all(FLERR, "KSpace style requires atom attribute q");
 
@@ -131,7 +125,7 @@ void PPPMElectrode::init()
   }
 
   if (order < 2 || order > MAXORDER)
-    error->all(FLERR, "{} order cannot be < 2 or > {}", style, MAXORDER);
+    error->all(FLERR, "{} order cannot be < 2 or > {}", force->kspace_style, MAXORDER);
 
   // compute two charge force
 

@@ -24,6 +24,7 @@
 #include "electrode_math.h"
 #include "electrode_matrix.h"
 #include "electrode_vector.h"
+#include "electrode_vector_tip4p.h"
 #include "error.h"
 #include "force.h"
 #include "group.h"
@@ -265,7 +266,10 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
   // construct computes
   need_array_compute = !(read_inv || read_mat) && matrix_algo;
   need_elec_vector = algo == Algo::CG;
-  elyt_vector = new ElectrodeVector(lmp, igroup, igroup, eta, true);
+  if (force->pair && force->pair->tip4pflag)
+    elyt_vector = new ElectrodeVectorTIP4P(lmp, igroup, igroup, eta, true);
+  else
+    elyt_vector = new ElectrodeVector(lmp, igroup, igroup, eta, true);
   if (need_elec_vector) elec_vector = new ElectrodeVector(lmp, igroup, igroup, eta, false);
   assert(groups.size() == group_bits.size());
   assert(groups.size() == group_psi.size());
@@ -1248,9 +1252,8 @@ double FixElectrodeConp::gausscorr(int eflag, int vflag, bool fflag)
     int i = ilist[ii];
     bool i_in_ele = groupbit & mask[i];
     double qtmp = q[i];
-    double xtmp = x[i][0];
-    double ytmp = x[i][1];
-    double ztmp = x[i][2];
+    double xi[3];
+    elyt_vector->get_charge_position(i, xi);
     double const eta_i = etaflag ? atom->dvector[eta_index][i] : eta;
     int itype = type[i];
     int *jlist = firstneigh[i];
@@ -1261,13 +1264,15 @@ double FixElectrodeConp::gausscorr(int eflag, int vflag, bool fflag)
       bool j_in_ele = groupbit & mask[j];
       if (!(i_in_ele || j_in_ele)) continue;
 
-      double delx = xtmp - x[j][0];
-      double dely = ytmp - x[j][1];
-      double delz = ztmp - x[j][2];
+      double xj[3];
+      elyt_vector->get_charge_position(j, xj);
+      double delx = xi[0] - xj[0];
+      double dely = xi[1] - xj[1];
+      double delz = xi[2] - xj[2];
       double rsq = delx * delx + dely * dely + delz * delz;
       int jtype = type[j];
 
-      if (rsq < force->pair->cutsq[itype][jtype]) {
+      if (rsq < elyt_vector->get_pair_cutsq(itype, jtype)) {
         double const eta_j = etaflag ? atom->dvector[eta_index][j] : eta;
         double eta_ij;
         if (i_in_ele && j_in_ele)
@@ -1287,20 +1292,47 @@ double FixElectrodeConp::gausscorr(int eflag, int vflag, bool fflag)
 
         double fpair = prefactor * derfcr * r2inv;
         if (fflag) {
-          f[i][0] += delx * fpair;
-          f[i][1] += dely * fpair;
-          f[i][2] += delz * fpair;
+                      const double fij[3] = {delx * fpair, dely * fpair, delz * fpair};
+          elyt_vector->add_charge_force(i, fij);
           if (newton_pair || j < nlocal) {
-            f[j][0] -= delx * fpair;
-            f[j][1] -= dely * fpair;
-            f[j][2] -= delz * fpair;
+            const double fji[3] = {-fij[0], -fij[1], -fij[2]};
+            elyt_vector->add_charge_force(j, fji);
           }
         }
         if (eflag) {
           double ecoul = -prefactor * erfc_etar;
           force->pair->ev_tally(i, j, nlocal, newton_pair, 0., ecoul, 0., 0., 0., 0.);
         }
-        if (vflag) v_tally(i, j, nlocal, newton_pair, fpair, delx, dely, delz);
+        if (vflag) {
+          if (force->pair->tip4pflag) {
+            double vi[6] = {0., 0., 0., 0., 0., 0.};
+            double vj[6] = {0., 0., 0., 0., 0., 0.};
+            int ilist_tip4p[3] = {-1, -1, -1};
+            int jlist_tip4p[3] = {-1, -1, -1};
+            const double fij[3] = {delx * fpair, dely * fpair, delz * fpair};
+            const double fji[3] = {-fij[0], -fij[1], -fij[2]};
+
+            const int ni =
+                elyt_vector->get_charge_force_virial(i, fij, vi, ilist_tip4p);
+            const int nj =
+                elyt_vector->get_charge_force_virial(j, fji, vj, jlist_tip4p);
+
+            double vtip4p[6];
+            for (int k = 0; k < 6; k++) vtip4p[k] = vi[k] + vj[k];
+
+            const int key = (ni == 3 ? 1 : 0) + (nj == 3 ? 2 : 0);
+            int vlist_tip4p[6];
+            int n = 0;
+
+            for (int k = 0; k < ni; k++) vlist_tip4p[n++] = ilist_tip4p[k];
+            for (int k = 0; k < nj; k++) vlist_tip4p[n++] = jlist_tip4p[k];
+
+            v_tally_tip4p(key, vlist_tip4p, vtip4p,
+                          elyt_vector->get_charge_force_alpha());
+          } else {
+            v_tally(i, j, nlocal, newton_pair, fpair, delx, dely, delz);
+          }
+        }
       }
     }
   }
@@ -1311,6 +1343,47 @@ double FixElectrodeConp::gausscorr(int eflag, int vflag, bool fflag)
 
 /* ---------------------------------------------------------------------- */
 
+void FixElectrodeConp::v_tally_tip4p(int key, int *list, double *v, double alpha)
+{
+  if (!vflag_either) return;
+
+  if (vflag_global) {
+    virial[0] += v[0];
+    virial[1] += v[1];
+    virial[2] += v[2];
+    virial[3] += v[3];
+    virial[4] += v[4];
+    virial[5] += v[5];
+  }
+
+  if (vflag_atom) {
+    for (int m = 0; m < 6; m++) {
+      if (key == 0) {
+        vatom[list[0]][m] += 0.5 * v[m];
+        vatom[list[1]][m] += 0.5 * v[m];
+      } else if (key == 1) {
+        vatom[list[0]][m] += 0.5 * v[m] * (1.0 - alpha);
+        vatom[list[1]][m] += 0.25 * v[m] * alpha;
+        vatom[list[2]][m] += 0.25 * v[m] * alpha;
+        vatom[list[3]][m] += 0.5 * v[m];
+      } else if (key == 2) {
+        vatom[list[0]][m] += 0.5 * v[m];
+        vatom[list[1]][m] += 0.5 * v[m] * (1.0 - alpha);
+        vatom[list[2]][m] += 0.25 * v[m] * alpha;
+        vatom[list[3]][m] += 0.25 * v[m] * alpha;
+      } else {
+        vatom[list[0]][m] += 0.5 * v[m] * (1.0 - alpha);
+        vatom[list[1]][m] += 0.25 * v[m] * alpha;
+        vatom[list[2]][m] += 0.25 * v[m] * alpha;
+        vatom[list[3]][m] += 0.5 * v[m] * (1.0 - alpha);
+        vatom[list[4]][m] += 0.25 * v[m] * alpha;
+        vatom[list[5]][m] += 0.25 * v[m] * alpha;
+      }
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------- */
 FixElectrodeConp::~FixElectrodeConp()
 {
   if (comm->me == 0) {

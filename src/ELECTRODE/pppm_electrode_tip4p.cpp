@@ -37,7 +37,6 @@
 #include "update.h"
 #include "wire_dipole.h"
 
-#include <algorithm>
 #include <cmath>
 #include <cstring>
 
@@ -45,29 +44,14 @@ using namespace LAMMPS_NS;
 using namespace MathConst;
 using namespace MathSpecial;
 
-static constexpr int MAXORDER = 7;
 static constexpr int OFFSET = 16384;
-static constexpr double EPS_HOC = 1.0e-7;
 static constexpr FFT_SCALAR ZEROF = 0.0;
-
-static const char cite_pppm_electrode[] =
-    "kspace_style pppm/electrode/tip4p command:\n\n"
-    "@article{Ahrens2021,\n"
-    "author = {Ahrens-Iwers, Ludwig J.V. and Mei{\\ss}ner, Robert H.},\n"
-    "doi = {10.1063/5.0063381},\n"
-    "title = {{Constant potential simulations on a mesh}},\n"
-    "journal = {Journal of Chemical Physics},\n"
-    "year = {2021}\n"
-    "volume = {155},\n"
-    "pages = {104104},\n"
-    "}\n";
 
 /* ---------------------------------------------------------------------- */
 
 PPPMElectrodeTIP4P::PPPMElectrodeTIP4P(LAMMPS *lmp) :
-    PPPMElectrode(lmp, false)
+    PPPMElectrode(lmp)
 {
-  if (lmp->citeme) lmp->citeme->add(cite_pppm_electrode);
 
   group_group_enable = 0;
   tip4pflag = 1;
@@ -216,18 +200,6 @@ void PPPMElectrodeTIP4P::particle_map()
     error->one(FLERR, Error::NOLASTLINE,
                "Out of range atoms - cannot compute PPPM" + utils::errorurl(4));
 }
-
-/* ----------------------------------------------------------------------
-------------------------------------------------------------------------- */
-/* ----------------------------------------------------------------------
--------------------------------------------------------------------------
-*/
-
-/* ----------------------------------------------------------------------*/
-
-/* ----------------------------------------------------------------------*/
-
-/* ----------------------------------------------------------------------*/
 
 /* ----------------------------------------------------------------------
    allocate memory that depends on # of K-vectors and order
@@ -650,8 +622,6 @@ void PPPMElectrodeTIP4P::make_rho_in_brick(int source_grpbit, FFT_SCALAR ***scra
   int l, m, n, nx, ny, nz, mx, my, mz;
   FFT_SCALAR dx, dy, dz, x0, y0, z0;
 
-  last_source_grpbit = source_grpbit;
-  last_invert_source = invert_source;
 
   // clear 3d density array
   memset(&(scratch_brick[nzlo_out][nylo_out][nxlo_out]), 0, ngrid * sizeof(FFT_SCALAR));

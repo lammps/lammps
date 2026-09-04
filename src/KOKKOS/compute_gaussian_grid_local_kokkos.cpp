@@ -128,6 +128,7 @@ template<class DeviceType>
 void ComputeGaussianGridLocalKokkos<DeviceType>::compute_local()
 {
   if (host_flag) {
+    ComputeGaussianGridLocal::compute_local();
     return;
   }
 

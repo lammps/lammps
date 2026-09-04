@@ -71,11 +71,13 @@ ComputeSNAGridLocalKokkos<DeviceType, real_type, accum_type, vector_length>::Com
     }
   }
 
-   // Set up element lists
-  MemKK::realloc_kokkos(d_radelem,"ComputeSNAGridLocalKokkos::radelem",nelements);
-  MemKK::realloc_kokkos(d_wjelem,"ComputeSNAGridLocalKokkos:wjelem",nelements);
-  MemKK::realloc_kokkos(d_sinnerelem,"ComputeSNAGridLocalKokkos:sinnerelem",nelements);
-  MemKK::realloc_kokkos(d_dinnerelem,"ComputeSNAGridLocalKokkos:dinnerelem",nelements);
+  // Set up element lists.  the loop below fills these with one entry per
+  // atom type, which is not the same as the number of elements unless the
+  // chem keyword is used, so they have to be sized by the number of types
+  MemKK::realloc_kokkos(d_radelem,"ComputeSNAGridLocalKokkos::radelem",atom->ntypes);
+  MemKK::realloc_kokkos(d_wjelem,"ComputeSNAGridLocalKokkos:wjelem",atom->ntypes);
+  MemKK::realloc_kokkos(d_sinnerelem,"ComputeSNAGridLocalKokkos:sinnerelem",atom->ntypes);
+  MemKK::realloc_kokkos(d_dinnerelem,"ComputeSNAGridLocalKokkos:dinnerelem",atom->ntypes);
   // test
   MemKK::realloc_kokkos(d_test, "ComputeSNAGridLocalKokkos::test", nelements);
 
@@ -96,8 +98,8 @@ ComputeSNAGridLocalKokkos<DeviceType, real_type, accum_type, vector_length>::Com
     h_radelem(i-1) = static_cast<real_type>(radelem[i]);
     h_wjelem(i-1) = static_cast<real_type>(wjelem[i]);
     if (switchinnerflag){
-      h_sinnerelem(i) = static_cast<real_type>(sinnerelem[i]);
-      h_dinnerelem(i) = static_cast<real_type>(dinnerelem[i]);
+      h_sinnerelem(i-1) = static_cast<real_type>(sinnerelem[i]);
+      h_dinnerelem(i-1) = static_cast<real_type>(dinnerelem[i]);
     }
   }
 
@@ -157,7 +159,7 @@ template<class DeviceType, typename real_type, typename accum_type, int vector_l
 void ComputeSNAGridLocalKokkos<DeviceType, real_type, accum_type, vector_length>::compute_local()
 {
   if (host_flag) {
-    ComputeSNAGridLocal::compute_array();
+    ComputeSNAGridLocal::compute_local();
     return;
   }
 

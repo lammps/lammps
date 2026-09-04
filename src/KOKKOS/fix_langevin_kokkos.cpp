@@ -478,6 +478,14 @@ void FixLangevinKokkos<DeviceType>::zero_force_item(int i) const
     f(i,0) -= static_cast<KK_ACC_FLOAT>(d_fsumall[0]);
     f(i,1) -= static_cast<KK_ACC_FLOAT>(d_fsumall[1]);
     f(i,2) -= static_cast<KK_ACC_FLOAT>(d_fsumall[2]);
+
+    // the tallied thermostat force has to lose the same amount, or the energy
+    // reported by compute_scalar() is that of the force before it was zeroed
+    if (tallyflag) {
+      d_flangevin(i,0) -= static_cast<KK_FLOAT>(d_fsumall[0]);
+      d_flangevin(i,1) -= static_cast<KK_FLOAT>(d_fsumall[1]);
+      d_flangevin(i,2) -= static_cast<KK_FLOAT>(d_fsumall[2]);
+    }
   }
 }
 

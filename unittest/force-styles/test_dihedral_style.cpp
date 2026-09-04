@@ -28,6 +28,7 @@
 #include "fix.h"
 #include "force.h"
 #include "info.h"
+#include "utils.h"
 #include "input.h"
 #include "modify.h"
 
@@ -56,6 +57,18 @@ static void enforce_kokkos_full_neigh(LAMMPS *lmp)
     lmp->input->one("variable newton_pair index off");
     lmp->input->one("variable newton_bond delete");
     lmp->input->one("variable newton_bond index off");
+}
+
+// styles that require "newton on" or a half neighbor list cannot run in the
+// full neighbor list configuration of the KOKKOS package.  those are
+// documented restrictions of the style, so the corresponding test case is
+// skipped instead of failed when the setup stops with such an error.
+
+static bool full_neigh_unsupported(const std::string &errmsg)
+{
+    if (!kokkos_full_neigh) return false;
+    return (LAMMPS_NS::utils::strmatch(errmsg, "newton") ||
+            LAMMPS_NS::utils::strmatch(errmsg, "half neighbor list"));
 }
 
 void cleanup_lammps(LAMMPS *&lmp, const TestConfig &cfg)
@@ -102,6 +115,9 @@ LAMMPS *init_lammps(LAMMPS::argv &args, const TestConfig &cfg, const bool newton
             fprintf(stderr, "LAMMPS Error: %s\n", ae.what());
             exit(2);
         } catch (LAMMPSException &e) {
+            // let the caller turn a documented restriction of the style into a
+            // skipped test instead of terminating the whole test program
+            if (full_neigh_unsupported(e.what())) throw;
             fprintf(stderr, "LAMMPS Error: %s\n", e.what());
             exit(3);
         } catch (fmt::format_error &fe) {
@@ -342,6 +358,7 @@ TEST(DihedralStyle, plain)
     } catch (std::exception &e) {
         std::string output = ::testing::internal::GetCapturedStdout();
         if (verbose) std::cout << output;
+        if (full_neigh_unsupported(e.what())) GTEST_SKIP() << e.what();
         FAIL() << e.what();
     }
     std::string output = ::testing::internal::GetCapturedStdout();
@@ -473,6 +490,7 @@ TEST(DihedralStyle, omp)
     } catch (std::exception &e) {
         std::string output = ::testing::internal::GetCapturedStdout();
         if (verbose) std::cout << output;
+        if (full_neigh_unsupported(e.what())) GTEST_SKIP() << e.what();
         FAIL() << e.what();
     }
     std::string output = ::testing::internal::GetCapturedStdout();
@@ -589,6 +607,7 @@ static void run_kokkos_test(LAMMPS::argv &args)
     } catch (std::exception &e) {
         std::string output = ::testing::internal::GetCapturedStdout();
         if (verbose) std::cout << output;
+        if (full_neigh_unsupported(e.what())) GTEST_SKIP() << e.what();
         FAIL() << e.what();
     }
     std::string output = ::testing::internal::GetCapturedStdout();
@@ -871,6 +890,7 @@ TEST(DihedralStyle, numdiff)
     } catch (std::exception &e) {
         std::string output = ::testing::internal::GetCapturedStdout();
         if (verbose) std::cout << output;
+        if (full_neigh_unsupported(e.what())) GTEST_SKIP() << e.what();
         FAIL() << e.what();
     }
     std::string output = ::testing::internal::GetCapturedStdout();

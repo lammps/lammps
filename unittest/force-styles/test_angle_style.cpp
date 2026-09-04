@@ -722,6 +722,11 @@ TEST(AngleStyle, kokkos_omp)
     // e.g. "kokkos_omp_single" skips only single precision KOKKOS builds
     if (test_config.skip_tests.count(std::string(test_info_->name()) + "_" + kokkos_precision()))
         GTEST_SKIP();
+    // skip entries qualified with "_devicerng" apply only to builds where the
+    // KOKKOS styles use the device random number generator
+    if (Info::has_accelerator_feature("KOKKOS", "rng", "device") &&
+        test_config.skip_tests.count(std::string(test_info_->name()) + "_devicerng"))
+        GTEST_SKIP();
     // this test requires the OpenMP backend of KOKKOS
     if (!Info::has_accelerator_feature("KOKKOS", "api", "openmp"))
         GTEST_SKIP() << "KOKKOS OpenMP backend not enabled";
@@ -745,11 +750,19 @@ TEST(AngleStyle, kokkos_omp_full)
     // e.g. "kokkos_omp_full_single" skips only single precision KOKKOS builds
     if (test_config.skip_tests.count(std::string(test_info_->name()) + "_" + kokkos_precision()))
         GTEST_SKIP();
+    // skip entries qualified with "_devicerng" apply only to builds where the
+    // KOKKOS styles use the device random number generator
+    if (Info::has_accelerator_feature("KOKKOS", "rng", "device") &&
+        test_config.skip_tests.count(std::string(test_info_->name()) + "_devicerng"))
+        GTEST_SKIP();
     // a style that cannot be tested with KOKKOS at all cannot be tested
     // with a full neighbor list either, so the plain "kokkos_omp"
     // skip entries apply here as well
     if (test_config.skip_tests.count("kokkos_omp")) GTEST_SKIP();
     if (test_config.skip_tests.count("kokkos_omp_" + kokkos_precision()))
+        GTEST_SKIP();
+    if (Info::has_accelerator_feature("KOKKOS", "rng", "device") &&
+        test_config.skip_tests.count("kokkos_omp_devicerng"))
         GTEST_SKIP();
     // this test requires the OpenMP backend of KOKKOS
     if (!Info::has_accelerator_feature("KOKKOS", "api", "openmp"))
@@ -785,6 +798,11 @@ TEST(AngleStyle, kokkos_serial)
     // e.g. "kokkos_serial_single" skips only single precision KOKKOS builds
     if (test_config.skip_tests.count(std::string(test_info_->name()) + "_" + kokkos_precision()))
         GTEST_SKIP();
+    // skip entries qualified with "_devicerng" apply only to builds where the
+    // KOKKOS styles use the device random number generator
+    if (Info::has_accelerator_feature("KOKKOS", "rng", "device") &&
+        test_config.skip_tests.count(std::string(test_info_->name()) + "_devicerng"))
+        GTEST_SKIP();
     // this test requires the KOKKOS package compiled with only the Serial backend: when the
     // OpenMP (or a GPU) backend is enabled, the host execution space is not Serial
     if (!Info::has_accelerator_feature("KOKKOS", "api", "serial"))
@@ -811,11 +829,19 @@ TEST(AngleStyle, kokkos_serial_full)
     // e.g. "kokkos_serial_full_single" skips only single precision KOKKOS builds
     if (test_config.skip_tests.count(std::string(test_info_->name()) + "_" + kokkos_precision()))
         GTEST_SKIP();
+    // skip entries qualified with "_devicerng" apply only to builds where the
+    // KOKKOS styles use the device random number generator
+    if (Info::has_accelerator_feature("KOKKOS", "rng", "device") &&
+        test_config.skip_tests.count(std::string(test_info_->name()) + "_devicerng"))
+        GTEST_SKIP();
     // a style that cannot be tested with KOKKOS at all cannot be tested
     // with a full neighbor list either, so the plain "kokkos_serial"
     // skip entries apply here as well
     if (test_config.skip_tests.count("kokkos_serial")) GTEST_SKIP();
     if (test_config.skip_tests.count("kokkos_serial_" + kokkos_precision()))
+        GTEST_SKIP();
+    if (Info::has_accelerator_feature("KOKKOS", "rng", "device") &&
+        test_config.skip_tests.count("kokkos_serial_devicerng"))
         GTEST_SKIP();
     // this test requires the KOKKOS package compiled with only the Serial backend: when the
     // OpenMP (or a GPU) backend is enabled, the host execution space is not Serial
@@ -853,6 +879,11 @@ TEST(AngleStyle, kokkos_gpu)
     // skip entries may also be qualified by the KOKKOS package precision,
     // e.g. "kokkos_gpu_single" skips only single precision KOKKOS builds
     if (test_config.skip_tests.count(std::string(test_info_->name()) + "_" + kokkos_precision()))
+        GTEST_SKIP();
+    // skip entries qualified with "_devicerng" apply only to builds where the
+    // KOKKOS styles use the device random number generator
+    if (Info::has_accelerator_feature("KOKKOS", "rng", "device") &&
+        test_config.skip_tests.count(std::string(test_info_->name()) + "_devicerng"))
         GTEST_SKIP();
     // this test requires a GPU backend of the KOKKOS package
     if (!Info::has_accelerator_feature("KOKKOS", "api", "cuda") &&

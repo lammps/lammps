@@ -303,8 +303,11 @@ This pair style requires the :doc:`newton <newton>` setting to be "on"
 for pair interactions.
 
 The *shift* keyword is not supported by the *tersoff/gpu*,
-*tersoff/intel*, *tersoff/kk*, *tersoff/table* or *tersoff/table/omp*
-variants.
+*tersoff/intel*, *tersoff/table* or *tersoff/table/omp* variants.
+
+.. versionchanged:: TBD
+
+   The *shift* keyword is now also supported by the *tersoff/kk* variant.
 
 The *tersoff/intel* pair style is only available when compiling LAMMPS
 with the Intel compilers.

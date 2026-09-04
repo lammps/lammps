@@ -1,0 +1,7 @@
+pair_style lj/cut 2.5
+pair_coeff  1 1  1.0  1.0
+pair_coeff  1 2  0.8  1.05
+pair_coeff  2 2  0.6  1.1
+
+group solute  type 1
+group solvent type 2

@@ -47,7 +47,11 @@ enum { EDGE, CONSTANT, VARIABLE };
 
 template<class DeviceType>
 PairBrownianKokkos<DeviceType>::PairBrownianKokkos(LAMMPS *lmp) : PairBrownian(lmp),
-                                                                  rand_pool(seed + comm->me)
+#ifdef LMP_KOKKOS_DEBUG_RNG
+                                                                  rand_pool(0 /* unused */, lmp)
+#else
+                                                                  rand_pool()
+#endif
 {
   respa_enable = 0;
 
@@ -65,6 +69,10 @@ PairBrownianKokkos<DeviceType>::~PairBrownianKokkos()
 {
   if (copymode) return;
 
+#ifdef LMP_KOKKOS_DEBUG_RNG
+  rand_pool.destroy();
+#endif
+
   if (allocated) {
     memoryKK->destroy_kokkos(k_vatom,vatom);
     memoryKK->destroy_kokkos(k_cut_inner,cut_inner);
@@ -80,6 +88,18 @@ template<class DeviceType>
 void PairBrownianKokkos<DeviceType>::init_style()
 {
   PairBrownian::init_style();
+
+  // the random number pool can only be seeded here: the seed is read by
+  // settings(), which runs after the constructor
+
+#ifdef LMP_KOKKOS_DEBUG_RNG
+  rand_pool.init(random,seed + comm->me);
+#else
+  typedef Kokkos::Experimental::UniqueToken<
+    DeviceType, Kokkos::Experimental::UniqueTokenScope::Global> unique_token_type;
+  unique_token_type unique_token;
+  rand_pool = decltype(rand_pool)(seed + comm->me,unique_token.size());
+#endif
 
   // error if rRESPA with inner levels
 
@@ -160,7 +180,15 @@ void PairBrownianKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   prethermostat *= static_cast<KK_FLOAT>(sqrt(force->vxmu2f / force->ftm2v / force->mvv2e));
 
   // reallocate per-atom arrays if necessary
+  // the style has no potential energy, so the per-atom energy is all zero
+  // and only needs to exist on the host (compare pair dpd/tstat/kk)
 
+  if (eflag_atom) {
+    maxeatom = atom->nmax;
+    memory->destroy(eatom);
+    memory->create(eatom,maxeatom,"pair:eatom");
+    memset(&eatom[0], 0, maxeatom * sizeof(double));
+  }
   if (vflag_atom) {
     memoryKK->destroy_kokkos(k_vatom,vatom);
     memoryKK->create_kokkos(k_vatom,vatom,maxvatom,"pair:vatom");

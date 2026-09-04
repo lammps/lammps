@@ -283,8 +283,9 @@ template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG, int TABSTYLE>
 KOKKOS_INLINE_FUNCTION
 void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXCompute<NEIGHFLAG,NEWTON_PAIR,EVFLAG,TABSTYLE>, const int &ii, EV_FLOAT& ev) const {
 
-  // The f array is atomic for Half/Thread neighbor style
+  // The f and eatom arrays are atomic for Half/Thread neighbor style
   Kokkos::View<KK_ACC_FLOAT*[3], typename DAT::t_kkacc_1d_3::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_f = f;
+  Kokkos::View<KK_ACC_FLOAT*, typename DAT::t_kkacc_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > v_eatom = d_eatom;
 
   int i,jj,jnum,itype,jtype,itable;
   KK_FLOAT xtmp,ytmp,ztmp,delx,dely,delz,evdwl,evdwlOld,fpair;
@@ -437,9 +438,14 @@ void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXCompute<NEI
 
   evdwl = evdwlOld;
 
-  //if (evflag) ev_tally(0,0,nlocal,newton_pair,evdwl,0.0,0.0,0.0,0.0,0.0);
-  if (EVFLAG)
-    ev.evdwl += ((/*FIXME??? (NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && */ NEWTON_PAIR)?static_cast<KK_ACC_FLOAT>(1.0):static_cast<KK_ACC_FLOAT>(0.5))*static_cast<KK_ACC_FLOAT>(evdwl);
+  // the CPU style tallies this term with ev_tally(0,0,nlocal,newton_pair,...),
+  // i.e. with i == j == 0.  both indices are always local, so the whole term
+  // ends up in the global energy for newton on and off alike, and in the
+  // per-atom energy of the first atom
+  if (EVFLAG) {
+    if (eflag_global) ev.evdwl += static_cast<KK_ACC_FLOAT>(evdwl);
+    if (eflag_atom) v_eatom[0] += static_cast<KK_ACC_FLOAT>(evdwl);
+  }
 }
 
 template<class DeviceType>

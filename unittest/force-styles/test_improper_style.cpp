@@ -573,8 +573,25 @@ static std::string kokkos_precision()
     return "double";
 }
 
+// append the words of the LAMMPS_KOKKOS_ARGS environment variable to the
+// command line of the KOKKOS test cases.  this lets the whole suite be re-run
+// with the "package kokkos" settings a GPU would choose --
+// LAMMPS_KOKKOS_ARGS="-pk kokkos comm device sort device atom/map device gpu/aware on"
+// -- which is what the host/device transfer checking of a build configured with
+// -D KOKKOS_DEBUG_SYNC=on needs in order to see anything
+
+static void append_kokkos_env_args(LAMMPS_NS::LAMMPS::argv &args)
+{
+    const char *extra = std::getenv("LAMMPS_KOKKOS_ARGS");
+    if (!extra || (extra[0] == '\0')) return;
+    auto words = LAMMPS_NS::utils::split_words(extra);
+    args.insert(args.end(), words.begin(), words.end());
+}
+
 static void run_kokkos_test(LAMMPS::argv &args)
 {
+    append_kokkos_env_args(args);
+
     ::testing::internal::CaptureStdout();
     LAMMPS *lmp = nullptr;
     try {

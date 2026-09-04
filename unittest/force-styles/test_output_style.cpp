@@ -290,6 +290,21 @@ static void compare_rows(const std::string &name,
     }
 }
 
+// append the words of the LAMMPS_KOKKOS_ARGS environment variable to the
+// command line of the KOKKOS test cases.  this lets the whole suite be re-run
+// with the "package kokkos" settings a GPU would choose --
+// LAMMPS_KOKKOS_ARGS="-pk kokkos comm device sort device atom/map device gpu/aware on"
+// -- which is what the host/device transfer checking of a build configured with
+// -D KOKKOS_DEBUG_SYNC=on needs in order to see anything
+
+static void append_kokkos_env_args(LAMMPS_NS::LAMMPS::argv &args)
+{
+    const char *extra = std::getenv("LAMMPS_KOKKOS_ARGS");
+    if (!extra || (extra[0] == '\0')) return;
+    auto words = LAMMPS_NS::utils::split_words(extra);
+    args.insert(args.end(), words.begin(), words.end());
+}
+
 static void run_output_test(LAMMPS::argv &args, double epsilon, bool kokkos)
 {
     ::testing::internal::CaptureStdout();
@@ -412,6 +427,7 @@ TEST(OutputStyle, kokkos_omp)
     LAMMPS::argv args = {"OutputStyle", "-log", "none", "-echo", "screen", "-nocite",
                          "-k",          "on",   "t",    "4",     "-sf",    "kk"};
 
+    append_kokkos_env_args(args);
     run_output_test(args, kokkos_epsilon(), true);
 }
 
@@ -460,6 +476,7 @@ TEST(OutputStyle, kokkos_omp_full)
                          "-var", "newton_pair", "off", "-var", "newton_bond", "off"};
 
     kokkos_full_neigh = true;
+    append_kokkos_env_args(args);
     run_output_test(args, kokkos_epsilon(), true);
     kokkos_full_neigh = false;
 }
@@ -493,6 +510,7 @@ TEST(OutputStyle, kokkos_serial)
     LAMMPS::argv args = {"OutputStyle", "-log", "none", "-echo", "screen", "-nocite",
                          "-k",          "on",   "t",    "1",     "-sf",    "kk"};
 
+    append_kokkos_env_args(args);
     run_output_test(args, kokkos_epsilon(), true);
 }
 
@@ -544,6 +562,7 @@ TEST(OutputStyle, kokkos_serial_full)
                          "-var", "newton_pair", "off", "-var", "newton_bond", "off"};
 
     kokkos_full_neigh = true;
+    append_kokkos_env_args(args);
     run_output_test(args, kokkos_epsilon(), true);
     kokkos_full_neigh = false;
 }
@@ -576,6 +595,7 @@ TEST(OutputStyle, kokkos_gpu)
                          "-k",          "on",     "g",     "1",     "-sf",    "kk",
                          "-pk",         "kokkos", "neigh", "half",  "newton", "on"};
 
+    append_kokkos_env_args(args);
     run_output_test(args, kokkos_epsilon(), true);
 }
 

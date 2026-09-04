@@ -136,6 +136,8 @@ TEST_F(KSpaceGroupGroupSlabTest, EwaldTriclinicSlabMatchesOrthogonal)
 
 TEST_F(KSpaceGroupGroupSlabTest, PPPMTriclinicSlabMatchesOrthogonal)
 {
+    // the KOKKOS version of pppm does not support compute group/group
+    if (lmp->suffix_enable) GTEST_SKIP() << "pppm/kk does not support compute group/group";
   if (!info->has_style("kspace", "pppm")) GTEST_SKIP();
   if (!info->has_style("pair", "coul/long")) GTEST_SKIP();
   if (!info->has_style("compute", "group/group")) GTEST_SKIP();

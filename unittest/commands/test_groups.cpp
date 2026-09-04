@@ -526,25 +526,32 @@ TEST_F(GroupTest, VariableFunctions)
     EXPECT_DOUBLE_EQ(center[1], 0);
     EXPECT_DOUBLE_EQ(center[2], 0);
 
+    // the total force on a group of this equilibrated system is zero up to the
+    // roundoff of the sum over its atoms.  the individual values depend on the
+    // summation order and thus on the accelerator package in use, so only the
+    // magnitude is checked here
+
+    constexpr double FORCE_EPSILON = 1.0e-06;
+
     group->fcm(0, center);
-    EXPECT_NEAR(center[0], 1.9375372195540308e-08, EPSILON);
-    EXPECT_NEAR(center[1], -1.0289756668946382e-07, EPSILON);
-    EXPECT_NEAR(center[2], -1.3366961142124989e-07, EPSILON);
+    EXPECT_NEAR(center[0], 0, FORCE_EPSILON);
+    EXPECT_NEAR(center[1], 0, FORCE_EPSILON);
+    EXPECT_NEAR(center[2], 0, FORCE_EPSILON);
 
     group->fcm(two, center);
-    EXPECT_NEAR(center[0], 2.4316524016576579e-08, EPSILON);
-    EXPECT_NEAR(center[1], -6.0179227712175987e-08, EPSILON);
-    EXPECT_NEAR(center[2], -1.4393012942592875e-07, EPSILON);
+    EXPECT_NEAR(center[0], 0, FORCE_EPSILON);
+    EXPECT_NEAR(center[1], 0, FORCE_EPSILON);
+    EXPECT_NEAR(center[2], 0, FORCE_EPSILON);
 
     group->fcm(three, center);
-    EXPECT_NEAR(center[0], 0, EPSILON);
-    EXPECT_NEAR(center[1], 0, EPSILON);
-    EXPECT_NEAR(center[2], 0, EPSILON);
+    EXPECT_NEAR(center[0], 0, FORCE_EPSILON);
+    EXPECT_NEAR(center[1], 0, FORCE_EPSILON);
+    EXPECT_NEAR(center[2], 0, FORCE_EPSILON);
 
     group->fcm(one, center, top);
-    EXPECT_NEAR(center[0], -5.5879354476928711e-09, EPSILON);
-    EXPECT_NEAR(center[1], -1.6743454178680395e-08, EPSILON);
-    EXPECT_NEAR(center[2], 2.6166095290491853e-08, EPSILON);
+    EXPECT_NEAR(center[0], 0, FORCE_EPSILON);
+    EXPECT_NEAR(center[1], 0, FORCE_EPSILON);
+    EXPECT_NEAR(center[2], 0, FORCE_EPSILON);
 
     EXPECT_DOUBLE_EQ(group->ke(one), 0);
     EXPECT_DOUBLE_EQ(group->ke(one, top), 0);
@@ -633,6 +640,8 @@ TEST_F(GroupTest, InertiaSphere)
 
 TEST_F(GroupTest, InertiaSuperellipsoid)
 {
+    // atom style ellipsoid/kk does not support the superellipsoid option
+    if (lmp->suffix_enable) GTEST_SKIP() << "superellipsoid is not supported with an accelerator suffix";
     if (!info->has_style("atom", "ellipsoid")) GTEST_SKIP();
 
     // same configuration as InertiaEllipsoid, but atom_style "ellipsoid

@@ -153,6 +153,8 @@ TEST_F(SetTest, velocity)
 
 TEST_F(SetTest, StylesTypes)
 {
+    // label maps are currently not supported with the KOKKOS package
+    if (lmp->suffix_enable) GTEST_SKIP() << "label maps are not supported with an accelerator suffix";
     if (!Info::has_package("MOLECULE")) GTEST_SKIP();
     atomic_system("molecular");
     ASSERT_EQ(atom->natoms, 8);
@@ -326,6 +328,8 @@ TEST_F(SetTest, StylesTypes)
 
 TEST_F(SetTest, PosVelCharge)
 {
+    // label maps are currently not supported with the KOKKOS package
+    if (lmp->suffix_enable) GTEST_SKIP() << "label maps are not supported with an accelerator suffix";
     atomic_system("charge");
     ASSERT_EQ(atom->natoms, 8);
 

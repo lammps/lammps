@@ -56,49 +56,75 @@ class LAMMPSTest : public ::testing::Test {
 public:
     void command(const std::string &line) { lmp->input->one(line); }
 
+    // GoogleTest supports only one active stdout capture at a time.  When an
+    // error is thrown between BEGIN_HIDE_OUTPUT() and END_HIDE_OUTPUT(), the
+    // capture stays active and the next one aborts the entire test program
+    // with "Only one stdout capturer can exist at a time", which hides the
+    // original error message.  Track the state so a capture left behind can
+    // be dropped when the test ends.
+
+    void RESET_OUTPUT()
+    {
+        if (capturing) {
+            ::testing::internal::GetCapturedStdout();
+            capturing = false;
+        }
+    }
+
     void BEGIN_HIDE_OUTPUT()
     {
-        if (!verbose) ::testing::internal::CaptureStdout();
+        if (!verbose) {
+            ::testing::internal::CaptureStdout();
+            capturing = true;
+        }
     }
 
     void END_HIDE_OUTPUT()
     {
-        if (!verbose) ::testing::internal::GetCapturedStdout();
+        if (!verbose) RESET_OUTPUT();
     }
 
-    void BEGIN_CAPTURE_OUTPUT() { ::testing::internal::CaptureStdout(); }
+    void BEGIN_CAPTURE_OUTPUT()
+    {
+        ::testing::internal::CaptureStdout();
+        capturing = true;
+    }
 
     std::string END_CAPTURE_OUTPUT()
     {
         auto output = ::testing::internal::GetCapturedStdout();
+        capturing   = false;
         if (verbose) std::cout << output;
         return output;
     }
 
     void HIDE_OUTPUT(std::function<void()> f)
     {
-        if (!verbose) ::testing::internal::CaptureStdout();
+        BEGIN_HIDE_OUTPUT();
         try {
             f();
         } catch (LAMMPSException &e) {
-            if (!verbose) std::cout << ::testing::internal::GetCapturedStdout();
+            if (!verbose) {
+                capturing = false;
+                std::cout << ::testing::internal::GetCapturedStdout();
+            }
             throw e;
         }
-        if (!verbose) ::testing::internal::GetCapturedStdout();
+        END_HIDE_OUTPUT();
     }
 
     std::string CAPTURE_OUTPUT(std::function<void()> f)
     {
-        ::testing::internal::CaptureStdout();
+        BEGIN_CAPTURE_OUTPUT();
         try {
             f();
         } catch (LAMMPSException &e) {
-            if (verbose) std::cout << ::testing::internal::GetCapturedStdout();
+            capturing = false;
+            auto mesg = ::testing::internal::GetCapturedStdout();
+            if (verbose) std::cout << mesg;
             throw e;
         }
-        auto output = ::testing::internal::GetCapturedStdout();
-        if (verbose) std::cout << output;
-        return output;
+        return END_CAPTURE_OUTPUT();
     }
 
     double get_variable_value(const std::string &name)
@@ -116,6 +142,7 @@ public:
 
 protected:
     std::string testbinary = "LAMMPSTest";
+    bool capturing         = false;
     LAMMPS::argv args      = {"-log", "none", "-echo", "screen", "-nocite"};
     LAMMPS *lmp;
     Info *info;
@@ -146,6 +173,9 @@ protected:
 
     void TearDown() override
     {
+        // an error thrown inside a captured block may have left a capture
+        // active.  drop it, so the deletion below does not abort the program
+        RESET_OUTPUT();
         HIDE_OUTPUT([&] {
             delete info;
             delete lmp;

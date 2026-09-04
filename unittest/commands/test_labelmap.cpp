@@ -55,6 +55,8 @@ protected:
 
 TEST_F(LabelMapTest, Atoms)
 {
+    // label maps are currently not supported with the KOKKOS package
+    if (lmp->suffix_enable) GTEST_SKIP() << "label maps are not supported with an accelerator suffix";
     EXPECT_EQ(atom->natoms, 0);
     EXPECT_EQ(domain->box_exist, 0);
     EXPECT_EQ(atom->labelmapflag, 0);
@@ -189,6 +191,8 @@ TEST_F(LabelMapTest, Atoms)
 
 TEST_F(LabelMapTest, Topology)
 {
+    // label maps are currently not supported with the KOKKOS package
+    if (lmp->suffix_enable) GTEST_SKIP() << "label maps are not supported with an accelerator suffix";
     if (!info->has_style("atom", "full")) GTEST_SKIP();
 
     EXPECT_EQ(atom->natoms, 0);

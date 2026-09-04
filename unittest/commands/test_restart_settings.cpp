@@ -97,6 +97,8 @@ protected:
 TEST_F(RestartSettingsTest, granular_limit_damping)
 {
     if (!Info::has_package("GRANULAR")) GTEST_SKIP();
+    // fix neigh/history/kk requires "newton off" for the exchange communication
+    if (lmp->suffix_enable) GTEST_SKIP() << "granular pair styles need newton off with KOKKOS";
 
     BEGIN_HIDE_OUTPUT();
     command("units si");

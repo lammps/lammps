@@ -263,6 +263,9 @@ TEST_F(SimpleCommandsTest, ResetTimestep)
 
 TEST_F(SimpleCommandsTest, Suffix)
 {
+    // this test enables suffixes from scratch, so it cannot run in a
+    // configuration that already has one active
+    if (lmp->suffix_enable) GTEST_SKIP() << "a suffix is already enabled";
     ASSERT_EQ(lmp->suffix_enable, 0);
     ASSERT_EQ(lmp->suffix, nullptr);
     ASSERT_EQ(lmp->suffix2, nullptr);

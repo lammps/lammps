@@ -481,6 +481,8 @@ TEST_F(ComputeInertiaChunkTest, Sphere)
 
 TEST_F(ComputeInertiaChunkTest, Superellipsoid)
 {
+    // atom style ellipsoid/kk does not support the superellipsoid option
+    if (lmp->suffix_enable) GTEST_SKIP() << "superellipsoid is not supported with an accelerator suffix";
     if (!info->has_style("atom", "ellipsoid")) GTEST_SKIP();
 
     // same as Ellipsoid, but with atom_style "ellipsoid superellipsoid".

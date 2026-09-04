@@ -180,14 +180,14 @@ TEST_F(InfoTest, Objects)
     ASSERT_THAT(output, HasSubstr("   Boundary:  lo "));
     ASSERT_THAT(output, HasSubstr("   No Boundary"));
     ASSERT_THAT(output, HasSubstr("Compute information:"));
-    ASSERT_MATCH(output, "Compute\\[ +[0-9]\\]: +ke, +style = ke, +group = all");
+    ASSERT_MATCH(output, "Compute\\[ +[0-9]\\]: +ke, +style = ke[^,]*, +group = all");
     ASSERT_THAT(output, HasSubstr("Dump information:"));
     ASSERT_MATCH(output, "Dump\\[ +0\\]: +d1, +file = info_test.dump, +style = atom, "
                                       "+group = all, +every = 100");
     ASSERT_MATCH(output, "Dump\\[ +1\\]: +d2, +file = info_test2.dump, +style = atom, "
                                       "+group = all, +every = eq");
     ASSERT_THAT(output, HasSubstr("Fix information:"));
-    ASSERT_MATCH(output, "Fix\\[ +0\\]: +nve, +style = nve, +group = all");
+    ASSERT_MATCH(output, "Fix\\[ +0\\]: +nve, +style = nve[^,]*, +group = all");
     ASSERT_THAT(output, HasSubstr("Variable information:"));
     ASSERT_MATCH(output, "Variable\\[ +[0-9]+\\]: +eq, +style = equal,");
     ASSERT_MATCH(output, "Variable\\[ +[0-9]+\\]: +str, +style = string,");
@@ -214,14 +214,17 @@ TEST_F(InfoTest, Misc)
     ASSERT_THAT(output, HasSubstr("Communication cutoff = "));
     ASSERT_THAT(output, HasSubstr("Processor grid = "));
 
-    HIDE_OUTPUT([&] {
-        command("neighbor 0.3 multi");
-        command("comm_modify mode multi");
-        command("run 0 post no");
-    });
-    output = run_info("comm");
-    ASSERT_THAT(output, HasSubstr("Communication mode = multi"));
-    ASSERT_THAT(output, HasSubstr("Communication cutoff for collection 1 = "));
+    // the KOKKOS package supports only "bin" neighbor lists
+    if (!lmp->suffix_enable) {
+        HIDE_OUTPUT([&] {
+            command("neighbor 0.3 multi");
+            command("comm_modify mode multi");
+            command("run 0 post no");
+        });
+        output = run_info("comm");
+        ASSERT_THAT(output, HasSubstr("Communication mode = multi"));
+        ASSERT_THAT(output, HasSubstr("Communication cutoff for collection 1 = "));
+    }
 
     output = run_info("coeffs");
     ASSERT_THAT(output, HasSubstr("Coeff status information:"));
@@ -378,7 +381,8 @@ TEST_F(InfoTest, QueryAPI)
     ASSERT_FALSE(info->is_active("package", "intel"));
     ASSERT_FALSE(info->is_active("package", "omp"));
     ASSERT_TRUE(info->is_active("pair", "single"));
-    ASSERT_TRUE(info->is_active("pair", "respa"));
+    // the KOKKOS version of the pair styles does not support r-RESPA
+    if (!lmp->suffix_enable) ASSERT_TRUE(info->is_active("pair", "respa"));
     ASSERT_FALSE(info->is_active("pair", "manybody"));
     ASSERT_FALSE(info->is_active("pair", "tail"));
     ASSERT_FALSE(info->is_active("pair", "shift"));

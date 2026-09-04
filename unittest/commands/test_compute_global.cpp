@@ -20,6 +20,8 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
+#include <cmath>
+
 #include <cstdio>
 #include <mpi.h>
 
@@ -61,6 +63,17 @@ protected:
     {
         return (double **)lammps_extract_compute(lmp, id, LMP_STYLE_GLOBAL, LMP_TYPE_ARRAY);
     }
+
+    // compare a global scalar of a compute.  an accelerator package sums the
+    // per-atom contributions in a different order, so the last digits of the
+    // result may differ from the reference value of the plain styles
+    void EXPECT_SCALAR_EQ(const char *id, double expected)
+    {
+        if (lmp->suffix_enable)
+            EXPECT_NEAR(get_scalar(id), expected, std::fabs(expected) * 1.0e-13);
+        else
+            EXPECT_SCALAR_EQ(id, expected);
+    }
 };
 
 TEST_F(ComputeGlobalTest, Energy)
@@ -95,14 +108,14 @@ TEST_F(ComputeGlobalTest, Energy)
     command("run 0 post no");
     END_HIDE_OUTPUT();
 
-    EXPECT_DOUBLE_EQ(get_scalar("ke1"), 2.3405256449146168);
-    EXPECT_DOUBLE_EQ(get_scalar("ke2"), 1.192924237073665);
-    EXPECT_DOUBLE_EQ(get_scalar("pe1"), 24155.155261642241);
-    EXPECT_DOUBLE_EQ(get_scalar("pe2"), 361.37528652881286);
-    EXPECT_DOUBLE_EQ(get_scalar("pe3"), 0.0);
+    EXPECT_SCALAR_EQ("ke1", 2.3405256449146168);
+    EXPECT_SCALAR_EQ("ke2", 1.192924237073665);
+    EXPECT_SCALAR_EQ("pe1", 24155.155261642241);
+    EXPECT_SCALAR_EQ("pe2", 361.37528652881286);
+    EXPECT_SCALAR_EQ("pe3", 0.0);
     EXPECT_NEAR(get_scalar("pr1"), 1956948.4735454607, 0.000000005);
     EXPECT_NEAR(get_scalar("pr2"), 1956916.7725807722, 0.000000005);
-    EXPECT_DOUBLE_EQ(get_scalar("pr3"), 0.0);
+    EXPECT_SCALAR_EQ("pr3", 0.0);
     auto *pr1 = get_vector("pr1");
     auto *pr2 = get_vector("pr2");
     auto *pr3 = get_vector("pr3");
@@ -269,7 +282,7 @@ TEST_F(ComputeGlobalTest, Reduction)
     auto *ave = get_vector("ave");
     auto *rep = get_vector("rep");
 
-    EXPECT_DOUBLE_EQ(get_scalar("chg"), 0.51000000000000001);
+    EXPECT_SCALAR_EQ("chg", 0.51000000000000001);
 
     EXPECT_DOUBLE_EQ(min[0], -2.7406520384725965);
     EXPECT_DOUBLE_EQ(min[1], -20385.448391361348);
@@ -528,6 +541,8 @@ TEST_F(ComputeInertiaTest, Body)
 
 TEST_F(ComputeInertiaTest, Superellipsoid)
 {
+    // atom style ellipsoid/kk does not support the superellipsoid option
+    if (lmp->suffix_enable) GTEST_SKIP() << "superellipsoid is not supported with an accelerator suffix";
     if (!info->has_style("atom", "ellipsoid")) GTEST_SKIP();
 
     // same configuration as the Ellipsoid test, but with atom_style

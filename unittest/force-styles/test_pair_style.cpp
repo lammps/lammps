@@ -1801,6 +1801,65 @@ TEST(PairStyle, single)
     }
     if (print_stats) std::cerr << "single_force  stats:" << stats << std::endl;
 
+    // repeat the comparison with a non-unit special_bonds exclusion factor.
+    // the factors are applied by compute() and by single() independently, and
+    // the two implementations must agree.  styles that subtract only the
+    // excluded part of the interaction instead of scaling the whole term (the
+    // coul/dsf and coul/wolf families, tabulated coulomb, ...) are easy to get
+    // wrong in one of the two places, and the unit factor used above cannot
+    // tell the two conventions apart.
+
+    if (molecular == Atom::MOLECULAR) {
+        stats.reset();
+        bool special_supported = true;
+        if (!verbose) ::testing::internal::CaptureStdout();
+        try {
+            command("special_bonds lj/coul 0.25 1.0 1.0");
+            command("run 0 post no");
+        } catch (std::exception &) {
+            special_supported = false;
+        }
+        if (!verbose) ::testing::internal::GetCapturedStdout();
+
+        if (special_supported) {
+            splj = lmp->force->special_lj[1];
+            spcl = lmp->force->special_coul[1];
+            f    = lmp->atom->f;
+            x    = lmp->atom->x;
+            if (is_ellipsoid) tor = lmp->atom->torque;
+            idx1    = lmp->atom->map(1);
+            idx2    = lmp->atom->map(2);
+            delx    = x[idx2][0] - x[idx1][0];
+            dely    = x[idx2][1] - x[idx1][1];
+            delz    = x[idx2][2] - x[idx1][2];
+            rsq     = delx * delx + dely * dely + delz * delz;
+            fsingle = 0.0;
+
+            pair->single(idx1, idx2, 1, 2, rsq, spcl, splj, fsingle);
+            if (is_ellipsoid) {
+                EXPECT_NE(pair->svector, nullptr);
+                EXPECT_GE(pair->single_extra, 6);
+                if (pair->svector != nullptr && pair->single_extra >= 6) {
+                    EXPECT_FP_LE_WITH_EPS(pair->svector[0], f[idx1][0], epsilon);
+                    EXPECT_FP_LE_WITH_EPS(pair->svector[1], f[idx1][1], epsilon);
+                    EXPECT_FP_LE_WITH_EPS(pair->svector[2], f[idx1][2], epsilon);
+                    EXPECT_FP_LE_WITH_EPS(pair->svector[3], tor[idx1][0], epsilon);
+                    EXPECT_FP_LE_WITH_EPS(pair->svector[4], tor[idx1][1], epsilon);
+                    EXPECT_FP_LE_WITH_EPS(pair->svector[5], tor[idx1][2], epsilon);
+                }
+            } else {
+                EXPECT_FP_LE_WITH_EPS(f[idx1][0], -fsingle * delx, epsilon);
+                EXPECT_FP_LE_WITH_EPS(f[idx1][1], -fsingle * dely, epsilon);
+                EXPECT_FP_LE_WITH_EPS(f[idx1][2], -fsingle * delz, epsilon);
+                EXPECT_FP_LE_WITH_EPS(f[idx2][0], fsingle * delx, epsilon);
+                EXPECT_FP_LE_WITH_EPS(f[idx2][1], fsingle * dely, epsilon);
+                EXPECT_FP_LE_WITH_EPS(f[idx2][2], fsingle * delz, epsilon);
+            }
+            if (print_stats) std::cerr << "single_special stats:" << stats << std::endl;
+        } else if (print_stats)
+            std::cerr << "skipping single_special test: style rejects the factor\n";
+    }
+
     if ((test_config.pair_style.find("coul/dsf") != std::string::npos) &&
         (test_config.pair_style.find("coul/wolf") != std::string::npos)) {
         stats.reset();

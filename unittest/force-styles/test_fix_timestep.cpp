@@ -42,6 +42,24 @@ using ::testing::StartsWith;
 
 using namespace LAMMPS_NS;
 
+// the "kokkos_omp_full" and "kokkos_serial_full" test cases select "newton off"
+// through the newton_pair and newton_bond index variables on the command line.
+// several YAML files redefine those variables in their pre_commands (a
+// convention taken over from the GPU package tests), which discards the command
+// line setting, so the override has to be re-applied after the pre_commands
+// have been processed and before the input template is read.
+
+static bool kokkos_full_neigh = false;
+
+static void enforce_kokkos_full_neigh(LAMMPS *lmp)
+{
+    if (!kokkos_full_neigh) return;
+    lmp->input->one("variable newton_pair delete");
+    lmp->input->one("variable newton_pair index off");
+    lmp->input->one("variable newton_bond delete");
+    lmp->input->one("variable newton_bond index off");
+}
+
 void cleanup_lammps(LAMMPS *&lmp, const TestConfig &cfg)
 {
     platform::unlink(cfg.basename + ".restart");
@@ -86,6 +104,7 @@ LAMMPS *init_lammps(LAMMPS::argv &args, const TestConfig &cfg, const bool use_re
     command("variable input_dir index " + INPUT_FOLDER);
     for (const auto &pre_command : cfg.pre_commands)
         command(pre_command);
+    enforce_kokkos_full_neigh(lmp);
 
     std::string input_file = platform::path_join(INPUT_FOLDER, cfg.input_file);
     lmp->input->file(input_file.c_str());
@@ -1176,7 +1195,9 @@ TEST(FixTimestep, kokkos_omp_full)
                          "-pk", "kokkos", "neigh", "full", "newton", "off",
                          "-var", "newton_pair", "off", "-var", "newton_bond", "off"};
 
+    kokkos_full_neigh = true;
     run_kokkos_test(args);
+    kokkos_full_neigh = false;
 };
 
 TEST(FixTimestep, kokkos_serial)
@@ -1245,7 +1266,9 @@ TEST(FixTimestep, kokkos_serial_full)
                          "-pk", "kokkos", "neigh", "full", "newton", "off",
                          "-var", "newton_pair", "off", "-var", "newton_bond", "off"};
 
+    kokkos_full_neigh = true;
     run_kokkos_test(args);
+    kokkos_full_neigh = false;
 };
 
 TEST(FixTimestep, kokkos_gpu)

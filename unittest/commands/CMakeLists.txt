@@ -176,6 +176,16 @@ if(PKG_PHONON)
   add_kokkos_test(NAME PhononCommands COMMAND test_phonon_commands)
 endif()
 
+if(PKG_REAXFF)
+  add_executable(test_reaxff_output test_reaxff_output.cpp)
+  target_link_libraries(test_reaxff_output PRIVATE lammps GTest::GMock)
+  add_test(NAME ReaxFFOutput COMMAND test_reaxff_output)
+  set_tests_properties(ReaxFFOutput PROPERTIES
+                       ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
+  add_kokkos_test(NAME ReaxFFOutput COMMAND test_reaxff_output
+                  ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
+endif()
+
 add_executable(test_mpi_load_balancing test_mpi_load_balancing.cpp)
 target_link_libraries(test_mpi_load_balancing PRIVATE lammps GTest::GMock)
 add_mpi_test(NAME MPILoadBalancing NUM_PROCS 4 COMMAND $<TARGET_FILE:test_mpi_load_balancing>)

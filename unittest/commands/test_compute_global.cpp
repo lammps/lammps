@@ -72,7 +72,7 @@ protected:
         if (lmp->suffix_enable)
             EXPECT_NEAR(get_scalar(id), expected, std::fabs(expected) * 1.0e-13);
         else
-            EXPECT_SCALAR_EQ(id, expected);
+            EXPECT_DOUBLE_EQ(get_scalar(id), expected);
     }
 };
 

@@ -56,6 +56,20 @@ AtomVecEllipsoidKokkos::~AtomVecEllipsoidKokkos()
   }
 }
 
+/* ----------------------------------------------------------------------
+   process sub-style args
+   the KOKKOS version does not implement the superellipsoid extension
+------------------------------------------------------------------------- */
+
+void AtomVecEllipsoidKokkos::process_args(int narg, char **arg)
+{
+  for (int iarg = 0; iarg < narg; iarg++)
+    if (strcmp(arg[iarg], "superellipsoid") == 0)
+      error->all(FLERR, "Atom style ellipsoid/kk does not support the superellipsoid option");
+
+  AtomVecEllipsoid::process_args(narg, arg);
+}
+
 /* ---------------------------------------------------------------------- */
 
 void AtomVecEllipsoidKokkos::init()

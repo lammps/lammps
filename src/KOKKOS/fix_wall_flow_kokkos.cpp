@@ -29,7 +29,12 @@ using namespace LAMMPS_NS;
 
 template <class DeviceType>
 FixWallFlowKokkos<DeviceType>::FixWallFlowKokkos(LAMMPS *lmp, int narg, char **arg) :
-    FixWallFlow(lmp, narg, arg), rand_pool(rndseed + comm->me)
+    FixWallFlow(lmp, narg, arg),
+#ifdef LMP_KOKKOS_DEBUG_RNG
+    rand_pool(rndseed + comm->me, lmp)
+#else
+    rand_pool(rndseed + comm->me)
+#endif
 {
   kokkosable = 1;
   exchange_comm_device = sort_device = 1;
@@ -52,10 +57,17 @@ template <class DeviceType> FixWallFlowKokkos<DeviceType>::~FixWallFlowKokkos()
 {
   if (copymode) return;
   memoryKK->destroy_kokkos(k_current_segment, current_segment);
+#ifdef LMP_KOKKOS_DEBUG_RNG
+  rand_pool.destroy();
+#endif
 }
 
 template <class DeviceType> void FixWallFlowKokkos<DeviceType>::init()
 {
+#ifdef LMP_KOKKOS_DEBUG_RNG
+  rand_pool.init(random, rndseed + comm->me);
+#endif
+
   atomKK->sync(execution_space, datamask_read);
   k_current_segment.template sync<DeviceType>();
   d_x = atomKK->k_x.template view<DeviceType>();

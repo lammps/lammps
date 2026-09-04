@@ -712,20 +712,27 @@ TEST(PairStyle, omp)
         if (print_stats) std::cerr << "run_energy  stats, newton off:" << stats << std::endl;
     }
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    restart_lammps(lmp, test_config, true);
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    // the "nofdotr" token in skip_tests opts a style out of comparing the
+    // virial tallied by ev_tally() with the fdotr one of the reference, for the
+    // same reason as in the plain test case above
 
-    pair = lmp->force->pair;
+    if (!test_config.skip_tests.count("nofdotr")) {
+        if (!verbose) ::testing::internal::CaptureStdout();
+        restart_lammps(lmp, test_config, true);
+        if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    EXPECT_FORCES("nofdotr_forces", lmp->atom, test_config.init_forces, 5 * epsilon);
-    EXPECT_MAG_FORCES("nofdotr_mag_forces", lmp->atom, test_config.init_mag_forces, 5 * epsilon);
-    EXPECT_STRESS("nofdotr_stress", pair->virial, test_config.init_stress, 10 * epsilon);
+        pair = lmp->force->pair;
 
-    stats.reset();
-    EXPECT_FP_LE_WITH_EPS(pair->eng_vdwl, test_config.init_vdwl, 5 * epsilon);
-    EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.init_coul, 5 * epsilon);
-    if (print_stats) std::cerr << "nofdotr_energy stats:" << stats << std::endl;
+        EXPECT_FORCES("nofdotr_forces", lmp->atom, test_config.init_forces, 5 * epsilon);
+        EXPECT_MAG_FORCES("nofdotr_mag_forces", lmp->atom, test_config.init_mag_forces,
+                          5 * epsilon);
+        EXPECT_STRESS("nofdotr_stress", pair->virial, test_config.init_stress, 10 * epsilon);
+
+        stats.reset();
+        EXPECT_FP_LE_WITH_EPS(pair->eng_vdwl, test_config.init_vdwl, 5 * epsilon);
+        EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.init_coul, 5 * epsilon);
+        if (print_stats) std::cerr << "nofdotr_energy stats:" << stats << std::endl;
+    }
 
     if (!verbose) ::testing::internal::CaptureStdout();
     cleanup_lammps(lmp, test_config);
@@ -863,20 +870,28 @@ static void run_kokkos_test(LAMMPS::argv &args, bool newton = true)
         if (print_stats) std::cerr << "run_energy  stats, newton off:" << stats << std::endl;
     }
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    restart_lammps(lmp, test_config, true, newton);
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    // the "nofdotr" token in skip_tests opts a style out of comparing the
+    // virial tallied by ev_tally() with the fdotr one of the reference.  it
+    // applies here for the same reason it applies to the plain test case: the
+    // random or dissipative pair forces of the style are not central
 
-    pair = lmp->force->pair;
+    if (!test_config.skip_tests.count("nofdotr")) {
+        if (!verbose) ::testing::internal::CaptureStdout();
+        restart_lammps(lmp, test_config, true, newton);
+        if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    EXPECT_FORCES("nofdotr_forces", lmp->atom, test_config.init_forces, 5 * epsilon);
-    EXPECT_MAG_FORCES("nofdotr_mag_forces", lmp->atom, test_config.init_mag_forces, 5 * epsilon);
-    EXPECT_STRESS("nofdotr_stress", pair->virial, test_config.init_stress, 10 * epsilon);
+        pair = lmp->force->pair;
 
-    stats.reset();
-    EXPECT_FP_LE_WITH_EPS(pair->eng_vdwl, test_config.init_vdwl, 5 * epsilon);
-    EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.init_coul, 5 * epsilon);
-    if (print_stats) std::cerr << "nofdotr_energy stats:" << stats << std::endl;
+        EXPECT_FORCES("nofdotr_forces", lmp->atom, test_config.init_forces, 5 * epsilon);
+        EXPECT_MAG_FORCES("nofdotr_mag_forces", lmp->atom, test_config.init_mag_forces,
+                          5 * epsilon);
+        EXPECT_STRESS("nofdotr_stress", pair->virial, test_config.init_stress, 10 * epsilon);
+
+        stats.reset();
+        EXPECT_FP_LE_WITH_EPS(pair->eng_vdwl, test_config.init_vdwl, 5 * epsilon);
+        EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.init_coul, 5 * epsilon);
+        if (print_stats) std::cerr << "nofdotr_energy stats:" << stats << std::endl;
+    }
 
     if (!verbose) ::testing::internal::CaptureStdout();
     cleanup_lammps(lmp, test_config);
@@ -1468,20 +1483,27 @@ TEST(PairStyle, opt)
     EXPECT_FP_LE_WITH_EPS((pair->eng_vdwl + pair->eng_coul), energy, epsilon);
     if (print_stats) std::cerr << "run_energy  stats:" << stats << std::endl;
 
-    if (!verbose) ::testing::internal::CaptureStdout();
-    restart_lammps(lmp, test_config, true);
-    if (!verbose) ::testing::internal::GetCapturedStdout();
+    // the "nofdotr" token in skip_tests opts a style out of comparing the
+    // virial tallied by ev_tally() with the fdotr one of the reference, for the
+    // same reason as in the plain test case above
 
-    pair = lmp->force->pair;
+    if (!test_config.skip_tests.count("nofdotr")) {
+        if (!verbose) ::testing::internal::CaptureStdout();
+        restart_lammps(lmp, test_config, true);
+        if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    EXPECT_FORCES("nofdotr_forces", lmp->atom, test_config.init_forces, 5 * epsilon);
-    EXPECT_MAG_FORCES("nofdotr_mag_forces", lmp->atom, test_config.init_mag_forces, 5 * epsilon);
-    EXPECT_STRESS("nofdotr_stress", pair->virial, test_config.init_stress, 10 * epsilon);
+        pair = lmp->force->pair;
 
-    stats.reset();
-    EXPECT_FP_LE_WITH_EPS(pair->eng_vdwl, test_config.init_vdwl, 5 * epsilon);
-    EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.init_coul, 5 * epsilon);
-    if (print_stats) std::cerr << "nofdotr_energy stats:" << stats << std::endl;
+        EXPECT_FORCES("nofdotr_forces", lmp->atom, test_config.init_forces, 5 * epsilon);
+        EXPECT_MAG_FORCES("nofdotr_mag_forces", lmp->atom, test_config.init_mag_forces,
+                          5 * epsilon);
+        EXPECT_STRESS("nofdotr_stress", pair->virial, test_config.init_stress, 10 * epsilon);
+
+        stats.reset();
+        EXPECT_FP_LE_WITH_EPS(pair->eng_vdwl, test_config.init_vdwl, 5 * epsilon);
+        EXPECT_FP_LE_WITH_EPS(pair->eng_coul, test_config.init_coul, 5 * epsilon);
+        if (print_stats) std::cerr << "nofdotr_energy stats:" << stats << std::endl;
+    }
 
     if (!verbose) ::testing::internal::CaptureStdout();
     cleanup_lammps(lmp, test_config);

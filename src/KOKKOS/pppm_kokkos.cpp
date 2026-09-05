@@ -56,7 +56,7 @@ PPPMKokkos<DeviceType>::PPPMKokkos(LAMMPS *lmp) : PPPM(lmp)
   kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
-  datamask_read = X_MASK | F_MASK | TYPE_MASK | Q_MASK;
+  datamask_read = X_MASK | F_MASK | Q_MASK;
   datamask_modify = F_MASK;
 
   group_group_enable = 0;

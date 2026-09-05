@@ -575,6 +575,58 @@ void FixCMAPKokkos<DeviceType>::operator()(TagFixCmapPostForce, const int n, EV_
 }
 
 /* ----------------------------------------------------------------------
+   the restart methods of the base class read and write the crossterm lists
+   through the plain pointers behind the dual views, so the host side has to
+   hold the current values first, and unpacking has to claim it afterwards
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixCMAPKokkos<DeviceType>::sync_crossterm_host()
+{
+  k_num_crossterm.sync_host();
+  k_crossterm_type.sync_host();
+  k_crossterm_atom1.sync_host();
+  k_crossterm_atom2.sync_host();
+  k_crossterm_atom3.sync_host();
+  k_crossterm_atom4.sync_host();
+  k_crossterm_atom5.sync_host();
+}
+
+template<class DeviceType>
+void FixCMAPKokkos<DeviceType>::modify_crossterm_host()
+{
+  k_num_crossterm.modify_host();
+  k_crossterm_type.modify_host();
+  k_crossterm_atom1.modify_host();
+  k_crossterm_atom2.modify_host();
+  k_crossterm_atom3.modify_host();
+  k_crossterm_atom4.modify_host();
+  k_crossterm_atom5.modify_host();
+}
+
+template<class DeviceType>
+int FixCMAPKokkos<DeviceType>::size_restart(int nlocal)
+{
+  sync_crossterm_host();
+  return FixCMAP::size_restart(nlocal);
+}
+
+template<class DeviceType>
+int FixCMAPKokkos<DeviceType>::pack_restart(int i, double *buf)
+{
+  sync_crossterm_host();
+  return FixCMAP::pack_restart(i,buf);
+}
+
+template<class DeviceType>
+void FixCMAPKokkos<DeviceType>::unpack_restart(int nlocal, int nth)
+{
+  sync_crossterm_host();
+  FixCMAP::unpack_restart(nlocal,nth);
+  modify_crossterm_host();
+}
+
+/* ----------------------------------------------------------------------
    allocate atom-based array
 ------------------------------------------------------------------------- */
 

@@ -304,9 +304,6 @@ template <class DeviceType> void PairMTPKokkos<DeviceType>::compute(int eflag_in
 
   eflag = eflag_in;
   vflag = vflag_in;
-
-  if (neighflag == FULL) no_virial_fdotr_compute = 1;
-
   ev_init(eflag, vflag, 0);
 
   // reallocate per-atom arrays if necessary

@@ -395,9 +395,6 @@ void PairMTPExtrapolationKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   eflag = eflag_in;
   vflag = vflag_in;
-
-  if (neighflag == FULL) no_virial_fdotr_compute = 1;
-
   ev_init(eflag, vflag, 0);
 
   // reallocate per-atom arrays if necessary
@@ -548,8 +545,9 @@ void PairMTPExtrapolationKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
         int dist_coords_scratch_count = 4 * max_alpha_index_basic;
 
         // Reduce the scratch size to the max number of neighbors
-        int scratch_size = scratch_size_helper<KK_FLOAT>(
-            min(team_size, max_valid_neighs) * (radial_scratch_count + dist_coords_scratch_count));
+        int scratch_size =
+            scratch_size_helper<KK_FLOAT>(Kokkos::min(team_size, max_valid_neighs) *
+                                          (radial_scratch_count + dist_coords_scratch_count));
         Kokkos::TeamPolicy<DeviceType, TagPairMTPComputeAlphaBasic> policy_basic_alpha(chunk_size,
                                                                                        team_size);
         policy_basic_alpha = policy_basic_alpha.set_scratch_size(0, Kokkos::PerTeam(scratch_size));

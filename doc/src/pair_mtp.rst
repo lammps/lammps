@@ -48,7 +48,7 @@ Description
 """""""""""
 
 Pair style *mtp* computes interactions using the Moment Tensor Potentials (MTP), which is a general expansion of the atomic energy in scalar contractions of moment tensors. :ref:`(Shapeev16) <Shapeev2016>`.  The *mtp* pair style provides an efficient implementation that is described in
-this paper :ref:`(Meng26) <Meng2026>`. 
+this paper :ref:`(Meng26) <Meng2026>`.
 
 In the MTP, the total energy is decomposed into a sum over atomic
 energies. The energy of atom *i* is expressed as a linear function of scalar contractions of moment tensors.
@@ -115,8 +115,8 @@ steps and the dump is evaluated every 20.
 
 On all other steps `pair_style mtp` will be used.
 
-The use of pair style *mtp/extrapolation* is not recommended with 
-`pair_style hybrid/overlay` since the extrapolation calculation cannot 
+The use of pair style *mtp/extrapolation* is not recommended with
+`pair_style hybrid/overlay` since the extrapolation calculation cannot
 consider contributions from other pair styles.
 
 ----------

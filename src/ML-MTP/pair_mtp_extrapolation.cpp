@@ -29,6 +29,7 @@
 #include "text_file_reader.h"
 
 #include <cmath>
+#include <cstring>
 #include <fstream>
 
 using namespace LAMMPS_NS;
@@ -347,7 +348,7 @@ double PairMTPExtrapolation::calculate_extrapolation_grade()
 }
 
 /* ----------------------------------------------------------------------
-   Collective Reduction Operation 
+   Collective Reduction Operation
 ------------------------------------------------------------------------- */
 void PairMTPExtrapolation::compile_grades()
 {

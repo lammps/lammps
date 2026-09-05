@@ -66,7 +66,13 @@ static void enforce_kokkos_full_neigh(LAMMPS *lmp)
 
 static bool full_neigh_unsupported(const std::string &errmsg)
 {
-    if (!kokkos_full_neigh) return false;
+    // a style that refuses the neighbor list or the newton setting asked for
+    // skips rather than fails.  that applies to the full neighbor list cases
+    // and to any accelerator settings supplied through LAMMPS_KOKKOS_ARGS: a
+    // run of the suite under a different "package kokkos" profile is meant to
+    // report what a style does support, not to fail on what it does not
+    const char *extra = std::getenv("LAMMPS_KOKKOS_ARGS");
+    if (!kokkos_full_neigh && (!extra || (extra[0] == '\0'))) return false;
     return (LAMMPS_NS::utils::strmatch(errmsg, "newton") ||
             LAMMPS_NS::utils::strmatch(errmsg, "half neighbor list"));
 }

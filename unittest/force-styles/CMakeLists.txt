@@ -354,3 +354,92 @@ endif()
 add_executable(test_pair_list test_pair_list.cpp)
 target_link_libraries(test_pair_list PRIVATE lammps GTest::GMockMain)
 add_test(NAME TestPairList COMMAND test_pair_list)
+
+########################################################################
+# "package kokkos" profiles
+#
+# The KOKKOS package has several accelerator settings a run may vary (neigh,
+# newton, comm, sort, atom/map, gpu/aware), and testing their cross product
+# would mean hundreds of configurations per reference.  That is not needed,
+# because the settings fall into two groups:
+#
+#  - neigh and newton pick which kernel template of a style runs, so they
+#    interact with the style and are varied per reference already: every
+#    KOKKOS test case exists twice, as "kokkos_*" (half list, newton on) and
+#    as "kokkos_*_full" (full list, newton off).
+#  - comm, sort, atom/map and gpu/aware pick which framework path runs - the
+#    per-atom packing of AtomVec, the atom sorting, the atom map, the MPI
+#    buffer placement - and that code is the same whatever style is loaded.
+#
+# The profiles below are a covering set rather than a cross product: they
+# start from the two defaults - the ones a CPU build and a GPU build of the
+# package choose for themselves - and add cross terms, so that between them
+# every value of comm, sort, atom/map and gpu/aware, and both values of neigh
+# and newton, is used at least once.  A style that refuses one of the
+# settings skips instead of failing, so a profile run reports what the styles
+# do support.
+#
+# They are off by default because they multiply the number of test entries.
+# Turn them on to run the whole suite through every setting once, which is
+# what a build configured with -D KOKKOS_DEBUG_SYNC=on needs: with the host
+# defaults the atom exchange, the border builds, the sort and the atom map
+# never touch a device view, so the transfers that build exists to check are
+# not made at all.
+########################################################################
+
+option(ENABLE_KOKKOS_PROFILE_TESTS "Run every force style test through each package kokkos setting once" OFF)
+mark_as_advanced(ENABLE_KOKKOS_PROFILE_TESTS)
+
+if(PKG_KOKKOS AND ENABLE_KOKKOS_PROFILE_TESTS)
+  # the two named profiles are the defaults "package kokkos" itself picks,
+  # spelled out: cpudefault is what a build without a GPU gets, gpudefault
+  # what a build with one gets.  the cross profiles then vary one group of
+  # settings against the other group's default.
+  set(KOKKOS_PROFILE_NAMES  cpudefault  gpudefault
+                            cross-hostpath  cross-devicehalf
+                            cross-nogpuaware  cross-nosort)
+  set(KOKKOS_PROFILE_cpudefault       "-pk kokkos comm no sort no atom/map no neigh half newton on")
+  set(KOKKOS_PROFILE_gpudefault       "-pk kokkos comm device sort device atom/map device gpu/aware on neigh full newton off")
+  set(KOKKOS_PROFILE_cross-hostpath   "-pk kokkos comm host sort host atom/map host neigh half newton off")
+  set(KOKKOS_PROFILE_cross-devicehalf "-pk kokkos comm device sort device atom/map device gpu/aware on neigh half newton on")
+  set(KOKKOS_PROFILE_cross-nogpuaware "-pk kokkos comm device sort device atom/map device gpu/aware off neigh full newton off")
+  set(KOKKOS_PROFILE_cross-nosort     "-pk kokkos comm device sort no atom/map no neigh full newton on")
+
+  # the prefix, the driver and the file name pattern of every reference group,
+  # in the same order the groups are registered above
+  set(KOKKOS_PROFILE_GROUPS
+      "MolPairStyle|test_pair_style|mol-pair-"
+      "AtomicPairStyle|test_pair_style|atomic-pair-"
+      "ManybodyPairStyle|test_pair_style|manybody-pair-"
+      "BondStyle|test_bond_style|bond-"
+      "AngleStyle|test_angle_style|angle-"
+      "DihedralStyle|test_dihedral_style|dihedral-"
+      "ImproperStyle|test_improper_style|improper-"
+      "FixTimestep|test_fix_timestep|fix-timestep-"
+      "MinStyle|test_min_style|min-")
+
+  foreach(GROUP ${KOKKOS_PROFILE_GROUPS})
+    string(REPLACE "|" ";" PARTS ${GROUP})
+    list(GET PARTS 0 GPREFIX)
+    list(GET PARTS 1 GDRIVER)
+    list(GET PARTS 2 GPATTERN)
+    file(GLOB GTESTS LIST_DIRECTORIES false CONFIGURE_DEPENDS ${TEST_INPUT_FOLDER}/${GPATTERN}*.yaml)
+    foreach(TEST ${GTESTS})
+      get_filename_component(TBASE ${TEST} NAME_WE)
+      string(REPLACE "${GPATTERN}" "" TSHORT ${TBASE})
+      extract_tags(TEST_TAGS ${TEST})
+      list(FIND TEST_TAGS "no${CMAKE_SYSTEM_NAME}" _SKIPME)
+      if(_SKIPME GREATER_EQUAL 0)
+        continue()
+      endif()
+      foreach(PROFILE ${KOKKOS_PROFILE_NAMES})
+        set(TNAME "${GPREFIX}:${TSHORT}:kk-${PROFILE}")
+        add_test(NAME ${TNAME} COMMAND ${GDRIVER} ${TEST})
+        set(PROFILE_ENV ${FORCE_TEST_ENVIRONMENT})
+        list(APPEND PROFILE_ENV "LAMMPS_KOKKOS_ARGS=${KOKKOS_PROFILE_${PROFILE}}")
+        set_tests_properties(${TNAME} PROPERTIES ENVIRONMENT "${PROFILE_ENV}")
+        set_tests_properties(${TNAME} PROPERTIES LABELS "kokkos_profile;${TEST_TAGS}")
+      endforeach()
+    endforeach()
+  endforeach()
+endif()

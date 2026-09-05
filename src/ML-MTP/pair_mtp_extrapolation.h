@@ -51,6 +51,7 @@ class PairMTPExtrapolation : public PairMTP {
   bool mlip3_style;          // Whether to write configs with MLIP-3 compatability
 
   int configuration_mode;     // Is configuration mode?
+  int weight_scaling;         // Power p in the 1/N^(p/2) energy scaling (from the MVS section)
   double select_threshold;    // Grade threshold for selection
   double break_threshold;     // Grade threshold for termination
   double max_grade;           // Grade of current iteration

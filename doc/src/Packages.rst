@@ -352,7 +352,7 @@ whether an extra library is needed to build and use the package:
      - Moment Tensor Potential
      - :doc:`pair mtp <pair_mtp>`
      - ``PACKAGES/mtp``
-     -no
+     -no 
    * - :ref:`ML-PACE <PKG-ML-PACE>`
      - Atomic Cluster Expansion potential
      - :doc:`pair pace <pair_pace>`

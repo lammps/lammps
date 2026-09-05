@@ -52,6 +52,7 @@ PairMTPExtrapolation::PairMTPExtrapolation(LAMMPS *lmp) : PairMTP(lmp)
   extrapolation_flag = 0;
   mlip3_style = false;
   configuration_mode = 0;
+  weight_scaling = 2;
   select_threshold = 0.0;
   break_threshold = 0.0;
   max_grade = 0.0;
@@ -94,12 +95,14 @@ void PairMTPExtrapolation::compute(int eflag, int vflag)
 
   max_grade = 0;
 
-  ev_setup(eflag, vflag);
+  ev_init(eflag, vflag);
 
   double **x = atom->x;      // atomic positons
   double **f = atom->f;      // atomic forces
   int *type = atom->type;    //atomic types
 
+  int nlocal = atom->nlocal;
+  int newton_pair = force->newton_pair;
   int inum = list->inum;             // The number of central atoms (neigbhourhoods)
   int *ilist = list->ilist;          // List of central atom ids
   int *numneigh = list->numneigh;    // List of the number of neighbours for each central atom
@@ -298,25 +301,10 @@ void PairMTPExtrapolation::compute(int eflag, int vflag)
       f[j][2] -= temp_force[2];
 
       // Accumulate virial stress only if requested
-      if (vflag) {
-        const double r[3] = {x[j][0] - xi[0], x[j][1] - xi[1], x[j][2] - xi[2]};
-        virial[0] -= temp_force[0] * r[0];    //xx
-        virial[1] -= temp_force[1] * r[1];    //yy
-        virial[2] -= temp_force[2] * r[2];    //zz
-
-        virial[3] -= (temp_force[0] * r[1] + temp_force[1] * r[0]) / 2;    //xy
-        virial[4] -= (temp_force[0] * r[2] + temp_force[2] * r[0]) / 2;    //xz
-        virial[5] -= (temp_force[1] * r[2] + temp_force[2] * r[1]) / 2;    //yz
-
-        if (vflag_atom) {
-          vatom[i][0] -= temp_force[0] * r[0];    //xx
-          vatom[i][1] -= temp_force[1] * r[1];    //yy
-          vatom[i][2] -= temp_force[2] * r[2];    //zz
-
-          vatom[i][3] -= (temp_force[0] * r[1] + temp_force[1] * r[0]) / 2;    //xy
-          vatom[i][4] -= (temp_force[0] * r[2] + temp_force[2] * r[0]) / 2;    //xz
-          vatom[i][5] -= (temp_force[1] * r[2] + temp_force[2] * r[1]) / 2;    //yz
-        }
+      if (evflag) {
+        const double del[3] = {xi[0] - x[j][0], xi[1] - x[j][1], xi[2] - x[j][2]};
+        ev_tally_xyz(i, j, nlocal, newton_pair, 0.0, 0.0, temp_force[0], temp_force[1],
+                     temp_force[2], del[0], del[1], del[2]);
       }
     }
 
@@ -336,9 +324,9 @@ void PairMTPExtrapolation::compute(int eflag, int vflag)
       nbh_extrapolation_grades[i] = grade;
     }
   }
+  if (vflag_fdotr) virial_fdotr_compute();
 
   compile_grades();
-
   if (mlip3_style) evaluate_grades();    // Evaluate grades per MLIP-3 two-threshold style
 }
 
@@ -370,13 +358,16 @@ void PairMTPExtrapolation::compile_grades()
     max_grade = calculate_extrapolation_grade();
 
     if (atom->natoms > 0)
-      max_grade /= atom->natoms;    // Normalize
+      max_grade /= std::pow((double) atom->natoms, 0.5 * weight_scaling);    // Normalize
     else
       max_grade = 0.0;
 
   } else {    // Neighbourhood mode
     MPI_Allreduce(MPI_IN_PLACE, &max_grade, 1, MPI_DOUBLE, MPI_MAX, world);
   }
+
+  // ComputePair MPI_SUMs pvector, so only rank 0 sets it; the rest stay 0.0 and
+  // the sum yields the already-Allreduced max. Can be improved.
   if (comm->me == 0) pvector[0] = max_grade;    // Expose the max grade
 }
 
@@ -395,6 +386,8 @@ void PairMTPExtrapolation::evaluate_grades()
 /* ----------------------------------------------------------------------
    Write current config to file
 ------------------------------------------------------------------------- */
+
+// This function will likely be remove and configurations should be written with dump instead.
 void PairMTPExtrapolation::write_config()
 {
   int inum = list->inum;
@@ -415,6 +408,9 @@ void PairMTPExtrapolation::write_config()
 
   bigint local_buffer_size = 0;
   for (int ii = 0; ii < inum; ii++) {
+    // ii instead of ilist[ii] Avoids mirroring the device ilist to the host on the KOKKOS path.
+    // May be affected by lost atoms and sorting issues.
+    // The whole function will likely be removed in the future.
     const int i = ii;
     const int itype = map[type[i]];
     const double xi[3] = {x[i][0], x[i][1], x[i][2]};
@@ -577,10 +573,12 @@ void PairMTPExtrapolation::read_file(FILE *mtp_file)
     line_tokens = ValueTokenizer(std::string(tfr.next_line()), separators);
     keyword = line_tokens.next_string();
     if (keyword != "force_weight") error->one(FLERR, "Error in reading MTP file, force_weight");
+    const double force_weight = line_tokens.next_double();
 
     line_tokens = ValueTokenizer(std::string(tfr.next_line()), separators);
     keyword = line_tokens.next_string();
     if (keyword != "stress_weight") error->one(FLERR, "Error in reading MTP file, stress_weight");
+    const double stress_weight = line_tokens.next_double();
 
     line_tokens = ValueTokenizer(std::string(tfr.next_line()), separators);
     keyword = line_tokens.next_string();
@@ -590,14 +588,21 @@ void PairMTPExtrapolation::read_file(FILE *mtp_file)
     line_tokens = ValueTokenizer(std::string(tfr.next_line()), separators);
     keyword = line_tokens.next_string();
     if (keyword != "weight_scaling") error->one(FLERR, "Error in reading MTP file, weight_scaling");
+    weight_scaling = line_tokens.next_int();
 
-    if (energy_weight + site_en_weight > 1)
+    const bool cfg_mode = (energy_weight == 1 && site_en_weight == 0);
+    const bool nbh_mode = (energy_weight == 0 && site_en_weight == 1);
+
+    if ((!cfg_mode && !nbh_mode) || force_weight != 0 || stress_weight != 0)
       error->one(FLERR,
-                 "Error, the MTP currently only supports configuration mode (energy_weight=1) "
-                 "or neighbourhood mode (site_en_weight=1). "
-                 "Please retrain the MTP with the correct modes!");
+                 "Error, the MTP currently only supports configuration mode "
+                 "(energy_weight=1) or neighbourhood mode (site_en_weight=1), "
+                 "with force_weight=0 and stress_weight=0. Got energy_weight={}, "
+                 "force_weight={}, stress_weight={}, site_en_weight={}. "
+                 "Please retrain the MTP with the correct modes!",
+                 energy_weight, force_weight, stress_weight, site_en_weight);
 
-    configuration_mode = (energy_weight == 1);
+    configuration_mode = cfg_mode;
 
     fgetc(mtp_file);    // We need to skip foward 1 character. There is a # before the binary data.
     utils::sfread(FLERR, &active_set[0][0], sizeof(double), num_doubles, mtp_file, nullptr, error);
@@ -607,6 +612,7 @@ void PairMTPExtrapolation::read_file(FILE *mtp_file)
 
   //Broadcast active set to others
   MPI_Bcast(&configuration_mode, 1, MPI_INT, 0, world);
+  MPI_Bcast(&weight_scaling, 1, MPI_INT, 0, world);
   MPI_Bcast(&active_set[0][0], num_doubles, MPI_DOUBLE, 0, world);
   MPI_Bcast(&inverse_active_set[0][0], num_doubles, MPI_DOUBLE, 0, world);
   allocated = 1;

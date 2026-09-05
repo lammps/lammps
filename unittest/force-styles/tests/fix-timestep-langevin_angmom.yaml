@@ -6,6 +6,7 @@ epsilon: 5e-13
 skip_tests: kokkos_gpu_devicerng kokkos_omp_devicerng kokkos_serial_devicerng
 prerequisites: |
   atom ellipsoid
+  fix nve/asphere
   fix langevin
 pre_commands: ""
 post_commands: |

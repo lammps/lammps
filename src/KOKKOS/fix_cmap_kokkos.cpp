@@ -181,6 +181,26 @@ void FixCMAPKokkos<DeviceType>::pre_neighbor()
   atomKK->k_sametag.sync<DeviceType>();
   d_sametag = atomKK->k_sametag.view<DeviceType>();
 
+  // the crossterm lists are filled on the host, by the data file reader and by
+  // the unpack methods that move them between processors, so the device side
+  // the kernel below reads has to be brought up to date first
+
+  k_num_crossterm.template sync<DeviceType>();
+  k_crossterm_type.template sync<DeviceType>();
+  k_crossterm_atom1.template sync<DeviceType>();
+  k_crossterm_atom2.template sync<DeviceType>();
+  k_crossterm_atom3.template sync<DeviceType>();
+  k_crossterm_atom4.template sync<DeviceType>();
+  k_crossterm_atom5.template sync<DeviceType>();
+
+  d_num_crossterm = k_num_crossterm.template view<DeviceType>();
+  d_crossterm_type = k_crossterm_type.template view<DeviceType>();
+  d_crossterm_atom1 = k_crossterm_atom1.template view<DeviceType>();
+  d_crossterm_atom2 = k_crossterm_atom2.template view<DeviceType>();
+  d_crossterm_atom3 = k_crossterm_atom3.template view<DeviceType>();
+  d_crossterm_atom4 = k_crossterm_atom4.template view<DeviceType>();
+  d_crossterm_atom5 = k_crossterm_atom5.template view<DeviceType>();
+
   copymode = 1;
   Kokkos::parallel_scan(Kokkos::RangePolicy<DeviceType,TagFixCmapPreNeighbor>(0,nlocal),*this,ncrosstermlist);
   copymode = 0;
@@ -591,6 +611,23 @@ void FixCMAPKokkos<DeviceType>::sync_crossterm_host()
   k_crossterm_atom4.sync_host();
   k_crossterm_atom5.sync_host();
 }
+
+/* ----------------------------------------------------------------------
+   the base class fills the crossterm lists from the data file through the
+   plain host pointers, so the device side has to be marked out of date
+   afterwards - without this nothing ever copies them across and the kernel of
+   pre_neighbor() builds its list from whatever the device buffers hold
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixCMAPKokkos<DeviceType>::read_data_section(char *keyword, int n, char *buf, tagint id_offset)
+{
+  sync_crossterm_host();
+  FixCMAP::read_data_section(keyword,n,buf,id_offset);
+  modify_crossterm_host();
+}
+
+/* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 void FixCMAPKokkos<DeviceType>::modify_crossterm_host()

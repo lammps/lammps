@@ -64,6 +64,8 @@ class FixCMAPKokkos : public FixCMAP, public KokkosBase {
     int pack_restart(int, double *) override;
     void unpack_restart(int, int) override;
 
+    void read_data_section(char *, int, char *, tagint) override;
+
     void sync_crossterm_host();
     void modify_crossterm_host();
 

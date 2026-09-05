@@ -32,7 +32,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-template <class DeviceType> PairMTPKokkos<DeviceType>::PairMTPKokkos(LAMMPS(*lmp)) : PairMTP(lmp)
+template <class DeviceType> PairMTPKokkos<DeviceType>::PairMTPKokkos(LAMMPS *lmp) : PairMTP(lmp)
 {
   respa_enable = 0;
 
@@ -420,8 +420,9 @@ template <class DeviceType> void PairMTPKokkos<DeviceType>::compute(int eflag_in
       int dist_coords_scratch_count = 4 * max_alpha_index_basic;
 
       // Reduce the scratch size to the max number of neighbors
-      int scratch_size = scratch_size_helper<KK_FLOAT>(
-          min(team_size, max_valid_neighs) * (radial_scratch_count + dist_coords_scratch_count));
+      int scratch_size =
+          scratch_size_helper<KK_FLOAT>(Kokkos::min(team_size, max_valid_neighs) *
+                                        (radial_scratch_count + dist_coords_scratch_count));
       Kokkos::TeamPolicy<DeviceType, TagPairMTPComputeAlphaBasic> policy_basic_alpha(chunk_size,
                                                                                      team_size);
       policy_basic_alpha = policy_basic_alpha.set_scratch_size(0, Kokkos::PerTeam(scratch_size));
@@ -731,6 +732,7 @@ KOKKOS_INLINE_FUNCTION void PairMTPKokkos<DeviceType>::operator()(
   const int i = d_ilist[ii + chunk_offset];
   const int jnum = d_num_valid_neighs(ii + chunk_offset);
   bool need_energies = EVFLAG && eflag_either;
+  bool need_virial = EVFLAG && vflag_either;
 
   Kokkos::parallel_for(Kokkos::TeamThreadRange(team, jnum), [&](const int jj) {
     const int j = d_valid_neighs(jj, ii + chunk_offset);
@@ -749,8 +751,8 @@ KOKKOS_INLINE_FUNCTION void PairMTPKokkos<DeviceType>::operator()(
     a_f(j, 1) -= temp_force[1];
     a_f(j, 2) -= temp_force[2];
 
-    if (need_energies) {
-      KK_FLOAT r[3] = {x(j, 0) - x(j, 0), x(j, 1) - x(j, 1), x(j, 2) - x(j, 2)};
+    if (need_virial) {
+      KK_FLOAT r[3] = {x(i, 0) - x(j, 0), x(i, 1) - x(j, 1), x(i, 2) - x(j, 2)};
       v_tally_xyz<NEIGHFLAG>(ev, i, j, temp_force[0], temp_force[1], temp_force[2], r[0], r[1],
                              r[2]);
     }

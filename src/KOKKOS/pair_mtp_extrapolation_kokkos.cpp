@@ -28,12 +28,14 @@
 #include "neigh_request.h"
 #include "neighbor_kokkos.h"
 
+#include <cmath>
+
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
 template <class DeviceType>
-PairMTPExtrapolationKokkos<DeviceType>::PairMTPExtrapolationKokkos(LAMMPS(*lmp)) :
+PairMTPExtrapolationKokkos<DeviceType>::PairMTPExtrapolationKokkos(LAMMPS *lmp) :
     PairMTPExtrapolation(lmp)
 {
   respa_enable = 0;
@@ -531,8 +533,9 @@ void PairMTPExtrapolationKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
         int dist_coords_scratch_count = 4 * max_alpha_index_basic;
 
         // Reduce the scratch size to the max number of neighbors
-        int scratch_size = scratch_size_helper<KK_FLOAT>(
-            min(team_size, max_valid_neighs) * (radial_scratch_count + dist_coords_scratch_count));
+        int scratch_size =
+            scratch_size_helper<KK_FLOAT>(Kokkos::min(team_size, max_valid_neighs) *
+                                          (radial_scratch_count + dist_coords_scratch_count));
         Kokkos::TeamPolicy<DeviceType, TagPairMTPComputeAlphaBasicRad> policy_basic_alpha_rad(
             chunk_size, team_size);
         policy_basic_alpha_rad =
@@ -711,7 +714,7 @@ void PairMTPExtrapolationKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       max_grade = tmp_max_grade;
 
       if (atom->natoms > 0)
-        max_grade /= atom->natoms;    // Normalize
+        max_grade /= std::pow((double) atom->natoms, 0.5 * weight_scaling);    // Normalize
       else
         max_grade = 0.0;
       pvector[0] = max_grade;
@@ -1107,6 +1110,7 @@ KOKKOS_INLINE_FUNCTION void PairMTPExtrapolationKokkos<DeviceType>::operator()(
   const int i = d_ilist[ii + chunk_offset];
   const int jnum = d_num_valid_neighs(ii + chunk_offset);
   bool need_energies = EVFLAG && eflag_either;
+  bool need_virial = EVFLAG && vflag_either;
 
   Kokkos::parallel_for(Kokkos::TeamThreadRange(team, jnum), [&](const int jj) {
     const int j = d_valid_neighs(jj, ii + chunk_offset);
@@ -1126,8 +1130,8 @@ KOKKOS_INLINE_FUNCTION void PairMTPExtrapolationKokkos<DeviceType>::operator()(
     a_f(j, 1) -= temp_force[1];
     a_f(j, 2) -= temp_force[2];
 
-    if (need_energies) {
-      KK_FLOAT r[3] = {x(j, 0) - x(j, 0), x(j, 1) - x(j, 1), x(j, 2) - x(j, 2)};
+    if (need_virial) {
+      KK_FLOAT r[3] = {x(i, 0) - x(j, 0), x(i, 1) - x(j, 1), x(i, 2) - x(j, 2)};
       v_tally_xyz<NEIGHFLAG>(ev, i, j, temp_force[0], temp_force[1], temp_force[2], r[0], r[1],
                              r[2]);
     }

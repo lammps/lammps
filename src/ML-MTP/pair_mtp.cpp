@@ -38,7 +38,7 @@ PairMTP::PairMTP(LAMMPS *lmp) : Pair(lmp)
   restartinfo = 0;
   one_coeff = 1;
   manybody_flag = 1;
-  no_virial_fdotr_compute = 0;
+  centroidstressflag = CENTROID_NOTAVAIL;
 
   radial_basis = nullptr;
   radial_basis_coeffs = nullptr;
@@ -95,12 +95,14 @@ PairMTP::~PairMTP()
    ---------------------------------------------------------------------- */
 void PairMTP::compute(int eflag, int vflag)
 {
-  ev_setup(eflag, vflag);
+  ev_init(eflag, vflag);
 
   double **x = atom->x;      // atomic positons
   double **f = atom->f;      // atomic forces
   int *type = atom->type;    //atomic types
 
+  int nlocal = atom->nlocal;
+  int newton_pair = force->newton_pair;
   int inum = list->inum;             // The number of central atoms (neigbhourhoods)
   int *ilist = list->ilist;          // List of central atom ids
   int *numneigh = list->numneigh;    // List of the number of neighbours for each central atom
@@ -260,28 +262,14 @@ void PairMTP::compute(int eflag, int vflag)
       f[j][2] -= temp_force[2];
 
       // Accumulate virial stress only if requested
-      if (vflag) {
-        const double r[3] = {x[j][0] - xi[0], x[j][1] - xi[1], x[j][2] - xi[2]};
-        virial[0] -= temp_force[0] * r[0];    //xx
-        virial[1] -= temp_force[1] * r[1];    //yy
-        virial[2] -= temp_force[2] * r[2];    //zz
-
-        virial[3] -= (temp_force[0] * r[1] + temp_force[1] * r[0]) / 2;    //xy
-        virial[4] -= (temp_force[0] * r[2] + temp_force[2] * r[0]) / 2;    //xz
-        virial[5] -= (temp_force[1] * r[2] + temp_force[2] * r[1]) / 2;    //yz
-
-        if (vflag_atom) {
-          vatom[i][0] -= temp_force[0] * r[0];    //xx
-          vatom[i][1] -= temp_force[1] * r[1];    //yy
-          vatom[i][2] -= temp_force[2] * r[2];    //zz
-
-          vatom[i][3] -= (temp_force[0] * r[1] + temp_force[1] * r[0]) / 2;    //xy
-          vatom[i][4] -= (temp_force[0] * r[2] + temp_force[2] * r[0]) / 2;    //xz
-          vatom[i][5] -= (temp_force[1] * r[2] + temp_force[2] * r[1]) / 2;    //yz
-        }
+      if (evflag) {
+        const double del[3] = {xi[0] - x[j][0], xi[1] - x[j][1], xi[2] - x[j][2]};
+        ev_tally_xyz(i, j, nlocal, newton_pair, 0.0, 0.0, temp_force[0], temp_force[1],
+                     temp_force[2], del[0], del[1], del[2]);
       }
     }
   }
+  if (vflag_fdotr) virial_fdotr_compute();
 }
 
 /* ----------------------------------------------------------------------

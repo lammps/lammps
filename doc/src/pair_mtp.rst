@@ -41,7 +41,7 @@ Examples
    pair_coeff * * SiO.mtp 0 1
 
    pair_style mtp/extrapolation
-   pair_style mtp chunksize 2048
+   pair_style mtp/extrapolation chunksize 2048
    pair_coeff * * SiO.almtp 0 1
 
 Description
@@ -76,34 +76,42 @@ mtp/extrapolation`.  It adapts the MaxVol algorithm and is described in
 :ref:`(Podryabinkin17) <Podryabinkin2017>`.  In order to compute
 extrapolation grade one needs to provide an MTP potential file in the MLIP-3 format :ref:`(Podryabinkin23) <Podryabinkin2023>` with active learning information included (.almtp).
 
-Calculation of extrapolation grades requires additional derivatives and a matrix-vector multiplication for each atom, and is slower than the usual `pair_style mtp`, therefore it is *not* computed by default.
-Extrapolation grade calculation is involved by `fix pair`, which
-requests to compute `gamma`, as shown in example below:
+Calculation of extrapolation grades requires additional derivatives and a
+matrix-vector multiplication for each atom, making it slower than the usual
+``pair_style mtp``.  It is therefore *not* computed by default.  Grade
+calculation is invoked by :doc:`fix pair <fix_pair>`, which requests the
+``extrapolation`` quantity from the pair style, as shown in the example below:
 
 .. code-block:: LAMMPS
 
     pair_style  mtp/extrapolation
     pair_coeff * * SiO.mtp 0 1
 
-    fix mtp_gamma all pair 10 mtp/extrapolation gamma 1
+    fix mtp_extrapolation all pair 10 mtp/extrapolation extrapolation 1
 
-    # compute max_mtp_gamma all reduce max f_mtp_gamma
-    compute max_mtp_gamma all pair mtp/extrapolation
-    variable dump_skip equal "c_max_mtp_gamma < 2"
+    compute max_mtp_extrapolation all pair mtp/extrapolation
+    variable dump_skip equal "c_max_mtp_extrapolation < 2"
 
-    dump mtp_dump all custom 20 extrapolative_structures.dump id type x y z f_mtp_gamma
+    dump mtp_dump all custom 20 extrapolative_structures.dump id type x y z f_mtp_extrapolation
     dump_modify mtp_dump skip v_dump_skip
 
-    variable max_mtp_gamma equal c_max_mtp_gamma
-    fix extreme_extrapolation all halt 10 v_max_mtp_gamma > 10
+    fix extreme_extrapolation all halt 10 c_max_mtp_extrapolation > 10
 
-Here extrapolation grade gamma is computed every 10 steps and is stored
-in `f_mtp_gamma` per-atom variable.  The largest value of extrapolation
-grade among all atoms in a structure is exposed to the `c_max_mtp_gamma`
-variable.  Only if this value exceeds extrapolation threshold 2, then
-the structure will be dumped into `extrapolative_structures.dump` file,
-but not more often than every 20 steps. If this value exceeds 10, the simulation
-is terminated.
+The trailing ``0 1`` in the :doc:`pair_coeff <pair_coeff>` command maps LAMMPS
+atom types to species indices in the potential file, in the same way as for
+``pair_style mtp``.
+
+Here the extrapolation grade is computed every 10 steps and stored in the
+per-atom quantity ``f_mtp_extrapolation``.  The largest grade among all atoms
+in the structure is exposed through ``c_max_mtp_extrapolation``.  The structure
+is dumped to ``extrapolative_structures.dump`` only on steps where this value
+reaches the threshold of 2, and at most every 20 steps.  If the value exceeds
+10, the simulation is halted.
+
+The dump interval must be a multiple of the :doc:`fix pair <fix_pair>`
+interval, so that a freshly computed grade is available on every step the
+dump is considered.  In the example above the grade is computed every 10
+steps and the dump is evaluated every 20.
 
 On all other steps `pair_style mtp` will be used.
 

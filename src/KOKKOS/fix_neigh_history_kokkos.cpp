@@ -22,6 +22,8 @@
 #include "atom_vec_kokkos.h"
 #include "atom_masks.h"
 
+#include <cstring>
+
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
@@ -533,6 +535,87 @@ int FixNeighHistoryKokkos<DeviceType>::unpack_exchange(int nlocal, double *buf)
   k_valuepartner.modify_host();
 
   return n;
+}
+
+/* ----------------------------------------------------------------------
+   pack values in local atom-based arrays for restart file
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+int FixNeighHistoryKokkos<DeviceType>::pack_restart(int i, double *buf)
+{
+  k_npartner.sync_host();
+  k_partner.sync_host();
+  k_valuepartner.sync_host();
+
+  return FixNeighHistory::pack_restart(i,buf);
+}
+
+/* ----------------------------------------------------------------------
+   unpack values from atom->extra array to restart the fix
+
+   the base class hands out a ragged row per atom from its page allocators,
+   while this class keeps the partner lists in rectangular dual views.
+   unpacking through the base class would replace the row pointers of those
+   views with pointers into the pages, so that the values read back from the
+   restart file never reach the device copy and are lost at the next resize
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixNeighHistoryKokkos<DeviceType>::unpack_restart(int nlocal, int nth)
+{
+  k_npartner.sync_host();
+  k_partner.sync_host();
+  k_valuepartner.sync_host();
+
+  // skip to Nth set of extra values
+  // unpack the Nth first values this way because other fixes pack them
+
+  double **extra = atom->extra;
+
+  int m = 0;
+  for (int i = 0; i < nth; i++) m += static_cast<int>(extra[nlocal][m]);
+  m++;
+
+  const int np = static_cast<int>(extra[nlocal][m++]);
+
+  // widen the partner lists when this atom has more contacts than any atom
+  // seen so far, the same way pre_exchange() does when the device loop runs
+  // out of room
+
+  if (np > maxpartner) {
+    maxpartner = np;
+    memoryKK->grow_kokkos(k_partner,partner,atom->nmax,maxpartner,
+                          "neighbor_history:partner");
+    memoryKK->grow_kokkos(k_valuepartner,valuepartner,atom->nmax,dnum*maxpartner,
+                          "neighbor_history:valuepartner");
+    d_partner = k_partner.template view<DeviceType>();
+    d_valuepartner = k_valuepartner.template view<DeviceType>();
+    maxexchange = (dnum+1)*maxpartner + 2;
+  }
+
+  npartner[nlocal] = np;
+  for (int n = 0; n < np; n++) {
+    partner[nlocal][n] = static_cast<tagint>(ubuf(extra[nlocal][m++]).i);
+    memcpy(&valuepartner[nlocal][dnum*n],&extra[nlocal][m],dnumbytes);
+    m += dnum;
+  }
+
+  k_npartner.modify_host();
+  k_partner.modify_host();
+  k_valuepartner.modify_host();
+}
+
+/* ----------------------------------------------------------------------
+   size of atom nlocal's restart data
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+int FixNeighHistoryKokkos<DeviceType>::size_restart(int nlocal)
+{
+  k_npartner.sync_host();
+
+  return FixNeighHistory::size_restart(nlocal);
 }
 
 /* ----------------------------------------------------------------------

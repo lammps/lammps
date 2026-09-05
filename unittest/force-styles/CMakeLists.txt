@@ -403,7 +403,8 @@ if(PKG_KOKKOS AND ENABLE_KOKKOS_PROFILE_TESTS)
   set(KOKKOS_PROFILE_cross-hostpath   "-pk kokkos comm host sort host atom/map host neigh half newton off")
   set(KOKKOS_PROFILE_cross-devicehalf "-pk kokkos comm device sort device atom/map device gpu/aware on neigh half newton on")
   set(KOKKOS_PROFILE_cross-nogpuaware "-pk kokkos comm device sort device atom/map device gpu/aware off neigh full newton off")
-  set(KOKKOS_PROFILE_cross-nosort     "-pk kokkos comm device sort no atom/map no neigh full newton on")
+  # "neigh full" requires "newton off", so this profile keeps the half list
+  set(KOKKOS_PROFILE_cross-nosort     "-pk kokkos comm device sort no atom/map no neigh half newton on")
 
   # the prefix, the driver and the file name pattern of every reference group,
   # in the same order the groups are registered above

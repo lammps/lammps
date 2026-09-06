@@ -357,11 +357,21 @@ template <class DeviceType> void PairMTPKokkos<DeviceType>::compute(int eflag_in
     Kokkos::realloc(Kokkos::WithoutInitializing, d_valid_neighs, max_neighs, inum);
   }
 
+  int vector_length_default = 1;
+  int team_size_default = 1;
+  if (!host_flag) {
+    team_size_default = 64;
+    // A CPU backend caps the team size at the thread count
+    const int team_size_max =
+        Kokkos::TeamPolicy<DeviceType, TagPairMTPComputeAlphaBasic>(inum, Kokkos::AUTO)
+            .team_size_max(*this, Kokkos::ParallelForTag());
+    if (team_size_default > team_size_max) team_size_default = team_size_max;
+  }
+
   // Find the number of valid MTP neighs and stream compact them
   max_valid_neighs = 0;
   {
-    const int team_size = 64;
-    Kokkos::TeamPolicy<DeviceType> policy_valid_neighs(inum, team_size);
+    Kokkos::TeamPolicy<DeviceType> policy_valid_neighs(inum, team_size_default);
     Kokkos::parallel_reduce("PairMTPKokkos::find_max_valid_neighs", policy_valid_neighs,
                             FindMaxValidNeighs<DeviceType>(d_ilist, d_numneigh, d_neighbors, x,
                                                            max_cutoff_sq, d_num_valid_neighs,
@@ -373,10 +383,6 @@ template <class DeviceType> void PairMTPKokkos<DeviceType>::compute(int eflag_in
   chunk_size = MIN(input_chunk_size,
                    inum);    // chunksize is the maximum atoms per pass as defined by the user
   chunk_offset = 0;
-
-  int team_size_default = 1;
-  int vector_length_default = 1;
-  if (!host_flag) team_size_default = 64;
 
   // Resize the arrays to the chunksize if needed. Do not initialize.
   if ((int) d_moment_tensor_vals.extent(0) < chunk_size) {
@@ -409,7 +415,7 @@ template <class DeviceType> void PairMTPKokkos<DeviceType>::compute(int eflag_in
     // ========== Calculate the basic alphas (Per outer-atom parallelizaton) ==========
     {
       int team_size = team_size_default;
-      if (!host_flag && max_valid_neighs < 32) team_size = 32;
+      if (!host_flag && max_valid_neighs < 32) team_size = MIN(team_size, 32);
       int vector_length = vector_length_default;
       check_team_size_for<TagPairMTPComputeAlphaBasic>(chunk_size * max_valid_neighs, team_size,
                                                        vector_length);
@@ -452,7 +458,7 @@ template <class DeviceType> void PairMTPKokkos<DeviceType>::compute(int eflag_in
     // ========== Compute force (and dot product with alphas to get energy if needed) ==========
     {
       int team_size = team_size_default;
-      if (!host_flag && max_valid_neighs < 32) team_size = 32;
+      if (!host_flag && max_valid_neighs < 32) team_size = MIN(team_size, 32);
 
       if (neighflag == HALF) {
         Kokkos::TeamPolicy<DeviceType, TagPairMTPComputeForce<HALF, 1>> policy_force(chunk_size,

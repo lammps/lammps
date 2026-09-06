@@ -100,14 +100,27 @@ void FixWallMorseKokkos<DeviceType>::precompute(int m_in)
 /* ---------------------------------------------------------------------- */
 
 template <class DeviceType>
-void FixWallMorseKokkos<DeviceType>::post_force(int vflag)
+void FixWallMorseKokkos<DeviceType>::v_setup_peratom(int vflag)
 {
+  // the per-atom virial is accumulated into a dual view, so the plain
+  // base-class vatom array must not be allocated here (alloc = 0)
+
+  v_init(vflag,0);
+
+  // reallocate the per-atom virial dual view if necessary
+
   if (vflag_atom) {
     memoryKK->destroy_kokkos(k_vatom, vatom);
     memoryKK->create_kokkos(k_vatom, vatom, maxvatom, "wall_morse:vatom");
     d_vatom = k_vatom.template view<DeviceType>();
   }
+}
 
+/* ---------------------------------------------------------------------- */
+
+template <class DeviceType>
+void FixWallMorseKokkos<DeviceType>::post_force(int vflag)
+{
   FixWallMorse::post_force(vflag);
 
   if (vflag_atom) {

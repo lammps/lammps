@@ -39,7 +39,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 2Sep2026
 
 The *bpm/peri* bond style implements the four peridynamic constitutive
 models of the :doc:`PERI package <pair_peri>` --- bond-based prototype

@@ -16,8 +16,6 @@
 
 #include "fix_rigid_small_kokkos.h"
 
-#include <vector>
-
 namespace LAMMPS_NS {
 
 // Kokkos port of the Nose-Hoover (thermostat/barostat) rigid-body integrator.

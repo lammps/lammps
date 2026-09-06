@@ -1527,7 +1527,7 @@ struct alignas(2*sizeof(real_type_)) SNAComplex
 
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
-  const real_type real_part_product(const complex &cm2) { return re * cm2.re - im * cm2.im; }
+  const real_type real_part_product(const complex &cm2) const { return re * cm2.re - im * cm2.im; }
 
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION

@@ -65,12 +65,10 @@ template <class DeviceType> PairUF3Kokkos<DeviceType>::~PairUF3Kokkos()
     memoryKK->destroy_kokkos(k_eatom, eatom); //destory eatom from host, set it to nullptr
                                               //Also set k_eatom to empty View
     memoryKK->destroy_kokkos(k_vatom, vatom);
+    memoryKK->destroy_kokkos(k_cvatom, cvatom);
     memoryKK->destroy_kokkos(k_cutsq,cutsq);
     destroy_3d(k_cut_3b,cut_3b);
     destroy_4d(k_min_cut_3b,min_cut_3b);
-    eatom = NULL;
-    vatom = NULL;
-    cvatom = NULL;
   }
 }
 
@@ -741,7 +739,7 @@ template <class DeviceType> void PairUF3Kokkos<DeviceType>::compute(int eflag_in
 
   if (cvflag_atom) {
     memoryKK->destroy_kokkos(k_cvatom, cvatom);
-    memoryKK->create_kokkos(k_cvatom, cvatom, maxvatom, "pair:vatom");
+    memoryKK->create_kokkos(k_cvatom, cvatom, maxcvatom, "pair:cvatom");
     d_cvatom = k_cvatom.view<DeviceType>();
   }
 

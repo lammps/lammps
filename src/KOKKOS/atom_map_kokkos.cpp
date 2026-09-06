@@ -126,6 +126,9 @@ void AtomKokkos::map_init(int check)
 void AtomKokkos::map_clear()
 {
   if (map_style == MAP_ARRAY) {
+    // the whole array is overwritten, so whatever the other side holds is
+    // irrelevant: release both sides first rather than sync a copy nobody reads
+    k_map_array.clear_sync_state();
     if (lmp->kokkos->atom_map_legacy) {
       Kokkos::deep_copy(k_map_array.view_host(),-1);
       k_map_array.modify_host();
@@ -388,6 +391,7 @@ void AtomKokkos::map_one(tagint global, int local)
   if (map_style == MAP_ARRAY) {
     k_map_array.sync_host();
     k_map_array.view_host()[global] = local;
+    k_map_array.modify_host();
   } else {
     k_map_hash.sync_host();
     auto& h_map_hash = k_map_hash.view_host(); // must be alias
@@ -397,6 +401,7 @@ void AtomKokkos::map_one(tagint global, int local)
       h_map_hash.value_at(h_map_hash.find(global)) = local;
     else if (insert_result.failed())
       error->one(FLERR,"Failed to insert into Kokkos hash atom map");
+    k_map_hash.modify_host();
   }
 }
 
@@ -426,6 +431,7 @@ void AtomKokkos::map_delete()
 {
   memoryKK->destroy_kokkos(k_sametag, sametag);
   sametag = nullptr;
+  max_same = 0;
 
   if (map_style == MAP_ARRAY) {
     memoryKK->destroy_kokkos(k_map_array, map_array);

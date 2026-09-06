@@ -244,7 +244,8 @@ TEST_F(VariableTest, CreateDelete)
                  command("variable ten10 world xxx xxx"););
     TEST_FAILURE(".*ERROR: All universe and uloop style variables must have same # of values.*",
                  command("variable ten6   uloop     2"););
-    TEST_FAILURE(".*ERROR: Incorrect conversion in format string.*",
+    TEST_FAILURE(".*ERROR: Invalid format string for format style variable: conversion 1 of "
+                 "'%08x' formats integer values, but floating-point values are provided.*",
                  command("variable ten11  format    two \"%08x\""););
     TEST_FAILURE(".*ERROR.*Substitution for illegal variable xxx.*",
                  command("variable three  string \"${xxx} five\""););
@@ -874,17 +875,34 @@ TEST_F(VariableTest, Format)
     TEST_FAILURE(".*ERROR: Cannot redefine format style variable f2one as equal style.*",
                  command("variable f2one equal 0.5"););
     TEST_FAILURE(".*ERROR: Illegal variable command.*", command("variable xxx format \"xxx\""););
-    TEST_FAILURE(".*ERROR: Incorrect conversion in format string.*",
-                 command("variable xxx format one \"xxx\""););
-    TEST_FAILURE(".*ERROR: Incorrect conversion in format string.*",
+    // a format string without a conversion is harmless, it yields literal text
+    BEGIN_HIDE_OUTPUT();
+    command("variable fmtplain format one \"xxx\"");
+    END_HIDE_OUTPUT();
+    EXPECT_THAT(variable->retrieve("fmtplain"), StrEq("xxx"));
+    TEST_FAILURE(".*ERROR: Invalid format string for format style variable: conversion 1 of "
+                 "'%d' formats integer values, but floating-point values are provided.*",
                  command("variable xxx format one \"%d\""););
-    TEST_FAILURE(".*ERROR: Incorrect conversion in format string.*",
+    TEST_FAILURE(".*ERROR: Invalid format string for format style variable: '%g%g' has 2 "
+                 "conversion.* but only 1 value.* provided.*",
                  command("variable xxx format one \"%g%g\""););
-    TEST_FAILURE(".*ERROR: Incorrect conversion in format string.*",
+    // literal text around the conversion and all C library flags are accepted
+    char fmtbuf[64];
+    snprintf(fmtbuf, sizeof(fmtbuf), "<%+12.6e>", -0.622);
+    BEGIN_HIDE_OUTPUT();
+    command("variable fmtdeco format one \"<%+12.6e>\"");
+    END_HIDE_OUTPUT();
+    EXPECT_THAT(variable->retrieve("fmtdeco"), StrEq(fmtbuf));
+    TEST_FAILURE(".*ERROR: Invalid format string for format style variable: incomplete "
+                 "conversion '%5' in '%g%5'.*",
                  command("variable xxx format one \"%g%5\""););
-    TEST_FAILURE(".*ERROR: Incorrect conversion in format string.*",
-                 command("variable xxx format one \"%g%%\""););
-    //    TEST_FAILURE(".*ERROR: Incorrect conversion in format string.*",
+    // a %% sequence is a literal percent sign and consumes no value
+    snprintf(fmtbuf, sizeof(fmtbuf), "%g%%", -0.622);
+    BEGIN_HIDE_OUTPUT();
+    command("variable fmtpercent format one \"%g%%\"");
+    END_HIDE_OUTPUT();
+    EXPECT_THAT(variable->retrieve("fmtpercent"), StrEq(fmtbuf));
+    //    TEST_FAILURE(".*ERROR: Invalid format string for format style variable.*",
     //                 command("print \"${f1idx}\""););
 }
 

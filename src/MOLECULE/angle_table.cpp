@@ -54,6 +54,8 @@ AngleTable::AngleTable(LAMMPS *_lmp) : Angle(_lmp), theta0(nullptr), tabindex(nu
 
 AngleTable::~AngleTable()
 {
+  if (copymode) return;
+
   for (int m = 0; m < ntables; m++) free_table(&tables[m]);
   memory->sfree(tables);
 

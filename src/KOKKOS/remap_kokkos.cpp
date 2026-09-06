@@ -130,7 +130,13 @@ void RemapKokkos<DeviceType>::remap_3d_kokkos(typename FFT_AT::t_FFT_SCALAR_1d d
   // use point-to-point communication
 
   if (!plan->usecollective) {
-    int i,isend,irecv;
+    int isend,irecv;
+
+    // with GPU-aware MPI the receives land in device memory directly, so the
+    // kernels of the previous call that read that buffer have to be finished
+    // before MPI is allowed to write into it
+
+    if (plan->usegpu_aware) Kokkos::fence();
 
     for (irecv = 0; irecv < plan->nrecv; irecv++) {
       FFT_SCALAR* scratch = v_scratch + plan->recv_bufloc[irecv];
@@ -153,8 +159,17 @@ void RemapKokkos<DeviceType>::remap_3d_kokkos(typename FFT_AT::t_FFT_SCALAR_1d d
                   &plan->packplan[isend]);
       }
 
-      if (!plan->usegpu_aware)
-        Kokkos::deep_copy(plan->h_sendbuf,plan->d_sendbuf);
+      if (!plan->usegpu_aware) {
+        // copy only this message's stretch to the host: with non-blocking
+        // sends the earlier stretches may still be read by their MPI_Isend
+        const int lo = plan->usenonblocking ? plan->send_bufloc[isend] : 0;
+        const auto range = std::make_pair(lo,lo + plan->send_size[isend]);
+        Kokkos::deep_copy(Kokkos::subview(plan->h_sendbuf,range),
+                          Kokkos::subview(plan->d_sendbuf,range));
+      } else {
+        // the pack kernel has to be finished before MPI reads the device buffer
+        Kokkos::fence();
+      }
 
       if (plan->usenonblocking) {
         MPI_Isend(v_sendbuf + plan->send_bufloc[isend],plan->send_size[isend],MPI_FFT_SCALAR,
@@ -183,15 +198,19 @@ void RemapKokkos<DeviceType>::remap_3d_kokkos(typename FFT_AT::t_FFT_SCALAR_1d d
     }
 
     // unpack all messages from scratch -> out
+    // all receives share one scratch buffer, so every one of them has to
+    // have landed before that buffer is copied to the device and unpacked;
+    // copying inside a MPI_Waitany loop would copy stretches other receives
+    // are still writing into
 
-    for (i = 0; i < plan->nrecv; i++) {
-      MPI_Waitany(plan->nrecv,plan->request,&irecv,MPI_STATUS_IGNORE);
+    MPI_Waitall(plan->nrecv,plan->request,MPI_STATUSES_IGNORE);
 
+    if (!plan->usegpu_aware)
+      Kokkos::deep_copy(d_scratch,plan->h_scratch);
+
+    for (irecv = 0; irecv < plan->nrecv; irecv++) {
       int scratch_offset = plan->recv_bufloc[irecv];
       int out_offset = plan->recv_offset[irecv];
-
-      if (!plan->usegpu_aware)
-        Kokkos::deep_copy(d_scratch,plan->h_scratch);
 
       plan->unpack(d_scratch,scratch_offset,
                    d_out,out_offset,&plan->unpackplan[irecv]);
@@ -199,7 +218,7 @@ void RemapKokkos<DeviceType>::remap_3d_kokkos(typename FFT_AT::t_FFT_SCALAR_1d d
 
     if (plan->usenonblocking) {
       // finally, wait for all Isends to be done
-      MPI_Waitall(plan->nsend,plan->isend_reqs,MPI_STATUS_IGNORE);
+      MPI_Waitall(plan->nsend,plan->isend_reqs,MPI_STATUSES_IGNORE);
     }
   } else {
     if (plan->commringlen > 0) {

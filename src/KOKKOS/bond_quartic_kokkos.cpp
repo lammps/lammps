@@ -19,6 +19,7 @@
 #include "bond_quartic_kokkos.h"
 
 #include "atom_kokkos.h"
+#include "kokkos.h"
 #include "atom_masks.h"
 #include "comm.h"
 #include "force.h"
@@ -44,6 +45,15 @@ BondQuarticKokkos<DeviceType>::BondQuarticKokkos(LAMMPS *lmp) : BondQuartic(lmp)
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = X_MASK | F_MASK | ENERGY_MASK | VIRIAL_MASK;
   datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
+
+  // this style breaks bonds and corrects the 1-4 pair interaction on the host,
+  // in the middle of its own compute(), which means copying the forces to the
+  // host and back again.  The overlap path keeps a separate host force buffer,
+  // zeroed and filled by the host executing styles alone and merged into the
+  // device buffer afterwards, and a copy in either direction from here lands
+  // in the middle of that.  Turn the overlap off while this style is in use,
+  // as bond/hybrid does for a host executing sub-style.
+  lmp->kokkos->allow_overlap = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -89,6 +99,13 @@ void BondQuarticKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   k_b2.template sync<DeviceType>();
   k_rc.template sync<DeviceType>();
   k_u0.template sync<DeviceType>();
+
+  // the kernel adds to the forces and the host pass below then copies them
+  // away and back, so they have to be current on this side before it runs
+  // whatever the caller did; on any path that reaches compute() without the
+  // integrator's own sync, claiming the device side after the kernel would
+  // otherwise collide with a pending host modification
+  atomKK->sync(execution_space,X_MASK|F_MASK);
 
   x = atomKK->k_x.template view<DeviceType>();
   f = atomKK->k_f.template view<DeviceType>();

@@ -52,7 +52,7 @@ struct pack_plan_3d {
    pack from data -> buf
 ------------------------------------------------------------------------- */
 
-static void pack_3d(PACK_DATA *data, PACK_DATA *buf, struct pack_plan_3d *plan)
+static inline void pack_3d(PACK_DATA *data, PACK_DATA *buf, struct pack_plan_3d *plan)
 {
   int in, out, fast, mid, slow;
   int nfast, nmid, nslow, nstride_line, nstride_plane, plane;
@@ -77,7 +77,7 @@ static void pack_3d(PACK_DATA *data, PACK_DATA *buf, struct pack_plan_3d *plan)
    unpack from buf -> data
 ------------------------------------------------------------------------- */
 
-static void unpack_3d(PACK_DATA *buf, PACK_DATA *data, struct pack_plan_3d *plan)
+static inline void unpack_3d(PACK_DATA *buf, PACK_DATA *data, struct pack_plan_3d *plan)
 {
   int in, out, fast, mid, slow;
   int nfast, nmid, nslow, nstride_line, nstride_plane, plane;
@@ -102,7 +102,7 @@ static void unpack_3d(PACK_DATA *buf, PACK_DATA *data, struct pack_plan_3d *plan
    unpack from buf -> data, one axis permutation, 1 value/element
 ------------------------------------------------------------------------- */
 
-static void unpack_3d_permute1_1(PACK_DATA *buf, PACK_DATA *data, struct pack_plan_3d *plan)
+static inline void unpack_3d_permute1_1(PACK_DATA *buf, PACK_DATA *data, struct pack_plan_3d *plan)
 {
   int in, out, fast, mid, slow;
   int nfast, nmid, nslow, nstride_line, nstride_plane, plane;
@@ -127,7 +127,7 @@ static void unpack_3d_permute1_1(PACK_DATA *buf, PACK_DATA *data, struct pack_pl
    unpack from buf -> data, one axis permutation, 2 values/element
 ------------------------------------------------------------------------- */
 
-static void unpack_3d_permute1_2(PACK_DATA *buf, PACK_DATA *data, struct pack_plan_3d *plan)
+static inline void unpack_3d_permute1_2(PACK_DATA *buf, PACK_DATA *data, struct pack_plan_3d *plan)
 {
   int in, out, fast, mid, slow;
   int nfast, nmid, nslow, nstride_line, nstride_plane, plane;
@@ -155,7 +155,7 @@ static void unpack_3d_permute1_2(PACK_DATA *buf, PACK_DATA *data, struct pack_pl
    unpack from buf -> data, one axis permutation, nqty values/element
 ------------------------------------------------------------------------- */
 
-static void unpack_3d_permute1_n(PACK_DATA *buf, PACK_DATA *data, struct pack_plan_3d *plan)
+static inline void unpack_3d_permute1_n(PACK_DATA *buf, PACK_DATA *data, struct pack_plan_3d *plan)
 
 {
   int in, out, iqty, instart, fast, mid, slow;
@@ -185,7 +185,7 @@ static void unpack_3d_permute1_n(PACK_DATA *buf, PACK_DATA *data, struct pack_pl
    unpack from buf -> data, two axis permutation, 1 value/element
 ------------------------------------------------------------------------- */
 
-static void unpack_3d_permute2_1(PACK_DATA *buf, PACK_DATA *data, struct pack_plan_3d *plan)
+static inline void unpack_3d_permute2_1(PACK_DATA *buf, PACK_DATA *data, struct pack_plan_3d *plan)
 
 {
   int in, out, fast, mid, slow;
@@ -210,7 +210,7 @@ static void unpack_3d_permute2_1(PACK_DATA *buf, PACK_DATA *data, struct pack_pl
    unpack from buf -> data, two axis permutation, 2 values/element
 ------------------------------------------------------------------------- */
 
-static void unpack_3d_permute2_2(PACK_DATA *buf, PACK_DATA *data, struct pack_plan_3d *plan)
+static inline void unpack_3d_permute2_2(PACK_DATA *buf, PACK_DATA *data, struct pack_plan_3d *plan)
 
 {
   int in, out, fast, mid, slow;
@@ -238,7 +238,7 @@ static void unpack_3d_permute2_2(PACK_DATA *buf, PACK_DATA *data, struct pack_pl
    unpack from buf -> data, two axis permutation, nqty values/element
 ------------------------------------------------------------------------- */
 
-static void unpack_3d_permute2_n(PACK_DATA *buf, PACK_DATA *data, struct pack_plan_3d *plan)
+static inline void unpack_3d_permute2_n(PACK_DATA *buf, PACK_DATA *data, struct pack_plan_3d *plan)
 
 {
   int in, out, iqty, instart, fast, mid, slow;
@@ -275,7 +275,7 @@ static void unpack_3d_permute2_n(PACK_DATA *buf, PACK_DATA *data, struct pack_pl
    pack from data -> buf
 ------------------------------------------------------------------------- */
 
-static void pack_3d(PACK_DATA *data, PACK_DATA *buf, struct pack_plan_3d *plan)
+static inline void pack_3d(PACK_DATA *data, PACK_DATA *buf, struct pack_plan_3d *plan)
 
 {
   PACK_DATA *in, *out, *begin, *end;
@@ -303,7 +303,7 @@ static void pack_3d(PACK_DATA *data, PACK_DATA *buf, struct pack_plan_3d *plan)
    unpack from buf -> data
 ------------------------------------------------------------------------- */
 
-static void unpack_3d(PACK_DATA *buf, PACK_DATA *data, struct pack_plan_3d *plan)
+static inline void unpack_3d(PACK_DATA *buf, PACK_DATA *data, struct pack_plan_3d *plan)
 
 {
   PACK_DATA *in, *out, *begin, *end;
@@ -331,7 +331,7 @@ static void unpack_3d(PACK_DATA *buf, PACK_DATA *data, struct pack_plan_3d *plan
    unpack from buf -> data, one axis permutation, 1 value/element
 ------------------------------------------------------------------------- */
 
-static void unpack_3d_permute1_1(PACK_DATA *buf, PACK_DATA *data, struct pack_plan_3d *plan)
+static inline void unpack_3d_permute1_1(PACK_DATA *buf, PACK_DATA *data, struct pack_plan_3d *plan)
 
 {
   PACK_DATA *in, *out, *begin, *end;
@@ -359,7 +359,7 @@ static void unpack_3d_permute1_1(PACK_DATA *buf, PACK_DATA *data, struct pack_pl
    unpack from buf -> data, one axis permutation, 2 values/element
 ------------------------------------------------------------------------- */
 
-static void unpack_3d_permute1_2(PACK_DATA *buf, PACK_DATA *data, struct pack_plan_3d *plan)
+static inline void unpack_3d_permute1_2(PACK_DATA *buf, PACK_DATA *data, struct pack_plan_3d *plan)
 
 {
   PACK_DATA *in, *out, *begin, *end;
@@ -390,7 +390,7 @@ static void unpack_3d_permute1_2(PACK_DATA *buf, PACK_DATA *data, struct pack_pl
    unpack from buf -> data, one axis permutation, nqty values/element
 ------------------------------------------------------------------------- */
 
-static void unpack_3d_permute1_n(PACK_DATA *buf, PACK_DATA *data, struct pack_plan_3d *plan)
+static inline void unpack_3d_permute1_n(PACK_DATA *buf, PACK_DATA *data, struct pack_plan_3d *plan)
 
 {
   PACK_DATA *in, *out, *instart, *begin, *end;
@@ -422,7 +422,7 @@ static void unpack_3d_permute1_n(PACK_DATA *buf, PACK_DATA *data, struct pack_pl
    unpack from buf -> data, two axis permutation, 1 value/element
 ------------------------------------------------------------------------- */
 
-static void unpack_3d_permute2_1(PACK_DATA *buf, PACK_DATA *data, struct pack_plan_3d *plan)
+static inline void unpack_3d_permute2_1(PACK_DATA *buf, PACK_DATA *data, struct pack_plan_3d *plan)
 
 {
   PACK_DATA *in, *out, *begin, *end;
@@ -449,7 +449,7 @@ static void unpack_3d_permute2_1(PACK_DATA *buf, PACK_DATA *data, struct pack_pl
    unpack from buf -> data, two axis permutation, 2 values/element
 ------------------------------------------------------------------------- */
 
-static void unpack_3d_permute2_2(PACK_DATA *buf, PACK_DATA *data, struct pack_plan_3d *plan)
+static inline void unpack_3d_permute2_2(PACK_DATA *buf, PACK_DATA *data, struct pack_plan_3d *plan)
 
 {
   PACK_DATA *in, *out, *begin, *end;
@@ -479,7 +479,7 @@ static void unpack_3d_permute2_2(PACK_DATA *buf, PACK_DATA *data, struct pack_pl
    unpack from buf -> data, two axis permutation, nqty values/element
 ------------------------------------------------------------------------- */
 
-static void unpack_3d_permute2_n(PACK_DATA *buf, PACK_DATA *data, struct pack_plan_3d *plan)
+static inline void unpack_3d_permute2_n(PACK_DATA *buf, PACK_DATA *data, struct pack_plan_3d *plan)
 
 {
   PACK_DATA *in, *out, *instart, *begin, *end;
@@ -520,7 +520,7 @@ static void unpack_3d_permute2_n(PACK_DATA *buf, PACK_DATA *data, struct pack_pl
    pack from data -> buf
 ------------------------------------------------------------------------- */
 
-static void pack_3d(PACK_DATA *data, PACK_DATA *buf, struct pack_plan_3d *plan)
+static inline void pack_3d(PACK_DATA *data, PACK_DATA *buf, struct pack_plan_3d *plan)
 
 {
   PACK_DATA *in, *out;
@@ -549,7 +549,7 @@ static void pack_3d(PACK_DATA *data, PACK_DATA *buf, struct pack_plan_3d *plan)
    unpack from buf -> data
 ------------------------------------------------------------------------- */
 
-static void unpack_3d(PACK_DATA *buf, PACK_DATA *data, struct pack_plan_3d *plan)
+static inline void unpack_3d(PACK_DATA *buf, PACK_DATA *data, struct pack_plan_3d *plan)
 
 {
   PACK_DATA *in, *out;
@@ -578,7 +578,7 @@ static void unpack_3d(PACK_DATA *buf, PACK_DATA *data, struct pack_plan_3d *plan
    unpack from buf -> data, one axis permutation, 1 value/element
 ------------------------------------------------------------------------- */
 
-static void unpack_3d_permute1_1(PACK_DATA *buf, PACK_DATA *data, struct pack_plan_3d *plan)
+static inline void unpack_3d_permute1_1(PACK_DATA *buf, PACK_DATA *data, struct pack_plan_3d *plan)
 
 {
   PACK_DATA *in, *out, *begin, *end;
@@ -606,7 +606,7 @@ static void unpack_3d_permute1_1(PACK_DATA *buf, PACK_DATA *data, struct pack_pl
    unpack from buf -> data, one axis permutation, 2 values/element
 ------------------------------------------------------------------------- */
 
-static void unpack_3d_permute1_2(PACK_DATA *buf, PACK_DATA *data, struct pack_plan_3d *plan)
+static inline void unpack_3d_permute1_2(PACK_DATA *buf, PACK_DATA *data, struct pack_plan_3d *plan)
 
 {
   PACK_DATA *in, *out, *begin, *end;
@@ -637,7 +637,7 @@ static void unpack_3d_permute1_2(PACK_DATA *buf, PACK_DATA *data, struct pack_pl
    unpack from buf -> data, one axis permutation, nqty values/element
 ------------------------------------------------------------------------- */
 
-static void unpack_3d_permute1_n(PACK_DATA *buf, PACK_DATA *data, struct pack_plan_3d *plan)
+static inline void unpack_3d_permute1_n(PACK_DATA *buf, PACK_DATA *data, struct pack_plan_3d *plan)
 
 {
   PACK_DATA *in, *out, *instart, *begin, *end;
@@ -669,7 +669,7 @@ static void unpack_3d_permute1_n(PACK_DATA *buf, PACK_DATA *data, struct pack_pl
    unpack from buf -> data, two axis permutation, 1 value/element
 ------------------------------------------------------------------------- */
 
-static void unpack_3d_permute2_1(PACK_DATA *buf, PACK_DATA *data, struct pack_plan_3d *plan)
+static inline void unpack_3d_permute2_1(PACK_DATA *buf, PACK_DATA *data, struct pack_plan_3d *plan)
 
 {
   PACK_DATA *in, *out, *begin, *end;
@@ -696,7 +696,7 @@ static void unpack_3d_permute2_1(PACK_DATA *buf, PACK_DATA *data, struct pack_pl
    unpack from buf -> data, two axis permutation, 2 values/element
 ------------------------------------------------------------------------- */
 
-static void unpack_3d_permute2_2(PACK_DATA *buf, PACK_DATA *data, struct pack_plan_3d *plan)
+static inline void unpack_3d_permute2_2(PACK_DATA *buf, PACK_DATA *data, struct pack_plan_3d *plan)
 
 {
   PACK_DATA *in, *out, *begin, *end;
@@ -726,7 +726,7 @@ static void unpack_3d_permute2_2(PACK_DATA *buf, PACK_DATA *data, struct pack_pl
    unpack from buf -> data, two axis permutation, nqty values/element
 ------------------------------------------------------------------------- */
 
-static void unpack_3d_permute2_n(PACK_DATA *buf, PACK_DATA *data, struct pack_plan_3d *plan)
+static inline void unpack_3d_permute2_n(PACK_DATA *buf, PACK_DATA *data, struct pack_plan_3d *plan)
 
 {
   PACK_DATA *in, *out, *instart, *begin, *end;

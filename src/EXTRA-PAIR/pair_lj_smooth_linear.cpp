@@ -43,6 +43,8 @@ PairLJSmoothLinear::PairLJSmoothLinear(LAMMPS *lmp) :
 
 PairLJSmoothLinear::~PairLJSmoothLinear()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
@@ -128,6 +130,7 @@ void PairLJSmoothLinear::compute(int eflag, int vflag)
           evdwl = r6inv*(lj3[itype][jtype]*r6inv-lj4[itype][jtype]);
           evdwl = evdwl - ljcut[itype][jtype]
                           + (r-cut[itype][jtype])*dljcut[itype][jtype];
+          evdwl *= factor_lj;
         }
 
         if (evflag) ev_tally(i,j,nlocal,newton_pair,

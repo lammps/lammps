@@ -408,12 +408,13 @@ def iterate(lmp_binary, input_folder, input_list, config, results, progress_file
                 test_id = test_id + 1
                 continue
 
-        # the input scripts that couple LAMMPS to other codes or are graphics demos can or should not be tested standalone
-        if excluded_example(input_test):
-            msg = "   + " + input + f" ({test_id+1}/{num_tests}): skipped, {EXCLUDED_REASON}"
+        # skip the input scripts under the EXCLUDED_FOLDERS, reporting the category reason
+        excluded_reason = excluded_example(input_test)
+        if excluded_reason:
+            msg = "   + " + input + f" ({test_id+1}/{num_tests}): skipped, {excluded_reason}"
             print(msg)
             logger.info(msg)
-            result.status = f'skipped, {EXCLUDED_REASON}'
+            result.status = f'skipped, {excluded_reason}'
             record(result)
             test_id = test_id + 1
             continue
@@ -1137,17 +1138,43 @@ def needs_partitions(input_file):
         pass
     return ""
 
-# input scripts under these folders under examples/ couple LAMMPS to another code
-# or are not meant for showing physics, but as GRAPHICS package demos.
-EXCLUDED_FOLDERS = ('COUPLE', 'mdi', 'QUANTUM', 'GRAPHICS')
-EXCLUDED_REASON = "couples LAMMPS to another code or is a graphics demo and cannot be tested standalone"
+# input scripts under these folders under examples/ are not regression tested.  Each
+# category maps the reason for the exclusion to the affected folders: the first group
+# couples LAMMPS to another code or shows GRAPHICS package output rather than physics;
+# the second group demonstrates complex simulation or property calculation workflows
+# with production-like settings (long runs whose value lies in converged averages, not
+# in reproducing reference thermo output).  Abbreviated versions of those workflows
+# and the styles they exercise are covered by the tests in the unittest tree instead.
+EXCLUDED_FOLDERS = {
+    "couples LAMMPS to another code or is a graphics demo and cannot be tested standalone":
+        ('COUPLE', 'mdi', 'QUANTUM', 'GRAPHICS', 'PACKAGES/ipi'),
+    # the bare 'rerun' entry deliberately also matches examples/PACKAGES/adios/rerun,
+    # the ADIOS clone of examples/rerun with the same input interdependencies
+    "demonstrates a complex property calculation workflow with production-like settings":
+        ('DIFFUSE', 'ELASTIC', 'ELASTIC_T', 'HEAT', 'KAPPA', 'MC-LOOP', 'VISCOSITY', 'rerun',
+         'PACKAGES/basal', 'PACKAGES/electrode/au-aq', 'PACKAGES/electrode/piston',
+         'PACKAGES/latboltz/confined_colloid', 'PACKAGES/latboltz/dragforce',
+         'PACKAGES/latboltz/toycar', 'PACKAGES/smtbq', 'PACKAGES/apip',
+         'PACKAGES/cgspica/peg-verlet'),
+    "inputs that may abort for a missing feature but for which there is no test to cleanly skip":
+        ('mliap/jax', 'PACKAGES/colvars', 'PACKAGES/plumed'),
+}
 
 '''
     check whether a path is under one of the EXCLUDED_FOLDERS under examples/
+    entries may be a single folder name or a path of multiple folders separated by '/'
+
+    return the reason for the exclusion, or an empty string if the path is not excluded
 '''
 def excluded_example(path):
     parts = os.path.abspath(path).split(os.sep)
-    return any(folder in parts for folder in EXCLUDED_FOLDERS)
+    for reason, folders in EXCLUDED_FOLDERS.items():
+        for folder in folders:
+            subpath = folder.split('/')
+            num = len(subpath)
+            if any(parts[i:i+num] == subpath for i in range(len(parts) - num + 1)):
+                return reason
+    return ""
 
 # STATIC AND DYNAMIC SCREENING FOR STYLES MISSING FROM THE TESTED BINARY
 #
@@ -1315,13 +1342,78 @@ def incompatible_style_usage(input_file, missing_styles, installed_packages=None
         return ""
     return ""
 
+'''
+    statically check an input script for commands that cannot work in a KOKKOS run
+
+    A run with the KOKKOS package active ("-k on") replaces core classes rather
+    than falling back to the plain implementation for everything, so a number of
+    commands become hard errors: every atom style (and every sub-style of
+    atom_style hybrid) must have a Kokkos-enabled variant
+    (src/KOKKOS/atom_kokkos.cpp), only "bin" neighbor lists are supported
+    (src/KOKKOS/neighbor_kokkos.cpp), minimization requires a Kokkos-enabled min
+    style (src/min.cpp), run style respa is not supported (src/respa.cpp), and
+    label maps do not work (src/atom.cpp).  As with incompatible_style_usage(),
+    only definite mismatches are reported: a style name is only flagged when the
+    plain style exists in the binary but its "/kk" variant does not, and names
+    with a variable reference are never flagged.
+
+    input_file: path of the input script
+    styles    : the style lists of the binary from get_lammps_build_configuration()
+
+    return the reason for skipping the input script, or an empty string
+'''
+def kokkos_incompatible_usage(input_file, styles):
+    atom_styles = styles.get('atom', set())
+    min_styles = styles.get('minimize', set())
+    try:
+        for line in logical_lines(input_file):
+            tokens = line.split()
+            if not tokens:
+                continue
+            cmd = tokens[0]
+            if '$' in cmd:
+                continue
+            if cmd == 'labelmap':
+                return 'uses the labelmap command, but label maps are not supported with KOKKOS'
+            if (cmd == 'neighbor') and (len(tokens) > 2):
+                style = tokens[2]
+                if ('$' not in style) and (style != 'bin'):
+                    return (f'uses "{style}" neighbor lists, but the KOKKOS package'
+                            f' only supports "bin"')
+            if (cmd == 'run_style') and (len(tokens) > 1) and tokens[1].startswith('respa'):
+                return 'uses run style respa, which is not supported by the KOKKOS package'
+            if (cmd == 'min_style') and (len(tokens) > 1):
+                style = tokens[1]
+                if ('$' not in style) and (style in min_styles) \
+                        and (style + '/kk' not in min_styles):
+                    return f'uses min style "{style}", which has no KOKKOS version'
+            if (cmd == 'atom_style') and (len(tokens) > 1) and ('$' not in tokens[1]):
+                # a KOKKOS run requires a Kokkos-enabled atom style, and every
+                # sub-style of atom_style hybrid must be Kokkos-enabled as well
+                if tokens[1] == 'hybrid':
+                    check = [t for t in tokens[2:] if ('$' not in t) and (t in atom_styles)]
+                else:
+                    check = [tokens[1]] if tokens[1] in atom_styles else []
+                for style in check:
+                    if style + '/kk' not in atom_styles:
+                        return f'uses atom style "{style}", which has no KOKKOS version'
+    except OSError:
+        return ""
+    return ""
+
 # a "-skiprun" preflight failing with one of these messages means that the input
 # script cannot work with the tested binary; any other failure is inconclusive
 # (e.g. an artifact of the runs being cut short) and the input is tested normally
 PREFLIGHT_SKIP_PATTERNS = ("package which is not enabled",
                            "missing because of a dependency",
                            "requires ML-IAP with python support",
-                           "Must enable ML-PACE package")
+                           "Must enable ML-PACE package",
+                           # hard errors from running with the KOKKOS package active
+                           "KOKKOS package requires a Kokkos-enabled atom_style",
+                           "KOKKOS package only supports 'bin' neighbor lists",
+                           "Must use a Kokkos-enabled min style",
+                           "not supported by the KOKKOS package",
+                           "Label maps are currently not supported with Kokkos")
 
 # error messages that are a consequence of the run and minimize loops being cut
 # short by -skiprun: post-run analysis (e.g. variables dividing by averages that a
@@ -2510,6 +2602,17 @@ if __name__ == "__main__":
             print(msg)
             logger.info(msg)
 
+    # a run with the KOKKOS package active cannot fall back to the plain styles for
+    # everything, so a test configuration that declares it uses the KOKKOS package
+    # ("kokkos: true") also screens the input scripts for commands that can never
+    # work in a KOKKOS run (see kokkos_incompatible_usage())
+    kokkos_screen = bool(config.get('kokkos', False)) and bool(build_config)
+    if kokkos_screen:
+        msg = ("\nThe test configuration uses the KOKKOS package: input scripts using"
+               " commands that cannot work in a KOKKOS run are skipped as well.")
+        print(msg)
+        logger.info(msg)
+
     '''
         leave the input scripts that use styles missing from the tested binary out of
         a list of input scripts to test, recording them with the reason for leaving
@@ -2518,21 +2621,24 @@ if __name__ == "__main__":
         return the list without those input scripts
     '''
     def screen_input_list(input_list):
-        # the input scripts that couple LAMMPS to other codes or are graphics demos can or should not be tested standalone
+        # the input scripts under the EXCLUDED_FOLDERS can or should not be tested standalone
         exclude = [inp for inp in input_list if excluded_example(inp)]
         if exclude:
             input_list = [inp for inp in input_list if not excluded_example(inp)]
+            all_folders = sorted(f for folders in EXCLUDED_FOLDERS.values() for f in folders)
             msg = (f"\n{len(exclude)} input script(s) under " +
-                   ", ".join("examples/" + f for f in EXCLUDED_FOLDERS) + " are left out.")
+                   ", ".join("examples/" + f for f in all_folders) + " are left out.")
             print(msg)
             logger.info(msg)
-        if not missing_styles:
+        if not (missing_styles or kokkos_screen):
             return input_list
         packages = build_config['installed_packages'] if build_config else None
         keep = []
         excluded = []
         for inp in input_list:
             reason = incompatible_style_usage(inp, missing_styles, packages)
+            if (not reason) and kokkos_screen:
+                reason = kokkos_incompatible_usage(inp, build_config['styles'])
             if reason:
                 excluded.append((inp, reason))
             else:
@@ -2541,8 +2647,9 @@ if __name__ == "__main__":
             with open("input-list-incompatible.txt", "w") as f:
                 for inp, reason in excluded:
                     f.write(f"{inp}  # {reason}\n")
-            msg = (f"\n{len(excluded)} input script(s) use styles not included in the"
-                   f" tested binary and are left out (see input-list-incompatible.txt)")
+            msg = (f"\n{len(excluded)} input script(s) use styles or commands that cannot"
+                   f" work with the tested binary and are left out"
+                   f" (see input-list-incompatible.txt)")
             print(msg)
             logger.info(msg)
         return keep

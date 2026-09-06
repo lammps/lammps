@@ -218,6 +218,11 @@ whether an extra library is needed to build and use the package:
      - :doc:`pair_style <pair_style>`
      - n/a
      - no
+   * - :ref:`FENIX <PKG-FENIX>`
+     - online process recovery with Fenix
+     - :doc:`Howto Fenix <Howto_fenix>`
+     - ``PACKAGES/fenix``
+     - ext
    * - :ref:`FEP <PKG-FEP>`
      - free energy perturbation
      - :doc:`compute fep <compute_fep>`
@@ -524,7 +529,7 @@ whether an extra library is needed to build and use the package:
      - ``PACKAGES/uef``
      - no
    * - :ref:`VORONOI <PKG-VORONOI>`
-     - Voronoi tesselation
+     - Voronoi tessellation
      - :doc:`compute voronoi/atom <compute_voronoi_atom>`
      - n/a
      - ext

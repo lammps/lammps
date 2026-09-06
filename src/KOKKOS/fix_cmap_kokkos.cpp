@@ -124,6 +124,9 @@ FixCMAPKokkos<DeviceType>::~FixCMAPKokkos()
 {
   if (copymode) return;
 
+  memoryKK->destroy_kokkos(k_eatom,eatom);
+  memoryKK->destroy_kokkos(k_vatom,vatom);
+
   memoryKK->destroy_kokkos(k_g_axis,g_axis);
   memoryKK->destroy_kokkos(k_cmapgrid,cmapgrid);
   memoryKK->destroy_kokkos(k_d1cmapgrid,d1cmapgrid);
@@ -231,14 +234,55 @@ void FixCMAPKokkos<DeviceType>::post_force(int vflag)
   d_f = atomKK->k_f.template view<DeviceType>();
   atomKK->sync(execution_space,X_MASK|F_MASK);
 
+  // the per-atom energy and virial are accumulated into dual views, so the
+  // plain base-class arrays must not be allocated (alloc = 0); the views are
+  // recreated each step, which also zeroes them
+
   int eflag = eflag_caller;
-  ev_init(eflag,vflag);
+  ev_init(eflag,vflag,0);
+
+  if (eflag_atom) {
+    memoryKK->destroy_kokkos(k_eatom,eatom);
+    memoryKK->create_kokkos(k_eatom,eatom,maxeatom,"cmap:eatom");
+    d_eatom = k_eatom.template view<DeviceType>();
+  }
+  if (vflag_atom) {
+    memoryKK->destroy_kokkos(k_vatom,vatom);
+    memoryKK->create_kokkos(k_vatom,vatom,maxvatom,"cmap:vatom");
+    d_vatom = k_vatom.template view<DeviceType>();
+  }
+
+  EV_FLOAT ev;
 
   copymode = 1;
   nlocal = atomKK->nlocal;
-  Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagFixCmapPostForce>(0,ncrosstermlist),*this,ecmap);
+  Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagFixCmapPostForce>(0,ncrosstermlist),*this,ev);
   copymode = 0;
   atomKK->modified(execution_space,F_MASK);
+
+  // the global energy is what compute_scalar() reports; the global virial
+  // and the per-atom arrays follow Fix::ev_tally(): each crossterm is split
+  // over its five atoms and only the owned ones are counted
+
+  ecmap = static_cast<double>(ev.evdwl);
+
+  if (vflag_global) {
+    virial[0] += static_cast<double>(ev.v[0]);
+    virial[1] += static_cast<double>(ev.v[1]);
+    virial[2] += static_cast<double>(ev.v[2]);
+    virial[3] += static_cast<double>(ev.v[3]);
+    virial[4] += static_cast<double>(ev.v[4]);
+    virial[5] += static_cast<double>(ev.v[5]);
+  }
+
+  if (eflag_atom) {
+    k_eatom.template modify<DeviceType>();
+    k_eatom.sync_host();
+  }
+  if (vflag_atom) {
+    k_vatom.template modify<DeviceType>();
+    k_vatom.sync_host();
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -246,7 +290,7 @@ void FixCMAPKokkos<DeviceType>::post_force(int vflag)
 template<class DeviceType>
 // NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
-void FixCMAPKokkos<DeviceType>::operator()(TagFixCmapPostForce, const int n, double &ecmapKK) const
+void FixCMAPKokkos<DeviceType>::operator()(TagFixCmapPostForce, const int n, EV_FLOAT &ev) const
 {
   // Definition of cross-term dihedrals
 
@@ -391,15 +435,22 @@ void FixCMAPKokkos<DeviceType>::operator()(TagFixCmapPostForce, const int n, dou
   KK_FLOAT E, dEdPhi, dEdPsi;
   bc_interpol(phi,psi,li3,li4,gs,d1gs,d2gs,d12gs,E,dEdPhi,dEdPsi);
 
-  // sum up cmap energy contributions
-  // needed for compute_scalar()
+  // sum up cmap energy contributions, one fifth per owned atom
+  // needed for compute_scalar() and the per-atom energy
 
-  KK_FLOAT engfraction = static_cast<KK_FLOAT>(0.2) * E;
-  if (i1 < nlocal) ecmapKK += static_cast<double>(engfraction);
-  if (i2 < nlocal) ecmapKK += static_cast<double>(engfraction);
-  if (i3 < nlocal) ecmapKK += static_cast<double>(engfraction);
-  if (i4 < nlocal) ecmapKK += static_cast<double>(engfraction);
-  if (i5 < nlocal) ecmapKK += static_cast<double>(engfraction);
+  const KK_FLOAT engfraction = static_cast<KK_FLOAT>(0.2) * E;
+  const int n1 = (i1 < nlocal), n2 = (i2 < nlocal), n3 = (i3 < nlocal);
+  const int n4 = (i4 < nlocal), n5 = (i5 < nlocal);
+  const int nowned = n1 + n2 + n3 + n4 + n5;
+  ev.evdwl += static_cast<KK_ACC_FLOAT>(nowned * engfraction);
+
+  if (eflag_atom) {
+    if (n1) Kokkos::atomic_add(&d_eatom(i1), static_cast<KK_ACC_FLOAT>(engfraction));
+    if (n2) Kokkos::atomic_add(&d_eatom(i2), static_cast<KK_ACC_FLOAT>(engfraction));
+    if (n3) Kokkos::atomic_add(&d_eatom(i3), static_cast<KK_ACC_FLOAT>(engfraction));
+    if (n4) Kokkos::atomic_add(&d_eatom(i4), static_cast<KK_ACC_FLOAT>(engfraction));
+    if (n5) Kokkos::atomic_add(&d_eatom(i5), static_cast<KK_ACC_FLOAT>(engfraction));
+  }
 
   // calculate the derivatives dphi/dr_i
 
@@ -438,32 +489,88 @@ void FixCMAPKokkos<DeviceType>::operator()(TagFixCmapPostForce, const int n, dou
   KK_FLOAT dpsidr4z = r43/b2sq*b2z;
 
   // calculate forces on cross-term atoms: F = -(dE/dPhi)*(dPhi/dr)
+
+  const KK_FLOAT f1x = dEdPhi*dphidr1x;
+  const KK_FLOAT f1y = dEdPhi*dphidr1y;
+  const KK_FLOAT f1z = dEdPhi*dphidr1z;
+  const KK_FLOAT f2x = dEdPhi*dphidr2x + dEdPsi*dpsidr1x;
+  const KK_FLOAT f2y = dEdPhi*dphidr2y + dEdPsi*dpsidr1y;
+  const KK_FLOAT f2z = dEdPhi*dphidr2z + dEdPsi*dpsidr1z;
+  const KK_FLOAT f3x = -dEdPhi*dphidr3x - dEdPsi*dpsidr2x;
+  const KK_FLOAT f3y = -dEdPhi*dphidr3y - dEdPsi*dpsidr2y;
+  const KK_FLOAT f3z = -dEdPhi*dphidr3z - dEdPsi*dpsidr2z;
+  const KK_FLOAT f4x = -dEdPhi*dphidr4x - dEdPsi*dpsidr3x;
+  const KK_FLOAT f4y = -dEdPhi*dphidr4y - dEdPsi*dpsidr3y;
+  const KK_FLOAT f4z = -dEdPhi*dphidr4z - dEdPsi*dpsidr3z;
+  const KK_FLOAT f5x = -dEdPsi*dpsidr4x;
+  const KK_FLOAT f5y = -dEdPsi*dpsidr4y;
+  const KK_FLOAT f5z = -dEdPsi*dpsidr4z;
+
   // apply force to each of the 5 atoms
 
-  if (i1 < nlocal) {
-    Kokkos::atomic_add(&d_f(i1,0), static_cast<KK_ACC_FLOAT>(dEdPhi*dphidr1x));
-    Kokkos::atomic_add(&d_f(i1,1), static_cast<KK_ACC_FLOAT>(dEdPhi*dphidr1y));
-    Kokkos::atomic_add(&d_f(i1,2), static_cast<KK_ACC_FLOAT>(dEdPhi*dphidr1z));
+  if (n1) {
+    Kokkos::atomic_add(&d_f(i1,0), static_cast<KK_ACC_FLOAT>(f1x));
+    Kokkos::atomic_add(&d_f(i1,1), static_cast<KK_ACC_FLOAT>(f1y));
+    Kokkos::atomic_add(&d_f(i1,2), static_cast<KK_ACC_FLOAT>(f1z));
   }
-  if (i2 < nlocal) {
-    Kokkos::atomic_add(&d_f(i2,0), static_cast<KK_ACC_FLOAT>(dEdPhi*dphidr2x + dEdPsi*dpsidr1x));
-    Kokkos::atomic_add(&d_f(i2,1), static_cast<KK_ACC_FLOAT>(dEdPhi*dphidr2y + dEdPsi*dpsidr1y));
-    Kokkos::atomic_add(&d_f(i2,2), static_cast<KK_ACC_FLOAT>(dEdPhi*dphidr2z + dEdPsi*dpsidr1z));
+  if (n2) {
+    Kokkos::atomic_add(&d_f(i2,0), static_cast<KK_ACC_FLOAT>(f2x));
+    Kokkos::atomic_add(&d_f(i2,1), static_cast<KK_ACC_FLOAT>(f2y));
+    Kokkos::atomic_add(&d_f(i2,2), static_cast<KK_ACC_FLOAT>(f2z));
   }
-  if (i3 < nlocal) {
-    Kokkos::atomic_add(&d_f(i3,0), static_cast<KK_ACC_FLOAT>(-dEdPhi*dphidr3x - dEdPsi*dpsidr2x));
-    Kokkos::atomic_add(&d_f(i3,1), static_cast<KK_ACC_FLOAT>(-dEdPhi*dphidr3y - dEdPsi*dpsidr2y));
-    Kokkos::atomic_add(&d_f(i3,2), static_cast<KK_ACC_FLOAT>(-dEdPhi*dphidr3z - dEdPsi*dpsidr2z));
+  if (n3) {
+    Kokkos::atomic_add(&d_f(i3,0), static_cast<KK_ACC_FLOAT>(f3x));
+    Kokkos::atomic_add(&d_f(i3,1), static_cast<KK_ACC_FLOAT>(f3y));
+    Kokkos::atomic_add(&d_f(i3,2), static_cast<KK_ACC_FLOAT>(f3z));
   }
-  if (i4 < nlocal) {
-    Kokkos::atomic_add(&d_f(i4,0), static_cast<KK_ACC_FLOAT>(-dEdPhi*dphidr4x - dEdPsi*dpsidr3x));
-    Kokkos::atomic_add(&d_f(i4,1), static_cast<KK_ACC_FLOAT>(-dEdPhi*dphidr4y - dEdPsi*dpsidr3y));
-    Kokkos::atomic_add(&d_f(i4,2), static_cast<KK_ACC_FLOAT>(-dEdPhi*dphidr4z - dEdPsi*dpsidr3z));
+  if (n4) {
+    Kokkos::atomic_add(&d_f(i4,0), static_cast<KK_ACC_FLOAT>(f4x));
+    Kokkos::atomic_add(&d_f(i4,1), static_cast<KK_ACC_FLOAT>(f4y));
+    Kokkos::atomic_add(&d_f(i4,2), static_cast<KK_ACC_FLOAT>(f4z));
   }
-  if (i5 < nlocal) {
-    Kokkos::atomic_add(&d_f(i5,0), static_cast<KK_ACC_FLOAT>(-dEdPsi*dpsidr4x));
-    Kokkos::atomic_add(&d_f(i5,1), static_cast<KK_ACC_FLOAT>(-dEdPsi*dpsidr4y));
-    Kokkos::atomic_add(&d_f(i5,2), static_cast<KK_ACC_FLOAT>(-dEdPsi*dpsidr4z));
+  if (n5) {
+    Kokkos::atomic_add(&d_f(i5,0), static_cast<KK_ACC_FLOAT>(f5x));
+    Kokkos::atomic_add(&d_f(i5,1), static_cast<KK_ACC_FLOAT>(f5y));
+    Kokkos::atomic_add(&d_f(i5,2), static_cast<KK_ACC_FLOAT>(f5z));
+  }
+
+  // virial of the crossterm, as in FixCMAP::post_force(), tallied like
+  // Fix::v_tally(): the owned fraction into the global virial, one fifth into
+  // each owned atom
+
+  if (vflag_either && nowned) {
+    const KK_FLOAT vb54x = -vb45x;
+    const KK_FLOAT vb54y = -vb45y;
+    const KK_FLOAT vb54z = -vb45z;
+
+    KK_FLOAT v[6];
+    v[0] = vb12x*f1x + vb32x*f3x + (vb43x+vb32x)*f4x + (vb54x+vb43x+vb32x)*f5x;
+    v[1] = vb12y*f1y + vb32y*f3y + (vb43y+vb32y)*f4y + (vb54y+vb43y+vb32y)*f5y;
+    v[2] = vb12z*f1z + vb32z*f3z + (vb43z+vb32z)*f4z + (vb54z+vb43z+vb32z)*f5z;
+    v[3] = vb12x*f1y + vb32x*f3y + (vb43x+vb32x)*f4y + (vb54x+vb43x+vb32x)*f5y;
+    v[4] = vb12x*f1z + vb32x*f3z + (vb43x+vb32x)*f4z + (vb54x+vb43x+vb32x)*f5z;
+    v[5] = vb12y*f1z + vb32y*f3z + (vb43y+vb32y)*f4z + (vb54y+vb43y+vb32y)*f5z;
+
+    if (vflag_global) {
+      const KK_FLOAT fraction = static_cast<KK_FLOAT>(0.2) * nowned;
+      ev.v[0] += static_cast<KK_ACC_FLOAT>(fraction*v[0]);
+      ev.v[1] += static_cast<KK_ACC_FLOAT>(fraction*v[1]);
+      ev.v[2] += static_cast<KK_ACC_FLOAT>(fraction*v[2]);
+      ev.v[3] += static_cast<KK_ACC_FLOAT>(fraction*v[3]);
+      ev.v[4] += static_cast<KK_ACC_FLOAT>(fraction*v[4]);
+      ev.v[5] += static_cast<KK_ACC_FLOAT>(fraction*v[5]);
+    }
+
+    if (vflag_atom) {
+      const int ilist[5] = {i1,i2,i3,i4,i5};
+      const int nlist[5] = {n1,n2,n3,n4,n5};
+      for (int m = 0; m < 5; m++) {
+        if (!nlist[m]) continue;
+        const int i = ilist[m];
+        for (int k = 0; k < 6; k++)
+          Kokkos::atomic_add(&d_vatom(i,k), static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.2)*v[k]));
+      }
+    }
   }
 }
 

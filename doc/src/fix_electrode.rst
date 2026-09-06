@@ -372,6 +372,11 @@ of the CPM with PPPM if you use *pppm/electrode* or
 Restrictions
 """"""""""""
 
+These fixes are not compatible with :doc:`run_style respa <run_style>`
+and will generate an error in that case.  The electrode charge updates
+are not executed with r-RESPA time integration, which would silently
+produce incorrect results.
+
 For algorithms that use a matrix for the electrode-electrode
 interactions, positions of electrode particles have to be immobilized at
 all times.

@@ -270,14 +270,22 @@ void Thermo::init()
           format_this = FORMAT_INT_MULTI_DEFAULT;
         else
           format_this = FORMAT_INT_YAML_DEFAULT;
-        if (vtype[i] == BIGINT) {
-          // replace "d" in int format with bigint format specifier
-          auto found = format_this.find('%');
-          found = format_this.find('d', found);
-          format_this = format_this.replace(found, 1, std::string(BIGINT_FORMAT).substr(1));
-        }
       }
     }
+
+    // the format string may come from the user, so it must be checked against
+    // the type of the value before it is used.  the length modifier of integer
+    // conversions is adjusted so that users need not care about the integer
+    // size LAMMPS was compiled with.
+
+    const auto expect = (vtype[i] == FLOAT)    ? utils::FmtArg::FLOAT
+                        : (vtype[i] == BIGINT) ? utils::FmtArg::BIGINT
+                                               : utils::FmtArg::INTEGER;
+    auto errmsg = utils::check_format(format_this, expect);
+    if (!errmsg.empty())
+      error->all(FLERR, Error::NOLASTLINE, "Invalid thermo format for column {} ({}): {}", i + 1,
+                 keyword_user[i].empty() ? keyword[i] : keyword_user[i], errmsg);
+    format_this = utils::adjust_format(format_this, expect);
 
     if (lineflag == ONELINE)
       format[i] += format_this + " ";
@@ -734,16 +742,16 @@ void Thermo::modify_params(int narg, char **arg)
       if (strcmp(arg[iarg + 1], "line") == 0) {
         format_line_user = arg[iarg + 2];
       } else if (strcmp(arg[iarg + 1], "int") == 0) {
+        auto errmsg = utils::check_format(arg[iarg + 2], utils::FmtArg::INTEGER);
+        if (!errmsg.empty())
+          error->all(FLERR, iarg + 2, "Invalid thermo_modify int format: {}", errmsg);
         format_int_user = arg[iarg + 2];
-        // replace "d" in format_int_user with bigint format specifier
-        auto found = format_int_user.find('%');
-        found = format_int_user.find('d', found);
-        if (found == std::string::npos)
-          error->all(FLERR, iarg + 2,
-                     "Thermo_modify int format does not contain a d conversion character");
-        format_bigint_user =
-            format_int_user.replace(found, 1, std::string(BIGINT_FORMAT).substr(1));
+        // derive the format for large integers from the one given by the user
+        format_bigint_user = utils::adjust_format(format_int_user, utils::FmtArg::BIGINT);
       } else if (strcmp(arg[iarg + 1], "float") == 0) {
+        auto errmsg = utils::check_format(arg[iarg + 2], utils::FmtArg::FLOAT);
+        if (!errmsg.empty())
+          error->all(FLERR, iarg + 2, "Invalid thermo_modify float format: {}", errmsg);
         format_float_user = arg[iarg + 2];
       } else if (utils::strmatch(arg[iarg + 1], R"(^\d*\*\d*$)")) {
         // handles cases such as 2*6; currently doesn't allow negatives

@@ -112,6 +112,7 @@ void FixSpringKokkos<DeviceType>::post_force(int /*vflag*/)
       rmass = atomKK->k_rmass.view<DeviceType>();
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagFixSpringTetherRmass>(0,nlocal),*this);
     } else {
+      atomKK->k_mass.sync<DeviceType>();
       mass = atomKK->k_mass.view<DeviceType>();
       type = atomKK->k_type.view<DeviceType>();
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagFixSpringTether>(0,nlocal),*this);
@@ -182,6 +183,7 @@ void FixSpringKokkos<DeviceType>::post_force(int /*vflag*/)
       rmass = atomKK->k_rmass.view<DeviceType>();
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagFixSpringCoupleRmass>(0,nlocal),*this);
     } else {
+      atomKK->k_mass.sync<DeviceType>();
       mass = atomKK->k_mass.view<DeviceType>();
       type = atomKK->k_type.view<DeviceType>();
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagFixSpringCouple>(0,nlocal),*this);

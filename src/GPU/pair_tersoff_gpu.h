@@ -38,7 +38,6 @@ class PairTersoffGPU : public PairTersoff {
   void allocate() override;
 
   int gpu_mode;
-  double cpu_time;
   int *gpulist;
 };
 

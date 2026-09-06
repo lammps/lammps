@@ -20,7 +20,6 @@
 
 #include "atom_kokkos.h"
 #include "atom_masks.h"
-#include "memory_kokkos.h"
 
 using namespace LAMMPS_NS;
 
@@ -31,16 +30,6 @@ RegSphereKokkos<DeviceType>::RegSphereKokkos(LAMMPS *lmp, int narg, char **arg)
   : RegSphere(lmp, narg, arg)
 {
   atomKK = (AtomKokkos*) atom;
-  memoryKK->create_kokkos(d_contact,1,"region_sphere:d_contact");
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-RegSphereKokkos<DeviceType>::~RegSphereKokkos()
-{
-  if (copymode) return;
-  memoryKK->destroy_kokkos(d_contact);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -49,6 +38,7 @@ template<class DeviceType>
 void RegSphereKokkos<DeviceType>::match_all_kokkos(int groupbit_in, DAT::tdual_int_1d k_match_in)
 {
   groupbit = groupbit_in;
+  boxremap.capture(domain);
   d_match = k_match_in.template view<DeviceType>();
   auto execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   atomKK->sync(execution_space, X_MASK | MASK_MASK);

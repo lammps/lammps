@@ -2,9 +2,14 @@
 # mean-squared displacement via compute msd
 
 # settings
+# (index-style variables can be overridden from the command line or a wrapper
+# input for abbreviated runs, e.g. by the tests in the unittest tree)
 
-variable        x equal 40
-variable        y equal 40
+variable        x index 40
+variable        y index 40
+
+variable        nequil index 5000
+variable        nprod index 100000
 
 variable        rho equal 0.6
 variable        t equal 1.0
@@ -35,7 +40,7 @@ fix             3 all enforce2d
 # equilibration run
 
 thermo          1000
-run             5000
+run             ${nequil}
 
 unfix           2
 
@@ -60,4 +65,4 @@ thermo_style    custom step temp c_vacf[4] v_vacf
 #dump           2 all image 100 image.*.jpg type type zoom 1.6 adiam 1.2
 
 thermo          1000
-run             100000
+run             ${nprod}

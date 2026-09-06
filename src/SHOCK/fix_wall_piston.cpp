@@ -156,6 +156,8 @@ FixWallPiston::FixWallPiston(LAMMPS *lmp, int narg, char **arg) :
 
 FixWallPiston::~FixWallPiston()
 {
+  if (copymode) return;
+
   delete[] gfactor2;
   delete[] gfactor1;
   delete randomt;

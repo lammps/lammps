@@ -1173,15 +1173,15 @@ struct PairEAMKokkos<DeviceType>::policyInstance {
 #ifdef KOKKOS_ENABLE_HIP
 template<>
 template<class TAG>
-struct PairEAMKokkos<Kokkos::Experimental::HIP>::policyInstance {
+struct PairEAMKokkos<Kokkos::HIP>::policyInstance {
 
   static auto get(int inum) {
     static_assert(t_kkfloat_2d_n7::static_extent(2) == 7,
                   "Breaking assumption of spline dim for KernelAB and KernelC scratch caching");
 
-    auto policy = Kokkos::TeamPolicy<Kokkos::Experimental::HIP,TAG>((inum+1023)/1024, 1024)
+    auto policy = Kokkos::TeamPolicy<Kokkos::HIP,TAG>((inum+1023)/1024, 1024)
                            .set_scratch_size(0,
-                                Kokkos::PerTeam(MAX_CACHE_ROWS*7*sizeof(double)));
+                                Kokkos::PerTeam(MAX_CACHE_ROWS*7*sizeof(KK_FLOAT)));
     return policy;
   }
 };

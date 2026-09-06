@@ -128,6 +128,16 @@ means anything. Those cases are recognized and reported rather than counted as f
       In an --analyze run the statically screened out input scripts are left out of
       the generated input lists entirely and recorded with the reason for leaving
       them out in input-list-incompatible.txt
+    + a test configuration that declares its runs use the KOKKOS package by setting
+      "kokkos: true" additionally screens the input scripts for commands that can
+      never work in a KOKKOS run, since with "-k on" LAMMPS replaces core classes
+      instead of falling back to the plain implementation: atom styles (including
+      the sub-styles of atom_style hybrid) without a Kokkos-enabled variant,
+      neighbor list styles other than "bin", min styles without a KOKKOS version,
+      run style respa, and the labelmap command.  A --preflight run recognizes the
+      corresponding error messages as well.  Inputs that trigger the same errors
+      through files the static screening cannot see (e.g. type labels in a data
+      file) still fail in the actual run
     + input scripts under examples/COUPLE are always left out: they couple LAMMPS to
       another code (or drive it from one), so they cannot be tested standalone, and
       several of them are not even LAMMPS input scripts

@@ -435,8 +435,14 @@ between CPU and GPU as needed.  The resulting LAMMPS performance depends
 on `memory access pattern, data residency, and GPU memory
 oversubscription
 <https://developer.nvidia.com/blog/improving-gpu-memory-oversubscription-performance/>`_
-. The CMake option ``-DKokkos_ENABLE_CUDA_UVM=on`` enables using
-:ref:`UVM with Kokkos <kokkos>` when compiling LAMMPS.
+. The CMake option ``-D Kokkos_ENABLE_IMPL_CUDA_UNIFIED_MEMORY=on``
+enables using :ref:`unified memory with Kokkos <kokkos>` when compiling
+LAMMPS; it requires CUDA 12.2 or later.
+
+.. versionchanged:: 2Sep2026
+
+This option replaces ``-D Kokkos_ENABLE_CUDA_UVM=on``, which Kokkos no
+longer supports.
 
 Run with the KOKKOS package by editing an input script
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

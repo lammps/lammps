@@ -10,7 +10,6 @@ endif
 BUILDDIR       = ${CURDIR}
 RSTDIR         = $(BUILDDIR)/src
 VENV           = $(BUILDDIR)/docenv
-ANCHORCHECK    = $(VENV)/bin/rst_anchor_check
 SPHINXCONFIG   = $(BUILDDIR)/utils/sphinx-config
 MATHJAX        = $(SPHINXCONFIG)/_static/mathjax
 MATHJAXTAG     = 4.1.3
@@ -102,7 +101,7 @@ $(SPHINXCONFIG)/conf.py: $(SPHINXCONFIG)/conf.py.in
 globbed-tocs:
 	$(PYTHON) $(BUILDDIR)/utils/make-globbed-tocs.py -d $(RSTDIR)
 
-html: xmlgen globbed-tocs $(VENV) $(SPHINXCONFIG)/conf.py $(ANCHORCHECK) $(MATHJAX)
+html: xmlgen globbed-tocs $(VENV) $(SPHINXCONFIG)/conf.py $(MATHJAX)
 	@if [ "$(HAS_BASH)" == "NO" ] ; then echo "bash was not found at $(OSHELL)! Please use: $(MAKE) SHELL=/path/to/bash" 1>&2; exit 1; fi
 	@if [ "$(WEB_SEARCH)" == "YES" ] ; then \
 		cp -v utils/sphinx-config/_themes/lammps_theme/google_search.html \
@@ -118,7 +117,7 @@ html: xmlgen globbed-tocs $(VENV) $(SPHINXCONFIG)/conf.py $(ANCHORCHECK) $(MATHJ
 		ln -sf Manual.html html/index.html;\
 		rm -f $(BUILDDIR)/doxygen/xml/run.stamp;\
 		echo "############################################" ; env PYTHONWARNINGS= PYTHONDONTWRITEBYTECODE=1 \
-		rst_anchor_check src/*.rst ;\
+		$(PYTHON) $(BUILDDIR)/utils/rst_anchor_check.py src/*.rst ;\
 		$(PYTHON) $(BUILDDIR)/utils/check-packages.py -s ../src -d src ;\
 		env LC_ALL=C grep -n '[^ -~]' $(RSTDIR)/*.rst ;\
 		env LC_ALL=C grep -n ' :[a-z]\+`' $(RSTDIR)/*.rst ;\
@@ -160,12 +159,16 @@ fasthtml/%.html: $(RSTDIR)/%.rst
 # discard it) and produce different doctrees (e.g. from the sphinx-tabs hack
 # for non-html builders), so sharing $(BUILDDIR)/doctrees would re-read all
 # sources on every run instead of only changed files.
+# the GIT_CONFIG_* override disables log.showsignature for the contributor name
+# scan of sphinxcontrib-spelling, which runs "git log" over the full history:
+# verifying the signature of every signed commit would take minutes.
 spelling: xmlgen globbed-tocs $(SPHINXCONFIG)/conf.py $(VENV) $(SPHINXCONFIG)/false_positives.txt
 	@if [ "$(HAS_BASH)" == "NO" ] ; then echo "bash was not found at $(OSHELL)! Please use: $(MAKE) SHELL=/path/to/bash" 1>&2; exit 1; fi
 	@rm -rf $(BUILDDIR)/spelling
 	@(\
 		. $(VENV)/bin/activate ; \
 		cp $(SPHINXCONFIG)/false_positives.txt $(RSTDIR)/;  env PYTHONWARNINGS= PYTHONDONTWRITEBYTECODE=1 \
+		GIT_CONFIG_COUNT=1 GIT_CONFIG_KEY_0=log.showsignature GIT_CONFIG_VALUE_0=false \
 		sphinx-build $(SPHINXEXTRA) -b spelling -c $(SPHINXCONFIG) -d $(BUILDDIR)/doctrees-spelling $(RSTDIR) spelling ;\
 		rm -f $(BUILDDIR)/doxygen/xml/run.stamp;\
 		deactivate ;\
@@ -183,7 +186,7 @@ link_check: xmlgen globbed-tocs $(SPHINXCONFIG)/conf.py $(VENV) $(SPHINXCONFIG)/
 	)
 	@echo "Link check finished."
 
-epub: xmlgen globbed-tocs $(VENV) $(SPHINXCONFIG)/conf.py $(ANCHORCHECK)
+epub: xmlgen globbed-tocs $(VENV) $(SPHINXCONFIG)/conf.py
 	@if [ "$(HAS_BASH)" == "NO" ] ; then echo "bash was not found at $(OSHELL)! Please use: $(MAKE) SHELL=/path/to/bash" 1>&2; exit 1; fi
 	@$(MAKE) $(MFLAGS) -C graphviz all
 	@mkdir -p epub/JPG
@@ -204,7 +207,7 @@ mobi: epub
 	@ebook-convert LAMMPS.epub LAMMPS.mobi
 	@echo "Conversion finished. The MOBI manual file is created."
 
-pdf: xmlgen globbed-tocs $(VENV) $(SPHINXCONFIG)/conf.py $(ANCHORCHECK)
+pdf: xmlgen globbed-tocs $(VENV) $(SPHINXCONFIG)/conf.py
 	@if [ "$(HAS_BASH)" == "NO" ] ; then echo "bash was not found at $(OSHELL)! Please use: $(MAKE) SHELL=/path/to/bash" 1>&2; exit 1; fi
 	@$(MAKE) $(MFLAGS) -C graphviz all
 	@if [ "$(HAS_PDFLATEX)" == "NO" ] ; then echo "PDFLaTeX or latexmk were not found! Please check README for further instructions" 1>&2; exit 1; fi
@@ -213,7 +216,7 @@ pdf: xmlgen globbed-tocs $(VENV) $(SPHINXCONFIG)/conf.py $(ANCHORCHECK)
 		sphinx-build -E $(SPHINXEXTRA) -b latex -c $(SPHINXCONFIG) -d $(BUILDDIR)/doctrees $(RSTDIR) latex ;\
 		rm -f $(BUILDDIR)/doxygen/xml/run.stamp;\
 		echo "############################################" ; env PYTHONWARNINGS= PYTHONDONTWRITEBYTECODE=1 \
-		rst_anchor_check src/*.rst ;\
+		$(PYTHON) utils/rst_anchor_check.py src/*.rst ;\
 		$(PYTHON) utils/check-packages.py -s ../src -d src ;\
 		env LC_ALL=C grep -n '[^ -~]' $(RSTDIR)/*.rst ;\
 		env LC_ALL=C grep -n ' :[a-z]\+`' $(RSTDIR)/*.rst ;\
@@ -245,12 +248,9 @@ pdf: xmlgen globbed-tocs $(VENV) $(SPHINXCONFIG)/conf.py $(ANCHORCHECK)
 
 check : anchor_check style_check package_check char_check role_check
 
-anchor_check : $(ANCHORCHECK)
-	@(\
-		. $(VENV)/bin/activate ; env PYTHONWARNINGS= PYTHONDONTWRITEBYTECODE=1 \
-		rst_anchor_check src/*.rst ;\
-		deactivate ;\
-	)
+anchor_check :
+	@( env PYTHONWARNINGS= PYTHONDONTWRITEBYTECODE=1 \
+		$(PYTHON) utils/rst_anchor_check.py src/*.rst )
 
 style_check : $(VENV)
 	@(\
@@ -318,10 +318,3 @@ $(VENV):
 $(MATHJAX):
 	@git clone -b $(MATHJAXTAG) -c advice.detachedHead=0 --depth 1 https://github.com/mathjax/MathJax.git $@
 	@test -e es5 || ln -sf . es5
-
-$(ANCHORCHECK): $(VENV)
-	@( \
-		. $(VENV)/bin/activate; env PYTHONWARNINGS= PYTHONDONTWRITEBYTECODE=1 \
-		pip $(PIP_OPTIONS) install -e utils/converters;\
-		deactivate;\
-	)

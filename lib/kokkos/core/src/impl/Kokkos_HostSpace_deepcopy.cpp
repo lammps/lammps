@@ -13,7 +13,7 @@ namespace Kokkos {
 namespace Impl {
 
 void hostspace_fence(const DefaultHostExecutionSpace& exec) {
-  exec.fence("HostSpace fence");
+  exec.fence("Kokkos::HostSpace fence");
 }
 
 void hostspace_parallel_deepcopy(void* dst, const void* src, ptrdiff_t n) {

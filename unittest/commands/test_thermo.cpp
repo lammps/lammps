@@ -421,8 +421,21 @@ TEST_F(ThermoTest, Format)
                  command("thermo_modify format 10 %d"););
     TEST_FAILURE(".*ERROR: Invalid thermo_modify format argument: -10.*",
                  command("thermo_modify format -10 %d"););
-    TEST_FAILURE(".*ERROR: Thermo_modify int format does not contain a d conversion character.*",
+    TEST_FAILURE(".*ERROR: Invalid thermo_modify int format: conversion 1 of '%f' formats "
+                 "floating-point values, but integer values are provided.*",
                  command("thermo_modify format int %f"););
+    TEST_FAILURE(".*ERROR: Invalid thermo_modify float format: conversion 1 of '%d' formats "
+                 "integer values, but floating-point values are provided.*",
+                 command("thermo_modify format float %d"););
+    TEST_FAILURE(".*ERROR: Invalid thermo format for column 3 .*conversion 1 of '%d' formats "
+                 "integer values.*",
+                 command("thermo_modify format 3 %d"); command("run 0 post no"););
+    // a column format without a conversion prints literal text and is allowed
+    HIDE_OUTPUT([&] {
+        command("thermo_modify format none");
+        command("thermo_modify format 3 n/a");
+    });
+    ASSERT_MATCH(run0(), "\n +0 +32 +n/a +-[0-9.]+ *\n");
 }
 
 TEST_F(ThermoTest, Colname)

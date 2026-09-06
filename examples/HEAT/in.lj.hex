@@ -33,7 +33,8 @@ variable dt         equal 0.007
 variable rc         equal 3.0
 
 # simulation time for the production run
-variable tprod      equal 5000
+# (index-style, can be overridden for abbreviated test runs)
+variable tprod      index 5000
 
 # total number of timesteps
 variable Nprod      equal floor(${tprod}/${dt})

@@ -1,7 +1,10 @@
 .. index:: fix press/langevin
+.. index:: fix press/langevin/kk
 
 fix press/langevin command
 ===========================
+
+Accelerator Variants: *press/langevin/kk*
 
 Syntax
 """"""
@@ -276,6 +279,10 @@ thermostatted system. That is, if the system's temperature is ramped by other
 commands, it is recommended to do the same with this pressure control.
 
 This fix is not invoked during :doc:`energy minimization <minimize>`.
+
+----------
+
+.. include:: accel_styles.rst
 
 Restrictions
 """"""""""""

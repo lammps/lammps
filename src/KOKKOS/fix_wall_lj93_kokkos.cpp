@@ -105,17 +105,27 @@ void FixWallLJ93Kokkos<DeviceType>::precompute(int m)
 /* ---------------------------------------------------------------------- */
 
 template <class DeviceType>
-void FixWallLJ93Kokkos<DeviceType>::post_force(int vflag)
+void FixWallLJ93Kokkos<DeviceType>::v_setup_peratom(int vflag)
 {
+  // the per-atom virial is accumulated into a dual view, so the plain
+  // base-class vatom array must not be allocated here (alloc = 0)
 
-  // reallocate per-atom arrays if necessary
+  v_init(vflag,0);
+
+  // reallocate the per-atom virial dual view if necessary
 
   if (vflag_atom) {
     memoryKK->destroy_kokkos(k_vatom,vatom);
     memoryKK->create_kokkos(k_vatom,vatom,maxvatom,"wall_lj93:vatom");
     d_vatom = k_vatom.template view<DeviceType>();
   }
+}
 
+/* ---------------------------------------------------------------------- */
+
+template <class DeviceType>
+void FixWallLJ93Kokkos<DeviceType>::post_force(int vflag)
+{
   FixWallLJ93::post_force(vflag);
 
   if (vflag_atom) {

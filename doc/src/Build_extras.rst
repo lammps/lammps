@@ -113,6 +113,42 @@ versions use an incompatible API and thus LAMMPS will fail to compile.
 
 ----------
 
+.. _fenix_build:
+
+FENIX package
+-------------
+
+.. versionadded:: 2Sep2026
+
+To build with this package you must have the `Fenix library
+<https://github.com/sandialabs/fenix>` available on your system. The Fenix
+library must be newer than version 1 (currently meaning built from the default
+"develop" branch). Older versions use an incompatible API and this LAMMPS will
+fail to compile.
+
+.. tabs::
+
+   .. tab:: CMake build
+
+      .. code-block:: bash
+
+         -D WITH_FENIX=value # enables FENIX package
+                             # value = yes or no (default)
+
+      If CMake cannot find the Fenix library or include files, you can set the
+      following:
+
+      .. code-block:: bash
+
+         -D FENIX_ROOT=/path/to/fenix/install
+
+   .. tab:: Traditional make
+
+      The Fenix package does not support the traditional make build. You need to
+      build LAMMPS with CMake.
+
+----------
+
 .. _graphics:
 
 GRAPHICS package
@@ -659,18 +695,6 @@ They must be specified in uppercase.
    *  - RISCV_U74MC
       - HOST
       - U74MC (RISC-V) CPUs
-   *  - KEPLER30
-      - GPU
-      - NVIDIA Kepler generation CC 3.0
-   *  - KEPLER32
-      - GPU
-      - NVIDIA Kepler generation CC 3.2
-   *  - KEPLER35
-      - GPU
-      - NVIDIA Kepler generation CC 3.5
-   *  - KEPLER37
-      - GPU
-      - NVIDIA Kepler generation CC 3.7
    *  - MAXWELL50
       - GPU
       - NVIDIA Maxwell generation CC 5.0
@@ -749,9 +773,21 @@ They must be specified in uppercase.
    *  - AMD_GFX1100
       - GPU
       - AMD GPU RX7900XTX
+   *  - AMD_GFX1101
+      - GPU
+      - AMD GPU RX7800XT/RX7700XT
    *  - AMD_GFX1103
       - GPU
       - AMD APU Phoenix
+   *  - AMD_GFX1151
+      - GPU
+      - AMD APU Strix Halo
+   *  - AMD_GFX1152
+      - GPU
+      - AMD GPU Radeon 860M
+   *  - AMD_GFX1201
+      - GPU
+      - AMD GPU RX9070XT
    *  - INTEL_GEN
       - GPU
       - SPIR64-based devices, e.g. Intel GPUs, using JIT
@@ -777,7 +813,7 @@ They must be specified in uppercase.
       - GPU
       - Intel GPU DG2
 
-This list was last updated for version 5.1.0 of the Kokkos library.
+This list was last updated for version 5.2.1 of the Kokkos library.
 
 .. tabs::
 
@@ -900,11 +936,21 @@ runtime bounds checking on Kokkos data structures.  As to be expected,
 enabling this option will negatively impact the performance and thus is
 only recommended when developing a Kokkos-enabled style in LAMMPS.
 
-The CMake option ``-DKokkos_ENABLE_CUDA_UVM=on`` enables the use of CUDA
-"Unified Virtual Memory" (UVM) in Kokkos.  UVM allows to transparently
-use RAM on the host to supplement the memory used on the GPU (with some
-performance penalty) and thus enables running larger problems that would
-otherwise not fit into the RAM on the GPU.
+.. versionchanged:: 2Sep2026
+
+The CMake option ``-D Kokkos_ENABLE_IMPL_CUDA_UNIFIED_MEMORY=on`` makes
+Kokkos allocate all GPU memory as CUDA managed memory, which the host can
+read and write directly.  This allows a simulation to use RAM on the host
+to supplement the memory on the GPU (with some performance penalty), so
+that larger problems can be run than would otherwise fit on the GPU, and
+it allows host code to access GPU data directly, which is useful when
+developing or debugging a Kokkos-enabled style.  It requires CUDA 12.2 or
+later and a GPU with support for concurrent managed access, which is any
+NVIDIA GPU since the Pascal generation running under Linux.  Kokkos
+classifies this as an internal option that may change in a future
+release.  It replaces the option ``-D Kokkos_ENABLE_CUDA_UVM=on``, which
+Kokkos no longer supports; configuring with that option now stops with
+an error.
 
 .. versionadded:: 10Sep2025
 
@@ -1229,8 +1275,8 @@ module included in the LAMMPS source distribution.
       .. code-block:: bash
 
          -D PKG_COLVARS=yes          # enable the package itself
-         -D COLVARS_LEPTON=yes       # use the Lepton library for custom expression (on by defaul)
-         -D COLVARS_DEBUG=no         # eneable debugging message (verbose, off by default)
+         -D COLVARS_LEPTON=yes       # use the Lepton library for custom expression (on by default)
+         -D COLVARS_DEBUG=no         # enable debugging message (verbose, off by default)
 
    .. tab:: Traditional make
 
@@ -1312,6 +1358,8 @@ then load this plugin at runtime with the :doc:`plugin command
       ``MBXLIB_SHA256`` variable to the corresponding checksum
       (e.g. computed with ``sha256sum``) if you provide a different
       library version than what is downloaded automatically.
+      Both settings are cached and thus retained in the build folder
+      (see :ref:`this explanation <err0039>` for details).
 
 
    .. tab:: Traditional make
@@ -1354,6 +1402,8 @@ folder and then load this plugin at runtime with the :doc:`plugin command <plugi
       ``PACELIB_SHA256`` variable to the corresponding checksum
       (e.g. computed with ``sha256sum``) if you provide a different
       library version than what is downloaded automatically.
+      Both settings are cached and thus retained in the build folder
+      (see :ref:`this explanation <err0039>` for details).
 
    .. tab:: Traditional make
 

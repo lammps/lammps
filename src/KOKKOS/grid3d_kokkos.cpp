@@ -711,7 +711,7 @@ void Grid3dKokkos<DeviceType>::
 forward_comm_kspace_tiled(KSpace *kspace, int which, int nper,
                           FFT_DAT::tdual_FFT_SCALAR_1d &k_buf1, FFT_DAT::tdual_FFT_SCALAR_1d &k_buf2, MPI_Datatype datatype)
 {
-  int i,m,offset;
+  int m,offset;
 
   KokkosBaseFFT* kspaceKKBase = dynamic_cast<KokkosBaseFFT*>(kspace);
   FFT_SCALAR* buf1;
@@ -755,14 +755,19 @@ forward_comm_kspace_tiled(KSpace *kspace, int which, int nper,
 
   // unpack all received data
 
-  for (i = 0; i < nrecv; i++) {
-    MPI_Waitany(nrecv,requests,&m,MPI_STATUS_IGNORE);
+  // every receive writes into its own stretch of the one host buffer, and the
+  // copy to the device takes the whole buffer, so it cannot be started while
+  // any of them is still in flight: it would read the stretches that have not
+  // arrived and copy them over the device side.  Collect them all first, copy
+  // once, then unpack.  The brick path already waits before it copies.
+  MPI_Waitall(nrecv,requests,MPI_STATUSES_IGNORE);
 
-    if (!lmp->kokkos->gpu_aware_flag) {
-      k_buf2.modify_host();
-      k_buf2.sync<DeviceType>();
-    }
+  if (!lmp->kokkos->gpu_aware_flag) {
+    k_buf2.modify_host();
+    k_buf2.sync<DeviceType>();
+  }
 
+  for (m = 0; m < nrecv; m++) {
     offset = nper * recv[m].offset;
     kspaceKKBase->unpack_forward_grid_kokkos(which,k_buf2,offset,
                                 recv[m].nunpack,k_recv_unpacklist,m);
@@ -852,7 +857,7 @@ void Grid3dKokkos<DeviceType>::
 reverse_comm_kspace_tiled(KSpace *kspace, int which, int nper,
                           FFT_DAT::tdual_FFT_SCALAR_1d &k_buf1, FFT_DAT::tdual_FFT_SCALAR_1d &k_buf2, MPI_Datatype datatype)
 {
-  int i,m,offset;
+  int m,offset;
 
   KokkosBaseFFT* kspaceKKBase = dynamic_cast<KokkosBaseFFT*>(kspace);
 
@@ -896,14 +901,16 @@ reverse_comm_kspace_tiled(KSpace *kspace, int which, int nper,
   }
 
   // unpack all received data
-  for (i = 0; i < nsend; i++) {
-    MPI_Waitany(nsend,requests,&m,MPI_STATUS_IGNORE);
+  // as in the forward direction: one buffer, one copy, and only once every
+  // receive into it has landed
+  MPI_Waitall(nsend,requests,MPI_STATUSES_IGNORE);
 
-    if (!lmp->kokkos->gpu_aware_flag) {
-      k_buf2.modify_host();
-      k_buf2.sync<DeviceType>();
-    }
+  if (!lmp->kokkos->gpu_aware_flag) {
+    k_buf2.modify_host();
+    k_buf2.sync<DeviceType>();
+  }
 
+  for (m = 0; m < nsend; m++) {
     offset = nper * send[m].offset;
     kspaceKKBase->unpack_reverse_grid_kokkos(which,k_buf2,offset,
                                 send[m].npack,k_send_packlist,m);

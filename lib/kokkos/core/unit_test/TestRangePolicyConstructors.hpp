@@ -18,9 +18,10 @@ import kokkos.core_impl;
 namespace {
 
 TEST(TEST_CATEGORY, range_policy_runtime_parameters) {
-  using Policy     = Kokkos::RangePolicy<>;
-  using Index      = Policy::index_type;
-  Index work_begin = 5;
+  using Policy = Kokkos::RangePolicy<>;
+  using Index  = Policy::index_type;
+
+  Index work_begin = -5;
   Index work_end   = 15;
   Index chunk_size = 10;
   {
@@ -76,53 +77,44 @@ TEST(TEST_CATEGORY_DEATH, range_policy_invalid_bounds) {
   std::string msg =
       "Kokkos::RangePolicy bounds error: The lower bound (100) is greater than "
       "the upper bound (90).\n";
-#ifndef KOKKOS_ENABLE_DEPRECATED_CODE_4
   // escape the parentheses in the regex to match the error message
   msg = std::regex_replace(msg, std::regex("\\(|\\)"), "\\$&");
   ASSERT_DEATH({ (void)Policy(100, 90); }, msg);
 
   ASSERT_DEATH({ (void)Policy(TEST_EXECSPACE(), 100, 90, ChunkSize(10)); },
                msg);
-#else
+}
+TEST(TEST_CATEGORY_DEATH, range_policy_check_exceeding_max) {
+  ::testing::FLAGS_gtest_death_test_style = "threadsafe";
+  // Trigger due to exceeding a policy's range maximum
+  using IntPolicy = Kokkos::RangePolicy<int>;
 
-  if (!Kokkos::show_warnings()) {
-    GTEST_SKIP() << "Kokkos warning messages are disabled";
-  }
+  long long const n_large = 9223372036854774771;
+  [[maybe_unused]] std::string msg =
+      "Kokkos::RangePolicy bound type error: an unsafe implicit conversion is "
+      "performed";
+  ASSERT_DEATH((void)IntPolicy(-4, n_large), msg);
+}
 
-  {
-    ::testing::internal::CaptureStderr();
-    Policy policy(100, 90);
-    ASSERT_EQ((int)policy.begin(), 0);
-    ASSERT_EQ((int)policy.end(), 0);
-#ifdef KOKKOS_ENABLE_DEPRECATION_WARNINGS
-    ASSERT_EQ(::testing::internal::GetCapturedStderr(), msg);
-#else
-    ASSERT_TRUE(::testing::internal::GetCapturedStderr().empty());
-    (void)msg;
-#endif
-  }
+TEST(TEST_CATEGORY_DEATH, range_policy_check_exceeding_min) {
+  ::testing::FLAGS_gtest_death_test_style = "threadsafe";
+  // Trigger due to exceeding a policy's range minimum
+  using IntPolicy = Kokkos::RangePolicy<int>;
 
-  {
-    ::testing::internal::CaptureStderr();
-    Policy policy(TEST_EXECSPACE(), 100, 90, ChunkSize(10));
-    ASSERT_EQ((int)policy.begin(), 0);
-    ASSERT_EQ((int)policy.end(), 0);
-#ifdef KOKKOS_ENABLE_DEPRECATION_WARNINGS
-    ASSERT_EQ(::testing::internal::GetCapturedStderr(), msg);
-#else
-    ASSERT_TRUE(::testing::internal::GetCapturedStderr().empty());
-    (void)msg;
-#endif
-  }
-
-#endif
+  long long const n_small = -9223372036854774771;
+  [[maybe_unused]] std::string msg =
+      "Kokkos::RangePolicy bound type error: an unsafe implicit conversion is "
+      "performed";
+  ASSERT_DEATH((void)IntPolicy(n_small, 4), msg);
 }
 
 struct W {  // round-trip conversion check for narrowing should "fire"
+  W() : val_(1) {}
   W(int const* ptr) : val_(*ptr) {}
-  W(int) : val_(0) {}
+  // Deliberately discards the int value so W -> member_type -> W loses
+  // information for val_ != 1 (exercises the round-trip check).
+  W(int const) : val_(1) {}
   operator int() const { return val_; }
-
   int val_;
 };
 
@@ -134,23 +126,11 @@ TEST(TEST_CATEGORY_DEATH, range_policy_round_trip_conversion_fires) {
   static_assert(std::is_convertible_v<W, Policy::index_type>);
   static_assert(std::is_convertible_v<Policy::index_type, W>);
 
-  int const n = 1;
+  int const n = 5;
   [[maybe_unused]] std::string msg =
       "Kokkos::RangePolicy bound type error: an unsafe implicit conversion is "
       "performed";
-#ifndef KOKKOS_ENABLE_DEPRECATED_CODE_4
   ASSERT_DEATH((void)Policy(0, W(&n)), msg);
-#else
-  ::testing::internal::CaptureStderr();
-  (void)Policy(0, W(&n));
-  auto s = std::string(::testing::internal::GetCapturedStderr());
-#ifdef KOKKOS_ENABLE_DEPRECATION_WARNINGS
-  if (Kokkos::show_warnings()) {
-    ASSERT_NE(s.find(msg), std::string::npos) << msg;
-  } else
-#endif
-    ASSERT_TRUE(s.empty());
-#endif
 }
 
 struct B {  // round-trip conversion would not compile
@@ -182,7 +162,6 @@ TEST(TEST_CATEGORY_DEATH, range_policy_check_sign_changes) {
   [[maybe_unused]] std::string msg =
       "Kokkos::RangePolicy bound type error: an unsafe implicit conversion is "
       "performed";
-#ifndef KOKKOS_ENABLE_DEPRECATED_CODE_4
   {
     std::int64_t n = std::numeric_limits<std::int64_t>::max();
     ASSERT_DEATH((void)UInt32Policy(0, n), msg);
@@ -191,37 +170,14 @@ TEST(TEST_CATEGORY_DEATH, range_policy_check_sign_changes) {
     std::int64_t n = std::numeric_limits<std::int64_t>::min();
     ASSERT_DEATH((void)UInt32Policy(n, 0), msg);
   }
-#else
-  {
-    ::testing::internal::CaptureStderr();
-    std::int64_t n = std::numeric_limits<std::int64_t>::max();
-    (void)UInt32Policy(0, n);
-    auto s = std::string(::testing::internal::GetCapturedStderr());
-#ifdef KOKKOS_ENABLE_DEPRECATION_WARNINGS
-    if (Kokkos::show_warnings()) {
-      ASSERT_NE(s.find(msg), std::string::npos) << msg;
-    }
-#endif
-  }
-  {
-    ::testing::internal::CaptureStderr();
-    std::int64_t n = std::numeric_limits<std::int64_t>::min();
-    (void)UInt32Policy(n, 0);
-    auto s = std::string(::testing::internal::GetCapturedStderr());
-#ifdef KOKKOS_ENABLE_DEPRECATION_WARNINGS
-    if (Kokkos::show_warnings()) {
-      ASSERT_NE(s.find(msg), std::string::npos) << msg;
-    }
-#endif
-  }
-#endif
 }
 
 TEST(TEST_CATEGORY_DEATH, range_policy_implicitly_converted_bounds) {
-  using UIntIndexType = Kokkos::IndexType<unsigned>;
-  using IntIndexType  = Kokkos::IndexType<int>;
-  using UIntPolicy    = Kokkos::RangePolicy<TEST_EXECSPACE, UIntIndexType>;
-  using IntPolicy     = Kokkos::RangePolicy<TEST_EXECSPACE, IntIndexType>;
+  using UIntIndexType     = Kokkos::IndexType<unsigned>;
+  using IntIndexType      = Kokkos::IndexType<int>;
+  using UIntPolicy        = Kokkos::RangePolicy<TEST_EXECSPACE, UIntIndexType>;
+  using IntPolicy         = Kokkos::RangePolicy<TEST_EXECSPACE, IntIndexType>;
+  using DefaultExecPolicy = Kokkos::RangePolicy<Kokkos::DefaultExecutionSpace>;
 
   std::string msg =
       "Kokkos::RangePolicy bound type error: an unsafe implicit conversion is "
@@ -230,7 +186,6 @@ TEST(TEST_CATEGORY_DEATH, range_policy_implicitly_converted_bounds) {
   [[maybe_unused]] auto get_error_msg = [](auto str, auto val) {
     return str.insert(str.find("(") + 1, std::to_string(val).c_str());
   };
-#ifndef KOKKOS_ENABLE_DEPRECATED_CODE_4
   ::testing::FLAGS_gtest_death_test_style = "threadsafe";
 
   std::string expected = std::regex_replace(msg, std::regex("\\(|\\)"), "\\$&");
@@ -241,12 +196,16 @@ TEST(TEST_CATEGORY_DEATH, range_policy_implicitly_converted_bounds) {
   }
   {
     unsigned test_val = std::numeric_limits<unsigned>::max();
-    ASSERT_DEATH({ (void)IntPolicy(0u, test_val); },
+    ASSERT_DEATH({ (void)IntPolicy(0, test_val); },
                  get_error_msg(expected, test_val));
   }
   {
-    long long test_val = std::numeric_limits<long long>::max();
-    ASSERT_DEATH({ (void)IntPolicy(0LL, test_val); },
+    unsigned long long test_val =
+        std::numeric_limits<unsigned long long>::max();
+    ASSERT_DEATH({ (void)IntPolicy(0, test_val); },
+                 get_error_msg(expected, test_val));
+
+    ASSERT_DEATH({ (void)DefaultExecPolicy(0, test_val); },
                  get_error_msg(expected, test_val));
   }
   {
@@ -254,43 +213,6 @@ TEST(TEST_CATEGORY_DEATH, range_policy_implicitly_converted_bounds) {
     ASSERT_DEATH({ (void)UIntPolicy(test_val, 10, Kokkos::ChunkSize(2)); },
                  get_error_msg(expected, test_val));
   }
-
-#else
-  {
-    ::testing::internal::CaptureStderr();
-    int test_val = -1;
-    UIntPolicy policy(test_val, 10);
-    ASSERT_EQ(policy.begin(), 0u);
-    ASSERT_EQ(policy.end(), 0u);
-#ifdef KOKKOS_ENABLE_DEPRECATION_WARNINGS
-    if (Kokkos::show_warnings()) {
-      auto s = std::string(::testing::internal::GetCapturedStderr());
-      ASSERT_EQ(s.substr(0, s.find("\n") + 1), get_error_msg(msg, test_val));
-    }
-#else
-    ASSERT_TRUE(::testing::internal::GetCapturedStderr().empty());
-    (void)msg;
-    (void)get_error_msg;
-#endif
-  }
-  {
-    ::testing::internal::CaptureStderr();
-    unsigned test_val = std::numeric_limits<unsigned>::max();
-    IntPolicy policy(0u, test_val);
-    ASSERT_EQ(policy.begin(), 0);
-    ASSERT_EQ(policy.end(), 0);
-#ifdef KOKKOS_ENABLE_DEPRECATION_WARNINGS
-    if (Kokkos::show_warnings()) {
-      auto s = std::string(::testing::internal::GetCapturedStderr());
-      ASSERT_EQ(s.substr(0, s.find("\n") + 1), get_error_msg(msg, test_val));
-    }
-#else
-    ASSERT_TRUE(::testing::internal::GetCapturedStderr().empty());
-    (void)msg;
-    (void)get_error_msg;
-#endif
-  }
-#endif
 }
 
 constexpr bool test_chunk_size_explicit() {

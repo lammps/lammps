@@ -26,8 +26,12 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-AtomVecFullKokkos::AtomVecFullKokkos(LAMMPS *lmp) : AtomVec(lmp),
-AtomVecKokkos(lmp), AtomVecFull(lmp)
+AtomVecFullKokkos::AtomVecFullKokkos(LAMMPS *lmp) :
+    AtomVec(lmp), AtomVecKokkos(lmp), AtomVecFull(lmp), q(nullptr), molecule(nullptr),
+    special(nullptr), bond_atom(nullptr), angle_atom1(nullptr), angle_atom2(nullptr),
+    angle_atom3(nullptr), dihedral_atom1(nullptr), dihedral_atom2(nullptr),
+    dihedral_atom3(nullptr), dihedral_atom4(nullptr), improper_atom1(nullptr),
+    improper_atom2(nullptr), improper_atom3(nullptr), improper_atom4(nullptr)
 {
 }
 

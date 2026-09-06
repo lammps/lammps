@@ -1,6 +1,6 @@
 ---
 lammps_version: 22 Dec 2022
-tags: slow
+tags:
 date_generated: Sun Jan  8 14:06:49 2023
 epsilon: 2.5e-13
 skip_tests: intel

@@ -82,7 +82,6 @@ void ImproperClass2Kokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     d_vatom = k_vatom.template view<DeviceType>();
   }
 
-  atomKK->sync(execution_space,datamask_read);
   k_k0.template sync<DeviceType>();
   k_chi0.template sync<DeviceType>();
   k_aa_k1.template sync<DeviceType>();
@@ -95,8 +94,6 @@ void ImproperClass2Kokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   k_setflag_i.template sync<DeviceType>();
   k_setflag_aa.template sync<DeviceType>();
 
-  if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
-  else atomKK->modified(execution_space,F_MASK);
 
   x = atomKK->k_x.view<DeviceType>();
   f = atomKK->k_f.view<DeviceType>();

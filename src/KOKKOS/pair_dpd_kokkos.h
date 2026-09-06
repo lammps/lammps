@@ -103,6 +103,7 @@ class PairDPDKokkos : public PairDPD {
   int eflag,vflag;
   int neighflag,nlocal;
   KK_FLOAT dtinvsqrt;
+  bigint ntimestep;    // update->ntimestep cached on the host for the device kernels
 
   int need_dup;
 

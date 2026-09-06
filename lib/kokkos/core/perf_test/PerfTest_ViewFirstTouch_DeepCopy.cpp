@@ -15,7 +15,7 @@ void ViewFirstTouch_DeepCopy(benchmark::State& state) {
   for (auto _ : state) {
     Kokkos::Timer timer;
     Kokkos::deep_copy(v_a, init_value);
-    KokkosBenchmark::report_results(state, v_a, 2, timer.seconds());
+    KokkosBenchmark::report_results(state, v_a, 1, timer.seconds());
   }
 }
 

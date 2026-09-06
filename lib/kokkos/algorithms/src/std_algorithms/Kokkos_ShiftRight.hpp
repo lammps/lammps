@@ -5,7 +5,7 @@
 #define KOKKOS_STD_ALGORITHMS_SHIFT_RIGHT_HPP
 
 #include "impl/Kokkos_ShiftRight.hpp"
-#include "Kokkos_BeginEnd.hpp"
+#include <Kokkos_Iterator.hpp>
 
 namespace Kokkos {
 namespace Experimental {

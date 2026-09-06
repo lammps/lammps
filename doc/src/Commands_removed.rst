@@ -20,7 +20,7 @@ with the direct alternative (if available) and print a warning.
 VTK package
 -----------
 
-.. versionremoved:: TBD
+.. versionremoved:: 2Sep2026
 
 The VTK package has been removed since :doc:`dump style vtk <dump_vtk>`
 no longer requires the VTK libraries and has thus been moved to the
@@ -29,7 +29,7 @@ no longer requires the VTK libraries and has thus been moved to the
 ML-RANN package
 ---------------
 
-.. deprecated:: TBD
+.. deprecated:: 2Sep2026
 
 .. index:: pair_style rann
 
@@ -44,7 +44,7 @@ to use this package.
 Pair style agni
 ---------------
 
-.. deprecated:: TBD
+.. deprecated:: 2Sep2026
 
 .. index:: pair_style agni
 .. index:: pair_style agni/omp

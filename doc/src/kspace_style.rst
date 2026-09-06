@@ -296,9 +296,9 @@ It should be used with :doc:`pair styles <pair_style>` with a
 The *pppm/electrode/tip4p* style combines the TIP4P treatment of
 *pppm/tip4p* with the electrode methods required for the constant
 potential method.  It should be used with a TIP4P-compatible
-long-range pair style and :doc:`fix electrode/* <fix_electrode>`.
+long-range pair style and :doc:ix electrode/* <fix_electrode>.
 
-.. versionadded:: TBD
+.. versionadded:: 2Sep2026
 
 The *pppm/xtb* and *pppm/tip4p/xtb* styles provide the corresponding
 PPPM electrostatics together with the source-to-sensor potential projection
@@ -616,6 +616,11 @@ versions of these styles.
 
 The *pppm/xtb* and *pppm/tip4p/xtb* styles currently require an orthorhombic
 simulation box, as does :doc:`fix qmmm/xtb <fix_qmmm_xtb>`.
+
+.. versionchanged:: 2Sep2026
+
+The *pppm/cg/omp* style now supports triclinic simulation boxes in the
+same way as the *pppm/cg* and *pppm/omp* styles.
 
 .. versionchanged:: 4Jul2026
 

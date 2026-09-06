@@ -733,7 +733,14 @@ void CommKokkos::reverse_comm(Compute *compute, int size)
 
 void CommKokkos::forward_comm(Pair *pair, int size)
 {
-  if (pair->execution_space == Host || pair->execution_space == HostKK || forward_pair_comm_legacy) {
+  // a pair style that runs on the device but does not implement the KOKKOS
+  // packing (e.g. pair hybrid/scaled, which communicates its scale factors
+  // through the plain buffers) has to take the host path as well
+
+  KokkosBase *pairKKBase = dynamic_cast<KokkosBase *>(pair);
+
+  if (pair->execution_space == Host || pair->execution_space == HostKK ||
+      forward_pair_comm_legacy || !pairKKBase) {
     k_sendlist.sync_host();
     CommBrick::forward_comm(pair, size);
   } else {
@@ -1972,6 +1979,8 @@ void CommKokkos::forward_comm_array(int nsize, double **array)
 
 #ifdef LMP_KOKKOS_GPU
 namespace LAMMPS_NS {
+template void CommKokkos::forward_comm_device<LMPDeviceType>(Fix *, int);
+template void CommKokkos::reverse_comm_device<LMPDeviceType>(Fix *, int);
 template void CommKokkos::forward_comm_device<LMPHostType>(Fix *, int);
 template void CommKokkos::reverse_comm_device<LMPHostType>(Fix *, int);
 }

@@ -46,8 +46,23 @@ FixDeformKokkos::FixDeformKokkos(LAMMPS *lmp, int narg, char **arg) : FixDeform(
 
 void FixDeformKokkos::pre_exchange()
 {
-  atomKK->sync(Host,ALL_MASK);
+  // everything the base class does here goes through DomainKokkos, which runs
+  // on the device and declares itself, except the atom migration below.
+  // Bracketing the whole call for the host claimed a side the device work had
+  // already claimed, and left the migration reading host data that the device
+  // work had since overtaken.
+
   FixDeform::pre_exchange();
+}
+
+/* ----------------------------------------------------------------------
+   the migration is the one host only step in pre_exchange()
+------------------------------------------------------------------------- */
+
+void FixDeformKokkos::migrate_atoms()
+{
+  atomKK->sync(Host,ALL_MASK);
+  FixDeform::migrate_atoms();
   atomKK->modified(Host,ALL_MASK);
 }
 

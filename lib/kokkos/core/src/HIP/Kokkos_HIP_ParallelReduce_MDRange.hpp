@@ -166,6 +166,11 @@ class ParallelReduce<CombinedFunctorReducerType,
                        : suggested_blocksize;  // Note: block_size must be less
                                                // than or equal to 512
 
+      // Only let one instance at a time resize the instance's scratch memory
+      // allocations.
+      std::scoped_lock<std::mutex> scratch_buffers_lock(
+          m_policy.space().impl_internal_space_instance()->m_mutexScratchSpace);
+
       m_scratch_space =
           reinterpret_cast<word_size_type*>(hip_internal_scratch_space(
               m_policy.space(),

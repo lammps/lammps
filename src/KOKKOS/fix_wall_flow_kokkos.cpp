@@ -85,6 +85,7 @@ template <class DeviceType> void FixWallFlowKokkos<DeviceType>::end_of_step()
   d_v = atomKK->k_v.template view<DeviceType>();
   d_type = atomKK->k_type.template view<DeviceType>();
   d_mask = atomKK->k_mask.template view<DeviceType>();
+  atomKK->k_mass.template sync<DeviceType>();
   d_mass = atomKK->k_mass.template view<DeviceType>();
   d_rmass = atomKK->k_rmass.template view<DeviceType>();
 

@@ -530,12 +530,12 @@ void DihedralCharmmKokkos<DeviceType>::read_restart(FILE *fp)
   DihedralCharmm::read_restart(fp);
 
   int nd = atom->ndihedraltypes;
-  DAT::tdual_kkfloat_1d k_k("DihedralCharmm::k",nd+1);
-  DAT::tdual_int_1d k_multiplicity("DihedralCharmm::multiplicity",nd+1);
-  DAT::tdual_int_1d k_shift("DihedralCharmm::shift",nd+1);
-  DAT::tdual_kkfloat_1d k_cos_shift("DihedralCharmm::cos_shift",nd+1);
-  DAT::tdual_kkfloat_1d k_sin_shift("DihedralCharmm::sin_shift",nd+1);
-  DAT::tdual_kkfloat_1d k_weight("DihedralCharmm::weight",nd+1);
+  k_k = DAT::tdual_kkfloat_1d("DihedralCharmm::k",nd+1);
+  k_multiplicity = DAT::tdual_int_1d("DihedralCharmm::multiplicity",nd+1);
+  k_shift = DAT::tdual_int_1d("DihedralCharmm::shift",nd+1);
+  k_cos_shift = DAT::tdual_kkfloat_1d("DihedralCharmm::cos_shift",nd+1);
+  k_sin_shift = DAT::tdual_kkfloat_1d("DihedralCharmm::sin_shift",nd+1);
+  k_weight = DAT::tdual_kkfloat_1d("DihedralCharmm::weight",nd+1);
 
   d_k = k_k.template view<DeviceType>();
   d_multiplicity = k_multiplicity.template view<DeviceType>();

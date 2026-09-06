@@ -1,4 +1,10 @@
 
+# set policy to use the time of extraction as timestamps of files unpacked from downloaded
+# archives, so that updating an archive version triggers rebuilding all dependent objects
+ if(POLICY CMP0135)
+  cmake_policy(SET CMP0135 NEW)
+endif()
+
 # Silence CMake warnings about FindCUDA being obsolete.
 # We may need to eventually rewrite this section to use enable_language(CUDA)
 if(POLICY CMP0146)
@@ -456,10 +462,9 @@ elseif(GPU_API STREQUAL "HIP")
       if(DOWNLOAD_CUB)
         message(STATUS "CUB download requested")
         # TODO: test update to current version 1.17.2
-        set(CUB_URL "https://github.com/nvidia/cub/archive/1.12.0.tar.gz" CACHE STRING "URL for CUB tarball")
-        set(CUB_SHA256 "3b03d0cbc9549606fbeda69a920562eb563836346b39014c79dfd024165ee549" CACHE STRING "SHA256 checksum of CUB tarball")
-        mark_as_advanced(CUB_URL)
-        mark_as_advanced(CUB_SHA256)
+        SetDownloadSettings(CUB "CUB"
+          "https://github.com/nvidia/cub/archive/1.12.0.tar.gz"
+          "3b03d0cbc9549606fbeda69a920562eb563836346b39014c79dfd024165ee549")
         GetFallbackURL(CUB_URL CUB_FALLBACK)
 
         include(ExternalProject)
@@ -521,5 +526,6 @@ endif()
 
 set_target_properties(gpu PROPERTIES OUTPUT_NAME lammps_gpu${LAMMPS_MACHINE})
 target_compile_definitions(gpu PRIVATE -DLAMMPS_${LAMMPS_SIZES})
+target_include_directories(gpu PRIVATE ${GPU_SOURCES_DIR} ${LAMMPS_LIB_SOURCE_DIR}/gpu/include)
 target_sources(lammps PRIVATE ${GPU_SOURCES})
-target_include_directories(lammps PRIVATE ${GPU_SOURCES_DIR})
+target_include_directories(lammps PRIVATE ${GPU_SOURCES_DIR} ${LAMMPS_LIB_SOURCE_DIR}/gpu/include)

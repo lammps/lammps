@@ -20,7 +20,7 @@ jobs:
   build:
     name: Windows Compilation Test
     if: ${{ github.repository == 'lammps/lammps' }}
-    runs-on: windows-latest
+    runs-on: windows-2025-vs2026
     env:
       CCACHE_DIR: ${{ github.workspace }}/.ccache
 
@@ -31,7 +31,7 @@ jobs:
         fetch-depth: 2
 
     - name: Enable MSVC++
-      uses: lammps/setup-msvc-dev@v3
+      uses: lammps/setup-msvc-dev@v4
       with:
         arch: x64
 
@@ -46,7 +46,7 @@ jobs:
         key: win-unit-ccache-${{ github.sha }}
         restore-keys: win-unit-ccache-
     - name: Select Python version
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@v7
       with:
         python-version: '3.11'
 

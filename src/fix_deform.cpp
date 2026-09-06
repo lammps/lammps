@@ -778,6 +778,13 @@ void FixDeform::init()
     image flags to new values, making eqs in doc of Domain:image_flip incorrect
 ------------------------------------------------------------------------- */
 
+void FixDeform::migrate_atoms()
+{
+  irregular->migrate_atoms();
+}
+
+/* ---------------------------------------------------------------------- */
+
 void FixDeform::pre_exchange()
 {
   if (flip == 0) return;
@@ -821,7 +828,7 @@ void FixDeform::pre_exchange()
   domain->remap_all();
 
   domain->x2lamda(atom->nlocal);
-  irregular->migrate_atoms();
+  migrate_atoms();
   domain->lamda2x(atom->nlocal);
 
   flip = 0;

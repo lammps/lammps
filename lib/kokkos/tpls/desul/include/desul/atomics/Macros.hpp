@@ -177,4 +177,25 @@ static constexpr bool desul_impl_omp_on_host() { return false; }
 #define DESUL_IMPL_EXPORT
 #endif
 
+// Fallback Load and store implementations
+// NOTE: We would want to use atomic_oper_fetch in the fallback implementation of
+// atomic_store to avoid reading potentially uninitialized values which would yield
+// undefined behavior. As atomic_oper_fetch is not implemented, we have specializations
+// of the lock based fetch_oper for _store_fetch_operator that uses a default
+// constructed value instead of reading from a potentially uninitialized address.
+#define DESUL_IMPL_ATOMIC_LOAD_AND_STORE_WITH_CAS(ANNOTATION, HOST_OR_DEVICE)         \
+  template <class T, class MemoryOrder, class MemoryScope>                            \
+  ANNOTATION T HOST_OR_DEVICE##_atomic_load(                                          \
+      const T* const dest, MemoryOrder order, MemoryScope scope) {                    \
+    return HOST_OR_DEVICE##_atomic_fetch_oper(                                        \
+        _load_fetch_operator<T, const T>(), const_cast<T*>(dest), T(), order, scope); \
+  }                                                                                   \
+                                                                                      \
+  template <class T, class MemoryOrder, class MemoryScope>                            \
+  ANNOTATION void HOST_OR_DEVICE##_atomic_store(                                      \
+      T* const dest, const T val, MemoryOrder order, MemoryScope scope) {             \
+    (void)HOST_OR_DEVICE##_atomic_fetch_oper(                                         \
+        _store_fetch_operator<T, const T>(), dest, val, order, scope);                \
+  }
+
 #endif  // DESUL_ATOMICS_MACROS_HPP_

@@ -125,7 +125,7 @@ categories:
 * pair
 * region
 
-.. versionchanged:: TBD
+.. versionchanged:: 2Sep2026
 
 A style that is currently provided by a loaded :doc:`plugin <plugin>` is marked
 with a trailing asterisk (``*``) in the listing.

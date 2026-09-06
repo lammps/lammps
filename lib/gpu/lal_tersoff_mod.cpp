@@ -44,7 +44,7 @@ int TersoffMT::bytes_per_atom(const int max_nbors) const {
 
 template <class numtyp, class acctyp>
 int TersoffMT::init(const int ntypes, const int nlocal, const int nall, const int max_nbors,
-                   const double cell_size, const double gpu_split, FILE *_screen,
+                   const double cell_size, FILE *_screen,
                    int* host_map, const int nelements, int*** host_elem2param, const int nparams,
                    const double* lam1, const double* lam2, const double* lam3,const double* powermint,
                    const double* biga, const double* bigb, const double* bigr, const double* bigd,
@@ -78,8 +78,8 @@ int TersoffMT::init(const int ntypes, const int nlocal, const int nall, const in
   #endif
 
   int success;
-  success=this->init_three(nlocal,nall,max_nbors,0,cell_size,gpu_split,
-                           _screen,tersoff_mod,"k_tersoff_mod_repulsive",
+  success=this->init_three(nlocal,nall,max_nbors,0,cell_size,
+                            _screen,tersoff_mod,"k_tersoff_mod_repulsive",
                            "k_tersoff_mod_three_center",
                            "k_tersoff_mod_three_end",
                            "k_tersoff_mod_short_nbor",onetype,onetype3,0,1);

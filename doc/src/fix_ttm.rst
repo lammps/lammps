@@ -144,7 +144,7 @@ independently to each TTM grid point and supports external heat sources
 to the electronic subsystem.  More details on fix *ttm/thermal* are
 given below.
 
-.. versionadded:: TBD
+.. versionadded:: 2Sep2026
 
 Fix *ttm/cascade* allows for two additional schemes for the treatment of
 electron-ion interactions during the early stages of radiation damage

@@ -389,7 +389,9 @@ class PairTIP4PKokkos : public PairCPUBase {
   {
     this->eflag = eflag_in;
     this->vflag = vflag_in;
-    this->ev_init(this->eflag,this->vflag);
+    // alloc = 0: the per-atom energy/virial arrays are allocated below through
+    // the Kokkos dual views, so Pair::ev_setup() must not allocate plain arrays
+    this->ev_init(this->eflag,this->vflag,0);
 
     this->atomKK->sync(this->execution_space,this->datamask_read);
 

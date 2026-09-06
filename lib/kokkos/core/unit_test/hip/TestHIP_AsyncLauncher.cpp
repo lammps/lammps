@@ -44,7 +44,7 @@ TEST(hip, async_launcher) {
   instance->fence();
   size_t h_flag;
   KOKKOS_IMPL_HIP_SAFE_CALL(
-      hipMemcpy(&h_flag, flag, sizeof(size_t), hipMemcpyHostToDevice));
+      hipMemcpy(&h_flag, flag, sizeof(size_t), hipMemcpyDeviceToHost));
   ASSERT_EQ(h_flag, (nkernels * (nkernels - 1)) / 2);
   KOKKOS_IMPL_HIP_SAFE_CALL(hipFree(flag));
 }

@@ -22,7 +22,7 @@
 #include "force.h"
 #include "input.h"
 #include "kokkos.h"
-#include "memory.h"
+#include "memory_kokkos.h"
 #include "respa.h"
 #include "update.h"
 #include "variable.h"
@@ -33,10 +33,12 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairHybridScaledKokkos::PairHybridScaledKokkos(LAMMPS *lmp) : PairHybridKokkos(lmp), fsum(nullptr), tsum(nullptr), scaleval(nullptr), scaleidx(nullptr),
-    atomvar(nullptr), atomscale(nullptr)
+PairHybridScaledKokkos::PairHybridScaledKokkos(LAMMPS *lmp) : PairHybridKokkos(lmp), scaleval(nullptr),
+    scaleidx(nullptr), atomvar(nullptr), atomscale(nullptr)
 {
   nmaxfsum = -1;
+  nmaxatomscale = -1;
+  accum_space = Device;
 
   // set comm size needed by this Pair (if atomscaleflag)
 
@@ -47,12 +49,177 @@ PairHybridScaledKokkos::PairHybridScaledKokkos(LAMMPS *lmp) : PairHybridKokkos(l
 
 PairHybridScaledKokkos::~PairHybridScaledKokkos()
 {
-  memory->destroy(fsum);
-  memory->destroy(tsum);
   delete[] scaleval;
   delete[] scaleidx;
   delete[] atomvar;
   memory->destroy(atomscale);
+}
+
+/* ----------------------------------------------------------------------
+   init specific to this pair style
+------------------------------------------------------------------------- */
+
+void PairHybridScaledKokkos::init_style()
+{
+  PairHybridKokkos::init_style();
+
+  // select the memory space used to sum the scaled sub-style forces
+  // all sub-styles on the device -> the sum is done on the device as well
+  //   and the forces never leave the device
+  // any sub-style on the host -> the forces have to be on the host anyway,
+  //   so sum there and avoid extra copies of the accumulator arrays
+
+  accum_space = Device;
+  for (int m = 0; m < nstyles; m++)
+    if (styles[m]->execution_space != Device) accum_space = HostKK;
+}
+
+/* ----------------------------------------------------------------------
+   copy the current forces and torques into the accumulator arrays
+   f and torque must be current in the memory space of DeviceType
+------------------------------------------------------------------------- */
+
+template <class DeviceType>
+void PairHybridScaledKokkos::save_forces(int nall)
+{
+  using AT = ArrayTypes<DeviceType>;
+
+  typename AT::t_kkacc_1d_3 d_f = atomKK->k_f.template view<DeviceType>();
+  typename AT::t_kkacc_1d_3 d_t = atomKK->k_torque.template view<DeviceType>();
+  typename AT::t_kkacc_1d_3 d_fsum = k_fsum.template view<DeviceType>();
+  typename AT::t_kkacc_1d_3 d_tsum = k_tsum.template view<DeviceType>();
+  const int torqueflag = atom->torque_flag;
+
+  Kokkos::parallel_for("PairHybridScaledKokkos::save_forces",
+                       Kokkos::RangePolicy<DeviceType>(0,nall), KOKKOS_LAMBDA(const int i) {
+    d_fsum(i,0) = d_f(i,0);
+    d_fsum(i,1) = d_f(i,1);
+    d_fsum(i,2) = d_f(i,2);
+    if (torqueflag) {
+      d_tsum(i,0) = d_t(i,0);
+      d_tsum(i,1) = d_t(i,1);
+      d_tsum(i,2) = d_t(i,2);
+    }
+  });
+
+  k_fsum.template modify<DeviceType>();
+  if (torqueflag) k_tsum.template modify<DeviceType>();
+}
+
+/* ----------------------------------------------------------------------
+   zero out forces and torques before calling a sub-style
+------------------------------------------------------------------------- */
+
+template <class DeviceType>
+void PairHybridScaledKokkos::clear_forces(int nall)
+{
+  using AT = ArrayTypes<DeviceType>;
+
+  typename AT::t_kkacc_1d_3 d_f = atomKK->k_f.template view<DeviceType>();
+  typename AT::t_kkacc_1d_3 d_t = atomKK->k_torque.template view<DeviceType>();
+  const int torqueflag = atom->torque_flag;
+
+  Kokkos::parallel_for("PairHybridScaledKokkos::clear_forces",
+                       Kokkos::RangePolicy<DeviceType>(0,nall), KOKKOS_LAMBDA(const int i) {
+    d_f(i,0) = 0.0;
+    d_f(i,1) = 0.0;
+    d_f(i,2) = 0.0;
+    if (torqueflag) {
+      d_t(i,0) = 0.0;
+      d_t(i,1) = 0.0;
+      d_t(i,2) = 0.0;
+    }
+  });
+}
+
+/* ----------------------------------------------------------------------
+   add the scaled forces and torques of a sub-style to the accumulators
+   the scale factor is either constant (or from an equal-style variable) or,
+     with useatomscale set, per-atom from an atom-style variable
+------------------------------------------------------------------------- */
+
+template <class DeviceType>
+void PairHybridScaledKokkos::accumulate_forces(int nall, double scale, int useatomscale)
+{
+  using AT = ArrayTypes<DeviceType>;
+
+  typename AT::t_kkacc_1d_3 d_f = atomKK->k_f.template view<DeviceType>();
+  typename AT::t_kkacc_1d_3 d_t = atomKK->k_torque.template view<DeviceType>();
+  typename AT::t_kkacc_1d_3 d_fsum = k_fsum.template view<DeviceType>();
+  typename AT::t_kkacc_1d_3 d_tsum = k_tsum.template view<DeviceType>();
+  typename AT::t_kkacc_1d d_atomscale = k_atomscale.template view<DeviceType>();
+  const int torqueflag = atom->torque_flag;
+  const KK_ACC_FLOAT sval = scale;
+
+  Kokkos::parallel_for("PairHybridScaledKokkos::accumulate_forces",
+                       Kokkos::RangePolicy<DeviceType>(0,nall), KOKKOS_LAMBDA(const int i) {
+    const KK_ACC_FLOAT s = useatomscale ? d_atomscale(i) : sval;
+    d_fsum(i,0) += s*d_f(i,0);
+    d_fsum(i,1) += s*d_f(i,1);
+    d_fsum(i,2) += s*d_f(i,2);
+    if (torqueflag) {
+      d_tsum(i,0) += s*d_t(i,0);
+      d_tsum(i,1) += s*d_t(i,1);
+      d_tsum(i,2) += s*d_t(i,2);
+    }
+  });
+
+  k_fsum.template modify<DeviceType>();
+  if (torqueflag) k_tsum.template modify<DeviceType>();
+}
+
+/* ----------------------------------------------------------------------
+   copy the accumulated scaled forces and torques back into f and torque
+------------------------------------------------------------------------- */
+
+template <class DeviceType>
+void PairHybridScaledKokkos::restore_forces(int nall)
+{
+  using AT = ArrayTypes<DeviceType>;
+
+  const int torqueflag = atom->torque_flag;
+
+  k_fsum.template sync<DeviceType>();
+  if (torqueflag) k_tsum.template sync<DeviceType>();
+
+  typename AT::t_kkacc_1d_3 d_f = atomKK->k_f.template view<DeviceType>();
+  typename AT::t_kkacc_1d_3 d_t = atomKK->k_torque.template view<DeviceType>();
+  typename AT::t_kkacc_1d_3 d_fsum = k_fsum.template view<DeviceType>();
+  typename AT::t_kkacc_1d_3 d_tsum = k_tsum.template view<DeviceType>();
+
+  Kokkos::parallel_for("PairHybridScaledKokkos::restore_forces",
+                       Kokkos::RangePolicy<DeviceType>(0,nall), KOKKOS_LAMBDA(const int i) {
+    d_f(i,0) = d_fsum(i,0);
+    d_f(i,1) = d_fsum(i,1);
+    d_f(i,2) = d_fsum(i,2);
+    if (torqueflag) {
+      d_t(i,0) = d_tsum(i,0);
+      d_t(i,1) = d_tsum(i,1);
+      d_t(i,2) = d_tsum(i,2);
+    }
+  });
+}
+
+/* ----------------------------------------------------------------------
+   evaluate the per-atom scale factors of sub-style m from its atom-style
+     variable and communicate them to the ghost atoms
+   the variable is evaluated on the host, so upload the values of the local
+     atoms first and let the forward communication fill in the ghosts
+   the result is left in k_atomscale, the caller syncs it where it is needed
+------------------------------------------------------------------------- */
+
+void PairHybridScaledKokkos::update_atomscale(int m)
+{
+  const int igroupall = 0;
+  input->variable->compute_atom(atomvar[m], igroupall, atomscale, 1, 0);
+
+  auto h_atomscale = k_atomscale.view_host();
+  const int nlocal = atom->nlocal;
+  for (int i = 0; i < nlocal; ++i) h_atomscale(i) = atomscale[i];
+  k_atomscale.modify_host();
+  k_atomscale.sync_device();
+
+  comm->forward_comm(this);
 }
 
 /* ----------------------------------------------------------------------
@@ -117,34 +284,32 @@ void PairHybridScaledKokkos::compute(int eflag, int vflag)
 
   ev_init(eflag, vflag);
 
-  atomKK->sync(Host,F_MASK);
-  if (atom->torque_flag)
-    atomKK->sync(Host,TORQUE_MASK);
+  const int torqueflag = atom->torque_flag;
+  const uint64_t fmask = torqueflag ? (F_MASK | TORQUE_MASK) : F_MASK;
 
-  // grow fsum array if needed, and copy existing forces (usually 0.0) to it.
+  // grow accumulator arrays if needed
 
   if (atom->nmax > nmaxfsum) {
-    memory->destroy(fsum);
-    if (atom->torque_flag) memory->destroy(tsum);
-    if (atomscaleflag) memory->destroy(atomscale);
     nmaxfsum = atom->nmax;
-    memory->create(fsum, nmaxfsum, 3, "pair:fsum");
-    if (atom->torque_flag) memory->create(tsum, nmaxfsum, 3, "pair:tsum");
-    if (atomscaleflag) memory->create(atomscale, nmaxfsum, "pair:atomscale");
+    MemKK::realloc_kokkos(k_fsum, "pair:fsum", nmaxfsum);
+    if (torqueflag) MemKK::realloc_kokkos(k_tsum, "pair:tsum", nmaxfsum);
   }
+
+  if (atomscaleflag && (atom->nmax > nmaxatomscale)) {
+    nmaxatomscale = atom->nmax;
+    memory->destroy(atomscale);
+    memory->create(atomscale, nmaxatomscale, "pair:atomscale");
+    MemKK::realloc_kokkos(k_atomscale, "pair:atomscale", nmaxatomscale);
+  }
+
   const int nall = atom->nlocal + atom->nghost;
-  auto f = atom->f;
-  auto t = atom->torque;
-  for (i = 0; i < nall; ++i) {
-    fsum[i][0] = f[i][0];
-    fsum[i][1] = f[i][1];
-    fsum[i][2] = f[i][2];
-    if (atom->torque_flag) {
-      tsum[i][0] = t[i][0];
-      tsum[i][1] = t[i][1];
-      tsum[i][2] = t[i][2];
-    }
-  }
+
+  // copy existing forces and torques (usually 0.0) to the accumulators
+
+  atomKK->sync(accum_space, fmask);
+
+  if (accum_space == Device) save_forces<LMPDeviceType>(nall);
+  else save_forces<LMPHostType>(nall);
 
   // check if global component of incoming vflag = VIRIAL_FDOTR
   // if so, reset vflag passed to substyle so VIRIAL_FDOTR is turned off
@@ -170,17 +335,15 @@ void PairHybridScaledKokkos::compute(int eflag, int vflag)
   for (m = 0; m < nstyles; m++) {
 
     // clear forces and torques
+    // discard any pending host/device copies first, the values are overwritten
 
     atomKK->k_f.clear_sync_state(); // special case
-    if (atom->torque_flag)
-      atomKK->k_torque.clear_sync_state(); // special case
+    if (torqueflag) atomKK->k_torque.clear_sync_state(); // special case
 
-    memset(&f[0][0], 0, nall * 3 * sizeof(double));
-    if (atom->torque_flag) memset(&t[0][0], 0, nall * 3 * sizeof(double));
+    if (accum_space == Device) clear_forces<LMPDeviceType>(nall);
+    else clear_forces<LMPHostType>(nall);
 
-    atomKK->modified(Host,F_MASK);
-    if (atom->torque_flag)
-      atomKK->modified(Host,TORQUE_MASK);
+    atomKK->modified(accum_space,fmask);
 
     set_special(m);
 
@@ -198,42 +361,27 @@ void PairHybridScaledKokkos::compute(int eflag, int vflag)
       atomKK->modified(styles[m]->execution_space,styles[m]->datamask_modify);
     }
 
-    // add scaled forces to global sum
+    // add scaled forces and torques to the accumulators
+    // for an atom-style variable the per-atom scale factors are evaluated
+    //   on the host and then copied to the accumulation space
+
     const double scale = scaleval[m];
+    const int useatomscale = (scaleidx[m] >= 0) && (atomvar[m] >= 0);
 
-    atomKK->sync(Host,F_MASK);
-    if (atom->torque_flag)
-      atomKK->sync(Host,TORQUE_MASK);
+    if (useatomscale) {
+      update_atomscale(m);
 
-    // if scale factor is constant or equal-style variable
-    if (scaleidx[m] < 0 || atomvar[m] < 0) {
-      for (i = 0; i < nall; ++i) {
-        fsum[i][0] += scale * f[i][0];
-        fsum[i][1] += scale * f[i][1];
-        fsum[i][2] += scale * f[i][2];
-        if (atom->torque_flag) {
-          tsum[i][0] += scale * t[i][0];
-          tsum[i][1] += scale * t[i][1];
-          tsum[i][2] += scale * t[i][2];
-        }
-      }
-      // if scale factor is atom-style variable
-    } else {
-      const int igroupall = 0;
-      input->variable->compute_atom(atomvar[m], igroupall, atomscale, 1, 0);
-      comm->forward_comm(this);
-      for (i = 0; i < nall; ++i) {
-        const double ascale = atomscale[i];
-        fsum[i][0] += ascale * f[i][0];
-        fsum[i][1] += ascale * f[i][1];
-        fsum[i][2] += ascale * f[i][2];
-        if (atom->torque_flag) {
-          tsum[i][0] += ascale * t[i][0];
-          tsum[i][1] += ascale * t[i][1];
-          tsum[i][2] += ascale * t[i][2];
-        }
-      }
+      // the exchange runs on the device or, with a legacy communication
+      // style, on the host, so sync whichever side is stale afterwards
+
+      if (accum_space == Device) k_atomscale.sync_device();
+      else k_atomscale.sync_host();
     }
+
+    atomKK->sync(accum_space,fmask);
+
+    if (accum_space == Device) accumulate_forces<LMPDeviceType>(nall, scale, useatomscale);
+    else accumulate_forces<LMPHostType>(nall, scale, useatomscale);
 
     restore_special(saved_special);
 
@@ -281,36 +429,27 @@ void PairHybridScaledKokkos::compute(int eflag, int vflag)
     }
   }
 
-  atomKK->sync(Host,F_MASK);
-  if (atom->torque_flag)
-    atomKK->sync(Host,TORQUE_MASK);
+  // copy accumulated scaled forces and torques to the original arrays
+  // discard any pending host/device copies first, the values are overwritten
 
-  // copy accumulated scaled forces to original force array
+  atomKK->k_f.clear_sync_state(); // special case
+  if (torqueflag) atomKK->k_torque.clear_sync_state(); // special case
 
-  for (i = 0; i < nall; ++i) {
-    f[i][0] = fsum[i][0];
-    f[i][1] = fsum[i][1];
-    f[i][2] = fsum[i][2];
-    if (atom->torque_flag) {
-      t[i][0] = tsum[i][0];
-      t[i][1] = tsum[i][1];
-      t[i][2] = tsum[i][2];
-    }
-  }
+  if (accum_space == Device) restore_forces<LMPDeviceType>(nall);
+  else restore_forces<LMPHostType>(nall);
+
+  atomKK->modified(accum_space,fmask);
+
   delete[] saved_special;
-
-  atomKK->modified(Host,F_MASK);
-  if (atom->torque_flag)
-    atomKK->modified(Host,TORQUE_MASK);
 
   // perform virial_fdotr on device
 
-  atomKK->sync(Device,X_MASK|F_MASK);
-  this->x = atomKK->k_x.view_device();
-  this->f = atomKK->k_f.view_device();
-
-  if (vflag_fdotr)
+  if (vflag_fdotr) {
+    atomKK->sync(Device,X_MASK|F_MASK);
+    this->x = atomKK->k_x.view_device();
+    this->f = atomKK->k_f.view_device();
     pair_virial_fdotr_compute(this);
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -520,10 +659,10 @@ double PairHybridScaledKokkos::single(int i, int j, int itype, int jtype, double
         fforce += scale * fone;
         // if scale factor is atom-style variable, average i and j
       } else {
-        const int igroupall = 0;
-        input->variable->compute_atom(atomvar[m], igroupall, atomscale, 1, 0);
-        comm->forward_comm(this);
-        const double ascale = 0.5 * (atomscale[i] + atomscale[j]);
+        update_atomscale(m);
+        k_atomscale.sync_host();
+        auto h_atomscale = k_atomscale.view_host();
+        const double ascale = 0.5 * (h_atomscale(i) + h_atomscale(j));
         fforce += ascale * fone;
       }
     }
@@ -601,10 +740,10 @@ void PairHybridScaledKokkos::born_matrix(int i, int j, int itype, int jtype, dou
         du2pair += scale * du2;
         // if scale factor is atom-style variable, average i and j
       } else {
-        const int igroupall = 0;
-        input->variable->compute_atom(atomvar[m], igroupall, atomscale, 1, 0);
-        comm->forward_comm(this);
-        const double ascale = 0.5 * (atomscale[i] + atomscale[j]);
+        update_atomscale(m);
+        k_atomscale.sync_host();
+        auto h_atomscale = k_atomscale.view_host();
+        const double ascale = 0.5 * (h_atomscale(i) + h_atomscale(j));
         dupair += ascale * du;
         du2pair += ascale * du2;
       }
@@ -817,10 +956,12 @@ int PairHybridScaledKokkos::pack_forward_comm(int n, int *list, double *buf, int
 {
   int i,j,m;
 
+  auto h_atomscale = k_atomscale.view_host();
+
   m = 0;
   for (i = 0; i < n; i++) {
     j = list[i];
-    buf[m++] = atomscale[j];
+    buf[m++] = h_atomscale(j);
   }
   return m;
 }
@@ -831,7 +972,46 @@ void PairHybridScaledKokkos::unpack_forward_comm(int n, int first, double *buf)
 {
   int i,m,last;
 
+  auto h_atomscale = k_atomscale.view_host();
+
   m = 0;
   last = first + n;
-  for (i = first; i < last; i++) atomscale[i] = buf[m++];
+  for (i = first; i < last; i++) h_atomscale(i) = buf[m++];
+  k_atomscale.modify_host();
+}
+
+/* ----------------------------------------------------------------------
+   forward communication of the per-atom scale factors on the device
+------------------------------------------------------------------------- */
+
+int PairHybridScaledKokkos::pack_forward_comm_kokkos(int n, DAT::tdual_int_1d k_sendlist,
+                                                     DAT::tdual_double_1d &k_buf,
+                                                     int /*pbc_flag*/, int * /*pbc*/)
+{
+  auto d_sendlist = k_sendlist.view<LMPDeviceType>();
+  auto d_buf = k_buf.view<LMPDeviceType>();
+  auto d_atomscale = k_atomscale.view<LMPDeviceType>();
+
+  Kokkos::parallel_for("PairHybridScaledKokkos::pack_forward_comm",
+                       Kokkos::RangePolicy<LMPDeviceType>(0,n), KOKKOS_LAMBDA(const int i) {
+    d_buf[i] = static_cast<double>(d_atomscale(d_sendlist(i)));
+  });
+
+  return n;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairHybridScaledKokkos::unpack_forward_comm_kokkos(int n, int first, DAT::tdual_double_1d &k_buf)
+{
+  auto d_buf = k_buf.view<LMPDeviceType>();
+  auto d_atomscale = k_atomscale.view<LMPDeviceType>();
+  const int first_recv = first;
+
+  Kokkos::parallel_for("PairHybridScaledKokkos::unpack_forward_comm",
+                       Kokkos::RangePolicy<LMPDeviceType>(0,n), KOKKOS_LAMBDA(const int i) {
+    d_atomscale(i + first_recv) = static_cast<KK_ACC_FLOAT>(d_buf[i]);
+  });
+
+  k_atomscale.modify_device();
 }

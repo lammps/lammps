@@ -1,7 +1,10 @@
 .. index:: fix viscous/nonlinear
+.. index:: fix viscous/nonlinear/kk
 
 fix viscous/nonlinear command
 =============================
+
+Accelerator Variants: *viscous/nonlinear/kk*
 
 Syntax
 """"""
@@ -72,6 +75,12 @@ uniform fluid velocity :math:`\vec{v}_f`, so the drag is computed
 from the particle velocity relative to the moving fluid.  This fix only
 applies a drag force; buoyancy and gravity (if desired) must be added
 separately, e.g. with :doc:`fix gravity <fix_gravity>`.
+
+----------
+
+.. include:: accel_styles.rst
+
+----------
 
 Restrictions
 """"""""""""

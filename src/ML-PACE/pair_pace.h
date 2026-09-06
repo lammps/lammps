@@ -63,6 +63,12 @@ class PairPACE : public Pair {
   bool recursive;    // "recursive" option for ACERecursiveEvaluator
 
   int chunksize;
+
+  // team scratch memory level for the KOKKOS short neighbor list build, set by
+  // the "neigh" keyword.  The keyword is only acted on by the KOKKOS styles;
+  // it is parsed here so that the same input runs in a non-KOKKOS build.
+  enum { NEIGH_SCRATCH_AUTO = 0, NEIGH_SCRATCH_SHARED, NEIGH_SCRATCH_GLOBAL };
+  int neigh_scratch_request;
 };
 }    // namespace LAMMPS_NS
 

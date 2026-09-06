@@ -22,6 +22,7 @@
 #include "force.h"
 #include "group.h"
 #include "input.h"
+#include "kokkos.h"
 #include "math_extra_kokkos.h"
 #include "memory_kokkos.h"
 #include "modify.h"
@@ -108,6 +109,11 @@ template<class DeviceType>
 void FixLangevinKokkos<DeviceType>::init()
 {
   FixLangevin::init();
+
+  // when a temperature bias is removed, the bias compute runs on the device
+  // only if it is a KOKKOS style; otherwise each step forces a host/device sync
+  if (tbiasflag == BIAS)
+    KokkosLMP::warn_nonkokkos_compute(lmp, style, temperature, "temperature");
 
   if (oflag) {
     // oflag thermostats rotational dof via omega on finite-size spheres.
@@ -362,7 +368,7 @@ void FixLangevinKokkos<DeviceType>::post_force(int /*vflag*/)
   atomKK->modified(execution_space,datamask_modify);
 
   if (tbiasflag == BIAS) {
-    if (temperature->kokkosable) temperature->restore_bias_all();
+    if (temperature->kokkosable) temperature->restore_bias_all_kk();
     else {
       atomKK->sync(temperature->execution_space,temperature->datamask_read);
       temperature->restore_bias_all();

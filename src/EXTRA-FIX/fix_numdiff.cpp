@@ -19,6 +19,7 @@
 
 #include "angle.h"
 #include "atom.h"
+#include "atom_masks.h"
 #include "bond.h"
 #include "compute.h"
 #include "dihedral.h"
@@ -191,6 +192,8 @@ void FixNumDiff::calculate_forces()
 
   // store copy of current forces for owned and ghost atoms
 
+  atom->sync_host_arrays(X_MASK | F_MASK);
+
   double **x = atom->x;
   double **f = atom->f;
   int nlocal = atom->nlocal;
@@ -245,8 +248,12 @@ void FixNumDiff::calculate_forces()
 
   // restore original forces for owned and ghost atoms
 
+  atom->sync_host_arrays(F_MASK);
+
   for (i = 0; i < nall; i++)
     for (j = 0; j < 3; j++) { f[i][j] = temp_f[i][j]; }
+
+  atom->modified_host_arrays(F_MASK);
 }
 
 /* ----------------------------------------------------------------------
@@ -257,6 +264,12 @@ void FixNumDiff::displace_atoms(int ilocal, int idim, int magnitude)
 {
   if (ilocal < 0) return;
 
+  // the displacement goes into the plain coordinate array, and the energy
+  // evaluation that follows works from the KOKKOS copies, so bring the host
+  // side up to date first and hand the write over afterwards
+
+  atom->sync_host_arrays(X_MASK);
+
   double **x = atom->x;
   int *sametag = atom->sametag;
   int j = ilocal;
@@ -266,6 +279,8 @@ void FixNumDiff::displace_atoms(int ilocal, int idim, int magnitude)
     j = sametag[j];
     x[j][idim] += delta * magnitude;
   }
+
+  atom->modified_host_arrays(X_MASK);
 }
 
 /* ----------------------------------------------------------------------
@@ -276,6 +291,8 @@ void FixNumDiff::restore_atoms(int ilocal, int idim)
 {
   if (ilocal < 0) return;
 
+  atom->sync_host_arrays(X_MASK);
+
   double **x = atom->x;
   int *sametag = atom->sametag;
   int j = ilocal;
@@ -285,6 +302,8 @@ void FixNumDiff::restore_atoms(int ilocal, int idim)
     j = sametag[j];
     x[j][idim] = temp_x[j][idim];
   }
+
+  atom->modified_host_arrays(X_MASK);
 }
 
 /* ----------------------------------------------------------------------
@@ -294,7 +313,12 @@ void FixNumDiff::restore_atoms(int ilocal, int idim)
 
 double FixNumDiff::update_energy()
 {
+  // the forces are cleared through the plain array and accumulated again by
+  // the force computations, which work from the KOKKOS copies
+
+  atom->sync_host_arrays(F_MASK);
   force_clear(atom->f);
+  atom->modified_host_arrays(F_MASK);
 
   // flag that we only need to compute the global energy
   int eflag = ENERGY_GLOBAL | ENERGY_ONLY;

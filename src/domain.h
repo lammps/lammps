@@ -145,13 +145,13 @@ class Domain : protected Pointers {
   void closest_image(const double *const, const double *const, double *const);
   void remap(double *, imageint &);
   void remap(double *);
-  void remap_all();
+  virtual void remap_all();
   void remap_near(double *, double *);
   void unmap_inv(double *x, imageint);
   void unmap(double *, imageint);
   void unmap(const double *, imageint, double *);
   void unmap(const double *, const double *, imageint, int, double *, double *);
-  void image_flip(int, int, int);
+  virtual void image_flip(int, int, int);
   int ownatom(int, double *, imageint *, int);
 
   void define_general_triclinic(double *, double *, double *, double *);

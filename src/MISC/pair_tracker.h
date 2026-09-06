@@ -22,8 +22,6 @@ PairStyle(tracker,PairTracker);
 
 #include "pair.h"
 
-#include <vector>
-
 namespace LAMMPS_NS {
 
 class PairTracker : public Pair {

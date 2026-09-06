@@ -40,6 +40,8 @@ PairLJExpandSphere::PairLJExpandSphere(LAMMPS *lmp) :
 
 PairLJExpandSphere::~PairLJExpandSphere()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);

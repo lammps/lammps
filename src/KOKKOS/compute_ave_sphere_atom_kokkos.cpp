@@ -111,6 +111,7 @@ void ComputeAveSphereAtomKokkos<DeviceType>::compute_peratom()
   x = atomKK->k_x.view<DeviceType>();
   v = atomKK->k_v.view<DeviceType>();
   rmass = atomKK->k_rmass.view<DeviceType>();
+  atomKK->k_mass.sync<DeviceType>();
   mass = atomKK->k_mass.view<DeviceType>();
   type = atomKK->k_type.view<DeviceType>();
   mask = atomKK->k_mask.view<DeviceType>();

@@ -22,8 +22,6 @@ CommandStyle(info,Info);
 
 #include "command.h"
 
-#include <vector>
-
 namespace LAMMPS_NS {
 
 class Info : public Command {

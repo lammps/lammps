@@ -34,8 +34,8 @@ class DomainKokkos : public Domain {
   ~DomainKokkos() override = default;
   void reset_box() override;
   void pbc() override;
-  void remap_all();
-  void image_flip(int, int, int);
+  void remap_all() override;
+  void image_flip(int, int, int) override;
   void x2lamda(int) override;
   void x2lamda(int,int) override;
   void lamda2x(int) override;
@@ -48,6 +48,8 @@ class DomainKokkos : public Domain {
   }
 
   int closest_image(const int, int) const;
+
+  int detached_atom_x() const;
 
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION

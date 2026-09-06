@@ -59,6 +59,7 @@ MLIAP_SO3Kokkos<DeviceType>::MLIAP_SO3Kokkos(LAMMPS *lmp, double vrcut, int vlma
 template <class DeviceType>
 MLIAP_SO3Kokkos<DeviceType>::~MLIAP_SO3Kokkos()
 {
+  if (copymode) return;
   t_numneighs = int_1d();
   t_jelems = int_1d();
   t_wjelem = float_1d();
@@ -711,12 +712,16 @@ void MLIAP_SO3Kokkos<DeviceType>::spectrum(int nlocal, DAT::tdual_int_1d numneig
 
   {
     Kokkos::RangePolicy<DeviceType,MLIAPSO3GetSBESArrayTag> range(0,nlocal);
+    copymode = 1;
     Kokkos::parallel_for(range, *this);
+    copymode = 0;
   }
 
   {
     Kokkos::RangePolicy<DeviceType,MLIAPSO3GetRipArrayTag> range(0,nlocal);
+    copymode = 1;
     Kokkos::parallel_for(range, *this);
+    copymode = 0;
   }
 
   Kokkos::deep_copy(m_plist_r,0.);
@@ -726,7 +731,9 @@ void MLIAP_SO3Kokkos<DeviceType>::spectrum(int nlocal, DAT::tdual_int_1d numneig
     Kokkos::deep_copy(m_clisttot_i, 0);
     {
       Kokkos::RangePolicy<DeviceType,MLIAPSO3SpectrumTag> range(start,end);
-      Kokkos::parallel_for(range, *this);
+      copymode = 1;
+    Kokkos::parallel_for(range, *this);
+    copymode = 0;
     }
   }
 }
@@ -836,12 +843,16 @@ void MLIAP_SO3Kokkos<DeviceType>::spectrum_dxdr(int nlocal, DAT::tdual_int_1d nu
 
   {
     Kokkos::RangePolicy<DeviceType,MLIAPSO3GetSBESArrayTag> range(0,nlocal);
+    copymode = 1;
     Kokkos::parallel_for(range, *this);
+    copymode = 0;
   }
 
   {
     Kokkos::RangePolicy<DeviceType,MLIAPSO3GetRipArrayTag> range(0,nlocal);
+    copymode = 1;
     Kokkos::parallel_for(range, *this);
+    copymode = 0;
   }
 
   Kokkos::deep_copy(k_dplist_r, 0.0);
@@ -851,7 +862,9 @@ void MLIAP_SO3Kokkos<DeviceType>::spectrum_dxdr(int nlocal, DAT::tdual_int_1d nu
     Kokkos::deep_copy(m_clisttot_i, 0);
     {
       Kokkos::RangePolicy<DeviceType,MLIAPSO3SpectrumDXDRTag> range(start,end);
-      Kokkos::parallel_for(range, *this);
+      copymode = 1;
+    Kokkos::parallel_for(range, *this);
+    copymode = 0;
     }
   }
 }

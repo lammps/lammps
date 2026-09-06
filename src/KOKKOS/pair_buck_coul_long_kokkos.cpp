@@ -142,6 +142,16 @@ void PairBuckCoulLongKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     virial[5] += static_cast<double>(ev.v[5]);
   }
 
+  if (eflag_atom) {
+    k_eatom.template modify<DeviceType>();
+    k_eatom.sync_host();
+  }
+
+  if (vflag_atom) {
+    k_vatom.template modify<DeviceType>();
+    k_vatom.sync_host();
+  }
+
   if (vflag_fdotr) pair_virial_fdotr_compute(this);
 
   copymode = 0;

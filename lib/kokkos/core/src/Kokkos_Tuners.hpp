@@ -71,6 +71,7 @@ struct ValueHierarchyNode {
 template <typename ValueType>
 struct ValueHierarchyNode<ValueType, void> {
   std::vector<ValueType> root_values;
+  ValueHierarchyNode() = default;
   explicit ValueHierarchyNode(std::vector<ValueType> rv)
       : root_values(std::move(rv)) {}
   void add_root_value(const ValueType& in) { root_values.push_back(in); }
@@ -184,7 +185,11 @@ template <class RootType, class Subtype>
 struct DimensionValueExtractor<ValueHierarchyNode<RootType, Subtype>> {
   static RootType get(const ValueHierarchyNode<RootType, Subtype>& dimension,
                       double fraction_to_traverse) {
-    size_t index = dimension.root_values.size() * fraction_to_traverse;
+    // Clamp the index to size - 1 to prevent out-of-bounds access
+    // if an external tuning tool returns a fraction >= 1.0
+    size_t size = dimension.root_values.size();
+    size_t index =
+        std::min(size - 1, static_cast<size_t>(size * fraction_to_traverse));
     return dimension.get_root_value(index);
   }
 };
@@ -220,7 +225,11 @@ struct GetMultidimensionalPoint<ValueHierarchyNode<ValueType, Subtype>, double,
       std::declval<std::tuple<ValueType>>(), std::declval<sub_tuple>()));
   static return_type build(const node_type& in, double fraction_to_traverse,
                            Indices... indices) {
-    size_t index         = in.sub_values.size() * fraction_to_traverse;
+    // Clamp the index to size - 1 to prevent out-of-bounds access
+    // if an external tuning tool returns a fraction >= 1.0
+    size_t size = in.sub_values.size();
+    size_t index =
+        std::min(size - 1, static_cast<size_t>(size * fraction_to_traverse));
     auto dimension_value = std::make_tuple(
         DimensionValueExtractor<node_type>::get(in, fraction_to_traverse));
     return std::tuple_cat(dimension_value,
@@ -692,8 +701,8 @@ void constrain_tile_sizes(std::map<int, Mapped>& cont,
 
 // Entry point for applying tile constraints. Filters out invalid tiles that
 // exceed hardware limits based on the rank of the policy.
-template <typename Mapped>
-void apply_tiles_constraints(std::map<int, Mapped>& cont,
+template <typename Container>
+void apply_tiles_constraints(Container& cont,
                              const std::array<int, 3>& hw_tile_limits,
                              int policy_rank) {
   std::array<int, 6> current_tile{1, 1, 1, 1, 1, 1};
@@ -715,13 +724,12 @@ struct MDRangeTuner : public ExtendableTunerMixin<MDRangeTuner<MDRangeRank>> {
           std::declval<std::vector<std::string>>()));
   TunerType tuner;
 
- public:
-  MDRangeTuner() = default;
   template <typename Functor, typename TagType, typename Calculator,
             typename... Properties>
-  MDRangeTuner(const std::string& name,
-               const Kokkos::MDRangePolicy<Properties...>& policy,
-               const Functor& functor, const TagType& tag, Calculator calc) {
+  static TunerType make_tuner(
+      const std::string& name,
+      const Kokkos::MDRangePolicy<Properties...>& policy,
+      const Functor& functor, const TagType& tag, Calculator calc) {
     SpaceDescription desc;
     int max_tile_size =
         calc.get_mdrange_max_tile_size_product(policy, functor, tag);
@@ -729,12 +737,22 @@ struct MDRangeTuner : public ExtendableTunerMixin<MDRangeTuner<MDRangeRank>> {
     Impl::fill_tile(desc, max_tile_size);
     Impl::apply_tiles_constraints(desc, policy.m_max_threads_dimensions, rank);
     std::vector<std::string> feature_names;
+    feature_names.reserve(rank);
     for (int x = 0; x < rank; ++x) {
       feature_names.push_back(name + "_tile_size_" + std::to_string(x));
     }
-    tuner = make_multidimensional_sparse_tuning_problem<max_slices>(
-        desc, feature_names);
+    return make_multidimensional_sparse_tuning_problem<max_slices>(
+        desc, std::move(feature_names));
   }
+
+ public:
+  MDRangeTuner() = default;
+  template <typename Functor, typename TagType, typename Calculator,
+            typename... Properties>
+  MDRangeTuner(const std::string& name,
+               const Kokkos::MDRangePolicy<Properties...>& policy,
+               const Functor& functor, const TagType& tag, Calculator calc)
+      : tuner(make_tuner(name, policy, functor, tag, calc)) {}
   template <typename Policy, typename Tuple, size_t... Indices>
   void set_policy_tile(Policy& policy, const Tuple& tuple,
                        const std::index_sequence<Indices...>&) {

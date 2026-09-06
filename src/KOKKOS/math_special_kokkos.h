@@ -284,6 +284,20 @@ namespace LAMMPS_NS::MathSpecialKokkos {
     return v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2];
   }
 
+  /* ----------------------------------------------------------------------
+    ans = v1 cross v2
+  ------------------------------------------------------------------------- */
+
+  template<typename T>
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  static void cross3(const T *v1, const T *v2, T *ans)
+  {
+    ans[0] = v1[1] * v2[2] - v1[2] * v2[1];
+    ans[1] = v1[2] * v2[0] - v1[0] * v2[2];
+    ans[2] = v1[0] * v2[1] - v1[1] * v2[0];
+  }
+
 } // namespace LAMMPS_NS::MathSpecialKokkos
 
 

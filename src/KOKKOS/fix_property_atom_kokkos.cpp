@@ -31,6 +31,12 @@ FixPropertyAtomKokkos::FixPropertyAtomKokkos(LAMMPS *lmp, int narg, char **arg) 
   atomKK = (AtomKokkos *) atom;
   kokkosable = 1;
 
+  // this fix syncs the atom data it owns itself, through AtomKokkos::sync()
+  // and AtomKokkos::modified(); Modify must not sync or invalidate any of it
+
+  datamask_read = EMPTY_MASK;
+  datamask_modify = EMPTY_MASK;
+
   dvector_flag = 0;
   ivector_flag = 0;
   iarray_flag = 0;

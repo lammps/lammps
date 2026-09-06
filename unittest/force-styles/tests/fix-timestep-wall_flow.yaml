@@ -3,7 +3,7 @@ lammps_version: 4 Jul 2026
 tags: no_restart
 date_generated: Fri Jul 10 18:25:42 2026
 epsilon: 5e-12
-skip_tests: omp kokkos_omp kokkos_serial kokkos_gpu
+skip_tests: kokkos_omp kokkos_serial kokkos_gpu
 prerequisites: |
   atom full
   fix wall/flow

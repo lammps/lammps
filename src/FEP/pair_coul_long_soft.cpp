@@ -48,6 +48,8 @@ PairCoulLongSoft::PairCoulLongSoft(LAMMPS *lmp) :
 
 PairCoulLongSoft::~PairCoulLongSoft()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);

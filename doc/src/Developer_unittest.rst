@@ -946,7 +946,7 @@ of the potentials and differences in compilers.
 Tests for minimizer styles
 """"""""""""""""""""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 2Sep2026
 
 The ``test_min_style`` program tests the :doc:`min_style <min_style>`
 minimizers and :doc:`min_modify <min_modify>` settings.  The YAML files
@@ -982,7 +982,7 @@ as for the other testers.
 Tests for compute and fix output data
 """""""""""""""""""""""""""""""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 2Sep2026
 
 The ``test_output_style`` program tests the *output data* of computes
 and fixes: global scalars, global vectors, global arrays (including
@@ -1019,7 +1019,7 @@ testers.
 Tests for granular (DEM) models
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. versionadded:: TBD
+.. versionadded:: 2Sep2026
 
 The ``unittest/granular`` folder contains a YAML-driven test suite for
 discrete element method (DEM) / granular contact models, built in the
@@ -1342,7 +1342,7 @@ https://doi.org/10.1007/s10035-011-0277-0
 Tests for dump image and GRAPHICS package rendering
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. versionadded:: TBD
+.. versionadded:: 2Sep2026
 
 The ``unittest/graphics`` folder contains a YAML-driven test suite for
 the image rendering of the :doc:`dump image <dump_image>` command and

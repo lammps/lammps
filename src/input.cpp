@@ -649,10 +649,11 @@ void Input::substitute(char *&str, char *&str2, int &max, int &max2, int flag)
           *fmtflag='\0';
         }
 
-        // quick check for proper format string
+        // check that the format string matches the floating point value
 
-        if (!utils::strmatch(fmtstr,R"(%[0-9 ]*\.[0-9]+[efgEFG])"))
-          error->all(FLERR,"Incorrect conversion in format string {}", fmtstr);
+        auto errmsg = utils::check_format(fmtstr, utils::FmtArg::FLOAT);
+        if (!errmsg.empty())
+          error->all(FLERR,"Invalid format string in immediate variable: {}", errmsg);
 
         immediate = utils::sprintf(fmtstr, variable->compute_equal(var));
         value = immediate.c_str();

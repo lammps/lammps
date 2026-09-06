@@ -5,6 +5,12 @@ if(CMAKE_CXX_STANDARD LESS 20)
 be set to at least C++20")
 endif()
 
+# set policy to use the time of extraction as timestamps of files unpacked from downloaded
+# archives, so that updating an archive version triggers rebuilding all dependent objects
+ if(POLICY CMP0135)
+  cmake_policy(SET CMP0135 NEW)
+endif()
+
 # Set Kokkos Precision
 set(KOKKOS_PREC "double" CACHE STRING "LAMMPS KOKKOS precision")
 set(KOKKOS_PREC_VALUES double mixed single)
@@ -39,9 +45,22 @@ message(STATUS "Using " ${KOKKOS_LAYOUT_LOWER} " view layout for KOKKOS package"
 ########################################################################
 # consistency checks and Kokkos options/settings required by LAMMPS
 
-# temporarily enable Kokkos legacy view implementation to prevent integer overflows when indexing neighborlist views
-option(Kokkos_ENABLE_IMPL_VIEW_LEGACY "Enable legacy Kokkos view implementation" ON)
-mark_as_advanced(Kokkos_ENABLE_IMPL_VIEW_LEGACY)
+# Kokkos 5.2 still provides the legacy view implementation, which computes
+# view offsets in 64-bit arithmetic; the newer one does not, and can index a
+# view of more than 2^31 entries incorrectly, e.g. a neighbor list.  Keep the
+# legacy views until the KOKKOS package is ready for the newer ones (Kokkos 5.3
+# removes them), and do not let the build be talked out of it.  The legacy
+# implementation is deprecated in 5.2, so silence the warnings about it.
+set(Kokkos_ENABLE_IMPL_VIEW_LEGACY ON CACHE BOOL "" FORCE)
+set(Kokkos_ENABLE_DEPRECATION_WARNINGS OFF CACHE BOOL "" FORCE)
+mark_as_advanced(Kokkos_ENABLE_IMPL_VIEW_LEGACY Kokkos_ENABLE_DEPRECATION_WARNINGS)
+
+# Kokkos removed Kokkos_ENABLE_CUDA_UVM in 5.2 (deprecated since 4.0); CMake
+# would otherwise accept the stale setting and silently do nothing with it
+if(Kokkos_ENABLE_CUDA_UVM)
+  message(FATAL_ERROR "The option Kokkos_ENABLE_CUDA_UVM is no longer supported by Kokkos. "
+    "Use -D Kokkos_ENABLE_IMPL_CUDA_UNIFIED_MEMORY=on instead, which requires CUDA 12.2 or later")
+endif()
 
 if(Kokkos_ENABLE_HIP)
   option(Kokkos_ENABLE_HIP_MULTIPLE_KERNEL_INSTANTIATIONS "Enable multiple kernel instantiations with HIP" ON)
@@ -93,10 +112,9 @@ if(DOWNLOAD_KOKKOS)
   list(APPEND KOKKOS_LIB_BUILD_ARGS "-DCMAKE_CXX_EXTENSIONS=${CMAKE_CXX_EXTENSIONS}")
   list(APPEND KOKKOS_LIB_BUILD_ARGS "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}")
   include(ExternalProject)
-  set(KOKKOS_URL "https://github.com/kokkos/kokkos/archive/5.1.0.tar.gz" CACHE STRING "URL for KOKKOS tarball")
-  set(KOKKOS_SHA256 "66b2526569a70a21b2aeaed8dbb1cbe8b475f3c33719eac13bc7eed02e8c6590" CACHE STRING "SHA256 checksum of KOKKOS tarball")
-  mark_as_advanced(KOKKOS_URL)
-  mark_as_advanced(KOKKOS_SHA256)
+  SetDownloadSettings(KOKKOS "KOKKOS"
+    "https://github.com/kokkos/kokkos/archive/5.2.1.tar.gz"
+    "2b94b8db0ab093f0a3cacc282c737e4ba590542b783e6785a9209004ba9842a3")
   GetFallbackURL(KOKKOS_URL KOKKOS_FALLBACK)
 
   ExternalProject_Add(kokkos_build
@@ -119,7 +137,7 @@ if(DOWNLOAD_KOKKOS)
   add_dependencies(LAMMPS::KOKKOSCORE kokkos_build)
   add_dependencies(LAMMPS::KOKKOSCONTAINERS kokkos_build)
 elseif(EXTERNAL_KOKKOS)
-  find_package(Kokkos 5.1.0 REQUIRED CONFIG)
+  find_package(Kokkos 5.2.1 REQUIRED CONFIG)
   target_link_libraries(lammps PRIVATE Kokkos::kokkos)
 else()
   set(LAMMPS_LIB_KOKKOS_SRC_DIR ${LAMMPS_LIB_SOURCE_DIR}/kokkos)

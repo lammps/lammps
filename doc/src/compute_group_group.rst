@@ -150,7 +150,7 @@ Not all pair styles can be evaluated in a pairwise mode as required by
 this compute.  For example, three-body and other many-body potentials,
 such as :doc:`Tersoff <pair_tersoff>` and
 :doc:`Stillinger-Weber <pair_sw>` cannot be used.  :doc:`EAM <pair_eam>`
-potentials will re-use previously computed embedding term contributions,
+potentials will reuse previously computed embedding term contributions,
 so the computed pairwise forces and energies are based on the whole
 system and not valid if particles have been moved since.
 

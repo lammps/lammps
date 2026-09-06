@@ -189,3 +189,39 @@ function(GetFallbackURL input output)
     set(${output} ${newurl} PARENT_SCOPE)
   endif()
 endfunction(GetFallbackURL)
+
+# Register the download URL and SHA256 checksum of an external library or tool as cache variables
+# <prefix>_URL and <prefix>_SHA256.  Caching them allows package developers and users to override
+# permanently for a build folder which archive is downloaded.  But this also means that the cached
+# settings are retained when LAMMPS is updated to a new version of the external library.  Thus the
+# default checksum is recorded and the cached settings are updated to the new defaults when they
+# still match the previous defaults.  Otherwise a warning is printed, i.e. when the settings were
+# customized, or when the build folder was last configured with an older LAMMPS version that did
+# not record the default.  Only the checksums are compared, since a customized URL may point to a
+# local copy of the same archive.
+function(SetDownloadSettings prefix name url sha256)
+  set(_url_var ${prefix}_URL)
+  set(_sha_var ${prefix}_SHA256)
+  set(_ref_var ${prefix}_SHA256_DEFAULT)
+  if((DEFINED CACHE{${_sha_var}}) AND (DEFINED CACHE{${_ref_var}}))
+    if(("${${_sha_var}}" STREQUAL "${${_ref_var}}") AND (NOT ("${${_sha_var}}" STREQUAL "${sha256}")))
+      message(STATUS "Updating cached download settings for ${name} to the current defaults")
+      set(${_url_var} "${url}" CACHE STRING "URL for ${name} tarball" FORCE)
+      set(${_sha_var} "${sha256}" CACHE STRING "SHA256 checksum of ${name} tarball" FORCE)
+    endif()
+  endif()
+  set(${_url_var} "${url}" CACHE STRING "URL for ${name} tarball")
+  set(${_sha_var} "${sha256}" CACHE STRING "SHA256 checksum of ${name} tarball")
+  set(${_ref_var} "${sha256}" CACHE INTERNAL "Default SHA256 checksum of ${name} tarball")
+  mark_as_advanced(${_url_var} ${_sha_var})
+  if(NOT ("${${_sha_var}}" STREQUAL "${sha256}"))
+    message(WARNING "Cached download settings for ${name} differ from the defaults:\n"
+      "  ${_url_var} = ${${_url_var}}\n"
+      "  ${_sha_var} = ${${_sha_var}}\n"
+      "The current default URL is:\n"
+      "  ${url}\n"
+      "If this is not intended, reset the cached settings with:\n"
+      "  cmake -U ${_url_var} -U ${_sha_var} <build folder>\n"
+      "For more information see https://docs.lammps.org/err0039")
+  endif()
+endfunction(SetDownloadSettings)

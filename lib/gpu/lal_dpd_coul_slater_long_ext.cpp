@@ -18,6 +18,7 @@
 #include <cmath>
 
 #include "lal_dpd_coul_slater_long.h"
+#include "lammps_gpu.h"
 
 using namespace std;
 using namespace LAMMPS_AL;
@@ -27,6 +28,8 @@ static DPDCoulSlaterLong<PRECISION,ACC_PRECISION> DPDCMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
+
+namespace LAMMPS_GPU {
 int dpd_coul_slater_long_gpu_init(const int ntypes, double **host_cutsq, double **host_a0,
                                   double **host_gamma, double **host_sigma, double **host_cut_dpd,
                                   double **host_cut_dpdsq, double **host_cut_slatersq,
@@ -37,7 +40,6 @@ int dpd_coul_slater_long_gpu_init(const int ntypes, double **host_cutsq, double 
                                   const double g_ewald, const double lamda) {
   DPDCMF.clear();
   gpu_mode=DPDCMF.device->gpu_mode();
-  double gpu_split=DPDCMF.device->particle_split();
   int first_gpu=DPDCMF.device->first_device();
   int last_gpu=DPDCMF.device->last_device();
   int world_me=DPDCMF.device->world_me();
@@ -59,7 +61,7 @@ int dpd_coul_slater_long_gpu_init(const int ntypes, double **host_cutsq, double 
   if (world_me==0)
     init_ok=DPDCMF.init(ntypes, host_cutsq, host_a0, host_gamma, host_sigma, host_cut_dpd,
                         host_cut_dpdsq, host_cut_slatersq, special_lj, false, inum, nall,
-                        max_nbors, maxspecial, cell_size, gpu_split, screen, host_special_coul,
+                        max_nbors, maxspecial, cell_size, screen, host_special_coul,
                         qqrd2e, g_ewald, lamda);
 
   DPDCMF.device->world_barrier();
@@ -78,7 +80,7 @@ int dpd_coul_slater_long_gpu_init(const int ntypes, double **host_cutsq, double 
     if (gpu_rank==i && world_me!=0)
       init_ok=DPDCMF.init(ntypes, host_cutsq, host_a0, host_gamma, host_sigma, host_cut_dpd,
                           host_cut_dpdsq, host_cut_slatersq, special_lj, false, inum, nall,
-                          max_nbors, maxspecial, cell_size, gpu_split, screen, host_special_coul,
+                          max_nbors, maxspecial, cell_size, screen, host_special_coul,
                           qqrd2e, g_ewald, lamda);
 
     DPDCMF.device->serialize_init();
@@ -101,34 +103,26 @@ int ** dpd_coul_slater_long_gpu_compute_n(const int ago, const int inum_full, co
                          double **host_x, int *host_type, double *sublo,
                          double *subhi, tagint *tag, int **nspecial,
                          tagint **special, const bool eflag, const bool vflag,
-                         const bool eatom, const bool vatom, int &host_start,
-                         int **ilist, int **jnum, const double cpu_time, bool &success,
+                         const bool eatom, const bool vatom, int **ilist, int **jnum, bool &success,
                          double **host_v, const double dtinvsqrt,
                          const int seed, const int timestep,
                          double *boxlo, double *prd) {
   return DPDCMF.compute(ago, inum_full, nall, host_x, host_type, sublo,
                        subhi, tag, nspecial, special, eflag, vflag, eatom,
-                       vatom, host_start, ilist, jnum, cpu_time, success,
+                       vatom, ilist, jnum, success,
                        host_v, dtinvsqrt, seed, timestep, boxlo, prd);
 }
 
 void dpd_coul_slater_long_gpu_compute(const int ago, const int inum_full, const int nall,
                      double **host_x, int *host_type, int *ilist, int *numj,
                      int **firstneigh, const bool eflag, const bool vflag,
-                     const bool eatom, const bool vatom, int &host_start,
-                     const double cpu_time, bool &success, tagint *tag,
+                     const bool eatom, const bool vatom, bool &success, tagint *tag,
                      double **host_v, const double dtinvsqrt,
                      const int seed, const int timestep,
                      const int nlocal, double *boxlo, double *prd) {
   DPDCMF.compute(ago, inum_full, nall, host_x, host_type, ilist, numj,
-                firstneigh, eflag, vflag, eatom, vatom, host_start, cpu_time, success,
+                firstneigh, eflag, vflag, eatom, vatom, success,
                 tag, host_v, dtinvsqrt, seed, timestep, nlocal, boxlo, prd);
-}
-
-void dpd_coul_slater_long_gpu_update_coeff(int ntypes, double **host_a0, double **host_gamma,
-                          double **host_sigma, double **host_cut_dpd)
-{
-   DPDCMF.update_coeff(ntypes,host_a0,host_gamma,host_sigma, host_cut_dpd);
 }
 
 void dpd_coul_slater_long_gpu_get_extra_data(double *host_q) {
@@ -139,4 +133,4 @@ double dpd_coul_slater_long_gpu_bytes() {
   return DPDCMF.host_memory_usage();
 }
 
-
+} // namespace LAMMPS_GPU

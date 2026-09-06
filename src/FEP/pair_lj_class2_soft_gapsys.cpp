@@ -205,7 +205,7 @@ void PairLJClass2SoftGapsys::settings(int narg, char **arg)
   if (narg != 2) error->all(FLERR, "Illegal pair_style command");
 
   alphalj = utils::numeric(FLERR, arg[0], false, lmp);
-  if (not (alphalj > 0.0))
+  if (!(alphalj > 0.0))
     error->all(FLERR, "Pair style lj/class2/soft/gapsys requires alphalj > 0");
   cut_global = utils::numeric(FLERR, arg[1], false, lmp);
 

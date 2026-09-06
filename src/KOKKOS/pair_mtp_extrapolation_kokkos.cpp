@@ -346,6 +346,14 @@ template <class DeviceType> struct FindMaxValidNeighs {
     const int i = d_ilist[ii];
     const int num_neighs = d_numneigh(i);
 
+    if (num_neighs == 0) {
+      Kokkos::single(Kokkos::PerTeam(team), [&]() {
+        d_num_valid_neighs(ii) = 0;
+      });
+      if (max_valid_neighs < 0) max_valid_neighs = 0;
+      return;
+    }
+
     const KK_FLOAT xi[3] = {x(i, 0), x(i, 1), x(i, 2)};
 
     Kokkos::parallel_scan(Kokkos::TeamThreadRange(team, num_neighs),

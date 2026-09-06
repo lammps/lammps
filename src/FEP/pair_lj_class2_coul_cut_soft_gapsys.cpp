@@ -234,15 +234,15 @@ void PairLJClass2CoulCutSoftGapsys::settings(int narg, char **arg)
   if (narg < 4 || narg > 5) error->all(FLERR, "Illegal pair_style command");
 
   alphalj = utils::numeric(FLERR, arg[0], false, lmp);
-  if (not (alphalj > 0.0))
+  if (!(alphalj > 0.0))
     error->all(FLERR, "Pair style lj/class2/coul/cut/soft/gapsys requires alphalj > 0");
 
   sigmaq = utils::numeric(FLERR, arg[1], false, lmp);
-  if (not (sigmaq > 0.0))
+  if (!(sigmaq > 0.0))
     error->all(FLERR, "Pair style lj/class2/coul/cut/soft/gapsys requires sigmaq > 0");
 
   alphaq = utils::numeric(FLERR, arg[2], false, lmp);
-  if (not (alphaq > 0.0))
+  if (!(alphaq > 0.0))
     error->all(FLERR, "Pair style lj/class2/coul/cut/soft/gapsys requires alphaq > 0");
 
   cut_lj_global = utils::numeric(FLERR, arg[3], false, lmp);

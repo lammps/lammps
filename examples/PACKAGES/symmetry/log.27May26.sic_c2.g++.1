@@ -1,0 +1,135 @@
+LAMMPS (30 Mar 2026 - Development - patch_30Mar2026-1074-g7f680de296-modified)
+  using 1 OpenMP thread(s) per MPI task
+# 64-atom SiC zinc-blende crystal under the Tersoff bond-order potential,
+# constrained to the C_2(z) subgroup of the full F-43m point group by
+# fix symmetry. Demonstrates fix symmetry on a real materials-science
+# setup: chemically distinct atom types, 3-body bond-order forces, and a
+# non-trivial 2-fold rotation that pins Si atoms on the rotation axis
+# while leaving C atoms paired across z.
+#
+# Zinc-blende SiC has no inversion symmetry (inversion swaps Si and C),
+# so P-1 cannot be used. The 2-fold rotation about z preserves both FCC
+# sublattices, hence both atom types.
+#
+# Companion files data.sic_c2 and sic_c2.json are produced by
+# generate_sic_c2.py.
+
+units           metal
+atom_style      atomic
+boundary        p p p
+atom_modify     map array
+
+read_data       data.sic_c2
+Reading data file ...
+  orthogonal box = (0 0 0) to (8.72 8.72 8.72)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  64 atoms
+  read_data CPU = 0.000 seconds
+
+# SiC.tersoff lists C first, then Si. data.sic_c2 sets type 1 = C, type 2 = Si.
+pair_style      tersoff
+pair_coeff      * * SiC.tersoff C Si
+Reading tersoff potential file SiC.tersoff with DATE: 2011-04-26
+
+# Small thermal kick so the dynamics is non-trivial. The 2-fold rotation
+# constrains Si atoms on the corner sublattice to move only along z.
+velocity        all create 300.0 87287 mom yes rot yes
+
+fix             1 all nve
+fix             sym all symmetry sic_c2.json
+
+timestep        0.0005
+thermo          50
+thermo_style    custom step temp pe etotal press
+
+# Pick representative orbits from sic_c2.json:
+#   tag 1  Wyckoff Si on the rotation axis at (0,0,0)   -> x = y = 0 forever
+#   tags 5  & 32  paired C atoms                         -> sum_xy/L is integer, z equal
+#   tags 2  & 18  paired Si atoms                        -> same invariants
+variable        wy_x   equal x[1]
+variable        wy_y   equal y[1]
+variable        c_resx equal (x[5]+x[32])/lx-round((x[5]+x[32])/lx)
+variable        c_resy equal (y[5]+y[32])/ly-round((y[5]+y[32])/ly)
+variable        c_dz   equal z[5]-z[32]
+variable        si_resx equal (x[2]+x[18])/lx-round((x[2]+x[18])/lx)
+variable        si_resy equal (y[2]+y[18])/ly-round((y[2]+y[18])/ly)
+variable        si_dz   equal z[2]-z[18]
+
+print           "pre-run  Wyckoff Si: (${wy_x},${wy_y})  C pair: res=(${c_resx},${c_resy}) dz=${c_dz}  Si pair: res=(${si_resx},${si_resy}) dz=${si_dz}"
+pre-run  Wyckoff Si: (0,0)  C pair: res=(0,0) dz=0  Si pair: res=(0,0) dz=0
+run             200
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- fix symmetry: https://doi.org/10.1021/acs.jctc.2c00401
+
+@Article{WhiteCoxSymmetricMD,
+author = {Cox, Sam and White, Andrew D.},
+title = {Symmetric Molecular Dynamics},
+journal = {Journal of Chemical Theory and Computation},
+volume = {18},
+number = {7},
+pages = {4077-4081},
+year = {2022},
+doi = {10.1021/acs.jctc.2c00401},
+note ={PMID: 35699649},
+url = {https://doi.org/10.1021/acs.jctc.2c00401},
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 5
+  ghost atom cutoff = 5
+  binsize = 2.5, bins = 4 4 4
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair tersoff, perpetual
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 3.078 | 3.078 | 3.078 Mbytes
+   Step          Temp          PotEng         TotEng         Press     
+         0   137.57164     -394.16329     -393.04299     -55124.685    
+        50   54.675178     -393.48742     -393.04218     -53844.099    
+       100   61.91508      -393.5464      -393.0422      -53579.671    
+       150   89.736251     -393.77342     -393.04266     -54533.449    
+       200   65.266086     -393.57374     -393.04225     -53631.851    
+Loop time of 0.0139914 on 1 procs for 200 steps with 64 atoms
+
+Performance: 617.521 ns/day, 0.039 hours/ns, 14294.459 timesteps/s, 914.845 katom-step/s
+98.5% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.013035   | 0.013035   | 0.013035   |   0.0 | 93.17
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.00023784 | 0.00023784 | 0.00023784 |   0.0 |  1.70
+Output  | 1.5218e-05 | 1.5218e-05 | 1.5218e-05 |   0.0 |  0.11
+Modify  | 0.00064173 | 0.00064173 | 0.00064173 |   0.0 |  4.59
+Other   |            | 6.126e-05  |            |       |  0.44
+
+Nlocal:             64 ave          64 max          64 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:            557 ave         557 max         557 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:              0 ave           0 max           0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:         2944 ave        2944 max        2944 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 2944
+Ave neighs/atom = 46
+Neighbor list builds = 0
+Dangerous builds = 0
+print           "post-run Wyckoff Si: (${wy_x},${wy_y})  C pair: res=(${c_resx},${c_resy}) dz=${c_dz}  Si pair: res=(${si_resx},${si_resy}) dz=${si_dz}"
+post-run Wyckoff Si: (0,0)  C pair: res=(0,0) dz=0  Si pair: res=(0,2.22044604925031e-16) dz=0
+print           "(Wyckoff x,y must stay 0; both pair residuals ~1e-12; both dz ~1e-12)"
+(Wyckoff x,y must stay 0; both pair residuals ~1e-12; both dz ~1e-12)
+Total wall time: 0:00:00

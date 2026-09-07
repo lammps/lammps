@@ -182,6 +182,7 @@ Astop
 asub
 asubrama
 Asumming
+asym
 atan
 atc
 AtC
@@ -425,6 +426,7 @@ br
 Braems
 Branduardi
 Branicio
+Bravais
 brennan
 Bretonnet
 Briels
@@ -2482,6 +2484,7 @@ metadynamics
 Metadynamics
 metalfinish
 metallicity
+metastable
 Methfessel
 methine
 Metin
@@ -3287,6 +3290,7 @@ polyhedra
 Polym
 polymorph
 polymorphism
+polymorphs
 Ponder
 Ponte
 popen
@@ -4059,7 +4063,11 @@ Sx
 sy
 Sy
 symplectic
+symd
+symmetrization
 symmetrize
+symmetrized
+symmetrizing
 Synechococcus
 sys
 sysdim
@@ -4576,6 +4584,7 @@ wx
 Wx
 wy
 Wy
+Wyckoff
 Wysocki
 wz
 Wz

@@ -145,7 +145,12 @@ template <class DeviceType> class PairMTPKokkos : public PairMTP {
   // Global working buffers.
   Kokkos::View<int **, DeviceType> d_valid_neighs;
   Kokkos::View<int *, DeviceType> d_num_valid_neighs;
-  Kokkos::View<KK_FLOAT ****, DeviceType> d_moment_jacobian;
+
+  // Chunk-local radials
+  Kokkos::View<KK_FLOAT ***, Kokkos::LayoutLeft, DeviceType> d_radial_vals;
+  Kokkos::View<KK_FLOAT ***, Kokkos::LayoutLeft, DeviceType> d_radial_ders;
+  Kokkos::View<KK_FLOAT **, Kokkos::LayoutLeft, DeviceType> d_inv_dist;
+
   Kokkos::View<KK_FLOAT **, Kokkos::LayoutRight, DeviceType>
       d_moment_tensor_vals;    // This promotes some memory coalescing
   Kokkos::View<KK_FLOAT **, Kokkos::LayoutRight, DeviceType> d_nbh_energy_ders_wrt_moments;

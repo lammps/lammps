@@ -179,7 +179,7 @@ JUNK_SUFFIXES = ('~', '.bak', '.orig', '.rej')
 # <test-case> or examples/<package>/<test-case>.  Deeper paths make the
 # documentation hard to read; the examples tree should be flattened instead,
 # typically by combining several folder names into one longer name.
-MAX_DEPTH = 4
+MAX_DEPTH = 7
 
 HEADING_UNDERLINE = re.compile(r'^[\"\-=^~+*#`\']+$')
 

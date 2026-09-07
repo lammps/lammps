@@ -6,6 +6,7 @@
 .. index:: pair_style lj/cut/coul/cut/soft/kk
 .. index:: pair_style lj/cut/coul/cut/soft/gpu
 .. index:: pair_style lj/cut/coul/cut/soft/omp
+.. index:: pair_style lj/cut/coul/cut/soft/gapsys
 .. index:: pair_style lj/cut/coul/long/soft
 .. index:: pair_style lj/cut/coul/long/soft/kk
 .. index:: pair_style lj/cut/coul/long/soft/gpu
@@ -50,6 +51,9 @@ pair_style lj/cut/coul/cut/soft command
 =======================================
 
 Accelerator Variants: *lj/cut/coul/cut/soft/gpu*, *lj/cut/coul/cut/soft/kk*, *lj/cut/coul/cut/soft/omp*
+
+pair_style lj/cut/coul/cut/soft/gapsys command
+==============================================
 
 pair_style lj/cut/coul/long/soft command
 ========================================
@@ -119,7 +123,7 @@ Syntax
 
    pair_style style args
 
-* style = *lj/cut/soft* or *lj/cut/soft/gapsys* or *lj/cut/coul/cut/soft* or *lj/cut/coul/long/soft* or *lj/cut/tip4p/long/soft* or *lj/charmm/coul/long/soft* or *lj/class2/soft* or *lj/class2/soft/gapsys* or *lj/class2/coul/cut/soft* or *lj/class2/coul/cut/soft/gapsys* or *lj/class2/coul/long/soft* or *coul/cut/soft* or *coul/cut/soft/gapsys* or *coul/long/soft* or *tip4p/long/soft* or *morse/soft*
+* style = *lj/cut/soft* or *lj/cut/soft/gapsys* or *lj/cut/coul/cut/soft* or *lj/cut/coul/cut/soft/gapsys* or *lj/cut/coul/long/soft* or *lj/cut/tip4p/long/soft* or *lj/charmm/coul/long/soft* or *lj/class2/soft* or *lj/class2/soft/gapsys* or *lj/class2/coul/cut/soft* or *lj/class2/coul/cut/soft/gapsys* or *lj/class2/coul/long/soft* or *coul/cut/soft* or *coul/cut/soft/gapsys* or *coul/long/soft* or *tip4p/long/soft* or *morse/soft*
 * args = list of arguments for a particular style
 
 .. parsed-literal::
@@ -133,6 +137,10 @@ Syntax
      *lj/cut/coul/cut/soft* args = n alpha_LJ alpha_C cutoff (cutoff2)
        n, alpha_LJ, alpha_C = parameters of soft-core potential
        cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
+       cutoff2 = global cutoff for Coulombic (optional) (distance units)
+     *lj/cut/coul/cut/soft/gapsys* args = alpha_LJ sigma_q alpha_q cutoff (cutoff2)
+       alpha_LJ, sigma_q, alpha_q = parameters of the soft-core potential
+       cutoff = global cutoff for Coulomb interactions (distance units)
        cutoff2 = global cutoff for Coulombic (optional) (distance units)
      *lj/cut/coul/long/soft* args = n alpha_LJ alpha_C cutoff
        n, alpha_LJ, alpha_C = parameters of the soft-core potential
@@ -204,6 +212,9 @@ Examples
    pair_coeff * * 0.28 3.1 1.0
    pair_coeff 1 1 0.28 3.1 0.5 10.0
    pair_coeff 1 1 0.28 3.1 0.5 10.0 9.5
+
+   pair_style lj/cut/coul/cut/soft/gapsys 1.0 1.0 10.0 9.5 9.5
+   pair_coeff * * 0.28 3.1 1.0
 
    pair_style lj/cut/coul/long/soft 2.0 0.5 10.0 9.5
    pair_style lj/cut/coul/long/soft 2.0 0.5 10.0 9.5 9.5

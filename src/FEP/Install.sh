@@ -44,6 +44,8 @@ action pair_lj_charmm_coul_long_soft.cpp  pppm.cpp
 action pair_lj_charmm_coul_long_soft.h    pppm.cpp
 action pair_lj_cut_coul_cut_soft.cpp
 action pair_lj_cut_coul_cut_soft.h
+action pair_lj_cut_coul_cut_soft_gapsys.cpp
+action pair_lj_cut_coul_cut_soft_gapsys.h
 action pair_lj_cut_coul_long_soft.cpp     pppm.cpp
 action pair_lj_cut_coul_long_soft.h       pppm.cpp
 action pair_lj_cut_soft.cpp

@@ -1115,6 +1115,7 @@ package in ``tools/fep``; see its ``README`` file.
 * :doc:`pair_style \*/soft <pair_fep_soft>`
 * :doc:`pair_style coul/cut/soft/gapsys <pair_fep_soft>`
 * :doc:`pair_style lj/cut/soft/gapsys <pair_fep_soft>`
+* :doc:`pair_style lj/cut/coul/cut/soft/gapsys <pair_fep_soft>`
 * :doc:`pair_style lj/class2/soft/gapsys <pair_fep_soft>`
 * :doc:`pair_style lj/class2/coul/cut/soft/gapsys <pair_fep_soft>`
 * ``examples/PACKAGES/fep``

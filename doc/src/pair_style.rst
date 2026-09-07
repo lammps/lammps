@@ -258,6 +258,7 @@ accelerated styles exist.
 * :doc:`lj/cut/coul/cut <pair_lj_cut_coul>` - LJ with cutoff Coulomb
 * :doc:`lj/cut/coul/cut/dielectric <pair_dielectric>` -
 * :doc:`lj/cut/coul/cut/soft <pair_fep_soft>` - LJ with cutoff Coulomb with a soft core
+* :doc:`lj/cut/coul/cut/soft/gapsys <pair_fep_soft>` - LJ with cutoff Coulomb and a soft core with continuous force and first derivative of force
 * :doc:`lj/cut/coul/debye <pair_lj_cut_coul>` - LJ with Debye screening added to Coulomb
 * :doc:`lj/cut/coul/debye/dielectric <pair_dielectric>` -
 * :doc:`lj/cut/coul/dsf <pair_lj_cut_coul>` - LJ with Coulomb via damped shifted forces

@@ -46,8 +46,7 @@ enum { EDGE, CONSTANT, VARIABLE };
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-PairBrownianKokkos<DeviceType>::PairBrownianKokkos(LAMMPS *lmp) : PairBrownian(lmp),
-                                                                  rand_pool(seed + comm->me)
+PairBrownianKokkos<DeviceType>::PairBrownianKokkos(LAMMPS *lmp) : PairBrownian(lmp)
 {
   respa_enable = 0;
 
@@ -91,14 +90,29 @@ void PairBrownianKokkos<DeviceType>::init_style()
       error->all(FLERR,"Cannot use Kokkos pair style with rRESPA inner/middle");
   }
 
+  // the random number seed is only known after settings() has run, so the
+  // pool cannot be created in the constructor
+
+  typedef Kokkos::Experimental::UniqueToken<
+    DeviceType, Kokkos::Experimental::UniqueTokenScope::Global> unique_token_type;
+  unique_token_type unique_token;
+  rand_pool = decltype(rand_pool)(seed + comm->me,unique_token.size());
+
   // adjust neighbor list request for KOKKOS
 
   neighflag = lmp->kokkos->neighflag;
+
+  // a full neighbor list would visit each pair twice and draw independent
+  // random numbers each time, so the stochastic pair force would no longer
+  // be equal and opposite
+
+  if (neighflag == FULL)
+    error->all(FLERR,"Must use half neighbor list style with pair style brownian/kk");
+
   auto request = neighbor->find_request(this);
   request->set_kokkos_host(std::is_same_v<DeviceType,LMPHostType> &&
                            !std::is_same_v<DeviceType,LMPDeviceType>);
   request->set_kokkos_device(std::is_same_v<DeviceType,LMPDeviceType>);
-  if (neighflag == FULL) request->enable_full();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -160,6 +174,15 @@ void PairBrownianKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   prethermostat *= static_cast<KK_FLOAT>(sqrt(force->vxmu2f / force->ftm2v / force->mvv2e));
 
   // reallocate per-atom arrays if necessary
+  // this style has no per-atom energy, but eatom must exist and be zeroed
+  // because ev_init() above was called with alloc == 0
+
+  if (eflag_atom) {
+    maxeatom = atom->nmax;
+    memory->destroy(eatom);
+    memory->create(eatom,maxeatom,"pair:eatom");
+    memset(&eatom[0], 0, maxeatom * sizeof(double));
+  }
 
   if (vflag_atom) {
     memoryKK->destroy_kokkos(k_vatom,vatom);

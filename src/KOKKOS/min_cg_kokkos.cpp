@@ -116,6 +116,12 @@ int MinCGKokkos::iterate(int maxiter)
 
     // force tolerance criterion
 
+    // a force style without a KOKKOS variant leaves the device copy stale,
+    // and energy_force() only pushes it back for newton on or a min_post_force
+    // fix, so the force array has to be claimed here before it is read
+
+    atomKK->sync(Device,F_MASK);
+
     s_KK_double2 sdot;
     {
       // local variables for lambda capture
@@ -125,20 +131,20 @@ int MinCGKokkos::iterate(int maxiter)
       if constexpr (F_LAYOUTRIGHT) {
         auto l_fvec = fvec;
         Kokkos::parallel_reduce(nvec, LAMMPS_LAMBDA(const int& i, s_KK_double2& sdot) {
-          sdot.d0 += static_cast<KK_FLOAT>(l_fvec[i]*l_fvec[i]);
-          sdot.d1 += static_cast<KK_FLOAT>(l_fvec[i])*l_g[i];
+          sdot.d0 += static_cast<double>(l_fvec[i])*static_cast<double>(l_fvec[i]);
+          sdot.d1 += static_cast<double>(l_fvec[i])*static_cast<double>(l_g[i]);
         },sdot);
       } else {
         auto l_f = atomKK->k_f.view_device();
         Kokkos::parallel_reduce(atom->nlocal, LAMMPS_LAMBDA(const int& i, s_KK_double2& sdot) {
-          sdot.d0 += static_cast<KK_FLOAT>(l_f(i,0)*l_f(i,0));
-          sdot.d0 += static_cast<KK_FLOAT>(l_f(i,1)*l_f(i,1));
-          sdot.d0 += static_cast<KK_FLOAT>(l_f(i,2)*l_f(i,2));
+          sdot.d0 += static_cast<double>(l_f(i,0))*static_cast<double>(l_f(i,0));
+          sdot.d0 += static_cast<double>(l_f(i,1))*static_cast<double>(l_f(i,1));
+          sdot.d0 += static_cast<double>(l_f(i,2))*static_cast<double>(l_f(i,2));
 
           const int j = i*3;
-          sdot.d1 += static_cast<KK_FLOAT>(l_f(i,0))*l_g[j];
-          sdot.d1 += static_cast<KK_FLOAT>(l_f(i,1))*l_g[j+1];
-          sdot.d1 += static_cast<KK_FLOAT>(l_f(i,2))*l_g[j+2];
+          sdot.d1 += static_cast<double>(l_f(i,0))*static_cast<double>(l_g[j]);
+          sdot.d1 += static_cast<double>(l_f(i,1))*static_cast<double>(l_g[j+1]);
+          sdot.d1 += static_cast<double>(l_f(i,2))*static_cast<double>(l_g[j+2]);
         },sdot);
       }
     }

@@ -92,6 +92,7 @@ class PairExp6rxKokkos : public PairExp6rx {
   void compute(int, int) override;
   void coeff(int, char **) override;
   void init_style() override;
+  double init_one(int, int) override;
 
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION

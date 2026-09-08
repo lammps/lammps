@@ -118,19 +118,25 @@ void PairLJCutCoulDSFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   qqrd2e = static_cast<KK_FLOAT>(force->qqrd2e);
   newton_pair = force->newton_pair;
 
+  // damped-shifted-force self-energy per atom
+  // the loop below reads the host copy of q, which the sync above only
+  // refreshed in the execution space, so bring q to the host explicitly
+
+  if (eflag) {
+    atomKK->sync(Host,Q_MASK);
+    if (eflag_global) {
+      for (int i = 0; i < nlocal; i++) {
+        double qisq = atom->q[i]*atom->q[i];
+        eng_coul += -(e_shift/2.0 + alpha/MY_PIS) * qisq * force->qqrd2e;
+      }
+    }
+  }
+
   // loop over neighbors of my atoms
 
   EV_FLOAT ev;
 
   copymode = 1;
-
-  int inum = list->inum;
-
-  for (int ii = 0; ii < inum; ii ++) {
-    //int i = list->ilist[ii];
-    double qtmp = atom->q[ii];
-    eng_coul += -(e_shift/2.0 + alpha/MY_PIS) * qtmp*qtmp*static_cast<double>(qqrd2e);
-  }
 
   ev = pair_compute<PairLJCutCoulDSFKokkos<DeviceType>,void >
     (this,(NeighListKokkos<DeviceType>*)list);
@@ -151,6 +157,11 @@ void PairLJCutCoulDSFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   if (eflag_atom) {
     k_eatom.template modify<DeviceType>();
     k_eatom.sync_host();
+    // add the self-energy to the per-atom energy after the device sync
+    for (int i = 0; i < nlocal; i++) {
+      double qisq = atom->q[i]*atom->q[i];
+      eatom[i] += -(e_shift/2.0 + alpha/MY_PIS) * qisq * force->qqrd2e;
+    }
   }
 
   if (vflag_atom) {
@@ -220,13 +231,17 @@ compute_fcoul(const KK_FLOAT& rsq, const int& /*i*/, const int&j,
   const KK_FLOAT f_shift_kk = static_cast<KK_FLOAT>(f_shift);
   const KK_FLOAT r2inv = static_cast<KK_FLOAT>(1.0)/rsq;
   const KK_FLOAT r = Kokkos::sqrt(rsq);
-  const KK_FLOAT prefactor = factor_coul * qqrd2e * qtmp * q(j);
+  const KK_FLOAT prefactor = qqrd2e * qtmp * q(j) / r;
   const KK_FLOAT erfcd = Kokkos::exp(-alpha_kk*alpha_kk*rsq);
   const KK_FLOAT t = static_cast<KK_FLOAT>(1.0) / (static_cast<KK_FLOAT>(1.0) + static_cast<KK_FLOAT>(EWALD_P)*alpha_kk*r);
   const KK_FLOAT erfcc = t * (static_cast<KK_FLOAT>(A1)+t*(static_cast<KK_FLOAT>(A2)+t*(static_cast<KK_FLOAT>(A3)+t*(static_cast<KK_FLOAT>(A4)+t*static_cast<KK_FLOAT>(A5))))) * erfcd;
 
-  return prefactor * (erfcc/r + static_cast<KK_FLOAT>(2.0)*alpha_kk/static_cast<KK_FLOAT>(MY_PIS) * erfcd + r*f_shift_kk) *
-          r2inv;
+  KK_FLOAT forcecoul = prefactor * (erfcc/r + static_cast<KK_FLOAT>(2.0)*alpha_kk/static_cast<KK_FLOAT>(MY_PIS) * erfcd +
+                                    r*f_shift_kk) * r;
+  if (factor_coul < static_cast<KK_FLOAT>(1.0))
+    forcecoul -= (static_cast<KK_FLOAT>(1.0)-factor_coul)*prefactor;
+
+  return forcecoul * r2inv;
 }
 
 /* ----------------------------------------------------------------------
@@ -245,12 +260,16 @@ compute_ecoul(const KK_FLOAT& rsq, const int& /*i*/, const int&j,
   const KK_FLOAT e_shift_kk = static_cast<KK_FLOAT>(e_shift);
   const KK_FLOAT f_shift_kk = static_cast<KK_FLOAT>(f_shift);
   const KK_FLOAT r = Kokkos::sqrt(rsq);
-  const KK_FLOAT prefactor = factor_coul * qqrd2e * qtmp * q(j);
+  const KK_FLOAT prefactor = qqrd2e * qtmp * q(j) / r;
   const KK_FLOAT erfcd = Kokkos::exp(-alpha_kk*alpha_kk*rsq);
   const KK_FLOAT t = static_cast<KK_FLOAT>(1.0) / (static_cast<KK_FLOAT>(1.0) + static_cast<KK_FLOAT>(EWALD_P)*alpha_kk*r);
   const KK_FLOAT erfcc = t * (static_cast<KK_FLOAT>(A1)+t*(static_cast<KK_FLOAT>(A2)+t*(static_cast<KK_FLOAT>(A3)+t*(static_cast<KK_FLOAT>(A4)+t*static_cast<KK_FLOAT>(A5))))) * erfcd;
 
-  return prefactor * (erfcc - r*e_shift_kk - rsq*f_shift_kk) / r;
+  KK_FLOAT ecoul = prefactor * (erfcc - r*e_shift_kk - rsq*f_shift_kk);
+  if (factor_coul < static_cast<KK_FLOAT>(1.0))
+    ecoul -= (static_cast<KK_FLOAT>(1.0)-factor_coul)*prefactor;
+
+  return ecoul;
 
 }
 

@@ -257,12 +257,14 @@ void PairCoulDSFKokkos<DeviceType>::operator()(TagPairCoulDSFKernelA<NEIGHFLAG,N
 
       const KK_FLOAT r2inv = static_cast<KK_FLOAT>(1.0)/rsq;
       const KK_FLOAT r = Kokkos::sqrt(rsq);
-      const KK_FLOAT prefactor = factor_coul * qqrd2e*qtmp*q[j]/r;
+      const KK_FLOAT prefactor = qqrd2e*qtmp*q[j]/r;
       const KK_FLOAT erfcd = Kokkos::exp(-alpha_kk*alpha_kk*rsq);
       const KK_FLOAT t = static_cast<KK_FLOAT>(1.0) / (static_cast<KK_FLOAT>(1.0) + static_cast<KK_FLOAT>(EWALD_P)*alpha_kk*r);
       const KK_FLOAT erfcc = t * (static_cast<KK_FLOAT>(A1)+t*(static_cast<KK_FLOAT>(A2)+t*(static_cast<KK_FLOAT>(A3)+t*(static_cast<KK_FLOAT>(A4)+t*static_cast<KK_FLOAT>(A5))))) * erfcd;
-      const KK_FLOAT forcecoul = prefactor * (erfcc/r + static_cast<KK_FLOAT>(2.0)*alpha_kk/static_cast<KK_FLOAT>(MY_PIS) * erfcd +
+      KK_FLOAT forcecoul = prefactor * (erfcc/r + static_cast<KK_FLOAT>(2.0)*alpha_kk/static_cast<KK_FLOAT>(MY_PIS) * erfcd +
                                  r*f_shift_kk) * r;
+      if (factor_coul < static_cast<KK_FLOAT>(1.0))
+        forcecoul -= (static_cast<KK_FLOAT>(1.0)-factor_coul)*prefactor;
       const KK_FLOAT fpair = forcecoul * r2inv;
 
       fxtmp += static_cast<KK_ACC_FLOAT>(delx*fpair);
@@ -279,6 +281,8 @@ void PairCoulDSFKokkos<DeviceType>::operator()(TagPairCoulDSFKernelA<NEIGHFLAG,N
         KK_FLOAT ecoul = 0.0;
         if (eflag) {
           ecoul = prefactor * (erfcc - r*e_shift_kk - rsq*f_shift_kk);
+          if (factor_coul < static_cast<KK_FLOAT>(1.0))
+            ecoul -= (static_cast<KK_FLOAT>(1.0)-factor_coul)*prefactor;
           ev.ecoul += static_cast<KK_ACC_FLOAT>((((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD)&&(NEWTON_PAIR||(j<nlocal)))?static_cast<KK_FLOAT>(1.0):static_cast<KK_FLOAT>(0.5))*ecoul);
         }
 

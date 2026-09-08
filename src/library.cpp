@@ -21,6 +21,7 @@
 
 #include "accelerator_kokkos.h"
 #include "atom.h"
+#include "atom_masks.h"
 #include "atom_vec.h"
 #include "comm.h"
 #include "command.h"
@@ -6213,6 +6214,15 @@ int lammps_create_atoms(void *handle, int n, const tagint *id, const int *type,
 
     Atom *atom = lmp->atom;
     Domain *domain = lmp->domain;
+
+    // the loop below creates atoms and writes their per-atom data through the
+    // plain pointers, so bring the host side up to date first and hand the
+    // writes over afterwards; without the KOKKOS package these do nothing.
+    // both are needed here: this function is typically called between runs,
+    // when the device holds the newer copy of the per-atom arrays
+
+    atom->sync_host_arrays(ALL_MASK);
+
     int nlocal = atom->nlocal;
 
     int nlocal_prev = nlocal;
@@ -6262,6 +6272,8 @@ int lammps_create_atoms(void *handle, int n, const tagint *id, const int *type,
     // init per-atom fix/compute/variable values for created atoms
 
     atom->data_fix_compute_variable(nlocal_prev,nlocal);
+
+    atom->modified_host_arrays(ALL_MASK);
 
     // if global map exists, reset it
     // invoke map_init() b/c atom count has grown

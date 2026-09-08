@@ -301,16 +301,20 @@ void FixWallFlowKokkos<DeviceType>::unpack_exchange_kokkos(DAT::tdual_double_2d_
                                                            int /*nrecv1*/, int /*nextrarecv1*/,
                                                            ExecutionSpace /*space*/)
 {
-  // the kernel writes only the received entries, so the device copy has to be
-  // current before it claims the whole view below
-
-  k_current_segment.template sync<DeviceType>();
   k_buf.template sync<DeviceType>();
   k_indices.template sync<DeviceType>();
 
   d_buf = typename AT::t_double_1d_um(k_buf.template view<DeviceType>().data(),
                                                           k_buf.extent(0) * k_buf.extent(1));
   d_indices = k_indices.view<DeviceType>();
+
+  // the kernel below writes only the rows of the atoms that arrived, so the
+  // rest have to be current on the device first.  syncing here also retires
+  // any outstanding host claim, which the modify<DeviceType>() at the end
+  // would otherwise hit as a concurrent modification
+
+  k_current_segment.template sync<DeviceType>();
+  d_current_segment = k_current_segment.template view<DeviceType>();
 
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixWallFlowUnpackExchange>(0, nrecv),

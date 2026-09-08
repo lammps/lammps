@@ -863,6 +863,11 @@ void PairHybrid::read_restart(FILE *fp)
     if (me == 0) utils::sfread(FLERR,keywords[m],sizeof(char),n,fp,nullptr,error);
     MPI_Bcast(keywords[m],n,MPI_CHAR,0,world);
     styles[m] = force->new_pair(keywords[m],1,dummy);
+
+    // same position-based index as in settings(), so that a sub-style with an
+    // internal fix finds the per-atom data written for it in the restart file
+
+    styles[m]->hybrid_index = m;
     styles[m]->read_restart_settings(fp);
     // read back per style special settings, if present
     special_lj[m] = special_coul[m] = nullptr;

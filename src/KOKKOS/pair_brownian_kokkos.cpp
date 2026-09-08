@@ -114,11 +114,18 @@ void PairBrownianKokkos<DeviceType>::init_style()
   // adjust neighbor list request for KOKKOS
 
   neighflag = lmp->kokkos->neighflag;
+
+  // a full neighbor list would visit each pair twice and draw independent
+  // random numbers each time, so the stochastic pair force would no longer
+  // be equal and opposite
+
+  if (neighflag == FULL)
+    error->all(FLERR,"Must use half neighbor list style with pair style brownian/kk");
+
   auto request = neighbor->find_request(this);
   request->set_kokkos_host(std::is_same_v<DeviceType,LMPHostType> &&
                            !std::is_same_v<DeviceType,LMPDeviceType>);
   request->set_kokkos_device(std::is_same_v<DeviceType,LMPDeviceType>);
-  if (neighflag == FULL) request->enable_full();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -181,7 +188,8 @@ void PairBrownianKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   // reallocate per-atom arrays if necessary
   // the style has no potential energy, so the per-atom energy is all zero
-  // and only needs to exist on the host (compare pair dpd/tstat/kk)
+  // and only needs to exist on the host (compare pair dpd/tstat/kk), but it
+  // must exist and be zeroed because ev_init() above was called with alloc == 0
 
   if (eflag_atom) {
     maxeatom = atom->nmax;

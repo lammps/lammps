@@ -199,8 +199,10 @@ void ComputeCoordAtomKokkos<DeviceType>::operator()(TagComputeCoordAtom<CSTYLE,N
       int j = d_neighbors(i,jj);
       j &= NEIGHMASK;
 
-      if (NCOL == 1)
-        if (!(mask[j] & jgroupbit)) continue;
+      // the optional second group applies to all cutoff variants, not just ncol == 1;
+      // jgroupbit is the "all" bitmask unless the "group" keyword was given
+
+      if (!(mask[j] & jgroupbit)) continue;
 
       const int jtype = type[j];
       const KK_FLOAT delx = x(j,0) - xtmp;

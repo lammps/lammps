@@ -94,6 +94,7 @@ void PairLJSwitch3CoulGaussLongKokkos<DeviceType>::compute(int eflag_in, int vfl
   atomKK->sync(execution_space,datamask_read);
   k_cutsq.template sync<DeviceType>();
   k_cut_ljsq.template sync<DeviceType>();
+  k_cut_coulsq.template sync<DeviceType>();
   k_params.template sync<DeviceType>();
   if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
   else atomKK->modified(execution_space,F_MASK);
@@ -116,6 +117,7 @@ void PairLJSwitch3CoulGaussLongKokkos<DeviceType>::compute(int eflag_in, int vfl
   qqrd2e = static_cast<KK_FLOAT>(force->qqrd2e);
   newton_pair = force->newton_pair;
   g_ewald_kk = static_cast<KK_FLOAT>(g_ewald);
+  cut_coulsq_kk = static_cast<KK_FLOAT>(cut_coulsq);
   truncw_kk = static_cast<KK_FLOAT>(truncw);
   truncwi_kk = static_cast<KK_FLOAT>(truncwi);
 
@@ -207,18 +209,25 @@ compute_fcoul(const KK_FLOAT& rsq, const int& /*i*/, const int& j,
   const KK_FLOAT r = Kokkos::sqrt(rsq);
   const KK_FLOAT r2inv = static_cast<KK_FLOAT>(1.0) / rsq;
   const KK_FLOAT rinv = static_cast<KK_FLOAT>(1.0) / r;
-  const KK_FLOAT grij = g_ewald_kk * r;
-  const KK_FLOAT expm2 = Kokkos::exp(-grij*grij);
-  const KK_FLOAT t = static_cast<KK_FLOAT>(1.0) /
-    (static_cast<KK_FLOAT>(1.0) + static_cast<KK_FLOAT>(EWALD_P)*grij);
-  const KK_FLOAT erfc1 = t * (static_cast<KK_FLOAT>(A1)+t*(static_cast<KK_FLOAT>(A2)+
-                         t * (static_cast<KK_FLOAT>(A3)+t*(static_cast<KK_FLOAT>(A4)+
-                         t * static_cast<KK_FLOAT>(A5))))) * expm2;
-  const KK_FLOAT prefactor = qqrd2e * qtmp * q(j) * rinv;
 
   // Ewald Coulomb force
-  KK_FLOAT forcecoul = prefactor * (erfc1 + static_cast<KK_FLOAT>(EWALD_F)*grij*expm2);
-  if (factor_coul < static_cast<KK_FLOAT>(1.0)) forcecoul -= (static_cast<KK_FLOAT>(1.0)-factor_coul)*prefactor;
+  // this function is called out to the LJ cutoff for the sake of the Gaussian
+  // correction below, so the Ewald part needs its own Coulomb cutoff test
+
+  KK_FLOAT forcecoul = static_cast<KK_FLOAT>(0.0);
+  if (rsq < cut_coulsq_kk) {
+    const KK_FLOAT grij = g_ewald_kk * r;
+    const KK_FLOAT expm2 = Kokkos::exp(-grij*grij);
+    const KK_FLOAT t = static_cast<KK_FLOAT>(1.0) /
+      (static_cast<KK_FLOAT>(1.0) + static_cast<KK_FLOAT>(EWALD_P)*grij);
+    const KK_FLOAT erfc1 = t * (static_cast<KK_FLOAT>(A1)+t*(static_cast<KK_FLOAT>(A2)+
+                           t * (static_cast<KK_FLOAT>(A3)+t*(static_cast<KK_FLOAT>(A4)+
+                           t * static_cast<KK_FLOAT>(A5))))) * expm2;
+    const KK_FLOAT prefactor = qqrd2e * qtmp * q(j) * rinv;
+
+    forcecoul = prefactor * (erfc1 + static_cast<KK_FLOAT>(EWALD_F)*grij*expm2);
+    if (factor_coul < static_cast<KK_FLOAT>(1.0)) forcecoul -= (static_cast<KK_FLOAT>(1.0)-factor_coul)*prefactor;
+  }
 
   // Gaussian correction (only within VdW cutoff)
   const KK_FLOAT cut_ljsq_val = STACKPARAMS ? m_params[itype][jtype].cut_ljsq : params(itype,jtype).cut_ljsq;
@@ -283,17 +292,23 @@ compute_ecoul(const KK_FLOAT& rsq, const int& /*i*/, const int& j,
 {
   const KK_FLOAT r = Kokkos::sqrt(rsq);
   const KK_FLOAT rinv = static_cast<KK_FLOAT>(1.0) / r;
-  const KK_FLOAT grij = g_ewald_kk * r;
-  const KK_FLOAT expm2 = Kokkos::exp(-grij*grij);
-  const KK_FLOAT t = static_cast<KK_FLOAT>(1.0) /
-    (static_cast<KK_FLOAT>(1.0) + static_cast<KK_FLOAT>(EWALD_P)*grij);
-  const KK_FLOAT erfc1 = t * (static_cast<KK_FLOAT>(A1)+t*(static_cast<KK_FLOAT>(A2)+
-                         t * (static_cast<KK_FLOAT>(A3)+t*(static_cast<KK_FLOAT>(A4)+
-                         t * static_cast<KK_FLOAT>(A5))))) * expm2;
-  const KK_FLOAT prefactor = qqrd2e * qtmp * q(j) * rinv;
 
-  KK_FLOAT ecoul = prefactor * erfc1;
-  if (factor_coul < static_cast<KK_FLOAT>(1.0)) ecoul -= (static_cast<KK_FLOAT>(1.0)-factor_coul)*prefactor;
+  // as in compute_fcoul(), the Ewald part carries its own Coulomb cutoff test
+
+  KK_FLOAT ecoul = static_cast<KK_FLOAT>(0.0);
+  if (rsq < cut_coulsq_kk) {
+    const KK_FLOAT grij = g_ewald_kk * r;
+    const KK_FLOAT expm2 = Kokkos::exp(-grij*grij);
+    const KK_FLOAT t = static_cast<KK_FLOAT>(1.0) /
+      (static_cast<KK_FLOAT>(1.0) + static_cast<KK_FLOAT>(EWALD_P)*grij);
+    const KK_FLOAT erfc1 = t * (static_cast<KK_FLOAT>(A1)+t*(static_cast<KK_FLOAT>(A2)+
+                           t * (static_cast<KK_FLOAT>(A3)+t*(static_cast<KK_FLOAT>(A4)+
+                           t * static_cast<KK_FLOAT>(A5))))) * expm2;
+    const KK_FLOAT prefactor = qqrd2e * qtmp * q(j) * rinv;
+
+    ecoul = prefactor * erfc1;
+    if (factor_coul < static_cast<KK_FLOAT>(1.0)) ecoul -= (static_cast<KK_FLOAT>(1.0)-factor_coul)*prefactor;
+  }
 
   // Gaussian correction (only within VdW cutoff)
   const KK_FLOAT cut_ljsq_val = STACKPARAMS ? m_params[itype][jtype].cut_ljsq : params(itype,jtype).cut_ljsq;
@@ -327,7 +342,8 @@ void PairLJSwitch3CoulGaussLongKokkos<DeviceType>::allocate()
   memoryKK->create_kokkos(k_cut_ljsq,cut_ljsq,n+1,n+1,"pair:cut_ljsq");
   d_cut_ljsq = k_cut_ljsq.template view<DeviceType>();
 
-  d_cut_coulsq = typename AT::t_kkfloat_2d("pair:cut_coulsq",n+1,n+1);
+  k_cut_coulsq = DAT::tdual_kkfloat_2d("pair:cut_coulsq",n+1,n+1);
+  d_cut_coulsq = k_cut_coulsq.template view<DeviceType>();
 
   k_params = Kokkos::DualView<params_lj_sw3_cg**,Kokkos::LayoutRight,DeviceType>(
     "PairLJSwitch3CoulGaussLong::params",n+1,n+1);
@@ -342,8 +358,6 @@ template<class DeviceType>
 void PairLJSwitch3CoulGaussLongKokkos<DeviceType>::init_style()
 {
   PairLJSwitch3CoulGaussLong::init_style();
-
-  Kokkos::deep_copy(d_cut_coulsq,static_cast<KK_FLOAT>(cut_coulsq));
 
   if (update->whichflag == 1 && utils::strmatch(update->integrate_style,"^respa")) {
     int respa = 0;
@@ -371,26 +385,35 @@ double PairLJSwitch3CoulGaussLongKokkos<DeviceType>::init_one(int i, int j)
   double cutone = PairLJSwitch3CoulGaussLong::init_one(i,j);
   double cut_ljsqm = cut_ljsq[i][j];
 
+  // the Gaussian charge correction is evaluated in compute_fcoul() and
+  // compute_ecoul(), which pair_kokkos only calls within this bound, while
+  // the CPU style applies the correction out to the LJ cutoff
+
+  double cut_coulsqm = MAX(cut_coulsq,cut_ljsqm);
+
   k_params.view_host()(i,j).lj2       = static_cast<KK_FLOAT>(lj2[i][j]);
   k_params.view_host()(i,j).lj3       = static_cast<KK_FLOAT>(lj3[i][j]);
   k_params.view_host()(i,j).lj4       = static_cast<KK_FLOAT>(lj4[i][j]);
   k_params.view_host()(i,j).offset    = static_cast<KK_FLOAT>(offset[i][j]);
   k_params.view_host()(i,j).cut_lj    = static_cast<KK_FLOAT>(cut_lj[i][j]);
   k_params.view_host()(i,j).cut_ljsq  = static_cast<KK_FLOAT>(cut_ljsqm);
-  k_params.view_host()(i,j).cut_coulsq = static_cast<KK_FLOAT>(cut_coulsq);
+  k_params.view_host()(i,j).cut_coulsq = static_cast<KK_FLOAT>(cut_coulsqm);
 
   k_params.view_host()(j,i) = k_params.view_host()(i,j);
   if (i<MAX_TYPES_STACKPARAMS+1 && j<MAX_TYPES_STACKPARAMS+1) {
     m_params[i][j] = m_params[j][i] = k_params.view_host()(i,j);
     m_cutsq[j][i] = m_cutsq[i][j] = static_cast<KK_FLOAT>(cutone*cutone);
     m_cut_ljsq[j][i] = m_cut_ljsq[i][j] = static_cast<KK_FLOAT>(cut_ljsqm);
-    m_cut_coulsq[j][i] = m_cut_coulsq[i][j] = static_cast<KK_FLOAT>(cut_coulsq);
+    m_cut_coulsq[j][i] = m_cut_coulsq[i][j] = static_cast<KK_FLOAT>(cut_coulsqm);
   }
 
   k_cutsq.view_host()(i,j) = k_cutsq.view_host()(j,i) = cutone*cutone;
   k_cutsq.modify_host();
   k_cut_ljsq.view_host()(i,j) = k_cut_ljsq.view_host()(j,i) = cut_ljsqm;
   k_cut_ljsq.modify_host();
+  k_cut_coulsq.view_host()(i,j) = k_cut_coulsq.view_host()(j,i) =
+    static_cast<KK_FLOAT>(cut_coulsqm);
+  k_cut_coulsq.modify_host();
   k_params.modify_host();
 
   return cutone;

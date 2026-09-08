@@ -275,7 +275,7 @@ void ImproperCvffKokkos<DeviceType>::operator()(TagImproperCvffCompute<NEWTON_BO
     pd = static_cast<KK_FLOAT>(0.0);
   }
 
-  if (sign[type] == -1) {
+  if (d_sign[type] == -1) {
     p = static_cast<KK_FLOAT>(2.0) - p;
     pd = -pd;
   }

@@ -347,18 +347,11 @@ void VerletKokkos::run(int n)
       comm->forward_comm();
       timer->stamp(Timer::COMM);
     } else {
-      // added debug
-      //atomKK->sync(Host,ALL_MASK);
-      //atomKK->modified(Host,ALL_MASK);
-
       if (n_pre_exchange) {
         timer->stamp();
         modify->pre_exchange();
         timer->stamp(Timer::MODIFY);
       }
-      // debug
-      //atomKK->sync(Host,ALL_MASK);
-      //atomKK->modified(Host,ALL_MASK);
       if (triclinic) domain->x2lamda(atomKK->nlocal);
       domain->pbc();
       if (domain->box_change) {
@@ -368,17 +361,9 @@ void VerletKokkos::run(int n)
       }
       timer->stamp();
 
-      // added debug
-      //atomKK->sync(Device,ALL_MASK);
-      //atomKK->modified(Device,ALL_MASK);
-
       comm->exchange();
       if (sortflag && ntimestep >= atomKK->nextsort) atomKK->sort();
       comm->borders();
-
-      // added debug
-      //atomKK->sync(Host,ALL_MASK);
-      //atomKK->modified(Host,ALL_MASK);
 
       if (triclinic) domain->lamda2x(atomKK->nlocal+atomKK->nghost);
 
@@ -457,6 +442,15 @@ void VerletKokkos::run(int n)
           force->pair->execution_space != Host)) {
         Kokkos::deep_copy(LMPHostType(),atomKK->k_f.view_hostkk(),0.0);
         atomKK->k_f.modify_hostkk_legacy();
+
+        // a force style without KOKKOS support (execution_space == Host) adds
+        // into the legacy host array, which is a separate allocation whenever
+        // the two host views need a transform, so it has to be cleared for the
+        // same reason.  Without this, fusing force_clear() into the pair style
+        // leaves it stale and its contents are re-added on every step.
+
+        if (atomKK->k_f.NEED_TRANSFORM)
+          Kokkos::deep_copy(LMPHostType(),atomKK->k_f.view_host(),0.0);
       }
     }
 
@@ -510,7 +504,20 @@ void VerletKokkos::run(int n)
       if (f_merge_copy.extent(0) < atomKK->k_f.extent(0))
         f_merge_copy = DAT::t_kkacc_1d_3("VerletKokkos::f_merge_copy",atomKK->k_f.extent(0));
       f = atomKK->k_f.view_device();
-      atomKK->k_f.sync_legacy_to_hostkk();
+
+      // both host copies can hold a contribution: a /kk/host style accumulates
+      // into the Kokkos host view, a style without KOKKOS support into the
+      // legacy host array behind atom->f, which is a separate allocation when
+      // the two need a transform.  Add the legacy one in.  sync_legacy_to_hostkk()
+      // cannot be used here: it would copy one buffer over the other, and it is
+      // a no-op anyway since F_MASK is excluded from the modified() calls above.
+
+      if (atomKK->k_f.NEED_TRANSFORM) {
+        auto h_f_kk = atomKK->k_f.view_hostkk();
+        auto h_f_legacy = atomKK->k_f.view_host();
+        Kokkos::parallel_for(Kokkos::RangePolicy<LMPHostType>(0,atomKK->k_f.extent(0)),
+          ForceAdder<decltype(h_f_kk),decltype(h_f_legacy)>(h_f_kk,h_f_legacy));
+      }
       Kokkos::deep_copy(LMPHostType(),f_merge_copy,atomKK->k_f.view_hostkk());
       Kokkos::parallel_for(atomKK->k_f.extent(0),
         ForceAdder<DAT::t_kkacc_1d_3,DAT::t_kkacc_1d_3>(atomKK->k_f.view_device(),f_merge_copy));

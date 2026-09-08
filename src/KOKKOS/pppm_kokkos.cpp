@@ -145,6 +145,14 @@ void PPPMKokkos<DeviceType>::init()
   if (differentiation_flag == 1)
     error->all(FLERR,"Cannot (yet) use PPPM Kokkos with 'kspace_modify diff ad'");
 
+  // the automatic slab volume factor of the base class needs the iteration in
+  // PPPM::init(), which is not implemented here.  Without it slab_volfactor
+  // stays at 1.0, no vacuum is inserted, and the slab correction is applied to
+  // the unmodified box, so this must be rejected rather than ignored.
+
+  if (slabflag == 1 && slab_auto)
+    error->all(FLERR,"Cannot (yet) use PPPM Kokkos with 'kspace_modify slab auto'");
+
   triclinic_check();
 
   if (triclinic != domain->triclinic)
@@ -558,6 +566,50 @@ void PPPMKokkos<DeviceType>::operator()(TagPPPM_setup_triclinic2, const int &n) 
 }
 
 /* ----------------------------------------------------------------------
+   reset local grid arrays and communication stencils
+   called by fix balance b/c it changed sizes of processor sub-domains
+
+   PPPM::reset_grid() cannot be inherited here: it works on the base class
+   grid and charge distribution coefficients, which a KOKKOS run leaves
+   unallocated, and compute_rho_coeff() is not virtual
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void PPPMKokkos<DeviceType>::reset_grid()
+{
+  // free all arrays previously allocated
+
+  deallocate();
+  if (peratom_allocate_flag) deallocate_peratom();
+
+  // reset portion of global grid that each proc owns
+
+  set_grid_local();
+
+  // reallocate K-space dependent memory
+  // check if grid communication is now overlapping if not allowed
+  // don't invoke allocate_peratom(), will be allocated when needed
+
+  allocate();
+
+  if (!overlap_allowed && !gc->ghost_adjacent())
+    error->all(FLERR,"PPPM grid stencil extends beyond nearest neighbor processor");
+
+  // pre-compute Green's function denomiator expansion
+  // pre-compute 1d charge distribution coefficients
+
+  compute_gf_denom();
+  compute_rho_coeff();
+
+  k_rho_coeff.modify_host();
+  k_rho_coeff.template sync<DeviceType>();
+
+  // pre-compute volume-dependent coeffs for portion of grid I now own
+
+  setup();
+}
+
+/* ----------------------------------------------------------------------
    compute the PPPM long-range force, energy, virial
 ------------------------------------------------------------------------- */
 
@@ -618,6 +670,11 @@ void PPPMKokkos<DeviceType>::compute(int eflag, int vflag)
     boxlo[2] = domain->boxlo_lamda[2];
 
     domain->x2lamda(atomKK->nlocal);
+
+    // DomainKokkos converts on the device and claims X there, so the host
+    // instantiation would otherwise keep reading un-converted coordinates
+
+    atomKK->sync(execution_space,X_MASK);
   }
 
   boxlo_kk[0] = static_cast<KK_FLOAT>(boxlo[0]);
@@ -737,7 +794,10 @@ void PPPMKokkos<DeviceType>::compute(int eflag, int vflag)
   // convert atoms back from lamda to box coords
   // must precede slabcorr(), which needs Cartesian z-coordinates
 
-  if (triclinic) domain->lamda2x(atom->nlocal);
+  if (triclinic) {
+    domain->lamda2x(atom->nlocal);
+    atomKK->sync(execution_space,X_MASK);
+  }
 
   // 2d slab correction
 
@@ -903,14 +963,21 @@ void PPPMKokkos<DeviceType>::deallocate()
   memory->destroy(gc_buf1);
   memory->destroy(gc_buf2);
 
-  memoryKK->destroy_kokkos(d_density_fft,density_fft);
-  memoryKK->destroy_kokkos(d_work1,work1);
-  memoryKK->destroy_kokkos(d_work2,work2);
+  // release through the DualViews the buffers were created from, and drop the
+  // derived device handles as well: either one left holding a reference keeps
+  // the old allocation alive until allocate() overwrites it
+
+  memoryKK->destroy_kokkos(k_density_fft,density_fft);
+  memoryKK->destroy_kokkos(k_work1,work1);
+  memoryKK->destroy_kokkos(k_work2,work2);
+  d_density_fft = typename FFT_AT::t_FFT_SCALAR_1d();
+  d_work1 = typename FFT_AT::t_FFT_SCALAR_1d();
+  d_work2 = typename FFT_AT::t_FFT_SCALAR_1d();
 
   delete fft1;
   fft1 = nullptr;
   delete fft2;
-  fft1 = nullptr;
+  fft2 = nullptr;
   delete remap;
   remap = nullptr;
 }
@@ -2415,7 +2482,7 @@ void PPPMKokkos<DeviceType>::operator()(TagPPPM_unpack_forward2, const int &i) c
   const int iz = static_cast<int>(dlist/(nx*ny));
   const int iy = static_cast<int>((dlist - iz*nx*ny)/nx);
   const int ix = d_list_index[i] - iz*nx*ny - iy*nx;
-  if (eflag_atom) d_u_brick(iz,iy,ix) = d_buf[7*i];
+  if (eflag_atom) d_u_brick(iz,iy,ix) = d_buf[7*i + unpack_offset];
   if (vflag_atom) {
     d_v0_brick(iz,iy,ix) = d_buf[7*i+1 + unpack_offset];
     d_v1_brick(iz,iy,ix) = d_buf[7*i+2 + unpack_offset];

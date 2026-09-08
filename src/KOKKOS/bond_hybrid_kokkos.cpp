@@ -91,6 +91,14 @@ void BondHybridKokkos::compute(int eflag, int vflag)
       MemKK::realloc_kokkos(k_bondlist, "bond_hybrid:bondlist", nstyles, maxbond_all, 3);
     auto d_bondlist = k_bondlist.view_device();
 
+    // sub-styles that can delete a bond by setting its type to zero need to
+    // know which entry of the original bondlist each sub-style bond came from
+
+    const int partial = partial_flag;
+    if (partial && ((int)k_orig_map.view_device().extent(1) < maxbond_all))
+      MemKK::realloc_kokkos(k_orig_map, "bond_hybrid:orig_map", nstyles, maxbond_all);
+    auto d_orig_map = k_orig_map.view_device();
+
     Kokkos::deep_copy(d_nbondlist,0);
 
     Kokkos::parallel_for(nbondlist_orig,LAMMPS_LAMBDA(int i) {
@@ -100,7 +108,24 @@ void BondHybridKokkos::compute(int eflag, int vflag)
       d_bondlist(m,n,0) = d_bondlist_orig(i,0);
       d_bondlist(m,n,1) = d_bondlist_orig(i,1);
       d_bondlist(m,n,2) = d_bondlist_orig(i,2);
+      if (partial) d_orig_map(m,n) = i;
     });
+
+    if (partial) {
+      k_orig_map.modify_device();
+      k_orig_map.sync_host();
+    }
+
+    // the sub-style lists were just rebuilt on the device.  The subviews
+    // handed to the sub-styles below share these modified flags, so the
+    // device side is marked newest here and only here: on the other steps
+    // a sub-style may have marked the host side newest (bond quartic/kk
+    // zeroes broken bonds in the host mirror) and that must survive to the
+    // next step, and marking the device modified on top of it would abort
+    // with a concurrent modification error
+
+    k_bondlist.clear_sync_state();
+    k_bondlist.modify_device();
   }
 
   // call each sub-style's compute function
@@ -115,7 +140,6 @@ void BondHybridKokkos::compute(int eflag, int vflag)
   for (int m = 0; m < nstyles; m++) {
     neighbor->nbondlist = h_nbondlist[m];
     auto k_bondlist_m = Kokkos::subview(k_bondlist,m,Kokkos::ALL,Kokkos::ALL);
-    k_bondlist_m.modify_device();
     neighborKK->k_bondlist = k_bondlist_m;
 
     auto style = styles[m];
@@ -140,6 +164,29 @@ void BondHybridKokkos::compute(int eflag, int vflag)
       for (int i = 0; i < n; i++)
         for (int j = 0; j < 6; j++) vatom[i][j] += vatom_substyle[i][j];
     }
+  }
+
+  // a sub-style that can delete bonds (bond style quartic) does so by setting
+  // the bond type to zero in the sub-style bondlist it was handed.  Copy those
+  // zeroes back into the original bondlist, as BondHybrid::compute() does,
+  // otherwise the deletion is lost when the sub-style lists are rebuilt at the
+  // next reneighboring.  The sub-style writes them on the host, so do the same
+  // here rather than round-tripping the lists through the device.
+
+  if (partial_flag) {
+    k_bondlist.sync_host();
+    k_orig_map.sync_host();
+    k_bondlist_orig.sync_host();
+    auto h_bondlist = k_bondlist.view_host();
+    auto h_orig_map = k_orig_map.view_host();
+    auto h_bondlist_orig = k_bondlist_orig.view_host();
+
+    for (int m = 0; m < nstyles; m++)
+      for (int i = 0; i < h_nbondlist[m]; i++)
+        if (h_bondlist(m,i,2) <= 0)
+          h_bondlist_orig(h_orig_map(m,i),2) = h_bondlist(m,i,2);
+
+    k_bondlist_orig.modify_host();
   }
 
   // restore ptrs to original bondlist
@@ -209,6 +256,7 @@ double BondHybridKokkos::memory_usage()
   double bytes = (double) maxeatom * sizeof(double);
   bytes += (double) maxvatom * 6 * sizeof(double);
   for (int m = 0; m < nstyles; m++) bytes += (double) maxbond_all * 3 * sizeof(int);
+  if (partial_flag) bytes += (double) nstyles * maxbond_all * sizeof(int);
   for (int m = 0; m < nstyles; m++)
     if (styles[m]) bytes += styles[m]->memory_usage();
   return bytes;

@@ -189,6 +189,11 @@ void ComputeOrientOrderAtomKokkos<DeviceType>::compute_peratom()
   if (!host_flag)
     team_size_default = 32;//max_neighs;
 
+  // qnarray persists across calls, so clear it like the CPU style does:
+  // atoms that are not in the neighbor list are never visited below
+
+  Kokkos::deep_copy(d_qnarray,0.0);
+
   while (chunk_offset < inum) { // chunk up loop to prevent running out of memory
 
     if (chunk_size > inum - chunk_offset)
@@ -289,6 +294,13 @@ void ComputeOrientOrderAtomKokkos<DeviceType>::operator() (TagComputeOrientOrder
         offset++;
       }
     });
+  } else {
+
+    // clear the neighbor count of atoms outside the group: the downstream
+    // Select3/BOOP kernels are not group filtered and d_ncount is reused
+    // across chunks and timesteps, so a stale count would be picked up here
+
+    d_ncount(ii) = 0;
   }
 }
 
@@ -313,6 +325,24 @@ void ComputeOrientOrderAtomKokkos<DeviceType>::operator() (TagComputeOrientOrder
   if (nnn > 0) {
     select3(nnn, ncount, ii);
     d_ncount(ii) = nnn;
+  }
+
+  // a neighbor coincident with the central atom aborts the CPU calc_boop()
+  // before it writes anything, so the whole atom stays at zero.  the BOOP
+  // kernels here handle one neighbor at a time and cannot do that, so detect
+  // the degenerate neighbor up front and skip the atom with a zero count
+
+  const int nsel = d_ncount(ii);
+  for (int jj = 0; jj < nsel; jj++) {
+    const KK_FLOAT r0 = d_rlist(ii,jj,0);
+    const KK_FLOAT r1 = d_rlist(ii,jj,1);
+    const KK_FLOAT r2 = d_rlist(ii,jj,2);
+    if (Kokkos::sqrt(r0*r0 + r1*r1 + r2*r2) <= static_cast<KK_FLOAT>(MY_EPSILON)) {
+      for (int m = 0; m < ncol; m++)
+        d_qnarray(i,m) = 0.0;
+      d_ncount(ii) = 0;
+      return;
+    }
   }
 }
 

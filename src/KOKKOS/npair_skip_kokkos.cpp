@@ -17,6 +17,7 @@
 #include "atom_kokkos.h"
 #include "atom_masks.h"
 #include "neigh_list_kokkos.h"
+#include "neighbor_kokkos.h"
 
 using namespace LAMMPS_NS;
 
@@ -47,6 +48,10 @@ void NPairSkipKokkos<DeviceType,TRIM>::build(NeighList *list)
   if (TRIM) {
     x = atomKK->k_x.view<DeviceType>();
     atomKK->sync(execution_space,X_MASK);
+
+    NeighborKokkos* neighborKK = (NeighborKokkos*) neighbor;
+    neighborKK->k_cutneighsq.template sync<DeviceType>();
+    d_cutneighsq = neighborKK->k_cutneighsq.template view<DeviceType>();
     cutsq_custom = cutoff_custom*cutoff_custom;
   }
 
@@ -102,6 +107,8 @@ void NPairSkipKokkos<DeviceType,TRIM>::build(NeighList *list)
     list->gnum = inum - num;
   }
   copymode = 0;
+
+  k_list->k_ilist.template modify<DeviceType>();
 }
 
 template<class DeviceType, int TRIM>
@@ -141,7 +148,11 @@ void NPairSkipKokkos<DeviceType,TRIM>::operator()(TagNPairSkipCompute, const int
           const double dely = ytmp - static_cast<double>(x(j,1));
           const double delz = ztmp - static_cast<double>(x(j,2));
           const double rsq = delx*delx + dely*dely + delz*delz;
-          if (rsq > cutsq_custom) continue;
+          // a skip list inherits the parent's cutoff, so cutoff_custom is 0 here;
+          // fall back to the pairwise neighbour cutoff as NPairSkip::build() does
+          const double cutsq_trim = (cutsq_custom > 0.0) ? cutsq_custom :
+            static_cast<double>(d_cutneighsq(itype,type(j)));
+          if (rsq > cutsq_trim) continue;
         }
 
         neighbors_i(n++) = joriginal;

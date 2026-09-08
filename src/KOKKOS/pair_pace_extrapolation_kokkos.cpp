@@ -1426,7 +1426,12 @@ void PairPACEExtrapolationKokkos<DeviceType>::operator() (TagPairPACEComputeDeri
   if (jj >= ncount) return;
 
   const int itype = type(i);
-  const KK_FLOAT scale = d_scale(itype,itype);
+
+  // the pair force uses the off-diagonal scale factor, as the CPU style does;
+  // the diagonal element is reserved for the per-atom energy
+
+  const int jtype = type(d_nearest(ii,jj));
+  const KK_FLOAT scale = d_scale(itype,jtype);
 
   const int mu_j = d_mu(ii, jj);
   KK_FLOAT r_hat[3];

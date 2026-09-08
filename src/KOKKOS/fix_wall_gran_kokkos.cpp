@@ -117,6 +117,8 @@ void FixWallGranKokkos<DeviceType>::post_force(int /*vflag*/)
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagFixWallGranHookeHistory<ZCYLINDER>>(0,nlocal),*this);
   } else if (pairstyle == HERTZ_HISTORY)
     error->all(FLERR, "Fix wall/gran/kk doesn't yet support hertz/history style");
+  else if (pairstyle == GRANULAR)
+    error->all(FLERR, "Fix wall/gran/kk doesn't yet support granular style");
 
   atomKK->modified(execution_space,datamask_modify);
 
@@ -368,7 +370,7 @@ KOKKOS_INLINE_FUNCTION
 void FixWallGranKokkos<DeviceType>::operator()(TagFixWallGranPackExchange, const int &mysend) const
 {
   const int i = d_sendlist(mysend);
-  int m = i*size_history;
+  int m = mysend*size_history;
   for (int v = 0; v < size_history; v++)
     d_buf(m++) = static_cast<double>(d_history_one(i,v));
 
@@ -421,7 +423,7 @@ void FixWallGranKokkos<DeviceType>::operator()(TagFixWallGranUnpackExchange, con
   if (index > -1) {
     int m = i*size_history;
     for (int v = 0; v < size_history; v++)
-      d_history_one(i,v) = static_cast<KK_FLOAT>(d_buf(m++));
+      d_history_one(index,v) = static_cast<KK_FLOAT>(d_buf(m++));
   }
 }
 

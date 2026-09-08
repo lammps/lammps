@@ -258,7 +258,7 @@ class NeighborKokkosExecute
   HAT::t_int_scalar h_new_maxneighs;
 
   const int xperiodic, yperiodic, zperiodic;
-  const int xprd_half, yprd_half, zprd_half;
+  const double xprd_half, yprd_half, zprd_half;
 
   // GRANULAR required member variables
   const double skin;
@@ -300,7 +300,7 @@ class NeighborKokkosExecute
                         const typename AT::t_int_1d_const & _ex_mol_intra,
                         const double *_bboxhi, const double* _bboxlo,
                         const int & _xperiodic, const int & _yperiodic, const int & _zperiodic,
-                        const int & _xprd_half, const int & _yprd_half, const int & _zprd_half,
+                        const double & _xprd_half, const double & _yprd_half, const double & _zprd_half,
                         const double _skin,
                         const typename AT::t_int_scalar _resize,
                         const HAT::t_int_scalar _h_resize,

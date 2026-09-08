@@ -97,6 +97,11 @@ template<class DeviceType>
 void PairMultiLucyRXKokkos<DeviceType>::coeff(int narg, char **arg) {
   PairMultiLucyRX::coeff(narg, arg);
 
+  // a pair_coeff after the first run adds a table on the host only,
+  // so force the device side tables to be rebuilt in the next compute()
+
+  update_table = 1;
+
   // rx_fix is initialized in PairMultiLucyRX::coeff().
   rx_fixKK = dynamic_cast<FixRxKokkos<DeviceType> *>(rx_fix);
   if (!rx_fixKK)
@@ -119,6 +124,23 @@ void PairMultiLucyRXKokkos<DeviceType>::init_style()
                            !std::is_same_v<DeviceType,LMPDeviceType>);
   request->set_kokkos_device(std::is_same_v<DeviceType,LMPDeviceType>);
   if (neighflag == FULL) request->enable_full();
+}
+
+/* ----------------------------------------------------------------------
+   init for one type pair i,j and corresponding j,i
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+double PairMultiLucyRXKokkos<DeviceType>::init_one(int i, int j)
+{
+  double cutone = PairMultiLucyRX::init_one(i,j);
+
+  // Pair::init() refills the host side cutsq on every run setup, and the host
+  // view of k_cutsq aliases it, so the device copy has to be refreshed too
+
+  k_cutsq.modify_host();
+
+  return cutone;
 }
 
 /* ---------------------------------------------------------------------- */

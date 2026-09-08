@@ -232,8 +232,9 @@ void CommTiledKokkos::forward_comm_device()
       }
       if (sendself[iswap]) {
         auto k_sendlist_small = Kokkos::subview(k_sendlist,iswap,nsend,Kokkos::ALL);
-        n = atomKK->avecKK->pack_comm_kokkos(sendnum[iswap][nsend],k_sendlist_small,
+        atomKK->avecKK->pack_comm_kokkos(sendnum[iswap][nsend],k_sendlist_small,
                         k_buf_send,pbc_flag[iswap][nsend],pbc[iswap][nsend]);
+        atomKK->avecKK->unpack_comm_kokkos(recvnum[iswap][nrecv],firstrecv[iswap][nrecv],k_buf_send);
       }
       if (recvother[iswap]) {
         for (i = 0; i < nrecv; i++) {

@@ -45,6 +45,11 @@ FixWallRegionKokkos<DeviceType>::FixWallRegionKokkos(LAMMPS *lmp, int narg, char
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = X_MASK | V_MASK | F_MASK | MASK_MASK;
+
+  // the colloid wall reads the per-atom radius in the kernel; the style has
+  // been parsed by the base class constructor at this point
+
+  if (style == COLLOID) datamask_read |= RADIUS_MASK;
   datamask_modify = F_MASK;
 }
 

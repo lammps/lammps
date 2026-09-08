@@ -983,7 +983,7 @@ that need random numbers (for example :doc:`fix langevin <fix_langevin>`
 or :doc:`fix brownian <fix_brownian>`) use the same random number
 generator as the corresponding plain styles instead of the parallel
 generator of the Kokkos library.  A run on a single MPI process with the
-Serial backend then follows the same trajectory as a run without the
+Serial back end then follows the same trajectory as a run without the
 KOKKOS package, which makes it possible to compare the two directly and
 thus to validate the KOKKOS versions of those styles.  This is a
 validation and debugging aid only: the substitute generator is slower

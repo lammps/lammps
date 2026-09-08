@@ -354,10 +354,27 @@ void DihedralFourierKokkos<DeviceType>::allocate_kokkos()
     k_multiplicity = DAT::tdual_int_2d("DihedralFourier::multiplicity",n+1,nterms_max);
     k_nterms = DAT::tdual_int_1d("DihedralFourier::nterms",n+1);
   } else {
+
+    // make the host side the newest before resizing: Kokkos grows the side
+    // that was last modified, and growing on the device replaces the host
+    // mirror with a fresh zero-filled allocation and leaves the device marked
+    // modified, which makes the modify_host() in coeff() below abort with a
+    // concurrent modification error
+
+    k_k.sync_host();
+    k_k.modify_host();
     k_k.resize(n+1,nterms_max);
+    k_cos_shift.sync_host();
+    k_cos_shift.modify_host();
     k_cos_shift.resize(n+1,nterms_max);
+    k_sin_shift.sync_host();
+    k_sin_shift.modify_host();
     k_sin_shift.resize(n+1,nterms_max);
+    k_multiplicity.sync_host();
+    k_multiplicity.modify_host();
     k_multiplicity.resize(n+1,nterms_max);
+    k_nterms.sync_host();
+    k_nterms.modify_host();
     k_nterms.resize(n+1);
   }
 

@@ -271,29 +271,29 @@ void NPairKokkos<DeviceType,HALF,NEWTON,GHOST,TRI,SIZE>::build(NeighList *list_)
 
       NPairKokkosBuildFunctorGhost<DeviceType,HALF> f(data,atoms_per_bin * 5 * sizeof(double) * factor);
 
-// temporarily disable team policy for ghost due to known bug
+      // the team kernel builds a list only for the atoms it finds in the bins,
+      // while the flat kernel walks 0..nall. Those differ when an include group
+      // keeps atoms out of the bins, so use the flat kernel in that case.
 
-//#ifdef LMP_KOKKOS_GPU
-//      if (ExecutionSpaceFromDevice<DeviceType>::space == Device) {
-//        int team_size = atoms_per_bin*factor;
-//        int team_size_max = Kokkos::TeamPolicy<DeviceType>(team_size,Kokkos::AUTO).team_size_max(f,Kokkos::ParallelForTag());
-//        if (team_size <= team_size_max) {
-//          Kokkos::TeamPolicy<DeviceType> config((mbins+factor-1)/factor,team_size);
-//          Kokkos::parallel_for(config, f);
-//        } else { // fall back to flat method
-//          f.sharedsize = 0;
-//          Kokkos::parallel_for(nall, f);
-//        }
-//      } else
-//        Kokkos::parallel_for(nall, f);
-//#else
-      // the flat kernel uses no team scratch, but Kokkos still queries
-      // team_shmem_size() when deducing the CUDA/HIP block size for a
-      // RangePolicy. A stale request larger than the shared memory limit
-      // makes that deduction return a block size of zero.
+#ifdef LMP_KOKKOS_GPU
+      if (ExecutionSpaceFromDevice<DeviceType>::space == Device && !includegroup) {
+        int team_size = atoms_per_bin*factor;
+        int team_size_max = Kokkos::TeamPolicy<DeviceType>(team_size,Kokkos::AUTO).team_size_max(f,Kokkos::ParallelForTag());
+        if (team_size <= team_size_max) {
+          Kokkos::TeamPolicy<DeviceType> config((mbins+factor-1)/factor,team_size);
+          Kokkos::parallel_for(config, f);
+        } else { // fall back to flat method
+          f.sharedsize = 0;
+          Kokkos::parallel_for(nall, f);
+        }
+      } else {
+        f.sharedsize = 0;
+        Kokkos::parallel_for(nall, f);
+      }
+#else
       f.sharedsize = 0;
       Kokkos::parallel_for(nall, f);
-//#endif
+#endif
     } else {
       if (SIZE) {
         NPairKokkosBuildFunctorSize<DeviceType,HALF,NEWTON,TRI> f(data,atoms_per_bin * 7 * sizeof(double) * factor);

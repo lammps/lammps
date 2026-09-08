@@ -28,13 +28,27 @@
 #include "update.h"
 
 #include <cmath>
+#include <type_traits>
 
 using namespace LAMMPS_NS;
 
-// a minimal separation so that r = 0 core/shell pairs stay finite until the
-// special-bond factor removes them, taken verbatim from the CPU style
+// A minimal separation so that r = 0 core/shell pairs stay finite until the
+// special-bond factor removes them.  The CPU style uses 1.0e-20, which cannot
+// be carried over unchanged when KK_FLOAT is float.
+//
+// The quantity that has to stay in range is the steepest one the kernel forms,
+// not the energy: compute_fpair() returns forceborn*r2inv, whose born3 term is
+// born3 * rsq^-5.  At rsq = 1.0e-20 that is 1e100 -- finite in double, infinite
+// in single -- and the zero special-bond factor then gives NaN rather than
+// removing the pair.  1.0e-6 puts it at 1e30, eight orders inside the range of
+// float, and leaves the r^-8 energy term at 1e24.
+//
+// The value is applied as a floor, not as an unconditional add, so it can be
+// this large without consequence: a floor only changes separations already
+// below it, and never perturbs a normal pair.  (An *added* 1.0e-6 would have
+// perturbed one, since 1.0f + 1.0e-6f != 1.0f.)
 
-static constexpr double EPSILON = 1.0e-20;
+static constexpr double EPSILON = std::is_same_v<KK_FLOAT, float> ? 1.0e-6 : 1.0e-20;
 using MathConst::MY_PIS;
 
 /* ---------------------------------------------------------------------- */
@@ -122,9 +136,17 @@ void PairBornCoulDSFCSKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   newton_pair = force->newton_pair;
 
   // damped-shifted-force self-energy per atom
-  for (int i = 0; i < nlocal; i++) {
-    double qisq = atom->q[i]*atom->q[i];
-    eng_coul += -(e_shift/2.0 + alpha/MY_PIS) * qisq * force->qqrd2e;
+  // the loop below reads the host copy of q, which the sync above only
+  // refreshed in the execution space, so bring q to the host explicitly
+
+  if (eflag) {
+    atomKK->sync(Host,Q_MASK);
+    if (eflag_global) {
+      for (int i = 0; i < nlocal; i++) {
+        double qisq = atom->q[i]*atom->q[i];
+        eng_coul += -(e_shift/2.0 + alpha/MY_PIS) * qisq * force->qqrd2e;
+      }
+    }
   }
 
   EV_FLOAT ev;
@@ -179,10 +201,12 @@ KK_FLOAT PairBornCoulDSFCSKokkos<DeviceType>::
 compute_fpair(const KK_FLOAT& rsq_in, const int& /*i*/, const int& /*j*/,
               const int& itype, const int& jtype) const
 {
-  // r = 0 must stay finite here, exactly as in the CPU style, which adds
-  // EPSILON to rsq before evaluating either term of the pair
+  // r = 0 must stay finite here, as in the CPU style.  Applied as a floor
+  // rather than an unconditional add, so that a value large enough to keep the
+  // single-precision kernel in range cannot perturb a normal pair
 
-  const KK_FLOAT rsq = rsq_in + static_cast<KK_FLOAT>(EPSILON);
+  const KK_FLOAT rsq = (rsq_in > static_cast<KK_FLOAT>(EPSILON)) ?
+    rsq_in : static_cast<KK_FLOAT>(EPSILON);
 
   const KK_FLOAT r2inv = static_cast<KK_FLOAT>(1.0)/rsq;
   const KK_FLOAT r6inv = r2inv*r2inv*r2inv;
@@ -210,10 +234,12 @@ compute_fcoul(const KK_FLOAT& rsq_in, const int& /*i*/, const int& j,
               const int& /*itype*/, const int& /*jtype*/,
               const KK_FLOAT& factor_coul, const KK_FLOAT& qtmp) const
 {
-  // r = 0 must stay finite here, exactly as in the CPU style, which adds
-  // EPSILON to rsq before evaluating either term of the pair
+  // r = 0 must stay finite here, as in the CPU style.  Applied as a floor
+  // rather than an unconditional add, so that a value large enough to keep the
+  // single-precision kernel in range cannot perturb a normal pair
 
-  const KK_FLOAT rsq = rsq_in + static_cast<KK_FLOAT>(EPSILON);
+  const KK_FLOAT rsq = (rsq_in > static_cast<KK_FLOAT>(EPSILON)) ?
+    rsq_in : static_cast<KK_FLOAT>(EPSILON);
 
   const KK_FLOAT r = Kokkos::sqrt(rsq);
   const KK_FLOAT r2inv = static_cast<KK_FLOAT>(1.0)/rsq;
@@ -242,10 +268,12 @@ KK_FLOAT PairBornCoulDSFCSKokkos<DeviceType>::
 compute_evdwl(const KK_FLOAT& rsq_in, const int& /*i*/, const int& /*j*/,
                const int& itype, const int& jtype) const
 {
-  // r = 0 must stay finite here, exactly as in the CPU style, which adds
-  // EPSILON to rsq before evaluating either term of the pair
+  // r = 0 must stay finite here, as in the CPU style.  Applied as a floor
+  // rather than an unconditional add, so that a value large enough to keep the
+  // single-precision kernel in range cannot perturb a normal pair
 
-  const KK_FLOAT rsq = rsq_in + static_cast<KK_FLOAT>(EPSILON);
+  const KK_FLOAT rsq = (rsq_in > static_cast<KK_FLOAT>(EPSILON)) ?
+    rsq_in : static_cast<KK_FLOAT>(EPSILON);
 
   const KK_FLOAT r2inv = static_cast<KK_FLOAT>(1.0)/rsq;
   const KK_FLOAT r6inv = r2inv*r2inv*r2inv;
@@ -273,10 +301,12 @@ compute_ecoul(const KK_FLOAT& rsq_in, const int& /*i*/, const int& j,
                const int& /*itype*/, const int& /*jtype*/,
                const KK_FLOAT& factor_coul, const KK_FLOAT& qtmp) const
 {
-  // r = 0 must stay finite here, exactly as in the CPU style, which adds
-  // EPSILON to rsq before evaluating either term of the pair
+  // r = 0 must stay finite here, as in the CPU style.  Applied as a floor
+  // rather than an unconditional add, so that a value large enough to keep the
+  // single-precision kernel in range cannot perturb a normal pair
 
-  const KK_FLOAT rsq = rsq_in + static_cast<KK_FLOAT>(EPSILON);
+  const KK_FLOAT rsq = (rsq_in > static_cast<KK_FLOAT>(EPSILON)) ?
+    rsq_in : static_cast<KK_FLOAT>(EPSILON);
 
   const KK_FLOAT r = Kokkos::sqrt(rsq);
   const KK_FLOAT prefactor = qqrd2e*qtmp*q(j)/r;

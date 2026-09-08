@@ -122,9 +122,17 @@ void PairBornCoulWolfCSKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   newton_pair = force->newton_pair;
 
   // Wolf self-energy per atom
-  for (int i = 0; i < nlocal; i++) {
-    double qisq = atom->q[i]*atom->q[i];
-    eng_coul += -(static_cast<double>(e_shift)/2.0 + static_cast<double>(m_alf)/MY_PIS) * qisq * static_cast<double>(qqrd2e);
+  // the loop below reads the host copy of q, which the sync above only
+  // refreshed in the execution space, so bring q to the host explicitly
+
+  if (eflag) {
+    atomKK->sync(Host,Q_MASK);
+    if (eflag_global) {
+      for (int i = 0; i < nlocal; i++) {
+        double qisq = atom->q[i]*atom->q[i];
+        eng_coul += -(static_cast<double>(e_shift)/2.0 + static_cast<double>(m_alf)/MY_PIS) * qisq * static_cast<double>(qqrd2e);
+      }
+    }
   }
 
   EV_FLOAT ev;

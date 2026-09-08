@@ -487,7 +487,7 @@ int AtomVec::pack_comm_vel(int n, int *list, double *buf, int pbc_flag, int *pbc
         buf[m++] = x[j][0] + dx;
         buf[m++] = x[j][1] + dy;
         buf[m++] = x[j][2] + dz;
-        if (mask[i] & deform_groupbit) {
+        if (mask[j] & deform_groupbit) {
           buf[m++] = v[j][0] + dvx;
           buf[m++] = v[j][1] + dvy;
           buf[m++] = v[j][2] + dvz;
@@ -948,7 +948,7 @@ int AtomVec::pack_border_vel(int n, int *list, double *buf, int pbc_flag, int *p
         buf[m++] = ubuf(tag[j]).d;
         buf[m++] = ubuf(type[j]).d;
         buf[m++] = ubuf(mask[j]).d;
-        if (mask[i] & deform_groupbit) {
+        if (mask[j] & deform_groupbit) {
           buf[m++] = v[j][0] + dvx;
           buf[m++] = v[j][1] + dvy;
           buf[m++] = v[j][2] + dvz;

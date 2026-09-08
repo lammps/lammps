@@ -364,6 +364,11 @@ class PairSNAPKokkos : public PairSNAP {
   template <bool chemsnap> KOKKOS_INLINE_FUNCTION
   void operator() (TagPairSNAPComputeBi<chemsnap>, const int& iatom) const;
 
+  // central atom elements of the `yi_batch` atoms ComputeBi processes together
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  Kokkos::Array<int, yi_batch> get_ielem_batch(const int&) const;
+
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (TagPairSNAPComputeBetaLinear, const int& iatom_mod, const int& idxb, const int& iatom_div) const;

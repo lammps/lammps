@@ -170,37 +170,43 @@ void ThirdOrderKokkos::update_force()
   uint64_t datamask_read_host = 0;
 
   if (pair_compute_flag) {
-    if (force->pair->execution_space==Host) {
+    if (force->pair->execution_space==Host ||
+        force->pair->execution_space==HostKK) {
       execute_on_host  = true;
       datamask_read_host   |= force->pair->datamask_read;
     }
   }
   if (atomKK->molecular && force->bond)  {
-    if (force->bond->execution_space==Host) {
+    if (force->bond->execution_space==Host ||
+        force->bond->execution_space==HostKK) {
       execute_on_host  = true;
       datamask_read_host   |= force->bond->datamask_read;
     }
   }
   if (atomKK->molecular && force->angle) {
-    if (force->angle->execution_space==Host) {
+    if (force->angle->execution_space==Host ||
+        force->angle->execution_space==HostKK) {
       execute_on_host  = true;
       datamask_read_host   |= force->angle->datamask_read;
     }
   }
   if (atomKK->molecular && force->dihedral) {
-    if (force->dihedral->execution_space==Host) {
+    if (force->dihedral->execution_space==Host ||
+        force->dihedral->execution_space==HostKK) {
       execute_on_host  = true;
       datamask_read_host   |= force->dihedral->datamask_read;
     }
   }
   if (atomKK->molecular && force->improper) {
-    if (force->improper->execution_space==Host) {
+    if (force->improper->execution_space==Host ||
+        force->improper->execution_space==HostKK) {
       execute_on_host  = true;
       datamask_read_host   |= force->improper->datamask_read;
     }
   }
   if (kspace_compute_flag) {
-    if (force->kspace->execution_space==Host) {
+    if (force->kspace->execution_space==Host ||
+        force->kspace->execution_space==HostKK) {
       execute_on_host  = true;
       datamask_read_host   |= force->kspace->datamask_read;
     }
@@ -228,8 +234,21 @@ void ThirdOrderKokkos::update_force()
     if (pair_compute_flag && force->pair->datamask_modify!=(F_MASK | ENERGY_MASK | VIRIAL_MASK))
       Kokkos::fence();
     atomKK->sync_pinned(Host,~(~datamask_read_host|(F_MASK | ENERGY_MASK | VIRIAL_MASK)),1);
-    if (pair_compute_flag && force->pair->execution_space!=Host) {
-      Kokkos::deep_copy(LMPHostType(),atomKK->k_f.view_host(),0.0);
+
+    // zero the host-side force buffers before the host styles accumulate into
+    // them, so the merge below does not re-add stale values.  skip this only
+    // when the pair style itself runs on the host, since then the pair force
+    // we want to merge already lives in them.  a /kk/host style accumulates
+    // into the Kokkos host view, a style without KOKKOS support into the
+    // legacy host array behind it, which is a separate allocation whenever the
+    // two need a transform
+
+    if (!pair_compute_flag || (force->pair->execution_space!=Host &&
+        force->pair->execution_space!=HostKK)) {
+      Kokkos::deep_copy(LMPHostType(),atomKK->k_f.view_hostkk(),0.0);
+      atomKK->k_f.modify_hostkk_legacy();
+      if (atomKK->k_f.NEED_TRANSFORM)
+        Kokkos::deep_copy(LMPHostType(),atomKK->k_f.view_host(),0.0);
     }
   }
 
@@ -284,7 +303,20 @@ void ThirdOrderKokkos::update_force()
       f_merge_copy = DAT::t_kkacc_1d_3("ThirdOrderKokkos::f_merge_copy",atomKK->k_f.extent(0));
     }
     f = atomKK->k_f.view_device();
-    Kokkos::deep_copy(LMPHostType(),f_merge_copy,atomKK->k_f.view_host());
+
+    // both host copies can hold a contribution: a /kk/host style accumulates
+    // into the Kokkos host view, a style without KOKKOS support into the legacy
+    // host array behind atom->f.  Add the legacy one in and copy through the
+    // Kokkos host view, which is the one that matches f_merge_copy in value
+    // type and layout
+
+    if (atomKK->k_f.NEED_TRANSFORM) {
+      auto h_f_kk = atomKK->k_f.view_hostkk();
+      auto h_f_legacy = atomKK->k_f.view_host();
+      Kokkos::parallel_for(Kokkos::RangePolicy<LMPHostType>(0,atomKK->k_f.extent(0)),
+        ForceAdder<decltype(h_f_kk),decltype(h_f_legacy)>(h_f_kk,h_f_legacy));
+    }
+    Kokkos::deep_copy(LMPHostType(),f_merge_copy,atomKK->k_f.view_hostkk());
     Kokkos::parallel_for(atomKK->k_f.extent(0),
                          ForceAdder<DAT::t_kkacc_1d_3,DAT::t_kkacc_1d_3>(atomKK->k_f.view_device(),f_merge_copy));
     atomKK->k_f.clear_sync_state(); // special case

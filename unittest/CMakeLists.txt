@@ -130,8 +130,13 @@ function(add_kokkos_test)
   add_test(NAME ${KKTEST_NAME}Kokkos COMMAND ${KKTEST_COMMAND})
   set(KKTEST_ENV "${KOKKOS_TEST_ENVIRONMENT}")
   list(APPEND KKTEST_ENV ${KKTEST_ENVIRONMENT})
+  # the KOKKOS entry runs the same executable as the plain one, so it needs a
+  # working directory of its own: the two would otherwise overwrite each
+  # other's scratch files when ctest runs them in parallel
+  file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${KKTEST_NAME}Kokkos)
   set_tests_properties(${KKTEST_NAME}Kokkos PROPERTIES LABELS "kokkos"
-                       ENVIRONMENT "${KKTEST_ENV}")
+                       ENVIRONMENT "${KKTEST_ENV}"
+                       WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${KKTEST_NAME}Kokkos)
 endfunction()
 
 # incorporate categories of specific tests from subdirectories

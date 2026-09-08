@@ -238,12 +238,18 @@ class Pair : protected Pointers {
   class Compute **list_tally_compute;
 
  public:
+  // position in the sub-style list of the hybrid that owns this pair style, -1
+  // when it is not a sub-style.  set by PairHybrid, read by instance_index()
+
+  int hybrid_index;
+
   virtual void add_tally_callback(class Compute *);
   virtual void del_tally_callback(class Compute *);
   [[nodiscard]] bool did_tally_callback() const { return did_tally_flag != 0; }
 
  protected:
   int instance_me;      // which Pair class instantiation I am
+  int instance_index();    // position within the current simulation, for internal fix ids
   int special_lj[4];    // copied from force->special_lj for Kokkos
 
   // pair_modify settings

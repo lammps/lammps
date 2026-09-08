@@ -330,6 +330,12 @@ void PairHybrid::settings(int narg, char **arg)
       error->all(FLERR,"Pair style {} cannot have none as a sub-style", mystyle);
 
     styles[nstyles] = force->new_pair(arg[iarg],1,dummy);
+
+    // a sub-style that keeps state in an internal fix builds the fix id from
+    // this position, so that the id is the same in a run that writes a restart
+    // file and in the run that reads it back
+
+    styles[nstyles]->hybrid_index = nstyles;
     keywords[nstyles] = force->store_style(arg[iarg],0);
     special_lj[nstyles] = special_coul[nstyles] = nullptr;
     compute_tally[nstyles] = 1;

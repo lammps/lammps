@@ -68,7 +68,8 @@ void PairGranHertzHistoryKokkos<DeviceType>::init_style()
   // this is so its order in the fix list is preserved
 
   if (history && fix_history == nullptr) {
-    auto cmd = std::string("NEIGH_HISTORY_HH") + std::to_string(instance_me) + " all ";
+    this->set_history_id();
+    auto cmd = std::string(this->id_history) + " all ";
     if (execution_space == Device)
       cmd += "NEIGH_HISTORY/KK/DEVICE 3";
     else

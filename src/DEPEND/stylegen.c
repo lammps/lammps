@@ -41,7 +41,9 @@
  *      template (one-arg or three-arg signature), and a register function with
  *      one add_builtin() call per parsed marker.  Preprocessor directives
  *      nested inside the marker block (e.g. "#ifdef LMP_KOKKOS_GPU") are copied
- *      through verbatim so build-config-dependent markers stay guarded.
+ *      through verbatim so build-config-dependent markers stay guarded, and
+ *      conditionals wrapping the whole header (e.g. "#ifdef LAMMPS_ZSTD") are
+ *      re-emitted around its #include and registration calls.
  *
  *   stylegen package <macro> <member> -- file.h ...
  *      Emit "package_styles().<member>[\"key\"] = \"<pkg>\";" lines, where the
@@ -50,6 +52,7 @@
 
 #include <stddef.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 
 #define MAXLINE 4096
@@ -118,27 +121,121 @@ static int starts_with(const char *s, const char *prefix)
     return strncmp(s, prefix, strlen(prefix)) == 0;
 }
 
-/* print a directive line with leading whitespace removed and a single newline */
+/* copy a directive line into dst with leading whitespace and the trailing
+ * newline removed */
 
-static void emit_directive(const char *line)
+static void strip_directive(char *dst, const char *line)
 {
     const char *p = line;
     size_t n;
     while ((*p == ' ') || (*p == '\t')) ++p;
     n = strlen(p);
     while ((n > 0) && ((p[n - 1] == '\n') || (p[n - 1] == '\r'))) --n;
-    printf("%.*s\n", (int) n, p);
+    memcpy(dst, p, n);
+    dst[n] = '\0';
+}
+
+/* print a directive line with leading whitespace removed and a single newline */
+
+static void emit_directive(const char *line)
+{
+    char buf[MAXLINE];
+    strip_directive(buf, line);
+    printf("%s\n", buf);
+}
+
+/* Some style headers wrap the *whole* file, marker block included, in one or
+ * more build-configuration guards (a compiler feature test or a library feature
+ * macro such as LAMMPS_ZSTD or LMP_HAS_NETCDF), so the class is only defined
+ * when that feature is available.  Those outer guards must be re-emitted
+ * around both the #include and the registration calls of the header, so a
+ * style whose class definition is compiled out is not registered either.  (By
+ * LAMMPS convention the only conditionals allowed before the marker block are
+ * such guards; the include guard of the header lives inside the #else branch.)
+ *
+ * read_outer_guards() reads a header up to and including its "#ifdef
+ * XXX_CLASS" line and collects the conditional directives that are still open
+ * at that point into outer_guards[].  It returns their number, or -1 if the
+ * file has no marker block.  On return the file is positioned on the first
+ * line inside the marker block. */
+
+#define MAXGUARD 16
+static char outer_guards[MAXGUARD][MAXLINE];
+
+static int read_outer_guards(FILE *fp, const char *path)
+{
+    char line[MAXLINE];
+    int nguard = 0;
+
+    while (fgets(line, sizeof(line), fp)) {
+        const char *kw;
+        if (is_class_ifdef(line)) return nguard;
+        kw = directive_kw(line);
+        if (!kw) continue;
+        if (starts_with(kw, "if")) {
+            if (nguard >= MAXGUARD) {
+                fprintf(stderr, "stylegen: too many nested conditionals before the style marker "
+                                "block in %s\n", path);
+                exit(1);
+            }
+            strip_directive(outer_guards[nguard], line);
+            ++nguard;
+        } else if (starts_with(kw, "endif")) {
+            if (nguard > 0) --nguard;
+        }
+    }
+    return -1;
+}
+
+/* print the outer guards once, the first time a registration line is emitted */
+
+static void open_guards(int nguard, int *opened)
+{
+    int i;
+    if (*opened) return;
+    for (i = 0; i < nguard; ++i) printf("%s\n", outer_guards[i]);
+    *opened = 1;
+}
+
+static void close_guards(int nguard)
+{
+    int i;
+    for (i = 0; i < nguard; ++i) printf("#endif\n");
+}
+
+/* print the #include line for one style header, wrapped in its outer guards */
+
+static void print_include(const char *path)
+{
+    FILE *fp;
+    int nguard, opened = 0;
+
+    fp = fopen(path, "r");
+    if (!fp) {
+        fprintf(stderr, "stylegen: cannot open %s\n", path);
+        return;
+    }
+    nguard = read_outer_guards(fp, path);
+    fclose(fp);
+    if (nguard < 0) nguard = 0;
+
+    open_guards(nguard, &opened);
+    printf("#include \"%s\"\n", path);
+    close_guards(nguard);
 }
 
 /* parse one style header and emit add_builtin() calls (source mode).  Runs a
- * small state machine over the "#ifdef XXX_CLASS" block: 0 = before block,
- * 1 = inside block, 2 = after block (the #else class-definition branch). */
+ * small state machine over the "#ifdef XXX_CLASS" block: 0 = before block
+ * (handled by read_outer_guards()), 1 = inside block, 2 = after block (the
+ * #else class-definition branch).  The output is wrapped in the outer guards
+ * of the header, if any. */
 
 static void process_source_file(const char *path, const char *macro, const char *accessor)
 {
     FILE *fp;
     char line[MAXLINE];
-    int state = 0, depth = 0;
+    int state = 1, depth = 1;
+    int nguard, opened = 0;
     size_t maclen = strlen(macro);
 
     fp = fopen(path, "r");
@@ -146,35 +243,42 @@ static void process_source_file(const char *path, const char *macro, const char 
         fprintf(stderr, "stylegen: cannot open %s\n", path);
         return;
     }
+    nguard = read_outer_guards(fp, path);
+    if (nguard < 0) {
+        fclose(fp);
+        return;
+    }
 
-    while (fgets(line, sizeof(line), fp)) {
+    while ((state == 1) && fgets(line, sizeof(line), fp)) {
         const char *kw;
         const char *q;
 
-        if (state == 0) {
-            if (is_class_ifdef(line)) {
-                state = 1;
-                depth = 1;
-            }
-            continue;
-        }
-        if (state == 2) continue;
-
-        /* state == 1: inside the marker block */
         kw = directive_kw(line);
         if (kw) {
             if (starts_with(kw, "if")) {
                 ++depth;
+                open_guards(nguard, &opened);
                 emit_directive(line);
             } else if (starts_with(kw, "elif")) {
-                if (depth > 1) emit_directive(line);
+                if (depth > 1) {
+                    open_guards(nguard, &opened);
+                    emit_directive(line);
+                }
             } else if (starts_with(kw, "else")) {
-                if (depth == 1) state = 2;
-                else emit_directive(line);
+                if (depth == 1) {
+                    state = 2;
+                } else {
+                    open_guards(nguard, &opened);
+                    emit_directive(line);
+                }
             } else if (starts_with(kw, "endif")) {
                 --depth;
-                if (depth == 0) state = 2;
-                else emit_directive(line);
+                if (depth == 0) {
+                    state = 2;
+                } else {
+                    open_guards(nguard, &opened);
+                    emit_directive(line);
+                }
             }
             /* any other directive (#include, #define, ...) is ignored */
             continue;
@@ -185,10 +289,13 @@ static void process_source_file(const char *path, const char *macro, const char 
         while ((*q == ' ') || (*q == '\t')) ++q;
         if ((strncmp(q, macro, maclen) == 0) && (q[maclen] == '(')) {
             char key[MAXTOK], cls[MAXTOK];
-            if (parse_marker(q + maclen, key, cls))
+            if (parse_marker(q + maclen, key, cls)) {
+                open_guards(nguard, &opened);
                 printf("  %s().add_builtin(\"%s\", &creator<%s>);\n", accessor, key, cls);
+            }
         }
     }
+    if (opened) close_guards(nguard);
     fclose(fp);
 }
 
@@ -259,38 +366,6 @@ static void print_includes(const char *s)
     }
 }
 
-/* Style headers whose class definition is wrapped in a build-configuration
- * guard (compiler or library feature macro) placed *outside* the
- * "#ifdef XXX_CLASS" marker block.  The marker parser cannot see such a guard,
- * so these styles are skipped during normal parsing and their #include and
- * registration call are emitted by hand, wrapped in the same guard. */
-
-static const struct special_style {
-    const char *header; /* basename matched against the input file list */
-    const char *guard;  /* preprocessor condition for "#if <guard>"     */
-    const char *key;    /* style keyword                                */
-    const char *cls;    /* C++ class name                               */
-} special_styles[] = {
-    {"pair_snap_intel.h",
-     "defined(__AVX512F__) && (defined(__INTEL_COMPILER) || defined(__INTEL_LLVM_COMPILER))",
-     "snap/intel", "PairSNAPIntel"},
-    {"dump_netcdf.h", "defined(LMP_HAS_NETCDF)", "netcdf", "DumpNetCDF"},
-    {"dump_netcdf_mpiio.h", "defined(LMP_HAS_PNETCDF)", "netcdf/mpiio", "DumpNetCDFMPIIO"}};
-
-static const int num_special_styles = (int) (sizeof(special_styles) / sizeof(special_styles[0]));
-
-/* return the special_styles[] index matching path's basename, or -1 if none */
-
-static int special_index(const char *path)
-{
-    const char *slash = strrchr(path, '/');
-    const char *base = slash ? slash + 1 : path;
-    int i;
-    for (i = 0; i < num_special_styles; ++i)
-        if (strcmp(base, special_styles[i].header) == 0) return i;
-    return -1;
-}
-
 int main(int argc, char **argv)
 {
     int i, sep = -1;
@@ -330,14 +405,7 @@ int main(int argc, char **argv)
         printf("#include \"creator_registry.h\"\n");
         print_includes(includes);
         printf("\n");
-        for (i = sep + 1; i < argc; ++i)
-            if (special_index(argv[i]) < 0) printf("#include \"%s\"\n", argv[i]);
-        for (i = sep + 1; i < argc; ++i) {
-            int s = special_index(argv[i]);
-            if (s >= 0)
-                printf("#if %s\n#include \"%s\"\n#endif\n", special_styles[s].guard,
-                       special_styles[s].header);
-        }
+        for (i = sep + 1; i < argc; ++i) print_include(argv[i]);
         printf("\n");
         printf("namespace LAMMPS_NS {\n\n");
         if (strcmp(onearg, "1") == 0) {
@@ -349,15 +417,7 @@ int main(int argc, char **argv)
         }
         printf("\n");
         printf("void %s()\n{\n", regfunc);
-        for (i = sep + 1; i < argc; ++i)
-            if (special_index(argv[i]) < 0) process_source_file(argv[i], macro, accessor);
-        for (i = sep + 1; i < argc; ++i) {
-            int s = special_index(argv[i]);
-            if (s >= 0)
-                printf("#if %s\n  %s().add_builtin(\"%s\", &creator<%s>);\n#endif\n",
-                       special_styles[s].guard, accessor, special_styles[s].key,
-                       special_styles[s].cls);
-        }
+        for (i = sep + 1; i < argc; ++i) process_source_file(argv[i], macro, accessor);
         printf("}\n\n");
         printf("}    // namespace LAMMPS_NS\n");
         return 0;

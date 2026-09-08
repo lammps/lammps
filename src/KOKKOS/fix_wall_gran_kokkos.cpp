@@ -322,6 +322,18 @@ void FixWallGranKokkos<DeviceType>::copy_arrays(int i, int j, int delflag)
   }
 }
 
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixWallGranKokkos<DeviceType>::set_arrays(int i)
+{
+  if (use_history) {
+    k_history_one.sync_host();
+    FixWallGranOld::set_arrays(i);
+    k_history_one.modify_host();
+  }
+}
+
 /* ----------------------------------------------------------------------
    sort local atom-based arrays
 ------------------------------------------------------------------------- */
@@ -433,10 +445,20 @@ void FixWallGranKokkos<DeviceType>::unpack_exchange_kokkos(
   int /*nrecv1*/, int /*nextrarecv1*/,
   ExecutionSpace /*space*/)
 {
+  k_buf.template sync<DeviceType>();
+  k_indices.template sync<DeviceType>();
+
   d_buf = typename AT::t_double_1d_um(
     k_buf.template view<DeviceType>().data(),
     k_buf.extent(0)*k_buf.extent(1));
   d_indices = k_indices.view<DeviceType>();
+
+  // the kernel below writes only the rows of the atoms that arrived, so the
+  // rest have to be current on the device first.  syncing here also retires
+  // any outstanding host claim, which the modify<DeviceType>() at the end
+  // would otherwise hit as a concurrent modification
+
+  k_history_one.template sync<DeviceType>();
 
   d_history_one = k_history_one.template view<DeviceType>();
 

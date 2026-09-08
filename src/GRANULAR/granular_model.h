@@ -16,25 +16,11 @@
 
 #include "pointers.h"    // IWYU pragma: export
 
-
 namespace LAMMPS_NS::Granular_NS {
 
-enum SubModelType {
-  NORMAL = 0,
-  DAMPING,
-  TANGENTIAL,
-  ROLLING,
-  TWISTING,
-  HEAT,
-  NSUBMODELS
-};
+enum SubModelType { NORMAL = 0, DAMPING, TANGENTIAL, ROLLING, TWISTING, HEAT, NSUBMODELS };
 
-enum ContactType {
-  PAIR = 0,
-  WALL = 1,
-  WALLREGION = 2,
-  SURFACE = 3
-};
+enum ContactType { PAIR = 0, WALL = 1, WALLREGION = 2, SURFACE = 3 };
 
 // forward declarations
 class GranSubMod;
@@ -50,8 +36,7 @@ class GranularModel;
 // the table has one entry per sub-model and is defined in the checked-in file
 // gran_sub_mod_register.cpp (which is also where new sub-models are registered).
 
-typedef GranSubMod *(*GranSubModCreator)(GranularModel *, LAMMPS *);
-
+using GranSubModCreator = GranSubMod *(*) (GranularModel *, LAMMPS *);
 struct GranSubModInfo {
   const char *name;             // keyword used in the input script
   GranSubModCreator creator;    // factory function for the sub-model class
@@ -76,7 +61,7 @@ class GranularModel : protected Pointers {
   int add_sub_model(char **, int, int, SubModelType);
   int define_classic_model(char **, int, int);
   void construct_sub_model(std::string, SubModelType);
-  int mix_coeffs(GranularModel*, GranularModel*);
+  int mix_coeffs(GranularModel *, GranularModel *);
 
   void write_restart(FILE *);
   void read_restart(FILE *);
@@ -121,12 +106,11 @@ class GranularModel : protected Pointers {
   double *svector;
 
  protected:
-  int rolling_defined, twisting_defined, heat_defined; // Flag optional sub models
-  int classic_model;                                   // Flag original pair/gran calculations
-  int contact_radius_flag;                             // Flag whether contact radius is needed
+  int rolling_defined, twisting_defined, heat_defined;    // Flag optional sub models
+  int classic_model;                                      // Flag original pair/gran calculations
+  int contact_radius_flag;                                // Flag whether contact radius is needed
 };
 
-} // namespace LAMMPS_NS::Granular_NS
-
+}    // namespace LAMMPS_NS::Granular_NS
 
 #endif

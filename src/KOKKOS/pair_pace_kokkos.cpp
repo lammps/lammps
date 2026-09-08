@@ -78,7 +78,7 @@ constexpr int PACE_BATCH_NRB_MAX = 64;    // nradbase
 // compilers away from it.
 #if defined(__x86_64__) && defined(__gnu_linux__) && !defined(__AVX2__) && \
     !defined(__CUDACC__) && !defined(__HIP_DEVICE_COMPILE__) && \
-    defined(__GNUC__) && !defined(__clang__) && !defined(__INTEL_COMPILER)
+    (defined(__GNUC__) && (__GNUC__ > 11)) && !defined(__clang__) && !defined(__INTEL_COMPILER)
 #define PACE_VECTOR_CLONES __attribute__((target_clones("arch=x86-64-v3", "default")))
 #else
 #define PACE_VECTOR_CLONES

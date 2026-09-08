@@ -55,6 +55,17 @@ if(BUILD_LAMMPS_GUI)
   if("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
     list(JOIN CMAKE_OSX_ARCHITECTURES , MACOSX_ARCHS)
   endif()
+  # hack to encode the LAMMPS build folder into the binary's rpath
+  if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    set(LAMMPS_GUI_RPATH "@loader_path")
+  elseif(NOT WIN32)
+    set(LAMMPS_GUI_RPATH "\$ORIGIN")
+  endif()
+  if(LAMMPS_INSTALL_RPATH)
+    list(APPEND LAMMPS_GUI_RPATH ${CMAKE_INSTALL_FULL_LIBDIR})
+  endif()
+  list(JOIN LAMMPS_GUI_RPATH , LAMMPS_GUI_RPATH)
+
   # When building LAMMPS-GUI with LAMMPS we don't support plugin mode and don't include docs.
   ExternalProject_Add(lammps-gui_build
     GIT_REPOSITORY https://github.com/akohlmey/lammps-gui.git
@@ -74,6 +85,7 @@ if(BUILD_LAMMPS_GUI)
                -D CMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
                -D CMAKE_OSX_ARCHITECTURES=${MACOSX_ARCHS}
                -D CMAKE_OSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET}
+               -D CMAKE_INSTALL_RPATH=${LAMMPS_GUI_RPATH}
     DEPENDS lammps
     BUILD_BYPRODUCTS <INSTALL_DIR>/bin/lammps-gui
   )

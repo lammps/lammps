@@ -244,7 +244,7 @@ class Pair : protected Pointers {
 
  protected:
   int instance_me;      // which Pair class instantiation I am
-  int special_lj[4];    // copied from force->special_lj for Kokkos
+  double special_lj[4];    // copied from force->special_lj for Kokkos
 
   // pair_modify settings
   int offset_flag, mix_flag;    // flags for offset and mixing

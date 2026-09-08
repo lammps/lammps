@@ -37,7 +37,7 @@ class Variable : protected Pointers {
   void purge_atomfile();
   void clear_in_progress();
 
-  [[nodiscard]] int get_nvar() const { return variables.size(); }
+  [[nodiscard]] int get_nvar() const { return (int) variables.size(); }
   [[nodiscard]] const char *get_name(int i) const;
   [[nodiscard]] const char *get_style(int i) const;
   [[nodiscard]] std::string get_info(int i) const;

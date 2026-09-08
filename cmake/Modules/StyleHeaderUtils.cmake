@@ -158,6 +158,22 @@ endfunction(GenerateStyleHeaders)
 # one_arg = TRUE selects the creator signature (LAMMPS*); FALSE selects
 # (LAMMPS*,int,char**).  Generated files are accumulated in the global property
 # LAMMPS_STYLE_SOURCES for adding to the lammps target.
+#
+# Each header is walked with a small state machine: 0 = before the
+# "#ifdef XXX_CLASS" marker block, 1 = inside it, 2 = after it.
+#
+# Some style headers wrap the *whole* file, marker block included, in one or
+# more build-configuration guards (a compiler feature test or a library feature
+# macro such as LAMMPS_ZSTD or LMP_HAS_NETCDF), so the class is only defined
+# when that feature is available.  Every conditional directive seen in state 0
+# is collected as such an outer guard and re-emitted around both the #include
+# and the registration calls of that header, so a style whose class definition
+# is compiled out is not registered either.  (By LAMMPS convention the only
+# conditionals allowed before the marker block are such guards; the include
+# guard of the header lives inside the #else branch.)  Inside the marker block
+# (state 1) each XxxStyle(key,Class) marker becomes an explicit add_builtin()
+# call and nested preprocessor directives are copied verbatim so
+# build-config-dependent markers stay guarded.
 function(CreateStyleSource path property style macro base accessor regfunc one_arg includes)
     get_property(files GLOBAL PROPERTY ${property})
 
@@ -169,60 +185,45 @@ function(CreateStyleSource path property style macro base accessor regfunc one_a
     endforeach()
     list(SORT pairs)
 
-    # Some style headers wrap their class definition in a build-configuration
-    # guard (compiler or library feature macro) placed *outside* the
-    # "#ifdef XXX_CLASS" marker block, so the marker parser below cannot see it.
-    # Skip those headers during normal parsing and emit their #include and
-    # registration call by hand, wrapped in the same guard expression.
-    set(special_hdr   "pair_snap_intel.h" "dump_netcdf.h" "dump_netcdf_mpiio.h")
-    set(special_guard "defined(__AVX512F__) && (defined(__INTEL_COMPILER) || defined(__INTEL_LLVM_COMPILER))" "defined(LMP_HAS_NETCDF)" "defined(LMP_HAS_PNETCDF)")
-    set(special_key   "snap/intel" "netcdf" "netcdf/mpiio")
-    set(special_cls   "PairSNAPIntel" "DumpNetCDF" "DumpNetCDFMPIIO")
-
     set(include_block "")
     set(entry_block "")
-    set(present_specials "")
     foreach(entry ${pairs})
         string(REGEX REPLACE "^[^|]*\\|" "" fname "${entry}")
         get_filename_component(bname ${fname} NAME)
-        list(FIND special_hdr "${bname}" spidx)
-        if(NOT spidx EQUAL -1)
-            list(APPEND present_specials ${spidx})
-            set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${fname}")
-            continue()
-        endif()
-        set(include_block "${include_block}#include \"${bname}\"\n")
         set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${fname}")
 
-        # walk the marker block (between "#ifdef XXX_CLASS" and the matching
-        # "#else"/"#endif").  Convert each XxxStyle(key,Class) marker into an
-        # explicit add_builtin() and copy any nested preprocessor directives
-        # verbatim so build-config-dependent markers stay guarded.
         file(STRINGS ${fname} all_lines)
         set(state 0)
         set(depth 0)
+        set(outer_guards "")
+        set(file_entries "")
         foreach(line IN LISTS all_lines)
             if(state EQUAL 0)
                 if("${line}" MATCHES "^#ifdef[ \t]+[A-Z_]+_CLASS")
                     set(state 1)
                     set(depth 1)
+                elseif("${line}" MATCHES "^[ \t]*#[ \t]*if")
+                    string(STRIP "${line}" dline)
+                    list(APPEND outer_guards "${dline}")
+                elseif("${line}" MATCHES "^[ \t]*#[ \t]*endif")
+                    list(POP_BACK outer_guards)
                 endif()
             elseif(state EQUAL 1)
                 if("${line}" MATCHES "^[ \t]*#[ \t]*if")
                     math(EXPR depth "${depth} + 1")
                     string(STRIP "${line}" dline)
-                    set(entry_block "${entry_block}${dline}\n")
+                    set(file_entries "${file_entries}${dline}\n")
                 elseif("${line}" MATCHES "^[ \t]*#[ \t]*elif")
                     if(depth GREATER 1)
                         string(STRIP "${line}" dline)
-                        set(entry_block "${entry_block}${dline}\n")
+                        set(file_entries "${file_entries}${dline}\n")
                     endif()
                 elseif("${line}" MATCHES "^[ \t]*#[ \t]*else")
                     if(depth EQUAL 1)
                         set(state 2)
                     else()
                         string(STRIP "${line}" dline)
-                        set(entry_block "${entry_block}${dline}\n")
+                        set(file_entries "${file_entries}${dline}\n")
                     endif()
                 elseif("${line}" MATCHES "^[ \t]*#[ \t]*endif")
                     math(EXPR depth "${depth} - 1")
@@ -230,7 +231,7 @@ function(CreateStyleSource path property style macro base accessor regfunc one_a
                         set(state 2)
                     else()
                         string(STRIP "${line}" dline)
-                        set(entry_block "${entry_block}${dline}\n")
+                        set(file_entries "${file_entries}${dline}\n")
                     endif()
                 elseif("${line}" MATCHES "${macro}\\(([^)]*)\\)")
                     # the style keyword never contains a comma, so split on the
@@ -244,21 +245,24 @@ function(CreateStyleSource path property style macro base accessor regfunc one_a
                         string(SUBSTRING "${inner}" ${after} -1 cls)
                         string(STRIP "${key}" key)
                         string(STRIP "${cls}" cls)
-                        set(entry_block "${entry_block}  ${accessor}().add_builtin(\"${key}\", &creator<${cls}>);\n")
+                        set(file_entries "${file_entries}  ${accessor}().add_builtin(\"${key}\", &creator<${cls}>);\n")
                     endif()
                 endif()
             endif()
         endforeach()
-    endforeach()
 
-    # emit guarded #include + registration for the skipped special-case headers
-    foreach(spidx ${present_specials})
-        list(GET special_hdr ${spidx} shdr)
-        list(GET special_guard ${spidx} sguard)
-        list(GET special_key ${spidx} skey)
-        list(GET special_cls ${spidx} scls)
-        set(include_block "${include_block}#if ${sguard}\n#include \"${shdr}\"\n#endif\n")
-        set(entry_block "${entry_block}#if ${sguard}\n  ${accessor}().add_builtin(\"${skey}\", &creator<${scls}>);\n#endif\n")
+        # wrap the #include and the registration calls of this header in its
+        # outer build-configuration guards (usually none)
+        set(guard_open "")
+        set(guard_close "")
+        foreach(guard IN LISTS outer_guards)
+            set(guard_open "${guard_open}${guard}\n")
+            set(guard_close "${guard_close}#endif\n")
+        endforeach()
+        set(include_block "${include_block}${guard_open}#include \"${bname}\"\n${guard_close}")
+        if(NOT "${file_entries}" STREQUAL "")
+            set(entry_block "${entry_block}${guard_open}${file_entries}${guard_close}")
+        endif()
     endforeach()
 
     set(preamble "#include \"lammps.h\"\n#include \"creator_registry.h\"\n")

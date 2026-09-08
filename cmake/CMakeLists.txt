@@ -902,6 +902,13 @@ install(
 )
 
 ###############################################################################
+# On Linux systems (any others, too?) we may need to update the shared linker cache
+###############################################################################
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  install(CODE "execute_process(COMMAND ldconfig || exit 0)")
+endif()
+
+###############################################################################
 # Install LAMMPS lib and python module into site-packages folder with
 # "install-python" target.  Behaves exactly like "make install-python" for
 # conventional build.  Only available, if a shared library is built.
@@ -938,7 +945,6 @@ endif()
 add_custom_target(tarball
   COMMAND ${LAMMPS_DIR}/cmake/packaging/build_tarball.sh ${LAMMPS_DIR}/doc
 )
-
 
 include(Testing)
 include(CodeCoverage)

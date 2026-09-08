@@ -40,7 +40,9 @@ style () {
 #       9=extra include headers (space separated)
 # the stylegen helper parses the XxxStyle(key,Class) markers into explicit
 # add_builtin() calls and copies preprocessor directives inside the marker block
-# through verbatim so build-config-dependent markers stay guarded.
+# through verbatim so build-config-dependent markers stay guarded; conditionals
+# wrapping a whole header (e.g. "#ifdef LAMMPS_ZSTD") are re-emitted around its
+# #include and registration calls.
 
 stylesource () {
   list=`grep -sl "$1" $2*.h | LC_ALL=C sort`

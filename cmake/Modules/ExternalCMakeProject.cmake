@@ -36,8 +36,13 @@ function(ExternalCMakeProject target url hash basedir cmakedir cmakefile)
     # to a new archive version, compiled objects in an existing build directory appear
     # newer than the updated headers and are not recompiled, which leads to failed
     # links or subtly inconsistent binaries.
-    file(ARCHIVE_EXTRACT INPUT ${CMAKE_BINARY_DIR}/_deps/${archive}
-      DESTINATION ${CMAKE_BINARY_DIR}/_deps/src TOUCH)
+    if(CMAKE_VERSION VERSION_LESS 3.24)
+      file(ARCHIVE_EXTRACT INPUT ${CMAKE_BINARY_DIR}/_deps/${archive}
+        DESTINATION ${CMAKE_BINARY_DIR}/_deps/src)
+    else()
+      file(ARCHIVE_EXTRACT INPUT ${CMAKE_BINARY_DIR}/_deps/${archive}
+        DESTINATION ${CMAKE_BINARY_DIR}/_deps/src TOUCH)
+    endif()
     file(GLOB TARGET_SOURCE "${CMAKE_BINARY_DIR}/_deps/src/${basedir}*")
     list(LENGTH TARGET_SOURCE _num)
     if(_num GREATER 1)

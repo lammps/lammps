@@ -51,4 +51,4 @@ The --max-stackframe option is needed because some Fortran libraries
 limit valgrind misreads the resulting stack pointer jump as a stack
 switch and reports millions of bogus invalid access errors.
 
-Last update: 2026-08-22
+Last update: 2026-09-04

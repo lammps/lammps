@@ -677,6 +677,15 @@ struct dual_hash_type {
     }
   }
 
+  // release both sides without copying.  needed where the whole hash is about to be
+  // overwritten, so neither side's contents matter and a pending flag on the other
+  // side would otherwise make the next modify_*() abort.  mirrors DualView.
+  void clear_sync_state()
+  {
+    modified_device = false;
+    modified_host = false;
+  }
+
   template<class DeviceType>
   std::enable_if_t<(std::is_same<DeviceType,LMPDeviceType>::value || Kokkos::SpaceAccessibility<LMPDeviceType::memory_space,LMPHostType::memory_space>::accessible),void> sync() {sync_device();}
 

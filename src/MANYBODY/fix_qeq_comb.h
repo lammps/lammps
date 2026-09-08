@@ -21,6 +21,7 @@ FixStyle(qeq/comb,FixQEQComb);
 #define LMP_FIX_QEQ_COMB_H
 
 #include "fix.h"
+#include "safe_pointers.h"
 
 namespace LAMMPS_NS {
 
@@ -44,7 +45,7 @@ class FixQEQComb : public Fix {
   double precision;
   int ilevel_respa;
   bigint ngroup;
-  FILE *fp;
+  SafeFilePtr fp;
 
   class PairComb *comb;
   class PairComb3 *comb3;

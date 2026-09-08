@@ -53,6 +53,7 @@ class ComputeReduce : public Compute {
     } val;
   };
   std::vector<value_t> values;
+  [[nodiscard]] std::string valstring(int) const;
   double *onevec;
   int *replace, *indices, *owner;
   MPI_Op scalar_reduction_operation;

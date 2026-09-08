@@ -152,7 +152,7 @@ another machine.  In this case, you can use the :doc:`-r command-line switch <Ru
    new input script must specify any fixes you want to use.  Even when
    restart information is stored in the file, as it is for some fixes,
    commands may need to be re-specified in the new input script, in order
-   to re-use that information.  See the :doc:`read_restart <read_restart>`
+   to reuse that information.  See the :doc:`read_restart <read_restart>`
    command for information about what is stored in a restart file.
 
 ----------

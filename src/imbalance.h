@@ -15,7 +15,6 @@
 #define LMP_IMBALANCE_H
 
 #include "pointers.h"    // IWYU pragma: export
-#include <string>
 
 namespace LAMMPS_NS {
 

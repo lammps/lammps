@@ -42,7 +42,7 @@ Description
 
 This command performs the Multi-Scale Shock Technique (MSST)
 integration to update positions and velocities each timestep to mimic
-a compressive shock wave passing over the system. See :ref:`(Reed) <Reed>`
+a compressive shock wave passing over the system. See :ref:`(Reed3) <Reed>`
 for a detailed description of this method.  The MSST varies the cell
 volume and temperature in such a way as to restrain the system to the
 shock Hugoniot and the Rayleigh line. These restraints correspond to
@@ -79,7 +79,7 @@ equations, but is used in calculating the deviation from the Hugoniot.
 The keyword *beta* is a scaling term that can be added to the MSST
 ionic equations of motion to account for drift in the conserved
 quantity during long timescale simulations, similar to a Berendsen
-thermostat. See :ref:`(Reed) <Reed>` and :ref:`(Goldman) <Goldman2>` for more
+thermostat. See :ref:`(Reed3) <Reed>` and :ref:`(Goldman) <Goldman2>` for more
 details.  The value of *beta* must be between 0.0 and 1.0 inclusive.
 A value of 0.0 means no contribution, a value of 1.0 means a full
 contribution.
@@ -199,7 +199,7 @@ timestep.
 
 .. _Reed:
 
-**(Reed)** Reed, Fried, and Joannopoulos, Phys. Rev. Lett., 90, 235503
+**(Reed3)** Reed, Fried, and Joannopoulos, Phys. Rev. Lett., 90, 235503
 (2003).
 
 .. _Reed2:

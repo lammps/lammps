@@ -26,10 +26,19 @@
   int CVSCRIPT_COMM_FNAME(COMM)(void *pobj,                             \
                                 int objc, unsigned char *const objv[])  \
   {                                                                     \
-    if (cvm::debug()) {                                                 \
-      cvm::log("Executing script function \""+std::string(#COMM)+"\""); \
+    colvar *this_colvar = nullptr;                                      \
+    colvarmodule *cvmodule = nullptr;                                   \
+    if (colvarscript::is_valid(static_cast<colvarscript *>(pobj))) {    \
+      colvarscript *script = colvarscript_obj(pobj);                    \
+      cvmodule = script->module();                                      \
+    } else {                                                            \
+      this_colvar = colvar_obj(pobj);                                   \
+      cvmodule = this_colvar->get_cvmodule();                           \
     }                                                                   \
-    colvarscript *script = colvarscript_obj();                          \
+    if (cvm::debug()) {                                                 \
+      cvmodule->log("Executing script function \""+std::string(#COMM)+"\""); \
+    }                                                                   \
+    colvarscript *script = cvmodule->proxy->script;                     \
     script->clear_str_result();                                         \
     if (script->check_colvar_cmd_nargs(#COMM,                           \
                                        objc, N_ARGS_MIN, N_ARGS_MAX) != \
@@ -38,9 +47,8 @@
     }                                                                   \
     if (objc > 1) {                                                     \
       /* Silence unused parameter warning */                            \
-      (void) objv[0];                                                    \
+      (void) objv[0];                                                   \
     }                                                                   \
-    colvar *this_colvar = colvar_obj(pobj);                             \
     FN_BODY;                                                            \
   }
 #undef CVSCRIPT

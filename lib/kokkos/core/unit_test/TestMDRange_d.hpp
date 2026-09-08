@@ -13,6 +13,7 @@ TEST(TEST_CATEGORY, mdrange_3d) {
 }
 
 TEST(TEST_CATEGORY, mdrange_neg_idx) {
+  TestMDRange_1D_NegIdx<TEST_EXECSPACE>::test_1D_negidx(128);
   TestMDRange_2D_NegIdx<TEST_EXECSPACE>::test_2D_negidx(128, 32);
   TestMDRange_3D_NegIdx<TEST_EXECSPACE>::test_3D_negidx(128, 32, 8);
   TestMDRange_4D_NegIdx<TEST_EXECSPACE>::test_4D_negidx(128, 32, 8, 8);

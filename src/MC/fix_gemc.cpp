@@ -51,7 +51,9 @@ using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 
-FixGEMC::FixGEMC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
+FixGEMC::FixGEMC(LAMMPS *lmp, int narg, char **arg) :
+    Fix(lmp, narg, arg), c_pe(nullptr), local_gas_list(nullptr), sublo(nullptr), subhi(nullptr),
+    random_universe(nullptr), random_world(nullptr), random_proc(nullptr)
 {
   if (narg != 11) utils::missing_cmd_args(FLERR, "fix gemc", error);
 
@@ -126,6 +128,9 @@ FixGEMC::FixGEMC(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
 
 FixGEMC::~FixGEMC()
 {
+  delete random_proc;
+  delete random_world;
+  delete random_universe;
   memory->destroy(local_gas_list);
   MPI_Comm_free(&comm_replica);
 }
@@ -181,7 +186,7 @@ void FixGEMC::init()
 
   // for full energy
 
-  c_pe = modify->compute[modify->find_compute("thermo_pe")];
+  c_pe = modify->get_compute_by_id("thermo_pe");
 
   // check if atoms charged
 

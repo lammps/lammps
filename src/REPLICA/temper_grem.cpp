@@ -42,14 +42,17 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-TemperGrem::TemperGrem(LAMMPS *lmp) : Command(lmp) {}
+TemperGrem::TemperGrem(LAMMPS *lmp) :
+    Command(lmp), ranswap(nullptr), ranboltz(nullptr), whichfix(nullptr), set_lambda(nullptr),
+    lambda2world(nullptr), world2lambda(nullptr), world2root(nullptr), fix_grem(nullptr)
+{}
 
 /* ---------------------------------------------------------------------- */
 
 TemperGrem::~TemperGrem()
 {
   MPI_Comm_free(&roots);
-  if (ranswap) delete ranswap;
+  delete ranswap;
   delete ranboltz;
   delete[] set_lambda;
   delete[] lambda2world;
@@ -323,6 +326,12 @@ void TemperGrem::command(int narg, char **arg)
     // bcast swap result to other procs in my world
 
     MPI_Bcast(&swap,1,MPI_INT,0,world);
+
+    // a swap is only accepted for an in-range partner (boundary worlds never
+    // swap), so partner_set_lambda is guaranteed valid whenever swap is set
+
+    if (swap && (partner_set_lambda < 0 || partner_set_lambda >= nworlds))
+      error->universe_one(FLERR,"Internal error: invalid tempering swap partner");
 
     // if my world swapped, all procs in world reset temp target of Fix
 

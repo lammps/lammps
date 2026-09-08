@@ -38,7 +38,7 @@ static constexpr double INERTIA = 0.2;          // moment of inertia prefactor f
 /* ---------------------------------------------------------------------- */
 
 FixNVEDotcLangevin::FixNVEDotcLangevin(LAMMPS *lmp, int narg, char **arg) :
-  FixNVE(lmp, narg, arg)
+    FixNVE(lmp, narg, arg), avec(nullptr)
 {
   if (narg != 9) error->all(FLERR,"Illegal fix nve/dotc/langevin command");
 

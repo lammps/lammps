@@ -1,5 +1,6 @@
 ---
 lammps_version: 29 Aug 2024
+tags: no_respa
 date_generated: Tue Oct  1 12:45:37 2024
 epsilon: 2e-13
 skip_tests:
@@ -12,6 +13,7 @@ post_commands: ! |
   fix move all nve
   fix test solute recenter NULL NULL NULL shift all units lattice
 input_file: in.fourmol
+input_coeffs: coeffs.fourmol
 natoms: 29
 global_scalar: 0
 global_vector: ! |-

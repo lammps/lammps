@@ -78,7 +78,7 @@ Syntax
        cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
        cutoff2 = global cutoff for Coulombic (distance units)
 
-.. versionadded:: TBD
+.. versionadded:: 4Jul2026
      *lj/cut/coul/esp* args = cutoff (cutoff2)
        cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
        cutoff2 = global cutoff for Coulombic (optional) (distance units)

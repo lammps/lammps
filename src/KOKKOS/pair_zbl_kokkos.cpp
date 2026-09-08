@@ -28,6 +28,7 @@
 #include "neigh_request.h"
 #include "neighbor.h"
 #include "respa.h"
+#include "tune_kokkos.h"
 #include "update.h"
 
 #include "pair_zbl_const.h"
@@ -47,6 +48,7 @@ template<class DeviceType>
 PairZBLKokkos<DeviceType>::PairZBLKokkos(LAMMPS *lmp) : PairZBL(lmp)
 {
   respa_enable = 0;
+  tuner = nullptr;
 
   kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
@@ -66,6 +68,8 @@ PairZBLKokkos<DeviceType>::~PairZBLKokkos()
     memoryKK->destroy_kokkos(k_eatom,eatom);
     memoryKK->destroy_kokkos(k_vatom,vatom);
   }
+
+  delete tuner;
 }
 
 
@@ -98,6 +102,14 @@ void PairZBLKokkos<DeviceType>::init_style()
                            !std::is_same_v<DeviceType,LMPDeviceType>);
   request->set_kokkos_device(std::is_same_v<DeviceType,LMPDeviceType>);
   if (neighflag == FULL) request->enable_full();
+
+  if (lmp->kokkos->autotuning > 0 && !tuner) {
+    if (!force->newton_pair)
+      tuner = new TuneKokkos(lmp, TuneKokkos::PAIR, lmp->kokkos->autotuning,
+        2, "pair-zbl");
+    else
+      error->warning(FLERR,"Autotuner for pair zbl/kk is disabled with 'newton on'");
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -160,6 +172,10 @@ void PairZBLKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   // loop over neighbors of my atoms
 
+  copymode = 1;
+
+  if (lmp->kokkos->autotuning && tuner) tuner->tuning_kernel_params();
+
   EV_FLOAT ev = pair_compute<PairZBLKokkos<DeviceType>,void >(this,(NeighListKokkos<DeviceType>*)list);
 
   if (eflag_global) eng_vdwl += static_cast<double>(ev.evdwl);
@@ -186,6 +202,8 @@ void PairZBLKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
   else atomKK->modified(execution_space,F_MASK);
+
+  copymode = 0;
 }
 
 template<class DeviceType>
@@ -194,7 +212,7 @@ template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
 KK_FLOAT PairZBLKokkos<DeviceType>::
 compute_fpair(const KK_FLOAT& rsq, const int &, const int &, const int &itype, const int &jtype) const {
-  const KK_FLOAT r = sqrt(rsq);
+  const KK_FLOAT r = Kokkos::sqrt(rsq);
   KK_FLOAT fpair = dzbldr(r, itype, jtype);
 
   if (rsq > cut_innersq_kk) {
@@ -214,7 +232,7 @@ template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
 KK_FLOAT PairZBLKokkos<DeviceType>::
 compute_evdwl(const KK_FLOAT &rsq, const int &, const int &, const int &itype, const int &jtype) const {
-  const KK_FLOAT r = sqrt(rsq);
+  const KK_FLOAT r = Kokkos::sqrt(rsq);
   KK_FLOAT evdwl = e_zbl(r, itype, jtype);
   evdwl += d_sw5(itype,jtype);
   if (rsq > cut_innersq_kk) {
@@ -321,10 +339,10 @@ KK_FLOAT PairZBLKokkos<DeviceType>::e_zbl(KK_FLOAT r, int i, int j) const {
   const KK_FLOAT zzeij = d_zze(i,j);
   const KK_FLOAT rinv = static_cast<KK_FLOAT>(1.0) / r;
 
-  KK_FLOAT sum = c1_kk*exp(-d1aij*r);
-  sum += c2_kk*exp(-d2aij*r);
-  sum += c3_kk*exp(-d3aij*r);
-  sum += c4_kk*exp(-d4aij*r);
+  KK_FLOAT sum = c1_kk*Kokkos::exp(-d1aij*r);
+  sum += c2_kk*Kokkos::exp(-d2aij*r);
+  sum += c3_kk*Kokkos::exp(-d3aij*r);
+  sum += c4_kk*Kokkos::exp(-d4aij*r);
 
   KK_FLOAT result = zzeij*sum*rinv;
 
@@ -347,10 +365,10 @@ KK_FLOAT PairZBLKokkos<DeviceType>::dzbldr(KK_FLOAT r, int i, int j) const {
   const KK_FLOAT zzeij = d_zze(i,j);
   const KK_FLOAT rinv = static_cast<KK_FLOAT>(1.0) / r;
 
-  const KK_FLOAT e1 = exp(-d1aij*r);
-  const KK_FLOAT e2 = exp(-d2aij*r);
-  const KK_FLOAT e3 = exp(-d3aij*r);
-  const KK_FLOAT e4 = exp(-d4aij*r);
+  const KK_FLOAT e1 = Kokkos::exp(-d1aij*r);
+  const KK_FLOAT e2 = Kokkos::exp(-d2aij*r);
+  const KK_FLOAT e3 = Kokkos::exp(-d3aij*r);
+  const KK_FLOAT e4 = Kokkos::exp(-d4aij*r);
 
   KK_FLOAT sum = c1_kk*e1;
   sum += c2_kk*e2;
@@ -383,10 +401,10 @@ KK_FLOAT PairZBLKokkos<DeviceType>::d2zbldr2(KK_FLOAT r, int i, int j) const {
   const KK_FLOAT zzeij = d_zze(i,j);
   const KK_FLOAT rinv = static_cast<KK_FLOAT>(1.0) / r;
 
-  const KK_FLOAT e1 = exp(-d1aij*r);
-  const KK_FLOAT e2 = exp(-d2aij*r);
-  const KK_FLOAT e3 = exp(-d3aij*r);
-  const KK_FLOAT e4 = exp(-d4aij*r);
+  const KK_FLOAT e1 = Kokkos::exp(-d1aij*r);
+  const KK_FLOAT e2 = Kokkos::exp(-d2aij*r);
+  const KK_FLOAT e3 = Kokkos::exp(-d3aij*r);
+  const KK_FLOAT e4 = Kokkos::exp(-d4aij*r);
 
   KK_FLOAT sum = c1_kk*e1;
   sum += c2_kk*e2;

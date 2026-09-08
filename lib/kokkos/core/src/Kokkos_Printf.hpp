@@ -8,6 +8,8 @@
 
 #ifdef KOKKOS_ENABLE_SYCL
 #include <sycl/sycl.hpp>
+#elif defined(KOKKOS_ENABLE_NEXTSILICON)
+#include <NextSilicon/Kokkos_NextSilicon_Printf.hpp>
 #else
 #include <cstdio>
 #endif
@@ -25,6 +27,8 @@ KOKKOS_FORCEINLINE_FUNCTION void printf(const char* format, Args... args) {
     sycl::ext::oneapi::experimental::printf("%s", format);
   else
     sycl::ext::oneapi::experimental::printf(format, args...);
+#elif defined(KOKKOS_ENABLE_NEXTSILICON)
+  Impl::nextsilicon_printf(format, args...);
 #else
   if constexpr (sizeof...(Args) == 0)
     ::printf("%s", format);

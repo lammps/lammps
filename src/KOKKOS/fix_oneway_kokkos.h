@@ -51,8 +51,6 @@ class FixOneWayKokkos : public FixOneWay {
   typename AT::t_int_1d_randomread mask;
   typename AT::t_int_1d d_match;
 
-  class AtomKokkos *atomKK;
-  ExecutionSpace execution_space;
 };
 
 }

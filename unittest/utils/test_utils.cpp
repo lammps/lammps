@@ -876,6 +876,35 @@ TEST(Utils, strmatch_yaml_suffix)
     ASSERT_FALSE(utils::strmatch("test", "\\.[yY][aA]?[mM][lL]$"));
 }
 
+TEST(Utils, strmatch_bracket_indices)
+{
+    // pattern used by compute property/atom to detect history[I][J] attributes
+    const char *pattern = "^history\\[\\d+\\]\\[\\d+\\]$";
+
+    // well-formed references match
+    ASSERT_TRUE(utils::strmatch("history[1][2]", pattern));
+    ASSERT_TRUE(utils::strmatch("history[10][200]", pattern));
+    ASSERT_TRUE(utils::strmatch("history[0][0]", pattern));
+
+    // start and end anchors reject leading or trailing text
+    ASSERT_FALSE(utils::strmatch("xhistory[1][2]", pattern));
+    ASSERT_FALSE(utils::strmatch("history[1][2]x", pattern));
+    ASSERT_FALSE(utils::strmatch("history[1][2][3]", pattern));
+
+    // both bracketed groups are required and must be one or more digits
+    ASSERT_FALSE(utils::strmatch("history[1]", pattern));
+    ASSERT_FALSE(utils::strmatch("history[][2]", pattern));
+    ASSERT_FALSE(utils::strmatch("history[1][]", pattern));
+    ASSERT_FALSE(utils::strmatch("history[a][2]", pattern));
+    ASSERT_FALSE(utils::strmatch("history[1][2", pattern));
+    ASSERT_FALSE(utils::strmatch("history12", pattern));
+
+    // \d+ matches arbitrarily long digit runs: the regex does NOT bound the
+    // integer magnitude, so an out-of-range value still matches and the caller
+    // must do the numeric conversion with range checking (e.g. utils::inumeric)
+    ASSERT_TRUE(utils::strmatch("history[99999999999999999999][1]", pattern));
+}
+
 TEST(Utils, strmatch_dot)
 {
     ASSERT_TRUE(utils::strmatch("rigid", ".igid"));

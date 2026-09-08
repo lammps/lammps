@@ -81,7 +81,7 @@ given by
                          \qquad r < r_c
 
 as required for the SPICA (formerly called SDK) and the pSPICA Coarse-grained MD parameterization discussed in
-:ref:`(Shinoda) <Shinoda3>`, :ref:`(DeVane) <DeVane>`, :ref:`(Seo) <Seo>`, and :ref:`(Miyazaki) <Miyazaki>`.
+:ref:`(Shinoda2) <Shinoda3>`, :ref:`(DeVane) <DeVane>`, :ref:`(Seo) <Seo>`, and :ref:`(Miyazaki) <Miyazaki>`.
 :math:`r_c` is the cutoff.
 Summary information on these force fields can be found at https://www.spica-ff.org
 
@@ -179,7 +179,7 @@ none
 
 .. _Shinoda3:
 
-**(Shinoda)** Shinoda, DeVane, Klein, Mol Sim, 33, 27-36 (2007).
+**(Shinoda2)** Shinoda, DeVane, Klein, Mol Sim, 33, 27-36 (2007).
 
 .. _DeVane:
 

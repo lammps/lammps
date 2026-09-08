@@ -48,4 +48,4 @@ thermo_modify   lost ignore lost/bond ignore
 #dump            2 all local 100 brokenDump f_brkbond[1] f_brkbond[2] f_brkbond[3]
 #dump_modify     2 header no
 
-run             7500
+run             2500

@@ -59,6 +59,7 @@ MLIAP_SO3Kokkos<DeviceType>::MLIAP_SO3Kokkos(LAMMPS *lmp, double vrcut, int vlma
 template <class DeviceType>
 MLIAP_SO3Kokkos<DeviceType>::~MLIAP_SO3Kokkos()
 {
+  if (copymode) return;
   t_numneighs = int_1d();
   t_jelems = int_1d();
   t_wjelem = float_1d();
@@ -679,22 +680,22 @@ void MLIAP_SO3Kokkos<DeviceType>::spectrum(int nlocal, DAT::tdual_int_1d numneig
 
   bigint totali;
 
-  totali = totaln * m_Nmax * (m_lmax + 1);
-  if ( totali > (int)m_sbes_array.extent(0)) {
+  totali = (bigint) totaln * m_Nmax * (m_lmax + 1);
+  if ( totali > (bigint)m_sbes_array.extent(0)) {
     memoryKK->realloc_kokkos(m_sbes_array, "MLIAP_SO3Kokkos:m_sbes_array", totali);
     memoryKK->realloc_kokkos(m_sbes_darray, "MLIAP_SO3Kokkos:m_sbes_darray", totali);
     alloc_arrays += 2.0 * totali * sizeof(double);
   }
 
-  totali = totaln * m_nmax * (m_lmax + 1);
-  if ( totali > (int)m_rip_array.extent(0)) {
+  totali = (bigint) totaln * m_nmax * (m_lmax + 1);
+  if ( totali > (bigint)m_rip_array.extent(0)) {
     memoryKK->realloc_kokkos(m_rip_array, "MLIAP_SO3Kokkos:m_rip_array", totali);
     memoryKK->realloc_kokkos(m_rip_darray, "MLIAP_SO3Kokkos:m_rip_darray", totali);
     alloc_arrays += 2.0 * totali * sizeof(double);
   }
 
-  totali = totaln * ncoefs * 3;
-  if ( totali > (int)k_dplist_r.extent(0)) {
+  totali = (bigint) totaln * ncoefs * 3;
+  if ( totali > (bigint)k_dplist_r.extent(0)) {
     memoryKK->realloc_kokkos(k_dplist_r, "MLIAP_SO3Kokkos:m_dplist_r", (int)totaln, ncoefs, 3);
     alloc_arrays += 2.0 * totali * sizeof(double);
   }
@@ -711,12 +712,16 @@ void MLIAP_SO3Kokkos<DeviceType>::spectrum(int nlocal, DAT::tdual_int_1d numneig
 
   {
     Kokkos::RangePolicy<DeviceType,MLIAPSO3GetSBESArrayTag> range(0,nlocal);
+    copymode = 1;
     Kokkos::parallel_for(range, *this);
+    copymode = 0;
   }
 
   {
     Kokkos::RangePolicy<DeviceType,MLIAPSO3GetRipArrayTag> range(0,nlocal);
+    copymode = 1;
     Kokkos::parallel_for(range, *this);
+    copymode = 0;
   }
 
   Kokkos::deep_copy(m_plist_r,0.);
@@ -726,7 +731,9 @@ void MLIAP_SO3Kokkos<DeviceType>::spectrum(int nlocal, DAT::tdual_int_1d numneig
     Kokkos::deep_copy(m_clisttot_i, 0);
     {
       Kokkos::RangePolicy<DeviceType,MLIAPSO3SpectrumTag> range(start,end);
-      Kokkos::parallel_for(range, *this);
+      copymode = 1;
+    Kokkos::parallel_for(range, *this);
+    copymode = 0;
     }
   }
 }
@@ -812,8 +819,8 @@ void MLIAP_SO3Kokkos<DeviceType>::spectrum_dxdr(int nlocal, DAT::tdual_int_1d nu
     }
   }
 
-  totali = totaln * m_Nmax * (m_lmax + 1);
-  if ( totali > (int)m_sbes_array.extent(0)) {
+  totali = (bigint) totaln * m_Nmax * (m_lmax + 1);
+  if ( totali > (bigint)m_sbes_array.extent(0)) {
     memoryKK->create_kokkos(m_sbes_array, totali, "MLIAP_SO3Kokkos:m_sbes_array");
     memoryKK->create_kokkos(m_sbes_darray, totali, "MLIAP_SO3Kokkos:m_sbes_darray");
 
@@ -836,12 +843,16 @@ void MLIAP_SO3Kokkos<DeviceType>::spectrum_dxdr(int nlocal, DAT::tdual_int_1d nu
 
   {
     Kokkos::RangePolicy<DeviceType,MLIAPSO3GetSBESArrayTag> range(0,nlocal);
+    copymode = 1;
     Kokkos::parallel_for(range, *this);
+    copymode = 0;
   }
 
   {
     Kokkos::RangePolicy<DeviceType,MLIAPSO3GetRipArrayTag> range(0,nlocal);
+    copymode = 1;
     Kokkos::parallel_for(range, *this);
+    copymode = 0;
   }
 
   Kokkos::deep_copy(k_dplist_r, 0.0);
@@ -851,7 +862,9 @@ void MLIAP_SO3Kokkos<DeviceType>::spectrum_dxdr(int nlocal, DAT::tdual_int_1d nu
     Kokkos::deep_copy(m_clisttot_i, 0);
     {
       Kokkos::RangePolicy<DeviceType,MLIAPSO3SpectrumDXDRTag> range(start,end);
-      Kokkos::parallel_for(range, *this);
+      copymode = 1;
+    Kokkos::parallel_for(range, *this);
+    copymode = 0;
     }
   }
 }
@@ -896,7 +909,7 @@ void MLIAP_SO3Kokkos<DeviceType>::operator() (const MLIAP_SO3Kokkos<DeviceType>:
     compute_uarray_recursive(x, y, z, r, twolmax, ulist_r, ulist_i, m_idxu_block, m_rootpq);
 
     double sfac_weight = compute_sfac(r, t_rcut)*double(weight);
-    bigint gindex = (ipair - 1) * findex;
+    bigint gindex = (bigint) (ipair - 1) * findex;
     for (int n = 0; n < t_nmax; n++) {
       int i = 0;
       for (int l = 0; l < t_lmax + 1; l++) {

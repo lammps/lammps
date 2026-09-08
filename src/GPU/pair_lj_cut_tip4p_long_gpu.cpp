@@ -27,6 +27,7 @@
 #include "force.h"
 #include "gpu_extra.h"
 #include "kspace.h"
+#include "lammps_gpu.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
 #include "neighbor.h"
@@ -35,35 +36,9 @@
 #include <cmath>
 
 using namespace LAMMPS_NS;
+using namespace LAMMPS_GPU;
 using namespace EwaldConst;
 
-// External functions from cuda library for atom decomposition
-
-int ljtip4p_long_gpu_init(const int ntypes, double **cutsq, double **host_lj1, double **host_lj2,
-                          double **host_lj3, double **host_lj4, double **offset, double *special_lj,
-                          const int nlocal, const int tH, const int tO, const double alpha,
-                          const double qdist, const int nall, const int max_nbors,
-                          const int maxspecial, const double cell_size, int &gpu_mode, FILE *screen,
-                          double **host_cut_ljsq, const double host_cut_coulsq,
-                          const double host_cut_coulsqplus, double *host_special_coul,
-                          const double qqrd2e, const double g_ewald, int map_size, int max_same);
-void ljtip4p_long_gpu_clear();
-int **ljtip4p_long_gpu_compute_n(const int ago, const int inum, const int nall, double **host_x,
-                                 int *host_type, double *sublo, double *subhi, tagint *tag,
-                                 int *map_array, int map_size, int *sametag, int max_same,
-                                 int **nspecial, tagint **special, const bool eflag,
-                                 const bool vflag, const bool eatom, const bool vatom,
-                                 int &host_start, int **ilist, int **jnum, const double cpu_time,
-                                 bool &success, double *host_q, double *boxlo, double *prd,
-                                 int *periodicity);
-void ljtip4p_long_gpu_compute(const int ago, const int inum, const int nall, double **host_x,
-                              int *host_type, int *ilist, int *numj, int **firstneigh,
-                              const bool eflag, const bool vflag, const bool eatom,
-                              const bool vatom, int &host_start, const double cpu_time,
-                              bool &success, double *host_q, const int nlocal, double *boxlo,
-                              double *prd);
-double ljtip4p_long_gpu_bytes();
-void ljtip4p_long_copy_molecule_data(int, tagint *, int *, int, int *, int, int);
 
 /* ---------------------------------------------------------------------- */
 
@@ -72,7 +47,6 @@ PairLJCutTIP4PLongGPU::PairLJCutTIP4PLongGPU(LAMMPS *lmp) :
 {
   respa_enable = 0;
   reinitflag = 0;
-  cpu_time = 0.0;
   suffix_flag |= Suffix::GPU;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }
@@ -92,7 +66,7 @@ void PairLJCutTIP4PLongGPU::compute(int eflag, int vflag)
 {
   ev_init(eflag, vflag);
   int nall = atom->nlocal + atom->nghost;
-  int inum, host_start;
+  int inum;
 
   bool success = true;
   int *ilist, *numneigh, **firstneigh;
@@ -112,8 +86,8 @@ void PairLJCutTIP4PLongGPU::compute(int eflag, int vflag)
     firstneigh = ljtip4p_long_gpu_compute_n(
         neighbor->ago, inum, nall, atom->x, atom->type, sublo, subhi, atom->tag,
         atom->get_map_array(), atom->get_map_size(), atom->sametag, atom->get_max_same(),
-        atom->nspecial, atom->special, eflag, vflag, eflag_atom, vflag_atom, host_start, &ilist,
-        &numneigh, cpu_time, success, atom->q, domain->boxlo, domain->prd, domain->periodicity);
+        atom->nspecial, atom->special, eflag, vflag, eflag_atom, vflag_atom, &ilist,
+        &numneigh, success, atom->q, domain->boxlo, domain->prd, domain->periodicity);
   } else {
     inum = list->inum;
     ilist = list->ilist;
@@ -122,8 +96,8 @@ void PairLJCutTIP4PLongGPU::compute(int eflag, int vflag)
     ljtip4p_long_copy_molecule_data(nall, atom->tag, atom->get_map_array(), atom->get_map_size(),
                                     atom->sametag, atom->get_max_same(), neighbor->ago);
     ljtip4p_long_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type, ilist, numneigh,
-                             firstneigh, eflag, vflag, eflag_atom, vflag_atom, host_start, cpu_time,
-                             success, atom->q, atom->nlocal, domain->boxlo, domain->prd);
+                             firstneigh, eflag, vflag, eflag_atom, vflag_atom, success, atom->q,
+                             atom->nlocal, domain->boxlo, domain->prd);
   }
   if (!success) error->one(FLERR, "Insufficient memory on accelerator");
   if (atom->molecular != Atom::ATOMIC && neighbor->ago == 0)
@@ -201,7 +175,7 @@ void PairLJCutTIP4PLongGPU::init_style()
   if (gpu_mode == GPU_FORCE) {
     auto *req = neighbor->add_request(this, NeighConst::REQ_FULL);
     // NOTE: we must not add the neighbor list skin here. It is already added automatically.
-    req->set_cutoff(cut_coulplus);
+    req->set_cutoff_max(cut_coulplus);
   }
 }
 

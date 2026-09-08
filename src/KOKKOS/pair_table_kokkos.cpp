@@ -174,14 +174,14 @@ void PairTableKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in)
     }
   }
 
-  if (eflag) eng_vdwl += ev.evdwl;
+  if (eflag) eng_vdwl += static_cast<double>(ev.evdwl);
   if (vflag_global) {
-    virial[0] += ev.v[0];
-    virial[1] += ev.v[1];
-    virial[2] += ev.v[2];
-    virial[3] += ev.v[3];
-    virial[4] += ev.v[4];
-    virial[5] += ev.v[5];
+    virial[0] += static_cast<double>(ev.v[0]);
+    virial[1] += static_cast<double>(ev.v[1]);
+    virial[2] += static_cast<double>(ev.v[2]);
+    virial[3] += static_cast<double>(ev.v[3]);
+    virial[4] += static_cast<double>(ev.v[4]);
+    virial[5] += static_cast<double>(ev.v[5]);
   }
 
   if (eflag_atom) {
@@ -203,66 +203,68 @@ template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
 // NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
-double PairTableKokkos<DeviceType>::
-compute_fpair(const double &rsq, const int &, const int &, const int &itype, const int &jtype) const {
+KK_FLOAT PairTableKokkos<DeviceType>::
+compute_fpair(const KK_FLOAT &rsq, const int &, const int &, const int &itype, const int &jtype) const {
   union_int_float_t rsq_lookup;
   double fpair;
+  const double rsq_d = static_cast<double>(rsq);
   const int tidx = d_table_const.tabindex(itype,jtype);
   if (Specialisation::TabStyle == LOOKUP) {
-    const int itable = static_cast<int> ((rsq - d_table_const.innersq(tidx)) * d_table_const.invdelta(tidx));
+    const int itable = static_cast<int> ((rsq_d - d_table_const.innersq(tidx)) * d_table_const.invdelta(tidx));
     fpair = d_table_const.f(tidx,itable);
   } else if (Specialisation::TabStyle == LINEAR) {
-    const int itable = static_cast<int> ((rsq - d_table_const.innersq(tidx)) * d_table_const.invdelta(tidx));
-    const double fraction = (rsq - d_table_const.rsq(tidx,itable)) * d_table_const.invdelta(tidx);
+    const int itable = static_cast<int> ((rsq_d - d_table_const.innersq(tidx)) * d_table_const.invdelta(tidx));
+    const double fraction = (rsq_d - d_table_const.rsq(tidx,itable)) * d_table_const.invdelta(tidx);
     fpair = d_table_const.f(tidx,itable) + fraction*d_table_const.df(tidx,itable);
   } else if (Specialisation::TabStyle == SPLINE) {
-    const int itable = static_cast<int> ((rsq - d_table_const.innersq(tidx)) * d_table_const.invdelta(tidx));
-    const double b = (rsq - d_table_const.rsq(tidx,itable)) * d_table_const.invdelta(tidx);
+    const int itable = static_cast<int> ((rsq_d - d_table_const.innersq(tidx)) * d_table_const.invdelta(tidx));
+    const double b = (rsq_d - d_table_const.rsq(tidx,itable)) * d_table_const.invdelta(tidx);
     const double a = 1.0 - b;
     fpair = a * d_table_const.f(tidx,itable) + b * d_table_const.f(tidx,itable+1) +
       ((a*a*a-a)*d_table_const.f2(tidx,itable) + (b*b*b-b)*d_table_const.f2(tidx,itable+1)) *
       d_table_const.deltasq6(tidx);
   } else {
-    rsq_lookup.f = rsq;
+    rsq_lookup.f = static_cast<float>(rsq_d);
     int itable = rsq_lookup.i & d_table_const.nmask(tidx);
     itable >>= d_table_const.nshiftbits(tidx);
-    const double fraction = (rsq_lookup.f - d_table_const.rsq(tidx,itable)) * d_table_const.drsq(tidx,itable);
+    const double fraction = (static_cast<double>(rsq_lookup.f) - d_table_const.rsq(tidx,itable)) * d_table_const.drsq(tidx,itable);
     fpair = d_table_const.f(tidx,itable) + fraction*d_table_const.df(tidx,itable);
   }
-  return fpair;
+  return static_cast<KK_FLOAT>(fpair);
 }
 
 template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
 // NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
-double PairTableKokkos<DeviceType>::
-compute_evdwl(const double &rsq, const int &, const int &, const int &itype, const int &jtype) const {
+KK_FLOAT PairTableKokkos<DeviceType>::
+compute_evdwl(const KK_FLOAT &rsq, const int &, const int &, const int &itype, const int &jtype) const {
   double evdwl;
   union_int_float_t rsq_lookup;
+  const double rsq_d = static_cast<double>(rsq);
   const int tidx = d_table_const.tabindex(itype,jtype);
   if (Specialisation::TabStyle == LOOKUP) {
-    const int itable = static_cast<int> ((rsq - d_table_const.innersq(tidx)) * d_table_const.invdelta(tidx));
+    const int itable = static_cast<int> ((rsq_d - d_table_const.innersq(tidx)) * d_table_const.invdelta(tidx));
     evdwl = d_table_const.e(tidx,itable);
   } else if (Specialisation::TabStyle == LINEAR) {
-    const int itable = static_cast<int> ((rsq - d_table_const.innersq(tidx)) * d_table_const.invdelta(tidx));
-    const double fraction = (rsq - d_table_const.rsq(tidx,itable)) * d_table_const.invdelta(tidx);
+    const int itable = static_cast<int> ((rsq_d - d_table_const.innersq(tidx)) * d_table_const.invdelta(tidx));
+    const double fraction = (rsq_d - d_table_const.rsq(tidx,itable)) * d_table_const.invdelta(tidx);
     evdwl = d_table_const.e(tidx,itable) + fraction*d_table_const.de(tidx,itable);
   } else if (Specialisation::TabStyle == SPLINE) {
-    const int itable = static_cast<int> ((rsq - d_table_const.innersq(tidx)) * d_table_const.invdelta(tidx));
-    const double b = (rsq - d_table_const.rsq(tidx,itable)) * d_table_const.invdelta(tidx);
+    const int itable = static_cast<int> ((rsq_d - d_table_const.innersq(tidx)) * d_table_const.invdelta(tidx));
+    const double b = (rsq_d - d_table_const.rsq(tidx,itable)) * d_table_const.invdelta(tidx);
     const double a = 1.0 - b;
     evdwl = a * d_table_const.e(tidx,itable) + b * d_table_const.e(tidx,itable+1) +
         ((a*a*a-a)*d_table_const.e2(tidx,itable) + (b*b*b-b)*d_table_const.e2(tidx,itable+1)) *
         d_table_const.deltasq6(tidx);
   } else {
-    rsq_lookup.f = rsq;
+    rsq_lookup.f = static_cast<float>(rsq_d);
     int itable = rsq_lookup.i & d_table_const.nmask(tidx);
     itable >>= d_table_const.nshiftbits(tidx);
-    const double fraction = (rsq_lookup.f - d_table_const.rsq(tidx,itable)) * d_table_const.drsq(tidx,itable);
+    const double fraction = (static_cast<double>(rsq_lookup.f) - d_table_const.rsq(tidx,itable)) * d_table_const.drsq(tidx,itable);
     evdwl = d_table_const.e(tidx,itable) + fraction*d_table_const.de(tidx,itable);
   }
-  return evdwl;
+  return static_cast<KK_FLOAT>(evdwl);
 }
 
 template<class DeviceType>

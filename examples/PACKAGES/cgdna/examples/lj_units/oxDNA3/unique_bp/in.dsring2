@@ -41,7 +41,7 @@ pair_coeff 1 4 oxdna3/hbond    oxdna3_lj.cgdna
 pair_coeff 2 3 oxdna3/hbond    oxdna3_lj.cgdna
 pair_coeff * * oxdna3/xstk     oxdna3_lj.cgdna
 pair_coeff * * oxdna3/coaxstk  oxdna3_lj.cgdna 
-pair_coeff * * oxdna3/dh       ${T} ${rhos} oxdna2_lj.cgdna
+pair_coeff * * oxdna3/dh       ${T} ${rhos} oxdna3_lj.cgdna
 
 # NVE ensemble
 fix 1 all nve/asphere

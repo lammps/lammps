@@ -699,9 +699,9 @@ void FixRigidOMP::set_v_thr()
     double *shape,*quatatom,*inertiaatom;
     double ione[3],exone[3],eyone[3],ezone[3];
 
-    AtomVecEllipsoid::Bonus *ebonus;
+    AtomVecEllipsoid::Bonus *ebonus = nullptr;
     if (avec_ellipsoid) ebonus = avec_ellipsoid->bonus;
-    AtomVecTri::Bonus *tbonus;
+    AtomVecTri::Bonus *tbonus = nullptr;
     if (avec_tri) tbonus = avec_tri->bonus;
     double **omega_one = atom->omega;
     double **angmom_one = atom->angmom;

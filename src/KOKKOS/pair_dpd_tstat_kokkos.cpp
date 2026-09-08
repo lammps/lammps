@@ -117,7 +117,7 @@ void PairDPDTstatKokkos<DeviceType>::compute(int eflagin, int vflagin)
     for (int i = 1; i <= atom->ntypes; i++)
       for (int j = i; j <= atom->ntypes; j++) {
         k_params.view_host()(i,j).sigma = k_params.view_host()(j,i).sigma =
-          sqrt(2.0*boltz*temperature*gamma[i][j]);
+          static_cast<KK_FLOAT>(sqrt(2.0*boltz*temperature*gamma[i][j]));
       }
   }
   k_params.modify_host();
@@ -144,17 +144,17 @@ void PairDPDTstatKokkos<DeviceType>::compute(int eflagin, int vflagin)
   k_cutsq.template sync<DeviceType>();
   k_params.template sync<DeviceType>();
 
-  special_lj[0] = force->special_lj[0];
-  special_lj[1] = force->special_lj[1];
-  special_lj[2] = force->special_lj[2];
-  special_lj[3] = force->special_lj[3];
-  special_rf[0] = sqrt(force->special_lj[0]);
-  special_rf[1] = sqrt(force->special_lj[1]);
-  special_rf[2] = sqrt(force->special_lj[2]);
-  special_rf[3] = sqrt(force->special_lj[3]);
+  special_lj[0] = static_cast<KK_FLOAT>(force->special_lj[0]);
+  special_lj[1] = static_cast<KK_FLOAT>(force->special_lj[1]);
+  special_lj[2] = static_cast<KK_FLOAT>(force->special_lj[2]);
+  special_lj[3] = static_cast<KK_FLOAT>(force->special_lj[3]);
+  special_rf[0] = static_cast<KK_FLOAT>(sqrt(force->special_lj[0]));
+  special_rf[1] = static_cast<KK_FLOAT>(sqrt(force->special_lj[1]));
+  special_rf[2] = static_cast<KK_FLOAT>(sqrt(force->special_lj[2]));
+  special_rf[3] = static_cast<KK_FLOAT>(sqrt(force->special_lj[3]));
 
   nlocal = atom->nlocal;
-  dtinvsqrt = 1.0/sqrt(update->dt);
+  dtinvsqrt = static_cast<KK_FLOAT>(1.0/sqrt(update->dt));
 
   NeighListKokkos<DeviceType>* k_list = static_cast<NeighListKokkos<DeviceType>*>(list);
   d_numneigh = k_list->d_numneigh;
@@ -187,12 +187,12 @@ void PairDPDTstatKokkos<DeviceType>::compute(int eflagin, int vflagin)
     Kokkos::Experimental::contribute(f, dup_f);
 
   if (vflag_global) {
-    virial[0] += ev.v[0];
-    virial[1] += ev.v[1];
-    virial[2] += ev.v[2];
-    virial[3] += ev.v[3];
-    virial[4] += ev.v[4];
-    virial[5] += ev.v[5];
+    virial[0] += static_cast<double>(ev.v[0]);
+    virial[1] += static_cast<double>(ev.v[1]);
+    virial[2] += static_cast<double>(ev.v[2]);
+    virial[3] += static_cast<double>(ev.v[3]);
+    virial[4] += static_cast<double>(ev.v[4]);
+    virial[5] += static_cast<double>(ev.v[5]);
   }
 
   if (vflag_fdotr) pair_virial_fdotr_compute(this);
@@ -266,17 +266,17 @@ void PairDPDTstatKokkos<DeviceType>::operator() (TagDPDTstatKokkos<NEIGHFLAG,VFL
     rsq = delx*delx + dely*dely + delz*delz;
     jtype = type(j);
     if (rsq < d_cutsq(itype,jtype)) {
-      r = sqrt(rsq);
-      if (r < EPSILON) continue;     // r can be 0.0 in DPD systems
-      rinv = 1.0/r;
+      r = Kokkos::sqrt(rsq);
+      if (r < static_cast<KK_FLOAT>(EPSILON)) continue;     // r can be 0.0 in DPD systems
+      rinv = static_cast<KK_FLOAT>(1.0)/r;
       delvx = vxtmp - v(j,0);
       delvy = vytmp - v(j,1);
       delvz = vztmp - v(j,2);
       dot = delx*delvx + dely*delvy + delz*delvz;
 
-      wd = 1.0 - r/params(itype,jtype).cut;
+      wd = static_cast<KK_FLOAT>(1.0) - r/params(itype,jtype).cut;
 
-      randnum = rand_gen.normal();
+      randnum = static_cast<KK_FLOAT>(rand_gen.normal());
 
       // drag force - parallel
       fpair = -params(itype,jtype).gamma*wd*wd*dot*rinv;
@@ -290,17 +290,17 @@ void PairDPDTstatKokkos<DeviceType>::operator() (TagDPDTstatKokkos<NEIGHFLAG,VFL
       fy += fpair*dely;
       fz += fpair*delz;
 
-      a_f(j,0) -= fpair*delx;
-      a_f(j,1) -= fpair*dely;
-      a_f(j,2) -= fpair*delz;
+      a_f(j,0) -= static_cast<KK_ACC_FLOAT>(fpair*delx);
+      a_f(j,1) -= static_cast<KK_ACC_FLOAT>(fpair*dely);
+      a_f(j,2) -= static_cast<KK_ACC_FLOAT>(fpair*delz);
 
       if (VFLAG)
         this->template v_tally<NEIGHFLAG>(ev,i,j,fpair,delx,dely,delz);
     }
   }
-  a_f(i,0) += fx;
-  a_f(i,1) += fy;
-  a_f(i,2) += fz;
+  a_f(i,0) += static_cast<KK_ACC_FLOAT>(fx);
+  a_f(i,1) += static_cast<KK_ACC_FLOAT>(fy);
+  a_f(i,2) += static_cast<KK_ACC_FLOAT>(fz);
   rand_pool.free_state(rand_gen);
 }
 
@@ -328,27 +328,27 @@ void PairDPDTstatKokkos<DeviceType>::v_tally(EV_FLOAT &ev, const int &i, const i
     const KK_FLOAT v5 = dely*delz*fpair;
 
   if (vflag_global) {
-    ev.v[0] += v0;
-    ev.v[1] += v1;
-    ev.v[2] += v2;
-    ev.v[3] += v3;
-    ev.v[4] += v4;
-    ev.v[5] += v5;
+    ev.v[0] += static_cast<KK_ACC_FLOAT>(v0);
+    ev.v[1] += static_cast<KK_ACC_FLOAT>(v1);
+    ev.v[2] += static_cast<KK_ACC_FLOAT>(v2);
+    ev.v[3] += static_cast<KK_ACC_FLOAT>(v3);
+    ev.v[4] += static_cast<KK_ACC_FLOAT>(v4);
+    ev.v[5] += static_cast<KK_ACC_FLOAT>(v5);
   }
 
   if (vflag_atom) {
-    a_vatom(i,0) += 0.5*v0;
-    a_vatom(i,1) += 0.5*v1;
-    a_vatom(i,2) += 0.5*v2;
-    a_vatom(i,3) += 0.5*v3;
-    a_vatom(i,4) += 0.5*v4;
-    a_vatom(i,5) += 0.5*v5;
-    a_vatom(j,0) += 0.5*v0;
-    a_vatom(j,1) += 0.5*v1;
-    a_vatom(j,2) += 0.5*v2;
-    a_vatom(j,3) += 0.5*v3;
-    a_vatom(j,4) += 0.5*v4;
-    a_vatom(j,5) += 0.5*v5;
+    a_vatom(i,0) += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v0);
+    a_vatom(i,1) += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v1);
+    a_vatom(i,2) += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v2);
+    a_vatom(i,3) += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v3);
+    a_vatom(i,4) += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v4);
+    a_vatom(i,5) += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v5);
+    a_vatom(j,0) += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v0);
+    a_vatom(j,1) += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v1);
+    a_vatom(j,2) += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v2);
+    a_vatom(j,3) += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v3);
+    a_vatom(j,4) += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v4);
+    a_vatom(j,5) += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v5);
   }
 }
 
@@ -386,9 +386,9 @@ double PairDPDTstatKokkos<DeviceType>::init_one(int i, int j)
 {
   double cutone = PairDPD::init_one(i,j);
 
-  k_params.view_host()(i,j).cut = cut[i][j];
-  k_params.view_host()(i,j).gamma = gamma[i][j];
-  k_params.view_host()(i,j).sigma = sigma[i][j];
+  k_params.view_host()(i,j).cut = static_cast<KK_FLOAT>(cut[i][j]);
+  k_params.view_host()(i,j).gamma = static_cast<KK_FLOAT>(gamma[i][j]);
+  k_params.view_host()(i,j).sigma = static_cast<KK_FLOAT>(sigma[i][j]);
   k_params.view_host()(j,i) = k_params.view_host()(i,j);
 
   k_params.modify_host();

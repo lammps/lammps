@@ -94,6 +94,8 @@ FixBAOAB::FixBAOAB(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg), ran
 
 FixBAOAB::~FixBAOAB()
 {
+  if (copymode) return;
+
   delete random;
 }
 
@@ -111,9 +113,10 @@ int FixBAOAB::setmask()
 
 void FixBAOAB::init()
 {
-  // fix baoab and fix shake/rattle cannot be used together
+  // fix baoab and fix shake/rattle/ilves cannot be used together
   for (const auto &ifix : modify->get_fix_list())
-    if ((utils::strmatch(ifix->style, "^shake") || utils::strmatch(ifix->style, "^rattle")) &&
+    if ((utils::strmatch(ifix->style, "^shake") || utils::strmatch(ifix->style, "^rattle") ||
+         utils::strmatch(ifix->style, "^ilves")) &&
         (ifix->groupbit & groupbit))
       error->all(FLERR, Error::NOLASTLINE, "Fix baoab is not compatible with fix {} on group {}",
                  ifix->style, group->names[igroup]);

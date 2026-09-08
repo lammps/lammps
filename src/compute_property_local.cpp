@@ -36,8 +36,8 @@ static constexpr int DELTA = 10000;
 /* ---------------------------------------------------------------------- */
 
 ComputePropertyLocal::ComputePropertyLocal(LAMMPS *lmp, int narg, char **arg) :
-    Compute(lmp, narg, arg), vlocal(nullptr), alocal(nullptr), indices(nullptr),
-    pack_choice(nullptr)
+    Compute(lmp, narg, arg), vlocal(nullptr), alocal(nullptr), buf(nullptr), list(nullptr),
+    indices(nullptr), pack_choice(nullptr)
 {
   if (narg < 4) utils::missing_cmd_args(FLERR, "compute property/local", error);
 

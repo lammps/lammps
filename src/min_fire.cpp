@@ -228,7 +228,7 @@ template <int INTEGRATOR, bool ABCFLAG> int MinFire::run_iterate(int maxiter)
     // v = (1-alpha) v + alpha |v| Fhat
     // |v| = length of v, Fhat = unit f
     // Only: (1-alpha) and alpha |v| Fhat is calculated here
-    // the modificatin of v is made wihtin the integration, after v update
+    // the modificatin of v is made within the integration, after v update
     // if more than delaystep since v dot f was negative:
     // increase timestep, update global timestep and decrease alpha
 
@@ -327,7 +327,7 @@ template <int INTEGRATOR, bool ABCFLAG> int MinFire::run_iterate(int maxiter)
     }
 
     if (!ABCFLAG) {
-      // evaluates velocties to estimate wether dtv has to be limited
+      // evaluates velocties to estimate whether dtv has to be limited
       // required when v have been reset
 
       if (flagv0) {

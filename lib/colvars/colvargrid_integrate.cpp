@@ -1,7 +1,6 @@
 #include "colvargrid_integrate.h"
 
-#include <iostream>
-#include <iomanip>
+#include <cstdio>
 
 
 colvargrid_integrate::colvargrid_integrate(std::vector<colvar *> &colvars,
@@ -14,24 +13,24 @@ colvargrid_integrate::colvargrid_integrate(std::vector<colvar *> &colvars,
   // hence PMF grid is wider than gradient grid if non-PBC
 
   if (nd > 1) {
-    cvm::main()->cite_feature("Poisson integration of 2D/3D free energy surfaces");
+    cvmodule->cite_feature("Poisson integration of 2D/3D free energy surfaces");
     divergence.resize(nt);
 
     // Compute inverse of Laplacian diagonal for Jacobi preconditioning
     // For now all code related to preconditioning is commented out
     // until a method better than Jacobi is implemented
-//     cvm::log("Preparing inverse diagonal for preconditioning...\n");
+//     cvmodule->log("Preparing inverse diagonal for preconditioning...\n");
 //     inv_lap_diag.resize(nt);
 //     std::vector<cvm::real> id(nt), lap_col(nt);
 //     for (int i = 0; i < nt; i++) {
 //       if (i % (nt / 100) == 0)
-//         cvm::log(cvm::to_str(i));
+//         cvmodule->log(cvm::to_str(i));
 //       id[i] = 1.;
 //       atimes(id, lap_col);
 //       id[i] = 0.;
 //       inv_lap_diag[i] = 1. / lap_col[i];
 //     }
-//     cvm::log("Done.\n");
+//     cvmodule->log("Done.\n");
   }
 }
 
@@ -90,10 +89,10 @@ int colvargrid_integrate::integrate(const int itmax, const cvm::real &tol, cvm::
 
     nr_linbcg_sym(divergence, data, tol, itmax, iter, err);
     if (verbose)
-      cvm::log("Integrated in " + cvm::to_str(iter) + " steps, error: " + cvm::to_str(err));
+      cvmodule->log("Integrated in " + cvm::to_str(iter) + " steps, error: " + cvm::to_str(err));
 
   } else {
-    cvm::error("Cannot integrate PMF in dimension > 3\n");
+    cvmodule->error("Cannot integrate PMF in dimension > 3\n");
   }
 
   return iter;
@@ -171,7 +170,7 @@ void colvargrid_integrate::update_div_local(const std::vector<int> &ix0)
 
   if (nd == 2) {
     // gradients at grid points surrounding the current scalar grid point
-    cvm::real g00[2], g01[2], g10[2], g11[2];
+    cvm::real g00[2]{}, g01[2]{}, g10[2]{}, g11[2]{};
 
     get_grad(g11, ix);
     ix[0] = ix0[0] - 1;
@@ -677,8 +676,9 @@ void colvargrid_integrate::nr_linbcg_sym(const std::vector<cvm::real> &b, std::v
     }
 //     asolve(r,z);  // precon
     err = l2norm(r)/bnrm;
-    if (cvm::debug())
-      std::cout << "iter=" << std::setw(4) << iter+1 << std::setw(12) << err << std::endl;
+    if (cvm::debug()) {
+      std::printf("iter=%4d %12lf\n", iter+1, err);
+    }
     if (err <= tol)
       break;
   }

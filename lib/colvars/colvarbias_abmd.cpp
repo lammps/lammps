@@ -13,8 +13,8 @@
 #include <iomanip>
 
 
-colvarbias_abmd::colvarbias_abmd(char const *key)
-  : colvarbias(key),
+colvarbias_abmd::colvarbias_abmd(colvarmodule *cvmodule_in, char const *key)
+  : colvarbias(cvmodule_in, key),
     colvarbias_ti(key)
 {
 }
@@ -22,7 +22,7 @@ colvarbias_abmd::colvarbias_abmd(char const *key)
 
 int colvarbias_abmd::init(std::string const &conf)
 {
-  cvm::main()->cite_feature("ABMD bias");
+  cvmodule->cite_feature("ABMD bias");
 
   int err = colvarbias::init(conf);
   err |= colvarbias_ti::init(conf);
@@ -31,11 +31,11 @@ int colvarbias_abmd::init(std::string const &conf)
   enable(f_cvb_apply_force);
 
   if (num_variables() != 1) {
-    return cvm::error("ABMD requires exactly one collective variable.\n", COLVARS_INPUT_ERROR);
+    return cvmodule->error("ABMD requires exactly one collective variable.\n", COLVARS_INPUT_ERROR);
   }
 
   if ( ! (variables(0))->is_enabled(f_cv_scalar) ) {
-    return cvm::error("ABMD colvar must be scalar.\n", COLVARS_INPUT_ERROR);
+    return cvmodule->error("ABMD colvar must be scalar.\n", COLVARS_INPUT_ERROR);
   }
 
   get_keyval(conf, "forceConstant", k);
@@ -48,7 +48,7 @@ int colvarbias_abmd::init(std::string const &conf)
 
 int colvarbias_abmd::update()
 {
-  if (!cvm::main()->proxy->simulation_running()) {
+  if (!cvmodule->proxy->simulation_running()) {
     return COLVARS_OK;
   }
 
@@ -83,7 +83,7 @@ std::string const colvarbias_abmd::get_state_params() const
   os.setf(std::ios::scientific, std::ios::floatfield);
 
   os << "    refValue "
-      << std::setprecision(cvm::cv_prec) << std::setw(cvm::cv_width)
+      << std::setprecision(cvmodule->cv_prec) << std::setw(cvmodule->cv_width)
       << ref_val << "\n";
   os << "    stoppingValue " << stopping_val << "\n";
   os << "    forceConstant " << k << "\n";
@@ -118,9 +118,9 @@ int colvarbias_abmd::set_state_params(std::string const &conf)
 
 std::ostream & colvarbias_abmd::write_traj_label(std::ostream &os)
 {
-  size_t const this_cv_width = (variables(0)->value()).output_width(cvm::cv_width);
+  size_t const this_cv_width = (variables(0)->value()).output_width(cvmodule->cv_width);
   os << " ref_"
-      << cvm::wrap_string(variables(0)->name, this_cv_width-4);
+      << cvmodule->wrap_string(variables(0)->name, this_cv_width-4);
 
   return os;
 }
@@ -129,7 +129,7 @@ std::ostream & colvarbias_abmd::write_traj_label(std::ostream &os)
 std::ostream & colvarbias_abmd::write_traj(std::ostream &os)
 {
   os << " "
-      << std::setprecision(cvm::cv_prec) << std::setw(cvm::cv_width)
+      << std::setprecision(cvmodule->cv_prec) << std::setw(cvmodule->cv_width)
       << ref_val;
 
   return os;

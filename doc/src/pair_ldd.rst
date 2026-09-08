@@ -38,7 +38,7 @@ A potential file entry has the form (one ordered species pair per line):
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 4Jul2026
 
 Style *ldd* implements the local density potential as first described by
 Pagonabarraga and Frenkel :ref:`(Pagonabarraga)<Pagonabarraga>` and

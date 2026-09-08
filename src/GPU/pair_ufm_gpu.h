@@ -34,7 +34,6 @@ class PairUFMGPU : public PairUFM {
  public:
   PairUFMGPU(LAMMPS *lmp);
   ~PairUFMGPU() override;
-  void cpu_compute(int, int, int, int, int *, int *, int **);
   void compute(int, int) override;
   void init_style() override;
   void reinit() override;
@@ -44,7 +43,6 @@ class PairUFMGPU : public PairUFM {
 
  private:
   int gpu_mode;
-  double cpu_time;
 };
 
 }    // namespace LAMMPS_NS

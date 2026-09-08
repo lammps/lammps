@@ -221,7 +221,7 @@ and Tij != -Tji since the torques do not act symmetrically.  The
 shifted-force formula for the Lennard-Jones potential is reported in
 :ref:`(Stoddard) <Stoddard>`.  The original (non-shifted) formulas for
 the electrostatic potentials, forces and torques can be found in
-:ref:`(Price) <Price2>`. The shifted-force electrostatic potentials
+:ref:`(Price2) <Price2>`. The shifted-force electrostatic potentials
 have been obtained by applying equation 5.13 of :ref:`(AllenTildesley)
 <Allen2>`. The formulas for the corresponding forces and torques have
 been obtained by applying the 'chain rule' as in appendix C.3 of
@@ -393,4 +393,4 @@ Clarendon Press, Oxford, 1987.
 
 .. _Price2:
 
-**(Price)** Price, Stone and Alderton, Mol Phys, 52, 987 (1984).
+**(Price2)** Price, Stone and Alderton, Mol Phys, 52, 987 (1984).

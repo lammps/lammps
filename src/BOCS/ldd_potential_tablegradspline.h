@@ -16,12 +16,6 @@
     and Maria C. Lesniewski, mjl6766@psu.edu
     The Pennsylvania State University
    ------------------------------------------------------ */
-#ifdef LDD_POTENTIAL_CLASS
-// clang-format off
-LddPotentialStyle(table/gradspline,LddPotentialTableGradSpline);
-// clang-format on
-#else
-
 #ifndef LDD_POTENTIAL_TABLEGRADSPLINE
 #define LDD_POTENTIAL_TABLEGRADSPLINE
 
@@ -47,5 +41,4 @@ class LddPotentialTableGradSpline : public LddPotential {
 };
 }    // namespace LAMMPS_NS
 
-#endif
 #endif

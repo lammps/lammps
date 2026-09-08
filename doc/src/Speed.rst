@@ -11,12 +11,14 @@ speed-up a simulation.  The second is to use one of the several
 accelerator packages provided with LAMMPS that contain code optimized
 for certain kinds of hardware, including multicore CPUs and GPUs.
 
-The `Benchmark page <https://www.lammps.org/bench.html>`_ of the LAMMPS
-website gives performance results for the various accelerator
-packages discussed on the :doc:`Accelerator packages <Speed_packages>`
-page, for several of the standard LAMMPS benchmark problems, as a
-function of problem size and number of compute nodes, on different
-hardware platforms.
+..
+   FIXME:
+   The `Benchmark page <https://www.lammps.org/bench.html>`_ of the LAMMPS
+   website gives performance results for the various accelerator
+   packages discussed on the :doc:`Accelerator packages <Speed_packages>`
+   page, for several of the standard LAMMPS benchmark problems, as a
+   function of problem size and number of compute nodes, on different
+   hardware platforms.
 
 .. toctree::
    :maxdepth: 1

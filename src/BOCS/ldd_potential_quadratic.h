@@ -16,12 +16,6 @@
     and Maria C. Lesniewski, mjl6766@psu.edu
     The Pennsylvania State University
    ------------------------------------------------------ */
-#ifdef LDD_POTENTIAL_CLASS
-// clang-format off
-LddPotentialStyle(quadratic,LddPotentialQuadratic);
-// clang-format on
-#else
-
 #ifndef LDD_POTENTIAL_QUADRATIC
 #define LDD_POTENTIAL_QUADRATIC
 
@@ -43,5 +37,4 @@ class LddPotentialQuadratic : public LddPotential {
 };
 }    // namespace LAMMPS_NS
 
-#endif
 #endif

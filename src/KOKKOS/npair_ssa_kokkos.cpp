@@ -557,9 +557,9 @@ void NPairSSAKokkosExecute<DeviceType>::build_locals_onePhase(const bool firstTr
         int n = 0;
 
         const AtomNeighbors neighbors_i = neigh_list.get_neighbors(inum);
-        const double xtmp = x(i, 0);
-        const double ytmp = x(i, 1);
-        const double ztmp = x(i, 2);
+        const double xtmp = static_cast<double>(x(i, 0));
+        const double ytmp = static_cast<double>(x(i, 1));
+        const double ztmp = static_cast<double>(x(i, 2));
         const int itype = type(i);
 
         // loop over all local atoms in the current stencil "subphase"
@@ -573,11 +573,11 @@ void NPairSSAKokkosExecute<DeviceType>::build_locals_onePhase(const bool firstTr
             const int jtype = type(j);
             if (exclude && exclusion(i,j,itype,jtype)) continue;
 
-            const double delx = xtmp - x(j, 0);
-            const double dely = ytmp - x(j, 1);
-            const double delz = ztmp - x(j, 2);
+            const double delx = xtmp - static_cast<double>(x(j, 0));
+            const double dely = ytmp - static_cast<double>(x(j, 1));
+            const double delz = ztmp - static_cast<double>(x(j, 2));
             const double rsq = delx*delx + dely*dely + delz*delz;
-            if (rsq <= cutneighsq(itype,jtype)) {
+            if (rsq <= static_cast<double>(cutneighsq(itype,jtype))) {
               if (molecular != Atom::ATOMIC) {
                 if (!moltemplate)
                   which = find_special(i,j);
@@ -678,13 +678,13 @@ void NPairSSAKokkosExecute<DeviceType>::build_ghosts_onePhase(int workPhase) con
         int n = 0;
 
         const AtomNeighbors neighbors_i = neigh_list.get_neighbors(gNdx);
-        const double xtmp = x(i, 0);
-        const double ytmp = x(i, 1);
-        const double ztmp = x(i, 2);
+        const double xtmp = static_cast<double>(x(i, 0));
+        const double ytmp = static_cast<double>(x(i, 1));
+        const double ztmp = static_cast<double>(x(i, 2));
         const int itype = type(i);
 
         int loc[3];
-        const int ibin = coord2bin(x(i, 0), x(i, 1), x(i, 2), &(loc[0]));
+        const int ibin = coord2bin(static_cast<double>(x(i, 0)), static_cast<double>(x(i, 1)), static_cast<double>(x(i, 2)), &(loc[0]));
 
         // loop over AIR ghost atoms in all bins in "full" stencil
         // Note: the non-AIR ghost atoms have already been filtered out
@@ -702,11 +702,11 @@ void NPairSSAKokkosExecute<DeviceType>::build_ghosts_onePhase(int workPhase) con
             const int jtype = type(j);
             if (exclude && exclusion(i,j,itype,jtype)) continue;
 
-            const double delx = xtmp - x(j, 0);
-            const double dely = ytmp - x(j, 1);
-            const double delz = ztmp - x(j, 2);
+            const double delx = xtmp - static_cast<double>(x(j, 0));
+            const double dely = ytmp - static_cast<double>(x(j, 1));
+            const double delz = ztmp - static_cast<double>(x(j, 2));
             const double rsq = delx*delx + dely*dely + delz*delz;
-            if (rsq <= cutneighsq(itype,jtype)) {
+            if (rsq <= static_cast<double>(cutneighsq(itype,jtype))) {
               if (molecular != Atom::ATOMIC) {
                 if (!moltemplate)
                   which = find_special(j,i);

@@ -36,7 +36,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairMDPDRhoSum::PairMDPDRhoSum(LAMMPS *lmp) : Pair(lmp)
+PairMDPDRhoSum::PairMDPDRhoSum(LAMMPS *lmp) : Pair(lmp), cut(nullptr)
 {
   restartinfo = 0;
 

@@ -52,7 +52,7 @@ class FixCMAPKokkos : public FixCMAP, public KokkosBase {
 
 // NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
-    void operator()(TagFixCmapPostForce, const int, double&) const;
+    void operator()(TagFixCmapPostForce, const int, EV_FLOAT&) const;
 
     void grow_arrays(int) override;
     void copy_arrays(int, int, int) override;
@@ -77,6 +77,13 @@ class FixCMAPKokkos : public FixCMAP, public KokkosBase {
 
     typename AT::t_kkfloat_1d_3_lr d_x;
     typename AT::t_kkacc_1d_3 d_f;
+
+    // per-atom energy and virial, accumulated in dual views (see post_force())
+
+    DAT::ttransform_kkacc_1d k_eatom;
+    typename AT::t_kkacc_1d d_eatom;
+    DAT::ttransform_kkacc_1d_6 k_vatom;
+    typename AT::t_kkacc_1d_6 d_vatom;
 
     DAT::tdual_int_1d k_sametag;
     typename AT::t_int_1d d_sametag;

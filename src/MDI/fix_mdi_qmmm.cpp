@@ -832,6 +832,8 @@ void FixMDIQMMM::pre_force(int vflag)
       volume = domain->xprd * domain->yprd;
     else if (domain->dimension == 3)
       volume = domain->xprd * domain->yprd * domain->zprd;
+    else
+      error->all(FLERR, "Unsupported dimension in fix mdi/qmmm");
     for (int i = 0; i < 6; i++) virial[i] = qm_virial_symmetric[i] * volume / nprocs;
   }
 
@@ -1007,6 +1009,8 @@ void FixMDIQMMM::post_force_direct(int vflag)
       volume = domain->xprd * domain->yprd;
     else if (domain->dimension == 3)
       volume = domain->xprd * domain->yprd * domain->zprd;
+    else
+      error->all(FLERR, "Unsupported dimension in fix mdi/qmmm");
     for (int i = 0; i < 6; i++) virial[i] = qm_virial_symmetric[i] * volume / nprocs;
   }
 }

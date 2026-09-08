@@ -155,7 +155,7 @@ void AngleCharmmKokkos<DeviceType>::operator()(TagAngleCharmmCompute<NEWTON_BOND
   const KK_FLOAT delz1 = x(i1,2) - x(i2,2);
 
   const KK_FLOAT rsq1 = delx1*delx1 + dely1*dely1 + delz1*delz1;
-  const KK_FLOAT r1 = sqrt(rsq1);
+  const KK_FLOAT r1 = Kokkos::sqrt(rsq1);
 
   // 2nd bond
 
@@ -164,7 +164,7 @@ void AngleCharmmKokkos<DeviceType>::operator()(TagAngleCharmmCompute<NEWTON_BOND
   const KK_FLOAT delz2 = x(i3,2) - x(i2,2);
 
   const KK_FLOAT rsq2 = delx2*delx2 + dely2*dely2 + delz2*delz2;
-  const KK_FLOAT r2 = sqrt(rsq2);
+  const KK_FLOAT r2 = Kokkos::sqrt(rsq2);
 
   // Urey-Bradley bond
 
@@ -173,7 +173,7 @@ void AngleCharmmKokkos<DeviceType>::operator()(TagAngleCharmmCompute<NEWTON_BOND
   const KK_FLOAT delzUB = x(i3,2) - x(i1,2);
 
   const KK_FLOAT rsqUB = delxUB*delxUB + delyUB*delyUB + delzUB*delzUB;
-  const KK_FLOAT rUB = sqrt(rsqUB);
+  const KK_FLOAT rUB = Kokkos::sqrt(rsqUB);
 
   // Urey-Bradley force & energy
 
@@ -194,13 +194,13 @@ void AngleCharmmKokkos<DeviceType>::operator()(TagAngleCharmmCompute<NEWTON_BOND
   if (c > static_cast<KK_FLOAT>(1.0)) c = static_cast<KK_FLOAT>(1.0);
   if (c < static_cast<KK_FLOAT>(-1.0)) c = static_cast<KK_FLOAT>(-1.0);
 
-  KK_FLOAT s = sqrt(static_cast<KK_FLOAT>(1.0) - c*c);
+  KK_FLOAT s = Kokkos::sqrt(static_cast<KK_FLOAT>(1.0) - c*c);
   if (s < static_cast<KK_FLOAT>(SMALL)) s = static_cast<KK_FLOAT>(SMALL);
   s = static_cast<KK_FLOAT>(1.0) / s;
 
   // harmonic force & energy
 
-  const KK_FLOAT dtheta = acos(c) - d_theta0[type];
+  const KK_FLOAT dtheta = Kokkos::acos(c) - d_theta0[type];
   const KK_FLOAT tk = d_k[type] * dtheta;
 
   if (eflag) eangle += tk*dtheta;
@@ -311,10 +311,10 @@ void AngleCharmmKokkos<DeviceType>::read_restart(FILE *fp)
   AngleCharmm::read_restart(fp);
 
   int n = atom->nangletypes;
-  DAT::tdual_kkfloat_1d k_k("AngleCharmm::k",n+1);
-  DAT::tdual_kkfloat_1d k_theta0("AngleCharmm::theta0",n+1);
-  DAT::tdual_kkfloat_1d k_k_ub("AngleCharmm::k_ub",n+1);
-  DAT::tdual_kkfloat_1d k_r_ub("AngleCharmm::r_ub",n+1);
+  k_k = DAT::tdual_kkfloat_1d("AngleCharmm::k",n+1);
+  k_theta0 = DAT::tdual_kkfloat_1d("AngleCharmm::theta0",n+1);
+  k_k_ub = DAT::tdual_kkfloat_1d("AngleCharmm::k_ub",n+1);
+  k_r_ub = DAT::tdual_kkfloat_1d("AngleCharmm::r_ub",n+1);
 
   d_k = k_k.template view<DeviceType>();
   d_theta0 = k_theta0.template view<DeviceType>();

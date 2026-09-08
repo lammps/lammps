@@ -1,0 +1,68 @@
+{
+   ROCm_device_init0
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:realloc
+   fun:add_device_ids_to_mapped_array
+   ...
+   fun:init
+   ...
+   obj:*
+}
+{
+   ROCm_device_init1
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:realloc
+   fun:add_device_ids_to_mapped_array
+   ...
+   fun:alloc
+   ...
+   obj:*
+}
+
+# ---------------------------------------------------------------------------
+# ROCm HSA/KFD runtime (libhsa-runtime64, hsakmt) and AMD OpenCL runtime
+# internals.  Any process that merely probes the GPU (all unit tests, since
+# the GPU package queries the OpenCL platform on startup) collects a fixed
+# set of "possibly lost" blocks from aperture/memory-object bookkeeping and
+# runtime worker-thread TLS.  All allocations happen inside the ROCm user
+# space stack and are outside of LAMMPS.  Anchored on the stable hsakmt
+# entry points so they keep matching across ROCm versions.
+# ---------------------------------------------------------------------------
+{
+   ROCm_hsakmt_vm_object
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   fun:vm_create_and_init_object
+   ...
+}
+{
+   ROCm_hsakmt_map_to_gpu
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:realloc
+   fun:add_device_ids_to_mapped_array
+   ...
+}
+{
+   ROCm_rocr_thread_tls
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   ...
+   fun:pthread_create@*
+   fun:os_thread
+   ...
+}
+{
+   ROCm_amdocl_thread_tls
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   ...
+   fun:pthread_create@*
+   fun:_ZN3amd*guessTlsSizeEv*
+   ...
+}

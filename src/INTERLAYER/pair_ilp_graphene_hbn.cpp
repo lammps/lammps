@@ -67,7 +67,7 @@ std::map<int, const std::string> variant_map = {
 }    // namespace
 /* ---------------------------------------------------------------------- */
 
-PairILPGrapheneHBN::PairILPGrapheneHBN(LAMMPS *lmp) : Pair(lmp), variant(ILP_GrhBN)
+PairILPGrapheneHBN::PairILPGrapheneHBN(LAMMPS *lmp) : Pair(lmp), variant(ILP_GrhBN), offset(nullptr)
 {
   restartinfo = 0;
   one_coeff = 1;

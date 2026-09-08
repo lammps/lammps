@@ -18,6 +18,7 @@
 #include <cmath>
 
 #include "lal_yukawa.h"
+#include "lammps_gpu.h"
 
 using namespace std;
 using namespace LAMMPS_AL;
@@ -27,6 +28,8 @@ static Yukawa<PRECISION,ACC_PRECISION> YKMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
+
+namespace LAMMPS_GPU {
 int yukawa_gpu_init(const int ntypes, double **cutsq, double kappa,
                  double **host_a, double **offset, double *special_lj,
                  const int inum, const int nall, const int max_nbors,
@@ -34,7 +37,6 @@ int yukawa_gpu_init(const int ntypes, double **cutsq, double kappa,
                  int &gpu_mode, FILE *screen) {
   YKMF.clear();
   gpu_mode=YKMF.device->gpu_mode();
-  double gpu_split=YKMF.device->particle_split();
   int first_gpu=YKMF.device->first_device();
   int last_gpu=YKMF.device->last_device();
   int world_me=YKMF.device->world_me();
@@ -55,8 +57,7 @@ int yukawa_gpu_init(const int ntypes, double **cutsq, double kappa,
   int init_ok=0;
   if (world_me==0)
     init_ok=YKMF.init(ntypes, cutsq, kappa, host_a, offset, special_lj,
-                      inum, nall, max_nbors, maxspecial, cell_size,
-                      gpu_split, screen);
+                      inum, nall, max_nbors, maxspecial, cell_size, screen);
 
   YKMF.device->world_barrier();
   if (message)
@@ -73,8 +74,7 @@ int yukawa_gpu_init(const int ntypes, double **cutsq, double kappa,
     }
     if (gpu_rank==i && world_me!=0)
       init_ok=YKMF.init(ntypes, cutsq, kappa, host_a, offset, special_lj,
-                      inum, nall, max_nbors, maxspecial, cell_size,
-                      gpu_split, screen);
+                      inum, nall, max_nbors, maxspecial, cell_size, screen);
 
     YKMF.device->serialize_init();
     if (message)
@@ -92,29 +92,27 @@ void yukawa_gpu_clear() {
   YKMF.clear();
 }
 
-int ** yukawa_gpu_compute_n(const int ago, const int inum_full,
-                            const int nall, double **host_x, int *host_type,
-                            double *sublo, double *subhi, tagint *tag, int **nspecial,
-                            tagint **special, const bool eflag, const bool vflag,
-                            const bool eatom, const bool vatom, int &host_start,
-                            int **ilist, int **jnum, const double cpu_time,
-                            bool &success, double *prd, int *periodicity) {
+int **yukawa_gpu_compute_n(const int ago, const int inum_full, const int nall, double **host_x,
+                           int *host_type, double *sublo, double *subhi, tagint *tag,
+                           int **nspecial, tagint **special, const bool eflag, const bool vflag,
+                           const bool eatom, const bool vatom, int **ilist, int **jnum,
+                           bool &success, double *prd, int *periodicity)
+{
   return YKMF.compute(ago, inum_full, nall, host_x, host_type, sublo,
                        subhi, tag, nspecial, special, eflag, vflag, eatom,
-                       vatom, host_start, ilist, jnum, cpu_time, success, prd, periodicity);
+                       vatom, ilist, jnum, success, prd, periodicity);
 }
 
 void yukawa_gpu_compute(const int ago, const int inum_full, const int nall,
                        double **host_x, int *host_type, int *ilist, int *numj,
                        int **firstneigh, const bool eflag, const bool vflag,
-                       const bool eatom, const bool vatom, int &host_start,
-                       const double cpu_time, bool &success) {
+                       const bool eatom, const bool vatom, bool &success) {
   YKMF.compute(ago,inum_full,nall,host_x,host_type,ilist,numj,
-                firstneigh,eflag,vflag,eatom,vatom,host_start,cpu_time,success);
+                firstneigh,eflag,vflag,eatom,vatom,success);
 }
 
 double yukawa_gpu_bytes() {
   return YKMF.host_memory_usage();
 }
 
-
+} // namespace LAMMPS_GPU

@@ -111,6 +111,8 @@ class PairTersoffKokkos : public PairTersoff {
   void coeff(int, char **) override;
   void init_style() override;
 
+  class TuneKokkos* tuner;
+
   // RangePolicy versions
   template<int NEIGHFLAG, int EVFLAG>
 // NOLINTNEXTLINE

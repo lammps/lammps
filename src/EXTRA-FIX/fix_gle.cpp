@@ -163,7 +163,7 @@ static void MatrixExp(int n, const double* M, double* EM, int j=8, int k=8)
 /* ---------------------------------------------------------------------- */
 
 FixGLE::FixGLE(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+    Fix(lmp, narg, arg), step_respa(nullptr), vaux(nullptr)
 {
   if (narg < 8)
     error->all(FLERR,"Illegal fix gle command. Expecting: fix <fix-ID>"

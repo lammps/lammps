@@ -184,21 +184,21 @@ void BondFENENMKokkos<DeviceType>::operator()(TagBondFENENMCompute<NEWTON_BOND,E
   // force from n-m term
   KK_FLOAT sigma2 = d_sigma[type] * d_sigma[type];
   if (rsq < sigma2) {
-    const KK_FLOAT r = sqrt(rsq);
+    const KK_FLOAT r = Kokkos::sqrt(rsq);
     fbond += d_epsilon[type] * (d_nn[type] * d_mm[type] / (d_nn[type] - d_mm[type])) *
-        (pow(d_sigma[type] / r, d_nn[type]) - pow(d_sigma[type] / r, d_mm[type])) / rsq;
+        (Kokkos::pow(d_sigma[type] / r, d_nn[type]) - Kokkos::pow(d_sigma[type] / r, d_mm[type])) / rsq;
   }
 
   // energy
 
   KK_FLOAT ebond = 0;
   if (eflag) {
-    ebond = -static_cast<KK_FLOAT>(0.5) * d_k[type] * r0sq * log(rlogarg);
+    ebond = -static_cast<KK_FLOAT>(0.5) * d_k[type] * r0sq * Kokkos::log(rlogarg);
     if (rsq < sigma2) {
-      const KK_FLOAT r = sqrt(rsq);
+      const KK_FLOAT r = Kokkos::sqrt(rsq);
       ebond += (d_epsilon[type] / (d_nn[type] - d_mm[type])) *
-          (d_mm[type] * pow(d_sigma[type] / r, d_nn[type]) -
-           d_nn[type] * pow(d_sigma[type] / r, d_mm[type]));
+          (d_mm[type] * Kokkos::pow(d_sigma[type] / r, d_nn[type]) -
+           d_nn[type] * Kokkos::pow(d_sigma[type] / r, d_mm[type]));
     }
   }
 

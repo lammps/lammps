@@ -804,6 +804,8 @@ void FixGraphicsIsosurface::end_of_step()
       distribute(isogrid, distgrid, typegrid, x[i], type[i], pdata[i], sublo, delta, nx, ny, nz,
                  nrange, rcutsq, rad);
   }
+  // no longer needed
+  memory->destroy(distgrid);
 
   // subtract the isovalue from grid data so that the isosurface would be drawn for a value of < 0.0
   for (int ix = 0; ix < nx; ++ix) {
@@ -908,8 +910,9 @@ void FixGraphicsIsosurface::end_of_step()
       }
     }
   }
-  // we don't need the iso value grid anymore.
+  // we don't need these grids anymore.
   memory->destroy(isogrid);
+  memory->destroy(typegrid);
 
   // allocate and assign list of graphics objects
   numobjs = triangles.size();
@@ -954,7 +957,7 @@ void FixGraphicsIsosurface::end_of_step()
   numobjs = n;
 
   // write grid to STL format file, if requested
-  if (filename.size() > 0) {
+  if (!filename.empty()) {
     int maxobjs = 0;
     uint32_t allobjs = 0U;
     MPI_Allreduce(&numobjs, &maxobjs, 1, MPI_INT, MPI_SUM, world);

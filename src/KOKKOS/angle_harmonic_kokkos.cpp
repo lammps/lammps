@@ -164,7 +164,7 @@ void AngleHarmonicKokkos<DeviceType>::operator()(TagAngleHarmonicCompute<NEWTON_
   const KK_FLOAT delz1 = x(i1,2) - x(i2,2);
 
   const KK_FLOAT rsq1 = delx1*delx1 + dely1*dely1 + delz1*delz1;
-  const KK_FLOAT r1 = sqrt(rsq1);
+  const KK_FLOAT r1 = Kokkos::sqrt(rsq1);
 
   // 2nd bond
 
@@ -173,7 +173,7 @@ void AngleHarmonicKokkos<DeviceType>::operator()(TagAngleHarmonicCompute<NEWTON_
   const KK_FLOAT delz2 = x(i3,2) - x(i2,2);
 
   const KK_FLOAT rsq2 = delx2*delx2 + dely2*dely2 + delz2*delz2;
-  const KK_FLOAT r2 = sqrt(rsq2);
+  const KK_FLOAT r2 = Kokkos::sqrt(rsq2);
 
   // angle (cos and sin)
 
@@ -183,13 +183,13 @@ void AngleHarmonicKokkos<DeviceType>::operator()(TagAngleHarmonicCompute<NEWTON_
   if (c > static_cast<KK_FLOAT>(1.0)) c = static_cast<KK_FLOAT>(1.0);
   if (c < static_cast<KK_FLOAT>(-1.0)) c = static_cast<KK_FLOAT>(-1.0);
 
-  KK_FLOAT s = sqrt(static_cast<KK_FLOAT>(1.0) - c*c);
+  KK_FLOAT s = Kokkos::sqrt(static_cast<KK_FLOAT>(1.0) - c*c);
   if (s < static_cast<KK_FLOAT>(SMALL)) s = static_cast<KK_FLOAT>(SMALL);
   s = static_cast<KK_FLOAT>(1.0)/s;
 
   // force & energy
 
-  const KK_FLOAT dtheta = acos(c) - d_theta0[type];
+  const KK_FLOAT dtheta = Kokkos::acos(c) - d_theta0[type];
   const KK_FLOAT tk = d_k[type] * dtheta;
 
   KK_FLOAT eangle = 0;

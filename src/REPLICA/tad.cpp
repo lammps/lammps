@@ -44,7 +44,11 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-TAD::TAD(LAMMPS *lmp) : Command(lmp)
+TAD::TAD(LAMMPS *lmp) :
+    Command(lmp), min_style(nullptr), min_style_neb(nullptr), neb(nullptr), fix_neb(nullptr),
+    compute_event(nullptr), fix_event(nullptr), fix_revert(nullptr), fix_event_list(nullptr),
+    neb_logfilename(nullptr), uscreen_neb(nullptr), ulogfile_neb(nullptr), uscreen_lammps(nullptr),
+    ulogfile_lammps(nullptr), finish(nullptr)
 {
   deltconf = deltstop = deltfirst = 0.0;
 }
@@ -54,7 +58,7 @@ TAD::TAD(LAMMPS *lmp) : Command(lmp)
 TAD::~TAD()
 {
   memory->sfree(fix_event_list);
-  if (neb_logfilename != nullptr) delete[] neb_logfilename;
+  delete[] neb_logfilename;
   delete[] min_style;
   delete[] min_style_neb;
 }
@@ -469,8 +473,8 @@ void TAD::quench()
 
   update->ntimestep = ntimestep_hold;
   update->endstep = update->laststep = endstep_hold;
-  for (int i = 0; i < modify->ncompute; i++)
-    if (modify->compute[i]->timeflag) modify->compute[i]->clearstep();
+  for (const auto &icompute : modify->get_compute_list())
+    if (icompute->timeflag) icompute->clearstep();
 }
 
 /* ----------------------------------------------------------------------

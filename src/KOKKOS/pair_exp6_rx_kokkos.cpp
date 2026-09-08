@@ -64,6 +64,8 @@ PairExp6rxKokkos<DeviceType>::PairExp6rxKokkos(LAMMPS *lmp) : PairExp6rx(lmp)
   datamask_modify = EMPTY_MASK;
 
   k_error_flag = DAT::tdual_int_scalar("pair:error_flag");
+
+  rx_fixKK = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -132,11 +134,17 @@ void PairExp6rxKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   uCG = atomKK->k_uCG.view<DeviceType>();
   uCGnew = atomKK->k_uCGnew.view<DeviceType>();
   dvector = atomKK->k_dvector.view<DeviceType>();
+
+  species_ind_to_atom_prop_ind =
+    rx_fixKK->get_k_species_ind_to_atom_prop_ind().template view<DeviceType>();
+  species_ind_to_atom_prop_ind_old =
+    rx_fixKK->get_k_species_ind_to_atom_prop_ind_old().template view<DeviceType>();
+
   nlocal = atom->nlocal;
-  special_lj[0] = force->special_lj[0];
-  special_lj[1] = force->special_lj[1];
-  special_lj[2] = force->special_lj[2];
-  special_lj[3] = force->special_lj[3];
+  special_lj[0] = static_cast<KK_FLOAT>(force->special_lj[0]);
+  special_lj[1] = static_cast<KK_FLOAT>(force->special_lj[1]);
+  special_lj[2] = static_cast<KK_FLOAT>(force->special_lj[2]);
+  special_lj[3] = static_cast<KK_FLOAT>(force->special_lj[3]);
   newton_pair = force->newton_pair;
 
   atomKK->sync(execution_space,X_MASK | F_MASK | TYPE_MASK | ENERGY_MASK | VIRIAL_MASK | UCG_MASK | UCGNEW_MASK | DVECTOR_MASK);
@@ -313,14 +321,14 @@ void PairExp6rxKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   if (k_error_flag.view_host()())
     error->all(FLERR,"alpha_ij is 6.0 in pair exp6");
 
-  if (eflag_global) eng_vdwl += ev.evdwl;
+  if (eflag_global) eng_vdwl += static_cast<double>(ev.evdwl);
   if (vflag_global) {
-    virial[0] += ev.v[0];
-    virial[1] += ev.v[1];
-    virial[2] += ev.v[2];
-    virial[3] += ev.v[3];
-    virial[4] += ev.v[4];
-    virial[5] += ev.v[5];
+    virial[0] += static_cast<double>(ev.v[0]);
+    virial[1] += static_cast<double>(ev.v[1]);
+    virial[2] += static_cast<double>(ev.v[2]);
+    virial[3] += static_cast<double>(ev.v[3]);
+    virial[4] += static_cast<double>(ev.v[4]);
+    virial[5] += static_cast<double>(ev.v[5]);
   }
 
   if (vflag_fdotr) pair_virial_fdotr_compute(this);
@@ -436,7 +444,7 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxCompute<NEIGHFLAG,NEW
   KK_FLOAT mixWtSite2_i, mixWtSite2_j;
 
   const int nRep = 12;
-  const KK_FLOAT shift = 1.05;
+  const KK_FLOAT shift = static_cast<KK_FLOAT>(1.05);
   KK_FLOAT rin1, aRep, uin1, win1, uin1rep, rin1exp, rin6, rin6inv;
 
   evdwlOld = 0.0;
@@ -487,14 +495,14 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxCompute<NEIGHFLAG,NEW
     jtype = type[j];
 
     if (rsq < d_cutsq(itype,jtype)) { // optimize
-      r2inv = 1.0/rsq;
+      r2inv = static_cast<KK_FLOAT>(1.0)/rsq;
       r6inv = r2inv*r2inv*r2inv;
 
-      r = sqrt(rsq);
+      r = Kokkos::sqrt(rsq);
       rCut2inv = 1.0/d_cutsq(itype,jtype);
       rCut6inv = rCut2inv*rCut2inv*rCut2inv;
       rCut = sqrt(d_cutsq(itype,jtype));
-      rCutInv = 1.0/rCut;
+      rCutInv = static_cast<KK_FLOAT>(1.0)/rCut;
 
       //
       // A. Compute the exp-6 potential
@@ -522,19 +530,19 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxCompute<NEIGHFLAG,NEW
       }
 
       // A2.  Apply Lorentz-Berthelot mixing rules for the i-j pair
-      alphaOld12_ij = sqrt(alphaOld1_i*alphaOld2_j);
-      rmOld12_ij = 0.5*(rmOld1_i + rmOld2_j);
-      epsilonOld12_ij = sqrt(epsilonOld1_i*epsilonOld2_j);
-      alphaOld21_ij = sqrt(alphaOld2_i*alphaOld1_j);
-      rmOld21_ij = 0.5*(rmOld2_i + rmOld1_j);
-      epsilonOld21_ij = sqrt(epsilonOld2_i*epsilonOld1_j);
+      alphaOld12_ij = Kokkos::sqrt(alphaOld1_i*alphaOld2_j);
+      rmOld12_ij = static_cast<KK_FLOAT>(0.5)*(rmOld1_i + rmOld2_j);
+      epsilonOld12_ij = Kokkos::sqrt(epsilonOld1_i*epsilonOld2_j);
+      alphaOld21_ij = Kokkos::sqrt(alphaOld2_i*alphaOld1_j);
+      rmOld21_ij = static_cast<KK_FLOAT>(0.5)*(rmOld2_i + rmOld1_j);
+      epsilonOld21_ij = Kokkos::sqrt(epsilonOld2_i*epsilonOld1_j);
 
-      alpha12_ij = sqrt(alpha1_i*alpha2_j);
-      rm12_ij = 0.5*(rm1_i + rm2_j);
-      epsilon12_ij = sqrt(epsilon1_i*epsilon2_j);
-      alpha21_ij = sqrt(alpha2_i*alpha1_j);
-      rm21_ij = 0.5*(rm2_i + rm1_j);
-      epsilon21_ij = sqrt(epsilon2_i*epsilon1_j);
+      alpha12_ij = Kokkos::sqrt(alpha1_i*alpha2_j);
+      rm12_ij = static_cast<KK_FLOAT>(0.5)*(rm1_i + rm2_j);
+      epsilon12_ij = Kokkos::sqrt(epsilon1_i*epsilon2_j);
+      alpha21_ij = Kokkos::sqrt(alpha2_i*alpha1_j);
+      rm21_ij = static_cast<KK_FLOAT>(0.5)*(rm2_i + rm1_j);
+      epsilon21_ij = Kokkos::sqrt(epsilon2_i*epsilon1_j);
 
       evdwlOldEXP6_12 = 0.0;
       evdwlOldEXP6_21 = 0.0;
@@ -543,30 +551,30 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxCompute<NEIGHFLAG,NEW
       fpairOldEXP6_12 = 0.0;
       fpairOldEXP6_21 = 0.0;
 
-      if (rmOld12_ij!=0.0 && rmOld21_ij!=0.0) {
-        if (alphaOld21_ij == 6.0 || alphaOld12_ij == 6.0)
+      if (rmOld12_ij!=static_cast<KK_FLOAT>(0.0) && rmOld21_ij!=static_cast<KK_FLOAT>(0.0)) {
+        if (alphaOld21_ij == static_cast<KK_FLOAT>(6.0) || alphaOld12_ij == static_cast<KK_FLOAT>(6.0))
           k_error_flag.template view<DeviceType>()() = 1;
 
         // A3.  Compute some convenient quantities for evaluating the force
-        rminv = 1.0/rmOld12_ij;
-        buck1 = epsilonOld12_ij / (alphaOld12_ij - 6.0);
+        rminv = static_cast<KK_FLOAT>(1.0)/rmOld12_ij;
+        buck1 = epsilonOld12_ij / (alphaOld12_ij - static_cast<KK_FLOAT>(6.0));
         rexp = expValue(alphaOld12_ij*(1.0-r*rminv));
         rm2ij = rmOld12_ij*rmOld12_ij;
         rm6ij = rm2ij*rm2ij*rm2ij;
 
         // Compute the shifted potential
         rCutExp = expValue(alphaOld12_ij*(1.0-rCut*rminv));
-        buck2 = 6.0*alphaOld12_ij;
-        urc = buck1*(6.0*rCutExp - alphaOld12_ij*rm6ij*rCut6inv);
+        buck2 = static_cast<KK_FLOAT>(6.0)*alphaOld12_ij;
+        urc = buck1*(static_cast<KK_FLOAT>(6.0)*rCutExp - alphaOld12_ij*rm6ij*rCut6inv);
         durc = -buck1*buck2*(rCutExp* rminv - rCutInv*rm6ij*rCut6inv);
         rin1 = shift*rmOld12_ij*func_rin(alphaOld12_ij);
         if (r < rin1) {
           rin6 = rin1*rin1*rin1*rin1*rin1*rin1;
-          rin6inv = 1.0/rin6;
+          rin6inv = static_cast<KK_FLOAT>(1.0)/rin6;
 
           rin1exp = expValue(alphaOld12_ij*(1.0-rin1*rminv));
 
-          uin1 = buck1*(6.0*rin1exp - alphaOld12_ij*rm6ij*rin6inv) - urc - durc*(rin1-rCut);
+          uin1 = buck1*(static_cast<KK_FLOAT>(6.0)*rin1exp - alphaOld12_ij*rm6ij*rin6inv) - urc - durc*(rin1-rCut);
 
           win1 = buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) + rin1*durc;
 
@@ -582,31 +590,31 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxCompute<NEIGHFLAG,NEW
           forceExp6 = buck1*buck2*(r*rexp*rminv - rm6ij*r6inv) + r*durc;
           fpairOldEXP6_12 = factor_lj*forceExp6*r2inv;
 
-          evdwlOldEXP6_12 = buck1*(6.0*rexp - alphaOld12_ij*rm6ij*r6inv) - urc - durc*(r-rCut);
+          evdwlOldEXP6_12 = buck1*(static_cast<KK_FLOAT>(6.0)*rexp - alphaOld12_ij*rm6ij*r6inv) - urc - durc*(r-rCut);
         }
 
         // A3.  Compute some convenient quantities for evaluating the force
-        rminv = 1.0/rmOld21_ij;
-        buck1 = epsilonOld21_ij / (alphaOld21_ij - 6.0);
-        buck2 = 6.0*alphaOld21_ij;
+        rminv = static_cast<KK_FLOAT>(1.0)/rmOld21_ij;
+        buck1 = epsilonOld21_ij / (alphaOld21_ij - static_cast<KK_FLOAT>(6.0));
+        buck2 = static_cast<KK_FLOAT>(6.0)*alphaOld21_ij;
         rexp = expValue(alphaOld21_ij*(1.0-r*rminv));
         rm2ij = rmOld21_ij*rmOld21_ij;
         rm6ij = rm2ij*rm2ij*rm2ij;
 
         // Compute the shifted potential
         rCutExp = expValue(alphaOld21_ij*(1.0-rCut*rminv));
-        buck2 = 6.0*alphaOld21_ij;
-        urc = buck1*(6.0*rCutExp - alphaOld21_ij*rm6ij*rCut6inv);
+        buck2 = static_cast<KK_FLOAT>(6.0)*alphaOld21_ij;
+        urc = buck1*(static_cast<KK_FLOAT>(6.0)*rCutExp - alphaOld21_ij*rm6ij*rCut6inv);
         durc = -buck1*buck2*(rCutExp* rminv - rCutInv*rm6ij*rCut6inv);
         rin1 = shift*rmOld21_ij*func_rin(alphaOld21_ij);
 
         if (r < rin1) {
           rin6 = rin1*rin1*rin1*rin1*rin1*rin1;
-          rin6inv = 1.0/rin6;
+          rin6inv = static_cast<KK_FLOAT>(1.0)/rin6;
 
           rin1exp = expValue(alphaOld21_ij*(1.0-rin1*rminv));
 
-          uin1 = buck1*(6.0*rin1exp - alphaOld21_ij*rm6ij*rin6inv) - urc - durc*(rin1-rCut);
+          uin1 = buck1*(static_cast<KK_FLOAT>(6.0)*rin1exp - alphaOld21_ij*rm6ij*rin6inv) - urc - durc*(rin1-rCut);
 
           win1 = buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) + rin1*durc;
 
@@ -622,46 +630,46 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxCompute<NEIGHFLAG,NEW
           forceExp6 = buck1*buck2*(r*rexp*rminv - rm6ij*r6inv) + r*durc;
           fpairOldEXP6_21 = factor_lj*forceExp6*r2inv;
 
-          evdwlOldEXP6_21 = buck1*(6.0*rexp - alphaOld21_ij*rm6ij*r6inv) - urc - durc*(r-rCut);
+          evdwlOldEXP6_21 = buck1*(static_cast<KK_FLOAT>(6.0)*rexp - alphaOld21_ij*rm6ij*r6inv) - urc - durc*(r-rCut);
         }
 
         if (isite1 == isite2)
-          evdwlOld = sqrt(mixWtSite1old_i*mixWtSite2old_j)*evdwlOldEXP6_12;
+          evdwlOld = Kokkos::sqrt(mixWtSite1old_i*mixWtSite2old_j)*evdwlOldEXP6_12;
         else
-          evdwlOld = sqrt(mixWtSite1old_i*mixWtSite2old_j)*evdwlOldEXP6_12 + sqrt(mixWtSite2old_i*mixWtSite1old_j)*evdwlOldEXP6_21;
+          evdwlOld = Kokkos::sqrt(mixWtSite1old_i*mixWtSite2old_j)*evdwlOldEXP6_12 + Kokkos::sqrt(mixWtSite2old_i*mixWtSite1old_j)*evdwlOldEXP6_21;
 
         evdwlOld *= factor_lj;
 
-        uCG_i += 0.5*evdwlOld;
+        uCG_i += static_cast<KK_FLOAT>(0.5)*evdwlOld;
         if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal))
           a_uCG[j] += 0.5*evdwlOld;
       }
 
-      if (rm12_ij!=0.0 && rm21_ij!=0.0) {
-        if (alpha21_ij == 6.0 || alpha12_ij == 6.0)
+      if (rm12_ij!=static_cast<KK_FLOAT>(0.0) && rm21_ij!=static_cast<KK_FLOAT>(0.0)) {
+        if (alpha21_ij == static_cast<KK_FLOAT>(6.0) || alpha12_ij == static_cast<KK_FLOAT>(6.0))
           k_error_flag.template view<DeviceType>()() = 1;
 
         // A3.  Compute some convenient quantities for evaluating the force
-        rminv = 1.0/rm12_ij;
-        buck1 = epsilon12_ij / (alpha12_ij - 6.0);
-        buck2 = 6.0*alpha12_ij;
+        rminv = static_cast<KK_FLOAT>(1.0)/rm12_ij;
+        buck1 = epsilon12_ij / (alpha12_ij - static_cast<KK_FLOAT>(6.0));
+        buck2 = static_cast<KK_FLOAT>(6.0)*alpha12_ij;
         rexp = expValue(alpha12_ij*(1.0-r*rminv));
         rm2ij = rm12_ij*rm12_ij;
         rm6ij = rm2ij*rm2ij*rm2ij;
 
         // Compute the shifted potential
         rCutExp = expValue(alpha12_ij*(1.0-rCut*rminv));
-        urc = buck1*(6.0*rCutExp - alpha12_ij*rm6ij*rCut6inv);
+        urc = buck1*(static_cast<KK_FLOAT>(6.0)*rCutExp - alpha12_ij*rm6ij*rCut6inv);
         durc = -buck1*buck2*(rCutExp*rminv - rCutInv*rm6ij*rCut6inv);
         rin1 = shift*rm12_ij*func_rin(alpha12_ij);
 
         if (r < rin1) {
           rin6 = rin1*rin1*rin1*rin1*rin1*rin1;
-          rin6inv = 1.0/rin6;
+          rin6inv = static_cast<KK_FLOAT>(1.0)/rin6;
 
           rin1exp = expValue(alpha12_ij*(1.0-rin1*rminv));
 
-          uin1 = buck1*(6.0*rin1exp - alpha12_ij*rm6ij*rin6inv) - urc - durc*(rin1-rCut);
+          uin1 = buck1*(static_cast<KK_FLOAT>(6.0)*rin1exp - alpha12_ij*rm6ij*rin6inv) - urc - durc*(rin1-rCut);
 
           win1 = buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) + rin1*durc;
 
@@ -671,29 +679,29 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxCompute<NEIGHFLAG,NEW
 
           evdwlEXP6_12 = uin1 - uin1rep + aRep/powint(r,nRep);
         } else {
-          evdwlEXP6_12 = buck1*(6.0*rexp - alpha12_ij*rm6ij*r6inv) - urc - durc*(r-rCut);
+          evdwlEXP6_12 = buck1*(static_cast<KK_FLOAT>(6.0)*rexp - alpha12_ij*rm6ij*r6inv) - urc - durc*(r-rCut);
         }
 
-        rminv = 1.0/rm21_ij;
-        buck1 = epsilon21_ij / (alpha21_ij - 6.0);
-        buck2 = 6.0*alpha21_ij;
+        rminv = static_cast<KK_FLOAT>(1.0)/rm21_ij;
+        buck1 = epsilon21_ij / (alpha21_ij - static_cast<KK_FLOAT>(6.0));
+        buck2 = static_cast<KK_FLOAT>(6.0)*alpha21_ij;
         rexp = expValue(alpha21_ij*(1.0-r*rminv));
         rm2ij = rm21_ij*rm21_ij;
         rm6ij = rm2ij*rm2ij*rm2ij;
 
         // Compute the shifted potential
         rCutExp = expValue(alpha21_ij*(1.0-rCut*rminv));
-        urc = buck1*(6.0*rCutExp - alpha21_ij*rm6ij*rCut6inv);
+        urc = buck1*(static_cast<KK_FLOAT>(6.0)*rCutExp - alpha21_ij*rm6ij*rCut6inv);
         durc = -buck1*buck2*(rCutExp*rminv - rCutInv*rm6ij*rCut6inv);
         rin1 = shift*rm21_ij*func_rin(alpha21_ij);
 
         if (r < rin1) {
           rin6 = rin1*rin1*rin1*rin1*rin1*rin1;
-          rin6inv = 1.0/rin6;
+          rin6inv = static_cast<KK_FLOAT>(1.0)/rin6;
 
           rin1exp = expValue(alpha21_ij*(1.0-rin1*rminv));
 
-          uin1 = buck1*(6.0*rin1exp - alpha21_ij*rm6ij*rin6inv) - urc - durc*(rin1-rCut);
+          uin1 = buck1*(static_cast<KK_FLOAT>(6.0)*rin1exp - alpha21_ij*rm6ij*rin6inv) - urc - durc*(rin1-rCut);
 
           win1 = buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) + rin1*durc;
 
@@ -703,15 +711,15 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxCompute<NEIGHFLAG,NEW
 
           evdwlEXP6_21 = uin1 - uin1rep + aRep/powint(r,nRep);
         } else {
-          evdwlEXP6_21 = buck1*(6.0*rexp - alpha21_ij*rm6ij*r6inv) - urc - durc*(r-rCut);
+          evdwlEXP6_21 = buck1*(static_cast<KK_FLOAT>(6.0)*rexp - alpha21_ij*rm6ij*r6inv) - urc - durc*(r-rCut);
         }
       }
 
       //
       // Apply Mixing Rule to get the overall force for the CG pair
       //
-      if (isite1 == isite2) fpair = sqrt(mixWtSite1old_i*mixWtSite2old_j)*fpairOldEXP6_12;
-      else fpair = sqrt(mixWtSite1old_i*mixWtSite2old_j)*fpairOldEXP6_12 + sqrt(mixWtSite2old_i*mixWtSite1old_j)*fpairOldEXP6_21;
+      if (isite1 == isite2) fpair = Kokkos::sqrt(mixWtSite1old_i*mixWtSite2old_j)*fpairOldEXP6_12;
+      else fpair = Kokkos::sqrt(mixWtSite1old_i*mixWtSite2old_j)*fpairOldEXP6_12 + Kokkos::sqrt(mixWtSite2old_i*mixWtSite1old_j)*fpairOldEXP6_21;
 
       fx_i += delx*fpair;
       fy_i += dely*fpair;
@@ -722,11 +730,11 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxCompute<NEIGHFLAG,NEW
         a_f(j,2) -= delz*fpair;
       }
 
-      if (isite1 == isite2) evdwl = sqrt(mixWtSite1_i*mixWtSite2_j)*evdwlEXP6_12;
-      else evdwl = sqrt(mixWtSite1_i*mixWtSite2_j)*evdwlEXP6_12 + sqrt(mixWtSite2_i*mixWtSite1_j)*evdwlEXP6_21;
+      if (isite1 == isite2) evdwl = Kokkos::sqrt(mixWtSite1_i*mixWtSite2_j)*evdwlEXP6_12;
+      else evdwl = Kokkos::sqrt(mixWtSite1_i*mixWtSite2_j)*evdwlEXP6_12 + Kokkos::sqrt(mixWtSite2_i*mixWtSite1_j)*evdwlEXP6_21;
       evdwl *= factor_lj;
 
-      uCGnew_i   += 0.5*evdwl;
+      uCGnew_i   += static_cast<KK_FLOAT>(0.5)*evdwl;
       if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal))
         a_uCGnew[j] += 0.5*evdwl;
       evdwl = evdwlOld;
@@ -812,7 +820,7 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxComputeNoAtomics<NEIG
   KK_FLOAT mixWtSite2_i, mixWtSite2_j;
 
   const int nRep = 12;
-  const KK_FLOAT shift = 1.05;
+  const KK_FLOAT shift = static_cast<KK_FLOAT>(1.05);
   KK_FLOAT rin1, aRep, uin1, win1, uin1rep, rin1exp, rin6, rin6inv;
 
   evdwlOld = 0.0;
@@ -863,14 +871,14 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxComputeNoAtomics<NEIG
     jtype = type[j];
 
     if (rsq < d_cutsq(itype,jtype)) { // optimize
-      r2inv = 1.0/rsq;
+      r2inv = static_cast<KK_FLOAT>(1.0)/rsq;
       r6inv = r2inv*r2inv*r2inv;
 
-      r = sqrt(rsq);
-      rCut2inv = 1.0/d_cutsq(itype,jtype);
+      r = Kokkos::sqrt(rsq);
+      rCut2inv = static_cast<KK_FLOAT>(1.0)/d_cutsq(itype,jtype);
       rCut6inv = rCut2inv*rCut2inv*rCut2inv;
-      rCut = sqrt(d_cutsq(itype,jtype));
-      rCutInv = 1.0/rCut;
+      rCut = Kokkos::sqrt(d_cutsq(itype,jtype));
+      rCutInv = static_cast<KK_FLOAT>(1.0)/rCut;
 
       //
       // A. Compute the exp-6 potential
@@ -898,19 +906,19 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxComputeNoAtomics<NEIG
       }
 
       // A2.  Apply Lorentz-Berthelot mixing rules for the i-j pair
-      alphaOld12_ij = sqrt(alphaOld1_i*alphaOld2_j);
-      rmOld12_ij = 0.5*(rmOld1_i + rmOld2_j);
-      epsilonOld12_ij = sqrt(epsilonOld1_i*epsilonOld2_j);
-      alphaOld21_ij = sqrt(alphaOld2_i*alphaOld1_j);
-      rmOld21_ij = 0.5*(rmOld2_i + rmOld1_j);
-      epsilonOld21_ij = sqrt(epsilonOld2_i*epsilonOld1_j);
+      alphaOld12_ij = Kokkos::sqrt(alphaOld1_i*alphaOld2_j);
+      rmOld12_ij = static_cast<KK_FLOAT>(0.5)*(rmOld1_i + rmOld2_j);
+      epsilonOld12_ij = Kokkos::sqrt(epsilonOld1_i*epsilonOld2_j);
+      alphaOld21_ij = Kokkos::sqrt(alphaOld2_i*alphaOld1_j);
+      rmOld21_ij = static_cast<KK_FLOAT>(0.5)*(rmOld2_i + rmOld1_j);
+      epsilonOld21_ij = Kokkos::sqrt(epsilonOld2_i*epsilonOld1_j);
 
-      alpha12_ij = sqrt(alpha1_i*alpha2_j);
-      rm12_ij = 0.5*(rm1_i + rm2_j);
-      epsilon12_ij = sqrt(epsilon1_i*epsilon2_j);
-      alpha21_ij = sqrt(alpha2_i*alpha1_j);
-      rm21_ij = 0.5*(rm2_i + rm1_j);
-      epsilon21_ij = sqrt(epsilon2_i*epsilon1_j);
+      alpha12_ij = Kokkos::sqrt(alpha1_i*alpha2_j);
+      rm12_ij = static_cast<KK_FLOAT>(0.5)*(rm1_i + rm2_j);
+      epsilon12_ij = Kokkos::sqrt(epsilon1_i*epsilon2_j);
+      alpha21_ij = Kokkos::sqrt(alpha2_i*alpha1_j);
+      rm21_ij = static_cast<KK_FLOAT>(0.5)*(rm2_i + rm1_j);
+      epsilon21_ij = Kokkos::sqrt(epsilon2_i*epsilon1_j);
 
       evdwlOldEXP6_12 = 0.0;
       evdwlOldEXP6_21 = 0.0;
@@ -919,30 +927,30 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxComputeNoAtomics<NEIG
       fpairOldEXP6_12 = 0.0;
       fpairOldEXP6_21 = 0.0;
 
-      if (rmOld12_ij!=0.0 && rmOld21_ij!=0.0) {
-        if (alphaOld21_ij == 6.0 || alphaOld12_ij == 6.0)
+      if (rmOld12_ij!=static_cast<KK_FLOAT>(0.0) && rmOld21_ij!=static_cast<KK_FLOAT>(0.0)) {
+        if (alphaOld21_ij == static_cast<KK_FLOAT>(6.0) || alphaOld12_ij == static_cast<KK_FLOAT>(6.0))
           k_error_flag.template view<DeviceType>()() = 1;
 
         // A3.  Compute some convenient quantities for evaluating the force
-        rminv = 1.0/rmOld12_ij;
-        buck1 = epsilonOld12_ij / (alphaOld12_ij - 6.0);
-        rexp = expValue(alphaOld12_ij*(1.0-r*rminv));
+        rminv = static_cast<KK_FLOAT>(1.0)/rmOld12_ij;
+        buck1 = epsilonOld12_ij / (alphaOld12_ij - static_cast<KK_FLOAT>(6.0));
+        rexp = expValue(alphaOld12_ij*(static_cast<KK_FLOAT>(1.0)-r*rminv));
         rm2ij = rmOld12_ij*rmOld12_ij;
         rm6ij = rm2ij*rm2ij*rm2ij;
 
         // Compute the shifted potential
-        rCutExp = expValue(alphaOld12_ij*(1.0-rCut*rminv));
-        buck2 = 6.0*alphaOld12_ij;
-        urc = buck1*(6.0*rCutExp - alphaOld12_ij*rm6ij*rCut6inv);
+        rCutExp = expValue(alphaOld12_ij*(static_cast<KK_FLOAT>(1.0)-rCut*rminv));
+        buck2 = static_cast<KK_FLOAT>(6.0)*alphaOld12_ij;
+        urc = buck1*(static_cast<KK_FLOAT>(6.0)*rCutExp - alphaOld12_ij*rm6ij*rCut6inv);
         durc = -buck1*buck2*(rCutExp* rminv - rCutInv*rm6ij*rCut6inv);
         rin1 = shift*rmOld12_ij*func_rin(alphaOld12_ij);
         if (r < rin1) {
           rin6 = rin1*rin1*rin1*rin1*rin1*rin1;
-          rin6inv = 1.0/rin6;
+          rin6inv = static_cast<KK_FLOAT>(1.0)/rin6;
 
-          rin1exp = expValue(alphaOld12_ij*(1.0-rin1*rminv));
+          rin1exp = expValue(alphaOld12_ij*(static_cast<KK_FLOAT>(1.0)-rin1*rminv));
 
-          uin1 = buck1*(6.0*rin1exp - alphaOld12_ij*rm6ij*rin6inv) - urc - durc*(rin1-rCut);
+          uin1 = buck1*(static_cast<KK_FLOAT>(6.0)*rin1exp - alphaOld12_ij*rm6ij*rin6inv) - urc - durc*(rin1-rCut);
 
           win1 = buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) + rin1*durc;
 
@@ -958,31 +966,31 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxComputeNoAtomics<NEIG
           forceExp6 = buck1*buck2*(r*rexp*rminv - rm6ij*r6inv) + r*durc;
           fpairOldEXP6_12 = factor_lj*forceExp6*r2inv;
 
-          evdwlOldEXP6_12 = buck1*(6.0*rexp - alphaOld12_ij*rm6ij*r6inv) - urc - durc*(r-rCut);
+          evdwlOldEXP6_12 = buck1*(static_cast<KK_FLOAT>(6.0)*rexp - alphaOld12_ij*rm6ij*r6inv) - urc - durc*(r-rCut);
         }
 
         // A3.  Compute some convenient quantities for evaluating the force
-        rminv = 1.0/rmOld21_ij;
-        buck1 = epsilonOld21_ij / (alphaOld21_ij - 6.0);
-        buck2 = 6.0*alphaOld21_ij;
-        rexp = expValue(alphaOld21_ij*(1.0-r*rminv));
+        rminv = static_cast<KK_FLOAT>(1.0)/rmOld21_ij;
+        buck1 = epsilonOld21_ij / (alphaOld21_ij - static_cast<KK_FLOAT>(6.0));
+        buck2 = static_cast<KK_FLOAT>(6.0)*alphaOld21_ij;
+        rexp = expValue(alphaOld21_ij*(static_cast<KK_FLOAT>(1.0)-r*rminv));
         rm2ij = rmOld21_ij*rmOld21_ij;
         rm6ij = rm2ij*rm2ij*rm2ij;
 
         // Compute the shifted potential
-        rCutExp = expValue(alphaOld21_ij*(1.0-rCut*rminv));
-        buck2 = 6.0*alphaOld21_ij;
-        urc = buck1*(6.0*rCutExp - alphaOld21_ij*rm6ij*rCut6inv);
+        rCutExp = expValue(alphaOld21_ij*(static_cast<KK_FLOAT>(1.0)-rCut*rminv));
+        buck2 = static_cast<KK_FLOAT>(6.0)*alphaOld21_ij;
+        urc = buck1*(static_cast<KK_FLOAT>(6.0)*rCutExp - alphaOld21_ij*rm6ij*rCut6inv);
         durc = -buck1*buck2*(rCutExp* rminv - rCutInv*rm6ij*rCut6inv);
         rin1 = shift*rmOld21_ij*func_rin(alphaOld21_ij);
 
         if (r < rin1) {
           rin6 = rin1*rin1*rin1*rin1*rin1*rin1;
-          rin6inv = 1.0/rin6;
+          rin6inv = static_cast<KK_FLOAT>(1.0)/rin6;
 
-          rin1exp = expValue(alphaOld21_ij*(1.0-rin1*rminv));
+          rin1exp = expValue(alphaOld21_ij*(static_cast<KK_FLOAT>(1.0)-rin1*rminv));
 
-          uin1 = buck1*(6.0*rin1exp - alphaOld21_ij*rm6ij*rin6inv) - urc - durc*(rin1-rCut);
+          uin1 = buck1*(static_cast<KK_FLOAT>(6.0)*rin1exp - alphaOld21_ij*rm6ij*rin6inv) - urc - durc*(rin1-rCut);
 
           win1 = buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) + rin1*durc;
 
@@ -998,46 +1006,46 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxComputeNoAtomics<NEIG
           forceExp6 = buck1*buck2*(r*rexp*rminv - rm6ij*r6inv) + r*durc;
           fpairOldEXP6_21 = factor_lj*forceExp6*r2inv;
 
-          evdwlOldEXP6_21 = buck1*(6.0*rexp - alphaOld21_ij*rm6ij*r6inv) - urc - durc*(r-rCut);
+          evdwlOldEXP6_21 = buck1*(static_cast<KK_FLOAT>(6.0)*rexp - alphaOld21_ij*rm6ij*r6inv) - urc - durc*(r-rCut);
         }
 
         if (isite1 == isite2)
-          evdwlOld = sqrt(mixWtSite1old_i*mixWtSite2old_j)*evdwlOldEXP6_12;
+          evdwlOld = Kokkos::sqrt(mixWtSite1old_i*mixWtSite2old_j)*evdwlOldEXP6_12;
         else
-          evdwlOld = sqrt(mixWtSite1old_i*mixWtSite2old_j)*evdwlOldEXP6_12 + sqrt(mixWtSite2old_i*mixWtSite1old_j)*evdwlOldEXP6_21;
+          evdwlOld = Kokkos::sqrt(mixWtSite1old_i*mixWtSite2old_j)*evdwlOldEXP6_12 + Kokkos::sqrt(mixWtSite2old_i*mixWtSite1old_j)*evdwlOldEXP6_21;
 
         evdwlOld *= factor_lj;
 
-        uCG_i += 0.5*evdwlOld;
+        uCG_i += static_cast<KK_FLOAT>(0.5)*evdwlOld;
         if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal))
-          t_uCG(tid,j) += 0.5*evdwlOld;
+          t_uCG(tid,j) += static_cast<KK_FLOAT>(0.5)*evdwlOld;
       }
 
-      if (rm12_ij!=0.0 && rm21_ij!=0.0) {
-        if (alpha21_ij == 6.0 || alpha12_ij == 6.0)
+      if (rm12_ij!=static_cast<KK_FLOAT>(0.0) && rm21_ij!=static_cast<KK_FLOAT>(0.0)) {
+        if (alpha21_ij == static_cast<KK_FLOAT>(6.0) || alpha12_ij == static_cast<KK_FLOAT>(6.0))
           k_error_flag.template view<DeviceType>()() = 1;
 
         // A3.  Compute some convenient quantities for evaluating the force
-        rminv = 1.0/rm12_ij;
-        buck1 = epsilon12_ij / (alpha12_ij - 6.0);
-        buck2 = 6.0*alpha12_ij;
-        rexp = expValue(alpha12_ij*(1.0-r*rminv));
+        rminv = static_cast<KK_FLOAT>(1.0)/rm12_ij;
+        buck1 = epsilon12_ij / (alpha12_ij - static_cast<KK_FLOAT>(6.0));
+        buck2 = static_cast<KK_FLOAT>(6.0)*alpha12_ij;
+        rexp = expValue(alpha12_ij*(static_cast<KK_FLOAT>(1.0)-r*rminv));
         rm2ij = rm12_ij*rm12_ij;
         rm6ij = rm2ij*rm2ij*rm2ij;
 
         // Compute the shifted potential
-        rCutExp = expValue(alpha12_ij*(1.0-rCut*rminv));
-        urc = buck1*(6.0*rCutExp - alpha12_ij*rm6ij*rCut6inv);
+        rCutExp = expValue(alpha12_ij*(static_cast<KK_FLOAT>(1.0)-rCut*rminv));
+        urc = buck1*(static_cast<KK_FLOAT>(6.0)*rCutExp - alpha12_ij*rm6ij*rCut6inv);
         durc = -buck1*buck2*(rCutExp*rminv - rCutInv*rm6ij*rCut6inv);
         rin1 = shift*rm12_ij*func_rin(alpha12_ij);
 
         if (r < rin1) {
           rin6 = rin1*rin1*rin1*rin1*rin1*rin1;
-          rin6inv = 1.0/rin6;
+          rin6inv = static_cast<KK_FLOAT>(1.0)/rin6;
 
-          rin1exp = expValue(alpha12_ij*(1.0-rin1*rminv));
+          rin1exp = expValue(alpha12_ij*(static_cast<KK_FLOAT>(1.0)-rin1*rminv));
 
-          uin1 = buck1*(6.0*rin1exp - alpha12_ij*rm6ij*rin6inv) - urc - durc*(rin1-rCut);
+          uin1 = buck1*(static_cast<KK_FLOAT>(6.0)*rin1exp - alpha12_ij*rm6ij*rin6inv) - urc - durc*(rin1-rCut);
 
           win1 = buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) + rin1*durc;
 
@@ -1047,29 +1055,29 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxComputeNoAtomics<NEIG
 
           evdwlEXP6_12 = uin1 - uin1rep + aRep/powint(r,nRep);
         } else {
-          evdwlEXP6_12 = buck1*(6.0*rexp - alpha12_ij*rm6ij*r6inv) - urc - durc*(r-rCut);
+          evdwlEXP6_12 = buck1*(static_cast<KK_FLOAT>(6.0)*rexp - alpha12_ij*rm6ij*r6inv) - urc - durc*(r-rCut);
         }
 
-        rminv = 1.0/rm21_ij;
-        buck1 = epsilon21_ij / (alpha21_ij - 6.0);
-        buck2 = 6.0*alpha21_ij;
-        rexp = expValue(alpha21_ij*(1.0-r*rminv));
+        rminv = static_cast<KK_FLOAT>(1.0)/rm21_ij;
+        buck1 = epsilon21_ij / (alpha21_ij - static_cast<KK_FLOAT>(6.0));
+        buck2 = static_cast<KK_FLOAT>(6.0)*alpha21_ij;
+        rexp = expValue(alpha21_ij*(static_cast<KK_FLOAT>(1.0)-r*rminv));
         rm2ij = rm21_ij*rm21_ij;
         rm6ij = rm2ij*rm2ij*rm2ij;
 
         // Compute the shifted potential
-        rCutExp = expValue(alpha21_ij*(1.0-rCut*rminv));
-        urc = buck1*(6.0*rCutExp - alpha21_ij*rm6ij*rCut6inv);
+        rCutExp = expValue(alpha21_ij*(static_cast<KK_FLOAT>(1.0)-rCut*rminv));
+        urc = buck1*(static_cast<KK_FLOAT>(6.0)*rCutExp - alpha21_ij*rm6ij*rCut6inv);
         durc = -buck1*buck2*(rCutExp*rminv - rCutInv*rm6ij*rCut6inv);
         rin1 = shift*rm21_ij*func_rin(alpha21_ij);
 
         if (r < rin1) {
           rin6 = rin1*rin1*rin1*rin1*rin1*rin1;
-          rin6inv = 1.0/rin6;
+          rin6inv = static_cast<KK_FLOAT>(1.0)/rin6;
 
-          rin1exp = expValue(alpha21_ij*(1.0-rin1*rminv));
+          rin1exp = expValue(alpha21_ij*(static_cast<KK_FLOAT>(1.0)-rin1*rminv));
 
-          uin1 = buck1*(6.0*rin1exp - alpha21_ij*rm6ij*rin6inv) - urc - durc*(rin1-rCut);
+          uin1 = buck1*(static_cast<KK_FLOAT>(6.0)*rin1exp - alpha21_ij*rm6ij*rin6inv) - urc - durc*(rin1-rCut);
 
           win1 = buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) + rin1*durc;
 
@@ -1079,15 +1087,15 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxComputeNoAtomics<NEIG
 
           evdwlEXP6_21 = uin1 - uin1rep + aRep/powint(r,nRep);
         } else {
-          evdwlEXP6_21 = buck1*(6.0*rexp - alpha21_ij*rm6ij*r6inv) - urc - durc*(r-rCut);
+          evdwlEXP6_21 = buck1*(static_cast<KK_FLOAT>(6.0)*rexp - alpha21_ij*rm6ij*r6inv) - urc - durc*(r-rCut);
         }
       }
 
       //
       // Apply Mixing Rule to get the overall force for the CG pair
       //
-      if (isite1 == isite2) fpair = sqrt(mixWtSite1old_i*mixWtSite2old_j)*fpairOldEXP6_12;
-      else fpair = sqrt(mixWtSite1old_i*mixWtSite2old_j)*fpairOldEXP6_12 + sqrt(mixWtSite2old_i*mixWtSite1old_j)*fpairOldEXP6_21;
+      if (isite1 == isite2) fpair = Kokkos::sqrt(mixWtSite1old_i*mixWtSite2old_j)*fpairOldEXP6_12;
+      else fpair = Kokkos::sqrt(mixWtSite1old_i*mixWtSite2old_j)*fpairOldEXP6_12 + Kokkos::sqrt(mixWtSite2old_i*mixWtSite1old_j)*fpairOldEXP6_21;
 
       fx_i += delx*fpair;
       fy_i += dely*fpair;
@@ -1098,16 +1106,16 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxComputeNoAtomics<NEIG
         t_f(tid,j,2) -= delz*fpair;
       }
 
-      if (isite1 == isite2) evdwl = sqrt(mixWtSite1_i*mixWtSite2_j)*evdwlEXP6_12;
-      else evdwl = sqrt(mixWtSite1_i*mixWtSite2_j)*evdwlEXP6_12 + sqrt(mixWtSite2_i*mixWtSite1_j)*evdwlEXP6_21;
+      if (isite1 == isite2) evdwl = Kokkos::sqrt(mixWtSite1_i*mixWtSite2_j)*evdwlEXP6_12;
+      else evdwl = Kokkos::sqrt(mixWtSite1_i*mixWtSite2_j)*evdwlEXP6_12 + Kokkos::sqrt(mixWtSite2_i*mixWtSite1_j)*evdwlEXP6_21;
       evdwl *= factor_lj;
 
-      uCGnew_i += 0.5*evdwl;
+      uCGnew_i += static_cast<KK_FLOAT>(0.5)*evdwl;
       if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal))
-        t_uCGnew(tid,j) += 0.5*evdwl;
+        t_uCGnew(tid,j) += static_cast<KK_FLOAT>(0.5)*evdwl;
       evdwl = evdwlOld;
       if (EVFLAG)
-        ev.evdwl += (((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR||(j<nlocal)))?1.0:0.5)*evdwl;
+        ev.evdwl += (((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR||(j<nlocal)))?static_cast<KK_ACC_FLOAT>(1.0):static_cast<KK_ACC_FLOAT>(0.5))*static_cast<KK_ACC_FLOAT>(evdwl);
       //if (vflag_either || eflag_atom)
       if (EVFLAG) this->template ev_tally<NEIGHFLAG,NEWTON_PAIR>(ev,i,j,evdwl,fpair,delx,dely,delz);
     }
@@ -1162,7 +1170,7 @@ void PairExp6rxKokkos<DeviceType>::vectorized_operator(const int &ii, EV_FLOAT& 
 #endif
 
   const int nRep = 12;
-  const KK_FLOAT shift = 1.05;
+  const KK_FLOAT shift = static_cast<KK_FLOAT>(1.05);
 
   const int i = d_ilist[ii];
   const KK_FLOAT xtmp = x(i,0);
@@ -1196,10 +1204,10 @@ void PairExp6rxKokkos<DeviceType>::vectorized_operator(const int &ii, EV_FLOAT& 
   const KK_FLOAT mixWtSite2old_i = PairExp6ParamData.mixWtSite2old[i];
 
   const KK_FLOAT cutsq_type11 = d_cutsq(1,1);
-  const KK_FLOAT rCut2inv_type11 = 1.0/ cutsq_type11;
+  const KK_FLOAT rCut2inv_type11 = static_cast<KK_FLOAT>(1.0)/ cutsq_type11;
   const KK_FLOAT rCut6inv_type11 = rCut2inv_type11*rCut2inv_type11*rCut2inv_type11;
-  const KK_FLOAT rCut_type11 = sqrt( cutsq_type11 );
-  const KK_FLOAT rCutInv_type11 = 1.0/rCut_type11;
+  const KK_FLOAT rCut_type11 = Kokkos::sqrt( cutsq_type11 );
+  const KK_FLOAT rCutInv_type11 = static_cast<KK_FLOAT>(1.0)/rCut_type11;
 
   // Do error testing locally.
   bool hasError = false;
@@ -1280,14 +1288,14 @@ void PairExp6rxKokkos<DeviceType>::vectorized_operator(const int &ii, EV_FLOAT& 
 
       // if (rsq < d_cutsq(itype,jtype)) // optimize
       {
-        const KK_FLOAT r2inv = 1.0/rsq;
+        const KK_FLOAT r2inv = static_cast<KK_FLOAT>(1.0)/rsq;
         const KK_FLOAT r6inv = r2inv*r2inv*r2inv;
 
-        const KK_FLOAT r = sqrt(rsq);
-        const KK_FLOAT rCut2inv = (OneType) ? rCut2inv_type11 : (1.0/ cutsq_j[jlane]);
+        const KK_FLOAT r = Kokkos::sqrt(rsq);
+        const KK_FLOAT rCut2inv = (OneType) ? rCut2inv_type11 : (static_cast<KK_FLOAT>(1.0)/ cutsq_j[jlane]);
         const KK_FLOAT rCut6inv = (OneType) ? rCut6inv_type11 : (rCut2inv*rCut2inv*rCut2inv);
-        const KK_FLOAT rCut =     (OneType) ? rCut_type11     : (sqrt( cutsq_j[jlane] ));
-        const KK_FLOAT rCutInv =  (OneType) ? rCutInv_type11  : (1.0/rCut);
+        const KK_FLOAT rCut =     (OneType) ? rCut_type11     : (Kokkos::sqrt( cutsq_j[jlane] ));
+        const KK_FLOAT rCutInv =  (OneType) ? rCutInv_type11  : (static_cast<KK_FLOAT>(1.0)/rCut);
 
         //
         // A. Compute the exp-6 potential
@@ -1313,19 +1321,19 @@ void PairExp6rxKokkos<DeviceType>::vectorized_operator(const int &ii, EV_FLOAT& 
         const KK_FLOAT mixWtSite2old_j = PairExp6ParamData.mixWtSite2old[j];
 
         // A2.  Apply Lorentz-Berthelot mixing rules for the i-j pair
-        const KK_FLOAT alphaOld12_ij = sqrt(alphaOld1_i*alphaOld2_j);
-        const KK_FLOAT rmOld12_ij = 0.5*(rmOld1_i + rmOld2_j);
-        const KK_FLOAT epsilonOld12_ij = sqrt(epsilonOld1_i*epsilonOld2_j);
-        const KK_FLOAT alphaOld21_ij = sqrt(alphaOld2_i*alphaOld1_j);
-        const KK_FLOAT rmOld21_ij = 0.5*(rmOld2_i + rmOld1_j);
-        const KK_FLOAT epsilonOld21_ij = sqrt(epsilonOld2_i*epsilonOld1_j);
+        const KK_FLOAT alphaOld12_ij = Kokkos::sqrt(alphaOld1_i*alphaOld2_j);
+        const KK_FLOAT rmOld12_ij = static_cast<KK_FLOAT>(0.5)*(rmOld1_i + rmOld2_j);
+        const KK_FLOAT epsilonOld12_ij = Kokkos::sqrt(epsilonOld1_i*epsilonOld2_j);
+        const KK_FLOAT alphaOld21_ij = Kokkos::sqrt(alphaOld2_i*alphaOld1_j);
+        const KK_FLOAT rmOld21_ij = static_cast<KK_FLOAT>(0.5)*(rmOld2_i + rmOld1_j);
+        const KK_FLOAT epsilonOld21_ij = Kokkos::sqrt(epsilonOld2_i*epsilonOld1_j);
 
-        const KK_FLOAT alpha12_ij = sqrt(alpha1_i*alpha2_j);
-        const KK_FLOAT rm12_ij = 0.5*(rm1_i + rm2_j);
-        const KK_FLOAT epsilon12_ij = sqrt(epsilon1_i*epsilon2_j);
-        const KK_FLOAT alpha21_ij = sqrt(alpha2_i*alpha1_j);
-        const KK_FLOAT rm21_ij = 0.5*(rm2_i + rm1_j);
-        const KK_FLOAT epsilon21_ij = sqrt(epsilon2_i*epsilon1_j);
+        const KK_FLOAT alpha12_ij = Kokkos::sqrt(alpha1_i*alpha2_j);
+        const KK_FLOAT rm12_ij = static_cast<KK_FLOAT>(0.5)*(rm1_i + rm2_j);
+        const KK_FLOAT epsilon12_ij = Kokkos::sqrt(epsilon1_i*epsilon2_j);
+        const KK_FLOAT alpha21_ij = Kokkos::sqrt(alpha2_i*alpha1_j);
+        const KK_FLOAT rm21_ij = static_cast<KK_FLOAT>(0.5)*(rm2_i + rm1_j);
+        const KK_FLOAT epsilon21_ij = Kokkos::sqrt(epsilon2_i*epsilon1_j);
 
         KK_FLOAT evdwlOldEXP6_12 = 0.0;
         KK_FLOAT evdwlOldEXP6_21 = 0.0;
@@ -1334,31 +1342,31 @@ void PairExp6rxKokkos<DeviceType>::vectorized_operator(const int &ii, EV_FLOAT& 
         KK_FLOAT fpairOldEXP6_12 = 0.0;
         KK_FLOAT fpairOldEXP6_21 = 0.0;
 
-        if (rmOld12_ij!=0.0 && rmOld21_ij!=0.0)
+        if (rmOld12_ij!=static_cast<KK_FLOAT>(0.0) && rmOld21_ij!=static_cast<KK_FLOAT>(0.0))
         {
-          hasError |= (alphaOld21_ij == 6.0 || alphaOld12_ij == 6.0);
+          hasError |= (alphaOld21_ij == static_cast<KK_FLOAT>(6.0) || alphaOld12_ij == static_cast<KK_FLOAT>(6.0));
 
           // A3.  Compute some convenient quantities for evaluating the force
-          KK_FLOAT rminv = 1.0/rmOld12_ij;
-          KK_FLOAT buck1 = epsilonOld12_ij / (alphaOld12_ij - 6.0);
-          KK_FLOAT rexp = expValue(alphaOld12_ij*(1.0-r*rminv));
+          KK_FLOAT rminv = static_cast<KK_FLOAT>(1.0)/rmOld12_ij;
+          KK_FLOAT buck1 = epsilonOld12_ij / (alphaOld12_ij - static_cast<KK_FLOAT>(6.0));
+          KK_FLOAT rexp = expValue(alphaOld12_ij*(static_cast<KK_FLOAT>(1.0)-r*rminv));
           KK_FLOAT rm2ij = rmOld12_ij*rmOld12_ij;
           KK_FLOAT rm6ij = rm2ij*rm2ij*rm2ij;
 
           // Compute the shifted potential
-          KK_FLOAT rCutExp = expValue(alphaOld12_ij*(1.0-rCut*rminv));
-          KK_FLOAT buck2 = 6.0*alphaOld12_ij;
-          KK_FLOAT urc = buck1*(6.0*rCutExp - alphaOld12_ij*rm6ij*rCut6inv);
+          KK_FLOAT rCutExp = expValue(alphaOld12_ij*(static_cast<KK_FLOAT>(1.0)-rCut*rminv));
+          KK_FLOAT buck2 = static_cast<KK_FLOAT>(6.0)*alphaOld12_ij;
+          KK_FLOAT urc = buck1*(static_cast<KK_FLOAT>(6.0)*rCutExp - alphaOld12_ij*rm6ij*rCut6inv);
           KK_FLOAT durc = -buck1*buck2*(rCutExp* rminv - rCutInv*rm6ij*rCut6inv);
           KK_FLOAT rin1 = shift*rmOld12_ij*func_rin(alphaOld12_ij);
 
           if (r < rin1) {
             const KK_FLOAT rin6 = rin1*rin1*rin1*rin1*rin1*rin1;
-            const KK_FLOAT rin6inv = 1.0/rin6;
+            const KK_FLOAT rin6inv = static_cast<KK_FLOAT>(1.0)/rin6;
 
-            const KK_FLOAT rin1exp = expValue(alphaOld12_ij*(1.0-rin1*rminv));
+            const KK_FLOAT rin1exp = expValue(alphaOld12_ij*(static_cast<KK_FLOAT>(1.0)-rin1*rminv));
 
-            const KK_FLOAT uin1 = buck1*(6.0*rin1exp - alphaOld12_ij*rm6ij*rin6inv) - urc - durc*(rin1-rCut);
+            const KK_FLOAT uin1 = buck1*(static_cast<KK_FLOAT>(6.0)*rin1exp - alphaOld12_ij*rm6ij*rin6inv) - urc - durc*(rin1-rCut);
 
             const KK_FLOAT win1 = buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) + rin1*durc;
 
@@ -1374,31 +1382,31 @@ void PairExp6rxKokkos<DeviceType>::vectorized_operator(const int &ii, EV_FLOAT& 
             const KK_FLOAT forceExp6 = buck1*buck2*(r*rexp*rminv - rm6ij*r6inv) + r*durc;
             fpairOldEXP6_12 = factor_lj*forceExp6*r2inv;
 
-            evdwlOldEXP6_12 = buck1*(6.0*rexp - alphaOld12_ij*rm6ij*r6inv) - urc - durc*(r-rCut);
+            evdwlOldEXP6_12 = buck1*(static_cast<KK_FLOAT>(6.0)*rexp - alphaOld12_ij*rm6ij*r6inv) - urc - durc*(r-rCut);
           }
 
           // A3.  Compute some convenient quantities for evaluating the force
-          rminv = 1.0/rmOld21_ij;
-          buck1 = epsilonOld21_ij / (alphaOld21_ij - 6.0);
-          buck2 = 6.0*alphaOld21_ij;
-          rexp = expValue(alphaOld21_ij*(1.0-r*rminv));
+          rminv = static_cast<KK_FLOAT>(1.0)/rmOld21_ij;
+          buck1 = epsilonOld21_ij / (alphaOld21_ij - static_cast<KK_FLOAT>(6.0));
+          buck2 = static_cast<KK_FLOAT>(6.0)*alphaOld21_ij;
+          rexp = expValue(alphaOld21_ij*(static_cast<KK_FLOAT>(1.0)-r*rminv));
           rm2ij = rmOld21_ij*rmOld21_ij;
           rm6ij = rm2ij*rm2ij*rm2ij;
 
           // Compute the shifted potential
-          rCutExp = expValue(alphaOld21_ij*(1.0-rCut*rminv));
-          buck2 = 6.0*alphaOld21_ij;
-          urc = buck1*(6.0*rCutExp - alphaOld21_ij*rm6ij*rCut6inv);
+          rCutExp = expValue(alphaOld21_ij*(static_cast<KK_FLOAT>(1.0)-rCut*rminv));
+          buck2 = static_cast<KK_FLOAT>(6.0)*alphaOld21_ij;
+          urc = buck1*(static_cast<KK_FLOAT>(6.0)*rCutExp - alphaOld21_ij*rm6ij*rCut6inv);
           durc = -buck1*buck2*(rCutExp* rminv - rCutInv*rm6ij*rCut6inv);
           rin1 = shift*rmOld21_ij*func_rin(alphaOld21_ij);
 
           if (r < rin1) {
             const KK_FLOAT rin6 = rin1*rin1*rin1*rin1*rin1*rin1;
-            const KK_FLOAT rin6inv = 1.0/rin6;
+            const KK_FLOAT rin6inv = static_cast<KK_FLOAT>(1.0)/rin6;
 
-            const KK_FLOAT rin1exp = expValue(alphaOld21_ij*(1.0-rin1*rminv));
+            const KK_FLOAT rin1exp = expValue(alphaOld21_ij*(static_cast<KK_FLOAT>(1.0)-rin1*rminv));
 
-            const KK_FLOAT uin1 = buck1*(6.0*rin1exp - alphaOld21_ij*rm6ij*rin6inv) - urc - durc*(rin1-rCut);
+            const KK_FLOAT uin1 = buck1*(static_cast<KK_FLOAT>(6.0)*rin1exp - alphaOld21_ij*rm6ij*rin6inv) - urc - durc*(rin1-rCut);
 
             const KK_FLOAT win1 = buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) + rin1*durc;
 
@@ -1414,47 +1422,47 @@ void PairExp6rxKokkos<DeviceType>::vectorized_operator(const int &ii, EV_FLOAT& 
             const KK_FLOAT forceExp6 = buck1*buck2*(r*rexp*rminv - rm6ij*r6inv) + r*durc;
             fpairOldEXP6_21 = factor_lj*forceExp6*r2inv;
 
-            evdwlOldEXP6_21 = buck1*(6.0*rexp - alphaOld21_ij*rm6ij*r6inv) - urc - durc*(r-rCut);
+            evdwlOldEXP6_21 = buck1*(static_cast<KK_FLOAT>(6.0)*rexp - alphaOld21_ij*rm6ij*r6inv) - urc - durc*(r-rCut);
           }
 
           KK_FLOAT evdwlOld;
           if (Site1EqSite2)
-            evdwlOld = sqrt(mixWtSite1old_i*mixWtSite2old_j)*evdwlOldEXP6_12;
+            evdwlOld = Kokkos::sqrt(mixWtSite1old_i*mixWtSite2old_j)*evdwlOldEXP6_12;
           else
-            evdwlOld = sqrt(mixWtSite1old_i*mixWtSite2old_j)*evdwlOldEXP6_12 + sqrt(mixWtSite2old_i*mixWtSite1old_j)*evdwlOldEXP6_21;
+            evdwlOld = Kokkos::sqrt(mixWtSite1old_i*mixWtSite2old_j)*evdwlOldEXP6_12 + Kokkos::sqrt(mixWtSite2old_i*mixWtSite1old_j)*evdwlOldEXP6_21;
 
           evdwlOld *= factor_lj;
 
-          uCG_i += 0.5*evdwlOld;
+          uCG_i += static_cast<KK_FLOAT>(0.5)*evdwlOld;
 
           evdwlOld_j[jlane] = evdwlOld;
         }
 
-        if (rm12_ij!=0.0 && rm21_ij!=0.0)
+        if (rm12_ij!=static_cast<KK_FLOAT>(0.0) && rm21_ij!=static_cast<KK_FLOAT>(0.0))
         {
-          hasError |= (alpha21_ij == 6.0 || alpha12_ij == 6.0);
+          hasError |= (alpha21_ij == static_cast<KK_FLOAT>(6.0) || alpha12_ij == static_cast<KK_FLOAT>(6.0));
 
           // A3.  Compute some convenient quantities for evaluating the force
-          KK_FLOAT rminv = 1.0/rm12_ij;
-          KK_FLOAT buck1 = epsilon12_ij / (alpha12_ij - 6.0);
-          KK_FLOAT buck2 = 6.0*alpha12_ij;
-          KK_FLOAT rexp = expValue(alpha12_ij*(1.0-r*rminv));
+          KK_FLOAT rminv = static_cast<KK_FLOAT>(1.0)/rm12_ij;
+          KK_FLOAT buck1 = epsilon12_ij / (alpha12_ij - static_cast<KK_FLOAT>(6.0));
+          KK_FLOAT buck2 = static_cast<KK_FLOAT>(6.0)*alpha12_ij;
+          KK_FLOAT rexp = expValue(alpha12_ij*(static_cast<KK_FLOAT>(1.0)-r*rminv));
           KK_FLOAT rm2ij = rm12_ij*rm12_ij;
           KK_FLOAT rm6ij = rm2ij*rm2ij*rm2ij;
 
           // Compute the shifted potential
-          KK_FLOAT rCutExp = expValue(alpha12_ij*(1.0-rCut*rminv));
-          KK_FLOAT urc = buck1*(6.0*rCutExp - alpha12_ij*rm6ij*rCut6inv);
+          KK_FLOAT rCutExp = expValue(alpha12_ij*(static_cast<KK_FLOAT>(1.0)-rCut*rminv));
+          KK_FLOAT urc = buck1*(static_cast<KK_FLOAT>(6.0)*rCutExp - alpha12_ij*rm6ij*rCut6inv);
           KK_FLOAT durc = -buck1*buck2*(rCutExp*rminv - rCutInv*rm6ij*rCut6inv);
           KK_FLOAT rin1 = shift*rm12_ij*func_rin(alpha12_ij);
 
           if (r < rin1) {
             const KK_FLOAT rin6 = rin1*rin1*rin1*rin1*rin1*rin1;
-            const KK_FLOAT rin6inv = 1.0/rin6;
+            const KK_FLOAT rin6inv = static_cast<KK_FLOAT>(1.0)/rin6;
 
-            const KK_FLOAT rin1exp = expValue(alpha12_ij*(1.0-rin1*rminv));
+            const KK_FLOAT rin1exp = expValue(alpha12_ij*(static_cast<KK_FLOAT>(1.0)-rin1*rminv));
 
-            const KK_FLOAT uin1 = buck1*(6.0*rin1exp - alpha12_ij*rm6ij*rin6inv) - urc - durc*(rin1-rCut);
+            const KK_FLOAT uin1 = buck1*(static_cast<KK_FLOAT>(6.0)*rin1exp - alpha12_ij*rm6ij*rin6inv) - urc - durc*(rin1-rCut);
 
             const KK_FLOAT win1 = buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) + rin1*durc;
 
@@ -1464,29 +1472,29 @@ void PairExp6rxKokkos<DeviceType>::vectorized_operator(const int &ii, EV_FLOAT& 
 
             evdwlEXP6_12 = uin1 - uin1rep + aRep/__powint<12>(r,nRep);
           } else {
-            evdwlEXP6_12 = buck1*(6.0*rexp - alpha12_ij*rm6ij*r6inv) - urc - durc*(r-rCut);
+            evdwlEXP6_12 = buck1*(static_cast<KK_FLOAT>(6.0)*rexp - alpha12_ij*rm6ij*r6inv) - urc - durc*(r-rCut);
           }
 
-          rminv = 1.0/rm21_ij;
-          buck1 = epsilon21_ij / (alpha21_ij - 6.0);
-          buck2 = 6.0*alpha21_ij;
-          rexp = expValue(alpha21_ij*(1.0-r*rminv));
+          rminv = static_cast<KK_FLOAT>(1.0)/rm21_ij;
+          buck1 = epsilon21_ij / (alpha21_ij - static_cast<KK_FLOAT>(6.0));
+          buck2 = static_cast<KK_FLOAT>(6.0)*alpha21_ij;
+          rexp = expValue(alpha21_ij*(static_cast<KK_FLOAT>(1.0)-r*rminv));
           rm2ij = rm21_ij*rm21_ij;
           rm6ij = rm2ij*rm2ij*rm2ij;
 
           // Compute the shifted potential
-          rCutExp = expValue(alpha21_ij*(1.0-rCut*rminv));
-          urc = buck1*(6.0*rCutExp - alpha21_ij*rm6ij*rCut6inv);
+          rCutExp = expValue(alpha21_ij*(static_cast<KK_FLOAT>(1.0)-rCut*rminv));
+          urc = buck1*(static_cast<KK_FLOAT>(6.0)*rCutExp - alpha21_ij*rm6ij*rCut6inv);
           durc = -buck1*buck2*(rCutExp*rminv - rCutInv*rm6ij*rCut6inv);
           rin1 = shift*rm21_ij*func_rin(alpha21_ij);
 
           if (r < rin1) {
             const KK_FLOAT rin6 = rin1*rin1*rin1*rin1*rin1*rin1;
-            const KK_FLOAT rin6inv = 1.0/rin6;
+            const KK_FLOAT rin6inv = static_cast<KK_FLOAT>(1.0)/rin6;
 
-            const KK_FLOAT rin1exp = expValue(alpha21_ij*(1.0-rin1*rminv));
+            const KK_FLOAT rin1exp = expValue(alpha21_ij*(static_cast<KK_FLOAT>(1.0)-rin1*rminv));
 
-            const KK_FLOAT uin1 = buck1*(6.0*rin1exp - alpha21_ij*rm6ij*rin6inv) - urc - durc*(rin1-rCut);
+            const KK_FLOAT uin1 = buck1*(static_cast<KK_FLOAT>(6.0)*rin1exp - alpha21_ij*rm6ij*rin6inv) - urc - durc*(rin1-rCut);
 
             const KK_FLOAT win1 = buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) + rin1*durc;
 
@@ -1496,7 +1504,7 @@ void PairExp6rxKokkos<DeviceType>::vectorized_operator(const int &ii, EV_FLOAT& 
 
             evdwlEXP6_21 = uin1 - uin1rep + aRep/__powint<12>(r,nRep);
           } else {
-            evdwlEXP6_21 = buck1*(6.0*rexp - alpha21_ij*rm6ij*r6inv) - urc - durc*(r-rCut);
+            evdwlEXP6_21 = buck1*(static_cast<KK_FLOAT>(6.0)*rexp - alpha21_ij*rm6ij*r6inv) - urc - durc*(r-rCut);
           }
         }
 
@@ -1505,15 +1513,15 @@ void PairExp6rxKokkos<DeviceType>::vectorized_operator(const int &ii, EV_FLOAT& 
         //
         KK_FLOAT fpair;
         if (Site1EqSite2)
-          fpair = sqrt(mixWtSite1old_i*mixWtSite2old_j)*fpairOldEXP6_12;
+          fpair = Kokkos::sqrt(mixWtSite1old_i*mixWtSite2old_j)*fpairOldEXP6_12;
         else
-          fpair = sqrt(mixWtSite1old_i*mixWtSite2old_j)*fpairOldEXP6_12 + sqrt(mixWtSite2old_i*mixWtSite1old_j)*fpairOldEXP6_21;
+          fpair = Kokkos::sqrt(mixWtSite1old_i*mixWtSite2old_j)*fpairOldEXP6_12 + Kokkos::sqrt(mixWtSite2old_i*mixWtSite1old_j)*fpairOldEXP6_21;
 
         KK_FLOAT evdwl;
         if (Site1EqSite2)
-          evdwl = sqrt(mixWtSite1_i*mixWtSite2_j)*evdwlEXP6_12;
+          evdwl = Kokkos::sqrt(mixWtSite1_i*mixWtSite2_j)*evdwlEXP6_12;
         else
-          evdwl = sqrt(mixWtSite1_i*mixWtSite2_j)*evdwlEXP6_12 + sqrt(mixWtSite2_i*mixWtSite1_j)*evdwlEXP6_21;
+          evdwl = Kokkos::sqrt(mixWtSite1_i*mixWtSite2_j)*evdwlEXP6_12 + Kokkos::sqrt(mixWtSite2_i*mixWtSite1_j)*evdwlEXP6_21;
 
         evdwl *= factor_lj;
 
@@ -1523,9 +1531,9 @@ void PairExp6rxKokkos<DeviceType>::vectorized_operator(const int &ii, EV_FLOAT& 
         fy_i += dely*fpair;
         fz_i += delz*fpair;
 
-        uCGnew_i += 0.5*evdwl;
+        uCGnew_i += static_cast<KK_FLOAT>(0.5)*evdwl;
         if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD))
-          uCGnew_j[jlane] = 0.5*evdwl;
+          uCGnew_j[jlane] = static_cast<KK_FLOAT>(0.5)*evdwl;
 
       } // if rsq < cutsq
 
@@ -1537,9 +1545,9 @@ void PairExp6rxKokkos<DeviceType>::vectorized_operator(const int &ii, EV_FLOAT& 
 
       if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal)) {
         if (UseAtomics) {
-          a_uCG(j) += 0.5*evdwlOld_j[jlane];
+          a_uCG(j) += static_cast<KK_FLOAT>(0.5)*evdwlOld_j[jlane];
         } else {
-          t_uCG(tid,j) += 0.5*evdwlOld_j[jlane];
+          t_uCG(tid,j) += static_cast<KK_FLOAT>(0.5)*evdwlOld_j[jlane];
         }
       }
       if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal)) {
@@ -1551,9 +1559,9 @@ void PairExp6rxKokkos<DeviceType>::vectorized_operator(const int &ii, EV_FLOAT& 
       }
       if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal)) {
         if (UseAtomics) {
-          a_f(j,0) -= delx_j[jlane]*fpair_j[jlane];
-          a_f(j,1) -= dely_j[jlane]*fpair_j[jlane];
-          a_f(j,2) -= delz_j[jlane]*fpair_j[jlane];
+          a_f(j,0) -= static_cast<KK_ACC_FLOAT>(delx_j[jlane]*fpair_j[jlane]);
+          a_f(j,1) -= static_cast<KK_ACC_FLOAT>(dely_j[jlane]*fpair_j[jlane]);
+          a_f(j,2) -= static_cast<KK_ACC_FLOAT>(delz_j[jlane]*fpair_j[jlane]);
         } else {
           t_f(tid,j,0) -= delx_j[jlane]*fpair_j[jlane];
           t_f(tid,j,1) -= dely_j[jlane]*fpair_j[jlane];
@@ -1563,7 +1571,7 @@ void PairExp6rxKokkos<DeviceType>::vectorized_operator(const int &ii, EV_FLOAT& 
 
       KK_FLOAT evdwl = evdwlOld_j[jlane];
       if (EVFLAG)
-        ev.evdwl += (((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR||(j<nlocal)))?1.0:0.5)*evdwl;
+        ev.evdwl += (((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR||(j<nlocal)))?static_cast<KK_ACC_FLOAT>(1.0):static_cast<KK_ACC_FLOAT>(0.5))*static_cast<KK_ACC_FLOAT>(evdwl);
       //if (vflag_either || eflag_atom)
       if (EVFLAG) this->template ev_tally<NEIGHFLAG,NEWTON_PAIR>(ev,i,j,evdwl,fpair_j[jlane],delx_j[jlane],dely_j[jlane],delz_j[jlane]);
     }
@@ -1574,9 +1582,9 @@ void PairExp6rxKokkos<DeviceType>::vectorized_operator(const int &ii, EV_FLOAT& 
 
   if (UseAtomics)
   {
-    a_f(i,0) += fx_i;
-    a_f(i,1) += fy_i;
-    a_f(i,2) += fz_i;
+    a_f(i,0) += static_cast<KK_ACC_FLOAT>(fx_i);
+    a_f(i,1) += static_cast<KK_ACC_FLOAT>(fy_i);
+    a_f(i,2) += static_cast<KK_ACC_FLOAT>(fz_i);
     a_uCG(i) += uCG_i;
     a_uCGnew(i) += uCGnew_i;
   }
@@ -1608,9 +1616,9 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxCollapseDupViews, const int &i) const {
   for (int n = 0; n < nthreads; n++) {
-    f(i,0) += t_f(n,i,0);
-    f(i,1) += t_f(n,i,1);
-    f(i,2) += t_f(n,i,2);
+    f(i,0) += static_cast<KK_ACC_FLOAT>(t_f(n,i,0));
+    f(i,1) += static_cast<KK_ACC_FLOAT>(t_f(n,i,1));
+    f(i,2) += static_cast<KK_ACC_FLOAT>(t_f(n,i,2));
     uCG(i) += t_uCG(n,i);
     uCGnew(i) += t_uCGnew(n,i);
   }
@@ -1662,6 +1670,11 @@ void PairExp6rxKokkos<DeviceType>::coeff(int narg, char **arg)
 {
   PairExp6rx::coeff(narg,arg);
 
+  // rx_fix is initialized by PairExp6rx::coeff(), cast to KOKKOS version
+  rx_fixKK = dynamic_cast<FixRxKokkos<DeviceType> *>(rx_fix);
+  if (!rx_fixKK)
+    error->all(FLERR, Error::NOLASTLINE, "Fix rx not defined or not compatible with pair style");
+
   if (scalingFlag == POLYNOMIAL)
     for (int i = 0; i < 6; i++) {
       s_coeffAlpha[i] = coeffAlpha[i];
@@ -1684,7 +1697,7 @@ void PairExp6rxKokkos<DeviceType>::initialize_exp6_params_array() {
 
 template<class DeviceType>
 void PairExp6rxKokkos<DeviceType>::grow_exp6_params_array(int old_size,
-							  int new_size) {
+                                                          int new_size) {
   k_params.modify_host();
   memoryKK->grow_kokkos(k_params, params, new_size, "pair:params");
 }
@@ -1758,19 +1771,22 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeights(int id,KK_FLOAT &epsilon1,KK
 
   // Compute the total number of molecules in the old and new CG particle as well as the total number of molecules in the fluid portion of the old and new CG particle
   for (int ispecies = 0; ispecies < nspecies; ispecies++) {
-    nTotal += dvector(ispecies,id);
-    nTotalold += dvector(ispecies+nspecies,id);
+    const auto atom_ind = species_ind_to_atom_prop_ind(ispecies);
+    const auto atom_ind_old = species_ind_to_atom_prop_ind_old(ispecies);
+
+    nTotal += dvector(atom_ind,id);
+    nTotalold += dvector(atom_ind_old,id);
 
     iparam = d_mol2param[ispecies];
 
     if (iparam < 0 || d_params[iparam].potentialType != PotentialType::exp6 ) continue;
     if (isOneFluidApprox(isite1) || isOneFluidApprox(isite2)) {
       if (isite1 == d_params[iparam].ispecies || isite2 == d_params[iparam].ispecies) continue;
-      nMoleculesOFAold += dvector(ispecies+nspecies,id);
-      nMoleculesOFA += dvector(ispecies,id);
+      nMoleculesOFAold += dvector(atom_ind_old,id);
+      nMoleculesOFA += dvector(atom_ind,id);
     }
   }
-  if (nTotal < MY_EPSILON || nTotalold < MY_EPSILON)
+  if (nTotal < static_cast<KK_FLOAT>(MY_EPSILON) || nTotalold < static_cast<KK_FLOAT>(MY_EPSILON))
     k_error_flag.template view<DeviceType>()() = 1;
 
   // Compute the mole fraction of molecules within the fluid portion of the particle (One Fluid Approximation)
@@ -1778,75 +1794,81 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeights(int id,KK_FLOAT &epsilon1,KK
   fractionOFA = nMoleculesOFA / nTotal;
 
   for (int ispecies = 0; ispecies < nspecies; ispecies++) {
+    const auto atom_ind = species_ind_to_atom_prop_ind(ispecies);
+    const auto atom_ind_old = species_ind_to_atom_prop_ind_old(ispecies);
+
     iparam = d_mol2param[ispecies];
     if (iparam < 0 || d_params[iparam].potentialType != PotentialType::exp6 ) continue;
 
     // If Site1 matches a pure species, then grab the parameters
     if (isite1 == d_params[iparam].ispecies) {
-      rm1_old = d_params[iparam].rm;
-      rm1 = d_params[iparam].rm;
-      epsilon1_old = d_params[iparam].epsilon;
-      epsilon1 = d_params[iparam].epsilon;
-      alpha1_old = d_params[iparam].alpha;
-      alpha1 = d_params[iparam].alpha;
+      rm1_old = static_cast<KK_FLOAT>(d_params[iparam].rm);
+      rm1 = static_cast<KK_FLOAT>(d_params[iparam].rm);
+      epsilon1_old = static_cast<KK_FLOAT>(d_params[iparam].epsilon);
+      epsilon1 = static_cast<KK_FLOAT>(d_params[iparam].epsilon);
+      alpha1_old = static_cast<KK_FLOAT>(d_params[iparam].alpha);
+      alpha1 = static_cast<KK_FLOAT>(d_params[iparam].alpha);
 
       // Compute the mole fraction of Site1
-      nMoleculesOld1 = dvector(ispecies+nspecies,id);
-      nMolecules1 = dvector(ispecies,id);
+      nMoleculesOld1 = dvector(atom_ind_old,id);
+      nMolecules1 = dvector(atom_ind,id);
       fractionOld1 = nMoleculesOld1/nTotalold;
       fraction1 = nMolecules1/nTotal;
     }
 
     // If Site2 matches a pure species, then grab the parameters
     if (isite2 == d_params[iparam].ispecies) {
-      rm2_old = d_params[iparam].rm;
-      rm2 = d_params[iparam].rm;
-      epsilon2_old = d_params[iparam].epsilon;
-      epsilon2 = d_params[iparam].epsilon;
-      alpha2_old = d_params[iparam].alpha;
-      alpha2 = d_params[iparam].alpha;
+      rm2_old = static_cast<KK_FLOAT>(d_params[iparam].rm);
+      rm2 = static_cast<KK_FLOAT>(d_params[iparam].rm);
+      epsilon2_old = static_cast<KK_FLOAT>(d_params[iparam].epsilon);
+      epsilon2 = static_cast<KK_FLOAT>(d_params[iparam].epsilon);
+      alpha2_old = static_cast<KK_FLOAT>(d_params[iparam].alpha);
+      alpha2 = static_cast<KK_FLOAT>(d_params[iparam].alpha);
 
       // Compute the mole fraction of Site2
-      nMoleculesOld2 = dvector(ispecies+nspecies,id);
-      nMolecules2 = dvector(ispecies,id);
-      fractionOld2 = dvector(ispecies+nspecies,id)/nTotalold;
+      nMoleculesOld2 = dvector(atom_ind_old,id);
+      nMolecules2 = dvector(atom_ind,id);
+      fractionOld2 = dvector(atom_ind_old,id)/nTotalold;
       fraction2 = nMolecules2/nTotal;
     }
 
     // If Site1 or Site2 matches is a fluid, then compute the parameters
     if (isOneFluidApprox(isite1) || isOneFluidApprox(isite2)) {
       if (isite1 == d_params[iparam].ispecies || isite2 == d_params[iparam].ispecies) continue;
-      rmi = d_params[iparam].rm;
-      epsiloni = d_params[iparam].epsilon;
-      alphai = d_params[iparam].alpha;
-      if (nMoleculesOFA<MY_EPSILON) xMolei = 0.0;
-      else xMolei = dvector(ispecies,id)/nMoleculesOFA;
-      if (nMoleculesOFAold<MY_EPSILON) xMolei_old = 0.0;
-      else xMolei_old = dvector(ispecies+nspecies,id)/nMoleculesOFAold;
+      rmi = static_cast<KK_FLOAT>(d_params[iparam].rm);
+      epsiloni = static_cast<KK_FLOAT>(d_params[iparam].epsilon);
+      alphai = static_cast<KK_FLOAT>(d_params[iparam].alpha);
+      if (nMoleculesOFA<static_cast<KK_FLOAT>(MY_EPSILON)) xMolei = static_cast<KK_FLOAT>(0.0);
+      else xMolei = dvector(atom_ind,id)/nMoleculesOFA;
+      if (nMoleculesOFAold<static_cast<KK_FLOAT>(MY_EPSILON)) xMolei_old = static_cast<KK_FLOAT>(0.0);
+      else xMolei_old = dvector(atom_ind_old,id)/nMoleculesOFAold;
 
       for (int jspecies = 0; jspecies < nspecies; jspecies++) {
+        const auto atom_ind_inner = species_ind_to_atom_prop_ind(jspecies);
+        const auto atom_ind_old_inner = species_ind_to_atom_prop_ind_old(jspecies);
+
         jparam = d_mol2param[jspecies];
         if (jparam < 0 || d_params[jparam].potentialType != PotentialType::exp6 ) continue;
         if (isite1 == d_params[jparam].ispecies || isite2 == d_params[jparam].ispecies) continue;
-        rmj = d_params[jparam].rm;
-        epsilonj = d_params[jparam].epsilon;
-        alphaj = d_params[jparam].alpha;
-        if (nMoleculesOFA<MY_EPSILON) xMolej = 0.0;
-        else xMolej = dvector(jspecies,id)/nMoleculesOFA;
-        if (nMoleculesOFAold<MY_EPSILON) xMolej_old = 0.0;
-        else xMolej_old = dvector(jspecies+nspecies,id)/nMoleculesOFAold;
+        rmj = static_cast<KK_FLOAT>(d_params[jparam].rm);
+        epsilonj = static_cast<KK_FLOAT>(d_params[jparam].epsilon);
+        alphaj = static_cast<KK_FLOAT>(d_params[jparam].alpha);
+        if (nMoleculesOFA<static_cast<KK_FLOAT>(MY_EPSILON)) xMolej = static_cast<KK_FLOAT>(0.0);
+        else xMolej = dvector(atom_ind_inner,id)/nMoleculesOFA;
+        if (nMoleculesOFAold<static_cast<KK_FLOAT>(MY_EPSILON)) xMolej_old = static_cast<KK_FLOAT>(0.0);
+        else xMolej_old = dvector(atom_ind_old_inner,id)/nMoleculesOFAold;
 
-        rmij = (rmi+rmj)/2.0;
+        rmij = (rmi+rmj)/static_cast<KK_FLOAT>(2.0);
         rm3ij = rmij*rmij*rmij;
-        epsilonij = sqrt(epsiloni*epsilonj);
-        alphaij = sqrt(alphai*alphaj);
+        epsilonij = Kokkos::sqrt(epsiloni*epsilonj);
+        alphaij = Kokkos::sqrt(alphai*alphaj);
 
-        if (fractionOFAold > 0.0) {
+        if (fractionOFAold > static_cast<KK_FLOAT>(0.0)) {
           rm3_old += xMolei_old*xMolej_old*rm3ij;
           epsilon_old += xMolei_old*xMolej_old*rm3ij*epsilonij;
           alpha_old += xMolei_old*xMolej_old*rm3ij*epsilonij*alphaij;
         }
-        if (fractionOFA > 0.0) {
+        if (fractionOFA > static_cast<KK_FLOAT>(0.0)) {
           rm3 += xMolei*xMolej*rm3ij;
           epsilon += xMolei*xMolej*rm3ij*epsilonij;
           alpha += xMolei*xMolej*rm3ij*epsilonij*alphaij;
@@ -1856,8 +1878,8 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeights(int id,KK_FLOAT &epsilon1,KK
   }
 
   if (isOneFluidApprox(isite1)) {
-    rm1 = cbrt(rm3);
-    if (rm1 < MY_EPSILON) {
+    rm1 = Kokkos::cbrt(rm3);
+    if (rm1 < static_cast<KK_FLOAT>(MY_EPSILON)) {
       rm1 = 0.0;
       epsilon1 = 0.0;
       alpha1 = 0.0;
@@ -1865,11 +1887,11 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeights(int id,KK_FLOAT &epsilon1,KK
       epsilon1 = epsilon / rm3;
       alpha1 = alpha / epsilon1 / rm3;
     }
-    nMolecules1 = 1.0-(nTotal-nMoleculesOFA);
+    nMolecules1 = static_cast<KK_FLOAT>(1.0)-(nTotal-nMoleculesOFA);
     fraction1 = fractionOFA;
 
-    rm1_old = cbrt(rm3_old);
-    if (rm1_old < MY_EPSILON) {
+    rm1_old = Kokkos::cbrt(rm3_old);
+    if (rm1_old < static_cast<KK_FLOAT>(MY_EPSILON)) {
       rm1_old = 0.0;
       epsilon1_old = 0.0;
       alpha1_old = 0.0;
@@ -1877,7 +1899,7 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeights(int id,KK_FLOAT &epsilon1,KK
       epsilon1_old = epsilon_old / rm3_old;
       alpha1_old = alpha_old / epsilon1_old / rm3_old;
     }
-    nMoleculesOld1 = 1.0-(nTotalold-nMoleculesOFAold);
+    nMoleculesOld1 = static_cast<KK_FLOAT>(1.0)-(nTotalold-nMoleculesOFAold);
     fractionOld1 = fractionOFAold;
 
     if (scalingFlag == EXPONENT) {
@@ -1890,8 +1912,8 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeights(int id,KK_FLOAT &epsilon1,KK
   }
 
   if (isOneFluidApprox(isite2)) {
-    rm2 = cbrt(rm3);
-    if (rm2 < MY_EPSILON) {
+    rm2 = Kokkos::cbrt(rm3);
+    if (rm2 < static_cast<KK_FLOAT>(MY_EPSILON)) {
       rm2 = 0.0;
       epsilon2 = 0.0;
       alpha2 = 0.0;
@@ -1899,11 +1921,11 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeights(int id,KK_FLOAT &epsilon1,KK
       epsilon2 = epsilon / rm3;
       alpha2 = alpha / epsilon2 / rm3;
     }
-    nMolecules2 = 1.0-(nTotal-nMoleculesOFA);
+    nMolecules2 = static_cast<KK_FLOAT>(1.0)-(nTotal-nMoleculesOFA);
     fraction2 = fractionOFA;
 
-    rm2_old = cbrt(rm3_old);
-    if (rm2_old < MY_EPSILON) {
+    rm2_old = Kokkos::cbrt(rm3_old);
+    if (rm2_old < static_cast<KK_FLOAT>(MY_EPSILON)) {
       rm2_old = 0.0;
       epsilon2_old = 0.0;
       alpha2_old = 0.0;
@@ -1911,7 +1933,7 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeights(int id,KK_FLOAT &epsilon1,KK
       epsilon2_old = epsilon_old / rm3_old;
       alpha2_old = alpha_old / epsilon2_old / rm3_old;
     }
-    nMoleculesOld2 = 1.0-(nTotalold-nMoleculesOFAold);
+    nMoleculesOld2 = static_cast<KK_FLOAT>(1.0)-(nTotalold-nMoleculesOFAold);
     fractionOld2 = fractionOFAold;
 
     if (scalingFlag == EXPONENT) {
@@ -1924,29 +1946,29 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeights(int id,KK_FLOAT &epsilon1,KK
   }
 
   // Check that no fractions are less than zero
-  if (fraction1 < 0.0 || nMolecules1 < 0.0) {
-    if (fraction1 < -MY_EPSILON || nMolecules1 < -MY_EPSILON) {
+  if (fraction1 < static_cast<KK_FLOAT>(0.0) || nMolecules1 < static_cast<KK_FLOAT>(0.0)) {
+    if (fraction1 < -static_cast<KK_FLOAT>(MY_EPSILON) || nMolecules1 < -static_cast<KK_FLOAT>(MY_EPSILON)) {
       k_error_flag.template view<DeviceType>()() = 2;
     }
     nMolecules1 = 0.0;
     fraction1 = 0.0;
   }
-  if (fraction2 < 0.0 || nMolecules2 < 0.0) {
-    if (fraction2 < -MY_EPSILON || nMolecules2 < -MY_EPSILON) {
+  if (fraction2 < static_cast<KK_FLOAT>(0.0) || nMolecules2 < static_cast<KK_FLOAT>(0.0)) {
+    if (fraction2 < -static_cast<KK_FLOAT>(MY_EPSILON) || nMolecules2 < -static_cast<KK_FLOAT>(MY_EPSILON)) {
       k_error_flag.template view<DeviceType>()() = 2;
     }
     nMolecules2 = 0.0;
     fraction2 = 0.0;
   }
-  if (fractionOld1 < 0.0 || nMoleculesOld1 < 0.0) {
-    if (fractionOld1 < -MY_EPSILON || nMoleculesOld1 < -MY_EPSILON) {
+  if (fractionOld1 < static_cast<KK_FLOAT>(0.0) || nMoleculesOld1 < static_cast<KK_FLOAT>(0.0)) {
+    if (fractionOld1 < -static_cast<KK_FLOAT>(MY_EPSILON) || nMoleculesOld1 < -static_cast<KK_FLOAT>(MY_EPSILON)) {
       k_error_flag.template view<DeviceType>()() = 2;
     }
     nMoleculesOld1 = 0.0;
     fractionOld1 = 0.0;
   }
-  if (fractionOld2 < 0.0 || nMoleculesOld2 < 0.0) {
-    if (fractionOld2 < -MY_EPSILON || nMoleculesOld2 < -MY_EPSILON) {
+  if (fractionOld2 < static_cast<KK_FLOAT>(0.0) || nMoleculesOld2 < static_cast<KK_FLOAT>(0.0)) {
+    if (fractionOld2 < -static_cast<KK_FLOAT>(MY_EPSILON) || nMoleculesOld2 < -static_cast<KK_FLOAT>(MY_EPSILON)) {
       k_error_flag.template view<DeviceType>()() = 2;
     }
     nMoleculesOld2 = 0.0;
@@ -1999,7 +2021,7 @@ void partition_range( const int begin, const int end, int &thread_begin, int &th
 #ifndef LMP_KOKKOS_GPU
 template<class DeviceType>
   template<class ArrayT>
-void PairExp6rxKokkos<DeviceType>::getMixingWeightsVect(const int np_total, int errorFlag,
+void PairExp6rxKokkos<DeviceType>::getMixingWeightsVect(const int np_total, int &errorFlag,
                           ArrayT &epsilon1, ArrayT &alpha1, ArrayT &rm1,  ArrayT &mixWtSite1, ArrayT &epsilon2, ArrayT &alpha2, ArrayT &rm2, ArrayT &mixWtSite2, ArrayT &epsilon1_old, ArrayT &alpha1_old, ArrayT &rm1_old,  ArrayT &mixWtSite1old, ArrayT &epsilon2_old, ArrayT &alpha2_old, ArrayT &rm2_old, ArrayT &mixWtSite2old) const
 {
   ArrayT epsilon          = PairExp6ParamDataVect.epsilon         ;
@@ -2062,13 +2084,16 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeightsVect(const int np_total, int 
   // Compute the total number of molecules in the old and new CG particle as well as the total number of molecules in the fluid portion of the old and new CG particle
   for (int ispecies = 0; ispecies < nspecies; ispecies++)
   {
+    const auto atom_ind = species_ind_to_atom_prop_ind(ispecies);
+    const auto atom_ind_old = species_ind_to_atom_prop_ind_old(ispecies);
+
     #ifdef KOKKOS_ENABLE_PRAGMA_IVDEP
     #pragma ivdep
     #endif
     for (int id = idx_begin; id < idx_end; ++id)
     {
-      nTotal[id] += dvector(ispecies,id);
-      nTotalold[id] += dvector(ispecies+nspecies,id);
+      nTotal[id] += dvector(atom_ind,id);
+      nTotalold[id] += dvector(atom_ind_old,id);
     }
 
     const int iparam = d_mol2param[ispecies];
@@ -2082,8 +2107,8 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeightsVect(const int np_total, int 
       #endif
       for (int id = idx_begin; id < idx_end; ++id)
       {
-        nMoleculesOFAold[id] += dvector(ispecies+nspecies,id);
-        nMoleculesOFA[id] += dvector(ispecies,id);
+        nMoleculesOFAold[id] += dvector(atom_ind_old,id);
+        nMoleculesOFA[id] += dvector(atom_ind,id);
       }
     }
   }
@@ -2094,7 +2119,7 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeightsVect(const int np_total, int 
   #endif
   for (int id = idx_begin; id < idx_end; ++id)
   {
-    if (nTotal[id] < MY_EPSILON || nTotalold[id] < MY_EPSILON)
+    if (nTotal[id] < static_cast<KK_FLOAT>(MY_EPSILON) || nTotalold[id] < static_cast<KK_FLOAT>(MY_EPSILON))
       errorFlag1 = 1;
 
     // Compute the mole fraction of molecules within the fluid portion of the particle (One Fluid Approximation)
@@ -2103,6 +2128,9 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeightsVect(const int np_total, int 
   }
 
   for (int ispecies = 0; ispecies < nspecies; ispecies++) {
+    const auto atom_ind = species_ind_to_atom_prop_ind(ispecies);
+    const auto atom_ind_old = species_ind_to_atom_prop_ind_old(ispecies);
+
     const int iparam = d_mol2param[ispecies];
     if (iparam < 0 || d_params[iparam].potentialType != PotentialType::exp6 ) continue;
 
@@ -2114,16 +2142,16 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeightsVect(const int np_total, int 
       #endif
       for (int id = idx_begin; id < idx_end; ++id)
       {
-        rm1_old[id] = d_params[iparam].rm;
-        rm1[id] = d_params[iparam].rm;
-        epsilon1_old[id] = d_params[iparam].epsilon;
-        epsilon1[id] = d_params[iparam].epsilon;
-        alpha1_old[id] = d_params[iparam].alpha;
-        alpha1[id] = d_params[iparam].alpha;
+        rm1_old[id] = static_cast<KK_FLOAT>(d_params[iparam].rm);
+        rm1[id] = static_cast<KK_FLOAT>(d_params[iparam].rm);
+        epsilon1_old[id] = static_cast<KK_FLOAT>(d_params[iparam].epsilon);
+        epsilon1[id] = static_cast<KK_FLOAT>(d_params[iparam].epsilon);
+        alpha1_old[id] = static_cast<KK_FLOAT>(d_params[iparam].alpha);
+        alpha1[id] = static_cast<KK_FLOAT>(d_params[iparam].alpha);
 
         // Compute the mole fraction of Site1
-        nMoleculesOld1[id] = dvector(ispecies+nspecies,id);
-        nMolecules1[id] = dvector(ispecies,id);
+        nMoleculesOld1[id] = dvector(atom_ind_old,id);
+        nMolecules1[id] = dvector(atom_ind,id);
         fractionOld1[id] = nMoleculesOld1[id]/nTotalold[id];
         fraction1[id] = nMolecules1[id]/nTotal[id];
       }
@@ -2137,16 +2165,16 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeightsVect(const int np_total, int 
       #endif
       for (int id = idx_begin; id < idx_end; ++id)
       {
-        rm2_old[id] = d_params[iparam].rm;
-        rm2[id] = d_params[iparam].rm;
-        epsilon2_old[id] = d_params[iparam].epsilon;
-        epsilon2[id] = d_params[iparam].epsilon;
-        alpha2_old[id] = d_params[iparam].alpha;
-        alpha2[id] = d_params[iparam].alpha;
+        rm2_old[id] = static_cast<KK_FLOAT>(d_params[iparam].rm);
+        rm2[id] = static_cast<KK_FLOAT>(d_params[iparam].rm);
+        epsilon2_old[id] = static_cast<KK_FLOAT>(d_params[iparam].epsilon);
+        epsilon2[id] = static_cast<KK_FLOAT>(d_params[iparam].epsilon);
+        alpha2_old[id] = static_cast<KK_FLOAT>(d_params[iparam].alpha);
+        alpha2[id] = static_cast<KK_FLOAT>(d_params[iparam].alpha);
 
         // Compute the mole fraction of Site2
-        nMoleculesOld2[id] = dvector(ispecies+nspecies,id);
-        nMolecules2[id] = dvector(ispecies,id);
+        nMoleculesOld2[id] = dvector(atom_ind_old,id);
+        nMolecules2[id] = dvector(atom_ind,id);
         fractionOld2[id] = nMoleculesOld2[id]/nTotalold[id];
         fraction2[id] = nMolecules2[id]/nTotal[id];
       }
@@ -2156,34 +2184,37 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeightsVect(const int np_total, int 
     if (isOneFluidApprox(isite1) || isOneFluidApprox(isite2)) {
       if (isite1 == d_params[iparam].ispecies || isite2 == d_params[iparam].ispecies) continue;
 
-      const KK_FLOAT rmi = d_params[iparam].rm;
-      const KK_FLOAT epsiloni = d_params[iparam].epsilon;
-      const KK_FLOAT alphai = d_params[iparam].alpha;
+      const KK_FLOAT rmi = static_cast<KK_FLOAT>(d_params[iparam].rm);
+      const KK_FLOAT epsiloni = static_cast<KK_FLOAT>(d_params[iparam].epsilon);
+      const KK_FLOAT alphai = static_cast<KK_FLOAT>(d_params[iparam].alpha);
 
       #ifdef KOKKOS_ENABLE_PRAGMA_IVDEP
       #pragma ivdep
       #endif
       for (int id = idx_begin; id < idx_end; ++id)
       {
-        if (nMoleculesOFA[id]<MY_EPSILON) xMolei[id] = 0.0;
-        else xMolei[id] = dvector(ispecies,id)/nMoleculesOFA[id];
-        if (nMoleculesOFAold[id]<MY_EPSILON) xMolei_old[id] = 0.0;
-        else xMolei_old[id] = dvector(ispecies+nspecies,id)/nMoleculesOFAold[id];
+        if (nMoleculesOFA[id]<static_cast<KK_FLOAT>(MY_EPSILON)) xMolei[id] = static_cast<KK_FLOAT>(0.0);
+        else xMolei[id] = dvector(atom_ind,id)/nMoleculesOFA[id];
+        if (nMoleculesOFAold[id]<static_cast<KK_FLOAT>(MY_EPSILON)) xMolei_old[id] = static_cast<KK_FLOAT>(0.0);
+        else xMolei_old[id] = dvector(atom_ind_old,id)/nMoleculesOFAold[id];
       }
 
       for (int jspecies = 0; jspecies < nspecies; jspecies++) {
+        const auto atom_ind_inner = species_ind_to_atom_prop_ind(jspecies);
+        const auto atom_ind_old_inner = species_ind_to_atom_prop_ind_old(jspecies);
+
         const int jparam = d_mol2param[jspecies];
         if (jparam < 0 || d_params[jparam].potentialType != PotentialType::exp6 ) continue;
         if (isite1 == d_params[jparam].ispecies || isite2 == d_params[jparam].ispecies) continue;
 
-        const KK_FLOAT rmj = d_params[jparam].rm;
-        const KK_FLOAT epsilonj = d_params[jparam].epsilon;
-        const KK_FLOAT alphaj = d_params[jparam].alpha;
+        const KK_FLOAT rmj = static_cast<KK_FLOAT>(d_params[jparam].rm);
+        const KK_FLOAT epsilonj = static_cast<KK_FLOAT>(d_params[jparam].epsilon);
+        const KK_FLOAT alphaj = static_cast<KK_FLOAT>(d_params[jparam].alpha);
 
-        const KK_FLOAT rmij = (rmi+rmj)/2.0;
+        const KK_FLOAT rmij = (rmi+rmj)/static_cast<KK_FLOAT>(2.0);
         const KK_FLOAT rm3ij = rmij*rmij*rmij;
-        const KK_FLOAT epsilonij = sqrt(epsiloni*epsilonj);
-        const KK_FLOAT alphaij = sqrt(alphai*alphaj);
+        const KK_FLOAT epsilonij = Kokkos::sqrt(epsiloni*epsilonj);
+        const KK_FLOAT alphaij = Kokkos::sqrt(alphai*alphaj);
 
         #ifdef KOKKOS_ENABLE_PRAGMA_IVDEP
         #pragma ivdep
@@ -2191,17 +2222,17 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeightsVect(const int np_total, int 
         for (int id = idx_begin; id < idx_end; ++id)
         {
           KK_FLOAT xMolej, xMolej_old;
-          if (nMoleculesOFA[id]<MY_EPSILON) xMolej = 0.0;
-          else xMolej = dvector(jspecies,id)/nMoleculesOFA[id];
-          if (nMoleculesOFAold[id]<MY_EPSILON) xMolej_old = 0.0;
-          else xMolej_old = dvector(jspecies+nspecies,id)/nMoleculesOFAold[id];
+          if (nMoleculesOFA[id]<static_cast<KK_FLOAT>(MY_EPSILON)) xMolej = static_cast<KK_FLOAT>(0.0);
+          else xMolej = dvector(atom_ind_inner,id)/nMoleculesOFA[id];
+          if (nMoleculesOFAold[id]<static_cast<KK_FLOAT>(MY_EPSILON)) xMolej_old = static_cast<KK_FLOAT>(0.0);
+          else xMolej_old = dvector(atom_ind_old_inner,id)/nMoleculesOFAold[id];
 
-          if (fractionOFAold[id] > 0.0) {
+          if (fractionOFAold[id] > static_cast<KK_FLOAT>(0.0)) {
             rm3_old[id] += xMolei_old[id]*xMolej_old*rm3ij;
             epsilon_old[id] += xMolei_old[id]*xMolej_old*rm3ij*epsilonij;
             alpha_old[id] += xMolei_old[id]*xMolej_old*rm3ij*epsilonij*alphaij;
           }
-          if (fractionOFA[id] > 0.0) {
+          if (fractionOFA[id] > static_cast<KK_FLOAT>(0.0)) {
             rm3[id] += xMolei[id]*xMolej*rm3ij;
             epsilon[id] += xMolei[id]*xMolej*rm3ij*epsilonij;
             alpha[id] += xMolei[id]*xMolej*rm3ij*epsilonij*alphaij;
@@ -2218,8 +2249,8 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeightsVect(const int np_total, int 
     #endif
     for (int id = idx_begin; id < idx_end; ++id)
     {
-      rm1[id] = cbrt(rm3[id]);
-      if (rm1[id] < MY_EPSILON) {
+      rm1[id] = Kokkos::cbrt(rm3[id]);
+      if (rm1[id] < static_cast<KK_FLOAT>(MY_EPSILON)) {
         rm1[id] = 0.0;
         epsilon1[id] = 0.0;
         alpha1[id] = 0.0;
@@ -2227,11 +2258,11 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeightsVect(const int np_total, int 
         epsilon1[id] = epsilon[id] / rm3[id];
         alpha1[id] = alpha[id] / epsilon1[id] / rm3[id];
       }
-      nMolecules1[id] = 1.0-(nTotal[id]-nMoleculesOFA[id]);
+      nMolecules1[id] = static_cast<KK_FLOAT>(1.0)-(nTotal[id]-nMoleculesOFA[id]);
       fraction1[id] = fractionOFA[id];
 
-      rm1_old[id] = cbrt(rm3_old[id]);
-      if (rm1_old[id] < MY_EPSILON) {
+      rm1_old[id] = Kokkos::cbrt(rm3_old[id]);
+      if (rm1_old[id] < static_cast<KK_FLOAT>(MY_EPSILON)) {
         rm1_old[id] = 0.0;
         epsilon1_old[id] = 0.0;
         alpha1_old[id] = 0.0;
@@ -2239,7 +2270,7 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeightsVect(const int np_total, int 
         epsilon1_old[id] = epsilon_old[id] / rm3_old[id];
         alpha1_old[id] = alpha_old[id] / epsilon1_old[id] / rm3_old[id];
       }
-      nMoleculesOld1[id] = 1.0-(nTotalold[id]-nMoleculesOFAold[id]);
+      nMoleculesOld1[id] = static_cast<KK_FLOAT>(1.0)-(nTotalold[id]-nMoleculesOFAold[id]);
       fractionOld1[id] = fractionOFAold[id];
     }
 
@@ -2272,8 +2303,8 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeightsVect(const int np_total, int 
     #endif
     for (int id = idx_begin; id < idx_end; ++id)
     {
-      rm2[id] = cbrt(rm3[id]);
-      if (rm2[id] < MY_EPSILON) {
+      rm2[id] = Kokkos::cbrt(rm3[id]);
+      if (rm2[id] < static_cast<KK_FLOAT>(MY_EPSILON)) {
         rm2[id] = 0.0;
         epsilon2[id] = 0.0;
         alpha2[id] = 0.0;
@@ -2281,11 +2312,11 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeightsVect(const int np_total, int 
         epsilon2[id] = epsilon[id] / rm3[id];
         alpha2[id] = alpha[id] / epsilon2[id] / rm3[id];
       }
-      nMolecules2[id] = 1.0-(nTotal[id]-nMoleculesOFA[id]);
+      nMolecules2[id] = static_cast<KK_FLOAT>(1.0)-(nTotal[id]-nMoleculesOFA[id]);
       fraction2[id] = fractionOFA[id];
 
-      rm2_old[id] = cbrt(rm3_old[id]);
-      if (rm2_old[id] < MY_EPSILON) {
+      rm2_old[id] = Kokkos::cbrt(rm3_old[id]);
+      if (rm2_old[id] < static_cast<KK_FLOAT>(MY_EPSILON)) {
         rm2_old[id] = 0.0;
         epsilon2_old[id] = 0.0;
         alpha2_old[id] = 0.0;
@@ -2293,7 +2324,7 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeightsVect(const int np_total, int 
         epsilon2_old[id] = epsilon_old[id] / rm3_old[id];
         alpha2_old[id] = alpha_old[id] / epsilon2_old[id] / rm3_old[id];
       }
-      nMoleculesOld2[id] = 1.0-(nTotalold[id]-nMoleculesOFAold[id]);
+      nMoleculesOld2[id] = static_cast<KK_FLOAT>(1.0)-(nTotalold[id]-nMoleculesOFAold[id]);
       fractionOld2[id] = fractionOFAold[id];
     }
 
@@ -2325,29 +2356,29 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeightsVect(const int np_total, int 
   #endif
   for (int id = idx_begin; id < idx_end; ++id)
   {
-    if (fraction1[id] < 0.0 || nMolecules1[id] < 0.0) {
-      if (fraction1[id] < -MY_EPSILON || nMolecules1[id] < -MY_EPSILON) {
+    if (fraction1[id] < static_cast<KK_FLOAT>(0.0) || nMolecules1[id] < static_cast<KK_FLOAT>(0.0)) {
+      if (fraction1[id] < -static_cast<KK_FLOAT>(MY_EPSILON) || nMolecules1[id] < -static_cast<KK_FLOAT>(MY_EPSILON)) {
         errorFlag2 = 2;
       }
       nMolecules1[id] = 0.0;
       fraction1[id] = 0.0;
     }
-    if (fraction2[id] < 0.0 || nMolecules2[id] < 0.0) {
-      if (fraction2[id] < -MY_EPSILON || nMolecules2[id] < -MY_EPSILON) {
+    if (fraction2[id] < static_cast<KK_FLOAT>(0.0) || nMolecules2[id] < static_cast<KK_FLOAT>(0.0)) {
+      if (fraction2[id] < -static_cast<KK_FLOAT>(MY_EPSILON) || nMolecules2[id] < -static_cast<KK_FLOAT>(MY_EPSILON)) {
         errorFlag2 = 2;
       }
       nMolecules2[id] = 0.0;
       fraction2[id] = 0.0;
     }
-    if (fractionOld1[id] < 0.0 || nMoleculesOld1[id] < 0.0) {
-      if (fractionOld1[id] < -MY_EPSILON || nMoleculesOld1[id] < -MY_EPSILON) {
+    if (fractionOld1[id] < static_cast<KK_FLOAT>(0.0) || nMoleculesOld1[id] < static_cast<KK_FLOAT>(0.0)) {
+      if (fractionOld1[id] < -static_cast<KK_FLOAT>(MY_EPSILON) || nMoleculesOld1[id] < -static_cast<KK_FLOAT>(MY_EPSILON)) {
         errorFlag2 = 2;
       }
       nMoleculesOld1[id] = 0.0;
       fractionOld1[id] = 0.0;
     }
-    if (fractionOld2[id] < 0.0 || nMoleculesOld2[id] < 0.0) {
-      if (fractionOld2[id] < -MY_EPSILON || nMoleculesOld2[id] < -MY_EPSILON) {
+    if (fractionOld2[id] < static_cast<KK_FLOAT>(0.0) || nMoleculesOld2[id] < static_cast<KK_FLOAT>(0.0)) {
+      if (fractionOld2[id] < -static_cast<KK_FLOAT>(MY_EPSILON) || nMoleculesOld2[id] < -static_cast<KK_FLOAT>(MY_EPSILON)) {
         errorFlag2 = 2;
       }
       nMoleculesOld2[id] = 0.0;
@@ -2385,21 +2416,23 @@ KOKKOS_INLINE_FUNCTION
 void PairExp6rxKokkos<DeviceType>::exponentScaling(KK_FLOAT phi, KK_FLOAT &epsilon, KK_FLOAT &rm) const
 {
   KK_FLOAT powfuch;
+  const KK_FLOAT exponentEpsilon_kk = static_cast<KK_FLOAT>(exponentEpsilon);
+  const KK_FLOAT exponentR_kk = static_cast<KK_FLOAT>(exponentR);
 
   if (exponentEpsilon < 0.0) {
-    powfuch = pow(phi,-exponentEpsilon);
-    if (powfuch<MY_EPSILON) epsilon = 0.0;
-    else epsilon *= 1.0/powfuch;
+    powfuch = Kokkos::pow(phi,-exponentEpsilon_kk);
+    if (powfuch<static_cast<KK_FLOAT>(MY_EPSILON)) epsilon = 0.0;
+    else epsilon *= static_cast<KK_FLOAT>(1.0)/powfuch;
   } else {
-    epsilon *= pow(phi,exponentEpsilon);
+    epsilon *= Kokkos::pow(phi,exponentEpsilon_kk);
   }
 
   if (exponentR < 0.0) {
-    powfuch = pow(phi,-exponentR);
-    if (powfuch<MY_EPSILON) rm = 0.0;
-    else rm *= 1.0/powfuch;
+    powfuch = Kokkos::pow(phi,-exponentR_kk);
+    if (powfuch<static_cast<KK_FLOAT>(MY_EPSILON)) rm = 0.0;
+    else rm *= static_cast<KK_FLOAT>(1.0)/powfuch;
   } else {
-    rm *= pow(phi,exponentR);
+    rm *= Kokkos::pow(phi,exponentR_kk);
   }
 }
 
@@ -2415,9 +2448,9 @@ void PairExp6rxKokkos<DeviceType>::polynomialScaling(KK_FLOAT phi, KK_FLOAT &alp
     KK_FLOAT phi4 = phi2*phi2;
     KK_FLOAT phi5 = phi2*phi3;
 
-    alpha = (s_coeffAlpha[0]*phi5 + s_coeffAlpha[1]*phi4 + s_coeffAlpha[2]*phi3 + s_coeffAlpha[3]*phi2 + s_coeffAlpha[4]*phi + s_coeffAlpha[5]);
-    epsilon *= (s_coeffEps[0]*phi5 + s_coeffEps[1]*phi4 + s_coeffEps[2]*phi3 + s_coeffEps[3]*phi2 + s_coeffEps[4]*phi + s_coeffEps[5]);
-    rm *= (s_coeffRm[0]*phi5 + s_coeffRm[1]*phi4 + s_coeffRm[2]*phi3 + s_coeffRm[3]*phi2 + s_coeffRm[4]*phi + s_coeffRm[5]);
+    alpha = (static_cast<KK_FLOAT>(s_coeffAlpha[0])*phi5 + static_cast<KK_FLOAT>(s_coeffAlpha[1])*phi4 + static_cast<KK_FLOAT>(s_coeffAlpha[2])*phi3 + static_cast<KK_FLOAT>(s_coeffAlpha[3])*phi2 + static_cast<KK_FLOAT>(s_coeffAlpha[4])*phi + static_cast<KK_FLOAT>(s_coeffAlpha[5]));
+    epsilon *= (static_cast<KK_FLOAT>(s_coeffEps[0])*phi5 + static_cast<KK_FLOAT>(s_coeffEps[1])*phi4 + static_cast<KK_FLOAT>(s_coeffEps[2])*phi3 + static_cast<KK_FLOAT>(s_coeffEps[3])*phi2 + static_cast<KK_FLOAT>(s_coeffEps[4])*phi + static_cast<KK_FLOAT>(s_coeffEps[5]));
+    rm *= (static_cast<KK_FLOAT>(s_coeffRm[0])*phi5 + static_cast<KK_FLOAT>(s_coeffRm[1])*phi4 + static_cast<KK_FLOAT>(s_coeffRm[2])*phi3 + static_cast<KK_FLOAT>(s_coeffRm[3])*phi2 + static_cast<KK_FLOAT>(s_coeffRm[4])*phi + static_cast<KK_FLOAT>(s_coeffRm[5]));
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2429,10 +2462,10 @@ KK_FLOAT PairExp6rxKokkos<DeviceType>::func_rin(const KK_FLOAT &alpha) const
 {
   KK_FLOAT function;
 
-  const KK_FLOAT a = 3.7682065;
-  const KK_FLOAT b = -1.4308614;
+  const KK_FLOAT a = static_cast<KK_FLOAT>(3.7682065);
+  const KK_FLOAT b = -static_cast<KK_FLOAT>(1.4308614);
 
-  function = a+b*sqrt(alpha);
+  function = a+b*Kokkos::sqrt(alpha);
   function = expValue(function);
 
   return function;
@@ -2447,7 +2480,7 @@ KK_FLOAT PairExp6rxKokkos<DeviceType>::expValue(KK_FLOAT value) const
 {
   KK_FLOAT returnValue;
   if (value < DBL_MIN_EXP) returnValue = 0.0;
-  else returnValue = exp(value);
+  else returnValue = Kokkos::exp(value);
 
   return returnValue;
 }
@@ -2471,12 +2504,12 @@ void PairExp6rxKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const in
 
   if (EFLAG) {
     if (eflag_atom) {
-      const KK_FLOAT epairhalf = 0.5 * epair;
+      const KK_FLOAT epairhalf = static_cast<KK_FLOAT>(0.5) * epair;
       if (NEIGHFLAG!=FULL) {
-        if (NEWTON_PAIR || i < nlocal) v_eatom[i] += epairhalf;
-        if (NEWTON_PAIR || j < nlocal) v_eatom[j] += epairhalf;
+        if (NEWTON_PAIR || i < nlocal) v_eatom[i] += static_cast<KK_ACC_FLOAT>(epairhalf);
+        if (NEWTON_PAIR || j < nlocal) v_eatom[j] += static_cast<KK_ACC_FLOAT>(epairhalf);
       } else {
-        v_eatom[i] += epairhalf;
+        v_eatom[i] += static_cast<KK_ACC_FLOAT>(epairhalf);
       }
     }
   }
@@ -2492,56 +2525,56 @@ void PairExp6rxKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const in
     if (vflag_global) {
       if (NEIGHFLAG!=FULL) {
         if (NEWTON_PAIR || i < nlocal) {
-          ev.v[0] += 0.5*v0;
-          ev.v[1] += 0.5*v1;
-          ev.v[2] += 0.5*v2;
-          ev.v[3] += 0.5*v3;
-          ev.v[4] += 0.5*v4;
-          ev.v[5] += 0.5*v5;
+          ev.v[0] += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v0);
+          ev.v[1] += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v1);
+          ev.v[2] += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v2);
+          ev.v[3] += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v3);
+          ev.v[4] += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v4);
+          ev.v[5] += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v5);
         }
         if (NEWTON_PAIR || j < nlocal) {
-        ev.v[0] += 0.5*v0;
-        ev.v[1] += 0.5*v1;
-        ev.v[2] += 0.5*v2;
-        ev.v[3] += 0.5*v3;
-        ev.v[4] += 0.5*v4;
-        ev.v[5] += 0.5*v5;
+        ev.v[0] += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v0);
+        ev.v[1] += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v1);
+        ev.v[2] += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v2);
+        ev.v[3] += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v3);
+        ev.v[4] += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v4);
+        ev.v[5] += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v5);
         }
       } else {
-        ev.v[0] += 0.5*v0;
-        ev.v[1] += 0.5*v1;
-        ev.v[2] += 0.5*v2;
-        ev.v[3] += 0.5*v3;
-        ev.v[4] += 0.5*v4;
-        ev.v[5] += 0.5*v5;
+        ev.v[0] += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v0);
+        ev.v[1] += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v1);
+        ev.v[2] += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v2);
+        ev.v[3] += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v3);
+        ev.v[4] += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v4);
+        ev.v[5] += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v5);
       }
     }
 
     if (vflag_atom) {
       if (NEIGHFLAG!=FULL) {
         if (NEWTON_PAIR || i < nlocal) {
-          v_vatom(i,0) += 0.5*v0;
-          v_vatom(i,1) += 0.5*v1;
-          v_vatom(i,2) += 0.5*v2;
-          v_vatom(i,3) += 0.5*v3;
-          v_vatom(i,4) += 0.5*v4;
-          v_vatom(i,5) += 0.5*v5;
+          v_vatom(i,0) += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v0);
+          v_vatom(i,1) += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v1);
+          v_vatom(i,2) += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v2);
+          v_vatom(i,3) += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v3);
+          v_vatom(i,4) += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v4);
+          v_vatom(i,5) += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v5);
         }
         if (NEWTON_PAIR || j < nlocal) {
-        v_vatom(j,0) += 0.5*v0;
-        v_vatom(j,1) += 0.5*v1;
-        v_vatom(j,2) += 0.5*v2;
-        v_vatom(j,3) += 0.5*v3;
-        v_vatom(j,4) += 0.5*v4;
-        v_vatom(j,5) += 0.5*v5;
+        v_vatom(j,0) += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v0);
+        v_vatom(j,1) += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v1);
+        v_vatom(j,2) += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v2);
+        v_vatom(j,3) += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v3);
+        v_vatom(j,4) += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v4);
+        v_vatom(j,5) += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v5);
         }
       } else {
-        v_vatom(i,0) += 0.5*v0;
-        v_vatom(i,1) += 0.5*v1;
-        v_vatom(i,2) += 0.5*v2;
-        v_vatom(i,3) += 0.5*v3;
-        v_vatom(i,4) += 0.5*v4;
-        v_vatom(i,5) += 0.5*v5;
+        v_vatom(i,0) += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v0);
+        v_vatom(i,1) += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v1);
+        v_vatom(i,2) += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v2);
+        v_vatom(i,3) += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v3);
+        v_vatom(i,4) += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v4);
+        v_vatom(i,5) += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v5);
       }
     }
   }

@@ -168,22 +168,21 @@ void PairSNAPKokkos<DeviceType, real_type, accum_type, vector_length>::compute(i
   Kokkos::fence();
   batched_max_neighs = (max_neighs + ui_batch - 1) / ui_batch;
 
-  if (beta_max < inum) {
-    beta_max = inum;
-    // padded allocation, similar to within grow_rij
-    const int inum_div = (inum + (vector_length * padding_factor) - 1) / (vector_length * padding_factor);
-    const int inum_pad = inum_div * (vector_length * padding_factor);
-    MemKK::realloc_kokkos(d_beta,"PairSNAPKokkos:beta", inum_pad, ncoeff);
-    snaKK.d_beta = d_beta;
-    MemKK::realloc_kokkos(d_ninside,"PairSNAPKokkos:ninside", inum_pad);
-  }
-
   chunk_size = MIN(chunksize, inum); // "chunksize" variable is set by user
   // pad chunksize to be a multiple of vector_length * padding_factor
   chunk_size = (chunk_size + (vector_length * padding_factor) - 1) / (vector_length * padding_factor);
   chunk_size *= vector_length * padding_factor;
 
   chunk_offset = 0;
+
+  // beta and ninside are indexed with a chunk-relative atom index like the
+  // arrays grow_rij() allocates, so they are sized by the padded chunk size too
+  if (beta_max < chunk_size) {
+    beta_max = chunk_size;
+    MemKK::realloc_kokkos(d_beta,"PairSNAPKokkos:beta", chunk_size, ncoeff);
+    snaKK.d_beta = d_beta;
+    MemKK::realloc_kokkos(d_ninside,"PairSNAPKokkos:ninside", chunk_size);
+  }
 
   snaKK.grow_rij(chunk_size, max_neighs, padding_factor);
 

@@ -93,9 +93,12 @@ void FixEfieldKokkos<DeviceType>::post_force(int vflag)
 
   // virial setup
 
-  v_init(vflag);
+  // the per-atom virial is accumulated into a dual view, so the plain
+  // base-class vatom array must not be allocated here (alloc = 0)
 
-  // reallocate per-atom arrays if necessary
+  v_init(vflag,0);
+
+  // reallocate the per-atom virial dual view if necessary
 
   if (vflag_atom) {
     memoryKK->destroy_kokkos(k_vatom,vatom);
@@ -106,19 +109,21 @@ void FixEfieldKokkos<DeviceType>::post_force(int vflag)
   // update region if necessary
 
   if (region) {
-    if (!(utils::strmatch(region->style, "^block") || utils::strmatch(region->style, "^sphere")))
-      error->all(FLERR,"Cannot (yet) use {}-style region with fix efield/kk",region->style);
+    KokkosBase* regionKKBase = dynamic_cast<KokkosBase*>(region);
+    if (!regionKKBase)
+      error->all(FLERR,"Cannot use fix efield/kk with region style {} that has no KOKKOS support",region->style);
     region->prematch();
     DAT::tdual_int_1d k_match = DAT::tdual_int_1d("efield:k_match",nlocal);
-    KokkosBase* regionKKBase = dynamic_cast<KokkosBase*>(region);
     regionKKBase->match_all_kokkos(groupbit,k_match);
     k_match.template sync<DeviceType>();
     d_match = k_match.template view<DeviceType>();
   }
 
-  // reallocate sforce array if necessary
+  // reallocate efield array if necessary
+  // an atom-style energy or potential variable writes into efield[i][3],
+  // so the array is needed for those as well, not only for varflag == ATOM
 
-  if (varflag == ATOM && atom->nmax > maxatom) {
+  if (((varflag == ATOM) || (estyle == ATOM) || (pstyle == ATOM)) && atom->nmax > maxatom) {
     maxatom = atom->nmax;
     memoryKK->destroy_kokkos(k_efield,efield);
     memoryKK->create_kokkos(k_efield,efield,maxatom,4,"efield:efield");
@@ -150,11 +155,15 @@ void FixEfieldKokkos<DeviceType>::post_force(int vflag)
 
   } else {
 
-    atomKK->sync(Host,ALL_MASK); // this can be removed when variable class is ported to Kokkos
-
     FixEfield::update_efield_variables();
 
-    if (varflag == ATOM) {  // this can be removed when variable class is ported to Kokkos
+    // atom-style variables are evaluated on the host, so the result has to be
+    // copied to the device for the kernel below.  this is a real copy, not a
+    // stale flag: it can only go away if variables are evaluated on the device.
+    // an atom-style energy or potential variable writes into efield[i][3], so
+    // it needs the copy as well
+
+    if ((varflag == ATOM) || (estyle == ATOM) || (pstyle == ATOM)) {
       k_efield.modify_host();
       k_efield.sync<DeviceType>();
     }
@@ -205,29 +214,29 @@ void FixEfieldKokkos<DeviceType>::operator()(TagFixEfieldConstant<QFLAG,MUFLAG>,
     if (region && !d_match[i]) return;
 
     Few<double,3> x_i;
-    x_i[0] = d_x(i,0);
-    x_i[1] = d_x(i,1);
-    x_i[2] = d_x(i,2);
+    x_i[0] = static_cast<double>(d_x(i,0));
+    x_i[1] = static_cast<double>(d_x(i,1));
+    x_i[2] = static_cast<double>(d_x(i,2));
     auto unwrapKK = DomainKokkos::unmap(prd,h,triclinic,x_i,d_image(i));
-    const KK_FLOAT fx = d_q(i) * ex;
-    const KK_FLOAT fy = d_q(i) * ey;
-    const KK_FLOAT fz = d_q(i) * ez;
-    d_f(i,0) += fx;
-    d_f(i,1) += fy;
-    d_f(i,2) += fz;
-    result[0] -= fx * unwrapKK[0] + fy * unwrapKK[1] + fz * unwrapKK[2];
-    result[1] += fx;
-    result[2] += fy;
-    result[3] += fz;
+    const KK_FLOAT fx = d_q(i) * static_cast<KK_FLOAT>(ex);
+    const KK_FLOAT fy = d_q(i) * static_cast<KK_FLOAT>(ey);
+    const KK_FLOAT fz = d_q(i) * static_cast<KK_FLOAT>(ez);
+    d_f(i,0) += static_cast<KK_ACC_FLOAT>(fx);
+    d_f(i,1) += static_cast<KK_ACC_FLOAT>(fy);
+    d_f(i,2) += static_cast<KK_ACC_FLOAT>(fz);
+    result[0] -= static_cast<double>(fx) * unwrapKK[0] + static_cast<double>(fy) * unwrapKK[1] + static_cast<double>(fz) * unwrapKK[2];
+    result[1] += static_cast<double>(fx);
+    result[2] += static_cast<double>(fy);
+    result[3] += static_cast<double>(fz);
 
     if (evflag) {
       KK_FLOAT v[6];
-      v[0] = fx * unwrapKK[0];
-      v[1] = fy * unwrapKK[1];
-      v[2] = fz * unwrapKK[2];
-      v[3] = fx * unwrapKK[1];
-      v[4] = fx * unwrapKK[2];
-      v[5] = fy * unwrapKK[2];
+      v[0] = fx * static_cast<KK_FLOAT>(unwrapKK[0]);
+      v[1] = fy * static_cast<KK_FLOAT>(unwrapKK[1]);
+      v[2] = fz * static_cast<KK_FLOAT>(unwrapKK[2]);
+      v[3] = fx * static_cast<KK_FLOAT>(unwrapKK[1]);
+      v[4] = fx * static_cast<KK_FLOAT>(unwrapKK[2]);
+      v[5] = fy * static_cast<KK_FLOAT>(unwrapKK[2]);
       v_tally(result, i, v);
     }
 
@@ -235,10 +244,10 @@ void FixEfieldKokkos<DeviceType>::operator()(TagFixEfieldConstant<QFLAG,MUFLAG>,
 
   if (MUFLAG && (d_mask(i) & groupbit)) {
     if (region && !d_match[i]) return;
-    d_torque(i,0) += ez * d_mu(i,1) - ey * d_mu(i,2);
-    d_torque(i,1) += ex * d_mu(i,2) - ez * d_mu(i,0);
-    d_torque(i,2) += ey * d_mu(i,0) - ex * d_mu(i,1);
-    result[0] -= d_mu(i,0) * ex + d_mu(i,1) * ey + d_mu(i,2) * ez;
+    d_torque(i,0) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(ez) * d_mu(i,1) - static_cast<KK_FLOAT>(ey) * d_mu(i,2));
+    d_torque(i,1) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(ex) * d_mu(i,2) - static_cast<KK_FLOAT>(ez) * d_mu(i,0));
+    d_torque(i,2) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(ey) * d_mu(i,0) - static_cast<KK_FLOAT>(ex) * d_mu(i,1));
+    result[0] -= static_cast<double>(d_mu(i,0)) * ex + static_cast<double>(d_mu(i,1)) * ey + static_cast<double>(d_mu(i,2)) * ez;
   }
 }
 
@@ -252,29 +261,29 @@ void FixEfieldKokkos<DeviceType>::operator()(TagFixEfieldNonConstant<QFLAG,MUFLA
 
     KK_FLOAT fx, fy, fz;
 
-    if (xstyle == ATOM) fx = qe2f * d_q(i) * d_efield(i,0);
-    else fx = d_q(i) * ex;
-    if (ystyle == ATOM) fy = qe2f * d_q(i) * d_efield(i,1);
-    else fy = d_q(i) * ey;
-    if (zstyle == ATOM) fz = qe2f * d_q(i) * d_efield(i,2);
-    else fz = d_q(i) * ez;
+    if (xstyle == ATOM) fx = static_cast<KK_FLOAT>(qe2f) * d_q(i) * d_efield(i,0);
+    else fx = d_q(i) * static_cast<KK_FLOAT>(ex);
+    if (ystyle == ATOM) fy = static_cast<KK_FLOAT>(qe2f) * d_q(i) * d_efield(i,1);
+    else fy = d_q(i) * static_cast<KK_FLOAT>(ey);
+    if (zstyle == ATOM) fz = static_cast<KK_FLOAT>(qe2f) * d_q(i) * d_efield(i,2);
+    else fz = d_q(i) * static_cast<KK_FLOAT>(ez);
 
-    d_f(i,0) += fx;
-    d_f(i,1) += fy;
-    d_f(i,2) += fz;
-    result[1] += fx;
-    result[2] += fy;
-    result[3] += fz;
+    d_f(i,0) += static_cast<KK_ACC_FLOAT>(fx);
+    d_f(i,1) += static_cast<KK_ACC_FLOAT>(fy);
+    d_f(i,2) += static_cast<KK_ACC_FLOAT>(fz);
+    result[1] += static_cast<double>(fx);
+    result[2] += static_cast<double>(fy);
+    result[3] += static_cast<double>(fz);
 
-    if (pstyle == ATOM) result[0] += qe2f * d_q(i) * d_efield(i,3);
-    else if (estyle == ATOM) result[0] += d_efield(i,3);
+    if (pstyle == ATOM) result[0] += qe2f * static_cast<double>(d_q(i)) * static_cast<double>(d_efield(i,3));
+    else if (estyle == ATOM) result[0] += static_cast<double>(d_efield(i,3));
   }
 
   if (MUFLAG && (d_mask(i) & groupbit)) {
     if (region && !d_match[i]) return;
-    d_torque(i,0) += ez * d_mu(i,1) - ey * d_mu(i,2);
-    d_torque(i,1) += ex * d_mu(i,2) - ez * d_mu(i,0);
-    d_torque(i,2) += ey * d_mu(i,0) - ex * d_mu(i,1);
+    d_torque(i,0) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(ez) * d_mu(i,1) - static_cast<KK_FLOAT>(ey) * d_mu(i,2));
+    d_torque(i,1) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(ex) * d_mu(i,2) - static_cast<KK_FLOAT>(ez) * d_mu(i,0));
+    d_torque(i,2) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(ey) * d_mu(i,0) - static_cast<KK_FLOAT>(ex) * d_mu(i,1));
 
   }
 }
@@ -296,21 +305,21 @@ KOKKOS_INLINE_FUNCTION
 void FixEfieldKokkos<DeviceType>::v_tally(value_type result, int i, KK_FLOAT *v) const
 {
   if (vflag_global) {
-    result[4] += v[0];
-    result[5] += v[1];
-    result[6] += v[2];
-    result[7] += v[3];
-    result[8] += v[4];
-    result[9] += v[5];
+    result[4] += static_cast<double>(v[0]);
+    result[5] += static_cast<double>(v[1]);
+    result[6] += static_cast<double>(v[2]);
+    result[7] += static_cast<double>(v[3]);
+    result[8] += static_cast<double>(v[4]);
+    result[9] += static_cast<double>(v[5]);
   }
 
   if (vflag_atom) {
-    Kokkos::atomic_add(&(d_vatom(i,0)),v[0]);
-    Kokkos::atomic_add(&(d_vatom(i,1)),v[1]);
-    Kokkos::atomic_add(&(d_vatom(i,2)),v[2]);
-    Kokkos::atomic_add(&(d_vatom(i,3)),v[3]);
-    Kokkos::atomic_add(&(d_vatom(i,4)),v[4]);
-    Kokkos::atomic_add(&(d_vatom(i,5)),v[5]);
+    Kokkos::atomic_add(&(d_vatom(i,0)),static_cast<KK_ACC_FLOAT>(v[0]));
+    Kokkos::atomic_add(&(d_vatom(i,1)),static_cast<KK_ACC_FLOAT>(v[1]));
+    Kokkos::atomic_add(&(d_vatom(i,2)),static_cast<KK_ACC_FLOAT>(v[2]));
+    Kokkos::atomic_add(&(d_vatom(i,3)),static_cast<KK_ACC_FLOAT>(v[3]));
+    Kokkos::atomic_add(&(d_vatom(i,4)),static_cast<KK_ACC_FLOAT>(v[4]));
+    Kokkos::atomic_add(&(d_vatom(i,5)),static_cast<KK_ACC_FLOAT>(v[5]));
   }
 }
 

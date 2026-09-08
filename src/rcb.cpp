@@ -34,7 +34,7 @@ static void median_merge(void *, void *, int *, MPI_Datatype *);
 
 /* ---------------------------------------------------------------------- */
 
-RCB::RCB(LAMMPS *lmp) : Pointers(lmp)
+RCB::RCB(LAMMPS *lmp) : Pointers(lmp), lo(nullptr), hi(nullptr)
 {
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);

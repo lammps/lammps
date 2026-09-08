@@ -953,7 +953,7 @@ void FixCMAP::read_data_section(char * /*keyword*/, int /*n*/, char *buf,
   tagint atom1,atom2,atom3,atom4,atom5;
 
   auto lines = utils::split_lines(buf);
-  if (lines.size() == 0) return;
+  if (lines.empty()) return;
 
   // loop over lines of CMAP crossterms
   // tokenize the line into values

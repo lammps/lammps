@@ -16,7 +16,7 @@ namespace {
 
 template <class MemorySpace>
 void test_view_bad_alloc() {
-  auto too_large    = std::numeric_limits<size_t>::max() - 42;
+  auto too_large    = std::numeric_limits<size_t>::max() / sizeof(double) - 42;
   std::string label = "my_label";
   try {
     auto should_always_fail =
@@ -32,6 +32,29 @@ void test_view_bad_alloc() {
     ASSERT_PRED_FORMAT2(::testing::IsSubstring,
                         std::string("(label=\"") + label + "\")", msg)
         << "label is missing";
+  }
+}
+
+template <class MemorySpace>
+void test_view_bad_alloc_typed_catch() {
+  auto too_large    = std::numeric_limits<size_t>::max() / sizeof(double) - 42;
+  std::string label = "my_label";
+  try {
+    auto should_always_fail =
+        Kokkos::View<double *, MemorySpace>(label, too_large);
+    FAIL() << "It should have thrown.";
+  } catch (Kokkos::Experimental::BadAlloc const &error) {
+    ASSERT_EQ(error.memory_space_name(), MemorySpace::name());
+    ASSERT_GE(error.allocation_size(), too_large * sizeof(double));
+    ASSERT_EQ(error.label(), label);
+    // what() preserves the formatted message for backward compat
+    ASSERT_PRED_FORMAT2(
+        ::testing::IsSubstring,
+        std::string(MemorySpace::name()) + " memory space failed to allocate",
+        std::string(error.what()));
+    ASSERT_PRED_FORMAT2(::testing::IsSubstring,
+                        std::string("(label=\"") + label + "\")",
+                        std::string(error.what()));
   }
 }
 
@@ -62,7 +85,10 @@ TEST(TEST_CATEGORY, view_bad_alloc) {
   listen_tool_events(Config::DisableAll(), Config::EnableAllocs());
 
   ASSERT_TRUE(validate_absence(
-      [] { test_view_bad_alloc<MemorySpace>(); },
+      [] {
+        test_view_bad_alloc<MemorySpace>();
+        test_view_bad_alloc_typed_catch<MemorySpace>();
+      },
       [](AllocateDataEvent) { return MatchDiagnostic{true}; }));
 
   listen_tool_events(Config::DisableAll());
@@ -75,9 +101,11 @@ TEST(TEST_CATEGORY, view_bad_alloc) {
   if constexpr (execution_space_is_device) {
 #ifdef KOKKOS_HAS_SHARED_SPACE
     test_view_bad_alloc<Kokkos::SharedSpace>();
+    test_view_bad_alloc_typed_catch<Kokkos::SharedSpace>();
 #endif
 #ifdef KOKKOS_HAS_SHARED_HOST_PINNED_SPACE
     test_view_bad_alloc<Kokkos::SharedHostPinnedSpace>();
+    test_view_bad_alloc_typed_catch<Kokkos::SharedHostPinnedSpace>();
 #endif
   }
 }

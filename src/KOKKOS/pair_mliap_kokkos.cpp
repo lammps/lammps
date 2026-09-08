@@ -355,7 +355,7 @@ int PairMLIAPKokkos<DeviceType>::forward_comm(CommType* copy_from_, CommType* co
   copy_from = copy_from_;
   comm_forward = vec_len=vl;
 
-  Kokkos::parallel_for((atom->nlocal+atom->nghost)*vl, KOKKOS_LAMBDA (int i) {
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0,(atom->nlocal+atom->nghost)*vl), KOKKOS_LAMBDA (int i) {
     copy_to_[i] = copy_from_[i];
   });
   //call comm
@@ -381,14 +381,14 @@ int PairMLIAPKokkos<DeviceType>::reverse_comm(CommType* copy_from_, CommType* co
   copy_from = copy_from_;
   comm_reverse = vec_len = vl;
 
-  Kokkos::parallel_for((atom->nlocal+atom->nghost)*vl, KOKKOS_LAMBDA (int i) {
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0,(atom->nlocal+atom->nghost)*vl), KOKKOS_LAMBDA (int i) {
     copy_to_[i] = copy_from_[i]; // Copy inputs
   });
 
   comm->reverse_comm(this);
 
   Kokkos::parallel_for(
-    Kokkos::RangePolicy<>( (atom->nlocal)*vl,(atom->nlocal + atom->nghost)*vl),
+    Kokkos::RangePolicy<DeviceType>( (atom->nlocal)*vl,(atom->nlocal + atom->nghost)*vl),
     KOKKOS_LAMBDA (int i) {
     copy_to_[i] = 0; //Zero out ghosts
   });
@@ -425,7 +425,7 @@ int PairMLIAPKokkos<DeviceType>::pack_forward_comm_kokkos(
   auto val=fill.view<DeviceType>();
   int nf=vec_len;
   auto to=copy_to;
-  Kokkos::parallel_for(nv*nf, KOKKOS_LAMBDA (int start) {
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0,nv*nf), KOKKOS_LAMBDA (int start) {
       const int i = start/nf;
       const int gstart=idx(i)*nf;
       const int j = start%nf;
@@ -496,7 +496,7 @@ void PairMLIAPKokkos<DeviceType>::unpack_forward_comm_kokkos(
   auto val=fill.view<DeviceType>();
   int nf=vec_len;
   auto to=copy_to;
-  Kokkos::parallel_for(nv*nf, KOKKOS_LAMBDA (int start) {
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0,nv*nf), KOKKOS_LAMBDA (int start) {
       const int i=start/nf;
       const int gstart=(first_up+i)*nf;
       const int j=start%nf;
@@ -559,7 +559,7 @@ int PairMLIAPKokkos<DeviceType>::pack_reverse_comm_kokkos(int nv, int first_up, 
   int nf=vec_len;
   auto val=fill.view<DeviceType>();
   auto to=copy_to;
-  Kokkos::parallel_for(nv*nf, KOKKOS_LAMBDA (int start) {
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0,nv*nf), KOKKOS_LAMBDA (int start) {
       const int i = start/nf;
       const int gstart=(first_up+i)*nf;
       const int j = start%nf;
@@ -627,7 +627,7 @@ void PairMLIAPKokkos<DeviceType>::unpack_reverse_comm_kokkos(int nv, DAT::tdual_
   auto val=fill.view<DeviceType>();
   auto idx=idx_v.view<DeviceType>();
   auto to=copy_to;
-  Kokkos::parallel_for(nv*nf, KOKKOS_LAMBDA (int start) {
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0,nv*nf), KOKKOS_LAMBDA (int start) {
       const int i = start/nf;
       const int gstart=idx(i)*nf;
       const int j=start%nf;

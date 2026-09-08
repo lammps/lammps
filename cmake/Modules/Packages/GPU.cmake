@@ -1,4 +1,10 @@
 
+# set policy to use the time of extraction as timestamps of files unpacked from downloaded
+# archives, so that updating an archive version triggers rebuilding all dependent objects
+ if(POLICY CMP0135)
+  cmake_policy(SET CMP0135 NEW)
+endif()
+
 # Silence CMake warnings about FindCUDA being obsolete.
 # We may need to eventually rewrite this section to use enable_language(CUDA)
 if(POLICY CMP0146)
@@ -75,14 +81,6 @@ if(GPU_API STREQUAL "CUDA")
   mark_as_advanced(GPU_BUILD_MULTIARCH)
 
   # GPU_ARCH is the canonical architecture setting for all GPU_API backends.
-  # CUDA_ARCH is still accepted for backward compatibility but is deprecated.
-  if(DEFINED CUDA_ARCH)
-    message(DEPRECATION "The CUDA_ARCH variable is deprecated. Please use GPU_ARCH instead.")
-    if(NOT DEFINED GPU_ARCH)
-      set(GPU_ARCH "${CUDA_ARCH}" CACHE STRING "LAMMPS GPU architecture" FORCE)
-    endif()
-    unset(CUDA_ARCH CACHE)
-  endif()
   set(GPU_ARCH "sm_75" CACHE STRING "LAMMPS GPU architecture (e.g. sm_80 for CUDA)")
 
   # ensure that no *cubin.h files exist from a compile in the lib/gpu folder
@@ -442,8 +440,8 @@ elseif(GPU_API STREQUAL "HIP")
 
   if(HIP_USE_DEVICE_SORT)
     if(HIP_PLATFORM STREQUAL "amd")
-      # newer version of ROCm (5.1+) require c++14 for rocprim
-      set_property(TARGET gpu PROPERTY CXX_STANDARD 14)
+      # ROCm 5.1+ requires c++14 for rocprim; ROCm 6+/7+ rocprim requires c++17
+      set_property(TARGET gpu PROPERTY CXX_STANDARD 17)
     endif()
     # add hipCUB
     find_package(hipcub REQUIRED)
@@ -464,10 +462,9 @@ elseif(GPU_API STREQUAL "HIP")
       if(DOWNLOAD_CUB)
         message(STATUS "CUB download requested")
         # TODO: test update to current version 1.17.2
-        set(CUB_URL "https://github.com/nvidia/cub/archive/1.12.0.tar.gz" CACHE STRING "URL for CUB tarball")
-        set(CUB_SHA256 "3b03d0cbc9549606fbeda69a920562eb563836346b39014c79dfd024165ee549" CACHE STRING "SHA256 checksum of CUB tarball")
-        mark_as_advanced(CUB_URL)
-        mark_as_advanced(CUB_SHA256)
+        SetDownloadSettings(CUB "CUB"
+          "https://github.com/nvidia/cub/archive/1.12.0.tar.gz"
+          "3b03d0cbc9549606fbeda69a920562eb563836346b39014c79dfd024165ee549")
         GetFallbackURL(CUB_URL CUB_FALLBACK)
 
         include(ExternalProject)
@@ -529,5 +526,6 @@ endif()
 
 set_target_properties(gpu PROPERTIES OUTPUT_NAME lammps_gpu${LAMMPS_MACHINE})
 target_compile_definitions(gpu PRIVATE -DLAMMPS_${LAMMPS_SIZES})
+target_include_directories(gpu PRIVATE ${GPU_SOURCES_DIR} ${LAMMPS_LIB_SOURCE_DIR}/gpu/include)
 target_sources(lammps PRIVATE ${GPU_SOURCES})
-target_include_directories(lammps PRIVATE ${GPU_SOURCES_DIR})
+target_include_directories(lammps PRIVATE ${GPU_SOURCES_DIR} ${LAMMPS_LIB_SOURCE_DIR}/gpu/include)

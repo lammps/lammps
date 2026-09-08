@@ -104,9 +104,9 @@ void BondFENEExpandKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   // loop over the bond list
 
-  int bond_blocksize = 0;
-  if (lmp->kokkos->bond_block_size_set)
-    bond_blocksize = lmp->kokkos->bond_block_size;
+  int bond_chunksize = 0;
+  if (lmp->kokkos->bond_chunk_size_set)
+    bond_chunksize = lmp->kokkos->bond_chunk_size;
 
   EV_FLOAT ev;
 
@@ -118,13 +118,13 @@ void BondFENEExpandKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     }
   } else {
     if (newton_bond) {
-      if (bond_blocksize)
-        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagBondFENEExpandCompute<1,0> >(0,nbondlist,Kokkos::ChunkSize(bond_blocksize)),*this);
+      if (bond_chunksize)
+        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagBondFENEExpandCompute<1,0> >(0,nbondlist,Kokkos::ChunkSize(bond_chunksize)),*this);
       else
         Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagBondFENEExpandCompute<1,0> >(0,nbondlist),*this);
     } else {
-      if (bond_blocksize)
-        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagBondFENEExpandCompute<0,0> >(0,nbondlist,Kokkos::ChunkSize(bond_blocksize)),*this);
+      if (bond_chunksize)
+        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagBondFENEExpandCompute<0,0> >(0,nbondlist,Kokkos::ChunkSize(bond_chunksize)),*this);
       else
         Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagBondFENEExpandCompute<0,0> >(0,nbondlist),*this);
     }
@@ -178,7 +178,7 @@ void BondFENEExpandKokkos<DeviceType>::operator()(TagBondFENEExpandCompute<NEWTO
   const KK_FLOAT delz = x(i1,2) - x(i2,2);
 
   const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
-  const KK_FLOAT r = sqrt(rsq);
+  const KK_FLOAT r = Kokkos::sqrt(rsq);
   const KK_FLOAT rshift = r - d_shift[type];
   const KK_FLOAT rshiftsq = rshift * rshift;
   const KK_FLOAT r0sq = d_r0[type] * d_r0[type];
@@ -213,7 +213,7 @@ void BondFENEExpandKokkos<DeviceType>::operator()(TagBondFENEExpandCompute<NEWTO
 
   KK_FLOAT ebond = 0;
   if (eflag) {
-    ebond = -static_cast<KK_FLOAT>(0.5) * d_k[type] * r0sq * log(rlogarg);
+    ebond = -static_cast<KK_FLOAT>(0.5) * d_k[type] * r0sq * Kokkos::log(rlogarg);
     if (rshiftsq < static_cast<KK_FLOAT>(MY_CUBEROOT2) * sigma2)
       ebond += static_cast<KK_FLOAT>(4.0) * d_epsilon[type] * sr6 *
           (sr6 - static_cast<KK_FLOAT>(1.0)) + d_epsilon[type];

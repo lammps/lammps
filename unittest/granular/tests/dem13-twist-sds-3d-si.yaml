@@ -1,0 +1,65 @@
+---
+lammps_version: 4 Jul 2026
+tags: granular unvetted
+date_generated: Tue Jul 28 19:29:30 2026
+epsilon: 1e-10
+skip_tests:
+prerequisites: |
+  atom sphere
+  pair granular
+pre_commands: |
+  units si
+  dimension 3
+  boundary p p f
+  atom_style sphere
+  region box block -0.05 0.05 -0.05 0.05 -0.01 0.05 units box
+  create_box 1 box
+  create_atoms 1 single 0.0 0.0 ${z0} units box
+  set group all diameter ${diam} density ${dens}
+  set group all omega 0.0 0.0 ${omega0}
+  comm_modify vel yes
+  neighbor 0.001 bin
+  neigh_modify delay 0
+  timestep ${dt}
+post_commands: |
+  fix grav all gravity ${grav} vector 0.0 0.0 -1.0
+  fix integr all nve/sphere
+  fix zwall all wall/gran granular hooke ${knorm} 1.0 damping coeff_restitution tangential linear_history ${kt} 0.0 ${xmu} twisting sds ${ktw} ${gtw} ${mut} zplane 0.0 NULL
+input_file:
+natoms: 1
+variables: |
+  diam 0.005
+  dens 2700.0
+  knorm 1.0e6
+  kt 2.8e5
+  xmu 0.5
+  ktw 1.0
+  gtw 1.0e-6
+  mut 1.0e-4
+  grav 1.0
+  omega0 10.0
+  radius 0.0025
+  dt 1.0e-6
+  z0 0.0024999998
+pair_style: granular
+pair_coeff: |
+  * * hooke ${knorm} 1.0 damping coeff_restitution tangential linear_history ${kt} 0.0 ${xmu} twisting sds ${ktw} ${gtw} ${mut}
+run_segments: |-
+  30000 20000
+analytic_enable: yes
+analytic_model: twist_decay
+analytic_tol: 0.01
+analytic_segment: 0
+run_pos: |2
+    0   1  0.0000000000000000e+00  0.0000000000000000e+00  2.4999998245994574e-03
+    1   1  0.0000000000000000e+00  0.0000000000000000e+00  2.4999998210973981e-03
+run_vel: |2
+    0   1  0.0000000000000000e+00  0.0000000000000000e+00  1.7476228420232414e-06
+    1   1  0.0000000000000000e+00  0.0000000000000000e+00 -1.7426684815672061e-06
+run_torque: |2
+    0   1  0.0000000000000000e+00  0.0000000000000000e+00 -1.7540054261452886e-08
+    1   1  0.0000000000000000e+00  0.0000000000000000e+00 -1.7890260193414997e-08
+run_omega: |2
+    0   1  0.0000000000000000e+00  0.0000000000000000e+00  8.7999300950861805e+00
+    1   1  0.0000000000000000e+00  0.0000000000000000e+00  8.0000697292061798e+00
+...

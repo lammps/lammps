@@ -51,7 +51,7 @@ class Variable : protected Pointers {
   char *retrieve(const char *);
   double compute_equal(int);
   double compute_equal(const std::string &);
-  void compute_atom(int, int, double *, int, int);
+  virtual void compute_atom(int, int, double *, int, int);
   int compute_vector(int, double **);
   void internal_set(int, double);
   int internal_create(char *, double);
@@ -92,15 +92,6 @@ class Variable : protected Pointers {
   };
   std::vector<VarInfo> variables;
 
- private:
-  int treetype;    // ATOM or VECTOR flag for formula evaluation
-
-  class RanMars *randomequal;    // random number generator for equal-style vars
-  class RanMars *randomatom;     // random number generator for atom-style vars
-
-  int precedence[18];    // precedence level of math operators
-                         // set length to include up to XOR in enum
-
   struct Tree {              // parse tree for atom-style or vector-style vars
     double value;            // single scalar
     double *array;           // per-atom or per-type list of doubles
@@ -127,6 +118,36 @@ class Variable : protected Pointers {
     }
   };
 
+  // seams for accelerator packages that keep a second copy of the per-atom
+  // data.  each of these reads per-atom arrays on the host, so VariableKokkos
+  // overrides them to make the data it needs current and then delegates here.
+
+  virtual void atom_vector(char *, Tree **, Tree **, int &);
+  static int is_group_function(const char *);
+  virtual int group_function(char *, char *, Tree **, Tree **, int &, double *, int &, int);
+  static int is_special_function(const std::string &);
+  virtual int special_function(const std::string &, char *, Tree **, Tree **, int &, double *,
+                               int &, int, char *, int &, char *&);
+  virtual void peratom2global(int, char *, double *, int, tagint, Tree **, Tree **, int &,
+                              double *, int &);
+  virtual void custom2global(int *, double *, int, tagint, Tree **, Tree **, int &, double *,
+                             int &);
+
+  // per-atom data reached through a compute or fix cannot be identified from
+  // the formula, so evaluate() passes a null pointer and asks for all of it.
+  // custom properties pass the i_ / d_ / i2_ / d2_ name they were given.
+
+  virtual void sync_peratom(const char *) {}
+
+ private:
+  int treetype;    // ATOM or VECTOR flag for formula evaluation
+
+  class RanMars *randomequal;    // random number generator for equal-style vars
+  class RanMars *randomatom;     // random number generator for atom-style vars
+
+  int precedence[18];    // precedence level of math operators
+                         // set length to include up to XOR in enum
+
   int compute_python(int);
   void remove(int);
   int recycle();
@@ -140,15 +161,9 @@ class Variable : protected Pointers {
   void free_tree(Tree *);
   int find_matching_paren(char *, int, char *&, int);
   int math_function(char *, char *, Tree **, Tree **, int &, double *, int &, int);
-  int group_function(char *, char *, Tree **, Tree **, int &, double *, int &, int);
   Region *region_function(char *, int);
-  int special_function(const std::string &, char *, Tree **, Tree **, int &, double *, int &, int,
-                       char *, int &, char *&);
   int feature_function(char *, char *, Tree **, Tree **, int &, double *, int &, int);
-  void peratom2global(int, char *, double *, int, tagint, Tree **, Tree **, int &, double *, int &);
-  void custom2global(int *, double *, int, tagint, Tree **, Tree **, int &, double *, int &);
   int is_atom_vector(char *);
-  void atom_vector(char *, Tree **, Tree **, int &);
   int parse_args(char *, char **);
   void parse_vector(int, char *);
   char *find_next_comma(char *);

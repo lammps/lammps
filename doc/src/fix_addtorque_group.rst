@@ -1,7 +1,10 @@
 .. index:: fix addtorque/group
+.. index:: fix addtorque/group/kk
 
 fix addtorque/group command
 ===========================
+
+Accelerator Variant: *addtorque/group/kk*
 
 Syntax
 """"""
@@ -108,8 +111,17 @@ invoked by the :doc:`minimize <minimize>` command.
    increments the timestep as the iteration count during the
    minimization.
 
+----------
+
+.. include:: accel_styles.rst
+
+----------
+
 Restrictions
 """"""""""""
+
+The *addtorque/group/kk* accelerator variant cannot (yet) be used with
+:doc:`run_style respa <run_style>` and stops with an error in that case.
 
 This fix is part of the EXTRA-FIX package.  It is only enabled if LAMMPS was
 built with that package.  See the :doc:`Build package <Build_package>` page for

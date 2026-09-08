@@ -42,8 +42,7 @@ struct ExecutionSpaceMixin : AnalyzeNextTrait {
 struct ExecutionSpaceTrait : TraitSpecificationBase<ExecutionSpaceTrait> {
   struct base_traits {
     static constexpr auto execution_space_is_defaulted = true;
-
-    using execution_space = Kokkos::DefaultExecutionSpace;
+    using execution_space                              = void;
     KOKKOS_IMPL_MSVC_NVCC_EBO_WORKAROUND
   };
   template <class T>

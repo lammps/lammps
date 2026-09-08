@@ -311,6 +311,9 @@ void ComputeADF::init()
     deltax = 2.0 / nbin;
     deltaxinv = 1.0/deltax;
     x0 = -1.0;
+
+  } else {
+    error->all(FLERR, "Unknown ordinate style in compute adf");
   }
 
   for (int i = 0; i < nbin; i++)
@@ -329,7 +332,7 @@ void ComputeADF::init()
     if (neighbor->style == Neighbor::MULTI)
       error->all(FLERR, "Compute adf with custom cutoffs requires neighbor style 'bin' or 'nsq'");
 
-    req->set_cutoff(mycutneigh);
+    req->set_cutoff_fixed(mycutneigh);
   }
 }
 

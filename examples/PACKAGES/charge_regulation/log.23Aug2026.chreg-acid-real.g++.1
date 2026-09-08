@@ -1,0 +1,164 @@
+LAMMPS (4 Jul 2026 - Development - patch_4Jul2026-848-gd03be1b44b)
+  using 1 OpenMP thread(s) per MPI task
+# Charge regulation lammps for simple weak electrolyte
+
+units           real
+atom_style      charge
+neighbor        10.0 bin
+read_data       data.chreg-acid-real
+Reading data file ...
+  orthogonal box = (-180 -180 -180) to (180 180 180)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  219 atoms
+  read_data CPU = 0.003 seconds
+
+#real units
+variable        sigma equal 7.2               # particle diameter 0.72 nm
+variable        temperature equal 298         # temperature 298 K
+variable        kb index 0.0019872067         # kB in Kcal/mol/K
+variable        epsilon equal ${kb}*${temperature}
+variable        epsilon equal 0.0019872067*${temperature}
+variable        epsilon equal 0.0019872067*298
+variable        tunit   equal   2000          # time unit is 2000 fs
+variable        timestep equal 0.005*${tunit}
+variable        timestep equal 0.005*2000
+
+variable        cut_long equal 12.5*${sigma}
+variable        cut_long equal 12.5*7.2
+variable        nevery equal 100
+variable        nmc equal 100
+variable        pH equal 7.0
+variable        pKa equal 6.0
+variable        pIm equal 3.0
+variable        pIp equal 3.0
+
+variable        cut_lj equal 2^(1.0/6.0)*${sigma}
+variable        cut_lj equal 2^(1.0/6.0)*7.2
+velocity        all create ${temperature} 8008 loop geom
+velocity        all create 298 8008 loop geom
+
+pair_style      lj/cut/coul/long ${cut_lj} ${cut_long}
+pair_style      lj/cut/coul/long 8.08172674782749 ${cut_long}
+pair_style      lj/cut/coul/long 8.08172674782749 90
+pair_coeff      * *  ${epsilon} ${sigma}
+pair_coeff      * *  0.5921875966 ${sigma}
+pair_coeff      * *  0.5921875966 7.2
+kspace_style    pppm 1.0e-3
+dielectric      78
+pair_modify     shift yes
+
+#########  VERLET INTEGRATION WITH LANGEVIN THERMOSTAT  ###########
+fix             fnve all nve
+compute         dtemp all temp
+compute_modify  dtemp dynamic/dof yes
+fix             fT all langevin $(v_temperature) $(v_temperature) $(v_tunit) 123
+fix             fT all langevin 298 $(v_temperature) $(v_tunit) 123
+fix             fT all langevin 298 298 $(v_tunit) 123
+fix             fT all langevin 298 298 2000 123
+fix_modify      fT temp dtemp
+
+fix chareg      all charge/regulation 2 3 acid_type 1 pH ${pH} pKa ${pKa} pIp ${pIp} pIm ${pIm} lunit_nm 0.1 nevery ${nevery} nmc ${nmc} seed 2345 tempfixid fT
+fix chareg      all charge/regulation 2 3 acid_type 1 pH 7 pKa ${pKa} pIp ${pIp} pIm ${pIm} lunit_nm 0.1 nevery ${nevery} nmc ${nmc} seed 2345 tempfixid fT
+fix chareg      all charge/regulation 2 3 acid_type 1 pH 7 pKa 6 pIp ${pIp} pIm ${pIm} lunit_nm 0.1 nevery ${nevery} nmc ${nmc} seed 2345 tempfixid fT
+fix chareg      all charge/regulation 2 3 acid_type 1 pH 7 pKa 6 pIp 3 pIm ${pIm} lunit_nm 0.1 nevery ${nevery} nmc ${nmc} seed 2345 tempfixid fT
+fix chareg      all charge/regulation 2 3 acid_type 1 pH 7 pKa 6 pIp 3 pIm 3 lunit_nm 0.1 nevery ${nevery} nmc ${nmc} seed 2345 tempfixid fT
+fix chareg      all charge/regulation 2 3 acid_type 1 pH 7 pKa 6 pIp 3 pIm 3 lunit_nm 0.1 nevery 100 nmc ${nmc} seed 2345 tempfixid fT
+fix chareg      all charge/regulation 2 3 acid_type 1 pH 7 pKa 6 pIp 3 pIm 3 lunit_nm 0.1 nevery 100 nmc 100 seed 2345 tempfixid fT
+thermo          100
+thermo_style custom step pe c_dtemp f_chareg[1] f_chareg[2] f_chareg[3] f_chareg[4] f_chareg[5] f_chareg[6] f_chareg[7] f_chareg[8]
+timestep        ${timestep}
+timestep        10
+run             2000
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- fix charge/regulation: https://doi.org/10.1063/5.0066432
+
+@Article{Curk22,
+ author = {T. Curk and J. Yuan and E. Luijten},
+ title = {Accelerated Simulation Method for Charge Regulation Effects},
+ journal = {Journal of Chemical Physics},
+ year = 2022,
+ volume = 156
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+PPPM initialization ...
+  using 12-bit tables for long-range coulomb
+  G vector (1/distance) = 0.019408615
+  grid = 8 8 8
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.00012527706
+  estimated relative force accuracy = 3.7726815e-07
+  using double precision FFTW3
+  3d grid and FFT values/proc = 2197 512
+Generated 0 of 3 mixed pair_coeff terms from geometric mixing rule
+0 atoms in group FixChargeRegulation:exclusion_group:chareg
+WARNING: Neighbor exclusions used with KSpace solver may give inconsistent Coulombic energies (src/neighbor.cpp:664)
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 100
+  ghost atom cutoff = 100
+  binsize = 50, bins = 8 8 8
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut/coul/long, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 3.708 | 3.708 | 3.708 Mbytes
+   Step         PotEng        c_dtemp      f_chareg[1]    f_chareg[2]    f_chareg[3]    f_chareg[4]    f_chareg[5]    f_chareg[6]    f_chareg[7]    f_chareg[8]  
+         0  -6.4798431      298            0              0              1              99             0              0              109            10           
+       100  -7.3261028      300.50779      100            78             14             86             0              0              95             9            
+       200  -8.9571783      317.92662      200            161            22             78             0              0              90             12           
+       300  -8.3378753      327.32373      300            244            18             82             0              0              89             7            
+       400  -8.068084       324.73267      400            317            16             84             0              0              92             8            
+       500  -8.7174114      297.32767      500            398            13             87             0              0              97             10           
+       600  -7.2178433      320.53976      600            481            16             84             0              0              94             10           
+       700  -8.7188935      275.71044      700            560            16             84             0              0              95             11           
+       800  -7.3705821      313.53627      800            643            21             79             0              0              84             5            
+       900  -8.7391282      282.7758       900            721            23             77             0              0              86             9            
+      1000  -8.2396085      297.77824      1000           804            25             75             0              0              83             8            
+      1100  -7.7964164      280.96002      1100           882            23             77             0              0              87             10           
+      1200  -9.3337395      304.86215      1200           963            21             79             0              0              90             11           
+      1300  -8.5131418      317.86131      1300           1038           22             78             0              0              87             9            
+      1400  -7.6025989      280.83842      1400           1118           17             83             0              0              93             10           
+      1500  -6.9711594      315.59255      1500           1197           21             79             0              0              88             9            
+      1600  -8.0546654      296.66767      1600           1280           21             79             0              0              91             12           
+      1700  -5.6450099      315.93228      1700           1356           25             75             0              0              87             12           
+      1800  -5.1115768      306.26619      1800           1442           19             81             0              0              87             6            
+      1900  -3.8576536      297.05623      1900           1517           23             77             0              0              86             9            
+      2000  -6.5922315      315.34332      2000           1594           26             74             0              0              81             7            
+Loop time of 0.407287 on 1 procs for 2000 steps with 188 atoms
+
+Performance: 4242.705 ns/day, 0.006 hours/ns, 4910.538 timesteps/s, 923.181 katom-step/s
+99.5% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.019532   | 0.019532   | 0.019532   |   0.0 |  4.80
+Kspace  | 0.092162   | 0.092162   | 0.092162   |   0.0 | 22.63
+Neigh   | 0.0049848  | 0.0049848  | 0.0049848  |   0.0 |  1.22
+Comm    | 0.0024654  | 0.0024654  | 0.0024654  |   0.0 |  0.61
+Output  | 0.00025835 | 0.00025835 | 0.00025835 |   0.0 |  0.06
+Modify  | 0.28695    | 0.28695    | 0.28695    |   0.0 | 70.45
+Other   |            | 0.0009344  |            |       |  0.23
+
+Nlocal:            188 ave         188 max         188 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:            481 ave         481 max         481 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:           1529 ave        1529 max        1529 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 1529
+Ave neighs/atom = 8.1329787
+Neighbor list builds = 2080
+Dangerous builds = 0
+Total wall time: 0:00:00

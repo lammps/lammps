@@ -68,7 +68,7 @@ static constexpr double EPSILON = 1.0e-6;
 /* ---------------------------------------------------------------------- */
 
 FixPolarizeFunctional::FixPolarizeFunctional(LAMMPS *_lmp, int narg, char **arg) :
-    Fix(_lmp, narg, arg)
+    Fix(_lmp, narg, arg), list(nullptr)
 {
   if (narg < 4) error->all(FLERR, "Illegal fix polarize/functional command");
 

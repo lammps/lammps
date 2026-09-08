@@ -29,7 +29,7 @@ using namespace LAMMPS_NS;
 ------------------------------------------------------------------------- */
 
 ComputePressureGrem::ComputePressureGrem(LAMMPS *lmp, int narg, char **arg) :
-  ComputePressure(lmp, narg-1, arg)
+    ComputePressure(lmp, narg-1, arg), scale_grem(nullptr)
 {
   fix_grem = utils::strdup(arg[narg-1]);
 }

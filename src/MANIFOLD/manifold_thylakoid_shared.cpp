@@ -21,7 +21,7 @@ using namespace user_manifold;
 
 thyla_part::thyla_part( int type, double *args, double xlo, double ylo, double zlo,
                         double xhi, double yhi, double zhi )
-  : type(type), xlo(xlo), xhi(xhi),
+  : type(type), err_flag(0), xlo(xlo), xhi(xhi),
     ylo(ylo), yhi(yhi), zlo(zlo), zhi(zhi)
 {
   switch(type) {
@@ -83,7 +83,12 @@ thyla_part::thyla_part( int type, double *args, double xlo, double ylo, double z
       params[6] = args[6];
       break;
     default:
+      // only the types above are used by the internal callers;
+      // flag the error and do not read the never-assigned parameters
       err_flag = -1;
+      for (int i = 0; i < 7; ++i) params[i] = 0.0;
+      x0 = y0 = z0 = 0.0;
+      return;
   }
   x0 = (type == THYLA_TYPE_SPHERE) ? params[1] : params[3];
   y0 = (type == THYLA_TYPE_SPHERE) ? params[2] : params[4];

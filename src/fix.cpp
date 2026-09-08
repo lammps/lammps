@@ -203,7 +203,7 @@ void Fix::set_molecule(int, tagint, int, double *, double *, double *)
    energy is *much* faster.
 ------------------------------------------------------------------------- */
 
-void Fix::ev_setup(int eflag, int vflag)
+void Fix::ev_setup(int eflag, int vflag, int alloc)
 {
   int i,n;
 
@@ -234,18 +234,24 @@ void Fix::ev_setup(int eflag, int vflag)
 
   if (eflag_atom && atom->nlocal > maxeatom) {
     maxeatom = atom->nmax;
-    memory->destroy(eatom);
-    memory->create(eatom,maxeatom,"fix:eatom");
+    if (alloc) {
+      memory->destroy(eatom);
+      memory->create(eatom,maxeatom,"fix:eatom");
+    }
   }
   if (vflag_atom && atom->nlocal > maxvatom) {
     maxvatom = atom->nmax;
-    memory->destroy(vatom);
-    memory->create(vatom,maxvatom,6,"fix:vatom");
+    if (alloc) {
+      memory->destroy(vatom);
+      memory->create(vatom,maxvatom,6,"fix:vatom");
+    }
   }
   if (cvflag_atom && atom->nlocal > maxcvatom) {
     maxcvatom = atom->nmax;
-    memory->destroy(cvatom);
-    memory->create(cvatom,maxcvatom,9,"fix:cvatom");
+    if (alloc) {
+      memory->destroy(cvatom);
+      memory->create(cvatom,maxcvatom,9,"fix:cvatom");
+    }
   }
 
   // zero accumulators
@@ -253,11 +259,11 @@ void Fix::ev_setup(int eflag, int vflag)
   // fixes tally it individually via fix_modify energy yes and compute_scalar()
 
   if (vflag_global) for (i = 0; i < 6; i++) virial[i] = 0.0;
-  if (eflag_atom) {
+  if (eflag_atom && alloc) {
     n = atom->nlocal;
     for (i = 0; i < n; i++) eatom[i] = 0.0;
   }
-  if (vflag_atom) {
+  if (vflag_atom && alloc) {
     n = atom->nlocal;
     for (i = 0; i < n; i++) {
       vatom[i][0] = 0.0;
@@ -268,7 +274,7 @@ void Fix::ev_setup(int eflag, int vflag)
       vatom[i][5] = 0.0;
     }
   }
-  if (cvflag_atom) {
+  if (cvflag_atom && alloc) {
     n = atom->nlocal;
     for (i = 0; i < n; i++) {
       cvatom[i][0] = 0.0;
@@ -291,7 +297,7 @@ void Fix::ev_setup(int eflag, int vflag)
    if thermo_virial is not set, virial tallying is disabled
 ------------------------------------------------------------------------- */
 
-void Fix::v_setup(int vflag)
+void Fix::v_setup(int vflag, int alloc)
 {
   int i,n;
 
@@ -310,19 +316,23 @@ void Fix::v_setup(int vflag)
 
   if (vflag_atom && atom->nlocal > maxvatom) {
     maxvatom = atom->nmax;
-    memory->destroy(vatom);
-    memory->create(vatom,maxvatom,6,"fix:vatom");
+    if (alloc) {
+      memory->destroy(vatom);
+      memory->create(vatom,maxvatom,6,"fix:vatom");
+    }
   }
   if (cvflag_atom && atom->nlocal > maxcvatom) {
     maxcvatom = atom->nmax;
-    memory->destroy(cvatom);
-    memory->create(cvatom,maxcvatom,9,"fix:cvatom");
+    if (alloc) {
+      memory->destroy(cvatom);
+      memory->create(cvatom,maxcvatom,9,"fix:cvatom");
+    }
   }
 
   // zero accumulators
 
   if (vflag_global) for (i = 0; i < 6; i++) virial[i] = 0.0;
-  if (vflag_atom) {
+  if (vflag_atom && alloc) {
     n = atom->nlocal;
     for (i = 0; i < n; i++) {
       vatom[i][0] = 0.0;
@@ -333,7 +343,7 @@ void Fix::v_setup(int vflag)
       vatom[i][5] = 0.0;
     }
   }
-  if (cvflag_atom) {
+  if (cvflag_atom && alloc) {
     n = atom->nlocal;
     for (i = 0; i < n; i++) {
       cvatom[i][0] = 0.0;

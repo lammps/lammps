@@ -47,6 +47,7 @@ class PairMultiLucyRX : public Pair {
   double memory_usage() override;
 
  protected:
+  class FixRX *rx_fix;
   enum { LOOKUP, LINEAR };
 
   int nmax;

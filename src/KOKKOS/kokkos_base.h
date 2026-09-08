@@ -52,6 +52,14 @@ class KokkosBase {
   using BinOp = BinOp3DLAMMPS<KeyViewType>;
   virtual void
     sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> & /*Sorter*/) {}
+
+  // The legacy sort permutes a fix's per-atom arrays through copy_arrays() on
+  // the host, where sort_kokkos() would have permuted them on the device.  A fix
+  // holding those arrays in dual views has to bring them to the host before the
+  // sort and claim the host side after it, or the device copies keep the old
+  // ordering and its atoms end up attached to the wrong body.
+  virtual void sync_host_for_sort() {}
+  virtual void modified_host_for_sort() {}
 };
 
 }

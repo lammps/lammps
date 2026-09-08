@@ -14,7 +14,6 @@ import kokkos.core;
 #include "Kokkos_Constraints.hpp"
 #include "Kokkos_HelperPredicates.hpp"
 #include <std_algorithms/Kokkos_TransformInclusiveScan.hpp>
-#include <std_algorithms/Kokkos_Distance.hpp>
 #include <string>
 
 #if defined(KOKKOS_ENABLE_CUDA)
@@ -151,8 +150,9 @@ OutputIteratorType inclusive_scan_default_op_exespace_impl(
 #if defined(KOKKOS_ENABLE_ROCTHRUST)
 template <class InputIteratorType, class OutputIteratorType>
 OutputIteratorType inclusive_scan_default_op_exespace_impl(
-    const std::string& label, const HIP& ex, InputIteratorType first_from,
-    InputIteratorType last_from, OutputIteratorType first_dest) {
+    const std::string& label, const Kokkos::HIP& ex,
+    InputIteratorType first_from, InputIteratorType last_from,
+    OutputIteratorType first_dest) {
   const auto thrust_ex = thrust::hip::par.on(ex.hip_stream());
 
   Kokkos::Profiling::pushRegion(label + " via thrust::inclusive_scan");
@@ -241,9 +241,9 @@ OutputIteratorType inclusive_scan_custom_binary_op_exespace_impl(
 #if defined(KOKKOS_ENABLE_ROCTHRUST)
 template <class InputIteratorType, class OutputIteratorType, class BinaryOpType>
 OutputIteratorType inclusive_scan_custom_binary_op_exespace_impl(
-    const std::string& label, const HIP& ex, InputIteratorType first_from,
-    InputIteratorType last_from, OutputIteratorType first_dest,
-    BinaryOpType binary_op) {
+    const std::string& label, const Kokkos::HIP& ex,
+    InputIteratorType first_from, InputIteratorType last_from,
+    OutputIteratorType first_dest, BinaryOpType binary_op) {
   const auto thrust_ex = thrust::hip::par.on(ex.hip_stream());
 
   Kokkos::Profiling::pushRegion(label + " via thrust::inclusive_scan");

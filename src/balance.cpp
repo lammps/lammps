@@ -54,18 +54,14 @@ enum { X, Y, Z };
 
 /* ---------------------------------------------------------------------- */
 
-Balance::Balance(LAMMPS *lmp) : Command(lmp)
+Balance::Balance(LAMMPS *lmp) :
+  Command(lmp), rcb(nullptr), fixstore(nullptr), user_xsplit(nullptr), user_ysplit(nullptr),
+  user_zsplit(nullptr), bdim(nullptr), onecost(nullptr), allcost(nullptr), sum(nullptr),
+  target(nullptr), lo(nullptr), hi(nullptr), losum(nullptr), hisum(nullptr),
+  proccost(nullptr), allproccost(nullptr), imbalances(nullptr), weight(nullptr)
 {
-  user_xsplit = user_ysplit = user_zsplit = nullptr;
   shift_allocate = 0;
-  proccost = allproccost = nullptr;
-
-  rcb = nullptr;
-
   nimbalance = 0;
-  imbalances = nullptr;
-  fixstore = nullptr;
-
   firststep = 1;
 }
 
@@ -97,10 +93,7 @@ Balance::~Balance()
   for (int i = 0; i < nimbalance; i++) delete imbalances[i];
   delete[] imbalances;
 
-  // check nfix in case all fixes have already been deleted
-
-  if (fixstore && modify->nfix) modify->delete_fix(fixstore->id);
-  fixstore = nullptr;
+  if (fixstore) modify->delete_fix(fixstore->id);
 }
 
 /* ----------------------------------------------------------------------

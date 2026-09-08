@@ -42,7 +42,8 @@ static constexpr int CHUNK = 8;
 
 /* ---------------------------------------------------------------------- */
 
-PairHbondDreidingLJ::PairHbondDreidingLJ(LAMMPS *lmp) : Pair(lmp)
+PairHbondDreidingLJ::PairHbondDreidingLJ(LAMMPS *lmp) :
+    Pair(lmp), donor(nullptr), acceptor(nullptr), type2param(nullptr)
 {
   // hbond cannot compute virial as F dot r
   // due to using map() to find bonded H atoms which are not near donor atom

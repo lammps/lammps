@@ -156,8 +156,8 @@ void PairBrownianKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   // scale factor for Brownian moments
 
-  prethermostat = sqrt(24.0 * force->boltz * t_target / update->dt);
-  prethermostat *= sqrt(force->vxmu2f / force->ftm2v / force->mvv2e);
+  prethermostat = static_cast<KK_FLOAT>(sqrt(24.0 * force->boltz * t_target / update->dt));
+  prethermostat *= static_cast<KK_FLOAT>(sqrt(force->vxmu2f / force->ftm2v / force->mvv2e));
 
   // reallocate per-atom arrays if necessary
 
@@ -182,7 +182,7 @@ void PairBrownianKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   nlocal = atom->nlocal;
   nall = atom->nlocal + atom->nghost;
   newton_pair = force->newton_pair;
-  vxmu2f = force->vxmu2f;
+  vxmu2f = static_cast<KK_FLOAT>(force->vxmu2f);
 
   // loop over neighbors of my atoms
 
@@ -247,12 +247,12 @@ void PairBrownianKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   }
 
   if (vflag_global) {
-    virial[0] += ev.v[0];
-    virial[1] += ev.v[1];
-    virial[2] += ev.v[2];
-    virial[3] += ev.v[3];
-    virial[4] += ev.v[4];
-    virial[5] += ev.v[5];
+    virial[0] += static_cast<double>(ev.v[0]);
+    virial[1] += static_cast<double>(ev.v[1]);
+    virial[2] += static_cast<double>(ev.v[2]);
+    virial[3] += static_cast<double>(ev.v[3]);
+    virial[4] += static_cast<double>(ev.v[4]);
+    virial[5] += static_cast<double>(ev.v[5]);
   }
 
   if (vflag_atom) {
@@ -297,13 +297,15 @@ void PairBrownianKokkos<DeviceType>::operator()(TagPairBrownianCompute<NEIGHFLAG
   KK_ACC_FLOAT torquez_i = 0.0;
 
   if (FLAGFLD) {
-    fx_i = prethermostat * sqrt(R0) * (rand_gen.drand() - 0.5);
-    fy_i = prethermostat * sqrt(R0) * (rand_gen.drand() - 0.5);
-    fz_i = prethermostat * sqrt(R0) * (rand_gen.drand() - 0.5);
+    const KK_FLOAT R0_kk = static_cast<KK_FLOAT>(R0);
+    fx_i = static_cast<KK_ACC_FLOAT>(prethermostat * Kokkos::sqrt(R0_kk) * static_cast<KK_FLOAT>(rand_gen.drand() - 0.5));
+    fy_i = static_cast<KK_ACC_FLOAT>(prethermostat * Kokkos::sqrt(R0_kk) * static_cast<KK_FLOAT>(rand_gen.drand() - 0.5));
+    fz_i = static_cast<KK_ACC_FLOAT>(prethermostat * Kokkos::sqrt(R0_kk) * static_cast<KK_FLOAT>(rand_gen.drand() - 0.5));
     if (flaglog) {
-      torquex_i = prethermostat * sqrt(RT0) * (rand_gen.drand() - 0.5);
-      torquey_i = prethermostat * sqrt(RT0) * (rand_gen.drand() - 0.5);
-      torquez_i = prethermostat * sqrt(RT0) * (rand_gen.drand() - 0.5);
+      const KK_FLOAT RT0_kk = static_cast<KK_FLOAT>(RT0);
+      torquex_i = static_cast<KK_ACC_FLOAT>(prethermostat * Kokkos::sqrt(RT0_kk) * static_cast<KK_FLOAT>(rand_gen.drand() - 0.5));
+      torquey_i = static_cast<KK_ACC_FLOAT>(prethermostat * Kokkos::sqrt(RT0_kk) * static_cast<KK_FLOAT>(rand_gen.drand() - 0.5));
+      torquez_i = static_cast<KK_ACC_FLOAT>(prethermostat * Kokkos::sqrt(RT0_kk) * static_cast<KK_FLOAT>(rand_gen.drand() - 0.5));
     }
   }
 
@@ -321,34 +323,35 @@ void PairBrownianKokkos<DeviceType>::operator()(TagPairBrownianCompute<NEIGHFLAG
 
       if(rsq < d_cutsq(itype,jtype)) {
 
-        const KK_FLOAT r = sqrt(rsq);
+        const KK_FLOAT r = Kokkos::sqrt(rsq);
 
         // scalar resistances a_sq and a_sh
 
-        KK_FLOAT h_sep = r - 2.0 * radi;
+        KK_FLOAT h_sep = r - static_cast<KK_FLOAT>(2.0) * radi;
 
         // if less than minimum gap, use minimum gap instead
 
-        if (r < d_cut_inner(itype,jtype)) h_sep = d_cut_inner(itype,jtype) - 2.0 * radi;
+        if (r < d_cut_inner(itype,jtype)) h_sep = d_cut_inner(itype,jtype) - static_cast<KK_FLOAT>(2.0) * radi;
 
         // scale h_sep by radi
 
         h_sep = h_sep / radi;
 
+        const KK_FLOAT mu_kk = static_cast<KK_FLOAT>(mu);
         if (flaglog) {
-          a_sq = 6.0 * MY_PI * mu * radi * (1.0 / 4.0 / h_sep + 9.0 / 40.0 * log(1.0 / h_sep));
-          a_sh = 6.0 * MY_PI * mu * radi * (1.0 / 6.0 * log(1.0 / h_sep));
-          a_pu = 8.0 * MY_PI * mu * cube(radi) * (3.0 / 160.0 * log(1.0 / h_sep));
+          a_sq = static_cast<KK_FLOAT>(6.0) * static_cast<KK_FLOAT>(MY_PI) * mu_kk * radi * (static_cast<KK_FLOAT>(1.0) / static_cast<KK_FLOAT>(4.0) / h_sep + static_cast<KK_FLOAT>(9.0) / static_cast<KK_FLOAT>(40.0) * Kokkos::log(static_cast<KK_FLOAT>(1.0) / h_sep));
+          a_sh = static_cast<KK_FLOAT>(6.0) * static_cast<KK_FLOAT>(MY_PI) * mu_kk * radi * (static_cast<KK_FLOAT>(1.0) / static_cast<KK_FLOAT>(6.0) * Kokkos::log(static_cast<KK_FLOAT>(1.0) / h_sep));
+          a_pu = static_cast<KK_FLOAT>(8.0) * static_cast<KK_FLOAT>(MY_PI) * mu_kk * cube(radi) * (static_cast<KK_FLOAT>(3.0) / static_cast<KK_FLOAT>(160.0) * Kokkos::log(static_cast<KK_FLOAT>(1.0) / h_sep));
         } else
-          a_sq = 6.0 * MY_PI * mu * radi * (1.0 / 4.0 / h_sep);
+          a_sq = static_cast<KK_FLOAT>(6.0) * static_cast<KK_FLOAT>(MY_PI) * mu_kk * radi * (static_cast<KK_FLOAT>(1.0) / static_cast<KK_FLOAT>(4.0) / h_sep);
 
         // generate the Pairwise Brownian Force: a_sq
 
-        KK_FLOAT Fbmag = prethermostat * sqrt(a_sq);
+        KK_FLOAT Fbmag = prethermostat * Kokkos::sqrt(a_sq);
 
         // generate a random number
 
-        KK_FLOAT randr = rand_gen.drand() - 0.5;
+        KK_FLOAT randr = static_cast<KK_FLOAT>(rand_gen.drand() - 0.5);
 
         // contribution due to Brownian motion
 
@@ -369,17 +372,17 @@ void PairBrownianKokkos<DeviceType>::operator()(TagPairBrownianCompute<NEIGHFLAG
 
           // magnitude
 
-          Fbmag = prethermostat * sqrt(a_sh);
+          Fbmag = prethermostat * Kokkos::sqrt(a_sh);
 
           // force in each of the two directions
 
-          randr = rand_gen.drand() - 0.5;
+          randr = static_cast<KK_FLOAT>(rand_gen.drand() - 0.5);
 
           fx += Fbmag * randr * p2[0];
           fy += Fbmag * randr * p2[1];
           fz += Fbmag * randr * p2[2];
 
-          randr = rand_gen.drand() - 0.5;
+          randr = static_cast<KK_FLOAT>(rand_gen.drand() - 0.5);
 
           fx += Fbmag * randr * p3[0];
           fy += Fbmag * randr * p3[1];
@@ -394,14 +397,14 @@ void PairBrownianKokkos<DeviceType>::operator()(TagPairBrownianCompute<NEIGHFLAG
 
         // sum to total force
 
-        fx_i -= fx;
-        fy_i -= fy;
-        fz_i -= fz;
+        fx_i -= static_cast<KK_ACC_FLOAT>(fx);
+        fy_i -= static_cast<KK_ACC_FLOAT>(fy);
+        fz_i -= static_cast<KK_ACC_FLOAT>(fz);
 
         if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal)) {
-          a_f(j,0) += fx;
-          a_f(j,1) += fy;
-          a_f(j,2) += fz;
+          a_f(j,0) += static_cast<KK_ACC_FLOAT>(fx);
+          a_f(j,1) += static_cast<KK_ACC_FLOAT>(fy);
+          a_f(j,2) += static_cast<KK_ACC_FLOAT>(fz);
         }
 
         // torque due to the Brownian Force
@@ -422,29 +425,29 @@ void PairBrownianKokkos<DeviceType>::operator()(TagPairBrownianCompute<NEIGHFLAG
 
           // torque is same on both particles
 
-          torquex_i -= tx;
-          torquey_i -= ty;
-          torquez_i -= tz;
+          torquex_i -= static_cast<KK_ACC_FLOAT>(tx);
+          torquey_i -= static_cast<KK_ACC_FLOAT>(ty);
+          torquez_i -= static_cast<KK_ACC_FLOAT>(tz);
 
           if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal)) {
-            a_torque(j,0) -= tx;
-            a_torque(j,1) -= ty;
-            a_torque(j,2) -= tz;
+            a_torque(j,0) -= static_cast<KK_ACC_FLOAT>(tx);
+            a_torque(j,1) -= static_cast<KK_ACC_FLOAT>(ty);
+            a_torque(j,2) -= static_cast<KK_ACC_FLOAT>(tz);
           }
 
           // torque due to a_pu
 
-          Fbmag = prethermostat * sqrt(a_pu);
+          Fbmag = prethermostat * Kokkos::sqrt(a_pu);
 
           // force in each direction
 
-          randr = rand_gen.drand() - 0.5;
+          randr = static_cast<KK_FLOAT>(rand_gen.drand() - 0.5);
 
           tx = Fbmag * randr * p2[0];
           ty = Fbmag * randr * p2[1];
           tz = Fbmag * randr * p2[2];
 
-          randr = rand_gen.drand() - 0.5;
+          randr = static_cast<KK_FLOAT>(rand_gen.drand() - 0.5);
 
           tx += Fbmag * randr * p3[0];
           ty += Fbmag * randr * p3[1];
@@ -452,14 +455,14 @@ void PairBrownianKokkos<DeviceType>::operator()(TagPairBrownianCompute<NEIGHFLAG
 
           // torque has opposite sign on two particles
 
-          torquex_i -= tx;
-          torquey_i -= ty;
-          torquez_i -= tz;
+          torquex_i -= static_cast<KK_ACC_FLOAT>(tx);
+          torquey_i -= static_cast<KK_ACC_FLOAT>(ty);
+          torquez_i -= static_cast<KK_ACC_FLOAT>(tz);
 
           if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal)) {
-            a_torque(j,0) += tx;
-            a_torque(j,1) += ty;
-            a_torque(j,2) += tz;
+            a_torque(j,0) += static_cast<KK_ACC_FLOAT>(tx);
+            a_torque(j,1) += static_cast<KK_ACC_FLOAT>(ty);
+            a_torque(j,2) += static_cast<KK_ACC_FLOAT>(tz);
           }
         }
 
@@ -512,57 +515,57 @@ void PairBrownianKokkos<DeviceType>::ev_tally_xyz(EV_FLOAT & ev, int i, int j,
   if (vflag_global) {
     if (NEIGHFLAG != FULL) {
       if (NEWTON_PAIR) { // neigh half, newton on
-        ev.v[0] += v0;
-        ev.v[1] += v1;
-        ev.v[2] += v2;
-        ev.v[3] += v3;
-        ev.v[4] += v4;
-        ev.v[5] += v5;
+        ev.v[0] += static_cast<KK_ACC_FLOAT>(v0);
+        ev.v[1] += static_cast<KK_ACC_FLOAT>(v1);
+        ev.v[2] += static_cast<KK_ACC_FLOAT>(v2);
+        ev.v[3] += static_cast<KK_ACC_FLOAT>(v3);
+        ev.v[4] += static_cast<KK_ACC_FLOAT>(v4);
+        ev.v[5] += static_cast<KK_ACC_FLOAT>(v5);
       } else { // neigh half, newton off
         if (i < nlocal) {
-          ev.v[0] += 0.5*v0;
-          ev.v[1] += 0.5*v1;
-          ev.v[2] += 0.5*v2;
-          ev.v[3] += 0.5*v3;
-          ev.v[4] += 0.5*v4;
-          ev.v[5] += 0.5*v5;
+          ev.v[0] += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v0);
+          ev.v[1] += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v1);
+          ev.v[2] += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v2);
+          ev.v[3] += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v3);
+          ev.v[4] += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v4);
+          ev.v[5] += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v5);
         }
         if (j < nlocal) {
-          ev.v[0] += 0.5*v0;
-          ev.v[1] += 0.5*v1;
-          ev.v[2] += 0.5*v2;
-          ev.v[3] += 0.5*v3;
-          ev.v[4] += 0.5*v4;
-          ev.v[5] += 0.5*v5;
+          ev.v[0] += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v0);
+          ev.v[1] += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v1);
+          ev.v[2] += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v2);
+          ev.v[3] += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v3);
+          ev.v[4] += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v4);
+          ev.v[5] += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v5);
         }
       }
     } else { //neigh full
-      ev.v[0] += 0.5*v0;
-      ev.v[1] += 0.5*v1;
-      ev.v[2] += 0.5*v2;
-      ev.v[3] += 0.5*v3;
-      ev.v[4] += 0.5*v4;
-      ev.v[5] += 0.5*v5;
+      ev.v[0] += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v0);
+      ev.v[1] += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v1);
+      ev.v[2] += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v2);
+      ev.v[3] += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v3);
+      ev.v[4] += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v4);
+      ev.v[5] += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v5);
     }
   }
 
   if (vflag_atom) {
 
     if (NEIGHFLAG == FULL || NEWTON_PAIR || i < nlocal) {
-      v_vatom(i,0) += 0.5*v0;
-      v_vatom(i,1) += 0.5*v1;
-      v_vatom(i,2) += 0.5*v2;
-      v_vatom(i,3) += 0.5*v3;
-      v_vatom(i,4) += 0.5*v4;
-      v_vatom(i,5) += 0.5*v5;
+      v_vatom(i,0) += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v0);
+      v_vatom(i,1) += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v1);
+      v_vatom(i,2) += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v2);
+      v_vatom(i,3) += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v3);
+      v_vatom(i,4) += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v4);
+      v_vatom(i,5) += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v5);
     }
     if (NEIGHFLAG != FULL && (NEWTON_PAIR || j < nlocal)) {
-      v_vatom(j,0) += 0.5*v0;
-      v_vatom(j,1) += 0.5*v1;
-      v_vatom(j,2) += 0.5*v2;
-      v_vatom(j,3) += 0.5*v3;
-      v_vatom(j,4) += 0.5*v4;
-      v_vatom(j,5) += 0.5*v5;
+      v_vatom(j,0) += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v0);
+      v_vatom(j,1) += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v1);
+      v_vatom(j,2) += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v2);
+      v_vatom(j,3) += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v3);
+      v_vatom(j,4) += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v4);
+      v_vatom(j,5) += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v5);
     }
   }
 }

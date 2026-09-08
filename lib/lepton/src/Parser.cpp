@@ -160,7 +160,7 @@ ParsedExpression Parser::parse(const string& expression, const map<string, Custo
             if (pos == string::npos)
                 break;
             string sub = trim(primaryExpression.substr(pos+1));
-            if (sub.size() > 0)
+            if (!sub.empty())
                 subexpressions.push_back(sub);
             primaryExpression = primaryExpression.substr(0, pos);
         }
@@ -173,7 +173,7 @@ ParsedExpression Parser::parse(const string& expression, const map<string, Custo
             if (equalsPos == string::npos)
                 throw Exception("subexpression does not specify a name");
             string name = trim(subexpressions[i].substr(0, equalsPos));
-            if (name.size() == 0)
+            if (name.empty())
                 throw Exception("subexpression does not specify a name");
             vector<ParseToken> tokens = tokenize(subexpressions[i].substr(equalsPos+1));
             int pos = 0;
@@ -300,7 +300,7 @@ Operation* Parser::getOperatorOperation(const std::string& name) {
 Operation* Parser::getFunctionOperation(const std::string& name, const map<string, CustomFunction*>& customFunctions) {
 
     static map<string, Operation::Id> opMap;
-    if (opMap.size() == 0) {
+    if (opMap.empty()) {
         opMap["sqrt"] = Operation::SQRT;
         opMap["exp"] = Operation::EXP;
         opMap["log"] = Operation::LOG;

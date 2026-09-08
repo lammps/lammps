@@ -41,7 +41,7 @@ class Improper : protected Pointers {
                      // extract() method may still need to be added
 
   int symmatoms[4];    // symmetry atom(s) of improper style
-                       // value of 0: interchangable atoms
+                       // value of 0: interchangeable atoms
                        // value of 1: central atom
                        // values >1: additional atoms of symmetry
 

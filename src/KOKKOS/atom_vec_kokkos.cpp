@@ -100,18 +100,18 @@ struct AtomVecKokkos_PackComm {
     const int j = _list(i);
     int m = 0;
     if constexpr (PBC_FLAG == 0) {
-      _buf(i,m++) = _x(j,0);
-      _buf(i,m++) = _x(j,1);
-      _buf(i,m++) = _x(j,2);
+      _buf(i,m++) = static_cast<double>(_x(j,0));
+      _buf(i,m++) = static_cast<double>(_x(j,1));
+      _buf(i,m++) = static_cast<double>(_x(j,2));
     } else {
       if (TRICLINIC == 0) {
-        _buf(i,m++) = _x(j,0) + _pbc[0]*_xprd;
-        _buf(i,m++) = _x(j,1) + _pbc[1]*_yprd;
-        _buf(i,m++) = _x(j,2) + _pbc[2]*_zprd;
+        _buf(i,m++) = static_cast<double>(_x(j,0)) + _pbc[0]*_xprd;
+        _buf(i,m++) = static_cast<double>(_x(j,1)) + _pbc[1]*_yprd;
+        _buf(i,m++) = static_cast<double>(_x(j,2)) + _pbc[2]*_zprd;
       } else {
-        _buf(i,m++) = _x(j,0) + _pbc[0]*_xprd + _pbc[5]*_xy + _pbc[4]*_xz;
-        _buf(i,m++) = _x(j,1) + _pbc[1]*_yprd + _pbc[3]*_yz;
-        _buf(i,m++) = _x(j,2) + _pbc[2]*_zprd;
+        _buf(i,m++) = static_cast<double>(_x(j,0)) + _pbc[0]*_xprd + _pbc[5]*_xy + _pbc[4]*_xz;
+        _buf(i,m++) = static_cast<double>(_x(j,1)) + _pbc[1]*_yprd + _pbc[3]*_yz;
+        _buf(i,m++) = static_cast<double>(_x(j,2)) + _pbc[2]*_zprd;
       }
     }
 
@@ -120,27 +120,27 @@ struct AtomVecKokkos_PackComm {
       // DIPOLE package
 
       if (_datamask & MU_MASK) {
-        _buf(i,m++) = _mu(j,0);
-        _buf(i,m++) = _mu(j,1);
-        _buf(i,m++) = _mu(j,2);
+        _buf(i,m++) = static_cast<double>(_mu(j,0));
+        _buf(i,m++) = static_cast<double>(_mu(j,1));
+        _buf(i,m++) = static_cast<double>(_mu(j,2));
       }
 
       // SPIN package
 
       if (_datamask & SP_MASK) {
-        _buf(i,m++) = _sp(j,0);
-        _buf(i,m++) = _sp(j,1);
-        _buf(i,m++) = _sp(j,2);
-        _buf(i,m++) = _sp(j,3);
+        _buf(i,m++) = static_cast<double>(_sp(j,0));
+        _buf(i,m++) = static_cast<double>(_sp(j,1));
+        _buf(i,m++) = static_cast<double>(_sp(j,2));
+        _buf(i,m++) = static_cast<double>(_sp(j,3));
       }
 
       // DPD-REACT package
 
       if (_datamask & DPDTHETA_MASK) {
-        _buf(i,m++) = _dpdTheta(j);
-        _buf(i,m++) = _uCond(j);
-        _buf(i,m++) = _uMech(j);
-        _buf(i,m++) = _uChem(j);
+        _buf(i,m++) = static_cast<double>(_dpdTheta(j));
+        _buf(i,m++) = static_cast<double>(_uCond(j));
+        _buf(i,m++) = static_cast<double>(_uMech(j));
+        _buf(i,m++) = static_cast<double>(_uChem(j));
       }
     }
   }
@@ -311,36 +311,36 @@ struct AtomVecKokkos_UnpackComm {
   KOKKOS_INLINE_FUNCTION
   void operator() (const int& i) const {
     int m = 0;
-    _x(i+_first,0) = _buf(i,m++);
-    _x(i+_first,1) = _buf(i,m++);
-    _x(i+_first,2) = _buf(i,m++);
+    _x(i+_first,0) = static_cast<KK_FLOAT>(_buf(i,m++));
+    _x(i+_first,1) = static_cast<KK_FLOAT>(_buf(i,m++));
+    _x(i+_first,2) = static_cast<KK_FLOAT>(_buf(i,m++));
 
     if constexpr (!DEFAULT) {
 
       // DIPOLE package
 
       if (_datamask & MU_MASK) {
-        _mu(i+_first,0) = _buf(i,m++);
-        _mu(i+_first,1) = _buf(i,m++);
-        _mu(i+_first,2) = _buf(i,m++);
+        _mu(i+_first,0) = static_cast<KK_FLOAT>(_buf(i,m++));
+        _mu(i+_first,1) = static_cast<KK_FLOAT>(_buf(i,m++));
+        _mu(i+_first,2) = static_cast<KK_FLOAT>(_buf(i,m++));
       }
 
       // SPIN package
 
       if (_datamask & SP_MASK) {
-        _sp(i+_first,0) = _buf(i,m++);
-        _sp(i+_first,1) = _buf(i,m++);
-        _sp(i+_first,2) = _buf(i,m++);
-        _sp(i+_first,3) = _buf(i,m++);
+        _sp(i+_first,0) = static_cast<KK_FLOAT>(_buf(i,m++));
+        _sp(i+_first,1) = static_cast<KK_FLOAT>(_buf(i,m++));
+        _sp(i+_first,2) = static_cast<KK_FLOAT>(_buf(i,m++));
+        _sp(i+_first,3) = static_cast<KK_FLOAT>(_buf(i,m++));
       }
 
       // DPD-REACT package
 
       if (_datamask & DPDTHETA_MASK) {
-        _dpdTheta(i+_first) = _buf(i,m++);
-        _uCond(i+_first) = _buf(i,m++);
-        _uMech(i+_first) = _buf(i,m++);
-        _uChem(i+_first) = _buf(i,m++);
+        _dpdTheta(i+_first) = static_cast<KK_FLOAT>(_buf(i,m++));
+        _uCond(i+_first) = static_cast<KK_FLOAT>(_buf(i,m++));
+        _uMech(i+_first) = static_cast<KK_FLOAT>(_buf(i,m++));
+        _uChem(i+_first) = static_cast<KK_FLOAT>(_buf(i,m++));
       }
     }
   }
@@ -423,13 +423,13 @@ struct AtomVecKokkos_PackCommSelf {
       _x(i+_nfirst,2) = _x(j,2);
     } else {
       if (TRICLINIC == 0) {
-        _x(i+_nfirst,0) = _x(j,0) + _pbc[0]*_xprd;
-        _x(i+_nfirst,1) = _x(j,1) + _pbc[1]*_yprd;
-        _x(i+_nfirst,2) = _x(j,2) + _pbc[2]*_zprd;
+        _x(i+_nfirst,0) = _x(j,0) + static_cast<KK_FLOAT>(_pbc[0]*_xprd);
+        _x(i+_nfirst,1) = _x(j,1) + static_cast<KK_FLOAT>(_pbc[1]*_yprd);
+        _x(i+_nfirst,2) = _x(j,2) + static_cast<KK_FLOAT>(_pbc[2]*_zprd);
       } else {
-        _x(i+_nfirst,0) = _x(j,0) + _pbc[0]*_xprd + _pbc[5]*_xy + _pbc[4]*_xz;
-        _x(i+_nfirst,1) = _x(j,1) + _pbc[1]*_yprd + _pbc[3]*_yz;
-        _x(i+_nfirst,2) = _x(j,2) + _pbc[2]*_zprd;
+        _x(i+_nfirst,0) = _x(j,0) + static_cast<KK_FLOAT>(_pbc[0]*_xprd) + static_cast<KK_FLOAT>(_pbc[5]*_xy) + static_cast<KK_FLOAT>(_pbc[4]*_xz);
+        _x(i+_nfirst,1) = _x(j,1) + static_cast<KK_FLOAT>(_pbc[1]*_yprd) + static_cast<KK_FLOAT>(_pbc[3]*_yz);
+        _x(i+_nfirst,2) = _x(j,2) + static_cast<KK_FLOAT>(_pbc[2]*_zprd);
       }
     }
 
@@ -660,13 +660,13 @@ struct AtomVecKokkos_PackCommSelfFused {
       _x(i+_nfirst,2) = _x(j,2);
     } else {
       if (TRICLINIC == 0) {
-        _x(i+_nfirst,0) = _x(j,0) + _pbc(ii,0)*_xprd;
-        _x(i+_nfirst,1) = _x(j,1) + _pbc(ii,1)*_yprd;
-        _x(i+_nfirst,2) = _x(j,2) + _pbc(ii,2)*_zprd;
+        _x(i+_nfirst,0) = _x(j,0) + static_cast<KK_FLOAT>(_pbc(ii,0)*_xprd);
+        _x(i+_nfirst,1) = _x(j,1) + static_cast<KK_FLOAT>(_pbc(ii,1)*_yprd);
+        _x(i+_nfirst,2) = _x(j,2) + static_cast<KK_FLOAT>(_pbc(ii,2)*_zprd);
       } else {
-        _x(i+_nfirst,0) = _x(j,0) + _pbc(ii,0)*_xprd + _pbc(ii,5)*_xy + _pbc(ii,4)*_xz;
-        _x(i+_nfirst,1) = _x(j,1) + _pbc(ii,1)*_yprd + _pbc(ii,3)*_yz;
-        _x(i+_nfirst,2) = _x(j,2) + _pbc(ii,2)*_zprd;
+        _x(i+_nfirst,0) = _x(j,0) + static_cast<KK_FLOAT>(_pbc(ii,0)*_xprd) + static_cast<KK_FLOAT>(_pbc(ii,5)*_xy) + static_cast<KK_FLOAT>(_pbc(ii,4)*_xz);
+        _x(i+_nfirst,1) = _x(j,1) + static_cast<KK_FLOAT>(_pbc(ii,1)*_yprd) + static_cast<KK_FLOAT>(_pbc(ii,3)*_yz);
+        _x(i+_nfirst,2) = _x(j,2) + static_cast<KK_FLOAT>(_pbc(ii,2)*_zprd);
       }
     }
 
@@ -836,36 +836,36 @@ struct AtomVecKokkos_PackCommVel {
     int m = 0;
     const int j = _list(i);
     if constexpr (PBC_FLAG == 0) {
-      _buf(i,m++) = _x(j,0);
-      _buf(i,m++) = _x(j,1);
-      _buf(i,m++) = _x(j,2);
-      _buf(i,m++) = _v(j,0);
-      _buf(i,m++) = _v(j,1);
-      _buf(i,m++) = _v(j,2);
+      _buf(i,m++) = static_cast<double>(_x(j,0));
+      _buf(i,m++) = static_cast<double>(_x(j,1));
+      _buf(i,m++) = static_cast<double>(_x(j,2));
+      _buf(i,m++) = static_cast<double>(_v(j,0));
+      _buf(i,m++) = static_cast<double>(_v(j,1));
+      _buf(i,m++) = static_cast<double>(_v(j,2));
     } else {
       if (TRICLINIC == 0) {
-        _buf(i,m++) = _x(j,0) + _pbc[0]*_xprd;
-        _buf(i,m++) = _x(j,1) + _pbc[1]*_yprd;
-        _buf(i,m++) = _x(j,2) + _pbc[2]*_zprd;
+        _buf(i,m++) = static_cast<double>(_x(j,0)) + _pbc[0]*_xprd;
+        _buf(i,m++) = static_cast<double>(_x(j,1)) + _pbc[1]*_yprd;
+        _buf(i,m++) = static_cast<double>(_x(j,2)) + _pbc[2]*_zprd;
              } else {
-        _buf(i,m++) = _x(j,0) + _pbc[0]*_xprd + _pbc[5]*_xy + _pbc[4]*_xz;
-        _buf(i,m++) = _x(j,1) + _pbc[1]*_yprd + _pbc[3]*_yz;
-        _buf(i,m++) = _x(j,2) + _pbc[2]*_zprd;
+        _buf(i,m++) = static_cast<double>(_x(j,0)) + _pbc[0]*_xprd + _pbc[5]*_xy + _pbc[4]*_xz;
+        _buf(i,m++) = static_cast<double>(_x(j,1)) + _pbc[1]*_yprd + _pbc[3]*_yz;
+        _buf(i,m++) = static_cast<double>(_x(j,2)) + _pbc[2]*_zprd;
       }
 
       if constexpr (DEFORM_VREMAP == 0) {
-        _buf(i,m++) = _v(j,0);
-        _buf(i,m++) = _v(j,1);
-        _buf(i,m++) = _v(j,2);
+        _buf(i,m++) = static_cast<double>(_v(j,0));
+        _buf(i,m++) = static_cast<double>(_v(j,1));
+        _buf(i,m++) = static_cast<double>(_v(j,2));
       } else {
         if (_mask(i) & _deform_vremap) {
-          _buf(i,m++) = _v(j,0) + _pbc[0]*_h_rate[0] + _pbc[5]*_h_rate[5] + _pbc[4]*_h_rate[4];
-          _buf(i,m++) = _v(j,1) + _pbc[1]*_h_rate[1] + _pbc[3]*_h_rate[3];
-          _buf(i,m++) = _v(j,2) + _pbc[2]*_h_rate[2];
+          _buf(i,m++) = static_cast<double>(_v(j,0)) + _pbc[0]*_h_rate[0] + _pbc[5]*_h_rate[5] + _pbc[4]*_h_rate[4];
+          _buf(i,m++) = static_cast<double>(_v(j,1)) + _pbc[1]*_h_rate[1] + _pbc[3]*_h_rate[3];
+          _buf(i,m++) = static_cast<double>(_v(j,2)) + _pbc[2]*_h_rate[2];
         } else {
-          _buf(i,m++) = _v(j,0);
-          _buf(i,m++) = _v(j,1);
-          _buf(i,m++) = _v(j,2);
+          _buf(i,m++) = static_cast<double>(_v(j,0));
+          _buf(i,m++) = static_cast<double>(_v(j,1));
+          _buf(i,m++) = static_cast<double>(_v(j,2));
         }
       }
     }
@@ -873,43 +873,43 @@ struct AtomVecKokkos_PackCommVel {
     // angmom: included for ellipsoid
 
     if (_datamask & ANGMOM_MASK) {
-      _buf(i,m++) = _angmom(j,0);
-      _buf(i,m++) = _angmom(j,1);
-      _buf(i,m++) = _angmom(j,2);
+      _buf(i,m++) = static_cast<double>(_angmom(j,0));
+      _buf(i,m++) = static_cast<double>(_angmom(j,1));
+      _buf(i,m++) = static_cast<double>(_angmom(j,2));
     }
 
     // DIPOLE package
 
     if (_datamask & MU_MASK) {
-      _buf(i,m++) = _mu(j,0);
-      _buf(i,m++) = _mu(j,1);
-      _buf(i,m++) = _mu(j,2);
+      _buf(i,m++) = static_cast<double>(_mu(j,0));
+      _buf(i,m++) = static_cast<double>(_mu(j,1));
+      _buf(i,m++) = static_cast<double>(_mu(j,2));
     }
 
     // SPIN package
 
     if (_datamask & SP_MASK) {
-      _buf(i,m++) = _sp(j,0);
-      _buf(i,m++) = _sp(j,1);
-      _buf(i,m++) = _sp(j,2);
-      _buf(i,m++) = _sp(j,3);
+      _buf(i,m++) = static_cast<double>(_sp(j,0));
+      _buf(i,m++) = static_cast<double>(_sp(j,1));
+      _buf(i,m++) = static_cast<double>(_sp(j,2));
+      _buf(i,m++) = static_cast<double>(_sp(j,3));
     }
 
     // SPHERE package
 
     if (_datamask & OMEGA_MASK) {
-      _buf(i,m++) = _omega(j,0);
-      _buf(i,m++) = _omega(j,1);
-      _buf(i,m++) = _omega(j,2);
+      _buf(i,m++) = static_cast<double>(_omega(j,0));
+      _buf(i,m++) = static_cast<double>(_omega(j,1));
+      _buf(i,m++) = static_cast<double>(_omega(j,2));
     }
 
       // DPD-REACT package
 
     if (_datamask & DPDTHETA_MASK) {
-      _buf(i,m++) = _dpdTheta(j);
-      _buf(i,m++) = _uCond(j);
-      _buf(i,m++) = _uMech(j);
-      _buf(i,m++) = _uChem(j);
+      _buf(i,m++) = static_cast<double>(_dpdTheta(j));
+      _buf(i,m++) = static_cast<double>(_uCond(j));
+      _buf(i,m++) = static_cast<double>(_uMech(j));
+      _buf(i,m++) = static_cast<double>(_uChem(j));
     }
   }
 };
@@ -1091,55 +1091,55 @@ struct AtomVecKokkos_UnpackCommVel {
   KOKKOS_INLINE_FUNCTION
   void operator() (const int& i) const {
     int m = 0;
-    _x(i+_first,0) = _buf(i,m++);
-    _x(i+_first,1) = _buf(i,m++);
-    _x(i+_first,2) = _buf(i,m++);
-    _v(i+_first,0) = _buf(i,m++);
-    _v(i+_first,1) = _buf(i,m++);
-    _v(i+_first,2) = _buf(i,m++);
+    _x(i+_first,0) = static_cast<KK_FLOAT>(_buf(i,m++));
+    _x(i+_first,1) = static_cast<KK_FLOAT>(_buf(i,m++));
+    _x(i+_first,2) = static_cast<KK_FLOAT>(_buf(i,m++));
+    _v(i+_first,0) = static_cast<KK_FLOAT>(_buf(i,m++));
+    _v(i+_first,1) = static_cast<KK_FLOAT>(_buf(i,m++));
+    _v(i+_first,2) = static_cast<KK_FLOAT>(_buf(i,m++));
 
     if constexpr (!DEFAULT) {
 
       // angmom: included for ellipsoid
 
       if (_datamask & ANGMOM_MASK) {
-        _angmom(i+_first,0) = _buf(i,m++);
-        _angmom(i+_first,1) = _buf(i,m++);
-        _angmom(i+_first,2) = _buf(i,m++);
+        _angmom(i+_first,0) = static_cast<KK_FLOAT>(_buf(i,m++));
+        _angmom(i+_first,1) = static_cast<KK_FLOAT>(_buf(i,m++));
+        _angmom(i+_first,2) = static_cast<KK_FLOAT>(_buf(i,m++));
       }
 
       // DIPOLE package
 
       if (_datamask & MU_MASK) {
-        _mu(i+_first,0) = _buf(i,m++);
-        _mu(i+_first,1) = _buf(i,m++);
-        _mu(i+_first,2) = _buf(i,m++);
+        _mu(i+_first,0) = static_cast<KK_FLOAT>(_buf(i,m++));
+        _mu(i+_first,1) = static_cast<KK_FLOAT>(_buf(i,m++));
+        _mu(i+_first,2) = static_cast<KK_FLOAT>(_buf(i,m++));
       }
 
       // SPIN package
 
       if (_datamask & SP_MASK) {
-        _sp(i+_first,0) = _buf(i,m++);
-        _sp(i+_first,1) = _buf(i,m++);
-        _sp(i+_first,2) = _buf(i,m++);
-        _sp(i+_first,3) = _buf(i,m++);
+        _sp(i+_first,0) = static_cast<KK_FLOAT>(_buf(i,m++));
+        _sp(i+_first,1) = static_cast<KK_FLOAT>(_buf(i,m++));
+        _sp(i+_first,2) = static_cast<KK_FLOAT>(_buf(i,m++));
+        _sp(i+_first,3) = static_cast<KK_FLOAT>(_buf(i,m++));
       }
 
       // SPHERE package
 
       if (_datamask & OMEGA_MASK) {
-        _omega(i+_first,0) = _buf(i,m++);
-        _omega(i+_first,1) = _buf(i,m++);
-        _omega(i+_first,2) = _buf(i,m++);
+        _omega(i+_first,0) = static_cast<KK_FLOAT>(_buf(i,m++));
+        _omega(i+_first,1) = static_cast<KK_FLOAT>(_buf(i,m++));
+        _omega(i+_first,2) = static_cast<KK_FLOAT>(_buf(i,m++));
       }
 
       // DPD-REACT package
 
       if (_datamask & DPDTHETA_MASK) {
-        _dpdTheta(i+_first) = _buf(i,m++);
-        _uCond(i+_first) = _buf(i,m++);
-        _uMech(i+_first) = _buf(i,m++);
-        _uChem(i+_first) = _buf(i,m++);
+        _dpdTheta(i+_first) = static_cast<KK_FLOAT>(_buf(i,m++));
+        _uCond(i+_first) = static_cast<KK_FLOAT>(_buf(i,m++));
+        _uMech(i+_first) = static_cast<KK_FLOAT>(_buf(i,m++));
+        _uChem(i+_first) = static_cast<KK_FLOAT>(_buf(i,m++));
       }
     }
   }
@@ -1193,9 +1193,9 @@ struct AtomVecKokkos_PackReverse {
     const typename DAT::tdual_double_2d_lr &buf,
     const int &first, const uint64_t &datamask):
       _f(atomKK->k_f.view<DeviceType>()),
-      _torque(atomKK->k_torque.view<DeviceType>()),
       _fm(atomKK->k_fm.view<DeviceType>()),
       _fm_long(atomKK->k_fm_long.view<DeviceType>()),
+      _torque(atomKK->k_torque.view<DeviceType>()),
       _first(first),_datamask(datamask) {
         const size_t elements = atomKK->avecKK->size_reverse;
         const size_t maxsend = (buf.view<DeviceType>().extent(0)*buf.view<DeviceType>().extent(1))/elements;
@@ -1206,30 +1206,30 @@ struct AtomVecKokkos_PackReverse {
   KOKKOS_INLINE_FUNCTION
   void operator() (const int& i) const {
     int m = 0;
-    _buf(i,m++) = _f(i+_first,0);
-    _buf(i,m++) = _f(i+_first,1);
-    _buf(i,m++) = _f(i+_first,2);
+    _buf(i,m++) = static_cast<double>(_f(i+_first,0));
+    _buf(i,m++) = static_cast<double>(_f(i+_first,1));
+    _buf(i,m++) = static_cast<double>(_f(i+_first,2));
 
     if constexpr (!DEFAULT) {
 
       // DIPLE package
 
       if (_datamask & TORQUE_MASK) {
-        _buf(i,m++) = _torque(i+_first,0);
-        _buf(i,m++) = _torque(i+_first,1);
-        _buf(i,m++) = _torque(i+_first,2);
+        _buf(i,m++) = static_cast<double>(_torque(i+_first,0));
+        _buf(i,m++) = static_cast<double>(_torque(i+_first,1));
+        _buf(i,m++) = static_cast<double>(_torque(i+_first,2));
       }
 
       // SPIN package
 
       if (_datamask & FM_MASK) {
-        _buf(i,m++) = _fm(i+_first,0);
-        _buf(i,m++) = _fm(i+_first,1);
-        _buf(i,m++) = _fm(i+_first,2);
+        _buf(i,m++) = static_cast<double>(_fm(i+_first,0));
+        _buf(i,m++) = static_cast<double>(_fm(i+_first,1));
+        _buf(i,m++) = static_cast<double>(_fm(i+_first,2));
 
-        _buf(i,m++) = _fm_long(i+_first,0);
-        _buf(i,m++) = _fm_long(i+_first,1);
-        _buf(i,m++) = _fm_long(i+_first,2);
+        _buf(i,m++) = static_cast<double>(_fm_long(i+_first,0));
+        _buf(i,m++) = static_cast<double>(_fm_long(i+_first,1));
+        _buf(i,m++) = static_cast<double>(_fm_long(i+_first,2));
       }
     }
   }
@@ -1281,9 +1281,9 @@ struct AtomVecKokkos_UnPackReverse {
     const typename DAT::tdual_int_1d &list,
     const uint64_t datamask):
       _f(atomKK->k_f.view<DeviceType>()),
-      _torque(atomKK->k_torque.view<DeviceType>()),
       _fm(atomKK->k_fm.view<DeviceType>()),
       _fm_long(atomKK->k_fm_long.view<DeviceType>()),
+      _torque(atomKK->k_torque.view<DeviceType>()),
       _list(list.view<DeviceType>()),
       _datamask(datamask) {
         const size_t elements = atomKK->avecKK->size_reverse;
@@ -1296,30 +1296,30 @@ struct AtomVecKokkos_UnPackReverse {
   void operator() (const int& i) const {
     int m = 0;
     const int j = _list(i);
-    _f(j,0) += _buf(i,m++);
-    _f(j,1) += _buf(i,m++);
-    _f(j,2) += _buf(i,m++);
+    _f(j,0) += static_cast<KK_ACC_FLOAT>(_buf(i,m++));
+    _f(j,1) += static_cast<KK_ACC_FLOAT>(_buf(i,m++));
+    _f(j,2) += static_cast<KK_ACC_FLOAT>(_buf(i,m++));
 
     if constexpr (!DEFAULT) {
 
       // DIPOLE package
 
       if (_datamask & TORQUE_MASK) {
-        _torque(j,0) += _buf(i,m++);
-        _torque(j,1) += _buf(i,m++);
-        _torque(j,2) += _buf(i,m++);
+        _torque(j,0) += static_cast<KK_ACC_FLOAT>(_buf(i,m++));
+        _torque(j,1) += static_cast<KK_ACC_FLOAT>(_buf(i,m++));
+        _torque(j,2) += static_cast<KK_ACC_FLOAT>(_buf(i,m++));
       }
 
       // SPIN package
 
       if (_datamask & FM_MASK) {
-        _fm(j,0) += _buf(i,m++);
-        _fm(j,1) += _buf(i,m++);
-        _fm(j,2) += _buf(i,m++);
+        _fm(j,0) += static_cast<KK_ACC_FLOAT>(_buf(i,m++));
+        _fm(j,1) += static_cast<KK_ACC_FLOAT>(_buf(i,m++));
+        _fm(j,2) += static_cast<KK_ACC_FLOAT>(_buf(i,m++));
 
-        _fm_long(j,0) += _buf(i,m++);
-        _fm_long(j,1) += _buf(i,m++);
-        _fm_long(j,2) += _buf(i,m++);
+        _fm_long(j,0) += static_cast<KK_ACC_FLOAT>(_buf(i,m++));
+        _fm_long(j,1) += static_cast<KK_ACC_FLOAT>(_buf(i,m++));
+        _fm_long(j,2) += static_cast<KK_ACC_FLOAT>(_buf(i,m++));
       }
     }
   }
@@ -1376,10 +1376,10 @@ struct AtomVecKokkos_UnPackReverseSelf {
     const typename DAT::tdual_int_1d &list,
     const uint64_t &datamask):
       _f(atomKK->k_f.view<DeviceType>()),
-      _torque(atomKK->k_torque.view<DeviceType>()),
       _fm(atomKK->k_fm.view<DeviceType>()),
       _fm_long(atomKK->k_fm_long.view<DeviceType>()),
-      _nfirst(nfirst),_list(list.view<DeviceType>()),
+      _torque(atomKK->k_torque.view<DeviceType>()),
+      _list(list.view<DeviceType>()),_nfirst(nfirst),
       _datamask(datamask) {};
 
 // NOLINTNEXTLINE
@@ -1496,13 +1496,13 @@ struct AtomVecKokkos_PackBorder {
     const int j = _list(i);
     int m = 0;
     if constexpr (PBC_FLAG == 0) {
-      _buf(i,m++) = _x(j,0);
-      _buf(i,m++) = _x(j,1);
-      _buf(i,m++) = _x(j,2);
+      _buf(i,m++) = static_cast<double>(_x(j,0));
+      _buf(i,m++) = static_cast<double>(_x(j,1));
+      _buf(i,m++) = static_cast<double>(_x(j,2));
     } else {
-      _buf(i,m++) = _x(j,0) + _dx;
-      _buf(i,m++) = _x(j,1) + _dy;
-      _buf(i,m++) = _x(j,2) + _dz;
+      _buf(i,m++) = static_cast<double>(_x(j,0)) + _dx;
+      _buf(i,m++) = static_cast<double>(_x(j,1)) + _dy;
+      _buf(i,m++) = static_cast<double>(_x(j,2)) + _dz;
     }
 
     _buf(i,m++) = d_ubuf(_tag(j)).d;
@@ -1515,37 +1515,37 @@ struct AtomVecKokkos_PackBorder {
         _buf(i,m++) = d_ubuf(_molecule(j)).d;
 
       if (_datamask & Q_MASK)
-        _buf(i,m++) = _q(j);
+        _buf(i,m++) = static_cast<double>(_q(j));
 
       if (_datamask & MU_MASK) {
-        _buf(i,m++) = _mu(j,0);
-        _buf(i,m++) = _mu(j,1);
-        _buf(i,m++) = _mu(j,2);
-        _buf(i,m++) = _mu(j,3);
+        _buf(i,m++) = static_cast<double>(_mu(j,0));
+        _buf(i,m++) = static_cast<double>(_mu(j,1));
+        _buf(i,m++) = static_cast<double>(_mu(j,2));
+        _buf(i,m++) = static_cast<double>(_mu(j,3));
       }
 
       if (_datamask & SP_MASK) {
-        _buf(i,m++) = _sp(j,0);
-        _buf(i,m++) = _sp(j,1);
-        _buf(i,m++) = _sp(j,2);
-        _buf(i,m++) = _sp(j,3);
+        _buf(i,m++) = static_cast<double>(_sp(j,0));
+        _buf(i,m++) = static_cast<double>(_sp(j,1));
+        _buf(i,m++) = static_cast<double>(_sp(j,2));
+        _buf(i,m++) = static_cast<double>(_sp(j,3));
       }
 
       if (_datamask & RADIUS_MASK)
-        _buf(i,m++) = _radius(j);
+        _buf(i,m++) = static_cast<double>(_radius(j));
 
       if (_datamask & RMASS_MASK)
-        _buf(i,m++) = _rmass(j);
+        _buf(i,m++) = static_cast<double>(_rmass(j));
 
       // DPD-REACT package
 
       if (_datamask & DPDTHETA_MASK) {
-        _buf(i,m++) = _dpdTheta(j);
-        _buf(i,m++) = _uCond(j);
-        _buf(i,m++) = _uMech(j);
-        _buf(i,m++) = _uChem(j);
-        _buf(i,m++) = _uCG(j);
-        _buf(i,m++) = _uCGnew(j);
+        _buf(i,m++) = static_cast<double>(_dpdTheta(j));
+        _buf(i,m++) = static_cast<double>(_uCond(j));
+        _buf(i,m++) = static_cast<double>(_uMech(j));
+        _buf(i,m++) = static_cast<double>(_uChem(j));
+        _buf(i,m++) = static_cast<double>(_uCG(j));
+        _buf(i,m++) = static_cast<double>(_uCGnew(j));
       }
     }
   }
@@ -1679,9 +1679,9 @@ struct AtomVecKokkos_UnpackBorder {
   KOKKOS_INLINE_FUNCTION
   void operator() (const int& i) const {
     int m = 0;
-    _x(i+_first,0) = _buf(i,m++);
-    _x(i+_first,1) = _buf(i,m++);
-    _x(i+_first,2) = _buf(i,m++);
+    _x(i+_first,0) = static_cast<KK_FLOAT>(_buf(i,m++));
+    _x(i+_first,1) = static_cast<KK_FLOAT>(_buf(i,m++));
+    _x(i+_first,2) = static_cast<KK_FLOAT>(_buf(i,m++));
     _tag(i+_first) = (tagint) d_ubuf(_buf(i,m++)).i;
     _type(i+_first) = (int) d_ubuf(_buf(i,m++)).i;
     _mask(i+_first) = (int) d_ubuf(_buf(i,m++)).i;
@@ -1692,37 +1692,37 @@ struct AtomVecKokkos_UnpackBorder {
         _molecule(i+_first) = (tagint) d_ubuf(_buf(i,m++)).i;
 
       if (_datamask & Q_MASK)
-        _q(i+_first) = _buf(i,m++);
+        _q(i+_first) = static_cast<KK_FLOAT>(_buf(i,m++));
 
       if (_datamask & MU_MASK) {
-        _mu(i+_first,0) = _buf(i,m++);
-        _mu(i+_first,1) = _buf(i,m++);
-        _mu(i+_first,2) = _buf(i,m++);
-        _mu(i+_first,3) = _buf(i,m++);
+        _mu(i+_first,0) = static_cast<KK_FLOAT>(_buf(i,m++));
+        _mu(i+_first,1) = static_cast<KK_FLOAT>(_buf(i,m++));
+        _mu(i+_first,2) = static_cast<KK_FLOAT>(_buf(i,m++));
+        _mu(i+_first,3) = static_cast<KK_FLOAT>(_buf(i,m++));
       }
 
       if (_datamask & SP_MASK) {
-        _sp(i+_first,0) = _buf(i,m++);
-        _sp(i+_first,1) = _buf(i,m++);
-        _sp(i+_first,2) = _buf(i,m++);
-        _sp(i+_first,3) = _buf(i,m++);
+        _sp(i+_first,0) = static_cast<KK_FLOAT>(_buf(i,m++));
+        _sp(i+_first,1) = static_cast<KK_FLOAT>(_buf(i,m++));
+        _sp(i+_first,2) = static_cast<KK_FLOAT>(_buf(i,m++));
+        _sp(i+_first,3) = static_cast<KK_FLOAT>(_buf(i,m++));
       }
 
       if (_datamask & RADIUS_MASK)
-        _radius(i+_first) = _buf(i,m++);
+        _radius(i+_first) = static_cast<KK_FLOAT>(_buf(i,m++));
 
       if (_datamask & RMASS_MASK)
-        _rmass(i+_first) = _buf(i,m++);
+        _rmass(i+_first) = static_cast<KK_FLOAT>(_buf(i,m++));
 
       // DPD-REACT package
 
       if (_datamask & DPDTHETA_MASK) {
-        _dpdTheta(i+_first) = _buf(i,m++);
-        _uCond(i+_first) = _buf(i,m++);
-        _uMech(i+_first) = _buf(i,m++);
-        _uChem(i+_first) = _buf(i,m++);
-        _uCG(i+_first) = _buf(i,m++);
-        _uCGnew(i+_first) = _buf(i,m++);
+        _dpdTheta(i+_first) = static_cast<KK_FLOAT>(_buf(i,m++));
+        _uCond(i+_first) = static_cast<KK_FLOAT>(_buf(i,m++));
+        _uMech(i+_first) = static_cast<KK_FLOAT>(_buf(i,m++));
+        _uChem(i+_first) = static_cast<KK_FLOAT>(_buf(i,m++));
+        _uCG(i+_first) = static_cast<KK_FLOAT>(_buf(i,m++));
+        _uCGnew(i+_first) = static_cast<KK_FLOAT>(_buf(i,m++));
       }
     }
   }
@@ -1798,15 +1798,15 @@ struct AtomVecKokkos_PackBorderVel {
     const double &dvx, const double &dvy, const double &dvz,
     const int &deform_groupbit,
     const uint64_t &datamask):
-      _buf(buf),_list(list),_datamask(datamask),
+      _buf(buf),_list(list),
       _x(atomKK->k_x.view<DeviceType>()),
+      _v(atomKK->k_v.view<DeviceType>()),
       _tag(atomKK->k_tag.view<DeviceType>()),
       _type(atomKK->k_type.view<DeviceType>()),
       _mask(atomKK->k_mask.view<DeviceType>()),
       _angmom(atomKK->k_angmom.view<DeviceType>()),
       _molecule(atomKK->k_molecule.view<DeviceType>()),
       _q(atomKK->k_q.view<DeviceType>()),
-      _v(atomKK->k_v.view<DeviceType>()),
       _mu(atomKK->k_mu.view<DeviceType>()),
       _sp(atomKK->k_sp.view<DeviceType>()),
       _radius(atomKK->k_radius.view<DeviceType>()),
@@ -1820,7 +1820,8 @@ struct AtomVecKokkos_PackBorderVel {
       _uCGnew(atomKK->k_uCGnew.view<DeviceType>()),
       _dx(dx),_dy(dy),_dz(dz),
       _dvx(dvx),_dvy(dvy),_dvz(dvz),
-      _deform_groupbit(deform_groupbit) {
+      _deform_groupbit(deform_groupbit),
+      _datamask(datamask) {
         const size_t elements = atomKK->avecKK->size_border + atomKK->avecKK->size_velocity;
         const int maxsend = (buf.extent(0)*buf.extent(1))/elements;
         _buf = typename AT::t_double_2d_lr_um(buf.data(),maxsend,elements);
@@ -1832,13 +1833,13 @@ struct AtomVecKokkos_PackBorderVel {
     int m = 0;
     const int j = _list(i);
     if constexpr (PBC_FLAG == 0) {
-      _buf(i,m++) = _x(j,0);
-      _buf(i,m++) = _x(j,1);
-      _buf(i,m++) = _x(j,2);
+      _buf(i,m++) = static_cast<double>(_x(j,0));
+      _buf(i,m++) = static_cast<double>(_x(j,1));
+      _buf(i,m++) = static_cast<double>(_x(j,2));
     } else {
-      _buf(i,m++) = _x(j,0) + _dx;
-      _buf(i,m++) = _x(j,1) + _dy;
-      _buf(i,m++) = _x(j,2) + _dz;
+      _buf(i,m++) = static_cast<double>(_x(j,0)) + _dx;
+      _buf(i,m++) = static_cast<double>(_x(j,1)) + _dy;
+      _buf(i,m++) = static_cast<double>(_x(j,2)) + _dz;
     }
     _buf(i,m++) = d_ubuf(_tag(j)).d;
     _buf(i,m++) = d_ubuf(_type(j)).d;
@@ -1846,65 +1847,65 @@ struct AtomVecKokkos_PackBorderVel {
 
     if constexpr (DEFORM_VREMAP) {
       if (_mask(i) & _deform_groupbit) {
-        _buf(i,m++) = _v(j,0) + _dvx;
-        _buf(i,m++) = _v(j,1) + _dvy;
-        _buf(i,m++) = _v(j,2) + _dvz;
+        _buf(i,m++) = static_cast<double>(_v(j,0)) + _dvx;
+        _buf(i,m++) = static_cast<double>(_v(j,1)) + _dvy;
+        _buf(i,m++) = static_cast<double>(_v(j,2)) + _dvz;
       }
     } else {
-      _buf(i,m++) = _v(j,0);
-      _buf(i,m++) = _v(j,1);
-      _buf(i,m++) = _v(j,2);
+      _buf(i,m++) = static_cast<double>(_v(j,0));
+      _buf(i,m++) = static_cast<double>(_v(j,1));
+      _buf(i,m++) = static_cast<double>(_v(j,2));
     }
 
     // angmom: included for ellipsoid
 
     if (_datamask & ANGMOM_MASK) {
-      _buf(i,m++) = _angmom(j,0);
-      _buf(i,m++) = _angmom(j,1);
-      _buf(i,m++) = _angmom(j,2);
+      _buf(i,m++) = static_cast<double>(_angmom(j,0));
+      _buf(i,m++) = static_cast<double>(_angmom(j,1));
+      _buf(i,m++) = static_cast<double>(_angmom(j,2));
     }
 
     if (_datamask & MOLECULE_MASK)
       _buf(i,m++) = d_ubuf(_molecule(j)).d;
 
     if (_datamask & Q_MASK)
-      _buf(i,m++) = _q(j);
+      _buf(i,m++) = static_cast<double>(_q(j));
 
     if (_datamask & MU_MASK) {
-      _buf(i,m++) = _mu(j,0);
-      _buf(i,m++) = _mu(j,1);
-      _buf(i,m++) = _mu(j,2);
-      _buf(i,m++) = _mu(j,3);
+      _buf(i,m++) = static_cast<double>(_mu(j,0));
+      _buf(i,m++) = static_cast<double>(_mu(j,1));
+      _buf(i,m++) = static_cast<double>(_mu(j,2));
+      _buf(i,m++) = static_cast<double>(_mu(j,3));
     }
 
     if (_datamask & SP_MASK) {
-      _buf(i,m++) = _sp(j,0);
-      _buf(i,m++) = _sp(j,1);
-      _buf(i,m++) = _sp(j,2);
-      _buf(i,m++) = _sp(j,3);
+      _buf(i,m++) = static_cast<double>(_sp(j,0));
+      _buf(i,m++) = static_cast<double>(_sp(j,1));
+      _buf(i,m++) = static_cast<double>(_sp(j,2));
+      _buf(i,m++) = static_cast<double>(_sp(j,3));
     }
 
     if (_datamask & RADIUS_MASK)
-      _buf(i,m++) = _radius(j);
+      _buf(i,m++) = static_cast<double>(_radius(j));
 
     if (_datamask & RMASS_MASK)
-      _buf(i,m++) = _rmass(j);
+      _buf(i,m++) = static_cast<double>(_rmass(j));
 
     if (_datamask & OMEGA_MASK) {
-      _buf(i,m++) = _omega(j,0);
-      _buf(i,m++) = _omega(j,1);
-      _buf(i,m++) = _omega(j,2);
+      _buf(i,m++) = static_cast<double>(_omega(j,0));
+      _buf(i,m++) = static_cast<double>(_omega(j,1));
+      _buf(i,m++) = static_cast<double>(_omega(j,2));
     }
 
     // DPD-REACT package
 
     if (_datamask & DPDTHETA_MASK) {
-      _buf(i,m++) = _dpdTheta(j);
-      _buf(i,m++) = _uCond(j);
-      _buf(i,m++) = _uMech(j);
-      _buf(i,m++) = _uChem(j);
-      _buf(i,m++) = _uCG(j);
-      _buf(i,m++) = _uCGnew(j);
+      _buf(i,m++) = static_cast<double>(_dpdTheta(j));
+      _buf(i,m++) = static_cast<double>(_uCond(j));
+      _buf(i,m++) = static_cast<double>(_uMech(j));
+      _buf(i,m++) = static_cast<double>(_uChem(j));
+      _buf(i,m++) = static_cast<double>(_uCG(j));
+      _buf(i,m++) = static_cast<double>(_uCGnew(j));
     }
   }
 };
@@ -2050,67 +2051,67 @@ struct AtomVecKokkos_UnpackBorderVel {
   KOKKOS_INLINE_FUNCTION
   void operator() (const int& i) const {
     int m = 0;
-    _x(i+_first,0) = _buf(i,m++);
-    _x(i+_first,1) = _buf(i,m++);
-    _x(i+_first,2) = _buf(i,m++);
+    _x(i+_first,0) = static_cast<KK_FLOAT>(_buf(i,m++));
+    _x(i+_first,1) = static_cast<KK_FLOAT>(_buf(i,m++));
+    _x(i+_first,2) = static_cast<KK_FLOAT>(_buf(i,m++));
     _tag(i+_first) = static_cast<tagint>(d_ubuf(_buf(i,m++)).i);
     _type(i+_first) = static_cast<int>(d_ubuf(_buf(i,m++)).i);
     _mask(i+_first) = static_cast<int>(d_ubuf(_buf(i,m++)).i);
-    _v(i+_first,0) = _buf(i,m++);
-    _v(i+_first,1) = _buf(i,m++);
-    _v(i+_first,2) = _buf(i,m++);
+    _v(i+_first,0) = static_cast<KK_FLOAT>(_buf(i,m++));
+    _v(i+_first,1) = static_cast<KK_FLOAT>(_buf(i,m++));
+    _v(i+_first,2) = static_cast<KK_FLOAT>(_buf(i,m++));
 
     if constexpr (!DEFAULT) {
 
       // angmom: included for ellipsoid
 
       if (_datamask & ANGMOM_MASK) {
-        _angmom(i+_first,0) = _buf(i,m++);
-        _angmom(i+_first,1) = _buf(i,m++);
-        _angmom(i+_first,2) = _buf(i,m++);
+        _angmom(i+_first,0) = static_cast<KK_FLOAT>(_buf(i,m++));
+        _angmom(i+_first,1) = static_cast<KK_FLOAT>(_buf(i,m++));
+        _angmom(i+_first,2) = static_cast<KK_FLOAT>(_buf(i,m++));
       }
 
       if (_datamask & MOLECULE_MASK)
         _molecule(i+_first) = (tagint) d_ubuf(_buf(i,m++)).i;
 
       if (_datamask & Q_MASK)
-        _q(i+_first) = _buf(i,m++);
+        _q(i+_first) = static_cast<KK_FLOAT>(_buf(i,m++));
 
       if (_datamask & MU_MASK) {
-        _mu(i+_first,0) = _buf(i,m++);
-        _mu(i+_first,1) = _buf(i,m++);
-        _mu(i+_first,2) = _buf(i,m++);
-        _mu(i+_first,3) = _buf(i,m++);
+        _mu(i+_first,0) = static_cast<KK_FLOAT>(_buf(i,m++));
+        _mu(i+_first,1) = static_cast<KK_FLOAT>(_buf(i,m++));
+        _mu(i+_first,2) = static_cast<KK_FLOAT>(_buf(i,m++));
+        _mu(i+_first,3) = static_cast<KK_FLOAT>(_buf(i,m++));
       }
 
       if (_datamask & SP_MASK) {
-        _sp(i+_first,0) = _buf(i,m++);
-        _sp(i+_first,1) = _buf(i,m++);
-        _sp(i+_first,2) = _buf(i,m++);
-        _sp(i+_first,3) = _buf(i,m++);
+        _sp(i+_first,0) = static_cast<KK_FLOAT>(_buf(i,m++));
+        _sp(i+_first,1) = static_cast<KK_FLOAT>(_buf(i,m++));
+        _sp(i+_first,2) = static_cast<KK_FLOAT>(_buf(i,m++));
+        _sp(i+_first,3) = static_cast<KK_FLOAT>(_buf(i,m++));
       }
 
       if (_datamask & RADIUS_MASK)
-        _radius(i+_first) = _buf(i,m++);
+        _radius(i+_first) = static_cast<KK_FLOAT>(_buf(i,m++));
 
       if (_datamask & RMASS_MASK)
-        _rmass(i+_first) = _buf(i,m++);
+        _rmass(i+_first) = static_cast<KK_FLOAT>(_buf(i,m++));
 
       if (_datamask & OMEGA_MASK) {
-        _omega(i+_first,0) = _buf(i,m++);
-        _omega(i+_first,1) = _buf(i,m++);
-        _omega(i+_first,2) = _buf(i,m++);
+        _omega(i+_first,0) = static_cast<KK_FLOAT>(_buf(i,m++));
+        _omega(i+_first,1) = static_cast<KK_FLOAT>(_buf(i,m++));
+        _omega(i+_first,2) = static_cast<KK_FLOAT>(_buf(i,m++));
       }
 
       // DPD-REACT package
 
       if (_datamask & DPDTHETA_MASK) {
-        _dpdTheta(i+_first) = _buf(i,m++);
-        _uCond(i+_first) = _buf(i,m++);
-        _uMech(i+_first) = _buf(i,m++);
-        _uChem(i+_first) = _buf(i,m++);
-        _uCG(i+_first) = _buf(i,m++);
-        _uCGnew(i+_first) = _buf(i,m++);
+        _dpdTheta(i+_first) = static_cast<KK_FLOAT>(_buf(i,m++));
+        _uCond(i+_first) = static_cast<KK_FLOAT>(_buf(i,m++));
+        _uMech(i+_first) = static_cast<KK_FLOAT>(_buf(i,m++));
+        _uChem(i+_first) = static_cast<KK_FLOAT>(_buf(i,m++));
+        _uCG(i+_first) = static_cast<KK_FLOAT>(_buf(i,m++));
+        _uCGnew(i+_first) = static_cast<KK_FLOAT>(_buf(i,m++));
       }
     }
   }
@@ -2270,12 +2271,12 @@ struct AtomVecKokkos_PackExchangeFunctor {
     int m = 0;
     _buf(mysend,m++) = _size_exchange;
 
-    _buf(mysend,m++) = _x(i,0);
-    _buf(mysend,m++) = _x(i,1);
-    _buf(mysend,m++) = _x(i,2);
-    _buf(mysend,m++) = _v(i,0);
-    _buf(mysend,m++) = _v(i,1);
-    _buf(mysend,m++) = _v(i,2);
+    _buf(mysend,m++) = static_cast<double>(_x(i,0));
+    _buf(mysend,m++) = static_cast<double>(_x(i,1));
+    _buf(mysend,m++) = static_cast<double>(_x(i,2));
+    _buf(mysend,m++) = static_cast<double>(_v(i,0));
+    _buf(mysend,m++) = static_cast<double>(_v(i,1));
+    _buf(mysend,m++) = static_cast<double>(_v(i,2));
     _buf(mysend,m++) = d_ubuf(_tag(i)).d;
     _buf(mysend,m++) = d_ubuf(_type(i)).d;
     _buf(mysend,m++) = d_ubuf(_mask(i)).d;
@@ -2284,7 +2285,7 @@ struct AtomVecKokkos_PackExchangeFunctor {
     if constexpr (!DEFAULT) {
 
       if (_datamask & Q_MASK)
-        _buf(mysend,m++) = _q(i);
+        _buf(mysend,m++) = static_cast<double>(_q(i));
 
       if (_datamask & MOLECULE_MASK)
         _buf(mysend,m++) = d_ubuf(_molecule(i)).d;
@@ -2338,48 +2339,48 @@ struct AtomVecKokkos_PackExchangeFunctor {
       }
 
       if (_datamask & MU_MASK) {
-        _buf(mysend,m++) = _mu(i,0);
-        _buf(mysend,m++) = _mu(i,1);
-        _buf(mysend,m++) = _mu(i,2);
-        _buf(mysend,m++) = _mu(i,3);
+        _buf(mysend,m++) = static_cast<double>(_mu(i,0));
+        _buf(mysend,m++) = static_cast<double>(_mu(i,1));
+        _buf(mysend,m++) = static_cast<double>(_mu(i,2));
+        _buf(mysend,m++) = static_cast<double>(_mu(i,3));
       }
 
       if (_datamask & SP_MASK) {
-        _buf(mysend,m++) = _sp(i,0);
-        _buf(mysend,m++) = _sp(i,1);
-        _buf(mysend,m++) = _sp(i,2);
-        _buf(mysend,m++) = _sp(i,3);
+        _buf(mysend,m++) = static_cast<double>(_sp(i,0));
+        _buf(mysend,m++) = static_cast<double>(_sp(i,1));
+        _buf(mysend,m++) = static_cast<double>(_sp(i,2));
+        _buf(mysend,m++) = static_cast<double>(_sp(i,3));
       }
 
       if (_datamask & RADIUS_MASK)
-        _buf(mysend,m++) = _radius(i);
+        _buf(mysend,m++) = static_cast<double>(_radius(i));
 
       if (_datamask & RMASS_MASK)
-        _buf(mysend,m++) = _rmass(i);
+        _buf(mysend,m++) = static_cast<double>(_rmass(i));
 
       if (_datamask & OMEGA_MASK) {
-        _buf(mysend,m++) = _omega(i,0);
-        _buf(mysend,m++) = _omega(i,1);
-        _buf(mysend,m++) = _omega(i,2);
+        _buf(mysend,m++) = static_cast<double>(_omega(i,0));
+        _buf(mysend,m++) = static_cast<double>(_omega(i,1));
+        _buf(mysend,m++) = static_cast<double>(_omega(i,2));
       }
 
       // angmom: included for ellipsoid
 
       if (_datamask & ANGMOM_MASK) {
-        _buf(mysend,m++) = _angmom(i,0);
-        _buf(mysend,m++) = _angmom(i,1);
-        _buf(mysend,m++) = _angmom(i,2);
+        _buf(mysend,m++) = static_cast<double>(_angmom(i,0));
+        _buf(mysend,m++) = static_cast<double>(_angmom(i,1));
+        _buf(mysend,m++) = static_cast<double>(_angmom(i,2));
       }
 
       // DPD-REACT package
 
       if (_datamask & DPDTHETA_MASK) {
-        _buf(mysend,m++) = _dpdTheta(i);
-        _buf(mysend,m++) = _uCond(i);
-        _buf(mysend,m++) = _uMech(i);
-        _buf(mysend,m++) = _uChem(i);
-        _buf(mysend,m++) = _uCG(i);
-        _buf(mysend,m++) = _uCGnew(i);
+        _buf(mysend,m++) = static_cast<double>(_dpdTheta(i));
+        _buf(mysend,m++) = static_cast<double>(_uCond(i));
+        _buf(mysend,m++) = static_cast<double>(_uMech(i));
+        _buf(mysend,m++) = static_cast<double>(_uChem(i));
+        _buf(mysend,m++) = static_cast<double>(_uCG(i));
+        _buf(mysend,m++) = static_cast<double>(_uCGnew(i));
       }
     }
 
@@ -2665,12 +2666,12 @@ struct AtomVecKokkos_UnpackExchangeFunctor {
     if (x >= _lo && x < _hi) {
       i = Kokkos::atomic_fetch_add(&_nlocal(0),1);
       int m = 1;
-      _x(i,0) = _buf(myrecv,m++);
-      _x(i,1) = _buf(myrecv,m++);
-      _x(i,2) = _buf(myrecv,m++);
-      _v(i,0) = _buf(myrecv,m++);
-      _v(i,1) = _buf(myrecv,m++);
-      _v(i,2) = _buf(myrecv,m++);
+      _x(i,0) = static_cast<KK_FLOAT>(_buf(myrecv,m++));
+      _x(i,1) = static_cast<KK_FLOAT>(_buf(myrecv,m++));
+      _x(i,2) = static_cast<KK_FLOAT>(_buf(myrecv,m++));
+      _v(i,0) = static_cast<KK_FLOAT>(_buf(myrecv,m++));
+      _v(i,1) = static_cast<KK_FLOAT>(_buf(myrecv,m++));
+      _v(i,2) = static_cast<KK_FLOAT>(_buf(myrecv,m++));
       _tag(i) = (tagint) d_ubuf(_buf(myrecv,m++)).i;
       _type(i) = (int) d_ubuf(_buf(myrecv,m++)).i;
       _mask(i) = (int) d_ubuf(_buf(myrecv,m++)).i;
@@ -2679,7 +2680,7 @@ struct AtomVecKokkos_UnpackExchangeFunctor {
       if constexpr (!DEFAULT) {
 
         if (_datamask & Q_MASK)
-          _q(i) = _buf(myrecv,m++);
+          _q(i) = static_cast<KK_FLOAT>(_buf(myrecv,m++));
 
         if (_datamask & MOLECULE_MASK)
           _molecule(i) = (tagint) d_ubuf(_buf(myrecv,m++)).i;
@@ -2733,46 +2734,46 @@ struct AtomVecKokkos_UnpackExchangeFunctor {
         }
 
         if (_datamask & MU_MASK) {
-          _mu(i,0) = _buf(myrecv,m++);
-          _mu(i,1) = _buf(myrecv,m++);
-          _mu(i,2) = _buf(myrecv,m++);
-          _mu(i,3) = _buf(myrecv,m++);
+          _mu(i,0) = static_cast<KK_FLOAT>(_buf(myrecv,m++));
+          _mu(i,1) = static_cast<KK_FLOAT>(_buf(myrecv,m++));
+          _mu(i,2) = static_cast<KK_FLOAT>(_buf(myrecv,m++));
+          _mu(i,3) = static_cast<KK_FLOAT>(_buf(myrecv,m++));
         }
 
         if (_datamask & SP_MASK) {
-          _sp(i,0) = _buf(myrecv,m++);
-          _sp(i,1) = _buf(myrecv,m++);
-          _sp(i,2) = _buf(myrecv,m++);
-          _sp(i,3) = _buf(myrecv,m++);
+          _sp(i,0) = static_cast<KK_FLOAT>(_buf(myrecv,m++));
+          _sp(i,1) = static_cast<KK_FLOAT>(_buf(myrecv,m++));
+          _sp(i,2) = static_cast<KK_FLOAT>(_buf(myrecv,m++));
+          _sp(i,3) = static_cast<KK_FLOAT>(_buf(myrecv,m++));
         }
 
         if (_datamask & RADIUS_MASK)
-          _radius(i) = _buf(myrecv,m++);
+          _radius(i) = static_cast<KK_FLOAT>(_buf(myrecv,m++));
 
         if (_datamask & RMASS_MASK)
-          _rmass(i) = _buf(myrecv,m++);
+          _rmass(i) = static_cast<KK_FLOAT>(_buf(myrecv,m++));
 
         if (_datamask & OMEGA_MASK) {
-          _omega(i,0) = _buf(myrecv,m++);
-          _omega(i,1) = _buf(myrecv,m++);
-          _omega(i,2) = _buf(myrecv,m++);
+          _omega(i,0) = static_cast<KK_FLOAT>(_buf(myrecv,m++));
+          _omega(i,1) = static_cast<KK_FLOAT>(_buf(myrecv,m++));
+          _omega(i,2) = static_cast<KK_FLOAT>(_buf(myrecv,m++));
         }
 
         if (_datamask & ANGMOM_MASK) {
-          _angmom(i,0) = _buf(myrecv,m++);
-          _angmom(i,1) = _buf(myrecv,m++);
-          _angmom(i,2) = _buf(myrecv,m++);
+          _angmom(i,0) = static_cast<KK_FLOAT>(_buf(myrecv,m++));
+          _angmom(i,1) = static_cast<KK_FLOAT>(_buf(myrecv,m++));
+          _angmom(i,2) = static_cast<KK_FLOAT>(_buf(myrecv,m++));
         }
 
         // DPD-REACT package
 
         if (_datamask & DPDTHETA_MASK) {
-          _dpdTheta(i) = _buf(myrecv,m++);
-          _uCond(i) = _buf(myrecv,m++);
-          _uMech(i) = _buf(myrecv,m++);
-          _uChem(i) = _buf(myrecv,m++);
-          _uCG(i) = _buf(myrecv,m++);
-          _uCGnew(i) = _buf(myrecv,m++);
+          _dpdTheta(i) = static_cast<KK_FLOAT>(_buf(myrecv,m++));
+          _uCond(i) = static_cast<KK_FLOAT>(_buf(myrecv,m++));
+          _uMech(i) = static_cast<KK_FLOAT>(_buf(myrecv,m++));
+          _uChem(i) = static_cast<KK_FLOAT>(_buf(myrecv,m++));
+          _uCG(i) = static_cast<KK_FLOAT>(_buf(myrecv,m++));
+          _uCGnew(i) = static_cast<KK_FLOAT>(_buf(myrecv,m++));
         }
       }
     }

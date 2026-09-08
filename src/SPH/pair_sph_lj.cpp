@@ -28,7 +28,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairSPHLJ::PairSPHLJ(LAMMPS *lmp) : Pair(lmp)
+PairSPHLJ::PairSPHLJ(LAMMPS *lmp) : Pair(lmp), cut(nullptr), viscosity(nullptr)
 {
   if ((atom->esph_flag != 1) || (atom->rho_flag != 1) || (atom->cv_flag != 1) || (atom->vest_flag != 1))
     error->all(FLERR, "Pair sph/lj requires atom attributes energy, density, specific heat, and velocity estimates, e.g. in atom_style sph");
@@ -139,9 +139,11 @@ void PairSPHLJ::compute(int eflag, int vflag)
 
         // apply long-range correction to model a LJ fluid with cutoff
         // this implies that the modelled LJ fluid has cutoff == SPH cutoff
+        // the correction enters the pressure term of both atoms of the pair;
+        // add both halves to the pair-local fj so the per-atom fi is not
+        // corrupted across neighbor list entries
         lrc = - 11.1701 * (ihcub * ihcub * ihcub - 1.5 * ihcub);
-        fi += lrc;
-        fj += lrc;
+        fj += 2.0 * lrc;
 
         // dot product of velocity delta and distance vector
         delVdotDelR = delx * (vxtmp - v[j][0]) + dely * (vytmp - v[j][1])

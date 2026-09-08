@@ -86,6 +86,7 @@ FixNeighHistoryKokkos<DeviceType>::~FixNeighHistoryKokkos()
 template<class DeviceType>
 void FixNeighHistoryKokkos<DeviceType>::pre_exchange()
 {
+  // NOTE: if onsided added, should add surface_global logic
   if (onesided)
     error->all(FLERR,"Fix neigh/history/kk does not (yet) support onesided exchange communication");
 
@@ -387,7 +388,7 @@ void FixNeighHistoryKokkos<DeviceType>::operator()(TagFixNeighHistoryPackExchang
     for (int p = 0; p < n; p++) {
       d_buf(m++) = d_ubuf(d_partner(i,p)).d;
       for (int v = 0; v < dnum; v++) {
-        d_buf(m++) = d_valuepartner(i,dnum*p+v);
+        d_buf(m++) = static_cast<double>(d_valuepartner(i,dnum*p+v));
       }
     }
     if (mysend == nsend-1) d_count() = m;
@@ -467,7 +468,7 @@ void FixNeighHistoryKokkos<DeviceType>::operator()(TagFixNeighHistoryUnpackExcha
     for (int p = 0; p < n; p++) {
       d_partner(index,p) = (tagint) d_ubuf(d_buf(m++)).i;
       for (int v = 0; v < dnum; v++) {
-        d_valuepartner(index,dnum*p+v) = d_buf(m++);
+        d_valuepartner(index,dnum*p+v) = static_cast<KK_FLOAT>(d_buf(m++));
       }
     }
   }

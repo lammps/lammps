@@ -44,7 +44,8 @@ enum { OFF, INTER, INTRA };
 /* ---------------------------------------------------------------------- */
 
 ComputeGroupGroup::ComputeGroupGroup(LAMMPS *lmp, int narg, char **arg) :
-    Compute(lmp, narg, arg), group2(nullptr)
+    Compute(lmp, narg, arg), group2(nullptr), cutsq(nullptr), pair(nullptr), list(nullptr),
+    kspace(nullptr)
 {
   if (narg < 4) error->all(FLERR, "Illegal compute group/group command");
 

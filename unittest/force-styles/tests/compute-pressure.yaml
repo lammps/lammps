@@ -1,0 +1,20 @@
+---
+lammps_version: 4 Jul 2026
+tags:
+date_generated: Thu Jul  9 16:34:11 2026
+epsilon: 1e-08
+timestep: 0.25
+skip_tests:
+prerequisites: |
+  atom full
+  compute pressure
+pre_commands: ""
+post_commands: |
+  compute test all pressure thermo_temp
+input_file: in.fourmol
+input_coeffs: coeffs.fourmol
+natoms: 29
+global_scalar: 15364.688175203231
+global_vector: |-
+  6  1.6017396197263324e+04  1.5129880120443946e+04  1.4946788207902422e+04 -7.4263478910577060e+03 -1.9144365489622805e+02  2.8345835156914372e+03
+...

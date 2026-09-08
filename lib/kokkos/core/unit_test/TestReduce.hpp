@@ -780,7 +780,7 @@ class TestReductionOverInfiniteFloat {
   void runTest() {
     const unsigned int N = 10;
 
-    ScalarType inf = Kokkos::Experimental::infinity_v<ScalarType>;
+    ScalarType inf = Kokkos::infinity_v<ScalarType>;
     // Ensure that inf correctly correspond to infinity for type `ScalarType`
     EXPECT_TRUE((inf == inf * inf) && (inf == inf + 1));
 

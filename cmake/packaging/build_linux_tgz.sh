@@ -30,7 +30,8 @@ do \
     chmod +x ${DESTDIR}/lib/${dep}
 done
 
-echo "Remove libc, gcc, and X11 related shared libs"
+echo "Remove libc, gcc, and X11 related shared libs, also lib64 folder, if it exists"
+rm -rf ${DESTDIR}/lib64
 rm -f ${DESTDIR}/lib/ld*.so ${DESTDIR}/lib/ld*.so.[0-9]
 rm -f ${DESTDIR}/lib/lib{c,dl,rt,m,pthread}.so.?
 rm -f ${DESTDIR}/lib/lib{c,dl,rt,m,pthread}-[0-9].[0-9]*.so

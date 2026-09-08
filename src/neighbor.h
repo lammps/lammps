@@ -170,7 +170,7 @@ class Neighbor : protected Pointers {
   NeighList *find_list(void *, const int id = 0) const;
   NeighRequest *find_request(void *, const int id = 0) const;
 
-  [[nodiscard]] const std::vector<NeighRequest *> get_pair_requests() const;
+  [[nodiscard]] std::vector<NeighRequest *> get_pair_requests() const;
   int any_full();                // check if any old requests had full neighbor lists
   void build_collection(int);    // build peratom collection array starting at the given index
 
@@ -284,7 +284,8 @@ class Neighbor : protected Pointers {
   int copymode;
 
   virtual void init_cutneighsq_kokkos(int) {}
-  virtual void create_kokkos_list(int) {}
+  virtual void init_cutneighghostsq_kokkos(int) {}
+  virtual void create_kokkos_list(int);
   virtual void init_ex_type_kokkos(int) {}
   virtual void init_ex_bit_kokkos() {}
   virtual void init_ex_mol_bit_kokkos() {}
@@ -358,6 +359,7 @@ namespace NeighConst {
     REQ_NEWTON_ON = 1 << 8,
     REQ_NEWTON_OFF = 1 << 9,
     REQ_SSA = 1 << 10,
+    REQ_ONESIDED = 1 << 11
   };
 }    // namespace NeighConst
 

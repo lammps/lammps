@@ -38,7 +38,7 @@ static constexpr double EPSILONR = 1.0e-6;
 
 /* ---------------------------------------------------------------------- */
 
-PairTable::PairTable(LAMMPS *lmp) : Pair(lmp)
+PairTable::PairTable(LAMMPS *lmp) : Pair(lmp), tabindex(nullptr)
 {
   ntables = 0;
   tables = nullptr;

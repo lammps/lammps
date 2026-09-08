@@ -284,6 +284,12 @@ void AngleGaussian::read_restart(FILE *fp)
   MPI_Bcast(&angle_temperature[1], atom->nangletypes, MPI_DOUBLE, 0, world);
   MPI_Bcast(&nterms[1], atom->nangletypes, MPI_INT, 0, world);
 
+  if ((nterms_max < 0) || (nterms_max > 4096))
+    error->all(FLERR, "Invalid number of terms in restart file");
+  for (int i = 1; i <= atom->nangletypes; i++)
+    if ((nterms[i] < 0) || (nterms[i] > 4096))
+      error->all(FLERR, "Invalid number of terms in restart file");
+
   // allocate
   for (int i = 1; i <= atom->nangletypes; i++) {
     alpha[i] = new double[nterms[i]];

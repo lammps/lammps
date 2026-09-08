@@ -25,7 +25,7 @@ variable        cp equal 1.0 # heat capacity of material -- not used here
 ####################################################################################################
 dimension       3
 units           si
-boundary        sm sm sm # simulation box boundaries
+boundary        m m m # simulation box boundaries
 atom_style      smd
 atom_modify     map array
 comm_modify     vel yes
@@ -43,6 +43,9 @@ group           left subtract all right
 set             group left type 1
 set             group right type 2
 group           tlsph union left right
+
+group none empty
+change_box none x delta -20.0 20.0 y delta -5.0 5.0 z delta -2 2
 
 ####################################################################################################
 # DISCRETIZATION PARAMETERS
@@ -96,9 +99,15 @@ compute         eint all smd/internal/energy
 compute         alleint all reduce sum c_eint
 variable        etot equal c_alleint+ke+pe
 
-dump            dump_id all custom ${dumpFreq} dump.LAMMPS id type x y z vx vy vz &
-                c_S[1] c_S[2] c_S[3] c_S[4] c_S[5] c_S[6] c_S[7] c_nn c_cr proc c_p radius
-dump_modify     dump_id first yes
+#dump            dump_id all custom ${dumpFreq} dump.LAMMPS id type x y z vx vy vz &
+#                c_S[1] c_S[2] c_S[3] c_S[4] c_S[5] c_S[6] c_S[7] c_nn c_cr proc c_p radius
+#dump_modify     dump_id first yes
+
+#fix             iso all graphics/isosurface ${dumpFreq} 1.5 0.7 property none quality high
+#dump            viz all image ${dumpFreq} rubber_rings-*.ppm element type size 800 400 &
+#                zoom 4.0 shiny 0.2 fsaa yes view 0 90 box no 0.01 center s 0.467762 0.43547 0.353422 &
+#                fix iso type 1 2
+#dump_modify     viz pad 6 backcolor black backcolor2 white ftrans iso 0.75 adiam * 0.8 element Fe Fe
 
 ####################################################################################################
 # STATUS OUTPUT

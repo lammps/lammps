@@ -41,8 +41,7 @@ using namespace MathConst;
 
 ComputeEntropyAtom::
 ComputeEntropyAtom(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg),
-  pair_entropy(nullptr), pair_entropy_avg(nullptr)
+    Compute(lmp, narg, arg), list(nullptr), pair_entropy(nullptr), pair_entropy_avg(nullptr)
 {
   if (narg < 5 || narg > 10)
     error->all(FLERR,"Illegal compute entropy/atom command; wrong number of arguments");
@@ -100,6 +99,8 @@ ComputeEntropyAtom(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeEntropyAtom::~ComputeEntropyAtom()
 {
+  if (copymode) return;
+
   memory->destroy(pair_entropy);
   if (avg_flag) memory->destroy(pair_entropy_avg);
 }
@@ -118,11 +119,8 @@ void ComputeEntropyAtom::init()
                    " distance.");
     }
 
-  int count = 0;
-  for (int i = 0; i < modify->ncompute; i++)
-    if (strcmp(modify->compute[i]->style,"entropy/atom") == 0) count++;
-  if (count > 1 && comm->me == 0)
-    error->warning(FLERR,"More than one compute entropy/atom");
+  if ((comm->me == 0) && (modify->get_compute_by_style("^entropy/atom").size() > 1))
+    error->warning(FLERR, "More than one compute {}", style);
 
   // Request a full neighbor list
   int list_flags = NeighConst::REQ_FULL;

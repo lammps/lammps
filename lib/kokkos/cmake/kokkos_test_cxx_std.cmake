@@ -31,10 +31,10 @@ function(kokkos_set_cxx_standard_feature standard)
     if(KOKKOS_CXX_COMPILER_ID STREQUAL NVIDIA AND (KOKKOS_CXX_HOST_COMPILER_ID STREQUAL GNU
                                                    OR KOKKOS_CXX_HOST_COMPILER_ID STREQUAL Clang)
     )
-      if(${KOKKOS_CXX_COMPILER_VERSION} VERSION_LESS 13.0.0)
+      if(${KOKKOS_CXX_COMPILER_VERSION} VERSION_LESS 13.3.0)
         set(SUPPORTED_NVCC_FLAGS "-std=c++20")
       else()
-        set(SUPPORTED_NVCC_FLAGS "-std=c++20")
+        set(SUPPORTED_NVCC_FLAGS "-std=c++20" "-std=c++23")
       endif()
       if(NOT ${${STANDARD_NAME}} IN_LIST SUPPORTED_NVCC_FLAGS)
         message(

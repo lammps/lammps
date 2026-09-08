@@ -145,7 +145,7 @@ void FixLangevinDrude::init()
   }
 
   auto fdrude = modify->get_fix_by_style("^drude$");
-  if (fdrude.size() < 1) error->all(FLERR, "Fix {} requires fix drude", style);
+  if (fdrude.empty()) error->all(FLERR, "Fix {} requires fix drude", style);
   if (fdrude.size() > 1) error->all(FLERR, "There must be only one fix drude");
   fix_drude = dynamic_cast<FixDrude *>(fdrude[0]);
   if (!fix_drude) error->all(FLERR, "Fix {} requires fix drude", style);

@@ -28,7 +28,6 @@ class PairCoulDebyeGPU : public PairCoulDebye {
  public:
   PairCoulDebyeGPU(LAMMPS *lmp);
   ~PairCoulDebyeGPU() override;
-  void cpu_compute(int, int, int, int, int *, int *, int **);
   void compute(int, int) override;
   void init_style() override;
   void reinit() override;
@@ -38,7 +37,6 @@ class PairCoulDebyeGPU : public PairCoulDebye {
 
  private:
   int gpu_mode;
-  double cpu_time;
 };
 
 }    // namespace LAMMPS_NS

@@ -99,15 +99,15 @@ void PairCoulDebyeKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   type = atomKK->k_type.view<DeviceType>();
   nlocal = atom->nlocal;
   nall = atom->nlocal + atom->nghost;
-  special_lj[0] = force->special_lj[0];
-  special_lj[1] = force->special_lj[1];
-  special_lj[2] = force->special_lj[2];
-  special_lj[3] = force->special_lj[3];
-  special_coul[0] = force->special_coul[0];
-  special_coul[1] = force->special_coul[1];
-  special_coul[2] = force->special_coul[2];
-  special_coul[3] = force->special_coul[3];
-  qqrd2e = force->qqrd2e;
+  special_lj[0] = static_cast<KK_FLOAT>(force->special_lj[0]);
+  special_lj[1] = static_cast<KK_FLOAT>(force->special_lj[1]);
+  special_lj[2] = static_cast<KK_FLOAT>(force->special_lj[2]);
+  special_lj[3] = static_cast<KK_FLOAT>(force->special_lj[3]);
+  special_coul[0] = static_cast<KK_FLOAT>(force->special_coul[0]);
+  special_coul[1] = static_cast<KK_FLOAT>(force->special_coul[1]);
+  special_coul[2] = static_cast<KK_FLOAT>(force->special_coul[2]);
+  special_coul[3] = static_cast<KK_FLOAT>(force->special_coul[3]);
+  qqrd2e = static_cast<KK_FLOAT>(force->qqrd2e);
   newton_pair = force->newton_pair;
 
   // loop over neighbors of my atoms
@@ -116,15 +116,15 @@ void PairCoulDebyeKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     (this,(NeighListKokkos<DeviceType>*)list);
 
   if (eflag)
-    eng_coul += ev.ecoul;
+    eng_coul += static_cast<double>(ev.ecoul);
 
   if (vflag_global) {
-    virial[0] += ev.v[0];
-    virial[1] += ev.v[1];
-    virial[2] += ev.v[2];
-    virial[3] += ev.v[3];
-    virial[4] += ev.v[4];
-    virial[5] += ev.v[5];
+    virial[0] += static_cast<double>(ev.v[0]);
+    virial[1] += static_cast<double>(ev.v[1]);
+    virial[2] += static_cast<double>(ev.v[2]);
+    virial[3] += static_cast<double>(ev.v[3]);
+    virial[4] += static_cast<double>(ev.v[4]);
+    virial[5] += static_cast<double>(ev.v[5]);
   }
 
   if (eflag_atom) {
@@ -151,13 +151,14 @@ KK_FLOAT PairCoulDebyeKokkos<DeviceType>::
 compute_fcoul(const KK_FLOAT& rsq, const int& /*i*/, const int&j,
               const int& itype, const int& jtype, const KK_FLOAT& factor_coul, const KK_FLOAT& qtmp) const {
 
-  const KK_FLOAT r2inv = 1.0/rsq;
-  const KK_FLOAT rinv = sqrt(r2inv);
-  const KK_FLOAT r = 1.0/rinv;
-  const KK_FLOAT screening = exp(-kappa*r);
+  const KK_FLOAT kappa_kk = static_cast<KK_FLOAT>(kappa);
+  const KK_FLOAT r2inv = static_cast<KK_FLOAT>(1.0)/rsq;
+  const KK_FLOAT rinv = Kokkos::sqrt(r2inv);
+  const KK_FLOAT r = static_cast<KK_FLOAT>(1.0)/rinv;
+  const KK_FLOAT screening = Kokkos::exp(-kappa_kk*r);
   KK_FLOAT forcecoul;
 
-  forcecoul = qqrd2e * qtmp * q(j) * screening * (kappa + rinv) *
+  forcecoul = qqrd2e * qtmp * q(j) * screening * (kappa_kk + rinv) *
           (STACKPARAMS?m_params[itype][jtype].scale:params(itype,jtype).scale);
 
   return factor_coul*forcecoul*r2inv;
@@ -175,10 +176,11 @@ KK_FLOAT PairCoulDebyeKokkos<DeviceType>::
 compute_ecoul(const KK_FLOAT& rsq, const int& /*i*/, const int&j,
               const int& itype, const int& jtype, const KK_FLOAT& factor_coul, const KK_FLOAT& qtmp) const {
 
-  const KK_FLOAT r2inv = 1.0/rsq;
-  const KK_FLOAT rinv = sqrt(r2inv);
-  const KK_FLOAT r = 1.0/rinv;
-  const KK_FLOAT screening = exp(-kappa*r);
+  const KK_FLOAT kappa_kk = static_cast<KK_FLOAT>(kappa);
+  const KK_FLOAT r2inv = static_cast<KK_FLOAT>(1.0)/rsq;
+  const KK_FLOAT rinv = Kokkos::sqrt(r2inv);
+  const KK_FLOAT r = static_cast<KK_FLOAT>(1.0)/rinv;
+  const KK_FLOAT screening = Kokkos::exp(-kappa_kk*r);
 
   return factor_coul * qqrd2e * qtmp * q(j) * rinv * screening *
           (STACKPARAMS?m_params[itype][jtype].scale:params(itype,jtype).scale);
@@ -236,21 +238,21 @@ double PairCoulDebyeKokkos<DeviceType>::init_one(int i, int j)
 {
   double cutone = PairCoulDebye::init_one(i,j);
 
-  k_params.view_host()(i,j).scale = scale[i][j];
-  k_params.view_host()(i,j).cutsq = cutone*cutone;
+  k_params.view_host()(i,j).scale = static_cast<KK_FLOAT>(scale[i][j]);
+  k_params.view_host()(i,j).cutsq = static_cast<KK_FLOAT>(cutone*cutone);
   k_params.view_host()(j,i) = k_params.view_host()(i,j);
 
   if (i<MAX_TYPES_STACKPARAMS+1 && j<MAX_TYPES_STACKPARAMS+1) {
     m_params[i][j] = m_params[j][i] = k_params.view_host()(i,j);
-    m_cutsq[j][i] = m_cutsq[i][j] = cutone*cutone;
-    m_cut_ljsq[j][i] = m_cut_ljsq[i][j] = cutone*cutone;
-    m_cut_coulsq[j][i] = m_cut_coulsq[i][j] = cutone*cutone;
+    m_cutsq[j][i] = m_cutsq[i][j] = static_cast<KK_FLOAT>(cutone*cutone);
+    m_cut_ljsq[j][i] = m_cut_ljsq[i][j] = static_cast<KK_FLOAT>(cutone*cutone);
+    m_cut_coulsq[j][i] = m_cut_coulsq[i][j] = static_cast<KK_FLOAT>(cutone*cutone);
   }
   k_cutsq.view_host()(i,j) = cutone*cutone;
   k_cutsq.modify_host();
-  k_cut_ljsq.view_host()(i,j) = cutone*cutone;
+  k_cut_ljsq.view_host()(i,j) = static_cast<KK_FLOAT>(cutone*cutone);
   k_cut_ljsq.modify_host();
-  k_cut_coulsq.view_host()(i,j) = cutone*cutone;
+  k_cut_coulsq.view_host()(i,j) = static_cast<KK_FLOAT>(cutone*cutone);
   k_cut_coulsq.modify_host();
   k_params.modify_host();
 

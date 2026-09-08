@@ -165,7 +165,7 @@ void NBinStandard::setup_bins(int style)
 
   // mbinlo/hi = lowest and highest global bins my ghost atoms could be in
   // coord = lowest and highest values of coords for my ghost atoms
-  // static_cast(-1.5) = -1, so subract additional -1
+  // static_cast(-1.5) = -1, so subtract additional -1
   // add in SMALL for round-off safety
 
   int mbinxhi,mbinyhi,mbinzhi;

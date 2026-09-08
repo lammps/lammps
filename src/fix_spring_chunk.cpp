@@ -24,19 +24,16 @@
 #include "respa.h"
 #include "update.h"
 
-#include <cmath>
 #include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-static constexpr double SMALL = 1.0e-10;
-
 /* ---------------------------------------------------------------------- */
 
 FixSpringChunk::FixSpringChunk(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg),
-  idchunk(nullptr), idcom(nullptr), com0(nullptr), fcom(nullptr)
+    Fix(lmp, narg, arg), idchunk(nullptr), idcom(nullptr), com0(nullptr), fcom(nullptr),
+    cchunk(nullptr), ccom(nullptr)
 {
   if (narg != 6) utils::missing_cmd_args(FLERR, "fix spring/chunk", error);
 
@@ -138,7 +135,7 @@ void FixSpringChunk::min_setup(int vflag)
 void FixSpringChunk::post_force(int /*vflag*/)
 {
   int i,m;
-  double dx,dy,dz,r;
+  double dx,dy,dz,rsq;
 
   // check if first time cchunk will be queried via ccom
   // if so, lock idchunk for as long as this fix is in place
@@ -178,14 +175,13 @@ void FixSpringChunk::post_force(int /*vflag*/)
     dx = com[m][0] - com0[m][0];
     dy = com[m][1] - com0[m][1];
     dz = com[m][2] - com0[m][2];
-    r = sqrt(dx*dx + dy*dy + dz*dz);
-    r = MAX(r,SMALL);
+    rsq = dx*dx + dy*dy + dz*dz;
 
     if (masstotal[m] != 0.0) {
-      fcom[m][0] = k_spring*dx/r / masstotal[m];
-      fcom[m][1] = k_spring*dy/r / masstotal[m];
-      fcom[m][2] = k_spring*dz/r / masstotal[m];
-      esprings += 0.5*k_spring*r*r;
+      fcom[m][0] = k_spring*dx / masstotal[m];
+      fcom[m][1] = k_spring*dy / masstotal[m];
+      fcom[m][2] = k_spring*dz / masstotal[m];
+      esprings += 0.5*k_spring*rsq;
     }
   }
 

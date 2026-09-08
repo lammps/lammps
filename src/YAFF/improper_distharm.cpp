@@ -34,7 +34,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-ImproperDistHarm::ImproperDistHarm(LAMMPS *lmp) : Improper(lmp)
+ImproperDistHarm::ImproperDistHarm(LAMMPS *lmp) : Improper(lmp), k(nullptr), chi(nullptr)
 {
   // the fourth atom in the quadruplet is the atom of symmetry
 

@@ -51,7 +51,7 @@ Description
 .. versionadded:: 30Mar2026
 
 The potential energy :math:`E_i` of an atom :math:`i` according to an
-adaptive-precision potential is given by :ref:`(Immel2025) <Immel2025_8>`
+adaptive-precision potential is given by :ref:`(Immel) <Immel2025_8>`
 
 .. math::
 
@@ -64,14 +64,14 @@ precise interatomic potential and :math:`\lambda_i\in[0,1]` is the
 switching parameter that decides which potential energy is used.
 
 This fix calculates the switching parameter :math:`\lambda_i` based on
-local averaging of a descriptor according to :ref:`(Immel2026)
+local averaging of a descriptor according to :ref:`(Immel2)
 <Immel2026_1>` and parts of the conservatively calculated force as will
 be discussed later.  The descriptor is averaged within the cutoff radius
 provided as *cut_hi*.
 
 Per default, a differentiable version of the centro-symmetry parameter
 (CSP) is used as descriptor. This differentiable version is described in
-detail in :ref:`(Immel2026) <Immel2026_1>`.  The usage of a
+detail in :ref:`(Immel2) <Immel2026_1>`.  The usage of a
 differentiable CSP results in a conservative potential, that conserves
 (in the absence of external forces) energy and momentum by design.  The
 force :math:`\pmb{F}_i=-\nabla_i\sum_kE_k` following from the
@@ -191,11 +191,11 @@ Default
 
 .. _Immel2025_8:
 
-**(Immel2025)** Immel, Drautz and Sutmann, J Chem Phys, 162, 114119 (2025)
+**(Immel)** Immel, Drautz and Sutmann, J Chem Phys, 162, 114119 (2025)
 
 .. _Immel2026_1:
 
-**(Immel2026)** Immel, Drautz and Sutmann, arXiv:2512.07693
+**(Immel2)** Immel, Drautz and Sutmann, arXiv:2512.07693
 
 .. _Kelchner_3:
 

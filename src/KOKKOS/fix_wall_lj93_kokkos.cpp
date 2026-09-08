@@ -37,7 +37,7 @@ FixWallLJ93Kokkos<DeviceType>::FixWallLJ93Kokkos(LAMMPS *lmp, int narg, char **a
   kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
-  datamask_read = X_MASK | V_MASK | MASK_MASK;
+  datamask_read = X_MASK | V_MASK | F_MASK | MASK_MASK;
   datamask_modify = F_MASK;
 
   memoryKK->create_kokkos(k_cutoff,6,"wall_lj93:cutoff");
@@ -105,17 +105,27 @@ void FixWallLJ93Kokkos<DeviceType>::precompute(int m)
 /* ---------------------------------------------------------------------- */
 
 template <class DeviceType>
-void FixWallLJ93Kokkos<DeviceType>::post_force(int vflag)
+void FixWallLJ93Kokkos<DeviceType>::v_setup_peratom(int vflag)
 {
+  // the per-atom virial is accumulated into a dual view, so the plain
+  // base-class vatom array must not be allocated here (alloc = 0)
 
-  // reallocate per-atom arrays if necessary
+  v_init(vflag,0);
+
+  // reallocate the per-atom virial dual view if necessary
 
   if (vflag_atom) {
     memoryKK->destroy_kokkos(k_vatom,vatom);
     memoryKK->create_kokkos(k_vatom,vatom,maxvatom,"wall_lj93:vatom");
     d_vatom = k_vatom.template view<DeviceType>();
   }
+}
 
+/* ---------------------------------------------------------------------- */
+
+template <class DeviceType>
+void FixWallLJ93Kokkos<DeviceType>::post_force(int vflag)
+{
   FixWallLJ93::post_force(vflag);
 
   if (vflag_atom) {
@@ -135,7 +145,7 @@ template <class DeviceType>
 void FixWallLJ93Kokkos<DeviceType>::wall_particle(int m_in, int which, double coord_in)
 {
   m = m_in;
-  coord = coord_in;
+  coord = static_cast<KK_FLOAT>(coord_in);
 
   atomKK->sync(execution_space,datamask_read);
   d_x = atomKK->k_x.template view<DeviceType>();
@@ -176,16 +186,16 @@ void FixWallLJ93Kokkos<DeviceType>::operator()(const int &i, value_type result) 
     if (side < 0) delta = d_x(i,dim) - coord;
     else delta = coord - d_x(i,dim);
     if (delta >= d_cutoff(m)) return;
-    if (delta <= 0.0)
+    if (delta <= static_cast<KK_FLOAT>(0.0))
       Kokkos::abort("Particle on or inside fix wall surface");
-    KK_FLOAT rinv = 1.0/delta;
+    KK_FLOAT rinv = static_cast<KK_FLOAT>(1.0)/delta;
     KK_FLOAT r2inv = rinv*rinv;
     KK_FLOAT r4inv = r2inv*r2inv;
     KK_FLOAT r10inv = r4inv*r4inv*r2inv;
     KK_FLOAT fwall = side * (d_coeff1(m)*r10inv - d_coeff2(m)*r4inv);
-    d_f(i,dim) -= fwall;
-    result[0] += d_coeff3(m)*r4inv*r4inv*rinv - d_coeff4(m)*r2inv*rinv - d_offset(m);
-    result[m+1] += fwall;
+    d_f(i,dim) -= static_cast<KK_ACC_FLOAT>(fwall);
+    result[0] += static_cast<double>(d_coeff3(m)*r4inv*r4inv*rinv - d_coeff4(m)*r2inv*rinv - d_offset(m));
+    result[m+1] += static_cast<double>(fwall);
 
     if (evflag) {
       KK_FLOAT vn;
@@ -216,10 +226,10 @@ KOKKOS_INLINE_FUNCTION
 void FixWallLJ93Kokkos<DeviceType>::v_tally(value_type result, int n, int i, KK_FLOAT vn) const
 {
   if (vflag_global)
-    result[n+7] += vn;
+    result[n+7] += static_cast<double>(vn);
 
   if (vflag_atom)
-    Kokkos::atomic_add(&(d_vatom(i,n)),vn);
+    Kokkos::atomic_add(&(d_vatom(i,n)),static_cast<KK_ACC_FLOAT>(vn));
 }
 
 namespace LAMMPS_NS {

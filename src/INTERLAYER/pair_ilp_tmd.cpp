@@ -1017,7 +1017,7 @@ void PairILPTMD::calc_normal()
 
 double PairILPTMD::memory_usage()
 {
-  double bytes = Pair::memory_usage();
+  double bytes = PairILPGrapheneHBN::memory_usage();
   bytes += (double) maxlocal * (sizeof(int) + sizeof(int *));    // ILP_numneigh + ILP_firstneigh
   bytes += (double) nmax * 3 * sizeof(double);                   // normal[nmax][3]
   bytes += (double) nmax * 9 * sizeof(double);                   // dnormdri[nmax][3][3]

@@ -89,9 +89,9 @@ Description
 """""""""""
 
 Perform the charge equilibration (QEq) method as described in
-:ref:`(Rappe and Goddard) <Rappe1>` and formulated in :ref:`(Nakano)
+:ref:`(Rappe) <Rappe1>` and formulated in :ref:`(Nakano)
 <Nakano1>` (also known as the matrix inversion method) and in
-:ref:`(Rick and Stuart) <Rick1>` (also known as the extended Lagrangian
+:ref:`(Rick) <Rick1>` (also known as the extended Lagrangian
 method) based on the electronegativity equilization principle.
 
 These fixes can be used with any :doc:`pair style <pair_style>` in
@@ -164,7 +164,7 @@ line are required.
 * *chi* = electronegativity in energy units
 * *eta* = self-Coulomb potential in energy units
 * *gamma* = shielded Coulomb constant defined by :ref:`ReaxFF force field <vanDuin>` in distance units
-* *zeta* = Slater type orbital exponent defined by the :ref:`Streitz-Mintmire <Streitz1>` potential in reverse distance units
+* *zeta* = Slater type orbital exponent defined by the :ref:`Streitz <Streitz1>` potential in reverse distance units
 * *qcore* = charge of the nucleus defined by the :ref:`Streitz-Mintmire potential <Streitz1>` potential in charge units
 * *qmin* = lower bound on the allowed charge defined by the :ref:`CTIP <CTIP1>` potential in charge units
 * *qmax* = upper bound on the allowed charge defined by the :ref:`CTIP <CTIP1>` potential in charge units
@@ -205,7 +205,7 @@ The *qeq/slater* style describes partial charges on atoms as spherical
 charge densities centered around atoms via the Slater 1\ *s* orbital, so
 that the interaction between a pair of charged particles is the product
 of two Slater 1\ *s* orbitals.  The expression for the Slater 1\ *s*
-orbital is given under equation (6) of the :ref:`Streitz-Mintmire
+orbital is given under equation (6) of the :ref:`Streitz
 <Streitz1>` paper.  Only the *chi*, *eta*, *zeta*, and *qcore*
 parameters from the *qfile* file are used. When using the string
 *coul/streitz* as filename, these parameters are extracted directly from
@@ -332,7 +332,7 @@ warn yes
 
 .. _Rappe1:
 
-**(Rappe and Goddard)** A. K. Rappe and W. A. Goddard III, J Physical
+**(Rappe)** A. K. Rappe and W. A. Goddard III, J Physical
 Chemistry, 95, 3358-3363 (1991).
 
 .. _Nakano1:
@@ -341,12 +341,12 @@ Chemistry, 95, 3358-3363 (1991).
 
 .. _Rick1:
 
-**(Rick and Stuart)** S. W. Rick, S. J. Stuart, B. J. Berne, J Chemical Physics
-101, 16141 (1994).
+**(Rick)** S. W. Rick, S. J. Stuart, B. J. Berne, J Chem Phys 101,
+6141 (1994).
 
 .. _Streitz1:
 
-**(Streitz-Mintmire)** F. H. Streitz, J. W. Mintmire, Physical Review B, 50,
+**(Streitz)** F. H. Streitz, J. W. Mintmire, Physical Review B, 50,
 16, 11996 (1994)
 
 .. _CTIP1:

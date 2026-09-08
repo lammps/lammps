@@ -65,10 +65,10 @@ This is the list of packages that may require additional steps.
    * :ref:`PLUMED <plumed>`
    * :ref:`PYTHON <python>`
    * :ref:`QMMM <qmmm>`
+   * :ref:`QMMM-XTB <qmmm-xtb>`
    * :ref:`RHEO <rheo>`
    * :ref:`SCAFACOS <scafacos>`
    * :ref:`VORONOI <voronoi>`
-   * :ref:`VTK <vtk>`
 
 ----------
 
@@ -110,6 +110,42 @@ versions use an incompatible API and thus LAMMPS will fail to compile.
 
       The COMPRESS package no longer supports the traditional make build.
       You need to build LAMMPS with CMake.
+
+----------
+
+.. _fenix_build:
+
+FENIX package
+-------------
+
+.. versionadded:: 2Sep2026
+
+To build with this package you must have the `Fenix library
+<https://github.com/sandialabs/fenix>` available on your system. The Fenix
+library must be newer than version 1 (currently meaning built from the default
+"develop" branch). Older versions use an incompatible API and this LAMMPS will
+fail to compile.
+
+.. tabs::
+
+   .. tab:: CMake build
+
+      .. code-block:: bash
+
+         -D WITH_FENIX=value # enables FENIX package
+                             # value = yes or no (default)
+
+      If CMake cannot find the Fenix library or include files, you can set the
+      following:
+
+      .. code-block:: bash
+
+         -D FENIX_ROOT=/path/to/fenix/install
+
+   .. tab:: Traditional make
+
+      The Fenix package does not support the traditional make build. You need to
+      build LAMMPS with CMake.
 
 ----------
 
@@ -207,7 +243,7 @@ CMake build
    -D GPU_API=value             # value = opencl (default) or cuda or hip
    -D GPU_PREC=value            # precision setting
                                 # value = double or mixed (default) or single
-   -D GPU_ARCH=value            # primary GPU hardware choice for all GPU_API backends
+   -D GPU_ARCH=value            # primary GPU hardware choice for all GPU_API back ends
                                 # value = sm_XX for cuda and hip/nvcc (see below),
                                 # gfx<XXX> for hip/amd, or spirv for hip/spirv
                                 # defaults: sm_75 (cuda, hip/nvcc), gfx906 (hip/amd),
@@ -255,12 +291,12 @@ LAMMPS must be compiled with ``-DFFT_SINGLE`` to use PPPM with GPU acceleration
 or GPU acceleration should be disabled for PPPM (e.g. suffix off or ``pair/only``
 as described in the LAMMPS documentation).
 
-.. versionchanged:: TBD
+.. versionchanged:: 4Jul2026
 
 ``GPU_ARCH`` is the canonical architecture setting for all ``GPU_API``
-backends.  The backend-specific ``CUDA_ARCH`` (for ``GPU_API=cuda``) and
-``HIP_ARCH`` (for ``GPU_API=hip``) variables are still accepted for backward
-compatibility, but their use is deprecated and prints a warning.
+back ends.  The back end specific ``HIP_ARCH`` (for ``GPU_API=hip``)
+variable is still accepted for backward compatibility, but its use is
+deprecated and prints a warning.
 
 For ``GPU_API=cuda`` and ``GPU_API=hip`` with ``HIP_PLATFORM=nvcc``, the
 ``GPU_ARCH`` settings for different GPU hardware are as follows:
@@ -343,7 +379,7 @@ is built with ``-D BUILD_OMP=on`` this will also be enabled.
 
 .. note::
 
-   Some Clang-based toolchains - in particular ``hipcc`` from ROCm - do not
+   Some Clang-based tool chains - in particular ``hipcc`` from ROCm - do not
    ship the ``omp.h`` header in the compiler's own resource directory.  When
    building with ``-D BUILD_OMP=on`` and such a compiler, host code that
    includes ``<omp.h>`` would fail to compile even though the ``-fopenmp``
@@ -659,18 +695,6 @@ They must be specified in uppercase.
    *  - RISCV_U74MC
       - HOST
       - U74MC (RISC-V) CPUs
-   *  - KEPLER30
-      - GPU
-      - NVIDIA Kepler generation CC 3.0
-   *  - KEPLER32
-      - GPU
-      - NVIDIA Kepler generation CC 3.2
-   *  - KEPLER35
-      - GPU
-      - NVIDIA Kepler generation CC 3.5
-   *  - KEPLER37
-      - GPU
-      - NVIDIA Kepler generation CC 3.7
    *  - MAXWELL50
       - GPU
       - NVIDIA Maxwell generation CC 5.0
@@ -749,9 +773,21 @@ They must be specified in uppercase.
    *  - AMD_GFX1100
       - GPU
       - AMD GPU RX7900XTX
+   *  - AMD_GFX1101
+      - GPU
+      - AMD GPU RX7800XT/RX7700XT
    *  - AMD_GFX1103
       - GPU
       - AMD APU Phoenix
+   *  - AMD_GFX1151
+      - GPU
+      - AMD APU Strix Halo
+   *  - AMD_GFX1152
+      - GPU
+      - AMD GPU Radeon 860M
+   *  - AMD_GFX1201
+      - GPU
+      - AMD GPU RX9070XT
    *  - INTEL_GEN
       - GPU
       - SPIR64-based devices, e.g. Intel GPUs, using JIT
@@ -777,7 +813,7 @@ They must be specified in uppercase.
       - GPU
       - Intel GPU DG2
 
-This list was last updated for version 5.1.0 of the Kokkos library.
+This list was last updated for version 5.2.1 of the Kokkos library.
 
 .. tabs::
 
@@ -900,11 +936,21 @@ runtime bounds checking on Kokkos data structures.  As to be expected,
 enabling this option will negatively impact the performance and thus is
 only recommended when developing a Kokkos-enabled style in LAMMPS.
 
-The CMake option ``-DKokkos_ENABLE_CUDA_UVM=on`` enables the use of CUDA
-"Unified Virtual Memory" (UVM) in Kokkos.  UVM allows to transparently
-use RAM on the host to supplement the memory used on the GPU (with some
-performance penalty) and thus enables running larger problems that would
-otherwise not fit into the RAM on the GPU.
+.. versionchanged:: 2Sep2026
+
+The CMake option ``-D Kokkos_ENABLE_IMPL_CUDA_UNIFIED_MEMORY=on`` makes
+Kokkos allocate all GPU memory as CUDA managed memory, which the host can
+read and write directly.  This allows a simulation to use RAM on the host
+to supplement the memory on the GPU (with some performance penalty), so
+that larger problems can be run than would otherwise fit on the GPU, and
+it allows host code to access GPU data directly, which is useful when
+developing or debugging a Kokkos-enabled style.  It requires CUDA 12.2 or
+later and a GPU with support for concurrent managed access, which is any
+NVIDIA GPU since the Pascal generation running under Linux.  Kokkos
+classifies this as an internal option that may change in a future
+release.  It replaces the option ``-D Kokkos_ENABLE_CUDA_UVM=on``, which
+Kokkos no longer supports; configuring with that option now stops with
+an error.
 
 .. versionadded:: 10Sep2025
 
@@ -1229,8 +1275,8 @@ module included in the LAMMPS source distribution.
       .. code-block:: bash
 
          -D PKG_COLVARS=yes          # enable the package itself
-         -D COLVARS_LEPTON=yes       # use the Lepton library for custom expression (on by defaul)
-         -D COLVARS_DEBUG=no         # eneable debugging message (verbose, off by default)
+         -D COLVARS_LEPTON=yes       # use the Lepton library for custom expression (on by default)
+         -D COLVARS_DEBUG=no         # enable debugging message (verbose, off by default)
 
    .. tab:: Traditional make
 
@@ -1312,6 +1358,8 @@ then load this plugin at runtime with the :doc:`plugin command
       ``MBXLIB_SHA256`` variable to the corresponding checksum
       (e.g. computed with ``sha256sum``) if you provide a different
       library version than what is downloaded automatically.
+      Both settings are cached and thus retained in the build folder
+      (see :ref:`this explanation <err0039>` for details).
 
 
    .. tab:: Traditional make
@@ -1354,6 +1402,8 @@ folder and then load this plugin at runtime with the :doc:`plugin command <plugi
       ``PACELIB_SHA256`` variable to the corresponding checksum
       (e.g. computed with ``sha256sum``) if you provide a different
       library version than what is downloaded automatically.
+      Both settings are cached and thus retained in the build folder
+      (see :ref:`this explanation <err0039>` for details).
 
    .. tab:: Traditional make
 
@@ -1984,6 +2034,58 @@ verified to work in February 2020 with Quantum Espresso versions 6.3 to
 
 ----------
 
+.. _qmmm-xtb:
+
+QMMM-XTB package
+----------------
+
+The QMMM-XTB package provides in-process GFN1-xTB and GFN2-xTB QM/MM
+coupling through `libxtb <https://github.com/grimme-lab/xtb>`_.  It requires
+the KSPACE package, libxtb 6.7 or newer, mctc-lib, and BLAS.  The ``xtb.pc``
+and ``mctc-lib.pc`` files must be available to ``pkg-config``.
+
+The package uses libxtb's Fortran module interface because its public C API
+does not expose the atom-dependent potential callback required during every
+SCC iteration.  Consequently, the libxtb Fortran ``.mod`` files must be
+installed and must be compatible with the Fortran compiler used to build
+LAMMPS.  A normal libxtb installation may omit these private modules; rebuild
+libxtb with the Meson option ``-Dinstall_modules=true`` when necessary.
+
+.. tabs::
+
+   .. tab:: CMake build
+
+      If libxtb and mctc-lib are installed in nonstandard locations, add
+      their ``pkgconfig`` directories to ``PKG_CONFIG_PATH``.  Then configure
+      LAMMPS with both KSPACE and QMMM-XTB enabled and identify the directory
+      containing the libxtb Fortran modules:
+
+      .. code-block:: bash
+
+         export PKG_CONFIG_PATH=/path/to/xtb/lib/pkgconfig:/path/to/mctc/lib/pkgconfig
+         cmake -S cmake -B build \
+           -D PKG_KSPACE=yes \
+           -D PKG_QMMM-XTB=yes \
+           -D XTB_FORTRAN_MODULE_DIR=/path/to/xtb-modules
+         cmake --build build -j 8
+
+      ``XTB_FORTRAN_MODULE_DIR`` may be omitted when the module files are in
+      a directory reported by ``xtb.pc``.  Configuration stops with an error
+      if compatible module files cannot be found.  CMake locates BLAS through
+      its standard ``find_package(BLAS)`` mechanism.
+
+      At runtime, the dynamic loader must be able to find libxtb and its
+      dependencies.  Set ``XTBPATH`` to the directory containing
+      ``param_gfn1-xtb.txt`` and ``param_gfn2-xtb.txt`` when those files are
+      not installed in libxtb's default data location.
+
+   .. tab:: Traditional make
+
+      The QMMM-XTB package does not support the traditional make
+      build.  You need to build LAMMPS with CMake to use it.
+
+----------
+
 .. _rheo:
 
 RHEO package
@@ -2052,33 +2154,4 @@ To build with this package, you must download and build the
       .. versionchanged:: 10Sep2025
 
       The SCAFACOS package no longer supports the traditional make build.
-      You need to build LAMMPS with CMake.
-
-----------
-
-.. _vtk:
-
-VTK package
--------------------------------
-
-To build with this package you must have the VTK library installed on
-your system.
-
-.. tabs::
-
-   .. tab:: CMake build
-
-      No additional settings are needed besides ``-D PKG_VTK=yes``.
-
-      This should auto-detect the VTK library if it is installed on your
-      system at standard locations.  Several advanced VTK options exist
-      if you need to specify where it was installed.  Use the ``ccmake``
-      (terminal window) or ``cmake-gui`` (graphical) tools to see these
-      options and set them interactively from their user interfaces.
-
-   .. tab:: Traditional make
-
-      .. versionchanged:: 10Sep2025
-
-      The VTK package no longer supports the traditional make build.
       You need to build LAMMPS with CMake.

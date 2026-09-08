@@ -105,6 +105,7 @@ KOKKOS_FORCEINLINE_FUNCTION
 uint64_t clock_tic() noexcept {
   KOKKOS_IF_ON_DEVICE((return clock_tic_device();))
   KOKKOS_IF_ON_HOST((return clock_tic_host();))
+  KOKKOS_IMPL_UNREACHABLE();
 }
 
 }  // namespace Impl

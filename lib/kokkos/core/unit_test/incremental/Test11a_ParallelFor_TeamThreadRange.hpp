@@ -43,7 +43,7 @@ struct Hierarchical_ForLoop_A {
         });
 
     Kokkos::fence();
-    auto v_H = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), v);
+    auto v_H = Kokkos::create_mirror_view_and_copy(v);
 
     long long int check   = 0;
     const long long int s = static_cast<long long int>(sY) * sX;

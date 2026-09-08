@@ -107,8 +107,10 @@ template <typename S, typename T> static S *style_creator(LAMMPS *lmp)
 
 /* ---------------------------------------------------------------------- */
 
-Neighbor::Neighbor(LAMMPS *lmp) : Pointers(lmp),
-pairclass(nullptr), pairnames(nullptr), pairmasks(nullptr)
+Neighbor::Neighbor(LAMMPS *lmp) :
+    Pointers(lmp), bboxlo(nullptr), bboxhi(nullptr), bondlist(nullptr), anglelist(nullptr),
+    dihedrallist(nullptr), improperlist(nullptr), corners(nullptr), pairclass(nullptr),
+    pairnames(nullptr), pairmasks(nullptr)
 {
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
@@ -347,9 +349,13 @@ void Neighbor::init()
 
   n = atom->ntypes;
   if (cutneighsq == nullptr) {
-    if (lmp->kokkos) init_cutneighsq_kokkos(n);
-    else memory->create(cutneighsq, n + 1, n + 1, "neigh:cutneighsq");
-    memory->create(cutneighghostsq, n + 1, n + 1, "neigh:cutneighghostsq");
+    if (lmp->kokkos) {
+      init_cutneighsq_kokkos(n);
+      init_cutneighghostsq_kokkos(n);
+    } else {
+      memory->create(cutneighsq, n + 1, n + 1, "neigh:cutneighsq");
+      memory->create(cutneighghostsq, n + 1, n + 1, "neigh:cutneighghostsq");
+    }
     cuttype = new double[n + 1];
     cuttypesq = new double[n + 1];
   }
@@ -784,6 +790,19 @@ void Neighbor::init_styles()
 }
 
 /* ----------------------------------------------------------------------
+   base class has no KOKKOS neighbor lists; reaching this means a KOKKOS
+   neighbor list was requested without the KOKKOS package, which cannot happen
+   (a KOKKOS request implies the neighbor object is a NeighborKokkos, whose
+   override assigns lists[i]).  Fail loudly rather than leave lists[i] unset.
+------------------------------------------------------------------------- */
+
+void Neighbor::create_kokkos_list(int /*i*/)
+{
+  error->all(FLERR, "Internal error: KOKKOS neighbor list requested without "
+             "the KOKKOS package");
+}
+
+/* ----------------------------------------------------------------------
    create and initialize NPair classes
 ------------------------------------------------------------------------- */
 
@@ -896,8 +915,8 @@ int Neighbor::init_pair()
   nlist = nrequest;
 
   lists = new NeighList*[nrequest];
-  neigh_bin = new NBin*[nrequest];
-  neigh_stencil = new NStencil*[nrequest];
+  neigh_bin = new NBin*[nrequest]();
+  neigh_stencil = new NStencil*[nrequest]();
   neigh_pair = new NPair*[nrequest];
 
   // allocate new lists
@@ -1199,20 +1218,40 @@ void Neighbor::morph_unique()
   for (int i = 0; i < nrequest; i++) {
     irq = requests[i];
 
-    // if cut flag set by requestor and cutoff is larger than minimum for default,
-    //   and the list is not a skip list, set unique flag; otherwise unset cut flag
-    // this forces Pair,Stencil,Bin styles to be instantiated separately
+    // decide whether a requested non-standard cutoff needs a list of its own
+    //   (unique = its own Bin,Stencil,Pair styles are instantiated) or whether
+    //   the default cutoffs already serve it, in which case the cut flag is
+    //   unset and the request falls back on the default list
     // also add skin to cutoff of perpetual lists
 
     if (irq->cut) {
       if (!irq->occasional)
         irq->cutoff += skin;
 
-      if ((irq->cutoff > cutneighmin) && !irq->skip) {
+      int needs_own_cutoff;
+      if (irq->skip) {
+        // skip lists inherit the cutoff of the parent they skip from
+        needs_own_cutoff = 0;
+      } else if (irq->cut_fixed && (irq->cutoff > cutneighmin)) {
+        // uniform cutoff that some type pair of the default list does not
+        //   reach, so the default list would be truncated for those pairs
+        needs_own_cutoff = 1;
+      } else {
+        // remaining cases, for either interpretation of the cutoff, only need
+        //   their own list if the requested value differs from the default one
+        //   they would otherwise inherit.  A shorter cutoff still lands here so
+        //   that morph_copy_trim() can trim it down instead of widening it
+        needs_own_cutoff = (irq->cutoff != cutneighmax);
+      }
+
+      if (needs_own_cutoff) {
         irq->unique = 1;
       } else {
+        // reverts to the default cutoff, so drop its interpretation as well,
+        //   otherwise the stale flags leak into later cutoff comparisons
         irq->cut = 0;
         irq->cutoff = 0.0;
+        irq->cut_fixed = 0;
       }
     }
 
@@ -1240,7 +1279,7 @@ void Neighbor::morph_skip()
   NeighRequest *irq, *jrq, *nrq;
 
   // loop over irq from largest to smallest cutoff
-  //  to prevent adding unecessary neighbor lists
+  //  to prevent adding unnecessary neighbor lists
 
   for (i = nrequest - 1; i >= 0; i--) {
     irq = requests[j_sorted[i]];
@@ -1298,11 +1337,12 @@ void Neighbor::morph_skip()
       // these flags must be same,
       //   else 2 lists do not store same pairs
       //   or their data structures are different
-      // NOTE: need check for 2 Kokkos flags?
+      // no need to check for history flag
+      //   it does not affect what pairs are stored in neigh list
+      // NOTE: need to check for 2 Kokkos flags ?
 
       if (irq->ghost != jrq->ghost) continue;
       if (irq->size != jrq->size) continue;
-      if (irq->history != jrq->history) continue;
       if (irq->bond != jrq->bond) continue;
       if (irq->omp != jrq->omp) continue;
       if (irq->intel != jrq->intel) continue;
@@ -1319,12 +1359,12 @@ void Neighbor::morph_skip()
     // else create a new identical list except non-skip
     // for new list, set neigh = 1, skip = 0, no skip vec/array,
     //   copy unique flag (since copy_request() will not do it)
-    // note: parents of skip lists do not have associated history
-    //   b/c child skip lists have the associated history
+    // ensure parent history flag is set if any child sets history flag
 
     if (jj < nrequest) {
       irq->skiplist = j;
       irq->trim = trim_flag;
+      if (irq->history) jrq->history = 1;
     } else {
       int newrequest = request(this, -1);
       irq->skiplist = newrequest;
@@ -1334,6 +1374,7 @@ void Neighbor::morph_skip()
       nrq->pair = nrq->fix = nrq->compute = nrq->command = 0;
       nrq->neigh = 1;
       nrq->skip = 0;
+      if (irq->history) nrq->history = 1;
       if (irq->unique) nrq->unique = 1;
 
       sort_requests();
@@ -1389,8 +1430,8 @@ void Neighbor::morph_granular()
     // force parent newton off (newton = 2) to enable onesided skip by child
     // set parent granonesided = 0, so it stores all neighs in usual manner
     // set off2on = 1 for all children, since they expect newton on lists
-    //   this is b/c granonesided only set by line/gran and tri/gran which
-    //   both require system newton on
+    //   this is b/c granonesided is currently only set by line/tri gran
+    //   both of those pair styles require newton on
 
     if (onesided == 2) {
       irq->newton = 2;
@@ -1462,10 +1503,12 @@ void Neighbor::morph_halffull()
       // these flags must be same,
       //   else 2 lists do not store same pairs
       //   or their data structures are different
+      // no need to check for history flag
+      //   it does not affect what pairs are stored in neigh list
+      // NOTE: need to check for 2 Kokkos flags ?
 
       if (irq->ghost != jrq->ghost) continue;
       if (irq->size != jrq->size) continue;
-      if (irq->history != jrq->history) continue;
       if (irq->bond != jrq->bond) continue;
       if (irq->omp != jrq->omp) continue;
       if (irq->intel != jrq->intel) continue;
@@ -1542,11 +1585,14 @@ void Neighbor::morph_copy_trim()
 
       // other list (jrq) to copy from must be perpetual
       // list that becomes a copy list (irq) can be perpetual or occasional
-      // if both lists are perpetual, require j < i
+      // if both lists are perpetual and have the same cutoff, require j < i
       //   to prevent circular dependence with 3 or more copies of a list
+      // lists with a shorter cutoff are exempt: they are trimmed from a strictly
+      //   longer one, so the cutoff increases along the chain and it cannot close
+      //   into a cycle.  Only equal cutoffs need the index ordering as tie break
 
       if (jrq->occasional) continue;
-      if (!irq->occasional && !irq->cut && j > i) continue;
+      if (!irq->occasional && (icut == jcut) && j > i) continue;
 
       // both lists must be half, or both full
 
@@ -1575,11 +1621,13 @@ void Neighbor::morph_copy_trim()
       // these flags must be same,
       //   else 2 lists do not store same pairs
       //   or their data structures are different
-      // no need to check omp b/c it stores same pairs
-      // NOTE: need check for 2 Kokkos flags?
+      // ghost flag logic was checked above
+      // no need to check for history flag
+      //   it does not affect what pairs are stored in neigh list
+      // no need to check for omp flag b/c it stores same pairs
+      // NOTE: need to check for 2 Kokkos flags ?
 
       if (irq->size != jrq->size) continue;
-      if (irq->history != jrq->history) continue;
       if (irq->bond != jrq->bond) continue;
       if (irq->intel != jrq->intel) continue;
       if (irq->kokkos_host && !jrq->kokkos_host) continue;
@@ -1603,7 +1651,8 @@ void Neighbor::morph_copy_trim()
     if (jj < nrequest) {
       irq->copy = 1;
       irq->trim = trim_flag;
-      if (jrq->copy && irq->cutoff == requests[jrq->copylist]->cutoff)
+      if (jrq->copy && irq->cut_fixed == requests[jrq->copylist]->cut_fixed &&
+          irq->cutoff == requests[jrq->copylist]->cutoff)
         irq->copylist = jrq->copylist;
       else
         irq->copylist = j;
@@ -1624,7 +1673,7 @@ void Neighbor::init_topology()
   // set flags that determine which topology neighbor classes to use
   // these settings could change from run to run, depending on fixes defined
   // bonds,etc can only be broken for atom->molecular = Atom::MOLECULAR, not Atom::TEMPLATE
-  // SHAKE sets bonds and angles negative
+  // SHAKE and ILVES set bonds and angles negative
   // gcmc sets all bonds, angles, etc negative
   // partial_flag sets bonds to 0
   // delete_bonds sets all interactions negative
@@ -1635,7 +1684,8 @@ void Neighbor::init_topology()
   int improper_off = 0;
 
   for (const auto &ifix : modify->get_fix_list()) {
-    if (utils::strmatch(ifix->style, "^shake") || utils::strmatch(ifix->style, "^rattle"))
+    if (utils::strmatch(ifix->style, "^shake") || utils::strmatch(ifix->style, "^rattle") ||
+        utils::strmatch(ifix->style, "^ilves"))
       bond_off = angle_off = 1;
     if (utils::strmatch(ifix->style, "gcmc"))
       bond_off = angle_off = dihedral_off = improper_off = 1;
@@ -1890,7 +1940,10 @@ void Neighbor::print_pairwise_info()
     if (rq->kokkos_device) out += ", kokkos_device";
     if (rq->kokkos_host) out += ", kokkos_host";
     if (rq->ssa) out += ", ssa";
-    if (rq->cut) out += fmt::format(", cut {}", rq->cutoff);
+    if (rq->cut) {
+      out += fmt::format(", cut {}", rq->cutoff);
+      if (rq->cut_fixed) out += fmt::format(", cut fixed {}", rq->cut_fixed);
+    }
     if (rq->off2on) out += ", off2on";
     out += "\n";
 
@@ -1952,7 +2005,7 @@ NeighRequest *Neighbor::find_request(void *classptr, const int id) const
    return vector with neighbor list requests from pair styles
 ------------------------------------------------------------------------- */
 
-const std::vector<NeighRequest *> Neighbor::get_pair_requests() const
+std::vector<NeighRequest *> Neighbor::get_pair_requests() const
 {
   std::vector<NeighRequest *> matches;
   for (int i=0; i < nrequest; ++i)
@@ -2158,12 +2211,12 @@ int Neighbor::choose_pair(NeighRequest *rq)
 
   int molecular = atom->molecular;
 
-  //printf("PAIR RQ FLAGS: hf %d %d n %d g %d sz %d gos %d r %d b %d o %d i %d "
-  //       "kk %d %d ss %d dn %d sk %d cp %d hf %d oo %d\n",
-  //        rq->half,rq->full,rq->newton,rq->ghost,rq->size,
-  //        rq->granonesided,rq->respaouter,rq->bond,rq->omp,rq->intel,
-  //       rq->kokkos_host,rq->kokkos_device,rq->ssa,rq->dnum,
-  //      rq->skip,rq->copy,rq->halffull,rq->off2on);
+  //printf("PAIR RQ FLAGS: hf %d %d nw %d gh %d sz %d gos %d ro %d bn %d om %d in %d "
+  //       "kk %d %d ss %d sk %d cp %d hf %d o2o %d\n",
+  //       rq->half,rq->full,rq->newton,rq->ghost,rq->size,
+  //       rq->granonesided,rq->respaouter,rq->bond,rq->omp,rq->intel,
+  //       rq->kokkos_host,rq->kokkos_device,rq->ssa,
+  //       rq->skip,rq->copy,rq->halffull,rq->off2on);
 
   // use request and system settings to match exactly one NPair class mask
   // checks are bitwise using NeighConst bit masks

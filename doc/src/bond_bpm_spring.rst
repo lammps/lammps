@@ -69,7 +69,7 @@ the system will not reset the reference state of a bond.
 This bond style only applies central-body forces which conserve the
 translational and rotational degrees of freedom of a bonded set of
 particles based on a model described by Clemmer and Robbins
-:ref:`(Clemmer) <fragment-Clemmer>`. The force has a magnitude of
+:ref:`(Clemmer3) <fragment-Clemmer>`. The force has a magnitude of
 
 .. math::
 
@@ -265,7 +265,7 @@ The option defaults are *overlay/pair* = *no*, *smooth* = *yes*, *normalize* = *
 
 .. _fragment-Clemmer:
 
-**(Clemmer)** Clemmer and Robbins, Phys. Rev. Lett. (2022).
+**(Clemmer3)** Clemmer and Robbins, Phys. Rev. Lett. (2022).
 
 .. _Groot4:
 

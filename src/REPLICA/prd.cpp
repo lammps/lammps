@@ -47,7 +47,12 @@ enum{SINGLE_PROC_DIRECT,SINGLE_PROC_MAP,MULTI_PROC};
 
 /* ---------------------------------------------------------------------- */
 
-PRD::PRD(LAMMPS *lmp) : Command(lmp) {}
+PRD::PRD(LAMMPS *lmp) :
+    Command(lmp), loop_setting(nullptr), dist_setting(nullptr), counts(nullptr),
+    displacements(nullptr), tagall(nullptr), xall(nullptr), imageall(nullptr),
+    random_select(nullptr), random_clock(nullptr), random_dephase(nullptr), compute_event(nullptr),
+    fix_event(nullptr), velocity(nullptr), temperature(nullptr), finish(nullptr)
+{}
 
 /* ----------------------------------------------------------------------
    perform PRD simulation on one or more replicas
@@ -499,8 +504,8 @@ void PRD::dephase()
   // clear timestep storage from computes, since now invalid
 
   update->ntimestep = ntimestep_hold;
-  for (int i = 0; i < modify->ncompute; i++)
-    if (modify->compute[i]->timeflag) modify->compute[i]->clearstep();
+  for (const auto &icompute : modify->get_compute_list())
+    if (icompute->timeflag) icompute->clearstep();
 }
 
 /* ----------------------------------------------------------------------
@@ -576,8 +581,8 @@ void PRD::quench()
 
   update->ntimestep = ntimestep_hold;
   update->endstep = update->laststep = endstep_hold;
-  for (int i = 0; i < modify->ncompute; i++)
-    if (modify->compute[i]->timeflag) modify->compute[i]->clearstep();
+  for (const auto &icompute : modify->get_compute_list())
+    if (icompute->timeflag) icompute->clearstep();
 }
 
 /* ----------------------------------------------------------------------

@@ -50,4 +50,11 @@ thermo_modify   lost ignore lost/bond ignore
 #dump            2 all local 100 brokenDump f_brkbond[1] f_brkbond[2] f_brkbond[3]
 #dump_modify     2 header no
 
+# color each intact bond by the force it carries and render an image of the
+# fracturing disk (viewed face-on with view 90 0); see examples/GRAPHICS
+#compute         bforce all bond/local force
+#dump            3 all image 100 impact.*.ppm type type adiam 0.4 bond c_bforce 0.3 &
+#                size 800 800 zoom 1.7 view 90 0 box no 0.0
+#dump_modify     3 bmap 0.0 0.04 ca 0.0 2 min blue max red backcolor white
+
 run             7500

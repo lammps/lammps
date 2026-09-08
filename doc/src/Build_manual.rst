@@ -123,7 +123,7 @@ environment variable.
 Prerequisites for HTML
 ----------------------
 
-To run the HTML documentation build toolchain, Python 3.8 or later, git,
+To run the HTML documentation build tool chain, Python 3.8 or later, git,
 doxygen, and virtualenv have to be installed locally.  Here are
 instructions for common setups:
 

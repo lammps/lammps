@@ -46,8 +46,6 @@ class FixLineForceKokkos : public FixLineForce {
   void operator()(TagFixLineForce, const int &) const;
 
  private:
-  class AtomKokkos *atomKK;
-  ExecutionSpace execution_space;
 
   typename AT::t_kkacc_1d_3 f;
   typename AT::t_int_1d_randomread mask;

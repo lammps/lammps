@@ -35,7 +35,9 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairADP::PairADP(LAMMPS *lmp) : Pair(lmp)
+PairADP::PairADP(LAMMPS *lmp) :
+    Pair(lmp), type2frho(nullptr), type2rhor(nullptr), type2z2r(nullptr), type2u2r(nullptr),
+    type2w2r(nullptr)
 {
   restartinfo = 0;
 

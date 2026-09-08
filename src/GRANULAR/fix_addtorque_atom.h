@@ -38,7 +38,7 @@ class FixAddTorqueAtom : public Fix {
   double compute_vector(int) override;
   double memory_usage() override;
 
- private:
+ protected:
   double xvalue, yvalue, zvalue;
   int varflag;
   char *xstr, *ystr, *zstr;

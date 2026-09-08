@@ -103,10 +103,10 @@ void PairLJCutSphereKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   radius = atomKK->k_radius.view<DeviceType>();
   nlocal = atom->nlocal;
   nall = atom->nlocal + atom->nghost;
-  special_lj[0] = force->special_lj[0];
-  special_lj[1] = force->special_lj[1];
-  special_lj[2] = force->special_lj[2];
-  special_lj[3] = force->special_lj[3];
+  special_lj[0] = static_cast<KK_FLOAT>(force->special_lj[0]);
+  special_lj[1] = static_cast<KK_FLOAT>(force->special_lj[1]);
+  special_lj[2] = static_cast<KK_FLOAT>(force->special_lj[2]);
+  special_lj[3] = static_cast<KK_FLOAT>(force->special_lj[3]);
   newton_pair = force->newton_pair;
 
   EV_FLOAT ev;
@@ -116,14 +116,14 @@ void PairLJCutSphereKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   ev = pair_compute<PairLJCutSphereKokkos<DeviceType>,void>
     (this,(NeighListKokkos<DeviceType>*)list);
 
-  if (eflag) eng_vdwl += ev.evdwl;
+  if (eflag) eng_vdwl += static_cast<double>(ev.evdwl);
   if (vflag_global) {
-    virial[0] += ev.v[0];
-    virial[1] += ev.v[1];
-    virial[2] += ev.v[2];
-    virial[3] += ev.v[3];
-    virial[4] += ev.v[4];
-    virial[5] += ev.v[5];
+    virial[0] += static_cast<double>(ev.v[0]);
+    virial[1] += static_cast<double>(ev.v[1]);
+    virial[2] += static_cast<double>(ev.v[2]);
+    virial[3] += static_cast<double>(ev.v[3]);
+    virial[4] += static_cast<double>(ev.v[4]);
+    virial[5] += static_cast<double>(ev.v[5]);
   }
 
   if (eflag_atom) {
@@ -287,13 +287,13 @@ double PairLJCutSphereKokkos<DeviceType>::init_one(int i, int j)
   k_params.view_host()(j,i) = k_params.view_host()(i,j);
   if (i<MAX_TYPES_STACKPARAMS+1 && j<MAX_TYPES_STACKPARAMS+1) {
     m_params[i][j] = m_params[j][i] = k_params.view_host()(i,j);
-    m_cutsq[j][i]    = m_cutsq[i][j]    = cutsqm;
-    m_cut_ljsq[j][i] = m_cut_ljsq[i][j] = cutsqm;
+    m_cutsq[j][i]    = m_cutsq[i][j]    = static_cast<KK_FLOAT>(cutsqm);
+    m_cut_ljsq[j][i] = m_cut_ljsq[i][j] = static_cast<KK_FLOAT>(cutsqm);
   }
 
   k_cutsq.view_host()(i,j) = k_cutsq.view_host()(j,i) = cutsqm;
   k_cutsq.modify_host();
-  k_cut_ljsq.view_host()(i,j) = k_cut_ljsq.view_host()(j,i) = cutsqm;
+  k_cut_ljsq.view_host()(i,j) = k_cut_ljsq.view_host()(j,i) = static_cast<KK_FLOAT>(cutsqm);
   k_cut_ljsq.modify_host();
   k_params.modify_host();
 

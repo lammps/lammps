@@ -13,14 +13,11 @@ SPDX-License-Identifier: (BSD-3-Clause)
 
 #include <desul/atomics/Adapt_GCC.hpp>
 #include <desul/atomics/Common.hpp>
+#include <desul/atomics/Lock_Free_Types_OpenMP.hpp>
 #include <desul/atomics/Thread_Fence_OpenMP.hpp>
 
 namespace desul {
 namespace Impl {
-
-template <class T>
-inline constexpr bool host_atomic_always_lock_free<T, void> = (sizeof(T) == 4) ||
-                                                              (sizeof(T) == 8);
 
 template <class T, class MemoryOrder, class MemoryScope>
 T host_atomic_exchange(T* dest, T value, MemoryOrder, MemoryScope) {
@@ -47,8 +44,8 @@ std::enable_if_t<host_atomic_always_lock_free<T>, T> host_atomic_compare_exchang
     T* dest, T compare, T value, MemoryOrder, MemoryScope) {
   using cas_t = atomic_compare_exchange_t<T>;
   cas_t retval = __sync_val_compare_and_swap(reinterpret_cast<volatile cas_t*>(dest),
-                                             reinterpret_cast<cas_t&>(compare),
-                                             reinterpret_cast<cas_t&>(value));
+                                             *reinterpret_cast<cas_t*>(&compare),
+                                             *reinterpret_cast<cas_t*>(&value));
   return reinterpret_cast<T&>(retval);
 }
 

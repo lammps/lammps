@@ -64,7 +64,7 @@ numbers for the thermostatting procedure.
 The *flagHI* and *flagVF* settings are optional.  Neither should be
 used, or both must be defined.
 
-.. versionchanged:: TBD
+.. versionchanged:: 4Jul2026
 
 For *brownian/poly* the pairwise random Brownian force is now generated
 once per pair from a deterministic random number stream (keyed on the

@@ -54,9 +54,9 @@ void FixNVELimitKokkos<DeviceType>::initial_integrate(int /*vflag*/)
   auto d_f = atomKK->k_f.template view<DeviceType>();
   auto d_mask = atomKK->k_mask.template view<DeviceType>();
   auto l_groupbit = groupbit;
-  auto l_dtf = dtf;
-  auto l_dtv = dtv;
-  auto l_vlimitsq = vlimitsq;
+  const KK_FLOAT l_dtf = static_cast<KK_FLOAT>(dtf);
+  const KK_FLOAT l_dtv = static_cast<KK_FLOAT>(dtv);
+  const KK_FLOAT l_vlimitsq = static_cast<KK_FLOAT>(vlimitsq);
 
   int d_ncount;
 
@@ -68,15 +68,15 @@ void FixNVELimitKokkos<DeviceType>::initial_integrate(int /*vflag*/)
 
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType>(0,nlocal), KOKKOS_LAMBDA(const int i, int &l_ncount) {
       if (d_mask[i] & l_groupbit) {
-        const double dtfm = l_dtf / d_rmass[i];
-        d_v(i,0) += dtfm * d_f(i,0);
-        d_v(i,1) += dtfm * d_f(i,1);
-        d_v(i,2) += dtfm * d_f(i,2);
+        const KK_FLOAT dtfm = l_dtf / d_rmass[i];
+        d_v(i,0) += dtfm * static_cast<KK_FLOAT>(d_f(i,0));
+        d_v(i,1) += dtfm * static_cast<KK_FLOAT>(d_f(i,1));
+        d_v(i,2) += dtfm * static_cast<KK_FLOAT>(d_f(i,2));
 
-        const double vsq = d_v(i,0)*d_v(i,0) + d_v(i,1)*d_v(i,1) + d_v(i,2)*d_v(i,2);
+        const KK_FLOAT vsq = d_v(i,0)*d_v(i,0) + d_v(i,1)*d_v(i,1) + d_v(i,2)*d_v(i,2);
         if (vsq > l_vlimitsq) {
           l_ncount++;
-          const double scale = sqrt(l_vlimitsq/vsq);
+          const KK_FLOAT scale = Kokkos::sqrt(l_vlimitsq/vsq);
           d_v(i,0) *= scale;
           d_v(i,1) *= scale;
           d_v(i,2) *= scale;
@@ -97,15 +97,15 @@ void FixNVELimitKokkos<DeviceType>::initial_integrate(int /*vflag*/)
 
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType>(0,nlocal), KOKKOS_LAMBDA(const int i, int &l_ncount) {
       if (d_mask[i] & l_groupbit) {
-        const double dtfm = l_dtf / d_mass[d_type[i]];
-        d_v(i,0) += dtfm * d_f(i,0);
-        d_v(i,1) += dtfm * d_f(i,1);
-        d_v(i,2) += dtfm * d_f(i,2);
+        const KK_FLOAT dtfm = l_dtf / d_mass[d_type[i]];
+        d_v(i,0) += dtfm * static_cast<KK_FLOAT>(d_f(i,0));
+        d_v(i,1) += dtfm * static_cast<KK_FLOAT>(d_f(i,1));
+        d_v(i,2) += dtfm * static_cast<KK_FLOAT>(d_f(i,2));
 
-        const double vsq = d_v(i,0)*d_v(i,0) + d_v(i,1)*d_v(i,1) + d_v(i,2)*d_v(i,2);
+        const KK_FLOAT vsq = d_v(i,0)*d_v(i,0) + d_v(i,1)*d_v(i,1) + d_v(i,2)*d_v(i,2);
         if (vsq > l_vlimitsq) {
           l_ncount++;
-          const double scale = sqrt(l_vlimitsq/vsq);
+          const KK_FLOAT scale = Kokkos::sqrt(l_vlimitsq/vsq);
           d_v(i,0) *= scale;
           d_v(i,1) *= scale;
           d_v(i,2) *= scale;
@@ -134,8 +134,8 @@ void FixNVELimitKokkos<DeviceType>::final_integrate()
   auto d_f = atomKK->k_f.template view<DeviceType>();
   auto d_mask = atomKK->k_mask.template view<DeviceType>();
   auto l_groupbit = groupbit;
-  auto l_dtf = dtf;
-  auto l_vlimitsq = vlimitsq;
+  const KK_FLOAT l_dtf = static_cast<KK_FLOAT>(dtf);
+  const KK_FLOAT l_vlimitsq = static_cast<KK_FLOAT>(vlimitsq);
 
   int d_ncount;
 
@@ -146,15 +146,15 @@ void FixNVELimitKokkos<DeviceType>::final_integrate()
 
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType>(0,nlocal), KOKKOS_LAMBDA(const int i, int &l_ncount) {
       if (d_mask[i] & l_groupbit) {
-        const double dtfm = l_dtf / d_rmass[i];
-        d_v(i,0) += dtfm * d_f(i,0);
-        d_v(i,1) += dtfm * d_f(i,1);
-        d_v(i,2) += dtfm * d_f(i,2);
+        const KK_FLOAT dtfm = l_dtf / d_rmass[i];
+        d_v(i,0) += dtfm * static_cast<KK_FLOAT>(d_f(i,0));
+        d_v(i,1) += dtfm * static_cast<KK_FLOAT>(d_f(i,1));
+        d_v(i,2) += dtfm * static_cast<KK_FLOAT>(d_f(i,2));
 
-        const double vsq = d_v(i,0)*d_v(i,0) + d_v(i,1)*d_v(i,1) + d_v(i,2)*d_v(i,2);
+        const KK_FLOAT vsq = d_v(i,0)*d_v(i,0) + d_v(i,1)*d_v(i,1) + d_v(i,2)*d_v(i,2);
         if (vsq > l_vlimitsq) {
           l_ncount++;
-          const double scale = sqrt(l_vlimitsq/vsq);
+          const KK_FLOAT scale = Kokkos::sqrt(l_vlimitsq/vsq);
           d_v(i,0) *= scale;
           d_v(i,1) *= scale;
           d_v(i,2) *= scale;
@@ -170,15 +170,15 @@ void FixNVELimitKokkos<DeviceType>::final_integrate()
 
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType>(0,nlocal), KOKKOS_LAMBDA(const int i, int &l_ncount) {
       if (d_mask[i] & l_groupbit) {
-        const double dtfm = l_dtf / d_mass[d_type[i]];
-        d_v(i,0) += dtfm * d_f(i,0);
-        d_v(i,1) += dtfm * d_f(i,1);
-        d_v(i,2) += dtfm * d_f(i,2);
+        const KK_FLOAT dtfm = l_dtf / d_mass[d_type[i]];
+        d_v(i,0) += dtfm * static_cast<KK_FLOAT>(d_f(i,0));
+        d_v(i,1) += dtfm * static_cast<KK_FLOAT>(d_f(i,1));
+        d_v(i,2) += dtfm * static_cast<KK_FLOAT>(d_f(i,2));
 
-        const double vsq = d_v(i,0)*d_v(i,0) + d_v(i,1)*d_v(i,1) + d_v(i,2)*d_v(i,2);
+        const KK_FLOAT vsq = d_v(i,0)*d_v(i,0) + d_v(i,1)*d_v(i,1) + d_v(i,2)*d_v(i,2);
         if (vsq > l_vlimitsq) {
           l_ncount++;
-          const double scale = sqrt(l_vlimitsq/vsq);
+          const KK_FLOAT scale = Kokkos::sqrt(l_vlimitsq/vsq);
           d_v(i,0) *= scale;
           d_v(i,1) *= scale;
           d_v(i,2) *= scale;

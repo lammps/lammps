@@ -336,7 +336,7 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
   void get_chi_field() override;
 
   // Let the neighbor count functor access some of my members
-  friend class FixQEqReaxFFKokkosNeighborFunctor<DeviceType>;
+  friend struct FixQEqReaxFFKokkosNeighborFunctor<DeviceType>;
 };
 
 // Custom functor to count various things about the number of neighbors

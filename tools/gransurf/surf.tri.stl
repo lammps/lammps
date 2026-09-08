@@ -1,0 +1,30 @@
+solid STL version of surf.tri
+  facet normal 0.0 0.0 0.0
+    outer loop
+      vertex -6 -6 0
+      vertex 6 -6 0
+      vertex 0 0 0
+    endloop
+  endfacet
+  facet normal 0.0 0.0 0.0
+    outer loop
+      vertex 6 -6 0
+      vertex 6 6 0
+      vertex 0 0 0
+    endloop
+  endfacet
+  facet normal 0.0 0.0 0.0
+    outer loop
+      vertex 6 6 0
+      vertex -6 6 0
+      vertex 0 0 0
+    endloop
+  endfacet
+  facet normal 0.0 0.0 0.0
+    outer loop
+      vertex -6 -6 0
+      vertex 0 0 0
+      vertex -6 6 0
+    endloop
+  endfacet
+endsolid STL version of surf.tri

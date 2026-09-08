@@ -1,0 +1,20 @@
+---
+lammps_version: 4 Jul 2026
+tags:
+date_generated: Thu Jul  9 16:21:37 2026
+epsilon: 1e-08
+timestep: 0.25
+skip_tests:
+prerequisites: |
+  atom full
+  compute gyration
+pre_commands: ""
+post_commands: |
+  compute test solute gyration
+input_file: in.fourmol
+input_coeffs: coeffs.fourmol
+natoms: 29
+global_scalar: 2.3048386229794304
+global_vector: |-
+  6  1.9373939395366160e+00  2.2449165560633473e+00  1.1299705823777537e+00 -1.5341667814053181e+00  5.3525674433552523e-02 -2.9104687436696447e-01
+...

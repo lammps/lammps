@@ -93,16 +93,17 @@ KOKKOS_INLINE_FUNCTION
 void ComputeTempCOMKokkos<DeviceType>::operator()(TagComputeTempCOMScalar<RMASS>, const int &i, CTEMP& t_kk) const {
 
   KK_FLOAT vthermal[3];
+  const KK_FLOAT vbias_kk[3] = {static_cast<KK_FLOAT>(vbias[0]), static_cast<KK_FLOAT>(vbias[1]), static_cast<KK_FLOAT>(vbias[2])};
 
-  vthermal[0] = v(i,0) - vbias[0];
-  vthermal[1] = v(i,1) - vbias[1];
-  vthermal[2] = v(i,2) - vbias[2];
+  vthermal[0] = v(i,0) - vbias_kk[0];
+  vthermal[1] = v(i,1) - vbias_kk[1];
+  vthermal[2] = v(i,2) - vbias_kk[2];
   if (RMASS) {
     if (mask[i] & groupbit)
-      t_kk.t0 += (vthermal[0]*vthermal[0] + vthermal[1]*vthermal[1] + vthermal[2]*vthermal[2]) * rmass[i];
+      t_kk.t0 += static_cast<double>((vthermal[0]*vthermal[0] + vthermal[1]*vthermal[1] + vthermal[2]*vthermal[2]) * rmass[i]);
   } else {
     if (mask[i] & groupbit)
-      t_kk.t0 += (vthermal[0]*vthermal[0] + vthermal[1]*vthermal[1] + vthermal[2]*vthermal[2]) * mass[type[i]];
+      t_kk.t0 += static_cast<double>((vthermal[0]*vthermal[0] + vthermal[1]*vthermal[1] + vthermal[2]*vthermal[2]) * mass[type[i]]);
   }
 }
 
@@ -159,21 +160,22 @@ KOKKOS_INLINE_FUNCTION
 void ComputeTempCOMKokkos<DeviceType>::operator()(TagComputeTempCOMVector<RMASS>, const int &i, CTEMP& t_kk) const {
 
   KK_FLOAT vthermal[3];
+  const KK_FLOAT vbias_kk[3] = {static_cast<KK_FLOAT>(vbias[0]), static_cast<KK_FLOAT>(vbias[1]), static_cast<KK_FLOAT>(vbias[2])};
 
-  vthermal[0] = v(i,0) - vbias[0];
-  vthermal[1] = v(i,1) - vbias[1];
-  vthermal[2] = v(i,2) - vbias[2];
+  vthermal[0] = v(i,0) - vbias_kk[0];
+  vthermal[1] = v(i,1) - vbias_kk[1];
+  vthermal[2] = v(i,2) - vbias_kk[2];
 
   if (mask[i] & groupbit) {
     KK_FLOAT massone = 0.0;
     if (RMASS) massone = rmass[i];
     else massone = mass[type[i]];
-    t_kk.t0 += massone * vthermal[0]*vthermal[0];
-    t_kk.t1 += massone * vthermal[1]*vthermal[1];
-    t_kk.t2 += massone * vthermal[2]*vthermal[2];
-    t_kk.t3 += massone * vthermal[0]*vthermal[1];
-    t_kk.t4 += massone * vthermal[0]*vthermal[2];
-    t_kk.t5 += massone * vthermal[1]*vthermal[2];
+    t_kk.t0 += static_cast<double>(massone * vthermal[0]*vthermal[0]);
+    t_kk.t1 += static_cast<double>(massone * vthermal[1]*vthermal[1]);
+    t_kk.t2 += static_cast<double>(massone * vthermal[2]*vthermal[2]);
+    t_kk.t3 += static_cast<double>(massone * vthermal[0]*vthermal[1]);
+    t_kk.t4 += static_cast<double>(massone * vthermal[0]*vthermal[2]);
+    t_kk.t5 += static_cast<double>(massone * vthermal[1]*vthermal[2]);
   }
 }
 
@@ -208,9 +210,10 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void ComputeTempCOMKokkos<DeviceType>::operator()(TagComputeTempCOMRemoveBias, const int &i) const {
   if (mask[i] & groupbit) {
-    v(i,0) -= vbias[0];
-    v(i,1) -= vbias[1];
-    v(i,2) -= vbias[2];
+    const KK_FLOAT vbias_kk[3] = {static_cast<KK_FLOAT>(vbias[0]), static_cast<KK_FLOAT>(vbias[1]), static_cast<KK_FLOAT>(vbias[2])};
+    v(i,0) -= vbias_kk[0];
+    v(i,1) -= vbias_kk[1];
+    v(i,2) -= vbias_kk[2];
   }
 }
 
@@ -218,6 +221,15 @@ void ComputeTempCOMKokkos<DeviceType>::operator()(TagComputeTempCOMRemoveBias, c
 
 template<class DeviceType>
 void ComputeTempCOMKokkos<DeviceType>::restore_bias_all()
+{
+  restore_bias_all_kk();
+  atomKK->sync(Host,V_MASK);
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void ComputeTempCOMKokkos<DeviceType>::restore_bias_all_kk()
 {
   atomKK->sync(execution_space,V_MASK|MASK_MASK);
   v = atomKK->k_v.view<DeviceType>();
@@ -236,9 +248,10 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void ComputeTempCOMKokkos<DeviceType>::operator()(TagComputeTempCOMRestoreBias, const int &i) const {
   if (mask[i] & groupbit) {
-    v(i,0) += vbias[0];
-    v(i,1) += vbias[1];
-    v(i,2) += vbias[2];
+    const KK_FLOAT vbias_kk[3] = {static_cast<KK_FLOAT>(vbias[0]), static_cast<KK_FLOAT>(vbias[1]), static_cast<KK_FLOAT>(vbias[2])};
+    v(i,0) += vbias_kk[0];
+    v(i,1) += vbias_kk[1];
+    v(i,2) += vbias_kk[2];
   }
 }
 

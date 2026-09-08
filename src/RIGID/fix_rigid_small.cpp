@@ -35,6 +35,7 @@
 #include "random_park.h"
 #include "respa.h"
 #include "rigid_const.h"
+#include "safe_pointers.h"
 #include "tokenizer.h"
 #include "update.h"
 #include "variable.h"
@@ -429,7 +430,7 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
 
   // set max comm sizes needed by this fix
 
-  comm_forward = 1 + bodysize;
+  comm_forward = MAX(1 + bodysize, INITIAL_BUFSZ);
   comm_reverse = 6;
 
   // atom style pointers to particles that store extra info
@@ -479,6 +480,8 @@ FixRigidSmall::FixRigidSmall(LAMMPS *lmp, int narg, char **arg) :
 
 FixRigidSmall::~FixRigidSmall()
 {
+  if (copymode) return;
+
   // unregister callbacks to this fix from Atom class
 
   if (modify->get_fix_by_id(id)) atom->delete_callback(id,Atom::GROW);
@@ -550,7 +553,7 @@ void FixRigidSmall::init()
   //   and gravity is not applied correctly
 
   if ((inpfile || onemols) && !id_gravity) {
-    if (modify->get_fix_by_style("^gravity").size() > 0)
+    if (!modify->get_fix_by_style("^gravity").empty())
       if (comm->me == 0)
         error->warning(FLERR,"Gravity may not be correctly applied to rigid "
                        "bodies if they consist of overlapped particles");
@@ -645,7 +648,15 @@ void FixRigidSmall::setup(int vflag)
     memory->destroy(langextra);
     maxlang = nlocal_body + nghost_body;
     memory->create(langextra,maxlang,6,"rigid/small:langextra");
+    // memory->create() does not zero: post_force() only fills the rows of bodies
+    // it thermostats, but setup() and compute_forces_and_torques() fold every
+    // row into the body forces, so the untouched rows have to start at zero.
+    memset(&langextra[0][0],0,(size_t)maxlang*6*sizeof(double));
   }
+
+  // note langextra is zeroed where it is allocated: it holds the Langevin
+  // force/torque that compute_forces_and_torques() adds to every body, but
+  // apply_langevin_thermostat() does not run until the first post_force().
 
   compute_forces_and_torques();
 
@@ -666,7 +677,7 @@ void FixRigidSmall::setup(int vflag)
   }
 
   commflag = FINAL;
-  comm->forward_comm(this,10);
+  comm->forward_comm(this, FINAL_BUFSZ);
 
   // set velocity/rotation of atoms in rigid bodues
 
@@ -729,7 +740,7 @@ void FixRigidSmall::initial_integrate(int vflag)
   // forward communicate updated info of all bodies
 
   commflag = INITIAL;
-  comm->forward_comm(this,29);
+  comm->forward_comm(this, INITIAL_BUFSZ);
 
   // set coords/orient and velocity/rotation of atoms in rigid bodies
 
@@ -819,7 +830,7 @@ void FixRigidSmall::final_integrate()
   // forward communicate updated info of all bodies
 
   commflag = FINAL;
-  comm->forward_comm(this,10);
+  comm->forward_comm(this, FINAL_BUFSZ);
 
   // set velocity/rotation of atoms in rigid bodies
   // virial is already setup from initial_integrate
@@ -895,6 +906,10 @@ void FixRigidSmall::apply_langevin_thermostat()
     memory->destroy(langextra);
     maxlang = nlocal_body + nghost_body;
     memory->create(langextra,maxlang,6,"rigid/small:langextra");
+    // memory->create() does not zero: post_force() only fills the rows of bodies
+    // it thermostats, but setup() and compute_forces_and_torques() fold every
+    // row into the body forces, so the untouched rows have to start at zero.
+    memset(&langextra[0][0],0,(size_t)maxlang*6*sizeof(double));
   }
 
   double delta = update->ntimestep - update->beginstep;
@@ -1107,7 +1122,7 @@ bigint FixRigidSmall::dof(int tgroup)
     j = atom2body[i];
     counts[j][2]++;
     if (mask[i] & tgroupbit) {
-      if (extended && (eflags[i] & ~(POINT | DIPOLE))) counts[j][1]++;
+      if (extended && (eflags[i] & ~(POINT | DIPOLE | TORQUE))) counts[j][1]++;
       else counts[j][0]++;
     }
   }
@@ -1311,11 +1326,11 @@ void FixRigidSmall::set_xv()
     double theta_body,theta;
     double *shape,*quatatom,*inertiaatom;
 
-    AtomVecEllipsoid::Bonus *ebonus;
+    AtomVecEllipsoid::Bonus *ebonus = nullptr;
     if (avec_ellipsoid) ebonus = avec_ellipsoid->bonus;
-    AtomVecLine::Bonus *lbonus;
+    AtomVecLine::Bonus *lbonus = nullptr;
     if (avec_line) lbonus = avec_line->bonus;
-    AtomVecTri::Bonus *tbonus;
+    AtomVecTri::Bonus *tbonus = nullptr;
     if (avec_tri) tbonus = avec_tri->bonus;
     double **omega = atom->omega;
     double **angmom = atom->angmom;
@@ -1643,7 +1658,7 @@ int FixRigidSmall::rendezvous_body(int n, char *inbuf,
   }
 
   for (i = 0; i < n; i++) {
-    m = hash.find(in[i].bodyID)->second;
+    m = hash[in[i].bodyID];
     x = in[i].x;
     bbox[m][0] = MIN(bbox[m][0],x[0]);
     bbox[m][1] = MAX(bbox[m][1],x[0]);
@@ -1682,7 +1697,7 @@ int FixRigidSmall::rendezvous_body(int n, char *inbuf,
   for (m = 0; m < ncount; m++) rsqclose[m] = BIG;
 
   for (i = 0; i < n; i++) {
-    m = hash.find(in[i].bodyID)->second;
+    m = hash[in[i].bodyID];
     x = in[i].x;
     delx = x[0] - ctr[m][0];
     dely = x[1] - ctr[m][1];
@@ -1702,7 +1717,7 @@ int FixRigidSmall::rendezvous_body(int n, char *inbuf,
   double rsqfar = 0.0;
 
   for (i = 0; i < n; i++) {
-    m = hash.find(in[i].bodyID)->second;
+    m = hash[in[i].bodyID];
     xown = in[iclose[m]].x;
     x = in[i].x;
     delx = x[0] - xown[0];
@@ -1723,7 +1738,7 @@ int FixRigidSmall::rendezvous_body(int n, char *inbuf,
   for (i = 0; i < nout; i++) {
     proclist[i] = in[i].me;
     out[i].ilocal = in[i].ilocal;
-    m = hash.find(in[i].bodyID)->second;
+    m = hash[in[i].bodyID];
     out[i].atomID = idclose[m];
   }
 
@@ -1822,13 +1837,11 @@ void FixRigidSmall::setup_bodies_static()
       eflags[i] = 0;
       if (bodytag[i] == 0) continue;
 
-      // set to POINT or SPHERE or ELLIPSOID or LINE
+      // set to POINT or SPHERE or ELLIPSOID or LINE or TRIANGLE
+      // check for bonus data before radius: line and tri particles
+      // also store a bounding-sphere radius for neighboring purposes
 
-      if (radius && radius[i] > 0.0) {
-        eflags[i] |= SPHERE;
-        eflags[i] |= OMEGA;
-        eflags[i] |= TORQUE;
-      } else if (ellipsoid && ellipsoid[i] >= 0) {
+      if (ellipsoid && ellipsoid[i] >= 0) {
         eflags[i] |= ELLIPSOID;
         eflags[i] |= ANGMOM;
         eflags[i] |= TORQUE;
@@ -1840,12 +1853,20 @@ void FixRigidSmall::setup_bodies_static()
         eflags[i] |= TRIANGLE;
         eflags[i] |= ANGMOM;
         eflags[i] |= TORQUE;
+      } else if (radius && radius[i] > 0.0) {
+        eflags[i] |= SPHERE;
+        eflags[i] |= OMEGA;
+        eflags[i] |= TORQUE;
       } else eflags[i] |= POINT;
 
       // set DIPOLE if atom->mu and mu[3] > 0.0
+      // point dipoles also need TORQUE so the torque
+      // from dipole interactions acts on the body
 
-      if (atom->mu_flag && mu[i][3] > 0.0)
+      if (atom->mu_flag && mu[i][3] > 0.0) {
         eflags[i] |= DIPOLE;
+        if (atom->torque_flag) eflags[i] |= TORQUE;
+      }
     }
   }
 
@@ -2122,6 +2143,18 @@ void FixRigidSmall::setup_bodies_static()
     MathExtra::cross3(ex,ey,cross);
     if (MathExtra::dot3(cross,ez) < 0.0) MathExtra::negate3(ez);
 
+    // for 2d, ensure ez points in the +z direction
+    // negate both ey and ez to keep the eigenbasis right-handed
+    // the theta-based orientation bookkeeping for line particles requires
+    //   the body frame to be a pure rotation around the +z axis
+
+    if (domain->dimension == 2) {
+      if (ez[2] < 0.0) {
+        MathExtra::negate3(ey);
+        MathExtra::negate3(ez);
+      }
+    }
+
     // create initial quaternion
 
     MathExtra::exyz_to_q(ex,ey,ez,body[ibody].quat);
@@ -2141,7 +2174,7 @@ void FixRigidSmall::setup_bodies_static()
   // forward communicate updated info of all bodies
 
   commflag = INITIAL;
-  comm->forward_comm(this,29);
+  comm->forward_comm(this, INITIAL_BUFSZ);
 
   // displace = initial atom coords in basis of principal axes
   // set displace = 0.0 for atoms not in any rigid body
@@ -2446,7 +2479,7 @@ void FixRigidSmall::setup_bodies_dynamic()
 void FixRigidSmall::readfile(int which, double **array, int *inbody)
 {
   int nchunk,eofflag,nlines,xbox,ybox,zbox;
-  FILE *fp;
+  SafeFilePtr fp;
   char *eof,*start,*next,*buf;
   char line[MAXLINE] = {'\0'};
 
@@ -2477,7 +2510,6 @@ void FixRigidSmall::readfile(int which, double **array, int *inbody)
     nlines = utils::inumeric(FLERR, utils::trim(line), true, lmp);
     if (which == 0)
       utils::logmesg(lmp, "Reading rigid body data for {} bodies from file {}\n", nlines, inpfile);
-    if (nlines == 0) fclose(fp);
   }
   MPI_Bcast(&nlines,1,MPI_INT,0,world);
 
@@ -2567,7 +2599,6 @@ void FixRigidSmall::readfile(int which, double **array, int *inbody)
     nread += nchunk;
   }
 
-  if (comm->me == 0) fclose(fp);
   delete[] buffer;
 }
 
@@ -2724,15 +2755,15 @@ void FixRigidSmall::resample_momenta(int groupbit, int mom_flag, class RanPark *
         else
           wbody[j] = 0.0;
       }
+      MathExtra::matvec(b->ex_space, b->ey_space, b->ez_space, wbody, b->omega);
     }
-    MathExtra::matvec(b->ex_space, b->ey_space, b->ez_space, wbody, b->omega);
   }
 
   if (mom_flag && (total_mass > 0.0)) {
     for (int j = 0; j < 3; j++) vcm[j] /= total_mass;
     for (int ibody = 0; ibody < nlocal; ibody++) {
+      b = &body[ibody];
       if (mask[b->ilocal] & groupbit) {
-        b = &body[ibody];
         for (int j = 0; j < 3; j++) b->vcm[j] -= vcm[j];
       }
     }
@@ -2741,7 +2772,7 @@ void FixRigidSmall::resample_momenta(int groupbit, int mom_flag, class RanPark *
   // forward communicate vcm and omega to ghost bodies
 
   commflag = FINAL;
-  comm->forward_comm(this, 10);
+  comm->forward_comm(this, FINAL_BUFSZ);
 
   // compute angular momenta of rigid bodies
 
@@ -3468,7 +3499,7 @@ void FixRigidSmall::zero_momentum()
   // forward communicate of vcm to all ghost copies
 
   commflag = FINAL;
-  comm->forward_comm(this,10);
+  comm->forward_comm(this, FINAL_BUFSZ);
 
   // set velocity of atoms in rigid bodues
 
@@ -3494,7 +3525,7 @@ void FixRigidSmall::zero_rotation()
   // forward communicate of omega to all ghost copies
 
   commflag = FINAL;
-  comm->forward_comm(this,10);
+  comm->forward_comm(this, FINAL_BUFSZ);
 
   // set velocity of atoms in rigid bodues
 
@@ -3516,12 +3547,8 @@ int FixRigidSmall::modify_param(int narg, char **arg)
     // must do here and not in init,
     // since Modify::init() uses fix masks before calling fix::init()
 
-    for (int i = 0; i < modify->nfix; i++)
-      if (strcmp(modify->fix[i]->id,id) == 0) {
-        if (earlyflag) modify->fmask[i] |= POST_FORCE;
-        else if (!langflag) modify->fmask[i] &= ~POST_FORCE;
-        break;
-      }
+    if (earlyflag) modify->set_fix_mask(this, POST_FORCE);
+    else if (!langflag) modify->clear_fix_mask(this, POST_FORCE);
 
     return 2;
   }

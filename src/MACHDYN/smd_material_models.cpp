@@ -439,11 +439,11 @@ double JohnsonCookFailureStrain(const double p, const Matrix3d& Sdev, const doub
 
 
         double vm = sqrt(3. / 2.) * Sdev.norm(); // von-Mises equivalent stress
-        if (vm < 0.0) {
-                cout << "this is sdev " << endl << Sdev << endl;
-                printf("vm=%f < 0.0, surely must be an error\n", vm);
-                exit(1);
-        }
+//        if (vm < 0.0) {
+//                cout << "this is sdev " << endl << Sdev << endl;
+//                printf("vm=%f < 0.0, surely must be an error\n", vm);
+//                exit(1);
+//        }
 
         // determine stress triaxiality
         double triax = p / (vm + 0.01 * fabs(p)); // have softening in denominator to avoid division by zero

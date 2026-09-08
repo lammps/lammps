@@ -59,8 +59,6 @@ class FixAveForceKokkos : public FixAveForce {
 
   double m_fave[3];
 
-  class AtomKokkos *atomKK;
-  ExecutionSpace execution_space;
 };
 
 }

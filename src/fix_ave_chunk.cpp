@@ -216,6 +216,9 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
       iarg += 1;
     } else if (strcmp(arg[iarg],"format") == 0) {
       if (iarg+2 > nargnew)  utils::missing_cmd_args(FLERR, "fix ave/chunk format", error);
+      auto errmsg = utils::check_format(arg[iarg+1], utils::FmtArg::FLOAT);
+      if (!errmsg.empty())
+        error->all(FLERR, iarg+1, "Invalid fix ave/chunk format argument: {}", errmsg);
       delete[] format;
       format = utils::strdup(arg[iarg+1]);
       iarg += 2;

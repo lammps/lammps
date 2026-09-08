@@ -10,7 +10,7 @@
 // KOKKOS_VERSION / 100 % 100 is the minor version
 // KOKKOS_VERSION / 10000 is the major version
 #cmakedefine KOKKOS_VERSION @KOKKOS_VERSION@
-// Not using #cmakedefine below because a "0" FOO version number
+// Not using cmakedefine below because a "0" FOO version number
 // yields /* undef KOKKOS_VERSION_FOO */
 #define KOKKOS_VERSION_MAJOR @KOKKOS_VERSION_MAJOR@
 #define KOKKOS_VERSION_MINOR @KOKKOS_VERSION_MINOR@
@@ -27,6 +27,7 @@
 #cmakedefine KOKKOS_ENABLE_HIP
 #cmakedefine KOKKOS_ENABLE_HPX
 #cmakedefine KOKKOS_ENABLE_SYCL
+#cmakedefine KOKKOS_ENABLE_NEXTSILICON
 
 /* General Settings */
 #cmakedefine KOKKOS_ENABLE_CXX20
@@ -46,7 +47,6 @@
 #cmakedefine KOKKOS_ENABLE_OPENACC_FORCE_HOST_AS_DEVICE
 #cmakedefine KOKKOS_ENABLE_IMPL_HPX_ASYNC_DISPATCH
 #cmakedefine KOKKOS_ENABLE_DEBUG
-#cmakedefine KOKKOS_ENABLE_DEBUG_DUALVIEW_MODIFY_CHECK  // deprecated
 #cmakedefine KOKKOS_ENABLE_DEBUG_BOUNDS_CHECK
 #cmakedefine KOKKOS_ENABLE_TUNING
 #cmakedefine KOKKOS_ENABLE_DEPRECATED_CODE_4
@@ -148,7 +148,10 @@
 #cmakedefine KOKKOS_ARCH_AMD_GFX950
 #cmakedefine KOKKOS_ARCH_AMD_GFX1030
 #cmakedefine KOKKOS_ARCH_AMD_GFX1100
+#cmakedefine KOKKOS_ARCH_AMD_GFX1101
 #cmakedefine KOKKOS_ARCH_AMD_GFX1103
+#cmakedefine KOKKOS_ARCH_AMD_GFX1151
+#cmakedefine KOKKOS_ARCH_AMD_GFX1152
 #cmakedefine KOKKOS_ARCH_AMD_GFX1201
 #cmakedefine KOKKOS_ARCH_AMD_GPU "@KOKKOS_ARCH_AMD_GPU@"
 #cmakedefine KOKKOS_ARCH_VEGA // deprecated

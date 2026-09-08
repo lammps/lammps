@@ -3,6 +3,12 @@
 # Created by Axel Kohlmeyer and Richard Berger
 ########################################
 
+# set policy to use the time of extraction as timestamps of files unpacked from downloaded
+# archives, so that updating an archive version triggers rebuilding all dependent objects
+if(POLICY CMP0135)
+  cmake_policy(SET CMP0135 NEW)
+endif()
+
 # download and build googletest framework
 # cannot compile googletest anymore with the default GCC on RHEL 7.x
 if((CMAKE_CXX_COMPILER_ID STREQUAL "GNU") AND (CMAKE_CXX_COMPILER_VERSION VERSION_LESS 9.3))
@@ -10,8 +16,8 @@ if((CMAKE_CXX_COMPILER_ID STREQUAL "GNU") AND (CMAKE_CXX_COMPILER_VERSION VERSIO
 endif()
 
 message(STATUS "Downloading and building googletest framework")
-set(GTEST_URL "https://github.com/google/googletest/releases/download/v1.17.0/googletest-1.17.0.tar.gz" CACHE STRING "URL of googletest source")
-set(GTEST_SHA256 "65fab701d9829d38cb77c14acdc431d2108bfdbf8979e40eb8ae567edf10b27c" CACHE STRING "SHA256 sum for googletest source")
+set(GTEST_URL "https://github.com/google/googletest/releases/download/v1.18.0/googletest-1.18.0.tar.gz" CACHE STRING "URL of googletest source")
+set(GTEST_SHA256 "6e3191c1455468b3fc35a417fb565c1c5071aee1b7e7f85e30cf48a98d37d8b5" CACHE STRING "SHA256 sum for googletest source")
 mark_as_advanced(GTEST_URL)
 mark_as_advanced(GTEST_SHA256)
 set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
@@ -27,6 +33,20 @@ add_library(GTest::GTest ALIAS gtest)
 add_library(GTest::GMock ALIAS gmock)
 add_library(GTest::GTestMain ALIAS gtest_main)
 add_library(GTest::GMockMain ALIAS gmock_main)
+
+# download and build libyaml if not available globally
+find_package(YAML)
+if(NOT YAML_FOUND)
+  set(YAML_URL "https://pyyaml.org/download/libyaml/yaml-0.2.5.tar.gz" CACHE STRING "URL for libyaml tarball")
+  set(YAML_SHA256 "c642ae9b75fee120b2d96c712538bd2cf283228d2337df2cf2988e3c02678ef4" CACHE STRING "SHA256 checksum of libyaml tarball")
+  mark_as_advanced(YAML_URL)
+  mark_as_advanced(YAML_SHA256)
+
+  # download and build a local copy of libyaml
+  include(ExternalCMakeProject)
+  ExternalCMakeProject(libyaml ${YAML_URL} ${YAML_SHA256} yaml . CMakeLists.libyaml)
+  add_library(Yaml::Yaml ALIAS yaml)
+endif()
 
 option(SKIP_DEATH_TESTS "Do not run 'death tests' to reduce false positives in valgrind" OFF)
 mark_as_advanced(SKIP_DEATH_TESTS)
@@ -73,7 +93,8 @@ if(BUILD_MPI)
     set(MPI_TEST_WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
     cmake_parse_arguments(MPI_TEST "" "NAME;NUM_PROCS;WORKING_DIRECTORY" "COMMAND" ${ARGN})
     # Do not add test when oversubscribing
-    if(MPI_TEST_NUMPROCS GREATER MPIEXEC_MAX_NUMPROCS)
+    if(MPI_TEST_NUM_PROCS GREATER MPIEXEC_MAX_NUMPROCS)
+      message(STATUS "Skipping test ${MPI_TEST_NAME}: would oversubscribe (${MPI_TEST_NUM_PROCS} > ${MPIEXEC_MAX_NUMPROCS} MPI ranks)")
       return()
     endif()
     list(GET MPI_TEST_COMMAND 0 EXECUTABLE)
@@ -82,12 +103,13 @@ if(BUILD_MPI)
     add_test(NAME ${MPI_TEST_NAME}
              WORKING_DIRECTORY ${MPI_TEST_WORKING_DIRECTORY}
              COMMAND ${MPIEXEC_EXECUTABLE} ${MPIEXEC_NUMPROC_FLAG} ${MPI_TEST_NUM_PROCS}
-                     ${MPIEXEC_PREFLAGS} ${EXECUTABLE} ${MPIEXEC_POSTFLAGS} ${ARGS})
+             ${MPIEXEC_PREFLAGS} ${EXECUTABLE} ${MPIEXEC_POSTFLAGS} ${ARGS})
+    set_tests_properties(${MPI_TEST_NAME} PROPERTIES LABELS "mpi" ENVIRONMENT "OMP_PROC_BIND=false")
   endfunction()
 else()
   function(add_mpi_test)
     cmake_parse_arguments(MPI_TEST "" "NAME;NUM_PROCS;WORKING_DIRECTORY" "COMMAND" ${ARGN})
-    message(STATUS "Skipping test ${NAME} on non-MPI compilation")
+    message(STATUS "Skipping test ${MPI_TEST_NAME} on non-MPI compilation")
   endfunction()
 endif()
 
@@ -96,18 +118,18 @@ endif()
 add_subdirectory(utils)
 add_subdirectory(formats)
 add_subdirectory(commands)
+add_subdirectory(examples)
 add_subdirectory(c-library)
 add_subdirectory(cplusplus)
 add_subdirectory(fortran)
 add_subdirectory(python)
 add_subdirectory(force-styles)
-
-# clang-format support for test sources
-
-find_package(ClangFormat 8.0)
-
-if(ClangFormat_FOUND)
-  add_custom_target(format-tests
-    COMMAND ${ClangFormat_EXECUTABLE} --verbose -i -style=file */*.cpp */*.h
-    WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+if(PKG_BPM)
+  add_subdirectory(bpm)
+endif()
+if(PKG_GRANULAR)
+  add_subdirectory(granular)
+endif()
+if (PKG_GRAPHICS)
+  add_subdirectory(graphics)
 endif()

@@ -48,13 +48,14 @@ static constexpr int OFFSET = 16384;
 /* ---------------------------------------------------------------------- */
 
 FixTTMGrid::FixTTMGrid(LAMMPS *lmp, int narg, char **arg) :
-  FixTTM(lmp, narg, arg)
+    FixTTM(lmp, narg, arg), fpout(nullptr), grid(nullptr), grid_previous(nullptr),
+    T_electron_previous(nullptr), grid_buf1(nullptr), grid_buf2(nullptr), T_electron_read(nullptr)
 {
   pergrid_flag = 1;
   pergrid_freq = 1;
   restart_file = 1;
 
-  if (outfile.size() > 0)
+  if (!outfile.empty())
     error->all(FLERR, Error::NOPOINTER, "Fix ttm/grid does not support outfile option - "
                "use dump grid command or restart files instead");
 
@@ -65,7 +66,7 @@ FixTTMGrid::FixTTMGrid(LAMMPS *lmp, int narg, char **arg) :
 
 FixTTMGrid::~FixTTMGrid()
 {
-  FixTTMGrid::deallocate_grid();
+  if (!deallocate_flag) FixTTMGrid::deallocate_grid();
   deallocate_flag = 1;
 }
 

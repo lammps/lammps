@@ -120,12 +120,12 @@ void FixTFMC::init()
 {
   // shake cannot be handled because it requires velocities
   // (and real MD in general)
-  int has_shake = 0;
-  for (int i = 0; i < modify->nfix; i++)
-    if (strcmp(modify->fix[i]->style,"shake") == 0) ++has_shake;
-
-  if (has_shake > 0)
+  if (!modify->get_fix_by_style("^shake").empty())
     error->all(FLERR,"Fix tfmc is not compatible with fix shake");
+  if (!modify->get_fix_by_style("^rattle").empty())
+    error->all(FLERR,"Fix tfmc is not compatible with fix rattle");
+  if (!modify->get_fix_by_style("^ilves").empty())
+    error->all(FLERR,"Fix tfmc is not compatible with fix ilves");
 
   // obtain lowest mass in the system
   // We do this here, in init(), rather than in initial_integrate().

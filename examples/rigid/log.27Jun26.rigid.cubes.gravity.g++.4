@@ -1,0 +1,120 @@
+LAMMPS (30 Mar 2026 - Development - c0111598fe-modified)
+  using 1 OpenMP thread(s) per MPI task
+# Rigid-body test: a grid of 8-atom rigid cubes under a uniform gravity field
+# Reduced version of the system used to validate fix rigid/small/kk.
+#
+# The constant force drives all bodies coherently in one direction, so bodies
+# migrate across processor boundaries in two dimensions at once (the diagonal /
+# forwarded-body exchange case).  This exercises the device atom-exchange body
+# bookkeeping far more aggressively than thermal diffusion does; run multi-proc
+# (e.g. mpirun -np 4) on the device to stress it.
+#
+# Run the non-Kokkos and Kokkos versions and compare the thermo output:
+#   lmp -in in.rigid.cubes.gravity
+#   lmp -k on -sf kk -pk kokkos comm device sort device -in in.rigid.cubes.gravity
+# (data.rigid.cubes is produced by gen_cubes.py)
+
+units           lj
+atom_style      molecular
+atom_modify     map array
+
+read_data       data.rigid.cubes
+Reading data file ...
+  orthogonal box = (0 0 0) to (20 20 20)
+  1 by 2 by 2 MPI processor grid
+  reading atoms ...
+  1000 atoms
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     0 = max # of 1-2 neighbors
+     0 = max # of 1-3 neighbors
+     0 = max # of 1-4 neighbors
+     1 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+  read_data CPU = 0.004 seconds
+
+pair_style      lj/cut 2.5
+pair_coeff      1 1 1.0 1.0
+
+# rigid bodies do not feel internal forces; exclude intra-body neighbor pairs
+neigh_modify    exclude molecule/intra all
+
+velocity        all create 1.5 4928459 mom yes rot yes
+
+fix             grav all gravity 1.0 vector 0.3 0.4 -0.85
+fix             1 all rigid/small molecule
+Fix rigid/small setup ...
+  create bodies CPU = 0.000 seconds
+  125 rigid bodies with 1000 atoms
+  1.7320508 = max distance from body owner to body atom
+
+thermo_style    custom step temp pe ke etotal
+thermo          200
+timestep        0.0005
+run             4000
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 2.8
+  ghost atom cutoff = 2.8
+  binsize = 1.4, bins = 15 15 15
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 11.19 | 11.19 | 11.19 Mbytes
+   Step          Temp          PotEng         KinEng         TotEng    
+         0   1.4457086      0              0.53997217     0.53997217   
+       200   1.4590955      0              0.54497217     0.54497217   
+       400   1.4992561      0              0.55997217     0.55997217   
+       600   1.566343      -0.00043217006  0.58502912     0.58459695   
+       800   1.6614871     -0.0025185835   0.62056542     0.61804684   
+      1000   1.785987      -0.0059936026   0.66706613     0.66107252   
+      1200   1.9403487     -0.01040988     0.72472023     0.71431035   
+      1400   2.1254973     -0.016145667    0.79387323     0.77772756   
+      1600   2.3435294     -0.023869537    0.87530823     0.8514387    
+      1800   2.5963664     -0.035017391    0.96974287     0.93472548   
+      2000   2.8680651     -0.043291757    1.0712223      1.0279305    
+      2200   3.1962811     -0.062952892    1.193811       1.1308581    
+      2400   3.5272625     -0.073434521    1.3174325      1.243998     
+      2600   3.8971791     -0.088638247    1.4555964      1.3669581    
+      2800   4.271774      -0.095132172    1.5955076      1.5003754    
+      3000   4.7082863     -0.11473606     1.7585449      1.6438089    
+      3200   5.1513053     -0.12675374     1.9240125      1.7972588    
+      3400   5.6295911     -0.14166636     2.1026523      1.9609859    
+      3600   6.1131016     -0.14921557     2.2832434      2.1340279    
+      3800   6.5957762     -0.14607749     2.4635224      2.3174449    
+      4000   7.1847075     -0.17229988     2.6834882      2.5111884    
+Loop time of 0.291936 on 4 procs for 4000 steps with 1000 atoms
+
+Performance: 591910.867 tau/day, 13701.640 timesteps/s, 13.702 Matom-step/s
+94.2% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.0092686  | 0.011993   | 0.015376   |   2.1 |  4.11
+Bond    | 0.00015332 | 0.00018191 | 0.00023681 |   0.0 |  0.06
+Neigh   | 0.0048132  | 0.0055843  | 0.006146   |   0.8 |  1.91
+Comm    | 0.080508   | 0.085153   | 0.088963   |   1.2 | 29.17
+Output  | 0.00028109 | 0.0005306  | 0.0012481  |   0.0 |  0.18
+Modify  | 0.16863    | 0.17222    | 0.17586    |   0.7 | 58.99
+Other   |            | 0.01627    |            |       |  5.57
+
+Nlocal:            250 ave         284 max         204 min
+Histogram: 1 0 0 0 0 1 0 1 0 1
+Nghost:          511.5 ave         577 max         475 min
+Histogram: 2 0 0 1 0 0 0 0 0 1
+Neighs:            725 ave         950 max         528 min
+Histogram: 1 0 0 1 0 1 0 0 0 1
+
+Total # of neighbors = 2900
+Ave neighs/atom = 2.9
+Ave special neighs/atom = 0
+Neighbor list builds = 41
+Dangerous builds = 0
+Total wall time: 0:00:00

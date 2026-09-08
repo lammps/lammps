@@ -130,7 +130,7 @@ namespace LAMMPS_NS::MathSpecialKokkos {
   {
   #if defined(__BYTE_ORDER__) && (__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__)
       if (x < -1022.0/FM_DOUBLE_LOG2OFE) return 0;
-      if (x > 1023.0/FM_DOUBLE_LOG2OFE) return INFINITY;
+      if (x > 1023.0/FM_DOUBLE_LOG2OFE) return static_cast<double>(INFINITY);
       return exp2_x86(FM_DOUBLE_LOG2OFE * x);
   #else
       return ::exp(x);
@@ -282,6 +282,20 @@ namespace LAMMPS_NS::MathSpecialKokkos {
   static T dot3(const T *v1, const T *v2)
   {
     return v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2];
+  }
+
+  /* ----------------------------------------------------------------------
+    ans = v1 cross v2
+  ------------------------------------------------------------------------- */
+
+  template<typename T>
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  static void cross3(const T *v1, const T *v2, T *ans)
+  {
+    ans[0] = v1[1] * v2[2] - v1[2] * v2[1];
+    ans[1] = v1[2] * v2[0] - v1[0] * v2[2];
+    ans[2] = v1[0] * v2[1] - v1[1] * v2[0];
   }
 
 } // namespace LAMMPS_NS::MathSpecialKokkos

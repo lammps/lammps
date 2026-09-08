@@ -287,6 +287,11 @@ void NPairKokkos<DeviceType,HALF,NEWTON,GHOST,TRI,SIZE>::build(NeighList *list_)
 //      } else
 //        Kokkos::parallel_for(nall, f);
 //#else
+      // the flat kernel uses no team scratch, but Kokkos still queries
+      // team_shmem_size() when deducing the CUDA/HIP block size for a
+      // RangePolicy. A stale request larger than the shared memory limit
+      // makes that deduction return a block size of zero.
+      f.sharedsize = 0;
       Kokkos::parallel_for(nall, f);
 //#endif
     } else {

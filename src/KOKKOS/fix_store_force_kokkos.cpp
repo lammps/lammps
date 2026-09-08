@@ -35,11 +35,19 @@ FixStoreForceKokkos<DeviceType>::FixStoreForceKokkos(LAMMPS *lmp, int narg, char
   datamask_modify = EMPTY_MASK;
 
   // the base constructor allocated foriginal with Memory; redo it as a
-  // dual view so the kernel can fill it on the device
+  // dual view so the kernel can fill it on the device.  allocate it right
+  // away and re-point array_atom at it: the base class guarantees a valid,
+  // zeroed per-atom array before the first post_force(), because a dump or
+  // an atom-style variable may read it beforehand.  Kokkos value-initializes
+  // the new view, which supplies the zeroes.
 
   memory->destroy(foriginal);
   foriginal = nullptr;
-  nmax = 0;
+
+  nmax = atom->nmax;
+  memoryKK->create_kokkos(k_foriginal,foriginal,nmax,3,"store/force:foriginal");
+  d_foriginal = k_foriginal.template view<DeviceType>();
+  array_atom = foriginal;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -56,7 +56,12 @@ FixLangevinKokkos<DeviceType>::FixLangevinKokkos(LAMMPS *lmp, int narg, char **a
   atomKK = (AtomKokkos *) atom;
   int ntypes = atomKK->ntypes;
 
-  // allocate per-type arrays for force prefactors
+  // allocate per-type arrays for force prefactors.  the base class constructor has
+  // already parsed the optional "scale <type> <value>" keywords into ratio[], so
+  // save those values across the re-allocation instead of resetting them to 1.0
+  auto *ratio_base = new double[ntypes+1];
+  for (int i = 1; i <= ntypes; i++) ratio_base[i] = ratio[i];
+
   delete[] gfactor1;
   delete[] gfactor2;
   delete[] ratio;
@@ -70,8 +75,8 @@ FixLangevinKokkos<DeviceType>::FixLangevinKokkos(LAMMPS *lmp, int narg, char **a
   d_ratio = k_ratio.template view<DeviceType>();
   h_ratio = k_ratio.view_host();
 
-  // optional args
-  for (int i = 1; i <= ntypes; i++) ratio[i] = 1.0;
+  for (int i = 1; i <= ntypes; i++) ratio[i] = ratio_base[i];
+  delete[] ratio_base;
   k_ratio.modify_host();
 
   if (zeroflag) {

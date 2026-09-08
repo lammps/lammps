@@ -35,7 +35,7 @@ FixWallFlowKokkos<DeviceType>::FixWallFlowKokkos(LAMMPS *lmp, int narg, char **a
   exchange_comm_device = sort_device = 1;
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
-  datamask_read = X_MASK | RMASS_MASK | TYPE_MASK | MASK_MASK;
+  datamask_read = X_MASK | V_MASK | RMASS_MASK | TYPE_MASK | MASK_MASK;
   datamask_modify = V_MASK;
 
   memory->destroy(current_segment);
@@ -56,6 +56,13 @@ template <class DeviceType> FixWallFlowKokkos<DeviceType>::~FixWallFlowKokkos()
 
 template <class DeviceType> void FixWallFlowKokkos<DeviceType>::init()
 {
+  // the base class checks compatibility with triclinic boxes, rigid bodies and
+  // a box changing along the flow axis; its per-atom loop is redone on the
+  // device below
+
+  atomKK->sync(Host, X_MASK);
+  FixWallFlow::init();
+
   atomKK->sync(execution_space, datamask_read);
   k_current_segment.template sync<DeviceType>();
   d_x = atomKK->k_x.template view<DeviceType>();
@@ -282,6 +289,13 @@ void FixWallFlowKokkos<DeviceType>::unpack_exchange_kokkos(DAT::tdual_double_2d_
                                                            int /*nrecv1*/, int /*nextrarecv1*/,
                                                            ExecutionSpace /*space*/)
 {
+  // the kernel writes only the received entries, so the device copy has to be
+  // current before it claims the whole view below
+
+  k_current_segment.template sync<DeviceType>();
+  k_buf.template sync<DeviceType>();
+  k_indices.template sync<DeviceType>();
+
   d_buf = typename AT::t_double_1d_um(k_buf.template view<DeviceType>().data(),
                                                           k_buf.extent(0) * k_buf.extent(1));
   d_indices = k_indices.view<DeviceType>();

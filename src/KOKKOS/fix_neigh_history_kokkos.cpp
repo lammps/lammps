@@ -139,6 +139,12 @@ void FixNeighHistoryKokkos<DeviceType>::pre_exchange_no_newton()
       maxpartner += 8;
       memoryKK->grow_kokkos(k_partner,partner,atom->nmax,maxpartner,"neighbor_history:partner");
       memoryKK->grow_kokkos(k_valuepartner,valuepartner,atom->nmax,dnum*maxpartner,"neighbor_history:valuepartner");
+
+      // the grow reallocates, so the views used by the retry kernel must be
+      // re-bound, otherwise it writes past the end of the old allocation
+
+      d_partner = k_partner.template view<DeviceType>();
+      d_valuepartner = k_valuepartner.template view<DeviceType>();
     }
   }
 
@@ -258,7 +264,11 @@ void FixNeighHistoryKokkos<DeviceType>::operator()(TagFixNeighHistoryPostNeighbo
     if (use_bit_flag) {
       rflag = histmask(j) | beyond_contact;
       j &= HISTMASK;
-      d_firstflag(i,jj) = j;
+
+      // strip the history bit in the neighbor list, not in the flag array
+      // (the CPU version writes jlist[jj] = j here)
+
+      d_neighbors(i,jj) = j;
     } else {
       rflag = 1;
     }
@@ -526,6 +536,82 @@ int FixNeighHistoryKokkos<DeviceType>::unpack_exchange(int nlocal, double *buf)
   k_valuepartner.modify_host();
 
   return n;
+}
+
+/* ----------------------------------------------------------------------
+   pack values in local atom-based arrays for restart file
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+int FixNeighHistoryKokkos<DeviceType>::pack_restart(int i, double *buf)
+{
+  k_npartner.sync_host();
+  k_partner.sync_host();
+  k_valuepartner.sync_host();
+
+  return FixNeighHistory::pack_restart(i,buf);
+}
+
+/* ----------------------------------------------------------------------
+   unpack values from atom->extra array to restart the fix
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixNeighHistoryKokkos<DeviceType>::unpack_restart(int nlocal, int nth)
+{
+  // the base class version hands out fresh rows from its page allocators.
+  // here the rows belong to the dual views, so the values are unpacked in
+  // place instead, the same way unpack_exchange() does it
+
+  k_npartner.sync_host();
+  k_partner.sync_host();
+  k_valuepartner.sync_host();
+
+  double **extra = atom->extra;
+
+  // skip to Nth set of extra values
+  // unpack the Nth first values this way because other fixes pack them
+
+  int m = 0;
+  for (int i = 0; i < nth; i++) m += static_cast<int>(extra[nlocal][m]);
+  m++;
+
+  const int n = static_cast<int>(extra[nlocal][m++]);
+
+  if (n > maxpartner) {
+    maxpartner = n;
+    grow_arrays(atom->nmax);
+
+    // the grow leaves the data on the device and the host mirror empty,
+    // so pull the enlarged arrays back before writing into them
+
+    k_npartner.sync_host();
+    k_partner.sync_host();
+    k_valuepartner.sync_host();
+  }
+
+  npartner[nlocal] = n;
+  for (int p = 0; p < n; p++) {
+    partner[nlocal][p] = static_cast<tagint>(ubuf(extra[nlocal][m++]).i);
+    for (int v = 0; v < dnum; v++)
+      valuepartner[nlocal][dnum*p+v] = extra[nlocal][m++];
+  }
+
+  k_npartner.modify_host();
+  k_partner.modify_host();
+  k_valuepartner.modify_host();
+}
+
+/* ----------------------------------------------------------------------
+   size of atom nlocal's restart data
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+int FixNeighHistoryKokkos<DeviceType>::size_restart(int nlocal)
+{
+  k_npartner.sync_host();
+
+  return FixNeighHistory::size_restart(nlocal);
 }
 
 /* ----------------------------------------------------------------------

@@ -522,6 +522,11 @@ TEST_F(ComputeInertiaChunkTest, Body)
 {
     if (!lammps_config_has_package("BODY")) GTEST_SKIP();
 
+    // the KOKKOS package requires a Kokkos-enabled atom style, and there is
+    // no accelerated version of atom style body
+    if (lmp->kokkos && !info->has_style("atom", "body/kk"))
+        GTEST_SKIP() << "atom style body has no KOKKOS version";
+
     // single body/nparticle at the origin with a known diagonal inertia
     // tensor (2,3,4); a single chunk must return it unchanged
 

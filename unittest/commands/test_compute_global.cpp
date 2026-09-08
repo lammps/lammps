@@ -81,6 +81,9 @@ TEST_F(ComputeGlobalTest, Energy)
     if (lammps_get_natoms(lmp) == 0.0) GTEST_SKIP();
     int has_tally = lammps_config_has_package("TALLY");
 
+    // the tally computes are not supported by the KOKKOS package
+    if (lmp->kokkos) has_tally = 0;
+
     BEGIN_HIDE_OUTPUT();
     command("pair_style lj/cut/coul/cut 10.0");
     command("pair_coeff * * 0.01 3.0");
@@ -498,6 +501,11 @@ TEST_F(ComputeInertiaTest, Sphere)
 TEST_F(ComputeInertiaTest, Body)
 {
     if (!lammps_config_has_package("BODY")) GTEST_SKIP();
+
+    // the KOKKOS package requires a Kokkos-enabled atom style, and there is
+    // no accelerated version of atom style body
+    if (lmp->kokkos && !info->has_style("atom", "body/kk"))
+        GTEST_SKIP() << "atom style body has no KOKKOS version";
 
     // single body/nparticle at the origin with a known diagonal inertia
     // tensor (2,3,4); compute inertia must return it unchanged (the orbital

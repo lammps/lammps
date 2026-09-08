@@ -2358,6 +2358,11 @@ TEST_F(AtomStyleTest, body_nparticle)
 {
     if (!Info::has_package("BODY")) GTEST_SKIP();
 
+    // the KOKKOS package requires a Kokkos-enabled atom style, and there is
+    // no accelerated version of atom style body
+    if (lmp->kokkos && !info->has_style("atom", "body/kk"))
+        GTEST_SKIP() << "atom style body has no KOKKOS version";
+
     BEGIN_HIDE_OUTPUT();
     command("atom_style body nparticle 2 4");
     END_HIDE_OUTPUT();
@@ -5118,6 +5123,11 @@ TEST_F(AtomStyleTest, oxdna)
     if (!Info::has_package("MOLECULE")) GTEST_SKIP();
     if (!Info::has_package("ASPHERE")) GTEST_SKIP();
     if (!Info::has_package("CG-DNA")) GTEST_SKIP();
+
+    // the KOKKOS package requires a Kokkos-enabled atom style, and there is
+    // no accelerated version of atom style oxdna
+    if (lmp->kokkos && !info->has_style("atom", "oxdna/kk"))
+        GTEST_SKIP() << "atom style oxdna has no KOKKOS version";
 
     BEGIN_HIDE_OUTPUT();
     command("atom_style hybrid bond ellipsoid oxdna");

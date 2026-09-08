@@ -529,6 +529,11 @@ TEST_F(SetTest, SpinPackage)
 TEST_F(SetTest, EffPackage)
 {
     if (!Info::has_package("EFF")) GTEST_SKIP();
+
+    // the KOKKOS package requires a Kokkos-enabled atom style, and there is
+    // no accelerated version of atom style electron
+    if (lmp->kokkos && !info->has_style("atom", "electron/kk"))
+        GTEST_SKIP() << "atom style electron has no KOKKOS version";
     atomic_system("electron");
     ASSERT_EQ(atom->natoms, 8);
 

@@ -153,6 +153,11 @@ TEST_F(RestartSettingsTest, eff_cut_settings)
 {
     if (!Info::has_package("EFF")) GTEST_SKIP();
 
+    // the KOKKOS package requires a Kokkos-enabled atom style, and there is
+    // no accelerated version of atom style electron
+    if (lmp->kokkos && !info->has_style("atom", "electron/kk"))
+        GTEST_SKIP() << "atom style electron has no KOKKOS version";
+
     BEGIN_HIDE_OUTPUT();
     command("units electron");
     command("atom_style electron");

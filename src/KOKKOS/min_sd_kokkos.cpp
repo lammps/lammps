@@ -123,6 +123,12 @@ int MinSDKokkos::iterate(int maxiter)
 
     // set new search direction h to f = -Grad(x)
 
+    // a force style without a KOKKOS variant leaves the device copy stale,
+    // and energy_force() only pushes it back for newton on or a min_post_force
+    // fix, so the force array has to be claimed here before it is read
+
+    atomKK->sync(Device,F_MASK);
+
     set_search_direction();
 
     // output for thermo, dump, restart files

@@ -1111,8 +1111,11 @@ void CommKokkos::exchange_device()
   //   new ghosts are created in borders()
   // map_set() is done at end of borders()
 
-  if (lmp->kokkos->atom_map_legacy)
-    if (map_style != Atom::MAP_NONE) atom->map_clear();
+  // AtomKokkos::map_clear() clears the host or the device map itself, so this
+  // must not be limited to the legacy map: map_set_device() only clears the
+  // hash, leaving a MAP_ARRAY map full of stale indices for migrated atoms
+
+  if (map_style != Atom::MAP_NONE) atom->map_clear();
 
   // clear ghost count and any ghost bonus data internal to AtomVec
 
@@ -1283,10 +1286,10 @@ void CommKokkos::exchange_device()
             icopy--;
           }
         }
-      }
 
-      k_exchange_copylist_bonus.modify_host();
-      k_exchange_copylist_bonus.sync<DeviceType>();
+        k_exchange_copylist_bonus.modify_host();
+        k_exchange_copylist_bonus.sync<DeviceType>();
+      }
 
       if (nsend > maxsend) grow_send_kokkos(nsend,0);
       nsend =
@@ -1866,8 +1869,14 @@ void CommKokkos::grow_recv(int n)
 void CommKokkos::grow_send_kokkos(int n, int flag, ExecutionSpace space)
 {
 
+  // bufextra, not the bare BUFEXTRA constant: CommBrick::exchange() packs one
+  // atom of up to maxexchange doubles beyond maxsend before it grows the
+  // buffer again, and rounding up keeps the truncating division from handing
+  // back less than the caller asked for
+
   maxsend = static_cast<int> (BUFFACTOR * n);
-  int maxsend_border = (maxsend+Comm::BUFEXTRA)/atomKK->avecKK->size_border;
+  int maxsend_border = (maxsend + bufextra + atomKK->avecKK->size_border - 1)/
+    atomKK->avecKK->size_border;
   if (flag) {
     if (space == Device)
       k_buf_send.modify_device();
@@ -1903,7 +1912,8 @@ void CommKokkos::grow_send_kokkos(int n, int flag, ExecutionSpace space)
 void CommKokkos::grow_recv_kokkos(int n, ExecutionSpace /*space*/)
 {
   maxrecv = static_cast<int> (BUFFACTOR * n);
-  int maxrecv_border = (maxrecv+Comm::BUFEXTRA)/atomKK->avecKK->size_border;
+  int maxrecv_border = (maxrecv + Comm::BUFEXTRA + atomKK->avecKK->size_border - 1)/
+    atomKK->avecKK->size_border;
 
   MemoryKokkos::realloc_kokkos(k_buf_recv,"comm:k_buf_recv",maxrecv_border,
     atomKK->avecKK->size_border);

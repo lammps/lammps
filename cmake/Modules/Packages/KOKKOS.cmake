@@ -39,8 +39,23 @@ string(TOUPPER ${KOKKOS_LAYOUT} KOKKOS_LAYOUT)
 
 target_compile_definitions(lammps PRIVATE -DLMP_KOKKOS_LAYOUT_${KOKKOS_LAYOUT})
 
+# Use the host random number generator in KOKKOS styles.  This makes runs with
+# the KOKKOS package reproduce the results of the corresponding plain styles,
+# which is required for validating them, but it is slow and not thread safe.
+option(KOKKOS_DEBUG_RNG "Use the host random number generator in KOKKOS styles (for testing only)" OFF)
+mark_as_advanced(KOKKOS_DEBUG_RNG)
+
+if(KOKKOS_DEBUG_RNG)
+  target_compile_definitions(lammps PRIVATE -DLMP_KOKKOS_DEBUG_RNG)
+endif()
+
 message(STATUS "Using " ${KOKKOS_PREC_LOWER} " precision for KOKKOS package")
 message(STATUS "Using " ${KOKKOS_LAYOUT_LOWER} " view layout for KOKKOS package")
+if(KOKKOS_DEBUG_RNG)
+  message(STATUS "Using host random numbers for KOKKOS package")
+else()
+  message(STATUS "Using device random numbers for KOKKOS package")
+endif()
 
 ########################################################################
 # consistency checks and Kokkos options/settings required by LAMMPS

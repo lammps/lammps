@@ -71,7 +71,7 @@ static const char cite_kokkos_package[] =
   " year = 2025,\n"
   " booktitle = {Proceedings of the SC '25 Workshops of the International Conference for High Performance Computing,\n"
   "  Networking, Storage and Analysis},\n"
-  " pages = {1217–1232},\n"
+  " pages = {1217-1232},\n"
   "}\n\n";
 
 int KokkosLMP::is_finalized = 0;

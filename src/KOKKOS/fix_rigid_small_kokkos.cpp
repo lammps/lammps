@@ -234,7 +234,7 @@ void FixRigidSmallKokkos<DeviceType>::pre_exchange()
   // from the host arrays -- we must not skip the flush in that case.
   if (exchange_comm_device && !commKK->exchange_comm_legacy) return;
 
-  // Host exchange path: flush device→host so the base-class
+  // Host exchange path: flush device->host so the base-class
   // pack_exchange/copy_arrays/unpack_exchange see valid data.
   copy_body_host();
   k_bodytag.sync_host();
@@ -685,11 +685,11 @@ void FixRigidSmallKokkos<DeviceType>::pre_neighbor(){
       if (extended_datamask) atomKK->sync(execution_space, extended_datamask);
     }
     refresh_atom_views();
-    copy_body_device();  // push host body[] → d_body
+    copy_body_device();  // push host body[] -> d_body
   } else {
     // Device exchange path: pack/unpack_exchange_kokkos already updated all
     // per-atom DualViews and d_body on the device.  Do NOT push stale host
-    // data to the device — just mark the device side as authoritative and
+    // data to the device -- just mark the device side as authoritative and
     // refresh the d_* view aliases.
     //
     // Clear any outstanding host claim first.  comm->borders() runs between the

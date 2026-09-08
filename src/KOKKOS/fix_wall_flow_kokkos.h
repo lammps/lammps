@@ -26,7 +26,11 @@ FixStyle(wall/flow/kk/host,FixWallFlowKokkos<LMPHostType>);
 #include "fix_wall_flow.h"
 #include "kokkos_type.h"
 #include "kokkos_base.h"
+#ifdef LMP_KOKKOS_DEBUG_RNG
+#include "rand_pool_wrap_kokkos.h"
+#else
 #include "Kokkos_Random.hpp"
+#endif
 
 namespace LAMMPS_NS {
 
@@ -90,8 +94,13 @@ class FixWallFlowKokkos : public FixWallFlow, public KokkosBase {
   typename AT::t_kkfloat_1d d_rmass;
 
   typedef typename AT::t_kkfloat_1d d_walls_t;
+#ifndef LMP_KOKKOS_DEBUG_RNG
   typedef Kokkos::Random_XorShift64_Pool<DeviceType> rand_pool_t;
   typedef typename rand_pool_t::generator_type rand_type_t;
+#else
+  typedef RandPoolWrap rand_pool_t;
+  typedef RandWrap rand_type_t;
+#endif
 
   DAT::tdual_int_1d k_current_segment;
   typename AT::t_int_1d d_current_segment;

@@ -29,6 +29,8 @@ PairStyle(lj/cut/coul/wolf/kk/host,PairLJCutCoulWolfKokkos<LMPHostType>);
 
 namespace LAMMPS_NS {
 
+struct TagPairLJCutCoulWolfSelfEnergy{};
+
 template<class DeviceType>
 class PairLJCutCoulWolfKokkos : public PairLJCutCoulWolf {
  public:
@@ -42,6 +44,10 @@ class PairLJCutCoulWolfKokkos : public PairLJCutCoulWolf {
   void compute(int, int) override;
   void init_style() override;
   double init_one(int, int) override;
+
+  // NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagPairLJCutCoulWolfSelfEnergy, const int&, KK_ACC_FLOAT&) const;
 
  protected:
   template<bool STACKPARAMS, class Specialisation>
@@ -83,6 +89,7 @@ class PairLJCutCoulWolfKokkos : public PairLJCutCoulWolf {
   typename AT::t_kkacc_1d_3 f;
   typename AT::t_int_1d_randomread type;
   typename AT::t_kkfloat_1d_randomread q;
+  typename AT::t_int_1d_randomread d_ilist;
 
   DAT::ttransform_kkacc_1d k_eatom;
   DAT::ttransform_kkacc_1d_6 k_vatom;

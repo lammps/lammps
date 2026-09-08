@@ -56,6 +56,20 @@ AtomVecEllipsoidKokkos::~AtomVecEllipsoidKokkos()
   }
 }
 
+/* ----------------------------------------------------------------------
+   process sub-style args
+   the KOKKOS version does not implement the superellipsoid extension
+------------------------------------------------------------------------- */
+
+void AtomVecEllipsoidKokkos::process_args(int narg, char **arg)
+{
+  for (int iarg = 0; iarg < narg; iarg++)
+    if (strcmp(arg[iarg], "superellipsoid") == 0)
+      error->all(FLERR, "Atom style ellipsoid/kk does not support the superellipsoid option");
+
+  AtomVecEllipsoid::process_args(narg, arg);
+}
+
 /* ---------------------------------------------------------------------- */
 
 void AtomVecEllipsoidKokkos::init()
@@ -723,7 +737,7 @@ struct AtomVecEllipsoidKokkos_BackfillEllipsoid {
   void operator() (const int &mysend) const {
     const int i = _sendlist(mysend);
 
-    // if atom J has bonus data, reset J’s bonus.ilocal to loc I
+    // if atom J has bonus data, reset J's bonus.ilocal to loc I
 
     int j = _copylist(mysend);
     if (j > -1) {

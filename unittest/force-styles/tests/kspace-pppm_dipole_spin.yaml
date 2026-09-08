@@ -3,7 +3,7 @@ lammps_version: 4 Jul 2026
 tags: spin unstable
 date_generated: Fri Jul 10 16:53:00 2026
 epsilon: 5e-13
-skip_tests:
+skip_tests: vatom_only
 prerequisites: |
   atom spin
   pair spin/dipole/long

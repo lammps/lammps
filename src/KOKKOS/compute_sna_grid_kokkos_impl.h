@@ -36,8 +36,6 @@
 #include <cstdlib>
 #include <cstring>
 
-#include <iostream>
-
 #define MAXLINE 1024
 #define MAXWORD 3
 
@@ -61,26 +59,21 @@ ComputeSNAGridKokkos<DeviceType, real_type, accum_type, vector_length>::ComputeS
 
   host_flag = (execution_space == HostKK);
 
-  // TODO: Extract cutsq in double loop below, no need for cutsq_tmp
+  const int n = atom->ntypes;
 
-  cutsq_tmp = cutsq[1][1];
+  for (int i = 1; i <= n; i++)
+    for (int j = 1; j <= n; j++)
+      k_cutsq.view_host()(i,j) = k_cutsq.view_host()(j,i) = cutsq[i][j];
+  k_cutsq.modify_host();
 
-  for (int i = 1; i <= atom->ntypes; i++) {
-    for (int j = 1; j <= atom->ntypes; j++){
-      k_cutsq.view_host()(i,j) = k_cutsq.view_host()(j,i) = cutsq_tmp;
-      k_cutsq.modify_host();
-    }
-  }
+  // Unlike pair style snap, the grid computes index radelem, wjelem, sinnerelem
+  // and dinnerelem by atom type (1 to ntypes), not by element, so these views
+  // are sized and filled accordingly.
 
-   // Set up element lists
-  MemKK::realloc_kokkos(d_radelem,"ComputeSNAGridKokkos::radelem",nelements);
-  MemKK::realloc_kokkos(d_wjelem,"ComputeSNAGridKokkos:wjelem",nelements);
-  MemKK::realloc_kokkos(d_sinnerelem,"ComputeSNAGridKokkos:sinnerelem",nelements);
-  MemKK::realloc_kokkos(d_dinnerelem,"ComputeSNAGridKokkos:dinnerelem",nelements);
-  // test
-  MemKK::realloc_kokkos(d_test, "ComputeSNAGridKokkos::test", nelements);
-
-  int n = atom->ntypes;
+  MemKK::realloc_kokkos(d_radelem,"ComputeSNAGridKokkos::radelem",n+1);
+  MemKK::realloc_kokkos(d_wjelem,"ComputeSNAGridKokkos::wjelem",n+1);
+  MemKK::realloc_kokkos(d_sinnerelem,"ComputeSNAGridKokkos::sinnerelem",n+1);
+  MemKK::realloc_kokkos(d_dinnerelem,"ComputeSNAGridKokkos::dinnerelem",n+1);
   MemKK::realloc_kokkos(d_map,"ComputeSNAGridKokkos::map",n+1);
 
   auto h_radelem = Kokkos::create_mirror_view(d_radelem);
@@ -88,37 +81,31 @@ ComputeSNAGridKokkos<DeviceType, real_type, accum_type, vector_length>::ComputeS
   auto h_sinnerelem = Kokkos::create_mirror_view(d_sinnerelem);
   auto h_dinnerelem = Kokkos::create_mirror_view(d_dinnerelem);
   auto h_map = Kokkos::create_mirror_view(d_map);
-  // test
-  auto h_test = Kokkos::create_mirror_view(d_test);
-  h_test(0) = 2.0;
 
-  // start from index 1 because of how compute sna/grid is
-  for (int i = 1; i <= atom->ntypes; i++) {
-    h_radelem(i-1) = static_cast<real_type>(radelem[i]);
-    h_wjelem(i-1) = static_cast<real_type>(wjelem[i]);
-    if (switchinnerflag){
+  // index 0 is unused by the type-indexed lookups, but is initialized so that
+  // no kernel can ever read an uninitialized value
+
+  h_radelem(0) = h_wjelem(0) = static_cast<real_type>(0.0);
+  h_sinnerelem(0) = h_dinnerelem(0) = static_cast<real_type>(0.0);
+  h_map(0) = 0;
+
+  for (int i = 1; i <= n; i++) {
+    h_radelem(i) = static_cast<real_type>(radelem[i]);
+    h_wjelem(i) = static_cast<real_type>(wjelem[i]);
+    if (switchinnerflag) {
       h_sinnerelem(i) = static_cast<real_type>(sinnerelem[i]);
       h_dinnerelem(i) = static_cast<real_type>(dinnerelem[i]);
+    } else {
+      h_sinnerelem(i) = h_dinnerelem(i) = static_cast<real_type>(0.0);
     }
-  }
-
-  // In pair snap some things like `map` get allocated regardless of chem flag.
-  if (chemflag){
-    for (int i = 1; i <= atom->ntypes; i++) {
-      h_map(i) = map[i];
-    }
+    h_map(i) = chemflag ? map[i] : 0;
   }
 
   Kokkos::deep_copy(d_radelem,h_radelem);
   Kokkos::deep_copy(d_wjelem,h_wjelem);
-  if (switchinnerflag){
-    Kokkos::deep_copy(d_sinnerelem,h_sinnerelem);
-    Kokkos::deep_copy(d_dinnerelem,h_dinnerelem);
-  }
-  if (chemflag){
-    Kokkos::deep_copy(d_map,h_map);
-  }
-  Kokkos::deep_copy(d_test,h_test);
+  Kokkos::deep_copy(d_sinnerelem,h_sinnerelem);
+  Kokkos::deep_copy(d_dinnerelem,h_dinnerelem);
+  Kokkos::deep_copy(d_map,h_map);
 
   snaKK = SNAKokkos<DeviceType, real_type, accum_type, vector_length>(*this);
   snaKK.grow_rij(0,0,padding_factor);
@@ -151,6 +138,18 @@ void ComputeSNAGridKokkos<DeviceType, real_type, accum_type, vector_length>::set
 {
   // Do not call ComputeGrid::setup(), we don't wanna allocate the grid array there.
   // Instead, call ComputeGrid::set_grid_global and set_grid_local to set the n indices.
+  // ComputeGrid::deallocate() cannot be used either, since it would call free() on the
+  // Kokkos-owned storage behind "grid", so release the arrays the same way the
+  // destructor does.  This has to happen before set_grid_local() changes the bounds
+  // that destroy4d_offset() needs.
+
+  memoryKK->destroy_kokkos(k_grid, grid);
+  memory->destroy(gridall);
+  if (gridlocal_allocated) {
+    gridlocal_allocated = 0;
+    memory->destroy4d_offset(gridlocal, nzlo, nylo, nxlo);
+  }
+  array = nullptr;
 
   ComputeGrid::set_grid_global();
   ComputeGrid::set_grid_local();
@@ -174,7 +173,9 @@ template<class DeviceType, typename real_type, typename accum_type, int vector_l
 void ComputeSNAGridKokkos<DeviceType, real_type, accum_type, vector_length>::compute_array()
 {
   if (host_flag) {
+    atomKK->sync(Host,X_MASK|TYPE_MASK|MASK_MASK);
     ComputeSNAGrid::compute_array();
+    k_grid.modify_host();
     return;
   }
 
@@ -185,14 +186,17 @@ void ComputeSNAGridKokkos<DeviceType, real_type, accum_type, vector_length>::com
   xlen = nxhi-nxlo+1;
   total_range = (nzhi-nzlo+1)*(nyhi-nylo+1)*(nxhi-nxlo+1);
 
-  atomKK->sync(execution_space,X_MASK|F_MASK|TYPE_MASK);
+  atomKK->sync(execution_space,X_MASK|F_MASK|TYPE_MASK|MASK_MASK);
   x = atomKK->k_x.view<DeviceType>();
   type = atomKK->k_type.view<DeviceType>();
+  mask = atomKK->k_mask.view<DeviceType>();
   k_cutsq.template sync<DeviceType>();
 
   Kokkos::deep_copy(d_grid,0.0);
 
-  // max_neighs is defined here - think of more elaborate methods.
+  // initial guess for the number of atoms within the cutoff of a grid point;
+  // the ComputeNeigh launch below grows this if a grid point needs more
+
   max_neighs = 100;
 
   // Pair snap/kk uses grow_ij with some max number of neighs but compute sna/grid uses total
@@ -201,11 +205,13 @@ void ComputeSNAGridKokkos<DeviceType, real_type, accum_type, vector_length>::com
   ntotal = atomKK->nlocal + atomKK->nghost;
   // Allocate view for number of neighbors per grid point
   MemKK::realloc_kokkos(d_ninside,"ComputeSNAGridKokkos:ninside",total_range);
+  auto h_ninside = Kokkos::create_mirror_view(d_ninside);
 
   // "chunksize" variable is default 32768 in compute_sna_grid.cpp, and set by user
   // `total_range` is the number of grid points which may be larger than chunk size.
   chunk_size = MIN(chunksize, total_range);
   chunk_offset = 0;
+  const int chunk_size_max = chunk_size;
   snaKK.grow_rij(chunk_size, max_neighs, padding_factor);
 
   // Pre-compute ceil(chunk_size / vector_length) for code cleanliness
@@ -231,12 +237,29 @@ void ComputeSNAGridKokkos<DeviceType, real_type, accum_type, vector_length>::com
 
     //ComputeNeigh
     {
-      int scratch_size = scratch_size_helper<int>(team_size_compute_neigh * max_neighs); //ntotal);
+      // The kernel records the true neighbor count of every grid point but stores at
+      // most max_neighs neighbors.  If any grid point in this chunk has more, grow the
+      // SNA neighbor arrays and repeat, rather than overrunning them.
 
-      SnapAoSoATeamPolicy<DeviceType, team_size_compute_neigh, TagCSNAGridComputeNeigh>
-        policy_neigh(chunk_size, team_size_compute_neigh, vector_length);
-      policy_neigh = policy_neigh.set_scratch_size(0, Kokkos::PerTeam(scratch_size));
-      Kokkos::parallel_for("ComputeNeigh",policy_neigh,*this);
+      for (int attempt = 0; attempt < 2; attempt++) {
+        int scratch_size = scratch_size_helper<int>(team_size_compute_neigh * max_neighs);
+
+        SnapAoSoATeamPolicy<DeviceType, team_size_compute_neigh, TagCSNAGridComputeNeigh>
+          policy_neigh(chunk_size, team_size_compute_neigh, vector_length);
+        policy_neigh = policy_neigh.set_scratch_size(0, Kokkos::PerTeam(scratch_size));
+        Kokkos::parallel_for("ComputeNeigh",policy_neigh,*this);
+
+        Kokkos::deep_copy(h_ninside, d_ninside);
+        int max_ninside = 0;
+        for (int ii = 0; ii < chunk_size; ii++)
+          if (h_ninside(ii) > max_ninside) max_ninside = h_ninside(ii);
+
+        if (max_ninside <= max_neighs) break;
+
+        max_neighs = max_ninside;
+        // grow with the full chunk size so a short final chunk cannot shrink the arrays
+        snaKK.grow_rij(chunk_size_max, max_neighs, padding_factor);
+      }
     }
 
     //ComputeCayleyKlein
@@ -423,65 +446,63 @@ void ComputeSNAGridKokkos<DeviceType, real_type, accum_type, vector_length>::ope
   const KK_FLOAT ytmp = xgrid[1];
   const KK_FLOAT ztmp = xgrid[2];
 
-  // currently, all grid points are type 1
-  // not clear what a better choice would be
-
-  const int itype = 1;
-  int ielem = 0;
-  if (chemflag) ielem = d_map[itype];
-  //const KK_FLOAT radi = d_radelem[ielem];
-
   // Compute the number of neighbors, store rsq
   int ninside = 0;
 
   // Looping over ntotal for now.
+  // The cutoff test uses cutsq(jtype,jtype), matching ComputeSNAGrid::compute_array():
+  // a grid point takes on the radius of the neighbor it is being compared against.
   for (int j = 0; j < ntotal; j++){
+
+    // check that j is in compute group
+
+    if (!(mask(j) & groupbit)) continue;
+
     const double dx = static_cast<double>(x(j,0) - xtmp);
     const double dy = static_cast<double>(x(j,1) - ytmp);
     const double dz = static_cast<double>(x(j,2) - ztmp);
-    int jtype = type(j);
+    const int jtype = type(j);
     const double rsq = dx*dx + dy*dy + dz*dz;
 
     // don't include atoms that share location with grid point
-    if (rsq >= rnd_cutsq(itype,jtype) || rsq < 1e-20) {
-      jtype = -1; // use -1 to signal it's outside the radius
-    }
-
-    if (jtype >= 0)
+    if (rsq < rnd_cutsq(jtype,jtype) && rsq > 1e-20)
       ninside++;
   }
 
   d_ninside(ii) = ninside;
 
-  // TODO: Adjust for multi-element, currently we set jelem = 0 regardless of type.
   int offset = 0;
   for (int j = 0; j < ntotal; j++){
-    //const int jtype = type_cache[j];
-    //if (jtype >= 0) {
+
+    // check that j is in compute group
+
+    if (!(mask(j) & groupbit)) continue;
+
     const double dx = static_cast<double>(x(j,0) - xtmp);
     const double dy = static_cast<double>(x(j,1) - ytmp);
     const double dz = static_cast<double>(x(j,2) - ztmp);
     const double rsq = dx*dx + dy*dy + dz*dz;
-    int jtype = type(j);
-    if (rsq < rnd_cutsq(itype,jtype) && rsq > 1e-20) {
-      int jelem = 0;
-      if (chemflag) jelem = d_map[jtype];
-      snaKK.rij(ii,offset,0) = static_cast<real_type>(dx);
-      snaKK.rij(ii,offset,1) = static_cast<real_type>(dy);
-      snaKK.rij(ii,offset,2) = static_cast<real_type>(dz);
-      // pair snap uses jelem here, but we use jtype, see compute_sna_grid.cpp
-      // actually since the views here have values starting at 0, let's use jelem
-      snaKK.wj(ii,offset) = static_cast<real_type>(d_wjelem[jelem]);
-      snaKK.rcutij(ii,offset) = static_cast<real_type>((2.0 * static_cast<double>(d_radelem[jelem]))*rcutfac);
-      snaKK.inside(ii,offset) = j;
-      if (switchinnerflag) {
-        snaKK.sinnerij(ii,offset) = static_cast<real_type>(0.5)*(d_sinnerelem[ielem] + d_sinnerelem[jelem]);
-        snaKK.dinnerij(ii,offset) = static_cast<real_type>(0.5)*(d_dinnerelem[ielem] + d_dinnerelem[jelem]);
-      }
-      if (chemflag)
+    const int jtype = type(j);
+    if (rsq < rnd_cutsq(jtype,jtype) && rsq > 1e-20) {
+      // a chunk with more neighbors than the arrays were grown for is detected
+      // on the host, which then grows the arrays and re-runs this kernel
+      if (offset < max_neighs) {
+        int jelem = 0;
+        if (chemflag) jelem = d_map[jtype];
+        snaKK.rij(ii,offset,0) = static_cast<real_type>(dx);
+        snaKK.rij(ii,offset,1) = static_cast<real_type>(dy);
+        snaKK.rij(ii,offset,2) = static_cast<real_type>(dz);
+        // weights, radii and inner cutoffs are per atom type here, not per
+        // element, see ComputeSNAGrid::compute_array()
+        snaKK.wj(ii,offset) = d_wjelem[jtype];
+        snaKK.rcutij(ii,offset) = static_cast<real_type>((2.0 * static_cast<double>(d_radelem[jtype]))*rcutfac);
+        snaKK.inside(ii,offset) = j;
+        if (switchinnerflag) {
+          snaKK.sinnerij(ii,offset) = d_sinnerelem[jtype];
+          snaKK.dinnerij(ii,offset) = d_dinnerelem[jtype];
+        }
         snaKK.element(ii,offset) = jelem;
-      else
-        snaKK.element(ii,offset) = 0;
+      }
       offset++;
     }
   }
@@ -517,8 +538,10 @@ void ComputeSNAGridKokkos<DeviceType, real_type, accum_type, vector_length>::ope
   const int iatom = iatom_mod + iatom_div * vector_length;
   if (iatom >= chunk_size) return;
 
-  int itype = type(iatom);
-  int ielem = d_map[itype];
+  // all grid points are type 1, iatom is a grid index and must not be used
+  // to look up an atom type, see ComputeSNAGrid::compute_array()
+  const int itype = 1;
+  const int ielem = chemflag ? d_map[itype] : 0;
 
   snaKK.pre_ui(iatom, j, ielem);
 }
@@ -529,8 +552,10 @@ KOKKOS_INLINE_FUNCTION
 void ComputeSNAGridKokkos<DeviceType, real_type, accum_type, vector_length>::operator() (TagCSNAGridPreUi, const int& iatom, const int& j) const {
   if (iatom >= chunk_size) return;
 
-  int itype = type(iatom);
-  int ielem = d_map[itype];
+  // all grid points are type 1, iatom is a grid index and must not be used
+  // to look up an atom type, see ComputeSNAGrid::compute_array()
+  const int itype = 1;
+  const int ielem = chemflag ? d_map[itype] : 0;
 
   snaKK.pre_ui(iatom, j, ielem);
 }
@@ -541,8 +566,10 @@ KOKKOS_INLINE_FUNCTION
 void ComputeSNAGridKokkos<DeviceType, real_type, accum_type, vector_length>::operator() (TagCSNAGridPreUi, const int& iatom) const {
   if (iatom >= chunk_size) return;
 
-  const int itype = type(iatom);
-  const int ielem = d_map[itype];
+  // all grid points are type 1, iatom is a grid index and must not be used
+  // to look up an atom type, see ComputeSNAGrid::compute_array()
+  const int itype = 1;
+  const int ielem = chemflag ? d_map[itype] : 0;
 
   for (int j = 0; j <= twojmax; j++)
     snaKK.pre_ui(iatom, j, ielem);
@@ -676,7 +703,10 @@ void ComputeSNAGridKokkos<DeviceType, real_type, accum_type, vector_length>::ope
   const int iatom = iatom_mod + iatom_div * vector_length;
   if (iatom >= chunk_size) return;
   if (jjb >= snaKK.idxb_max) return;
-  snaKK.template compute_bi<chemsnap>(iatom, jjb);
+  // all grid points are type 1, see ComputeSNAGrid::compute_array()
+  const int itype = 1;
+  const Kokkos::Array<int, 1> ielem = {{ chemflag ? d_map[itype] : 0 }};
+  snaKK.template compute_bi<chemsnap, 1>(iatom, jjb, ielem);
 }
 
 template<class DeviceType, typename real_type, typename accum_type, int vector_length>
@@ -684,7 +714,10 @@ template<class DeviceType, typename real_type, typename accum_type, int vector_l
 template <bool chemsnap> KOKKOS_INLINE_FUNCTION
 void ComputeSNAGridKokkos<DeviceType, real_type, accum_type, vector_length>::operator() (TagCSNAGridComputeBi<chemsnap>, const int& iatom, const int& jjb) const {
   if (iatom >= chunk_size) return;
-  snaKK.template compute_bi<chemsnap>(iatom, jjb);
+  // all grid points are type 1, see ComputeSNAGrid::compute_array()
+  const int itype = 1;
+  const Kokkos::Array<int, 1> ielem = {{ chemflag ? d_map[itype] : 0 }};
+  snaKK.template compute_bi<chemsnap, 1>(iatom, jjb, ielem);
 }
 
 template<class DeviceType, typename real_type, typename accum_type, int vector_length>
@@ -692,8 +725,11 @@ template<class DeviceType, typename real_type, typename accum_type, int vector_l
 template <bool chemsnap> KOKKOS_INLINE_FUNCTION
 void ComputeSNAGridKokkos<DeviceType, real_type, accum_type, vector_length>::operator() (TagCSNAGridComputeBi<chemsnap>, const int& iatom) const {
   if (iatom >= chunk_size) return;
+  // all grid points are type 1, see ComputeSNAGrid::compute_array()
+  const int itype = 1;
+  const Kokkos::Array<int, 1> ielem = {{ chemflag ? d_map[itype] : 0 }};
   for (int jjb = 0; jjb < snaKK.idxb_max; jjb++)
-    snaKK.template compute_bi<chemsnap>(iatom, jjb);
+    snaKK.template compute_bi<chemsnap, 1>(iatom, jjb, ielem);
 }
 
 template<class DeviceType, typename real_type, typename accum_type, int vector_length>

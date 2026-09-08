@@ -387,6 +387,17 @@ static std::string kokkos_precision()
     return "double";
 }
 
+// the references of the stochastic styles can only be reproduced when the
+// KOKKOS styles draw their random numbers from the host generator (see the
+// KOKKOS_DEBUG_RNG build option) and from a single stream, i.e. with a single
+// thread.  those references carry a "kokkos_omp_devicerng" skip entry, so the
+// OpenMP backend cases run them with one thread instead of four
+static std::string kokkos_omp_nthreads()
+{
+    if (test_config.skip_tests.count("kokkos_omp_devicerng")) return "1";
+    return "4";
+}
+
 // the KOKKOS package accumulates in a different order and - depending on how it
 // was compiled - with reduced precision, so the tolerance has to be relaxed
 static double kokkos_epsilon()
@@ -431,7 +442,7 @@ TEST(OutputStyle, kokkos_omp)
     }
 
     LAMMPS::argv args = {"OutputStyle", "-log", "none", "-echo", "screen", "-nocite",
-                         "-k",          "on",   "t",    "4",     "-sf",    "kk"};
+                         "-k",          "on",   "t", kokkos_omp_nthreads(), "-sf", "kk"};
 
     append_kokkos_env_args(args);
     run_output_test(args, kokkos_epsilon(), true);
@@ -477,7 +488,7 @@ TEST(OutputStyle, kokkos_omp_full)
     // index style variable defined with -var on the command line takes
     // precedence over the "variable ... index" definition inside the template
     LAMMPS::argv args = {"OutputStyle", "-log", "none", "-echo", "screen", "-nocite",
-                         "-k", "on", "t", "4", "-sf", "kk",
+                         "-k", "on", "t", kokkos_omp_nthreads(), "-sf", "kk",
                          "-pk", "kokkos", "neigh", "full", "newton", "off",
                          "-var", "newton_pair", "off", "-var", "newton_bond", "off"};
 

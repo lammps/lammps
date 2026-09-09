@@ -485,13 +485,10 @@ void CommTiledKokkos::forward_comm_device(Pair *pair, int size)
   // copy data to self if sendself is set
   // wait on all procs except self and unpack received data
 
-  double* buf_send_pair;
   double* buf_recv_pair;
   if (lmp->kokkos->gpu_aware_flag) {
-    buf_send_pair = k_buf_send_pair.view<DeviceType>().data();
     buf_recv_pair = k_buf_recv_pair.view<DeviceType>().data();
   } else {
-    buf_send_pair = k_buf_send_pair.view_host().data();
     buf_recv_pair = k_buf_recv_pair.view_host().data();
   }
 
@@ -521,7 +518,7 @@ void CommTiledKokkos::forward_comm_device(Pair *pair, int size)
         }
         DeviceType().fence();
         // take the pointer after the pack, which may have resized the buffer
-        buf_send_pair = lmp->kokkos->gpu_aware_flag ? k_buf_send_pair.view<DeviceType>().data()
+        double *buf_send_pair = lmp->kokkos->gpu_aware_flag ? k_buf_send_pair.view<DeviceType>().data()
                                                     : k_buf_send_pair.view_host().data();
         MPI_Send(buf_send_pair,n,MPI_DOUBLE,sendproc[iswap][i],0,world);
       }

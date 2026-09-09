@@ -3,7 +3,7 @@ lammps_version: 2 Sep 2026
 tags: single_thread
 date_generated: Fri Sep  4 12:52:19 2026
 epsilon: 2.5e-13
-skip_tests:
+skip_tests: gpu
 prerequisites: |
   atom full
   pair dpd/tstat

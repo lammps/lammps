@@ -1552,7 +1552,6 @@ void CommKokkos::borders_device() {
   int n,iswap,dim,ineed,twoneed,smax,rmax;
   int nsend,nrecv,sendflag,nfirst,nlast;
   double lo,hi;
-  double *mlo,*mhi;
   MPI_Request request;
 
   ExecutionSpace exec_space = ExecutionSpaceFromDevice<DeviceType>::space;
@@ -1580,13 +1579,14 @@ void CommKokkos::borders_device() {
       //   for later swaps in a dim, only check newly arrived ghosts
       // store sent atom indices in list for use in future timesteps
 
-      if (mode == Comm::SINGLE) {
-        lo = slablo[iswap];
-        hi = slabhi[iswap];
-      } else {
-        mlo = multilo[iswap];
-        mhi = multihi[iswap];
-      }
+      // borders() sends every mode other than Comm::SINGLE down the legacy
+      // path, so only the single-cutoff slab bounds are ever needed here; the
+      // multi cutoffs the commented-out blocks below refer to would have to be
+      // looked up again by whoever implements them
+
+      lo = slablo[iswap];
+      hi = slabhi[iswap];
+
       if (ineed % 2 == 0) {
         nfirst = nlast;
         nlast = atom->nlocal + atom->nghost;

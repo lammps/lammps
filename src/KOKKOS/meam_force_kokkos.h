@@ -2,8 +2,10 @@
 #include "meam_kokkos.h"
 #include <algorithm>
 
-using namespace LAMMPS_NS;
+namespace LAMMPS_NS {
+
 using namespace MathSpecialKokkos;
+
 
 template <class DeviceType>
 void MEAMKokkos<DeviceType>::meam_force(
@@ -840,3 +842,5 @@ KOKKOS_INLINE_FUNCTION void MEAMKokkos<DeviceType>::operator()(TagMEAMForce<NEIG
     // end of j loop
   }
 }
+
+}    // namespace LAMMPS_NS

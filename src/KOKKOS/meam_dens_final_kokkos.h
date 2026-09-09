@@ -15,7 +15,8 @@
 #include "meam_kokkos.h"
 #include "math_special.h"
 
-using namespace LAMMPS_NS;
+namespace LAMMPS_NS {
+
 
 /* ---------------------------------------------------------------------- */
 
@@ -190,3 +191,4 @@ void MEAMKokkos<DeviceType>::operator()(TagMEAMDensFinal, const int &i, EV_FLOAT
   }
 }
 
+}    // namespace LAMMPS_NS

@@ -125,11 +125,9 @@ in the data file or restart files read by the :doc:`read_data
    binary restart files produced with :doc:`write_restart <write_restart>`.
 
 Example input and data files for DNA and RNA duplexes can be found in
-``examples/PACKAGES/cgdna/examples/lj_units/oxDNA/`, `.../oxDNA2/`, `.../oxDNA3/``
-and ``.../oxRNA2/`` or in the corresponding folder for real units.
-A simple python setup tool which creates single
-straight or helical DNA strands, DNA/RNA duplexes or arrays of DNA/RNA
-duplexes can be found in ``examples/PACKAGES/cgdna/util/``.
+``examples/PACKAGES/cgdna/examples``.  A simple python setup tool which creates
+single straight or helical DNA strands, DNA/RNA duplexes or arrays of
+DNA/RNA duplexes can be found in ``examples/PACKAGES/cgdna/util/``.
 
 Please cite :ref:`(Henrich) <Henrich0>` in any publication that uses
 this implementation. An updated documentation that contains general information

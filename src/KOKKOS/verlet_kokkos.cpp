@@ -153,9 +153,18 @@ void VerletKokkos::setup(int flag)
   modify->setup_pre_force(vflag);
 
   if (pair_compute_flag) {
+    // a kokkosable pair claims the arrays it writes (e.g. F) just before its
+    // kernel and relies on that claim surviving until the kernel runs.  the
+    // setup path otherwise leaves auto_sync on, which syncs each claim straight
+    // back to the host and drops it, so the device force the kernel writes
+    // never reaches the host and later styles read stale data.  disable
+    // auto_sync for a kokkosable pair here, as the run loop already does
+    int prev_auto_sync = lmp->kokkos->auto_sync;
+    if (force->pair->kokkosable) lmp->kokkos->auto_sync = 0;
     atomKK->sync(force->pair->execution_space,force->pair->datamask_read);
     force->pair->compute(eflag,vflag);
     atomKK->modified(force->pair->execution_space,force->pair->datamask_modify);
+    lmp->kokkos->auto_sync = prev_auto_sync;
   } else if (force->pair) force->pair->compute_dummy(eflag,vflag,0);
 
   if (atom->molecular != Atom::ATOMIC) {
@@ -243,9 +252,18 @@ void VerletKokkos::setup_minimal(int flag)
   modify->setup_pre_force(vflag);
 
   if (pair_compute_flag) {
+    // a kokkosable pair claims the arrays it writes (e.g. F) just before its
+    // kernel and relies on that claim surviving until the kernel runs.  the
+    // setup path otherwise leaves auto_sync on, which syncs each claim straight
+    // back to the host and drops it, so the device force the kernel writes
+    // never reaches the host and later styles read stale data.  disable
+    // auto_sync for a kokkosable pair here, as the run loop already does
+    int prev_auto_sync = lmp->kokkos->auto_sync;
+    if (force->pair->kokkosable) lmp->kokkos->auto_sync = 0;
     atomKK->sync(force->pair->execution_space,force->pair->datamask_read);
     force->pair->compute(eflag,vflag);
     atomKK->modified(force->pair->execution_space,force->pair->datamask_modify);
+    lmp->kokkos->auto_sync = prev_auto_sync;
   } else if (force->pair) force->pair->compute_dummy(eflag,vflag,0);
 
   if (atom->molecular != Atom::ATOMIC) {

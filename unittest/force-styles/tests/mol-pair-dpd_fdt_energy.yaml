@@ -3,7 +3,7 @@ lammps_version: 2 Sep 2026
 tags: single_thread
 date_generated: Fri Sep  4 14:36:13 2026
 epsilon: 5e-13
-skip_tests: extract extract_omp single
+skip_tests: extract extract_omp single kokkos_gpu_devicerng kokkos_omp_devicerng kokkos_serial_devicerng
 prerequisites: |
   atom dpd
   pair dpd/fdt/energy

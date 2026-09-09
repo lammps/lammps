@@ -102,6 +102,11 @@ void FixWallGranKokkos<DeviceType>::post_force(int /*vflag*/)
 
   atomKK->sync(execution_space,datamask_read);
 
+  if (use_history) {
+    k_history_one.template sync<DeviceType>();
+    d_history_one = k_history_one.template view<DeviceType>();
+  }
+
   copymode = 1;
 
   if (pairstyle == HOOKE)
@@ -121,6 +126,8 @@ void FixWallGranKokkos<DeviceType>::post_force(int /*vflag*/)
     error->all(FLERR, "Fix wall/gran/kk doesn't yet support granular style");
 
   atomKK->modified(execution_space,datamask_modify);
+
+  if (use_history) k_history_one.template modify<DeviceType>();
 
   copymode = 0;
 }
@@ -372,6 +379,30 @@ int FixWallGranKokkos<DeviceType>::unpack_exchange(int nlocal, double *buf)
   k_history_one.modify_host();
 
   return n;
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+int FixWallGranKokkos<DeviceType>::pack_restart(int i, double *buf)
+{
+  if (!use_history) return 0;
+
+  k_history_one.sync_host();
+
+  return FixWallGranOld::pack_restart(i,buf);
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixWallGranKokkos<DeviceType>::unpack_restart(int nlocal, int nth)
+{
+  if (!use_history) return;
+
+  FixWallGranOld::unpack_restart(nlocal,nth);
+
+  k_history_one.modify_host();
 }
 
 /* ---------------------------------------------------------------------- */

@@ -598,7 +598,6 @@ template<class DeviceType>
 void FixShakeKokkos<DeviceType>::post_force(int vflag)
 {
   ebond = 0.0;
-  copymode = 1;
 
   d_x = atomKK->k_x.view<DeviceType>();
   d_f = atomKK->k_f.view<DeviceType>();
@@ -694,7 +693,12 @@ void FixShakeKokkos<DeviceType>::post_force(int vflag)
   // update just in case tolerance was changed
   tolerance_kk = static_cast<KK_FLOAT>(tolerance);
 
-  // loop over clusters to add constraint forces
+  // loop over clusters to add constraint forces.  set copymode only now:
+  // the earlier setup (unconstrained_update, forward_comm) dispatches its own
+  // kernels that toggle copymode back to 0, so claiming it up front would leave
+  // it clear here and let Kokkos' functor copies free the shared views twice
+
+  copymode = 1;
 
   if (neighflag == HALF) {
    if (evflag)

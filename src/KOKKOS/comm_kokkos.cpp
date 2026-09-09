@@ -1122,7 +1122,11 @@ void CommKokkos::exchange_device()
   atom->nghost = 0;
   atom->avec->clear_bonus();
 
-  if (comm->nprocs > 1) { // otherwise no-op
+  // even on a single rank this is not a no-op: an atom that moves out of a
+  // non-periodic boundary is not wrapped by domain->pbc() and must be deleted
+  // here, exactly as CommBrick::exchange() does.  the per-dimension code below
+  // already sends nothing and drops those atoms when procgrid[dim] == 1
+  {
 
     // subbox bounds for orthogonal or triclinic
 

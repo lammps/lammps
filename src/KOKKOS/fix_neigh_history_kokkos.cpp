@@ -604,6 +604,13 @@ void FixNeighHistoryKokkos<DeviceType>::unpack_restart(int nlocal, int nth)
     d_partner = k_partner.template view<DeviceType>();
     d_valuepartner = k_valuepartner.template view<DeviceType>();
     maxexchange = (dnum+1)*maxpartner + 2;
+
+    // grow_kokkos() resizes the dual views, which marks their device side
+    // modified.  the authoritative restart values are written to the host
+    // side just below, so drop that stale device claim first: otherwise the
+    // modify_host() at the end would see both sides modified and abort
+    k_partner.clear_sync_state();
+    k_valuepartner.clear_sync_state();
   }
 
   npartner[nlocal] = np;

@@ -47,6 +47,7 @@
 #include "modify.h"
 #include "update.h"
 
+#include <algorithm>
 #include <exception>
 #include <iostream>
 #include <vector>
@@ -296,6 +297,27 @@ static void compare_rows(const std::string &name,
     }
 }
 
+// local data (compute */local) is emitted in neighbor-list traversal order,
+// which differs between the host and the KOKKOS/GPU neighbor build even though
+// the set of rows is identical.  compare the rows as an unordered set: sort a
+// copy of each side by its values and match positionally
+static void compare_rows_unordered(const std::string &name,
+                         std::vector<std::vector<double>> reference,
+                         std::vector<std::vector<double>> current, double epsilon,
+                         ErrorStats &stats)
+{
+    SCOPED_TRACE(name);
+    ASSERT_EQ(reference.size(), current.size());
+    std::sort(reference.begin(), reference.end());
+    std::sort(current.begin(), current.end());
+    for (std::size_t i = 0; i < reference.size(); ++i) {
+        ASSERT_EQ(reference[i].size(), current[i].size());
+        for (std::size_t j = 0; j < reference[i].size(); ++j) {
+            EXPECT_FP_LE_WITH_EPS(current[i][j], reference[i][j], epsilon);
+        }
+    }
+}
+
 // append the words of the LAMMPS_KOKKOS_ARGS environment variable to the
 // command line of the KOKKOS test cases.  this lets the whole suite be re-run
 // with the "package kokkos" settings a GPU would choose --
@@ -363,7 +385,13 @@ static void run_output_test(LAMMPS::argv &args, double epsilon, bool kokkos)
 
     compare_rows("global array", test_config.global_array, data.array, epsilon, stats);
     compare_rows("per-atom data", test_config.peratom_data, data.peratom, epsilon, stats);
-    compare_rows("local data", test_config.local_data, data.local, epsilon, stats);
+    // a KOKKOS run emits local data (compute */local) in a different row order
+    // than the host reference because its neighbor list is built differently;
+    // the rows themselves match, so compare them as an unordered set
+    if (kokkos)
+        compare_rows_unordered("local data", test_config.local_data, data.local, epsilon, stats);
+    else
+        compare_rows("local data", test_config.local_data, data.local, epsilon, stats);
 
     if (print_stats) std::cerr << "output stats:" << stats << std::endl;
 

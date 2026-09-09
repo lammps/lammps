@@ -242,6 +242,7 @@ class Fix : protected Pointers {
 
   virtual bigint dof(int) { return 0; }
   virtual void deform(int) {}
+  virtual void image_flip(int, int, int) {}
   virtual void reset_target(double) {}
   virtual void reset_dt() {}
 

@@ -920,6 +920,16 @@ void FixRigid::pre_neighbor()
   image_shift();
 }
 
+/* ----------------------------------------------------------------------
+   adjust rigid-body image flags due to triclinic box flip
+------------------------------------------------------------------------- */
+
+void FixRigid::image_flip(int m, int n, int p)
+{
+  for (int ibody = 0; ibody < nbody; ibody++)
+    imagebody[ibody] = domain->flip_image_flag(imagebody[ibody], m, n, p);
+}
+
 /* ---------------------------------------------------------------------- */
 
 void FixRigid::post_force(int /*vflag*/)

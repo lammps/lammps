@@ -151,6 +151,7 @@ class Domain : protected Pointers {
   void unmap(double *, imageint);
   void unmap(const double *, imageint, double *);
   void unmap(const double *, const double *, imageint, int, double *, double *);
+  imageint flip_image_flag(imageint, int, int, int) const;
   virtual void image_flip(int, int, int);
   int ownatom(int, double *, imageint *, int);
 

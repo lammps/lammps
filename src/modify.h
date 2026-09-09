@@ -65,6 +65,7 @@ class Modify : protected Pointers {
   virtual void initial_integrate(int);
   virtual void post_integrate();
   virtual void pre_exchange();
+  virtual void image_flip(int, int, int);
   virtual void pre_neighbor();
   virtual void post_neighbor();
   virtual void pre_force(int);

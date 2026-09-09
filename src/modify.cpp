@@ -409,6 +409,15 @@ void Modify::pre_exchange()
 }
 
 /* ----------------------------------------------------------------------
+   notify fixes that Domain::image_flip() remapped atom image flags
+------------------------------------------------------------------------- */
+
+void Modify::image_flip(int m, int n, int p)
+{
+  for (int i = 0; i < nfix; i++) fix[i]->image_flip(m, n, p);
+}
+
+/* ----------------------------------------------------------------------
    pre_neighbor call, only for relevant fixes
 ------------------------------------------------------------------------- */
 

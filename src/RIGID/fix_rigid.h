@@ -48,6 +48,7 @@ class FixRigid : public Fix {
 
   void setup_pre_neighbor() override;
   void pre_neighbor() override;
+  void image_flip(int, int, int) override;
   bigint dof(int) override;
   void deform(int) override;
   void reset_dt() override;

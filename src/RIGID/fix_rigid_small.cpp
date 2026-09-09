@@ -785,6 +785,18 @@ void FixRigidSmall::pre_neighbor()
   image_shift();
 }
 
+/* ----------------------------------------------------------------------
+   adjust rigid-body image flags due to triclinic box flip
+------------------------------------------------------------------------- */
+
+void FixRigidSmall::image_flip(int m, int n, int p)
+{
+  for (int ibody = 0; ibody < nlocal_body; ibody++) {
+    Body *b = &body[ibody];
+    b->image = domain->flip_image_flag(b->image, m, n, p);
+  }
+}
+
 /* ---------------------------------------------------------------------- */
 
 void FixRigidSmall::post_force(int /*vflag*/)
@@ -3715,4 +3727,3 @@ double FixRigidSmall::memory_usage()
   bytes += (double)nmax_body * sizeof(Body);
   return bytes;
 }
-

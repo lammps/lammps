@@ -19,6 +19,7 @@
 #include "force.h"
 #include "kspace.h"
 #include "kokkos.h"
+#include "modify.h"
 
 using namespace LAMMPS_NS;
 
@@ -583,6 +584,7 @@ void DomainKokkos::image_flip(int m_in, int n_in, int p_in)
   copymode = 0;
 
   atomKK->modified(Device,IMAGE_MASK);
+  modify->image_flip(m_in, n_in, p_in);
 }
 
 // NOLINTNEXTLINE
@@ -733,4 +735,3 @@ void DomainKokkos::operator()(TagDomain_x2lamda_group, const int &i) const {
     x(i,2) = static_cast<KK_FLOAT>(h_inv[2])*delta[2];
   }
 }
-

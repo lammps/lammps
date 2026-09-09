@@ -80,6 +80,7 @@ template <class DeviceType> class FixRigidSmallKokkos : public FixRigidSmall, pu
   void initial_integrate(int) override;
   void post_force(int) override;
   void final_integrate() override;
+  void post_run() override;
   void write_restart_file(const char *) override;
   void pre_neighbor() override;
 

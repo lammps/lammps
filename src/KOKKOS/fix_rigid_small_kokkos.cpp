@@ -1191,6 +1191,29 @@ void FixRigidSmallKokkos<DeviceType>::final_integrate()
 }
 
 /* ----------------------------------------------------------------------
+   flush the device body state to the host at the end of a run
+   the per-body data (xcm, image, vcm, quat, ...) lives in d_body during the
+   run and is never brought down by the integrator.  a host consumer that
+   reads the per-body arrays directly -- e.g. compute rigid/local, which reads
+   fixrigid->body[] and fixrigid->bodyown[] on the host -- would otherwise see
+   the stale copy from the last host rebuild.  syncing once here (not per step)
+   keeps the body data resident on the device throughout the run.  guarded on
+   setupflag exactly as write_restart_file()/dof() are, since k_body is not
+   sized until setup_device_push().
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixRigidSmallKokkos<DeviceType>::post_run()
+{
+  if (!setupflag) return;
+  copy_body_host();
+  k_bodyown.sync_host();
+  k_bodytag.sync_host();
+  k_atom2body.sync_host();
+  k_xcmimage.sync_host();
+}
+
+/* ----------------------------------------------------------------------
    count # of DOF removed by rigid bodies for atoms in igroup
    return total count of DOF
 ------------------------------------------------------------------------- */

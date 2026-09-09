@@ -61,8 +61,6 @@ template <class DeviceType> class PairMTPKokkos : public PairMTP {
 
   // ========== Kokkos kernels ==========
   //Utility routines
-  template <class TagStyle> void check_team_size_for(int, int &, int);
-
   template <typename scratch_type>
   int scratch_size_helper(int values_per_team);    // Helps calcs scratch size for calcalphabasic
 

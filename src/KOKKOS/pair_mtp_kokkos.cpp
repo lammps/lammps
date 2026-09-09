@@ -910,14 +910,12 @@ int PairMTPKokkos<DeviceType>::scratch_size_helper(int values_per_team)
 
   return ScratchViewType::shmem_size(values_per_team);
 }
-So
 
-    /* ---------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
 
-    namespace LAMMPS_NS
-{
-  template class PairMTPKokkos<LMPDeviceType>;
+namespace LAMMPS_NS {
+template class PairMTPKokkos<LMPDeviceType>;
 #ifdef LMP_KOKKOS_GPU
-  template class PairMTPKokkos<LMPHostType>;
+template class PairMTPKokkos<LMPHostType>;
 #endif
 }    // namespace LAMMPS_NS

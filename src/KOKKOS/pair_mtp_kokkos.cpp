@@ -366,7 +366,6 @@ template <class DeviceType> void PairMTPKokkos<DeviceType>::compute(int eflag_in
     Kokkos::realloc(Kokkos::WithoutInitializing, d_valid_neighs, max_neighs, inum);
   }
 
-  int vector_length_default = 1;
   int team_size_default = 1;
   if (!host_flag) {
     team_size_default = 64;
@@ -430,19 +429,18 @@ template <class DeviceType> void PairMTPKokkos<DeviceType>::compute(int eflag_in
     // ========== Calculate the basic alphas (Per outer-atom parallelizaton) ==========
     {
       int team_size = team_size_default;
-      if (!host_flag && max_valid_neighs < 32) team_size = MIN(team_size, 32);
-      int vector_length = vector_length_default;
-      check_team_size_for<TagPairMTPComputeAlphaBasic>(chunk_size * max_valid_neighs, team_size,
-                                                       vector_length);
-      int radial_scratch_count = radial_func_count + 2 * radial_basis_size;
-      int dist_coords_scratch_count = 4 * max_alpha_index_basic;
 
-      // Reduce the scratch size to the max number of neighbors
-      int scratch_size =
-          scratch_size_helper<KK_FLOAT>(Kokkos::min(team_size, max_valid_neighs) *
-                                        (radial_scratch_count + dist_coords_scratch_count));
+      int radial_scratch_count = radial_func_count;
+      int dist_coords_scratch_count = 4 * (max_alpha_index_basic + 1);
+      int basis_scratch_count = 2 * radial_basis_size;
+
+      int scratch_size = scratch_size_helper<KK_FLOAT>(
+          max_valid_neighs * (radial_scratch_count + dist_coords_scratch_count) +
+          Kokkos::min(team_size, max_valid_neighs) * basis_scratch_count);
       Kokkos::TeamPolicy<DeviceType, TagPairMTPComputeAlphaBasic> policy_basic_alpha(chunk_size,
                                                                                      team_size);
+      if ((size_t) scratch_size > policy_basic_alpha.scratch_size_max(0))
+        error->all(FLERR, "Insufficient scratch memory for MTP basic alpha computation.");
       policy_basic_alpha = policy_basic_alpha.set_scratch_size(0, Kokkos::PerTeam(scratch_size));
       Kokkos::parallel_for("ComputeAlphaBasic", policy_basic_alpha, *this);
     }
@@ -573,30 +571,30 @@ KOKKOS_INLINE_FUNCTION void PairMTPKokkos<DeviceType>::operator()(
   const int itype = d_map(type[i]);
   const int jnum = d_num_valid_neighs(ii + chunk_offset);
   const int array_size = Kokkos::min(team.team_size(), jnum);
-
-  shared_kk_float_2d s_radial_vals(team.team_scratch(0), array_size, radial_func_count);
-  shared_kk_float_2d s_dist_powers(team.team_scratch(0), array_size, max_alpha_index_basic);
-  shared_kk_float_3d s_coord_powers(team.team_scratch(0), array_size, max_alpha_index_basic);
+  const int power_stride = max_alpha_index_basic + 1;
+  shared_kk_float_2d s_radial_vals(team.team_scratch(0), radial_func_count, jnum);
+  shared_kk_float_2d s_dist_powers(team.team_scratch(0), power_stride, jnum);
+  shared_kk_float_3d s_coord_powers(team.team_scratch(0), power_stride, jnum);
   shared_kk_float_2d s_radial_basis_vals(team.team_scratch(0), array_size, radial_basis_size);
   shared_kk_float_2d s_radial_basis_ders(team.team_scratch(0), array_size, radial_basis_size);
 
-  // Now we calculate the alpha basics.
+  // First we calc every neighbour's radial functions and powers.
   Kokkos::parallel_for(Kokkos::TeamThreadRange(team, jnum), [&](const int jj) {
     const int j = d_valid_neighs(jj, ii + chunk_offset);
     const int jtype = d_map(type[j]);
     const KK_FLOAT r[3] = {x(j, 0) - xi[0], x(j, 1) - xi[1], x(j, 2) - xi[2]};
     const KK_FLOAT rsq = Kokkos::fma(r[0], r[0], Kokkos::fma(r[1], r[1], r[2] * r[2]));
     const KK_FLOAT dist = sqrt(rsq);
-    d_inv_dist(jj, ii) = 1.0 / dist;
+    const KK_FLOAT inv_dist = 1.0 / dist;
+    d_inv_dist(jj, ii) = inv_dist;
 
-    s_dist_powers(thread, 0) = s_coord_powers(thread, 0, 0) = s_coord_powers(thread, 0, 1) =
-        s_coord_powers(thread, 0, 2) = 1;    // Set the constants
+    s_dist_powers(0, jj) = s_coord_powers(0, jj, 0) = s_coord_powers(0, jj, 1) =
+        s_coord_powers(0, jj, 2) = 1;    // Set the constants
 
-    // Precompute the coord and distance power
+    // Precompute the coord and inverse distance powers
     for (int k = 1; k < max_alpha_index_basic; k++) {
-      s_dist_powers(thread, k) = s_dist_powers(thread, k - 1) * dist;
-      for (int a = 0; a < 3; a++)
-        s_coord_powers(thread, k, a) = s_coord_powers(thread, k - 1, a) * r[a];
+      s_dist_powers(k, jj) = s_dist_powers(k - 1, jj) * inv_dist;
+      for (int a = 0; a < 3; a++) s_coord_powers(k, jj, a) = s_coord_powers(k - 1, jj, a) * r[a];
     }
 
     // Calculate the radial basis and store in shared memory
@@ -632,32 +630,31 @@ KOKKOS_INLINE_FUNCTION void PairMTPKokkos<DeviceType>::operator()(
         der = Kokkos::fma(d_radial_basis_coeffs(offset + ri), s_radial_basis_ders(thread, ri), der);
       }
 
-      s_radial_vals(thread, mu) = val;
+      s_radial_vals(mu, jj) = val;
       d_radial_vals(jj, mu, ii) = val;
       d_radial_ders(jj, mu, ii) = der;
     }
+  });
 
-    //Now, we loop through all the basic alphas
-    for (int k = 0; k < alpha_index_basic_count; k++) {
+  team.team_barrier();
 
-      int mu = d_alpha_index_basic(k, 0);
-      int a0 = d_alpha_index_basic(k, 1);
-      int a1 = d_alpha_index_basic(k, 2);
-      int a2 = d_alpha_index_basic(k, 3);
+  // Each thread sums over an alpha basic
+  Kokkos::parallel_for(Kokkos::TeamThreadRange(team, alpha_index_basic_count), [&](const int k) {
+    const int mu = d_alpha_index_basic(k, 0);
+    const int a0 = d_alpha_index_basic(k, 1);
+    const int a1 = d_alpha_index_basic(k, 2);
+    const int a2 = d_alpha_index_basic(k, 3);
+    const int norm_rank = a0 + a1 + a2;
 
-      KK_FLOAT val = s_radial_vals(thread, mu);
-
-      // Normalize by the rank of alpha's coresponding tensor
-      int norm_rank = a0 + a1 + a2;
-      KK_FLOAT norm_fac = 1.0 / s_dist_powers(thread, norm_rank);
-      val *= norm_fac;
-
-      KK_FLOAT pow0 = s_coord_powers(thread, a0, 0);
-      KK_FLOAT pow1 = s_coord_powers(thread, a1, 1);
-      KK_FLOAT pow2 = s_coord_powers(thread, a2, 2);
-      KK_FLOAT pow = pow0 * pow1 * pow2;
-      Kokkos::atomic_add(&d_moment_tensor_vals(ii, k), val * pow);
+    KK_FLOAT moment_val = 0;
+    for (int jj = 0; jj < jnum; jj++) {
+      const KK_FLOAT val = s_radial_vals(mu, jj) * s_dist_powers(norm_rank, jj);
+      const KK_FLOAT pow =
+          s_coord_powers(a0, jj, 0) * s_coord_powers(a1, jj, 1) * s_coord_powers(a2, jj, 2);
+      moment_val = Kokkos::fma(val, pow, moment_val);
     }
+
+    d_moment_tensor_vals(ii, k) = moment_val;
   });
 }
 
@@ -762,16 +759,14 @@ KOKKOS_INLINE_FUNCTION void PairMTPKokkos<DeviceType>::operator()(
   Kokkos::parallel_for(Kokkos::TeamThreadRange(team, jnum), [&](const int jj) {
     const int j = d_valid_neighs(jj, ii + chunk_offset);
     const KK_FLOAT r[3] = {x(j, 0) - xi[0], x(j, 1) - xi[1], x(j, 2) - xi[2]};
-    const KK_FLOAT rsq = Kokkos::fma(r[0], r[0], Kokkos::fma(r[1], r[1], r[2] * r[2]));
-    const KK_FLOAT dist = sqrt(rsq);
     const KK_FLOAT inv_dist = d_inv_dist(jj, ii);
 
     s_dist_powers(thread, 0) = s_coord_powers(thread, 0, 0) = s_coord_powers(thread, 0, 1) =
         s_coord_powers(thread, 0, 2) = 1;
 
-    // Precompute the coord and distance power
+    // Precompute the coord and inverse distance powers
     for (int k = 1; k < max_alpha_index_basic; k++) {
-      s_dist_powers(thread, k) = s_dist_powers(thread, k - 1) * dist;
+      s_dist_powers(thread, k) = s_dist_powers(thread, k - 1) * inv_dist;
       for (int a = 0; a < 3; a++)
         s_coord_powers(thread, k, a) = s_coord_powers(thread, k - 1, a) * r[a];
     }
@@ -783,6 +778,7 @@ KOKKOS_INLINE_FUNCTION void PairMTPKokkos<DeviceType>::operator()(
     }
 
     KK_ACC_FLOAT temp_force[3] = {0, 0, 0};
+    KK_ACC_FLOAT radial_force = 0;
 
     // Recompute each derivative
     for (int k = 0; k < alpha_index_basic_count; k++) {
@@ -797,7 +793,7 @@ KOKKOS_INLINE_FUNCTION void PairMTPKokkos<DeviceType>::operator()(
 
       // Normalize by the rank
       int norm_rank = a0 + a1 + a2;
-      KK_FLOAT norm_fac = 1.0 / s_dist_powers(thread, norm_rank);
+      KK_FLOAT norm_fac = s_dist_powers(thread, norm_rank);
       val *= norm_fac;
       der = Kokkos::fma(norm_fac, der, -norm_rank * val * inv_dist);
 
@@ -808,21 +804,17 @@ KOKKOS_INLINE_FUNCTION void PairMTPKokkos<DeviceType>::operator()(
 
       // Get the component's derivatives too
       pow *= der * inv_dist;
-      KK_FLOAT temp_jac[3] = {pow * r[0], pow * r[1], pow * r[2]};
+      KK_FLOAT adj = d_nbh_energy_ders_wrt_moments(ii, k);
+      radial_force += adj * pow;
+      val *= adj;
 
-      if (a0 != 0)
-        temp_jac[0] =
-            Kokkos::fma(val * a0, s_coord_powers(thread, a0 - 1, 0) * pow1 * pow2, temp_jac[0]);
-      if (a1 != 0)
-        temp_jac[1] =
-            Kokkos::fma(val * a1, pow0 * s_coord_powers(thread, a1 - 1, 1) * pow2, temp_jac[1]);
-      if (a2 != 0)
-        temp_jac[2] =
-            Kokkos::fma(val * a2, pow0 * pow1 * s_coord_powers(thread, a2 - 1, 2), temp_jac[2]);
-
-      for (int a = 0; a < 3; a++)
-        temp_force[a] += d_nbh_energy_ders_wrt_moments(ii, k) * temp_jac[a];
+      if (a0 != 0) temp_force[0] += val * a0 * (s_coord_powers(thread, a0 - 1, 0) * pow1 * pow2);
+      if (a1 != 0) temp_force[1] += val * a1 * (pow0 * s_coord_powers(thread, a1 - 1, 1) * pow2);
+      if (a2 != 0) temp_force[2] += val * a2 * (pow0 * pow1 * s_coord_powers(thread, a2 - 1, 2));
     }
+
+    // Apply the radial direction once after summing the moments.
+    for (int a = 0; a < 3; a++) temp_force[a] += radial_force * r[a];
 
     a_f(i, 0) += temp_force[0];
     a_f(i, 1) += temp_force[1];
@@ -909,18 +901,6 @@ PairMTPKokkos<DeviceType>::v_tally_xyz(EV_FLOAT &ev, const int &i, const int &j,
 }
 
 template <class DeviceType>
-template <class TagStyle>
-void PairMTPKokkos<DeviceType>::check_team_size_for(int inum, int &team_size, int vector_length)
-{
-  int team_size_max;
-
-  team_size_max = Kokkos::TeamPolicy<DeviceType, TagStyle>(inum, Kokkos::AUTO)
-                      .team_size_max(*this, Kokkos::ParallelForTag());
-
-  if (team_size * vector_length > team_size_max) team_size = team_size_max / vector_length;
-}
-
-template <class DeviceType>
 template <typename scratch_type>
 int PairMTPKokkos<DeviceType>::scratch_size_helper(int values_per_team)
 {
@@ -929,13 +909,15 @@ int PairMTPKokkos<DeviceType>::scratch_size_helper(int values_per_team)
       ScratchViewType;
 
   return ScratchViewType::shmem_size(values_per_team);
-}    // namespace LAMMPS_NS
+}
+So
 
-/* ---------------------------------------------------------------------- */
+    /* ---------------------------------------------------------------------- */
 
-namespace LAMMPS_NS {
-template class PairMTPKokkos<LMPDeviceType>;
+    namespace LAMMPS_NS
+{
+  template class PairMTPKokkos<LMPDeviceType>;
 #ifdef LMP_KOKKOS_GPU
-template class PairMTPKokkos<LMPHostType>;
+  template class PairMTPKokkos<LMPHostType>;
 #endif
 }    // namespace LAMMPS_NS

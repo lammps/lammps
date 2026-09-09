@@ -1,0 +1,132 @@
+# GCMC for H2O/CO2 molecular fluid, rigid/nvt/small dynamics
+# Rigid CO2 TraPPE model
+# [Potoff and J.I. Siepmann, Vapor-liquid equilibria of
+# mixtures containing alkanes, carbon dioxide and
+# nitrogen AIChE J., 47,1676-1682 (2001)].
+
+# variables available on command line
+
+variable        muh2o index -8.0
+variable        muco2 index -8.30
+variable        disp index 0.5
+variable        temp index 338.0
+variable        lbox index 15.0
+variable        spacing index 5.0
+
+# global model settings
+
+units           real
+atom_style      full
+boundary        p p p
+pair_style      lj/cut/coul/long  14
+pair_modify     mix arithmetic tail yes
+kspace_style    ewald 0.0001
+bond_style      harmonic
+angle_style     harmonic
+
+# box, start molecules on random places
+
+region          box block 0 ${lbox} 0 ${lbox} 0 ${lbox} units box
+create_box      4 box                       &
+                bond/types 2                &
+                angle/types 2               &
+                extra/bond/per/atom 2       &
+                extra/angle/per/atom 1      &
+                extra/special/per/atom 2
+
+molecule        mols H2O.txt CO2.txt toff 2 boff 1 aoff 1
+molecule        co2mol CO2.txt toff 2 boff 1 aoff 1
+molecule        h2omol H2O.txt
+
+create_atoms    0 random 8  42 box mol co2mol 46 overlap 1.7 units box
+create_atoms    0 random 20 24 box mol h2omol 64 overlap 1.7 units box
+
+# rigid SPC/E water model
+pair_coeff      1 1 0.15535 3.166
+pair_coeff      2 2 0.0000 0.0000       
+
+bond_coeff      1     0       1.0   
+angle_coeff     1     0       109.47
+
+# rigid CO2 TraPPE model
+pair_coeff      3   3  0.053649   2.8
+pair_coeff      4   4  0.156973   3.05
+bond_coeff      2       0       1.16
+angle_coeff     2       0       180
+
+# masses
+# H2O
+mass 1 15.9994 
+mass 2 1.0087
+# CO2
+mass 3 12.0107
+mass 4 15.9994
+
+# MD settings
+
+group           h2o type 1 2
+group           co2 type 3 4
+group           mobile union h2o co2
+neighbor        2.0 bin
+neigh_modify    every 1 delay 10 check yes
+velocity        all create ${temp} 54654 mom yes rot yes units box
+timestep        0.2500
+
+write_data      init.data  nocoeff
+
+# rigid constraints with thermostat
+
+fix             myrigid all rigid/nvt/small molecule temp ${temp} ${temp} $(dt*100) mol mols
+
+# dynamically update  fix rigid/nvt/small temperature ndof
+fix_modify      myrigid dynamic/dof yes
+
+# forcing MD engine to compute ndof
+run             0
+# rigid/nvt/small changes dof
+velocity        all scale ${temp} mom yes rot yes rigid myrigid units box
+
+# dynamically update default temperature ndof
+compute_modify  thermo_temp dynamic/dof yes
+
+thermo          1000
+run             10000 ## relaxation
+
+# gcmc
+# MD steps need to be long for relaxation
+variable        tfac equal 5.0/3.0 # (3 trans + 2 rot)/(3 trans)
+## CO2 GCMC
+fix             CO2gcmc co2 gcmc 1000 10 0 0 54341 ${temp} ${muco2} ${disp} mol &
+                mols molindex 2 tfac_insert ${tfac} group mobile rigid myrigid
+
+## H2O GCMC
+fix             H2Ogcmc h2o gcmc 1000 10 0 0 14345 ${temp} ${muh2o} ${disp} mol &
+                mols molindex 1 tfac_insert ${tfac} group mobile rigid myrigid
+
+
+# atom counts
+variable        nh2o    equal count(h2o)/3
+variable        nco2    equal count(co2)/3
+variable        nmob    equal count(mobile)/3
+
+# output
+# CO2
+variable        CO2tacc equal f_CO2gcmc[2]/(f_CO2gcmc[1]+0.1)
+variable        CO2iacc equal f_CO2gcmc[4]/(f_CO2gcmc[3]+0.1)
+variable        CO2dacc equal f_CO2gcmc[6]/(f_CO2gcmc[5]+0.1)
+variable        CO2racc equal f_CO2gcmc[8]/(f_CO2gcmc[7]+0.1)
+# H2o
+variable        H2Otacc equal f_H2Ogcmc[2]/(f_H2Ogcmc[1]+0.1)
+variable        H2Oiacc equal f_H2Ogcmc[4]/(f_H2Ogcmc[3]+0.1)
+variable        H2Odacc equal f_H2Ogcmc[6]/(f_H2Ogcmc[5]+0.1)
+variable        H2Oracc equal f_H2Ogcmc[8]/(f_H2Ogcmc[7]+0.1)
+
+thermo_style    custom step temp press pe ke density atoms v_H2Oiacc v_H2Odacc v_H2Otacc v_H2Oracc v_CO2iacc v_CO2dacc v_CO2tacc v_CO2racc v_nh2o v_nco2 v_nmob
+thermo          1000
+
+dump            mdump all custom 100 traj.lammpstrj id mol type xu yu zu
+
+# run
+
+run             30000
+write_data      last.data  nocoeff

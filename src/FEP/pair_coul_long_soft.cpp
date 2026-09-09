@@ -124,7 +124,14 @@ void PairCoulLongSoft::compute(int eflag, int vflag)
         denc = sqrt(lam2[itype][jtype] + rsq);
         prefactor = qqrd2e * lam1[itype][jtype] * qtmp*q[j] / (denc*denc*denc);
 
-        forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
+        // the soft core replaces only the 1/r factor, while the Ewald damping
+
+        // keeps the true distance, so differentiating erfc(g*r)/denc leaves the
+
+        // exponential term scaled by denc^2/r^2 against a plain 1/r kernel
+
+
+        forcecoul = prefactor * (erfc + EWALD_F*grij*expm2*denc*denc/rsq);
         if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
 
         fpair = forcecoul;
@@ -361,7 +368,7 @@ double PairCoulLongSoft::single(int i, int j, int itype, int jtype,
     prefactor = force->qqrd2e * lam1[itype][jtype] * atom->q[i]*atom->q[j] /
       (denc*denc*denc);
 
-    forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
+    forcecoul = prefactor * (erfc + EWALD_F*grij*expm2*denc*denc/rsq);
     if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
   } else forcecoul = 0.0;
 

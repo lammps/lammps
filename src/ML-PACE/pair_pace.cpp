@@ -31,8 +31,8 @@ Copyright 2021 Yury Lysogorskiy^1, Cas van der Oord^2, Anton Bochkarev^1,
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
-#include "info.h"
 #include "force.h"
+#include "info.h"
 #include "math_const.h"
 #include "memory.h"
 #include "neigh_list.h"
@@ -82,7 +82,8 @@ static int AtomicNumberByName_pace(char *elname)
 }
 
 /* ---------------------------------------------------------------------- */
-PairPACE::PairPACE(LAMMPS *lmp) : Pair(lmp)
+PairPACE::PairPACE(LAMMPS *lmp) :
+    Pair(lmp), aceimpl(nullptr), corerep_factor(nullptr), scale(nullptr)
 {
   single_enable = 0;
   restartinfo = 0;
@@ -91,14 +92,12 @@ PairPACE::PairPACE(LAMMPS *lmp) : Pair(lmp)
 
   nmax_corerep = 0;
   flag_corerep_factor = 0;
-  corerep_factor = nullptr;
 
   aceimpl = new ACEImpl;
   recursive = false;
 
-  scale = nullptr;
-
   chunksize = 4096;
+  neigh_scratch_request = NEIGH_SCRATCH_AUTO;
 }
 
 /* ----------------------------------------------------------------------
@@ -128,8 +127,10 @@ void PairPACE::compute(int eflag, int vflag)
   double fij[3];
   int *ilist, *jlist, *numneigh, **firstneigh;
 
-  if (copymode) ev_init(eflag, vflag, 0);
-  else ev_init(eflag, vflag, 1);
+  if (copymode)
+    ev_init(eflag, vflag, 0);
+  else
+    ev_init(eflag, vflag, 1);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -197,8 +198,7 @@ void PairPACE::compute(int eflag, int vflag)
       error->one(FLERR, e.what());
     }
 
-    if (flag_corerep_factor)
-      corerep_factor[i] = 1 - aceimpl->ace->ace_fcut;
+    if (flag_corerep_factor) corerep_factor[i] = 1 - aceimpl->ace->ace_fcut;
 
     // 'compute_atom' will update the `aceimpl->ace->e_atom` and `aceimpl->ace->neighbours_forces(jj, alpha)` arrays
 
@@ -282,15 +282,15 @@ void PairPACE::settings(int narg, char **arg)
       // KOKKOS-only: selects the team scratch memory level used to build the
       // short neighbor list.  Parsed but ignored by this style, so that an
       // input written for pace/kk also runs without the KOKKOS package.
-      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "pair_style pace neigh", error);
-      if (strcmp(arg[iarg+1], "auto") == 0)
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "pair_style pace neigh", error);
+      if (strcmp(arg[iarg + 1], "auto") == 0)
         neigh_scratch_request = NEIGH_SCRATCH_AUTO;
-      else if (strcmp(arg[iarg+1], "shared") == 0)
+      else if (strcmp(arg[iarg + 1], "shared") == 0)
         neigh_scratch_request = NEIGH_SCRATCH_SHARED;
-      else if (strcmp(arg[iarg+1], "global") == 0)
+      else if (strcmp(arg[iarg + 1], "global") == 0)
         neigh_scratch_request = NEIGH_SCRATCH_GLOBAL;
       else
-        error->all(FLERR, "Unknown pair_style pace neigh keyword: {}", arg[iarg+1]);
+        error->all(FLERR, "Unknown pair_style pace neigh keyword: {}", arg[iarg + 1]);
       iarg += 2;
     } else
       error->all(FLERR, "Unknown pair_style pace keyword: {}", arg[iarg]);
@@ -322,12 +322,12 @@ void PairPACE::coeff(int narg, char **arg)
   delete aceimpl->basis_set;
   if (comm->me == 0) utils::logmesg(lmp, "Loading {}\n", potential_file_name);
   // if potential is in ACEBBasisSet (YAML) format, then convert to ACECTildeBasisSet automatically
-  if (utils::strmatch(potential_file_name,".*\\.yaml$")) {
+  if (utils::strmatch(potential_file_name, ".*\\.yaml$")) {
     ACEBBasisSet bBasisSet = ACEBBasisSet(potential_file_name);
     ACECTildeBasisSet cTildeBasisSet = bBasisSet.to_ACECTildeBasisSet();
     aceimpl->basis_set = new ACECTildeBasisSet(cTildeBasisSet);
   } else {
-      aceimpl->basis_set = new ACECTildeBasisSet(potential_file_name);
+    aceimpl->basis_set = new ACECTildeBasisSet(potential_file_name);
   }
 
   if (comm->me == 0) {
@@ -449,6 +449,7 @@ void *PairPACE::extract_peratom(const char *str, int &ncol)
 double PairPACE::memory_usage()
 {
   double bytes = Pair::memory_usage();
-  if (flag_corerep_factor) bytes += (double) nmax_corerep * sizeof(double);    // corerep_factor[nmax_corerep]
+  if (flag_corerep_factor)
+    bytes += (double) nmax_corerep * sizeof(double);    // corerep_factor[nmax_corerep]
   return bytes;
 }

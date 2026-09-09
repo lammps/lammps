@@ -425,3 +425,13 @@
    fun:HYDT_dmxu_poll_wait_for_event
    ...
 }
+{
+   MPICH_psm3_rcvthread_tls
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:calloc
+   ...
+   fun:pthread_create@*
+   fun:psm3_ips_ptl_rcvthread_init
+   ...
+}

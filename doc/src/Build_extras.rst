@@ -1336,7 +1336,7 @@ code for the library can be found at:
 
 Instead of including the MBX package directly into LAMMPS, it is also
 possible to skip this step and build the MBX package as a plugin using
-the CMake script files in the ``examples/PACKAGE/mbx/plugin`` folder and
+the CMake script files in the ``examples/PACKAGES/mbx/plugin`` folder and
 then load this plugin at runtime with the :doc:`plugin command
 <plugin>`.
 
@@ -1381,7 +1381,7 @@ at: `https://github.com/ICAMS/lammps-user-pace/ <https://github.com/ICAMS/lammps
 
 Instead of including the ML-PACE package directly into LAMMPS, it
 is also possible to skip this step and build the ML-PACE package as
-a plugin using the CMake script files in the ``examples/PACKAGE/pace/plugin``
+a plugin using the CMake script files in the ``examples/PACKAGES/pace/plugin``
 folder and then load this plugin at runtime with the :doc:`plugin command <plugin>`.
 
 .. tabs::
@@ -1527,7 +1527,7 @@ LAMMPS build.
 
 Instead of including the PLUMED package directly into LAMMPS, it
 is also possible to skip this step and build the PLUMED package as
-a plugin using the CMake script files in the ``examples/PACKAGE/plumed/plugin``
+a plugin using the CMake script files in the ``examples/PACKAGES/plumed/plugin``
 folder and then load this plugin at runtime with the :doc:`plugin command <plugin>`.
 
 .. tabs::

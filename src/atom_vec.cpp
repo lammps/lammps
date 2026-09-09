@@ -158,7 +158,8 @@ void AtomVec::init()
     error->all(FLERR, "KOKKOS package requires a kokkos enabled atom_style");
 }
 
-static constexpr bigint DELTA = 16384;
+static constexpr int DELTA = 16384;
+static constexpr bigint DELTABIG = DELTA;
 
 /* ----------------------------------------------------------------------
    roundup N so it is a multiple of DELTA
@@ -167,7 +168,7 @@ static constexpr bigint DELTA = 16384;
 
 bigint AtomVec::roundup(bigint n)
 {
-  if (n % DELTA) n = n / DELTA * DELTA + DELTA;
+  if (n % DELTABIG) n = n / DELTABIG * DELTABIG + DELTABIG;
   if (n > MAXSMALLINT) error->one(FLERR, "Too many atoms created on one or more procs");
   return n;
 }
@@ -182,7 +183,7 @@ void AtomVec::grow_nmax()
   nmax += DELTA;
 }
 
-static constexpr bigint DELTA_BONUS = 8192;
+static constexpr int DELTA_BONUS = DELTA/2;
 
 /* ----------------------------------------------------------------------
    grow nmax_bonus so it is a multiple of DELTA_BONUS
@@ -2545,13 +2546,13 @@ void AtomVec::setup_fields()
 int AtomVec::process_fields(const std::vector<std::string> &words,
                             const std::vector<std::string> &def_words, Method *method)
 {
-  int nfield = words.size();
-  int ndef = def_words.size();
+  int nfield = (int) words.size();
+  int ndef = (int) def_words.size();
 
   // process fields one by one, add to index vector
 
   const auto &peratom = atom->peratom;
-  const int nperatom = peratom.size();
+  const int nperatom = (int) peratom.size();
 
   // allocate memory in method
   method->resize(nfield);

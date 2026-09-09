@@ -78,7 +78,7 @@ void ComputeTempPartial::setup()
 void ComputeTempPartial::dof_compute()
 {
   adjust_dof_fix();
-  natoms_temp = group->count(igroup);
+  natoms_temp = (double)group->count(igroup);
   int nper = xflag+yflag+zflag;
   dof = nper * natoms_temp;
 
@@ -126,8 +126,8 @@ double ComputeTempPartial::compute_scalar()
 
   MPI_Allreduce(&t,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
   if (dynamic) dof_compute();
-  if (dof < 0.0 && natoms_temp > 0.0)
-    error->all(FLERR,"Temperature compute degrees of freedom < 0");
+  if ((dof < 0.0) && (natoms_temp > 0.0))
+    error->all(FLERR, Error::NOLASTLINE, "Temperature compute {} degrees of freedom < 0", id);
   scalar *= tfactor;
   return scalar;
 }

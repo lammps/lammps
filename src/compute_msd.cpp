@@ -141,7 +141,7 @@ void ComputeMSD::compute_vector()
 {
   // check that nmsd is unchanged
 
-  int newnmsd = group->count(igroup);
+  bigint newnmsd = group->count(igroup);
   if (newnmsd != nmsd)
     error->all(FLERR, Error::NOLASTLINE, "Number of atoms in compute msd group must not change.");
 

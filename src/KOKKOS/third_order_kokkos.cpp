@@ -83,58 +83,6 @@ void ThirdOrderKokkos::command(int narg, char **arg)
 }
 
 /* ----------------------------------------------------------------------
-   setup without output or one-time post-init setup
-   flag = 0 = just force calculation
-   flag = 1 = reneighbor and force calculation
-------------------------------------------------------------------------- */
-
-void ThirdOrderKokkos::setup()
-{
-  lmp->kokkos->auto_sync = 1;
-
-  // setup domain, communication and neighboring
-  // acquire ghosts
-  // build neighbor lists
-  if (triclinic) domain->x2lamda(atom->nlocal);
-  domain->pbc();
-  domain->reset_box();
-  comm->setup();
-  if (neighbor->style) neighbor->setup_bins();
-  comm->exchange();
-  comm->borders();
-  if (triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
-  domain->image_check();
-  domain->box_too_small_check();
-  neighbor->build(1);
-
-  // compute all forces
-  eflag=0;
-  vflag=0;
-  if (force->kspace) {
-    force->kspace->setup();
-  }
-  update_force();
-
-  if (pair_compute_flag) {
-    atomKK->sync(force->pair->execution_space,force->pair->datamask_read);
-    force->pair->compute(eflag,vflag);
-    atomKK->modified(force->pair->execution_space,force->pair->datamask_modify);
-  }
-  else if (force->pair) force->pair->compute_dummy(eflag,vflag,0);
-  update->setupflag = 0;
-
-  lmp->kokkos->auto_sync = 0;
-
-  //if all then skip communication groupmap population
-  if (gcount == atom->natoms)
-    for (bigint i=0; i<atom->natoms; i++)
-      groupmap[i] = i;
-  else
-    create_groupmap();
-
-}
-
-/* ----------------------------------------------------------------------
    evaluate potential energy and forces
    may migrate atoms due to reneighboring
    return new energy, which should include nextra_global dof

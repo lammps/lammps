@@ -1203,7 +1203,7 @@ void CommKokkos::exchange_device()
           MemKK::realloc_kokkos(k_exchange_copylist,"comm:k_exchange_copylist",count*1.1);
           k_count.view_host()(0) = k_exchange_sendlist.view_host().extent(0);
         }
-        if (count >= (int)k_exchange_sendlist_bonus.view_host().extent(0)) {
+        if (count_bonus >= (int)k_exchange_sendlist_bonus.view_host().extent(0)) {
           MemKK::realloc_kokkos(k_exchange_sendlist_bonus,"comm:k_exchange_sendlist_bonus",\
                                 count*1.1);
           MemKK::realloc_kokkos(k_exchange_copylist_bonus,"comm:k_exchange_copylist_bonus",\

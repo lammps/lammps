@@ -909,7 +909,7 @@ void CommTiledKokkos::grow_recv_kokkos(int n, int flag, ExecutionSpace /*space*/
    realloc the size of the iswap sendlist as needed with BUFFACTOR
 ------------------------------------------------------------------------- */
 
-void CommTiledKokkos::grow_list(int iswap, int iwhich, int n)
+void CommTiledKokkos::grow_list(int /*iswap*/, int /*iwhich*/, int n)
 {
   int size = static_cast<int> (BUFFACTOR * n);
 

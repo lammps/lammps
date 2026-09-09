@@ -2063,7 +2063,7 @@ template<class DeviceType>
 void FixRigidSmallKokkos<DeviceType>::unpack_exchange_kokkos(DAT::tdual_double_2d_lr &k_buf,
                               DAT::tdual_int_1d &k_indices,int nrecv,
                               int nrecv1, int nrecv1extra,
-                              ExecutionSpace space)
+                              ExecutionSpace /*space*/)
 {
   Kokkos::Profiling::pushRegion("rigid/small unpack exchange");
   k_buf.sync<DeviceType>();

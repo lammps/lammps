@@ -25,7 +25,6 @@
 #include "atom_kokkos.h"
 #include "atom_masks.h"
 #include "math_const.h"
-#include "math_special.h"
 #include "memory_kokkos.h"
 #include "neigh_request.h"
 #include "neighbor_kokkos.h"
@@ -35,7 +34,6 @@
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
-using MathSpecial::factorial;
 
 #ifdef DBL_EPSILON
 static constexpr double MY_EPSILON = (10.0 * DBL_EPSILON);

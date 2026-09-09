@@ -784,7 +784,7 @@ template <class DeviceType> void PairUF3Kokkos<DeviceType>::compute(int eflag_in
           ((int)d_neighbors_short.extent(0) != ignum)) {
     d_neighbors_short = Kokkos::View<int **, DeviceType>("UF3::neighbors_short", ignum, max_neighs);
   }
-  if (d_numneigh_short.extent(0) != ignum)
+  if ((int)d_numneigh_short.extent(0) != ignum)
     d_numneigh_short = Kokkos::View<int *, DeviceType>("UF3::numneighs_short", ignum);
   Kokkos::parallel_for(
       Kokkos::RangePolicy<DeviceType, TagPairUF3ComputeShortNeigh>(0, ignum), *this);

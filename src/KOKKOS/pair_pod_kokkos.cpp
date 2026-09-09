@@ -37,7 +37,6 @@
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
-using MathSpecial::powint;
 
 enum{FS,FS_SHIFTEDSCALED};
 

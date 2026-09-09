@@ -659,7 +659,13 @@ struct remap_plan_3d_kokkos<DeviceType>* RemapKokkos<DeviceType>::remap_3d_creat
       plan->nsend = nsend;
       plan->pack = PackKokkos<DeviceType>::pack_3d;
 
-      plan->send_offset = (int *) malloc(nsend*sizeof(int));
+      // nsend/nrecv can be zero here: the enclosing test admits a rank that
+      // only sends or only receives, and both halves must be initialized for
+      // the Alltoallv.  malloc(0) may legally return a null pointer, which the
+      // check below would mistake for an allocation failure, so ask for one
+      // extra byte.
+
+      plan->send_offset = (int *) malloc(nsend*sizeof(int) + 1);
       plan->send_size = (int *) malloc(plan->commringlen*sizeof(int));
 
       plan->sendcnts = (int *) malloc(plan->commringlen*sizeof(int));
@@ -668,7 +674,7 @@ struct remap_plan_3d_kokkos<DeviceType>* RemapKokkos<DeviceType>::remap_3d_creat
       // only used when sendcnt > 0
 
       plan->packplan = (struct pack_plan_3d *)
-        malloc(nsend*sizeof(struct pack_plan_3d));
+        malloc(nsend*sizeof(struct pack_plan_3d) + 1);
 
       if (plan->send_offset == nullptr || plan->send_size == nullptr ||
           plan->sendcnts == nullptr || plan->sdispls == nullptr ||
@@ -697,7 +703,7 @@ struct remap_plan_3d_kokkos<DeviceType>* RemapKokkos<DeviceType>::remap_3d_creat
           plan->unpack = PackKokkos<DeviceType>::unpack_3d_permute2_n;
       }
 
-      plan->recv_offset = (int *) malloc(nrecv*sizeof(int));
+      plan->recv_offset = (int *) malloc(nrecv*sizeof(int) + 1);
       plan->recv_size = (int *) malloc(plan->commringlen*sizeof(int));
 
       plan->rcvcnts = (int *) malloc(plan->commringlen*sizeof(int));
@@ -706,7 +712,7 @@ struct remap_plan_3d_kokkos<DeviceType>* RemapKokkos<DeviceType>::remap_3d_creat
       // only used when recvcnt > 0
 
       plan->unpackplan = (struct pack_plan_3d *)
-        malloc(nrecv*sizeof(struct pack_plan_3d));
+        malloc(nrecv*sizeof(struct pack_plan_3d) + 1);
 
       if (plan->recv_offset == nullptr || plan->recv_size == nullptr ||
           plan->rcvcnts == nullptr || plan->rdispls == nullptr ||

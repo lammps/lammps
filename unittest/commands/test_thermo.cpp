@@ -386,11 +386,18 @@ TEST_F(ThermoTest, Modify)
 
 TEST_F(ThermoTest, Format)
 {
+    // the default format prints the temperature of the fixture as exactly "1" only
+    // when the velocities are kept in double precision.  a reduced precision KOKKOS
+    // build rounds them to single precision on the device and thus prints a value
+    // like "0.99999998" instead; the explicitly formatted columns below round that
+    // away and are checked exactly in either case
+    const std::string temp = kokkos_reduced_precision() ? "[01]\\.?[0-9]*" : "1";
+
     HIDE_OUTPUT([&] {
         command("thermo_style custom step atoms temp pe");
     });
     auto output = run0();
-    ASSERT_MATCH(output, "\n +0 +32 +1 +-[0-9.]+ *\n");
+    ASSERT_MATCH(output, "\n +0 +32 +" + temp + " +-[0-9.]+ *\n");
 
     // format line: one format per column
     HIDE_OUTPUT([&] {
@@ -418,14 +425,14 @@ TEST_F(ThermoTest, Format)
         command("thermo_modify format none");
     });
     output = run0();
-    ASSERT_MATCH(output, "\n +0 +32 +1 +-[0-9.]+ *\n");
+    ASSERT_MATCH(output, "\n +0 +32 +" + temp + " +-[0-9.]+ *\n");
 
     // integer format for a bigint column gets the correct conversion specifier
     HIDE_OUTPUT([&] {
         command("thermo_modify format int %3d");
     });
     output = run0();
-    ASSERT_MATCH(output, "\n +0 +32 +1 +-[0-9.]+ *\n");
+    ASSERT_MATCH(output, "\n +0 +32 +" + temp + " +-[0-9.]+ *\n");
 
     TEST_FAILURE(".*ERROR: Illegal thermo_modify format command: missing argument.*",
                  command("thermo_modify format"););

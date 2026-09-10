@@ -907,6 +907,20 @@ Fix *Modify::add_fix(int narg, char **arg, int trysuffix)
     }
   }
 
+  // fix property/atom keeps its per-atom data in arrays that AtomKokkos owns and
+  // grows as Kokkos views.  The plain style would hand those pointers to
+  // memory->grow(), i.e. srealloc() on a Kokkos allocation, which corrupts the
+  // heap.  Use the KOKKOS version whenever the package is active, even where the
+  // suffix machinery above did not apply because suffixes are disabled.
+
+  if ((fix[ifix] == nullptr) && lmp->kokkos && (strcmp(arg[2], "property/atom") == 0)) {
+    if (FixCreator fix_creator = fix_styles().find("property/atom/kk")) {
+      fix[ifix] = fix_creator(lmp, narg, arg);
+      delete[] fix[ifix]->style;
+      fix[ifix]->style = utils::strdup("property/atom/kk");
+    }
+  }
+
   if (fix[ifix] == nullptr) {
     if (FixCreator fix_creator = fix_styles().find(arg[2]))
       fix[ifix] = fix_creator(lmp, narg, arg);

@@ -507,10 +507,10 @@ void PairVashishtaKokkos<DeviceType>::operator()(TagPairVashishtaComputeFullB<NE
     delr1[2] = ztmpi - ztmpj;
     const KK_FLOAT rsq1 = delr1[0]*delr1[0] + delr1[1]*delr1[1] + delr1[2]*delr1[2];
 
-    const int j_jnum = d_numneigh_short_3body[jj];
+    const int j_jnum = d_numneigh_short_3body[j];
 
     for (int kk = 0; kk < j_jnum; kk++) {
-      int k = d_neighbors_short_3body(jj,kk);
+      int k = d_neighbors_short_3body(j,kk);
       k &= NEIGHMASK;
       if (k == i) continue;
       const int ktype = d_map[type[k]];

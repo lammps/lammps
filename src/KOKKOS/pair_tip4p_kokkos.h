@@ -75,6 +75,7 @@ class PairTIP4PKokkos : public PairCPUBase {
     // TIP4P tallies the virial explicitly (charge site is off-atom)
     this->no_virial_fdotr_compute = 1;
     k_h_missing = DAT::tdual_int_scalar("pair:tip4p_h_missing");
+    k_h_badtype = DAT::tdual_int_scalar("pair:tip4p_h_badtype");
   }
 
   ~PairTIP4PKokkos() override
@@ -104,6 +105,17 @@ class PairTIP4PKokkos : public PairCPUBase {
     int iH1 = AtomKokkos::map_kokkos<DeviceType>(tag(i)+1,map_style,k_map_array,k_map_hash);
     int iH2 = AtomKokkos::map_kokkos<DeviceType>(tag(i)+2,map_style,k_map_array,k_map_hash);
     if (iH1 < 0 || iH2 < 0) { d_hneigh(i,0) = -1; return; }
+
+    // the two atoms following the oxygen must really be the hydrogens, as the
+    // CPU find_M() checks.  Mark the M site unusable so the compute kernels
+    // stop the run where they would for a missing H, and record the reason so
+    // finalize() can report it
+
+    if (type(iH1) != m_typeH || type(iH2) != m_typeH) {
+      d_h_badtype() = 1;
+      d_hneigh(i,0) = -1;
+      return;
+    }
     iH1 = closest_image(i,iH1);
     iH2 = closest_image(i,iH2);
     d_hneigh(i,0) = iH1;
@@ -435,11 +447,16 @@ class PairTIP4PKokkos : public PairCPUBase {
       d_hneigh  = typename AT::t_int_1d_3("tip4p/kk:hneigh", this->atom->nmax);
     }
 
-    // reset the missing-hydrogen flag, checked in finalize()
+    // reset the missing-hydrogen flags, checked in finalize()
     k_h_missing.view_host()() = 0;
     k_h_missing.modify_host();
     k_h_missing.template sync<DeviceType>();
     d_h_missing = k_h_missing.template view<DeviceType>();
+
+    k_h_badtype.view_host()() = 0;
+    k_h_badtype.modify_host();
+    k_h_badtype.template sync<DeviceType>();
+    d_h_badtype = k_h_badtype.template view<DeviceType>();
 
     if (this->eflag_atom) {
       this->memoryKK->destroy_kokkos(k_eatom, this->eatom);
@@ -466,8 +483,14 @@ class PairTIP4PKokkos : public PairCPUBase {
   {
     k_h_missing.template modify<DeviceType>();
     k_h_missing.sync_host();
-    if (k_h_missing.view_host()())
-      this->error->one(FLERR,"TIP4P hydrogen is missing");
+    k_h_badtype.template modify<DeviceType>();
+    k_h_badtype.sync_host();
+    if (k_h_missing.view_host()()) {
+      if (k_h_badtype.view_host()())
+        this->error->one(FLERR,"TIP4P hydrogen has incorrect atom type");
+      else
+        this->error->one(FLERR,"TIP4P hydrogen is missing");
+    }
 
     if (this->eflag_global) this->eng_coul += static_cast<double>(ev.ecoul);
     if (this->vflag_global)
@@ -490,6 +513,10 @@ class PairTIP4PKokkos : public PairCPUBase {
   // set on device when a compute kernel needs an M site with a missing H
   DAT::tdual_int_scalar k_h_missing;
   typename AT::t_int_scalar d_h_missing;
+
+  // set on device when the two atoms following an O are not both of type H
+  DAT::tdual_int_scalar k_h_badtype;
+  typename AT::t_int_scalar d_h_badtype;
 
   typename AT::t_neighbors_2d d_neighbors;
   typename AT::t_int_1d_randomread d_ilist;

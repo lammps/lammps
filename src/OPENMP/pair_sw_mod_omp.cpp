@@ -65,7 +65,7 @@ void PairSWMODOMP::threebody(Param *paramij, Param *paramik, Param *paramijk,
   double r1,rinvsq1,rainv1,gsrainv1,gsrainvsq1,expgsrainv1;
   double r2,rinvsq2,rainv2,gsrainv2,gsrainvsq2,expgsrainv2;
   double rinv12,cs,delcs,delcssq,facexp,facrad,frad1,frad2;
-  double facang,facang12,csfacang,csfac1,csfac2,factor;
+  double facang,facang12,csfacang,csfac1,csfac2,factor,dfactor,arg;
 
   r1 = sqrt(rsq1);
   rinvsq1 = 1.0/rsq1;
@@ -85,10 +85,18 @@ void PairSWMODOMP::threebody(Param *paramij, Param *paramik, Param *paramijk,
   cs = (delr1[0]*delr2[0] + delr1[1]*delr2[1] + delr1[2]*delr2[2]) * rinv12;
   delcs = cs - paramijk->costheta;
 
-  // Modification to delcs
-  if(fabs(delcs) >= delta2) delcs = 0.0;
-  else if(fabs(delcs) < delta2 && fabs(delcs) > delta1) {
-    factor = 0.5 + 0.5*cos(MY_PI*(fabs(delcs) - delta1)/(delta2 - delta1));
+  // Modification to delcs.  dfactor is d(delcs)/d(cs) after the modification,
+  // which the angular force below needs: tapering delcs changes how it responds
+  // to the angle, so the taper has to be differentiated along with it.
+
+  dfactor = 1.0;
+  if(fabs(delcs) >= delta2) {
+    delcs = 0.0;
+    dfactor = 0.0;
+  } else if(fabs(delcs) > delta1) {
+    arg = MY_PI*(fabs(delcs) - delta1)/(delta2 - delta1);
+    factor = 0.5 + 0.5*cos(arg);
+    dfactor = factor - 0.5*MY_PI*fabs(delcs)*sin(arg)/(delta2 - delta1);
     delcs *= factor;
   }
   delcssq = delcs*delcs;
@@ -101,7 +109,7 @@ void PairSWMODOMP::threebody(Param *paramij, Param *paramik, Param *paramijk,
   facrad = paramijk->lambda_epsilon * facexp*delcssq;
   frad1 = facrad*gsrainvsq1;
   frad2 = facrad*gsrainvsq2;
-  facang = paramijk->lambda_epsilon2 * facexp*delcs;
+  facang = paramijk->lambda_epsilon2 * facexp*delcs*dfactor;
   facang12 = rinv12*facang;
   csfacang = cs*facang;
   csfac1 = rinvsq1*csfacang;

@@ -89,11 +89,10 @@ class AngleSPICAKokkos : public AngleSPICA {
   int nlocal,newton_bond;
   int eflag,vflag;
 
-  DAT::tdual_int_1d k_setflag;
-  typename AT::t_int_1d d_setflag, d_type;
+  typename AT::t_int_1d d_type;
 
-  DAT::tdual_kkfloat_1d k_k, k_theta0, k_repscale;
-  typename AT::t_kkfloat_1d d_k, d_theta0, d_repscale;
+  DAT::tdual_kkfloat_1d k_k, k_theta0;
+  typename AT::t_kkfloat_1d d_k, d_theta0;
 
   DAT::tdual_int_2d k_lj_type;
   typename AT::t_int_2d d_lj_type;

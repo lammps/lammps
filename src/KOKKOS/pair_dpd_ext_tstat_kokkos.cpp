@@ -118,6 +118,8 @@ void PairDPDExtTstatKokkos<DeviceType>::compute(int eflagin, int vflagin)
       for (int j = i; j <= atom->ntypes; j++) {
         k_params.view_host()(i,j).sigma = k_params.view_host()(j,i).sigma =
           static_cast<KK_FLOAT>(sqrt(2.0*boltz*temperature*gamma[i][j]));
+        k_params.view_host()(i,j).sigmaT = k_params.view_host()(j,i).sigmaT =
+          static_cast<KK_FLOAT>(sqrt(2.0*boltz*temperature*gammaT[i][j]));
       }
   }
   k_params.modify_host();
@@ -299,7 +301,7 @@ void PairDPDExtTstatKokkos<DeviceType>::operator() (TagDPDExtTstatKokkos<NEIGHFL
       randnumz = static_cast<KK_FLOAT>(rand_gen.normal());
 
       // drag force - parallel
-      fpair = params(itype,jtype).gamma*wdPar*wdPar*dot*rinv;
+      fpair = -params(itype,jtype).gamma*wdPar*wdPar*dot*rinv;
       fpair *= factor_dpd;
 
       // random force - parallel

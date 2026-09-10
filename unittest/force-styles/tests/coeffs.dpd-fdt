@@ -1,0 +1,6 @@
+# force field for the DPD-REACT fixtures built on in.dpd-fdt.  the fix-timestep
+# driver needs the pair style set up from a coeffs file, the pair style tests
+# take it from their own "pair_style"/"pair_coeff" keywords instead.
+
+pair_style dpd/fdt/energy 7.0 234324
+pair_coeff * * 0.075 0.022 3.2e-5 7.0

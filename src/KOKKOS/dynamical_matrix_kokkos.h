@@ -32,7 +32,6 @@ class DynamicalMatrixKokkos : public DynamicalMatrix {
   DynamicalMatrixKokkos(class LAMMPS *);
 
   void command(int, char **) override;
-  void setup();
 
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION

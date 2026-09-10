@@ -30,7 +30,6 @@
 #include "neigh_list_kokkos.h"
 #include "neigh_request.h"
 #include "neighbor.h"
-#include "neighbor.h"
 #include "pair_kokkos.h"
 
 #include <cmath>

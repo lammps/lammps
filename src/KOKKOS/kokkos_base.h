@@ -60,6 +60,12 @@ class KokkosBase {
   // ordering and its atoms end up attached to the wrong body.
   virtual void sync_host_for_sort() {}
   virtual void modified_host_for_sort() {}
+
+ protected:
+  // non-virtual: derived KOKKOS styles are owned and deleted through their
+  // Fix/Pair/Compute/Region base, never through a KokkosBase pointer, and a
+  // virtual destructor here would force noexcept on every derived destructor
+  ~KokkosBase() = default;
 };
 
 }

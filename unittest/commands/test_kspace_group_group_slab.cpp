@@ -32,6 +32,7 @@
 #include "comm.h"
 #include "compute.h"
 #include "domain.h"
+#include "library.h"
 #include "gtest/gtest.h"
 #include "modify.h"
 #include "utils.h"
@@ -135,6 +136,8 @@ TEST_F(KSpaceGroupGroupSlabTest, EwaldTriclinicSlabMatchesOrthogonal)
 
 TEST_F(KSpaceGroupGroupSlabTest, PPPMTriclinicSlabMatchesOrthogonal)
 {
+    // the KOKKOS version of pppm does not support compute group/group
+    if (lmp->suffix_enable) GTEST_SKIP() << "pppm/kk does not support compute group/group";
   if (!info->has_style("kspace", "pppm")) GTEST_SKIP();
   if (!info->has_style("pair", "coul/long")) GTEST_SKIP();
   if (!info->has_style("compute", "group/group")) GTEST_SKIP();
@@ -177,6 +180,13 @@ int main(int argc, char **argv)
   if ((argc > 1) && (std::string(argv[1]) == "-v")) verbose = true;
 
   const int rv = RUN_ALL_TESTS();
+
+  // finalize the KOKKOS package explicitly: otherwise Kokkos is torn down by
+  // static destructors at program exit, leading to segfaults in some cases
+  // same workaround as the force-style and FFT3d test drivers
+
+  lammps_kokkos_finalize();
+
   MPI_Finalize();
   return rv;
 }

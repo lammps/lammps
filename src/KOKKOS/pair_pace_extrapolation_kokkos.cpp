@@ -1426,7 +1426,12 @@ void PairPACEExtrapolationKokkos<DeviceType>::operator() (TagPairPACEComputeDeri
   if (jj >= ncount) return;
 
   const int itype = type(i);
-  const KK_FLOAT scale = d_scale(itype,itype);
+
+  // the pair force uses the off-diagonal scale factor, as the CPU style does;
+  // the diagonal element is reserved for the per-atom energy
+
+  const int jtype = type(d_nearest(ii,jj));
+  const KK_FLOAT scale = d_scale(itype,jtype);
 
   const int mu_j = d_mu(ii, jj);
   KK_FLOAT r_hat[3];
@@ -2021,7 +2026,8 @@ void PairPACEExtrapolationKokkos<DeviceType>::evaluate_splines(const int ii, con
 
 /* ---------------------------------------------------------------------- */
 template<class DeviceType>
-void PairPACEExtrapolationKokkos<DeviceType>::SplineInterpolatorKokkos::operator=(const SplineInterpolator &spline) {
+typename PairPACEExtrapolationKokkos<DeviceType>::SplineInterpolatorKokkos &
+PairPACEExtrapolationKokkos<DeviceType>::SplineInterpolatorKokkos::operator=(const SplineInterpolator &spline) {
     cutoff = spline.cutoff;
     deltaSplineBins = spline.deltaSplineBins;
     ntot = spline.ntot;
@@ -2037,6 +2043,8 @@ void PairPACEExtrapolationKokkos<DeviceType>::SplineInterpolatorKokkos::operator
             for (int k = 0; k < 4; k++)
                 h_lookupTable(i, j, k) = spline.lookupTable(i, j, k);
     Kokkos::deep_copy(lookupTable, h_lookupTable);
+
+    return *this;
 }
 /* ---------------------------------------------------------------------- */
 template<class DeviceType>

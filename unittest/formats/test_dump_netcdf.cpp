@@ -242,24 +242,24 @@ TEST_F(DumpNetCDFTest, run0_plain)
                 if (words[0] == "coordinates") {
                     ++line;
                     words = utils::split_words(*line);
-                    ASSERT_THAT(words[0], Eq("0,"));
-                    ASSERT_THAT(words[1], Eq("0,"));
-                    ASSERT_THAT(words[2], Eq("0,"));
+                    ASSERT_THAT(words[0], Eq("0.419899,"));
+                    ASSERT_THAT(words[1], Eq("0.419899,"));
+                    ASSERT_THAT(words[2], Eq("0.419899,"));
                     ++line;
                     words = utils::split_words(*line);
-                    ASSERT_THAT(words[0], Eq("0.8397981,"));
-                    ASSERT_THAT(words[1], Eq("0.8397981,"));
-                    ASSERT_THAT(words[2], Eq("0,"));
+                    ASSERT_THAT(words[0], Eq("1.259697,"));
+                    ASSERT_THAT(words[1], Eq("1.259697,"));
+                    ASSERT_THAT(words[2], Eq("0.419899,"));
                     ++line;
                     words = utils::split_words(*line);
-                    ASSERT_THAT(words[0], Eq("0.8397981,"));
-                    ASSERT_THAT(words[1], Eq("0,"));
-                    ASSERT_THAT(words[2], Eq("0.8397981,"));
+                    ASSERT_THAT(words[0], Eq("1.259697,"));
+                    ASSERT_THAT(words[1], Eq("0.419899,"));
+                    ASSERT_THAT(words[2], Eq("1.259697,"));
                     ++line;
                     words = utils::split_words(*line);
-                    ASSERT_THAT(words[0], Eq("0,"));
-                    ASSERT_THAT(words[1], Eq("0.8397981,"));
-                    ASSERT_THAT(words[2], Eq("0.8397981,"));
+                    ASSERT_THAT(words[0], Eq("0.419899,"));
+                    ASSERT_THAT(words[1], Eq("1.259697,"));
+                    ASSERT_THAT(words[2], Eq("1.259697,"));
                 }
                 if (words[0] == "ix") {
                     ++line;
@@ -436,24 +436,24 @@ TEST_F(DumpNetCDFTest, run0_mpi)
                 if (words[0] == "coordinates") {
                     ++line;
                     words = utils::split_words(*line);
-                    ASSERT_THAT(words[0], Eq("0,"));
-                    ASSERT_THAT(words[1], Eq("0,"));
-                    ASSERT_THAT(words[2], Eq("0,"));
+                    ASSERT_THAT(words[0], Eq("0.419899,"));
+                    ASSERT_THAT(words[1], Eq("0.419899,"));
+                    ASSERT_THAT(words[2], Eq("0.419899,"));
                     ++line;
                     words = utils::split_words(*line);
-                    ASSERT_THAT(words[0], Eq("0.8397981,"));
-                    ASSERT_THAT(words[1], Eq("0.8397981,"));
-                    ASSERT_THAT(words[2], Eq("0,"));
+                    ASSERT_THAT(words[0], Eq("1.259697,"));
+                    ASSERT_THAT(words[1], Eq("1.259697,"));
+                    ASSERT_THAT(words[2], Eq("0.419899,"));
                     ++line;
                     words = utils::split_words(*line);
-                    ASSERT_THAT(words[0], Eq("0.8397981,"));
-                    ASSERT_THAT(words[1], Eq("0,"));
-                    ASSERT_THAT(words[2], Eq("0.8397981,"));
+                    ASSERT_THAT(words[0], Eq("1.259697,"));
+                    ASSERT_THAT(words[1], Eq("0.419899,"));
+                    ASSERT_THAT(words[2], Eq("1.259697,"));
                     ++line;
                     words = utils::split_words(*line);
-                    ASSERT_THAT(words[0], Eq("0,"));
-                    ASSERT_THAT(words[1], Eq("0.8397981,"));
-                    ASSERT_THAT(words[2], Eq("0.8397981,"));
+                    ASSERT_THAT(words[0], Eq("0.419899,"));
+                    ASSERT_THAT(words[1], Eq("1.259697,"));
+                    ASSERT_THAT(words[2], Eq("1.259697,"));
                 }
                 if (words[0] == "ix") {
                     ++line;

@@ -11,9 +11,12 @@
 ------------------------------------------------------------------------- */
 
 #include "../testing/core.h"
+#include <algorithm>
+#include <cmath>
 
 #include "atom.h"
 #include "fix.h"
+#include "library.h"
 #include "modify.h"
 #include "utils.h"
 
@@ -102,7 +105,7 @@ TEST_F(FixSpringChunkTest, HarmonicForceAndEnergy)
     END_HIDE_OUTPUT();
 
     const double numerical_force = -(eplus-eminus) / (2.0*delta);
-    EXPECT_NEAR(force[0][0], numerical_force, 1.0e-12);
+    EXPECT_NEAR(force[0][0], numerical_force, prec_tol(numerical_force, 1.0e-12));
 
     BEGIN_HIDE_OUTPUT();
     command("displace_atoms all move 0.25 0.0 0.0 units box");
@@ -131,6 +134,13 @@ int main(int argc, char **argv)
     if ((argc > 1) && (strcmp(argv[1], "-v") == 0)) verbose = true;
 
     int rv = RUN_ALL_TESTS();
+
+    // finalize the KOKKOS package explicitly: otherwise Kokkos is torn down by
+    // static destructors at program exit, leading to segfaults in some cases
+    // same workaround as the force-style and FFT3d test drivers
+
+    lammps_kokkos_finalize();
+
     MPI_Finalize();
     return rv;
 }

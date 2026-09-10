@@ -147,6 +147,8 @@ action compute_temp_region_kokkos.cpp
 action compute_temp_region_kokkos.h
 action compute_temp_sphere_kokkos.cpp
 action compute_temp_sphere_kokkos.h
+action compute_xrd_fft_kokkos.cpp compute_xrd_fft.cpp
+action compute_xrd_fft_kokkos.h compute_xrd_fft.h
 action dihedral_charmm_kokkos.cpp dihedral_charmm.cpp
 action dihedral_charmm_kokkos.h dihedral_charmm.h
 action dihedral_charmmfsw_kokkos.cpp dihedral_charmmfsw.cpp

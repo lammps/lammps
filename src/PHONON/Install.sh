@@ -26,7 +26,7 @@ action () {
   fi
 }
 
-# list of files with optional dependcies
+# list of files with optional dependencies
 
 action fix_phonon.cpp fft3d_wrap.h
 action fix_phonon.h fft3d_wrap.h

@@ -3,11 +3,11 @@
 
 mode=$1
 
-# arg1 = file, arg2 = file it depends on
-
 # enforce using portable C locale
 LC_ALL=C
 export LC_ALL
+
+# arg1 = file, arg2 = file it depends on
 
 action () {
   if (test $mode = 0) then
@@ -28,12 +28,13 @@ action () {
 
 # list of files with optional dependencies
 
-action angle_spica.cpp
-action angle_spica.h
-action lj_spica_common.h
-action pair_lj_spica.cpp
-action pair_lj_spica.h
-action pair_lj_spica_coul_long.cpp pppm.cpp
-action pair_lj_spica_coul_long.h pppm.cpp
-action pair_lj_spica_coul_msm.cpp msm.cpp
-action pair_lj_spica_coul_msm.h msm.cpp
+action compute_saed.cpp
+action compute_saed.h
+action compute_saed_consts.h
+action compute_xrd.cpp
+action compute_xrd.h
+action compute_xrd_consts.h
+action compute_xrd_fft.cpp fft3d_wrap.h
+action compute_xrd_fft.h fft3d_wrap.h
+action fix_saed_vtk.cpp
+action fix_saed_vtk.h

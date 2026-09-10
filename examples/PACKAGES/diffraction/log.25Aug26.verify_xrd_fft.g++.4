@@ -1,0 +1,122 @@
+LAMMPS (4 Jul 2026 - Development - dbd65f2f1c-modified)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
+  using 1 OpenMP thread(s) per MPI task
+# Verification of compute xrd/fft against the direct DFT of compute xrd.
+#
+# Both computes are given identical arguments and run on the same configuration,
+# so their global arrays must contain the same rows in the same order and the
+# same intensities to within the accuracy of the Kaiser-Bessel spreading.
+#
+# The lattice is randomly displaced and randomly decorated with two elements so
+# that the atoms do not sit on FFT mesh points and both atomic scattering
+# factors are exercised, which a perfect crystal would not do.
+#
+# Compare the two output files with:
+#   python3 compare_xrd.py xrd_dft.out xrd_fft.out
+
+boundary        p p p
+units           metal
+lattice         fcc 3.52
+Lattice spacing in x,y,z = 3.52 3.52 3.52
+region          box block 0 6 0 6 0 6
+create_box      2 box
+Created orthogonal box = (0 0 0) to (21.12 21.12 21.12)
+  1 by 2 by 2 MPI processor grid
+create_atoms    1 box
+Created 864 atoms
+  using lattice units in orthogonal box = (0 0 0) to (21.12 21.12 21.12)
+  create_atoms CPU = 0.000 seconds
+
+pair_style      none
+mass            * 58.71
+atom_modify     sort 0 0
+
+set             group all type/fraction 2 0.35 8571
+Setting atom values ...
+  308 settings made for type/fraction
+displace_atoms  all random 0.6 0.6 0.6 12345 units box
+Displacing atoms ...
+
+compute         XRD  all xrd     1.541838 Ni Al 2Theta 40 80 c 2 2 2 LP 1
+compute         XRDF all xrd/fft 1.541838 Ni Al 2Theta 40 80 c 2 2 2 LP 1 echo
+-----
+Compute XRD id:XRDF, # of atoms:864, # of relp:2460
+Reciprocal point spacing in k1,k2,k3 = 0.09469697 0.09469697 0.09469697
+-----
+
+# the default " %g" format would round the output to six significant digits,
+# which is coarser than the difference being measured
+
+# a few representative rows in the log as well, so that the reference log of
+# this example checks the diffraction itself rather than only that it ran:
+# row 739 is the strongest reflection, the others sample the background
+
+thermo_style    custom step c_XRD[739][1] c_XRD[739][2] c_XRDF[739][2]                 c_XRD[1][2] c_XRDF[1][2] c_XRD[1230][2] c_XRDF[1230][2]                 c_XRD[2460][2] c_XRDF[2460][2]
+thermo_modify   format float %20.12g
+
+fix             1 all ave/time 1 1 1 c_XRD[*]  format " %24.17g"                 mode vector file xrd_dft.out
+fix             2 all ave/time 1 1 1 c_XRDF[*] format " %24.17g"                 mode vector file xrd_fft.out
+
+run             0
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- compute xrd command: https://doi.org/10.1088/0965-0393/21/5/055020
+
+@Article{Coleman13,
+ author = {S. P. Coleman and D. E. Spearot and L. Capolungo},
+ title = {Virtual Diffraction Analysis of {Ni} [010] Symmetric Tilt Grain Boundaries},
+ journal = {Modelling and Simulation in Materials Science and Engineering},
+ year =    2013,
+ volume =  21,
+ pages =   {055020}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+WARNING: No fixes with time integration, atoms won't move
+For more information see https://docs.lammps.org/err0028 (src/verlet.cpp:60)
+-----
+Compute XRD/FFT id:XRDF, # of relp:2460
+Kaiser-Bessel order 7, FFT mesh 36x36x36, 2 element transform(s)
+Mesh divided 1x1x4 over the MPI ranks
+Whole mesh 0.356 Mbytes, most on one MPI rank so far 0 Mbytes
+-----
+WARNING: Communication cutoff is 0.0. No ghost atoms will be generated. Energies and forces may be wrong and atoms may get lost. (src/comm_brick.cpp:188)
+-----
+Compute XRD/FFT id:XRDF Elapsed time: 0.00 s
+-----
+Per MPI rank memory allocation (min/avg/max) = 3.17 | 3.203 | 3.24 Mbytes
+   Step     c_XRD[739][1]  c_XRD[739][2]  c_XRDF[739][2]  c_XRD[1][2]    c_XRDF[1][2]  c_XRD[1230][2] c_XRDF[1230][2] c_XRD[2460][2] c_XRDF[2460][2]
+-----
+Compute XRD/FFT id:XRDF Elapsed time: 0.00 s
+-----
+         0         44.5854050557        855527.292824        855527.254239         294.96889462        294.969065933        228.556771059         228.55680787         294.96889462        294.969065933
+Loop time of 7.9095e-06 on 4 procs for 0 steps with 864 atoms
+
+98.0% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0          | 0          | 0          |   0.0 |  0.00
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0          | 0          | 0          |   0.0 |  0.00
+Output  | 0          | 0          | 0          |   0.0 |  0.00
+Modify  | 0          | 0          | 0          |   0.0 |  0.00
+Other   |            | 7.91e-06   |            |       |100.00
+
+Nlocal:            216 ave         218 max         214 min
+Histogram: 1 0 1 0 0 0 0 1 0 1
+Nghost:              0 ave           0 max           0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:              0 ave           0 max           0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 0
+Ave neighs/atom = 0
+Neighbor list builds = 0
+Dangerous builds = 0
+Total wall time: 0:00:00

@@ -1,5 +1,14 @@
 This is a simple example of showing the computation of virtual x-ray
-and electron diffraction patterns for Ni.  
+and electron diffraction patterns for Ni.
+
+Input scripts:
+
+  in.BulkNi          compute xrd, compute saed and fix saed/vtk on bulk Ni
+  in.verify_xrd_fft  compute xrd/fft next to compute xrd on the same
+                     configuration, for comparing the two element by element
+                     with compare_xrd.py
+
+
 
 In addition to the LAMMPS output, a simple visualizaiton of the electron 
 diffraction data is included.  The visualization was created using the VisIt 

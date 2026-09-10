@@ -22,6 +22,38 @@
       abs: 1e-3
       rel: 1e-7
   overrides:
+    in.verify_xrd_fft:
+      # the diffraction intensities themselves, so that this example checks the
+      # transform rather than only that it ran.  the direct sum reproduces to
+      # round-off; the FFT of it varies with the transform library, well inside
+      # these tolerances, while any real regression is far outside them
+      "c_XRD[739][1]":
+        abs: 1e-6
+        rel: 1e-9
+      "c_XRD[739][2]":
+        abs: 1e-4
+        rel: 1e-7
+      "c_XRDF[739][2]":
+        abs: 1e-4
+        rel: 1e-7
+      "c_XRD[1][2]":
+        abs: 1e-4
+        rel: 1e-7
+      "c_XRDF[1][2]":
+        abs: 1e-4
+        rel: 1e-7
+      "c_XRD[1230][2]":
+        abs: 1e-4
+        rel: 1e-7
+      "c_XRDF[1230][2]":
+        abs: 1e-4
+        rel: 1e-7
+      "c_XRD[2460][2]":
+        abs: 1e-4
+        rel: 1e-7
+      "c_XRDF[2460][2]":
+        abs: 1e-4
+        rel: 1e-7
     in.rigid.tnr:
       Temp:
         abs: 1e-3
@@ -31,17 +63,13 @@
         rel: 1e-4
   skip:
     [
-      in.*pod.InP,
+      in.*pod.Inp,
       in.disp,
       in.disp2,
       in.dos,
       in.dsring2,
       in.*_imd*,
       in.bucky-plus-cnt*,
-      in.gREM,
-      in.peptide-plumed,
-      in.mliap.pytorch*,
-      in.mliap.unified*,
     ]
 
   timeout: 30

@@ -13,7 +13,7 @@ action () {
   fi
 }
 
-# list of files with optional dependcies
+# list of files with optional dependencies
 
 action amoeba_convolution_gpu.cpp amoeba_convolution.cpp
 action amoeba_convolution_gpu.h amoeba_convolution.cpp

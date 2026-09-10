@@ -93,7 +93,9 @@ TextFileReader::~TextFileReader()
   delete[] line;
 }
 
-/** adjust line buffer size */
+/** adjust line buffer size
+ *
+ * \param  newsize  New size of the internal line buffer */
 
 void TextFileReader::set_bufsize(int newsize)
 {

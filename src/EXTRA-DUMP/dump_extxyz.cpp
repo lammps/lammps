@@ -19,7 +19,6 @@
 #include "error.h"
 #include "label_map.h"
 #include "memory.h"
-#include "modify.h"
 #include "output.h"
 #include "thermo.h"
 #include "update.h"
@@ -34,7 +33,7 @@ static constexpr int DELTA = 1048576;
 /* ---------------------------------------------------------------------- */
 
 DumpExtXYZ::DumpExtXYZ(LAMMPS *lmp, int narg, char **arg) :
-    DumpXYZ(lmp, narg, arg), properties_string(nullptr)
+    DumpXYZ(lmp, narg, arg), properties_string(nullptr), thermo_string(nullptr)
 {
   // style specific customizable settings
   with_vel = 1;
@@ -66,6 +65,7 @@ DumpExtXYZ::DumpExtXYZ(LAMMPS *lmp, int narg, char **arg) :
 DumpExtXYZ::~DumpExtXYZ()
 {
   delete[] properties_string;
+  delete[] thermo_string;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -83,12 +83,28 @@ void DumpExtXYZ::update_properties()
 
   // The output printf-style format
   delete[] format;
+  std::string lineformat;
   if (format_line_user)
-    format = utils::strdup(fmt::format("{}\n", format_line_user));
+    lineformat = fmt::format("{}\n", format_line_user);
   else {
-    format = utils::strdup(fmt::format("%s %g %g %g{}{}{}\n", (with_vel ? " %g %g %g" : ""),
-                                       (with_forces ? " %g %g %g" : ""), (with_mass ? " %g" : "")));
+    lineformat = fmt::format("%s %g %g %g{}{}{}\n", (with_vel ? " %g %g %g" : ""),
+                             (with_forces ? " %g %g %g" : ""), (with_mass ? " %g" : ""));
   }
+
+  // the line format may come from the user, so it has to be checked against
+  // the values it is used with: the element name and a variable number of
+  // coordinates, velocities, forces, and the mass
+
+  std::vector<utils::FmtArg> expect = {utils::FmtArg::STRING, utils::FmtArg::FLOAT,
+                                       utils::FmtArg::FLOAT, utils::FmtArg::FLOAT};
+  if (with_vel) expect.insert(expect.end(), 3, utils::FmtArg::FLOAT);
+  if (with_forces) expect.insert(expect.end(), 3, utils::FmtArg::FLOAT);
+  if (with_mass) expect.push_back(utils::FmtArg::FLOAT);
+
+  auto errmsg = utils::check_format(lineformat, expect);
+  if (!errmsg.empty())
+    error->all(FLERR, Error::NOLASTLINE, "Invalid dump {} format line: {}", id, errmsg);
+  format = utils::strdup(lineformat);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -136,37 +152,56 @@ int DumpExtXYZ::modify_param(int narg, char **arg)
 
 /* ---------------------------------------------------------------------- */
 
+int DumpExtXYZ::count()
+{
+  // Dump::count() is called for all processes before writing the header.
+  // We must update the thermodynamic data in the header here, since we are
+  // calling computes that may perform communication. We only include data
+  // from computes that were already invoked to avoid XXX not tallied errors.
+
+  delete[] thermo_string;
+  std::string thermo_buf;
+
+  if (time_flag) thermo_buf += fmt::format(" Time={:.6f}", compute_time());
+  thermo_buf += fmt::format(" pbc=\"{} {} {}\"", domain->xperiodic ? "T" : "F",
+                            domain->yperiodic ? "T" : "F", domain->zperiodic ? "T" : "F");
+  thermo_buf +=
+      fmt::format(" Lattice=\"{:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g}\"", domain->xprd, 0., 0.,
+                  domain->xy, domain->yprd, 0., domain->xz, domain->yz, domain->zprd);
+
+  if (output && output->thermo) {
+    auto *pe = output->thermo->pe;
+    if (pe && (pe->invoked_scalar == update->ntimestep))
+      thermo_buf += fmt::format(" Potential_energy={}", pe->compute_scalar());
+
+    auto *temp = output->thermo->temperature;
+    if (temp && (temp->invoked_scalar == update->ntimestep))
+      thermo_buf += fmt::format(" Temperature={}", temp->compute_scalar());
+
+    auto *press = output->thermo->pressure;
+    if (press && (press->invoked_vector == update->ntimestep)) {
+      press->compute_vector();
+      thermo_buf +=
+          fmt::format(" Stress=\"{} {} {} {} {} {} {} {} {}\"", press->vector[0], press->vector[3],
+                      press->vector[4], press->vector[3], press->vector[1], press->vector[5],
+                      press->vector[4], press->vector[5], press->vector[2]);
+    }
+  }
+  thermo_string = utils::strdup(thermo_buf);
+
+  // perform real count() function in parent
+  return DumpXYZ::count();
+}
+
+/* ---------------------------------------------------------------------- */
+
 void DumpExtXYZ::write_header(bigint n)
 {
   if (me == 0) {
     if (!fp)
       error->one(FLERR, Error::NOLASTLINE, "Must not use 'run pre no' after creating a new dump");
 
-    std::string header = fmt::format("{}\nTimestep={}", n, update->ntimestep);
-    if (time_flag) header += fmt::format(" Time={:.6f}", compute_time());
-    header += fmt::format(" pbc=\"{} {} {}\"", domain->xperiodic ? "T" : "F",
-                          domain->yperiodic ? "T" : "F", domain->zperiodic ? "T" : "F");
-    header +=
-        fmt::format(" Lattice=\"{:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g} {:g}\"", domain->xprd, 0.,
-                    0., domain->xy, domain->yprd, 0., domain->xz, domain->yz, domain->zprd);
-
-    if (output && output->thermo) {
-      auto *pe = output->thermo->pe;
-      if (pe) header += fmt::format(" Potential_energy={}", pe->compute_scalar());
-
-      auto *temp = output->thermo->temperature;
-      if (temp) header += fmt::format(" Temperature={}", temp->compute_scalar());
-
-      auto *press = output->thermo->pressure;
-      if (press) {
-        press->compute_vector();
-        header +=
-            fmt::format(" Stress=\"{} {} {} {} {} {} {} {} {}\"", press->vector[0],
-                        press->vector[3], press->vector[4], press->vector[3], press->vector[1],
-                        press->vector[5], press->vector[4], press->vector[5], press->vector[2]);
-      }
-    }
-
+    auto header = fmt::format("{}\nTimestep={}{}", n, update->ntimestep, thermo_string);
     header += fmt::format(" Properties={}", properties_string);
     utils::print(fp, header + "\n");
   }

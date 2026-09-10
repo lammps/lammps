@@ -44,7 +44,7 @@ using namespace MathExtra;
 
 /* ---------------------------------------------------------------------- */
 
-PairGranular::PairGranular(LAMMPS *lmp) : Pair(lmp)
+PairGranular::PairGranular(LAMMPS *lmp) : Pair(lmp), fix_rigid(nullptr)
 {
   single_enable = 1;
   no_virial_fdotr_compute = 1;
@@ -52,9 +52,11 @@ PairGranular::PairGranular(LAMMPS *lmp) : Pair(lmp)
   finitecutflag = 1;
 
   single_extra = 12;
+  extra_svector = 0;
   svector = new double[single_extra];
 
   neighprev = 0;
+  freeze_group_bit = 0;
   nmax = 0;
   mass_rigid = nullptr;
 
@@ -62,6 +64,9 @@ PairGranular::PairGranular(LAMMPS *lmp) : Pair(lmp)
   onerad_frozen = nullptr;
   maxrad_dynamic = nullptr;
   maxrad_frozen = nullptr;
+
+  types_indices = nullptr;
+  cutoff_type = nullptr;
 
   // set comm size needed by this Pair if used with fix rigid
 
@@ -76,8 +81,14 @@ PairGranular::PairGranular(LAMMPS *lmp) : Pair(lmp)
   // create dummy fix as placeholder for FixNeighHistory
   // this is so final order of Modify:fix will conform to input script
 
+id_dummy = utils::strdup(std::string("NEIGH_HISTORY_GRANULAR_DUMMY") + std::to_string(instance_me));
+id_history = utils::strdup(std::string("NEIGH_HISTORY_GRANULAR") + std::to_string(instance_me));
+
+  cutoff_global = -1.0;
   fix_history = nullptr;
-  fix_dummy = dynamic_cast<FixDummy *>(modify->add_fix("NEIGH_HISTORY_GRANULAR_DUMMY all DUMMY"));
+  models_list = nullptr;
+  nmodels = maxmodels = 0;
+  fix_dummy = dynamic_cast<FixDummy *>(modify->add_fix(fmt::format("{} all DUMMY", id_dummy)));
 }
 
 /* ---------------------------------------------------------------------- */
@@ -86,8 +97,10 @@ PairGranular::~PairGranular()
 {
   delete[] svector;
 
-  if (!fix_history) modify->delete_fix("NEIGH_HISTORY_GRANULAR_DUMMY");
-  else modify->delete_fix("NEIGH_HISTORY_GRANULAR");
+  if (!fix_history) modify->delete_fix(id_dummy);
+  else modify->delete_fix(id_history);
+  delete[] id_dummy;
+  delete[] id_history;
 
   if (allocated) {
     memory->destroy(setflag);
@@ -110,13 +123,13 @@ PairGranular::~PairGranular()
 
 void PairGranular::compute(int eflag, int vflag)
 {
-  int i,j,k,ii,jj,inum,jnum,itype,jtype;
-  double factor_lj,mi,mj,meff;
+  int i, j, k, ii, jj, inum, jnum, itype, jtype;
+  double factor_lj, mi, mj, meff;
   double *forces, *torquesi, *torquesj, dq;
 
-  int *ilist,*jlist,*numneigh,**firstneigh;
-  int *touch,**firsttouch;
-  double *history,*allhistory,**firsthistory;
+  int *ilist, *jlist, *numneigh, **firstneigh;
+  int *touch, **firsttouch;
+  double *history, *allhistory, **firsthistory;
 
   bool touchflag = false;
   const bool history_update = update->setupflag == 0;
@@ -135,7 +148,7 @@ void PairGranular::compute(int eflag, int vflag)
   if (fix_rigid && neighbor->ago == 0) {
     int tmp;
     int *body = (int *) fix_rigid->extract("body",tmp);
-    auto mass_body = (double *) fix_rigid->extract("masstotal",tmp);
+    auto *mass_body = (double *) fix_rigid->extract("masstotal",tmp);
     if (atom->nmax > nmax) {
       memory->destroy(mass_rigid);
       nmax = atom->nmax;
@@ -148,10 +161,10 @@ void PairGranular::compute(int eflag, int vflag)
     comm->forward_comm(this);
   }
 
+  int *type = atom->type;
   double **x = atom->x;
   double **v = atom->v;
   double **f = atom->f;
-  int *type = atom->type;
   double **omega = atom->omega;
   double **torque = atom->torque;
   double *radius = atom->radius;
@@ -275,10 +288,9 @@ void PairGranular::compute(int eflag, int vflag)
         if (force->newton_pair || j < nlocal) heatflow[j] -= dq;
       }
 
-      if (evflag) {
-        ev_tally_xyz(i,j,nlocal,force->newton_pair,
-          0.0,0.0,forces[0],forces[1],forces[2],model->dx[0],model->dx[1],model->dx[2]);
-      }
+      if (evflag)
+        ev_tally_xyz(i, j, nlocal, force->newton_pair, 0.0, 0.0, forces[0], forces[1], forces[2],
+            model->dx[0], model->dx[1], model->dx[2]);
     }
   }
 }
@@ -422,7 +434,7 @@ void PairGranular::init_style()
 
   // allocate history and aggregate model information
   class GranularModel* model;
-  double nsvector_total;
+  int nsvector_total;
   extra_svector = 0;
   int size_max[NSUBMODELS] = {0};
   for (int n = 0; n < nmodels; n++) {
@@ -470,28 +482,27 @@ void PairGranular::init_style()
     }
   }
 
-  if (use_history) neighbor->add_request(this, NeighConst::REQ_SIZE|NeighConst::REQ_HISTORY);
-  else neighbor->add_request(this, NeighConst::REQ_SIZE);
+  int req_flags = NeighConst::REQ_DEFAULT;
+  if (!beyond_contact) req_flags |= NeighConst::REQ_SIZE;
+  if (use_history) req_flags |= NeighConst::REQ_HISTORY;
+  neighbor->add_request(this, req_flags);
 
   // if history is stored and first init, create Fix to store history
   // it replaces FixDummy, created in the constructor
   // this is so its order in the fix list is preserved
 
   if (use_history && fix_history == nullptr) {
-    fix_history = dynamic_cast<FixNeighHistory *>(modify->replace_fix("NEIGH_HISTORY_GRANULAR_DUMMY",
-                                                          "NEIGH_HISTORY_GRANULAR"
-                                                          " all NEIGH_HISTORY "
-                                                          + std::to_string(size_history),1));
+    fix_history = dynamic_cast<FixNeighHistory *>(modify->replace_fix(id_dummy, fmt::format("{} all NEIGH_HISTORY {}", id_history, size_history),0));
     fix_history->pair = this;
   } else if (use_history) {
-    fix_history = dynamic_cast<FixNeighHistory *>(modify->get_fix_by_id("NEIGH_HISTORY_GRANULAR"));
+    fix_history = dynamic_cast<FixNeighHistory *>(modify->get_fix_by_id(id_history));
     if (!fix_history) error->all(FLERR,"Could not find pair fix neigh history ID");
   }
 
   // check for FixFreeze and set freeze_group_bit
 
   auto fixlist = modify->get_fix_by_style("^freeze");
-  if (fixlist.size() == 0)
+  if (fixlist.empty())
     freeze_group_bit = 0;
   else if (fixlist.size() > 1)
     error->all(FLERR, "Only one fix freeze command at a time allowed");
@@ -559,9 +570,9 @@ double PairGranular::init_one(int i, int j)
 
   if (setflag[i][j] == 0) {
 
-    models_list[nmodels] = new GranularModel(lmp);
+    model = new GranularModel(lmp);
+    models_list[nmodels] = model;
     types_indices[i][j] = nmodels;
-    model = models_list[nmodels];
 
     nmodels += 1;
     if (nmodels == maxmodels) prune_models();
@@ -607,6 +618,8 @@ double PairGranular::init_one(int i, int j)
         // radius info about both i and j exist
         ((maxrad_frozen[i] > 0.0)  && (maxrad_dynamic[j] > 0.0))) {
       cutoff = maxrad_dynamic[i] + maxrad_dynamic[j];
+      cutoff = MAX(cutoff, maxrad_dynamic[i] + maxrad_frozen[j]);
+      cutoff = MAX(cutoff, maxrad_frozen[i] + maxrad_dynamic[j]);
       pulloff = 0.0;
       if (model->beyond_contact) {
         pulloff = model->pulloff_distance(maxrad_dynamic[i], maxrad_dynamic[j]);
@@ -616,7 +629,7 @@ double PairGranular::init_one(int i, int j)
         cutoff = MAX(cutoff, maxrad_frozen[i] + maxrad_dynamic[j] + pulloff);
 
         pulloff = model->pulloff_distance(maxrad_dynamic[i], maxrad_frozen[j]);
-        cutoff = MAX(cutoff,maxrad_dynamic[i] + maxrad_frozen[j] + pulloff);
+        cutoff = MAX(cutoff, maxrad_dynamic[i] + maxrad_frozen[j] + pulloff);
       }
     } else {
       // radius info about either i or j does not exist
@@ -674,6 +687,8 @@ void PairGranular::read_restart(FILE *fp)
 
   if (me == 0) utils::sfread(FLERR,&nmodels,sizeof(int),1,fp,nullptr,error);
   MPI_Bcast(&nmodels,1,MPI_INT,0,world);
+  if ((nmodels < 0) || (nmodels > maxmodels))
+    error->all(FLERR,"Invalid number of granular models in restart file");
 
   for (i = 0; i < nmodels; i++) {
     delete models_list[i];
@@ -738,7 +753,7 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   model->history_update = 0; // Don't update history
 
   // If history is needed
-  double *history,*allhistory;
+  double *history = nullptr, *allhistory = nullptr;
   int jnum = list->numneigh[i];
   int *jlist = list->firstneigh[i];
   if (use_history) {
@@ -876,56 +891,6 @@ void PairGranular::transfer_history(double* source, double* target, int itype, i
       target[i] = -source[i];
     }
   }
-}
-
-/* ----------------------------------------------------------------------
-   self-interaction range of particle
-------------------------------------------------------------------------- */
-
-double PairGranular::atom2cut(int i)
-{
-  double cut;
-
-  cut = atom->radius[i] * 2;
-  if (beyond_contact) {
-    int itype = atom->type[i];
-    class GranularModel* model = models_list[types_indices[itype][itype]];
-    if (model->beyond_contact) {
-      cut += model->pulloff_distance(cut, cut);
-    }
-  }
-
-  return cut;
-}
-
-/* ----------------------------------------------------------------------
-   maximum interaction range for two finite particles
-------------------------------------------------------------------------- */
-
-double PairGranular::radii2cut(double r1, double r2)
-{
-  double cut = 0.0;
-
-  if (beyond_contact) {
-    int n = atom->ntypes;
-    double temp;
-
-    // Check all combinations of i and j to find theoretical maximum pull off distance
-    class GranularModel* model;
-    for (int i = 1; i <= n; i++) {
-      for (int j = 1; j <= n; j++) {
-        model = models_list[types_indices[i][j]];
-        if (model->beyond_contact) {
-          temp = model->pulloff_distance(r1, r2);
-          if (temp > cut) cut = temp;
-        }
-      }
-    }
-  }
-
-  cut += r1 + r2;
-
-  return cut;
 }
 
 /* ----------------------------------------------------------------------

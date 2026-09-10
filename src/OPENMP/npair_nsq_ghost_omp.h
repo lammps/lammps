@@ -13,12 +13,12 @@
 
 #ifdef NPAIR_CLASS
 // clang-format off
-typedef NPairNsqGhostOmp<0> NPairFullNsqGhostOmp;
+using NPairFullNsqGhostOmp = NPairNsqGhostOmp<0>;
 NPairStyle(full/nsq/ghost/omp,
            NPairFullNsqGhostOmp,
            NP_FULL | NP_NSQ | NP_NEWTON | NP_NEWTOFF | NP_GHOST | NP_OMP | NP_ORTHO | NP_TRI);
 
-typedef NPairNsqGhostOmp<1> NPairHalfNsqNewtoffGhostOmp;
+using NPairHalfNsqNewtoffGhostOmp = NPairNsqGhostOmp<1>;
 NPairStyle(half/nsq/newtoff/ghost/omp,
            NPairHalfNsqNewtoffGhostOmp,
            NP_HALF | NP_NSQ | NP_NEWTOFF | NP_GHOST | NP_OMP | NP_ORTHO | NP_TRI);

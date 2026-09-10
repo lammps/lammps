@@ -23,6 +23,7 @@
 #include "update.h"
 
 #include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using MathConst::MY_CUBEROOT2;
@@ -31,6 +32,7 @@ using MathConst::MY_CUBEROOT2;
 
 BondFENEExpand::~BondFENEExpand()
 {
+  if (copymode) return;
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(k);

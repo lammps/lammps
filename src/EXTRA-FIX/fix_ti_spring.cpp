@@ -35,7 +35,7 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 
 static const char cite_fix_ti_spring[] =
-  "ti/spring command: doi:10.1016/j.commatsci.2015.10.050\n\n"
+  "ti/spring command: https://doi.org/10.1016/j.commatsci.2015.10.050\n\n"
   "@article{freitas2016,\n"
   "  author={Freitas, Rodrigo and Asta, Mark and de Koning, Maurice},\n"
   "  title={Nonequilibrium Free-Energy Calculation of Solids Using {LAMMPS}},\n"
@@ -118,6 +118,8 @@ FixTISpring::FixTISpring(LAMMPS *lmp, int narg, char **arg) :
 
 FixTISpring::~FixTISpring()
 {
+  if (copymode) return;
+
   // unregister callbacks to this fix from Atom class
   atom->delete_callback(id,Atom::GROW);
   atom->delete_callback(id,Atom::RESTART);

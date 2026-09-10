@@ -21,9 +21,14 @@ can be invoked via the *dpd/tstat* pair style:
 * :doc:`fix nvt/sllod <fix_nvt_sllod>`
 * :doc:`fix temp/berendsen <fix_temp_berendsen>`
 * :doc:`fix temp/csvr <fix_temp_csvr>`
+* :doc:`fix ffl <fix_ffl>`
+* :doc:`fix gjf <fix_gjf>`
+* :doc:`fix gld <fix_gld>`
+* :doc:`fix gle <fix_gle>`
 * :doc:`fix langevin <fix_langevin>`
 * :doc:`fix temp/rescale <fix_temp_rescale>`
 * :doc:`pair_style dpd/tstat <pair_dpd>`
+* :doc:`pair_style dpd/ext/tstat <pair_dpd_ext>`
 
 :doc:`Fix nvt <fix_nh>` only thermostats the translational velocity of
 particles.  :doc:`Fix nvt/sllod <fix_nvt_sllod>` also does this,
@@ -82,10 +87,10 @@ that:
 
 .. note::
 
-   Only the nvt fixes perform time integration, meaning they update
+   Not all thermostat fixes perform time integration, meaning they update
    the velocities and positions of particles due to forces and velocities
    respectively.  The other thermostat fixes only adjust velocities; they
-   do NOT perform time integration updates.  Thus they should be used in
+   do NOT perform time integration updates.  Thus, they should be used in
    conjunction with a constant NVE integration fix such as these:
 
 * :doc:`fix nve <fix_nve>`

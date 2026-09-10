@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_KOKKOS_INDEXTYPETRAIT_HPP
 #define KOKKOS_KOKKOS_INDEXTYPETRAIT_HPP
@@ -60,7 +47,7 @@ struct IndexTypePolicyMixin<Kokkos::IndexType<IntegralIndexType>,
   static constexpr auto show_index_type_error_in_compilation_message =
       show_extra_index_type_erroneously_given_to_execution_policy<
           std::conditional_t<base_t::index_type_is_defaulted, void,
-                             typename base_t::schedule_type>>{};
+                             typename base_t::index_type>>{};
   static_assert(base_t::index_type_is_defaulted,
                 "Kokkos Error: More than one index type given. Search "
                 "compiler output for 'show_extra_index_type' to see the "
@@ -78,7 +65,7 @@ struct IndexTypePolicyMixin : AnalyzeNextTrait {
   static constexpr auto show_index_type_error_in_compilation_message =
       show_extra_index_type_erroneously_given_to_execution_policy<
           std::conditional_t<base_t::index_type_is_defaulted, void,
-                             typename base_t::schedule_type>>{};
+                             typename base_t::index_type>>{};
   static_assert(base_t::index_type_is_defaulted,
                 "Kokkos Error: More than one index type given. Search "
                 "compiler output for 'show_extra_index_type' to see the "

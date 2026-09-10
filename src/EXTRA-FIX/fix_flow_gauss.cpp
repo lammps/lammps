@@ -33,7 +33,7 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 
 static const char cite_flow_gauss[] =
-  "Gaussian dynamics package: doi:10.1021/acs.jpcb.6b09387\n\n"
+  "Gaussian dynamics package: https://doi.org/10.1021/acs.jpcb.6b09387\n\n"
   "@Article{strong_water_2017,\n"
   "title = {The Dynamics of Water in Porous Two-Dimensional Crystals},\n"
   "volume = {121},\n"

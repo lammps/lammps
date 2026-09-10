@@ -285,7 +285,7 @@ void AngleLepton::coeff(int narg, char **arg)
   }
 
   // if not found, add to list
-  if ((expressions.size() == 0) || (idx == expressions.size())) expressions.push_back(exp_one);
+  if ((expressions.empty()) || (idx == expressions.size())) expressions.push_back(std::move(exp_one));
 
   // convert theta0 from degrees to radians
 
@@ -358,12 +358,16 @@ void AngleLepton::read_restart(FILE *fp)
   }
   MPI_Bcast(&num, 1, MPI_INT, 0, world);
   MPI_Bcast(&maxlen, 1, MPI_INT, 0, world);
+  if ((num < 0) || (num > 65536) || (maxlen < 0) || (maxlen > 65536))
+    error->all(FLERR, "Invalid expression data in restart file");
 
   char *buf = new char[maxlen];
 
   for (int i = 0; i < num; ++i) {
     if (comm->me == 0) {
       utils::sfread(FLERR, &len, sizeof(int), 1, fp, nullptr, error);
+      if ((len < 1) || (len > maxlen))
+        error->one(FLERR, "Invalid expression length in restart file");
       utils::sfread(FLERR, buf, sizeof(char), len, fp, nullptr, error);
     }
     MPI_Bcast(buf, maxlen, MPI_CHAR, 0, world);
@@ -395,13 +399,13 @@ double AngleLepton::single(int type, int i1, int i2, int i3)
   double delx1 = x[i1][0] - x[i2][0];
   double dely1 = x[i1][1] - x[i2][1];
   double delz1 = x[i1][2] - x[i2][2];
-  domain->minimum_image(delx1, dely1, delz1);
+  domain->minimum_image(FLERR, delx1, dely1, delz1);
   double r1 = sqrt(delx1 * delx1 + dely1 * dely1 + delz1 * delz1);
 
   double delx2 = x[i3][0] - x[i2][0];
   double dely2 = x[i3][1] - x[i2][1];
   double delz2 = x[i3][2] - x[i2][2];
-  domain->minimum_image(delx2, dely2, delz2);
+  domain->minimum_image(FLERR, delx2, dely2, delz2);
   double r2 = sqrt(delx2 * delx2 + dely2 * dely2 + delz2 * delz2);
 
   double c = delx1 * delx2 + dely1 * dely2 + delz1 * delz2;

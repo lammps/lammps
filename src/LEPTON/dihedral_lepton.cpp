@@ -35,9 +35,7 @@
 #include "lepton_utils.h"
 
 using namespace LAMMPS_NS;
-using MathConst::DEG2RAD;
 using MathConst::MY_2PI;
-using MathConst::RAD2DEG;
 using MathExtra::cross3;
 using MathExtra::dot3;
 using MathExtra::norm3;
@@ -398,7 +396,7 @@ void DihedralLepton::coeff(int narg, char **arg)
   }
 
   // if not found, add to list
-  if ((expressions.size() == 0) || (idx == expressions.size())) expressions.push_back(exp_one);
+  if ((expressions.empty()) || (idx == expressions.size())) expressions.push_back(std::move(exp_one));
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -454,12 +452,16 @@ void DihedralLepton::read_restart(FILE *fp)
   }
   MPI_Bcast(&num, 1, MPI_INT, 0, world);
   MPI_Bcast(&maxlen, 1, MPI_INT, 0, world);
+  if ((num < 0) || (num > 65536) || (maxlen < 0) || (maxlen > 65536))
+    error->all(FLERR, "Invalid expression data in restart file");
 
   char *buf = new char[maxlen];
 
   for (int i = 0; i < num; ++i) {
     if (comm->me == 0) {
       utils::sfread(FLERR, &len, sizeof(int), 1, fp, nullptr, error);
+      if ((len < 1) || (len > maxlen))
+        error->one(FLERR, "Invalid expression length in restart file");
       utils::sfread(FLERR, buf, sizeof(char), len, fp, nullptr, error);
     }
     MPI_Bcast(buf, maxlen, MPI_CHAR, 0, world);
@@ -508,9 +510,9 @@ double DihedralLepton::get_phi(double const *x1,    //array holding x,y,z coords
   }
 
   //Consider periodic boundary conditions:
-  domain->minimum_image(vb12[0], vb12[1], vb12[2]);
-  domain->minimum_image(vb23[0], vb23[1], vb23[2]);
-  domain->minimum_image(vb34[0], vb34[1], vb34[2]);
+  domain->minimum_image(FLERR, vb12[0], vb12[1], vb12[2]);
+  domain->minimum_image(FLERR, vb23[0], vb23[1], vb23[2]);
+  domain->minimum_image(FLERR, vb34[0], vb34[1], vb34[2]);
 
   //--- Compute the normal to the planes formed by atoms 1,2,3 and 2,3,4 ---
 

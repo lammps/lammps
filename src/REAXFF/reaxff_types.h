@@ -35,14 +35,17 @@ class Pair;
 }    // namespace LAMMPS_NS
 
 namespace ReaxFF {
+
 /********************** TYPE DEFINITIONS ********************/
-typedef int ivec[3];
-typedef double rvec[3];
-typedef double rvec2[2];
+
+using ivec = int[3];
+using rvec = double[3];
+using rvec2 = double[2];
 
 // import LAMMPS' definition of tagint and bigint
-typedef LAMMPS_NS::tagint rc_tagint;
-typedef LAMMPS_NS::bigint rc_bigint;
+
+using rc_tagint = LAMMPS_NS::tagint;
+using rc_bigint = LAMMPS_NS::bigint;
 
 struct global_parameters {
   int n_global;

@@ -141,7 +141,9 @@ then a binsize equal to half the :doc:`neighbor <neighbor>` cutoff
 distance (force cutoff plus skin distance) is used, which is a
 reasonable value.  After the atoms have been binned, they are
 reordered so that atoms in the same bin are adjacent to each other in
-the processor's 1d list of atoms.
+the processor's 1d list of atoms. When using neighbor style *multi*,
+the default is half of the largest cutoff. However, testing is
+encouraged as smaller values may improve performance.
 
 The goal of this procedure is for atoms to put atoms close to each
 other in the processor's one-dimensional list of atoms that are also
@@ -193,9 +195,9 @@ info), the default is to use a map of either *array* or *hash* style
 depending on the size of the system, as explained above for the *map
 yes* keyword/value option.  By default, a *first* group is not
 defined.  By default, sorting is enabled with a frequency of 1000 and
-a binsize of 0.0, which means the neighbor cutoff will be used to set
-the bin size. If no neighbor cutoff is defined, sorting will be turned
-off.
+a binsize of 0.0, which means the maximum neighbor cutoff will be used
+to set the bin size. If no neighbor cutoff is defined, sorting will be
+turned off.
 
 ----------
 

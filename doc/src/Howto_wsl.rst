@@ -145,7 +145,7 @@ steps to follow:
 Install prerequisite packages
 -----------------------------
 
-Before we can begin, we need to download the necessary compiler toolchain and
+Before we can begin, we need to download the necessary compiler tool chain and
 libraries to compile LAMMPS. In our Ubuntu-based Linux installation, we will
 use the :code:`apt` package manager to install additional packages.
 
@@ -358,4 +358,4 @@ these skills will make you much more productive in this environment.
 
 .. seealso::
 
-   * `Windows Subsystem for Linux Documentation <https://docs.microsoft.com/en-us/windows/wsl/>`_
+   * `Windows Subsystem for Linux Documentation <https://learn.microsoft.com/en-us/windows/wsl/>`_

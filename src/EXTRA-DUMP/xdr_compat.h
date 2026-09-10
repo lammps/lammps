@@ -7,7 +7,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
+// NOLINTBEGIN
 /*
  * This file contains the definitions for Sun External Data Representation (XDR).
  * They have been adapted specifically for the use with the LAMMPS xtc dump style
@@ -130,6 +130,7 @@ extern bool_t xdr_vector(XDR *__xdrs, char *__basep, unsigned int __nelem, unsig
 extern bool_t xdr_float(XDR *__xdrs, float *__fp);
 extern void xdrstdio_create(XDR *__xdrs, FILE *__file, enum xdr_op __xop);
 
+// NOLINTEND
 #ifdef __cplusplus
 }
 #endif

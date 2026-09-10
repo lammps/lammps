@@ -78,7 +78,7 @@ Style *tait/general* generalizes this equation of state
 
 .. math::
 
-   P = \frac{c^2 \rho_0}{\gamma} \biggl[\left(\frac{\rho}{\rho_0}\right)^{\gamma} - 1\biggr].
+   P = \frac{c^2 \rho_0}{\gamma} \biggl[\left(\frac{\rho}{\rho_0}\right)^{\gamma} - 1\biggr]
 
 where :math:`\gamma` is an exponent.
 

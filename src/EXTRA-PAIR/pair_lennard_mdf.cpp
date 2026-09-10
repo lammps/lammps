@@ -34,12 +34,17 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairLennardMDF::PairLennardMDF(LAMMPS *lmp) : Pair(lmp) {}
+PairLennardMDF::PairLennardMDF(LAMMPS *lmp) :
+    Pair(lmp), cut(nullptr), cut_inner(nullptr), cut_inner_sq(nullptr), aparm(nullptr),
+    bparm(nullptr), lj1(nullptr), lj2(nullptr), lj3(nullptr), lj4(nullptr)
+{}
 
 /* ---------------------------------------------------------------------- */
 
 PairLennardMDF::~PairLennardMDF()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);

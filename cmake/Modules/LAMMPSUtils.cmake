@@ -75,20 +75,33 @@ function(get_lammps_version version_header variable)
     list(FIND MONTHS "${month}" month)
     string(LENGTH ${day} day_length)
     string(LENGTH ${month} month_length)
-    if(day_length EQUAL 1)
-        set(day "0${day}")
+    # no leading zero needed for new version string with dots
+    # if(day_length EQUAL 1)
+    #   set(day "0${day}")
+    # endif()
+    # if(month_length EQUAL 1)
+    #   set(month "0${month}")
+    #endif()
+    file(STRINGS ${version_header} line REGEX LAMMPS_UPDATE)
+    string(REGEX REPLACE "#define LAMMPS_UPDATE \"Update ([0-9]+)\"" "\\1" tweak "${line}")
+    if (line MATCHES "#define LAMMPS_UPDATE \"(Maintenance|Development)\"")
+      set(tweak "99")
     endif()
-    if(month_length EQUAL 1)
-        set(month "0${month}")
+    if(NOT tweak)
+      set(tweak "0")
     endif()
-    set(${variable} "${year}${month}${day}" PARENT_SCOPE)
+    # new version string with dots
+    set(${variable} "${year}.${month}.${day}.${tweak}" PARENT_SCOPE)
+    # old version string without dots
+    # set(${variable} "${year}${month}${day}" PARENT_SCOPE)
 endfunction()
 
 function(check_for_autogen_files source_dir)
     message(STATUS "Running check for auto-generated files from make-based build system")
     file(GLOB SRC_AUTOGEN_FILES CONFIGURE_DEPENDS ${source_dir}/style_*.h)
+    file(GLOB SRC_AUTOGEN_SOURCES CONFIGURE_DEPENDS ${source_dir}/style_*.cpp)
     file(GLOB SRC_AUTOGEN_PACKAGES CONFIGURE_DEPENDS ${source_dir}/packages_*.h)
-    list(APPEND SRC_AUTOGEN_FILES ${SRC_AUTOGEN_PACKAGES} ${source_dir}/lmpinstalledpkgs.h ${source_dir}/lmpgitversion.h)
+    list(APPEND SRC_AUTOGEN_FILES ${SRC_AUTOGEN_SOURCES} ${SRC_AUTOGEN_PACKAGES} ${source_dir}/package_registry.cpp ${source_dir}/lmpinstalledpkgs.h ${source_dir}/lmpgitversion.h)
     list(APPEND SRC_AUTOGEN_FILES ${source_dir}/mliap_model_python_couple.h ${source_dir}/mliap_model_python_couple.cpp)
     foreach(_SRC ${SRC_AUTOGEN_FILES})
       get_filename_component(FILENAME "${_SRC}" NAME)
@@ -140,13 +153,13 @@ function(FetchPotentials pkgfolder potfolder)
         string(SUBSTRING ${line} 0 ${blank} pot)
         string(SUBSTRING ${line} ${plusone} -1 sum)
         if(EXISTS "${LAMMPS_POTENTIALS_DIR}/${pot}")
-          file(MD5 "${LAMMPS_POTENTIALS_DIR}/${pot}" oldsum)
+          file(SHA256 "${LAMMPS_POTENTIALS_DIR}/${pot}" oldsum)
         endif()
         if(NOT sum STREQUAL oldsum)
           message(STATUS "Downloading external potential ${pot} from ${LAMMPS_POTENTIALS_URL}")
           string(RANDOM LENGTH 10 TMP_EXT)
           file(DOWNLOAD "${LAMMPS_POTENTIALS_URL}/${pot}.${sum}" "${CMAKE_BINARY_DIR}/${pot}.${TMP_EXT}"
-            EXPECTED_HASH MD5=${sum} SHOW_PROGRESS)
+            EXPECTED_HASH SHA256=${sum} SHOW_PROGRESS)
           file(COPY "${CMAKE_BINARY_DIR}/${pot}.${TMP_EXT}" DESTINATION "${LAMMPS_POTENTIALS_DIR}")
           file(RENAME "${LAMMPS_POTENTIALS_DIR}/${pot}.${TMP_EXT}" "${LAMMPS_POTENTIALS_DIR}/${pot}")
         endif()
@@ -176,3 +189,39 @@ function(GetFallbackURL input output)
     set(${output} ${newurl} PARENT_SCOPE)
   endif()
 endfunction(GetFallbackURL)
+
+# Register the download URL and SHA256 checksum of an external library or tool as cache variables
+# <prefix>_URL and <prefix>_SHA256.  Caching them allows package developers and users to override
+# permanently for a build folder which archive is downloaded.  But this also means that the cached
+# settings are retained when LAMMPS is updated to a new version of the external library.  Thus the
+# default checksum is recorded and the cached settings are updated to the new defaults when they
+# still match the previous defaults.  Otherwise a warning is printed, i.e. when the settings were
+# customized, or when the build folder was last configured with an older LAMMPS version that did
+# not record the default.  Only the checksums are compared, since a customized URL may point to a
+# local copy of the same archive.
+function(SetDownloadSettings prefix name url sha256)
+  set(_url_var ${prefix}_URL)
+  set(_sha_var ${prefix}_SHA256)
+  set(_ref_var ${prefix}_SHA256_DEFAULT)
+  if((DEFINED CACHE{${_sha_var}}) AND (DEFINED CACHE{${_ref_var}}))
+    if(("${${_sha_var}}" STREQUAL "${${_ref_var}}") AND (NOT ("${${_sha_var}}" STREQUAL "${sha256}")))
+      message(STATUS "Updating cached download settings for ${name} to the current defaults")
+      set(${_url_var} "${url}" CACHE STRING "URL for ${name} tarball" FORCE)
+      set(${_sha_var} "${sha256}" CACHE STRING "SHA256 checksum of ${name} tarball" FORCE)
+    endif()
+  endif()
+  set(${_url_var} "${url}" CACHE STRING "URL for ${name} tarball")
+  set(${_sha_var} "${sha256}" CACHE STRING "SHA256 checksum of ${name} tarball")
+  set(${_ref_var} "${sha256}" CACHE INTERNAL "Default SHA256 checksum of ${name} tarball")
+  mark_as_advanced(${_url_var} ${_sha_var})
+  if(NOT ("${${_sha_var}}" STREQUAL "${sha256}"))
+    message(WARNING "Cached download settings for ${name} differ from the defaults:\n"
+      "  ${_url_var} = ${${_url_var}}\n"
+      "  ${_sha_var} = ${${_sha_var}}\n"
+      "The current default URL is:\n"
+      "  ${url}\n"
+      "If this is not intended, reset the cached settings with:\n"
+      "  cmake -U ${_url_var} -U ${_sha_var} <build folder>\n"
+      "For more information see https://docs.lammps.org/err0039")
+  endif()
+endfunction(SetDownloadSettings)

@@ -34,14 +34,19 @@ _texture( pos_tex,float4);
 _texture_2d( pos_tex,int4);
 #endif
 
+// same settings with lal_neighbor.h
 #ifdef NV_KERNEL
-#if (__CUDACC_VER_MAJOR__ == 11) && (__CUDACC_VER_MINOR__ >= 2)
-// Issue with incorrect results in CUDA >= 11.2
+// Issue with incorrect results with CUDA >= 11.2 and pre-12.0
+#if (CUDA_VERSION > 11019) && (CUDA_VERSION < 12000)
 #define LAL_USE_OLD_NEIGHBOR
 #endif
 #endif
 
-#ifdef USE_HIP
+#if defined(USE_HIP) || defined(__APPLE__)
+#define LAL_USE_OLD_NEIGHBOR
+#endif
+
+#ifdef USE_CUDPP
 #define LAL_USE_OLD_NEIGHBOR
 #endif
 
@@ -180,7 +185,7 @@ __kernel void calc_neigh_list_cell(const __global numtyp4 *restrict x_,
                             __global int *nbor_list,
                             __global int *host_nbor_list,
                             __global int *host_numj,
-                            int neigh_bin_size, numtyp cutoff_neigh,
+                            int _max_nbors, numtyp cutoff_neigh,
                             int ncellx, int ncelly, int ncellz,
                             int inum, int nt, int nall, int t_per_atom,
                             int cells_in_cutoff,
@@ -284,7 +289,7 @@ __kernel void calc_neigh_list_cell(const __global numtyp4 *restrict x_,
     } else {
       stride=0;
       neigh_counts=host_numj+pid_i-inum;
-      neigh_list=host_nbor_list+(pid_i-inum)*neigh_bin_size;
+      neigh_list=host_nbor_list+(pid_i-inum)*_max_nbors;
     }
 
     // loop through neighbors
@@ -343,9 +348,8 @@ __kernel void calc_neigh_list_cell(const __global numtyp4 *restrict x_,
 #endif
 
         r2 = diff.x*diff.x + diff.y*diff.y + diff.z*diff.z;
-//USE CUTOFFSQ?
         if (r2 < cutoff_neigh*cutoff_neigh && pid_j != pid_i && pid_i < nt) {
-          if (cnt < neigh_bin_size) {
+          if (cnt < _max_nbors) {
             cnt++;
             *neigh_list = pid_j;
             neigh_list++;
@@ -372,7 +376,7 @@ __kernel void calc_neigh_list_cell(const __global numtyp4 *restrict x_,
                                 __global int *nbor_list,
                                 __global int *host_nbor_list,
                                 __global int *host_numj,
-                                int neigh_bin_size, numtyp cell_size,
+                                int _max_nbors, numtyp cutoff_neigh,
                                 int ncellx, int ncelly, int ncellz,
                                 int inum, int nt, int nall, int t_per_atom,
                                 int cells_in_cutoff)
@@ -420,7 +424,7 @@ __kernel void calc_neigh_list_cell(const __global numtyp4 *restrict x_,
     } else {
       stride=0;
       neigh_counts=host_numj+pid_i-inum;
-      neigh_list=host_nbor_list+(pid_i-inum)*neigh_bin_size;
+      neigh_list=host_nbor_list+(pid_i-inum)*_max_nbors;
     }
 
     // loop through neighbors
@@ -460,9 +464,9 @@ __kernel void calc_neigh_list_cell(const __global numtyp4 *restrict x_,
                 diff.z = atom_i.z - pos_sh[j].z;
 
                 r2 = diff.x*diff.x + diff.y*diff.y + diff.z*diff.z;
-                if (r2 < cell_size*cell_size && pid_j != pid_i) {
+                if (r2 < cutoff_neigh*cutoff_neigh && pid_j != pid_i) {
                   cnt++;
-                  if (cnt <= neigh_bin_size) {
+                  if (cnt <= _max_nbors) {
                     *neigh_list = pid_j;
                     neigh_list++;
                     if ((cnt & (t_per_atom-1))==0)
@@ -487,13 +491,25 @@ __kernel void calc_neigh_list_cell(const __global numtyp4 *restrict x_,
 #define UNROLL_FACTOR_LIST 4
 #define UNROLL_FACTOR_SPECIAL 2
 
-__kernel void kernel_special(__global int *dev_nbor,
+ucl_inline int minimum_image_check(numtyp dx, numtyp dy, numtyp dz,
+                                   numtyp xprd_half, numtyp yprd_half, numtyp zprd_half,
+                                   int xperiodic, int yperiodic, int zperiodic) {
+  if (xperiodic && ucl_abs(dx) > xprd_half) return 1;
+  if (yperiodic && ucl_abs(dy) > yprd_half) return 1;
+  if (zperiodic && ucl_abs(dz) > zprd_half) return 1;
+  return 0;
+}
+
+__kernel void kernel_special(const __global numtyp4 *restrict x_,
+                             __global int *dev_nbor,
                              __global int *host_nbor_list,
                              const __global int *host_numj,
                              const __global tagint *restrict tag,
                              const __global int *restrict nspecial,
                              const __global tagint *restrict special,
-                             int inum, int nt, int max_nbors, int t_per_atom) {
+                             int inum, int nt, int max_nbors, int t_per_atom,
+                             numtyp xprd_half, numtyp yprd_half, numtyp zprd_half,
+                             int xperiodic, int yperiodic, int zperiodic) {
   int tid=THREAD_ID_X;
   int ii=fast_mul((int)BLOCK_ID_X,(int)(BLOCK_SIZE_X)/t_per_atom);
   ii+=tid/t_per_atom;
@@ -506,6 +522,9 @@ __kernel void kernel_special(__global int *dev_nbor,
     int n1=nspecial[ii*3];
     int n2=nspecial[ii*3+1];
     int n3=nspecial[ii*3+2];
+
+    numtyp4 atom_i;
+    fetch4(atom_i,ii,pos_tex); //pos[i];
 
     int myj;
     if (ii < inum) {
@@ -534,6 +553,7 @@ __kernel void kernel_special(__global int *dev_nbor,
     for (int m=0; m<myj; m+=UNROLL_FACTOR_LIST) {
       int nbor[UNROLL_FACTOR_LIST];
       tagint jtag[UNROLL_FACTOR_LIST];
+      numtyp4 jpos[UNROLL_FACTOR_LIST];
       __global int* list_addr[UNROLL_FACTOR_LIST];
       int lmax = myj - m;
       for (int l=0; l<UNROLL_FACTOR_LIST; l++) {
@@ -542,8 +562,10 @@ __kernel void kernel_special(__global int *dev_nbor,
           nbor[l] = *list_addr[l];
       }
       for (int l=0; l<UNROLL_FACTOR_LIST; l++) {
-        if (l < lmax)
+        if (l < lmax) {
           jtag[l] = tag[nbor[l]];
+          fetch4(jpos[l],nbor[l],pos_tex); //pos[j];
+        }
       }
 
       for (int i=0, j=0; i<n3; i+=UNROLL_FACTOR_SPECIAL, j++) {
@@ -554,12 +576,11 @@ __kernel void kernel_special(__global int *dev_nbor,
           which[c] = 1;
           if (i + c < n3)
           {
-#if SPECIAL_DATA_PRELOAD_SIZE > 0
+            #if SPECIAL_DATA_PRELOAD_SIZE > 0
             if ((c == 0) && (j < SPECIAL_DATA_PRELOAD_SIZE)) {
               special_data[c] = special_preload[j];
-            }
-            else
-#endif
+            } else
+            #endif
               special_data[c] = special[ii + (i+c)*nt];
           }
         }
@@ -579,7 +600,13 @@ __kernel void kernel_special(__global int *dev_nbor,
           if (i + c < n3) {
             for (int l=0; l<UNROLL_FACTOR_LIST; l++) {
               if (l < lmax && special_data[c] == jtag[l]) {
-                nbor[l]=nbor[l] ^ which[c];
+                numtyp dx = atom_i.x - jpos[l].x;
+                numtyp dy = atom_i.y - jpos[l].y;
+                numtyp dz = atom_i.z - jpos[l].z;
+                int min_image = minimum_image_check(dx, dy, dz,
+                  xprd_half, yprd_half, zprd_half, xperiodic, yperiodic, zperiodic);
+                if (min_image != 1)
+                  nbor[l]=nbor[l] ^ which[c];
               }
             }
           }

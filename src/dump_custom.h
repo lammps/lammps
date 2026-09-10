@@ -33,6 +33,8 @@ class DumpCustom : public Dump {
   const int FORMAT_REVISION = 0x0002;
   const int ENDIAN = 0x0001;
 
+  double memory_usage() override;
+
  protected:
   int nevery;               // dump frequency for output
   char *idregion;           // region ID, nullptr if no region
@@ -104,7 +106,6 @@ class DumpCustom : public Dump {
   void pack(tagint *) override;
   int convert_string(int, double *) override;
   void write_data(int, double *) override;
-  double memory_usage() override;
 
   int parse_fields(int, char **);
   int add_compute(const char *);
@@ -121,7 +122,7 @@ class DumpCustom : public Dump {
   void format_endian_binary();
   void format_revision_binary();
 
-  typedef void (DumpCustom::*FnPtrHeader)(bigint);
+  using FnPtrHeader = void (DumpCustom::*)(bigint);
   FnPtrHeader header_choice;    // ptr to write header functions
   void header_binary(bigint);
   void header_binary_triclinic(bigint);
@@ -130,15 +131,15 @@ class DumpCustom : public Dump {
   void header_item_triclinic(bigint);
   void header_item_triclinic_general(bigint);
 
-  typedef void (DumpCustom::*FnPtrWrite)(int, double *);
+  using FnPtrWrite = void (DumpCustom::*)(int, double *);
   FnPtrWrite write_choice;    // ptr to write data functions
   void write_binary(int, double *);
   void write_string(int, double *);
-  void write_lines(int, double *);
+  virtual void write_lines(int, double *);
 
   // customize by adding a method prototype
 
-  typedef void (DumpCustom::*FnPtrPack)(int);
+  using FnPtrPack = void (DumpCustom::*)(int);
   FnPtrPack *pack_choice;    // ptrs to pack functions
 
   void pack_compute(int);

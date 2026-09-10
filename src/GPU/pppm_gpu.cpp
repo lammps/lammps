@@ -26,6 +26,7 @@
 #include "force.h"
 #include "gpu_extra.h"
 #include "grid3d.h"
+#include "lammps_gpu.h"
 #include "math_const.h"
 #include "memory.h"
 #include "modify.h"
@@ -38,35 +39,17 @@
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
+using namespace LAMMPS_GPU;
 
 static constexpr FFT_SCALAR ZEROF = 0.0;
 
-// external functions from cuda library for atom decomposition
+// wrapper for external functions from gpu library for atom decomposition
 
 #ifdef FFT_SINGLE
 #define PPPM_GPU_API(api)  pppm_gpu_ ## api ## _f
 #else
 #define PPPM_GPU_API(api)  pppm_gpu_ ## api ## _d
 #endif
-
-FFT_SCALAR* PPPM_GPU_API(init)(const int nlocal, const int nall, FILE *screen,
-                               const int order, const int nxlo_out,
-                               const int nylo_out, const int nzlo_out,
-                               const int nxhi_out, const int nyhi_out,
-                               const int nzhi_out, FFT_SCALAR **rho_coeff,
-                               FFT_SCALAR **_vd_brick,
-                               const double slab_volfactor,
-                               const int nx_pppm, const int ny_pppm,
-                               const int nz_pppm, const bool split,
-                               const bool respa, int &success);
-void PPPM_GPU_API(clear)(const double poisson_time);
-int PPPM_GPU_API(spread)(const int ago, const int nlocal, const int nall,
-                         double **host_x, int *host_type, bool &success,
-                         double *host_q, double *boxlo, const double delxinv,
-                         const double delyinv, const double delzinv);
-void PPPM_GPU_API(interp)(const FFT_SCALAR qqrd2e_scale);
-double PPPM_GPU_API(bytes)();
-void PPPM_GPU_API(forces)(double **f);
 
 /* ---------------------------------------------------------------------- */
 
@@ -108,11 +91,15 @@ void PPPMGPU::init()
 
   PPPM::init();
 
+  // slab correction is not (yet) supported for triclinic boxes with pppm/gpu
+
+  if (domain->triclinic && slabflag)
+    error->all(FLERR,"Cannot (yet) use pppm/gpu with triclinic box and slab correction");
+
   // ensure no conflict with fix balance
 
-  for (int i = 0; i < modify->nfix; i++)
-    if (strcmp(modify->fix[i]->style,"balance") == 0)
-      error->all(FLERR,"Cannot currently use pppm/gpu with fix balance.");
+  if (!modify->get_fix_by_style("^balance").empty())
+    error->all(FLERR,"Cannot currently use pppm/gpu with fix balance.");
 
   // unsupported option
 
@@ -500,7 +487,7 @@ void PPPMGPU::poisson_ik()
 
 void PPPMGPU::pack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 {
-  auto buf = (FFT_SCALAR *) vbuf;
+  auto *buf = (FFT_SCALAR *) vbuf;
 
   int n = 0;
 
@@ -560,7 +547,7 @@ void PPPMGPU::pack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 
 void PPPMGPU::unpack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 {
-  auto buf = (FFT_SCALAR *) vbuf;
+  auto *buf = (FFT_SCALAR *) vbuf;
 
   int n = 0;
 
@@ -620,7 +607,7 @@ void PPPMGPU::unpack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 
 void PPPMGPU::pack_reverse_grid(int flag, void *vbuf, int nlist, int *list)
 {
-  auto buf = (FFT_SCALAR *) vbuf;
+  auto *buf = (FFT_SCALAR *) vbuf;
 
   if (flag == REVERSE_RHO_GPU) {
     FFT_SCALAR *src = &density_brick_gpu[nzlo_out][nylo_out][nxlo_out];
@@ -639,7 +626,7 @@ void PPPMGPU::pack_reverse_grid(int flag, void *vbuf, int nlist, int *list)
 
 void PPPMGPU::unpack_reverse_grid(int flag, void *vbuf, int nlist, int *list)
 {
-  auto buf = (FFT_SCALAR *) vbuf;
+  auto *buf = (FFT_SCALAR *) vbuf;
 
   if (flag == REVERSE_RHO_GPU) {
     FFT_SCALAR *dest = &density_brick_gpu[nzlo_out][nylo_out][nxlo_out];
@@ -665,9 +652,9 @@ FFT_SCALAR ***PPPMGPU::create_3d_offset(int n1lo, int n1hi, int n2lo, int n2hi,
   int n2 = n2hi - n2lo + 1;
   int n3 = n3hi - n3lo + 1;
 
-  auto plane = (FFT_SCALAR **)
+  auto *plane = (FFT_SCALAR **)
     memory->smalloc(n1*n2*sizeof(FFT_SCALAR *),name);
-  auto array = (FFT_SCALAR ***)
+  auto *array = (FFT_SCALAR ***)
     memory->smalloc(n1*sizeof(FFT_SCALAR **),name);
 
   int n = 0;

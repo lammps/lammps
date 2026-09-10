@@ -26,7 +26,7 @@ Description
 """""""""""
 
 Pair style *snap* defines the spectral neighbor analysis potential
-(SNAP), a machine-learning interatomic potential :ref:`(Thompson)
+(SNAP), a machine-learning interatomic potential :ref:`(Thompson2)
 <Thompson20142>`.  Like the GAP framework of Bartok et
 al. :ref:`(Bartok2010) <Bartok20102>`, SNAP uses bispectrum components
 to characterize the local neighborhood of each atom in a very general
@@ -286,7 +286,7 @@ none
 
 .. _Thompson20142:
 
-**(Thompson)** Thompson, Swiler, Trott, Foiles, Tucker, J Comp Phys, 285, 316 (2015).
+**(Thompson2)** Thompson, Swiler, Trott, Foiles, Tucker, J Comp Phys, 285, 316 (2015).
 
 .. _Bartok20102:
 

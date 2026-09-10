@@ -48,7 +48,7 @@ class DihedralClass2 : public Dihedral {
   int *setflag_d, *setflag_mbt, *setflag_ebt;
   int *setflag_at, *setflag_aat, *setflag_bb13t;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }    // namespace LAMMPS_NS

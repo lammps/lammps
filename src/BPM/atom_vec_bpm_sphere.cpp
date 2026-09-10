@@ -28,7 +28,9 @@ using MathConst::MY_PI;
 
 /* ---------------------------------------------------------------------- */
 
-AtomVecBPMSphere::AtomVecBPMSphere(LAMMPS *_lmp) : AtomVec(_lmp)
+AtomVecBPMSphere::AtomVecBPMSphere(LAMMPS *_lmp) :
+    AtomVec(_lmp), num_bond(nullptr), bond_type(nullptr), nspecial(nullptr), radius(nullptr),
+    rmass(nullptr), omega(nullptr), quat(nullptr)
 {
   mass_type = PER_ATOM;
   molecular = Atom::MOLECULAR;
@@ -74,7 +76,7 @@ void AtomVecBPMSphere::process_args(int narg, char **arg)
 
   radvary = 0;
   if (narg == 1) {
-    radvary = utils::numeric(FLERR, arg[0], true, lmp);
+    radvary = utils::inumeric(FLERR, arg[0], true, lmp);
     if (radvary < 0 || radvary > 1) error->all(FLERR, "Illegal atom_style bpm/sphere command");
   }
 

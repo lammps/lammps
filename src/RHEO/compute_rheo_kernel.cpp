@@ -24,17 +24,11 @@
 #include "domain.h"
 #include "error.h"
 #include "fix_rheo.h"
-#include "force.h"
 #include "math_const.h"
 #include "math_extra.h"
 #include "memory.h"
-#include "modify.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
-#include "pair.h"
-#include "update.h"
-#include "utils.h"
 
 #include <cmath>
 
@@ -227,7 +221,7 @@ double ComputeRHEOKernel::calc_dw(int i, int j, double delx, double dely, double
   int corrections_i = check_corrections(i);
   int corrections_j = check_corrections(j);
 
-  wp = calc_dw_scalar_quintic(delx, dely, delz, r);
+  wp = calc_dw_scalar_quintic(r);
 
   // Overwrite if there are corrections
   double dxij[3] = {delx, dely, delz};
@@ -251,13 +245,14 @@ double ComputeRHEOKernel::calc_w_quintic(double r)
   double w, tmp1, tmp2, tmp3, tmp1sq, tmp2sq, tmp3sq, s;
   s = r * 3.0 * cutinv;
 
-  if (s > 3.0) { w = 0.0; }
-
   if (s <= 3.0) {
     tmp3 = 3.0 - s;
     tmp3sq = tmp3 * tmp3;
     w = tmp3sq * tmp3sq * tmp3;
+  } else {
+    w = 0.0;
   }
+
   if (s <= 2.0) {
     tmp2 = 2.0 - s;
     tmp2sq = tmp2 * tmp2;
@@ -279,18 +274,20 @@ double ComputeRHEOKernel::calc_w_quintic(double r)
 
 /* ---------------------------------------------------------------------- */
 
-double ComputeRHEOKernel::calc_dw_scalar_quintic(double delx, double dely, double delz, double r)
+double ComputeRHEOKernel::calc_dw_scalar_quintic(double r)
 {
   double wp, tmp1, tmp2, tmp3, tmp1sq, tmp2sq, tmp3sq, s;
 
   s = r * 3.0 * cutinv;
 
-  if (s > 3.0) { wp = 0.0; }
   if (s <= 3.0) {
     tmp3 = 3.0 - s;
     tmp3sq = tmp3 * tmp3;
     wp = -5.0 * tmp3sq * tmp3sq;
+  } else {
+    wp = 0.0;
   }
+
   if (s <= 2.0) {
     tmp2 = 2.0 - s;
     tmp2sq = tmp2 * tmp2;
@@ -312,7 +309,7 @@ double ComputeRHEOKernel::calc_dw_scalar_quintic(double delx, double dely, doubl
 double ComputeRHEOKernel::calc_dw_quintic(double delx, double dely, double delz, double r,
                                           double *dW1, double *dW2)
 {
-  double wp = calc_dw_scalar_quintic(delx, dely, delz, r);
+  double wp = calc_dw_scalar_quintic(r);
   double wprinv = wp / r;
 
   dW1[0] = delx * wprinv;
@@ -717,7 +714,7 @@ void ComputeRHEOKernel::compute_peratom()
       if (coordination[i] < zmin) continue;
 
       // Use LAPACK to get Minv, use Cholesky decomposition since the
-      // polynomials are independent, M is symmetrix & positive-definite
+      // polynomials are independent, M is symmetric & positive-definite
       const char uplo = 'U';
       dpotrf_(&uplo, &Mdim, M, &Mdim, &lapack_error);
 
@@ -745,7 +742,7 @@ void ComputeRHEOKernel::compute_peratom()
       }
 
       // Correction coefficients are columns of M^-1 multiplied by an appropriate coefficient
-      // Solve the linear system several times to get coefficientns
+      // Solve the linear system several times to get coefficients
       // M:    1   x   y  (z)  x^2  y^2 (z^2) xy   (xz)   (yz)
       // ----------------------------------------------------------
       //       0   1   2       3     4        5                 || 2D indexing
@@ -767,7 +764,7 @@ void ComputeRHEOKernel::compute_peratom()
         for (b = 0; b < dim; b++) {
           //First derivatives
           C[i][1 + b][a] = -M[a * Mdim + b + 1] * cutinv;
-          // columns 1-2 (2D)  or 1-3 (3D)
+          // columns 1-2 (2D) or 1-3 (3D)
 
           //Second derivatives
           if (kernel_style == RK2) C[i][1 + dim + b][a] = M[a * Mdim + b + 1 + dim] * cutsqinv;
@@ -855,7 +852,7 @@ int ComputeRHEOKernel::pack_forward_comm(int n, int *list, double *buf, int /*pb
   for (int i = 0; i < n; i++) {
     int j = list[i];
     if (comm_stage == 0) {
-      buf[m++] = coordination[j];
+      buf[m++] = ubuf(coordination[j]).d;
     } else {
       if (kernel_style == RK0) {
         buf[m++] = C0[j];
@@ -878,7 +875,7 @@ void ComputeRHEOKernel::unpack_forward_comm(int n, int first, double *buf)
 
   for (int i = first; i < last; i++) {
     if (comm_stage == 0) {
-      coordination[i] = buf[m++];
+      coordination[i] = (int) ubuf(buf[m++]).i;
     } else {
       if (kernel_style == RK0) {
         C0[i] = buf[m++];

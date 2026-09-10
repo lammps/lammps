@@ -10,7 +10,7 @@ Syntax
 
    angle_style style
 
-* style = *none* or *zero* or *hybrid* or *amoeba* or *charmm* or *class2* or *class2/p6* or *cosine* or *cosine/buck6d* or *cosine/delta* or *cosine/periodic* or *cosine/shift* or *cosine/shift/exp* or *cosine/squared* or *cosine/squared/restricted* or *cross* or *dipole* or *fourier* or *fourier/simple* or *gaussian* or *harmonic* or *lepton* or *mm3* or *quartic* or *spica* or *table*
+* style = *none* or *zero* or *hybrid* or *amoeba* or *charmm* or *class2* or *class2xe* or *class2/p6* or *cosine* or *cosine/buck6d* or *cosine/delta* or *cosine/periodic* or *cosine/shift* or *cosine/shift/exp* or *cosine/squared* or *cosine/squared/restricted* or *cross* or *dipole* or *fourier* or *fourier/simple* or *gaussian* or *harmonic* or *lepton* or *mm3* or *quartic* or *spica* or *table*
 
 Examples
 """"""""
@@ -76,6 +76,7 @@ of (g,i,k,o,t) to indicate which accelerated styles exist.
 * :doc:`amoeba <angle_amoeba>` - AMOEBA angle
 * :doc:`charmm <angle_charmm>` - CHARMM angle
 * :doc:`class2 <angle_class2>` - COMPASS (class 2) angle
+* :doc:`class2xe <angle_class2>` - ClassII-xe (class 2) angle
 * :doc:`class2/p6 <angle_class2>` - COMPASS (class 2) angle expanded to 6th order
 * :doc:`cosine <angle_cosine>` - angle with cosine term
 * :doc:`cosine/buck6d <angle_cosine_buck6d>` - same as cosine with Buckingham term between 1-3 atoms

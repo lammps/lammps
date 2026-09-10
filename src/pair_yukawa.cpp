@@ -21,12 +21,14 @@
 #include "neigh_list.h"
 
 #include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairYukawa::PairYukawa(LAMMPS *lmp) : Pair(lmp)
+PairYukawa::PairYukawa(LAMMPS *lmp) :
+    Pair(lmp), rad(nullptr), cut(nullptr), a(nullptr), offset(nullptr)
 {
   writedata = 1;
 }

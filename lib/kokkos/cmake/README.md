@@ -7,7 +7,7 @@ This document contains a build system overview for developers with information o
 * Optional features
 * Third-partly libraries
 * Compiler and linker flags
-For build system details for users, refer to the [build instructions](../BUILD.md).
+Users please refer to the documentation on https://kokkos.org
 
 ## Build System
 
@@ -113,6 +113,11 @@ The function checks if `-DKokkos_ENABLE_TESTS` was given,
 whether it was given with the wrong case, e.g. `-DKokkos_Enable_Tests`,
 and then defines a regular (non-cache) variable `KOKKOS_ENABLE_TESTS` to `ON` or `OFF`
 depending on the given default and whether the option was specified.
+
+When `Kokkos_ENABLE_TESTS` is `ON`, a smoke target `Kokkos_CoreUnitTest_<Backend>_SmokeTest`
+is generated for each enabled backend; each target contains a small subset of the core unit tests.
+As a guideline for adding more smoke tests, we suggest including one test case per major API
+category or feature block. Do not duplicate by adding variations. Measure compilation time to quantify impact.
 
 ### Defining Kokkos Config Macros
 

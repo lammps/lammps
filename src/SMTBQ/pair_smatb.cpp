@@ -227,9 +227,8 @@ void PairSMATB::compute(int eflag, int vflag)
                3.0 * a3[itype][jtype] * polyval2);
           qsiexpq = x5[itype][jtype] * polyval5 + x4[itype][jtype] * polyval4 +
               x3[itype][jtype] * polyval3;
-          Fb = ((5.0 * x5[itype][jtype] * polyval4 + 4.0 * x4[itype][jtype] * polyval3 +
-                 3.0 * x3[itype][jtype] * polyval2)) *
-              qsiexpq;
+          Fb = (5.0 * x5[itype][jtype] * polyval4 + 4.0 * x4[itype][jtype] * polyval3 +
+                 3.0 * x3[itype][jtype] * polyval2) * qsiexpq;
         }
 
         // calculates the module of the pair energy between i and j

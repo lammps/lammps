@@ -1,8 +1,0 @@
-material Ar real
-stress  linear
-  modulus  0.00025
-  possions_ratio 0.25
-end
-mass_density basis
-  0 1 
-end

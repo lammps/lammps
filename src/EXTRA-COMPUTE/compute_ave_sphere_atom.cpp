@@ -38,7 +38,7 @@ using MathConst::MY_PI;
 /* ---------------------------------------------------------------------- */
 
 ComputeAveSphereAtom::ComputeAveSphereAtom(LAMMPS *lmp, int narg, char **arg) :
-    Compute(lmp, narg, arg), result(nullptr)
+    Compute(lmp, narg, arg), list(nullptr), result(nullptr)
 {
   if (narg < 3 || narg > 5) error->all(FLERR, "Illegal compute ave/sphere/atom command");
 
@@ -62,6 +62,8 @@ ComputeAveSphereAtom::ComputeAveSphereAtom(LAMMPS *lmp, int narg, char **arg) :
   comm_forward = 3;
 
   nmax = 0;
+  cutsq = 0.0;
+  volume = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -108,13 +110,14 @@ void ComputeAveSphereAtom::init()
   else
     volume = MY_PI * cutsq;
 
-  if ((neighbor->style == Neighbor::MULTI) || (neighbor->style == Neighbor::MULTI_OLD))
+  if (neighbor->style == Neighbor::MULTI)
     error->all(FLERR, "Compute ave/sphere/atom requires neighbor style 'bin' or 'nsq'");
 
   // need an occasional full neighbor list
 
-  auto req = neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
-  if (cutflag) req->set_cutoff(cutoff);
+  auto *req = neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
+  // the analysis cutoff applies to all atom types
+  if (cutflag) req->set_cutoff_fixed(cutoff);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -152,6 +155,10 @@ void ComputeAveSphereAtom::compute_peratom()
   // invoke full neighbor list (will copy or build if necessary)
 
   neighbor->build_one(list);
+
+  // zero the result array; atoms not in the group report only zeros
+
+  memset(&result[0][0], 0, (size_t) nmax * 2 * sizeof(double));
 
   inum = list->inum;
   ilist = list->ilist;

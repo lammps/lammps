@@ -45,7 +45,7 @@ using namespace FixConst;
 static constexpr double MASSDELTA = 0.1;
 
 static const char cite_filter_corotate[] =
-  "Mollified Impulse Method with Corotational Filter: doi:10.1016/j.jcp.2016.12.024\n\n"
+  "Mollified Impulse Method with Corotational Filter: https://doi.org/10.1016/j.jcp.2016.12.024\n\n"
   "@Article{Fath2017,\n"
   " Title ="
   "{A Fast Mollified Impulse Method for Biomolecular Atomistic Simulations},\n"
@@ -259,19 +259,18 @@ void FixFilterCorotate::init()
 {
   int i;
   // error if more than one filter
-  int count = 0;
-  for (i = 0; i < modify->nfix; i++) {
-    if (strcmp(modify->fix[i]->style,"filter/corotate") == 0) count++;
-  }
-  if (count > 1) error->all(FLERR,"More than one fix filter/corotate");
+  if (modify->get_fix_by_style("^filter/corotate").size() > 1)
+    error->all(FLERR,"More than one fix filter/corotate");
 
   // check for fix shake:
-  count = 0;
-  for (i = 0; i < modify->nfix; i++) {
-    if (strcmp(modify->fix[i]->style,"shake") == 0) count++;
-  }
-  if (count > 1)
-    error->one(FLERR,"Both fix shake and fix filter/corotate detected.");
+  if (!modify->get_fix_by_style("^shake").empty())
+    error->all(FLERR,"Both fix shake and fix filter/corotate detected.");
+  // check for fix rattle:
+  if (!modify->get_fix_by_style("^rattle").empty())
+    error->all(FLERR,"Both fix rattle and fix filter/corotate detected.");
+  // check for fix ilves:
+  if (!modify->get_fix_by_style("^ilves").empty())
+    error->all(FLERR,"Both fix ilves and fix filter/corotate detected.");
 
   // if rRESPA, find associated fix that must exist
   // could have changed locations in fix list since created
@@ -547,17 +546,17 @@ void FixFilterCorotate::pre_neighbor()
           del1[0] = x[atom1][0]-x[oxy][0];
           del1[1] = x[atom1][1]-x[oxy][1];
           del1[2] = x[atom1][2]-x[oxy][2];
-          domain->minimum_image(del1);
+          domain->minimum_image(FLERR, del1);
 
           del2[0] = x[atom2][0]-x[atom1][0];
           del2[1] = x[atom2][1]-x[atom1][1];
           del2[2] = x[atom2][2]-x[atom1][2];
-          domain->minimum_image(del2);
+          domain->minimum_image(FLERR, del2);
 
           del3[0] = x[atom3][0]-x[atom1][0];
           del3[1] = x[atom3][1]-x[atom1][1];
           del3[2] = x[atom3][2]-x[atom1][2];
-          domain->minimum_image(del3);
+          domain->minimum_image(FLERR, del3);
 
           double a = (del2[1])*(del3[2]) - (del2[2])*(del3[1]);
           double b = (del2[2])*(del3[0]) - (del2[0])*(del3[2]);
@@ -620,17 +619,17 @@ void FixFilterCorotate::pre_neighbor()
         del1[0] = x[atom1][0]-x[oxy][0];
         del1[1] = x[atom1][1]-x[oxy][1];
         del1[2] = x[atom1][2]-x[oxy][2];
-        domain->minimum_image(del1);
+        domain->minimum_image(FLERR, del1);
 
         del2[0] = x[atom2][0]-x[atom1][0];
         del2[1] = x[atom2][1]-x[atom1][1];
         del2[2] = x[atom2][2]-x[atom1][2];
-        domain->minimum_image(del2);
+        domain->minimum_image(FLERR, del2);
 
         del3[0] = x[atom3][0]-x[atom1][0];
         del3[1] = x[atom3][1]-x[atom1][1];
         del3[2] = x[atom3][2]-x[atom1][2];
-        domain->minimum_image(del3);
+        domain->minimum_image(FLERR, del3);
 
         double a = (del2[1])*(del3[2]) - (del2[2])*(del3[1]);
         double b = (del2[2])*(del3[0]) - (del2[0])*(del3[2]);
@@ -638,13 +637,11 @@ void FixFilterCorotate::pre_neighbor()
         int signum = sgn(a*(del1[0]) + b*(del1[1]) + c*(del1[2]));
 
         if (abs(signum)!= 1)
-          error->all(FLERR,"Wrong orientation in cluster of size 5"
-                     "in fix filter/corotate!");
+          error->all(FLERR,"Wrong orientation in cluster of size 5 in fix filter/corotate!");
         clist_q0[i][8] *= signum;
         clist_q0[i][11] *= signum;
       } else {
-        error->all(FLERR,"Fix filter/corotate cluster with size > 5"
-                   "not yet configured...");
+        error->all(FLERR,"Fix filter/corotate cluster with size > 5 not yet configured...");
       }
     }
 }
@@ -1274,7 +1271,7 @@ void FixFilterCorotate::find_clusters()
 
 void FixFilterCorotate::ring_bonds(int ndatum, char *cbuf, void *ptr)
 {
-  auto ffptr = (FixFilterCorotate *) ptr;
+  auto *ffptr = (FixFilterCorotate *) ptr;
   Atom *atom = ffptr->atom;
   double *rmass = atom->rmass;
   double *mass = atom->mass;
@@ -1283,7 +1280,7 @@ void FixFilterCorotate::ring_bonds(int ndatum, char *cbuf, void *ptr)
   int nlocal = atom->nlocal;
   int nmass = ffptr->nmass;
 
-  auto buf = (tagint *) cbuf;
+  auto *buf = (tagint *) cbuf;
   int m,n;
   double massone;
 
@@ -1312,13 +1309,13 @@ void FixFilterCorotate::ring_bonds(int ndatum, char *cbuf, void *ptr)
 
 void FixFilterCorotate::ring_nshake(int ndatum, char *cbuf, void *ptr)
 {
-  auto ffptr = (FixFilterCorotate *) ptr;
+  auto *ffptr = (FixFilterCorotate *) ptr;
   Atom *atom = ffptr->atom;
   int nlocal = atom->nlocal;
 
   int *nshake = ffptr->nshake;
 
-  auto buf = (tagint *) cbuf;
+  auto *buf = (tagint *) cbuf;
   int m;
 
   for (int i = 0; i < ndatum; i += 3) {
@@ -1334,7 +1331,7 @@ void FixFilterCorotate::ring_nshake(int ndatum, char *cbuf, void *ptr)
 
 void FixFilterCorotate::ring_shake(int ndatum, char *cbuf, void *ptr)
 {
-  auto ffptr = (FixFilterCorotate *) ptr;
+  auto *ffptr = (FixFilterCorotate *) ptr;
   Atom *atom = ffptr->atom;
   int nlocal = atom->nlocal;
 
@@ -1342,7 +1339,7 @@ void FixFilterCorotate::ring_shake(int ndatum, char *cbuf, void *ptr)
   tagint **shake_atom = ffptr->shake_atom;
   int **shake_type = ffptr->shake_type;
 
-  auto buf = (tagint *) cbuf;
+  auto *buf = (tagint *) cbuf;
   int m;
 
   for (int i = 0; i < ndatum; i += 11) {
@@ -1398,9 +1395,9 @@ void FixFilterCorotate::general_cluster(int index, int index_in_list)
 
   int* list_cluster = new int[N]; // contains local IDs of cluster atoms,
                                   // 0 = center
-  auto  m = new double[N];      //contains local mass
-  auto r = new double[N];      //contains r[i] = 1/||del[i]||
-  auto  del = new double*[N];  //contains del[i] = x_i-x_0
+  auto *  m = new double[N];      //contains local mass
+  auto *r = new double[N];      //contains r[i] = 1/||del[i]||
+  auto *  del = new double*[N];  //contains del[i] = x_i-x_0
   for (int i = 0; i<N; i++)
     del[i] = new double[3];
 
@@ -1414,7 +1411,7 @@ void FixFilterCorotate::general_cluster(int index, int index_in_list)
     del[i][0] = x[list_cluster[i]][0] - x[list_cluster[0]][0];
     del[i][1] = x[list_cluster[i]][1] - x[list_cluster[0]][1];
     del[i][2] = x[list_cluster[i]][2] - x[list_cluster[0]][2];
-    domain->minimum_image(del[i]);
+    domain->minimum_image(FLERR, del[i]);
     r[i] = 1.0/sqrt(del[i][0]*del[i][0]+del[i][1]*del[i][1]+
       del[i][2]*del[i][2]);
   }

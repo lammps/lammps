@@ -17,8 +17,8 @@ PairStyle(coul/wolf/cs,PairCoulWolfCS);
 // clang-format on
 #else
 
-#ifndef LMP_PAIR_COUL_WOLF_CS_H_
-#define LMP_PAIR_COUL_WOLF_CS_H_
+#ifndef LMP_PAIR_COUL_WOLF_CS_H
+#define LMP_PAIR_COUL_WOLF_CS_H
 
 #include "pair_coul_wolf.h"
 
@@ -33,4 +33,4 @@ class PairCoulWolfCS : public PairCoulWolf {
 }    // namespace LAMMPS_NS
 
 #endif
-#endif /* LMP_PAIR_COUL_WOLF_CS_H_ */
+#endif /* LMP_PAIR_COUL_WOLF_CS_H */

@@ -46,7 +46,7 @@ void AngleWrite::command(int narg, char **arg)
     error->all(FLERR, "Angle_write command before simulation box is defined" + utils::errorurl(33));
   if (atom->avec->angles_allow == 0)
     error->all(FLERR, "Angle_write command when no angles allowed");
-  auto angle = force->angle;
+  auto *angle = force->angle;
   if (angle == nullptr) error->all(FLERR, "Angle_write command before an angle_style is defined" + utils::errorurl(33));
   if (angle && (force->angle->writedata == 0))
     error->all(FLERR, "Angle style must support writing coeffs to data file for angle_write");
@@ -124,7 +124,7 @@ void AngleWrite::command(int narg, char **arg)
     // set up new LAMMPS instance with dummy system to evaluate angle potential
     LAMMPS::argv args = {"AngleWrite", "-nocite", "-echo",   "none",
                          "-log",       "none",    "-screen", "none"};
-    LAMMPS *writer = new LAMMPS(args, singlecomm);
+    auto *writer = new LAMMPS(args, singlecomm);
 
     // create dummy system replicating angle style settings
     writer->input->one(fmt::format("units {}", update->unit_style));
@@ -167,7 +167,7 @@ void AngleWrite::command(int narg, char **arg)
     i1 = writer->atom->map(1);
     i2 = writer->atom->map(2);
     i3 = writer->atom->map(3);
-    auto atom3 = writer->atom->x[i3];
+    auto *atom3 = writer->atom->x[i3];
 
     // evaluate energy and force at each of N distances
 
@@ -220,5 +220,6 @@ void AngleWrite::command(int narg, char **arg)
     // clean up
     delete writer;
   }
-  MPI_Comm_free(&singlecomm);
+  if (singlecomm != MPI_COMM_NULL)
+    MPI_Comm_free(&singlecomm);
 }

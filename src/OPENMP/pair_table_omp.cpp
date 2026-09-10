@@ -140,8 +140,7 @@ void PairTableOMP::eval(int iifrom, int iito, ThrData * const thr)
         } else if (tabstyle == LINEAR) {
           itable = static_cast<int> ((rsq - tb->innersq) * tb->invdelta);
 
-          if (check_error_thr((itable >= tlm1),tid,
-                              FLERR,"Pair distance > table outer cutoff"))
+          if (check_error_thr((itable >= tlm1),tid, FLERR, "Pair distance > table outer cutoff"))
             return;
 
           fraction = (rsq - tb->rsq[itable]) * tb->invdelta;
@@ -150,8 +149,7 @@ void PairTableOMP::eval(int iifrom, int iito, ThrData * const thr)
         } else if (tabstyle == SPLINE) {
           itable = static_cast<int> ((rsq - tb->innersq) * tb->invdelta);
 
-          if (check_error_thr((itable >= tlm1),tid,
-                              FLERR,"Pair distance > table outer cutoff"))
+          if (check_error_thr((itable >= tlm1),tid, FLERR, "Pair distance > table outer cutoff"))
             return;
 
           b = (rsq - tb->rsq[itable]) * tb->invdelta;
@@ -164,7 +162,7 @@ void PairTableOMP::eval(int iifrom, int iito, ThrData * const thr)
           rsq_lookup.f = rsq;
           itable = rsq_lookup.i & tb->nmask;
           itable >>= tb->nshiftbits;
-          fraction = (rsq_lookup.f - tb->rsq[itable]) * tb->drsq[itable];
+          fraction = ((double) rsq_lookup.f - tb->rsq[itable]) * tb->drsq[itable];
           value = tb->f[itable] + fraction*tb->df[itable];
           fpair = factor_lj * value;
         }

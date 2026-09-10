@@ -5,13 +5,13 @@ digraph releases {
     github -> develop [label="Merge commits"];
     {
         rank = "same";
-        work [shape="none" label="Development branches:"]
+        work [shape="none" label="Development branches:" fontname="bold"]
         develop [label="'develop' branch" height=0.75];
         maintenance [label="'maintenance' branch" height=0.75];
     };
     {
         rank = "same";
-        upload [shape="none" label="Release branches:"]
+        upload [shape="none" label="Release branches:" fontname="bold"]
         release [label="'release' branch" height=0.75];
         stable [label="'stable' branch" height=0.75];
     };
@@ -22,7 +22,7 @@ digraph releases {
     maintenance -> stable [label="Updates to stable release"];
     {
         rank = "same";
-        tag [shape="none" label="Applied tags:"];
+        tag [shape="none" label="Applied tags:" fontname="bold"];
         patchtag [shape="box" label="patch_<date>"];
         stabletag [shape="box" label="stable_<date>"];
         updatetag [shape="box" label="stable_<date>_update<num>"];

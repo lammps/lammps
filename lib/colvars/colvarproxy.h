@@ -10,12 +10,16 @@
 #ifndef COLVARPROXY_H
 #define COLVARPROXY_H
 
+#include <functional>
+
 #include "colvarmodule.h"
 #include "colvartypes.h"
 #include "colvarproxy_io.h"
+#include "colvarproxy_replicas.h"
 #include "colvarproxy_system.h"
 #include "colvarproxy_tcl.h"
 #include "colvarproxy_volmaps.h"
+#include "colvarproxy_gpu.h"
 
 /// \file colvarproxy.h
 /// \brief Colvars proxy classes
@@ -40,6 +44,16 @@ class colvarscript;
 class colvarproxy_atoms {
 
 public:
+
+#if ( defined(COLVARS_CUDA) || defined(COLVARS_HIP) )
+  template <typename T>
+  using allocator_type = colvars_gpu::CudaHostAllocator<T>;
+#else
+  template <typename T>
+  using allocator_type = std::allocator<T>;
+#endif
+  using atom_buffer_real_t = std::vector<cvm::real, allocator_type<cvm::real>>;
+  using atom_buffer_rvector_t = std::vector<cvm::rvector, allocator_type<cvm::rvector>>;
 
   /// Constructor
   colvarproxy_atoms();
@@ -130,7 +144,7 @@ public:
   /// Read the current velocity of the given atom
   inline cvm::rvector get_atom_velocity(int /* index */)
   {
-    cvm::error("Error: reading the current velocity of an atom "
+    cvm::error_static("Error: reading the current velocity of an atom "
                "is not yet implemented.\n",
                COLVARS_NOT_IMPLEMENTED);
     return cvm::rvector(0.0);
@@ -144,56 +158,56 @@ public:
   /// Return number of atoms with positive reference count
   size_t get_num_active_atoms() const;
 
-  inline std::vector<cvm::real> const *get_atom_masses() const
+  inline atom_buffer_real_t const *get_atom_masses() const
   {
     return &atoms_masses;
   }
 
-  inline std::vector<cvm::real> *modify_atom_masses()
+  inline atom_buffer_real_t *modify_atom_masses()
   {
     // assume that we are requesting masses to change them
     updated_masses_ = true;
     return &atoms_masses;
   }
 
-  inline std::vector<cvm::real> const *get_atom_charges()
+  inline atom_buffer_real_t const *get_atom_charges()
   {
     return &atoms_charges;
   }
 
-  inline std::vector<cvm::real> *modify_atom_charges()
+  inline atom_buffer_real_t *modify_atom_charges()
   {
     // assume that we are requesting charges to change them
     updated_charges_ = true;
     return &atoms_charges;
   }
 
-  inline std::vector<cvm::rvector> const *get_atom_positions() const
+  inline atom_buffer_rvector_t const *get_atom_positions() const
   {
     return &atoms_positions;
   }
 
-  inline std::vector<cvm::rvector> *modify_atom_positions()
+  inline atom_buffer_rvector_t *modify_atom_positions()
   {
     return &atoms_positions;
   }
 
-  inline std::vector<cvm::rvector> const *get_atom_total_forces() const
+  inline atom_buffer_rvector_t const *get_atom_total_forces() const
   {
     return &atoms_total_forces;
   }
 
-  inline std::vector<cvm::rvector> *modify_atom_total_forces()
+  inline atom_buffer_rvector_t *modify_atom_total_forces()
   {
     return &atoms_total_forces;
   }
 
-  inline std::vector<cvm::rvector> const *get_atom_applied_forces() const
+  inline atom_buffer_rvector_t const *get_atom_applied_forces() const
   {
     return &atoms_new_colvar_forces;
   }
 
-  inline std::vector<cvm::rvector> *modify_atom_applied_forces()
+  inline atom_buffer_rvector_t *modify_atom_applied_forces()
   {
     return &atoms_new_colvar_forces;
   }
@@ -254,15 +268,15 @@ protected:
   /// \brief Keep track of how many times each atom is used by a separate colvar object
   std::vector<size_t>       atoms_refcount;
   /// \brief Masses of the atoms (allow redefinition during a run, as done e.g. in LAMMPS)
-  std::vector<cvm::real>    atoms_masses;
+  std::vector<cvm::real, allocator_type<cvm::real>>    atoms_masses;
   /// \brief Charges of the atoms (allow redefinition during a run, as done e.g. in LAMMPS)
-  std::vector<cvm::real>    atoms_charges;
+  std::vector<cvm::real, allocator_type<cvm::real>>    atoms_charges;
   /// \brief Current three-dimensional positions of the atoms
-  std::vector<cvm::rvector> atoms_positions;
+  std::vector<cvm::rvector, allocator_type<cvm::rvector>> atoms_positions;
   /// \brief Most recent total forces on each atom
-  std::vector<cvm::rvector> atoms_total_forces;
+  std::vector<cvm::rvector, allocator_type<cvm::rvector>> atoms_total_forces;
   /// \brief Forces applied from colvars, to be communicated to the MD integrator
-  std::vector<cvm::rvector> atoms_new_colvar_forces;
+  std::vector<cvm::rvector, allocator_type<cvm::rvector>> atoms_new_colvar_forces;
 
   /// Root-mean-square of the applied forces
   cvm::real atoms_rms_applied_force_;
@@ -349,7 +363,7 @@ public:
   /// Read the current velocity of the given atom group
   inline cvm::rvector get_atom_group_velocity(int /* index */)
   {
-    cvm::error("Error: reading the current velocity of an atom group is not yet implemented.\n",
+    cvm::error_static("Error: reading the current velocity of an atom group is not yet implemented.\n",
                COLVARS_NOT_IMPLEMENTED);
     return cvm::rvector(0.0);
   }
@@ -447,21 +461,28 @@ class colvarproxy_smp {
 
 public:
 
+  enum class smp_mode_t {cvcs, inner_loop, gpu, none};
+
   /// Constructor
   colvarproxy_smp();
 
   /// Destructor
   virtual ~colvarproxy_smp();
 
-  /// Whether threaded parallelization should be used (TODO: make this a
-  /// cvm::deps feature)
-  bool b_smp_active;
+  /// Get the current SMP mode
+  virtual smp_mode_t get_smp_mode() const;
 
-  /// Whether threaded parallelization is available (TODO: make this a cvm::deps feature)
-  virtual int check_smp_enabled();
+  /// Get available SMP modes
+  virtual std::vector<smp_mode_t> get_available_smp_modes() const;
 
-  /// Distribute calculation of colvars (and their components) across threads
-  virtual int smp_colvars_loop();
+  /// Get the preferred SMP mode
+  virtual smp_mode_t get_preferred_smp_mode() const;
+
+  /// Set the current SMP mode
+  virtual int set_smp_mode(smp_mode_t mode);
+
+  /// Distribute computation over threads using OpenMP, unless overridden in the backend (e.g. NAMD)
+  virtual int smp_loop(int n_items, std::function<int (int)> const &worker);
 
   /// Distribute calculation of biases across threads
   virtual int smp_biases_loop();
@@ -488,38 +509,10 @@ protected:
 
   /// Lock state for OpenMP
   omp_lock_t *omp_lock_state;
-};
 
-
-/// \brief Methods for multiple-replica communication
-class colvarproxy_replicas {
-
-public:
-
-  /// Constructor
-  colvarproxy_replicas();
-
-  /// Destructor
-  virtual ~colvarproxy_replicas();
-
-  /// \brief Indicate if multi-replica support is available and active
-  virtual int replica_enabled();
-
-  /// \brief Index of this replica
-  virtual int replica_index();
-
-  /// \brief Total number of replicas
-  virtual int num_replicas();
-
-  /// \brief Synchronize replica with others
-  virtual void replica_comm_barrier();
-
-  /// \brief Receive data from other replica
-  virtual int replica_comm_recv(char* msg_data, int buf_len, int src_rep);
-
-  /// \brief Send data to other replica
-  virtual int replica_comm_send(char* msg_data, int msg_len, int dest_rep);
-
+  /// Whether threaded parallelization should be used (TODO: make this a
+  /// cvmodule->deps feature)
+  smp_mode_t smp_mode;
 };
 
 
@@ -536,10 +529,7 @@ public:
 
   /// Pointer to the scripting interface object
   /// (does not need to be allocated in a new interface)
-  colvarscript *script;
-
-  /// Do we have a scripting interface?
-  bool have_scripts;
+  colvarscript *script = nullptr;
 
   /// Run a user-defined colvar forces script
   virtual int run_force_callback();
@@ -569,19 +559,20 @@ class colvarproxy
     public colvarproxy_replicas,
     public colvarproxy_script,
     public colvarproxy_tcl,
-    public colvarproxy_io
+    public colvarproxy_io,
+    public colvarproxy_gpu
 {
 
 public:
 
-  /// Pointer to the main object
-  colvarmodule *colvars;
+  /// Pointer to the associated colvarmodule object
+  colvarmodule *cvmodule;
 
   /// Constructor
   colvarproxy();
 
   /// Destructor
-  ~colvarproxy() override;
+  virtual ~colvarproxy() override;
 
   inline std::string const &engine_name() const
   {
@@ -614,6 +605,7 @@ public:
   virtual int load_atoms_pdb(char const *filename, cvm::atom_group &atoms,
                              std::string const &pdb_field, double pdb_field_value);
 
+
   /// \brief Load a set of coordinates from a PDB file
   /// \param[in] filename name of the file
   /// \param[in,out] pos array of coordinates to fill; if not empty, the number of its elements must match
@@ -633,6 +625,18 @@ public:
   {
     return engine_ready_;
   }
+
+  /// Are total forces currently valid? (They would not be right after configuration change)
+  inline bool total_forces_valid() const
+  {
+    return total_forces_valid_;
+  }
+
+  /// Mark the total forces as invalid (due to e.g. a configuration change)
+  void set_total_forces_invalid();
+
+  /// Mark the total forces as up to date
+  void set_total_forces_valid();
 
   /// Enqueue new configuration text, to be parsed as soon as possible
   void add_config(std::string const &cmd, std::string const &conf);
@@ -699,6 +703,9 @@ protected:
 
   /// Whether the engine allows to fully initialize Colvars immediately
   bool engine_ready_;
+
+  /// Whether the total forces are currently valid
+  bool total_forces_valid_ = false;
 
   /// Collected error messages
   std::string error_output;

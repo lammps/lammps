@@ -61,7 +61,7 @@ class ComputeVoronoi : public Compute {
   bool onlyGroup, occupation;
 
   tagint *tags, oldmaxtag;
-  int *occvec, *sendocc, *lroot, *lnext, lmax, oldnatoms, oldnall;
+  int *occvec, *lroot, *lnext, lmax, oldnatoms, oldnall;
   int faces_flag, nfaces, nfacesmax;
   double **faces;
 };

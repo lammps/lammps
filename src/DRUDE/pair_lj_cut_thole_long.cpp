@@ -52,7 +52,10 @@ static constexpr double EPS_EWALD_SQR = 1.0e-12;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCutTholeLong::PairLJCutTholeLong(LAMMPS *lmp) : Pair(lmp)
+PairLJCutTholeLong::PairLJCutTholeLong(LAMMPS *lmp) :
+    Pair(lmp), cut_lj(nullptr), cut_ljsq(nullptr), epsilon(nullptr), sigma(nullptr), lj1(nullptr),
+    lj2(nullptr), lj3(nullptr), lj4(nullptr), offset(nullptr), cut_respa(nullptr), cut(nullptr),
+    scale(nullptr), polar(nullptr), thole(nullptr), ascreen(nullptr)
 {
   ewaldflag = pppmflag = 1;
   single_enable = 0;
@@ -177,7 +180,7 @@ void PairLJCutTholeLong::compute(int eflag, int vflag)
             rsq_lookup.f = rsq;
             itable = rsq_lookup.i & ncoulmask;
             itable >>= ncoulshiftbits;
-            fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
+            fraction = ((double) rsq_lookup.f - rtable[itable]) * drtable[itable];
             table = ftable[itable] + fraction*dftable[itable];
             forcecoul = qi*qj * table;
             if (factor_coul < 1.0) {
@@ -359,12 +362,10 @@ void PairLJCutTholeLong::init_style()
 {
   if (!atom->q_flag)
     error->all(FLERR,"Pair style lj/cut/thole/long requires atom attribute q");
-  int ifix;
-  for (ifix = 0; ifix < modify->nfix; ifix++)
-    if (strcmp(modify->fix[ifix]->style,"drude") == 0) break;
-  if (ifix == modify->nfix)
-      error->all(FLERR, "Pair style lj/cut/thole/long requires fix drude");
-  fix_drude = dynamic_cast<FixDrude *>(modify->fix[ifix]);
+  auto drude_fixes = modify->get_fix_by_style("^drude$");
+  if (drude_fixes.empty())
+    error->all(FLERR, "Pair style lj/cut/thole/long requires fix drude");
+  fix_drude = dynamic_cast<FixDrude *>(drude_fixes.front());
 
   neighbor->add_request(this);
 

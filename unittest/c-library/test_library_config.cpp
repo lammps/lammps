@@ -207,6 +207,14 @@ TEST(LAMMPSConfig, mpi_support)
         EXPECT_EQ(lammps_config_has_mpi_support(), 0);
 };
 
+TEST(LAMMPSConfig, omp_support)
+{
+    if (LAMMPS_HAS_OMP)
+        EXPECT_GT(lammps_config_has_omp_support(), 0);
+    else
+        EXPECT_EQ(lammps_config_has_omp_support(), 0);
+};
+
 TEST(LAMMPSConfig, png_support)
 {
     EXPECT_EQ(lammps_config_has_png_support(), LAMMPS_HAS_PNG);

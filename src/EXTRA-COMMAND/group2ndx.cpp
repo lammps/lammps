@@ -61,7 +61,9 @@ void Group2Ndx::command(int narg, char **arg)
   }
 
   if (narg == 1) {    // write out all groups
-    for (int i = 0; i < group->ngroup; ++i) { write_group(fp, i); }
+    for (int i = 0; i < Group::MAX_GROUP; ++i) {
+      if (group->names[i]) write_group(fp, i);
+    }
   } else {    // write only selected groups
     for (int i = 1; i < narg; ++i) {
       int gid = group->find(arg[i]);
@@ -95,7 +97,7 @@ void Group2Ndx::write_group(FILE *fp, int gid)
     } else {
       utils::print(fp, "[ {} ]\n", group->names[gid]);
     }
-    width = log10((double) atom->natoms) + 2;
+    width = (int) log10((double) atom->natoms) + 2;
     cols = 80 / width;
   }
 

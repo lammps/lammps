@@ -46,7 +46,7 @@
 
 using namespace LAMMPS_NS;
 
-double EPSNEIGH = 1.0e-3;
+static constexpr double EPSNEIGH = 1.0e-3;
 
 enum { XYZ, SHIFT, BISECTION };
 enum { NONE, UNIFORM, USER };
@@ -54,19 +54,14 @@ enum { X, Y, Z };
 
 /* ---------------------------------------------------------------------- */
 
-Balance::Balance(LAMMPS *lmp) : Command(lmp)
+Balance::Balance(LAMMPS *lmp) :
+  Command(lmp), rcb(nullptr), fixstore(nullptr), user_xsplit(nullptr), user_ysplit(nullptr),
+  user_zsplit(nullptr), bdim(nullptr), onecost(nullptr), allcost(nullptr), sum(nullptr),
+  target(nullptr), lo(nullptr), hi(nullptr), losum(nullptr), hisum(nullptr),
+  proccost(nullptr), allproccost(nullptr), imbalances(nullptr), weight(nullptr)
 {
-  user_xsplit = user_ysplit = user_zsplit = nullptr;
   shift_allocate = 0;
-  proccost = allproccost = nullptr;
-
-  rcb = nullptr;
-
   nimbalance = 0;
-  imbalances = nullptr;
-  fixstore = nullptr;
-
-  fp = nullptr;
   firststep = 1;
 }
 
@@ -98,12 +93,7 @@ Balance::~Balance()
   for (int i = 0; i < nimbalance; i++) delete imbalances[i];
   delete[] imbalances;
 
-  // check nfix in case all fixes have already been deleted
-
-  if (fixstore && modify->nfix) modify->delete_fix(fixstore->id);
-  fixstore = nullptr;
-
-  if (fp) fclose(fp);
+  if (fixstore) modify->delete_fix(fixstore->id);
 }
 
 /* ----------------------------------------------------------------------
@@ -113,7 +103,8 @@ Balance::~Balance()
 void Balance::command(int narg, char **arg)
 {
   if (domain->box_exist == 0)
-    error->all(FLERR, -1, "Balance command before simulation box is defined" + utils::errorurl(33));
+    error->all(FLERR, Error::COMMAND, "Balance command before simulation box is defined"
+               + utils::errorurl(33));
 
   if (comm->me == 0) utils::logmesg(lmp,"Balancing ...\n");
 
@@ -353,7 +344,7 @@ void Balance::command(int narg, char **arg)
   // set disable = 0, so weights migrate with atoms for imbfinal calculation
 
   if (domain->triclinic) domain->x2lamda(atom->nlocal);
-  auto irregular = new Irregular(lmp);
+  auto *irregular = new Irregular(lmp);
   if (wtflag) fixstore->disable = 0;
   if (style == BISECTION) irregular->migrate_atoms(sortflag,1,rcb->sendproc);
   else irregular->migrate_atoms(sortflag);
@@ -435,7 +426,6 @@ void Balance::options(int iarg, int narg, char **arg, int sortflag_default)
   sortflag = sortflag_default;
   outflag = 0;
   int outarg = 0;
-  fp = nullptr;
   oldrcb = 0;
 
   while (iarg < narg) {

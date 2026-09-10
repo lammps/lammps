@@ -34,7 +34,7 @@ void PairDeprecated::settings(int, char **)
   // called, our style was just added at the end of the list of substyles
 
   if (utils::strmatch(my_style, "^hybrid")) {
-    auto hybrid = dynamic_cast<PairHybrid *>(force->pair);
+    auto *hybrid = dynamic_cast<PairHybrid *>(force->pair);
     my_style = hybrid->keywords[hybrid->nstyles];
   }
 
@@ -59,6 +59,17 @@ void PairDeprecated::settings(int, char **)
   } else if (utils::strmatch(my_style, "^meam/c")) {
     if (lmp->comm->me == 0)
       utils::logmesg(lmp, "\nPair style 'meam/c' has been renamed to 'meam'\n\n");
+  } else if (utils::strmatch(my_style, "^awpmd/cut")) {
+    if (lmp->comm->me == 0)
+      utils::logmesg(lmp, "\nThe AWPMD package has been removed from LAMMPS.\n\n");
+  } else if ((my_style == "agni") || (my_style == "agni/omp")) {
+    if (lmp->comm->me == 0)
+      utils::logmesg(lmp, "\nPair style 'agni' has been removed from LAMMPS.\n\n");
+  } else if (my_style == "rann") {
+    if (lmp->comm->me == 0)
+      utils::logmesg(
+          lmp, "\nPair style 'rann' and the ML-RANN package have been removed from LAMMPS.\n\n");
   }
-  error->all(FLERR, "This pair style is no longer available");
+  error->all(FLERR, Error::ARGZERO, "Pair style {} is no longer available. {}", my_style,
+             utils::errorurl(38));
 }

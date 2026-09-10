@@ -235,8 +235,8 @@ void FixRigidNHSmall::init()
 
     // ensure no conflict with fix deform
 
-    for (auto &ifix : modify->get_fix_by_style("^deform")) {
-      auto deform = dynamic_cast<FixDeform *>(ifix);
+    for (const auto &ifix : modify->get_fix_by_style("^deform")) {
+      auto *deform = dynamic_cast<FixDeform *>(ifix);
       if (deform) {
         int *dimflag = deform->dimflag;
         if ((p_flag[0] && dimflag[0]) || (p_flag[1] && dimflag[1]) ||
@@ -275,7 +275,7 @@ void FixRigidNHSmall::init()
     // this will include self
 
     rfix.clear();
-    for (auto &ifix : modify->get_fix_list())
+    for (const auto &ifix : modify->get_fix_list())
       if (ifix->rigid_flag) rfix.push_back(ifix);
   }
 }
@@ -516,7 +516,7 @@ void FixRigidNHSmall::initial_integrate(int vflag)
   // forward communicate updated info of all bodies
 
   commflag = INITIAL;
-  comm->forward_comm(this,29);
+  comm->forward_comm(this, INITIAL_BUFSZ);
 
   // accumulate translational and rotational kinetic energies
 
@@ -664,7 +664,7 @@ void FixRigidNHSmall::final_integrate()
   // forward communicate updated info of all bodies
 
   commflag = FINAL;
-  comm->forward_comm(this,10);
+  comm->forward_comm(this, FINAL_BUFSZ);
 
   // accumulate translational and rotational kinetic energies
 
@@ -1161,8 +1161,8 @@ void FixRigidNHSmall::compute_dof()
   nf[0] = nf_t;
   nf[1] = nf_r;
   MPI_Allreduce(nf,nfall,2,MPI_DOUBLE,MPI_SUM,world);
-  nf_t = nfall[0];
-  nf_r = nfall[1];
+  nf_t = (int)nfall[0];
+  nf_r = (int)nfall[1];
 
   g_f = nf_t + nf_r;
 }
@@ -1220,7 +1220,7 @@ void FixRigidNHSmall::write_restart(FILE *fp)
   }
 
   if (comm->me == 0) {
-    int size = (nsize)*sizeof(double);
+    int size = nsize*sizeof(double);
     fwrite(&size,sizeof(int),1,fp);
     fwrite(list,sizeof(double),nsize,fp);
   }
@@ -1235,7 +1235,7 @@ void FixRigidNHSmall::write_restart(FILE *fp)
 void FixRigidNHSmall::restart(char *buf)
 {
   int n = 0;
-  auto list = (double *) buf;
+  auto *list = (double *) buf;
   int flag = static_cast<int> (list[n++]);
 
   if (flag) {

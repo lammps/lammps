@@ -39,7 +39,10 @@ using namespace EwaldConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCharmmCoulLongSoft::PairLJCharmmCoulLongSoft(LAMMPS *lmp) : Pair(lmp)
+PairLJCharmmCoulLongSoft::PairLJCharmmCoulLongSoft(LAMMPS *lmp) :
+    Pair(lmp), epsilon(nullptr), sigma(nullptr), eps14(nullptr), sigma14(nullptr), lambda(nullptr),
+    lj1(nullptr), lj2(nullptr), lj3(nullptr), lj4(nullptr), offset(nullptr), lj14_1(nullptr),
+    lj14_2(nullptr), lj14_3(nullptr), lj14_4(nullptr), cut_respa(nullptr)
 {
   respa_enable = 1;
   ewaldflag = pppmflag = 1;
@@ -52,6 +55,8 @@ PairLJCharmmCoulLongSoft::PairLJCharmmCoulLongSoft(LAMMPS *lmp) : Pair(lmp)
 
 PairLJCharmmCoulLongSoft::~PairLJCharmmCoulLongSoft()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
@@ -686,7 +691,7 @@ void PairLJCharmmCoulLongSoft::init_style()
   int list_style = NeighConst::REQ_DEFAULT;
 
   if (update->whichflag == 1 && utils::strmatch(update->integrate_style, "^respa")) {
-    auto respa = dynamic_cast<Respa *>(update->integrate);
+    auto *respa = dynamic_cast<Respa *>(update->integrate);
     if (respa->level_inner >= 0) list_style = NeighConst::REQ_RESPA_INOUT;
     if (respa->level_middle >= 0) list_style = NeighConst::REQ_RESPA_ALL;
   }

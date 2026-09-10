@@ -21,6 +21,8 @@
 #include "update.h"
 
 #include <cstring>
+#include <map>
+#include <utility>
 
 using namespace LAMMPS_NS;
 
@@ -30,7 +32,8 @@ static constexpr int DELTA = 1048576;
 /* ---------------------------------------------------------------------- */
 
 DumpAtom::DumpAtom(LAMMPS *lmp, int narg, char **arg) :
-  Dump(lmp, narg, arg), header_choice(nullptr), pack_choice(nullptr)
+  Dump(lmp, narg, arg), header_choice(nullptr), pack_choice(nullptr), convert_choice(nullptr),
+  write_choice(nullptr)
 {
   if (narg != 5) error->all(FLERR,"Illegal dump atom command");
 
@@ -56,12 +59,29 @@ void DumpAtom::init_style()
   // default depends on image flags
 
   delete[] format;
+  std::string lineformat;
   if (format_line_user) {
-    format = utils::strdup(std::string(format_line_user) + "\n");
+    lineformat = std::string(format_line_user) + "\n";
   } else {
-    if (image_flag == 0) format = utils::strdup(TAGINT_FORMAT " %d %g %g %g\n");
-    else format = utils::strdup(TAGINT_FORMAT " %d %g %g %g %d %d %d\n");
+    if (image_flag == 0) lineformat = TAGINT_FORMAT " %d %g %g %g\n";
+    else lineformat = TAGINT_FORMAT " %d %g %g %g %d %d %d\n";
   }
+
+  // the line format may come from the user, so it has to be checked against
+  // the values it is used with.  the length modifiers of the integer
+  // conversions are adjusted, so that a user may write %d regardless of the
+  // integer sizes LAMMPS was compiled with.
+
+  const auto tagtype = (sizeof(tagint) == sizeof(smallint)) ? utils::FmtArg::INTEGER
+                                                            : utils::FmtArg::BIGINT;
+  std::vector<utils::FmtArg> expect = {tagtype, utils::FmtArg::INTEGER, utils::FmtArg::FLOAT,
+                                       utils::FmtArg::FLOAT, utils::FmtArg::FLOAT};
+  if (image_flag) expect.insert(expect.end(), 3, utils::FmtArg::INTEGER);
+
+  auto errmsg = utils::check_format(lineformat, expect);
+  if (!errmsg.empty())
+    error->all(FLERR, Error::NOLASTLINE, "Invalid dump {} format line: {}", id, errmsg);
+  format = utils::strdup(utils::adjust_format(lineformat, expect));
 
   // setup boundary string
 
@@ -83,8 +103,8 @@ void DumpAtom::init_style()
   int icol = 0;
   columns.clear();
   for (const auto &item : utils::split_words(default_columns)) {
-    if (columns.size()) columns += " ";
-    if (keyword_user[icol].size()) columns += keyword_user[icol];
+    if (!columns.empty()) columns += " ";
+    if (!keyword_user[icol].empty()) columns += keyword_user[icol];
     else columns += item;
     ++icol;
   }
@@ -677,12 +697,12 @@ int DumpAtom::convert_image(int n, double *mybuf)
     offset += snprintf(&sbuf[offset],
                       maxsbuf - offset,
                       format,
-                      static_cast<tagint> (mybuf[m]),
-                      static_cast<int> (mybuf[m+1]),
+                      static_cast<tagint>(mybuf[m]),
+                      static_cast<int>(mybuf[m+1]),
                       mybuf[m+2],mybuf[m+3],mybuf[m+4],
-                      static_cast<int> (mybuf[m+5]),
-                      static_cast<int> (mybuf[m+6]),
-                      static_cast<int> (mybuf[m+7]));
+                      static_cast<int>(mybuf[m+5]),
+                      static_cast<int>(mybuf[m+6]),
+                      static_cast<int>(mybuf[m+7]));
     m += size_one;
   }
 
@@ -705,8 +725,8 @@ int DumpAtom::convert_noimage(int n, double *mybuf)
     offset += snprintf(&sbuf[offset],
                       maxsbuf - offset,
                       format,
-                      static_cast<tagint> (mybuf[m]),
-                      static_cast<int> (mybuf[m+1]),
+                      static_cast<tagint>(mybuf[m]),
+                      static_cast<int>(mybuf[m+1]),
                       mybuf[m+2],mybuf[m+3],mybuf[m+4]);
     m += size_one;
   }
@@ -738,9 +758,9 @@ void DumpAtom::write_lines_image(int n, double *mybuf)
   int m = 0;
   for (int i = 0; i < n; i++) {
     fprintf(fp,format,
-            static_cast<tagint> (mybuf[m]), static_cast<int> (mybuf[m+1]),
-            mybuf[m+2],mybuf[m+3],mybuf[m+4], static_cast<int> (mybuf[m+5]),
-            static_cast<int> (mybuf[m+6]), static_cast<int> (mybuf[m+7]));
+            static_cast<tagint>(mybuf[m]), static_cast<int>(mybuf[m+1]),
+            mybuf[m+2],mybuf[m+3],mybuf[m+4], static_cast<int>(mybuf[m+5]),
+            static_cast<int>(mybuf[m+6]), static_cast<int>(mybuf[m+7]));
     m += size_one;
   }
 }
@@ -752,8 +772,8 @@ void DumpAtom::write_lines_noimage(int n, double *mybuf)
   int m = 0;
   for (int i = 0; i < n; i++) {
     fprintf(fp,format,
-            static_cast<tagint> (mybuf[m]), static_cast<int> (mybuf[m+1]),
-            mybuf[m+2],mybuf[m+3],mybuf[m+4]);
+            static_cast<tagint>(mybuf[m]), static_cast<int>(mybuf[m+1]),
+            mybuf[m+2], mybuf[m+3], mybuf[m+4]);
     m += size_one;
   }
 }

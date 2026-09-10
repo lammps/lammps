@@ -38,7 +38,9 @@ enum{NOHYPER,GLOBAL,LOCAL};
 
 /* ---------------------------------------------------------------------- */
 
-Hyper::Hyper(LAMMPS *_lmp) : Command(_lmp) {}
+Hyper::Hyper(LAMMPS *_lmp) :
+    Command(_lmp), fix_hyper(nullptr), fix_event(nullptr), compute_event(nullptr), finish(nullptr)
+{}
 
 /* ----------------------------------------------------------------------
    perform hyperdynamics simulation
@@ -59,8 +61,8 @@ void Hyper::command(int narg, char **arg)
   int nsteps = utils::inumeric(FLERR,arg[0],false,lmp);
   t_event = utils::inumeric(FLERR,arg[1],false,lmp);
 
-  auto id_fix = utils::strdup(arg[2]);
-  auto id_compute = utils::strdup(arg[3]);
+  auto *id_fix = utils::strdup(arg[2]);
+  auto *id_compute = utils::strdup(arg[3]);
 
   options(narg-4,&arg[4]);
 
@@ -83,9 +85,9 @@ void Hyper::command(int narg, char **arg)
     hyperenable = 0;
     hyperstyle = NOHYPER;
   } else {
-    int ifix = modify->find_fix(id_fix);
-    if (ifix < 0) error->all(FLERR,"Could not find fix ID for hyper");
-    fix_hyper = dynamic_cast<FixHyper *>(modify->fix[ifix]);
+    auto *ifix = modify->get_fix_by_id(id_fix);
+    if (!ifix) error->all(FLERR,"Could not find fix ID for hyper");
+    fix_hyper = dynamic_cast<FixHyper *>(ifix);
     int dim;
     int *hyperflag = (int *) fix_hyper->extract("hyperflag",dim);
     if (hyperflag == nullptr || *hyperflag == 0)
@@ -105,10 +107,10 @@ void Hyper::command(int narg, char **arg)
 
   // assign FixEventHyper to event-detection compute
   // necessary so it will know atom coords at last event
-
-  int icompute = modify->find_compute(id_compute);
-  if (icompute < 0) error->all(FLERR,"Could not find compute ID for hyper");
-  compute_event = dynamic_cast<ComputeEventDisplace *>(modify->compute[icompute]);
+  auto *icompute = modify->get_compute_by_id(id_compute);
+  compute_event = dynamic_cast<ComputeEventDisplace *>(icompute);
+  if (!compute_event)
+    error->all(FLERR,"Could not find compute event/displace ID {} for hyper", id_compute);
   compute_event->reset_extra_compute_fix("hyper_event");
 
   // reset reneighboring criteria since will perform minimizations
@@ -151,10 +153,10 @@ void Hyper::command(int narg, char **arg)
 
   // cannot use hyper with time-dependent fixes or regions
 
-  for (auto &ifix : modify->get_fix_list())
+  for (const auto &ifix : modify->get_fix_list())
     if (ifix->time_depend) error->all(FLERR,"Cannot use hyper with a time-dependent fix defined");
 
-  for (auto &reg : domain->get_region_list())
+  for (const auto &reg : domain->get_region_list())
     if (reg->dynamic_check())
       error->all(FLERR,"Cannot use hyper with a time-dependent region defined");
 
@@ -254,8 +256,8 @@ void Hyper::command(int narg, char **arg)
 
   if (hyperenable) {
     t_hyper = fix_hyper->query(1);
-    nevent_running = fix_hyper->query(2);
-    nevent_atoms_running = fix_hyper->query(3);
+    nevent_running = (int) fix_hyper->query(2);
+    nevent_atoms_running = (int) fix_hyper->query(3);
     avebonds = fix_hyper->query(4);
     maxdrift = fix_hyper->query(5);
     maxbondlen = fix_hyper->query(6);
@@ -421,8 +423,8 @@ void Hyper::quench(int flag)
   update->restrict_output = 0;
   update->ntimestep = ntimestep_hold;
   update->endstep = update->laststep = endstep_hold;
-  for (int i = 0; i < modify->ncompute; i++)
-    if (modify->compute[i]->timeflag) modify->compute[i]->clearstep();
+  for (const auto &icompute : modify->get_compute_list())
+    if (icompute->timeflag) icompute->clearstep();
 }
 
 /* ----------------------------------------------------------------------
@@ -454,7 +456,7 @@ void Hyper::options(int narg, char **arg)
     } else if (strcmp(arg[iarg],"dump") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal hyper command");
       dumpflag = 1;
-      auto idump = output->get_dump_by_id(arg[iarg+1]);
+      auto *idump = output->get_dump_by_id(arg[iarg+1]);
       if (!idump) error->all(FLERR,"Dump ID {} in hyper command does not exist", arg[iarg+1]);
       dumplist.emplace_back(idump);
       iarg += 2;

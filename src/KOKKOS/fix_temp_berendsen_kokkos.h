@@ -32,9 +32,11 @@ template<class DeviceType>
 class FixTempBerendsenKokkos : public FixTempBerendsen {
  public:
   typedef DeviceType device_type;
+  typedef ArrayTypes<DeviceType> AT;
 
   FixTempBerendsenKokkos(class LAMMPS *, int, char **);
   ~FixTempBerendsenKokkos() override {}
+  void init() override;
   void end_of_step() override;
 };
 

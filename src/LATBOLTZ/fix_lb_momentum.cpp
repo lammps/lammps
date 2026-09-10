@@ -21,12 +21,12 @@
 #include "fix_lb_momentum.h"
 
 #include "atom.h"
-#include "comm.h"
-#include "domain.h"
 #include "error.h"
 #include "fix_lb_fluid.h"
 #include "group.h"
 #include "modify.h"
+
+#include <cstring>
 
 #include "latboltz_const.h"
 
@@ -85,7 +85,7 @@ void FixLbMomentum::init()
     error->warning(FLERR, "Fix lb/momentum group has no atoms: Only fluid momentum affected");
 
   auto ifix = modify->get_fix_by_style("lb/fluid");
-  if (ifix.size() > 0) fix_lb_fluid = (FixLbFluid *) ifix[0];
+  if (!ifix.empty()) fix_lb_fluid = (FixLbFluid *) ifix[0];
 
   count ? masstotal = group->mass(igroup) : 0;
 }

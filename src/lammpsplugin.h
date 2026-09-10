@@ -18,6 +18,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+// NOLINTBEGIN
 
 typedef void *(lammpsplugin_factory1) (void *);
 typedef void *(lammpsplugin_factory2) (void *, int, char **);
@@ -42,6 +43,7 @@ typedef void (*lammpsplugin_initfunc)(void *, void *, void *);
 // to load a plugin; uses C bindings
 
 void lammpsplugin_init(void *, void *, void *);
+// NOLINTEND
 
 #ifdef __cplusplus
 }

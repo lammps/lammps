@@ -24,6 +24,7 @@
 #include "error.h"
 #include "input.h"
 #include "memory.h"
+#include "modify.h"
 #include "neighbor.h"
 #include "math_extra.h"
 #include "region.h"
@@ -84,7 +85,7 @@ void FixWallGranRegion::init()
 {
   FixWallGran::init();
 
-  auto newregion = domain->get_region_by_id(idregion);
+  auto *newregion = domain->get_region_by_id(idregion);
   if (!newregion) error->all(FLERR, "Region {} for fix wall/gran/region does not exist", idregion);
 
   // check if region properties changed between runs
@@ -136,8 +137,8 @@ void FixWallGranRegion::post_force(int /*vflag*/)
 
   if (neighbor->ago == 0 && fix_rigid) {
     int tmp;
-    int *body = (int *) fix_rigid->extract("body", tmp);
-    auto mass_body = (double *) fix_rigid->extract("masstotal", tmp);
+    auto *body = (int *) fix_rigid->extract("body", tmp);
+    auto *mass_body = (double *) fix_rigid->extract("masstotal", tmp);
     if (atom->nmax > nmax) {
       memory->destroy(mass_rigid);
       nmax = atom->nmax;
@@ -186,8 +187,11 @@ void FixWallGranRegion::post_force(int /*vflag*/)
   if (heat_flag) {
     temperature = atom->temperature;
     heatflow = atom->heatflow;
-    if (tstr)
+    if (tstr) {
+      modify->clearstep_compute();
       Twall = input->variable->compute_equal(tvar);
+      modify->addstep_compute(update->ntimestep + 1);
+    }
     model->Tj = Twall;
   }
 
@@ -235,7 +239,7 @@ void FixWallGranRegion::post_force(int /*vflag*/)
       model->i = i;
       model->j = ic;
 
-      if (model->beyond_contact) model->touch = history_many[i][c2r[ic]][0];
+      if (model->beyond_contact) model->touch = (history_many[i][c2r[ic]][0] != 0.0);
 
       touchflag = model->check_contact();
 

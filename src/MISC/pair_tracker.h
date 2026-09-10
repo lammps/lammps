@@ -38,8 +38,6 @@ class PairTracker : public Pair {
   void write_restart_settings(FILE *) override;
   void read_restart_settings(FILE *) override;
   double single(int, int, int, int, double, double, double, double &) override;
-  double atom2cut(int) override;
-  double radii2cut(double, double) override;
   void transfer_history(double *, double *, int, int) override;
 
  protected:
@@ -51,7 +49,7 @@ class PairTracker : public Pair {
   double *onerad_dynamic, *onerad_frozen;
   double *maxrad_dynamic, *maxrad_frozen;
   int freeze_group_bit;
-  int store_local_freq;
+  int store_local_freq, store_local_freq_restart;
 
   char *id_fix_store_local;
   class FixDummy *fix_dummy;
@@ -61,10 +59,11 @@ class PairTracker : public Pair {
   int **type_filter;
   double tmin;
 
-  int nvalues, ncount;
+  int nvalues, nvalues_restart;
   double *output_data;
-  typedef void (PairTracker::*FnPtrPack)(int, int, int, double *);
+  using FnPtrPack = void (PairTracker::*)(int, int, int, double *);
   FnPtrPack *pack_choice;    // ptrs to pack functions
+  std::vector<int> saved_choices;
 
   void pack_id1(int, int, int, double *);
   void pack_id2(int, int, int, double *);

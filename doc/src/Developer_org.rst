@@ -28,7 +28,7 @@ The ``lib`` directory contains the source code for several supporting
 libraries or files with configuration settings to use globally installed
 libraries, that are required by some optional packages.  They may
 include python scripts that can transparently download additional source
-code on request.  Each subdirectory, like ``lib/poems`` or ``lib/gpu``,
+code on request.  Each subdirectory, like ``lib/colvars`` or ``lib/gpu``,
 contains the source files, some of which are in different languages such
 as Fortran or CUDA. These libraries included in the LAMMPS build, if the
 corresponding package is installed.

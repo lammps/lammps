@@ -82,7 +82,7 @@ int dstedc_(char *compz, integer *n, doublereal *d__, doublereal *e, doublereal 
             lwmin = 1;
         } else if (*n <= smlsiz) {
             liwmin = 1;
-            lwmin = *n - 1 << 1;
+            lwmin = (*n - 1) << 1;
         } else {
             lgn = (integer)(log((doublereal)(*n)) / log(2.));
             if (pow_lmp_ii(&c__2, &lgn) < *n) {

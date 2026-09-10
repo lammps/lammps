@@ -8,6 +8,7 @@ code does, or what a function does and its input/outputs.  The topics
 on this page are intended to document code functionality at a higher level.
 
 .. contents:: Available notes
+   :local:
 
 ----
 
@@ -191,13 +192,33 @@ internally by :doc:`Peridynamics pair styles <pair_peri>`:
 
 It is also possible to request a neighbor list that uses a different cutoff
 than what is usually inferred from the pair style settings (largest cutoff of
-all pair styles plus neighbor list skin).  The following is used in the
-:doc:`compute rdf <compute_rdf>` command implementation:
+all pair styles plus neighbor list skin).  Since the default neighbor list is
+built with a cutoff *per pair of atom types*, such a request must also state
+how its cutoff is to be interpreted, by calling exactly one of:
+
+.. list-table::
+   :header-rows: 1
+   :widths: 25 75
+
+   * - Function
+     - Interpretation of the requested cutoff
+   * - ``set_cutoff_max(cutoff)``
+     - the maximum across atom types, individual type pairs may use a shorter
+       cutoff.  This is the typical case for pair styles.
+   * - ``set_cutoff_fixed(cutoff)``
+     - applies uniformly to every pair of atom types.  This is the typical
+       case for a fix or compute analyzing a fixed range, e.g. an RDF.
+
+Using ``set_cutoff_max()`` where a uniform cutoff is meant will silently
+truncate the list for those type pairs that use a shorter pair style cutoff.
+
+The following is used in the :doc:`compute rdf <compute_rdf>` command
+implementation, where the requested cutoff applies to all atom types:
 
 .. code-block:: c++
 
   if (cutflag)
-    neighbor->add_request(this, NeighConst::REQ_OCCASIONAL)->set_cutoff(mycutneigh);
+    neighbor->add_request(this, NeighConst::REQ_OCCASIONAL)->set_cutoff_fixed(mycutneigh);
   else
     neighbor->add_request(this, NeighConst::REQ_OCCASIONAL);
 
@@ -212,6 +233,7 @@ command:
 
    neighbor->add_request(this, "delete_atoms", NeighConst::REQ_FULL);
 
+.. _error-messages:
 
 Errors, warnings, and informational messages
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -248,12 +270,12 @@ caught by the LAMMPS ``main()`` program and then handled accordingly.
 The reason for this approach is to support applications, especially
 graphical applications like :ref:`LAMMPS-GUI <lammps_gui>`, that are
 linked to the LAMMPS library and have a mechanism to avoid that an error
-in LAMMPS terminates the application. By catching the exceptions, the
+in LAMMPS terminates the application.  By catching the exceptions, the
 application can delete the failing LAMMPS class instance and create a
 new one to try again.  In a similar fashion, the :doc:`LAMMPS Python
-module <Python_module>` checks for this and then re-throws corresponding
-Python exception, which in turn can be caught by the calling Python
-code.
+module <Python_module>` checks for this and then re-throws a
+corresponding Python exception, which in turn can be caught by the
+calling Python code.
 
 There are multiple "signatures" that can be called:
 
@@ -264,21 +286,22 @@ There are multiple "signatures" that can be called:
 - ``Error::all(FLERR, Error::NOLASTLINE, "Error message")``: this is the
   same as before but without the last line of input.  This is preferred
   for errors that would happen *during* a :doc:`run <run>` or
-  :doc:`minimization <minimize>`, since showing the "run" or "minimize"
-  command would be the last line, but is unrelated to the error.
+  :doc:`minimization <minimize>`, since the last line would be showing
+  the "run" or "minimize" command yet those are unrelated to the command
+  *causing* the error.
 
 - ``Error::all(FLERR, idx, "Error message")``: this is for argument
   parsing where "idx" is the index (starting at 0) of the argument for a
-  LAMMPS command that is causing the failure (use -1 for the command
-  itself).  For index 0, you need to use the constant ``Error::ARGZERO``
-  to work around the inability of some compilers to disambiguate between
-  a NULL pointer and an integer constant 0, even with an added type cast.
-  The output may also include the last input line *before* and
-  *after*, if they differ due to substituting variables.  A textual
-  indicator is pointing to the specific word that failed.  Using the
-  constant ``Error::NOPOINTER`` in place of the *idx* argument will
-  suppress the marker and then the behavior is like the *idx* argument
-  is not provided.
+  LAMMPS command that is causing the failure (use ``Error::COMMAND`` for
+  the command itself).  For index 0, i.e. the first command argument,
+  you need to use the constant ``Error::ARGZERO`` to work around the
+  inability of some compilers to disambiguate between a NULL pointer and
+  an integer constant 0, even with an added type cast.  The output may
+  also include the last input line *before* and *after* substituting
+  variables, if they differ.  A textual indicator is pointing to the
+  specific word that failed.  Using the constant ``Error::NOPOINTER`` in
+  place of the *idx* argument will suppress the marker and then the
+  behavior is like the *idx* argument is not provided.
 
 FLERR is a macro containing the filename and line where the Error class
 is called and that information is appended to the error message.  This
@@ -287,21 +310,28 @@ all three signatures, the single string "Error message" may be replaced
 with a format string using '{}' placeholders and followed by a variable
 number of arguments, one for each placeholder. This format string and
 the arguments are then handed for formatting to the `{fmt} library
-<https://fmt.dev>`_ (which is bundled with LAMMPS) and thus allow
-processing similar to the "format()" functionality in Python.
+<https://fmt.dev>`_ (which is bundled with LAMMPS) or the `C++ format
+library <https://cppreference.com/cpp/utility/format>`_ (for
+C++20 and later) and thus allow processing similar to the "format()"
+functionality in Python.
 
 .. note::
 
-   For commands like :doc:`fix ave/time <fix_ave_time>` that accept
-   wildcard arguments, the :cpp:func:`utils::expand_args` function
-   may be passed as an optional argument where the function will provide
-   a map to the original arguments from the expanded argument indices.
+   Commands that accept wildcard arguments, for example
+   :doc:`fix ave/time <fix_ave_time>`, use
+   :cpp:func:`utils::expand_args() <LAMMPS_NS::utils::expand_args>`
+   to convert the wildcards into a list of explicit arguments.
+   This function accepts a pointer address as an optional argument,
+   which will be set to a map to the original arguments from the
+   expanded argument indices.  Please see the corresponding source
+   code for details on how to apply this map in error messages.
 
 For complex errors, that can have multiple causes and which cannot be
 explained in a single line, you can append to the error message, the
-string created by :cpp:func:`utils::errorurl`, which then provides a
-URL pointing to a paragraph of the :doc:`Errors_details` that
-corresponds to the number provided. Example:
+string created by :cpp:func:`utils::errorurl()
+<LAMMPS_NS::utils::errorurl>`, which then provides a URL pointing to a
+paragraph of the :doc:`Errors_details` that corresponds to the number
+provided. Example:
 
 .. code-block:: c++
 
@@ -532,7 +562,7 @@ each processor owns a brick and the union of all the bricks is the
 global grid.  Tiled decompositions are produced by load balancing with
 the RCB algorithm; see the :doc:`balance rcb <balance>` command.
 
-For the ``FFT decompostion`` of the grid, each processor owns a brick
+For the ``FFT decomposition`` of the grid, each processor owns a brick
 that spans the entire x dimension of the grid while the y and z
 dimensions are partitioned as a regular 2d array (P1 by P2), where P =
 P1 * P2.

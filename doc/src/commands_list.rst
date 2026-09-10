@@ -33,6 +33,7 @@ Commands
    displace_atoms
    dynamical_matrix
    echo
+   fenix
    fix
    fix_modify
    fitpod_command
@@ -113,4 +114,5 @@ Commands
    write_coeff
    write_data
    write_dump
+   write_molecule
    write_restart

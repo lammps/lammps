@@ -37,7 +37,7 @@ static constexpr double BIGNUM = 1.0e300;
 
 /* ---------------------------------------------------------------------- */
 
-BondTable::BondTable(LAMMPS *_lmp) : Bond(_lmp)
+BondTable::BondTable(LAMMPS *_lmp) : Bond(_lmp), r0(nullptr), tabindex(nullptr)
 {
   writedata = 0;
   ntables = 0;
@@ -48,6 +48,8 @@ BondTable::BondTable(LAMMPS *_lmp) : Bond(_lmp)
 
 BondTable::~BondTable()
 {
+  if (copymode) return;
+
   for (int m = 0; m < ntables; m++) free_table(&tables[m]);
   memory->sfree(tables);
 
@@ -529,7 +531,7 @@ void BondTable::spline(double *x, double *y, int n, double yp1, double ypn, doub
 {
   int i, k;
   double p, qn, sig, un;
-  auto u = new double[n];
+  auto *u = new double[n];
 
   if (yp1 > 0.99e300)
     y2[0] = u[0] = 0.0;

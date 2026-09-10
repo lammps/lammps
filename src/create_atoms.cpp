@@ -37,7 +37,7 @@
 #include "region.h"
 #include "safe_pointers.h"
 #include "special.h"
-#include "text_file_reader.h"
+#include "stl_reader.h"
 #include "variable.h"
 
 #include <cmath>
@@ -70,8 +70,8 @@ static constexpr const char *mesh_name[] = {"recursive bisection", "quasi-random
 
 CreateAtoms::CreateAtoms(LAMMPS *lmp) :
     Command(lmp), basistype(nullptr), xmol(nullptr), vstr(nullptr), xstr(nullptr), ystr(nullptr),
-    zstr(nullptr), groupname(nullptr), region(nullptr), onemol(nullptr), ranmol(nullptr),
-    ranlatt(nullptr)
+    zstr(nullptr), groupname(nullptr), flag(nullptr), next(nullptr), region(nullptr),
+    onemol(nullptr), ranmol(nullptr), ranlatt(nullptr)
 {
 }
 
@@ -390,28 +390,19 @@ void CreateAtoms::command(int narg, char **arg)
     if (!input->variable->equalstyle(vvar))
       error->all(FLERR, Error::NOLASTLINE, "Variable {} for create_atoms is invalid style", vstr);
 
-    if (xstr) {
-      xvar = input->variable->find(xstr);
-      if (xvar < 0)
-        error->all(FLERR, Error::NOLASTLINE, "Variable {} for create_atoms does not exist", xstr);
-      if (!input->variable->internalstyle(xvar))
-        error->all(FLERR, Error::NOLASTLINE, "Variable {} for create_atoms is invalid style", xstr);
-    }
-    if (ystr) {
-      yvar = input->variable->find(ystr);
-      if (yvar < 0)
-        error->all(FLERR, Error::NOLASTLINE, "Variable {} for create_atoms does not exist", ystr);
-      if (!input->variable->internalstyle(yvar))
-        error->all(FLERR, Error::NOLASTLINE, "Variable {} for create_atoms is invalid style", ystr);
-    }
-    if (zstr) {
-      zvar = input->variable->find(zstr);
-      if (zvar < 0)
-        error->all(FLERR, Error::NOLASTLINE, "Variable {} for create_atoms does not exist", zstr);
-      if (!input->variable->internalstyle(zvar))
-        error->all(FLERR, Error::NOLASTLINE, "Variable {} for create_atoms is invalid style", zstr);
-    }
+#define SETUP_XYZ_VAR(str, var)                                                                   \
+  if (str) {                                                                                      \
+    var = input->variable->find(str);                                                             \
+    if (var < 0) var = input->variable->internal_create(str, 0.0);                                \
+    if (!input->variable->internalstyle(var))                                                     \
+      error->all(FLERR, Error::NOLASTLINE, "Variable {} for create_atoms is invalid style", str); \
   }
+
+    SETUP_XYZ_VAR(xstr, xvar);
+    SETUP_XYZ_VAR(ystr, yvar);
+    SETUP_XYZ_VAR(zstr, zvar);
+  }
+#undef SETUP_XYZ_VAR
 
   // require non-none lattice be defined for BOX or REGION styles
 
@@ -588,6 +579,10 @@ void CreateAtoms::command(int narg, char **arg)
     atom->ndihedrals += nmoltotal * onemol->ndihedrals;
     atom->nimpropers += nmoltotal * onemol->nimpropers;
 
+    // molecule files for bodies may only contain a single body
+
+    if (onemol->bodyflag) atom->nbodies += 1;
+
     // if atom style template
     // maxmol = max molecule ID across all procs, for previous atoms
     // moloffset = max molecule ID for all molecules owned by previous procs
@@ -690,7 +685,7 @@ void CreateAtoms::command(int narg, char **arg)
 
     if (domain->triclinic) domain->x2lamda(atom->nlocal);
     domain->reset_box();
-    auto irregular = new Irregular(lmp);
+    auto *irregular = new Irregular(lmp);
     irregular->migrate_atoms(1);
     delete irregular;
     if (domain->triclinic) domain->lamda2x(atom->nlocal);
@@ -791,7 +786,7 @@ void CreateAtoms::add_random()
   // warm up the generator 30x to avoid correlations in first-particle
   // positions if runs are repeated with consecutive seeds
 
-  auto random = new RanPark(lmp, seed);
+  auto *random = new RanPark(lmp, seed);
   for (int ii = 0; ii < 30; ii++) random->uniform();
 
   // bounding box for atom creation
@@ -875,7 +870,7 @@ void CreateAtoms::add_random()
             delx = xone[0] - x[i][0];
             dely = xone[1] - x[i][1];
             delz = xone[2] - x[i][2];
-            domain->minimum_image(delx, dely, delz);
+            domain->minimum_image(FLERR, delx, dely, delz);
             distsq = delx * delx + dely * dely + delz * delz;
             if (distsq < odistsq) {
               reject = 1;
@@ -885,13 +880,14 @@ void CreateAtoms::add_random()
         } else {
           if (comm->me == 0) get_xmol(xone);
           MPI_Bcast(&xmol[0][0], onemol->natoms * 3, MPI_DOUBLE, 0, world);
+          MPI_Bcast(onemol->quat_external, 4, MPI_DOUBLE, 0, world);
 
           for (int i = 0; i < nlocal; i++) {
             for (int j = 0; j < onemol->natoms; j++) {
               delx = xmol[j][0] - x[i][0];
               dely = xmol[j][1] - x[i][1];
               delz = xmol[j][2] - x[i][2];
-              domain->minimum_image(delx, dely, delz);
+              domain->minimum_image(FLERR, delx, dely, delz);
               distsq = delx * delx + dely * dely + delz * delz;
               if (distsq < odistsq) {
                 reject = 1;
@@ -1065,7 +1061,7 @@ int CreateAtoms::add_quasirandom(const double vert[3][3], tagint molid)
   // Estimate number of particles from area
   MathExtra::cross3(ab, ac, temp);
   area = 0.5 * MathExtra::len3(temp);
-  int nparticles = ceil(mesh_density * area);
+  int nparticles = (int)ceil(mesh_density * area);
   // estimate radius from number of particles and area
   double rad = sqrt(area / MY_PI / nparticles);
 
@@ -1130,114 +1126,35 @@ void CreateAtoms::add_mesh(const char *filename)
     molid = maxmol + 1;
   }
 
-  SafeFilePtr fp = fopen(filename, "rb");
-  if (fp == nullptr)
-    error->one(FLERR, Error::NOLASTLINE, "Cannot open STL mesh file {}: {}", filename,
-               utils::getsyserror());
+  // read all triangles (ASCII or binary STL) with the shared STL reader
+  // every rank parses the file and keeps the atoms that fall in its subdomain
 
-  // first try reading the file in ASCII format
-
-  TextFileReader reader(fp, "STL mesh");
+  std::vector<STLReader::Triangle> triangles;
   try {
-    char *line = reader.next_line();
-    if (!line || !utils::strmatch(line, "^solid"))
-      throw TokenizerException("Invalid STL mesh file format", "");
-
-    line += 6;
-    if (utils::strmatch(line, "^binary"))
-      throw TokenizerException("Invalid STL mesh file format", "");
-
+    std::string title;
+    triangles = STLReader::parse(filename, &title);
     if (comm->me == 0)
-      utils::logmesg(lmp, "Reading STL object {} from text file {}\n", utils::trim(line), filename);
-
-    while ((line = reader.next_line())) {
-
-      // next line is facet line with 5 words
-      auto values = utils::split_words(line);
-      // otherwise stop reading
-      if ((values.size() != 5) || !utils::strmatch(values[0], "^facet")) break;
-
-      // ignore normal
-
-      line = reader.next_line(2);
-      if (!line || !utils::strmatch(line, "^ *outer *loop"))
-        throw TokenizerException("Error reading outer loop", "");
-
-      for (int k = 0; k < 3; ++k) {
-        line = reader.next_line(4);
-        values = utils::split_words(line);
-        if ((values.size() != 4) || !utils::strmatch(values[0], "^vertex"))
-          throw TokenizerException("Error reading vertex", "");
-
-        vert[k][0] = utils::numeric(FLERR, values[1], false, lmp);
-        vert[k][1] = utils::numeric(FLERR, values[2], false, lmp);
-        vert[k][2] = utils::numeric(FLERR, values[3], false, lmp);
-      }
-
-      line = reader.next_line(1);
-      if (!line || !utils::strmatch(line, "^ *endloop"))
-        throw TokenizerException("Error reading endloop", "");
-      line = reader.next_line(1);
-      if (!line || !utils::strmatch(line, "^ *endfacet"))
-        throw TokenizerException("Error reading endfacet", "");
-
-      // now we have the three vertices ... proceed with adding atoms
-      ++ntriangle;
-      if (mesh_style == BISECTION) {
-        // add in center of triangle or bisecting recursively along longest edge
-        // as needed to get the desired atom density/radii
-        atomlocal += add_bisection(vert, molid);
-      } else if (mesh_style == QUASIRANDOM) {
-        // add quasi-random distribution of atoms
-        atomlocal += add_quasirandom(vert, molid);
-      }
-    }
+      utils::logmesg(lmp, "Reading STL object {} with {} triangles from file {}\n",
+                     title.empty() ? "(unnamed)" : title, triangles.size(), filename);
   } catch (std::exception &e) {
+    error->all(FLERR, Error::NOLASTLINE, "{}", e.what());
+  }
 
-    // if ASCII failed for the first line, try reading as binary
-    if (utils::strmatch(e.what(), "^Invalid STL mesh file format")) {
-      char title[80];
-      float triangle[12];
-      uint32_t ntri;
-      uint16_t attr;
-      size_t count;
+  for (const auto &tri : triangles) {
 
-      rewind(fp);
-      count = fread(title, sizeof(char), 80, fp);
-      title[79] = '\0';
-      count = fread(&ntri, sizeof(ntri), 1, fp);
-      if (count <= 0) {
-        error->all(FLERR, Error::NOLASTLINE, "Error reading STL file {}: {}", filename,
-                   utils::getsyserror());
-      } else {
-        if (comm->me == 0)
-          utils::logmesg(lmp, "Reading STL object {} from binary file {}\n", utils::trim(title),
-                         filename);
-      }
+    // the normal is ignored; only the three vertices are used to place atoms
 
-      for (uint32_t i = 0U; i < ntri; ++i) {
-        count = fread(triangle, sizeof(float), 12, fp);
-        if (count != 12)
-          error->all(FLERR, Error::NOLASTLINE, "Error reading STL file {}: {}", filename,
-                     utils::getsyserror());
-        count = fread(&attr, sizeof(attr), 1, fp);
+    for (int j = 0; j < 3; ++j)
+      for (int k = 0; k < 3; ++k) vert[j][k] = tri.vert[j][k];
 
-        for (int j = 0; j < 3; ++j)
-          for (int k = 0; k < 3; ++k) vert[j][k] = triangle[3 * j + 3 + k];
-
-        ++ntriangle;
-        if (mesh_style == BISECTION) {
-          // add in center of triangle or bisecting recursively along longest edge
-          // as needed to get the desired atom density/radii
-          atomlocal += add_bisection(vert, molid);
-        } else if (mesh_style == QUASIRANDOM) {
-          // add quasi-random distribution of atoms
-          atomlocal += add_quasirandom(vert, molid);
-        }
-      }
-    } else {
-      error->all(FLERR, Error::NOLASTLINE, "Error reading triangles from STL mesh file {}: {}",
-                 filename, e.what());
+    ++ntriangle;
+    if (mesh_style == BISECTION) {
+      // add in center of triangle or bisecting recursively along longest edge
+      // as needed to get the desired atom density/radii
+      atomlocal += add_bisection(vert, molid);
+    } else if (mesh_style == QUASIRANDOM) {
+      // add quasi-random distribution of atoms
+      atomlocal += add_quasirandom(vert, molid);
     }
   }
 
@@ -1576,8 +1493,7 @@ void CreateAtoms::get_xmol(double *center)
   MathExtra::quat_to_mat(quatone, rotmat);
 
   // onemol->quat_external is used by atom->add_moleclue_atom()
-
-  onemol->quat_external = quatone;
+  if (onemol->muflag) memcpy(onemol->quat_external, quatone, 4*sizeof(double));
 
   int natoms = onemol->natoms;
   double xnew[3];

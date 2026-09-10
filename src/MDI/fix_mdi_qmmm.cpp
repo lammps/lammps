@@ -687,7 +687,7 @@ void FixMDIQMMM::pre_force(int vflag)
         double delx = xqm[i][0] - xqm[j][0];
         double dely = xqm[i][1] - xqm[j][1];
         double delz = xqm[i][2] - xqm[j][2];
-        domain->minimum_image(delx, dely, delz);
+        domain->minimum_image(FLERR, delx, dely, delz);
         rsq = delx * delx + dely * dely + delz * delz;
         qpotential_mine[i] -= qqrd2e * qqm[j] / sqrt(rsq);
       }
@@ -832,6 +832,8 @@ void FixMDIQMMM::pre_force(int vflag)
       volume = domain->xprd * domain->yprd;
     else if (domain->dimension == 3)
       volume = domain->xprd * domain->yprd * domain->zprd;
+    else
+      error->all(FLERR, "Unsupported dimension in fix mdi/qmmm");
     for (int i = 0; i < 6; i++) virial[i] = qm_virial_symmetric[i] * volume / nprocs;
   }
 
@@ -1007,6 +1009,8 @@ void FixMDIQMMM::post_force_direct(int vflag)
       volume = domain->xprd * domain->yprd;
     else if (domain->dimension == 3)
       volume = domain->xprd * domain->yprd * domain->zprd;
+    else
+      error->all(FLERR, "Unsupported dimension in fix mdi/qmmm");
     for (int i = 0; i < 6; i++) virial[i] = qm_virial_symmetric[i] * volume / nprocs;
   }
 }
@@ -1962,7 +1966,7 @@ void FixMDIQMMM::unit_conversions()
 
 int compare_IDs(const int i, const int j, void *ptr)
 {
-  tagint *ids = (tagint *) ptr;
+  auto *ids = (tagint *) ptr;
   if (ids[i] < ids[j]) return -1;
   if (ids[i] > ids[j]) return 1;
   return 0;

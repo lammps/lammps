@@ -41,12 +41,15 @@ class PairMesoCNT : public Pair {
 
   int pack_forward_comm(int, int *, double *, int, int *) override;
   void unpack_forward_comm(int, int, double *) override;
+  double memory_usage() override;
 
  protected:
   int nend_types;
   int uinf_points, gamma_points, phi_points, usemi_points;
   int *end_types, *reduced_nlist, *numchainlist, *selfid;
   int **reduced_neighlist, **nchainlist, **endlist, **selfpos;
+  int **special_local_topo;
+  int nmax_mesocnt;
   int ***chainlist;
 
   bool segment_flag, neigh_flag;
@@ -102,16 +105,16 @@ class PairMesoCNT : public Pair {
 
   // inlined functions for efficiency
 
-  inline void weight(const double *, const double *, const double *, const double *, double &,
+  void weight(const double *, const double *, const double *, const double *, double &,
                      double *, double *, double *, double *);
 
-  inline double spline(double, double, double, double **, int);
-  inline double dspline(double, double, double, double **, int);
-  inline double spline(double, double, double, double, double, double, double ****, int);
-  inline double dxspline(double, double, double, double, double, double, double ****, int);
-  inline double dyspline(double, double, double, double, double, double, double ****, int);
+  double spline(double, double, double, double **, int);
+  double dspline(double, double, double, double **, int);
+  double spline(double, double, double, double, double, double, double ****, int);
+  double dxspline(double, double, double, double, double, double, double ****, int);
+  double dyspline(double, double, double, double, double, double, double ****, int);
 
-  inline double heaviside(double x)
+  double heaviside(double x)
   {
     if (x > 0)
       return 1.0;
@@ -119,20 +122,20 @@ class PairMesoCNT : public Pair {
       return 0.0;
   }
 
-  inline double s(double x)
+  double s(double x)
   {
     return heaviside(-x) + heaviside(x) * heaviside(1 - x) * (1 - x * x * (3 - 2 * x));
   }
 
-  inline double ds(double x) { return 6 * heaviside(x) * heaviside(1 - x) * x * (x - 1); }
+  double ds(double x) { return 6 * heaviside(x) * heaviside(1 - x) * x * (x - 1); }
 
-  inline double s5(double x)
+  double s5(double x)
   {
     double x2 = x * x;
     return heaviside(-x) + heaviside(x) * heaviside(1 - x) * (1 - x2 * x * (6 * x2 - 15 * x + 10));
   }
 
-  inline double ds5(double x)
+  double ds5(double x)
   {
     double x2 = x * x;
     return -30 * heaviside(x) * heaviside(1 - x) * x2 * (x2 - 2 * x + 1);

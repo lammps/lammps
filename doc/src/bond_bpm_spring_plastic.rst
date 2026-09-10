@@ -77,7 +77,7 @@ or extension, it will plastically activate and :math:`r_\mathrm{eq}` will evolve
 to ensure :math:`|(r-r_\mathrm{eq})/r_\mathrm{eq}|` never exceeds :math:`\epsilon_p`.
 Therefore, if a bond is continually loaded in either tension or compression, the
 force will initially grow elastically before plateauing. See
-:ref:`(Clemmer) <plastic-Clemmer>` for more details on these mechanics.
+:ref:`(Clemmer4) <plastic-Clemmer>` for more details on these mechanics.
 
 Bonds will break at a strain of :math:`\epsilon_c`.  This is done by setting
 the bond type to 0 such that forces are no longer computed.
@@ -141,7 +141,7 @@ will cause their reference states to be redefined.
 The potential energy and the single() function of this bond style
 returns zero.  The single() function also calculates two extra bond
 quantities, the initial distance :math:`r_0` and the current equilibrium
-length :math:`r_eq`. These extra quantities can be accessed by the
+length :math:`r_{eq}`. These extra quantities can be accessed by the
 :doc:`compute bond/local <compute_bond_local>` command as *b1* and *b2*,
 respectively.
 
@@ -152,19 +152,24 @@ This bond style is part of the BPM package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package
 <Build_package>` page for more info.
 
-By default if pair interactions between bonded atoms are to be disabled,
-this bond style requires setting
+To handle breaking bonds, BPM bond styles have extra requirements for
+special bonds. If bonds cannot break (*break no*), then one can use any
+special bond weights. Otherwise, restrictions depend on whether pair
+forces are overlaid (*pair/overlay yes*). If so, then all weights must
+be one:
+
+.. code-block:: LAMMPS
+
+   special_bonds lj/coul 1 1 1
+
+If pair forces are disabled (*pair/overlay no*), the default, then the
+weights must be
 
 .. code-block:: LAMMPS
 
    special_bonds lj 0 1 1 coul 1 1 1
 
-and :doc:`newton <newton>` must be set to bond off.  If the *overlay/pair*
-keyword is set to *yes*, this bond style alternatively requires setting
-
-.. code-block:: LAMMPS
-
-   special_bonds lj/coul 1 1 1
+and :doc:`newton <newton>` must be set to bond off.
 
 Related commands
 """"""""""""""""
@@ -180,5 +185,5 @@ The option defaults are *overlay/pair* = *no*, *smooth* = *yes*, *normalize* = *
 
 .. _plastic-Clemmer:
 
-**(Clemmer)** Clemmer and Lechman, Powder Technology (2025).
+**(Clemmer4)** Clemmer and Lechman, Powder Technology (2025).
 

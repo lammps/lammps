@@ -13,46 +13,46 @@
 
 #ifdef NPAIR_CLASS
 // clang-format off
-typedef NPairSkipTemp<0> NPairSkip;
+using NPairSkip = NPairSkipTemp<0>;
 NPairStyle(skip,
            NPairSkip,
            NP_SKIP | NP_HALF | NP_FULL |
-           NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD |
+           NP_NSQ | NP_BIN | NP_MULTI |
            NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI);
 
-typedef NPairSkipTemp<0> NPairSkip;
+using NPairSkip = NPairSkipTemp<0>;
 NPairStyle(skip/ghost,
            NPairSkip,
            NP_SKIP | NP_HALF | NP_FULL |
-           NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD |
+           NP_NSQ | NP_BIN | NP_MULTI |
            NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI | NP_GHOST);
 
-typedef NPairSkipTemp<0> NPairSkipSize;
+using NPairSkipSize = NPairSkipTemp<0>;
 NPairStyle(skip/half/size,
            NPairSkipSize,
            NP_SKIP | NP_SIZE | NP_HALF | NP_FULL |
-           NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD |
+           NP_NSQ | NP_BIN | NP_MULTI |
            NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI);
 
-typedef NPairSkipTemp<1> NPairSkipTrim;
+using NPairSkipTrim = NPairSkipTemp<1>;
 NPairStyle(skip/trim,
            NPairSkipTrim,
            NP_SKIP | NP_HALF | NP_FULL |
-           NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD |
+           NP_NSQ | NP_BIN | NP_MULTI |
            NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI | NP_TRIM);
 
-typedef NPairSkipTemp<1> NPairSkipTrim;
+using NPairSkipTrim = NPairSkipTemp<1>;
 NPairStyle(skip/ghost/trim,
            NPairSkipTrim,
            NP_SKIP | NP_HALF | NP_FULL |
-           NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD |
+           NP_NSQ | NP_BIN | NP_MULTI |
            NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI | NP_GHOST | NP_TRIM);
 
-typedef NPairSkipTemp<1> NPairSkipTrimSize;
+using NPairSkipTrimSize = NPairSkipTemp<1>;
 NPairStyle(skip/trim/half/size,
            NPairSkipTrimSize,
            NP_SKIP | NP_SIZE | NP_HALF | NP_FULL |
-           NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD |
+           NP_NSQ | NP_BIN | NP_MULTI |
            NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI | NP_TRIM);
 
 // clang-format on

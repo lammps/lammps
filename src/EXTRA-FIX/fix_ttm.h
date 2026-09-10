@@ -57,7 +57,7 @@ class FixTTM : public Fix {
   int outflag, outevery;
   double shift, tinit;
   double e_energy, transfer_energy;
-  char *infile, *outfile;
+  std::string infile, outfile;
 
   class RanMars *random;
   double electronic_specific_heat, electronic_density;
@@ -67,18 +67,12 @@ class FixTTM : public Fix {
   double *gfactor1, *gfactor2, *ratio, **flangevin;
   double ***T_electron, ***T_electron_old;
   double ***net_energy_transfer, ***net_energy_transfer_all;
-  double ***T_atomic;
-  int ***nsum, ***nsum_all;
-  double ***sum_vsq, ***sum_vsq_all;
-  double ***sum_mass_vsq, ***sum_mass_vsq_all;
 
   virtual void allocate_grid();
   virtual void deallocate_grid();
   virtual void read_electron_temperatures(const std::string &);
   virtual void write_electron_temperatures(const std::string &);
 };
-
 }    // namespace LAMMPS_NS
-
 #endif
 #endif

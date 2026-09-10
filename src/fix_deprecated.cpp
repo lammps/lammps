@@ -27,6 +27,9 @@ FixDeprecated::FixDeprecated(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg,
   if (my_style == "DEPRECATED") {
     if (lmp->comm->me == 0) utils::logmesg(lmp, "\nFix style 'DEPRECATED' is a dummy style\n\n");
     return;
+  } else if (my_style == "atc") {
+    if (lmp->comm->me == 0)
+      utils::logmesg(lmp, "\nThe ATC package has been removed from LAMMPS.\n\n");
   } else if (utils::strmatch(my_style, "^ave/spatial")) {
     if (lmp->comm->me == 0)
       utils::logmesg(lmp,
@@ -54,6 +57,12 @@ FixDeprecated::FixDeprecated(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg,
   } else if (my_style == "mscg") {
     if (lmp->comm->me == 0)
       utils::logmesg(lmp, "\nThe MSCG package has been removed from LAMMPS.\n\n");
+  } else if (my_style == "nve/awpmd") {
+    if (lmp->comm->me == 0)
+      utils::logmesg(lmp, "\nThe AWPMD package has been removed from LAMMPS.\n\n");
+  } else if (my_style == "poems") {
+    if (lmp->comm->me == 0)
+      utils::logmesg(lmp, "\nThe POEMS package has been removed from LAMMPS.\n\n");
   } else if (utils::strmatch(my_style, "^reax/c/bonds")) {
     if (lmp->comm->me == 0)
       utils::logmesg(lmp, "\nFix style 'reax/c/bonds' has been renamed to 'reaxff/bonds'.\n\n");
@@ -61,5 +70,5 @@ FixDeprecated::FixDeprecated(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg,
     if (lmp->comm->me == 0)
       utils::logmesg(lmp, "\nFix style 'reax/c/species' has been renamed to 'reaxff/species'.\n\n");
   }
-  error->all(FLERR, "This fix style is no longer available");
+  error->all(FLERR, 2, "Fix style {} is no longer available. {}", style, utils::errorurl(38));
 }

@@ -11,11 +11,19 @@ min_style hftn command
 min_style sd command
 ====================
 
+Accelerator Variant: *sd/kk*
+
 min_style quickmin command
 ==========================
 
+Accelerator Variant: *quickmin/kk*
+
 min_style fire command
 ======================
+
+.. versionadded:: 11Feb2026
+
+Accelerator Variant: *fire/kk*
 
 :doc:`min_style spin <min_spin>` command
 ========================================
@@ -127,10 +135,10 @@ the :doc:`neb/spin <neb_spin>` command.
 
 .. note::
 
-   The *quickmin*, *fire*, *hftn*, and *cg/kk* styles do not yet
-   support the use of the :doc:`fix box/relax <fix_box_relax>` command
-   or minimizations involving the electron radius in :doc:`eFF
-   <pair_eff>` models.
+   The *quickmin*, *fire*, *hftn*, *cg/kk*, *quickmin/kk*, and *sd/kk*
+   styles do not yet support the use of the :doc:`fix box/relax
+   <fix_box_relax>` command or minimizations involving the electron
+   radius in :doc:`eFF <pair_eff>` models.
 
 ----------
 

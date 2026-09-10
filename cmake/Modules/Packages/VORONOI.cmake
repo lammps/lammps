@@ -1,4 +1,11 @@
 find_package(VORO)
+
+# set policy to use the time of extraction as timestamps of files unpacked from downloaded
+# archives, so that updating an archive version triggers rebuilding all dependent objects
+ if(POLICY CMP0135)
+  cmake_policy(SET CMP0135 NEW)
+endif()
+
 if(VORO_FOUND)
   set(DOWNLOAD_VORO_DEFAULT OFF)
 else()
@@ -7,10 +14,9 @@ endif()
 option(DOWNLOAD_VORO "Download and compile the Voro++ library instead of using an already installed one" ${DOWNLOAD_VORO_DEFAULT})
 if(DOWNLOAD_VORO)
   message(STATUS "Voro++ download requested - we will build our own")
-  set(VORO_URL "${LAMMPS_THIRDPARTY_URL}/voro++-0.4.6.tar.gz" CACHE STRING "URL for Voro++ tarball")
-  set(VORO_MD5 "2338b824c3b7b25590e18e8df5d68af9" CACHE STRING "MD5 checksum for Voro++ tarball")
-  mark_as_advanced(VORO_URL)
-  mark_as_advanced(VORO_MD5)
+  SetDownloadSettings(VORO "Voro++"
+    "${LAMMPS_THIRDPARTY_URL}/voro++-0.4.6.tar.gz"
+    "ef7970071ee2ce3800daa8723649ca069dc4c71cc25f0f7d22552387f3ea437e")
 
   include(ExternalProject)
 
@@ -33,8 +39,8 @@ if(DOWNLOAD_VORO)
 
   ExternalProject_Add(voro_build
     URL     ${VORO_URL}
-    URL_MD5 ${VORO_MD5}
-    PATCH_COMMAND patch -b -p0 < ${LAMMPS_LIB_SOURCE_DIR}/voronoi/voro-make.patch
+    URL_HASH SHA256=${VORO_SHA256}
+    PATCH_COMMAND patch -b -p0 < ${LAMMPS_DIR}/cmake/patches/voro-make.patch
     CONFIGURE_COMMAND ""
     BUILD_COMMAND make ${VORO_BUILD_OPTIONS}
     BUILD_IN_SOURCE 1

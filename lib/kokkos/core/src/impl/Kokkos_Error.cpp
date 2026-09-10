@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
 #define KOKKOS_IMPL_PUBLIC_INCLUDE
@@ -22,6 +9,7 @@
 #include <iomanip>
 #include <sstream>
 #include <stdexcept>
+#include <Kokkos_Macros.hpp>
 #include <Kokkos_Core.hpp>  // show_warnings
 #include <impl/Kokkos_Error.hpp>
 
@@ -31,11 +19,7 @@ void Kokkos::Impl::throw_runtime_exception(const std::string &msg) {
 
 void Kokkos::Impl::throw_bad_alloc(std::string_view memory_space_name,
                                    std::size_t size, std::string_view label) {
-  std::stringstream ss;
-  ss << "Kokkos ERROR: " << memory_space_name
-     << " memory space failed to allocate " << human_memory_size(size)
-     << " (label=\"" << label << "\").";
-  throw std::runtime_error(ss.str());
+  throw Kokkos::Experimental::BadAlloc(memory_space_name, size, label);
 }
 
 void Kokkos::Impl::log_warning(const std::string &msg) {

@@ -44,8 +44,8 @@ PairLJSPICACoulMSMOMP::PairLJSPICACoulMSMOMP(LAMMPS *lmp) :
 void PairLJSPICACoulMSMOMP::compute(int eflag, int vflag)
 {
   if (force->kspace->scalar_pressure_flag)
-    error->all(FLERR,"Must use 'kspace_modify pressure/scalar no' "
-      "with OMP MSM Pair styles");
+    error->all(FLERR, Error::NOLASTLINE,
+               "Must use 'kspace_modify pressure/scalar no' with OMP MSM Pair styles");
 
   ev_init(eflag,vflag);
 
@@ -153,7 +153,7 @@ void PairLJSPICACoulMSMOMP::eval_msm_thr(int iifrom, int iito, ThrData * const t
             union_int_float_t rsq_lookup;
             rsq_lookup.f = rsq;
             const int itable = (rsq_lookup.i & ncoulmask) >> ncoulshiftbits;
-            const double fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
+            const double fraction = ((double) rsq_lookup.f - rtable[itable]) * drtable[itable];
             const double table = ftable[itable] + fraction*dftable[itable];
             forcecoul = qtmp*q[j] * table;
             if (EFLAG) ecoul = qtmp*q[j] * (etable[itable] + fraction*detable[itable]);

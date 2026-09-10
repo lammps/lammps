@@ -30,8 +30,8 @@
 #  define FFT_KOKKOS_FFTW3
 # endif
 # ifdef FFT_KOKKOS_FFTW_THREADS
-#  if !defined(FFT_KOKKOS_FFTW3)
-#   error "Must use -DFFT_KOKKOS_FFTW3 with -DFFT_KOKKOS_FFTW_THREADS"
+#  if !defined(FFT_KOKKOS_FFTW3) && !defined(FFT_KOKKOS_NVPL)
+#   error "Must use -DFFT_KOKKOS_FFTW3 or -DFFT_KOKKOS_NVPL with -DFFT_KOKKOS_FFTW_THREADS"
 #  endif
 # endif
 #endif
@@ -115,7 +115,7 @@
 
 #if defined(FFT_KOKKOS_MKL_GPU)
   #include "CL/sycl.hpp"
-  #include "oneapi/mkl/dfti.hpp"
+  #include "oneapi/mkl/dft.hpp"
   #include "mkl.h"
   #if defined(FFT_SINGLE)
     typedef std::complex<float> FFT_KOKKOS_DATA;
@@ -125,7 +125,7 @@
     #define FFT_KOKKOS_MKL_PREC DFTI_DOUBLE
   #endif
 #elif defined(FFT_KOKKOS_MKL)
-  #include "mkl_dfti.h"
+  #include "mkl_dft.h"
   #if defined(FFT_SINGLE)
     typedef float _Complex FFT_KOKKOS_DATA;
     #define FFT_KOKKOS_MKL_PREC DFTI_SINGLE
@@ -222,7 +222,7 @@ typedef tdual_FFT_DATA_1d::t_dev t_FFT_DATA_1d;
 typedef tdual_FFT_DATA_1d::t_dev_um t_FFT_DATA_1d_um;
 
 typedef Kokkos::
-  DualView<int*, LMPDeviceType::array_layout, LMPDeviceType> tdual_int_64;
+  DualView<int*, LMPDeviceLayout, LMPDeviceType> tdual_int_64;
 typedef tdual_int_64::t_dev t_int_64;
 typedef tdual_int_64::t_dev_um t_int_64_um;
 
@@ -254,7 +254,7 @@ typedef tdual_FFT_DATA_1d::t_host t_FFT_DATA_1d;
 typedef tdual_FFT_DATA_1d::t_host_um t_FFT_DATA_1d_um;
 
 typedef Kokkos::
-  DualView<int*, LMPDeviceType::array_layout, LMPDeviceType> tdual_int_64;
+  DualView<int*, LMPDeviceLayout, LMPDeviceType> tdual_int_64;
 typedef tdual_int_64::t_host t_int_64;
 typedef tdual_int_64::t_host_um t_int_64_um;
 

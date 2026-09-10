@@ -285,7 +285,7 @@ void PairAmoeba::dispersion_kspace()
   // gridpre = my portion of 3d grid in brick decomp w/ ghost values
   // zeroed by zero()
 
-  FFT_SCALAR ***gridpre = (FFT_SCALAR ***) d_kspace->zero();
+  auto ***gridpre = (FFT_SCALAR ***) d_kspace->zero();
 
   // map atoms to grid
 
@@ -363,7 +363,7 @@ void PairAmoeba::dispersion_kspace()
   // post-convolution operations including backward FFT
   // gridppost = my portion of 3d grid in brick decomp w/ ghost values
 
-  double ***gridpost = (double ***) d_kspace->post_convolution();
+  auto ***gridpost = (double ***) d_kspace->post_convolution();
 
   // get first derivatives of the reciprocal space energy
 

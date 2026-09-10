@@ -1,20 +1,12 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+#else
 #include <Kokkos_Core.hpp>
+#endif
 #include <benchmark/benchmark.h>
 #include "Benchmark_Context.hpp"
 
@@ -69,31 +61,41 @@ static void MallocTouchFree(benchmark::State& state) {
   Impl(state, true, When::after_free);
 }
 
+#ifdef KOKKOS_IMPL_32BIT
+constexpr int test_range = 30;
+#else
+#ifndef KOKKOS_ENABLE_LARGE_MEM_TESTS
+constexpr int test_range = 31;
+#else
+constexpr int test_range = 32;
+#endif
+#endif
+
 BENCHMARK(Malloc)
     ->ArgName("N")
     ->RangeMultiplier(16)
-    ->Range(1, int64_t(1) << 32)
+    ->Range(1, int64_t(1) << test_range)
     ->UseManualTime()
     ->Unit(benchmark::kMicrosecond);
 
 BENCHMARK(MallocFree)
     ->ArgName("N")
     ->RangeMultiplier(16)
-    ->Range(1, int64_t(1) << 32)
+    ->Range(1, int64_t(1) << test_range)
     ->UseManualTime()
     ->Unit(benchmark::kMicrosecond);
 
 BENCHMARK(MallocTouch)
     ->ArgName("N")
     ->RangeMultiplier(16)
-    ->Range(1, int64_t(1) << 32)
+    ->Range(1, int64_t(1) << test_range)
     ->UseManualTime()
     ->Unit(benchmark::kMicrosecond);
 
 BENCHMARK(MallocTouchFree)
     ->ArgName("N")
     ->RangeMultiplier(16)
-    ->Range(1, int64_t(1) << 32)
+    ->Range(1, int64_t(1) << test_range)
     ->UseManualTime()
     ->Unit(benchmark::kMicrosecond);
 

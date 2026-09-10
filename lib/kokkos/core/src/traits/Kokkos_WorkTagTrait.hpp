@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_KOKKOS_WORKTAGTRAIT_HPP
 #define KOKKOS_KOKKOS_WORKTAGTRAIT_HPP
@@ -46,24 +33,27 @@ struct _trait_matches_spec_predicate {
   };
 };
 
+template <class WorkTag, class AnalyzeNextTrait>
+struct WorkTagMixin : AnalyzeNextTrait {
+  using base_t = AnalyzeNextTrait;
+  using base_t::base_t;
+  using work_tag = WorkTag;
+  static constexpr auto show_work_tag_error_in_compilation_message =
+      show_extra_work_tag_erroneously_given_to_execution_policy<
+          typename base_t::work_tag>{};
+  static_assert(
+      std::is_void_v<typename base_t::work_tag>,
+      "Kokkos Error: More than one work tag given. Search compiler output "
+      "for 'show_extra_work_tag' to see the type of the errant tag.");
+};
+
 struct WorkTagTrait : TraitSpecificationBase<WorkTagTrait> {
   struct base_traits {
     using work_tag = void;
     KOKKOS_IMPL_MSVC_NVCC_EBO_WORKAROUND
   };
   template <class WorkTag, class AnalyzeNextTrait>
-  struct mixin_matching_trait : AnalyzeNextTrait {
-    using base_t = AnalyzeNextTrait;
-    using base_t::base_t;
-    using work_tag = WorkTag;
-    static constexpr auto show_work_tag_error_in_compilation_message =
-        show_extra_work_tag_erroneously_given_to_execution_policy<
-            typename base_t::work_tag>{};
-    static_assert(
-        std::is_void_v<typename base_t::work_tag>,
-        "Kokkos Error: More than one work tag given. Search compiler output "
-        "for 'show_extra_work_tag' to see the type of the errant tag.");
-  };
+  using mixin_matching_trait = WorkTagMixin<WorkTag, AnalyzeNextTrait>;
   // Since we don't have subsumption in pre-C++20, we need to have the work tag
   // "trait" handling code ensure that none of the other conditions are met.
   // * Compile time cost complexity note: at first glance it looks like this

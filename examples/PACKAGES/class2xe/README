@@ -1,0 +1,7 @@
+The data file was built with LUNAR: https://github.com/CMMRLab/LUNAR
+
+The math/science behind classII-xe and benchmarking can
+be found at: https://doi.org/10.1038/s41524-025-01838-5
+
+The example LAMMPS script was written by Josh Kemppainen,
+if you have questions reach out to josh at: jdkemppa@mtu.edu

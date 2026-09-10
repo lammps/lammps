@@ -99,7 +99,7 @@ apply to the screen and logfile of the individual partition.
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""

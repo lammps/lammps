@@ -33,7 +33,7 @@ class ComputeCentroAtom : public Compute {
   void compute_peratom() override;
   double memory_usage() override;
 
- private:
+ protected:
   int nmax, maxneigh, nnn;
   double *distsq;
   int *nearest;

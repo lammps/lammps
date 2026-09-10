@@ -28,8 +28,7 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixController::FixController(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg),
-  pvID(nullptr), cvID(nullptr)
+    Fix(lmp, narg, arg), pvID(nullptr), cvID(nullptr), pcompute(nullptr), pfix(nullptr)
 {
   if (narg != 11) error->all(FLERR,"Illegal fix controller command");
 
@@ -108,6 +107,10 @@ FixController::FixController(LAMMPS *lmp, int narg, char **arg) :
   control = input->variable->compute_equal(ivariable);
 
   firsttime = 1;
+
+  // so compute_vector() returns zeros until the first end_of_step()
+
+  err = olderr = sumerr = deltaerr = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */

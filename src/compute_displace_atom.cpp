@@ -104,9 +104,7 @@ ComputeDisplaceAtom::ComputeDisplaceAtom(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeDisplaceAtom::~ComputeDisplaceAtom()
 {
-  // check nfix in case all fixes have already been deleted
-
-  if (modify->nfix) modify->delete_fix(id_fix);
+  modify->delete_fix(id_fix);
 
   delete [] id_fix;
   memory->destroy(displace);
@@ -232,7 +230,7 @@ void ComputeDisplaceAtom::refresh()
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++)
-    if (varatom[i]) domain->unmap(x[i],image[i],xoriginal[i]);
+    if (varatom[i] != 0.0) domain->unmap(x[i],image[i],xoriginal[i]);
 }
 
 /* ----------------------------------------------------------------------

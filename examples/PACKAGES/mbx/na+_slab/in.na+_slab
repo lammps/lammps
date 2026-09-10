@@ -1,0 +1,56 @@
+processors      * * * map xyz
+
+units           real
+atom_style      full
+boundary        p p p
+
+read_data       initial.data
+
+pair_style      mbx 9.0
+
+# Define bonds and angles to use if using SHAKE constraints
+bond_style      zero
+angle_style     zero
+bond_coeff      1 0.98823 # from PIMD
+angle_coeff     1 105.50896 # from PIMD
+
+pair_coeff      * * 2 na+ 1 h2o 2 3 3 json mbx.json
+
+neighbor        2.0 bin
+neigh_modify    every 1 delay 10
+
+timestep        0.5
+
+compute         mbx all pair mbx
+variable        e1bpip    equal c_mbx[1]
+variable        e2bpip    equal c_mbx[2]
+variable        e3bpip    equal c_mbx[3]
+variable        e4bpip    equal c_mbx[4]
+variable        edisp     equal c_mbx[5]
+variable        ebuck     equal c_mbx[6]
+variable        eperm     equal c_mbx[7]
+variable        eind      equal c_mbx[8]
+variable        eele      equal c_mbx[9]
+variable        etot      equal c_mbx[10]
+
+fix             1 all nvt temp 100 100 $(1000.0*dt)
+
+velocity        all create 298 428459 rot yes dist gaussian
+velocity        all zero linear
+velocity        all zero angular
+
+thermo_style    custom step time temp etotal ke pe enthalpy density lx ly lz vol pxx pyy pzz press
+thermo          1
+thermo_modify   flush yes
+
+# fix             verbose_mbx_thermo_print all print 1 "$(step) $(0.001*time) $(temp) $(etotal) $(ke) $(pe) $(enthalpy) $(density) $(lx) $(ly) $(lz) $(vol) $(pxx) $(pyy) $(pzz) $(press) $(v_e1bpip) $(v_e2bpip) $(v_e3bpip) $(v_e4bpip) $(v_edisp) $(v_ebuck) $(v_eperm) $(v_eind) $(v_eele) $(v_etot)" file mbx_thermo.out screen no title "# step time temp etotal ke pe enthalpy density lx ly lz vol pxx pyy pzz press e1bpip e2bpip e3bpip e4bpip edisp ebuck eperm eind eele etot"
+
+# dump            1 all custom 1 dump.lammpstrj id mol type q x y z
+# dump_modify     1 append no sort id format line "%d %d %d %8.4f %15.8f %15.8f %15.8f"
+
+# restart         10 restart.1 restart.2
+
+run             100
+
+# write_data      final.data
+# write_restart   restart.new

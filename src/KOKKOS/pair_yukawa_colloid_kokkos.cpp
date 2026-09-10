@@ -120,19 +120,19 @@ double PairYukawaColloidKokkos<DeviceType>::init_one(int i, int j)
 {
   double cutone = PairYukawaColloid::init_one(i,j);
 
-  k_params.h_view(i,j).a      = a[i][j];
-  k_params.h_view(i,j).offset = offset[i][j];
-  k_params.h_view(i,j).cutsq  = cutone*cutone;
-  k_params.h_view(j,i)        = k_params.h_view(i,j);
+  k_params.view_host()(i,j).a      = static_cast<KK_FLOAT>(a[i][j]);
+  k_params.view_host()(i,j).offset = static_cast<KK_FLOAT>(offset[i][j]);
+  k_params.view_host()(i,j).cutsq  = static_cast<KK_FLOAT>(cutone*cutone);
+  k_params.view_host()(j,i)        = k_params.view_host()(i,j);
 
   if (i<MAX_TYPES_STACKPARAMS+1 && j<MAX_TYPES_STACKPARAMS+1) {
-    m_params[i][j] = m_params[j][i] = k_params.h_view(i,j);
-    m_cutsq[j][i] = m_cutsq[i][j] = cutone*cutone;
+    m_params[i][j] = m_params[j][i] = k_params.view_host()(i,j);
+    m_cutsq[j][i] = m_cutsq[i][j] = static_cast<KK_FLOAT>(cutone*cutone);
   }
 
-  k_cutsq.h_view(i,j) = k_cutsq.h_view(j,i) = cutone*cutone;
-  k_cutsq.template modify<LMPHostType>();
-  k_params.template modify<LMPHostType>();
+  k_cutsq.view_host()(i,j) = k_cutsq.view_host()(j,i) = cutone*cutone;
+  k_cutsq.modify_host();
+  k_params.modify_host();
 
   return cutone;
 }
@@ -177,36 +177,36 @@ void PairYukawaColloidKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   nlocal = atom->nlocal;
   nall = atom->nlocal + atom->nghost;
   newton_pair = force->newton_pair;
-  special_lj[0] = force->special_lj[0];
-  special_lj[1] = force->special_lj[1];
-  special_lj[2] = force->special_lj[2];
-  special_lj[3] = force->special_lj[3];
+  special_lj[0] = static_cast<KK_FLOAT>(force->special_lj[0]);
+  special_lj[1] = static_cast<KK_FLOAT>(force->special_lj[1]);
+  special_lj[2] = static_cast<KK_FLOAT>(force->special_lj[2]);
+  special_lj[3] = static_cast<KK_FLOAT>(force->special_lj[3]);
 
   // loop over neighbors of my atoms
 
   EV_FLOAT ev = pair_compute<PairYukawaColloidKokkos<DeviceType>,void >(
     this,(NeighListKokkos<DeviceType>*)list);
 
-  if (eflag_global) eng_vdwl += ev.evdwl;
+  if (eflag_global) eng_vdwl += static_cast<double>(ev.evdwl);
   if (vflag_global) {
-    virial[0] += ev.v[0];
-    virial[1] += ev.v[1];
-    virial[2] += ev.v[2];
-    virial[3] += ev.v[3];
-    virial[4] += ev.v[4];
-    virial[5] += ev.v[5];
+    virial[0] += static_cast<double>(ev.v[0]);
+    virial[1] += static_cast<double>(ev.v[1]);
+    virial[2] += static_cast<double>(ev.v[2]);
+    virial[3] += static_cast<double>(ev.v[3]);
+    virial[4] += static_cast<double>(ev.v[4]);
+    virial[5] += static_cast<double>(ev.v[5]);
   }
 
   if (vflag_fdotr) pair_virial_fdotr_compute(this);
 
   if (eflag_atom) {
     k_eatom.template modify<DeviceType>();
-    k_eatom.template sync<LMPHostType>();
+    k_eatom.sync_host();
   }
 
   if (vflag_atom) {
     k_vatom.template modify<DeviceType>();
-    k_vatom.template sync<LMPHostType>();
+    k_vatom.sync_host();
   }
 }
 
@@ -214,46 +214,50 @@ void PairYukawaColloidKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
 template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
-F_FLOAT PairYukawaColloidKokkos<DeviceType>::
-compute_fpair(const F_FLOAT &rsq, const int &i, const int &j,
+KK_FLOAT PairYukawaColloidKokkos<DeviceType>::
+compute_fpair(const KK_FLOAT &rsq, const int &i, const int &j,
               const int &itype, const int &jtype) const {
-  const F_FLOAT radi   = radius[i];
-  const F_FLOAT radj   = radius[j];
-  const F_FLOAT rr     = sqrt(rsq);
+  const KK_FLOAT radi   = radius[i];
+  const KK_FLOAT radj   = radius[j];
+  const KK_FLOAT rr     = Kokkos::sqrt(rsq);
+  const KK_FLOAT kappa_kk = static_cast<KK_FLOAT>(kappa);
   // Fetch the params either off the stack or from some mapped memory?
-  const F_FLOAT aa     = STACKPARAMS ? m_params[itype][jtype].a
+  const KK_FLOAT aa     = STACKPARAMS ? m_params[itype][jtype].a
                                      : params(itype,jtype).a;
 
   // U   = a * exp(-kappa*(r-(radi+radj))) / kappa
   // f   = -dU/dr = a * exp(-kappa*r)
   // f/r = a * exp(-kappa*r) / r
-  const F_FLOAT rinv = 1.0 / rr;
-  const F_FLOAT screening = exp(-kappa*(rr-(radi+radj)));
-  const F_FLOAT forceyukawa = aa * screening;
-  const F_FLOAT fpair = forceyukawa * rinv;
+  const KK_FLOAT rinv = static_cast<KK_FLOAT>(1.0) / rr;
+  const KK_FLOAT screening = Kokkos::exp(-kappa_kk*(rr-(radi+radj)));
+  const KK_FLOAT forceyukawa = aa * screening;
+  const KK_FLOAT fpair = forceyukawa * rinv;
 
   return fpair;
 }
 
 template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
-F_FLOAT PairYukawaColloidKokkos<DeviceType>::
-compute_evdwl(const F_FLOAT &rsq, const int &i, const int &j,
+KK_FLOAT PairYukawaColloidKokkos<DeviceType>::
+compute_evdwl(const KK_FLOAT &rsq, const int &i, const int &j,
               const int &itype, const int &jtype) const {
-  const F_FLOAT radi   = radius[i];
-  const F_FLOAT radj   = radius[j];
-  const F_FLOAT rr     = sqrt(rsq);
-  const F_FLOAT aa     = STACKPARAMS ? m_params[itype][jtype].a
+  const KK_FLOAT radi   = radius[i];
+  const KK_FLOAT radj   = radius[j];
+  const KK_FLOAT rr     = Kokkos::sqrt(rsq);
+  const KK_FLOAT kappa_kk = static_cast<KK_FLOAT>(kappa);
+  const KK_FLOAT aa     = STACKPARAMS ? m_params[itype][jtype].a
                                      : params(itype,jtype).a;
-  const F_FLOAT offset = STACKPARAMS ? m_params[itype][jtype].offset
+  const KK_FLOAT offset = STACKPARAMS ? m_params[itype][jtype].offset
                                      : params(itype,jtype).offset;
 
   // U   = a * exp(-kappa*(r-(radi+radj))) / kappa
-  const F_FLOAT screening = exp(-kappa*(rr-(radi+radj)));
+  const KK_FLOAT screening = Kokkos::exp(-kappa_kk*(rr-(radi+radj)));
 
-  return aa / kappa * screening - offset;
+  return aa / kappa_kk * screening - offset;
 }
 
 

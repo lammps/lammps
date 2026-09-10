@@ -30,6 +30,7 @@
 #include "memory.h"
 
 #include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -596,4 +597,13 @@ void PPPMDielectric::slabcorr()
     f[i][2] += ffact * eps[i]*q[i]*(dipole_all - qsum*x[i][2]);
     efield[i][2] += ffact * (dipole_all - qsum*x[i][2]);
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+double PPPMDielectric::memory_usage()
+{
+  double bytes = PPPM::memory_usage();
+  bytes += (double) nmax * 3 * sizeof(double);    // efield[nmax][3]
+  return bytes;
 }

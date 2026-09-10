@@ -37,7 +37,8 @@ using namespace InterLayer;
 
 /* ---------------------------------------------------------------------- */
 
-PairCoulShield::PairCoulShield(LAMMPS *lmp) : Pair(lmp)
+PairCoulShield::PairCoulShield(LAMMPS *lmp) :
+    Pair(lmp), cut(nullptr), sigmae(nullptr), offset(nullptr)
 {
   tap_flag = 1;
 }
@@ -46,6 +47,8 @@ PairCoulShield::PairCoulShield(LAMMPS *lmp) : Pair(lmp)
 
 PairCoulShield::~PairCoulShield()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(sigmae);
@@ -183,7 +186,7 @@ void PairCoulShield::settings(int narg, char **arg)
   if (narg < 1 || narg > 2) error->all(FLERR, "Illegal pair_style command");
 
   cut_global = utils::numeric(FLERR, arg[0], false, lmp);
-  if (narg == 2) tap_flag = utils::numeric(FLERR, arg[1], false, lmp);
+  if (narg == 2) tap_flag = utils::inumeric(FLERR, arg[1], false, lmp);
 
   // reset cutoffs that have been explicitly set
 

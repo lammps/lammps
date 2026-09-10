@@ -50,7 +50,10 @@ class ArgInfo {
   };
   // clang-format on
   ArgInfo(const std::string &arg, int allowed = COMPUTE | FIX | VARIABLE);
-  virtual ~ArgInfo() {}
+  virtual ~ArgInfo() = default;
+  ArgInfo() = delete;
+  ArgInfo(const ArgInfo &) = delete;
+  void operator=(const ArgInfo &) = delete;
 
  public:
   /*! get type of reference
@@ -63,7 +66,7 @@ class ArgInfo {
      *
      * \return  integer with a constant from ArgTypes enumerator */
 
-  int get_type() const { return type; }
+  [[nodiscard]] int get_type() const { return type; }
 
   /*! get dimension of reference
      *
@@ -71,7 +74,7 @@ class ArgInfo {
      * reference has no, one or two "[{number}]" postfixes.
      *
      * \return  integer with the dimensionality of the reference */
-  int get_dim() const { return dim; }
+  [[nodiscard]] int get_dim() const { return dim; }
 
   /*! get index of first dimension
      *
@@ -79,7 +82,7 @@ class ArgInfo {
      * postfix or 0 if there is no postfix.
      *
      * \return  integer with index or the postfix or 0 */
-  int get_index1() const { return index1; }
+  [[nodiscard]] int get_index1() const { return index1; }
 
   /*! get index of second dimension
      *
@@ -87,7 +90,7 @@ class ArgInfo {
      * postfix or -1 if there is no second postfix.
      *
      * \return  integer with index of the postfix or -1 */
-  int get_index2() const { return index2; }
+  [[nodiscard]] int get_index2() const { return index2; }
 
   /*! return reference to the ID or name of the reference
      *
@@ -97,18 +100,13 @@ class ArgInfo {
      * with copy_name().
      *
      * \return  C-style char * string */
-  const char *get_name() const { return name.c_str(); }
+  [[nodiscard]] const char *get_name() const { return name.c_str(); }
 
   char *copy_name();
 
  private:
   std::string name;
   int type, dim, index1, index2;
-
-  // disabled standard methods
-  ArgInfo() {}
-  ArgInfo(const ArgInfo &) {}
-  void operator=(const ArgInfo &) {}
 };
 }    // namespace LAMMPS_NS
 #endif

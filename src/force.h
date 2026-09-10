@@ -16,6 +16,8 @@
 
 #include "pointers.h"
 
+#include "creator_registry.h"
+
 #include <map>
 
 namespace LAMMPS_NS {
@@ -26,9 +28,14 @@ class Improper;
 class KSpace;
 class Pair;
 
-enum { ENERGY_NONE = 0x00, ENERGY_GLOBAL = 0x01, ENERGY_ATOM = 0x02 };
-
 // clang-format off
+enum {
+  ENERGY_NONE   = 0x00,
+  ENERGY_GLOBAL = 0x01,
+  ENERGY_ATOM   = 0x02,
+  ENERGY_ONLY   = 0x04
+};
+
 enum {
   VIRIAL_NONE     = 0x00,
   VIRIAL_PAIR     = 0x01,
@@ -36,9 +43,13 @@ enum {
   VIRIAL_ATOM     = 0x04,
   VIRIAL_CENTROID = 0x08
 };
-// clang-format on
 
-enum { CENTROID_SAME = 0, CENTROID_AVAIL = 1, CENTROID_NOTAVAIL = 2 };
+enum {
+  CENTROID_SAME     = 0x00,
+  CENTROID_AVAIL    = 0x01,
+  CENTROID_NOTAVAIL = 0x02
+};
+// clang-format on
 
 class Force : protected Pointers {
  public:
@@ -86,26 +97,20 @@ class Force : protected Pointers {
   KSpace *kspace;
   char *kspace_style;
 
-  typedef Pair *(*PairCreator)(LAMMPS *);
-  typedef Bond *(*BondCreator)(LAMMPS *);
-  typedef Angle *(*AngleCreator)(LAMMPS *);
-  typedef Dihedral *(*DihedralCreator)(LAMMPS *);
-  typedef Improper *(*ImproperCreator)(LAMMPS *);
-  typedef KSpace *(*KSpaceCreator)(LAMMPS *);
+  using PairCreator = Pair *(*)(LAMMPS *);
+  using BondCreator = Bond *(*)(LAMMPS *);
+  using AngleCreator = Angle *(*)(LAMMPS *);
+  using DihedralCreator = Dihedral *(*)(LAMMPS *);
+  using ImproperCreator = Improper *(*)(LAMMPS *);
+  using KSpaceCreator = KSpace *(*)(LAMMPS *);
 
-  typedef std::map<std::string, PairCreator> PairCreatorMap;
-  typedef std::map<std::string, BondCreator> BondCreatorMap;
-  typedef std::map<std::string, AngleCreator> AngleCreatorMap;
-  typedef std::map<std::string, DihedralCreator> DihedralCreatorMap;
-  typedef std::map<std::string, ImproperCreator> ImproperCreatorMap;
-  typedef std::map<std::string, KSpaceCreator> KSpaceCreatorMap;
-
-  PairCreatorMap *pair_map;
-  BondCreatorMap *bond_map;
-  AngleCreatorMap *angle_map;
-  DihedralCreatorMap *dihedral_map;
-  ImproperCreatorMap *improper_map;
-  KSpaceCreatorMap *kspace_map;
+  // global registries of style factory functions (built-ins + plugins)
+  static CreatorRegistry<PairCreator> &pair_styles();
+  static CreatorRegistry<BondCreator> &bond_styles();
+  static CreatorRegistry<AngleCreator> &angle_styles();
+  static CreatorRegistry<DihedralCreator> &dihedral_styles();
+  static CreatorRegistry<ImproperCreator> &improper_styles();
+  static CreatorRegistry<KSpaceCreator> &kspace_styles();
 
   // index [0] is not used in these arrays
   double special_lj[4];      // 1-2, 1-3, 1-4 prefactors for LJ
@@ -152,8 +157,6 @@ class Force : protected Pointers {
 
   double memory_usage();
 
- private:
-  void create_factories();
 };
 
 }    // namespace LAMMPS_NS

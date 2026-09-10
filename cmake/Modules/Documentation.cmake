@@ -52,7 +52,6 @@ if(BUILD_DOC)
       DEPENDS docenv ${DOCENV_REQUIREMENTS_FILE}
       COMMAND ${CMAKE_COMMAND} -E copy ${DOCENV_REQUIREMENTS_FILE} ${DOC_BUILD_DIR}/requirements.txt
       COMMAND ${DOCENV_BINARY_DIR}/pip $ENV{PIP_OPTIONS} install --upgrade pip
-      COMMAND ${DOCENV_BINARY_DIR}/pip $ENV{PIP_OPTIONS} install --upgrade ${LAMMPS_DOC_DIR}/utils/converters
       COMMAND ${DOCENV_BINARY_DIR}/pip $ENV{PIP_OPTIONS} install -r ${DOC_BUILD_DIR}/requirements.txt --upgrade
     )
 
@@ -65,22 +64,22 @@ if(BUILD_DOC)
     find_package(Sphinx)
   endif()
 
-  set(MATHJAX_URL "https://github.com/mathjax/MathJax/archive/3.2.2.tar.gz" CACHE STRING "URL for MathJax tarball")
-  set(MATHJAX_MD5 "08dd6ef33ca08870220d9aade2a62845" CACHE STRING "MD5 checksum of MathJax tarball")
-  mark_as_advanced(MATHJAX_URL)
+  SetDownloadSettings(MATHJAX "MathJax"
+    "https://github.com/mathjax/MathJax/archive/3.2.2.tar.gz"
+    "4206b9645a97f431018d0b6c4021c98607d49ba4dc129f4f2ecce675e2fcba11")
   GetFallbackURL(MATHJAX_URL MATHJAX_FALLBACK)
 
   # download mathjax distribution and unpack to folder "mathjax"
   if(NOT EXISTS ${DOC_BUILD_STATIC_DIR}/mathjax/es5)
     if(EXISTS ${CMAKE_CURRENT_BINARY_DIR}/mathjax.tar.gz)
-      file(MD5 ${CMAKE_CURRENT_BINARY_DIR}/mathjax.tar.gz)
+      file(SHA256 ${CMAKE_CURRENT_BINARY_DIR}/mathjax.tar.gz DL_SHA256)
     endif()
-    if(NOT "${DL_MD5}" STREQUAL "${MATHJAX_MD5}")
+    if(NOT "${DL_SHA256}" STREQUAL "${MATHJAX_SHA256}")
       file(DOWNLOAD ${MATHJAX_URL} "${CMAKE_CURRENT_BINARY_DIR}/mathjax.tar.gz" STATUS DL_STATUS SHOW_PROGRESS)
-      file(MD5 ${CMAKE_CURRENT_BINARY_DIR}/mathjax.tar.gz DL_MD5)
-      if((NOT DL_STATUS EQUAL 0) OR (NOT "${DL_MD5}" STREQUAL "${MATHJAX_MD5}"))
+      file(SHA256 ${CMAKE_CURRENT_BINARY_DIR}/mathjax.tar.gz DL_SHA256)
+      if((NOT DL_STATUS EQUAL 0) OR (NOT "${DL_SHA256}" STREQUAL "${MATHJAX_SHA256}"))
         message(WARNING "Download from primary URL ${MATHJAX_URL} failed\nTrying fallback URL ${MATHJAX_FALLBACK}")
-        file(DOWNLOAD ${MATHJAX_FALLBACK} ${CMAKE_BINARY_DIR}/libpace.tar.gz EXPECTED_HASH MD5=${MATHJAX_MD5} SHOW_PROGRESS)
+        file(DOWNLOAD ${MATHJAX_FALLBACK} ${CMAKE_BINARY_DIR}/mathjax.tar.gz EXPECTED_HASH SHA256=${MATHJAX_SHA256} SHOW_PROGRESS)
       endif()
     else()
       message(STATUS "Using already downloaded archive ${CMAKE_BINARY_DIR}/libpace.tar.gz")

@@ -40,6 +40,7 @@ ComputeKEAtom::ComputeKEAtom(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeKEAtom::~ComputeKEAtom()
 {
+  if (copymode) return;
   memory->destroy(ke);
 }
 
@@ -47,8 +48,8 @@ ComputeKEAtom::~ComputeKEAtom()
 
 void ComputeKEAtom::init()
 {
-  if (modify->get_compute_by_style(style).size() > 1)
-    if (comm->me == 0) error->warning(FLERR, "More than one compute {}", style);
+  if ((comm->me == 0) && (modify->get_compute_by_style("^ke/atom$").size() > 1))
+    error->warning(FLERR, "More than one compute {}", style);
 }
 
 /* ---------------------------------------------------------------------- */

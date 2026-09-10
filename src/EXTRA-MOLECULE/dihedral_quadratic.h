@@ -40,7 +40,7 @@ class DihedralQuadratic : public Dihedral {
   double *k, *phi0;
   int *sign, *multiplicity;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }    // namespace LAMMPS_NS

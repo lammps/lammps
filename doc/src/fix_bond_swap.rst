@@ -233,6 +233,8 @@ This fix is part of the MC package.  It is only enabled if LAMMPS was
 built with that package.  See the :doc:`Build package <Build_package>`
 doc page for more info.
 
+This fix requires using an atom style with molecule IDs.
+
 The settings of the "special_bond" command must be 0,1,1 in order to
 use this fix, which is typical of bead-spring chains with FENE or
 harmonic bonds.  This means that pairwise interactions between bonded

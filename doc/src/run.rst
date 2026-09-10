@@ -103,14 +103,16 @@ must be done.
 
 .. note::
 
-   If your input script changes the system between 2 runs, then the
-   initial setup must be performed to ensure the change is recognized by
-   all parts of the code that are affected.  Examples are adding a
-   :doc:`fix <fix>` or :doc:`dump <dump>` or :doc:`compute <compute>`, changing
-   a :doc:`neighbor <neigh_modify>` list parameter, or writing restart file
-   which can migrate atoms between processors.  LAMMPS has no easy way to
-   check if this has happened, but it is an error to use the *pre no*
-   option in this case.
+   If your input script "changes" the system between 2 runs, then the
+   initial setup typically needs to be performed to ensure the change
+   is recognized by all parts of the code that are affected.  Examples
+   are adding a :doc:`fix <fix>` or :doc:`dump <dump>` or
+   :doc:`compute <compute>`, changing a :doc:`neighbor <neigh_modify>`
+   list parameter, using the :doc:`set <set>` command, or writing a
+   restart file via the :doc:`write_restart <write_restart>` command,
+   which can migrate atoms between processors.  LAMMPS has no easy way
+   to check if this has happened, but it is an error to use the *pre
+   no* option in these cases.
 
 If *post* is specified as "no", the full timing summary is skipped;
 only a one-line summary timing is printed.
@@ -187,16 +189,16 @@ skipped for intermediate runs.
    You might wish to specify a command that exits the run by
    jumping out of the loop, e.g.
 
-.. code-block:: LAMMPS
+   .. code-block:: LAMMPS
 
-   variable t equal temp
-   run 10000 every 100 "if '$t < 300.0' then 'jump SELF afterrun'"
+      variable t equal temp
+      run 10000 every 100 "if '$t < 300.0' then 'jump SELF afterrun'"
 
-However, this will not work.  The run command simply executes each
-command one at a time each time it pauses, then continues the run.
+   However, this will not work.  The run command simply executes each
+   command one at a time each time it pauses, then continues the run.
 
-Instead, you should use the :doc:`fix halt <fix_halt>` command, which
-has additional options for how to exit the run.
+   Instead, you should use the :doc:`fix halt <fix_halt>` command, which
+   has additional options for how to exit the run.
 
 Restrictions
 """"""""""""

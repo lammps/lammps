@@ -1,23 +1,18 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_TEST_SCATTER_VIEW_HPP
 #define KOKKOS_TEST_SCATTER_VIEW_HPP
 
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+import kokkos.scatter_view;
+import kokkos.scatter_view_impl;
+#else
+#include <Kokkos_Core.hpp>
 #include <Kokkos_ScatterView.hpp>
+#endif
 #include <gtest/gtest.h>
 
 namespace Test {
@@ -84,6 +79,8 @@ struct test_scatter_view_impl_cls<DeviceType, Layout, Duplication, Contribution,
       --scatter_access_atomic(k, 9);
       ++scatter_access_atomic(k, 10);
       scatter_access(k, 11) -= 3;
+      scatter_access(k, 0).update(0);
+      scatter_access_atomic(k, 0).update(0);
     }
   }
 
@@ -180,6 +177,8 @@ struct test_scatter_view_impl_cls<DeviceType, Layout, Duplication, Contribution,
       scatter_access(k, 0) *= 4.0;
       scatter_access_atomic(k, 1) *= 2.0;
       scatter_access(k, 2) *= 1.0;
+      scatter_access(k, 2).update(1.0);
+      scatter_access_atomic(k, 1).update(1.0);
     }
   }
 
@@ -474,7 +473,12 @@ struct test_default_scatter_sub_view {
 
       scatter_view_test_impl.run_parallel(original_sub_view.extent(0));
 
-      Kokkos::Experimental::contribute(original_sub_view, scatter_view);
+      // purposefully using a rvalue below
+      // see https://github.com/kokkos/kokkos/issues/8588
+      Kokkos::Experimental::contribute(/*original_sub_view=*/
+                                       Kokkos::subview(original_view, rangeDim0,
+                                                       rangeDim1),
+                                       scatter_view);
       Kokkos::fence();
 
       scatter_view_test_impl.validateResultsForSubview(original_view, rangeDim0,

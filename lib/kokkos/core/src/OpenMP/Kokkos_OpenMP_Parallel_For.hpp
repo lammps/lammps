@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_OPENMP_PARALLEL_FOR_HPP
 #define KOKKOS_OPENMP_PARALLEL_FOR_HPP
@@ -20,6 +7,7 @@
 #include <omp.h>
 #include <OpenMP/Kokkos_OpenMP_Instance.hpp>
 #include <KokkosExp_MDRangePolicy.hpp>
+#include <sstream>
 
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
@@ -142,8 +130,10 @@ class ParallelFor<FunctorType, Kokkos::RangePolicy<Traits...>, Kokkos::OpenMP> {
   }
 
   inline ParallelFor(const FunctorType& arg_functor, Policy arg_policy)
-      : m_instance(nullptr), m_functor(arg_functor), m_policy(arg_policy) {
-    m_instance = arg_policy.space().impl_internal_space_instance();
+      : m_instance(nullptr),
+        m_functor(arg_functor),
+        m_policy(std::move(arg_policy)) {
+    m_instance = m_policy.space().impl_internal_space_instance();
   }
 };
 
@@ -385,10 +375,32 @@ class ParallelFor<FunctorType, Kokkos::TeamPolicy<Properties...>,
       : m_instance(nullptr),
         m_functor(arg_functor),
         m_policy(arg_policy),
-        m_shmem_size(arg_policy.scratch_size(0) + arg_policy.scratch_size(1) +
+        m_shmem_size(m_policy.scratch_size(0) + m_policy.scratch_size(1) +
                      FunctorTeamShmemSize<FunctorType>::value(
-                         arg_functor, arg_policy.team_size())) {
-    m_instance = arg_policy.space().impl_internal_space_instance();
+                         m_functor, m_policy.team_size())) {
+    m_instance = m_policy.space().impl_internal_space_instance();
+
+    if ((m_policy.scratch_size(0) + FunctorTeamShmemSize<FunctorType>::value(
+                                        m_functor, m_policy.team_size())) >
+        static_cast<size_t>(TeamPolicy<Kokkos::OpenMP>::scratch_size_max(0))) {
+      std::stringstream error;
+      error << "Kokkos::parallel_for<OpenMP>: Requested too much scratch "
+               "memory on level 0. Requested: "
+            << m_policy.scratch_size(0) +
+                   FunctorTeamShmemSize<FunctorType>::value(
+                       m_functor, m_policy.team_size())
+            << ", Maximum: " << TeamPolicy<Kokkos::OpenMP>::scratch_size_max(0);
+      Kokkos::Impl::throw_runtime_exception(error.str().c_str());
+    }
+    if (m_policy.scratch_size(1) >
+        static_cast<size_t>(TeamPolicy<Kokkos::OpenMP>::scratch_size_max(1))) {
+      std::stringstream error;
+      error << "Kokkos::parallel_for<OpenMP>: Requested too much scratch "
+               "memory on level 1. Requested: "
+            << m_policy.scratch_size(1)
+            << ", Maximum: " << TeamPolicy<Kokkos::OpenMP>::scratch_size_max(1);
+      Kokkos::Impl::throw_runtime_exception(error.str().c_str());
+    }
   }
 };
 

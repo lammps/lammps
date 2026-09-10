@@ -54,7 +54,7 @@ class PairLJCutSoft : public Pair {
   double **lj1, **lj2, **lj3, **offset;
   double *cut_respa;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }    // namespace LAMMPS_NS

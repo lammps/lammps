@@ -46,7 +46,7 @@ EwaldDipoleSpin::EwaldDipoleSpin(LAMMPS *lmp) :
 
   hbar = force->hplanck/MY_2PI;                 // eV/(rad.THz)
   mub = 9.274e-4;                               // in A.Ang^2
-  mu_0 = 785.15;                                // in eV/Ang/A^2
+  mu_0 = 784.15;                                // in eV/Ang/A^2
   mub2mu0 = mub * mub * mu_0 / (4.0*MY_PI);     // in eV.Ang^3
   mub2mu0hbinv = mub2mu0 / hbar;                // in rad.THz
 }
@@ -96,7 +96,7 @@ void EwaldDipoleSpin::init()
   pair_check();
 
   int itmp;
-  auto p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
+  auto *p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
   if (p_cutoff == nullptr)
     error->all(FLERR,"KSpace style is incompatible with Pair style");
   double cutoff = *p_cutoff;
@@ -446,9 +446,16 @@ void EwaldDipoleSpin::compute(int eflag, int vflag)
     f[i][0] += spscale * ek[i][0];
     f[i][1] += spscale * ek[i][1];
     if (slabflag != 2) f[i][2] += spscale * ek[i][2];
-    fm_long[i][0] += spscale2 * tk[i][0];
-    fm_long[i][1] += spscale2 * tk[i][1];
-    if (slabflag != 2) fm_long[i][2] += spscale2 * tk[i][3];
+
+    // reciprocal-space contribution to the magnetic precession vector
+    // fm_i = -(1/hbar) dE/ds_i = -spscale2 * sp[i][3] * tk[i].
+    // the sp[i][3] factor (spin norm g_i) is needed because tk[i] only
+    // carries the contributions of the source spins, and the minus sign
+    // follows the dipole torque convention t = -muscale*(mu x tk)
+
+    fm_long[i][0] -= sp[i][3] * spscale2 * tk[i][0];
+    fm_long[i][1] -= sp[i][3] * spscale2 * tk[i][1];
+    if (slabflag != 2) fm_long[i][2] -= sp[i][3] * spscale2 * tk[i][2];
   }
 
   // sum global energy across Kspace vevs and add in volume-dependent term
@@ -773,8 +780,10 @@ void EwaldDipoleSpin::slabcorr()
   }
 
   // compute corrections
+  // the spin self term is E = (2pi/V) M_z^2 with M_z = sum sp_iz, which is
+  // consistent with the -4pi/V force/field acting on the spins below
 
-  const double e_slabcorr = MY_2PI*(spin_all*spin_all/12.0)/volume;
+  const double e_slabcorr = MY_2PI*(spin_all*spin_all)/volume;
   const double spscale = mub2mu0 * scale;
 
   if (eflag_global) energy += spscale * e_slabcorr;
@@ -782,7 +791,7 @@ void EwaldDipoleSpin::slabcorr()
   // per-atom energy
 
   if (eflag_atom) {
-    double efact = spscale * MY_2PI/volume/12.0;
+    double efact = spscale * MY_2PI/volume;
     for (int i = 0; i < nlocal; i++) {
       spz = sp[i][2]*sp[i][3];
       eatom[i] += efact * spz * spin_all;
@@ -790,11 +799,14 @@ void EwaldDipoleSpin::slabcorr()
   }
 
   // add on mag. force corrections
+  // fm_long is the precession vector, so use spscale2 (= mub2mu0hbinv)
+  // and weight by the per-atom spin norm sp[i][3]
 
-  double ffact = spscale * (-4.0*MY_PI/volume);
+  const double spscale2 = mub2mu0hbinv * scale;
+  double ffact = spscale2 * (-4.0*MY_PI/volume);
   double **fm_long = atom->fm_long;
   for (int i = 0; i < nlocal; i++) {
-    fm_long[i][2] += ffact * spin_all;
+    fm_long[i][2] += sp[i][3] * ffact * spin_all;
   }
 }
 
@@ -808,6 +820,11 @@ void EwaldDipoleSpin::spsum_musq()
   const int nlocal = atom->nlocal;
 
   musum = musqsum = mu2 = 0.0;
+
+  // spin-only systems have no charge channel and qsum_qsq() is never
+  // called, but the inherited error estimates access these members
+
+  qsum = qsqsum = q2 = 0.0;
   if (atom->sp_flag) {
     double** sp = atom->sp;
     double spx,spy,spz;
@@ -824,10 +841,12 @@ void EwaldDipoleSpin::spsum_musq()
     MPI_Allreduce(&musum_local,&musum,1,MPI_DOUBLE,MPI_SUM,world);
     MPI_Allreduce(&musqsum_local,&musqsum,1,MPI_DOUBLE,MPI_SUM,world);
 
-    //mu2 = musqsum * mub2mu0;
-    mu2 = musqsum;
+    // scale squared moment by the dipolar prefactor (analog of qqrd2e for
+    // charges/dipoles) so the g_ewald estimate and rms error are correct
+
+    mu2 = musqsum * mub2mu0;
   }
 
-  if (mu2 == 0 && comm->me == 0)
+  if (mu2 == 0)
     error->all(FLERR,"Using kspace solver EwaldDipoleSpin on system with no spins");
 }

@@ -1,10 +1,11 @@
 .. index:: fix nph/sphere
+.. index:: fix nph/sphere/kk
 .. index:: fix nph/sphere/omp
 
 fix nph/sphere command
 ======================
 
-Accelerator Variants: *nph/sphere/omp*
+Accelerator Variants: *nph/sphere/kk*, *nph/sphere/omp*
 
 Syntax
 """"""

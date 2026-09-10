@@ -52,6 +52,7 @@ fix 1 statted_grp_REACT nvt temp 800 800 100
 # fix 2 bond_react_MASTER_group temp/rescale 1 800 800 10 1
 
 thermo_style custom step temp press density f_myrxns[*] # cumulative reaction counts
+thermo_modify colname auto
 
 # restart 100 restart1 restart2
 

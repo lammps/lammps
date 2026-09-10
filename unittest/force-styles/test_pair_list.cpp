@@ -13,8 +13,9 @@
 
 #include "library.h"
 
-#include "gmock/gmock.h"
 #include "gtest/gtest.h"
+
+#include <string>
 
 const char parms[] = "print \"\"\"\n"
                      "1 2 lj126 0.3 3.5 4.0\n"

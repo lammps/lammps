@@ -158,7 +158,7 @@ static void kiss_fft(kiss_fft_cfg, const FFT_DATA *, FFT_DATA *);
     (x)->im = KISS_FFT_SIN(phase); \
   } while (0)
 
-static void kf_bfly2(FFT_DATA *Fout, const size_t fstride, const kiss_fft_cfg st, int m)
+static void kf_bfly2(FFT_DATA *Fout, const size_t fstride, kiss_fft_cfg st, int m)
 {
   FFT_DATA *Fout2;
   FFT_DATA *tw1 = st->twiddles;
@@ -178,7 +178,7 @@ static void kf_bfly2(FFT_DATA *Fout, const size_t fstride, const kiss_fft_cfg st
   } while (--m);
 }
 
-static void kf_bfly4(FFT_DATA *Fout, const size_t fstride, const kiss_fft_cfg st, const size_t m)
+static void kf_bfly4(FFT_DATA *Fout, const size_t fstride, kiss_fft_cfg st, const size_t m)
 {
   FFT_DATA *tw1, *tw2, *tw3;
   FFT_DATA scratch[6];
@@ -223,7 +223,7 @@ static void kf_bfly4(FFT_DATA *Fout, const size_t fstride, const kiss_fft_cfg st
   } while (--k);
 }
 
-static void kf_bfly3(FFT_DATA *Fout, const size_t fstride, const kiss_fft_cfg st, size_t m)
+static void kf_bfly3(FFT_DATA *Fout, const size_t fstride, kiss_fft_cfg st, size_t m)
 {
   size_t k = m;
   const size_t m2 = 2 * m;
@@ -264,7 +264,7 @@ static void kf_bfly3(FFT_DATA *Fout, const size_t fstride, const kiss_fft_cfg st
   } while (--k);
 }
 
-static void kf_bfly5(FFT_DATA *Fout, const size_t fstride, const kiss_fft_cfg st, int m)
+static void kf_bfly5(FFT_DATA *Fout, const size_t fstride, kiss_fft_cfg st, int m)
 {
   FFT_DATA *Fout0, *Fout1, *Fout2, *Fout3, *Fout4;
   int u;
@@ -329,7 +329,7 @@ static void kf_bfly5(FFT_DATA *Fout, const size_t fstride, const kiss_fft_cfg st
 }
 
 /* perform the butterfly for one stage of a mixed radix FFT */
-static void kf_bfly_generic(FFT_DATA *Fout, const size_t fstride, const kiss_fft_cfg st, int m,
+static void kf_bfly_generic(FFT_DATA *Fout, const size_t fstride, kiss_fft_cfg st, int m,
                             int p)
 {
   int u, k, q1, q;
@@ -337,7 +337,7 @@ static void kf_bfly_generic(FFT_DATA *Fout, const size_t fstride, const kiss_fft
   FFT_DATA t;
   int Norig = st->nfft;
 
-  FFT_DATA *scratch = (FFT_DATA *) KISS_FFT_TMP_ALLOC(sizeof(FFT_DATA) * p);
+  auto *scratch = (FFT_DATA *) KISS_FFT_TMP_ALLOC(sizeof(FFT_DATA) * p);
   for (u = 0; u < m; ++u) {
     k = u;
     for (q1 = 0; q1 < p; ++q1) {
@@ -363,7 +363,7 @@ static void kf_bfly_generic(FFT_DATA *Fout, const size_t fstride, const kiss_fft
 }
 
 static void kf_work(FFT_DATA *Fout, const FFT_DATA *f, const size_t fstride, int in_stride,
-                    int *factors, const kiss_fft_cfg st)
+                    int *factors, kiss_fft_cfg st)
 {
   FFT_DATA *Fout_beg = Fout;
   const int p = *factors++; /* the radix  */
@@ -482,7 +482,7 @@ static void kiss_fft_stride(kiss_fft_cfg st, const FFT_DATA *fin, FFT_DATA *fout
   if (fin == fout) {
     // NOTE: this is not really an in-place FFT algorithm.
     // It just performs an out-of-place FFT into a temp buffer
-    FFT_DATA *tmpbuf = (FFT_DATA *) KISS_FFT_TMP_ALLOC(sizeof(FFT_DATA) * st->nfft);
+    auto *tmpbuf = (FFT_DATA *) KISS_FFT_TMP_ALLOC(sizeof(FFT_DATA) * st->nfft);
     kf_work(tmpbuf, fin, 1, in_stride, st->factors, st);
     memcpy(fout, tmpbuf, sizeof(FFT_DATA) * st->nfft);
     KISS_FFT_TMP_FREE(tmpbuf);

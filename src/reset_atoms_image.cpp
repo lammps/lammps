@@ -63,17 +63,17 @@ void ResetAtomsImage::command(int narg, char **arg)
   // create computes and variables
   // must come before lmp->init so the computes are properly initialized
 
-  auto frags = modify->add_compute("frags_r_i_f all fragment/atom single yes");
-  auto chunk = modify->add_compute("chunk_r_i_f all chunk/atom c_frags_r_i_f compress yes");
-  auto flags = modify->add_compute("flags_r_i_f all property/atom ix iy iz");
+  auto *frags = modify->add_compute("frags_r_i_f all fragment/atom single yes");
+  auto *chunk = modify->add_compute("chunk_r_i_f all chunk/atom c_frags_r_i_f compress yes");
+  auto *flags = modify->add_compute("flags_r_i_f all property/atom ix iy iz");
   input->variable->set("ix_r_i_f atom c_flags_r_i_f[1]");
   input->variable->set("iy_r_i_f atom c_flags_r_i_f[2]");
   input->variable->set("iz_r_i_f atom c_flags_r_i_f[3]");
-  auto ifmin = modify->add_compute("ifmin_r_i_f all reduce/chunk chunk_r_i_f min "
+  auto *ifmin = modify->add_compute("ifmin_r_i_f all reduce/chunk chunk_r_i_f min "
                                    "v_ix_r_i_f v_iy_r_i_f v_iz_r_i_f");
-  auto ifmax = modify->add_compute("ifmax_r_i_f all reduce/chunk chunk_r_i_f max "
+  auto *ifmax = modify->add_compute("ifmax_r_i_f all reduce/chunk chunk_r_i_f max "
                                    "v_ix_r_i_f v_iy_r_i_f v_iz_r_i_f");
-  auto cdist = modify->add_compute("cdist_r_i_f all chunk/spread/atom chunk_r_i_f "
+  auto *cdist = modify->add_compute("cdist_r_i_f all chunk/spread/atom chunk_r_i_f "
                                    "c_ifmax_r_i_f[*] c_ifmin_r_i_f[*]");
 
   // initialize system since comm->borders() will be invoked

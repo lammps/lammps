@@ -48,7 +48,7 @@ enum { CONSTANT, EQUAL, ATOM };
 
 FixEHEX::FixEHEX(LAMMPS *lmp, int narg, char **arg) :
     Fix(lmp, narg, arg), region(nullptr), idregion(nullptr), x(nullptr), f(nullptr), v(nullptr),
-    mass(nullptr), rmass(nullptr), type(nullptr), scalingmask(nullptr)
+    mass(nullptr), rmass(nullptr), type(nullptr), fshake(nullptr), scalingmask(nullptr)
 {
   MPI_Comm_rank(world, &me);
 
@@ -91,6 +91,7 @@ FixEHEX::FixEHEX(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR, "Illegal fix ehex command: wrong number of parameters ");
       region = domain->get_region_by_id(arg[iarg + 1]);
       if (!region) error->all(FLERR, "Region {} for fix ehex does not exist", arg[iarg + 1]);
+      delete[] idregion;
       idregion = utils::strdup(arg[iarg + 1]);
       iarg += 2;
     }
@@ -170,28 +171,27 @@ void FixEHEX::init()
   if (group->count(igroup) == 0) error->all(FLERR, "Fix ehex group has no atoms");
 
   fshake = nullptr;
+
   if (constraints) {
+
+    // check for fix ilves:
+    if (!modify->get_fix_by_style("^ilves").empty())
+      error->all(FLERR, Error::NOLASTLINE, "Fix ehex is not compatible with fix ilves");
 
     // check if constraining algorithm is used (FixRattle inherits from FixShake)
 
-    int cnt_shake = 0;
-    int id_shake;
-    for (int i = 0; i < modify->nfix; i++) {
-      if (strcmp("rattle", modify->fix[i]->style) == 0 ||
-          strcmp("shake", modify->fix[i]->style) == 0) {
-        cnt_shake++;
-        id_shake = i;
-      }
-    }
+    auto shakefixes = modify->get_fix_by_style("^shake");
+    const auto &rattlefixes = modify->get_fix_by_style("^rattle");
+    shakefixes.insert(shakefixes.end(), rattlefixes.begin(), rattlefixes.end());
 
-    if (cnt_shake > 1)
-      error->all(FLERR, "Multiple instances of fix shake/rattle detected (not supported yet)");
-    else if (cnt_shake == 1) {
-      fshake = (dynamic_cast<FixShake *>(modify->fix[id_shake]));
-    } else if (cnt_shake == 0)
+    if (shakefixes.size() > 1)
+      error->all(FLERR, Error::NOLASTLINE,
+                 "Multiple instances of fix shake/rattle detected (not supported yet)");
+    else if (shakefixes.empty())
       error->all(
           FLERR,
           "Fix ehex was configured with keyword constrain, but shake/rattle was not defined");
+    fshake = dynamic_cast<FixShake *>(shakefixes.front());
   }
 }
 
@@ -423,7 +423,7 @@ bool FixEHEX::check_cluster(tagint *shake_atom, int n, Region *region)
 
       // check if reduced mass is used
 
-      mi = (rmass) ? rmass[lid[i]] : mass[type[lid[i]]];
+      mi = rmass ? rmass[lid[i]] : mass[type[lid[i]]];
       mcluster += mi;
 
       // accumulate centre of mass
@@ -434,7 +434,7 @@ bool FixEHEX::check_cluster(tagint *shake_atom, int n, Region *region)
 
       // take into account pbc
 
-      domain->minimum_image_big(xtemp);
+      domain->minimum_image_big(FLERR, xtemp);
 
       for (int k = 0; k < 3; k++) xcom[k] += mi * (x[lid[0]][k] + xtemp[k]);
     }
@@ -529,7 +529,7 @@ void FixEHEX::com_properties(double *vr, double *sfr, double *sfvr, double *K, d
 
       // check if reduced mass is used
 
-      mi = (rmass) ? rmass[i] : mass[type[i]];
+      mi = rmass ? rmass[i] : mass[type[i]];
 
       // accumulate total mass
 
@@ -571,7 +571,7 @@ void FixEHEX::com_properties(double *vr, double *sfr, double *sfvr, double *K, d
   *mr = buf[4];
 
   if (nlocal > 0)
-    mi = (rmass) ? rmass[0] : mass[type[0]];
+    mi = rmass ? rmass[0] : mass[type[0]];
   else
     mi = 1.0;
   if ((*mr / mi) < 1.e-14) error->all(FLERR, "Fix ehex error mass of region is close to zero");

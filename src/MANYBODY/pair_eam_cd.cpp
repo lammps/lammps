@@ -35,7 +35,7 @@ using namespace LAMMPS_NS;
 static constexpr int MAXLINE = 1024;        // This sets the maximum line length in EAM input files.
 
 PairEAMCD::PairEAMCD(LAMMPS *lmp, int _cdeamVersion)
-  : PairEAM(lmp), PairEAMAlloy(lmp), cdeamVersion(_cdeamVersion)
+  : PairEAMAlloy(lmp), cdeamVersion(_cdeamVersion)
 {
   single_enable = 0;
   restartinfo = 0;
@@ -441,7 +441,7 @@ void PairEAMCD::compute(int eflag, int vflag)
 
 void PairEAMCD::coeff(int narg, char **arg)
 {
-  PairEAMAlloy::coeff(narg, arg);
+  PairEAM::coeff(narg, arg);
 
   // Make sure the EAM file is a CD-EAM binary alloy.
 
@@ -503,7 +503,7 @@ void PairEAMCD::read_h_coeff(char *filename)
       error->one(FLERR,"Failure to seek to end-of-file for reading h(x) coeffs: {}",
                  utils::getsyserror());
 
-    auto buf = new char[MAXLINE+1];
+    auto *buf = new char[MAXLINE+1];
     auto rv = fread(buf,1,MAXLINE,fptr);
     if (rv == 0) error->one(FLERR,"Failure to read h(x) coeffs: {}", utils::getsyserror());
     buf[rv] = '\0';        // must 0-terminate buffer for string processing
@@ -674,5 +674,5 @@ void PairEAMCD::unpack_reverse_comm(int n, int *list, double *buf)
 double PairEAMCD::memory_usage()
 {
   double bytes = 2 * nmax * sizeof(double);
-  return PairEAMAlloy::memory_usage() + bytes;
+  return PairEAM::memory_usage() + bytes;
 }

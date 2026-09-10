@@ -71,7 +71,7 @@ velocity\ :math:`^2` :doc:`units <units>`.
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""

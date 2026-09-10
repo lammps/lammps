@@ -1,0 +1,51 @@
+##################################################
+# parameters of the adaptive-precision potential #
+##################################################
+# We couple an EAM potential with an ACE potential.
+variable	eamfs_file string "Cu_300K_Immel_2023.eam.fs"
+variable	ace_file string "Cu-1.yace"
+
+
+## basic stuff
+units		metal
+atom_style	apip # own atom style required for APIP
+timestep	0.001
+
+## copper with a vacancy
+#lattice		fcc 3.615
+#region		box block 0 2 0 2 0 2 units lattice
+#create_box	1 box
+#create_atoms	1 box
+#mass		1 63.546
+#displace_atoms	all random 0.1 0.1 0.1 42 units lattice
+#delete_atoms	random count 1 yes all NULL 42
+#write_data	data.validate
+read_data	data.validate
+
+
+fix		1 all nve
+thermo_style	custom step pe fnorm fmax
+
+
+# use ACE potential
+pair_style	pace
+pair_coeff	* * ${ace_file} Cu
+run		0
+
+# use adaptive-precision EAM-ACE potential with constant lambda
+pair_style	hybrid/overlay eam/fs/apip pace/apip
+pair_coeff	* * eam/fs/apip ${eamfs_file} Cu
+pair_coeff	* * pace/apip ${ace_file} Cu
+
+# use ACE of adaptive-precision potential
+set		group all apip/lambda precise
+run		0
+
+# use EAM of adaptive-precision potential
+set		group all apip/lambda fast
+run		0
+
+# Use EAM potential
+pair_style	eam/fs
+pair_coeff	* * ${eamfs_file} Cu
+run		0

@@ -34,10 +34,13 @@ class ComputeReduce : public Compute {
   void init() override;
   double compute_scalar() override;
   void compute_vector() override;
+  std::string get_thermo_colname(int) override;
   double memory_usage() override;
 
  protected:
   int mode, nvalues, input_mode;
+  std::string modestr;
+
   struct value_t {
     int which;
     int argindex;
@@ -50,6 +53,7 @@ class ComputeReduce : public Compute {
     } val;
   };
   std::vector<value_t> values;
+  [[nodiscard]] std::string valstring(int) const;
   double *onevec;
   int *replace, *indices, *owner;
   MPI_Op scalar_reduction_operation;

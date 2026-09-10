@@ -11,15 +11,11 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "atom.h"
 #include "info.h"
-#include "input.h"
 #include "library.h"
-#include "variable.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
-#include <cmath>
 #include <cstring>
 #include <functional>
 #include <vector>

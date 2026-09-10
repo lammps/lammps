@@ -46,7 +46,11 @@ using namespace FixConst;
 using namespace MathConst;
 using namespace RigidConst;
 
-typedef struct { double x,y,z; } dbl3_t;
+namespace {
+using dbl3_t = struct {
+  double x,y,z;
+};
+}
 
 /* ----------------------------------------------------------------------
    perform preforce velocity Verlet integration
@@ -389,12 +393,28 @@ void FixRigidNHOMP::compute_forces_and_torques()
 #pragma omp parallel for LMP_DEFAULT_NONE schedule(static)
 #endif
   for (int ibody = 0; ibody < nbody; ibody++) {
-    fcm[ibody][0] = all[ibody][0] + langextra[ibody][0];
-    fcm[ibody][1] = all[ibody][1] + langextra[ibody][1];
-    fcm[ibody][2] = all[ibody][2] + langextra[ibody][2];
-    torque[ibody][0] = all[ibody][3] + langextra[ibody][3];
-    torque[ibody][1] = all[ibody][4] + langextra[ibody][4];
-    torque[ibody][2] = all[ibody][5] + langextra[ibody][5];
+    fcm[ibody][0] = all[ibody][0];
+    fcm[ibody][1] = all[ibody][1];
+    fcm[ibody][2] = all[ibody][2];
+    torque[ibody][0] = all[ibody][3];
+    torque[ibody][1] = all[ibody][4];
+    torque[ibody][2] = all[ibody][5];
+  }
+
+  // add langevin friction to force and torque of each body
+
+  if (langflag) {
+#if defined(_OPENMP)
+#pragma omp parallel for LMP_DEFAULT_NONE schedule(static)
+#endif
+    for (int ibody = 0; ibody < nbody; ibody++) {
+      fcm[ibody][0] += fflag[ibody][0]*langextra[ibody][0];
+      fcm[ibody][1] += fflag[ibody][1]*langextra[ibody][1];
+      fcm[ibody][2] += fflag[ibody][2]*langextra[ibody][2];
+      torque[ibody][0] += tflag[ibody][0]*langextra[ibody][3];
+      torque[ibody][1] += tflag[ibody][1]*langextra[ibody][4];
+      torque[ibody][2] += tflag[ibody][2]*langextra[ibody][5];
+    }
   }
 
   // add gravity force to COM of each body
@@ -760,11 +780,11 @@ void FixRigidNHOMP::set_xv_thr()
     double theta_body,theta;
     double ione[3],exone[3],eyone[3],ezone[3],p[3][3];
 
-    AtomVecEllipsoid::Bonus *ebonus;
+    AtomVecEllipsoid::Bonus *ebonus = nullptr;
     if (avec_ellipsoid) ebonus = avec_ellipsoid->bonus;
-    AtomVecLine::Bonus *lbonus;
+    AtomVecLine::Bonus *lbonus = nullptr;
     if (avec_line) lbonus = avec_line->bonus;
-    AtomVecTri::Bonus *tbonus;
+    AtomVecTri::Bonus *tbonus = nullptr;
     if (avec_tri) tbonus = avec_tri->bonus;
     double **omega_one = atom->omega;
     double **angmom_one = atom->angmom;
@@ -950,9 +970,9 @@ void FixRigidNHOMP::set_v_thr()
     double *shape,*quatatom,*inertiaatom;
     double ione[3],exone[3],eyone[3],ezone[3];
 
-    AtomVecEllipsoid::Bonus *ebonus;
+    AtomVecEllipsoid::Bonus *ebonus = nullptr;
     if (avec_ellipsoid) ebonus = avec_ellipsoid->bonus;
-    AtomVecTri::Bonus *tbonus;
+    AtomVecTri::Bonus *tbonus = nullptr;
     if (avec_tri) tbonus = avec_tri->bonus;
     double **omega_one = atom->omega;
     double **angmom_one = atom->angmom;

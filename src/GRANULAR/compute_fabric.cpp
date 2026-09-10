@@ -40,7 +40,7 @@ enum { CN, BR, FN, FT };
 /* ---------------------------------------------------------------------- */
 
 ComputeFabric::ComputeFabric(LAMMPS *lmp, int narg, char **arg) :
-    Compute(lmp, narg, arg), tensor_style(nullptr)
+    Compute(lmp, narg, arg), tensor_style(nullptr), list(nullptr)
 {
   if (narg < 3) error->all(FLERR, "Illegal compute fabric command");
 
@@ -156,7 +156,7 @@ void ComputeFabric::init()
   // set size to same value as request made by force->pair
   // this should enable it to always be a copy list (e.g. for granular pstyle)
 
-  auto pairrequest = neighbor->find_request(force->pair);
+  auto *pairrequest = neighbor->find_request(force->pair);
   if (pairrequest && pairrequest->get_size())
     neighbor->add_request(this, NeighConst::REQ_SIZE | NeighConst::REQ_OCCASIONAL);
   else

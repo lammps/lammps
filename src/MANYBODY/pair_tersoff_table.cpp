@@ -606,7 +606,7 @@ void PairTersoffTable::allocateGrids()
     double d = params[iparam].d;
     double beta = params[iparam].beta;
 
-    numGridPointsBetaZetaPower=(int)(((1.0+(c*c)/(d*d)-(c*c)/(d*d+4))*beta*leadingDimensionInteractionList*GRIDDENSITY_BIJ))+2;
+    numGridPointsBetaZetaPower=(int)((1.0+(c*c)/(d*d)-(c*c)/(d*d+4))*beta*leadingDimensionInteractionList*GRIDDENSITY_BIJ)+2;
     zeta_max = MAX(zeta_max,numGridPointsBetaZetaPower);
 
     for (j=0; j<nelements; j++) {
@@ -671,7 +671,7 @@ void PairTersoffTable::allocateGrids()
     double d = params[iparam].d;
     double beta = params[iparam].beta;
 
-    numGridPointsBetaZetaPower=(int)(((1.0+(c*c)/(d*d)-(c*c)/(d*d+4))*beta*leadingDimensionInteractionList*GRIDDENSITY_BIJ))+2;
+    numGridPointsBetaZetaPower=(int)((1.0+(c*c)/(d*d)-(c*c)/(d*d+4))*beta*leadingDimensionInteractionList*GRIDDENSITY_BIJ)+2;
 
     r=0.0;
     deltaArgumentBetaZetaPower = 1.0 / GRIDDENSITY_BIJ;

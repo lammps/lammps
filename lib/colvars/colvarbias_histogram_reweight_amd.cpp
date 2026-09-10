@@ -11,88 +11,59 @@
 #include "colvarproxy.h"
 #include "colvars_memstream.h"
 
-colvarbias_reweightaMD::colvarbias_reweightaMD(char const *key)
-  : colvarbias_histogram(key), grid_count(NULL), grid_dV(NULL),
-    grid_dV_square(NULL), pmf_grid_exp_avg(NULL), pmf_grid_cumulant(NULL),
-    grad_grid_exp_avg(NULL), grad_grid_cumulant(NULL)
-{
-}
+colvarbias_reweightaMD::colvarbias_reweightaMD(colvarmodule *cvmodule_in, char const *key)
+  : colvarbias_histogram(cvmodule_in, key) {}
 
-colvarbias_reweightaMD::~colvarbias_reweightaMD() {
-  if (grid_dV) {
-    delete grid_dV;
-    grid_dV = NULL;
-  }
-  if (grid_dV_square) {
-    delete grid_dV_square;
-    grid_dV_square = NULL;
-  }
-  if (grid_count) {
-    delete grid_count;
-    grid_count = NULL;
-  }
-  if (pmf_grid_exp_avg) {
-    delete pmf_grid_exp_avg;
-    pmf_grid_exp_avg = NULL;
-  }
-  if (pmf_grid_cumulant) {
-    delete pmf_grid_cumulant;
-    pmf_grid_cumulant = NULL;
-  }
-  if (grad_grid_exp_avg) {
-    delete grad_grid_exp_avg;
-    grad_grid_exp_avg = NULL;
-  }
-  if (grad_grid_cumulant) {
-    delete grad_grid_cumulant;
-    grad_grid_cumulant = NULL;
-  }
-}
+colvarbias_reweightaMD::~colvarbias_reweightaMD() {}
 
 int colvarbias_reweightaMD::init(std::string const &conf) {
-  if (cvm::proxy->accelMD_enabled() == false) {
-    cvm::error("Error: accelerated MD in your MD engine is not enabled.\n", COLVARS_INPUT_ERROR);
+  if (cvmodule->proxy->accelMD_enabled() == false) {
+    cvmodule->error("Error: accelerated MD in your MD engine is not enabled.\n", COLVARS_INPUT_ERROR);
   }
-  cvm::main()->cite_feature("reweightaMD colvar bias implementation (NAMD)");
-  int baseclass_init_code = colvarbias_histogram::init(conf);
+  cvmodule->cite_feature("reweightaMD colvar bias implementation (NAMD)");
+  int error_code = colvarbias_histogram::init(conf);
   get_keyval(conf, "CollectAfterSteps", start_after_steps, 0);
   get_keyval(conf, "CumulantExpansion", b_use_cumulant_expansion, true);
   get_keyval(conf, "WritePMFGradients", b_write_gradients, true);
   get_keyval(conf, "historyFreq", history_freq, 0);
+  if ((history_freq % output_freq) != 0) {
+    error_code |=
+        cvmodule->error("Error: historyFreq must be a multiple of outputFreq.\n", COLVARS_INPUT_ERROR);
+  }
   b_history_files = (history_freq > 0);
-  grid_count = new colvar_grid_scalar(colvars);
+  grid_count.reset(new colvar_grid_scalar(colvars, nullptr, false, grid_conf));
   grid_count->request_actual_value();
   grid->request_actual_value();
-  pmf_grid_exp_avg = new colvar_grid_scalar(colvars);
+  pmf_grid_exp_avg.reset(new colvar_grid_scalar(colvars, grid_count));
   if (b_write_gradients) {
-    grad_grid_exp_avg = new colvar_grid_gradient(colvars);
+    grad_grid_exp_avg.reset(new colvar_grid_gradient(colvars, nullptr, grid_count));
   }
   if (b_use_cumulant_expansion) {
-    grid_dV = new colvar_grid_scalar(colvars);
-    grid_dV_square = new colvar_grid_scalar(colvars);
-    pmf_grid_cumulant = new colvar_grid_scalar(colvars);
+    grid_dV.reset(new colvar_grid_scalar(colvars, grid_count));
+    grid_dV_square.reset(new colvar_grid_scalar(colvars, grid_count));
+    pmf_grid_cumulant.reset(new colvar_grid_scalar(colvars, grid_count));
     grid_dV->request_actual_value();
     grid_dV_square->request_actual_value();
     if (b_write_gradients) {
-      grad_grid_cumulant = new colvar_grid_gradient(colvars);
+      grad_grid_cumulant.reset(new colvar_grid_gradient(colvars, nullptr, grid_count));
     }
   }
   previous_bin.assign(num_variables(), -1);
-  return baseclass_init_code;
+  return error_code;
 }
 
 int colvarbias_reweightaMD::update() {
-  colvarproxy *proxy = cvm::main()->proxy;
+  colvarproxy *proxy = cvmodule->proxy;
   int error_code = COLVARS_OK;
-  if (cvm::step_relative() >= start_after_steps) {
+  if (cvmodule->step_relative() >= start_after_steps) {
     // update base class
     error_code |= colvarbias::update();
 
     if (cvm::debug()) {
-      cvm::log("Updating histogram bias " + this->name);
+      cvmodule->log("Updating histogram bias " + this->name);
     }
 
-    if (cvm::step_relative() > 0) {
+    if (cvmodule->step_relative() > 0) {
       previous_bin = bin;
     }
 
@@ -106,8 +77,8 @@ int colvarbias_reweightaMD::update() {
         bin[i] = grid->current_bin_scalar(i);
       }
 
-      if (grid->index_ok(previous_bin) && cvm::step_relative() > 0) {
-        const cvm::real reweighting_factor = cvm::proxy->get_accelMD_factor();
+      if (grid->index_ok(previous_bin) && cvmodule->step_relative() > 0) {
+        const cvm::real reweighting_factor = cvmodule->proxy->get_accelMD_factor();
         grid_count->acc_value(previous_bin, 1.0);
         grid->acc_value(previous_bin, reweighting_factor);
         if (b_use_cumulant_expansion) {
@@ -125,8 +96,8 @@ int colvarbias_reweightaMD::update() {
           bin[i] = grid->current_bin_scalar(i, iv);
         }
 
-      if (grid->index_ok(previous_bin) && cvm::step_relative() > 0) {
-          const cvm::real reweighting_factor = cvm::proxy->get_accelMD_factor();
+      if (grid->index_ok(previous_bin) && cvmodule->step_relative() > 0) {
+          const cvm::real reweighting_factor = cvmodule->proxy->get_accelMD_factor();
           grid_count->acc_value(previous_bin, 1.0);
           grid->acc_value(previous_bin, reweighting_factor);
           if (b_use_cumulant_expansion) {
@@ -140,7 +111,7 @@ int colvarbias_reweightaMD::update() {
     }
     previous_bin.assign(num_variables(), 0);
 
-    error_code |= cvm::get_error();
+    error_code |= cvmodule->get_error();
   }
   return error_code;
 }
@@ -148,22 +119,22 @@ int colvarbias_reweightaMD::update() {
 int colvarbias_reweightaMD::write_output_files() {
   int error_code = COLVARS_OK;
   // error_code |= colvarbias_histogram::write_output_files();
-  const std::string out_name_pmf = cvm::output_prefix() + "." +
+  const std::string out_name_pmf = cvmodule->output_prefix() + "." +
                                    this->name + ".reweight";
   error_code |= write_exponential_reweighted_pmf(out_name_pmf);
-  const std::string out_count_prefix = cvm::output_prefix() + "." +
+  const std::string out_count_prefix = cvmodule->output_prefix() + "." +
                                        this->name;
   error_code |= write_count(out_count_prefix);
   const bool write_history = b_history_files &&
-                             (cvm::step_absolute() % history_freq) == 0;
+                             (cvmodule->step_absolute() % history_freq) == 0;
   if (write_history) {
     error_code |= write_exponential_reweighted_pmf(
       out_name_pmf + ".hist", true);
     error_code |= write_count(out_count_prefix + ".hist",
-                              (cvm::step_relative() > 0));
+                              (cvmodule->step_relative() > 0));
   }
   if (b_use_cumulant_expansion) {
-    const std::string out_name_cumulant_pmf = cvm::output_prefix() + "." +
+    const std::string out_name_cumulant_pmf = cvmodule->output_prefix() + "." +
                                               this->name + ".cumulant";
     error_code |= write_cumulant_expansion_pmf(out_name_cumulant_pmf);
     if (write_history) {
@@ -171,7 +142,7 @@ int colvarbias_reweightaMD::write_output_files() {
         out_name_cumulant_pmf + ".hist", true);
     }
   }
-  error_code |= cvm::get_error();
+  error_code |= cvmodule->get_error();
   return error_code;
 }
 
@@ -179,8 +150,8 @@ int colvarbias_reweightaMD::write_exponential_reweighted_pmf(
   const std::string& p_output_prefix, bool keep_open) {
   const std::string output_pmf = p_output_prefix + ".pmf";
 
-  cvm::log("Writing the accelerated MD PMF file \"" + output_pmf + "\".\n");
-  std::ostream &pmf_grid_os = cvm::proxy->output_stream(output_pmf, "PMF file");
+  cvmodule->log("Writing the accelerated MD PMF file \"" + output_pmf + "\".\n");
+  std::ostream &pmf_grid_os = cvmodule->proxy->output_stream(output_pmf, "PMF file");
   if (!pmf_grid_os) {
     return COLVARS_FILE_ERROR;
   }
@@ -193,17 +164,17 @@ int colvarbias_reweightaMD::write_exponential_reweighted_pmf(
       pmf_grid_exp_avg->set_value(i, tmp / count);
     }
   }
-  hist_to_pmf(pmf_grid_exp_avg, grid_count);
+  hist_to_pmf(pmf_grid_exp_avg.get(), grid_count.get());
   pmf_grid_exp_avg->write_multicol(pmf_grid_os);
   if (!keep_open) {
-    cvm::proxy->close_output_stream(output_pmf);
+    cvmodule->proxy->close_output_stream(output_pmf);
   }
 
   if (b_write_gradients) {
     const std::string output_grad = p_output_prefix + ".grad";
-    cvm::log("Writing the accelerated MD gradients file \"" + output_grad +
+    cvmodule->log("Writing the accelerated MD gradients file \"" + output_grad +
              "\".\n");
-    std::ostream &grad_grid_os = cvm::proxy->output_stream(output_grad, "gradient file");
+    std::ostream &grad_grid_os = cvmodule->proxy->output_stream(output_grad, "gradient file");
     if (!grad_grid_os) {
       return COLVARS_FILE_ERROR;
     }
@@ -216,7 +187,7 @@ int colvarbias_reweightaMD::write_exponential_reweighted_pmf(
     }
     grad_grid_exp_avg->write_multicol(grad_grid_os);
     if (!keep_open) {
-      cvm::proxy->close_output_stream(output_grad);
+      cvmodule->proxy->close_output_stream(output_grad);
     }
   }
 
@@ -226,23 +197,23 @@ int colvarbias_reweightaMD::write_exponential_reweighted_pmf(
 int colvarbias_reweightaMD::write_cumulant_expansion_pmf(
   const std::string& p_output_prefix, bool keep_open) {
   const std::string output_pmf = p_output_prefix + ".pmf";
-  cvm::log("Writing the accelerated MD PMF file using cumulant expansion: \"" + output_pmf + "\".\n");
-  std::ostream &pmf_grid_cumulant_os = cvm::proxy->output_stream(output_pmf, "PMF file");
+  cvmodule->log("Writing the accelerated MD PMF file using cumulant expansion: \"" + output_pmf + "\".\n");
+  std::ostream &pmf_grid_cumulant_os = cvmodule->proxy->output_stream(output_pmf, "PMF file");
   if (!pmf_grid_cumulant_os) {
     return COLVARS_FILE_ERROR;
   }
-  compute_cumulant_expansion_factor(grid_dV, grid_dV_square,
-                                    grid_count, pmf_grid_cumulant);
-  hist_to_pmf(pmf_grid_cumulant, grid_count);
+  compute_cumulant_expansion_factor(grid_dV.get(), grid_dV_square.get(),
+                                    grid_count.get(), pmf_grid_cumulant.get());
+  hist_to_pmf(pmf_grid_cumulant.get(), grid_count.get());
   pmf_grid_cumulant->write_multicol(pmf_grid_cumulant_os);
   if (!keep_open) {
-    cvm::proxy->close_output_stream(output_pmf);
+    cvmodule->proxy->close_output_stream(output_pmf);
   }
 
   if (b_write_gradients) {
     const std::string output_grad = p_output_prefix + ".grad";
-    cvm::log("Writing the accelerated MD gradients file \"" + output_grad + "\".\n");
-    std::ostream &grad_grid_os = cvm::proxy->output_stream(output_grad, "grad file");
+    cvmodule->log("Writing the accelerated MD gradients file \"" + output_grad + "\".\n");
+    std::ostream &grad_grid_os = cvmodule->proxy->output_stream(output_grad, "grad file");
     if (!grad_grid_os) {
       return COLVARS_FILE_ERROR;
     }
@@ -254,21 +225,21 @@ int colvarbias_reweightaMD::write_cumulant_expansion_pmf(
       }
     }
     grad_grid_cumulant->write_multicol(grad_grid_os);
-    cvm::proxy->close_output_stream(output_grad);
+    cvmodule->proxy->close_output_stream(output_grad);
   }
   return COLVARS_OK;
 }
 
 int colvarbias_reweightaMD::write_count(const std::string& p_output_prefix, bool keep_open) {
   const std::string output_name = p_output_prefix + ".count";
-  cvm::log("Writing the accelerated MD count file \""+output_name+"\".\n");
-  std::ostream &grid_count_os = cvm::proxy->output_stream(output_name, "count file");
+  cvmodule->log("Writing the accelerated MD count file \""+output_name+"\".\n");
+  std::ostream &grid_count_os = cvmodule->proxy->output_stream(output_name, "count file");
   if (!grid_count_os) {
     return COLVARS_FILE_ERROR;
   }
   grid_count->write_multicol(grid_count_os);
   if (!keep_open) {
-    cvm::proxy->close_output_stream(output_name);
+    cvmodule->proxy->close_output_stream(output_name);
   }
   return COLVARS_OK;
 }
@@ -277,7 +248,7 @@ void colvarbias_reweightaMD::hist_to_pmf(
   colvar_grid_scalar* hist,
   const colvar_grid_scalar* hist_count) const
 {
-  colvarproxy *proxy = cvm::main()->proxy;
+  colvarproxy *proxy = cvmodule->proxy;
   if (hist->raw_data_num() == 0) return;
   const cvm::real kbt = proxy->boltzmann() * proxy->target_temperature();
   bool first_min_element = true;
@@ -330,7 +301,7 @@ void colvarbias_reweightaMD::compute_cumulant_expansion_factor(
   const colvar_grid_scalar* hist_count,
   colvar_grid_scalar* cumulant_expansion_factor) const
 {
-  colvarproxy *proxy = cvm::main()->proxy;
+  colvarproxy *proxy = cvmodule->proxy;
   const cvm::real beta = 1.0 / (proxy->boltzmann() * proxy->target_temperature());
   size_t i = 0;
   for (i = 0; i < hist_dV->raw_data_num(); ++i) {

@@ -129,6 +129,23 @@
     "  url = {https://doi.org/10.1002/jcc.26075}\n"
     "}\n";
 
+  paper_count_[std::string("Fiorin2024")] = 0;
+  paper_url_[std::string("Fiorin2024")] = "https://doi.org/10.1021/acs.jpcb.4c05604";
+  paper_bibtex_[std::string("Fiorin2024")] =
+    "\n"
+    "@article{Fiorin2024,\n"
+    "  author = {Fiorin, Giacomo and Marinelli, Fabrizio and Forrest, Lucy R. and Chen, Haochuan and Chipot, Christophe and Kohlmeyer, Axel and Santuz, Hubert and H{\\'e}nin, J{\\'e}rôme},\n"
+    "  title = {Expanded Functionality and Portability for the Colvars Library},\n"
+    "  journal = {J. Phys. Chem. {B}},\n"
+    "  volume = {128},\n"
+    "  number = {45},\n"
+    "  pages = {11108--11123},\n"
+    "  year = {2024},\n"
+    "  doi = {10.1021/acs.jpcb.4c05604},\n"
+    "  pmid = 39501453,\n"
+    "  url = { https://doi.org/10.1021/acs.jpcb.4c05604}\n"
+    "}\n";
+
   paper_count_[std::string("Fu2016")] = 0;
   paper_url_[std::string("Fu2016")] = "https://doi.org/10.1021/acs.jctc.6b00447";
   paper_bibtex_[std::string("Fu2016")] =
@@ -225,6 +242,20 @@
     "  pages = {33--38},\n"
     "  doi = {10.1016/0263-7855(96)00018-5},\n"
     "  url = {https://doi.org/10.1016/0263-7855(96)00018-5}\n"
+    "}\n";
+
+  paper_count_[std::string("Lagardere2023")] = 0;
+  paper_url_[std::string("Lagardere2023")] = "https://arxiv.org/abs/2307.08006";
+  paper_bibtex_[std::string("Lagardere2023")] =
+    "\n"
+    "@misc{Lagardere2023,\n"
+    "      title={Lambda-ABF: Simplified, Accurate and Cost-effective Alchemical Free Energy Computations},\n"
+    "      author={Louis Lagard\\`ere and Lise Maurin and Olivier Adjoua and Krystel El Hage and Pierre Monmarch\\'e and Jean-Philip Piquemal and J\\'er\\^ome H\\'enin},\n"
+    "      year={2023},\n"
+    "      eprint={2307.08006},\n"
+    "      archivePrefix={arXiv},\n"
+    "      primaryClass={physics.chem-ph},\n"
+    "      url = {https://arxiv.org/abs/2307.08006}\n"
     "}\n";
 
   paper_count_[std::string("Lesage2017")] = 0;
@@ -342,6 +373,45 @@
     "  doi = {10.1021/ct500320c},\n"
     "  pmid = {26588273},\n"
     "  url = {https://doi.org/10.1021/ct500320c}\n"
+    "}\n";
+
+  paper_count_[std::string("Invernizzi2020")] = 0;
+  paper_url_[std::string("Invernizzi2020")] = "https://pubs.acs.org/doi/10.1021/acs.jpclett.0c00497";
+  paper_bibtex_[std::string("Invernizzi2020")] =
+    "\n"
+    "@article{Invernizzi2020,\n"
+    "	title = {Rethinking {Metadynamics}: {From} {Bias} {Potentials} to {Probability} {Distributions}},\n"
+    "	volume = {11},\n"
+    "	issn = {1948-7185, 1948-7185},\n"
+    "	shorttitle = {Rethinking {Metadynamics}},\n"
+    "	url = {https://pubs.acs.org/doi/10.1021/acs.jpclett.0c00497},\n"
+    "	doi = {10.1021/acs.jpclett.0c00497},\n"
+    "	number = {7},\n"
+    "	urldate = {2020-09-30},\n"
+    "	journal = {J. Phys. Chem. Lett.},\n"
+    "	author = {Invernizzi, Michele and Parrinello, Michele},\n"
+    "	month = apr,\n"
+    "	year = {2020},\n"
+    "	pages = {2731--2736},\n"
+    "}\n";
+
+  paper_count_[std::string("Invernizzi2022")] = 0;
+  paper_url_[std::string("Invernizzi2022")] = "https://doi.org/10.1021/acs.jctc.2c00152";
+  paper_bibtex_[std::string("Invernizzi2022")] =
+    "\n"
+    "@article{Invernizzi2022,\n"
+    "	title = {Exploration vs {Convergence} {Speed} in {Adaptive}-{Bias} {Enhanced} {Sampling}},\n"
+    "	volume = {18},\n"
+    "	issn = {1549-9618},\n"
+    "	url = {https://doi.org/10.1021/acs.jctc.2c00152},\n"
+    "	doi = {10.1021/acs.jctc.2c00152},\n"
+    "	number = {6},\n"
+    "	urldate = {2024-07-02},\n"
+    "	journal = {J. Chem. Theory Comput.},\n"
+    "	author = {Invernizzi, Michele and Parrinello, Michele},\n"
+    "	month = jun,\n"
+    "	year = {2022},\n"
+    "	pages = {3988--3996},\n"
     "}\n";
 
   paper_count_[std::string("n/a")] = 0;
@@ -489,6 +559,42 @@
   feature_count_[std::string("Multi-Map collective variables")] = 0;
   feature_paper_map_[std::string("Multi-Map collective variables")] = "Fiorin2020";
 
+  feature_count_[std::string("Colvars-GROMACS interface")] = 0;
+  feature_paper_map_[std::string("Colvars-GROMACS interface")] = "Fiorin2024";
+
+  feature_count_[std::string("gspath colvar component")] = 0;
+  feature_paper_map_[std::string("gspath colvar component")] = "Fiorin2024";
+
+  feature_count_[std::string("gzpath colvar component")] = 0;
+  feature_paper_map_[std::string("gzpath colvar component")] = "Fiorin2024";
+
+  feature_count_[std::string("linearCombination colvar component")] = 0;
+  feature_paper_map_[std::string("linearCombination colvar component")] = "Fiorin2024";
+
+  feature_count_[std::string("gspathCV colvar component")] = 0;
+  feature_paper_map_[std::string("gspathCV colvar component")] = "Fiorin2024";
+
+  feature_count_[std::string("gzpathCV colvar component")] = 0;
+  feature_paper_map_[std::string("gzpathCV colvar component")] = "Fiorin2024";
+
+  feature_count_[std::string("aspathCV colvar component")] = 0;
+  feature_paper_map_[std::string("aspathCV colvar component")] = "Fiorin2024";
+
+  feature_count_[std::string("azpathCV colvar component")] = 0;
+  feature_paper_map_[std::string("azpathCV colvar component")] = "Fiorin2024";
+
+  feature_count_[std::string("Custom functions (Lepton)")] = 0;
+  feature_paper_map_[std::string("Custom functions (Lepton)")] = "Fiorin2024";
+
+  feature_count_[std::string("Scripted functions (Tcl)")] = 0;
+  feature_paper_map_[std::string("Scripted functions (Tcl)")] = "Fiorin2024";
+
+  feature_count_[std::string("ABMD bias")] = 0;
+  feature_paper_map_[std::string("ABMD bias")] = "Fiorin2024";
+
+  feature_count_[std::string("Updated multiple-walker ABF implementation")] = 0;
+  feature_paper_map_[std::string("Updated multiple-walker ABF implementation")] = "Fiorin2024";
+
   feature_count_[std::string("Umbrella-integration eABF estimator")] = 0;
   feature_paper_map_[std::string("Umbrella-integration eABF estimator")] = "Fu2016";
 
@@ -525,6 +631,15 @@
   feature_count_[std::string("VMD engine")] = 0;
   feature_paper_map_[std::string("VMD engine")] = "Humphrey1996";
 
+  feature_count_[std::string("alchLambda colvar component")] = 0;
+  feature_paper_map_[std::string("alchLambda colvar component")] = "Lagardere2023";
+
+  feature_count_[std::string("alchFLambda colvar component")] = 0;
+  feature_paper_map_[std::string("alchFLambda colvar component")] = "Lagardere2023";
+
+  feature_count_[std::string("Tinker-HP interface")] = 0;
+  feature_paper_map_[std::string("Tinker-HP interface")] = "Lagardere2023";
+
   feature_count_[std::string("eABF implementation")] = 0;
   feature_paper_map_[std::string("eABF implementation")] = "Lesage2017";
 
@@ -555,38 +670,14 @@
   feature_count_[std::string("ALB colvar bias implementation")] = 0;
   feature_paper_map_[std::string("ALB colvar bias implementation")] = "White2014";
 
-  feature_count_[std::string("Colvars-GROMACS interface")] = 0;
-  feature_paper_map_[std::string("Colvars-GROMACS interface")] = "n/a";
+  feature_count_[std::string("OPES")] = 0;
+  feature_paper_map_[std::string("OPES")] = "Invernizzi2020";
 
-  feature_count_[std::string("gspath colvar component")] = 0;
-  feature_paper_map_[std::string("gspath colvar component")] = "n/a";
-
-  feature_count_[std::string("gzpath colvar component")] = 0;
-  feature_paper_map_[std::string("gzpath colvar component")] = "n/a";
-
-  feature_count_[std::string("linearCombination colvar component")] = 0;
-  feature_paper_map_[std::string("linearCombination colvar component")] = "n/a";
-
-  feature_count_[std::string("gspathCV colvar component")] = 0;
-  feature_paper_map_[std::string("gspathCV colvar component")] = "n/a";
-
-  feature_count_[std::string("gzpathCV colvar component")] = 0;
-  feature_paper_map_[std::string("gzpathCV colvar component")] = "n/a";
-
-  feature_count_[std::string("aspathCV colvar component")] = 0;
-  feature_paper_map_[std::string("aspathCV colvar component")] = "n/a";
-
-  feature_count_[std::string("azpathCV colvar component")] = 0;
-  feature_paper_map_[std::string("azpathCV colvar component")] = "n/a";
+  feature_count_[std::string("OPES explore or adaptive kernels")] = 0;
+  feature_paper_map_[std::string("OPES explore or adaptive kernels")] = "Invernizzi2022";
 
   feature_count_[std::string("coordNum pairlist")] = 0;
   feature_paper_map_[std::string("coordNum pairlist")] = "n/a";
 
-  feature_count_[std::string("Custom functions (Lepton)")] = 0;
-  feature_paper_map_[std::string("Custom functions (Lepton)")] = "n/a";
-
-  feature_count_[std::string("Scripted functions (Tcl)")] = 0;
-  feature_paper_map_[std::string("Scripted functions (Tcl)")] = "n/a";
-
-  feature_count_[std::string("ABMD bias")] = 0;
-  feature_paper_map_[std::string("ABMD bias")] = "n/a";
+  feature_count_[std::string("torchANN colvar component")] = 0;
+  feature_paper_map_[std::string("torchANN colvar component")] = "n/a";

@@ -1,8 +1,0 @@
-material Ar real
-mass_density  constant
-  density 0.854258
-end
-electric_field linear
-permittivity 
-end
-end

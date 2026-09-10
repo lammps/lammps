@@ -89,6 +89,7 @@ FixViscousSphere::FixViscousSphere(LAMMPS *_lmp, int narg, char **arg) :
 
 FixViscousSphere::~FixViscousSphere()
 {
+  if (copymode) return;
   memory->destroy(scaleval);
   delete[] scalegamma;
   delete[] scalevarid;

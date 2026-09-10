@@ -79,7 +79,7 @@ potentials from `openkim.org <openkim_>`_, you can also install the
 
    sudo apt-get install openkim-models
 
-Or use the `KIM-API commands <https://openkim.org/doc/usage/obtaining-models/#installing_api>`_
+Or use the `KIM-API commands <https://openkim.org/doc/usage/obtaining-models/#source_install>`_
 to download and install individual models.
 
 This LAMMPS executable can then be used in the usual way to run input

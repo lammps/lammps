@@ -45,6 +45,7 @@ class FixRigidSmall : public Fix {
   void copy_arrays(int, int, int) override;
   void set_arrays(int) override;
   void set_molecule(int, tagint, int, double *, double *, double *) override;
+  virtual void resample_momenta(int, int, class RanPark *, double);
 
   int pack_exchange(int, double *) override;
   int unpack_exchange(int, double *) override;
@@ -62,25 +63,10 @@ class FixRigidSmall : public Fix {
   void zero_rotation() override;
   int modify_param(int, char **) override;
   void *extract(const char *, int &) override;
-  double extract_ke();
-  double extract_erotational();
+  virtual double extract_ke();
+  virtual double extract_erotational();
   double compute_scalar() override;
   double memory_usage() override;
-
- protected:
-  double dtv, dtf, dtq;
-  double *step_respa;
-  int triclinic;
-
-  char *inpfile;       // file to read rigid body attributes from
-  int setupflag;       // 1 if body properties are setup, else 0
-  int earlyflag;       // 1 if forces/torques are computed at post_force()
-  int commflag;        // various modes of forward/reverse comm
-  int customflag;      // 1 if custom property/variable define bodies
-  int nbody;           // total # of rigid bodies
-  int nlinear;         // total # of linear rigid bodies
-  tagint maxmol;       // max mol-ID
-  double maxextent;    // furthest distance from body owner to body atom
 
   struct Body {
     int natoms;            // total number of atoms in body
@@ -104,6 +90,21 @@ class FixRigidSmall : public Fix {
     imageint image;        // image flags of xcm
     imageint dummy;        // dummy entry for better alignment
   };
+
+ protected:
+  double dtv, dtf, dtq;
+  double *step_respa;
+  int triclinic;
+
+  char *inpfile;       // file to read rigid body attributes from
+  int setupflag;       // 1 if body properties are setup, else 0
+  int earlyflag;       // 1 if forces/torques are computed at post_force()
+  int commflag;        // various modes of forward/reverse comm
+  int customflag;      // 1 if custom property/variable define bodies
+  bigint nbody;        // total # of rigid bodies (supports >2^31)
+  int nlinear;         // total # of linear rigid bodies
+  tagint maxmol;       // max mol-ID
+  double maxextent;    // furthest distance from body owner to body atom
 
   Body *body;         // list of rigid bodies, owned and ghost
   int nlocal_body;    // # of owned rigid bodies
@@ -197,7 +198,7 @@ class FixRigidSmall : public Fix {
 
   // local methods
 
-  void image_shift();
+  virtual void image_shift();
   void set_xv();
   void set_v();
   void create_bodies(tagint *);
@@ -207,10 +208,10 @@ class FixRigidSmall : public Fix {
   void remove_bias(int, double *);
   void restore_bias(int, double *);
   virtual void compute_forces_and_torques();
-  void enforce2d();
+  virtual void enforce2d();
   void readfile(int, double **, int *);
-  void grow_body();
-  void reset_atom2body();
+  virtual void grow_body();
+  virtual void reset_atom2body();
 
   // callback function for rendezvous communication
 

@@ -38,7 +38,7 @@ class ComputeTempUef : public ComputeTemp {
  protected:
   bool rot_flag;
   void virial_rot(double *, const double[3][3]);
-  int ifix_uef;
+  class FixNHUef *fix_uef = nullptr;
 };
 
 }    // namespace LAMMPS_NS

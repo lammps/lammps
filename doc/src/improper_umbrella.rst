@@ -1,10 +1,11 @@
 .. index:: improper_style umbrella
+.. index:: improper_style umbrella/kk
 .. index:: improper_style umbrella/omp
 
 improper_style umbrella command
 ===============================
 
-Accelerator Variants: *umbrella/omp*
+Accelerator Variants: *umbrella/kk*, *umbrella/omp*
 
 Syntax
 """"""
@@ -36,8 +37,9 @@ commonly referred to as a classic inversion and used in the
 where :math:`K` is the force constant and :math:`\omega` is the angle between the IL
 axis and the IJK plane:
 
-.. image:: JPG/umbrella.jpg
+.. image:: JPG/umbrella.png
    :align: center
+   :width: 50%
 
 If :math:`\omega_0 = 0` the potential term has a minimum for the planar
 structure.  Otherwise it has two minima at :math:`\omega +/- \omega_0`,
@@ -59,6 +61,15 @@ commands:
 .. include:: accel_styles.rst
 
 ----------
+
+Symmetry convention
+"""""""""""""""""""
+
+For the *umbrella* improper style, the first and fourth atoms in the
+quadruplet are atoms of symmetry; only the second and third atoms are
+considered interchangeable.  This convention is relevant for operations
+that require knowledge of how atoms are ordered, such as automatic
+assignment of new improper types by :doc:`fix bond/react <fix_bond_react>`.
 
 Restrictions
 """"""""""""

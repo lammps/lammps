@@ -14,6 +14,16 @@
 
 By submitting this pull request, I agree, that my contribution will be included in LAMMPS and redistributed under either the GNU General Public License version 2 (GPL v2) or the GNU Lesser General Public License version 2.1 (LGPL v2.1).
 
+**Artificial Intelligence (AI) Tools Usage**
+
+<!--Please update the following sentence as needed in case you were using AI tools to
+generate code.  Please mention which specific AI tool or tools you were using and which
+parts of the code were AI generated versus the parts written by a human.  The use of AI
+tools for checking spelling and syntax does not need to be reported.-->
+
+By submitting this pull request, I confirm that I did NOT use any AI tools to generate
+all or parts of the code and modifications in this pull request.
+
 **Backward Compatibility**
 
 <!--Please state whether any changes in the pull request will break backward compatibility for inputs, and - if yes - explain what has been changed and why-->

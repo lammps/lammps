@@ -25,7 +25,16 @@ if(NOT Kokkos_INSTALL_TESTING)
   install(FILES "${Kokkos_BINARY_DIR}/KokkosConfig.cmake" "${Kokkos_BINARY_DIR}/KokkosConfigCommon.cmake"
                 "${Kokkos_BINARY_DIR}/KokkosConfigVersion.cmake" DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/Kokkos
   )
-  install(EXPORT KokkosTargets NAMESPACE Kokkos:: DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/Kokkos)
+  if(Kokkos_ENABLE_EXPERIMENTAL_CXX20_MODULES)
+    install(
+      EXPORT KokkosTargets
+      NAMESPACE Kokkos::
+      DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/Kokkos
+      CXX_MODULES_DIRECTORY .
+    )
+  else()
+    install(EXPORT KokkosTargets NAMESPACE Kokkos:: DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/Kokkos)
+  endif()
   export(EXPORT KokkosTargets NAMESPACE Kokkos:: FILE ${Kokkos_BINARY_DIR}/KokkosTargets.cmake)
 
   # Required to be a TriBITS-compliant external package

@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_OPENACC_PARALLEL_REDUCE_TEAM_HPP
 #define KOKKOS_OPENACC_PARALLEL_REDUCE_TEAM_HPP
@@ -174,8 +161,8 @@ parallel_reduce(const Impl::TeamThreadRangeBoundariesStruct<
   value_type tmp;
   wrapped_reducer.init(&tmp);
 
-  iType j_start =
-      loop_boundaries.team.team_rank() / loop_boundaries.team.vector_length();
+  iType j_start = loop_boundaries.member.team_rank() /
+                  loop_boundaries.member.vector_length();
   if (j_start == 0) {
 #pragma acc loop seq
     for (iType i = loop_boundaries.start; i < loop_boundaries.end; i++)
@@ -202,8 +189,8 @@ parallel_reduce(const Impl::TeamThreadRangeBoundariesStruct<
   value_type tmp;
   wrapped_reducer.init(&tmp);
 
-  iType j_start =
-      loop_boundaries.team.team_rank() / loop_boundaries.team.vector_length();
+  iType j_start = loop_boundaries.member.team_rank() /
+                  loop_boundaries.member.vector_length();
   if (j_start == 0) {
 #pragma acc loop seq
     for (iType i = loop_boundaries.start; i < loop_boundaries.end; i++)
@@ -232,8 +219,8 @@ parallel_reduce(const Impl::ThreadVectorRangeBoundariesStruct<
   value_type tmp;
   wrapped_reducer.init(&tmp);
 
-  iType j_start =
-      loop_boundaries.team.team_rank() % loop_boundaries.team.vector_length();
+  iType j_start = loop_boundaries.member.team_rank() %
+                  loop_boundaries.member.vector_length();
   if (j_start == 0) {
 #pragma acc loop seq
     for (iType i = loop_boundaries.start; i < loop_boundaries.end; i++) {
@@ -261,8 +248,8 @@ parallel_reduce(const Impl::ThreadVectorRangeBoundariesStruct<
   value_type tmp;
   wrapped_reducer.init(&tmp);
 
-  iType j_start =
-      loop_boundaries.team.team_rank() % loop_boundaries.team.vector_length();
+  iType j_start = loop_boundaries.member.team_rank() %
+                  loop_boundaries.member.vector_length();
   if (j_start == 0) {
 #pragma acc loop seq
     for (iType i = loop_boundaries.start; i < loop_boundaries.end; i++) {
@@ -292,8 +279,8 @@ KOKKOS_INLINE_FUNCTION void parallel_reduce(
   value_type tmp;
   wrapped_reducer.init(&tmp);
 
-  iType j_start =
-      loop_boundaries.team.team_rank() % loop_boundaries.team.vector_length();
+  iType j_start = loop_boundaries.member.team_rank() %
+                  loop_boundaries.member.vector_length();
   if (j_start == 0) {
 #pragma acc loop seq
     for (iType i = loop_boundaries.start; i < loop_boundaries.end; i++) {
@@ -337,7 +324,6 @@ parallel_reduce(const Impl::TeamThreadRangeBoundariesStruct<
   value_type tmp;
   wrapped_reducer.init(&tmp);
 
-  ValueType tmp = ValueType();
 #pragma acc loop worker reduction(+ : tmp)
   for (iType i = loop_boundaries.start; i < loop_boundaries.end; i++)
     lambda(i, tmp);

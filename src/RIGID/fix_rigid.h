@@ -138,8 +138,8 @@ class FixRigid : public Fix {
   class AtomVecTri *avec_tri;
 
   void image_shift();
-  void set_xv();
-  void set_v();
+  virtual void set_xv();
+  virtual void set_v();
   void setup_bodies_static();
   void setup_bodies_dynamic();
   void apply_langevin_thermostat();

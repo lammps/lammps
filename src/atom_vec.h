@@ -15,7 +15,6 @@
 #define LMP_ATOM_VEC_H
 
 #include "pointers.h"    // IWYU pragma: export
-#include <vector>
 
 namespace LAMMPS_NS {
 
@@ -39,8 +38,7 @@ class AtomVec : protected Pointers {
   int size_data_atom;    // number of values in Atom line
   int size_data_vel;     // number of values in Velocity line
   int xcol_data;         // column (1-N) where x is in Atom line
-  int maxexchange;       // max size of exchanged atom
-                         // only needs to be set if size > BUFEXTRA
+  int maxexchange;       // max size of exchanged atom from bonds, angles, etc.
 
   int bonus_flag;                // 1 if stores bonus data
   int size_forward_bonus;        // # in forward bonus comm
@@ -79,6 +77,7 @@ class AtomVec : protected Pointers {
   virtual void grow(int);
   virtual void grow_pointers() {}
   virtual void copy(int, int, int);
+  void grow_default_pointers(tagint *, int *, int *, imageint *, double **, double **, double **);
 
   virtual void copy_bonus(int, int, int) {}
   virtual void clear_bonus() {}
@@ -160,6 +159,7 @@ class AtomVec : protected Pointers {
 
   virtual double memory_usage();
   virtual double memory_usage_bonus() { return 0; }
+  double **x, **v, **f;  // Note, these pointers will be undefined by default in hybridized child classes
 
  protected:
   int nmax;             // local copy of atom->nmax
@@ -167,10 +167,10 @@ class AtomVec : protected Pointers {
   int deform_groupbit;
   double *h_rate;
 
+  // Note, these pointers will be undefined by default in hybridized child classes
   tagint *tag;    // peratom fields common to all styles
   int *type, *mask;
   imageint *image;
-  double **x, **v, **f;
 
   // copies of original unrotated fields for write_data for general triclinic
 

@@ -37,17 +37,14 @@ using namespace FixConst;
 FixBrownianAsphere::FixBrownianAsphere(LAMMPS *lmp, int narg, char **arg) :
     FixBrownianBase(lmp, narg, arg), avec(nullptr)
 {
-  if (!gamma_t_eigen_flag || !gamma_r_eigen_flag) {
-    error->all(FLERR, "Illegal fix brownian command.");
-  }
-
-  if (gamma_t_flag || gamma_r_flag) error->all(FLERR, "Illegal fix brownian command.");
+  if (gamma_t_flag || gamma_r_flag)
+    error->all(FLERR, "Keywords gamma_t or gamma_r are not compatible with fix {}", style);
+  if (!gamma_t_eigen_flag || !gamma_r_eigen_flag)
+    error->all(FLERR, "Keywords gamma_t_eigen and gamma_r_eigen are required for fix {}", style);
 
   if (dipole_flag && !atom->mu_flag)
-    error->all(FLERR, "Fix brownian/asphere dipole requires atom attribute mu");
-
-  if (!atom->ellipsoid_flag)
-    error->all(FLERR, "Fix brownian/asphere requires atom style ellipsoid");
+    error->all(FLERR, "Fix {} dipole requires atom attribute mu", style);
+  if (!atom->ellipsoid_flag) error->all(FLERR, "Fix {} requires atom style ellipsoid", style);
 
   if (planar_rot_flag && (comm->me == 0)) {
     error->warning(FLERR, "Ignoring first two entries of gamma_r_eigen since rotation is planar.");

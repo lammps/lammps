@@ -28,6 +28,7 @@
 #include "neighbor.h"
 
 #include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -37,7 +38,7 @@ static constexpr double SMALL =     0.001;
 
 /* ---------------------------------------------------------------------- */
 
-ImproperCossq::ImproperCossq(LAMMPS *lmp) : Improper(lmp)
+ImproperCossq::ImproperCossq(LAMMPS *lmp) : Improper(lmp), k(nullptr), chi(nullptr)
 {
   // the first atom in the quadruplet is the atom of symmetry
 
@@ -48,6 +49,8 @@ ImproperCossq::ImproperCossq(LAMMPS *lmp) : Improper(lmp)
 
 ImproperCossq::~ImproperCossq()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(k);

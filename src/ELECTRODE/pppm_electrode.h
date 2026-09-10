@@ -61,31 +61,6 @@ class PPPMElectrode : public PPPM, public ElectrodeKSpace {
   void compute_gf_ik() override;
   void compute_gf_ad() override;
 
-  /* ----------------------------------------------------------------------
-     denominator for Hockney-Eastwood Green's function
-       of x,y,z = sin(kx*deltax/2), etc
-
-              inf                 n-1
-     S(n,k) = Sum  W(k+pi*j)**2 = Sum b(l)*(z*z)**l
-             j=-inf               l=0
-
-            = -(z*z)**n /(2n-1)! * (d/dx)**(2n-1) cot(x)  at z = sin(x)
-     gf_b = denominator expansion coeffs
-  ------------------------------------------------------------------------- */
-
-  inline double gf_denom(const double &x, const double &y, const double &z) const
-  {
-    double sx, sy, sz;
-    sz = sy = sx = 0.0;
-    for (int l = order - 1; l >= 0; l--) {
-      sx = gf_b[l] + sx * x;
-      sy = gf_b[l] + sy * y;
-      sz = gf_b[l] + sz * z;
-    }
-    double s = sx * sy * sz;
-    return s * s;
-  };
-
  private:
   int compute_step;
   int last_source_grpbit;
@@ -93,8 +68,8 @@ class PPPMElectrode : public PPPM, public ElectrodeKSpace {
   void start_compute();
   void make_rho_in_brick(int, FFT_SCALAR ***, bool);
   void project_psi(double *, int);
-  void one_step_multiplication(bigint *, double *, double **, double **, int const, bool);
-  void two_step_multiplication(bigint *, double *, double **, double **, int const, bool);
+  void one_step_multiplication(bigint *, double *, double **, double **, const int, bool);
+  void two_step_multiplication(bigint *, double *, double **, double **, const int, bool);
   void build_amesh(int, int, int, double *, double *);
   bool compute_vector_called;
 };

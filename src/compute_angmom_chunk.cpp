@@ -14,12 +14,19 @@
 #include "compute_angmom_chunk.h"
 
 #include "atom.h"
+#include "atom_vec_body.h"
+#include "atom_vec_ellipsoid.h"
+#include "atom_vec_line.h"
+#include "atom_vec_tri.h"
 #include "compute_chunk_atom.h"
 #include "domain.h"
 #include "error.h"
 #include "memory.h"
 
 using namespace LAMMPS_NS;
+
+static constexpr double SINERTIA = 0.4;          // moment of inertia prefactor for sphere
+static constexpr double LINERTIA = 1.0 / 12.0;   // moment of inertia prefactor for line
 
 /* ---------------------------------------------------------------------- */
 
@@ -107,14 +114,32 @@ void ComputeAngmomChunk::compute_array()
   }
 
   // compute angmom for each chunk
+  // finite-size particles add their own (spin) angular momentum:
+  //   ANGMOM-type (ellipsoid, superellipsoid, triangle, body) store it
+  //   directly; OMEGA-type (sphere, line) carry an angular velocity, so
+  //   L_spin = I_spin * omega. shape indices are checked before the sphere
+  //   (radius) case, since finite-shape particles also carry a radius
 
   double **v = atom->v;
+  double vunwrap[3];
+
+  auto *avec_ellipsoid = dynamic_cast<AtomVecEllipsoid *>(atom->style_match("ellipsoid"));
+  auto *avec_line = dynamic_cast<AtomVecLine *>(atom->style_match("line"));
+  auto *avec_tri = dynamic_cast<AtomVecTri *>(atom->style_match("tri"));
+  auto *avec_body = dynamic_cast<AtomVecBody *>(atom->style_match("body"));
+  double *radius = atom->radius;
+  double **omega = atom->omega;
+  double **angmom_one = atom->angmom;
+  int *ellipsoid = atom->ellipsoid;
+  int *line = atom->line;
+  int *tri = atom->tri;
+  int *body = atom->body;
 
   for (i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
       index = ichunk[i] - 1;
       if (index < 0) continue;
-      domain->unmap(x[i], image[i], unwrap);
+      domain->unmap(x[i], v[i], image[i], mask[i], unwrap, vunwrap);
       dx = unwrap[0] - comall[index][0];
       dy = unwrap[1] - comall[index][1];
       dz = unwrap[2] - comall[index][2];
@@ -122,9 +147,41 @@ void ComputeAngmomChunk::compute_array()
         massone = rmass[i];
       else
         massone = mass[type[i]];
-      angmom[index][0] += massone * (dy * v[i][2] - dz * v[i][1]);
-      angmom[index][1] += massone * (dz * v[i][0] - dx * v[i][2]);
-      angmom[index][2] += massone * (dx * v[i][1] - dy * v[i][0]);
+      angmom[index][0] += massone * (dy * vunwrap[2] - dz * vunwrap[1]);
+      angmom[index][1] += massone * (dz * vunwrap[0] - dx * vunwrap[2]);
+      angmom[index][2] += massone * (dx * vunwrap[1] - dy * vunwrap[0]);
+
+      if (avec_ellipsoid && ellipsoid[i] >= 0) {
+        if (angmom_one) {
+          angmom[index][0] += angmom_one[i][0];
+          angmom[index][1] += angmom_one[i][1];
+          angmom[index][2] += angmom_one[i][2];
+        }
+      } else if (avec_tri && tri[i] >= 0) {
+        if (angmom_one) {
+          angmom[index][0] += angmom_one[i][0];
+          angmom[index][1] += angmom_one[i][1];
+          angmom[index][2] += angmom_one[i][2];
+        }
+      } else if (avec_body && body[i] >= 0) {
+        if (angmom_one) {
+          angmom[index][0] += angmom_one[i][0];
+          angmom[index][1] += angmom_one[i][1];
+          angmom[index][2] += angmom_one[i][2];
+        }
+      } else if (avec_line && line[i] >= 0) {
+        if (omega) {
+          double length = avec_line->bonus[line[i]].length;
+          angmom[index][2] += LINERTIA * massone * length * length * omega[i][2];
+        }
+      } else if (radius && radius[i] > 0.0) {
+        if (omega) {
+          double sphere = SINERTIA * massone * radius[i] * radius[i];
+          angmom[index][0] += sphere * omega[i][0];
+          angmom[index][1] += sphere * omega[i][1];
+          angmom[index][2] += sphere * omega[i][2];
+        }
+      }
     }
 
   MPI_Allreduce(&angmom[0][0], &angmomall[0][0], 3 * nchunk, MPI_DOUBLE, MPI_SUM, world);

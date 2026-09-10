@@ -1,0 +1,795 @@
+LAMMPS (4 Feb 2025 - Development - patch_5May2020-22356-g0c29a0a0c9-modified)
+##################################### SIMULATION SETTINGS ###################################################
+
+atom_style sphere 1
+atom_modify map array
+comm_modify vel yes
+units si
+newton off
+neighbor      1.0e-3 bin
+neigh_modify every 10 delay 60 check no
+timestep 4e-6
+#processors 2 2 1
+
+############################## SIMULATION BOUNDING BOX AND INSERT PARTICLES #################################
+
+boundary f f f
+read_data spheres200.data
+Reading data file ...
+  orthogonal box = (-0.005 -0.005 -0.001) to (0.005 0.005 0.02)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  200 atoms
+  read_data CPU = 0.024 seconds
+
+#################################### ADD DIE AND ATOM PARAMETERIZATION ######################################
+
+variable atomRadius    equal 0.44e-3*1.25
+variable atomDiameter  equal 2*${atomRadius}
+variable atomDiameter  equal 2*0.00055
+variable atomDensity   equal 1560
+variable atomMassAvg   equal ${atomDensity}*4.0/3.0*PI*${atomRadius}^3.0
+variable atomMassAvg   equal 1560*4.0/3.0*PI*${atomRadius}^3.0
+variable atomMassAvg   equal 1560*4.0/3.0*PI*0.00055^3.0
+variable dieRadius     equal 4e-3
+variable dieHeight     equal 1e-2
+
+############################## PARTICLE MATERIAL PROPERTIES AND FORCE MODEL ##################################
+
+pair_style granular
+
+# mdr = E, nu, Y, gamma, psi_b, damp
+variable YoungsModulus      equal 5e6
+variable YieldStress        equal 1.9e5
+variable PoissonsRatio      equal 0.4
+variable SurfaceEnergy      equal 2
+variable SurfaceEnergyWall  equal 0.0
+variable psi_b              equal 0.5
+variable damp               equal 0.2
+variable damp_type          equal 1
+
+# linear_history = k_t, x_gammat, mu_s
+variable kt         equal 2/7*${YoungsModulus}*${atomRadius}
+variable kt         equal 2/7*5000000*${atomRadius}
+variable kt         equal 2/7*5000000*0.00055
+variable kt_wall    equal 2/7*${YoungsModulus}*${atomRadius}
+variable kt_wall    equal 2/7*5000000*${atomRadius}
+variable kt_wall    equal 2/7*5000000*0.00055
+variable xgammat    equal 1.0
+variable mu_s       equal 0.7
+variable mu_s_wall  equal 0.1
+
+# sds = mu_roll, k_roll, gamma_roll
+variable mu_roll     equal 0.6
+variable k_roll      equal 2.25*${mu_roll}*${mu_roll}*${YoungsModulus}*${atomRadius}
+variable k_roll      equal 2.25*0.6*${mu_roll}*${YoungsModulus}*${atomRadius}
+variable k_roll      equal 2.25*0.6*0.6*${YoungsModulus}*${atomRadius}
+variable k_roll      equal 2.25*0.6*0.6*5000000*${atomRadius}
+variable k_roll      equal 2.25*0.6*0.6*5000000*0.00055
+variable gamma_roll  equal 0.0
+
+pair_coeff * * mdr ${YoungsModulus} ${PoissonsRatio} ${YieldStress} ${SurfaceEnergy} ${psi_b} ${damp}     damping mdr ${damp_type}     tangential linear_history ${kt} ${xgammat} ${mu_s}     rolling sds ${k_roll} ${gamma_roll} ${mu_roll}
+pair_coeff * * mdr 5000000 ${PoissonsRatio} ${YieldStress} ${SurfaceEnergy} ${psi_b} ${damp}     damping mdr ${damp_type}     tangential linear_history ${kt} ${xgammat} ${mu_s}     rolling sds ${k_roll} ${gamma_roll} ${mu_roll}
+pair_coeff * * mdr 5000000 0.4 ${YieldStress} ${SurfaceEnergy} ${psi_b} ${damp}     damping mdr ${damp_type}     tangential linear_history ${kt} ${xgammat} ${mu_s}     rolling sds ${k_roll} ${gamma_roll} ${mu_roll}
+pair_coeff * * mdr 5000000 0.4 190000 ${SurfaceEnergy} ${psi_b} ${damp}     damping mdr ${damp_type}     tangential linear_history ${kt} ${xgammat} ${mu_s}     rolling sds ${k_roll} ${gamma_roll} ${mu_roll}
+pair_coeff * * mdr 5000000 0.4 190000 2 ${psi_b} ${damp}     damping mdr ${damp_type}     tangential linear_history ${kt} ${xgammat} ${mu_s}     rolling sds ${k_roll} ${gamma_roll} ${mu_roll}
+pair_coeff * * mdr 5000000 0.4 190000 2 0.5 ${damp}     damping mdr ${damp_type}     tangential linear_history ${kt} ${xgammat} ${mu_s}     rolling sds ${k_roll} ${gamma_roll} ${mu_roll}
+pair_coeff * * mdr 5000000 0.4 190000 2 0.5 0.2     damping mdr ${damp_type}     tangential linear_history ${kt} ${xgammat} ${mu_s}     rolling sds ${k_roll} ${gamma_roll} ${mu_roll}
+pair_coeff * * mdr 5000000 0.4 190000 2 0.5 0.2     damping mdr 1     tangential linear_history ${kt} ${xgammat} ${mu_s}     rolling sds ${k_roll} ${gamma_roll} ${mu_roll}
+pair_coeff * * mdr 5000000 0.4 190000 2 0.5 0.2     damping mdr 1     tangential linear_history 785.714285714286 ${xgammat} ${mu_s}     rolling sds ${k_roll} ${gamma_roll} ${mu_roll}
+pair_coeff * * mdr 5000000 0.4 190000 2 0.5 0.2     damping mdr 1     tangential linear_history 785.714285714286 1 ${mu_s}     rolling sds ${k_roll} ${gamma_roll} ${mu_roll}
+pair_coeff * * mdr 5000000 0.4 190000 2 0.5 0.2     damping mdr 1     tangential linear_history 785.714285714286 1 0.7     rolling sds ${k_roll} ${gamma_roll} ${mu_roll}
+pair_coeff * * mdr 5000000 0.4 190000 2 0.5 0.2     damping mdr 1     tangential linear_history 785.714285714286 1 0.7     rolling sds 2227.5 ${gamma_roll} ${mu_roll}
+pair_coeff * * mdr 5000000 0.4 190000 2 0.5 0.2     damping mdr 1     tangential linear_history 785.714285714286 1 0.7     rolling sds 2227.5 0 ${mu_roll}
+pair_coeff * * mdr 5000000 0.4 190000 2 0.5 0.2     damping mdr 1     tangential linear_history 785.714285714286 1 0.7     rolling sds 2227.5 0 0.6
+
+######################################### ADD DIE AND PUNCH WALLS ############################################
+
+variable disp_upper      equal 0.0
+variable disp_lower      equal 0.0
+
+variable wall_contact_string string "granular mdr ${YoungsModulus} ${PoissonsRatio} ${YieldStress} ${SurfaceEnergyWall} ${psi_b} ${damp} damping mdr ${damp_type} tangential linear_history ${kt_wall} ${xgammat} ${mu_s_wall} rolling sds ${k_roll} ${gamma_roll} ${mu_roll}"
+granular mdr 5000000 ${PoissonsRatio} ${YieldStress} ${SurfaceEnergyWall} ${psi_b} ${damp} damping mdr ${damp_type} tangential linear_history ${kt_wall} ${xgammat} ${mu_s_wall} rolling sds ${k_roll} ${gamma_roll} ${mu_roll}
+granular mdr 5000000 0.4 ${YieldStress} ${SurfaceEnergyWall} ${psi_b} ${damp} damping mdr ${damp_type} tangential linear_history ${kt_wall} ${xgammat} ${mu_s_wall} rolling sds ${k_roll} ${gamma_roll} ${mu_roll}
+granular mdr 5000000 0.4 190000 ${SurfaceEnergyWall} ${psi_b} ${damp} damping mdr ${damp_type} tangential linear_history ${kt_wall} ${xgammat} ${mu_s_wall} rolling sds ${k_roll} ${gamma_roll} ${mu_roll}
+granular mdr 5000000 0.4 190000 0 ${psi_b} ${damp} damping mdr ${damp_type} tangential linear_history ${kt_wall} ${xgammat} ${mu_s_wall} rolling sds ${k_roll} ${gamma_roll} ${mu_roll}
+granular mdr 5000000 0.4 190000 0 0.5 ${damp} damping mdr ${damp_type} tangential linear_history ${kt_wall} ${xgammat} ${mu_s_wall} rolling sds ${k_roll} ${gamma_roll} ${mu_roll}
+granular mdr 5000000 0.4 190000 0 0.5 0.2 damping mdr ${damp_type} tangential linear_history ${kt_wall} ${xgammat} ${mu_s_wall} rolling sds ${k_roll} ${gamma_roll} ${mu_roll}
+granular mdr 5000000 0.4 190000 0 0.5 0.2 damping mdr 1 tangential linear_history ${kt_wall} ${xgammat} ${mu_s_wall} rolling sds ${k_roll} ${gamma_roll} ${mu_roll}
+granular mdr 5000000 0.4 190000 0 0.5 0.2 damping mdr 1 tangential linear_history 785.714285714286 ${xgammat} ${mu_s_wall} rolling sds ${k_roll} ${gamma_roll} ${mu_roll}
+granular mdr 5000000 0.4 190000 0 0.5 0.2 damping mdr 1 tangential linear_history 785.714285714286 1 ${mu_s_wall} rolling sds ${k_roll} ${gamma_roll} ${mu_roll}
+granular mdr 5000000 0.4 190000 0 0.5 0.2 damping mdr 1 tangential linear_history 785.714285714286 1 0.1 rolling sds ${k_roll} ${gamma_roll} ${mu_roll}
+granular mdr 5000000 0.4 190000 0 0.5 0.2 damping mdr 1 tangential linear_history 785.714285714286 1 0.1 rolling sds 2227.5 ${gamma_roll} ${mu_roll}
+granular mdr 5000000 0.4 190000 0 0.5 0.2 damping mdr 1 tangential linear_history 785.714285714286 1 0.1 rolling sds 2227.5 0 ${mu_roll}
+granular mdr 5000000 0.4 190000 0 0.5 0.2 damping mdr 1 tangential linear_history 785.714285714286 1 0.1 rolling sds 2227.5 0 0.6
+
+variable dieHeight2 equal 2*${dieHeight}
+variable dieHeight2 equal 2*0.01
+
+region lowerPunch plane 0 0 0 0 0 1 side in units box move NULL NULL v_disp_lower units box
+region upperPunch plane 0 0 ${dieHeight} 0 0 -1 side in move NULL NULL v_disp_upper units box
+region upperPunch plane 0 0 0.01 0 0 -1 side in move NULL NULL v_disp_upper units box
+region die cylinder z 0 0 ${dieRadius} 0 ${dieHeight2} side in units box
+region die cylinder z 0 0 0.004 0 ${dieHeight2} side in units box
+region die cylinder z 0 0 0.004 0 0.02 side in units box
+
+fix lowerPunch all wall/gran/region ${wall_contact_string} region lowerPunch contacts
+fix lowerPunch all wall/gran/region granular mdr 5000000 0.4 190000 0 0.5 0.2 damping mdr 1 tangential linear_history 785.714285714286 1 0.1 rolling sds 2227.5 0 0.6 region lowerPunch contacts
+fix upperPunch all wall/gran/region ${wall_contact_string} region upperPunch contacts
+fix upperPunch all wall/gran/region granular mdr 5000000 0.4 190000 0 0.5 0.2 damping mdr 1 tangential linear_history 785.714285714286 1 0.1 rolling sds 2227.5 0 0.6 region upperPunch contacts
+fix die all wall/gran/region ${wall_contact_string} region die contacts
+fix die all wall/gran/region granular mdr 5000000 0.4 190000 0 0.5 0.2 damping mdr 1 tangential linear_history 785.714285714286 1 0.1 rolling sds 2227.5 0 0.6 region die contacts
+
+compute avgUpperPunchForce all reduce sum f_upperPunch[4]
+variable avgUpperPunchForce equal c_avgUpperPunchForce
+compute avgLowerPunchForce all reduce sum f_lowerPunch[4]
+variable avgLowerPunchForce equal c_avgLowerPunchForce
+
+#fix printFD all print 1 "${disp_upper} ${avgUpperPunchForce} ${avgLowerPunchForce}" file punch_force_disp_tableting200.csv screen no
+
+##################################### INTEGRATION AND GRAVITY #################################################
+
+fix 1 all nve/sphere
+fix grav all gravity 9.81 vector 0 0 -1
+
+########################################### SCREEN OUTPUT  ####################################################
+
+compute       1 all erotate/sphere
+thermo_style  custom dt step atoms ke vol v_disp_upper
+thermo        100
+thermo_modify lost ignore norm no
+
+##################################### SET UP DUMP OUTPUTS  ####################################################
+
+compute ke all ke/atom
+variable output_rate equal round(1e-3/dt)
+
+run 0
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- MDR contact model command: (i) https://doi.org/10.1016/j.jmps.2023.105492 || (ii) https://doi.org/10.1016/j.jmps.2023.105493 || (iii) https://doi.org/10.31224/4289
+
+@Article{zunker2024mechanicallyI,
+ author =  {Zunker, William and Kamrin, Ken},
+ title =   {A mechanically-derived contact model for adhesive elastic-perfectly plastic particles,
+            Part I: Utilizing the method of dimensionality reduction},
+ journal = {Journal of the Mechanics and Physics of Solids},
+ year =    {2024},
+ volume =  {183},
+ pages =   {105492},
+}
+
+@Article{zunker2024mechanicallyII,
+ author =  {Zunker, William and Kamrin, Ken},
+ title =   {A mechanically-derived contact model for adhesive elastic-perfectly plastic particles,
+            Part II: Contact under high compaction—modeling a bulk elastic response},
+ journal = {Journal of the Mechanics and Physics of Solids},
+ year =    {2024},
+ volume =  {183},
+ pages =   {105493},
+}
+
+@Article{zunker2025experimentally,
+ author =  {Zunker, William and Dunatunga, Sachith and Thakur, Subhash and Tang, Pingjun and Kamrin, Ken},
+ title =   {Experimentally validated DEM for large deformation powder compaction:
+            mechanically-derived contact model and screening of non-physical contacts},
+ journal = {Powder Technology},
+ year =    {2025},
+ pages =   {120972},
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 10 steps, delay = 60 steps, check = no
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 0.002318
+  ghost atom cutoff = 0.002318
+  binsize = 0.001159, bins = 9 9 19
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair granular, perpetual
+      attributes: half, newton off, size, history
+      pair build: half/size/bin/atomonly/newtoff
+      stencil: full/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 72.3 | 72.3 | 72.3 Mbytes
+      Dt          Step        Atoms        KinEng         Volume      v_disp_upper 
+ 4e-06                  0         200   0              2.1e-06        0            
+Loop time of 7.43e-07 on 1 procs for 0 steps with 200 atoms
+
+134.6% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0          | 0          | 0          |   0.0 |  0.00
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0          | 0          | 0          |   0.0 |  0.00
+Output  | 0          | 0          | 0          |   0.0 |  0.00
+Modify  | 0          | 0          | 0          |   0.0 |  0.00
+Other   |            | 7.43e-07   |            |       |100.00
+
+Nlocal:            200 ave         200 max         200 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:              0 ave           0 max           0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:           1341 ave        1341 max        1341 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 1341
+Ave neighs/atom = 6.705
+Neighbor list builds = 0
+Dangerous builds not checked
+
+compute sigmaxx all property/atom d_sigmaxx
+compute sigmayy all property/atom d_sigmayy
+compute sigmazz all property/atom d_sigmazz
+compute Velas all property/atom d_Velas
+
+compute sigmaxx_ave all reduce ave c_sigmaxx
+compute sigmayy_ave all reduce ave c_sigmayy
+compute sigmazz_ave all reduce ave c_sigmazz
+compute Velas_sum all reduce sum c_Velas
+
+variable sxx_ave equal c_sigmaxx_ave
+variable syy_ave equal c_sigmayy_ave
+variable szz_ave equal c_sigmazz_ave
+variable Vparticles equal c_Velas_sum
+
+#fix log all print 1 "${sxx_ave} ${syy_ave} ${szz_ave} ${Vparticles}" file average_normal_stresses_tableting200.csv screen no
+#dump dumpParticles all custom ${output_rate} tableting200.dump id type mass diameter x y z vx vy vz fx fy fz c_ke c_sigmaxx c_sigmayy c_sigmazz
+#dump dumpParticlesVTK all vtk ${output_rate} post/particles_*.vtk id x y z fx fy fz vx vy vz c_ke radius c_sigmaxx c_sigmayy c_sigmazz
+
+############################################## RUN SIMULATION #################################################
+
+variable upper_punch_stroke  equal 0.7*${dieHeight}
+variable upper_punch_stroke  equal 0.7*0.01
+variable vel_upper           equal 0.25
+
+variable settling_steps      equal round(0.02/dt)
+variable compression_steps   equal 2*round(${upper_punch_stroke}/${vel_upper}/dt)
+variable compression_steps   equal 2*round(0.007/${vel_upper}/dt)
+variable compression_steps   equal 2*round(0.007/0.25/dt)
+variable ejection_steps      equal ${compression_steps}
+variable ejection_steps      equal 14000
+variable free_float_steps    equal round(0.02/dt)
+
+##### SETTLING #####
+
+run ${settling_steps}
+run 5000
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Per MPI rank memory allocation (min/avg/max) = 72.3 | 72.3 | 72.3 Mbytes
+      Dt          Step        Atoms        KinEng         Volume      v_disp_upper 
+ 4e-06                  0         200   0              2.1e-06        0            
+ 4e-06                100         200   1.5945503e-09  2.1e-06        0            
+ 4e-06                200         200   6.3750614e-09  2.1e-06        0            
+ 4e-06                300         200   1.4225143e-08  2.1e-06        0            
+ 4e-06                400         200   2.5255561e-08  2.1e-06        0            
+ 4e-06                500         200   3.947508e-08   2.1e-06        0            
+ 4e-06                600         200   5.6839079e-08  2.1e-06        0            
+ 4e-06                700         200   7.7346494e-08  2.1e-06        0            
+ 4e-06                800         200   1.0075645e-07  2.1e-06        0            
+ 4e-06                900         200   1.2660105e-07  2.1e-06        0            
+ 4e-06               1000         200   1.5571123e-07  2.1e-06        0            
+ 4e-06               1100         200   1.8785107e-07  2.1e-06        0            
+ 4e-06               1200         200   2.2200974e-07  2.1e-06        0            
+ 4e-06               1300         200   2.6009223e-07  2.1e-06        0            
+ 4e-06               1400         200   3.0148646e-07  2.1e-06        0            
+ 4e-06               1500         200   3.4269724e-07  2.1e-06        0            
+ 4e-06               1600         200   3.8502938e-07  2.1e-06        0            
+ 4e-06               1700         200   4.2763891e-07  2.1e-06        0            
+ 4e-06               1800         200   4.6779321e-07  2.1e-06        0            
+ 4e-06               1900         200   5.1285578e-07  2.1e-06        0            
+ 4e-06               2000         200   5.6630973e-07  2.1e-06        0            
+ 4e-06               2100         200   6.1904302e-07  2.1e-06        0            
+ 4e-06               2200         200   6.7462868e-07  2.1e-06        0            
+ 4e-06               2300         200   7.3066636e-07  2.1e-06        0            
+ 4e-06               2400         200   7.7407334e-07  2.1e-06        0            
+ 4e-06               2500         200   8.3353557e-07  2.1e-06        0            
+ 4e-06               2600         200   9.0017986e-07  2.1e-06        0            
+ 4e-06               2700         200   9.5154909e-07  2.1e-06        0            
+ 4e-06               2800         200   1.0110977e-06  2.1e-06        0            
+ 4e-06               2900         200   1.0661364e-06  2.1e-06        0            
+ 4e-06               3000         200   1.1226841e-06  2.1e-06        0            
+ 4e-06               3100         200   1.1703917e-06  2.1e-06        0            
+ 4e-06               3200         200   1.2254551e-06  2.1e-06        0            
+ 4e-06               3300         200   1.2239859e-06  2.1e-06        0            
+ 4e-06               3400         200   1.273437e-06   2.1e-06        0            
+ 4e-06               3500         200   1.3357598e-06  2.1e-06        0            
+ 4e-06               3600         200   1.3949477e-06  2.1e-06        0            
+ 4e-06               3700         200   1.459988e-06   2.1e-06        0            
+ 4e-06               3800         200   1.5053806e-06  2.1e-06        0            
+ 4e-06               3900         200   1.4952453e-06  2.1e-06        0            
+ 4e-06               4000         200   1.5037857e-06  2.1e-06        0            
+ 4e-06               4100         200   1.5225204e-06  2.1e-06        0            
+ 4e-06               4200         200   1.5375323e-06  2.1e-06        0            
+ 4e-06               4300         200   1.5552328e-06  2.1e-06        0            
+ 4e-06               4400         200   1.581097e-06   2.1e-06        0            
+ 4e-06               4500         200   1.6066427e-06  2.1e-06        0            
+ 4e-06               4600         200   1.6061944e-06  2.1e-06        0            
+ 4e-06               4700         200   1.6110891e-06  2.1e-06        0            
+ 4e-06               4800         200   1.6072997e-06  2.1e-06        0            
+ 4e-06               4900         200   1.5907992e-06  2.1e-06        0            
+ 4e-06               5000         200   1.5501104e-06  2.1e-06        0            
+Loop time of 0.592588 on 1 procs for 5000 steps with 200 atoms
+
+99.4% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.20465    | 0.20465    | 0.20465    |   0.0 | 34.53
+Neigh   | 0.013252   | 0.013252   | 0.013252   |   0.0 |  2.24
+Comm    | 0.00037594 | 0.00037594 | 0.00037594 |   0.0 |  0.06
+Output  | 0.00037454 | 0.00037454 | 0.00037454 |   0.0 |  0.06
+Modify  | 0.37295    | 0.37295    | 0.37295    |   0.0 | 62.93
+Other   |            | 0.0009914  |            |       |  0.17
+
+Nlocal:            200 ave         200 max         200 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:              0 ave           0 max           0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:           1632 ave        1632 max        1632 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 1632
+Ave neighs/atom = 8.16
+Neighbor list builds = 83
+Dangerous builds not checked
+
+##### Compression & Release #####
+
+variable punch_frequency  equal PI/2/(dt*${compression_steps}/2)
+variable punch_frequency  equal PI/2/(dt*14000/2)
+variable disp_upper       equal -${upper_punch_stroke}*sin(${punch_frequency}*elapsed*dt)
+variable disp_upper       equal -0.007*sin(${punch_frequency}*elapsed*dt)
+variable disp_upper       equal -0.007*sin(56.0998688141035*elapsed*dt)
+variable short_release    equal round(${compression_steps}*1.0)
+variable short_release    equal round(14000*1.0)
+run ${short_release}
+run 14000
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Per MPI rank memory allocation (min/avg/max) = 72.3 | 72.3 | 72.3 Mbytes
+      Dt          Step        Atoms        KinEng         Volume      v_disp_upper 
+ 4e-06               5000         200   1.5501104e-06  2.1e-06        0            
+ 4e-06               5100         200   1.5146077e-06  2.1e-06       -0.00015706645
+ 4e-06               5200         200   1.4902158e-06  2.1e-06       -0.00031405381
+ 4e-06               5300         200   1.3871134e-06  2.1e-06       -0.00047088304
+ 4e-06               5400         200   1.3531184e-06  2.1e-06       -0.00062747516
+ 4e-06               5500         200   1.3154278e-06  2.1e-06       -0.00078375133
+ 4e-06               5600         200   1.2461265e-06  2.1e-06       -0.00093963286
+ 4e-06               5700         200   1.1840322e-06  2.1e-06       -0.0010950413 
+ 4e-06               5800         200   1.083844e-06   2.1e-06       -0.0012498983 
+ 4e-06               5900         200   9.8572649e-07  2.1e-06       -0.0014041259 
+ 4e-06               6000         200   8.6605656e-07  2.1e-06       -0.0015576465 
+ 4e-06               6100         200   7.6694391e-07  2.1e-06       -0.0017103828 
+ 4e-06               6200         200   7.1292979e-07  2.1e-06       -0.0018622579 
+ 4e-06               6300         200   6.475067e-07   2.1e-06       -0.0020131953 
+ 4e-06               6400         200   5.378202e-07   2.1e-06       -0.002163119  
+ 4e-06               6500         200   4.5668598e-07  2.1e-06       -0.0023119534 
+ 4e-06               6600         200   3.1208987e-07  2.1e-06       -0.0024596238 
+ 4e-06               6700         200   2.2996407e-07  2.1e-06       -0.0026060556 
+ 4e-06               6800         200   1.658813e-07   2.1e-06       -0.0027511752 
+ 4e-06               6900         200   1.4495016e-07  2.1e-06       -0.0028949095 
+ 4e-06               7000         200   1.6172966e-07  2.1e-06       -0.0030371862 
+ 4e-06               7100         200   4.6620591e-07  2.1e-06       -0.0031779335 
+ 4e-06               7200         200   6.8121833e-07  2.1e-06       -0.0033170806 
+ 4e-06               7300         200   1.5506154e-06  2.1e-06       -0.0034545575 
+ 4e-06               7400         200   2.5919669e-06  2.1e-06       -0.0035902949 
+ 4e-06               7500         200   2.9403576e-06  2.1e-06       -0.0037242245 
+ 4e-06               7600         200   2.7726732e-06  2.1e-06       -0.0038562789 
+ 4e-06               7700         200   2.6586936e-06  2.1e-06       -0.0039863915 
+ 4e-06               7800         200   2.7059447e-06  2.1e-06       -0.0041144968 
+ 4e-06               7900         200   2.8454301e-06  2.1e-06       -0.0042405303 
+ 4e-06               8000         200   2.7747574e-06  2.1e-06       -0.0043644286 
+ 4e-06               8100         200   2.6329747e-06  2.1e-06       -0.0044861293 
+ 4e-06               8200         200   2.3654294e-06  2.1e-06       -0.0046055711 
+ 4e-06               8300         200   2.616465e-06   2.1e-06       -0.0047226938 
+ 4e-06               8400         200   2.6920973e-06  2.1e-06       -0.0048374385 
+ 4e-06               8500         200   2.6041158e-06  2.1e-06       -0.0049497475 
+ 4e-06               8600         200   1.8236056e-06  2.1e-06       -0.005059564  
+ 4e-06               8700         200   2.1290462e-06  2.1e-06       -0.005166833  
+ 4e-06               8800         200   1.8723934e-06  2.1e-06       -0.0052715003 
+ 4e-06               8900         200   1.7196474e-06  2.1e-06       -0.0053735132 
+ 4e-06               9000         200   1.558001e-06   2.1e-06       -0.0054728204 
+ 4e-06               9100         200   1.1714433e-06  2.1e-06       -0.0055693718 
+ 4e-06               9200         200   1.7973167e-06  2.1e-06       -0.005663119  
+ 4e-06               9300         200   1.4951874e-06  2.1e-06       -0.0057540145 
+ 4e-06               9400         200   1.197557e-06   2.1e-06       -0.0058420128 
+ 4e-06               9500         200   1.1638085e-06  2.1e-06       -0.0059270694 
+ 4e-06               9600         200   1.2591061e-06  2.1e-06       -0.0060091416 
+ 4e-06               9700         200   1.2747299e-06  2.1e-06       -0.0060881879 
+ 4e-06               9800         200   1.2424243e-06  2.1e-06       -0.0061641687 
+ 4e-06               9900         200   1.1624586e-06  2.1e-06       -0.0062370457 
+ 4e-06              10000         200   1.0724272e-06  2.1e-06       -0.0063067821 
+ 4e-06              10100         200   1.0806622e-06  2.1e-06       -0.0063733428 
+ 4e-06              10200         200   9.2046484e-07  2.1e-06       -0.0064366944 
+ 4e-06              10300         200   8.1801156e-07  2.1e-06       -0.0064968049 
+ 4e-06              10400         200   7.74927e-07    2.1e-06       -0.0065536441 
+ 4e-06              10500         200   6.85447e-07    2.1e-06       -0.0066071833 
+ 4e-06              10600         200   5.4693931e-07  2.1e-06       -0.0066573956 
+ 4e-06              10700         200   4.5275522e-07  2.1e-06       -0.0067042557 
+ 4e-06              10800         200   4.2807826e-07  2.1e-06       -0.00674774   
+ 4e-06              10900         200   3.5676739e-07  2.1e-06       -0.0067878266 
+ 4e-06              11000         200   2.9448839e-07  2.1e-06       -0.0068244954 
+ 4e-06              11100         200   2.7397196e-07  2.1e-06       -0.0068577278 
+ 4e-06              11200         200   1.8313029e-07  2.1e-06       -0.0068875071 
+ 4e-06              11300         200   1.4616679e-07  2.1e-06       -0.0069138184 
+ 4e-06              11400         200   1.0916404e-07  2.1e-06       -0.0069366483 
+ 4e-06              11500         200   7.4608897e-08  2.1e-06       -0.0069559855 
+ 4e-06              11600         200   4.9799693e-08  2.1e-06       -0.0069718201 
+ 4e-06              11700         200   2.996701e-08   2.1e-06       -0.0069841441 
+ 4e-06              11800         200   1.1810054e-08  2.1e-06       -0.0069929515 
+ 4e-06              11900         200   3.9455661e-09  2.1e-06       -0.0069982376 
+ 4e-06              12000         200   7.0818836e-11  2.1e-06       -0.007        
+ 4e-06              12100         200   3.989114e-09   2.1e-06       -0.0069982376 
+ 4e-06              12200         200   1.0481589e-08  2.1e-06       -0.0069929515 
+ 4e-06              12300         200   2.3561653e-08  2.1e-06       -0.0069841441 
+ 4e-06              12400         200   4.1819363e-08  2.1e-06       -0.0069718201 
+ 4e-06              12500         200   6.5328826e-08  2.1e-06       -0.0069559855 
+ 4e-06              12600         200   9.3738095e-08  2.1e-06       -0.0069366483 
+ 4e-06              12700         200   1.3058219e-07  2.1e-06       -0.0069138184 
+ 4e-06              12800         200   1.7668602e-07  2.1e-06       -0.0068875071 
+ 4e-06              12900         200   2.1482809e-07  2.1e-06       -0.0068577278 
+ 4e-06              13000         200   2.7185589e-07  2.1e-06       -0.0068244954 
+ 4e-06              13100         200   3.3577426e-07  2.1e-06       -0.0067878266 
+ 4e-06              13200         200   3.9749034e-07  2.1e-06       -0.00674774   
+ 4e-06              13300         200   5.0743398e-07  2.1e-06       -0.0067042557 
+ 4e-06              13400         200   5.6629069e-07  2.1e-06       -0.0066573956 
+ 4e-06              13500         200   5.9092105e-07  2.1e-06       -0.0066071833 
+ 4e-06              13600         200   7.313638e-07   2.1e-06       -0.0065536441 
+ 4e-06              13700         200   1.0954352e-06  2.1e-06       -0.0064968049 
+ 4e-06              13800         200   7.1637332e-07  2.1e-06       -0.0064366944 
+ 4e-06              13900         200   8.5398051e-07  2.1e-06       -0.0063733428 
+ 4e-06              14000         200   1.0429888e-06  2.1e-06       -0.0063067821 
+ 4e-06              14100         200   1.6673022e-07  2.1e-06       -0.0062370457 
+ 4e-06              14200         200   2.0206568e-08  2.1e-06       -0.0061641687 
+ 4e-06              14300         200   5.6062261e-09  2.1e-06       -0.0060881879 
+ 4e-06              14400         200   4.5198973e-09  2.1e-06       -0.0060091416 
+ 4e-06              14500         200   2.5522353e-09  2.1e-06       -0.0059270694 
+ 4e-06              14600         200   9.091094e-10   2.1e-06       -0.0058420128 
+ 4e-06              14700         200   1.3992806e-10  2.1e-06       -0.0057540145 
+ 4e-06              14800         200   1.0208666e-11  2.1e-06       -0.005663119  
+ 4e-06              14900         200   8.4078334e-11  2.1e-06       -0.0055693718 
+ 4e-06              15000         200   1.2567311e-10  2.1e-06       -0.0054728204 
+ 4e-06              15100         200   5.2285722e-10  2.1e-06       -0.0053735132 
+ 4e-06              15200         200   1.5839179e-10  2.1e-06       -0.0052715003 
+ 4e-06              15300         200   3.2283374e-11  2.1e-06       -0.005166833  
+ 4e-06              15400         200   2.9516435e-12  2.1e-06       -0.005059564  
+ 4e-06              15500         200   1.0302118e-11  2.1e-06       -0.0049497475 
+ 4e-06              15600         200   1.7289975e-11  2.1e-06       -0.0048374385 
+ 4e-06              15700         200   1.4850209e-11  2.1e-06       -0.0047226938 
+ 4e-06              15800         200   8.0260964e-12  2.1e-06       -0.0046055711 
+ 4e-06              15900         200   2.616591e-12   2.1e-06       -0.0044861293 
+ 4e-06              16000         200   3.0793261e-13  2.1e-06       -0.0043644286 
+ 4e-06              16100         200   4.9187696e-13  2.1e-06       -0.0042405303 
+ 4e-06              16200         200   3.9849142e-13  2.1e-06       -0.0041144968 
+ 4e-06              16300         200   5.2823345e-13  2.1e-06       -0.0039863915 
+ 4e-06              16400         200   3.9902725e-13  2.1e-06       -0.0038562789 
+ 4e-06              16500         200   1.9259043e-13  2.1e-06       -0.0037242245 
+ 4e-06              16600         200   5.3557316e-14  2.1e-06       -0.0035902949 
+ 4e-06              16700         200   3.7734621e-15  2.1e-06       -0.0034545575 
+ 4e-06              16800         200   3.0867115e-15  2.1e-06       -0.0033170806 
+ 4e-06              16900         200   1.1841579e-14  2.1e-06       -0.0031779335 
+ 4e-06              17000         200   1.3850503e-14  2.1e-06       -0.0030371862 
+ 4e-06              17100         200   9.8491914e-15  2.1e-06       -0.0028949095 
+ 4e-06              17200         200   4.7140149e-15  2.1e-06       -0.0027511752 
+ 4e-06              17300         200   1.3440466e-15  2.1e-06       -0.0026060556 
+ 4e-06              17400         200   1.0627828e-16  2.1e-06       -0.0024596238 
+ 4e-06              17500         200   6.2015781e-17  2.1e-06       -0.0023119534 
+ 4e-06              17600         200   2.8723007e-16  2.1e-06       -0.002163119  
+ 4e-06              17700         200   3.6601367e-16  2.1e-06       -0.0020131953 
+ 4e-06              17800         200   2.7862312e-16  2.1e-06       -0.0018622579 
+ 4e-06              17900         200   1.4268051e-16  2.1e-06       -0.0017103828 
+ 4e-06              18000         200   4.5443603e-17  2.1e-06       -0.0015576465 
+ 4e-06              18100         200   5.2330376e-18  2.1e-06       -0.0014041259 
+ 4e-06              18200         200   7.3566254e-19  2.1e-06       -0.0012498983 
+ 4e-06              18300         200   6.5880468e-18  2.1e-06       -0.0010950413 
+ 4e-06              18400         200   9.5744931e-18  2.1e-06       -0.00093963286
+ 4e-06              18500         200   7.8604487e-18  2.1e-06       -0.00078375133
+ 4e-06              18600         200   4.3166295e-18  2.1e-06       -0.00062747516
+ 4e-06              18700         200   1.5188792e-18  2.1e-06       -0.00047088304
+ 4e-06              18800         200   2.3221067e-19  2.1e-06       -0.00031405381
+ 4e-06              18900         200   4.7558964e-21  2.1e-06       -0.00015706645
+ 4e-06              19000         200   1.4567292e-19  2.1e-06        2.0903119e-17
+Loop time of 6.96616 on 1 procs for 14000 steps with 200 atoms
+
+99.5% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 3.8534     | 3.8534     | 3.8534     |   0.0 | 55.32
+Neigh   | 0.038778   | 0.038778   | 0.038778   |   0.0 |  0.56
+Comm    | 0.0015081  | 0.0015081  | 0.0015081  |   0.0 |  0.02
+Output  | 0.0018007  | 0.0018007  | 0.0018007  |   0.0 |  0.03
+Modify  | 3.0668     | 3.0668     | 3.0668     |   0.0 | 44.02
+Other   |            | 0.003851   |            |       |  0.06
+
+Nlocal:            200 ave         200 max         200 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:              0 ave           0 max           0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:           3031 ave        3031 max        3031 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 3031
+Ave neighs/atom = 15.155
+Neighbor list builds = 233
+Dangerous builds not checked
+
+##### EJECTION #####
+
+variable punch_frequency  equal PI/2/(dt*${ejection_steps})
+variable punch_frequency  equal PI/2/(dt*14000)
+variable disp_lower       equal ${dieHeight}*sin(${punch_frequency}*elapsed*dt)
+variable disp_lower       equal 0.01*sin(${punch_frequency}*elapsed*dt)
+variable disp_lower       equal 0.01*sin(28.0499344070517*elapsed*dt)
+variable disp_upper       equal 0.9*v_disp_lower
+run ${ejection_steps}
+run 14000
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Per MPI rank memory allocation (min/avg/max) = 72.31 | 72.31 | 72.31 Mbytes
+      Dt          Step        Atoms        KinEng         Volume      v_disp_upper 
+ 4e-06              19000         200   1.4567292e-19  2.1e-06        0            
+ 4e-06              19100         200   1.9132195e-05  2.1e-06        0.00010097765
+ 4e-06              19200         200   3.1561748e-06  2.1e-06        0.00020194258
+ 4e-06              19300         200   1.4462178e-05  2.1e-06        0.00030288209
+ 4e-06              19400         200   4.6622112e-06  2.1e-06        0.00040378347
+ 4e-06              19500         200   1.1929852e-05  2.1e-06        0.00050463403
+ 4e-06              19600         200   5.6933661e-06  2.1e-06        0.00060542105
+ 4e-06              19700         200   1.0429976e-05  2.1e-06        0.00070613186
+ 4e-06              19800         200   6.6580254e-06  2.1e-06        0.00080675378
+ 4e-06              19900         200   9.1721686e-06  2.1e-06        0.00090727414
+ 4e-06              20000         200   7.4553343e-06  2.1e-06        0.0010076803 
+ 4e-06              20100         200   8.3534813e-06  2.1e-06        0.0011079596 
+ 4e-06              20200         200   7.8671075e-06  2.1e-06        0.0012080994 
+ 4e-06              20300         200   7.9115898e-06  2.1e-06        0.0013080871 
+ 4e-06              20400         200   8.2222312e-06  2.1e-06        0.0014079102 
+ 4e-06              20500         200   7.5281175e-06  2.1e-06        0.001507556  
+ 4e-06              20600         200   8.4242027e-06  2.1e-06        0.0016070121 
+ 4e-06              20700         200   7.3282364e-06  2.1e-06        0.0017062658 
+ 4e-06              20800         200   8.3501222e-06  2.1e-06        0.0018053047 
+ 4e-06              20900         200   7.3417566e-06  2.1e-06        0.0019041164 
+ 4e-06              21000         200   8.0702927e-06  2.1e-06        0.0020026884 
+ 4e-06              21100         200   7.5896194e-06  2.1e-06        0.0021010083 
+ 4e-06              21200         200   7.6596342e-06  2.1e-06        0.0021990637 
+ 4e-06              21300         200   7.7009755e-06  2.1e-06        0.0022968422 
+ 4e-06              21400         200   7.4010568e-06  2.1e-06        0.0023943316 
+ 4e-06              21500         200   7.7254953e-06  2.1e-06        0.0024915196 
+ 4e-06              21600         200   7.2931076e-06  2.1e-06        0.0025883939 
+ 4e-06              21700         200   7.5667043e-06  2.1e-06        0.0026849424 
+ 4e-06              21800         200   7.2767179e-06  2.1e-06        0.0027811529 
+ 4e-06              21900         200   7.3632148e-06  2.1e-06        0.0028770133 
+ 4e-06              22000         200   7.2563523e-06  2.1e-06        0.0029725116 
+ 4e-06              22100         200   7.2003226e-06  2.1e-06        0.0030676356 
+ 4e-06              22200         200   7.1862422e-06  2.1e-06        0.0031623734 
+ 4e-06              22300         200   7.0035785e-06  2.1e-06        0.0032567132 
+ 4e-06              22400         200   7.1023437e-06  2.1e-06        0.0033506429 
+ 4e-06              22500         200   6.8767896e-06  2.1e-06        0.0034441509 
+ 4e-06              22600         200   6.9556381e-06  2.1e-06        0.0035372253 
+ 4e-06              22700         200   6.7754491e-06  2.1e-06        0.0036298544 
+ 4e-06              22800         200   6.7752923e-06  2.1e-06        0.0037220265 
+ 4e-06              22900         200   6.6947789e-06  2.1e-06        0.0038137301 
+ 4e-06              23000         200   6.5811876e-06  2.1e-06        0.0039049537 
+ 4e-06              23100         200   6.5600064e-06  2.1e-06        0.0039956856 
+ 4e-06              23200         200   6.407054e-06   2.1e-06        0.0040859145 
+ 4e-06              23300         200   6.4635326e-06  2.1e-06        0.0041756291 
+ 4e-06              23400         200   6.2604509e-06  2.1e-06        0.004264818  
+ 4e-06              23500         200   6.2914059e-06  2.1e-06        0.00435347   
+ 4e-06              23600         200   6.1416598e-06  2.1e-06        0.004441574  
+ 4e-06              23700         200   6.0839487e-06  2.1e-06        0.0045291188 
+ 4e-06              23800         200   6.0216029e-06  2.1e-06        0.0046160935 
+ 4e-06              23900         200   5.896464e-06   2.1e-06        0.0047024871 
+ 4e-06              24000         200   5.8682556e-06  2.1e-06        0.0047882887 
+ 4e-06              24100         200   5.8744357e-06  2.1e-06        0.0048734875 
+ 4e-06              24200         200   5.6172509e-06  2.1e-06        0.0049580728 
+ 4e-06              24300         200   5.6527872e-06  2.1e-06        0.005042034  
+ 4e-06              24400         200   5.4706998e-06  2.1e-06        0.0051253604 
+ 4e-06              24500         200   5.4368713e-06  2.1e-06        0.0052080417 
+ 4e-06              24600         200   5.3496195e-06  2.1e-06        0.0052900673 
+ 4e-06              24700         200   5.2020248e-06  2.1e-06        0.0053714269 
+ 4e-06              24800         200   5.2035809e-06  2.1e-06        0.0054521104 
+ 4e-06              24900         200   5.0302031e-06  2.1e-06        0.0055321075 
+ 4e-06              25000         200   5.0094633e-06  2.1e-06        0.0056114082 
+ 4e-06              25100         200   4.8588064e-06  2.1e-06        0.0056900025 
+ 4e-06              25200         200   4.8221437e-06  2.1e-06        0.0057678805 
+ 4e-06              25300         200   4.7117322e-06  2.1e-06        0.0058450324 
+ 4e-06              25400         200   4.6148719e-06  2.1e-06        0.0059214485 
+ 4e-06              25500         200   4.5348297e-06  2.1e-06        0.0059971192 
+ 4e-06              25600         200   4.4325937e-06  2.1e-06        0.0060720349 
+ 4e-06              25700         200   4.3587865e-06  2.1e-06        0.0061461862 
+ 4e-06              25800         200   4.2449842e-06  2.1e-06        0.0062195638 
+ 4e-06              25900         200   4.1730814e-06  2.1e-06        0.0062921585 
+ 4e-06              26000         200   4.0712085e-06  2.1e-06        0.006363961  
+ 4e-06              26100         200   3.9603603e-06  2.1e-06        0.0064349624 
+ 4e-06              26200         200   3.9152641e-06  2.1e-06        0.0065051538 
+ 4e-06              26300         200   3.7864366e-06  2.1e-06        0.0065745262 
+ 4e-06              26400         200   3.7211553e-06  2.1e-06        0.006643071  
+ 4e-06              26500         200   3.6038142e-06  2.1e-06        0.0067107795 
+ 4e-06              26600         200   3.5518456e-06  2.1e-06        0.0067776432 
+ 4e-06              26700         200   3.4213616e-06  2.1e-06        0.0068436537 
+ 4e-06              26800         200   3.348649e-06   2.1e-06        0.0069088027 
+ 4e-06              26900         200   3.2592054e-06  2.1e-06        0.0069730819 
+ 4e-06              27000         200   3.1640896e-06  2.1e-06        0.0070364833 
+ 4e-06              27100         200   3.1491467e-06  2.1e-06        0.007098999  
+ 4e-06              27200         200   2.9475347e-06  2.1e-06        0.0071606209 
+ 4e-06              27300         200   2.9234007e-06  2.1e-06        0.0072213415 
+ 4e-06              27400         200   2.8106832e-06  2.1e-06        0.0072811529 
+ 4e-06              27500         200   2.7190831e-06  2.1e-06        0.0073400478 
+ 4e-06              27600         200   2.6595021e-06  2.1e-06        0.0073980187 
+ 4e-06              27700         200   2.5384163e-06  2.1e-06        0.0074550582 
+ 4e-06              27800         200   2.4906759e-06  2.1e-06        0.0075111593 
+ 4e-06              27900         200   2.3760852e-06  2.1e-06        0.0075663148 
+ 4e-06              28000         200   2.3135864e-06  2.1e-06        0.0076205178 
+ 4e-06              28100         200   2.206388e-06   2.1e-06        0.0076737615 
+ 4e-06              28200         200   2.1580755e-06  2.1e-06        0.0077260391 
+ 4e-06              28300         200   2.0541807e-06  2.1e-06        0.0077773442 
+ 4e-06              28400         200   1.9879886e-06  2.1e-06        0.0078276702 
+ 4e-06              28500         200   1.9080731e-06  2.1e-06        0.0078770108 
+ 4e-06              28600         200   1.8244513e-06  2.1e-06        0.0079253598 
+ 4e-06              28700         200   1.7612085e-06  2.1e-06        0.0079727111 
+ 4e-06              28800         200   1.6725418e-06  2.1e-06        0.0080190587 
+ 4e-06              28900         200   1.6108221e-06  2.1e-06        0.0080643969 
+ 4e-06              29000         200   1.5315923e-06  2.1e-06        0.0081087198 
+ 4e-06              29100         200   1.4668177e-06  2.1e-06        0.008152022  
+ 4e-06              29200         200   1.389947e-06   2.1e-06        0.0081942979 
+ 4e-06              29300         200   1.3244327e-06  2.1e-06        0.0082355423 
+ 4e-06              29400         200   1.2613389e-06  2.1e-06        0.00827575   
+ 4e-06              29500         200   1.189317e-06   2.1e-06        0.0083149158 
+ 4e-06              29600         200   1.1328651e-06  2.1e-06        0.0083530349 
+ 4e-06              29700         200   1.0634003e-06  2.1e-06        0.0083901025 
+ 4e-06              29800         200   1.0089659e-06  2.1e-06        0.0084261138 
+ 4e-06              29900         200   9.452383e-07   2.1e-06        0.0084610645 
+ 4e-06              30000         200   8.8857387e-07  2.1e-06        0.00849495   
+ 4e-06              30100         200   8.3934751e-07  2.1e-06        0.0085277661 
+ 4e-06              30200         200   7.7404495e-07  2.1e-06        0.0085595086 
+ 4e-06              30300         200   7.2760888e-07  2.1e-06        0.0085901737 
+ 4e-06              30400         200   6.7239685e-07  2.1e-06        0.0086197574 
+ 4e-06              30500         200   6.245416e-07   2.1e-06        0.0086482559 
+ 4e-06              30600         200   5.7834155e-07  2.1e-06        0.0086756657 
+ 4e-06              30700         200   5.2814574e-07  2.1e-06        0.0087019834 
+ 4e-06              30800         200   4.8878902e-07  2.1e-06        0.0087272057 
+ 4e-06              30900         200   4.4241206e-07  2.1e-06        0.0087513293 
+ 4e-06              31000         200   4.0442514e-07  2.1e-06        0.0087743512 
+ 4e-06              31100         200   3.642199e-07   2.1e-06        0.0087962686 
+ 4e-06              31200         200   3.2738558e-07  2.1e-06        0.0088170786 
+ 4e-06              31300         200   2.9389397e-07  2.1e-06        0.0088367787 
+ 4e-06              31400         200   2.5861566e-07  2.1e-06        0.0088553663 
+ 4e-06              31500         200   2.2934636e-07  2.1e-06        0.0088728392 
+ 4e-06              31600         200   1.9888494e-07  2.1e-06        0.0088891951 
+ 4e-06              31700         200   1.7250531e-07  2.1e-06        0.0089044319 
+ 4e-06              31800         200   1.4678036e-07  2.1e-06        0.0089185479 
+ 4e-06              31900         200   1.2324632e-07  2.1e-06        0.0089315411 
+ 4e-06              32000         200   1.0248084e-07  2.1e-06        0.0089434099 
+ 4e-06              32100         200   8.2609273e-08  2.1e-06        0.0089541529 
+ 4e-06              32200         200   6.551679e-08   2.1e-06        0.0089637686 
+ 4e-06              32300         200   5.0080052e-08  2.1e-06        0.008972256  
+ 4e-06              32400         200   3.6856646e-08  2.1e-06        0.0089796139 
+ 4e-06              32500         200   2.5648284e-08  2.1e-06        0.0089858413 
+ 4e-06              32600         200   1.637837e-08   2.1e-06        0.0089909376 
+ 4e-06              32700         200   9.2578154e-09  2.1e-06        0.008994902  
+ 4e-06              32800         200   4.0824723e-09  2.1e-06        0.0089977341 
+ 4e-06              32900         200   1.0371165e-09  2.1e-06        0.0089994335 
+ 4e-06              33000         200   6.1012168e-14  2.1e-06        0.009        
+Loop time of 7.70808 on 1 procs for 14000 steps with 200 atoms
+
+99.6% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 4.4414     | 4.4414     | 4.4414     |   0.0 | 57.62
+Neigh   | 0.040941   | 0.040941   | 0.040941   |   0.0 |  0.53
+Comm    | 0.001526   | 0.001526   | 0.001526   |   0.0 |  0.02
+Output  | 0.0019617  | 0.0019617  | 0.0019617  |   0.0 |  0.03
+Modify  | 3.2183     | 3.2183     | 3.2183     |   0.0 | 41.75
+Other   |            | 0.003942   |            |       |  0.05
+
+Nlocal:            200 ave         200 max         200 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:              0 ave           0 max           0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:           3026 ave        3026 max        3026 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 3026
+Ave neighs/atom = 15.13
+Neighbor list builds = 233
+Dangerous builds not checked
+
+##### FREE FLOAT #####
+
+variable disp_lower  equal ${dieHeight}
+variable disp_lower  equal 0.01
+variable disp_upper  equal ${dieHeight}*0.9
+variable disp_upper  equal 0.01*0.9
+variable max_disp    equal ${dieRadius}*0.75
+variable max_disp    equal 0.004*0.75
+run ${free_float_steps}
+run 5000
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Per MPI rank memory allocation (min/avg/max) = 72.31 | 72.31 | 72.31 Mbytes
+      Dt          Step        Atoms        KinEng         Volume      v_disp_upper 
+ 4e-06              33000         200   6.1012168e-14  2.1e-06        0.009        
+ 4e-06              33100         200   6.7902539e-11  2.1e-06        0.009        
+ 4e-06              33200         200   2.0896758e-11  2.1e-06        0.009        
+ 4e-06              33300         200   2.5200405e-11  2.1e-06        0.009        
+ 4e-06              33400         200   2.1747895e-12  2.1e-06        0.009        
+ 4e-06              33500         200   1.1228817e-11  2.1e-06        0.009        
+ 4e-06              33600         200   3.3597579e-12  2.1e-06        0.009        
+ 4e-06              33700         200   1.4808583e-12  2.1e-06        0.009        
+ 4e-06              33800         200   3.5132295e-12  2.1e-06        0.009        
+ 4e-06              33900         200   8.2438639e-14  2.1e-06        0.009        
+ 4e-06              34000         200   1.3267378e-12  2.1e-06        0.009        
+ 4e-06              34100         200   6.2365031e-13  2.1e-06        0.009        
+ 4e-06              34200         200   1.1820072e-13  2.1e-06        0.009        
+ 4e-06              34300         200   5.2797742e-13  2.1e-06        0.009        
+ 4e-06              34400         200   3.2199555e-14  2.1e-06        0.009        
+ 4e-06              34500         200   1.553388e-13   2.1e-06        0.009        
+ 4e-06              34600         200   1.1458173e-13  2.1e-06        0.009        
+ 4e-06              34700         200   5.8686124e-15  2.1e-06        0.009        
+ 4e-06              34800         200   7.3486748e-14  2.1e-06        0.009        
+ 4e-06              34900         200   1.0877367e-14  2.1e-06        0.009        
+ 4e-06              35000         200   1.5284442e-14  2.1e-06        0.009        
+ 4e-06              35100         200   2.0294057e-14  2.1e-06        0.009        
+ 4e-06              35200         200   1.5385334e-17  2.1e-06        0.009        
+ 4e-06              35300         200   9.5858898e-15  2.1e-06        0.009        
+ 4e-06              35400         200   3.1985384e-15  2.1e-06        0.009        
+ 4e-06              35500         200   1.1327574e-15  2.1e-06        0.009        
+ 4e-06              35600         200   3.3810722e-15  2.1e-06        0.009        
+ 4e-06              35700         200   1.2867327e-16  2.1e-06        0.009        
+ 4e-06              35800         200   1.0755232e-15  2.1e-06        0.009        
+ 4e-06              35900         200   7.3381985e-16  2.1e-06        0.009        
+ 4e-06              36000         200   3.7750251e-17  2.1e-06        0.009        
+ 4e-06              36100         200   4.8518794e-16  2.1e-06        0.009        
+ 4e-06              36200         200   8.361623e-17   2.1e-06        0.009        
+ 4e-06              36300         200   8.9347649e-17  2.1e-06        0.009        
+ 4e-06              36400         200   1.4528409e-16  2.1e-06        0.009        
+ 4e-06              36500         200   8.2328133e-19  2.1e-06        0.009        
+ 4e-06              36600         200   5.9628413e-17  2.1e-06        0.009        
+ 4e-06              36700         200   2.857306e-17   2.1e-06        0.009        
+ 4e-06              36800         200   4.1078269e-18  2.1e-06        0.009        
+ 4e-06              36900         200   2.4094514e-17  2.1e-06        0.009        
+ 4e-06              37000         200   2.6153896e-18  2.1e-06        0.009        
+ 4e-06              37100         200   5.6577297e-18  2.1e-06        0.009        
+ 4e-06              37200         200   6.5849416e-18  2.1e-06        0.009        
+ 4e-06              37300         200   4.5596918e-21  2.1e-06        0.009        
+ 4e-06              37400         200   3.2329813e-18  2.1e-06        0.009        
+ 4e-06              37500         200   1.123288e-18   2.1e-06        0.009        
+ 4e-06              37600         200   3.4227094e-19  2.1e-06        0.009        
+ 4e-06              37700         200   1.1782135e-18  2.1e-06        0.009        
+ 4e-06              37800         200   6.9535961e-20  2.1e-06        0.009        
+ 4e-06              37900         200   3.4055174e-19  2.1e-06        0.009        
+ 4e-06              38000         200   2.8968649e-19  2.1e-06        0.009        
+Loop time of 2.65906 on 1 procs for 5000 steps with 200 atoms
+
+99.6% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 1.5595     | 1.5595     | 1.5595     |   0.0 | 58.65
+Neigh   | 0.012904   | 0.012904   | 0.012904   |   0.0 |  0.49
+Comm    | 0.00041333 | 0.00041333 | 0.00041333 |   0.0 |  0.02
+Output  | 0.00053486 | 0.00053486 | 0.00053486 |   0.0 |  0.02
+Modify  | 1.0844     | 1.0844     | 1.0844     |   0.0 | 40.78
+Other   |            | 0.001336   |            |       |  0.05
+
+Nlocal:            200 ave         200 max         200 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:              0 ave           0 max           0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:           3026 ave        3026 max        3026 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 3026
+Ave neighs/atom = 15.13
+Neighbor list builds = 83
+Dangerous builds not checked
+Total wall time: 0:00:18

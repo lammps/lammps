@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_IMPL_HOSTTHREADTEAM_HPP
 #define KOKKOS_IMPL_HOSTTHREADTEAM_HPP
@@ -106,15 +93,7 @@ class HostThreadTeamData {
 
  public:
   inline bool team_rendezvous() const noexcept {
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-    // FIXME_OPENMP The tasking framework creates an instance with
-    // m_team_scratch == nullptr and m_team_rendezvous != 0:
-    int* ptr = m_team_scratch == nullptr
-                   ? nullptr
-                   : reinterpret_cast<int*>(m_team_scratch + m_team_rendezvous);
-#else
     int* ptr = reinterpret_cast<int*>(m_team_scratch + m_team_rendezvous);
-#endif
     HostBarrier::split_arrive(ptr, m_team_size, m_team_rendezvous_step);
     if (m_team_rank != 0) {
       HostBarrier::wait(ptr, m_team_size, m_team_rendezvous_step);
@@ -139,16 +118,8 @@ class HostThreadTeamData {
 
   inline void team_rendezvous_release() const noexcept {
     HostBarrier::split_release(
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-        // FIXME_OPENMP The tasking framework creates an instance with
-        // m_team_scratch == nullptr and m_team_rendezvous != 0:
-        (m_team_scratch == nullptr)
-            ? nullptr
-            : reinterpret_cast<int*>(m_team_scratch + m_team_rendezvous),
-#else
-        reinterpret_cast<int*>(m_team_scratch + m_team_rendezvous),
-#endif
-        m_team_size, m_team_rendezvous_step);
+        reinterpret_cast<int*>(m_team_scratch + m_team_rendezvous), m_team_size,
+        m_team_rendezvous_step);
   }
 
   inline int pool_rendezvous() const noexcept {
@@ -287,11 +258,6 @@ class HostThreadTeamData {
   }
 
   int64_t* team_shared() const noexcept {
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-    // FIXME_OPENMP The tasking framework creates an instance with
-    // m_team_scratch == nullptr and m_team_shared != 0
-    if (m_team_scratch == nullptr) return nullptr;
-#endif
     return m_team_scratch + m_team_shared;
   }
 
@@ -422,21 +388,10 @@ class HostThreadTeamMember {
 
  public:
   constexpr HostThreadTeamMember(HostThreadTeamData& arg_data) noexcept
-      : m_scratch(
-            arg_data.team_shared(),
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-            // FIXME_OPENMP The tasking framework creates an instance with
-            // m_team_scratch == nullptr and m_team_shared != 0:
-            (arg_data.team_shared() == nullptr) ? 0
-                                                : arg_data.team_shared_bytes()
-#else
-            arg_data.team_shared_bytes()
-#endif
-                ),
+      : m_scratch(arg_data.team_shared(), arg_data.team_shared_bytes()),
         m_data(arg_data),
         m_league_rank(arg_data.m_league_rank),
-        m_league_size(arg_data.m_league_size) {
-  }
+        m_league_size(arg_data.m_league_size) {}
 
   constexpr HostThreadTeamMember(HostThreadTeamData& arg_data,
                                  int const arg_league_rank,
@@ -446,13 +401,6 @@ class HostThreadTeamMember {
         m_data(arg_data),
         m_league_rank(arg_league_rank),
         m_league_size(arg_league_size) {}
-
-  ~HostThreadTeamMember()                                      = default;
-  HostThreadTeamMember()                                       = delete;
-  HostThreadTeamMember(HostThreadTeamMember&&)                 = default;
-  HostThreadTeamMember(HostThreadTeamMember const&)            = default;
-  HostThreadTeamMember& operator=(HostThreadTeamMember&&)      = default;
-  HostThreadTeamMember& operator=(HostThreadTeamMember const&) = default;
 
   //----------------------------------------
 
@@ -698,6 +646,7 @@ class HostThreadTeamMember {
     KOKKOS_IF_ON_DEVICE(((void)value; (void)global;
                          Kokkos::abort("HostThreadTeamMember team_scan\n");
                          return T();))
+    KOKKOS_IMPL_UNREACHABLE();
   }
 };
 
@@ -829,7 +778,7 @@ KOKKOS_INLINE_FUNCTION
     closure(i, value);
   }
 
-  loop_boundaries.thread.impl_team_reduce(wrapped_reducer, value);
+  loop_boundaries.member.impl_team_reduce(wrapped_reducer, value);
 
   wrapped_reducer.final(&value);
   reducer.reference() = value;
@@ -857,7 +806,7 @@ KOKKOS_INLINE_FUNCTION
     closure(i, value);
   }
 
-  loop_boundaries.thread.impl_team_reduce(wrapped_reducer, value);
+  loop_boundaries.member.impl_team_reduce(wrapped_reducer, value);
   wrapped_reducer.final(&value);
   result = value;
 }
@@ -884,7 +833,7 @@ Impl::TeamThreadRangeBoundariesStruct<iType,Impl::HostThreadTeamMember<Space> >
     closure( i , reducer.reference() );
   }
 
-  loop_boundaries.thread.team_reduce( reducer );
+  loop_boundaries.member.team_reduce( reducer );
 }*/
 
 //----------------------------------------------------------------------------
@@ -972,7 +921,7 @@ KOKKOS_INLINE_FUNCTION
     closure(i, accum, false);
   }
 
-  auto& team_member = loop_boundaries.thread;
+  auto& team_member = loop_boundaries.member;
 
   // 'accum' output is the exclusive prefix sum
   accum = team_member.team_scan(accum);

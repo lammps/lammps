@@ -39,7 +39,9 @@ using namespace EwaldConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairNMCutCoulLong::PairNMCutCoulLong(LAMMPS *lmp) : Pair(lmp)
+PairNMCutCoulLong::PairNMCutCoulLong(LAMMPS *lmp) :
+    Pair(lmp), cut_lj(nullptr), cut_ljsq(nullptr), e0(nullptr), r0(nullptr), nn(nullptr),
+    mm(nullptr), nm(nullptr), e0nm(nullptr), r0n(nullptr), r0m(nullptr), offset(nullptr)
 {
   ewaldflag = pppmflag = 1;
   ftable = nullptr;
@@ -49,6 +51,8 @@ PairNMCutCoulLong::PairNMCutCoulLong(LAMMPS *lmp) : Pair(lmp)
 
 PairNMCutCoulLong::~PairNMCutCoulLong()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
@@ -141,7 +145,7 @@ void PairNMCutCoulLong::compute(int eflag, int vflag)
             rsq_lookup.f = rsq;
             itable = rsq_lookup.i & ncoulmask;
             itable >>= ncoulshiftbits;
-            fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
+            fraction = ((double) rsq_lookup.f - rtable[itable]) * drtable[itable];
             table = ftable[itable] + fraction*dftable[itable];
             forcecoul = qtmp*q[j] * table;
             if (factor_coul < 1.0) {
@@ -517,7 +521,7 @@ double PairNMCutCoulLong::single(int i, int j, int itype, int jtype,
       rsq_lookup_single.f = rsq;
       itable = rsq_lookup_single.i & ncoulmask;
       itable >>= ncoulshiftbits;
-      fraction = (rsq_lookup_single.f - rtable[itable]) * drtable[itable];
+      fraction = ((double) rsq_lookup_single.f - rtable[itable]) * drtable[itable];
       table = ftable[itable] + fraction*dftable[itable];
       forcecoul = atom->q[i]*atom->q[j] * table;
       if (factor_coul < 1.0) {

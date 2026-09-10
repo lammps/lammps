@@ -1,8 +1,5 @@
 #include "xdr_compat.h"
 
-#include <cstdlib>
-#include <cstring>
-
 /*
  * This file contains an implementation of the Sun External Data Representation (XDR)
  * routines.  They have been adapted specifically for the use with the LAMMPS xtc dump

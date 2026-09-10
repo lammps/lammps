@@ -20,14 +20,13 @@
 
 #include "atom.h"
 #include "comm.h"
-#include "domain.h"
 #include "error.h"
 #include "fix_rheo.h"
 #include "memory.h"
 #include "modify.h"
-#include "update.h"
 
 #include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -121,7 +120,7 @@ FixRHEOPressure::FixRHEOPressure(LAMMPS *lmp, int narg, char **arg) :
         pbackground[i] = pbackground_one;
       background_flag = 1;
     } else {
-      error->all(FLERR, "Illegal fix command, {}", arg[iarg]);
+      error->all(FLERR, "Illegal fix command, {}", arg[iarg + 1]);
     }
     iarg += 2;
   }
@@ -158,7 +157,7 @@ int FixRHEOPressure::setmask()
 void FixRHEOPressure::init()
 {
   auto fixes = modify->get_fix_by_style("^rheo$");
-  if (fixes.size() == 0) error->all(FLERR, "Need to define fix rheo to use fix rheo/pressure");
+  if (fixes.empty()) error->all(FLERR, "Need to define fix rheo to use fix rheo/pressure");
   fix_rheo = dynamic_cast<FixRHEO *>(fixes[0]);
 
   csq = fix_rheo->csq;
@@ -191,14 +190,13 @@ void FixRHEOPressure::setup_pre_force(int /*vflag*/)
 void FixRHEOPressure::pre_force(int /*vflag*/)
 {
   int *mask = atom->mask;
-  int *type = atom->type;
   double *rho = atom->rho;
   double *pressure = atom->pressure;
 
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) pressure[i] = calc_pressure(rho[i], type[i]);
+    if (mask[i] & groupbit) pressure[i] = calc_pressure(rho[i], i);
 
   if (comm_forward) comm->forward_comm(this);
 }
@@ -248,7 +246,8 @@ double FixRHEOPressure::calc_pressure(double rho, int i)
     rho_ratio = rho * rho0inv[type];
     p = csq[type] * rho0[type] * (pow(rho_ratio, tpower[type]) - 1.0) / tpower[type];
   } else if (pressure_style[type] == IDEAL) {
-    p = (gamma[type] - 1.0) * rho * atom->esph[i] / atom->mass[type];
+    const double imass = atom->rmass ? atom->rmass[i] : atom->mass[type];
+    p = (gamma[type] - 1.0) * rho * atom->esph[i] / imass;
   }
 
   if (background_flag)
@@ -283,14 +282,15 @@ double FixRHEOPressure::calc_rho(double p, int i)
     rho *= pow(rho0[type], 1.0 - 1.0 / tpower[type]);
     rho *= pow(csq[type], -1.0 / tpower[type]);
   } else if (pressure_style[type] == IDEAL) {
-    rho = p * atom->mass[type] / ((gamma[type] - 1.0) * atom->esph[i]);
+    const double imass = atom->rmass ? atom->rmass[i] : atom->mass[type];
+    rho = p * imass / ((gamma[type] - 1.0) * atom->esph[i]);
   }
   return rho;
 }
 
 /* ---------------------------------------------------------------------- */
 
-double FixRHEOPressure::calc_csq(double p, int i)
+double FixRHEOPressure::calc_csq(double /*p*/, int i)
 {
   int type = atom->type[i];
   double csq2 = csq[type];

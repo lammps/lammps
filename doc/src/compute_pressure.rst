@@ -143,7 +143,7 @@ The scalar and vector values will be in pressure :doc:`units <units>`.
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""

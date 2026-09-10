@@ -24,6 +24,8 @@
 #include "library.h"
 
 #include <cstring>
+#include <mdi.h>
+#include <mpi.h>
 
 /* ---------------------------------------------------------------------- */
 

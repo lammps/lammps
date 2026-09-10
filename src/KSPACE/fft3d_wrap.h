@@ -37,7 +37,7 @@ class FFT3d : protected Pointers {
   enum { FORWARD = 1, BACKWARD = -1 };
 
   FFT3d(class LAMMPS *, MPI_Comm, int, int, int, int, int, int, int, int, int, int, int, int, int,
-        int, int, int, int, int *, int);
+        int, int, int, int, int *, int, int);
   ~FFT3d() override;
   void compute(FFT_SCALAR *, FFT_SCALAR *, int);
   void timing1d(FFT_SCALAR *, int, int);

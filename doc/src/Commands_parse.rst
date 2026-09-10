@@ -85,6 +85,12 @@ LAMMPS:
    format string is not specified, a high-precision ``%.20g`` is used as
    the default format.
 
+   .. versionchanged:: 2Sep2026
+
+   A conversion in the format string must match a floating-point value.
+   Format strings with a second conversion, such as ``:%.3f%d``, were
+   previously accepted and produced bogus output.
+
    This can be useful for formatting print output to a desired precision:
 
    .. code-block:: LAMMPS
@@ -159,11 +165,11 @@ LAMMPS:
 
 .. note::
 
-   If the argument is itself a command that requires a quoted
-   argument (e.g. using a :doc:`print <print>` command as part of an
-   :doc:`if <if>` or :doc:`run every <run>` command), then single, double, or
+   If the argument is itself a command that requires a quoted argument
+   (e.g. using a :doc:`print <print>` command as part of an :doc:`if
+   <if>` or :doc:`run every <run>` command), then single, double, or
    triple quotes can be nested in the usual manner.  See the doc pages
-   for those commands for examples.  Only one of level of nesting is
+   for those commands for examples.  Only one level of nesting is
    allowed, but that should be sufficient for most use cases.
 
 .. admonition:: ASCII versus UTF-8

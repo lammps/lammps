@@ -29,6 +29,7 @@
 #include "memory.h"
 #include "neigh_list.h"
 #include "neighbor.h"
+#include "potential_file_reader.h"
 #include "respa.h"
 #include "update.h"
 
@@ -41,7 +42,7 @@ using namespace MathConst;
 static constexpr int BIG = 1000000000;
 
 static const char cite_fix_orient_bcc[] =
-  "fix orient/bcc command: doi:10.1016/j.commatsci.2016.02.016\n\n"
+  "fix orient/bcc command: https://doi.org/10.1016/j.commatsci.2016.02.016\n\n"
   "@Article{Wicaksono16,\n"
   "  author = {A. T. Wicaksono and C. W. Sinclair and M. Militzer},\n"
   "  title = {An Atomistic Study of the Correlation Between the Migration\n"
@@ -100,29 +101,14 @@ FixOrientBCC::FixOrientBCC(LAMMPS *lmp, int narg, char **arg) :
   // read xi and chi reference orientations from files
 
   if (me == 0) {
-    char line[IMGMAX];
-    char *result;
-    int count;
-
-    FILE *inpfile = fopen(xifilename,"r");
-    if (inpfile == nullptr) error->one(FLERR,"Fix orient/bcc file open failed");
-    for (int i = 0; i < half_bcc_nn; i++) {
-      result = fgets(line,IMGMAX,inpfile);
-      if (!result) error->one(FLERR,"Fix orient/bcc file read failed");
-      count = sscanf(line,"%lg %lg %lg",&Rxi[i][0],&Rxi[i][1],&Rxi[i][2]);
-      if (count != 3) error->one(FLERR,"Fix orient/bcc file read failed");
+    try {
+      PotentialFileReader xi_reader(lmp, xifilename, "fix orient/bcc");
+      xi_reader.next_dvector(&Rxi[0][0], half_bcc_nn*3);
+      PotentialFileReader chi_reader(lmp, chifilename, "fix orient/bcc");
+      chi_reader.next_dvector(&Rchi[0][0], half_bcc_nn*3);
+    } catch (std::exception &e) {
+      error->one(FLERR, "Fix orient/bcc file read failed: {}", e.what());
     }
-    fclose(inpfile);
-
-    inpfile = fopen(chifilename,"r");
-    if (inpfile == nullptr) error->one(FLERR,"Fix orient/bcc file open failed");
-    for (int i = 0; i < half_bcc_nn; i++) {
-      result = fgets(line,IMGMAX,inpfile);
-      if (!result) error->one(FLERR,"Fix orient/bcc file read failed");
-      count = sscanf(line,"%lg %lg %lg",&Rchi[i][0],&Rchi[i][1],&Rchi[i][2]);
-      if (count != 3) error->one(FLERR,"Fix orient/bcc file read failed");
-    }
-    fclose(inpfile);
   }
 
   MPI_Bcast(&Rxi[0][0],half_bcc_nn*3,MPI_DOUBLE,0,world);
@@ -567,8 +553,8 @@ void FixOrientBCC::find_best_ref(double *displs, int which_crystal,
 
 int FixOrientBCC::compare(const void *pi, const void *pj)
 {
-  auto ineigh = (FixOrientBCC::Sort *) pi;
-  auto jneigh = (FixOrientBCC::Sort *) pj;
+  auto *ineigh = (FixOrientBCC::Sort *) pi;
+  auto *jneigh = (FixOrientBCC::Sort *) pj;
 
   if (ineigh->rsq < jneigh->rsq) return -1;
   else if (ineigh->rsq > jneigh->rsq) return 1;

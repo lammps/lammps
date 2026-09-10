@@ -47,7 +47,7 @@ going to be used to assign an equilibrium angle, e.g. for use with
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""

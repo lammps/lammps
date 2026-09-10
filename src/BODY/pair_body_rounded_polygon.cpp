@@ -51,7 +51,8 @@ enum { INVALID=0, NONE=1, VERTEXI=2, VERTEXJ=3, EDGE=4 };
 
 /* ---------------------------------------------------------------------- */
 
-PairBodyRoundedPolygon::PairBodyRoundedPolygon(LAMMPS *lmp) : Pair(lmp)
+PairBodyRoundedPolygon::PairBodyRoundedPolygon(LAMMPS *lmp) :
+    Pair(lmp), k_n(nullptr), k_na(nullptr), avec(nullptr), bptr(nullptr)
 {
   dmax = nmax = 0;
   discrete = nullptr;
@@ -462,11 +463,11 @@ void PairBodyRoundedPolygon::init_style()
 
   Fix *fixpour = nullptr;
   auto pours = modify->get_fix_by_style("^pour");
-  if (pours.size() > 0) fixpour = pours[0];
+  if (!pours.empty()) fixpour = pours[0];
 
   Fix *fixdep = nullptr;
   auto deps = modify->get_fix_by_style("^deposit");
-  if (deps.size() > 0) fixdep = deps[0];
+  if (!deps.empty()) fixdep = deps[0];
 
 
   for (i = 1; i <= ntypes; i++) {
@@ -763,8 +764,8 @@ int PairBodyRoundedPolygon::vertex_against_edge(int i, int j,
 
         // vertex i interacts with a vertex of the edge, but does not contact
 
-        if (mode == VERTEXI) p2vertex = edge[jefirst+nj][0];
-        else if (mode == VERTEXJ) p2vertex = edge[jefirst+nj][1];
+        if (mode == VERTEXI) p2vertex = (int)edge[jefirst+nj][0];
+        else if (mode == VERTEXJ) p2vertex = (int)edge[jefirst+nj][1];
 
         // double xj[3];
         // p2.body2space(p2vertex, xj);
@@ -1369,4 +1370,13 @@ void PairBodyRoundedPolygon::distance(const double* x2, const double* x1,
   r = sqrt((x2[0] - x1[0]) * (x2[0] - x1[0])
     + (x2[1] - x1[1]) * (x2[1] - x1[1])
     + (x2[2] - x1[2]) * (x2[2] - x1[2]));
+}
+
+/* ---------------------------------------------------------------------- */
+
+double PairBodyRoundedPolygon::memory_usage()
+{
+  double bytes = Pair::memory_usage();
+  bytes += (double) nmax * 4 * sizeof(int);    // dnum + dfirst + ednum + edfirst [nmax]
+  return bytes;
 }

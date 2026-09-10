@@ -61,6 +61,14 @@ the top of the list of all fixes.  In those cases an instance of the
 DUMMY fix style may be created by calling ``Modify::add_fix()`` and then
 later replaced by the intended fix through calling ``Modify::replace_fix()``.
 
+fix OXDNA/LRF
+"""""""""""""
+
+Fix OXDNA/LRF calculates the local reference frame of ellipsoids from the quaternions.
+All oxDNA bond and pair styles require the Cartesian local reference frame during the force,
+torque and energy calculation. The fix is invoked internally at the pre-force stage
+and not to be used in an input script.
+
 fix STORE/ATOM
 """"""""""""""
 
@@ -72,7 +80,7 @@ Fix STORE/ATOM can be used as persistent storage of per-atom data.
 
    fix ID group-ID STORE/ATOM N1 N2 gflag rflag
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* ID, group-ID are documented in :doc:`fix <fix>` command, group-ID is *ignored*
 * STORE/ATOM = style name of this fix command
 * N1 = 1, N2 = 0 : data is per-atom vector = single value per atom
 * N1 > 1, N2 = 0 : data is per-atom array = N1 values per atom
@@ -97,7 +105,7 @@ Fix STORE/GLOBAL can be used as persistent storage of global data with support f
 
    fix ID group-ID STORE/GLOBAL N1 N2
 
-* ID, group-ID are documented in :doc:`fix <fix>` command
+* ID, group-ID are documented in :doc:`fix <fix>` command, group-ID is *ignored*
 * STORE/GLOBAL = style name of this fix command
 * N1 >=1 : number of global items to store
 * N2 = 1 : data is global vector of length N1

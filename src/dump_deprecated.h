@@ -33,6 +33,7 @@ class DumpDeprecated : public Dump {
  public:
   DumpDeprecated(class LAMMPS *, int, char **);
 
+ protected:
   void init_style() override {}
   void write_header(bigint) override {}
   void pack(tagint *) override {}

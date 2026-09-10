@@ -24,7 +24,7 @@ Syntax
        keywords = *mdi* or *infile* or *extra* or *command*
          *mdi* value = args passed to MDI for driver to operate with plugins (required)
          *infile* value = filename the engine will read at start-up (optional)
-         *extra* value = aditional command-line args to pass to engine library when loaded (optional)
+         *extra* value = additional command-line args to pass to engine library when loaded (optional)
          *command* value = a LAMMPS input script command to execute (required)
      *connect* args = none
      *exit* args = none
@@ -46,7 +46,7 @@ Description
 """""""""""
 
 This command implements operations within LAMMPS to use the `MDI
-Library <https://molssi-mdi.github.io/MDI_Library/html/index.html>`
+Library <https://molssi-mdi.github.io/MDI_Library/>`_
 for coupling to other codes in a client/server protocol.
 
 See the Howto MDI doc page for a discussion of all the different ways
@@ -84,14 +84,13 @@ code expects.  Depending on when the driver code tells the LAMMPS
 engine to exit, other commands can be executed after this command, but
 typically it is used at the end of a LAMMPS input script.
 
-To act as an MDI engine operating as an MD code (or surrogate QM
-code), this is the list of standard MDI commands issued by a driver
-code which LAMMPS currently recognizes.  Using standard commands
-defined by the MDI library means that a driver code can work
-interchangeably with LAMMPS or other MD codes or with QM codes which
-support the MDI standard.  See more details about these commands in
-the `MDI library documentation
-<https://molssi-mdi.github.io/MDI_Library/html/mdi_standard.html>`_
+To act as an MDI engine operating as an MD code (or surrogate QM code),
+this is the list of standard MDI commands issued by a driver code which
+LAMMPS currently recognizes.  Using standard commands defined by the MDI
+library means that a driver code can work interchangeably with LAMMPS or
+other MD codes or with QM codes which support the MDI standard.  See
+more details about these commands in the `MDI library documentation
+<https://molssi-mdi.github.io/MDI_Library/api/mdi_standard/index.html>`_
 
 These commands are valid at the @DEFAULT node defined by MDI.
 Commands that start with ">" mean the driver is sending information to

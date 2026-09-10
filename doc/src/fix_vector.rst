@@ -182,7 +182,7 @@ This fix is not invoked during :doc:`energy minimization <minimize>`.
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""

@@ -43,7 +43,7 @@ fix_modify RIGID temp TATOM press thermo_press
 fix NVT DRUDES nvt temp ${TDK} ${TDK} 100.0
 fix DTINV all drude/transform/inverse
 
-thermo_style custom step cpu etotal ke pe ebond eangle evdwl ecoul elong press vol temp c_TEMP[1] c_TEMP[2]
+thermo_style custom step etotal ke pe ebond eangle evdwl ecoul elong press vol temp c_TEMP[1] c_TEMP[2]
 thermo 20
 
 run 2000

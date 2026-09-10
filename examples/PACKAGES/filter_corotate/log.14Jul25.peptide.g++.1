@@ -1,0 +1,175 @@
+LAMMPS (12 Jun 2025 - Development - patch_12Jun2025-739-g2644e7f6fa-modified)
+  using 1 OpenMP thread(s) per MPI task
+# Solvated 5-mer peptide, run for 8ps in NVT
+
+units           real
+atom_style      full
+
+pair_style      lj/charmm/coul/long 8.0 10.0 10.0
+bond_style      harmonic
+angle_style     charmm
+dihedral_style  charmm
+improper_style  harmonic
+kspace_style    pppm 0.0001
+
+read_data       data.peptide
+Reading data file ...
+  orthogonal box = (36.840194 41.013691 29.768095) to (64.21156 68.385058 57.139462)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  2004 atoms
+  reading velocities ...
+  2004 velocities
+  scanning bonds ...
+  3 = max bonds/atom
+  scanning angles ...
+  6 = max angles/atom
+  scanning dihedrals ...
+  14 = max dihedrals/atom
+  scanning impropers ...
+  1 = max impropers/atom
+  orthogonal box = (36.840194 41.013691 29.768095) to (64.21156 68.385058 57.139462)
+  1 by 1 by 1 MPI processor grid
+  reading bonds ...
+  1365 bonds
+  reading angles ...
+  786 angles
+  reading dihedrals ...
+  207 dihedrals
+  reading impropers ...
+  12 impropers
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     4 = max # of 1-2 neighbors
+     7 = max # of 1-3 neighbors
+    14 = max # of 1-4 neighbors
+    18 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+  read_data CPU = 0.013 seconds
+
+neighbor        2.0 bin
+neigh_modify    delay 5
+
+thermo          50
+#dump            dump1 all atom 100 peptide.dump
+
+timestep        8
+
+run_style respa 3 2 8 bond 1 dihedral 2 pair 2 kspace 3
+Respa levels:
+  1 = bond angle
+  2 = dihedral improper pair
+  3 = kspace
+
+fix             1 all nvt temp 250.0 250.0 100.0 tchain 1
+fix             cor all filter/corotate m 1.0
+  19 = # of size 2 clusters
+  0 = # of size 3 clusters
+  3 = # of size 4 clusters
+  0 = # of size 5 clusters
+  646 = # of frozen angles
+run             1000
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- Mollified Impulse Method with Corotational Filter: doi:10.1016/j.jcp.2016.12.024
+
+@Article{Fath2017,
+ Title ={A Fast Mollified Impulse Method for Biomolecular Atomistic Simulations},
+ Author = {L. Fath and M. Hochbruck and C. V. Singh},
+ Journal = {Journal of Computational Physics},
+ Year = {2017},
+ Pages = {180--198},
+ Volume = {333},
+
+ Doi = {https://doi.org/10.1016/j.jcp.2016.12.024},
+ ISSN = {0021-9991},
+ Keywords = {Mollified impulse method},
+ Url = {https://www.sciencedirect.com/science/article/pii/S0021999116306787}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+PPPM initialization ...
+  using 12-bit tables for long-range coulomb
+  G vector (1/distance) = 0.26872465
+  grid = 15 15 15
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.022820853
+  estimated relative force accuracy = 6.872432e-05
+  using double precision FFTW3
+  3d grid and FFT values/proc = 10648 3375
+Generated 91 of 91 mixed pair_coeff terms from arithmetic mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 5 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 12
+  ghost atom cutoff = 12
+  binsize = 6, bins = 5 5 5
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/charmm/coul/long, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 23.05 | 23.05 | 23.05 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+         0   190.0857      -6442.7438      70.391457     -5237.4338      20361.984    
+        50   239.47653     -7205.1003      1092.7665     -4682.5242     -23733.122    
+       100   244.07229     -6785.0504      422.90862     -4904.893       16449.416    
+       150   239.52635     -7251.3287      955.01358     -4866.2081     -13683.407    
+       200   249.88988     -6874.4712      567.51841     -4814.9696      10008.486    
+       250   242.44532     -7302.2945      902.65029     -4952.1093     -9379.0629    
+       300   254.21219     -6994.4761      656.85648     -4819.8298      6662.4155    
+       350   251.99651     -7214.6827      823.07017     -4887.0516     -5847.4094    
+       400   244.06253     -7069.8698      699.40399     -4913.2752      2210.4098    
+       450   251.30796     -7192.0473      822.96919     -4868.6282     -3503.7561    
+       500   254.45168     -7110.7365      728.19119     -4863.3256      3846.7772    
+       550   246.31169     -7273.8597      822.51469     -4980.7256     -3223.6704    
+       600   248.54734     -7155.4287      733.9911      -4937.4702      1999.1375    
+       650   246.15897     -7203.0144      799.85949     -4933.4474     -2344.6157    
+       700   246.72182     -7252.9263      805.26935     -4974.5889      619.73298    
+       750   256.14222     -7204.8077      809.95543     -4865.5391     -2613.0228    
+       800   247.6005      -7267.6092      828.9905      -4960.3044     -340.24603    
+       850   245.82973     -7268.6642      810.23505     -4990.6874     -1391.3847    
+       900   255.51077     -7290.2059      809.08122     -4955.5817      197.37923    
+       950   241.56497     -7277.1054      826.60919     -5008.2174     -1531.0793    
+      1000   255.02322     -7248.7635      819.70368     -4906.4278     -731.80171    
+Loop time of 59.8112 on 1 procs for 1000 steps with 2004 atoms
+
+Performance: 11.556 ns/day, 2.077 hours/ns, 16.719 timesteps/s, 33.505 katom-step/s
+99.6% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 55.349     | 55.349     | 55.349     |   0.0 | 92.54
+Bond    | 0.54636    | 0.54636    | 0.54636    |   0.0 |  0.91
+Kspace  | 0.43248    | 0.43248    | 0.43248    |   0.0 |  0.72
+Neigh   | 2.183      | 2.183      | 2.183      |   0.0 |  3.65
+Comm    | 0.48557    | 0.48557    | 0.48557    |   0.0 |  0.81
+Output  | 0.00047146 | 0.00047146 | 0.00047146 |   0.0 |  0.00
+Modify  | 0.68423    | 0.68423    | 0.68423    |   0.0 |  1.14
+Other   |            | 0.1304     |            |       |  0.22
+
+Nlocal:           2004 ave        2004 max        2004 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:          11223 ave       11223 max       11223 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:         708048 ave      708048 max      708048 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 708048
+Ave neighs/atom = 353.31737
+Ave special neighs/atom = 2.3403194
+Neighbor list builds = 200
+Dangerous builds = 200
+unfix           cor
+unfix           1
+
+
+
+Total wall time: 0:00:59

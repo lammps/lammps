@@ -35,7 +35,7 @@ ComputeDilatationAtom::
 ComputeDilatationAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
-  if (narg != 3) error->all(FLERR,"Illegal compute Dilatation/atom command");
+  if (narg != 3) error->all(FLERR,"Illegal compute dilatation/atom command");
 
   peratom_flag = 1;
   size_peratom_cols = 0;
@@ -82,8 +82,8 @@ void ComputeDilatationAtom::compute_peratom()
   // extract dilatation for each atom in group
 
   int tmp;
-  auto anypair = force->pair_match("^peri",0);
-  auto theta = (double *)anypair->extract("theta",tmp);
+  auto *anypair = force->pair_match("^peri",0);
+  auto *theta = (double *)anypair->extract("theta",tmp);
 
   int *mask = atom->mask;
   int nlocal = atom->nlocal;

@@ -24,13 +24,14 @@
 #include "pair.h"
 
 #include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-ImproperAmoeba::ImproperAmoeba(LAMMPS *lmp) : Improper(lmp)
+ImproperAmoeba::ImproperAmoeba(LAMMPS *lmp) : Improper(lmp), k(nullptr)
 {
   writedata = 1;
 

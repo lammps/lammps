@@ -14,42 +14,42 @@
 #ifdef NPAIR_CLASS
 // clang-format off
 
-typedef NPairNsqOmp<0, 1, 0, 0> NPairFullNsqOmp;
+using NPairFullNsqOmp = NPairNsqOmp<0, 1, 0, 0>;
 NPairStyle(full/nsq/omp,
            NPairFullNsqOmp,
            NP_FULL | NP_NSQ | NP_OMP | NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI);
 
-typedef NPairNsqOmp<1, 0, 0, 0> NPairHalfNsqNewtoffOmp;
+using NPairHalfNsqNewtoffOmp = NPairNsqOmp<1, 0, 0, 0>;
 NPairStyle(half/nsq/newtoff/omp,
            NPairHalfNsqNewtoffOmp,
            NP_HALF | NP_NSQ | NP_OMP | NP_NEWTOFF | NP_ORTHO | NP_TRI);
 
-typedef NPairNsqOmp<1, 1, 0, 0> NPairHalfNsqNewtonOmp;
+using NPairHalfNsqNewtonOmp = NPairNsqOmp<1, 1, 0, 0>;
 NPairStyle(half/nsq/newton/omp,
            NPairHalfNsqNewtonOmp,
            NP_HALF | NP_NSQ | NP_OMP | NP_NEWTON | NP_ORTHO);
 
-typedef NPairNsqOmp<1, 1, 1, 0> NPairHalfNsqNewtonTriOmp;
+using NPairHalfNsqNewtonTriOmp = NPairNsqOmp<1, 1, 1, 0>;
 NPairStyle(half/nsq/newton/tri/omp,
            NPairHalfNsqNewtonTriOmp,
            NP_HALF | NP_NSQ | NP_OMP | NP_NEWTON | NP_TRI);
 
-typedef NPairNsqOmp<0, 1, 0, 1> NPairFullSizeNsqOmp;
+using NPairFullSizeNsqOmp = NPairNsqOmp<0, 1, 0, 1>;
 NPairStyle(full/size/nsq/omp,
            NPairFullSizeNsqOmp,
            NP_FULL | NP_SIZE | NP_NSQ | NP_OMP | NP_NEWTON | NP_NEWTOFF | NP_ORTHO | NP_TRI);
 
-typedef NPairNsqOmp<1, 0, 0, 1> NPairHalfSizeNsqNewtoffOmp;
+using NPairHalfSizeNsqNewtoffOmp = NPairNsqOmp<1, 0, 0, 1>;
 NPairStyle(half/size/nsq/newtoff/omp,
            NPairHalfSizeNsqNewtoffOmp,
            NP_HALF | NP_SIZE | NP_NSQ | NP_OMP | NP_NEWTOFF | NP_ORTHO | NP_TRI);
 
-typedef NPairNsqOmp<1, 1, 0, 1> NPairHalfSizeNsqNewtonOmp;
+using NPairHalfSizeNsqNewtonOmp = NPairNsqOmp<1, 1, 0, 1>;
 NPairStyle(half/size/nsq/newton/omp,
            NPairHalfSizeNsqNewtonOmp,
            NP_HALF | NP_SIZE | NP_NSQ | NP_OMP | NP_NEWTON | NP_ORTHO);
 
-typedef NPairNsqOmp<1, 1, 1, 1> NPairHalfSizeNsqNewtonTriOmp;
+using NPairHalfSizeNsqNewtonTriOmp = NPairNsqOmp<1, 1, 1, 1>;
 NPairStyle(half/size/nsq/newton/tri/omp,
            NPairHalfSizeNsqNewtonTriOmp,
            NP_HALF | NP_SIZE | NP_NSQ | NP_OMP | NP_NEWTON | NP_TRI);

@@ -5,17 +5,27 @@ LAMMPS has several commands which can be used to invoke Python
 code directly from an input script:
 
 * :doc:`python <python>`
-* :doc:`variable python <variable>`
+* :doc:`python-style variables <variable>`
+* :doc:`equal-style and atom-style variables with formulas containing Python function wrappers <variable>`
 * :doc:`fix python/invoke <fix_python_invoke>`
 * :doc:`pair_style python <pair_python>`
 
-The :doc:`python <python>` command which can be used to define and
-execute a Python function that you write the code for.  The Python
-function can also be assigned to a LAMMPS python-style variable via
-the :doc:`variable <variable>` command.  Each time the variable is
+The :doc:`python <python>` command can be used to define and execute a
+Python function that you write the code for.  The Python function can
+also be assigned to a LAMMPS python-style variable via the
+:doc:`variable <variable>` command.  Each time the variable is
 evaluated, either in the LAMMPS input script itself, or by another
 LAMMPS command that uses the variable, this will trigger the Python
 function to be invoked.
+
+The Python function can also be referenced in the formula used to
+define an :doc:`equal-style or atom-style variable <variable>`, using
+the syntax for a :doc:`Python function wrapper <variable>`.  This make
+it easy to pass LAMMPS-related arguments to the Python function, as
+well as to invoke it whenever the equal- or atom-style variable is
+evaluated.  For an atom-style variable it means the Python function
+can be invoked once per atom, using per-atom properties as arguments
+to the function.
 
 The Python code for the function can be included directly in the input
 script or in an auxiliary file.  The function can have arguments which

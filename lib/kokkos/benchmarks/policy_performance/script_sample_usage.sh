@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# Sample script for benchmarking policy performance 
+# Sample script for benchmarking policy performance
 
 # Suggested environment variables to export prior to executing script:
-# KNL: 
+# KNL:
 # OMP_NUM_THREADS=256 KMP_AFFINITY=compact
 # Power:
 # OMP_NUM_THREADS=64 OMP_PROC_BIND=true
@@ -27,7 +27,7 @@
 # Tier 7: 'outer' parallel_for with TeamPolicy (nested parallelism) 1XY
 # Tier 8: 'outer' parallel_reduce with TeamPolicy (nested parallelism) 2XY
 
-# Results grouped by: 
+# Results grouped by:
 # 0) SCHEDULE  1) CODE (test)  2) TEAMRANGE  3) TEAMSIZE  4) THREADRANGE
 
 EXECUTABLE=policy_performance

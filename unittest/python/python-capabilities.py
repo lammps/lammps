@@ -1,5 +1,6 @@
 import sys,os,unittest
 from lammps import lammps
+from lammps.constants import LMP_MAX_GROUP
 
 class PythonCapabilities(unittest.TestCase):
     def setUp(self):
@@ -42,16 +43,16 @@ class PythonCapabilities(unittest.TestCase):
         self.assertEqual(osinfo.find(system),0)
 
     def test_has_gzip_support(self):
-        self.assertEqual(self.lmp.has_gzip_support, self.cmake_cache['WITH_GZIP'])
+        self.assertEqual(self.lmp.has_gzip_support, self.cmake_cache.get('WITH_GZIP', False))
 
     def test_has_png_support(self):
-        self.assertEqual(self.lmp.has_png_support, self.cmake_cache['WITH_PNG'])
+        self.assertEqual(self.lmp.has_png_support, self.cmake_cache.get('WITH_PNG', False))
 
     def test_has_jpeg_support(self):
-        self.assertEqual(self.lmp.has_jpeg_support, self.cmake_cache['WITH_JPEG'])
+        self.assertEqual(self.lmp.has_jpeg_support, self.cmake_cache.get('WITH_JPEG', False))
 
     def test_has_ffmpeg_support(self):
-        self.assertEqual(self.lmp.has_ffmpeg_support, self.cmake_cache['WITH_FFMPEG'])
+        self.assertEqual(self.lmp.has_ffmpeg_support, self.cmake_cache.get('WITH_FFMPEG', False))
 
     def test_installed_packages(self):
         installed_packages = self.lmp.installed_packages
@@ -112,7 +113,7 @@ class PythonCapabilities(unittest.TestCase):
         self.assertEqual(len(ids),1)
         ids = self.lmp.available_ids('group')
         self.assertIn('none', ids)
-        self.assertEqual(len(ids),2)
+        self.assertEqual(len(ids),LMP_MAX_GROUP)
         ids = self.lmp.available_ids('molecule')
         self.assertEqual(len(ids),0)
         ids = self.lmp.available_ids('region')

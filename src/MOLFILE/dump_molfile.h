@@ -31,6 +31,7 @@ class DumpMolfile : public Dump {
   DumpMolfile(LAMMPS *, int, char **);
   ~DumpMolfile() override;
   void write() override;
+  double memory_usage() override;
 
  protected:
   class MolfileInterface *mf;    //< handles low-level I/O
@@ -48,10 +49,9 @@ class DumpMolfile : public Dump {
 
   void init_style() override;
   int modify_param(int, char **) override;
-  void write_header(bigint) override{};
+  void write_header(bigint) override {};
   void pack(tagint *) override;
   void write_data(int, double *) override;
-  double memory_usage() override;
   void openfile() override;
 };
 

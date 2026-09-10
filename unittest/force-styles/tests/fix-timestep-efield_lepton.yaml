@@ -1,6 +1,5 @@
 ---
 lammps_version: 29 Aug 2024
-tags: generated
 date_generated: Tue Nov 12 08:53:18 2024
 epsilon: 2e-13
 skip_tests:
@@ -13,6 +12,7 @@ post_commands: ! |
   fix move all nve
   fix test solute efield/lepton "A*exp(-B*r)/r; r=abs(sqrt(x^2+y^2+z^2)); A=1; B=1"
 input_file: in.fourmol
+input_coeffs: coeffs.fourmol
 natoms: 29
 global_scalar: 1.6704454516566274
 run_pos: ! |2

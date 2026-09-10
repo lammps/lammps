@@ -116,7 +116,7 @@ static_assert(MDSPAN_IMPL_CPLUSPLUS >= MDSPAN_CXX_STD_14, "mdspan requires C++14
 
 #if !defined(MDSPAN_IMPL_USE_ATTRIBUTE_NO_UNIQUE_ADDRESS)
 #  if ((MDSPAN_IMPL_HAS_CPP_ATTRIBUTE(no_unique_address) >= 201803L) && \
-       (!defined(__NVCC__) || MDSPAN_HAS_CXX_20) && \
+       (!defined(__NVCC__) || ((__CUDACC_VER_MAJOR__ * 100 + __CUDACC_VER_MINOR__ * 10 < 1290) && MDSPAN_HAS_CXX_20)) && \
        (!defined(MDSPAN_IMPL_COMPILER_MSVC) || MDSPAN_HAS_CXX_20))
 #    define MDSPAN_IMPL_USE_ATTRIBUTE_NO_UNIQUE_ADDRESS 1
 #    define MDSPAN_IMPL_NO_UNIQUE_ADDRESS [[no_unique_address]]
@@ -181,6 +181,13 @@ static_assert(MDSPAN_IMPL_CPLUSPLUS >= MDSPAN_CXX_STD_14, "mdspan requires C++14
         || (!defined(__cpp_constexpr) && MDSPAN_HAS_CXX_14) \
         && (!(defined(__INTEL_COMPILER) && __INTEL_COMPILER <= 1700))
 #    define MDSPAN_IMPL_USE_CONSTEXPR_14 1
+#  endif
+#endif
+
+#ifndef MDSPAN_IMPL_USE_IF_CONSTEXPR_17
+#  if (defined(__cpp_if_constexpr) && __cpp_if_constexpr >= 201606) \
+        || (!defined(__cpp_constexpr) && MDSPAN_HAS_CXX_17)
+#    define MDSPAN_IMPL_USE_IF_CONSTEXPR_17 1
 #  endif
 #endif
 

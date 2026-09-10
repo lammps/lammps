@@ -18,20 +18,21 @@
 
 #include "bond_mm3.h"
 
-#include <cmath>
 #include "atom.h"
-#include "neighbor.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
 #include "memory.h"
-#include "error.h"
+#include "neighbor.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-BondMM3::BondMM3(LAMMPS *lmp) : Bond(lmp)
+BondMM3::BondMM3(LAMMPS *lmp) : Bond(lmp), r0(nullptr), k2(nullptr)
 {
   born_matrix_enable = 1;
 }

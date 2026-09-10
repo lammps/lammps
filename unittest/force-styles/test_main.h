@@ -14,9 +14,12 @@
 #ifndef TEST_MAIN_H
 #define TEST_MAIN_H
 
-#include "atom.h"
-#include "lammps.h"
+#include "pointers.h"
+
+#include "gtest/gtest.h"
 #include "test_config.h"
+
+#include <cmath>
 #include <string>
 #include <vector>
 
@@ -47,5 +50,9 @@ void EXPECT_VELOCITIES(const std::string &name, LAMMPS_NS::Atom *atom,
                        const std::vector<coord_t> &v_ref, double epsilon);
 void EXPECT_TORQUES(const std::string &name, LAMMPS_NS::Atom *atom,
                     const std::vector<coord_t> &t_ref, double epsilon);
+void EXPECT_MAG_FORCES(const std::string &name, LAMMPS_NS::Atom *atom,
+                       const std::vector<coord_t> &fm_ref, double epsilon);
+void EXPECT_SPINS(const std::string &name, LAMMPS_NS::Atom *atom,
+                  const std::vector<coord4_t> &sp_ref, double epsilon);
 
 #endif

@@ -23,7 +23,7 @@ acceleration.
 LAMMPS is written in C++ and currently requires a compiler that is at
 least compatible with the C++-11 standard.  Earlier versions were
 written in F77, F90, and C++-98.  See the `History page
-<https://www.lammps.org/history.html>`_ of the website for details.  All
+<https://www.lammps.org/about/history/>`_ of the website for details.  All
 versions can be downloaded as source code from the `LAMMPS website
 <lws_>`_.
 
@@ -37,7 +37,7 @@ executables are provided.
 
 LAMMPS is designed to be easy to modify or extend with new capabilities,
 such as new force fields, atom types, boundary conditions, or
-diagnostics.  See the :doc:`Modify` section of for more details.
+diagnostics.  See the :doc:`Modify` section for more details.
 
 In the most general sense, LAMMPS integrates Newton's equations of
 motion for a collection of interacting particles.  A single particle can

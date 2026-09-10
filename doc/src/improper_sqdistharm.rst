@@ -1,7 +1,11 @@
 .. index:: improper_style sqdistharm
+.. index:: improper_style sqdistharm/kk
+.. index:: improper_style sqdistharm/omp
 
 improper_style sqdistharm command
 =================================
+
+Accelerator Variants: *sqdistharm/kk*, *sqdistharm/omp*
 
 Syntax
 """"""
@@ -42,6 +46,21 @@ file or restart files read by the read_data or read_restart commands:
 * :math:`{d_0}^2` (distance\^2)
 
 Note that :math:`{d_0}^2` (in units distance\^2) has be provided and not :math:`d_0`.
+
+----------
+
+Symmetry convention
+"""""""""""""""""""
+
+For the *sqdistharm* improper style, the fourth atom in the quadruplet is the
+atom of symmetry; all other atoms are considered interchangeable.  This
+convention is relevant for operations that require knowledge of how atoms
+are ordered, such as automatic assignment of new improper types by
+:doc:`fix bond/react <fix_bond_react>`.
+
+----------
+
+.. include:: accel_styles.rst
 
 ----------
 

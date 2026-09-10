@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_HIP_PARALLEL_SCAN_RANGE_HPP
 #define KOKKOS_HIP_PARALLEL_SCAN_RANGE_HPP
@@ -162,6 +149,9 @@ class ParallelScanHIPBase {
     } else if (0 == threadIdx.y) {
       final_reducer.init(reinterpret_cast<pointer_type>(shared_accum));
     }
+    // FIXME_HIP below __syncthreads() is added to handle MI300A.
+    // Likely compiler optimization bug.
+    __syncthreads();
 
     const WorkRange range(m_policy, blockIdx.x, gridDim.x);
 
@@ -169,8 +159,10 @@ class ParallelScanHIPBase {
          iwork_base < range.end(); iwork_base += blockDim.y) {
       const typename Policy::member_type iwork = iwork_base + threadIdx.y;
 
-      __syncthreads();  // Don't overwrite previous iteration values until they
-                        // are used
+      // FIXME_HIP: we encountered something believed to be a compiler bug on
+      // MI300A: instead of syncing here, we need to sync before the loop
+      // and at the very end of the loop.
+      //__syncthreads();
 
       final_reducer.init(
           reinterpret_cast<pointer_type>(shared_prefix + word_count.value));
@@ -218,6 +210,9 @@ class ParallelScanHIPBase {
       if (iwork + 1 == m_policy.end() && m_policy.end() == range.end() &&
           m_result_ptr_device_accessible)
         *m_result_ptr = *reinterpret_cast<pointer_type>(shared_prefix);
+      // FIXME_HIP below __syncthreads() is moved from the beginning of this
+      // loop to here to handle issues on MI300A. Likely compiler bug.
+      __syncthreads();
     }
   }
 
@@ -254,6 +249,7 @@ class ParallelScanHIPBase {
 
       const typename Analysis::Reducer& final_reducer =
           m_functor_reducer.get_reducer();
+
       m_scratch_space =
           reinterpret_cast<word_size_type*>(Impl::hip_internal_scratch_space(
               m_policy.space(), final_reducer.value_size() * m_grid_x));
@@ -305,6 +301,12 @@ class ParallelScan<FunctorType, Kokkos::RangePolicy<Traits...>, HIP>
                       "valid execution configuration."));
     }
 
+    // Only let one instance at a time resize the instance's scratch memory
+    // allocations.
+    std::scoped_lock<std::mutex> scratch_buffers_lock(
+        Base::m_policy.space()
+            .impl_internal_space_instance()
+            ->m_mutexScratchSpace);
     Base::impl_execute(block_size);
   }
 
@@ -347,6 +349,13 @@ class ParallelScanWithTotal<FunctorType, Kokkos::RangePolicy<Traits...>,
           std::string("Kokkos::Impl::ParallelScan< HIP > could not find a "
                       "valid execution configuration."));
     }
+
+    // Only let one instance at a time resize the instance's scratch memory
+    // allocations.
+    std::scoped_lock<std::mutex> scratch_buffers_lock(
+        Base::m_policy.space()
+            .impl_internal_space_instance()
+            ->m_mutexScratchSpace);
 
     Base::impl_execute(block_size);
 

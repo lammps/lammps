@@ -50,7 +50,7 @@ fix fNVT all tgnvt/drude temp ${vTEMP} ${vTEMP} 100.0 ${vTEMP_D} 20.0
 
 compute cTEMP all temp/drude
 
-thermo_style custom step cpu etotal ke temp pe ebond eangle edihed eimp evdwl ecoul elong press vol c_cTEMP[1] c_cTEMP[2] f_fNVT[1] f_fNVT[2] f_fNVT[3]
+thermo_style custom step etotal ke temp pe ebond eangle edihed eimp evdwl ecoul elong press vol c_cTEMP[1] c_cTEMP[2] f_fNVT[1] f_fNVT[2] f_fNVT[3]
 thermo 50
 
 timestep 0.5

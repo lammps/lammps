@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_MIN_MAX_HPP
 #define KOKKOS_MIN_MAX_HPP
@@ -27,12 +14,18 @@ namespace Kokkos {
 // max
 template <class T>
 constexpr KOKKOS_INLINE_FUNCTION const T& max(const T& a, const T& b) {
+  // Capturing the result of std::max by reference produces a dangling reference
+  // if one of the parameters is a temporary and that parameter is returned.
+  // NOLINTNEXTLINE(bugprone-return-const-ref-from-parameter)
   return (a < b) ? b : a;
 }
 
 template <class T, class ComparatorType>
 constexpr KOKKOS_INLINE_FUNCTION const T& max(const T& a, const T& b,
                                               ComparatorType comp) {
+  // Capturing the result of std::max by reference produces a dangling reference
+  // if one of the parameters is a temporary and that parameter is returned.
+  // NOLINTNEXTLINE(bugprone-return-const-ref-from-parameter)
   return comp(a, b) ? b : a;
 }
 
@@ -64,12 +57,18 @@ KOKKOS_INLINE_FUNCTION constexpr T max(std::initializer_list<T> ilist,
 // min
 template <class T>
 constexpr KOKKOS_INLINE_FUNCTION const T& min(const T& a, const T& b) {
+  // Capturing the result of std::min by reference produces a dangling reference
+  // if one of the parameters is a temporary and that parameter is returned.
+  // NOLINTNEXTLINE(bugprone-return-const-ref-from-parameter)
   return (b < a) ? b : a;
 }
 
 template <class T, class ComparatorType>
 constexpr KOKKOS_INLINE_FUNCTION const T& min(const T& a, const T& b,
                                               ComparatorType comp) {
+  // Capturing the result of std::min by reference produces a dangling reference
+  // if one of the parameters is a temporary and that parameter is returned.
+  // NOLINTNEXTLINE(bugprone-return-const-ref-from-parameter)
   return comp(b, a) ? b : a;
 }
 

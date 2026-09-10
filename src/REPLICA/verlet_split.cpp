@@ -295,10 +295,7 @@ void VerletSplit::run(int n)
 
   // check if OpenMP support fix defined
 
-  Fix *fix_omp;
-  int ifix = modify->find_fix("package_omp");
-  if (ifix < 0) fix_omp = nullptr;
-  else fix_omp = modify->fix[ifix];
+  Fix *fix_omp = modify->get_fix_by_id("package_omp");
 
   // flags for timestepping iterations
 

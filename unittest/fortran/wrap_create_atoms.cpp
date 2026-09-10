@@ -3,9 +3,7 @@
 #include "atom.h"
 #include "lammps.h"
 #include "library.h"
-#include <cstdint>
-#include <cstdlib>
-#include <mpi.h>
+
 #include <string>
 
 #include "gtest/gtest.h"

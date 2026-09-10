@@ -44,7 +44,7 @@ enum{NONE,CONSTANT,EQUAL,ATOM};
 /* ---------------------------------------------------------------------- */
 
 FixGrem::FixGrem(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+    Fix(lmp, narg, arg), temperature(nullptr), pressure(nullptr), ke(nullptr), pe(nullptr)
 {
   if (narg < 7) error->all(FLERR,"Illegal fix grem command");
 
@@ -88,18 +88,18 @@ FixGrem::FixGrem(LAMMPS *lmp, int narg, char **arg) :
   id_pe = utils::strdup(std::string(id) + "_pe");
   modify->add_compute(fmt::format("{} all pe",id_pe));
 
-  int ifix = modify->find_fix(id_nh);
-  if (ifix < 0)
+  Fix *nh = modify->get_fix_by_id(id_nh);
+  if (!nh)
     error->all(FLERR,"Fix id for nvt or npt fix does not exist");
-  Fix *nh = modify->fix[ifix];
 
   pressflag = 0;
-  int *p_flag = (int *)nh->extract("p_flag",ifix);
-  if ((p_flag == nullptr) || (ifix != 1) || (p_flag[0] == 0)
+  int dim;
+  int *p_flag = (int *)nh->extract("p_flag",dim);
+  if ((p_flag == nullptr) || (dim != 1) || (p_flag[0] == 0)
       || (p_flag[1] == 0) || (p_flag[2] == 0)) {
     pressflag = 0;
   } else if ((p_flag[0] == 1) && (p_flag[1] == 1)
-             && (p_flag[2] == 1) && (ifix == 1)) {
+             && (p_flag[2] == 1) && (dim == 1)) {
     pressflag = 1;
     char *modargs[2];
     modargs[0] = (char *) "press";
@@ -172,13 +172,13 @@ void FixGrem::init()
   if (!ifix) {
     error->all(FLERR,"Fix id for nvt or npt fix does not exist");
   } else { // check for correct fix style
-    FixNH *nh = dynamic_cast<FixNH *>(ifix);
+    auto *nh = dynamic_cast<FixNH *>(ifix);
     if (!nh) {
       error->all(FLERR, "Fix ID {} is not a compatible Nose-Hoover fix for fix {}", id_nh, style);
     } else {
       int dummy;
-      auto t_start = (double *)nh->extract("t_start",dummy);
-      auto t_stop = (double *)nh->extract("t_stop",dummy);
+      auto *t_start = (double *)nh->extract("t_start",dummy);
+      auto *t_stop = (double *)nh->extract("t_stop",dummy);
       if ((t_start != nullptr) && (t_stop != nullptr)) {
         tbath = *t_start;
         if (*t_start != *t_stop)
@@ -189,8 +189,8 @@ void FixGrem::init()
       pressref = 0.0;
       if (pressflag) {
         int *p_flag = (int *)nh->extract("p_flag",dummy);
-        auto p_start = (double *) nh->extract("p_start",dummy);
-        auto p_stop = (double *) nh->extract("p_stop",dummy);
+        auto *p_start = (double *) nh->extract("p_start",dummy);
+        auto *p_stop = (double *) nh->extract("p_stop",dummy);
         if ((p_flag != nullptr) && (p_start != nullptr) && (p_stop != nullptr)) {
           int ifix = 0;
           pressref = p_start[0];

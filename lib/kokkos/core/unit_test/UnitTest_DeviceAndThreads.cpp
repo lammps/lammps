@@ -1,23 +1,22 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+#else
 #include <Kokkos_Core.hpp>
+#endif
+#include <Kokkos_Assert.hpp>
+
+#ifdef KOKKOS_ENABLE_OPENMP
+#include <omp.h>
+#endif
+
 #include <iostream>
 #include <string>
 #include <thread>
+#include <vector>
 
 int get_num_devices() {
   int num_devices;
@@ -25,8 +24,6 @@ int get_num_devices() {
   KOKKOS_IMPL_CUDA_SAFE_CALL(cudaGetDeviceCount(&num_devices));
 #elif defined(KOKKOS_ENABLE_HIP)
   KOKKOS_IMPL_HIP_SAFE_CALL(hipGetDeviceCount(&num_devices));
-#elif defined(KOKKOS_ENABLE_OPENMPTARGET)
-  num_devices = omp_get_num_devices();
 #elif defined(KOKKOS_ENABLE_OPENACC)
   num_devices = acc_get_num_devices(acc_get_device_type());
 #elif defined(KOKKOS_ENABLE_SYCL)
@@ -34,7 +31,7 @@ int get_num_devices() {
 #else
   num_devices = -1;
 #endif
-  assert(num_devices == Kokkos::num_devices());
+  KOKKOS_ASSERT(num_devices == Kokkos::num_devices());
   return num_devices;
 }
 
@@ -44,8 +41,6 @@ int get_device_id() {
   KOKKOS_IMPL_CUDA_SAFE_CALL(cudaGetDevice(&device_id));
 #elif defined(KOKKOS_ENABLE_HIP)
   KOKKOS_IMPL_HIP_SAFE_CALL(hipGetDevice(&device_id));
-#elif defined(KOKKOS_ENABLE_OPENMPTARGET)
-  device_id   = omp_get_default_device();
 #elif defined(KOKKOS_ENABLE_OPENACC)
   device_id   = acc_get_device_num(acc_get_device_type());
 #elif defined(KOKKOS_ENABLE_SYCL)
@@ -57,7 +52,7 @@ int get_device_id() {
 #else
   device_id   = -1;
 #endif
-  assert(device_id == Kokkos::device_id());
+  KOKKOS_ASSERT(device_id == Kokkos::device_id());
   return device_id;
 }
 
@@ -81,7 +76,7 @@ int get_hwloc_enabled() {
 
 int get_num_threads() {
   int const num_threads = Kokkos::DefaultHostExecutionSpace().concurrency();
-  assert(num_threads == Kokkos::num_threads());
+  KOKKOS_ASSERT(num_threads == Kokkos::num_threads());
   return num_threads;
 }
 
@@ -116,7 +111,7 @@ int print_flag(std::string const& flag) {
   return EXIT_FAILURE;
 }
 
-int main(int argc, char* argv[]) {
+int main(int argc, char* argv[]) {  // NOLINT(bugprone-exception-escape)
   Kokkos::ScopeGuard guard(argc, argv);
   if (argc != 2) {
     std::cerr << "Usage: <executable> NAME_OF_FLAG\n";

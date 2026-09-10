@@ -7,7 +7,8 @@ prerequisites: ! |
   atom full
   bond fene
 pre_commands: ! ""
-post_commands: ! ""
+post_commands: ! |
+ special_bonds lj/coul 0.0 1.0 1.0
 input_file: in.fourmol
 bond_style: fene
 bond_coeff: ! |

@@ -16,7 +16,8 @@
 #include "gtest/gtest.h"
 
 #include "library.h"
-#include "utils.h"
+
+#include <cstring>
 
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
 bool verbose = false;

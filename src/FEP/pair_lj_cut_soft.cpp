@@ -38,7 +38,9 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCutSoft::PairLJCutSoft(LAMMPS *lmp) : Pair(lmp)
+PairLJCutSoft::PairLJCutSoft(LAMMPS *lmp) :
+    Pair(lmp), cut(nullptr), epsilon(nullptr), sigma(nullptr), lambda(nullptr), lj1(nullptr),
+    lj2(nullptr), lj3(nullptr), offset(nullptr), cut_respa(nullptr)
 {
   respa_enable = 1;
   writedata = 1;
@@ -50,6 +52,8 @@ PairLJCutSoft::PairLJCutSoft(LAMMPS *lmp) : Pair(lmp)
 
 PairLJCutSoft::~PairLJCutSoft()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
@@ -513,7 +517,7 @@ void PairLJCutSoft::init_style()
   int list_style = NeighConst::REQ_DEFAULT;
 
   if (update->whichflag == 1 && utils::strmatch(update->integrate_style, "^respa")) {
-    auto respa = dynamic_cast<Respa *>(update->integrate);
+    auto *respa = dynamic_cast<Respa *>(update->integrate);
     if (respa->level_inner >= 0) list_style = NeighConst::REQ_RESPA_INOUT;
     if (respa->level_middle >= 0) list_style = NeighConst::REQ_RESPA_ALL;
   }

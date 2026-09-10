@@ -16,8 +16,8 @@
 #ifndef LMP_UEF_UTILS_H
 #define LMP_UEF_UTILS_H
 
-namespace LAMMPS_NS {
-namespace UEF_utils {
+
+namespace LAMMPS_NS::UEF_utils {
 
   class UEFBox {
    public:
@@ -126,6 +126,6 @@ namespace UEF_utils {
         m2[k][j] = m1[k][0] * t[0][j] + m1[k][1] * t[1][j] + m1[k][2] * t[2][j];
   }
 
-}    // namespace UEF_utils
-}    // namespace LAMMPS_NS
+} // namespace LAMMPS_NS::UEF_utils
+
 #endif

@@ -49,8 +49,6 @@ proportional to the diffusion coefficient of the diffusing atoms.
 The displacement of an atom is from its reference position. This is
 normally the original position at the time
 the compute command was issued, unless the *average* keyword is set to *yes*\ .
-The value of the displacement will be
-0.0 for atoms not in the specified compute group.
 
 If the *com* option is set to *yes* then the effect of any drift in
 the center-of-mass of the group of atoms is subtracted out before the
@@ -111,7 +109,10 @@ distance\ :math:`^2` :doc:`units <units>`.
 Restrictions
 """"""""""""
 
-Compute *msd* cannot be used with a dynamic group.
+Compute *msd* cannot be used with a dynamic group and the number of
+atoms in the compute group must not be changed by some fixes like,
+for example, :doc:`fix deposit <fix_deposit>` or
+:doc:`fix evaporate <fix_evaporate>`.
 
 Related commands
 """"""""""""""""

@@ -16,6 +16,8 @@
 
 #include "pointers.h"
 
+#include "creator_registry.h"
+
 #include <map>
 
 namespace LAMMPS_NS {
@@ -105,7 +107,7 @@ class Modify : protected Pointers {
 
   Fix *add_fix(int, char **, int trysuffix = 1);
   Fix *add_fix(const std::string &, int trysuffix = 1);
-  Fix *replace_fix(const char *, int, char **, int trysuffix = 1);
+  Fix *replace_fix(const std::string &, int, char **, int trysuffix = 1);
   Fix *replace_fix(const std::string &, const std::string &, int trysuffix = 1);
   void modify_fix(int, char **);
   void delete_fix(const std::string &);
@@ -114,9 +116,9 @@ class Modify : protected Pointers {
   // deprecated API
   int find_fix(const std::string &);
   // new API
-  Fix *get_fix_by_id(const std::string &) const;
-  Fix *get_fix_by_index(int idx) const { return ((idx >= 0) && (idx < nfix)) ? fix[idx] : nullptr; }
-  const std::vector<Fix *> get_fix_by_style(const std::string &) const;
+  [[nodiscard]] Fix *get_fix_by_id(const std::string &) const;
+  [[nodiscard]] Fix *get_fix_by_index(int idx) const { return ((idx >= 0) && (idx < nfix)) ? fix[idx] : nullptr; }
+  [[nodiscard]] std::vector<Fix *> get_fix_by_style(const std::string &) const;
   const std::vector<Fix *> &get_fix_list();
   int get_fix_mask(Fix *ifix) const
   {
@@ -124,6 +126,18 @@ class Modify : protected Pointers {
       if (fix[i] == ifix) return fmask[i];
     }
     return 0;
+  }
+  void set_fix_mask(Fix *ifix, int flags)
+  {
+    for (int i = 0; i < nfix; ++i) {
+      if (fix[i] == ifix) fmask[i] |= flags;
+    }
+  }
+  void clear_fix_mask(Fix *ifix, int flags)
+  {
+    for (int i = 0; i < nfix; ++i) {
+      if (fix[i] == ifix) fmask[i] &= ~flags;
+    }
   }
 
   Compute *add_compute(int, char **, int trysuffix = 1);
@@ -135,12 +149,12 @@ class Modify : protected Pointers {
   // deprecated API
   int find_compute(const std::string &);
   // new API
-  Compute *get_compute_by_id(const std::string &) const;
-  Compute *get_compute_by_index(int idx) const
+  [[nodiscard]] Compute *get_compute_by_id(const std::string &) const;
+  [[nodiscard]] Compute *get_compute_by_index(int idx) const
   {
     return ((idx >= 0) && (idx < ncompute)) ? compute[idx] : nullptr;
   }
-  const std::vector<Compute *> get_compute_by_style(const std::string &) const;
+  [[nodiscard]] std::vector<Compute *> get_compute_by_style(const std::string &) const;
   const std::vector<Compute *> &get_compute_list();
 
   void clearstep_compute();
@@ -210,16 +224,12 @@ class Modify : protected Pointers {
   void list_init_compute();
 
  public:
-  typedef Compute *(*ComputeCreator)(LAMMPS *, int, char **);
-  typedef std::map<std::string, ComputeCreator> ComputeCreatorMap;
-  ComputeCreatorMap *compute_map;
+  using ComputeCreator = Compute *(*) (LAMMPS *, int, char **);
+  using FixCreator = Fix *(*) (LAMMPS *, int, char **);
 
-  typedef Fix *(*FixCreator)(LAMMPS *, int, char **);
-  typedef std::map<std::string, FixCreator> FixCreatorMap;
-  FixCreatorMap *fix_map;
-
- protected:
-  void create_factories();
+  // global registries of fix and compute style factory functions
+  static CreatorRegistry<FixCreator> &fix_styles();
+  static CreatorRegistry<ComputeCreator> &compute_styles();
 };
 
 }    // namespace LAMMPS_NS

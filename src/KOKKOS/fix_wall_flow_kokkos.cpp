@@ -44,7 +44,7 @@ FixWallFlowKokkos<DeviceType>::FixWallFlowKokkos(LAMMPS *lmp, int narg, char **a
 
   d_walls = d_walls_t("FixWallFlowKokkos::walls", walls.size());
   auto h_walls = Kokkos::create_mirror_view(d_walls);
-  for (int i = 0; i < (int) walls.size(); ++i) h_walls(i) = walls[i];
+  for (int i = 0; i < (int) walls.size(); ++i) h_walls(i) = static_cast<KK_FLOAT>(walls[i]);
   Kokkos::deep_copy(d_walls, h_walls);
 }
 
@@ -68,10 +68,11 @@ template <class DeviceType> void FixWallFlowKokkos<DeviceType>::init()
 }
 
 template <class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION void FixWallFlowKokkos<DeviceType>::operator()(TagFixWallFlowInit,
                                                                       const int &i) const
 {
-  double pos = d_x(i, flowax);
+  KK_FLOAT pos = d_x(i, flowax);
   d_current_segment(i) = compute_current_segment_kk(pos);
 }
 
@@ -84,6 +85,7 @@ template <class DeviceType> void FixWallFlowKokkos<DeviceType>::end_of_step()
   d_v = atomKK->k_v.template view<DeviceType>();
   d_type = atomKK->k_type.template view<DeviceType>();
   d_mask = atomKK->k_mask.template view<DeviceType>();
+  atomKK->k_mass.template sync<DeviceType>();
   d_mass = atomKK->k_mass.template view<DeviceType>();
   d_rmass = atomKK->k_rmass.template view<DeviceType>();
 
@@ -102,11 +104,12 @@ template <class DeviceType> void FixWallFlowKokkos<DeviceType>::end_of_step()
 
 template <class DeviceType>
 template <class MTag>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION void FixWallFlowKokkos<DeviceType>::operator()(TagFixWallFlowEndOfStep<MTag>,
                                                                       const int &atom_i) const
 {
   if (d_mask[atom_i] & groupbit) {
-    double pos = d_x(atom_i, flowax);
+    KK_FLOAT pos = d_x(atom_i, flowax);
     int prev_segment = d_current_segment(atom_i);
     d_current_segment(atom_i) = compute_current_segment_kk(pos);
     if (prev_segment != d_current_segment(atom_i)) { generate_velocity_kk<MTag>(atom_i); }
@@ -115,50 +118,54 @@ KOKKOS_INLINE_FUNCTION void FixWallFlowKokkos<DeviceType>::operator()(TagFixWall
 
 template <class DeviceType>
 template <class MTag>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION void FixWallFlowKokkos<DeviceType>::generate_velocity_kk(int atom_i) const
 {
   const int newton_iteration_count = 10;
-  double mass = get_mass(MTag(), atom_i);
-  const double gamma = 1.0 / std::sqrt(2.0 * kT / mass);
-  double delta = gamma * flowvel;
+  KK_FLOAT mass = get_mass(MTag(), atom_i);
+  const KK_FLOAT kT_kk = static_cast<KK_FLOAT>(kT);
+  const KK_FLOAT flowvel_kk = static_cast<KK_FLOAT>(flowvel);
+  const KK_FLOAT gamma = static_cast<KK_FLOAT>(1.0) / Kokkos::sqrt(static_cast<KK_FLOAT>(2.0) * kT_kk / mass);
+  KK_FLOAT delta = gamma * flowvel_kk;
 
-  const double edd = std::exp(-delta * delta) / MathConst::MY_PIS + delta * std::erf(delta);
-  const double probability_threshold = 0.5 * (1. + delta / edd);
+  const KK_FLOAT edd = Kokkos::exp(-delta * delta) / static_cast<KK_FLOAT>(MathConst::MY_PIS) + delta * Kokkos::erf(delta);
+  const KK_FLOAT probability_threshold = static_cast<KK_FLOAT>(0.5) * (static_cast<KK_FLOAT>(1.) + delta / edd);
 
-  double direction = 1.0;
+  KK_FLOAT direction = 1.0;
 
   rand_type_t rand_gen = rand_pool.get_state();
 
-  if (/*random->uniform()*/ rand_gen.drand() > probability_threshold) {
+  if (/*random->uniform()*/ static_cast<KK_FLOAT>(rand_gen.drand()) > probability_threshold) {
     delta = -delta;
     direction = -direction;
   }
 
-  const double xi_0 = rand_gen.drand();    //random->uniform();
-  const double F_inf = edd + delta;
-  const double xi = xi_0 * F_inf;
-  const double x_0 = (std::sqrt(delta * delta + 2) - delta) * 0.5;
-  double x = x_0;
+  const KK_FLOAT xi_0 = static_cast<KK_FLOAT>(rand_gen.drand());    //random->uniform();
+  const KK_FLOAT F_inf = edd + delta;
+  const KK_FLOAT xi = xi_0 * F_inf;
+  const KK_FLOAT x_0 = (Kokkos::sqrt(delta * delta + 2) - delta) * static_cast<KK_FLOAT>(0.5);
+  KK_FLOAT x = x_0;
   for (int i = 0; i < newton_iteration_count; ++i) {
-    x -= (std::exp(x * x) * MathConst::MY_PIS * (xi - delta * std::erfc(x)) - 1.0) / (x + delta) *
-        0.5;
+    x -= (Kokkos::exp(x * x) * static_cast<KK_FLOAT>(MathConst::MY_PIS) * (xi - delta * Kokkos::erfc(x)) - static_cast<KK_FLOAT>(1.0)) / (x + delta) *
+        static_cast<KK_FLOAT>(0.5);
   }
 
-  const double nu = x + delta;
-  const double v = nu / gamma;
+  const KK_FLOAT nu = x + delta;
+  const KK_FLOAT v = nu / gamma;
 
   d_v(atom_i, flowax) = v * direction;
   d_v(atom_i, (flowax + 1) % 3) =
-      /*random->gaussian()*/ rand_gen.normal() / (gamma * MathConst::MY_SQRT2);
+      /*random->gaussian()*/ static_cast<KK_FLOAT>(rand_gen.normal()) / (gamma * static_cast<KK_FLOAT>(MathConst::MY_SQRT2));
   d_v(atom_i, (flowax + 2) % 3) =
-      /*random->gaussian()*/ rand_gen.normal() / (gamma * MathConst::MY_SQRT2);
+      /*random->gaussian()*/ static_cast<KK_FLOAT>(rand_gen.normal()) / (gamma * static_cast<KK_FLOAT>(MathConst::MY_SQRT2));
 
   rand_pool.free_state(rand_gen);
 }
 
 template <class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION int
-FixWallFlowKokkos<DeviceType>::compute_current_segment_kk(double pos) const
+FixWallFlowKokkos<DeviceType>::compute_current_segment_kk(KK_FLOAT pos) const
 {
   int result = 0;
   for (; result < (int) d_walls.extent(0) - 1; ++result) {
@@ -174,14 +181,14 @@ template <class DeviceType> void FixWallFlowKokkos<DeviceType>::grow_arrays(int 
   k_current_segment.template modify<DeviceType>();
 
   d_current_segment = k_current_segment.template view<DeviceType>();
-  h_current_segment = k_current_segment.template view<LMPHostType>();
+  h_current_segment = k_current_segment.view_host();
 }
 
 template <class DeviceType> void FixWallFlowKokkos<DeviceType>::copy_arrays(int i, int j, int)
 {
-  k_current_segment.template sync<LMPHostType>();
+  k_current_segment.sync_host();
   h_current_segment(j) = h_current_segment(i);
-  k_current_segment.template modify<LMPHostType>();
+  k_current_segment.modify_host();
 }
 
 /* ----------------------------------------------------------------------
@@ -195,7 +202,7 @@ void FixWallFlowKokkos<DeviceType>::sort_kokkos(Kokkos::BinSort<KeyViewType, Bin
 
   k_current_segment.sync_device();
 
-  Sorter.sort(LMPDeviceType(), k_current_segment.d_view);
+  Sorter.sort(LMPDeviceType(), k_current_segment.view_device());
 
   k_current_segment.modify_device();
 }
@@ -208,6 +215,7 @@ template <class DeviceType> int FixWallFlowKokkos<DeviceType>::pack_exchange(int
 }
 
 template <class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION void FixWallFlowKokkos<DeviceType>::operator()(TagFixWallFlowPackExchange,
                                                                       const int &mysend) const
 {
@@ -221,7 +229,7 @@ KOKKOS_INLINE_FUNCTION void FixWallFlowKokkos<DeviceType>::operator()(TagFixWall
 
 template <class DeviceType>
 int FixWallFlowKokkos<DeviceType>::pack_exchange_kokkos(const int &nsend,
-                                                        DAT::tdual_xfloat_2d &k_buf,
+                                                        DAT::tdual_double_2d_lr &k_buf,
                                                         DAT::tdual_int_1d k_sendlist,
                                                         DAT::tdual_int_1d k_copylist,
                                                         ExecutionSpace /*space*/)
@@ -235,7 +243,7 @@ int FixWallFlowKokkos<DeviceType>::pack_exchange_kokkos(const int &nsend,
   d_sendlist = k_sendlist.view<DeviceType>();
   d_copylist = k_copylist.view<DeviceType>();
 
-  d_buf = typename ArrayTypes<DeviceType>::t_xfloat_1d_um(k_buf.template view<DeviceType>().data(),
+  d_buf = typename AT::t_double_1d_um(k_buf.template view<DeviceType>().data(),
                                                           k_buf.extent(0) * k_buf.extent(1));
 
   copymode = 1;
@@ -260,6 +268,7 @@ template <class DeviceType> int FixWallFlowKokkos<DeviceType>::unpack_exchange(i
 }
 
 template <class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION void FixWallFlowKokkos<DeviceType>::operator()(TagFixWallFlowUnpackExchange,
                                                                       const int &i) const
 {
@@ -268,12 +277,12 @@ KOKKOS_INLINE_FUNCTION void FixWallFlowKokkos<DeviceType>::operator()(TagFixWall
 }
 
 template <class DeviceType>
-void FixWallFlowKokkos<DeviceType>::unpack_exchange_kokkos(DAT::tdual_xfloat_2d &k_buf,
+void FixWallFlowKokkos<DeviceType>::unpack_exchange_kokkos(DAT::tdual_double_2d_lr &k_buf,
                                                            DAT::tdual_int_1d &k_indices, int nrecv,
                                                            int /*nrecv1*/, int /*nextrarecv1*/,
                                                            ExecutionSpace /*space*/)
 {
-  d_buf = typename ArrayTypes<DeviceType>::t_xfloat_1d_um(k_buf.template view<DeviceType>().data(),
+  d_buf = typename AT::t_double_1d_um(k_buf.template view<DeviceType>().data(),
                                                           k_buf.extent(0) * k_buf.extent(1));
   d_indices = k_indices.view<DeviceType>();
 

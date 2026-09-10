@@ -41,6 +41,7 @@ Syntax
            *possible* = shift depending on mean free path and bin size
          shiftseed = random # seed (positive integer)
        *tstat* value = *yes* or *no* = thermostat SRD particles or not
+       *unbiased* value = *yes* or *no* = use profile-unbiased thermostat or not
        *rescale* value = *yes* or *no* or *rotate* or *collide* = rescaling of SRD velocities
          *yes* = rescale during velocity rotation and collisions
          *no* = no rescaling
@@ -52,6 +53,7 @@ Examples
 
 .. code-block:: LAMMPS
 
+   fix 1 all srd 10 NULL 1.0 1.0 482984
    fix 1 srd srd 10 big 1.0 0.25 482984
    fix 1 srd srd 10 big 0.5 0.25 482984 collision slip search 0.5
 
@@ -271,7 +273,7 @@ a vector whose coordinates are chosen randomly in the range [-1/2 bin
 size, 1/2 bin size].  Note that all particles are shifted by the same
 vector.  The specified random number *shiftseed* is used to generate
 these vectors.  This operation sufficiently randomizes which SRD
-particles are in the same bin, even if :math:`lambda` is small.
+particles are in the same bin, even if :math:`\lambda` is small.
 
 If the *shift* flag is set to *no*, then no shifting is performed, but
 bin data will be communicated if bins overlap processor boundaries.  An
@@ -281,26 +283,32 @@ only if :math:`\lambda < 0.6` of the SRD bin size.  A warning is
 generated to let you know this is occurring.  If the *shift* flag is set
 to *yes* then shifting is performed regardless of the magnitude of
 :math:`\lambda`.  Note that the *shiftseed* is not used if the *shift*
-flag is set to *no*, but must still be specified.
-
-Note that shifting of SRD coordinates requires extra communication,
-hence it should not normally be enabled unless required.
+flag is set to *no*, but must still be specified. Note that shifting of SRD
+coordinates requires extra communication, hence it should not normally be
+enabled unless required.
 
 The *tstat* keyword will thermostat the SRD particles to the specified
-*Tsrd*\ .  This is done every N timesteps, during the velocity rotation
-operation, by rescaling the thermal velocity of particles in each SRD
-bin to the desired temperature.  If there is a streaming velocity
-associated with the system, e.g. due to use of the :doc:`fix deform <fix_deform>` command to perform a simulation undergoing
-shear, then that is also accounted for.  The mean velocity of each bin
-of SRD particles is set to the position-dependent streaming velocity,
-based on the coordinates of the center of the SRD bin.  Note that
-collisions of SRD particles with big particles or walls has a
-thermostatting effect on the colliding particles, so it may not be
-necessary to thermostat the SRD particles on a bin by bin basis in
-that case.  Also note that for streaming simulations, if no
-thermostatting is performed (the default), then it may take a long
-time for the SRD fluid to come to equilibrium with a velocity profile
-that matches the simulation box deformation.
+*Tsrd*\ . This is done every N timesteps, during the velocity rotation
+operation, by rescaling the thermal velocities of particles in each SRD
+bin to the desired temperature. Note that collisions of SRD particles with
+big particles or walls have a thermostatting effect on the colliding particles,
+so it may not be necessary to thermostat the SRD particles on a bin by bin
+basis in that case.
+
+.. versionadded:: 10Dec2025
+
+The *unbiased* keyword controls how the thermostat operates if there is a streaming
+velocity associated with the system, e.g. due to use of the
+:doc:`fix deform <fix_deform>` command to perform a simulation undergoing
+shear. The default case, *no*, is profile-biased: velocities relative to the
+mean velocity of the bin are rescaled, and then the mean velocity of each bin
+is set to the position-dependent streaming velocity, based on the coordinates
+of the center of the SRD bin. This enforces a linear velocity profile. With
+*yes*, after rescaling, the mean velocity of the bin is not changed, which
+renders the thermostat profile-unbiased. Note that for streaming simulations,
+if no thermostatting is performed (the default), it may take a long time for
+the SRD fluid to come to equilibrium with a velocity profile that matches the
+simulation box deformation.
 
 The *rescale* keyword enables rescaling of an SRD particle's velocity
 if it would travel more than 4 mean-free paths in an SRD timestep.  If
@@ -397,7 +405,7 @@ Default
 The option defaults are: *lamda* (:math:`\lambda`) is inferred from *Tsrd*,
 collision = noslip, overlap = no, inside = error, exact = yes, radius =
 1.0, bounce = 0, search = hgrid, cubic = error 0.01, shift = no, tstat =
-no, and rescale = yes.
+no, unbiased = no, and rescale = yes.
 
 ----------
 

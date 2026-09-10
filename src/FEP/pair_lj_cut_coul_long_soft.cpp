@@ -41,7 +41,10 @@ using namespace EwaldConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCutCoulLongSoft::PairLJCutCoulLongSoft(LAMMPS *lmp) : Pair(lmp)
+PairLJCutCoulLongSoft::PairLJCutCoulLongSoft(LAMMPS *lmp) :
+    Pair(lmp), cut_lj(nullptr), cut_ljsq(nullptr), epsilon(nullptr), sigma(nullptr),
+    lambda(nullptr), lj1(nullptr), lj2(nullptr), lj3(nullptr), lj4(nullptr), offset(nullptr),
+    cut_respa(nullptr)
 {
   ewaldflag = pppmflag = 1;
   respa_enable = 1;
@@ -53,6 +56,8 @@ PairLJCutCoulLongSoft::PairLJCutCoulLongSoft(LAMMPS *lmp) : Pair(lmp)
 
 PairLJCutCoulLongSoft::~PairLJCutCoulLongSoft()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
@@ -629,7 +634,7 @@ void PairLJCutCoulLongSoft::init_style()
   int list_style = NeighConst::REQ_DEFAULT;
 
   if (update->whichflag == 1 && utils::strmatch(update->integrate_style, "^respa")) {
-    auto respa = dynamic_cast<Respa *>(update->integrate);
+    auto *respa = dynamic_cast<Respa *>(update->integrate);
     if (respa->level_inner >= 0) list_style = NeighConst::REQ_RESPA_INOUT;
     if (respa->level_middle >= 0) list_style = NeighConst::REQ_RESPA_ALL;
   }

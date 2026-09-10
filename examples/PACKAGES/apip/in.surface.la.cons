@@ -1,0 +1,90 @@
+##################################################
+# parameters of the adaptive-precision potential #
+##################################################
+# We couple an EAM potential with an ACE potential.
+variable	eamfs_file string "Cu_300K_Immel_2023.eam.fs"
+variable	ace_file string "../../../potentials/Cu-PBE-core-rep.ace"
+# The csp is used as detection mechanism for atoms of interest.
+variable	cspavg_lattice string "fcc"
+# Thresholds between which the switching parameter changes from 1 to 0 based on the locally averaged (la) CSP.
+variable	cspavg_csp_lo equal 0.7
+variable	cspavg_csp_hi equal 2.0
+# This range determines where the weighting function changes from 1 to 0.
+variable	cspavg_r_lo equal 4.0
+variable	cspavg_r_hi equal 8.0
+
+
+## basic stuff
+units		metal
+atom_style	apip conservative # own atom style required for APIP
+timestep	0.001
+
+# copper surfaces at room temperature
+#lattice		fcc 3.615
+#region		box block 0 10 0 10 0 25 units lattice
+#region		del block 0 10 0 10 10 15 units lattice
+#create_box	1 box
+#create_atoms	1 box
+#mass		1 63.546
+#delete_atoms	region del
+#displace_atoms	all random 0.028 0.028 0.028 42 units lattice
+#velocity	all create 300.0 42
+#write_data	data.surface.la
+read_data	data.surface.la
+
+
+fix		nve all nve
+
+fix		lambda_cspavg all lambda/la/csp/apip ${cspavg_csp_lo} ${cspavg_csp_hi} ${cspavg_r_lo} ${cspavg_r_hi} ${cspavg_lattice} #store_peratom 10
+pair_style	hybrid/overlay eam/fs/apip pace/apip zero ${cspavg_r_hi}
+pair_coeff	* * eam/fs/apip ${eamfs_file} Cu
+pair_coeff	* * pace/apip ${ace_file} Cu
+pair_coeff	* * zero
+
+#fix		lambda_cspavg all lambda/la/csp/apip ${cspavg_csp_lo} ${cspavg_csp_hi} ${cspavg_r_lo} ${cspavg_r_hi} ${cspavg_lattice} forces no #store_peratom 10
+#pair_style	hybrid/overlay eam/fs zero ${cspavg_r_hi}
+#pair_coeff	* * eam/fs ${eamfs_file} Cu
+#pair_coeff	* * zero
+
+#fix		lambda_cspavg all lambda/la/csp/apip ${cspavg_csp_lo} ${cspavg_csp_hi} ${cspavg_r_lo} ${cspavg_r_hi} ${cspavg_lattice} forces no #store_peratom 10
+#pair_style	hybrid/overlay pace zero ${cspavg_r_hi}
+#pair_coeff	* * pace ${ace_file} Cu
+#pair_coeff	* * zero
+
+compute		lambda all property/atom apip_lambda
+
+
+# get statistics about lambda
+variable	flag_simple atom c_lambda==1
+variable	flag_switch atom c_lambda<1&&c_lambda>0
+variable	flag_complex atom c_lambda==0
+compute		lambda_types all reduce sum v_flag_simple v_flag_switch v_flag_complex
+
+
+thermo_style	custom step temp etotal c_lambda_types[*] fnorm fmax
+thermo		1
+
+#dump		1 all custom 10 dump.surface.la.cons.* id type x y z c_lambda f_lambda_cspavg[*] proc
+
+
+run		100
+
+# dump atoms
+#write_dump	all custom dump.surface.la.* id type x y z c_lambda c_csp c_csp_norm c_csp_avg proc
+
+# restarting is possible
+# As the conservative potential relies on the CSP-pairs to be constant, one needs a restart file that contains these CSP-pairs.
+
+#write_restart	restart.surface.la.cons
+#clear
+#read_restart	restart.surface.la.cons
+#fix		lambda_cspavg all lambda/la/csp/apip ${cspavg_csp_lo} ${cspavg_csp_hi} ${cspavg_r_lo} ${cspavg_r_hi} ${cspavg_lattice}
+#pair_style	hybrid/overlay eam/fs/apip pace/apip zero ${cspavg_r_hi}
+#pair_coeff	* * eam/fs/apip ${eamfs_file} Cu
+#pair_coeff	* * pace/apip ${ace_file} Cu
+#pair_coeff	* * zero
+#fix		nve all nve
+#thermo_style	custom step temp etotal fnorm fmax
+#thermo		1
+#run		10
+#shell		rm restart.surface.la.cons

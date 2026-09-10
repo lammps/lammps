@@ -1,0 +1,252 @@
+LAMMPS (10 Dec 2025 - Development - patch_10Dec2025-1012-gb68a0deda4-modified)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
+  using 1 OpenMP thread(s) per MPI task
+# Liquid water hydrogen bonds
+
+units           real
+atom_style      full
+
+pair_style      lj/cut/coul/long 12.0 12.0
+bond_style      harmonic
+angle_style     harmonic
+
+read_data       data.spce
+Reading data file ...
+  orthogonal box = (0.02645 0.02645 0.02641) to (35.5328 35.5328 35.4736)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  4500 atoms
+  scanning bonds ...
+  2 = max bonds/atom
+  scanning angles ...
+  1 = max angles/atom
+  orthogonal box = (0.02645 0.02645 0.02641) to (35.5328 35.5328 35.4736)
+  1 by 1 by 1 MPI processor grid
+  reading bonds ...
+  3000 bonds
+  reading angles ...
+  1500 angles
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     2 = max # of 1-2 neighbors
+     1 = max # of 1-3 neighbors
+     1 = max # of 1-4 neighbors
+     2 = max # of special neighbors
+  special bonds CPU = 0.001 seconds
+  read_data CPU = 0.016 seconds
+
+pair_coeff      * * 0.0     1.0
+pair_coeff      1 1 0.15535 3.166
+pair_modify     tail yes
+kspace_style    pppm 1.0e-6
+
+dihedral_style  none
+improper_style  none
+
+bond_coeff      1 1000.00 1.000
+angle_coeff     1 100.0 109.47
+
+neighbor        2.0 bin
+timestep        2.0
+neigh_modify    every 1 delay 2 check yes
+
+fix             1 all shake 0.0001 20 0 b 1 a 1
+Finding SHAKE clusters ...
+       0 = # of size 2 clusters
+       0 = # of size 3 clusters
+       0 = # of size 4 clusters
+    1500 = # of frozen angles
+  find clusters CPU = 0.001 seconds
+fix             2 all nvt temp 300.0 300.0 100.0
+
+velocity all create 300.0 6244325
+
+thermo 100
+run 500
+PPPM initialization ...
+  using 12-bit tables for long-range coulomb
+  G vector (1/distance) = 0.27965195
+  grid = 40 40 40
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.000394674
+  estimated relative force accuracy = 1.188549e-06
+  using double precision FFTW3
+  3d grid and FFT values/proc = 103823 64000
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 2 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 14
+  ghost atom cutoff = 14
+  binsize = 7, bins = 6 6 6
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut/coul/long, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 35.63 | 35.63 | 35.63 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+         0   300           -16730.553      0             -14048.719     -230.00191    
+       100   283.44728     -17046.902      0             -14513.039     -279.23003    
+       200   298.75278     -16803.728      0             -14133.042      311.62555    
+       300   296.64986     -16627.338      0             -13975.451      430.25402    
+       400   303.83446     -16663.253      0             -13947.14       120.76433    
+       500   298.11259     -16756.08       0             -14091.117      108.87681    
+Loop time of 13.1453 on 1 procs for 500 steps with 4500 atoms
+
+Performance: 6.573 ns/day, 3.651 hours/ns, 38.036 timesteps/s, 171.164 katom-step/s
+99.6% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 9.7175     | 9.7175     | 9.7175     |   0.0 | 73.92
+Bond    | 0.00020318 | 0.00020318 | 0.00020318 |   0.0 |  0.00
+Kspace  | 1.919      | 1.919      | 1.919      |   0.0 | 14.60
+Neigh   | 1.3351     | 1.3351     | 1.3351     |   0.0 | 10.16
+Comm    | 0.039344   | 0.039344   | 0.039344   |   0.0 |  0.30
+Output  | 0.00016027 | 0.00016027 | 0.00016027 |   0.0 |  0.00
+Modify  | 0.12432    | 0.12432    | 0.12432    |   0.0 |  0.95
+Other   |            | 0.009609   |            |       |  0.07
+
+Nlocal:           4500 ave        4500 max        4500 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:          21246 ave       21246 max       21246 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:     2.6015e+06 ave  2.6015e+06 max  2.6015e+06 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 2601503
+Ave neighs/atom = 578.11178
+Ave special neighs/atom = 2
+Neighbor list builds = 45
+Dangerous builds = 0
+
+reset_timestep 0
+
+group           ogroup type 1
+1500 atoms in group ogroup
+group           hgroup type 2
+3000 atoms in group hgroup
+variable        nmol equal count(ogroup)
+
+# water oxygen atoms are both hydrogen bond donor and acceptor
+compute         hb       all      hbond/local 3.3 30.0 ogroup ogroup hgroup dist hdist angle ehb # ecut 1.5
+
+# output all hydrogen bonds. each line contains: hydrogen-ID donor-ID acceptor-ID r_DA r_HA theta_HDA e_hb
+#dump            hb       all      local 100 hbonds.dump c_hb[*]
+#dump_modify     hb label "HBONDS" colname 1 Hydrogen colname 2 "   Donor " colname 3 Acceptor #                   colname 4 " r_DA  " colname 5 "  r_HA  " colname 6 "  theta " colname 7 "  e_hb"  #                   format line "%20.0f %8.0f %8.0f %8.3f %8.3f %8.3f %8.3f"
+
+# for the number of hydrogen bonds per molecule we must multiply by 2
+# since water oxygens are in equal parts hydrogen bond donor and acceptor
+variable        nhb_mol equal 2.0*c_hb/${nmol}
+variable        nhb_mol equal 2.0*c_hb/1500
+# get average values for distances, angles and strength for the current step
+compute         avg      all      reduce ave c_hb[4] c_hb[5] c_hb[6] c_hb[7] inputs local
+# get running average of those values
+fix             ave      all      ave/time 100 1 100 v_nhb_mol c_avg[1] c_avg[2] c_avg[3] c_avg[4] ave running
+
+# get histogram of hydrogen bond distance
+fix       dhist all ave/histo 100 10 1000 2.3 3.3 30 c_hb[4] file hbond_histo_dist.dat mode vector kind local
+# get histogram of hydrogen bond angle
+fix       ahist all ave/histo 100 10 1000 0.0 30.0 30 c_hb[6] file hbond_histo_angle.dat mode vector kind local
+# get histogram of hydrogen bond strength
+fix       bhist all ave/histo 100 10 1000 -1.0 7.5 30 c_hb[7] file hbond_histo_eng.dat mode vector kind local beyond extra
+
+# output computed global data as thermo output first for step then averaged
+thermo_style    custom step temp press v_nhb_mol c_avg[*] f_ave[*]
+thermo_modify   colname 4 "n_HB/mol" colname 5 "r_DA " colname 6 "r_HA " colname 7 "theta_HDA" colname 8 "e_HB "                 colname 9 "<n_HB/mol>" colname 10 "<r_DA> " colname 11 "<r_HA> " colname 12 "<theta_HDA>" colname 13 "<e_HB> "
+
+thermo          100
+
+# dump viz all image 100 hbond-*.png element type size 600 600 zoom 1.331 shiny 0.2 ssao yes 348276 0.6 #           fsaa yes bond atom 0.35 view 70 20 box yes 0.025 compute hb const -0.5 0.2
+# dump_modify viz pad 6 boxcolor cadetblue backcolor darkgray backcolor2 silver element O H #            adiam 1 0.5 adiam 2 0.4 ccolor hb yellow ctrans hb 1.0
+
+run 1000
+PPPM initialization ...
+  using 12-bit tables for long-range coulomb
+  G vector (1/distance) = 0.27965195
+  grid = 40 40 40
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.000394674
+  estimated relative force accuracy = 1.188549e-06
+  using double precision FFTW3
+  3d grid and FFT values/proc = 103823 64000
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 2 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 14
+  ghost atom cutoff = 14
+  binsize = 7, bins = 6 6 6
+  2 neighbor lists, perpetual/occasional/extra = 1 1 0
+  (1) pair lj/cut/coul/long, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+  (2) compute hbond/local, occasional
+      attributes: full, newton on
+      pair build: full/bin
+      stencil: full/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 58.09 | 58.09 | 58.09 Mbytes
+   Step          Temp          Press         n_HB/mol        r_DA           r_HA         theta_HDA        e_HB         <n_HB/mol>      <r_DA>         <r_HA>       <theta_HDA>      <e_HB>     
+         0   298.11259      108.98496      3.464          2.8294662      1.8775508      12.882598      5.5070455      3.464          2.8294662      1.8775508      12.882598      5.5070455    
+       100   306.21914      315.68409      3.4613333      2.8271901      1.8749274      12.774577      5.521726       3.4626667      2.8283282      1.8762391      12.828587      5.5143858    
+       200   298.08879      159.42212      3.4586667      2.8341445      1.8832132      13.015924      5.4702931      3.4613333      2.8302669      1.8785638      12.891033      5.4996882    
+       300   300.64237     -9.2212624      3.4693333      2.8323445      1.8815997      13.083981      5.4741609      3.4633333      2.8307863      1.8793228      12.93927       5.4933064    
+       400   297.45097      286.32046      3.4293333      2.8289641      1.8779758      12.993786      5.4892263      3.4565333      2.8304219      1.8790534      12.950173      5.4924904    
+       500   301.44164     -9.571983       3.4653333      2.8318869      1.8804115      12.985865      5.4883953      3.458          2.8306661      1.8792797      12.956122      5.4918079    
+       600   299.29296      233.84428      3.484          2.8287969      1.8764791      12.859585      5.5180767      3.4617143      2.830399       1.8788796      12.942331      5.4955606    
+       700   302.01104      493.10199      3.48           2.8259464      1.8746001      12.937637      5.4942475      3.464          2.8298425      1.8783447      12.941744      5.4953964    
+       800   300.6665       434.67014      3.432          2.8275375      1.8753598      12.821798      5.5121203      3.4604444      2.8295863      1.878013       12.928417      5.4972546    
+       900   293.66433      195.66057      3.496          2.8353754      1.8840612      12.978486      5.4710753      3.464          2.8301653      1.8786179      12.933424      5.4946367    
+      1000   291.33233      130.40139      3.5146667      2.829365       1.8775873      12.863155      5.5052607      3.4686061      2.8300925      1.8785242      12.927036      5.4956025    
+Loop time of 29.024 on 1 procs for 1000 steps with 4500 atoms
+
+Performance: 5.954 ns/day, 4.031 hours/ns, 34.454 timesteps/s, 155.044 katom-step/s
+99.4% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 20.301     | 20.301     | 20.301     |   0.0 | 69.95
+Bond    | 0.00072998 | 0.00072998 | 0.00072998 |   0.0 |  0.00
+Kspace  | 4.036      | 4.036      | 4.036      |   0.0 | 13.91
+Neigh   | 2.8383     | 2.8383     | 2.8383     |   0.0 |  9.78
+Comm    | 0.090535   | 0.090535   | 0.090535   |   0.0 |  0.31
+Output  | 0.13798    | 0.13798    | 0.13798    |   0.0 |  0.48
+Modify  | 1.5964     | 1.5964     | 1.5964     |   0.0 |  5.50
+Other   |            | 0.02274    |            |       |  0.08
+
+Nlocal:           4500 ave        4500 max        4500 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:          21451 ave       21451 max       21451 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    2.60226e+06 ave 2.60226e+06 max 2.60226e+06 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:  5.20381e+06 ave 5.20381e+06 max 5.20381e+06 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 5203806
+Ave neighs/atom = 1156.4013
+Ave special neighs/atom = 2
+Neighbor list builds = 93
+Dangerous builds = 0
+print ""
+
+print "Results after simulation of $(time/1000.0) ps:"
+Results after simulation of 2 ps:
+print "Average number of hydrogen bonds per water molecule <n_HB/mol>:   $(f_ave[1]:%6.2f)"
+Average number of hydrogen bonds per water molecule <n_HB/mol>:     3.47
+print "Average hydrogen bond donor-acceptor distance <r_DA> /Angstrom:   $(f_ave[2]:%6.2f)"
+Average hydrogen bond donor-acceptor distance <r_DA> /Angstrom:     2.83
+print "Average hydrogen bond angle <theta_HDA> /degrees:                 $(f_ave[4]:%6.2f)"
+Average hydrogen bond angle <theta_HDA> /degrees:                  12.93
+print "Average hydrogen bond streangth <e_HB> /(kcal/mol):               $(f_ave[5]:%6.2f)"
+Average hydrogen bond streangth <e_HB> /(kcal/mol):                 5.50
+
+Total wall time: 0:00:42

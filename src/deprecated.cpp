@@ -65,5 +65,6 @@ void Deprecated::command(int narg, char **arg)
     if (lmp->comm->me == 0)
       utils::logmesg(lmp, "\nThe MESSAGE package has been replaced by the MDI package.\n\n");
   }
-  error->all(FLERR, "This command is no longer available");
+  error->all(FLERR, Error::COMMAND, "The {} command is no longer available. {}", cmd,
+             utils::errorurl(38));
 }

@@ -35,9 +35,9 @@ visualization package you have installed.
 Note that for GL, you need to be able to run the Pizza.py GL tool,
 which is included in the pizza subdirectory.  See the Pizza.py doc pages for more info:
 
-* `https://lammps.github.io/pizza <pizza_>`_
+* `https://lammps.github.io/pizza/ <pizza_>`_
 
-.. _pizza: https://lammps.github.io/pizza
+.. _pizza: https://lammps.github.io/pizza/
 
 Note that for AtomEye, you need version 3, and there is a line in the
 scripts that specifies the path and name of the executable.  See the

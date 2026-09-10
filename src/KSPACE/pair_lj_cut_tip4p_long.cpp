@@ -63,6 +63,8 @@ PairLJCutTIP4PLong::PairLJCutTIP4PLong(LAMMPS *lmp) :
 
 PairLJCutTIP4PLong::~PairLJCutTIP4PLong()
 {
+  if (copymode) return;
+
   memory->destroy(hneigh);
   memory->destroy(newsite);
 }
@@ -263,7 +265,7 @@ void PairLJCutTIP4PLong::compute(int eflag, int vflag)
             rsq_lookup.f = rsq;
             itable = rsq_lookup.i & ncoulmask;
             itable >>= ncoulshiftbits;
-            fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
+            fraction = ((double) rsq_lookup.f - rtable[itable]) * drtable[itable];
             table = ftable[itable] + fraction*dftable[itable];
             forcecoul = qtmp*q[j] * table;
             if (factor_coul < 1.0) {
@@ -454,7 +456,7 @@ void PairLJCutTIP4PLong::coeff(int narg, char **arg)
   // set atom types from pair_style command unless we were restarted
   // and the types are already set and the strings are empty.
 
-  if (typeO_str.size() > 0) {
+  if (!typeO_str.empty()) {
     typeO = utils::expand_type_int(FLERR, typeO_str, Atom::ATOM, lmp, true);
     typeH = utils::expand_type_int(FLERR, typeH_str, Atom::ATOM, lmp, true);
     typeB = utils::expand_type_int(FLERR, typeB_str, Atom::BOND, lmp, true);

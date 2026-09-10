@@ -31,12 +31,16 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairCoulDiel::PairCoulDiel(LAMMPS *lmp) : Pair(lmp) {}
+PairCoulDiel::PairCoulDiel(LAMMPS *lmp) :
+    Pair(lmp), cut(nullptr), sigmae(nullptr), rme(nullptr), offset(nullptr)
+{}
 
 /* ---------------------------------------------------------------------- */
 
 PairCoulDiel::~PairCoulDiel()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(sigmae);

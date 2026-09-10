@@ -34,7 +34,7 @@ void BondDeprecated::settings(int, char **)
   // called, our style was just added at the end of the list of substyles
 
   if (utils::strmatch(my_style, "^hybrid")) {
-    auto hybrid = dynamic_cast<BondHybrid *>(force->bond);
+    auto *hybrid = dynamic_cast<BondHybrid *>(force->bond);
     my_style = hybrid->keywords[hybrid->nstyles];
   }
 
@@ -42,5 +42,6 @@ void BondDeprecated::settings(int, char **)
     if (lmp->comm->me == 0) utils::logmesg(lmp, "\nBond style 'DEPRECATED' is a dummy style\n\n");
     return;
   }
-  error->all(FLERR, "This bond style is no longer available");
+  error->all(FLERR, Error::ARGZERO, "Bond style {} is no longer available. {}", my_style,
+             utils::errorurl(38));
 }

@@ -26,6 +26,7 @@
 #include "memory.h"
 #include "neigh_list.h"
 #include "neighbor.h"
+#include "potential_file_reader.h"
 #include "respa.h"
 #include "update.h"
 
@@ -38,7 +39,7 @@ using namespace MathConst;
 static constexpr int BIG = 1000000000;
 
 static const char cite_fix_orient_fcc[] =
-  "fix orient/fcc command: doi:10.1038/nmat1559\n\n"
+  "fix orient/fcc command: https://doi.org/10.1038/nmat1559\n\n"
   "@Article{Janssens06,\n"
   " author = {K. G. F. Janssens, D. Olmsted, E.A. Holm, S. M. Foiles, S. J. Plimpton, and P. M. Derlet},\n"
   " title = {Computing the Mobility of Grain Boundaries},\n"
@@ -97,29 +98,14 @@ FixOrientFCC::FixOrientFCC(LAMMPS *lmp, int narg, char **arg) :
   // read xi and chi reference orientations from files
 
   if (me == 0) {
-    char line[IMGMAX];
-    char *result;
-    int count;
-
-    FILE *inpfile = fopen(xifilename,"r");
-    if (inpfile == nullptr) error->one(FLERR,"Fix orient/fcc file open failed");
-    for (int i = 0; i < half_fcc_nn; i++) {
-      result = fgets(line,IMGMAX,inpfile);
-      if (!result) error->one(FLERR,"Fix orient/fcc file read failed");
-      count = sscanf(line,"%lg %lg %lg",&Rxi[i][0],&Rxi[i][1],&Rxi[i][2]);
-      if (count != 3) error->one(FLERR,"Fix orient/fcc file read failed");
+    try {
+      PotentialFileReader xi_reader(lmp, xifilename, "fix orient/fcc");
+      xi_reader.next_dvector(&Rxi[0][0], half_fcc_nn*3);
+      PotentialFileReader chi_reader(lmp, chifilename, "fix orient/fcc");
+      chi_reader.next_dvector(&Rchi[0][0], half_fcc_nn*3);
+    } catch (std::exception &e) {
+      error->one(FLERR, "Fix orient/fcc file read failed: {}", e.what());
     }
-    fclose(inpfile);
-
-    inpfile = fopen(chifilename,"r");
-    if (inpfile == nullptr) error->one(FLERR,"Fix orient/fcc file open failed");
-    for (int i = 0; i < half_fcc_nn; i++) {
-      result = fgets(line,IMGMAX,inpfile);
-      if (!result) error->one(FLERR,"Fix orient/fcc file read failed");
-      count = sscanf(line,"%lg %lg %lg",&Rchi[i][0],&Rchi[i][1],&Rchi[i][2]);
-      if (count != 3) error->one(FLERR,"Fix orient/fcc file read failed");
-    }
-    fclose(inpfile);
   }
 
   MPI_Bcast(&Rxi[0][0],half_fcc_nn*3,MPI_DOUBLE,0,world);
@@ -564,8 +550,8 @@ void FixOrientFCC::find_best_ref(double *displs, int which_crystal,
 
 int FixOrientFCC::compare(const void *pi, const void *pj)
 {
-  auto ineigh = (FixOrientFCC::Sort *) pi;
-  auto jneigh = (FixOrientFCC::Sort *) pj;
+  auto *ineigh = (FixOrientFCC::Sort *) pi;
+  auto *jneigh = (FixOrientFCC::Sort *) pj;
 
   if (ineigh->rsq < jneigh->rsq) return -1;
   else if (ineigh->rsq > jneigh->rsq) return 1;

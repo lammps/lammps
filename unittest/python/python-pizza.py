@@ -6,7 +6,7 @@ from lammps import lammps
 EXAMPLES_DIR=os.path.abspath(os.path.join(__file__, '..', '..', '..', 'examples'))
 PIZZA_DIR=os.path.abspath(os.path.join(__file__, '..', '..', '..', 'tools', 'python', 'pizza'))
 DEFAULT_STYLE_EXAMPLE_LOG=os.path.join('melt', 'log.*.melt.g++.1')
-MULTI_STYLE_EXAMPLE_LOG=os.path.join('peptide', 'log.27Nov18.peptide.g++.1')
+MULTI_STYLE_EXAMPLE_LOG=os.path.join('peptide', 'log.14Jul25.peptide.g++.1')
 sys.path.insert(1,PIZZA_DIR)
 
 # dump class uses NumPy, so only load and test dump if NumPy is available
@@ -107,7 +107,7 @@ class Logfiles(unittest.TestCase):
         self.assertEqual(300.0, s[6])
         v,c = l.get("E_vdwl", "E_coul")
         self.assertEqual(v[0],692.8945)
-        self.assertEqual(c[0],26772.2646)
+        self.assertEqual(c[0],26772.2647)
         l.write("all.txt",0)
         l.write("some.txt",1,"Step","Temp","Press")
 

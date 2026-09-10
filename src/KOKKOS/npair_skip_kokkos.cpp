@@ -73,13 +73,13 @@ void NPairSkipKokkos<DeviceType,TRIM>::build(NeighList *list)
   d_ijskip = k_ijskip.view<DeviceType>();
 
   for (int itype = 1; itype <= ntypes; itype++) {
-    k_iskip.h_view(itype) = list->iskip[itype];
+    k_iskip.view_host()(itype) = list->iskip[itype];
     for (int jtype = 1; jtype <= ntypes; jtype++) {
-      k_ijskip.h_view(itype,jtype) = list->ijskip[itype][jtype];
+      k_ijskip.view_host()(itype,jtype) = list->ijskip[itype][jtype];
     }
   }
-  k_iskip.modify<LMPHostType>();
-  k_ijskip.modify<LMPHostType>();
+  k_iskip.modify_host();
+  k_ijskip.modify_host();
 
   k_iskip.sync<DeviceType>();
   k_ijskip.sync<DeviceType>();
@@ -105,17 +105,18 @@ void NPairSkipKokkos<DeviceType,TRIM>::build(NeighList *list)
 }
 
 template<class DeviceType, int TRIM>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void NPairSkipKokkos<DeviceType,TRIM>::operator()(TagNPairSkipCompute, const int &ii, int &inum, const bool &final) const {
 
   const int i = d_ilist_skip(ii);
   const int itype = type(i);
 
-  F_FLOAT xtmp,ytmp,ztmp;
+  double xtmp,ytmp,ztmp;
   if (TRIM) {
-    xtmp = x(i,0);
-    ytmp = x(i,1);
-    ztmp = x(i,2);
+    xtmp = static_cast<double>(x(i,0));
+    ytmp = static_cast<double>(x(i,1));
+    ztmp = static_cast<double>(x(i,2));
   }
 
   if (!d_iskip(itype)) {
@@ -136,9 +137,9 @@ void NPairSkipKokkos<DeviceType,TRIM>::operator()(TagNPairSkipCompute, const int
         if (d_ijskip(itype,type(j))) continue;
 
         if (TRIM) {
-          const double delx = xtmp - x(j,0);
-          const double dely = ytmp - x(j,1);
-          const double delz = ztmp - x(j,2);
+          const double delx = xtmp - static_cast<double>(x(j,0));
+          const double dely = ytmp - static_cast<double>(x(j,1));
+          const double delz = ztmp - static_cast<double>(x(j,2));
           const double rsq = delx*delx + dely*dely + delz*delz;
           if (rsq > cutsq_custom) continue;
         }
@@ -160,6 +161,7 @@ void NPairSkipKokkos<DeviceType,TRIM>::operator()(TagNPairSkipCompute, const int
 }
 
 template<class DeviceType, int TRIM>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void NPairSkipKokkos<DeviceType,TRIM>::operator()(TagNPairSkipCountLocal, const int &i, int &num) const {
   if (d_ilist[i] < nlocal) num++;

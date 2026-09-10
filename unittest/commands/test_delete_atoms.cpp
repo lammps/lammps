@@ -94,18 +94,25 @@ protected:
 
 TEST_F(DeleteAtomsTest, Simple)
 {
+    ASSERT_EQ(atom->map_tag_max, -1);
+    HIDE_OUTPUT([&] {
+        command("atom_modify map yes");
+    });
     atomic_system();
     ASSERT_EQ(atom->natoms, 512);
+    ASSERT_EQ(atom->map_tag_max, 512);
 
     HIDE_OUTPUT([&] {
-        command("delete_atoms group top");
+        command("delete_atoms group top compress no");
     });
     ASSERT_EQ(atom->natoms, 448);
+    ASSERT_EQ(atom->map_tag_max, 512);
 
     HIDE_OUTPUT([&] {
         command("delete_atoms region left");
     });
     ASSERT_EQ(atom->natoms, 392);
+    ASSERT_EQ(atom->map_tag_max, 392);
 
     HIDE_OUTPUT([&] {
         command("delete_atoms random fraction 0.5 yes all right 43252");
@@ -153,6 +160,52 @@ TEST_F(DeleteAtomsTest, Simple)
                  command("delete_atoms random count 5 yes bottom right 77325"););
     TEST_FAILURE(".*ERROR: Delete_atoms random fraction has invalid value: -0.4.*",
                  command("delete_atoms random fraction -0.4 no bottom right 77325"););
+}
+
+TEST_F(DeleteAtomsTest, Condense)
+{
+    HIDE_OUTPUT([&] {
+        command("atom_modify id yes map yes ");
+        command("region box block -4 4 -4 4 -4 4");
+        command("create_box 1 box");
+        command("fix oldid all property/atom i_oldid ghost yes");
+        command("create_atoms 1 random 8 9648523 box");
+        command("variable oldid atom id");
+        command("set atom * i_oldid v_oldid");
+        command("group odd id 1:8:2");
+    });
+    ASSERT_EQ(atom->natoms, 8);
+    ASSERT_EQ(atom->map_tag_max, 8);
+    int flag = -1, cols = -1;
+    auto index_custom = atom->find_custom("oldid", flag, cols);
+    ASSERT_TRUE(index_custom >= 0);
+    ASSERT_EQ(flag, 0);
+    ASSERT_EQ(cols, 0);
+
+    HIDE_OUTPUT([&] {
+        command("delete_atoms group odd compress no");
+    });
+    ASSERT_EQ(atom->natoms, 4);
+    ASSERT_EQ(atom->map_tag_max, 8);
+    for (int i = 0; i < 4; ++i)
+        ASSERT_EQ(atom->ivector[index_custom][i], atom->tag[i]);
+
+    HIDE_OUTPUT([&] {
+        command("delete_atoms group all");
+        command("create_atoms 1 random 8 9648523 box");
+        command("variable oldid atom id");
+        command("set atom * i_oldid v_oldid");
+        command("group odd delete");
+        command("group odd id 1:8:2");
+    });
+
+    HIDE_OUTPUT([&] {
+        command("delete_atoms group odd condense yes");
+    });
+    ASSERT_EQ(atom->natoms, 4);
+    ASSERT_EQ(atom->map_tag_max, 4);
+    for (int i = 0; i < 4; ++i)
+        ASSERT_EQ(atom->ivector[index_custom][i]/2, atom->tag[i]);
 }
 } // namespace LAMMPS_NS
 

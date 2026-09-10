@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_RANDOM_HPP
 #define KOKKOS_RANDOM_HPP
@@ -21,7 +8,13 @@
 #define KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_RANDOM
 #endif
 
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+import kokkos.core_impl;
+#else
 #include <Kokkos_Core.hpp>
+#endif
 #include <Kokkos_Complex.hpp>
 #include <cstdio>
 #include <cstdlib>
@@ -30,9 +23,11 @@
 /// \file Kokkos_Random.hpp
 /// \brief Pseudorandom number generators
 ///
-/// These generators are based on Vigna, Sebastiano (2014). "An
+/// The Random_Xorshift generators are based on Vigna, Sebastiano (2014). "An
 /// experimental exploration of Marsaglia's xorshift generators,
 /// scrambled."  See: http://arxiv.org/abs/1402.6246
+/// And the Random_SFC generators are based on Chris Doty-Humphrey code
+/// "PractRand". See: https://pracrand.sourceforge.net/
 
 namespace Kokkos {
 
@@ -77,13 +72,24 @@ namespace Kokkos {
       //Default constructor: does not initialize a pool
       Pool();
 
-      //Initializing constructor: calls init(seed,Device_Specific_Number);
-      Pool(unsigned int seed);
+      //Initializing constructor
+      //Initialize Pool with seed as a starting seed
+      Pool(uint64_t seed);
 
-      //Initialize Pool with seed as a starting seed with a pool_size of num_states
-      //The Random_XorShift64 generator is used in serial to initialize all states,
+      //Initializing constructor
+      //Initialize Pool with seed as a starting seed and a pool_size of num_states
+      //Note: The generator is used in serial to initialize all states,
       //thus the initialization process is platform independent and deterministic.
-      void init(unsigned int seed, int num_states);
+      Pool(uint64_t seed, uint64_t num_states);
+
+      //Initializing constructor
+      //Initialize Pool with seed as a starting seed using the specified execution space instance
+      Pool(const execution_space& exec, uint64_t seed);
+
+      //Initializing constructor
+      //Initialize Pool with seed as a starting seed with a pool_size of num_states using the
+      //specified execution space instance
+      Pool(const execution_space& exec, uint64_t seed, uint64_t num_states);
 
       //Get a generator. This will lock one of the states, guaranteeing that each thread
       //will have its private generator. Note: on Cuda getting a state involves atomics,
@@ -423,7 +429,7 @@ struct rand<Generator, unsigned long long> {
   }
 };
 
-#if defined(KOKKOS_HALF_T_IS_FLOAT) && !KOKKOS_HALF_T_IS_FLOAT
+#if !KOKKOS_HALF_T_IS_FLOAT
 template <class Generator>
 struct rand<Generator, Kokkos::Experimental::half_t> {
   using half = Kokkos::Experimental::half_t;
@@ -440,9 +446,9 @@ struct rand<Generator, Kokkos::Experimental::half_t> {
     return half(gen.frand(float(start), float(end)));
   }
 };
-#endif  // defined(KOKKOS_HALF_T_IS_FLOAT) && !KOKKOS_HALF_T_IS_FLOAT
+#endif  // !KOKKOS_HALF_T_IS_FLOAT
 
-#if defined(KOKKOS_BHALF_T_IS_FLOAT) && !KOKKOS_BHALF_T_IS_FLOAT
+#if !KOKKOS_BHALF_T_IS_FLOAT
 template <class Generator>
 struct rand<Generator, Kokkos::Experimental::bhalf_t> {
   using bhalf = Kokkos::Experimental::bhalf_t;
@@ -459,7 +465,7 @@ struct rand<Generator, Kokkos::Experimental::bhalf_t> {
     return bhalf(gen.frand(float(start), float(end)));
   }
 };
-#endif  // defined(KOKKOS_BHALF_T_IS_FLOAT) && !KOKKOS_BHALF_T_IS_FLOAT
+#endif  // !KOKKOS_BHALF_T_IS_FLOAT
 
 template <class Generator>
 struct rand<Generator, float> {
@@ -554,6 +560,9 @@ struct rand<Generator, Kokkos::complex<double>> {
 template <class DeviceType>
 class Random_XorShift1024_Pool;
 
+template <class DeviceType>
+class Random_SFC64;
+
 namespace Impl {
 
 template <bool UseCArrayState>
@@ -564,7 +573,7 @@ struct Random_XorShift1024_State {
 
   template <class StateViewType>
   KOKKOS_FUNCTION Random_XorShift1024_State(const StateViewType& v,
-                                            int state_idx) {
+                                            uint64_t state_idx) {
     for (int i = 0; i < 16; i++) state_[i] = v(state_idx, i);
   }
 
@@ -580,12 +589,12 @@ struct Random_XorShift1024_State<false> {
   uint64_t* state_;
   const int stride_;
   KOKKOS_FUNCTION
-  Random_XorShift1024_State() : state_(nullptr), stride_(1){};
+  Random_XorShift1024_State() : state_(nullptr), stride_(1) {}
 
   template <class StateViewType>
   KOKKOS_FUNCTION Random_XorShift1024_State(const StateViewType& v,
-                                            int state_idx)
-      : state_(&v(state_idx, 0)), stride_(v.stride_1()) {}
+                                            uint64_t state_idx)
+      : state_(&v(state_idx, 0)), stride_(v.stride(1)) {}
 
   // NOLINTBEGIN(bugprone-implicit-widening-of-multiplication-result)
   KOKKOS_FUNCTION
@@ -607,21 +616,124 @@ struct Random_XorShift1024_UseCArrayState<Kokkos::Cuda> : std::false_type {};
 template <>
 struct Random_XorShift1024_UseCArrayState<Kokkos::HIP> : std::false_type {};
 #endif
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
+#ifdef KOKKOS_ENABLE_SYCL
 template <>
-struct Random_XorShift1024_UseCArrayState<Kokkos::Experimental::OpenMPTarget>
+struct Random_XorShift1024_UseCArrayState<Kokkos::SYCL> : std::false_type {};
+#endif
+#ifdef KOKKOS_ENABLE_OPENACC
+template <>
+struct Random_XorShift1024_UseCArrayState<Kokkos::Experimental::OpenACC>
     : std::false_type {};
 #endif
+
+template <bool UseCArrayState>
+struct Random_SFC64_State {
+  uint64_t state_[4];
+  KOKKOS_DEFAULTED_FUNCTION
+  Random_SFC64_State() = default;
+
+  template <class StateViewType>
+  KOKKOS_FUNCTION Random_SFC64_State(const StateViewType& v,
+                                     uint64_t state_idx) {
+    for (int i = 0; i < 4; i++) state_[i] = v(state_idx, i);
+  }
+
+  KOKKOS_FUNCTION
+  uint64_t operator[](const int i) const { return state_[i]; }
+
+  KOKKOS_FUNCTION
+  uint64_t& operator[](const int i) { return state_[i]; }
+};
+
+template <>
+struct Random_SFC64_State<false> {
+  uint64_t* state_;
+  const uint64_t stride_;
+  KOKKOS_FUNCTION
+  Random_SFC64_State() : state_(nullptr), stride_(1) {}
+
+  template <class StateViewType>
+  KOKKOS_FUNCTION Random_SFC64_State(const StateViewType& v, uint64_t state_idx)
+      : state_(&v(state_idx, 0)), stride_(v.stride(1)) {}
+
+  KOKKOS_FUNCTION
+  uint64_t operator[](const int i) const {
+    return state_[static_cast<uint64_t>(i) * stride_];
+  }
+
+  KOKKOS_FUNCTION
+  uint64_t& operator[](const int i) {
+    return state_[static_cast<uint64_t>(i) * stride_];
+  }
+};
+
+template <class ExecutionSpace>
+struct Random_SFC64_UseCArrayState : std::true_type {};
+
+#ifdef KOKKOS_ENABLE_CUDA
+template <>
+struct Random_SFC64_UseCArrayState<Kokkos::Cuda> : std::false_type {};
+#endif
+#ifdef KOKKOS_ENABLE_HIP
+template <>
+struct Random_SFC64_UseCArrayState<Kokkos::HIP> : std::false_type {};
+#endif
+#ifdef KOKKOS_ENABLE_SYCL
+template <>
+struct Random_SFC64_UseCArrayState<Kokkos::SYCL> : std::false_type {};
+#endif
+#ifdef KOKKOS_ENABLE_OPENACC
+template <>
+struct Random_SFC64_UseCArrayState<Kokkos::Experimental::OpenACC>
+    : std::false_type {};
+#endif
+
+template <class DeviceType = Kokkos::DefaultExecutionSpace>
+struct Random_SFC64_Pool_Init {
+  using device_type = typename DeviceType::device_type;
+
+  using locks_type      = View<int**, device_type>;
+  using state_data_type = View<uint64_t* [4], device_type>;
+
+  locks_type locks_;
+  state_data_type state_;
+  uint64_t seed_low_;
+  uint64_t seed_high_;
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(const uint64_t i) const {
+    state_(i, 0) = seed_low_;
+    state_(i, 1) = seed_high_ + i;
+    state_(i, 2) = ~state_(i, 0) ^ state_(i, 1);
+    state_(i, 3) = 1;
+
+    Random_SFC64<DeviceType> gen(state_, i);
+    // Mix the state to 'escape zeroland' if a bad seed is provided. The number
+    // of iterations is arbitrary. PractRand historically used 18
+    // (conservative), though 12 is now recommended. Kept 18 as performance
+    // impact is negligible.
+    for (int j = 0; j < 18; j++) gen.urand64();
+
+    state_(i, 0) = gen.state_[0];
+    state_(i, 1) = gen.state_[1];
+    state_(i, 2) = gen.state_[2];
+    state_(i, 3) = gen.state_[3];
+
+    Kokkos::memory_fence();  // Ensure that the state has been written
+    Kokkos::atomic_store(&locks_(i, 0), 0);  // unlock the state
+  }
+};
 
 template <class DeviceType>
 struct Random_UniqueIndex {
   using locks_view_type = View<int**, DeviceType>;
   KOKKOS_FUNCTION
-  static int get_state_idx(const locks_view_type&) {
+  static uint64_t get_state_idx(const locks_view_type&) {
     KOKKOS_IF_ON_HOST(
         (return DeviceType::execution_space::impl_hardware_thread_id();))
 
     KOKKOS_IF_ON_DEVICE((return 0;))
+    KOKKOS_IMPL_UNREACHABLE();
   }
 };
 
@@ -640,24 +752,25 @@ struct Random_UniqueIndex<
       View<int**, Kokkos::Device<KOKKOS_IMPL_EXECUTION_SPACE_CUDA_OR_HIP,
                                  MemorySpace>>;
   KOKKOS_FUNCTION
-  static int get_state_idx(const locks_view_type& locks_) {
+  static uint64_t get_state_idx(const locks_view_type& locks_) {
     KOKKOS_IF_ON_DEVICE((
         const int i_offset =
             (threadIdx.x * blockDim.y + threadIdx.y) * blockDim.z + threadIdx.z;
-        int i =
+        uint64_t i =
             (((blockIdx.x * gridDim.y + blockIdx.y) * gridDim.z + blockIdx.z) *
                  blockDim.x * blockDim.y * blockDim.z +
              i_offset) %
             locks_.extent(0);
         while (Kokkos::atomic_compare_exchange(&locks_(i, 0), 0, 1)) {
-          i += blockDim.x * blockDim.y * blockDim.z;
-          if (i >= static_cast<int>(locks_.extent(0))) {
+          i += static_cast<uint64_t>(blockDim.x) * blockDim.y * blockDim.z;
+          if (i >= static_cast<uint64_t>(locks_.extent(0))) {
             i = i_offset;
           }
         }
 
         return i;))
     KOKKOS_IF_ON_HOST(((void)locks_; return 0;))
+    KOKKOS_IMPL_UNREACHABLE();
   }
 };
 
@@ -671,12 +784,12 @@ struct Random_UniqueIndex<Kokkos::Device<Kokkos::SYCL, MemorySpace>> {
   using locks_view_type =
       View<int**, Kokkos::Device<Kokkos::SYCL, MemorySpace>>;
   KOKKOS_FUNCTION
-  static int get_state_idx(const locks_view_type& locks_) {
+  static uint64_t get_state_idx(const locks_view_type& locks_) {
 #if defined(KOKKOS_COMPILER_INTEL_LLVM) && \
     KOKKOS_COMPILER_INTEL_LLVM >= 20250000
     auto item = sycl::ext::oneapi::this_work_item::get_nd_item<3>();
 #else
-    auto item = sycl::ext::oneapi::experimental::this_nd_item<3>();
+    auto item           = sycl::ext::oneapi::experimental::this_nd_item<3>();
 #endif
     std::size_t threadIdx[3] = {item.get_local_id(2), item.get_local_id(1),
                                 item.get_local_id(0)};
@@ -691,14 +804,14 @@ struct Random_UniqueIndex<Kokkos::Device<Kokkos::SYCL, MemorySpace>> {
     const int i_offset =
         (threadIdx[0] * blockDim[1] + threadIdx[1]) * blockDim[2] +
         threadIdx[2];
-    int i =
+    uint64_t i =
         (((blockIdx[0] * gridDim[1] + blockIdx[1]) * gridDim[2] + blockIdx[2]) *
              blockDim[0] * blockDim[1] * blockDim[2] +
          i_offset) %
         locks_.extent(0);
     while (Kokkos::atomic_compare_exchange(&locks_(i, 0), 0, 1)) {
       i += blockDim[0] * blockDim[1] * blockDim[2];
-      if (i >= static_cast<int>(locks_.extent(0))) {
+      if (i >= static_cast<uint64_t>(locks_.extent(0))) {
         i = i_offset;
       }
     }
@@ -707,19 +820,28 @@ struct Random_UniqueIndex<Kokkos::Device<Kokkos::SYCL, MemorySpace>> {
 };
 #endif
 
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
+#ifdef KOKKOS_ENABLE_OPENACC
 template <class MemorySpace>
 struct Random_UniqueIndex<
-    Kokkos::Device<Kokkos::Experimental::OpenMPTarget, MemorySpace>> {
+    Kokkos::Device<Kokkos::Experimental::OpenACC, MemorySpace>> {
   using locks_view_type =
-      View<int**,
-           Kokkos::Device<Kokkos::Experimental::OpenMPTarget, MemorySpace>>;
+      View<int**, Kokkos::Device<Kokkos::Experimental::OpenACC, MemorySpace>>;
   KOKKOS_FUNCTION
-  static int get_state_idx(const locks_view_type& locks) {
+  static uint64_t get_state_idx(const locks_view_type& locks) {
+#ifdef KOKKOS_COMPILER_NVHPC
+    const int team_size =
+        Kokkos::Impl::OpenACCTeamMember::DEFAULT_TEAM_SIZE_REC;
+    uint64_t i = __pgi_gangidx() * team_size + __pgi_vectoridx();
+#elif defined(KOKKOS_COMPILER_CLANG)
     const int team_size = omp_get_num_threads();
-    int i               = omp_get_team_num() * team_size + omp_get_thread_num();
-    const int lock_size = locks.extent_int(0);
-
+    uint64_t i          = omp_get_team_num() * team_size + omp_get_thread_num();
+#else
+    static_assert(false,
+                  "The current OpenACC backend implementation supports "
+                  "Random_UniqueIndex only when compiled with NVHPC or CLACC.");
+#endif
+    const uint64_t lock_size = locks.extent_int(0);
+    i %= lock_size;
     while (Kokkos::atomic_compare_exchange(&locks(i, 0), 0, 1)) {
       i = (i + 1) % lock_size;
     }
@@ -737,7 +859,7 @@ template <class DeviceType>
 class Random_XorShift64 {
  private:
   uint64_t state_;
-  const int state_idx_;
+  const uint64_t state_idx_;
   friend class Random_XorShift64_Pool<DeviceType>;
 
  public:
@@ -749,7 +871,7 @@ class Random_XorShift64 {
   constexpr static int64_t MAX_RAND64   = std::numeric_limits<int64_t>::max();
 
   KOKKOS_INLINE_FUNCTION
-  Random_XorShift64(uint64_t state, int state_idx = 0)
+  Random_XorShift64(uint64_t state, uint64_t state_idx = 0)
       : state_(state == 0 ? uint64_t(1318319) : state), state_idx_(state_idx) {}
 
   KOKKOS_INLINE_FUNCTION
@@ -810,7 +932,10 @@ class Random_XorShift64 {
 
   KOKKOS_INLINE_FUNCTION
   int rand(const int& start, const int& end) {
-    return rand(end - start) + start;
+    // Unsigned subtraction avoids signed-overflow UB when end-start > INT_MAX.
+    const uint32_t urange =
+        static_cast<uint32_t>(end) - static_cast<uint32_t>(start);
+    return static_cast<int>(urand(urange) + static_cast<uint32_t>(start));
   }
 
   KOKKOS_INLINE_FUNCTION
@@ -826,7 +951,11 @@ class Random_XorShift64 {
 
   KOKKOS_INLINE_FUNCTION
   int64_t rand64(const int64_t& start, const int64_t& end) {
-    return rand64(end - start) + start;
+    // Unsigned subtraction avoids signed-overflow UB when end-start >
+    // INT64_MAX.
+    const uint64_t urange =
+        static_cast<uint64_t>(end) - static_cast<uint64_t>(start);
+    return static_cast<int64_t>(urand64(urange) + static_cast<uint64_t>(start));
   }
 
   KOKKOS_INLINE_FUNCTION
@@ -886,52 +1015,66 @@ class Random_XorShift64_Pool {
 
   locks_type locks_      = {};
   state_data_type state_ = {};
-  int num_states_        = {};
+  uint64_t num_states_   = {};
   int padding_           = {};
 
  public:
   using generator_type = Random_XorShift64<DeviceType>;
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-  KOKKOS_DEFAULTED_FUNCTION Random_XorShift64_Pool() = default;
+  Random_XorShift64_Pool() = default;
 
-  KOKKOS_DEFAULTED_FUNCTION Random_XorShift64_Pool(
-      Random_XorShift64_Pool const&) = default;
-
-  KOKKOS_DEFAULTED_FUNCTION Random_XorShift64_Pool& operator=(
-      Random_XorShift64_Pool const&) = default;
-#else
-  Random_XorShift64_Pool()   = default;
-#endif
   Random_XorShift64_Pool(uint64_t seed) {
-    num_states_ = 0;
-
-    init(seed, execution_space().concurrency());
+    init_impl(execution_space(), seed, execution_space().concurrency());
+    execution_space().fence("Kokkos::Random_XorShift64_Pool: Constructor");
   }
 
-  void init(uint64_t seed, int num_states) {
+  Random_XorShift64_Pool(uint64_t seed, uint64_t num_states) {
+    init_impl(execution_space(), seed, num_states);
+    execution_space().fence("Kokkos::Random_XorShift64_Pool: Constructor");
+  }
+
+  Random_XorShift64_Pool(const execution_space& exec, uint64_t seed) {
+    init_impl(exec, seed, exec.concurrency());
+  }
+
+  Random_XorShift64_Pool(const execution_space& exec, uint64_t seed,
+                         uint64_t num_states) {
+    init_impl(exec, seed, num_states);
+  }
+
+ private:
+  void init_impl(execution_space const& exec, uint64_t seed,
+                 uint64_t num_states) {
+    num_states_ = num_states;
+
     if (seed == 0) seed = uint64_t(1318319);
     // I only want to pad on CPU like archs (less than 1000 threads). 64 is a
     // magic number, or random number I just wanted something not too large and
     // not too small. 64 sounded fine.
-    padding_    = num_states < 1000 ? 64 : 1;
-    num_states_ = num_states;
+    padding_ = num_states_ < 1000 ? 64 : 1;
 
-    locks_ =
-        locks_type("Kokkos::Random_XorShift64::locks", num_states, padding_);
-    state_ = state_data_type("Kokkos::Random_XorShift64::state", num_states_,
-                             padding_);
+    locks_ = locks_type(view_alloc(exec, "Kokkos::Random_XorShift64::locks"),
+                        num_states_, padding_);
+    state_ =
+        state_data_type(view_alloc(exec, "Kokkos::Random_XorShift64::state"),
+                        num_states_, padding_);
 
-    typename state_data_type::HostMirror h_state =
+    typename state_data_type::host_mirror_type h_state =
         Kokkos::create_mirror_view(Kokkos::WithoutInitializing, state_);
-    typename locks_type::HostMirror h_lock =
+    typename locks_type::host_mirror_type h_lock =
         Kokkos::create_mirror_view(Kokkos::WithoutInitializing, locks_);
 
-    // Execute on the HostMirror's default execution space.
-    Random_XorShift64<typename state_data_type::HostMirror::execution_space>
+    // if the host mirror is the device view, need to fence here
+    // since the init was async.
+    if (state_.data() == h_state.data())
+      exec.fence("Kokkos::Random_XorShift64_Pool::init UnifiedMemory");
+
+    // Execute on the host_mirror_type's default execution space.
+    Random_XorShift64<
+        typename state_data_type::host_mirror_type::execution_space>
         gen(seed, 0);
     for (int i = 0; i < 17; i++) gen.rand();
-    for (int i = 0; i < num_states_; i++) {
+    for (uint64_t i = 0; i < num_states_; i++) {
       int n1        = gen.rand();
       int n2        = gen.rand();
       int n3        = gen.rand();
@@ -942,19 +1085,22 @@ class Random_XorShift64_Pool {
                       (((static_cast<uint64_t>(n4)) & 0xffff) << 48);
       h_lock(i, 0) = 0;
     }
-    deep_copy(state_, h_state);
-    deep_copy(locks_, h_lock);
+    deep_copy(exec, state_, h_state);
+    deep_copy(exec, locks_, h_lock);
   }
 
-  KOKKOS_INLINE_FUNCTION Random_XorShift64<DeviceType> get_state() const {
+ public:
+  KOKKOS_INLINE_FUNCTION
+  Random_XorShift64<DeviceType> get_state() const {
     KOKKOS_EXPECTS(num_states_ > 0);
-    const int i = Impl::Random_UniqueIndex<device_type>::get_state_idx(locks_);
+    const uint64_t i =
+        Impl::Random_UniqueIndex<device_type>::get_state_idx(locks_);
     return Random_XorShift64<DeviceType>(state_(i, 0), i);
   }
 
   // NOTE: state_idx MUST be unique and less than num_states
   KOKKOS_INLINE_FUNCTION
-  Random_XorShift64<DeviceType> get_state(const int state_idx) const {
+  Random_XorShift64<DeviceType> get_state(const uint64_t state_idx) const {
     return Random_XorShift64<DeviceType>(state_(state_idx, 0), state_idx);
   }
 
@@ -973,7 +1119,7 @@ class Random_XorShift1024 {
 
  private:
   int p_;
-  const int state_idx_;
+  const uint64_t state_idx_;
   Impl::Random_XorShift1024_State<
       Impl::Random_XorShift1024_UseCArrayState<execution_space>::value>
       state_;
@@ -990,7 +1136,7 @@ class Random_XorShift1024 {
 
   KOKKOS_INLINE_FUNCTION
   Random_XorShift1024(const typename pool_type::state_data_type& state, int p,
-                      int state_idx = 0)
+                      uint64_t state_idx = 0)
       : p_(p), state_idx_(state_idx), state_(state, state_idx) {}
 
   KOKKOS_INLINE_FUNCTION
@@ -1054,7 +1200,10 @@ class Random_XorShift1024 {
 
   KOKKOS_INLINE_FUNCTION
   int rand(const int& start, const int& end) {
-    return rand(end - start) + start;
+    // Unsigned subtraction avoids signed-overflow UB when end-start > INT_MAX.
+    const uint32_t urange =
+        static_cast<uint32_t>(end) - static_cast<uint32_t>(start);
+    return static_cast<int>(urand(urange) + static_cast<uint32_t>(start));
   }
 
   KOKKOS_INLINE_FUNCTION
@@ -1070,7 +1219,11 @@ class Random_XorShift1024 {
 
   KOKKOS_INLINE_FUNCTION
   int64_t rand64(const int64_t& start, const int64_t& end) {
-    return rand64(end - start) + start;
+    // Unsigned subtraction avoids signed-overflow UB when end-start >
+    // INT64_MAX.
+    const uint64_t urange =
+        static_cast<uint64_t>(end) - static_cast<uint64_t>(start);
+    return static_cast<int64_t>(urand64(urange) + static_cast<uint64_t>(start));
   }
 
   KOKKOS_INLINE_FUNCTION
@@ -1132,55 +1285,69 @@ class Random_XorShift1024_Pool {
   locks_type locks_      = {};
   state_data_type state_ = {};
   int_view_type p_       = {};
-  int num_states_        = {};
+  uint64_t num_states_   = {};
   int padding_           = {};
   friend class Random_XorShift1024<DeviceType>;
 
  public:
   using generator_type = Random_XorShift1024<DeviceType>;
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-  KOKKOS_DEFAULTED_FUNCTION Random_XorShift1024_Pool() = default;
-
-  KOKKOS_DEFAULTED_FUNCTION Random_XorShift1024_Pool(
-      Random_XorShift1024_Pool const&) = default;
-
-  KOKKOS_DEFAULTED_FUNCTION Random_XorShift1024_Pool& operator=(
-      Random_XorShift1024_Pool const&) = default;
-#else
   Random_XorShift1024_Pool() = default;
-#endif
 
   Random_XorShift1024_Pool(uint64_t seed) {
-    num_states_ = 0;
-
-    init(seed, execution_space().concurrency());
+    init_impl(execution_space(), seed, execution_space().concurrency());
+    execution_space().fence("Kokkos::Random_XorShift1024_Pool: Constructor");
   }
 
-  void init(uint64_t seed, int num_states) {
+  Random_XorShift1024_Pool(uint64_t seed, uint64_t num_states) {
+    init_impl(execution_space(), seed, num_states);
+    execution_space().fence("Kokkos::Random_XorShift1024_Pool: Constructor");
+  }
+
+  Random_XorShift1024_Pool(const execution_space& exec, uint64_t seed) {
+    init_impl(exec, seed, exec.concurrency());
+  }
+
+  Random_XorShift1024_Pool(const execution_space& exec, uint64_t seed,
+                           uint64_t num_states) {
+    init_impl(exec, seed, num_states);
+  }
+
+ private:
+  void init_impl(execution_space const& exec, uint64_t seed,
+                 uint64_t num_states) {
+    num_states_ = num_states;
+
     if (seed == 0) seed = uint64_t(1318319);
     // I only want to pad on CPU like archs (less than 1000 threads). 64 is a
     // magic number, or random number I just wanted something not too large and
     // not too small. 64 sounded fine.
-    padding_    = num_states < 1000 ? 64 : 1;
-    num_states_ = num_states;
-    locks_ =
-        locks_type("Kokkos::Random_XorShift1024::locks", num_states_, padding_);
-    state_ = state_data_type("Kokkos::Random_XorShift1024::state", num_states_);
-    p_ = int_view_type("Kokkos::Random_XorShift1024::p", num_states_, padding_);
+    padding_ = num_states_ < 1000 ? 64 : 1;
+    locks_ = locks_type(view_alloc(exec, "Kokkos::Random_XorShift1024::locks"),
+                        num_states_, padding_);
+    state_ = state_data_type(
+        view_alloc(exec, "Kokkos::Random_XorShift1024::state"), num_states_);
+    p_ = int_view_type(view_alloc(exec, "Kokkos::Random_XorShift1024::p"),
+                       num_states_, padding_);
 
-    typename state_data_type::HostMirror h_state =
+    typename state_data_type::host_mirror_type h_state =
         Kokkos::create_mirror_view(Kokkos::WithoutInitializing, state_);
-    typename locks_type::HostMirror h_lock =
+    typename locks_type::host_mirror_type h_lock =
         Kokkos::create_mirror_view(Kokkos::WithoutInitializing, locks_);
-    typename int_view_type::HostMirror h_p =
+    typename int_view_type::host_mirror_type h_p =
         Kokkos::create_mirror_view(Kokkos::WithoutInitializing, p_);
 
-    // Execute on the HostMirror's default execution space.
-    Random_XorShift64<typename state_data_type::HostMirror::execution_space>
+    // if the host mirror is the device view, need to fence here
+    // since the init was async.
+    if (state_.data() == h_state.data())
+      exec.fence("Kokkos::Random_XorShift1024_Pool::init UnifiedMemory");
+
+    // Execute on the host_mirror_type's default execution space.
+    Random_XorShift64<
+        typename state_data_type::host_mirror_type::execution_space>
         gen(seed, 0);
     for (int i = 0; i < 17; i++) gen.rand();
-    for (int i = 0; i < num_states_; i++) {
+    for (uint64_t i = 0; i < num_states_; i++) {
       for (int j = 0; j < 16; j++) {
         int n1        = gen.rand();
         int n2        = gen.rand();
@@ -1194,20 +1361,22 @@ class Random_XorShift1024_Pool {
       h_p(i, 0)    = 0;
       h_lock(i, 0) = 0;
     }
-    deep_copy(state_, h_state);
-    deep_copy(locks_, h_lock);
+    deep_copy(exec, state_, h_state);
+    deep_copy(exec, locks_, h_lock);
   }
 
+ public:
   KOKKOS_INLINE_FUNCTION
   Random_XorShift1024<DeviceType> get_state() const {
     KOKKOS_EXPECTS(num_states_ > 0);
-    const int i = Impl::Random_UniqueIndex<device_type>::get_state_idx(locks_);
+    const uint64_t i =
+        Impl::Random_UniqueIndex<device_type>::get_state_idx(locks_);
     return Random_XorShift1024<DeviceType>(state_, p_(i, 0), i);
-  };
+  }
 
   // NOTE: state_idx MUST be unique and less than num_states
   KOKKOS_INLINE_FUNCTION
-  Random_XorShift1024<DeviceType> get_state(const int state_idx) const {
+  Random_XorShift1024<DeviceType> get_state(const uint64_t state_idx) const {
     return Random_XorShift1024<DeviceType>(state_, p_(state_idx, 0), state_idx);
   }
 
@@ -1221,8 +1390,307 @@ class Random_XorShift1024_Pool {
   }
 };
 
-namespace Impl {
+template <class DeviceType>
+class Random_SFC64_Pool;
 
+template <class DeviceType>
+class Random_SFC64 {
+  using execution_space = typename DeviceType::execution_space;
+
+ private:
+  const uint64_t state_idx_;
+  Impl::Random_SFC64_State<
+      Impl::Random_SFC64_UseCArrayState<execution_space>::value>
+      state_;
+
+  friend class Random_SFC64_Pool<DeviceType>;
+  friend struct Impl::Random_SFC64_Pool_Init<DeviceType>;
+
+ public:
+  using pool_type   = Random_SFC64_Pool<DeviceType>;
+  using device_type = DeviceType;
+
+  constexpr static uint32_t MAX_URAND   = std::numeric_limits<uint32_t>::max();
+  constexpr static uint64_t MAX_URAND64 = std::numeric_limits<uint64_t>::max();
+  constexpr static int32_t MAX_RAND     = std::numeric_limits<int32_t>::max();
+  constexpr static int64_t MAX_RAND64   = std::numeric_limits<int64_t>::max();
+
+  KOKKOS_INLINE_FUNCTION
+  Random_SFC64(const typename pool_type::state_data_type& state,
+               uint64_t state_idx = 0)
+      : state_idx_(state_idx), state_(state, state_idx) {}
+
+  KOKKOS_INLINE_FUNCTION
+  uint64_t urand64() {
+    enum {
+      BARREL_SHIFT = 24,
+      RSHIFT       = 11,
+      LSHIFT       = 3
+    };  // Chris Doty-Humphrey original comment: "good sets include {30,13,3},
+        // {24,11,3}, {25,12,3}, {21,11,3} ; older versions used {25,12,3},
+        // which is decent"
+    uint64_t tmp = state_[0] + state_[1] + state_[3]++;
+    state_[0]    = state_[1] ^ (state_[1] >> RSHIFT);
+    state_[1]    = state_[2] + (state_[2] << LSHIFT);
+    state_[2] =
+        ((state_[2] << BARREL_SHIFT) | (state_[2] >> (64 - BARREL_SHIFT))) +
+        tmp;
+    return tmp;
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  bool operator==(const Random_SFC64& other) const {
+    return (state_[0] == other.state_[0] && state_[1] == other.state_[1] &&
+            state_[2] == other.state_[2] && state_[3] == other.state_[3]);
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  uint32_t urand() {
+    uint64_t tmp = urand64();
+
+    // Not sure about this part, but it follows the Random_XorShift*.urand()
+    // approach.
+    tmp = tmp >> 16;
+    return static_cast<uint32_t>(tmp & MAX_URAND);
+  }
+
+  // The rest of the class is a copy of Random_XorShift* code
+  KOKKOS_INLINE_FUNCTION
+  uint32_t urand(const uint32_t& range) {
+    const uint32_t max_val = (MAX_URAND / range) * range;
+    uint32_t tmp           = urand();
+    while (tmp >= max_val) tmp = urand();
+    return tmp % range;
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  uint32_t urand(const uint32_t& start, const uint32_t& end) {
+    return urand(end - start) + start;
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  uint64_t urand64(const uint64_t& range) {
+    const uint64_t max_val = (MAX_URAND64 / range) * range;
+    uint64_t tmp           = urand64();
+    while (tmp >= max_val) tmp = urand64();
+    return tmp % range;
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  uint64_t urand64(const uint64_t& start, const uint64_t& end) {
+    return urand64(end - start) + start;
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  int rand() { return static_cast<int>(urand() / 2); }
+
+  KOKKOS_INLINE_FUNCTION
+  int rand(const int& range) {
+    const int max_val = (MAX_RAND / range) * range;
+    int tmp           = rand();
+    while (tmp >= max_val) tmp = rand();
+    return tmp % range;
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  int rand(const int& start, const int& end) {
+    // Unsigned subtraction avoids signed-overflow UB when end-start > INT_MAX.
+    const uint32_t urange =
+        static_cast<uint32_t>(end) - static_cast<uint32_t>(start);
+    return static_cast<int>(urand(urange) + static_cast<uint32_t>(start));
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  int64_t rand64() { return static_cast<int64_t>(urand64() / 2); }
+
+  KOKKOS_INLINE_FUNCTION
+  int64_t rand64(const int64_t& range) {
+    const int64_t max_val = (MAX_RAND64 / range) * range;
+    int64_t tmp           = rand64();
+    while (tmp >= max_val) tmp = rand64();
+    return tmp % range;
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  int64_t rand64(const int64_t& start, const int64_t& end) {
+    // Unsigned subtraction avoids signed-overflow UB when end-start >
+    // INT64_MAX.
+    const uint64_t urange =
+        static_cast<uint64_t>(end) - static_cast<uint64_t>(start);
+    return static_cast<int64_t>(urand64(urange) + static_cast<uint64_t>(start));
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  float frand() { return (urand64() - 1) / static_cast<float>(MAX_URAND64); }
+
+  KOKKOS_INLINE_FUNCTION
+  float frand(const float& range) {
+    return range * (urand64() - 1) / static_cast<float>(MAX_URAND64);
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  float frand(const float& start, const float& end) {
+    return frand(end - start) + start;
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  double drand() { return (urand64() - 1) / static_cast<double>(MAX_URAND64); }
+
+  KOKKOS_INLINE_FUNCTION
+  double drand(const double& range) {
+    return range * (urand64() - 1) / static_cast<double>(MAX_URAND64);
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  double drand(const double& start, const double& end) {
+    return drand(end - start) + start;
+  }
+
+  // Box-muller method for drawing a standard normal distributed random
+  // number
+  KOKKOS_INLINE_FUNCTION
+  double normal() {
+    constexpr auto two_pi = 2 * Kokkos::numbers::pi_v<double>;
+
+    const double u     = drand();
+    const double v     = drand();
+    const double r     = Kokkos::sqrt(-2.0 * Kokkos::log(u));
+    const double theta = v * two_pi;
+    return r * Kokkos::cos(theta);
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  double normal(const double& mean, const double& std_dev = 1.0) {
+    return mean + normal() * std_dev;
+  }
+};  // Random_SFC64
+
+template <class DeviceType = Kokkos::DefaultExecutionSpace>
+class Random_SFC64_Pool {
+ public:
+  using device_type = typename DeviceType::device_type;
+
+ private:
+  using execution_space = typename device_type::execution_space;
+  using locks_type      = View<int**, device_type>;
+  using state_data_type = View<uint64_t* [4], device_type>;
+
+  locks_type locks_      = {};
+  state_data_type state_ = {};
+  uint64_t num_states_   = {};
+  int padding_           = {};
+  friend class Random_SFC64<DeviceType>;
+
+ public:
+  using generator_type = Random_SFC64<DeviceType>;
+
+  Random_SFC64_Pool() = default;
+
+  Random_SFC64_Pool(uint64_t seed) {
+    init_impl(execution_space(), seed, 0, execution_space().concurrency());
+    execution_space().fence("Kokkos::Random_SFC64_Pool: Constructor");
+  }
+
+  Random_SFC64_Pool(uint64_t seed, uint64_t num_states) {
+    init_impl(execution_space(), seed, 0, num_states);
+    execution_space().fence("Kokkos::Random_SFC64_Pool: Constructor");
+  }
+
+  // Useful in distributed settings to be reproducible
+  Random_SFC64_Pool(uint64_t seed, uint64_t seed_offset, uint64_t num_states) {
+    init_impl(execution_space(), seed, seed_offset, num_states);
+    execution_space().fence("Kokkos::Random_SFC64_Pool: Constructor");
+  }
+
+  Random_SFC64_Pool(const execution_space& exec, uint64_t seed) {
+    init_impl(exec, seed, 0, exec.concurrency());
+  }
+
+  Random_SFC64_Pool(const execution_space& exec, uint64_t seed,
+                    uint64_t num_states) {
+    init_impl(exec, seed, 0, num_states);
+  }
+
+  // Useful in distributed settings to be reproducible
+  Random_SFC64_Pool(const execution_space& exec, uint64_t seed,
+                    uint64_t seed_offset, uint64_t num_states) {
+    init_impl(exec, seed, seed_offset, num_states);
+  }
+
+  bool operator==(const Random_SFC64_Pool& other) const {
+    if (num_states_ != other.num_states_) return false;
+
+    bool all_states_are_equals;  // Uninitialized, set by parallel_reduce
+    Kokkos::parallel_reduce(
+        "Random_SFC64_Pool::Comparison",
+        Kokkos::RangePolicy<execution_space>(0, num_states_),
+        KOKKOS_CLASS_LAMBDA(const uint64_t i, bool& local_comp) {
+          local_comp &= (state_(i, 0) == other.state_(i, 0));
+          local_comp &= (state_(i, 1) == other.state_(i, 1));
+          local_comp &= (state_(i, 2) == other.state_(i, 2));
+          local_comp &= (state_(i, 3) == other.state_(i, 3));
+        },
+        Kokkos::LAnd<bool>(all_states_are_equals));
+    return all_states_are_equals;
+  }
+
+ private:
+  void init_impl(execution_space const& exec, uint64_t seed_low,
+                 uint64_t seed_high, uint64_t num_states) {
+    KOKKOS_EXPECTS(num_states < (std::numeric_limits<uint64_t>::max() / 4));
+    num_states_ = num_states;
+
+    if (seed_low == 0) seed_low = uint64_t(1318319);
+    // Like for Random_XorShift*_pool padding on CPU like archs (less than 1000
+    // threads).
+    padding_ = num_states_ < 1000 ? 64 : 1;
+
+    locks_ = locks_type(view_alloc(exec, "Kokkos::Random_SFC64::locks",
+                                   Kokkos::WithoutInitializing),
+                        num_states_, padding_);
+    deep_copy(exec, locks_, 1);  // Locks the states to avoid usage before init
+    // exec.fence("Kokkos::Random_SFC64::locks::init");
+
+    // state should be padded too ?
+    state_ = state_data_type(view_alloc(exec, "Kokkos::Random_SFC64::state",
+                                        Kokkos::WithoutInitializing),
+                             num_states_);
+
+    Impl::Random_SFC64_Pool_Init<DeviceType> parallel_init{locks_, state_,
+                                                           seed_low, seed_high};
+    Kokkos::parallel_for(
+        "Kokkos::Random_SFC64_Pool::Initialization",
+        Kokkos::RangePolicy<execution_space, IndexType<uint64_t>>(exec, 0,
+                                                                  num_states_),
+        parallel_init);
+  }
+
+ public:
+  KOKKOS_INLINE_FUNCTION
+  Random_SFC64<DeviceType> get_state() const {
+    KOKKOS_EXPECTS(num_states_ > 0);
+    const uint64_t i =
+        Impl::Random_UniqueIndex<device_type>::get_state_idx(locks_);
+    return Random_SFC64<DeviceType>(state_, i);
+  }
+
+  // NOTE: state_idx MUST be unique and less than num_states
+  KOKKOS_INLINE_FUNCTION
+  Random_SFC64<DeviceType> get_state(const uint64_t state_idx) const {
+    return Random_SFC64<DeviceType>(state_, state_idx);
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  void free_state(const Random_SFC64<DeviceType>& state) const {
+    for (int i = 0; i < 4; i++) state_(state.state_idx_, i) = state.state_[i];
+    // Release the lock only after the state has been updated in memory
+    Kokkos::memory_fence();
+    locks_(state.state_idx_, 0) = 0;
+  }
+
+};  // Random_SFC64_Pool
+
+namespace Impl {
 template <class ViewType, class RandomPool, int loops, int rank,
           class IndexType>
 struct fill_random_functor_begin_end;
@@ -1533,7 +2001,9 @@ template <class ExecutionSpace, class ViewType, class RandomPool,
 void fill_random(const ExecutionSpace& exec, ViewType a, RandomPool g,
                  typename ViewType::const_value_type begin,
                  typename ViewType::const_value_type end) {
-  Impl::apply_to_view_of_static_rank(
+  // Using Impl::apply_to_view_of_static_rank function here
+  // is not compatible with modules. Using the partial specialization works.
+  Impl::ApplyToViewOfStaticRank<ViewType>::apply(
       [&](auto dst) { Kokkos::Impl::fill_random(exec, dst, g, begin, end); },
       a);
 }
@@ -1550,22 +2020,26 @@ void fill_random(ViewType a, RandomPool g,
                  typename ViewType::const_value_type begin,
                  typename ViewType::const_value_type end) {
   Kokkos::fence(
-      "fill_random: fence before since no execution space instance provided");
+      "Kokkos::fill_random: fence before since no execution space instance "
+      "provided");
   typename ViewType::execution_space exec;
   fill_random(exec, a, g, begin, end);
   exec.fence(
-      "fill_random: fence after since no execution space instance provided");
+      "Kokkos::fill_random: fence after since no execution space instance "
+      "provided");
 }
 
 template <class ViewType, class RandomPool, class IndexType = int64_t>
 void fill_random(ViewType a, RandomPool g,
                  typename ViewType::const_value_type range) {
   Kokkos::fence(
-      "fill_random: fence before since no execution space instance provided");
+      "Kokkos::fill_random: fence before since no execution space instance "
+      "provided");
   typename ViewType::execution_space exec;
   fill_random(exec, a, g, 0, range);
   exec.fence(
-      "fill_random: fence after since no execution space instance provided");
+      "Kokkos::fill_random: fence after since no execution space instance "
+      "provided");
 }
 
 }  // namespace Kokkos

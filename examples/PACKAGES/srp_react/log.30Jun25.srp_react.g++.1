@@ -1,0 +1,383 @@
+LAMMPS (12 Jun 2025 - Development - patch_12Jun2025-312-gf3113317cc-modified)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
+  using 1 OpenMP thread(s) per MPI task
+## srp_react example script
+## Author: Vaibhav Palkar
+##
+## Simulates controlled degradation of a nanogel particle
+## in a simulation box and prints statistics regarding
+## the fraction of bonds broken over time.
+
+variable       rseeddpd  equal  26817
+variable       rseedvel  equal  5991
+variable       breakstep equal  10
+variable       probbreak  equal 0.0009
+variable       rseedbreak equal 6777
+
+# simulation time
+#***********************************************
+variable       mainsteps     equal  10000
+
+# simulation setup
+#***********************************************
+units          lj
+atom_style     molecular
+boundary       p  p  p
+bond_style     harmonic
+#lattice        fcc   3.0
+comm_modify    cutoff 4.0 vel yes
+
+# initial nanogel
+#***********************************************
+read_data   gel_equil.dat
+Reading data file ...
+  orthogonal box = (0 0 0) to (15 15 15)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  11017 atoms
+  reading velocities ...
+  11017 velocities
+  scanning bonds ...
+  4 = max bonds/atom
+  orthogonal box = (0 0 0) to (15 15 15)
+  1 by 1 by 1 MPI processor grid
+  reading bonds ...
+  892 bonds
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     4 = max # of 1-2 neighbors
+     4 = max # of 1-3 neighbors
+     8 = max # of 1-4 neighbors
+    12 = max # of special neighbors
+  special bonds CPU = 0.001 seconds
+  read_data CPU = 0.034 seconds
+
+# define groups, create solvent atoms
+#**************************************************
+group          Npoly         type   1 2 3 4
+858 atoms in group Npoly
+group          water         type   5
+9267 atoms in group water
+group          N_all         type   1 2 3 4 5
+10125 atoms in group N_all
+
+# density check
+#***********************************************
+variable       N_atoms  equal  count(all)
+variable       tdens equal count(all)/vol
+print          "The system density is now ${tdens}"
+The system density is now 3.2642962962963
+
+# bond break settings
+# #***********************************************
+fix            break  N_all     bond/break  ${breakstep}   2   0  prob   ${probbreak}    ${rseedbreak}
+fix            break  N_all     bond/break  10   2   0  prob   ${probbreak}    ${rseedbreak}
+fix            break  N_all     bond/break  10   2   0  prob   0.0009    ${rseedbreak}
+fix            break  N_all     bond/break  10   2   0  prob   0.0009    6777
+
+# interaction parameter setting
+#***********************************************
+mass             *   1.0
+bond_coeff       *   500.0   0.70
+special_bonds  lj   1  1  1
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    1        1        1       
+  special bond factors coul:  0        0        0       
+     4 = max # of 1-2 neighbors
+     4 = max # of 1-3 neighbors
+     8 = max # of 1-4 neighbors
+    12 = max # of special neighbors
+  special bonds CPU = 0.001 seconds
+newton         on
+
+pair_style     hybrid dpd  1.0  1.0  ${rseeddpd} srp/react 0.8 * mid break
+pair_style     hybrid dpd  1.0  1.0  26817 srp/react 0.8 * mid break
+#***********************************************
+pair_coeff     *5     *5   dpd   78.000    4.5   1.0
+pair_coeff     *4      5   dpd   79.500    4.5   1.0
+pair_coeff     *5      6   none
+pair_coeff      6      6   srp/react   80.00 0.800
+
+# initial velocity
+#***********************************************
+velocity       all create 1.0 ${rseedvel} dist gaussian mom yes
+velocity       all create 1.0 5991 dist gaussian mom yes
+
+# integrator control
+#***********************************************
+neighbor       0.3 bin
+neigh_modify   every 1 delay 5 check  no
+timestep       0.02
+
+# Access variables of fix bond/break
+#**********************************************
+variable      Nbreak    equal  f_break[2]   # Number of bonds broken
+variable      TIME      equal  time
+
+# ensemble setting
+#***********************************************
+fix            1  all  nve
+
+# print bonds breaking stats
+# ***********************************************
+variable TotBreak equal 100 # total breakable bonds in current system
+#fix print_bonds_broken all print 100 "${TIME} ${Nbreak} $((v_TotBreak-v_Nbreak)/v_TotBreak)" file bonds_broken.txt screen no title "time bonds_broken fraction_bonds_intact"
+
+# thermo output
+#***********************************************
+thermo         100
+thermo_style   custom step temp pe ke etotal epair
+thermo_modify  norm  no
+
+reset_timestep 0
+#dump          1 Npoly   custom 5000 traj.lammpstrj id type x y z
+#*********************************************
+run           ${mainsteps}
+run           10000
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- pair srp command: doi:10.1063/1.3698476
+
+@Article{Sirk2012
+ author = {T. W. Sirk and Y. R. Sliozberg and J. K. Brennan and M. Lisal and J. W. Andzelm},
+ title = {An Enhanced Entangled Polymer Model for Dissipative Particle Dynamics},
+ journal = {J.~Chem.\ Phys.},
+ year =    2012,
+ volume =  136,
+ pages =   {134903}
+}
+
+- pair srp/react style: doi:10.1021/acs.jpcb.1c09570
+
+@Article{palkar2022
+ author = {Palkar, Vaibhav and Kuksenok, Olga},
+ title = {Controlling Degradation and Erosion of Polymer Networks: Insights from Mesoscale Modeling},
+ journal = {J.~Phys.\ Chem.~B},
+ year = 2022,
+ volume = 126,
+ number = 1,
+ pages = {336--346}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Using type 6 for bond particles
+Thermo normalization turned off by pair srp/react
+Generated 0 of 15 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 5 steps, check = no
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 1.3
+  ghost atom cutoff = 4
+  binsize = 0.65, bins = 24 24 24
+  3 neighbor lists, perpetual/occasional/extra = 3 0 0
+  (1) pair dpd, perpetual, skip from (3)
+      attributes: half, newton on
+      pair build: skip
+      stencil: none
+      bin: none
+  (2) pair srp/react, perpetual, skip from (3)
+      attributes: half, newton on
+      pair build: skip
+      stencil: none
+      bin: none
+  (3) neighbor class addition, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+Removed/inserted 892/892 bond particles.
+Per MPI rank memory allocation (min/avg/max) = 24.35 | 24.35 | 24.35 Mbytes
+   Step          Temp          PotEng         KinEng         TotEng         E_pair    
+         0   1.0009302      127698.37      15200.126      142898.49      127171.17    
+       100   1.0051051      127732.67      15263.527      142996.2       127169.51    
+Removed/inserted 892/891 bond particles.
+       200   1.0031001      127653.37      15233.078      142886.45      127071.53    
+Removed/inserted 891/890 bond particles.
+       300   1.0246589      127758.8       15560.469      143319.27      127196.75    
+       400   1.0093479      127841.96      15327.957      143169.91      127237.13    
+Removed/inserted 890/889 bond particles.
+       500   1.0056122      127569.07      15271.228      142840.29      126985.24    
+       600   1.0130736      127660.55      15384.535      143045.09      127071.24    
+Removed/inserted 889/888 bond particles.
+Removed/inserted 888/887 bond particles.
+       700   1.0129349      127641.6       15382.429      143024.02      127088.88    
+Removed/inserted 887/886 bond particles.
+       800   1.0098758      127750.89      15335.974      143086.87      127187.31    
+Removed/inserted 886/885 bond particles.
+       900   1.0148196      127670.63      15411.051      143081.68      127132.51    
+Removed/inserted 885/884 bond particles.
+Removed/inserted 884/883 bond particles.
+      1000   1.008631       127584.46      15317.07       142901.53      127035.71    
+Removed/inserted 883/882 bond particles.
+      1100   1.006977       127802.95      15291.953      143094.91      127268.62    
+Removed/inserted 882/881 bond particles.
+Removed/inserted 881/880 bond particles.
+      1200   1.014135       127713.87      15400.654      143114.53      127158.41    
+      1300   1.0070067      127720.36      15292.403      143012.76      127142.94    
+Removed/inserted 880/879 bond particles.
+      1400   1.0131222      127676.46      15385.274      143061.73      127106.96    
+Removed/inserted 879/878 bond particles.
+      1500   1.0097574      127734.62      15334.176      143068.8       127186.48    
+Removed/inserted 878/877 bond particles.
+      1600   1.0227217      127586.53      15531.052      143117.58      127046.79    
+      1700   1.0134232      127599.01      15389.845      142988.85      127036.35    
+      1800   1.01583        127773.32      15426.394      143199.71      127209.88    
+Removed/inserted 877/876 bond particles.
+      1900   0.99827708     127753.44      15159.836      142913.27      127215.56    
+Removed/inserted 876/875 bond particles.
+      2000   0.9978551      127639.36      15153.428      142792.79      127099.78    
+Removed/inserted 875/874 bond particles.
+      2100   1.0130762      127546.21      15384.575      142930.78      126982.79    
+Removed/inserted 874/873 bond particles.
+      2200   1.0143324      127592.75      15403.652      142996.4       127027.14    
+      2300   1.0164156      127620.54      15435.288      143055.83      127086.03    
+Removed/inserted 873/871 bond particles.
+      2400   1.0160835      127662.43      15430.243      143092.68      127138.71    
+      2500   1.0110011      127676.29      15353.063      143029.36      127133.98    
+Removed/inserted 871/870 bond particles.
+      2600   1.025616       127596.3       15575.004      143171.31      127056.47    
+      2700   1.0140385      127579.4       15399.188      142978.58      127031.2     
+      2800   1.0107345      127674.32      15349.014      143023.33      127154.3     
+Removed/inserted 870/869 bond particles.
+      2900   1.014851       127697.88      15411.527      143109.41      127124.97    
+      3000   1.023451       127479.67      15542.127      143021.8       126944.31    
+      3100   1.0063862      127617.86      15282.981      142900.84      127059.86    
+Removed/inserted 869/868 bond particles.
+      3200   1.0085388      127684.8       15315.67       143000.47      127117.94    
+Removed/inserted 868/867 bond particles.
+      3300   1.0106531      127619.65      15347.777      142967.43      127092.66    
+Removed/inserted 867/866 bond particles.
+      3400   1.0285951      127656.02      15620.245      143276.27      127110.61    
+      3500   1.0044666      127734.81      15253.83       142988.64      127198.64    
+Removed/inserted 866/864 bond particles.
+      3600   1.0199668      127663.62      15489.216      143152.83      127116.52    
+Removed/inserted 864/863 bond particles.
+Removed/inserted 863/862 bond particles.
+      3700   1.0150843      127866.2       15415.071      143281.27      127304.89    
+Removed/inserted 862/861 bond particles.
+      3800   1.0235787      127827.32      15544.066      143371.39      127269.97    
+      3900   1.0198965      127837.41      15488.149      143325.56      127261.73    
+      4000   1.0050188      127664.05      15262.215      142926.27      127130.78    
+Removed/inserted 861/860 bond particles.
+      4100   1.0139624      127710.18      15398.033      143108.22      127157.81    
+      4200   1.012348       127593.66      15373.517      142967.17      127075.56    
+      4300   1.0151444      127639.37      15415.982      143055.35      127136.1     
+Removed/inserted 860/859 bond particles.
+Removed/inserted 859/858 bond particles.
+      4400   1.0321693      127529.83      15674.524      143204.35      127010.67    
+Removed/inserted 858/857 bond particles.
+Removed/inserted 857/855 bond particles.
+      4500   1.0182479      127775.9       15463.113      143239.02      127239.81    
+Removed/inserted 855/854 bond particles.
+      4600   1.0106075      127848.36      15347.086      143195.44      127312.01    
+Removed/inserted 854/853 bond particles.
+      4700   1.02785        127851.54      15608.931      143460.47      127345.86    
+      4800   1.0019535      127647.04      15215.665      142862.71      127108.4     
+Removed/inserted 853/851 bond particles.
+      4900   0.99889241     127721.22      15169.18       142890.4       127202.83    
+      5000   0.99526757     127617.64      15114.133      142731.78      127107.64    
+Removed/inserted 851/850 bond particles.
+      5100   1.0158888      127660.65      15427.288      143087.94      127107.57    
+      5200   1.0186127      127704.43      15468.652      143173.08      127175.53    
+      5300   1.0196894      127738.3       15485.003      143223.3       127188.62    
+      5400   1.0147346      127757.76      15409.759      143167.52      127281.66    
+Removed/inserted 850/849 bond particles.
+Removed/inserted 849/848 bond particles.
+      5500   1.0124364      127711.94      15374.86       143086.8       127210.66    
+      5600   1.0136572      127809.38      15393.399      143202.78      127260.76    
+      5700   1.0136689      127582.37      15393.576      142975.94      127030.63    
+Removed/inserted 848/847 bond particles.
+      5800   1.0182465      127532.02      15463.091      142995.11      126972.43    
+      5900   1.013586       127490.18      15392.316      142882.5       126951.28    
+Removed/inserted 847/846 bond particles.
+      6000   1.0142507      127493.76      15402.411      142896.17      126968.81    
+      6100   1.0075303      127375.06      15300.355      142675.42      126848.6     
+      6200   1.0020015      127440.66      15216.395      142657.06      126940.68    
+Removed/inserted 846/845 bond particles.
+      6300   1.016057       127420.83      15429.842      142850.67      126930.79    
+Removed/inserted 845/844 bond particles.
+      6400   1.0149399      127690.64      15412.878      143103.52      127166.25    
+Removed/inserted 844/843 bond particles.
+      6500   0.99646255     127657.64      15132.28       142789.92      127136.79    
+      6600   1.0139147      127577.17      15397.308      142974.48      127072.39    
+      6700   1.0092811      127648.61      15326.943      142975.55      127114.14    
+      6800   1.0069166      127498.78      15291.035      142789.82      126965.74    
+      6900   1.0061292      127783.69      15279.078      143062.77      127280.45    
+Removed/inserted 843/842 bond particles.
+      7000   1.0104769      127848.37      15345.102      143193.47      127324.7     
+      7100   1.0087376      127648.48      15318.689      142967.17      127130.06    
+      7200   1.0128129      127698.11      15380.577      143078.69      127175.59    
+      7300   1.0086591      127552.01      15317.497      142869.51      127003.07    
+      7400   1.0106178      127558.55      15347.242      142905.79      127014.78    
+      7500   1.0201698      127665.85      15492.298      143158.15      127162.82    
+      7600   1.0131341      127622.9       15385.455      143008.36      127042.27    
+      7700   1.0258714      127633.98      15578.883      143212.87      127126.28    
+      7800   1.0036517      127518.35      15241.455      142759.81      127038.62    
+      7900   0.99637773     127545.03      15130.992      142676.02      127048.4     
+      8000   1.0122962      127638.71      15372.73       143011.44      127130.13    
+Removed/inserted 842/841 bond particles.
+      8100   1.0230725      127607.73      15536.379      143144.11      126996.93    
+      8200   1.0155936      127738.8       15422.804      143161.6       127211.15    
+      8300   1.016122       127563.94      15430.829      142994.77      127006.78    
+      8400   1.0226653      127654.71      15530.196      143184.9       127155.6     
+Removed/inserted 841/840 bond particles.
+      8500   1.0012219      127732.51      15204.556      142937.07      127193.57    
+      8600   1.0109858      127693.79      15352.83       143046.62      127176.37    
+Removed/inserted 840/839 bond particles.
+      8700   1.0042339      127537.2       15250.296      142787.49      127034.53    
+      8800   1.0103179      127623.14      15342.687      142965.83      127147.69    
+Removed/inserted 839/838 bond particles.
+      8900   1.005348       127557.21      15267.215      142824.42      126991.64    
+Removed/inserted 838/837 bond particles.
+      9000   1.0240137      127497.66      15550.673      143048.34      126976.95    
+Removed/inserted 837/836 bond particles.
+      9100   1.009437       127673.8       15329.31       143003.1       127199.36    
+Removed/inserted 836/835 bond particles.
+      9200   1.0164276      127679.84      15435.47       143115.31      127172.92    
+      9300   1.0089299      127804.83      15321.61       143126.44      127274.48    
+Removed/inserted 835/834 bond particles.
+      9400   1.0173733      127753.61      15449.831      143203.44      127190.56    
+      9500   1.0129999      127573.39      15383.416      142956.81      127080.08    
+      9600   1.0065481      127555.69      15285.44       142841.13      127029.7     
+      9700   1.0115131      127711.6       15360.838      143072.44      127211.16    
+      9800   1.0141569      127631.89      15400.987      143032.88      127106.32    
+Removed/inserted 834/833 bond particles.
+      9900   1.006907       127674.02      15290.89       142964.91      127178.33    
+Removed/inserted 833/832 bond particles.
+     10000   1.0181282      127673.6       15461.295      143134.89      127135.96    
+Deleted 832 atoms, new total = 10125
+Loop time of 46.6942 on 1 procs for 10000 steps with 10125 atoms
+
+Performance: 370067.259 tau/day, 214.159 timesteps/s, 2.168 Matom-step/s
+99.6% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 27.706     | 27.706     | 27.706     |   0.0 | 59.33
+Bond    | 0.048519   | 0.048519   | 0.048519   |   0.0 |  0.10
+Neigh   | 15.161     | 15.161     | 15.161     |   0.0 | 32.47
+Comm    | 2.0289     | 2.0289     | 2.0289     |   0.0 |  4.35
+Output  | 0.0045366  | 0.0045366  | 0.0045366  |   0.0 |  0.01
+Modify  | 1.5693     | 1.5693     | 1.5693     |   0.0 |  3.36
+Other   |            | 0.1763     |            |       |  0.38
+
+Nlocal:          10125 ave       10125 max       10125 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:          26497 ave       26497 max       26497 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:              0 ave           0 max           0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 0
+Ave neighs/atom = 0
+Ave special neighs/atom = 0.59496296
+Neighbor list builds = 2056
+Dangerous builds not checked
+#***********************************************
+Total wall time: 0:00:46

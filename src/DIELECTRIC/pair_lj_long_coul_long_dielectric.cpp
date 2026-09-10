@@ -38,7 +38,8 @@ using namespace MathExtra;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJLongCoulLongDielectric::PairLJLongCoulLongDielectric(LAMMPS *_lmp) : PairLJLongCoulLong(_lmp)
+PairLJLongCoulLongDielectric::PairLJLongCoulLongDielectric(LAMMPS *_lmp) :
+    PairLJLongCoulLong(_lmp), avec(nullptr)
 {
   respa_enable = 0;
   cut_respa = nullptr;
@@ -183,7 +184,7 @@ void PairLJLongCoulLongDielectric::compute(int eflag, int vflag)
           rsq_lookup.f = rsq;
           itable = rsq_lookup.i & ncoulmask;
           itable >>= ncoulshiftbits;
-          fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
+          fraction = ((double) rsq_lookup.f - rtable[itable]) * drtable[itable];
           table = ftable[itable] + fraction * dftable[itable];
           force_coul = qtmp * q[j] * table;
           efield_i = q[j] * table / qqrd2e;
@@ -321,8 +322,8 @@ double PairLJLongCoulLongDielectric::single(int i, int j, int itype, int jtype, 
       const int k = (t.i & ncoulmask) >> ncoulshiftbits;
       double f = (rsq - rtable[k]) * drtable[k], qiqj = q[i] * q[j];
       t.f = (1.0 - factor_coul) * (ctable[k] + f * dctable[k]);
-      force_coul = qiqj * (ftable[k] + f * dftable[k] - t.f);
-      eng += qiqj * (etable[k] + f * detable[k] - t.f) * (ei + ej) * 0.5;
+      force_coul = qiqj * (ftable[k] + f * dftable[k] - (double) t.f);
+      eng += qiqj * (etable[k] + f * detable[k] - (double) t.f) * (ei + ej) * 0.5;
     }
   } else
     force_coul = 0.0;

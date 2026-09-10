@@ -1,29 +1,18 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
 #define KOKKOS_IMPL_PUBLIC_INCLUDE
 #endif
 
+#include <Kokkos_Macros.hpp>
 #include <Kokkos_Core.hpp>
 
 #ifdef KOKKOS_ENABLE_HPX
 #include <HPX/Kokkos_HPX.hpp>
 
 #include <impl/Kokkos_ExecSpaceManager.hpp>
+#include <impl/Kokkos_Error.hpp>
 
 #include <hpx/condition_variable.hpp>
 #include <hpx/init.hpp>
@@ -43,7 +32,7 @@ namespace Kokkos {
 namespace Impl {
 void hpx_thread_buffer::resize(const std::size_t num_threads,
                                const std::size_t size_per_thread,
-                               const std::size_t extra_space) noexcept {
+                               const std::size_t extra_space) {
   m_num_threads     = num_threads;
   m_size_per_thread = size_per_thread;
   m_extra_space     = extra_space;
@@ -86,7 +75,7 @@ std::atomic<uint32_t> HPX::m_next_instance_id{HPX::impl_default_instance_id() +
 uint32_t HPX::m_active_parallel_region_count{0};
 hpx::spinlock HPX::m_active_parallel_region_count_mutex;
 hpx::condition_variable_any HPX::m_active_parallel_region_count_cond;
-HPX::instance_data HPX::m_default_instance_data;
+Kokkos::Impl::HostSharedPtr<HPX::instance_data> HPX::m_default_instance_data;
 
 void HPX::print_configuration(std::ostream &os, const bool) const {
   os << "Host Parallel Execution Space\n";
@@ -103,33 +92,6 @@ void HPX::print_configuration(std::ostream &os, const bool) const {
   os << hpx::configuration_string() << '\n';
 }
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-bool &HPX::impl_get_in_parallel() noexcept {
-  static thread_local bool in_parallel = false;
-  return in_parallel;
-}
-
-HPX::impl_in_parallel_scope::impl_in_parallel_scope() noexcept {
-  KOKKOS_EXPECTS(!impl_get_in_parallel());
-  impl_get_in_parallel() = true;
-}
-
-HPX::impl_in_parallel_scope::~impl_in_parallel_scope() noexcept {
-  KOKKOS_EXPECTS(impl_get_in_parallel());
-  impl_get_in_parallel() = false;
-}
-
-HPX::impl_not_in_parallel_scope::impl_not_in_parallel_scope() noexcept {
-  KOKKOS_EXPECTS(impl_get_in_parallel());
-  impl_get_in_parallel() = false;
-}
-
-HPX::impl_not_in_parallel_scope::~impl_not_in_parallel_scope() noexcept {
-  KOKKOS_EXPECTS(!impl_get_in_parallel());
-  impl_get_in_parallel() = true;
-}
-#endif
-
 void HPX::impl_decrement_active_parallel_region_count() {
   std::unique_lock<hpx::spinlock> l(m_active_parallel_region_count_mutex);
   if (--m_active_parallel_region_count == 0) {
@@ -144,23 +106,11 @@ void HPX::impl_increment_active_parallel_region_count() {
 }
 
 void HPX::impl_instance_fence_locked(const std::string &name) const {
-  Kokkos::Tools::Experimental::Impl::profile_fence_event<
-      Kokkos::Experimental::HPX>(
-      name,
-      Kokkos::Tools::Experimental::Impl::DirectFenceIDHandle{
-          impl_instance_id()},
-      [&]() {
-        auto &s = impl_get_sender();
-
-        hpx::this_thread::experimental::sync_wait(std::move(s));
-        s = hpx::execution::experimental::unique_any_sender<>(
-            hpx::execution::experimental::just());
-      });
+  impl_get_instance_data().fence_locked(name);
 }
 
 void HPX::impl_instance_fence(const std::string &name) const {
-  std::lock_guard<hpx::spinlock> l(impl_get_sender_mutex());
-  impl_instance_fence_locked(name);
+  impl_get_instance_data().fence(name);
 }
 
 void HPX::impl_static_fence(const std::string &name) {
@@ -170,9 +120,9 @@ void HPX::impl_static_fence(const std::string &name) {
       Kokkos::Tools::Experimental::SpecialSynchronizationCases::
           GlobalDeviceSynchronization,
       [&]() {
-        auto &s = HPX().impl_get_sender();
-
-        std::unique_lock<hpx::spinlock> l(HPX().impl_get_sender_mutex());
+        auto &s = m_default_instance_data->m_sender;
+        std::unique_lock<hpx::spinlock> l(
+            m_default_instance_data->m_sender_mutex);
 
         // This is a loose fence. Any work scheduled before this will be waited
         // for, but work scheduled while waiting may also be waited for.
@@ -189,11 +139,7 @@ void HPX::impl_static_fence(const std::string &name) {
       });
 }
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-int HPX::concurrency() {
-#else
 int HPX::concurrency() const {
-#endif
   hpx::runtime *rt = hpx::get_runtime_ptr();
   if (rt == nullptr) {
     return hpx::threads::hardware_concurrency();
@@ -211,8 +157,21 @@ void HPX::impl_initialize(InitializationSettings const &settings) {
   if (rt == nullptr) {
     hpx::init_params i;
     if (settings.has_num_threads()) {
-      i.cfg.emplace_back("hpx.os_threads=" +
-                         std::to_string(settings.get_num_threads()));
+      // HPX throws if asked to oversubscribe beyond available processing units.
+      // KOKKOS_NUM_THREADS can be larger than what HPX allows, so clamp.
+      const int requested = settings.get_num_threads();
+      const int available = hpx::threads::hardware_concurrency();
+      const int clamped   = (requested > 0 && available > 0)
+                                ? std::min(requested, available)
+                                : requested;
+      if (clamped != requested) {
+        Kokkos::Impl::log_warning("Requested " + std::to_string(requested) +
+                                  " threads, but HPX only allows " +
+                                  std::to_string(available) +
+                                  "; Setting the number of threads to " +
+                                  std::to_string(clamped) + ".");
+      }
+      i.cfg.emplace_back("hpx.os_threads=" + std::to_string(clamped));
     }
     int argc_hpx     = 1;
     char name[]      = "kokkos_hpx";
@@ -221,14 +180,18 @@ void HPX::impl_initialize(InitializationSettings const &settings) {
 
     m_hpx_initialized = true;
   }
-}
 
-bool HPX::impl_is_initialized() noexcept {
-  hpx::runtime *rt = hpx::get_runtime_ptr();
-  return rt != nullptr;
+  // Create the default instance data.
+  m_default_instance_data = Kokkos::Impl::HostSharedPtr(new instance_data());
 }
 
 void HPX::impl_finalize() {
+  m_default_instance_data->fence(
+      "Kokkos::Experimental::HPX: fence "
+      "to drain internal sender on finalize");
+
+  m_default_instance_data = nullptr;
+
   if (m_hpx_initialized) {
     hpx::runtime *rt = hpx::get_runtime_ptr();
     if (rt != nullptr) {
@@ -238,11 +201,8 @@ void HPX::impl_finalize() {
       hpx::apply([]() { hpx::finalize(); });
 #endif
       hpx::stop();
-    } else {
-      Kokkos::abort(
-          "Kokkos::Experimental::HPX::impl_finalize: Kokkos started "
-          "HPX but something else already stopped HPX\n");
     }
+    m_hpx_initialized = false;
   }
 }
 

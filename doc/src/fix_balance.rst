@@ -427,7 +427,7 @@ Related commands
 :doc:`group <group>`, :doc:`processors <processors>`, :doc:`balance <balance>`,
 :doc:`comm_style <comm_style>`
 
-.. _pizza: https://lammps.github.io/pizza
+.. _pizza: https://lammps.github.io/pizza/
 
 Default
 """""""

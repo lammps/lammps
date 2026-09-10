@@ -48,9 +48,9 @@ FixSpringSelfKokkos<DeviceType>::FixSpringSelfKokkos(LAMMPS *lmp, int narg, char
   grow_arrays(nmax);
 
   for (int i = 0; i < atom->nlocal; i++) {
-    k_xoriginal.h_view(i,0) = xoriginal_tmp[i][0];
-    k_xoriginal.h_view(i,1) = xoriginal_tmp[i][1];
-    k_xoriginal.h_view(i,2) = xoriginal_tmp[i][2];
+    k_xoriginal.view_host()(i,0) = xoriginal_tmp[i][0];
+    k_xoriginal.view_host()(i,1) = xoriginal_tmp[i][1];
+    k_xoriginal.view_host()(i,2) = xoriginal_tmp[i][2];
   }
 
   k_xoriginal.modify_host();
@@ -80,10 +80,11 @@ void FixSpringSelfKokkos<DeviceType>::init()
   FixSpringSelf::init();
 
   if (kstyle != CONSTANT)
-    error->all(FLERR, "Fix spring/self/kk does not support variable spring constants (yet)");
+    error->all(FLERR, Error::NOLASTLINE,
+               "Fix spring/self/kk does not support variable spring constants (yet)");
 
   if (utils::strmatch(update->integrate_style,"^respa"))
-    error->all(FLERR,"Cannot (yet) use respa with Kokkos");
+    error->all(FLERR, Error::NOLASTLINE, "Cannot (yet) use respa with Kokkos");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -101,53 +102,51 @@ void FixSpringSelfKokkos<DeviceType>::post_force(int /*vflag*/)
 
   double espring_kk;
 
-  k_xoriginal.modify<LMPHostType>();
+  k_xoriginal.modify_host();
   k_xoriginal.sync<DeviceType>();
 
   copymode = 1;
 
   {
-  // local variables for lambda capture
-  auto prd = Few<double,3>(domain->prd);
-  auto h = Few<double,6>(domain->h);
-  auto triclinic = domain->triclinic;
-  auto l_k = k;
-  auto l_xoriginal = d_xoriginal;
+    // local variables for lambda capture
+    auto prd = Few<double,3>(domain->prd);
+    auto h = Few<double,6>(domain->h);
+    auto triclinic = domain->triclinic;
+    auto l_k = k;
+    auto l_xoriginal = d_xoriginal;
 
-  auto l_x = x;
-  auto l_f = f;
-  auto l_mask = mask;
-  auto l_image = image;
-  auto l_groupbit = groupbit;
-  auto l_xflag = xflag;
-  auto l_yflag = yflag;
-  auto l_zflag = zflag;
+    auto l_x = x;
+    auto l_f = f;
+    auto l_mask = mask;
+    auto l_image = image;
+    auto l_groupbit = groupbit;
+    auto l_xflag = xflag;
+    auto l_yflag = yflag;
+    auto l_zflag = zflag;
 
-  Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType>(0,nlocal), LAMMPS_LAMBDA(const int& i, double& espring_kk) {
-    if (l_mask[i] & l_groupbit) {
-      Few<double,3> x_i;
-      x_i[0] = l_x(i,0);
-      x_i[1] = l_x(i,1);
-      x_i[2] = l_x(i,2);
-      auto unwrap = DomainKokkos::unmap(prd,h,triclinic,x_i,l_image(i));
-      auto dx = unwrap[0] - l_xoriginal(i, 0);
-      auto dy = unwrap[1] - l_xoriginal(i, 1);
-      auto dz = unwrap[2] - l_xoriginal(i, 2);
-      if (!l_xflag) dx = 0.0;
-      if (!l_yflag) dy = 0.0;
-      if (!l_zflag) dz = 0.0;
-      l_f(i,0) -= l_k*dx;
-      l_f(i,1) -= l_k*dy;
-      l_f(i,2) -= l_k*dz;
-      espring_kk += l_k * (dx*dx + dy*dy + dz*dz);
-    }
-  },espring_kk);
+    Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType>(0,nlocal), LAMMPS_LAMBDA(const int& i, double& espring_kk) {
+        if (l_mask[i] & l_groupbit) {
+          Few<double,3> x_i;
+          x_i[0] = static_cast<double>(l_x(i,0));
+          x_i[1] = static_cast<double>(l_x(i,1));
+          x_i[2] = static_cast<double>(l_x(i,2));
+          auto unwrap = DomainKokkos::unmap(prd,h,triclinic,x_i,l_image(i));
+          auto dx = unwrap[0] - static_cast<double>(l_xoriginal(i, 0));
+          auto dy = unwrap[1] - static_cast<double>(l_xoriginal(i, 1));
+          auto dz = unwrap[2] - static_cast<double>(l_xoriginal(i, 2));
+          if (!l_xflag) dx = 0.0;
+          if (!l_yflag) dy = 0.0;
+          if (!l_zflag) dz = 0.0;
+          l_f(i,0) -= static_cast<KK_ACC_FLOAT>(l_k*dx);
+          l_f(i,1) -= static_cast<KK_ACC_FLOAT>(l_k*dy);
+          l_f(i,2) -= static_cast<KK_ACC_FLOAT>(l_k*dz);
+          espring_kk += l_k * (dx*dx + dy*dy + dz*dz);
+        }
+      },espring_kk);
   }
 
   copymode = 0;
-
   atomKK->modified(execution_space, F_MASK);
-
   espring = 0.5*espring_kk;
 }
 
@@ -179,24 +178,35 @@ void FixSpringSelfKokkos<DeviceType>::copy_arrays(int i, int j, int delflag)
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
-void FixSpringSelfKokkos<DeviceType>::pack_exchange_item(const int &mysend, int &offset, const bool &/*final*/) const
+void FixSpringSelfKokkos<DeviceType>::pack_exchange_item(const int &mysend, int &offset, const bool &final) const
 {
   const int i = d_exchange_sendlist(mysend);
 
-  int m = nsend + offset;
-  d_buf[mysend] = m;
-  d_buf[m++] = d_xoriginal(i,0);
-  d_buf[m++] = d_xoriginal(i,1);
-  d_buf[m++] = d_xoriginal(i,2);
-  if (mysend == nsend-1) d_count() = m;
-  offset = m - nsend;
+  // the scan runs this functor once to accumulate the offsets and once more
+  // with final set to pack.  the buffer must only be written and the vacated
+  // slot only be refilled in the final pass, otherwise the first pass has
+  // already overwritten the values of atom i with those of atom j when the
+  // final pass packs them.  same pattern as fix shake/kk and neigh/history/kk
 
-  const int j = d_copylist(mysend);
-  if (j > -1) {
-    d_xoriginal(i,0) = d_xoriginal(j,0);
-    d_xoriginal(i,1) = d_xoriginal(j,1);
-    d_xoriginal(i,2) = d_xoriginal(j,2);
+  if (!final) {
+    offset += 3;
+  } else {
+    int m = nsend + offset;
+    d_buf[mysend] = m;
+    d_buf[m++] = static_cast<double>(d_xoriginal(i,0));
+    d_buf[m++] = static_cast<double>(d_xoriginal(i,1));
+    d_buf[m++] = static_cast<double>(d_xoriginal(i,2));
+    if (mysend == nsend-1) d_count() = m;
+    offset = m - nsend;
+
+    const int j = d_copylist(mysend);
+    if (j > -1) {
+      d_xoriginal(i,0) = d_xoriginal(j,0);
+      d_xoriginal(i,1) = d_xoriginal(j,1);
+      d_xoriginal(i,2) = d_xoriginal(j,2);
+    }
   }
 }
 
@@ -204,7 +214,7 @@ void FixSpringSelfKokkos<DeviceType>::pack_exchange_item(const int &mysend, int 
 
 template<class DeviceType>
 int FixSpringSelfKokkos<DeviceType>::pack_exchange_kokkos(
-   const int &nsend, DAT::tdual_xfloat_2d &k_buf,
+   const int &nsend, DAT::tdual_double_2d_lr &k_buf,
    DAT::tdual_int_1d k_exchange_sendlist, DAT::tdual_int_1d k_copylist,
    ExecutionSpace space)
 {
@@ -213,7 +223,7 @@ int FixSpringSelfKokkos<DeviceType>::pack_exchange_kokkos(
   k_copylist.sync<DeviceType>();
   k_exchange_sendlist.sync<DeviceType>();
 
-  d_buf = typename ArrayTypes<DeviceType>::t_xfloat_1d_um(
+  d_buf = typename AT::t_double_1d_um(
     k_buf.template view<DeviceType>().data(),
     k_buf.extent(0)*k_buf.extent(1));
   d_copylist = k_copylist.view<DeviceType>();
@@ -234,8 +244,8 @@ int FixSpringSelfKokkos<DeviceType>::pack_exchange_kokkos(
 
   k_buf.modify<DeviceType>();
 
-  if (space == Host) k_buf.sync<LMPHostType>();
-  else k_buf.sync<LMPDeviceType>();
+  if (space == Host) k_buf.sync_host();
+  else k_buf.sync_device();
 
   k_xoriginal.template modify<DeviceType>();
 
@@ -247,6 +257,7 @@ int FixSpringSelfKokkos<DeviceType>::pack_exchange_kokkos(
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixSpringSelfKokkos<DeviceType>::operator()(TagFixSpringSelfUnpackExchange, const int &i) const
 {
@@ -257,9 +268,9 @@ void FixSpringSelfKokkos<DeviceType>::operator()(TagFixSpringSelfUnpackExchange,
     if (i >= nrecv1)
       m = nextrarecv1 + d_buf[nextrarecv1 + i - nrecv1];
 
-    d_xoriginal(index,0) = static_cast<tagint> (d_buf[m++]);
-    d_xoriginal(index,1) = static_cast<tagint> (d_buf[m++]);
-    d_xoriginal(index,2) = static_cast<tagint> (d_buf[m++]);
+    d_xoriginal(index,0) = static_cast<KK_FLOAT> (d_buf[m++]);
+    d_xoriginal(index,1) = static_cast<KK_FLOAT> (d_buf[m++]);
+    d_xoriginal(index,2) = static_cast<KK_FLOAT> (d_buf[m++]);
   }
 }
 
@@ -267,14 +278,14 @@ void FixSpringSelfKokkos<DeviceType>::operator()(TagFixSpringSelfUnpackExchange,
 
 template <class DeviceType>
 void FixSpringSelfKokkos<DeviceType>::unpack_exchange_kokkos(
-  DAT::tdual_xfloat_2d &k_buf, DAT::tdual_int_1d &k_indices, int nrecv,
+  DAT::tdual_double_2d_lr &k_buf, DAT::tdual_int_1d &k_indices, int nrecv,
   int nrecv1, int nextrarecv1,
   ExecutionSpace /*space*/)
 {
   k_buf.sync<DeviceType>();
   k_indices.sync<DeviceType>();
 
-  d_buf = typename ArrayTypes<DeviceType>::t_xfloat_1d_um(
+  d_buf = typename AT::t_double_1d_um(
     k_buf.template view<DeviceType>().data(),
     k_buf.extent(0)*k_buf.extent(1));
   d_indices = k_indices.view<DeviceType>();
@@ -300,13 +311,11 @@ void FixSpringSelfKokkos<DeviceType>::unpack_exchange_kokkos(
 template<class DeviceType>
 int FixSpringSelfKokkos<DeviceType>::pack_exchange(int i, double *buf)
 {
+  // the base class only reads xoriginal, so no modify_host() here
+
   k_xoriginal.sync_host();
 
-  int m = FixSpringSelf::pack_exchange(i,buf);
-
-  k_xoriginal.modify_host();
-
-  return m;
+  return FixSpringSelf::pack_exchange(i,buf);
 }
 
 /* ----------------------------------------------------------------------
@@ -323,6 +332,34 @@ int FixSpringSelfKokkos<DeviceType>::unpack_exchange(int nlocal, double *buf)
   k_xoriginal.modify_host();
 
   return m;
+}
+
+/* ----------------------------------------------------------------------
+   pack values in local atom-based arrays for restart file
+   the base class reads the host copy, which may be stale after a
+   device-side exchange, so sync it first (read-only: no modify_host)
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+int FixSpringSelfKokkos<DeviceType>::pack_restart(int i, double *buf)
+{
+  k_xoriginal.sync_host();
+
+  return FixSpringSelf::pack_restart(i,buf);
+}
+
+/* ----------------------------------------------------------------------
+   unpack values from atom->extra array to restart the fix
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixSpringSelfKokkos<DeviceType>::unpack_restart(int nlocal, int nth)
+{
+  k_xoriginal.sync_host();
+
+  FixSpringSelf::unpack_restart(nlocal,nth);
+
+  k_xoriginal.modify_host();
 }
 
 namespace LAMMPS_NS {

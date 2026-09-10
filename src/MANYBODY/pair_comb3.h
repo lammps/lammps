@@ -220,6 +220,7 @@ class PairComb3 : public Pair {
   void dipole_calc(Param *, Param *, double, double, double, double, double, int, int, int, double,
                    double, double, double, double, int, int, double &, double &, double *);
 
+ public:
   // communication functions
   int pack_reverse_comm(int, int, double *) override;
   void unpack_reverse_comm(int, int *, double *) override;

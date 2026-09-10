@@ -1,23 +1,16 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #include <impl/Kokkos_StringManipulation.hpp>
 #include <impl/Kokkos_HostSharedPtr.hpp>
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+#else
 #include <Kokkos_Core.hpp>
+#endif
 
+#include <new>
 #include <gtest/gtest.h>
 
 using Kokkos::Impl::HostSharedPtr;
@@ -111,8 +104,6 @@ TEST(TEST_CATEGORY, host_shared_ptr_dereference_on_device) {
   check_access_stored_pointer_and_dereference_on_device(device_ptr);
 }
 
-// FIXME_OPENMPTARGET
-#ifndef KOKKOS_ENABLE_OPENMPTARGET
 TEST(TEST_CATEGORY, host_shared_ptr_special_members_on_device) {
   using T = Data;
 
@@ -124,10 +115,7 @@ TEST(TEST_CATEGORY, host_shared_ptr_special_members_on_device) {
 
   check_special_members_on_device(device_ptr);
 }
-#endif
 
-// FIXME_OPENMPTARGET
-#if !defined(KOKKOS_ENABLE_OPENMPTARGET)
 namespace {
 
 struct Bar {
@@ -139,6 +127,23 @@ struct Foo {
   Kokkos::Impl::HostSharedPtr<Bar> ptr;
   int use_count() { return ptr.use_count(); }
 };
+
+// Workaround for clang 19/20/21/22 MachineLICM ICE
+// (https://github.com/llvm/llvm-project/issues/190853): when Foo's copy
+// assignment (which contains a HostSharedPtr) is fully inlined into
+// cuda_parallel_launch_local_memory via exec_range, the MachineLICM pass
+// crashes. Keeping the assignment in a
+// separate noinline device function breaks the inlining chain.
+#if defined(KOKKOS_COMPILER_CLANG) && defined(KOKKOS_ENABLE_CUDA)
+KOKKOS_FUNCTION
+__attribute__((noinline))
+#else
+KOKKOS_FUNCTION
+#endif
+    void
+    assign_foo(Foo* dst, const Foo& src) noexcept {
+  *dst = src;
+}
 
 template <class DevMemSpace, class HostMemSpace>
 void host_shared_ptr_test_reference_counting() {
@@ -202,7 +207,7 @@ void host_shared_ptr_test_reference_counting() {
     fp_h() = Foo();
     Kokkos::parallel_for(
         Kokkos::RangePolicy<ExecSpace>(0, 1),
-        KOKKOS_LAMBDA(int) { fp_d() = f1; });
+        KOKKOS_LAMBDA(int) { assign_foo(fp_d.data(), f1); });
     Kokkos::fence();
     Kokkos::deep_copy(fp_h, fp_d);
 
@@ -255,5 +260,3 @@ TEST(TEST_CATEGORY, host_shared_ptr_tracking) {
   }
 #endif
 }
-
-#endif

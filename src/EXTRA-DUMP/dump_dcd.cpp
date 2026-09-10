@@ -22,7 +22,6 @@
 #include "atom.h"
 #include "domain.h"
 #include "error.h"
-#include "fmt/chrono.h"
 #include "group.h"
 #include "memory.h"
 #include "output.h"
@@ -59,7 +58,7 @@ DumpDCD::DumpDCD(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, narg, arg),
 {
   if (narg != 5) error->all(FLERR,"Illegal dump dcd command");
   if (binary || compressed || multifile || multiproc)
-    error->all(FLERR,"Invalid dump dcd filename");
+    error->all(FLERR, 4, "Invalid dump dcd filename {}", filename);
 
   size_one = 3;
   sort_flag = 1;
@@ -98,7 +97,7 @@ DumpDCD::~DumpDCD()
 void DumpDCD::init_style()
 {
   if (sort_flag == 0 || sortcol != 0)
-    error->all(FLERR,"Dump dcd requires sorting by atom ID");
+    error->all(FLERR, Error::NOLASTLINE, "Dump dcd requires sorting by atom ID");
 
   // check that dump modify settings are compatible with dcd
   // but only when not being called from the "write_dump" command
@@ -109,14 +108,14 @@ void DumpDCD::init_style()
       if (strcmp(id,output->dump[idump]->id) == 0) break;
 
     if (output->mode_dump[idump] == 1)
-      error->all(FLERR,"Cannot use every/time setting for dump dcd");
+      error->all(FLERR, Error::NOLASTLINE, "Cannot use every/time setting for dump dcd");
 
     if (output->every_dump[idump] == 0)
-      error->all(FLERR,"Cannot use variable every setting for dump dcd");
+      error->all(FLERR, Error::NOLASTLINE, "Cannot use variable every setting for dump dcd");
 
     if (nevery_save == 0) nevery_save = output->every_dump[idump];
     else if (nevery_save != output->every_dump[idump])
-      error->all(FLERR,"Cannot change dump_modify every for dump dcd");
+      error->all(FLERR, Error::NOLASTLINE, "Cannot change dump_modify every for dump dcd");
   }
 }
 
@@ -126,7 +125,9 @@ void DumpDCD::openfile()
 {
   if (me == 0) {
     fp = fopen(filename,"wb");
-    if (fp == nullptr) error->one(FLERR,"Cannot open dump file");
+    if (fp == nullptr)
+      error->one(FLERR, Error::NOLASTLINE,
+                 "Cannot open dump file {}: {}", filename, utils::getsyserror());
   }
 }
 
@@ -134,9 +135,9 @@ void DumpDCD::openfile()
 
 void DumpDCD::write_header(bigint n)
 {
-  if (n != natoms) error->all(FLERR,"Dump dcd of non-matching # of atoms");
+  if (n != natoms) error->all(FLERR, Error::NOLASTLINE, "Dump dcd of non-matching # of atoms");
   if (update->ntimestep > MAXSMALLINT)
-    error->one(FLERR,"Too big a timestep for dump dcd");
+    error->one(FLERR, Error::NOLASTLINE, "Too big a timestep for dump dcd");
 
   // first time, write header for entire file
 
@@ -261,7 +262,7 @@ void DumpDCD::write_data(int n, double *mybuf)
 int DumpDCD::modify_param(int narg, char **arg)
 {
   if (strcmp(arg[0],"unwrap") == 0) {
-    if (narg < 2) error->all(FLERR,"Illegal dump_modify command");
+    if (narg < 2) utils::missing_cmd_args(FLERR,"dump_modify unwrap",error);
     unwrap_flag = utils::logical(FLERR,arg[1],false,lmp);
     return 2;
   }
@@ -316,7 +317,7 @@ void DumpDCD::write_dcd_header(const char *remarks)
   float out_float;
   char title_string[200];
   time_t t;
-  std::tm current_time;
+  struct tm *current_time;
 
   int ntimestep = update->ntimestep;
 
@@ -348,14 +349,19 @@ void DumpDCD::write_dcd_header(const char *remarks)
   fwrite_int32(fp,84);
   fwrite_int32(fp,164);
   fwrite_int32(fp,2);
-  strncpy(title_string,remarks,80);
-  title_string[79] = '\0';
+  // pad string with blanks and truncate at 80 chars
+  snprintf(title_string, sizeof(title_string),
+           "%s                                        "
+           "                                        ", remarks);
   fwrite(title_string,80,1,fp);
   t = time(nullptr);
-  current_time = fmt::localtime(t);
-  std::string s = fmt::format("REMARKS Created {:%d %B,%Y at %H:%M}", current_time);
-  memset(title_string,' ',81);
-  memcpy(title_string, s.c_str(), s.size());
+  current_time = localtime(&t);
+  // pad string with blanks and truncate at 80 chars
+  strftime(title_string, sizeof(title_string),
+           "REMARKS Created %d %B,%Y at %H:%M"
+           "                                        "
+           "                                        ",
+           current_time);
   fwrite(title_string,80,1,fp);
   fwrite_int32(fp,164);
   fwrite_int32(fp,4);

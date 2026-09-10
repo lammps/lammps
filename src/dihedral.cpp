@@ -96,14 +96,15 @@ void Dihedral::settings(int narg, char **args)
    see integrate::ev_set() for bitwise settings of eflag/vflag
    set the following flags, values are otherwise set to 0:
      evflag       != 0 if any bits of eflag or vflag are set
-     eflag_global != 0 if ENERGY_GLOBAL bit of eflag set
-     eflag_atom   != 0 if ENERGY_ATOM bit of eflag set
+     eflag_global != 0 if ENERGY_GLOBAL bit of eflag is set
+     eflag_atom   != 0 if ENERGY_ATOM bit of eflag is set
      eflag_either != 0 if eflag_global or eflag_atom is set
-     vflag_global != 0 if VIRIAL_PAIR or VIRIAL_FDOTR bit of vflag set
-     vflag_atom   != 0 if VIRIAL_ATOM bit of vflag set
-     vflag_atom   != 0 if VIRIAL_CENTROID bit of vflag set
+     eflag_only   != 0 if ENERGY_GLOBAL and ENERGY_ONLY bits of eflag are set
+     vflag_global != 0 if VIRIAL_PAIR or VIRIAL_FDOTR bit of vflag is set
+     vflag_atom   != 0 if VIRIAL_ATOM bit of vflag is set
+     vflag_atom   != 0 if VIRIAL_CENTROID bit of vflag is set
                        and centroidstressflag != CENTROID_AVAIL
-     cvflag_atom  != 0 if VIRIAL_CENTROID bit of vflag set
+     cvflag_atom  != 0 if VIRIAL_CENTROID bit of vflag is set
                        and centroidstressflag = CENTROID_AVAIL
      vflag_either != 0 if any of vflag_global, vflag_atom, cvflag_atom is set
 ------------------------------------------------------------------------- */
@@ -114,9 +115,10 @@ void Dihedral::ev_setup(int eflag, int vflag, int alloc)
 
   evflag = 1;
 
-  eflag_either = eflag;
+  eflag_either = eflag & (ENERGY_GLOBAL | ENERGY_ATOM);
   eflag_global = eflag & ENERGY_GLOBAL;
   eflag_atom = eflag & ENERGY_ATOM;
+  eflag_only = eflag_global ? (eflag & ENERGY_ONLY) : 0;
 
   vflag_global = vflag & (VIRIAL_PAIR | VIRIAL_FDOTR);
   vflag_atom = vflag & VIRIAL_ATOM;
@@ -184,7 +186,6 @@ void Dihedral::ev_setup(int eflag, int vflag, int alloc)
       cvatom[i][6] = 0.0;
       cvatom[i][7] = 0.0;
       cvatom[i][8] = 0.0;
-      cvatom[i][9] = 0.0;
     }
   }
 }
@@ -406,7 +407,7 @@ void Dihedral::ev_tally(int i1, int i2, int i3, int i4, int nlocal, int newton_b
 
 void Dihedral::problem(const char *filename, int lineno, int i1, int i2, int i3, int i4)
 {
-  const auto x = atom->x;
+  auto *const x = atom->x;
   auto warn = fmt::format("Dihedral problem: {} {} {} {} {} {}\n", comm->me, update->ntimestep,
                           atom->tag[i1], atom->tag[i2], atom->tag[i3], atom->tag[i4]);
   warn += fmt::format("WARNING:   1st atom: {} {:.8} {:.8} {:.8}\n", comm->me, x[i1][0], x[i1][1],

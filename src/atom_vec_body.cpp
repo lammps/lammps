@@ -12,7 +12,6 @@
 ------------------------------------------------------------------------- */
 
 #include "atom_vec_body.h"
-#include "style_body.h"    // IWYU pragma: keep
 
 #include "atom.h"
 #include "body.h"
@@ -28,9 +27,23 @@
 
 using namespace LAMMPS_NS;
 
+/* ----------------------------------------------------------------------
+   process-global registry of body style factory functions.  Shared by all
+   LAMMPS instances and persistent across the "clear" command.  Built-in styles
+   are registered once by the generated register_body_styles().
+------------------------------------------------------------------------- */
+
+CreatorRegistry<AtomVecBody::BodyCreator> &AtomVecBody::body_styles()
+{
+  static CreatorRegistry<AtomVecBody::BodyCreator> registry;
+  return registry;
+}
+
 /* ---------------------------------------------------------------------- */
 
-AtomVecBody::AtomVecBody(LAMMPS *lmp) : AtomVec(lmp)
+AtomVecBody::AtomVecBody(LAMMPS *lmp) :
+    AtomVec(lmp), body(nullptr), rmass(nullptr), radius(nullptr), angmom(nullptr),
+    quat_hold(nullptr), icp(nullptr), dcp(nullptr)
 {
   molecular = Atom::ATOMIC;
   bonus_flag = 1;
@@ -102,26 +115,12 @@ AtomVecBody::~AtomVecBody()
 
 void AtomVecBody::process_args(int narg, char **arg)
 {
-  // suppress unused parameter warning dependent on style_body.h
-
-  (void) (arg);
-
   if (narg < 1) error->all(FLERR, "Invalid atom_style body command");
 
-  if (false) {    // NOLINT
-    bptr = nullptr;
-
-#define BODY_CLASS
-#define BodyStyle(key, Class)         \
-  }                                   \
-  else if (strcmp(arg[0], #key) == 0) \
-  {                                   \
-    bptr = new Class(lmp, narg, arg);
-#include "style_body.h"    // IWYU pragma: keep
-#undef BodyStyle
-#undef BODY_CLASS
-
-  } else
+  BodyCreator body_creator = body_styles().find(arg[0]);
+  if (body_creator)
+    bptr = body_creator(lmp, narg, arg);
+  else
     error->all(FLERR, utils::check_packages_for_style("body", arg[0], lmp));
 
   bptr->avec = this;
@@ -555,7 +554,8 @@ void AtomVecBody::data_atom_post(int ilocal)
 
 void AtomVecBody::data_body(int m, int ninteger, int ndouble, int *ivalues, double *dvalues)
 {
-  if (body[m]) error->one(FLERR, "Assigning body parameters to non-body atom");
+  if (body[m])
+    error->one(FLERR, "Assigning body parameters to atom {} that already has them", tag[m]);
   if (nlocal_bonus == nmax_bonus) grow_bonus();
   bonus[nlocal_bonus].ilocal = m;
   bptr->data_body(nlocal_bonus, ninteger, ndouble, ivalues, dvalues);
@@ -615,7 +615,6 @@ int AtomVecBody::pack_data_bonus(double *buf, int /*flag*/)
 {
   int i;
 
-  tagint *tag = atom->tag;
   int nlocal = atom->nlocal;
 
   int m = 0;

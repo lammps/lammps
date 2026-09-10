@@ -28,7 +28,6 @@ class PairMIECutGPU : public PairMIECut {
  public:
   PairMIECutGPU(LAMMPS *lmp);
   ~PairMIECutGPU() override;
-  void cpu_compute(int, int, int, int, int *, int *, int **);
   void compute(int, int) override;
   void init_style() override;
   double memory_usage() override;
@@ -37,7 +36,6 @@ class PairMIECutGPU : public PairMIECut {
 
  private:
   int gpu_mode;
-  double cpu_time;
 };
 
 }    // namespace LAMMPS_NS

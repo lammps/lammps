@@ -109,7 +109,7 @@ FixQTB::FixQTB(LAMMPS *lmp, int narg, char **arg) :
   gfactor3 = new double[atom->ntypes+1];
 
   // allocate random-arrays and fran
-  grow_arrays(atom->nmax);
+  FixQTB::grow_arrays(atom->nmax);
   atom->add_callback(Atom::GROW);
 
   // allocate omega_H and time_H
@@ -174,7 +174,7 @@ void FixQTB::init()
                "with alpha value as {}!\n", 0.5/h_timestep, alpha);
 
   // set force prefactors
-  if (!atom->rmass) {
+  if (atom->mass) {
     for (int i = 1; i <= atom->ntypes; i++) {
       //gfactor1 is the friction force \gamma{}m_{i}\frac{dv}{dt}
       gfactor1[i] = (atom->mass[i]*fric_coef) / force->ftm2v;

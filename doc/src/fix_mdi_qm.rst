@@ -56,7 +56,7 @@ Typically the server code will be a quantum mechanics (QM) code, hence
 the name of the fix.  However this is not required, the server code
 could be another classical molecular dynamics code or LAMMPS itself.
 The server code must support use of the `MDI Library
-<https://molssi-mdi.github.io/MDI_Library/html/index.html>`_ as
+<https://molssi-mdi.github.io/MDI_Library/>`_ as
 explained below.
 
 Typically, to use this fix, the input script should not define any
@@ -81,8 +81,8 @@ commands :doc:`fix gcmc <fix_gcmc>` and :doc:`fix atom/swap
 the command invokes the post_force() method of fixes such as this one,
 which will trigger the quantum calculation.
 
-The code coupling performed by this command is done via the `MDI
-Library <https://molssi-mdi.github.io/MDI_Library/html/index.html>`_.
+The coupling performed by this command is done via the `MDI
+library <https://molssi-mdi.github.io/MDI_Library/>`_.
 LAMMPS runs as an MDI driver (client), and sends MDI commands to an
 external MDI engine code (server), e.g. a QM code which has support
 for MDI.  See the :doc:`Howto mdi <Howto_mdi>` page for more
@@ -106,8 +106,8 @@ It can be used as a stand-alone code, launched at the same time as
 LAMMPS.  Or it can be used as a plugin library, which LAMMPS loads.  See
 the :doc:`mdi plugin <mdi>` command for how to trigger LAMMPS to load a
 plugin library.  The ``examples/mdi/README`` file and
-``examples/QUANTUM/QM-code/README`` files explain how to launch the two
-codes in either mode.
+``examples/QUANTUM/<QM-code>/README`` files explain how to launch the
+two codes in either mode.
 
 ----------
 

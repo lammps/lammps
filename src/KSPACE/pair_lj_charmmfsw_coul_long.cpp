@@ -42,7 +42,10 @@ using namespace EwaldConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCharmmfswCoulLong::PairLJCharmmfswCoulLong(LAMMPS *lmp) : Pair(lmp)
+PairLJCharmmfswCoulLong::PairLJCharmmfswCoulLong(LAMMPS *lmp) :
+    Pair(lmp), epsilon(nullptr), sigma(nullptr), eps14(nullptr), sigma14(nullptr), lj1(nullptr),
+    lj2(nullptr), lj3(nullptr), lj4(nullptr), offset(nullptr), lj14_1(nullptr), lj14_2(nullptr),
+    lj14_3(nullptr), lj14_4(nullptr)
 {
   respa_enable = 1;
   ewaldflag = pppmflag = 1;
@@ -60,8 +63,7 @@ PairLJCharmmfswCoulLong::PairLJCharmmfswCoulLong(LAMMPS *lmp) : Pair(lmp)
 
   if (strcmp(update->unit_style,"real") == 0) {
     if ((comm->me == 0) && (force->qqr2e != force->qqr2e_charmm_real))
-      error->message(FLERR,"Switching to CHARMM coulomb energy"
-                     " conversion constant");
+      utils::logmesg(lmp,"Switching to CHARMM coulomb energy conversion constant\n");
     force->qqr2e = force->qqr2e_charmm_real;
   }
 }
@@ -76,8 +78,7 @@ PairLJCharmmfswCoulLong::~PairLJCharmmfswCoulLong()
 
   if (update && strcmp(update->unit_style,"real") == 0) {
     if ((comm->me == 0) && (force->qqr2e == force->qqr2e_charmm_real))
-      error->message(FLERR,"Restoring original LAMMPS coulomb energy"
-                     " conversion constant");
+      utils::logmesg(lmp,"Restoring original LAMMPS coulomb energy conversion constant\n");
     force->qqr2e = force->qqr2e_lammps_real;
   }
 
@@ -172,7 +173,7 @@ void PairLJCharmmfswCoulLong::compute(int eflag, int vflag)
             rsq_lookup.f = rsq;
             itable = rsq_lookup.i & ncoulmask;
             itable >>= ncoulshiftbits;
-            fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
+            fraction = ((double) rsq_lookup.f - rtable[itable]) * drtable[itable];
             table = ftable[itable] + fraction*dftable[itable];
             forcecoul = qtmp*q[j] * table;
             if (factor_coul < 1.0) {
@@ -523,7 +524,7 @@ void PairLJCharmmfswCoulLong::compute_outer(int eflag, int vflag)
             rsq_lookup.f = rsq;
             itable = rsq_lookup.i & ncoulmask;
             itable >>= ncoulshiftbits;
-            fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
+            fraction = ((double) rsq_lookup.f - rtable[itable]) * drtable[itable];
             table = ftable[itable] + fraction*dftable[itable];
             forcecoul = qtmp*q[j] * table;
             if (factor_coul < 1.0) {
@@ -735,7 +736,7 @@ void PairLJCharmmfswCoulLong::init_style()
   int list_style = NeighConst::REQ_DEFAULT;
 
   if (update->whichflag == 1 && utils::strmatch(update->integrate_style, "^respa")) {
-    auto respa = dynamic_cast<Respa *>(update->integrate);
+    auto *respa = dynamic_cast<Respa *>(update->integrate);
     if (respa->level_inner >= 0) list_style = NeighConst::REQ_RESPA_INOUT;
     if (respa->level_middle >= 0) list_style = NeighConst::REQ_RESPA_ALL;
   }
@@ -970,7 +971,7 @@ double PairLJCharmmfswCoulLong::single(int i, int j, int itype, int jtype,
       rsq_lookup.f = rsq;
       itable = rsq_lookup.i & ncoulmask;
       itable >>= ncoulshiftbits;
-      fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
+      fraction = ((double) rsq_lookup.f - rtable[itable]) * drtable[itable];
       table = ftable[itable] + fraction*dftable[itable];
       forcecoul = atom->q[i]*atom->q[j] * table;
       if (factor_coul < 1.0) {
@@ -1033,6 +1034,8 @@ void *PairLJCharmmfswCoulLong::extract(const char *str, int &dim)
   if (strcmp(str,"lj14_2") == 0) return (void *) lj14_2;
   if (strcmp(str,"lj14_3") == 0) return (void *) lj14_3;
   if (strcmp(str,"lj14_4") == 0) return (void *) lj14_4;
+  if (strcmp(str,"sigma") == 0) return (void *) sigma;
+  if (strcmp(str,"epsilon") == 0) return (void *) epsilon;
 
   dim = 0;
   if (strcmp(str,"implicit") == 0) return (void *) &implicit;

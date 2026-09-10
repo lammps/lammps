@@ -26,8 +26,6 @@
 #include "mliap_data.h"
 #include "mliap_unified_couple.h"
 #include "pair_mliap.h"
-#include "python_compat.h"
-#include "utils.h"
 
 using namespace LAMMPS_NS;
 
@@ -211,8 +209,8 @@ MLIAPBuildUnified_t LAMMPS_NS::build_unified(char *unified_fname, MLIAPData *dat
   }
 
   // Connect dummy model, dummy descriptor, data to Python unified
-  MLIAPDummyModel *model = new MLIAPDummyModel(lmp, coefffilename);
-  MLIAPDummyDescriptor *descriptor = new MLIAPDummyDescriptor(lmp);
+  auto *model = new MLIAPDummyModel(lmp, coefffilename);
+  auto *descriptor = new MLIAPDummyDescriptor(lmp);
 
   PyObject *unified_interface = mliap_unified_connect(unified_fname, model, descriptor);
   if (PyErr_Occurred()) {
@@ -265,22 +263,24 @@ void LAMMPS_NS::update_pair_energy(MLIAPData *data, double *eij)
 
 void LAMMPS_NS::update_pair_forces(MLIAPData *data, double *fij)
 {
-  //Bugfix: need to account for Null atoms in local atoms
-  //const auto nlistatoms = data->nlistatoms;
   double **f = data->f;
   for (int ii = 0; ii < data->npairs; ii++) {
     int ii3 = ii * 3;
     int i = data->pair_i[ii];
     int j = data->jatoms[ii];
 
-    f[i][0] += fij[ii3];
-    f[i][1] += fij[ii3 + 1];
-    f[i][2] += fij[ii3 + 2];
-    f[j][0] -= fij[ii3];
-    f[j][1] -= fij[ii3 + 1];
-    f[j][2] -= fij[ii3 + 2];
+    // must not count any contribution where i is not a local atom
 
-    if (data->vflag) data->pairmliap->v_tally(i, j, &fij[ii3], data->rij[ii]);
+    if (i < data->nlocal) {
+      f[i][0] += fij[ii3];
+      f[i][1] += fij[ii3 + 1];
+      f[i][2] += fij[ii3 + 2];
+      f[j][0] -= fij[ii3];
+      f[j][1] -= fij[ii3 + 1];
+      f[j][2] -= fij[ii3 + 2];
+
+      if (data->vflag) data->pairmliap->v_tally(i, j, &fij[ii3], data->rij[ii]);
+    }
   }
 }
 

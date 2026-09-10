@@ -13,6 +13,7 @@ post_commands: ! |
   fix test solute wall/lepton ylo EDGE "k*(r-rc)^2;k=100.0" 5.0 yhi EDGE "k*(r-rc)^2;k=100.0" 5.0
   fix_modify test virial yes
 input_file: in.fourmol
+input_coeffs: coeffs.fourmol
 natoms: 29
 run_stress: ! |2-
    0.0000000000000000e+00 -7.2422093200265749e+02  0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00

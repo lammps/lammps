@@ -1,41 +1,25 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #include <gtest/gtest.h>
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+import kokkos.dual_view;
+import kokkos.dyn_rank_view;
+import kokkos.dynamic_view;
+import kokkos.offset_view;
+import kokkos.scatter_view;
+#else
 #include <Kokkos_Core.hpp>
 #include <Kokkos_DualView.hpp>
 #include <Kokkos_DynamicView.hpp>
 #include <Kokkos_DynRankView.hpp>
 #include <Kokkos_OffsetView.hpp>
 #include <Kokkos_ScatterView.hpp>
+#endif
 
 #include <../../core/unit_test/tools/include/ToolTestingUtilities.hpp>
-
-/// Some tests are skipped for @c CudaUVM memory space.
-/// @todo To be revised according to the future of @c KOKKOS_ENABLE_CUDA_UVM.
-///@{
-#ifdef KOKKOS_ENABLE_CUDA
-#define GTEST_SKIP_IF_CUDAUVM_MEMORY_SPACE                            \
-  if constexpr (std::is_same_v<typename TEST_EXECSPACE::memory_space, \
-                               Kokkos::CudaUVMSpace>)                 \
-    GTEST_SKIP() << "skipping since CudaUVMSpace requires additional fences";
-#else
-#define GTEST_SKIP_IF_CUDAUVM_MEMORY_SPACE
-#endif
-///@}
 
 /// Some tests are skipped for unified memory space
 #if defined(KOKKOS_ENABLE_IMPL_CUDA_UNIFIED_MEMORY)
@@ -152,8 +136,6 @@ TEST(TEST_CATEGORY, resize_exec_space_dualview) {
 }
 
 TEST(TEST_CATEGORY, realloc_exec_space_dualview) {
-  GTEST_SKIP_IF_CUDAUVM_MEMORY_SPACE
-
   using namespace Kokkos::Test::Tools;
   listen_tool_events(Config::DisableAll(), Config::EnableFences());
   using view_type = Kokkos::DualView<int*, TEST_EXECSPACE>;
@@ -244,8 +226,6 @@ TEST(TEST_CATEGORY, resize_exec_space_dynrankview) {
 }
 
 TEST(TEST_CATEGORY, realloc_exec_space_dynrankview) {
-  GTEST_SKIP_IF_CUDAUVM_MEMORY_SPACE
-
 // FIXME_THREADS The Threads backend fences every parallel_for
 #ifdef KOKKOS_ENABLE_THREADS
   if (std::is_same_v<TEST_EXECSPACE, Kokkos::Threads>)
@@ -383,8 +363,6 @@ TEST(TEST_CATEGORY, resize_exec_space_scatterview) {
 }
 
 TEST(TEST_CATEGORY, realloc_exec_space_scatterview) {
-  GTEST_SKIP_IF_CUDAUVM_MEMORY_SPACE
-
 // FIXME_THREADS The Threads backend fences every parallel_for
 #ifdef KOKKOS_ENABLE_THREADS
   if (std::is_same_v<typename TEST_EXECSPACE, Kokkos::Threads>)
@@ -493,8 +471,6 @@ TEST(TEST_CATEGORY, create_mirror_no_init_dynrankview_viewctor) {
 }
 
 TEST(TEST_CATEGORY, create_mirror_view_and_copy_dynrankview) {
-  GTEST_SKIP_IF_CUDAUVM_MEMORY_SPACE
-
   using namespace Kokkos::Test::Tools;
   listen_tool_events(Config::DisableAll(), Config::EnableKernels(),
                      Config::EnableFences());
@@ -597,8 +573,6 @@ TEST(TEST_CATEGORY, create_mirror_no_init_offsetview_view_ctor) {
 }
 
 TEST(TEST_CATEGORY, create_mirror_view_and_copy_offsetview) {
-  GTEST_SKIP_IF_CUDAUVM_MEMORY_SPACE
-
   using namespace Kokkos::Test::Tools;
   listen_tool_events(Config::DisableAll(), Config::EnableKernels(),
                      Config::EnableFences());
@@ -632,8 +606,6 @@ TEST(TEST_CATEGORY, create_mirror_view_and_copy_offsetview) {
   ASSERT_TRUE(success);
 }
 
-// FIXME OPENMPTARGET
-#ifndef KOKKOS_ENABLE_OPENMPTARGET
 TEST(TEST_CATEGORY, create_mirror_no_init_dynamicview) {
   using namespace Kokkos::Test::Tools;
   listen_tool_events(Config::DisableAll(), Config::EnableKernels());
@@ -669,7 +641,6 @@ TEST(TEST_CATEGORY, create_mirror_no_init_dynamicview) {
 }
 
 TEST(TEST_CATEGORY, create_mirror_view_and_copy_dynamicview) {
-  GTEST_SKIP_IF_CUDAUVM_MEMORY_SPACE
   GTEST_SKIP_IF_UNIFIED_MEMORY_SPACE
 
   using namespace Kokkos::Test::Tools;
@@ -710,10 +681,7 @@ TEST(TEST_CATEGORY, create_mirror_view_and_copy_dynamicview) {
       });
   ASSERT_TRUE(success);
 }
-#endif
 
-// FIXME OPENMPTARGET
-#ifndef KOKKOS_ENABLE_OPENMPTARGET
 TEST(TEST_CATEGORY, create_mirror_no_init_dynamicview_view_ctor) {
   using namespace Kokkos::Test::Tools;
   listen_tool_events(Config::DisableAll(), Config::EnableKernels());
@@ -759,4 +727,3 @@ TEST(TEST_CATEGORY, create_mirror_no_init_dynamicview_view_ctor) {
       });
   ASSERT_TRUE(success);
 }
-#endif

@@ -33,7 +33,7 @@
 using namespace LAMMPS_NS;
 
 static const char cite_atm_package[] =
-  "ATM package: doi:10.1063/1.4704930\n\n"
+  "pair_style atm command: https://doi.org/10.1063/1.4704930\n\n"
   "@Article{Lishchuk:2012:164501,\n"
   " author = {S. V. Lishchuk},\n"
   " title = {Role of Three-Body Interactions in Formation of Bulk Viscosity in Liquid Argon},\n"
@@ -46,7 +46,7 @@ static const char cite_atm_package[] =
 
 /* ---------------------------------------------------------------------- */
 
-PairATM::PairATM(LAMMPS *lmp) : Pair(lmp)
+PairATM::PairATM(LAMMPS *lmp) : Pair(lmp), nu(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_atm_package);
 

@@ -24,8 +24,10 @@ using namespace FixConst;
 FixNPHAsphereOMP::FixNPHAsphereOMP(LAMMPS *lmp, int narg, char **arg) :
     FixNHAsphereOMP(lmp, narg, arg)
 {
-  if (tstat_flag) error->all(FLERR, "Temperature control can not be used with fix nph/asphere/tmp");
-  if (!pstat_flag) error->all(FLERR, "Pressure control must be used with fix nph/asphere/omp");
+  if (tstat_flag)
+    error->all(FLERR, Error::NOLASTLINE, "Temperature control cannot be used with fix {}", style);
+  if (!pstat_flag)
+    error->all(FLERR, Error::NOLASTLINE, "Pressure control must be used with fix {}", style);
 
   // create a new compute temp style
   // id = fix-ID + temp

@@ -27,13 +27,15 @@ selected examples.  Please see the chapter about :doc:`building LAMMPS
 <Build>` for descriptions of specific flags and options for LAMMPS in
 general and for specific packages.
 
+.. versionchanged:: 10Sep2025
+
 CMake can be used through either the command-line interface (CLI)
 program ``cmake`` (or ``cmake3``), a text mode interactive user
 interface (TUI) program ``ccmake`` (or ``ccmake3``), or a graphical user
 interface (GUI) program ``cmake-gui``.  All of them are portable
 software available on all supported platforms and can be used
-interchangeably.  As of LAMMPS version 2 August 2023, the minimum
-required CMake version is 3.16.
+interchangeably.  Since LAMMPS version 10Sep2025, the minimum
+required CMake version is 3.20.
 
 All details about features and settings for CMake are in the `CMake
 online documentation <https://cmake.org/documentation/>`_. We focus
@@ -142,7 +144,9 @@ summary screen will look like this:
    -- Performing Test COMPILER_SUPPORTS-march=native - Success
    -- Looking for C++ include cmath
    -- Looking for C++ include cmath - found
-   -- Generating style_angle.h...
+   -- Generating style headers...
+   -- Generating style source files...
+   -- Generating package registry...
    [...]
    -- Generating lmpinstalledpkgs.h...
    -- The following tools and libraries have been found and configured:
@@ -353,6 +357,8 @@ Some common LAMMPS specific variables
      - whether to support JPEG format in :doc:`dump image <dump_image>` (default: ``on`` if found)
    * - ``WITH_PNG``
      - whether to support PNG format in  :doc:`dump image <dump_image>` (default: ``on`` if found)
+   * - ``WITH_ZLIB``
+     - whether to use the zlib library for compression (default: ``on`` if found)
    * - ``WITH_GZIP``
      - whether to support reading and writing compressed files (default: ``on`` if found)
    * - ``WITH_FFMPEG``
@@ -375,7 +381,7 @@ Using presets
 
 Since LAMMPS has a lot of optional features and packages, specifying
 them all on the command-line can be tedious. Or when selecting a
-different compiler toolchain, multiple options have to be changed
+different compiler tool chain, multiple options have to be changed
 consistently and that is rather error prone. Or when enabling certain
 packages, they require consistent settings to be operated in a
 particular mode.  For this purpose, we are providing a selection of
@@ -392,14 +398,14 @@ change some variables later with additional *-D* flags.  A few examples:
    cmake -C ../cmake/presets/basic.cmake -D BUILD_MPI=off ../cmake
 
 The first command will install the packages ``KSPACE``, ``MANYBODY``,
-``MOLECULE``, ``RIGID`` and ``MISC``; the first four from the preset
-file and the fifth from the explicit variable definition.  The second
-command will first switch the compiler toolchain to use the Clang
-compilers and install a large number of packages that are not depending
-on any special external libraries or tools and are not very unusual.
-The third command will enable the first four packages like above and
-then enforce compiling LAMMPS as a serial program (using the MPI STUBS
-library).
+``MOLECULE``, ``RIGID``, ``GRAPHICS``, and ``MISC``; the first five from
+the preset file and the sixth from the explicit variable definition.
+The second command will first switch the compiler tool chain to use the
+Clang compilers and install a large number of packages that are not
+depending on any special external libraries or tools and are not very
+unusual.  The third command will enable the first four packages like
+above and then enforce compiling LAMMPS as a serial program (using the
+MPI STUBS library).
 
 It is also possible to do this incrementally.
 

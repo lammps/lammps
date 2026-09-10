@@ -62,7 +62,7 @@ namespace ReaxFF {
 
   void DeAllocate_System(reax_system *system)
   {
-    auto memory = system->mem_ptr;
+    auto *memory = system->mem_ptr;
 
     // deallocate the atom list
     sfree(system->my_atoms);
@@ -120,7 +120,7 @@ namespace ReaxFF {
   void Allocate_Workspace(control_params *control, storage *workspace, int total_cap)
   {
     int total_real, total_rvec;
-    auto error = control->error_ptr;
+    auto *error = control->error_ptr;
 
     workspace->allocated = 1;
     total_real = total_cap * sizeof(double);
@@ -181,7 +181,7 @@ namespace ReaxFF {
       }
     total_hbonds_big = (LAMMPS_NS::bigint)(MAX(total_hbonds_big*saferzone, mincap*system->minhbonds));
 
-    auto error = system->error_ptr;
+    auto *error = system->error_ptr;
     if (total_hbonds_big > MAXSMALLINT)
       error->one(FLERR,"Too many hydrogen bonds in pair reaxff");
 
@@ -210,7 +210,7 @@ namespace ReaxFF {
     }
     total_bonds_big = (LAMMPS_NS::bigint)(MAX(total_bonds_big * safezone, mincap*MIN_BONDS));
 
-    auto error = system->error_ptr;
+    auto *error = system->error_ptr;
     if (total_bonds_big > MAXSMALLINT)
       error->one(FLERR,"Too many bonds in pair reaxff");
 
@@ -240,7 +240,7 @@ namespace ReaxFF {
     double safezone = system->safezone;
     double saferzone = system->saferzone;
 
-    auto error = system->error_ptr;
+    auto *error = system->error_ptr;
     reallocate_data *wsr = &(workspace->realloc);
 
     if (system->n >= DANGER_ZONE * system->local_cap)

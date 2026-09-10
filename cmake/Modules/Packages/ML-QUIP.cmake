@@ -9,25 +9,27 @@ endif()
 option(DOWNLOAD_QUIP "Download the QUIP library instead of using an already installed one" ${DOWNLOAD_QUIP_DEFAULT})
 if(DOWNLOAD_QUIP)
   string(TOUPPER "${CMAKE_BUILD_TYPE}" BTYPE)
-  set(temp "F77 = ${CMAKE_Fortran_COMPILER}\nF90 = ${CMAKE_Fortran_COMPILER}\nF95 = ${CMAKE_Fortran_COMPILER}\n")
+  set(temp "FC = ${CMAKE_Fortran_COMPILER}\nF77 = ${CMAKE_Fortran_COMPILER}\nF90 = ${CMAKE_Fortran_COMPILER}\nF95 = ${CMAKE_Fortran_COMPILER}\n")
   set(temp "${temp}CC=${CMAKE_C_COMPILER}\nCPLUSPLUS=${CMAKE_CXX_COMPILER}\nLINKER=${CMAKE_Fortran_COMPILER}\n")
   if(CMAKE_Fortran_COMPILER_ID STREQUAL Intel)
     set(temp "${temp}FPP=${CMAKE_Fortran_COMPILER} -E\nOPTIM=${CMAKE_Fortran_FLAGS_${BTYPE}}\n")
     set(temp "${temp}DEFINES += -DGETARG_F2003 -DFORTRAN_UNDERSCORE\n")
+    set(temp "${temp}F90FLAGS += -fpp -free -fPIC\n")
     set(temp "${temp}F95FLAGS += -fpp -free -fPIC\n")
     set(temp "${temp}F77FLAGS += -fpp -fixed -fPIC\n")
     set(temp "${temp}F95_PRE_FILENAME_FLAG = -Tf\n")
   elseif(CMAKE_Fortran_COMPILER_ID STREQUAL GNU)
     # quip library uses GNU fortran extensions. If any more restrictive standards are set, reset them
-    string(REGEX REPLACE -std=f[0-9]+ -std=gnu _fopt "${CMAKE_Fortran_FLAGS_${BTYPE}}")
-    set(temp "${temp}FPP=${CMAKE_Fortran_COMPILER} -E -x f95-cpp-input\nOPTIM=${_fopt} -fmax-stack-var-size=6553600\n")
+    string(REGEX REPLACE -std=f[0-9]+ "" _fopt "${CMAKE_Fortran_FLAGS_${BTYPE}}")
+    set(temp "${temp}FPP=${CMAKE_Fortran_COMPILER} -E -x f95-cpp-input\nOPTIM=${_fopt}\n")
     set(temp "${temp}DEFINES += -DGETARG_F2003 -DGETENV_F2003 -DGFORTRAN -DFORTRAN_UNDERSCORE\n")
-    set(temp "${temp}F95FLAGS += -x f95-cpp-input -ffree-line-length-none -ffree-form -fno-second-underscore -fPIC\n")
-    set(temp "${temp}F77FLAGS += -x f77-cpp-input -fno-second-underscore -fPIC\n")
+    set(temp "${temp}F90FLAGS += -std=gnu -x f95-cpp-input -ffree-line-length-none -ffree-form -fno-second-underscore -fmax-stack-var-size=6553600 -fPIC\n")
+    set(temp "${temp}F95FLAGS += -std=gnu -x f95-cpp-input -ffree-line-length-none -ffree-form -fno-second-underscore -fmax-stack-var-size=6553600 -fPIC\n")
+    set(temp "${temp}F77FLAGS += -std=gnu -x f77-cpp-input -fno-second-underscore -fmax-stack-var-size=6553600 -fPIC\n")
   else()
     message(FATAL_ERROR "The ${CMAKE_Fortran_COMPILER_ID} Fortran compiler is not (yet) supported for building QUIP")
   endif()
-  set(temp "${temp}CFLAGS += -fPIC -Wno-return-mismatch \nCPLUSPLUSFLAGS += -fPIC -Wno-return-mismatch\nAR_ADD=src\n")
+  set(temp "${temp}CFLAGS += -std=gnu89 -fPIC -Wno-return-mismatch -DPROTOTYPES=1\nCPLUSPLUSFLAGS += -fPIC -Wno-return-mismatch\nAR_ADD=src\n")
   set(temp "${temp}MATH_LINKOPTS=")
   foreach(flag ${BLAS_LIBRARIES})
     set(temp "${temp} ${flag}")
@@ -47,12 +49,12 @@ if(DOWNLOAD_QUIP)
 
   message(STATUS "QUIP download via git requested - we will build our own")
   set(CMAKE_EP_GIT_REMOTE_UPDATE_STRATEGY CHECKOUT)
-  # QUIP has no releases (except for a tag marking the end of Python 2 support). We use the current "public" branch
+  # QUIP has no releases. We use a tested specific commit from the "public" branch. This needs to be updated occasionally
   # The LAMMPS interface wrapper has a compatibility constant that is being checked at runtime.
   include(ExternalProject)
   ExternalProject_Add(quip_build
     GIT_REPOSITORY "https://github.com/libAtoms/QUIP/"
-    GIT_TAG origin/public
+    GIT_TAG 1e2f84ba94bc715a5d7b0b0c7c2ba1b2d402e730
     GIT_SHALLOW YES
     GIT_PROGRESS YES
     GIT_SUBMODULES "src/fox;src/GAP"

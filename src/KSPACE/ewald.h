@@ -62,12 +62,12 @@ class Ewald : public KSpace {
   virtual void coeffs();
   virtual void allocate();
   virtual void deallocate();
-  void slabcorr();
+  virtual void slabcorr();
 
   // triclinic
 
   int triclinic;
-  void eik_dot_r_triclinic();
+  virtual void eik_dot_r_triclinic();
   void coeffs_triclinic();
 
   // group-group interactions

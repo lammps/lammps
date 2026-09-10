@@ -15,7 +15,6 @@
 
 #include "error.h"
 #include "input.h"
-#include "update.h"
 #include "variable.h"
 
 #include <cmath>
@@ -115,6 +114,8 @@ RegPlane::RegPlane(LAMMPS *lmp, int narg, char **arg) :
 
 RegPlane::~RegPlane()
 {
+  if (copymode) return;
+
   delete[] xstr;
   delete[] ystr;
   delete[] zstr;

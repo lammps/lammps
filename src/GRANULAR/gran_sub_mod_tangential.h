@@ -11,36 +11,22 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef GRAN_SUB_MOD_CLASS
-// clang-format off
-GranSubModStyle(none,GranSubModTangentialNone,TANGENTIAL);
-GranSubModStyle(linear_nohistory,GranSubModTangentialLinearNoHistory,TANGENTIAL);
-GranSubModStyle(linear_history,GranSubModTangentialLinearHistory,TANGENTIAL);
-GranSubModStyle(linear_history_classic,GranSubModTangentialLinearHistoryClassic,TANGENTIAL);
-GranSubModStyle(mindlin_classic,GranSubModTangentialMindlinClassic,TANGENTIAL);
-GranSubModStyle(mindlin,GranSubModTangentialMindlin,TANGENTIAL);
-GranSubModStyle(mindlin/force,GranSubModTangentialMindlinForce,TANGENTIAL);
-GranSubModStyle(mindlin_rescale,GranSubModTangentialMindlinRescale,TANGENTIAL);
-GranSubModStyle(mindlin_rescale/force,GranSubModTangentialMindlinRescaleForce,TANGENTIAL);
-// clang-format on
-#else
-
 #ifndef GRAN_SUB_MOD_TANGENTIAL_H
 #define GRAN_SUB_MOD_TANGENTIAL_H
 
 #include "gran_sub_mod.h"
 
-namespace LAMMPS_NS {
-namespace Granular_NS {
+
+namespace LAMMPS_NS::Granular_NS {
 
   class GranSubModTangential : public GranSubMod {
    public:
     GranSubModTangential(class GranularModel *, class LAMMPS *);
     virtual void calculate_forces() = 0;
 
-    double get_k() const { return k; }
-    double get_damp() const { return damp; }
-    double get_mu() const { return mu; }
+    [[nodiscard]] double get_k() const { return k; }
+    [[nodiscard]] double get_damp() const { return damp; }
+    [[nodiscard]] double get_mu() const { return mu; }
 
    protected:
     double k, damp, mu;    // Used by Marshall twisting model
@@ -51,7 +37,7 @@ namespace Granular_NS {
   class GranSubModTangentialNone : public GranSubModTangential {
    public:
     GranSubModTangentialNone(class GranularModel *, class LAMMPS *);
-    void calculate_forces() override{};
+    void calculate_forces() override {};
   };
 
   /* ---------------------------------------------------------------------- */
@@ -128,8 +114,7 @@ namespace Granular_NS {
     GranSubModTangentialMindlinRescaleForce(class GranularModel *, class LAMMPS *);
   };
 
-}    // namespace Granular_NS
-}    // namespace LAMMPS_NS
+} // namespace LAMMPS_NS::Granular_NS
+
 
 #endif /*GRAN_SUB_MOD_TANGENTIAL_H */
-#endif /*GRAN_SUB_MOD_CLASS_H */

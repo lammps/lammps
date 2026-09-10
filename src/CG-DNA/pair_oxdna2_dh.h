@@ -14,6 +14,7 @@
 #ifdef PAIR_CLASS
 // clang-format off
 PairStyle(oxdna2/dh,PairOxdna2Dh);
+PairStyle(oxdna3/dh,PairOxdna2Dh);
 // clang-format on
 #else
 
@@ -28,26 +29,28 @@ class PairOxdna2Dh : public Pair {
  public:
   PairOxdna2Dh(class LAMMPS *);
   ~PairOxdna2Dh() override;
-  virtual void compute_interaction_sites(double *, double *, double *, double *);
+  virtual void compute_backbone_site(double *, double *, double *, double *) const;
   void compute(int, int) override;
   void settings(int, char **) override;
   void coeff(int, char **) override;
+  void init_style() override;
   void init_list(int, class NeighList *) override;
   double init_one(int, int) override;
   void write_restart(FILE *) override;
   void read_restart(FILE *) override;
   void write_restart_settings(FILE *) override;
   void read_restart_settings(FILE *) override;
-  void write_data(FILE *) override;
-  void write_data_all(FILE *) override;
   void *extract(const char *, int &) override;
 
  protected:
   double **qeff_dh_pf, **kappa_dh;
   double **b_dh, **cut_dh_ast, **cutsq_dh_ast, **cut_dh_c, **cutsq_dh_c;
-  double **nx_xtrct, **ny_xtrct, **nz_xtrct;    // per-atom arrays for local unit vectors
+  double **nxyz_xtrct;    // per-atom arrays for local unit vectors
+  int half_charged_ends_flag;
 
   virtual void allocate();
+
+  class FixOxdnaLRF *fix_lrf;    // ptr to oxdna/lrf fix
 };
 
 }    // namespace LAMMPS_NS

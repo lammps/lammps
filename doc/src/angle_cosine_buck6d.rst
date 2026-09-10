@@ -1,7 +1,10 @@
 .. index:: angle_style cosine/buck6d
+.. index:: angle_style cosine/buck6d/omp
 
 angle_style cosine/buck6d command
 =================================
+
+Accelerator Variants: *cosine/buck6d/omp*
 
 Syntax
 """"""
@@ -49,6 +52,10 @@ angle.  For this reason this angle style only works in combination
 with the :doc:`pair_style buck6d <pair_buck6d_coul_gauss>` styles and needs
 the :doc:`special_bonds <special_bonds>` 1-3 interactions to be weighted
 0.0 to prevent double counting.
+
+----------
+
+.. include:: accel_styles.rst
 
 ----------
 

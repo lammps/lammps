@@ -37,7 +37,8 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), vptr(nullptr), id_temp(nullptr), pstyle(nullptr)
+    Compute(lmp, narg, arg), vptr(nullptr), kspace_virial(nullptr), temperature(nullptr),
+    id_temp(nullptr), pstyle(nullptr)
 {
   if (narg < 4) utils::missing_cmd_args(FLERR,"compute pressure", error);
   if (igroup) error->all(FLERR, 1, "Compute pressure must use group all");
@@ -56,7 +57,7 @@ ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
     id_temp = nullptr;
   } else {
     id_temp = utils::strdup(arg[3]);
-    auto icompute = modify->get_compute_by_id(id_temp);
+    auto *icompute = modify->get_compute_by_id(id_temp);
     if (!icompute)
       error->all(FLERR, 3, "Could not find compute pressure temperature ID {}", id_temp);
     if (!icompute->tempflag)
@@ -80,6 +81,7 @@ ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
     while (iarg < narg) {
       if (strcmp(arg[iarg],"ke") == 0) keflag = 1;
       else if (strcmp(arg[iarg],"pair/hybrid") == 0) {
+        delete[] pstyle;
         if (lmp->suffix)
           pstyle = utils::strdup(fmt::format("{}/{}",arg[++iarg],lmp->suffix));
         else
@@ -201,14 +203,14 @@ void ComputePressure::init()
     if (improperflag && force->improper) nvirial++;
   }
   if (fixflag)
-    for (auto &ifix : modify->get_fix_list())
+    for (const auto &ifix : modify->get_fix_list())
       if (ifix->thermo_virial) nvirial++;
 
   if (nvirial) {
     vptr = new double*[nvirial];
     nvirial = 0;
     if (pairhybridflag && force->pair) {
-      auto ph = dynamic_cast<PairHybrid *>(force->pair);
+      auto *ph = dynamic_cast<PairHybrid *>(force->pair);
       ph->no_virial_fdotr_compute = 1;
       vptr[nvirial++] = pairhybrid->virial;
     }
@@ -220,7 +222,7 @@ void ComputePressure::init()
     if (improperflag && force->improper)
       vptr[nvirial++] = force->improper->virial;
     if (fixflag)
-    for (auto &ifix : modify->get_fix_list())
+    for (const auto &ifix : modify->get_fix_list())
       if (ifix->virial_global_flag && ifix->thermo_virial)
           vptr[nvirial++] = ifix->virial;
   }

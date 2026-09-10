@@ -27,11 +27,13 @@ then, we have begun to replace C-style constructs with equivalent C++
 functionality.  This was taken either from the C++ standard library or
 implemented as custom classes or functions.  The goal is to improve
 readability of the code and to increase code reuse through abstraction
-of commonly used functionality.
+of commonly used functionality. In summer 2025, after the 22 July 2025
+stable release, the minimum required C++ language standard was raised to
+C++17.
 
 .. note::
 
-   Please note that as of spring 2023 there is still a sizable chunk of
+   Please note that as of summer 2025 there is still a sizable chunk of
    legacy code in LAMMPS that has not yet been refactored to reflect
    these style conventions in full.  LAMMPS has a large code base and
    many contributors.  There is also a hierarchy of precedence in which
@@ -221,41 +223,41 @@ uses a programming pattern called `Factory`.  Those are functions that
 create an instance of a specific derived class, say ``PairLJCut`` and
 return a pointer to the type of the common base class of that style,
 ``Pair`` in this case.  To associate the factory function with the
-style keyword, a ``std::map`` class is used with function pointers
-indexed by their keyword (for example "lj/cut" for ``PairLJCut`` and
-"morse" for ``PairMorse``).  A couple of typedefs help keep the code
-readable, and a template function is used to implement the actual
-factory functions for the individual classes.  Below is an example
-of such a factory function from the ``Force`` class as declared in
-``force.h`` and implemented in ``force.cpp``.  The file ``style_pair.h``
-is generated during compilation and includes all main header files
-(i.e. those starting with ``pair_``) of pair styles and then the
-macro ``PairStyle()`` will associate the style name "lj/cut"
-with a factory function creating an instance of the ``PairLJCut``
-class.
+style keyword, a process-global registry (the ``CreatorRegistry`` class
+template declared in ``creator_registry.h``) is used that stores the
+factory function pointers indexed by their keyword (for example "lj/cut"
+for ``PairLJCut`` and "morse" for ``PairMorse``).  A couple of typedefs
+help keep the code readable, and a template function is used to implement
+the actual factory functions for the individual classes.
+
+During compilation, the build system parses the ``PairStyle()`` marker
+lines in the header files of all "installed" pair styles (those starting
+with ``pair_``) and generates the file ``style_pair.cpp``.  That file
+``#include``\s those headers and defines a ``register_pair_styles()``
+function which adds one factory function per style to the registry returned
+by the ``Force::pair_styles()`` accessor.  As with all style categories, the
+``PAIR_CLASS`` macro is never actually defined during compilation; the
+``#ifdef PAIR_CLASS`` block in each header is only a marker for the build
+system's parser.  Below is an example of the relevant declarations and the
+generated code:
 
 .. code-block:: c++
 
    // from force.h
-   typedef Pair *(*PairCreator)(LAMMPS *);
-   typedef std::map<std::string, PairCreator> PairCreatorMap;
-   PairCreatorMap *pair_map;
+   using PairCreator = Pair *(*)(LAMMPS *);
+   static CreatorRegistry<PairCreator> &pair_styles();
 
-   // from force.cpp
-   template <typename S, typename T> static S *style_creator(LAMMPS *lmp)
+   // from the generated file style_pair.cpp
+   template <typename T> static Pair *creator(LAMMPS *lmp)
    {
      return new T(lmp);
    }
 
-   // [...]
-
-   pair_map = new PairCreatorMap();
-
-   #define PAIR_CLASS
-   #define PairStyle(key, Class) (*pair_map)[#key] = &style_creator<Pair, Class>;
-   #include "style_pair.h"
-   #undef PairStyle
-   #undef PAIR_CLASS
+   void register_pair_styles()
+   {
+     // [...] one add_builtin() call per installed pair style
+     Force::pair_styles().add_builtin("lj/cut", &creator<PairLJCut>);
+   }
 
    // from pair_lj_cut.h
 
@@ -264,10 +266,22 @@ class.
    #else
    // [...]
 
-Similar code constructs are present in other files like ``modify.cpp`` and
-``modify.h`` or ``neighbor.cpp`` and ``neighbor.h``.  Those contain
-similar macros and include ``style_*.h`` files for creating class instances
-of styles they manage.
+All per-category ``register_*_styles()`` functions are called once per
+process from ``register_builtin_styles()`` (guarded by ``std::call_once``)
+when the first ``LAMMPS`` instance is created.  Because the registry is
+process-global, the built-in styles are registered only once and remain
+available after a :doc:`clear <clear>` command and across multiple concurrent
+``LAMMPS`` instances in the same process; this is also what allows
+:doc:`plugins <plugin>` to persist (see :doc:`Developer_plugins`).  The same
+mechanism is used for the other style categories that are created from a
+user-facing keyword and managed by ``Modify`` (fixes, computes), ``Update``
+(integrators, minimizers), ``Domain`` (regions), ``Output`` (dumps),
+``Input`` (commands), and ``Atom`` (atom styles).  A few internal style
+categories that are *not* selected by a user-facing keyword --- the neighbor
+list ``nbin``/``npair``/``nstencil``/``ntopo`` classes in ``neighbor.cpp``
+and the granular sub-models --- still use the older approach that
+``#include``\s a generated ``style_*.h`` file while the corresponding
+``XXX_CLASS`` macro is defined.
 
 
 I/O and output formatting
@@ -276,8 +290,9 @@ I/O and output formatting
 C-style stdio versus C++ style iostreams
 ========================================
 
-LAMMPS uses the "stdio" library of the standard C library for reading
-from and writing to files and console instead of C++ "iostreams".
+LAMMPS uses the `stdio <https://en.cppreference.com/cpp/io/c>`_ library
+of the standard C library for reading from and writing to files and
+console instead of C++ `iostreams <https://cppreference.com/cpp/io>`_.
 This is mainly motivated by better performance, better control over
 formatting, and less effort to achieve specific formatting.
 
@@ -290,35 +305,43 @@ Furthermore, output should generally only be done by MPI rank 0
 ``logfile`` should use the :cpp:func:`utils::logmesg() convenience
 function <LAMMPS_NS::utils::logmesg>`.
 
-We discourage the use of stringstreams because the bundled {fmt} library
+We strongly discourage the use of `stringstreams
+<https://cppreference.com/cpp/header/sstream>`_ because the bundled
+`{fmt} library <https://fmt.dev>`_ or the `C++ format library
+<https://cppreference.com/cpp/utility/format>`_ (for C++20 and later)
 and the customized tokenizer classes provide the same functionality in a
 cleaner way with better performance.  This also helps maintain a
 consistent programming syntax with code from many different
 contributors.
 
-Formatting with the {fmt} library
-===================================
+Formatting with the {fmt} library and std::format
+=================================================
 
-The LAMMPS source code includes a copy of the `{fmt} library
-<https://fmt.dev>`_, which is preferred over formatting with the
-"printf()" family of functions.  The primary reason is that it allows a
-typesafe default format for any type of supported data.  This is
-particularly useful for formatting integers of a given size (32-bit or
-64-bit) which may require different format strings depending on compile
-time settings or compilers/operating systems.  Furthermore, {fmt} gives
-better performance, has more functionality, a familiar formatting syntax
-that has similarities to ``format()`` in Python, and provides a facility
-that can be used to integrate format strings and a variable number of
+The LAMMPS source code currently includes a slightly modified copy of
+the `{fmt} library <https://fmt.dev>`_, which is preferred over
+formatting with the "printf()" family of functions.  When compiling for
+C++20 and later we switch to using the `C++ format library
+<https://cppreference.com/cpp/utility/format>`_.  The namespace
+prefix currently remains ``fmt::`` through a small wrapper.  In the
+future, this will be switched to ``std::`` when LAMMPS requires the
+C++20 standard as the minimum C++ standard.  Thus only functionality
+compatible with the C++ format library for C++20 is accepted.  Using
+``std::format`` requires a fully C++20 compatible compiler (e.g. GCC 13
+and later, Clang 14 and later, or MSVC 16.10 and later) and we `use the
+__cpp_lib_format feature test macro
+<https://cppreference.com/cpp/utility/feature_test>`_ to confirm
+the availability of ``std::format``.
+
+The primary reason for this choice is that it allows a typesafe default
+format for any type of supported data.  This is particularly useful for
+formatting integers of a given size (32-bit or 64-bit) which may require
+different format strings depending on compile time settings or
+compilers/operating systems.  Furthermore, {fmt} gives better
+performance, has more functionality, a familiar formatting syntax that
+has similarities to ``format()`` in Python, and provides a facility that
+can be used to integrate format strings and a variable number of
 arguments into custom functions in a much simpler way than the varargs
-mechanism of the C library.  Finally, {fmt} has been included into the
-C++20 language standard as ``std::format()``, so changes to adopt it are
-future-proof, for as long as they are not using any extensions that are
-not (yet) included into C++.
-
-The long-term plan is to switch to using ``std::format()`` instead of
-``fmt::format()`` when the minimum C++ standard required for LAMMPS will
-be set to C++20. See the :ref:`basic build instructions <compile>` for
-more details.
+mechanism of the C library.
 
 Formatted strings are frequently created by calling the
 ``fmt::format()`` function, which will return a string as a
@@ -327,15 +350,17 @@ Formatted strings are frequently created by calling the
 In the simplest case, no additional characters are needed, as {fmt} will
 choose the default format based on the data type of the argument.
 Otherwise, the :cpp:func:`utils::print() <LAMMPS_NS::utils::print>`
-function may be used instead of ``printf()`` or ``fprintf()``.  In
-addition, several LAMMPS output functions, that originally accepted a
-single string as argument have been overloaded to accept a format string
-with optional arguments as well (e.g., ``Error::all()``,
-``Error::one()``, :cpp:func:`utils::logmesg()
+function may be used instead of ``printf()`` or ``fprintf()``.  The
+equivalent `std::print() function
+<https://cppreference.com/cpp/io/print>`_ will become
+available in C++ 23.  In addition, several LAMMPS output functions, that
+originally accepted a single string as argument have been overloaded to
+accept a format string with optional arguments as well (e.g.,
+``Error::all()``, ``Error::one()``, :cpp:func:`utils::logmesg()
 <LAMMPS_NS::utils::logmesg>`).
 
-Summary of the {fmt} format syntax
-==================================
+Summary of the {fmt} format and std::format syntax
+==================================================
 
 The syntax of the format string is "{[<argument id>][:<format spec>]}",
 where either the argument id or the format spec (separated by a colon
@@ -397,8 +422,26 @@ value, for example "{:{}d}" will consume two integer arguments, the
 first will be the value shown and the second the minimum width.
 
 For more details and examples, please consult the `{fmt} syntax
-documentation <https://fmt.dev/latest/syntax.html>`_ website.
+documentation <https://fmt.dev/latest/syntax/>`_ website or the
+`corresponding C++ syntax reference
+<https://cppreference.com/cpp/utility/format/spec>`_.  Since
+we plan to eventually transition from {fmt} to using ``std::format()``
+of the C++ standard library, it is advisable to avoid using any
+extensions beyond what the `C++20 standard offers
+<https://cppreference.com/cpp/utility/format/format>`_.
 
+JSON format input and output
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Since LAMMPS version 12 June 2025, the LAMMPS source code includes a
+copy of the header-only JSON C++ library from https://json.nlohmann.me/.
+Same as with the {fmt} library described above some modification to the
+namespace has been made to avoid collisions with other uses of the same
+library, which may use a different, incompatible version.  To have a
+uniform interface with other parts of LAMMPS, you should be using
+``#include "json.h"`` or ``#include "json_fwd.h"`` (in header files).
+See the implementation of the :doc:`molecule command <molecule>` for an
+example of using this library.
 
 Memory management
 ^^^^^^^^^^^^^^^^^

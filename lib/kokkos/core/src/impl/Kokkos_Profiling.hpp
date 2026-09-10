@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_IMPL_KOKKOS_PROFILING_HPP
 #define KOKKOS_IMPL_KOKKOS_PROFILING_HPP
@@ -102,17 +89,17 @@ void destroyProfileSection(const uint32_t secID);
 
 void markEvent(const std::string& evName);
 
-void allocateData(const SpaceHandle space, const std::string label,
+void allocateData(const SpaceHandle space, const std::string& label,
                   const void* ptr, const uint64_t size);
-void deallocateData(const SpaceHandle space, const std::string label,
+void deallocateData(const SpaceHandle space, const std::string& label,
                     const void* ptr, const uint64_t size);
 
-void beginDeepCopy(const SpaceHandle dst_space, const std::string dst_label,
+void beginDeepCopy(const SpaceHandle dst_space, const std::string& dst_label,
                    const void* dst_ptr, const SpaceHandle src_space,
-                   const std::string src_label, const void* src_ptr,
+                   const std::string& src_label, const void* src_ptr,
                    const uint64_t size);
 void endDeepCopy();
-void beginFence(const std::string name, const uint32_t deviceId,
+void beginFence(const std::string& name, const uint32_t deviceId,
                 uint64_t* handle);
 void endFence(const uint64_t handle);
 

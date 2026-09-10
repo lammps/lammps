@@ -14,8 +14,8 @@
 #include "colvarbias_abf.h"
 #include "colvars_memstream.h"
 
-colvarbias_abf::colvarbias_abf(char const *key)
-  : colvarbias(key),
+colvarbias_abf::colvarbias_abf(colvarmodule *cvmodule_in, char const *key)
+  : colvarbias(cvmodule_in, key),
     b_UI_estimator(false),
     b_CZAR_estimator(false),
     pabf_freq(0),
@@ -26,33 +26,33 @@ colvarbias_abf::colvarbias_abf(char const *key)
 
 int colvarbias_abf::init(std::string const &conf)
 {
-  colvarproxy *proxy = cvm::main()->proxy;
+  colvarproxy *proxy = cvmodule->proxy;
 
   int err = colvarbias::init(conf);
   if (err != COLVARS_OK) {
     return err;
   }
-  cvm::main()->cite_feature("ABF colvar bias implementation");
+  cvmodule->cite_feature("ABF colvar bias implementation");
 
   enable(f_cvb_scalar_variables);
   enable(f_cvb_calc_pmf);
 
   if ((proxy->target_temperature() == 0.0) && proxy->simulation_running()) {
-    cvm::log("WARNING: ABF should not be run without a thermostat or at 0 Kelvin!\n");
+    cvmodule->log("WARNING: ABF should not be run without a thermostat or at 0 Kelvin!\n");
   }
 
   // ************* parsing general ABF options ***********************
 
   get_keyval_feature(this, conf, "applyBias", f_cvb_apply_force, true);
   if (!is_enabled(f_cvb_apply_force)){
-    cvm::log("WARNING: ABF biases will *not* be applied!\n");
+    cvmodule->log("WARNING: ABF biases will *not* be applied!\n");
   }
 
   get_keyval(conf, "hideJacobian", hide_Jacobian, false);
   if (hide_Jacobian) {
-    cvm::log("Jacobian (geometric) forces will be handled internally.\n");
+    cvmodule->log("Jacobian (geometric) forces will be handled internally.\n");
   } else {
-    cvm::log("Jacobian (geometric) forces will be included in reported free energy gradients.\n");
+    cvmodule->log("Jacobian (geometric) forces will be included in reported free energy gradients.\n");
   }
 
   full_samples = 200;
@@ -64,7 +64,7 @@ int colvarbias_abf::init(std::string const &conf)
     min_samples = 0;
   }
   if (min_samples >= full_samples) {
-    return cvm::error("Error: minSamples must be lower than fullSamples\n");
+    return cvmodule->error("Error: minSamples must be lower than fullSamples\n");
   }
 
   get_keyval(conf, "inputPrefix",  input_prefix, std::vector<std::string>());
@@ -73,11 +73,11 @@ int colvarbias_abf::init(std::string const &conf)
   get_keyval(conf, "historyFreq", history_freq, 0);
   if (history_freq != 0) {
     if (output_freq == 0) {
-      cvm::error("Error: historyFreq must be a multiple of outputFreq.\n",
+      cvmodule->error("Error: historyFreq cannot be non-zero when outputFreq is zero.\n",
                  COLVARS_INPUT_ERROR);
     } else {
       if ((history_freq % output_freq) != 0) {
-        cvm::error("Error: historyFreq must be a multiple of outputFreq.\n",
+        cvmodule->error("Error: historyFreq must be a multiple of outputFreq.\n",
                    COLVARS_INPUT_ERROR);
       }
     }
@@ -86,57 +86,59 @@ int colvarbias_abf::init(std::string const &conf)
   // shared ABF
   get_keyval(conf, "shared", shared_on, false);
   if (shared_on) {
-    cvm::main()->cite_feature("Multiple-walker ABF implementation");
-    if ((proxy->replica_enabled() != COLVARS_OK) ||
-        (proxy->num_replicas() <= 1)) {
-      return cvm::error("Error: shared ABF requires more than one replica.",
-                        COLVARS_INPUT_ERROR);
-    }
-    cvm::log("shared ABF will be applied among "+
-             cvm::to_str(proxy->num_replicas()) + " replicas.\n");
+    cvmodule->cite_feature("Multiple-walker ABF implementation");
+    cvmodule->cite_feature("Updated multiple-walker ABF implementation");
 
     // If shared_freq is not set, we default to output_freq
     get_keyval(conf, "sharedFreq", shared_freq, output_freq);
     if ( shared_freq && output_freq % shared_freq ) {
-      return cvm::error("Error: outputFreq must be a multiple of sharedFreq.\n");
+      return cvmodule->error("Error: outputFreq must be a multiple of sharedFreq.\n");
     }
-
-    // Allocate these at init time if possible
-    local_samples.reset(new colvar_grid_count(colvars));
-    local_gradients.reset(new colvar_grid_gradient(colvars, local_samples));
-    local_pmf.reset(new integrate_potential(colvars, local_gradients));
+    if ( shared_freq && shared_freq % time_step_factor ) {
+      return cvmodule->error("Error: sharedFreq must be a multiple of timeStepFactor.\n");
+    }
   }
 
   // ************* checking the associated colvars *******************
 
   if (num_variables() == 0) {
-    return cvm::error("Error: no collective variables specified for the ABF bias.\n");
+    return cvmodule->error("Error: no collective variables specified for the ABF bias.\n");
   }
 
   size_t i;
   for (i = 0; i < num_variables(); i++) {
 
     if (colvars[i]->value().type() != colvarvalue::type_scalar) {
-      cvm::error("Error: ABF bias can only use scalar-type variables.\n");
+      return cvmodule->error("Error: ABF bias can only use scalar-type variables.\n");
     }
     colvars[i]->enable(f_cv_grid); // Could be a child dependency of a f_cvb_use_grids feature
     if (hide_Jacobian) {
       colvars[i]->enable(f_cv_hide_Jacobian);
     }
 
-    // If any colvar is extended-system, we need to collect the extended
-    // system gradient
-    if (colvars[i]->is_enabled(f_cv_extended_Lagrangian))
+    // If any colvar is extended-system (restrained, not driven external param), we are running eABF
+    if (colvars[i]->is_enabled(f_cv_extended_Lagrangian)
+        && !colvars[i]->is_enabled(f_cv_external)) {
       enable(f_cvb_extended);
+    }
 
-    // Cannot mix and match coarse time steps with ABF because it gives
-    // wrong total force averages - total force needs to be averaged over
-    // every time step
-    if (colvars[i]->get_time_step_factor() != time_step_factor) {
-      cvm::error("Error: " + colvars[i]->description + " has a value of timeStepFactor ("
-        + cvm::to_str(colvars[i]->get_time_step_factor()) + ") different from that of "
-        + description + " (" + cvm::to_str(time_step_factor) + ").\n");
-      return COLVARS_ERROR;
+    if (!colvars[i]->is_enabled(f_cv_total_force_current_step)) {
+      // If any colvar does not have current-step total force, then
+      // we can't do step 0 data
+      provide(f_cvb_step_zero_data, false);
+      // This ABF implementation assumes that the total force available at one time step (where ABF
+      // runs) is that from the previous timestep where ABF ran So we cannot do MTS with a different
+      // factor than the global proxy MTS factor (That would require the colvar to update its total
+      // force at a time step where it doesn't run or to remember its value from the timestep when
+      // the total force is collected)
+      if (time_step_factor != cvmodule->proxy->time_step_factor()) {
+        return cvmodule->error(
+            "ABF cannot use timeStepFactor == " + cvm::to_str(time_step_factor) +
+            " because the MD engine is sharing total forces every " +
+            cvm::to_str(cvmodule->proxy->time_step_factor()) + " steps; therefore, the colvar " +
+            colvars[i]->description +
+            " cannot provide total-force estimates for the timestep when ABF runs");
+      }
     }
 
     // Here we could check for orthogonality of the Cartesian coordinates
@@ -148,22 +150,22 @@ int colvarbias_abf::init(std::string const &conf)
     enable(f_cvb_history_dependent);
     enable(f_cvb_get_total_force);
   } else {
-    cvm::log("WARNING: ABF biases will *not* be updated!\n");
+    cvmodule->log("WARNING: ABF biases will *not* be updated!\n");
   }
 
   if (is_enabled(f_cvb_extended)) {
-    cvm::main()->cite_feature("eABF implementation");
+    cvmodule->cite_feature("eABF implementation");
   } else {
-    cvm::main()->cite_feature("Internal-forces free energy estimator");
+    cvmodule->cite_feature("Internal-forces free energy estimator");
   }
 
   if (get_keyval(conf, "maxForce", max_force)) {
     if (max_force.size() != num_variables()) {
-      cvm::error("Error: Number of parameters to maxForce does not match number of colvars.");
+      cvmodule->error("Error: Number of parameters to maxForce does not match number of colvars.");
     }
     for (i = 0; i < num_variables(); i++) {
       if (max_force[i] < 0.0) {
-        cvm::error("Error: maxForce should be non-negative.");
+        cvmodule->error("Error: maxForce should be non-negative.");
         return COLVARS_ERROR;
       }
     }
@@ -178,43 +180,57 @@ int colvarbias_abf::init(std::string const &conf)
 
   // Construct empty grids based on the colvars
   if (cvm::debug()) {
-    cvm::log("Allocating count and free energy gradient grids.\n");
+    cvmodule->log("Allocating count and free energy gradient grids.\n");
   }
 
-  samples.reset(new colvar_grid_count(colvars));
-  gradients.reset(new colvar_grid_gradient(colvars, samples));
+  {
+    /// Optional custom configuration string for grid parameters
+    std::string grid_conf;
+    key_lookup(conf, "grid", &grid_conf);
+
+    samples.reset(new colvar_grid_count(colvars, grid_conf));
+  }
+  gradients.reset(new colvar_grid_gradient(colvars, samples)); // Also use samples as template for sizes
 
   gradients->full_samples = full_samples;
   gradients->min_samples = min_samples;
+
+  if (shared_on) {
+    local_samples.reset(new colvar_grid_count(colvars, samples));
+    local_gradients.reset(new colvar_grid_gradient(colvars, local_samples));
+  }
 
   // Data for eABF z-based estimator
   if (is_enabled(f_cvb_extended)) {
     get_keyval(conf, "CZARestimator", b_CZAR_estimator, true);
     if ( b_CZAR_estimator ) {
-      cvm::main()->cite_feature("CZAR eABF estimator");
+      cvmodule->cite_feature("CZAR eABF estimator");
     }
     // CZAR output files for stratified eABF
     get_keyval(conf, "writeCZARwindowFile", b_czar_window_file, false,
                colvarparse::parse_silent);
 
     z_bin.assign(num_variables(), 0);
-    z_samples.reset(new colvar_grid_count(colvars));
+    z_samples.reset(new colvar_grid_count(colvars, samples));
     z_samples->request_actual_value();
     z_gradients.reset(new colvar_grid_gradient(colvars, z_samples));
     z_gradients->request_actual_value();
-    czar_gradients.reset(new colvar_grid_gradient(colvars));
+    czar_gradients.reset(new colvar_grid_gradient(colvars, nullptr, samples));
   }
 
   get_keyval(conf, "integrate", b_integrate, num_variables() <= 3); // Integrate for output if d<=3
   if (b_integrate) {
     // For now, we integrate on-the-fly iff the grid is < 3D
     if ( num_variables() > 3 ) {
-      cvm::error("Error: cannot integrate free energy in dimension > 3.\n");
+      cvmodule->error("Error: cannot integrate free energy in dimension > 3.\n");
       return COLVARS_ERROR;
     }
-    pmf.reset(new integrate_potential(colvars, gradients));
+    pmf.reset(new colvargrid_integrate(colvars, gradients));
     if (b_CZAR_estimator) {
-      czar_pmf.reset(new integrate_potential(colvars, czar_gradients));
+      czar_pmf.reset(new colvargrid_integrate(colvars, czar_gradients));
+    }
+    if (shared_on) {
+      local_pmf.reset(new colvargrid_integrate(colvars, local_gradients));
     }
     // Parameters for integrating initial (and final) gradient data
     get_keyval(conf, "integrateMaxIterations", integrate_iterations, 10000, colvarparse::parse_silent);
@@ -225,13 +241,13 @@ int colvarbias_abf::init(std::string const &conf)
     get_keyval(conf, "pABFintegrateTol", pabf_integrate_tol, 1e-4, colvarparse::parse_silent);
   }
 
-  if (b_CZAR_estimator && shared_on && cvm::main()->proxy->replica_index() == 0) {
+  if (b_CZAR_estimator && shared_on && cvmodule->proxy->replica_index() == 0) {
     // The pointers below are used for outputting CZAR data
     // Allocate grids for collected global data, on replica 0 only
-    global_z_samples.reset(new colvar_grid_count(colvars));
+    global_z_samples.reset(new colvar_grid_count(colvars, samples));
     global_z_gradients.reset(new colvar_grid_gradient(colvars, global_z_samples));
-    global_czar_gradients.reset(new colvar_grid_gradient(colvars));
-    global_czar_pmf.reset(new integrate_potential(colvars, global_czar_gradients));
+    global_czar_gradients.reset(new colvar_grid_gradient(colvars, nullptr, samples));
+    global_czar_pmf.reset(new colvargrid_integrate(colvars, global_czar_gradients));
   } else {
     // otherwise they are just aliases for the local CZAR grids
     global_z_samples = z_samples;
@@ -244,13 +260,13 @@ int colvarbias_abf::init(std::string const &conf)
   // This used to be only if "shared" was defined,
   // but now we allow calling share externally (e.g. from Tcl).
   if (b_CZAR_estimator) {
-    z_samples_in.reset(new colvar_grid_count(colvars));
+    z_samples_in.reset(new colvar_grid_count(colvars, samples));
     z_gradients_in.reset(new colvar_grid_gradient(colvars, z_samples_in));
   }
-  last_samples.reset(new colvar_grid_count(colvars));
+  last_samples.reset(new colvar_grid_count(colvars, samples));
   last_gradients.reset(new colvar_grid_gradient(colvars, last_samples));
   // Any data collected after now is new for shared ABF purposes
-  shared_last_step = cvm::step_absolute();
+  shared_last_step = cvmodule->step_absolute();
 
   // Read any custom input ABF data
   if ( input_prefix.size() > 0 ) {
@@ -265,11 +281,11 @@ int colvarbias_abf::init(std::string const &conf)
 
     if (b_UI_estimator) {
       if (shared_on) {
-        cvm::error("Error: UI estimator is not available for multiple-walker (shared) ABF.\n");
+        cvmodule->error("Error: UI estimator is not available for multiple-walker (shared) ABF.\n");
         b_UI_estimator = false;
         return COLVARS_ERROR;
       }
-      cvm::main()->cite_feature("Umbrella-integration eABF estimator");
+      cvmodule->cite_feature("Umbrella-integration eABF estimator");
       std::vector<double> UI_lowerboundary;
       std::vector<double> UI_upperboundary;
       std::vector<double> UI_width;
@@ -283,19 +299,19 @@ int colvarbias_abf::init(std::string const &conf)
         UI_width.push_back(colvars[i]->width);
         UI_krestr.push_back(colvars[i]->force_constant());
       }
-      eabf_UI = UIestimator::UIestimator(UI_lowerboundary,
+      eabf_UI = UIestimator::UIestimator(cvmodule,
+                                         UI_lowerboundary,
                                          UI_upperboundary,
                                          UI_width,
                                          UI_krestr,                // force constant in eABF
                                          output_prefix,              // the prefix of output files
-                                         cvm::restart_out_freq,
                                          UI_restart,                    // whether restart from a .count and a .grad file
                                          input_prefix,   // the prefixes of input files
                                          proxy->target_temperature());
     }
   }
 
-  cvm::log("Finished ABF setup.\n");
+  cvmodule->log("Finished ABF setup.\n");
   return COLVARS_OK;
 }
 
@@ -310,32 +326,41 @@ colvarbias_abf::~colvarbias_abf()
 
 int colvarbias_abf::update()
 {
-  if (cvm::debug()) cvm::log("Updating ABF bias " + this->name);
+  if (cvm::debug()) cvmodule->log("Updating ABF bias " + this->name);
 
   size_t i;
   for (i = 0; i < num_variables(); i++) {
     bin[i] = samples->current_bin_scalar(i);
+    if (colvars[i]->is_enabled(f_cv_total_force_current_step)) {
+      force_bin[i] = bin[i];
+    }
   }
-
 
   // ***********************************************************
   // ******  ABF Part I: update the FE gradient estimate  ******
   // ***********************************************************
 
 
-  if (cvm::proxy->total_forces_same_step()) {
-    // e.g. in LAMMPS, total forces are current
-    force_bin = bin;
+  // Share data first, so that 2d/3d PMF is refreshed using new data for mw-pABF.
+  // shared_on can be true with shared_freq 0 if we are sharing via script
+  if (shared_freq &&
+      shared_last_step >= 0 &&                    // we have already collected some data
+      cvmodule->step_absolute() > shared_last_step &&  // time has passed since the last sharing timestep
+                                                  // (avoid re-sharing at last and first ts of successive run statements)
+      cvmodule->step_absolute() % shared_freq == 0) {
+    // Share gradients and samples for shared ABF.
+    replica_share();
   }
 
   if (can_accumulate_data() && is_enabled(f_cvb_history_dependent)) {
 
-    if (cvm::step_relative() > 0 || cvm::proxy->total_forces_same_step()) {
+    if (cvmodule->step_relative() > 0 || cvmodule->proxy->total_forces_same_step()) {
+      // Note: this will skip step 0 data when available in some cases (extended system),
+      // but not doing so would make the code more complex
       if (samples->index_ok(force_bin)) {
         // Only if requested and within bounds of the grid...
 
-        // get total forces (lagging by 1 timestep) from colvars
-        // and subtract previous ABF force if necessary
+        // get total force and subtract previous ABF force if necessary
         update_system_force();
 
         gradients->acc_force(force_bin, system_force);
@@ -356,11 +381,11 @@ int colvarbias_abf::update()
         }
       }
 
-      if ( pabf_freq && cvm::step_relative() % pabf_freq == 0 ) {
+      if ( pabf_freq && cvmodule->step_relative() % pabf_freq == 0 ) {
         cvm::real err;
         int iter = pmf->integrate(integrate_iterations, integrate_tol, err);
         if ( iter == integrate_iterations ) {
-          cvm::log("Warning: PMF integration did not converge to " + cvm::to_str(integrate_tol)
+          cvmodule->log("Warning: PMF integration did not converge to " + cvm::to_str(integrate_tol)
             + " in " + cvm::to_str(integrate_iterations)
             + " steps. Residual error: " +  cvm::to_str(err));
         }
@@ -368,21 +393,11 @@ int colvarbias_abf::update()
     }
   }
 
-  if (!(cvm::proxy->total_forces_same_step())) {
-    // e.g. in NAMD, total forces will be available for next timestep
-    // hence we store the current colvar bin
-    force_bin = bin;
-  }
+  // In some cases, total forces are stored for next timestep
+  // hence we store the current colvar bin - this is overwritten on a per-colvar basis
+  // at the top of update()
+  force_bin = bin;
 
-  // Share data after force sample is collected for this time step
-  // shared_on can be true with shared_freq 0 if we are sharing via script
-  if (shared_on && shared_freq &&
-      cvm::step_absolute() > shared_last_step &&  // time has passed since the last sharing timestep
-                                                  // (avoid re-sharing at last and first ts of successive run statements)
-      cvm::step_absolute() % shared_freq == 0) {
-    // Share gradients and samples for shared ABF.
-    replica_share();
-  }
 
   // ******************************************************************
   // ******  ABF Part II: calculate and apply the biasing force  ******
@@ -412,11 +427,11 @@ int colvarbias_abf::update()
 
 
   // update the output prefix; TODO: move later to setup_output() function
-  if (cvm::main()->num_biases_feature(colvardeps::f_cvb_calc_pmf) == 1) {
+  if (cvmodule->num_biases_feature(colvardeps::f_cvb_calc_pmf) == 1) {
     // This is the only bias computing PMFs
-    output_prefix = cvm::output_prefix();
+    output_prefix = cvmodule->output_prefix();
   } else {
-    output_prefix = cvm::output_prefix() + "." + this->name;
+    output_prefix = cvmodule->output_prefix() + "." + this->name;
   }
 
 
@@ -431,7 +446,7 @@ int colvarbias_abf::update()
       y[i] = colvars[i]->value();
     }
     eabf_UI.update_output_filename(output_prefix);
-    eabf_UI.update(cvm::step_absolute(), x, y);
+    eabf_UI.update(cvmodule->step_absolute(), x, y);
   }
 
   /// Compute the bias energy
@@ -452,10 +467,13 @@ int colvarbias_abf::update_system_force()
   // System force from atomic forces (or extended Lagrangian if applicable)
 
   for (i = 0; i < num_variables(); i++) {
-    if (colvars[i]->is_enabled(f_cv_subtract_applied_force)) {
+    if (colvars[i]->is_enabled(f_cv_subtract_applied_force)
+      || colvars[i]->is_enabled(f_cv_total_force_current_step)) {
       // this colvar is already subtracting the ABF force
+      // or the "total force" is from current step and cannot possibly contain Colvars biases
       system_force[i] = colvars[i]->total_force().real_value;
     } else {
+      // Subtract previous step's bias force from previous step's total force
       system_force[i] = colvars[i]->total_force().real_value
         - colvar_forces[i].real_value;
     }
@@ -523,28 +541,30 @@ int colvarbias_abf::calc_biasing_force(std::vector<cvm::real> &force)
 
 int colvarbias_abf::replica_share() {
 
-  colvarproxy *proxy = cvm::main()->proxy;
+  colvarproxy *proxy = cvmodule->proxy;
 
-  if (proxy->replica_enabled() != COLVARS_OK) {
-    cvm::error("Error: shared ABF: No replicas.\n");
+  // This check has to be deferred here rather than at init time, because the
+  // replica communicator is not available at init time in Gromacs
+  if (proxy->check_replicas_enabled() != COLVARS_OK) {
+    cvmodule->error("Error: shared ABF: No replicas.\n");
     return COLVARS_ERROR;
   }
   // We must have stored the last_gradients and last_samples.
   if (shared_last_step < 0 ) {
-    cvm::error("Error: shared ABF: Tried to apply shared ABF before any sampling had occurred.\n");
+    cvmodule->error("Error: shared ABF: Tried to apply shared ABF before any sampling had occurred.\n");
     return COLVARS_ERROR;
   }
   shared_on = true; // If called by a script, inform the rest of the code that we're sharing, eg. CZAR
 
   // Share gradients for shared ABF.
-  cvm::log("shared ABF: Sharing gradient and samples among replicas at step "+cvm::to_str(cvm::step_absolute()) );
+  cvmodule->log("shared ABF: Sharing gradient and samples among replicas at step "+cvm::to_str(cvmodule->step_absolute()) );
 
   if (!local_samples) {
     // We arrive here if sharing has just been enabled by a script
     // in which case local arrays have not been initialized yet
-    local_samples.reset(new colvar_grid_count(colvars));
+    local_samples.reset(new colvar_grid_count(colvars, samples));
     local_gradients.reset(new colvar_grid_gradient(colvars, local_samples));
-    local_pmf.reset(new integrate_potential(colvars, local_gradients));
+    local_pmf.reset(new colvargrid_integrate(colvars, local_gradients));
   }
   // Calculate the delta gradient and count for the local replica
   last_gradients->delta_grid(*gradients);
@@ -563,13 +583,13 @@ int colvarbias_abf::replica_share() {
   int msg_total = samples_n * sizeof(size_t) + samp_start;
   char* msg_data = new char[msg_total];
 
-  if (cvm::main()->proxy->replica_index() == 0) {
+  if (cvmodule->proxy->replica_index() == 0) {
     int p;
     // Replica 0 collects the delta gradient and count from the others.
     for (p = 1; p < proxy->num_replicas(); p++) {
       // Receive the deltas.
       if (proxy->replica_comm_recv(msg_data, msg_total, p) != msg_total) {
-        cvm::error("Error getting shared ABF data from replica.");
+        cvmodule->error("Error getting shared ABF data from replica.");
         return COLVARS_ERROR;
       }
 
@@ -590,7 +610,7 @@ int colvarbias_abf::replica_share() {
 
     for (p = 1; p < proxy->num_replicas(); p++) {
       if (proxy->replica_comm_send(msg_data, msg_total, p) != msg_total) {
-        cvm::error("Error sending shared ABF data to replica.");
+        cvmodule->error("Error sending shared ABF data to replica.");
         return COLVARS_ERROR;
       }
     }
@@ -602,12 +622,12 @@ int colvarbias_abf::replica_share() {
     last_samples->raw_data_out((size_t*)(&msg_data[samp_start]));
 
     if (proxy->replica_comm_send(msg_data, msg_total, 0) != msg_total) {
-      cvm::error("Error sending shared ABF data to replica.");
+      cvmodule->error("Error sending shared ABF data to replica.");
       return COLVARS_ERROR;
     }
     // We now receive the combined gradient from Replica 0.
     if (proxy->replica_comm_recv(msg_data, msg_total, 0) != msg_total) {
-      cvm::error("Error getting shared ABF data from replica 0.");
+      cvmodule->error("Error getting shared ABF data from replica 0.");
       return COLVARS_ERROR;
     }
     // We sync to the combined gradient computed by Replica 0.
@@ -624,9 +644,9 @@ int colvarbias_abf::replica_share() {
   // Copy the current gradient and count values into last.
   last_gradients->copy_grid(*gradients);
   last_samples->copy_grid(*samples);
-  shared_last_step = cvm::step_absolute();
+  shared_last_step = cvmodule->step_absolute();
 
-  cvm::log("RMSD btw. local and global ABF gradients: " + cvm::to_str(gradients->grid_rmsd(*local_gradients)));
+  cvmodule->log("RMSD btw. local and global ABF gradients: " + cvm::to_str(gradients->grid_rmsd(*local_gradients)));
 
   if (b_integrate) {
     cvm::real err;
@@ -638,16 +658,16 @@ int colvarbias_abf::replica_share() {
     local_pmf->set_div();
     local_pmf->integrate(integrate_iterations, integrate_tol, err);
     local_pmf->set_zero_minimum();
-    cvm::log("RMSD btw. local and global ABF FES: " + cvm::to_str(pmf->grid_rmsd(*local_pmf)));
+    cvmodule->log("RMSD btw. local and global ABF FES: " + cvm::to_str(pmf->grid_rmsd(*local_pmf)));
   }
   return COLVARS_OK;
 }
 
 
 int colvarbias_abf::replica_share_CZAR() {
-  colvarproxy *proxy = cvm::main()->proxy;
+  colvarproxy *proxy = cvmodule->proxy;
 
-  cvm::log("shared eABF: Gathering CZAR gradient and samples from replicas at step "+cvm::to_str(cvm::step_absolute()) );
+  cvmodule->log("shared eABF: Gathering CZAR gradient and samples from replicas at step "+cvm::to_str(cvmodule->step_absolute()) );
 
   // Count of data items.
   size_t samples_n = z_samples->raw_data_num();
@@ -657,15 +677,15 @@ int colvarbias_abf::replica_share_CZAR() {
   int msg_total = samples_n*sizeof(size_t) + samp_start;
   char* msg_data = new char[msg_total];
 
-  if (cvm::main()->proxy->replica_index() == 0) {
+  if (cvmodule->proxy->replica_index() == 0) {
      if (!global_z_samples) {
       // We arrive here if sharing has just been enabled by a script
       // Allocate grids for collective data, on replica 0 only
       // overriding CZAR grids that are equal to local ones by default
-      global_z_samples.reset(new colvar_grid_count(colvars));
+      global_z_samples.reset(new colvar_grid_count(colvars, samples));
       global_z_gradients.reset(new colvar_grid_gradient(colvars, global_z_samples));
-      global_czar_gradients.reset(new colvar_grid_gradient(colvars));
-      global_czar_pmf.reset(new integrate_potential(colvars, global_czar_gradients));
+      global_czar_gradients.reset(new colvar_grid_gradient(colvars, nullptr, samples));
+      global_czar_pmf.reset(new colvargrid_integrate(colvars, global_czar_gradients));
     }
 
     // Start with data from replica 0
@@ -676,7 +696,7 @@ int colvarbias_abf::replica_share_CZAR() {
     // Replica 0 collects the gradient and count from the others.
     for (p = 1; p < proxy->num_replicas(); p++) {
       if (proxy->replica_comm_recv(msg_data, msg_total, p) != msg_total) {
-        cvm::error("Error getting shared ABF data from replica.");
+        cvmodule->error("Error getting shared ABF data from replica.");
         return COLVARS_ERROR;
       }
 
@@ -695,7 +715,7 @@ int colvarbias_abf::replica_share_CZAR() {
     z_gradients->raw_data_out((cvm::real*)(&msg_data[0]));
     z_samples->raw_data_out((size_t*)(&msg_data[samp_start]));
     if (proxy->replica_comm_send(msg_data, msg_total, 0) != msg_total) {
-      cvm::error("Error sending shared ABF data to replica.");
+      cvmodule->error("Error sending shared ABF data to replica.");
       return COLVARS_ERROR;
     }
   }
@@ -724,17 +744,17 @@ size_t colvarbias_abf::replica_share_freq() const
 template <class T> int colvarbias_abf::write_grid_to_file(T const *grid,
                                                           std::string const &filename,
                                                           bool close) {
-  std::ostream &os = cvm::proxy->output_stream(filename, "multicolumn grid file");
+  std::ostream &os = cvmodule->proxy->output_stream(filename, "multicolumn grid file");
   if (!os) {
-    return cvm::error("Error opening file " + filename + " for writing.\n", COLVARS_ERROR | COLVARS_FILE_ERROR);
+    return cvmodule->error("Error opening file " + filename + " for writing.\n", COLVARS_ERROR | COLVARS_FILE_ERROR);
   }
   grid->write_multicol(os);
   if (close) {
-    cvm::proxy->close_output_stream(filename);
+    cvmodule->proxy->close_output_stream(filename);
   } else {
     // Insert empty line between frames in history files
     os << std::endl;
-    cvm::proxy->flush_output_stream(filename);
+    cvmodule->proxy->flush_output_stream(filename);
   }
 
   // In dimension higher than 2, dx is easier to handle and visualize
@@ -742,13 +762,13 @@ template <class T> int colvarbias_abf::write_grid_to_file(T const *grid,
   // (could be implemented as multiple dx files)
   if (num_variables() > 2 && close) {
     std::string  dx = filename + ".dx";
-    std::ostream &dx_os = cvm::proxy->output_stream(dx, "OpenDX grid file");
+    std::ostream &dx_os = cvmodule->proxy->output_stream(dx, "OpenDX grid file");
     if (!dx_os)  {
-      return cvm::error("Error opening file " + dx + " for writing.\n", COLVARS_ERROR | COLVARS_FILE_ERROR);
+      return cvmodule->error("Error opening file " + dx + " for writing.\n", COLVARS_ERROR | COLVARS_FILE_ERROR);
     }
     grid->write_opendx(dx_os);
     // if (close) {
-      cvm::proxy->close_output_stream(dx);
+      cvmodule->proxy->close_output_stream(dx);
     // }
     // else {
     //   // TODO, decide convention for multiple datasets in dx file
@@ -762,12 +782,12 @@ template <class T> int colvarbias_abf::write_grid_to_file(T const *grid,
 
 void colvarbias_abf::write_gradients_samples(const std::string &prefix, bool close, bool local)
 {
-  colvarproxy *proxy = cvm::main()->proxy;
+  colvarproxy *proxy = cvmodule->proxy;
 
   // The following are local aliases for the class' unique pointers
   colvar_grid_count *samples_out, *z_samples_out;
   colvar_grid_gradient *gradients_out, *z_gradients_out, *czar_gradients_out;
-  integrate_potential *pmf_out, *czar_pmf_out;
+  colvargrid_integrate *pmf_out, *czar_pmf_out;
 
   // In shared ABF, write grids containing local data only if requested
   if (local) {
@@ -813,7 +833,7 @@ void colvarbias_abf::write_gradients_samples(const std::string &prefix, bool clo
 
     // Update the CZAR estimator of gradients, except at step 0
     // in which case we preserve any existing data (e.g. read via inputPrefix, used to join strata in stratified eABF)
-    if (cvm::step_relative() > 0) {
+    if (cvmodule->step_relative() > 0) {
       for (std::vector<int> iz_bin = czar_gradients_out->new_index();
             czar_gradients_out->index_ok(iz_bin); czar_gradients_out->incr(iz_bin)) {
         for (size_t n = 0; n < czar_gradients_out->multiplicity(); n++) {
@@ -851,7 +871,7 @@ int colvarbias_abf::current_bin() {
 /// Give the count at a given bin index.
 int colvarbias_abf::bin_count(int bin_index) {
   if (bin_index < 0 || bin_index >= bin_num()) {
-    cvm::error("Error: Tried to get bin count from invalid bin index "+cvm::to_str(bin_index));
+    cvmodule->error("Error: Tried to get bin count from invalid bin index "+cvm::to_str(bin_index));
     return -1;
   }
   return int(samples->get_value(bin_index));
@@ -955,7 +975,7 @@ cvm::memory_stream & colvarbias_abf::write_state_data(cvm::memory_stream& os)
 template <typename IST> IST &colvarbias_abf::read_state_data_template_(IST &is)
 {
   if ( input_prefix.size() > 0 ) {
-    cvm::error("ERROR: cannot provide both inputPrefix and a colvars state file.\n", COLVARS_INPUT_ERROR);
+    cvmodule->error("Error: cannot provide both inputPrefix and a colvars state file.\n", COLVARS_INPUT_ERROR);
   }
 
   if (! read_state_data_key(is, "samples")) {
@@ -1013,7 +1033,7 @@ template <typename IST> IST &colvarbias_abf::read_state_data_template_(IST &is)
   if (shared_on) {
     last_gradients->copy_grid(*gradients);
     last_samples->copy_grid(*samples);
-    shared_last_step = cvm::step_absolute();
+    shared_last_step = cvmodule->step_absolute();
   }
 
   return is;
@@ -1035,7 +1055,7 @@ cvm::memory_stream & colvarbias_abf::read_state_data(cvm::memory_stream& is)
 int colvarbias_abf::write_output_files()
 {
   if (cvm::debug()) {
-    cvm::log("ABF bias trying to write gradients and samples to disk");
+    cvmodule->log("ABF bias trying to write gradients and samples to disk");
   }
 
   // In shared eABF/CZAR, the communication routine needs to run on all ranks
@@ -1048,7 +1068,7 @@ int colvarbias_abf::write_output_files()
     // Write local data on all replicas
     write_gradients_samples(output_prefix, true, true);
 
-    if (cvm::main()->proxy->replica_index() > 0) {
+    if (cvmodule->proxy->replica_index() > 0) {
       // No need to report the same data as replica 0, let it do the I/O job
       return COLVARS_OK;
     }
@@ -1060,11 +1080,11 @@ int colvarbias_abf::write_output_files()
   write_gradients_samples(master_prefix);
 
   if ((history_freq > 0) &&
-      (!shared_on || cvm::main()->proxy->replica_index() == 0) && // if shared, only on replica 0
-      (cvm::step_absolute() % history_freq == 0) &&               // at requested frequency
-      (cvm::step_absolute() != history_last_step)) {              // not twice the same timestep
+      (!shared_on || cvmodule->proxy->replica_index() == 0) && // if shared, only on replica 0
+      (cvmodule->step_absolute() % history_freq == 0) &&               // at requested frequency
+      (cvmodule->step_absolute() != history_last_step)) {              // not twice the same timestep
     write_gradients_samples(master_prefix + ".hist", false);
-    history_last_step = cvm::step_absolute();
+    history_last_step = cvmodule->step_absolute();
   }
 
   if (b_UI_estimator) {

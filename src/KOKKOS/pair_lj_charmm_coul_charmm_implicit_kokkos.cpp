@@ -102,15 +102,15 @@ void PairLJCharmmCoulCharmmImplicitKokkos<DeviceType>::compute(int eflag_in, int
   type = atomKK->k_type.view<DeviceType>();
   nlocal = atom->nlocal;
   nall = atom->nlocal + atom->nghost;
-  special_lj[0] = force->special_lj[0];
-  special_lj[1] = force->special_lj[1];
-  special_lj[2] = force->special_lj[2];
-  special_lj[3] = force->special_lj[3];
-  special_coul[0] = force->special_coul[0];
-  special_coul[1] = force->special_coul[1];
-  special_coul[2] = force->special_coul[2];
-  special_coul[3] = force->special_coul[3];
-  qqrd2e = force->qqrd2e;
+  special_lj[0] = static_cast<KK_FLOAT>(force->special_lj[0]);
+  special_lj[1] = static_cast<KK_FLOAT>(force->special_lj[1]);
+  special_lj[2] = static_cast<KK_FLOAT>(force->special_lj[2]);
+  special_lj[3] = static_cast<KK_FLOAT>(force->special_lj[3]);
+  special_coul[0] = static_cast<KK_FLOAT>(force->special_coul[0]);
+  special_coul[1] = static_cast<KK_FLOAT>(force->special_coul[1]);
+  special_coul[2] = static_cast<KK_FLOAT>(force->special_coul[2]);
+  special_coul[3] = static_cast<KK_FLOAT>(force->special_coul[3]);
+  qqrd2e = static_cast<KK_FLOAT>(force->qqrd2e);
   newton_pair = force->newton_pair;
 
   // loop over neighbors of my atoms
@@ -127,26 +127,26 @@ void PairLJCharmmCoulCharmmImplicitKokkos<DeviceType>::compute(int eflag_in, int
 
 
   if (eflag) {
-    eng_vdwl += ev.evdwl;
-    eng_coul += ev.ecoul;
+    eng_vdwl += static_cast<double>(ev.evdwl);
+    eng_coul += static_cast<double>(ev.ecoul);
   }
   if (vflag_global) {
-    virial[0] += ev.v[0];
-    virial[1] += ev.v[1];
-    virial[2] += ev.v[2];
-    virial[3] += ev.v[3];
-    virial[4] += ev.v[4];
-    virial[5] += ev.v[5];
+    virial[0] += static_cast<double>(ev.v[0]);
+    virial[1] += static_cast<double>(ev.v[1]);
+    virial[2] += static_cast<double>(ev.v[2]);
+    virial[3] += static_cast<double>(ev.v[3]);
+    virial[4] += static_cast<double>(ev.v[4]);
+    virial[5] += static_cast<double>(ev.v[5]);
   }
 
   if (eflag_atom) {
     k_eatom.template modify<DeviceType>();
-    k_eatom.template sync<LMPHostType>();
+    k_eatom.sync_host();
   }
 
   if (vflag_atom) {
     k_vatom.template modify<DeviceType>();
-    k_vatom.template sync<LMPHostType>();
+    k_vatom.sync_host();
   }
 
   if (vflag_fdotr) pair_virial_fdotr_compute(this);
@@ -159,22 +159,26 @@ void PairLJCharmmCoulCharmmImplicitKokkos<DeviceType>::compute(int eflag_in, int
    ---------------------------------------------------------------------- */
 template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
-F_FLOAT PairLJCharmmCoulCharmmImplicitKokkos<DeviceType>::
-compute_fpair(const F_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
+KK_FLOAT PairLJCharmmCoulCharmmImplicitKokkos<DeviceType>::
+compute_fpair(const KK_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
               const int& itype, const int& jtype) const {
-  const F_FLOAT r2inv = 1.0/rsq;
-  const F_FLOAT r6inv = r2inv*r2inv*r2inv;
-  F_FLOAT forcelj, switch1, switch2, englj;
+  const KK_FLOAT cut_lj_innersq_kk = static_cast<KK_FLOAT>(cut_lj_innersq);
+  const KK_FLOAT cut_ljsq_kk = static_cast<KK_FLOAT>(cut_ljsq);
+  const KK_FLOAT denom_lj_kk = static_cast<KK_FLOAT>(denom_lj);
+  const KK_FLOAT r2inv = static_cast<KK_FLOAT>(1.0)/rsq;
+  const KK_FLOAT r6inv = r2inv*r2inv*r2inv;
+  KK_FLOAT forcelj, switch1, switch2, englj;
 
   forcelj = r6inv *
     ((STACKPARAMS?m_params[itype][jtype].lj1:params(itype,jtype).lj1)*r6inv -
      (STACKPARAMS?m_params[itype][jtype].lj2:params(itype,jtype).lj2));
 
-  if (rsq > cut_lj_innersq) {
-    switch1 = (cut_ljsq-rsq) * (cut_ljsq-rsq) *
-              (cut_ljsq + 2.0*rsq - 3.0*cut_lj_innersq) / denom_lj;
-    switch2 = 12.0*rsq * (cut_ljsq-rsq) * (rsq-cut_lj_innersq) / denom_lj;
+  if (rsq > cut_lj_innersq_kk) {
+    switch1 = (cut_ljsq_kk-rsq) * (cut_ljsq_kk-rsq) *
+              (cut_ljsq_kk + static_cast<KK_FLOAT>(2.0)*rsq - static_cast<KK_FLOAT>(3.0)*cut_lj_innersq_kk) / denom_lj_kk;
+    switch2 = static_cast<KK_FLOAT>(12.0)*rsq * (cut_ljsq_kk-rsq) * (rsq-cut_lj_innersq_kk) / denom_lj_kk;
     englj = r6inv *
             ((STACKPARAMS?m_params[itype][jtype].lj3:params(itype,jtype).lj3)*r6inv -
              (STACKPARAMS?m_params[itype][jtype].lj4:params(itype,jtype).lj4));
@@ -189,21 +193,25 @@ compute_fpair(const F_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
    ---------------------------------------------------------------------- */
 template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
-F_FLOAT PairLJCharmmCoulCharmmImplicitKokkos<DeviceType>::
-compute_evdwl(const F_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
+KK_FLOAT PairLJCharmmCoulCharmmImplicitKokkos<DeviceType>::
+compute_evdwl(const KK_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
               const int& itype, const int& jtype) const {
-  const F_FLOAT r2inv = 1.0/rsq;
-  const F_FLOAT r6inv = r2inv*r2inv*r2inv;
-  F_FLOAT englj, switch1;
+  const KK_FLOAT cut_lj_innersq_kk = static_cast<KK_FLOAT>(cut_lj_innersq);
+  const KK_FLOAT cut_ljsq_kk = static_cast<KK_FLOAT>(cut_ljsq);
+  const KK_FLOAT denom_lj_kk = static_cast<KK_FLOAT>(denom_lj);
+  const KK_FLOAT r2inv = static_cast<KK_FLOAT>(1.0)/rsq;
+  const KK_FLOAT r6inv = r2inv*r2inv*r2inv;
+  KK_FLOAT englj, switch1;
 
   englj = r6inv *
     ((STACKPARAMS?m_params[itype][jtype].lj3:params(itype,jtype).lj3)*r6inv -
      (STACKPARAMS?m_params[itype][jtype].lj4:params(itype,jtype).lj4));
 
-  if (rsq > cut_lj_innersq) {
-    switch1 = (cut_ljsq-rsq) * (cut_ljsq-rsq) *
-      (cut_ljsq + 2.0*rsq - 3.0*cut_lj_innersq) / denom_lj;
+  if (rsq > cut_lj_innersq_kk) {
+    switch1 = (cut_ljsq_kk-rsq) * (cut_ljsq_kk-rsq) *
+      (cut_ljsq_kk + static_cast<KK_FLOAT>(2.0)*rsq - static_cast<KK_FLOAT>(3.0)*cut_lj_innersq_kk) / denom_lj_kk;
     englj *= switch1;
   }
 
@@ -216,22 +224,26 @@ compute_evdwl(const F_FLOAT& rsq, const int& /*i*/, const int& /*j*/,
    ---------------------------------------------------------------------- */
 template<class DeviceType>
 template<bool STACKPARAMS,  class Specialisation>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
-F_FLOAT PairLJCharmmCoulCharmmImplicitKokkos<DeviceType>::
-compute_fcoul(const F_FLOAT& rsq, const int& /*i*/, const int&j,
+KK_FLOAT PairLJCharmmCoulCharmmImplicitKokkos<DeviceType>::
+compute_fcoul(const KK_FLOAT& rsq, const int& /*i*/, const int&j,
               const int& /*itype*/, const int& /*jtype*/,
-              const F_FLOAT& factor_coul, const F_FLOAT& qtmp) const {
+              const KK_FLOAT& factor_coul, const KK_FLOAT& qtmp) const {
 
-  const F_FLOAT r2inv = 1.0/rsq;
-  F_FLOAT forcecoul, switch1, switch2;
+  const KK_FLOAT cut_coul_innersq_kk = static_cast<KK_FLOAT>(cut_coul_innersq);
+  const KK_FLOAT cut_coulsq_kk = static_cast<KK_FLOAT>(cut_coulsq);
+  const KK_FLOAT denom_coul_kk = static_cast<KK_FLOAT>(denom_coul);
+  const KK_FLOAT r2inv = static_cast<KK_FLOAT>(1.0)/rsq;
+  KK_FLOAT forcecoul, switch1, switch2;
 
-  forcecoul = 2.0 * qqrd2e * qtmp*q(j) * r2inv;
+  forcecoul = static_cast<KK_FLOAT>(2.0) * qqrd2e * qtmp*q(j) * r2inv;
 
-  if (rsq > cut_coul_innersq) {
-    switch1 = (cut_coulsq-rsq) * (cut_coulsq-rsq) *
-              (cut_coulsq + 2.0*rsq - 3.0*cut_coul_innersq) / denom_coul;
-    switch2 = 12.0*rsq * (cut_coulsq-rsq) * (rsq-cut_coul_innersq) / denom_coul;
-    forcecoul *= switch1 + 0.5*switch2;
+  if (rsq > cut_coul_innersq_kk) {
+    switch1 = (cut_coulsq_kk-rsq) * (cut_coulsq_kk-rsq) *
+              (cut_coulsq_kk + static_cast<KK_FLOAT>(2.0)*rsq - static_cast<KK_FLOAT>(3.0)*cut_coul_innersq_kk) / denom_coul_kk;
+    switch2 = static_cast<KK_FLOAT>(12.0)*rsq * (cut_coulsq_kk-rsq) * (rsq-cut_coul_innersq_kk) / denom_coul_kk;
+    forcecoul *= switch1 + static_cast<KK_FLOAT>(0.5)*switch2;
   }
 
   return forcecoul * r2inv * factor_coul;
@@ -243,19 +255,23 @@ compute_fcoul(const F_FLOAT& rsq, const int& /*i*/, const int&j,
    ---------------------------------------------------------------------- */
 template<class DeviceType>
 template<bool STACKPARAMS, class Specialisation>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
-F_FLOAT PairLJCharmmCoulCharmmImplicitKokkos<DeviceType>::
-compute_ecoul(const F_FLOAT& rsq, const int& /*i*/, const int&j,
-              const int& /*itype*/, const int& /*jtype*/, const F_FLOAT& factor_coul, const F_FLOAT& qtmp) const {
+KK_FLOAT PairLJCharmmCoulCharmmImplicitKokkos<DeviceType>::
+compute_ecoul(const KK_FLOAT& rsq, const int& /*i*/, const int&j,
+              const int& /*itype*/, const int& /*jtype*/, const KK_FLOAT& factor_coul, const KK_FLOAT& qtmp) const {
 
-  const F_FLOAT r2inv = 1.0/rsq;
-  F_FLOAT ecoul, switch1;
+  const KK_FLOAT cut_coul_innersq_kk = static_cast<KK_FLOAT>(cut_coul_innersq);
+  const KK_FLOAT cut_coulsq_kk = static_cast<KK_FLOAT>(cut_coulsq);
+  const KK_FLOAT denom_coul_kk = static_cast<KK_FLOAT>(denom_coul);
+  const KK_FLOAT r2inv = static_cast<KK_FLOAT>(1.0)/rsq;
+  KK_FLOAT ecoul, switch1;
 
   ecoul = qqrd2e * qtmp * q(j) * r2inv;
-  if (rsq > cut_coul_innersq) {
-    switch1 = (cut_coulsq-rsq) * (cut_coulsq-rsq) *
-              (cut_coulsq + 2.0*rsq - 3.0*cut_coul_innersq) /
-              denom_coul;
+  if (rsq > cut_coul_innersq_kk) {
+    switch1 = (cut_coulsq_kk-rsq) * (cut_coulsq_kk-rsq) *
+              (cut_coulsq_kk + static_cast<KK_FLOAT>(2.0)*rsq - static_cast<KK_FLOAT>(3.0)*cut_coul_innersq_kk) /
+              denom_coul_kk;
     ecoul *= switch1;
   }
 
@@ -278,9 +294,9 @@ void PairLJCharmmCoulCharmmImplicitKokkos<DeviceType>::allocate()
   memoryKK->create_kokkos(k_cutsq,cutsq,n+1,n+1,"pair:cutsq");
   d_cutsq = k_cutsq.template view<DeviceType>();
 
-  d_cut_ljsq = typename AT::t_ffloat_2d("pair:cut_ljsq",n+1,n+1);
+  d_cut_ljsq = typename AT::t_kkfloat_2d("pair:cut_ljsq",n+1,n+1);
 
-  d_cut_coulsq = typename AT::t_ffloat_2d("pair:cut_coulsq",n+1,n+1);
+  d_cut_coulsq = typename AT::t_kkfloat_2d("pair:cut_coulsq",n+1,n+1);
 
   k_params = Kokkos::DualView<params_lj_coul**,Kokkos::LayoutRight,DeviceType>("PairLJCharmmCoulCharmmImplicit::params",n+1,n+1);
   params = k_params.template view<DeviceType>();
@@ -291,8 +307,8 @@ void PairLJCharmmCoulCharmmImplicitKokkos<DeviceType>::init_tables(double cut_co
 {
   Pair::init_tables(cut_coul,cut_respa);
 
-  typedef typename ArrayTypes<DeviceType>::t_ffloat_1d table_type;
-  typedef typename ArrayTypes<LMPHostType>::t_ffloat_1d host_table_type;
+  typedef typename AT::t_kkfloat_1d table_type;
+  typedef HAT::t_kkfloat_1d host_table_type;
 
   int ntable = 1;
   for (int i = 0; i < ncoultablebits; i++) ntable *= 2;
@@ -303,7 +319,7 @@ void PairLJCharmmCoulCharmmImplicitKokkos<DeviceType>::init_tables(double cut_co
   host_table_type h_table("HostTable",ntable);
   table_type d_table("DeviceTable",ntable);
   for (int i = 0; i < ntable; i++) {
-    h_table(i) = rtable[i];
+    h_table(i) = static_cast<KK_FLOAT>(rtable[i]);
   }
   Kokkos::deep_copy(d_table,h_table);
   d_rtable = d_table;
@@ -313,7 +329,7 @@ void PairLJCharmmCoulCharmmImplicitKokkos<DeviceType>::init_tables(double cut_co
   host_table_type h_table("HostTable",ntable);
   table_type d_table("DeviceTable",ntable);
   for (int i = 0; i < ntable; i++) {
-    h_table(i) = drtable[i];
+    h_table(i) = static_cast<KK_FLOAT>(drtable[i]);
   }
   Kokkos::deep_copy(d_table,h_table);
   d_drtable = d_table;
@@ -325,7 +341,7 @@ void PairLJCharmmCoulCharmmImplicitKokkos<DeviceType>::init_tables(double cut_co
 
   // Copy ftable and dftable
   for (int i = 0; i < ntable; i++) {
-    h_table(i) = ftable[i];
+    h_table(i) = static_cast<KK_FLOAT>(ftable[i]);
   }
   Kokkos::deep_copy(d_table,h_table);
   d_ftable = d_table;
@@ -336,7 +352,7 @@ void PairLJCharmmCoulCharmmImplicitKokkos<DeviceType>::init_tables(double cut_co
   table_type d_table("DeviceTable",ntable);
 
   for (int i = 0; i < ntable; i++) {
-    h_table(i) = dftable[i];
+    h_table(i) = static_cast<KK_FLOAT>(dftable[i]);
   }
   Kokkos::deep_copy(d_table,h_table);
   d_dftable = d_table;
@@ -348,7 +364,7 @@ void PairLJCharmmCoulCharmmImplicitKokkos<DeviceType>::init_tables(double cut_co
 
   // Copy ctable and dctable
   for (int i = 0; i < ntable; i++) {
-    h_table(i) = ctable[i];
+    h_table(i) = static_cast<KK_FLOAT>(ctable[i]);
   }
   Kokkos::deep_copy(d_table,h_table);
   d_ctable = d_table;
@@ -359,7 +375,7 @@ void PairLJCharmmCoulCharmmImplicitKokkos<DeviceType>::init_tables(double cut_co
   table_type d_table("DeviceTable",ntable);
 
   for (int i = 0; i < ntable; i++) {
-    h_table(i) = dctable[i];
+    h_table(i) = static_cast<KK_FLOAT>(dctable[i]);
   }
   Kokkos::deep_copy(d_table,h_table);
   d_dctable = d_table;
@@ -371,7 +387,7 @@ void PairLJCharmmCoulCharmmImplicitKokkos<DeviceType>::init_tables(double cut_co
 
   // Copy etable and detable
   for (int i = 0; i < ntable; i++) {
-    h_table(i) = etable[i];
+    h_table(i) = static_cast<KK_FLOAT>(etable[i]);
   }
   Kokkos::deep_copy(d_table,h_table);
   d_etable = d_table;
@@ -382,24 +398,11 @@ void PairLJCharmmCoulCharmmImplicitKokkos<DeviceType>::init_tables(double cut_co
   table_type d_table("DeviceTable",ntable);
 
   for (int i = 0; i < ntable; i++) {
-    h_table(i) = detable[i];
+    h_table(i) = static_cast<KK_FLOAT>(detable[i]);
   }
   Kokkos::deep_copy(d_table,h_table);
   d_detable = d_table;
   }
-}
-
-
-/* ----------------------------------------------------------------------
-   global settings
-------------------------------------------------------------------------- */
-
-template<class DeviceType>
-void PairLJCharmmCoulCharmmImplicitKokkos<DeviceType>::settings(int narg, char **arg)
-{
-  if (narg > 2) error->all(FLERR,"Illegal pair_style command");
-
-  PairLJCharmmCoulCharmmImplicit::settings(narg,arg);
 }
 
 /* ----------------------------------------------------------------------
@@ -411,8 +414,8 @@ void PairLJCharmmCoulCharmmImplicitKokkos<DeviceType>::init_style()
 {
   PairLJCharmmCoulCharmmImplicit::init_style();
 
-  Kokkos::deep_copy(d_cut_ljsq,cut_ljsq);
-  Kokkos::deep_copy(d_cut_coulsq,cut_coulsq);
+  Kokkos::deep_copy(d_cut_ljsq,static_cast<KK_FLOAT>(cut_ljsq));
+  Kokkos::deep_copy(d_cut_coulsq,static_cast<KK_FLOAT>(cut_coulsq));
 
   // error if rRESPA with inner levels
 
@@ -443,25 +446,25 @@ double PairLJCharmmCoulCharmmImplicitKokkos<DeviceType>::init_one(int i, int j)
 {
   double cutone = PairLJCharmmCoulCharmmImplicit::init_one(i,j);
 
-  k_params.h_view(i,j).lj1 = lj1[i][j];
-  k_params.h_view(i,j).lj2 = lj2[i][j];
-  k_params.h_view(i,j).lj3 = lj3[i][j];
-  k_params.h_view(i,j).lj4 = lj4[i][j];
-  //k_params.h_view(i,j).offset = offset[i][j];
-  k_params.h_view(i,j).cut_ljsq = cut_ljsq;
-  k_params.h_view(i,j).cut_coulsq = cut_coulsq;
+  k_params.view_host()(i,j).lj1 = static_cast<KK_FLOAT>(lj1[i][j]);
+  k_params.view_host()(i,j).lj2 = static_cast<KK_FLOAT>(lj2[i][j]);
+  k_params.view_host()(i,j).lj3 = static_cast<KK_FLOAT>(lj3[i][j]);
+  k_params.view_host()(i,j).lj4 = static_cast<KK_FLOAT>(lj4[i][j]);
+  //k_params.view_host()(i,j).offset = offset[i][j];
+  k_params.view_host()(i,j).cut_ljsq = static_cast<KK_FLOAT>(cut_ljsq);
+  k_params.view_host()(i,j).cut_coulsq = static_cast<KK_FLOAT>(cut_coulsq);
 
-  k_params.h_view(j,i) = k_params.h_view(i,j);
+  k_params.view_host()(j,i) = k_params.view_host()(i,j);
   if (i<MAX_TYPES_STACKPARAMS+1 && j<MAX_TYPES_STACKPARAMS+1) {
-    m_params[i][j] = m_params[j][i] = k_params.h_view(i,j);
-    m_cutsq[j][i] = m_cutsq[i][j] = cutone*cutone;
-    m_cut_ljsq[j][i] = m_cut_ljsq[i][j] = cut_ljsq;
-    m_cut_coulsq[j][i] = m_cut_coulsq[i][j] = cut_coulsq;
+    m_params[i][j] = m_params[j][i] = k_params.view_host()(i,j);
+    m_cutsq[j][i] = m_cutsq[i][j] = static_cast<KK_FLOAT>(cutone*cutone);
+    m_cut_ljsq[j][i] = m_cut_ljsq[i][j] = static_cast<KK_FLOAT>(cut_ljsq);
+    m_cut_coulsq[j][i] = m_cut_coulsq[i][j] = static_cast<KK_FLOAT>(cut_coulsq);
   }
 
-  k_cutsq.h_view(i,j) = k_cutsq.h_view(j,i) = cutone*cutone;
-  k_cutsq.template modify<LMPHostType>();
-  k_params.template modify<LMPHostType>();
+  k_cutsq.view_host()(i,j) = k_cutsq.view_host()(j,i) = cutone*cutone;
+  k_cutsq.modify_host();
+  k_params.modify_host();
 
   return cutone;
 }

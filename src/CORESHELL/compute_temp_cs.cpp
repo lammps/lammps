@@ -99,9 +99,7 @@ ComputeTempCS::ComputeTempCS(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeTempCS::~ComputeTempCS()
 {
-  // check nfix in case all fixes have already been deleted
-
-  if (modify->nfix) modify->delete_fix(id_fix);
+  modify->delete_fix(id_fix);
 
   delete[] id_fix;
   delete[] vector;
@@ -261,9 +259,7 @@ void ComputeTempCS::compute_vector()
   double *rmass = atom->rmass;
   int nlocal = atom->nlocal;
   double massone;
-
-  double t[6];
-  for (int i = 0; i < 6; i++) t[i] = 0.0;
+  double t[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
 
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {

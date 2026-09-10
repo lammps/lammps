@@ -25,7 +25,7 @@ class Grid3d : protected Pointers {
   Grid3d(class LAMMPS *, MPI_Comm, int, int, int);
   Grid3d(class LAMMPS *, MPI_Comm, int, int, int, int, int, int, int, int, int, int, int, int, int,
          int, int);
-  ~Grid3d();
+  ~Grid3d() override;
 
   void set_distance(double);
   void set_stencil_grid(int, int);
@@ -99,7 +99,7 @@ class Grid3d : protected Pointers {
   int proczlo, proczhi;
 
   int ghostxlo, ghostxhi;    // # of my owned grid planes needed
-  int ghostylo, ghostyhi;    // by neighobr procs in each dir as their ghost planes
+  int ghostylo, ghostyhi;    // by neighbor procs in each dir as their ghost planes
   int ghostzlo, ghostzhi;
 
   // swap = exchange of owned and ghost grid cells between 2 procs, including self

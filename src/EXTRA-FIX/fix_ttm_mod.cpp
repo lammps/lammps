@@ -28,9 +28,10 @@
 #include "force.h"
 #include "math_const.h"
 #include "memory.h"
+#include "potential_file_reader.h"
 #include "random_mars.h"
 #include "respa.h"
-#include "potential_file_reader.h"
+#include "safe_pointers.h"
 #include "update.h"
 
 #include <cmath>
@@ -48,7 +49,7 @@ using namespace MathConst;
 //   to spatially average consistent with the TTM grid
 
 static const char cite_fix_ttm_mod[] =
-  "fix ttm/mod command: doi:10.1088/0953-8984/26/47/475401, doi:10.1002/ctpp.201310025\n\n"
+  "fix ttm/mod command: https://doi.org/10.1088/0953-8984/26/47/475401, https://doi.org/10.1002/ctpp.201310025\n\n"
   "@article{Pisarev2014,\n"
   "author = {Pisarev, V. V. and Starikov, S. V.},\n"
   "title = {Atomistic Simulation of Ion Track Formation in {UO$_2$}.},\n"
@@ -156,6 +157,20 @@ FixTTMMod::FixTTMMod(LAMMPS *lmp, int narg, char **arg) :
   if (surface_l >= surface_r)
     error->all(FLERR, "Left surface coordinate must be less than right surface coordinate");
 
+  // warn if the electron-ion coupling region does not span the whole box.
+  // when surface tracking is disabled (movsur == 0), only atoms in grid
+  // cells with surface_l <= ix < surface_r are coupled to the electrons.
+  // a too-small rsurface (or non-zero lsurface) silently restricts the
+  // coupling to a sub-slab.  for a fully periodic bulk run (equivalent to
+  // fix ttm) lsurface = 0 and rsurface = Nx must be used.
+
+  if (comm->me == 0 && movsur == 0 && (surface_l > 0 || surface_r < nxgrid))
+    error->warning(FLERR, "Fix ttm/mod electron-ion coupling is restricted to grid cells "
+                   "{} <= ix < {} in the x-direction (set by lsurface/rsurface); atoms in "
+                   "other cells are not coupled to the electronic subsystem. For a fully "
+                   "periodic bulk simulation set lsurface = 0 and rsurface = {} (= Nx).",
+                   surface_l, surface_r, nxgrid);
+
   // initialize Marsaglia RNG with processor-unique seed
 
   random = new RanMars(lmp,seed + comm->me);
@@ -174,7 +189,7 @@ FixTTMMod::FixTTMMod(LAMMPS *lmp, int narg, char **arg) :
   memory->create(net_energy_transfer_all,nzgrid,nygrid,nxgrid,"ttm/mod:net_energy_transfer_all");
 
   flangevin = nullptr;
-  grow_arrays(atom->nmax);
+  FixTTMMod::grow_arrays(atom->nmax);
 
   // grid OFFSET to perform
   // SHIFT to map atom to nearest or lower-left grid point
@@ -420,6 +435,7 @@ void FixTTMMod::read_parameters(const std::string &filename)
 
     try {
       PotentialFileReader reader(lmp, filename, "ttm/mod parameter");
+      reader.ignore_comments(false);
 
       // C0 (metal)
 
@@ -625,7 +641,7 @@ void FixTTMMod::write_electron_temperatures(const std::string &filename)
 {
   if (comm->me) return;
 
-  FILE *fp = fopen(filename.c_str(),"w");
+  SafeFilePtr fp = fopen(filename.c_str(),"w");
   if (!fp) error->one(FLERR,"Fix ttm/mod could not open output file {}: {}",
                       filename, utils::getsyserror());
   utils::print(fp,"# DATE: {} UNITS: {} COMMENT: Electron temperature "
@@ -642,7 +658,6 @@ void FixTTMMod::write_electron_temperatures(const std::string &filename)
         fprintf(fp,"%d %d %d %20.16g\n",ix+1,iy+1,iz+1,T_electron[iz][iy][ix]);
       }
 
-  fclose(fp);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -942,7 +957,7 @@ void FixTTMMod::write_restart(FILE *fp)
 void FixTTMMod::restart(char *buf)
 {
   int n = 0;
-  auto rlist = (double *) buf;
+  auto *rlist = (double *) buf;
 
   // check that restart grid size is same as current grid size
 

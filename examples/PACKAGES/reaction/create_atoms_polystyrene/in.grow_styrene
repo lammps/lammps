@@ -32,15 +32,16 @@ molecule mol1 grow_styrene_pre.molecule_template
 molecule mol2 grow_styrene_post.molecule_template
 
 fix myrxns all bond/react stabilization yes statted_grp .03 &
+    max_rxn rxn1 30 &
     react rxn1 all 1 0 3.0 mol1 mol2 grow_styrene.map &
-        modify_create fit create_fit overlap 2.0 &
-        stabilize_steps 200 max_rxn 30
+        modify_create fit create_fit overlap 2.0 stabilize_steps 200
 
 fix 1 statted_grp_REACT nvt temp $T $T 100
 
 fix 4 bond_react_MASTER_group temp/rescale 1 $T $T 1 1
 
 thermo_style custom step temp press density f_myrxns[*]
+thermo_modify colname auto
 
 thermo 100
 

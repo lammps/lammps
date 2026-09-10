@@ -105,7 +105,7 @@ void BondLeptonOMP::eval(int nfrom, int nto, ThrData *const thr)
       if (EFLAG) bondpot.emplace_back(parsed.createCompiledExpression());
     }
   } catch (std::exception &e) {
-    error->all(FLERR, e.what());
+    error->all(FLERR, Error::NOLASTLINE, e.what());
   }
 
   const auto *_noalias const x = (dbl3_t *) atom->x[0];

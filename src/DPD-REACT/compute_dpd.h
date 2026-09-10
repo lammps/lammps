@@ -30,9 +30,6 @@ class ComputeDpd : public Compute {
   ~ComputeDpd() override;
   void init() override {}
   void compute_vector() override;
-
- private:
-  double *dpdU;
 };
 
 }    // namespace LAMMPS_NS

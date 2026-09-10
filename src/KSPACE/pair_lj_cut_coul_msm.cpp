@@ -135,7 +135,7 @@ void PairLJCutCoulMSM::compute(int eflag, int vflag)
             rsq_lookup.f = rsq;
             itable = rsq_lookup.i & ncoulmask;
             itable >>= ncoulshiftbits;
-            fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
+            fraction = ((double) rsq_lookup.f - rtable[itable]) * drtable[itable];
             table = ftable[itable] + fraction*dftable[itable];
             forcecoul = qtmp*q[j] * table;
             if (factor_coul < 1.0) {
@@ -165,7 +165,7 @@ void PairLJCutCoulMSM::compute(int eflag, int vflag)
         } else {
           // separate LJ and Coulombic forces
 
-          fpair = (factor_lj*forcelj) * r2inv;
+          fpair = factor_lj * forcelj * r2inv;
 
           f[i][0] += delx*fpair;
           f[i][1] += dely*fpair;
@@ -176,7 +176,7 @@ void PairLJCutCoulMSM::compute(int eflag, int vflag)
             f[j][2] -= delz*fpair;
           }
 
-          fcoul = (forcecoul) * r2inv;
+          fcoul = forcecoul * r2inv;
 
           ftmp[i][0] += delx*fcoul;
           ftmp[i][1] += dely*fcoul;
@@ -318,7 +318,7 @@ void PairLJCutCoulMSM::compute_outer(int eflag, int vflag)
             rsq_lookup.f = rsq;
             itable = rsq_lookup.i & ncoulmask;
             itable >>= ncoulshiftbits;
-            fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
+            fraction = ((double) rsq_lookup.f - rtable[itable]) * drtable[itable];
             table = ftable[itable] + fraction*dftable[itable];
             forcecoul = qtmp*q[j] * table;
             if (factor_coul < 1.0) {
@@ -431,7 +431,7 @@ double PairLJCutCoulMSM::single(int i, int j, int itype, int jtype,
       rsq_lookup_single.f = rsq;
       itable = rsq_lookup_single.i & ncoulmask;
       itable >>= ncoulshiftbits;
-      fraction = (rsq_lookup_single.f - rtable[itable]) * drtable[itable];
+      fraction = ((double) rsq_lookup_single.f - rtable[itable]) * drtable[itable];
       table = ftable[itable] + fraction*dftable[itable];
       forcecoul = atom->q[i]*atom->q[j] * table;
       if (factor_coul < 1.0) {

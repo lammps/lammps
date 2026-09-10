@@ -1,15 +1,14 @@
 Tutorial for Thermalized Drude oscillators in LAMMPS
 ====================================================
 
-This tutorial explains how to use Drude oscillators in LAMMPS to
-simulate polarizable systems using the DRUDE package. As an
+This Howto document explains how to use Drude oscillators in LAMMPS to
+simulate polarizable systems using the DRUDE package.  As an
 illustration, the input files for a simulation of 250 phenol molecules
-are documented. First of all, LAMMPS has to be compiled with the
-DRUDE package activated. Then, the data file and input scripts
-have to be modified to include the Drude dipoles and how to handle
-them.
+are documented.  First of all, LAMMPS has to be compiled with the DRUDE
+package included.  Then, the data file and input scripts have to be
+modified to include the Drude dipoles and how to handle them.
 
-Example input scripts available: examples/PACKAGES/drude
+Example input scripts are available: ``examples/PACKAGES/drude``
 
 ----------
 
@@ -43,43 +42,68 @@ charge, and force constant can be chosen following different
 strategies, as in the following examples of polarizable force
 fields:
 
-* :ref:`Lamoureux and Roux <Lamoureux2>` suggest adopting a global half-stiffness, :math:`K_D` = 500 kcal/(mol Ang :math:`{}^2`) - which corresponds to a force constant :math:`k_D` = 4184 kJ/(mol Ang :math:`{}^2`) - for all types of core-Drude bond, a global mass :math:`m_D` = 0.4 g/mol (or u) for all types of Drude particles, and to calculate the Drude charges for individual atom types from the atom polarizabilities using equation (1). This choice is followed in the polarizable CHARMM force field.
-* Alternately :ref:`Schroeder and Steinhauser <Schroeder>` suggest adopting a global charge :math:`q_D` = -1.0e and a global mass :math:`m_D` = 0.1 g/mol (or u) for all Drude particles, and to calculate the force constant for each type of core-Drude bond from equation (1). The timesteps used by these authors are between 0.5 and 2 fs, with the degrees of freedom of the Drude oscillators kept cold at 1 K.
-* In both these force fields hydrogen atoms are treated as non-polarizable.
+* :ref:`Lamoureux and Roux <Lamoureux2>` suggest adopting a global
+  half-stiffness, :math:`K_D` = 500 kcal/(mol Ang :math:`{}^2`) - which
+  corresponds to a force constant :math:`k_D` = 4184 kJ/(mol Ang
+  :math:`{}^2`) - for all types of core-Drude bond, a global mass
+  :math:`m_D` = 0.4 g/mol (or u) for all types of Drude particles, and
+  to calculate the Drude charges for individual atom types from the atom
+  polarizabilities using equation (1). This choice is followed in the
+  polarizable CHARMM force field.
+* Alternately, :ref:`Schroeder and Steinhauser <Schroeder>` suggest
+  adopting a global charge :math:`q_D` = -1.0e and a global mass
+  :math:`m_D` = 0.1 g/mol (or u) for all Drude particles, and to
+  calculate the force constant for each type of core-Drude bond from
+  equation (1). The timesteps used by these authors are between 0.5 and
+  2 fs, with the degrees of freedom of the Drude oscillators kept cold
+  at 1 K.
+* In both these force fields hydrogen atoms are treated as
+  non-polarizable.
 
-The motion of of the Drude particles can be calculated by minimizing
-the energy of the induced dipoles at each timestep, by an iterative,
-self-consistent procedure. The Drude particles can be massless and
-therefore do not contribute to the kinetic energy. However, the
-relaxed method is computational slow. An extended-lagrangian method
-can be used to calculate the positions of the Drude particles, but
-this requires them to have mass. It is important in this case to
-decouple the degrees of freedom associated with the Drude oscillators
-from those of the normal atoms. Thermalizing the Drude dipoles at
-temperatures comparable to the rest of the simulation leads to several
-problems (kinetic energy transfer, very short timestep, etc.), which
-can be remedied by the "cold Drude" technique (:ref:`Lamoureux and Roux <Lamoureux2>`).
+The motion of the Drude particles can be calculated by minimizing the
+energy of the induced dipoles at each timestep, by an iterative,
+self-consistent procedure.  The Drude particles can be massless and
+therefore do not contribute to the kinetic energy. However, the relaxed
+method is computationally slow.  An extended-lagrangian method can be
+used to calculate the positions of the Drude particles, but this
+requires them to have mass.  It is important in this case to decouple
+the degrees of freedom associated with the Drude oscillators from those
+of the normal atoms.  Thermalizing the Drude dipoles at temperatures
+comparable to the rest of the simulation leads to several problems
+(kinetic energy transfer, very short timestep, etc.), which can be
+remedied by the "cold Drude" technique (:ref:`Lamoureux and Roux
+<Lamoureux2>`).
 
 Two closely related models are used to represent polarization through
-"charges on a spring": the core-shell model and the Drude
-model. Although the basic idea is the same, the core-shell model is
-normally used for ionic/crystalline materials, whereas the Drude model
-is normally used for molecular systems and fluid states. In ionic
-crystals the symmetry around each ion and the distance between them
-are such that the core-shell model is sufficiently stable. But to be
-applicable to molecular/covalent systems the Drude model includes two
-important features:
+"charges on a spring": the core-shell model and the Drude model.
+Although the basic idea is the same, the core-shell model is normally
+used for ionic/crystalline materials, whereas the Drude model is
+normally used for molecular systems and fluid states.  In ionic crystals
+the symmetry around each ion and the distance between them are such that
+the core-shell model is sufficiently stable.  But to be applicable to
+molecular/covalent systems the Drude model includes two important
+features:
 
-#. The possibility to thermostat the additional degrees of freedom associated with the induced dipoles at very low temperature, in terms of the reduced coordinates of the Drude particles with respect to their cores. This makes the trajectory close to that of relaxed induced dipoles.
-#. The Drude dipoles on covalently bonded atoms interact too strongly due to the short distances, so an atom may capture the Drude particle (shell) of a neighbor, or the induced dipoles within the same molecule may align too much.  To avoid this, damping at short of the interactions between the point charges composing the induced dipole can be done by :ref:`Thole <Thole2>` functions.
+#. The possibility to thermostat the additional degrees of freedom
+   associated with the induced dipoles at very low temperature, in terms
+   of the reduced coordinates of the Drude particles with respect to
+   their cores.  This makes the trajectory close to that of relaxed
+   induced dipoles.
+#. The Drude dipoles on covalently bonded atoms interact too strongly
+   due to the short distances, so an atom may capture the Drude particle
+   (shell) of a neighbor, or the induced dipoles within the same
+   molecule may align too much.  To avoid this, damping at short range
+   of the interactions between the point charges composing the induced
+   dipole can be done by :ref:`Thole <Thole2>` functions.
 
 ----------
 
 **Preparation of the data file**
 
 The data file is similar to a standard LAMMPS data file for
-*atom_style full*.  The DPs and the *harmonic bonds* connecting them
-to their DC should appear in the data file as normal atoms and bonds.
+:doc:`atom_style full <atom_style>`.  The DPs and the :doc:`harmonic
+bonds <bond_harmonic>` connecting them to their DC should appear in the
+data file as normal atoms and bonds.
 
 You can use the *polarizer* tool (Python script distributed with the
 DRUDE package) to convert a non-polarizable data file (here
@@ -244,9 +268,10 @@ The input file should now be ready for use!
 
 You will notice that the global temperature *thermo_temp* computed by
 LAMMPS is not 300. K as wanted.  This is because LAMMPS treats DPs as
-standard atoms in his default compute.  If you want to output the
+standard atoms in its default compute.  If you want to output the
 temperatures of the DC-DP pair centers of mass and of the DPs relative
-to their DCs, you should use the :doc:`compute temp_drude <compute_temp_drude>`
+to their DCs, you should use the :doc:`compute temp_drude
+<compute_temp_drude>`
 
 .. code-block:: LAMMPS
 

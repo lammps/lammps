@@ -39,7 +39,6 @@ struct TransposeHelperKokkos {
   using dst_layout = typename t_view_dst::traits::array_layout;
   using src_layout = typename t_view_src::traits::array_layout;
 
-  typedef ArrayTypes<DeviceType> AT;
 
   using t_view_value = typename t_view_dst::value_type;
 
@@ -101,6 +100,7 @@ struct TransposeHelperKokkos {
     }
   }
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(const typename Kokkos::TeamPolicy<DeviceType>::member_type& team_member) const {
 

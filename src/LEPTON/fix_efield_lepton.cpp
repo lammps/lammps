@@ -23,13 +23,14 @@
 #include "domain.h"
 #include "error.h"
 #include "force.h"
-#include "input.h"
-#include "modify.h"
 #include "region.h"
 #include "respa.h"
 #include "update.h"
 
 #include <array>
+#include <cmath>
+#include <cstring>
+#include <exception>
 
 #include "Lepton.h"
 #include "lepton_utils.h"
@@ -131,7 +132,7 @@ void FixEfieldLepton::init()
   }
 
   if (utils::strmatch(update->integrate_style, "^respa")) {
-    auto respa = dynamic_cast<Respa *>(update->integrate);
+    auto *respa = dynamic_cast<Respa *>(update->integrate);
     if (respa) ilevel_respa = respa->nlevels - 1;
     if (respa_level >= 0) ilevel_respa = MIN(respa_level, ilevel_respa);
   }
@@ -149,7 +150,7 @@ void FixEfieldLepton::init()
 void FixEfieldLepton::setup(int vflag)
 {
   if (utils::strmatch(update->integrate_style, "^respa")) {
-    auto respa = dynamic_cast<Respa *>(update->integrate);
+    auto *respa = dynamic_cast<Respa *>(update->integrate);
     if (respa) {
       respa->copy_flevel_f(ilevel_respa);
       post_force_respa(vflag, ilevel_respa, 0);

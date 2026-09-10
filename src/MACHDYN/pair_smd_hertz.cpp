@@ -145,7 +145,7 @@ void PairHertz::compute(int eflag, int vflag) {
                                         dely0 = x0[j][1] - x0[i][1];
                                         delz0 = x0[j][2] - x0[i][2];
                                         if (periodic) {
-                                                domain->minimum_image(delx0, dely0, delz0);
+                                                domain->minimum_image(FLERR, delx0, dely0, delz0);
                                         }
                                         rSq0 = delx0 * delx0 + dely0 * dely0 + delz0 * delz0; // initial distance
                                         sphCut = sph_radius[i] + sph_radius[j];

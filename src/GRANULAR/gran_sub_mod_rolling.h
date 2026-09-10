@@ -11,20 +11,13 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef GRAN_SUB_MOD_CLASS
-// clang-format off
-GranSubModStyle(none,GranSubModRollingNone,ROLLING);
-GranSubModStyle(sds,GranSubModRollingSDS,ROLLING);
-// clang-format on
-#else
-
 #ifndef GRAN_SUB_MOD_ROLLING_H
 #define GRAN_SUB_MOD_ROLLING_H
 
 #include "gran_sub_mod.h"
 
-namespace LAMMPS_NS {
-namespace Granular_NS {
+
+namespace LAMMPS_NS::Granular_NS {
 
   class GranSubModRolling : public GranSubMod {
    public:
@@ -37,7 +30,7 @@ namespace Granular_NS {
   class GranSubModRollingNone : public GranSubModRolling {
    public:
     GranSubModRollingNone(class GranularModel *, class LAMMPS *);
-    void calculate_forces() override{};
+    void calculate_forces() override {};
   };
 
   /* ---------------------------------------------------------------------- */
@@ -52,8 +45,7 @@ namespace Granular_NS {
     double k, mu, gamma;
   };
 
-}    // namespace Granular_NS
-}    // namespace LAMMPS_NS
+} // namespace LAMMPS_NS::Granular_NS
+
 
 #endif /*GRAN_SUB_MOD_ROLLING_H */
-#endif /*GRAN_SUB_MOD_CLASS_H */

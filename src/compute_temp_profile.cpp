@@ -120,7 +120,7 @@ ComputeTempProfile::ComputeTempProfile(LAMMPS *lmp, int narg, char **arg) :
   if (nbins <= 0) error->all(FLERR,"Illegal compute temp/profile command");
 
   nstreaming = (xflag==0 ? 0 : 1) + (yflag==0 ? 0 : 1) + (zflag==0 ? 0 : 1);
-  reset_extra_dof();
+  ComputeTempProfile::reset_extra_dof();
 
   memory->create(vbin,nbins,ncount,"temp/profile:vbin");
   memory->create(binave,nbins,ncount,"temp/profile:binave");
@@ -147,6 +147,8 @@ ComputeTempProfile::ComputeTempProfile(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeTempProfile::~ComputeTempProfile()
 {
+  if (copymode) return;
+
   memory->destroy(vbin);
   memory->destroy(binave);
   memory->destroy(bin);
@@ -343,13 +345,12 @@ void ComputeTempProfile::compute_array()
     array[i][0] = binave[i][ncount-1];
     totcount += array[i][0];
   }
-  double nper = domain->dimension - (extra_dof + fix_dof)/totcount;
+  double nper = (totcount > 0.0) ? domain->dimension - (extra_dof + fix_dof)/totcount : 0.0;
   double dofbin, tfactorbin;
   for (i = 0; i < nbins; i++) {
     if (array[i][0] > 0.0) {
       dofbin = nper*array[i][0] - nstreaming;
-      if (dofbin > 0) tfactorbin = force->mvv2e / (dofbin * force->boltz);
-      else tfactorbin = 0.0;
+      tfactorbin = (dofbin > 0.0) ? force->mvv2e / (dofbin * force->boltz) : 0.0;
       array[i][1] = tfactorbin*tbinall[i];
     } else array[i][1] = 0.0;
   }

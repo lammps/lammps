@@ -1,10 +1,11 @@
 .. index:: angle_style cosine/periodic
+.. index:: angle_style cosine/periodic/kk
 .. index:: angle_style cosine/periodic/omp
 
 angle_style cosine/periodic command
 ===================================
 
-Accelerator Variants: *cosine/periodic/omp*
+Accelerator Variants: *cosine/periodic/kk*, *cosine/periodic/omp*
 
 Syntax
 """"""

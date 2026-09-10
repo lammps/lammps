@@ -14,8 +14,9 @@
 #include "lmptype.h"
 #include "my_page.h"
 #include "my_pool_chunk.h"
-#include "gmock/gmock.h"
 #include "gtest/gtest.h"
+
+#include <string>
 
 using namespace LAMMPS_NS;
 

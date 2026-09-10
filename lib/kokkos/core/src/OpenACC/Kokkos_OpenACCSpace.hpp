@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
 #include <Kokkos_Macros.hpp>
@@ -39,7 +26,8 @@ class OpenACCSpace {
   using execution_space = OpenACC;
   using device_type     = Kokkos::Device<execution_space, memory_space>;
 
-  using size_type = size_t;
+  using size_type  = size_t;
+  using index_type = std::make_signed_t<size_type>;
 
   OpenACCSpace() = default;
 
@@ -92,7 +80,6 @@ struct Kokkos::Impl::MemorySpaceAccess<Kokkos::HostSpace,
   enum : bool { assignable = false };
   enum : bool { accessible = false };
 #endif
-  enum : bool { deepcopy = true };
 };
 
 template <>
@@ -105,7 +92,6 @@ struct Kokkos::Impl::MemorySpaceAccess<Kokkos::Experimental::OpenACCSpace,
   enum : bool { assignable = false };
   enum : bool { accessible = false };
 #endif
-  enum : bool { deepcopy = true };
 };
 
 template <>
@@ -113,7 +99,6 @@ struct Kokkos::Impl::MemorySpaceAccess<Kokkos::Experimental::OpenACCSpace,
                                        Kokkos::Experimental::OpenACCSpace> {
   enum : bool { assignable = true };
   enum : bool { accessible = true };
-  enum : bool { deepcopy = true };
 };
 /*--------------------------------------------------------------------------*/
 

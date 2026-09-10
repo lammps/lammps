@@ -1,20 +1,12 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+#else
 #include <Kokkos_Core.hpp>
+#endif
 
 namespace Test {
 
@@ -155,7 +147,7 @@ struct TestTeamThreadMDRangeParallelFor : public TestTeamMDParallelFor {
   template <Kokkos::Iterate Direction = Kokkos::Iterate::Default>
   static void test_parallel_for_3D_TeamThreadMDRange(DimsType const& dims) {
     using ViewType     = typename Kokkos::View<DataType***, ExecSpace>;
-    using HostViewType = typename ViewType::HostMirror;
+    using HostViewType = typename ViewType::host_mirror_type;
 
     int leagueSize = dims[0];
     int n0         = dims[1];
@@ -165,14 +157,9 @@ struct TestTeamThreadMDRangeParallelFor : public TestTeamMDParallelFor {
     FillFlattenedIndex fillFlattenedIndex(leagueSize, n0, n1);
 
     Kokkos::parallel_for(
-        Kokkos::TeamPolicy<ExecSpace>(leagueSize, Kokkos::AUTO,
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-                                      2
-#else
-                                      Kokkos::TeamPolicy<
-                                          ExecSpace>::vector_length_max()
-#endif
-                                      ),
+        Kokkos::TeamPolicy<ExecSpace>(
+            leagueSize, Kokkos::AUTO,
+            Kokkos::TeamPolicy<ExecSpace>::vector_length_max()),
         KOKKOS_LAMBDA(const TeamType& team) {
           int leagueRank = team.league_rank();
 
@@ -194,7 +181,7 @@ struct TestTeamThreadMDRangeParallelFor : public TestTeamMDParallelFor {
   template <Kokkos::Iterate Direction = Kokkos::Iterate::Default>
   static void test_parallel_for_4D_TeamThreadMDRange(DimsType const& dims) {
     using ViewType     = typename Kokkos::View<DataType****, ExecSpace>;
-    using HostViewType = typename ViewType::HostMirror;
+    using HostViewType = typename ViewType::host_mirror_type;
 
     int leagueSize = dims[0];
     int n0         = dims[1];
@@ -205,14 +192,9 @@ struct TestTeamThreadMDRangeParallelFor : public TestTeamMDParallelFor {
     FillFlattenedIndex fillFlattenedIndex(leagueSize, n0, n1, n2);
 
     Kokkos::parallel_for(
-        Kokkos::TeamPolicy<ExecSpace>(leagueSize, Kokkos::AUTO,
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-                                      2
-#else
-                                      Kokkos::TeamPolicy<
-                                          ExecSpace>::vector_length_max()
-#endif
-                                      ),
+        Kokkos::TeamPolicy<ExecSpace>(
+            leagueSize, Kokkos::AUTO,
+            Kokkos::TeamPolicy<ExecSpace>::vector_length_max()),
         KOKKOS_LAMBDA(const TeamType& team) {
           int leagueRank = team.league_rank();
 
@@ -234,7 +216,7 @@ struct TestTeamThreadMDRangeParallelFor : public TestTeamMDParallelFor {
   template <Kokkos::Iterate Direction = Kokkos::Iterate::Default>
   static void test_parallel_for_5D_TeamThreadMDRange(DimsType const& dims) {
     using ViewType     = typename Kokkos::View<DataType*****, ExecSpace>;
-    using HostViewType = typename ViewType::HostMirror;
+    using HostViewType = typename ViewType::host_mirror_type;
 
     int leagueSize = dims[0];
     int n0         = dims[1];
@@ -246,14 +228,9 @@ struct TestTeamThreadMDRangeParallelFor : public TestTeamMDParallelFor {
     FillFlattenedIndex fillFlattenedIndex(leagueSize, n0, n1, n2, n3);
 
     Kokkos::parallel_for(
-        Kokkos::TeamPolicy<ExecSpace>(leagueSize, Kokkos::AUTO,
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-                                      2
-#else
-                                      Kokkos::TeamPolicy<
-                                          ExecSpace>::vector_length_max()
-#endif
-                                      ),
+        Kokkos::TeamPolicy<ExecSpace>(
+            leagueSize, Kokkos::AUTO,
+            Kokkos::TeamPolicy<ExecSpace>::vector_length_max()),
         KOKKOS_LAMBDA(const TeamType& team) {
           int leagueRank = team.league_rank();
 
@@ -276,7 +253,7 @@ struct TestTeamThreadMDRangeParallelFor : public TestTeamMDParallelFor {
   template <Kokkos::Iterate Direction = Kokkos::Iterate::Default>
   static void test_parallel_for_6D_TeamThreadMDRange(DimsType const& dims) {
     using ViewType     = typename Kokkos::View<DataType******, ExecSpace>;
-    using HostViewType = typename ViewType::HostMirror;
+    using HostViewType = typename ViewType::host_mirror_type;
 
     int leagueSize = dims[0];
     int n0         = dims[1];
@@ -289,14 +266,9 @@ struct TestTeamThreadMDRangeParallelFor : public TestTeamMDParallelFor {
     FillFlattenedIndex fillFlattenedIndex(leagueSize, n0, n1, n2, n3, n4);
 
     Kokkos::parallel_for(
-        Kokkos::TeamPolicy<ExecSpace>(leagueSize, Kokkos::AUTO,
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-                                      2
-#else
-                                      Kokkos::TeamPolicy<
-                                          ExecSpace>::vector_length_max()
-#endif
-                                      ),
+        Kokkos::TeamPolicy<ExecSpace>(
+            leagueSize, Kokkos::AUTO,
+            Kokkos::TeamPolicy<ExecSpace>::vector_length_max()),
         KOKKOS_LAMBDA(const TeamType& team) {
           int leagueRank = team.league_rank();
 
@@ -320,7 +292,7 @@ struct TestTeamThreadMDRangeParallelFor : public TestTeamMDParallelFor {
   template <Kokkos::Iterate Direction = Kokkos::Iterate::Default>
   static void test_parallel_for_7D_TeamThreadMDRange(DimsType const& dims) {
     using ViewType     = typename Kokkos::View<DataType*******, ExecSpace>;
-    using HostViewType = typename ViewType::HostMirror;
+    using HostViewType = typename ViewType::host_mirror_type;
 
     int leagueSize = dims[0];
     int n0         = dims[1];
@@ -334,14 +306,9 @@ struct TestTeamThreadMDRangeParallelFor : public TestTeamMDParallelFor {
     FillFlattenedIndex fillFlattenedIndex(leagueSize, n0, n1, n2, n3, n4, n5);
 
     Kokkos::parallel_for(
-        Kokkos::TeamPolicy<ExecSpace>(leagueSize, Kokkos::AUTO,
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-                                      2
-#else
-                                      Kokkos::TeamPolicy<
-                                          ExecSpace>::vector_length_max()
-#endif
-                                      ),
+        Kokkos::TeamPolicy<ExecSpace>(
+            leagueSize, Kokkos::AUTO,
+            Kokkos::TeamPolicy<ExecSpace>::vector_length_max()),
         KOKKOS_LAMBDA(const TeamType& team) {
           int leagueRank = team.league_rank();
 
@@ -365,7 +332,7 @@ struct TestTeamThreadMDRangeParallelFor : public TestTeamMDParallelFor {
   template <Kokkos::Iterate Direction = Kokkos::Iterate::Default>
   static void test_parallel_for_8D_TeamThreadMDRange(DimsType const& dims) {
     using ViewType     = typename Kokkos::View<DataType********, ExecSpace>;
-    using HostViewType = typename ViewType::HostMirror;
+    using HostViewType = typename ViewType::host_mirror_type;
 
     int leagueSize = dims[0];
     int n0         = dims[1];
@@ -381,14 +348,9 @@ struct TestTeamThreadMDRangeParallelFor : public TestTeamMDParallelFor {
                                           n6);
 
     Kokkos::parallel_for(
-        Kokkos::TeamPolicy<ExecSpace>(leagueSize, Kokkos::AUTO,
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-                                      2
-#else
-                                      Kokkos::TeamPolicy<
-                                          ExecSpace>::vector_length_max()
-#endif
-                                      ),
+        Kokkos::TeamPolicy<ExecSpace>(
+            leagueSize, Kokkos::AUTO,
+            Kokkos::TeamPolicy<ExecSpace>::vector_length_max()),
         KOKKOS_LAMBDA(const TeamType& team) {
           int leagueRank = team.league_rank();
 
@@ -412,7 +374,7 @@ struct TestTeamThreadMDRangeParallelFor : public TestTeamMDParallelFor {
   template <Kokkos::Iterate Direction = Kokkos::Iterate::Default>
   static void test_parallel_single_direction_test(DimsType const& dims) {
     using ViewType     = typename Kokkos::View<DataType***, ExecSpace>;
-    using HostViewType = typename ViewType::HostMirror;
+    using HostViewType = typename ViewType::host_mirror_type;
 
     int n0 = dims[0];
     int n1 = dims[1];
@@ -447,7 +409,7 @@ struct TestThreadVectorMDRangeParallelFor : public TestTeamMDParallelFor {
   template <Kokkos::Iterate Direction = Kokkos::Iterate::Default>
   static void test_parallel_for_4D_ThreadVectorMDRange(DimsType const& dims) {
     using ViewType     = typename Kokkos::View<DataType****, ExecSpace>;
-    using HostViewType = typename ViewType::HostMirror;
+    using HostViewType = typename ViewType::host_mirror_type;
 
     int leagueSize = dims[0];
     int n0         = dims[1];
@@ -458,14 +420,9 @@ struct TestThreadVectorMDRangeParallelFor : public TestTeamMDParallelFor {
     FillFlattenedIndex fillFlattenedIndex(leagueSize, n0, n1, n2);
 
     Kokkos::parallel_for(
-        Kokkos::TeamPolicy<ExecSpace>(leagueSize, Kokkos::AUTO,
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-                                      2
-#else
-                                      Kokkos::TeamPolicy<
-                                          ExecSpace>::vector_length_max()
-#endif
-                                      ),
+        Kokkos::TeamPolicy<ExecSpace>(
+            leagueSize, Kokkos::AUTO,
+            Kokkos::TeamPolicy<ExecSpace>::vector_length_max()),
         KOKKOS_LAMBDA(const TeamType& team) {
           int leagueRank = team.league_rank();
 
@@ -490,7 +447,7 @@ struct TestThreadVectorMDRangeParallelFor : public TestTeamMDParallelFor {
   template <Kokkos::Iterate Direction = Kokkos::Iterate::Default>
   static void test_parallel_for_5D_ThreadVectorMDRange(DimsType const& dims) {
     using ViewType     = typename Kokkos::View<DataType*****, ExecSpace>;
-    using HostViewType = typename ViewType::HostMirror;
+    using HostViewType = typename ViewType::host_mirror_type;
 
     int leagueSize = dims[0];
     int n0         = dims[1];
@@ -502,14 +459,9 @@ struct TestThreadVectorMDRangeParallelFor : public TestTeamMDParallelFor {
     FillFlattenedIndex fillFlattenedIndex(leagueSize, n0, n1, n2, n3);
 
     Kokkos::parallel_for(
-        Kokkos::TeamPolicy<ExecSpace>(leagueSize, Kokkos::AUTO,
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-                                      2
-#else
-                                      Kokkos::TeamPolicy<
-                                          ExecSpace>::vector_length_max()
-#endif
-                                      ),
+        Kokkos::TeamPolicy<ExecSpace>(
+            leagueSize, Kokkos::AUTO,
+            Kokkos::TeamPolicy<ExecSpace>::vector_length_max()),
         KOKKOS_LAMBDA(const TeamType& team) {
           int leagueRank = team.league_rank();
 
@@ -535,7 +487,7 @@ struct TestThreadVectorMDRangeParallelFor : public TestTeamMDParallelFor {
   template <Kokkos::Iterate Direction = Kokkos::Iterate::Default>
   static void test_parallel_for_6D_ThreadVectorMDRange(DimsType const& dims) {
     using ViewType     = typename Kokkos::View<DataType******, ExecSpace>;
-    using HostViewType = typename ViewType::HostMirror;
+    using HostViewType = typename ViewType::host_mirror_type;
 
     int leagueSize = dims[0];
     int n0         = dims[1];
@@ -548,14 +500,9 @@ struct TestThreadVectorMDRangeParallelFor : public TestTeamMDParallelFor {
     FillFlattenedIndex fillFlattenedIndex(leagueSize, n0, n1, n2, n3, n4);
 
     Kokkos::parallel_for(
-        Kokkos::TeamPolicy<ExecSpace>(leagueSize, Kokkos::AUTO,
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-                                      2
-#else
-                                      Kokkos::TeamPolicy<
-                                          ExecSpace>::vector_length_max()
-#endif
-                                      ),
+        Kokkos::TeamPolicy<ExecSpace>(
+            leagueSize, Kokkos::AUTO,
+            Kokkos::TeamPolicy<ExecSpace>::vector_length_max()),
         KOKKOS_LAMBDA(const TeamType& team) {
           int leagueRank = team.league_rank();
 
@@ -581,7 +528,7 @@ struct TestThreadVectorMDRangeParallelFor : public TestTeamMDParallelFor {
   template <Kokkos::Iterate Direction = Kokkos::Iterate::Default>
   static void test_parallel_for_7D_ThreadVectorMDRange(DimsType const& dims) {
     using ViewType     = typename Kokkos::View<DataType*******, ExecSpace>;
-    using HostViewType = typename ViewType::HostMirror;
+    using HostViewType = typename ViewType::host_mirror_type;
 
     int leagueSize = dims[0];
     int n0         = dims[1];
@@ -595,14 +542,9 @@ struct TestThreadVectorMDRangeParallelFor : public TestTeamMDParallelFor {
     FillFlattenedIndex fillFlattenedIndex(leagueSize, n0, n1, n2, n3, n4, n5);
 
     Kokkos::parallel_for(
-        Kokkos::TeamPolicy<ExecSpace>(leagueSize, Kokkos::AUTO,
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-                                      2
-#else
-                                      Kokkos::TeamPolicy<
-                                          ExecSpace>::vector_length_max()
-#endif
-                                      ),
+        Kokkos::TeamPolicy<ExecSpace>(
+            leagueSize, Kokkos::AUTO,
+            Kokkos::TeamPolicy<ExecSpace>::vector_length_max()),
         KOKKOS_LAMBDA(const TeamType& team) {
           int leagueRank = team.league_rank();
 
@@ -629,7 +571,7 @@ struct TestThreadVectorMDRangeParallelFor : public TestTeamMDParallelFor {
   template <Kokkos::Iterate Direction = Kokkos::Iterate::Default>
   static void test_parallel_for_8D_ThreadVectorMDRange(DimsType const& dims) {
     using ViewType     = typename Kokkos::View<DataType********, ExecSpace>;
-    using HostViewType = typename ViewType::HostMirror;
+    using HostViewType = typename ViewType::host_mirror_type;
 
     int leagueSize = dims[0];
     int n0         = dims[1];
@@ -645,14 +587,9 @@ struct TestThreadVectorMDRangeParallelFor : public TestTeamMDParallelFor {
                                           n6);
 
     Kokkos::parallel_for(
-        Kokkos::TeamPolicy<ExecSpace>(leagueSize, Kokkos::AUTO,
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-                                      2
-#else
-                                      Kokkos::TeamPolicy<
-                                          ExecSpace>::vector_length_max()
-#endif
-                                      ),
+        Kokkos::TeamPolicy<ExecSpace>(
+            leagueSize, Kokkos::AUTO,
+            Kokkos::TeamPolicy<ExecSpace>::vector_length_max()),
         KOKKOS_LAMBDA(const TeamType& team) {
           int leagueRank = team.league_rank();
 
@@ -683,7 +620,7 @@ struct TestTeamVectorMDRangeParallelFor : public TestTeamMDParallelFor {
   template <Kokkos::Iterate Direction = Kokkos::Iterate::Default>
   static void test_parallel_for_3D_TeamVectorMDRange(DimsType const& dims) {
     using ViewType     = typename Kokkos::View<DataType***, ExecSpace>;
-    using HostViewType = typename ViewType::HostMirror;
+    using HostViewType = typename ViewType::host_mirror_type;
 
     int leagueSize = dims[0];
     int n0         = dims[1];
@@ -693,14 +630,9 @@ struct TestTeamVectorMDRangeParallelFor : public TestTeamMDParallelFor {
     FillFlattenedIndex fillFlattenedIndex(leagueSize, n0, n1);
 
     Kokkos::parallel_for(
-        Kokkos::TeamPolicy<ExecSpace>(leagueSize, Kokkos::AUTO,
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-                                      2
-#else
-                                      Kokkos::TeamPolicy<
-                                          ExecSpace>::vector_length_max()
-#endif
-                                      ),
+        Kokkos::TeamPolicy<ExecSpace>(
+            leagueSize, Kokkos::AUTO,
+            Kokkos::TeamPolicy<ExecSpace>::vector_length_max()),
         KOKKOS_LAMBDA(const TeamType& team) {
           int leagueRank = team.league_rank();
 
@@ -722,7 +654,7 @@ struct TestTeamVectorMDRangeParallelFor : public TestTeamMDParallelFor {
   template <Kokkos::Iterate Direction = Kokkos::Iterate::Default>
   static void test_parallel_for_4D_TeamVectorMDRange(DimsType const& dims) {
     using ViewType     = typename Kokkos::View<DataType****, ExecSpace>;
-    using HostViewType = typename ViewType::HostMirror;
+    using HostViewType = typename ViewType::host_mirror_type;
 
     int leagueSize = dims[0];
     int n0         = dims[1];
@@ -733,14 +665,9 @@ struct TestTeamVectorMDRangeParallelFor : public TestTeamMDParallelFor {
     FillFlattenedIndex fillFlattenedIndex(leagueSize, n0, n1, n2);
 
     Kokkos::parallel_for(
-        Kokkos::TeamPolicy<ExecSpace>(leagueSize, Kokkos::AUTO,
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-                                      2
-#else
-                                      Kokkos::TeamPolicy<
-                                          ExecSpace>::vector_length_max()
-#endif
-                                      ),
+        Kokkos::TeamPolicy<ExecSpace>(
+            leagueSize, Kokkos::AUTO,
+            Kokkos::TeamPolicy<ExecSpace>::vector_length_max()),
         KOKKOS_LAMBDA(const TeamType& team) {
           int leagueRank = team.league_rank();
 
@@ -762,7 +689,7 @@ struct TestTeamVectorMDRangeParallelFor : public TestTeamMDParallelFor {
   template <Kokkos::Iterate Direction = Kokkos::Iterate::Default>
   static void test_parallel_for_5D_TeamVectorMDRange(DimsType const& dims) {
     using ViewType     = typename Kokkos::View<DataType*****, ExecSpace>;
-    using HostViewType = typename ViewType::HostMirror;
+    using HostViewType = typename ViewType::host_mirror_type;
 
     int leagueSize = dims[0];
     int n0         = dims[1];
@@ -774,14 +701,9 @@ struct TestTeamVectorMDRangeParallelFor : public TestTeamMDParallelFor {
     FillFlattenedIndex fillFlattenedIndex(leagueSize, n0, n1, n2, n3);
 
     Kokkos::parallel_for(
-        Kokkos::TeamPolicy<ExecSpace>(leagueSize, Kokkos::AUTO,
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-                                      2
-#else
-                                      Kokkos::TeamPolicy<
-                                          ExecSpace>::vector_length_max()
-#endif
-                                      ),
+        Kokkos::TeamPolicy<ExecSpace>(
+            leagueSize, Kokkos::AUTO,
+            Kokkos::TeamPolicy<ExecSpace>::vector_length_max()),
         KOKKOS_LAMBDA(const TeamType& team) {
           int leagueRank = team.league_rank();
 
@@ -804,7 +726,7 @@ struct TestTeamVectorMDRangeParallelFor : public TestTeamMDParallelFor {
   template <Kokkos::Iterate Direction = Kokkos::Iterate::Default>
   static void test_parallel_for_6D_TeamVectorMDRange(DimsType const& dims) {
     using ViewType     = typename Kokkos::View<DataType******, ExecSpace>;
-    using HostViewType = typename ViewType::HostMirror;
+    using HostViewType = typename ViewType::host_mirror_type;
 
     int leagueSize = dims[0];
     int n0         = dims[1];
@@ -817,14 +739,9 @@ struct TestTeamVectorMDRangeParallelFor : public TestTeamMDParallelFor {
     FillFlattenedIndex fillFlattenedIndex(leagueSize, n0, n1, n2, n3, n4);
 
     Kokkos::parallel_for(
-        Kokkos::TeamPolicy<ExecSpace>(leagueSize, Kokkos::AUTO,
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-                                      2
-#else
-                                      Kokkos::TeamPolicy<
-                                          ExecSpace>::vector_length_max()
-#endif
-                                      ),
+        Kokkos::TeamPolicy<ExecSpace>(
+            leagueSize, Kokkos::AUTO,
+            Kokkos::TeamPolicy<ExecSpace>::vector_length_max()),
         KOKKOS_LAMBDA(const TeamType& team) {
           int leagueRank = team.league_rank();
 
@@ -848,7 +765,7 @@ struct TestTeamVectorMDRangeParallelFor : public TestTeamMDParallelFor {
   template <Kokkos::Iterate Direction = Kokkos::Iterate::Default>
   static void test_parallel_for_7D_TeamVectorMDRange(DimsType const& dims) {
     using ViewType     = typename Kokkos::View<DataType*******, ExecSpace>;
-    using HostViewType = typename ViewType::HostMirror;
+    using HostViewType = typename ViewType::host_mirror_type;
 
     int leagueSize = dims[0];
     int n0         = dims[1];
@@ -862,14 +779,9 @@ struct TestTeamVectorMDRangeParallelFor : public TestTeamMDParallelFor {
     FillFlattenedIndex fillFlattenedIndex(leagueSize, n0, n1, n2, n3, n4, n5);
 
     Kokkos::parallel_for(
-        Kokkos::TeamPolicy<ExecSpace>(leagueSize, Kokkos::AUTO,
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-                                      2
-#else
-                                      Kokkos::TeamPolicy<
-                                          ExecSpace>::vector_length_max()
-#endif
-                                      ),
+        Kokkos::TeamPolicy<ExecSpace>(
+            leagueSize, Kokkos::AUTO,
+            Kokkos::TeamPolicy<ExecSpace>::vector_length_max()),
         KOKKOS_LAMBDA(const TeamType& team) {
           int leagueRank = team.league_rank();
 
@@ -893,7 +805,7 @@ struct TestTeamVectorMDRangeParallelFor : public TestTeamMDParallelFor {
   template <Kokkos::Iterate Direction = Kokkos::Iterate::Default>
   static void test_parallel_for_8D_TeamVectorMDRange(DimsType const& dims) {
     using ViewType     = typename Kokkos::View<DataType********, ExecSpace>;
-    using HostViewType = typename ViewType::HostMirror;
+    using HostViewType = typename ViewType::host_mirror_type;
 
     int leagueSize = dims[0];
     int n0         = dims[1];
@@ -909,14 +821,9 @@ struct TestTeamVectorMDRangeParallelFor : public TestTeamMDParallelFor {
                                           n6);
 
     Kokkos::parallel_for(
-        Kokkos::TeamPolicy<ExecSpace>(leagueSize, Kokkos::AUTO,
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-                                      2
-#else
-                                      Kokkos::TeamPolicy<
-                                          ExecSpace>::vector_length_max()
-#endif
-                                      ),
+        Kokkos::TeamPolicy<ExecSpace>(
+            leagueSize, Kokkos::AUTO,
+            Kokkos::TeamPolicy<ExecSpace>::vector_length_max()),
         KOKKOS_LAMBDA(const TeamType& team) {
           int leagueRank = team.league_rank();
 
@@ -940,7 +847,7 @@ struct TestTeamVectorMDRangeParallelFor : public TestTeamMDParallelFor {
   template <Kokkos::Iterate Direction = Kokkos::Iterate::Default>
   static void test_parallel_double_direction_test(DimsType const& dims) {
     using ViewType     = typename Kokkos::View<DataType****, ExecSpace>;
-    using HostViewType = typename ViewType::HostMirror;
+    using HostViewType = typename ViewType::host_mirror_type;
 
     int n0 = dims[0];
     int n1 = dims[1];
@@ -1026,14 +933,9 @@ struct TestTeamThreadMDRangeParallelReduce : public TestTeamMDParallelReduce {
     DataType finalSum;
 
     Kokkos::parallel_reduce(
-        Kokkos::TeamPolicy<ExecSpace>(leagueSize, Kokkos::AUTO,
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-                                      2
-#else
-                                      Kokkos::TeamPolicy<
-                                          ExecSpace>::vector_length_max()
-#endif
-                                      ),
+        Kokkos::TeamPolicy<ExecSpace>(
+            leagueSize, Kokkos::AUTO,
+            Kokkos::TeamPolicy<ExecSpace>::vector_length_max()),
         KOKKOS_LAMBDA(TeamType const& team, DataType& leagueSum) {
           auto leagueRank = team.league_rank();
           DataType teamSum;
@@ -1045,13 +947,8 @@ struct TestTeamThreadMDRangeParallelReduce : public TestTeamMDParallelReduce {
                 threadSum += v(leagueRank, i, j);
               },
               teamSum);
-      // FIXME_OPENMPTARGET
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-          if (team.team_rank() == 0) leagueSum += teamSum;
-#else
           Kokkos::single(Kokkos::PerTeam(team),
                          [&]() { leagueSum += teamSum; });
-#endif
         },
         finalSum);
 
@@ -1083,14 +980,9 @@ struct TestTeamThreadMDRangeParallelReduce : public TestTeamMDParallelReduce {
     DataType finalSum;
 
     Kokkos::parallel_reduce(
-        Kokkos::TeamPolicy<ExecSpace>(leagueSize, Kokkos::AUTO,
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-                                      2
-#else
-                                      Kokkos::TeamPolicy<
-                                          ExecSpace>::vector_length_max()
-#endif
-                                      ),
+        Kokkos::TeamPolicy<ExecSpace>(
+            leagueSize, Kokkos::AUTO,
+            Kokkos::TeamPolicy<ExecSpace>::vector_length_max()),
         KOKKOS_LAMBDA(TeamType const& team, DataType& leagueSum) {
           auto leagueRank = team.league_rank();
           DataType teamSum;
@@ -1101,13 +993,8 @@ struct TestTeamThreadMDRangeParallelReduce : public TestTeamMDParallelReduce {
               [=](const int& i, const int& j, const int& k,
                   DataType& threadSum) { threadSum += v(leagueRank, i, j, k); },
               teamSum);
-// FIXME_OPENMPTARGET
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-          if (team.team_rank() == 0) leagueSum += teamSum;
-#else
           Kokkos::single(Kokkos::PerTeam(team),
                          [&]() { leagueSum += teamSum; });
-#endif
         },
         finalSum);
 
@@ -1141,14 +1028,9 @@ struct TestTeamThreadMDRangeParallelReduce : public TestTeamMDParallelReduce {
     DataType finalSum;
 
     Kokkos::parallel_reduce(
-        Kokkos::TeamPolicy<ExecSpace>(leagueSize, Kokkos::AUTO,
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-                                      2
-#else
-                                      Kokkos::TeamPolicy<
-                                          ExecSpace>::vector_length_max()
-#endif
-                                      ),
+        Kokkos::TeamPolicy<ExecSpace>(
+            leagueSize, Kokkos::AUTO,
+            Kokkos::TeamPolicy<ExecSpace>::vector_length_max()),
         KOKKOS_LAMBDA(TeamType const& team, DataType& leagueSum) {
           auto leagueRank = team.league_rank();
           DataType teamSum;
@@ -1161,13 +1043,8 @@ struct TestTeamThreadMDRangeParallelReduce : public TestTeamMDParallelReduce {
                 threadSum += v(leagueRank, i, j, k, l);
               },
               teamSum);
-// FIXME_OPENMPTARGET
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-          if (team.team_rank() == 0) leagueSum += teamSum;
-#else
           Kokkos::single(Kokkos::PerTeam(team),
                          [&]() { leagueSum += teamSum; });
-#endif
         },
         finalSum);
 
@@ -1202,14 +1079,9 @@ struct TestTeamThreadMDRangeParallelReduce : public TestTeamMDParallelReduce {
     DataType finalSum;
 
     Kokkos::parallel_reduce(
-        Kokkos::TeamPolicy<ExecSpace>(leagueSize, Kokkos::AUTO,
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-                                      2
-#else
-                                      Kokkos::TeamPolicy<
-                                          ExecSpace>::vector_length_max()
-#endif
-                                      ),
+        Kokkos::TeamPolicy<ExecSpace>(
+            leagueSize, Kokkos::AUTO,
+            Kokkos::TeamPolicy<ExecSpace>::vector_length_max()),
         KOKKOS_LAMBDA(TeamType const& team, DataType& leagueSum) {
           auto leagueRank = team.league_rank();
           DataType teamSum;
@@ -1222,13 +1094,8 @@ struct TestTeamThreadMDRangeParallelReduce : public TestTeamMDParallelReduce {
                 threadSum += v(leagueRank, i, j, k, l, m);
               },
               teamSum);
-      // FIXME_OPENMPTARGET
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-          if (team.team_rank() == 0) leagueSum += teamSum;
-#else
           Kokkos::single(Kokkos::PerTeam(team),
                          [&]() { leagueSum += teamSum; });
-#endif
         },
         finalSum);
 
@@ -1270,14 +1137,9 @@ struct TestTeamThreadMDRangeParallelReduce : public TestTeamMDParallelReduce {
     DataType finalSum;
 
     Kokkos::parallel_reduce(
-        Kokkos::TeamPolicy<ExecSpace>(leagueSize, Kokkos::AUTO,
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-                                      2
-#else
-                                      Kokkos::TeamPolicy<
-                                          ExecSpace>::vector_length_max()
-#endif
-                                      ),
+        Kokkos::TeamPolicy<ExecSpace>(
+            leagueSize, Kokkos::AUTO,
+            Kokkos::TeamPolicy<ExecSpace>::vector_length_max()),
         KOKKOS_LAMBDA(TeamType const& team, DataType& leagueSum) {
           auto leagueRank = team.league_rank();
           DataType teamSum;
@@ -1290,13 +1152,8 @@ struct TestTeamThreadMDRangeParallelReduce : public TestTeamMDParallelReduce {
                 threadSum += v(leagueRank, i, j, k, l, m, n);
               },
               teamSum);
-// FIXME_OPENMPTARGET
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-          if (team.team_rank() == 0) leagueSum += teamSum;
-#else
           Kokkos::single(Kokkos::PerTeam(team),
                          [&]() { leagueSum += teamSum; });
-#endif
         },
         finalSum);
 
@@ -1340,14 +1197,9 @@ struct TestTeamThreadMDRangeParallelReduce : public TestTeamMDParallelReduce {
     DataType finalSum;
 
     Kokkos::parallel_reduce(
-        Kokkos::TeamPolicy<ExecSpace>(leagueSize, Kokkos::AUTO,
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-                                      2
-#else
-                                      Kokkos::TeamPolicy<
-                                          ExecSpace>::vector_length_max()
-#endif
-                                      ),
+        Kokkos::TeamPolicy<ExecSpace>(
+            leagueSize, Kokkos::AUTO,
+            Kokkos::TeamPolicy<ExecSpace>::vector_length_max()),
         KOKKOS_LAMBDA(TeamType const& team, DataType& leagueSum) {
           auto leagueRank = team.league_rank();
           DataType teamSum;
@@ -1361,13 +1213,8 @@ struct TestTeamThreadMDRangeParallelReduce : public TestTeamMDParallelReduce {
                 threadSum += v(leagueRank, i, j, k, l, m, n, o);
               },
               teamSum);
-// FIXME_OPENMPTARGET
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-          if (team.team_rank() == 0) leagueSum += teamSum;
-#else
           Kokkos::single(Kokkos::PerTeam(team),
                          [&]() { leagueSum += teamSum; });
-#endif
         },
         finalSum);
 
@@ -1403,14 +1250,9 @@ struct TestThreadVectorMDRangeParallelReduce : public TestTeamMDParallelReduce {
     DataType finalSum;
 
     Kokkos::parallel_reduce(
-        Kokkos::TeamPolicy<ExecSpace>(leagueSize, Kokkos::AUTO,
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-                                      2
-#else
-                                      Kokkos::TeamPolicy<
-                                          ExecSpace>::vector_length_max()
-#endif
-                                      ),
+        Kokkos::TeamPolicy<ExecSpace>(
+            leagueSize, Kokkos::AUTO,
+            Kokkos::TeamPolicy<ExecSpace>::vector_length_max()),
         KOKKOS_LAMBDA(TeamType const& team, DataType& leagueSum) {
           auto leagueRank = team.league_rank();
 
@@ -1463,14 +1305,9 @@ struct TestThreadVectorMDRangeParallelReduce : public TestTeamMDParallelReduce {
     DataType finalSum;
 
     Kokkos::parallel_reduce(
-        Kokkos::TeamPolicy<ExecSpace>(leagueSize, Kokkos::AUTO,
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-                                      2
-#else
-                                      Kokkos::TeamPolicy<
-                                          ExecSpace>::vector_length_max()
-#endif
-                                      ),
+        Kokkos::TeamPolicy<ExecSpace>(
+            leagueSize, Kokkos::AUTO,
+            Kokkos::TeamPolicy<ExecSpace>::vector_length_max()),
         KOKKOS_LAMBDA(TeamType const& team, DataType& leagueSum) {
           auto leagueRank = team.league_rank();
 
@@ -1526,14 +1363,9 @@ struct TestThreadVectorMDRangeParallelReduce : public TestTeamMDParallelReduce {
     DataType finalSum;
 
     Kokkos::parallel_reduce(
-        Kokkos::TeamPolicy<ExecSpace>(leagueSize, Kokkos::AUTO,
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-                                      2
-#else
-                                      Kokkos::TeamPolicy<
-                                          ExecSpace>::vector_length_max()
-#endif
-                                      ),
+        Kokkos::TeamPolicy<ExecSpace>(
+            leagueSize, Kokkos::AUTO,
+            Kokkos::TeamPolicy<ExecSpace>::vector_length_max()),
         KOKKOS_LAMBDA(TeamType const& team, DataType& leagueSum) {
           auto leagueRank = team.league_rank();
 
@@ -1594,14 +1426,9 @@ struct TestThreadVectorMDRangeParallelReduce : public TestTeamMDParallelReduce {
     DataType finalSum;
 
     Kokkos::parallel_reduce(
-        Kokkos::TeamPolicy<ExecSpace>(leagueSize, Kokkos::AUTO,
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-                                      2
-#else
-                                      Kokkos::TeamPolicy<
-                                          ExecSpace>::vector_length_max()
-#endif
-                                      ),
+        Kokkos::TeamPolicy<ExecSpace>(
+            leagueSize, Kokkos::AUTO,
+            Kokkos::TeamPolicy<ExecSpace>::vector_length_max()),
         KOKKOS_LAMBDA(TeamType const& team, DataType& leagueSum) {
           auto leagueRank = team.league_rank();
 
@@ -1666,14 +1493,9 @@ struct TestThreadVectorMDRangeParallelReduce : public TestTeamMDParallelReduce {
     DataType finalSum;
 
     Kokkos::parallel_reduce(
-        Kokkos::TeamPolicy<ExecSpace>(leagueSize, Kokkos::AUTO,
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-                                      2
-#else
-                                      Kokkos::TeamPolicy<
-                                          ExecSpace>::vector_length_max()
-#endif
-                                      ),
+        Kokkos::TeamPolicy<ExecSpace>(
+            leagueSize, Kokkos::AUTO,
+            Kokkos::TeamPolicy<ExecSpace>::vector_length_max()),
         KOKKOS_LAMBDA(TeamType const& team, DataType& leagueSum) {
           auto leagueRank = team.league_rank();
 
@@ -1730,14 +1552,9 @@ struct TestTeamVectorMDRangeParallelReduce : public TestTeamMDParallelReduce {
     DataType finalSum;
 
     Kokkos::parallel_reduce(
-        Kokkos::TeamPolicy<ExecSpace>(leagueSize, Kokkos::AUTO,
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-                                      2
-#else
-                                      Kokkos::TeamPolicy<
-                                          ExecSpace>::vector_length_max()
-#endif
-                                      ),
+        Kokkos::TeamPolicy<ExecSpace>(
+            leagueSize, Kokkos::AUTO,
+            Kokkos::TeamPolicy<ExecSpace>::vector_length_max()),
         KOKKOS_LAMBDA(TeamType const& team, DataType& leagueSum) {
           auto leagueRank = team.league_rank();
           DataType teamSum;
@@ -1751,13 +1568,8 @@ struct TestTeamVectorMDRangeParallelReduce : public TestTeamMDParallelReduce {
               [=](const int& i, const int& j, const int& k,
                   DataType& vectorSum) { vectorSum += v(leagueRank, i, j, k); },
               teamSum);
-// FIXME_OPENMPTARGET
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-          if (team.team_rank() == 0) leagueSum += teamSum;
-#else
           Kokkos::single(Kokkos::PerTeam(team),
                          [&]() { leagueSum += teamSum; });
-#endif
         },
         finalSum);
 
@@ -1791,14 +1603,9 @@ struct TestTeamVectorMDRangeParallelReduce : public TestTeamMDParallelReduce {
     DataType finalSum;
 
     Kokkos::parallel_reduce(
-        Kokkos::TeamPolicy<ExecSpace>(leagueSize, Kokkos::AUTO,
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-                                      2
-#else
-                                      Kokkos::TeamPolicy<
-                                          ExecSpace>::vector_length_max()
-#endif
-                                      ),
+        Kokkos::TeamPolicy<ExecSpace>(
+            leagueSize, Kokkos::AUTO,
+            Kokkos::TeamPolicy<ExecSpace>::vector_length_max()),
         KOKKOS_LAMBDA(TeamType const& team, DataType& leagueSum) {
           auto leagueRank = team.league_rank();
           DataType teamSum;
@@ -1814,13 +1621,8 @@ struct TestTeamVectorMDRangeParallelReduce : public TestTeamMDParallelReduce {
                 vectorSum += v(leagueRank, i, j, k, l);
               },
               teamSum);
-// FIXME_OPENMPTARGET
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-          if (team.team_rank() == 0) leagueSum += teamSum;
-#else
           Kokkos::single(Kokkos::PerTeam(team),
                          [&]() { leagueSum += teamSum; });
-#endif
         },
         finalSum);
 
@@ -1855,14 +1657,9 @@ struct TestTeamVectorMDRangeParallelReduce : public TestTeamMDParallelReduce {
     DataType finalSum;
 
     Kokkos::parallel_reduce(
-        Kokkos::TeamPolicy<ExecSpace>(leagueSize, Kokkos::AUTO,
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-                                      2
-#else
-                                      Kokkos::TeamPolicy<
-                                          ExecSpace>::vector_length_max()
-#endif
-                                      ),
+        Kokkos::TeamPolicy<ExecSpace>(
+            leagueSize, Kokkos::AUTO,
+            Kokkos::TeamPolicy<ExecSpace>::vector_length_max()),
         KOKKOS_LAMBDA(TeamType const& team, DataType& leagueSum) {
           auto leagueRank = team.league_rank();
           DataType teamSum;
@@ -1878,13 +1675,8 @@ struct TestTeamVectorMDRangeParallelReduce : public TestTeamMDParallelReduce {
                 vectorSum += v(leagueRank, i, j, k, l, m);
               },
               teamSum);
-// FIXME_OPENMPTARGET
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-          if (team.team_rank() == 0) leagueSum += teamSum;
-#else
           Kokkos::single(Kokkos::PerTeam(team),
                          [&]() { leagueSum += teamSum; });
-#endif
         },
         finalSum);
 
@@ -1924,14 +1716,9 @@ struct TestTeamVectorMDRangeParallelReduce : public TestTeamMDParallelReduce {
     DataType finalSum;
 
     Kokkos::parallel_reduce(
-        Kokkos::TeamPolicy<ExecSpace>(leagueSize, Kokkos::AUTO,
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-                                      2
-#else
-                                      Kokkos::TeamPolicy<
-                                          ExecSpace>::vector_length_max()
-#endif
-                                      ),
+        Kokkos::TeamPolicy<ExecSpace>(
+            leagueSize, Kokkos::AUTO,
+            Kokkos::TeamPolicy<ExecSpace>::vector_length_max()),
         KOKKOS_LAMBDA(TeamType const& team, DataType& leagueSum) {
           auto leagueRank = team.league_rank();
           DataType teamSum;
@@ -1947,13 +1734,8 @@ struct TestTeamVectorMDRangeParallelReduce : public TestTeamMDParallelReduce {
                 vectorSum += v(leagueRank, i, j, k, l, m, n);
               },
               teamSum);
-// FIXME_OPENMPTARGET
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-          if (team.team_rank() == 0) leagueSum += teamSum;
-#else
           Kokkos::single(Kokkos::PerTeam(team),
                          [&]() { leagueSum += teamSum; });
-#endif
         },
         finalSum);
 
@@ -1997,14 +1779,9 @@ struct TestTeamVectorMDRangeParallelReduce : public TestTeamMDParallelReduce {
     DataType finalSum;
 
     Kokkos::parallel_reduce(
-        Kokkos::TeamPolicy<ExecSpace>(leagueSize, Kokkos::AUTO,
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-                                      2
-#else
-                                      Kokkos::TeamPolicy<
-                                          ExecSpace>::vector_length_max()
-#endif
-                                      ),
+        Kokkos::TeamPolicy<ExecSpace>(
+            leagueSize, Kokkos::AUTO,
+            Kokkos::TeamPolicy<ExecSpace>::vector_length_max()),
         KOKKOS_LAMBDA(TeamType const& team, DataType& leagueSum) {
           auto leagueRank = team.league_rank();
           DataType teamSum;
@@ -2021,13 +1798,8 @@ struct TestTeamVectorMDRangeParallelReduce : public TestTeamMDParallelReduce {
                 vectorSum += v(leagueRank, i, j, k, l, m, n, o);
               },
               teamSum);
-// FIXME_OPENMPTARGET
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-          if (team.team_rank() == 0) leagueSum += teamSum;
-#else
           Kokkos::single(Kokkos::PerTeam(team),
                          [&]() { leagueSum += teamSum; });
-#endif
         },
         finalSum);
 

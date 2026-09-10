@@ -18,7 +18,7 @@ package was developed primarily by Christian Trott (Sandia) and Stan
 Moore (Sandia) with contributions of various styles by others,
 including Sikandar Mashayak (UIUC), Ray Shan (Sandia), and Dan Ibanez
 (Sandia). For more information on developing using Kokkos abstractions
-see the `Kokkos Wiki <https://github.com/kokkos/kokkos/wiki>`_.
+see the `Kokkos Wiki <https://kokkos.org/kokkos-core-wiki/>`_.
 
 .. note::
 
@@ -41,23 +41,24 @@ center GPUs) are under development.  You choose the mode at build time
 to produce an executable compatible with a specific hardware.
 
 The following compatibility notes have been last updated for LAMMPS
-version 23 November 2023 and Kokkos version 4.2.
+version 11 February 2026 and its bundled Kokkos library version 5.0.2.
 
-.. admonition:: C++17 support
+.. admonition:: C++20 support
    :class: note
 
-   Kokkos requires using a compiler that supports the c++17 standard. For
-   some compilers, it may be necessary to add a flag to enable c++17 support.
-   For example, the GNU compiler uses the ``-std=c++17`` flag. For a list of
-   compilers that have been tested with the Kokkos library, see the
-   `requirements document of the Kokkos Wiki
-   <https://kokkos.github.io/kokkos-core-wiki/requirements.html>`_.
+   Kokkos requires using a compiler that supports the C++20
+   standard. For some compilers, it may be necessary to add a flag to
+   enable C++20 support.  For example, the GNU compiler uses the
+   ``-std=c++20`` flag.  For a list of compilers that have been tested
+   with the Kokkos library, see the `requirements document of the Kokkos
+   Wiki
+   <https://kokkos.org/kokkos-core-wiki/get-started/requirements.html>`_.
 
 .. admonition:: NVIDIA CUDA support
    :class: note
 
    To build with Kokkos support for NVIDIA GPUs, the NVIDIA CUDA toolkit
-   software version 11.0 or later must be installed on your system. See
+   software version 12.2 or later must be installed on your system. See
    the discussion for the :doc:`GPU package <Speed_gpu>` for details of
    how to check and do this.
 
@@ -65,15 +66,17 @@ version 23 November 2023 and Kokkos version 4.2.
    :class: note
 
    To build with Kokkos support for AMD GPUs, the AMD ROCm toolkit
-   software version 5.2.0 or later must be installed on your system.
+   software version 6.2.0 or later must be installed on your system.
 
 .. admonition:: Intel Data Center GPU support
    :class: note
 
    Support for Kokkos with Intel Data Center GPU accelerators (formerly
    known under the code name "Ponte Vecchio") in LAMMPS is still a work
-   in progress.  Only a subset of the functionality works correctly.
-   Please contact the LAMMPS developers if you run into problems.
+   in progress.  Minimum required version is the Intel LLVM (not
+   classic) compiler version 2024.1.  The LAMMPS developers do not
+   regularly test the status of this, so please contact the LAMMPS
+   developers if you run into problems.
 
 .. admonition:: CUDA and MPI library compatibility
    :class: note
@@ -162,10 +165,10 @@ below.
 
 .. note::
 
-   When using a single OpenMP thread, the Kokkos Serial back end (i.e.
-   ``Makefile.kokkos_mpi_only``) will give better performance than the OpenMP
-   back end (i.e. ``Makefile.kokkos_omp``) because some of the overhead to make
-   the code thread-safe is removed.
+   When using ONLY a single OpenMP thread, the Kokkos Serial back end
+   (i.e. ``-D Kokkos_ENABLE_SERIAL=yes``) will give better performance
+   than the OpenMP back end (i.e.  ``-D Kokkos_ENABLE_OPENMP=yes``)
+   because some of the overhead to make the code thread-safe is removed.
 
 .. note::
 
@@ -224,7 +227,6 @@ be sufficient. In general, for best performance with OpenMP 4.0 or later
 set ``OMP_PROC_BIND=spread`` and ``OMP_PLACES=threads``.  For binding
 threads with the KOKKOS pthreads option, compile LAMMPS with the hwloc
 or libnuma support enabled as described in the :ref:`extra build options page <kokkos>`.
-
 Running on Knight's Landing (KNL) Intel Xeon Phi
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -396,7 +398,7 @@ As noted above, KOKKOS by default assumes that the MPI library is
 GPU-aware.  This is not always the case and can lead to segmentation
 faults when using more than one MPI process.  Normally, LAMMPS will
 print a warning like "*Turning off GPU-aware MPI since it is not
-detected*", or an error message like "*Kokkos with GPU-enabled backend
+detected*", or an error message like "*Kokkos with GPU-enabled back end
 assumes GPU-aware MPI is available*", OR a **segmentation fault**.  To
 confirm that a segmentation fault is caused by this, you can turn off
 the GPU-aware assumption via the :doc:`package kokkos command <package>`
@@ -405,10 +407,8 @@ or the corresponding command-line flag.
 If you still get a segmentation fault, despite running with only one MPI
 process or using the command-line flag to turn off expecting a GPU-aware
 MPI library, then using the CMake compile setting
-``-DKokkos_ENABLE_DEBUG=on`` or adding ``KOKKOS_DEBUG=yes`` to your
-machine makefile for building with traditional make will generate useful
-output that can be passed to the LAMMPS developers for further
-debugging.
+``-DKokkos_ENABLE_DEBUG=on`` will generate useful output that can be
+passed to the LAMMPS developers for further debugging.
 
 Troubleshooting memory allocation on GPUs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -435,9 +435,14 @@ between CPU and GPU as needed.  The resulting LAMMPS performance depends
 on `memory access pattern, data residency, and GPU memory
 oversubscription
 <https://developer.nvidia.com/blog/improving-gpu-memory-oversubscription-performance/>`_
-. The CMake option ``-DKokkos_ENABLE_CUDA_UVM=on`` or the makefile
-setting ``KOKKOS_CUDA_OPTIONS=enable_lambda,force_uvm`` enables using
-:ref:`UVM with Kokkos <kokkos>` when compiling LAMMPS.
+. The CMake option ``-D Kokkos_ENABLE_IMPL_CUDA_UNIFIED_MEMORY=on``
+enables using :ref:`unified memory with Kokkos <kokkos>` when compiling
+LAMMPS; it requires CUDA 12.2 or later.
+
+.. versionchanged:: 2Sep2026
+
+This option replaces ``-D Kokkos_ENABLE_CUDA_UVM=on``, which Kokkos no
+longer supports.
 
 Run with the KOKKOS package by editing an input script
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -467,16 +472,9 @@ wish to change any of its option defaults, as set by the "-k on"
 **Using OpenMP threading and CUDA together:**
 
 With the KOKKOS package, both OpenMP multi-threading and GPUs can be
-compiled and used together in a few special cases. In the makefile for
-the conventional build, the ``KOKKOS_DEVICES`` variable must include both,
-"Cuda" and "OpenMP", as is the case for ``/src/MAKE/OPTIONS/Makefile.kokkos_cuda_mpi``.
-
-.. code-block:: bash
-
-   KOKKOS_DEVICES=Cuda,OpenMP
-
-When building with CMake you need to enable both features as it is done
-in the ``kokkos-cuda.cmake`` CMake preset file.
+compiled and used together in a few special cases. You need to enable
+both features as it is done in the ``kokkos-cuda.cmake`` CMake preset
+file.
 
 .. code-block:: bash
 
@@ -507,13 +505,13 @@ execution of the CPU and GPU styles will NOT overlap, except for a
 special case:
 
 A kspace style and/or molecular topology (bonds, angles, etc.) running
-on the host CPU can overlap with a pair style running on the
-GPU. First compile with ``--default-stream per-thread`` added to ``CCFLAGS``
-in the Kokkos CUDA Makefile.  Then explicitly use the "/kk/host"
-suffix for kspace and bonds, angles, etc.  in the input file and the
-"kk" suffix (equal to "kk/device") on the command-line.  Also make
-sure the environment variable ``CUDA_LAUNCH_BLOCKING`` is not set to "1"
-so CPU/GPU overlap can occur.
+on the host CPU can overlap with a pair style running on the GPU. First
+compile with ``--default-stream per-thread`` added to ``-D
+CMAKE_CXX_FLAGS`` when configuring with CMake.  Then explicitly use the
+"/kk/host" suffix for kspace and bonds, angles, etc.  in the input file
+and the "kk" suffix (equal to "kk/device") on the command-line.  Also
+make sure the environment variable ``CUDA_LAUNCH_BLOCKING`` is not set
+to "1" so CPU/GPU overlap can occur.
 
 Performance to expect
 """""""""""""""""""""
@@ -533,15 +531,10 @@ Generally speaking, the following rules of thumb apply:
   performance of a KOKKOS style is a bit slower than the OPENMP
   package.
 * When running large number of atoms per GPU, KOKKOS is typically faster
-  than the GPU package when compiled for double precision.  The benefit
-  of using single or mixed precision with the GPU package depends
-  significantly on the hardware in use and the simulated system and pair
-  style.
+  than the GPU package when both are compiled for double precision.
 * When running on Intel Phi hardware, KOKKOS is not as fast as
   the INTEL package, which is optimized for x86 hardware (not just
-  from Intel) and compilation with the Intel compilers.  The INTEL
-  package also can increase the vector length of vector instructions
-  by switching to single or mixed precision mode.
+  from Intel) and compilation with the Intel compilers.
 * The KOKKOS package by default assumes that you are using exactly one
   MPI rank per GPU. When trying to use multiple MPI ranks per GPU it is
   mandatory to enable `CUDA Multi-Process Service (MPS)
@@ -550,9 +543,11 @@ Generally speaking, the following rules of thumb apply:
   MPI ranks in order to avoid competing with the MPS daemon for
   CPU resources.
 
-See the `Benchmark page <https://www.lammps.org/bench.html>`_ of the
-LAMMPS website for performance of the KOKKOS package on different
-hardware.
+..
+   FIXME:
+   See the `Benchmark page <https://www.lammps.org/bench.html>`_ of the
+   LAMMPS website for performance of the KOKKOS package on different
+   hardware.
 
 Advanced Kokkos options
 """""""""""""""""""""""
@@ -561,8 +556,10 @@ There are other allowed options when building with the KOKKOS package
 that can improve performance or assist in debugging or profiling.
 They are explained on the :ref:`KOKKOS section of the build extras <kokkos>` doc page,
 
-Restrictions
-""""""""""""
+References
+""""""""""
 
-Currently, there are no precision options with the KOKKOS package. All
-compilation and computation is performed in double precision.
+**(Johansson)** A. Johansson, E. Weinberg, C. Trott, M. McCarthy, and S. Moore.
+LAMMPS-KOKKOS: Performance portable molecular dynamics across exascale architectures.
+In Proceedings of the SC '25 Workshops of the International Conference for High
+Performance Computing, Networking, Storage and Analysis, page 1217-1232, 2025.

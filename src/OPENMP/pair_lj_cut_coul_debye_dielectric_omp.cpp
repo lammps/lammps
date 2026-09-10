@@ -100,7 +100,7 @@ void PairLJCutCoulDebyeDielectricOMP::eval(int iifrom, int iito, ThrData *const 
   evdwl = ecoul = 0.0;
 
   const dbl3_t *_noalias const x = (dbl3_t *) atom->x[0];
-  dbl3_t *_noalias const f = (dbl3_t *) thr->get_f()[0];
+  auto *_noalias const f = (dbl3_t *) thr->get_f()[0];
   const double *_noalias const q = atom->q_scaled;
   const double *_noalias const eps = atom->epsilon;
   const dbl3_t *_noalias const norm = (dbl3_t *) atom->mu[0];
@@ -188,7 +188,7 @@ void PairLJCutCoulDebyeDielectricOMP::eval(int iifrom, int iito, ThrData *const 
         epot[i] += epot_i;
 
         if (EFLAG) {
-          if (rsq < cut_coulsq[itype][jtype]) {
+          if (rsq < cut_coulsq[itype][jtype] && rsq > EPSILON) {
             ecoul = factor_coul * qqrd2e * qtmp * q[j] * 0.5 * (etmp + eps[j]) * rinv * screening;
           } else
             ecoul = 0.0;

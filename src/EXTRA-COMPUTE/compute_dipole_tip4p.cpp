@@ -69,7 +69,7 @@ void ComputeDipoleTIP4P::init()
   if (!force->pair) error->all(FLERR, "Pair style must be defined for compute dipole/ti4p");
 
   int itmp;
-  double *p_qdist = (double *) force->pair->extract("qdist", itmp);
+  auto *p_qdist = (double *) force->pair->extract("qdist", itmp);
   int *p_typeO = (int *) force->pair->extract("typeO", itmp);
   int *p_typeH = (int *) force->pair->extract("typeH", itmp);
   int *p_typeA = (int *) force->pair->extract("typeA", itmp);
@@ -98,14 +98,14 @@ void ComputeDipoleTIP4P::compute_vector()
 {
   invoked_vector = update->ntimestep;
 
-  const auto x = atom->x;
-  const auto mask = atom->mask;
-  const auto type = atom->type;
-  const auto image = atom->image;
-  const auto mass = atom->mass;
-  const auto rmass = atom->rmass;
-  const auto q = atom->q;
-  const auto mu = atom->mu;
+  auto *const x = atom->x;
+  auto *const mask = atom->mask;
+  auto *const type = atom->type;
+  auto *const image = atom->image;
+  auto *const mass = atom->mass;
+  auto *const rmass = atom->rmass;
+  auto *const q = atom->q;
+  auto *const mu = atom->mu;
   const auto nlocal = atom->nlocal;
 
   double dipole[3] = {0.0, 0.0, 0.0};

@@ -24,12 +24,14 @@ class CommKokkos : public CommBrick {
  public:
 
 
-  bool exchange_comm_classic;
-  bool forward_comm_classic;
-  bool forward_pair_comm_classic;
-  bool reverse_pair_comm_classic;
-  bool forward_fix_comm_classic;
-  bool reverse_comm_classic;
+  bool exchange_comm_legacy;
+  bool forward_comm_legacy;
+  bool forward_pair_comm_legacy;
+  bool reverse_pair_comm_legacy;
+  bool forward_fix_comm_legacy;
+  bool forward_compute_comm_legacy;
+  bool reverse_comm_legacy;
+  bool reverse_fix_comm_legacy;
   bool exchange_comm_on_host;
   bool forward_comm_on_host;
   bool reverse_comm_on_host;
@@ -64,18 +66,21 @@ class CommKokkos : public CommBrick {
   template<class DeviceType> void forward_comm_device(Pair *pair, int size=0);
   template<class DeviceType> void reverse_comm_device(Pair *pair, int size=0);
   template<class DeviceType> void forward_comm_device(Fix *fix, int size=0);
+  template<class DeviceType> void reverse_comm_device(Fix *fix, int size=0);
+  template<class DeviceType> void forward_comm_device(Compute *compute, int size=0);
   template<class DeviceType> void exchange_device();
   template<class DeviceType> void borders_device();
 
  protected:
-  DAT::tdual_int_2d k_sendlist;
+  DAT::tdual_int_2d_lr k_sendlist;
   DAT::tdual_int_scalar k_total_send;
-  DAT::tdual_xfloat_2d k_buf_send,k_buf_recv;
+  DAT::tdual_double_2d_lr k_buf_send,k_buf_recv;
   DAT::tdual_int_1d k_exchange_sendlist,k_exchange_copylist,k_indices;
-  DAT::tdual_int_scalar k_count;
+  DAT::tdual_int_1d k_exchange_sendlist_bonus,k_exchange_copylist_bonus;
+  DAT::tdual_int_1d k_count;
 
-  DAT::tdual_int_2d k_swap;
-  DAT::tdual_int_2d k_swap2;
+  DAT::tdual_int_2d_lr k_swap;
+  DAT::tdual_int_2d_lr k_swap2;
   DAT::tdual_int_2d k_pbc;
   DAT::tdual_int_1d k_pbc_flag;
   DAT::tdual_int_1d k_g2l;
@@ -83,11 +88,12 @@ class CommKokkos : public CommBrick {
   DAT::tdual_int_1d k_sendnum_scan;
   int totalsend;
 
-  int max_buf_pair,max_buf_fix;
-  DAT::tdual_xfloat_1d k_buf_send_pair, k_buf_send_fix;
-  DAT::tdual_xfloat_1d k_buf_recv_pair, k_buf_recv_fix;
+  int max_buf_pair,max_buf_fix,max_buf_compute;
+  DAT::tdual_double_1d k_buf_send_pair, k_buf_send_fix, k_buf_send_compute;
+  DAT::tdual_double_1d k_buf_recv_pair, k_buf_recv_fix, k_buf_recv_compute;
   void grow_buf_pair(int);
   void grow_buf_fix(int);
+  void grow_buf_compute(int);
 
   void grow_send(int, int) override;
   void grow_recv(int) override;

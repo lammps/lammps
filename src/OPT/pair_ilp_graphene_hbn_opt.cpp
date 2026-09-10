@@ -40,18 +40,16 @@
 #include "interlayer_taper.h"
 #include "memory.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
-#include "pointers.h"
 
 #include <cmath>
-#include <cstring>
+#include <utility>
 
 using namespace LAMMPS_NS;
 using namespace InterLayer;
 
 static const char cite_ilp_cur[] =
-    "ilp/graphene/hbn/opt potential doi:10.1145/3458817.3476137\n"
+    "ilp/graphene/hbn/opt potential: https://doi.org/10.1145/3458817.3476137\n\n"
     "@inproceedings{gao2021lmff\n"
     " author = {Gao, Ping and Duan, Xiaohui and Others},\n"
     " title = {LMFF: Efficient and Scalable Layered Materials Force Field on Heterogeneous "
@@ -240,6 +238,36 @@ void PairILPGrapheneHBNOpt::compute(int eflag, int vflag)
         }
       }
     }
+  } else if (variant == SAIP_METAL_TMD) {
+    if (eflag_global || eflag_atom) {
+      if (vflag_either) {
+        if (tap_flag) {
+          eval<6, 1, 1, 1, SAIP_METAL_TMD>();
+        } else {
+          eval<6, 1, 1, 0, SAIP_METAL_TMD>();
+        }
+      } else {
+        if (tap_flag) {
+          eval<6, 1, 0, 1, SAIP_METAL_TMD>();
+        } else {
+          eval<6, 1, 0, 0, SAIP_METAL_TMD>();
+        }
+      }
+    } else {
+      if (vflag_either) {
+        if (tap_flag) {
+          eval<6, 0, 1, 1, SAIP_METAL_TMD>();
+        } else {
+          eval<6, 0, 1, 0, SAIP_METAL_TMD>();
+        }
+      } else {
+        if (tap_flag) {
+          eval<6, 0, 0, 1, SAIP_METAL_TMD>();
+        } else {
+          eval<6, 0, 0, 0, SAIP_METAL_TMD>();
+        }
+      }
+    }
   }
 
   if (vflag_fdotr) virial_fdotr_compute();
@@ -297,9 +325,9 @@ void PairILPGrapheneHBNOpt::eval()
       rsq = delx * delx + dely * dely + delz * delz;
 
       if (rsq != 0 && rsq < cutILPsq[itype_map][jtype]) {
-        if ((VARIANT == ILP_TMD || VARIANT == AIP_WATER_2DM) && special_type[itype] == TMD_METAL && itype != type[j]) continue;
+        if ((VARIANT == ILP_TMD || VARIANT == AIP_WATER_2DM || VARIANT == SAIP_METAL_TMD) && special_type[itype] == TMD_METAL && itype != type[j]) continue;
         if (ILP_nneigh >= MAX_NNEIGH) {
-          error->one(FLERR, "There are too many neighbors for calculating normals");
+          error->one(FLERR, "There are too many neighbors for calculating normals for element {}", elements[itype_map]);
         }
 
         ILP_neigh[ILP_nneigh++] = j;
@@ -313,7 +341,6 @@ void PairILPGrapheneHBNOpt::eval()
     double norm[3], dnormdxi[3][3], dnormdxk[MAX_NNEIGH][3][3];
 
     calc_atom_normal<MAX_NNEIGH>(i, itype, ILP_neigh, ILP_nneigh, norm, dnormdxi, dnormdxk);
-
     for (jj = 0; jj < jnum_inter; jj++) {
       j = jlist_inter[jj];
       jtype = type[j];
@@ -341,7 +368,7 @@ void PairILPGrapheneHBNOpt::eval()
           Tap = 1.0;
           dTap = 0.0;
         }
-        if (VARIANT != SAIP_METAL || special_type[itype] != SAIP_BNCH) {
+        if (!(VARIANT == SAIP_METAL || VARIANT == SAIP_METAL_TMD) || special_type[itype] != SAIP_METAL) {
           // Calculate the transverse distance
           prodnorm1 = norm[0] * delx + norm[1] * dely + norm[2] * delz;
           rhosq1 = rsq - prodnorm1 * prodnorm1;    // rho_ij
@@ -353,7 +380,7 @@ void PairILPGrapheneHBNOpt::eval()
 
           frho1 = exp1 * p.C;
           Erep = 0.5 * p.epsilon + frho1;
-          if (VARIANT == SAIP_METAL && special_type[jtype] == SAIP_BNCH) { Erep += 0.5 * p.epsilon + p.C; }
+          if ((VARIANT == SAIP_METAL || VARIANT == SAIP_METAL_TMD) && (special_type[jtype] == SAIP_METAL)) { Erep += 0.5 * p.epsilon + p.C; }
           Vilp = exp0 * Erep;
 
           // derivatives
@@ -459,7 +486,7 @@ void PairILPGrapheneHBNOpt::eval()
 /* ----------------------------------------------------------------------
    Calculate the normals for one atom
 ------------------------------------------------------------------------- */
-inline void deriv_normal(double dndr[3][3], double *del, double *n, double rnnorm)
+static inline void deriv_normal(double dndr[3][3], double *del, double *n, double rnnorm)
 {
   dndr[0][0] = (del[2] * n[0] * n[1] - del[1] * n[0] * n[2]) * rnnorm;
   dndr[1][0] = (-del[2] * (n[0] * n[0] + n[2] * n[2]) - del[1] * n[1] * n[2]) * rnnorm;
@@ -471,7 +498,7 @@ inline void deriv_normal(double dndr[3][3], double *del, double *n, double rnnor
   dndr[1][2] = (del[1] * n[0] * n[1] + del[0] * (n[0] * n[0] + n[2] * n[2])) * rnnorm;
   dndr[2][2] = (del[1] * n[0] * n[2] - del[0] * n[1] * n[2]) * rnnorm;
 }
-inline void deriv_hat(double dnhatdn[3][3], double *n, double rnnorm, double factor){
+static inline void deriv_hat(double dnhatdn[3][3], double *n, double rnnorm, double factor){
   double cfactor = rnnorm * factor;
   dnhatdn[0][0] = (n[1]*n[1]+n[2]*n[2])*cfactor;
   dnhatdn[1][0] = -n[1]*n[0]*cfactor;
@@ -483,7 +510,7 @@ inline void deriv_hat(double dnhatdn[3][3], double *n, double rnnorm, double fac
   dnhatdn[1][2] = -n[1]*n[2]*cfactor;
   dnhatdn[2][2] = (n[0]*n[0]+n[1]*n[1])*cfactor;
 }
-inline double normalize_factor(double *n)
+static inline double normalize_factor(double *n)
 {
   double nnorm = sqrt(n[0] * n[0] + n[1] * n[1] + n[2] * n[2]);
   double rnnorm = 1 / nnorm;
@@ -503,8 +530,34 @@ void PairILPGrapheneHBNOpt::calc_atom_normal(int i, int itype, int *ILP_neigh, i
   double vet[MAX_NNEIGH][3];
   //Sort neighbors for ilp/tmd, etc
   if (MAX_NNEIGH > 3 && nneigh > 3) {
-    double *xlast = x[i];
-    for (int kk = 0; kk < nneigh; kk++) {
+    int start = 0;
+    double max2 = 0;
+    for (int kk = 0; kk < nneigh; kk ++) {
+      double min1 = 9999.0;
+      double min2 = 9999.0;
+      int k = ILP_neigh[kk];
+      for (int jj = 0; jj < nneigh; jj ++) {
+        if (jj != kk) {
+          int j = ILP_neigh[jj];
+          double delx = x[j][0] - x[k][0];
+          double dely = x[j][0] - x[k][0];
+          double delz = x[j][0] - x[k][0];
+          double rsq = delx * delx + dely * dely + delz * delz;
+          if (rsq < min2) {
+            min2 = rsq;
+            if (min2 < min1)
+              std::swap(min2, min1);
+          }
+        }
+      }
+      if (min2 > max2) {
+        start = kk;
+        max2 = min2;
+      }
+    }
+    std::swap(ILP_neigh[0], ILP_neigh[start]);
+    double *xlast = x[ILP_neigh[0]];
+    for (int kk = 1; kk < nneigh; kk++) {
       int jjmin;
       double rsqmin;
       for (int jj = kk; jj < nneigh; jj++) {
@@ -529,7 +582,6 @@ void PairILPGrapheneHBNOpt::calc_atom_normal(int i, int itype, int *ILP_neigh, i
     vet[jj][1] = x[j][1] - x[i][1];
     vet[jj][2] = x[j][2] - x[i][2];
   }
-
   //specialize for AIP_WATER_2DM for hydrogen has special normal vector rule
   if (variant == AIP_WATER_2DM && special_type[itype] == WATER) {
     if (nneigh == 1){
@@ -605,7 +657,7 @@ void PairILPGrapheneHBNOpt::calc_atom_normal(int i, int itype, int *ILP_neigh, i
 
 /* ------------------------------------------------------------------------ */
 
-bool check_vdw(tagint itag, tagint jtag, double *xi, double *xj)
+static bool check_vdw(tagint itag, tagint jtag, double *xi, double *xj)
 {
   if (itag > jtag) {
     if ((itag + jtag) % 2 == 0) return false;
@@ -694,4 +746,11 @@ void PairILPGrapheneHBNOpt::update_internal_list()
     num_inter[i] = ninter;
     total_neigh += nintra + ninter;
   }
+}
+
+void PairILPGrapheneHBNOpt::coeff(int narg, char **args)
+{
+  PairILPGrapheneHBN::coeff(narg, args);
+  memory->create(special_type, atom->ntypes + 1, "PairILPGrapheneHBN:special_type");
+  for (int i = 1; i <= atom->ntypes; i++) special_type[i] = false;
 }

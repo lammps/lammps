@@ -1,20 +1,12 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+#else
 #include <Kokkos_Core.hpp>
+#endif
 
 namespace TestCXX11 {
 
@@ -57,9 +49,9 @@ double AddTestFunctor() {
 
   Kokkos::View<double**, DeviceType> a("A", 100, 5);
   Kokkos::View<double**, DeviceType> b("B", 100, 5);
-  typename Kokkos::View<double**, DeviceType>::HostMirror h_a =
+  typename Kokkos::View<double**, DeviceType>::host_mirror_type h_a =
       Kokkos::create_mirror_view(a);
-  typename Kokkos::View<double**, DeviceType>::HostMirror h_b =
+  typename Kokkos::View<double**, DeviceType>::host_mirror_type h_b =
       Kokkos::create_mirror_view(b);
 
   for (int i = 0; i < 100; i++) {
@@ -91,9 +83,9 @@ template <class DeviceType, bool PWRTest>
 double AddTestLambda() {
   Kokkos::View<double**, DeviceType> a("A", 100, 5);
   Kokkos::View<double**, DeviceType> b("B", 100, 5);
-  typename Kokkos::View<double**, DeviceType>::HostMirror h_a =
+  typename Kokkos::View<double**, DeviceType>::host_mirror_type h_a =
       Kokkos::create_mirror_view(a);
-  typename Kokkos::View<double**, DeviceType>::HostMirror h_b =
+  typename Kokkos::View<double**, DeviceType>::host_mirror_type h_b =
       Kokkos::create_mirror_view(b);
 
   for (int i = 0; i < 100; i++) {
@@ -194,7 +186,7 @@ double ReduceTestFunctor() {
       Kokkos::View<double, Kokkos::HostSpace, Kokkos::MemoryUnmanaged>;
 
   view_type a("A", 100, 5);
-  typename view_type::HostMirror h_a = Kokkos::create_mirror_view(a);
+  typename view_type::host_mirror_type h_a = Kokkos::create_mirror_view(a);
 
   for (int i = 0; i < 100; i++) {
     for (int j = 0; j < 5; j++) {
@@ -225,7 +217,7 @@ double ReduceTestLambda() {
       Kokkos::View<double, Kokkos::HostSpace, Kokkos::MemoryUnmanaged>;
 
   view_type a("A", 100, 5);
-  typename view_type::HostMirror h_a = Kokkos::create_mirror_view(a);
+  typename view_type::host_mirror_type h_a = Kokkos::create_mirror_view(a);
 
   for (int i = 0; i < 100; i++) {
     for (int j = 0; j < 5; j++) {

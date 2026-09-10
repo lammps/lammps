@@ -28,8 +28,6 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-enum{NONE,CONSTANT,EQUAL,ATOM};
-
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
@@ -84,11 +82,11 @@ void FixSetForceKokkos<DeviceType>::post_force(int /*vflag*/)
   // update region if necessary
 
   if (region) {
-    if (!(utils::strmatch(region->style, "^block") || utils::strmatch(region->style, "^sphere")))
-      error->all(FLERR,"Cannot (yet) use {}-style region with fix setforce/kk",region->style);
+    KokkosBase* regionKKBase = dynamic_cast<KokkosBase*>(region);
+    if (!regionKKBase)
+      error->all(FLERR,"Cannot use fix setforce/kk with region style {} that has no KOKKOS support",region->style);
     region->prematch();
     DAT::tdual_int_1d k_match = DAT::tdual_int_1d("setforce:k_match",nlocal);
-    KokkosBase* regionKKBase = dynamic_cast<KokkosBase*>(region);
     regionKKBase->match_all_kokkos(groupbit,k_match);
     k_match.template sync<DeviceType>();
     d_match = k_match.template view<DeviceType>();
@@ -116,8 +114,6 @@ void FixSetForceKokkos<DeviceType>::post_force(int /*vflag*/)
 
   } else {
 
-    atomKK->sync(Host,ALL_MASK); // this can be removed when variable class is ported to Kokkos
-
     modify->clearstep_compute();
 
     if (xstyle == EQUAL) xvalue = input->variable->compute_equal(xvar);
@@ -132,8 +128,12 @@ void FixSetForceKokkos<DeviceType>::post_force(int /*vflag*/)
 
     modify->addstep_compute(update->ntimestep + 1);
 
-    if (varflag == ATOM) {  // this can be removed when variable class is ported to Kokkos
-      k_sforce.modify<LMPHostType>();
+    // atom-style variables are evaluated on the host, so the result has to be
+    // copied to the device for the kernel below.  this is a real copy, not a
+    // stale flag: it can only go away if variables are evaluated on the device.
+
+    if (varflag == ATOM) {
+      k_sforce.modify_host();
       k_sforce.sync<DeviceType>();
     }
 
@@ -150,33 +150,41 @@ void FixSetForceKokkos<DeviceType>::post_force(int /*vflag*/)
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixSetForceKokkos<DeviceType>::operator()(TagFixSetForceConstant, const int &i, double_3& foriginal_kk) const {
+  const KK_FLOAT xvalue_kk = static_cast<KK_FLOAT>(xvalue);
+  const KK_FLOAT yvalue_kk = static_cast<KK_FLOAT>(yvalue);
+  const KK_FLOAT zvalue_kk = static_cast<KK_FLOAT>(zvalue);
   if (mask[i] & groupbit) {
     if (region && !d_match[i]) return;
-    foriginal_kk.d0 += f(i,0);
-    foriginal_kk.d1 += f(i,1);
-    foriginal_kk.d2 += f(i,2);
-    if (xstyle) f(i,0) = xvalue;
-    if (ystyle) f(i,1) = yvalue;
-    if (zstyle) f(i,2) = zvalue;
+    foriginal_kk.d0 += static_cast<double>(f(i,0));
+    foriginal_kk.d1 += static_cast<double>(f(i,1));
+    foriginal_kk.d2 += static_cast<double>(f(i,2));
+    if (xstyle) f(i,0) = static_cast<KK_ACC_FLOAT>(xvalue_kk);
+    if (ystyle) f(i,1) = static_cast<KK_ACC_FLOAT>(yvalue_kk);
+    if (zstyle) f(i,2) = static_cast<KK_ACC_FLOAT>(zvalue_kk);
   }
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixSetForceKokkos<DeviceType>::operator()(TagFixSetForceNonConstant, const int &i, double_3& foriginal_kk) const {
+  const KK_FLOAT xvalue_kk = static_cast<KK_FLOAT>(xvalue);
+  const KK_FLOAT yvalue_kk = static_cast<KK_FLOAT>(yvalue);
+  const KK_FLOAT zvalue_kk = static_cast<KK_FLOAT>(zvalue);
   if (mask[i] & groupbit) {
     if (region && !d_match[i]) return;
-    foriginal_kk.d0 += f(i,0);
-    foriginal_kk.d1 += f(i,1);
-    foriginal_kk.d2 += f(i,2);
-    if (xstyle == ATOM) f(i,0) = d_sforce(i,0);
-    else if (xstyle) f(i,0) = xvalue;
-    if (ystyle == ATOM) f(i,1) = d_sforce(i,1);
-    else if (ystyle) f(i,1) = yvalue;
-    if (zstyle == ATOM) f(i,2) = d_sforce(i,2);
-    else if (zstyle) f(i,2) = zvalue;
+    foriginal_kk.d0 += static_cast<double>(f(i,0));
+    foriginal_kk.d1 += static_cast<double>(f(i,1));
+    foriginal_kk.d2 += static_cast<double>(f(i,2));
+    if (xstyle == ATOM) f(i,0) = static_cast<KK_ACC_FLOAT>(d_sforce(i,0));
+    else if (xstyle) f(i,0) = static_cast<KK_ACC_FLOAT>(xvalue_kk);
+    if (ystyle == ATOM) f(i,1) = static_cast<KK_ACC_FLOAT>(d_sforce(i,1));
+    else if (ystyle) f(i,1) = static_cast<KK_ACC_FLOAT>(yvalue_kk);
+    if (zstyle == ATOM) f(i,2) = static_cast<KK_ACC_FLOAT>(d_sforce(i,2));
+    else if (zstyle) f(i,2) = static_cast<KK_ACC_FLOAT>(zvalue_kk);
   }
 }
 
@@ -186,4 +194,3 @@ template class FixSetForceKokkos<LMPDeviceType>;
 template class FixSetForceKokkos<LMPHostType>;
 #endif
 }
-

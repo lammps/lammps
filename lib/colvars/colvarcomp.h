@@ -25,7 +25,9 @@
 #include "colvaratoms.h"
 #include "colvar.h"
 #include "colvar_geometricpath.h"
-
+#include "colvaratoms.h"
+#include "colvarproxy.h"
+#include "colvar_gpu_calc.h"
 
 /// \brief Colvar component (base class for collective variables)
 ///
@@ -44,7 +46,7 @@
 ///   alike, and allows an automatic selection of the applicable algorithms.
 ///
 /// - The object provides an implementation \link apply_force() \endlink to
-///   apply forces to atoms.  Typically, one or more \link colvarmodule::atom_group
+///   apply forces to atoms.  Typically, one or more \link colvarmodule::atom_group or \link colvarmodule::atom_group
 ///   \endlink objects are used, but this is not a requirement for as long as
 ///   the \link colvar::cvc \endlink object communicates with the simulation program.
 ///
@@ -66,7 +68,7 @@
 ///
 
 class colvar::cvc
-  : public colvarparse, public colvardeps
+  : public colvardeps
 {
 public:
 
@@ -95,6 +97,8 @@ public:
   /// Constructor
   cvc();
 
+  cvc(colvarmodule *cvmodule_in);
+
   /// Destructor
   virtual ~cvc();
 
@@ -104,18 +108,18 @@ public:
   virtual int init(std::string const &conf);
 
   /// \brief Initialize dependency tree
-  virtual int init_dependencies();
+  int init_dependencies() override;
 
   /// \brief After construction, set data related to dependency handling
   int setup();
 
   /// \brief Implementation of the feature list accessor for colvar
-  virtual const std::vector<feature *> &features() const
+  virtual const std::vector<feature *> &features() const override
   {
     return cvc_features;
   }
 
-  virtual std::vector<feature *> &modify_features()
+  virtual std::vector<feature *> &modify_features() override
   {
     return cvc_features;
   }
@@ -157,6 +161,51 @@ public:
   /// \brief Calculate the divergence of the inverse atomic gradients
   virtual void calc_Jacobian_derivative();
 
+  // TODO: Maybe this should be a feature in colvarsdep but I am still constantly confused by colvarsdep
+  /// \brief Check the GPU availability
+  virtual bool has_gpu_implementation() const { return false; }
+
+#if defined (COLVARS_CUDA) || defined (COLVARS_HIP)
+  /// \brief Calculate the variable on GPU
+  virtual int add_calc_value_node(
+    cudaGraph_t& graph,
+    std::unordered_map<std::string, cudaGraphNode_t>& nodes_map)
+  { return COLVARS_NOT_IMPLEMENTED; }
+
+  /// \brief CPU-side calculation after the graph in add_calc_value_node is done on GPU
+  virtual int calc_value_after_gpu() { return COLVARS_OK; }
+
+  /// \brief Calculate the atomic gradients, to be reused later in
+  /// order to apply forces on GPU
+  virtual int add_calc_gradients_node(
+    cudaGraph_t& graph,
+    std::unordered_map<std::string, cudaGraphNode_t>& nodes_map)
+  { return COLVARS_NOT_IMPLEMENTED; }
+
+  /// \brief Calculate the total force from the system using the
+  /// inverse atomic gradients on GPU
+  virtual int add_calc_force_invgrads_node(
+    cudaGraph_t& graph,
+    std::unordered_map<std::string, cudaGraphNode_t>& nodes_map)
+  { return COLVARS_NOT_IMPLEMENTED; }
+
+  /// \brief CPU-side calculation after the graph in add_calc_force_invgrads_node is done on GPU
+  virtual int calc_force_invgrads_after_gpu() { return COLVARS_OK; }
+
+  /// \brief Calculate the divergence of the inverse atomic gradients on GPU
+  virtual int add_calc_Jacobian_derivative_node(
+    cudaGraph_t& graph,
+    std::unordered_map<std::string, cudaGraphNode_t>& nodes_map)
+  { return COLVARS_NOT_IMPLEMENTED; }
+
+  /// \brief CPU-side calculation after the graph in add_calc_Jacobian_derivative_node is done on GPU
+  virtual int calc_Jacobian_derivative_after_gpu() { return COLVARS_OK; }
+
+  /// \brief Calculate finite-difference gradients alongside the analytical ones, for each Cartesian component on GPU
+  virtual int debug_gradients_gpu(
+    colvars_gpu::colvarmodule_gpu_calc::compute_gpu_graph_t& calc_value_graph,
+    colvars_gpu::colvarmodule_gpu_calc::compute_gpu_graph_t& calc_gradients_graph);
+#endif // defined (COLVARS_CUDA) || defined (COLVARS_HIP)
 
   /// \brief Return the previously calculated value
   colvarvalue const & value() const;
@@ -226,15 +275,21 @@ public:
   virtual colvarvalue const *get_param_grad(std::string const &param_name);
 
   /// Set the named parameter to the given value
-  virtual int set_param(std::string const &param_name, void const *new_value);
+  virtual int set_param(std::string const &param_name, void const *new_value) override;
 
   /// \brief Whether or not this CVC will be computed in parallel whenever possible
   bool b_try_scalable = true;
 
   /// Forcibly set value of CVC - useful for driving an external coordinate,
   /// eg. lambda dynamics
-  inline void set_value(colvarvalue const &new_value) {
+  inline void set_value(colvarvalue const &new_value, bool now=false) {
     x = new_value;
+    // Cache value to be communicated to back-end between time steps
+    cvmodule->proxy->set_alch_lambda(x.real_value);
+    if (now) {
+      // If requested (e.g. upon restarting), sync to back-end
+      cvmodule->proxy->send_alch_lambda();
+    }
   }
 
 protected:
@@ -294,6 +349,9 @@ protected:
 
   /// \brief CVC-specific default colvar width (default: not provided)
   cvm::real width = 0.0;
+
+  /// Boundary conditions for the system, copied from the engine when needed
+  cvm::system_boundary_conditions boundary_conditions;
 };
 
 
@@ -468,7 +526,7 @@ public:
   virtual ~polar_theta() {}
   virtual int init(std::string const &conf);
 protected:
-  cvm::atom_group  *atoms = nullptr;
+  cvm::atom_group *atoms = nullptr;
   cvm::real r, theta, phi;
 public:
   virtual void calc_value();
@@ -532,7 +590,7 @@ class colvar::dipole_magnitude
 {
 protected:
   /// Dipole atom group
-  cvm::atom_group  *atoms = nullptr;
+  cvm::atom_group *atoms = nullptr;
   cvm::atom_pos dipoleV;
 public:
   dipole_magnitude();
@@ -551,7 +609,7 @@ class colvar::gyration
 {
 protected:
   /// Atoms involved
-  cvm::atom_group  *atoms = nullptr;
+  cvm::atom_group *atoms = nullptr;
 public:
   gyration();
   virtual ~gyration() {}
@@ -604,7 +662,7 @@ class colvar::eigenvector
 protected:
 
   /// Atom group
-  cvm::atom_group  *           atoms = nullptr;
+  cvm::atom_group *atoms = nullptr;
 
   /// Reference coordinates
   std::vector<cvm::atom_pos>  ref_pos;
@@ -634,14 +692,12 @@ class colvar::angle
   : public colvar::cvc
 {
 protected:
-
   /// Atom group
   cvm::atom_group  *group1 = nullptr;
   /// Atom group
   cvm::atom_group  *group2 = nullptr;
   /// Atom group
   cvm::atom_group  *group3 = nullptr;
-
   /// Inter site vectors
   cvm::rvector r21, r23;
   /// Inter site vector norms
@@ -657,7 +713,9 @@ public:
 
   angle();
   /// \brief Initialize the three groups after three atoms
-  angle(cvm::atom const &a1, cvm::atom const &a2, cvm::atom const &a3);
+  angle(cvm::atom_group::simple_atom const &a1,
+        cvm::atom_group::simple_atom const &a2,
+        cvm::atom_group::simple_atom const &a3);
   virtual ~angle() {}
   virtual int init(std::string const &conf);
   virtual void calc_value();
@@ -675,13 +733,12 @@ class colvar::dipole_angle
 {
 protected:
 
-  /// Dipole atom group
+  /// Atom group
   cvm::atom_group  *group1 = nullptr;
   /// Atom group
   cvm::atom_group  *group2 = nullptr;
   /// Atom group
   cvm::atom_group  *group3 = nullptr;
-
   /// Inter site vectors
   cvm::rvector r21, r23;
   /// Inter site vector norms
@@ -729,7 +786,10 @@ protected:
 public:
 
   /// \brief Initialize the four groups after four atoms
-  dihedral(cvm::atom const &a1, cvm::atom const &a2, cvm::atom const &a3, cvm::atom const &a4);
+  dihedral(cvm::atom_group::simple_atom const &a1,
+           cvm::atom_group::simple_atom const &a2,
+           cvm::atom_group::simple_atom const &a3,
+           cvm::atom_group::simple_atom const &a4);
   dihedral();
   virtual ~dihedral() {}
   virtual int init(std::string  const &conf);
@@ -737,170 +797,6 @@ public:
   virtual void calc_gradients();
   virtual void calc_force_invgrads();
   virtual void calc_Jacobian_derivative();
-};
-
-
-
-/// \brief Colvar component: coordination number between two groups
-/// (colvarvalue::type_scalar type, range [0:N1*N2])
-class colvar::coordnum
-  : public colvar::cvc
-{
-protected:
-  /// First atom group
-  cvm::atom_group  *group1 = nullptr;
-  /// Second atom group
-  cvm::atom_group  *group2 = nullptr;
-  /// \brief "Cutoff" for isotropic calculation (default)
-  cvm::real     r0;
-  /// \brief "Cutoff vector" for anisotropic calculation
-  cvm::rvector  r0_vec;
-  /// \brief Whether r/r0 or \vec{r}*\vec{1/r0_vec} should be used
-  bool b_anisotropic = false;
-  /// Integer exponent of the function numerator
-  int en = 6;
-  /// Integer exponent of the function denominator
-  int ed = 12;
-
-  /// If true, group2 will be treated as a single atom
-  bool b_group2_center_only = false;
-
-  /// Tolerance for the pair list
-  cvm::real tolerance = 0.0;
-
-  /// Frequency of update of the pair list
-  int pairlist_freq = 100;
-
-  /// Pair list
-  bool *pairlist = nullptr;
-
-public:
-
-  coordnum();
-  virtual ~coordnum();
-  virtual int init(std::string const &conf);
-  virtual void calc_value();
-  virtual void calc_gradients();
-
-  enum {
-    ef_null = 0,
-    ef_gradients = 1,
-    ef_anisotropic = (1<<8),
-    ef_use_pairlist = (1<<9),
-    ef_rebuild_pairlist = (1<<10)
-  };
-
-  /// \brief Calculate a coordination number through the function
-  /// (1-x**n)/(1-x**m), where x = |A1-A2|/r0 \param r0, r0_vec "cutoff" for
-  /// the coordination number (scalar or vector depending on user choice)
-  /// \param en Numerator exponent \param ed Denominator exponent \param First
-  /// atom \param Second atom \param pairlist_elem pointer to pair flag for
-  /// this pair \param tolerance A pair is defined as having a larger
-  /// coordination than this number
-  template<int flags>
-  static cvm::real switching_function(cvm::real const &r0,
-                                      cvm::rvector const &r0_vec,
-                                      int en,
-                                      int ed,
-                                      cvm::atom &A1,
-                                      cvm::atom &A2,
-                                      bool **pairlist_elem,
-                                      cvm::real tolerance);
-
-  /// Workhorse function
-  template<int flags> int compute_coordnum();
-
-  /// Workhorse function
-  template<int flags> void main_loop(bool **pairlist_elem);
-
-};
-
-
-
-/// \brief Colvar component: self-coordination number within a group
-/// (colvarvalue::type_scalar type, range [0:N*(N-1)/2])
-class colvar::selfcoordnum
-  : public colvar::cvc
-{
-protected:
-
-  /// Selected atoms
-  cvm::atom_group  *group1 = nullptr;
-  /// \brief "Cutoff" for isotropic calculation (default)
-  cvm::real     r0;
-  /// Integer exponent of the function numerator
-  int en = 6;
-  /// Integer exponent of the function denominator
-  int ed = 12;
-  cvm::real tolerance = 0.0;
-  int pairlist_freq = 100;
-
-  bool *pairlist = nullptr;
-
-public:
-
-  selfcoordnum();
-  ~selfcoordnum();
-  virtual int init(std::string const &conf);
-  virtual void calc_value();
-  virtual void calc_gradients();
-
-  /// Main workhorse function
-  template<int flags> int compute_selfcoordnum();
-};
-
-
-
-/// \brief Colvar component: coordination number between two groups
-/// (colvarvalue::type_scalar type, range [0:N1*N2])
-class colvar::groupcoordnum
-  : public colvar::distance
-{
-protected:
-  /// \brief "Cutoff" for isotropic calculation (default)
-  cvm::real     r0;
-  /// \brief "Cutoff vector" for anisotropic calculation
-  cvm::rvector  r0_vec;
-  /// \brief Wheter dist/r0 or \vec{dist}*\vec{1/r0_vec} should ne be
-  /// used
-  bool b_anisotropic = false;
-  /// Integer exponent of the function numerator
-  int en = 6;
-  /// Integer exponent of the function denominator
-  int ed = 12;
-public:
-  groupcoordnum();
-  virtual ~groupcoordnum() {}
-  virtual int init(std::string const &conf);
-  virtual void calc_value();
-  virtual void calc_gradients();
-};
-
-
-
-/// \brief Colvar component: hydrogen bond, defined as the product of
-/// a colvar::coordnum and 1/2*(1-cos((180-ang)/ang_tol))
-/// (colvarvalue::type_scalar type, range [0:1])
-class colvar::h_bond
-  : public colvar::cvc
-{
-protected:
-  /// \brief "Cutoff" distance between acceptor and donor
-  cvm::real     r0;
-  /// Integer exponent of the function numerator
-  int en = 6;
-  /// Integer exponent of the function denominator
-  int ed = 8;
-public:
-  /// Constructor for atoms already allocated
-  h_bond(cvm::atom const &acceptor,
-         cvm::atom const &donor,
-         cvm::real r0, int en, int ed);
-  h_bond();
-  virtual ~h_bond() {}
-  virtual int init(std::string const &conf);
-  virtual void calc_value();
-  virtual void calc_gradients();
 };
 
 
@@ -985,17 +881,18 @@ class colvar::orientation
   : public colvar::cvc
 {
 protected:
-
   /// Atom group
   cvm::atom_group  *          atoms = nullptr;
   /// Center of geometry of the group
   cvm::atom_pos              atoms_cog;
 
   /// Reference coordinates
-  std::vector<cvm::atom_pos> ref_pos;
+  cvm::ag_vector_real_t ref_pos_soa;
+  size_t num_ref_pos;
 
   /// Shifted atomic positions
-  std::vector<cvm::atom_pos> shifted_pos;
+  cvm::ag_vector_real_t shifted_pos_soa;
+  size_t num_shifted_pos;
 
   /// Rotation object
   cvm::rotation              rot;
@@ -1144,30 +1041,65 @@ class colvar::rmsd
 {
 protected:
 
+  // TODO: transfrom ref_pos to soa
   /// Atom group
-  cvm::atom_group  *atoms = nullptr;
+  cvm::atom_group  *          atoms = nullptr;
 
   /// Reference coordinates (for RMSD calculation only)
   /// Includes sets with symmetry permutations (n_permutations * n_atoms)
-  std::vector<cvm::atom_pos>  ref_pos;
+  size_t num_ref_pos = 0;
+  cvm::ag_vector_real_t  ref_pos_soa;
+
+#if defined (COLVARS_CUDA) || defined (COLVARS_HIP)
+  cvm::real* d_ref_pos_soa;
+  cvm::real* d_permutation_msds;
+  unsigned int* d_tbcounts;
+  cvm::real* h_rmsd;
+  size_t* h_best_perm_index;
+  cvm::real* d_ft;
+  cvm::real* h_ft;
+  cvm::real* d_jd;
+  cvm::real* h_jd;
+  unsigned int* d_tbcount_ft;
+  unsigned int* d_tbcount_jd;
+#endif // defined (COLVARS_CUDA) || defined (COLVARS_HIP)
 
   /// Number of permutations of symmetry-related atoms
   size_t n_permutations = 1;
+  cvm::ag_vector_real_t permutation_msds;
 
   /// Index of the permutation yielding the smallest RMSD (0 for identity)
   size_t best_perm_index = 0;
 
   /// Permutation RMSD input parsing
-  int init_permutation(std::string const &conf);
+  int init_permutation(std::vector<cvm::atom_pos>& ref_pos, std::string const &conf);
 
 public:
   rmsd();
-  virtual ~rmsd() {}
-  virtual int init(std::string const &conf);
-  virtual void calc_value();
-  virtual void calc_gradients();
-  virtual void calc_force_invgrads();
-  virtual void calc_Jacobian_derivative();
+  bool has_gpu_implementation() const override;
+#if defined (COLVARS_CUDA) || defined (COLVARS_HIP)
+  int add_calc_value_node(
+    cudaGraph_t& graph,
+    std::unordered_map<std::string, cudaGraphNode_t>& nodes_map) override;
+  int calc_value_after_gpu() override;
+  int add_calc_gradients_node(
+    cudaGraph_t& graph,
+    std::unordered_map<std::string, cudaGraphNode_t>& nodes_map) override;
+  int add_calc_force_invgrads_node(
+    cudaGraph_t& graph,
+    std::unordered_map<std::string, cudaGraphNode_t>& nodes_map) override;
+  int calc_force_invgrads_after_gpu() override;
+  int add_calc_Jacobian_derivative_node(
+    cudaGraph_t& graph,
+    std::unordered_map<std::string, cudaGraphNode_t>& nodes_map) override;
+  int calc_Jacobian_derivative_after_gpu() override;
+#endif // defined (COLVARS_CUDA) || defined (COLVARS_HIP)
+  virtual ~rmsd();
+  virtual int init(std::string const &conf) override;
+  virtual void calc_value() override;
+  virtual void calc_gradients() override;
+  virtual void calc_force_invgrads() override;
+  virtual void calc_Jacobian_derivative() override;
 };
 
 
@@ -1179,7 +1111,7 @@ class colvar::cartesian
 {
 protected:
   /// Atom group
-  cvm::atom_group  *atoms = nullptr;
+  cvm::atom_group  *          atoms = nullptr;
   /// Which Cartesian coordinates to include
   std::vector<size_t> axes;
 public:
@@ -1212,9 +1144,11 @@ protected:
   // No atom groups needed
 public:
   alch_lambda();
+  int init_alchemy(int time_step_factor);
   virtual ~alch_lambda() {}
   virtual void calc_value();
-  virtual void calc_gradients();
+  virtual void calc_force_invgrads();
+  virtual void calc_Jacobian_derivative();
   virtual void apply_force(colvarvalue const &force);
 };
 

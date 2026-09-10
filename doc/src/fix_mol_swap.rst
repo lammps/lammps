@@ -122,6 +122,36 @@ should be done.
   a new neighbor list needs to be generated for every attempted swap.
   This is potentially expensive if N is small or X is large.
 
+----------
+
+Dump image info
+"""""""""""""""
+
+.. versionadded:: 11Feb2026
+
+Fix *mol/swap* supports the *fix* keyword of :doc:`dump image
+<dump_image>`.  The fix will pass geometry information about atoms
+involved in a swap to *dump image* so that these atoms can be
+highlighted in the visualization as additional spheres.  For how
+long those additional spheres will be shown depends on the value of the
+*vizsteps* setting (default is 1000) which can be changed by using the
+:doc:`fix_modify command <fix_modify>`.  If an atom is involved in
+multiple swaps, the check on showing the additional graphics depends
+on the timestep of its last swap.
+
+The color of the additional spheres is by default that of the atom type
+*before* the swap when using color styles "type" or "element".  With
+color style "const" the default value of "white" can be changed using
+:doc:`dump_modify fcolor <dump_image>`.  The transparency is by default
+fully opaque and can be changed with *dump\_modify ftrans*\ .
+
+The *fflag1* setting of *dump image fix* has no effect.
+
+The *fflag2* setting allows you to set the radius of the added
+spheres, since the radius is set to zero internally.
+
+----------
+
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 

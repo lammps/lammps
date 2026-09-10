@@ -86,9 +86,19 @@ PotentialFileReader::~PotentialFileReader()
 /** Set comment (= text after '#') handling preference for the file to be read
  *
  * \param   value   Comment text is ignored if true, or not if false */
+
 void PotentialFileReader::ignore_comments(bool value)
 {
   reader->ignore_comments = value;
+}
+
+/** Set line buffer size of the internal TextFileReader class instance.
+ *
+ * \param   bufsize   New size of the line buffer */
+
+void PotentialFileReader::set_bufsize(int bufsize)
+{
+  reader->set_bufsize(bufsize);
 }
 
 /** Reset file to the beginning */

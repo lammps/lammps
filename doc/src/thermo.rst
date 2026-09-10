@@ -54,7 +54,7 @@ timesteps 0, 10, 20, 30, 100, 200, 300, 1000, 2000, *etc*:
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""

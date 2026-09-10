@@ -11,8 +11,6 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include "info.h"
-#include "input.h"
 #include "text_file_reader.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"

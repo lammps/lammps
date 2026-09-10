@@ -53,7 +53,9 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-Min::Min(LAMMPS *lmp) : Pointers(lmp)
+Min::Min(LAMMPS *lmp) :
+  Pointers(lmp), stopstr((char *)"(skipped)"), fix_minimize(nullptr), pe_compute(nullptr),
+  xvec(nullptr), fvec(nullptr)
 {
   dmax = 0.1;
   searchflag = 0;
@@ -671,7 +673,7 @@ void Min::modify_params(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"delaystep") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
-      delaystep = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      delaystep = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"dtgrow") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
@@ -707,7 +709,7 @@ void Min::modify_params(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"vdfmax") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");
-      max_vdotf_negatif = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      max_vdotf_negatif = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"integrator") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal min_modify command");

@@ -54,10 +54,10 @@ enum{ISO,ANISO,TRICLINIC};
  ---------------------------------------------------------------------- */
 
 FixNPTCauchy::FixNPTCauchy(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg), id_dilate(nullptr), irregular(nullptr), id_temp(nullptr),
-    id_press(nullptr), eta(nullptr), eta_dot(nullptr), eta_dotdot(nullptr), eta_mass(nullptr),
-    etap(nullptr), etap_dot(nullptr), etap_dotdot(nullptr), etap_mass(nullptr), id_store(nullptr),
-    init_store(nullptr)
+    Fix(lmp, narg, arg), id_dilate(nullptr), irregular(nullptr), step_respa(nullptr),
+    id_temp(nullptr), id_press(nullptr), temperature(nullptr), pressure(nullptr), eta(nullptr),
+    eta_dot(nullptr), eta_dotdot(nullptr), eta_mass(nullptr), etap(nullptr), etap_dot(nullptr),
+    etap_dotdot(nullptr), etap_mass(nullptr), id_store(nullptr), init_store(nullptr)
 {
   if (narg < 4) error->all(FLERR, "Illegal fix npt/cauchy command");
 
@@ -640,8 +640,8 @@ void FixNPTCauchy::init()
   // ensure no conflict with fix deform
 
   if (pstat_flag)
-    for (auto &ifix : modify->get_fix_by_style("^deform")) {
-      auto deform = dynamic_cast<FixDeform *>(ifix);
+    for (const auto &ifix : modify->get_fix_by_style("^deform")) {
+      auto *deform = dynamic_cast<FixDeform *>(ifix);
       if (deform) {
         int *dimflag = deform->dimflag;
         if ((p_flag[0] && dimflag[0]) || (p_flag[1] && dimflag[1]) ||
@@ -730,7 +730,7 @@ void FixNPTCauchy::init()
   // detect if any rigid fixes exist so rigid bodies move when box is remapped
 
   rfix.clear();
-  for (auto &ifix : modify->get_fix_list())
+  for (const auto &ifix : modify->get_fix_list())
     if (ifix->rigid_flag) rfix.push_back(ifix);
 }
 
@@ -1328,7 +1328,7 @@ int FixNPTCauchy::pack_restart_data(double *list)
 void FixNPTCauchy::restart(char *buf)
 {
   int n = 0;
-  auto list = (double *) buf;
+  auto *list = (double *) buf;
   int flag = static_cast<int> (list[n++]);
   if (flag) {
     int m = static_cast<int> (list[n++]);

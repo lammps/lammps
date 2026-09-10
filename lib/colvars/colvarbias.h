@@ -20,7 +20,7 @@ class colvar_grid_scalar;
 
 /// \brief Collective variable bias, base class
 class colvarbias
-  : public virtual colvarparse, public virtual colvardeps {
+  : public virtual colvardeps {
 public:
 
   /// Name of this bias
@@ -107,18 +107,21 @@ public:
   virtual void analyze() {}
 
   /// \brief Constructor
-  colvarbias(char const *key);
+  colvarbias(colvarmodule *cvmodule_in, char const *key);
 
   /// \brief Parse config string and (re)initialize
   virtual int init(std::string const &conf);
 
+  /// Initialize multiple-time-stepping options
+  virtual int init_mts(std::string const &conf);
+
   /// \brief Initialize dependency tree
-  virtual int init_dependencies();
+  int init_dependencies() override;
 
   /// \brief Set to zero all mutable data
   virtual int reset();
 
-private:
+protected:
 
   /// Default constructor
   colvarbias();
@@ -174,14 +177,14 @@ public:
   /// \param[in,out] os Output stream
   /// \param[in] key  Keyword labeling the header block
   /// \param[in] header  Whether this is the header of a multi-line segment vs a single line
-  std::ostream &write_state_data_key(std::ostream &os, std::string const &key, bool header = true);
+  std::ostream &write_state_data_key(std::ostream &os, std::string const &key, bool header = true) const;
 
   /// Write a keyword header for a data sequence to an unformatted stream
   /// \param[in,out] os Output stream
   /// \param[in] key  Keyword labeling the header block
   /// \param[in] header  Ignored
   cvm::memory_stream &write_state_data_key(cvm::memory_stream &os, std::string const &key,
-                                           bool header = true);
+                                           bool header = true) const;
 
 private:
 
@@ -205,7 +208,7 @@ public:
 private:
 
   /// Generic stream reading function (formatted and not)
-  template <typename IST> IST & read_state_template_(IST &is);
+  template <typename IST> IST & read_state_template_(IST &is, colvarmodule *cvmodule_in);
 
 public:
 
@@ -272,11 +275,11 @@ public:
   static std::vector<feature *> cvb_features;
 
   /// \brief Implementation of the feature list accessor for colvarbias
-  virtual const std::vector<feature *> &features() const
+  virtual const std::vector<feature *> &features() const override
   {
     return cvb_features;
   }
-  virtual std::vector<feature *> &modify_features()
+  virtual std::vector<feature *> &modify_features() override
   {
     return cvb_features;
   }
@@ -357,6 +360,9 @@ protected:
 
   /// \brief Forces exerted from the system to the associated variables
   std::vector<colvarvalue> ti_system_forces;
+
+  /// Grid configuration parameters (also used by grids in derived classes)
+  std::string grid_conf;
 
   /// Averaged system forces
   std::shared_ptr<colvar_grid_gradient> ti_avg_forces;

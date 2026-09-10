@@ -16,6 +16,8 @@
 
 #include "pointers.h"
 
+#include "creator_registry.h"
+
 #include <map>
 
 namespace LAMMPS_NS {
@@ -60,14 +62,12 @@ class Update : protected Pointers {
   class Min *minimize;
   char *minimize_style;
 
-  typedef Integrate *(*IntegrateCreator)(LAMMPS *, int, char **);
-  typedef Min *(*MinimizeCreator)(LAMMPS *);
+  using IntegrateCreator = Integrate *(*) (LAMMPS *, int, char **);
+  using MinimizeCreator = Min *(*) (LAMMPS *);
 
-  typedef std::map<std::string, IntegrateCreator> IntegrateCreatorMap;
-  typedef std::map<std::string, MinimizeCreator> MinimizeCreatorMap;
-
-  IntegrateCreatorMap *integrate_map;
-  MinimizeCreatorMap *minimize_map;
+  // global registries of integrate and minimize style factory functions
+  static CreatorRegistry<IntegrateCreator> &integrate_styles();
+  static CreatorRegistry<MinimizeCreator> &minimize_styles();
 
  private:
   void new_integrate(char *, int, char **, int, int &);

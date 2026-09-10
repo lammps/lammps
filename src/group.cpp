@@ -14,6 +14,10 @@
 #include "group.h"
 
 #include "atom.h"
+#include "atom_vec_body.h"
+#include "atom_vec_ellipsoid.h"
+#include "atom_vec_line.h"
+#include "atom_vec_tri.h"
 #include "comm.h"
 #include "compute.h"
 #include "domain.h"
@@ -34,18 +38,24 @@
 
 #include <cmath>
 #include <cstring>
-#include <map>
+#include <set>
 #include <utility>
 
 using namespace LAMMPS_NS;
 
-static constexpr int MAX_GROUP = 32;
 static constexpr double EPSILON = 1.0e-6;
+static constexpr double SINERTIA = 0.4;          // moment of inertia prefactor for sphere
+static constexpr double LINERTIA = 1.0 / 12.0;   // moment of inertia prefactor for line
 
 enum { NONE, TYPE, MOLECULE, ID };
 enum { LT, LE, GT, GE, EQ, NEQ, BETWEEN };
 
 static constexpr double BIG = 1.0e20;
+
+static void add_extended_inertia(Atom *, int, double, double[3][3], AtomVecEllipsoid *,
+                                 AtomVecLine *, AtomVecTri *, AtomVecBody *);
+static void add_extended_angmom(Atom *, int, double, double *, AtomVecEllipsoid *, AtomVecLine *,
+                                AtomVecTri *, AtomVecBody *);
 
 /* ----------------------------------------------------------------------
    initialize group memory
@@ -152,7 +162,7 @@ void Group::assign(int narg, char **arg)
   bool created = false;
 
   if (igroup == -1) {
-    if (ngroup == MAX_GROUP) error->all(FLERR, "Too many groups (max {})", MAX_GROUP);
+    if (ngroup == MAX_GROUP) error->all(FLERR, "Too many groups (max {})", int(MAX_GROUP));
     igroup = find_unused();
     names[igroup] = utils::strdup(arg[0]);
     ngroup++;
@@ -172,7 +182,7 @@ void Group::assign(int narg, char **arg)
 
       if (narg != 3) error->all(FLERR, "Illegal group region command");
 
-      auto region = domain->get_region_by_id(arg[2]);
+      auto *region = domain->get_region_by_id(arg[2]);
       if (!region) error->all(FLERR, "Region {} for group region does not exist", arg[2]);
       region->init();
       region->prematch();
@@ -335,11 +345,11 @@ void Group::assign(int narg, char **arg)
             try {
               ValueTokenizer values(arg[iarg], ":");
               start = values.next_tagint();
-              if (utils::strmatch(arg[iarg], "^-?\\d+$")) {
+              if (utils::strmatch(arg[iarg], R"(^-?\d+$)")) {
                 stop = start;
-              } else if (utils::strmatch(arg[iarg], "^-?\\d+:-?\\d+$")) {
+              } else if (utils::strmatch(arg[iarg], R"(^-?\d+:-?\d+$)")) {
                 stop = values.next_tagint();
-              } else if (utils::strmatch(arg[iarg], "^-?\\d+:-?\\d+:\\d+$")) {
+              } else if (utils::strmatch(arg[iarg], R"(^-?\d+:-?\d+:\d+$)")) {
                 stop = values.next_tagint();
                 delta = values.next_tagint();
               } else
@@ -592,7 +602,7 @@ void Group::create(const std::string &name, int *flag)
   int igroup = find(name);
 
   if (igroup == -1) {
-    if (ngroup == MAX_GROUP) error->all(FLERR, "Too many groups (max {})", MAX_GROUP);
+    if (ngroup == MAX_GROUP) error->all(FLERR, "Too many groups (max {})", int(MAX_GROUP));
     igroup = find_unused();
     names[igroup] = utils::strdup(name);
     ngroup++;
@@ -624,12 +634,12 @@ int Group::find(const std::string &name)
    return group index
 ------------------------------------------------------------------------- */
 
-int Group::find_or_create(const char *name)
+int Group::find_or_create(const std::string &name)
 {
   int igroup = find(name);
   if (igroup >= 0) return igroup;
 
-  if (ngroup == MAX_GROUP) error->all(FLERR, "Too many groups (max {})", MAX_GROUP);
+  if (ngroup == MAX_GROUP) error->all(FLERR, "Too many groups (max {})", int(MAX_GROUP));
   igroup = find_unused();
   names[igroup] = utils::strdup(name);
   ngroup++;
@@ -658,8 +668,22 @@ int Group::get_bitmask_by_id(const std::string &file, int line, const std::strin
 {
   int igroup = find(name);
   if (igroup < 0)
-    error->all(file, line, "Group ID {} requested by {} does not exist", name, caller);
+    error->all(file, line, Error::NOLASTLINE, "Group ID {} requested by {} does not exist", name,
+               caller);
   return bitmask[igroup];
+}
+
+/* ----------------------------------------------------------------------
+   return group bitmask for given group id. Error out if group is not found.
+------------------------------------------------------------------------- */
+
+int Group::get_inversemask_by_id(const std::string &file, int line, const std::string &name,
+                                 const std::string &caller)
+{
+  int igroup = find(name);
+  if (igroup < 0)
+    error->all(file, line, "Group ID {} requested by {} does not exist", name, caller);
+  return inversemask[igroup];
 }
 
 /* ----------------------------------------------------------------------
@@ -671,7 +695,7 @@ void Group::add_molecules(int /*igroup*/, int bit)
 {
   // hash = unique molecule IDs of atoms already in group
 
-  hash = new std::map<tagint, int>();
+  std::set<tagint> hash;
 
   tagint *molecule = atom->molecule;
   int *mask = atom->mask;
@@ -679,25 +703,22 @@ void Group::add_molecules(int /*igroup*/, int bit)
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & bit) {
-      if (molecule[i] == 0) continue;
-      if (hash->find(molecule[i]) == hash->end()) (*hash)[molecule[i]] = 1;
+      if (molecule[i] != 0) hash.insert(molecule[i]);
     }
 
   // list = set of unique molecule IDs for atoms to add
   // pass list to all other procs via comm->ring()
 
-  int n = hash->size();
+  auto n = hash.size();
   tagint *list;
   memory->create(list, n, "group:list");
 
   n = 0;
-  std::map<tagint, int>::iterator pos;
-  for (pos = hash->begin(); pos != hash->end(); ++pos) list[n++] = pos->first;
+  for (const auto pos : hash) list[n++] = pos;
 
   molbit = bit;
   comm->ring(n, sizeof(tagint), list, 1, molring, nullptr, (void *) this);
 
-  delete hash;
   memory->destroy(list);
 }
 
@@ -710,19 +731,17 @@ void Group::add_molecules(int /*igroup*/, int bit)
 
 void Group::molring(int n, char *cbuf, void *ptr)
 {
-  auto gptr = (Group *) ptr;
-  auto list = (tagint *) cbuf;
-  std::map<tagint, int> *hash = gptr->hash;
+  auto *gptr = (Group *) ptr;
+  auto *list = (tagint *) cbuf;
   int nlocal = gptr->atom->nlocal;
   tagint *molecule = gptr->atom->molecule;
   int *mask = gptr->atom->mask;
   int molbit = gptr->molbit;
 
-  hash->clear();
-  for (int i = 0; i < n; i++) (*hash)[list[i]] = 1;
+  std::set<tagint> hash(list, list + n);
 
   for (int i = 0; i < nlocal; i++)
-    if (hash->find(molecule[i]) != hash->end()) mask[i] |= molbit;
+    if (hash.find(molecule[i]) != hash.end()) mask[i] |= molbit;
 }
 
 /* ----------------------------------------------------------------------
@@ -764,8 +783,13 @@ void Group::read_restart(FILE *fp)
 
   // delete existing group names
   // atom masks will be overwritten by reading of restart file
+  // also null the pointers: if reading the restart data fails below, the
+  // destructor of a still-active library instance must not free them again
 
-  for (i = 0; i < MAX_GROUP; i++) delete[] names[i];
+  for (i = 0; i < MAX_GROUP; i++) {
+    delete[] names[i];
+    names[i] = nullptr;
+  }
 
   if (me == 0) utils::sfread(FLERR, &ngroup, sizeof(int), 1, fp, nullptr, error);
   MPI_Bcast(&ngroup, 1, MPI_INT, 0, world);
@@ -781,6 +805,7 @@ void Group::read_restart(FILE *fp)
     }
     if (me == 0) utils::sfread(FLERR, &n, sizeof(int), 1, fp, nullptr, error);
     MPI_Bcast(&n, 1, MPI_INT, 0, world);
+    if ((n < 0) || (n > 65536)) error->all(FLERR, "Invalid group name length in restart file");
     if (n) {
       names[i] = new char[n];
       if (me == 0) utils::sfread(FLERR, names[i], sizeof(char), n, fp, nullptr, error);
@@ -1468,14 +1493,14 @@ void Group::angmom(int igroup, double *cm, double *lmom)
   int nlocal = atom->nlocal;
 
   double dx, dy, dz, massone;
-  double unwrap[3];
+  double unwrap[3], vunwrap[3];
 
   double p[3];
   p[0] = p[1] = p[2] = 0.0;
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
-      domain->unmap(x[i], image[i], unwrap);
+      domain->unmap(x[i], v[i], image[i], mask[i], unwrap, vunwrap);
       dx = unwrap[0] - cm[0];
       dy = unwrap[1] - cm[1];
       dz = unwrap[2] - cm[2];
@@ -1483,9 +1508,9 @@ void Group::angmom(int igroup, double *cm, double *lmom)
         massone = rmass[i];
       else
         massone = mass[type[i]];
-      p[0] += massone * (dy * v[i][2] - dz * v[i][1]);
-      p[1] += massone * (dz * v[i][0] - dx * v[i][2]);
-      p[2] += massone * (dx * v[i][1] - dy * v[i][0]);
+      p[0] += massone * (dy * vunwrap[2] - dz * vunwrap[1]);
+      p[1] += massone * (dz * vunwrap[0] - dx * vunwrap[2]);
+      p[2] += massone * (dx * vunwrap[1] - dy * vunwrap[0]);
     }
 
   MPI_Allreduce(p, lmom, 3, MPI_DOUBLE, MPI_SUM, world);
@@ -1512,14 +1537,14 @@ void Group::angmom(int igroup, double *cm, double *lmom, Region *region)
   int nlocal = atom->nlocal;
 
   double dx, dy, dz, massone;
-  double unwrap[3];
+  double unwrap[3], vunwrap[3];
 
   double p[3];
   p[0] = p[1] = p[2] = 0.0;
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit && region->match(x[i][0], x[i][1], x[i][2])) {
-      domain->unmap(x[i], image[i], unwrap);
+      domain->unmap(x[i], v[i], image[i], mask[i], unwrap, vunwrap);
       dx = unwrap[0] - cm[0];
       dy = unwrap[1] - cm[1];
       dz = unwrap[2] - cm[2];
@@ -1527,9 +1552,9 @@ void Group::angmom(int igroup, double *cm, double *lmom, Region *region)
         massone = rmass[i];
       else
         massone = mass[type[i]];
-      p[0] += massone * (dy * v[i][2] - dz * v[i][1]);
-      p[1] += massone * (dz * v[i][0] - dx * v[i][2]);
-      p[2] += massone * (dx * v[i][1] - dy * v[i][0]);
+      p[0] += massone * (dy * vunwrap[2] - dz * vunwrap[1]);
+      p[1] += massone * (dz * vunwrap[0] - dx * vunwrap[2]);
+      p[2] += massone * (dx * vunwrap[1] - dy * vunwrap[0]);
     }
 
   MPI_Allreduce(p, lmom, 3, MPI_DOUBLE, MPI_SUM, world);
@@ -1659,6 +1684,55 @@ void Group::inertia(int igroup, double *cm, double itensor[3][3])
 }
 
 /* ----------------------------------------------------------------------
+   add the spin (self) moment of inertia of finite-size particle i to ione
+   handles finite spheres, ellipsoids, superellipsoids, lines, triangles,
+   and body particles (the latter are not handled by fix rigid, but their
+   inertia about their own center is still well-defined here)
+   MathExtra::inertia_* return (Ixx,Iyy,Izz,Iyz,Ixz,Ixy); map to the 3x3
+------------------------------------------------------------------------- */
+
+static void add_extended_inertia(Atom *atom, int i, double massone, double ione[3][3],
+                                 AtomVecEllipsoid *ae, AtomVecLine *al, AtomVecTri *at,
+                                 AtomVecBody *ab)
+{
+  double *radius = atom->radius;
+  int *ellipsoid = atom->ellipsoid;
+  int *line = atom->line;
+  int *tri = atom->tri;
+  int *body = atom->body;
+
+  // check the shape-defining bonus indices before the sphere (radius) case:
+  // ellipsoid/superellipsoid/triangle/body particles also carry a (bounding)
+  // radius, so the finite-sphere branch must only catch true spheres
+
+  double ivec[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+  if (ae && ellipsoid[i] >= 0) {
+    if (atom->superellipsoid_flag)
+      MathExtra::inertia_ellipsoid(ae->bonus_super[ellipsoid[i]].inertia,
+                                   ae->bonus_super[ellipsoid[i]].quat, ivec);
+    else
+      MathExtra::inertia_ellipsoid(ae->bonus[ellipsoid[i]].shape, ae->bonus[ellipsoid[i]].quat,
+                                   massone, ivec);
+  } else if (al && line[i] >= 0) {
+    MathExtra::inertia_line(al->bonus[line[i]].length, al->bonus[line[i]].theta, massone, ivec);
+  } else if (at && tri[i] >= 0) {
+    MathExtra::inertia_triangle(at->bonus[tri[i]].inertia, at->bonus[tri[i]].quat, massone, ivec);
+  } else if (ab && body[i] >= 0) {
+    MathExtra::inertia_ellipsoid(ab->bonus[body[i]].inertia, ab->bonus[body[i]].quat, ivec);
+  } else if (radius && radius[i] > 0.0) {
+    ivec[0] = ivec[1] = ivec[2] = SINERTIA * massone * radius[i] * radius[i];
+  } else
+    return;
+
+  ione[0][0] += ivec[0];
+  ione[1][1] += ivec[1];
+  ione[2][2] += ivec[2];
+  ione[0][1] += ivec[5];
+  ione[1][2] += ivec[3];
+  ione[0][2] += ivec[4];
+}
+
+/* ----------------------------------------------------------------------
    compute moment of inertia tensor around cm of group of atoms in region
    must unwrap atoms to compute itensor correctly
 ------------------------------------------------------------------------- */
@@ -1707,6 +1781,217 @@ void Group::inertia(int igroup, double *cm, double itensor[3][3], Region *region
   ione[2][0] = ione[0][2];
 
   MPI_Allreduce(&ione[0][0], &itensor[0][0], 9, MPI_DOUBLE, MPI_SUM, world);
+}
+
+/* ----------------------------------------------------------------------
+   add the finite-size (spin) moment of inertia of the group to itensor
+   the spin contribution is independent of the center of mass, so this is
+   an additive term on top of the orbital tensor from Group::inertia.
+   diagnostics (compute inertia, compute inertia/chunk, inertia() variable)
+   report the total; physics routines that remove bulk rotation from the
+   translational velocities (fix momentum, velocity zero angular,
+   compute temp/rotate) use the orbital Group::inertia only.
+------------------------------------------------------------------------- */
+
+void Group::inertia_extended(int igroup, double itensor[3][3])
+{
+  int groupbit = bitmask[igroup];
+
+  int *mask = atom->mask;
+  int *type = atom->type;
+  double *mass = atom->mass;
+  double *rmass = atom->rmass;
+  int nlocal = atom->nlocal;
+
+  auto *avec_ellipsoid = dynamic_cast<AtomVecEllipsoid *>(atom->style_match("ellipsoid"));
+  auto *avec_line = dynamic_cast<AtomVecLine *>(atom->style_match("line"));
+  auto *avec_tri = dynamic_cast<AtomVecTri *>(atom->style_match("tri"));
+  auto *avec_body = dynamic_cast<AtomVecBody *>(atom->style_match("body"));
+
+  double ione[3][3];
+  for (int i = 0; i < 3; i++)
+    for (int j = 0; j < 3; j++) ione[i][j] = 0.0;
+
+  for (int i = 0; i < nlocal; i++)
+    if (mask[i] & groupbit) {
+      double massone = rmass ? rmass[i] : mass[type[i]];
+      add_extended_inertia(atom, i, massone, ione, avec_ellipsoid, avec_line, avec_tri, avec_body);
+    }
+  ione[1][0] = ione[0][1];
+  ione[2][1] = ione[1][2];
+  ione[2][0] = ione[0][2];
+
+  double iall[3][3];
+  MPI_Allreduce(&ione[0][0], &iall[0][0], 9, MPI_DOUBLE, MPI_SUM, world);
+  for (int i = 0; i < 3; i++)
+    for (int j = 0; j < 3; j++) itensor[i][j] += iall[i][j];
+}
+
+/* ----------------------------------------------------------------------
+   region variant of inertia_extended
+------------------------------------------------------------------------- */
+
+void Group::inertia_extended(int igroup, double itensor[3][3], Region *region)
+{
+  int groupbit = bitmask[igroup];
+  region->prematch();
+
+  double **x = atom->x;
+  int *mask = atom->mask;
+  int *type = atom->type;
+  double *mass = atom->mass;
+  double *rmass = atom->rmass;
+  int nlocal = atom->nlocal;
+
+  auto *avec_ellipsoid = dynamic_cast<AtomVecEllipsoid *>(atom->style_match("ellipsoid"));
+  auto *avec_line = dynamic_cast<AtomVecLine *>(atom->style_match("line"));
+  auto *avec_tri = dynamic_cast<AtomVecTri *>(atom->style_match("tri"));
+  auto *avec_body = dynamic_cast<AtomVecBody *>(atom->style_match("body"));
+
+  double ione[3][3];
+  for (int i = 0; i < 3; i++)
+    for (int j = 0; j < 3; j++) ione[i][j] = 0.0;
+
+  for (int i = 0; i < nlocal; i++)
+    if (mask[i] & groupbit && region->match(x[i][0], x[i][1], x[i][2])) {
+      double massone = rmass ? rmass[i] : mass[type[i]];
+      add_extended_inertia(atom, i, massone, ione, avec_ellipsoid, avec_line, avec_tri, avec_body);
+    }
+  ione[1][0] = ione[0][1];
+  ione[2][1] = ione[1][2];
+  ione[2][0] = ione[0][2];
+
+  double iall[3][3];
+  MPI_Allreduce(&ione[0][0], &iall[0][0], 9, MPI_DOUBLE, MPI_SUM, world);
+  for (int i = 0; i < 3; i++)
+    for (int j = 0; j < 3; j++) itensor[i][j] += iall[i][j];
+}
+
+/* ----------------------------------------------------------------------
+   add the spin (self) angular momentum of finite-size particle i to lmom
+   ANGMOM-type particles (ellipsoid, superellipsoid, triangle, body) store
+   their angular momentum directly; OMEGA-type particles (sphere, line)
+   carry an angular velocity, so L_spin = I_spin * omega.  Check the shape
+   indices before the sphere (radius) fallback, as finite-shape particles
+   also carry a bounding radius.
+------------------------------------------------------------------------- */
+
+static void add_extended_angmom(Atom *atom, int i, double massone, double *lmom,
+                                AtomVecEllipsoid *ae, AtomVecLine *al, AtomVecTri *at,
+                                AtomVecBody *ab)
+{
+  double *radius = atom->radius;
+  double **omega = atom->omega;
+  double **angmom = atom->angmom;
+  int *ellipsoid = atom->ellipsoid;
+  int *line = atom->line;
+  int *tri = atom->tri;
+  int *body = atom->body;
+
+  if (ae && ellipsoid[i] >= 0) {
+    if (angmom) {
+      lmom[0] += angmom[i][0];
+      lmom[1] += angmom[i][1];
+      lmom[2] += angmom[i][2];
+    }
+  } else if (at && tri[i] >= 0) {
+    if (angmom) {
+      lmom[0] += angmom[i][0];
+      lmom[1] += angmom[i][1];
+      lmom[2] += angmom[i][2];
+    }
+  } else if (ab && body[i] >= 0) {
+    if (angmom) {
+      lmom[0] += angmom[i][0];
+      lmom[1] += angmom[i][1];
+      lmom[2] += angmom[i][2];
+    }
+  } else if (al && line[i] >= 0) {
+    if (omega) {
+      double length = al->bonus[line[i]].length;
+      lmom[2] += LINERTIA * massone * length * length * omega[i][2];
+    }
+  } else if (radius && radius[i] > 0.0) {
+    if (omega) {
+      double sphere = SINERTIA * massone * radius[i] * radius[i];
+      lmom[0] += sphere * omega[i][0];
+      lmom[1] += sphere * omega[i][1];
+      lmom[2] += sphere * omega[i][2];
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   add the finite-size (spin) angular momentum of the group to lmom
+   the spin contribution is independent of the center of mass, so this is
+   an additive term on top of the orbital L from Group::angmom.  Used by
+   the diagnostic angmom()/omega() variables and compute inertia/omega; the
+   physics routines (fix momentum, velocity zero angular, compute
+   temp/rotate) keep the orbital Group::angmom only.
+------------------------------------------------------------------------- */
+
+void Group::angmom_extended(int igroup, double *lmom)
+{
+  int groupbit = bitmask[igroup];
+
+  int *mask = atom->mask;
+  int *type = atom->type;
+  double *mass = atom->mass;
+  double *rmass = atom->rmass;
+  int nlocal = atom->nlocal;
+
+  auto *avec_ellipsoid = dynamic_cast<AtomVecEllipsoid *>(atom->style_match("ellipsoid"));
+  auto *avec_line = dynamic_cast<AtomVecLine *>(atom->style_match("line"));
+  auto *avec_tri = dynamic_cast<AtomVecTri *>(atom->style_match("tri"));
+  auto *avec_body = dynamic_cast<AtomVecBody *>(atom->style_match("body"));
+
+  double p[3] = {0.0, 0.0, 0.0};
+  for (int i = 0; i < nlocal; i++)
+    if (mask[i] & groupbit) {
+      double massone = rmass ? rmass[i] : mass[type[i]];
+      add_extended_angmom(atom, i, massone, p, avec_ellipsoid, avec_line, avec_tri, avec_body);
+    }
+
+  double pall[3];
+  MPI_Allreduce(p, pall, 3, MPI_DOUBLE, MPI_SUM, world);
+  lmom[0] += pall[0];
+  lmom[1] += pall[1];
+  lmom[2] += pall[2];
+}
+
+/* ----------------------------------------------------------------------
+   region variant of angmom_extended
+------------------------------------------------------------------------- */
+
+void Group::angmom_extended(int igroup, double *lmom, Region *region)
+{
+  int groupbit = bitmask[igroup];
+  region->prematch();
+
+  double **x = atom->x;
+  int *mask = atom->mask;
+  int *type = atom->type;
+  double *mass = atom->mass;
+  double *rmass = atom->rmass;
+  int nlocal = atom->nlocal;
+
+  auto *avec_ellipsoid = dynamic_cast<AtomVecEllipsoid *>(atom->style_match("ellipsoid"));
+  auto *avec_line = dynamic_cast<AtomVecLine *>(atom->style_match("line"));
+  auto *avec_tri = dynamic_cast<AtomVecTri *>(atom->style_match("tri"));
+  auto *avec_body = dynamic_cast<AtomVecBody *>(atom->style_match("body"));
+
+  double p[3] = {0.0, 0.0, 0.0};
+  for (int i = 0; i < nlocal; i++)
+    if (mask[i] & groupbit && region->match(x[i][0], x[i][1], x[i][2])) {
+      double massone = rmass ? rmass[i] : mass[type[i]];
+      add_extended_angmom(atom, i, massone, p, avec_ellipsoid, avec_line, avec_tri, avec_body);
+    }
+
+  double pall[3];
+  MPI_Allreduce(p, pall, 3, MPI_DOUBLE, MPI_SUM, world);
+  lmom[0] += pall[0];
+  lmom[1] += pall[1];
+  lmom[2] += pall[2];
 }
 
 /* ----------------------------------------------------------------------

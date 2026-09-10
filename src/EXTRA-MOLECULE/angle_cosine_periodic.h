@@ -42,7 +42,7 @@ class AngleCosinePeriodic : public Angle {
   double *k;
   int *multiplicity, *b;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }    // namespace LAMMPS_NS

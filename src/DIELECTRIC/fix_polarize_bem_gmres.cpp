@@ -75,7 +75,7 @@ FixPolarizeBEMGMRES::FixPolarizeBEMGMRES(LAMMPS *_lmp, int narg, char **arg) :
 
   // parse required arguments
 
-  nevery = utils::numeric(FLERR, arg[3], false, lmp);
+  nevery = utils::inumeric(FLERR, arg[3], false, lmp);
   if (nevery < 0) error->all(FLERR, "Illegal fix polarize/bem/gmres command");
   double tol = utils::numeric(FLERR, arg[4], false, lmp);
   tol_abs = tol_rel = tol;
@@ -210,7 +210,7 @@ void FixPolarizeBEMGMRES::init()
 
   if (randomized) {
 
-    auto random = new RanPark(lmp, seed_charge + comm->me);
+    auto *random = new RanPark(lmp, seed_charge + comm->me);
     for (i = 0; i < 100; i++) random->uniform();
     double sum, tmp = 0;
     for (i = 0; i < nlocal; i++) {
@@ -350,8 +350,10 @@ void FixPolarizeBEMGMRES::compute_induced_charges()
   double *em = atom->em;
   double *epsilon = atom->epsilon;
   int nlocal = atom->nlocal;
-  int eflag = 1;
-  int vflag = 0;
+
+  // flag that we only need to compute the global energy
+  int eflag = ENERGY_GLOBAL | ENERGY_ONLY;
+  int vflag = VIRIAL_NONE;
 
   // compute the right hand side (vector b) of Eq. (40) according to Eq. (42)
   // keep the scaled real charges intact here to compute efield for the right hand side (b)
@@ -827,11 +829,11 @@ int FixPolarizeBEMGMRES::modify_param(int narg, char **arg)
   while (iarg < narg) {
     if (strcmp(arg[iarg], "itr_max") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal fix_modify command");
-      itr_max = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
+      itr_max = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "mr") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal fix_modify command");
-      mr = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
+      mr = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "kspace") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal fix_modify command");
@@ -858,7 +860,7 @@ int FixPolarizeBEMGMRES::modify_param(int narg, char **arg)
     } else if (strcmp(arg[iarg], "rand") == 0) {
       if (iarg + 3 > narg) error->all(FLERR, "Illegal fix_modify command");
       ave_charge = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
-      seed_charge = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
+      seed_charge = utils::inumeric(FLERR, arg[iarg + 2], false, lmp);
       randomized = 1;
       iarg += 3;
     } else

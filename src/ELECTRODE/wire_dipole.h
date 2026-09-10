@@ -25,9 +25,9 @@ namespace LAMMPS_NS {
 class WireDipole : public BoundaryCorrection {
  public:
   WireDipole(LAMMPS *);
-  void vector_corr(double *, int, int, bool);
-  void matrix_corr(bigint *, double **);
-  void compute_corr(double, int, int, double &, double *);
+  void vector_corr(double *, int, int, bool) override;
+  void matrix_corr(bigint *, double **) override;
+  void compute_corr(double, int, int, double &, double *) override;
   void setup(double);
 };
 

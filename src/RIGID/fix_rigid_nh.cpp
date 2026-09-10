@@ -260,8 +260,8 @@ void FixRigidNH::init()
 
     // ensure no conflict with fix deform
 
-    for (auto &ifix : modify->get_fix_by_style("^deform")) {
-      auto deform = dynamic_cast<FixDeform *>(ifix);
+    for (const auto &ifix : modify->get_fix_by_style("^deform")) {
+      auto *deform = dynamic_cast<FixDeform *>(ifix);
       if (deform) {
         int *dimflag = deform->dimflag;
         if ((p_flag[0] && dimflag[0]) || (p_flag[1] && dimflag[1]) || (p_flag[2] && dimflag[2]))
@@ -299,7 +299,7 @@ void FixRigidNH::init()
     // this will include self
 
     rfix.clear();
-    for (auto &ifix : modify->get_fix_list())
+    for (const auto &ifix : modify->get_fix_list())
       if (ifix->rigid_flag) rfix.push_back(ifix);
   }
 }
@@ -1131,7 +1131,7 @@ void FixRigidNH::write_restart(FILE *fp)
   }
 
   if (comm->me == 0) {
-    int size = (nsize)*sizeof(double);
+    int size = nsize*sizeof(double);
     fwrite(&size,sizeof(int),1,fp);
     fwrite(list,sizeof(double),nsize,fp);
   }
@@ -1146,7 +1146,7 @@ void FixRigidNH::write_restart(FILE *fp)
 void FixRigidNH::restart(char *buf)
 {
   int n = 0;
-  auto list = (double *) buf;
+  auto *list = (double *) buf;
   int flag = static_cast<int> (list[n++]);
 
   if (flag) {
@@ -1176,7 +1176,7 @@ void FixRigidNH::restart(char *buf)
         eta_b[i] = list[n++];
         eta_dot_b[i] = list[n++];
       }
-    } else n += 2*m;
+    }
   }
 }
 
@@ -1303,4 +1303,20 @@ void FixRigidNH::deallocate_order()
   delete[] wdti1;
   delete[] wdti2;
   delete[] wdti4;
+}
+
+/* ---------------------------------------------------------------------- */
+
+double FixRigidNH::memory_usage()
+{
+  double bytes = FixRigid::memory_usage();
+  bytes += (double) nbody * 4 * sizeof(double);    // conjqm[nbody][4]
+  if (tstat_flag) {
+    bytes += (double) t_chain * 8 * sizeof(double);    // q/eta/eta_dot/f_eta * t/r
+  }
+  if (pstat_flag) {
+    bytes += (double) p_chain * 4 * sizeof(double);    // q_b/eta_b/eta_dot_b/f_eta_b
+  }
+  bytes += (double) t_order * 4 * sizeof(double);    // w/wdti1/wdti2/wdti4
+  return bytes;
 }

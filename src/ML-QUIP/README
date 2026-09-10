@@ -3,7 +3,7 @@ provides an interface to the QUIP/libAtoms library, which includes a
 variety of interatomic potentials, including Gaussian Approximation
 Potential (GAP) models.
 
-See lib/quip/README for more information on how to build LAMMPS
+See the LAMMPS manual for more information on how to build LAMMPS
 with this package.
 
 See examples/PACKAGES/quip for several test examples that run QUIP

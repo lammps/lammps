@@ -1,7 +1,11 @@
 .. index:: pair_style momb
+.. index:: pair_style momb/omp
+.. index:: pair_style momb/kk
 
 pair_style momb command
 =======================
+
+Accelerator Variants: *momb/omp*, *momb/kk*
 
 Syntax
 """"""
@@ -31,7 +35,7 @@ Style *momb* computes pairwise van der Waals (vdW) and short-range
 interactions using the Morse potential and :ref:`(Grimme) <Grimme>` method
 implemented in the Many-Body Metal-Organic (MOMB) force field
 described comprehensively in :ref:`(Fichthorn) <Fichthorn>` and
-:ref:`(Zhou) <Zhou5>`. Grimme's method is widely used to correct for
+:ref:`(Zhou5) <Zhou5>`. Grimme's method is widely used to correct for
 dispersion in density functional theory calculations.
 
 .. math::
@@ -49,6 +53,10 @@ read by the :doc:`read_data <read_data>` as described below:
 * :math:`r_0` (distance units)
 * :math:`C_6` (energy\*distance\^6 units)
 * :math:`R_r` (distance units, typically sum of atomic vdW radii)
+
+----------
+
+.. include:: accel_styles.rst
 
 ----------
 
@@ -81,4 +89,4 @@ none
 
 .. _Zhou5:
 
-**(Zhou)** Zhou, Saidi, Fichthorn, J Phys Chem C, 118(6), 3366-3374 (2014).
+**(Zhou5)** Zhou, Saidi, Fichthorn, J Phys Chem C, 118(6), 3366-3374 (2014).

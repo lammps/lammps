@@ -17,7 +17,6 @@
 ------------------------------------------------------------------------- */
 
 #include "domain.h"
-#include "style_region.h"   // IWYU pragma: keep
 
 #include "atom.h"
 #include "atom_vec.h"
@@ -49,12 +48,16 @@ static constexpr double SMALL = 1.0e-4;
 static constexpr double BONDSTRETCH = 1.1;
 
 /* ----------------------------------------------------------------------
-   one instance per region style in style_region.h
+   process-global registry of region style factory functions.  Shared by all
+   LAMMPS instances and persistent across the "clear" command.  Built-in styles
+   are registered once by the generated register_region_styles(); plugins
+   add/override entries at runtime.
 ------------------------------------------------------------------------- */
 
-template <typename T> static Region *region_creator(LAMMPS *lmp, int narg, char ** arg)
+CreatorRegistry<Domain::RegionCreator> &Domain::region_styles()
 {
-  return new T(lmp, narg, arg);
+  static CreatorRegistry<Domain::RegionCreator> registry;
+  return registry;
 }
 
 /* ----------------------------------------------------------------------
@@ -100,23 +103,13 @@ Domain::Domain(LAMMPS *lmp) : Pointers(lmp)
   boxhi_lamda[0] = boxhi_lamda[1] = boxhi_lamda[2] = 1.0;
 
   lattice = nullptr;
-  auto args = new char*[2];
+  auto *args = new char*[2];
   args[0] = (char *) "none";
   args[1] = (char *) "1.0";
   set_lattice(2,args);
   delete[] args;
 
   copymode = 0;
-
-  region_map = new RegionCreatorMap();
-
-#define REGION_CLASS
-#define RegionStyle(key,Class) \
-  (*region_map)[#key] = &region_creator<Class>;
-#include "style_region.h"   // IWYU pragma: keep
-
-#undef RegionStyle
-#undef REGION_CLASS
 }
 
 /* ---------------------------------------------------------------------- */
@@ -125,10 +118,9 @@ Domain::~Domain()
 {
   if (copymode) return;
 
-  for (auto &reg : regions) delete reg;
+  for (const auto &reg : regions) delete reg;
   regions.clear();
   delete lattice;
-  delete region_map;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -182,7 +174,8 @@ void Domain::init()
   for (const auto &fix : fixes)
     if (utils::strmatch(fix->style,"^deform")) {
       deform_flag = 1;
-      if ((dynamic_cast<FixDeform *>(fix))->remapflag == Domain::V_REMAP) {
+      auto *deform = dynamic_cast<FixDeform *>(fix);
+      if (deform && (deform->remapflag == Domain::V_REMAP)) {
         deform_vremap = 1;
         deform_groupbit = fix->groupbit;
       }
@@ -190,7 +183,7 @@ void Domain::init()
 
   // region inits
 
-  for (auto &reg : regions) reg->init();
+  for (const auto &reg : regions) reg->init();
 }
 
 /* ----------------------------------------------------------------------
@@ -1136,7 +1129,7 @@ void Domain::box_too_small_check()
       delx = x[i][0] - x[k][0];
       dely = x[i][1] - x[k][1];
       delz = x[i][2] - x[k][2];
-      minimum_image(delx,dely,delz);
+      minimum_image(FLERR, delx,dely,delz);
       rsq = delx*delx + dely*dely + delz*delz;
       maxbondme = MAX(maxbondme,rsq);
     }
@@ -1205,6 +1198,7 @@ void Domain::subbox_too_small_check(double thresh)
                    "could lead to lost atoms");
 }
 
+// clang-format on
 /* ----------------------------------------------------------------------
    minimum image convention in periodic dimensions
    use 1/2 of box size as test
@@ -1218,39 +1212,45 @@ void Domain::subbox_too_small_check(double thresh)
 ------------------------------------------------------------------------- */
 
 static constexpr double MAXIMGCOUNT = 16;
-
-void Domain::minimum_image(double &dx, double &dy, double &dz) const
+void Domain::minimum_image(const std::string &file, int line, double &dx, double &dy,
+                           double &dz) const
 {
   if (triclinic == 0) {
     if (xperiodic) {
       if (fabs(dx) > (MAXIMGCOUNT * xprd))
-        error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dx);
+        error->one(file, line, "Atoms have moved too far apart ({}) for minimum image\n", dx);
       while (fabs(dx) > xprd_half) {
-        if (dx < 0.0) dx += xprd;
-        else dx -= xprd;
+        if (dx < 0.0)
+          dx += xprd;
+        else
+          dx -= xprd;
       }
     }
     if (yperiodic) {
       if (fabs(dy) > (MAXIMGCOUNT * yprd))
-        error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dy);
+        error->one(file, line, "Atoms have moved too far apart ({}) for minimum image\n", dy);
       while (fabs(dy) > yprd_half) {
-        if (dy < 0.0) dy += yprd;
-        else dy -= yprd;
+        if (dy < 0.0)
+          dy += yprd;
+        else
+          dy -= yprd;
       }
     }
     if (zperiodic) {
       if (fabs(dz) > (MAXIMGCOUNT * zprd))
-        error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dz);
+        error->one(file, line, "Atoms have moved too far apart ({}) for minimum image\n", dz);
       while (fabs(dz) > zprd_half) {
-        if (dz < 0.0) dz += zprd;
-        else dz -= zprd;
+        if (dz < 0.0)
+          dz += zprd;
+        else
+          dz -= zprd;
       }
     }
 
   } else {
     if (zperiodic) {
       if (fabs(dz) > (MAXIMGCOUNT * zprd))
-        error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dz);
+        error->one(file, line, "Atoms have moved too far apart ({}) for minimum image\n", dz);
       while (fabs(dz) > zprd_half) {
         if (dz < 0.0) {
           dz += zprd;
@@ -1265,7 +1265,7 @@ void Domain::minimum_image(double &dx, double &dy, double &dz) const
     }
     if (yperiodic) {
       if (fabs(dy) > (MAXIMGCOUNT * yprd))
-        error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dy);
+        error->one(file, line, "Atoms have moved too far apart ({}) for minimum image\n", dy);
       while (fabs(dy) > yprd_half) {
         if (dy < 0.0) {
           dy += yprd;
@@ -1278,10 +1278,12 @@ void Domain::minimum_image(double &dx, double &dy, double &dz) const
     }
     if (xperiodic) {
       if (fabs(dx) > (MAXIMGCOUNT * xprd))
-        error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dx);
+        error->one(file, line, "Atoms have moved too far apart ({}) for minimum image\n", dx);
       while (fabs(dx) > xprd_half) {
-        if (dx < 0.0) dx += xprd;
-        else dx -= xprd;
+        if (dx < 0.0)
+          dx += xprd;
+        else
+          dx -= xprd;
       }
     }
   }
@@ -1298,61 +1300,63 @@ void Domain::minimum_image(double &dx, double &dy, double &dz) const
      this applies for example to fix rigid/small
 ------------------------------------------------------------------------- */
 
-void Domain::minimum_image_big(double &dx, double &dy, double &dz) const
+void Domain::minimum_image_big(const std::string &file, int line, double &dx, double &dy,
+                               double &dz) const
 {
   if (triclinic == 0) {
     if (xperiodic) {
-      double dfactor = dx/xprd + 0.5;
+      double dfactor = dx / xprd + 0.5;
       if (dx < 0) dfactor -= 1.0;
       if (dfactor > MAXSMALLINT)
-        error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dx);
+        error->one(file, line, "Atoms have moved too far apart ({}) for minimum image\n", dx);
       dx -= xprd * static_cast<int>(dfactor);
     }
     if (yperiodic) {
-      double dfactor = dy/yprd + 0.5;
+      double dfactor = dy / yprd + 0.5;
       if (dy < 0) dfactor -= 1.0;
       if (dfactor > MAXSMALLINT)
-        error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dy);
+        error->one(file, line, "Atoms have moved too far apart ({}) for minimum image\n", dy);
       dy -= yprd * static_cast<int>(dfactor);
     }
     if (zperiodic) {
-      double dfactor = dz/zprd + 0.5;
+      double dfactor = dz / zprd + 0.5;
       if (dz < 0) dfactor -= 1.0;
       if (dfactor > MAXSMALLINT)
-        error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dz);
+        error->one(file, line, "Atoms have moved too far apart ({}) for minimum image\n", dz);
       dz -= zprd * static_cast<int>(dfactor);
     }
 
   } else {
     if (zperiodic) {
-      double dfactor = dz/zprd + 0.5;
+      double dfactor = dz / zprd + 0.5;
       if (dz < 0) dfactor -= 1.0;
       if (dfactor > MAXSMALLINT)
-        error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dz);
+        error->one(file, line, "Atoms have moved too far apart ({}) for minimum image\n", dz);
       int factor = static_cast<int>(dfactor);
       dz -= zprd * factor;
       dy -= yz * factor;
       dx -= xz * factor;
     }
     if (yperiodic) {
-      double dfactor = dy/yprd + 0.5;
+      double dfactor = dy / yprd + 0.5;
       if (dy < 0) dfactor -= 1.0;
       if (dfactor > MAXSMALLINT)
-        error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dy);
+        error->one(file, line, "Atoms have moved too far apart ({}) for minimum image\n", dy);
       int factor = static_cast<int>(dfactor);
       dy -= yprd * factor;
       dx -= xy * factor;
     }
     if (xperiodic) {
-      double dfactor = dx/xprd + 0.5;
+      double dfactor = dx / xprd + 0.5;
       if (dx < 0) dfactor -= 1.0;
       if (dfactor > MAXSMALLINT)
-        error->one(FLERR, "Atoms have moved too far apart ({}) for minimum image\n", dx);
+        error->one(file, line, "Atoms have moved too far apart ({}) for minimum image\n", dx);
       dx -= xprd * static_cast<int>(dfactor);
     }
   }
 }
 
+// clang-format off
 /* ----------------------------------------------------------------------
    return local index of atom J or any of its images that is closest to atom I
    if J is not a valid index like -1, just return it
@@ -1696,15 +1700,117 @@ void Domain::remap(double *x)
    for triclinic, point is converted to lamda coords (0-1) within remap()
    image = 10 bits for each dimension
    increment/decrement in wrap-around fashion
+   account for velocity remapping from fix deform if needed
 ------------------------------------------------------------------------- */
 
 void Domain::remap_all()
 {
   double **x = atom->x;
+  double **v = atom->v;
   imageint *image = atom->image;
   int nlocal = atom->nlocal;
 
-  for (int i = 0; i < nlocal; i++) remap(x[i],image[i]);
+  double *lo,*hi,*period,*coord;
+  double lamda[3];
+  imageint idim,otherdims;
+  int *mask = atom->mask;
+  int delta;
+
+  for (int i = 0; i < nlocal; i++) {
+    if (triclinic == 0) {
+      lo = boxlo;
+      hi = boxhi;
+      period = prd;
+      coord = x[i];
+    } else {
+      lo = boxlo_lamda;
+      hi = boxhi_lamda;
+      period = prd_lamda;
+      x2lamda(x[i],lamda);
+      coord = lamda;
+    }
+
+    if (xperiodic) {
+      delta = 0;
+      while (coord[0] < lo[0]) {
+        delta++;
+        coord[0] += period[0];
+        idim = image[i] & IMGMASK;
+        otherdims = image[i] ^ idim;
+        idim--;
+        idim &= IMGMASK;
+        image[i] = otherdims | idim;
+      }
+      while (coord[0] >= hi[0]) {
+        coord[0] -= period[0];
+        delta--;
+        idim = image[i] & IMGMASK;
+        otherdims = image[i] ^ idim;
+        idim++;
+        idim &= IMGMASK;
+        image[i] = otherdims | idim;
+      }
+      coord[0] = MAX(coord[0],lo[0]);
+      if (deform_vremap && mask[i] & deform_groupbit) v[i][0] += delta * h_rate[0];
+    }
+
+    if (yperiodic) {
+      delta = 0;
+      while (coord[1] < lo[1]) {
+        coord[1] += period[1];
+        delta++;
+        idim = (image[i] >> IMGBITS) & IMGMASK;
+        otherdims = image[i] ^ (idim << IMGBITS);
+        idim--;
+        idim &= IMGMASK;
+        image[i] = otherdims | (idim << IMGBITS);
+      }
+      while (coord[1] >= hi[1]) {
+        coord[1] -= period[1];
+        delta--;
+        idim = (image[i] >> IMGBITS) & IMGMASK;
+        otherdims = image[i] ^ (idim << IMGBITS);
+        idim++;
+        idim &= IMGMASK;
+        image[i] = otherdims | (idim << IMGBITS);
+      }
+      coord[1] = MAX(coord[1],lo[1]);
+      if (deform_vremap && mask[i] & deform_groupbit) {
+        v[i][0] += delta * h_rate[5];
+        v[i][1] += delta * h_rate[1];
+      }
+    }
+
+    if (zperiodic) {
+      delta = 0;
+      while (coord[2] < lo[2]) {
+        coord[2] += period[2];
+        delta++;
+        idim = image[i] >> IMG2BITS;
+        otherdims = image[i] ^ (idim << IMG2BITS);
+        idim--;
+        idim &= IMGMASK;
+        image[i] = otherdims | (idim << IMG2BITS);
+      }
+      while (coord[2] >= hi[2]) {
+        coord[2] -= period[2];
+        delta--;
+        idim = image[i] >> IMG2BITS;
+        otherdims = image[i] ^ (idim << IMG2BITS);
+        idim++;
+        idim &= IMGMASK;
+        image[i] = otherdims | (idim << IMG2BITS);
+      }
+      coord[2] = MAX(coord[2],lo[2]);
+      if (deform_vremap && mask[i] & deform_groupbit) {
+        v[i][0] += delta * h_rate[4];
+        v[i][1] += delta * h_rate[3];
+        v[i][2] += delta * h_rate[2];
+      }
+    }
+
+    if (triclinic) lamda2x(coord,x[i]);
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -1851,6 +1957,39 @@ void Domain::unmap(const double *x, imageint image, double *y)
 }
 
 /* ----------------------------------------------------------------------
+   unmap the point via image flags, accounting for velocity change due
+    to deformation if needed based on mask
+   result returned in y, don't reset image flag
+   for triclinic, use h[] to add in tilt factors in other dims as needed
+------------------------------------------------------------------------- */
+
+void Domain::unmap(const double *x, const double *v, imageint image, int mask, double *y, double *u)
+{
+  int xbox = (image & IMGMASK) - IMGMAX;
+  int ybox = (image >> IMGBITS & IMGMASK) - IMGMAX;
+  int zbox = (image >> IMG2BITS) - IMGMAX;
+
+  if (triclinic == 0) {
+    y[0] = x[0] + xbox*xprd;
+    y[1] = x[1] + ybox*yprd;
+    y[2] = x[2] + zbox*zprd;
+  } else {
+    y[0] = x[0] + h[0]*xbox + h[5]*ybox + h[4]*zbox;
+    y[1] = x[1] + h[1]*ybox + h[3]*zbox;
+    y[2] = x[2] + h[2]*zbox;
+  }
+
+  u[0] = v[0];
+  u[1] = v[1];
+  u[2] = v[2];
+  if (deform_vremap && mask & deform_groupbit) {
+    u[0] += h_rate[0] * xbox + h_rate[5] * ybox + h_rate[4] * zbox;
+    u[1] += h_rate[1] * ybox + h_rate[3] * zbox;
+    u[2] += h_rate[2] * zbox;
+  }
+}
+
+/* ----------------------------------------------------------------------
    adjust image flags due to triclinic box flip
    flip operation is changing box vectors A,B,C to new A',B',C'
      A' = A              (A does not change)
@@ -1978,7 +2117,7 @@ int Domain::ownatom(int /*id*/, double *x, imageint *image, int shrinkexceed)
 
 void Domain::set_lattice(int narg, char **arg)
 {
-  if (lattice) delete lattice;
+  delete lattice;
   lattice = nullptr;
   lattice = new Lattice(lmp,narg,arg);
 }
@@ -1997,9 +2136,9 @@ void Domain::add_region(int narg, char **arg)
   }
 
   if (strcmp(arg[1],"none") == 0)
-    error->all(FLERR,"Unrecognized region style 'none'");
+    error->all(FLERR, 1, "Unrecognized region style 'none'");
 
-  if (get_region_by_id(arg[0])) error->all(FLERR,"Reuse of region ID {}", arg[0]);
+  if (get_region_by_id(arg[0])) error->all(FLERR, Error::ARGZERO, "Reuse of region ID {}", arg[0]);
 
   // create the Region
   Region *newregion = nullptr;
@@ -2007,28 +2146,24 @@ void Domain::add_region(int narg, char **arg)
   if (lmp->suffix_enable) {
     if (lmp->non_pair_suffix()) {
       std::string estyle = std::string(arg[1]) + "/" + lmp->non_pair_suffix();
-      if (region_map->find(estyle) != region_map->end()) {
-        RegionCreator &region_creator = (*region_map)[estyle];
-        newregion = region_creator(lmp, narg, arg);
-      }
+      RegionCreator region_creator = region_styles().find(estyle);
+      if (region_creator) newregion = region_creator(lmp, narg, arg);
     }
 
     if (!newregion && lmp->suffix2) {
       std::string estyle = std::string(arg[1]) + "/" + lmp->suffix2;
-      if (region_map->find(estyle) != region_map->end()) {
-        RegionCreator &region_creator = (*region_map)[estyle];
-        newregion = region_creator(lmp, narg, arg);
-      }
+      RegionCreator region_creator = region_styles().find(estyle);
+      if (region_creator) newregion = region_creator(lmp, narg, arg);
     }
   }
 
-  if (!newregion && (region_map->find(arg[1]) != region_map->end())) {
-    RegionCreator &region_creator = (*region_map)[arg[1]];
-    newregion = region_creator(lmp, narg, arg);
+  if (!newregion) {
+    if (RegionCreator region_creator = region_styles().find(arg[1]))
+      newregion = region_creator(lmp, narg, arg);
   }
 
   if (!newregion)
-    error->all(FLERR,utils::check_packages_for_style("region",arg[1],lmp));
+    error->all(FLERR, 1, utils::check_packages_for_style("region",arg[1],lmp));
 
   // initialize any region variables via init()
   // in case region is used between runs, e.g. to print a variable
@@ -2051,7 +2186,7 @@ void Domain::delete_region(Region *reg)
 
 void Domain::delete_region(const std::string &id)
 {
-  auto reg = get_region_by_id(id);
+  auto *reg = get_region_by_id(id);
   if (!reg) error->all(FLERR,"Delete region {} does not exist", id);
   delete_region(reg);
 }
@@ -2061,9 +2196,9 @@ void Domain::delete_region(const std::string &id)
    return null if no match
 ------------------------------------------------------------------------- */
 
-Region *Domain::get_region_by_id(const std::string &name) const
+Region *Domain::get_region_by_id(const std::string &name)
 {
-  for (auto &reg : regions)
+  for (const auto &reg : regions)
     if (name == reg->id) return reg;
   return nullptr;
 }
@@ -2073,12 +2208,12 @@ Region *Domain::get_region_by_id(const std::string &name) const
    return vector with matching pointers
 ------------------------------------------------------------------------- */
 
-const std::vector<Region *> Domain::get_region_by_style(const std::string &name) const
+std::vector<Region *> Domain::get_region_by_style(const std::string &name)
 {
   std::vector<Region *> matches;
   if (name.empty()) return matches;
 
-  for (auto &reg : regions)
+  for (const auto &reg : regions)
     if (name == reg->style)  matches.push_back(reg);
 
   return matches;
@@ -2088,9 +2223,9 @@ const std::vector<Region *> Domain::get_region_by_style(const std::string &name)
    return list of regions as vector
 ------------------------------------------------------------------------- */
 
-const std::vector<Region *> Domain::get_region_list()
+std::vector<Region *> Domain::get_region_list()
 {
-  return std::vector<Region *>(regions.begin(), regions.end());
+  return {regions.begin(), regions.end()};
 }
 
 /* ----------------------------------------------------------------------

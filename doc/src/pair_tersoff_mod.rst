@@ -1,5 +1,6 @@
 .. index:: pair_style tersoff/mod
 .. index:: pair_style tersoff/mod/c
+.. index:: pair_style tersoff/mod/c/kk
 .. index:: pair_style tersoff/mod/gpu
 .. index:: pair_style tersoff/mod/kk
 .. index:: pair_style tersoff/mod/omp
@@ -13,7 +14,7 @@ Accelerator Variants: *tersoff/mod/gpu*, *tersoff/mod/kk*, *tersoff/mod/omp*
 pair_style tersoff/mod/c command
 ================================
 
-Accelerator Variants: *tersoff/mod/c/omp*
+Accelerator Variants: *tersoff/mod/c/kk*, *tersoff/mod/c/omp*
 
 Syntax
 """"""

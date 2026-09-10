@@ -77,7 +77,7 @@ The available models are *linear* and *nn*.
 
 The descriptor style *ace* is a class of highly general atomic
 descriptors, atomic cluster expansion descriptors (ACE) from
-:ref:`(Drautz) <Drautz19>`, that include a radial basis, an angular
+:ref:`(Drautz19) <Drautz19>`, that include a radial basis, an angular
 basis, and bases for other variables (such as chemical species) if
 relevant. In descriptor style *ace*, the *ace* descriptors may be
 defined up to an arbitrary body order. This descriptor style is the same
@@ -199,7 +199,7 @@ the elements are listed must be consistent for all three keywords.
 The SO3 descriptor file is similar to the SNAP descriptor except that it
 contains a few more arguments (e.g., *nmax* and *alpha*). The preparation
 of SO3 descriptor and model files can be done with the
-`Pyxtal_FF <https://github.com/qzhu2017/PyXtal_FF>`_ package.
+`PyXtal_FF <https://github.com/MaterSim/PyXtal_FF>`_ package.
 
 The ACE descriptor file differs from the SNAP and SO3 files. It more
 closely resembles the potential file format for linear or square-root

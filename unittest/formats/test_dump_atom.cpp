@@ -21,6 +21,7 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
+#include <cstring>
 #include <fstream>
 #include <string>
 #include <vector>

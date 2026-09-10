@@ -32,6 +32,7 @@ class PairThreebodyTable : public Pair {
   void coeff(int, char **) override;
   double init_one(int, int) override;
   void init_style() override;
+  void settings(int, char **) override;
 
   static constexpr int NPARAMS_PER_LINE = 8;
 
@@ -63,7 +64,6 @@ class PairThreebodyTable : public Pair {
   int maxshort;       // size of short neighbor list array
   int *neighshort;    // short neighbor list array
 
-  void settings(int, char **) override;
   virtual void allocate();
   void read_file(char *);
   virtual void setup_params();

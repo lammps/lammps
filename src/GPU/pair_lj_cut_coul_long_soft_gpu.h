@@ -28,7 +28,6 @@ class PairLJCutCoulLongSoftGPU : public PairLJCutCoulLongSoft {
  public:
   PairLJCutCoulLongSoftGPU(LAMMPS *lmp);
   ~PairLJCutCoulLongSoftGPU() override;
-  void cpu_compute(int, int, int, int, int *, int *, int **);
   void compute(int, int) override;
   void init_style() override;
   void reinit() override;
@@ -38,7 +37,6 @@ class PairLJCutCoulLongSoftGPU : public PairLJCutCoulLongSoft {
 
  private:
   int gpu_mode;
-  double cpu_time;
 };
 
 }    // namespace LAMMPS_NS

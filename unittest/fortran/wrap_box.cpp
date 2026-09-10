@@ -1,7 +1,5 @@
 // unit tests for extracting box dimensions fom a LAMMPS instance through the Fortran wrapper
 
-#include "lammps.h"
-#include <mpi.h>
 #include <string>
 
 #include "gtest/gtest.h"
@@ -19,6 +17,11 @@ double f_lammps_extract_box_zlo();
 double f_lammps_extract_box_zhi();
 void f_lammps_delete_everything();
 void f_lammps_reset_box_2x();
+}
+
+// forward decl
+namespace LAMMPS_NS {
+class LAMMPS;
 }
 
 class LAMMPS_commands : public ::testing::Test {

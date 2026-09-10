@@ -441,7 +441,7 @@ void Finish::end(int flag)
 
     double fraction,flop3,flop1;
     if (nsteps) {
-      if (time_kspace) fraction = time3d/time_kspace*100.0;
+      if (time_kspace != 0.0) fraction = time3d/time_kspace*100.0;
       else fraction = 0.0;
       flop3 = nfft*nflops/1.0e9/(time3d/nsteps);
       flop1 = nfft*nflops/1.0e9/(time1d/nsteps);

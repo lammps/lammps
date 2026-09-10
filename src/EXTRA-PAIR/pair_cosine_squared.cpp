@@ -33,7 +33,9 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairCosineSquared::PairCosineSquared(LAMMPS *lmp) : Pair(lmp)
+PairCosineSquared::PairCosineSquared(LAMMPS *lmp) :
+    Pair(lmp), epsilon(nullptr), sigma(nullptr), w(nullptr), cut(nullptr), wcaflag(nullptr),
+    lj12_e(nullptr), lj6_e(nullptr), lj12_f(nullptr), lj6_f(nullptr)
 {
   writedata = 1;
 }
@@ -42,6 +44,7 @@ PairCosineSquared::PairCosineSquared(LAMMPS *lmp) : Pair(lmp)
 
 PairCosineSquared::~PairCosineSquared()
 {
+  if (copymode) return;
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
@@ -133,7 +136,7 @@ void PairCosineSquared::coeff(int narg, char **arg)
   double sigma_one = utils::numeric(FLERR, arg[3],false,lmp);
 
   double cut_one = cut_global;
-  double wca_one = 0;
+  int wca_one = 0;
   if (narg == 6) {
     cut_one = utils::numeric(FLERR, arg[4],false,lmp);
     if (strcmp(arg[5], "wca") == 0) {

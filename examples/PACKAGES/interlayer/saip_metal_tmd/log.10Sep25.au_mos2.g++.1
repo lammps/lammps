@@ -1,0 +1,179 @@
+LAMMPS (10 Sep 2025)
+# Initialization
+units           metal
+boundary        p p p
+atom_style      full
+processors      * * 1     # domain decomposition over x and y
+read_data       ./3Lgold_1Lmos2.data
+Reading data file ...
+  orthogonal box = (0.52363376 0.3023078 0) to (59.415066 34.303292 100)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  1590 atoms
+  reading velocities ...
+  1590 velocities
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     0 = max # of 1-2 neighbors
+     0 = max # of 1-3 neighbors
+     0 = max # of 1-4 neighbors
+     1 = max # of special neighbors
+  special bonds CPU = 0.002 seconds
+  read_data CPU = 0.043 seconds
+mass            1 196.96657  # gold          mass (g/mole)
+mass            2 32.065     # sulfur        mass (g/mole)
+mass            3 95.95      # molybdenum    mass (g/mole)
+mass            4 32.065     # sulfur        mass (g/mole)
+# Separate atom groups
+group           gold type 1
+864 atoms in group gold
+group           mos2 type 2 3 4
+726 atoms in group mos2
+######################## Potential defition ##############################
+# Interlayer potential
+pair_style  hybrid/overlay eam  sw/mod saip/metal/tmd 16.0 1
+####################################################################
+pair_coeff      1 1 eam  ./Au_u3.eam
+Reading eam potential file ./Au_u3.eam with DATE: 2007-06-11
+pair_coeff      * * sw/mod tmd.sw.mod NULL S Mo S
+Reading sw potential file tmd.sw.mod with DATE: 2018-03-26
+pair_coeff      * * saip/metal/tmd ./TMDAu.SAIP Au S Mo S
+Reading saip/metal/tmd potential file ./TMDAu.SAIP with DATE: 2025-04-04
+####################################################################
+# Calculate pair energy
+compute         0 all pair eam
+compute         1 all pair sw/mod
+compute         2 all pair saip/metal/tmd
+variable        EAM   equal c_0
+variable        SWMOD equal c_1
+variable        SAIP  equal c_2
+############# Output ##############
+thermo_style    custom step etotal pe ke v_EAM v_SWMOD v_SAIP temp
+thermo          100
+thermo_modify   lost error
+
+velocity        all set 0.0 0.0 0.0
+velocity 	    mos2 create 300.0 4928459 mom yes rot yes dist gaussian
+velocity 	    gold create 300.0 4928459 mom yes rot yes dist gaussian
+
+fix             intsub gold nve
+fix             intrib mos2 nve
+
+timestep        1e-3
+run		1000
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- ilp/graphene/hbn potential doi:10.1021/acs.nanolett.8b02848
+@Article{Ouyang2018
+ author = {W. Ouyang and D. Mandelli and M. Urbakh and O. Hod},
+ title = {Nanoserpents: Graphene Nanoribbon Motion on Two-Dimensional Hexagonal Materials},
+ journal = {Nano Letters},
+ volume =  18,
+ pages =   6009,
+ year =    2018,
+}
+
+- ilp/tmd potential doi:10.1021/acs.jctc.1c00782
+@Article{Ouyang2021
+  author = {W. Ouyang and R. Sofer and X. Gao and J. Hermann and
+    A. Tkatchenko and L. Kronik and M. Urbakh and O. Hod},
+  title = {Anisotropic Interlayer Force Field for Transition
+    Metal Dichalcogenides: The Case of Molybdenum Disulfide},
+  journal = {J.~Chem.\ Theory Comput.},
+ volume   = 17,
+ pages    = {7237--7245}
+ year     = 2021,
+}
+
+- saip/metal/tmd potential doi.org/10.1002/advs.202415884
+@Article{Ouyang2021
+ author = {Y. Yao, Y. Song, B. Wu, S. Scherb, S. Huang, A. Hinaut, T. Glatzel, E. Meyer, Z. Liu, and W. Ouyang},
+ title = {Unraveling the Interfacial Properties of Twisted Single-Crystal Au(111)/MoS2 Heterostructures: A Pathway to Robust Superlubricity},
+ journal = {Adv. Sci.},
+ volume =  12,
+ pages =   {2415884}
+ year =    2025,
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 18
+  ghost atom cutoff = 18
+  binsize = 9, bins = 7 4 12
+  5 neighbor lists, perpetual/occasional/extra = 5 0 0
+  (1) pair eam, perpetual, skip from (5)
+      attributes: half, newton on
+      pair build: skip
+      stencil: none
+      bin: none
+  (2) pair sw/mod, perpetual, skip from (4)
+      attributes: full, newton on
+      pair build: skip
+      stencil: none
+      bin: none
+  (3) pair saip/metal/tmd, perpetual
+      attributes: full, newton on, ghost, cut 18
+      pair build: full/bin/ghost
+      stencil: full/ghost/bin/3d
+      bin: standard
+  (4) neighbor class addition, perpetual, copy from (3)
+      attributes: full, newton on
+      pair build: copy
+      stencil: none
+      bin: none
+  (5) neighbor class addition, perpetual, half/full from (4)
+      attributes: half, newton on
+      pair build: halffull/newton
+      stencil: none
+      bin: none
+Per MPI rank memory allocation (min/avg/max) = 36.31 | 36.31 | 36.31 Mbytes
+   Step         TotEng         PotEng         KinEng         v_EAM         v_SWMOD         v_SAIP          Temp     
+         0  -4094.783      -4156.3625      61.579533     -3200.3073     -897.8971      -58.158136      299.8112     
+       100  -4094.7686     -4117.4877      22.71912      -3175.3866     -884.85097     -57.25016       110.61218    
+       200  -4094.7717     -4125.4148      30.643106     -3183.1956     -884.8818      -57.337423      149.19156    
+       300  -4094.7681     -4127.9027      33.134528     -3186.359      -883.41654     -58.127078      161.3215     
+       400  -4094.7722     -4126.5176      31.745428     -3182.8465     -885.26606     -58.405041      154.55841    
+       500  -4094.7701     -4127.6359      32.865884     -3184.0679     -884.73218     -58.835847      160.01356    
+       600  -4094.7721     -4128.7852      34.013058     -3183.4466     -885.94185     -59.396778      165.59879    
+       700  -4094.768      -4125.8024      31.034423     -3183.589      -882.00781     -60.2056        151.09675    
+       800  -4094.7702     -4127.4862      32.715987     -3182.9462     -883.47351     -61.066547      159.28376    
+       900  -4094.7696     -4126.9742      32.204602     -3182.4139     -883.06824     -61.492096      156.79399    
+      1000  -4094.7701     -4127.507       32.736928     -3182.2687     -883.48512     -61.75318       159.38571    
+Loop time of 99.4509 on 1 procs for 1000 steps with 1590 atoms
+
+Performance: 0.869 ns/day, 27.625 hours/ns, 10.055 timesteps/s, 15.988 katom-step/s
+100.0% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 99.395     | 99.395     | 99.395     |   0.0 | 99.94
+Bond    | 9.0611e-05 | 9.0611e-05 | 9.0611e-05 |   0.0 |  0.00
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.017015   | 0.017015   | 0.017015   |   0.0 |  0.02
+Output  | 0.00043061 | 0.00043061 | 0.00043061 |   0.0 |  0.00
+Modify  | 0.027927   | 0.027927   | 0.027927   |   0.0 |  0.03
+Other   |            | 0.01061    |            |       |  0.01
+
+Nlocal:           1590 ave        1590 max        1590 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           3704 ave        3704 max        3704 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:              0 ave           0 max           0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:  1.17592e+06 ave 1.17592e+06 max 1.17592e+06 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 1175920
+Ave neighs/atom = 739.57233
+Ave special neighs/atom = 0
+Neighbor list builds = 0
+Dangerous builds = 0
+Total wall time: 0:01:39

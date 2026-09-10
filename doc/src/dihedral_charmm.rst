@@ -4,6 +4,7 @@
 .. index:: dihedral_style charmm/omp
 .. index:: dihedral_style charmmfsw
 .. index:: dihedral_style charmmfsw/kk
+.. index:: dihedral_style charmmfsw/omp
 
 dihedral_style charmm command
 =============================
@@ -13,7 +14,7 @@ Accelerator Variants: *charmm/intel*, *charmm/kk*, *charmm/omp*
 dihedral_style charmmfsw command
 ================================
 
-Accelerator Variants: *charmmfsw/kk*
+Accelerator Variants: *charmmfsw/kk*, *charmmfsw/omp*
 
 Syntax
 """"""

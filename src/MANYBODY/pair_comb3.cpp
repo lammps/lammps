@@ -49,7 +49,7 @@ static constexpr int MAXNEIGH = 24;
 
 /* ---------------------------------------------------------------------- */
 
-PairComb3::PairComb3(LAMMPS *lmp) : Pair(lmp)
+PairComb3::PairComb3(LAMMPS *lmp) : Pair(lmp), qf(nullptr), charge(nullptr)
 {
   single_enable = 0;
   restartinfo = 0;
@@ -609,6 +609,13 @@ void PairComb3::read_file(char *file)
           params[nparams].vsig < 0.0 || params[nparams].vdwflag < 0.0
           )
         error->one(FLERR,"Illegal COMB3 parameter");
+
+      // element group indices from the potential file must be 1, 2, or 3
+
+      if ((params[nparams].ielementgp < 1) || (params[nparams].ielementgp > 3) ||
+          (params[nparams].jelementgp < 1) || (params[nparams].jelementgp > 3) ||
+          (params[nparams].kelementgp < 1) || (params[nparams].kelementgp > 3))
+        error->one(FLERR,"Invalid element group index in COMB3 potential file");
 
       nparams++;
     }
@@ -1603,7 +1610,7 @@ void PairComb3::force_zeta(Param *parami, Param *paramj, double rsq,
   double r,att_eng,att_force,bij;  // att_eng is -cbj
   double boij, dbij1, dbij2, dbij3, dbij4, dbij5;
   double boji, dbji1, dbji2, dbji3, dbji4, dbji5;
-  double pradx, prady;
+  double pradx = 0.0, prady = 0.0;
   r = sqrt(rsq);
 
   if (r > parami->bigr + parami->bigd) return;
@@ -1913,18 +1920,16 @@ void PairComb3::coord(Param *param, double r, int i,
     if (xcntritot > maxxcn[tri_flag-1]) {
       pcorn  = vmaxxcn[tri_flag-1]+(xcntot-maxxcn[tri_flag-1])*dvmaxxcn[tri_flag-1];
       dxccij = dxchij = dxcoij = dvmaxxcn[tri_flag-1];
-    }
-    else {
+    } else {
       ixmin=int(xcccn+1.0e-12);
       iymin=int(xchcn+1.0e-12);
       izmin=int(xcocn+1.0e-12);
-      if (fabs(float(ixmin)-xcccn)>1.0e-8 ||
-          fabs(float(iymin)-xchcn)>1.0e-8 ||
-          fabs(float(izmin)-xcocn)>1.0e-8) {
+      if (fabs(double(ixmin)-xcccn)>1.0e-8 ||
+          fabs(double(iymin)-xchcn)>1.0e-8 ||
+          fabs(double(izmin)-xcocn)>1.0e-8) {
             cntri_int(tri_flag,xcccn,xchcn,xcocn,ixmin,iymin,izmin,
             pcorn,dxccij,dxchij,dxcoij,param);
-      }
-      else  {
+      } else  {
         pcorn  = pcn_grid[tri_flag-1][ixmin][iymin][izmin];
         dxccij = pcn_gridx[tri_flag-1][ixmin][iymin][izmin];
         dxchij = pcn_gridy[tri_flag-1][ixmin][iymin][izmin];
@@ -2544,10 +2549,10 @@ void PairComb3::tri_point(double rsq, int &mr1, int &mr2,
   rridr = (r-rin)/dr;
 
   mr1 = int(rridr) ;
-  dd = rridr - float(mr1);
+  dd = rridr - double(mr1);
   if (dd > 0.5) mr1 += 1;
 
-  rr1 = float(mr1)*dr;
+  rr1 = double(mr1)*dr;
   rridr = (r - rin - rr1)/dr;
   rridr2 = rridr * rridr;
 
@@ -2755,9 +2760,9 @@ void PairComb3::rad_calc(double r, Param *parami, Param *paramj,
   iymin = int(yrad+1.0e-12);
   izmin = int(zcon+1.0e-12);
   radindx=parami->rad_flag-1;
-  if (fabs(float(ixmin)-xrad)>1.0e-8 ||
-      fabs(float(iymin)-yrad)>1.0e-8 ||
-      fabs(float(izmin)-zcon)>1.0e-8) {
+  if (fabs(double(ixmin)-xrad)>1.0e-8 ||
+      fabs(double(iymin)-yrad)>1.0e-8 ||
+      fabs(double(izmin)-zcon)>1.0e-8) {
     rad_int(radindx,xrad,yrad,zcon,ixmin,iymin,izmin,
               vrad,pradx,prady,pradz);
   } else {
@@ -2945,9 +2950,9 @@ void PairComb3::tor_calc(double r, Param *parami, Param *paramj,
 
     torindx=torindx-1;
 
-    if (fabs(float(ixmin)-xtor)>1.0e-8 ||
-      fabs(float(iymin)-ytor)>1.0e-8 ||
-      fabs(float(izmin)-zcon)>1.0e-8) {
+    if (fabs(double(ixmin)-xtor)>1.0e-8 ||
+        fabs(double(iymin)-ytor)>1.0e-8 ||
+        fabs(double(izmin)-zcon)>1.0e-8) {
       tor_int(torindx,xtor,ytor,zcon,ixmin,iymin,izmin,
               vtor,dtorx,dtory,dtorz);
     } else {
@@ -3535,7 +3540,7 @@ void PairComb3::dipole_init(Param *parami, Param *paramj, double fac11,
 
   r = sqrt(rsq);
   r3 = r * rsq;
-  rcd = 1.0/(r3);
+  rcd = 1.0/r3;
   rct = 3.0*rcd/rsq;
   alfdpi = 0.4/MY_PIS;
   esucon = force->qqr2e;

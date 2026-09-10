@@ -10,20 +10,14 @@
 #ifndef COLVARPROXY_LAMMPS_H
 #define COLVARPROXY_LAMMPS_H
 
-#include "colvarproxy_lammps_version.h"    // IWYU pragma: export
-
 #include "colvarmodule.h"
 #include "colvarproxy.h"
-#include "colvartypes.h"
-
-#include <mpi.h>
-
-#include "random_park.h"
 
 // forward declarations
 
 namespace LAMMPS_NS {
 class LAMMPS;
+class RanPark;
 }    // namespace LAMMPS_NS
 
 /// \brief Communication between colvars and LAMMPS
@@ -45,35 +39,27 @@ class colvarproxy_lammps : public colvarproxy {
 
   std::vector<int> atoms_types;
 
-  MPI_Comm inter_comm;        // MPI comm with 1 root proc from each world
-  int inter_me, inter_num;    // rank for the inter replica comm
-
  public:
-  friend class cvm::atom;
-
   colvarproxy_lammps(LAMMPS_NS::LAMMPS *lmp);
   ~colvarproxy_lammps() override;
+
+  // disable default and copy constructor
+  colvarproxy_lammps() = delete;
+  colvarproxy_lammps(const colvarproxy_lammps &) = delete;
 
   void init();
 
   /// Set the internal seed used by \link rand_gaussian() \endlink
   void set_random_seed(int seed);
 
-  /// Set the multiple replicas communicator
-  void set_replicas_communicator(MPI_Comm root2root);
-
   int setup() override;
-
-  // disable default and copy constructor
- private:
-  colvarproxy_lammps() {};
-  colvarproxy_lammps(const colvarproxy_lammps &) {};
 
   // methods for lammps to move data or trigger actions in the proxy
  public:
-  bool total_forces_enabled() const override { return total_force_requested; };
-  bool total_forces_same_step() const override { return true; };
-  bool want_exit() const { return do_exit; };
+  [[nodiscard]] bool total_forces_enabled() const override { return total_force_requested; };
+  // Total forces are saved at end of step, only processed at the next step
+  [[nodiscard]] bool total_forces_same_step() const override { return false; };
+  [[nodiscard]] bool want_exit() const { return do_exit; };
 
   // perform colvars computation. returns biasing energy
   double compute();
@@ -93,23 +79,23 @@ class colvarproxy_lammps : public colvarproxy {
   void log(std::string const &message) override;
   void error(std::string const &message) override;
 
-  cvm::rvector position_distance(cvm::atom_pos const &pos1,
-                                 cvm::atom_pos const &pos2) const override;
-
-  cvm::real rand_gaussian(void) override { return _random->gaussian(); };
+  cvm::real rand_gaussian() override;
 
   int init_atom(int atom_number) override;
+  int init_atom(cvm::residue_id const &residue, std::string const &atom_name,
+                std::string const &segment_id) override
+  {
+    return colvarproxy::init_atom(residue, atom_name, segment_id);
+  }
+
   int check_atom_id(int atom_number) override;
+  int check_atom_id(cvm::residue_id const &residue, std::string const &atom_name,
+                    std::string const &segment_id) override
+  {
+    return colvarproxy::check_atom_id(residue, atom_name, segment_id);
+  }
 
   inline std::vector<int> *modify_atom_types() { return &atoms_types; }
-
-  int replica_enabled() override;
-  int replica_index() override;
-  int num_replicas() override;
-
-  void replica_comm_barrier() override;
-  int replica_comm_recv(char *msg_data, int buf_len, int src_rep) override;
-  int replica_comm_send(char *msg_data, int msg_len, int dest_rep) override;
 };
 
 #endif

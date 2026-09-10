@@ -6,7 +6,7 @@ SHELL = /bin/sh
 # compiler/linker settings
 # specify flags and libraries needed for your compiler
 
-CC =		mpiicpc -cxx=icpx -std=c++11
+CC =		mpiicpc -cxx=icpx -std=c++17
 OPTFLAGS =      -xHost -O2 -ffast-math -freciprocal-math
 CCFLAGS =	-qopenmp-simd -qopenmp -ansi-alias \
                 -DLMP_INTEL_USELRT -DLMP_USE_MKL_RNG $(OPTFLAGS) \
@@ -14,7 +14,7 @@ CCFLAGS =	-qopenmp-simd -qopenmp -ansi-alias \
 SHFLAGS =	-fPIC
 DEPFLAGS =	-M
 
-LINK =		mpiicpc -cxx=icpx -std=c++11
+LINK =		mpiicpc -cxx=icpx -std=c++17
 LINKFLAGS =	-qopenmp-simd -qopenmp $(OPTFLAGS) -L$(MKLROOT)/lib/intel64/
 LIB =           -ltbbmalloc -lmkl_intel_ilp64 -lmkl_sequential -lmkl_core	
 SIZE =		size

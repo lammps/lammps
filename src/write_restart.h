@@ -21,6 +21,7 @@ CommandStyle(write_restart,WriteRestart);
 #define LMP_WRITE_RESTART_H
 
 #include "command.h"
+#include "safe_pointers.h"
 
 namespace LAMMPS_NS {
 
@@ -33,7 +34,7 @@ class WriteRestart : public Command {
 
  private:
   int me, nprocs;
-  FILE *fp;
+  SafeFilePtr fp;
   bigint natoms;    // natoms (sum of nlocal) to write into file
   int noinit;
 

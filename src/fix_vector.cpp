@@ -68,7 +68,7 @@ FixVector::FixVector(LAMMPS *lmp, int narg, char **arg) :
     if (strcmp(arg[iarg], "nmax") == 0) {
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix vector nmax", error);
       nmaxval = utils::bnumeric(FLERR, arg[iarg + 1], false, lmp);
-      if (nmaxval < 1) error->all(FLERR, "Invalid nmax value");
+      if ((nmaxval < 1) || (nmaxval > MAXSMALLINT)) error->all(FLERR, "Invalid nmax value");
       iarg += 2;
     } else {
       error->all(FLERR, "Unknown fix vector keyword: {}", arg[iarg]);
@@ -80,11 +80,11 @@ FixVector::FixVector(LAMMPS *lmp, int narg, char **arg) :
   // this fix produces either a global vector or array
   // intensive/extensive flags set by compute,fix,variable that produces value
 
-  int value, finalvalue;
+  int value = 0, finalvalue;
   bool first = true;
   for (auto &val : values) {
     if (val.which == ArgInfo::COMPUTE) {
-      auto icompute = modify->get_compute_by_id(val.id);
+      auto *icompute = modify->get_compute_by_id(val.id);
       if (!icompute) error->all(FLERR, "Compute ID {} for fix vector does not exist", val.id);
       if (val.argindex == 0 && icompute->scalar_flag == 0)
         error->all(FLERR, "Fix vector compute {} does not calculate a scalar", val.id);
@@ -103,7 +103,7 @@ FixVector::FixVector(LAMMPS *lmp, int narg, char **arg) :
       val.val.c = icompute;
 
     } else if (val.which == ArgInfo::FIX) {
-      auto ifix = modify->get_fix_by_id(val.id);
+      auto *ifix = modify->get_fix_by_id(val.id);
       if (!ifix) error->all(FLERR, "Fix ID {} for fix vector does not exist", val.id);
       if (val.argindex == 0 && ifix->scalar_flag == 0)
         error->all(FLERR, "Fix vector fix {} does not calculate a scalar", val.id);
@@ -159,7 +159,8 @@ FixVector::FixVector(LAMMPS *lmp, int narg, char **arg) :
 
   vector = nullptr;
   array = nullptr;
-  ncount = ncountmax = nindex = 0;
+  ncount = nindex = 0;
+  ncountmax = 1;
   if (values.size() == 1)
     size_vector = 0;
   else
@@ -225,12 +226,22 @@ void FixVector::init()
 
   bigint finalstep = update->endstep / nevery * nevery;
   if (finalstep > update->endstep) finalstep -= nevery;
+  const bigint oldmax = (vector || array) ? ncountmax : 0;
   ncountmax = (finalstep - initialstep) / nevery + 1;
+  if (ncountmax <= 0) ncountmax = 1;
   if (ncountmax > nmaxval) ncountmax = nmaxval;
-  if (values.size() == 1)
+
+  // zero out only newly added storage: init() runs before every run and
+  // values stored in previous runs must be kept
+
+  if (values.size() == 1) {
     memory->grow(vector, ncountmax, "vector:vector");
-  else
+    if (ncountmax > oldmax) memset(&vector[oldmax], 0, (ncountmax-oldmax)*sizeof(double));
+  } else {
     memory->grow(array, ncountmax, values.size(), "vector:array");
+    if (ncountmax > oldmax)
+      memset(&array[oldmax][0], 0, (ncountmax-oldmax)*values.size()*sizeof(double));
+  }
 }
 
 /* ----------------------------------------------------------------------

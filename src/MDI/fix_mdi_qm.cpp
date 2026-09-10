@@ -598,6 +598,8 @@ void FixMDIQM::post_force(int vflag)
         volume = domain->xprd * domain->yprd;
       else if (domain->dimension == 3)
         volume = domain->xprd * domain->yprd * domain->zprd;
+      else
+        error->all(FLERR, "Unsupported dimension in fix mdi/qm");
       for (int i = 0; i < 6; i++) virial[i] = qm_virial_symmetric[i] * volume / nprocs;
     }
   }
@@ -1114,7 +1116,7 @@ void FixMDIQM::unit_conversions()
 
 int compare_IDs(const int i, const int j, void *ptr)
 {
-  tagint *ids = (tagint *) ptr;
+  auto *ids = (tagint *) ptr;
   if (ids[i] < ids[j]) return -1;
   if (ids[i] > ids[j]) return 1;
   return 0;

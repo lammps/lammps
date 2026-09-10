@@ -39,17 +39,20 @@ class NeighborKokkos : public Neighbor {
   void build_topology() override;
 
   template<class DeviceType>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagNeighborCheckDistance<DeviceType>, const int&, int&) const;
 
   template<class DeviceType>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagNeighborXhold<DeviceType>, const int&) const;
 
-  DAT::tdual_xfloat_2d k_cutneighsq;
+  DAT::ttransform_kkfloat_2d k_cutneighsq;
+  DAT::ttransform_kkfloat_2d k_cutneighghostsq;
 
   DAT::tdual_int_1d k_ex1_type,k_ex2_type;
-  DAT::tdual_int_2d k_ex_type;
+  DAT::ttransform_int_2d k_ex_type;
   DAT::tdual_int_1d k_ex1_bit,k_ex2_bit;
   DAT::tdual_int_1d k_ex_mol_group;
   DAT::tdual_int_1d k_ex_mol_bit;
@@ -58,21 +61,22 @@ class NeighborKokkos : public Neighbor {
   NeighBondKokkos<LMPHostType> neighbond_host;
   NeighBondKokkos<LMPDeviceType> neighbond_device;
 
-  DAT::tdual_int_2d k_bondlist;
-  DAT::tdual_int_2d k_anglelist;
-  DAT::tdual_int_2d k_dihedrallist;
-  DAT::tdual_int_2d k_improperlist;
+  DAT::tdual_int_2d_lr k_bondlist;
+  DAT::tdual_int_2d_lr k_anglelist;
+  DAT::tdual_int_2d_lr k_dihedrallist;
+  DAT::tdual_int_2d_lr k_improperlist;
 
   int device_flag;
 
  private:
 
-  DAT::tdual_x_array x;
-  DAT::tdual_x_array xhold;
+  DAT::ttransform_kkfloat_1d_3_lr x;
+  DAT::ttransform_kkfloat_1d_3_lr xhold;
 
-  X_FLOAT deltasq;
+  double deltasq;
 
   void init_cutneighsq_kokkos(int) override;
+  void init_cutneighghostsq_kokkos(int) override;
   void create_kokkos_list(int) override;
   void init_ex_type_kokkos(int) override;
   void init_ex_bit_kokkos() override;
@@ -82,7 +86,6 @@ class NeighborKokkos : public Neighbor {
   template<class DeviceType> int check_distance_kokkos();
   void build(int) override;
   template<class DeviceType> void build_kokkos(int);
-  void setup_bins_kokkos(int);
   void modify_ex_type_grow_kokkos();
   void modify_ex_group_grow_kokkos();
   void modify_mol_group_grow_kokkos();

@@ -33,6 +33,7 @@ class MinSpinCG : public Min {
   void reset_vectors() override;
   int modify_param(int, char **) override;
   int iterate(int) override;
+  double memory_usage() override;
 
  private:
   int local_iter;            // for neb

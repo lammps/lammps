@@ -82,11 +82,11 @@ int main(int argc, char **argv)
             printf("Error reading binary STL facet attributes: %s\n", strerror(errno));
             return 7;
         }
-        fprintf(out, "  facet normal %e %e %e\n", normal[0], normal[1], normal[2]);
+        fprintf(out, "  facet normal %e %e %e\n", (double) normal[0], (double) normal[1], (double) normal[2]);
         fputs("    outer loop\n", out);
-        fprintf(out, "    vertex %e %e %e\n", vert1[0], vert1[1], vert1[2]);
-        fprintf(out, "    vertex %e %e %e\n", vert2[0], vert2[1], vert2[2]);
-        fprintf(out, "    vertex %e %e %e\n", vert3[0], vert3[1], vert3[2]);
+        fprintf(out, "    vertex %e %e %e\n", (double) vert1[0], (double) vert1[1], (double) vert1[2]);
+        fprintf(out, "    vertex %e %e %e\n", (double) vert2[0], (double) vert2[1], (double) vert2[2]);
+        fprintf(out, "    vertex %e %e %e\n", (double) vert3[0], (double) vert3[1], (double) vert3[2]);
         fputs("    endloop\n  endfacet\n", out);
         if (ferror(out)) {
             printf("Error writing text STL facet: %s\n", strerror(errno));

@@ -30,7 +30,7 @@ class ComputeERotateAsphere : public Compute {
   void init() override;
   double compute_scalar() override;
 
- private:
+ protected:
   double pfactor;
   class AtomVecEllipsoid *avec_ellipsoid;
   class AtomVecLine *avec_line;

@@ -36,7 +36,9 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCut::PairLJCut(LAMMPS *lmp) : Pair(lmp)
+PairLJCut::PairLJCut(LAMMPS *lmp) :
+    Pair(lmp), cut(nullptr), epsilon(nullptr), sigma(nullptr), lj1(nullptr), lj2(nullptr),
+    lj3(nullptr), lj4(nullptr), offset(nullptr), cut_respa(nullptr)
 {
   respa_enable = 1;
   born_matrix_enable = 1;
@@ -479,7 +481,7 @@ void PairLJCut::init_style()
   int list_style = NeighConst::REQ_DEFAULT;
 
   if (update->whichflag == 1 && utils::strmatch(update->integrate_style, "^respa")) {
-    auto respa = dynamic_cast<Respa *>(update->integrate);
+    auto *respa = dynamic_cast<Respa *>(update->integrate);
     if (respa->level_inner >= 0) list_style = NeighConst::REQ_RESPA_INOUT;
     if (respa->level_middle >= 0) list_style = NeighConst::REQ_RESPA_ALL;
   }

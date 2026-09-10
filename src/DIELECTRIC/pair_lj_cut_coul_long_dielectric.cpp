@@ -38,7 +38,8 @@ static constexpr double EPSILON = 1.0e-6;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCutCoulLongDielectric::PairLJCutCoulLongDielectric(LAMMPS *_lmp) : PairLJCutCoulLong(_lmp)
+PairLJCutCoulLongDielectric::PairLJCutCoulLongDielectric(LAMMPS *_lmp) :
+    PairLJCutCoulLong(_lmp), avec(nullptr)
 {
   respa_enable = 0;
   cut_respa = nullptr;
@@ -159,7 +160,7 @@ void PairLJCutCoulLongDielectric::compute(int eflag, int vflag)
             rsq_lookup.f = rsq;
             itable = rsq_lookup.i & ncoulmask;
             itable >>= ncoulshiftbits;
-            fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
+            fraction = ((double) rsq_lookup.f - rtable[itable]) * drtable[itable];
             table = ftable[itable] + fraction * dftable[itable];
             forcecoul = qtmp * q[j] * table;
             efield_i = q[j] * table;
@@ -195,7 +196,7 @@ void PairLJCutCoulLongDielectric::compute(int eflag, int vflag)
         epot[i] += epot_i;
 
         if (eflag) {
-          if (rsq < cut_coulsq) {
+          if (rsq < cut_coulsq && rsq > EPSILON) {
             if (!ncoultablebits || rsq <= tabinnersq)
               ecoul = prefactor * 0.5 * (etmp + eps[j]) * erfc;
             else {
@@ -271,7 +272,7 @@ double PairLJCutCoulLongDielectric::single(int i, int j, int itype, int jtype, d
       rsq_lookup_single.f = rsq;
       itable = rsq_lookup_single.i & ncoulmask;
       itable >>= ncoulshiftbits;
-      fraction = (rsq_lookup_single.f - rtable[itable]) * drtable[itable];
+      fraction = ((double) rsq_lookup_single.f - rtable[itable]) * drtable[itable];
       table = ftable[itable] + fraction * dftable[itable];
       forcecoul = q[i] * q[j] * table;
       if (factor_coul < 1.0) {

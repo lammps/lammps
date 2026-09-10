@@ -1,10 +1,11 @@
 .. index:: improper_style fourier
+.. index:: improper_style fourier/kk
 .. index:: improper_style fourier/omp
 
 improper_style fourier command
 ==============================
 
-Accelerator Variants: *fourier/omp*
+Accelerator Variants: *fourier/kk*, *fourier/omp*
 
 Syntax
 """"""
@@ -33,8 +34,9 @@ The *fourier* improper style uses the following potential:
 where K is the force constant, C0, C1, C2 are dimensionless coefficients,
 and omega is the angle between the IL axis and the IJK plane:
 
-.. image:: JPG/umbrella.jpg
+.. image:: JPG/umbrella.png
    :align: center
+   :width: 50%
 
 If all parameter (see below) is not zero, the all the three possible angles will taken in account.
 
@@ -55,6 +57,15 @@ commands:
 .. include:: accel_styles.rst
 
 ----------
+
+Symmetry convention
+"""""""""""""""""""
+
+For the *fourier* improper style, the first and fourth atoms in the
+quadruplet are atoms of symmetry; only the second and third atoms are
+considered interchangeable.  This convention is relevant for operations
+that require knowledge of how atoms are ordered, such as automatic
+assignment of new improper types by :doc:`fix bond/react <fix_bond_react>`.
 
 Restrictions
 """"""""""""

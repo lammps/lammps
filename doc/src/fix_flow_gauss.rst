@@ -1,7 +1,10 @@
 .. index:: fix flow/gauss
+.. index:: fix flow/gauss/kk
 
 fix flow/gauss command
 ======================
+
+Accelerator Variants: *flow/gauss/kk*
 
 Syntax
 """"""
@@ -61,16 +64,14 @@ profile-unbiased thermostat.
 
 A common use of this fix is to compute a pressure drop across a pipe,
 pore, or membrane. The pressure profile can be computed in LAMMPS with
-:doc:`compute stress/atom <compute_stress_atom>` and :doc:`fix
-ave/chunk <fix_ave_chunk>`, or with the hardy method in :doc:`fix atc
-<fix_atc>`. Note that the simple :doc:`compute stress/atom
-<compute_stress_atom>` method is only accurate away from
-inhomogeneities in the fluid, such as fixed wall atoms. Further, the
-computed pressure profile must be corrected for the acceleration
-applied by GD before computing a pressure drop or comparing it to
-other methods, such as the pump method :ref:`(Zhu) <Zhu>`. The
-pressure correction is discussed and described in :ref:`(Strong)
-<Strong>`.
+:doc:`compute stress/atom <compute_stress_atom>` and :doc:`fix ave/chunk
+<fix_ave_chunk>`. Note that the simple :doc:`compute stress/atom
+<compute_stress_atom>` method is only accurate away from inhomogeneities
+in the fluid, such as fixed wall atoms. Further, the computed pressure
+profile must be corrected for the acceleration applied by GD before
+computing a pressure drop or comparing it to other methods, such as the
+pump method :ref:`(Zhu) <Zhu>`. The pressure correction is discussed and
+described in :ref:`(Strong) <Strong>`.
 
 For a complete example including the considerations discussed
 above, see the examples/PACKAGES/flow_gauss directory.
@@ -119,6 +120,10 @@ pairwise and long-range Coulomb interactions, which are computed at
 rRESPA levels 3 and 4, respectively, then there must be two separate
 flow/gauss fixes, one that specifies *fix_modify respa 3* and one with
 *fix_modify respa 4*.
+
+----------
+
+.. include:: accel_styles.rst
 
 ----------
 

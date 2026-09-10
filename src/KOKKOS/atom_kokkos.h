@@ -24,54 +24,58 @@ namespace LAMMPS_NS {
 
 class AtomKokkos : public Atom {
  public:
-  bool sort_classic;
-  int nprop_atom;
+  bool sort_legacy;
+  int nprop_atom, hybrid_flag;
   class FixPropertyAtomKokkos **fix_prop_atom;
 
   DAT::tdual_tagint_1d k_tag;
   DAT::tdual_int_1d k_type, k_mask;
   DAT::tdual_imageint_1d k_image;
-  DAT::tdual_x_array k_x;
-  DAT::tdual_v_array k_v;
-  DAT::tdual_f_array k_f;
+  DAT::ttransform_kkfloat_1d_3_lr k_x;
+  DAT::ttransform_kkfloat_1d_3 k_v;
+  DAT::ttransform_kkacc_1d_3 k_f;
 
-  DAT::tdual_float_1d k_mass;
+  DAT::ttransform_kkfloat_1d k_mass;
 
-  DAT::tdual_float_1d k_q;
-  DAT::tdual_float_1d k_radius;
-  DAT::tdual_float_1d k_rmass;
-  DAT::tdual_float_1d_4 k_mu;
-  DAT::tdual_v_array k_omega;
-  DAT::tdual_v_array k_angmom;
-  DAT::tdual_f_array k_torque;
+  DAT::ttransform_kkfloat_1d k_q;
+  DAT::ttransform_kkfloat_1d k_radius;
+  DAT::ttransform_kkfloat_1d k_rmass;
+  DAT::ttransform_kkfloat_1d_4 k_mu;
+  DAT::ttransform_kkfloat_1d_3 k_omega;
+  DAT::ttransform_kkfloat_1d_3 k_angmom;
+  DAT::ttransform_kkacc_1d_3 k_torque;
+  DAT::tdual_int_1d k_ellipsoid;
   DAT::tdual_tagint_1d k_molecule;
-  DAT::tdual_int_2d k_nspecial;
-  DAT::tdual_tagint_2d k_special;
+  DAT::ttransform_int_2d k_nspecial;
+  DAT::ttransform_tagint_2d k_special;
   DAT::tdual_int_1d k_num_bond;
-  DAT::tdual_int_2d k_bond_type;
-  DAT::tdual_tagint_2d k_bond_atom;
+  DAT::ttransform_int_2d k_bond_type;
+  DAT::ttransform_tagint_2d k_bond_atom;
   DAT::tdual_int_1d k_num_angle;
-  DAT::tdual_int_2d k_angle_type;
-  DAT::tdual_tagint_2d k_angle_atom1, k_angle_atom2, k_angle_atom3;
+  DAT::ttransform_int_2d k_angle_type;
+  DAT::ttransform_tagint_2d k_angle_atom1, k_angle_atom2, k_angle_atom3;
   DAT::tdual_int_1d k_num_dihedral;
-  DAT::tdual_int_2d k_dihedral_type;
-  DAT::tdual_tagint_2d k_dihedral_atom1, k_dihedral_atom2, k_dihedral_atom3, k_dihedral_atom4;
+  DAT::ttransform_int_2d k_dihedral_type;
+  DAT::ttransform_tagint_2d k_dihedral_atom1, k_dihedral_atom2, k_dihedral_atom3, k_dihedral_atom4;
   DAT::tdual_int_1d k_num_improper;
-  DAT::tdual_int_2d k_improper_type;
-  DAT::tdual_tagint_2d k_improper_atom1, k_improper_atom2, k_improper_atom3, k_improper_atom4;
+  DAT::ttransform_int_2d k_improper_type;
+  DAT::ttransform_tagint_2d k_improper_atom1, k_improper_atom2, k_improper_atom3, k_improper_atom4;
 
-  DAT::tdual_float_2d k_dvector;
+  DAT::ttransform_kkfloat_2d k_dvector;
+  DAT::tdual_int_2d_lr k_ivector;         // width-1: single contiguous 2D view
+  tdual_struct_tdual_int_2d_1d k_iarray;  // ragged cols: view-of-views
+  tdual_struct_tdual_double_2d_1d k_darray;
 
   // SPIN package
 
-  DAT::tdual_float_1d_4 k_sp;
-  DAT::tdual_f_array k_fm;
-  DAT::tdual_f_array k_fm_long;
+  DAT::ttransform_kkfloat_1d_4 k_sp;
+  DAT::ttransform_kkacc_1d_3 k_fm;
+  DAT::ttransform_kkacc_1d_3 k_fm_long;
 
-// DPD-REACT package
-  DAT::tdual_efloat_1d k_uCond, k_uMech, k_uChem, k_uCG, k_uCGnew,
-                       k_rho,k_dpdTheta,k_duChem;
+  // DPD-REACT package
 
+  DAT::ttransform_kkfloat_1d k_uCond, k_uMech, k_uChem, k_uCG, k_uCGnew,
+                       k_rho, k_dpdTheta, k_duChem;
 
   AtomKokkos(class LAMMPS *);
   ~AtomKokkos() override;
@@ -108,7 +112,7 @@ class AtomKokkos : public Atom {
     }
   };
 
-  typedef Kokkos::DualView<tagint[2], LMPDeviceType::array_layout, LMPDeviceType> tdual_tagint_2;
+  typedef Kokkos::DualView<tagint[2], Kokkos::LayoutRight, LMPDeviceType> tdual_tagint_2;
   typedef tdual_tagint_2::t_dev t_tagint_2;
   typedef tdual_tagint_2::t_host t_host_tagint_2;
 
@@ -135,6 +139,7 @@ class AtomKokkos : public Atom {
   };
 
   template<class DeviceType>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   static int map_kokkos(tagint global, int map_style, const DAT::tdual_int_1d &k_map_array, const dual_hash_type &k_map_hash)
   {
@@ -147,6 +152,7 @@ class AtomKokkos : public Atom {
   }
 
   template<class DeviceType>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   static int map_find_hash_kokkos(tagint global, const dual_hash_type &k_map_hash)
   {
@@ -158,12 +164,48 @@ class AtomKokkos : public Atom {
     return local;
   }
 
+  // find the periodic image of atom j closest to atom i by walking the
+  // sametag chain: device-callable analog of Domain::closest_image()
+  template<class XViewType, class SametagViewType>
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  static int closest_image_kokkos(const int i, int j, const XViewType &x,
+                                  const SametagViewType &sametag)
+  {
+    if (j < 0) return j;
+    const KK_FLOAT xi0 = x(i,0), xi1 = x(i,1), xi2 = x(i,2);
+    int closest = j;
+    KK_FLOAT delx = xi0 - x(j,0), dely = xi1 - x(j,1), delz = xi2 - x(j,2);
+    KK_FLOAT rsqmin = delx*delx + dely*dely + delz*delz;
+    while (sametag[j] >= 0) {
+      j = sametag[j];
+      delx = xi0 - x(j,0); dely = xi1 - x(j,1); delz = xi2 - x(j,2);
+      const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
+      if (rsq < rsqmin) { rsqmin = rsq; closest = j; }
+    }
+    return closest;
+  }
+
   void init() override;
   void update_property_atom();
   void allocate_type_arrays() override;
-  void sync(const ExecutionSpace space, unsigned int mask);
-  void modified(const ExecutionSpace space, unsigned int mask);
-  void sync_overlapping_device(const ExecutionSpace space, unsigned int mask);
+
+  void sync_host_arrays(uint64_t mask) override { sync(Host, mask); }
+  void modified_host_arrays(uint64_t mask) override { modified(Host, mask); }
+
+  // the per-type masses are written through the plain host array, which leaves
+  // the device copy behind with nothing to say so.  Claim the write here, at
+  // the one place all four spellings of the mass command go through, rather
+  // than in each of the styles that read the masses on the device.
+
+  void set_mass(const char *, int, const char *, int, int, int *) override;
+  void set_mass(const char *, int, int, double) override;
+  void set_mass(const char *, int, int, char **) override;
+  void set_mass(double *) override;
+  void *extract(const char *) override;
+  void sync(const ExecutionSpace space, uint64_t mask);
+  void modified(const ExecutionSpace space, uint64_t mask);
+  void sync_pinned(const ExecutionSpace space, uint64_t mask, int async_flag = 0);
   void sort() override;
   int add_custom(const char *, int, int, int border = 0) override;
   void remove_custom(int, int, int) override;
@@ -195,6 +237,7 @@ struct SortFunctor {
   SortFunctor(ViewType src, std::enable_if_t<ViewType::dynamic_rank==4,IndexView> ind):source(src),index(ind) {
     dest = Kokkos::View<typename ViewType::non_const_data_type,typename ViewType::array_type,device_type>("",src.extent(0),src.extent(1),src.extent(2),src.extent(3));
   }
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(const std::enable_if_t<ViewType::rank==1, int>& i) {
     dest(i) = source(index(i));

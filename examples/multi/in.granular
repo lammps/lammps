@@ -27,9 +27,9 @@ velocity        all create 1.44 87287 loop geom
 
 # multi neighbor and comm for efficiency
 
-neighbor        1 multi #multi/old
+neighbor        1 multi
 neigh_modify    delay 0 collection/interval 2 1 20
-comm_modify     mode multi vel yes reduce/multi #multi/old
+comm_modify     mode multi vel yes reduce/multi
 
 # granular potential
 

@@ -68,8 +68,6 @@
 #include "pair_kim.h"
 #include "variable.h"
 
-#include "fmt/ranges.h"
-
 #include <cstdlib>
 #include <cstring>
 #include <vector>
@@ -108,7 +106,7 @@ void KimParam::command(int narg, char **arg)
     error->all(FLERR, "Incorrect arguments in 'kim param' command.\n"
                "'kim param get/set' is mandatory");
 
-  auto fix_store = dynamic_cast<FixStoreKIM *>(modify->get_fix_by_id("KIM_MODEL_STORE"));
+  auto *fix_store = dynamic_cast<FixStoreKIM *>(modify->get_fix_by_id("KIM_MODEL_STORE"));
   if (fix_store) {
     auto *simulatorModel = reinterpret_cast<KIM_SimulatorModel *>(
       fix_store->getptr("simulator_model"));
@@ -127,7 +125,7 @@ void KimParam::command(int narg, char **arg)
   if (force->pair) {
     Pair *pair = force->pair_match("kim", 1, 0);
     if (pair) {
-      auto pairKIM = reinterpret_cast<PairKIM *>(pair);
+      auto *pairKIM = reinterpret_cast<PairKIM *>(pair);
 
       pkim = pairKIM->get_kim_model();
       if (!pkim) error->all(FLERR, "Unable to get the KIM Portable Model");
@@ -202,16 +200,14 @@ void KimParam::command(int narg, char **arg)
 
           std::string::size_type npos = argtostr.find(':');
           if (npos != std::string::npos) {
-            argtostr[npos] = ' ';
-            auto words = utils::split_words(argtostr);
-            nlbound = std::stoi(words[0]);
-            nubound = std::stoi(words[1]);
+            nlbound = utils::inumeric(FLERR, argtostr.substr(0, npos), false, lmp);
+            nubound = utils::inumeric(FLERR, argtostr.substr(npos + 1), false, lmp);
 
             if ((nubound < 1) || (nubound > extent) || (nlbound < 1) || (nlbound > nubound))
               error->all(FLERR, "Illegal index_range '{}-{}' for '{}' parameter with the "
                          "extent of '{}'",nlbound, nubound, paramname, extent);
           } else {
-            nlbound = std::stoi(argtostr);
+            nlbound = utils::inumeric(FLERR, argtostr, false, lmp);
 
             if (nlbound < 1 || nlbound > extent)
               error->all(FLERR, "Illegal index '{}' for '{}' parameter with the extent of '{}'",
@@ -371,7 +367,7 @@ void KimParam::command(int narg, char **arg)
     // Set the parameters
     } else {
       auto setcmd = fmt::format("pair_coeff * * {} {}", atom_type_list,
-                                fmt::join(arg + 1, arg + narg, " "));
+                                utils::join(std::vector(arg + 1, arg + narg), " "));
       input->one(setcmd);
     }
   } else

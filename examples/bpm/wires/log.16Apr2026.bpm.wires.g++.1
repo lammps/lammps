@@ -1,0 +1,329 @@
+LAMMPS (30 Mar 2026)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
+  using 1 OpenMP thread(s) per MPI task
+units           lj
+dimension       3
+boundary        m m m
+atom_style      hybrid bpm/sphere dipole
+WARNING: Atom style hybrid defines both, per-type and per-atom masses; both must be set, but only per-atom masses will be used (src/atom_vec_hybrid.cpp:132)
+special_bonds   lj 0.0 1.0 1.0 coul 0.0 1.0 1.0
+newton          on off
+comm_modify     vel yes cutoff 2.6
+region          box block -10 60 -10 30 -10 10
+create_box      1 box bond/types 1 extra/bond/per/atom 2 extra/special/per/atom 4
+Created orthogonal box = (-10 -10 -10) to (60 30 10)
+  1 by 1 by 1 MPI processor grid
+
+variable        Na1 equal 200
+variable        Na2 equal 480
+
+# Build a straight wire
+create_atoms    1 random $(v_Na1) 54435234 box group wire1
+create_atoms    1 random 200 54435234 box group wire1
+Created 200 atoms
+  using lattice units in orthogonal box = (-10 -10 -10) to (60 30 10)
+  create_atoms CPU = 0.001 seconds
+variable        x1 atom id*0.25
+set             group wire1 x v_x1 y 0.0 z 0.0
+Setting atom values ...
+  200 settings made for x
+  200 settings made for y
+  200 settings made for z
+
+
+# Build a coiled wire
+create_atoms    1 random $(v_Na2) 54435234 box group wire2
+create_atoms    1 random 480 54435234 box group wire2
+Created 480 atoms
+  using lattice units in orthogonal box = (-10 -10 -10) to (60 30 10)
+  create_atoms CPU = 0.000 seconds
+variable        x2 atom (id-$(v_Na1))*0.1
+variable        x2 atom (id-200)*0.1
+variable        y2 atom 2*sin((id-$(v_Na1))*0.25)+20
+variable        y2 atom 2*sin((id-200)*0.25)+20
+variable        z2 atom 2*cos((id-$(v_Na1))*0.25)
+variable        z2 atom 2*cos((id-200)*0.25)
+set             group wire2 x v_x2 y v_y2 z v_z2
+Setting atom values ...
+  480 settings made for x
+  480 settings made for y
+  480 settings made for z
+
+# Define key groups and properties
+group           end1 id $(v_Na1)
+group           end1 id 200
+1 atoms in group end1
+group           end2 id $(v_Na1+v_Na2)
+group           end2 id 680
+1 atoms in group end2
+group           frozen_ends id 1 $(v_Na1+1)
+group           frozen_ends id 1 201
+2 atoms in group frozen_ends
+group           loaded_ends union end1 end2
+2 atoms in group loaded_ends
+
+set             group all quat 1 0 0 0
+Setting atom values ...
+  680 settings made for quat
+set             group wire1 dipole 0 0 1
+Setting atom values ...
+  200 settings made for dipole
+set             group wire2 dipole 0 0 0
+Setting atom values ...
+  480 settings made for dipole
+
+velocity        all create 1e-7 1349832 # random noise to break symmetries
+velocity        frozen_ends set 0.0 0.0 0.0
+
+# Define interactions
+pair_style      granular
+pair_coeff      1 1 hooke 10.0 0.5 tangential linear_history 5.0 0.5 0.1
+
+neighbor        0.3 bin
+create_bonds    many wire1 wire1 1 0.0 0.3
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 1.3
+  ghost atom cutoff = 2.6
+  binsize = 0.65, bins = 108 62 31
+  2 neighbor lists, perpetual/occasional/extra = 1 1 0
+  (1) command create_bonds, occasional
+      attributes: full, newton on
+      pair build: full/bin
+      stencil: full/bin/3d
+      bin: standard
+  (2) pair granular, perpetual
+      attributes: half, newton on, size, history
+      pair build: half/size/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+Added 199 bonds, new total = 199
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        1        1       
+  special bond factors coul:  0        1        1       
+     2 = max # of 1-2 neighbors
+     9 = max # of special neighbors
+  special bonds CPU = 0.001 seconds
+create_bonds    many wire2 wire2 1 0.0 0.9
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+WARNING: Bonds are defined but no bond style is set (src/force.cpp:198)
+WARNING: Likewise 1-2 special neighbor interactions != 1.0 (src/force.cpp:200)
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 1.3
+  ghost atom cutoff = 2.6
+  binsize = 0.65, bins = 108 62 31
+  2 neighbor lists, perpetual/occasional/extra = 1 1 0
+  (1) command create_bonds, occasional
+      attributes: full, newton on
+      pair build: full/bin
+      stencil: full/bin/3d
+      bin: standard
+  (2) pair granular, perpetual
+      attributes: half, newton on, size, history
+      pair build: half/size/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+Added 479 bonds, new total = 678
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        1        1       
+  special bond factors coul:  0        1        1       
+     2 = max # of 1-2 neighbors
+     9 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+special_bonds   lj 0.0 0.0 0.0 coul 1.0 1.0 1.0
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  1        1        1       
+     2 = max # of 1-2 neighbors
+     2 = max # of 1-3 neighbors
+     4 = max # of 1-4 neighbors
+     9 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+
+bond_style      bpm/rotational smooth no break no
+bond_coeff      1 1.0 0.1 0.1 0.1 -1 -1 -1 -1 0.5 0.5 0.05 0.05
+
+# Control simulation
+fix             1 all nve/bpm/sphere update dipole
+#   dipole only used for tracking/visualizing orientation
+
+fix             2 frozen_ends settorque/atom 0.0 0.0 0.0
+fix             3 frozen_ends setforce 0.0 0.0 0.0
+fix             4 loaded_ends settorque/atom 0.0 0.0 0.0
+fix             5 loaded_ends setforce 0.0 0.0 0.0
+
+fix             6 end1 move transrot -0.001 0 0 0 0 0 1 0 0 1600
+fix             7 end2 move linear -0.001 0.0 0.0
+
+fix             8 all viscous 5e-5 #small damping to accelerate decay of global modes
+
+timestep        0.1
+thermo          1000
+thermo_style    custom step ke pe pxx pyy pzz
+
+compute         quat all property/atom quatw quati quatj quatk
+compute         tq all property/atom tqx tqy tqz
+
+#dump            1 all custom 400 atomDump id radius xs ys zs c_quat[*] mux muy muz
+
+run             20000
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- BPM bond style: https://doi.org/10.1039/D3SM01373A
+
+@Article{Clemmer2024,
+ author =  {Clemmer, Joel T. and Monti, Joseph M. and Lechman, Jeremy B.},
+ title =   {A soft departure from jamming: the compaction of deformable
+            granular matter under high pressures},
+ journal = {Soft Matter},
+ year =    2024,
+ volume =  20,
+ number =  8,
+ pages =   {1702--1718}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+WARNING: One or more atoms are time integrated more than once
+For more information see https://docs.lammps.org/err0032 (src/modify.cpp:301)
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 1.3
+  ghost atom cutoff = 2.6
+  binsize = 0.65, bins = 108 62 31
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair granular, perpetual
+      attributes: half, newton on, size, history
+      pair build: half/size/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 18.21 | 18.21 | 18.21 Mbytes
+   Step         KinEng         PotEng          Pxx            Pyy            Pzz      
+         0   1.495337e-07   8.0251359e-19  2.7958929e-09  1.8240959e-08 -1.1050182e-08
+      1000   1.6660126e-06  1.61423e-06    1.081276e-07   3.0261353e-08  5.1557009e-08
+      2000   8.4660971e-07  1.8401205e-06  3.4054927e-06  4.2918509e-08  4.3028036e-08
+      3000   5.5209565e-07  2.2152983e-06  2.9237502e-06  5.5498511e-08  3.8588023e-08
+      4000   6.8513351e-07  2.5704635e-06  2.8574934e-06  3.7434396e-08  5.6599246e-08
+      5000   5.9617336e-07  3.1923561e-06  2.3340291e-06  2.9514011e-08  6.5497731e-08
+      6000   7.8428248e-07  3.6863326e-06  8.1117081e-07  2.502847e-08   4.8532229e-08
+      7000   6.8110379e-07  4.4776173e-06  9.2609478e-08  2.1998433e-08  3.5314867e-08
+      8000   5.4167572e-07  5.6817807e-06  3.0415198e-07  2.4266198e-08  4.3769336e-08
+      9000   8.9829823e-07  6.3497114e-06  2.5276309e-07  2.6551809e-08  4.1715396e-08
+     10000   6.2146121e-07  7.705808e-06   1.0845065e-06  3.3046401e-08  6.4597707e-08
+     11000   7.0155478e-07  8.991276e-06   9.4188599e-07  3.0646496e-08  6.4423178e-08
+     12000   1.1068114e-06  9.9341502e-06  2.5764977e-07  2.6616466e-08  5.4063663e-08
+     13000   1.3812396e-06  1.0951371e-05  1.0099155e-07  2.5171351e-08  4.1002332e-08
+     14000   9.8785876e-07  1.2794738e-05  5.8196532e-07  3.0715334e-08  5.7024511e-08
+     15000   1.0448623e-06  1.4391641e-05  9.7689583e-08  2.0889276e-08  4.218347e-08 
+     16000   1.067444e-06   1.6089724e-05  1.6280191e-07  1.8064904e-08  5.0495669e-08
+     17000   7.1548179e-07  1.8237851e-05  2.9757884e-07  2.5586694e-08  5.7218303e-08
+     18000   8.5507272e-07  2.0123238e-05  1.5161722e-07  2.3103595e-08  4.5397797e-08
+     19000   1.0507815e-06  2.1944946e-05  2.113566e-07   2.4046533e-08  4.3571848e-08
+     20000   1.1293952e-06  2.3979163e-05  3.1239433e-06  1.2869122e-07  1.7342564e-07
+Loop time of 4.27602 on 1 procs for 20000 steps with 680 atoms
+
+Performance: 40411418.370 tau/day, 4677.247 timesteps/s, 3.181 Matom-step/s
+99.6% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.22718    | 0.22718    | 0.22718    |   0.0 |  5.31
+Bond    | 3.4536     | 3.4536     | 3.4536     |   0.0 | 80.77
+Neigh   | 0.011698   | 0.011698   | 0.011698   |   0.0 |  0.27
+Comm    | 0.0048889  | 0.0048889  | 0.0048889  |   0.0 |  0.11
+Output  | 0.00042235 | 0.00042235 | 0.00042235 |   0.0 |  0.01
+Modify  | 0.5595     | 0.5595     | 0.5595     |   0.0 | 13.08
+Other   |            | 0.01875    |            |       |  0.44
+
+Nlocal:            680 ave         680 max         680 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:              0 ave           0 max           0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:           1942 ave        1942 max        1942 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 1942
+Ave neighs/atom = 2.8558824
+Ave special neighs/atom = 5.9647059
+Neighbor list builds = 73
+Dangerous builds = 0
+
+unfix           4
+unfix           5
+unfix           6
+unfix           7
+
+run             30000
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Per MPI rank memory allocation (min/avg/max) = 16.46 | 16.46 | 16.46 Mbytes
+   Step         KinEng         PotEng          Pxx            Pyy            Pzz      
+     20000   1.1293952e-06  2.3979163e-05  3.1241898e-06  1.2859285e-07  1.732931e-07 
+     21000   1.9205376e-06  8.1728788e-06  1.1424248e-08  3.3475835e-08  4.7096369e-08
+     22000   1.8701854e-06  9.1112368e-06  3.2126344e-08  5.0729507e-08  5.7390878e-08
+     23000   1.6275791e-06  2.0706252e-05  6.476354e-08   6.1047512e-08  6.9219599e-08
+     24000   2.6441952e-06  5.2727186e-06 -1.971242e-08   4.0456399e-08  4.8910946e-08
+     25000   2.8224211e-06  9.5063571e-06  4.9105989e-07  5.9625306e-08  5.675633e-08 
+     26000   2.1213715e-06  1.8035093e-05  7.0505981e-07  6.1789354e-08  6.0718258e-08
+     27000   1.9518723e-06  3.5093379e-06  1.7258105e-07  4.477214e-08   4.0957331e-08
+     28000   1.1982814e-06  1.1872119e-05  6.0493996e-08  4.410381e-08   3.4420946e-08
+     29000   1.4511592e-06  1.6651645e-05  5.6063076e-08  4.1960265e-08  2.7499999e-08
+     30000   1.5181298e-06  2.6884468e-06  3.7521698e-07  6.5207768e-08  4.0303054e-08
+     31000   1.2282076e-06  1.3239682e-05  6.7631961e-08  6.4004511e-08  4.7978425e-08
+     32000   1.7107204e-06  1.4029607e-05  3.9117713e-07  7.5790403e-08  6.159549e-08 
+     33000   1.2050244e-06  2.1486668e-06  1.9102781e-06  1.5376578e-07  9.1893002e-08
+     34000   9.489949e-07   1.4466234e-05  7.0374233e-07  5.7245529e-08  3.8615515e-08
+     35000   7.0661088e-07  1.300669e-05   1.0407977e-07  3.4696949e-08  2.1985309e-08
+     36000   9.4852978e-07  2.4364577e-06  2.2304738e-10  4.5657773e-08  3.0782214e-08
+     37000   1.3709845e-06  1.4959625e-05  3.1163068e-08  4.3059977e-08  3.7338621e-08
+     38000   1.9899339e-06  9.9953184e-06 -2.0203677e-08  4.1443245e-08  3.366742e-08 
+     39000   1.784966e-06   2.8151383e-06  1.5515391e-07  4.8603641e-08  3.5630899e-08
+     40000   2.4170956e-06  1.478226e-05   2.501291e-07   4.654592e-08   3.2962327e-08
+     41000   2.1669551e-06  8.0915189e-06  1.2191733e-06  7.8977384e-08  5.7615565e-08
+     42000   1.6672499e-06  4.0477876e-06  8.543761e-07   7.2760629e-08  3.6872471e-08
+     43000   1.5597151e-06  1.5707248e-05  1.1407429e-07  4.4318299e-08  6.0355828e-08
+     44000   1.5730537e-06  6.5916951e-06  1.3892954e-08  3.7593393e-08  2.7526637e-08
+     45000   1.8294456e-06  4.486477e-06   8.7469504e-08  4.0967448e-08  2.9039383e-08
+     46000   1.5696104e-06  1.5387073e-05  6.3474595e-07  6.1165399e-08  4.2962077e-08
+     47000   1.839047e-06   4.5262885e-06  3.4534958e-08  4.8741989e-08  2.8357509e-08
+     48000   1.4805266e-06  5.7726968e-06  4.41348e-07    6.5441418e-08  2.7926142e-08
+     49000   1.7676106e-06  1.4228184e-05  2.8739969e-07  4.4881584e-08  2.7140461e-08
+     50000   1.5967125e-06  2.9538163e-06  5.3493601e-07  4.1778294e-08  3.1291036e-08
+Loop time of 6.2585 on 1 procs for 30000 steps with 680 atoms
+
+Performance: 41415669.521 tau/day, 4793.480 timesteps/s, 3.260 Matom-step/s
+99.6% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.2278     | 0.2278     | 0.2278     |   0.0 |  3.64
+Bond    | 5.1728     | 5.1728     | 5.1728     |   0.0 | 82.65
+Neigh   | 0.031705   | 0.031705   | 0.031705   |   0.0 |  0.51
+Comm    | 0.0068677  | 0.0068677  | 0.0068677  |   0.0 |  0.11
+Output  | 0.00056293 | 0.00056293 | 0.00056293 |   0.0 |  0.01
+Modify  | 0.79036    | 0.79036    | 0.79036    |   0.0 | 12.63
+Other   |            | 0.02844    |            |       |  0.45
+
+Nlocal:            680 ave         680 max         680 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:              0 ave           0 max           0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:           1942 ave        1942 max        1942 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 1942
+Ave neighs/atom = 2.8558824
+Ave special neighs/atom = 5.9647059
+Neighbor list builds = 195
+Dangerous builds = 0
+Total wall time: 0:00:10

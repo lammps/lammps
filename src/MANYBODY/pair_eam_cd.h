@@ -57,7 +57,7 @@ class PairEAMCD : public PairEAMAlloy {
   // The public interface exposed by this potential class.
 
   // Evaluates the h(x) polynomial for a given local concentration x.
-  inline double evalH(double x) const
+  [[nodiscard]] double evalH(double x) const
   {
     double v = 0.0;
     for (int i = nhcoeff - 1; i >= 1; i--) { v = (v + hcoeff[i]) * x; }
@@ -65,7 +65,7 @@ class PairEAMCD : public PairEAMAlloy {
   };
 
   // Calculates the derivative of the h(x) polynomial.
-  inline double evalHprime(double x) const
+  [[nodiscard]] double evalHprime(double x) const
   {
     double v = 0.0;
     for (int i = nhcoeff - 1; i >= 2; i--) { v = (v + (double) i * hcoeff[i]) * x; }
@@ -108,13 +108,15 @@ class PairEAMCD : public PairEAMAlloy {
 
   // This structure specifies an entry in one of the EAM spline tables
   // and the corresponding floating point part.
+  // NOLINTBEGIN
   typedef struct {
     int m;
     double p;
   } EAMTableIndex;
+  // NOLINTEND
 
   // Converts a radius value to an index value to be used in a spline table lookup.
-  inline EAMTableIndex radiusToTableIndex(double r) const
+  [[nodiscard]] EAMTableIndex radiusToTableIndex(double r) const
   {
     EAMTableIndex index;
     index.p = r * rdr + 1.0;
@@ -127,7 +129,7 @@ class PairEAMCD : public PairEAMAlloy {
   };
 
   // Converts a density value to an index value to be used in a spline table lookup.
-  inline EAMTableIndex rhoToTableIndex(double rho) const
+  [[nodiscard]] EAMTableIndex rhoToTableIndex(double rho) const
   {
     EAMTableIndex index;
     index.p = rho * rdrho + 1.0;
@@ -140,49 +142,49 @@ class PairEAMCD : public PairEAMAlloy {
   };
 
   // Computes the derivative of rho(r)
-  inline double RhoPrimeOfR(const EAMTableIndex &index, int itype, int jtype) const
+  [[nodiscard]] double RhoPrimeOfR(const EAMTableIndex &index, int itype, int jtype) const
   {
     const double *coeff = rhor_spline[type2rhor[itype][jtype]][index.m];
     return (coeff[0] * index.p + coeff[1]) * index.p + coeff[2];
   };
 
   // Computes rho(r)
-  inline double RhoOfR(const EAMTableIndex &index, int itype, int jtype) const
+  [[nodiscard]] double RhoOfR(const EAMTableIndex &index, int itype, int jtype) const
   {
     const double *coeff = rhor_spline[type2rhor[itype][jtype]][index.m];
     return ((coeff[3] * index.p + coeff[4]) * index.p + coeff[5]) * index.p + coeff[6];
   };
 
   // Computes the derivative of F(rho)
-  inline double FPrimeOfRho(const EAMTableIndex &index, int itype) const
+  [[nodiscard]] double FPrimeOfRho(const EAMTableIndex &index, int itype) const
   {
     const double *coeff = frho_spline[type2frho[itype]][index.m];
     return (coeff[0] * index.p + coeff[1]) * index.p + coeff[2];
   };
 
   // Computes F(rho)
-  inline double FofRho(const EAMTableIndex &index, int itype) const
+  [[nodiscard]] double FofRho(const EAMTableIndex &index, int itype) const
   {
     const double *coeff = frho_spline[type2frho[itype]][index.m];
     return ((coeff[3] * index.p + coeff[4]) * index.p + coeff[5]) * index.p + coeff[6];
   };
 
   // Computes the derivative of z2(r)
-  inline double Z2PrimeOfR(const EAMTableIndex &index, int itype, int jtype) const
+  [[nodiscard]] double Z2PrimeOfR(const EAMTableIndex &index, int itype, int jtype) const
   {
     const double *coeff = z2r_spline[type2z2r[itype][jtype]][index.m];
     return (coeff[0] * index.p + coeff[1]) * index.p + coeff[2];
   };
 
   // Computes z2(r)
-  inline double Z2OfR(const EAMTableIndex &index, int itype, int jtype) const
+  [[nodiscard]] double Z2OfR(const EAMTableIndex &index, int itype, int jtype) const
   {
     const double *coeff = z2r_spline[type2z2r[itype][jtype]][index.m];
     return ((coeff[3] * index.p + coeff[4]) * index.p + coeff[5]) * index.p + coeff[6];
   };
 
   // Computes pair potential V_ij(r).
-  inline double PhiOfR(const EAMTableIndex &index, int itype, int jtype,
+  [[nodiscard]] double PhiOfR(const EAMTableIndex &index, int itype, int jtype,
                        const double oneOverR) const
   {
     // phi = pair potential energy
@@ -224,14 +226,14 @@ class PairEAMCD : public PairEAMAlloy {
 class PairEAMCD_OneSite : public PairEAMCD {
  public:
   /// Constructor.
-  PairEAMCD_OneSite(class LAMMPS *lmp) : PairEAM(lmp), PairEAMCD(lmp, 1) {}
+  PairEAMCD_OneSite(class LAMMPS *lmp) : PairEAMCD(lmp, 1) {}
 };
 
 /// The two-site concentration formulation of CD-EAM.
 class PairEAMCD_TwoSite : public PairEAMCD {
  public:
   /// Constructor.
-  PairEAMCD_TwoSite(class LAMMPS *lmp) : PairEAM(lmp), PairEAMCD(lmp, 2) {}
+  PairEAMCD_TwoSite(class LAMMPS *lmp) : PairEAMCD(lmp, 2) {}
 };
 
 }    // namespace LAMMPS_NS

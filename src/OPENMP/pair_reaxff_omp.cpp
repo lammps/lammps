@@ -63,7 +63,7 @@ using namespace LAMMPS_NS;
 using namespace ReaxFF;
 
 static const char cite_pair_reaxff_omp[] =
-  "pair reaxff/omp and fix qeq/reaxff/omp command: doi:10.1177/1094342017746221\n\n"
+  "pair reaxff/omp and fix qeq/reaxff/omp command: https://doi.org/10.1177/1094342017746221\n\n"
   "@Article{Aktulga17,\n"
   " author =  {H. M. Aktulga and C. Knight and P. Coffman and\n"
   "    K. A. O'Hearn and T. R. Shan and W. Jiang},\n"
@@ -102,7 +102,9 @@ PairReaxFFOMP::~PairReaxFFOMP()
 
 void PairReaxFFOMP::init_style()
 {
-  if (!atom->q_flag) error->all(FLERR,"Pair style reaxff/omp requires atom attribute q");
+  if (!atom->q_flag)
+    error->all(FLERR, Error::NOLASTLINE,
+               "Pair style reaxff/omp requires atom attribute q");
 
   auto acks2_fixes = modify->get_fix_by_style("^acks2/reax");
   int have_qeq = modify->get_fix_by_style("^qeq/reax").size()
@@ -112,22 +114,23 @@ void PairReaxFFOMP::init_style()
 
 
   if (qeqflag && (have_qeq != 1))
-    error->all(FLERR,"Pair style reaxff requires use of exactly one of the "
+    error->all(FLERR, Error::NOLASTLINE,
+               "Pair style reaxff requires use of exactly one of the "
                "fix qeq/reaxff or fix qeq/shielded or fix acks2/reaxff or "
                "fix qtpie/reaxff or fix qeq/rel/reaxff commands");
 
   api->system->acks2_flag = acks2_fixes.size();
   if (api->system->acks2_flag)
-    error->all(FLERR,"Cannot (yet) use ACKS2 with OPENMP ReaxFF");
+    error->all(FLERR, Error::NOLASTLINE, "Cannot (yet) use ACKS2 with OPENMP ReaxFF");
 
   api->system->n = atom->nlocal; // my atoms
   api->system->N = atom->nlocal + atom->nghost; // mine + ghosts
   api->system->wsize = comm->nprocs;
 
   if (atom->tag_enable == 0)
-    error->all(FLERR,"Pair style reaxff/omp requires atom IDs");
+    error->all(FLERR, Error::NOLASTLINE, "Pair style reaxff/omp requires atom IDs");
   if (force->newton_pair == 0)
-    error->all(FLERR,"Pair style reaxff/omp requires newton pair on");
+    error->all(FLERR, Error::NOLASTLINE, "Pair style reaxff/omp requires newton pair on");
 
   // need a half neighbor list w/ Newton off and ghost neighbors
   // built whenever re-neighboring occurs
@@ -136,7 +139,7 @@ void PairReaxFFOMP::init_style()
 
   cutmax = MAX3(api->control->nonb_cut, api->control->hbond_cut, api->control->bond_cut);
   if ((cutmax < 2.0*api->control->bond_cut) && (comm->me == 0))
-    error->warning(FLERR,"Total cutoff < 2*bond cutoff. May need to use an "
+    error->warning(FLERR, "Total cutoff < 2*bond cutoff. May need to use an "
                    "increased neighbor list skin.");
 
   if (fix_reaxff == nullptr)
@@ -184,7 +187,7 @@ void PairReaxFFOMP::setup()
 
     int num_nbrs = estimate_reax_lists();
     if (num_nbrs < 0)
-      error->all(FLERR,"Too many neighbors for pair style reaxff");
+      error->all(FLERR, Error::NOLASTLINE, "Too many neighbors for pair style reaxff/omp");
 
     Make_List(api->system->total_cap,num_nbrs,TYP_FAR_NEIGHBOR,api->lists+FAR_NBRS);
     (api->lists+FAR_NBRS)->error_ptr=error;
@@ -349,31 +352,6 @@ void PairReaxFFOMP::compute(int eflag, int vflag)
 
 /* ---------------------------------------------------------------------- */
 
-void PairReaxFFOMP::write_reax_atoms()
-{
-  int *num_bonds = fix_reaxff->num_bonds;
-  int *num_hbonds = fix_reaxff->num_hbonds;
-
-  if (api->system->N > api->system->total_cap)
-    error->all(FLERR,"Too many ghost atoms");
-
-#if defined(_OPENMP)
-#pragma omp parallel for schedule(static) default(shared)
-#endif
-  for (int i = 0; i < api->system->N; ++i) {
-    api->system->my_atoms[i].orig_id = atom->tag[i];
-    api->system->my_atoms[i].type = map[atom->type[i]];
-    api->system->my_atoms[i].x[0] = atom->x[i][0];
-    api->system->my_atoms[i].x[1] = atom->x[i][1];
-    api->system->my_atoms[i].x[2] = atom->x[i][2];
-    api->system->my_atoms[i].q = atom->q[i];
-    api->system->my_atoms[i].num_bonds = num_bonds[i];
-    api->system->my_atoms[i].num_hbonds = num_hbonds[i];
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
 int PairReaxFFOMP::estimate_reax_lists()
 {
   int i;
@@ -439,7 +417,7 @@ int PairReaxFFOMP::write_reax_lists()
 #endif
   for (int itr_i = 0; itr_i < numall; ++itr_i) {
     int i = ilist[itr_i];
-    auto jlist = firstneigh[i];
+    auto *jlist = firstneigh[i];
     Set_Start_Index(i, num_nbrs_offset[i], far_nbrs);
 
     if (i < inum)

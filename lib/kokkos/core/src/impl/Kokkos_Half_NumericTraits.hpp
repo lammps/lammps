@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_HALF_NUMERIC_TRAITS_HPP_
 #define KOKKOS_HALF_NUMERIC_TRAITS_HPP_
@@ -60,7 +47,7 @@
 //           2**15 * (1 + 0.9990234375) =
 //           65504.0
 //
-#if defined(KOKKOS_HALF_T_IS_FLOAT) && !KOKKOS_HALF_T_IS_FLOAT
+#if !KOKKOS_HALF_T_IS_FLOAT
 /// \brief: Infinity
 ///
 /// Binary16 encoding:
@@ -69,7 +56,7 @@
 /// bit index:   15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 0
 ///
 template <>
-struct Kokkos::Experimental::Impl::infinity_helper<Kokkos::Experimental::half_t> {
+struct Kokkos::Impl::infinity_helper<Kokkos::Experimental::half_t> {
   static constexpr Kokkos::Experimental::half_t::bit_comparison_type value{0b0'11111'0000000000};
 };
 
@@ -85,7 +72,7 @@ struct Kokkos::Experimental::Impl::infinity_helper<Kokkos::Experimental::half_t>
 /// and in base10: -1 * 2**(2**4 + 2**3 + 2**2 + 2**1 - 15) * (1 + 2**-10 + 2**-9 + 2**-8 + 2**-7 + 2**-6 + 2**-5 + 2**-4 + 2**-3 + 2**-2 + 2**-1)
 ///              = -2**15 * (1 + (2**10 - 1) / 2**10)
 template <>
-struct Kokkos::Experimental::Impl::finite_min_helper<
+struct Kokkos::Impl::finite_min_helper<
     Kokkos::Experimental::half_t> {
   static constexpr Kokkos::Experimental::half_t::bit_comparison_type value{0b1'11110'1111111111}; // -65504
 };
@@ -102,7 +89,7 @@ struct Kokkos::Experimental::Impl::finite_min_helper<
 /// and in base10: 1 * 2**(2**4 + 2**3 + 2**2 + 2**1 - 15) * (1 + 2**-10 + 2**-9 + 2**-8 + 2**-7 + 2**-6 + 2**-5 + 2**-4 + 2**-3 + 2**-2 + 2**-1)
 ///              = 2**15 * (1 + (2**10 - 1) / 2**10)
 template <>
-struct Kokkos::Experimental::Impl::finite_max_helper<
+struct Kokkos::Impl::finite_max_helper<
     Kokkos::Experimental::half_t> {
   static constexpr Kokkos::Experimental::half_t::bit_comparison_type value{0b0'11110'1111111111}; // +65504
 };
@@ -121,7 +108,7 @@ struct Kokkos::Experimental::Impl::finite_max_helper<
 ///
 /// Lastly, 1 - 1.0009765625 = 0.0009765625.
 template <>
-struct Kokkos::Experimental::Impl::epsilon_helper<
+struct Kokkos::Impl::epsilon_helper<
     Kokkos::Experimental::half_t> {
   static constexpr Kokkos::Experimental::half_t::bit_comparison_type value{0b0'00101'0000000000}; // 0.0009765625
 };
@@ -132,7 +119,7 @@ struct Kokkos::Experimental::Impl::epsilon_helper<
 ///
 /// Reference: https://docs.oracle.com/cd/E19957-01/806-3568/ncg_goldberg.html#689
 template <>
-struct Kokkos::Experimental::Impl::round_error_helper<
+struct Kokkos::Impl::round_error_helper<
     Kokkos::Experimental::half_t> {
   static constexpr Kokkos::Experimental::half_t::bit_comparison_type value{0b0'01110'0000000000}; // 0.5
 };
@@ -150,9 +137,23 @@ struct Kokkos::Experimental::Impl::round_error_helper<
 /// and in base10: 1 * 2**(2**0 - 15) * (1)
 ///                = 2**-14
 template <>
-struct Kokkos::Experimental::Impl::norm_min_helper<
+struct Kokkos::Impl::norm_min_helper<
     Kokkos::Experimental::half_t> {
   static constexpr Kokkos::Experimental::half_t::bit_comparison_type value{0b0'00001'0000000000}; // 0.00006103515625
+};
+
+/// \brief: Smallest positive non-zero value
+///
+/// Smallest positive non-zero value
+///             [s  e  e  e  e  e  f f f f f f f f f f]
+///             [0  0  0  0  0  0  0 0 0 0 0 0 0 0 0 1]
+/// bit index:   15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 0
+///
+/// and in base10: 2**-24 = 5.96046e-08
+template <>
+struct Kokkos::Impl::denorm_min_helper<
+    Kokkos::Experimental::half_t> {
+  static constexpr Kokkos::Experimental::half_t::bit_comparison_type value{0b0'00000'0000000001};
 };
 
 /// \brief: Quiet not a half precision number
@@ -164,7 +165,7 @@ struct Kokkos::Experimental::Impl::norm_min_helper<
 ///             [0  1  1  1  1  1  1 0 0 0 0 0 0 0 0 0]
 /// bit index:   15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 0
 template <>
-struct Kokkos::Experimental::Impl::quiet_NaN_helper<
+struct Kokkos::Impl::quiet_NaN_helper<
     Kokkos::Experimental::half_t> {
   static constexpr Kokkos::Experimental::half_t::bit_comparison_type value{0b0'11111'1000000000};
 };
@@ -178,7 +179,7 @@ struct Kokkos::Experimental::Impl::quiet_NaN_helper<
 ///             [0  1  1  1  1  1  0 1 0 0 0 0 0 0 0 0]
 /// bit index:   15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 0
 template <>
-struct Kokkos::Experimental::Impl::signaling_NaN_helper<
+struct Kokkos::Impl::signaling_NaN_helper<
     Kokkos::Experimental::half_t> {
   static constexpr Kokkos::Experimental::half_t::bit_comparison_type value{0b0'11111'0100000000};
 };
@@ -190,7 +191,7 @@ struct Kokkos::Experimental::Impl::signaling_NaN_helper<
 ///
 /// In binary16, we have 10 fractional bits plus the implicit leading 1.
 template <>
-struct Kokkos::Experimental::Impl::digits_helper<Kokkos::Experimental::half_t> {
+struct Kokkos::Impl::digits_helper<Kokkos::Experimental::half_t> {
   static constexpr int value = 11;
 };
 
@@ -202,7 +203,7 @@ struct Kokkos::Experimental::Impl::digits_helper<Kokkos::Experimental::half_t> {
 ///
 /// This is: floor(11 - 1 * log10(2))
 template <>
-struct Kokkos::Experimental::Impl::digits10_helper<
+struct Kokkos::Impl::digits10_helper<
     Kokkos::Experimental::half_t> {
   static constexpr int value = 3;
 };
@@ -211,13 +212,13 @@ struct Kokkos::Experimental::Impl::digits10_helper<
 ///
 /// Stdc defined this as the value of the base, or radix, of the exponent representation.
 template <>
-struct Kokkos::Experimental::Impl::radix_helper<Kokkos::Experimental::half_t> {
+struct Kokkos::Impl::radix_helper<Kokkos::Experimental::half_t> {
   static constexpr int value = 2;
 };
 
 /// \brief: This is the smallest possible exponent value
 ///
-/// Stdc defines this as the smallest possible exponent value for type binary16. 
+/// Stdc defines this as the smallest possible exponent value for type binary16.
 /// More precisely, it is the minimum negative integer such that the value min_exponent_helper
 /// raised to this power minus 1 can be represented as a normalized floating point number of type float.
 ///
@@ -225,13 +226,13 @@ struct Kokkos::Experimental::Impl::radix_helper<Kokkos::Experimental::half_t> {
 ///             [s  e  e  e  e  e  f f f f f f f f f f]
 ///             [0  0  0  0  0  1  0 0 0 0 0 0 0 0 0 0]
 /// bit index:   15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 0
-/// 
+///
 /// and in base10: 1 * 2**(2**0 - 15) * (1 + 0)
 ///                = 2**-14
-/// 
+///
 /// with a bias of one from (C11 5.2.4.2.2), gives -13;
 template <>
-struct Kokkos::Experimental::Impl::min_exponent_helper<
+struct Kokkos::Impl::min_exponent_helper<
     Kokkos::Experimental::half_t> {
   static constexpr int value = -13;
 };
@@ -242,14 +243,14 @@ struct Kokkos::Experimental::Impl::min_exponent_helper<
 ///             [s  e  e  e  e  e  f f f f f f f f f f]
 ///             [0  1  1  1  1  0  0 0 0 0 0 0 0 0 0 0]
 /// bit index:   15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 0
-/// 
+///
 /// and in base10: 1 * 2**(2**4 + 2**3 + 2**2 + 2**1 - 15) * (1 + 0)
 ///                = 2**(30 - 15)
 ///                = 2**15
-/// 
+///
 /// with a bias of one from (C11 5.2.4.2.2), gives 16;
 template <>
-struct Kokkos::Experimental::Impl::max_exponent_helper<
+struct Kokkos::Impl::max_exponent_helper<
     Kokkos::Experimental::half_t> {
   static constexpr int value = 16;
 };
@@ -257,7 +258,7 @@ struct Kokkos::Experimental::Impl::max_exponent_helper<
 ////////////// END HALF_T (binary16) limits //////////////
 
 ////////////// BEGIN BHALF_T (bfloat16) limits //////////////
-#if defined(KOKKOS_BHALF_T_IS_FLOAT) && !KOKKOS_BHALF_T_IS_FLOAT
+#if !KOKKOS_BHALF_T_IS_FLOAT
 /// \brief: Infinity
 ///
 /// Bfloat16 encoding:
@@ -266,80 +267,86 @@ struct Kokkos::Experimental::Impl::max_exponent_helper<
 /// bit index:   15 14 13 12 11 10 9 8 7 6 5 4 3 2 1 0
 ///
 template <>
-struct Kokkos::Experimental::Impl::infinity_helper<Kokkos::Experimental::bhalf_t> {
+struct Kokkos::Impl::infinity_helper<Kokkos::Experimental::bhalf_t> {
   static constexpr Kokkos::Experimental::bhalf_t::bit_comparison_type value{0b0'11111111'0000000};
 };
 
 // Minimum normalized number
 template <>
-struct Kokkos::Experimental::Impl::finite_min_helper<
+struct Kokkos::Impl::finite_min_helper<
     Kokkos::Experimental::bhalf_t> {
   static constexpr Kokkos::Experimental::bhalf_t::bit_comparison_type value{0b1'11111110'1111111}; // -3.38953139e38
 };
 // Maximum normalized number
 template <>
-struct Kokkos::Experimental::Impl::finite_max_helper<
+struct Kokkos::Impl::finite_max_helper<
     Kokkos::Experimental::bhalf_t> {
   static constexpr Kokkos::Experimental::bhalf_t::bit_comparison_type value{0b0'11111110'1111111}; // +3.38953139e3
 };
 // 1/2^7
 template <>
-struct Kokkos::Experimental::Impl::epsilon_helper<
+struct Kokkos::Impl::epsilon_helper<
     Kokkos::Experimental::bhalf_t> {
   static constexpr Kokkos::Experimental::bhalf_t::bit_comparison_type value{0b0'01111000'0000000}; // 0.0078125
 };
 template <>
-struct Kokkos::Experimental::Impl::round_error_helper<
+struct Kokkos::Impl::round_error_helper<
     Kokkos::Experimental::bhalf_t> {
   static constexpr Kokkos::Experimental::bhalf_t::bit_comparison_type value{0b0'01111110'0000000}; // 0.5
 };
 // Minimum normalized positive bhalf number
 template <>
-struct Kokkos::Experimental::Impl::norm_min_helper<
+struct Kokkos::Impl::norm_min_helper<
     Kokkos::Experimental::bhalf_t> {
   static constexpr Kokkos::Experimental::bhalf_t::bit_comparison_type value{0b0'00000001'0000000}; // 1.175494351e-38
 };
+/// Smallest positive non-zero bhalf
+template <>
+struct Kokkos::Impl::denorm_min_helper<
+    Kokkos::Experimental::bhalf_t> {
+  static constexpr Kokkos::Experimental::bhalf_t::bit_comparison_type value{0b0'00000000'0000001}; // 2^(-133)=9.18355e-41
+};
 // Quiet not a bhalf number
 template <>
-struct Kokkos::Experimental::Impl::quiet_NaN_helper<
+struct Kokkos::Impl::quiet_NaN_helper<
     Kokkos::Experimental::bhalf_t> {
   static constexpr Kokkos::Experimental::bhalf_t::bit_comparison_type value{0b0'11111111'1000000};
 };
 // Signaling not a bhalf number
 template <>
-struct Kokkos::Experimental::Impl::signaling_NaN_helper<
+struct Kokkos::Impl::signaling_NaN_helper<
     Kokkos::Experimental::bhalf_t> {
   static constexpr Kokkos::Experimental::bhalf_t::bit_comparison_type value{0b0'11111111'0100000};
 };
 // Number of digits in the matissa that can be represented
 // without losing precision.
 template <>
-struct Kokkos::Experimental::Impl::digits_helper<
+struct Kokkos::Impl::digits_helper<
     Kokkos::Experimental::bhalf_t> {
   static constexpr int value = 2;
 };
 // 7 - 1 * log10(2)
 template <>
-struct Kokkos::Experimental::Impl::digits10_helper<
+struct Kokkos::Impl::digits10_helper<
     Kokkos::Experimental::bhalf_t> {
   static constexpr int value = 1;
 };
 // Value of the base of the exponent representation.
 template <>
-struct Kokkos::Experimental::Impl::radix_helper<Kokkos::Experimental::bhalf_t> {
+struct Kokkos::Impl::radix_helper<Kokkos::Experimental::bhalf_t> {
   static constexpr int value = 2;
 };
 // This is the smallest possible exponent value
 // with a bias of one (C11 5.2.4.2.2).
 template <>
-struct Kokkos::Experimental::Impl::min_exponent_helper<
+struct Kokkos::Impl::min_exponent_helper<
     Kokkos::Experimental::bhalf_t> {
   static constexpr int value = -125;
 };
 // This is the largest possible exponent value
 // with a bias of one (C11 5.2.4.2.2).
 template <>
-struct Kokkos::Experimental::Impl::max_exponent_helper<
+struct Kokkos::Impl::max_exponent_helper<
     Kokkos::Experimental::bhalf_t> {
   static constexpr int value = 128;
 };

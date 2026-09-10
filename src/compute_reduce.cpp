@@ -35,7 +35,7 @@ static constexpr double BIG = 1.0e20;
 
 //----------------------------------------------------------------
 
-void abs_max(void *in, void *inout, int * /*len*/, MPI_Datatype * /*type*/)
+static void abs_max(void *in, void *inout, int * /*len*/, MPI_Datatype * /*type*/)
 {
   // r is the already reduced value, n is the new value
 
@@ -50,7 +50,7 @@ void abs_max(void *in, void *inout, int * /*len*/, MPI_Datatype * /*type*/)
   *(double *) inout = m;
 }
 
-void abs_min(void *in, void *inout, int * /*len*/, MPI_Datatype * /*type*/)
+static void abs_min(void *in, void *inout, int * /*len*/, MPI_Datatype * /*type*/)
 {
   // r is the already reduced value, n is the new value
 
@@ -84,25 +84,27 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
     iarg = 4;
   }
 
-  if (strcmp(arg[iarg], "sum") == 0)
+  modestr = arg[iarg];
+
+  if (modestr == "sum")
     mode = SUM;
-  else if (strcmp(arg[iarg], "sumsq") == 0)
+  else if (modestr == "sumsq")
     mode = SUMSQ;
-  else if (strcmp(arg[iarg], "sumabs") == 0)
+  else if (modestr == "sumabs")
     mode = SUMABS;
-  else if (strcmp(arg[iarg], "min") == 0)
+  else if (modestr == "min")
     mode = MINN;
-  else if (strcmp(arg[iarg], "max") == 0)
+  else if (modestr == "max")
     mode = MAXX;
-  else if (strcmp(arg[iarg], "ave") == 0)
+  else if (modestr == "ave")
     mode = AVE;
-  else if (strcmp(arg[iarg], "avesq") == 0)
+  else if (modestr == "avesq")
     mode = AVESQ;
-  else if (strcmp(arg[iarg], "aveabs") == 0)
+  else if (modestr == "aveabs")
     mode = AVEABS;
-  else if (strcmp(arg[iarg], "maxabs") == 0)
+  else if (modestr == "maxabs")
     mode = MAXABS;
-  else if (strcmp(arg[iarg], "minabs") == 0)
+  else if (modestr == "minabs")
     mode = MINABS;
   else
     error->all(FLERR, iarg, "Unknown compute {} mode: {}", style, arg[iarg]);
@@ -196,7 +198,7 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
 
   // optional args
 
-  nvalues = values.size();
+  nvalues = (int)values.size();
   replace = new int[nvalues];
   for (int i = 0; i < nvalues; ++i) replace[i] = -1;
   input_mode = PERATOM;
@@ -372,6 +374,7 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
   }
 
   maxatom = 0;
+  thermo_modify_colname = 1;
   varatom = nullptr;
 }
 
@@ -686,6 +689,42 @@ double ComputeReduce::compute_one(int m, int flag)
   }
 
   return one;
+}
+
+/* ---------------------------------------------------------------------- */
+
+// name of an input value as given in the compute command, e.g. vy, c_ID[2], f_ID, v_name
+
+std::string ComputeReduce::valstring(int m) const
+{
+  static const char *xyz[] = {"x", "y", "z"};
+  const auto &val = values[m];
+  switch (val.which) {
+    case ArgInfo::X:
+      return xyz[val.argindex];
+    case ArgInfo::V:
+      return fmt::format("v{}", xyz[val.argindex]);
+    case ArgInfo::F:
+      return fmt::format("f{}", xyz[val.argindex]);
+    case ArgInfo::FIX:
+      return val.argindex ? fmt::format("f_{}[{}]", val.id, val.argindex) : fmt::format("f_{}", val.id);
+    case ArgInfo::VARIABLE:
+      return fmt::format("v_{}", val.id);
+    case ArgInfo::DNAME:
+      return val.argindex ? fmt::format("d2_{}[{}]", val.id, val.argindex) : fmt::format("d_{}", val.id);
+    case ArgInfo::INAME:
+      return val.argindex ? fmt::format("i2_{}[{}]", val.id, val.argindex) : fmt::format("i_{}", val.id);
+    default:
+      return val.argindex ? fmt::format("c_{}[{}]", val.id, val.argindex) : fmt::format("c_{}", val.id);
+  }
+}
+
+std::string ComputeReduce::get_thermo_colname(int m) {
+  if (m == -1) m = 0; // scalar
+  if (replace && replace[m] >= 0)
+    return fmt::format("c_{}:{}<-{}({})", id, valstring(m), modestr, valstring(replace[m]));
+
+  return fmt::format("c_{}:{}({})", id, modestr, valstring(m));
 }
 
 /* ---------------------------------------------------------------------- */

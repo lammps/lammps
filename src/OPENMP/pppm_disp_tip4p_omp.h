@@ -30,13 +30,13 @@ class PPPMDispTIP4POMP : public PPPMDispTIP4P, public ThrOMP {
   PPPMDispTIP4POMP(class LAMMPS *);
   ~PPPMDispTIP4POMP() override;
 
- protected:
+  void compute(int, int) override;
+
+protected:
   void allocate() override;
 
-  virtual void compute_gf();
-  virtual void compute_gf_6();
-
-  void compute(int, int) override;
+  void compute_gf() override;
+  void compute_gf_6() override;
 
   void particle_map(double, double, double, double, int **, int, int, int, int, int, int, int,
                     int) override;

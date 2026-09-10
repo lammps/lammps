@@ -110,7 +110,7 @@ region surface will move over time in the corresponding manner.
    they now "see" the wall.  In a worst-case scenario, this can blow
    particles out of the simulation box.  Thus, as a general rule you
    should not use the fix wall/gran/region command with *union* or
-   *interesect* regions that have convex points or edges resulting from
+   *intersect* regions that have convex points or edges resulting from
    the union/intersection (convex points/edges in the union/intersection
    due to a single sub-region are still OK).
 
@@ -237,6 +237,13 @@ invoked by the :doc:`minimize <minimize>` command.
    minimized), you MUST enable the :doc:`fix_modify <fix_modify>`
    *energy* option for this fix.
 
+Dump image info
+"""""""""""""""
+
+This fix does **not** support the *fix* keyword of the :doc:`dump image
+<dump_image>` command.  Instead the region used by the fix can be
+visualized using the *region* keyword of *dump image*.
+
 ----------
 
 .. include:: accel_styles.rst
@@ -245,7 +252,7 @@ invoked by the :doc:`minimize <minimize>` command.
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""

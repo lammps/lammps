@@ -274,7 +274,7 @@ class voronoicell_neighbor : public voronoicell_base {
                 int **ne;
                 voronoicell_neighbor();
                 ~voronoicell_neighbor() override;
-                void operator=(voronoicell_neighbor &c);
+                void operator=(voronoicell_neighbor &c); // NOLINT
                 /** Cuts the Voronoi cell by a particle whose center is at a
                  * separation of (x,y,z) from the cell center. The value of rsq
                  * should be initially set to \f$x^2+y^2+z^2\f$.

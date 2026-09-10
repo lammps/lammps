@@ -146,12 +146,13 @@ void ComputeOmegaChunk::compute_array()
   // compute angmom for each chunk
 
   double **v = atom->v;
+  double vunwrap[3];
 
   for (i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
       index = ichunk[i] - 1;
       if (index < 0) continue;
-      domain->unmap(x[i], image[i], unwrap);
+      domain->unmap(x[i], v[i], image[i], mask[i], unwrap, vunwrap);
       dx = unwrap[0] - comall[index][0];
       dy = unwrap[1] - comall[index][1];
       dz = unwrap[2] - comall[index][2];
@@ -159,9 +160,9 @@ void ComputeOmegaChunk::compute_array()
         massone = rmass[i];
       else
         massone = mass[type[i]];
-      angmom[index][0] += massone * (dy * v[i][2] - dz * v[i][1]);
-      angmom[index][1] += massone * (dz * v[i][0] - dx * v[i][2]);
-      angmom[index][2] += massone * (dx * v[i][1] - dy * v[i][0]);
+      angmom[index][0] += massone * (dy * vunwrap[2] - dz * vunwrap[1]);
+      angmom[index][1] += massone * (dz * vunwrap[0] - dx * vunwrap[2]);
+      angmom[index][2] += massone * (dx * vunwrap[1] - dy * vunwrap[0]);
     }
 
   MPI_Allreduce(&angmom[0][0], &angmomall[0][0], 3 * nchunk, MPI_DOUBLE, MPI_SUM, world);

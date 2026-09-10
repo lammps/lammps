@@ -37,9 +37,8 @@ static constexpr int DELTA = 8192;
 /* ---------------------------------------------------------------------- */
 
 FixBondHistory::FixBondHistory(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg), bondstore(nullptr), bondtype_orig(nullptr), bondstore_comp(nullptr),
-    bondstore_orig(nullptr), id_fix(nullptr), id_array(nullptr)
-
+    Fix(lmp, narg, arg), setflag(nullptr), bondstore(nullptr), bondtype_orig(nullptr),
+    bondstore_comp(nullptr), bondstore_orig(nullptr), id_fix(nullptr), id_array(nullptr)
 {
   if (narg != 5) error->all(FLERR, "Illegal fix bond/history command");
   update_flag = utils::inumeric(FLERR, arg[3], false, lmp);
@@ -64,7 +63,7 @@ FixBondHistory::FixBondHistory(LAMMPS *lmp, int narg, char **arg) :
 
 FixBondHistory::~FixBondHistory()
 {
-  if (id_fix && modify->nfix) modify->delete_fix(id_fix);
+  if (id_fix) modify->delete_fix(id_fix);
   delete[] id_fix;
   delete[] id_array;
 
@@ -300,7 +299,7 @@ void FixBondHistory::write_restart(FILE *fp)
 void FixBondHistory::restart(char *buf)
 {
   int n = 0;
-  double *list = (double *) buf;
+  auto *list = (double *) buf;
   stored_flag = static_cast<int>(list[n++]);
 }
 
@@ -403,6 +402,7 @@ void FixBondHistory::cache_history(int i, int m)
   // Copy data to vector
   double **stored = atom->darray[index];
   std::vector<double> data;
+  data.reserve(ndata);
   for (int idata = 0; idata < ndata; idata++) data.push_back(stored[i][m * ndata + idata]);
 
   // Add data to cache

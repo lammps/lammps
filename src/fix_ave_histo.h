@@ -21,6 +21,7 @@ FixStyle(ave/histo,FixAveHisto);
 #define LMP_FIX_AVE_HISTO_H
 
 #include "fix.h"
+#include "safe_pointers.h"
 
 namespace LAMMPS_NS {
 
@@ -52,7 +53,7 @@ class FixAveHisto : public Fix {
   int nvalues, nrepeat, nfreq, irepeat;
   bigint nvalid, nvalid_last;
 
-  FILE *fp;
+  SafeFilePtr fp;
   double lo, hi, binsize, bininv;
   int kind, beyond, overwrite;
   bigint filepos;

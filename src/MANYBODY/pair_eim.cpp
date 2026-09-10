@@ -25,6 +25,7 @@
 #include "memory.h"
 #include "neigh_list.h"
 #include "neighbor.h"
+#include "safe_pointers.h"
 #include "tokenizer.h"
 
 #include <cmath>
@@ -34,7 +35,8 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairEIM::PairEIM(LAMMPS *lmp) : Pair(lmp)
+PairEIM::PairEIM(LAMMPS *lmp) :
+    Pair(lmp), type2Fij(nullptr), type2Gij(nullptr), type2phiij(nullptr)
 {
   single_enable = 0;
   restartinfo = 0;
@@ -84,8 +86,8 @@ PairEIM::~PairEIM()
 
   deallocate_setfl();
 
-  delete [] negativity;
-  delete [] q0;
+  delete[] negativity;
+  delete[] q0;
   memory->destroy(cutforcesq);
   memory->destroy(Fij);
   memory->destroy(Gij);
@@ -550,32 +552,33 @@ void PairEIM::read_file(char *filename)
 void PairEIM::deallocate_setfl()
 {
   if (!setfl) return;
-  delete [] setfl->ielement;
-  delete [] setfl->mass;
-  delete [] setfl->negativity;
-  delete [] setfl->ra;
-  delete [] setfl->ri;
-  delete [] setfl->Ec;
-  delete [] setfl->q0;
-  delete [] setfl->rcutphiA;
-  delete [] setfl->rcutphiR;
-  delete [] setfl->Eb;
-  delete [] setfl->r0;
-  delete [] setfl->alpha;
-  delete [] setfl->beta;
-  delete [] setfl->rcutq;
-  delete [] setfl->Asigma;
-  delete [] setfl->rq;
-  delete [] setfl->rcutsigma;
-  delete [] setfl->Ac;
-  delete [] setfl->zeta;
-  delete [] setfl->rs;
-  delete [] setfl->tp;
+  delete[] setfl->ielement;
+  delete[] setfl->mass;
+  delete[] setfl->negativity;
+  delete[] setfl->ra;
+  delete[] setfl->ri;
+  delete[] setfl->Ec;
+  delete[] setfl->q0;
+  delete[] setfl->rcutphiA;
+  delete[] setfl->rcutphiR;
+  delete[] setfl->Eb;
+  delete[] setfl->r0;
+  delete[] setfl->alpha;
+  delete[] setfl->beta;
+  delete[] setfl->rcutq;
+  delete[] setfl->Asigma;
+  delete[] setfl->rq;
+  delete[] setfl->rcutsigma;
+  delete[] setfl->Ac;
+  delete[] setfl->zeta;
+  delete[] setfl->rs;
+  delete[] setfl->tp;
   memory->destroy(setfl->cuts);
   memory->destroy(setfl->Fij);
   memory->destroy(setfl->Gij);
   memory->destroy(setfl->phiij);
   delete setfl;
+  setfl = nullptr;
 }
 
 /* ----------------------------------------------------------------------
@@ -589,8 +592,8 @@ void PairEIM::file2array()
   int irow,icol;
   int ntypes = atom->ntypes;
 
-  delete [] negativity;
-  delete [] q0;
+  delete[] negativity;
+  delete[] q0;
   memory->destroy(cutforcesq);
   negativity = new double[ntypes+1];
   q0 = new double[ntypes+1];
@@ -1009,7 +1012,7 @@ EIMPotentialFileReader::EIMPotentialFileReader(LAMMPS *lmp,
   }
 
   int unit_convert = auto_convert;
-  FILE *fp = utils::open_potential(filename, lmp, &unit_convert);
+  SafeFilePtr fp = utils::open_potential(filename, lmp, &unit_convert);
   conversion_factor = utils::get_conversion_factor(utils::ENERGY,unit_convert);
 
   if (fp == nullptr) {
@@ -1017,8 +1020,6 @@ EIMPotentialFileReader::EIMPotentialFileReader(LAMMPS *lmp,
   }
 
   parse(fp);
-
-  fclose(fp);
 }
 
 std::pair<std::string, std::string> EIMPotentialFileReader::get_pair(const std::string &a, const std::string &b) {

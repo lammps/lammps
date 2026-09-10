@@ -296,12 +296,14 @@ void LAMMPS_NS::update_pair_forces(MLIAPDataKokkosDevice *data, double *fij)
   auto j_atoms = data->jatoms;
   auto vflag = data->vflag;
   auto rij = data->rij;
-  int vflag_global=data->pairmliap->vflag_global, vflag_atom=data->pairmliap->vflag_atom;
+  const auto nlocal = data->nlocal;
+  int vflag_global = data->pairmliap->vflag_global;
+  int vflag_atom = data->pairmliap->vflag_atom;
   if (vflag_atom) {
-    data->pairmliap->k_vatom.template modify<LMPHostType>();
-    data->pairmliap->k_vatom.template sync<LMPDeviceType>();
+    data->pairmliap->k_vatom.modify_host();
+    data->pairmliap->k_vatom.sync_device();
   }
-  auto d_vatom = data->pairmliap->k_vatom.template view<LMPDeviceType>();
+  auto d_vatom = data->pairmliap->k_vatom.view_device();
 
   Kokkos::View<double[6], LMPDeviceType> virial("virial");
 
@@ -311,6 +313,7 @@ void LAMMPS_NS::update_pair_forces(MLIAPDataKokkosDevice *data, double *fij)
     int i = pair_i[ii];
     int j = j_atoms[ii];
     // must not count any contribution where i is not a local atom
+    if (i < nlocal) {
       Kokkos::atomic_add(&f[i*3+0], fij[ii3+0]);
       Kokkos::atomic_add(&f[i*3+1], fij[ii3+1]);
       Kokkos::atomic_add(&f[i*3+2], fij[ii3+2]);
@@ -347,6 +350,7 @@ void LAMMPS_NS::update_pair_forces(MLIAPDataKokkosDevice *data, double *fij)
           Kokkos::atomic_add(&d_vatom(j,3), 0.5*v[3]);
           Kokkos::atomic_add(&d_vatom(j,4), 0.5*v[4]);
           Kokkos::atomic_add(&d_vatom(j,5), 0.5*v[5]);
+        }
       }
     }
   });
@@ -355,12 +359,12 @@ void LAMMPS_NS::update_pair_forces(MLIAPDataKokkosDevice *data, double *fij)
     if (vflag_global) {
       Kokkos::View<double[6], LMPHostType> h_virial("h_virial");
       Kokkos::deep_copy(h_virial,virial);
-      for (int i=0;i<6;++i)
-        data->pairmliap->virial[i]+=h_virial[i];
+      for (int i = 0; i < 6; ++i)
+        data->pairmliap->virial[i] += h_virial[i];
     }
     if (vflag_atom) {
-      data->pairmliap->k_vatom.template modify<LMPDeviceType>();
-      data->pairmliap->k_vatom.template sync<LMPHostType>();
+      data->pairmliap->k_vatom.modify_device();
+      data->pairmliap->k_vatom.sync_host();
     }
   }
 }

@@ -16,7 +16,6 @@
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
-#include "force.h"
 #include "math_const.h"
 #include "math_special.h"
 #include "memory.h"
@@ -24,7 +23,6 @@
 #include "update.h"
 
 #include <cmath>
-#include <cstring>
 
 using namespace LAMMPS_NS;
 using MathConst::MY_2PI;
@@ -59,8 +57,11 @@ ComputeGaussianGridLocal::ComputeGaussianGridLocal(LAMMPS *lmp, int narg, char *
   rcutfac = utils::numeric(FLERR, arg[3], false, lmp);
 
   for (int i = 0; i < ntypes; i++) radelem[i + 1] = utils::numeric(FLERR, arg[4 + i], false, lmp);
-  for (int i = 0; i < ntypes; i++)
+  for (int i = 0; i < ntypes; i++) {
     sigmaelem[i + 1] = utils::numeric(FLERR, arg[ntypes + 4 + i], false, lmp);
+    if (sigmaelem[i + 1] <= 0.0)
+      error->all(FLERR, ntypes + 4 + i, "Gaussian width for type {} must be > 0", i + 1);
+  }
 
   // construct cutsq
   double cut;
@@ -160,7 +161,7 @@ void ComputeGaussianGridLocal::compute_local()
 double ComputeGaussianGridLocal::memory_usage()
 {
   int n = atom->ntypes + 1;
-  int nbytes = (double) n * sizeof(int);    // map
+  double nbytes = (double) n * sizeof(int);    // map
 
   return nbytes;
 }

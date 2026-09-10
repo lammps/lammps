@@ -92,6 +92,8 @@ FixDampingCundall::FixDampingCundall(LAMMPS *_lmp, int narg, char **arg) :
 
 FixDampingCundall::~FixDampingCundall()
 {
+  if (copymode) return;
+
   memory->destroy(scaleval);
   delete[] scalegamma;
   delete[] scalevarid;
@@ -120,7 +122,7 @@ void FixDampingCundall::init()
   }
 
   bool fflag = false;
-  for (auto &ifix : modify->get_fix_list()) {
+  for (const auto &ifix : modify->get_fix_list()) {
     if (fflag && (comm->me == 0) && (ifix->setmask() & POST_FORCE))
       error->warning(FLERR, "Fix {} alters forces after fix damping/cundall", ifix->id);
     if (ifix == this) fflag = true;

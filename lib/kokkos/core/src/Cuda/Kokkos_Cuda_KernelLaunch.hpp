@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_CUDAEXEC_HPP
 #define KOKKOS_CUDAEXEC_HPP
@@ -35,6 +22,13 @@
 //----------------------------------------------------------------------------
 //----------------------------------------------------------------------------
 
+// If KOKKOS_IMPL_CUDA_USE_GRID_CONSTANT is used we leverage implicit constant
+// cache use via an argument attribute in the "local launch" mechanism. At that
+// point we only need local and global launch - the latter for functors that
+// exceed the kernel argument limit which is now 32kB. Local launch is always
+// strictly better than global launch - which means the light weight/heavy
+// weight property can be ignored - the only thing that matters is the size of
+// the functor.
 /** \brief  Access to constant memory on the device */
 #ifdef KOKKOS_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE
 
@@ -81,6 +75,7 @@ __global__ __launch_bounds__(
   driver();
 }
 
+#ifndef KOKKOS_IMPL_CUDA_USE_GRID_CONSTANT
 template <class DriverType>
 __global__ static void cuda_parallel_launch_local_memory(
     const DriverType driver) {
@@ -94,6 +89,22 @@ __global__ __launch_bounds__(
                                                                  driver) {
   driver();
 }
+#else
+template <class DriverType>
+__global__ static void cuda_parallel_launch_local_memory(
+    const __grid_constant__ DriverType driver) {
+  driver();
+}
+
+template <class DriverType, unsigned int maxTperB, unsigned int minBperSM>
+__global__ __launch_bounds__(
+    maxTperB,
+    minBperSM) static void cuda_parallel_launch_local_memory(const __grid_constant__
+                                                                 DriverType
+                                                                     driver) {
+  driver();
+}
+#endif  // KOKKOS_IMPL_CUDA_USE_GRID_CONSTANT
 
 template <class DriverType>
 __global__ static void cuda_parallel_launch_global_memory(
@@ -117,7 +128,8 @@ inline bool is_empty_launch(dim3 const& grid, dim3 const& block) {
 }
 
 inline void check_shmem_request(CudaInternal const* cuda_instance, int shmem) {
-  int const maxShmemPerBlock = cuda_instance->m_deviceProp.sharedMemPerBlock;
+  int const maxShmemPerBlock = static_cast<int>(
+      get_max_shared_mem_per_block(cuda_instance->m_deviceProp));
   if (maxShmemPerBlock < shmem) {
     Kokkos::Impl::throw_runtime_exception(
         "CudaParallelLaunch (or graph node creation) FAILED: shared memory "
@@ -130,30 +142,30 @@ inline void check_shmem_request(CudaInternal const* cuda_instance, int shmem) {
 // KernelFuncPtr does not necessarily contain that type information.
 template <class DriverType, class LaunchBounds, class KernelFuncPtr>
 const cudaFuncAttributes& get_cuda_kernel_func_attributes(
-    int cuda_device, const KernelFuncPtr& func) {
+    const CudaInternal* cuda_instance, const KernelFuncPtr& func) {
   // Only call cudaFuncGetAttributes once for each unique kernel
   // by leveraging static variable initialization rules
+  const auto cuda_device = cuda_instance->m_cudaDev;
   static std::map<int, cudaFuncAttributes> func_attr;
   if (func_attr.find(cuda_device) == func_attr.end()) {
     cudaFuncAttributes attr;
-    KOKKOS_IMPL_CUDA_SAFE_CALL(cudaSetDevice(cuda_device));
-    KOKKOS_IMPL_CUDA_SAFE_CALL(cudaFuncGetAttributes(&attr, func));
+    KOKKOS_IMPL_CUDA_SAFE_CALL(
+        (cuda_instance->cuda_func_get_attributes_wrapper(&attr, func)));
     func_attr.emplace(cuda_device, attr);
   }
   return func_attr[cuda_device];
 }
 
 template <class DriverType, class LaunchBounds, class KernelFuncPtr>
-inline void configure_shmem_preference(const int cuda_device,
+inline void configure_shmem_preference(const CudaInternal* cuda_instance,
                                        const KernelFuncPtr& func,
-                                       const cudaDeviceProp& device_props,
                                        const size_t block_size, int& shmem,
                                        const size_t occupancy) {
-#ifndef KOKKOS_ARCH_KEPLER
-
   const auto& func_attr =
-      get_cuda_kernel_func_attributes<DriverType, LaunchBounds>(cuda_device,
+      get_cuda_kernel_func_attributes<DriverType, LaunchBounds>(cuda_instance,
                                                                 func);
+
+  const auto device_props = cuda_instance->m_deviceProp;
 
   // Compute limits for number of blocks due to registers/SM
   const size_t regs_per_sm     = device_props.regsPerMultiprocessor;
@@ -219,11 +231,9 @@ inline void configure_shmem_preference(const int cuda_device,
   if (carveout > 100) carveout = 100;
 
   // Set the carveout, but only call it once per kernel or when it changes
-  // FIXME_CUDA_MULTIPLE_DEVICES
   auto set_cache_config = [&] {
-    KOKKOS_IMPL_CUDA_SAFE_CALL(
-        (CudaInternal::singleton().cuda_func_set_attribute_wrapper(
-            func, cudaFuncAttributePreferredSharedMemoryCarveout, carveout)));
+    KOKKOS_IMPL_CUDA_SAFE_CALL((cuda_instance->cuda_func_set_attribute_wrapper(
+        func, cudaFuncAttributePreferredSharedMemoryCarveout, carveout)));
     return carveout;
   };
   // Store the value in a static variable so we only reset if needed
@@ -231,13 +241,27 @@ inline void configure_shmem_preference(const int cuda_device,
   if (cache_config_preference_cached != carveout) {
     cache_config_preference_cached = set_cache_config();
   }
-#else
-  // Use the parameters so we don't get a warning
-  (void)func;
-  (void)device_props;
-  (void)block_size;
-  (void)occupancy;
-#endif
+}
+
+// Opt in to the maximum dynamic shared memory size when the request
+// exceeds the default limit.
+template <class DriverType, class LaunchBounds, class KernelFuncPtr>
+inline void configure_max_dynamic_shmem(const CudaInternal* cuda_instance,
+                                        const KernelFuncPtr& func, int shmem) {
+  const auto& func_attr =
+      get_cuda_kernel_func_attributes<DriverType, LaunchBounds>(cuda_instance,
+                                                                func);
+  const auto cuda_device = cuda_instance->m_cudaDev;
+  static std::map<int, int> cached_max_per_device;
+  if (cached_max_per_device.find(cuda_device) == cached_max_per_device.end()) {
+    cached_max_per_device.emplace(cuda_device,
+                                  func_attr.maxDynamicSharedSizeBytes);
+  }
+  int& cached_max = cached_max_per_device[cuda_device];
+  if (shmem <= cached_max) return;
+  KOKKOS_IMPL_CUDA_SAFE_CALL((cuda_instance->cuda_func_set_attribute_wrapper(
+      func, cudaFuncAttributeMaxDynamicSharedMemorySize, shmem)));
+  cached_max = shmem;
 }
 
 // </editor-fold> end Some helper functions for launch code readability }}}1
@@ -252,57 +276,76 @@ inline void configure_shmem_preference(const int cuda_device,
 
 template <class DriverType>
 struct DeduceCudaLaunchMechanism {
-  constexpr static const Kokkos::Experimental::WorkItemProperty::
-      HintLightWeight_t light_weight =
-          Kokkos::Experimental::WorkItemProperty::HintLightWeight;
-  constexpr static const Kokkos::Experimental::WorkItemProperty::
-      HintHeavyWeight_t heavy_weight =
-          Kokkos::Experimental::WorkItemProperty::HintHeavyWeight;
-  constexpr static const typename DriverType::Policy::work_item_property
-      property = typename DriverType::Policy::work_item_property();
+  constexpr static auto light_weight =
+      Kokkos::Experimental::WorkItemProperty::HintLightWeight;
+  constexpr static auto heavy_weight =
+      Kokkos::Experimental::WorkItemProperty::HintHeavyWeight;
+  constexpr static typename DriverType::Policy::work_item_property property =
+      typename DriverType::Policy::work_item_property();
 
-  static constexpr const Experimental::CudaLaunchMechanism
-      valid_launch_mechanism =
-          // BuildValidMask
+  static constexpr CudaLaunchMechanism valid_launch_mechanism =
+      // BuildValidMask
       (sizeof(DriverType) < CudaTraits::KernelArgumentLimit
-           ? Experimental::CudaLaunchMechanism::LocalMemory
-           : Experimental::CudaLaunchMechanism::Default) |
+           ? CudaLaunchMechanism::LocalMemory
+           : CudaLaunchMechanism::Default) |
       (sizeof(DriverType) < CudaTraits::ConstantMemoryUsage
-           ? Experimental::CudaLaunchMechanism::ConstantMemory
-           : Experimental::CudaLaunchMechanism::Default) |
-      Experimental::CudaLaunchMechanism::GlobalMemory;
+           ? CudaLaunchMechanism::ConstantMemory
+           : CudaLaunchMechanism::Default) |
+      CudaLaunchMechanism::GlobalMemory;
 
-  static constexpr const Experimental::CudaLaunchMechanism
-      requested_launch_mechanism =
-          (((property & light_weight) == light_weight)
-               ? Experimental::CudaLaunchMechanism::LocalMemory
-               : Experimental::CudaLaunchMechanism::ConstantMemory) |
-          Experimental::CudaLaunchMechanism::GlobalMemory;
+  static constexpr CudaLaunchMechanism requested_launch_mechanism =
+#ifdef KOKKOS_IMPL_CUDA_USE_GRID_CONSTANT
+      (((property & heavy_weight) == heavy_weight)
+           ? CudaLaunchMechanism::ConstantMemory
+           : CudaLaunchMechanism::LocalMemory) |
+#else
+      (((property & light_weight) == light_weight)
+           ? CudaLaunchMechanism::LocalMemory
+           : CudaLaunchMechanism::ConstantMemory) |
+#endif  // KOKKOS_IMPL_CUDA_USE_GRID_CONSTANT
+      CudaLaunchMechanism::GlobalMemory;
 
-  static constexpr const Experimental::CudaLaunchMechanism
-      default_launch_mechanism =
-          // BuildValidMask
+  static constexpr CudaLaunchMechanism default_launch_mechanism =
+#ifdef KOKKOS_IMPL_CUDA_USE_GRID_CONSTANT
+      (sizeof(DriverType) < CudaTraits::KernelArgumentLimit)
+          ? CudaLaunchMechanism::LocalMemory
+          : CudaLaunchMechanism::GlobalMemory;
+#else
+      // BuildValidMask
       (sizeof(DriverType) < CudaTraits::ConstantMemoryUseThreshold)
-          ? Experimental::CudaLaunchMechanism::LocalMemory
+          ? CudaLaunchMechanism::LocalMemory
           : ((sizeof(DriverType) < CudaTraits::ConstantMemoryUsage)
-                 ? Experimental::CudaLaunchMechanism::ConstantMemory
-                 : Experimental::CudaLaunchMechanism::GlobalMemory);
+                 ? CudaLaunchMechanism::ConstantMemory
+                 : CudaLaunchMechanism::GlobalMemory);
+#endif  // KOKKOS_IMPL_CUDA_USE_GRID_CONSTANT
 
-  //              None                LightWeight    HeavyWeight
-  // F<UseT       LCG LCG L  L        LCG  LG L  L    LCG  CG L  C
-  // UseT<F<KAL   LCG LCG C  C        LCG  LG C  L    LCG  CG C  C
-  // Kal<F<CMU     CG LCG C  C         CG  LG C  G     CG  CG C  C
-  // CMU<F          G LCG G  G          G  LG G  G      G  CG G  G
-  static constexpr const Experimental::CudaLaunchMechanism launch_mechanism =
+  static constexpr CudaLaunchMechanism launch_mechanism =
+#ifdef KOKKOS_IMPL_CUDA_USE_GRID_CONSTANT
+      (((property & heavy_weight) == heavy_weight) and
+       (sizeof(DriverType) < CudaTraits::ConstantMemoryUsage))
+          ? CudaLaunchMechanism::ConstantMemory
+          : default_launch_mechanism;
+#else
+      // Logic mask for choosing launch mechanism by functor size (F) and
+      // Kernel Property. First column is restriction by size (local L,
+      // constant C, global G), second is restriction by property, third is
+      // default based on size, and last is actual mode.
+      //
+      //              None                LightWeight    HeavyWeight
+      // F<UseT       LCG LCG L  L        LCG  LG L  L    LCG  CG L  C
+      // UseT<F<KAL   LCG LCG C  C        LCG  LG C  L    LCG  CG C  C
+      // Kal<F<CMU     CG LCG C  C         CG  LG C  G     CG  CG C  C
+      // CMU<F          G LCG G  G          G  LG G  G      G  CG G  G
       ((property & light_weight) == light_weight)
           ? (sizeof(DriverType) < CudaTraits::KernelArgumentLimit
-                 ? Experimental::CudaLaunchMechanism::LocalMemory
-                 : Experimental::CudaLaunchMechanism::GlobalMemory)
+                 ? CudaLaunchMechanism::LocalMemory
+                 : CudaLaunchMechanism::GlobalMemory)
           : (((property & heavy_weight) == heavy_weight)
                  ? (sizeof(DriverType) < CudaTraits::ConstantMemoryUsage
-                        ? Experimental::CudaLaunchMechanism::ConstantMemory
-                        : Experimental::CudaLaunchMechanism::GlobalMemory)
+                        ? CudaLaunchMechanism::ConstantMemory
+                        : CudaLaunchMechanism::GlobalMemory)
                  : (default_launch_mechanism));
+#endif  // KOKKOS_IMPL_CUDA_USE_GRID_CONSTANT
 };
 
 // </editor-fold> end DeduceCudaLaunchMechanism }}}2
@@ -315,11 +358,11 @@ struct DeduceCudaLaunchMechanism {
 // mechanisms
 
 template <class DriverType, class LaunchBounds,
-          Experimental::CudaLaunchMechanism LaunchMechanism>
+          CudaLaunchMechanism LaunchMechanism>
 struct CudaParallelLaunchKernelFunc;
 
 template <class DriverType, class LaunchBounds,
-          Experimental::CudaLaunchMechanism LaunchMechanism>
+          CudaLaunchMechanism LaunchMechanism>
 struct CudaParallelLaunchKernelInvoker;
 
 //------------------------------------------------------------------------------
@@ -329,7 +372,7 @@ template <class DriverType, unsigned int MaxThreadsPerBlock,
           unsigned int MinBlocksPerSM>
 struct CudaParallelLaunchKernelFunc<
     DriverType, Kokkos::LaunchBounds<MaxThreadsPerBlock, MinBlocksPerSM>,
-    Experimental::CudaLaunchMechanism::LocalMemory> {
+    CudaLaunchMechanism::LocalMemory> {
   static std::decay_t<decltype(cuda_parallel_launch_local_memory<
                                DriverType, MaxThreadsPerBlock, MinBlocksPerSM>)>
   get_kernel_func() {
@@ -339,9 +382,8 @@ struct CudaParallelLaunchKernelFunc<
 };
 
 template <class DriverType>
-struct CudaParallelLaunchKernelFunc<
-    DriverType, Kokkos::LaunchBounds<0, 0>,
-    Experimental::CudaLaunchMechanism::LocalMemory> {
+struct CudaParallelLaunchKernelFunc<DriverType, Kokkos::LaunchBounds<0, 0>,
+                                    CudaLaunchMechanism::LocalMemory> {
   static std::decay_t<decltype(cuda_parallel_launch_local_memory<DriverType>)>
   get_kernel_func() {
     return cuda_parallel_launch_local_memory<DriverType>;
@@ -351,13 +393,12 @@ struct CudaParallelLaunchKernelFunc<
 //------------------------------------------------------------------------------
 
 template <class DriverType, class LaunchBounds>
-struct CudaParallelLaunchKernelInvoker<
-    DriverType, LaunchBounds, Experimental::CudaLaunchMechanism::LocalMemory>
-    : CudaParallelLaunchKernelFunc<
-          DriverType, LaunchBounds,
-          Experimental::CudaLaunchMechanism::LocalMemory> {
-  using base_t = CudaParallelLaunchKernelFunc<
-      DriverType, LaunchBounds, Experimental::CudaLaunchMechanism::LocalMemory>;
+struct CudaParallelLaunchKernelInvoker<DriverType, LaunchBounds,
+                                       CudaLaunchMechanism::LocalMemory>
+    : CudaParallelLaunchKernelFunc<DriverType, LaunchBounds,
+                                   CudaLaunchMechanism::LocalMemory> {
+  using base_t = CudaParallelLaunchKernelFunc<DriverType, LaunchBounds,
+                                              CudaLaunchMechanism::LocalMemory>;
   static_assert(sizeof(DriverType) < CudaTraits::KernelArgumentLimit,
                 "Kokkos Error: Requested CudaLaunchLocalMemory with a Functor "
                 "larger than 4096 bytes.");
@@ -365,8 +406,14 @@ struct CudaParallelLaunchKernelInvoker<
   static void invoke_kernel(DriverType const& driver, dim3 const& grid,
                             dim3 const& block, int shmem,
                             CudaInternal const* cuda_instance) {
-    (base_t::get_kernel_func())<<<grid, block, shmem,
-                                  cuda_instance->get_stream()>>>(driver);
+    // Set cuda device before launching kernel
+    cuda_instance->set_cuda_device();
+    Impl::configure_max_dynamic_shmem<DriverType, LaunchBounds>(
+        cuda_instance, base_t::get_kernel_func(), shmem);
+
+    (base_t::
+         get_kernel_func())<<<grid, block, shmem, cuda_instance->m_stream>>>(
+        driver);
   }
 
   inline static void create_parallel_launch_graph_node(
@@ -380,7 +427,6 @@ struct CudaParallelLaunchKernelInvoker<
     KOKKOS_EXPECTS(!bool(graph_node));
 
     if (!Impl::is_empty_launch(grid, block)) {
-      Impl::check_shmem_request(cuda_instance, shmem);
       if constexpr (DriverType::Policy::
                         experimental_contains_desired_occupancy) {
         int desired_occupancy =
@@ -390,6 +436,9 @@ struct CudaParallelLaunchKernelInvoker<
             cuda_instance->m_cudaDev, base_t::get_kernel_func(),
             cuda_instance->m_deviceProp, block_size, shmem, desired_occupancy);
       }
+      Impl::check_shmem_request(cuda_instance, shmem);
+      Impl::configure_max_dynamic_shmem<DriverType, LaunchBounds>(
+          cuda_instance, base_t::get_kernel_func(), shmem);
 
       void const* args[] = {&driver};
 
@@ -429,17 +478,18 @@ template <class DriverType, unsigned int MaxThreadsPerBlock,
           unsigned int MinBlocksPerSM>
 struct CudaParallelLaunchKernelFunc<
     DriverType, Kokkos::LaunchBounds<MaxThreadsPerBlock, MinBlocksPerSM>,
-    Experimental::CudaLaunchMechanism::GlobalMemory> {
-  static void* get_kernel_func() {
+    CudaLaunchMechanism::GlobalMemory> {
+  static std::decay_t<decltype(cuda_parallel_launch_global_memory<
+                               DriverType, MaxThreadsPerBlock, MinBlocksPerSM>)>
+  get_kernel_func() {
     return cuda_parallel_launch_global_memory<DriverType, MaxThreadsPerBlock,
                                               MinBlocksPerSM>;
   }
 };
 
 template <class DriverType>
-struct CudaParallelLaunchKernelFunc<
-    DriverType, Kokkos::LaunchBounds<0, 0>,
-    Experimental::CudaLaunchMechanism::GlobalMemory> {
+struct CudaParallelLaunchKernelFunc<DriverType, Kokkos::LaunchBounds<0, 0>,
+                                    CudaLaunchMechanism::GlobalMemory> {
   static std::decay_t<decltype(cuda_parallel_launch_global_memory<DriverType>)>
   get_kernel_func() {
     return cuda_parallel_launch_global_memory<DriverType>;
@@ -449,14 +499,13 @@ struct CudaParallelLaunchKernelFunc<
 //------------------------------------------------------------------------------
 
 template <class DriverType, class LaunchBounds>
-struct CudaParallelLaunchKernelInvoker<
-    DriverType, LaunchBounds, Experimental::CudaLaunchMechanism::GlobalMemory>
-    : CudaParallelLaunchKernelFunc<
-          DriverType, LaunchBounds,
-          Experimental::CudaLaunchMechanism::GlobalMemory> {
-  using base_t = CudaParallelLaunchKernelFunc<
-      DriverType, LaunchBounds,
-      Experimental::CudaLaunchMechanism::GlobalMemory>;
+struct CudaParallelLaunchKernelInvoker<DriverType, LaunchBounds,
+                                       CudaLaunchMechanism::GlobalMemory>
+    : CudaParallelLaunchKernelFunc<DriverType, LaunchBounds,
+                                   CudaLaunchMechanism::GlobalMemory> {
+  using base_t =
+      CudaParallelLaunchKernelFunc<DriverType, LaunchBounds,
+                                   CudaLaunchMechanism::GlobalMemory>;
 
   static void invoke_kernel(DriverType const& driver, dim3 const& grid,
                             dim3 const& block, int shmem,
@@ -466,8 +515,15 @@ struct CudaParallelLaunchKernelInvoker<
 
     KOKKOS_IMPL_CUDA_SAFE_CALL((cuda_instance->cuda_memcpy_async_wrapper(
         driver_ptr, &driver, sizeof(DriverType), cudaMemcpyDefault)));
-    (base_t::get_kernel_func())<<<grid, block, shmem,
-                                  cuda_instance->get_stream()>>>(driver_ptr);
+
+    // Set cuda device before launching kernel
+    cuda_instance->set_cuda_device();
+    Impl::configure_max_dynamic_shmem<DriverType, LaunchBounds>(
+        cuda_instance, base_t::get_kernel_func(), shmem);
+
+    (base_t::
+         get_kernel_func())<<<grid, block, shmem, cuda_instance->m_stream>>>(
+        driver_ptr);
   }
 
   inline static void create_parallel_launch_graph_node(
@@ -481,21 +537,21 @@ struct CudaParallelLaunchKernelInvoker<
     KOKKOS_EXPECTS(!bool(graph_node));
 
     if (!Impl::is_empty_launch(grid, block)) {
-      Impl::check_shmem_request(cuda_instance, shmem);
       if constexpr (DriverType::Policy::
                         experimental_contains_desired_occupancy) {
         int desired_occupancy =
             driver.get_policy().impl_get_desired_occupancy().value();
         size_t block_size = static_cast<size_t>(block.x) * block.y * block.z;
         Impl::configure_shmem_preference<DriverType, LaunchBounds>(
-            cuda_instance->m_cudaDev, base_t::get_kernel_func(),
-            cuda_instance->m_deviceProp, block_size, shmem, desired_occupancy);
+            cuda_instance, base_t::get_kernel_func(), block_size, shmem,
+            desired_occupancy);
       }
+      Impl::check_shmem_request(cuda_instance, shmem);
+      Impl::configure_max_dynamic_shmem<DriverType, LaunchBounds>(
+          cuda_instance, base_t::get_kernel_func(), shmem);
 
-      auto* driver_ptr = Impl::allocate_driver_storage_for_kernel(
-          CudaSpace::impl_create(cuda_instance->m_cudaDev,
-                                 cuda_instance->m_stream),
-          driver);
+      auto* driver_ptr =
+          get_graph_node_kernel(driver).allocate_driver_memory_buffer();
 
       // Unlike in the non-graph case, we can get away with doing an async copy
       // here because the `DriverType` instance is held in the GraphNodeImpl
@@ -505,7 +561,8 @@ struct CudaParallelLaunchKernelInvoker<
       KOKKOS_IMPL_CUDA_SAFE_CALL((cuda_instance->cuda_memcpy_async_wrapper(
           driver_ptr, &driver, sizeof(DriverType), cudaMemcpyDefault)));
 
-      void const* args[] = {&driver_ptr};
+      // NOLINTNEXTLINE(bugprone-multi-level-implicit-pointer-conversion)
+      void* args[] = {&driver_ptr};
 
       cudaKernelNodeParams params = {};
 
@@ -514,7 +571,7 @@ struct CudaParallelLaunchKernelInvoker<
       params.sharedMemBytes = shmem;
       // Casting a function pointer to a data pointer...
       params.func         = reinterpret_cast<void*>(base_t::get_kernel_func());
-      params.kernelParams = const_cast<void**>(args);
+      params.kernelParams = args;
       params.extra        = nullptr;
 
       KOKKOS_IMPL_CUDA_SAFE_CALL(
@@ -538,12 +595,11 @@ struct CudaParallelLaunchKernelInvoker<
 
 //------------------------------------------------------------------------------
 // <editor-fold desc="Constant Memory"> {{{2
-
 template <class DriverType, unsigned int MaxThreadsPerBlock,
           unsigned int MinBlocksPerSM>
 struct CudaParallelLaunchKernelFunc<
     DriverType, Kokkos::LaunchBounds<MaxThreadsPerBlock, MinBlocksPerSM>,
-    Experimental::CudaLaunchMechanism::ConstantMemory> {
+    CudaLaunchMechanism::ConstantMemory> {
   static std::decay_t<decltype(cuda_parallel_launch_constant_memory<
                                DriverType, MaxThreadsPerBlock, MinBlocksPerSM>)>
   get_kernel_func() {
@@ -553,9 +609,8 @@ struct CudaParallelLaunchKernelFunc<
 };
 
 template <class DriverType>
-struct CudaParallelLaunchKernelFunc<
-    DriverType, Kokkos::LaunchBounds<0, 0>,
-    Experimental::CudaLaunchMechanism::ConstantMemory> {
+struct CudaParallelLaunchKernelFunc<DriverType, Kokkos::LaunchBounds<0, 0>,
+                                    CudaLaunchMechanism::ConstantMemory> {
   static std::decay_t<
       decltype(cuda_parallel_launch_constant_memory<DriverType>)>
   get_kernel_func() {
@@ -566,14 +621,13 @@ struct CudaParallelLaunchKernelFunc<
 //------------------------------------------------------------------------------
 
 template <class DriverType, class LaunchBounds>
-struct CudaParallelLaunchKernelInvoker<
-    DriverType, LaunchBounds, Experimental::CudaLaunchMechanism::ConstantMemory>
-    : CudaParallelLaunchKernelFunc<
-          DriverType, LaunchBounds,
-          Experimental::CudaLaunchMechanism::ConstantMemory> {
-  using base_t = CudaParallelLaunchKernelFunc<
-      DriverType, LaunchBounds,
-      Experimental::CudaLaunchMechanism::ConstantMemory>;
+struct CudaParallelLaunchKernelInvoker<DriverType, LaunchBounds,
+                                       CudaLaunchMechanism::ConstantMemory>
+    : CudaParallelLaunchKernelFunc<DriverType, LaunchBounds,
+                                   CudaLaunchMechanism::ConstantMemory> {
+  using base_t =
+      CudaParallelLaunchKernelFunc<DriverType, LaunchBounds,
+                                   CudaLaunchMechanism::ConstantMemory>;
   static_assert(sizeof(DriverType) < CudaTraits::ConstantMemoryUsage,
                 "Kokkos Error: Requested CudaLaunchConstantMemory with a "
                 "Functor larger than 32kB.");
@@ -585,8 +639,8 @@ struct CudaParallelLaunchKernelInvoker<
     // Wait until the previous kernel that uses the constant buffer is done
     std::lock_guard<std::mutex> lock(
         CudaInternal::constantMemMutexPerDevice[cuda_device]);
-    KOKKOS_IMPL_CUDA_SAFE_CALL((cuda_instance->cuda_event_synchronize_wrapper(
-        CudaInternal::constantMemReusablePerDevice[cuda_device])));
+    KOKKOS_IMPL_CUDA_SAFE_CALL(cudaEventSynchronize(
+        CudaInternal::constantMemReusablePerDevice[cuda_device]));
 
     // Copy functor (synchronously) to staging buffer in pinned host memory
     unsigned long* staging =
@@ -600,9 +654,14 @@ struct CudaParallelLaunchKernelInvoker<
             kokkos_impl_cuda_constant_memory_buffer, staging,
             sizeof(DriverType), 0, cudaMemcpyHostToDevice)));
 
+    // Set cuda device before launching kernel
+    cuda_instance->set_cuda_device();
+    Impl::configure_max_dynamic_shmem<DriverType, LaunchBounds>(
+        cuda_instance, base_t::get_kernel_func(), shmem);
+
     // Invoke the driver function on the device
-    (base_t::get_kernel_func())<<<grid, block, shmem,
-                                  cuda_instance->get_stream()>>>();
+    (base_t::
+         get_kernel_func())<<<grid, block, shmem, cuda_instance->m_stream>>>();
 
     // Record an event that says when the constant buffer can be reused
     KOKKOS_IMPL_CUDA_SAFE_CALL((cuda_instance->cuda_event_record_wrapper(
@@ -621,9 +680,9 @@ struct CudaParallelLaunchKernelInvoker<
     // somehow go and prove was not creating a dependency cycle, and I don't
     // even know if there's an efficient way to do that, let alone in the
     // structure we currenty have).
-    using global_launch_impl_t = CudaParallelLaunchKernelInvoker<
-        DriverType, LaunchBounds,
-        Experimental::CudaLaunchMechanism::GlobalMemory>;
+    using global_launch_impl_t =
+        CudaParallelLaunchKernelInvoker<DriverType, LaunchBounds,
+                                        CudaLaunchMechanism::GlobalMemory>;
     global_launch_impl_t::create_parallel_launch_graph_node(
         driver, grid, block, shmem, cuda_instance);
   }
@@ -639,12 +698,11 @@ struct CudaParallelLaunchKernelInvoker<
 // <editor-fold desc="CudaParallelLaunchImpl"> {{{1
 
 template <class DriverType, class LaunchBounds,
-          Experimental::CudaLaunchMechanism LaunchMechanism>
+          CudaLaunchMechanism LaunchMechanism>
 struct CudaParallelLaunchImpl;
 
 template <class DriverType, unsigned int MaxThreadsPerBlock,
-          unsigned int MinBlocksPerSM,
-          Experimental::CudaLaunchMechanism LaunchMechanism>
+          unsigned int MinBlocksPerSM, CudaLaunchMechanism LaunchMechanism>
 struct CudaParallelLaunchImpl<
     DriverType, Kokkos::LaunchBounds<MaxThreadsPerBlock, MinBlocksPerSM>,
     LaunchMechanism>
@@ -674,11 +732,9 @@ struct CudaParallelLaunchImpl<
         Impl::configure_shmem_preference<
             DriverType,
             Kokkos::LaunchBounds<MaxThreadsPerBlock, MinBlocksPerSM>>(
-            cuda_instance->m_cudaDev, base_t::get_kernel_func(),
-            cuda_instance->m_deviceProp, block_size, shmem, desired_occupancy);
+            cuda_instance, base_t::get_kernel_func(), block_size, shmem,
+            desired_occupancy);
       }
-
-      desul::ensure_cuda_lock_arrays_on_device();
 
       // Invoke the driver function on the device
       base_t::invoke_kernel(driver, grid, block, shmem, cuda_instance);
@@ -691,10 +747,11 @@ struct CudaParallelLaunchImpl<
     }
   }
 
-  static cudaFuncAttributes get_cuda_func_attributes(int cuda_device) {
+  static cudaFuncAttributes get_cuda_func_attributes(
+      const CudaInternal* cuda_instance) {
     return get_cuda_kernel_func_attributes<
         DriverType, Kokkos::LaunchBounds<MaxThreadsPerBlock, MinBlocksPerSM>>(
-        cuda_device, base_t::get_kernel_func());
+        cuda_instance, base_t::get_kernel_func());
   }
 };
 
@@ -705,36 +762,26 @@ struct CudaParallelLaunchImpl<
 // <editor-fold desc="CudaParallelLaunch"> {{{1
 
 template <class DriverType, class LaunchBounds = Kokkos::LaunchBounds<>,
-          Experimental::CudaLaunchMechanism LaunchMechanism =
+          CudaLaunchMechanism LaunchMechanism =
               DeduceCudaLaunchMechanism<DriverType>::launch_mechanism,
           bool DoGraph = DriverType::Policy::is_graph_kernel::value>
-struct CudaParallelLaunch;
-
-// General launch mechanism
-template <class DriverType, class LaunchBounds,
-          Experimental::CudaLaunchMechanism LaunchMechanism>
-struct CudaParallelLaunch<DriverType, LaunchBounds, LaunchMechanism,
-                          /* DoGraph = */ false>
+struct CudaParallelLaunch
     : CudaParallelLaunchImpl<DriverType, LaunchBounds, LaunchMechanism> {
   using base_t =
       CudaParallelLaunchImpl<DriverType, LaunchBounds, LaunchMechanism>;
-  template <class... Args>
-  CudaParallelLaunch(Args&&... args) {
-    base_t::launch_kernel((Args&&)args...);
-  }
-};
+  CudaParallelLaunch(const DriverType& driver, const dim3& grid,
+                     const dim3& block, const int shmem,
+                     const CudaInternal* cuda_instance) {
+    if (!Impl::is_empty_launch(grid, block)) {
+      desul::ensure_cuda_lock_arrays_on_device();
+    }
 
-// Launch mechanism for creating graph nodes
-template <class DriverType, class LaunchBounds,
-          Experimental::CudaLaunchMechanism LaunchMechanism>
-struct CudaParallelLaunch<DriverType, LaunchBounds, LaunchMechanism,
-                          /* DoGraph = */ true>
-    : CudaParallelLaunchImpl<DriverType, LaunchBounds, LaunchMechanism> {
-  using base_t =
-      CudaParallelLaunchImpl<DriverType, LaunchBounds, LaunchMechanism>;
-  template <class... Args>
-  CudaParallelLaunch(Args&&... args) {
-    base_t::create_parallel_launch_graph_node((Args&&)args...);
+    if constexpr (DoGraph) {
+      base_t::create_parallel_launch_graph_node(driver, grid, block, shmem,
+                                                cuda_instance);
+    } else {
+      base_t::launch_kernel(driver, grid, block, shmem, cuda_instance);
+    }
   }
 };
 

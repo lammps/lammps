@@ -1,7 +1,11 @@
 .. index:: compute entropy/atom
+.. index:: compute entropy/atom/kk
+.. index:: compute entropy/atom/omp
 
 compute entropy/atom command
 ============================
+
+Accelerator Variants: *entropy/atom/kk*, *entropy/atom/omp*
 
 Syntax
 """"""
@@ -121,6 +125,12 @@ options.
 The pair entropy values have units of the Boltzmann constant. They are
 always negative, and lower values (lower entropy) correspond to more
 ordered environments.
+
+----------
+
+.. include:: accel_styles.rst
+
+----------
 
 Restrictions
 """"""""""""

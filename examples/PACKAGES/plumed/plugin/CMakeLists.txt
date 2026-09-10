@@ -3,7 +3,7 @@
 # distributed independent from the LAMMPS package.
 ##########################################
 
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.20)
 
 project(plumedplugin VERSION 1.0 LANGUAGES CXX)
 

@@ -24,6 +24,8 @@
 #include "force.h"
 #include "memory.h"
 
+#include <cstring>
+
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */

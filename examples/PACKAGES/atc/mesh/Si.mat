@@ -1,9 +1,0 @@
-material Si metal
-#### two temperature  ####################
-#heat_capacity constant
-#capacity 0.124578126430817        # E / L^3
-#end
-heat_flux linear
-conductivity 722.65698            # E / t / L / T
-end
-end

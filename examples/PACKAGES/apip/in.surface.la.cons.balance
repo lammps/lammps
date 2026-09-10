@@ -1,0 +1,71 @@
+##################################################
+# parameters of the adaptive-precision potential #
+##################################################
+# We couple an EAM potential with an ACE potential.
+variable	eamfs_file string "Cu_300K_Immel_2023.eam.fs"
+variable	ace_file string "../../../potentials/Cu-PBE-core-rep.ace"
+variable	cspavg_lattice string "fcc"
+# Thresholds between which the switching parameter changes from 1 to 0 based on the locally averaged (la) CSP.
+variable	cspavg_csp_lo equal 0.7
+variable	cspavg_csp_hi equal 2.0
+# This range determines where the weighting function changes from 1 to 0.
+variable	cspavg_r_lo equal 4.0
+variable	cspavg_r_hi equal 8.0
+
+
+## basic stuff
+units		metal
+dimension	3
+boundary	p p s
+atom_style	apip conservative # own atom style required for APIP
+timestep	0.001
+
+# copper surfaces at room temperature
+read_data	data.surface.balance
+
+
+fix		nve all nve
+comm_style	tiled
+
+
+# Only the upper surface should be treated precisely.
+# Thus, we create the group 'group_descriptor' for which the switching parameter is computed using fix lambda/la/csp/apip.
+# Lambda = 1 is set for the remaining atoms, i.e., the atoms near the lower surface.
+region		descriptor block INF INF INF INF ${cspavg_r_hi} INF units box
+group		group_descriptor region descriptor
+
+
+fix		lambda_cspavg group_descriptor lambda/la/csp/apip ${cspavg_csp_lo} ${cspavg_csp_hi} ${cspavg_r_lo} ${cspavg_r_hi} ${cspavg_lattice} lambda_non_group fast
+pair_style	hybrid/overlay eam/fs/apip pace/apip zero ${cspavg_r_hi}
+pair_coeff	* * eam/fs/apip ${eamfs_file} Cu
+pair_coeff	* * pace/apip ${ace_file} Cu
+pair_coeff	* * zero
+
+# compute lambda per atom for the dump file
+#compute		lambda all property/atom apip_lambda
+
+# approximate computational load per atom
+# The calculation of the switching parameter and the differentiation of the switching parameter are performed by the fix lambda/la/csp/apip.
+# Only EAM and ACE are computed as pair styles.
+# -> Use zero as constant time for the other two possible load sources.
+fix		weight_atom all atom_weight/apip 10 eam ace 0 0 all
+variable	myweight atom f_weight_atom
+
+# store weight in variable
+fix		property_atom all property/atom d_usedweight
+## apply load balancing
+## no load-balancing
+#fix		balance all balance 10 0.9 report weight time 1.0 weight store usedweight
+## load balancing with times per atom per processor
+#fix		balance all balance 10 0.9 rcb weight time 1.0 weight store usedweight
+## load balancing with an approximated load per atom by fix apip_atom_weight
+fix		balance all balance 10 0.9 rcb weight var myweight weight store usedweight
+
+
+# output
+#dump		1 all custom 10 dump.surface.la.cons.balance.* id type x y z c_lambda proc d_usedweight
+thermo_style	custom step f_weight_atom[1] f_weight_atom[2] spcpu
+thermo		10
+
+
+run		100

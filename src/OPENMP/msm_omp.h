@@ -28,10 +28,10 @@ namespace LAMMPS_NS {
 class MSMOMP : public MSM, public ThrOMP {
  public:
   MSMOMP(class LAMMPS *);
+  void compute(int, int) override;
 
  protected:
   void direct(int) override;
-  void compute(int, int) override;
 
  private:
   template <int, int, int> void direct_eval(int);

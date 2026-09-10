@@ -36,8 +36,8 @@ class FixRigidMeso : public FixRigid {
   double compute_array(int, int) override;
 
  protected:
-  void set_xv();
-  void set_v();
+  void set_xv() override;
+  void set_v() override;
   double **conjqm;    // conjugate quaternion momentum
 };
 

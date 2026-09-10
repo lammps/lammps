@@ -37,8 +37,7 @@ enum{CONSTANT,EQUAL};
 /* ---------------------------------------------------------------------- */
 
 FixTempRescale::FixTempRescale(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg),
-  tstr(nullptr), id_temp(nullptr), tflag(0)
+    Fix(lmp, narg, arg), tstr(nullptr), id_temp(nullptr), temperature(nullptr), tflag(0)
 {
   if (narg < 8) utils::missing_cmd_args(FLERR, "fix temp/rescale", error);
 
@@ -260,7 +259,7 @@ void FixTempRescale::write_restart(FILE *fp)
 void FixTempRescale::restart(char *buf)
 {
   int n = 0;
-  auto list = (double *) buf;
+  auto *list = (double *) buf;
 
   energy = list[n++];
 }

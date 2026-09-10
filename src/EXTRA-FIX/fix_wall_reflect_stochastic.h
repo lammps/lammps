@@ -29,7 +29,7 @@ class FixWallReflectStochastic : public FixWallReflect {
   FixWallReflectStochastic(class LAMMPS *, int, char **);
   ~FixWallReflectStochastic() override;
 
- private:
+ protected:
   int seedfix;
   double walltemp[6], wallvel[6][3], wallaccom[6][3];
   int rstyle;

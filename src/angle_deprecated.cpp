@@ -33,7 +33,7 @@ void AngleDeprecated::settings(int, char **)
   // called, our style was just added at the end of the list of substyles
 
   if (utils::strmatch(my_style, "^hybrid")) {
-    auto hybrid = dynamic_cast<AngleHybrid *>(force->angle);
+    auto *hybrid = dynamic_cast<AngleHybrid *>(force->angle);
     my_style = hybrid->keywords[hybrid->nstyles];
   }
 
@@ -41,5 +41,6 @@ void AngleDeprecated::settings(int, char **)
     if (lmp->comm->me == 0) utils::logmesg(lmp, "\nAngle style 'DEPRECATED' is a dummy style\n\n");
     return;
   }
-  error->all(FLERR, "This angle style is no longer available");
+  error->all(FLERR, Error::ARGZERO, "Angle style {} is no longer available. {}", my_style,
+             utils::errorurl(38));
 }

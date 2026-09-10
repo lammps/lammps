@@ -3,6 +3,8 @@ function(WriteOpenCLHeader varname outfile files)
     separate_arguments(files)
 
     foreach(filename ${files})
+        # In case ${filename} would have blanks, CMake will have replaced them with ';'. Revert:
+        string(REPLACE ";" " " filename "${filename}")
         file(READ ${filename} content)
         string(REGEX REPLACE "\\s*//[^\n]*\n" "\n" content "${content}")
         string(REGEX REPLACE "\\\\" "\\\\\\\\" content "${content}")

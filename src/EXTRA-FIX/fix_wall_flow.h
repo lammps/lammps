@@ -36,6 +36,7 @@ class FixWallFlow : public Fix {
 
   void grow_arrays(int) override;
   void copy_arrays(int, int, int) override;
+  double memory_usage() override;
 
   int pack_exchange(int, double *) override;
   int unpack_exchange(int, double *) override;
@@ -51,7 +52,7 @@ class FixWallFlow : public Fix {
   class RanMars *random;
   int *current_segment;
 
-  int compute_current_segment(double pos) const;
+  [[nodiscard]] int compute_current_segment(double pos) const;
   void generate_velocity(int i);
 };
 

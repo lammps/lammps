@@ -44,8 +44,8 @@ static constexpr int PRNGSIZE = 98+2+3;
 /* ---------------------------------------------------------------------- */
 
 FixTempCSLD::FixTempCSLD(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg),
-  vhold(nullptr), tstr(nullptr), id_temp(nullptr), random(nullptr)
+    Fix(lmp, narg, arg), vhold(nullptr), tstr(nullptr), id_temp(nullptr), temperature(nullptr),
+    random(nullptr)
 {
   if (narg != 7) error->all(FLERR,"Illegal fix temp/csld command");
 
@@ -96,6 +96,8 @@ FixTempCSLD::FixTempCSLD(LAMMPS *lmp, int narg, char **arg) :
 
 FixTempCSLD::~FixTempCSLD()
 {
+  if (copymode) return;
+
   delete[] tstr;
 
   // delete temperature if fix created it
@@ -125,13 +127,9 @@ void FixTempCSLD::init()
 
   // we cannot handle constraints via rattle or shake correctly.
 
-  int has_shake = 0;
-  for (int i = 0; i < modify->nfix; i++)
-    if ((strcmp(modify->fix[i]->style,"shake") == 0)
-        || (strcmp(modify->fix[i]->style,"rattle") == 0)) ++has_shake;
-
-  if (has_shake > 0)
-    error->all(FLERR,"Fix temp/csld is not compatible with fix rattle or fix shake");
+  if (!modify->get_fix_by_style("^shake").empty() || !modify->get_fix_by_style("^rattle").empty()
+      || !modify->get_fix_by_style("^ilves").empty())
+    error->all(FLERR,"Fix temp/csld is not compatible with fix shake, rattle, or ilves");
 
   // check variable
 
@@ -295,10 +293,10 @@ double FixTempCSLD::compute_scalar()
 
 void FixTempCSLD::write_restart(FILE *fp)
 {
-  int nsize = PRNGSIZE*comm->nprocs+2; // pRNG state per proc + nprocs + energy
-  double *list = nullptr;
+  int nsize = PRNGSIZE*comm->nprocs + 2; // pRNG state per proc + nprocs + energy
+  auto *list = new double[nsize];
+
   if (comm->me == 0) {
-    list = new double[nsize];
     list[0] = energy;
     list[1] = comm->nprocs;
   }
@@ -310,8 +308,8 @@ void FixTempCSLD::write_restart(FILE *fp)
     int size = nsize * sizeof(double);
     fwrite(&size,sizeof(int),1,fp);
     fwrite(list,sizeof(double),nsize,fp);
-    delete[] list;
   }
+  delete[] list;
 }
 
 /* ----------------------------------------------------------------------
@@ -320,7 +318,7 @@ void FixTempCSLD::write_restart(FILE *fp)
 
 void FixTempCSLD::restart(char *buf)
 {
-  auto list = (double *) buf;
+  auto *list = (double *) buf;
 
   energy = list[0];
   int nprocs = (int) list[1];
@@ -341,4 +339,11 @@ void *FixTempCSLD::extract(const char *str, int &dim)
     return &t_target;
   }
   return nullptr;
+}
+
+/* ---------------------------------------------------------------------- */
+
+double FixTempCSLD::memory_usage()
+{
+  return (double) nmax * 3 * sizeof(double);    // vhold[nmax][3]
 }

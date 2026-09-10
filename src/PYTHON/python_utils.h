@@ -16,9 +16,9 @@
 
 #include <Python.h>
 
-namespace LAMMPS_NS {
 
-namespace PyUtils {
+
+namespace LAMMPS_NS::PyUtils {
 
   class GIL {
     PyGILState_STATE gstate;
@@ -34,8 +34,8 @@ namespace PyUtils {
     PyErr_Clear();
   }
 
-}    // namespace PyUtils
+} // namespace LAMMPS_NS::PyUtils
 
-}    // namespace LAMMPS_NS
+
 
 #endif

@@ -1,0 +1,207 @@
+LAMMPS (4 Jul 2026 - Development - patch_4Jul2026-854-g51def89584-modified)
+  using 1 OpenMP thread(s) per MPI task
+# Peridynamics (EPS model) on the BPM framework: a small brittle cylinder
+# shattered by a spherical indenter.  Equivalent to examples/peri/in.peri.eps
+# but using atom_style bond + bond_style/pair_style bpm/peri.
+#
+# Fragmentation note: when the target shatters, fragments can leave the domain.
+# The legacy PERI package tolerates such lost atoms silently; in the BPM
+# framework this is opt-in via thermo_modify (see below), so a user explicitly
+# chooses whether to clean up lost atoms / their dangling bonds and continue.
+# A fixed (non-shrink-wrap) box with margin keeps the neighbor bins bounded.
+
+units           si
+dimension       3
+boundary        f f f
+atom_style      bond
+atom_modify     map array
+
+special_bonds   lj 0.0 1.0 1.0 coul 0.0 1.0 1.0
+newton          on off
+neighbor        0.0010 bin
+comm_modify     cutoff 0.0030
+
+lattice         sc 0.0005
+Lattice spacing in x,y,z = 0.0005 0.0005 0.0005
+region          box block -0.006 0.006 -0.006 0.002 -0.006 0.006 units box
+region          target cylinder y 0.0 0.0 0.0050 -0.0050 0.0 units box
+create_box      1 box bond/types 1 extra/bond/per/atom 130 extra/special/per/atom 150
+Created orthogonal box = (-0.006 -0.006 -0.006) to (0.006 0.002 0.006)
+  2 by 1 by 2 MPI processor grid
+create_atoms    1 region target
+Created 3487 atoms
+  using lattice units in orthogonal box = (-0.006 -0.006 -0.006) to (0.006 0.002 0.006)
+  create_atoms CPU = 0.001 seconds
+
+# nodal mass (density 2200 * nodal volume 1.25e-10) and nodal volume (the lone
+# user-declared input)
+mass            * 2.75e-7
+fix             vol all property/atom d_vfrac d_damage ghost yes
+set             group all d_vfrac 1.25e-10
+Setting atom values ...
+  3487 settings made for d_vfrac
+
+# short-range contact between non-bonded near nodes
+pair_style      bpm/peri
+pair_coeff      * * 1.6863e22 0.0015001
+
+# create the peridynamic bond set within the horizon, then restore special weights
+create_bonds    many all all 1 0.0 0.0015001
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 0.0025001
+  ghost atom cutoff = 0.003
+  binsize = 0.00125005, bins = 10 7 10
+  2 neighbor lists, perpetual/occasional/extra = 1 1 0
+  (1) command create_bonds, occasional
+      attributes: full, newton on
+      pair build: full/bin
+      stencil: full/bin/3d
+      bin: standard
+  (2) pair bpm/peri, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+Added 167983 bonds, new total = 167983
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        1        1       
+  special bond factors coul:  0        1        1       
+   122 = max # of 1-2 neighbors
+   301 = max # of special neighbors
+  special bonds CPU = 0.002 seconds
+special_bonds   lj 0.0 1.0 1.0 coul 1.0 1.0 1.0
+
+bond_style      bpm/peri
+#               model  K      G      yieldstress horizon   s00    alpha
+bond_coeff      1 eps 14.9e9 14.9e9 10.0e8 0.0015001 0.0005 0.25
+
+velocity        all set 0.0 0.0 0.0 sum no units box
+fix             1 all nve
+
+# spherical indenter driven into the target to shatter it
+variable        y0 equal 0.00155
+variable        vy equal -100
+variable        y equal "v_y0 + step*dt*v_vy"
+fix             2 all indent 1e17 sphere 0.0000 v_y 0.0000 0.0015 units box
+
+compute         dmg all property/atom d_damage
+compute         davg all reduce ave c_dmg
+timestep        1.0e-7
+thermo          200
+thermo_style    custom step atoms c_davg
+
+# opt-in cleanup of shattered fragments (must follow thermo_style, which resets
+# thermo_modify): drop atoms that leave the box and skip their now-dangling bonds
+thermo_modify   lost ignore
+thermo_modify   lost/bond ignore
+
+#dump            1 all custom 200 dump.peri.eps id type x y z c_dmg
+run             2000
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- BPM bond style: https://doi.org/10.1039/D3SM01373A
+
+@Article{Clemmer2024,
+ author =  {Clemmer, Joel T. and Monti, Joseph M. and Lechman, Jeremy B.},
+ title =   {A soft departure from jamming: the compaction of deformable
+            granular matter under high pressures},
+ journal = {Soft Matter},
+ year =    2024,
+ volume =  20,
+ number =  8,
+ pages =   {1702--1718}
+}
+
+- BPM peridynamics (bond_style bpm/peri), derived from the PERI package: https://doi.org/10.1016/j.cpc.2008.06.011
+
+@Article{Parks08,
+ author = {M. L. Parks and R. B. Lehoucq and S. J. Plimpton and S. A. Silling},
+ title = {Implementing peridynamics within a molecular dynamics code},
+ journal = {Comput.\ Phys.\ Commun.},
+ year =    2008,
+ volume =  179,
+ number =  11,
+ pages =   {777--783}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 0.0025001
+  ghost atom cutoff = 0.003
+  binsize = 0.00125005, bins = 10 7 10
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair bpm/peri, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 74.51 | 74.52 | 74.56 Mbytes
+   Step        Atoms        c_davg    
+         0        3487   0            
+       200        3403   0.012456098  
+       400        3303   0.025662126  
+       600        3216   0.035299317  
+       800        3212   0.035510281  
+      1000        3212   0.035510281  
+      1200        3212   0.035510281  
+      1400        3212   0.035510281  
+      1600        3212   0.035510281  
+      1800        3212   0.035510281  
+      2000        3212   0.035510281  
+Loop time of 4.82152 on 4 procs for 2000 steps with 3212 atoms
+
+99.2% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.56559    | 0.62503    | 0.66714    |   5.1 | 12.96
+Bond    | 3.4495     | 3.5183     | 3.6085     |   3.4 | 72.97
+Neigh   | 0.21814    | 0.2369     | 0.25786    |   3.0 |  4.91
+Comm    | 0.057109   | 0.071964   | 0.086064   |   3.8 |  1.49
+Output  | 0.00012488 | 0.00015508 | 0.00021189 |   0.0 |  0.00
+Modify  | 0.31624    | 0.35927    | 0.40089    |   5.0 |  7.45
+Other   |            | 0.009952   |            |       |  0.21
+
+Nlocal:            803 ave         891 max         715 min
+Histogram: 1 0 0 0 0 2 0 0 0 1
+Nghost:           1584 ave        1672 max        1496 min
+Histogram: 1 0 0 0 0 2 0 0 0 1
+Neighs:         127233 ave      135574 max      120454 min
+Histogram: 1 0 1 0 0 1 0 0 0 1
+
+Total # of neighbors = 508932
+Ave neighs/atom = 158.44707
+Ave special neighs/atom = 95.241594
+Neighbor list builds = 46
+Dangerous builds = 0
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- BPM peridynamics eps/ves models: https://doi.org/10.1002/nme.2725
+
+@Article{Foster10,
+ author = {J. T. Foster and S. A. Silling and W. W. Chen},
+ title = {Viscoplasticity using peridynamics},
+ journal = {Int.\ J.\ Numer.\ Methods Eng.},
+ year =    2010,
+ volume =  81,
+ number =  10,
+ pages =   {1242--1258}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Total wall time: 0:00:04

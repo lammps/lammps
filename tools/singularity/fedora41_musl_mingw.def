@@ -2,8 +2,8 @@ BootStrap: docker
 From: fedora:41
 
 %setup
-   curl -L -o musl-gcc-f37.tar.gz https://download.lammps.org/static/musl-gcc-f37.tar.gz
-   cp musl-gcc-f37.tar.gz ${APPTAINER_ROOTFS}
+   curl -L -o musl-gcc-f41.tar.gz https://download.lammps.org/static/musl-gcc-f41.tar.gz
+   cp musl-gcc-f41.tar.gz ${APPTAINER_ROOTFS}
 
 %post
         dnf -y update
@@ -52,8 +52,8 @@ From: fedora:41
         dnf clean all
 
         # install musl-libc Linux-2-Linux cross-compiler
-        tar -C /usr/ -xvf /musl-gcc-f37.tar.gz
-        rm -f /musl-gcc-f37.tar.gz
+        tar -C /usr/ -xvf /musl-gcc-f41.tar.gz
+        rm -f /musl-gcc-f41.tar.gz
 
         # install NSIS EnVar plugin
         curl -L -o EnVar_plugin.zip https://nsis.sourceforge.io/mediawiki/images/7/7f/EnVar_plugin.zip

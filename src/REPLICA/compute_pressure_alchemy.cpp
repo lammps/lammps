@@ -98,7 +98,7 @@ void ComputePressureAlchemy::compute_vector()
     error->all(FLERR, Error::NOLASTLINE, "Virial was not tallied on needed timestep{}", utils::errorurl(22));
 
   int dim = 0;
-  double *pressure = (double *) fix->extract("pressure", dim);
+  auto *pressure = (double *) fix->extract("pressure", dim);
   if (!pressure || (dim != 1))
     error->all(FLERR, Error::NOLASTLINE, "Could not extract pressure from fix alchemy");
 

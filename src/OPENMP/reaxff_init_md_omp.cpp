@@ -42,7 +42,7 @@ namespace ReaxFF {
     int mincap = system->mincap;
     double safezone = system->safezone;
     double saferzone = system->saferzone;
-    auto error = system->error_ptr;
+    auto *error = system->error_ptr;
 
     bond_top = (int*) calloc(system->total_cap, sizeof(int));
     hb_top = (int*) calloc(system->local_cap, sizeof(int));

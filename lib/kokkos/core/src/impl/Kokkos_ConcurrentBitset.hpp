@@ -1,25 +1,12 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_CONCURRENTBITSET_HPP
 #define KOKKOS_CONCURRENTBITSET_HPP
 
 #include <stdint.h>
 #include <Kokkos_Atomic.hpp>
-#include <impl/Kokkos_BitOps.hpp>
+#include <Kokkos_BitManipulation.hpp>
 #include <impl/Kokkos_ClockTic.hpp>
 
 namespace Kokkos {
@@ -144,7 +131,8 @@ struct concurrent_bitset {
       // Failed race to set the selected bit
       // Find a new bit to try.
 
-      const int j = Kokkos::Impl::bit_first_zero(prev);
+      const int j =
+          (prev == static_cast<uint32_t>(-1) ? -1 : Kokkos::countr_one(prev));
 
       if (0 <= j) {
         bit = (word << bits_per_int_lg2) | uint32_t(j);
@@ -233,7 +221,8 @@ struct concurrent_bitset {
       // Failed race to set the selected bit
       // Find a new bit to try.
 
-      const int j = Kokkos::Impl::bit_first_zero(prev);
+      const int j =
+          (prev == static_cast<uint32_t>(-1) ? -1 : Kokkos::countr_one(prev));
 
       if (0 <= j) {
         bit = (word << bits_per_int_lg2) | uint32_t(j);

@@ -1,20 +1,12 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+#else
 #include <Kokkos_Core.hpp>
+#endif
 #include <TestReducers.hpp>
 #include <TestNonTrivialScalarTypes.hpp>
 
@@ -27,14 +19,8 @@ TEST(TEST_CATEGORY, reducers_struct) {
   TestReducers<array_reduce<float, 1>, TEST_EXECSPACE>::test_sum(1031);
   TestReducers<array_reduce<float, 2>, TEST_EXECSPACE>::test_sum(1031);
   TestReducers<array_reduce<float, 4>, TEST_EXECSPACE>::test_sum(1031);
-  // FIXME_OPENMPTARGET - The size of data in array_reduce has to be a power of
-  // 2 for OPENMPTARGET backend in Release and RelWithDebInfo builds.
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-  TestReducers<array_reduce<float, 8>, TEST_EXECSPACE>::test_sum(1031);
-#else
   TestReducers<array_reduce<float, 3>, TEST_EXECSPACE>::test_sum(1031);
   TestReducers<array_reduce<float, 7>, TEST_EXECSPACE>::test_sum(1031);
-#endif
 }
 
 TEST(TEST_CATEGORY, reducers_half_t) {
@@ -94,12 +80,11 @@ TEST(TEST_CATEGORY, reducers_int16_t) {
   TestReducers<ThisTestType, TEST_EXECSPACE>::test_prod(4);
 }
 
-#if !defined(KOKKOS_ENABLE_HIP) && !defined(KOKKOS_ENABLE_OPENMPTARGET)
+#if !defined(KOKKOS_ENABLE_HIP)
 // TODO - resolve: "Kokkos_HIP_Vectorization.hpp:80:15: error: call to
 //                 implicitly-deleted default constructor of 'conv_type'
 //                   conv_type tmp_in;"
 //
-// TODO - resolve:  4: [  FAILED  ] openmptarget.reducers_point_t (1 ms)
 TEST(TEST_CATEGORY, reducers_point_t) {
   using ThisTestType = point_t;
 
@@ -108,6 +93,6 @@ TEST(TEST_CATEGORY, reducers_point_t) {
   TestReducers<ThisTestType, TEST_EXECSPACE>::test_sum(3);
   TestReducers<ThisTestType, TEST_EXECSPACE>::test_sum(4);
 }
-#endif  // !KOKKOS_ENABLE_HIP && !KOKKOS_ENABLE_OPENMPTARGET
+#endif  // !KOKKOS_ENABLE_HIP
 
 }  // namespace Test

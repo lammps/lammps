@@ -19,17 +19,17 @@
 
 #include "angle_class2_p6.h"
 
-#include <cmath>
-#include <cstring>
 #include "atom.h"
-#include "neighbor.h"
-#include "domain.h"
 #include "comm.h"
+#include "domain.h"
+#include "error.h"
 #include "force.h"
 #include "math_const.h"
 #include "memory.h"
-#include "error.h"
+#include "neighbor.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -38,12 +38,18 @@ static constexpr double SMALL = 0.001;
 
 /* ---------------------------------------------------------------------- */
 
-AngleClass2P6::AngleClass2P6(LAMMPS *lmp) : Angle(lmp) {}
+AngleClass2P6::AngleClass2P6(LAMMPS *lmp) :
+    Angle(lmp), theta0(nullptr), k2(nullptr), k3(nullptr), k4(nullptr), k5(nullptr), k6(nullptr),
+    bb_k(nullptr), bb_r1(nullptr), bb_r2(nullptr), ba_k1(nullptr), ba_k2(nullptr), ba_r1(nullptr),
+    ba_r2(nullptr), setflag_a(nullptr), setflag_bb(nullptr), setflag_ba(nullptr)
+{}
 
 /* ---------------------------------------------------------------------- */
 
 AngleClass2P6::~AngleClass2P6()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(setflag_a);
@@ -453,13 +459,13 @@ double AngleClass2P6::single(int type, int i1, int i2, int i3)
   double delx1 = x[i1][0] - x[i2][0];
   double dely1 = x[i1][1] - x[i2][1];
   double delz1 = x[i1][2] - x[i2][2];
-  domain->minimum_image(delx1,dely1,delz1);
+  domain->minimum_image(FLERR, delx1,dely1,delz1);
   double r1 = sqrt(delx1*delx1 + dely1*dely1 + delz1*delz1);
 
   double delx2 = x[i3][0] - x[i2][0];
   double dely2 = x[i3][1] - x[i2][1];
   double delz2 = x[i3][2] - x[i2][2];
-  domain->minimum_image(delx2,dely2,delz2);
+  domain->minimum_image(FLERR, delx2,dely2,delz2);
   double r2 = sqrt(delx2*delx2 + dely2*dely2 + delz2*delz2);
 
   double c = delx1*delx2 + dely1*dely2 + delz1*delz2;

@@ -19,6 +19,7 @@
 #include "memory.h"
 
 #include <cstring>
+#include <mdi.h>
 
 using namespace LAMMPS_NS;
 

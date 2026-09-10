@@ -1,22 +1,14 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #include <gtest/gtest.h>
 
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+#else
 #include <Kokkos_Core.hpp>
+#endif
 
 // clang-format off
 template <class>
@@ -98,7 +90,7 @@ void test_bit_manip_countl_zero() {
   using Kokkos::Experimental::countl_zero_builtin;
   static_assert(noexcept(countl_zero_builtin(UInt())));
   static_assert(std::is_same_v<decltype(countl_zero_builtin(UInt())), int>);
-  constexpr auto max = Kokkos::Experimental::finite_max_v<UInt>;
+  constexpr auto max = Kokkos::finite_max_v<UInt>;
   TEST_BIT_MANIP_FUNCTION(countl_zero)
   ({
       UInt(0),
@@ -138,8 +130,8 @@ void test_bit_manip_countl_one() {
   using Kokkos::Experimental::countl_one_builtin;
   static_assert(noexcept(countl_one_builtin(UInt())));
   static_assert(std::is_same_v<decltype(countl_one_builtin(UInt())), int>);
-  constexpr auto dig = Kokkos::Experimental::digits_v<UInt>;
-  constexpr auto max = Kokkos::Experimental::finite_max_v<UInt>;
+  constexpr auto dig = Kokkos::digits_v<UInt>;
+  constexpr auto max = Kokkos::finite_max_v<UInt>;
   TEST_BIT_MANIP_FUNCTION(countl_one)
   ({
       // clang-format off
@@ -198,7 +190,7 @@ void test_bit_manip_countr_zero() {
   using Kokkos::Experimental::countr_zero_builtin;
   static_assert(noexcept(countr_zero_builtin(UInt())));
   static_assert(std::is_same_v<decltype(countr_zero_builtin(UInt())), int>);
-  constexpr auto max = Kokkos::Experimental::finite_max_v<UInt>;
+  constexpr auto max = Kokkos::finite_max_v<UInt>;
   TEST_BIT_MANIP_FUNCTION(countr_zero)
   ({
       UInt(0),
@@ -245,7 +237,7 @@ void test_bit_manip_countr_one() {
   using Kokkos::Experimental::countr_one_builtin;
   static_assert(noexcept(countr_one_builtin(UInt())));
   static_assert(std::is_same_v<decltype(countr_one_builtin(UInt())), int>);
-  constexpr auto max = Kokkos::Experimental::finite_max_v<UInt>;
+  constexpr auto max = Kokkos::finite_max_v<UInt>;
   TEST_BIT_MANIP_FUNCTION(countr_one)
   ({
       UInt(0),
@@ -291,7 +283,7 @@ void test_bit_manip_popcount() {
   using Kokkos::Experimental::popcount_builtin;
   static_assert(noexcept(popcount_builtin(UInt())));
   static_assert(std::is_same_v<decltype(popcount_builtin(UInt())), int>);
-  constexpr auto max = Kokkos::Experimental::finite_max_v<UInt>;
+  constexpr auto max = Kokkos::finite_max_v<UInt>;
   TEST_BIT_MANIP_FUNCTION(popcount)
   ({
       UInt(0),
@@ -331,7 +323,7 @@ void test_bit_manip_has_single_bit() {
   using Kokkos::Experimental::has_single_bit_builtin;
   static_assert(noexcept(has_single_bit_builtin(UInt())));
   static_assert(std::is_same_v<decltype(has_single_bit_builtin(UInt())), bool>);
-  constexpr auto max = Kokkos::Experimental::finite_max_v<UInt>;
+  constexpr auto max = Kokkos::finite_max_v<UInt>;
   constexpr UInt one = 1;
   TEST_BIT_MANIP_FUNCTION(has_single_bit)
   ({
@@ -380,7 +372,7 @@ void test_bit_manip_bit_floor() {
   using Kokkos::Experimental::bit_floor_builtin;
   static_assert(noexcept(bit_floor_builtin(UInt())));
   static_assert(std::is_same_v<decltype(bit_floor_builtin(UInt())), UInt>);
-  constexpr auto max = Kokkos::Experimental::finite_max_v<UInt>;
+  constexpr auto max = Kokkos::finite_max_v<UInt>;
   TEST_BIT_MANIP_FUNCTION(bit_floor)
   ({
       UInt(0),
@@ -470,8 +462,8 @@ template <class UInt>
 void test_bit_manip_bit_width() {
   using Kokkos::Experimental::bit_width_builtin;
   static_assert(noexcept(bit_width_builtin(UInt())));
-  static_assert(std::is_same_v<decltype(bit_width_builtin(UInt())), UInt>);
-  constexpr auto max = Kokkos::Experimental::finite_max_v<UInt>;
+  static_assert(std::is_same_v<decltype(bit_width_builtin(UInt())), int>);
+  constexpr auto max = Kokkos::finite_max_v<UInt>;
   TEST_BIT_MANIP_FUNCTION(bit_width)
   ({
       UInt(0),
@@ -572,8 +564,8 @@ void test_bit_manip_rotl() {
   using Kokkos::Experimental::rotl_builtin;
   static_assert(noexcept(rotl_builtin(UInt(), 0)));
   static_assert(std::is_same_v<decltype(rotl_builtin(UInt(), 0)), UInt>);
-  constexpr auto dig = Kokkos::Experimental::digits_v<UInt>;
-  constexpr auto max = Kokkos::Experimental::finite_max_v<UInt>;
+  constexpr auto dig = Kokkos::digits_v<UInt>;
+  constexpr auto max = Kokkos::finite_max_v<UInt>;
   TEST_BIT_ROTATE_FUNCTION(rotl)
   ({
       // clang-format off
@@ -634,8 +626,8 @@ void test_bit_manip_rotr() {
   using Kokkos::Experimental::rotr_builtin;
   static_assert(noexcept(rotr_builtin(UInt(), 0)));
   static_assert(std::is_same_v<decltype(rotr_builtin(UInt(), 0)), UInt>);
-  constexpr auto dig = Kokkos::Experimental::digits_v<UInt>;
-  constexpr auto max = Kokkos::Experimental::finite_max_v<UInt>;
+  constexpr auto dig = Kokkos::digits_v<UInt>;
+  constexpr auto max = Kokkos::finite_max_v<UInt>;
   TEST_BIT_ROTATE_FUNCTION(rotr)
   ({
       // clang-format off
@@ -754,15 +746,15 @@ TEST(TEST_CATEGORY, bit_manip_byeswap) {
     test_bit_manip_byteswap<unsigned char>();
     test_bit_manip_byteswap<short>();
     test_bit_manip_byteswap<unsigned short>();
+    test_bit_manip_byteswap<int>();
+    test_bit_manip_byteswap<unsigned int>();
+    test_bit_manip_byteswap<long>();
+    test_bit_manip_byteswap<unsigned long>();
+    test_bit_manip_byteswap<long long>();
+    test_bit_manip_byteswap<unsigned long long>();
 #if defined(KOKKOS_ENABLE_OPENACC) && defined(KOKKOS_COMPILER_NVHPC)
   }
 #endif
-  test_bit_manip_byteswap<int>();
-  test_bit_manip_byteswap<unsigned int>();
-  test_bit_manip_byteswap<long>();
-  test_bit_manip_byteswap<unsigned long>();
-  test_bit_manip_byteswap<long long>();
-  test_bit_manip_byteswap<unsigned long long>();
 }
 
 // CUDA doesn't provide memcmp
@@ -788,14 +780,7 @@ struct TestBitCastFunction {
     ASSERT_EQ(errors, 0) << "Failed check no error for bit_cast()";
   }
   template <typename To, typename From>
-#if defined(KOKKOS_COMPILER_GNU) && (900 <= KOKKOS_COMPILER_GNU) && \
-    (KOKKOS_COMPILER_GNU < 930)
-  // workaround compiler bug seen in GCC 9.0.1 and GCC 9.2.0
-  KOKKOS_FUNCTION bool check(const From& from) const
-#else
-  static KOKKOS_FUNCTION bool check(const From& from)
-#endif
-  {
+  static KOKKOS_FUNCTION bool check(const From& from) {
     using Kokkos::Experimental::bit_cast_builtin;
     return bit_cast_builtin<From>(bit_cast_builtin<To>(from)) == from;
   }

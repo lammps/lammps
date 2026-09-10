@@ -47,12 +47,6 @@ BondHarmonicIntel::BondHarmonicIntel(LAMMPS *lmp) : BondHarmonic(lmp)
 
 void BondHarmonicIntel::compute(int eflag, int vflag)
 {
-  #ifdef _LMP_INTEL_OFFLOAD
-  if (_use_base) {
-    BondHarmonic::compute(eflag, vflag);
-    return;
-  }
-  #endif
 
   if (fix->precision() == FixIntel::PREC_MODE_MIXED)
     compute<float,double>(eflag, vflag, fix->get_mixed_buffers(),
@@ -104,7 +98,7 @@ void BondHarmonicIntel::eval(const int vflag,
   const int inum = neighbor->nbondlist;
   if (inum == 0) return;
 
-  ATOM_T * _noalias const x = buffers->get_x(0);
+  ATOM_T * _noalias const x = buffers->get_x();
   const int nlocal = atom->nlocal;
   const int nall = nlocal + atom->nghost;
 
@@ -115,7 +109,7 @@ void BondHarmonicIntel::eval(const int vflag,
   int tc;
   FORCE_T * _noalias f_start;
   acc_t * _noalias ev_global;
-  IP_PRE_get_buffers(0, buffers, fix, tc, f_start, ev_global);
+  IP_PRE_get_buffers(buffers, fix, tc, f_start, ev_global);
   const int nthreads = tc;
 
   acc_t oebond, ov0, ov1, ov2, ov3, ov4, ov5;
@@ -244,13 +238,6 @@ void BondHarmonicIntel::init_style()
   fix = static_cast<FixIntel *>(modify->get_fix_by_id("package_intel"));
   if (!fix) error->all(FLERR, "The 'package intel' command is required for /intel styles");
 
-  #ifdef _LMP_INTEL_OFFLOAD
-  _use_base = 0;
-  if (fix->offload_balance() != 0.0) {
-    _use_base = 1;
-    return;
-  }
-  #endif
 
   fix->bond_init_check();
 

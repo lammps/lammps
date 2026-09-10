@@ -70,6 +70,8 @@ PairMultiLucyRXKokkos<DeviceType>::PairMultiLucyRXKokkos(LAMMPS *lmp) : PairMult
   d_table = new TableDevice();
 
   k_error_flag = DAT::tdual_int_scalar("pair:error_flag");
+
+  rx_fixKK = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -88,6 +90,19 @@ PairMultiLucyRXKokkos<DeviceType>::~PairMultiLucyRXKokkos()
   delete d_table;
   tabindex = nullptr;
 }
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void PairMultiLucyRXKokkos<DeviceType>::coeff(int narg, char **arg) {
+  PairMultiLucyRX::coeff(narg, arg);
+
+  // rx_fix is initialized in PairMultiLucyRX::coeff().
+  rx_fixKK = dynamic_cast<FixRxKokkos<DeviceType> *>(rx_fix);
+  if (!rx_fixKK)
+    error->all(FLERR, Error::NOLASTLINE, "Fix rx not defined or not compatible with pair style");
+}
+
 
 /* ---------------------------------------------------------------------- */
 
@@ -157,6 +172,12 @@ void PairMultiLucyRXKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in
   uCGnew = atomKK->k_uCGnew.view<DeviceType>();
   dvector = atomKK->k_dvector.view<DeviceType>();
 
+  species_ind_to_atom_prop_ind =
+    rx_fixKK->get_k_species_ind_to_atom_prop_ind().template view<DeviceType>();
+
+  species_ind_to_atom_prop_ind_old =
+    rx_fixKK->get_k_species_ind_to_atom_prop_ind_old().template view<DeviceType>();
+
   atomKK->sync(execution_space,X_MASK | F_MASK | TYPE_MASK | ENERGY_MASK | VIRIAL_MASK | DPDRHO_MASK | UCG_MASK | UCGNEW_MASK | DVECTOR_MASK);
   k_cutsq.template sync<DeviceType>();
 
@@ -167,10 +188,10 @@ void PairMultiLucyRXKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in
   {
     const int ntotal = nlocal + nghost;
     if (ntotal > (int)d_mixWtSite1.extent(0)) {
-      d_mixWtSite1old = typename AT::t_float_1d("PairMultiLucyRX::mixWtSite1old",ntotal);
-      d_mixWtSite2old = typename AT::t_float_1d("PairMultiLucyRX::mixWtSite2old",ntotal);
-      d_mixWtSite1 = typename AT::t_float_1d("PairMultiLucyRX::mixWtSite1",ntotal);
-      d_mixWtSite2 = typename AT::t_float_1d("PairMultiLucyRX::mixWtSite2",ntotal);
+      d_mixWtSite1old = typename AT::t_kkfloat_1d("PairMultiLucyRX::mixWtSite1old",ntotal);
+      d_mixWtSite2old = typename AT::t_kkfloat_1d("PairMultiLucyRX::mixWtSite2old",ntotal);
+      d_mixWtSite1 = typename AT::t_kkfloat_1d("PairMultiLucyRX::mixWtSite1",ntotal);
+      d_mixWtSite2 = typename AT::t_kkfloat_1d("PairMultiLucyRX::mixWtSite2",ntotal);
     }
 
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairMultiLucyRXgetMixingWeights>(0,ntotal),*this);
@@ -218,38 +239,39 @@ void PairMultiLucyRXKokkos<DeviceType>::compute_style(int eflag_in, int vflag_in
   else atomKK->modified(execution_space,F_MASK | UCG_MASK | UCGNEW_MASK);
 
   k_error_flag.template modify<DeviceType>();
-  k_error_flag.template sync<LMPHostType>();
-  if (k_error_flag.h_view() == 1)
+  k_error_flag.sync_host();
+  if (k_error_flag.view_host()() == 1)
     error->one(FLERR,"Density < table inner cutoff");
-  else if (k_error_flag.h_view() == 2)
+  else if (k_error_flag.view_host()() == 2)
     error->one(FLERR,"Density > table outer cutoff");
-  else if (k_error_flag.h_view() == 3)
+  else if (k_error_flag.view_host()() == 3)
     error->one(FLERR,"Only LOOKUP and LINEAR table styles have been implemented for pair multi/lucy/rx");
 
-  if (eflag_global) eng_vdwl += ev.evdwl;
+  if (eflag_global) eng_vdwl += static_cast<double>(ev.evdwl);
   if (vflag_global) {
-    virial[0] += ev.v[0];
-    virial[1] += ev.v[1];
-    virial[2] += ev.v[2];
-    virial[3] += ev.v[3];
-    virial[4] += ev.v[4];
-    virial[5] += ev.v[5];
+    virial[0] += static_cast<double>(ev.v[0]);
+    virial[1] += static_cast<double>(ev.v[1]);
+    virial[2] += static_cast<double>(ev.v[2]);
+    virial[3] += static_cast<double>(ev.v[3]);
+    virial[4] += static_cast<double>(ev.v[4]);
+    virial[5] += static_cast<double>(ev.v[5]);
   }
 
   if (vflag_fdotr) pair_virial_fdotr_compute(this);
 
   if (eflag_atom) {
     k_eatom.template modify<DeviceType>();
-    k_eatom.template sync<LMPHostType>();
+    k_eatom.sync_host();
   }
 
   if (vflag_atom) {
     k_vatom.template modify<DeviceType>();
-    k_vatom.template sync<LMPHostType>();
+    k_vatom.sync_host();
   }
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXgetMixingWeights, const int &i) const {
   getMixingWeights(i, d_mixWtSite1old[i], d_mixWtSite2old[i], d_mixWtSite1[i], d_mixWtSite2[i]);
@@ -257,22 +279,23 @@ void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXgetMixingWe
 
 template<class DeviceType>
 template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG, int TABSTYLE>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXCompute<NEIGHFLAG,NEWTON_PAIR,EVFLAG,TABSTYLE>, const int &ii, EV_FLOAT& ev) const {
 
   // The f array is atomic for Half/Thread neighbor style
-  Kokkos::View<F_FLOAT*[3], typename DAT::t_f_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_f = f;
+  Kokkos::View<KK_ACC_FLOAT*[3], typename DAT::t_kkacc_1d_3::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_f = f;
 
   int i,jj,jnum,itype,jtype,itable;
-  double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,evdwlOld,fpair;
-  double rsq;
+  KK_FLOAT xtmp,ytmp,ztmp,delx,dely,delz,evdwl,evdwlOld,fpair;
+  KK_FLOAT rsq;
 
-  double mixWtSite1old_i,mixWtSite1old_j;
-  double mixWtSite2old_i,mixWtSite2old_j;
-  double mixWtSite1_i;
+  KK_FLOAT mixWtSite1old_i,mixWtSite1old_j;
+  KK_FLOAT mixWtSite2old_i,mixWtSite2old_j;
+  KK_FLOAT mixWtSite1_i;
 
-  double A_i, A_j;
-  double fraction_i,fraction_j;
+  KK_FLOAT A_i, A_j;
+  KK_FLOAT fraction_i,fraction_j;
   int jtable;
 
   int tlm1 = tablength - 1;
@@ -284,9 +307,9 @@ void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXCompute<NEI
   itype = type[i];
   jnum = d_numneigh[i];
 
-  double fx_i = 0.0;
-  double fy_i = 0.0;
-  double fz_i = 0.0;
+  KK_FLOAT fx_i = 0.0;
+  KK_FLOAT fy_i = 0.0;
+  KK_FLOAT fz_i = 0.0;
 
   mixWtSite1old_i = d_mixWtSite1old[i];
   mixWtSite2old_i = d_mixWtSite2old[i];
@@ -312,33 +335,33 @@ void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXCompute<NEI
       const int tidx = d_table_const.tabindex(itype,jtype);
 
       //if (rho[i]*rho[i] < tb->innersq || rho[j]*rho[j] < tb->innersq) {
-      if (rho[i]*rho[i] < d_table_const.innersq(tidx) || rho[j]*rho[j] < d_table_const.innersq(tidx)) {
+      if (rho[i]*rho[i] < static_cast<KK_FLOAT>(d_table_const.innersq(tidx)) || rho[j]*rho[j] < static_cast<KK_FLOAT>(d_table_const.innersq(tidx))) {
         k_error_flag.template view<DeviceType>()() = 1;
       }
 
       if (TABSTYLE == LOOKUP) {
         //itable = static_cast<int> (((rho[i]*rho[i]) - tb->innersq) * tb->invdelta);
-        itable = static_cast<int> (((rho[i]*rho[i]) - d_table_const.innersq(tidx)) * d_table_const.invdelta(tidx));
+        itable = static_cast<int> (((rho[i]*rho[i]) - static_cast<KK_FLOAT>(d_table_const.innersq(tidx))) * static_cast<KK_FLOAT>(d_table_const.invdelta(tidx)));
         //jtable = static_cast<int> (((rho[j]*rho[j]) - tb->innersq) * tb->invdelta);
-        jtable = static_cast<int> (((rho[j]*rho[j]) - d_table_const.innersq(tidx)) * d_table_const.invdelta(tidx));
+        jtable = static_cast<int> (((rho[j]*rho[j]) - static_cast<KK_FLOAT>(d_table_const.innersq(tidx))) * static_cast<KK_FLOAT>(d_table_const.invdelta(tidx)));
         if (itable >= tlm1 || jtable >= tlm1) {
           k_error_flag.template view<DeviceType>()() = 2;
         }
         //A_i = tb->f[itable];
-        A_i = d_table_const.f(tidx,itable);
+        A_i = static_cast<KK_FLOAT>(d_table_const.f(tidx,itable));
         //A_j = tb->f[jtable];
-        A_j = d_table_const.f(tidx,jtable);
+        A_j = static_cast<KK_FLOAT>(d_table_const.f(tidx,jtable));
 
-        const double rfactor = 1.0-sqrt(rsq/d_cutsq(itype,jtype));
-        fpair = 0.5*(A_i + A_j)*(4.0-3.0*rfactor)*rfactor*rfactor*rfactor;
-        fpair /= sqrt(rsq);
+        const KK_FLOAT rfactor = static_cast<KK_FLOAT>(1.0)-Kokkos::sqrt(rsq/d_cutsq(itype,jtype));
+        fpair = static_cast<KK_FLOAT>(0.5)*(A_i + A_j)*(static_cast<KK_FLOAT>(4.0)-static_cast<KK_FLOAT>(3.0)*rfactor)*rfactor*rfactor*rfactor;
+        fpair /= Kokkos::sqrt(rsq);
 
       } else if (TABSTYLE == LINEAR) {
 
         //itable = static_cast<int> ((rho[i]*rho[i] - tb->innersq) * tb->invdelta);
-        itable = static_cast<int> ((rho[i]*rho[i] - d_table_const.innersq(tidx)) * d_table_const.invdelta(tidx));
+        itable = static_cast<int> ((rho[i]*rho[i] - static_cast<KK_FLOAT>(d_table_const.innersq(tidx))) * static_cast<KK_FLOAT>(d_table_const.invdelta(tidx)));
         //jtable = static_cast<int> (((rho[j]*rho[j]) - tb->innersq) * tb->invdelta);
-        jtable = static_cast<int> ((rho[j]*rho[j] - d_table_const.innersq(tidx)) * d_table_const.invdelta(tidx));
+        jtable = static_cast<int> ((rho[j]*rho[j] - static_cast<KK_FLOAT>(d_table_const.innersq(tidx))) * static_cast<KK_FLOAT>(d_table_const.invdelta(tidx)));
         if (itable >= tlm1 || jtable >= tlm1) {
           k_error_flag.template view<DeviceType>()() = 2;
         }
@@ -348,64 +371,64 @@ void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXCompute<NEI
         if (jtable>=tlm1)jtable=tlm1;
 
         //fraction_i = (((rho[i]*rho[i]) - tb->rsq[itable]) * tb->invdelta);
-        fraction_i = (((rho[i]*rho[i]) - d_table_const.rsq(tidx,itable)) * d_table_const.invdelta(tidx));
+        fraction_i = (((rho[i]*rho[i]) - static_cast<KK_FLOAT>(d_table_const.rsq(tidx,itable))) * static_cast<KK_FLOAT>(d_table_const.invdelta(tidx)));
         //fraction_j = (((rho[j]*rho[j]) - tb->rsq[jtable]) * tb->invdelta);
-        fraction_j = (((rho[j]*rho[j]) - d_table_const.rsq(tidx,jtable)) * d_table_const.invdelta(tidx));
+        fraction_j = (((rho[j]*rho[j]) - static_cast<KK_FLOAT>(d_table_const.rsq(tidx,jtable))) * static_cast<KK_FLOAT>(d_table_const.invdelta(tidx)));
         if (itable==0) fraction_i=0.0;
         if (itable==tlm1) fraction_i=0.0;
         if (jtable==0) fraction_j=0.0;
         if (jtable==tlm1) fraction_j=0.0;
 
         //A_i = tb->f[itable] + fraction_i*tb->df[itable];
-        A_i = d_table_const.f(tidx,itable) + fraction_i*d_table_const.df(tidx,itable);
+        A_i = static_cast<KK_FLOAT>(d_table_const.f(tidx,itable)) + fraction_i*static_cast<KK_FLOAT>(d_table_const.df(tidx,itable));
         //A_j = tb->f[jtable] + fraction_j*tb->df[jtable];
-        A_j = d_table_const.f(tidx,jtable) + fraction_j*d_table_const.df(tidx,jtable);
+        A_j = static_cast<KK_FLOAT>(d_table_const.f(tidx,jtable)) + fraction_j*static_cast<KK_FLOAT>(d_table_const.df(tidx,jtable));
 
-        const double rfactor = 1.0-sqrt(rsq/d_cutsq(itype,jtype));
-        fpair = 0.5*(A_i + A_j)*(4.0-3.0*rfactor)*rfactor*rfactor*rfactor;
-        fpair /= sqrt(rsq);
+        const KK_FLOAT rfactor = static_cast<KK_FLOAT>(1.0)-Kokkos::sqrt(rsq/d_cutsq(itype,jtype));
+        fpair = static_cast<KK_FLOAT>(0.5)*(A_i + A_j)*(static_cast<KK_FLOAT>(4.0)-static_cast<KK_FLOAT>(3.0)*rfactor)*rfactor*rfactor*rfactor;
+        fpair /= Kokkos::sqrt(rsq);
 
       } else k_error_flag.template view<DeviceType>()() = 3;
 
-      if (isite1 == isite2) fpair = sqrt(mixWtSite1old_i*mixWtSite2old_j)*fpair;
-      else fpair = (sqrt(mixWtSite1old_i*mixWtSite2old_j) + sqrt(mixWtSite2old_i*mixWtSite1old_j))*fpair;
+      if (isite1 == isite2) fpair = Kokkos::sqrt(mixWtSite1old_i*mixWtSite2old_j)*fpair;
+      else fpair = (Kokkos::sqrt(mixWtSite1old_i*mixWtSite2old_j) + Kokkos::sqrt(mixWtSite2old_i*mixWtSite1old_j))*fpair;
 
       fx_i += delx*fpair;
       fy_i += dely*fpair;
       fz_i += delz*fpair;
       if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal)) {
-        a_f(j,0) -= delx*fpair;
-        a_f(j,1) -= dely*fpair;
-        a_f(j,2) -= delz*fpair;
+        a_f(j,0) -= static_cast<KK_ACC_FLOAT>(delx*fpair);
+        a_f(j,1) -= static_cast<KK_ACC_FLOAT>(dely*fpair);
+        a_f(j,2) -= static_cast<KK_ACC_FLOAT>(delz*fpair);
       }
       //if (evflag) ev_tally(i,j,nlocal,newton_pair,0.0,0.0,fpair,delx,dely,delz);
       if (EVFLAG) this->template ev_tally<NEIGHFLAG,NEWTON_PAIR>(ev,i,j,0.0,fpair,delx,dely,delz);
     }
   }
 
-  a_f(i,0) += fx_i;
-  a_f(i,1) += fy_i;
-  a_f(i,2) += fz_i;
+  a_f(i,0) += static_cast<KK_ACC_FLOAT>(fx_i);
+  a_f(i,1) += static_cast<KK_ACC_FLOAT>(fy_i);
+  a_f(i,2) += static_cast<KK_ACC_FLOAT>(fz_i);
 
   //tb = &tables[tabindex[itype][itype]];
   const int tidx = d_table_const.tabindex(itype,itype);
   //itable = static_cast<int> (((rho[i]*rho[i]) - tb->innersq) * tb->invdelta);
-  itable = static_cast<int> (((rho[i]*rho[i]) - d_table_const.innersq(tidx)) * d_table_const.invdelta(tidx));
+  itable = static_cast<int> (((rho[i]*rho[i]) - static_cast<KK_FLOAT>(d_table_const.innersq(tidx))) * static_cast<KK_FLOAT>(d_table_const.invdelta(tidx)));
   //if (TABSTYLE == LOOKUP) evdwl = tb->e[itable];
   if (TABSTYLE == LOOKUP) {
-    evdwl = d_table_const.e(tidx,itable);
+    evdwl = static_cast<KK_FLOAT>(d_table_const.e(tidx,itable));
   } else if (TABSTYLE == LINEAR) {
     if (itable >= tlm1) {
       k_error_flag.template view<DeviceType>()() = 2;
     }
     if (itable==0) fraction_i=0.0;
     //else fraction_i = (((rho[i]*rho[i]) - tb->rsq[itable]) * tb->invdelta);
-    else fraction_i = (((rho[i]*rho[i]) - d_table_const.rsq(tidx,itable)) * d_table_const.invdelta(tidx));
+    else fraction_i = (((rho[i]*rho[i]) - static_cast<KK_FLOAT>(d_table_const.rsq(tidx,itable))) * static_cast<KK_FLOAT>(d_table_const.invdelta(tidx)));
     //evdwl = tb->e[itable] + fraction_i*tb->de[itable];
-    evdwl = d_table_const.e(tidx,itable) + fraction_i*d_table_const.de(tidx,itable);
+    evdwl = static_cast<KK_FLOAT>(d_table_const.e(tidx,itable)) + fraction_i*static_cast<KK_FLOAT>(d_table_const.de(tidx,itable));
   } else k_error_flag.template view<DeviceType>()() = 3;
 
-  evdwl *=(MY_PI*d_cutsq(itype,itype)*d_cutsq(itype,itype))/84.0;
+  evdwl *=(static_cast<KK_FLOAT>(MY_PI)*d_cutsq(itype,itype)*d_cutsq(itype,itype))/static_cast<KK_FLOAT>(84.0);
   evdwlOld = mixWtSite1old_i*evdwl;
   evdwl = mixWtSite1_i*evdwl;
 
@@ -416,11 +439,12 @@ void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXCompute<NEI
 
   //if (evflag) ev_tally(0,0,nlocal,newton_pair,evdwl,0.0,0.0,0.0,0.0,0.0);
   if (EVFLAG)
-    ev.evdwl += ((/*FIXME??? (NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && */ NEWTON_PAIR)?1.0:0.5)*evdwl;
+    ev.evdwl += ((/*FIXME??? (NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && */ NEWTON_PAIR)?static_cast<KK_ACC_FLOAT>(1.0):static_cast<KK_ACC_FLOAT>(0.5))*static_cast<KK_ACC_FLOAT>(evdwl);
 }
 
 template<class DeviceType>
 template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG, int TABSTYLE>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXCompute<NEIGHFLAG,NEWTON_PAIR,EVFLAG,TABSTYLE>, const int &ii) const {
   EV_FLOAT ev;
@@ -435,7 +459,7 @@ void PairMultiLucyRXKokkos<DeviceType>::computeLocalDensity()
   x = atomKK->k_x.view<DeviceType>();
   type = atomKK->k_type.view<DeviceType>();
   rho = atomKK->k_rho.view<DeviceType>();
-  h_rho = atomKK->k_rho.h_view;
+  h_rho = atomKK->k_rho.view_host();
   nlocal = atom->nlocal;
 
   atomKK->sync(execution_space,X_MASK | TYPE_MASK | DPDRHO_MASK);
@@ -509,6 +533,7 @@ void PairMultiLucyRXKokkos<DeviceType>::computeLocalDensity()
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXZero, const int &i) const {
   rho[i] = 0.0;
@@ -516,20 +541,21 @@ void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXZero, const
 
 template<class DeviceType>
 template<int NEIGHFLAG, int NEWTON_PAIR, bool ONE_TYPE>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXComputeLocalDensity<NEIGHFLAG,NEWTON_PAIR,ONE_TYPE>, const int &ii) const {
 
 
   // The rho array is atomic for Half/Thread neighbor style
-  Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_rho = rho;
+  Kokkos::View<KK_FLOAT*, typename DAT::t_kkfloat_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_rho = rho;
 
   const int i = d_ilist[ii];
 
-  const double xtmp = x(i,0);
-  const double ytmp = x(i,1);
-  const double ztmp = x(i,2);
+  const KK_FLOAT xtmp = x(i,0);
+  const KK_FLOAT ytmp = x(i,1);
+  const KK_FLOAT ztmp = x(i,2);
 
-  double rho_i_contrib = 0.0;
+  KK_FLOAT rho_i_contrib = 0.0;
 
   const int itype = type[i];
   const int jnum = d_numneigh[i];
@@ -538,27 +564,30 @@ void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXComputeLoca
     const int j = (d_neighbors(i,jj) & NEIGHMASK);
     const int jtype = type[j];
 
-    const double delx = xtmp - x(j,0);
-    const double dely = ytmp - x(j,1);
-    const double delz = ztmp - x(j,2);
-    const double rsq = delx*delx + dely*dely + delz*delz;
+    const KK_FLOAT delx = xtmp - x(j,0);
+    const KK_FLOAT dely = ytmp - x(j,1);
+    const KK_FLOAT delz = ztmp - x(j,2);
+    const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
 
     if (ONE_TYPE) {
-      if (rsq < cutsq_type11) {
-        const double rcut = rcut_type11;
-        const double r_over_rcut = sqrt(rsq) / rcut;
-        const double tmpFactor = 1.0 - r_over_rcut;
-        const double tmpFactor4 = tmpFactor*tmpFactor*tmpFactor*tmpFactor;
-        const double factor = factor_type11*(1.0 + 1.5*r_over_rcut)*tmpFactor4;
+      const KK_FLOAT cutsq_type11_kk = static_cast<KK_FLOAT>(cutsq_type11);
+      const KK_FLOAT rcut_type11_kk = static_cast<KK_FLOAT>(rcut_type11);
+      const KK_FLOAT factor_type11_kk = static_cast<KK_FLOAT>(factor_type11);
+      if (rsq < cutsq_type11_kk) {
+        const KK_FLOAT rcut = rcut_type11_kk;
+        const KK_FLOAT r_over_rcut = Kokkos::sqrt(rsq) / rcut;
+        const KK_FLOAT tmpFactor = static_cast<KK_FLOAT>(1.0) - r_over_rcut;
+        const KK_FLOAT tmpFactor4 = tmpFactor*tmpFactor*tmpFactor*tmpFactor;
+        const KK_FLOAT factor = factor_type11_kk*(static_cast<KK_FLOAT>(1.0) + static_cast<KK_FLOAT>(1.5)*r_over_rcut)*tmpFactor4;
         rho_i_contrib += factor;
         if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal))
           a_rho[j] += factor;
       }
     } else if (rsq < d_cutsq(itype,jtype)) {
-      const double rcut = sqrt(d_cutsq(itype,jtype));
-      const double tmpFactor = 1.0-sqrt(rsq)/rcut;
-      const double tmpFactor4 = tmpFactor*tmpFactor*tmpFactor*tmpFactor;
-      const double factor = (84.0/(5.0*MY_PI*rcut*rcut*rcut))*(1.0+3.0*sqrt(rsq)/(2.0*rcut))*tmpFactor4;
+      const KK_FLOAT rcut = Kokkos::sqrt(d_cutsq(itype,jtype));
+      const KK_FLOAT tmpFactor = static_cast<KK_FLOAT>(1.0)-Kokkos::sqrt(rsq)/rcut;
+      const KK_FLOAT tmpFactor4 = tmpFactor*tmpFactor*tmpFactor*tmpFactor;
+      const KK_FLOAT factor = (static_cast<KK_FLOAT>(84.0)/(static_cast<KK_FLOAT>(5.0)*static_cast<KK_FLOAT>(MY_PI)*rcut*rcut*rcut))*(static_cast<KK_FLOAT>(1.0)+static_cast<KK_FLOAT>(3.0)*Kokkos::sqrt(rsq)/(static_cast<KK_FLOAT>(2.0)*rcut))*tmpFactor4;
       rho_i_contrib += factor;
       if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal))
         a_rho[j] += factor;
@@ -571,34 +600,46 @@ void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXComputeLoca
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
-void PairMultiLucyRXKokkos<DeviceType>::getMixingWeights(int id, double &mixWtSite1old, double &mixWtSite2old, double &mixWtSite1, double &mixWtSite2) const
+void PairMultiLucyRXKokkos<DeviceType>::getMixingWeights(int id, KK_FLOAT &mixWtSite1old, KK_FLOAT &mixWtSite2old, KK_FLOAT &mixWtSite1, KK_FLOAT &mixWtSite2) const
 {
-  double fractionOFAold, fractionOFA;
-  double fractionOld1, fraction1;
-  double fractionOld2, fraction2;
-  double nMoleculesOFAold, nMoleculesOFA;
-  double nMoleculesOld1, nMolecules1;
-  double nMoleculesOld2, nMolecules2;
-  double nTotal, nTotalOld;
+  KK_FLOAT fractionOFAold, fractionOFA;
+  KK_FLOAT fractionOld1, fraction1;
+  KK_FLOAT fractionOld2, fraction2;
+  KK_FLOAT nMoleculesOFAold, nMoleculesOFA;
+  KK_FLOAT nMoleculesOld1, nMolecules1;
+  KK_FLOAT nMoleculesOld2, nMolecules2;
+  KK_FLOAT nTotal, nTotalOld;
 
 
   nTotal = 0.0;
   nTotalOld = 0.0;
   for (int ispecies = 0; ispecies < nspecies; ispecies++) {
-    nTotal += dvector(ispecies,id);
-    nTotalOld += dvector(ispecies+nspecies,id);
+     const auto atom_ind = species_ind_to_atom_prop_ind(ispecies);
+     const auto atom_ind_old = species_ind_to_atom_prop_ind_old(ispecies);
+
+     nTotal += dvector(atom_ind,id);
+     nTotalOld += dvector(atom_ind_old,id);
   }
+  if (nTotal < static_cast<KK_FLOAT>(MY_EPSILON) || nTotalOld < static_cast<KK_FLOAT>(MY_EPSILON))
+    Kokkos::abort("The number of molecules in CG particle is less than 10*DBL_EPSILON.");
 
   if (isOneFluid(isite1) == false) {
-    nMoleculesOld1 = dvector(isite1+nspecies,id);
-    nMolecules1 = dvector(isite1,id);
+    const auto atom_site1_ind = species_ind_to_atom_prop_ind(isite1);
+    const auto atom_site1_ind_old = species_ind_to_atom_prop_ind_old(isite1);
+
+    nMoleculesOld1 = dvector(atom_site1_ind_old,id);
+    nMolecules1 = dvector(atom_site1_ind,id);
     fractionOld1 = nMoleculesOld1/nTotalOld;
     fraction1 = nMolecules1/nTotal;
   }
   if (isOneFluid(isite2) == false) {
-    nMoleculesOld2 = dvector(isite2+nspecies,id);
-    nMolecules2 = dvector(isite2,id);
+    const auto atom_site2_ind = species_ind_to_atom_prop_ind(isite2);
+    const auto atom_site2_ind_old = species_ind_to_atom_prop_ind_old(isite2);
+
+    nMoleculesOld2 = dvector(atom_site2_ind_old,id);
+    nMolecules2 = dvector(atom_site2_ind,id);
     fractionOld2 = nMoleculesOld2/nTotalOld;
     fraction2 = nMolecules2/nTotal;
   }
@@ -611,20 +652,24 @@ void PairMultiLucyRXKokkos<DeviceType>::getMixingWeights(int id, double &mixWtSi
 
     for (int ispecies = 0; ispecies < nspecies; ispecies++) {
       if (isite1 == ispecies || isite2 == ispecies) continue;
-      nMoleculesOFAold += dvector(ispecies+nspecies,id);
-      nMoleculesOFA += dvector(ispecies,id);
-      fractionOFAold += dvector(ispecies+nspecies,id) / nTotalOld;
-      fractionOFA += dvector(ispecies,id) / nTotal;
+
+      const auto atom_ind = species_ind_to_atom_prop_ind(ispecies);
+      const auto atom_ind_old = species_ind_to_atom_prop_ind_old(ispecies);
+
+      nMoleculesOFAold += dvector(atom_ind_old,id);
+      nMoleculesOFA += dvector(atom_ind,id);
+      fractionOFAold += dvector(atom_ind_old,id) / nTotalOld;
+      fractionOFA += dvector(atom_ind,id) / nTotal;
     }
     if (isOneFluid(isite1)) {
-      nMoleculesOld1 = 1.0-(nTotalOld-nMoleculesOFAold);
-      nMolecules1 = 1.0-(nTotal-nMoleculesOFA);
+      nMoleculesOld1 = static_cast<KK_FLOAT>(1.0)-(nTotalOld-nMoleculesOFAold);
+      nMolecules1 = static_cast<KK_FLOAT>(1.0)-(nTotal-nMoleculesOFA);
       fractionOld1 = fractionOFAold;
       fraction1 = fractionOFA;
     }
     if (isOneFluid(isite2)) {
-      nMoleculesOld2 = 1.0-(nTotalOld-nMoleculesOFAold);
-      nMolecules2 = 1.0-(nTotal-nMoleculesOFA);
+      nMoleculesOld2 = static_cast<KK_FLOAT>(1.0)-(nTotalOld-nMoleculesOFAold);
+      nMolecules2 = static_cast<KK_FLOAT>(1.0)-(nTotal-nMoleculesOFA);
       fractionOld2 = fractionOFAold;
       fraction2 = fractionOFA;
     }
@@ -646,7 +691,7 @@ void PairMultiLucyRXKokkos<DeviceType>::getMixingWeights(int id, double &mixWtSi
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-int PairMultiLucyRXKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_int_1d k_sendlist, DAT::tdual_xfloat_1d &buf, int /*pbc_flag*/, int * /*pbc*/)
+int PairMultiLucyRXKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_int_1d k_sendlist, DAT::tdual_double_1d &buf, int /*pbc_flag*/, int * /*pbc*/)
 {
   atomKK->sync(execution_space,DPDRHO_MASK);
 
@@ -657,16 +702,17 @@ int PairMultiLucyRXKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdua
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXPackForwardComm, const int &i) const {
   int j = d_sendlist(i);
-  v_buf[i] = rho[j];
+  v_buf[i] = static_cast<double>(rho[j]);
 }
 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void PairMultiLucyRXKokkos<DeviceType>::unpack_forward_comm_kokkos(int n, int first_in, DAT::tdual_xfloat_1d &buf)
+void PairMultiLucyRXKokkos<DeviceType>::unpack_forward_comm_kokkos(int n, int first_in, DAT::tdual_double_1d &buf)
 {
   first = first_in;
   v_buf = buf.view<DeviceType>();
@@ -676,9 +722,10 @@ void PairMultiLucyRXKokkos<DeviceType>::unpack_forward_comm_kokkos(int n, int fi
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairMultiLucyRXKokkos<DeviceType>::operator()(TagPairMultiLucyRXUnpackForwardComm, const int &i) const {
-  rho[i + first] = v_buf[i];
+  rho[i + first] = static_cast<KK_FLOAT>(v_buf[i]);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -752,91 +799,92 @@ void PairMultiLucyRXKokkos<DeviceType>::unpack_reverse_comm(int n, int *list, do
 
 template<class DeviceType>
 template<int NEIGHFLAG, int NEWTON_PAIR>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void PairMultiLucyRXKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const int &j,
-      const F_FLOAT &epair, const F_FLOAT &fpair, const F_FLOAT &delx,
-                const F_FLOAT &dely, const F_FLOAT &delz) const
+      const KK_FLOAT &epair, const KK_FLOAT &fpair, const KK_FLOAT &delx,
+                const KK_FLOAT &dely, const KK_FLOAT &delz) const
 {
   const int EFLAG = eflag;
   const int VFLAG = vflag_either;
 
   // The eatom and vatom arrays are atomic for Half/Thread neighbor style
-  Kokkos::View<E_FLOAT*, typename DAT::t_efloat_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > v_eatom = k_eatom.view<DeviceType>();
-  Kokkos::View<F_FLOAT*[6], typename DAT::t_virial_array::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > v_vatom = k_vatom.view<DeviceType>();
+  Kokkos::View<KK_ACC_FLOAT*, typename DAT::t_kkacc_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > v_eatom = d_eatom;
+  Kokkos::View<KK_ACC_FLOAT*[6], typename DAT::t_kkacc_1d_6::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > v_vatom = d_vatom;
 
   if (EFLAG) {
     if (eflag_atom) {
-      const E_FLOAT epairhalf = 0.5 * epair;
+      const KK_FLOAT epairhalf = static_cast<KK_FLOAT>(0.5) * epair;
       if (NEIGHFLAG!=FULL) {
-        if (NEWTON_PAIR || i < nlocal) v_eatom[i] += epairhalf;
-        if (NEWTON_PAIR || j < nlocal) v_eatom[j] += epairhalf;
+        if (NEWTON_PAIR || i < nlocal) v_eatom[i] += static_cast<KK_ACC_FLOAT>(epairhalf);
+        if (NEWTON_PAIR || j < nlocal) v_eatom[j] += static_cast<KK_ACC_FLOAT>(epairhalf);
       } else {
-        v_eatom[i] += epairhalf;
+        v_eatom[i] += static_cast<KK_ACC_FLOAT>(epairhalf);
       }
     }
   }
 
   if (VFLAG) {
-    const E_FLOAT v0 = delx*delx*fpair;
-    const E_FLOAT v1 = dely*dely*fpair;
-    const E_FLOAT v2 = delz*delz*fpair;
-    const E_FLOAT v3 = delx*dely*fpair;
-    const E_FLOAT v4 = delx*delz*fpair;
-    const E_FLOAT v5 = dely*delz*fpair;
+    const KK_FLOAT v0 = delx*delx*fpair;
+    const KK_FLOAT v1 = dely*dely*fpair;
+    const KK_FLOAT v2 = delz*delz*fpair;
+    const KK_FLOAT v3 = delx*dely*fpair;
+    const KK_FLOAT v4 = delx*delz*fpair;
+    const KK_FLOAT v5 = dely*delz*fpair;
 
     if (vflag_global) {
       if (NEIGHFLAG!=FULL) {
         if (NEWTON_PAIR || i < nlocal) {
-          ev.v[0] += 0.5*v0;
-          ev.v[1] += 0.5*v1;
-          ev.v[2] += 0.5*v2;
-          ev.v[3] += 0.5*v3;
-          ev.v[4] += 0.5*v4;
-          ev.v[5] += 0.5*v5;
+          ev.v[0] += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v0);
+          ev.v[1] += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v1);
+          ev.v[2] += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v2);
+          ev.v[3] += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v3);
+          ev.v[4] += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v4);
+          ev.v[5] += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v5);
         }
         if (NEWTON_PAIR || j < nlocal) {
-        ev.v[0] += 0.5*v0;
-        ev.v[1] += 0.5*v1;
-        ev.v[2] += 0.5*v2;
-        ev.v[3] += 0.5*v3;
-        ev.v[4] += 0.5*v4;
-        ev.v[5] += 0.5*v5;
+        ev.v[0] += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v0);
+        ev.v[1] += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v1);
+        ev.v[2] += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v2);
+        ev.v[3] += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v3);
+        ev.v[4] += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v4);
+        ev.v[5] += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v5);
         }
       } else {
-        ev.v[0] += 0.5*v0;
-        ev.v[1] += 0.5*v1;
-        ev.v[2] += 0.5*v2;
-        ev.v[3] += 0.5*v3;
-        ev.v[4] += 0.5*v4;
-        ev.v[5] += 0.5*v5;
+        ev.v[0] += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v0);
+        ev.v[1] += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v1);
+        ev.v[2] += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v2);
+        ev.v[3] += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v3);
+        ev.v[4] += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v4);
+        ev.v[5] += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v5);
       }
     }
 
     if (vflag_atom) {
       if (NEIGHFLAG!=FULL) {
         if (NEWTON_PAIR || i < nlocal) {
-          v_vatom(i,0) += 0.5*v0;
-          v_vatom(i,1) += 0.5*v1;
-          v_vatom(i,2) += 0.5*v2;
-          v_vatom(i,3) += 0.5*v3;
-          v_vatom(i,4) += 0.5*v4;
-          v_vatom(i,5) += 0.5*v5;
+          v_vatom(i,0) += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v0);
+          v_vatom(i,1) += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v1);
+          v_vatom(i,2) += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v2);
+          v_vatom(i,3) += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v3);
+          v_vatom(i,4) += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v4);
+          v_vatom(i,5) += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v5);
         }
         if (NEWTON_PAIR || j < nlocal) {
-        v_vatom(j,0) += 0.5*v0;
-        v_vatom(j,1) += 0.5*v1;
-        v_vatom(j,2) += 0.5*v2;
-        v_vatom(j,3) += 0.5*v3;
-        v_vatom(j,4) += 0.5*v4;
-        v_vatom(j,5) += 0.5*v5;
+        v_vatom(j,0) += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v0);
+        v_vatom(j,1) += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v1);
+        v_vatom(j,2) += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v2);
+        v_vatom(j,3) += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v3);
+        v_vatom(j,4) += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v4);
+        v_vatom(j,5) += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v5);
         }
       } else {
-        v_vatom(i,0) += 0.5*v0;
-        v_vatom(i,1) += 0.5*v1;
-        v_vatom(i,2) += 0.5*v2;
-        v_vatom(i,3) += 0.5*v3;
-        v_vatom(i,4) += 0.5*v4;
-        v_vatom(i,5) += 0.5*v5;
+        v_vatom(i,0) += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v0);
+        v_vatom(i,1) += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v1);
+        v_vatom(i,2) += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v2);
+        v_vatom(i,3) += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v3);
+        v_vatom(i,4) += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v4);
+        v_vatom(i,5) += static_cast<KK_ACC_FLOAT>(0.5)*static_cast<KK_ACC_FLOAT>(v5);
       }
     }
   }
@@ -918,7 +966,7 @@ void PairMultiLucyRXKokkos<DeviceType>::allocate()
 
   memoryKK->create_kokkos(k_cutsq,cutsq,nt,nt,"pair:cutsq");
   d_cutsq = k_cutsq.template view<DeviceType>();
-  k_cutsq.template modify<LMPHostType>();
+  k_cutsq.modify_host();
 
   memoryKK->create_kokkos(d_table->tabindex,h_table->tabindex,tabindex,nt,nt,"pair:tabindex");
   d_table_const.tabindex = d_table->tabindex;
@@ -964,8 +1012,8 @@ void PairMultiLucyRXKokkos<DeviceType>::settings(int narg, char **arg)
   if (allocated) {
     memory->destroy(setflag);
 
-    d_table_const.tabindex = d_table->tabindex = typename ArrayTypes<DeviceType>::t_int_2d();
-    h_table->tabindex = typename ArrayTypes<LMPHostType>::t_int_2d();
+    d_table_const.tabindex = d_table->tabindex = typename AT::t_int_2d_lr();
+    h_table->tabindex = HAT::t_int_2d_lr();
   }
   allocated = 0;
 

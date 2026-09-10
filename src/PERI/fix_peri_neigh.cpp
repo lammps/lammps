@@ -31,6 +31,7 @@
 #include "lattice.h"
 #include "memory.h"
 #include "error.h"
+#include "utils.h"
 
 #include <cmath>
 #include <cstring>
@@ -69,7 +70,7 @@ FixPeriNeigh::FixPeriNeigh(LAMMPS *lmp,int narg, char **arg) :
   vinter = nullptr;
   wvolume = nullptr;
 
-  grow_arrays(atom->nmax);
+  FixPeriNeigh::grow_arrays(atom->nmax);
   memset(wvolume,0,atom->nmax*sizeof(double));
   atom->add_callback(Atom::GROW);
   atom->add_callback(Atom::RESTART);
@@ -279,7 +280,7 @@ void FixPeriNeigh::setup(int /*vflag*/)
     }
   }
 
-  // sanity check: does any atom appear twice in any neigborlist?
+  // sanity check: does any atom appear twice in any neighborlist?
   // should only be possible if using pbc and domain < 2*delta
 
   if (domain->xperiodic || domain->yperiodic || domain->zperiodic) {
@@ -371,23 +372,14 @@ void FixPeriNeigh::setup(int /*vflag*/)
 
   // bond statistics
 
-  int n = 0;
+  bigint n = 0;
   for (i = 0; i < nlocal; i++) n += npartner[i];
-  int nall;
-  MPI_Allreduce(&n,&nall,1,MPI_INT,MPI_SUM,world);
+  bigint nall;
+  MPI_Allreduce(&n,&nall,1,MPI_LMP_BIGINT,MPI_SUM,world);
 
-  if (comm->me == 0) {
-    if (screen) {
-      fprintf(screen,"Peridynamic bonds:\n");
-      fprintf(screen,"  total # of bonds = %d\n",nall);
-      fprintf(screen,"  bonds/atom = %g\n",(double)nall/atom->natoms);
-    }
-    if (logfile) {
-      fprintf(logfile,"Peridynamic bonds:\n");
-      fprintf(logfile,"  total # of bonds = %d\n",nall);
-      fprintf(logfile,"  bonds/atom = %g\n",(double)nall/atom->natoms);
-    }
-  }
+  if (comm->me == 0)
+    utils::logmesg(lmp, "Peridynamic bonds:\n  total # of bonds = {}\n"
+                        "  bonds/atom = {:.6g}\n", nall, (double)nall/atom->natoms);
 }
 
 /* ----------------------------------------------------------------------
@@ -397,7 +389,7 @@ void FixPeriNeigh::setup(int /*vflag*/)
 double FixPeriNeigh::memory_usage()
 {
   int nmax = atom->nmax;
-  int bytes = nmax * sizeof(int);
+  double bytes = nmax * sizeof(int);
   bytes += (double)nmax*maxpartner * sizeof(tagint);
   bytes += (double)nmax*maxpartner * sizeof(double);
   if (isVES) {
@@ -561,7 +553,7 @@ void FixPeriNeigh::write_restart(FILE *fp)
 void FixPeriNeigh::restart(char *buf)
 {
   int n = 0;
-  auto list = (double *) buf;
+  auto *list = (double *) buf;
 
   first = static_cast<int> (list[n++]);
   maxpartner = static_cast<int> (list[n++]);

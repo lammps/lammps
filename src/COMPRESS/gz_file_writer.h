@@ -20,7 +20,6 @@
 
 #include "file_writer.h"
 
-#include <string>
 #include <zlib.h>
 
 namespace LAMMPS_NS {
@@ -36,7 +35,7 @@ class GzFileWriter : public FileWriter {
   void close() override;
   void flush() override;
   size_t write(const void *buffer, size_t length) override;
-  bool isopen() const override;
+  [[nodiscard]] bool isopen() const override;
 
   void setCompressionLevel(int level);
 };

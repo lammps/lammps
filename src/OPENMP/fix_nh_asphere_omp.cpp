@@ -28,14 +28,18 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-enum{NOBIAS,BIAS};
+namespace {
+enum{NOBIAS, BIAS};
 
-typedef struct { double x,y,z; } dbl3_t;
+using dbl3_t = struct {
+  double x,y,z;
+};
+}
 
 /* ---------------------------------------------------------------------- */
 
 FixNHAsphereOMP::FixNHAsphereOMP(LAMMPS *lmp, int narg, char **arg) :
-  FixNHOMP(lmp, narg, arg)
+    FixNHOMP(lmp, narg, arg), avec(nullptr)
 {
 }
 
@@ -45,8 +49,9 @@ void FixNHAsphereOMP::init()
 {
   avec = dynamic_cast<AtomVecEllipsoid *>(atom->style_match("ellipsoid"));
   if (!avec)
-    error->all(FLERR,"Compute nvt/nph/npt asphere requires atom style ellipsoid");
-
+    error->all(FLERR, Error::NOLASTLINE, "Fix {} requires atom style ellipsoid", style);
+  if (atom->superellipsoid_flag)
+    error->all(FLERR, Error::NOLASTLINE, "Fix {} does not support superellipsoids", style);
   // check that all particles are finite-size
   // no point particles allowed, spherical is OK
 
@@ -57,7 +62,8 @@ void FixNHAsphereOMP::init()
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit)
       if (ellipsoid[i] < 0)
-        error->one(FLERR,"Fix nvt/nph/npt asphere requires extended particles");
+        error->one(FLERR, Error::NOLASTLINE,
+                   "Fix {} requires to use *only* extended particles", style);
 
   FixNHOMP::init();
 }

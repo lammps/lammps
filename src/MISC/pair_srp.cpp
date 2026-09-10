@@ -53,7 +53,7 @@ static constexpr double BIG = 1e10;
 #define ONETWOBIT 0x40000000
 
 static const char cite_srp[] =
-  "pair srp command: doi:10.1063/1.3698476\n\n"
+  "pair srp command: https://doi.org/10.1063/1.3698476\n\n"
   "@Article{Sirk2012\n"
   " author = {T. W. Sirk and Y. R. Sliozberg and J. K. Brennan and M. Lisal and J. W. Andzelm},\n"
   " title = {An Enhanced Entangled Polymer Model for Dissipative Particle Dynamics},\n"
@@ -63,13 +63,15 @@ static const char cite_srp[] =
   " pages =   {134903}\n"
   "}\n\n";
 
-static int srp_instance = 0;
+namespace {
+int srp_instance = 0;
+}
 
 /* ----------------------------------------------------------------------
  set size of pair comms in constructor
  ---------------------------------------------------------------------- */
 
-PairSRP::PairSRP(LAMMPS *lmp) : Pair(lmp), fix_id(nullptr)
+PairSRP::PairSRP(LAMMPS *lmp) : Pair(lmp), cut(nullptr), a0(nullptr), srp(nullptr)
 {
   writedata = 1;
   single_enable = 0;
@@ -84,8 +86,8 @@ PairSRP::PairSRP(LAMMPS *lmp) : Pair(lmp), fix_id(nullptr)
   //   this should be early enough that FixSRP::pre_exchange()
   //   will be invoked before other fixes that migrate atoms
   //   this is checked for in FixSRP
-
-  f_srp = dynamic_cast<FixSRP *>(modify->add_fix(fmt::format("{:02d}_FIX_SRP all SRP", srp_instance)));
+  fix_id = fmt::format("{:02d}_FIX_SRP", srp_instance);
+  f_srp = modify->add_fix(fix_id + "_FIX_SRP all SRP");
   ++srp_instance;
 }
 
@@ -126,8 +128,7 @@ PairSRP::~PairSRP()
     memory->destroy(segment);
   }
 
-  // check nfix in case all fixes have already been deleted
-  if (modify->nfix && modify->get_fix_by_id(f_srp->id)!=nullptr) modify->delete_fix(f_srp->id);
+  modify->delete_fix(f_srp->id);
 }
 
 /* ----------------------------------------------------------------------
@@ -398,13 +399,13 @@ void PairSRP::coeff(int narg, char **arg)
     error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
-  if (btype_str.size() > 0) {
+  if (!btype_str.empty()) {
     btype = utils::expand_type_int(FLERR, btype_str, Atom::BOND, lmp);
     if ((btype > atom->nbondtypes) || (btype <= 0))
       error->all(FLERR, Error::NOLASTLINE, "Invalid bond type {} for pair style srp", btype);
   }
 
-  if (bptype_str.size() > 0)
+  if (!bptype_str.empty())
     bptype = utils::expand_type_int(FLERR, bptype_str, Atom::ATOM, lmp);
   if ((bptype < 1) || (bptype > atom->ntypes))
     error->all(FLERR, Error::NOLASTLINE, "Invalid bond particle type {} for pair style srp", bptype);
@@ -462,17 +463,14 @@ void PairSRP::init_style()
   // if bond type is 0, then all bonds have bond particles
   // btype = bond type
 
-  char c0[20];
-  char* arg0[2];
-  sprintf(c0, "%d", btype);
-  arg0[0] = (char *) "btype";
-  arg0[1] = c0;
+  std::string bval = std::to_string(btype);
+  char *arg0[2] = {(char *) "btype", bval.data()};
   f_srp->modify_params(2, arg0);
 
   // bptype = bond particle type
-  sprintf(c0, "%d", bptype);
+  std::string bpval = std::to_string(bptype);
   arg0[0] = (char *) "bptype";
-  arg0[1] = c0;
+  arg0[1] = bpval.data();
   f_srp->modify_params(2, arg0);
 
   // bond particles do not contribute to energy or virial
@@ -483,7 +481,7 @@ void PairSRP::init_style()
   arg1[0] = (char *) "norm";
   arg1[1] = (char *) "no";
   output->thermo->modify_params(2, arg1);
-  if (comm->me == 0) error->message(FLERR,"Thermo normalization turned off by pair srp");
+  if (comm->me == 0) utils::logmesg(lmp, "Thermo normalization turned off by pair srp\n");
 
   neighbor->add_request(this);
 }
@@ -729,4 +727,13 @@ void PairSRP::read_restart_settings(FILE *fp)
     utils::sfread(FLERR,&exclude,sizeof(int),1,fp,nullptr,error);
   }
   MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
+}
+
+/* ---------------------------------------------------------------------- */
+
+double PairSRP::memory_usage()
+{
+  double bytes = Pair::memory_usage();
+  bytes += (double) maxcount * 2 * sizeof(int);    // segment[maxcount][2]
+  return bytes;
 }

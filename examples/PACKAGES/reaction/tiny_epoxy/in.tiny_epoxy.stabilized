@@ -47,6 +47,7 @@ fix rxns all bond/react stabilization yes statted_grp .03 &
 fix 1 statted_grp_REACT nvt temp 300 300 100
 
 thermo_style custom step temp f_rxns[*]
+thermo_modify colname auto
 
 run 2000
 

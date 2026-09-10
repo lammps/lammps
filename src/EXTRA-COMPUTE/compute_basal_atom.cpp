@@ -36,7 +36,8 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-ComputeBasalAtom::ComputeBasalAtom(LAMMPS *lmp, int narg, char **arg) : Compute(lmp, narg, arg)
+ComputeBasalAtom::ComputeBasalAtom(LAMMPS *lmp, int narg, char **arg) :
+    Compute(lmp, narg, arg), list(nullptr)
 {
   if (narg != 3) error->all(FLERR, "Illegal compute basal/atom command");
 
@@ -195,9 +196,9 @@ void ComputeBasalAtom::compute_peratom()
       chi[0] = chi[1] = chi[2] = chi[3] = chi[4] = chi[5] = chi[6] = chi[7] = 0;
       double x_ij, y_ij, z_ij, x_ik, y_ik, z_ik, xmean5, ymean5, zmean5, xmean6, ymean6, zmean6,
           xmean7, ymean7, zmean7;
-      auto x3 = new double[n0];
-      auto y3 = new double[n0];
-      auto z3 = new double[n0];
+      auto *x3 = new double[n0];
+      auto *y3 = new double[n0];
+      auto *z3 = new double[n0];
       for (j = 0; j < n0; j++) {
         x_ij = x[i][0] - x[nearest_n0[j]][0];
         y_ij = x[i][1] - x[nearest_n0[j]][1];

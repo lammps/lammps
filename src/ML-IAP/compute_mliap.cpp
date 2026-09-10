@@ -73,15 +73,18 @@ ComputeMLIAP::ComputeMLIAP(LAMMPS *lmp, int narg, char **arg) :
     if (strcmp(arg[iarg],"model") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"compute mliap model", error);
       if (strcmp(arg[iarg+1],"linear") == 0) {
+        delete model;
         model = new MLIAPModelLinear(lmp);
         iarg += 2;
       } else if (strcmp(arg[iarg+1],"quadratic") == 0) {
+        delete model;
         model = new MLIAPModelQuadratic(lmp);
         iarg += 2;
 #ifdef MLIAP_PYTHON
       } else if (strcmp(arg[iarg+1],"mliappy") == 0) {
-      model = new MLIAPModelPython(lmp);
-      iarg += 2;
+        delete model;
+        model = new MLIAPModelPython(lmp);
+        iarg += 2;
 #else
       } else if (strcmp(arg[iarg+1],"mliappy") == 0) {
         error->all(FLERR, "Must enable PYTHON package and -DMLIAP_PYTHON setting to use "

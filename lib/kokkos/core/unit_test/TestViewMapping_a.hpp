@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #include <gtest/gtest.h>
 
@@ -20,7 +7,13 @@
 #include <sstream>
 #include <iostream>
 
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+import kokkos.core_impl;
+#else
 #include <Kokkos_Core.hpp>
+#endif
 
 namespace Test {
 
@@ -597,52 +590,54 @@ void test_view_mapping() {
     static_assert(std::is_void_v<typename a_const_int_r1::specialize>);
     static_assert(std::is_same_v<typename a_const_int_r1::dimension,
                                  Kokkos::Impl::ViewDimension<0> >);
-
-    static_assert(std::is_same_v<typename a_const_int_r1::type, const int*>);
+    static_assert(
+        std::is_same_v<typename a_const_int_r1::data_type, const int*>);
+    static_assert(
+        std::is_same_v<typename a_const_int_r1::const_data_type, const int*>);
+    static_assert(
+        std::is_same_v<typename a_const_int_r1::non_const_data_type, int*>);
     static_assert(
         std::is_same_v<typename a_const_int_r1::value_type, const int>);
-
-    static_assert(
-        std::is_same_v<typename a_const_int_r1::scalar_array_type, const int*>);
-    static_assert(
-        std::is_same_v<typename a_const_int_r1::const_type, const int*>);
     static_assert(
         std::is_same_v<typename a_const_int_r1::const_value_type, const int>);
     static_assert(
+        std::is_same_v<typename a_const_int_r1::non_const_value_type, int>);
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_5
+    KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_PUSH()
+    static_assert(
+        std::is_same_v<typename a_const_int_r1::scalar_array_type, const int*>);
+    static_assert(
         std::is_same_v<typename a_const_int_r1::const_scalar_array_type,
                        const int*>);
-    static_assert(
-        std::is_same_v<typename a_const_int_r1::non_const_type, int*>);
-    static_assert(
-        std::is_same_v<typename a_const_int_r1::non_const_value_type, int>);
+    KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_POP()
+#endif
 
     using a_const_int_r3 = ViewDataAnalysis<const int** [4], void>;
 
     static_assert(std::is_void_v<typename a_const_int_r3::specialize>);
-
     static_assert(std::is_same_v<typename a_const_int_r3::dimension,
                                  Kokkos::Impl::ViewDimension<0, 0, 4> >);
-
     static_assert(
-        std::is_same_v<typename a_const_int_r3::type, const int** [4]>);
+        std::is_same_v<typename a_const_int_r3::data_type, const int** [4]>);
+    static_assert(std::is_same_v<typename a_const_int_r3::const_data_type,
+                                 const int** [4]>);
+    static_assert(std::is_same_v<typename a_const_int_r3::non_const_data_type,
+                                 int** [4]>);
     static_assert(
         std::is_same_v<typename a_const_int_r3::value_type, const int>);
-    static_assert(std::is_same_v<typename a_const_int_r3::scalar_array_type,
-                                 const int** [4]>);
-    static_assert(
-        std::is_same_v<typename a_const_int_r3::const_type, const int** [4]>);
     static_assert(
         std::is_same_v<typename a_const_int_r3::const_value_type, const int>);
     static_assert(
+        std::is_same_v<typename a_const_int_r3::non_const_value_type, int>);
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_5
+    KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_PUSH()
+    static_assert(std::is_same_v<typename a_const_int_r3::scalar_array_type,
+                                 const int** [4]>);
+    static_assert(
         std::is_same_v<typename a_const_int_r3::const_scalar_array_type,
                        const int** [4]>);
-    static_assert(
-        std::is_same_v<typename a_const_int_r3::non_const_type, int** [4]>);
-    static_assert(
-        std::is_same_v<typename a_const_int_r3::non_const_value_type, int>);
-    static_assert(
-        std::is_same_v<typename a_const_int_r3::non_const_scalar_array_type,
-                       int** [4]>);
+    KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_POP()
+#endif
   }
 
   //----------------------------------------
@@ -657,11 +652,15 @@ void test_view_mapping() {
     static_assert(std::is_same_v<typename T::const_data_type, const int*>);
     static_assert(std::is_same_v<typename T::non_const_data_type, int*>);
 
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_5
+    KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_PUSH()
     static_assert(std::is_same_v<typename T::scalar_array_type, int*>);
     static_assert(
         std::is_same_v<typename T::const_scalar_array_type, const int*>);
     static_assert(
         std::is_same_v<typename T::non_const_scalar_array_type, int*>);
+    KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_POP()
+#endif
 
     static_assert(std::is_same_v<typename T::value_type, int>);
     static_assert(std::is_same_v<typename T::const_value_type, const int>);
@@ -677,12 +676,15 @@ void test_view_mapping() {
     static_assert(std::is_same_v<typename C::const_data_type, const int*>);
     static_assert(std::is_same_v<typename C::non_const_data_type, int*>);
 
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_5
+    KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_PUSH()
     static_assert(std::is_same_v<typename C::scalar_array_type, const int*>);
     static_assert(
         std::is_same_v<typename C::const_scalar_array_type, const int*>);
     static_assert(
         std::is_same_v<typename C::non_const_scalar_array_type, int*>);
-
+    KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_POP()
+#endif
     static_assert(std::is_same_v<typename C::value_type, const int>);
     static_assert(std::is_same_v<typename C::const_value_type, const int>);
     static_assert(std::is_same_v<typename C::non_const_value_type, int>);
@@ -741,11 +743,15 @@ void test_view_mapping() {
     static_assert(std::is_same_v<typename T::const_data_type, const int*>);
     static_assert(std::is_same_v<typename T::non_const_data_type, int*>);
 
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_5
+    KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_PUSH()
     static_assert(std::is_same_v<typename T::scalar_array_type, int*>);
     static_assert(
         std::is_same_v<typename T::const_scalar_array_type, const int*>);
     static_assert(
         std::is_same_v<typename T::non_const_scalar_array_type, int*>);
+    KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_POP()
+#endif
 
     static_assert(std::is_same_v<typename T::value_type, int>);
     static_assert(std::is_same_v<typename T::const_value_type, const int>);
@@ -850,7 +856,7 @@ void test_view_mapping() {
 
   {
     using V           = Kokkos::View<int**, Space>;
-    using M           = typename V::HostMirror;
+    using M           = typename V::host_mirror_type;
     using layout_type = typename Kokkos::View<int**, Space>::array_layout;
 
     constexpr size_t N0 = 10;
@@ -924,7 +930,7 @@ void test_view_mapping() {
 
   {
     using V = Kokkos::View<int**, Kokkos::LayoutStride, Space>;
-    using M = typename V::HostMirror;
+    using M = typename V::host_mirror_type;
     using layout_type =
         typename Kokkos::View<int**, Kokkos::LayoutStride, Space>::array_layout;
 
@@ -993,14 +999,25 @@ void test_view_mapping() {
 
       ASSERT_EQ(a.use_count(), 2);
       ASSERT_EQ(b.use_count(), 2);
+#ifdef KOKKOS_ENABLE_IMPL_VIEW_LEGACY
       ASSERT_EQ(c.use_count(), 2);
+#else
+      ASSERT_EQ(c.use_count(), 0);
+#endif
 
       V d = c;  // 'd' is run-time unmanaged.
 
       ASSERT_EQ(a.use_count(), 2);
       ASSERT_EQ(b.use_count(), 2);
+// FIXME: Legacy View is weird: it passes on use count even through compile time
+// unmanaged transition
+#ifdef KOKKOS_ENABLE_IMPL_VIEW_LEGACY
       ASSERT_EQ(c.use_count(), 2);
       ASSERT_EQ(d.use_count(), 2);
+#else
+      ASSERT_EQ(c.use_count(), 0);
+      ASSERT_EQ(d.use_count(), 0);
+#endif
     }
 
     ASSERT_EQ(a.use_count(), 2);
@@ -1014,8 +1031,8 @@ void test_view_mapping() {
 // FIXME_NVCC For some reason, the use count is higher (but still constant) when
 // using nvcc. Replacing the lambda with a functor doesn't show this behavior.
 #if !(defined(KOKKOS_ENABLE_CUDA) && defined(KOKKOS_COMPILER_NVCC))
-    using host_exec_space =
-        typename Kokkos::Impl::HostMirror<Space>::Space::execution_space;
+    using host_exec_space = typename Kokkos::Impl::HostMirror<
+        typename Space::memory_space>::execution_space;
 
     int errors = 0;
     Kokkos::parallel_reduce(
@@ -1048,74 +1065,67 @@ struct TestViewMapOperator {
 
   ViewType v;
 
-  KOKKOS_INLINE_FUNCTION
-  void test_left(size_t i0, int64_t& error_count) const {
-    typename ViewType::value_type* const base_ptr =
-        &v.access(0, 0, 0, 0, 0, 0, 0, 0);
-    const size_t n1 = v.extent(1);
-    const size_t n2 = v.extent(2);
-    const size_t n3 = v.extent(3);
-    const size_t n4 = v.extent(4);
-    const size_t n5 = v.extent(5);
-    const size_t n6 = v.extent(6);
-    const size_t n7 = v.extent(7);
-
-    int64_t offset = 0;
-
-    for (size_t i7 = 0; i7 < n7; ++i7)
-      for (size_t i6 = 0; i6 < n6; ++i6)
-        for (size_t i5 = 0; i5 < n5; ++i5)
-          for (size_t i4 = 0; i4 < n4; ++i4)
-            for (size_t i3 = 0; i3 < n3; ++i3)
-              for (size_t i2 = 0; i2 < n2; ++i2)
-                for (size_t i1 = 0; i1 < n1; ++i1) {
-                  const int64_t d =
-                      &v.access(i0, i1, i2, i3, i4, i5, i6, i7) - base_ptr;
-                  if (d < offset) ++error_count;
-                  offset = d;
-                }
-
-    if (v.span() <= size_t(offset)) ++error_count;
+  template <size_t R>
+  KOKKOS_INLINE_FUNCTION size_t extent_dim() const {
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_5
+    return v.extent(R);
+#else
+    if constexpr (R < ViewType::rank) {
+      return v.extent(R);
+    } else {
+      return 1;
+    }
+#endif
   }
 
-  KOKKOS_INLINE_FUNCTION
-  void test_right(size_t i0, int64_t& error_count) const {
+  template <typename T>
+  KOKKOS_INLINE_FUNCTION void test(size_t i0, int64_t& error_count) const {
     typename ViewType::value_type* const base_ptr =
         &v.access(0, 0, 0, 0, 0, 0, 0, 0);
-    const size_t n1 = v.extent(1);
-    const size_t n2 = v.extent(2);
-    const size_t n3 = v.extent(3);
-    const size_t n4 = v.extent(4);
-    const size_t n5 = v.extent(5);
-    const size_t n6 = v.extent(6);
-    const size_t n7 = v.extent(7);
-
     int64_t offset = 0;
 
-    for (size_t i1 = 0; i1 < n1; ++i1)
-      for (size_t i2 = 0; i2 < n2; ++i2)
-        for (size_t i3 = 0; i3 < n3; ++i3)
-          for (size_t i4 = 0; i4 < n4; ++i4)
-            for (size_t i5 = 0; i5 < n5; ++i5)
-              for (size_t i6 = 0; i6 < n6; ++i6)
-                for (size_t i7 = 0; i7 < n7; ++i7) {
-                  const int64_t d =
-                      &v.access(i0, i1, i2, i3, i4, i5, i6, i7) - base_ptr;
-                  if (d < offset) ++error_count;
-                  offset = d;
-                }
+    const size_t n1 = extent_dim<1>();
+    const size_t n2 = extent_dim<2>();
+    const size_t n3 = extent_dim<3>();
+    const size_t n4 = extent_dim<4>();
+    const size_t n5 = extent_dim<5>();
+    const size_t n6 = extent_dim<6>();
+    const size_t n7 = extent_dim<7>();
+
+    if constexpr (std::is_same_v<T, Kokkos::LayoutRight>) {
+      for (size_t i1 = 0; i1 < n1; ++i1)
+        for (size_t i2 = 0; i2 < n2; ++i2)
+          for (size_t i3 = 0; i3 < n3; ++i3)
+            for (size_t i4 = 0; i4 < n4; ++i4)
+              for (size_t i5 = 0; i5 < n5; ++i5)
+                for (size_t i6 = 0; i6 < n6; ++i6)
+                  for (size_t i7 = 0; i7 < n7; ++i7) {
+                    const int64_t d =
+                        &v.access(i0, i1, i2, i3, i4, i5, i6, i7) - base_ptr;
+                    if (d < offset) ++error_count;
+                    offset = d;
+                  }
+    } else {
+      for (size_t i7 = 0; i7 < n7; ++i7)
+        for (size_t i6 = 0; i6 < n6; ++i6)
+          for (size_t i5 = 0; i5 < n5; ++i5)
+            for (size_t i4 = 0; i4 < n4; ++i4)
+              for (size_t i3 = 0; i3 < n3; ++i3)
+                for (size_t i2 = 0; i2 < n2; ++i2)
+                  for (size_t i1 = 0; i1 < n1; ++i1) {
+                    const int64_t d =
+                        &v.access(i0, i1, i2, i3, i4, i5, i6, i7) - base_ptr;
+                    if (d < offset) ++error_count;
+                    offset = d;
+                  }
+    }
 
     if (v.span() <= size_t(offset)) ++error_count;
   }
 
   KOKKOS_INLINE_FUNCTION
   void operator()(size_t i, int64_t& error_count) const {
-    if (std::is_same_v<typename ViewType::array_layout, Kokkos::LayoutLeft>) {
-      test_left(i, error_count);
-    } else if (std::is_same_v<typename ViewType::array_layout,
-                              Kokkos::LayoutRight>) {
-      test_right(i, error_count);
-    }
+    test<typename ViewType::array_layout>(i, error_count);
   }
 
   enum { N0 = 10 };
@@ -1145,6 +1155,7 @@ struct TestViewMapOperator {
   }
 
   void run() {
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_5
     ASSERT_EQ(
         v.extent(0),
         (size_t)(0 < ViewType::rank ? TestViewMapOperator<ViewType>::N0 : 1));
@@ -1174,9 +1185,43 @@ struct TestViewMapOperator {
                   v.extent(4) * v.extent(5) * v.extent(6) * v.extent(7),
               v.span());
 
-    int64_t error_count;
-    Kokkos::RangePolicy<typename ViewType::execution_space> range(0,
-                                                                  v.extent(0));
+#else
+    if constexpr (0 < ViewType::rank) {
+      ASSERT_EQ(v.extent(0), (size_t)TestViewMapOperator<ViewType>::N0);
+    }
+    if constexpr (1 < ViewType::rank) {
+      ASSERT_EQ(v.extent(1), (size_t)TestViewMapOperator<ViewType>::N1);
+    }
+    if constexpr (2 < ViewType::rank) {
+      ASSERT_EQ(v.extent(2), (size_t)TestViewMapOperator<ViewType>::N2);
+    }
+    if constexpr (3 < ViewType::rank) {
+      ASSERT_EQ(v.extent(3), (size_t)TestViewMapOperator<ViewType>::N3);
+    }
+    if constexpr (4 < ViewType::rank) {
+      ASSERT_EQ(v.extent(4), (size_t)TestViewMapOperator<ViewType>::N4);
+    }
+    if constexpr (5 < ViewType::rank) {
+      ASSERT_EQ(v.extent(5), (size_t)TestViewMapOperator<ViewType>::N5);
+    }
+    if constexpr (6 < ViewType::rank) {
+      ASSERT_EQ(v.extent(6), (size_t)TestViewMapOperator<ViewType>::N6);
+    }
+    if constexpr (7 < ViewType::rank) {
+      ASSERT_EQ(v.extent(7), (size_t)TestViewMapOperator<ViewType>::N7);
+    }
+
+#endif
+    size_t extent;
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_5
+    extent = v.extent(0);
+#else
+    // Make sure the view is at least of size 1
+    extent = 1;
+    if constexpr (ViewType::rank > 0) extent = v.extent(0);
+#endif
+    int64_t error_count = 0;
+    Kokkos::RangePolicy<typename ViewType::execution_space> range(0, extent);
     Kokkos::parallel_reduce(range, *this, error_count);
     ASSERT_EQ(0, error_count);
   }

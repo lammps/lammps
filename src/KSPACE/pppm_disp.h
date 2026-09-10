@@ -20,13 +20,11 @@ KSpaceStyle(pppm/disp,PPPMDisp);
 #ifndef LMP_PPPM_DISP_H
 #define LMP_PPPM_DISP_H
 
+#include "ewald_const.h"
 #include "kspace.h"
 #include "lmpfftsettings.h"
 
 namespace LAMMPS_NS {
-
-static constexpr int EWALD_MAXORDER = 6;
-static constexpr int EWALD_FUNCS = 4;
 
 class PPPMDisp : public KSpace {
  public:
@@ -59,7 +57,7 @@ class PPPMDisp : public KSpace {
 
   int nsplit;
   int nsplit_alloc;
-  int function[EWALD_FUNCS];
+  int termflag[EwaldConst::EWALD_NTERMS];
 
   double delxinv, delyinv, delzinv, delvolinv;
   double delxinv_6, delyinv_6, delzinv_6, delvolinv_6;
@@ -207,8 +205,8 @@ class PPPMDisp : public KSpace {
 
   void set_grid_global();
   void set_grid_global_6();
-  void set_grid_local(int, int, int, int, double &, double &, double &, double &,
-                      int &, int &, int &, int &, int &, int &, int &, int &);
+  void set_grid_local(int, int, int, int, double &, double &, double &, double &, int &, int &,
+                      int &, int &, int &, int &, int &, int &);
   void set_init_g6();
   void set_n_pppm_6();
 
@@ -245,10 +243,15 @@ class PPPMDisp : public KSpace {
 
   void compute_sf_precoeff(int, int, int, int, int, int, int, int, int, int, double *, double *,
                            double *, double *, double *, double *);
-  void compute_gf();
+  virtual void compute_gf();
   void compute_sf_coeff();
-  void compute_gf_6();
+  virtual void compute_gf_6();
   void compute_sf_coeff_6();
+
+  // triclinic (non-orthogonal box) support, ik differentiation only
+  void setup_triclinic();
+  void compute_gf_triclinic();
+  void compute_gf_6_triclinic();
 
   virtual void particle_map(double, double, double, double, int **, int, int, int, int, int, int,
                             int, int);
@@ -320,7 +323,7 @@ class PPPMDisp : public KSpace {
   virtual void fieldforce_none_ik();
   virtual void fieldforce_none_ad();
   virtual void fieldforce_none_peratom();
-  void procs2grid2d(int, int, int, int *, int *);
+  void procs2grid2d(int, int, int, int &, int &);
   void compute_rho1d(const FFT_SCALAR &, const FFT_SCALAR &, const FFT_SCALAR &, int, FFT_SCALAR **,
                      FFT_SCALAR **);
   void compute_drho1d(const FFT_SCALAR &, const FFT_SCALAR &, const FFT_SCALAR &, int,
@@ -328,6 +331,7 @@ class PPPMDisp : public KSpace {
   void compute_rho_coeff(FFT_SCALAR **, FFT_SCALAR **, int);
   virtual void slabcorr(int);
 
+ public:
   // grid communication
 
   void pack_forward_grid(int, void *, int, int *) override;

@@ -38,7 +38,7 @@ enum { TYPE, RADIUS };
 /* ---------------------------------------------------------------------- */
 
 ComputeRattlersAtom::ComputeRattlersAtom(LAMMPS *lmp, int narg, char **arg) :
-    Compute(lmp, narg, arg), ncontacts(nullptr), rattler(nullptr)
+    Compute(lmp, narg, arg), ncontacts(nullptr), rattler(nullptr), list(nullptr)
 {
   if (narg != 6) error->all(FLERR, "Illegal compute rattlers/atom command");
 
@@ -88,7 +88,7 @@ void ComputeRattlersAtom::init()
   // set size to same value as request made by force->pair
   // this should enable it to always be a copy list (e.g. for granular pstyle)
 
-  auto pairrequest = neighbor->find_request(force->pair);
+  auto *pairrequest = neighbor->find_request(force->pair);
   if (pairrequest && pairrequest->get_size())
     neighbor->add_request(this, NeighConst::REQ_SIZE | NeighConst::REQ_OCCASIONAL);
   else
@@ -307,4 +307,13 @@ void ComputeRattlersAtom::unpack_forward_comm(int n, int first, double *buf)
   for (i = first; i < last; i++) {
     rattler[i] = buf[m++];
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+double ComputeRattlersAtom::memory_usage()
+{
+  double bytes = (double) nmax * sizeof(int);       // ncontacts[nmax]
+  bytes += (double) nmax * sizeof(double);          // rattler[nmax]
+  return bytes;
 }

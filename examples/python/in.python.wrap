@@ -1,0 +1,60 @@
+# 3d Lennard-Jones melt with equal- and atom-style variables which
+#   use a Python function wrapper in their formulas
+
+variable        x index 3
+variable        y index 3
+variable        z index 3
+
+units           lj
+atom_style      atomic
+
+lattice         fcc 0.8442
+region          box block 0 $x 0 $y 0 $z
+create_box      1 box
+create_atoms    1 box
+mass            1 1.0
+
+velocity        all create 1.44 87287 loop geom
+
+pair_style      lj/cut 2.5
+pair_coeff      1 1 1.0 1.0 2.5
+
+neighbor        0.3 bin
+neigh_modify    delay 0 every 20 check no
+
+fix             1 all nve
+
+# define Python truncate() function
+
+variable        foo python truncate
+python          truncate return v_foo input 1 iv_arg format fi here """
+def truncate(x):
+  return int(x)
+"""
+
+# use in equal-style variable
+
+variable        scalar equal py_foo(4.5)
+print           "TRUNCATE ${scalar}"
+
+# use in atom-style variable
+# examine dump file to see truncated xyz coords of each atom
+
+variable        xtrunc atom py_foo(x)
+variable        ytrunc atom py_foo(y)
+variable        ztrunc atom py_foo(z)
+
+dump            1 all custom 100 tmp.dump id x y z v_xtrunc v_ytrunc v_ztrunc
+
+# use in vector-style variable
+
+compute         ke all temp
+variable        ke vector c_ke
+variable        ketrunc vector py_foo(v_ke)
+thermo_style    custom step temp epair v_ketrunc[*6]
+
+run             100
+
+print           "KE TENSOR ${ketrunc}"
+
+

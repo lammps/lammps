@@ -44,7 +44,7 @@ class PairBeck : public Pair {
   double **AA, **BB;
   double **aa, **alpha, **beta;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }    // namespace LAMMPS_NS

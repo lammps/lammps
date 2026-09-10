@@ -46,7 +46,7 @@ under
 using namespace LAMMPS_NS;
 
 static const char cite_user_ptm_package[] =
-    "PTM package: doi:10.1088/0965-0393/24/5/055007\n\n"
+    "PTM package: https://doi.org/10.1088/0965-0393/24/5/055007\n\n"
     "@Article{larsen2016ptm,\n"
     " author={Larsen, Peter Mahler and Schmidt, S{\\o}ren and\n"
     "    Schi{\\o}tz, Jakob},\n"
@@ -125,7 +125,7 @@ ComputePTMAtom::ComputePTMAtom(LAMMPS *lmp, int narg, char **arg)
   if (rmsd_threshold == 0)
     rmsd_threshold = INFINITY;
 
-  auto  group_name = (char *)"all";
+  auto *  group_name = (char *)"all";
   if (narg > 5) {
     group_name = arg[5];
   }
@@ -149,12 +149,8 @@ void ComputePTMAtom::init() {
   if (force->pair == nullptr)
     error->all(FLERR, "Compute ptm/atom requires a pair style be defined");
 
-  int count = 0;
-  for (int i = 0; i < modify->ncompute; i++)
-    if (strcmp(modify->compute[i]->style, "ptm/atom") == 0)
-      count++;
-  if (count > 1 && comm->me == 0)
-    error->warning(FLERR, "More than one compute ptm/atom defined");
+  if ((comm->me == 0) && (modify->get_compute_by_style("^ptm/atom").size() > 1))
+    error->warning(FLERR, "More than one compute {}", style);
 
   // need an occasional full neighbor list
 
@@ -166,7 +162,7 @@ void ComputePTMAtom::init() {
 void ComputePTMAtom::init_list(int /* id */, NeighList *ptr) { list = ptr; }
 
 /* ---------------------------------------------------------------------- */
-
+// NOLINTBEGIN
 typedef struct
 {
   double **x;
@@ -184,14 +180,14 @@ typedef struct {
   int index;
   double d;
 } ptmnbr_t;
-
+// NOLINTEND
 static bool sorthelper_compare(ptmnbr_t const &a, ptmnbr_t const &b) {
   return a.d < b.d;
 }
 
 static int get_neighbours(void* vdata, size_t central_index, size_t atom_index, int num, size_t* nbr_indices, int32_t* numbers, double (*nbr_pos)[3])
 {
-  auto  data = (ptmnbrdata_t*)vdata;
+  auto *  data = (ptmnbrdata_t*)vdata;
   int *mask = data->mask;
   int group2bit = data->group2bit;
 

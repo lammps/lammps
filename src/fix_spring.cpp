@@ -37,8 +37,7 @@ enum{TETHER,COUPLE};
 /* ---------------------------------------------------------------------- */
 
 FixSpring::FixSpring(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg),
-  group2(nullptr)
+  Fix(lmp, narg, arg), group2(nullptr)
 {
   if (narg < 9) utils::missing_cmd_args(FLERR, "fix spring", error);
 
@@ -101,7 +100,8 @@ FixSpring::FixSpring(LAMMPS *lmp, int narg, char **arg) :
 
 FixSpring::~FixSpring()
 {
-  delete [] group2;
+  if (copymode) return;
+  delete[] group2;
 }
 
 /* ---------------------------------------------------------------------- */

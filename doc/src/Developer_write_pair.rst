@@ -81,7 +81,7 @@ Case 1: a pairwise additive model
 
 In this section, we will describe the procedure of adding a simple pair
 style to LAMMPS: an empirical model that can be used to model liquid
-mercury.  The pair style shall be called :doc:`bond/gauss
+mercury.  The pair style shall be called :doc:`born/gauss
 <pair_born_gauss>` and the complete implementation can be found in the
 files ``src/EXTRA-PAIR/pair_born_gauss.cpp`` and
 ``src/EXTRA-PAIR/pair_born_gauss.h`` of the LAMMPS source code.
@@ -160,18 +160,19 @@ message and before the include guards for the class definition:
 
    #endif
 
-This block between ``#ifdef PAIR_CLASS`` and ``#else`` will be
-included by the ``Force`` class in ``force.cpp`` to build a map of
-"factory functions" that will create an instance of these classes and
-return a pointer to it.  The map connects the name of the pair style,
-"born/gauss", to the name of the class, ``PairBornGauss``.  During
-compilation, LAMMPS constructs a file ``style_pair.h`` that contains
-``#include`` statements for all "installed" pair styles.  Before
-including ``style_pair.h`` into ``force.cpp``, the ``PAIR_CLASS`` define
-is set and the ``PairStyle(name,class)`` macro defined.  The code of the
-macro adds the installed pair styles to the "factory map" which enables
-the :doc:`pair_style command <pair_style>` to create the pair style
-instance.
+This block between ``#ifdef PAIR_CLASS`` and ``#else`` registers the pair
+style with LAMMPS.  During compilation, the build system parses the
+``PairStyle(born/gauss,PairBornGauss)`` marker and generates a file
+``style_pair.cpp`` that ``#include``\s the header files of all "installed"
+pair styles and registers a "factory function" for each of them --- a small
+function that creates an instance of the class and returns a pointer to it.
+These factory functions are kept in a process-global registry that connects
+the pair style name, "born/gauss", to the class ``PairBornGauss`` and enables
+the :doc:`pair_style command <pair_style>` to create the pair style instance.
+The ``PAIR_CLASS`` macro is never actually defined during compilation; the
+``#ifdef PAIR_CLASS`` block only serves as a marker for the build system's
+parser, so the header always provides the class definition from its ``#else``
+branch.
 
 The list of header files to include is automatically updated by the
 build system if there are new files, so the presence of the new header
@@ -407,7 +408,7 @@ the memory allocation and initialization are moved to a function
 
    void PairBornGauss::settings(int narg, char **arg)
    {
-     if (narg != 1) error->all(FLERR, "Pair style bond/gauss must have exactly one argument");
+     if (narg != 1) error->all(FLERR, "Pair style born/gauss must have exactly one argument");
      cut_global = utils::numeric(FLERR, arg[0], false, lmp);
 
      // reset per-type pair cutoffs that have been explicitly set previously

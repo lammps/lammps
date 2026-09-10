@@ -30,9 +30,10 @@ class FixNVEAsphereNoforce : public FixNVENoforce {
   void initial_integrate(int) override;
   void init() override;
 
- private:
+ protected:
   double dtq;
   class AtomVecEllipsoid *avec;
+  template <bool is_super> void initial_integrate_templated();
 };
 
 }    // namespace LAMMPS_NS

@@ -30,6 +30,7 @@
 #include "memory.h"
 #include "error.h"
 
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -38,7 +39,12 @@ static constexpr double SMALL = 0.001;
 
 /* ---------------------------------------------------------------------- */
 
-AngleCosineBuck6d::AngleCosineBuck6d(LAMMPS *lmp) : Angle(lmp) {}
+AngleCosineBuck6d::AngleCosineBuck6d(LAMMPS *lmp) :
+    Angle(lmp), k(nullptr), th0(nullptr), eps(nullptr), d0(nullptr), buck6d1(nullptr),
+    buck6d2(nullptr), buck6d3(nullptr), buck6d4(nullptr), cut_ljsq(nullptr), c0(nullptr),
+    c1(nullptr), c2(nullptr), c3(nullptr), c4(nullptr), c5(nullptr), rsmooth_sq(nullptr),
+    offset(nullptr), multiplicity(nullptr)
+{}
 
 /* ---------------------------------------------------------------------- */
 
@@ -158,7 +164,7 @@ void AngleCosineBuck6d::compute(int eflag, int vflag)
         forcebuck6d = forcebuck6d*sme + ebuck6d*smf;
         ebuck6d *= sme;
       }
-    } else forcebuck6d = 0.0;
+    } else forcebuck6d = r32inv = 0.0;
 
     // add forces of additional LJ interaction
 
@@ -256,7 +262,7 @@ void AngleCosineBuck6d::coeff(int narg, char **arg)
 
   double c_one = utils::numeric(FLERR,arg[1],false,lmp);
   int n_one = utils::inumeric(FLERR,arg[2],false,lmp);
-  int th0_one = utils::numeric(FLERR,arg[3],false,lmp);
+  double th0_one = utils::numeric(FLERR,arg[3],false,lmp);
   if (n_one <= 0) error->all(FLERR,"Incorrect args for angle coefficients" + utils::errorurl(21));
 
 
@@ -365,13 +371,13 @@ double AngleCosineBuck6d::single(int type, int i1, int i2, int i3)
   double delx1 = x[i1][0] - x[i2][0];
   double dely1 = x[i1][1] - x[i2][1];
   double delz1 = x[i1][2] - x[i2][2];
-  domain->minimum_image(delx1,dely1,delz1);
+  domain->minimum_image(FLERR, delx1,dely1,delz1);
   double r1 = sqrt(delx1*delx1 + dely1*dely1 + delz1*delz1);
 
   double delx2 = x[i3][0] - x[i2][0];
   double dely2 = x[i3][1] - x[i2][1];
   double delz2 = x[i3][2] - x[i2][2];
-  domain->minimum_image(delx2,dely2,delz2);
+  domain->minimum_image(FLERR, delx2,dely2,delz2);
   double r2 = sqrt(delx2*delx2 + dely2*dely2 + delz2*delz2);
 
   double c = delx1*delx2 + dely1*dely2 + delz1*delz2;

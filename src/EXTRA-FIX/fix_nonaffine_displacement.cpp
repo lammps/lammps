@@ -67,8 +67,8 @@ static const char cite_nonaffine_d2min[] =
 /* ---------------------------------------------------------------------- */
 
 FixNonaffineDisplacement::FixNonaffineDisplacement(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), id_fix(nullptr), fix(nullptr), D2min(nullptr), X(nullptr), Y(nullptr),
-  F(nullptr), norm(nullptr), singular(nullptr)
+    Fix(lmp, narg, arg), id_fix(nullptr), fix(nullptr), D2min(nullptr), X(nullptr), Y(nullptr),
+    F(nullptr), norm(nullptr), singular(nullptr), list(nullptr)
 {
   if (narg < 4) utils::missing_cmd_args(FLERR,"fix nonaffine/displacement", error);
 
@@ -77,6 +77,7 @@ FixNonaffineDisplacement::FixNonaffineDisplacement(LAMMPS *lmp, int narg, char *
 
   reference_timestep = update_timestep = offset_timestep = -1;
   z_min = 0;
+  intensive_d2min = 1;
 
   int iarg = 4;
   if (strcmp(arg[iarg], "integrated") == 0) {
@@ -92,7 +93,7 @@ FixNonaffineDisplacement::FixNonaffineDisplacement(LAMMPS *lmp, int narg, char *
     } else if (strcmp(arg[iarg + 1], "custom") == 0) {
       if (iarg + 2 > narg)
         utils::missing_cmd_args(FLERR,"fix nonaffine/displacement custom", error);
-      if ((neighbor->style == Neighbor::MULTI) || (neighbor->style == Neighbor::MULTI_OLD))
+      if (neighbor->style == Neighbor::MULTI)
         error->all(FLERR, "Fix nonaffine/displacement with custom cutoff requires neighbor style 'bin' or 'nsq'");
       cut_style = CUSTOM;
       cutoff_custom = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
@@ -129,6 +130,12 @@ FixNonaffineDisplacement::FixNonaffineDisplacement(LAMMPS *lmp, int narg, char *
       z_min = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       if (z_min < 0) error->all(FLERR, "Minimum coordination must be positive");
       iarg += 2;
+    } else if (strcmp(arg[iarg], "intensive/d2min") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR,"fix nonaffine/displacement", error);
+      intensive_d2min = utils::logical(FLERR, arg[iarg + 1], false, lmp);
+      if (nad_style != D2MIN)
+        error->all(FLERR, "Can only specify extensive/intensive d2min with style d2min");
+      iarg += 1;
     } else error->all(FLERR,"Illegal keyword {} in fix nonaffine/displacement", arg[iarg]);
   }
 
@@ -146,6 +153,7 @@ FixNonaffineDisplacement::FixNonaffineDisplacement(LAMMPS *lmp, int narg, char *
   comm_reverse = 0;
   comm_forward = 0;
   if (nad_style == D2MIN) {
+    size_peratom_cols = 9;
     comm_reverse = 18;
     comm_forward = 9;
   }
@@ -157,7 +165,7 @@ FixNonaffineDisplacement::FixNonaffineDisplacement(LAMMPS *lmp, int narg, char *
 
 FixNonaffineDisplacement::~FixNonaffineDisplacement()
 {
-  if (id_fix && modify->nfix) modify->delete_fix(id_fix);
+  if (id_fix) modify->delete_fix(id_fix);
   delete[] id_fix;
 
   if (nad_style == D2MIN) {
@@ -195,7 +203,7 @@ void FixNonaffineDisplacement::post_constructor()
 
   grow_arrays(atom->nmax);
   for (int i = 0; i < atom->nlocal; i++)
-    for (int j = 0; j < 3; j++) array_atom[i][j] = 0.0;
+    for (int j = 0; j < size_peratom_cols; j++) array_atom[i][j] = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -217,9 +225,9 @@ void FixNonaffineDisplacement::init()
     if (cut_style == RADIUS) {
       neighbor->add_request(this, NeighConst::REQ_SIZE | NeighConst::REQ_OCCASIONAL);
     } else {
-      auto req = neighbor->add_request(this, NeighConst::REQ_OCCASIONAL);
+      auto *req = neighbor->add_request(this, NeighConst::REQ_OCCASIONAL);
       if (cut_style == CUSTOM) {
-        if ((neighbor->style == Neighbor::MULTI) || (neighbor->style == Neighbor::MULTI_OLD))
+        if (neighbor->style == Neighbor::MULTI)
           error->all(FLERR, "Fix nonaffine/displacement with custom cutoff requires neighbor style 'bin' or 'nsq'");
 
         double skin = neighbor->skin;
@@ -234,7 +242,8 @@ void FixNonaffineDisplacement::init()
         if (mycutneigh > cutghost)
           error->all(FLERR,"Fix nonaffine/displacement D2Min option cutoff exceeds ghost atom range - use comm_modify cutoff command");
 
-        req->set_cutoff(mycutneigh);
+        // the cutoff is required for all types
+        req->set_cutoff_fixed(mycutneigh);
       }
     }
   }
@@ -273,6 +282,11 @@ void FixNonaffineDisplacement::post_force(int /*vflag*/)
     } else {
       if ((update->ntimestep % nevery) == 0) calculate_D2Min();
     }
+  } else {
+    // Otherwise, ensure peratom variables are zeroed
+    for (int i = 0; i < atom->nlocal; i++)
+      for (int a = 0; a < size_peratom_cols; a++)
+        array_atom[i][a] = 0.0;
   }
 
   if (reference_style == FIXED)
@@ -599,7 +613,8 @@ void FixNonaffineDisplacement::calculate_D2Min()
       continue;
     }
 
-    D2min[i] /= norm[i];
+    if (intensive_d2min)
+      D2min[i] /= norm[i];
 
     for (j = 0; j < 3; j++)
       for (k = 0; k < 3; k++)
@@ -622,6 +637,12 @@ void FixNonaffineDisplacement::calculate_D2Min()
     array_atom[i][0] = sqrt(D2min[i]);
     array_atom[i][1] = evol;
     array_atom[i][2] = edev;
+    array_atom[i][3] = E[0][0];
+    array_atom[i][4] = E[1][1];
+    array_atom[i][5] = E[2][2];
+    array_atom[i][6] = E[0][1];
+    array_atom[i][7] = E[0][2];
+    array_atom[i][8] = E[1][2];
   }
 }
 
@@ -773,7 +794,7 @@ void FixNonaffineDisplacement::grow_arrays(int nmax_new)
 {
   nmax = nmax_new;
   memory->destroy(array_atom);
-  memory->create(array_atom, nmax, 3, "fix_nonaffine_displacement:array_atom");
+  memory->create(array_atom, nmax, size_peratom_cols, "fix_nonaffine_displacement:array_atom");
   if (nad_style == D2MIN) {
     memory->destroy(X);
     memory->destroy(Y);
@@ -788,4 +809,17 @@ void FixNonaffineDisplacement::grow_arrays(int nmax_new)
     memory->create(norm, nmax, "fix_nonaffine_displacement:norm");
     memory->create(singular, nmax, "fix_nonaffine_displacement:singular");
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+double FixNonaffineDisplacement::memory_usage()
+{
+  double bytes = (double) nmax * size_peratom_cols * sizeof(double);    // array_atom
+  if (nad_style == D2MIN) {
+    bytes += (double) nmax * 3 * 3 * 3 * sizeof(double);    // X + Y + F[nmax][3][3]
+    bytes += (double) nmax * sizeof(double);                 // D2min[nmax]
+    bytes += (double) nmax * 2 * sizeof(int);                // norm + singular[nmax]
+  }
+  return bytes;
 }

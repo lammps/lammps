@@ -41,7 +41,7 @@ pair_coeff * * oxdna/coaxstk 46.0 0.4 0.6 0.22 0.58 2.0 2.541592653589793 0.65 1
 
 # NVE ensemble
 fix 1 all nve/asphere
-fix 2 all langevin ${T} ${T} 2.5 457145 angmom 10
+#fix 2 all langevin ${T} ${T} 2.5 457145 angmom 10
 
 timestep 1e-5
 
@@ -64,7 +64,7 @@ dump out all custom ${ofreq} out.${number}.lammpstrj id mol type x y z ix iy iz 
 dump_modify out sort id
 dump_modify out format line "%d %d %d  %22.15le %22.15le %22.15le  %d %d %d  %22.15le %22.15le %22.15le  %22.15le %22.15le %22.15le %22.15le  %22.15le %22.15le %22.15le"
 
-run 1000000
+run 10000
 
 write_data last_config.${number}.* nocoeff
 #write_restart last_config.${number}.*

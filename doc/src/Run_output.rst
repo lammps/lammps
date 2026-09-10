@@ -232,7 +232,7 @@ input failed.  Example:
 Four lines
 ^^^^^^^^^^
 
-The three line output is expanded to four lines, if the the input is
+The three line output is expanded to four lines, if the input is
 modified through input pre-processing, e.g. when substituting
 variables. Now the last command is printed once in the original form and
 a second time after substitutions are applied.  The caret character

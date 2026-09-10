@@ -339,7 +339,7 @@ void PairHybrid::settings(int narg, char **arg)
 
     jarg = iarg + 1;
     while ((jarg < narg)
-           && !force->pair_map->count(arg[jarg])
+           && !Force::pair_styles().contains(arg[jarg])
            && !lmp->match_style("pair", arg[jarg])) jarg++;
 
     styles[nstyles]->settings(jarg-iarg-1,&arg[iarg+1]);
@@ -647,7 +647,7 @@ void PairHybrid::init_style()
   // create skip lists inside each pair neigh request
   // any kind of list can have its skip flag set in this loop
 
-  for (auto &request : neighbor->get_pair_requests()) {
+  for (const auto &request : neighbor->get_pair_requests()) {
 
     // istyle = associated sub-style for the request
 
@@ -760,9 +760,9 @@ double PairHybrid::init_one(int i, int j)
       if (cut > cutmax_style[istyle]) {
         cutmax_style[istyle] = cut;
 
-        for (auto &request : neighbor->get_pair_requests()) {
+        for (const auto &request : neighbor->get_pair_requests()) {
           if (styles[istyle] == request->get_requestor()) {
-            request->set_cutoff(cutmax_style[istyle]);
+            request->set_cutoff_max(cutmax_style[istyle]);
             break;
           }
         }
@@ -819,6 +819,8 @@ void PairHybrid::read_restart(FILE *fp)
   int me = comm->me;
   if (me == 0) utils::sfread(FLERR,&nstyles,sizeof(int),1,fp,nullptr,error);
   MPI_Bcast(&nstyles,1,MPI_INT,0,world);
+  if ((nstyles < 1) || (nstyles > 64))
+    error->all(FLERR,"Invalid number of sub-styles in restart file");
 
   // allocate list of sub-styles
 
@@ -850,6 +852,7 @@ void PairHybrid::read_restart(FILE *fp)
   for (int m = 0; m < nstyles; m++) {
     if (me == 0) utils::sfread(FLERR,&n,sizeof(int),1,fp,nullptr,error);
     MPI_Bcast(&n,1,MPI_INT,0,world);
+    if ((n < 1) || (n > 65536)) error->all(FLERR,"Invalid style name length in restart file");
     keywords[m] = new char[n];
     if (me == 0) utils::sfread(FLERR,keywords[m],sizeof(char),n,fp,nullptr,error);
     MPI_Bcast(keywords[m],n,MPI_CHAR,0,world);
@@ -971,7 +974,7 @@ void PairHybrid::copy_svector(int itype, int jtype)
   // there is only one style in pair style hybrid for a pair of atom types
   Pair *this_style = styles[map[itype][jtype][0]];
 
-  for (int l = 0; this_style->single_extra; ++l) {
+  for (int l = 0; l < this_style->single_extra; ++l) {
     svector[l] = this_style->svector[l];
   }
 }
@@ -1105,7 +1108,7 @@ void PairHybrid::set_special(int m)
 
 double * PairHybrid::save_special()
 {
-  auto saved = new double[8];
+  auto *saved = new double[8];
 
   for (int i = 0; i < 4; ++i) {
     saved[i] = force->special_lj[i];
@@ -1145,7 +1148,7 @@ void *PairHybrid::extract(const char *str, int &dim)
     if (ptr && strcmp(str,"cut_coul") == 0) {
       if (couldim != -1 && dim != couldim)
         error->all(FLERR, "Coulomb styles of pair hybrid sub-styles do not match");
-      auto p_newvalue = (double *) ptr;
+      auto *p_newvalue = (double *) ptr;
       double newvalue = *p_newvalue;
       if (cutptr && (newvalue != cutvalue))
         error->all(FLERR, "Coulomb cutoffs of pair hybrid sub-styles do not match");
@@ -1177,42 +1180,6 @@ int PairHybrid::check_ijtype(int itype, int jtype, char *substyle)
   for (int m = 0; m < nmap[itype][jtype]; m++)
     if (strcmp(keywords[map[itype][jtype][m]],substyle) == 0) return 1;
   return 0;
-}
-
-/* ----------------------------------------------------------------------
-   check if substyles calculate self-interaction range of particle
-------------------------------------------------------------------------- */
-
-double PairHybrid::atom2cut(int i)
-{
-  double temp, cut;
-
-  cut = 0.0;
-  for (int m = 0; m < nstyles; m++) {
-    if (styles[m]->finitecutflag) {
-      temp = styles[m]->atom2cut(i);
-      if (temp > cut) cut = temp;
-    }
-  }
-  return cut;
-}
-
-/* ----------------------------------------------------------------------
-   check if substyles calculate maximum interaction range for two finite particles
-------------------------------------------------------------------------- */
-
-double PairHybrid::radii2cut(double r1, double r2)
-{
-  double temp, cut;
-
- cut = 0.0;
-  for (int m = 0; m < nstyles; m++) {
-    if (styles[m]->finitecutflag) {
-      temp = styles[m]->radii2cut(r1,r2);
-      if (temp > cut) cut = temp;
-    }
-  }
-  return cut;
 }
 
 /* ----------------------------------------------------------------------

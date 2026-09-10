@@ -47,10 +47,11 @@ enum{IGNORE,WARN,ERROR};
 /* ---------------------------------------------------------------------- */
 
 FixHyperLocal::FixHyperLocal(LAMMPS *lmp, int narg, char **arg) :
-  FixHyper(lmp, narg, arg), blist(nullptr), biascoeff(nullptr), numbond(nullptr),
-  maxhalf(nullptr), eligible(nullptr), maxhalfstrain(nullptr), old2now(nullptr),
-  tagold(nullptr), xold(nullptr), maxstrain(nullptr), maxstrain_domain(nullptr),
-  biasflag(nullptr), bias(nullptr), cpage(nullptr), clist(nullptr), numcoeff(nullptr)
+    FixHyper(lmp, narg, arg), listfull(nullptr), listhalf(nullptr), blist(nullptr),
+    biascoeff(nullptr), numbond(nullptr), maxhalf(nullptr), eligible(nullptr),
+    maxhalfstrain(nullptr), old2now(nullptr), tagold(nullptr), xold(nullptr), maxstrain(nullptr),
+    maxstrain_domain(nullptr), biasflag(nullptr), bias(nullptr), cpage(nullptr), clist(nullptr),
+    numcoeff(nullptr)
 {
   // error checks
 
@@ -310,9 +311,10 @@ void FixHyperLocal::init()
   // NOTE: what if pair style list cutoff > Dcut
   //   or what if neigh skin is huge?
 
-  auto req = neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
+  auto *req = neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
   req->set_id(1);
-  req->set_cutoff(dcut);
+
+  req->set_cutoff_fixed(dcut);
 
   // also need occasional half neighbor list derived from pair style
   // used for building local bond list
@@ -1441,7 +1443,7 @@ void FixHyperLocal::unpack_reverse_comm(int n, int *list, double *buf)
 
 void FixHyperLocal::grow_bond()
 {
-  if (maxbond + DELTABOND > MAXSMALLINT)
+  if (maxbond > MAXSMALLINT - DELTABOND)
     error->one(FLERR,"Fix hyper/local bond count is too big");
   maxbond += DELTABOND;
   blist = (OneBond *)

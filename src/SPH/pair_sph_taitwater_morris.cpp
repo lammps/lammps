@@ -15,7 +15,6 @@
 #include "pair_sph_taitwater_morris.h"
 
 #include "atom.h"
-#include "comm.h"
 #include "domain.h"
 #include "error.h"
 #include "force.h"
@@ -29,7 +28,8 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairSPHTaitwaterMorris::PairSPHTaitwaterMorris(LAMMPS *lmp) : Pair(lmp)
+PairSPHTaitwaterMorris::PairSPHTaitwaterMorris(LAMMPS *lmp) :
+    Pair(lmp), rho0(nullptr), soundspeed(nullptr), B(nullptr), cut(nullptr), viscosity(nullptr)
 {
   if ((atom->esph_flag != 1) || (atom->rho_flag != 1) || (atom->vest_flag != 1))
     error->all(FLERR, Error::NOLASTLINE, "Pair sph/taitwater/morris requires atom attributes "

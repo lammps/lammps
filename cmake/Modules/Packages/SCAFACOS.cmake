@@ -1,9 +1,15 @@
 enable_language(Fortran)
 enable_language(C)
 
+# set policy to use the time of extraction as timestamps of files unpacked from downloaded
+# archives, so that updating an archive version triggers rebuilding all dependent objects
+ if(POLICY CMP0135)
+  cmake_policy(SET CMP0135 NEW)
+endif()
+
 find_package(GSL REQUIRED)
 find_package(PkgConfig QUIET)
-find_package(MPI REQUIRED)
+find_package(MPI REQUIRED COMPONENTS C MPICXX CXX Fortran)
 set(DOWNLOAD_SCAFACOS_DEFAULT ON)
 if(PKG_CONFIG_FOUND)
   pkg_check_modules(SCAFACOS QUIET scafacos)
@@ -14,27 +20,19 @@ endif()
 option(DOWNLOAD_SCAFACOS "Download ScaFaCoS library instead of using an already installed one" ${DOWNLOAD_SCAFACOS_DEFAULT})
 if(DOWNLOAD_SCAFACOS)
   message(STATUS "ScaFaCoS download requested - we will build our own")
-  set(SCAFACOS_URL "https://github.com/scafacos/scafacos/releases/download/v1.0.1/scafacos-1.0.1.tar.gz" CACHE STRING "URL for SCAFACOS tarball")
-  set(SCAFACOS_MD5 "bd46d74e3296bd8a444d731bb10c1738" CACHE STRING "MD5 checksum of SCAFACOS tarball")
-  mark_as_advanced(SCAFACOS_URL)
-  mark_as_advanced(SCAFACOS_MD5)
+  SetDownloadSettings(SCAFACOS "SCAFACOS"
+    "https://github.com/scafacos/scafacos/releases/download/v1.0.4/scafacos-1.0.4.tar.gz"
+    "6634c4202e825e771d1dd75bbe9cac5cee41136c87653fde98fbd634681c1be6")
   GetFallbackURL(SCAFACOS_URL SCAFACOS_FALLBACK)
-
-
-  # version 1.0.1 needs a patch to compile and linke cleanly with GCC 10 and later.
-  file(DOWNLOAD ${LAMMPS_THIRDPARTY_URL}/scafacos-1.0.1-fix.diff ${CMAKE_CURRENT_BINARY_DIR}/scafacos-1.0.1.fix.diff
-          EXPECTED_HASH MD5=4baa1333bb28fcce102d505e1992d032)
-
-  find_program(HAVE_PATCH patch)
-  if(NOT HAVE_PATCH)
-    message(FATAL_ERROR "The 'patch' program is required to build the ScaFaCoS library")
-  endif()
+  set(SCAFACOS_CXX_FLAGS "${CMAKE_CXX_FLAGS_${CMAKE_BUILD_TYPE}} ${CMAKE_CXX_FLAGS}")
+  set(SCAFACOS_C_FLAGS "${CMAKE_C_FLAGS_${CMAKE_BUILD_TYPE}} ${CMAKE_C_FLAGS}")
 
   include(ExternalProject)
   ExternalProject_Add(scafacos_build
     URL     ${SCAFACOS_URL} ${SCAFACOS_FALLBACK}
-    URL_MD5 ${SCAFACOS_MD5}
-    PATCH_COMMAND patch -p1 < ${CMAKE_CURRENT_BINARY_DIR}/scafacos-1.0.1.fix.diff
+    URL_HASH SHA256=${SCAFACOS_SHA256}
+    # restore the timestamp order that autotools generated files require (see AutotoolsTouch.cmake)
+    PATCH_COMMAND ${CMAKE_COMMAND} -D SOURCE_DIR=<SOURCE_DIR> -P ${LAMMPS_DIR}/cmake/Modules/AutotoolsTouch.cmake
     CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR> --disable-doc
                                              --enable-fcs-solvers=fmm,p2nfft,direct,ewald,p3m
                                              --with-internal-fftw --with-internal-pfft
@@ -43,6 +41,8 @@ if(DOWNLOAD_SCAFACOS)
                                              CXX=${CMAKE_MPI_CXX_COMPILER}
                                              CC=${CMAKE_MPI_C_COMPILER}
                                              F77=
+                                             CFLAGS=${SCAFACOS_C_FLAGS}
+                                             CXXFLAGS=${SCAFACOS_CXX_FLAGS}
     BUILD_BYPRODUCTS
       <INSTALL_DIR>/lib/libfcs.a
       <INSTALL_DIR>/lib/libfcs_direct.a
@@ -66,7 +66,7 @@ if(DOWNLOAD_SCAFACOS)
   set_target_properties(LAMMPS::SCAFACOS PROPERTIES
     IMPORTED_LOCATION "${INSTALL_DIR}/lib/libfcs.a"
     INTERFACE_INCLUDE_DIRECTORIES "${INSTALL_DIR}/include"
-    INTERFACE_LINK_LIBRARIES "${INSTALL_DIR}/lib/libfcs.a;${INSTALL_DIR}/lib/libfcs_direct.a;${INSTALL_DIR}/lib/libfcs_ewald.a;${INSTALL_DIR}/lib/libfcs_fmm.a;${INSTALL_DIR}/lib/libfcs_p2nfft.a;${INSTALL_DIR}/lib/libfcs_p3m.a;GSL::gsl;${INSTALL_DIR}/lib/libfcs_near.a;${INSTALL_DIR}/lib/libfcs_gridsort.a;${INSTALL_DIR}/lib/libfcs_resort.a;${INSTALL_DIR}/lib/libfcs_redist.a;${INSTALL_DIR}/lib/libfcs_common.a;${INSTALL_DIR}/lib/libfcs_pnfft.a;${INSTALL_DIR}/lib/libfcs_pfft.a;${INSTALL_DIR}/lib/libfcs_fftw3_mpi.a;${INSTALL_DIR}/lib/libfcs_fftw3.a;MPI::MPI_Fortran;MPI::MPI_C")
+    INTERFACE_LINK_LIBRARIES "${INSTALL_DIR}/lib/libfcs.a;${INSTALL_DIR}/lib/libfcs_direct.a;${INSTALL_DIR}/lib/libfcs_ewald.a;${INSTALL_DIR}/lib/libfcs_fmm.a;${INSTALL_DIR}/lib/libfcs_p2nfft.a;${INSTALL_DIR}/lib/libfcs_p3m.a;GSL::gsl;${INSTALL_DIR}/lib/libfcs_near.a;${INSTALL_DIR}/lib/libfcs_gridsort.a;${INSTALL_DIR}/lib/libfcs_resort.a;${INSTALL_DIR}/lib/libfcs_redist.a;${INSTALL_DIR}/lib/libfcs_common.a;${INSTALL_DIR}/lib/libfcs_pnfft.a;${INSTALL_DIR}/lib/libfcs_pfft.a;${INSTALL_DIR}/lib/libfcs_fftw3_mpi.a;${INSTALL_DIR}/lib/libfcs_fftw3.a;MPI::MPI_CXX;MPI::MPI_Fortran;MPI::MPI_C;${CMAKE_Fortran_IMPLICIT_LINK_LIBRARIES}")
   target_link_libraries(lammps PRIVATE LAMMPS::SCAFACOS)
   add_dependencies(LAMMPS::SCAFACOS scafacos_build)
 else()

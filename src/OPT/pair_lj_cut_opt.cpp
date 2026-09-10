@@ -56,12 +56,14 @@ void PairLJCutOpt::compute(int eflag, int vflag)
 template < int EVFLAG, int EFLAG, int NEWTON_PAIR >
 void PairLJCutOpt::eval()
 {
+// NOLINTBEGIN
   typedef struct { double x,y,z; } vec3_t;
 
   typedef struct {
     double cutsq,lj1,lj2,lj3,lj4,offset;
     double _pad[2];
   } fast_alpha_t;
+// NOLINTEND
 
   int i,j,ii,jj,inum,jnum,itype,jtype,sbindex;
   double factor_lj;

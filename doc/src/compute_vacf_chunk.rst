@@ -111,7 +111,7 @@ distance\ :math:`^2` divided by time\ :math:`^2` :doc:`units <units>`.
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""

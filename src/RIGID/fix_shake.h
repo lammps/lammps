@@ -41,7 +41,6 @@ class FixShake : public Fix {
   void post_force_respa(int, int, int) override;
   void min_pre_reverse(int, int) override;
   void min_post_force(int) override;
-  void post_run() override;
 
   double memory_usage() override;
   void grow_arrays(int) override;
@@ -84,6 +83,10 @@ class FixShake : public Fix {
   double *bond_distance, *angle_distance;    // constraint distances
   double kbond;                              // force constant for restraint
   double ebond;                              // energy of bond restraints
+
+  int store_flag;               // store per-atom constraint/restraint forces if true
+  int maxstore;                 // current size of fstore array
+  double **fstore;              // constraint/restraint force
 
   class FixRespa *fix_respa;    // rRESPA fix needed by SHAKE
   int nlevels_respa;            // copies of needed rRESPA variables
@@ -141,7 +144,7 @@ class FixShake : public Fix {
   void shake3(int);
   void shake4(int);
   void shake3angle(int);
-  void bond_force(int, int, double);
+  double bond_force(int, int, double);
   virtual void stats();
   int bondtype_findset(int, tagint, tagint, int);
   int angletype_findset(int, tagint, tagint, int);

@@ -55,7 +55,7 @@ fix fINVERSE all drude/transform/inverse
 
 fix fMOMENTUM all momentum 100 linear 1 1 1
 
-thermo_style custom step cpu etotal ke temp pe ebond eangle edihed eimp evdwl ecoul elong press vol c_cTEMP[1] c_cTEMP[2]
+thermo_style custom step etotal ke temp pe ebond eangle edihed eimp evdwl ecoul elong press vol c_cTEMP[1] c_cTEMP[2]
 thermo 50
 
 timestep 0.5

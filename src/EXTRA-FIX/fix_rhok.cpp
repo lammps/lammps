@@ -31,7 +31,7 @@ using namespace FixConst;
 using namespace MathConst;
 
 static const char cite_fix_rhok[] =
-  "Bias on the collective density field (fix rhok): doi:10.1063/1.4818747\n\n"
+  "Bias on the collective density field (fix rhok): https://doi.org/10.1063/1.4818747\n\n"
   "@Article{pedersen_jcp139_104102_2013,\n"
   "title = {Direct Calculation of the Solid-Liquid {G}ibbs Free Energy Difference in a Single Equilibrium Simulation},\n"
   "volume = {139},\n"

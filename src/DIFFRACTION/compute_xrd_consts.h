@@ -28,9 +28,9 @@ x-ray and electron atomic scattering factors at high angles
 Acta Crystallogr. A 45 78693
 */
 
-#define XRDmaxType 210
-
-static const char *XRDtypeList[XRDmaxType] = {
+namespace {
+constexpr int XRDmaxType = 210;
+const char *const XRDtypeList[XRDmaxType] = {
     "H",    "He1-", "He",   "Li",   "Li1+", "Be",   "Be2+", "B",    "C",    "Cval", "N",    "O",
     "O1-",  "F",    "F1-",  "Ne",   "Na",   "Na1+", "Mg",   "Mg2+", "Al",   "Al3+", "Si",   "Sival",
     "Si4+", "P",    "S",    "Cl",   "Cl1-", "Ar",   "K",    "Ca",   "Ca2+", "Sc",   "Sc3+", "Ti",
@@ -51,7 +51,7 @@ static const char *XRDtypeList[XRDmaxType] = {
     "Pu4+", "Pu6+", "Am",   "Cm",   "Bk",   "Cf"};
 
 // a list of atomic scattering factor constants for x-ray diffraction
-static const double ASFXRD[XRDmaxType][9] = {
+const double ASFXRD[XRDmaxType][9] = {
     /*  Each set of two rows in this file contains the constants
       for 0 < sin(theta)/lambda < 2
             A1,           B1,           A2,            B2,           A3,
@@ -268,5 +268,5 @@ static const double ASFXRD[XRDmaxType][9] = {
     {36.7881, 0.451018, 24.7736, 3.04619, 17.8919, 12.8946, 4.23284, 86.003, 13.2754},
     {36.9185, 0.437533, 25.1995, 3.00775, 18.3317, 12.4044, 4.24391, 83.7881, 13.2674},
 };
-
+}    // namespace
 #endif

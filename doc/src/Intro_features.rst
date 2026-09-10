@@ -29,11 +29,11 @@ General features
 * spatial decomposition of simulation domain for MPI parallelism
 * particle decomposition inside spatial decomposition for OpenMP and GPU parallelism
 * GPLv2 licensed open-source distribution
-* highly portable C++-11 (optional packages may require C++17)
+* highly portable C++-17 (optional packages may require C++20)
 * modular code with most functionality in optional packages
 * only depends on MPI library for basic parallel functionality, MPI stub for serial compilation
 * other libraries are optional and only required for specific packages
-* GPU (CUDA, OpenCL, HIP, SYCL), Intel Xeon Phi, and OpenMP support for many code features
+* GPU (CUDA, OpenCL, HIP, SYCL) and OpenMP support for many code features
 * easy to extend with new features and functionality
 * runs from an input script
 * syntax for defining and using variables and formulas
@@ -89,7 +89,7 @@ commands)
 * coarse-grained potentials: DPD, GayBerne, REsquared, colloidal, DLVO, oxDNA / oxRNA, SPICA
 * mesoscopic potentials: granular, Peridynamics, SPH, mesoscopic tubular potential (MESONT)
 * semi-empirical potentials: multi-ion generalized pseudopotential theory (MGPT), second moment tight binding + QEq (SMTB-Q)
-* electron force field (eFF, AWPMD)
+* electron force field (eFF)
 * bond potentials: harmonic, FENE, Morse, nonlinear, Class II (COMPASS), quartic (breakable), tabulated, scripted
 * angle potentials: harmonic, CHARMM, cosine, cosine/squared, cosine/periodic, Class II (COMPASS), tabulated, scripted
 * dihedral potentials: harmonic, CHARMM, multi-harmonic, helix, Class II (COMPASS), OPLS, tabulated, scripted
@@ -211,7 +211,7 @@ Pre- and post-processing
   plotting, and visualization for LAMMPS simulations.  Pizza.py is
   written in `Python <python_>`_ and is available for download from `the Pizza.py WWW site <pizza_>`_.
 
-.. _pizza: https://lammps.github.io/pizza
+.. _pizza: https://lammps.github.io/pizza/
 
 .. _python: https://www.python.org
 
@@ -233,8 +233,6 @@ classical MD options:
 * :doc:`real-time visualization and interactive MD <fix_imd>`, :doc:`built-in renderer for images and movies <dump_image>`
 * calculate :doc:`virtual diffraction patterns <compute_xrd>`
 * calculate :doc:`finite temperature phonon dispersion <fix_phonon>` and the :doc:`dynamical matrix of minimized structures <dynamical_matrix>`
-* :doc:`atom-to-continuum coupling <fix_atc>` with finite elements
-* coupled rigid body integration via the :doc:`POEMS <fix_poems>` library
 * :doc:`QM/MM coupling <fix_qmmm>`
 * Monte Carlo via :doc:`GCMC <fix_gcmc>` and :doc:`tfMC <fix_tfmc>` and :doc:`atom swapping <fix_atom_swap>`
 * :doc:`path-integral molecular dynamics (PIMD) <fix_ipi>` and :doc:`this as well <fix_pimd>`

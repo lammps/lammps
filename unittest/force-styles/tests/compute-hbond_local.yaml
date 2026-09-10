@@ -1,0 +1,23 @@
+---
+lammps_version: 4 Jul 2026
+tags:
+date_generated: Thu Jul  9 16:38:50 2026
+epsilon: 1e-08
+timestep: 0.25
+skip_tests:
+prerequisites: |
+  atom full
+  compute hbond/local
+pre_commands: ""
+post_commands: |
+  group og type 3 4 5
+  group hg type 2
+  compute test all hbond/local 4.5 45.0 og og hg
+input_file: in.fourmol
+input_coeffs: coeffs.fourmol
+natoms: 29
+global_scalar: 2
+local_data: |2
+   2.0000000000000000e+00  1.0000000000000000e+00  1.8000000000000000e+01
+   2.5000000000000000e+01  2.4000000000000000e+01  1.0000000000000000e+00
+...

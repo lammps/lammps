@@ -1,10 +1,11 @@
 .. index:: dihedral_style helix
+.. index:: dihedral_style helix/kk
 .. index:: dihedral_style helix/omp
 
 dihedral_style helix command
 ============================
 
-Accelerator Variants: *helix/omp*
+Accelerator Variants: *helix/kk*, *helix/omp*
 
 Syntax
 """"""

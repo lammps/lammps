@@ -20,6 +20,7 @@
 #include "comm.h"
 #include "error.h"
 #include "memory.h"
+#include "safe_pointers.h"
 
 #include <cmath>
 #include <cstdlib>
@@ -29,6 +30,7 @@
 #include "adios_common.h"
 
 using namespace LAMMPS_NS;
+using namespace LAMMPS_ADIOS;
 
 static constexpr double SMALL = 1.0e-6;
 
@@ -51,7 +53,7 @@ class ReadADIOSInternal {
   // list of column names for the atom table
   // (individual list of 'columns' string)
   std::vector<std::string> columnNames;
-  float timeout = 0.0;
+  double timeout = 0.0;
 };
 }    // namespace LAMMPS_NS
 
@@ -68,12 +70,11 @@ ReaderADIOS::ReaderADIOS(LAMMPS *lmp) : Reader(lmp)
   me = comm->me;
 
   // create a default adios2_config.xml if it doesn't exist yet.
-  FILE *cfgfp = fopen("adios2_config.xml", "r");
+  SafeFilePtr cfgfp = fopen("adios2_config.xml", "r");
   if (!cfgfp) {
     cfgfp = fopen("adios2_config.xml", "w");
     if (cfgfp) fputs(default_config, cfgfp);
   }
-  if (cfgfp) fclose(cfgfp);
 
   internal = new ReadADIOSInternal();
   try {
@@ -111,7 +112,7 @@ void ReaderADIOS::settings(int narg, char **arg)
   while (idx < narg) {
     if (!strcmp(arg[idx], "timeout")) {
       if (idx + 1 < narg) {
-        internal->timeout = std::stof(arg[idx + 1]);
+        internal->timeout = utils::numeric(FLERR, arg[idx + 1], false, lmp);
         internal->io.SetParameter("OpenTimeoutSecs", arg[idx + 1]);
         ++idx;
       } else {
@@ -152,7 +153,7 @@ void ReaderADIOS::open_file(const std::string &file)
 void ReaderADIOS::close_file()
 {
   // close open file, if needed.
-  if (internal->fh) { internal->fh.Close(); }
+  if (internal->fh) internal->fh.Close();
 }
 
 /* ----------------------------------------------------------------------
@@ -163,7 +164,7 @@ void ReaderADIOS::close_file()
 
 int ReaderADIOS::read_time(bigint &ntimestep)
 {
-  adios2::StepStatus status = internal->fh.BeginStep(adios2::StepMode::Read, internal->timeout);
+  adios2::StepStatus status = internal->fh.BeginStep(adios2::StepMode::Read, (float)internal->timeout);
 
   switch (status) {
     case adios2::StepStatus::EndOfStream:

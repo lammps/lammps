@@ -1,22 +1,14 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #include <TestStdAlgorithmsCommon.hpp>
 #include <utility>
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.random;
+#else
 #include <Kokkos_Random.hpp>
+#endif
 
 namespace Test {
 namespace stdalgos {
@@ -71,7 +63,7 @@ void run_single_scenario(const InfoType& scenario_info, int apiId) {
 
   // check
   auto v2_h = create_host_space_copy(v2);
-  for (std::size_t j = 0; j < v2_h.extent(1); ++j) {
+  for (std::size_t j = 0; j < v2_h.extent(0); ++j) {
     if (j < 5) {
       EXPECT_TRUE(v2_h(j) == static_cast<ValueType>(0));
     } else {

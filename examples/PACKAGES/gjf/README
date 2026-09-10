@@ -1,0 +1,47 @@
+LAMMPS GJ THERMOSTAT EXAMPLE
+
+Required LAMMPS packages: EXTRA-FIX, MOLECULE, EXTRA-PAIR
+
+This directory contains the ingredients to run an NVT simulation using the 
+GJ thermostats.
+
+Example:
+
+NP=4 #number of processors
+mpirun -np $NP lmp_mpi -in.gjf.vhalf
+
+Compared to other thermostats, the GJ thermostat allows for larger timesteps 
+with the correct Boltzmann statistics. A comparison using averaged properties
+from this example's input file is shown below. 'X' denotes a failed simulation.
+The theoretical value for KE is 1.1168 eV.
+
+POTENTIAL ENERGY (eV)
+| Δt                ||  0.01  |  0.05  |  0.10  |  0.11  |  0.12  |  0.13  |  0.14  |
+|===================||========|========|========|========|========|========|========|
+| gjf half          || -55.11 | -55.11 | -55.11 | -55.11 | -55.11 | -55.10 | -55.07 |
+| gjf full          || -55.11 | -55.11 | -55.11 | -55.11 | -55.11 | -55.10 | -55.07 |
+| langevin          || -55.11 | -55.07 | -54.87 | -54.79 | -54.65 |    X   |    X   |
+| nvt (Nose-Hoover) || -55.14 | -55.07 | -54.90 | -54.84 | -54.76 |    X   |    X   |
+|-------------------||--------|--------|--------|--------|--------|--------|--------|
+
+KINETIC ENERGY (eV)
+| Δt                ||  0.01  |  0.05  |  0.10  |  0.11  |  0.12  |  0.13  |  0.14  |
+|===================||========|========|========|========|========|========|========|
+| gjf half          ||  1.117 |  1.116 |  1.119 |  1.119 |  1.123 |  1.136 |  1.170 |
+| gjf full          ||  1.116 |  1.071 |  0.938 |  0.898 |  0.858 |  0.817 |  0.780 |
+| langevin          ||  1.110 |  1.113 |  1.121 |  1.129 |  1.157 |    X   |    X   |
+| nvt (Nose-Hoover) ||  1.083 |  1.109 |  1.112 |  1.113 |  1.114 |    X   |    X   |
+|-------------------||--------|--------|--------|--------|--------|--------|--------|
+
+
+Script Commands:
+--
+fix lang all gjf 10 10 1 26488
+--
+fix lang all gjf 10 10 1 26488 vel vfull
+--
+fix nve all nve
+fix lang all langevin 10 10 1 26488
+--
+fix noho all nvt temp 10 10 1
+--

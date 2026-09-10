@@ -40,7 +40,7 @@
 using namespace LAMMPS_NS;
 
 static const char cite_fix_pafi_package[] =
-  "citation for fix pafi: doi:10.1103/PhysRevLett.120.135503\n\n"
+  "citation for fix pafi: https://doi.org/10.1103/PhysRevLett.120.135503\n\n"
   "@article{SwinburneMarinica2018,\n"
   "author={T. D. Swinburne and M. C. Marinica},\n"
   "title={Unsupervised Calculation of Free Energy Barriers in Large\n"
@@ -261,7 +261,7 @@ void FixPAFI::post_force(int /*vflag*/)
       deviation[0] = x[i][0]-path[i][0]; // x-path
       deviation[1] = x[i][1]-path[i][1]; // x-path
       deviation[2] = x[i][2]-path[i][2]; // x-path
-      domain->minimum_image(deviation);
+      domain->minimum_image(FLERR, deviation);
 
       proj[3] += path[i][6]*deviation[0]; // (x-path).dn/nn = psi
       proj[3] += path[i][7]*deviation[1]; // (x-path).dn/nn = psi
@@ -424,7 +424,7 @@ void FixPAFI::min_post_force(int /*vflag*/)
       deviation[0] = x[i][0]-path[i][0]; // x-path
       deviation[1] = x[i][1]-path[i][1]; // x-path
       deviation[2] = x[i][2]-path[i][2]; // x-path
-      domain->minimum_image(deviation);
+      domain->minimum_image(FLERR, deviation);
 
       proj[3] += path[i][6]*deviation[0]; // (x-path).dn/nn = psi
       proj[3] += path[i][7]*deviation[1]; // (x-path).dn/nn = psi

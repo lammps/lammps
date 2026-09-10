@@ -1,4 +1,11 @@
 find_package(N2P2 QUIET)
+
+# set policy to use the time of extraction as timestamps of files unpacked from downloaded
+# archives, so that updating an archive version triggers rebuilding all dependent objects
+ if(POLICY CMP0135)
+  cmake_policy(SET CMP0135 NEW)
+endif()
+
 if(N2P2_FOUND)
   set(DOWNLOAD_N2P2_DEFAULT OFF)
 else()
@@ -6,10 +13,9 @@ else()
 endif()
 option(DOWNLOAD_N2P2 "Download n2p2 library instead of using an already installed one)" ${DOWNLOAD_N2P2_DEFAULT})
 if(DOWNLOAD_N2P2)
-  set(N2P2_URL "https://github.com/CompPhysVienna/n2p2/archive/v2.2.0.tar.gz" CACHE STRING "URL for n2p2 tarball")
-  set(N2P2_MD5 "a2d9ab7f676b3a74a324fc1eda0a911d" CACHE STRING "MD5 checksum of N2P2 tarball")
-  mark_as_advanced(N2P2_URL)
-  mark_as_advanced(N2P2_MD5)
+  SetDownloadSettings(N2P2 "n2p2"
+    "https://github.com/CompPhysVienna/n2p2/archive/v2.2.0.tar.gz"
+    "4acaa255632a7b9811d7530fd52ac7dd0bb3a8e3a3cf8512beadd29b62c1bfef")
   GetFallbackURL(N2P2_URL N2P2_FALLBACK)
 
   # adjust settings from detected compiler to compiler platform in n2p2 library
@@ -74,12 +80,11 @@ if(DOWNLOAD_N2P2)
   include(ExternalProject)
   ExternalProject_Add(n2p2_build
     URL     ${N2P2_URL} ${N2P2_FALLBACK}
-    URL_MD5 ${N2P2_MD5}
+    URL_HASH SHA256=${N2P2_SHA256}
     UPDATE_COMMAND ""
     CONFIGURE_COMMAND ""
     PATCH_COMMAND sed -i -e "s/\\(MPI_\\(P\\|Unp\\)ack(\\)/\\1(void *) /" src/libnnpif/LAMMPS/InterfaceLammps.cpp
     BUILD_COMMAND ${N2P2_MAKE} -C <SOURCE_DIR>/src -f makefile libnnpif ${N2P2_BUILD_OPTIONS}
-    BUILD_ALWAYS YES
     INSTALL_COMMAND ""
     BUILD_IN_SOURCE 1
     LOG_BUILD ON

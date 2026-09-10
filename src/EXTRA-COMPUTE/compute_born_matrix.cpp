@@ -19,6 +19,7 @@
 
 #include "angle.h"
 #include "atom.h"
+#include "atom_masks.h"
 #include "atom_vec.h"
 #include "bond.h"
 #include "comm.h"
@@ -134,12 +135,17 @@ ComputeBornMatrix::ComputeBornMatrix(LAMMPS *lmp, int narg, char **arg) :
         numflag = 1;
         numdelta = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
         if (numdelta <= 0.0) error->all(FLERR, "Illegal compute born/matrix command");
+        delete[] id_virial;
         id_virial = utils::strdup(arg[iarg + 2]);
-        int icompute = modify->find_compute(id_virial);
-        if (icompute < 0) error->all(FLERR, "Could not find compute born/matrix pressure ID");
-        compute_virial = modify->compute[icompute];
+        compute_virial = modify->get_compute_by_id(id_virial);
+        if (!compute_virial)
+          error->all(FLERR, iarg + 2, "Could not find compute born/matrix pressure ID {}",
+                     id_virial);
         if (compute_virial->pressflag == 0)
-          error->all(FLERR, "Compute born/matrix pressure ID does not compute pressure");
+          error->all(FLERR, iarg + 2,
+                     "Compute born/matrix pressure ID {} does not compute "
+                     "pressure",
+                     id_virial);
         iarg += 3;
       } else if (strcmp(arg[iarg], "pair") == 0) {
         pairflag = 1;
@@ -286,17 +292,18 @@ void ComputeBornMatrix::init()
 {
   if (!numflag) {
 
-    // need an occasional half neighbor list
+    // need an occasional full neighbor list
 
     neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
 
   } else {
 
-    // check for virial compute
+    // re-check for virial compute
 
-    int icompute = modify->find_compute(id_virial);
-    if (icompute < 0) error->all(FLERR, "Virial compute ID for compute born/matrix does not exist");
-    compute_virial = modify->compute[icompute];
+    compute_virial = modify->get_compute_by_id(id_virial);
+    if (!compute_virial)
+      error->all(FLERR, Error::NOLASTLINE, "Could not find compute born/matrix pressure ID {}",
+                 id_virial);
 
     // set up reverse index lookup
     // This table is used for consistency between numdiff and analytical
@@ -443,7 +450,8 @@ void ComputeBornMatrix::compute_pairs()
 
       pair_pref = dupair = du2pair = 0.0;
       pair->born_matrix(i, j, itype, jtype, rsq, factor_coul, factor_lj, dupair, du2pair);
-      pair_pref = 0.5 * du2pair - dupair * rinv;
+      // a full neighbor list visits each pair twice, so both terms are halved
+      pair_pref = 0.5 * (du2pair - dupair * rinv);
 
       // See albemunu in compute_born_matrix.h for indices order.
 
@@ -473,6 +481,8 @@ void ComputeBornMatrix::compute_numdiff()
   if (nall > maxatom) reallocate();
 
   // store copy of current forces for owned and ghost atoms
+
+  atom->sync_host_arrays(X_MASK | F_MASK);
 
   double **x = atom->x;
   double **f = atom->f;
@@ -527,8 +537,12 @@ void ComputeBornMatrix::compute_numdiff()
 
   // restore original forces for owned and ghost atoms
 
+  atom->sync_host_arrays(F_MASK);
+
   for (int i = 0; i < nall; i++)
     for (int k = 0; k < 3; k++) f[i][k] = temp_f[i][k];
+
+  atom->modified_host_arrays(F_MASK);
 }
 
 /* ----------------------------------------------------------------------
@@ -537,6 +551,12 @@ void ComputeBornMatrix::compute_numdiff()
 
 void ComputeBornMatrix::displace_atoms(int nall, int idir, double magnitude)
 {
+  // the strain goes into the plain coordinate array, and the energy evaluation
+  // that follows works from the KOKKOS copies, so bring the host side up to
+  // date first and hand the write over afterwards
+
+  atom->sync_host_arrays(X_MASK);
+
   double **x = atom->x;
 
   // NOTE: virial_addon() expressions predicated on
@@ -557,6 +577,8 @@ void ComputeBornMatrix::displace_atoms(int nall, int idir, double magnitude)
       x[i][k] = temp_x[i][k] + 0.5 * numdelta * magnitude * (temp_x[i][l] - fixedpoint[l]);
       x[i][l] = temp_x[i][l] + 0.5 * numdelta * magnitude * (temp_x[i][k] - fixedpoint[k]);
     }
+
+  atom->modified_host_arrays(X_MASK);
 }
 
 /* ----------------------------------------------------------------------
@@ -570,6 +592,9 @@ void ComputeBornMatrix::restore_atoms(int nall, int idir)
 
   int k = dirlist[idir][0];
   int l = dirlist[idir][1];
+
+  atom->sync_host_arrays(X_MASK);
+
   double **x = atom->x;
   if (l == k)
     for (int i = 0; i < nall; i++) x[i][k] = temp_x[i][k];
@@ -578,6 +603,8 @@ void ComputeBornMatrix::restore_atoms(int nall, int idir)
       x[i][l] = temp_x[i][l];
       x[i][k] = temp_x[i][k];
     }
+
+  atom->modified_host_arrays(X_MASK);
 }
 
 /* ----------------------------------------------------------------------
@@ -667,9 +694,16 @@ void ComputeBornMatrix::virial_addon()
 
 void ComputeBornMatrix::force_clear(int nall)
 {
+  // the forces are cleared through the plain array and accumulated again by
+  // the force computations, which work from the KOKKOS copies
+
+  atom->sync_host_arrays(F_MASK);
+
   double **forces = atom->f;
   size_t nbytes = 3 * sizeof(double) * nall;
   if (nbytes) memset(&forces[0][0], 0, nbytes);
+
+  atom->modified_host_arrays(F_MASK);
 }
 
 /* ----------------------------------------------------------------------
@@ -764,7 +798,7 @@ void ComputeBornMatrix::compute_bonds()
       dx = x[atom2][0] - x[atom1][0];
       dy = x[atom2][1] - x[atom1][1];
       dz = x[atom2][2] - x[atom1][2];
-      domain->minimum_image(dx, dy, dz);
+      domain->minimum_image(FLERR, dx, dy, dz);
       rsq = dx * dx + dy * dy + dz * dz;
       rij[0] = dx;
       rij[1] = dy;
@@ -870,7 +904,7 @@ void ComputeBornMatrix::compute_angles()
       delx1 = x[atom1][0] - x[atom2][0];
       dely1 = x[atom1][1] - x[atom2][1];
       delz1 = x[atom1][2] - x[atom2][2];
-      domain->minimum_image(delx1, dely1, delz1);
+      domain->minimum_image(FLERR, delx1, dely1, delz1);
       del1[0] = delx1;
       del1[1] = dely1;
       del1[2] = delz1;
@@ -882,7 +916,7 @@ void ComputeBornMatrix::compute_angles()
       delx2 = x[atom3][0] - x[atom2][0];
       dely2 = x[atom3][1] - x[atom2][1];
       delz2 = x[atom3][2] - x[atom2][2];
-      domain->minimum_image(delx2, dely2, delz2);
+      domain->minimum_image(FLERR, delx2, dely2, delz2);
       del2[0] = delx2;
       del2[1] = dely2;
       del2[2] = delz2;
@@ -1046,7 +1080,7 @@ void ComputeBornMatrix::compute_dihedrals()
       vb1x = x[atom2][0] - x[atom1][0];
       vb1y = x[atom2][1] - x[atom1][1];
       vb1z = x[atom2][2] - x[atom1][2];
-      domain->minimum_image(vb1x, vb1y, vb1z);
+      domain->minimum_image(FLERR, vb1x, vb1y, vb1z);
       b1[0] = vb1x;
       b1[1] = vb1y;
       b1[2] = vb1z;
@@ -1055,7 +1089,7 @@ void ComputeBornMatrix::compute_dihedrals()
       vb2x = x[atom3][0] - x[atom2][0];
       vb2y = x[atom3][1] - x[atom2][1];
       vb2z = x[atom3][2] - x[atom2][2];
-      domain->minimum_image(vb2x, vb2y, vb2z);
+      domain->minimum_image(FLERR, vb2x, vb2y, vb2z);
       b2[0] = vb2x;
       b2[1] = vb2y;
       b2[2] = vb2z;
@@ -1064,7 +1098,7 @@ void ComputeBornMatrix::compute_dihedrals()
       vb3x = x[atom4][0] - x[atom3][0];
       vb3y = x[atom4][1] - x[atom3][1];
       vb3z = x[atom4][2] - x[atom3][2];
-      domain->minimum_image(vb3x, vb3y, vb3z);
+      domain->minimum_image(FLERR, vb3x, vb3y, vb3z);
       b3[0] = vb3x;
       b3[1] = vb3y;
       b3[2] = vb3z;

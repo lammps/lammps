@@ -316,7 +316,7 @@ void PairLJCutTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
             rsq_lookup.f = rsq;
             itable = rsq_lookup.i & ncoulmask;
             itable >>= ncoulshiftbits;
-            fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
+            fraction = ((double) rsq_lookup.f - rtable[itable]) * drtable[itable];
             table = ftable[itable] + fraction*dftable[itable];
             forcecoul = qtmp*q[j] * table;
             if (factor_coul < 1.0) {
@@ -336,10 +336,8 @@ void PairLJCutTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
           // virial = sum(r x F) where each water's atoms are near xi and xj
           // vlist stores 2,4,6 atoms whose forces contribute to virial
 
-          if (VFLAG) {
-            n = 0;
-            key = 0;
-          }
+          n = 0;
+          key = 0;
 
           if (itype != typeO) {
             fxtmp += delx * cforce;
@@ -353,11 +351,11 @@ void PairLJCutTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
               v[3] = x[i].x * dely * cforce;
               v[4] = x[i].x * delz * cforce;
               v[5] = x[i].y * delz * cforce;
-              vlist[n++] = i;
             }
+            vlist[n++] = i;
 
           } else {
-            if (VFLAG) key++;
+            key++;
 
             fdx = delx*cforce;
             fdy = dely*cforce;
@@ -392,10 +390,10 @@ void PairLJCutTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
               v[3] = x[i].x*fOy + xH1.x*fHy + xH2.x*fHy;
               v[4] = x[i].x*fOz + xH1.x*fHz + xH2.x*fHz;
               v[5] = x[i].y*fOz + xH1.y*fHz + xH2.y*fHz;
-              vlist[n++] = i;
-              vlist[n++] = iH1;
-              vlist[n++] = iH2;
             }
+            vlist[n++] = i;
+            vlist[n++] = iH1;
+            vlist[n++] = iH2;
           }
 
           if (jtype != typeO) {
@@ -410,11 +408,11 @@ void PairLJCutTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
               v[3] -= x[j].x * dely * cforce;
               v[4] -= x[j].x * delz * cforce;
               v[5] -= x[j].y * delz * cforce;
-              vlist[n++] = j;
             }
+            vlist[n++] = j;
 
           } else {
-            if (VFLAG) key += 2;
+            key += 2;
 
             fdx = -delx*cforce;
             fdy = -dely*cforce;
@@ -449,10 +447,10 @@ void PairLJCutTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
               v[3] += x[j].x*fOy + xH1.x*fHy + xH2.x*fHy;
               v[4] += x[j].x*fOz + xH1.x*fHz + xH2.x*fHz;
               v[5] += x[j].y*fOz + xH1.y*fHz + xH2.y*fHz;
-              vlist[n++] = j;
-              vlist[n++] = jH1;
-              vlist[n++] = jH2;
             }
+            vlist[n++] = j;
+            vlist[n++] = jH1;
+            vlist[n++] = jH2;
           }
 
           if (EFLAG) {

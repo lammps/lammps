@@ -28,7 +28,7 @@ replicate       $x $y $z
 compute		rot all temp/asphere
 group		spheroid type 1
 variable	dof equal count(spheroid)+3
-compute_modify	rot extra ${dof}
+compute_modify	rot extra/dof ${dof}
 
 pair_style	gayberne 1.0 3.0 1.0 4.0
 pair_coeff	1 1 1.0 1.0 1.0 0.5 0.2 1.0 0.5 0.2

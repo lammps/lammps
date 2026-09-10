@@ -36,7 +36,8 @@ using MathConst::MY_PIS;
 
 /* ---------------------------------------------------------------------- */
 
-PairCoulLongDielectric::PairCoulLongDielectric(LAMMPS *_lmp) : PairCoulLong(_lmp), efield(nullptr)
+PairCoulLongDielectric::PairCoulLongDielectric(LAMMPS *_lmp) :
+    PairCoulLong(_lmp), efield(nullptr), avec(nullptr)
 {
   nmax = 0;
   single_enable = 0;
@@ -144,7 +145,7 @@ void PairCoulLongDielectric::compute(int eflag, int vflag)
           rsq_lookup.f = rsq;
           itable = rsq_lookup.i & ncoulmask;
           itable >>= ncoulshiftbits;
-          fraction = (rsq_lookup.f - rtable[itable]) * drtable[itable];
+          fraction = ((double) rsq_lookup.f - rtable[itable]) * drtable[itable];
           table = ftable[itable] + fraction * dftable[itable];
           forcecoul = scale[itype][jtype] * qtmp * q[j] * table;
           efield_i = scale[itype][jtype] * q[j] * table;

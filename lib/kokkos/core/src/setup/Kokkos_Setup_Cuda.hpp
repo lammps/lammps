@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_CUDA_SETUP_HPP_
 #define KOKKOS_CUDA_SETUP_HPP_
@@ -59,7 +46,8 @@
 #define KOKKOS_DEDUCTION_GUIDE __host__ __device__
 
 #define KOKKOS_IMPL_FORCEINLINE_FUNCTION __device__ __host__ __forceinline__
-#define KOKKOS_IMPL_FORCEINLINE __forceinline__
+#define KOKKOS_IMPL_FORCEINLINE_ATTRIBUTE __forceinline__
+#define KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION __forceinline__
 #define KOKKOS_IMPL_INLINE_FUNCTION __device__ __host__ inline
 #define KOKKOS_IMPL_FUNCTION __device__ __host__
 #define KOKKOS_IMPL_HOST_FUNCTION __host__
@@ -72,5 +60,13 @@
 #define KOKKOS_IMPL_RELOCATABLE_FUNCTION @"KOKKOS_RELOCATABLE_FUNCTION requires Kokkos_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE=ON"
 #endif
 // clang-format on
+
+#if !(defined(KOKKOS_ARCH_MAXWELL50) || defined(KOKKOS_ARCH_MAXWELL52))
+#define KOKKOS_IMPL_HALF_TYPE_DEFINED
+#define KOKKOS_IMPL_BHALF_TYPE_DEFINED
+#if defined(__CUDA_ARCH__)
+#define KOKKOS_HALF_IS_FULL_TYPE_ON_ARCH
+#endif
+#endif
 
 #endif /* KOKKOS_CUDA_SETUP_HPP_ */

@@ -1,20 +1,14 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+import kokkos.core_impl;
+#else
 #include <Kokkos_Core.hpp>
+#endif
+#include <Kokkos_TypeInfo.hpp>
 
 #include <gtest/gtest.h>
 
@@ -24,8 +18,15 @@ template <class ViewTypeDst, class ViewTypeSrc>
 struct TestAssignability {
   using mapping_type =
       Kokkos::Impl::ViewMapping<typename ViewTypeDst::traits,
-                                typename ViewTypeSrc::traits,
-                                typename ViewTypeDst::specialize>;
+                                typename ViewTypeSrc::traits
+#ifdef KOKKOS_ENABLE_IMPL_VIEW_LEGACY
+                                ,
+                                typename ViewTypeDst::specialize
+#else
+                                ,
+                                void
+#endif
+                                >;
 
   template <class MappingType>
   static void try_assign(
@@ -148,5 +149,46 @@ TEST(TEST_CATEGORY, view_is_assignable) {
   static_assert(is_always_assignable_v<SomeViewType&, SomeViewType&>);
   static_assert(is_always_assignable_v<SomeViewType&, SomeViewType const>);
   static_assert(is_always_assignable_v<SomeViewType&, SomeViewType const&>);
+
+#ifndef KOKKOS_ENABLE_IMPL_VIEW_LEGACY
+  // Check assignment to const qualified Views is false
+  static_assert(!is_always_assignable_v<SomeViewType const, SomeViewType>);
+  static_assert(!is_always_assignable_v<SomeViewType const&, SomeViewType>);
+  {
+    SomeViewType non_const_view("V", 10);
+    const SomeViewType const_view;
+    ASSERT_FALSE(Kokkos::is_assignable(const_view, non_const_view));
+  }
+#endif
+
+  // Rank mismatch: is_always_assignable_v must be false (consteval false case)
+  using RankMismatchView1D = View<int*, left, d_exec>;
+  using RankMismatchView2D = View<int**, left, d_exec>;
+  static_assert(
+      !is_always_assignable_v<RankMismatchView1D, RankMismatchView2D>);
+  static_assert(
+      !is_always_assignable_v<RankMismatchView2D, RankMismatchView1D>);
+
+  // Rank mismatch: is_assignable must compile and return false (not cause a
+  // compile error due to a non-static impl_runtime_value in the primary
+  // template of is_assignable_impl)
+  {
+    RankMismatchView1D v1d;
+    RankMismatchView2D v2d("v2d", 10, 10);
+    ASSERT_FALSE(Kokkos::is_assignable(v1d, v2d));
+    ASSERT_FALSE(Kokkos::is_assignable(v2d, v1d));
+  }
+
+  // CV-qualified element types: adding const to the element type is allowed;
+  // removing const is not
+  using ConstElementView = View<const int*, left, d_exec>;
+  static_assert(is_always_assignable_v<ConstElementView, SomeViewType>);
+  static_assert(!is_always_assignable_v<SomeViewType, ConstElementView>);
+  {
+    ConstElementView cv;
+    SomeViewType v("v", 10);
+    ASSERT_TRUE(Kokkos::is_assignable(cv, v));
+    ASSERT_FALSE(Kokkos::is_assignable(v, cv));
+  }
 }
 }  // namespace Test

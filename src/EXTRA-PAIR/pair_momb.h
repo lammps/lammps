@@ -49,7 +49,7 @@ class PairMomb : public Pair {
   double **morse1;
   double **offset;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }    // namespace LAMMPS_NS

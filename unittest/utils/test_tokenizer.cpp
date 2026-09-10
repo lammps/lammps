@@ -17,7 +17,10 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
-#include <cstdint>
+#include <cfloat>
+#include <string>
+#include <utility>
+#include <vector>
 
 using namespace LAMMPS_NS;
 using ::testing::Eq;
@@ -159,7 +162,7 @@ TEST(Tokenizer, unix_paths)
 
 TEST(Tokenizer, windows_paths)
 {
-    Tokenizer t("c:\\one;\\two\\three;d:four;", ";");
+    Tokenizer t(R"(c:\one;\two\three;d:four;)", ";");
     ASSERT_EQ(t.count(), 3);
     ASSERT_THAT(t.next(), Eq("c:\\one"));
     ASSERT_EQ(t.has_next(), true);
@@ -364,6 +367,31 @@ TEST(ValueTokenizer, valid_int)
     ASSERT_EQ(values.next_int(), 10);
     ASSERT_EQ(values.next_int(), -MAXSMALLINT - 1);
     ASSERT_EQ(values.next_int(), MAXSMALLINT);
+}
+
+TEST(ValueTokenizer, bracket_separators)
+{
+    // mirrors compute property/atom parsing of history[I][J]: splitting on the
+    // bracket characters collapses the empty field between "][" so there are no
+    // empty tokens and the two indices come out cleanly
+    ValueTokenizer values("history[1][2]", "[]");
+    ASSERT_EQ(values.count(), 3u);
+    ASSERT_EQ(values.next_string(), "history");
+    ASSERT_EQ(values.next_int(), 1);
+    ASSERT_EQ(values.next_int(), 2);
+
+    // skip() the keyword then read the two indices, exactly as the caller does
+    ValueTokenizer idx("history[10][200]", "[]");
+    idx.skip();
+    ASSERT_EQ(idx.next_int(), 10);
+    ASSERT_EQ(idx.next_int(), 200);
+
+    // a value that matches \d+ but overflows int throws InvalidIntegerException,
+    // which is why the caller converts with utils::inumeric (clean error) rather
+    // than relying on next_int()
+    ValueTokenizer big("history[99999999999999999999][1]", "[]");
+    big.skip();
+    ASSERT_THROW(big.next_int(), InvalidIntegerException);
 }
 
 TEST(ValueTokenizer, valid_tagint)

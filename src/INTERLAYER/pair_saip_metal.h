@@ -27,9 +27,9 @@ namespace LAMMPS_NS {
 class PairSAIPMETAL : virtual public PairILPGrapheneHBN {
  public:
   PairSAIPMETAL(class LAMMPS *);
+  void settings(int, char **) override;
 
  protected:
-  void settings(int, char **) override;
   void calc_FRep(int, int) override;
 };
 

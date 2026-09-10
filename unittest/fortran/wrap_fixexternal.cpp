@@ -2,11 +2,9 @@
 // unit tests for gathering and scattering data from a LAMMPS instance through
 // the Fortran wrapper
 
-#include "lammps.h"
 #include "library.h"
-#include <cstdint>
+
 #include <cstdlib>
-#include <mpi.h>
 #include <string>
 
 #include "gtest/gtest.h"
@@ -28,7 +26,10 @@ void f_lammps_find_peratom_virial(double[6], int);
 void f_lammps_fixexternal_set_vector();
 }
 
-using namespace LAMMPS_NS;
+// forward decl
+namespace LAMMPS_NS {
+class LAMMPS;
+}
 
 class LAMMPS_fixexternal : public ::testing::Test {
 protected:

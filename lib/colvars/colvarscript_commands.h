@@ -103,8 +103,8 @@ CVSCRIPT(cv_addenergy,
          "E : float - Amount of energy to add",
          char const *Earg =
            script->obj_to_str(script->get_module_cmd_arg(0, objc, objv));
-         cvm::main()->total_bias_energy += strtod(Earg, NULL);
-         return cvm::get_error(); // TODO Make this multi-language
+         script->module()->total_bias_energy += strtod(Earg, NULL);
+         return script->module()->get_error(); // TODO Make this multi-language
          )
 
 CVSCRIPT(cv_bias,
@@ -250,7 +250,7 @@ CVSCRIPT(cv_resetatomappliedforces,
          0, 0,
          "",
             size_t i;
-            std::vector<cvm::rvector> *f = script->proxy()->modify_atom_applied_forces();
+            auto *f = script->proxy()->modify_atom_applied_forces();
             for (i = 0; i < f->size(); i++) {
               (*f)[i].reset();
             }
@@ -307,7 +307,7 @@ CVSCRIPT(cv_getconfig,
          "conf : string - Current configuration string",
          0, 0,
          "",
-         script->set_result_str(cvm::main()->get_config());
+         script->set_result_str(script->module()->get_config());
          return COLVARS_OK;
          )
 
@@ -316,7 +316,7 @@ CVSCRIPT(cv_getenergy,
          "E : float - Amount of energy (internal units)",
          0, 0,
          "",
-         script->set_result_real(cvm::main()->total_bias_energy);
+         script->set_result_real(script->module()->total_bias_energy);
          return COLVARS_OK;
          )
 
@@ -352,7 +352,7 @@ CVSCRIPT(cv_getstepabsolute,
          "step : int - Absolute step number",
          0, 0,
          "",
-         script->set_result_int(cvm::step_absolute());
+         script->set_result_int(script->module()->step_absolute());
          return COLVARS_OK;
          )
 
@@ -361,7 +361,7 @@ CVSCRIPT(cv_getsteprelative,
          "step : int - Relative step number",
          0, 0,
          "",
-         script->set_result_int(cvm::step_relative());
+         script->set_result_int(script->module()->step_relative());
          return COLVARS_OK;
          )
 
@@ -383,7 +383,7 @@ CVSCRIPT(cv_help,
                script->set_result_str(script->get_command_cmdline_help(colvarscript::use_module,
                                                                        cmdstr));
              }
-             return cvm::get_error();
+             return script->module()->get_error();
            } else {
              return COLVARSCRIPT_ERROR;
            }
@@ -488,7 +488,7 @@ CVSCRIPT(cv_load,
          char const *arg =
            script->obj_to_str(script->get_module_cmd_arg(0, objc, objv));
          int error_code =
-           script->proxy()->set_input_prefix(cvm::state_file_prefix(arg));
+           script->proxy()->set_input_prefix(script->module()->state_file_prefix(arg));
          error_code |= script->module()->setup_input();
          if (error_code != COLVARS_OK) {
            script->add_error_msg("Error loading state file");
@@ -541,6 +541,15 @@ CVSCRIPT(cv_printframe,
          return COLVARS_OK;
          )
 
+CVSCRIPT(cv_patchversion,
+         "Get the Colvars patch version number (used for bugfixes only)\n"
+         "version : string - Colvars version",
+         0, 0,
+         "",
+         script->set_result_int(script->module()->patch_version_number());
+         return COLVARS_OK;
+         )
+
 CVSCRIPT(cv_printframelabels,
          "Return the labels that would be written to colvars.traj\n"
          "Labels : string - The labels",
@@ -556,7 +565,7 @@ CVSCRIPT(cv_reset,
          "Delete all internal configuration",
          0, 0,
          "",
-         cvm::log("Resetting the Collective Variables module.");
+         script->module()->log("Resetting the Collective Variables module.");
          return script->module()->reset();
          )
 
@@ -564,8 +573,8 @@ CVSCRIPT(cv_resetindexgroups,
          "Clear the index groups loaded so far, allowing to replace them",
          0, 0,
          "",
-         cvm::main()->index_group_names.clear();
-         cvm::main()->index_groups.clear();
+         script->module()->index_group_names.clear();
+         script->module()->index_groups.clear();
          return COLVARS_OK;
          )
 
@@ -574,7 +583,7 @@ CVSCRIPT(cv_save,
          1, 1,
          "prefix : string - Output prefix with trailing \".colvars.state\" gets removed)",
          std::string const prefix =
-           cvm::state_file_prefix(script->obj_to_str(script->get_module_cmd_arg(0, objc, objv)));
+           script->module()->state_file_prefix(script->obj_to_str(script->get_module_cmd_arg(0, objc, objv)));
          int error_code = script->proxy()->set_output_prefix(prefix);
          error_code |= script->module()->setup_output();
          error_code |= script->module()->write_restart_file(prefix+
@@ -627,9 +636,9 @@ CVSCRIPT(cv_units,
          char const *argstr =
            script->obj_to_str(script->get_module_cmd_arg(0, objc, objv));
          if (argstr) {
-           return cvm::proxy->set_unit_system(argstr, false);
+           return script->module()->proxy->set_unit_system(argstr, false);
          } else {
-           script->set_result_str(cvm::proxy->units);
+           script->set_result_str(script->module()->proxy->units);
            return COLVARS_OK;
          }
          )
@@ -656,16 +665,16 @@ CVSCRIPT(cv_update,
          )
 
 CVSCRIPT(cv_version,
-         "Get the Colvars Module version string\n"
+         "Get the Colvars version string\n"
          "version : string - Colvars version",
          0, 0,
          "",
-         script->set_result_str(COLVARS_VERSION);
+         script->set_result_str(script->module()->version());
          return COLVARS_OK;
          )
 
 // This guard allows compiling colvar and bias function bodies in their
-// respecitve files instead of colvarscript_commands.o
+// respective files instead of colvarscript_commands.o
 #ifndef COLVARSCRIPT_COMMANDS_GLOBAL
 #include "colvarscript_commands_colvar.h"
 #include "colvarscript_commands_bias.h"

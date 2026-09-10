@@ -116,8 +116,10 @@ void PairREBOMoSOMP::REBO_neigh_thr()
     memory->create(nS,maxlocal,"REBOMoS:nS");
   }
 
+  int overflow = 0;
+
 #if defined(_OPENMP)
-#pragma omp parallel LMP_DEFAULT_NONE
+#pragma omp parallel LMP_DEFAULT_NONE reduction(+:overflow)
 #endif
   {
     int i,j,ii,jj,n,jnum,itype,jtype;
@@ -185,10 +187,15 @@ void PairREBOMoSOMP::REBO_neigh_thr()
       REBO_firstneigh[i] = neighptr;
       REBO_numneigh[i] = n;
       ipg.vgot(n);
-      if (ipg.status())
-        error->one(FLERR, Error::NOLASTLINE, "REBO list overflow, boost neigh_modify one" + utils::errorurl(36));
+      if (ipg.status()) {
+        overflow = 1;
+        break;
+      }
     }
   }
+  if (overflow)
+    error->one(FLERR, Error::NOLASTLINE,
+               "REBO list overflow, boost neigh_modify one" + utils::errorurl(36));
 }
 
 /* ----------------------------------------------------------------------

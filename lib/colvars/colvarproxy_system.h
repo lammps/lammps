@@ -10,6 +10,7 @@
 #ifndef COLVARPROXY_SYSTEM_H
 #define COLVARPROXY_SYSTEM_H
 
+#include "colvars_system.h"
 
 /// Methods for accessing the simulation system (PBCs, integrator, etc)
 class colvarproxy_system {
@@ -70,21 +71,31 @@ public:
   /// Set the current integration timestep of the simulation (fs units)
   virtual int set_integration_timestep(cvm::real dt);
 
+  /// Time step of the simulation (fs units)
+  inline int time_step_factor() const
+  {
+    return time_step_factor_;
+  }
+
+  /// Set the current integration timestep of the simulation (fs units)
+  virtual int set_time_step_factor(int fact);
+
   /// \brief Pseudo-random number with Gaussian distribution
   virtual cvm::real rand_gaussian(void);
 
   /// Pass restraint energy value for current timestep to MD engine
   virtual void add_energy(cvm::real energy);
 
-  /// \brief Get the PBC-aware distance vector between two positions
+  /// Account for system boundaries within the Colvars library (as opposed to using the MD engine)
+  inline bool & use_internal_pbc() { return use_internal_pbc_; }
+
+  /// Get the PBC-aware distance vector between two positions (using Colvars internal boundary handling)
   virtual cvm::rvector position_distance(cvm::atom_pos const &pos1,
                                          cvm::atom_pos const &pos2) const;
-
-  /// Recompute PBC reciprocal lattice (assumes XYZ periodicity)
-  void update_pbc_lattice();
-
-  /// Set the lattice vectors to zero
-  void reset_pbc_lattice();
+  /// Get the current system boundary conditions
+  inline cvm::system_boundary_conditions const &get_system_boundaries() const {
+    return boundaries_;
+  }
 
   /// \brief Tell the proxy whether total forces are needed (they may not
   /// always be available)
@@ -94,6 +105,7 @@ public:
   virtual bool total_forces_enabled() const;
 
   /// Are total forces from the current step available?
+  /// in which case they are really system forces
   virtual bool total_forces_same_step() const;
 
   /// Get the molecule ID when called in VMD; raise error otherwise
@@ -109,6 +121,11 @@ public:
   /// Send cached value of alchemical lambda parameter to back-end (if available)
   virtual int send_alch_lambda();
 
+  /// Request energy computation every freq steps (necessary for NAMD3, not all back-ends)
+  virtual int request_alch_energy_freq(int const /* freq */) {
+    return COLVARS_OK;
+  }
+
   /// Get energy derivative with respect to lambda (if available)
   virtual int get_dE_dlambda(cvm::real* dE_dlambda);
 
@@ -123,7 +140,7 @@ public:
 
   /// Get weight factor from accelMD
   virtual cvm::real get_accelMD_factor() const {
-    cvm::error("Error: accessing the reweighting factor of accelerated MD  "
+    cvm::error_static("Error: accessing the reweighting factor of accelerated MD  "
                "is not yet implemented in the MD engine.\n",
                COLVARS_NOT_IMPLEMENTED);
     return 1.0;
@@ -149,6 +166,9 @@ protected:
   /// Current integration timestep (engine units); default to 1.0 if undefined
   double timestep_;
 
+  /// Current timestep multiplier, if Colvars is only called once every n MD timesteps
+  int time_step_factor_ = 1;
+
   /// \brief Value of 1 Angstrom in the internal (front-end) Colvars unit for atomic coordinates
   /// * defaults to 0 in the base class; derived proxy classes must set it
   /// * in VMD proxy, can only be changed when no variables are defined
@@ -161,26 +181,12 @@ protected:
   /// Whether the total forces have been requested
   bool total_force_requested;
 
-  /// \brief Type of boundary conditions
-  ///
-  /// Orthogonal and triclinic cells are made available to objects.
-  /// For any other conditions (mixed periodicity, triclinic cells in LAMMPS)
-  /// minimum-image distances are computed by the host engine regardless.
-  enum Boundaries_type {
-    boundaries_non_periodic,
-    boundaries_pbc_ortho,
-    boundaries_pbc_triclinic,
-    boundaries_unsupported
-  };
+  /// Use the PBC functions from the Colvars library (as opposed to MD engine)
+  bool use_internal_pbc_ = false;
 
-  /// Type of boundary conditions
-  Boundaries_type boundaries_type;
-
-  /// Bravais lattice vectors
-  cvm::rvector unit_cell_x, unit_cell_y, unit_cell_z;
-
-  /// Reciprocal lattice vectors
-  cvm::rvector reciprocal_cell_x, reciprocal_cell_y, reciprocal_cell_z;
+  /// Current system boundary conditions
+  cvm::system_boundary_conditions boundaries_;
 };
+
 
 #endif

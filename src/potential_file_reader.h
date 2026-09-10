@@ -41,6 +41,7 @@ class PotentialFileReader : protected Pointers {
                       const int auto_convert = 0);
   ~PotentialFileReader() override;
 
+  void set_bufsize(int bufsize);
   void ignore_comments(bool value);
 
   void rewind();
@@ -58,7 +59,7 @@ class PotentialFileReader : protected Pointers {
   std::string next_string();
 
   // unit conversion info
-  int get_unit_convert() const { return unit_convert; }
+  [[nodiscard]] int get_unit_convert() const { return unit_convert; }
 };
 
 }    // namespace LAMMPS_NS

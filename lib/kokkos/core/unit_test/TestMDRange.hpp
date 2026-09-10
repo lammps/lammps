@@ -1,25 +1,18 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #include <cstdio>
 #include <sstream>
+#include <type_traits>
 
 #include <gtest/gtest.h>
 
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+#else
 #include <Kokkos_Core.hpp>
+#endif
 
 namespace Test {
 
@@ -28,10 +21,77 @@ namespace {
 using namespace Kokkos;
 
 template <typename ExecSpace>
+constexpr bool mdrange_array_reduce_runtime_supported =
+#if defined(KOKKOS_ENABLE_OPENACC)  // FIXME_OPENACC
+    !std::is_same_v<ExecSpace, Kokkos::Experimental::OpenACC>;
+#else
+    true;
+#endif
+
+template <typename ExecSpace>
+struct TestMDRange_ReduceArray_1D {
+  using DataType       = int;
+  using ViewType_1     = typename Kokkos::View<DataType *, ExecSpace>;
+  using HostViewType_1 = typename ViewType_1::host_mirror_type;
+
+  ViewType_1 input_view;
+
+  using scalar_type = double;
+  using value_type  = scalar_type[];
+  const unsigned value_count;
+
+  TestMDRange_ReduceArray_1D(const int N0, const unsigned array_size)
+      : input_view("input_view", N0), value_count(array_size) {}
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(const int i) const { input_view(i) = 1; }
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(const int i, value_type lsum) const {
+    lsum[0] += input_view(i) * 2;
+    lsum[1] += input_view(i);
+  }
+
+  struct InitTag {};
+  KOKKOS_INLINE_FUNCTION
+  void operator()(const InitTag &, const int i) const { input_view(i) = 3; }
+
+  static void test_arrayreduce1(const int N0) {
+    using range_type_init =
+        typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<1>,
+                                       Kokkos::IndexType<int>, InitTag>;
+    using range_type =
+        typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<1>,
+                                       Kokkos::IndexType<int>>;
+
+    using point_type = typename range_type::point_type;
+    using tile_type  = typename range_type::tile_type;
+
+    range_type_init range_init(point_type{0}, point_type{N0}, tile_type{3});
+    range_type range(point_type{0}, point_type{N0}, tile_type{3});
+    if constexpr (!mdrange_array_reduce_runtime_supported<ExecSpace>) {
+      GTEST_SKIP() << "OpenACC MDRangePolicy does not support array reductions";
+    } else {
+      const unsigned array_size = 2;
+      TestMDRange_ReduceArray_1D functor(N0, array_size);
+
+      parallel_for(range_init, functor);
+
+      double sums[array_size];
+      Kokkos::fence("Fence before accessing result on the host");
+      parallel_reduce(range, functor, sums);
+
+      ASSERT_EQ(sums[0], 6 * N0);
+      ASSERT_EQ(sums[1], 3 * N0);
+    }
+  }
+};
+
+template <typename ExecSpace>
 struct TestMDRange_ReduceArray_2D {
   using DataType       = int;
   using ViewType_2     = typename Kokkos::View<DataType **, ExecSpace>;
-  using HostViewType_2 = typename ViewType_2::HostMirror;
+  using HostViewType_2 = typename ViewType_2::host_mirror_type;
 
   ViewType_2 input_view;
 
@@ -60,7 +120,9 @@ struct TestMDRange_ReduceArray_2D {
   }
 
   static void test_arrayreduce2(const int N0, const int N1) {
-    {
+    if constexpr (!mdrange_array_reduce_runtime_supported<ExecSpace>) {
+      GTEST_SKIP() << "OpenACC MDRangePolicy does not support array reductions";
+    } else {
       using range_type_init =
           typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<2>,
                                          Kokkos::IndexType<int>, InitTag>;
@@ -96,10 +158,196 @@ struct TestMDRange_ReduceArray_2D {
 };
 
 template <typename ExecSpace>
+struct TestMDRange_1D {
+  using DataType     = int;
+  using ViewType     = typename Kokkos::View<DataType *, ExecSpace>;
+  using HostViewType = typename ViewType::host_mirror_type;
+  using value_type   = double;
+
+  using range_type = typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<1>,
+                                                    Kokkos::IndexType<int>>;
+  using tile_type  = typename range_type::tile_type;
+  using point_type = typename range_type::point_type;
+
+  struct InitTag {};
+  using range_type_init =
+      typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<1>,
+                                     Kokkos::IndexType<int>, InitTag>;
+
+  ViewType input_view;
+
+  TestMDRange_1D(const DataType N0) : input_view("input_view", N0) {}
+
+  // Exercise the accepted 1D constructor spellings.
+  static void test_construct_policies(const int N0) {
+    [[maybe_unused]] const int s0 = 1;
+    ExecSpace exec_space;
+    (void)range_type(point_type{0}, point_type{N0}, tile_type{3});
+    (void)range_type({0}, {N0}, {3});
+    (void)range_type({s0}, {N0}, {3});
+    (void)range_type(point_type{0}, point_type{N0});
+    (void)range_type({0}, {N0});
+    (void)range_type(exec_space, point_type{0}, point_type{N0}, tile_type{3});
+    (void)range_type(exec_space, {0}, {N0}, {3});
+    (void)range_type(exec_space, point_type{0}, point_type{N0});
+    (void)range_type(exec_space, {0}, {N0});
+
+    (void)range_type_init(point_type{0}, point_type{N0}, tile_type{3});
+    (void)range_type_init({0}, {N0}, {3});
+    (void)range_type_init(point_type{0}, point_type{N0});
+    (void)range_type_init({0}, {N0});
+    (void)range_type_init(exec_space, point_type{0}, point_type{N0},
+                          tile_type{3});
+    (void)range_type_init(exec_space, {0}, {N0}, {3});
+    (void)range_type_init(exec_space, point_type{0}, point_type{N0});
+    (void)range_type_init(exec_space, {0}, {N0});
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(const int i) const { input_view(i) = 1; }
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(const int i, value_type &lsum) const {
+    lsum += input_view(i) * 2;
+  }
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(const InitTag &, const int i) const { input_view(i) = 3; }
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(const InitTag &, const int i, value_type &lsum) const {
+    lsum += input_view(i) * 3;
+  }
+
+  static void test_reduce1(const int N0) {
+    {
+      {
+        range_type range(point_type{0}, point_type{N0});
+        double sum = 0.0;
+        parallel_reduce(
+            range,
+            KOKKOS_LAMBDA(const int /*i*/, double &lsum) { lsum += 1.0; }, sum);
+        ASSERT_EQ(sum, N0);
+      }
+
+      {
+        range_type range(point_type{0}, point_type{N0}, tile_type{3});
+        double sum = 0.0;
+        parallel_reduce(
+            range,
+            KOKKOS_LAMBDA(const int /*i*/, double &lsum) { lsum += 1.0; }, sum);
+        ASSERT_EQ(sum, N0);
+      }
+
+      {
+        range_type range({0}, {N0}, {3});
+        TestMDRange_1D functor(N0);
+
+        parallel_for(range, functor);
+        double sum = 0.0;
+        parallel_reduce(range, functor, sum);
+
+        ASSERT_EQ(sum, 2 * N0);
+      }
+
+      {
+        const int s0 = 1;
+        range_type range({s0}, {N0}, {3});
+        TestMDRange_1D functor(N0);
+
+        parallel_for("rank1-parfor-label", range, functor);
+
+        value_type sum = 0.0;
+        Kokkos::Sum<value_type> reducer_scalar(sum);
+        parallel_reduce("rank1-reducer-label", range, functor, reducer_scalar);
+
+        ASSERT_EQ(sum, 2 * (N0 - s0));
+      }
+    }
+  }
+
+  static void test_for1(const int N0) {
+    {
+      {
+        const int s0 = 1;
+        range_type range({s0}, {N0}, {3});
+        ViewType v("v", N0);
+
+        parallel_for(
+            "rank1-offset-init", range,
+            KOKKOS_LAMBDA(const int i) { v(i) = 3; });
+
+        HostViewType h_view = Kokkos::create_mirror_view(v);
+        Kokkos::deep_copy(h_view, v);
+
+        int counter = 0;
+        for (int i = s0; i < N0; ++i) {
+          if (h_view(i) != 3) ++counter;
+        }
+
+        ASSERT_EQ(counter, 0);
+      }
+
+      {
+        const int s0 = 1;
+        range_type_init range({s0}, {N0}, {3});
+        TestMDRange_1D functor(N0);
+
+        parallel_for(range, functor);
+
+        HostViewType h_view = Kokkos::create_mirror_view(functor.input_view);
+        Kokkos::deep_copy(h_view, functor.input_view);
+
+        int counter = 0;
+        for (int i = s0; i < N0; ++i) {
+          if (h_view(i) != 3) ++counter;
+        }
+
+        ASSERT_EQ(counter, 0);
+      }
+
+      {
+        range_type_init range(point_type{0}, point_type{N0});
+        TestMDRange_1D functor(N0);
+
+        parallel_for(range, functor);
+
+        HostViewType h_view = Kokkos::create_mirror_view(functor.input_view);
+        Kokkos::deep_copy(h_view, functor.input_view);
+
+        int counter = 0;
+        for (int i = 0; i < N0; ++i) {
+          if (h_view(i) != 3) ++counter;
+        }
+
+        ASSERT_EQ(counter, 0);
+      }
+
+      {
+        range_type_init range({0}, {N0});
+        TestMDRange_1D functor(N0);
+
+        parallel_for(range, functor);
+
+        HostViewType h_view = Kokkos::create_mirror_view(functor.input_view);
+        Kokkos::deep_copy(h_view, functor.input_view);
+
+        int counter = 0;
+        for (int i = 0; i < N0; ++i) {
+          if (h_view(i) != 3) ++counter;
+        }
+
+        ASSERT_EQ(counter, 0);
+      }
+    }
+  }
+};
+
+template <typename ExecSpace>
 struct TestMDRange_ReduceArray_3D {
   using DataType       = int;
   using ViewType_3     = typename Kokkos::View<DataType ***, ExecSpace>;
-  using HostViewType_3 = typename ViewType_3::HostMirror;
+  using HostViewType_3 = typename ViewType_3::host_mirror_type;
 
   ViewType_3 input_view;
 
@@ -147,7 +395,9 @@ struct TestMDRange_ReduceArray_3D {
   }
 
   static void test_arrayreduce3(const int N0, const int N1, const int N2) {
-    {
+    if constexpr (!mdrange_array_reduce_runtime_supported<ExecSpace>) {
+      GTEST_SKIP() << "OpenACC MDRangePolicy does not support array reductions";
+    } else {
       using range_type_init =
           typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<3>,
                                          Kokkos::IndexType<int>, InitTag>;
@@ -182,7 +432,7 @@ template <typename ExecSpace>
 struct TestMDRange_2D {
   using DataType     = int;
   using ViewType     = typename Kokkos::View<DataType **, ExecSpace>;
-  using HostViewType = typename ViewType::HostMirror;
+  using HostViewType = typename ViewType::host_mirror_type;
 
   ViewType input_view;
   using value_type = double;
@@ -808,7 +1058,7 @@ template <typename ExecSpace>
 struct TestMDRange_3D {
   using DataType     = int;
   using ViewType     = typename Kokkos::View<DataType ***, ExecSpace>;
-  using HostViewType = typename ViewType::HostMirror;
+  using HostViewType = typename ViewType::host_mirror_type;
 
   ViewType input_view;
   using value_type = double;
@@ -1426,7 +1676,7 @@ template <typename ExecSpace>
 struct TestMDRange_4D {
   using DataType     = int;
   using ViewType     = typename Kokkos::View<DataType ****, ExecSpace>;
-  using HostViewType = typename ViewType::HostMirror;
+  using HostViewType = typename ViewType::host_mirror_type;
 
   ViewType input_view;
   using value_type = double;
@@ -2124,7 +2374,7 @@ template <typename ExecSpace>
 struct TestMDRange_5D {
   using DataType     = int;
   using ViewType     = typename Kokkos::View<DataType *****, ExecSpace>;
-  using HostViewType = typename ViewType::HostMirror;
+  using HostViewType = typename ViewType::host_mirror_type;
 
   ViewType input_view;
   using value_type = double;
@@ -2768,7 +3018,7 @@ template <typename ExecSpace>
 struct TestMDRange_6D {
   using DataType     = int;
   using ViewType     = typename Kokkos::View<DataType ******, ExecSpace>;
-  using HostViewType = typename ViewType::HostMirror;
+  using HostViewType = typename ViewType::host_mirror_type;
 
   ViewType input_view;
   using value_type = double;
@@ -3532,12 +3782,56 @@ struct TestMDRange_6D {
 };
 
 template <typename ExecSpace>
+struct TestMDRange_1D_NegIdx {
+  using value_type = double;
+
+  using DataType     = int;
+  using ViewType     = typename Kokkos::View<DataType *, ExecSpace>;
+  using HostViewType = typename ViewType::host_mirror_type;
+  using range_type = typename Kokkos::MDRangePolicy<ExecSpace, Kokkos::Rank<1>,
+                                                    Kokkos::IndexType<int>>;
+  using tile_type  = typename range_type::tile_type;
+  using point_type = typename range_type::point_type;
+
+  ViewType input_view;
+  DataType lower_offset;
+
+  TestMDRange_1D_NegIdx(const DataType L0, const DataType N0)
+      : input_view("input_view", N0 - L0), lower_offset(L0) {}
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(const int i) const { input_view(i - lower_offset) = 1; }
+
+  KOKKOS_INLINE_FUNCTION
+  void operator()(const int i, value_type &lsum) const {
+    lsum += input_view(i - lower_offset) * 2;
+  }
+
+  static void test_1D_negidx(const int N0) {
+    {
+      const point_type lower{-1};
+      const point_type upper{N0};
+      const tile_type tile{8};
+
+      range_type range(lower, upper, tile);
+      TestMDRange_1D_NegIdx functor(lower[0], upper[0]);
+
+      parallel_for(range, functor);
+      double sum = 0.0;
+      parallel_reduce(range, functor, sum);
+
+      ASSERT_EQ(sum, 2 * (upper[0] - lower[0]));
+    }
+  }
+};
+
+template <typename ExecSpace>
 struct TestMDRange_2D_NegIdx {
   using value_type = double;
 
   using DataType     = int;
   using ViewType     = typename Kokkos::View<DataType **, ExecSpace>;
-  using HostViewType = typename ViewType::HostMirror;
+  using HostViewType = typename ViewType::host_mirror_type;
 
   ViewType input_view;
   DataType lower_offset[2];
@@ -3594,7 +3888,7 @@ struct TestMDRange_3D_NegIdx {
 
   using DataType     = int;
   using ViewType     = typename Kokkos::View<DataType ***, ExecSpace>;
-  using HostViewType = typename ViewType::HostMirror;
+  using HostViewType = typename ViewType::host_mirror_type;
 
   ViewType input_view;
   DataType lower_offset[3];
@@ -3658,7 +3952,7 @@ struct TestMDRange_4D_NegIdx {
 
   using DataType     = int;
   using ViewType     = typename Kokkos::View<DataType ****, ExecSpace>;
-  using HostViewType = typename ViewType::HostMirror;
+  using HostViewType = typename ViewType::host_mirror_type;
 
   ViewType input_view;
   DataType lower_offset[4];
@@ -3725,7 +4019,7 @@ struct TestMDRange_5D_NegIdx {
 
   using DataType     = int;
   using ViewType     = typename Kokkos::View<DataType *****, ExecSpace>;
-  using HostViewType = typename ViewType::HostMirror;
+  using HostViewType = typename ViewType::host_mirror_type;
 
   ViewType input_view;
   DataType lower_offset[5];
@@ -3799,7 +4093,7 @@ struct TestMDRange_6D_NegIdx {
 
   using DataType     = int;
   using ViewType     = typename Kokkos::View<DataType ******, ExecSpace>;
-  using HostViewType = typename ViewType::HostMirror;
+  using HostViewType = typename ViewType::host_mirror_type;
 
   ViewType input_view;
   DataType lower_offset[6];
@@ -3883,15 +4177,6 @@ struct TestMDRange_ReduceScalar {
       for (int i = 0; i < 4; i++) v[i] = 0;
     }
 
-    KOKKOS_INLINE_FUNCTION
-    Scalar(const Scalar &src) {
-      for (int i = 0; i < 4; i++) v[i] = src.v[i];
-    }
-    KOKKOS_INLINE_FUNCTION
-    void operator=(const Scalar &src) {
-      if (&src == this) return;
-      for (int i = 0; i < 4; i++) v[i] = src.v[i];
-    }
     KOKKOS_INLINE_FUNCTION
     void operator+=(const Scalar &src) {
       for (int i = 0; i < 4; i++) v[i] += src.v[i];

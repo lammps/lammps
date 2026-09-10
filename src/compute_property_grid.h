@@ -61,7 +61,7 @@ class ComputePropertyGrid : public Compute {
   void allocate_grid();
   void deallocate_grid();
 
-  typedef void (ComputePropertyGrid::*FnPtrPack)(int);
+  using FnPtrPack = void (ComputePropertyGrid::*)(int);
   FnPtrPack *pack_choice;    // ptrs to pack functions
 
   void pack_id(int);

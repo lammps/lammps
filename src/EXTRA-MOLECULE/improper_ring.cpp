@@ -39,7 +39,6 @@
 
 #include "improper_ring.h"
 
-#include <cmath>
 #include "atom.h"
 #include "comm.h"
 #include "neighbor.h"
@@ -49,6 +48,8 @@
 #include "memory.h"
 #include "error.h"
 
+#include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -58,7 +59,7 @@ static constexpr double SMALL =     0.001;
 
 /* ---------------------------------------------------------------------- */
 
-ImproperRing::ImproperRing(LAMMPS *lmp) : Improper(lmp)
+ImproperRing::ImproperRing(LAMMPS *lmp) : Improper(lmp), k(nullptr), chi(nullptr)
 {
   // the second atom in the quadruplet is the atom of symmetry
 
@@ -69,6 +70,8 @@ ImproperRing::ImproperRing(LAMMPS *lmp) : Improper(lmp)
 
 ImproperRing::~ImproperRing()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(k);

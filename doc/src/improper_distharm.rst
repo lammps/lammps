@@ -1,7 +1,11 @@
 .. index:: improper_style distharm
+.. index:: improper_style distharm/kk
+.. index:: improper_style distharm/omp
 
 improper_style distharm command
 ===============================
+
+Accelerator Variants: *distharm/kk*, *distharm/omp*
 
 Syntax
 """"""
@@ -41,6 +45,21 @@ file or restart files read by the read_data or read_restart commands:
 
 * :math:`K` (energy/distance\^2)
 * :math:`d_0` (distance)
+
+----------
+
+Symmetry convention
+"""""""""""""""""""
+
+For the *distharm* improper style, the fourth atom in the quadruplet is the
+atom of symmetry; all other atoms are considered interchangeable.  This
+convention is relevant for operations that require knowledge of how atoms
+are ordered, such as automatic assignment of new improper types by
+:doc:`fix bond/react <fix_bond_react>`.
+
+----------
+
+.. include:: accel_styles.rst
 
 ----------
 

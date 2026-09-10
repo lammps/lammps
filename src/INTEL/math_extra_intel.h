@@ -19,6 +19,8 @@
 #ifndef LMP_MATH_EXTRA_INTEL_H
 #define LMP_MATH_EXTRA_INTEL_H
 
+#include <cmath>
+
 #define ME_quat_to_mat_trans(quat, mat)         \
 {                                               \
   flt_t quat_w = quat.w;                        \

@@ -1,16 +1,20 @@
 # stick a buckyball into a nanotube
+
+# enable GPU package from within the input:
+package gpu 0 pair/only on
+suffix gpu
+
 units           real
 dimension       3
 boundary       f f f
 atom_style      molecular
-newton          off
 
 processors * * 1
 
 # read topology 
 read_data       data.bucky-plus-cnt
 
-pair_style  lj/cut/gpu  10.0
+pair_style  lj/cut  10.0
 bond_style  harmonic
 angle_style charmm
 dihedral_style charmm
@@ -29,9 +33,6 @@ neigh_modify    delay 0 every 1 check yes
 
 timestep        2.0
 
-# required for GPU acceleration
-fix   gpu  all      gpu  force 0 0 1.0
-
 # we only move some atoms.
 group mobile type 1
 
@@ -49,8 +50,8 @@ fix     integrate   mobile nve
 fix     thermostat  mobile langevin 300.0 300.0 2000.0 234624
 
 # IMD setup.
-fix  comm       all imd 6789 unwrap on trate 10
-#fix  comm       all imd 6789 unwrap on trate 10 nowait on
+#fix  comm       all imd 6789 unwrap on trate 10
+fix  comm       all imd 6789 unwrap on trate 10 nowait on
 
 # temperature is based on mobile atoms only
 compute mobtemp mobile temp

@@ -33,7 +33,7 @@ class FixAccelerateCos : public Fix {
   FixAccelerateCos(class LAMMPS *, int, char **);
 
   int setmask() override;
-  void init() override{};
+  void init() override {};
   void setup(int) override;
   void post_force(int) override;
 

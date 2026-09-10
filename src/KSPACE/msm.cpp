@@ -131,8 +131,19 @@ void MSM::init()
   if (!atom->q_flag)
     error->all(FLERR, Error::NOLASTLINE, "Kspace style requires atom attribute q");
 
-  if ((slabflag == 1) && (me == 0))
-    error->warning(FLERR, "Slab correction not needed for MSM");
+  // MSM is a true non-periodic method: it handles non-periodic boundaries
+  // natively via the 'boundary' command, so the EW3DC slab correction is
+  // meaningless for MSM and is ignored.  The reset must run on all MPI ranks
+  // (not just rank 0): the shared KSpace::x2lamdaT() scales the z component by
+  // slab_volfactor when slabflag == 1, so a rank-dependent slab_volfactor would
+  // corrupt the parallel triclinic reciprocal-space transform.
+
+  if (slabflag == 1) {
+    if (me == 0)
+      error->warning(FLERR, "Slab correction not needed for MSM and will be ignored");
+    slabflag = 0;
+    slab_volfactor = 1.0;
+  }
 
   if ((order < 4) || (order > 10) || (order%2 != 0))
     error->all(FLERR, Error::NOLASTLINE, "MSM order must be 4, 6, 8, or 10");
@@ -147,7 +158,7 @@ void MSM::init()
   pair_check();
 
   int itmp;
-  auto p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
+  auto *p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
   if (p_cutoff == nullptr)
     error->all(FLERR, Error::NOLASTLINE, "KSpace style is incompatible with Pair style");
   cutoff = *p_cutoff;
@@ -661,7 +672,7 @@ void MSM::deallocate()
   memory->destroy2d_offset(phi1d,-order_allocated);
   memory->destroy2d_offset(dphi1d,-order_allocated);
 
-  if (gcall) delete gcall;
+  delete gcall;
   memory->destroy(gcall_buf1);
   memory->destroy(gcall_buf2);
   gcall = nullptr;
@@ -819,6 +830,10 @@ void MSM::allocate_levels()
 
 void MSM::deallocate_levels()
 {
+  // the per-atom virial grids are allocated per level, too, so they must be freed first
+
+  if (peratom_allocate_flag) deallocate_peratom();
+
   if (world_levels) {
     for (int n=0; n < levels; ++n) {
       memory->destroy3d_offset(qgrid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);
@@ -1065,7 +1080,7 @@ void MSM::set_grid_global()
 
     cutoff = pow(k*k*sum/3.0,1.0/(2.0*p));
     int itmp;
-    auto p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
+    auto *p_cutoff = (double *) force->pair->extract("cut_coul",itmp);
     *p_cutoff = cutoff;
 
     if (me == 0)
@@ -2516,7 +2531,7 @@ void MSM::grid_swap_reverse(int n, double*** &gridn)
 
 void MSM::pack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 {
-  auto buf = (double *) vbuf;
+  auto *buf = (double *) vbuf;
 
   int n = current_level;
   int k = 0;
@@ -2562,7 +2577,7 @@ void MSM::pack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 
 void MSM::unpack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 {
-  auto buf = (double *) vbuf;
+  auto *buf = (double *) vbuf;
 
   int n = current_level;
   int k = 0;
@@ -2608,7 +2623,7 @@ void MSM::unpack_forward_grid(int flag, void *vbuf, int nlist, int *list)
 
 void MSM::pack_reverse_grid(int flag, void *vbuf, int nlist, int *list)
 {
-  auto buf = (double *) vbuf;
+  auto *buf = (double *) vbuf;
 
   int n = current_level;
   int k = 0;
@@ -2654,7 +2669,7 @@ void MSM::pack_reverse_grid(int flag, void *vbuf, int nlist, int *list)
 
 void MSM::unpack_reverse_grid(int flag, void *vbuf, int nlist, int *list)
 {
-  auto buf = (double *) vbuf;
+  auto *buf = (double *) vbuf;
 
   int n = current_level;
   int k = 0;
@@ -3402,13 +3417,40 @@ double MSM::memory_usage()
 {
   double bytes = 0;
 
-  // NOTE: Stan, fill in other memory allocations here
+  // per-atom grid assignment
+  bytes += (double) nmax * 3 * sizeof(double);    // part2grid[nmax][3]
 
-  // all Grid3d bufs
+  // per-level charge and energy grids
+  for (int n = 0; n < levels; n++) {
+    if (!active_flag[n]) continue;
+    double nbrick = (double)(nxhi_out[n]-nxlo_out[n]+1) *
+                   (nyhi_out[n]-nylo_out[n]+1) *
+                   (nzhi_out[n]-nzlo_out[n]+1);
+    bytes += 2.0 * nbrick * sizeof(double);    // qgrid + egrid
+    if (peratom_allocate_flag)
+      bytes += 6.0 * nbrick * sizeof(double);  // v0..v5 grids
+  }
 
+  // direct-space lookup tables: g + v0..v5 (7 arrays)
+  if (g_direct) bytes += (double) levels * nmax_direct * 7 * sizeof(double);
+
+  // direct-space top-level tables (same structure, top level = levels-1)
+  if (g_direct_top && levels > 0) {
+    int n = levels - 1;
+    int nx_top = betax[n] - alpha[n];
+    int ny_top = betay[n] - alpha[n];
+    int nz_top = betaz[n] - alpha[n];
+    int nx = 2*nx_top + 1;
+    int ny = 2*ny_top + 1;
+    int nz = 2*nz_top + 1;
+    double nmax_top = (double) 8*(nx+1)*(ny+1)*(nz+1);
+    bytes += nmax_top * 7 * sizeof(double);
+  }
+
+  // Grid3d communication buffers
   bytes += (double)(ngcall_buf1 + ngcall_buf2) * npergrid * sizeof(double);
 
-  for (int n=0; n<levels; n++)
+  for (int n = 0; n < levels; n++)
     if (active_flag[n])
       bytes += (double)(ngc_buf1[n] + ngc_buf2[n]) * npergrid * sizeof(double);
 

@@ -1,20 +1,14 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+#else
 #include <Kokkos_Core.hpp>
+#endif
+#include <Kokkos_Assert.hpp>
+
 #include <benchmark/benchmark.h>
 #include "PerfTest_Category.hpp"
 
@@ -159,10 +153,7 @@ static void OverlapRangePolicy(benchmark::State& state) {
   int R = state.range(2);
 
   TEST_EXECSPACE space;
-  std::vector<TEST_EXECSPACE> execution_space_instances =
-      Kokkos::Experimental::partition_space(space, 1, 1);
-  TEST_EXECSPACE space1 = execution_space_instances[0];
-  TEST_EXECSPACE space2 = execution_space_instances[1];
+  auto [space1, space2] = Kokkos::Experimental::partition_space(space, 1, 1);
 
   for (auto _ : state) {
     Kokkos::View<double**, TEST_EXECSPACE> a("A", N, M);
@@ -332,10 +323,7 @@ static void OverlapMDRangePolicy(benchmark::State& state) {
   int R = state.range(2);
 
   TEST_EXECSPACE space;
-  std::vector<TEST_EXECSPACE> execution_space_instances =
-      Kokkos::Experimental::partition_space(space, 1, 1);
-  TEST_EXECSPACE space1 = execution_space_instances[0];
-  TEST_EXECSPACE space2 = execution_space_instances[1];
+  auto [space1, space2] = Kokkos::Experimental::partition_space(space, 1, 1);
 
   for (auto _ : state) {
     Kokkos::View<double**, TEST_EXECSPACE> a("A", N, M);
@@ -524,10 +512,7 @@ static void OverlapTeamPolicy(benchmark::State& state) {
   int R = state.range(2);
 
   TEST_EXECSPACE space;
-  std::vector<TEST_EXECSPACE> execution_space_instances =
-      Kokkos::Experimental::partition_space(space, 1, 1);
-  TEST_EXECSPACE space1 = execution_space_instances[0];
-  TEST_EXECSPACE space2 = execution_space_instances[1];
+  auto [space1, space2] = Kokkos::Experimental::partition_space(space, 1, 1);
 
   for (auto _ : state) {
     Kokkos::View<double**, Kokkos::LayoutRight, TEST_EXECSPACE> a("A", N, M);

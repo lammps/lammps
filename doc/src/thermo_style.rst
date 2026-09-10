@@ -20,7 +20,7 @@ Syntax
        *yaml* args = none
        *custom* args = list of keywords
          possible keywords = step, elapsed, elaplong, dt, time,
-                             cpu, tpcpu, spcpu, cpuremain, part, timeremain,
+                             cpu, tpcpu, spcpu, cpuuse, cpuremain, part, timeremain,
                              atoms, temp, press, pe, ke, etotal,
                              evdwl, ecoul, epair, ebond, eangle, edihed, eimp,
                              emol, elong, etail,
@@ -48,6 +48,7 @@ Syntax
            cpu = elapsed CPU time in seconds since start of this run
            tpcpu = time per CPU second
            spcpu = timesteps per CPU second
+           cpuuse = CPU utilization in percent (can be > 100% with multi-threading)
            cpuremain = estimated CPU time remaining in run
            part = which partition (0 to Npartition-1) this is
            timeremain = remaining time in seconds on timer timeout.
@@ -291,6 +292,16 @@ will continually output the time and timestep rate for the last 100
 steps.  The *tpcpu* keyword does not attempt to track any changes in
 timestep size, e.g. due to using the :doc:`fix dt/reset <fix_dt_reset>`
 command.
+
+The *cpuuse* keyword represents the CPU utilization in percent on
+MPI rank 0 for the current run.  This should typically be around 100%
+for single-threaded runs.  Smaller values indicate that LAMMPS may be
+stalling on file I/O, or some other process is competing with LAMMPS
+for the same CPU.  When using multi-threading through the KOKKOS,
+INTEL, or OPENMP packages the value can be larger than 100% and
+ideally should be close to *nthreads* x 100%.  How close depends
+on how much of the execution time is spent in multi-threaded parts
+of the code versus the non-accelerated parts.
 
 The *cpuremain* keyword estimates the CPU time remaining in the
 current run, based on the time elapsed thus far.  It will only be a

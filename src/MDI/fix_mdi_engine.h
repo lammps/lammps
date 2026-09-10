@@ -29,15 +29,13 @@ class FixMDIEngine : public Fix {
   class MDIEngine *mdi_engine;
 
   FixMDIEngine(class LAMMPS *, int, char **);
-  ~FixMDIEngine() {}
-  int setmask();
-  void init() {}
-  void setup(int);
-  void post_integrate();
-  void min_pre_force(int);
-  void post_force(int);
-  void min_post_force(int);
-  void end_of_step();
+  int setmask() override;
+  void setup(int) override;
+  void post_integrate() override;
+  void min_pre_force(int) override;
+  void post_force(int) override;
+  void min_post_force(int) override;
+  void end_of_step() override;
 };
 
 }    // namespace LAMMPS_NS

@@ -13,12 +13,12 @@
 
 #include "test_main.h"
 #include "pointers.h"
-#include "utils.h"
+
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
+#include <cstring>
 #include <iostream>
-#include <mpi.h>
 
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
 bool verbose = false;

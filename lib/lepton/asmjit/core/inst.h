@@ -474,7 +474,7 @@ struct OpRWInfo {
   //! \{
 
   //! Resets this operand information to all zeros.
-  inline void reset() noexcept { memset(this, 0, sizeof(*this)); }
+  inline void reset() noexcept { memset((void *)this, 0, sizeof(*this)); }
 
   //! Resets this operand info (resets all members) and set common information
   //! to the given `opFlags`, `regSize`, and possibly `physId`.
@@ -658,7 +658,7 @@ struct InstRWInfo {
   //! \{
 
   //! Resets this RW information to all zeros.
-  inline void reset() noexcept { memset(this, 0, sizeof(*this)); }
+  inline void reset() noexcept { memset((void *)this, 0, sizeof(*this)); }
 
   //! \}
 

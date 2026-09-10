@@ -32,6 +32,7 @@
 #include "update.h"
 
 #include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using MathConst::DEG2RAD;
@@ -40,7 +41,10 @@ static constexpr double TOLERANCE = 0.05;
 
 /* ---------------------------------------------------------------------- */
 
-DihedralCharmmfsw::DihedralCharmmfsw(LAMMPS *_lmp) : Dihedral(_lmp)
+DihedralCharmmfsw::DihedralCharmmfsw(LAMMPS *_lmp) :
+    Dihedral(_lmp), k(nullptr), weight(nullptr), cos_shift(nullptr), sin_shift(nullptr),
+    multiplicity(nullptr), shift(nullptr), lj14_1(nullptr), lj14_2(nullptr), lj14_3(nullptr),
+    lj14_4(nullptr)
 {
   weightflag = 0;
   writedata = 1;
@@ -369,7 +373,7 @@ void DihedralCharmmfsw::coeff(int narg, char **arg)
 void DihedralCharmmfsw::init_style()
 {
   if (utils::strmatch(update->integrate_style, "^respa")) {
-    auto r = dynamic_cast<Respa *>(update->integrate);
+    auto *r = dynamic_cast<Respa *>(update->integrate);
     if (r->level_pair >= 0 && (r->level_pair != r->level_dihedral))
       error->all(FLERR, "Dihedral style charmmfsw must be set to same r-RESPA level as 'pair'");
     if (r->level_outer >= 0 && (r->level_outer != r->level_dihedral))
@@ -405,9 +409,9 @@ void DihedralCharmmfsw::init_style()
 
   int itmp;
   int *p_dihedflag = (int *) force->pair->extract("dihedflag", itmp);
-  auto p_cutljinner = (double *) force->pair->extract("cut_lj_inner", itmp);
-  auto p_cutlj = (double *) force->pair->extract("cut_lj", itmp);
-  auto p_cutcoul = (double *) force->pair->extract("cut_coul", itmp);
+  auto *p_cutljinner = (double *) force->pair->extract("cut_lj_inner", itmp);
+  auto *p_cutlj = (double *) force->pair->extract("cut_lj", itmp);
+  auto *p_cutcoul = (double *) force->pair->extract("cut_coul", itmp);
 
   if (p_cutcoul == nullptr || p_cutljinner == nullptr || p_cutlj == nullptr ||
       p_dihedflag == nullptr)

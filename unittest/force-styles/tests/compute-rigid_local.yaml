@@ -1,0 +1,26 @@
+---
+lammps_version: 4 Jul 2026
+tags:
+date_generated: Thu Jul  9 16:37:05 2026
+epsilon: 1e-08
+timestep: 0.25
+skip_tests:
+prerequisites: |
+  atom full
+  compute rigid/local
+  fix rigid/small
+pre_commands: ""
+post_commands: |
+  fix rig all rigid/small molecule
+  compute test all rigid/local rig xu yu zu
+input_file: in.fourmol
+input_coeffs: coeffs.fourmol
+natoms: 29
+local_data: |2
+   4.9525287350396283e+00 -4.0164411651865359e+00 -3.8034464951131191e+00
+   2.1428483204324467e+00  3.0634298153324284e+00 -3.7065615989637974e+00
+   2.2815153526523999e+00 -1.2197202268778766e+00 -5.7799248936996350e-01
+  -1.9470717667427379e-01  1.1282787861936687e+00 -1.0937935791902578e+00
+  -1.9844296607850811e+00 -4.1733346322428826e+00  2.0496391298364269e+00
+   2.0270914845509864e+00  3.3136852116626541e+00  3.0589707052736919e+00
+...

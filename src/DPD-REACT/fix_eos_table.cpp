@@ -17,14 +17,13 @@
 ------------------------------------------------------------------------- */
 
 #include "fix_eos_table.h"
+#include "rx_table_file_reader.h"
 
 #include "atom.h"
 #include "error.h"
 #include "memory.h"
 
 #include <cstring>
-
-static constexpr int MAXLINE = 1024;
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -194,53 +193,22 @@ void FixEOStable::free_table(Table *tb)
 
 void FixEOStable::read_table(Table *tb, Table *tb2, char *file, char *keyword)
 {
-  char line[MAXLINE] = {'\0'};
 
-  // open file
+  RxTableFileReader reader(lmp, keyword, file, "eos/table");
 
-  FILE *fp = utils::open_potential(file,lmp,nullptr);
-  if (fp == nullptr) {
-    char str[128];
-    snprintf(str,128,"Cannot open file %s",file);
-    error->one(FLERR,str);
-  }
+  tb->ninput = tb2->ninput = reader.get_num_table_entries();
 
-  // loop until section found with matching keyword
-
-  while (true) {
-    if (fgets(line,MAXLINE,fp) == nullptr)
-      error->one(FLERR,"Did not find keyword in table file");
-    if (strspn(line," \t\n\r") == strlen(line)) continue;    // blank line
-    if (line[0] == '#') continue;                          // comment
-    char *word = strtok(line," \t\n\r");
-    if (strcmp(word,keyword) == 0) break;           // matching keyword
-    utils::sfgets(FLERR,line,MAXLINE,fp,file,error);                         // no match, skip section
-    param_extract(tb,tb2,line);
-    utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
-    for (int i = 0; i < tb->ninput; i++) utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
-  }
-
-  // read args on 2nd line of section
-  // allocate table arrays for file values
-
-  utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
-  param_extract(tb,tb2,line);
   memory->create(tb->rfile,tb->ninput,"eos:rfile");
   memory->create(tb->efile,tb->ninput,"eos:efile");
   memory->create(tb2->rfile,tb2->ninput,"eos:rfile2");
   memory->create(tb2->efile,tb2->ninput,"eos:efile2");
 
-  // read r,e table values from file
-
-  int itmp;
-  utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
-  for (int i = 0; i < tb->ninput; i++) {
-    utils::sfgets(FLERR,line,MAXLINE,fp,file,error);
-    sscanf(line,"%d %lg %lg",&itmp,&tb->rfile[i],&tb->efile[i]);
-    sscanf(line,"%d %lg %lg",&itmp,&tb2->efile[i],&tb2->rfile[i]);
-  }
-
-  fclose(fp);
+  reader.read_in_table_data([&](RxTableFileReader::TableIndex_t i,
+                                ValueTokenizer & values) {
+                              values.next_int(); // throw away the initial index
+                              tb->rfile[i] = tb2->efile[i] = values.next_double();
+                              tb->efile[i] = tb2->rfile[i] = values.next_double();
+                            });
 }
 
 /* ----------------------------------------------------------------------
@@ -293,33 +261,6 @@ void FixEOStable::compute_table(Table *tb)
 }
 
 /* ----------------------------------------------------------------------
-   extract attributes from parameter line in table section
-   format of line: N value
-   N is required, other params are optional
-------------------------------------------------------------------------- */
-
-void FixEOStable::param_extract(Table *tb, Table *tb2, char *line)
-{
-  tb->ninput = 0;
-  tb2->ninput = 0;
-
-  char *word = strtok(line," \t\n\r\f");
-  while (word) {
-    if (strcmp(word,"N") == 0) {
-      word = strtok(nullptr," \t\n\r\f");
-      tb->ninput = std::stoi(word);
-      tb2->ninput = std::stoi(word);
-    } else {
-      error->one(FLERR,"Invalid keyword in fix eos/table parameters");
-    }
-    word = strtok(nullptr," \t\n\r\f");
-  }
-
-  if (tb->ninput == 0) error->one(FLERR,"fix eos/table parameters did not set N");
-  if (tb2->ninput == 0) error->one(FLERR,"fix eos/table parameters did not set N");
-}
-
-/* ----------------------------------------------------------------------
    broadcast read-in table info from proc 0 to other procs
    this function communicates these values in Table:
      ninput,rfile,efile
@@ -349,7 +290,7 @@ void FixEOStable::spline(double *x, double *y, int n,
 {
   int i,k;
   double p,qn,sig,un;
-  auto u = new double[n];
+  auto *u = new double[n];
 
   if (yp1 > 0.99e30) y2[0] = u[0] = 0.0;
   else {
@@ -371,7 +312,7 @@ void FixEOStable::spline(double *x, double *y, int n,
   y2[n-1] = (un-qn*u[n-2]) / (qn*y2[n-2] + 1.0);
   for (k = n-2; k >= 0; k--) y2[k] = y2[k]*y2[k+1] + u[k];
 
-  delete [] u;
+  delete[] u;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -407,16 +348,15 @@ void FixEOStable::energy_lookup(double t, double &u)
   double fraction;
 
   Table *tb = &tables[0];
-  if (t < tb->lo || t > tb->hi) {
-    printf("Temperature=%lf TableMin=%lf TableMax=%lf\n",t,tb->lo,tb->hi);
-    error->one(FLERR,"Temperature is not within table cutoffs");
-  }
+  if ((t < tb->lo) || (t > tb->hi))
+    error->one(FLERR,"Temperature {} is not within table cutoffs ({}, {})", t, tb->lo, tb->hi);
 
   if (tabstyle == LINEAR) {
     itable = static_cast<int> ((t - tb->lo) * tb->invdelta);
     fraction = (t - tb->r[itable]) * tb->invdelta;
     u = tb->e[itable] + fraction*tb->de[itable];
-  }
+  } else
+    error->one(FLERR,"Unknown tabulation style {}", tabstyle);
 }
 /* ----------------------------------------------------------------------
    calculate temperature t at energy u
@@ -429,14 +369,13 @@ void FixEOStable::temperature_lookup(double u, double &t)
   double fraction;
 
   Table *tb = &tables[1];
-  if (u < tb->lo || u > tb->hi) {
-    printf("Energy=%lf TableMin=%lf TableMax=%lf\n",u,tb->lo,tb->hi);
-    error->one(FLERR,"Energy is not within table cutoffs");
-  }
+  if ((u < tb->lo) || (u > tb->hi))
+    error->one(FLERR,"Energy {} is not within table cutoffs ({}, {})", u, tb->lo, tb->hi);
 
   if (tabstyle == LINEAR) {
     itable = static_cast<int> ((u - tb->lo) * tb->invdelta);
     fraction = (u - tb->r[itable]) * tb->invdelta;
     t = tb->e[itable] + fraction*tb->de[itable];
-  }
+  } else
+    error->one(FLERR,"Unknown tabulation style {}", tabstyle);
 }

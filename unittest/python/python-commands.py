@@ -27,6 +27,17 @@ try:
 except:
     pass
 
+has_molecule=False
+try:
+    machine=None
+    if 'LAMMPS_MACHINE_NAME' in os.environ:
+        machine=os.environ['LAMMPS_MACHINE_NAME']
+    lmp=lammps(name=machine)
+    has_molecule = lmp.has_style("atom","full")
+    lmp.close()
+except:
+    pass
+
 class PythonCommand(unittest.TestCase):
 
     def setUp(self):
@@ -122,7 +133,7 @@ create_atoms 1 single &
         x = [ 1.0, 1.0, 1.0,  1.0, 1.0, 1.5 ]
         types = [1, 1]
 
-        self.assertEqual(self.lmp.create_atoms(2, id=None, type=types, x=x), 2)
+        self.assertEqual(self.lmp.create_atoms(2, atomid=None, atype=types, x=x), 2)
         nlocal = self.lmp.extract_global("nlocal")
         self.assertEqual(nlocal, 2)
 
@@ -167,7 +178,7 @@ create_atoms 1 single &
         tags = [1, 2, 3, 4, 5, 6, 7]
         types = [1, 1, 1, 1, 1, 1, 1]
 
-        self.assertEqual(self.lmp.create_atoms(7, id=tags, type=types, x=x), 7)
+        self.assertEqual(self.lmp.create_atoms(7, atomid=tags, atype=types, x=x), 7)
         nlocal = self.lmp.extract_global("nlocal")
         self.assertEqual(nlocal, 7)
 
@@ -207,7 +218,7 @@ create_atoms 1 single &
         tags = [1, 2, 3, 4, 5, 6, 7]
         types = [1, 1, 1, 1, 1, 1, 1]
 
-        self.assertEqual(self.lmp.create_atoms(7, id=tags, type=types, x=x), 7)
+        self.assertEqual(self.lmp.create_atoms(7, atomid=tags, atype=types, x=x), 7)
         nlocal = self.lmp.extract_global("nlocal")
         self.assertEqual(nlocal, 7)
 
@@ -237,7 +248,7 @@ create_atoms 1 single &
         tags = [1, 2, 3, 4, 5, 6, 7]
         types = [1, 1, 1, 1, 1, 1, 1]
 
-        self.assertEqual(self.lmp.create_atoms(7, id=tags, type=types, x=x), 7)
+        self.assertEqual(self.lmp.create_atoms(7, atomid=tags, atype=types, x=x), 7)
         nlocal = self.lmp.extract_global("nlocal")
         self.assertEqual(nlocal, 7)
 
@@ -276,7 +287,7 @@ create_atoms 1 single &
         tags = [1, 2, 3, 4, 5, 6, 7]
         types = [1, 1, 1, 1, 1, 1, 1]
 
-        self.assertEqual(self.lmp.create_atoms(7, id=tags, type=types, x=x), 7)
+        self.assertEqual(self.lmp.create_atoms(7, atomid=tags, atype=types, x=x), 7)
         nlocal = self.lmp.extract_global("nlocal")
         self.assertEqual(nlocal, 7)
 
@@ -310,7 +321,7 @@ create_atoms 1 single &
         tags = [1, 2, 3, 4, 5, 6, 7]
         types = [1, 1, 1, 1, 2, 2, 2]
 
-        self.assertEqual(self.lmp.create_atoms(7, id=tags, type=types, x=x), 7)
+        self.assertEqual(self.lmp.create_atoms(7, atomid=tags, atype=types, x=x), 7)
         nlocal = self.lmp.extract_global("nlocal")
         self.assertEqual(nlocal, 7)
 
@@ -378,7 +389,7 @@ create_atoms 1 single &
         tags = [1, 2, 3, 4, 5, 6, 7]
         types = [1, 1, 1, 1, 1, 1, 1]
 
-        self.assertEqual(self.lmp.create_atoms(7, id=tags, type=types, x=x), 7)
+        self.assertEqual(self.lmp.create_atoms(7, atomid=tags, atype=types, x=x), 7)
         nlocal = self.lmp.extract_global("nlocal")
         self.assertEqual(nlocal, 7)
 
@@ -522,7 +533,7 @@ create_atoms 1 single &
 
         types = [1, 1]
 
-        self.assertEqual(self.lmp.create_atoms(2, id=None, type=types, x=x), 2)
+        self.assertEqual(self.lmp.create_atoms(2, atomid=None, atype=types, x=x), 2)
         self.lmp.command("variable a atom x*x+y*y+z*z")
         a = self.lmp.extract_variable("a", "all", LMP_VAR_ATOM)
         self.assertEqual(a[0], x[0]*x[0]+x[1]*x[1]+x[2]*x[2])
@@ -573,7 +584,7 @@ create_atoms 1 single &
         ]
 
         types = [1, 1]
-        self.lmp.create_atoms(2, id=None, type=types, x=x)
+        self.lmp.create_atoms(2, atomid=None, atype=types, x=x)
 
         state = {
             "step": 0,
@@ -611,7 +622,7 @@ create_atoms 1 single &
           1.5, 1.5, 1.5
         ]
         types = [1, 1]
-        self.lmp.create_atoms(2, id=None, type=types, x=x)
+        self.lmp.create_atoms(2, atomid=None, atype=types, x=x)
 
         self.assertEqual(self.lmp.last_thermo(), None)
         self.lmp.command("run 2 post no")
@@ -791,6 +802,7 @@ create_atoms 1 single &
                 self.assertEqual(vel[i][0:3],result[i][3])
                 self.assertEqual(self.lmp.decode_image_flags(img[i]), result[i][4])
 
+    @unittest.skipIf(not has_molecule,"Atom map test input requires the MOLECULE package")
     def test_map_atom(self):
         self.lmp.command('shell cd ' + os.environ['TEST_INPUT_DIR'])
         self.lmp.command("newton on on")

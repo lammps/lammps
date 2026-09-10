@@ -22,6 +22,8 @@
 #include "group.h"
 #include "tokenizer.h"
 
+#include <exception>
+
 using namespace LAMMPS_NS;
 static constexpr int BUFLEN = 4096;
 
@@ -33,7 +35,7 @@ static std::string find_section(FILE *fp, const std::string &name)
 
   if (!fgets(linebuf, BUFLEN, fp)) throw TokenizerException("Read error", utils::getsyserror());
   while (!feof(fp)) {
-    if (utils::strmatch(linebuf, "^\\s*\\[.*\\]\\s*$")) {
+    if (utils::strmatch(linebuf, R"(^\s*\[.*\]\s*$)")) {
       auto words = Tokenizer(linebuf).as_vector();
       if (words.size() != 3)
         throw TokenizerException("Invalid group name in index file",
@@ -52,7 +54,7 @@ static std::vector<tagint> read_section(FILE *fp, std::string &name)
 
   while (fgets(linebuf, BUFLEN, fp)) {
     // start of new section. we are done, update "name"
-    if (utils::strmatch(linebuf, "^\\s*\\[.*\\]\\s*$")) {
+    if (utils::strmatch(linebuf, R"(^\s*\[.*\]\s*$)")) {
       auto words = Tokenizer(linebuf).as_vector();
       if (words.size() != 3)
         throw TokenizerException("Invalid group name in index file",
@@ -140,7 +142,7 @@ void Ndx2Group::command(int narg, char **arg)
           char *buf = new char[len];
           MPI_Bcast(buf, len, MPI_CHAR, 0, world);
           MPI_Bcast(&num, 1, MPI_LMP_BIGINT, 0, world);
-          tagint *tbuf = new tagint[num];
+          auto *tbuf = new tagint[num];
           MPI_Bcast(tbuf, num, MPI_LMP_TAGINT, 0, world);
           create(buf, std::vector<tagint>(tbuf, tbuf + num));
           delete[] buf;
@@ -161,7 +163,7 @@ void Ndx2Group::command(int narg, char **arg)
         } catch (std::exception &e) {
           error->one(FLERR, e.what());
         }
-        utils::logmesg(lmp, " {} group '{}'\n", name.size() ? "Processing" : "Skipping", arg[idx]);
+        utils::logmesg(lmp, " {} group '{}'\n", !name.empty() ? "Processing" : "Skipping", arg[idx]);
         len = name.size() + 1;
         MPI_Bcast(&len, 1, MPI_INT, 0, world);
         if (len > 1) {
@@ -186,7 +188,7 @@ void Ndx2Group::command(int narg, char **arg)
           char *buf = new char[len];
           MPI_Bcast(buf, len, MPI_CHAR, 0, world);
           MPI_Bcast(&num, 1, MPI_LMP_BIGINT, 0, world);
-          tagint *tbuf = new tagint[num];
+          auto *tbuf = new tagint[num];
           MPI_Bcast(tbuf, num, MPI_LMP_TAGINT, 0, world);
           create(buf, std::vector<tagint>(tbuf, tbuf + num));
           delete[] buf;

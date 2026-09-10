@@ -44,7 +44,7 @@ enum{ISO,ANISO,TRICLINIC};
 // citation info
 
 static const char cite_user_uef_package[] =
-  "UEF package: doi:10.1063/1.4972894\n\n"
+  "UEF package: https://doi.org/10.1063/1.4972894\n\n"
   "@Article{NicholsonRutledge16,\n"
   "author = {David A. Nicholson and Gregory C. Rutledge},\n"
   "title = {Molecular Simulation of Flow-Enhanced Nucleation in\n"
@@ -228,7 +228,7 @@ void FixNHUef::init()
 
 
   // find conflict with fix/deform or other box chaging fixes
-  for (auto &ifix : modify->get_fix_list()) {
+  for (const auto &ifix : modify->get_fix_list()) {
     if (strcmp(ifix->id, id) != 0)
       if ((ifix->box_change & BOX_CHANGE_SHAPE) != 0)
         error->all(FLERR,"Can't use another fix which changes box shape with fix {}", style);
@@ -710,7 +710,7 @@ void FixNHUef::restart(char *buf)
 {
   int n = size_restart_global();
   FixNH::restart(buf);
-  auto list = (double *) buf;
+  auto *list = (double *) buf;
   strain[0] = list[n-2];
   strain[1] = list[n-1];
   uefbox->set_strain(strain[0],strain[1]);

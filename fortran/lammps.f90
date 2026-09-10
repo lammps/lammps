@@ -74,7 +74,9 @@ MODULE LIBLAMMPS
     LMP_VAR_EQUAL = 0, &      ! equal-style variables (and compatible)
     LMP_VAR_ATOM = 1, &       ! atom-style variables
     LMP_VAR_VECTOR = 2, &     ! vector variables
-    LMP_VAR_STRING = 3        ! string variables (everything else)
+    LMP_VAR_STRING = 3, &     ! string variables (everything else)
+    LMP_NEIGH_HALF = 0, &     ! request (default) half neighbor list
+    LMP_NEIGH_FULL = 1        ! request full neighbor list
 
   ! Constants we set once (in the constructor) and never need to check again
   INTEGER(c_int), SAVE :: SIZE_TAGINT, SIZE_BIGINT, SIZE_IMAGEINT
@@ -195,14 +197,18 @@ MODULE LIBLAMMPS
     PROCEDURE, PRIVATE :: lmp_create_atoms_bigbig
     GENERIC   :: create_atoms           => lmp_create_atoms_int, &
                                            lmp_create_atoms_bigbig
-    PROCEDURE :: find_pair_neighlist    => lmp_find_pair_neighlist
-    PROCEDURE :: find_fix_neighlist     => lmp_find_fix_neighlist
-    PROCEDURE :: find_compute_neighlist => lmp_find_compute_neighlist
-    PROCEDURE :: neighlist_num_elements => lmp_neighlist_num_elements
+    PROCEDURE :: create_molecule        => lmp_create_molecule
+
+    PROCEDURE :: find_pair_neighlist         => lmp_find_pair_neighlist
+    PROCEDURE :: find_fix_neighlist          => lmp_find_fix_neighlist
+    PROCEDURE :: find_compute_neighlist      => lmp_find_compute_neighlist
+    PROCEDURE :: request_single_neighlist    => lmp_request_single_neighlist
+    PROCEDURE :: neighlist_num_elements      => lmp_neighlist_num_elements
     PROCEDURE :: neighlist_element_neighbors => lmp_neighlist_element_neighbors
     PROCEDURE :: version                => lmp_version
     PROCEDURE, NOPASS :: get_os_info    => lmp_get_os_info
     PROCEDURE, NOPASS :: config_has_mpi_support => lmp_config_has_mpi_support
+    PROCEDURE, NOPASS :: config_has_omp_support => lmp_config_has_omp_support
     PROCEDURE, NOPASS :: config_has_gzip_support => lmp_config_has_gzip_support
     PROCEDURE, NOPASS :: config_has_png_support => lmp_config_has_png_support
     PROCEDURE, NOPASS :: config_has_jpeg_support => lmp_config_has_jpeg_support
@@ -404,6 +410,12 @@ MODULE LIBLAMMPS
 
     SUBROUTINE lammps_kokkos_finalize() BIND(C)
     END SUBROUTINE lammps_kokkos_finalize
+
+    SUBROUTINE lammps_python_finalize() BIND(C)
+    END SUBROUTINE lammps_python_finalize
+
+    SUBROUTINE lammps_plugin_finalize() BIND(C)
+    END SUBROUTINE lammps_plugin_finalize
 
     SUBROUTINE lammps_error(handle, error_type, error_text) BIND(C)
       IMPORT :: c_ptr, c_int
@@ -753,6 +765,12 @@ MODULE LIBLAMMPS
       INTEGER(c_int) :: lammps_create_atoms
     END FUNCTION lammps_create_atoms
 
+    SUBROUTINE lammps_create_molecule(handle, id, jsonstr) BIND(C)
+      IMPORT :: c_ptr
+      IMPLICIT NONE
+      TYPE(c_ptr), VALUE :: handle, id, jsonstr
+    END SUBROUTINE lammps_create_molecule
+
     FUNCTION lammps_find_pair_neighlist(handle, style, exact, nsub, reqid) &
     BIND(C)
       IMPORT :: c_ptr, c_int
@@ -777,6 +795,15 @@ MODULE LIBLAMMPS
       INTEGER(c_int), VALUE :: reqid
       INTEGER(c_int) :: lammps_find_compute_neighlist
     END FUNCTION lammps_find_compute_neighlist
+
+    FUNCTION lammps_request_single_neighlist(handle, id, flags, cutoff) BIND(C)
+      IMPORT :: c_int, c_double, c_ptr
+      IMPLICIT NONE
+      TYPE(c_ptr), VALUE :: handle, id
+      INTEGER(c_int), VALUE :: flags
+      REAL(c_double), VALUE :: cutoff
+      INTEGER(c_int) :: lammps_request_single_neighlist
+    END FUNCTION lammps_request_single_neighlist
 
     FUNCTION lammps_neighlist_num_elements(handle, idx) BIND(C)
       IMPORT :: c_ptr, c_int
@@ -813,6 +840,12 @@ MODULE LIBLAMMPS
       IMPLICIT NONE
       INTEGER(c_int) :: lammps_config_has_mpi_support
     END FUNCTION lammps_config_has_mpi_support
+
+    FUNCTION lammps_config_has_omp_support() BIND(C)
+      IMPORT :: c_int
+      IMPLICIT NONE
+      INTEGER(c_int) :: lammps_config_has_omp_support
+    END FUNCTION lammps_config_has_omp_support
 
     FUNCTION lammps_config_has_gzip_support() BIND(C)
       IMPORT :: c_int
@@ -1123,7 +1156,7 @@ CONTAINS
     SIZE_IMAGEINT = lmp_extract_setting(lmp_open, 'imageint')
   END FUNCTION lmp_open
 
-  ! Combined Fortran wrapper around lammps_close() and lammps_mpi_finalize()
+  ! Combined Fortran wrapper around lammps_close() and lammps_*_finalize()
   SUBROUTINE lmp_close(self, finalize)
     CLASS(lammps), INTENT(IN) :: self
     LOGICAL, INTENT(IN), OPTIONAL :: finalize
@@ -1134,6 +1167,11 @@ CONTAINS
       IF (finalize) THEN
         CALL lammps_kokkos_finalize()
         CALL lammps_mpi_finalize()
+        CALL lammps_python_finalize()
+        CALL lammps_plugin_finalize()
+        IF (ALLOCATED(ext_data)) THEN
+            DEALLOCATE(ext_data)
+        END IF
       END IF
     END IF
   END SUBROUTINE lmp_close
@@ -2861,6 +2899,19 @@ CONTAINS
     END IF
   END SUBROUTINE lmp_create_atoms_bigbig
 
+  ! equivalent function to lammps_create_molecule
+  SUBROUTINE lmp_create_molecule(self, id, jsonstr)
+    CLASS(lammps), INTENT(IN) :: self
+    CHARACTER(LEN=*), INTENT(IN) :: id, jsonstr
+    TYPE(c_ptr) :: Cid, Cjsonstr
+
+    Cid = f2c_string(id)
+    Cjsonstr = f2c_string(jsonstr)
+    CALL lammps_create_molecule(self%handle, Cid, Cjsonstr)
+    CALL lammps_free(Cid)
+    CALL lammps_free(Cjsonstr)
+  END SUBROUTINE lmp_create_molecule
+
   ! equivalent function to lammps_find_pair_neighlist
   INTEGER(c_int) FUNCTION lmp_find_pair_neighlist(self, style, exact, nsub, &
       reqid)
@@ -2942,6 +2993,36 @@ CONTAINS
     CALL lammps_free(Cid)
   END FUNCTION lmp_find_compute_neighlist
 
+  ! equivalent function to lammps_request_single_neighlist
+  INTEGER(c_int) FUNCTION lmp_request_single_neighlist(self, id, flags, cutoff) RESULT(idx)
+    CLASS(lammps), INTENT(IN) :: self
+    CHARACTER(LEN=*), INTENT(IN) :: id
+    INTEGER(c_int), INTENT(IN), OPTIONAL :: flags
+    REAL(c_double), INTENT(IN), OPTIONAL :: cutoff
+    TYPE(c_ptr) :: Cid
+    INTEGER(c_int) :: Cflags
+    REAL(c_double) :: Ccutoff
+
+    IF (PRESENT(flags)) THEN
+        Cflags = flags
+    ELSE
+        Cflags = LMP_NEIGH_HALF
+    END IF
+    IF (PRESENT(cutoff)) THEN
+        Ccutoff = cutoff
+    ELSE
+        Ccutoff = 1.0_c_double
+    END IF
+
+    Cid = f2c_string(id)
+    idx = lammps_request_single_neighlist(self%handle, Cid, Cflags, Ccutoff)
+    IF (idx < 0) THEN
+      CALL lmp_error(self, LMP_ERROR_WARNING + LMP_ERROR_WORLD, &
+        'neighbor list build failed [Fortran/request_single_neighlist]')
+    END IF
+    CALL lammps_free(Cid)
+  END FUNCTION lmp_request_single_neighlist
+
   INTEGER(c_int) FUNCTION lmp_neighlist_num_elements(self, idx) RESULT(inum)
     CLASS(lammps), INTENT(IN) :: self
     INTEGER(c_int), INTENT(IN) :: idx
@@ -3000,6 +3081,14 @@ CONTAINS
     has_mpi_support = lammps_config_has_mpi_support()
     lmp_config_has_mpi_support = (has_mpi_support /= 0_c_int)
   END FUNCTION lmp_config_has_mpi_support
+
+  ! equivalent function to lammps_config_has_omp_support
+  LOGICAL FUNCTION lmp_config_has_omp_support()
+    INTEGER(c_int) :: has_omp_support
+
+    has_omp_support = lammps_config_has_omp_support()
+    lmp_config_has_omp_support = (has_omp_support /= 0_c_int)
+  END FUNCTION lmp_config_has_omp_support
 
   ! equivalent function to lammps_config_has_gzip_support
   LOGICAL FUNCTION lmp_config_has_gzip_support()
@@ -3369,6 +3458,7 @@ CONTAINS
     TYPE(c_ptr) :: c_id, c_caller
     TYPE(c_funptr) :: c_callback
     INTEGER :: i, this_fix
+    TYPE(fix_external_data), DIMENSION(:), ALLOCATABLE :: tmp_ext_data
 
     c_id = f2c_string(id)
     IF (ALLOCATED(ext_data)) THEN
@@ -3380,9 +3470,13 @@ CONTAINS
         END IF
       END DO
       IF (this_fix > SIZE(ext_data)) THEN
-        ! reallocates ext_data; this requires us to re-bind "caller" on the C
+        ! reallocate ext_data in a pre-fortran 2008 compatible way.
+        ALLOCATE(tmp_ext_data(this_fix))
+        tmp_ext_data(1:this_fix-1) = ext_data(1:this_fix-1)
+        tmp_ext_data(this_fix) = fix_external_data()
+        CALL move_alloc(tmp_ext_data, ext_data)
+        ! this requires us to re-bind "caller" on the C
         ! side to the new data structure, which likely moved to a new address
-        ext_data = [ext_data, fix_external_data()] ! extends ext_data by 1
         CALL rebind_external_callback_data()
       END IF
     ELSE

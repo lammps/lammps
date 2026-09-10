@@ -26,6 +26,7 @@ PairStyle(exp6/rx/kk/host,PairExp6rxKokkos<LMPHostType>);
 #include "pair_exp6_rx.h"
 #include "kokkos_type.h"
 #include "pair_kokkos.h"
+#include "fix_rx_kokkos.h"
 
 namespace LAMMPS_NS {
 
@@ -39,7 +40,7 @@ struct PairExp6ParamDataTypeKokkos
   typedef ArrayTypes<DeviceType> AT;
 
    int n;
-   typename AT::t_float_1d epsilon1, alpha1, rm1, mixWtSite1,
+   typename AT::t_kkfloat_1d epsilon1, alpha1, rm1, mixWtSite1,
           epsilon2, alpha2, rm2, mixWtSite2,
           epsilonOld1, alphaOld1, rmOld1, mixWtSite1old,
           epsilonOld2, alphaOld2, rmOld2, mixWtSite2old;
@@ -55,7 +56,7 @@ struct PairExp6ParamDataTypeKokkosVect
 {
   typedef ArrayTypes<DeviceType> AT;
 
-   typename AT::t_float_1d epsilon, rm3, alpha, xMolei, epsilon_old, rm3_old,
+   typename AT::t_kkfloat_1d epsilon, rm3, alpha, xMolei, epsilon_old, rm3_old,
                            alpha_old, xMolei_old, fractionOFA, fraction1,
                            fraction2, nMoleculesOFA, nMolecules1, nMolecules2,
                            nTotal, fractionOFAold, fractionOld1, fractionOld2,
@@ -92,69 +93,84 @@ class PairExp6rxKokkos : public PairExp6rx {
   void coeff(int, char **) override;
   void init_style() override;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairExp6rxZeroMixingWeights, const int&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairExp6rxgetMixingWeights, const int&) const;
 
   template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairExp6rxCompute<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int&, EV_FLOAT&) const;
 
   template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairExp6rxCompute<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int&) const;
 
   template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairExp6rxComputeNoAtomics<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int&, EV_FLOAT&) const;
 
   template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG, bool Site1EqSite2, bool UseAtomics, bool OneType>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void vectorized_operator(const int&, EV_FLOAT&) const;
 
   template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairExp6rxComputeNoAtomics<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairExp6rxCollapseDupViews, const int&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairExp6rxZeroDupViews, const int&) const;
 
   template<int NEIGHFLAG, int NEWTON_PAIR>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void ev_tally(EV_FLOAT &ev, const int &i, const int &j,
-      const F_FLOAT &epair, const F_FLOAT &fpair, const F_FLOAT &delx,
-                  const F_FLOAT &dely, const F_FLOAT &delz) const;
+      const KK_FLOAT &epair, const KK_FLOAT &fpair, const KK_FLOAT &delx,
+                  const KK_FLOAT &dely, const KK_FLOAT &delz) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   int sbmask(const int& j) const;
 
  protected:
   int eflag,vflag;
   int nlocal,newton_pair,neighflag;
-  double special_lj[4];
+  KK_FLOAT special_lj[4];
   int nthreads,ntypes;
 
-  typename AT::t_x_array_randomread x;
-  typename AT::t_f_array f;
+  typename AT::t_kkfloat_1d_3_lr_randomread x;
+  typename AT::t_kkacc_1d_3 f;
   typename AT::t_int_1d_randomread type;
-  typename AT::t_efloat_1d uCG, uCGnew;
-  typename AT::t_float_2d dvector;
+  typename AT::t_kkfloat_1d uCG, uCGnew;
+  typename AT::t_kkfloat_2d dvector;
 
-  typedef Kokkos::View<F_FLOAT**[3],Kokkos::LayoutRight,DeviceType> t_f_array_thread;
-  typedef Kokkos::View<E_FLOAT**,Kokkos::LayoutRight,DeviceType> t_efloat_1d_thread;
+  FixRxKokkos<DeviceType> * rx_fixKK;
+  typename AT::t_int_1d species_ind_to_atom_prop_ind;
+  typename AT::t_int_1d species_ind_to_atom_prop_ind_old;
 
-  t_f_array_thread t_f;
-  t_efloat_1d_thread t_uCG, t_uCGnew;
+  typedef Kokkos::View<KK_FLOAT**[3],Kokkos::LayoutRight,DeviceType> t_kkfloat_1d_3_thread;
+  typedef Kokkos::View<KK_FLOAT**,Kokkos::LayoutRight,DeviceType> t_kkfloat_1d_thread;
 
-  DAT::tdual_efloat_1d k_eatom;
-  DAT::tdual_virial_array k_vatom;
-  typename AT::t_efloat_1d d_eatom;
-  typename AT::t_virial_array d_vatom;
+  t_kkfloat_1d_3_thread t_f;
+  t_kkfloat_1d_thread t_uCG, t_uCGnew;
+
+  DAT::ttransform_kkacc_1d k_eatom;
+  DAT::ttransform_kkacc_1d_6 k_vatom;
+  typename AT::t_kkacc_1d d_eatom;
+  typename AT::t_kkacc_1d_6 d_vatom;
 
   DAT::tdual_int_scalar k_error_flag;
 
@@ -175,31 +191,37 @@ class PairExp6rxKokkos : public PairExp6rx {
   tdual_param_1d k_params;                // parameter set for an I-J-K interaction
   t_param_1d_randomread d_params;                // parameter set for an I-J-K interaction
 
-  typename ArrayTypes<DeviceType>::tdual_ffloat_2d k_cutsq;
-  typename ArrayTypes<DeviceType>::t_ffloat_2d d_cutsq;
+  DAT::ttransform_kkfloat_2d k_cutsq;
+  typename AT::t_kkfloat_2d d_cutsq;
 
-  void read_file(char *) override;
+  void initialize_exp6_params_array() override;
+  void grow_exp6_params_array(int old_size, int new_size) override;
   void setup() override;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
-  void getMixingWeights(int, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &, double &) const;
+  void getMixingWeights(int, KK_FLOAT &, KK_FLOAT &, KK_FLOAT &, KK_FLOAT &, KK_FLOAT &, KK_FLOAT &, KK_FLOAT &, KK_FLOAT &, KK_FLOAT &, KK_FLOAT &, KK_FLOAT &, KK_FLOAT &, KK_FLOAT &, KK_FLOAT &, KK_FLOAT &, KK_FLOAT &) const;
 
   template <class ArrayT>
-  void getMixingWeightsVect(const int, int, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &) const;
+  void getMixingWeightsVect(const int, int &, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
-  void exponentScaling(double, double &, double &) const;
+  void exponentScaling(KK_FLOAT, KK_FLOAT &, KK_FLOAT &) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
-  void polynomialScaling(double, double &, double &, double &) const;
+  void polynomialScaling(KK_FLOAT, KK_FLOAT &, KK_FLOAT &, KK_FLOAT &) const;
 
   double s_coeffAlpha[6],s_coeffEps[6],s_coeffRm[6];
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
-  double func_rin(const double &) const;
+  KK_FLOAT func_rin(const KK_FLOAT &) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
-  double expValue(const double) const;
+  KK_FLOAT expValue(const KK_FLOAT) const;
 
   friend void pair_virial_fdotr_compute<PairExp6rxKokkos>(PairExp6rxKokkos*);
 };

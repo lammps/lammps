@@ -60,6 +60,10 @@ function(KOKKOS_ADD_TEST)
     add_test(NAME ${TEST_NAME} WORKING_DIRECTORY ${LIBRARY_OUTPUT_PATH} COMMAND ${EXE}${CMAKE_EXECUTABLE_SUFFIX}
                                                                                 ${TEST_ARGS} ${${TEST_NAME}_EXTRA_ARGS}
     )
+  elseif(KOKKOS_ENABLE_NEXTSILICON)
+    add_test(NAME ${TEST_NAME} COMMAND ${KOKKOS_SOURCE_DIR}/scripts/nextsilicon-test-wrapper.sh ${EXE} ${TEST_ARGS}
+                                       ${${TEST_NAME}_EXTRA_ARGS}
+    )
   else()
     add_test(NAME ${TEST_NAME} COMMAND ${EXE} ${TEST_ARGS} ${${TEST_NAME}_EXTRA_ARGS})
   endif()
@@ -84,9 +88,7 @@ function(KOKKOS_ADD_TEST)
   endif()
   if(TEST_TOOL)
     add_dependencies(${EXE} ${TEST_TOOL}) #make sure the exe has to build the tool
-    set_property(
-      TEST ${TEST_NAME} APPEND_STRING PROPERTY ENVIRONMENT "KOKKOS_PROFILE_LIBRARY=$<TARGET_FILE:${TEST_TOOL}>"
-    )
+    set_property(TEST ${TEST_NAME} APPEND_STRING PROPERTY ENVIRONMENT "KOKKOS_TOOLS_LIBS=$<TARGET_FILE:${TEST_TOOL}>")
   endif()
   verify_empty(KOKKOS_ADD_TEST ${TEST_UNPARSED_ARGUMENTS})
 endfunction()

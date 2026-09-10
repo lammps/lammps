@@ -34,8 +34,9 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputeCoordAtom::ComputeCoordAtom(LAMMPS *lmp, int narg, char **arg) :
-    Compute(lmp, narg, arg), typelo(nullptr), typehi(nullptr), cvec(nullptr), carray(nullptr),
-    group2(nullptr), id_orientorder(nullptr), normv(nullptr)
+    Compute(lmp, narg, arg), list(nullptr), typelo(nullptr), typehi(nullptr), cvec(nullptr),
+    carray(nullptr), group2(nullptr), c_orientorder(nullptr), id_orientorder(nullptr),
+    normv(nullptr)
 {
   if (narg < 5) error->all(FLERR, "Illegal compute coord/atom command");
 
@@ -80,7 +81,7 @@ ComputeCoordAtom::ComputeCoordAtom(LAMMPS *lmp, int narg, char **arg) :
 
     id_orientorder = utils::strdup(arg[4]);
 
-    auto iorientorder = modify->get_compute_by_id(id_orientorder);
+    auto *iorientorder = modify->get_compute_by_id(id_orientorder);
     if (!iorientorder)
       error->all(FLERR, "Could not find compute coord/atom compute ID {}", id_orientorder);
     if (!utils::strmatch(iorientorder->style, "^orientorder/atom"))

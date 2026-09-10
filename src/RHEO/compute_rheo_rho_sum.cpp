@@ -25,15 +25,16 @@
 #include "fix_rheo.h"
 #include "force.h"
 #include "neigh_list.h"
-#include "neigh_request.h"
 #include "neighbor.h"
+
+#include <cmath>
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
 ComputeRHEORhoSum::ComputeRHEORhoSum(LAMMPS *lmp, int narg, char **arg) :
-    Compute(lmp, narg, arg), fix_rheo(nullptr), compute_kernel(nullptr)
+    Compute(lmp, narg, arg), fix_rheo(nullptr), list(nullptr), compute_kernel(nullptr)
 {
   if (narg != 4) error->all(FLERR, "Illegal compute RHEO/rho command");
 
@@ -42,10 +43,6 @@ ComputeRHEORhoSum::ComputeRHEORhoSum(LAMMPS *lmp, int narg, char **arg) :
   comm_forward = 1;
   comm_reverse = 1;
 }
-
-/* ---------------------------------------------------------------------- */
-
-ComputeRHEORhoSum::~ComputeRHEORhoSum() {}
 
 /* ---------------------------------------------------------------------- */
 

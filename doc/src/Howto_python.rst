@@ -2,6 +2,7 @@ LAMMPS Python Tutorial
 ======================
 
 .. contents::
+   :local:
 
 -----
 
@@ -137,7 +138,7 @@ Creating a virtualenv with lammps installed
 
 .. code-block:: bash
 
-   # create virtual envrionment named 'testing'
+   # create virtual environment named 'testing'
    python3 -m venv $HOME/python/testing
 
    # activate 'testing' environment
@@ -246,7 +247,7 @@ lammps.numpy module.  Those represent the *local* atoms of the
 individual sub-domain for the current MPI process and may contain
 information for the local ghost atoms or not depending on the property.
 Both can be accessed as lists, but for the ctypes list object the size
-is not known and hast to be retrieved first to avoid out-of-bounds
+is not known and has to be retrieved first to avoid out-of-bounds
 accesses.
 
 .. code-block:: python
@@ -375,7 +376,7 @@ trajectory with the analytical formula.  To compare both solutions, we plot
 both trajectories over each other using matplotlib, which embeds the generated
 plot inside the IPython notebook.
 
-.. image:: JPG/pylammps_dihedral.jpg
+.. image:: JPG/python_dihedral.jpg
    :align: center
 
 Running a Monte Carlo relaxation
@@ -387,7 +388,7 @@ even embedding video output.
 
 Initially, a 2D system is created in a state with minimal energy.
 
-.. image:: JPG/pylammps_mc_minimum.jpg
+.. image:: JPG/python_mc_minimum.jpg
    :align: center
 
 It is then disordered by moving each atom by a random delta.
@@ -407,7 +408,7 @@ It is then disordered by moving each atom by a random delta.
 
    L.cmd.run(0, "post", "no")
 
-.. image:: JPG/pylammps_mc_disordered.jpg
+.. image:: JPG/python_mc_disordered.jpg
    :align: center
 
 Finally, the Monte Carlo algorithm is implemented in Python. It continuously
@@ -457,7 +458,7 @@ moves random atoms by a random delta and only accepts certain moves.
 
 The energies of each iteration are collected in a Python list and finally plotted using matplotlib.
 
-.. image:: JPG/pylammps_mc_energies_plot.jpg
+.. image:: JPG/python_mc_energies_plot.jpg
    :align: center
 
 The IPython notebook also shows how to use dump commands and embed video files

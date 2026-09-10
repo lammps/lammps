@@ -42,14 +42,17 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-TemperGrem::TemperGrem(LAMMPS *lmp) : Command(lmp) {}
+TemperGrem::TemperGrem(LAMMPS *lmp) :
+    Command(lmp), ranswap(nullptr), ranboltz(nullptr), whichfix(nullptr), set_lambda(nullptr),
+    lambda2world(nullptr), world2lambda(nullptr), world2root(nullptr), fix_grem(nullptr)
+{}
 
 /* ---------------------------------------------------------------------- */
 
 TemperGrem::~TemperGrem()
 {
   MPI_Comm_free(&roots);
-  if (ranswap) delete ranswap;
+  delete ranswap;
   delete ranboltz;
   delete[] set_lambda;
   delete[] lambda2world;
@@ -79,7 +82,7 @@ void TemperGrem::command(int narg, char **arg)
 
   // Get and check if gREM fix exists and is correct style
 
-  auto ifix = modify->get_fix_by_id(arg[3]);
+  auto *ifix = modify->get_fix_by_id(arg[3]);
   if (!ifix) error->universe_all(FLERR,fmt::format("Tempering fix ID {} is not defined", arg[3]));
 
   fix_grem = dynamic_cast<FixGrem*>(ifix);
@@ -107,7 +110,7 @@ void TemperGrem::command(int narg, char **arg)
 
   if (pressflag) {
     int dummy;
-    auto p_start = (double *) nh->extract("p_start",dummy);
+    auto *p_start = (double *) nh->extract("p_start",dummy);
     pressref = p_start[0];
   }
 
@@ -216,18 +219,13 @@ void TemperGrem::command(int narg, char **arg)
   update->integrate->setup(1);
 
   if (me_universe == 0) {
-    if (universe->uscreen) {
-      fprintf(universe->uscreen,"Step");
-      for (int i = 0; i < nworlds; i++)
-        fprintf(universe->uscreen," T%d",i);
-      fprintf(universe->uscreen,"\n");
-    }
-    if (universe->ulogfile) {
-      fprintf(universe->ulogfile,"Step");
-      for (int i = 0; i < nworlds; i++)
-        fprintf(universe->ulogfile," T%d",i);
-      fprintf(universe->ulogfile,"\n");
-    }
+    std::string status = fmt::format("{:^10}", "Step");
+    for (int i = 0; i < nworlds; i++)
+      status += fmt::format(" {:^4}", std::string("T") + std::to_string(i));
+    status += '\n';
+
+    if (universe->uscreen) fputs(status.c_str(), universe->uscreen);
+    if (universe->ulogfile) fputs(status.c_str(), universe->ulogfile);
     print_status();
   }
 
@@ -329,6 +327,12 @@ void TemperGrem::command(int narg, char **arg)
 
     MPI_Bcast(&swap,1,MPI_INT,0,world);
 
+    // a swap is only accepted for an in-range partner (boundary worlds never
+    // swap), so partner_set_lambda is guaranteed valid whenever swap is set
+
+    if (swap && (partner_set_lambda < 0 || partner_set_lambda >= nworlds))
+      error->universe_one(FLERR,"Internal error: invalid tempering swap partner");
+
     // if my world swapped, all procs in world reset temp target of Fix
 
     if (swap) {
@@ -371,11 +375,10 @@ void TemperGrem::command(int narg, char **arg)
 
 void TemperGrem::print_status()
 {
-  std::string status = std::to_string(update->ntimestep);
+  std::string status = fmt::format("{:>10}", update->ntimestep);
   for (int i = 0; i < nworlds; i++)
-    status += " " + std::to_string(world2lambda[i]);
-
-  status += "\n";
+    status += fmt::format(" {:>4}", world2lambda[i]);
+  status += '\n';
 
   if (universe->uscreen) fputs(status.c_str(), universe->uscreen);
   if (universe->ulogfile) {

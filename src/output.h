@@ -16,11 +16,14 @@
 
 #include "pointers.h"
 
+#include "creator_registry.h"
+
 #include <map>
 
 namespace LAMMPS_NS {
 
 class Dump;
+struct json_metadata;
 
 class Output : protected Pointers {
  public:
@@ -66,25 +69,29 @@ class Output : protected Pointers {
   char *restart2a, *restart2b;    // names of double restart files
   class WriteRestart *restart;    // class for writing restart files
 
-  typedef Dump *(*DumpCreator)(LAMMPS *, int, char **);
-  typedef std::map<std::string, DumpCreator> DumpCreatorMap;
-  DumpCreatorMap *dump_map;
+  using DumpCreator = Dump *(*) (LAMMPS *, int, char **);
+
+  // global registry of dump style factory functions
+  static CreatorRegistry<DumpCreator> &dump_styles();
+
+  MPI_Datatype createParticleStructType();
 
   Output(class LAMMPS *);
   ~Output() override;
   void init();
-  void setup(int memflag = 1);    // initial output before run/min
-  void write(bigint);             // output for current timestep
-  void write_dump(bigint);        // force output of dump snapshots
-  void write_restart(bigint);     // force output of a restart file
-  void reset_timestep(bigint);    // reset output which depends on timestep
-  void reset_dt();                // reset output which depends on timestep size
+  void setup(int memflag = 1);                        // initial output before run/min
+  void write(bigint);                                 // output for current timestep
+  void write_dump(bigint);                            // force output of dump snapshots
+  void write_restart(bigint);                         // force output of a restart file
+  void write_molecule_json(FILE *, int, int, int *, json_metadata *); // JSON dump molecules
+  void reset_timestep(bigint);                        // reset output which depends on timestep
+  void reset_dt();                                    // reset output which depends on timestep size
 
   Dump *add_dump(int, char **);                       // add a Dump to Dump list
   void modify_dump(int, char **);                     // modify a Dump
   void delete_dump(const std::string &);              // delete a Dump from Dump list
-  Dump *get_dump_by_id(const std::string &) const;    // find a Dump by ID
-  Dump *get_dump_by_index(int idx) const              // find a Dump by index in Dump list
+  [[nodiscard]] Dump *get_dump_by_id(const std::string &) const;    // find a Dump by ID
+  [[nodiscard]] Dump *get_dump_by_index(int idx) const              // find a Dump by index in Dump list
   {
     return ((idx >= 0) && (idx < ndump)) ? dump[idx] : nullptr;
   }
@@ -92,7 +99,7 @@ class Output : protected Pointers {
   const std::vector<Dump *> &get_dump_list();    // get vector with all dumps
   int check_time_dumps(bigint);                  // check if any time dump is output now
 
-  void set_thermo(int, char **);        // set thermo output freqquency
+  void set_thermo(int, char **);        // set thermo output frequency
   void create_thermo(int, char **);     // create a thermo style
   void create_restart(int, char **);    // create Restart and restart files
 

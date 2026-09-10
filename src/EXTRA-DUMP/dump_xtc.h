@@ -30,7 +30,9 @@ class DumpXTC : public Dump {
   DumpXTC(class LAMMPS *, int, char **);
   ~DumpXTC() override;
 
- private:
+  double memory_usage() override;
+
+ protected:
   int natoms, ntotal;
   int nevery_save;
   int unwrap_flag;    // 1 if atom coords are unwrapped, 0 if no
@@ -45,8 +47,6 @@ class DumpXTC : public Dump {
   void write_header(bigint) override;
   void pack(tagint *) override;
   void write_data(int, double *) override;
-  double memory_usage() override;
-
   void write_frame();
 };
 

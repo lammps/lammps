@@ -77,12 +77,10 @@ class MolfileInterface {
 
   MolfileInterface(const char *type, const int mode);
   ~MolfileInterface();
-
-  // disallowed default methods
- private:
-  MolfileInterface(){};
-  MolfileInterface(const MolfileInterface &){};
-  MolfileInterface &operator=(const MolfileInterface &) { return *this; };
+  // remove disallowed default methods
+  MolfileInterface() = delete;
+  MolfileInterface(const MolfileInterface &) = delete;
+  MolfileInterface &operator=(const MolfileInterface &) = delete;
 
  public:
   // search in the given directory path for a molfile plugin that
@@ -95,9 +93,9 @@ class MolfileInterface {
   // deregister the current plugin/DSO and clean up.
   void forget_plugin();
   // return formatted string describing plugin
-  char *get_plugin_name() const { return _name; };
+  [[nodiscard]] char *get_plugin_name() const { return _name; };
   // return canonical plugin name (= file type)
-  char *get_plugin_type() const { return _type; };
+  [[nodiscard]] char *get_plugin_type() const { return _type; };
 
   // file operations
 
@@ -113,16 +111,16 @@ class MolfileInterface {
   // inquire on interface status
 
   // true if file stream is active.
-  bool is_open() const { return (_ptr != nullptr); };
+  [[nodiscard]] bool is_open() const { return (_ptr != nullptr); };
   // true if file format requires or provides atom properties
-  bool has_props() const { return (_mode & (M_RSTRUCT | M_WSTRUCT)) != 0; };
+  [[nodiscard]] bool has_props() const { return (_mode & (M_RSTRUCT | M_WSTRUCT)) != 0; };
   // true if file format can read or write velocities
-  bool has_vels() const { return (_mode & (M_RVELS | M_WVELS)) != 0; };
+  [[nodiscard]] bool has_vels() const { return (_mode & (M_RVELS | M_WVELS)) != 0; };
 
   // return number of atoms in current file. -1 if closed/invalid;
-  bool get_natoms() const { return _natoms; };
+  [[nodiscard]] bool get_natoms() const { return _natoms; };
   // return property bitmask
-  bool get_props() const { return _props; };
+  [[nodiscard]] bool get_props() const { return _props; };
 
   // atom property operations
 

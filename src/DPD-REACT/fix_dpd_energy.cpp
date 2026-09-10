@@ -14,9 +14,9 @@
 
 #include "fix_dpd_energy.h"
 #include "atom.h"
+#include "error.h"
 #include "force.h"
 #include "update.h"
-#include "error.h"
 #include "pair_dpd_fdt_energy.h"
 
 using namespace LAMMPS_NS;

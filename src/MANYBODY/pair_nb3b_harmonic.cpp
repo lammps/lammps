@@ -35,10 +35,12 @@
 using namespace LAMMPS_NS;
 using MathConst::MY_PI;
 
-static constexpr int DELTA = 4;
-static constexpr double SMALL = 0.001;
+namespace {
+constexpr int DELTA = 4;
+constexpr double SMALL = 0.001;
 
-static const char *substyle[] = {"nb3n/harmonic", "nb3b/screened"};
+const char *substyle[] = {"nb3n/harmonic", "nb3b/screened"};
+}
 
 /* ---------------------------------------------------------------------- */
 

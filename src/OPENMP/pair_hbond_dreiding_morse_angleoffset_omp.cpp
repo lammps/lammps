@@ -17,19 +17,13 @@
 
 #include "atom.h"
 #include "atom_vec.h"
-#include "comm.h"
-#include "domain.h"
-#include "force.h"
+#include "error.h"
 #include "math_const.h"
 #include "math_special.h"
 #include "memory.h"
-#include "molecule.h"
-#include "neigh_list.h"
-#include "suffix.h"
 
-#include <cmath>
+#include <cstring>
 
-#include "omp_compat.h"
 using namespace LAMMPS_NS;
 using namespace MathConst;
 using namespace MathSpecial;
@@ -49,7 +43,7 @@ PairHbondDreidingMorseAngleoffsetOMP::PairHbondDreidingMorseAngleoffsetOMP(LAMMP
 
 void PairHbondDreidingMorseAngleoffsetOMP::coeff(int narg, char **arg)
 {
-  auto mylmp = PairHbondDreidingMorse::lmp;
+  auto *mylmp = PairHbondDreidingMorse::lmp;
   if (narg < 7 || narg > 12)
     error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
   if (!allocated) allocate();

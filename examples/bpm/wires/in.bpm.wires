@@ -1,0 +1,82 @@
+units           lj
+dimension       3
+boundary        m m m
+atom_style      hybrid bpm/sphere dipole
+special_bonds   lj 0.0 1.0 1.0 coul 0.0 1.0 1.0
+newton          on off
+comm_modify     vel yes cutoff 2.6
+region          box block -10 60 -10 30 -10 10
+create_box      1 box bond/types 1 extra/bond/per/atom 2 extra/special/per/atom 4
+
+variable        Na1 equal 200
+variable        Na2 equal 480
+
+# Build a straight wire
+create_atoms    1 random $(v_Na1) 54435234 box group wire1
+variable        x1 atom id*0.25
+set             group wire1 x v_x1 y 0.0 z 0.0
+
+
+# Build a coiled wire
+create_atoms    1 random $(v_Na2) 54435234 box group wire2
+variable        x2 atom (id-$(v_Na1))*0.1
+variable        y2 atom 2*sin((id-$(v_Na1))*0.25)+20
+variable        z2 atom 2*cos((id-$(v_Na1))*0.25)
+set             group wire2 x v_x2 y v_y2 z v_z2
+
+# Define key groups and properties
+group           end1 id $(v_Na1)
+group           end2 id $(v_Na1+v_Na2)
+group           frozen_ends id 1 $(v_Na1+1)
+group           loaded_ends union end1 end2
+
+set             group all quat 1 0 0 0
+set             group wire1 dipole 0 0 1
+set             group wire2 dipole 0 0 0
+
+velocity        all create 1e-7 1349832 # random noise to break symmetries
+velocity        frozen_ends set 0.0 0.0 0.0
+
+# Define interactions
+pair_style      granular
+pair_coeff      1 1 hooke 10.0 0.5 tangential linear_history 5.0 0.5 0.1
+
+neighbor        0.3 bin
+create_bonds    many wire1 wire1 1 0.0 0.3
+create_bonds    many wire2 wire2 1 0.0 0.9
+special_bonds   lj 0.0 0.0 0.0 coul 1.0 1.0 1.0
+
+bond_style      bpm/rotational smooth no break no
+bond_coeff      1 1.0 0.1 0.1 0.1 -1 -1 -1 -1 0.5 0.5 0.05 0.05
+
+# Control simulation
+fix             1 all nve/bpm/sphere update dipole
+#   dipole only used for tracking/visualizing orientation
+
+fix             2 frozen_ends settorque/atom 0.0 0.0 0.0
+fix             3 frozen_ends setforce 0.0 0.0 0.0
+fix             4 loaded_ends settorque/atom 0.0 0.0 0.0
+fix             5 loaded_ends setforce 0.0 0.0 0.0
+
+fix             6 end1 move transrot -0.001 0 0 0 0 0 1 0 0 1600
+fix             7 end2 move linear -0.001 0.0 0.0
+
+fix             8 all viscous 5e-5 #small damping to accelerate decay of global modes
+
+timestep        0.1
+thermo          1000
+thermo_style    custom step ke pe pxx pyy pzz
+
+compute         quat all property/atom quatw quati quatj quatk
+compute         tq all property/atom tqx tqy tqz
+
+#dump            1 all custom 400 atomDump id radius xs ys zs c_quat[*] mux muy muz
+
+run             20000
+
+unfix           4
+unfix           5
+unfix           6
+unfix           7
+
+run             30000

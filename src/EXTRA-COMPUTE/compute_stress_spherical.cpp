@@ -42,7 +42,7 @@ static constexpr double SMALL = 1.0e-10;
 ------------------------------------------------------------------------------------*/
 
 static const char cite_compute_stress_sphere[] =
-    "compute stress/spherical: doi:10.48550/arXiv.2201.13060\n\n"
+    "compute stress/spherical: https://doi.org/10.48550/arXiv.2201.13060\n\n"
     "@article{galteland2022defining,\n"
     "title={Defining the Pressures of a Fluid in a Nanoporous, Heterogeneous Medium},\n"
     "author={Galteland, Olav and Rauter, Michael T and Varughese, Kevin K and Bedeaux, Dick and "

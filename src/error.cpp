@@ -15,7 +15,6 @@
 #include "error.h"
 
 #include "accelerator_kokkos.h"
-#include "input.h"
 #include "output.h"
 #include "universe.h"
 #include "update.h"
@@ -34,9 +33,18 @@ static std::string truncpath(const std::string &path)
 
 /* ---------------------------------------------------------------------- */
 
-Error::Error(LAMMPS *lmp)
-  : Pointers(lmp), numwarn(0), maxwarn(100), allwarn(0), showerror(1)
+void Error::reset_warn()
 {
+  numwarn = allwarn = 0;
+  maxwarn = 100;
+}
+
+/* ---------------------------------------------------------------------- */
+
+Error::Error(LAMMPS *lmp)
+  : Pointers(lmp), showerror(1)
+{
+  Error::reset_warn();
   last_error_message.clear();
   last_error_type = ERROR_NONE;
 }
@@ -61,7 +69,7 @@ void Error::universe_all(const std::string &file, int line, const std::string &s
     if (universe->ulogfile) fputs(mesg.c_str(),universe->ulogfile);
   }
 
-  if (output) delete output;
+  delete output;
   if (universe->nworlds > 1) {
     if (screen && screen != stdout) fclose(screen);
     if (logfile) fclose(logfile);
@@ -137,7 +145,7 @@ void Error::all(const std::string &file, int line, int failed, const std::string
   if (showerror && (me == 0)) utils::logmesg(lmp,mesg);
   utils::flush_buffers(lmp);
 
-  // allow commands if an exception was caught in a run
+  // allow commands again if an exception was caught in a run
   // update may be a null pointer when catching command-line errors
 
   if (update) update->whichflag = 0;
@@ -237,33 +245,6 @@ void Error::_warning(const std::string &file, int line, fmt::string_view format,
 }
 
 /* ----------------------------------------------------------------------
-   called by one proc in world, typically proc 0
-   write message to screen and logfile (if logflag is set)
-------------------------------------------------------------------------- */
-
-void Error::message(const std::string &file, int line, const std::string &str)
-{
-  std::string mesg = fmt::format("{} ({}:{})\n",str,truncpath(file),line);
-
-  if (screen) fputs(mesg.c_str(),screen);
-  if (logfile) fputs(mesg.c_str(),logfile);
-}
-
-/* ----------------------------------------------------------------------
-   forward vararg version to single string version
-------------------------------------------------------------------------- */
-
-void Error::_message(const std::string &file, int line, fmt::string_view format,
-                     fmt::format_args args)
-{
-  try {
-    message(file,line,fmt::vformat(format, args));
-  } catch (fmt::format_error &e) {
-    message(file,line,e.what());
-  }
-}
-
-/* ----------------------------------------------------------------------
    shutdown LAMMPS
    called by all procs in one world
    close all output, screen, and log files in world
@@ -275,7 +256,7 @@ void Error::done(int status)
   utils::flush_buffers(lmp);
   MPI_Barrier(world);
 
-  if (output) delete output;
+  delete output;
   if (screen && screen != stdout) fclose(screen);
   if (logfile) fclose(logfile);
 
@@ -306,7 +287,7 @@ ErrorType Error::get_last_error_type() const
    set the last error message and error type
 ------------------------------------------------------------------------- */
 
-void Error::set_last_error(const char *msg, ErrorType type)
+void Error::set_last_error(const std::string &msg, ErrorType type)
 {
   last_error_message = msg;
   last_error_type = type;

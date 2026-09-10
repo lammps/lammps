@@ -78,7 +78,7 @@
 using namespace LAMMPS_NS;
 
 static constexpr const char *const cite_openkim =
-  "OpenKIM Project: doi:10.1007/s11837-011-0102-6\n\n"
+  "OpenKIM Project: https://doi.org/10.1007/s11837-011-0102-6\n\n"
   "@Article{tadmor:elliott:2011,\n"
   " author = {E. B. Tadmor and R. S. Elliott and J. P. Sethna and R. E. Miller "
   "and C. A. Becker},\n"
@@ -151,7 +151,7 @@ PairKIM::PairKIM(LAMMPS *lmp) :
 PairKIM::~PairKIM()
 {
   // clean up kim_modelname
-  if (kim_modelname != nullptr) delete[] kim_modelname;
+  delete[] kim_modelname;
 
   // clean up lammps atom species number to unique particle names mapping
   if (lmps_unique_elements)
@@ -490,16 +490,14 @@ void PairKIM::coeff(int narg, char **arg)
 
         std::string::size_type npos = argtostr.find(':');
         if (npos != std::string::npos) {
-          argtostr[npos] = ' ';
-          auto words = utils::split_words(argtostr);
-          nlbound = std::stoi(words[0]);
-          nubound = std::stoi(words[1]);
+          nlbound = utils::inumeric(FLERR, argtostr.substr(0, npos), false, lmp);
+          nubound = utils::inumeric(FLERR, argtostr.substr(npos + 1), false, lmp);
 
           if ((nubound < 1) || (nubound > extent) || (nlbound < 1) || (nlbound > nubound))
             error->all(FLERR,"Illegal index_range '{}-{}' for '{}' parameter with the extent "
                        "of '{}'", nlbound, nubound, paramname, extent);
         } else {
-          nlbound = std::stoi(argtostr);
+          nlbound = utils::inumeric(FLERR, argtostr, false, lmp);
 
           if ((nlbound < 1) || (nlbound > extent))
             error->all(FLERR,"Illegal index '{}' for '{}' parameter with the extent of '{}'",
@@ -589,14 +587,14 @@ void PairKIM::init_style()
     int neighflags = NeighConst::REQ_FULL | NeighConst::REQ_NEWTON_OFF;
     if (!modelWillNotRequestNeighborsOfNoncontributingParticles[i])
       neighflags |= NeighConst::REQ_GHOST;
-    auto req = neighbor->add_request(this, neighflags);
+    auto *req = neighbor->add_request(this, neighflags);
     req->set_id(i);
 
     // set cutoff
     if (kim_cutoff_values[i] <= neighbor->skin)
       error->all(FLERR,"Illegal neighbor request (force cutoff {:.3} <= skin {:.3})",
                  kim_cutoff_values[i], neighbor->skin);
-    req->set_cutoff(kim_cutoff_values[i]);
+    req->set_cutoff_max(kim_cutoff_values[i]);
   }
   // increment instance_me in case of need to change the neighbor list
   // request settings
@@ -774,7 +772,7 @@ int PairKIM::get_neigh(void const * const dataObject,
                        int * const numberOfNeighbors,
                        int const ** const neighborsOfParticle)
 {
-  auto  const Model = reinterpret_cast<PairKIM const *>(dataObject);
+  const auto *const   Model = reinterpret_cast<PairKIM const *>(dataObject);
 
   if (numberOfNeighborLists != Model->kim_number_of_neighbor_lists)
     return true;

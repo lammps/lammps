@@ -27,6 +27,7 @@ namespace LAMMPS_NS {
 template<class DeviceType>
 struct remap_plan_3d_kokkos {
   typedef DeviceType device_type;
+  typedef ArrayTypes<DeviceType> AT;
   typedef FFTArrayTypes<DeviceType> FFT_AT;
   typename FFT_AT::t_FFT_SCALAR_1d d_sendbuf;                  // buffer for MPI sends
   FFT_HAT::t_FFT_SCALAR_1d h_sendbuf;                          // host buffer for MPI sends
@@ -39,12 +40,14 @@ struct remap_plan_3d_kokkos {
   int *send_offset;                 // extraction loc for each send
   int *send_size;                   // size of each send message
   int *send_proc;                   // proc to send each message to
+  int *send_bufloc;                 // if usenonblocking, offset in send buf for each isend
   struct pack_plan_3d *packplan;    // pack plan for each send message
   int *recv_offset;                 // insertion loc for each recv
   int *recv_size;                   // size of each recv message
   int *recv_proc;                   // proc to recv each message from
   int *recv_bufloc;                 // offset in scratch buf for each recv
   int *nrecvmap;                    // maps receive index to rank index
+  MPI_Request *isend_reqs;          // MPI request for each posted isend
   MPI_Request *request;             // MPI request for each posted recv
   struct pack_plan_3d *unpackplan;  // unpack plan for each recv message
   int nrecv;                        // # of recvs from other procs
@@ -53,6 +56,7 @@ struct remap_plan_3d_kokkos {
   int memory;                       // user provides scratch space or not
   MPI_Comm comm;                    // group of procs performing remap
   int usecollective;                // use collective or point-to-point MPI
+  int usenonblocking;               // if using point-to-point MPI, use MPI_Isend
   int usegpu_aware;                 // use GPU-Aware MPI or not
   // variables for collective MPI only
   int commringlen;                  // length of commringlist
@@ -61,19 +65,20 @@ struct remap_plan_3d_kokkos {
   int *rcvcnts;                     // # of elements in recv buffer for each rank
   int *sdispls;                     // extraction location in send buffer for each rank
   int *rdispls;                     // extraction location in recv buffer for each rank
-  int selfcommringloc;              // current proc's location in commringlist
-  int selfnsendloc;                 // current proc's location in send lists
-  int selfnrecvloc;                 // current proc's location in recv lists
+  int selfcommringloc;              // self rank's index in commringlist
+  int selfnsendloc;                 // self rank's index in send lists
+  int selfnrecvloc;                 // self rank's index in recv lists
 };
 
 template<class DeviceType>
 class RemapKokkos : protected Pointers {
  public:
   typedef DeviceType device_type;
+  typedef ArrayTypes<DeviceType> AT;
   typedef FFTArrayTypes<DeviceType> FFT_AT;
   RemapKokkos(class LAMMPS *);
   RemapKokkos(class LAMMPS *, MPI_Comm,int,int,int,int,int,int,
-        int,int,int,int,int,int,int,int,int,int,int,int);
+        int,int,int,int,int,int,int,int,int,int,int,int,int);
   ~RemapKokkos() override;
   void perform(typename FFT_AT::t_FFT_SCALAR_1d, typename FFT_AT::t_FFT_SCALAR_1d, typename FFT_AT::t_FFT_SCALAR_1d);
 
@@ -83,7 +88,7 @@ class RemapKokkos : protected Pointers {
   struct remap_plan_3d_kokkos<DeviceType> *remap_3d_create_plan_kokkos(MPI_Comm,
                                              int, int, int, int, int, int,
                                              int, int, int, int, int, int,
-                                             int, int, int, int, int, int);
+                                             int, int, int, int, int, int, int);
   void remap_3d_destroy_plan_kokkos(struct remap_plan_3d_kokkos<DeviceType> *);
 };
 

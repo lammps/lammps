@@ -1,0 +1,115 @@
+LAMMPS (10 Sep 2025 - Development - patch_10Sep2025-340-ga6cfcad4bf-modified)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
+  using 1 OpenMP thread(s) per MPI task
+units           metal
+atom_style      atomic
+boundary        p p p
+
+variable        latc  equal 2.87
+lattice         bcc ${latc}
+lattice         bcc 2.87
+Lattice spacing in x,y,z = 2.87 2.87 2.87
+variable        xmax equal   10.0
+variable        xmin equal  -10.0
+variable        ymax equal   10.0
+variable        ymin equal  -10.0
+variable        zmax equal   10.0
+variable        zmin equal  -10.0
+
+region          sim_box block ${xmin} ${xmax} ${ymin} ${ymax} ${zmin} ${zmax}                 units lattice
+region          sim_box block -10 ${xmax} ${ymin} ${ymax} ${zmin} ${zmax}                 units lattice
+region          sim_box block -10 10 ${ymin} ${ymax} ${zmin} ${zmax}                 units lattice
+region          sim_box block -10 10 -10 ${ymax} ${zmin} ${zmax}                 units lattice
+region          sim_box block -10 10 -10 10 ${zmin} ${zmax}                 units lattice
+region          sim_box block -10 10 -10 10 -10 ${zmax}                 units lattice
+region          sim_box block -10 10 -10 10 -10 10                 units lattice
+create_box      1 sim_box
+Created orthogonal box = (-28.7 -28.7 -28.7) to (28.7 28.7 28.7)
+  1 by 1 by 1 MPI processor grid
+region          atom_box block ${xmin} ${xmax} ${ymin} ${ymax} ${zmin} ${zmax}                 units lattice
+region          atom_box block -10 ${xmax} ${ymin} ${ymax} ${zmin} ${zmax}                 units lattice
+region          atom_box block -10 10 ${ymin} ${ymax} ${zmin} ${zmax}                 units lattice
+region          atom_box block -10 10 -10 ${ymax} ${zmin} ${zmax}                 units lattice
+region          atom_box block -10 10 -10 10 ${zmin} ${zmax}                 units lattice
+region          atom_box block -10 10 -10 10 -10 ${zmax}                 units lattice
+region          atom_box block -10 10 -10 10 -10 10                 units lattice
+create_atoms    1 region atom_box
+Created 16000 atoms
+  using lattice units in orthogonal box = (-28.7 -28.7 -28.7) to (28.7 28.7 28.7)
+  create_atoms CPU = 0.001 seconds
+
+mass            1 55.845
+
+pair_style      eam/fs
+pair_coeff      * * Fe_mm.eam.fs Fe
+Reading eam/fs potential file Fe_mm.eam.fs with DATE: 2007-06-11
+
+neighbor        2.0 bin
+neigh_modify    every 5 delay 0 check yes
+
+fix             1 all nve
+
+fix             twotemp all ttm/thermal 11111 props.in 10 10 10 set 1800.0
+
+compute         pe all pe/atom
+compute         ke all ke/atom
+
+timestep        0.0001
+thermo          100
+
+thermo_style    custom step temp etotal f_twotemp[1] f_twotemp[2]
+                thermo_modify format float "%20.16g"
+
+run             1000
+Neighbor list info ...
+  update: every = 5 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 7.3
+  ghost atom cutoff = 7.3
+  binsize = 3.65, bins = 16 16 16
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair eam/fs, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 14.93 | 14.93 | 14.93 Mbytes
+   Step          Temp          TotEng      f_twotemp[1]   f_twotemp[2] 
+         0                     0   -65934.45357526305    371.0519174879938                    0
+       100     16.75543241116823   -65897.66447227357    334.0178724061985   0.3118430884427655
+       200     26.71531497468794   -65864.69793080767    301.0700387830087   0.2916979745378292
+       300      29.9246700636085   -65834.82701417404    271.2399934256661   0.2269785573249345
+       400     30.24853526226442   -65808.33631392792    244.8009980489116   0.1375160094653321
+       500     32.04897564305613   -65784.39685387127    220.8416770241869   0.1890223832141024
+       600     36.76512871797021   -65762.42723588689    198.8409767023253    0.264042959144865
+       700      42.4845470939158   -65743.06051141671    179.5093370717682   0.2040874264875116
+       800      47.3104129138786   -65726.03209449482    162.5004970639171   0.1742328606277808
+       900     51.04189399106194   -65710.62736794836    147.1173211852656   0.1396207395553715
+      1000     54.83071009787725   -65696.19287727909    132.6786891153929   0.1553862432617664
+Loop time of 11.0144 on 1 procs for 1000 steps with 16000 atoms
+
+Performance: 0.784 ns/day, 30.596 hours/ns, 90.790 timesteps/s, 1.453 Matom-step/s
+99.6% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 10.149     | 10.149     | 10.149     |   0.0 | 92.15
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.039558   | 0.039558   | 0.039558   |   0.0 |  0.36
+Output  | 0.00062446 | 0.00062446 | 0.00062446 |   0.0 |  0.01
+Modify  | 0.81417    | 0.81417    | 0.81417    |   0.0 |  7.39
+Other   |            | 0.01075    |            |       |  0.10
+
+Nlocal:          16000 ave       16000 max       16000 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:          17201 ave       17201 max       17201 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:      1.088e+06 ave   1.088e+06 max   1.088e+06 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 1088000
+Ave neighs/atom = 68
+Neighbor list builds = 0
+Dangerous builds = 0
+Total wall time: 0:00:11

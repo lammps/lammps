@@ -1,10 +1,11 @@
 .. index:: pair_style lj/pirani
 .. index:: pair_style lj/pirani/omp
+.. index:: pair_style lj/pirani/kk
 
 pair_style lj/pirani command
 ============================
 
-Accelerator Variants: *lj/pirani/omp*
+Accelerator Variants: *lj/pirani/omp*, *lj/pirani/kk*
 
 Syntax
 """"""
@@ -27,7 +28,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 12Jun2025
 
 Pair style *lj/pirani* computes pairwise interactions from an Improved
 Lennard-Jones (ILJ) potential according to :ref:`(Pirani) <Pirani>`.
@@ -74,7 +75,7 @@ electrostatic interactions.  If these are desired, this pair style
 should be used along with a Coulomb pair style like
 :doc:`pair styles coul/cut or coul/long <pair_coul>` by using
 :doc:`pair style hybrid/overlay <pair_hybrid>` and a suitable
-kspace style :doc:`<kspace_style>`, if needed.
+:doc:`kspace style <kspace_style>`, if needed.
 
 As discussed in :ref:`(Pirani) <Pirani>`, analysis of a variety of
 systems showed that :math:`\alpha= 4` generally works very well.  In

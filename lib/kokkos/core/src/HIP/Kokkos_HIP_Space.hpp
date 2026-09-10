@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_HIPSPACE_HPP
 #define KOKKOS_HIPSPACE_HPP
@@ -52,17 +39,12 @@ class HIPSpace {
   using memory_space    = HIPSpace;
   using execution_space = HIP;
   using device_type     = Kokkos::Device<execution_space, memory_space>;
-
-  using size_type = unsigned int;
+  using size_type       = unsigned int;
+  using index_type      = std::make_signed_t<size_type>;
 
   /*--------------------------------*/
 
   HIPSpace();
-  HIPSpace(HIPSpace&& rhs)                 = default;
-  HIPSpace(const HIPSpace& rhs)            = default;
-  HIPSpace& operator=(HIPSpace&& rhs)      = default;
-  HIPSpace& operator=(const HIPSpace& rhs) = default;
-  ~HIPSpace()                              = default;
 
  private:
   HIPSpace(int device_id, hipStream_t stream);
@@ -140,15 +122,11 @@ class HIPHostPinnedSpace {
   using memory_space    = HIPHostPinnedSpace;
   using device_type     = Kokkos::Device<execution_space, memory_space>;
   using size_type       = unsigned int;
+  using index_type      = std::make_signed_t<size_type>;
 
   /*--------------------------------*/
 
   HIPHostPinnedSpace();
-  HIPHostPinnedSpace(HIPHostPinnedSpace&& rhs)                 = default;
-  HIPHostPinnedSpace(const HIPHostPinnedSpace& rhs)            = default;
-  HIPHostPinnedSpace& operator=(HIPHostPinnedSpace&& rhs)      = default;
-  HIPHostPinnedSpace& operator=(const HIPHostPinnedSpace& rhs) = default;
-  ~HIPHostPinnedSpace()                                        = default;
 
  private:
   HIPHostPinnedSpace(int device_id, hipStream_t stream);
@@ -225,15 +203,11 @@ class HIPManagedSpace {
   using execution_space = HIP;
   using device_type     = Kokkos::Device<execution_space, memory_space>;
   using size_type       = unsigned int;
+  using index_type      = std::make_signed_t<size_type>;
 
   /*--------------------------------*/
 
   HIPManagedSpace();
-  HIPManagedSpace(HIPManagedSpace&& rhs)                 = default;
-  HIPManagedSpace(const HIPManagedSpace& rhs)            = default;
-  HIPManagedSpace& operator=(HIPManagedSpace&& rhs)      = default;
-  HIPManagedSpace& operator=(const HIPManagedSpace& rhs) = default;
-  ~HIPManagedSpace()                                     = default;
 
  private:
   HIPManagedSpace(int device_id, hipStream_t stream);
@@ -311,7 +285,6 @@ struct MemorySpaceAccess<HostSpace, HIPSpace> {
 #else
   enum : bool { accessible = true };
 #endif
-  enum : bool { deepcopy = true };
 };
 
 template <>
@@ -319,7 +292,6 @@ struct MemorySpaceAccess<HostSpace, HIPHostPinnedSpace> {
   // HostSpace::execution_space == HIPHostPinnedSpace::execution_space
   enum : bool { assignable = true };
   enum : bool { accessible = true };
-  enum : bool { deepcopy = true };
 };
 
 template <>
@@ -327,7 +299,6 @@ struct MemorySpaceAccess<HostSpace, HIPManagedSpace> {
   // HostSpace::execution_space != HIPManagedSpace::execution_space
   enum : bool { assignable = false };
   enum : bool { accessible = true };
-  enum : bool { deepcopy = true };
 };
 
 //----------------------------------------
@@ -336,7 +307,6 @@ template <>
 struct MemorySpaceAccess<HIPSpace, HostSpace> {
   enum : bool { assignable = false };
   enum : bool { accessible = false };
-  enum : bool { deepcopy = true };
 };
 
 template <>
@@ -344,7 +314,6 @@ struct MemorySpaceAccess<HIPSpace, HIPHostPinnedSpace> {
   // HIPSpace::execution_space != HIPHostPinnedSpace::execution_space
   enum : bool { assignable = false };
   enum : bool { accessible = true };  // HIPSpace::execution_space
-  enum : bool { deepcopy = true };
 };
 
 template <>
@@ -352,7 +321,6 @@ struct MemorySpaceAccess<HIPSpace, HIPManagedSpace> {
   // HIPSpace::execution_space == HIPManagedSpace::execution_space
   enum : bool { assignable = true };
   enum : bool { accessible = true };
-  enum : bool { deepcopy = true };
 };
 
 //----------------------------------------
@@ -363,21 +331,18 @@ template <>
 struct MemorySpaceAccess<HIPHostPinnedSpace, HostSpace> {
   enum : bool { assignable = false };  // Cannot access from HIP
   enum : bool { accessible = true };   // HIPHostPinnedSpace::execution_space
-  enum : bool { deepcopy = true };
 };
 
 template <>
 struct MemorySpaceAccess<HIPHostPinnedSpace, HIPSpace> {
   enum : bool { assignable = false };  // Cannot access from Host
   enum : bool { accessible = false };
-  enum : bool { deepcopy = true };
 };
 
 template <>
 struct MemorySpaceAccess<HIPHostPinnedSpace, HIPManagedSpace> {
   enum : bool { assignable = false };  // different exec_space
   enum : bool { accessible = true };
-  enum : bool { deepcopy = true };
 };
 
 //----------------------------------------
@@ -388,21 +353,18 @@ template <>
 struct MemorySpaceAccess<HIPManagedSpace, HostSpace> {
   enum : bool { assignable = false };
   enum : bool { accessible = false };  // HIPHostPinnedSpace::execution_space
-  enum : bool { deepcopy = true };
 };
 
 template <>
 struct MemorySpaceAccess<HIPManagedSpace, HIPSpace> {
   enum : bool { assignable = false };
   enum : bool { accessible = true };
-  enum : bool { deepcopy = true };
 };
 
 template <>
 struct MemorySpaceAccess<HIPManagedSpace, HIPHostPinnedSpace> {
   enum : bool { assignable = false };  // different exec_space
   enum : bool { accessible = true };
-  enum : bool { deepcopy = true };
 };
 
 }  // namespace Impl

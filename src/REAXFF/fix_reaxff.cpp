@@ -43,7 +43,7 @@ FixReaxFF::FixReaxFF(LAMMPS *lmp,int narg, char **arg) :
   oldnmax = 0;
   num_bonds = nullptr;
   num_hbonds = nullptr;
-  grow_arrays(atom->nmax);
+  FixReaxFF::grow_arrays(atom->nmax);
   atom->add_callback(Atom::GROW);
 
   // initialize arrays to MIN so atom migration is OK the 1st time

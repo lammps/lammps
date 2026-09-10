@@ -36,7 +36,7 @@ using namespace LAMMPS_NS;
 using namespace InterLayer;
 
 static const char cite_ilp_tmd[] =
-    "ilp/tmd potential doi:10.1021/acs.jctc.1c00782\n"
+    "ilp/tmd potential: https://doi.org/10.1021/acs.jctc.1c00782\n\n"
     "@Article{Ouyang2021\n"
     "  author = {W. Ouyang and R. Sofer and X. Gao and J. Hermann and\n"
     "    A. Tkatchenko and L. Kronik and M. Urbakh and O. Hod},\n"
@@ -72,7 +72,7 @@ void PairILPTMD::settings(int narg, char **arg)
     error->all(FLERR, "Pair style ilp/tmd must be used as sub-style with hybrid/overlay");
 
   cut_global = utils::numeric(FLERR, arg[0], false, lmp);
-  if (narg == 2) tap_flag = utils::numeric(FLERR, arg[1], false, lmp);
+  if (narg == 2) tap_flag = utils::inumeric(FLERR, arg[1], false, lmp);
 }
 
 /* ----------------------------------------------------------------------
@@ -1011,4 +1011,16 @@ void PairILPTMD::calc_normal()
       error->one(FLERR, Error::NOLASTLINE, "There are too many neighbors for calculating normals of TMD atoms");
     }    // end of four cases of cont
   }      // end of i loop
+}
+
+/* ---------------------------------------------------------------------- */
+
+double PairILPTMD::memory_usage()
+{
+  double bytes = PairILPGrapheneHBN::memory_usage();
+  bytes += (double) maxlocal * (sizeof(int) + sizeof(int *));    // ILP_numneigh + ILP_firstneigh
+  bytes += (double) nmax * 3 * sizeof(double);                   // normal[nmax][3]
+  bytes += (double) nmax * 9 * sizeof(double);                   // dnormdri[nmax][3][3]
+  bytes += (double) nmax * 54 * sizeof(double);                  // dnormal[nmax][3][Nnei=6][3]
+  return bytes;
 }

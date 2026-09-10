@@ -176,14 +176,14 @@ be set to 0.0 if desired.
 Note that the twobody parameters in entries such as SiCC and CSiSi
 are often the same, due to the common use of symmetric mixing rules,
 but this is not always the case. For example, the beta and n parameters in
-Tersoff_2 :ref:`(Tersoff_2) <Tersoff_21>` are not symmetric.
+Tersoff_2 :ref:`(Tersoff) <Tersoff_21>` are not symmetric.
 Similarly, the threebody parameters in entries such as SiCSi and SiSiC
 are often the same, but this is not always the case, particularly
 the value of R, which is sometimes typed on the
 first and second elements, sometimes on the first and third elements.
 Hence the need to specify R and D explicitly for all element triples.
 For example, while Tersoff's notation
-in Tersoff_2 :ref:`(Tersoff_2) <Tersoff_21>` is ambiguous on this point,
+in Tersoff_2 :ref:`(Tersoff) <Tersoff_21>` is ambiguous on this point,
 and properties of the zincblende lattice are the same for either choice,
 Tersoff's results for rocksalt are consistent with typing on the first
 and third elements. :ref:`Albe et al. <Albe>` adopts the same convention.
@@ -197,7 +197,7 @@ it reduces to the form of :ref:`Albe et al. <Albe>` when beta = 1 and m = 1.
 Note that in the current Tersoff implementation in LAMMPS, m must be
 specified as either 3 or 1.  Tersoff used a slightly different but
 equivalent form for alloys, which we will refer to as Tersoff_2
-potential :ref:`(Tersoff_2) <Tersoff_21>`.
+potential :ref:`(Tersoff) <Tersoff_21>`.
 The *tersoff/table* style implements
 Tersoff_2 parameterization only.
 
@@ -251,7 +251,7 @@ periodic supercell.  To minimize the effect of strain on simulation
 results, the *shift* keyword allows adjusting the equilibrium bond
 length of one of the two materials (e.g., h-BN). Validation, benchmark
 tests, and applications of the *shift* keyword can be found in
-:ref:`(Mandelli_1) <Mandelli1>` and :ref:`(Ouyang_1) <Ouyang5>`.
+:ref:`(Mandelli_1) <Mandelli1>` and :ref:`(Ouyang2) <Ouyang5>`.
 
 For the specific case discussed above, the force field can be defined as
 
@@ -340,7 +340,7 @@ Condens. Matter, 15, 5649(2003).
 
 .. _Tersoff_21:
 
-**(Tersoff_2)** J. Tersoff, Phys Rev B, 39, 5566 (1989); errata (PRB 41, 3248)
+**(Tersoff)** J. Tersoff, Phys Rev B, 39, 5566 (1989); errata (PRB 41, 3248)
 
 .. _Mandelli1:
 
@@ -348,4 +348,4 @@ Condens. Matter, 15, 5649(2003).
 
 .. _Ouyang5:
 
-**(Ouyang_1)** W. Ouyang et al., J. Chem. Theory Comput. 16(1), 666-676 (2020).
+**(Ouyang2)** W. Ouyang et al., J. Chem. Theory Comput. 16(1), 666-676 (2020).

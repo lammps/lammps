@@ -50,7 +50,7 @@ class ComputePressureBocs : public Compute {
   void send_cg_info(int, int, double *, int, double);
   void send_cg_info(int, double **, int);
   double get_cg_p_corr(double **, int, double);
-  double find_index(double *, double);
+  int find_index(double *, double);
 
  protected:
   double boltz, nktv2p, inv_volume;

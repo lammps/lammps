@@ -39,7 +39,9 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 PairLJCharmmfswCoulCharmmfsh::PairLJCharmmfswCoulCharmmfsh(LAMMPS *lmp) :
-  Pair(lmp)
+    Pair(lmp), epsilon(nullptr), sigma(nullptr), eps14(nullptr), sigma14(nullptr), lj1(nullptr),
+    lj2(nullptr), lj3(nullptr), lj4(nullptr), lj14_1(nullptr), lj14_2(nullptr), lj14_3(nullptr),
+    lj14_4(nullptr)
 {
   implicit = 0;
   mix_flag = ARITHMETIC;
@@ -53,8 +55,7 @@ PairLJCharmmfswCoulCharmmfsh::PairLJCharmmfswCoulCharmmfsh(LAMMPS *lmp) :
 
   if (strcmp(update->unit_style,"real") == 0) {
     if ((comm->me == 0) && (force->qqr2e != force->qqr2e_charmm_real))
-      error->message(FLERR,"Switching to CHARMM coulomb energy"
-                     " conversion constant");
+      utils::logmesg(lmp,"Switching to CHARMM coulomb energy conversion constant\n");
     force->qqr2e = force->qqr2e_charmm_real;
   }
 }
@@ -63,16 +64,15 @@ PairLJCharmmfswCoulCharmmfsh::PairLJCharmmfswCoulCharmmfsh(LAMMPS *lmp) :
 
 PairLJCharmmfswCoulCharmmfsh::~PairLJCharmmfswCoulCharmmfsh()
 {
+  if (copymode) return;
+
   // switch qqr2e back from CHARMM value to LAMMPS value
 
   if (update && strcmp(update->unit_style,"real") == 0) {
     if ((comm->me == 0) && (force->qqr2e == force->qqr2e_charmm_real))
-      error->message(FLERR,"Restoring original LAMMPS coulomb energy"
-                     " conversion constant");
+      utils::logmesg(lmp,"Restoring original LAMMPS coulomb energy conversion constant\n");
     force->qqr2e = force->qqr2e_lammps_real;
   }
-
-  if (copymode) return;
 
   if (allocated) {
     memory->destroy(setflag);

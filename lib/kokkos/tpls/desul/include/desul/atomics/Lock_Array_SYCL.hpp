@@ -32,8 +32,8 @@ namespace Impl {
  * \brief This global variable in Host space is the central definition of these
  * arrays.
  */
-extern int32_t* SYCL_SPACE_ATOMIC_LOCKS_DEVICE_h;
-extern int32_t* SYCL_SPACE_ATOMIC_LOCKS_NODE_h;
+DESUL_IMPL_EXPORT extern int32_t* SYCL_SPACE_ATOMIC_LOCKS_DEVICE_h;
+DESUL_IMPL_EXPORT extern int32_t* SYCL_SPACE_ATOMIC_LOCKS_NODE_h;
 
 /// \brief After this call, the lock arrays used in [un]lock_address_sycl
 ///        are initialized and ready to be used.

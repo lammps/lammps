@@ -1,7 +1,10 @@
 .. index:: compute temp/com
+.. index:: compute temp/com/kk
 
 compute temp/com command
 ========================
+
+Accelerator Variants: *temp/com/kk*
 
 Syntax
 """"""
@@ -46,7 +49,7 @@ the Boltzmann constant, and :math:`T` is the absolute temperature.
 
 A symmetric tensor, stored as a six-element vector, is also calculated
 by this compute for use in the computation of a pressure tensor by the
-:doc:`compute pressue <compute_pressure>` command.  The formula for
+:doc:`compute pressure <compute_pressure>` command.  The formula for
 the components of the tensor is the same as the above expression for
 :math:`E_\mathrm{kin}`, except that the 1/2 factor is NOT included and
 the :math:`v_i^2` is replaced by :math:`v_{i,x} v_{i,y}` for the
@@ -82,6 +85,12 @@ See the :doc:`Howto thermostat <Howto_thermostat>` page for a
 discussion of different ways to compute temperature and perform
 thermostatting.
 
+----------
+
+.. include:: accel_styles.rst
+
+----------
+
 Output info
 """""""""""
 
@@ -100,7 +109,7 @@ values is in energy :doc:`units <units>`.
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""

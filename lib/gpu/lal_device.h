@@ -40,16 +40,28 @@ class Device {
   /// Initialize the device for use by this process
   /** Sets up a per-device MPI communicator for load balancing and initializes
     * the device (ngpu starting at first_gpu_id) that this proc will be using
-    * Returns:
+    * Returns: (consistent with src/GPU/gpu_extra.h GPU_EXTRA::check_flag())
     * -  0 if successful
-    * - -2 if GPU not found
-    * - -4 if GPU library not compiled for GPU
+    * - -1 The package gpu command is required for gpu styles
+    * - -2 Could not find/initialize a specified accelerator device
+    * - -3 Insufficient memory on accelerator
+    * - -4 GPU library not compiled for this accelerator
+    * - -5 Double precision is not supported on card
     * - -6 if GPU could not be initialized for use
     * - -7 if accelerator sharing is not currently allowed on system
-    * - -11 if config_string has the wrong number of parameters **/
+    * - -9 CPU neighbor lists must be used for ellipsoid/sphere mix
+    * - -10 Invalid threads_per_atom specified
+    * - -11 if config_string has the wrong number of parameters
+    * - -12 Invalid OpenCL platform ID
+    * - -13 Invalid device type flags
+    * - -15 PPPM was compiled for double precision floating point but GPU device supports single precision only
+    * - -16 GPU library was compiled for double or mixed precision floating point but GPU device supports single precision only
+    * - -17 Cannot use device neighbor list builds with AMD shared memory GPUs with OpenCL 2.0
+    * **/
+
   int init_device(MPI_Comm world, MPI_Comm replica, const int ngpu,
                   const int first_gpu_id, const int gpu_mode,
-                  const double particle_split, const int t_per_atom,
+                  const int t_per_atom,
                   const double user_cell_size, char *config_string,
                   const int ocl_platform, char *device_type_flags,
                   const int block_pair);
@@ -63,12 +75,8 @@ class Device {
     * \param vel True if velocities need to be stored
     * \param extra_fields Nonzero if extra fields need to be stored
     *
-    * Returns:
-    * -  0 if successful
-    * - -1 if fix gpu not found
-    * - -3 if there is an out of memory error
-    * - -4 if the GPU library was not compiled for GPU
-    * - -5 Double precision is not supported on card **/
+    * Returns: error code the same as init_device()
+    **/
   int init(Answer<numtyp,acctyp> &ans, const bool charge, const bool rot,
            const int nlocal, const int nall, const int maxspecial,
            const bool vel=false, const int extra_fields=0);
@@ -77,12 +85,8 @@ class Device {
   /** \param nlocal Total number of local particles to allocate memory for
     * \param nall Total number of local+ghost particles
     *
-    * Returns:
-    * -  0 if successful
-    * - -1 if fix gpu not found
-    * - -3 if there is an out of memory error
-    * - -4 if the GPU library was not compiled for GPU
-    * - -5 Double precision is not supported on card **/
+    * Returns:  error code the same as init_device()
+    **/
   int init(Answer<numtyp,acctyp> &ans, const int nlocal, const int nall);
 
   /// Initialize the neighbor list storage
@@ -102,12 +106,8 @@ class Device {
     * \param threads_per_atom value to be used by the neighbor list only
     * \param ilist_map true if ilist mapping data structures used (3-body)
     *
-    * Returns:
-    * -  0 if successful
-    * - -1 if fix gpu not found
-    * - -3 if there is an out of memory error
-    * - -4 if the GPU library was not compiled for GPU
-    * - -5 Double precision is not supported on card **/
+    * Returns: error code the same as init_device()
+    **/
   int init_nbor(Neighbor *nbor, const int nlocal,
                 const int host_nlocal, const int nall,
                 const int maxspecial, const int gpu_host,
@@ -140,7 +140,7 @@ class Device {
 
   /// Output a message with timing information
   void output_times(UCL_Timer &time_pair, Answer<numtyp,acctyp> &ans,
-                    Neighbor &nbor, const double avg_split,
+                  Neighbor &nbor,
                     const double max_bytes, const double gpu_overhead,
                     const double driver_overhead,
                     const int threads_per_atom, FILE *screen);
@@ -169,7 +169,6 @@ class Device {
     error_flag=0;
     atom.data_unavail();
     if (ans_queue.empty()==false) {
-      stop_host_timer();
       double evdw=0.0;
       while (ans_queue.empty()==false) {
         evdw += ans_queue.front()->get_answers(f,tor,eatom,vatom,virial,ecoul,error_flag);
@@ -179,21 +178,6 @@ class Device {
     }
     return 0.0;
   }
-
-  /// Start timer on host
-  inline void start_host_timer()
-    { _cpu_full=MPI_Wtime(); _host_timer_started=true; }
-
-  /// Stop timer on host
-  inline void stop_host_timer() {
-    if (_host_timer_started) {
-      _cpu_full=MPI_Wtime()-_cpu_full;
-      _host_timer_started=false;
-    }
-  }
-
-  /// Return host time
-  inline double host_time() { return _cpu_full; }
 
   /// Return host memory usage in bytes
   double host_memory_usage() const;
@@ -230,8 +214,6 @@ class Device {
   inline int first_device() const { return _first_device; }
   /// Index of last device used by a node
   inline int last_device() const { return _last_device; }
-  /// Particle split defined in fix
-  inline double particle_split() const { return _particle_split; }
   /// Return the initialization count for the device
   inline int init_count() const { return _init_count; }
   /// True if device is being timed
@@ -281,11 +263,13 @@ class Device {
   inline double ptx_arch() const { return _ptx_arch; }
   inline void set_simd_size(int simd_sz) { _simd_size = simd_sz; }
 
+  /// Return true if host neighbor list is required (e.g. AMD shared memory GPUs with OpenCL builds)
   // -------------------------- DEVICE DATA -------------------------
 
   /// Geryon Device
   UCL_Device *gpu;
 
+  // must match definition in src/GPU/fix_gpu.cpp
   enum{GPU_FORCE, GPU_NEIGH, GPU_HYB_NEIGH};
 
   // --------------------------- ATOM DATA --------------------------
@@ -331,13 +315,11 @@ class Device {
  private:
   std::queue<Answer<numtyp,acctyp> *> ans_queue;
   int _init_count;
-  bool _device_init, _host_timer_started, _time_device;
+  bool _device_init, _comm_gpu_allocated, _host_timer_started, _time_device;
   MPI_Comm _comm_world, _comm_replica, _comm_gpu;
   int _procs_per_gpu, _gpu_rank, _world_me, _world_size, _replica_me,
       _replica_size;
   int _gpu_mode, _first_device, _last_device, _platform_id;
-  double _particle_split;
-  double _cpu_full;
   double _ptx_arch;
   double _user_cell_size; // -1 if the cutoff is used
 
@@ -347,7 +329,8 @@ class Device {
   int _pppm_block, _block_nbor_build, _block_cell_2d, _block_cell_id;
   int _max_shared_types, _max_bio_shared_types, _pppm_max_spline;
   int _nbor_prefetch;
-  int _use_old_nbor_build;
+  int _use_old_nbor_build; // 1 if using old/legacy neighbor build, 0 otherwise
+  int _use_device_sort;    // 1 if using sorting particles using their cell IDs on the device, 0 otherwise
 
   UCL_Program *dev_program;
   UCL_Kernel k_zero, k_info;

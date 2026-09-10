@@ -85,14 +85,15 @@ void NPairTrimKokkos<DeviceType>::trim_to_kokkos(NeighList *list)
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void NPairTrimKokkos<DeviceType>::operator()(TagNPairTrim, const int &ii) const {
   int n = 0;
 
   const int i = d_ilist_copy(ii);
-  const double xtmp = x(i,0);
-  const double ytmp = x(i,1);
-  const double ztmp = x(i,2);
+  const double xtmp = static_cast<double>(x(i,0));
+  const double ytmp = static_cast<double>(x(i,1));
+  const double ztmp = static_cast<double>(x(i,2));
 
   // loop over copy neighbor list
 
@@ -104,9 +105,9 @@ void NPairTrimKokkos<DeviceType>::operator()(TagNPairTrim, const int &ii) const 
     const int joriginal = d_neighbors_copy(i,jj);
     const int j = joriginal & NEIGHMASK;
 
-    const double delx = xtmp - x(j,0);
-    const double dely = ytmp - x(j,1);
-    const double delz = ztmp - x(j,2);
+    const double delx = xtmp - static_cast<double>(x(j,0));
+    const double dely = ytmp - static_cast<double>(x(j,1));
+    const double delz = ztmp - static_cast<double>(x(j,2));
     const double rsq = delx*delx + dely*dely + delz*delz;
 
     if (rsq > cutsq_custom) continue;
@@ -126,7 +127,7 @@ void NPairTrimKokkos<DeviceType>::trim_to_cpu(NeighList *list)
   NeighList *listcopy = list->listcopy;
   NeighListKokkos<DeviceType>* listcopy_kk = (NeighListKokkos<DeviceType>*) listcopy;
 
-  listcopy_kk->k_ilist.template sync<LMPHostType>();
+  listcopy_kk->k_ilist.sync_host();
 
   double** x = atom->x;
 
@@ -134,7 +135,7 @@ void NPairTrimKokkos<DeviceType>::trim_to_cpu(NeighList *list)
   int gnum = listcopy->gnum;
   int inum_trim = inum;
   if (list->ghost) inum_trim += gnum;
-  auto h_ilist = listcopy_kk->k_ilist.h_view;
+  auto h_ilist = listcopy_kk->k_ilist.view_host();
   auto h_numneigh = Kokkos::create_mirror_view_and_copy(LMPHostType(),listcopy_kk->d_numneigh);
   auto h_neighbors = Kokkos::create_mirror_view_and_copy(LMPHostType(),listcopy_kk->d_neighbors);
 

@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_EXPERIMENTAL_CUDA_VIEW_HPP
 #define KOKKOS_EXPERIMENTAL_CUDA_VIEW_HPP
@@ -32,14 +19,10 @@ struct CudaLDGFetch {
 
   template <typename iType>
   KOKKOS_FUNCTION ValueType operator[](const iType& i) const {
-#if defined(KOKKOS_ARCH_KEPLER30) || defined(KOKKOS_ARCH_KEPLER32)
-    return m_ptr[i];
-#else
     KOKKOS_IF_ON_DEVICE(
         (AliasType v = __ldg(reinterpret_cast<const AliasType*>(&m_ptr[i]));
          return *(reinterpret_cast<ValueType*>(&v));))
     KOKKOS_IF_ON_HOST((return m_ptr[i];))
-#endif
   }
 
   KOKKOS_FUNCTION
@@ -76,7 +59,7 @@ class ViewDataHandle<
         (std::is_same_v<typename Traits::memory_space, Kokkos::CudaSpace> ||
          std::is_same_v<typename Traits::memory_space, Kokkos::CudaUVMSpace>)&&
         // Is a trivial const value of 4, 8, or 16 bytes
-        std::is_trivial_v<typename Traits::const_value_type> &&
+        std::is_trivially_copyable_v<typename Traits::const_value_type> &&
         std::is_same_v<typename Traits::const_value_type,
                        typename Traits::value_type> &&
         (sizeof(typename Traits::const_value_type) == 4 ||

@@ -77,11 +77,8 @@ class CommTiled : public Comm {
   double ***sendbox;    // bounding box of atoms to send per swap/proc
 
   double **cutghostmulti;         // cutghost on a per-collection basis
-  double **cutghostmultiold;      // cutghost on a per-type basis
   double ****sendbox_multi;       // bounding box of atoms to send
                                   //   per swap/proc for multi comm
-  double ****sendbox_multiold;    // bounding box of atoms to send
-                                  //   per swap/proc for multi/old comm
 
   // exchange comm info, proc lists do not include self
 
@@ -123,23 +120,23 @@ class CommTiled : public Comm {
 
   // box drop and other functions
 
-  typedef void (CommTiled::*BoxDropPtr)(int, double *, double *, int &);
+  using BoxDropPtr = void (CommTiled::*)(int, double *, double *, int &);
   BoxDropPtr box_drop;
   void box_drop_brick(int, double *, double *, int &);
   void box_drop_tiled(int, double *, double *, int &);
   void box_drop_tiled_recurse(double *, double *, int, int, int &);
 
-  typedef void (CommTiled::*BoxOtherPtr)(int, int, int, double *, double *);
+  using BoxOtherPtr = void (CommTiled::*)(int, int, int, double *, double *);
   BoxOtherPtr box_other;
   void box_other_brick(int, int, int, double *, double *);
   void box_other_tiled(int, int, int, double *, double *);
 
-  typedef int (CommTiled::*BoxTouchPtr)(int, int, int);
+  using BoxTouchPtr = int (CommTiled::*)(int, int, int);
   BoxTouchPtr box_touch;
   int box_touch_brick(int, int, int);
   int box_touch_tiled(int, int, int);
 
-  typedef int (CommTiled::*PointDropPtr)(int, double *);
+  using PointDropPtr = int (CommTiled::*)(int, double *);
   PointDropPtr point_drop;
   int point_drop_brick(int, double *);
   int point_drop_tiled(int, double *);

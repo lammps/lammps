@@ -26,6 +26,7 @@ namespace LAMMPS_NS {
 
 class RegEllipsoid : public Region {
   friend class Region2VMD;
+  friend class DumpImage;
 
  public:
   RegEllipsoid(class LAMMPS *, int, char **);
@@ -35,8 +36,9 @@ class RegEllipsoid : public Region {
   int surface_interior(double *, double) override;
   int surface_exterior(double *, double) override;
   void shape_update() override;
+  void bbox_update() override;
 
- private:
+ protected:
   double xc, yc, zc;
   double a, b, c;
   int xstyle, xvar;

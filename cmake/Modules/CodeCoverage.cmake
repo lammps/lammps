@@ -30,7 +30,7 @@ if(ENABLE_COVERAGE)
 
     add_custom_target(
         gen_coverage_html
-        COMMAND ${GCOVR_BINARY} -s  --html --html-details -r ${ABSOLUTE_LAMMPS_SOURCE_DIR} --object-directory=${CMAKE_BINARY_DIR} -o ${COVERAGE_HTML_DIR}/index.html
+        COMMAND ${GCOVR_BINARY} -s  --html --html-nested --html-self-contained -r ${ABSOLUTE_LAMMPS_SOURCE_DIR} --object-directory=${CMAKE_BINARY_DIR} -o ${COVERAGE_HTML_DIR}/index.html
         WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
         COMMENT "Generating HTML coverage report..."
     )
@@ -46,7 +46,7 @@ if(ENABLE_COVERAGE)
                           */*/*/*/*.gcda */*/*/*/*/*.gcda */*/*/*/*/*/*.gcda
                           */*/*/*/*/*/*/*.gcda */*/*/*/*/*/*/*/*.gcda
                           */*/*/*/*/*/*/*/*/*.gcda */*/*/*/*/*/*/*/*/*/*.gcda
-        WORKIND_DIRECTORY ${CMAKE_BINARY_DIR}
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
         COMMENT "Deleting coverage data files..."
     )
     add_dependencies(reset_coverage clean_coverage_html)

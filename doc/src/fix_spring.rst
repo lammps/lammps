@@ -1,7 +1,10 @@
 .. index:: fix spring
+.. index:: fix spring/kk
 
 fix spring command
 ==================
+
+Accelerator Variant: *spring/kk*
 
 Syntax
 """"""
@@ -143,9 +146,15 @@ invoked by the :doc:`minimize <minimize>` command.
    MUST enable the :doc:`fix_modify <fix_modify>` *energy* option for this
    fix.
 
+----------
+
+.. include:: accel_styles.rst
+
+----------
+
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""

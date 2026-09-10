@@ -32,7 +32,7 @@ class PairLubricateUPoly : public PairLubricateU {
   void settings(int, char **) override;
   void init_style() override;
 
- private:
+ protected:
   double vol_P;
   int flagdeform, flagwall, flagVF, flagHI;
   class FixWall *wallfix;

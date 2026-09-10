@@ -27,6 +27,7 @@ namespace LAMMPS_NS {
 class RegPrism : public Region {
   friend class CreateBox;
   friend class Region2VMD;
+  friend class DumpImage;
 
  public:
   RegPrism(class LAMMPS *, int, char **);
@@ -36,8 +37,9 @@ class RegPrism : public Region {
   int surface_interior(double *, double) override;
   int surface_exterior(double *, double) override;
   void shape_update() override;
+  void bbox_update() override;
 
- private:
+ protected:
   double xlo, xhi, ylo, yhi, zlo, zhi;
   double xy, xz, yz;
   double h[3][3], hinv[3][3];
@@ -48,7 +50,7 @@ class RegPrism : public Region {
   double corners[8][3];       // 8 corner pts of prism
   int tri[12][3];             // 3 corner pts of 12 triangles (2 per face)
 
-  void find_nearest(double *, double &, double &, double &);
+  int find_nearest(double *, double &, double &, double &);
   int inside_tri(double *, double *, double *, double *, double *);
   double closest(double *, double *, double *, double);
 

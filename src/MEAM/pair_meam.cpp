@@ -29,8 +29,8 @@
 #include "potential_file_reader.h"
 
 #include <algorithm>
+#include <exception>
 #include <cstring>
-#include <memory>
 
 using namespace LAMMPS_NS;
 
@@ -73,7 +73,7 @@ PairMEAM::~PairMEAM()
 {
   if (copymode) return;
 
-  if (meam_inst) delete meam_inst;
+  delete meam_inst;
 
   if (allocated) {
     memory->destroy(setflag);
@@ -370,7 +370,7 @@ void PairMEAM::read_global_meam_file(const std::string &globalfile)
 
   // allocate parameter arrays
 
-  std::vector<lattice_t> lat(nlibelements);
+  std::vector<MEAM::lattice_t> lat(nlibelements);
   std::vector<int> ielement(nlibelements);
   std::vector<int> ibar(nlibelements);
   std::vector<double> z(nlibelements);
@@ -468,6 +468,11 @@ void PairMEAM::read_global_meam_file(const std::string &globalfile)
 
         if (!isone(t0[index]))
           error->one(FLERR, 4, "Unsupported parameter in MEAM library file: t0 != 1");
+
+        // rho0 determines the background reference density which divides the
+        // embedding energy, so it must be positive
+        if (rozero[index] <= 0.0)
+          error->one(FLERR, 4, "Invalid parameter in MEAM library file: rho0 must be > 0");
 
         // z given is ignored: if this is mismatched, we definitely won't do what the user said -> fatal error
         if (z[index] != MEAM::get_Zij(lat[index]))
@@ -601,7 +606,7 @@ void PairMEAM::read_user_meam_file(const std::string &userfile, int uidx)
     // map lattce_meam value to an integer
     if (which == 4) {
       std::string lattice_type = values.next_string();
-      lattice_t latt;
+      MEAM::lattice_t latt;
       if (!MEAM::str_to_lat(lattice_type, false, latt))
         error->all(FLERR, uidx, "Unrecognized lattice type {} in MEAM parameter file {}:{}",
                    lattice_type, userfile, lineno);
@@ -614,6 +619,13 @@ void PairMEAM::read_user_meam_file(const std::string &userfile, int uidx)
                    e.what());
       }
     }
+
+    // rho0 determines the background reference density which divides the
+    // embedding energy, so it must remain positive
+
+    if ((which == 2) && (value <= 0.0))
+      error->all(FLERR, uidx, "Error in MEAM parameter file {}:{}: rho0 must be > 0", userfile,
+                 lineno);
 
     // pass single setting to MEAM package
 

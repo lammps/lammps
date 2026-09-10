@@ -287,11 +287,6 @@ for pair interactions.
 The *shift* keyword is currently not supported for the *tersoff/gpu*
 variant of this pair style.
 
-.. versionchanged:: TBD
-
-   The *shift* keyword is now also supported by the *tersoff/zbl/kk*
-   variant.
-
 The tersoff/zbl potential files provided with LAMMPS (see the potentials
 directory) are parameterized for :doc:`"metal" units <units>`.  Also the
 pair style supports converting potential file parameters on-the-fly

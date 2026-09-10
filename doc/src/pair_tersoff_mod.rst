@@ -206,11 +206,6 @@ for pair interactions.
 The *shift* keyword is not supported by the *tersoff/gpu*,
 *tersoff/intel*, *tersoff/table* or *tersoff/table/omp* variants.
 
-.. versionchanged:: TBD
-
-   The *shift* keyword is now also supported by the *tersoff/mod/kk* and
-   *tersoff/mod/c/kk* variants.
-
 The *tersoff/mod* potential files provided with LAMMPS (see the potentials
 directory) are parameterized for metal :doc:`units <units>`.  You can
 use the *tersoff/mod* pair style with any LAMMPS units, but you would need to

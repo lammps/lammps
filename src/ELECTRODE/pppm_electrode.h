@@ -72,6 +72,8 @@ class PPPMElectrode : public PPPM, public ElectrodeKSpace {
   bool compute_vector_called;
 
  protected:
+  virtual void compute_boundary_corr(double, int, int, double &, double *);
+  virtual void compute_vector_boundary_corr(double *, int, int, bool);
   virtual void make_rho_in_brick(int, FFT_SCALAR ***, bool);
   virtual void init_tip4p() {}
 };

@@ -293,10 +293,12 @@ adds a charge at the massless fourth site in each TIP4P water molecule.
 It should be used with :doc:`pair styles <pair_style>` with a
 *tip4p/long* in their style name.
 
+.. versionadded:: TBD
+
 The *pppm/electrode/tip4p* style combines the TIP4P treatment of
 *pppm/tip4p* with the electrode methods required for the constant
 potential method.  It should be used with a TIP4P-compatible
-long-range pair style and :doc:ix electrode/* <fix_electrode>.
+long-range pair style and :doc:`fix electrode/* <fix_electrode>`.
 
 .. versionadded:: 2Sep2026
 

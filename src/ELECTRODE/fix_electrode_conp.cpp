@@ -410,18 +410,14 @@ int FixElectrodeConp::groupnum_from_name(char *groupname)
 
 void FixElectrodeConp::init()
 {
-  // the electrode charges are updated from pre_force() and pre_reverse(), for which`r`n  // run style respa provides no hooks -> the charges would silently never be updated`r`n  if (utils::strmatch(update->integrate_style, "^respa"))`r`n    error->all(FLERR, Error::NOLASTLINE, "Fix {} is not compatible with run_style respa", style);`r`n`r`n  pair = nullptr;`r`n  pair = (Pair *) force->pair_match("coul", 0);`r`n  if (pair == nullptr) {`r`n    pair = (Pair *) force->pair_match("coul", 0, 1);`r`n  }`r`n  if (pair == nullptr) error->all(FLERR, "Fix electrode couldn't find a Coulombic pair style");`r`n  if (!pair->pppmflag) error->all(FLERR, "Fix electrode requires a long-range Coulomb pair style");  // the electrode charges are updated from pre_force() and pre_reverse(), for which
+  // the electrode charges are updated from pre_force() and pre_reverse(), for which
   // run style respa provides no hooks -> the charges would silently never be updated
   if (utils::strmatch(update->integrate_style, "^respa"))
     error->all(FLERR, Error::NOLASTLINE, "Fix {} is not compatible with run_style respa", style);
 
-  pair = nullptr;    // not sure if needed -- remove if unnecessary
-  pair = (Pair *) force->pair_match("coul", 0);
-  if (pair == nullptr) {    // couldn't find a pair with name coul -- maybe hybrid
-    // return 1st hybrid substyle containing 'coul'
-    pair = (Pair *) force->pair_match("coul", 0, 1);
-  }
-  if (pair == nullptr) error->all(FLERR, "Fix electrode couldn't find a Coulombic pair style");
+  pair = force->pair;
+  if (pair == nullptr) error->all(FLERR, "No pair style defined");
+  if (!pair->pppmflag) error->all(FLERR, "Fix electrode requires a long-range Coulomb pair style");
 
   // error if more than one fix electrode/*
   if (modify->get_fix_by_style("^electrode").size() > 1)
@@ -1309,39 +1305,46 @@ double FixElectrodeConp::gausscorr(int eflag, int vflag, bool fflag)
             elyt_vector->add_charge_force(j, fji);
           }
         }
-        if (eflag) {
-          double ecoul = -prefactor * erfc_etar;
-          force->pair->ev_tally(i, j, nlocal, newton_pair, 0., ecoul, 0., 0., 0., 0.);
-        }
-        if (vflag) {
-          if (force->pair->tip4pflag) {
-            double vi[6] = {0., 0., 0., 0., 0., 0.};
-            double vj[6] = {0., 0., 0., 0., 0., 0.};
-            int ilist_tip4p[3] = {-1, -1, -1};
-            int jlist_tip4p[3] = {-1, -1, -1};
-            const double fij[3] = {delx * fpair, dely * fpair, delz * fpair};
-            const double fji[3] = {-fij[0], -fij[1], -fij[2]};
+        if (force->pair->tip4pflag && (eflag || vflag)) {
+          double vi[6] = {0., 0., 0., 0., 0., 0.};
+          double vj[6] = {0., 0., 0., 0., 0., 0.};
+          int ilist_tip4p[3] = {-1, -1, -1};
+          int jlist_tip4p[3] = {-1, -1, -1};
+          const double fij[3] = {delx * fpair, dely * fpair, delz * fpair};
+          const double fji[3] = {-fij[0], -fij[1], -fij[2]};
 
-            const int ni =
-                elyt_vector->get_charge_force_virial(i, fij, vi, ilist_tip4p);
-            const int nj =
-                elyt_vector->get_charge_force_virial(j, fji, vj, jlist_tip4p);
+          const int ni =
+              elyt_vector->get_charge_force_virial(i, fij, vi, ilist_tip4p);
+          const int nj =
+              elyt_vector->get_charge_force_virial(j, fji, vj, jlist_tip4p);
 
+          const int key = (ni == 3 ? 1 : 0) + (nj == 3 ? 2 : 0);
+          int vlist_tip4p[6];
+          int n = 0;
+
+          for (int k = 0; k < ni; k++) vlist_tip4p[n++] = ilist_tip4p[k];
+          for (int k = 0; k < nj; k++) vlist_tip4p[n++] = jlist_tip4p[k];
+
+          const double ecoul = -prefactor * erfc_etar;
+          double vzero[6] = {0., 0., 0., 0., 0., 0.};
+
+          if (eflag)
+            force->pair->ev_tally_tip4p(key, vlist_tip4p, vzero, ecoul,
+                                        elyt_vector->get_charge_force_alpha());
+
+          if (vflag) {
             double vtip4p[6];
             for (int k = 0; k < 6; k++) vtip4p[k] = vi[k] + vj[k];
-
-            const int key = (ni == 3 ? 1 : 0) + (nj == 3 ? 2 : 0);
-            int vlist_tip4p[6];
-            int n = 0;
-
-            for (int k = 0; k < ni; k++) vlist_tip4p[n++] = ilist_tip4p[k];
-            for (int k = 0; k < nj; k++) vlist_tip4p[n++] = jlist_tip4p[k];
-
             v_tally_tip4p(key, vlist_tip4p, vtip4p,
                           elyt_vector->get_charge_force_alpha());
-          } else {
-            v_tally(i, j, nlocal, newton_pair, fpair, delx, dely, delz);
           }
+        } else {
+          if (eflag) {
+            double ecoul = -prefactor * erfc_etar;
+            force->pair->ev_tally(i, j, nlocal, newton_pair, 0., ecoul, 0., 0., 0., 0.);
+          }
+          if (vflag)
+            v_tally(i, j, nlocal, newton_pair, fpair, delx, dely, delz);
         }
       }
     }

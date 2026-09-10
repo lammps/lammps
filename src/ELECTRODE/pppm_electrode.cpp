@@ -519,12 +519,32 @@ void PPPMElectrode::compute(int eflag, int vflag)
     }
   }
 
-  boundcorr->compute_corr(qsum, eflag_atom, eflag_global, energy, eatom);
+  compute_boundary_corr(qsum, eflag_atom, eflag_global, energy, eatom);
   compute_vector_called = false;
 }
 
 /* ----------------------------------------------------------------------
+   default boundary energy/force correction
 ------------------------------------------------------------------------- */
+
+void PPPMElectrode::compute_boundary_corr(double qsum_in, int eflag_atom_in,
+                                          int eflag_global_in, double &energy_in,
+                                          double *eatom_in)
+{
+  boundcorr->compute_corr(qsum_in, eflag_atom_in, eflag_global_in, energy_in, eatom_in);
+}
+
+/* ----------------------------------------------------------------------
+   default boundary vector correction
+------------------------------------------------------------------------- */
+
+void PPPMElectrode::compute_vector_boundary_corr(double *vec, int sensor_grpbit,
+                                                 int source_grpbit, bool invert_source)
+{
+  boundcorr->vector_corr(vec, sensor_grpbit, source_grpbit, invert_source);
+}
+
+
 void PPPMElectrode::start_compute()
 {
   if (compute_step < update->ntimestep) {
@@ -1829,5 +1849,5 @@ void PPPMElectrode::compute_matrix_corr(bigint *imat, double **matrix)
 void PPPMElectrode::compute_vector_corr(double *vec, int sensor_grpbit, int source_grpbit,
                                         bool invert_source)
 {
-  boundcorr->vector_corr(vec, sensor_grpbit, source_grpbit, invert_source);
+  compute_vector_boundary_corr(vec, sensor_grpbit, source_grpbit, invert_source);
 }

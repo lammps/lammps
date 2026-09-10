@@ -36,6 +36,8 @@ class PPPMElectrodeTIP4P : public PPPMElectrode {
 
 
 
+  void compute_boundary_corr(double, int, int, double &, double *) override;
+  void compute_vector_boundary_corr(double *, int, int, bool) override;
    void init_tip4p() override;
  private:
   // TIP4P support: atom types and geometric parameters for the fictitious M-site

@@ -61,6 +61,149 @@ PPPMElectrodeTIP4P::PPPMElectrodeTIP4P(LAMMPS *lmp) :
    called once before run
 ------------------------------------------------------------------------- */
 
+/* ----------------------------------------------------------------------
+   TIP4P-aware slab boundary correction
+------------------------------------------------------------------------- */
+
+void PPPMElectrodeTIP4P::compute_boundary_corr(double qsum_in, int eflag_atom_in,
+                                               int eflag_global_in, double &energy_in,
+                                               double *eatom_in)
+{
+  if (slabflag != 1) {
+    PPPMElectrode::compute_boundary_corr(qsum_in, eflag_atom_in, eflag_global_in,
+                                          energy_in, eatom_in);
+    return;
+  }
+
+  const double zprd_slab = domain->zprd * slab_volfactor;
+  const int nlocal = atom->nlocal;
+  int *type = atom->type;
+  double *q = atom->q;
+  double **x = atom->x;
+  double xM[3];
+  double *xi;
+  int iH1, iH2;
+
+  double dipole = 0.0;
+  for (int i = 0; i < nlocal; i++) {
+    if (type[i] == typeO) {
+      find_M(i, iH1, iH2, xM);
+      xi = xM;
+    } else {
+      xi = x[i];
+    }
+    dipole += q[i] * xi[2];
+  }
+
+  double dipole_all;
+  MPI_Allreduce(&dipole, &dipole_all, 1, MPI_DOUBLE, MPI_SUM, world);
+
+  double dipole_r2 = 0.0;
+  constexpr double SMALL = 0.00001;
+  if (eflag_atom_in || fabs(qsum_in) > SMALL) {
+    for (int i = 0; i < nlocal; i++) {
+      if (type[i] == typeO) {
+        find_M(i, iH1, iH2, xM);
+        xi = xM;
+      } else {
+        xi = x[i];
+      }
+      dipole_r2 += q[i] * xi[2] * xi[2];
+    }
+
+    double tmp;
+    MPI_Allreduce(&dipole_r2, &tmp, 1, MPI_DOUBLE, MPI_SUM, world);
+    dipole_r2 = tmp;
+  }
+
+  const double e_slabcorr =
+      MY_2PI * (dipole_all * dipole_all - qsum_in * dipole_r2 -
+                qsum_in * qsum_in * zprd_slab * zprd_slab / 12.0) /
+      volume;
+  const double qscale = force->qqrd2e * scale;
+
+  if (eflag_global_in) energy_in += qscale * e_slabcorr;
+
+  if (eflag_atom_in) {
+    const double efact = qscale * MY_2PI / volume;
+    for (int i = 0; i < nlocal; i++) {
+      if (type[i] == typeO) {
+        find_M(i, iH1, iH2, xM);
+        const double e_pa =
+            efact * q[i] *
+            (xM[2] * dipole_all -
+             0.5 * (dipole_r2 + qsum_in * xM[2] * xM[2]) -
+             qsum_in * zprd_slab * zprd_slab / 12.0);
+        eatom_in[i] += e_pa * (1.0 - alpha);
+        eatom_in[iH1] += e_pa * alpha * 0.5;
+        eatom_in[iH2] += e_pa * alpha * 0.5;
+      } else {
+        eatom_in[i] +=
+            efact * q[i] *
+            (x[i][2] * dipole_all -
+             0.5 * (dipole_r2 + qsum_in * x[i][2] * x[i][2]) -
+             qsum_in * zprd_slab * zprd_slab / 12.0);
+      }
+    }
+  }
+
+  const double ffact = qscale * (-4.0 * MY_PI / volume);
+  double **f = atom->f;
+
+  for (int i = 0; i < nlocal; i++) {
+    if (type[i] == typeO) {
+      find_M(i, iH1, iH2, xM);
+      const double fzi_corr = ffact * q[i] * (dipole_all - qsum_in * xM[2]);
+      f[i][2] += fzi_corr * (1.0 - alpha);
+      f[iH1][2] += 0.5 * alpha * fzi_corr;
+      f[iH2][2] += 0.5 * alpha * fzi_corr;
+    } else {
+      f[i][2] += ffact * q[i] * (dipole_all - qsum_in * x[i][2]);
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   TIP4P-aware boundary vector correction
+------------------------------------------------------------------------- */
+
+void PPPMElectrodeTIP4P::compute_vector_boundary_corr(double *vec, int sensor_grpbit,
+                                                      int source_grpbit, bool invert_source)
+{
+  if (slabflag != 1) {
+    PPPMElectrode::compute_vector_boundary_corr(vec, sensor_grpbit, source_grpbit,
+                                                invert_source);
+    return;
+  }
+
+  const int nlocal = atom->nlocal;
+  int *mask = atom->mask;
+  int *type = atom->type;
+  double *q = atom->q;
+  double **x = atom->x;
+  double xM[3];
+  int iH1, iH2;
+  double dipole = 0.0;
+
+  for (int i = 0; i < nlocal; i++) {
+    if (!!(mask[i] & source_grpbit) != invert_source) {
+      if (type[i] == typeO) {
+        find_M(i, iH1, iH2, xM);
+        dipole += q[i] * xM[2];
+      } else {
+        dipole += q[i] * x[i][2];
+      }
+    }
+  }
+
+  MPI_Allreduce(MPI_IN_PLACE, &dipole, 1, MPI_DOUBLE, MPI_SUM, world);
+  dipole *= 4.0 * MY_PI / volume;
+
+  for (int i = 0; i < nlocal; i++)
+    if (mask[i] & sensor_grpbit) vec[i] += x[i][2] * dipole;
+}
+
+
 void PPPMElectrodeTIP4P::init_tip4p()
 {
   int itmp = 0;
@@ -69,6 +212,9 @@ void PPPMElectrodeTIP4P::init_tip4p()
   // bond/angle are not yet init(), so ensure equilibrium request is valid
 
   qdist = 0.0;
+
+  if (tip4pflag && wireflag)
+    error->all(FLERR, "Kspace style pppm/electrode/tip4p does not support kspace_modify wire");
 
   if (tip4pflag) {
 

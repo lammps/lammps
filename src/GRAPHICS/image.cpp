@@ -2866,7 +2866,7 @@ int ColorMap::minmax(double mindynamic, double maxdynamic)
     if (mrange == ABSOLUTE) mentry[nentry-1].svalue = hicurrent;
     else mentry[nentry-1].svalue = 1.0;
 
-    // error in ABSOLUTE mode if lo/hi current cause
+    // error in ABSOLUTE mode if new lo/hi current cause
     // first/last entry to become lo > hi with adjacent entry
 
     if (mrange == ABSOLUTE) {
@@ -2874,7 +2874,7 @@ int ColorMap::minmax(double mindynamic, double maxdynamic)
       if (mentry[nentry-2].svalue > mentry[nentry-1].svalue) return 1;
     }
 
-  // OK if lo/hi current cause an entry to have lo > hi,
+  // OK if new lo/hi current cause an entry to have lo > hi,
   // since last entry will always be a match
 
   } else if (mstyle == DISCRETE) {

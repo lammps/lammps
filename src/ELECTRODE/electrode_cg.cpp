@@ -27,6 +27,7 @@
 #include "update.h"
 
 #include <cassert>
+#include <cstring>
 #include <string>
 
 using namespace LAMMPS_NS;

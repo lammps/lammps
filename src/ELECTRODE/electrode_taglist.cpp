@@ -107,10 +107,10 @@ void ElectrodeTaglist::write_to_file(const std::string file_str,
   assert(comm->me == 0);
   auto *file = fopen(file_str.c_str(), "w");
   if (file == nullptr) error->one(FLERR, "Cannot open file {}: {}", file_str, utils::getsyserror());
-  for (const auto &t : taglist_bygroup) fmt::print(file, "{:20}", t);
+  for (const auto &t : taglist_bygroup) utils::print(file, "{:20}", t);
   fputs("\n", file);
   for (const auto &vec : mat) {
-    for (const auto &x : vec) fmt::print(file, "{:20.11e}", x);
+    for (const auto &x : vec) utils::print(file, "{:20.11e}", x);
     fputs("\n", file);
   }
   fclose(file);

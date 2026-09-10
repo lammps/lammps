@@ -29,23 +29,15 @@
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
 bool verbose = false;
 
-// the KOKKOS package keeps the per-atom data in single precision in mixed and
-// single precision builds.  the reference values of this file reach into the
-// millions, so the tolerance has to scale with the magnitude of the value
-// instead of staying the absolute tolerance of a double precision build
-static double prec_reltol(double expected)
-{
-    const double relative = (kokkos_precision() == "single") ? 1.0e-5 : 1.0e-6;
-    return std::fabs(expected) * relative + relative;
-}
-
-// use the absolute tolerance of the double precision reference, unless this is
-// a reduced precision KOKKOS build, where the relative tolerance is larger
-static double prec_tol(double expected, double tol)
-{
-    if (!kokkos_reduced_precision()) return tol;
-    return std::max(tol, prec_reltol(expected));
-}
+// compare against a double precision reference value exactly, unless this is a
+// reduced precision KOKKOS build, where the relative tolerance above applies
+#define EXPECT_DOUBLE_EQ_PREC(val, expected)                        \
+    do {                                                            \
+        if (kokkos_reduced_precision())                             \
+            EXPECT_NEAR(val, expected, prec_reltol(expected));      \
+        else                                                        \
+            EXPECT_DOUBLE_EQ(val, expected);                        \
+    } while (0)
 
 namespace LAMMPS_NS {
 
@@ -155,12 +147,12 @@ TEST_F(ComputeGlobalTest, Energy)
     EXPECT_NEAR(pr2[3], 856632.34707690508, prec_tol(856632.34707690508, 0.000000005));
     EXPECT_NEAR(pr2[4], 692712.89222328411, prec_tol(692712.89222328411, 0.000000005));
     EXPECT_NEAR(pr2[5], -44399.277068014424, prec_tol(-44399.277068014424, 0.000000005));
-    EXPECT_DOUBLE_EQ(pr3[0], 0.0);
-    EXPECT_DOUBLE_EQ(pr3[1], 0.0);
-    EXPECT_DOUBLE_EQ(pr3[2], 0.0);
-    EXPECT_DOUBLE_EQ(pr3[3], 0.0);
-    EXPECT_DOUBLE_EQ(pr3[4], 0.0);
-    EXPECT_DOUBLE_EQ(pr3[5], 0.0);
+    EXPECT_DOUBLE_EQ_PREC(pr3[0], 0.0);
+    EXPECT_DOUBLE_EQ_PREC(pr3[1], 0.0);
+    EXPECT_DOUBLE_EQ_PREC(pr3[2], 0.0);
+    EXPECT_DOUBLE_EQ_PREC(pr3[3], 0.0);
+    EXPECT_DOUBLE_EQ_PREC(pr3[4], 0.0);
+    EXPECT_DOUBLE_EQ_PREC(pr3[5], 0.0);
 
     if (has_tally) {
         EXPECT_NEAR(get_scalar("pe4"), 15425.840923850392, prec_tol(15425.840923850392, 0.000000005));
@@ -256,21 +248,21 @@ TEST_F(ComputeGlobalTest, Geometry)
         auto *mom2 = get_vector("mom2");
         auto *mop1 = get_vector("mop1");
         auto *mop2 = get_array("mop2");
-        EXPECT_DOUBLE_EQ(mom1[0], 0.0054219056685341164);
-        EXPECT_DOUBLE_EQ(mom1[1], -0.054897225112275558);
-        EXPECT_DOUBLE_EQ(mom1[2], 0.059097392692385661);
-        EXPECT_DOUBLE_EQ(mom2[0], -0.022332069630161717);
-        EXPECT_DOUBLE_EQ(mom2[1], -0.056896553865696115);
-        EXPECT_DOUBLE_EQ(mom2[2], 0.069179891052881484);
-        EXPECT_DOUBLE_EQ(mop1[0], 3536584.0880458541);
-        EXPECT_DOUBLE_EQ(mop1[1], 2887485.033995091);
-        EXPECT_DOUBLE_EQ(mop1[2], -4154145.8952306858);
-        EXPECT_DOUBLE_EQ(mop2[0][0], -8.0869239999999998);
-        EXPECT_DOUBLE_EQ(mop2[0][1], 0.0);
-        EXPECT_DOUBLE_EQ(mop2[0][2], 0.0);
-        EXPECT_DOUBLE_EQ(mop2[1][0], -7.5869239999999998);
-        EXPECT_DOUBLE_EQ(mop2[1][1], 0.0);
-        EXPECT_DOUBLE_EQ(mop2[1][2], 0.0);
+        EXPECT_DOUBLE_EQ_PREC(mom1[0], 0.0054219056685341164);
+        EXPECT_DOUBLE_EQ_PREC(mom1[1], -0.054897225112275558);
+        EXPECT_DOUBLE_EQ_PREC(mom1[2], 0.059097392692385661);
+        EXPECT_DOUBLE_EQ_PREC(mom2[0], -0.022332069630161717);
+        EXPECT_DOUBLE_EQ_PREC(mom2[1], -0.056896553865696115);
+        EXPECT_DOUBLE_EQ_PREC(mom2[2], 0.069179891052881484);
+        EXPECT_DOUBLE_EQ_PREC(mop1[0], 3536584.0880458541);
+        EXPECT_DOUBLE_EQ_PREC(mop1[1], 2887485.033995091);
+        EXPECT_DOUBLE_EQ_PREC(mop1[2], -4154145.8952306858);
+        EXPECT_DOUBLE_EQ_PREC(mop2[0][0], -8.0869239999999998);
+        EXPECT_DOUBLE_EQ_PREC(mop2[0][1], 0.0);
+        EXPECT_DOUBLE_EQ_PREC(mop2[0][2], 0.0);
+        EXPECT_DOUBLE_EQ_PREC(mop2[1][0], -7.5869239999999998);
+        EXPECT_DOUBLE_EQ_PREC(mop2[1][1], 0.0);
+        EXPECT_DOUBLE_EQ_PREC(mop2[1][2], 0.0);
     }
 }
 
@@ -308,27 +300,27 @@ TEST_F(ComputeGlobalTest, Reduction)
 
     EXPECT_SCALAR_EQ("chg", 0.51000000000000001);
 
-    EXPECT_DOUBLE_EQ(min[0], -2.7406520384725965);
-    EXPECT_DOUBLE_EQ(min[1], -20385.448391361348);
-    EXPECT_DOUBLE_EQ(min[2], 0.00071995632406981081);
+    EXPECT_DOUBLE_EQ_PREC(min[0], -2.7406520384725965);
+    EXPECT_DOUBLE_EQ_PREC(min[1], -20385.448391361348);
+    EXPECT_DOUBLE_EQ_PREC(min[2], 0.00071995632406981081);
 
-    EXPECT_DOUBLE_EQ(max[0], 4.0120175892854135);
-    EXPECT_DOUBLE_EQ(max[1], 21193.39005673242);
-    EXPECT_DOUBLE_EQ(max[2], 0.0072167889062371513);
+    EXPECT_DOUBLE_EQ_PREC(max[0], 4.0120175892854135);
+    EXPECT_DOUBLE_EQ_PREC(max[1], 21193.39005673242);
+    EXPECT_DOUBLE_EQ_PREC(max[2], 0.0072167889062371513);
 
-    EXPECT_DOUBLE_EQ(sum[0], 0.0021436162503408024);
-    EXPECT_DOUBLE_EQ(sum[1], -0.013760203913131267);
-    EXPECT_DOUBLE_EQ(sum[2], 0.017517003988402391);
+    EXPECT_DOUBLE_EQ_PREC(sum[0], 0.0021436162503408024);
+    EXPECT_DOUBLE_EQ_PREC(sum[1], -0.013760203913131267);
+    EXPECT_DOUBLE_EQ_PREC(sum[2], 0.017517003988402391);
 
-    EXPECT_DOUBLE_EQ(ave[0], -1.3013763067943667);
-    EXPECT_DOUBLE_EQ(ave[1], -619.60864441905312);
-    EXPECT_DOUBLE_EQ(ave[2], 0.0035263629500884397);
+    EXPECT_DOUBLE_EQ_PREC(ave[0], -1.3013763067943667);
+    EXPECT_DOUBLE_EQ_PREC(ave[1], -619.60864441905312);
+    EXPECT_DOUBLE_EQ_PREC(ave[2], 0.0035263629500884397);
 
     // index of max v_v
-    EXPECT_DOUBLE_EQ(rep[0], 20);
+    EXPECT_DOUBLE_EQ_PREC(rep[0], 20);
     EXPECT_DOUBLE_EQ(rep[1], max[2]);
     // index of max y
-    EXPECT_DOUBLE_EQ(rep[2], 26);
+    EXPECT_DOUBLE_EQ_PREC(rep[2], 26);
     EXPECT_DOUBLE_EQ(rep[3], max[0]);
 }
 
@@ -371,25 +363,25 @@ TEST_F(ComputeGlobalTest, Counts)
 
     EXPECT_DOUBLE_EQ(bbrk, 0.0);
 
-    EXPECT_DOUBLE_EQ(bcnt[0], 3.0);
-    EXPECT_DOUBLE_EQ(bcnt[1], 6.0);
-    EXPECT_DOUBLE_EQ(bcnt[2], 3.0);
-    EXPECT_DOUBLE_EQ(bcnt[3], 2.0);
-    EXPECT_DOUBLE_EQ(bcnt[4], 10.0);
+    EXPECT_DOUBLE_EQ_PREC(bcnt[0], 3.0);
+    EXPECT_DOUBLE_EQ_PREC(bcnt[1], 6.0);
+    EXPECT_DOUBLE_EQ_PREC(bcnt[2], 3.0);
+    EXPECT_DOUBLE_EQ_PREC(bcnt[3], 2.0);
+    EXPECT_DOUBLE_EQ_PREC(bcnt[4], 10.0);
 
-    EXPECT_DOUBLE_EQ(acnt[0], 6.0);
-    EXPECT_DOUBLE_EQ(acnt[1], 10.0);
-    EXPECT_DOUBLE_EQ(acnt[2], 5.0);
-    EXPECT_DOUBLE_EQ(acnt[3], 9.0);
+    EXPECT_DOUBLE_EQ_PREC(acnt[0], 6.0);
+    EXPECT_DOUBLE_EQ_PREC(acnt[1], 10.0);
+    EXPECT_DOUBLE_EQ_PREC(acnt[2], 5.0);
+    EXPECT_DOUBLE_EQ_PREC(acnt[3], 9.0);
 
-    EXPECT_DOUBLE_EQ(dcnt[0], 3.0);
-    EXPECT_DOUBLE_EQ(dcnt[1], 8.0);
-    EXPECT_DOUBLE_EQ(dcnt[2], 3.0);
-    EXPECT_DOUBLE_EQ(dcnt[3], 4.0);
-    EXPECT_DOUBLE_EQ(dcnt[4], 13.0);
+    EXPECT_DOUBLE_EQ_PREC(dcnt[0], 3.0);
+    EXPECT_DOUBLE_EQ_PREC(dcnt[1], 8.0);
+    EXPECT_DOUBLE_EQ_PREC(dcnt[2], 3.0);
+    EXPECT_DOUBLE_EQ_PREC(dcnt[3], 4.0);
+    EXPECT_DOUBLE_EQ_PREC(dcnt[4], 13.0);
 
-    EXPECT_DOUBLE_EQ(icnt[0], 1.0);
-    EXPECT_DOUBLE_EQ(icnt[1], 1.0);
+    EXPECT_DOUBLE_EQ_PREC(icnt[0], 1.0);
+    EXPECT_DOUBLE_EQ_PREC(icnt[1], 1.0);
 
     BEGIN_HIDE_OUTPUT();
     command("delete_bonds all bond 3 remove");
@@ -403,25 +395,25 @@ TEST_F(ComputeGlobalTest, Counts)
     icnt = get_vector("icnt");
 
     EXPECT_DOUBLE_EQ(bbrk, 0.0);
-    EXPECT_DOUBLE_EQ(bcnt[0], 3.0);
-    EXPECT_DOUBLE_EQ(bcnt[1], 6.0);
-    EXPECT_DOUBLE_EQ(bcnt[2], 0.0);
-    EXPECT_DOUBLE_EQ(bcnt[3], 2.0);
-    EXPECT_DOUBLE_EQ(bcnt[4], 10.0);
+    EXPECT_DOUBLE_EQ_PREC(bcnt[0], 3.0);
+    EXPECT_DOUBLE_EQ_PREC(bcnt[1], 6.0);
+    EXPECT_DOUBLE_EQ_PREC(bcnt[2], 0.0);
+    EXPECT_DOUBLE_EQ_PREC(bcnt[3], 2.0);
+    EXPECT_DOUBLE_EQ_PREC(bcnt[4], 10.0);
 
-    EXPECT_DOUBLE_EQ(acnt[0], 6.0);
-    EXPECT_DOUBLE_EQ(acnt[1], 10.0);
-    EXPECT_DOUBLE_EQ(acnt[2], 5.0);
-    EXPECT_DOUBLE_EQ(acnt[3], 9.0);
+    EXPECT_DOUBLE_EQ_PREC(acnt[0], 6.0);
+    EXPECT_DOUBLE_EQ_PREC(acnt[1], 10.0);
+    EXPECT_DOUBLE_EQ_PREC(acnt[2], 5.0);
+    EXPECT_DOUBLE_EQ_PREC(acnt[3], 9.0);
 
-    EXPECT_DOUBLE_EQ(dcnt[0], 3.0);
-    EXPECT_DOUBLE_EQ(dcnt[1], 8.0);
-    EXPECT_DOUBLE_EQ(dcnt[2], 3.0);
-    EXPECT_DOUBLE_EQ(dcnt[3], 4.0);
-    EXPECT_DOUBLE_EQ(dcnt[4], 13.0);
+    EXPECT_DOUBLE_EQ_PREC(dcnt[0], 3.0);
+    EXPECT_DOUBLE_EQ_PREC(dcnt[1], 8.0);
+    EXPECT_DOUBLE_EQ_PREC(dcnt[2], 3.0);
+    EXPECT_DOUBLE_EQ_PREC(dcnt[3], 4.0);
+    EXPECT_DOUBLE_EQ_PREC(dcnt[4], 13.0);
 
-    EXPECT_DOUBLE_EQ(icnt[0], 1.0);
-    EXPECT_DOUBLE_EQ(icnt[1], 1.0);
+    EXPECT_DOUBLE_EQ_PREC(icnt[0], 1.0);
+    EXPECT_DOUBLE_EQ_PREC(icnt[1], 1.0);
 }
 
 // finite-size particles must contribute their own moment of inertia

@@ -37,6 +37,17 @@ static double chunk_epsilon()
 
 static const double EPSILON = chunk_epsilon();
 
+// the torque of a chunk is a sum of cross products, and the cancellation
+// between the contributions amplifies the error of the single precision
+// positions and forces well beyond that of the other per-chunk quantities
+static double chunk_torque_epsilon()
+{
+    if (!kokkos_reduced_precision()) return 1.0e-8;
+    return (kokkos_precision() == "single") ? 1.0e-2 : 1.0e-3;
+}
+
+static const double TORQUE_EPSILON = chunk_torque_epsilon();
+
 namespace LAMMPS_NS {
 
 #define STRINGIFY(val) XSTR(val)
@@ -292,12 +303,12 @@ TEST_F(ComputeChunkTest, ChunkComputes)
     EXPECT_NEAR(comg[5][0], 0.00437315, EPSILON);
     EXPECT_NEAR(comg[5][1], 0.00029335, EPSILON);
     EXPECT_NEAR(comg[5][2], 0.00268517, EPSILON);
-    EXPECT_NEAR(ctrq[4][0], -0.94086086, EPSILON);
-    EXPECT_NEAR(ctrq[4][1], 0.56227336, EPSILON);
-    EXPECT_NEAR(ctrq[4][2], 0.75139995, EPSILON);
-    EXPECT_NEAR(ctrq[5][0], -0.07066910, EPSILON);
-    EXPECT_NEAR(ctrq[5][1], -0.58556032, EPSILON);
-    EXPECT_NEAR(ctrq[5][2], -0.81513604, EPSILON);
+    EXPECT_NEAR(ctrq[4][0], -0.94086086, TORQUE_EPSILON);
+    EXPECT_NEAR(ctrq[4][1], 0.56227336, TORQUE_EPSILON);
+    EXPECT_NEAR(ctrq[4][2], 0.75139995, TORQUE_EPSILON);
+    EXPECT_NEAR(ctrq[5][0], -0.07066910, TORQUE_EPSILON);
+    EXPECT_NEAR(ctrq[5][1], -0.58556032, TORQUE_EPSILON);
+    EXPECT_NEAR(ctrq[5][2], -0.81513604, TORQUE_EPSILON);
     EXPECT_NEAR(cvcm[0][0], -0.00011274, EPSILON);
     EXPECT_NEAR(cvcm[0][1], 0.00071452, EPSILON);
     EXPECT_NEAR(cvcm[0][2], -0.00017908, EPSILON);

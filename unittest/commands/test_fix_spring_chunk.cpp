@@ -31,17 +31,6 @@
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
 bool verbose = false;
 
-// the KOKKOS package keeps the per-atom data in single precision in mixed and
-// single precision builds, so results carry a relative error of about 1.0e-7
-// instead of the 1.0e-15 of a double precision build.  scale the tolerance of
-// the double precision reference values accordingly
-static double prec_tol(double expected, double tol)
-{
-    if (!kokkos_reduced_precision()) return tol;
-    const double relative = (kokkos_precision() == "single") ? 1.0e-5 : 1.0e-6;
-    return std::max(tol, std::fabs(expected) * relative + relative);
-}
-
 namespace LAMMPS_NS {
 
 class FixSpringChunkTest : public LAMMPSTest {

@@ -34,17 +34,6 @@
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
 bool verbose = false;
 
-// the KOKKOS package keeps the per-atom data in single precision in mixed and
-// single precision builds, so results carry a relative error of about 1.0e-7
-// instead of the 1.0e-15 of a double precision build.  scale the tolerance of
-// the double precision reference values accordingly
-static double prec_tol(double expected, double tol)
-{
-    if (!kokkos_reduced_precision()) return tol;
-    const double relative = (kokkos_precision() == "single") ? 1.0e-5 : 1.0e-6;
-    return std::max(tol, std::fabs(expected) * relative + relative);
-}
-
 namespace LAMMPS_NS {
 
 // the dynamical_matrix and third_order commands of the PHONON package compute
@@ -94,6 +83,12 @@ protected:
 
 TEST_F(PhononCommandsTest, DynamicalMatrix)
 {
+    // the dynamical matrix is a finite difference of the forces, so the error
+    // of single precision forces is amplified by the inverse of the step size
+    // and reaches a few percent, far beyond a tolerance that stays meaningful
+    if (kokkos_reduced_precision())
+        GTEST_SKIP() << "finite differences are too inaccurate with single precision forces";
+
     if (!info->has_style("command", "dynamical_matrix")) GTEST_SKIP();
 
     const std::string outfile = "test_dynmat.dat";

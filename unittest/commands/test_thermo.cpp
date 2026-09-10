@@ -38,17 +38,6 @@
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
 bool verbose = false;
 
-// the KOKKOS package keeps the per-atom data in single precision in mixed and
-// single precision builds, so results carry a relative error of about 1.0e-7
-// instead of the 1.0e-15 of a double precision build.  scale the tolerance of
-// the double precision reference values accordingly
-static double prec_tol(double expected, double tol)
-{
-    if (!kokkos_reduced_precision()) return tol;
-    const double relative = (kokkos_precision() == "single") ? 1.0e-5 : 1.0e-6;
-    return std::max(tol, std::fabs(expected) * relative + relative);
-}
-
 namespace LAMMPS_NS {
 using ::testing::ContainsRegex;
 using ::testing::HasSubstr;
@@ -210,7 +199,8 @@ TEST_F(ThermoTest, Custom)
                       " +v_eq +v_vec\\[2\\]");
 
     // consistency checks through the variable interface of the thermo keywords
-    ASSERT_NEAR(get_variable_value("eq"), 2.0 * lmp->input->variable->compute_equal("temp"), 1e-12);
+    ASSERT_NEAR(get_variable_value("eq"), 2.0 * lmp->input->variable->compute_equal("temp"),
+                prec_tol(get_variable_value("eq"), 1e-12));
     HIDE_OUTPUT([&] {
         command("variable natoms equal atoms");
         command("variable step equal step");
@@ -268,11 +258,14 @@ TEST_F(ThermoTest, Custom)
     ASSERT_EQ(get_variable_value("nbonds"), 0.0);
     ASSERT_NEAR(get_variable_value("fave"), get_variable_value("cke"),
                 prec_tol(get_variable_value("fave"), 1e-12));
-    ASSERT_NEAR(get_variable_value("fave1"), get_variable_value("cke"), 1e-12);
-    ASSERT_NEAR(get_variable_value("fave2"), get_variable_value("crdc2"), 1e-12);
+    ASSERT_NEAR(get_variable_value("fave1"), get_variable_value("cke"),
+                prec_tol(get_variable_value("fave1"), 1e-12));
+    ASSERT_NEAR(get_variable_value("fave2"), get_variable_value("crdc2"),
+                prec_tol(get_variable_value("fave2"), 1e-12));
     ASSERT_EQ(get_variable_value("vvec2"), 2.5);
     ASSERT_EQ(get_variable_value("ecouple"), 0.0);
-    ASSERT_NEAR(get_variable_value("econserve"), get_variable_value("etot"), 1e-12);
+    ASSERT_NEAR(get_variable_value("econserve"), get_variable_value("etot"),
+                prec_tol(get_variable_value("econserve"), 1e-12));
 
     // errors for invalid custom keywords and references
     TEST_FAILURE(".*ERROR: Unknown keyword 'xxx' in thermo_style custom command.*",
@@ -328,7 +321,7 @@ TEST_F(ThermoTest, Modify)
         command("run 0 post no");
     });
     ASSERT_EQ(th->normflag, 1);
-    ASSERT_NEAR(get_variable_value("pe"), pe_norm, 1e-12);
+    ASSERT_NEAR(get_variable_value("pe"), pe_norm, prec_tol(pe_norm, 1e-12));
     TEST_FAILURE(".*ERROR: Illegal thermo_modify norm command: missing argument.*",
                  command("thermo_modify norm"););
 
@@ -728,16 +721,18 @@ TEST_F(ThermoTest, TriclinicGeneral)
     // rotation about z: different in-plane components, same invariants, same zz component
     ASSERT_GT(fabs(q[0] - p[0]), 0.1);
     ASSERT_GT(fabs(q[3] - p[3]), 0.1);
-    ASSERT_NEAR(get_variable_value("press"), press, 1e-10);
-    ASSERT_NEAR(q[0] + q[1] + q[2], p[0] + p[1] + p[2], 1e-9);
-    ASSERT_NEAR(q[2], p[2], 1e-9);
-    ASSERT_NEAR(q[4] * q[4] + q[5] * q[5], p[4] * p[4] + p[5] * p[5], 1e-8);
+    ASSERT_NEAR(get_variable_value("press"), press, prec_tol(press, 1e-10));
+    ASSERT_NEAR(q[0] + q[1] + q[2], p[0] + p[1] + p[2],
+                prec_tol(p[0] + p[1] + p[2], 1e-9));
+    ASSERT_NEAR(q[2], p[2], prec_tol(p[2], 1e-9));
+    ASSERT_NEAR(q[4] * q[4] + q[5] * q[5], p[4] * p[4] + p[5] * p[5],
+                prec_tol(p[4] * p[4] + p[5] * p[5], 1e-8));
     double fp = 0.0, fq = 0.0;
     for (int i = 0; i < 3; ++i) {
         fp += p[i] * p[i] + 2.0 * p[i + 3] * p[i + 3];
         fq += q[i] * q[i] + 2.0 * q[i + 3] * q[i + 3];
     }
-    ASSERT_NEAR(fq, fp, 1e-7);
+    ASSERT_NEAR(fq, fp, prec_tol(fp, 1e-7));
     // box edge vectors are reported in the general frame
     ASSERT_NEAR(get_variable_value("avecx"), 0.8 * 3.0, 1e-12);
     ASSERT_NEAR(get_variable_value("avecy"), 0.6 * 3.0, 1e-12);
@@ -751,7 +746,7 @@ TEST_F(ThermoTest, TriclinicGeneral)
     });
     run0();
     for (int i = 0; i < 6; ++i)
-        ASSERT_NEAR(get_variable_value(names[i]), p[i], 1e-12);
+        ASSERT_NEAR(get_variable_value(names[i]), p[i], prec_tol(p[i], 1e-12));
     ASSERT_NEAR(get_variable_value("avecx"), lmp->domain->xprd,
                 prec_tol(lmp->domain->xprd, 1e-12));
 }

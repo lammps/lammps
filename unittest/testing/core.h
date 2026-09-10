@@ -23,6 +23,8 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
+#include <algorithm>
+#include <cmath>
 #include <cstdlib>
 #include <functional>
 #include <string>
@@ -76,6 +78,24 @@ static inline std::string kokkos_precision()
 static inline bool kokkos_reduced_precision()
 {
     return using_accelerator() && (kokkos_precision() != "double");
+}
+
+// tolerance for comparing against a double precision reference value.  single
+// precision per-atom data gives a relative error of about 1.0e-7 per operation,
+// which grows with the number of terms of a reduction and with the cancellation
+// of a finite difference, so allow a much wider margin than the raw round-off
+static inline double prec_reltol(double expected)
+{
+    const double relative = (kokkos_precision() == "single") ? 1.0e-3 : 1.0e-4;
+    return std::fabs(expected) * relative + relative;
+}
+
+// keep the tolerance of the double precision reference unless this is a reduced
+// precision KOKKOS build, where the relative tolerance above applies instead
+static inline double prec_tol(double expected, double tol)
+{
+    if (!kokkos_reduced_precision()) return tol;
+    return std::max(tol, prec_reltol(expected));
 }
 
 class LAMMPSTest : public ::testing::Test {

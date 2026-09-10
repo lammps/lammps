@@ -175,10 +175,9 @@ public:
 
     double get_variable_value(const std::string &name)
     {
-        char *str    = LAMMPS_NS::utils::strdup(fmt::format("v_{}", name));
-        double value = lmp->input->variable->compute_equal(str);
-        delete[] str;
-        return value;
+        // compute_equal() takes the string by reference, and it raises an
+        // error on a bad formula, which would step over a delete[] here
+        return lmp->input->variable->compute_equal(fmt::format("v_{}", name));
     }
 
     std::string get_variable_string(const std::string &name)

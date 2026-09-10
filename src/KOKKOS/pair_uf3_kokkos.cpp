@@ -881,7 +881,6 @@ PairUF3Kokkos<DeviceType>::operator()(TagPairUF3ComputeFullA<NEIGHFLAG, EVFLAG>,
 {
   // The f array is duplicated for OpenMP, atomic for CUDA, and neither for Serial
 
-  auto v_f = vscatter.access();
   auto a_f = fscatter.access();
   auto a_cvatom = cvscatter.access();
 

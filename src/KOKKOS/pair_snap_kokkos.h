@@ -511,9 +511,13 @@ class PairSNAPKokkos : public PairSNAP {
 
   typedef Kokkos::DualView<double**, DeviceType> tdual_fparams;
   tdual_fparams k_cutsq;
+  // the scale factor of fix adapt, mirrored on the device.  self allocated, so
+  // DAT:: is safe here, and refreshed every step because fix adapt rewrites it
+  tdual_fparams k_scale;
   typedef Kokkos::View<const double**, DeviceType,
       Kokkos::MemoryTraits<Kokkos::RandomAccess> > t_fparams_rnd;
   t_fparams_rnd rnd_cutsq;
+  t_fparams_rnd rnd_scale;
 
   typename AT::t_kkfloat_1d_3_lr_randomread x;
   typename AT::t_kkacc_1d_3 f;

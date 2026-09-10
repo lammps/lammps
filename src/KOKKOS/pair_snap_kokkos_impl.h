@@ -142,6 +142,17 @@ void PairSNAPKokkos<DeviceType, real_type, accum_type, vector_length>::compute(i
   type = atomKK->k_type.view<DeviceType>();
   k_cutsq.template sync<DeviceType>();
 
+  // fix adapt may have written a new scale factor into the base class array
+  // since the last step, so copy it over to the device before the kernels run
+  {
+    auto h_scale = k_scale.view_host();
+    for (int i = 1; i <= atom->ntypes; i++)
+      for (int j = i; j <= atom->ntypes; j++)
+        h_scale(i,j) = h_scale(j,i) = scale[i][j];
+    k_scale.modify_host();
+    k_scale.template sync<DeviceType>();
+  }
+
   NeighListKokkos<DeviceType>* k_list = static_cast<NeighListKokkos<DeviceType>*>(list);
   d_numneigh = k_list->d_numneigh;
   d_neighbors = k_list->d_neighbors;
@@ -441,6 +452,9 @@ void PairSNAPKokkos<DeviceType, real_type, accum_type, vector_length>::allocate(
 
   MemKK::realloc_kokkos(k_cutsq,"PairSNAPKokkos::cutsq",n+1,n+1);
   rnd_cutsq = k_cutsq.template view<DeviceType>();
+
+  MemKK::realloc_kokkos(k_scale,"PairSNAPKokkos::scale",n+1,n+1);
+  rnd_scale = k_scale.template view<DeviceType>();
 }
 
 /* ----------------------------------------------------------------------
@@ -453,6 +467,8 @@ double PairSNAPKokkos<DeviceType, real_type, accum_type, vector_length>::init_on
   double cutone = PairSNAP::init_one(i,j);
   k_cutsq.view_host()(i,j) = k_cutsq.view_host()(j,i) = cutone*cutone;
   k_cutsq.modify_host();
+  k_scale.view_host()(i,j) = k_scale.view_host()(j,i) = scale[i][j];
+  k_scale.modify_host();
 
   return cutone;
 }
@@ -1395,13 +1411,17 @@ void PairSNAPKokkos<DeviceType, real_type, accum_type, vector_length>::operator(
 
   const int ninside = d_ninside(ii);
 
+  // fix adapt scales the force and the energy of this pair style, by the
+  // factor of the type of the central atom, the same way PairSNAP does
+  const accum_type scalei = static_cast<accum_type>(rnd_scale(type(i),type(i)));
+
   for (int jj = 0; jj < ninside; jj++) {
     int j = snaKK.inside(ii,jj);
 
     accum_type fij[3];
-    fij[0] = snaKK.dedr(ii,jj,0);
-    fij[1] = snaKK.dedr(ii,jj,1);
-    fij[2] = snaKK.dedr(ii,jj,2);
+    fij[0] = scalei*snaKK.dedr(ii,jj,0);
+    fij[1] = scalei*snaKK.dedr(ii,jj,1);
+    fij[2] = scalei*snaKK.dedr(ii,jj,2);
 
     // in practice KK_ACC_FLOAT is the same as accum_type, so there is no need for an
     // explicit cast to a_f's type (KK_ACC_FLOAT).
@@ -1466,6 +1486,7 @@ void PairSNAPKokkos<DeviceType, real_type, accum_type, vector_length>::operator(
       //ev_tally_full(i,2.0*evdwl,0.0,0.0,0.0,0.0,0.0);
       // in practice KK_ACC_FLOAT is the same as accum_type, so there is no need for an
       // explicit cast to ev.evdwl or d_eatom[i]'s type (KK_ACC_FLOAT).
+      evdwl *= scalei;
       if (eflag_global) ev.evdwl += evdwl;
       if (eflag_atom) d_eatom[i] += evdwl;
     }

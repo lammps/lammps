@@ -32,8 +32,11 @@ class FixUVT : public FixNH {
  public:
   FixUVT(class LAMMPS *, int, char **);
   ~FixUVT() override;
+  int setmask() override;
   void init() override;
   void setup(int) override;
+  void post_force(int) override;
+  void post_force_respa(int, int, int) override;
   void initial_integrate(int) override;
   void final_integrate() override;
   void initial_integrate_respa(int, int, int) override;
@@ -71,7 +74,6 @@ class FixUVT : public FixNH {
   Compute *dedn_compute;
   Fix *dedn_fix;
   double dedn_current;
-  int dedn_defer;
 };
 
 }    // namespace LAMMPS_NS

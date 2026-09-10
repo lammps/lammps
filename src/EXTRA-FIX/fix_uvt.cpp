@@ -56,7 +56,6 @@ int uvt_skip_count(const char *keyword)
   if (strcmp(keyword, "ne") == 0) return 2;
   if (strcmp(keyword, "ne_velocity") == 0) return 2;
   if (strcmp(keyword, "dedn") == 0) return 2;
-  if (strcmp(keyword, "dedn_defer") == 0) return 2;
   return 0;
 }
 
@@ -116,8 +115,7 @@ FixUVT::FixUVT(LAMMPS *lmp, int narg, char **arg) :
     FixNH(lmp, uvt_argc(narg, arg), uvt_argv(narg, arg)),
     u_start(0.0), u_stop(0.0), u_current(0.0), u_target(0.0), u_freq(0.0), ustat_flag(0),
     Ne(nullptr), Ne_dot(nullptr), Ne_mass(nullptr), dedn_name(nullptr), dedn_which(ArgInfo::NONE),
-    dedn_index(0), dedn_var(-1), dedn_compute(nullptr), dedn_fix(nullptr), dedn_current(0.0),
-    dedn_defer(0)
+    dedn_index(0), dedn_var(-1), dedn_compute(nullptr), dedn_fix(nullptr), dedn_current(0.0)
 {
   if (narg < 4) utils::missing_cmd_args(FLERR, std::string("fix ") + style, error);
 
@@ -152,16 +150,6 @@ FixUVT::FixUVT(LAMMPS *lmp, int narg, char **arg) :
       if (i + 2 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} dedn", style), error);
       dedn_seen = true;
       parse_dedn_source(arg[i + 1]);
-      i += 2;
-    } else if (strcmp(arg[i], "dedn_defer") == 0) {
-      if (i + 2 > narg)
-        utils::missing_cmd_args(FLERR, fmt::format("fix {} dedn_defer", style), error);
-      if (strcmp(arg[i + 1], "yes") == 0)
-        dedn_defer = 1;
-      else if (strcmp(arg[i + 1], "no") == 0)
-        dedn_defer = 0;
-      else
-        error->all(FLERR, "Fix {} dedn_defer must be yes or no", style);
       i += 2;
     } else {
       ++i;
@@ -203,6 +191,13 @@ FixUVT::~FixUVT()
   delete[] Ne_dot;
   delete[] Ne_mass;
   delete[] dedn_name;
+}
+
+/* ---------------------------------------------------------------------- */
+
+int FixUVT::setmask()
+{
+  return FixNH::setmask() | POST_FORCE | POST_FORCE_RESPA;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -263,11 +258,8 @@ void FixUVT::init()
   }
 
   compute_mu_target();
-  if (dedn_defer)
-    dedn_current = u_target;
-  else
-    dedn_current = evaluate_dedn();
-  u_current = dedn_current;
+  // The initial derivative is read in setup(), after forces are available.
+  modify->addstep_compute_all(update->ntimestep);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -276,12 +268,27 @@ void FixUVT::setup(int vflag)
 {
   FixNH::setup(vflag);
   compute_mu_target();
-  if (dedn_defer)
-    dedn_current = u_target;
-  else
-    dedn_current = evaluate_dedn();
-  u_current = dedn_current;
+  post_force(vflag);
   *Ne_mass = tdof * boltz * t_target / (u_freq*u_freq);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixUVT::post_force(int /*vflag*/)
+{
+  // Re-evaluate compute dependencies at the updated coordinates, even if
+  // another consumer invoked them earlier in this timestep.
+  modify->clearstep_compute();
+  dedn_current = evaluate_dedn();
+  u_current = dedn_current;
+  modify->addstep_compute(update->ntimestep + 1);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixUVT::post_force_respa(int vflag, int ilevel, int /*iloop*/)
+{
+  if (ilevel == nlevels_respa-1) post_force(vflag);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -327,10 +334,6 @@ void FixUVT::initial_integrate(int /*vflag*/)
 
 void FixUVT::final_integrate()
 {
-  if (dedn_defer) {
-    dedn_current = evaluate_dedn();
-    u_current = dedn_current;
-  }
   nve_v();
 
   if (which == BIAS && neighbor->ago == 0)
@@ -392,7 +395,7 @@ void FixUVT::initial_integrate_respa(int /*vflag*/, int ilevel, int /*iloop*/)
     }
 
     nve_v();
-  } else nve_v();
+  } else FixNH::nve_v();
 
   if (ilevel == 0) {
     if (pstat_flag) remap();
@@ -405,8 +408,12 @@ void FixUVT::initial_integrate_respa(int /*vflag*/, int ilevel, int /*iloop*/)
 
 void FixUVT::final_integrate_respa(int ilevel, int /*iloop*/)
 {
+  dtv = step_respa[ilevel];
+  dtf = 0.5 * step_respa[ilevel] * force->ftm2v;
+  dthalf = 0.5 * step_respa[ilevel];
+
   if (ilevel == nlevels_respa-1) final_integrate();
-  else nve_v();
+  else FixNH::nve_v();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -569,10 +576,6 @@ double FixUVT::memory_usage()
 void FixUVT::nve_v()
 {
   FixNH::nve_v();
-  if (!dedn_defer) {
-    dedn_current = evaluate_dedn();
-    u_current = dedn_current;
-  }
   *Ne_dot += (dthalf / *Ne_mass) * (-dedn_current + u_target);
 }
 

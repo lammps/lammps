@@ -31,7 +31,7 @@ Here are suggestions on how to perform these tasks:
   together with LAMMPS and linked to the LAMMPS library for running and
   visualizing LAMMPS simulation inputs.  As of August 2025, LAMMPS-GUI
   is maintained in its own `repository on GitHub
-  <https://github.com/akohlmey/lammps-gui/>`_.
+  <https://github.com/lammps/lammps-gui/>`_.
   Also, there are several external wrappers or GUI
   front ends that are mentioned on the `Pre-/post-processing tools page
   <https://www.lammps.org/ecosystem/prepost/>`_ of the LAMMPS homepage.

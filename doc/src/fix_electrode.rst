@@ -189,6 +189,8 @@ finite-field commands (see below).  For an advanced example of this see
 the in.conq2 input file in the directory
 ``examples/PACKAGES/electrode/graph-il``.
 
+.. versionchanged:: TBD
+
 This fix necessitates the use of a long range solver that calculates and
 provides the matrix of electrode-electrode interactions and a vector of
 electrode-electrolyte interactions.  The Kspace styles

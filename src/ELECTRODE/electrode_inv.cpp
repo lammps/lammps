@@ -270,7 +270,7 @@ std::vector<double> ElectrodeInv::compute_potentials()
   assert(setup);
   assert(update->ntimestep == elyt_step);    // assert sb_charges up to date
   // sum charges for each group
-  int *tag = atom->tag;
+  tagint *tag = atom->tag;
   int *mask = atom->mask;
   double *q = atom->q;
   auto group_q = std::vector<double>(ngroups, 0.);

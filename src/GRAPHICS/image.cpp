@@ -2736,7 +2736,7 @@ ColorMap::~ColorMap()
 }
 
 /* ----------------------------------------------------------------------
-   redefine color map
+   redefine a color map
    args = lo hi style delta N entry1 entry2 ... entryN as defined by caller
    return > 0 if any error in args, else return 0
    return value is position of failed arg, i.e. array index+1
@@ -2866,7 +2866,7 @@ int ColorMap::minmax(double mindynamic, double maxdynamic)
     if (mrange == ABSOLUTE) mentry[nentry-1].svalue = hicurrent;
     else mentry[nentry-1].svalue = 1.0;
 
-    // error in ABSOLUTE mode if new lo/hi current cause
+    // error in ABSOLUTE mode if lo/hi current cause
     // first/last entry to become lo > hi with adjacent entry
 
     if (mrange == ABSOLUTE) {
@@ -2874,7 +2874,7 @@ int ColorMap::minmax(double mindynamic, double maxdynamic)
       if (mentry[nentry-2].svalue > mentry[nentry-1].svalue) return 1;
     }
 
-  // OK if new lo/hi current cause an entry to have lo > hi,
+  // OK if lo/hi current cause an entry to have lo > hi,
   // since last entry will always be a match
 
   } else if (mstyle == DISCRETE) {
@@ -2888,6 +2888,23 @@ int ColorMap::minmax(double mindynamic, double maxdynamic)
         else mentry[i].hvalue = 1.0;
       }
     }
+
+  // set rounddown_flag if bin boundary is essentially at hicurrent
+  // this is to prevent all atoms with values >= hicurrent being assigned
+  //   the color for a bin starting at hicurrent,
+  //   more sensible to assign them color for bin ending at hicurrent
+  // rounddown_flag is used in value2color()
+
+  } else if (mstyle == SEQUENTIAL) {
+    // NOTE: need to formalize and pre-set these 2 epsilon constants
+    double epsbin;
+    if (mrange == ABSOLUTE) epsbin = (hicurrent-locurrent) * 1.0e-12;
+    else epsbin = 1.0e-9;
+
+    int ibin = static_cast<int> ((hicurrent-locurrent) * mbinsizeinv);
+    int jbin = static_cast<int> ((hicurrent-locurrent-epsbin) * mbinsizeinv);
+    if (jbin < ibin) rounddown_flag = 1;
+    else rounddown_flag = 0;
   }
 
   return 0;
@@ -2910,7 +2927,7 @@ int ColorMap::info(double &min, double &max, bool &sequential)
 
 double *ColorMap::value2color(double value)
 {
-  double lo;    //,hi;
+  double lo,hi;
 
   value = MAX(value, locurrent);
   value = MIN(value, hicurrent);
@@ -2921,10 +2938,10 @@ double *ColorMap::value2color(double value)
     else
       value = (value - locurrent) / (hicurrent - locurrent);
     lo = 0.0;
-    //hi = 1.0;
+    hi = 1.0;
   } else {
     lo = locurrent;
-    //hi = hicurrent;
+    hi = hicurrent;
   }
 
   if (mstyle == CONTINUOUS) {
@@ -2948,6 +2965,7 @@ double *ColorMap::value2color(double value)
       if (value >= mentry[i].lvalue && value <= mentry[i].hvalue) return mentry[i].color;
   } else {
     int ibin = static_cast<int>((value - lo) * mbinsizeinv);
+    if (value == hi && rounddown_flag) ibin--;
     return mentry[ibin % nentry].color;
   }
 

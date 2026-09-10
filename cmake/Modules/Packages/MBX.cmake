@@ -54,8 +54,8 @@ option(DOWNLOAD_MBX "Download MBX package instead of using an already installed 
 if(DOWNLOAD_MBX)
   message(STATUS "MBX download requested - we will build our own")
   SetDownloadSettings(MBXLIB "MBX"
-    "https://github.com/paesanilab/MBX/releases/download/v1.4.0/mbx-1.4.0.tar.gz"
-    "219de5af7cd81bdf8c3394c3aeee923cf4de7dd322769441a35c7cf4950bf912")
+    "https://github.com/paesanilab/MBX/releases/download/v1.4.0/mbx-1.4.3.tar.gz"
+    "1175a9158027e2a7dfe4d0109b8dcb4ed13a18e584297dc38268bb6ebfa1dd16")
 
   # apply patches to the MBX sources of known versions (e.g. so that they compile without OpenMP)
   get_filename_component(_mbx_archive "${MBXLIB_URL}" NAME)

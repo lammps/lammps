@@ -68,7 +68,7 @@ jobs:
       run: |
         if [ ! -f "build/lmp.exe" ]
         then \
-            echo "error::Compilation failed: no lmp.exe file"
+            echo "::error::Compilation failed: no lmp.exe file"
             exit 1
         fi
         build/lmp.exe -h

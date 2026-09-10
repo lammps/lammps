@@ -8,10 +8,16 @@ function(extract_tags out yaml_file)
 endfunction()
 
 # build support library
+# the test programs get the input folder as compile definition.  on Windows it must be a
+# native path with escaped backslashes, since some tests pass it to "shell copy" commands.
+# globbing and test arguments must keep the forward slash version: CMake 4.4.3 and later
+# escape backslashes when recording the results of CONFIGURE_DEPENDS globs, so a pattern
+# with backslashes never matches its record and every build re-runs CMake without end.
+set(TEST_INPUT_FOLDER ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-  string(REPLACE "/" "\\\\" TEST_INPUT_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/tests")
+  string(REPLACE "/" "\\\\" TEST_INPUT_FOLDER_NATIVE "${TEST_INPUT_FOLDER}")
 else()
-  set(TEST_INPUT_FOLDER ${CMAKE_CURRENT_SOURCE_DIR}/tests)
+  set(TEST_INPUT_FOLDER_NATIVE ${TEST_INPUT_FOLDER})
 endif()
 add_library(bpm_tests STATIC
   ../error_stats.cpp
@@ -21,10 +27,10 @@ add_library(bpm_tests STATIC
   test_bpm_common.cpp
   test_main.cpp)
 if(YAML_FOUND)
-  target_compile_definitions(bpm_tests PRIVATE TEST_INPUT_FOLDER=${TEST_INPUT_FOLDER})
+  target_compile_definitions(bpm_tests PRIVATE TEST_INPUT_FOLDER=${TEST_INPUT_FOLDER_NATIVE})
 else()
   # we always use static linkage with local compiled libyaml
-  target_compile_definitions(bpm_tests PRIVATE TEST_INPUT_FOLDER=${TEST_INPUT_FOLDER} YAML_DECLARE_STATIC)
+  target_compile_definitions(bpm_tests PRIVATE TEST_INPUT_FOLDER=${TEST_INPUT_FOLDER_NATIVE} YAML_DECLARE_STATIC)
 endif()
 target_include_directories(bpm_tests PRIVATE "${LAMMPS_SOURCE_DIR};${CMAKE_CURRENT_SOURCE_DIR}/..")
 target_link_libraries(bpm_tests PUBLIC GTest::GMock Yaml::Yaml lammps)
@@ -65,18 +71,12 @@ function(register_bpm_tests driver prefix label)
   file(GLOB BPM_TESTS LIST_DIRECTORIES false CONFIGURE_DEPENDS ${TEST_INPUT_FOLDER}/${prefix}-*.yaml)
   foreach(TEST ${BPM_TESTS})
     string(REGEX REPLACE "^.*${prefix}-(.*)\.yaml" "${label}:\\1" TNAME ${TEST})
-    if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-      string(REPLACE "/" "\\\\" TEST_PATH "${TEST}")
-    else()
-      set(TEST_PATH "${TEST}")
-    endif()
-
-    extract_tags(TEST_TAGS "${TEST_PATH}")
+    extract_tags(TEST_TAGS ${TEST})
     list(FIND TEST_TAGS "no${CMAKE_SYSTEM_NAME}" _SKIPME)
     if(_SKIPME GREATER_EQUAL 0)
       continue()
     endif()
-    add_test(NAME ${TNAME} COMMAND ${driver} "${TEST_PATH}")
+    add_test(NAME ${TNAME} COMMAND ${driver} ${TEST})
     set_tests_properties(${TNAME} PROPERTIES ENVIRONMENT "${BPM_TEST_ENVIRONMENT}")
     set_tests_properties(${TNAME} PROPERTIES LABELS "${TEST_TAGS}")
   endforeach()

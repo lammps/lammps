@@ -15,17 +15,23 @@ if(Python_EXECUTABLE)
     COMMENT "Check completeness of force style tests")
 endif()
 
+# the test programs get the input folder as compile definition.  on Windows it must be a
+# native path with escaped backslashes, since some tests pass it to "shell copy" commands.
+# globbing and test arguments must keep the forward slash version: CMake 4.4.3 and later
+# escape backslashes when recording the results of CONFIGURE_DEPENDS globs, so a pattern
+# with backslashes never matches its record and every build re-runs CMake without end.
+set(TEST_INPUT_FOLDER ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-  string(REPLACE "/" "\\\\" TEST_INPUT_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/tests")
+  string(REPLACE "/" "\\\\" TEST_INPUT_FOLDER_NATIVE "${TEST_INPUT_FOLDER}")
 else()
-  set(TEST_INPUT_FOLDER ${CMAKE_CURRENT_SOURCE_DIR}/tests)
+  set(TEST_INPUT_FOLDER_NATIVE ${TEST_INPUT_FOLDER})
 endif()
 add_library(style_tests STATIC ../yaml_writer.cpp ../error_stats.cpp test_config_reader.cpp test_main.cpp)
 if(YAML_FOUND)
-  target_compile_definitions(style_tests PRIVATE TEST_INPUT_FOLDER=${TEST_INPUT_FOLDER})
+  target_compile_definitions(style_tests PRIVATE TEST_INPUT_FOLDER=${TEST_INPUT_FOLDER_NATIVE})
 else()
   # we always use static linkage with local compiled libyaml
-  target_compile_definitions(style_tests PRIVATE TEST_INPUT_FOLDER=${TEST_INPUT_FOLDER} YAML_DECLARE_STATIC)
+  target_compile_definitions(style_tests PRIVATE TEST_INPUT_FOLDER=${TEST_INPUT_FOLDER_NATIVE} YAML_DECLARE_STATIC)
 endif()
 target_include_directories(style_tests PRIVATE "${LAMMPS_SOURCE_DIR};${CMAKE_CURRENT_SOURCE_DIR}/..")
 target_link_libraries(style_tests PUBLIC GTest::GMock Yaml::Yaml lammps)

@@ -322,7 +322,7 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
   if (ffield) {
     if (algo != Algo::MATRIX_INV)
       error->all(FLERR, "ffield field is only implemented for matrix inversion");
-    if (qtotal_var_style != VarStyle::UNSET) {
+    if ((qtotal_var_style != VarStyle::UNSET) && !symm) {
       error->all(
           FLERR,
           "The qtotal keyword is not compatible with the ffield keyword, yet. "

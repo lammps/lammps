@@ -4,7 +4,7 @@ units		real
 dimension	3
 boundary	p p p
 atom_style	full
-include "in.settings"
+include "settings.mod"
 thermo_style	custom step temp press etotal ke pe ecoul elong density v_charge_qsi v_charge_qo
 thermo 100
 timestep 1.0 #1 fs

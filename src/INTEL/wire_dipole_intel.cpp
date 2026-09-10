@@ -62,8 +62,8 @@ void WireDipoleIntel::compute_corr(IntelBuffers<flt_t, acc_t> *buffers, double /
                                    int eflag_atom, int eflag_global, double &energy, double *eatom)
 {
   double const volume = get_volume();
-  ATOM_T *_noalias const x = buffers->get_x(0);
-  flt_t *_noalias const q = buffers->get_q(0);
+  ATOM_T *_noalias const x = buffers->get_x();
+  flt_t *_noalias const q = buffers->get_q();
   int nlocal = atom->nlocal;
   int nthr;
   if (_use_lrt)
@@ -183,8 +183,8 @@ void WireDipoleIntel::vector_corr(IntelBuffers<flt_t, acc_t> *buffers, double *v
 {
   double const volume = get_volume();
   int const nlocal = atom->nlocal;
-  ATOM_T *_noalias const x = buffers->get_x(0);
-  flt_t *_noalias const q = buffers->get_q(0);
+  ATOM_T *_noalias const x = buffers->get_x();
+  flt_t *_noalias const q = buffers->get_q();
   int *mask = atom->mask;
   int nthr;
   if (_use_lrt)
@@ -252,7 +252,7 @@ void WireDipoleIntel::matrix_corr(IntelBuffers<flt_t, acc_t> *buffers, bigint *i
 {
   double const volume = get_volume();
   int nlocal = atom->nlocal;
-  ATOM_T *_noalias const x = buffers->get_x(0);
+  ATOM_T *_noalias const x = buffers->get_x();
   int nthr;
   if (_use_lrt)
     nthr = 1;

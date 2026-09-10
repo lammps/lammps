@@ -75,8 +75,8 @@ void ElectrodeVectorIntel::pair_contribution(IntelBuffers<flt_t,acc_t> *buffers,
     buffers_stale = false;
   }
 
-  ATOM_T *_noalias const x = buffers->get_x(0);
-  flt_t *_noalias const q = buffers->get_q(0);
+  ATOM_T *_noalias const x = buffers->get_x();
+  flt_t *_noalias const q = buffers->get_q();
   int nlocal = atom->nlocal;
   int nthr;
   if (nthreads > INTEL_HTHREADS) nthr = nthreads;

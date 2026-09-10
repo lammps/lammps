@@ -63,8 +63,8 @@ template <class flt_t, class acc_t>
 void Slab2dIntel::compute_corr(IntelBuffers<flt_t, acc_t> *buffers, double /*qsum*/, int eflag_atom,
                                int eflag_global, double &energy, double *eatom)
 {
-  flt_t *_noalias const q = buffers->get_q(0);
-  ATOM_T *_noalias const x = buffers->get_x(0);
+  flt_t *_noalias const q = buffers->get_q();
+  ATOM_T *_noalias const x = buffers->get_x();
   double **f = atom->f;
   int nlocal = atom->nlocal;
   double const g_ewald = force->kspace->g_ewald;
@@ -164,8 +164,8 @@ void Slab2dIntel::vector_corr(IntelBuffers<flt_t, acc_t> *buffers, double *vec, 
                               int source_grpbit, bool invert_source)
 {
   int const nlocal = atom->nlocal;
-  ATOM_T *_noalias const x = buffers->get_x(0);
-  flt_t *_noalias const q = buffers->get_q(0);
+  ATOM_T *_noalias const x = buffers->get_x();
+  flt_t *_noalias const q = buffers->get_q();
   int *mask = atom->mask;
   int nthr;
   if (_use_lrt)
@@ -300,7 +300,7 @@ template <class flt_t, class acc_t>
 void Slab2dIntel::matrix_corr(IntelBuffers<flt_t, acc_t> *buffers, bigint *imat, double **matrix)
 {
   int nlocal = atom->nlocal;
-  ATOM_T *_noalias const x = buffers->get_x(0);
+  ATOM_T *_noalias const x = buffers->get_x();
   int nthr;
   if (_use_lrt)
     nthr = 1;

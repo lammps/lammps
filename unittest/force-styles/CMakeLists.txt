@@ -53,6 +53,7 @@ endif()
 # electrode fix tester
 add_executable(test_fix_electrode test_fix_electrode.cpp)
 target_link_libraries(test_fix_electrode PRIVATE lammps style_tests)
+target_include_directories(test_fix_electrode PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/..")
 if(FFT_SINGLE)
   target_compile_definitions(test_fix_electrode PRIVATE -DFFT_SINGLE)
 endif()
@@ -70,7 +71,6 @@ if(PKG_QMMM-XTB)
   target_include_directories(test_qmmm_xtb_ewald PRIVATE ${LAMMPS_SOURCE_DIR}/QMMM-XTB)
   target_link_libraries(test_qmmm_xtb_ewald PRIVATE lammps GTest::GMockMain)
   add_test(NAME QMMMXTBEwald COMMAND test_qmmm_xtb_ewald)
-endif()
 endif()
 
 # prepare environment for testers

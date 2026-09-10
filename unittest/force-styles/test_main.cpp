@@ -176,25 +176,6 @@ void EXPECT_SPINS(const std::string &name, Atom *atom, const std::vector<coord4_
     if (print_stats) std::cerr << name << " stats: " << stats << std::endl;
 }
 
-void EXPECT_SPINS(const std::string &name, Atom *atom, const std::vector<coord4_t> &sp_ref,
-                  double epsilon)
-{
-    if (!atom->sp_flag || sp_ref.empty()) return;
-    SCOPED_TRACE("EXPECT_SPINS: " + name);
-    double **sp      = atom->sp;
-    tagint *tag      = atom->tag;
-    const int nlocal = atom->nlocal;
-    ASSERT_EQ(nlocal + 1, sp_ref.size());
-    ErrorStats stats;
-    for (int i = 0; i < nlocal; ++i) {
-        EXPECT_FP_LE_WITH_EPS(sp[i][0], sp_ref[tag[i]].x, epsilon);
-        EXPECT_FP_LE_WITH_EPS(sp[i][1], sp_ref[tag[i]].y, epsilon);
-        EXPECT_FP_LE_WITH_EPS(sp[i][2], sp_ref[tag[i]].z, epsilon);
-        EXPECT_FP_LE_WITH_EPS(sp[i][3], sp_ref[tag[i]].w, epsilon);
-    }
-    if (print_stats) std::cerr << name << " stats: " << stats << std::endl;
-}
-
 // common read_yaml_file function
 bool read_yaml_file(const char *infile, TestConfig &config)
 {

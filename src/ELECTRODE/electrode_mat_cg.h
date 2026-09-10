@@ -27,7 +27,7 @@ class ElectrodeMatCG : public ElectrodeCG {
  public:
   // ChargeSolver methods
   ElectrodeMatCG(class LAMMPS *);
-  ~ElectrodeMatCG() noexcept;    // TODO why do we need noexcept here
+  ~ElectrodeMatCG() noexcept;
   void update_solver(std::vector<tagint>, std::vector<int>) override;
   double memory_use() override;
 

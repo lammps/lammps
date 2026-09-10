@@ -321,7 +321,13 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
   if (ffield) {
     if (algo != Algo::MATRIX_INV)
       error->all(FLERR, "ffield field is only implemented for matrix inversion");
-    // TODO compatibility with qtotal?
+    if (qtotal_var_style != VarStyle::UNSET) {
+      error->all(
+          FLERR,
+          "The qtotal keyword is not compatible with the ffield keyword, yet. "
+          "Compatibility will be available in a future release. "
+          "Symmetrization is automatically enabled for charge neutrality when using ffield.");
+    }
   }
   if (!(etaflag || pairflag || deprecated_single_eta))
     error->all(FLERR, "The eta or pair keyword must be used");
@@ -654,10 +660,11 @@ void FixElectrodeConp::setup_post_neighbor()
         electrode_taglist->read_from_file(input_file_inv, matrix, "capacitance");
         inv->set_capacitance(ngroup, matrix);
       } else {
-        inv->set_elastance(ngroup, matrix);
+        inv->set_elastance(ngroup, matrix, timer_flag);
       }
       assert(taglist_constructed);
-      inv->setup_solver(groupbit, electrode_taglist->get_tag_to_iele(), group_bits, ffield);
+      inv->setup_solver(groupbit, electrode_taglist->get_tag_to_iele(), group_bits, ffield,
+                        timer_flag);
       charge_solver = inv;
       break;
     }

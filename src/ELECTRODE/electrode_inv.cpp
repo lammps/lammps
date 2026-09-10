@@ -84,16 +84,15 @@ double ElectrodeInv::memory_use()
 
 /* ---------------------------------------------------------------------- */
 
-void ElectrodeInv::set_elastance(int nele_world, double **elastance)
+void ElectrodeInv::set_elastance(int nele_world, double **elastance, bool timer_flag)
 {
   cap_set = true;
   this->nele_world = nele_world;
   this->capacitance = elastance;
   // invert elastance to obtain capacitance
   MPI_Barrier(world);
-  // TODO timer flag
-  //double invert_time = MPI_Wtime();
-  //if (timer_flag && (comm->me == 0)) utils::logmesg(lmp, "CONP inverting matrix\n");
+  double invert_time = MPI_Wtime();
+  if (timer_flag && (comm->me == 0)) utils::logmesg(lmp, "CONP inverting matrix\n");
   int m = nele_world, n = nele_world, lda = nele_world;
   std::vector<int> ipiv(nele_world);
   const int lwork = nele_world * nele_world;
@@ -111,8 +110,8 @@ void ElectrodeInv::set_elastance(int nele_world, double **elastance)
 #endif
   if (info_rf != 0 || info_ri != 0) error->all(FLERR, "CONP matrix inversion failed!");
   MPI_Barrier(world);
-  //if (timer_flag && (comm->me == 0))
-  //utils::logmesg(lmp, "Invert time: {:.4g} s\n", MPI_Wtime() - invert_time);
+  if (timer_flag && (comm->me == 0))
+    utils::logmesg(lmp, "Invert time: {:.4g} s\n", MPI_Wtime() - invert_time);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -127,7 +126,7 @@ void ElectrodeInv::set_capacitance(int nele_world, double **capacitance)
 /* ---------------------------------------------------------------------- */
 
 void ElectrodeInv::setup_solver(int groupbit, std::unordered_map<tagint, int> tag_to_iele,
-                                std::vector<int> group_bits, bool ffield)
+                                std::vector<int> group_bits, bool ffield, bool timer_flag)
 {
   assert(cap_set);
   setup = true;
@@ -151,16 +150,16 @@ void ElectrodeInv::setup_solver(int groupbit, std::unordered_map<tagint, int> ta
   }
   MPI_Allreduce(MPI_IN_PLACE, iele_to_group.data(), nele_world, MPI_INT, MPI_MAX, world);
   sb_charges = std::vector<double>(ngroups);
-  //MPI_Barrier(world);
-  //double start = MPI_Wtime();
+  MPI_Barrier(world);
+  double start = MPI_Wtime();
   if (ffield) {
     compute_sd_vectors_ffield(group_bits);
   } else
     compute_sd_vectors();
   compute_macro_matrices(ffield);
-  //MPI_Barrier(world); // TODO timer_flag
-  //if (timer_flag && (comm->me == 0))
-    //utils::logmesg(lmp, "SD-vector and macro matrices time: {:.4g} s\n", MPI_Wtime() - start);
+  MPI_Barrier(world);
+  if (timer_flag && (comm->me == 0))
+    utils::logmesg(lmp, "SD-vector and macro matrices time: {:.4g} s\n", MPI_Wtime() - start);
 }
 
 /* ---------------------------------------------------------------------- */

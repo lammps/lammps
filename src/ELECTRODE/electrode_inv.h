@@ -29,7 +29,7 @@ class ElectrodeInv : public Pointers, public ChargeSolver {
  public:
   // ChargeSolver methods
   ElectrodeInv(class LAMMPS *);
-  ~ElectrodeInv() noexcept;    // TODO why do we need noexcept here
+  ~ElectrodeInv() noexcept;
   void update_solver(std::vector<tagint>, std::vector<int>) override;
   void set_elyt_pot(double *) override;
   std::vector<double> solve(std::vector<double>) override;
@@ -44,8 +44,8 @@ class ElectrodeInv : public Pointers, public ChargeSolver {
 
   // setup
   void set_capacitance(int, double **);
-  void set_elastance(int, double **);
-  void setup_solver(int, std::unordered_map<tagint, int>, std::vector<int>, bool);
+  void set_elastance(int, double **, bool);
+  void setup_solver(int, std::unordered_map<tagint, int>, std::vector<int>, bool, bool);
 
  private:
   int groupbit;

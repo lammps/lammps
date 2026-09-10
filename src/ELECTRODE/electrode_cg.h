@@ -31,7 +31,7 @@ class ElectrodeCG : public Pointers, public ChargeSolver {
  public:
   // ChargeSolver methods
   ElectrodeCG(class LAMMPS *, class FixElectrodeConp * = nullptr);
-  ~ElectrodeCG() noexcept;    // TODO why do we need noexcept here
+  ~ElectrodeCG() noexcept;
   void update_solver(std::vector<tagint>, std::vector<int>) override;
   void set_elyt_pot(double *) override;
   std::vector<double> solve(std::vector<double>) override;

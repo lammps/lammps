@@ -431,11 +431,11 @@ template <class DeviceType> void PairMTPKokkos<DeviceType>::compute(int eflag_in
       int team_size = team_size_default;
 
       int radial_scratch_count = radial_func_count;
-      int dist_coords_scratch_count = 4 * (max_alpha_index_basic + 1);
+      int coords_scratch_count = 3 * (max_alpha_index_basic + 1);
       int basis_scratch_count = 2 * radial_basis_size;
 
       int scratch_size = scratch_size_helper<KK_FLOAT>(
-          max_valid_neighs * (radial_scratch_count + dist_coords_scratch_count) +
+          max_valid_neighs * (radial_scratch_count + coords_scratch_count) +
           Kokkos::min(team_size, max_valid_neighs) * basis_scratch_count);
       Kokkos::TeamPolicy<DeviceType, TagPairMTPComputeAlphaBasic> policy_basic_alpha(chunk_size,
                                                                                      team_size);
@@ -474,7 +474,7 @@ template <class DeviceType> void PairMTPKokkos<DeviceType>::compute(int eflag_in
       if (!host_flag && max_valid_neighs < 32) team_size = MIN(team_size, 32);
 
       const int force_scratch_size =
-          scratch_size_helper<KK_FLOAT>(2 * radial_func_count + 4 * max_alpha_index_basic);
+          scratch_size_helper<KK_FLOAT>(2 * radial_func_count + 3 * max_alpha_index_basic);
 
       if (neighflag == HALF) {
         using ForcePolicy = Kokkos::TeamPolicy<DeviceType, TagPairMTPComputeForce<HALF, 1>>;
@@ -573,7 +573,6 @@ KOKKOS_INLINE_FUNCTION void PairMTPKokkos<DeviceType>::operator()(
   const int array_size = Kokkos::min(team.team_size(), jnum);
   const int power_stride = max_alpha_index_basic + 1;
   shared_kk_float_2d s_radial_vals(team.team_scratch(0), radial_func_count, jnum);
-  shared_kk_float_2d s_dist_powers(team.team_scratch(0), power_stride, jnum);
   shared_kk_float_3d s_coord_powers(team.team_scratch(0), power_stride, jnum);
   shared_kk_float_2d s_radial_basis_vals(team.team_scratch(0), array_size, radial_basis_size);
   shared_kk_float_2d s_radial_basis_ders(team.team_scratch(0), array_size, radial_basis_size);
@@ -586,15 +585,15 @@ KOKKOS_INLINE_FUNCTION void PairMTPKokkos<DeviceType>::operator()(
     const KK_FLOAT rsq = Kokkos::fma(r[0], r[0], Kokkos::fma(r[1], r[1], r[2] * r[2]));
     const KK_FLOAT dist = sqrt(rsq);
     const KK_FLOAT inv_dist = 1.0 / dist;
+    const KK_FLOAT u[3] = {r[0] * inv_dist, r[1] * inv_dist, r[2] * inv_dist};
     d_inv_dist(jj, ii) = inv_dist;
 
-    s_dist_powers(0, jj) = s_coord_powers(0, jj, 0) = s_coord_powers(0, jj, 1) =
-        s_coord_powers(0, jj, 2) = 1;    // Set the constants
+    s_coord_powers(0, jj, 0) = s_coord_powers(0, jj, 1) = s_coord_powers(0, jj, 2) =
+        1;    // Set the constants
 
-    // Precompute the coord and inverse distance powers
+    // Powers of the unit vector already carry the rank normalization
     for (int k = 1; k < max_alpha_index_basic; k++) {
-      s_dist_powers(k, jj) = s_dist_powers(k - 1, jj) * inv_dist;
-      for (int a = 0; a < 3; a++) s_coord_powers(k, jj, a) = s_coord_powers(k - 1, jj, a) * r[a];
+      for (int a = 0; a < 3; a++) s_coord_powers(k, jj, a) = s_coord_powers(k - 1, jj, a) * u[a];
     }
 
     // Calculate the radial basis and store in shared memory
@@ -644,14 +643,12 @@ KOKKOS_INLINE_FUNCTION void PairMTPKokkos<DeviceType>::operator()(
     const int a0 = d_alpha_index_basic(k, 1);
     const int a1 = d_alpha_index_basic(k, 2);
     const int a2 = d_alpha_index_basic(k, 3);
-    const int norm_rank = a0 + a1 + a2;
 
     KK_FLOAT moment_val = 0;
     for (int jj = 0; jj < jnum; jj++) {
-      const KK_FLOAT val = s_radial_vals(mu, jj) * s_dist_powers(norm_rank, jj);
       const KK_FLOAT pow =
           s_coord_powers(a0, jj, 0) * s_coord_powers(a1, jj, 1) * s_coord_powers(a2, jj, 2);
-      moment_val = Kokkos::fma(val, pow, moment_val);
+      moment_val = Kokkos::fma(s_radial_vals(mu, jj), pow, moment_val);
     }
 
     d_moment_tensor_vals(ii, k) = moment_val;
@@ -750,85 +747,99 @@ KOKKOS_INLINE_FUNCTION void PairMTPKokkos<DeviceType>::operator()(
 
   shared_kk_float_2d s_radial_vals(team.team_scratch(0), array_size, radial_func_count);
   shared_kk_float_2d s_radial_ders(team.team_scratch(0), array_size, radial_func_count);
-  shared_kk_float_2d s_dist_powers(team.team_scratch(0), array_size, max_alpha_index_basic);
   shared_kk_float_3d s_coord_powers(team.team_scratch(0), array_size, max_alpha_index_basic);
 
   bool need_energies = EVFLAG && eflag_either;
   bool need_virial = EVFLAG && vflag_either;
 
-  Kokkos::parallel_for(Kokkos::TeamThreadRange(team, jnum), [&](const int jj) {
-    const int j = d_valid_neighs(jj, ii + chunk_offset);
-    const KK_FLOAT r[3] = {x(j, 0) - xi[0], x(j, 1) - xi[1], x(j, 2) - xi[2]};
-    const KK_FLOAT inv_dist = d_inv_dist(jj, ii);
+  // The whole team shares the central atom, so it reduces instead of scattering
+  KK_ACC_FLOAT fix = 0;
+  KK_ACC_FLOAT fiy = 0;
+  KK_ACC_FLOAT fiz = 0;
 
-    s_dist_powers(thread, 0) = s_coord_powers(thread, 0, 0) = s_coord_powers(thread, 0, 1) =
-        s_coord_powers(thread, 0, 2) = 1;
+  Kokkos::parallel_reduce(
+      Kokkos::TeamThreadRange(team, jnum),
+      [&](const int jj, KK_ACC_FLOAT &fx, KK_ACC_FLOAT &fy, KK_ACC_FLOAT &fz) {
+        const int j = d_valid_neighs(jj, ii + chunk_offset);
+        const KK_FLOAT r[3] = {x(j, 0) - xi[0], x(j, 1) - xi[1], x(j, 2) - xi[2]};
+        const KK_FLOAT inv_dist = d_inv_dist(jj, ii);
+        const KK_FLOAT u[3] = {r[0] * inv_dist, r[1] * inv_dist, r[2] * inv_dist};
 
-    // Precompute the coord and inverse distance powers
-    for (int k = 1; k < max_alpha_index_basic; k++) {
-      s_dist_powers(thread, k) = s_dist_powers(thread, k - 1) * inv_dist;
-      for (int a = 0; a < 3; a++)
-        s_coord_powers(thread, k, a) = s_coord_powers(thread, k - 1, a) * r[a];
-    }
+        s_coord_powers(thread, 0, 0) = s_coord_powers(thread, 0, 1) = s_coord_powers(thread, 0, 2) =
+            1;
 
-    // Load radial functions
-    for (int mu = 0; mu < radial_func_count; mu++) {
-      s_radial_vals(thread, mu) = d_radial_vals(jj, mu, ii);
-      s_radial_ders(thread, mu) = d_radial_ders(jj, mu, ii);
-    }
+        // Precompute the unit vector powers
+        for (int k = 1; k < max_alpha_index_basic; k++) {
+          for (int a = 0; a < 3; a++)
+            s_coord_powers(thread, k, a) = s_coord_powers(thread, k - 1, a) * u[a];
+        }
 
-    KK_ACC_FLOAT temp_force[3] = {0, 0, 0};
-    KK_ACC_FLOAT radial_force = 0;
+        // Load radial functions
+        for (int mu = 0; mu < radial_func_count; mu++) {
+          s_radial_vals(thread, mu) = d_radial_vals(jj, mu, ii);
+          s_radial_ders(thread, mu) = d_radial_ders(jj, mu, ii);
+        }
 
-    // Recompute each derivative
-    for (int k = 0; k < alpha_index_basic_count; k++) {
+        KK_ACC_FLOAT temp_force[3] = {0, 0, 0};
+        KK_ACC_FLOAT radial_force = 0;
 
-      int mu = d_alpha_index_basic(k, 0);
-      int a0 = d_alpha_index_basic(k, 1);
-      int a1 = d_alpha_index_basic(k, 2);
-      int a2 = d_alpha_index_basic(k, 3);
+        // Recompute each derivative
+        for (int k = 0; k < alpha_index_basic_count; k++) {
 
-      KK_FLOAT val = s_radial_vals(thread, mu);
-      KK_FLOAT der = s_radial_ders(thread, mu);
+          int mu = d_alpha_index_basic(k, 0);
+          int a0 = d_alpha_index_basic(k, 1);
+          int a1 = d_alpha_index_basic(k, 2);
+          int a2 = d_alpha_index_basic(k, 3);
 
-      // Normalize by the rank
-      int norm_rank = a0 + a1 + a2;
-      KK_FLOAT norm_fac = s_dist_powers(thread, norm_rank);
-      val *= norm_fac;
-      der = Kokkos::fma(norm_fac, der, -norm_rank * val * inv_dist);
+          KK_FLOAT val = s_radial_vals(thread, mu);
+          KK_FLOAT der = s_radial_ders(thread, mu);
 
-      KK_FLOAT pow0 = s_coord_powers(thread, a0, 0);
-      KK_FLOAT pow1 = s_coord_powers(thread, a1, 1);
-      KK_FLOAT pow2 = s_coord_powers(thread, a2, 2);
-      KK_FLOAT pow = pow0 * pow1 * pow2;
+          // Normalize by the rank
+          int norm_rank = a0 + a1 + a2;
+          der = Kokkos::fma(-norm_rank * inv_dist, val, der);
 
-      // Get the component's derivatives too
-      pow *= der * inv_dist;
-      KK_FLOAT adj = d_nbh_energy_ders_wrt_moments(ii, k);
-      radial_force += adj * pow;
-      val *= adj;
+          KK_FLOAT pow0 = s_coord_powers(thread, a0, 0);
+          KK_FLOAT pow1 = s_coord_powers(thread, a1, 1);
+          KK_FLOAT pow2 = s_coord_powers(thread, a2, 2);
+          KK_FLOAT pow = pow0 * pow1 * pow2;
 
-      if (a0 != 0) temp_force[0] += val * a0 * (s_coord_powers(thread, a0 - 1, 0) * pow1 * pow2);
-      if (a1 != 0) temp_force[1] += val * a1 * (pow0 * s_coord_powers(thread, a1 - 1, 1) * pow2);
-      if (a2 != 0) temp_force[2] += val * a2 * (pow0 * pow1 * s_coord_powers(thread, a2 - 1, 2));
-    }
+          // Get the component's derivatives too
+          KK_FLOAT adj = d_nbh_energy_ders_wrt_moments(ii, k);
+          radial_force += adj * der * pow;
+          val *= adj * inv_dist;
 
-    // Apply the radial direction once after summing the moments.
-    for (int a = 0; a < 3; a++) temp_force[a] += radial_force * r[a];
+          if (a0 != 0)
+            temp_force[0] += val * a0 * (s_coord_powers(thread, a0 - 1, 0) * pow1 * pow2);
+          if (a1 != 0)
+            temp_force[1] += val * a1 * (pow0 * s_coord_powers(thread, a1 - 1, 1) * pow2);
+          if (a2 != 0)
+            temp_force[2] += val * a2 * (pow0 * pow1 * s_coord_powers(thread, a2 - 1, 2));
+        }
 
-    a_f(i, 0) += temp_force[0];
-    a_f(i, 1) += temp_force[1];
-    a_f(i, 2) += temp_force[2];
+        // Apply the radial direction once after summing the moments.
+        for (int a = 0; a < 3; a++) temp_force[a] += radial_force * u[a];
 
-    a_f(j, 0) -= temp_force[0];
-    a_f(j, 1) -= temp_force[1];
-    a_f(j, 2) -= temp_force[2];
+        fx += temp_force[0];
+        fy += temp_force[1];
+        fz += temp_force[2];
 
-    if (need_virial) {
-      KK_FLOAT r[3] = {x(i, 0) - x(j, 0), x(i, 1) - x(j, 1), x(i, 2) - x(j, 2)};
-      v_tally_xyz<NEIGHFLAG>(ev, i, j, temp_force[0], temp_force[1], temp_force[2], r[0], r[1],
-                             r[2]);
-    }
+        a_f(j, 0) -= temp_force[0];
+        a_f(j, 1) -= temp_force[1];
+        a_f(j, 2) -= temp_force[2];
+
+        if (need_virial) {
+          KK_FLOAT r[3] = {x(i, 0) - x(j, 0), x(i, 1) - x(j, 1), x(i, 2) - x(j, 2)};
+          v_tally_xyz<NEIGHFLAG>(ev, i, j, temp_force[0], temp_force[1], temp_force[2], r[0], r[1],
+                                 r[2]);
+        }
+      },
+      fix, fiy, fiz);
+
+  // A single team member updates the central atom
+  Kokkos::single(Kokkos::PerTeam(team), [&]() {
+    a_f(i, 0) += fix;
+    a_f(i, 1) += fiy;
+    a_f(i, 2) += fiz;
   });
 
   team.team_barrier();

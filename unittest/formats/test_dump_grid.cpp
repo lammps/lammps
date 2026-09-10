@@ -60,7 +60,9 @@ protected:
         MeltTest::InitSystem();
 
         // the 32 atoms of the melt system are spread over 8 grid cells, so
-        // every cell contains 4 of them
+        // every cell contains 4 of them.  the cell boundaries coincide with
+        // the fcc lattice planes, so this relies on the shifted lattice origin
+        // of the melt system to keep the atoms away from the boundaries
 
         HIDE_OUTPUT([&] {
             command("fix ave all ave/grid 1 1 1 2 2 2 vx vy vz");

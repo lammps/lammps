@@ -134,7 +134,9 @@ TEST_F(DumpCustomTest, thresh_run0)
     auto dump_file     = dump_filename("thresh_run0");
     const auto *fields = "id type x y z";
 
-    generate_dump(dump_file, fields, "units yes thresh x < 1 thresh y < 1 thresh z < 1", 0);
+    // the thresholds select the 4 atoms of the first fcc unit cell
+
+    generate_dump(dump_file, fields, "units yes thresh x < 1.5 thresh y < 1.5 thresh z < 1.5", 0);
 
     ASSERT_FILE_EXISTS(dump_file);
     auto lines = read_lines(dump_file);

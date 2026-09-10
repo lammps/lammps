@@ -144,14 +144,18 @@ TEST_F(DumpAtomTest, run0)
     ASSERT_EQ(utils::split_words(lines[5]).size(), 2);
     ASSERT_THAT(lines[8], Eq("ITEM: ATOMS id type xs ys zs"));
     ASSERT_EQ(utils::split_words(lines[9]).size(), 5);
-    ASSERT_THAT(lines[9], Eq("1 1 0 0 0"));
+    ASSERT_THAT(lines[9], Eq("1 1 0.125 0.125 0.125"));
     delete_file(dump_file);
 }
 
 TEST_F(DumpAtomTest, format_line_run0)
 {
     auto dump_file = dump_filename("format_line_run0");
-    generate_dump(dump_file, "format line \"%d %d %20.15g %g %g\" scale yes image no", 0);
+
+    // the precision of the first coordinate must not resolve the round-off of
+    // the single precision coordinates in a reduced precision KOKKOS build
+
+    generate_dump(dump_file, "format line \"%d %d %20.8g %g %g\" scale yes image no", 0);
 
     ASSERT_FILE_EXISTS(dump_file);
     auto lines = read_lines(dump_file);
@@ -160,7 +164,7 @@ TEST_F(DumpAtomTest, format_line_run0)
     ASSERT_EQ(utils::split_words(lines[5]).size(), 2);
     ASSERT_THAT(lines[8], Eq("ITEM: ATOMS id type xs ys zs"));
     ASSERT_EQ(utils::split_words(lines[9]).size(), 5);
-    ASSERT_THAT(lines[9], Eq("1 1                    0 0 0"));
+    ASSERT_THAT(lines[9], Eq("1 1                0.125 0.125 0.125"));
     delete_file(dump_file);
 }
 
@@ -815,25 +819,25 @@ TEST_F(DumpAtomTest, colname)
 
     std::vector<std::string> expected, values;
     values   = extract_items(dump_file, "ATOMS id type xs ys zs");
-    expected = {"1 1 0 0 0", "1 1 0 0 0"};
+    expected = {"1 1 0.125 0.125 0.125", "1 1 0.125 0.125 0.125"};
     ASSERT_EQ(values.size(), expected.size());
     for (std::size_t i = 0; i < expected.size(); ++i)
         ASSERT_THAT(values[i], Eq(expected[i]));
 
     values   = extract_items(dump_file, "ATOMS AtomID type x-scaled ys z-scaled");
-    expected = {"1 1 0 0 0"};
+    expected = {"1 1 0.125 0.125 0.125"};
     ASSERT_EQ(values.size(), expected.size());
     for (std::size_t i = 0; i < expected.size(); ++i)
         ASSERT_THAT(values[i], Eq(expected[i]));
 
     values   = extract_items(dump_file, "ATOMS id type x y z ix iy iz");
-    expected = {"1 1 0 0 0 0 0 0", "1 1 0 0 0 0 0 0"};
+    expected = {"1 1 0.419899 0.419899 0.419899 0 0 0", "1 1 0.419899 0.419899 0.419899 0 0 0"};
     ASSERT_EQ(values.size(), expected.size());
     for (std::size_t i = 0; i < expected.size(); ++i)
         ASSERT_THAT(values[i], Eq(expected[i]));
 
     values   = extract_items(dump_file, "ATOMS AtomID type X y Z img_x iy iz");
-    expected = {"1 1 0 0 0 0 0 0"};
+    expected = {"1 1 0.419899 0.419899 0.419899 0 0 0"};
     ASSERT_EQ(values.size(), expected.size());
     for (std::size_t i = 0; i < expected.size(); ++i)
         ASSERT_THAT(values[i], Eq(expected[i]));

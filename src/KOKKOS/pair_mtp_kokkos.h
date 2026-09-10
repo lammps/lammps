@@ -113,6 +113,7 @@ template <class DeviceType> class PairMTPKokkos : public PairMTP {
   int host_flag, neighflag;
 
   int eflag, vflag;    // Energy and virial flag
+  double time_basic, time_times, time_nbhders, time_force;
 
   typename AT::t_neighbors_2d d_neighbors;
   typename AT::t_int_1d_randomread d_ilist;

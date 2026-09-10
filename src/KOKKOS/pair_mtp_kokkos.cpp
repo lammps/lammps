@@ -51,6 +51,10 @@ template <class DeviceType> PairMTPKokkos<DeviceType>::PairMTPKokkos(LAMMPS *lmp
   max_neighs = 0;
   max_valid_neighs = 0;
   num_waves = 0;
+  time_basic = 0.0;
+  time_times = 0.0;
+  time_nbhders = 0.0;
+  time_force = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -58,6 +62,12 @@ template <class DeviceType> PairMTPKokkos<DeviceType>::PairMTPKokkos(LAMMPS *lmp
 template <class DeviceType> PairMTPKokkos<DeviceType>::~PairMTPKokkos()
 {
   if (copymode) return;
+
+  if (comm && comm->me == 0) {
+    printf("MTP_TIMING: alphabasic=%.6e alphatimes=%.6e nbhders=%.6e force=%.6e\n", time_basic,
+           time_times, time_nbhders, time_force);
+    fflush(stdout);
+  }
 
   memoryKK->destroy_kokkos(k_eatom, eatom);
   memoryKK->destroy_kokkos(k_vatom, vatom);
@@ -442,7 +452,11 @@ template <class DeviceType> void PairMTPKokkos<DeviceType>::compute(int eflag_in
       if ((size_t) scratch_size > policy_basic_alpha.scratch_size_max(0))
         error->all(FLERR, "Insufficient scratch memory for MTP basic alpha computation.");
       policy_basic_alpha = policy_basic_alpha.set_scratch_size(0, Kokkos::PerTeam(scratch_size));
+      Kokkos::fence();
+      Kokkos::Timer timer;
       Kokkos::parallel_for("ComputeAlphaBasic", policy_basic_alpha, *this);
+      Kokkos::fence();
+      time_basic += timer.seconds();
     }
 
     // ========== Calculate the composite moment values  ==========
@@ -450,7 +464,11 @@ template <class DeviceType> void PairMTPKokkos<DeviceType>::compute(int eflag_in
       int team_size = team_size_default;
       Kokkos::TeamPolicy<DeviceType, TagPairMTPComputeAlphaTimes> policy_basic_alpha(chunk_size,
                                                                                      team_size);
+      Kokkos::fence();
+      Kokkos::Timer timer;
       Kokkos::parallel_for("ComputeAlphaTimes", policy_basic_alpha, *this);
+      Kokkos::fence();
+      time_times += timer.seconds();
     }
 
     // ========== Set the scalar nbh ders wrt moments ==========
@@ -465,7 +483,11 @@ template <class DeviceType> void PairMTPKokkos<DeviceType>::compute(int eflag_in
       int team_size = team_size_default;
       Kokkos::TeamPolicy<DeviceType, TagPairMTPComputeNbhDers> policy_basic_alpha(chunk_size,
                                                                                   team_size);
+      Kokkos::fence();
+      Kokkos::Timer timer;
       Kokkos::parallel_for("ComputeNbhDers", policy_basic_alpha, *this);
+      Kokkos::fence();
+      time_nbhders += timer.seconds();
     }
 
     // ========== Compute force (and dot product with alphas to get energy if needed) ==========
@@ -476,6 +498,8 @@ template <class DeviceType> void PairMTPKokkos<DeviceType>::compute(int eflag_in
       const int force_scratch_size =
           scratch_size_helper<KK_FLOAT>(2 * radial_func_count + 3 * max_alpha_index_basic);
 
+      Kokkos::fence();
+      Kokkos::Timer timer;
       if (neighflag == HALF) {
         using ForcePolicy = Kokkos::TeamPolicy<DeviceType, TagPairMTPComputeForce<HALF, 1>>;
         ForcePolicy policy_force(chunk_size, Kokkos::AUTO);
@@ -499,6 +523,8 @@ template <class DeviceType> void PairMTPKokkos<DeviceType>::compute(int eflag_in
                            .set_scratch_size(0, Kokkos::PerThread(force_scratch_size));
         Kokkos::parallel_reduce(policy_force, *this, ev_tmp);
       }
+      Kokkos::fence();
+      time_force += timer.seconds();
     }
 
     ev += ev_tmp;

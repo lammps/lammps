@@ -21,6 +21,8 @@
 #include "modify.h"
 
 #include "../testing/core.h"
+#include <algorithm>
+#include <cmath>
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
@@ -30,6 +32,17 @@ bool verbose = false;
 using ::testing::ContainsRegex;
 using ::testing::ExitedWithCode;
 using ::testing::StrEq;
+
+// the KOKKOS package keeps the per-atom data in single precision in mixed and
+// single precision builds, so results carry a relative error of about 1.0e-7
+// instead of the 1.0e-15 of a double precision build.  scale the tolerance of
+// the double precision reference values accordingly
+static double prec_tol(double expected, double tol)
+{
+    if (!kokkos_reduced_precision()) return tol;
+    const double relative = (kokkos_precision() == "single") ? 1.0e-5 : 1.0e-6;
+    return std::max(tol, std::fabs(expected) * relative + relative);
+}
 
 namespace LAMMPS_NS {
 class SetTest : public LAMMPSTest {
@@ -117,38 +130,38 @@ TEST_F(SetTest, velocity)
     command("run 0 post no");
     END_HIDE_OUTPUT();
     auto *temp = lmp->modify->get_compute_by_id("thermo_temp");
-    EXPECT_DOUBLE_EQ(temp->compute_scalar(), 200.0);
+    EXPECT_NEAR(temp->compute_scalar(), 200.0, prec_tol(200.0, 1.0e-12));
     BEGIN_HIDE_OUTPUT();
     command("velocity all scale 300.0");
     command("run 0 post no");
     END_HIDE_OUTPUT();
-    EXPECT_DOUBLE_EQ(temp->compute_scalar(), 300.0);
+    EXPECT_NEAR(temp->compute_scalar(), 300.0, prec_tol(300.0, 1.0e-12));
     BEGIN_HIDE_OUTPUT();
     command("velocity all set 0.0 0.0 0.0");
     command("run 0 post no");
     END_HIDE_OUTPUT();
-    EXPECT_DOUBLE_EQ(temp->compute_scalar(), 0.0);
+    EXPECT_NEAR(temp->compute_scalar(), 0.0, prec_tol(0.0, 1.0e-12));
     BEGIN_HIDE_OUTPUT();
     command("velocity all ramp vx 0.01 0.2 x 0.0 2.0");
     command("run 0 post no");
     END_HIDE_OUTPUT();
-    EXPECT_DOUBLE_EQ(temp->compute_scalar(), 3238.9377014185811);
+    EXPECT_NEAR(temp->compute_scalar(), 3238.9377014185811, prec_tol(3238.9377014185811, 1.0e-12));
     BEGIN_HIDE_OUTPUT();
     command("velocity all zero linear");
     command("run 0 post no");
     END_HIDE_OUTPUT();
-    EXPECT_DOUBLE_EQ(temp->compute_scalar(), 1033.7682579098041);
+    EXPECT_NEAR(temp->compute_scalar(), 1033.7682579098041, prec_tol(1033.7682579098041, 1.0e-12));
     BEGIN_HIDE_OUTPUT();
     command("velocity top set -0.01 0.0 0.0 sum yes");
     command("velocity bottom set 0.01 0.0 0.0 sum yes");
     command("run 0 post no");
     END_HIDE_OUTPUT();
-    EXPECT_DOUBLE_EQ(temp->compute_scalar(), 1079.5862416398786);
+    EXPECT_NEAR(temp->compute_scalar(), 1079.5862416398786, prec_tol(1079.5862416398786, 1.0e-12));
     BEGIN_HIDE_OUTPUT();
     command("velocity all zero angular");
     command("run 0 post no");
     END_HIDE_OUTPUT();
-    EXPECT_DOUBLE_EQ(temp->compute_scalar(), 1056.6772497748414);
+    EXPECT_NEAR(temp->compute_scalar(), 1056.6772497748414, prec_tol(1056.6772497748414, 1.0e-12));
 }
 
 TEST_F(SetTest, StylesTypes)

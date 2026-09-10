@@ -52,6 +52,32 @@ using ::testing::ContainsRegex;
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
 extern bool verbose;
 
+// the <Name>Kokkos test cases added by add_kokkos_test() re-run the very same
+// test body with an accelerator package enabled through LAMMPS_ACCELERATOR_ARGS
+static inline bool using_accelerator()
+{
+    const char *accel_args = std::getenv("LAMMPS_ACCELERATOR_ARGS");
+    return accel_args && (accel_args[0] != '\0');
+}
+
+// precision of the KOKKOS package as selected with -D KOKKOS_PREC at compile time
+static inline std::string kokkos_precision()
+{
+    if (Info::has_accelerator_feature("KOKKOS", "precision", "mixed")) return "mixed";
+    if (Info::has_accelerator_feature("KOKKOS", "precision", "single")) return "single";
+    return "double";
+}
+
+// true when this test case runs the KOKKOS package in a reduced precision build.
+// those builds keep the per-atom data (coordinates, forces, charges) in single
+// precision, so results carry a relative error of about 1.0e-7 instead of the
+// 1.0e-15 of a double precision build.  tests comparing against double precision
+// reference values have to relax their tolerances accordingly or skip outright
+static inline bool kokkos_reduced_precision()
+{
+    return using_accelerator() && (kokkos_precision() != "double");
+}
+
 class LAMMPSTest : public ::testing::Test {
 public:
     void command(const std::string &line) { lmp->input->one(line); }

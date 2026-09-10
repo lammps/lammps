@@ -12,6 +12,8 @@
 ------------------------------------------------------------------------- */
 
 #include "../testing/core.h"
+#include <algorithm>
+#include <cmath>
 #include "../testing/systems/melt.h"
 #include "../testing/utils.h"
 #include "fmt/format.h"
@@ -31,6 +33,17 @@ using ::testing::Eq;
 
 char *BINARY2TXT_EXECUTABLE = nullptr;
 bool verbose                = false;
+
+// the KOKKOS package keeps the per-atom data in single precision in mixed and
+// single precision builds, so results carry a relative error of about 1.0e-7
+// instead of the 1.0e-15 of a double precision build.  scale the tolerance of
+// the double precision reference values accordingly
+static double prec_tol(double expected, double tol)
+{
+    if (!kokkos_reduced_precision()) return tol;
+    const double relative = (kokkos_precision() == "single") ? 1.0e-5 : 1.0e-6;
+    return std::max(tol, std::fabs(expected) * relative + relative);
+}
 
 namespace LAMMPS_NS {
 
@@ -543,12 +556,12 @@ TEST_F(DumpAtomTest, rerun)
         command(fmt::format("rerun {} first 1 last 1 every 1 post no dump x y z", dump_file));
     });
     lmp->output->thermo->evaluate_keyword("pe", &pe_rerun);
-    ASSERT_DOUBLE_EQ(pe_1, pe_rerun);
+    ASSERT_NEAR(pe_1, pe_rerun, prec_tol(pe_1, 1.0e-14));
     HIDE_OUTPUT([&] {
         command(fmt::format("rerun {} first 2 last 2 every 1 post yes dump x y z", dump_file));
     });
     lmp->output->thermo->evaluate_keyword("pe", &pe_rerun);
-    ASSERT_DOUBLE_EQ(pe_2, pe_rerun);
+    ASSERT_NEAR(pe_2, pe_rerun, prec_tol(pe_2, 1.0e-14));
     delete_file(dump_file);
 }
 
@@ -570,12 +583,12 @@ TEST_F(DumpAtomTest, rerun_bin)
         command(fmt::format("rerun {} first 1 last 1 every 1 post no dump x y z", dump_file));
     });
     lmp->output->thermo->evaluate_keyword("pe", &pe_rerun);
-    ASSERT_NEAR(pe_1, pe_rerun, 1.0e-14);
+    ASSERT_NEAR(pe_1, pe_rerun, prec_tol(pe_1, 1.0e-14));
     HIDE_OUTPUT([&] {
         command(fmt::format("rerun {} first 2 last 2 every 1 post yes dump x y z", dump_file));
     });
     lmp->output->thermo->evaluate_keyword("pe", &pe_rerun);
-    ASSERT_NEAR(pe_2, pe_rerun, 1.0e-14);
+    ASSERT_NEAR(pe_2, pe_rerun, prec_tol(pe_2, 1.0e-14));
     delete_file(dump_file);
 }
 
@@ -751,6 +764,11 @@ TEST_F(DumpAtomTest, frequency)
     command("run 20 post no");
     command("undump id");
     END_HIDE_OUTPUT();
+
+    // the KOKKOS minimizer of a reduced precision build stops after a different
+    // number of iterations, so the dump is written on different timesteps
+    if (kokkos_reduced_precision())
+        GTEST_SKIP() << "minimizer of a reduced precision KOKKOS build takes a different path";
 
     values   = extract_items(dump_file, "TIMESTEP");
     expected = {"0", "10", "15", "20", "30"};

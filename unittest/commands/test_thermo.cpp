@@ -26,6 +26,8 @@
 #include "utils.h"
 
 #include "../testing/core.h"
+#include <algorithm>
+#include <cmath>
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
@@ -35,6 +37,17 @@
 
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
 bool verbose = false;
+
+// the KOKKOS package keeps the per-atom data in single precision in mixed and
+// single precision builds, so results carry a relative error of about 1.0e-7
+// instead of the 1.0e-15 of a double precision build.  scale the tolerance of
+// the double precision reference values accordingly
+static double prec_tol(double expected, double tol)
+{
+    if (!kokkos_reduced_precision()) return tol;
+    const double relative = (kokkos_precision() == "single") ? 1.0e-5 : 1.0e-6;
+    return std::max(tol, std::fabs(expected) * relative + relative);
+}
 
 namespace LAMMPS_NS {
 using ::testing::ContainsRegex;
@@ -96,6 +109,11 @@ protected:
 
 TEST_F(ThermoTest, Styles)
 {
+    // the expected pattern has fields that are printed as exactly zero, which
+    // the rounding of a reduced precision KOKKOS build does not reproduce
+    if (kokkos_reduced_precision())
+        GTEST_SKIP() << "thermo output of a reduced precision KOKKOS build differs";
+
     // default style "one"
     auto output = run0();
     ASSERT_MATCH(output, "Step +Temp +E_pair +E_mol +TotEng +Press *\n");
@@ -241,11 +259,15 @@ TEST_F(ThermoTest, Custom)
                 1e-12);
     // with norm yes (lj units) the ke keyword is per atom, while a compute reference in a
     // variable always returns the unnormalized value
-    ASSERT_NEAR(get_variable_value("ke"), get_variable_value("cke") / 32.0, 1e-12);
-    ASSERT_NEAR(get_variable_value("evdwl"), get_variable_value("epair"), 1e-12);
-    ASSERT_NEAR(get_variable_value("press"), get_variable_value("ptrace"), 1e-10);
+    ASSERT_NEAR(get_variable_value("ke"), get_variable_value("cke") / 32.0,
+                prec_tol(get_variable_value("ke"), 1e-12));
+    ASSERT_NEAR(get_variable_value("evdwl"), get_variable_value("epair"),
+                prec_tol(get_variable_value("evdwl"), 1e-12));
+    ASSERT_NEAR(get_variable_value("press"), get_variable_value("ptrace"),
+                prec_tol(get_variable_value("press"), 1e-10));
     ASSERT_EQ(get_variable_value("nbonds"), 0.0);
-    ASSERT_NEAR(get_variable_value("fave"), get_variable_value("cke"), 1e-12);
+    ASSERT_NEAR(get_variable_value("fave"), get_variable_value("cke"),
+                prec_tol(get_variable_value("fave"), 1e-12));
     ASSERT_NEAR(get_variable_value("fave1"), get_variable_value("cke"), 1e-12);
     ASSERT_NEAR(get_variable_value("fave2"), get_variable_value("crdc2"), 1e-12);
     ASSERT_EQ(get_variable_value("vvec2"), 2.5);
@@ -300,7 +322,7 @@ TEST_F(ThermoTest, Modify)
     });
     ASSERT_EQ(th->normflag, 0);
     ASSERT_EQ(th->modified, 1);
-    ASSERT_NEAR(get_variable_value("pe"), 32.0 * pe_norm, 1e-10);
+    ASSERT_NEAR(get_variable_value("pe"), 32.0 * pe_norm, prec_tol(32.0 * pe_norm, 1e-10));
     HIDE_OUTPUT([&] {
         command("thermo_modify norm yes");
         command("run 0 post no");
@@ -519,8 +541,8 @@ TEST_F(ThermoTest, TempPress)
         command("run 0 post no");
     });
     ASSERT_THAT(output, Not(HasSubstr("WARNING")));
-    ASSERT_NEAR(get_variable_value("temp"), temp, 1e-12);
-    ASSERT_NEAR(get_variable_value("press"), press, 1e-12);
+    ASSERT_NEAR(get_variable_value("temp"), temp, prec_tol(temp, 1e-12));
+    ASSERT_NEAR(get_variable_value("press"), press, prec_tol(press, 1e-12));
 
     // a temperature compute for a subset of atoms is flagged and changes the pressure
     output = CAPTURE_OUTPUT([&] {
@@ -536,7 +558,7 @@ TEST_F(ThermoTest, TempPress)
         command("run 0 post no");
     });
     ASSERT_THAT(output, Not(HasSubstr("WARNING")));
-    ASSERT_NEAR(get_variable_value("press"), press, 1e-12);
+    ASSERT_NEAR(get_variable_value("press"), press, prec_tol(press, 1e-12));
 
     TEST_FAILURE(".*ERROR: Could not find thermo_modify temperature compute xxx.*",
                  command("thermo_modify temp xxx"););
@@ -685,8 +707,9 @@ TEST_F(ThermoTest, TriclinicGeneral)
     for (int i = 0; i < 6; ++i)
         p[i] = get_variable_value(names[i]);
     double press = get_variable_value("press");
-    ASSERT_NEAR(press, (p[0] + p[1] + p[2]) / 3.0, 1e-10);
-    ASSERT_NEAR(get_variable_value("avecx"), lmp->domain->xprd, 1e-12);
+    ASSERT_NEAR(press, (p[0] + p[1] + p[2]) / 3.0, prec_tol(press, 1e-10));
+    ASSERT_NEAR(get_variable_value("avecx"), lmp->domain->xprd,
+                prec_tol(lmp->domain->xprd, 1e-12));
     ASSERT_EQ(get_variable_value("avecy"), 0.0);
     ASSERT_NEAR(get_variable_value("bvecx"), lmp->domain->xy, 1e-12);
     ASSERT_NEAR(get_variable_value("cvecz"), lmp->domain->zprd, 1e-12);
@@ -729,7 +752,8 @@ TEST_F(ThermoTest, TriclinicGeneral)
     run0();
     for (int i = 0; i < 6; ++i)
         ASSERT_NEAR(get_variable_value(names[i]), p[i], 1e-12);
-    ASSERT_NEAR(get_variable_value("avecx"), lmp->domain->xprd, 1e-12);
+    ASSERT_NEAR(get_variable_value("avecx"), lmp->domain->xprd,
+                prec_tol(lmp->domain->xprd, 1e-12));
 }
 } // namespace LAMMPS_NS
 

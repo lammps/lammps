@@ -20,6 +20,7 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
+#include <algorithm>
 #include <cmath>
 
 #include <cstdio>
@@ -27,6 +28,24 @@
 
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
 bool verbose = false;
+
+// the KOKKOS package keeps the per-atom data in single precision in mixed and
+// single precision builds.  the reference values of this file reach into the
+// millions, so the tolerance has to scale with the magnitude of the value
+// instead of staying the absolute tolerance of a double precision build
+static double prec_reltol(double expected)
+{
+    const double relative = (kokkos_precision() == "single") ? 1.0e-5 : 1.0e-6;
+    return std::fabs(expected) * relative + relative;
+}
+
+// use the absolute tolerance of the double precision reference, unless this is
+// a reduced precision KOKKOS build, where the relative tolerance is larger
+static double prec_tol(double expected, double tol)
+{
+    if (!kokkos_reduced_precision()) return tol;
+    return std::max(tol, prec_reltol(expected));
+}
 
 namespace LAMMPS_NS {
 
@@ -69,7 +88,9 @@ protected:
     // result may differ from the reference value of the plain styles
     void EXPECT_SCALAR_EQ(const char *id, double expected)
     {
-        if (lmp->suffix_enable)
+        if (kokkos_reduced_precision())
+            EXPECT_NEAR(get_scalar(id), expected, prec_reltol(expected));
+        else if (lmp->suffix_enable)
             EXPECT_NEAR(get_scalar(id), expected, std::fabs(expected) * 1.0e-13);
         else
             EXPECT_DOUBLE_EQ(get_scalar(id), expected);
@@ -116,24 +137,24 @@ TEST_F(ComputeGlobalTest, Energy)
     EXPECT_SCALAR_EQ("pe1", 24155.155261642241);
     EXPECT_SCALAR_EQ("pe2", 361.37528652881286);
     EXPECT_SCALAR_EQ("pe3", 0.0);
-    EXPECT_NEAR(get_scalar("pr1"), 1956948.4735454607, 0.000000005);
-    EXPECT_NEAR(get_scalar("pr2"), 1956916.7725807722, 0.000000005);
+    EXPECT_NEAR(get_scalar("pr1"), 1956948.4735454607, prec_tol(1956948.4735454607, 0.000000005));
+    EXPECT_NEAR(get_scalar("pr2"), 1956916.7725807722, prec_tol(1956916.7725807722, 0.000000005));
     EXPECT_SCALAR_EQ("pr3", 0.0);
     auto *pr1 = get_vector("pr1");
     auto *pr2 = get_vector("pr2");
     auto *pr3 = get_vector("pr3");
-    EXPECT_NEAR(pr1[0], 2150600.9207200543, 0.000000005);
-    EXPECT_NEAR(pr1[1], 1466949.7512112649, 0.000000005);
-    EXPECT_NEAR(pr1[2], 2253294.7487050635, 0.000000005);
-    EXPECT_NEAR(pr1[3], 856643.16926486336, 0.000000005);
-    EXPECT_NEAR(pr1[4], 692710.86929464422, 0.000000005);
-    EXPECT_NEAR(pr1[5], -44403.909298603547, 0.000000005);
-    EXPECT_NEAR(pr2[0], 2150575.6989334146, 0.000000005);
-    EXPECT_NEAR(pr2[1], 1466911.3911461537, 0.000000005);
-    EXPECT_NEAR(pr2[2], 2253263.2276627473, 0.000000005);
-    EXPECT_NEAR(pr2[3], 856632.34707690508, 0.000000005);
-    EXPECT_NEAR(pr2[4], 692712.89222328411, 0.000000005);
-    EXPECT_NEAR(pr2[5], -44399.277068014424, 0.000000005);
+    EXPECT_NEAR(pr1[0], 2150600.9207200543, prec_tol(2150600.9207200543, 0.000000005));
+    EXPECT_NEAR(pr1[1], 1466949.7512112649, prec_tol(1466949.7512112649, 0.000000005));
+    EXPECT_NEAR(pr1[2], 2253294.7487050635, prec_tol(2253294.7487050635, 0.000000005));
+    EXPECT_NEAR(pr1[3], 856643.16926486336, prec_tol(856643.16926486336, 0.000000005));
+    EXPECT_NEAR(pr1[4], 692710.86929464422, prec_tol(692710.86929464422, 0.000000005));
+    EXPECT_NEAR(pr1[5], -44403.909298603547, prec_tol(-44403.909298603547, 0.000000005));
+    EXPECT_NEAR(pr2[0], 2150575.6989334146, prec_tol(2150575.6989334146, 0.000000005));
+    EXPECT_NEAR(pr2[1], 1466911.3911461537, prec_tol(1466911.3911461537, 0.000000005));
+    EXPECT_NEAR(pr2[2], 2253263.2276627473, prec_tol(2253263.2276627473, 0.000000005));
+    EXPECT_NEAR(pr2[3], 856632.34707690508, prec_tol(856632.34707690508, 0.000000005));
+    EXPECT_NEAR(pr2[4], 692712.89222328411, prec_tol(692712.89222328411, 0.000000005));
+    EXPECT_NEAR(pr2[5], -44399.277068014424, prec_tol(-44399.277068014424, 0.000000005));
     EXPECT_DOUBLE_EQ(pr3[0], 0.0);
     EXPECT_DOUBLE_EQ(pr3[1], 0.0);
     EXPECT_DOUBLE_EQ(pr3[2], 0.0);
@@ -142,12 +163,12 @@ TEST_F(ComputeGlobalTest, Energy)
     EXPECT_DOUBLE_EQ(pr3[5], 0.0);
 
     if (has_tally) {
-        EXPECT_NEAR(get_scalar("pe4"), 15425.840923850392, 0.000000005);
+        EXPECT_NEAR(get_scalar("pe4"), 15425.840923850392, prec_tol(15425.840923850392, 0.000000005));
         auto *pe5 = get_vector("pe5");
-        EXPECT_NEAR(pe5[0], 23803.966677151559, 0.000000005);
-        EXPECT_NEAR(pe5[1], -94.210004432380643, 0.000000005);
-        EXPECT_NEAR(pe5[2], 115.58040355478101, 0.000000005);
-        EXPECT_NEAR(pe5[3], -31.557101160514257, 0.000000005);
+        EXPECT_NEAR(pe5[0], 23803.966677151559, prec_tol(23803.966677151559, 0.000000005));
+        EXPECT_NEAR(pe5[1], -94.210004432380643, prec_tol(-94.210004432380643, 0.000000005));
+        EXPECT_NEAR(pe5[2], 115.58040355478101, prec_tol(115.58040355478101, 0.000000005));
+        EXPECT_NEAR(pe5[3], -31.557101160514257, prec_tol(-31.557101160514257, 0.000000005));
     }
 
     TEST_FAILURE(".*ERROR: Compute pressure must use group all.*",
@@ -200,36 +221,36 @@ TEST_F(ComputeGlobalTest, Geometry)
     auto *rg1  = get_vector("rg1");
     auto *rg2  = get_vector("rg2");
 
-    EXPECT_NEAR(com1[0], 1.4300952724948282, 0.0000000005);
-    EXPECT_NEAR(com1[1], -0.29759806705328351, 0.0000000005);
-    EXPECT_NEAR(com1[2], -0.7245120195899285, 0.0000000005);
-    EXPECT_NEAR(com2[0], 1.7850913321989679, 0.0000000005);
-    EXPECT_NEAR(com2[1], -0.45168408952146238, 0.0000000005);
-    EXPECT_NEAR(com2[2], -0.60215022088294912, 0.0000000005);
+    EXPECT_NEAR(com1[0], 1.4300952724948282, prec_tol(1.4300952724948282, 0.0000000005));
+    EXPECT_NEAR(com1[1], -0.29759806705328351, prec_tol(-0.29759806705328351, 0.0000000005));
+    EXPECT_NEAR(com1[2], -0.7245120195899285, prec_tol(-0.7245120195899285, 0.0000000005));
+    EXPECT_NEAR(com2[0], 1.7850913321989679, prec_tol(1.7850913321989679, 0.0000000005));
+    EXPECT_NEAR(com2[1], -0.45168408952146238, prec_tol(-0.45168408952146238, 0.0000000005));
+    EXPECT_NEAR(com2[2], -0.60215022088294912, prec_tol(-0.60215022088294912, 0.0000000005));
 
-    EXPECT_NEAR(get_scalar("mu1"), 1.8335537504770163, 0.0000000005);
-    EXPECT_NEAR(get_scalar("mu2"), 1.7849382239204072, 0.0000000005);
-    EXPECT_NEAR(mu1[0], 0.41613191281297729, 0.0000000005);
-    EXPECT_NEAR(mu1[1], 1.0056523085627747, 0.0000000005);
-    EXPECT_NEAR(mu1[2], -1.4756073398127658, 0.0000000005);
-    EXPECT_NEAR(mu2[0], -0.029474795088977768, 0.0000000005);
-    EXPECT_NEAR(mu2[1], 1.153516133030746, 0.0000000005);
-    EXPECT_NEAR(mu2[2], -1.3618135814069394, 0.0000000005);
+    EXPECT_NEAR(get_scalar("mu1"), 1.8335537504770163, prec_tol(1.8335537504770163, 0.0000000005));
+    EXPECT_NEAR(get_scalar("mu2"), 1.7849382239204072, prec_tol(1.7849382239204072, 0.0000000005));
+    EXPECT_NEAR(mu1[0], 0.41613191281297729, prec_tol(0.41613191281297729, 0.0000000005));
+    EXPECT_NEAR(mu1[1], 1.0056523085627747, prec_tol(1.0056523085627747, 0.0000000005));
+    EXPECT_NEAR(mu1[2], -1.4756073398127658, prec_tol(-1.4756073398127658, 0.0000000005));
+    EXPECT_NEAR(mu2[0], -0.029474795088977768, prec_tol(-0.029474795088977768, 0.0000000005));
+    EXPECT_NEAR(mu2[1], 1.153516133030746, prec_tol(1.153516133030746, 0.0000000005));
+    EXPECT_NEAR(mu2[2], -1.3618135814069394, prec_tol(-1.3618135814069394, 0.0000000005));
 
-    EXPECT_NEAR(get_scalar("rg1"), 3.8495643473797196, 0.0000000005);
-    EXPECT_NEAR(get_scalar("rg2"), 5.4558163385611342, 0.0000000005);
-    EXPECT_NEAR(rg1[0], 3.6747807397432752, 0.0000000005);
-    EXPECT_NEAR(rg1[1], 6.5440303159316278, 0.0000000005);
-    EXPECT_NEAR(rg1[2], 4.6003346089421457, 0.0000000005);
-    EXPECT_NEAR(rg1[3], -0.4639249501367636, 0.0000000005);
-    EXPECT_NEAR(rg1[4], -1.8859032304357459, 0.0000000005);
-    EXPECT_NEAR(rg1[5], 0.2339161878440186, 0.0000000005);
-    EXPECT_NEAR(rg2[0], 6.2582260148310143, 0.0000000005);
-    EXPECT_NEAR(rg2[1], 13.353763805454184, 0.0000000005);
-    EXPECT_NEAR(rg2[2], 10.153942099825425, 0.0000000005);
-    EXPECT_NEAR(rg2[3], 1.2965604701522486, 0.0000000005);
-    EXPECT_NEAR(rg2[4], -5.0315240817290841, 0.0000000005);
-    EXPECT_NEAR(rg2[5], 1.1103378503822141, 0.0000000005);
+    EXPECT_NEAR(get_scalar("rg1"), 3.8495643473797196, prec_tol(3.8495643473797196, 0.0000000005));
+    EXPECT_NEAR(get_scalar("rg2"), 5.4558163385611342, prec_tol(5.4558163385611342, 0.0000000005));
+    EXPECT_NEAR(rg1[0], 3.6747807397432752, prec_tol(3.6747807397432752, 0.0000000005));
+    EXPECT_NEAR(rg1[1], 6.5440303159316278, prec_tol(6.5440303159316278, 0.0000000005));
+    EXPECT_NEAR(rg1[2], 4.6003346089421457, prec_tol(4.6003346089421457, 0.0000000005));
+    EXPECT_NEAR(rg1[3], -0.4639249501367636, prec_tol(-0.4639249501367636, 0.0000000005));
+    EXPECT_NEAR(rg1[4], -1.8859032304357459, prec_tol(-1.8859032304357459, 0.0000000005));
+    EXPECT_NEAR(rg1[5], 0.2339161878440186, prec_tol(0.2339161878440186, 0.0000000005));
+    EXPECT_NEAR(rg2[0], 6.2582260148310143, prec_tol(6.2582260148310143, 0.0000000005));
+    EXPECT_NEAR(rg2[1], 13.353763805454184, prec_tol(13.353763805454184, 0.0000000005));
+    EXPECT_NEAR(rg2[2], 10.153942099825425, prec_tol(10.153942099825425, 0.0000000005));
+    EXPECT_NEAR(rg2[3], 1.2965604701522486, prec_tol(1.2965604701522486, 0.0000000005));
+    EXPECT_NEAR(rg2[4], -5.0315240817290841, prec_tol(-5.0315240817290841, 0.0000000005));
+    EXPECT_NEAR(rg2[5], 1.1103378503822141, prec_tol(1.1103378503822141, 0.0000000005));
     if (has_extra) {
         auto *mom1 = get_vector("mom1");
         auto *mom2 = get_vector("mom2");
@@ -449,20 +470,20 @@ TEST_F(ComputeInertiaTest, Ellipsoid)
     END_HIDE_OUTPUT();
 
     auto *iner = get_vector("iner");
-    EXPECT_NEAR(iner[0], 10.4, 1.0e-12);
-    EXPECT_NEAR(iner[1], 26.75, 1.0e-12);
-    EXPECT_NEAR(iner[2], 22.75, 1.0e-12);
-    EXPECT_NEAR(iner[3], 0.0, 1.0e-12);
-    EXPECT_NEAR(iner[4], 0.0, 1.0e-12);
-    EXPECT_NEAR(iner[5], 0.0, 1.0e-12);
+    EXPECT_NEAR(iner[0], 10.4, prec_tol(10.4, 1.0e-12));
+    EXPECT_NEAR(iner[1], 26.75, prec_tol(26.75, 1.0e-12));
+    EXPECT_NEAR(iner[2], 22.75, prec_tol(22.75, 1.0e-12));
+    EXPECT_NEAR(iner[3], 0.0, prec_tol(0.0, 1.0e-12));
+    EXPECT_NEAR(iner[4], 0.0, prec_tol(0.0, 1.0e-12));
+    EXPECT_NEAR(iner[5], 0.0, prec_tol(0.0, 1.0e-12));
 
     // the inertia() variable function shares the same code path (Group::inertia)
-    EXPECT_NEAR(get_variable_value("ixx"), 10.4, 1.0e-12);
-    EXPECT_NEAR(get_variable_value("iyy"), 26.75, 1.0e-12);
-    EXPECT_NEAR(get_variable_value("izz"), 22.75, 1.0e-12);
-    EXPECT_NEAR(get_variable_value("ixy"), 0.0, 1.0e-12);
-    EXPECT_NEAR(get_variable_value("iyz"), 0.0, 1.0e-12);
-    EXPECT_NEAR(get_variable_value("ixz"), 0.0, 1.0e-12);
+    EXPECT_NEAR(get_variable_value("ixx"), 10.4, prec_tol(10.4, 1.0e-12));
+    EXPECT_NEAR(get_variable_value("iyy"), 26.75, prec_tol(26.75, 1.0e-12));
+    EXPECT_NEAR(get_variable_value("izz"), 22.75, prec_tol(22.75, 1.0e-12));
+    EXPECT_NEAR(get_variable_value("ixy"), 0.0, prec_tol(0.0, 1.0e-12));
+    EXPECT_NEAR(get_variable_value("iyz"), 0.0, prec_tol(0.0, 1.0e-12));
+    EXPECT_NEAR(get_variable_value("ixz"), 0.0, prec_tol(0.0, 1.0e-12));
 }
 
 TEST_F(ComputeInertiaTest, Sphere)
@@ -490,12 +511,12 @@ TEST_F(ComputeInertiaTest, Sphere)
     END_HIDE_OUTPUT();
 
     auto *iner = get_vector("iner");
-    EXPECT_NEAR(iner[0], 0.8, 1.0e-12);
-    EXPECT_NEAR(iner[1], 8.8, 1.0e-12);
-    EXPECT_NEAR(iner[2], 8.8, 1.0e-12);
-    EXPECT_NEAR(iner[3], 0.0, 1.0e-12);
-    EXPECT_NEAR(iner[4], 0.0, 1.0e-12);
-    EXPECT_NEAR(iner[5], 0.0, 1.0e-12);
+    EXPECT_NEAR(iner[0], 0.8, prec_tol(0.8, 1.0e-12));
+    EXPECT_NEAR(iner[1], 8.8, prec_tol(8.8, 1.0e-12));
+    EXPECT_NEAR(iner[2], 8.8, prec_tol(8.8, 1.0e-12));
+    EXPECT_NEAR(iner[3], 0.0, prec_tol(0.0, 1.0e-12));
+    EXPECT_NEAR(iner[4], 0.0, prec_tol(0.0, 1.0e-12));
+    EXPECT_NEAR(iner[5], 0.0, prec_tol(0.0, 1.0e-12));
 }
 
 TEST_F(ComputeInertiaTest, Body)
@@ -537,12 +558,12 @@ TEST_F(ComputeInertiaTest, Body)
     END_HIDE_OUTPUT();
 
     auto *iner = get_vector("iner");
-    EXPECT_NEAR(iner[0], 2.0, 1.0e-12);
-    EXPECT_NEAR(iner[1], 3.0, 1.0e-12);
-    EXPECT_NEAR(iner[2], 4.0, 1.0e-12);
-    EXPECT_NEAR(iner[3], 0.0, 1.0e-12);
-    EXPECT_NEAR(iner[4], 0.0, 1.0e-12);
-    EXPECT_NEAR(iner[5], 0.0, 1.0e-12);
+    EXPECT_NEAR(iner[0], 2.0, prec_tol(2.0, 1.0e-12));
+    EXPECT_NEAR(iner[1], 3.0, prec_tol(3.0, 1.0e-12));
+    EXPECT_NEAR(iner[2], 4.0, prec_tol(4.0, 1.0e-12));
+    EXPECT_NEAR(iner[3], 0.0, prec_tol(0.0, 1.0e-12));
+    EXPECT_NEAR(iner[4], 0.0, prec_tol(0.0, 1.0e-12));
+    EXPECT_NEAR(iner[5], 0.0, prec_tol(0.0, 1.0e-12));
 
     remove(datafile);
 }
@@ -580,12 +601,12 @@ TEST_F(ComputeInertiaTest, Superellipsoid)
     END_HIDE_OUTPUT();
 
     auto *iner = get_vector("iner");
-    EXPECT_NEAR(iner[0], 10.4, 1.0e-12);
-    EXPECT_NEAR(iner[1], 26.75, 1.0e-12);
-    EXPECT_NEAR(iner[2], 22.75, 1.0e-12);
-    EXPECT_NEAR(iner[3], 0.0, 1.0e-12);
-    EXPECT_NEAR(iner[4], 0.0, 1.0e-12);
-    EXPECT_NEAR(iner[5], 0.0, 1.0e-12);
+    EXPECT_NEAR(iner[0], 10.4, prec_tol(10.4, 1.0e-12));
+    EXPECT_NEAR(iner[1], 26.75, prec_tol(26.75, 1.0e-12));
+    EXPECT_NEAR(iner[2], 22.75, prec_tol(22.75, 1.0e-12));
+    EXPECT_NEAR(iner[3], 0.0, prec_tol(0.0, 1.0e-12));
+    EXPECT_NEAR(iner[4], 0.0, prec_tol(0.0, 1.0e-12));
+    EXPECT_NEAR(iner[5], 0.0, prec_tol(0.0, 1.0e-12));
 }
 
 TEST_F(ComputeInertiaTest, Angmom)
@@ -615,9 +636,9 @@ TEST_F(ComputeInertiaTest, Angmom)
     command("run 0 post no");
     END_HIDE_OUTPUT();
 
-    EXPECT_NEAR(get_variable_value("lx"), 0.0, 1.0e-12);
-    EXPECT_NEAR(get_variable_value("ly"), 0.0, 1.0e-12);
-    EXPECT_NEAR(get_variable_value("lz"), 4.0, 1.0e-12);
+    EXPECT_NEAR(get_variable_value("lx"), 0.0, prec_tol(0.0, 1.0e-12));
+    EXPECT_NEAR(get_variable_value("ly"), 0.0, prec_tol(0.0, 1.0e-12));
+    EXPECT_NEAR(get_variable_value("lz"), 4.0, prec_tol(4.0, 1.0e-12));
 }
 } // namespace LAMMPS_NS
 

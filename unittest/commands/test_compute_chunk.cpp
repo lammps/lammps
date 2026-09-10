@@ -26,7 +26,16 @@
 bool verbose = false;
 
 // we compare floating point numbers with 8 digits precision after the decimal point
-static constexpr double EPSILON = 1.0e-8;
+// the KOKKOS package keeps the per-atom data in single precision in mixed and
+// single precision builds, so the chunk averages only reproduce the double
+// precision reference values to about 7 decimal digits
+static double chunk_epsilon()
+{
+    if (!kokkos_reduced_precision()) return 1.0e-8;
+    return (kokkos_precision() == "single") ? 1.0e-4 : 1.0e-5;
+}
+
+static const double EPSILON = chunk_epsilon();
 
 namespace LAMMPS_NS {
 

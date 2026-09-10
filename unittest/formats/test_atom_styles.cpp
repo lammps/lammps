@@ -84,7 +84,16 @@ static void create_molecule_files(const std::string &h2o_filename, const std::st
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
 bool verbose = false;
 
-static const double EPSILON = 5.0e-14;
+// the KOKKOS package keeps the per-atom data in single precision in mixed and
+// single precision builds, so coordinates and other per-atom values reproduce
+// the double precision reference values only to about 7 decimal digits
+static double atom_epsilon()
+{
+    if (!kokkos_reduced_precision()) return 5.0e-14;
+    return (kokkos_precision() == "single") ? 1.0e-5 : 1.0e-6;
+}
+
+static const double EPSILON = atom_epsilon();
 
 namespace LAMMPS_NS {
 using ::testing::Eq;
@@ -700,6 +709,11 @@ TEST_F(AtomStyleTest, atomic)
 
 TEST_F(AtomStyleTest, no_tags)
 {
+    // a reduced precision KOKKOS build cannot create neighbor lists without
+    // atom IDs when newton is on, which this test needs for the data file
+    if (kokkos_reduced_precision())
+        GTEST_SKIP() << "KOKKOS FP32 neighbor lists require atom IDs with newton on";
+
     BEGIN_HIDE_OUTPUT();
     command("atom_modify id no");
     command("create_box 2 box");

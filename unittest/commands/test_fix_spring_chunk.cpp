@@ -11,6 +11,8 @@
 ------------------------------------------------------------------------- */
 
 #include "../testing/core.h"
+#include <algorithm>
+#include <cmath>
 
 #include "atom.h"
 #include "fix.h"
@@ -28,6 +30,17 @@
 
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
 bool verbose = false;
+
+// the KOKKOS package keeps the per-atom data in single precision in mixed and
+// single precision builds, so results carry a relative error of about 1.0e-7
+// instead of the 1.0e-15 of a double precision build.  scale the tolerance of
+// the double precision reference values accordingly
+static double prec_tol(double expected, double tol)
+{
+    if (!kokkos_reduced_precision()) return tol;
+    const double relative = (kokkos_precision() == "single") ? 1.0e-5 : 1.0e-6;
+    return std::max(tol, std::fabs(expected) * relative + relative);
+}
 
 namespace LAMMPS_NS {
 
@@ -103,7 +116,7 @@ TEST_F(FixSpringChunkTest, HarmonicForceAndEnergy)
     END_HIDE_OUTPUT();
 
     const double numerical_force = -(eplus-eminus) / (2.0*delta);
-    EXPECT_NEAR(force[0][0], numerical_force, 1.0e-12);
+    EXPECT_NEAR(force[0][0], numerical_force, prec_tol(numerical_force, 1.0e-12));
 
     BEGIN_HIDE_OUTPUT();
     command("displace_atoms all move 0.25 0.0 0.0 units box");

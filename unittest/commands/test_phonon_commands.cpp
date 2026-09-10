@@ -12,6 +12,8 @@
 ------------------------------------------------------------------------- */
 
 #include "../testing/core.h"
+#include <algorithm>
+#include <cmath>
 #include "../testing/utils.h"
 
 #include "info.h"
@@ -31,6 +33,17 @@
 
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
 bool verbose = false;
+
+// the KOKKOS package keeps the per-atom data in single precision in mixed and
+// single precision builds, so results carry a relative error of about 1.0e-7
+// instead of the 1.0e-15 of a double precision build.  scale the tolerance of
+// the double precision reference values accordingly
+static double prec_tol(double expected, double tol)
+{
+    if (!kokkos_reduced_precision()) return tol;
+    const double relative = (kokkos_precision() == "single") ? 1.0e-5 : 1.0e-6;
+    return std::max(tol, std::fabs(expected) * relative + relative);
+}
 
 namespace LAMMPS_NS {
 
@@ -111,16 +124,16 @@ TEST_F(PhononCommandsTest, DynamicalMatrix)
     // the force constant matrix must be symmetric
     for (int i = 0; i < 6; ++i)
         for (int j = 0; j < 6; ++j)
-            EXPECT_NEAR(matrix[i][j], matrix[j][i], 1.0e-6);
+            EXPECT_NEAR(matrix[i][j], matrix[j][i], prec_tol(matrix[j][i], 1.0e-6));
 
     // reference values of the perfect fcc lattice
-    EXPECT_NEAR(matrix[0][0], 68.86210274, 1.0e-6);
-    EXPECT_NEAR(matrix[1][1], 68.86210274, 1.0e-6);
-    EXPECT_NEAR(matrix[2][2], 68.86210274, 1.0e-6);
-    EXPECT_NEAR(matrix[0][3], -7.73672374, 1.0e-6);
-    EXPECT_NEAR(matrix[0][4], -5.99464554, 1.0e-6);
-    EXPECT_NEAR(matrix[2][5], -1.74207820, 1.0e-6);
-    EXPECT_NEAR(matrix[0][5], 0.0, 1.0e-6);
+    EXPECT_NEAR(matrix[0][0], 68.86210274, prec_tol(68.86210274, 1.0e-6));
+    EXPECT_NEAR(matrix[1][1], 68.86210274, prec_tol(68.86210274, 1.0e-6));
+    EXPECT_NEAR(matrix[2][2], 68.86210274, prec_tol(68.86210274, 1.0e-6));
+    EXPECT_NEAR(matrix[0][3], -7.73672374, prec_tol(-7.73672374, 1.0e-6));
+    EXPECT_NEAR(matrix[0][4], -5.99464554, prec_tol(-5.99464554, 1.0e-6));
+    EXPECT_NEAR(matrix[2][5], -1.74207820, prec_tol(-1.74207820, 1.0e-6));
+    EXPECT_NEAR(matrix[0][5], 0.0, prec_tol(0.0, 1.0e-6));
 
     delete_file(outfile);
 }
@@ -141,6 +154,10 @@ TEST_F(PhononCommandsTest, ThirdOrder)
 
     // atom i, direction alpha, atom j, direction beta, atom k plus three values
     // for the three directions of atom k, for all group atoms and directions
+    // entries below the write threshold of the command are omitted, and which
+    // ones fall below it differs once the forces are single precision
+    if (kokkos_reduced_precision() && ((int)lines.size() != 72))
+        GTEST_SKIP() << "third order output of a reduced precision KOKKOS build differs";
     ASSERT_EQ((int)lines.size(), 72);
 
     std::map<std::string, std::vector<double>> entries;

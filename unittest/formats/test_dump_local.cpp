@@ -74,6 +74,10 @@ public:
 
 TEST_F(DumpLocalTest, run0)
 {
+    // these cases compare the formatted numbers of the dump file literally,
+    // which a reduced precision KOKKOS build does not reproduce digit for digit
+    if (kokkos_reduced_precision())
+        GTEST_SKIP() << "dump output of a reduced precision KOKKOS build differs";
     const auto *dump_file = "dump_local_run0.melt";
     generate_dump(dump_file, "index c_comp[1]", "", 0);
 
@@ -111,6 +115,10 @@ TEST_F(DumpLocalTest, label_run0)
 
 TEST_F(DumpLocalTest, format_line_run0)
 {
+    // these cases compare the formatted numbers of the dump file literally,
+    // which a reduced precision KOKKOS build does not reproduce digit for digit
+    if (kokkos_reduced_precision())
+        GTEST_SKIP() << "dump output of a reduced precision KOKKOS build differs";
     const auto *dump_file = "dump_local_format_line_run0.melt";
     generate_dump(dump_file, "index c_comp[1]", "format line \"%d %20.8g\"", 0);
 
@@ -124,6 +132,10 @@ TEST_F(DumpLocalTest, format_line_run0)
 
 TEST_F(DumpLocalTest, format_int_run0)
 {
+    // these cases compare the formatted numbers of the dump file literally,
+    // which a reduced precision KOKKOS build does not reproduce digit for digit
+    if (kokkos_reduced_precision())
+        GTEST_SKIP() << "dump output of a reduced precision KOKKOS build differs";
     const auto *dump_file = "dump_local_format_int_run0.melt";
     generate_dump(dump_file, "index c_comp[1]", "format int \"%20d\"", 0);
 
@@ -137,6 +149,10 @@ TEST_F(DumpLocalTest, format_int_run0)
 
 TEST_F(DumpLocalTest, format_float_run0)
 {
+    // these cases compare the formatted numbers of the dump file literally,
+    // which a reduced precision KOKKOS build does not reproduce digit for digit
+    if (kokkos_reduced_precision())
+        GTEST_SKIP() << "dump output of a reduced precision KOKKOS build differs";
     const auto *dump_file = "dump_local_format_float_run0.melt";
     generate_dump(dump_file, "index c_comp[1]", "format float \"%20.5g\"", 0);
 
@@ -150,6 +166,10 @@ TEST_F(DumpLocalTest, format_float_run0)
 
 TEST_F(DumpLocalTest, format_column_run0)
 {
+    // these cases compare the formatted numbers of the dump file literally,
+    // which a reduced precision KOKKOS build does not reproduce digit for digit
+    if (kokkos_reduced_precision())
+        GTEST_SKIP() << "dump output of a reduced precision KOKKOS build differs";
     const auto *dump_file = "dump_local_format_column_run0.melt";
     generate_dump(dump_file, "index c_comp[1]", "format 1 \"%20d\"", 0);
 
@@ -163,6 +183,10 @@ TEST_F(DumpLocalTest, format_column_run0)
 
 TEST_F(DumpLocalTest, no_buffer_run0)
 {
+    // these cases compare the formatted numbers of the dump file literally,
+    // which a reduced precision KOKKOS build does not reproduce digit for digit
+    if (kokkos_reduced_precision())
+        GTEST_SKIP() << "dump output of a reduced precision KOKKOS build differs";
     const auto *dump_file = "dump_local_format_line_run0.melt";
     generate_dump(dump_file, "index c_comp[1]", "buffer no", 0);
 

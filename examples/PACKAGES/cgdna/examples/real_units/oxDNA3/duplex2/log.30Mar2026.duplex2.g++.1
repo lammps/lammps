@@ -1,0 +1,221 @@
+LAMMPS (30 Mar 2026)
+variable number	equal 2
+variable ofreq	equal 1000
+variable efreq	equal 1000
+variable T      equal 300.0
+variable rhos   equal 0.2
+variable nsteps equal 10000
+
+units real
+
+dimension 3
+
+newton on
+
+boundary  p p p
+
+atom_style hybrid bond ellipsoid oxdna
+WARNING: Atom style hybrid defines both, per-type and per-atom masses; both must be set, but only per-atom masses will be used (../atom_vec_hybrid.cpp:132)
+atom_modify sort 0 8.518
+
+# Pair interactions require lists of neighbours to be calculated
+neighbor 17.036 bin
+neigh_modify every 1 delay 0 check yes
+
+read_data data.duplex2
+Reading data file ...
+  orthogonal box = (-170 -170 -170) to (170 170 170)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  16 atoms
+  reading velocities ...
+  16 velocities
+  scanning bonds ...
+  1 = max bonds/atom
+  16 ellipsoids
+  orthogonal box = (-170 -170 -170) to (170 170 170)
+  1 by 1 by 1 MPI processor grid
+  reading bonds ...
+  13 bonds
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     2 = max # of 1-2 neighbors
+     2 = max # of 1-3 neighbors
+     4 = max # of 1-4 neighbors
+     6 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+  read_data CPU = 0.005 seconds
+
+set atom * mass 315.75
+Setting atom values ...
+  16 settings made for mass
+
+group all type 1 4
+16 atoms in group all
+
+# oxDNA3 bond interactions - FENE backbone
+bond_style hybrid oxdna3/fene
+bond_coeff * oxdna3/fene oxdna3_real.cgdna
+Reading oxdna3 potential (fene) file oxdna3_real.cgdna with DATE: 2026-03-26
+special_bonds lj 0 1 1
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        1        1       
+  special bond factors coul:  0        0        0       
+     2 = max # of 1-2 neighbors
+     2 = max # of 1-3 neighbors
+     4 = max # of 1-4 neighbors
+     6 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+
+# oxDNA3 pair interactions
+pair_style hybrid/overlay oxdna3/excv oxdna3/stk oxdna3/hbond oxdna3/xstk oxdna3/coaxstk oxdna3/dh
+pair_coeff * * oxdna3/excv     oxdna3_real.cgdna
+Reading oxdna3 potential (excv) file oxdna3_real.cgdna with DATE: 2026-03-26
+pair_coeff * * oxdna3/stk      ${T} oxdna3_real.cgdna
+pair_coeff * * oxdna3/stk      300 oxdna3_real.cgdna
+Reading oxdna3 potential (stk) file oxdna3_real.cgdna with DATE: 2026-03-26
+pair_coeff * * oxdna3/hbond    oxdna3_real.cgdna
+Reading oxdna3 potential (hbond) file oxdna3_real.cgdna with DATE: 2026-03-26
+pair_coeff 1 4 oxdna3/hbond    oxdna3_real.cgdna
+Reading oxdna3 potential (hbond) file oxdna3_real.cgdna with DATE: 2026-03-26
+pair_coeff 2 3 oxdna3/hbond    oxdna3_real.cgdna
+Reading oxdna3 potential (hbond) file oxdna3_real.cgdna with DATE: 2026-03-26
+pair_coeff * * oxdna3/xstk     oxdna3_real.cgdna
+Reading oxdna3 potential (xstk) file oxdna3_real.cgdna with DATE: 2026-03-26
+pair_coeff * * oxdna3/coaxstk  oxdna3_real.cgdna
+Reading oxdna potential (coaxstk) file oxdna3_real.cgdna with DATE: 2026-03-26
+pair_coeff * * oxdna3/dh       ${T} ${rhos} oxdna3_real.cgdna
+pair_coeff * * oxdna3/dh       300 ${rhos} oxdna3_real.cgdna 
+pair_coeff * * oxdna3/dh       300 0.2 oxdna3_real.cgdna 
+Reading oxdna potential (dh) file oxdna3_real.cgdna with DATE: 2026-03-26
+
+# NVE ensemble
+fix 1 all nve/asphere
+#fix 2 all langevin ${T} ${T} 4265.0 457145 angmom 10
+
+timestep 0.017055
+
+#comm_style tiled
+fix 3 all balance 1000 1.03 shift xyz 10 1.03
+comm_modify cutoff 32.4
+
+compute quat all property/atom quatw quati quatj quatk
+
+compute erot all erotate/asphere
+compute ekin all ke
+compute epot all pe
+
+compute ebond all bond
+compute eexcv all pair oxdna3/excv
+compute estk  all pair oxdna3/stk
+compute ehbond all pair oxdna3/hbond
+compute exstk all pair oxdna3/xstk
+compute ecoaxstk all pair oxdna3/coaxstk
+compute edh all pair oxdna3/dh
+
+variable erot equal c_erot
+variable ekin equal c_ekin
+variable edyn equal c_erot+c_ekin
+variable epot equal c_epot
+variable etot equal c_erot+c_ekin+c_epot
+
+variable ebond equal c_ebond[1]
+variable eexcv equal c_eexcv
+variable estk equal c_estk
+variable ehbond equal c_ehbond
+variable exstk equal c_exstk
+variable ecoaxstk equal c_ecoaxstk
+variable edh equal c_edh
+
+fix 5 all print ${efreq} "$(step)  ekin = ${ekin} |  erot = ${erot} | edyn = ${edyn} | ebond = ${ebond} | eexcv = ${eexcv} | estk = ${estk} | ehbond = ${ehbond} | exstk = ${exstk} | ecoaxstk = ${ecoaxstk} | edh = ${edh} | epot = ${epot} | etot = ${etot}" screen yes
+fix 5 all print 1000 "$(step)  ekin = ${ekin} |  erot = ${erot} | edyn = ${edyn} | ebond = ${ebond} | eexcv = ${eexcv} | estk = ${estk} | ehbond = ${ehbond} | exstk = ${exstk} | ecoaxstk = ${ecoaxstk} | edh = ${edh} | epot = ${epot} | etot = ${etot}" screen yes
+
+#dump out all custom ${ofreq} out.${number}.lammpstrj id mol type x y z ix iy iz vx vy vz c_quat[1] c_quat[2] c_quat[3] c_quat[4] angmomx angmomy angmomz
+#dump_modify out sort id
+#dump_modify out format line "%d %d %d  %22.15le %22.15le %22.15le  %d %d %d  %22.15le %22.15le %22.15le  %22.15le %22.15le %22.15le %22.15le  %22.15le %22.15le %22.15le"
+
+run ${nsteps}
+run 10000
+Parsing normal base pairing
+Generated 0 of 6 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 48.032697
+  ghost atom cutoff = 48.032697
+  binsize = 24.016348, bins = 15 15 15
+  5 neighbor lists, perpetual/occasional/extra = 5 0 0
+  (1) pair oxdna3/excv, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+  (2) pair oxdna3/hbond, perpetual, copy from (1)
+      attributes: half, newton on
+      pair build: copy
+      stencil: none
+      bin: none
+  (3) pair oxdna3/xstk, perpetual, copy from (1)
+      attributes: half, newton on
+      pair build: copy
+      stencil: none
+      bin: none
+  (4) pair oxdna3/coaxstk, perpetual, copy from (1)
+      attributes: half, newton on
+      pair build: copy
+      stencil: none
+      bin: none
+  (5) pair oxdna3/dh, perpetual, copy from (1)
+      attributes: half, newton on
+      pair build: copy
+      stencil: none
+      bin: none
+WARNING: Communication cutoff adjusted to 48.03269686950012 (../comm.cpp:703)
+0  ekin = 16.124695569505 |  erot = 16.7027740772248 | edyn = 32.8274696467298 | ebond = 13.3002649732023 | eexcv = 0 | estk = -88.4539556399985 | ehbond = -23.1874921105582 | exstk = -13.4481492138421 | ecoaxstk = -1.21015031657237 | edh = 2.23191399215345 | epot = -110.767568315615 | etot = -77.9400986688856
+Per MPI rank memory allocation (min/avg/max) = 8.832 | 8.832 | 8.832 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press          Volume    
+         0   360.63341     -124.06783      13.300265     -94.642873     -0.099060923    39304000     
+1000  ekin = 16.3054795682504 |  erot = 16.784290800948 | edyn = 33.0897703691984 | ebond = 12.5089082607151 | eexcv = 0 | estk = -87.8055928321753 | ehbond = -23.0602724831485 | exstk = -13.6815081226388 | ecoaxstk = -1.22065511830652 | edh = 2.22925125475821 | epot = -111.029869040796 | etot = -77.9400986715975
+2000  ekin = 16.6448117859601 |  erot = 17.0560002631812 | edyn = 33.7008120491414 | ebond = 11.4661290774034 | eexcv = 0 | estk = -87.1938210445431 | ehbond = -22.8939689478045 | exstk = -14.018257402572 | ecoaxstk = -1.22748100323055 | edh = 2.22648858811825 | epot = -111.640910732629 | etot = -77.9400986834871
+3000  ekin = 17.0756369251187 |  erot = 17.4856296564624 | edyn = 34.5612665815811 | ebond = 10.2667101537558 | eexcv = 0 | estk = -86.5994881479165 | ehbond = -22.7367885775049 | exstk = -14.4242825767515 | ecoaxstk = -1.2311753454982 | edh = 2.22365922563656 | epot = -112.501365268279 | etot = -77.9400986866977
+4000  ekin = 17.5542418343958 |  erot = 18.0480028125914 | edyn = 35.6022446469872 | ebond = 8.99912431240717 | eexcv = 0 | estk = -86.0006461223727 | ehbond = -22.633384411115 | exstk = -14.8959857236269 | ecoaxstk = -1.23224076377457 | edh = 2.22078937027906 | epot = -113.542343338203 | etot = -77.9400986912157
+5000  ekin = 18.0353373494186 |  erot = 18.7055909979664 | edyn = 36.740928347385 | ebond = 7.74536413604101 | eexcv = 0 | estk = -85.3785768332287 | ehbond = -22.6118415425147 | exstk = -15.4227309843597 | ecoaxstk = -1.23114175149121 | edh = 2.21789993177837 | epot = -114.681027043775 | etot = -77.94009869639
+6000  ekin = 18.4768601547901 |  erot = 19.4115640156963 | edyn = 37.8884241704864 | ebond = 6.58023833025452 | eexcv = 0 | estk = -84.725105968658 | ehbond = -22.6855439214822 | exstk = -15.9848147319462 | ecoaxstk = -1.22830469992473 | edh = 2.21500811982701 | epot = -115.82852287193 | etot = -77.9400987014432
+7000  ekin = 18.8468694670961 |  erot = 20.1145889307547 | edyn = 38.9614583978508 | ebond = 5.56950163937834 | eexcv = 0 | estk = -84.0489352747626 | ehbond = -22.856169308287 | exstk = -16.5539730815729 | ecoaxstk = -1.22411131816831 | edh = 2.21213023980052 | epot = -116.901557103612 | etot = -77.9400987057611
+8000  ekin = 18.2835642971785 |  erot = 21.2034493714036 | edyn = 39.4870136685821 | ebond = 4.7685639834291 | eexcv = 0.51273129727019 | estk = -83.49823783754 | ehbond = -23.1192826850102 | exstk = -17.0812663857896 | ecoaxstk = -1.21888800643987 | edh = 2.20926731287079 | epot = -117.42711232121 | etot = -77.9400986526274
+9000  ekin = 18.4365016152452 |  erot = 22.8297073929929 | edyn = 41.2662090082381 | ebond = 4.22004613773437 | eexcv = 0 | estk = -83.4461355688168 | ehbond = -23.4765669122117 | exstk = -17.4971674585452 | ecoaxstk = -1.21289423540792 | edh = 2.20641011965099 | epot = -119.206307917596 | etot = -77.9400989093581
+10000  ekin = 18.8461747052486 |  erot = 23.4843922557361 | edyn = 42.3305669609847 | ebond = 3.94822218525438 | eexcv = 0 | estk = -83.5152802784062 | ehbond = -23.8921068364803 | exstk = -17.8088425810273 | ecoaxstk = -1.2063120764174 | edh = 2.20365370985944 | epot = -120.270665877217 | etot = -77.9400989162327
+     10000   421.50007     -124.21889      3.9482222     -101.42449     -0.05604493     39304000     
+Loop time of 0.117833 on 1 procs for 10000 steps with 16 atoms
+
+Performance: 125.054 ns/day, 0.192 hours/ns, 84865.869 timesteps/s, 1.358 Matom-step/s
+99.9% CPU use with 1 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.10271    | 0.10271    | 0.10271    |   0.0 | 87.17
+Bond    | 0.003263   | 0.003263   | 0.003263   |   0.0 |  2.77
+Neigh   | 4.3e-05    | 4.3e-05    | 4.3e-05    |   0.0 |  0.04
+Comm    | 0.000985   | 0.000985   | 0.000985   |   0.0 |  0.84
+Output  | 4e-06      | 4e-06      | 4e-06      |   0.0 |  0.00
+Modify  | 0.009988   | 0.009988   | 0.009988   |   0.0 |  8.48
+Other   |            | 0.000839   |            |       |  0.71
+
+Nlocal:             16 ave          16 max          16 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:              0 ave           0 max           0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:            120 ave         120 max         120 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 120
+Ave neighs/atom = 7.5
+Ave special neighs/atom = 3.75
+Neighbor list builds = 10
+Dangerous builds = 0
+
+#write_data last_config.${number}.* nocoeff
+#write_restart last_config.${number}.*
+Total wall time: 0:00:00

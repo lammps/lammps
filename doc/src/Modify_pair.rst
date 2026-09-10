@@ -76,6 +76,10 @@ Here is a brief list of some the class methods in the Pair class that
 +---------------------------------+------------------------------------------------------------------------+
 | reset_dt                        | called when the time step is changed by timestep or fix reset/dt       |
 +---------------------------------+------------------------------------------------------------------------+
+| born_matrix                     | compute Born matrix elements for elasticity (optional)                 |
++---------------------------------+------------------------------------------------------------------------+
+| single_hessian                  | compute the per-pair Hessian (optional)                                |
++---------------------------------+------------------------------------------------------------------------+
 
 Here is a list of flags or settings that should be set in the
 constructor of the derived pair class when they differ from the default
@@ -125,4 +129,10 @@ setting.
 | spinflag                        | 1 if compatible with spin kspace_style                      | 0       |
 +---------------------------------+-------------------------------------------------------------+---------+
 | atomic_energy_enable            | 1 if compute_atomic_energy() routine exists                 | 0       |
++---------------------------------+-------------------------------------------------------------+---------+
+| born_matrix_enable              | 1 if born_matrix() routine exists                           | 0       |
++---------------------------------+-------------------------------------------------------------+---------+
+| single_hessian_enable           | 1 if single_hessian() routine exists                        | 0       |
++---------------------------------+-------------------------------------------------------------+---------+
+| centroidstressflag              | CENTROID_SAME/CENTROID_AVAIL/CENTROID_NOTAVAIL              | SAME    |
 +---------------------------------+-------------------------------------------------------------+---------+

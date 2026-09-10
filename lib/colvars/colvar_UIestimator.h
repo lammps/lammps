@@ -19,7 +19,7 @@
 #include <typeinfo>
 
 // only for colvar module!
-// when integrated into other code, just remove this line and "...cvm::backup_file(...)"
+// when integrated into other code, just remove this line and "...cvmodule->backup_file(...)"
 #include "colvarmodule.h"
 #include "colvarproxy.h"
 
@@ -215,29 +215,30 @@ namespace UIestimator {
     class UIestimator {     // the implemension of UI estimator
 
     public:
+        colvarmodule *cvmodule;
+
         UIestimator() {}
 
         //called when (re)start an eabf simulation
-        UIestimator(const std::vector<double> & lowerboundary_input,
-            const std::vector<double> & upperboundary_input,
-            const std::vector<double> & width_input,
-            const std::vector<double> & krestr_input,                // force constant in eABF
-            const std::string & output_filename_input,              // the prefix of output files
-            const int output_freq_input,
-            const bool restart_input,                              // whether restart from a .count and a .grad file
-            const std::vector<std::string> & input_filename_input,   // the prefixes of input files
-            const double temperature_input) {
-
-            // initialize variables
-            this->lowerboundary = lowerboundary_input;
-            this->upperboundary = upperboundary_input;
-            this->width = width_input;
-            this->krestr = krestr_input;
-            this->output_filename = output_filename_input;
-            this->output_freq = output_freq_input;
-            this->restart = restart_input;
-            this->input_filename = input_filename_input;
-            this->temperature = temperature_input;
+        UIestimator(colvarmodule * cvmodule_in,
+            const std::vector<double> & lowerboundary_in,
+            const std::vector<double> & upperboundary_in,
+            const std::vector<double> & width_in,
+            const std::vector<double> & krestr_in,                // force constant in eABF
+            const std::string & output_filename_in,              // the prefix of output files
+            const bool restart_in,                              // whether restart from a .count and a .grad file
+            const std::vector<std::string> & input_filename_in,   // the prefixes of input files
+            const double temperature_in)
+                : cvmodule(cvmodule_in),
+                lowerboundary(lowerboundary_in),
+                upperboundary(upperboundary_in),
+                width(width_in),
+                krestr(krestr_in),
+                output_filename(output_filename_in),
+                restart(restart_in),
+                input_filename(input_filename_in),
+                temperature(temperature_in)
+            {
 
             int i, j;
 
@@ -358,7 +359,6 @@ namespace UIestimator {
         std::vector<double> width;
         std::vector<double> krestr;
         std::string output_filename;
-        int output_freq;
         bool restart;
         std::vector<std::string> input_filename;
         double temperature;
@@ -381,7 +381,7 @@ namespace UIestimator {
     public:
         // calculate gradients from the internal variables
         void calc_pmf() {
-            colvarproxy *proxy = cvm::main()->proxy;
+            colvarproxy *proxy = cvmodule->proxy;
 
             int norm;
             int i, j, k;
@@ -516,9 +516,9 @@ namespace UIestimator {
             std::string pmf_filename = output_filename + ".UI.pmf";
 
             // only for colvars module!
-            if (written_1D) cvm::backup_file(pmf_filename.c_str());
+            if (written_1D) cvmodule->backup_file(pmf_filename.c_str());
 
-            std::ostream &ofile_pmf = cvm::proxy->output_stream(pmf_filename,
+            std::ostream &ofile_pmf = cvmodule->proxy->output_stream(pmf_filename,
                                                                 "PMF file");
 
             std::vector<double> position(1, 0);
@@ -527,7 +527,7 @@ namespace UIestimator {
                 position[0] = i + EPSILON;
                 ofile_pmf << oneD_pmf.get_value(position) << std::endl;
             }
-            cvm::proxy->close_output_stream(pmf_filename);
+            cvmodule->proxy->close_output_stream(pmf_filename);
 
             written_1D = true;
         }
@@ -545,7 +545,7 @@ namespace UIestimator {
         void write_interal_data() {
             std::string internal_filename = output_filename + ".UI.internal";
 
-            std::ostream &ofile_internal = cvm::proxy->output_stream(internal_filename,
+            std::ostream &ofile_internal = cvmodule->proxy->output_stream(internal_filename,
                                                                      "UI internal file");
 
             std::vector<double> loop_flag(dimension, 0);
@@ -585,7 +585,7 @@ namespace UIestimator {
                         break;
                 }
             }
-            cvm::proxy->close_output_stream(internal_filename.c_str());
+            cvmodule->proxy->close_output_stream(internal_filename.c_str());
         }
 
         // write output files
@@ -597,15 +597,15 @@ namespace UIestimator {
             int i, j;
 //
             // only for colvars module!
-            if (written) cvm::backup_file(grad_filename.c_str());
-            //if (written) cvm::backup_file(hist_filename.c_str());
-            if (written) cvm::backup_file(count_filename.c_str());
+            if (written) cvmodule->backup_file(grad_filename.c_str());
+            //if (written) cvmodule->backup_file(hist_filename.c_str());
+            if (written) cvmodule->backup_file(count_filename.c_str());
 
-            std::ostream &ofile = cvm::proxy->output_stream(grad_filename,
+            std::ostream &ofile = cvmodule->proxy->output_stream(grad_filename,
                                                             "gradient file");
-            std::ostream &ofile_hist = cvm::proxy->output_stream(hist_filename,
+            std::ostream &ofile_hist = cvmodule->proxy->output_stream(hist_filename,
                                                                  "gradient history file");
-            std::ostream &ofile_count = cvm::proxy->output_stream(count_filename,
+            std::ostream &ofile_count = cvmodule->proxy->output_stream(count_filename,
                                                                   "count file");
 
             writehead(ofile);
@@ -670,9 +670,9 @@ namespace UIestimator {
                         break;
                 }
             }
-            cvm::proxy->close_output_stream(grad_filename.c_str());
-            // cvm::proxy->close_output_stream(hist_filename.c_str());
-            cvm::proxy->close_output_stream(count_filename.c_str());
+            cvmodule->proxy->close_output_stream(grad_filename.c_str());
+            // cvmodule->proxy->close_output_stream(hist_filename.c_str());
+            cvmodule->proxy->close_output_stream(count_filename.c_str());
 
             written = true;
         }
@@ -685,7 +685,7 @@ namespace UIestimator {
             int dimension_temp;
             int i, j, k, l, m;
 
-            colvarproxy *proxy = cvm::main()->proxy;
+            colvarproxy *proxy = cvmodule->proxy;
             std::vector<double> loop_bin_size(dimension, 0);
             std::vector<double> position_temp(dimension, 0);
             std::vector<double> grad_temp(dimension, 0);

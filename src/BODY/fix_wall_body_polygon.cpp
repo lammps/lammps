@@ -52,7 +52,7 @@ static constexpr int EFF_CONTACTS = 2;    // effective contacts for 2D models
 /* ---------------------------------------------------------------------- */
 
 FixWallBodyPolygon::FixWallBodyPolygon(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), imgobjs(nullptr), imgparms(nullptr)
+    Fix(lmp, narg, arg), avec(nullptr), bptr(nullptr), imgobjs(nullptr), imgparms(nullptr)
 {
   if (narg < 9) utils::missing_cmd_args(FLERR,"fix wall/body/polygon", error);
 
@@ -207,7 +207,7 @@ void FixWallBodyPolygon::init()
     error->all(FLERR,"Pair body/rounded/polygon requires body style rounded/polygon");
   bptr = dynamic_cast<BodyRoundedPolygon *>(avec->bptr);
 
-  if (!force->pair_match("body/rounded/polygon",1))
+  if (!force->pair_match("^body/rounded/polygon",0))
     error->all(FLERR,"Fix wall/body/polygon is incompatible with Pair style");
 }
 
@@ -831,4 +831,11 @@ int FixWallBodyPolygon::image(int *&objs, double **&parms)
   objs = imgobjs;
   parms = imgparms;
   return numwalls;
+}
+
+/* ---------------------------------------------------------------------- */
+
+double FixWallBodyPolygon::memory_usage()
+{
+  return (double) nmax * 4 * sizeof(int);    // dnum + dfirst + ednum + edfirst [nmax]
 }

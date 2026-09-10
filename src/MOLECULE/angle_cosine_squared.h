@@ -41,7 +41,7 @@ class AngleCosineSquared : public Angle {
  protected:
   double *k, *theta0;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }    // namespace LAMMPS_NS

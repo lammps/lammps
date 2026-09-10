@@ -1,7 +1,10 @@
 .. index:: compute rdf
+.. index:: compute rdf/omp
 
 compute rdf command
 ===================
+
+Accelerator Variants: *rdf/omp*
 
 Syntax
 """"""
@@ -174,6 +177,12 @@ The first column of array values will be in distance
 :doc:`units <units>`.  The :math:`g(r)` columns of array values are normalized
 numbers :math:`\ge 0.0`.  The coordination number columns of array values are
 also numbers :math:`\ge 0.0`.
+
+----------
+
+.. include:: accel_styles.rst
+
+----------
 
 Restrictions
 """"""""""""

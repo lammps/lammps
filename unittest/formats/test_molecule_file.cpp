@@ -537,6 +537,7 @@ TEST_F(MoleculeFileTest, twomols)
 
 TEST_F(MoleculeFileTest, tenmols)
 {
+    if (!Info::has_package("MOLECULE")) GTEST_SKIP();
     BEGIN_CAPTURE_OUTPUT();
     run_mol_cmd(test_name, "",
                 "Comment\n10 atoms\n\n"
@@ -787,6 +788,7 @@ TEST_F(MoleculeFileTest, auto_invalidopt)
 
 TEST_F(MoleculeFileTest, auto_angle_dihedral)
 {
+    if (!info->has_style("atom", "full")) GTEST_SKIP();
     command("atom_style full");
     command("region box block 0 2 0 2 0 2");
     command("create_box 4 box bond/types 1 angle/types 1 dihedral/types 1 "
@@ -815,6 +817,7 @@ TEST_F(MoleculeFileTest, auto_angle_dihedral)
 
 TEST_F(MoleculeFileTest, auto_angle_improper)
 {
+    if (!info->has_style("atom", "full")) GTEST_SKIP();
     command("atom_style full");
     command("region box block 0 2 0 2 0 2");
     command("create_box 4 box bond/types 1 angle/types 1 improper/types 1 "

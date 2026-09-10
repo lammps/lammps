@@ -13,7 +13,6 @@ import kokkos.core;
 #include "Kokkos_Constraints.hpp"
 #include "Kokkos_HelperPredicates.hpp"
 #include "Kokkos_MustUseKokkosSingleInTeam.hpp"
-#include <std_algorithms/Kokkos_Distance.hpp>
 #include <string>
 
 namespace Kokkos {

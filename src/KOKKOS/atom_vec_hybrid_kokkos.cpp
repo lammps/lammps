@@ -25,8 +25,17 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 AtomVecHybridKokkos::AtomVecHybridKokkos(LAMMPS *lmp) : AtomVec(lmp),
-AtomVecKokkos(lmp), AtomVecHybrid(lmp)
+AtomVecKokkos(lmp), AtomVecHybrid(lmp), stylesKK(nullptr)
 {
+}
+
+/* ---------------------------------------------------------------------- */
+
+AtomVecHybridKokkos::~AtomVecHybridKokkos()
+{
+  // stylesKK only holds (cast) copies of the AtomVec pointers owned and
+  // deleted by the AtomVecHybrid base class, so only free the array itself
+  delete[] stylesKK;
 }
 
 /* ----------------------------------------------------------------------

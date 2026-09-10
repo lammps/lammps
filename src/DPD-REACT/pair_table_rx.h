@@ -33,13 +33,18 @@ class PairTableRX : public PairTable {
   void settings(int, char **) override;
   void coeff(int, char **) override;
   double single(int, int, int, int, double, double, double, double &) override;
+  double memory_usage() override;
 
  protected:
+  class FixRX *rx_fix;
   int nspecies;
   char *site1, *site2;
   int isite1, isite2;
   void getMixingWeights(int, double &, double &, double &, double &);
   bool fractionalWeighting;
+
+  int nmax_rx;
+  double *mixWtSite1old, *mixWtSite2old, *mixWtSite1, *mixWtSite2;
 };
 
 }    // namespace LAMMPS_NS

@@ -512,8 +512,8 @@ double BondBPMRotational::particle_frame_forces(int i1, int i2, int type,
   double q1[4], q2[4];
   double q2inv[4], mq[4], mqinv[4], qp21[4], q21[4], qtmp[4];
   double r0[3], rb[3], rb_x_r0[3], s[3], t[3];
-  double Fr, Fn[3], Fs[3], Fsr[3], Fsrt[3], Fsrp[3], F_rot[3], Ftmp[3];
-  double Tsr[3], Tst[3], Tb[3], Tt[3], Tbp[3], Ttp[3], Tsrp[3], T_rot[3], Ttmp[3];
+  double Fr, Fn[3], Fs[3], Fsr[3], Fsrt[3], Fsrp[3], F_rot[3];
+  double Tsr[3], Tst[3], Tb[3], Tt[3], Tbp[3], Ttp[3], Tsrp[3], T_rot[3];
 
   // Store prior values for damping
   double gamma_prior, theta_prior, psi_prior;
@@ -1171,10 +1171,12 @@ double BondBPMRotational::single(int type, double rsq, int i, int j, double &ffo
     flipped = 1;
   }
 
-  double ri_norm, gamma, theta, psi;
-  double ri[3], rf[3], bondstore[7];
+  double ri_norm = 0.0;
+  double ri[3] = {0.0, 0.0, 0.0}, rf[3], bondstore[7];
+  int found = 0;
   for (int n = 0; n < atom->num_bond[i]; n++) {
     if (atom->bond_atom[i][n] == atom->tag[j]) {
+      found = 1;
       ri_norm = fix_bond_history->get_atom_value(i, n, 0);
       ri[0] = fix_bond_history->get_atom_value(i, n, 1) * ri_norm;
       ri[1] = fix_bond_history->get_atom_value(i, n, 2) * ri_norm;
@@ -1183,11 +1185,12 @@ double BondBPMRotational::single(int type, double rsq, int i, int j, double &ffo
         bondstore[4] = fix_bond_history->get_atom_value(i, n, 4);
         bondstore[5] = fix_bond_history->get_atom_value(i, n, 5);
         bondstore[6] = fix_bond_history->get_atom_value(i, n, 6);
-      } else {
-        gamma = theta = psi = 0.0;
       }
     }
   }
+  if (!found)
+    error->one(FLERR, "Bond between atoms {} and {} not found in bond history",
+               atom->tag[i], atom->tag[j]);
 
   double **x = atom->x;
   MathExtra::sub3(x[j], x[i], rf);

@@ -1,0 +1,136 @@
+# GitHub action to build LAMMPS on Linux and check that all example input
+# scripts parse, set up, and take one step without crashing: run_tests.py
+# --preflight-only runs every input with "-skiprun" appended, so the loops of
+# all run and minimize commands end after one step.  Two MPI processes
+# exercise the domain decomposition and the initial communication.
+# The build configuration matches unittest-fftw.yaml (without the unit tests)
+# and shares its ccache cache.
+name: "Check example inputs /w -skiprun"
+
+on:
+  push:
+    branches:
+      - develop
+      - maintenance
+  pull_request:
+    branches:
+      - develop
+
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.event_name }}-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{github.event_name == 'pull_request'}}
+
+jobs:
+  build:
+    name: Check example inputs
+    if: ${{ github.repository == 'lammps/lammps' }}
+    runs-on: ubuntu-latest
+    env:
+      CCACHE_DIR: ${{ github.workspace }}/.ccache
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v7
+      with:
+        fetch-depth: 2
+
+    - name: Install extra packages
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y ccache \
+                                libeigen3-dev \
+                                libcurl4-openssl-dev \
+                                libfftw3-dev \
+                                mold \
+                                mpi-default-bin \
+                                mpi-default-dev \
+                                ninja-build \
+                                python3-dev
+
+    - name: Create Build Environment
+      run: mkdir build
+
+    - name: Set up ccache
+      uses: actions/cache@v6
+      with:
+        path: ${{ env.CCACHE_DIR }}
+        key: linux-fftw-ccache-${{ github.sha }}
+        restore-keys: linux-fftw-ccache-
+
+    - name: Building LAMMPS via CMake
+      shell: bash
+      run: |
+        ccache -z -M 5
+        python3 -m venv linuxenv
+        source linuxenv/bin/activate
+        python3 -m pip install numpy
+        python3 -m pip install pyyaml
+        cmake -S cmake -B build \
+              -C cmake/presets/gcc.cmake \
+              -C cmake/presets/most.cmake \
+              -C cmake/presets/kokkos-openmp.cmake \
+              -D CMAKE_CXX_COMPILER_LAUNCHER=ccache \
+              -D CMAKE_C_COMPILER_LAUNCHER=ccache \
+              -D BUILD_MPI=on \
+              -D BUILD_SHARED_LIBS=on \
+              -D FFT=FFTW3 \
+              -D DOWNLOAD_POTENTIALS=off \
+              -D ENABLE_TESTING=off \
+              -D MLIAP_ENABLE_ACE=on \
+              -D MLIAP_ENABLE_PYTHON=off \
+              -D PKG_LATBOLTZ=on \
+              -D PKG_MESONT=off \
+              -D PKG_MANIFOLD=on \
+              -D PKG_ML-PACE=on \
+              -D PKG_RHEO=on \
+              -D PKG_PTM=on \
+              -D PKG_PYTHON=on \
+              -D PKG_QTB=on \
+              -D PKG_SMTBQ=on \
+              -G Ninja
+        cmake --build build
+        ccache -s
+
+    - name: Check example inputs with -skiprun
+      shell: bash
+      run: |
+        source linuxenv/bin/activate
+        export OMP_NUM_THREADS=1
+        export OMP_PROC_BIND=false
+        # some example inputs reference bundled potential files without a path
+        export LAMMPS_POTENTIALS=$PWD/potentials
+        python3 tools/regression-tests/run_tests.py \
+               --lmp-bin=build/lmp \
+               --config-file=tools/regression-tests/config_skiprun.yaml \
+               --examples-top-level=examples \
+               --preflight-only \
+               --walltime-ref=1 \
+               --output-file=check-examples.xml \
+               --progress-file=progress.yaml \
+               --failure-file=failure.yaml \
+               --log-file=run.log
+        python3 tools/regression-tests/merge_results.py \
+               --title "Example input -skiprun check" \
+               --summary - check-examples.xml >> $GITHUB_STEP_SUMMARY
+
+    - name: Upload check results
+      if: ${{ always() }}
+      uses: actions/upload-artifact@v7
+      with:
+        name: check-examples-results
+        path: |
+          check-examples.xml
+          progress.yaml
+          failure.yaml
+          run.log
+
+    - name: Stop on failed example inputs
+      shell: bash
+      run: |
+        if [ -s failure.yaml ]; then
+          echo "The following example inputs failed the -skiprun check:"
+          cat failure.yaml
+          exit 1
+        fi

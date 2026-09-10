@@ -39,17 +39,6 @@
 #pragma warning (disable:13200)
 #endif
 
-#ifdef __INTEL_OFFLOAD
-#ifdef LMP_INTEL_OFFLOAD
-#define _LMP_INTEL_OFFLOAD
-#ifdef __TARGET_ARCH_MIC
-#ifndef __MIC__
-#define __MIC__ 1
-#endif
-#endif
-#endif
-#endif
-
 #ifndef LMP_INTEL_PREPROCESS_H
 #define LMP_INTEL_PREPROCESS_H
 
@@ -75,12 +64,9 @@ namespace LAMMPS_NS {
 
 enum {LMP_OVERFLOW, LMP_LOCAL_MIN, LMP_LOCAL_MAX, LMP_GHOST_MIN,
       LMP_GHOST_MAX};
-enum {TIME_PACK, TIME_HOST_NEIGHBOR, TIME_HOST_PAIR, TIME_OFFLOAD_NEIGHBOR,
-      TIME_OFFLOAD_PAIR, TIME_OFFLOAD_WAIT, TIME_OFFLOAD_LATENCY,
-      TIME_IMBALANCE};
+enum {TIME_PACK, TIME_HOST_NEIGHBOR, TIME_HOST_PAIR, TIME_IMBALANCE};
 
 #define NUM_ITIMERS ( TIME_IMBALANCE + 1 )
-#define INTEL_MIC_VECTOR_WIDTH 16
 #define INTEL_VECTOR_WIDTH 4
 #define INTEL_MAX_STENCIL 256
 // INTEL_MAX_STENCIL * sqrt(INTEL_MAX_STENCIL)
@@ -104,29 +90,13 @@ enum {TIME_PACK, TIME_HOST_NEIGHBOR, TIME_HOST_PAIR, TIME_OFFLOAD_NEIGHBOR,
 #define INTEL_VECTOR_WIDTH 16
 #define INTEL_V512 1
 #define INTEL_VMASK 1
-#else
-#ifdef __MIC__
-#define INTEL_V512 1
-#define INTEL_VMASK 1
-#define INTEL_HTHREADS 4
-#endif
-#endif
-
-#ifdef __AVX512ER__
-#define INTEL_HTHREADS 4
 #endif
 
 #ifdef __AVX512CD__
-#ifndef _LMP_INTEL_OFFLOAD
 #define LMP_USE_AVXCD
 #endif
-#endif
 
-#ifdef __MIC__
-#define INTEL_COMPILE_WIDTH INTEL_MIC_VECTOR_WIDTH
-#else
 #define INTEL_COMPILE_WIDTH INTEL_VECTOR_WIDTH
-#endif
 
 #else
 
@@ -141,12 +111,10 @@ enum {TIME_PACK, TIME_HOST_NEIGHBOR, TIME_HOST_PAIR, TIME_OFFLOAD_NEIGHBOR,
 
 #define INTEL_DATA_ALIGN 64
 #define INTEL_ONEATOM_FACTOR 1
-#define INTEL_MIC_NBOR_PAD INTEL_MIC_VECTOR_WIDTH
 #define INTEL_NBOR_PAD INTEL_VECTOR_WIDTH
 #define INTEL_LB_MEAN_WEIGHT 0.1
 #define INTEL_BIGP 1e15
 #define INTEL_MAX_HOST_CORE_COUNT 512
-#define INTEL_MAX_COI_CORES 36
 
 #ifndef INTEL_HTHREADS
 #define INTEL_HTHREADS 2
@@ -510,7 +478,7 @@ enum {TIME_PACK, TIME_HOST_NEIGHBOR, TIME_HOST_PAIR, TIME_OFFLOAD_NEIGHBOR,
 }
 
 #define IP_PRE_fdotr_acc_force(nall, minlocal, nthreads, f_start,       \
-                               f_stride, pos, offload, vflag, ov0, ov1, \
+                               f_stride, pos, vflag, ov0, ov1,          \
                                ov2, ov3, ov4, ov5)                      \
 {                                                                       \
   int o_range = (nall - minlocal) * 4;                                  \
@@ -701,7 +669,7 @@ enum {TIME_PACK, TIME_HOST_NEIGHBOR, TIME_HOST_PAIR, TIME_OFFLOAD_NEIGHBOR,
 }
 
 #define IP_PRE_fdotr_acc_force(nall, minlocal, nthreads, f_start,       \
-                               f_stride, pos, offload, vflag, ov0, ov1, \
+                               f_stride, pos, vflag, ov0, ov1,          \
                                ov2, ov3, ov4, ov5)                      \
 {                                                                       \
   int o_range = (nall - minlocal) * 4;                                  \
@@ -730,166 +698,9 @@ enum {TIME_PACK, TIME_HOST_NEIGHBOR, TIME_HOST_PAIR, TIME_OFFLOAD_NEIGHBOR,
 
 #endif
 
-#ifdef _LMP_INTEL_OFFLOAD
-#include <sys/time.h>
-
-__declspec( target (mic))
-inline double MIC_Wtime() {
-  double time;
-  struct timeval tv;
-
-  gettimeofday(&tv, nullptr);
-  time = 1.0 * tv.tv_sec + 1.0e-6 * tv.tv_usec;
-  return time;
-}
-
-#define IP_PRE_neighbor_pad(jnum, offload)                              \
-{                                                                       \
-  const int opad_mask = ~static_cast<int>(INTEL_MIC_NBOR_PAD *          \
-                                          sizeof(float) /               \
-                                          sizeof(flt_t) - 1);           \
-  const int pad_mask = ~static_cast<int>(INTEL_NBOR_PAD *               \
-                                          sizeof(float) /               \
-                                          sizeof(flt_t) - 1);           \
-  if (offload && INTEL_MIC_NBOR_PAD > 1)                                \
-    jnum = (jnum + INTEL_MIC_NBOR_PAD * sizeof(float) /                 \
-            sizeof(flt_t) - 1) & opad_mask;                             \
-  else if (INTEL_NBOR_PAD > 1)                                          \
-    jnum = (jnum + INTEL_NBOR_PAD * sizeof(float) /                     \
-            sizeof(flt_t) - 1) & pad_mask;                              \
-}
-
-#define IP_PRE_pack_separate_buffers(fix, buffers, ago, offload,        \
-                                     nlocal, nall)                      \
-{                                                                       \
-    if (fix->separate_buffers() && ago != 0) {                          \
-    fix->start_watch(TIME_PACK);                                        \
-    if (offload) {                                                      \
-      int packthreads;                                                  \
-      if (comm->nthreads > INTEL_HTHREADS) packthreads = comm->nthreads;\
-      else packthreads = 1;                                             \
-      _use_omp_pragma("omp parallel if(packthreads > 1)")               \
-      {                                                                 \
-        int ifrom, ito, tid;                                            \
-        IP_PRE_omp_range_id_align(ifrom, ito, tid, nlocal,              \
-                                  packthreads, sizeof(flt_t));          \
-        buffers->thr_pack_cop(ifrom, ito, 0);                           \
-        int nghost = nall - nlocal;                                     \
-        if (nghost) {                                                   \
-          IP_PRE_omp_range_align(ifrom, ito, tid, nall - nlocal,        \
-                                 packthreads, sizeof(flt_t));           \
-          buffers->thr_pack_cop(ifrom + nlocal, ito + nlocal,           \
-                                fix->offload_min_ghost() - nlocal,      \
-                                ago == 1);                              \
-        }                                                               \
-      }                                                                 \
-    } else {                                                            \
-      buffers->thr_pack_host(fix->host_min_local(), nlocal, 0);         \
-      buffers->thr_pack_host(nlocal, nall,                              \
-                             fix->host_min_ghost()-nlocal);             \
-    }                                                                   \
-    fix->stop_watch(TIME_PACK);                                         \
-  }                                                                     \
-}
-
-#define IP_PRE_get_transfern(ago, newton, eflag, vflag,                 \
-                             buffers, offload, fix, separate_flag,      \
-                             x_size, q_size, ev_size, f_stride)         \
-{                                                                       \
-  separate_flag = 0;                                                    \
-  if (ago == 0) {                                                       \
-    x_size = 0;                                                         \
-    q_size = nall;                                                      \
-    if (offload) {                                                      \
-      if (fix->separate_buffers()) {                                    \
-        if (lmp->atom->torque)                                          \
-          separate_flag = 2;                                            \
-        else                                                            \
-          separate_flag = 1;                                            \
-      } else                                                            \
-        separate_flag = 3;                                              \
-    }                                                                   \
-  } else {                                                              \
-    x_size = nall;                                                      \
-    q_size = 0;                                                         \
-  }                                                                     \
-  ev_size = 0;                                                          \
-  if (eflag) ev_size = 2;                                               \
-  if (vflag) ev_size = 8;                                               \
-  if (newton)                                                           \
-    f_stride = buffers->get_stride(nall);                               \
-  else                                                                  \
-    f_stride = buffers->get_stride(nlocal);                             \
-}
-
-#define IP_PRE_get_buffers(offload, buffers, fix, tc, f_start,          \
-                           ev_global)                                   \
-{                                                                       \
-  if (offload) {                                                        \
-    tc = buffers->get_off_threads();                                    \
-    f_start = buffers->get_off_f();                                     \
-    ev_global = buffers->get_ev_global();                               \
-  } else {                                                              \
-    tc = comm->nthreads;                                                \
-    f_start = buffers->get_f();                                         \
-    fix->start_watch(TIME_HOST_PAIR);                                   \
-    ev_global = buffers->get_ev_global_host();                          \
-  }                                                                     \
-}
-
-#define IP_PRE_repack_for_offload(newton, separate_flag, nlocal, nall,  \
-                                  f_stride, x, q)                       \
-{                                                                       \
-  if (separate_flag) {                                                  \
-    if (separate_flag < 3) {                                            \
-      int all_local = nlocal;                                           \
-      int ghost_min = overflow[LMP_GHOST_MIN];                          \
-      nlocal = overflow[LMP_LOCAL_MAX] + 1;                             \
-      int nghost = overflow[LMP_GHOST_MAX] + 1 - ghost_min;             \
-      if (nghost < 0) nghost = 0;                                       \
-      nall = nlocal + nghost;                                           \
-      separate_flag--;                                                  \
-      int flength;                                                      \
-      if (newton) flength = nall;                                       \
-      else flength = nlocal;                                            \
-      IP_PRE_get_stride(f_stride, flength, sizeof(FORCE_T),             \
-                           separate_flag);                              \
-      if (nghost) {                                                     \
-        if (nlocal < all_local || ghost_min > all_local) {              \
-          memmove(x + nlocal, x + ghost_min,                            \
-                  (nall - nlocal) * sizeof(ATOM_T));                    \
-          if (q != 0)                                                   \
-            memmove((void *)(q + nlocal), (void *)(q + ghost_min),      \
-                    (nall - nlocal) * sizeof(flt_t));                   \
-        }                                                               \
-      }                                                                 \
-    }                                                                   \
-    x[nall].x = INTEL_BIGP;                                             \
-    x[nall].y = INTEL_BIGP;                                             \
-    x[nall].z = INTEL_BIGP;                                             \
-  }                                                                     \
-}
-
-#define IP_PRE_fdotr_reduce_omp(newton, nall, minlocal, nthreads,       \
-                                f_start, f_stride, x, offload, vflag,   \
-                                ov0, ov1, ov2, ov3, ov4, ov5)           \
-{                                                                       \
-  if (newton) {                                                         \
-    _use_omp_pragma("omp barrier");                                     \
-    IP_PRE_fdotr_acc_force(nall, minlocal, nthreads, f_start,           \
-                           f_stride, x, offload, vflag, ov0, ov1, ov2,  \
-                           ov3, ov4, ov5);                              \
-  }                                                                     \
-}
-
-#define IP_PRE_fdotr_reduce(newton, nall, nthreads, f_stride, vflag,    \
-                            ov0, ov1, ov2, ov3, ov4, ov5)
-
-#else
-
 #if INTEL_NBOR_PAD > 1
 
-#define IP_PRE_neighbor_pad(jnum, offload)                              \
+#define IP_PRE_neighbor_pad(jnum)                              \
 {                                                                       \
   const int pad_mask = ~static_cast<int>(INTEL_NBOR_PAD *               \
                                          sizeof(float) /                \
@@ -900,19 +711,12 @@ inline double MIC_Wtime() {
 
 #else
 
-#define IP_PRE_neighbor_pad(jnum, offload)
+#define IP_PRE_neighbor_pad(jnum)
 
 #endif
 
-#define MIC_Wtime MPI_Wtime
-#define IP_PRE_pack_separate_buffers(fix, buffers, ago, offload,        \
-                                     nlocal, nall)
-
-#define IP_PRE_get_transfern(ago, newton, eflag, vflag,                 \
-                             buffers, offload, fix, separate_flag,      \
-                             x_size, q_size, ev_size, f_stride)         \
+#define IP_PRE_get_transfern(newton, buffers, f_stride)                 \
 {                                                                       \
-  separate_flag = 0;                                                    \
   int f_length;                                                         \
   if (newton)                                                           \
     f_length = nall;                                                    \
@@ -921,7 +725,7 @@ inline double MIC_Wtime() {
   f_stride = buffers->get_stride(f_length);                             \
 }
 
-#define IP_PRE_get_buffers(offload, buffers, fix, tc, f_start,          \
+#define IP_PRE_get_buffers(buffers, fix, tc, f_start,                   \
                            ev_global)                                   \
 {                                                                       \
   tc = comm->nthreads;                                                  \
@@ -930,11 +734,8 @@ inline double MIC_Wtime() {
   ev_global = buffers->get_ev_global_host();                            \
 }
 
-#define IP_PRE_repack_for_offload(newton, separate_flag, nlocal, nall,  \
-                                  f_stride, x, q)
-
 #define IP_PRE_fdotr_reduce_omp(newton, nall, minlocal, nthreads,       \
-                                f_start, f_stride, x, offload, vflag,   \
+                                f_start, f_stride, x, vflag,            \
                                 ov0, ov1, ov2, ov3, ov4, ov5)           \
 {                                                                       \
   if (newton) {                                                         \
@@ -957,8 +758,6 @@ inline double MIC_Wtime() {
     }                                                                   \
   }                                                                     \
 }
-
-#endif
 
 #define IP_PRE_ev_tally_nbor(vflag, fpair, delx, dely, delz)            \
 {                                                                       \

@@ -132,7 +132,7 @@ DumpGrid::DumpGrid(LAMMPS *lmp, int narg, char **arg) :
   for (int iarg = 0; iarg < nfield; iarg++) {
     key2col[earg[iarg]] = iarg;
     keyword_user[iarg].clear();
-    if (cols.size()) cols += " ";
+    if (!cols.empty()) cols += " ";
     cols += earg[iarg];
   }
   columns_default = utils::strdup(cols);
@@ -190,8 +190,8 @@ void DumpGrid::init_style()
   std::string combined;
   int icol = 0;
   for (const auto &item : utils::split_words(columns_default)) {
-    if (combined.size()) combined += " ";
-    if (keyword_user[icol].size()) combined += keyword_user[icol];
+    if (!combined.empty()) combined += " ";
+    if (!keyword_user[icol].empty()) combined += keyword_user[icol];
     else combined += item;
     ++icol;
   }
@@ -216,18 +216,23 @@ void DumpGrid::init_style()
   for (const auto &word : words) {
     delete[] vformat[i];
 
+    std::string colformat;
     if (format_column_user[i])
-      vformat[i] = utils::strdup(std::string(format_column_user[i]) + " ");
+      colformat = format_column_user[i];
     else if (vtype[i] == Dump::INT && format_int_user)
-      vformat[i] = utils::strdup(std::string(format_int_user) + " ");
+      colformat = format_int_user;
     else if (vtype[i] == Dump::DOUBLE && format_float_user)
-      vformat[i] = utils::strdup(std::string(format_float_user) + " ");
+      colformat = format_float_user;
     else if (vtype[i] == Dump::BIGINT && format_bigint_user)
-      vformat[i] = utils::strdup(std::string(format_bigint_user) + " ");
-    else vformat[i] = utils::strdup(word + " ");
+      colformat = format_bigint_user;
+    else colformat = word;
 
-    // remove trailing blank on last column's format
-    if (i == nfield-1) vformat[i][strlen(vformat[i])-1] = '\0';
+    // the format may come from the user, so check it against the column type
+    check_column_format(colformat, vtype[i], i);
+
+    // add trailing blank, but not on the last column's format
+    if (i < nfield-1) colformat += " ";
+    vformat[i] = utils::strdup(colformat);
 
     ++i;
   }
@@ -767,23 +772,20 @@ int DumpGrid::modify_param(int narg, char **arg)
     if (narg < 3) error->all(FLERR,"Illegal dump_modify command");
 
     if (strcmp(arg[1],"int") == 0) {
+      auto errmsg = utils::check_format(arg[2], utils::FmtArg::INTEGER);
+      if (!errmsg.empty())
+        error->all(FLERR, "Invalid dump_modify int format: {}", errmsg);
       delete[] format_int_user;
       format_int_user = utils::strdup(arg[2]);
+      // derive the format for large integers from the one given by the user
       delete[] format_bigint_user;
-      int n = strlen(format_int_user) + 8;
-      format_bigint_user = new char[n];
-      // replace "d" in format_int_user with bigint format specifier
-      // use of &str[1] removes leading '%' from BIGINT_FORMAT string
-      char *ptr = strchr(format_int_user,'d');
-      if (ptr == nullptr)
-        error->all(FLERR,"Dump_modify int format does not contain d character");
-      char str[8];
-      snprintf(str,8,"%s",BIGINT_FORMAT);
-      *ptr = '\0';
-      snprintf(format_bigint_user,n,"%s%s%s",format_int_user,&str[1],ptr+1);
-      *ptr = 'd';
+      format_bigint_user =
+        utils::strdup(utils::adjust_format(arg[2], utils::FmtArg::BIGINT));
 
     } else if (strcmp(arg[1],"float") == 0) {
+      auto errmsg = utils::check_format(arg[2], utils::FmtArg::FLOAT);
+      if (!errmsg.empty())
+        error->all(FLERR, "Invalid dump_modify float format: {}", errmsg);
       delete[] format_float_user;
       format_float_user = utils::strdup(arg[2]);
 
@@ -791,6 +793,9 @@ int DumpGrid::modify_param(int narg, char **arg)
       int i = utils::inumeric(FLERR,arg[1],false,lmp) - 1;
       if (i < 0 || i >= nfield)
         error->all(FLERR,"Illegal dump_modify command");
+      auto errmsg = utils::check_format(arg[2], fmtarg_type(vtype[i]));
+      if (!errmsg.empty())
+        error->all(FLERR, "Invalid dump_modify format for column {}: {}", i + 1, errmsg);
       delete[] format_column_user[i];
       format_column_user[i] = utils::strdup(arg[2]);
     }

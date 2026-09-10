@@ -1,0 +1,29 @@
+# Rigid-body test: several consecutive run commands
+# Exercises the 2nd/3rd-run path, where the bodies are re-derived on the host
+# (reinit defaults to yes) after a preceding run left the state on the device.
+# Compare non-Kokkos and Kokkos, and run on >1 MPI rank:
+#   mpirun -np 4 lmp -in in.rigid.cubes.multirun
+#   mpirun -np 4 lmp -k on t 1 -sf kk -in in.rigid.cubes.multirun
+
+units           lj
+atom_style      molecular
+atom_modify     map array
+
+read_data       data.rigid.cubes
+
+pair_style      lj/cut 2.5
+pair_coeff      1 1 1.0 1.0
+
+neigh_modify    exclude molecule/intra all
+
+velocity        all create 1.5 4928459 mom yes rot yes
+
+fix             1 all rigid/small molecule
+
+thermo_style    custom step temp pe ke etotal
+thermo          500
+timestep        0.0005
+
+run             1000
+run             1000
+run             1000

@@ -228,7 +228,7 @@ FixColvars::~FixColvars()
 
   memory->sfree(comm_buf);
 
-  if (proxy) delete proxy;
+  delete proxy;
   if (root2root != MPI_COMM_NULL) MPI_Comm_free(&root2root);
   --instances;
 }
@@ -369,7 +369,7 @@ int FixColvars::modify_param(int narg, char **arg)
     // Run the command through Colvars
     error_code |= script->run(narg+1, script_args);
     std::string const result = proxy->get_error_msgs() + script->str_result();
-    if (result.size()) utils::logmesg(lmp, result);
+    if (!result.empty()) utils::logmesg(lmp, result);
     setup_colvars();
     // free allocated memory
     for (int i = 0; i < narg; i++) memory->sfree(script_args[i+1]);
@@ -443,7 +443,6 @@ void FixColvars::setup(int vflag)
   if (me == 0) {
     std::vector<int>           &tp = *(proxy->modify_atom_types());
     std::vector<cvm::atom_pos> &cd = *(proxy->modify_atom_positions());
-    std::vector<cvm::rvector>  &of = *(proxy->modify_atom_total_forces());
     std::vector<cvm::real>     &m  = *(proxy->modify_atom_masses());
     std::vector<cvm::real>     &q  = *(proxy->modify_atom_charges());
 
@@ -452,7 +451,7 @@ void FixColvars::setup(int vflag)
     for (i=0; i<num_coords; ++i) {
       const tagint k = atom->map(taglist[i]);
       if ((k >= 0) && (k < nlocal)) {
-        of[i].x = of[i].y = of[i].z = 0.0;
+
         if (unwrap_flag) {
           const int ix = (image[k] & IMGMASK) - IMGMAX;
           const int iy = (image[k] >> IMGBITS & IMGMASK) - IMGMAX;
@@ -491,10 +490,14 @@ void FixColvars::setup(int vflag)
           cd[j].z = comm_buf[k].z;
           m[j] = comm_buf[k].m;
           q[j] = comm_buf[k].q;
-          of[j].x = of[j].y = of[j].z = 0.0;
         }
       }
     }
+
+    if (proxy->total_forces_enabled()) {
+      proxy->set_total_forces_invalid();
+    }
+
   } else { // me != 0
     // copy coordinate data into communication buffer
     nme = 0;
@@ -757,6 +760,11 @@ void FixColvars::end_of_step()
           }
         }
       }
+
+      if (proxy->total_forces_enabled()) {
+        proxy->set_total_forces_valid();
+      }
+
     } else { // me != 0
       /* copy total force data into communication buffer */
       nme = 0;
@@ -774,6 +782,7 @@ void FixColvars::end_of_step()
       MPI_Recv(&tmp, 0, MPI_INT, 0, 0, world, MPI_STATUS_IGNORE);
       MPI_Rsend(comm_buf, nme*size_one, MPI_BYTE, 0, 0, world);
     }
+
   }
 }
 
@@ -783,7 +792,7 @@ void FixColvars::write_restart(FILE *fp)
 {
   if (comm->me == 0) {
     cvm::memory_stream ms;
-    if (proxy->colvars->write_state(ms)) {
+    if (proxy->cvmodule->write_state(ms)) {
       int len_cv_state = ms.length();
       // Will write the buffer's length twice, so that the fix can read it later, too
       int len = len_cv_state + sizeof(int);
@@ -802,7 +811,7 @@ void FixColvars::restart(char *buf)
     // Read the buffer's length, then load it into Colvars starting right past that location
     int length = *(reinterpret_cast<int *>(buf));
     auto *colvars_state_buffer = reinterpret_cast<unsigned char *>(buf + sizeof(int));
-    if (proxy->colvars->set_input_state_buffer(length, colvars_state_buffer) != COLVARS_OK)
+    if (proxy->cvmodule->set_input_state_buffer(length, colvars_state_buffer) != COLVARS_OK)
       error->all(FLERR, "Failed to set the Colvars input state from string buffer");
   }
 }
@@ -813,7 +822,7 @@ void FixColvars::post_run()
 {
   if (comm->me == 0) {
     proxy->post_run();
-    if (lmp->citeme) lmp->citeme->add(proxy->colvars->feature_report(1));
+    if (lmp->citeme) lmp->citeme->add(proxy->cvmodule->feature_report(1));
   }
 }
 
@@ -831,7 +840,7 @@ void FixColvars::setup_colvars()
   int sizes_array[2];
   if (comm->me == 0) {
     proxy->parse_module_config();
-    const auto& variables = *proxy->colvars->variables();
+    const auto& variables = *proxy->cvmodule->variables();
     size_array_rows = variables.size();
     size_array_cols = 0;
     for ( int m=0 ; m<size_array_rows; m++ ) {
@@ -853,7 +862,7 @@ double FixColvars::compute_array(int m, int n)
 {
   double value = 0.0;
   if (comm->me == 0) {
-    const auto& variables = *proxy->colvars->variables();
+    const auto& variables = *proxy->cvmodule->variables();
     if (m >= (int)variables.size()) {
       error->all(FLERR, Error::NOLASTLINE, "f_{}[{}][{}] out-of-bounds: {} collective variables "
                  "available.", id, m+1, n+1, variables.size());

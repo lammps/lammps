@@ -914,7 +914,7 @@ void FixAveTime::invoke_vector(bigint ntimestep)
 
 int FixAveTime::column_length(int dynamic)
 {
-  int length,lengthone;
+  int length,lengthone = 0;
 
   // determine nrows for static values
 
@@ -974,7 +974,7 @@ int FixAveTime::column_length(int dynamic)
 
 double FixAveTime::compute_scalar()
 {
-  if (norm) return vector_total[0]/norm;
+  if (norm) return vector_total ? vector_total[0]/norm : 0.0;
   return 0.0;
 }
 
@@ -986,8 +986,8 @@ double FixAveTime::compute_vector(int i)
 {
   if (i >= nrows) return 0.0;
   if (norm) {
-    if (mode == SCALAR) return vector_total[i]/norm;
-    if (mode == VECTOR) return array_total[i][0]/norm;
+    if (mode == SCALAR) return vector_total ? vector_total[i]/norm : 0.0;
+    if (mode == VECTOR) return array_total ? array_total[i][0]/norm : 0.0;
   }
   return 0.0;
 }
@@ -999,7 +999,7 @@ double FixAveTime::compute_vector(int i)
 double FixAveTime::compute_array(int i, int j)
 {
   if (i >= nrows) return 0.0;
-  if (norm) return array_total[i][j]/norm;
+  if (norm) return array_total ? array_total[i][j]/norm : 0.0;
   return 0.0;
 }
 
@@ -1073,6 +1073,9 @@ void FixAveTime::options(int iarg, int narg, char **arg)
       iarg += 1;
     } else if (strcmp(arg[iarg],"format") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix ave/time format", error);
+      auto errmsg = utils::check_format(arg[iarg+1], utils::FmtArg::FLOAT);
+      if (!errmsg.empty())
+        error->all(FLERR, iarg+1, "Invalid fix ave/time format argument: {}", errmsg);
       delete[] format;
       format = utils::strdup(arg[iarg+1]);
       iarg += 2;

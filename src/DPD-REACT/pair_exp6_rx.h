@@ -37,16 +37,19 @@ class PairExp6rx : public Pair {
   void read_restart(FILE *) override;
   void write_restart_settings(FILE *) override;
   void read_restart_settings(FILE *) override;
+  double memory_usage() override;
 
+  // If the storage type for this changes, the method genParamMpiDatatype() MUST change!
+  enum class PotentialType : int { UNKNOWN, exp6 };
   struct Param {
     double epsilon, rm, alpha;
     int ispecies;
-    char *name, *potential;    // names of unique molecules and interaction type
-    char *tablename;           // name of interaction table
-    int potentialType;         // enumerated interaction potential type.
+    PotentialType potentialType;
   };
 
  protected:
+  class FixRX *rx_fix;
+
   enum { LINEAR };
   enum { NONE, EXPONENT, POLYNOMIAL };
   double cut_global;
@@ -57,11 +60,13 @@ class PairExp6rx : public Pair {
   virtual void allocate();
   int *mol2param;    // mapping from molecule to parameters
   int nparams;       // # of stored parameter sets
-  int maxparam;      // max # of parameter sets
   Param *params;     // parameter set for an I-J-K interaction
 
   int nspecies;
-  virtual void read_file(char *);
+  void read_file(char *);
+  virtual void initialize_exp6_params_array();
+  virtual void grow_exp6_params_array(int old_size, int new_size);
+
   void read_file2(char *);
 
   int isite1, isite2;
@@ -75,6 +80,12 @@ class PairExp6rx : public Pair {
   void polynomialScaling(double, double &, double &, double &) const;
   double *coeffAlpha, *coeffEps, *coeffRm;
   bool fractionalWeighting;
+
+  int nmax_exp6;
+  double *exp6_epsilon1, *exp6_alpha1, *exp6_rm1, *exp6_mixWtSite1;
+  double *exp6_epsilon2, *exp6_alpha2, *exp6_rm2, *exp6_mixWtSite2;
+  double *exp6_epsilonOld1, *exp6_alphaOld1, *exp6_rmOld1, *exp6_mixWtSite1old;
+  double *exp6_epsilonOld2, *exp6_alphaOld2, *exp6_rmOld2, *exp6_mixWtSite2old;
 
   [[nodiscard]] double func_rin(const double &) const;
   [[nodiscard]] double expValue(const double) const;

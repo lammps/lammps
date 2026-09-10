@@ -110,6 +110,14 @@ class PairPACEExtrapolationKokkos : public PairPACEExtrapolation {
   int inum, maxneigh, chunk_size, chunk_offset, idx_ms_combs_max, total_num_functions_max, idx_sph_max;
   int host_flag;
 
+  // team scratch memory level used by the ComputeNeigh short neighbor list
+  // build, chosen from the base class neigh_scratch_request (the "neigh"
+  // pair_style keyword) and what the device can actually provide
+  int neigh_scratch_level;    // level actually used by ComputeNeigh (0 or 1)
+  int neigh_scratch_warned;   // whether the auto-fallback warning was printed
+
+  int neigh_scratch_level_select(int scratch_size, int max_level0);
+
   int eflag, vflag;
 
   int neighflag, max_ndensity;

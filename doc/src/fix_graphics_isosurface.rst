@@ -252,10 +252,13 @@ Related commands
 """"""""""""""""
 
 :doc:`fix graphics/arrows <fix_graphics_arrows>`,
+:doc:`fix graphics/chunk <fix_graphics_chunk>`,
 :doc:`fix graphics/labels <fix_graphics_labels>`,
 :doc:`fix graphics/lines <fix_graphics_lines>`,
 :doc:`fix graphics/objects <fix_graphics_objects>`,
 :doc:`fix graphics/periodic <fix_graphics_periodic>`,
+:doc:`fix graphics/replica <fix_graphics_replica>`,
+:doc:`dump image <dump_image>`
 
 Defaults
 """"""""

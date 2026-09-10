@@ -39,6 +39,7 @@ class ComputeCOMChunk : public ComputeChunk {
   double **com, **comall;
   bool wrapflag;
 
+ protected:
   void allocate() override;
 };
 }    // namespace LAMMPS_NS

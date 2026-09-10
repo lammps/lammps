@@ -33,7 +33,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-ImproperDistance::ImproperDistance(LAMMPS *lmp) : Improper(lmp)
+ImproperDistance::ImproperDistance(LAMMPS *lmp) : Improper(lmp), k(nullptr), chi(nullptr)
 {
   // the first atom in the quadruplet is the atom of symmetry
 
@@ -44,6 +44,8 @@ ImproperDistance::ImproperDistance(LAMMPS *lmp) : Improper(lmp)
 
 ImproperDistance::~ImproperDistance()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(k);

@@ -1,11 +1,19 @@
 .. index:: pair_style lj/switch3/coulgauss/long
+.. index:: pair_style lj/switch3/coulgauss/long/kk
+.. index:: pair_style lj/switch3/coulgauss/long/omp
 .. index:: pair_style mm3/switch3/coulgauss/long
+.. index:: pair_style mm3/switch3/coulgauss/long/kk
+.. index:: pair_style mm3/switch3/coulgauss/long/omp
 
 pair_style lj/switch3/coulgauss/long command
 ============================================
 
+Accelerator Variants: *lj/switch3/coulgauss/long/kk*, *lj/switch3/coulgauss/long/omp*
+
 pair_style mm3/switch3/coulgauss/long command
 =============================================
+
+Accelerator Variants: *mm3/switch3/coulgauss/long/kk*, *mm3/switch3/coulgauss/long/omp*
 
 Syntax
 """"""
@@ -106,6 +114,10 @@ commands:
 
 ----------
 
+.. include:: accel_styles.rst
+
+----------
+
 Mixing, shift, table, tail correction, restart, rRESPA info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
@@ -121,7 +133,7 @@ These pair styles support the :doc:`pair_modify <pair_modify>` table and
 options since they can tabulate the short-range portion of the
 long-range Coulombic interactions.
 
-Thes pair styles do not support the :doc:`pair_modify <pair_modify>`
+These pair styles do not support the :doc:`pair_modify <pair_modify>`
 tail option for adding a long-range tail correction to the
 Lennard-Jones portion of the energy and pressure.
 

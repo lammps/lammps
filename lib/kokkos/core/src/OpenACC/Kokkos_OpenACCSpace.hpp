@@ -26,7 +26,8 @@ class OpenACCSpace {
   using execution_space = OpenACC;
   using device_type     = Kokkos::Device<execution_space, memory_space>;
 
-  using size_type = size_t;
+  using size_type  = size_t;
+  using index_type = std::make_signed_t<size_type>;
 
   OpenACCSpace() = default;
 
@@ -79,7 +80,6 @@ struct Kokkos::Impl::MemorySpaceAccess<Kokkos::HostSpace,
   enum : bool { assignable = false };
   enum : bool { accessible = false };
 #endif
-  enum : bool { deepcopy = true };
 };
 
 template <>
@@ -92,7 +92,6 @@ struct Kokkos::Impl::MemorySpaceAccess<Kokkos::Experimental::OpenACCSpace,
   enum : bool { assignable = false };
   enum : bool { accessible = false };
 #endif
-  enum : bool { deepcopy = true };
 };
 
 template <>
@@ -100,7 +99,6 @@ struct Kokkos::Impl::MemorySpaceAccess<Kokkos::Experimental::OpenACCSpace,
                                        Kokkos::Experimental::OpenACCSpace> {
   enum : bool { assignable = true };
   enum : bool { accessible = true };
-  enum : bool { deepcopy = true };
 };
 /*--------------------------------------------------------------------------*/
 

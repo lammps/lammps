@@ -9,6 +9,15 @@
 #endif
 
 #include <impl/Kokkos_Half_FloatingPointWrapper.hpp>
+#ifdef KOKKOS_ENABLE_CUDA
+#include <Cuda/Kokkos_Cuda_Half_Conversion.hpp>
+#endif
+#ifdef KOKKOS_ENABLE_HIP
+#include <HIP/Kokkos_HIP_Half_Conversion.hpp>
+#endif
+#ifdef KOKKOS_ENABLE_SYCL
+#include <SYCL/Kokkos_SYCL_Half_Conversion.hpp>
+#endif
 #include <impl/Kokkos_Half_NumericTraits.hpp>
 #include <impl/Kokkos_Half_ReductionIdentity.hpp>
 #include <impl/Kokkos_Half_MathematicalFunctions.hpp>

@@ -21,6 +21,7 @@ FixStyle(eos/table/rx,FixEOStableRX);
 #define LMP_FIX_EOS_TABLE_RX_H
 
 #include "fix.h"
+#include "rx_table_file_reader.h"
 
 namespace LAMMPS_NS {
 
@@ -59,17 +60,17 @@ class FixEOStableRX : public Fix {
   void spline_table(Table *);
   void compute_table(Table *);
 
-  void param_extract(Table *, char *);
+  void param_extract(RxTableFileReader &, Table *);
   void spline(double *, double *, int, double, double, double *);
   double splint(double *, double *, double *, int, double);
 
   int nspecies;
+  class FixRX *rx_fix;
 
   void read_file(char *);
 
   double *dHf, *energyCorr, *tempCorrCoeff, *moleculeCorrCoeff;
   int *eosSpecies;
-  int ncolumn;
   bool rx_flag;
 
  public:

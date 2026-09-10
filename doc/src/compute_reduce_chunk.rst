@@ -100,7 +100,8 @@ array with 3 columns:
 
 Here is an example of using this compute, in conjunction with the
 compute chunk/spread/atom command to identify self-assembled micelles.
-The commands below can be added to the examples/in.micelle script.
+The commands below can be added to the ``examples/micelle/in.micelle``
+script.
 
 Imagine a collection of polymer chains or small molecules with
 hydrophobic end groups.  All the hydrophobic (HP) atoms are assigned

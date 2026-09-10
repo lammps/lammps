@@ -1,4 +1,20 @@
-[![Kokkos](https://avatars2.githubusercontent.com/u/10199860?s=200&v=4)](https://kokkos.org)
+
+<div align="center">
+
+[<img src="https://github.com/kokkos/kokkos.github.io/blob/main/assets/img/kokkos-logo.png" width="50%">](https://kokkos.org)
+
+</div>
+
+<div align="center">
+
+[<img src="https://github.com/hpsfoundation/hpsf-logos/blob/main/Logos/PNG/Horizontal/HPSF_horizontal-tagline-color.png"
+  width="23%" style="vertical-align: middle;">](https://hpsf.io)&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;
+[<img src="https://github.com/hpsfoundation/hpsf-logos/blob/main/Badges/HPSF_Project_Badge_Established.png?raw=true"
+  width="8%" style="vertical-align: middle;">](https://hpsf.io/projects/#tab-established)&emsp;&emsp;&emsp;&emsp;&emsp;&emsp;
+[<img src="https://www.linuxfoundation.org/hubfs/lf-stacked-color.svg"
+  width="23%" style="vertical-align: middle;">](https://linuxfoundation.org)
+
+</div>
 
 [![OpenSSF Best Practices](https://www.bestpractices.dev/projects/9344/badge)](https://www.bestpractices.dev/projects/9344)
 
@@ -32,14 +48,14 @@ To start learning about Kokkos:
 
 The latest release of Kokkos can be obtained from the [GitHub releases page](https://github.com/kokkos/kokkos/releases/latest).
 
-The current release is [5.0.2](https://github.com/kokkos/kokkos/releases/tag/5.0.2).
+The current release is [5.2.0](https://github.com/kokkos/kokkos/releases/tag/5.2.0).
 
 ```bash
-curl -OJ -L https://github.com/kokkos/kokkos/releases/download/5.0.2/kokkos-5.0.2.tar.gz
+curl -OJ -L https://github.com/kokkos/kokkos/releases/download/5.2.0/kokkos-5.2.0.tar.gz
 # Or with wget
-wget https://github.com/kokkos/kokkos/releases/download/5.0.2/kokkos-5.0.2.tar.gz
+wget https://github.com/kokkos/kokkos/releases/download/5.2.0/kokkos-5.2.0.tar.gz
 # Or with git
-git clone --depth=2 --branch 5.0.2 https://github.com/kokkos/kokkos.git
+git clone --depth=2 --branch 5.2.0 https://github.com/kokkos/kokkos.git
 ```
 
 To clone the latest development version of Kokkos from GitHub:

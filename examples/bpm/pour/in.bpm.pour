@@ -37,4 +37,11 @@ thermo          100
 #dump            2 all local 500 bondDump c_bond_ids[*] c_bond_properties[*]
 #dump_modify     2 colname 1 "id1" colname 2 "id2" colname 3 "r" colname 4 "r0"
 
+#dump            viz  all  image 250 bpm.pour-*.ppm mol type  bond atom type &
+#                size 500 800 zoom 1.75  view 80 10 box no 0.025 &
+#                shiny 0.6  fsaa yes ssao no 453983 0.6 region wall_cyl silver transparent 0.25
+#dump_modify     viz pad 6 boxcolor gray backcolor black backcolor2 white &
+#                amap 1 500 sa 1.0 8 &
+#                firebrick gold forestgreen darkcyan orange midnightblue purple darkgray
+
 run             100000

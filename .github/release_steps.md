@@ -42,6 +42,9 @@ https://downloads.lammps.org/analysis/
 If needed, a bug-fix pull request should be created and merged to clear
 pending issues.
 
+As of July 4th, 2026 the post-merge test results are summarized on
+the LAMMPS Testing Dashboard at: https://lammps.github.io/lammps-test-results/
+
 ### Create release on GitHub
 
 When all pending pull requests for the release are merged and have
@@ -122,7 +125,7 @@ cd release-packages
 wget https://download.lammps.org/static/fedora41_musl_mingw.sif
 apptainer shell fedora41_musl_mingw.sif
 git clone -b release --depth 10 https://github.com/lammps/lammps.git lammps-release
-cmake -S lammps-release/cmake -B build-release -G Ninja -D CMAKE_INSTALL_PREFIX=$PWD/lammps-static -D CMAKE_TOOLCHAIN_FILE=/usr/musl/share/cmake/linux-musl.cmake -C lammps-release/cmake/presets/most.cmake -C lammps-release/cmake/presets/kokkos-openmp.cmake -D DOWNLOAD_POTENTIALS=OFF -D BUILD_MPI=OFF -D BUILD_TESTING=OFF -D CMAKE_BUILD_TYPE=Release -D PKG_ATC=ON -D PKG_AWPMD=ON -D PKG_MANIFOLD=ON -D PKG_MESONT=ON -D PKG_MGPT=ON -D PKG_ML-PACE=ON -D PKG_ML-RANN=ON -D PKG_MOLFILE=ON -D PKG_PTM=ON -D PKG_QTB=ON -D PKG_SMTBQ=ON
+cmake -S lammps-release/cmake -B build-release -G Ninja -D CMAKE_INSTALL_PREFIX=$PWD/lammps-static -D CMAKE_TOOLCHAIN_FILE=/usr/musl/share/cmake/linux-musl.cmake -C lammps-release/cmake/presets/most.cmake -C lammps-release/cmake/presets/kokkos-openmp.cmake -D DOWNLOAD_POTENTIALS=OFF -D BUILD_MPI=OFF -D BUILD_TESTING=OFF -D CMAKE_BUILD_TYPE=Release -D PKG_ATC=ON -D PKG_AWPMD=ON -D PKG_MANIFOLD=ON -D PKG_MESONT=ON -D PKG_MGPT=ON -D PKG_ML-PACE=ON -D PKG_ML-RANN=ON -D PKG_MOLFILE=ON -D PKG_PTM=ON -D PKG_QTB=ON -D PKG_SMTBQ=ON -D PREFER_INTERNAL_LINALG=ON
 cmake --build build-release --target all
 cmake --build build-release --target install
 /usr/musl/bin/x86_64-linux-musl-strip -g lammps-static/bin/*
@@ -141,19 +144,10 @@ gh release upload patch_4Feb2025 lammps-linux-x86_64-4Feb2025.tar.gz
 
 Make sure you have the `flatpak` and `flatpak-builder` packages
 installed locally (they require binaries that run with elevated
-privileges and thus cannot be used from the container) and build a
-LAMMPS and LAMMPS-GUI flatpak bundle in the `release-packages` folder
-with:
-
-``` sh
-cd release-packages
-flatpak --user remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
-flatpak-builder  --force-clean --verbose --repo=$PWD/flatpak-repo --install-deps-from=flathub --state-dir=$PWD --user --ccache --default-branch=release flatpak-build lammps-release/tools/lammps-gui/org.lammps.lammps-gui.yml
-flatpak build-bundle --runtime-repo=https://flathub.org/repo/flathub.flatpakrepo --verbose $PWD/flatpak-repo ../LAMMPS-Linux-x86_64-GUI-4Feb2025.flatpak org.lammps.lammps-gui release
-cd ..
-```
-
-The resulting flatpak bundle file can be uploaded to the GitHub release page with:
+privileges and thus cannot be used from the container). To build
+a LAMMPS and LAMMPS-GUI flatpak bundle go to a regular Linux
+build folder and type: `make flatpak`. The resulting flatpak
+bundle file can be uploaded to the GitHub release page with:
 
 ``` sh
 gh release upload patch_4Feb2025 LAMMPS-Linux-x86_64-GUI-4Feb2025.flatpak
@@ -161,28 +155,10 @@ gh release upload patch_4Feb2025 LAMMPS-Linux-x86_64-GUI-4Feb2025.flatpak
 
 #### LAMMPS Source tarball
 
-The container for the static binary can also be used to prepare the source
-tarball including the HTML and PDF manual (this is currently done automatically
-when the releases is created and the tarball uploaded to https://download.lammps.org/tars/).
-The steps are as follows:
-
-``` sh
-cd release-packages
-apptainer shell fedora41_musl_mingw.sif
-cd lammps-release
-rm -f ../release.tar*
-git archive --output=../release.tar --prefix=lammps-4Feb2025/ HEAD
-cd doc
-make clean-all
-make html pdf
-tar -rf ../../release.tar --transform 's,^,lammps-4Feb2025/doc/,' html Manual.pdf
-gzip -9v ../../release.tar
-mv ../../release.tar.gz ../../lammps-src-4Feb2025.tar.gz
-exit # fedora41 container
-cd ..
-```
-
-The resulting source tarball can be uploaded to the GitHub release page with:
+The Linux build folder can also be used to prepare the source tarball
+including the HTML and PDF manual by typing: `make tarball`.  The
+resulting source tarball can be uploaded to the GitHub release page
+with:
 
 ``` sh
 gh release upload patch_4Feb2025 lammps-src-4Feb2025.tar.gz
@@ -214,23 +190,8 @@ attached to the GitHub release page.
 
 #### LAMMPS Online Manual
 
-Creating the online docs requires setting some environment variables to have
-the extra box at the bottom of the navigation bar included that allows to
-switch between release, stable, and develop branch versions of the manual.
-Also the search box should use Google search instead of the javascript search.
-
-``` sh
-cd lammps-release
-make -C doc clean
-make -C doc upgrade
-env LAMMPS_WEBSITE_BUILD=1 LAMMPS_WEBSITE_BUILD_VERSION=release LAMMPS_WEBSITE_BASEURL="https://docs.lammps.org/" \
-    make -C doc html WEB_SEARCH=YES
-make -C doc pdf
-mv doc/Manual.pdf doc/html
-rsync -arpv doc/html/ www.lammps.org:/var/www/lammps/docs/release-new
-
-Then log into www.lammps.org and move the current folder away and
-the new folder in its place and update permissions.
+The online manual pages are now automatically updated by the scripts in
+the [lammps-docs](https://github.com/lammps/lammps-docs/) repository.
 
 #### Clean up:
 
@@ -264,26 +225,23 @@ and installed (e.g. to `$HOME/.local`) as static libraries only:
 - zlib
 - png
 - voro++ (for VORONOI package)
-- Qt (for LAMMPS-GUI)
+- Qt 6.x (for LAMMPS-GUI)
 
-When configuring LAMMPS the `cmake/presets/clang.cmake` should be used
-and as many packages as possible enabled. For LAMMPS-GUI, MPI should be
-disabled with `-D BUILD_MPI=OFF` and LAMMPS-GUI enabled with 
-`-D BUILD_LAMMPS_GUI=ON`.  If the CMake configuration is successful,
+When configuring LAMMPS the `cmake/presets/macos-multiarch.cmake` should
+be used (it sets the CMake variables from above automatically) and as
+many packages as possible enabled. For LAMMPS-GUI, MPI should be
+disabled with `-D BUILD_MPI=OFF` and LAMMPS-GUI enabled with `-D
+BUILD_LAMMPS_GUI=ON`.  If the CMake configuration is successful,
 settings for building a macOS app-bundle are enabled and with `cmake
 --build build --target dmg` extra steps will be executed that will build
 a macOS application installer image under the name
-`LAMMPS_GUI-macOS-multiarch-4Feb2025.dmg`
+`LAMMPS-macOS-multiarch-GUI-4Feb2025.dmg`
 
 The application image can be uploaded to the GitHub release page with:
 
 ``` sh
-ln -sf LAMMPS_GUI-macOS-multiarch-4Feb2025.dmg LAMMPS-macOS-multiarch-GUI-4Feb2025.dmg
 gh release upload patch_4Feb2025 LAMMPS-macOS-multiarch-GUI-4Feb2025.dmg
 ```
-
-The symbolic link is used to have a consistent naming scheme for the packages
-attached to the GitHub release page.
 
 We are currently building the application images on macOS 12 (aka Monterey).
 

@@ -45,8 +45,7 @@ FixMomentumChunk::FixMomentumChunk(LAMMPS *lmp, int narg, char **arg) :
   if (nevery <= 0) error->all(FLERR,"Illegal fix momentum/chunk command");
 
   id_chunk = arg[4];
-  int icompute = modify->find_compute(id_chunk);
-  if (icompute < 0)
+  if (!modify->get_compute_by_id(id_chunk))
     error->all(FLERR,"Chunk/atom compute does not exist for fix momentum/chunk");
 
   id_com.clear();
@@ -107,38 +106,32 @@ void FixMomentumChunk::init()
 {
   // current indices for idchunk and idcom
 
-  int icompute = modify->find_compute(id_chunk);
-  if (icompute < 0)
+  auto *ccompute = modify->get_compute_by_id(id_chunk);
+  if (!ccompute)
     error->all(FLERR,"Chunk/atom compute does not exist for fix momentum/chunk");
-  cchunk = dynamic_cast<ComputeChunkAtom *>(modify->compute[icompute]);
+  cchunk = dynamic_cast<ComputeChunkAtom *>(ccompute);
   if (strcmp(cchunk->style,"chunk/atom") != 0)
     error->all(FLERR,"Fix momentum/chunk does not use chunk/atom compute");
 
   // create computes dependent on chunks
 
   id_com = id + id_chunk + "_com";
-  icompute = modify->find_compute(id_com);
-  if (icompute >= 0) modify->delete_compute(id_com);
+  if (modify->get_compute_by_id(id_com)) modify->delete_compute(id_com);
   auto cmd = fmt::format("{} {} com/chunk {}",id_com,group->names[igroup],id_chunk);
   modify->add_compute(cmd);
-  icompute = modify->find_compute(id_com);
-  ccom = dynamic_cast<ComputeCOMChunk *>(modify->compute[icompute]);
+  ccom = dynamic_cast<ComputeCOMChunk *>(modify->get_compute_by_id(id_com));
 
   id_vcm = id + id_chunk + "_vcm";
-  icompute = modify->find_compute(id_vcm);
-  if (icompute >= 0) modify->delete_compute(id_vcm);
+  if (modify->get_compute_by_id(id_vcm)) modify->delete_compute(id_vcm);
   cmd = fmt::format("{} {} vcm/chunk {}",id_vcm,group->names[igroup],id_chunk);
   modify->add_compute(cmd);
-  icompute = modify->find_compute(id_vcm);
-  cvcm = modify->compute[icompute];
+  cvcm = modify->get_compute_by_id(id_vcm);
 
   id_omega = id + id_chunk + "_omega";
-  icompute = modify->find_compute(id_omega);
-  if (icompute >= 0) modify->delete_compute(id_omega);
+  if (modify->get_compute_by_id(id_omega)) modify->delete_compute(id_omega);
   cmd = fmt::format("{} {} omega/chunk {}",id_omega,group->names[igroup],id_chunk);
   modify->add_compute(cmd);
-  icompute = modify->find_compute(id_omega);
-  comega = modify->compute[icompute];
+  comega = modify->get_compute_by_id(id_omega);
 }
 
 /* ---------------------------------------------------------------------- */

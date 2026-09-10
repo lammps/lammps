@@ -41,12 +41,15 @@ class PairMesoCNT : public Pair {
 
   int pack_forward_comm(int, int *, double *, int, int *) override;
   void unpack_forward_comm(int, int, double *) override;
+  double memory_usage() override;
 
  protected:
   int nend_types;
   int uinf_points, gamma_points, phi_points, usemi_points;
   int *end_types, *reduced_nlist, *numchainlist, *selfid;
   int **reduced_neighlist, **nchainlist, **endlist, **selfpos;
+  int **special_local_topo;
+  int nmax_mesocnt;
   int ***chainlist;
 
   bool segment_flag, neigh_flag;

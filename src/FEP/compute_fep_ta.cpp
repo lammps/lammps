@@ -513,3 +513,17 @@ void ComputeFEPTA::restore_xfev()
     }
   }
 }
+
+/* ---------------------------------------------------------------------- */
+
+double ComputeFEPTA::memory_usage()
+{
+  double bytes = (double) nmax * 3 * 2 * sizeof(double);    // x_orig + f_orig [nmax][3]
+  bytes += (double) nmax * sizeof(double);                  // peatom_orig[nmax]
+  bytes += (double) nmax * 6 * sizeof(double);              // pvatom_orig[nmax][6]
+  if (keatom_orig) {
+    bytes += (double) nmax * sizeof(double);                // keatom_orig[nmax]
+    bytes += (double) nmax * 6 * sizeof(double);            // kvatom_orig[nmax][6]
+  }
+  return bytes;
+}

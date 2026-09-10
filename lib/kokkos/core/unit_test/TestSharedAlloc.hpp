@@ -82,7 +82,7 @@ void test_shared_alloc() {
     // by RecordBase::decrement) fences all execution space instances. If this
     // is a parallel_for, the test can hang with the parallel_for blocking
     // waiting for itself to complete.
-    for (size_t i = range.begin(); i < range.end(); ++i) {
+    for (auto i = range.begin(); i < range.end(); ++i) {
       while (nullptr !=
              (r[i] = static_cast<RecordMemS*>(RecordBase::decrement(r[i])))) {
 #ifdef KOKKOS_ENABLE_DEBUG
@@ -127,7 +127,7 @@ void test_shared_alloc() {
     // by RecordBase::decrement) fences all execution space instances. If this
     // is a parallel_for, the test can hang with the parallel_for blocking
     // waiting for itself to complete.
-    for (size_t i = range.begin(); i < range.end(); ++i) {
+    for (auto i = range.begin(); i < range.end(); ++i) {
       while (nullptr !=
              (r[i] = static_cast<RecordMemS*>(RecordBase::decrement(r[i])))) {
 #ifdef KOKKOS_ENABLE_DEBUG

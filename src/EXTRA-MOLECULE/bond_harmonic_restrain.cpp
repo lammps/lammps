@@ -40,6 +40,7 @@ BondHarmonicRestrain::BondHarmonicRestrain(LAMMPS *_lmp) : Bond(_lmp), k(nullptr
 
 BondHarmonicRestrain::~BondHarmonicRestrain()
 {
+  if (copymode) return;
   if (initial) modify->delete_fix("BOND_RESTRAIN_X0");
   if (allocated) {
     memory->destroy(setflag);

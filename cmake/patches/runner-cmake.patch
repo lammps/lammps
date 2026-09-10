@@ -1,0 +1,22 @@
+diff --git a/build_system/check_git.sh b/build_system/check_git.sh
+index b53fc5a..4d85fd2 100755
+--- a/build_system/check_git.sh
++++ b/build_system/check_git.sh
+@@ -55,7 +55,7 @@ fi
+ #    GIT%COMMIT = "<commit_hash>"
+ # to stdout.
+ if 
+-   ! $GIT log HEAD -n 1 --format=format:"GIT%COMMIT = \"%H\"%n" --not --show-signature 2> /dev/null;
++   ! $GIT log HEAD -n 1 --format=format:"GIT%COMMIT = \"%H\"%n" --no-show-signature 2> /dev/null;
+ then 
+    echo "GIT%COMMIT = \"N/A ('$GIT log' failed)\"";
+ fi 
+@@ -75,7 +75,7 @@ fi
+ #    GIT%DATE "YYYY-MM-DD hh:mm:ss +hhmm"
+ # to stdout.
+ if 
+-   ! $GIT log HEAD -n 1 --format=format:"GIT%%DATE = \"%ai\"%n" --not --show-signature 2> /dev/null;
++   ! $GIT log HEAD -n 1 --format=format:"GIT%%DATE = \"%ai\"%n" --no-show-signature 2> /dev/null;
+ then 
+    echo "GIT%DATE = \"N/A ('$GIT log' failed)\"";
+ fi 

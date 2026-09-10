@@ -60,7 +60,7 @@ struct MLIAPBuildUnified_t {
   MLIAPDummyModel *model;
 };
 
-MLIAPBuildUnified_t build_unified(char *, MLIAPData *, LAMMPS *, char * = NULL);
+MLIAPBuildUnified_t build_unified(char *, MLIAPData *, LAMMPS *, char * = nullptr);
 void update_pair_energy(MLIAPData *, double *);
 void update_pair_forces(MLIAPData *, double *);
 

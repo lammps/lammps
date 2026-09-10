@@ -31,6 +31,7 @@ class PairILPGrapheneHBNOpt : virtual public PairILPGrapheneHBN {
 
   void compute(int, int) override;
   void init_style() override;
+  void coeff(int narg, char **args) override;
 
  protected:
   void update_internal_list();
@@ -39,7 +40,6 @@ class PairILPGrapheneHBNOpt : virtual public PairILPGrapheneHBN {
                         double (*dnormdri)[3], double (*dnormdrk)[3][3]);
   template <int MAX_NNEIGH, int EFLAG, int VFLAG_EITHER, int TAP_FLAG, int VARIANT = ILP_GrhBN>
   void eval();
-  void coeff(int narg, char **args) override;
   int *layered_neigh;
   int **first_layered_neigh;
   int *special_type;

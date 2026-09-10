@@ -66,6 +66,7 @@ FixOneWay::FixOneWay(LAMMPS *lmp, int narg, char **arg) :
 
 FixOneWay::~FixOneWay()
 {
+  if (copymode) return;
   delete[] idregion;
 }
 

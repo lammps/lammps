@@ -40,6 +40,11 @@ class FixReaxFFSpecies : public Fix {
   void init_list(int, class NeighList *) override;
   void setup(int) override;
   void post_integrate() override;
+
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
+
+  double memory_usage() override;
   double compute_vector(int) override;
 
  protected:
@@ -81,11 +86,8 @@ class FixReaxFFSpecies : public Fix {
   int CheckExistence(int, int);
   void GetUniqueElements();
 
-  int pack_forward_comm(int, int *, double *, int, int *) override;
-  void unpack_forward_comm(int, int, double *) override;
   void OpenPos();
   void WritePos(int, int);
-  double memory_usage() override;
 
   bigint nvalid;
 

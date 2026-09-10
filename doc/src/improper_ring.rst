@@ -1,10 +1,11 @@
 .. index:: improper_style ring
+.. index:: improper_style ring/kk
 .. index:: improper_style ring/omp
 
 improper_style ring command
 ===========================
 
-Accelerator Variants: *ring/omp*
+Accelerator Variants: *ring/kk*, *ring/omp*
 
 Syntax
 """"""

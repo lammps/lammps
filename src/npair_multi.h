@@ -111,6 +111,7 @@ class NPairMulti : public NPair {
  public:
   NPairMulti(class LAMMPS *);
   void build(class NeighList *) override;
+  void build_hash(class NeighList *);
 };
 
 }    // namespace LAMMPS_NS

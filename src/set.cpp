@@ -16,6 +16,7 @@
 
 #include "arg_info.h"
 #include "atom.h"
+#include "atom_masks.h"
 #include "atom_vec.h"
 #include "atom_vec_body.h"
 #include "atom_vec_ellipsoid.h"
@@ -429,7 +430,7 @@ void Set::process_args(int caller_flag, int narg, char **arg)
   }
 
   // error if any action of fix set command does not use a per-atom variable
-  // b/c fix set is then effectivly a no-op
+  // b/c fix set is then effectively a no-op
 
   if (caller == FIXSET) {
     for (int i = 0; i < naction; i++) {
@@ -534,6 +535,12 @@ void Set::selection(int n)
 
 void Set::invoke_actions()
 {
+  // every action below reads and writes the per-atom arrays through the plain
+  // pointers, so bring the host side up to date first and hand the writes over
+  // afterwards; without the KOKKOS package these do nothing
+
+  atom->sync_host_arrays(ALL_MASK);
+
   // reallocate per-atom variable storage if needed
 
   if (varflag && atom->nlocal > maxvariable) {
@@ -593,6 +600,8 @@ void Set::invoke_actions()
     action->count_select = count_select;
     action->count_action = count_action;
   }
+
+  atom->modified_host_arrays(ALL_MASK);
 }
 
 /* ---------------------------------------------------------------------- */

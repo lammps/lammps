@@ -42,7 +42,7 @@ velocity        all create ${trequis} 42345 dist gaussian
 compute         bnnn all sna/atom 9.0 0.99363 8 0.5 1.0 rmin0 0.0 nnn 24 wmode 1 delta 0.25
 
 # 2nd step : perform dimension reduction + logistic regression
-compute         slcsa all slcsa/atom 8 4 dir.slcsa/mean_descriptor.dat dir.slcsa/lda_scalings.dat dir.slcsa/lr_decision.dat dir.slcsa/lr_bias.dat dir.slcsa/mahalanobis_file.dat c_bnnn[*]
+compute         slcsa all slcsa/atom 8 4 dir.slcsa/mean_descriptor.dat dir.slcsa/lda_scalings.dat dir.slcsa/lr_decision.dat dir.slcsa/lr_bias.dat dir.slcsa/mahalanobis_file.dat c_bnnn[1]
 
 #dump            d1 all custom ${freqdump} slcsa_demo.dump id x y z c_slcsa[*]
 

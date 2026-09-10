@@ -24,16 +24,9 @@ PairStyle(eam/alloy,PairEAMAlloy);
 
 namespace LAMMPS_NS {
 
-// need virtual public b/c of how eam/alloy/opt inherits from it
-
-class PairEAMAlloy : virtual public PairEAM {
+class PairEAMAlloy : public PairEAM {
  public:
   PairEAMAlloy(class LAMMPS *);
-  void coeff(int, char **) override;
-
- protected:
-  void read_file(char *) override;
-  void file2array() override;
 };
 
 }    // namespace LAMMPS_NS

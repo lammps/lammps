@@ -39,14 +39,14 @@ void MEAMKokkos<DeviceType>::meam_setup_done(double* cutmax)
 
   for (int i = 0; i <(neltypes * (neltypes + 1)) / 2; i++)
     for(int j = 0; j < nr; j++) {
-      h_phir(i,j) = phir[i][j];
-      h_phirar(i,j) = phirar[i][j];
-      h_phirar1(i,j) = phirar1[i][j];
-      h_phirar2(i,j) = phirar2[i][j];
-      h_phirar3(i,j) = phirar3[i][j];
-      h_phirar4(i,j) = phirar4[i][j];
-      h_phirar5(i,j) = phirar5[i][j];
-      h_phirar6(i,j) = phirar6[i][j];
+      h_phir(i,j) = static_cast<KK_FLOAT>(phir[i][j]);
+      h_phirar(i,j) = static_cast<KK_FLOAT>(phirar[i][j]);
+      h_phirar1(i,j) = static_cast<KK_FLOAT>(phirar1[i][j]);
+      h_phirar2(i,j) = static_cast<KK_FLOAT>(phirar2[i][j]);
+      h_phirar3(i,j) = static_cast<KK_FLOAT>(phirar3[i][j]);
+      h_phirar4(i,j) = static_cast<KK_FLOAT>(phirar4[i][j]);
+      h_phirar5(i,j) = static_cast<KK_FLOAT>(phirar5[i][j]);
+      h_phirar6(i,j) = static_cast<KK_FLOAT>(phirar6[i][j]);
     }
 
   Kokkos::deep_copy(d_phir,h_phir);

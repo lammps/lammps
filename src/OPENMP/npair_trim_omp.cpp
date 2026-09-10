@@ -39,7 +39,7 @@ void NPairTrimOmp::build(NeighList *list)
   NPAIR_OMP_INIT;
 
 #if defined(_OPENMP)
-#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(list) reduction(+:overflow)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(list,fix_package_omp) reduction(+:overflow)
 #endif
   NPAIR_OMP_SETUP(inum_copy);
 

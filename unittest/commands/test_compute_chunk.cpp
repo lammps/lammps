@@ -395,6 +395,288 @@ TEST_F(ComputeChunkTest, ChunkReduce)
     for (int i = 0; i < nchunks; ++i)
         EXPECT_EQ(cprp[i], cred[i]);
 }
+
+// finite-size particles must contribute their own moment of inertia
+// to compute inertia/chunk (issue #3710).
+
+class ComputeInertiaChunkTest : public ComputeChunkTest {
+protected:
+    void SetUp() override
+    {
+        testbinary = "ComputeInertiaChunkTest";
+        LAMMPSTest::SetUp();
+    }
+};
+
+TEST_F(ComputeInertiaChunkTest, Ellipsoid)
+{
+    if (!info->has_style("atom", "ellipsoid")) GTEST_SKIP();
+
+    // single chunk = both atoms (type 1); same configuration and analytic
+    // result as the ComputeInertiaTest.Ellipsoid global-compute test:
+    // two axis-aligned ellipsoids, semi-axes a=1,b=2,c=3, m1=1 at origin,
+    // m2=3 at (5,0,0) -> tensor (10.4, 26.75, 22.75, 0, 0, 0)
+
+    BEGIN_HIDE_OUTPUT();
+    command("units lj");
+    command("atom_style ellipsoid");
+    command("boundary f f f");
+    command("region box block -20 20 -20 20 -20 20");
+    command("create_box 1 box");
+    command("create_atoms 1 single 0.0 0.0 0.0 units box");
+    command("create_atoms 1 single 5.0 0.0 0.0 units box");
+    command("set group all shape 2.0 4.0 6.0");
+    command("set atom 1 mass 1.0");
+    command("set atom 2 mass 3.0");
+    command("pair_style zero 5.0");
+    command("pair_coeff * *");
+    command("compute ch all chunk/atom type");
+    command("compute icc all inertia/chunk ch");
+    command("fix h all ave/time 1 1 1 c_icc[*] mode vector");
+    command("run 0 post no");
+    END_HIDE_OUTPUT();
+
+    auto *icc = get_array("icc");
+    EXPECT_NEAR(icc[0][0], 10.4, 1.0e-12);
+    EXPECT_NEAR(icc[0][1], 26.75, 1.0e-12);
+    EXPECT_NEAR(icc[0][2], 22.75, 1.0e-12);
+    EXPECT_NEAR(icc[0][3], 0.0, 1.0e-12);
+    EXPECT_NEAR(icc[0][4], 0.0, 1.0e-12);
+    EXPECT_NEAR(icc[0][5], 0.0, 1.0e-12);
+}
+
+TEST_F(ComputeInertiaChunkTest, Sphere)
+{
+    if (!info->has_style("atom", "sphere")) GTEST_SKIP();
+
+    // single chunk = both atoms (type 1); two finite spheres of radius 1,
+    // mass 1, at (0,0,0) and (4,0,0) -> tensor (0.8, 8.8, 8.8, 0, 0, 0)
+
+    BEGIN_HIDE_OUTPUT();
+    command("units lj");
+    command("atom_style sphere");
+    command("boundary f f f");
+    command("region box block -20 20 -20 20 -20 20");
+    command("create_box 1 box");
+    command("create_atoms 1 single 0.0 0.0 0.0 units box");
+    command("create_atoms 1 single 4.0 0.0 0.0 units box");
+    command("set group all diameter 2.0");
+    command("set group all mass 1.0");
+    command("pair_style zero 5.0");
+    command("pair_coeff * *");
+    command("compute ch all chunk/atom type");
+    command("compute icc all inertia/chunk ch");
+    command("fix h all ave/time 1 1 1 c_icc[*] mode vector");
+    command("run 0 post no");
+    END_HIDE_OUTPUT();
+
+    auto *icc = get_array("icc");
+    EXPECT_NEAR(icc[0][0], 0.8, 1.0e-12);
+    EXPECT_NEAR(icc[0][1], 8.8, 1.0e-12);
+    EXPECT_NEAR(icc[0][2], 8.8, 1.0e-12);
+    EXPECT_NEAR(icc[0][3], 0.0, 1.0e-12);
+    EXPECT_NEAR(icc[0][4], 0.0, 1.0e-12);
+    EXPECT_NEAR(icc[0][5], 0.0, 1.0e-12);
+}
+
+TEST_F(ComputeInertiaChunkTest, Superellipsoid)
+{
+    if (!info->has_style("atom", "ellipsoid")) GTEST_SKIP();
+
+    // same as Ellipsoid, but with atom_style "ellipsoid superellipsoid".
+    // With default blockiness (2,2) the result is identical and the
+    // superellipsoid (bonus_super) branch is exercised.  Mass must be set
+    // before the shape, since the stored inertia is computed at set-shape.
+
+    BEGIN_HIDE_OUTPUT();
+    command("units lj");
+    command("atom_style ellipsoid superellipsoid");
+    command("boundary f f f");
+    command("region box block -20 20 -20 20 -20 20");
+    command("create_box 1 box");
+    command("create_atoms 1 single 0.0 0.0 0.0 units box");
+    command("create_atoms 1 single 5.0 0.0 0.0 units box");
+    command("set atom 1 mass 1.0");
+    command("set atom 2 mass 3.0");
+    command("set group all shape 2.0 4.0 6.0");
+    command("pair_style zero 5.0");
+    command("pair_coeff * *");
+    command("compute ch all chunk/atom type");
+    command("compute icc all inertia/chunk ch");
+    command("fix h all ave/time 1 1 1 c_icc[*] mode vector");
+    command("run 0 post no");
+    END_HIDE_OUTPUT();
+
+    auto *icc = get_array("icc");
+    EXPECT_NEAR(icc[0][0], 10.4, 1.0e-12);
+    EXPECT_NEAR(icc[0][1], 26.75, 1.0e-12);
+    EXPECT_NEAR(icc[0][2], 22.75, 1.0e-12);
+    EXPECT_NEAR(icc[0][3], 0.0, 1.0e-12);
+    EXPECT_NEAR(icc[0][4], 0.0, 1.0e-12);
+    EXPECT_NEAR(icc[0][5], 0.0, 1.0e-12);
+}
+
+TEST_F(ComputeInertiaChunkTest, Body)
+{
+    if (!lammps_config_has_package("BODY")) GTEST_SKIP();
+
+    // single body/nparticle at the origin with a known diagonal inertia
+    // tensor (2,3,4); a single chunk must return it unchanged
+
+    const char *datafile = "compute_inertia_chunk_body.data";
+    FILE *fp = fopen(datafile, "w");
+    ASSERT_NE(fp, nullptr);
+    fputs("LAMMPS body nparticle test\n\n"
+          "1 atoms\n1 bodies\n1 atom types\n"
+          "-10 10 xlo xhi\n-10 10 ylo yhi\n-10 10 zlo zhi\n\n"
+          "Atoms\n\n"
+          "1 1 1 1.0 0.0 0.0 0.0 0 0 0\n\n"
+          "Bodies\n\n"
+          "1 1 9\n1\n2.0 3.0 4.0 0.0 0.0 0.0\n0.0 0.0 0.0\n",
+          fp);
+    fclose(fp);
+
+    BEGIN_HIDE_OUTPUT();
+    command("units lj");
+    command("atom_style body nparticle 1 1");
+    command("read_data " + std::string(datafile));
+    command("pair_style zero 5.0");
+    command("pair_coeff * *");
+    command("compute ch all chunk/atom type");
+    command("compute icc all inertia/chunk ch");
+    command("fix h all ave/time 1 1 1 c_icc[*] mode vector");
+    command("run 0 post no");
+    END_HIDE_OUTPUT();
+
+    auto *icc = get_array("icc");
+    EXPECT_NEAR(icc[0][0], 2.0, 1.0e-12);
+    EXPECT_NEAR(icc[0][1], 3.0, 1.0e-12);
+    EXPECT_NEAR(icc[0][2], 4.0, 1.0e-12);
+    EXPECT_NEAR(icc[0][3], 0.0, 1.0e-12);
+    EXPECT_NEAR(icc[0][4], 0.0, 1.0e-12);
+    EXPECT_NEAR(icc[0][5], 0.0, 1.0e-12);
+
+    remove(datafile);
+}
+
+// finite-size particles must contribute their own (spin) angular momentum
+// to compute angmom/chunk (issue #3710).
+
+class ComputeAngmomChunkTest : public ComputeChunkTest {
+protected:
+    void SetUp() override
+    {
+        testbinary = "ComputeAngmomChunkTest";
+        LAMMPSTest::SetUp();
+    }
+};
+
+TEST_F(ComputeAngmomChunkTest, Sphere)
+{
+    if (!info->has_style("atom", "sphere")) GTEST_SKIP();
+
+    // single chunk = both spheres (r=1, m=1) spinning at omega=(0,0,5),
+    // otherwise at rest -> total angular momentum is pure spin (0,0,4)
+
+    BEGIN_HIDE_OUTPUT();
+    command("units lj");
+    command("atom_style sphere");
+    command("boundary f f f");
+    command("region box block -20 20 -20 20 -20 20");
+    command("create_box 1 box");
+    command("create_atoms 1 single 0.0 0.0 0.0 units box");
+    command("create_atoms 1 single 2.0 0.0 0.0 units box");
+    command("set group all diameter 2.0");
+    command("set group all mass 1.0");
+    command("set group all omega 0.0 0.0 5.0");
+    command("pair_style zero 5.0");
+    command("pair_coeff * *");
+    command("compute ch all chunk/atom type");
+    command("compute acc all angmom/chunk ch");
+    command("fix h all ave/time 1 1 1 c_acc[*] mode vector");
+    command("run 0 post no");
+    END_HIDE_OUTPUT();
+
+    auto *acc = get_array("acc");
+    EXPECT_NEAR(acc[0][0], 0.0, 1.0e-12);
+    EXPECT_NEAR(acc[0][1], 0.0, 1.0e-12);
+    EXPECT_NEAR(acc[0][2], 4.0, 1.0e-12);
+}
+
+TEST_F(ComputeAngmomChunkTest, Ellipsoid)
+{
+    if (!info->has_style("atom", "ellipsoid")) GTEST_SKIP();
+
+    // single ellipsoid (one chunk) at rest with angmom set to (1,2,3)
+
+    BEGIN_HIDE_OUTPUT();
+    command("units lj");
+    command("atom_style ellipsoid");
+    command("boundary f f f");
+    command("region box block -20 20 -20 20 -20 20");
+    command("create_box 1 box");
+    command("create_atoms 1 single 0.0 0.0 0.0 units box");
+    command("set group all shape 2.0 4.0 6.0");
+    command("set group all mass 1.0");
+    command("set group all angmom 1.0 2.0 3.0");
+    command("pair_style zero 5.0");
+    command("pair_coeff * *");
+    command("compute ch all chunk/atom type");
+    command("compute acc all angmom/chunk ch");
+    command("fix h all ave/time 1 1 1 c_acc[*] mode vector");
+    command("run 0 post no");
+    END_HIDE_OUTPUT();
+
+    auto *acc = get_array("acc");
+    EXPECT_NEAR(acc[0][0], 1.0, 1.0e-12);
+    EXPECT_NEAR(acc[0][1], 2.0, 1.0e-12);
+    EXPECT_NEAR(acc[0][2], 3.0, 1.0e-12);
+}
+
+TEST_F(ComputeChunkTest, ChunkMoleculeWarning)
+{
+    if (lammps_get_natoms(lmp) == 0.0) GTEST_SKIP();
+
+    BEGIN_HIDE_OUTPUT();
+    command("pair_style lj/cut/coul/cut 10.0");
+    command("pair_coeff * * 0.01 3.0");
+    command("bond_style harmonic");
+    command("bond_coeff * 100.0 1.5");
+    END_HIDE_OUTPUT();
+
+    // compute chunk/atom molecule with a group that excludes *entire*
+    // molecules must NOT warn that chunks do not contain all atoms of a
+    // molecule, even when an excluded molecule ID is within the range of
+    // valid chunk IDs (regression test for issue #5003).  Here molecule 2
+    // is excluded entirely, while molecules 1 and 3-6 (max ID = nchunk = 6)
+    // are kept intact.  msd/chunk triggers the one-time check at setup.
+    // verify both the default (no compress) and the compress code path.
+    BEGIN_HIDE_OUTPUT();
+    command("group keep molecule 1 3:6");
+    command("compute ce1 keep chunk/atom molecule");
+    command("compute msd1 all msd/chunk ce1");
+    command("compute ce2 keep chunk/atom molecule compress yes");
+    command("compute msd2 all msd/chunk ce2");
+    END_HIDE_OUTPUT();
+
+    auto output = CAPTURE_OUTPUT([&] { command("run 0 post no"); });
+    EXPECT_THAT(output, testing::Not(testing::HasSubstr("do not contain all atoms in molecule")));
+
+    // a molecule that is genuinely *split* between its chunk and the excluded
+    // atoms MUST still warn.  excluding atom type 4 keeps most atoms of
+    // molecules 1, 2, and 3 but drops their single type-4 atom from the chunk.
+    // verify both the default (no compress) and the compress code path.
+    BEGIN_HIDE_OUTPUT();
+    command("group notype4 type 1 2 3 5");
+    command("compute ce3 notype4 chunk/atom molecule");
+    command("compute msd3 all msd/chunk ce3");
+    command("compute ce4 notype4 chunk/atom molecule compress yes");
+    command("compute msd4 all msd/chunk ce4");
+    END_HIDE_OUTPUT();
+
+    output = CAPTURE_OUTPUT([&] { command("run 0 post no"); });
+    EXPECT_THAT(output, testing::HasSubstr("do not contain all atoms in molecule"));
+}
 } // namespace LAMMPS_NS
 
 int main(int argc, char **argv)

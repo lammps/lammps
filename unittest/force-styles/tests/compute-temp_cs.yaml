@@ -1,0 +1,23 @@
+---
+lammps_version: 4 Jul 2026
+tags:
+date_generated: Wed Aug  5 09:56:10 2026
+epsilon: 1e-08
+timestep: 5e-04
+skip_tests:
+prerequisites: |
+  atom full
+  pair born/coul/dsf/cs
+  compute temp/cs
+pre_commands: ""
+post_commands: |
+  group cores type 1 2
+  group shells type 3 4
+  velocity all create 300.0 5463576 dist gaussian mom yes
+  compute test all temp/cs cores shells
+input_file: in.coreshell
+natoms: 432
+global_scalar: 297.4239464945554
+global_vector: |-
+  6  7.4674504903307399e+00  7.6007857977950604e+00  7.5542725083025735e+00  9.6132615666056798e-02  3.8141571033466609e-01 -2.6212348443667588e-01
+...

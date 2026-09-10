@@ -266,21 +266,21 @@ void ComputeGaussianGridLocalKokkos<DeviceType>::operator() (TagComputeGaussianG
   d_alocal(igrid, 0) = ix;
   d_alocal(igrid, 1) = iy;
   d_alocal(igrid, 2) = iz;
-  d_alocal(igrid, 3) = xtmp;
-  d_alocal(igrid, 4) = ytmp;
-  d_alocal(igrid, 5) = ztmp;
+  d_alocal(igrid, 3) = static_cast<KK_FLOAT>(xtmp);
+  d_alocal(igrid, 4) = static_cast<KK_FLOAT>(ytmp);
+  d_alocal(igrid, 5) = static_cast<KK_FLOAT>(ztmp);
 
   // Looping over ntotal for now.
   for (int j = 0; j < ntotal; j++){
-    const double dx = x(j,0) - xtmp;
-    const double dy = x(j,1) - ytmp;
-    const double dz = x(j,2) - ztmp;
+    const double dx = static_cast<double>(x(j,0)) - xtmp;
+    const double dy = static_cast<double>(x(j,1)) - ytmp;
+    const double dz = static_cast<double>(x(j,2)) - ztmp;
     int jtype = type(j);
     const double rsq = dx*dx + dy*dy + dz*dz;
 
     if (rsq < rnd_cutsq(jtype, jtype) ) {
       int icol = size_local_cols_base + jtype - 1;
-      d_alocal(igrid, icol) += d_prefacelem(jtype-1) * exp(-rsq * d_argfacelem(jtype-1));
+      d_alocal(igrid, icol) += static_cast<KK_FLOAT>(d_prefacelem(jtype-1) * exp(-rsq * d_argfacelem(jtype-1)));
     }
   }
 }

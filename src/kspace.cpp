@@ -28,20 +28,22 @@
 #include <cstring>
 
 using namespace LAMMPS_NS;
-
 static constexpr double SMALL = 0.00001;
 
 /* ---------------------------------------------------------------------- */
 
 KSpace::KSpace(LAMMPS *lmp) :
-    Pointers(lmp), eatom(nullptr), vatom(nullptr), gcons(nullptr), dgcons(nullptr)
+    Pointers(lmp), eatom(nullptr), vatom(nullptr), force_poly_coeff(nullptr),
+    energy_poly_coeff(nullptr), fourier_split_poly_coeff(nullptr),
+    fourier_spread_poly_coeff(nullptr), gcons(nullptr), dgcons(nullptr)
 {
   order_allocated = 0;
   energy = 0.0;
   virial[0] = virial[1] = virial[2] = virial[3] = virial[4] = virial[5] = 0.0;
 
   triclinic_support = 1;
-  ewaldflag = pppmflag = msmflag = dispersionflag = tip4pflag = dipoleflag = spinflag = 0;
+  ewaldflag = pppmflag = espflag = msmflag = dispersionflag = tip4pflag = dipoleflag = spinflag = rk_flag = 0;
+  xtbflag = 0;
   compute_flag = 1;
   group_group_enable = 0;
   stagger_flag = 0;
@@ -53,14 +55,10 @@ KSpace::KSpace(LAMMPS *lmp) :
   overlap_allowed = 1;
   fftbench = 0;
 
-  // default to using MPI collectives for FFT/remap only on IBM BlueGene
-
-#ifdef __bg__
-  collective_flag = 1;
-#else
+  // by default, we use point-to-point comms
   collective_flag = 0;
-#endif
   nonblocking_flag = 0;
+  selfcopy_flag = 2;
 
   kewaldflag = 0;
 
@@ -71,6 +69,7 @@ KSpace::KSpace(LAMMPS *lmp) :
 
   conp_one_step = true;
   slabflag = wireflag = 0;
+  slab_auto = 0;
   differentiation_flag = 0;
   slab_volfactor = 1;
   wire_volfactor = 1;
@@ -92,7 +91,6 @@ KSpace::KSpace(LAMMPS *lmp) :
   mixflag = 0;
 
   splittol = 1.0e-6;
-  scale = 1.0;
 
   maxeatom = maxvatom = 0;
   centroidstressflag = CENTROID_NOTAVAIL;
@@ -101,6 +99,7 @@ KSpace::KSpace(LAMMPS *lmp) :
   datamask_read = ALL_MASK;
   datamask_modify = ALL_MASK;
   copymode = 0;
+  kokkosable = 0;
 
   memory->create(gcons,7,7,"kspace:gcons");
   gcons[2][0] = 15.0 / 8.0;
@@ -387,6 +386,17 @@ void KSpace::x2lamdaT(double *v, double *lamda)
   lamda_tmp[1] = h_inv[5]*v[0] + h_inv[1]*v[1];
   lamda_tmp[2] = h_inv[4]*v[0] + h_inv[3]*v[1] + h_inv[2]*v[2];
 
+  // EW3DC slab correction: the reciprocal-space sum is evaluated on a cell
+  // whose z dimension is extended by slab_volfactor (vacuum insertion).  The
+  // slab normal must be the Cartesian z axis, which requires xz == yz == 0
+  // (enforced by the kspace styles' init() guards; xy tilt is allowed).  With
+  // xz == yz == 0, extending the box z (h[2] -> h[2]*slab_volfactor) scales
+  // only the third column of h_inv by 1/slab_volfactor, i.e. the z component
+  // of the transposed-transformed reciprocal vector scales by 1/slab_volfactor.
+  // This is a no-op (slab_volfactor == 1.0) for all non-slab calculations.
+
+  if (slabflag == 1) lamda_tmp[2] /= slab_volfactor;
+
   lamda[0] = lamda_tmp[0];
   lamda[1] = lamda_tmp[1];
   lamda[2] = lamda_tmp[2];
@@ -506,16 +516,28 @@ void KSpace::modify_params(int narg, char **arg)
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"kspace_modify slab", error);
       if (strcmp(arg[iarg+1],"nozforce") == 0) {
         slabflag = 2;
+        slab_auto = 0;
       } else if (strcmp(arg[iarg+1],"ew2d") == 0) {
         slabflag = 3;
+        slab_auto = 0;
+      } else if (strcmp(arg[iarg+1],"auto") == 0) {
+        if (!(ewaldflag || pppmflag) || espflag || dispersionflag || dipoleflag || spinflag)
+          error->all(FLERR, iarg + 1,
+                     "kspace_modify slab auto is not supported by kspace style {}",
+                     force->kspace_style);
+        slabflag = 1;
+        slab_auto = 1;
+        slab_volfactor = 1.0;
       } else {
         slabflag = 1;
+        slab_auto = 0;
         slab_volfactor = utils::numeric(FLERR,arg[iarg+1],false,lmp);
         if (slab_volfactor <= 1.0)
           error->all(FLERR, iarg + 1, "Bad kspace_modify slab parameter");
         if (slab_volfactor < 2.0 && comm->me == 0)
           error->warning(FLERR,"Kspace_modify slab param < 2.0 may cause unphysical behavior");
       }
+      status = true;
       iarg += 2;
     } else if (strcmp(arg[iarg],"wire") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"kspace_modify wire", error);
@@ -554,8 +576,20 @@ void KSpace::modify_params(int narg, char **arg)
       iarg += 2;
     } else if (strcmp(arg[iarg],"collective") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"kspace_modify collective", error);
-      collective_flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
-      if (collective_flag) nonblocking_flag = 0;
+      if (utils::logical(FLERR,arg[iarg+1],false,lmp)) {
+        collective_flag = 1;
+        nonblocking_flag = 0;
+      } else {
+        collective_flag = 0;
+      }
+      status = true;
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"collective/self/copy") == 0) {
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"kspace_modify collective/self/copy", error);
+      if (strcmp(arg[iarg+1],"no") == 0) selfcopy_flag = 0;
+      else if (strcmp(arg[iarg+1],"yes") == 0) selfcopy_flag = 1;
+      else if (strcmp(arg[iarg+1],"onerank") == 0) selfcopy_flag = 2;
+      else error->all(FLERR, iarg+1, "Unknown kspace_modify collective/self/copy flag {}", arg[iarg+1]);
       status = true;
       iarg += 2;
     } else if (strcmp(arg[iarg],"nonblocking") == 0) {
@@ -623,15 +657,29 @@ void KSpace::modify_params(int narg, char **arg)
       iarg += n;
     }
   }
+
+  // Encode the self-copy mode into `collective_flag`
+  if (collective_flag) collective_flag = selfcopy_flag + 1;
+
   if (status) {
     std::string mesg = "Updated KSpace settings:\n";
     mesg += fmt::format("  KSpace computation is turned:    {}\n", compute_flag ? "ON" : "OFF");
     mesg += fmt::format("  Use MPI collective operations:   {}\n", collective_flag ? "ON" : "OFF");
     mesg += fmt::format("  Use MPI non-blocking operations: {}\n", nonblocking_flag ? "ON" : "OFF");
+    if (collective_flag) {
+      const char *sc = (selfcopy_flag == 0) ? "no" : (selfcopy_flag == 1) ? "yes" : "onerank";
+      mesg += fmt::format("  Collective self-copy mode:       {}\n", sc);
+    }
     if (gewaldflag) {
       mesg += fmt::format("  Gewald manually set to:          {}\n", g_ewald);
     } else {
       mesg += "  Gewald is determined automatically\n";
+    }
+    if (slabflag == 1) {
+      if (slab_auto)
+        mesg += "  Slab volfactor is determined automatically\n";
+      else
+        mesg += fmt::format("  Slab volfactor manually set to:    {}\n", slab_volfactor);
     }
     if (dispersionflag) {
       if (gewaldflag_6) {

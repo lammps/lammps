@@ -1,0 +1,25 @@
+This example reproduces the 2010 study of the shockwave structure in
+a fluid of Holian et al.[1]
+
+It runs a non-equilibrium molecular dynamics simulations of strong
+shockwave propagation in a fluid.  The potential is the smoothly
+truncated cubic spline Lennard-Jones proposed by Holian and Ravelo
+because of its combination of computational efficiency, qualitative
+realism, and energy conservation. The same potential has also been
+used to study shockwaves in solids.[2]
+
+The main output is the estimated shock speed as a function of time in
+log.lammps, estimated from the change in momentum.  Except for
+non-steady state values at the start, it averages close to the value
+of 45.2 reported by Holian et al.
+
+A secondary output is the collisional velocity correlation function
+(CVCF) in cvcf.dat.
+
+In order to run this example, LAMMPS must be compiled with the
+EXTRA-PAIR and EXTRA-COMPUTE packages. It also requires the history
+keywords that were added to fix store/state and compute property/atom
+on 06/23/2026.
+
+[1] Holian, Mareschal, and Ravelo, J. Chem. Phys. 133, 114502 (2010).
+[2] Ravelo, Holian, Germann and Lomdahl, Phys Rev B, 70, 014103 (2004).

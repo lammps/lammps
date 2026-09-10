@@ -49,6 +49,8 @@ AngleFourierSimple::AngleFourierSimple(LAMMPS *lmp) : Angle(lmp)
 
 AngleFourierSimple::~AngleFourierSimple()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(k);

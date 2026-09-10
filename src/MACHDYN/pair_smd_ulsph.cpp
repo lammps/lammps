@@ -53,7 +53,9 @@ using namespace Eigen;
 #define FORMAT2 "\n.............................. %s \n"
 
 PairULSPH::PairULSPH(LAMMPS *lmp) :
-                Pair(lmp) {
+    Pair(lmp), rho0(nullptr), onerad_dynamic(nullptr), onerad_frozen(nullptr),
+    maxrad_dynamic(nullptr), maxrad_frozen(nullptr)
+{
 
         // per-type arrays
         Q1 = nullptr;

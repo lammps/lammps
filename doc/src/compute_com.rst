@@ -1,7 +1,10 @@
 .. index:: compute com
+.. index:: compute com/kk
 
 compute com command
 ===================
+
+Accelerator Variants: *com/kk*
 
 Syntax
 """"""
@@ -51,6 +54,8 @@ page for an overview of LAMMPS output options.
 
 The vector values are "intensive".  The vector values will be in
 distance :doc:`units <units>`.
+
+.. include:: accel_styles.rst
 
 Restrictions
 """"""""""""

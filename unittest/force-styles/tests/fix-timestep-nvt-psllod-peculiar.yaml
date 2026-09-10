@@ -1,6 +1,6 @@
 ---
 lammps_version: 10 Sep 2025
-tags: generated
+tags:
 date_generated: Wed Jan 28 19:18:48 2026
 epsilon: 5e-12
 skip_tests:
@@ -14,6 +14,7 @@ post_commands: ! |
   fix all all deform 0 xy erate/rescale ${gamma} xz erate/rescale ${gamma} yz erate/rescale ${gamma} x trate $(-v_gamma/2) y trate ${gamma} z trate $(-v_gamma/2) remap none
   fix test all nvt/sllod temp 50.0 ${t_target} 1.0 kick no psllod yes peculiar yes integrator reversible
 input_file: in.fourmol
+input_coeffs: coeffs.fourmol
 natoms: 29
 global_scalar: 243.93763793602028
 global_vector: ! |-

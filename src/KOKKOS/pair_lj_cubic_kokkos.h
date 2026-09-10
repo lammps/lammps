@@ -45,8 +45,10 @@ class PairLJCubicKokkos : public PairLJCubic {
   double init_one(int, int) override;
 
   struct params_lj{
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
     params_lj() {cut_inner_sq=0;cut_inner=0;lj1=0;lj2=0;lj3=0;lj4=0;epsilon=0;sigma=0;};
+// NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
     params_lj(int /*i*/) {cut_inner_sq=0;cut_inner=0;lj1=0;lj2=0;lj3=0;lj4=0;epsilon=0;sigma=0;};
     KK_FLOAT cut_inner_sq,cut_inner,lj1,lj2,lj3,lj4,epsilon,sigma;
@@ -54,16 +56,19 @@ class PairLJCubicKokkos : public PairLJCubic {
 
  protected:
   template<bool STACKPARAMS, class Specialisation>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   KK_FLOAT compute_fpair(const KK_FLOAT &rsq, const int &i, const int &j,
                         const int &itype, const int &jtype) const;
 
   template<bool STACKPARAMS, class Specialisation>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   KK_FLOAT compute_evdwl(const KK_FLOAT &rsq, const int &i, const int &j,
                         const int &itype, const int &jtype) const;
 
   template<bool STACKPARAMS, class Specialisation>
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   KK_FLOAT compute_ecoul(const KK_FLOAT &/*rsq*/, const int &/*i*/, const int &/*j*/,
                         const int &/*itype*/, const int &/*jtype*/) const { return 0; }
@@ -71,17 +76,12 @@ class PairLJCubicKokkos : public PairLJCubic {
   Kokkos::DualView<params_lj**,Kokkos::LayoutRight,DeviceType> k_params;
   typename Kokkos::DualView<params_lj**,
     Kokkos::LayoutRight,DeviceType>::t_dev_const_um params;
-  // hardwired to space for 12 atom types
-  params_lj m_params[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
-
+  params_lj m_params[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];  // hardwired to space for 12 atom types
   KK_FLOAT m_cutsq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
-  double m_cut_inner[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
-  double m_cut_inner_sq[MAX_TYPES_STACKPARAMS+1][MAX_TYPES_STACKPARAMS+1];
   typename AT::t_kkfloat_1d_3_lr_randomread x;
   typename AT::t_kkfloat_1d_3_lr c_x;
   typename AT::t_kkacc_1d_3 f;
   typename AT::t_int_1d_randomread type;
-  typename AT::t_kkfloat_1d_randomread q;
 
   DAT::ttransform_kkacc_1d k_eatom;
   DAT::ttransform_kkacc_1d_6 k_vatom;
@@ -89,17 +89,10 @@ class PairLJCubicKokkos : public PairLJCubic {
   typename AT::t_kkacc_1d_6 d_vatom;
 
   int newton_pair;
+  KK_FLOAT special_lj[4];
 
   DAT::ttransform_kkfloat_2d k_cutsq;
   typename AT::t_kkfloat_2d d_cutsq;
-  DAT::ttransform_kkfloat_2d k_cut_inner;
-  typename AT::t_kkfloat_2d d_cut_inner;
-  DAT::ttransform_kkfloat_2d k_cut_inner_sq;
-  typename AT::t_kkfloat_2d d_cut_inner_sq;
-
-  typename AT::t_kkfloat_1d_randomread
-    d_rtable, d_drtable, d_ftable, d_dftable,
-    d_ctable, d_dctable, d_etable, d_detable;
 
   int neighflag;
   int nlocal,nall,eflag,vflag;

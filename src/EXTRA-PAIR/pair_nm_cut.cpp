@@ -35,7 +35,9 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairNMCut::PairNMCut(LAMMPS *lmp) : Pair(lmp)
+PairNMCut::PairNMCut(LAMMPS *lmp) :
+    Pair(lmp), cut(nullptr), e0(nullptr), r0(nullptr), nn(nullptr), mm(nullptr), nm(nullptr),
+    e0nm(nullptr), r0n(nullptr), r0m(nullptr), offset(nullptr)
 {
   born_matrix_enable = 1;
   writedata = 1;
@@ -45,6 +47,7 @@ PairNMCut::PairNMCut(LAMMPS *lmp) : Pair(lmp)
 
 PairNMCut::~PairNMCut()
 {
+  if (copymode) return;
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);

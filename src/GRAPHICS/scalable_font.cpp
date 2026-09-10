@@ -970,7 +970,7 @@ ssfn_glyph_t *_ssfn_render(ssfn_t *ctx, uint32_t unicode)
     if (ctx->style & SSFN_STYLE_STHROUGH) {
       if (ctx->ret->w < ctx->ret->adv_x) ctx->ret->w = ctx->ret->adv_x;
       memset(&ctx->ret->data[(ctx->ret->baseline - (ctx->size >> 2)) * p], 0xFF,
-             (ctx->size / 64 + 2) * p);
+             ((size_t) ctx->size / 64 + 2) * p);
     }
     if (ctx->style & SSFN_STYLE_UNDERLINE) {
       if (ctx->ret->w < ctx->ret->adv_x) ctx->ret->w = ctx->ret->adv_x;
@@ -1183,7 +1183,8 @@ unsigned char *ScalableFont::create_colorscale(const std::string &text, int &wid
   free(g);
 
   double lo, hi;
-  image->map_info(mapidx, lo, hi);
+  bool addone;
+  image->map_info(mapidx, lo, hi, addone);
   auto newtext = fmt::format("{:3.3}  {}  {:3.3}", lo, text, hi);
 
   // dry run to determine size of pixmap
@@ -1271,6 +1272,7 @@ unsigned char *ScalableFont::create_colorscale(const std::string &text, int &wid
   }
 
   // draw colormap
+  if (addone) hi += 1.0;
   double delta = (hi - lo) / (width - 2 * xspace);
   int ticinc = tics ? (width - 2 * xspace) / (tics + 1) : 1 << 31;
   int ticmin = ticinc + xspace + 1;

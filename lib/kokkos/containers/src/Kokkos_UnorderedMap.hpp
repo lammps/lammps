@@ -31,7 +31,6 @@ import kokkos.functional;
 
 #include <cstdint>
 
-#ifndef KOKKOS_ENABLE_DEPRECATED_CODE_4
 #if defined(KOKKOS_COMPILER_GNU) && !defined(__PGIC__) && \
     !defined(__CUDA_ARCH__)
 
@@ -45,12 +44,6 @@ import kokkos.functional;
 #define KOKKOS_IMPL_NONTEMPORAL_PREFETCH_LOAD(addr) ((void)0)
 #define KOKKOS_IMPL_NONTEMPORAL_PREFETCH_STORE(addr) ((void)0)
 
-#endif
-#else
-#define KOKKOS_IMPL_NONTEMPORAL_PREFETCH_LOAD(addr) \
-  KOKKOS_NONTEMPORAL_PREFETCH_LOAD(addr)
-#define KOKKOS_IMPL_NONTEMPORAL_PREFETCH_STORE(addr) \
-  KOKKOS_NONTEMPORAL_PREFETCH_STORE(addr)
 #endif
 
 namespace Kokkos {
@@ -86,6 +79,23 @@ auto allocate_with_sequential_host_init_if_possible(
         Impl::with_properties_if_unset(alloc_prop, SequentialHostInit),
         std::forward<Args>(args)...);
 }
+
+// FIXME_SYCL This forces compare and swap to be used for the store as a simple
+// store is not visible to other threads with SYCL
+#ifdef KOKKOS_ENABLE_SYCL
+template <typename T>
+KOKKOS_FORCEINLINE_FUNCTION void store_workaround(T *const ref, T value) {
+  KOKKOS_IF_ON_HOST(
+      (desul::Impl::host_atomic_fetch_oper(
+           desul::Impl::_store_fetch_operator<T, const T>(), ref, value,
+           desul::MemoryOrderRelaxed(), desul::MemoryScopeDevice());));
+  KOKKOS_IF_ON_DEVICE(
+      (desul::Impl::device_atomic_fetch_oper(
+           desul::Impl::_store_fetch_operator<T, const T>(), ref, value,
+           desul::MemoryOrderRelaxed(), desul::MemoryScopeDevice());))
+}
+#endif
+
 }  // namespace Impl
 
 enum : unsigned { UnorderedMapInvalidIndex = ~0u };
@@ -637,34 +647,19 @@ class UnorderedMap {
       // list will only be appended during insert phase.
       // Need volatile_load as other threads may be appending.
 
-      // FIXME_SYCL replacement for memory_fence
-#ifdef KOKKOS_ENABLE_SYCL
-      size_type curr = Kokkos::atomic_load(curr_ptr);
-#else
       size_type curr = volatile_load(curr_ptr);
-#endif
 
       KOKKOS_IMPL_NONTEMPORAL_PREFETCH_LOAD(
           &m_keys[curr != invalid_index ? curr : 0]);
 #if defined(__MIC__)
 #pragma noprefetch
 #endif
-      while (curr != invalid_index && !m_equal_to(
-#ifdef KOKKOS_ENABLE_SYCL
-                                          Kokkos::atomic_load(&m_keys[curr])
-#else
-                                          volatile_load(&m_keys[curr])
-#endif
-                                              ,
-                                          k)) {
+      while (curr != invalid_index &&
+             !m_equal_to(volatile_load(&m_keys[curr]), k)) {
         result.increment_list_position();
         index_hint = curr;
         curr_ptr   = &m_next_index[curr];
-#ifdef KOKKOS_ENABLE_SYCL
-        curr = Kokkos::atomic_load(curr_ptr);
-#else
-        curr = volatile_load(curr_ptr);
-#endif
+        curr       = volatile_load(curr_ptr);
         KOKKOS_IMPL_NONTEMPORAL_PREFETCH_LOAD(
             &m_keys[curr != invalid_index ? curr : 0]);
       }
@@ -709,15 +704,15 @@ class UnorderedMap {
             KOKKOS_IMPL_NONTEMPORAL_PREFETCH_STORE(&m_keys[new_index]);
 // FIXME_SYCL replacement for memory_fence
 #ifdef KOKKOS_ENABLE_SYCL
-            Kokkos::atomic_store(&m_keys[new_index], k);
+            Impl::store_workaround(&m_keys[new_index], k);
 #else
             m_keys[new_index] = k;
 #endif
 
-            if (!is_set) {
+            if constexpr (!is_set) {
               KOKKOS_IMPL_NONTEMPORAL_PREFETCH_STORE(&m_values[new_index]);
 #ifdef KOKKOS_ENABLE_SYCL
-              Kokkos::atomic_store(&m_values[new_index], v);
+              Impl::store_workaround(&m_values[new_index], v);
 #else
               m_values[new_index] = v;
 #endif
@@ -928,20 +923,8 @@ class UnorderedMap {
                    std::is_same_v<std::remove_const_t<SValue>, value_type>>
   deep_copy_view(
       UnorderedMap<SKey, SValue, SDevice, Hasher, EqualTo> const &src) {
-#ifndef KOKKOS_ENABLE_DEPRECATED_CODE_4
     // To deep copy UnorderedMap, capacity must be identical
     KOKKOS_EXPECTS(capacity() == src.capacity());
-#else
-    if (capacity() != src.capacity()) {
-      allocate_view(src);
-#ifdef KOKKOS_ENABLE_DEPRECATION_WARNINGS
-      Kokkos::Impl::log_warning(
-          "Warning: deep_copy_view() allocating views is deprecated. Must call "
-          "with UnorderedMaps of identical capacity, or use "
-          "create_copy_view().\n");
-#endif
-    }
-#endif
 
     if (m_hash_lists.data() != src.m_hash_lists.data()) {
       Kokkos::deep_copy(m_available_indexes, src.m_available_indexes);
@@ -952,7 +935,7 @@ class UnorderedMap {
       Kokkos::deep_copy(exec_space, m_hash_lists, src.m_hash_lists);
       Kokkos::deep_copy(exec_space, m_next_index, src.m_next_index);
       Kokkos::deep_copy(exec_space, m_keys, src.m_keys);
-      if (!is_set) {
+      if constexpr (!is_set) {
         Kokkos::deep_copy(exec_space, m_values, src.m_values);
       }
       Kokkos::deep_copy(exec_space, m_scalars, src.m_scalars);

@@ -63,21 +63,21 @@ void MEAMKokkos<DeviceType>::operator()(TagMEAMDensFinal, const int &i, EV_FLOAT
     scaleii = d_scale(type[i],type[i]);
     d_rho1[i] = 0.0;
     if (msmeamflag) {
-      d_rho2[i] = -1.0 / 3.0 * (d_arho2b[i] * d_arho2b[i]
+      d_rho2[i] = static_cast<KK_FLOAT>(-1.0 / 3.0) * (d_arho2b[i] * d_arho2b[i]
                               - d_arho2mb[i] * d_arho2mb[i]);
     } else{
-      d_rho2[i] = -1.0 / 3.0 * d_arho2b[i] * d_arho2b[i];
+      d_rho2[i] = static_cast<KK_FLOAT>(-1.0 / 3.0) * d_arho2b[i] * d_arho2b[i];
     }
     d_rho3[i] = 0.0;
     for (int m = 0; m < 3; m++) {
       if (msmeamflag) {
         d_rho1[i] = d_rho1[i] + d_arho1(i, m) * d_arho1(i, m)
                              - d_arho1m(i, m) * d_arho1m(i, m);
-        d_rho3[i] = d_rho3[i] - 3.0 / 5.0 * (d_arho3b(i, m) * d_arho3b(i, m)
+        d_rho3[i] = d_rho3[i] - static_cast<KK_FLOAT>(3.0 / 5.0) * (d_arho3b(i, m) * d_arho3b(i, m)
                                           - d_arho3mb(i, m) * d_arho3mb(i, m));
       } else{
         d_rho1[i] += d_arho1(i,m) * d_arho1(i,m);
-        d_rho3[i] -= 3.0 / 5.0 * d_arho3b(i,m) * d_arho3b(i,m);
+        d_rho3[i] -= static_cast<KK_FLOAT>(3.0 / 5.0) * d_arho3b(i,m) * d_arho3b(i,m);
       }
     }
     for (int m = 0; m < 6; m++){
@@ -100,15 +100,15 @@ void MEAMKokkos<DeviceType>::operator()(TagMEAMDensFinal, const int &i, EV_FLOAT
       // with msmeam all t weights are already accounted for in rho
       d_gamma[i] = d_rho1[i] + d_rho2[i] + d_rho3[i];
     } else{
-      if (d_rho0[i] > 0.0) {
+      if (d_rho0[i] > static_cast<KK_FLOAT>(0.0)) {
         if (ialloy == 1) {
           d_t_ave(i,0) = fdiv_zero_kk(d_t_ave(i,0), d_tsq_ave(i,0));
           d_t_ave(i,1) = fdiv_zero_kk(d_t_ave(i,1), d_tsq_ave(i,1));
           d_t_ave(i,2) = fdiv_zero_kk(d_t_ave(i,2), d_tsq_ave(i,2));
         } else if (ialloy == 2) {
-          d_t_ave(i,0) = t1_meam[elti];
-          d_t_ave(i,1) = t2_meam[elti];
-          d_t_ave(i,2) = t3_meam[elti];
+          d_t_ave(i,0) = static_cast<KK_FLOAT>(t1_meam[elti]);
+          d_t_ave(i,1) = static_cast<KK_FLOAT>(t2_meam[elti]);
+          d_t_ave(i,2) = static_cast<KK_FLOAT>(t3_meam[elti]);
         } else {
           d_t_ave(i,0) /= d_rho0[i];
           d_t_ave(i,1) /= d_rho0[i];
@@ -118,7 +118,7 @@ void MEAMKokkos<DeviceType>::operator()(TagMEAMDensFinal, const int &i, EV_FLOAT
       d_gamma[i] = d_t_ave(i,0) * d_rho1[i] + d_t_ave(i,1) * d_rho2[i] + d_t_ave(i,2) * d_rho3[i];
     }
 
-    if (d_rho0[i] > 0.0)
+    if (d_rho0[i] > static_cast<KK_FLOAT>(0.0))
       d_gamma[i] /= (d_rho0[i] * d_rho0[i]);
 
     Z = get_Zij(lattce_meam[elti][elti]);
@@ -127,7 +127,7 @@ void MEAMKokkos<DeviceType>::operator()(TagMEAMDensFinal, const int &i, EV_FLOAT
     if (d_errorflag() != 0)
       return;
 
-    get_shpfcn(lattce_meam[elti][elti], stheta_meam[elti][elti], ctheta_meam[elti][elti], shp);
+    get_shpfcn(lattce_meam[elti][elti], static_cast<KK_FLOAT>(stheta_meam[elti][elti]), static_cast<KK_FLOAT>(ctheta_meam[elti][elti]), shp);
     if (ibar_meam[elti] <= 0) {
       Gbar = 1.0;
       dGbar = 0.0;
@@ -135,7 +135,7 @@ void MEAMKokkos<DeviceType>::operator()(TagMEAMDensFinal, const int &i, EV_FLOAT
       if (mix_ref_t == 1)
         gam = (d_t_ave(i,0) * shp[0] + d_t_ave(i,1) * shp[1] + d_t_ave(i,2) * shp[2]) / (Z * Z);
       else
-        gam = (t1_meam[elti] * shp[0] + t2_meam[elti] * shp[1] + t3_meam[elti] * shp[2]) /
+        gam = (static_cast<KK_FLOAT>(t1_meam[elti]) * shp[0] + static_cast<KK_FLOAT>(t2_meam[elti]) * shp[1] + static_cast<KK_FLOAT>(t3_meam[elti]) * shp[2]) /
               (Z * Z);
       Gbar = G_gam(gam, ibar_meam[elti], d_errorflag());
     }
@@ -149,15 +149,15 @@ void MEAMKokkos<DeviceType>::operator()(TagMEAMDensFinal, const int &i, EV_FLOAT
         gam = (d_t_ave(i,0) * shp[0] + d_t_ave(i,1) * shp[1] + d_t_ave(i,2) * shp[2]) / (Z * Z);
         Gbar = dG_gam(gam, ibar_meam[elti], dGbar);
       }
-      rho_bkgd = rho0_meam[elti] * Z * Gbar;
+      rho_bkgd = static_cast<KK_FLOAT>(rho0_meam[elti]) * Z * Gbar;
     } else {
       if (bkgd_dyn == 1)
-        rho_bkgd = rho0_meam[elti] * Z;
+        rho_bkgd = static_cast<KK_FLOAT>(rho0_meam[elti]) * Z;
       else
-        rho_bkgd = rho_ref_meam[elti];
+        rho_bkgd = static_cast<KK_FLOAT>(rho_ref_meam[elti]);
     }
     rhob = d_rho[i] / rho_bkgd;
-    denom = 1.0 / rho_bkgd;
+    denom = static_cast<KK_FLOAT>(1.0) / rho_bkgd;
 
     G = dG_gam(d_gamma[i], ibar_meam[elti], dG);
 
@@ -176,15 +176,15 @@ void MEAMKokkos<DeviceType>::operator()(TagMEAMDensFinal, const int &i, EV_FLOAT
     else
       d_dgamma3[i] = 0.0;
 
-    Fl = embedding(A_meam[elti], Ec_meam[elti][elti], rhob, d_frhop[i]);
+    Fl = embedding(static_cast<KK_FLOAT>(A_meam[elti]), static_cast<KK_FLOAT>(Ec_meam[elti][elti]), rhob, d_frhop[i]);
 
     if (eflag_either) {
       Fl *= scaleii;
       if (eflag_global) {
-        ev.evdwl += Fl;
+        ev.evdwl += static_cast<KK_ACC_FLOAT>(Fl);
       }
       if (eflag_atom) {
-        d_eatom[i] += Fl;
+        d_eatom[i] += static_cast<KK_ACC_FLOAT>(Fl);
       }
     }
   }

@@ -598,3 +598,12 @@ void PPPMDielectric::slabcorr()
     efield[i][2] += ffact * (dipole_all - qsum*x[i][2]);
   }
 }
+
+/* ---------------------------------------------------------------------- */
+
+double PPPMDielectric::memory_usage()
+{
+  double bytes = PPPM::memory_usage();
+  bytes += (double) nmax * 3 * sizeof(double);    // efield[nmax][3]
+  return bytes;
+}

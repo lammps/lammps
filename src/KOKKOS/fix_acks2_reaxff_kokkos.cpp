@@ -24,6 +24,7 @@
 #include "comm.h"
 #include "error.h"
 #include "force.h"
+#include "info.h"
 #include "kokkos.h"
 #include "memory_kokkos.h"
 #include "neigh_list_kokkos.h"
@@ -45,6 +46,11 @@ FixACKS2ReaxFFKokkos<DeviceType>::
 FixACKS2ReaxFFKokkos(LAMMPS *lmp, int narg, char **arg) :
   FixACKS2ReaxFF(lmp, narg, arg)
 {
+  // the BiCGStab solver does not reliably converge in reduced precision
+  if (!Info::has_accelerator_feature("KOKKOS", "precision", "double"))
+    error->all(FLERR, "Fix {} requires a double precision KOKKOS package (-D KOKKOS_PREC=double)",
+               style);
+
   kokkosable = 1;
   sort_device = 1;
   atomKK = (AtomKokkos *) atom;

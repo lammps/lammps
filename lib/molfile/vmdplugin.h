@@ -15,6 +15,8 @@
  *
  ***************************************************************************/
 
+// NOLINTBEGIN
+
 /** @file
  * This header must be included by every VMD plugin library.  It defines the
  * API for every plugin so that VMD can organize the plugins it finds.
@@ -189,3 +191,5 @@ VMDPLUGIN_EXTERN int VMDPLUGIN_register_tcl(void *, void *tcl_interp,
 VMDPLUGIN_EXTERN int VMDPLUGIN_fini(void);
 
 #endif   /* VMD_PLUGIN_H */
+
+// NOLINTEND

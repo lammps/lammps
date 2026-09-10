@@ -17,7 +17,6 @@
 #define LAL_BASE_THREE_H
 
 #include "lal_device.h"
-#include "lal_balance.h"
 #include "mpi.h"
 
 #if defined(USE_OPENCL)
@@ -43,7 +42,6 @@ class BaseThree {
   /// Clear any previous data and set up for a new LAMMPS run
   /** \param max_nbors initial number of rows in the neighbor matrix
     * \param cell_size cutoff + skin
-    * \param gpu_split fraction of particles handled by device
     * \param k_two name for the kernel for 2-body force calculation
     * \param k_three name for the kernel for 3-body force calculation
     *
@@ -56,7 +54,7 @@ class BaseThree {
     * - -10 if invalid thread_per_atom setting **/
   int init_three(const int nlocal, const int nall, const int max_nbors,
                  const int maxspecial, const double cell_size,
-                 const double gpu_split, FILE *screen,
+                 FILE *screen,
                  const void *pair_program, const char *k_two,
                  const char *k_three_center, const char *k_three_end,
                  const char *k_short_nbor=nullptr, const int onetype=-1,
@@ -146,15 +144,15 @@ class BaseThree {
                const int nlist, double **host_x, int *host_type,
                int *ilist, int *numj, int **firstneigh, const bool eflag,
                const bool vflag, const bool eatom, const bool vatom,
-               int &host_start, const double cpu_time, bool &success);
+               bool &success);
 
   /// Pair loop with device neighboring
   int ** compute(const int ago, const int inum_full, const int nall,
                  double **host_x, int *host_type, double *sublo,
                  double *subhi, tagint *tag, int **nspecial, tagint **special,
                  const bool eflag, const bool vflag, const bool eatom,
-                 const bool vatom, int &host_start, int **ilist,
-                 int **numj, const double cpu_time, bool &success);
+                 const bool vatom, int **ilist,
+                 int **numj, bool &success);
 
   // -------------------------- DEVICE DATA -------------------------
 
@@ -168,7 +166,6 @@ class BaseThree {
   UCL_Timer time_pair;
 
   /// Host device load balancer
-  Balance<numtyp,acctyp> hd_balancer;
 
   /// LAMMPS pointer for screen output
   FILE *screen;
@@ -224,6 +221,7 @@ class BaseThree {
   double _max_bytes, _max_an_bytes;
   int _ainum, _nall;
   double _gpu_overhead, _driver_overhead;
+  int _timestep;
 
   void compile_kernels(UCL_Device &dev, const void *pair_string,
                        const char *two, const char *three_center,

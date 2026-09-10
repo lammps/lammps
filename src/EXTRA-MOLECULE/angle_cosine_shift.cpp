@@ -36,7 +36,8 @@ static constexpr double SMALL = 0.001;
 
 /* ---------------------------------------------------------------------- */
 
-AngleCosineShift::AngleCosineShift(LAMMPS *lmp) : Angle(lmp)
+AngleCosineShift::AngleCosineShift(LAMMPS *lmp) :
+    Angle(lmp), k(nullptr), a(nullptr), theta(nullptr), ksint(nullptr)
 {
   kcost = nullptr;
 }
@@ -45,6 +46,8 @@ AngleCosineShift::AngleCosineShift(LAMMPS *lmp) : Angle(lmp)
 
 AngleCosineShift::~AngleCosineShift()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(k);

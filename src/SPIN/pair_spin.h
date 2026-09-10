@@ -32,6 +32,7 @@ class PairSpin : public Pair {
 
   void compute(int, int) override {}
   virtual void compute_single_pair(int, double *) {}
+  double memory_usage() override;
 
   // storing magnetic energies
 

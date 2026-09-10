@@ -21,7 +21,6 @@ namespace LAMMPS_NS {
 class Region;
 
 class Variable : protected Pointers {
-  friend class Info;
 
  public:
   Variable(class LAMMPS *);
@@ -38,6 +37,11 @@ class Variable : protected Pointers {
   void purge_atomfile();
   void clear_in_progress();
 
+  [[nodiscard]] int get_nvar() const { return (int) variables.size(); }
+  [[nodiscard]] const char *get_name(int i) const;
+  [[nodiscard]] const char *get_style(int i) const;
+  [[nodiscard]] std::string get_info(int i) const;
+
   int equalstyle(int);
   int atomstyle(int);
   int vectorstyle(int);
@@ -47,7 +51,7 @@ class Variable : protected Pointers {
   char *retrieve(const char *);
   double compute_equal(int);
   double compute_equal(const std::string &);
-  void compute_atom(int, int, double *, int, int);
+  virtual void compute_atom(int, int, double *, int, int);
   int compute_vector(int, double **);
   void internal_set(int, double);
   int internal_create(char *, double);
@@ -55,61 +59,38 @@ class Variable : protected Pointers {
   tagint int_between_brackets(char *&, int);
   double evaluate_boolean(char *);
 
- public:
-  int nvar;        // # of defined variables
-  char **names;    // name of each variable
-
-  // must match "varstyles" array in variables.cpp, UNKNOWN must be last.
-  enum {
-    INDEX,
-    LOOP,
-    WORLD,
-    UNIVERSE,
-    ULOOP,
-    STRING,
-    GETENV,
-    SCALARFILE,
-    ATOMFILE,
-    FORMAT,
-    EQUAL,
-    ATOM,
-    VECTOR,
-    PYTHON,
-    TIMER,
-    INTERNAL,
-    UNKNOWN
-  };
   static constexpr int VALUELENGTH = 64;
-  static const std::vector<std::string> varstyles;
 
- private:
-  int me;
-  int maxvar;                  // max # of variables following lists can hold
-  int *style;                  // style of each variable
-  int *num;                    // # of values for each variable
-  int *which;                  // next available value for each variable
-  int *pad;                    // 1 = pad loop/uloop variables with 0s, 0 = no pad
-  int *pyindex;                // indices to Python funcs for python-style vars
-  class VarReader **reader;    // variable that reads from file
-  char ***data;                // str value of each variable's values
-  double *dvalue;              // single numeric value for internal variables
-
+ protected:
   struct VecVar {
     int n, nmax;
     int dynamic;
     bigint currentstep;
     double *values;
   };
-  VecVar *vecs;
 
-  int *eval_in_progress;    // flag if evaluation of variable is in progress
-  int treetype;             // ATOM or VECTOR flag for formula evaluation
+  struct VarInfo {
+    std::string name;
+    int style;
+    int num;
+    int which;
+    int pad;
+    int pyindex;
+    int eval_in_progress;
+    class VarReader *reader;
+    char **data;
+    double dvalue;
+    VecVar vec;
 
-  class RanMars *randomequal;    // random number generator for equal-style vars
-  class RanMars *randomatom;     // random number generator for atom-style vars
+    VarInfo();
+    VarInfo(const VarInfo &) = delete;
+    ~VarInfo();
 
-  int precedence[18];    // precedence level of math operators
-                         // set length to include up to XOR in enum
+    VarInfo(VarInfo &&) noexcept;
+    VarInfo &operator=(VarInfo &&) noexcept;
+    void clear();
+  };
+  std::vector<VarInfo> variables;
 
   struct Tree {              // parse tree for atom-style or vector-style vars
     double value;            // single scalar
@@ -126,9 +107,9 @@ class Variable : protected Pointers {
     Tree *first, *second;    // ptrs further down tree for first 2 args
     Tree **extra;            // ptrs further down tree for nextra args
 
-    int pyvar;               // index of Python variable invoked as py_name()
-    int argcount;            // # of args to associated Python function
-    int *argvars;            // indices of internal variables for each arg
+    int pyvar;       // index of Python variable invoked as py_name()
+    int argcount;    // # of args to associated Python function
+    int *argvars;    // indices of internal variables for each arg
 
     Tree() :
         array(nullptr), iarray(nullptr), barray(nullptr), selfalloc(0), ivalue(0), nextra(0),
@@ -137,9 +118,40 @@ class Variable : protected Pointers {
     }
   };
 
+  // seams for accelerator packages that keep a second copy of the per-atom
+  // data.  each of these reads per-atom arrays on the host, so VariableKokkos
+  // overrides them to make the data it needs current and then delegates here.
+
+  virtual void atom_vector(char *, Tree **, Tree **, int &);
+  static int is_group_function(const char *);
+  virtual int group_function(char *, char *, Tree **, Tree **, int &, double *, int &, int);
+  static int is_special_function(const std::string &);
+  virtual int special_function(const std::string &, char *, Tree **, Tree **, int &, double *,
+                               int &, int, char *, int &, char *&);
+  virtual void peratom2global(int, char *, double *, int, tagint, Tree **, Tree **, int &,
+                              double *, int &);
+  virtual void custom2global(int *, double *, int, tagint, Tree **, Tree **, int &, double *,
+                             int &);
+
+  // per-atom data reached through a compute or fix cannot be identified from
+  // the formula, so evaluate() passes a null pointer and asks for all of it.
+  // custom properties pass the i_ / d_ / i2_ / d2_ name they were given.
+
+  virtual void sync_peratom(const char *) {}
+
+ private:
+  int treetype;    // ATOM or VECTOR flag for formula evaluation
+
+  class RanMars *randomequal;    // random number generator for equal-style vars
+  class RanMars *randomatom;     // random number generator for atom-style vars
+
+  int precedence[18];    // precedence level of math operators
+                         // set length to include up to XOR in enum
+
   int compute_python(int);
   void remove(int);
-  void grow();
+  int recycle();
+
   void copy(int, char **, char **);
   double evaluate(char *, Tree **, int);
   double collapse_tree(Tree *);
@@ -149,15 +161,9 @@ class Variable : protected Pointers {
   void free_tree(Tree *);
   int find_matching_paren(char *, int, char *&, int);
   int math_function(char *, char *, Tree **, Tree **, int &, double *, int &, int);
-  int group_function(char *, char *, Tree **, Tree **, int &, double *, int &, int);
   Region *region_function(char *, int);
-  int special_function(const std::string &, char *, Tree **, Tree **, int &, double *, int &, int,
-                       char *, int &, char *&);
   int feature_function(char *, char *, Tree **, Tree **, int &, double *, int &, int);
-  void peratom2global(int, char *, double *, int, tagint, Tree **, Tree **, int &, double *, int &);
-  void custom2global(int *, double *, int, tagint, Tree **, Tree **, int &, double *, int &);
   int is_atom_vector(char *);
-  void atom_vector(char *, Tree **, Tree **, int &);
   int parse_args(char *, char **);
   void parse_vector(int, char *);
   char *find_next_comma(char *);

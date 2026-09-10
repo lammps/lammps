@@ -220,7 +220,7 @@ The model requires the following inputs:
    when the bulk elastic response is triggered.  Lower values of
    :math:`\psi_b` delay the onset of the bulk elastic response.
 
-   6. *Damping coefficent* :math:`\eta_{n0} \ge 0` : The damping
+   6. *Damping coefficient* :math:`\eta_{n0} \ge 0` : The damping
    coefficient is a tunable parameter that controls damping in the
    normal direction.
 
@@ -410,11 +410,18 @@ restitution coefficient *e* according to:
 
 .. math::
 
-   \alpha = 1.2728-4.2783e+11.087e^2-22.348e^3+27.467e^4-18.022e^5+4.8218e^6
+   \alpha / \sqrt{2} = 1.2728-4.2783e+11.087e^2-22.348e^3+27.467e^4-18.022e^5+4.8218e^6
 
 The dimensionless coefficient of restitution :math:`e` specified as part
 of the normal contact model parameters should be between 0 and 1, but no
 error check is performed on this.
+
+.. versionchanged:: 2Sep2026
+
+This numerical solution is from :ref:`(Marshall, 2009) <Marshall2009_1>`
+where the factor of :math:`\sqrt{2}` arises from a difference in convention
+from Tsuji when defining :math:`\alpha` using either the mass vs. effective
+mass. This factor was missing in earlier versions of LAMMPS.
 
 The *coeff_restitution* model is useful when a specific normal
 coefficient of restitution :math:`e` is required.  It operates much like
@@ -503,42 +510,18 @@ damping :math:`\eta_n` that determines the magnitude of the tangential
 damping, :math:`\mu_t` is the tangential (or sliding) friction
 coefficient, and :math:`k_t` is the tangential stiffness coefficient.
 
-For *tangential linear_nohistory*, a simple velocity-dependent Coulomb
-friction criterion is used, which mimics the behavior of the *pair
-gran/hooke* style.  The tangential force :math:`\mathbf{F}_t` is given
-by:
+The general form of the tangential contact force for all models is:
 
 .. math::
 
-   \mathbf{F}_t =  -\min(\mu_t F_{n0}, \|\mathbf{F}_\mathrm{t,damp}\|) \mathbf{t}
+   \mathbf{F}_t =  \min(\mu_t F_{n0}, \|\mathbf{F}_{te} + \mathbf{F}_\mathrm{t,damp}\|) \mathbf{t}
 
-The tangential damping force :math:`\mathbf{F}_\mathrm{t,damp}` is given
-by:
-
-.. math::
-
-   \mathbf{F}_\mathrm{t,damp} = -\eta_t \mathbf{v}_{t,rel}
-
-The tangential damping prefactor :math:`\eta_t` is calculated by scaling
-the normal damping :math:`\eta_n` (see above):
+where :math:`\mathbf{F}_{te}` and :math:`\mathbf{F}_\mathrm{t,damp}`
+are the elastic and damping components of the tangential force, respectively,
+and :math:`\mathbf{t}` is the direction of the tangential force given by:
 
 .. math::
-
-   \eta_t = -x_{\gamma,t} \eta_n
-
-The normal damping prefactor :math:`\eta_n` is determined by the choice
-of the *damping* keyword, as discussed above.  Thus, the *damping*
-keyword also affects the tangential damping.  The parameter
-:math:`x_{\gamma,t}` is a scaling coefficient.  Several works in the
-literature use :math:`x_{\gamma,t} = 1` (:ref:`Marshall
-<Marshall2009_1>`, :ref:`Tsuji et al <Tsuji1992_1>`, :ref:`Silbert et al
-<Silbert2001_1>`).  The relative tangential velocity at the point of
-contact is given by :math:`\mathbf{v}_{t, rel} = \mathbf{v}_{t} -
-(R_i\boldsymbol{\Omega}_i + R_j\boldsymbol{\Omega}_j) \times
-\mathbf{n}`, where :math:`\mathbf{v}_{t} = \mathbf{v}_r -
-\mathbf{v}_r\cdot\mathbf{n}\ \mathbf{n}`, :math:`\mathbf{v}_r =
-\mathbf{v}_j - \mathbf{v}_i` .  The direction of the applied force is
-:math:`\mathbf{t} = \mathbf{v_{t,rel}}/\|\mathbf{v_{t,rel}}\|` .
+   \mathbf{t} = \frac{\mathbf{F}_{te} + \mathbf{F}_\mathrm{t,damp}}{\|\mathbf{F}_{te} + \mathbf{F}_\mathrm{t,damp}\|}
 
 The normal force value :math:`F_{n0}` used to compute the critical force
 depends on the form of the contact model.  For non-cohesive models (\
@@ -562,6 +545,44 @@ the form:
 Where :math:`F_{pulloff} = 3\pi \gamma R` for *jkr*, and
 :math:`F_{pulloff} = 4\pi \gamma R` for *dmt*\ .
 
+
+The tangential damping force is the same for all models and is given by:
+
+.. math::
+
+   \mathbf{F}_\mathrm{t,damp} = -\eta_t \mathbf{v}_{t,rel}
+
+The tangential damping prefactor :math:`\eta_t` is calculated by scaling
+the normal damping :math:`\eta_n` (see above):
+
+.. math::
+
+   \eta_t = -x_{\gamma,t} \eta_n
+
+The normal damping prefactor :math:`\eta_n` is determined by the choice
+of the *damping* keyword, as discussed above.  Thus, the *damping*
+keyword also affects the tangential damping.  The parameter
+:math:`x_{\gamma,t}` is a scaling coefficient.  Several works in the
+literature use :math:`x_{\gamma,t} = 1` (:ref:`Marshall
+<Marshall2009_1>`, :ref:`Tsuji et al <Tsuji1992_1>`, :ref:`Silbert et al
+<Silbert2001_1>`).  The relative tangential velocity at the point of
+contact is given by :math:`\mathbf{v}_{t, rel} = \mathbf{v}_{t} -
+(R_i\boldsymbol{\Omega}_i + R_j\boldsymbol{\Omega}_j) \times
+\mathbf{n}`, where :math:`\mathbf{v}_{t} = \mathbf{v}_r -
+\mathbf{v}_r\cdot\mathbf{n}\ \mathbf{n}`, :math:`\mathbf{v}_r =
+\mathbf{v}_j - \mathbf{v}_i` .
+
+The elastic tangential force :math:`\mathbf{F}_{te}` depends on the tangential
+model and is detailed hereafter for each tangential model.
+
+For *tangential linear_nohistory*, no elastic force is considered:
+
+.. math::
+
+   \mathbf{F}_{te} = \mathbf{0}
+
+This is used to mimic the behavior of the *pair gran/hooke* style.
+
 The remaining tangential options all use accumulated tangential
 displacement (i.e. contact history), except for the options
 *mindlin/force* and *mindlin_rescale/force*, that use accumulated
@@ -570,18 +591,18 @@ accumulated tangential displacement is discussed in details below in the
 context of the *linear_history* option.  The same treatment of the
 accumulated displacement applies to the other options as well.
 
-For *tangential linear_history*, the tangential force is given by:
+For *tangential linear_history*, the elastic tangential force is given by:
 
 .. math::
 
-   \mathbf{F}_t =  -\min(\mu_t F_{n0}, \|-k_t\mathbf{\xi} + \mathbf{F}_\mathrm{t,damp}\|) \mathbf{t}
+   \mathbf{F}_{te} = -k_t\mathbf{\xi}
 
 Here, :math:`\mathbf{\xi}` is the tangential displacement accumulated
 during the entire duration of the contact:
 
 .. math::
 
-   \mathbf{\xi} = \int_{t0}^t \mathbf{v}_{t,rel}(\tau) \mathrm{d}\tau
+   \mathbf{\xi} = \int_{t_0}^t \mathbf{v}_{t,rel}(\tau) \mathrm{d}\tau
 
 This accumulated tangential displacement must be adjusted to account for
 changes in the frame of reference of the contacting pair of particles
@@ -635,11 +656,11 @@ overlap region) to induce a torque on each particle according to:
 For *tangential mindlin*, the :ref:`Mindlin <Mindlin1949>` no-slip
 solution is used which differs from the *linear_history* option by an
 additional factor of :math:`a`, the radius of the contact region.  The
-tangential force is given by:
+elastic tangential force is given by:
 
 .. math::
 
-   \mathbf{F}_t =  -\min(\mu_t F_{n0}, \|-k_t a \mathbf{\xi} + \mathbf{F}_\mathrm{t,damp}\|) \mathbf{t}
+   \mathbf{F}_{te} =  -k_t a \mathbf{\xi}
 
 Here, :math:`a` is the radius of the contact region, given by :math:`a
 =\sqrt{R\delta}` for all normal contact models, except for *jkr*, where
@@ -671,18 +692,11 @@ done according to the formula above.
 For *tangential mindlin/force*, the accumulated elastic tangential force
 characterizes the contact history, instead of the accumulated tangential
 displacement.  This prevents the dependence of the tangential force on
-the normal overlap as noted above.  The tangential force is given by:
+the normal overlap as noted above.  The elastic tangential force is given by:
 
 .. math::
 
-   \mathbf{F}_t =  -\min(\mu_t F_{n0}, \|\mathbf{F}_{te} + \mathbf{F}_\mathrm{t,damp}\|) \mathbf{t}
-
-The increment of the elastic component of the tangential force
-:math:`\mathbf{F}_{te}` is given by:
-
-.. math::
-
-   \mathrm{d}\mathbf{F}_{te} = -k_t a \mathbf{v}_{t,rel} \mathrm{d}\tau
+   \mathbf{F}_{te} = \int_{t_0}^{t} -k_t a \mathbf{v}_{t,rel} \mathrm{d}\tau
 
 The changes in frame of reference of the contacting pair of particles
 during contact are accounted for by the same formula as above, replacing
@@ -693,7 +707,7 @@ to match the value for the critical force:
 
 .. math::
 
-   \mathbf{F}_{te} = - \mu_t F_{n0}\mathbf{t} + \mathbf{F}_{t,damp}
+   \mathbf{F}_{te} = \mu_t F_{n0}\mathbf{t} - \mathbf{F}_{t,damp}
 
 The same rules as those described for *mindlin* apply regarding the
 tangential stiffness and mixing of the shear modulus for different
@@ -1123,7 +1137,7 @@ reduction. Journal of the Mechanics and Physics of Solids, 183, 105492.
 
 .. _Zunker2024II:
 
-**(Zunker and Kamrin, 2024)** Zunker, W., & Kamrin, K. (2024).
+**(Zunker and Kamrin, 2024b)** Zunker, W., & Kamrin, K. (2024).
 A mechanically-derived contact model for adhesive elastic-perfectly
 plastic particles, Part II: Contact under high compaction-modeling
 a bulk elastic response. Journal of the Mechanics and Physics of Solids,

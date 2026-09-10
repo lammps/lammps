@@ -2,6 +2,8 @@
 .. index:: dihedral_style class2/omp
 .. index:: dihedral_style class2/kk
 .. index:: dihedral_style class2xe
+.. index:: dihedral_style class2xe/kk
+.. index:: dihedral_style class2xe/omp
 
 dihedral_style class2 command
 =============================
@@ -10,6 +12,8 @@ Accelerator Variants: *class2/omp*, *class2/kk*
 
 dihedral_style class2xe command
 ===============================
+
+Accelerator Variants: *class2xe/kk*, *class2xe/omp*
 
 Syntax
 """"""

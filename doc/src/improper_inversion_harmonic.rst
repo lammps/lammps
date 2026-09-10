@@ -1,7 +1,11 @@
 .. index:: improper_style inversion/harmonic
+.. index:: improper_style inversion/harmonic/kk
+.. index:: improper_style inversion/harmonic/omp
 
 improper_style inversion/harmonic command
 =========================================
+
+Accelerator Variants: *inversion/harmonic/kk*, *inversion/harmonic/omp*
 
 Syntax
 """"""
@@ -32,8 +36,9 @@ where :math:`K` is the force constant and :math:`\omega` is the angle
 evaluated for all three axis-plane combinations centered around the atom I.
 For the IL axis and the IJK plane :math:`\omega` looks as follows:
 
-.. image:: JPG/umbrella.jpg
+.. image:: JPG/umbrella.png
    :align: center
+   :width: 50%
 
 Note that the *inversion/harmonic* angle term evaluation differs to
 the :doc:`improper_umbrella <improper_umbrella>` due to the cyclic
@@ -62,6 +67,12 @@ quadruplet is the atom of symmetry; all other atoms are considered
 interchangeable.  This convention is relevant for operations that require
 knowledge of how atoms are ordered, such as automatic assignment of new
 improper types by :doc:`fix bond/react <fix_bond_react>`.
+
+----------
+
+.. include:: accel_styles.rst
+
+----------
 
 Restrictions
 """"""""""""

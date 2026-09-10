@@ -41,7 +41,7 @@ class AngleQuartic : public Angle {
  protected:
   double *k2, *k3, *k4, *theta0;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }    // namespace LAMMPS_NS

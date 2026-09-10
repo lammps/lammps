@@ -27,6 +27,7 @@
 #include "neighbor.h"
 #include "suffix.h"
 
+#include <cfloat>
 #include <cmath>
 
 #include "omp_compat.h"
@@ -56,9 +57,11 @@ void PairPeriLPSOMP::compute(int eflag, int vflag)
 
   if (atom->nmax > nmax) {
     memory->destroy(s0_new);
+    memory->destroy(smin_new);
     memory->destroy(theta);
     nmax = atom->nmax;
     memory->create(s0_new,nmax,"pair:s0_new");
+    memory->create(smin_new,nmax,"pair:smin_new");
     memory->create(theta,nmax,"pair:theta");
   }
 
@@ -111,6 +114,7 @@ void PairPeriLPSOMP::eval(int iifrom, int iito, ThrData * const thr)
 
   double *vfrac = atom->vfrac;
   double *s0 = atom->s0;
+  double *smin = atom->smin;
   double **x0 = atom->x0;
   double **r0   = fix_peri_neigh->r0;
   tagint **partner = fix_peri_neigh->partner;
@@ -267,6 +271,7 @@ void PairPeriLPSOMP::eval(int iifrom, int iito, ThrData * const thr)
     ztmp0 = x0[i][2];
     itype = type[i];
     jnum = npartner[i];
+    smin_new[i] = DBL_MAX;
     first = true;
 
     for (jj = 0; jj < jnum; jj++) {
@@ -337,13 +342,20 @@ void PairPeriLPSOMP::eval(int iifrom, int iito, ThrData * const thr)
                                0.5*fbond*vfrac[i],delx,dely,delz,thr);
 
       // find stretch in bond I-J and break if necessary
-      // use s0 from previous timestep
+      // use the minimum stretch (smin) from the previous timestep to form the
+      // per-bond critical stretch s0 = s00 - alpha*smin (Parks 2008, eq. 9).
+      // Evaluating s00/alpha per bond (instead of collapsing s0 into one
+      // per-particle scalar) is required when these coeffs depend on the type
+      // pair; min(s0_i,s0_j) = s00 - alpha*max(smin_i,smin_j).
 
       stretch = dr / r0[i][jj];
-      if (stretch > MIN(s0[i],s0[j])) partner[i][jj] = 0;
+      if (stretch > s00[itype][jtype] - alpha[itype][jtype]*MAX(smin[i],smin[j]))
+        partner[i][jj] = 0;
 
-      // update s0 for next timestep
+      // update minimum stretch smin (for breaking) and s0 (for diagnostic
+      // output) for the next timestep
 
+      smin_new[i] = MIN(smin_new[i],stretch);
       if (first)
          s0_new[i] = s00[itype][jtype] - (alpha[itype][jtype] * stretch);
       else
@@ -355,9 +367,13 @@ void PairPeriLPSOMP::eval(int iifrom, int iito, ThrData * const thr)
 
   sync_threads();
 
-  // store new s0 (in parallel)
+  // store new s0 (diagnostic) and smin (used for bond breaking) in parallel
+  // an atom with no surviving bonds keeps the no-breaking sentinel (-DBL_MAX)
   if (iifrom < nlocal)
-    for (i = iifrom; i < iito; i++) s0[i] = s0_new[i];
+    for (i = iifrom; i < iito; i++) {
+      s0[i] = s0_new[i];
+      smin[i] = (smin_new[i] == DBL_MAX) ? -DBL_MAX : smin_new[i];
+    }
 }
 
 /* ---------------------------------------------------------------------- */

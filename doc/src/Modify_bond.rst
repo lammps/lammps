@@ -5,6 +5,10 @@ Classes that compute molecular interactions are derived from the Bond,
 Angle, Dihedral, and Improper classes.  New styles can be created to
 add new potentials to LAMMPS.
 
+:doc:`Developer_write_bond` contains a detailed discussion of writing
+new bond, angle, dihedral, and improper styles from scratch with
+examples from the existing harmonic styles.
+
 Bond_harmonic.cpp is the simplest example of a bond style.  Ditto for
 the harmonic forms of the angle, dihedral, and improper style
 commands.
@@ -45,7 +49,9 @@ for details and specific additional methods.
 +--------------------------------+----------------------------------------------------------------------+
 | memory_usage                   | tally memory allocated by the style                                  |
 +--------------------------------+----------------------------------------------------------------------+
-| extract                        | provide access to internal data  (bond or angle styles only)         |
+| extract                        | provide access to internal data                                      |
++--------------------------------+----------------------------------------------------------------------+
+| born_matrix                    | compute Born matrix elements for elasticity                          |
 +--------------------------------+----------------------------------------------------------------------+
 | reinit                         | reset all type-based parameters, called by fix adapt (bonds only)    |
 +--------------------------------+----------------------------------------------------------------------+
@@ -75,3 +81,12 @@ setting.
 +---------------------------------+------------------------------------------------------------------------------+---------+
 | comm_reverse_off                | size of buffer for reverse communication with newton off (bond styles only)  | 0       |
 +---------------------------------+------------------------------------------------------------------------------+---------+
+| born_matrix_enable              | 1 if born_matrix() is implemented                                            | 0       |
++---------------------------------+------------------------------------------------------------------------------+---------+
+| centroidstressflag              | CENTROID_AVAIL if centroid stress is different and implemented               | varies  |
++---------------------------------+------------------------------------------------------------------------------+---------+
+
+The default value of ``centroidstressflag`` is ``CENTROID_SAME`` for bond
+styles and ``CENTROID_AVAIL`` for angle, dihedral, and improper styles.  It
+should be set to ``CENTROID_NOTAVAIL`` when the centroid stress differs from
+the two-body virial but has not yet been implemented.

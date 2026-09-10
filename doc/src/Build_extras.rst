@@ -57,6 +57,7 @@ This is the list of packages that may require additional steps.
    * :ref:`ML-PACE <ml-pace>`
    * :ref:`ML-POD <ml-pod>`
    * :ref:`ML-QUIP <ml-quip>`
+   * :ref:`ML-RUNNER <ml-runner>`
    * :ref:`MOLFILE <molfile>`
    * :ref:`NETCDF <netcdf>`
    * :ref:`OPENMP <openmp>`
@@ -64,10 +65,10 @@ This is the list of packages that may require additional steps.
    * :ref:`PLUMED <plumed>`
    * :ref:`PYTHON <python>`
    * :ref:`QMMM <qmmm>`
+   * :ref:`QMMM-XTB <qmmm-xtb>`
    * :ref:`RHEO <rheo>`
    * :ref:`SCAFACOS <scafacos>`
    * :ref:`VORONOI <voronoi>`
-   * :ref:`VTK <vtk>`
 
 ----------
 
@@ -109,6 +110,42 @@ versions use an incompatible API and thus LAMMPS will fail to compile.
 
       The COMPRESS package no longer supports the traditional make build.
       You need to build LAMMPS with CMake.
+
+----------
+
+.. _fenix_build:
+
+FENIX package
+-------------
+
+.. versionadded:: 2Sep2026
+
+To build with this package you must have the `Fenix library
+<https://github.com/sandialabs/fenix>` available on your system. The Fenix
+library must be newer than version 1 (currently meaning built from the default
+"develop" branch). Older versions use an incompatible API and this LAMMPS will
+fail to compile.
+
+.. tabs::
+
+   .. tab:: CMake build
+
+      .. code-block:: bash
+
+         -D WITH_FENIX=value # enables FENIX package
+                             # value = yes or no (default)
+
+      If CMake cannot find the Fenix library or include files, you can set the
+      following:
+
+      .. code-block:: bash
+
+         -D FENIX_ROOT=/path/to/fenix/install
+
+   .. tab:: Traditional make
+
+      The Fenix package does not support the traditional make build. You need to
+      build LAMMPS with CMake.
 
 ----------
 
@@ -206,17 +243,18 @@ CMake build
    -D GPU_API=value             # value = opencl (default) or cuda or hip
    -D GPU_PREC=value            # precision setting
                                 # value = double or mixed (default) or single
-   -D GPU_ARCH=value            # primary GPU hardware choice for GPU_API=cuda
-                                # value = sm_XX (see below, default is sm_75)
+   -D GPU_ARCH=value            # primary GPU hardware choice for all GPU_API back ends
+                                # value = sm_XX for cuda and hip/nvcc (see below),
+                                # gfx<XXX> for hip/amd, or spirv for hip/spirv
+                                # defaults: sm_75 (cuda, hip/nvcc), gfx906 (hip/amd),
+                                # spirv (hip/spirv)
    -D GPU_DEBUG=value           # enable debug code in the GPU package library,
                                 # mostly useful for developers
                                 # value = yes or no (default)
    -D HIP_PATH=value            # value = path to HIP installation. Must be set if
                                 # GPU_API=HIP
-   -D HIP_ARCH=value            # primary GPU hardware choice for GPU_API=hip
-                                # value depends on selected HIP_PLATFORM
-                                # default is 'gfx906' for HIP_PLATFORM=amd and 'sm_75' for
-                                # HIP_PLATFORM=nvcc
+   -D HIP_ARCH=value            # deprecated, use GPU_ARCH instead (still accepted,
+                                # but prints a deprecation warning)
    -D HIP_USE_DEVICE_SORT=value # enables GPU sorting
                                 # value = yes (default) or no
    -D CUDPP_OPT=value           # use GPU binning with CUDA (should be off for modern GPUs)
@@ -253,7 +291,15 @@ LAMMPS must be compiled with ``-DFFT_SINGLE`` to use PPPM with GPU acceleration
 or GPU acceleration should be disabled for PPPM (e.g. suffix off or ``pair/only``
 as described in the LAMMPS documentation).
 
-``GPU_ARCH`` settings for different GPU hardware is as follows:
+.. versionchanged:: 4Jul2026
+
+``GPU_ARCH`` is the canonical architecture setting for all ``GPU_API``
+back ends.  The back end specific ``HIP_ARCH`` (for ``GPU_API=hip``)
+variable is still accepted for backward compatibility, but its use is
+deprecated and prints a warning.
+
+For ``GPU_API=cuda`` and ``GPU_API=hip`` with ``HIP_PLATFORM=nvcc``, the
+``GPU_ARCH`` settings for different GPU hardware are as follows:
 
 * ``sm_30`` for Kepler (supported since CUDA 5 and until CUDA 10.x)
 * ``sm_35`` or ``sm_37`` for Kepler (supported since CUDA 5 and until CUDA 11.x)
@@ -330,6 +376,19 @@ HIP_USE_DEVICE_SORT=on`` requires installing the ``hipcub`` library
 
 The GPU library has some multi-thread support using OpenMP.  If LAMMPS
 is built with ``-D BUILD_OMP=on`` this will also be enabled.
+
+.. note::
+
+   Some Clang-based tool chains - in particular ``hipcc`` from ROCm - do not
+   ship the ``omp.h`` header in the compiler's own resource directory.  When
+   building with ``-D BUILD_OMP=on`` and such a compiler, host code that
+   includes ``<omp.h>`` would fail to compile even though the ``-fopenmp``
+   flag is accepted.  CMake detects this case and adds the ``omp.h`` from a
+   matching version of the system Clang installation as a fallback include
+   path (using ``-idirafter`` so it does not shadow other headers).  If no
+   matching ``omp.h`` can be found automatically, you may need to add the
+   directory containing it yourself, for example with
+   ``-D CMAKE_CXX_FLAGS=-idirafter/usr/lib/clang/<version>/include``.
 
 For a debug build, set ``GPU_DEBUG`` to be ``yes``.
 
@@ -636,18 +695,6 @@ They must be specified in uppercase.
    *  - RISCV_U74MC
       - HOST
       - U74MC (RISC-V) CPUs
-   *  - KEPLER30
-      - GPU
-      - NVIDIA Kepler generation CC 3.0
-   *  - KEPLER32
-      - GPU
-      - NVIDIA Kepler generation CC 3.2
-   *  - KEPLER35
-      - GPU
-      - NVIDIA Kepler generation CC 3.5
-   *  - KEPLER37
-      - GPU
-      - NVIDIA Kepler generation CC 3.7
    *  - MAXWELL50
       - GPU
       - NVIDIA Maxwell generation CC 5.0
@@ -726,9 +773,21 @@ They must be specified in uppercase.
    *  - AMD_GFX1100
       - GPU
       - AMD GPU RX7900XTX
+   *  - AMD_GFX1101
+      - GPU
+      - AMD GPU RX7800XT/RX7700XT
    *  - AMD_GFX1103
       - GPU
       - AMD APU Phoenix
+   *  - AMD_GFX1151
+      - GPU
+      - AMD APU Strix Halo
+   *  - AMD_GFX1152
+      - GPU
+      - AMD GPU Radeon 860M
+   *  - AMD_GFX1201
+      - GPU
+      - AMD GPU RX9070XT
    *  - INTEL_GEN
       - GPU
       - SPIR64-based devices, e.g. Intel GPUs, using JIT
@@ -754,7 +813,7 @@ They must be specified in uppercase.
       - GPU
       - Intel GPU DG2
 
-This list was last updated for version 5.1.0 of the Kokkos library.
+This list was last updated for version 5.2.1 of the Kokkos library.
 
 .. tabs::
 
@@ -877,18 +936,37 @@ runtime bounds checking on Kokkos data structures.  As to be expected,
 enabling this option will negatively impact the performance and thus is
 only recommended when developing a Kokkos-enabled style in LAMMPS.
 
-The CMake option ``-DKokkos_ENABLE_CUDA_UVM=on`` enables the use of CUDA
-"Unified Virtual Memory" (UVM) in Kokkos.  UVM allows to transparently
-use RAM on the host to supplement the memory used on the GPU (with some
-performance penalty) and thus enables running larger problems that would
-otherwise not fit into the RAM on the GPU.
+.. versionchanged:: 2Sep2026
+
+The CMake option ``-D Kokkos_ENABLE_IMPL_CUDA_UNIFIED_MEMORY=on`` makes
+Kokkos allocate all GPU memory as CUDA managed memory, which the host can
+read and write directly.  This allows a simulation to use RAM on the host
+to supplement the memory on the GPU (with some performance penalty), so
+that larger problems can be run than would otherwise fit on the GPU, and
+it allows host code to access GPU data directly, which is useful when
+developing or debugging a Kokkos-enabled style.  It requires CUDA 12.2 or
+later and a GPU with support for concurrent managed access, which is any
+NVIDIA GPU since the Pascal generation running under Linux.  Kokkos
+classifies this as an internal option that may change in a future
+release.  It replaces the option ``-D Kokkos_ENABLE_CUDA_UVM=on``, which
+Kokkos no longer supports; configuring with that option now stops with
+an error.
+
+.. versionadded:: 10Sep2025
 
 The CMake option ``-D KOKKOS_PREC=value`` sets the floating point
 precision of the calculations, where ``value`` can be one of: ``double``
 (FP64, default) or ``mixed`` (FP64 for accumulation of forces, energy,
 and virial, FP32 otherwise) or ``single`` (FP32).  When using reduced
-precision (single or mixed), the simulation should be carefully checked
-to ensure it is stable and that energy is acceptably conserved.
+precision (single or mixed), the simulation and its results should be
+carefully checked to ensure it is stable and that, for example, energy
+is sufficiently well conserved.  Using a lower floating point precision
+works best when simulating homogeneous bulk systems because those have
+the best error cancellation.  Using ``mixed`` precision provides most of
+the performance advantages of using single precision while performing
+the steps most relevant for accuracy in double precision.
+
+.. versionadded:: 10Sep2025
 
 The CMake option ``-D KOKKOS_LAYOUT=value`` sets the array layout of
 Kokkos views (e.g. forces, velocities, etc.) on GPUs, where ``value``
@@ -1197,8 +1275,8 @@ module included in the LAMMPS source distribution.
       .. code-block:: bash
 
          -D PKG_COLVARS=yes          # enable the package itself
-         -D COLVARS_LEPTON=yes       # use the Lepton library for custom expression (on by defaul)
-         -D COLVARS_DEBUG=no         # eneable debugging message (verbose, off by default)
+         -D COLVARS_LEPTON=yes       # use the Lepton library for custom expression (on by default)
+         -D COLVARS_DEBUG=no         # enable debugging message (verbose, off by default)
 
    .. tab:: Traditional make
 
@@ -1258,7 +1336,7 @@ code for the library can be found at:
 
 Instead of including the MBX package directly into LAMMPS, it is also
 possible to skip this step and build the MBX package as a plugin using
-the CMake script files in the ``examples/PACKAGE/mbx/plugin`` folder and
+the CMake script files in the ``examples/PACKAGES/mbx/plugin`` folder and
 then load this plugin at runtime with the :doc:`plugin command
 <plugin>`.
 
@@ -1280,6 +1358,8 @@ then load this plugin at runtime with the :doc:`plugin command
       ``MBXLIB_SHA256`` variable to the corresponding checksum
       (e.g. computed with ``sha256sum``) if you provide a different
       library version than what is downloaded automatically.
+      Both settings are cached and thus retained in the build folder
+      (see :ref:`this explanation <err0039>` for details).
 
 
    .. tab:: Traditional make
@@ -1301,7 +1381,7 @@ at: `https://github.com/ICAMS/lammps-user-pace/ <https://github.com/ICAMS/lammps
 
 Instead of including the ML-PACE package directly into LAMMPS, it
 is also possible to skip this step and build the ML-PACE package as
-a plugin using the CMake script files in the ``examples/PACKAGE/pace/plugin``
+a plugin using the CMake script files in the ``examples/PACKAGES/pace/plugin``
 folder and then load this plugin at runtime with the :doc:`plugin command <plugin>`.
 
 .. tabs::
@@ -1322,6 +1402,8 @@ folder and then load this plugin at runtime with the :doc:`plugin command <plugi
       ``PACELIB_SHA256`` variable to the corresponding checksum
       (e.g. computed with ``sha256sum``) if you provide a different
       library version than what is downloaded automatically.
+      Both settings are cached and thus retained in the build folder
+      (see :ref:`this explanation <err0039>` for details).
 
    .. tab:: Traditional make
 
@@ -1445,7 +1527,7 @@ LAMMPS build.
 
 Instead of including the PLUMED package directly into LAMMPS, it
 is also possible to skip this step and build the PLUMED package as
-a plugin using the CMake script files in the ``examples/PACKAGE/plumed/plugin``
+a plugin using the CMake script files in the ``examples/PACKAGES/plumed/plugin``
 folder and then load this plugin at runtime with the :doc:`plugin command <plugin>`.
 
 .. tabs::
@@ -1581,13 +1663,112 @@ details please see ``lib/hdnnp/README`` and the `n2p2 build documentation
 
 ----------
 
+
+.. _ml-runner:
+
+ML-RUNNER package
+-----------------
+
+The ML-RUNNER package provides an interface to the
+`RuNNer <https://www.theochem2.ruhr-uni-bochum.de/tc/software/runner.html.en>`_
+(Ruhr University Neural Network Energy Representation) library for
+high-dimensional neural network potentials (HDNNP).
+
+**Prerequisites**
+
+* **Fortran Compiler:** Since the RuNNer library is written in Fortran, a working Fortran compiler must be available on your system and detectable by CMake.
+* **BLAS/LAPACK:** RuNNer requires BLAS and LAPACK libraries for linear algebra operations.
+* **FFT Library:** RuNNer uses an FFT library for electrostatic calculations (3G/4G).
+  It can use either MKL or FFTW3 and the choice is imported from the KSPACE package configuration.
+  When using FFTW3 also FFTW3 threading (-DFFT_FFTW_THREADING=ON) needs to be enabled
+  which is usually auto-detected.  These restrictions are needed so that LAMMPS and RuNNer
+  use the same FFT library settings and link to the same library.  In both cases the
+  Fortran 03 wrapper file ``fftw3.f03`` must be in the Fortran compiler include path.
+
+**Building RuNNer**
+
+By default, the LAMMPS build process automatically downloads and compiles the
+RuNNer library as a static library. Alternatively, you can point LAMMPS to a
+pre-compiled version already present on your system.
+
+.. tabs::
+
+   .. tab:: CMake build
+
+      **Basic Options:**
+
+      .. code-block:: bash
+
+         -D PKG_ML-RUNNER=yes       # yes (default): Download and build RuNNer automatically.
+         -D DOWNLOAD_RUNNER=yes     # yes (default): clone the stable version of the official RuNNer repo.
+                                    # no: Use a pre-compiled RuNNer library.
+         -D RUNNER_SHARED_LIB=yes    # no: (default): Look for static library (.a).
+                                     # yes: Look for shared library (.so).
+
+      **Manual Library Configuration (if DOWNLOAD_RUNNER=no):**
+
+      .. code-block:: bash
+
+         -D RUNNER_LIB_DIR=path      # Directory containing the RuNNer library.
+                                     # (default: $HOME/.local/lib)
+         -D RUNNER_LIB_NAME=name     # Filename of the library (without extension).
+                                     # (default: libRuNNer_mpi)
+
+      **FFT Library Selection:**
+
+      The build system uses the FFT selection from the KSPACE package.
+      Only MKL and FFTW3 are currently supported
+
+      .. code-block:: bash
+
+         -D FFT=value                # FFTW3 or MKL
+         -D FFT_MKL_THREADS=yes      # required with MKL (default)
+         -D FFT_FFTW_THREADS=yes     # required with FFTW3 (default)
+
+   .. tab:: Traditional make
+
+      The ML-RUNNER package does not support the traditional make build system.
+      You must build LAMMPS with CMake.
+
+**Detailed Option Table**
+
+.. list-table::
+   :widths: 25 50 25
+   :header-rows: 1
+
+   * - Option
+     - Description
+     - Default
+   * - ``DOWNLOAD_RUNNER``
+     - Download and build RuNNer from source
+     - ``yes``
+   * - ``RUNNER_LIB_DIR``
+     - Path to a pre-installed RuNNer library
+     - ``$HOME/.local/lib``
+   * - ``RUNNER_LIB_NAME``
+     - Name of the RuNNer library file without extension
+     - ``libRuNNer_mpi``
+   * - ``RUNNER_SHARED_LIB``
+     - Link against a shared RuNNer library
+     - ``yes``
+   * - ``FFT``
+     - FFT library to use (FFTW3 or MKL)
+     - ``auto-detected``
+   * - ``FFT_MKL_THREADS``
+     - Use multi-threaded MKL FFT
+     - ``yes``
+   * - ``FFT_FFTW_THREADS``
+     - Use multi-threaded FFTW
+     - ``yes``
+
+----------
+
 .. _intel:
 
 INTEL package
 -----------------------------------
 
-To build with this package, you must choose which hardware you want to
-build for, either x86 CPUs or Intel KNLs in offload mode.  You should
+This package optimizes styles for x86 CPUs.  You should
 also typically :ref:`install the OPENMP package <openmp>`, as it can be
 used in tandem with the INTEL package to good effect, as explained
 on the :doc:`Speed_intel` page.
@@ -1607,31 +1788,18 @@ code when using features from the INTEL package.
 
       .. code-block:: bash
 
-         -D INTEL_ARCH=value     # value = cpu (default) or knl
          -D INTEL_LRT_MODE=value # value = threads, none, or c++17
 
    .. tab:: Traditional make
 
-      Choose which hardware to compile for in Makefile.machine via the
-      following settings.  See ``src/MAKE/OPTIONS/Makefile.intel_cpu*``
-      and ``Makefile.knl`` files for examples. and
-      ``src/INTEL/README`` for additional information.
-
-      For CPUs:
+      Choose compiler flags in Makefile.machine via the following
+      settings.  See ``src/MAKE/OPTIONS/Makefile.intel_cpu*`` files for
+      examples and ``src/INTEL/README`` for additional information.
 
       .. code-block:: make
 
          OPTFLAGS =  -xHost -O2 -fp-model fast=2 -no-prec-div -qoverride-limits -qopt-zmm-usage=high
-         CCFLAGS =   -g -qopenmp -DLAMMPS_MEMALIGN=64 -no-offload -fno-alias -ansi-alias -restrict $(OPTFLAGS)
-         LINKFLAGS = -g -qopenmp $(OPTFLAGS)
-         LIB =       -ltbbmalloc
-
-      For KNLs:
-
-      .. code-block:: make
-
-         OPTFLAGS =  -xMIC-AVX512 -O2 -fp-model fast=2 -no-prec-div -qoverride-limits
-         CCFLAGS =   -g -qopenmp -DLAMMPS_MEMALIGN=64 -no-offload -fno-alias -ansi-alias -restrict $(OPTFLAGS)
+         CCFLAGS =   -g -qopenmp -DLAMMPS_MEMALIGN=64 -fno-alias -ansi-alias -restrict $(OPTFLAGS)
          LINKFLAGS = -g -qopenmp $(OPTFLAGS)
          LIB =       -ltbbmalloc
 
@@ -1866,6 +2034,58 @@ verified to work in February 2020 with Quantum Espresso versions 6.3 to
 
 ----------
 
+.. _qmmm-xtb:
+
+QMMM-XTB package
+----------------
+
+The QMMM-XTB package provides in-process GFN1-xTB and GFN2-xTB QM/MM
+coupling through `libxtb <https://github.com/grimme-lab/xtb>`_.  It requires
+the KSPACE package, libxtb 6.7 or newer, mctc-lib, and BLAS.  The ``xtb.pc``
+and ``mctc-lib.pc`` files must be available to ``pkg-config``.
+
+The package uses libxtb's Fortran module interface because its public C API
+does not expose the atom-dependent potential callback required during every
+SCC iteration.  Consequently, the libxtb Fortran ``.mod`` files must be
+installed and must be compatible with the Fortran compiler used to build
+LAMMPS.  A normal libxtb installation may omit these private modules; rebuild
+libxtb with the Meson option ``-Dinstall_modules=true`` when necessary.
+
+.. tabs::
+
+   .. tab:: CMake build
+
+      If libxtb and mctc-lib are installed in nonstandard locations, add
+      their ``pkgconfig`` directories to ``PKG_CONFIG_PATH``.  Then configure
+      LAMMPS with both KSPACE and QMMM-XTB enabled and identify the directory
+      containing the libxtb Fortran modules:
+
+      .. code-block:: bash
+
+         export PKG_CONFIG_PATH=/path/to/xtb/lib/pkgconfig:/path/to/mctc/lib/pkgconfig
+         cmake -S cmake -B build \
+           -D PKG_KSPACE=yes \
+           -D PKG_QMMM-XTB=yes \
+           -D XTB_FORTRAN_MODULE_DIR=/path/to/xtb-modules
+         cmake --build build -j 8
+
+      ``XTB_FORTRAN_MODULE_DIR`` may be omitted when the module files are in
+      a directory reported by ``xtb.pc``.  Configuration stops with an error
+      if compatible module files cannot be found.  CMake locates BLAS through
+      its standard ``find_package(BLAS)`` mechanism.
+
+      At runtime, the dynamic loader must be able to find libxtb and its
+      dependencies.  Set ``XTBPATH`` to the directory containing
+      ``param_gfn1-xtb.txt`` and ``param_gfn2-xtb.txt`` when those files are
+      not installed in libxtb's default data location.
+
+   .. tab:: Traditional make
+
+      The QMMM-XTB package does not support the traditional make
+      build.  You need to build LAMMPS with CMake to use it.
+
+----------
+
 .. _rheo:
 
 RHEO package
@@ -1934,33 +2154,4 @@ To build with this package, you must download and build the
       .. versionchanged:: 10Sep2025
 
       The SCAFACOS package no longer supports the traditional make build.
-      You need to build LAMMPS with CMake.
-
-----------
-
-.. _vtk:
-
-VTK package
--------------------------------
-
-To build with this package you must have the VTK library installed on
-your system.
-
-.. tabs::
-
-   .. tab:: CMake build
-
-      No additional settings are needed besides ``-D PKG_VTK=yes``.
-
-      This should auto-detect the VTK library if it is installed on your
-      system at standard locations.  Several advanced VTK options exist
-      if you need to specify where it was installed.  Use the ``ccmake``
-      (terminal window) or ``cmake-gui`` (graphical) tools to see these
-      options and set them interactively from their user interfaces.
-
-   .. tab:: Traditional make
-
-      .. versionchanged:: 10Sep2025
-
-      The VTK package no longer supports the traditional make build.
       You need to build LAMMPS with CMake.

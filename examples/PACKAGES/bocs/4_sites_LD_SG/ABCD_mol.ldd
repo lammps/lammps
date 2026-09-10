@@ -1,0 +1,19 @@
+# Local-density (LD) + square-gradient (SG) interactions for a 4-species model.
+# Interactions are set by central species: every ordered pair X Y reuses the
+# X-centered LD/SG tables.  One line per ordered species pair (4x4 = 16).
+A A  indicator dpd 0.0 6.5 self no potential table/spline nb_interaction_tables/LD_table.11.noself.dat gradient table/gradspline nb_interaction_tables/SG_table.1.1.noself.dat
+A B  indicator dpd 0.0 6.5 self no potential table/spline nb_interaction_tables/LD_table.11.noself.dat gradient table/gradspline nb_interaction_tables/SG_table.1.1.noself.dat
+A C  indicator dpd 0.0 6.5 self no potential table/spline nb_interaction_tables/LD_table.11.noself.dat gradient table/gradspline nb_interaction_tables/SG_table.1.1.noself.dat
+A D  indicator dpd 0.0 6.5 self no potential table/spline nb_interaction_tables/LD_table.11.noself.dat gradient table/gradspline nb_interaction_tables/SG_table.1.1.noself.dat
+B A  indicator dpd 0.0 6.5 self no potential table/spline nb_interaction_tables/LD_table.22.noself.dat gradient table/gradspline nb_interaction_tables/SG_table.2.2.noself.dat
+B B  indicator dpd 0.0 6.5 self no potential table/spline nb_interaction_tables/LD_table.22.noself.dat gradient table/gradspline nb_interaction_tables/SG_table.2.2.noself.dat
+B C  indicator dpd 0.0 6.5 self no potential table/spline nb_interaction_tables/LD_table.22.noself.dat gradient table/gradspline nb_interaction_tables/SG_table.2.2.noself.dat
+B D  indicator dpd 0.0 6.5 self no potential table/spline nb_interaction_tables/LD_table.22.noself.dat gradient table/gradspline nb_interaction_tables/SG_table.2.2.noself.dat
+C A  indicator dpd 0.0 6.5 self no potential table/spline nb_interaction_tables/LD_table.33.noself.dat gradient table/gradspline nb_interaction_tables/SG_table.3.3.noself.dat
+C B  indicator dpd 0.0 6.5 self no potential table/spline nb_interaction_tables/LD_table.33.noself.dat gradient table/gradspline nb_interaction_tables/SG_table.3.3.noself.dat
+C C  indicator dpd 0.0 6.5 self no potential table/spline nb_interaction_tables/LD_table.33.noself.dat gradient table/gradspline nb_interaction_tables/SG_table.3.3.noself.dat
+C D  indicator dpd 0.0 6.5 self no potential table/spline nb_interaction_tables/LD_table.33.noself.dat gradient table/gradspline nb_interaction_tables/SG_table.3.3.noself.dat
+D A  indicator dpd 0.0 6.5 self no potential table/spline nb_interaction_tables/LD_table.44.noself.dat gradient table/gradspline nb_interaction_tables/SG_table.4.4.noself.dat
+D B  indicator dpd 0.0 6.5 self no potential table/spline nb_interaction_tables/LD_table.44.noself.dat gradient table/gradspline nb_interaction_tables/SG_table.4.4.noself.dat
+D C  indicator dpd 0.0 6.5 self no potential table/spline nb_interaction_tables/LD_table.44.noself.dat gradient table/gradspline nb_interaction_tables/SG_table.4.4.noself.dat
+D D  indicator dpd 0.0 6.5 self no potential table/spline nb_interaction_tables/LD_table.44.noself.dat gradient table/gradspline nb_interaction_tables/SG_table.4.4.noself.dat

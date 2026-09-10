@@ -42,7 +42,10 @@ using namespace EwaldConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCharmmfswCoulLong::PairLJCharmmfswCoulLong(LAMMPS *lmp) : Pair(lmp)
+PairLJCharmmfswCoulLong::PairLJCharmmfswCoulLong(LAMMPS *lmp) :
+    Pair(lmp), epsilon(nullptr), sigma(nullptr), eps14(nullptr), sigma14(nullptr), lj1(nullptr),
+    lj2(nullptr), lj3(nullptr), lj4(nullptr), offset(nullptr), lj14_1(nullptr), lj14_2(nullptr),
+    lj14_3(nullptr), lj14_4(nullptr)
 {
   respa_enable = 1;
   ewaldflag = pppmflag = 1;
@@ -1031,6 +1034,8 @@ void *PairLJCharmmfswCoulLong::extract(const char *str, int &dim)
   if (strcmp(str,"lj14_2") == 0) return (void *) lj14_2;
   if (strcmp(str,"lj14_3") == 0) return (void *) lj14_3;
   if (strcmp(str,"lj14_4") == 0) return (void *) lj14_4;
+  if (strcmp(str,"sigma") == 0) return (void *) sigma;
+  if (strcmp(str,"epsilon") == 0) return (void *) epsilon;
 
   dim = 0;
   if (strcmp(str,"implicit") == 0) return (void *) &implicit;

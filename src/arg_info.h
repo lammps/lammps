@@ -51,6 +51,9 @@ class ArgInfo {
   // clang-format on
   ArgInfo(const std::string &arg, int allowed = COMPUTE | FIX | VARIABLE);
   virtual ~ArgInfo() = default;
+  ArgInfo() = delete;
+  ArgInfo(const ArgInfo &) = delete;
+  void operator=(const ArgInfo &) = delete;
 
  public:
   /*! get type of reference
@@ -104,11 +107,6 @@ class ArgInfo {
  private:
   std::string name;
   int type, dim, index1, index2;
-
-  // disabled standard methods
-  ArgInfo() {}
-  ArgInfo(const ArgInfo &) {}
-  void operator=(const ArgInfo &) {}
 };
 }    // namespace LAMMPS_NS
 #endif

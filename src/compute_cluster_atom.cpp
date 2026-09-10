@@ -32,7 +32,7 @@ static constexpr int MAXLOOP = 100;
 /* ---------------------------------------------------------------------- */
 
 ComputeClusterAtom::ComputeClusterAtom(LAMMPS *lmp, int narg, char **arg) :
-    Compute(lmp, narg, arg), clusterID(nullptr)
+    Compute(lmp, narg, arg), list(nullptr), clusterID(nullptr)
 {
   if (narg != 4) error->all(FLERR, "Illegal compute cluster/atom command");
 
@@ -62,15 +62,15 @@ void ComputeClusterAtom::init()
   if (force->pair == nullptr)
     error->all(FLERR, "Compute cluster/atom requires a pair style to be defined");
   if (sqrt(cutsq) > force->pair->cutforce)
-    error->all(FLERR, "Compute cluster/atom cutoff is longer than pairwise cutoff");
+    error->all(FLERR, "Compute cluster/atom cutoff {} is longer than pairwise cutoff {}", sqrt(cutsq), force->pair->cutforce);
 
   // need an occasional full neighbor list
   // full required so that pair of atoms on 2 procs both set their clusterID
 
   neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
 
-  if (modify->get_compute_by_style(style).size() > 1)
-    if (comm->me == 0) error->warning(FLERR, "More than one compute {}", style);
+  if ((comm->me == 0) && (modify->get_compute_by_style("^cluster/atom").size() > 1))
+    error->warning(FLERR, "More than one compute {}", style);
 }
 
 /* ---------------------------------------------------------------------- */

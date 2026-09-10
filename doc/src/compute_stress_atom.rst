@@ -276,6 +276,8 @@ i.e. the kspace_style command in LAMMPS.  It also does not implement the
 following fixes which add rigid-body constraints:
 :doc:`fix rigid/* <fix_rigid>` and the OpenMP accelerated version of :doc:`fix rigid/small <fix_rigid>`,
 while all other :doc:`fix rigid/*/small <fix_rigid>` are implemented.
+The KOKKOS version of :doc:`fix shake <fix_shake>` is not implemented
+either, while the non-accelerated version is.
 
 LAMMPS will generate an error if one of these options is included in
 your model.  Extension of centroid stress calculations to these force

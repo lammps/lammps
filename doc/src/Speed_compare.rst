@@ -3,8 +3,7 @@ Comparison of various accelerator packages
 
 The next section compares and contrasts the various accelerator
 options, since there are multiple ways to perform OpenMP threading,
-run on GPUs, optimize for vector units on CPUs and run on Intel
-Xeon Phi (co-)processors.
+run on GPUs, and optimize for vector units on CPUs.
 
 All of these packages can accelerate a LAMMPS calculation taking
 advantage of hardware features, but they do it in different ways

@@ -1,8 +1,9 @@
-Sphinx >= 6, < 8.3.0
+Sphinx >= 6, < 9.2.0
 sphinxcontrib-spelling
 sphinxcontrib-jquery
 sphinx-design
 sphinx-sitemap
+sphinx-notfound-page
 git+https://github.com/akohlmey/sphinx-fortran@parallel-read
 sphinx-tabs>=3.4.1
 breathe

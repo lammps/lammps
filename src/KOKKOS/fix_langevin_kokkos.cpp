@@ -22,6 +22,7 @@
 #include "force.h"
 #include "group.h"
 #include "input.h"
+#include "kokkos.h"
 #include "math_extra_kokkos.h"
 #include "memory_kokkos.h"
 #include "modify.h"
@@ -108,8 +109,19 @@ template<class DeviceType>
 void FixLangevinKokkos<DeviceType>::init()
 {
   FixLangevin::init();
-  if (oflag)
-    error->all(FLERR,"Fix langevin omega is not yet implemented with kokkos");
+
+  // when a temperature bias is removed, the bias compute runs on the device
+  // only if it is a KOKKOS style; otherwise each step forces a host/device sync
+  if (tbiasflag == BIAS)
+    KokkosLMP::warn_nonkokkos_compute(lmp, style, temperature, "temperature");
+
+  if (oflag) {
+    // oflag thermostats rotational dof via omega on finite-size spheres.
+    // Extend datamasks so torque / omega / radius are synced to/from device.
+    datamask_read  |= TORQUE_MASK | OMEGA_MASK | RADIUS_MASK | RMASS_MASK | TYPE_MASK;
+    datamask_modify |= TORQUE_MASK;
+  }
+
   if (ascale != 0.0) {
     avecEllipKK = dynamic_cast<AtomVecEllipsoidKokkos *>(atom->style_match("ellipsoid"));
   }
@@ -162,11 +174,11 @@ void FixLangevinKokkos<DeviceType>::post_force(int /*vflag*/)
   k_gfactor2.template sync<DeviceType>();
   k_ratio.template sync<DeviceType>();
 
-  boltz = force->boltz;
-  dt = update->dt;
-  mvv2e = force->mvv2e;
-  ftm2v = force->ftm2v;
-  fran_prop_const = sqrt(24.0*boltz/t_period/dt/mvv2e);
+  boltz = static_cast<KK_FLOAT>(force->boltz);
+  dt = static_cast<KK_FLOAT>(update->dt);
+  mvv2e = static_cast<KK_FLOAT>(force->mvv2e);
+  ftm2v = static_cast<KK_FLOAT>(force->ftm2v);
+  fran_prop_const = Kokkos::sqrt(static_cast<KK_FLOAT>(24.0)*boltz/static_cast<KK_FLOAT>(t_period)/dt/mvv2e);
 
   compute_target(); // modifies tforce vector, hence sync here
   k_tforce.template sync<DeviceType>();
@@ -356,7 +368,7 @@ void FixLangevinKokkos<DeviceType>::post_force(int /*vflag*/)
   atomKK->modified(execution_space,datamask_modify);
 
   if (tbiasflag == BIAS) {
-    if (temperature->kokkosable) temperature->restore_bias_all();
+    if (temperature->kokkosable) temperature->restore_bias_all_kk();
     else {
       atomKK->sync(temperature->execution_space,temperature->datamask_read);
       temperature->restore_bias_all();
@@ -372,9 +384,9 @@ void FixLangevinKokkos<DeviceType>::post_force(int /*vflag*/)
   if (zeroflag) {
     fsum[0] = s_fsum.fx; fsum[1] = s_fsum.fy; fsum[2] = s_fsum.fz;
     MPI_Allreduce(fsum,fsumall,3,MPI_DOUBLE,MPI_SUM,world);
-    h_fsumall(0) = fsumall[0]/count;
-    h_fsumall(1) = fsumall[1]/count;
-    h_fsumall(2) = fsumall[2]/count;
+    h_fsumall(0) = static_cast<KK_FLOAT>(fsumall[0]/count);
+    h_fsumall(1) = static_cast<KK_FLOAT>(fsumall[1]/count);
+    h_fsumall(2) = static_cast<KK_FLOAT>(fsumall[2]/count);
     k_fsumall.modify_host();
     k_fsumall.template sync<DeviceType>();
     // set total force zero in parallel on the device
@@ -385,7 +397,7 @@ void FixLangevinKokkos<DeviceType>::post_force(int /*vflag*/)
   atomKK->modified(execution_space,datamask_modify);
 
   // thermostat omega and angmom
-  //  if (oflag) omega_thermostat();
+  if (oflag) omega_thermostat();
   if (ascale != 0.0) angmom_thermostat();
 
 }
@@ -401,42 +413,42 @@ FSUM FixLangevinKokkos<DeviceType>::post_force_item(int i) const
   FSUM fsum;
   KK_FLOAT fdrag[3],fran[3];
   KK_FLOAT gamma1,gamma2;
-  KK_FLOAT tsqrt_t = tsqrt;
+  KK_FLOAT tsqrt_t = static_cast<KK_FLOAT>(tsqrt);
 
   if (mask[i] & groupbit) {
     rand_type rand_gen = rand_pool.get_state();
 
-    if (Tp_TSTYLEATOM) tsqrt_t = sqrt(d_tforce[i]);
+    if (Tp_TSTYLEATOM) tsqrt_t = Kokkos::sqrt(d_tforce[i]);
     if (Tp_RMASS) {
-      gamma1 = -rmass[i] / t_period / ftm2v;
-      gamma2 = sqrt(rmass[i]) * fran_prop_const / ftm2v;
-      gamma1 *= 1.0/d_ratio[type[i]];
-      gamma2 *= 1.0/sqrt(d_ratio[type[i]]) * tsqrt_t;
+      gamma1 = -rmass[i] / static_cast<KK_FLOAT>(t_period) / ftm2v;
+      gamma2 = Kokkos::sqrt(rmass[i]) * fran_prop_const / ftm2v;
+      gamma1 *= static_cast<KK_FLOAT>(1.0)/d_ratio[type[i]];
+      gamma2 *= static_cast<KK_FLOAT>(1.0)/Kokkos::sqrt(d_ratio[type[i]]) * tsqrt_t;
     } else {
       gamma1 = d_gfactor1[type[i]];
       gamma2 = d_gfactor2[type[i]] * tsqrt_t;
     }
 
-    fran[0] = gamma2 * (rand_gen.drand() - 0.5); //(random->uniform()-0.5);
-    fran[1] = gamma2 * (rand_gen.drand() - 0.5); //(random->uniform()-0.5);
-    fran[2] = gamma2 * (rand_gen.drand() - 0.5); //(random->uniform()-0.5);
+    fran[0] = gamma2 * static_cast<KK_FLOAT>(rand_gen.drand() - 0.5); //(random->uniform()-0.5);
+    fran[1] = gamma2 * static_cast<KK_FLOAT>(rand_gen.drand() - 0.5); //(random->uniform()-0.5);
+    fran[2] = gamma2 * static_cast<KK_FLOAT>(rand_gen.drand() - 0.5); //(random->uniform()-0.5);
 
     if (Tp_BIAS) {
       fdrag[0] = gamma1*v(i,0);
       fdrag[1] = gamma1*v(i,1);
       fdrag[2] = gamma1*v(i,2);
-      if (v(i,0) == 0.0) fran[0] = 0.0;
-      if (v(i,1) == 0.0) fran[1] = 0.0;
-      if (v(i,2) == 0.0) fran[2] = 0.0;
+      if (v(i,0) == static_cast<KK_FLOAT>(0.0)) fran[0] = 0.0;
+      if (v(i,1) == static_cast<KK_FLOAT>(0.0)) fran[1] = 0.0;
+      if (v(i,2) == static_cast<KK_FLOAT>(0.0)) fran[2] = 0.0;
     } else {
       fdrag[0] = gamma1*v(i,0);
       fdrag[1] = gamma1*v(i,1);
       fdrag[2] = gamma1*v(i,2);
     }
 
-    f(i,0) += fdrag[0] + fran[0];
-    f(i,1) += fdrag[1] + fran[1];
-    f(i,2) += fdrag[2] + fran[2];
+    f(i,0) += static_cast<KK_ACC_FLOAT>(fdrag[0] + fran[0]);
+    f(i,1) += static_cast<KK_ACC_FLOAT>(fdrag[1] + fran[1]);
+    f(i,2) += static_cast<KK_ACC_FLOAT>(fdrag[2] + fran[2]);
 
     if (Tp_TALLY) {
       d_flangevin(i,0) = fdrag[0] + fran[0];
@@ -445,9 +457,9 @@ FSUM FixLangevinKokkos<DeviceType>::post_force_item(int i) const
     }
 
     if (Tp_ZERO) {
-      fsum.fx = fran[0];
-      fsum.fy = fran[1];
-      fsum.fz = fran[2];
+      fsum.fx = static_cast<double>(fran[0]);
+      fsum.fy = static_cast<double>(fran[1]);
+      fsum.fz = static_cast<double>(fran[2]);
     }
     rand_pool.free_state(rand_gen);
   }
@@ -463,9 +475,9 @@ KOKKOS_INLINE_FUNCTION
 void FixLangevinKokkos<DeviceType>::zero_force_item(int i) const
 {
   if (mask[i] & groupbit) {
-    f(i,0) -= d_fsumall[0];
-    f(i,1) -= d_fsumall[1];
-    f(i,2) -= d_fsumall[2];
+    f(i,0) -= static_cast<KK_ACC_FLOAT>(d_fsumall[0]);
+    f(i,1) -= static_cast<KK_ACC_FLOAT>(d_fsumall[1]);
+    f(i,2) -= static_cast<KK_ACC_FLOAT>(d_fsumall[2]);
   }
 }
 
@@ -517,6 +529,84 @@ void FixLangevinKokkos<DeviceType>::compute_target()
 }
 
 /* ----------------------------------------------------------------------
+   thermostat rotational dof via omega
+------------------------------------------------------------------------- */
+template<class DeviceType>
+void FixLangevinKokkos<DeviceType>::omega_thermostat_kokkos()
+{
+  atomKK->sync(execution_space,
+               TORQUE_MASK | OMEGA_MASK | RADIUS_MASK |
+               RMASS_MASK | MASK_MASK | TYPE_MASK);
+
+  d_torque = atomKK->k_torque.template view<DeviceType>();
+  d_omega  = atomKK->k_omega.template view<DeviceType>();
+  d_radius = atomKK->k_radius.template view<DeviceType>();
+  rmass    = atomKK->k_rmass.template view<DeviceType>();
+  mask     = atomKK->k_mask.template view<DeviceType>();
+  type     = atomKK->k_type.template view<DeviceType>();
+
+  int nlocal = atomKK->nlocal;
+  if (igroup == atom->firstgroup) nlocal = atom->nfirst;
+
+  // Launch the rotational kernel
+  if (tstyle == ATOM) {
+    FixLangevinKokkosOmegaFunctor<DeviceType,1> functor(this);
+    Kokkos::parallel_for(nlocal, functor);
+  } else {
+    FixLangevinKokkosOmegaFunctor<DeviceType,0> functor(this);
+    Kokkos::parallel_for(nlocal, functor);
+  }
+
+  atomKK->modified(execution_space, TORQUE_MASK);
+}
+
+/* ----------------------------------------------------------------------
+   The device kernel logic for omega thermostatting
+------------------------------------------------------------------------- */
+template<class DeviceType>
+template<int Tp_TSTYLEATOM>
+KOKKOS_INLINE_FUNCTION
+void FixLangevinKokkos<DeviceType>::omega_thermostat_item(int i) const
+{
+  // Prefactors to give correct rotational diffusivity for spheres
+  constexpr double SINERTIA = 0.4;        // sphere: I = 2/5 m r^2
+  constexpr double tendivthree = 10.0/3.0;
+
+  if ((mask(i) & groupbit) && (d_radius(i) > static_cast<KK_FLOAT>(0.0))) {
+    rand_type rand_gen = rand_pool.get_state();
+
+    double tsqrt_t = tsqrt;
+    if (Tp_TSTYLEATOM) tsqrt_t = sqrt(static_cast<double>(d_tforce[i]));
+
+    // Calculate moment of inertia: I = 0.4 * r^2 * m
+    double inertiaone = SINERTIA * static_cast<double>(d_radius(i)) * static_cast<double>(d_radius(i)) * static_cast<double>(rmass(i));
+
+    // Drag prefactor gamma1
+    double gamma1 = -tendivthree * inertiaone / t_period / static_cast<double>(ftm2v);
+
+    // Random force prefactor gamma2
+    // Uses 80.0 to match the CPU version's rotational fluctuation-dissipation
+    double gamma2 = sqrt(inertiaone) *
+                    sqrt(80.0 * static_cast<double>(boltz) / t_period / static_cast<double>(dt) / static_cast<double>(mvv2e)) / static_cast<double>(ftm2v);
+
+    gamma1 *= 1.0 / static_cast<double>(d_ratio(type(i)));
+    gamma2 *= 1.0 / sqrt(static_cast<double>(d_ratio(type(i)))) * tsqrt_t;
+
+    // Generate random torque components
+    double tran0 = gamma2 * (rand_gen.drand() - 0.5);
+    double tran1 = gamma2 * (rand_gen.drand() - 0.5);
+    double tran2 = gamma2 * (rand_gen.drand() - 0.5);
+
+    // Apply updates to torque
+    d_torque(i,0) += static_cast<KK_ACC_FLOAT>(gamma1 * static_cast<double>(d_omega(i,0)) + tran0);
+    d_torque(i,1) += static_cast<KK_ACC_FLOAT>(gamma1 * static_cast<double>(d_omega(i,1)) + tran1);
+    d_torque(i,2) += static_cast<KK_ACC_FLOAT>(gamma1 * static_cast<double>(d_omega(i,2)) + tran2);
+
+    rand_pool.free_state(rand_gen);
+  }
+}
+
+/* ----------------------------------------------------------------------
    thermostat rotational dof via angmom
 ------------------------------------------------------------------------- */
 
@@ -551,32 +641,34 @@ void FixLangevinKokkos<DeviceType>::angmom_thermostat_item(int i) const
   double *shape, *quat;
   KK_FLOAT angm[3]; // local angmom vector to pass into mq_to_omega
 
-  KK_FLOAT tsqrt_t = tsqrt;
+  KK_FLOAT tsqrt_t = static_cast<KK_FLOAT>(tsqrt);
+  const KK_FLOAT ascale_kk = static_cast<KK_FLOAT>(ascale);
+  const KK_FLOAT t_period_kk = static_cast<KK_FLOAT>(t_period);
 
   if (mask[i] & groupbit) {
     rand_type rand_gen = rand_pool.get_state();
 
     shape = bonus(ellipsoid(i)).shape;
-    inertia[0] = EINERTIA*rmass[i] * (shape[1]*shape[1]+shape[2]*shape[2]);
-    inertia[1] = EINERTIA*rmass[i] * (shape[0]*shape[0]+shape[2]*shape[2]);
-    inertia[2] = EINERTIA*rmass[i] * (shape[0]*shape[0]+shape[1]*shape[1]);
+    inertia[0] = static_cast<KK_FLOAT>(EINERTIA*static_cast<double>(rmass[i]) * (shape[1]*shape[1]+shape[2]*shape[2]));
+    inertia[1] = static_cast<KK_FLOAT>(EINERTIA*static_cast<double>(rmass[i]) * (shape[0]*shape[0]+shape[2]*shape[2]));
+    inertia[2] = static_cast<KK_FLOAT>(EINERTIA*static_cast<double>(rmass[i]) * (shape[0]*shape[0]+shape[1]*shape[1]));
     quat = bonus(ellipsoid(i)).quat;
     angm[0] = angmom(i,0);
     angm[1] = angmom(i,1);
     angm[2] = angmom(i,2);
     MathExtraKokkos::mq_to_omega(angm,quat,inertia,omega);
 
-    if (tstyle == ATOM) tsqrt_t = sqrt(d_tforce[i]);
-    gamma1 = -ascale / t_period / ftm2v;
-    gamma2 = sqrt(ascale*24.0*boltz/t_period/dt/mvv2e) / ftm2v;
-    gamma1 *= 1.0/d_ratio[type[i]];
-    gamma2 *= 1.0/sqrt(d_ratio[type[i]]) * tsqrt_t;
-    tran[0] = sqrt(inertia[0])*gamma2*(rand_gen.drand()-0.5);
-    tran[1] = sqrt(inertia[1])*gamma2*(rand_gen.drand()-0.5);
-    tran[2] = sqrt(inertia[2])*gamma2*(rand_gen.drand()-0.5);
-    torque(i,0) += inertia[0]*gamma1*omega[0] + tran[0];
-    torque(i,1) += inertia[1]*gamma1*omega[1] + tran[1];
-    torque(i,2) += inertia[2]*gamma1*omega[2] + tran[2];
+    if (tstyle == ATOM) tsqrt_t = Kokkos::sqrt(d_tforce[i]);
+    gamma1 = -ascale_kk / t_period_kk / ftm2v;
+    gamma2 = Kokkos::sqrt(ascale_kk*static_cast<KK_FLOAT>(24.0)*boltz/t_period_kk/dt/mvv2e) / ftm2v;
+    gamma1 *= static_cast<KK_FLOAT>(1.0)/d_ratio[type[i]];
+    gamma2 *= static_cast<KK_FLOAT>(1.0)/Kokkos::sqrt(d_ratio[type[i]]) * tsqrt_t;
+    tran[0] = Kokkos::sqrt(inertia[0])*gamma2*static_cast<KK_FLOAT>(rand_gen.drand()-0.5);
+    tran[1] = Kokkos::sqrt(inertia[1])*gamma2*static_cast<KK_FLOAT>(rand_gen.drand()-0.5);
+    tran[2] = Kokkos::sqrt(inertia[2])*gamma2*static_cast<KK_FLOAT>(rand_gen.drand()-0.5);
+    torque(i,0) += static_cast<KK_ACC_FLOAT>(inertia[0]*gamma1*omega[0] + tran[0]);
+    torque(i,1) += static_cast<KK_ACC_FLOAT>(inertia[1]*gamma1*omega[1] + tran[1]);
+    torque(i,2) += static_cast<KK_ACC_FLOAT>(inertia[2]*gamma1*omega[2] + tran[2]);
 
     rand_pool.free_state(rand_gen);
   }
@@ -652,8 +744,8 @@ void FixLangevinKokkos<DeviceType>::end_of_step()
 {
   if (!tallyflag) return;
 
-  dt = update->dt;
-  ftm2v = force->ftm2v;
+  dt = static_cast<KK_FLOAT>(update->dt);
+  ftm2v = static_cast<KK_FLOAT>(force->ftm2v);
   v = atomKK->k_v.template view<DeviceType>();
   rmass = atomKK->k_rmass.template view<DeviceType>();
   mass = atomKK->k_mass.template view<DeviceType>();
@@ -682,7 +774,6 @@ KOKKOS_INLINE_FUNCTION
 void FixLangevinKokkos<DeviceType>::end_of_step_item(int i) const {
   KK_FLOAT tmp[3];
   if (mask[i] & groupbit) {
-    const KK_FLOAT dtfm = ftm2v * 0.5 * dt / mass[type[i]];
     tmp[0] = v(i,0);
     tmp[1] = v(i,1);
     tmp[2] = v(i,2);
@@ -704,7 +795,6 @@ void FixLangevinKokkos<DeviceType>::end_of_step_rmass_item(int i) const
 {
   KK_FLOAT tmp[3];
   if (mask[i] & groupbit) {
-    const KK_FLOAT dtfm = ftm2v * 0.5 * dt / rmass[i];
     tmp[0] = v(i,0);
     tmp[1] = v(i,1);
     tmp[2] = v(i,2);

@@ -1,7 +1,10 @@
 .. index:: fix aveforce
+.. index:: fix aveforce/kk
 
 fix aveforce command
 ====================
+
+Accelerator Variant: *aveforce/kk*
 
 Syntax
 """"""
@@ -94,6 +97,12 @@ invoked by the :doc:`minimize <minimize>` command.  You should not
 specify force components with a variable that has time-dependence for
 use with a minimizer, since the minimizer increments the timestep as
 the iteration count during the minimization.
+
+----------
+
+.. include:: accel_styles.rst
+
+----------
 
 Restrictions
 """"""""""""

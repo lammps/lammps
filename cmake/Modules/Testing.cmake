@@ -11,7 +11,15 @@ if(ENABLE_TESTING)
     file(READ ${SUPP} SUPPRESSIONS)
     file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/lammps.supp "${SUPPRESSIONS}")
   endforeach()
-  set(VALGRIND_DEFAULT_OPTIONS "--leak-check=full --show-leak-kinds=all --track-origins=yes --suppressions=${CMAKE_BINARY_DIR}/lammps.supp")
+  # blocks that are still reachable when the process exits are not leaks. reporting
+  # them buries the actual defects under thousands of one-time initializations in
+  # OpenSSL, libcurl, CPython, and GoogleTest, plus everything that is still in use
+  # when a command like "quit" or an error exit terminates the process on purpose.
+  # --max-stackframe is raised because Fortran libraries (e.g. QUIP) place large
+  # automatic arrays on the stack; with the default limit valgrind misreads the
+  # resulting stack pointer jump as a stack switch and then floods the log with
+  # millions of bogus invalid access and uninitialized value errors.
+  set(VALGRIND_DEFAULT_OPTIONS "--leak-check=full --show-leak-kinds=definite,indirect,possible --track-origins=yes --max-stackframe=16777216 --suppressions=${CMAKE_BINARY_DIR}/lammps.supp")
 
   set(MEMORYCHECK_COMMAND "${VALGRIND_BINARY}" CACHE FILEPATH "Memory Check Command")
   set(MEMORYCHECK_COMMAND_OPTIONS "${VALGRIND_DEFAULT_OPTIONS}" CACHE STRING "Memory Check Command Options")

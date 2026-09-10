@@ -38,6 +38,7 @@ class BondBPMSpring : public BondBPM {
   void read_restart_settings(FILE *) override;
   double single(int, double, int, int, double &) override;
   int pack_forward_comm(int, int *, double *, int, int *) override;
+  double memory_usage() override;
   void unpack_forward_comm(int, int, double *) override;
   int pack_reverse_comm(int, int, double *) override;
   void unpack_reverse_comm(int, int *, double *) override;

@@ -53,7 +53,7 @@ class PairBuck6dCoulGaussLong : public Pair {
   double **c0, **c1, **c2, **c3, **c4, **c5, **rsmooth_sq;
   double g_ewald;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }    // namespace LAMMPS_NS

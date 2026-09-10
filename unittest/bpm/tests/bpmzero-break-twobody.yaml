@@ -1,0 +1,71 @@
+---
+lammps_version: 30 Mar 2026
+tags: bpm
+date_generated: Thu Jun 18 14:16:41 2026
+epsilon: 1e-10
+skip_tests:
+prerequisites: ! |
+  pair zero
+  bond bpm/zero
+pre_commands: ! |
+  units lj
+  dimension 3
+  boundary f f f
+  atom_style bond
+  atom_modify map array
+  special_bonds lj 0.0 1.0 1.0 coul 0.0 1.0 1.0
+  neighbor 0.5 bin
+  comm_modify cutoff 4.0
+  lattice sc 1.0
+  region box block -3 6 -3 3 -3 3 units lattice
+  create_box 1 box bond/types 1 extra/bond/per/atom 5 extra/special/per/atom 5
+  create_atoms 1 single 0 0 0 units lattice
+  create_atoms 1 single 1 0 0 units lattice
+  mass * 1.0
+  timestep 0.01
+post_commands: ! |
+  create_bonds many all all 1 0.0 1.5
+  special_bonds lj 0.0 1.0 1.0 coul 1.0 1.0 1.0
+  group vatom id 2
+  velocity all set 0.0 0.0 0.0 units box
+  velocity vatom set 0.05 0.0 0.0 units box
+  fix 1 all nve
+input_file:
+natoms: 2
+variables: ! |
+  r0 1.0
+  nbonds_expect 0
+pair_style: zero 1.5
+pair_coeff: ! |
+  * *
+bond_style: bpm/zero
+bond_coeff: ! |
+  1 0.003
+run_segments: ! |-
+  5 5 5
+analytic_enable: yes
+analytic_model: bpm_zero
+analytic_tol: 1e-12
+analytic_segment: -1
+run_pos: ! |2
+    0   1  0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00
+    0   2  1.0024999999999997e+00  0.0000000000000000e+00  0.0000000000000000e+00
+    1   1  0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00
+    1   2  1.0049999999999994e+00  0.0000000000000000e+00  0.0000000000000000e+00
+    2   1  0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00
+    2   2  1.0074999999999992e+00  0.0000000000000000e+00  0.0000000000000000e+00
+run_vel: ! |2
+    0   1  0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00
+    0   2  5.0000000000000003e-02  0.0000000000000000e+00  0.0000000000000000e+00
+    1   1  0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00
+    1   2  5.0000000000000003e-02  0.0000000000000000e+00  0.0000000000000000e+00
+    2   1  0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00
+    2   2  5.0000000000000003e-02  0.0000000000000000e+00  0.0000000000000000e+00
+run_force: ! |2
+    0   1  0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00
+    0   2  0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00
+    1   1  0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00
+    1   2  0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00
+    2   1  0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00
+    2   2  0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00
+...

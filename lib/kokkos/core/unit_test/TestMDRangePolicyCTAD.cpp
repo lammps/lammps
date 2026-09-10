@@ -20,7 +20,7 @@ struct TestMDRangePolicyCTAD {
 
   struct SomeExecutionSpace {
     using execution_space = SomeExecutionSpace;
-    using size_type       = size_t;
+    using index_type      = int;
   };
   static_assert(Kokkos::is_execution_space_v<SomeExecutionSpace>);
 
@@ -39,8 +39,11 @@ struct TestMDRangePolicyCTAD {
 
   [[maybe_unused]] static inline int t[5];
   [[maybe_unused]] static inline int64_t tt[5];
+  [[maybe_unused]] static inline int rank1_t[1];
+  [[maybe_unused]] static inline int64_t rank1_tt[1];
   [[maybe_unused]] static inline Kokkos::Array<int64_t, 3> a;
   [[maybe_unused]] static inline Kokkos::Array<int64_t, 2> aa;
+  [[maybe_unused]] static inline Kokkos::Array<int64_t, 1> rank1_a;
   [[maybe_unused]] static inline int64_t i64;
 
   // Workaround for nvc++ (CUDA-11.7-NVHPC) ignoring [[maybe_unused]] on
@@ -51,7 +54,8 @@ struct TestMDRangePolicyCTAD {
 
   // Workaround for HIP-ROCm-5.2 "declared but never referenced"
   TestMDRangePolicyCTAD() {
-    maybe_unused(des, notEs, ses, t, tt, a, aa, notEsToDes, i64);
+    maybe_unused(des, notEs, ses, t, tt, rank1_t, rank1_tt, a, aa, rank1_a,
+                 notEsToDes, i64);
   }
 
   // MDRangePolicy with C array parameters
@@ -73,6 +77,13 @@ struct TestMDRangePolicyCTAD {
       std::is_same_v<
           Kokkos::MDRangePolicy<SomeExecutionSpace, Kokkos::Rank<std::size(t)>>,
           decltype(Kokkos::MDRangePolicy(ses, t, t))>);
+
+  static_assert(
+      std::is_same_v<Kokkos::MDRangePolicy<Kokkos::Rank<1>>,
+                     decltype(Kokkos::MDRangePolicy(rank1_t, rank1_t))>);
+  static_assert(std::is_same_v<Kokkos::MDRangePolicy<Kokkos::Rank<1>>,
+                               decltype(Kokkos::MDRangePolicy(rank1_t, rank1_t,
+                                                              rank1_tt))>);
 
   // MDRangePolicy with Kokkos::initializer_list parameters
 
@@ -129,6 +140,13 @@ struct TestMDRangePolicyCTAD {
       std::is_same_v<
           Kokkos::MDRangePolicy<SomeExecutionSpace, Kokkos::Rank<std::size(a)>>,
           decltype(Kokkos::MDRangePolicy(ses, a, a, aa))>);
+
+  static_assert(
+      std::is_same_v<Kokkos::MDRangePolicy<Kokkos::Rank<1>>,
+                     decltype(Kokkos::MDRangePolicy(rank1_a, rank1_a))>);
+  static_assert(
+      std::is_same_v<Kokkos::MDRangePolicy<SomeExecutionSpace, Kokkos::Rank<1>>,
+                     decltype(Kokkos::MDRangePolicy(ses, rank1_a, rank1_a))>);
 };
 
 }  // namespace

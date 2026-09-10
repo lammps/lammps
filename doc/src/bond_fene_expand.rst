@@ -1,10 +1,11 @@
 .. index:: bond_style fene/expand
+.. index:: bond_style fene/expand/kk
 .. index:: bond_style fene/expand/omp
 
 bond_style fene/expand command
 ==============================
 
-Accelerator Variants: *fene/expand/omp*
+Accelerator Variants: *fene/expand/kk*, *fene/expand/omp*
 
 Syntax
 """"""

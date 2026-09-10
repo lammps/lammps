@@ -23,47 +23,20 @@
 #include "error.h"
 #include "gpu_extra.h"
 #include "info.h"
+#include "lammps_gpu.h"
 #include "memory.h"
 #include "neigh_list.h"
 #include "neighbor.h"
 #include "suffix.h"
 
 using namespace LAMMPS_NS;
+using namespace LAMMPS_GPU;
 
-// External functions from cuda library for atom decomposition
-
-int tersoff_zbl_gpu_init(const int ntypes, const int inum, const int nall, const int max_nbors,
-                         const double cell_size, int &gpu_mode, FILE *screen, int *host_map,
-                         const int nelements, int ***host_elem3param, const int nparams,
-                         const double *ts_lam1, const double *ts_lam2, const double *ts_lam3,
-                         const double *ts_powermint, const double *ts_biga, const double *ts_bigb,
-                         const double *ts_bigr, const double *ts_bigd, const double *ts_c1,
-                         const double *ts_c2, const double *ts_c3, const double *ts_c4,
-                         const double *ts_c, const double *ts_d, const double *ts_h,
-                         const double *ts_gamma, const double *ts_beta, const double *ts_powern,
-                         const double *ts_Z_i, const double *ts_Z_j, const double *ts_ZBLcut,
-                         const double *ts_ZBLexpscale, const double global_e,
-                         const double global_a_0, const double global_epsilon_0,
-                         const double *ts_cutsq);
-void tersoff_zbl_gpu_clear();
-int **tersoff_zbl_gpu_compute_n(const int ago, const int inum_full, const int nall, double **host_x,
-                                int *host_type, double *sublo, double *subhi, tagint *tag,
-                                int **nspecial, tagint **special, const bool eflag,
-                                const bool vflag, const bool eatom, const bool vatom,
-                                int &host_start, int **ilist, int **jnum, const double cpu_time,
-                                bool &success);
-void tersoff_zbl_gpu_compute(const int ago, const int nlocal, const int nall, const int nlist,
-                             double **host_x, int *host_type, int *ilist, int *numj,
-                             int **firstneigh, const bool eflag, const bool vflag, const bool eatom,
-                             const bool vatom, int &host_start, const double cpu_time,
-                             bool &success);
-double tersoff_zbl_gpu_bytes();
 
 /* ---------------------------------------------------------------------- */
 
 PairTersoffZBLGPU::PairTersoffZBLGPU(LAMMPS *lmp) : PairTersoffZBL(lmp), gpu_mode(GPU_FORCE)
 {
-  cpu_time = 0.0;
   suffix_flag |= Suffix::GPU;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 
@@ -88,7 +61,7 @@ void PairTersoffZBLGPU::compute(int eflag, int vflag)
   ev_init(eflag, vflag);
 
   int nall = atom->nlocal + atom->nghost;
-  int inum, host_start;
+  int inum;
 
   bool success = true;
   int *ilist, *numneigh, **firstneigh;
@@ -107,8 +80,8 @@ void PairTersoffZBLGPU::compute(int eflag, int vflag)
     inum = atom->nlocal;
     firstneigh = tersoff_zbl_gpu_compute_n(neighbor->ago, inum, nall, atom->x, atom->type, sublo,
                                            subhi, atom->tag, atom->nspecial, atom->special, eflag,
-                                           vflag, eflag_atom, vflag_atom, host_start, &ilist,
-                                           &numneigh, cpu_time, success);
+                                           vflag, eflag_atom, vflag_atom, &ilist,
+                                           &numneigh, success);
   } else {
     inum = list->inum;
     ilist = list->ilist;
@@ -117,7 +90,7 @@ void PairTersoffZBLGPU::compute(int eflag, int vflag)
 
     tersoff_zbl_gpu_compute(neighbor->ago, inum, nall, inum + list->gnum, atom->x, atom->type,
                             ilist, numneigh, firstneigh, eflag, vflag, eflag_atom, vflag_atom,
-                            host_start, cpu_time, success);
+                            success);
   }
   if (!success) error->one(FLERR, "Insufficient memory on accelerator");
   if (atom->molecular != Atom::ATOMIC && neighbor->ago == 0)

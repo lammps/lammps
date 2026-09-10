@@ -39,6 +39,7 @@ class ComputeChunkAtom : public Compute {
   void init() override;
   void setup() override;
   void compute_peratom() override;
+  int compute_image(int *&, double **&) override;
   double compute_scalar() override;
   void set_arrays(int) override;
   double memory_usage() override;
@@ -107,6 +108,9 @@ class ComputeChunkAtom : public Compute {
   int molcheck;                  // one-time check if all molecule atoms in chunk
   int *exclude;                  // 1 if atom is not assigned to any chunk
   std::map<tagint, int> hash;    // store original chunks IDs before compression
+  int numobjs;
+  int *imgobjs;
+  double **imgparms;
 
   // callback function for ring communication
 

@@ -22,8 +22,10 @@
 #include "atom_masks.h"
 #include "comm.h"
 #include "force.h"
+#include "kokkos.h"
 #include "memory_kokkos.h"
 #include "neighbor_kokkos.h"
+#include "tune_kokkos.h"
 
 #include <cmath>
 
@@ -35,6 +37,7 @@ template<class DeviceType>
 BondClass2Kokkos<DeviceType>::BondClass2Kokkos(LAMMPS *lmp) : BondClass2(lmp)
 {
   kokkosable = 1;
+  tuner = nullptr;
 
   atomKK = (AtomKokkos *) atom;
   neighborKK = (NeighborKokkos *) neighbor;
@@ -51,6 +54,8 @@ BondClass2Kokkos<DeviceType>::~BondClass2Kokkos()
   if (!copymode) {
     memoryKK->destroy_kokkos(k_eatom,eatom);
     memoryKK->destroy_kokkos(k_vatom,vatom);
+
+    delete tuner;
   }
 }
 
@@ -94,7 +99,13 @@ void BondClass2Kokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   copymode = 1;
 
-  // loop over neighbors of my atoms
+  // loop over the bond list
+
+  if (lmp->kokkos->autotuning && tuner) tuner->tuning_kernel_params();
+
+  int bond_chunk_size = 0;
+  if (lmp->kokkos->bond_chunk_size_set)
+    bond_chunk_size = lmp->kokkos->bond_chunk_size;
 
   EV_FLOAT ev;
 
@@ -106,20 +117,26 @@ void BondClass2Kokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     }
   } else {
     if (newton_bond) {
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagBondClass2Compute<1,0> >(0,nbondlist),*this);
+      if (bond_chunk_size)
+        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagBondClass2Compute<1,0> >(0,nbondlist,Kokkos::ChunkSize(bond_chunk_size)),*this);
+      else
+        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagBondClass2Compute<1,0> >(0,nbondlist),*this);
     } else {
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagBondClass2Compute<0,0> >(0,nbondlist),*this);
+      if (bond_chunk_size)
+        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagBondClass2Compute<0,0> >(0,nbondlist,Kokkos::ChunkSize(bond_chunk_size)),*this);
+      else
+        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagBondClass2Compute<0,0> >(0,nbondlist),*this);
     }
   }
 
-  if (eflag_global) energy += ev.evdwl;
+  if (eflag_global) energy += static_cast<double>(ev.evdwl);
   if (vflag_global) {
-    virial[0] += ev.v[0];
-    virial[1] += ev.v[1];
-    virial[2] += ev.v[2];
-    virial[3] += ev.v[3];
-    virial[4] += ev.v[4];
-    virial[5] += ev.v[5];
+    virial[0] += static_cast<double>(ev.v[0]);
+    virial[1] += static_cast<double>(ev.v[1]);
+    virial[2] += static_cast<double>(ev.v[2]);
+    virial[3] += static_cast<double>(ev.v[3]);
+    virial[4] += static_cast<double>(ev.v[4]);
+    virial[5] += static_cast<double>(ev.v[5]);
   }
 
   if (eflag_atom) {
@@ -152,7 +169,7 @@ void BondClass2Kokkos<DeviceType>::operator()(TagBondClass2Compute<NEWTON_BOND,E
   const KK_FLOAT delz = x(i1,2) - x(i2,2);
 
   const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
-  const KK_FLOAT r = sqrt(rsq);
+  const KK_FLOAT r = Kokkos::sqrt(rsq);
   const KK_FLOAT dr = r - d_r0[type];
   const KK_FLOAT dr2 = dr*dr;
   const KK_FLOAT dr3 = dr2*dr;
@@ -162,8 +179,8 @@ void BondClass2Kokkos<DeviceType>::operator()(TagBondClass2Compute<NEWTON_BOND,E
 
   KK_FLOAT ebond, fbond, de_bond;
 
-  de_bond = 2.0*d_k2[type]*dr + 3.0*d_k3[type]*dr2 + 4.0*d_k4[type]*dr3;
-  if (r > 0.0) fbond = -de_bond/r;
+  de_bond = static_cast<KK_FLOAT>(2.0)*d_k2[type]*dr + static_cast<KK_FLOAT>(3.0)*d_k3[type]*dr2 + static_cast<KK_FLOAT>(4.0)*d_k4[type]*dr3;
+  if (r > static_cast<KK_FLOAT>(0.0)) fbond = -de_bond/r;
   else fbond = 0.0;
 
   if (eflag) ebond = d_k2[type]*dr2 + d_k3[type]*dr3 + d_k4[type]*dr4;
@@ -171,15 +188,15 @@ void BondClass2Kokkos<DeviceType>::operator()(TagBondClass2Compute<NEWTON_BOND,E
   // apply force to each of 2 atoms
 
   if (NEWTON_BOND || i1 < nlocal) {
-    f(i1,0) += delx*fbond;
-    f(i1,1) += dely*fbond;
-    f(i1,2) += delz*fbond;
+    f(i1,0) += static_cast<KK_ACC_FLOAT>(delx*fbond);
+    f(i1,1) += static_cast<KK_ACC_FLOAT>(dely*fbond);
+    f(i1,2) += static_cast<KK_ACC_FLOAT>(delz*fbond);
   }
 
   if (NEWTON_BOND || i2 < nlocal) {
-    f(i2,0) -= delx*fbond;
-    f(i2,1) -= dely*fbond;
-    f(i2,2) -= delz*fbond;
+    f(i2,0) -= static_cast<KK_ACC_FLOAT>(delx*fbond);
+    f(i2,1) -= static_cast<KK_ACC_FLOAT>(dely*fbond);
+    f(i2,2) -= static_cast<KK_ACC_FLOAT>(delz*fbond);
   }
 
   if (EVFLAG) ev_tally(ev,i1,i2,ebond,fbond,delx,dely,delz);
@@ -213,6 +230,11 @@ void BondClass2Kokkos<DeviceType>::allocate()
   d_k3 = k_k3.template view<DeviceType>();
   d_k4 = k_k4.template view<DeviceType>();
   d_r0 = k_r0.template view<DeviceType>();
+
+  if (lmp->kokkos->autotuning > 0 && !tuner) {
+    tuner = new TuneKokkos(lmp, TuneKokkos::BOND, lmp->kokkos->autotuning,
+      1, "bond-class2");
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -228,10 +250,10 @@ void BondClass2Kokkos<DeviceType>::coeff(int narg, char **arg)
   utils::bounds(FLERR,arg[0],1,atom->nbondtypes,ilo,ihi,error);
 
   for (int i = ilo; i <= ihi; i++) {
-    k_k2.view_host()[i] = k2[i];
-    k_k3.view_host()[i] = k3[i];
-    k_k4.view_host()[i] = k4[i];
-    k_r0.view_host()[i] = r0[i];
+    k_k2.view_host()[i] = static_cast<KK_FLOAT>(k2[i]);
+    k_k3.view_host()[i] = static_cast<KK_FLOAT>(k3[i]);
+    k_k4.view_host()[i] = static_cast<KK_FLOAT>(k4[i]);
+    k_r0.view_host()[i] = static_cast<KK_FLOAT>(r0[i]);
   }
 
   k_k2.modify_host();
@@ -254,10 +276,10 @@ void BondClass2Kokkos<DeviceType>::read_restart(FILE *fp)
   BondClass2::read_restart(fp);
 
   int n = atom->nbondtypes;
-  DAT::tdual_kkfloat_1d k_k2("BondClass2::k2",n+1);
-  DAT::tdual_kkfloat_1d k_k3("BondClass2::k3",n+1);
-  DAT::tdual_kkfloat_1d k_k4("BondClass2::k4",n+1);
-  DAT::tdual_kkfloat_1d k_r0("BondClass2::r0",n+1);
+  k_k2 = DAT::tdual_kkfloat_1d("BondClass2::k2",n+1);
+  k_k3 = DAT::tdual_kkfloat_1d("BondClass2::k3",n+1);
+  k_k4 = DAT::tdual_kkfloat_1d("BondClass2::k4",n+1);
+  k_r0 = DAT::tdual_kkfloat_1d("BondClass2::r0",n+1);
 
   d_k2 = k_k2.template view<DeviceType>();
   d_k3 = k_k3.template view<DeviceType>();
@@ -265,10 +287,10 @@ void BondClass2Kokkos<DeviceType>::read_restart(FILE *fp)
   d_r0 = k_r0.template view<DeviceType>();
 
   for (int i = 1; i <= n; i++) {
-    k_k2.view_host()[i] = k2[i];
-    k_k3.view_host()[i] = k3[i];
-    k_k4.view_host()[i] = k4[i];
-    k_r0.view_host()[i] = r0[i];
+    k_k2.view_host()[i] = static_cast<KK_FLOAT>(k2[i]);
+    k_k3.view_host()[i] = static_cast<KK_FLOAT>(k3[i]);
+    k_k4.view_host()[i] = static_cast<KK_FLOAT>(k4[i]);
+    k_r0.view_host()[i] = static_cast<KK_FLOAT>(r0[i]);
   }
 
   k_k2.modify_host();
@@ -298,17 +320,17 @@ void BondClass2Kokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const in
 
   if (eflag_either) {
     if (eflag_global) {
-      if (newton_bond) ev.evdwl += ebond;
+      if (newton_bond) ev.evdwl += static_cast<KK_ACC_FLOAT>(ebond);
       else {
-        ebondhalf = 0.5*ebond;
-        if (i < nlocal) ev.evdwl += ebondhalf;
-        if (j < nlocal) ev.evdwl += ebondhalf;
+        ebondhalf = static_cast<KK_FLOAT>(0.5)*ebond;
+        if (i < nlocal) ev.evdwl += static_cast<KK_ACC_FLOAT>(ebondhalf);
+        if (j < nlocal) ev.evdwl += static_cast<KK_ACC_FLOAT>(ebondhalf);
       }
     }
     if (eflag_atom) {
-      ebondhalf = 0.5*ebond;
-      if (newton_bond || i < nlocal) d_eatom[i] += ebondhalf;
-      if (newton_bond || j < nlocal) d_eatom[j] += ebondhalf;
+      ebondhalf = static_cast<KK_FLOAT>(0.5)*ebond;
+      if (newton_bond || i < nlocal) d_eatom[i] += static_cast<KK_ACC_FLOAT>(ebondhalf);
+      if (newton_bond || j < nlocal) d_eatom[j] += static_cast<KK_ACC_FLOAT>(ebondhalf);
     }
   }
 
@@ -322,48 +344,48 @@ void BondClass2Kokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const in
 
     if (vflag_global) {
       if (newton_bond) {
-        ev.v[0] += v[0];
-        ev.v[1] += v[1];
-        ev.v[2] += v[2];
-        ev.v[3] += v[3];
-        ev.v[4] += v[4];
-        ev.v[5] += v[5];
+        ev.v[0] += static_cast<KK_ACC_FLOAT>(v[0]);
+        ev.v[1] += static_cast<KK_ACC_FLOAT>(v[1]);
+        ev.v[2] += static_cast<KK_ACC_FLOAT>(v[2]);
+        ev.v[3] += static_cast<KK_ACC_FLOAT>(v[3]);
+        ev.v[4] += static_cast<KK_ACC_FLOAT>(v[4]);
+        ev.v[5] += static_cast<KK_ACC_FLOAT>(v[5]);
       } else {
         if (i < nlocal) {
-          ev.v[0] += 0.5*v[0];
-          ev.v[1] += 0.5*v[1];
-          ev.v[2] += 0.5*v[2];
-          ev.v[3] += 0.5*v[3];
-          ev.v[4] += 0.5*v[4];
-          ev.v[5] += 0.5*v[5];
+          ev.v[0] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v[0]);
+          ev.v[1] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v[1]);
+          ev.v[2] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v[2]);
+          ev.v[3] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v[3]);
+          ev.v[4] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v[4]);
+          ev.v[5] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v[5]);
         }
         if (j < nlocal) {
-          ev.v[0] += 0.5*v[0];
-          ev.v[1] += 0.5*v[1];
-          ev.v[2] += 0.5*v[2];
-          ev.v[3] += 0.5*v[3];
-          ev.v[4] += 0.5*v[4];
-          ev.v[5] += 0.5*v[5];
+          ev.v[0] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v[0]);
+          ev.v[1] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v[1]);
+          ev.v[2] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v[2]);
+          ev.v[3] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v[3]);
+          ev.v[4] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v[4]);
+          ev.v[5] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v[5]);
         }
       }
     }
 
     if (vflag_atom) {
       if (newton_bond || i < nlocal) {
-        d_vatom(i,0) += 0.5*v[0];
-        d_vatom(i,1) += 0.5*v[1];
-        d_vatom(i,2) += 0.5*v[2];
-        d_vatom(i,3) += 0.5*v[3];
-        d_vatom(i,4) += 0.5*v[4];
-        d_vatom(i,5) += 0.5*v[5];
+        d_vatom(i,0) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v[0]);
+        d_vatom(i,1) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v[1]);
+        d_vatom(i,2) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v[2]);
+        d_vatom(i,3) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v[3]);
+        d_vatom(i,4) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v[4]);
+        d_vatom(i,5) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v[5]);
       }
       if (newton_bond || j < nlocal) {
-        d_vatom(j,0) += 0.5*v[0];
-        d_vatom(j,1) += 0.5*v[1];
-        d_vatom(j,2) += 0.5*v[2];
-        d_vatom(j,3) += 0.5*v[3];
-        d_vatom(j,4) += 0.5*v[4];
-        d_vatom(j,5) += 0.5*v[5];
+        d_vatom(j,0) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v[0]);
+        d_vatom(j,1) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v[1]);
+        d_vatom(j,2) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v[2]);
+        d_vatom(j,3) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v[3]);
+        d_vatom(j,4) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v[4]);
+        d_vatom(j,5) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v[5]);
       }
     }
   }

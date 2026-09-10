@@ -27,7 +27,23 @@ inline void host_test_simd_traits() {
   static_assert(std::is_nothrow_move_assignable_v<simd_type>);
   static_assert(std::is_nothrow_move_constructible_v<simd_type>);
 
+  constexpr size_t alignment = simd_type::size() * sizeof(DataType);
+
+  alignas(alignment) DataType values[simd_type::size()] = {};
+
+  typename simd_type::mask_type mask(true);
+
   simd_type default_simd, result;
+  [[maybe_unused]] simd_type ptr_simd(values);
+  [[maybe_unused]] simd_type ptr_flag_simd(
+      values, Kokkos::Experimental::simd_flag_default);
+  [[maybe_unused]] simd_type ptr_flag_aligned_simd(
+      values, Kokkos::Experimental::simd_flag_aligned);
+  [[maybe_unused]] simd_type ptr_mask_simd(values, mask);
+  [[maybe_unused]] simd_type ptr_mask_flag_simd(
+      values, mask, Kokkos::Experimental::simd_flag_default);
+  [[maybe_unused]] simd_type ptr_mask_flag_aligned_simd(
+      values, mask, Kokkos::Experimental::simd_flag_aligned);
   simd_type test_simd(KOKKOS_LAMBDA(std::size_t i) { return (i % 2 == 0); });
   simd_type copy_simd(test_simd);
   simd_type move_simd(std::move(copy_simd));
@@ -141,7 +157,23 @@ template <typename Abi, typename DataType>
 KOKKOS_INLINE_FUNCTION void device_test_simd_traits() {
   using simd_type = Kokkos::Experimental::basic_simd<DataType, Abi>;
 
+  constexpr size_t alignment = simd_type::size() * sizeof(DataType);
+
+  alignas(alignment) DataType values[simd_type::size()] = {};
+
+  typename simd_type::mask_type mask(true);
+
   simd_type default_simd, result;
+  [[maybe_unused]] simd_type ptr_simd(values);
+  [[maybe_unused]] simd_type ptr_flag_simd(
+      values, Kokkos::Experimental::simd_flag_default);
+  [[maybe_unused]] simd_type ptr_flag_aligned_simd(
+      values, Kokkos::Experimental::simd_flag_aligned);
+  [[maybe_unused]] simd_type ptr_mask_simd(values, mask);
+  [[maybe_unused]] simd_type ptr_mask_flag_simd(
+      values, mask, Kokkos::Experimental::simd_flag_default);
+  [[maybe_unused]] simd_type ptr_mask_flag_aligned_simd(
+      values, mask, Kokkos::Experimental::simd_flag_aligned);
   simd_type test_simd(KOKKOS_LAMBDA(std::size_t i) { return (i % 2 == 0); });
   simd_type copy_simd(test_simd);
   simd_type move_simd(std::move(copy_simd));

@@ -35,25 +35,11 @@ NBinIntel::NBinIntel(LAMMPS *lmp) : NBinStandard(lmp) {
   _precision_mode = _fix->precision();
   _atombin = nullptr;
   _binpacked = nullptr;
-  #ifdef _LMP_INTEL_OFFLOAD
-  _cop = _fix->coprocessor_number();
-  _offload_alloc = 0;
-  #endif
 }
 
 /* ---------------------------------------------------------------------- */
 
 NBinIntel::~NBinIntel() {
-  #ifdef _LMP_INTEL_OFFLOAD
-  if (_offload_alloc) {
-    const int * binhead = this->binhead;
-    const int * bins = this->bins;
-    const int * _atombin = this->_atombin;
-    const int * _binpacked = this->_binpacked;
-    #pragma offload_transfer target(mic:_cop)   \
-      nocopy(binhead,bins,_atombin,_binpacked:alloc_if(0) free_if(1))
-  }
-  #endif
   memory->destroy(_atombin);
   memory->destroy(_binpacked);
 }
@@ -68,25 +54,11 @@ void NBinIntel::bin_atoms_setup(int nall)
   // add 1 bin for INTEL package
 
   if (mbins > maxbin) {
-    #ifdef _LMP_INTEL_OFFLOAD
-    if (_offload_alloc) {
-      const int * binhead = this->binhead;
-      #pragma offload_transfer target(mic:_cop) \
-        nocopy(binhead:alloc_if(0) free_if(1))
-    }
-    #endif
 
     maxbin = mbins;
     memory->destroy(binhead);
     memory->create(binhead,maxbin+1,"neigh:binhead");
 
-    #ifdef _LMP_INTEL_OFFLOAD
-    if (_fix->offload_balance() != 0) {
-      int * binhead = this->binhead;
-      #pragma offload_transfer target(mic:_cop) \
-         nocopy(binhead:length(maxbin+1) alloc_if(1) free_if(0))
-    }
-    #endif
   }
 
   // bins = per-atom vector
@@ -94,15 +66,6 @@ void NBinIntel::bin_atoms_setup(int nall)
   if (nall > maxatom) {
     maxatom = nall;
 
-    #ifdef _LMP_INTEL_OFFLOAD
-    if (_offload_alloc) {
-      const int * bins = this->bins;
-      const int * _atombin = this->_atombin;
-      const int * _binpacked = this->_binpacked;
-      #pragma offload_transfer target(mic:_cop) \
-        nocopy(bins,_atombin,_binpacked:alloc_if(0) free_if(1))
-    }
-    #endif
     memory->destroy(bins);
     memory->destroy(_atombin);
     memory->destroy(_binpacked);
@@ -110,16 +73,6 @@ void NBinIntel::bin_atoms_setup(int nall)
     memory->create(bins,maxatom,"neigh:bins");
     memory->create(_atombin,maxatom,"neigh:bins");
     memory->create(_binpacked,maxatom,"neigh:bins");
-    #ifdef _LMP_INTEL_OFFLOAD
-    if (_fix->offload_balance() != 0) {
-      const int * bins = this->bins;
-      const int * _atombin = this->_atombin;
-      const int * _binpacked = this->_binpacked;
-      #pragma offload_transfer target(mic:_cop) \
-        nocopy(bins,_atombin,_binpacked:length(maxatom) alloc_if(1) free_if(0))
-      _offload_alloc=1;
-    }
-    #endif
 
     if (_precision_mode == FixIntel::PREC_MODE_MIXED)
       _fix->get_mixed_buffers()->set_bininfo(_atombin,_binpacked);
@@ -150,8 +103,6 @@ template <class flt_t, class acc_t>
 void NBinIntel::bin_atoms(IntelBuffers<flt_t,acc_t> * buffers) {
   const int nlocal = atom->nlocal;
   const int nall = nlocal + atom->nghost;
-  const int aend = _fix->offload_end_neighbor();
-
 
   // ---------- Sanity check for padding --------------
   {
@@ -164,7 +115,7 @@ void NBinIntel::bin_atoms(IntelBuffers<flt_t,acc_t> * buffers) {
 
   // ---------- Grow and cast/pack buffers -------------
   _fix->start_watch(TIME_PACK);
-  buffers->grow(nall, atom->nlocal, comm->nthreads, aend);
+  buffers->grow(nall, atom->nlocal, comm->nthreads);
 
   ATOM_T biga;
   biga.x = INTEL_BIGP;

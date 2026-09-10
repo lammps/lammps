@@ -70,6 +70,7 @@ class Pair : protected Pointers {
 
   int ewaldflag;         // 1 if compatible with Ewald solver
   int pppmflag;          // 1 if compatible with PPPM solver
+  int espflag;           // 1 if compatible with PS solver
   int msmflag;           // 1 if compatible with MSM solver
   int dispersionflag;    // 1 if compatible with LJ/dispersion solver
   int tip4pflag;         // 1 if compatible with TIP4P solver

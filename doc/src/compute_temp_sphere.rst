@@ -1,7 +1,10 @@
 .. index:: compute temp/sphere
+.. index:: compute temp/sphere/kk
 
 compute temp/sphere command
 ===========================
+
+Accelerator Variants: *temp/sphere/kk*
 
 Syntax
 """"""
@@ -79,7 +82,7 @@ vector are ordered :math:`xx`, :math:`yy`, :math:`zz`, :math:`xy`,
 
 A symmetric tensor, stored as a six-element vector, is also calculated
 by this compute for use in the computation of a pressure tensor by the
-:doc:`compute pressue <compute_pressure>` command.  The formula for
+:doc:`compute pressure <compute_pressure>` command.  The formula for
 the components of the tensor is the same as the above expression for
 :math:`E_\mathrm{kin}`, except that the 1/2 factor is NOT included and
 the :math:`v_i^2` and :math:`\omega^2` are replaced by :math:`v_x v_y`
@@ -140,6 +143,10 @@ vector values are "extensive".
 
 The scalar value is in temperature :doc:`units <units>`.  The vector
 values are in energy :doc:`units <units>`.
+
+----------
+
+.. include:: accel_styles.rst
 
 Restrictions
 """"""""""""

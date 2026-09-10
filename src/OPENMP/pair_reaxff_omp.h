@@ -31,6 +31,7 @@ class PairReaxFFOMP : public PairReaxFF, public ThrOMP {
   ~PairReaxFFOMP() override;
   void compute(int, int) override;
   void init_style() override;
+  void setup() override;
 
   inline FixOMP *getFixOMP() { return fix; };
 
@@ -97,7 +98,6 @@ class PairReaxFFOMP : public PairReaxFF, public ThrOMP {
   }
 
  protected:
-  void setup() override;
   int estimate_reax_lists() override;
   int write_reax_lists() override;
   void read_reax_forces(int) override;

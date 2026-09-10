@@ -15,6 +15,7 @@
 
 #include "lal_device.h"
 #include "lal_precision.h"
+#include "lammps_gpu.h"
 #include <map>
 #include <cmath>
 #include <cstdlib>
@@ -53,11 +54,20 @@ const char *device=0;
 #include "device_cubin.h"
 #endif
 
+// When set, defer the GPU device teardown: clear_device() skips deleting the
+// UCL_Device (which would reset the whole GPU device). This is used only by the
+// unit test harness so the GPU package does not reset a device that the KOKKOS
+// package is also using -- that reset invalidates the KOKKOS device context and
+// crashes at Kokkos::finalize(). The device is reclaimed at process exit.
+// Toggled through lmp_gpu_defer_device_clear().
+static bool lal_defer_device_clear = false;
+
 namespace LAMMPS_AL {
 #define DeviceT Device<numtyp, acctyp>
 
 template <class numtyp, class acctyp>
 DeviceT::Device() : _init_count(0), _device_init(false),
+                    _comm_gpu_allocated(false),
                     _gpu_mode(GPU_FORCE), _first_device(0),
                     _last_device(0), _platform_id(-1), _compiled(false),
                     _use_old_nbor_build(0), _use_device_sort(0) {
@@ -71,7 +81,7 @@ DeviceT::~Device() {
 template <class numtyp, class acctyp>
 int DeviceT::init_device(MPI_Comm /*world*/, MPI_Comm replica, const int ngpu,
                          const int first_gpu_id, const int gpu_mode,
-                         const double p_split, const int t_per_atom,
+                         const int t_per_atom,
                          const double user_cell_size, char *ocl_args,
                          const int ocl_platform, char *device_type_flags,
                          const int block_pair) {
@@ -87,7 +97,6 @@ int DeviceT::init_device(MPI_Comm /*world*/, MPI_Comm replica, const int ngpu,
   int ndevices=ngpu;
   _first_device=first_gpu_id;
   _gpu_mode=gpu_mode;
-  _particle_split=p_split;
   _user_cell_size=user_cell_size;
   _block_pair=block_pair;
 
@@ -287,12 +296,14 @@ int DeviceT::init_device(MPI_Comm /*world*/, MPI_Comm replica, const int ngpu,
   if (_procs_per_gpu>1)
     _time_device=false;
 
-  if (!_time_device && _particle_split > 0)
+  if (!_time_device)
     gpu->configure_profiling(false);
 
   // Set up a per device communicator
   MPI_Comm_split(node_comm,my_gpu,0,&_comm_gpu);
   MPI_Comm_rank(_comm_gpu,&_gpu_rank);
+  _comm_gpu_allocated=true;
+  MPI_Comm_free(&node_comm);
 
   #if !defined(CUDA_MPS_SUPPORT)
   if (_procs_per_gpu>1 && !gpu->sharing_supported(my_gpu))
@@ -386,7 +397,7 @@ int DeviceT::set_ocl_params(std::string s_config, const std::string &extra_args)
 
   #include "lal_pre_ocl_config.h"
 
-  if (s_config=="" || s_config=="none")
+  if (s_config.empty() || s_config=="none")
     s_config="generic";
 
   int config_index=-1;
@@ -514,9 +525,6 @@ int DeviceT::init(Answer<numtyp,acctyp> &ans, const bool charge,
   _data_out_estimate=1;
 
   // Initial number of local particles
-  int ef_nlocal=nlocal;
-  if (_particle_split<1.0 && _particle_split>0.0)
-    ef_nlocal=static_cast<int>(_particle_split*nlocal);
 
   int gpu_nbor=0;
   if (_gpu_mode==Device<numtyp,acctyp>::GPU_NEIGH)
@@ -564,7 +572,7 @@ int DeviceT::init(Answer<numtyp,acctyp> &ans, const bool charge,
       return -3;
   }
 
-  if (!ans.init(ef_nlocal,charge,rot,*gpu))
+  if (!ans.init(nlocal,charge,rot,*gpu))
     return -3;
 
   _init_count++;
@@ -601,9 +609,6 @@ int DeviceT::init_nbor(Neighbor *nbor, const int nlocal,
                        const int max_nbors, const double cutoff,
                        const bool pre_cut, const int threads_per_atom,
                        const bool ilist_map) {
-  int ef_nlocal=nlocal;
-  if (_particle_split<1.0 && _particle_split>0.0)
-    ef_nlocal=static_cast<int>(_particle_split*nlocal);
 
   // NOTE: enforce the hybrid mode (binning on the CPU)
   // when not using sorting on the device
@@ -628,7 +633,7 @@ int DeviceT::init_nbor(Neighbor *nbor, const int nlocal,
     return -17;
   #endif
 
-  if (!nbor->init(&_neighbor_shared,ef_nlocal,host_nlocal,max_nbors,maxspecial,
+  if (!nbor->init(&_neighbor_shared,nlocal,host_nlocal,max_nbors,maxspecial,
                   *gpu,gpu_nbor,gpu_host,pre_cut,_block_cell_2d,
                   _block_cell_id, _block_nbor_build, threads_per_atom,
                   _simd_size, _time_device, compile_string(), ilist_map))
@@ -859,7 +864,7 @@ void DeviceT::estimate_gpu_overhead(const int kernel_calls,
 
 template <class numtyp, class acctyp>
 void DeviceT::output_times(UCL_Timer &time_pair, Answer<numtyp,acctyp> &ans,
-                           Neighbor &nbor, const double avg_split,
+                           Neighbor &nbor,
                            const double max_bytes, const double gpu_overhead,
                            const double driver_overhead,
                            const int threads_per_atom, FILE *screen) {
@@ -920,7 +925,6 @@ void DeviceT::output_times(UCL_Timer &time_pair, Answer<numtyp,acctyp> &ans,
       fprintf(screen,"CPU Cast/Pack:   %.4f s.\n",times[4]/_replica_size);
       fprintf(screen,"CPU Driver_Time: %.4f s.\n",times[6]/_replica_size);
       fprintf(screen,"CPU Idle_Time:   %.4f s.\n",times[7]/_replica_size);
-      fprintf(screen,"Average split:   %.4f.\n",avg_split);
       fprintf(screen,"Max Mem / Proc:  %.2f MB.\n",max_mb);
       fprintf(screen,"Prefetch mode:   ");
       if (_nbor_prefetch==2) fprintf(screen,"Intrinsics.\n");
@@ -1048,9 +1052,17 @@ void DeviceT::clear_device() {
     delete dev_program;
     _compiled=false;
   }
-  if (_device_init) {
+  if (_device_init && !lal_defer_device_clear) {
     delete gpu;
     _device_init=false;
+  }
+  // the global Device instance is destroyed after MPI_Finalize(), so the
+  // per-device communicator can only be freed when torn down before that
+  if (_comm_gpu_allocated) {
+    int mpi_finalized;
+    MPI_Finalized(&mpi_finalized);
+    if (!mpi_finalized) MPI_Comm_free(&_comm_gpu);
+    _comm_gpu_allocated=false;
   }
 }
 
@@ -1170,6 +1182,8 @@ Device<PRECISION,ACC_PRECISION> global_device;
 
 using namespace LAMMPS_AL;
 
+namespace LAMMPS_GPU {
+
 // check if a suitable GPU is present.
 // for mixed and double precision GPU library compilation
 // also the GPU needs to support double precision.
@@ -1189,11 +1203,19 @@ bool lmp_gpu_requires_host_neighbor()
 {
   UCL_Device gpu;
 
-#if USE_OPENCL
+#if defined(USE_OPENCL)
+  // AMD GPUs with shared (unified) host/device memory cannot reliably build
+  // neighbor lists on the device with the OpenCL API.
   if (gpu.num_platforms() > 0) {
     auto name = gpu.platform_name();
-    if (name.find("AMD") && gpu.shared_memory(0)) return true;
+    if ((name.find("AMD") != std::string::npos) && gpu.shared_memory(0)) return true;
   }
+#elif defined(USE_HIP)
+  // Integrated AMD GPUs (APUs sharing host memory) cannot reliably build neighbor
+  // lists on the device with the HIP API either: device neighbor builds trigger a
+  // memory access fault (e.g. lj/cut/dipole/cut) or hit the ellipsoid/sphere-mix
+  // restriction (e.g. gayberne). Force host-side neighbor lists, matching OpenCL.
+  if (gpu.num_devices() > 0 && gpu.integrated(0)) return true;
 #endif
 
   return false;
@@ -1210,18 +1232,24 @@ std::string lmp_gpu_device_info()
 
 int lmp_init_device(MPI_Comm world, MPI_Comm replica, const int ngpu,
                     const int first_gpu_id, const int gpu_mode,
-                    const double particle_split, const int t_per_atom,
+                    const int t_per_atom,
                     const double user_cell_size, char *opencl_config,
                     const int ocl_platform, char *device_type_flags,
                     const int block_pair) {
   return global_device.init_device(world,replica,ngpu,first_gpu_id,gpu_mode,
-                                   particle_split,t_per_atom,user_cell_size,
+                                   t_per_atom,user_cell_size,
                                    opencl_config,ocl_platform,
                                    device_type_flags,block_pair);
 }
 
 void lmp_clear_device() {
   global_device.clear_device();
+}
+
+// defer (flag != 0) or restore (flag == 0) the GPU device teardown.
+// see the comment on lal_defer_device_clear above. test-harness use only.
+void lmp_gpu_defer_device_clear(int flag) {
+  lal_defer_device_clear = (flag != 0);
 }
 
 double lmp_gpu_forces(double **f, double **tor, double *eatom, double **vatom,
@@ -1271,3 +1299,5 @@ bool lmp_gpu_config(const std::string &category, const std::string &setting)
   }
   return false;
 }
+
+} // namespace LAMMPS_GPU

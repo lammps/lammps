@@ -50,7 +50,11 @@ static const char cite_style_classII_xe[] =
 
 /* ---------------------------------------------------------------------- */
 
-AngleClass2xe::AngleClass2xe(LAMMPS *lmp) : Angle(lmp)
+AngleClass2xe::AngleClass2xe(LAMMPS *lmp) :
+    Angle(lmp), theta0(nullptr), k2(nullptr), k3(nullptr), k4(nullptr), bb_d0(nullptr),
+    bb_alpha(nullptr), bb_r1(nullptr), bb_r2(nullptr), ba_d1(nullptr), ba_d2(nullptr),
+    ba_alpha1(nullptr), ba_alpha2(nullptr), ba_r1(nullptr), ba_r2(nullptr), setflag_a(nullptr),
+    setflag_bb(nullptr), setflag_ba(nullptr)
 {
    if (lmp->citeme) lmp->citeme->add(cite_style_classII_xe);
 }
@@ -177,8 +181,8 @@ void AngleClass2xe::compute(int eflag, int vflag)
     dr2 = r2 - bb_r2[type];
     bb_ralpha1 = exp(-bb_alpha[type]*dr1);
     bb_ralpha2 = exp(-bb_alpha[type]*dr2);
-    tk1 = bb_d0[type]*bb_alpha[type]*bb_ralpha1*(1 - bb_ralpha2);
-    tk2 = bb_d0[type]*bb_alpha[type]*bb_ralpha2*(1 - bb_ralpha1);
+    tk1 = bb_d0[type]*bb_alpha[type]*bb_ralpha2*(1 - bb_ralpha1);
+    tk2 = bb_d0[type]*bb_alpha[type]*bb_ralpha1*(1 - bb_ralpha2);
 
     f1[0] -= delx1*tk2/r1;
     f1[1] -= dely1*tk2/r1;
@@ -513,4 +517,18 @@ double AngleClass2xe::single(int type, int i1, int i2, int i3)
   energy += ba_d1[type]*(1 - ba_ralpha1)*dtheta + ba_d2[type]*(1 - ba_ralpha2)*dtheta;
 
   return energy;
+}
+
+/* ----------------------------------------------------------------------
+   return ptr to internal members upon request
+------------------------------------------------------------------------ */
+
+void *AngleClass2xe::extract(const char *str, int &dim)
+{
+  dim = 1;
+  if (strcmp(str, "k2") == 0) return (void *) k2;
+  if (strcmp(str, "k3") == 0) return (void *) k3;
+  if (strcmp(str, "k4") == 0) return (void *) k4;
+  if (strcmp(str, "theta0") == 0) return (void *) theta0;
+  return nullptr;
 }

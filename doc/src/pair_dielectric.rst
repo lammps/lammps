@@ -31,7 +31,7 @@ pair_style lj/cut/coul/long/dielectric command
 Accelerator Variants: *lj/cut/coul/long/dielectric/omp*
 
 pair_style lj/cut/coul/msm/dielectric command
-==============================================
+=============================================
 
 pair_style lj/long/coul/long/dielectric command
 ===============================================
@@ -69,8 +69,8 @@ Used in input scripts:
 
    .. parsed-literal::
 
-      examples/PACKAGES/dielectric/in.confined
-      examples/PACKAGES/dielectric/in.nopbc
+      examples/PACKAGES/dielectric/confined.inc
+      examples/PACKAGES/dielectric/nopbc.inc
 
 Description
 """""""""""

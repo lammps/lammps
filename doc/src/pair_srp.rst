@@ -6,6 +6,7 @@ pair_style srp command
 
 pair_style srp/react command
 ============================
+
 Syntax
 """"""
 
@@ -90,7 +91,7 @@ lever rule,
 
 where *L* is the normalized distance from the atom to the point of
 closest approach of bond *i* and *j*\ . The *mid* option takes *L* as
-0.5 for each interaction as described in :ref:`(Sirk) <Sirk2>`.
+0.5 for each interaction as described in :ref:`(Sirk2) <Sirk2>`.
 
 The following coefficients must be defined via the
 :doc:`pair_coeff <pair_coeff>` command as in the examples above, or in
@@ -210,7 +211,7 @@ The default keyword value is exclude = yes.
 
 .. _Sirk2:
 
-**(Sirk)** Sirk TW, Sliozberg YR, Brennan JK, Lisal M, Andzelm JW, J
+**(Sirk2)** Sirk TW, Sliozberg YR, Brennan JK, Lisal M, Andzelm JW, J
 Chem Phys, 136 (13) 134903, 2012.
 
 .. _Palkar:

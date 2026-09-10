@@ -35,7 +35,8 @@ using MathConst::MY_PI;
 
 /* ---------------------------------------------------------------------- */
 
-AngleMWLC::AngleMWLC(LAMMPS *_lmp) : Angle(_lmp)
+AngleMWLC::AngleMWLC(LAMMPS *_lmp) :
+    Angle(_lmp), k1(nullptr), k2(nullptr), mu(nullptr), temp(nullptr)
 {
   born_matrix_enable = 1;
 }
@@ -44,7 +45,9 @@ AngleMWLC::AngleMWLC(LAMMPS *_lmp) : Angle(_lmp)
 
 AngleMWLC::~AngleMWLC()
 {
-  if (allocated && !copymode) {
+  if (copymode) return;
+
+  if (allocated) {
     memory->destroy(setflag);
     memory->destroy(k1);
     memory->destroy(k2);

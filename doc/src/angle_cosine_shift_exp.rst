@@ -1,10 +1,11 @@
 .. index:: angle_style cosine/shift/exp
+.. index:: angle_style cosine/shift/exp/kk
 .. index:: angle_style cosine/shift/exp/omp
 
 angle_style cosine/shift/exp command
 ====================================
 
-Accelerator Variants: *cosine/shift/exp/omp*
+Accelerator Variants: *cosine/shift/exp/kk*, *cosine/shift/exp/omp*
 
 Syntax
 """"""

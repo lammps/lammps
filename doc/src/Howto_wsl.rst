@@ -145,7 +145,7 @@ steps to follow:
 Install prerequisite packages
 -----------------------------
 
-Before we can begin, we need to download the necessary compiler toolchain and
+Before we can begin, we need to download the necessary compiler tool chain and
 libraries to compile LAMMPS. In our Ubuntu-based Linux installation, we will
 use the :code:`apt` package manager to install additional packages.
 

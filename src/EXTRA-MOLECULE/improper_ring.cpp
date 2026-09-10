@@ -59,7 +59,7 @@ static constexpr double SMALL =     0.001;
 
 /* ---------------------------------------------------------------------- */
 
-ImproperRing::ImproperRing(LAMMPS *lmp) : Improper(lmp)
+ImproperRing::ImproperRing(LAMMPS *lmp) : Improper(lmp), k(nullptr), chi(nullptr)
 {
   // the second atom in the quadruplet is the atom of symmetry
 
@@ -70,6 +70,8 @@ ImproperRing::ImproperRing(LAMMPS *lmp) : Improper(lmp)
 
 ImproperRing::~ImproperRing()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(k);

@@ -10,7 +10,7 @@ export OMPI_CXX = icc
 CC =		mpicxx -std=c++17 -diag-disable=10441 -diag-disable=2196 -diag-disable=11074 -diag-disable=11076
 OPTFLAGS =      -xHost -O2 -fp-model fast=2 -no-prec-div -qoverride-limits \
                 -qopt-zmm-usage=high
-CCFLAGS =	-qopenmp -qno-offload -ansi-alias -restrict \
+CCFLAGS =	-qopenmp -ansi-alias -restrict \
                 -DLMP_INTEL_USELRT -DLMP_USE_MKL_RNG $(OPTFLAGS) \
                 -I$(MKLROOT)/include
 SHFLAGS =	-fPIC

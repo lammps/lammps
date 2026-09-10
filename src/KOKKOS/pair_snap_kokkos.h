@@ -501,8 +501,8 @@ class PairSNAPKokkos : public PairSNAP {
   Kokkos::View<real_type*, DeviceType> d_sinnerelem;           // element inner cutoff midpoint
   Kokkos::View<real_type*, DeviceType> d_dinnerelem;           // element inner cutoff half-width
   Kokkos::View<T_INT*, DeviceType> d_map;                    // mapping from atom types to elements
-  Kokkos::View<T_INT*, DeviceType> d_ninside;                // ninside for all atoms in list
-  typename SNAKokkos<DeviceType, real_type, accum_type, vector_length>::t_sna_2d d_beta;                // betas for all atoms in list
+  Kokkos::View<T_INT*, DeviceType> d_ninside;                // ninside for the atoms in the current chunk
+  typename SNAKokkos<DeviceType, real_type, accum_type, vector_length>::t_sna_2d d_beta;                // betas for the atoms in the current chunk
 
   typedef Kokkos::DualView<double**, DeviceType> tdual_fparams;
   tdual_fparams k_cutsq;

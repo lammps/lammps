@@ -1,0 +1,428 @@
+// clang-format off
+/* ----------------------------------------------------------------------
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   https://www.lammps.org/, Sandia National Laboratories
+   LAMMPS development team: developers@lammps.org
+
+   Copyright (2003) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under
+   the GNU General Public License.
+
+   See the README file in the top-level LAMMPS directory.
+------------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------
+   Contributing author: Stan Moore (SNL)
+------------------------------------------------------------------------- */
+
+#include "pair_coul_wolf_cs_kokkos.h"
+
+#include "atom_kokkos.h"
+#include "atom_masks.h"
+#include "force.h"
+#include "kokkos.h"
+#include "math_const.h"
+#include "memory_kokkos.h"
+#include "neigh_list_kokkos.h"
+#include "neigh_request.h"
+#include "neighbor.h"
+
+#include <cmath>
+
+using namespace LAMMPS_NS;
+
+// a minimal separation so that r = 0 core/shell pairs stay finite until the
+// special-bond factor removes them, taken verbatim from the CPU style
+
+static constexpr double EPSILON = 1.0e-20;
+using namespace MathConst;
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+PairCoulWolfCSKokkos<DeviceType>::PairCoulWolfCSKokkos(LAMMPS *lmp) : PairCoulWolfCS(lmp)
+{
+  respa_enable = 0;
+
+  kokkosable = 1;
+  atomKK = (AtomKokkos *) atom;
+  execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
+  datamask_read = X_MASK | F_MASK | TYPE_MASK | Q_MASK | ENERGY_MASK | VIRIAL_MASK;
+  datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+PairCoulWolfCSKokkos<DeviceType>::~PairCoulWolfCSKokkos()
+{
+  if (!copymode) {
+    memoryKK->destroy_kokkos(k_eatom,eatom);
+    memoryKK->destroy_kokkos(k_vatom,vatom);
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void PairCoulWolfCSKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
+{
+  eflag = eflag_in;
+  vflag = vflag_in;
+
+  if (neighflag == FULL) no_virial_fdotr_compute = 1;
+
+  ev_init(eflag,vflag,0);
+
+  // reallocate per-atom arrays if necessary
+
+  if (eflag_atom) {
+    memoryKK->destroy_kokkos(k_eatom,eatom);
+    memoryKK->create_kokkos(k_eatom,eatom,maxeatom,"pair:eatom");
+    d_eatom = k_eatom.view<DeviceType>();
+  }
+  if (vflag_atom) {
+    memoryKK->destroy_kokkos(k_vatom,vatom);
+    memoryKK->create_kokkos(k_vatom,vatom,maxvatom,"pair:vatom");
+    d_vatom = k_vatom.view<DeviceType>();
+  }
+
+  atomKK->sync(execution_space,datamask_read);
+  if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
+  else atomKK->modified(execution_space,F_MASK);
+
+  // shifted coulombic energy
+
+  e_shift = static_cast<KK_FLOAT>(erfc(alf*cut_coul)/cut_coul);
+  f_shift = static_cast<KK_FLOAT>(-(static_cast<double>(e_shift)+ 2.0*alf/MY_PIS * exp(-alf*alf*cut_coul*cut_coul)) /
+    cut_coul);
+
+  x = atomKK->k_x.view<DeviceType>();
+  f = atomKK->k_f.view<DeviceType>();
+  q = atomKK->k_q.view<DeviceType>();
+  nlocal = atom->nlocal;
+  nall = atom->nlocal + atom->nghost;
+  newton_pair = force->newton_pair;
+
+  NeighListKokkos<DeviceType>* k_list = static_cast<NeighListKokkos<DeviceType>*>(list);
+  d_numneigh = k_list->d_numneigh;
+  d_neighbors = k_list->d_neighbors;
+  d_ilist = k_list->d_ilist;
+
+  special_coul[0] = static_cast<KK_FLOAT>(force->special_coul[0]);
+  special_coul[1] = static_cast<KK_FLOAT>(force->special_coul[1]);
+  special_coul[2] = static_cast<KK_FLOAT>(force->special_coul[2]);
+  special_coul[3] = static_cast<KK_FLOAT>(force->special_coul[3]);
+  qqrd2e = static_cast<KK_FLOAT>(force->qqrd2e);
+
+  int inum = list->inum;
+
+  copymode = 1;
+
+  // loop over neighbors of my atoms
+
+  EV_FLOAT ev;
+
+  // compute kernel A
+
+  if (evflag) {
+    if (neighflag == HALF) {
+      if (newton_pair) {
+        Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairCoulWolfCSKernelA<HALF,1,1> >(0,inum),*this,ev);
+      } else {
+        Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairCoulWolfCSKernelA<HALF,0,1> >(0,inum),*this,ev);
+      }
+    } else if (neighflag == HALFTHREAD) {
+      if (newton_pair) {
+        Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairCoulWolfCSKernelA<HALFTHREAD,1,1> >(0,inum),*this,ev);
+      } else {
+        Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairCoulWolfCSKernelA<HALFTHREAD,0,1> >(0,inum),*this,ev);
+      }
+    } else if (neighflag == FULL) {
+      if (newton_pair) {
+        Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairCoulWolfCSKernelA<FULL,1,1> >(0,inum),*this,ev);
+      } else {
+        Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagPairCoulWolfCSKernelA<FULL,0,1> >(0,inum),*this,ev);
+      }
+    }
+  } else {
+    if (neighflag == HALF) {
+      if (newton_pair) {
+        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairCoulWolfCSKernelA<HALF,1,0> >(0,inum),*this);
+      } else {
+        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairCoulWolfCSKernelA<HALF,0,0> >(0,inum),*this);
+      }
+    } else if (neighflag == HALFTHREAD) {
+      if (newton_pair) {
+        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairCoulWolfCSKernelA<HALFTHREAD,1,0> >(0,inum),*this);
+      } else {
+        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairCoulWolfCSKernelA<HALFTHREAD,0,0> >(0,inum),*this);
+      }
+    } else if (neighflag == FULL) {
+      if (newton_pair) {
+        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairCoulWolfCSKernelA<FULL,1,0> >(0,inum),*this);
+      } else {
+        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairCoulWolfCSKernelA<FULL,0,0> >(0,inum),*this);
+      }
+    }
+  }
+
+  if (eflag_global) eng_coul += static_cast<double>(ev.ecoul);
+  if (vflag_global) {
+    virial[0] += static_cast<double>(ev.v[0]);
+    virial[1] += static_cast<double>(ev.v[1]);
+    virial[2] += static_cast<double>(ev.v[2]);
+    virial[3] += static_cast<double>(ev.v[3]);
+    virial[4] += static_cast<double>(ev.v[4]);
+    virial[5] += static_cast<double>(ev.v[5]);
+  }
+
+  if (eflag_atom) {
+    k_eatom.template modify<DeviceType>();
+    k_eatom.sync_host();
+  }
+
+  if (vflag_atom) {
+    k_vatom.template modify<DeviceType>();
+    k_vatom.sync_host();
+  }
+
+  if (vflag_fdotr) pair_virial_fdotr_compute(this);
+
+  copymode = 0;
+}
+
+/* ----------------------------------------------------------------------
+   init specific to this pair style
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void PairCoulWolfCSKokkos<DeviceType>::init_style()
+{
+  PairCoulWolfCS::init_style();
+
+  // adjust neighbor list request for KOKKOS
+
+  neighflag = lmp->kokkos->neighflag;
+  auto request = neighbor->find_request(this);
+  request->set_kokkos_host(std::is_same_v<DeviceType,LMPHostType> &&
+                           !std::is_same_v<DeviceType,LMPDeviceType>);
+  request->set_kokkos_device(std::is_same_v<DeviceType,LMPDeviceType>);
+  if (neighflag == FULL) request->enable_full();
+}
+
+/* ---------------------------------------------------------------------- */
+
+////Specialisation for Neighborlist types Half, HalfThread, Full
+template<class DeviceType>
+template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+// NOLINTNEXTLINE
+KOKKOS_INLINE_FUNCTION
+void PairCoulWolfCSKokkos<DeviceType>::operator()(TagPairCoulWolfCSKernelA<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int &ii, EV_FLOAT& ev) const {
+
+  // The f array is atomic for Half/Thread neighbor style
+  Kokkos::View<KK_ACC_FLOAT*[3], typename DAT::t_kkacc_1d_3::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > a_f = f;
+  Kokkos::View<KK_ACC_FLOAT*, typename DAT::t_kkacc_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > v_eatom = d_eatom;
+
+  const KK_FLOAT cut_coulsq_kk = static_cast<KK_FLOAT>(cut_coulsq);
+  const KK_FLOAT alf_kk = static_cast<KK_FLOAT>(alf);
+
+  const int i = d_ilist[ii];
+  const KK_FLOAT xtmp = x(i,0);
+  const KK_FLOAT ytmp = x(i,1);
+  const KK_FLOAT ztmp = x(i,2);
+  const KK_FLOAT qtmp = q[i];
+
+  if (eflag) {
+    const KK_FLOAT qisq = qtmp*qtmp;
+    const KK_FLOAT e_self = -(e_shift/static_cast<KK_FLOAT>(2.0) + alf_kk/static_cast<KK_FLOAT>(MY_PIS)) * qisq*qqrd2e;
+    if (eflag_global)
+      ev.ecoul += static_cast<KK_ACC_FLOAT>(e_self);
+    if (eflag_atom)
+      v_eatom[i] += static_cast<KK_ACC_FLOAT>(e_self);
+  }
+
+  //const AtomNeighborsConst d_neighbors_i = k_list.get_neighbors_const(i);
+  const int jnum = d_numneigh[i];
+
+  KK_ACC_FLOAT fxtmp = 0.0;
+  KK_ACC_FLOAT fytmp = 0.0;
+  KK_ACC_FLOAT fztmp = 0.0;
+
+  for (int jj = 0; jj < jnum; jj++) {
+    //int j = d_neighbors_i(jj);
+    int j = d_neighbors(i,jj);
+    const KK_FLOAT factor_coul = special_coul[sbmask(j)];
+    j &= NEIGHMASK;
+    const KK_FLOAT delx = xtmp - x(j,0);
+    const KK_FLOAT dely = ytmp - x(j,1);
+    const KK_FLOAT delz = ztmp - x(j,2);
+    const KK_FLOAT rsq_in = delx*delx + dely*dely + delz*delz;
+
+    if (rsq_in < cut_coulsq_kk) {
+
+      // r = 0 must stay finite here, exactly as in the CPU style; the
+      // special-bond factor removes the pair
+
+      const KK_FLOAT rsq = rsq_in + static_cast<KK_FLOAT>(EPSILON);
+      const KK_FLOAT r = Kokkos::sqrt(rsq);
+      const KK_FLOAT prefactor = qqrd2e*qtmp*q[j]/r;
+      const KK_FLOAT erfcc = Kokkos::erfc(alf_kk*r);
+      const KK_FLOAT erfcd = Kokkos::exp(-alf_kk*alf_kk*r*r);
+      const KK_FLOAT v_sh = (erfcc - e_shift*r) * prefactor;
+      const KK_FLOAT dvdrr = (erfcc/rsq + static_cast<KK_FLOAT>(2.0)*alf_kk/static_cast<KK_FLOAT>(MY_PIS) * erfcd/r) + f_shift;
+      KK_FLOAT forcecoul = dvdrr*rsq*prefactor;
+      if (factor_coul < static_cast<KK_FLOAT>(1.0)) forcecoul -= (static_cast<KK_FLOAT>(1.0)-factor_coul)*prefactor;
+      const KK_FLOAT fpair = forcecoul / rsq;
+
+
+
+      fxtmp += static_cast<KK_ACC_FLOAT>(delx*fpair);
+      fytmp += static_cast<KK_ACC_FLOAT>(dely*fpair);
+      fztmp += static_cast<KK_ACC_FLOAT>(delz*fpair);
+
+      if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal)) {
+        a_f(j,0) -= static_cast<KK_ACC_FLOAT>(delx*fpair);
+        a_f(j,1) -= static_cast<KK_ACC_FLOAT>(dely*fpair);
+        a_f(j,2) -= static_cast<KK_ACC_FLOAT>(delz*fpair);
+      }
+
+      if (EVFLAG) {
+        KK_FLOAT ecoul = v_sh;
+        if (eflag) {
+          if (factor_coul < static_cast<KK_FLOAT>(1.0)) ecoul -= (static_cast<KK_FLOAT>(1.0)-factor_coul)*prefactor;
+          ev.ecoul += static_cast<KK_ACC_FLOAT>((((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD)&&(NEWTON_PAIR||(j<nlocal)))?static_cast<KK_FLOAT>(1.0):static_cast<KK_FLOAT>(0.5))*ecoul);
+        }
+
+        if (vflag_either || eflag_atom) this->template ev_tally<NEIGHFLAG,NEWTON_PAIR>(ev,i,j,ecoul,fpair,delx,dely,delz);
+      }
+
+    }
+  }
+
+  a_f(i,0) += fxtmp;
+  a_f(i,1) += fytmp;
+  a_f(i,2) += fztmp;
+}
+
+template<class DeviceType>
+template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+// NOLINTNEXTLINE
+KOKKOS_INLINE_FUNCTION
+void PairCoulWolfCSKokkos<DeviceType>::operator()(TagPairCoulWolfCSKernelA<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int &ii) const {
+  EV_FLOAT ev;
+  this->template operator()<NEIGHFLAG,NEWTON_PAIR,EVFLAG>(TagPairCoulWolfCSKernelA<NEIGHFLAG,NEWTON_PAIR,EVFLAG>(), ii, ev);
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+template<int NEIGHFLAG, int NEWTON_PAIR>
+// NOLINTNEXTLINE
+KOKKOS_INLINE_FUNCTION
+void PairCoulWolfCSKokkos<DeviceType>::ev_tally(EV_FLOAT &ev, const int &i, const int &j,
+      const KK_FLOAT &epair, const KK_FLOAT &fpair, const KK_FLOAT &delx,
+                const KK_FLOAT &dely, const KK_FLOAT &delz) const
+{
+  const int EFLAG = eflag;
+  const int VFLAG = vflag_either;
+
+  // The eatom and vatom arrays are atomic for Half/Thread neighbor style
+  Kokkos::View<KK_ACC_FLOAT*, typename DAT::t_kkacc_1d::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > v_eatom = d_eatom;
+  Kokkos::View<KK_ACC_FLOAT*[6], typename DAT::t_kkacc_1d_6::array_layout,typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<AtomicF<NEIGHFLAG>::value> > v_vatom = d_vatom;
+
+  if (EFLAG) {
+    if (eflag_atom) {
+      const KK_FLOAT epairhalf = static_cast<KK_FLOAT>(0.5) * epair;
+      if (NEIGHFLAG!=FULL) {
+        if (NEWTON_PAIR || i < nlocal) v_eatom[i] += static_cast<KK_ACC_FLOAT>(epairhalf);
+        if (NEWTON_PAIR || j < nlocal) v_eatom[j] += static_cast<KK_ACC_FLOAT>(epairhalf);
+      } else {
+        v_eatom[i] += static_cast<KK_ACC_FLOAT>(epairhalf);
+      }
+    }
+  }
+
+  if (VFLAG) {
+    const KK_FLOAT v0 = delx*delx*fpair;
+    const KK_FLOAT v1 = dely*dely*fpair;
+    const KK_FLOAT v2 = delz*delz*fpair;
+    const KK_FLOAT v3 = delx*dely*fpair;
+    const KK_FLOAT v4 = delx*delz*fpair;
+    const KK_FLOAT v5 = dely*delz*fpair;
+
+    if (vflag_global) {
+      if (NEIGHFLAG!=FULL) {
+        if (NEWTON_PAIR || i < nlocal) {
+          ev.v[0] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v0);
+          ev.v[1] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v1);
+          ev.v[2] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v2);
+          ev.v[3] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v3);
+          ev.v[4] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v4);
+          ev.v[5] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v5);
+        }
+        if (NEWTON_PAIR || j < nlocal) {
+        ev.v[0] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v0);
+        ev.v[1] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v1);
+        ev.v[2] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v2);
+        ev.v[3] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v3);
+        ev.v[4] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v4);
+        ev.v[5] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v5);
+        }
+      } else {
+        ev.v[0] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v0);
+        ev.v[1] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v1);
+        ev.v[2] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v2);
+        ev.v[3] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v3);
+        ev.v[4] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v4);
+        ev.v[5] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v5);
+      }
+    }
+
+    if (vflag_atom) {
+      if (NEIGHFLAG!=FULL) {
+        if (NEWTON_PAIR || i < nlocal) {
+          v_vatom(i,0) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v0);
+          v_vatom(i,1) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v1);
+          v_vatom(i,2) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v2);
+          v_vatom(i,3) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v3);
+          v_vatom(i,4) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v4);
+          v_vatom(i,5) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v5);
+        }
+        if (NEWTON_PAIR || j < nlocal) {
+        v_vatom(j,0) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v0);
+        v_vatom(j,1) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v1);
+        v_vatom(j,2) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v2);
+        v_vatom(j,3) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v3);
+        v_vatom(j,4) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v4);
+        v_vatom(j,5) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v5);
+        }
+      } else {
+        v_vatom(i,0) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v0);
+        v_vatom(i,1) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v1);
+        v_vatom(i,2) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v2);
+        v_vatom(i,3) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v3);
+        v_vatom(i,4) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v4);
+        v_vatom(i,5) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5)*v5);
+      }
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+// NOLINTNEXTLINE
+KOKKOS_INLINE_FUNCTION
+int PairCoulWolfCSKokkos<DeviceType>::sbmask(const int& j) const {
+  return j >> SBBITS & 3;
+}
+
+namespace LAMMPS_NS {
+template class PairCoulWolfCSKokkos<LMPDeviceType>;
+#ifdef LMP_KOKKOS_GPU
+template class PairCoulWolfCSKokkos<LMPHostType>;
+#endif
+}
+

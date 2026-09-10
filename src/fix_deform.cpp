@@ -45,8 +45,9 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-FixDeform::FixDeform(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
-irregular(nullptr), set(nullptr)
+FixDeform::FixDeform(LAMMPS *lmp, int narg, char **arg) :
+    Fix(lmp, narg, arg), h_rate(nullptr), h_ratelo(nullptr), irregular(nullptr),
+    step_respa(nullptr), set(nullptr)
 {
   const std::string thiscmd = fmt::format("fix {}", style);
   if (narg < 4) utils::missing_cmd_args(FLERR, thiscmd, error);
@@ -695,7 +696,7 @@ void FixDeform::init()
     if (ifix->rigid_flag) rfix.push_back(ifix);
 
   auto fix_sllod = modify->get_fix_by_style("nvt/sllod");
-  if (fix_sllod.size() > 0) {
+  if (!fix_sllod.empty()) {
     const auto *ifix = fix_sllod[0];
 
     // warn about flows which may produce a non-constant flow tensor
@@ -777,6 +778,13 @@ void FixDeform::init()
     image flags to new values, making eqs in doc of Domain:image_flip incorrect
 ------------------------------------------------------------------------- */
 
+void FixDeform::migrate_atoms()
+{
+  irregular->migrate_atoms();
+}
+
+/* ---------------------------------------------------------------------- */
+
 void FixDeform::pre_exchange()
 {
   if (flip == 0) return;
@@ -820,7 +828,7 @@ void FixDeform::pre_exchange()
   domain->remap_all();
 
   domain->x2lamda(atom->nlocal);
-  irregular->migrate_atoms();
+  migrate_atoms();
   domain->lamda2x(atom->nlocal);
 
   flip = 0;

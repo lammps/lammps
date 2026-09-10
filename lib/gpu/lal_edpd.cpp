@@ -55,7 +55,7 @@ int EDPDT::init(const int ntypes,
                 const int nlocal, const int nall,
                 const int max_nbors, const int maxspecial,
                 const double cell_size,
-                const double gpu_split, FILE *_screen) {
+                           FILE *_screen) {
   const int max_shared_types=this->device->max_shared_types();
 
   int onetype=0;
@@ -76,7 +76,7 @@ int EDPDT::init(const int ntypes,
   int extra_fields = 4; // round up to accomodate quadruples of numtyp values
                         // T and cv
   success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,
-                            gpu_split,_screen,edpd,"k_edpd",onetype,extra_fields);
+                            _screen,edpd,"k_edpd",onetype,extra_fields);
   if (success!=0)
     return success;
 
@@ -123,6 +123,10 @@ int EDPDT::init(const int ntypes,
         n++;
       }
     ucl_copy(sc,dview,false);
+  } else {
+    // never leave the buffer unallocated: a null device pointer as a
+    // kernel argument causes a GPU memory fault even when unused
+    sc.alloc(1,*(this->ucl_device),UCL_READ_ONLY);
   }
 
   if (host_kc) {
@@ -138,6 +142,8 @@ int EDPDT::init(const int ntypes,
         n++;
       }
     ucl_copy(kc,dview,false);
+  } else {
+    kc.alloc(1,*(this->ucl_device),UCL_READ_ONLY);
   }
 
   UCL_H_Vec<numtyp> host_rsq(lj_types*lj_types,*(this->ucl_device),

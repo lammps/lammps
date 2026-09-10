@@ -113,9 +113,7 @@ ComputeMSD::ComputeMSD(LAMMPS *lmp, int narg, char **arg) : Compute(lmp, narg, a
 
 ComputeMSD::~ComputeMSD()
 {
-  // check nfix in case all fixes have already been deleted
-
-  if (modify->nfix) modify->delete_fix(id_fix);
+  modify->delete_fix(id_fix);
 
   delete[] id_fix;
   delete[] vector;
@@ -143,7 +141,7 @@ void ComputeMSD::compute_vector()
 {
   // check that nmsd is unchanged
 
-  int newnmsd = group->count(igroup);
+  bigint newnmsd = group->count(igroup);
   if (newnmsd != nmsd)
     error->all(FLERR, Error::NOLASTLINE, "Number of atoms in compute msd group must not change.");
 

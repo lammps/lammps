@@ -50,6 +50,7 @@ class PPPM : public KSpace {
   double h_x, h_y, h_z;
   double shift, shiftone, shiftatom_lo, shiftatom_hi;
   int peratom_allocate_flag;
+  int g_ewald_ready;
 
   int nxlo_in, nylo_in, nzlo_in, nxhi_in, nyhi_in, nzhi_in;
   int nxlo_out, nylo_out, nzlo_out, nxhi_out, nyhi_out, nzhi_out;
@@ -100,6 +101,7 @@ class PPPM : public KSpace {
   double qdist;        // distance from O site to negative charge
   double alpha;        // geometric factor
 
+  void init_tip4p();
   virtual void set_grid_global();
   virtual void set_grid_local();
   void adjust_gewald();

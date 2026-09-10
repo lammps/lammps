@@ -42,6 +42,7 @@ class FixBoxRelax : public Fix {
   int min_dof() override;
 
   int modify_param(int, char **) override;
+  double compute_scalar() override;
 
  private:
   int p_flag[6];
@@ -89,7 +90,6 @@ class FixBoxRelax : public Fix {
   void compute_deviatoric();
   double compute_strain_energy();
   void compute_press_target();
-  double compute_scalar() override;
 };
 
 }    // namespace LAMMPS_NS

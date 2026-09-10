@@ -42,6 +42,7 @@ class FixDrude : public Fix {
 
   void grow_arrays(int nmax) override;
   void copy_arrays(int i, int j, int delflag) override;
+  double memory_usage() override;
   void set_arrays(int i) override;
   int pack_exchange(int i, double *buf) override;
   int unpack_exchange(int nlocal, double *buf) override;

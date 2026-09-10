@@ -43,6 +43,7 @@ PairHarmonicCut::PairHarmonicCut(LAMMPS *lmp) : Pair(lmp), k(nullptr), cut(nullp
 
 PairHarmonicCut::~PairHarmonicCut()
 {
+  if (copymode) return;
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(k);

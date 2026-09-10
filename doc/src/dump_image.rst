@@ -24,7 +24,7 @@ Syntax
 * color = atom attribute that determines color of each atom
 * diameter = atom attribute that determines size of each atom
 * zero or more keyword/value pairs may be appended
-* keyword = *atom* or *adiam* or *autobond* or *bond* or *grid* or *line* or *tri* or *ellipsoid* or *body* or *compute* or *fix* or *size* or *view* or *center* or *up* or *zoom* or *box* or *axes* or *region* or *subbox* or *shiny* or *fsaa* or *ssao*
+* keyword = *atom* or *adiam* or *autobond* or *bond* or *grid* or *line* or *tri* or *ellipsoid* or *body* or *compute* or *fix* or *size* or *view* or *center* or *up* or *zoom* or *box* or *axes* or *region* or *subbox* or *shiny* or *fsaa* or *ssao* or *depthcue* or *defocus* or *outline*
 
   .. parsed-literal::
 
@@ -32,7 +32,9 @@ Syntax
        *adiam* size = numeric value for atom diameter (distance units)
        *autobond* values = cutoff width = bond cutoff and width of bonds
        *bond* values = color width = color and width of bonds
-         color = *atom* or *type* or *none*
+         color = *atom* or *type* or *none* or c_ID or c_ID[I]
+           c_ID = per-bond vector computed by a local compute with ID
+           c_ID[I] = Ith column of per-bond array computed by a local compute with ID
          width = number or *atom* or *type* or *none*
            number = numeric value for bond width (distance units)
        *grid* = per-grid value to use when coloring each grid cell
@@ -90,7 +92,7 @@ Syntax
          axes = *yes* or *no* or *center* or *lowerleft* or *lowerright* or *upperleft* or *upperright* = do or do not draw xyz axes arrows and select location
          length = length of axes lines as fraction of respective box lengths
          diam = diameter of axes lines as fraction of shortest box length
-       *region* values = region-ID color drawstyle [opacity (optional) npoints (optional) diameter (optional)]
+       *region* values = region-ID color drawstyle [opacity (optional) npoints (optional) diameter (optional)] [hull_points npoints (optional)]
          region-ID = ID of the region to render
          color = color name for region graphics
          drawstyle = *filled* or *transparent* or *frame* or *points*
@@ -101,6 +103,7 @@ Syntax
          opacity  = level of opacity (from 0.0 to 1.0, only for drawstyle *transparent*)
          npoints  = number of attempted points (only for drawstyle *points*)
          diameter = diameter of wireframe or points (only for drawstyles *frame* and *points*)
+         hull_points npoints = set number of points for creating a Delaunay triangulation (optional)
        *subbox* values = lines diam = draw outline of processor subdomains
          lines = *yes* or *no* = do or do not draw subdomain lines
          diam = diameter of subdomain lines as fraction of shortest box length
@@ -112,6 +115,19 @@ Syntax
          shading = *yes* or *no* = turn depth shading on/off
          seed = random # seed (positive integer)
          dfactor = strength of shading from 0.0 to 1.0
+       *depthcue* values = cueing cfactor color start = depth cueing
+         cueing = *yes* or *no* = turn depth cueing on/off
+         cfactor = strength of fading from 0.0 to 1.0
+         color = fog color name or *auto* = fade toward the background color
+         start = box fraction along the view direction where fading starts, or *auto* = nearest rendered object
+       *defocus* values = blurring bfactor start = defocus of distant objects
+         blurring = *yes* or *no* = turn defocusing on/off
+         bfactor = strength of the blur from 0.0 to 1.0
+         start = box fraction along the view direction where blurring starts, or *auto* = nearest rendered object
+       *outline* values = flag width color = outlines at depth jumps
+         flag = *yes* or *no* = turn outline drawing on/off
+         width = width of the outlines in pixels (from 1 to 16)
+         color = color name of the outlines
 
 .. _dump_modify_image:
 
@@ -126,7 +142,7 @@ Syntax
    dump_modify dump-ID keyword values ...
 
 * these keywords apply only to the *image* and *movie* styles and are documented on this page
-* keyword = *acolor* or *adiam* or *amap* or *gmap* or *atrans* or *backcolor* or *backcolor2* or *bcolor* or *bdiam* or *btrans* or *bitrate* or *boxcolor* or *color* or *framerate* or *axestrans* or *boxtrans* or *subboxtrans* or *ccolor* or *ctrans* or *fcolor* or *ftrans*
+* keyword = *acolor* or *adiam* or *amap* or *gmap* or *bmap* or *atrans* or *backcolor* or *backcolor2* or *bcolor* or *bdiam* or *btrans* or *bitrate* or *boxcolor* or *color* or *gamma* or *gtrans* or *lights* or *specular* or *metal* or *metalfinish* or *ssaosamples* or *loadcolors* or *savecolors* or *framerate* or *axestrans* or *boxtrans* or *subboxtrans* or *ccolor* or *ctrans* or *fcolor* or *ftrans*
 * see the :doc:`dump modify <dump_modify>` doc page for more general keywords
 
   .. parsed-literal::
@@ -185,6 +201,24 @@ Syntax
          name = name of color
          R,G,B = red/green/blue numeric values from 0.0 to 1.0
          hex = 24-bit RGB color in hexadecimal
+       *gamma* arg = gvalue
+         gvalue = gamma adjustment applied to rendered objects (from 0.1 to 10.0, 1.0 = no change)
+       *gtrans* arg = transparency
+         transparency = transparency for visualized grid (value between 0 (invisible) and 1 (fully opaque))
+       *lights* args = ambient key fill back
+         ambient key fill back = set light intensity value from 0.0 to 1.0
+       *specular* arg = style
+         style = *none* or *wide* or *narrow* or *tight* = specular highlights off or their width
+       *metal* arg = mfactor
+         mfactor = how metallic the rendered objects appear, from 0.0 (paint) to 1.0 (bare metal)
+       *metalfinish* arg = style
+         style = *satin* or *polished* or *mirror* = surface finish of metallic objects
+       *ssaosamples* arg = nsamples
+         nsamples = number of SSAO sampling directions per pixel (from 4 to 64)
+       *loadcolors* arg = filename
+         filename = load color definitions, per-type colors, and lights from JSON format file
+       *savecolors* arg = filename
+         filename = save per-type colors and lights to JSON format file
        *ccolor* args = computeID color
          computeID = ID of the compute
          color = name of color for image objects provided by this compute when using "const" color style
@@ -202,6 +236,7 @@ Syntax
        *framerate* arg = fps
          fps = frames per second for movie
        *gmap* args = identical to *amap* args
+       *bmap* args = identical to *amap* args
 
 Examples
 """"""""
@@ -344,23 +379,17 @@ prefixed by "c\_", "f\_", or "v\_", respectively.  Note that the
 *diameter* setting can be overridden with a numeric value applied to all
 atoms by the optional *adiam* keyword.
 
-.. versionchanged:: 11Feb2026
+.. versionchanged:: 4Jul2026
 
-   Replaced colors "aqua" and "cyan" with "cyan" and "magenta"
+   Extended list of colors from 6 to 16
 
 If *type* is specified for the *color* setting, then the color of each
-atom is determined by its atom type.  By default the mapping of types
-to colors is as follows:
-
-* type 1 = red
-* type 2 = green
-* type 3 = blue
-* type 4 = yellow
-* type 5 = cyan
-* type 6 = magenta
-
-and repeats itself for types :math:`> 6`.  This mapping can be changed by the
-"dump_modify acolor" command, as described below.
+atom is determined by its atom type.  By default the mapping of atom
+types to colors is: red, forestgreen, blue, gold, cyan, magenta, silver,
+orange, lime, gray, darkred, darkgreen, darkblue, darkcyan,
+darkmagenta, and darkgray for the first 16 atom types and repeats itself
+after that.  This mapping can be changed by the "dump_modify acolor"
+command, as described below.
 
 If *type* is specified for the *diameter* setting then the diameter of
 each atom is determined by its atom type.  By default all types have
@@ -369,11 +398,12 @@ command, as described below.
 
 If *element* is specified for the *color* and/or *diameter* setting,
 then the color and/or diameter of each atom is determined by which
-element it is, which in turn is specified by the element-to-type
-mapping specified by the "dump_modify element" command, as described
-below.  By default every atom type is C (carbon).  Every element has a
-color and diameter associated with it, which is the same as the colors
-and sizes used by the `AtomEye <atomeye_>`_ visualization package.
+element it is, which in turn is specified by the element-to-type mapping
+specified by the "dump_modify element" command, as described below.  By
+default the element for every atom type is set to C (carbon).  Every
+element has a color and diameter associated with it, which is the same
+as the colors and sizes used by the `AtomEye <atomeye_>`_ visualization
+package.
 
 .. _atomeye: http://li.mit.edu/Archive/Graphics/A/
 
@@ -455,23 +485,34 @@ If *atom* is specified for the bond *color* value, then each bond is
 drawn in 2 halves, with the color of each half being the color of the
 atom at that end of the bond.
 
+.. versionchanged:: 4Jul2026
+
+   Extended list of default colors from 6 to 16
+
 If *type* is specified for the *color* value, then the color of each
 bond is determined by its bond type.  By default the mapping of bond
-types to colors is as follows:
+types to colors is: red, forestgreen, blue, gold, cyan, magenta, silver,
+orange, lime, gray, darkred, darkgreen, darkblue, darkcyan, darkmagenta,
+and darkgray for the first 16 bond types and repeats itself after that.
+This mapping can be changed by the "dump_modify bcolor" command, as
+described below.
 
-.. versionchanged:: 11Feb2026
+.. versionadded:: 4Jul2026
 
-   Replaced colors "aqua" and "cyan" with "cyan" and "magenta"
-
-* type 1 = red
-* type 2 = green
-* type 3 = blue
-* type 4 = yellow
-* type 5 = cyan
-* type 6 = magenta
-
-and repeats itself for bond types > 6.  This mapping can be changed by
-the "dump_modify bcolor" command, as described below.
+If a compute reference *c_ID* or *c_ID[I]* is specified for the *color*
+value, then each bond is colored by a per-bond value taken from that
+compute, mapped to a color through a color map (set with the
+"dump_modify bmap" command, described below) in the same way per-atom
+values are mapped via *amap*.  The referenced compute must produce
+*local* per-bond data, for example :doc:`compute bond/local
+<compute_bond_local>` with the *dist* (bond length) or *engpot* (bond
+energy) attribute.  Use *c_ID* when the compute produces a per-bond
+vector (a single attribute) and *c_ID[I]* to select column *I* when it
+produces a per-bond array (multiple attributes).  The compute must
+generate one value for each bond that is drawn, in the same order, so it
+should compute over the same set of bonds as is being visualized
+(typically the *all* group).  If the number of values produced does not
+match the number of bonds drawn, LAMMPS stops with an error.
 
 The bond *width* value can be a numeric value or *atom* or *type* (or
 *none* as indicated above).
@@ -506,21 +547,11 @@ particles will be colored according to the atom type of the particle.
 With the *index* setting, colors from the list of available per-atom
 type colors are assigned to the line particles in a non-deterministic
 round-robin fashion.  With the *atom* setting, the color follows the
-coloring selected for coloring atoms (including using color maps).  The
-list of atom type colors is by default as follows:
-
-* type 1 = red
-* type 2 = green
-* type 3 = blue
-* type 4 = yellow
-* type 5 = cyan
-* type 6 = magenta
-
-and repeats itself for types > 6.  This list can by changed with the
-:doc:`dump_modify acolor <dump_image>` command.  If more different
-colors than atom types are desired, the *number of atom types* must be
-*increased* correspondingly when using either the :doc:`create_box
-<create_box>` or the :doc:`read_data <read_data>` command.
+coloring selected for coloring atoms (including using color maps).  If
+more different colors than atom types are desired, the *number of atom
+types* must be *increased* correspondingly when using either the
+:doc:`create_box <create_box>` or the :doc:`read_data <read_data>`
+command.
 
 The line *width* can only be a numeric value, which specifies that all
 lines will be drawn as cylinders with that diameter, e.g. 1.0, which
@@ -546,21 +577,11 @@ be colored according to the atom type of the particle.  With the *index*
 setting, colors from the list of available per-atom type colors are
 assigned to the triangulated particles in a non-deterministic
 round-robin fashion.  With the *atom* setting, the color follows the
-coloring selected for coloring atoms (including using color maps).  The
-list of atom type colors is by default as follows:
-
-* type 1 = red
-* type 2 = green
-* type 3 = blue
-* type 4 = yellow
-* type 5 = cyan
-* type 6 = magenta
-
-and repeats itself for types > 6.  This list can by changed with the
-:doc:`dump_modify acolor <dump_image>` command.  If more different
-colors than atom types are desired, the *number of atom types* must be
-*increased* correspondingly when using either the :doc:`create_box
-<create_box>` or the :doc:`read_data <read_data>` command.
+coloring selected for coloring atoms (including using color maps). If
+more different colors than atom types are desired, the *number of atom
+types* must be *increased* correspondingly when using either the
+:doc:`create_box <create_box>` or the :doc:`read_data <read_data>`
+command.
 
 ----------
 
@@ -589,21 +610,11 @@ be colored according to the atom type of the particle.  With the *index*
 setting, colors from the list of available per-atom type colors are
 assigned to the ellipsoid particles in a non-deterministic round-robin
 fashion.  With the *atom* setting, the color follows the coloring
-selected for coloring atoms (including using color maps).  The list of
-atom type colors is by default as follows:
-
-* type 1 = red
-* type 2 = green
-* type 3 = blue
-* type 4 = yellow
-* type 5 = cyan
-* type 6 = magenta
-
-and repeats itself for types > 6.  This list can by changed with the
-:doc:`dump_modify acolor <dump_image>` command.  If more different
-colors than atom types are desired, the *number of atom types* must be
-*increased* correspondingly when using either the :doc:`create_box
-<create_box>` or the :doc:`read_data <read_data>` command.
+selected for coloring atoms (including using color maps).  If more
+different colors than atom types are desired, the *number of atom types*
+must be *increased* correspondingly when using either the
+:doc:`create_box <create_box>` or the :doc:`read_data <read_data>`
+command.
 
 .. versionchanged:: 30Mar2026
 
@@ -660,18 +671,7 @@ the coloring selected for coloring atoms (including using color maps).
 With the *type* setting the body particles will be colored according to
 the atom type of the particle.  With the *index* setting, colors from
 the list of available per-atom type colors are assigned to the body
-particles in a non-deterministic round-robin fashion.  The list of atom
-type colors is by default as follows:
-
-* type 1 = red
-* type 2 = green
-* type 3 = blue
-* type 4 = yellow
-* type 5 = cyan
-* type 6 = magenta
-
-and repeats itself for types > 6.  This list can by changed with the
-:doc:`dump_modify acolor <dump_image>` command.  If more different
+particles in a non-deterministic round-robin fashion.  If more different
 colors than atom types are desired, the *number of atom types* must be
 *increased* correspondingly when using either the :doc:`create_box
 <create_box>` or the :doc:`read_data <read_data>` command.
@@ -719,6 +719,10 @@ and fix commands are in the :doc:`Howto_viz` howto.
 
    draw style *transparent* was added
 
+.. versionchanged:: 4Jul2026
+
+   draw triangulated hull from random points for region style *intersect* or *union*
+
 The *region* keyword can be used to create a graphical representation of
 a :doc:`region <region>`.  This can be helpful in debugging the location
 and extent of regions, especially when those have parameters controlled
@@ -740,10 +744,12 @@ this draw style.  The fourth draw style, *points*\, generates a random
 point cloud inside the simulation box and draws only those points that
 are within the region.  This uses the same test than what is used to
 determine if an atom is inside the region but ignores any open faces
-(which would match *all* positions as "inside").  Draw styles *filled*\,
-*transparent*\, and *frame* support only "primitive" region styles (no
-unions or intersections of multiple regions), but the *points* draw
-style supports *all* region styles.
+(which would match *all* positions as "inside").  When using draw styles
+*filled*\, *transparent*\, or *frame* with unions or intersections of
+multiple regions an enclosing hull is first created from a point cloud
+that is generated the same way as in the *points* draw style.  The
+number of points used for the hull approximation (default is 100000) can
+be set by the optional *hull_points* keyword.
 
 Recommended transparency values are 0.25, 0.5, or 0.75 when used in
 combination with *fsaa on*.
@@ -877,6 +883,85 @@ in combination with the *fsaa* keyword the computational cost of depth
 shading is particularly large.  In case LAMMPS has been :doc:`compiled
 with OpenMP support <Build_basics>`, the SSAO processing is distributed
 across multiple threads.
+
+.. versionchanged:: 2Sep2026
+
+The randomization of the SSAO shading is now computed from a
+deterministic noise pattern derived from the pixel position and the
+*seed* value.  Rendered images no longer depend on the number of MPI
+ranks or OpenMP threads, and images of an unchanged scene are exactly
+reproducible, which avoids flickering shading in movies.  Different
+*seed* values shift the noise pattern.
+
+.. versionadded:: 2Sep2026
+
+The *depthcue* keyword turns on/off depth cueing.  If *yes* is set,
+rendered objects fade toward the fog color the more distant from the
+viewer they are, similar to looking through fog.  This is perceived as
+depth and helps to visually untangle dense systems.  The *cfactor*
+value scales the strength of the fading: with *cfactor* = 1.0 the most
+distant objects blend completely into the fog color, smaller values
+reduce the maximum amount of fading.  The *color* setting selects the
+fog color: with *auto* the objects fade toward the background color,
+following the background gradient when one is set with the *backcolor2*
+option; any color name known to LAMMPS selects that color instead,
+e.g. white or gray fog over a dark background.  The *start* setting
+determines where the fading begins.  With *auto* it begins at the
+nearest rendered object, so the front of the scene never fades.
+A numeric value instead positions the start as a fraction of the
+simulation box projected onto the view direction, similar to the
+fractions of the *center* keyword but reduced to a single number: 0.0
+starts the fading at the side of the box nearest to the camera, 0.5 at
+its middle, and 1.0 at its far side; values outside this range are
+allowed.  Objects in front of the start position are not faded, which
+avoids darkening most of the scene when the rendered objects span a
+large depth range.  The fading always ends at the most distant rendered
+object.  Unlike the *ssao* keyword, depth cueing adds no significant
+computational cost, and both can be combined.
+
+.. versionadded:: 2Sep2026
+
+The *defocus* keyword turns on/off defocusing of distant objects.  If
+*yes* is set, objects are blurred the more distant from the viewer they
+are, as if the camera were focused on the front of the scene.  This
+draws the attention to the objects in front and is often more effective
+for that purpose than the *depthcue* keyword, since it leaves the colors
+of the distant objects untouched.  Both can also be combined.
+
+The *bfactor* value scales the strength of the blur: with *bfactor* =
+1.0 the most distant objects are blurred over a radius of 1 percent of
+the image height, smaller values reduce the blur accordingly.  Blurring
+over much more than the size of the rendered particles turns them into a
+uniform haze, which looks like fog rather than like a photograph taken
+with a shallow depth of field, so moderate values usually give the best
+result.  The *start* setting determines where the blurring begins and
+uses the same convention as the *start* setting of the *depthcue*
+keyword: with *auto* it begins at the nearest rendered object, so the
+front of the scene stays sharp, while a numeric value positions the
+start as a fraction of the simulation box projected onto the view
+direction, with 0.0 at the side of the box nearest to the camera, 0.5 at
+its middle, and 1.0 at its far side.  Objects in front of the start
+position are not blurred, and the blur always reaches its maximum at the
+most distant rendered object.
+
+Only objects behind the start position are blurred; unlike a camera lens
+this does not blur objects in front of the plane of focus.  The cost of
+the blurring is much smaller than that of the *ssao* keyword and grows
+with the *bfactor* value, since wider blurs need more samples per pixel.
+As with the *ssao* keyword, the result does not depend on the number of
+MPI ranks or OpenMP threads, so images of an unchanged scene are exactly
+reproducible.
+
+.. versionadded:: 2Sep2026
+
+The *outline* keyword turns on/off drawing outlines where the distance
+from the viewer jumps, i.e. along the visible edges of atoms and other
+objects in front of the background or in front of more distant objects.
+This produces a flat, illustration-like appearance similar to
+hand-drawn molecular graphics, especially when combined with reduced
+shininess or increased ambient lighting.  The *width* value sets the
+width of the outlines in pixels of the final image; the *color* value
+sets their color, e.g. black.
 
 ----------
 
@@ -1187,23 +1272,19 @@ dump_modify color option.
 
    add support for entering colors in hexadecimal
 
-The *color* keyword allows definition of a new color name, in addition
-to the 140-predefined colors (see below), and associates three
-red/green/blue RGB values with that color name.  The color name can
-then be used with any other dump_modify keyword that takes a color
-name as a value.  The RGB values should be either specified as three
-floating point values between 0.0 and 1.0 inclusive or as a single
-24-bit hexadecimal number. The following two commands are equivalent.
+The *color* keyword allows defining new named colors or changing the
+definition of the 140-predefined colors (see below).  Three
+red/green/blue RGB values are associated with each color name.  The
+color name can then be used with any other *dump_modify* keyword that
+takes a color name as a value.  The RGB values should be either
+specified as three floating point values between 0.0 and 1.0 inclusive
+or as a single 24-bit hexadecimal number. The following two commands are
+equivalent.
 
 .. code-block:: LAMMPS
 
    dump_modify 1 color mygray 0.431 0.498 0.502
    dump_modify 1 color mygray 0x6e7f80
-
-When a color name is converted to RGB values, the user-defined color
-names are searched first, then the 140 pre-defined color names.  This
-means you can also use the *color* keyword to overwrite one of the
-pre-defined color names with new RGB values.
 
 ----------
 
@@ -1211,15 +1292,17 @@ pre-defined color names with new RGB values.
 
 .. versionadded:: 11Feb2026
 
+.. versionchanged:: 2Sep2026
+
 Various graphical objects in *dump image* output can be rendered in a
 transparent fashion using the so-called screen-door transparency method.
 This means that only a subset of pixels for a graphical object are
 written to the image.  This can be controlled with various
 *dump\_modify* settings: *atrans* for atoms, *btrans* for bonds,
-*axestrans* for axes lines, *boxtrans* for the simulation box, and
-*subboxtrans* for the subdomain box lines.  The transparency value
-must be between 0.0 (invisible) and 1.0 (fully opaque).  The default
-setting for all is 1.0.
+*gtrans* for grids, *axestrans* for axes lines, *boxtrans* for the
+simulation box, and *subboxtrans* for the subdomain box lines.  The
+transparency value must be between 0.0 (invisible) and 1.0 (fully
+opaque).  The default setting for all is 1.0.
 
 Recommended transparency values are 0.25, 0.5, or 0.75 when used in
 combination with *fsaa on*.
@@ -1267,6 +1350,171 @@ quantity specified with the *grid* keyword.
 
 The arguments for the *gmap* keyword are identical to those for the
 *amap* keyword (for atom coloring) described above.
+
+----------
+
+.. versionadded:: 4Jul2026
+
+The *bmap* keyword can be used with the dump image command, with its
+*bond* keyword, when the bond *color* value is a compute reference
+(*c_ID* or *c_ID[I]*), to setup a color map.  The color map is used to
+assign a specific RGB (red/green/blue) color value to an individual bond
+when it is drawn, based on the per-bond value returned by the referenced
+compute.
+
+The arguments for the *bmap* keyword are identical to those for the
+*amap* keyword (for atom coloring) described above.
+
+----------
+
+.. versionadded:: 4Jul2026
+
+The *lights* keyword can be used to set the relative intensities of the
+four light sources used to illuminate the scene: *ambient*, *key*,
+*fill*, and *back*.  Each value must be between 0.0 and 1.0.
+
+.. code-block:: LAMMPS
+
+   dump_modify 1 lights 0.3 0.7 0.4 0.2
+
+The *ambient* light provides base-level illumination from all
+directions. The *key* light is the primary light source and creates
+the main highlights. The *fill* light is a secondary light source that
+softens shadows created by the key light. The *back* light illuminates
+the scene from behind the camera to provide depth.
+
+.. versionadded:: 2Sep2026
+
+The *gamma* keyword adjusts the gamma value of the rendered objects:
+the summed up light contributions of each pixel are raised to the power
+of 1/*gvalue* before they are converted to the 8-bit color values of
+the image file, similar to the gamma adjustment of image manipulation
+programs.  A value larger than 1.0 lightens the image, most strongly in
+the darker regions, and thus can bring out shading detail on the dimly
+lit side of objects; a value smaller than 1.0 darkens the image and
+increases the contrast.  The default rendering is already tuned to look
+right on typical displays, and no gamma information is stored in the
+image files, so this setting fine-tunes the tonal balance rather than
+applying a required display correction.  The adjustment applies only to
+rendered objects; the background colors are used exactly as
+specified.
+
+.. versionadded:: 2Sep2026
+
+The *specular* keyword adjusts the specular highlights independently
+from the *shiny* keyword of the dump image command.  The *none*
+setting turns the highlights off entirely, which results in a rough,
+matte surface appearance from the remaining diffuse lighting.  The
+other settings select the width of the highlights: *wide* highlights
+are close to the default appearance, *narrow* highlights are visibly
+smaller, and *tight* produces small sharp highlights with a
+plastic-like appearance.  The *sfactor* value of the *shiny* keyword
+scales the brightness of the highlights; without the *specular*
+keyword it also sets their width.
+
+.. versionadded:: 2Sep2026
+
+The *metal* keyword makes objects look like they are made of metal
+rather than of colored plastic.  Painted surfaces scatter light in all
+directions and reflect it without changing its color, which is what the
+rendering does by default; polished metal instead reflects light back
+directly and colors it in the process.  An *mfactor* value of 0.0 keeps
+the default appearance, 1.0 renders bare metal, and values in between
+blend the two.
+
+Since metal shows its surroundings rather than a color of its own, the
+rendering approximates them with a bright sky above and a dark ground
+below.  This is why metallic objects have a bright upper and a dark
+lower half, and why they need a dark background to look convincing.
+The *color* assigned to an object tints these reflections, so gold
+objects show a golden sheen and aluminum ones a neutral gray sheen.
+The pre-defined color *silver* is a good match for aluminum.  Colors
+chosen for paint are often too saturated for metal: for gold, for
+example, defining a color with the *color* keyword using the values
+1.0 0.766 0.336 looks more like the metal than the pre-defined color
+*gold* does.
+
+.. note::
+
+   These settings imitate the appearance of metal with a few extra
+   operations per pixel.  They do not compute how light actually
+   travels through the scene.  For images where the appearance of the
+   material matters, exporting the atom positions and rendering them
+   with a ray tracing program will always give better results than any
+   combination of these settings.
+
+.. versionadded:: 2Sep2026
+
+The *metalfinish* keyword selects the surface finish used when the
+*metal* keyword is enabled.  A *satin* finish has a broad soft sheen
+and resembles brushed metal such as aluminum.  A *polished* finish
+concentrates the sheen into a narrower streak.  A *mirror* finish
+reflects the surroundings the way a curved mirror does, which makes
+spheres look like polished ball bearings, with a darker lower half than
+the other two settings.  This keyword has no effect unless the *metal*
+keyword is set to a value larger than 0.0.
+
+.. versionadded:: 2Sep2026
+
+The *ssaosamples* keyword sets the number of directions that the SSAO
+depth shading enabled by the *ssao* keyword examines around each
+pixel.  More directions produce smoother shading; fewer directions
+render proportionally faster but make the shading grainier.  Without
+this setting the number of directions is derived from the *dfactor*
+value of the *ssao* keyword and ranges from 8 to 40.  Reducing the
+number of directions is a simple way to trade some image quality for
+faster image output, for example for preview renderings.  The
+graininess is less visible when the *fsaa* keyword of the dump image
+command is also enabled.
+
+----------
+
+.. versionadded:: 4Jul2026
+
+The *loadcolors* and *savecolors* keywords can be used to read or write
+the current per-atom-type color assignments and their definitions from
+or to a `JSON format <https://www.json.org/>`_ file.  Also, the current
+*lights* settings are read and applied or stored.  These files can be
+read, modified interactively, and written by `LAMMPS-GUI
+<https://lammps-gui.lammps.org>`_.  This provides a convenient way to
+have custom color definitions and custom color to type assignments.
+When the system has more atom types than colors, colors are named
+"type#" with "#" being the number of the atom type so that the color
+names are unique.  Per-element colors currently cannot be saved or
+customized.
+
+Below is a simple example for a colors file for a system with two
+atom types using the default color and light settings:
+
+.. code-block:: json
+
+   {
+        "application": "LAMMPS",
+        "format": "colors",
+        "revision": 1,
+        "title": "per-type colors for dump image",
+        "schema": "https://download.lammps.org/json/color-schema.json",
+        "colors": [
+           {
+                "name": "red",
+                "red": 1.0,
+                "green": 0.0,
+                "blue": 0.0
+            },
+            {
+                "name": "forestgreen",
+                "red": 0.133,
+                "green": 0.545,
+                "blue": 0.133
+            }
+        ],
+        "lights": {
+            "ambient": 0.0,
+            "key": 0.9,
+            "fill": 0.45,
+            "back": 0.9
+        }
+   }
 
 ----------
 
@@ -1346,33 +1594,63 @@ The defaults for the dump image and dump movie keywords are as follows:
 * shiny = 1.0
 * ssao = no
 * fsaa = no
+* depthcue = no
+* defocus = no
+* outline = no
 
 ----------
 
 The defaults for the dump_modify keywords specific to dump image and dump movie are as follows:
 
-* acolor = \* red/green/blue/yellow/cyan/magenta
+* acolor = \* red/forestgreen/blue/gold/cyan/magenta/silver/orange/lime/gray/darkred/darkgreen/darkblue/darkcyan/darkmagenta/darkgray
 * adiam = \* 1.0
 * amap = min max cf 0.0 2 min blue max red
 * atrans = 1.0
 * backcolor = black
 * backcolor2 = none
-* bcolor = \* red/green/blue/yellow/cyan/magenta
+* bcolor = \* red/forestgreen/blue/gold/cyan/magenta/silver/orange/lime/gray/darkred/darkgreen/darkblue/darkcyan/darkmagenta/darkgray
 * bdiam = \* 0.5
 * btrans = 1.0
-* boxcolor = yellow
+* boxcolor = gold
 * axestrans = 1.0
 * boxtrans = 1.0
 * subboxtrans = 1.0
 * color = 140 color names are pre-defined as listed below
+* gamma = 1.0
+* lights = 0.0 0.9 0.45 0.9
+* specular = width derived from the *shiny* keyword of the dump image command
+* metal = 0.0
+* metalfinish = satin
+* ssaosamples = number derived from the *dfactor* value of the *ssao* keyword
 * bitrate = 2000
 * framerate = 24
 * gmap = min max cf 0.0 2 min blue max red
+
+Default color sequence: |color_red|  |color_forestgreen|  |color_blue|
+|color_gold|  |color_cyan|  |color_magenta|  |color_silver|  |color_orange|
+|color_lime|  |color_gray|  |color_darkred|  |color_darkgreen|
+|color_darkblue|  |color_darkcyan|  |color_darkmagenta|  |color_darkgray|
 
 ----------
 
 These are the standard 109 element names that LAMMPS pre-defines for
 use with the dump image and dump_modify commands.
+
+.. versionchanged:: 2Sep2026
+
+The pre-defined colors of the metals magnesium, aluminum, zinc,
+mercury, silver, titanium, chromium, manganese, iron, cobalt, nickel,
+copper, gold, tin, and lead were changed to match the appearance of the
+metals more closely.  Most of them previously shared one generic gray,
+and chromium was green, which is the color of chromium oxide rather
+than of the metal.  The colors also account for how the surfaces of
+these metals typically look: silver is slightly yellow, iron is darker
+and duller than the polished metals, tin and lead are dull with lead
+the darker and more blue of the two, cobalt is distinctly blue and
+manganese faintly pink, while magnesium, aluminum, zinc, and chromium
+keep their bright surfaces.  Images that color atoms by element and use
+any of these fifteen elements will look different than with earlier
+LAMMPS versions.
 
 * 1-10 = "H", "He", "Li", "Be", "B", "C", "N", "O", "F", "Ne"
 * 11-20 = "Na", "Mg", "Al", "Si", "P", "S", "Cl", "Ar", "K", "Ca"
@@ -1391,63 +1669,291 @@ use with the dump image and dump_modify commands.
 These are the 140 colors that LAMMPS pre-defines for use with the dump
 image and dump_modify commands.  Additional colors can be defined with
 the dump_modify color command.  The 3 numbers listed for each name are
-the RGB (red/green/blue) values.  Divide each value by 255 to get the
-equivalent 0.0 to 1.0 value.
+the RGB (red/green/blue) values.
 
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| aliceblue = 240, 248, 255     | antiquewhite = 250, 235, 215         | aqua = 0, 255, 255              | aquamarine = 127, 255, 212     | azure = 240, 255, 255          |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| beige = 245, 245, 220         | bisque = 255, 228, 196               | black = 0, 0, 0                 | blanchedalmond = 255, 255, 205 | blue = 0, 0, 255               |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| blueviolet = 138, 43, 226     | brown = 165, 42, 42                  | burlywood = 222, 184, 135       | cadetblue = 95, 158, 160       | chartreuse = 127, 255, 0       |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| chocolate = 210, 105, 30      | coral = 255, 127, 80                 | cornflowerblue = 100, 149, 237  | cornsilk = 255, 248, 220       | crimson = 220, 20, 60          |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| cyan = 0, 255, 255            | darkblue = 0, 0, 139                 | darkcyan = 0, 139, 139          | darkgoldenrod = 184, 134, 11   | darkgray = 169, 169, 169       |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| darkgreen = 0, 100, 0         | darkkhaki = 189, 183, 107            | darkmagenta = 139, 0, 139       | darkolivegreen = 85, 107, 47   | darkorange = 255, 140, 0       |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| darkorchid = 153, 50, 204     | darkred = 139, 0, 0                  | darksalmon = 233, 150, 122      | darkseagreen = 143, 188, 143   | darkslateblue = 72, 61, 139    |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| darkslategray = 47, 79, 79    | darkturquoise = 0, 206, 209          | darkviolet = 148, 0, 211        | deeppink = 255, 20, 147        | deepskyblue = 0, 191, 255      |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| dimgray = 105, 105, 105       | dodgerblue = 30, 144, 255            | firebrick = 178, 34, 34         | floralwhite = 255, 250, 240    | forestgreen = 34, 139, 34      |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| fuchsia = 255, 0, 255         | gainsboro = 220, 220, 220            | ghostwhite = 248, 248, 255      | gold = 255, 215, 0             | goldenrod = 218, 165, 32       |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| gray = 128, 128, 128          | green = 0, 128, 0                    | greenyellow = 173, 255, 47      | honeydew = 240, 255, 240       | hotpink = 255, 105, 180        |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| indianred = 205, 92, 92       | indigo = 75, 0, 130                  | ivory = 255, 240, 240           | khaki = 240, 230, 140          | lavender = 230, 230, 250       |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| lavenderblush = 255, 240, 245 | lawngreen = 124, 252, 0              | lemonchiffon = 255, 250, 205    | lightblue = 173, 216, 230      | lightcoral = 240, 128, 128     |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| lightcyan = 224, 255, 255     | lightgoldenrodyellow = 250, 250, 210 | lightgreen = 144, 238, 144      | lightgrey = 211, 211, 211      | lightpink = 255, 182, 193      |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| lightsalmon = 255, 160, 122   | lightseagreen = 32, 178, 170         | lightskyblue = 135, 206, 250    | lightslategray = 119, 136, 153 | lightsteelblue = 176, 196, 222 |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| lightyellow = 255, 255, 224   | lime = 0, 255, 0                     | limegreen = 50, 205, 50         | linen = 250, 240, 230          | magenta = 255, 0, 255          |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| maroon = 128, 0, 0            | mediumaquamarine = 102, 205, 170     | mediumblue = 0, 0, 205          | mediumorchid = 186, 85, 211    | mediumpurple = 147, 112, 219   |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| mediumseagreen = 60, 179, 113 | mediumslateblue = 123, 104, 238      | mediumspringgreen = 0, 250, 154 | mediumturquoise = 72, 209, 204 | mediumvioletred = 199, 21, 133 |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| midnightblue = 25, 25, 112    | mintcream = 245, 255, 250            | mistyrose = 255, 228, 225       | moccasin = 255, 228, 181       | navajowhite = 255, 222, 173    |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| navy = 0, 0, 128              | oldlace = 253, 245, 230              | olive = 128, 128, 0             | olivedrab = 107, 142, 35       | orange = 255, 165, 0           |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| orangered = 255, 69, 0        | orchid = 218, 112, 214               | palegoldenrod = 238, 232, 170   | palegreen = 152, 251, 152      | paleturquoise = 175, 238, 238  |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| palevioletred = 219, 112, 147 | papayawhip = 255, 239, 213           | peachpuff = 255, 239, 213       | peru = 205, 133, 63            | pink = 255, 192, 203           |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| plum = 221, 160, 221          | powderblue = 176, 224, 230           | purple = 128, 0, 128            | red = 255, 0, 0                | rosybrown = 188, 143, 143      |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| royalblue = 65, 105, 225      | saddlebrown = 139, 69, 19            | salmon = 250, 128, 114          | sandybrown = 244, 164, 96      | seagreen = 46, 139, 87         |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| seashell = 255, 245, 238      | sienna = 160, 82, 45                 | silver = 192, 192, 192          | skyblue = 135, 206, 235        | slateblue = 106, 90, 205       |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| slategray = 112, 128, 144     | snow = 255, 250, 250                 | springgreen = 0, 255, 127       | steelblue = 70, 130, 180       | tan = 210, 180, 140            |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| teal = 0, 128, 128            | thistle = 216, 191, 216              | tomato = 253, 99, 71            | turquoise = 64, 224, 208       | violet = 238, 130, 238         |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
-| wheat = 245, 222, 179         | white = 255, 255, 255                | whitesmoke = 245, 245, 245      | yellow = 255, 255, 0           | yellowgreen = 154, 205, 50     |
-+-------------------------------+--------------------------------------+---------------------------------+--------------------------------+--------------------------------+
+.. |color_aliceblue| image:: img/colors/aliceblue.png
+.. |color_antiquewhite| image:: img/colors/antiquewhite.png
+.. |color_aqua| image:: img/colors/aqua.png
+.. |color_aquamarine| image:: img/colors/aquamarine.png
+.. |color_azure| image:: img/colors/azure.png
+.. |color_beige| image:: img/colors/beige.png
+.. |color_bisque| image:: img/colors/bisque.png
+.. |color_black| image:: img/colors/black.png
+.. |color_blanchedalmond| image:: img/colors/blanchedalmond.png
+.. |color_blue| image:: img/colors/blue.png
+.. |color_blueviolet| image:: img/colors/blueviolet.png
+.. |color_brown| image:: img/colors/brown.png
+.. |color_burlywood| image:: img/colors/burlywood.png
+.. |color_cadetblue| image:: img/colors/cadetblue.png
+.. |color_chartreuse| image:: img/colors/chartreuse.png
+.. |color_chocolate| image:: img/colors/chocolate.png
+.. |color_coral| image:: img/colors/coral.png
+.. |color_cornflowerblue| image:: img/colors/cornflowerblue.png
+.. |color_cornsilk| image:: img/colors/cornsilk.png
+.. |color_crimson| image:: img/colors/crimson.png
+.. |color_cyan| image:: img/colors/cyan.png
+.. |color_darkblue| image:: img/colors/darkblue.png
+.. |color_darkcyan| image:: img/colors/darkcyan.png
+.. |color_darkgoldenrod| image:: img/colors/darkgoldenrod.png
+.. |color_darkgray| image:: img/colors/darkgray.png
+.. |color_darkgreen| image:: img/colors/darkgreen.png
+.. |color_darkkhaki| image:: img/colors/darkkhaki.png
+.. |color_darkmagenta| image:: img/colors/darkmagenta.png
+.. |color_darkolivegreen| image:: img/colors/darkolivegreen.png
+.. |color_darkorange| image:: img/colors/darkorange.png
+.. |color_darkorchid| image:: img/colors/darkorchid.png
+.. |color_darkred| image:: img/colors/darkred.png
+.. |color_darksalmon| image:: img/colors/darksalmon.png
+.. |color_darkseagreen| image:: img/colors/darkseagreen.png
+.. |color_darkslateblue| image:: img/colors/darkslateblue.png
+.. |color_darkslategray| image:: img/colors/darkslategray.png
+.. |color_darkturquoise| image:: img/colors/darkturquoise.png
+.. |color_darkviolet| image:: img/colors/darkviolet.png
+.. |color_deeppink| image:: img/colors/deeppink.png
+.. |color_deepskyblue| image:: img/colors/deepskyblue.png
+.. |color_dimgray| image:: img/colors/dimgray.png
+.. |color_dodgerblue| image:: img/colors/dodgerblue.png
+.. |color_firebrick| image:: img/colors/firebrick.png
+.. |color_floralwhite| image:: img/colors/floralwhite.png
+.. |color_forestgreen| image:: img/colors/forestgreen.png
+.. |color_fuchsia| image:: img/colors/fuchsia.png
+.. |color_gainsboro| image:: img/colors/gainsboro.png
+.. |color_ghostwhite| image:: img/colors/ghostwhite.png
+.. |color_gold| image:: img/colors/gold.png
+.. |color_goldenrod| image:: img/colors/goldenrod.png
+.. |color_gray| image:: img/colors/gray.png
+.. |color_green| image:: img/colors/green.png
+.. |color_greenyellow| image:: img/colors/greenyellow.png
+.. |color_honeydew| image:: img/colors/honeydew.png
+.. |color_hotpink| image:: img/colors/hotpink.png
+.. |color_indianred| image:: img/colors/indianred.png
+.. |color_indigo| image:: img/colors/indigo.png
+.. |color_ivory| image:: img/colors/ivory.png
+.. |color_khaki| image:: img/colors/khaki.png
+.. |color_lavender| image:: img/colors/lavender.png
+.. |color_lavenderblush| image:: img/colors/lavenderblush.png
+.. |color_lawngreen| image:: img/colors/lawngreen.png
+.. |color_lemonchiffon| image:: img/colors/lemonchiffon.png
+.. |color_lightblue| image:: img/colors/lightblue.png
+.. |color_lightcoral| image:: img/colors/lightcoral.png
+.. |color_lightcyan| image:: img/colors/lightcyan.png
+.. |color_lightgoldenrodyellow| image:: img/colors/lightgoldenrodyellow.png
+.. |color_lightgreen| image:: img/colors/lightgreen.png
+.. |color_lightgrey| image:: img/colors/lightgrey.png
+.. |color_lightpink| image:: img/colors/lightpink.png
+.. |color_lightsalmon| image:: img/colors/lightsalmon.png
+.. |color_lightseagreen| image:: img/colors/lightseagreen.png
+.. |color_lightskyblue| image:: img/colors/lightskyblue.png
+.. |color_lightslategray| image:: img/colors/lightslategray.png
+.. |color_lightsteelblue| image:: img/colors/lightsteelblue.png
+.. |color_lightyellow| image:: img/colors/lightyellow.png
+.. |color_lime| image:: img/colors/lime.png
+.. |color_limegreen| image:: img/colors/limegreen.png
+.. |color_linen| image:: img/colors/linen.png
+.. |color_magenta| image:: img/colors/magenta.png
+.. |color_maroon| image:: img/colors/maroon.png
+.. |color_mediumaquamarine| image:: img/colors/mediumaquamarine.png
+.. |color_mediumblue| image:: img/colors/mediumblue.png
+.. |color_mediumorchid| image:: img/colors/mediumorchid.png
+.. |color_mediumpurple| image:: img/colors/mediumpurple.png
+.. |color_mediumseagreen| image:: img/colors/mediumseagreen.png
+.. |color_mediumslateblue| image:: img/colors/mediumslateblue.png
+.. |color_mediumspringgreen| image:: img/colors/mediumspringgreen.png
+.. |color_mediumturquoise| image:: img/colors/mediumturquoise.png
+.. |color_mediumvioletred| image:: img/colors/mediumvioletred.png
+.. |color_midnightblue| image:: img/colors/midnightblue.png
+.. |color_mintcream| image:: img/colors/mintcream.png
+.. |color_mistyrose| image:: img/colors/mistyrose.png
+.. |color_moccasin| image:: img/colors/moccasin.png
+.. |color_navajowhite| image:: img/colors/navajowhite.png
+.. |color_navy| image:: img/colors/navy.png
+.. |color_oldlace| image:: img/colors/oldlace.png
+.. |color_olive| image:: img/colors/olive.png
+.. |color_olivedrab| image:: img/colors/olivedrab.png
+.. |color_orange| image:: img/colors/orange.png
+.. |color_orangered| image:: img/colors/orangered.png
+.. |color_orchid| image:: img/colors/orchid.png
+.. |color_palegoldenrod| image:: img/colors/palegoldenrod.png
+.. |color_palegreen| image:: img/colors/palegreen.png
+.. |color_paleturquoise| image:: img/colors/paleturquoise.png
+.. |color_palevioletred| image:: img/colors/palevioletred.png
+.. |color_papayawhip| image:: img/colors/papayawhip.png
+.. |color_peachpuff| image:: img/colors/peachpuff.png
+.. |color_peru| image:: img/colors/peru.png
+.. |color_pink| image:: img/colors/pink.png
+.. |color_plum| image:: img/colors/plum.png
+.. |color_powderblue| image:: img/colors/powderblue.png
+.. |color_purple| image:: img/colors/purple.png
+.. |color_red| image:: img/colors/red.png
+.. |color_rosybrown| image:: img/colors/rosybrown.png
+.. |color_royalblue| image:: img/colors/royalblue.png
+.. |color_saddlebrown| image:: img/colors/saddlebrown.png
+.. |color_salmon| image:: img/colors/salmon.png
+.. |color_sandybrown| image:: img/colors/sandybrown.png
+.. |color_seagreen| image:: img/colors/seagreen.png
+.. |color_seashell| image:: img/colors/seashell.png
+.. |color_sienna| image:: img/colors/sienna.png
+.. |color_silver| image:: img/colors/silver.png
+.. |color_skyblue| image:: img/colors/skyblue.png
+.. |color_slateblue| image:: img/colors/slateblue.png
+.. |color_slategray| image:: img/colors/slategray.png
+.. |color_snow| image:: img/colors/snow.png
+.. |color_springgreen| image:: img/colors/springgreen.png
+.. |color_steelblue| image:: img/colors/steelblue.png
+.. |color_tan| image:: img/colors/tan.png
+.. |color_teal| image:: img/colors/teal.png
+.. |color_thistle| image:: img/colors/thistle.png
+.. |color_tomato| image:: img/colors/tomato.png
+.. |color_turquoise| image:: img/colors/turquoise.png
+.. |color_violet| image:: img/colors/violet.png
+.. |color_wheat| image:: img/colors/wheat.png
+.. |color_white| image:: img/colors/white.png
+.. |color_whitesmoke| image:: img/colors/whitesmoke.png
+.. |color_yellow| image:: img/colors/yellow.png
+.. |color_yellowgreen| image:: img/colors/yellowgreen.png
+
+.. list-table:: Pre-defined colors
+   :widths: 33 33 33
+   :header-rows: 0
+
+   * - |color_aliceblue| aliceblue: 0.941, 0.973, 1.000
+     - |color_antiquewhite| antiquewhite: 0.980, 0.922, 0.843
+     - |color_aqua| aqua:  0.000, 1.000, 1.000
+   * - |color_aquamarine| aquamarine: 0.498, 1.000, 0.831
+     - |color_azure| azure: 0.941, 1.000, 1.000
+     - |color_beige| beige: 0.961, 0.961, 0.863
+   * - |color_bisque| bisque: 1.000, 0.894, 0.769
+     - |color_black| black: 0.000, 0.000, 0.000
+     - |color_blanchedalmond| blanchedalmond: 1.000, 1.000, 0.804
+   * - |color_blue| blue: 0.000, 0.000, 1.000
+     - |color_blueviolet| blueviolet: 0.541, 0.169, 0.886
+     - |color_brown| brown: 0.647, 0.165, 0.165
+   * - |color_burlywood| burlywood: 0.871, 0.722, 0.529
+     - |color_cadetblue| cadetblue: 0.373, 0.620, 0.627
+     - |color_chartreuse| chartreuse: 0.498, 1.000, 0.000
+   * - |color_chocolate| chocolate: 0.824, 0.412, 0.118
+     - |color_coral| coral: 1.000, 0.498, 0.314
+     - |color_cornflowerblue| cornflowerblue: 0.392, 0.584, 0.929
+   * - |color_cornsilk| cornsilk: 1.000, 0.973, 0.863
+     - |color_crimson| crimson: 0.863, 0.078, 0.235
+     - |color_cyan| cyan: 0.000, 1.000, 1.000
+   * - |color_darkblue| darkblue: 0.000, 0.000, 0.545
+     - |color_darkcyan| darkcyan: 0.000, 0.545, 0.545
+     - |color_darkgoldenrod| darkgoldenrod: 0.722, 0.525, 0.043
+   * - |color_darkgray| darkgray: 0.271, 0.271, 0.271
+     - |color_darkgreen| darkgreen: 0.000, 0.392, 0.000
+     - |color_darkkhaki| darkkhaki: 0.741, 0.718, 0.420
+   * - |color_darkmagenta| darkmagenta: 0.545, 0.000, 0.545
+     - |color_darkolivegreen| darkolivegreen: 0.333, 0.420, 0.184
+     - |color_darkorange| darkorange: 0.545, 0.271, 0.000
+   * - |color_darkorchid| darkorchid: 0.600, 0.196, 0.800
+     - |color_darkred| darkred: 0.545, 0.000, 0.000
+     - |color_darksalmon| darksalmon: 0.914, 0.588, 0.478
+   * - |color_darkseagreen| darkseagreen: 0.561, 0.737, 0.561
+     - |color_darkslateblue| darkslateblue: 0.282, 0.239, 0.545
+     - |color_darkslategray| darkslategray: 0.184, 0.310, 0.310
+   * - |color_darkturquoise| darkturquoise: 0.000, 0.808, 0.820
+     - |color_darkviolet| darkviolet: 0.580, 0.000, 0.827
+     - |color_deeppink| deeppink: 1.000, 0.078, 0.576
+   * - |color_deepskyblue| deepskyblue: 0.000, 0.749, 1.000
+     - |color_dimgray| dimgray: 0.412, 0.412, 0.412
+     - |color_dodgerblue| dodgerblue: 0.118, 0.565, 1.000
+   * - |color_firebrick| firebrick: 0.698, 0.133, 0.133
+     - |color_floralwhite| floralwhite: 1.000, 0.980, 0.941
+     - |color_forestgreen| forestgreen: 0.133, 0.545, 0.133
+   * - |color_fuchsia| fuchsia: 1.000, 0.000, 1.000
+     - |color_gainsboro| gainsboro: 0.863, 0.863, 0.863
+     - |color_ghostwhite| ghostwhite: 0.973, 0.973, 1.000
+   * - |color_gold| gold: 1.000, 0.843, 0.000
+     - |color_goldenrod| goldenrod: 0.855, 0.647, 0.125
+     - |color_gray| gray: 0.502, 0.502, 0.502
+   * - |color_green| green: 0.000, 1.000, 0.000
+     - |color_greenyellow| greenyellow: 0.678, 1.000, 0.184
+     - |color_honeydew| honeydew: 0.941, 1.000, 0.941
+   * - |color_hotpink| hotpink: 1.000, 0.412, 0.706
+     - |color_indianred| indianred: 0.804, 0.361, 0.361
+     - |color_indigo| indigo: 0.294, 0.000, 0.510
+   * - |color_ivory| ivory: 1.000, 0.941, 0.941
+     - |color_khaki| khaki: 0.941, 0.902, 0.549
+     - |color_lavender| lavender: 0.902, 0.902, 0.980
+   * - |color_lavenderblush| lavenderblush: 1.000, 0.941, 0.961
+     - |color_lawngreen| lawngreen: 0.486, 0.988, 0.000
+     - |color_lemonchiffon| lemonchiffon: 1.000, 0.980, 0.804
+   * - |color_lightblue| lightblue: 0.678, 0.847, 0.902
+     - |color_lightcoral| lightcoral: 0.941, 0.502, 0.502
+     - |color_lightcyan| lightcyan: 0.878, 1.000, 1.000
+   * - |color_lightgoldenrodyellow| lightgoldenrodyellow: 0.980, 0.980, 0.824
+     - |color_lightgreen| lightgreen: 0.565, 0.933, 0.565
+     - |color_lightgrey| lightgrey: 0.827, 0.827, 0.827
+   * - |color_lightpink| lightpink: 1.000, 0.714, 0.757
+     - |color_lightsalmon| lightsalmon: 1.000, 0.627, 0.478
+     - |color_lightseagreen| lightseagreen: 0.125, 0.698, 0.667
+   * - |color_lightskyblue| lightskyblue: 0.529, 0.808, 0.980
+     - |color_lightslategray| lightslategray: 0.467, 0.533, 0.600
+     - |color_lightsteelblue| lightsteelblue: 0.690, 0.769, 0.871
+   * - |color_lightyellow| lightyellow: 1.000, 1.000, 0.878
+     - |color_lime| lime: 0.000, 1.000, 0.000
+     - |color_limegreen| limegreen: 0.196, 0.804, 0.196
+   * - |color_linen| linen: 0.980, 0.941, 0.902
+     - |color_magenta| magenta: 1.000, 0.000, 1.000
+     - |color_maroon| maroon: 0.502, 0.000, 0.000
+   * - |color_mediumaquamarine| mediumaquamarine: 0.400, 0.804, 0.667
+     - |color_mediumblue| mediumblue: 0.000, 0.000, 0.804
+     - |color_mediumorchid| mediumorchid: 0.729, 0.333, 0.827
+   * - |color_mediumpurple| mediumpurple: 0.576, 0.439, 0.859
+     - |color_mediumseagreen| mediumseagreen: 0.235, 0.702, 0.443
+     - |color_mediumslateblue| mediumslateblue: 0.482, 0.408, 0.933
+   * - |color_mediumspringgreen| mediumspringgreen: 0.000, 0.980, 0.604
+     - |color_mediumturquoise| mediumturquoise: 0.282, 0.820, 0.800
+     - |color_mediumvioletred| mediumvioletred: 0.780, 0.082, 0.522
+   * - |color_midnightblue| midnightblue: 0.098, 0.098, 0.439
+     - |color_mintcream| mintcream: 0.961, 1.000, 0.980
+     - |color_mistyrose| mistyrose: 1.000, 0.894, 0.882
+   * - |color_moccasin| moccasin: 1.000, 0.894, 0.710
+     - |color_navajowhite| navajowhite: 1.000, 0.871, 0.678
+     - |color_navy| navy: 0.000, 0.000, 0.502
+   * - |color_oldlace| oldlace: 0.992, 0.961, 0.902
+     - |color_olive| olive: 0.502, 0.502, 0.000
+     - |color_olivedrab| olivedrab: 0.420, 0.557, 0.137
+   * - |color_orange| orange: 1.000, 0.502, 0.000
+     - |color_orangered| orangered: 1.000, 0.251, 0.000
+     - |color_orchid| orchid: 0.855, 0.439, 0.839
+   * - |color_palegoldenrod| palegoldenrod: 0.933, 0.910, 0.667
+     - |color_palegreen| palegreen: 0.596, 0.984, 0.596
+     - |color_paleturquoise| paleturquoise: 0.686, 0.933, 0.933
+   * - |color_palevioletred| palevioletred: 0.859, 0.439, 0.576
+     - |color_papayawhip| papayawhip: 1.000, 0.937, 0.835
+     - |color_peachpuff| peachpuff: 1.000, 0.937, 0.835
+   * - |color_peru| peru: 0.804, 0.522, 0.247
+     - |color_pink| pink: 1.000, 0.753, 0.796
+     - |color_plum| plum: 0.867, 0.627, 0.867
+   * - |color_powderblue| powderblue: 0.690, 0.878, 0.902
+     - |color_purple| purple: 0.502, 0.000, 0.502
+     - |color_red| red: 1.000, 0.000, 0.000
+   * - |color_rosybrown| rosybrown: 0.737, 0.561, 0.561
+     - |color_royalblue| royalblue: 0.255, 0.412, 0.882
+     - |color_saddlebrown| saddlebrown: 0.545, 0.271, 0.075
+   * - |color_salmon| salmon: 0.980, 0.502, 0.447
+     - |color_sandybrown| sandybrown: 0.957, 0.643, 0.376
+     - |color_seagreen| seagreen: 0.180, 0.545, 0.341
+   * - |color_seashell| seashell: 1.000, 0.961, 0.933
+     - |color_sienna| sienna: 0.627, 0.322, 0.176
+     - |color_silver| silver: 0.753, 0.753, 0.753
+   * - |color_skyblue| skyblue: 0.529, 0.808, 0.922
+     - |color_slateblue| slateblue: 0.416, 0.353, 0.804
+     - |color_slategray| slategray: 0.439, 0.502, 0.565
+   * - |color_snow| snow: 1.000, 0.980, 0.980
+     - |color_springgreen| springgreen: 0.000, 1.000, 0.498
+     - |color_steelblue| steelblue: 0.275, 0.510, 0.706
+   * - |color_tan| tan: 0.824, 0.706, 0.549
+     - |color_teal| teal: 0.000, 0.502, 0.502
+     - |color_thistle| thistle: 0.847, 0.749, 0.847
+   * - |color_tomato| tomato: 0.992, 0.388, 0.278
+     - |color_turquoise| turquoise: 0.251, 0.878, 0.816
+     - |color_violet| violet: 0.933, 0.510, 0.933
+   * - |color_wheat| wheat: 0.961, 0.871, 0.702
+     - |color_white| white: 1.000, 1.000, 1.000
+     - |color_whitesmoke| whitesmoke: 0.961, 0.961, 0.961
+   * - |color_yellow| yellow: 1.000, 1.000, 0.000
+     - |color_yellowgreen| yellowgreen: 0.604, 0.804, 0.196
+     -

@@ -42,7 +42,7 @@ static constexpr double QSUMSMALL = 0.00001;
 /* ---------------------------------------------------------------------- */
 
 FixQEQComb::FixQEQComb(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
-  fp(nullptr), comb(nullptr), comb3(nullptr), qf(nullptr), q1(nullptr), q2(nullptr)
+  comb(nullptr), comb3(nullptr), qf(nullptr), q1(nullptr), q2(nullptr)
 {
   if (narg < 5) error->all(FLERR,"Illegal fix qeq/comb command");
 
@@ -95,7 +95,6 @@ FixQEQComb::FixQEQComb(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
 
 FixQEQComb::~FixQEQComb()
 {
-  if (me == 0 && fp) fclose(fp);
   memory->destroy(qf);
   memory->destroy(q1);
   memory->destroy(q2);

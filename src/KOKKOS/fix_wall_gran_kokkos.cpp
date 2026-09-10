@@ -78,17 +78,17 @@ void FixWallGranKokkos<DeviceType>::post_force(int /*vflag*/)
   // set position of wall to initial settings and velocity to 0.0
   // if wiggle or shear, set wall position and velocity accordingly
 
-  wlo = lo;
-  whi = hi;
+  wlo = static_cast<KK_FLOAT>(lo);
+  whi = static_cast<KK_FLOAT>(hi);
   vwall[0] = vwall[1] = vwall[2] = 0.0;
   if (wiggle) {
     double arg = omega * (update->ntimestep - time_origin) * dt;
     if (wallstyle == axis) {
-      wlo = lo + amplitude - amplitude*cos(arg);
-      whi = hi + amplitude - amplitude*cos(arg);
+      wlo = static_cast<KK_FLOAT>(lo + amplitude - amplitude*cos(arg));
+      whi = static_cast<KK_FLOAT>(hi + amplitude - amplitude*cos(arg));
     }
-    vwall[axis] = amplitude*omega*sin(arg);
-  } else if (wshear) vwall[axis] = vshear;
+    vwall[axis] = static_cast<KK_FLOAT>(amplitude*omega*sin(arg));
+  } else if (wshear) vwall[axis] = static_cast<KK_FLOAT>(vshear);
 
   x = atomKK->k_x.view<DeviceType>();
   v = atomKK->k_v.view<DeviceType>();
@@ -136,6 +136,15 @@ void FixWallGranKokkos<DeviceType>::operator()(TagFixWallGranHookeHistory<WallSt
   vwall_[1] = vwall[1];
   vwall_[2] = vwall[2];
 
+  const KK_FLOAT cylradius_kk = static_cast<KK_FLOAT>(cylradius);
+  const KK_FLOAT vshear_kk = static_cast<KK_FLOAT>(vshear);
+  const KK_FLOAT gamman_kk = static_cast<KK_FLOAT>(gamman);
+  const KK_FLOAT gammat_kk = static_cast<KK_FLOAT>(gammat);
+  const KK_FLOAT kn_kk = static_cast<KK_FLOAT>(kn);
+  const KK_FLOAT kt_kk = static_cast<KK_FLOAT>(kt);
+  const KK_FLOAT xmu_kk = static_cast<KK_FLOAT>(xmu);
+  const KK_FLOAT dt_kk = static_cast<KK_FLOAT>(dt);
+
   if (mask[i] & groupbit) {
     KK_FLOAT radius = d_radius(i);
 
@@ -159,16 +168,16 @@ void FixWallGranKokkos<DeviceType>::operator()(TagFixWallGranHookeHistory<WallSt
       if (del1 < del2) dz = del1;
       else dz = -del2;
     } else if (WallStyle == ZCYLINDER) {
-      KK_FLOAT delxy = sqrt(x(i,0)*x(i,0) + x(i,1)*x(i,1));
-      KK_FLOAT delr = cylradius - delxy;
+      KK_FLOAT delxy = Kokkos::sqrt(x(i,0)*x(i,0) + x(i,1)*x(i,1));
+      KK_FLOAT delr = cylradius_kk - delxy;
       if (delr > radius) {
-        dz = cylradius;
+        dz = cylradius_kk;
       } else {
         dx = -delr/delxy * x(i,0);
         dy = -delr/delxy * x(i,1);
        if (wshear && axis != 2) {
-          vwall_[0] += vshear * x(i,1)/delxy;
-          vwall_[1] += -vshear * x(i,0)/delxy;
+          vwall_[0] += vshear_kk * x(i,1)/delxy;
+          vwall_[1] += -vshear_kk * x(i,0)/delxy;
           vwall_[2] = 0.0;
         }
       }
@@ -183,9 +192,9 @@ void FixWallGranKokkos<DeviceType>::operator()(TagFixWallGranHookeHistory<WallSt
     } else {
       // meff = effective mass of sphere
       KK_FLOAT meff = rmass(i);
-      KK_FLOAT r = sqrt(rsq);
-      KK_FLOAT rinv = 1.0/r;
-      KK_FLOAT rsqinv = 1.0/rsq;
+      KK_FLOAT r = Kokkos::sqrt(rsq);
+      KK_FLOAT rinv = static_cast<KK_FLOAT>(1.0)/r;
+      KK_FLOAT rsqinv = static_cast<KK_FLOAT>(1.0)/rsq;
 
       // relative translational velocity
 
@@ -214,8 +223,8 @@ void FixWallGranKokkos<DeviceType>::operator()(TagFixWallGranHookeHistory<WallSt
 
       // normal forces = Hookian contact + normal velocity damping
 
-      KK_FLOAT damp = meff*gamman*vnnr*rsqinv;
-      KK_FLOAT ccel = kn*(radius-r)*rinv - damp;
+      KK_FLOAT damp = meff*gamman_kk*vnnr*rsqinv;
+      KK_FLOAT ccel = kn_kk*(radius-r)*rinv - damp;
 
       // relative velocities
 
@@ -223,16 +232,16 @@ void FixWallGranKokkos<DeviceType>::operator()(TagFixWallGranHookeHistory<WallSt
       KK_FLOAT vtr2 = vt2 - (dx*wr3-dz*wr1);
       KK_FLOAT vtr3 = vt3 - (dy*wr1-dx*wr2);
       KK_FLOAT vrel = vtr1*vtr1 + vtr2*vtr2 + vtr3*vtr3;
-      vrel = sqrt(vrel);
+      vrel = Kokkos::sqrt(vrel);
 
       // shear history effects
 
       if (history_update) {
-        d_history_one(i,0) += vtr1*dt;
-        d_history_one(i,1) += vtr2*dt;
-        d_history_one(i,2) += vtr3*dt;
+        d_history_one(i,0) += vtr1*dt_kk;
+        d_history_one(i,1) += vtr2*dt_kk;
+        d_history_one(i,2) += vtr3*dt_kk;
       }
-      KK_FLOAT shrmag = sqrt(d_history_one(i,0)*d_history_one(i,0) + d_history_one(i,1)*d_history_one(i,1) + d_history_one(i,2)*d_history_one(i,2));
+      KK_FLOAT shrmag = Kokkos::sqrt(d_history_one(i,0)*d_history_one(i,0) + d_history_one(i,1)*d_history_one(i,1) + d_history_one(i,2)*d_history_one(i,2));
 
       // rotate shear displacements
 
@@ -246,23 +255,23 @@ void FixWallGranKokkos<DeviceType>::operator()(TagFixWallGranHookeHistory<WallSt
 
       // tangential forces = shear + tangential velocity damping
 
-      KK_FLOAT fs1 = - (kt*d_history_one(i,0) + meff*gammat*vtr1);
-      KK_FLOAT fs2 = - (kt*d_history_one(i,1) + meff*gammat*vtr2);
-      KK_FLOAT fs3 = - (kt*d_history_one(i,2) + meff*gammat*vtr3);
+      KK_FLOAT fs1 = - (kt_kk*d_history_one(i,0) + meff*gammat_kk*vtr1);
+      KK_FLOAT fs2 = - (kt_kk*d_history_one(i,1) + meff*gammat_kk*vtr2);
+      KK_FLOAT fs3 = - (kt_kk*d_history_one(i,2) + meff*gammat_kk*vtr3);
 
       // rescale frictional displacements and forces if needed
 
-      KK_FLOAT fs = sqrt(fs1*fs1 + fs2*fs2 + fs3*fs3);
-      KK_FLOAT fn = xmu * fabs(ccel*r);
+      KK_FLOAT fs = Kokkos::sqrt(fs1*fs1 + fs2*fs2 + fs3*fs3);
+      KK_FLOAT fn = xmu_kk * Kokkos::fabs(ccel*r);
 
       if (fs > fn) {
-        if (shrmag != 0.0) {
-          d_history_one(i,0) = (fn/fs) * (d_history_one(i,0) + meff*gammat*vtr1/kt) -
-            meff*gammat*vtr1/kt;
-          d_history_one(i,1) = (fn/fs) * (d_history_one(i,1) + meff*gammat*vtr2/kt) -
-            meff*gammat*vtr2/kt;
-          d_history_one(i,2) = (fn/fs) * (d_history_one(i,2) + meff*gammat*vtr3/kt) -
-            meff*gammat*vtr3/kt;
+        if (shrmag != static_cast<KK_FLOAT>(0.0)) {
+          d_history_one(i,0) = (fn/fs) * (d_history_one(i,0) + meff*gammat_kk*vtr1/kt_kk) -
+            meff*gammat_kk*vtr1/kt_kk;
+          d_history_one(i,1) = (fn/fs) * (d_history_one(i,1) + meff*gammat_kk*vtr2/kt_kk) -
+            meff*gammat_kk*vtr2/kt_kk;
+          d_history_one(i,2) = (fn/fs) * (d_history_one(i,2) + meff*gammat_kk*vtr3/kt_kk) -
+            meff*gammat_kk*vtr3/kt_kk;
           fs1 *= fn/fs ;
           fs2 *= fn/fs;
           fs3 *= fn/fs;
@@ -274,16 +283,16 @@ void FixWallGranKokkos<DeviceType>::operator()(TagFixWallGranHookeHistory<WallSt
       KK_FLOAT fx = dx*ccel + fs1;
       KK_FLOAT fy = dy*ccel + fs2;
       KK_FLOAT fz = dz*ccel + fs3;
-      f(i,0) += fx;
-      f(i,1) += fy;
-      f(i,2) += fz;
+      f(i,0) += static_cast<KK_ACC_FLOAT>(fx);
+      f(i,1) += static_cast<KK_ACC_FLOAT>(fy);
+      f(i,2) += static_cast<KK_ACC_FLOAT>(fz);
 
       KK_FLOAT tor1 = rinv * (dy*fs3 - dz*fs2);
       KK_FLOAT tor2 = rinv * (dz*fs1 - dx*fs3);
       KK_FLOAT tor3 = rinv * (dx*fs2 - dy*fs1);
-      torque(i,0) -= radius*tor1;
-      torque(i,1) -= radius*tor2;
-      torque(i,2) -= radius*tor3;
+      torque(i,0) -= static_cast<KK_ACC_FLOAT>(radius*tor1);
+      torque(i,1) -= static_cast<KK_ACC_FLOAT>(radius*tor2);
+      torque(i,2) -= static_cast<KK_ACC_FLOAT>(radius*tor3);
     }
   }
 }
@@ -361,7 +370,7 @@ void FixWallGranKokkos<DeviceType>::operator()(TagFixWallGranPackExchange, const
   const int i = d_sendlist(mysend);
   int m = i*size_history;
   for (int v = 0; v < size_history; v++)
-    d_buf(m++) = d_history_one(i,v);
+    d_buf(m++) = static_cast<double>(d_history_one(i,v));
 
   const int j = d_copylist(mysend);
   if (j > -1) {
@@ -412,7 +421,7 @@ void FixWallGranKokkos<DeviceType>::operator()(TagFixWallGranUnpackExchange, con
   if (index > -1) {
     int m = i*size_history;
     for (int v = 0; v < size_history; v++)
-      d_history_one(i,v) = d_buf(m++);
+      d_history_one(i,v) = static_cast<KK_FLOAT>(d_buf(m++));
   }
 }
 

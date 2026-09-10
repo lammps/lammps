@@ -210,7 +210,8 @@ void FixGroup::init()
     } else {
       req = neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
     }
-    req->set_cutoff(cutoff);
+
+    req->set_cutoff_fixed(cutoff);
   }
 
   if (excludeflag) excludebit = group->get_bitmask_by_id(FLERR, idexclude, "group dynamic exclude");

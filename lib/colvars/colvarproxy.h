@@ -19,6 +19,7 @@
 #include "colvarproxy_system.h"
 #include "colvarproxy_tcl.h"
 #include "colvarproxy_volmaps.h"
+#include "colvarproxy_gpu.h"
 
 /// \file colvarproxy.h
 /// \brief Colvars proxy classes
@@ -46,7 +47,7 @@ public:
 
 #if ( defined(COLVARS_CUDA) || defined(COLVARS_HIP) )
   template <typename T>
-  using allocator_type = cvm::CudaHostAllocator<T>;
+  using allocator_type = colvars_gpu::CudaHostAllocator<T>;
 #else
   template <typename T>
   using allocator_type = std::allocator<T>;
@@ -143,7 +144,7 @@ public:
   /// Read the current velocity of the given atom
   inline cvm::rvector get_atom_velocity(int /* index */)
   {
-    cvm::error("Error: reading the current velocity of an atom "
+    cvm::error_static("Error: reading the current velocity of an atom "
                "is not yet implemented.\n",
                COLVARS_NOT_IMPLEMENTED);
     return cvm::rvector(0.0);
@@ -362,7 +363,7 @@ public:
   /// Read the current velocity of the given atom group
   inline cvm::rvector get_atom_group_velocity(int /* index */)
   {
-    cvm::error("Error: reading the current velocity of an atom group is not yet implemented.\n",
+    cvm::error_static("Error: reading the current velocity of an atom group is not yet implemented.\n",
                COLVARS_NOT_IMPLEMENTED);
     return cvm::rvector(0.0);
   }
@@ -460,7 +461,7 @@ class colvarproxy_smp {
 
 public:
 
-  enum class smp_mode_t {cvcs, inner_loop, none};
+  enum class smp_mode_t {cvcs, inner_loop, gpu, none};
 
   /// Constructor
   colvarproxy_smp();
@@ -470,6 +471,12 @@ public:
 
   /// Get the current SMP mode
   virtual smp_mode_t get_smp_mode() const;
+
+  /// Get available SMP modes
+  virtual std::vector<smp_mode_t> get_available_smp_modes() const;
+
+  /// Get the preferred SMP mode
+  virtual smp_mode_t get_preferred_smp_mode() const;
 
   /// Set the current SMP mode
   virtual int set_smp_mode(smp_mode_t mode);
@@ -504,7 +511,7 @@ protected:
   omp_lock_t *omp_lock_state;
 
   /// Whether threaded parallelization should be used (TODO: make this a
-  /// cvm::deps feature)
+  /// cvmodule->deps feature)
   smp_mode_t smp_mode;
 };
 
@@ -522,10 +529,7 @@ public:
 
   /// Pointer to the scripting interface object
   /// (does not need to be allocated in a new interface)
-  colvarscript *script;
-
-  /// Do we have a scripting interface?
-  bool have_scripts;
+  colvarscript *script = nullptr;
 
   /// Run a user-defined colvar forces script
   virtual int run_force_callback();
@@ -555,19 +559,20 @@ class colvarproxy
     public colvarproxy_replicas,
     public colvarproxy_script,
     public colvarproxy_tcl,
-    public colvarproxy_io
+    public colvarproxy_io,
+    public colvarproxy_gpu
 {
 
 public:
 
-  /// Pointer to the main object
-  colvarmodule *colvars;
+  /// Pointer to the associated colvarmodule object
+  colvarmodule *cvmodule;
 
   /// Constructor
   colvarproxy();
 
   /// Destructor
-  ~colvarproxy() override;
+  virtual ~colvarproxy() override;
 
   inline std::string const &engine_name() const
   {
@@ -620,6 +625,18 @@ public:
   {
     return engine_ready_;
   }
+
+  /// Are total forces currently valid? (They would not be right after configuration change)
+  inline bool total_forces_valid() const
+  {
+    return total_forces_valid_;
+  }
+
+  /// Mark the total forces as invalid (due to e.g. a configuration change)
+  void set_total_forces_invalid();
+
+  /// Mark the total forces as up to date
+  void set_total_forces_valid();
 
   /// Enqueue new configuration text, to be parsed as soon as possible
   void add_config(std::string const &cmd, std::string const &conf);
@@ -686,6 +703,9 @@ protected:
 
   /// Whether the engine allows to fully initialize Colvars immediately
   bool engine_ready_;
+
+  /// Whether the total forces are currently valid
+  bool total_forces_valid_ = false;
 
   /// Collected error messages
   std::string error_output;

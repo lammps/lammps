@@ -37,6 +37,7 @@ class PairDSMC : public Pair {
   void read_restart(FILE *) override;
   void write_restart_settings(FILE *) override;
   void read_restart_settings(FILE *) override;
+  double memory_usage() override;
 
  private:
   double cut_global;

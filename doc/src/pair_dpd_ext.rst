@@ -8,12 +8,12 @@
 pair_style dpd/ext command
 ==========================
 
-Accelerator Variants: dpd/ext/kk dpd/ext/omp
+Accelerator Variants: *dpd/ext/kk*, *dpd/ext/omp*
 
 pair_style dpd/ext/tstat command
 ================================
 
-Accelerator Variants: dpd/ext/tstat/kk dpd/ext/tstat/omp
+Accelerator Variants: *dpd/ext/tstat/kk*, *dpd/ext/tstat/omp*
 
 Syntax
 """"""

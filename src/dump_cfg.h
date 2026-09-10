@@ -40,8 +40,7 @@ class DumpCFG : public DumpCustom {
 
   using FnPtrWrite = void (DumpCFG::*)(int, double *);
   FnPtrWrite write_choice;    // ptr to write data functions
-  void write_string(int, double *);
-  void write_lines(int, double *);
+  void write_lines(int, double *) override;
 };
 
 }    // namespace LAMMPS_NS

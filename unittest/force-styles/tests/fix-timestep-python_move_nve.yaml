@@ -10,6 +10,7 @@ pre_commands: ! ""
 post_commands: ! |
   fix test all python/move py_nve.NVE
 input_file: in.fourmol
+input_coeffs: coeffs.fourmol
 natoms: 29
 run_pos: ! |2
     1 -2.7045559775384032e-01  2.4912159905679729e+00 -1.6695851791541888e-01

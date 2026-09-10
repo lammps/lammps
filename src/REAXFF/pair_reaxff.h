@@ -58,6 +58,9 @@ class PairReaxFF : public Pair {
   ReaxFF::API *api;
   using rvec = double[3];
 
+  void setup() override;
+  double memory_usage() override;
+
  protected:
   char *fix_id;
   double cutmax;
@@ -70,7 +73,6 @@ class PairReaxFF : public Pair {
   int list_blocking_flag;
 
   void allocate();
-  void setup() override;
   void create_compute();
   void create_fix();
   void write_reax_atoms();
@@ -82,7 +84,6 @@ class PairReaxFF : public Pair {
 
   int nmax;
   virtual void FindBond();
-  double memory_usage() override;
 };
 
 }    // namespace LAMMPS_NS

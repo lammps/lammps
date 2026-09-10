@@ -108,17 +108,20 @@ was built with that package.  See the :doc:`Build package
 Currently only periodic images of atoms and bonds in each direction can
 be displayed.
 
-Body particles or ellipsoids and similar are not fully supported; they are
-shown as spheres with this fix.
+Body particles or ellipsoids and similar are not fully supported; they
+are shown as spheres with this fix.
 
 Related commands
 """"""""""""""""
 
 :doc:`fix graphics/arrows <fix_graphics_arrows>`,
+:doc:`fix graphics/chunk <fix_graphics_chunk>`,
+:doc:`fix graphics/isosurface <fix_graphics_isosurface>`,
 :doc:`fix graphics/labels <fix_graphics_labels>`,
 :doc:`fix graphics/lines <fix_graphics_lines>`,
-:doc:`fix graphics/isosurface <fix_graphics_isosurface>`,
-:doc:`fix graphics/objects <fix_graphics_objects>`
+:doc:`fix graphics/objects <fix_graphics_objects>`,
+:doc:`fix graphics/replica <fix_graphics_replica>`,
+:doc:`dump image <dump_image>`
 
 Default
 """""""

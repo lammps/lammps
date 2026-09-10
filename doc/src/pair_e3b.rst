@@ -1,7 +1,10 @@
 .. index:: pair_style e3b
+.. index:: pair_style e3b/omp
 
 pair_style e3b command
 ======================
+
+Accelerator Variants: *e3b/omp*
 
 Syntax
 """"""
@@ -63,7 +66,7 @@ Used in example input script:
 Description
 """""""""""
 
-The *e3b* style computes an \"explicit three-body\" (E3B) potential for water :ref:`(Kumar 2008) <Kumar>`.
+The *e3b* style computes an \"explicit three-body\" (E3B) potential for water :ref:`(Kumar2) <Kumar>`.
 
 .. math::
 
@@ -92,7 +95,7 @@ s(r) between Rs and Rc3.  The two-body interactions are designed to
 correct for the effective many-body interactions implicitly included in
 the conventional two-body potential.  The two-body interactions are cut
 off sharply at Rc2, because K3 is typically significantly smaller than
-K2.  See :ref:`(Kumar 2008) <Kumar>` for more details.
+K2.  See :ref:`(Kumar2) <Kumar>` for more details.
 
 Only a single :doc:`pair_coeff <pair_coeff>` command is used with the
 *e3b* style and the first two arguments must be \* \*.  The oxygen atom
@@ -151,6 +154,10 @@ See the examples/PACKAGES/e3b directory for a complete example script.
 
 ----------
 
+.. include:: accel_styles.rst
+
+----------
+
 Mixing, shift, table, tail correction, restart, rRESPA info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
@@ -194,12 +201,12 @@ The option default for the *neigh* keyword is 10.
 
 .. _Kumar:
 
+**(Kumar2)** Kumar and Skinner, J. Phys. Chem. B, 112, 8311 (2008)
+
 .. _Tainter2011:
 
-**(Kumar)** Kumar and Skinner, J. Phys. Chem. B, 112, 8311 (2008)
+**(Tainter 2011)** Tainter, Pieniazek, Lin, and Skinner, J. Chem. Phys., 134, 184501 (2011)
 
 .. _Tainter2015:
-
-**(Tainter 2011)** Tainter, Pieniazek, Lin, and Skinner, J. Chem. Phys., 134, 184501 (2011)
 
 **(Tainter 2015)** Tainter, Shi, and Skinner, 11, 2268 (2015)

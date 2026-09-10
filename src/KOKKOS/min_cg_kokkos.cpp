@@ -68,20 +68,20 @@ int MinCGKokkos::iterate(int maxiter)
     if constexpr (F_LAYOUTRIGHT) {
       auto l_fvec = fvec;
       Kokkos::parallel_for(nvec, LAMMPS_LAMBDA(const int& i) {
-        l_h[i] = l_fvec[i];
-        l_g[i] = l_fvec[i];
+        l_h[i] = static_cast<KK_FLOAT>(l_fvec[i]);
+        l_g[i] = static_cast<KK_FLOAT>(l_fvec[i]);
       });
     } else {
       auto l_f = atomKK->k_f.view_device();
       Kokkos::parallel_for(atom->nlocal, LAMMPS_LAMBDA(const int& i) {
         const int j = i*3;
-        l_h[j] = l_f(i,0);
-        l_h[j+1] = l_f(i,1);
-        l_h[j+2] = l_f(i,2);
+        l_h[j] = static_cast<KK_FLOAT>(l_f(i,0));
+        l_h[j+1] = static_cast<KK_FLOAT>(l_f(i,1));
+        l_h[j+2] = static_cast<KK_FLOAT>(l_f(i,2));
 
-        l_g[j] = l_f(i,0);
-        l_g[j+1] = l_f(i,1);
-        l_g[j+2] = l_f(i,2);
+        l_g[j] = static_cast<KK_FLOAT>(l_f(i,0));
+        l_g[j+1] = static_cast<KK_FLOAT>(l_f(i,1));
+        l_g[j+2] = static_cast<KK_FLOAT>(l_f(i,2));
       });
     }
   }
@@ -125,25 +125,25 @@ int MinCGKokkos::iterate(int maxiter)
       if constexpr (F_LAYOUTRIGHT) {
         auto l_fvec = fvec;
         Kokkos::parallel_reduce(nvec, LAMMPS_LAMBDA(const int& i, s_KK_double2& sdot) {
-          sdot.d0 += l_fvec[i]*l_fvec[i];
-          sdot.d1 += l_fvec[i]*l_g[i];
+          sdot.d0 += static_cast<KK_FLOAT>(l_fvec[i]*l_fvec[i]);
+          sdot.d1 += static_cast<KK_FLOAT>(l_fvec[i])*l_g[i];
         },sdot);
       } else {
         auto l_f = atomKK->k_f.view_device();
         Kokkos::parallel_reduce(atom->nlocal, LAMMPS_LAMBDA(const int& i, s_KK_double2& sdot) {
-          sdot.d0 += l_f(i,0)*l_f(i,0);
-          sdot.d0 += l_f(i,1)*l_f(i,1);
-          sdot.d0 += l_f(i,2)*l_f(i,2);
+          sdot.d0 += static_cast<KK_FLOAT>(l_f(i,0)*l_f(i,0));
+          sdot.d0 += static_cast<KK_FLOAT>(l_f(i,1)*l_f(i,1));
+          sdot.d0 += static_cast<KK_FLOAT>(l_f(i,2)*l_f(i,2));
 
           const int j = i*3;
-          sdot.d1 += l_f(i,0)*l_g[j];
-          sdot.d1 += l_f(i,1)*l_g[j+1];
-          sdot.d1 += l_f(i,2)*l_g[j+2];
+          sdot.d1 += static_cast<KK_FLOAT>(l_f(i,0))*l_g[j];
+          sdot.d1 += static_cast<KK_FLOAT>(l_f(i,1))*l_g[j+1];
+          sdot.d1 += static_cast<KK_FLOAT>(l_f(i,2))*l_g[j+2];
         },sdot);
       }
     }
-    dot[0] = sdot.d0;
-    dot[1] = sdot.d1;
+    dot[0] = static_cast<double>(sdot.d0);
+    dot[1] = static_cast<double>(sdot.d1);
     MPI_Allreduce(dot,dotall,2,MPI_DOUBLE,MPI_SUM,world);
     if (nextra_global)
       for (int i = 0; i < nextra_global; i++) {
@@ -178,20 +178,20 @@ int MinCGKokkos::iterate(int maxiter)
       if constexpr (F_LAYOUTRIGHT) {
         auto l_fvec = fvec;
         Kokkos::parallel_for(nvec, LAMMPS_LAMBDA(const int& i) {
-          l_g[i] = l_fvec[i];
-          l_h[i] = l_g[i] + beta*l_h[i];
+          l_g[i] = static_cast<KK_FLOAT>(l_fvec[i]);
+          l_h[i] = l_g[i] + static_cast<KK_FLOAT>(beta)*l_h[i];
         });
       } else {
         auto l_f = atomKK->k_f.view_device();
         Kokkos::parallel_for(atom->nlocal, LAMMPS_LAMBDA(const int& i) {
           const int j = i*3;
-          l_g[j] = l_f(i,0);
-          l_g[j+1] = l_f(i,1);
-          l_g[j+2] = l_f(i,2);
+          l_g[j] = static_cast<KK_FLOAT>(l_f(i,0));
+          l_g[j+1] = static_cast<KK_FLOAT>(l_f(i,1));
+          l_g[j+2] = static_cast<KK_FLOAT>(l_f(i,2));
         });
 
         Kokkos::parallel_for(nvec, LAMMPS_LAMBDA(const int& i) {
-          l_h[i] = l_g[i] + beta*l_h[i];
+          l_h[i] = l_g[i] + static_cast<KK_FLOAT>(beta)*l_h[i];
         });
       }
     }
@@ -212,7 +212,7 @@ int MinCGKokkos::iterate(int maxiter)
       auto l_g = g;
 
       Kokkos::parallel_reduce(nvec, LAMMPS_LAMBDA(const int& i, double& dot_0) {
-        dot_0 += l_g[i]*l_h[i];
+        dot_0 += static_cast<double>(l_g[i]*l_h[i]);
       },dot_0);
     }
     dot[0] = dot_0;

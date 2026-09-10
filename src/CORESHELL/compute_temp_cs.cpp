@@ -99,9 +99,7 @@ ComputeTempCS::ComputeTempCS(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeTempCS::~ComputeTempCS()
 {
-  // check nfix in case all fixes have already been deleted
-
-  if (modify->nfix) modify->delete_fix(id_fix);
+  modify->delete_fix(id_fix);
 
   delete[] id_fix;
   delete[] vector;

@@ -27,6 +27,7 @@
 #include "math_const.h"
 #include "memory_kokkos.h"
 #include "neighbor_kokkos.h"
+#include "tune_kokkos.h"
 
 #include <cmath>
 
@@ -39,6 +40,7 @@ template<class DeviceType>
 BondFENEKokkos<DeviceType>::BondFENEKokkos(LAMMPS *lmp) : BondFENE(lmp)
 {
   kokkosable = 1;
+  tuner = nullptr;
 
   atomKK = (AtomKokkos *) atom;
   neighborKK = (NeighborKokkos *) neighbor;
@@ -58,6 +60,8 @@ BondFENEKokkos<DeviceType>::~BondFENEKokkos()
   if (!copymode) {
     memoryKK->destroy_kokkos(k_eatom,eatom);
     memoryKK->destroy_kokkos(k_vatom,vatom);
+
+    delete tuner;
   }
 }
 
@@ -103,9 +107,11 @@ void BondFENEKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   // loop over the bond list
 
-  int bond_blocksize = 0;
-  if (lmp->kokkos->bond_block_size_set)
-    bond_blocksize = lmp->kokkos->bond_block_size;
+  if (lmp->kokkos->autotuning && tuner) tuner->tuning_kernel_params();
+
+  int bond_chunk_size = 0;
+  if (lmp->kokkos->bond_chunk_size_set)
+    bond_chunk_size = lmp->kokkos->bond_chunk_size;
 
   EV_FLOAT ev;
 
@@ -117,13 +123,13 @@ void BondFENEKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     }
   } else {
     if (newton_bond) {
-      if (bond_blocksize)
-        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagBondFENECompute<1,0> >(0,nbondlist,Kokkos::ChunkSize(bond_blocksize)),*this);
+      if (bond_chunk_size)
+        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagBondFENECompute<1,0> >(0,nbondlist,Kokkos::ChunkSize(bond_chunk_size)),*this);
       else
         Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagBondFENECompute<1,0> >(0,nbondlist),*this);
     } else {
-      if (bond_blocksize)
-        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagBondFENECompute<0,0> >(0,nbondlist,Kokkos::ChunkSize(bond_blocksize)),*this);
+      if (bond_chunk_size)
+        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagBondFENECompute<0,0> >(0,nbondlist,Kokkos::ChunkSize(bond_chunk_size)),*this);
       else
         Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagBondFENECompute<0,0> >(0,nbondlist),*this);
     }
@@ -215,7 +221,7 @@ void BondFENEKokkos<DeviceType>::operator()(TagBondFENECompute<NEWTON_BOND,EVFLA
 
   KK_FLOAT ebond = 0;
   if (eflag) {
-    ebond = -static_cast<KK_FLOAT>(0.5) * k*r0sq*log(rlogarg);
+    ebond = -static_cast<KK_FLOAT>(0.5) * k*r0sq*Kokkos::log(rlogarg);
     if (rsq < static_cast<KK_FLOAT>(MY_CUBEROOT2)*sigma2)
       ebond += static_cast<KK_FLOAT>(4.0)*epsilon*sr6*(sr6-static_cast<KK_FLOAT>(1.0)) + epsilon;
   }
@@ -263,6 +269,11 @@ void BondFENEKokkos<DeviceType>::allocate()
   d_r0 = k_r0.template view<DeviceType>();
   d_epsilon = k_epsilon.template view<DeviceType>();
   d_sigma = k_sigma.template view<DeviceType>();
+
+  if (lmp->kokkos->autotuning > 0 && !tuner) {
+    tuner = new TuneKokkos(lmp, TuneKokkos::BOND, lmp->kokkos->autotuning,
+      1, "bond-fene");
+  }
 }
 
 /* ----------------------------------------------------------------------

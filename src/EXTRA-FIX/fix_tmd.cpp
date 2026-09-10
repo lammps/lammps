@@ -157,9 +157,9 @@ void FixTMD::init()
   // check that no integrator fix comes after a TMD fix
 
   int flag = 0;
-  for (int i = 0; i < modify->nfix; i++) {
-    if (strcmp(modify->fix[i]->style,"tmd") == 0) flag = 1;
-    if (flag && modify->fix[i]->time_integrate) flag = 2;
+  for (const auto &ifix : modify->get_fix_list()) {
+    if (strcmp(ifix->style,"tmd") == 0) flag = 1;
+    if (flag && ifix->time_integrate) flag = 2;
   }
   if (flag == 2) error->all(FLERR,"Fix tmd must come after integration fixes");
 

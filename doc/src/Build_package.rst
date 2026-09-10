@@ -54,6 +54,7 @@ packages:
    * :ref:`ML-PACE <ml-pace>`
    * :ref:`ML-POD <ml-pod>`
    * :ref:`ML-QUIP <ml-quip>`
+   * :ref:`ML-RUNNER <ml-runner>`
    * :ref:`MOLFILE <molfile>`
    * :ref:`NETCDF <netcdf>`
    * :ref:`OPENMP <openmp>`
@@ -61,10 +62,10 @@ packages:
    * :ref:`PLUMED <plumed>`
    * :ref:`PYTHON <python>`
    * :ref:`QMMM <qmmm>`
+   * :ref:`QMMM-XTB <qmmm-xtb>`
    * :ref:`RHEO <rheo>`
    * :ref:`SCAFACOS <scafacos>`
    * :ref:`VORONOI <voronoi>`
-   * :ref:`VTK <vtk>`
 
 The mechanism for including packages is simple but different for the CMake
 build system in comparison to the traditional make build.

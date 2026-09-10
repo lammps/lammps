@@ -37,7 +37,8 @@ static constexpr double SMALL = 0.001;
 
 /* ---------------------------------------------------------------------- */
 
-ImproperUmbrella::ImproperUmbrella(LAMMPS *_lmp) : Improper(_lmp)
+ImproperUmbrella::ImproperUmbrella(LAMMPS *_lmp) :
+    Improper(_lmp), kw(nullptr), w0(nullptr), C(nullptr)
 {
   writedata = 1;
 
@@ -51,6 +52,8 @@ ImproperUmbrella::ImproperUmbrella(LAMMPS *_lmp) : Improper(_lmp)
 
 ImproperUmbrella::~ImproperUmbrella()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(kw);
@@ -257,7 +260,8 @@ void ImproperUmbrella::allocate()
 
 void ImproperUmbrella::coeff(int narg, char **arg)
 {
-  if (narg != 3) error->all(FLERR, "Incorrect args for improper coefficients" + utils::errorurl(21));
+  if (narg != 3)
+    error->all(FLERR, "Incorrect args for improper coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo, ihi;
@@ -280,7 +284,8 @@ void ImproperUmbrella::coeff(int narg, char **arg)
     count++;
   }
 
-  if (count == 0) error->all(FLERR, "Incorrect args for improper coefficients" + utils::errorurl(21));
+  if (count == 0)
+    error->all(FLERR, "Incorrect args for improper coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------
@@ -323,7 +328,6 @@ void ImproperUmbrella::write_data(FILE *fp)
   for (int i = 1; i <= atom->nimpropertypes; i++)
     fprintf(fp, "%d %g %g\n", i, kw[i], RAD2DEG * w0[i]);
 }
-
 
 /* ----------------------------------------------------------------------
    return ptr to internal members upon request

@@ -4,14 +4,14 @@
 .. index:: pair_style saip/metal/tmd/opt
 
 pair_style saip/metal command
-===================================
+=============================
 
-Accelerator Variant: *saip/metal/opt*
+Accelerator Variants: *saip/metal/opt*
 
 pair_style saip/metal/tmd command
-===================================
+=================================
 
-Accelerator Variant: *saip/metal/tmd/opt*
+Accelerator Variants: *saip/metal/tmd/opt*
 
 Syntax
 """"""

@@ -41,13 +41,14 @@ class FixNonaffineDisplacement : public Fix {
   int pack_reverse_comm(int, int, double *) override;
   void unpack_reverse_comm(int, int *, double *) override;
   void grow_arrays(int) override;
+  double memory_usage() override;
 
  private:
   double dtv;
   char *id_fix;
   class FixStoreAtom *fix;
   int nmax, comm_flag;
-  int nad_style, cut_style;
+  int nad_style, cut_style, intensive_d2min;
   int reference_style, offset_timestep, reference_timestep, update_timestep;
   int reference_saved, z_min;
   double cutoff_custom, cutsq_custom, mycutneigh;

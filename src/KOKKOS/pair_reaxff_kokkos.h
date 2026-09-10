@@ -124,13 +124,14 @@ class PairReaxFFKokkos : public PairReaxFF {
   static constexpr int build_lists_half_blocksize = 64;
 
   PairReaxFFKokkos(class LAMMPS *);
-  virtual ~PairReaxFFKokkos();
+  ~PairReaxFFKokkos() override;
 
-  void ev_setup(int, int, int alloc = 1);
-  void compute(int, int);
-  void init_style();
-  double memory_usage();
-  void FindBond(int &, int groupbit = 1);
+  void ev_setup(int, int, int alloc = 1) override;
+  void setup() override;
+  void compute(int, int) override;
+  void init_style() override;
+  double memory_usage() override;
+  void FindBond_kokkos(int &, int groupbit = 1);
   void PackBondBuffer(DAT::tdual_double_1d, int &);
   void PackReducedBondBuffer(DAT::tdual_double_1d, int &, bool);
   void FindBondSpecies();
@@ -444,9 +445,8 @@ class PairReaxFFKokkos : public PairReaxFF {
 
  protected:
   void deallocate_views_of_views();
-  void allocate();
+  void allocate_kokkos();
   void allocate_array();
-  void setup();
   void init_md();
   int Init_Lookup_Tables();
   void Deallocate_Lookup_Tables();

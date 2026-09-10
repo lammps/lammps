@@ -1,10 +1,11 @@
 .. index:: improper_style cossq
+.. index:: improper_style cossq/kk
 .. index:: improper_style cossq/omp
 
 improper_style cossq command
 ============================
 
-Accelerator Variants: *cossq/omp*
+Accelerator Variants: *cossq/kk*, *cossq/omp*
 
 Syntax
 """"""

@@ -34,7 +34,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-ImproperSQDistHarm::ImproperSQDistHarm(LAMMPS *lmp) : Improper(lmp)
+ImproperSQDistHarm::ImproperSQDistHarm(LAMMPS *lmp) : Improper(lmp), k(nullptr), chi(nullptr)
 {
   // the fourth atom in the quadruplet is the atom of symmetry
 
@@ -45,6 +45,8 @@ ImproperSQDistHarm::ImproperSQDistHarm(LAMMPS *lmp) : Improper(lmp)
 
 ImproperSQDistHarm::~ImproperSQDistHarm()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(k);

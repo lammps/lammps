@@ -15,6 +15,7 @@ post_commands: ! |
   fix all all deform 2 xy erate ${gamma} remap v
   fix test all nvt/sllod temp 50.0 ${t_target} 1.0 kick no psllod no integrator legacy
 input_file: in.fourmol
+input_coeffs: coeffs.fourmol
 natoms: 29
 global_scalar: 2854867.1697558644
 global_vector: ! |-

@@ -47,7 +47,7 @@ enum { TOTAL, CONF, KIN, PAIR, BOND, ANGLE, DIHEDRAL };
 /* ---------------------------------------------------------------------- */
 
 ComputeStressMopProfile::ComputeStressMopProfile(LAMMPS *lmp, int narg, char **arg) :
-    Compute(lmp, narg, arg)
+    Compute(lmp, narg, arg), list(nullptr)
 {
   if (narg < 7) utils::missing_cmd_args(FLERR, "compute stress/mop/profile", error);
 

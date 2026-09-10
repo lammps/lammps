@@ -52,7 +52,7 @@ class PairMorseSmoothLinear : public Pair {
   double **der_at_cutoff;
   double **offset;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }    // namespace LAMMPS_NS

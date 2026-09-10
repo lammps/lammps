@@ -25,12 +25,13 @@
 #include "math_const.h"
 #include "math_extra.h"
 #include "memory.h"
-#include "random_mars.h"
 #include "version.h"
 
+#include <array>
 #include <cctype>
 #include <cmath>
 #include <cstring>
+#include <unordered_map>
 
 #ifdef LAMMPS_JPEG
 #include <jpeglib.h>
@@ -44,13 +45,12 @@
 
 using namespace LAMMPS_NS;
 using MathConst::DEG2RAD;
+using MathConst::MY_2PI;
 using MathConst::MY_PI;
 using MathConst::MY_PI4;
 
 // clang-format on
 namespace {
-constexpr int NCOLORS = 140;
-constexpr int NELEMENTS = 109;
 constexpr double EPSILON = 1.0e-6;
 constexpr double TRANS_DELTA = 0.01;
 
@@ -340,17 +340,27 @@ constexpr char letter_z[] = {
   "    ########################    "
   "                                "};
 
+// the surroundings mirrored by metallic surfaces: a bright sky above a dark
+// ground.  these are not adjustable on purpose.  the effect is a cheap
+// imitation, and a fake environment with more settings still cannot compete
+// with rendering the same scene in a ray tracer
+
+constexpr double SKYCOLOR[3] = {0.90, 0.94, 1.00};
+constexpr double GROUNDCOLOR[3] = {0.10, 0.10, 0.12};
+
 }    // namespace
 
 /* ---------------------------------------------------------------------- */
 
+// clang-format on
+
 Image::Image(LAMMPS *lmp, int nmap_caller) :
-  Pointers(lmp), maps(nullptr), depthBuffer(nullptr), surfaceBuffer(nullptr), depthcopy(nullptr),
-  surfacecopy(nullptr), imageBuffer(nullptr), rgbcopy(nullptr), writeBuffer(nullptr),
-  recvcounts(nullptr), displs(nullptr), username(nullptr), userrgb(nullptr), random(nullptr)
+    Pointers(lmp), maps(nullptr), depthBuffer(nullptr), surfaceBuffer(nullptr), depthcopy(nullptr),
+    surfacecopy(nullptr), imageBuffer(nullptr), rgbcopy(nullptr), writeBuffer(nullptr),
+    recvcounts(nullptr), displs(nullptr)
 {
-  MPI_Comm_rank(world,&me);
-  MPI_Comm_size(world,&nprocs);
+  MPI_Comm_rank(world, &me);
+  MPI_Comm_size(world, &nprocs);
 
   // defaults for 3d viz
 
@@ -359,8 +369,23 @@ Image::Image(LAMMPS *lmp, int nmap_caller) :
   phi = 30.0 * DEG2RAD;
   zoom = 1.0;
   shiny = 1.0;
+  gamma = 1.0;
   ssao = NO;
+  ssaosamples = 0;
   fsaa = NO;
+  depthcue = NO;
+  depthcueint = 0.0;
+  depthcuecolor = nullptr;
+  depthcuestartflag = 0;
+  depthcuestart = 0.0;
+  defocus = NO;
+  defocusint = 0.0;
+  defocusstartflag = 0;
+  defocusstart = 0.0;
+  outline = NO;
+  outlinewidth = 0;
+  outlinecolor = nullptr;
+  for (auto &b : boxbounds) b = 0.0;
 
   up[0] = 0.0;
   up[1] = 0.0;
@@ -368,44 +393,258 @@ Image::Image(LAMMPS *lmp, int nmap_caller) :
 
   // colors
 
-  ncolors = 0;
-  boxcolor = color2rgb("yellow");
   background[0] = background[1] = background[2] = 0.0;
   background2[0] = background2[1] = background2[2] = -1.0;
 
-  // define nmap colormaps, all with default settings
-
-  nmap = nmap_caller;
-  maps = new ColorMap*[nmap];
-  for (int i = 0; i < nmap; i++)
-    maps[i] = new ColorMap(lmp,this);
-
   // static parameters
 
-  FOV = MY_PI/6.0;              // 30 degrees
+  FOV = MY_PI / 6.0;    // 30 degrees
   ambientColor[0] = 0.0;
   ambientColor[1] = 0.0;
   ambientColor[2] = 0.0;
 
-  keyLightPhi = -MY_PI4;        // -45 degrees
-  keyLightTheta = MY_PI/6.0;    // 30 degrees
+  keyLightPhi = -MY_PI4;          // -45 degrees
+  keyLightTheta = MY_PI / 6.0;    // 30 degrees
   keyLightColor[0] = 0.9;
   keyLightColor[1] = 0.9;
   keyLightColor[2] = 0.9;
 
-  fillLightPhi = MY_PI/6.0;     // 30 degrees
+  fillLightPhi = MY_PI / 6.0;    // 30 degrees
   fillLightTheta = 0;
   fillLightColor[0] = 0.45;
   fillLightColor[1] = 0.45;
   fillLightColor[2] = 0.45;
 
-  backLightPhi = MY_PI;         // 180 degrees
-  backLightTheta = MY_PI/12.0;  // 15 degrees
+  backLightPhi = MY_PI;             // 180 degrees
+  backLightTheta = MY_PI / 12.0;    // 15 degrees
   backLightColor[0] = 0.9;
   backLightColor[1] = 0.9;
   backLightColor[2] = 0.9;
+
+  specularflag = 0;
+  nospecular = 0;
+  specularHardness = 16.0;
+  specularIntensity = 1.0;
+
+  // metallic shading is off by default, so that images are unchanged.
+  // the default surroundings are a bright sky over a dark ground, which
+  // is what makes a polished surface read as metal rather than as plastic
+
+  metallic = 0.0;
+  finishMirror = 0;
+  finishBand = 0.6;
+  finishWidth = 2.0;
+
+  // named colors
+  rgbcolors = {{"aliceblue", {0.941, 0.973, 1.000}},
+               {"antiquewhite", {0.980, 0.922, 0.843}},
+               {"aqua", {0.000, 1.000, 1.000}},
+               {"aquamarine", {0.498, 1.000, 0.831}},
+               {"azure", {0.941, 1.000, 1.000}},
+               {"beige", {0.961, 0.961, 0.863}},
+               {"bisque", {1.000, 0.894, 0.769}},
+               {"black", {0.000, 0.000, 0.000}},
+               {"blanchedalmond", {1.000, 1.000, 0.804}},
+               {"blue", {0.000, 0.000, 1.000}},
+               {"blueviolet", {0.541, 0.169, 0.886}},
+               {"brown", {0.647, 0.165, 0.165}},
+               {"burlywood", {0.871, 0.722, 0.529}},
+               {"cadetblue", {0.373, 0.620, 0.627}},
+               {"chartreuse", {0.498, 1.000, 0.000}},
+               {"chocolate", {0.824, 0.412, 0.118}},
+               {"coral", {1.000, 0.498, 0.314}},
+               {"cornflowerblue", {0.392, 0.584, 0.929}},
+               {"cornsilk", {1.000, 0.973, 0.863}},
+               {"crimson", {0.863, 0.078, 0.235}},
+               {"cyan", {0.000, 1.000, 1.000}},
+               {"darkblue", {0.000, 0.000, 0.545}},
+               {"darkcyan", {0.000, 0.545, 0.545}},
+               {"darkgoldenrod", {0.722, 0.525, 0.043}},
+               {"darkgray", {0.271, 0.271, 0.271}},
+               {"darkgreen", {0.000, 0.392, 0.000}},
+               {"darkkhaki", {0.741, 0.718, 0.420}},
+               {"darkmagenta", {0.545, 0.000, 0.545}},
+               {"darkolivegreen", {0.333, 0.420, 0.184}},
+               {"darkorange", {0.545, 0.271, 0.000}},
+               {"darkorchid", {0.600, 0.196, 0.800}},
+               {"darkred", {0.545, 0.000, 0.000}},
+               {"darksalmon", {0.914, 0.588, 0.478}},
+               {"darkseagreen", {0.561, 0.737, 0.561}},
+               {"darkslateblue", {0.282, 0.239, 0.545}},
+               {"darkslategray", {0.184, 0.310, 0.310}},
+               {"darkturquoise", {0.000, 0.808, 0.820}},
+               {"darkviolet", {0.580, 0.000, 0.827}},
+               {"deeppink", {1.000, 0.078, 0.576}},
+               {"deepskyblue", {0.000, 0.749, 1.000}},
+               {"dimgray", {0.412, 0.412, 0.412}},
+               {"dodgerblue", {0.118, 0.565, 1.000}},
+               {"firebrick", {0.698, 0.133, 0.133}},
+               {"floralwhite", {1.000, 0.980, 0.941}},
+               {"forestgreen", {0.133, 0.545, 0.133}},
+               {"fuchsia", {1.000, 0.000, 1.000}},
+               {"gainsboro", {0.863, 0.863, 0.863}},
+               {"ghostwhite", {0.973, 0.973, 1.000}},
+               {"gold", {1.000, 0.843, 0.000}},
+               {"goldenrod", {0.855, 0.647, 0.125}},
+               {"gray", {0.502, 0.502, 0.502}},
+               {"green", {0.000, 1.000, 0.000}},
+               {"greenyellow", {0.678, 1.000, 0.184}},
+               {"honeydew", {0.941, 1.000, 0.941}},
+               {"hotpink", {1.000, 0.412, 0.706}},
+               {"indianred", {0.804, 0.361, 0.361}},
+               {"indigo", {0.294, 0.000, 0.510}},
+               {"ivory", {1.000, 0.941, 0.941}},
+               {"khaki", {0.941, 0.902, 0.549}},
+               {"lavender", {0.902, 0.902, 0.980}},
+               {"lavenderblush", {1.000, 0.941, 0.961}},
+               {"lawngreen", {0.486, 0.988, 0.000}},
+               {"lemonchiffon", {1.000, 0.980, 0.804}},
+               {"lightblue", {0.678, 0.847, 0.902}},
+               {"lightcoral", {0.941, 0.502, 0.502}},
+               {"lightcyan", {0.878, 1.000, 1.000}},
+               {"lightgoldenrodyellow", {0.980, 0.980, 0.824}},
+               {"lightgreen", {0.565, 0.933, 0.565}},
+               {"lightgrey", {0.827, 0.827, 0.827}},
+               {"lightpink", {1.000, 0.714, 0.757}},
+               {"lightsalmon", {1.000, 0.627, 0.478}},
+               {"lightseagreen", {0.125, 0.698, 0.667}},
+               {"lightskyblue", {0.529, 0.808, 0.980}},
+               {"lightslategray", {0.467, 0.533, 0.600}},
+               {"lightsteelblue", {0.690, 0.769, 0.871}},
+               {"lightyellow", {1.000, 1.000, 0.878}},
+               {"lime", {0.000, 1.000, 0.000}},
+               {"limegreen", {0.196, 0.804, 0.196}},
+               {"linen", {0.980, 0.941, 0.902}},
+               {"magenta", {1.000, 0.000, 1.000}},
+               {"maroon", {0.502, 0.000, 0.000}},
+               {"mediumaquamarine", {0.400, 0.804, 0.667}},
+               {"mediumblue", {0.000, 0.000, 0.804}},
+               {"mediumorchid", {0.729, 0.333, 0.827}},
+               {"mediumpurple", {0.576, 0.439, 0.859}},
+               {"mediumseagreen", {0.235, 0.702, 0.443}},
+               {"mediumslateblue", {0.482, 0.408, 0.933}},
+               {"mediumspringgreen", {0.000, 0.980, 0.604}},
+               {"mediumturquoise", {0.282, 0.820, 0.800}},
+               {"mediumvioletred", {0.780, 0.082, 0.522}},
+               {"midnightblue", {0.098, 0.098, 0.439}},
+               {"mintcream", {0.961, 1.000, 0.980}},
+               {"mistyrose", {1.000, 0.894, 0.882}},
+               {"moccasin", {1.000, 0.894, 0.710}},
+               {"navajowhite", {1.000, 0.871, 0.678}},
+               {"navy", {0.000, 0.000, 0.502}},
+               {"oldlace", {0.992, 0.961, 0.902}},
+               {"olive", {0.502, 0.502, 0.000}},
+               {"olivedrab", {0.420, 0.557, 0.137}},
+               {"orange", {1.000, 0.502, 0.000}},
+               {"orangered", {1.000, 0.251, 0.000}},
+               {"orchid", {0.855, 0.439, 0.839}},
+               {"palegoldenrod", {0.933, 0.910, 0.667}},
+               {"palegreen", {0.596, 0.984, 0.596}},
+               {"paleturquoise", {0.686, 0.933, 0.933}},
+               {"palevioletred", {0.859, 0.439, 0.576}},
+               {"papayawhip", {1.000, 0.937, 0.835}},
+               {"peachpuff", {1.000, 0.937, 0.835}},
+               {"peru", {0.804, 0.522, 0.247}},
+               {"pink", {1.000, 0.753, 0.796}},
+               {"plum", {0.867, 0.627, 0.867}},
+               {"powderblue", {0.690, 0.878, 0.902}},
+               {"purple", {0.502, 0.000, 0.502}},
+               {"red", {1.000, 0.000, 0.000}},
+               {"rosybrown", {0.737, 0.561, 0.561}},
+               {"royalblue", {0.255, 0.412, 0.882}},
+               {"saddlebrown", {0.545, 0.271, 0.075}},
+               {"salmon", {0.980, 0.502, 0.447}},
+               {"sandybrown", {0.957, 0.643, 0.376}},
+               {"seagreen", {0.180, 0.545, 0.341}},
+               {"seashell", {1.000, 0.961, 0.933}},
+               {"sienna", {0.627, 0.322, 0.176}},
+               {"silver", {0.753, 0.753, 0.753}},
+               {"skyblue", {0.529, 0.808, 0.922}},
+               {"slateblue", {0.416, 0.353, 0.804}},
+               {"slategray", {0.439, 0.502, 0.565}},
+               {"snow", {1.000, 0.980, 0.980}},
+               {"springgreen", {0.000, 1.000, 0.498}},
+               {"steelblue", {0.275, 0.510, 0.706}},
+               {"tan", {0.824, 0.706, 0.549}},
+               {"teal", {0.000, 0.502, 0.502}},
+               {"thistle", {0.847, 0.749, 0.847}},
+               {"tomato", {0.992, 0.388, 0.278}},
+               {"turquoise", {0.251, 0.878, 0.816}},
+               {"violet", {0.933, 0.510, 0.933}},
+               {"wheat", {0.961, 0.871, 0.702}},
+               {"white", {1.000, 1.000, 1.000}},
+               {"whitesmoke", {0.961, 0.961, 0.961}},
+               {"yellow", {1.000, 1.000, 0.000}},
+               {"yellowgreen", {0.604, 0.804, 0.196}}};
+
+  // assigned per-element info: color as RGB and covalent radius
+  // this list is used by AtomEye and is taken from its Mendeleyev.c file
+  elementdata = {{"H", {{0.800, 0.800, 0.800}, 0.35}},    {"He", {{0.643, 0.667, 0.678}, 1.785}},
+                 {"Li", {{0.700, 0.700, 0.700}, 1.45}},   {"Be", {{0.643, 0.667, 0.678}, 1.05}},
+                 {"B", {{0.900, 0.400, 0.000}, 0.85}},    {"C", {{0.350, 0.350, 0.350}, 0.72}},
+                 {"N", {{0.200, 0.200, 0.800}, 0.65}},    {"O", {{0.800, 0.200, 0.200}, 0.6}},
+                 {"F", {{0.700, 0.850, 0.450}, 0.5}},     {"Ne", {{0.643, 0.667, 0.678}, 1.5662}},
+                 {"Na", {{0.600, 0.600, 0.800}, 1.8}},    {"Mg", {{0.950, 0.945, 0.935}, 1.5}},
+                 {"Al", {{0.913, 0.922, 0.924}, 1.4255}}, {"Si", {{0.690, 0.769, 0.871}, 1.07}},
+                 {"P", {{0.100, 0.700, 0.300}, 1}},       {"S", {{0.950, 0.900, 0.200}, 1}},
+                 {"Cl", {{0.150, 0.500, 0.100}, 1}},      {"Ar", {{0.643, 0.667, 0.678}, 1.8597}},
+                 {"K", {{0.800, 0.500, 0.500}, 2.2}},     {"Ca", {{0.800, 0.800, 0.700}, 1.8}},
+                 {"Sc", {{0.643, 0.667, 0.678}, 1.6}},    {"Ti", {{0.542, 0.497, 0.449}, 1.4}},
+                 {"V", {{0.643, 0.667, 0.678}, 1.51995}}, {"Cr", {{0.630, 0.650, 0.660}, 1.44225}},
+                 {"Mn", {{0.570, 0.545, 0.545}, 1.4}},    {"Fe", {{0.480, 0.470, 0.462}, 1.43325}},
+                 {"Co", {{0.565, 0.590, 0.645}, 1.35}},   {"Ni", {{0.660, 0.609, 0.526}, 1.35}},
+                 {"Cu", {{0.955, 0.638, 0.538}, 1.278}},  {"Zn", {{0.828, 0.843, 0.855}, 1.35}},
+                 {"Ga", {{0.900, 0.000, 1.000}, 1.3}},    {"Ge", {{0.643, 0.667, 0.678}, 1.25}},
+                 {"As", {{1.000, 1.000, 0.300}, 1.15}},   {"Se", {{0.643, 0.667, 0.678}, 1.15}},
+                 {"Br", {{0.500, 0.080, 0.120}, 1.15}},   {"Kr", {{0.643, 0.667, 0.678}, 2.0223}},
+                 {"Rb", {{0.643, 0.667, 0.678}, 2.35}},   {"Sr", {{0.643, 0.667, 0.678}, 2}},
+                 {"Y", {{0.643, 0.667, 0.678}, 1.8}},     {"Zr", {{0.643, 0.667, 0.678}, 1.55}},
+                 {"Nb", {{0.643, 0.667, 0.678}, 1.6504}}, {"Mo", {{0.643, 0.667, 0.678}, 1.3872}},
+                 {"Tc", {{0.643, 0.667, 0.678}, 1.35}},   {"Ru", {{0.643, 0.667, 0.678}, 1.3}},
+                 {"Rh", {{0.643, 0.667, 0.678}, 1.35}},   {"Pd", {{0.643, 0.667, 0.678}, 1.4}},
+                 {"Ag", {{0.972, 0.960, 0.915}, 1.6}},    {"Cd", {{0.643, 0.667, 0.678}, 1.55}},
+                 {"In", {{0.643, 0.667, 0.678}, 1.55}},   {"Sn", {{0.600, 0.596, 0.592}, 1.45}},
+                 {"Sb", {{0.643, 0.667, 0.678}, 1.45}},   {"Te", {{0.643, 0.667, 0.678}, 1.4}},
+                 {"I", {{0.500, 0.100, 0.500}, 1.4}},     {"Xe", {{0.643, 0.667, 0.678}, 2.192}},
+                 {"Cs", {{0.643, 0.667, 0.678}, 2.6}},    {"Ba", {{0.643, 0.667, 0.678}, 2.15}},
+                 {"La", {{0.643, 0.667, 0.678}, 1.95}},   {"Ce", {{0.800, 0.800, 0.000}, 1.85}},
+                 {"Pr", {{0.643, 0.667, 0.678}, 1.85}},   {"Nd", {{0.643, 0.667, 0.678}, 1.85}},
+                 {"Pm", {{0.643, 0.667, 0.678}, 1.85}},   {"Sm", {{0.643, 0.667, 0.678}, 1.85}},
+                 {"Eu", {{0.643, 0.667, 0.678}, 1.85}},   {"Gd", {{1.000, 0.843, 0.000}, 1.8}},
+                 {"Tb", {{0.643, 0.667, 0.678}, 1.75}},   {"Dy", {{0.643, 0.667, 0.678}, 1.75}},
+                 {"Ho", {{0.643, 0.667, 0.678}, 1.75}},   {"Er", {{0.643, 0.667, 0.678}, 1.75}},
+                 {"Tm", {{0.643, 0.667, 0.678}, 1.75}},   {"Yb", {{0.643, 0.667, 0.678}, 1.75}},
+                 {"Lu", {{0.643, 0.667, 0.678}, 1.75}},   {"Hf", {{0.643, 0.667, 0.678}, 1.55}},
+                 {"Ta", {{0.643, 0.667, 0.678}, 1.6529}}, {"W", {{0.643, 0.667, 0.678}, 1.5826}},
+                 {"Re", {{0.643, 0.667, 0.678}, 1.35}},   {"Os", {{0.643, 0.667, 0.678}, 1.3}},
+                 {"Ir", {{0.643, 0.667, 0.678}, 1.35}},   {"Pt", {{0.643, 0.667, 0.678}, 1.35}},
+                 {"Au", {{1.000, 0.766, 0.336}, 1.35}},   {"Hg", {{0.780, 0.779, 0.776}, 1.5}},
+                 {"Tl", {{0.643, 0.667, 0.678}, 1.9}},    {"Pb", {{0.520, 0.535, 0.560}, 1.8}},
+                 {"Bi", {{0.643, 0.667, 0.678}, 1.6}},    {"Po", {{0.643, 0.667, 0.678}, 1.9}},
+                 {"At", {{0.800, 0.200, 0.200}, 1.6}},    {"Rn", {{0.643, 0.667, 0.678}, 1.0}},
+                 {"Fr", {{0.643, 0.667, 0.678}, 1.0}},    {"Ra", {{0.643, 0.667, 0.678}, 2.15}},
+                 {"Ac", {{0.643, 0.667, 0.678}, 1.95}},   {"Th", {{0.643, 0.667, 0.678}, 1.8}},
+                 {"Pa", {{0.643, 0.667, 0.678}, 1.8}},    {"U", {{0.643, 0.667, 0.678}, 1.75}},
+                 {"Np", {{0.643, 0.667, 0.678}, 1.75}},   {"Pu", {{0.643, 0.667, 0.678}, 1.75}},
+                 {"Am", {{0.643, 0.667, 0.678}, 1.75}},   {"Cm", {{0.643, 0.667, 0.678}, 1.0}},
+                 {"Bk", {{0.643, 0.667, 0.678}, 1.0}},    {"Cf", {{0.100, 0.700, 0.300}, 1.6}},
+                 {"Es", {{0.100, 0.300, 0.700}, 1.6}},    {"Fm", {{0.643, 0.667, 0.678}, 1.0}},
+                 {"Md", {{0.643, 0.667, 0.678}, 1.0}},    {"No", {{0.643, 0.667, 0.678}, 1.0}},
+                 {"Lr", {{0.643, 0.667, 0.678}, 1.0}},    {"Rf", {{0.643, 0.667, 0.678}, 1.0}},
+                 {"Db", {{0.900, 0.800, 0.000}, 1.6}},    {"Sg", {{0.643, 0.667, 0.678}, 1.0}},
+                 {"Bh", {{0.643, 0.667, 0.678}, 1.0}},    {"Hs", {{0.643, 0.667, 0.678}, 1.0}},
+                 {"Mt", {{0.643, 0.667, 0.678}, 1.0}}};
+
+  boxcolor = color2rgb("gold");
+
+  // define requested color maps with default values. must come after defining color names
+
+  nmap = nmap_caller;
+  maps = new ColorMap *[nmap];
+  for (int i = 0; i < nmap; i++) maps[i] = new ColorMap(lmp, this);
 }
 
+// clang-format off
 /* ---------------------------------------------------------------------- */
 
 Image::~Image()
@@ -413,18 +652,12 @@ Image::~Image()
   for (int i = 0; i < nmap; i++) delete maps[i];
   delete[] maps;
 
-  for (int i = 0; i < ncolors; i++) delete [] username[i];
-  memory->sfree(username);
-  memory->destroy(userrgb);
-
   memory->destroy(depthBuffer);
   memory->destroy(surfaceBuffer);
   memory->destroy(imageBuffer);
   memory->destroy(depthcopy);
   memory->destroy(surfacecopy);
   memory->destroy(rgbcopy);
-
-  delete random;
 
   memory->destroy(recvcounts);
   memory->destroy(displs);
@@ -462,6 +695,15 @@ void Image::buffers()
 void Image::view_params(double boxxlo, double boxxhi, double boxylo,
                         double boxyhi, double boxzlo, double boxzhi)
 {
+  // keep box bounds for projecting the box onto the view direction
+
+  boxbounds[0] = boxxlo;
+  boxbounds[1] = boxxhi;
+  boxbounds[2] = boxylo;
+  boxbounds[3] = boxyhi;
+  boxbounds[4] = boxzlo;
+  boxbounds[5] = boxzhi;
+
   // camDir points at the camera, view direction = -camDir
 
   camDir[0] = sin(theta)*cos(phi);
@@ -525,6 +767,39 @@ void Image::view_params(double boxxlo, double boxxhi, double boxylo,
 
   // light directions in terms of -camDir = z
 
+  setup_lights();
+
+  // the brightness of the specular highlights follows shiny; their width
+  // also follows shiny unless set with a dump_modify specular preset;
+  // dump_modify specular none disables the highlights entirely
+
+  specularIntensity = nospecular ? 0.0 : shiny;
+  if (!specularflag) specularHardness = 16.0 * shiny;
+
+  // adjust strength of the SSAO
+
+  if (ssao) {
+    SSAORadius = maxdel * 0.05 * ssaoint;
+    SSAOSamples = static_cast<int>(8.0 + 32.0*ssaoint);
+    SSAOJitter = MY_PI / 12;
+    ambientColor[0] = 0.5;
+    ambientColor[1] = 0.5;
+    ambientColor[2] = 0.5;
+  }
+
+  // param for rasterizing spheres
+
+  tanPerPixel = -(maxdel / (double) height);
+}
+
+/* ----------------------------------------------------------------------
+   compute light directions from their theta/phi angles
+   the angles are relative to the viewer with z pointing at the camera:
+   theta > 0 moves a light above the view direction, phi > 0 to the right
+------------------------------------------------------------------------- */
+
+void Image::setup_lights()
+{
   keyLightDir[0] = cos(keyLightTheta) * sin(keyLightPhi);
   keyLightDir[1] = sin(keyLightTheta);
   keyLightDir[2] = cos(keyLightTheta) * cos(keyLightPhi);
@@ -541,27 +816,6 @@ void Image::view_params(double boxxlo, double boxxhi, double boxylo,
   keyHalfDir[1] = 0 + keyLightDir[1];
   keyHalfDir[2] = 1 + keyLightDir[2];
   MathExtra::norm3(keyHalfDir);
-
-  // adjust shinyness of the reflection
-
-  specularHardness = 16.0 * shiny;
-  specularIntensity = shiny;
-
-  // adjust strength of the SSAO
-
-  if (ssao) {
-    if (!random) random = new RanMars(lmp,seed+me);
-    SSAORadius = maxdel * 0.05 * ssaoint;
-    SSAOSamples = static_cast<int>(8.0 + 32.0*ssaoint);
-    SSAOJitter = MY_PI / 12;
-    ambientColor[0] = 0.5;
-    ambientColor[1] = 0.5;
-    ambientColor[2] = 0.5;
-  }
-
-  // param for rasterizing spheres
-
-  tanPerPixel = -(maxdel / (double) height);
 }
 
 /* ----------------------------------------------------------------------
@@ -686,6 +940,18 @@ void Image::merge()
   } else {
     writeBuffer = imageBuffer;
   }
+
+  // draw outlines at depth discontinuities
+
+  if (outline && (me == 0)) compute_outline();
+
+  // apply depth cueing to the final composited image
+
+  if (depthcue && (me == 0)) compute_depthcue();
+
+  // blur the more distant objects in the final composited image
+
+  if (defocus && (me == 0)) compute_defocus();
 
   // scale down image for antialiasing. can be done in place with simple averaging
   if (fsaa) {
@@ -1532,33 +1798,93 @@ void Image::draw_pixel(int ix, int iy, double depth, const double *surface,
   diffuseKey = saturate(MathExtra::dot3(surface, keyLightDir));
   diffuseFill = saturate(MathExtra::dot3(surface, fillLightDir));
   diffuseBack = saturate(MathExtra::dot3(surface, backLightDir));
-  specularKey = pow(saturate(MathExtra::dot3(surface, keyHalfDir)),
-                    specularHardness) * specularIntensity;
+
+  // a metal reflects nearly all light directly and tints the reflection with
+  // its own color, while a non-conductor scatters light diffusely and reflects
+  // it without tinting.  "metallic" blends between those two limits: it scales
+  // down the diffuse contributions and turns "reflect" into the color of the
+  // reflected light.  for metallic = 0.0 this reproduces the plain shading.
+
+  const double diffuse = 1.0 - metallic;
+  double reflect[3];
+  reflect[0] = metallic * surfaceColor[0] + diffuse;
+  reflect[1] = metallic * surfaceColor[1] + diffuse;
+  reflect[2] = metallic * surfaceColor[2] + diffuse;
+
+  // every surface becomes mirror-like when viewed at a grazing angle, which
+  // brightens the outline of a curved object.  the amount follows Schlick's
+  // approximation.  the viewing direction is (0,0,1) in these coordinates,
+  // so its dot product with the surface normal is simply the z component
+
+  const double viewdot = saturate(surface[2]);
+  const double grazing = (1.0-viewdot)*(1.0-viewdot)*(1.0-viewdot)*(1.0-viewdot)*(1.0-viewdot);
+  reflect[0] += (1.0 - reflect[0]) * grazing;
+  reflect[1] += (1.0 - reflect[1]) * grazing;
+  reflect[2] += (1.0 - reflect[2]) * grazing;
 
   double c[3];
-  c[0] = surfaceColor[0] * ambientColor[0];
-  c[1] = surfaceColor[1] * ambientColor[1];
-  c[2] = surfaceColor[2] * ambientColor[2];
+  c[0] = surfaceColor[0] * ambientColor[0] * diffuse;
+  c[1] = surfaceColor[1] * ambientColor[1] * diffuse;
+  c[2] = surfaceColor[2] * ambientColor[2] * diffuse;
 
-  c[0] += surfaceColor[0] * keyLightColor[0] * diffuseKey;
-  c[1] += surfaceColor[1] * keyLightColor[1] * diffuseKey;
-  c[2] += surfaceColor[2] * keyLightColor[2] * diffuseKey;
+  c[0] += surfaceColor[0] * keyLightColor[0] * diffuseKey * diffuse;
+  c[1] += surfaceColor[1] * keyLightColor[1] * diffuseKey * diffuse;
+  c[2] += surfaceColor[2] * keyLightColor[2] * diffuseKey * diffuse;
 
-  c[0] += keyLightColor[0] * specularKey;
-  c[1] += keyLightColor[1] * specularKey;
-  c[2] += keyLightColor[2] * specularKey;
+  // specular highlights are disabled with dump_modify specular none.
+  // check the flag here since view_params() may not run again after
+  // dump_modify for static views
 
-  c[0] += surfaceColor[0] * fillLightColor[0] * diffuseFill;
-  c[1] += surfaceColor[1] * fillLightColor[1] * diffuseFill;
-  c[2] += surfaceColor[2] * fillLightColor[2] * diffuseFill;
+  if (!nospecular && (specularIntensity > 0.0)) {
+    specularKey = pow(saturate(MathExtra::dot3(surface, keyHalfDir)),
+                      specularHardness) * specularIntensity;
 
-  c[0] += surfaceColor[0] * backLightColor[0] * diffuseBack;
-  c[1] += surfaceColor[1] * backLightColor[1] * diffuseBack;
-  c[2] += surfaceColor[2] * backLightColor[2] * diffuseBack;
+    c[0] += keyLightColor[0] * reflect[0] * specularKey;
+    c[1] += keyLightColor[1] * reflect[1] * specularKey;
+    c[2] += keyLightColor[2] * reflect[2] * specularKey;
+  }
+
+  c[0] += surfaceColor[0] * fillLightColor[0] * diffuseFill * diffuse;
+  c[1] += surfaceColor[1] * fillLightColor[1] * diffuseFill * diffuse;
+  c[2] += surfaceColor[2] * fillLightColor[2] * diffuseFill * diffuse;
+
+  c[0] += surfaceColor[0] * backLightColor[0] * diffuseBack * diffuse;
+  c[1] += surfaceColor[1] * backLightColor[1] * diffuseBack * diffuse;
+  c[2] += surfaceColor[2] * backLightColor[2] * diffuseBack * diffuse;
+
+  // a metal also mirrors its surroundings, which are approximated by a sky
+  // color above and a ground color below.  the direction into which the
+  // surface reflects the viewer is 2 (n.v) n - v, and only its vertical
+  // component is needed to pick the color from that gradient
+
+  if (metallic > 0.0) {
+    const double updir = finishMirror ? 2.0*viewdot*surface[1] : surface[1];
+    double updown = saturate(0.5 * (updir + 1.0));
+    updown = updown * updown * (3.0 - 2.0*updown);    // narrow the horizon
+
+    // brighten a band around the horizon, where the surroundings of a real
+    // scene are brightest.  this is what produces the light streak across a
+    // polished surface that reads as "shiny metal" rather than "dark paint"
+
+    double band = 0.0;
+    if (finishBand > 0.0) band = finishBand * pow(1.0 - fabs(2.0*updown - 1.0), finishWidth);
+
+    c[0] += metallic * reflect[0] * (GROUNDCOLOR[0] + updown*(SKYCOLOR[0]-GROUNDCOLOR[0]) + band);
+    c[1] += metallic * reflect[1] * (GROUNDCOLOR[1] + updown*(SKYCOLOR[1]-GROUNDCOLOR[1]) + band);
+    c[2] += metallic * reflect[2] * (GROUNDCOLOR[2] + updown*(SKYCOLOR[2]-GROUNDCOLOR[2]) + band);
+  }
 
   c[0] = saturate(c[0]);
   c[1] = saturate(c[1]);
   c[2] = saturate(c[2]);
+
+  // apply gamma adjustment to the summed up light contributions
+
+  if (gamma != 1.0) {
+    c[0] = pow(c[0], 1.0 / gamma);
+    c[1] = pow(c[1], 1.0 / gamma);
+    c[2] = pow(c[2], 1.0 / gamma);
+  }
 
   imageBuffer[0 + ix*3 + iy*width*3] = static_cast<int>(c[0] * 255.0);
   imageBuffer[1 + ix*3 + iy*width*3] = static_cast<int>(c[1] * 255.0);
@@ -1569,9 +1895,14 @@ void Image::draw_pixel(int ix, int iy, double depth, const double *surface,
 
 void Image::compute_SSAO()
 {
+  // number of horizon directions per pixel.  a chosen value must override
+  // the automatic one here, since view_params() may have run before it was set
+
+  const int nsamples = (ssaosamples > 0) ? ssaosamples : SSAOSamples;
+
   // used for rasterizing the spheres
 
-  double delTheta = 2.0*MY_PI / SSAOSamples;
+  double delTheta = 2.0*MY_PI / nsamples;
 
   // typical neighborhood value for shading
 
@@ -1587,9 +1918,18 @@ void Image::compute_SSAO()
   int pixelstart = static_cast<int>(1.0*me/nprocs * npixels);
   int pixelstop = static_cast<int>(1.0*(me+1)/nprocs * npixels);
 
-  // fill buffer with random numbers to avoid race conditions
-  auto *uniform = new double[pixelstop - pixelstart];
-  for (int i = 0; i < pixelstop - pixelstart; ++i) uniform[i] = random->uniform();
+  // shift of the jitter noise pattern derived from the seed value
+
+  const double seedshift = fmod(0.618033988749895 * (double) seed, 1.0);
+
+  // table of evenly spaced horizon directions, computed once; each pixel
+  // rotates the whole table by its per-pixel jitter angle
+
+  auto *dirTable = new double[2*nsamples];
+  for (int s = 0; s < nsamples; ++s) {
+    dirTable[2*s]   = cos(s * delTheta);
+    dirTable[2*s+1] = sin(s * delTheta);
+  }
 
 #if defined(_OPENMP)
 #pragma omp parallel for
@@ -1605,13 +1945,19 @@ void Image::compute_SSAO()
     double sy = surfaceBuffer[index * 2 + 1];
     double sin_t = -sqrt(sx*sx + sy*sy);
 
-    double mytheta = uniform[index - pixelstart] * SSAOJitter;
+    // deterministic per-pixel jitter from interleaved gradient noise, so
+    // shading is independent of the number of MPI ranks and OpenMP threads
+    // and images of unchanged scenes are reproducible
+
+    double ign = fmod(0.06711056 * x + 0.00583715 * y + seedshift, 1.0);
+    const double mytheta = fmod(52.9829189 * ign, 1.0) * SSAOJitter;
+    const double cosj = cos(mytheta);
+    const double sinj = sin(mytheta);
     double ao = 0.0;
 
-    for (int s = 0; s < SSAOSamples; ++s) {
-      double hx = cos(mytheta);
-      double hy = sin(mytheta);
-      mytheta += delTheta;
+    for (int s = 0; s < nsamples; ++s) {
+      double hx = cosj * dirTable[2*s] - sinj * dirTable[2*s+1];
+      double hy = sinj * dirTable[2*s] + cosj * dirTable[2*s+1];
 
       // multiply by z cross surface tangent
       // so that dot (aka cos) works here
@@ -1682,7 +2028,7 @@ void Image::compute_SSAO()
         ao += saturate(-scaled_sin_t);
       }
     }
-    ao /= (double)SSAOSamples;
+    ao /= (double)nsamples;
 
     double c[3];
     c[0] = (double) (*(unsigned char *) &imageBuffer[index * 3 + 0]);
@@ -1695,7 +2041,362 @@ void Image::compute_SSAO()
     imageBuffer[index * 3 + 1] = (int) c[1];
     imageBuffer[index * 3 + 2] = (int) c[2];
   }
-  delete[] uniform;
+
+  delete[] dirTable;
+}
+
+/* ----------------------------------------------------------------------
+   draw outlines on the composited image on the output rank: color
+   drawn pixels that have a significantly more distant pixel or the
+   background within the outline width.  the outline hugs the nearer
+   object at depth discontinuities, which gives the flat illustration
+   look known from hand-drawn molecular graphics.
+------------------------------------------------------------------------- */
+
+void Image::compute_outline()
+{
+  // only depth jumps between immediately adjacent pixels that are larger
+  // than a small fraction of the box size count as edges.  the smooth but
+  // steep depth changes where a curved surface turns away from the viewer
+  // must not be outlined, so the threshold is of the order of typical
+  // particle sizes and the comparison spans only one pixel
+
+  const double delx = 2.0 * (boxbounds[1] - boxbounds[0]);
+  const double dely = 2.0 * (boxbounds[3] - boxbounds[2]);
+  const double delz = 2.0 * (boxbounds[5] - boxbounds[4]);
+  double maxdel = MAX(delx,dely);
+  maxdel = MAX(maxdel,delz);
+  const double threshold = 0.02 * maxdel;
+
+  // the outline width follows the internal image size with FSAA
+
+  int w = outlinewidth;
+  if (fsaa) w *= 2;
+
+  const auto red   = static_cast<unsigned char>(outlinecolor[0] * 255.0);
+  const auto green = static_cast<unsigned char>(outlinecolor[1] * 255.0);
+  const auto blue  = static_cast<unsigned char>(outlinecolor[2] * 255.0);
+
+  // mark drawn pixels that have a much more distant immediate neighbor
+  // or border on the background
+
+  auto *edges = new unsigned char[npixels];
+  memset(edges,0,npixels);
+
+#if defined(_OPENMP)
+#pragma omp parallel for schedule(static)
+#endif
+  for (int iy = 0; iy < height; ++iy) {
+    for (int ix = 0; ix < width; ++ix) {
+      const double d = depthBuffer[iy*width + ix];
+      if (d < 0.0) continue;
+
+      constexpr int xoff[4] = {-1, 1, 0, 0};
+      constexpr int yoff[4] = {0, 0, -1, 1};
+      for (int k = 0; k < 4; ++k) {
+        const int jx = ix + xoff[k];
+        const int jy = iy + yoff[k];
+        if (jx < 0 || jx >= width || jy < 0 || jy >= height) continue;
+        const double dj = depthBuffer[jy*width + jx];
+        if (dj < 0.0 || (dj - d) > threshold) {
+          edges[iy*width + ix] = 1;
+          break;
+        }
+      }
+    }
+  }
+
+  // widen the outline: color drawn pixels near an edge pixel, but only
+  // on the near side of the depth jump so the outline hugs the nearer
+  // object and does not bleed onto more distant objects
+
+#if defined(_OPENMP)
+#pragma omp parallel for schedule(static)
+#endif
+  for (int iy = 0; iy < height; ++iy) {
+    for (int ix = 0; ix < width; ++ix) {
+      const double d = depthBuffer[iy*width + ix];
+      if (d < 0.0) continue;
+
+      bool paint = false;
+      for (int dy = -w+1; dy < w && !paint; ++dy) {
+        const int jy = iy + dy;
+        if (jy < 0 || jy >= height) continue;
+        for (int dx = -w+1; dx < w; ++dx) {
+          const int jx = ix + dx;
+          if (jx < 0 || jx >= width) continue;
+          if (!edges[jy*width + jx]) continue;
+          if ((d - depthBuffer[jy*width + jx]) < threshold) {
+            paint = true;
+            break;
+          }
+        }
+      }
+
+      if (paint) {
+        const int i = iy*width + ix;
+        writeBuffer[i*3+0] = red;
+        writeBuffer[i*3+1] = green;
+        writeBuffer[i*3+2] = blue;
+      }
+    }
+  }
+
+  delete[] edges;
+}
+
+/* ----------------------------------------------------------------------
+   depth range of the drawn pixels of the composited image.  returns
+   false if nothing was drawn; background pixels have a depth < 0
+------------------------------------------------------------------------- */
+
+bool Image::depth_minmax(double &dmin, double &dmax) const
+{
+  bool first = true;
+  dmin = dmax = 0.0;
+  for (int i = 0; i < npixels; i++) {
+    const double d = depthBuffer[i];
+    if (d < 0.0) continue;
+    if (first) {
+      dmin = dmax = d;
+      first = false;
+    } else {
+      dmin = MIN(dmin,d);
+      dmax = MAX(dmax,d);
+    }
+  }
+  return !first;
+}
+
+/* ----------------------------------------------------------------------
+   distance of the near and far side of the simulation box from the
+   camera, by projecting the eight box corners onto the view direction
+------------------------------------------------------------------------- */
+
+void Image::box_depth_minmax(double &dnear, double &dfar) const
+{
+  const double dcam = MathExtra::dot3(camPos,camDir);
+  dnear = dfar = 0.0;
+  for (int ic = 0; ic < 8; ++ic) {
+    double corner[3];
+    corner[0] = ((ic & 1) ? boxbounds[1] : boxbounds[0]) - xctr;
+    corner[1] = ((ic & 2) ? boxbounds[3] : boxbounds[2]) - yctr;
+    corner[2] = ((ic & 4) ? boxbounds[5] : boxbounds[4]) - zctr;
+    const double d = dcam - MathExtra::dot3(corner,camDir);
+    if (ic == 0) {
+      dnear = dfar = d;
+    } else {
+      dnear = MIN(dnear,d);
+      dfar = MAX(dfar,d);
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   apply depth cueing to the composited image on the output rank:
+   fade drawn pixels toward the fog color with increasing distance from
+   the viewer.  the fade ends at the most distant drawn pixel and starts
+   at the nearest drawn pixel or at a chosen fraction of the simulation
+   box projected onto the view direction.
+------------------------------------------------------------------------- */
+
+void Image::compute_depthcue()
+{
+  // determine depth range of drawn pixels; nothing to do without drawn
+  // pixels or without depth variation
+
+  double dmin, dmax;
+  if (!depth_minmax(dmin,dmax)) return;
+  if ((dmax - dmin) < EPSILON) return;
+
+  // start of the fade: by default the nearest drawn pixel.  with a start
+  // fraction set, place it at that fraction between the near and far side
+  // of the simulation box as seen from the camera
+
+  double dstart = dmin;
+  if (depthcuestartflag) {
+    double dnear, dfar;
+    box_depth_minmax(dnear,dfar);
+    dstart = dnear + depthcuestart * (dfar - dnear);
+    if (dstart >= (dmax - EPSILON)) return;    // fading starts behind all drawn pixels
+  }
+  const double dscale = depthcueint / (dmax - dstart);
+
+  // blend pixel colors toward the fog color.  by default this is the
+  // background color, with a gradient enabled the same per-row color as
+  // in clear(); a custom fog color is used for all rows unchanged
+
+#if defined(_OPENMP)
+#pragma omp parallel for schedule(static)
+#endif
+  for (int iy = 0; iy < height; ++iy) {
+    int red, green, blue;
+    if (depthcuecolor) {
+      red   = static_cast<int>(depthcuecolor[0] * 255.0);
+      green = static_cast<int>(depthcuecolor[1] * 255.0);
+      blue  = static_cast<int>(depthcuecolor[2] * 255.0);
+    } else if (background2[0] >= 0) {
+      const double fraction = (double) iy / (double) height;
+      red   = static_cast<int>(fraction * background2[0] + (1.0 - fraction) * background[0]);
+      green = static_cast<int>(fraction * background2[1] + (1.0 - fraction) * background[1]);
+      blue  = static_cast<int>(fraction * background2[2] + (1.0 - fraction) * background[2]);
+    } else {
+      red   = background[0];
+      green = background[1];
+      blue  = background[2];
+    }
+    for (int ix = 0; ix < width; ++ix) {
+      const int i = iy * width + ix;
+      const double d = depthBuffer[i];
+      if (d < 0.0 || d <= dstart) continue;
+      const double f = std::min(1.0, (d - dstart) * dscale);
+      writeBuffer[i*3+0] = static_cast<unsigned char>((1.0 - f) * writeBuffer[i*3+0] + f * red);
+      writeBuffer[i*3+1] = static_cast<unsigned char>((1.0 - f) * writeBuffer[i*3+1] + f * green);
+      writeBuffer[i*3+2] = static_cast<unsigned char>((1.0 - f) * writeBuffer[i*3+2] + f * blue);
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   defocus the background of the composited image on the output rank:
+   objects are blurred more the further they are behind the start of the
+   blur, which puts the visual emphasis on the objects in front of it.
+   everything closer than the start stays sharp, so this is not the full
+   depth of field of a camera lens, which would blur the foreground too.
+------------------------------------------------------------------------- */
+
+void Image::compute_defocus()
+{
+  // largest blur radius in pixels, expressed as a fraction of the image
+  // height so that the effect does not depend on the image size.  the
+  // internal image is twice as large with FSAA, which scales the radius
+  // along with it
+
+  const double maxradius = defocusint * 0.01 * height;
+  if (maxradius < 1.0) return;    // blur is smaller than a pixel
+
+  // determine depth range of drawn pixels; nothing to do without drawn
+  // pixels or without depth variation
+
+  double dmin, dmax;
+  if (!depth_minmax(dmin,dmax)) return;
+  if ((dmax - dmin) < EPSILON) return;
+
+  // start of the blur: by default the nearest drawn pixel, so that the
+  // front of the scene stays sharp.  with a start fraction set, place it
+  // at that fraction between the near and far side of the simulation box
+  // as seen from the camera
+
+  double dstart = dmin;
+  if (defocusstartflag) {
+    double dnear, dfar;
+    box_depth_minmax(dnear,dfar);
+    dstart = dnear + defocusstart * (dfar - dnear);
+    if (dstart >= (dmax - EPSILON)) return;    // blurring starts behind all drawn pixels
+  }
+  const double dscale = maxradius / (dmax - dstart);
+
+  // blur radius of each pixel.  pixels in front of the start of the blur
+  // stay sharp, behind it the radius grows with the distance from the
+  // viewer.  the background has no depth and is treated as maximally
+  // blurred, so that blurred objects in the back dissolve into it
+  // instead of keeping a sharp silhouette
+
+  auto *radiusBuffer = new double[npixels];
+
+#if defined(_OPENMP)
+#pragma omp parallel for schedule(static)
+#endif
+  for (int i = 0; i < npixels; ++i) {
+    const double d = depthBuffer[i];
+    if (d < 0.0) radiusBuffer[i] = maxradius;
+    else if (d <= dstart) radiusBuffer[i] = 0.0;
+    else radiusBuffer[i] = (d - dstart) * dscale;
+  }
+
+  // sample positions on a unit disk, placed on a spiral with the golden
+  // angle between them, which spreads them evenly.  using the disk shape
+  // of a camera aperture rather than a bell shaped blur keeps the blurred
+  // objects looking out of focus instead of looking like fog.  the number
+  // of samples follows the largest blur radius, so that wide blurs do not
+  // show the individual samples
+
+  int nsamples = static_cast<int>(4.0 * maxradius);
+  nsamples = MAX(nsamples,16);
+  nsamples = MIN(nsamples,64);
+
+  constexpr double GOLDEN_ANGLE = 2.39996322972865332;
+  auto *sample = new double[3*nsamples];
+  for (int s = 0; s < nsamples; ++s) {
+    const double r = sqrt((s + 0.5) / nsamples);
+    const double angle = s * GOLDEN_ANGLE;
+    sample[3*s+0] = r * cos(angle);
+    sample[3*s+1] = r * sin(angle);
+    sample[3*s+2] = r;
+  }
+
+  // collect the blur from an unmodified copy of the composited image
+
+  auto *source = new unsigned char[3*npixels];
+  memcpy(source,writeBuffer,3*npixels);
+
+#if defined(_OPENMP)
+#pragma omp parallel for schedule(static)
+#endif
+  for (int iy = 0; iy < height; ++iy) {
+    for (int ix = 0; ix < width; ++ix) {
+      const int i = iy*width + ix;
+      const double radius = radiusBuffer[i];
+      if (radius < 0.5) continue;    // in focus, the pixel is left alone
+
+      // turn the whole sample pattern by a per-pixel angle taken from
+      // interleaved gradient noise.  this replaces the rings that the
+      // repeated sample pattern would leave in wide blurs by a fine
+      // grain, and does not depend on the number of ranks or threads
+
+      const double noise = fmod(0.06711056*ix + 0.00583715*iy, 1.0);
+      const double angle = fmod(52.9829189*noise, 1.0) * MY_2PI;
+      const double cosa = cos(angle);
+      const double sina = sin(angle);
+
+      // a sample only contributes if its own blur circle reaches this
+      // pixel.  that keeps sharp objects in front from bleeding into the
+      // blurred background, which would show up as a halo around them.
+      // the contribution fades out over the last pixel of that reach, so
+      // that the blur does not gain visible steps
+
+      double c[3];
+      c[0] = source[3*i+0];
+      c[1] = source[3*i+1];
+      c[2] = source[3*i+2];
+      double wsum = 1.0;
+
+      for (int s = 0; s < nsamples; ++s) {
+        const double dx = radius * (cosa*sample[3*s+0] - sina*sample[3*s+1]);
+        const double dy = radius * (sina*sample[3*s+0] + cosa*sample[3*s+1]);
+        const int jx = ix + static_cast<int>(lround(dx));
+        const int jy = iy + static_cast<int>(lround(dy));
+        if ((jx < 0) || (jx >= width) || (jy < 0) || (jy >= height)) continue;
+
+        const int j = jy*width + jx;
+        const double weight = saturate(radiusBuffer[j] - radius * sample[3*s+2]);
+        if (weight <= 0.0) continue;
+
+        c[0] += weight * source[3*j+0];
+        c[1] += weight * source[3*j+1];
+        c[2] += weight * source[3*j+2];
+        wsum += weight;
+      }
+
+      writeBuffer[3*i+0] = static_cast<unsigned char>(lround(c[0]/wsum));
+      writeBuffer[3*i+1] = static_cast<unsigned char>(lround(c[1]/wsum));
+      writeBuffer[3*i+2] = static_cast<unsigned char>(lround(c[2]/wsum));
+    }
+  }
+
+  delete[] source;
+  delete[] sample;
+  delete[] radiusBuffer;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1834,7 +2535,7 @@ void Image::write_TGA(FILE *fp, bool compressed)
           old[2] = pix[2];
         }
 
-        if (memcmp(old, pix, 3) || (len == 127) || (j == tgawidth - 1)) {
+        if ((memcmp(old, pix, 3) != 0) || (len == 127) || (j == tgawidth - 1)) {
           if (j != tgawidth - 1) --len;
           len |= 0x80U;
           fputc(len, fp);
@@ -1917,9 +2618,9 @@ int Image::map_minmax(int index, double mindynamic, double maxdynamic)
    get min/max bounds of dynamic color map index and return 1 if dynamic
 ------------------------------------------------------------------------- */
 
-int Image::map_info(int index, double &min, double &max)
+int Image::map_info(int index, double &min, double &max, bool &sequential)
 {
-  return maps[index]->info(min, max);
+  return maps[index]->info(min, max, sequential);
 }
 
 /* ----------------------------------------------------------------------
@@ -1932,543 +2633,74 @@ double *Image::map_value2color(int index, double value)
 }
 
 /* ----------------------------------------------------------------------
-   add a new color to username and userrgb
-   redefine RGB values in userrgb if name already exists
-   return 1 if RGB values are invalid, else return 0
+   add a new color or redefine RGB values if already exists
+   return 1,2,or 3 if RGB values are invalid, else return 0
 ------------------------------------------------------------------------- */
 
-int Image::addcolor(char *name, double r, double g, double b)
+int Image::addcolor(const std::string &name, double r, double g, double b)
 {
-  int icolor;
-  for (icolor = 0; icolor < ncolors; icolor++)
-    if (strcmp(name,username[icolor]) == 0) break;
-
-  if (icolor == ncolors) {
-    username = (char **)
-      memory->srealloc(username,(ncolors+1)*sizeof(char *),"image:username");
-    memory->grow(userrgb,ncolors+1,3,"image:userrgb");
-    ncolors++;
-  }
-
-  int n = strlen(name) + 1;
-  username[icolor] = new char[n];
-  strcpy(username[icolor],name);
-
   if (r < 0.0 || r > 1.0) return 1;
   if (g < 0.0 || g > 1.0) return 2;
   if (b < 0.0 || b > 1.0) return 3;
 
-  userrgb[icolor][0] = r;
-  userrgb[icolor][1] = g;
-  userrgb[icolor][2] = b;
-
+  rgbcolors[name] = {r, g, b};
   return 0;
 }
 
 /* ----------------------------------------------------------------------
-   if index > 0, return ptr to index-1 color from rgb
-   if index < 0, return ptr to -index-1 color from userrgb
-   if index = 0, search the 2 lists of color names for the string color
-   search user-defined color names first, then the list of NCOLORS names
+   return a pointer to the 3 floating point RGB values for the given element
+------------------------------------------------------------------------- */
+
+double *Image::element2color(const std::string &element)
+{
+  auto i = elementdata.find(element);
+  if (i == elementdata.end())
+    return nullptr;
+  else
+    return i->second.rgb;
+}
+
+/* ----------------------------------------------------------------------
+   return the covalent radius for the given element
+------------------------------------------------------------------------- */
+
+double Image::element2diam(const std::string &element) const
+{
+  auto i = elementdata.find(element);
+  if (i == elementdata.end())
+    return 0.0;
+  else
+    return i->second.diam;
+}
+
+/* ----------------------------------------------------------------------
    return a pointer to the 3 floating point RGB values or nullptr if didn't find
 ------------------------------------------------------------------------- */
 
-double *Image::color2rgb(const char *color, int index)
+double *Image::color2rgb(const std::string &color)
 {
-  static const char *name[NCOLORS] = {
-    "aliceblue",
-    "antiquewhite",
-    "aqua",
-    "aquamarine",
-    "azure",
-    "beige",
-    "bisque",
-    "black",
-    "blanchedalmond",
-    "blue",
-    "blueviolet",
-    "brown",
-    "burlywood",
-    "cadetblue",
-    "chartreuse",
-    "chocolate",
-    "coral",
-    "cornflowerblue",
-    "cornsilk",
-    "crimson",
-    "cyan",
-    "darkblue",
-    "darkcyan",
-    "darkgoldenrod",
-    "darkgray",
-    "darkgreen",
-    "darkkhaki",
-    "darkmagenta",
-    "darkolivegreen",
-    "darkorange",
-    "darkorchid",
-    "darkred",
-    "darksalmon",
-    "darkseagreen",
-    "darkslateblue",
-    "darkslategray",
-    "darkturquoise",
-    "darkviolet",
-    "deeppink",
-    "deepskyblue",
-    "dimgray",
-    "dodgerblue",
-    "firebrick",
-    "floralwhite",
-    "forestgreen",
-    "fuchsia",
-    "gainsboro",
-    "ghostwhite",
-    "gold",
-    "goldenrod",
-    "gray",
-    "green",
-    "greenyellow",
-    "honeydew",
-    "hotpink",
-    "indianred",
-    "indigo",
-    "ivory",
-    "khaki",
-    "lavender",
-    "lavenderblush",
-    "lawngreen",
-    "lemonchiffon",
-    "lightblue",
-    "lightcoral",
-    "lightcyan",
-    "lightgoldenrodyellow",
-    "lightgreen",
-    "lightgrey",
-    "lightpink",
-    "lightsalmon",
-    "lightseagreen",
-    "lightskyblue",
-    "lightslategray",
-    "lightsteelblue",
-    "lightyellow",
-    "lime",
-    "limegreen",
-    "linen",
-    "magenta",
-    "maroon",
-    "mediumaquamarine",
-    "mediumblue",
-    "mediumorchid",
-    "mediumpurple",
-    "mediumseagreen",
-    "mediumslateblue",
-    "mediumspringgreen",
-    "mediumturquoise",
-    "mediumvioletred",
-    "midnightblue",
-    "mintcream",
-    "mistyrose",
-    "moccasin",
-    "navajowhite",
-    "navy",
-    "oldlace",
-    "olive",
-    "olivedrab",
-    "orange",
-    "orangered",
-    "orchid",
-    "palegoldenrod",
-    "palegreen",
-    "paleturquoise",
-    "palevioletred",
-    "papayawhip",
-    "peachpuff",
-    "peru",
-    "pink",
-    "plum",
-    "powderblue",
-    "purple",
-    "red",
-    "rosybrown",
-    "royalblue",
-    "saddlebrown",
-    "salmon",
-    "sandybrown",
-    "seagreen",
-    "seashell",
-    "sienna",
-    "silver",
-    "skyblue",
-    "slateblue",
-    "slategray",
-    "snow",
-    "springgreen",
-    "steelblue",
-    "tan",
-    "teal",
-    "thistle",
-    "tomato",
-    "turquoise",
-    "violet",
-    "wheat",
-    "white",
-    "whitesmoke",
-    "yellow",
-    "yellowgreen"
-  };
+  if (color == "none") return nullptr;
 
-  static double rgb[NCOLORS][3] = {
-    {240/255.0, 248/255.0, 255/255.0},
-    {250/255.0, 235/255.0, 215/255.0},
-    {0/255.0, 255/255.0, 255/255.0},
-    {127/255.0, 255/255.0, 212/255.0},
-    {240/255.0, 255/255.0, 255/255.0},
-    {245/255.0, 245/255.0, 220/255.0},
-    {255/255.0, 228/255.0, 196/255.0},
-    {0/255.0, 0/255.0, 0/255.0},
-    {255/255.0, 255/255.0, 205/255.0},
-    {0/255.0, 0/255.0, 255/255.0},
-    {138/255.0, 43/255.0, 226/255.0},
-    {165/255.0, 42/255.0, 42/255.0},
-    {222/255.0, 184/255.0, 135/255.0},
-    {95/255.0, 158/255.0, 160/255.0},
-    {127/255.0, 255/255.0, 0/255.0},
-    {210/255.0, 105/255.0, 30/255.0},
-    {255/255.0, 127/255.0, 80/255.0},
-    {100/255.0, 149/255.0, 237/255.0},
-    {255/255.0, 248/255.0, 220/255.0},
-    {220/255.0, 20/255.0, 60/255.0},
-    {0/255.0, 255/255.0, 255/255.0},
-    {0/255.0, 0/255.0, 139/255.0},
-    {0/255.0, 139/255.0, 139/255.0},
-    {184/255.0, 134/255.0, 11/255.0},
-    {69/255.0, 69/255.0, 69/255.0},
-    {0/255.0, 100/255.0, 0/255.0},
-    {189/255.0, 183/255.0, 107/255.0},
-    {139/255.0, 0/255.0, 139/255.0},
-    {85/255.0, 107/255.0, 47/255.0},
-    {255/255.0, 140/255.0, 0/255.0},
-    {153/255.0, 50/255.0, 204/255.0},
-    {139/255.0, 0/255.0, 0/255.0},
-    {233/255.0, 150/255.0, 122/255.0},
-    {143/255.0, 188/255.0, 143/255.0},
-    {72/255.0, 61/255.0, 139/255.0},
-    {47/255.0, 79/255.0, 79/255.0},
-    {0/255.0, 206/255.0, 209/255.0},
-    {148/255.0, 0/255.0, 211/255.0},
-    {255/255.0, 20/255.0, 147/255.0},
-    {0/255.0, 191/255.0, 255/255.0},
-    {105/255.0, 105/255.0, 105/255.0},
-    {30/255.0, 144/255.0, 255/255.0},
-    {178/255.0, 34/255.0, 34/255.0},
-    {255/255.0, 250/255.0, 240/255.0},
-    {34/255.0, 139/255.0, 34/255.0},
-    {255/255.0, 0/255.0, 255/255.0},
-    {220/255.0, 220/255.0, 220/255.0},
-    {248/255.0, 248/255.0, 255/255.0},
-    {255/255.0, 215/255.0, 0/255.0},
-    {218/255.0, 165/255.0, 32/255.0},
-    {128/255.0, 128/255.0, 128/255.0},
-    {0/255.0, 128/255.0, 0/255.0},
-    {173/255.0, 255/255.0, 47/255.0},
-    {240/255.0, 255/255.0, 240/255.0},
-    {255/255.0, 105/255.0, 180/255.0},
-    {205/255.0, 92/255.0, 92/255.0},
-    {75/255.0, 0/255.0, 130/255.0},
-    {255/255.0, 240/255.0, 240/255.0},
-    {240/255.0, 230/255.0, 140/255.0},
-    {230/255.0, 230/255.0, 250/255.0},
-    {255/255.0, 240/255.0, 245/255.0},
-    {124/255.0, 252/255.0, 0/255.0},
-    {255/255.0, 250/255.0, 205/255.0},
-    {173/255.0, 216/255.0, 230/255.0},
-    {240/255.0, 128/255.0, 128/255.0},
-    {224/255.0, 255/255.0, 255/255.0},
-    {250/255.0, 250/255.0, 210/255.0},
-    {144/255.0, 238/255.0, 144/255.0},
-    {211/255.0, 211/255.0, 211/255.0},
-    {255/255.0, 182/255.0, 193/255.0},
-    {255/255.0, 160/255.0, 122/255.0},
-    {32/255.0, 178/255.0, 170/255.0},
-    {135/255.0, 206/255.0, 250/255.0},
-    {119/255.0, 136/255.0, 153/255.0},
-    {176/255.0, 196/255.0, 222/255.0},
-    {255/255.0, 255/255.0, 224/255.0},
-    {0/255.0, 255/255.0, 0/255.0},
-    {50/255.0, 205/255.0, 50/255.0},
-    {250/255.0, 240/255.0, 230/255.0},
-    {255/255.0, 0/255.0, 255/255.0},
-    {128/255.0, 0/255.0, 0/255.0},
-    {102/255.0, 205/255.0, 170/255.0},
-    {0/255.0, 0/255.0, 205/255.0},
-    {186/255.0, 85/255.0, 211/255.0},
-    {147/255.0, 112/255.0, 219/255.0},
-    {60/255.0, 179/255.0, 113/255.0},
-    {123/255.0, 104/255.0, 238/255.0},
-    {0/255.0, 250/255.0, 154/255.0},
-    {72/255.0, 209/255.0, 204/255.0},
-    {199/255.0, 21/255.0, 133/255.0},
-    {25/255.0, 25/255.0, 112/255.0},
-    {245/255.0, 255/255.0, 250/255.0},
-    {255/255.0, 228/255.0, 225/255.0},
-    {255/255.0, 228/255.0, 181/255.0},
-    {255/255.0, 222/255.0, 173/255.0},
-    {0/255.0, 0/255.0, 128/255.0},
-    {253/255.0, 245/255.0, 230/255.0},
-    {128/255.0, 128/255.0, 0/255.0},
-    {107/255.0, 142/255.0, 35/255.0},
-    {255/255.0, 165/255.0, 0/255.0},
-    {255/255.0, 69/255.0, 0/255.0},
-    {218/255.0, 112/255.0, 214/255.0},
-    {238/255.0, 232/255.0, 170/255.0},
-    {152/255.0, 251/255.0, 152/255.0},
-    {175/255.0, 238/255.0, 238/255.0},
-    {219/255.0, 112/255.0, 147/255.0},
-    {255/255.0, 239/255.0, 213/255.0},
-    {255/255.0, 239/255.0, 213/255.0},
-    {205/255.0, 133/255.0, 63/255.0},
-    {255/255.0, 192/255.0, 203/255.0},
-    {221/255.0, 160/255.0, 221/255.0},
-    {176/255.0, 224/255.0, 230/255.0},
-    {128/255.0, 0/255.0, 128/255.0},
-    {255/255.0, 0/255.0, 0/255.0},
-    {188/255.0, 143/255.0, 143/255.0},
-    {65/255.0, 105/255.0, 225/255.0},
-    {139/255.0, 69/255.0, 19/255.0},
-    {250/255.0, 128/255.0, 114/255.0},
-    {244/255.0, 164/255.0, 96/255.0},
-    {46/255.0, 139/255.0, 87/255.0},
-    {255/255.0, 245/255.0, 238/255.0},
-    {160/255.0, 82/255.0, 45/255.0},
-    {192/255.0, 192/255.0, 192/255.0},
-    {135/255.0, 206/255.0, 235/255.0},
-    {106/255.0, 90/255.0, 205/255.0},
-    {112/255.0, 128/255.0, 144/255.0},
-    {255/255.0, 250/255.0, 250/255.0},
-    {0/255.0, 255/255.0, 127/255.0},
-    {70/255.0, 130/255.0, 180/255.0},
-    {210/255.0, 180/255.0, 140/255.0},
-    {0/255.0, 128/255.0, 128/255.0},
-    {216/255.0, 191/255.0, 216/255.0},
-    {253/255.0, 99/255.0, 71/255.0},
-    {64/255.0, 224/255.0, 208/255.0},
-    {238/255.0, 130/255.0, 238/255.0},
-    {245/255.0, 222/255.0, 179/255.0},
-    {255/255.0, 255/255.0, 255/255.0},
-    {245/255.0, 245/255.0, 245/255.0},
-    {255/255.0, 255/255.0, 0/255.0},
-    {154/255.0, 205/255.0, 50/255.0}
-  };
-
-  if (index > 0) {
-    if (index > NCOLORS) return nullptr;
-    return rgb[index-1];
-  }
-  if (index < 0) {
-    if (-index > ncolors) return nullptr;
-    return userrgb[-index-1];
-  }
-
-  if (color) {
-    if (strcmp(color,"none") == 0) return nullptr;
-    for (int i = 0; i < ncolors; i++)
-      if (strcmp(color,username[i]) == 0) return userrgb[i];
-    for (int i = 0; i < NCOLORS; i++)
-      if (strcmp(color,name[i]) == 0) return rgb[i];
-  }
-  return nullptr;
+  auto i = rgbcolors.find(color);
+  if (i == rgbcolors.end())
+    return nullptr;
+  else
+    return i->second.data();
 }
 
 /* ----------------------------------------------------------------------
-   return number of default colors
+   return first color name matching the 3 floating point RGB values or empty string
 ------------------------------------------------------------------------- */
 
-int Image::default_colors()
+std::string Image::rgb2color(const double *rgb) const
 {
-  return NCOLORS;
+  if (!rgb) return "";
+
+  for (auto c = rgbcolors.cbegin(); c != rgbcolors.cend(); ++c) {
+    if (rgb == c->second.data()) return c->first;
+  }
+  return "";
 }
-
-/* ----------------------------------------------------------------------
-   search the list of element names for the string element
-   return a pointer to the 3 floating point RGB values
-   this list is used by AtomEye and is taken from its Mendeleyev.c file
-------------------------------------------------------------------------- */
-
-double *Image::element2color(char *element)
-{
-  static const char *name[NELEMENTS] = {
-    "H", "He", "Li", "Be", "B", "C", "N", "O", "F", "Ne",
-    "Na", "Mg", "Al", "Si", "P", "S", "Cl", "Ar", "K", "Ca",
-    "Sc", "Ti", "V", "Cr", "Mn", "Fe", "Co", "Ni", "Cu", "Zn",
-    "Ga", "Ge", "As", "Se", "Br", "Kr", "Rb", "Sr", "Y", "Zr",
-    "Nb", "Mo", "Tc", "Ru", "Rh", "Pd", "Ag", "Cd", "In", "Sn",
-    "Sb", "Te", "I", "Xe", "Cs", "Ba", "La", "Ce", "Pr", "Nd",
-    "Pm", "Sm", "Eu", "Gd", "Tb", "Dy", "Ho", "Er", "Tm", "Yb",
-    "Lu", "Hf", "Ta", "W", "Re", "Os", "Ir", "Pt", "Au", "Hg",
-    "Tl", "Pb", "Bi", "Po", "At", "Rn", "Fr", "Ra", "Ac", "Th",
-    "Pa", "U", "Np", "Pu", "Am", "Cm", "Bk", "Cf", "Es", "Fm",
-    "Md", "No", "Lr", "Rf", "Db", "Sg", "Bh", "Hs", "Mt"
-  };
-
-  static double rgb[NELEMENTS][3] = {
-    {0.8, 0.8, 0.8},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.7, 0.7, 0.7},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.9, 0.4, 0},
-    {0.35, 0.35, 0.35},
-    {0.2, 0.2, 0.8},
-    {0.8, 0.2, 0.2},
-    {0.7, 0.85, 0.45},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.6, 0.6, 0.8},
-    {0.6, 0.6, 0.7},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.6901960784, 0.768627451, 0.8705882353},
-    {0.1, 0.7, 0.3},
-    {0.95, 0.9, 0.2},
-    {0.15, 0.5, 0.1},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.8, 0.5, 0.5},
-    {0.8, 0.8, 0.7},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0, 0.8, 0},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.5176470588, 0.5764705882, 0.6529411765},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.257254902, 0.2666666667, 0.271372549},
-    {0.95, 0.7900735294, 0.01385869565},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.9, 0, 1},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {1, 1, 0.3},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.5, 0.08, 0.12},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.5, 0.1, 0.5},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.8, 0.8, 0},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {1, 0.8431372549, 0},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.9, 0.8, 0},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.8, 0.2, 0.2},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.1, 0.7, 0.3},
-    {0.1, 0.3, 0.7},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.9, 0.8, 0},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.6431372549, 0.6666666667, 0.6784313725},
-    {0.6431372549, 0.6666666667, 0.6784313725}
-  };
-
-  for (int i = 0; i < NELEMENTS; i++)
-    if (strcmp(element,name[i]) == 0) return rgb[i];
-  return nullptr;
-}
-
-/* ----------------------------------------------------------------------
-   search the list of element names for the string element
-   return a pointer to the 3 floating point RGB values
-   this list is used by AtomEye and is taken from its Mendeleyev.c file
-------------------------------------------------------------------------- */
-
-double Image::element2diam(char *element)
-{
-  static const char *name[NELEMENTS] = {
-    "H", "He", "Li", "Be", "B", "C", "N", "O", "F", "Ne",
-    "Na", "Mg", "Al", "Si", "P", "S", "Cl", "Ar", "K", "Ca",
-    "Sc", "Ti", "V", "Cr", "Mn", "Fe", "Co", "Ni", "Cu", "Zn",
-    "Ga", "Ge", "As", "Se", "Br", "Kr", "Rb", "Sr", "Y", "Zr",
-    "Nb", "Mo", "Tc", "Ru", "Rh", "Pd", "Ag", "Cd", "In", "Sn",
-    "Sb", "Te", "I", "Xe", "Cs", "Ba", "La", "Ce", "Pr", "Nd",
-    "Pm", "Sm", "Eu", "Gd", "Tb", "Dy", "Ho", "Er", "Tm", "Yb",
-    "Lu", "Hf", "Ta", "W", "Re", "Os", "Ir", "Pt", "Au", "Hg",
-    "Tl", "Pb", "Bi", "Po", "At", "Rn", "Fr", "Ra", "Ac", "Th",
-    "Pa", "U", "Np", "Pu", "Am", "Cm", "Bk", "Cf", "Es", "Fm",
-    "Md", "No", "Lr", "Rf", "Db", "Sg", "Bh", "Hs", "Mt"
-  };
-
-  static double diameter[NELEMENTS] = {
-    0.35, 1.785, 1.45, 1.05, 0.85, 0.72, 0.65, 0.6, 0.5, 1.5662,
-    1.8, 1.5, 1.4255, 1.07, 1, 1, 1, 1.8597, 2.2, 1.8,
-    1.6, 1.4, 1.51995, 1.44225, 1.4, 1.43325, 1.35, 1.35, 1.278, 1.35,
-    1.3, 1.25, 1.15, 1.15, 1.15, 2.0223, 2.35, 2, 1.8, 1.55,
-    1.6504, 1.3872, 1.35, 1.3, 1.35, 1.4, 1.6, 1.55, 1.55, 1.45,
-    1.45, 1.4, 1.4, 2.192, 2.6, 2.15, 1.95, 1.85, 1.85, 1.85,
-    1.85, 1.85, 1.85, 1.8, 1.75, 1.75, 1.75, 1.75, 1.75, 1.75,
-    1.75, 1.55, 1.6529, 1.5826, 1.35, 1.3, 1.35, 1.35, 1.35, 1.5,
-    1.9, 1.8, 1.6, 1.9, 1.6, 1.0, 1.0, 2.15, 1.95, 1.8,
-    1.8, 1.75, 1.75, 1.75, 1.75, 1.0, 1.0, 1.6, 1.6, 1.0,
-    1.0, 1.0, 1.0, 1.0, 1.6, 1.0, 1.0, 1.0, 1.0
-  };
-
-  for (int i = 0; i < NELEMENTS; i++)
-    if (strcmp(element,name[i]) == 0) return diameter[i];
-  return 0.0;
-}
-
 // ----------------------------------------------------------------------
 // ----------------------------------------------------------------------
 // ColorMap class
@@ -2500,7 +2732,7 @@ ColorMap::ColorMap(LAMMPS *lmp, Image *caller) : Pointers(lmp)
 
 ColorMap::~ColorMap()
 {
-  delete [] mentry;
+  delete[] mentry;
 }
 
 /* ----------------------------------------------------------------------
@@ -2546,7 +2778,7 @@ int ColorMap::reset(int narg, char **arg)
 
   nentry = utils::inumeric(FLERR,arg[4],false,lmp);
   if (nentry < 1) return 5;
-  delete [] mentry;
+  delete[] mentry;
   mentry = new MapEntry[nentry];
   mentry[0].svalue = 0.0;
 
@@ -2661,10 +2893,13 @@ int ColorMap::minmax(double mindynamic, double maxdynamic)
   return 0;
 }
 
-int ColorMap::info(double &min, double &max)
+// clang-format on
+
+int ColorMap::info(double &min, double &max, bool &sequential)
 {
   min = locurrent;
   max = hicurrent;
+  sequential = mstyle == SEQUENTIAL;
   return dynamic;
 }
 
@@ -2675,14 +2910,16 @@ int ColorMap::info(double &min, double &max)
 
 double *ColorMap::value2color(double value)
 {
-  double lo;//,hi;
+  double lo;    //,hi;
 
-  value = MAX(value,locurrent);
-  value = MIN(value,hicurrent);
+  value = MAX(value, locurrent);
+  value = MIN(value, hicurrent);
 
   if (mrange == FRACTIONAL) {
-    if (locurrent == hicurrent) value = 0.0;
-    else value = (value-locurrent) / (hicurrent-locurrent);
+    if (locurrent == hicurrent)
+      value = 0.0;
+    else
+      value = (value - locurrent) / (hicurrent - locurrent);
     lo = 0.0;
     //hi = 1.0;
   } else {
@@ -2691,25 +2928,27 @@ double *ColorMap::value2color(double value)
   }
 
   if (mstyle == CONTINUOUS) {
-    for (int i = 0; i < nentry-1; i++)
-      if (value >= mentry[i].svalue && value <= mentry[i+1].svalue) {
-        double fraction = (value-mentry[i].svalue) /
-          (mentry[i+1].svalue-mentry[i].svalue);
-        interpolate[0] = mentry[i].color[0] +
-          fraction*(mentry[i+1].color[0]-mentry[i].color[0]);
-        interpolate[1] = mentry[i].color[1] +
-          fraction*(mentry[i+1].color[1]-mentry[i].color[1]);
-        interpolate[2] = mentry[i].color[2] +
-          fraction*(mentry[i+1].color[2]-mentry[i].color[2]);
+    for (int i = 0; i < nentry - 1; i++)
+      if (value >= mentry[i].svalue && value <= mentry[i + 1].svalue) {
+        if (mentry[i].color) {
+          double fraction = (value - mentry[i].svalue) / (mentry[i + 1].svalue - mentry[i].svalue);
+          interpolate[0] =
+              mentry[i].color[0] + fraction * (mentry[i + 1].color[0] - mentry[i].color[0]);
+          interpolate[1] =
+              mentry[i].color[1] + fraction * (mentry[i + 1].color[1] - mentry[i].color[1]);
+          interpolate[2] =
+              mentry[i].color[2] + fraction * (mentry[i + 1].color[2] - mentry[i].color[2]);
+        } else {
+          interpolate[0] = interpolate[1] = interpolate[2] = 1.0;
+        }
         return interpolate;
       }
   } else if (mstyle == DISCRETE) {
     for (int i = 0; i < nentry; i++)
-      if (value >= mentry[i].lvalue && value <= mentry[i].hvalue)
-        return mentry[i].color;
+      if (value >= mentry[i].lvalue && value <= mentry[i].hvalue) return mentry[i].color;
   } else {
-    int ibin = static_cast<int>((value-lo) * mbinsizeinv);
-    return mentry[ibin%nentry].color;
+    int ibin = static_cast<int>((value - lo) * mbinsizeinv);
+    return mentry[ibin % nentry].color;
   }
 
   // always return a non-NULL pointer

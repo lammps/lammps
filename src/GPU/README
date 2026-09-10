@@ -1,6 +1,6 @@
 This package implements GPU optimizations of various LAMMPS styles.
 
-Section 3.7 of the manual gives details of what hardware and Cuda
+Section 7.4.1 of the manual gives details of what hardware and Cuda
 software is required on your system, and full details on how to build
 and use this package.  The KOKKOS package also has GPU-enabled styles.
 

@@ -163,7 +163,7 @@ void Ndx2Group::command(int narg, char **arg)
         } catch (std::exception &e) {
           error->one(FLERR, e.what());
         }
-        utils::logmesg(lmp, " {} group '{}'\n", name.size() ? "Processing" : "Skipping", arg[idx]);
+        utils::logmesg(lmp, " {} group '{}'\n", !name.empty() ? "Processing" : "Skipping", arg[idx]);
         len = name.size() + 1;
         MPI_Bcast(&len, 1, MPI_INT, 0, world);
         if (len > 1) {

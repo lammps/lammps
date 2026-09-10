@@ -37,7 +37,7 @@ enum { NOBIAS, BIAS };
 /* ---------------------------------------------------------------------- */
 
 ComputeStressAtom::ComputeStressAtom(LAMMPS *lmp, int narg, char **arg) :
-    Compute(lmp, narg, arg), id_temp(nullptr), stress(nullptr)
+    Compute(lmp, narg, arg), temperature(nullptr), id_temp(nullptr), stress(nullptr)
 {
   if (narg < 4) error->all(FLERR, "Illegal compute stress/atom command");
 

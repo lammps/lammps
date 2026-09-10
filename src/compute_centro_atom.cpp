@@ -37,7 +37,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputeCentroAtom::ComputeCentroAtom(LAMMPS *lmp, int narg, char **arg) :
-    Compute(lmp, narg, arg), distsq(nullptr), nearest(nullptr), centro(nullptr)
+    Compute(lmp, narg, arg), distsq(nullptr), nearest(nullptr), list(nullptr), centro(nullptr)
 {
   if (narg < 4 || narg > 6) error->all(FLERR, "Illegal compute centro/atom command");
 
@@ -81,6 +81,8 @@ ComputeCentroAtom::ComputeCentroAtom(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeCentroAtom::~ComputeCentroAtom()
 {
+  if (copymode) return;
+
   memory->destroy(centro);
   memory->destroy(distsq);
   memory->destroy(nearest);
@@ -98,8 +100,8 @@ void ComputeCentroAtom::init()
 
   neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
 
-  if (modify->get_compute_by_style(style).size() > 1)
-    if (comm->me == 0) error->warning(FLERR, "More than one compute {}", style);
+  if ((comm->me == 0) && (modify->get_compute_by_style("^centro/atom").size() > 1))
+    error->warning(FLERR, "More than one compute {}", style);
 }
 
 /* ---------------------------------------------------------------------- */

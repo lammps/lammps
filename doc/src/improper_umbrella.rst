@@ -1,10 +1,11 @@
 .. index:: improper_style umbrella
+.. index:: improper_style umbrella/kk
 .. index:: improper_style umbrella/omp
 
 improper_style umbrella command
 ===============================
 
-Accelerator Variants: *umbrella/omp*
+Accelerator Variants: *umbrella/kk*, *umbrella/omp*
 
 Syntax
 """"""
@@ -36,8 +37,9 @@ commonly referred to as a classic inversion and used in the
 where :math:`K` is the force constant and :math:`\omega` is the angle between the IL
 axis and the IJK plane:
 
-.. image:: JPG/umbrella.jpg
+.. image:: JPG/umbrella.png
    :align: center
+   :width: 50%
 
 If :math:`\omega_0 = 0` the potential term has a minimum for the planar
 structure.  Otherwise it has two minima at :math:`\omega +/- \omega_0`,

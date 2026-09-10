@@ -114,6 +114,7 @@ Dump::Dump(LAMMPS *lmp, int /*narg*/, char **arg) :
   size_one = 0;
 
   multiproc = 0;
+  nfile = nper = 1;
   nclusterprocs = nprocs;
   filewriter = 0;
   if (me == 0) filewriter = 1;
@@ -212,9 +213,6 @@ void Dump::init()
   }
 
   if (sort_flag) {
-    if (multiproc > 1)
-      error->all(FLERR, Error::NOLASTLINE,
-                 "Cannot sort dump when 'nfile' or 'fileper' keywords have non-default values");
     if (sortcol == 0 && atom->tag_enable == 0)
       error->all(FLERR, Error::NOLASTLINE,
                  "Cannot sort dump on atom IDs with no atom IDs defined");
@@ -902,6 +900,22 @@ void Dump::balance()
   memory->create(proc_offsets,nprocs+1,"dump:proc_offsets");
   memory->create(proc_new_offsets,nprocs+1,"dump:proc_new_offsets");
 
+  static int warn = 1;
+  if (warn && multiproc > 1 && me == 0) {
+    if (nprocs % nfile) {
+      error->warning(FLERR,"Dump file balancing requested but dump_modify 'nfile'"
+                           " keyword does not divide the number processors evenly;"
+                           " dump files will be of different lengths");
+      warn = 0;
+    }
+    if (nprocs % nper) {
+      error->warning(FLERR,"Dump file balancing requested but dump_modify 'fileper'"
+                           " keyword does not divide the number processors evenly;"
+                           " dump files will be of different lengths");
+      warn = 0;
+    }
+  }
+
   // compute atom offset for this proc
 
   bigint offset;
@@ -1037,6 +1051,38 @@ void Dump::balance()
 }
 
 /* ----------------------------------------------------------------------
+   map the type of a dump column to the type of value its format consumes
+------------------------------------------------------------------------- */
+
+utils::FmtArg Dump::fmtarg_type(int vtype)
+{
+  switch (vtype) {
+    case Dump::INT: return utils::FmtArg::INTEGER;
+    case Dump::BIGINT: return utils::FmtArg::BIGINT;
+    case Dump::STRING:      // fallthrough
+    case Dump::STRING2: return utils::FmtArg::STRING;
+    default: return utils::FmtArg::FLOAT;
+  }
+}
+
+/* ----------------------------------------------------------------------
+   check the format string of a single dump column against the type of its
+   value and adjust the length modifier to the size of the integer types.
+   the format strings may come from the user, so passing an argument that
+   does not match its conversion must be ruled out before it is used.
+------------------------------------------------------------------------- */
+
+void Dump::check_column_format(std::string &colformat, int vtype, int icol)
+{
+  const auto expect = fmtarg_type(vtype);
+  auto errmsg = utils::check_format(colformat, expect);
+  if (!errmsg.empty())
+    error->all(FLERR, Error::NOLASTLINE, "Invalid dump {} format for column {}: {}", id,
+               icol + 1, errmsg);
+  colformat = utils::adjust_format(colformat, expect);
+}
+
+/* ----------------------------------------------------------------------
    process params common to all dumps here
    if unknown param, call modify_param specific to the dump
 ------------------------------------------------------------------------- */
@@ -1142,7 +1188,7 @@ void Dump::modify_params(int narg, char **arg)
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "dump_modify fileper", error);
       if (!multiproc)
         error->all(FLERR, iarg, "Cannot use dump_modify fileper without % in dump file name");
-      int nper = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      nper = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (nper <= 0) error->all(FLERR, iarg + 1, "Invalid dump_modify fileper argument: {}", nper);
 
       multiproc = nprocs/nper;
@@ -1236,7 +1282,7 @@ void Dump::modify_params(int narg, char **arg)
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "dump_modify nfile", error);
       if (!multiproc)
         error->all(FLERR,"Cannot use dump_modify nfile without % in dump file name");
-      int nfile = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      nfile = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       if (nfile <= 0) error->all(FLERR, "Invalid dump_modify nfile argument: {}", nfile);
       nfile = MIN(nfile,nprocs);
 

@@ -8,10 +8,16 @@ function(extract_tags out yaml_file)
 endfunction()
 
 # build support library
+# the test programs get the input folder as compile definition.  on Windows it must be a
+# native path with escaped backslashes, since some tests pass it to "shell copy" commands.
+# globbing and test arguments must keep the forward slash version: CMake 4.4.3 and later
+# escape backslashes when recording the results of CONFIGURE_DEPENDS globs, so a pattern
+# with backslashes never matches its record and every build re-runs CMake without end.
+set(TEST_INPUT_FOLDER ${CMAKE_CURRENT_SOURCE_DIR}/tests)
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-  string(REPLACE "/" "\\\\" TEST_INPUT_FOLDER "${CMAKE_CURRENT_SOURCE_DIR}/tests")
+  string(REPLACE "/" "\\\\" TEST_INPUT_FOLDER_NATIVE "${TEST_INPUT_FOLDER}")
 else()
-  set(TEST_INPUT_FOLDER ${CMAKE_CURRENT_SOURCE_DIR}/tests)
+  set(TEST_INPUT_FOLDER_NATIVE ${TEST_INPUT_FOLDER})
 endif()
 add_library(granular_tests STATIC
   ../error_stats.cpp
@@ -21,10 +27,10 @@ add_library(granular_tests STATIC
   test_dem_common.cpp
   test_main.cpp)
 if(YAML_FOUND)
-  target_compile_definitions(granular_tests PRIVATE TEST_INPUT_FOLDER=${TEST_INPUT_FOLDER})
+  target_compile_definitions(granular_tests PRIVATE TEST_INPUT_FOLDER=${TEST_INPUT_FOLDER_NATIVE})
 else()
   # we always use static linkage with local compiled libyaml
-  target_compile_definitions(granular_tests PRIVATE TEST_INPUT_FOLDER=${TEST_INPUT_FOLDER} YAML_DECLARE_STATIC)
+  target_compile_definitions(granular_tests PRIVATE TEST_INPUT_FOLDER=${TEST_INPUT_FOLDER_NATIVE} YAML_DECLARE_STATIC)
 endif()
 target_include_directories(granular_tests PRIVATE "${LAMMPS_SOURCE_DIR};${CMAKE_CURRENT_SOURCE_DIR}/..")
 target_link_libraries(granular_tests PUBLIC GTest::GMock Yaml::Yaml lammps)

@@ -28,6 +28,12 @@ class KokkosBaseFFT {
   virtual void unpack_forward_grid_kokkos(int, FFT_DAT::tdual_FFT_SCALAR_1d &, int, int, DAT::tdual_int_2d_lr &, int) {};
   virtual void pack_reverse_grid_kokkos(int, FFT_DAT::tdual_FFT_SCALAR_1d &, int, DAT::tdual_int_2d_lr &, int) {};
   virtual void unpack_reverse_grid_kokkos(int, FFT_DAT::tdual_FFT_SCALAR_1d &, int, int, DAT::tdual_int_2d_lr &, int) {};
+
+ protected:
+  // non-virtual: derived KOKKOS styles are owned and deleted through their
+  // Fix/Pair/Compute/Region base, never through a KokkosBaseFFT pointer, and a
+  // virtual destructor here would force noexcept on every derived destructor
+  ~KokkosBaseFFT() = default;
 };
 
 }

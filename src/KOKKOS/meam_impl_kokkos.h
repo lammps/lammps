@@ -19,7 +19,8 @@
 #include "memory_kokkos.h"
 #include "meam_kokkos.h"
 
-using namespace LAMMPS_NS;
+namespace LAMMPS_NS {
+
 
 /* ---------------------------------------------------------------------- */
 
@@ -34,6 +35,8 @@ MEAMKokkos<DeviceType>::~MEAMKokkos()
 {
 
 }
+
+}    // namespace LAMMPS_NS
 
 #include "meam_setup_done_kokkos.h"
 #include "meam_funcs_kokkos.h"

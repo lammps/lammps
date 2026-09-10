@@ -914,10 +914,10 @@ int Neighbor::init_pair()
 
   nlist = nrequest;
 
-  lists = new NeighList*[nrequest];
+  lists = new NeighList*[nrequest]();
   neigh_bin = new NBin*[nrequest]();
   neigh_stencil = new NStencil*[nrequest]();
-  neigh_pair = new NPair*[nrequest];
+  neigh_pair = new NPair*[nrequest]();
 
   // allocate new lists
   // pass list ptr back to requestor (except for Command class)

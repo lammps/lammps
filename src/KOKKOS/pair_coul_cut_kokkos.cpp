@@ -110,7 +110,7 @@ void PairCoulCutKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   EV_FLOAT ev = pair_compute<PairCoulCutKokkos<DeviceType>,void >
     (this,(NeighListKokkos<DeviceType>*)list);
 
-  if (eflag) eng_coul += static_cast<double>(ev.ecoul);
+  if (eflag_global) eng_coul += static_cast<double>(ev.ecoul);
   if (vflag_global) {
     virial[0] += static_cast<double>(ev.v[0]);
     virial[1] += static_cast<double>(ev.v[1]);
@@ -227,9 +227,9 @@ double PairCoulCutKokkos<DeviceType>::init_one(int i, int j)
   }
   k_cutsq.view_host()(i,j) = cutone*cutone;
   k_cutsq.modify_host();
-  k_cut_ljsq.view_host()(i,j) = static_cast<KK_FLOAT>(cutone*cutone);
+  k_cut_ljsq.view_host()(i,j) = k_cut_ljsq.view_host()(j,i) = static_cast<KK_FLOAT>(cutone*cutone);
   k_cut_ljsq.modify_host();
-  k_cut_coulsq.view_host()(i,j) = static_cast<KK_FLOAT>(cutone*cutone);
+  k_cut_coulsq.view_host()(i,j) = k_cut_coulsq.view_host()(j,i) = static_cast<KK_FLOAT>(cutone*cutone);
   k_cut_coulsq.modify_host();
   k_params.modify_host();
 

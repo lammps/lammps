@@ -21,6 +21,9 @@
 #include <cmath>
 
 #include "meam_kokkos.h"
+
+namespace LAMMPS_NS {
+
 using namespace MathSpecialKokkos;
 
 //-----------------------------------------------------------------------------
@@ -300,3 +303,5 @@ int MEAMKokkos<DeviceType>::get_Zij(const lattice_t latt) const
   }
   return 0;
 }
+
+}    // namespace LAMMPS_NS

@@ -43,7 +43,7 @@ DihedralClass2xeKokkos<DeviceType>::DihedralClass2xeKokkos(LAMMPS *lmp) : Dihedr
   atomKK = (AtomKokkos *) atom;
   neighborKK = (NeighborKokkos *) neighbor;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
-  datamask_read = X_MASK | F_MASK | Q_MASK | ENERGY_MASK | VIRIAL_MASK;
+  datamask_read = X_MASK | F_MASK | ENERGY_MASK | VIRIAL_MASK;
   datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
 
   k_warning_flag = DAT::tdual_int_scalar("Dihedral:warning_flag");

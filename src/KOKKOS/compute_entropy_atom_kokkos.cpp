@@ -228,8 +228,15 @@ void ComputeEntropyAtomKokkos<DeviceType>::operator()(TagComputeEntropyAtom<LOCA
     else
       integrand = (g*Kokkos::log(g) - g + static_cast<KK_FLOAT>(1.0))*d_rbinsq[k];
 
-    if (k == 0 || k == nbin-1) value += static_cast<KK_FLOAT>(0.5)*integrand;
-    else value += integrand;
+    // the CPU style sums the interior bins and then adds 0.5*integrand[0] and
+    // 0.5*integrand[nbin-1] as two separate terms, so with a single bin that
+    // bin is counted twice at half weight
+
+    KK_FLOAT weight = static_cast<KK_FLOAT>(0.0);
+    if ((k > 0) && (k < nbin-1)) weight += static_cast<KK_FLOAT>(1.0);
+    if (k == 0) weight += static_cast<KK_FLOAT>(0.5);
+    if (k == nbin-1) weight += static_cast<KK_FLOAT>(0.5);
+    value += weight*integrand;
   }
   value *= deltar_kk;
 

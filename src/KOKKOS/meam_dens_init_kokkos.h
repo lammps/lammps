@@ -15,8 +15,10 @@
 #include "meam_kokkos.h"
 #include "math_special_kokkos.h"
 
-using namespace LAMMPS_NS;
+namespace LAMMPS_NS {
+
 using namespace MathSpecialKokkos;
+
 
 /* ---------------------------------------------------------------------- */
 
@@ -687,3 +689,4 @@ KK_FLOAT MEAMKokkos<DeviceType>::fcut(const KK_FLOAT xi) const
   }
 }
 
+}    // namespace LAMMPS_NS

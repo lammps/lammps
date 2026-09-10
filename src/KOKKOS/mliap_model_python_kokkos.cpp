@@ -32,7 +32,7 @@ using namespace LAMMPS_NS;
 
 template<class DeviceType>
 MLIAPModelPythonKokkos<DeviceType>::~MLIAPModelPythonKokkos() {
-  auto nontemplated_this = static_cast<MLIAPModelPythonKokkosDevice*>((void*)this);
+  auto nontemplated_this = reinterpret_cast<MLIAPModelPythonKokkosDevice *>(this);
   if (model_loaded)
     MLIAPPYKokkos_unload_model(nontemplated_this);
   model_loaded=false;
@@ -90,7 +90,7 @@ template<class DeviceType>
 void MLIAPModelPythonKokkos<DeviceType>::read_coeffs(char *fname)
 {
   PyGILState_STATE gstate = PyGILState_Ensure();
-  auto nontemplated_this = static_cast<MLIAPModelPythonKokkosDevice*>((void*)this);
+  auto nontemplated_this = reinterpret_cast<MLIAPModelPythonKokkosDevice *>(this);
   model_loaded = MLIAPPYKokkos_load_model(nontemplated_this, fname);
   if (PyErr_Occurred()) {
     PyErr_Print();
@@ -114,7 +114,7 @@ template<class DeviceType>
 void MLIAPModelPythonKokkos<DeviceType>::connect_param_counts()
 {
   PyGILState_STATE gstate = PyGILState_Ensure();
-  auto nontemplated_this = static_cast<MLIAPModelPythonKokkosDevice*>((void*)this);
+  auto nontemplated_this = reinterpret_cast<MLIAPModelPythonKokkosDevice *>(this);
   nelements = MLIAPPYKokkos_nelements(nontemplated_this);
   nparams = MLIAPPYKokkos_nparams(nontemplated_this);
   ndescriptors = MLIAPPYKokkos_ndescriptors(nontemplated_this);
@@ -139,7 +139,7 @@ void MLIAPModelPythonKokkos<DeviceType>::compute_gradients(class MLIAPData *data
 
   PyGILState_STATE gstate = PyGILState_Ensure();
 
-  auto nontemplated_this = static_cast<MLIAPModelPythonKokkosDevice*>((void*)this);
+  auto nontemplated_this = reinterpret_cast<MLIAPModelPythonKokkosDevice *>(this);
   auto *kokkos_data = dynamic_cast<MLIAPDataKokkos<DeviceType>*>(data);
   MLIAPDataKokkosDevice raw_data(*kokkos_data);
   MLIAPPYKokkos_compute_gradients(nontemplated_this, &raw_data);

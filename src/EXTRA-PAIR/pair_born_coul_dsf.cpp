@@ -464,7 +464,7 @@ double PairBornCoulDSF::single(int i, int j, int itype, int jtype,
 
   if (rsq < cut_coulsq) {
     r = sqrt(rsq);
-    prefactor = factor_coul * force->qqrd2e * atom->q[i]*atom->q[j]/r;
+    prefactor = force->qqrd2e * atom->q[i]*atom->q[j]/r;
 
     arg = alpha * r ;
     erfcd = MathSpecial::expmsq(arg);

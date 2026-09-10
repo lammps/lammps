@@ -33,6 +33,7 @@ Timer::Timer(LAMMPS *_lmp) : Pointers(_lmp)
   _s_timeout = -1.0;
   _checkfreq = 10;
   _nextcheck = -1;
+  timeout_start = platform::walltime();
   this->_stamp(RESET);
 }
 
@@ -205,10 +206,14 @@ bool Timer::_check_timeout()
 /* ---------------------------------------------------------------------- */
 double Timer::get_timeout_remain()
 {
+  // without a time limit there is no remaining time to report, and the start
+  // of the limit is not set before init_timeout() has run
+  if (_timeout < 0.0) return 0.0;
+
   double remain = _timeout + timeout_start - platform::walltime();
   // never report a negative remaining time.
   if (remain < 0.0) remain = 0.0;
-  return (_timeout < 0.0) ? 0.0 : remain;
+  return remain;
 }
 
 /* ----------------------------------------------------------------------

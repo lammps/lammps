@@ -47,7 +47,11 @@ enum { EDGE, CONSTANT, VARIABLE };
 
 template<class DeviceType>
 PairBrownianKokkos<DeviceType>::PairBrownianKokkos(LAMMPS *lmp) : PairBrownian(lmp),
-                                                                  rand_pool(seed + comm->me)
+#ifdef LMP_KOKKOS_DEBUG_RNG
+                                                                  rand_pool(0 /* unused */, lmp)
+#else
+                                                                  rand_pool()
+#endif
 {
   respa_enable = 0;
 
@@ -65,6 +69,10 @@ PairBrownianKokkos<DeviceType>::~PairBrownianKokkos()
 {
   if (copymode) return;
 
+#ifdef LMP_KOKKOS_DEBUG_RNG
+  rand_pool.destroy();
+#endif
+
   if (allocated) {
     memoryKK->destroy_kokkos(k_vatom,vatom);
     memoryKK->destroy_kokkos(k_cut_inner,cut_inner);
@@ -81,6 +89,18 @@ void PairBrownianKokkos<DeviceType>::init_style()
 {
   PairBrownian::init_style();
 
+  // the random number pool can only be seeded here: the seed is read by
+  // settings(), which runs after the constructor
+
+#ifdef LMP_KOKKOS_DEBUG_RNG
+  rand_pool.init(random,seed + comm->me);
+#else
+  typedef Kokkos::Experimental::UniqueToken<
+    DeviceType, Kokkos::Experimental::UniqueTokenScope::Global> unique_token_type;
+  unique_token_type unique_token;
+  rand_pool = decltype(rand_pool)(seed + comm->me,unique_token.size());
+#endif
+
   // error if rRESPA with inner levels
 
   if (update->whichflag == 1 && utils::strmatch(update->integrate_style,"^respa")) {
@@ -94,11 +114,18 @@ void PairBrownianKokkos<DeviceType>::init_style()
   // adjust neighbor list request for KOKKOS
 
   neighflag = lmp->kokkos->neighflag;
+
+  // a full neighbor list would visit each pair twice and draw independent
+  // random numbers each time, so the stochastic pair force would no longer
+  // be equal and opposite
+
+  if (neighflag == FULL)
+    error->all(FLERR,"Must use half neighbor list style with pair style brownian/kk");
+
   auto request = neighbor->find_request(this);
   request->set_kokkos_host(std::is_same_v<DeviceType,LMPHostType> &&
                            !std::is_same_v<DeviceType,LMPDeviceType>);
   request->set_kokkos_device(std::is_same_v<DeviceType,LMPDeviceType>);
-  if (neighflag == FULL) request->enable_full();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -160,7 +187,16 @@ void PairBrownianKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   prethermostat *= static_cast<KK_FLOAT>(sqrt(force->vxmu2f / force->ftm2v / force->mvv2e));
 
   // reallocate per-atom arrays if necessary
+  // the style has no potential energy, so the per-atom energy is all zero
+  // and only needs to exist on the host (compare pair dpd/tstat/kk), but it
+  // must exist and be zeroed because ev_init() above was called with alloc == 0
 
+  if (eflag_atom) {
+    maxeatom = atom->nmax;
+    memory->destroy(eatom);
+    memory->create(eatom,maxeatom,"pair:eatom");
+    memset(&eatom[0], 0, maxeatom * sizeof(double));
+  }
   if (vflag_atom) {
     memoryKK->destroy_kokkos(k_vatom,vatom);
     memoryKK->create_kokkos(k_vatom,vatom,maxvatom,"pair:vatom");

@@ -130,7 +130,10 @@ void ComputeTI::init()
       error->all(FLERR,"Variable for compute ti is invalid style");
 
     if (which[m] == PAIR) {
+      // check for pair style with and without suffix
       pptr[m] = force->pair_match(pstyle[m],1);
+      if ((pptr[m] == nullptr) && lmp->suffix)
+        pptr[m] = force->pair_match(fmt::format("{}/{}",pstyle[m],lmp->suffix),1);
       if (pptr[m] == nullptr)
         error->all(FLERR,"Compute ti pair style does not exist");
 

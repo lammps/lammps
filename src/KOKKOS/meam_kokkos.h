@@ -11,8 +11,8 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifndef LMP_MEAMKOKKOS_H
-#define LMP_MEAMKOKKOS_H
+#ifndef LMP_MEAM_KOKKOS_H
+#define LMP_MEAM_KOKKOS_H
 
 #include "kokkos.h"
 #include "meam.h"
@@ -272,6 +272,7 @@ static KK_FLOAT fdiv_zero_kk(const KK_FLOAT n, const KK_FLOAT d)
 // Functions we need for compat
 
 }    // namespace LAMMPS_NS
+
 #include "meam_impl_kokkos.h"
 
 #endif

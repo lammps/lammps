@@ -101,6 +101,10 @@ id_dummy = utils::strdup(std::string("NEIGH_HISTORY_GRANULAR_DUMMY") + std::to_s
 
 PairGranular::~PairGranular()
 {
+  // Kokkos functors are shallow copies of the pair object.  Their
+  // destructors must not release storage owned by the original instance.
+  if (copymode) return;
+
   delete[] svector;
 
   if (!fix_history) modify->delete_fix(id_dummy);

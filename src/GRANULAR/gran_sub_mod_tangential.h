@@ -27,6 +27,9 @@ namespace LAMMPS_NS::Granular_NS {
     [[nodiscard]] double get_k() const { return k; }
     [[nodiscard]] double get_damp() const { return damp; }
     [[nodiscard]] double get_mu() const { return mu; }
+    [[nodiscard]] virtual double get_xt() const { return 0.0; }
+    [[nodiscard]] virtual int get_mindlin_force() const { return 0; }
+    [[nodiscard]] virtual int get_mindlin_rescale() const { return 0; }
 
    protected:
     double k, damp, mu;    // Used by Marshall twisting model
@@ -47,6 +50,7 @@ namespace LAMMPS_NS::Granular_NS {
     GranSubModTangentialLinearNoHistory(class GranularModel *, class LAMMPS *);
     void coeffs_to_local() override;
     void calculate_forces() override;
+    [[nodiscard]] double get_xt() const override { return xt; }
 
    protected:
     double xt;
@@ -59,6 +63,7 @@ namespace LAMMPS_NS::Granular_NS {
     GranSubModTangentialLinearHistory(class GranularModel *, class LAMMPS *);
     void coeffs_to_local() override;
     void calculate_forces() override;
+    [[nodiscard]] double get_xt() const override { return xt; }
 
    protected:
     double xt;
@@ -87,6 +92,9 @@ namespace LAMMPS_NS::Granular_NS {
     void coeffs_to_local() override;
     void mix_coeffs(double *, double *) override;
     void calculate_forces() override;
+    [[nodiscard]] double get_xt() const override { return xt; }
+    [[nodiscard]] int get_mindlin_force() const override { return mindlin_force; }
+    [[nodiscard]] int get_mindlin_rescale() const override { return mindlin_rescale; }
 
    protected:
     int mindlin_rescale, mindlin_force;

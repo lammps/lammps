@@ -61,7 +61,7 @@ class FixUVT : public FixNH {
   void parse_dedn_source(const char *);
 
   double u_start, u_stop;
-  double u_current, u_target;
+  double u_target;
   double u_freq;
   int ustat_flag;
   double Ne;

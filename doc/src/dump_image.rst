@@ -1018,6 +1018,10 @@ color map.  The color map is used to assign a specific RGB
 based on the atom's attribute, which is a numeric value, e.g. its
 x-component of velocity if the atom-attribute "vx" was specified.
 
+
+
+
+
 The basic idea of a color map is that the atom-attribute will be
 within a range of values, and that range is associated with a series
 of colors (e.g. red, blue, green).  An atom's specific value (vx =
@@ -1029,14 +1033,13 @@ at the end of this paragraph.
 There are many possible options for the color map, enabled by the *amap*
 keyword.  Here are the details.
 
-The *lo* and *hi* settings determine the range of values allowed for
+he *lo* and *hi* settings determine the range of values allowed for
 the atom attribute.  If numeric values are used for *lo* and/or *hi*,
-then individual atom values which are lower/higher than lo/hi are set
-to lo/hi for purposes of determining the atom's color.  I.e. the range
-is static.  If *lo* is specified as *min* or *hi* as *max* then the
-range is dynamic.  The lower and/or upper bound will be calculated
-each time an image is drawn, based on the current atom values of all
-the atoms being visualized.
+then values that are lower/higher than that value are set to the
+value.  I.e. the range is static.  If *lo* is specified as *min* or
+*hi* as *max* then the range is dynamic, and the lower and/or
+upper bound will be calculated each time an image is drawn, based
+on the set of atoms being visualized.
 
 The *style* setting is two letters, such as "ca".  The first letter is
 either "c" for continuous, "d" for discrete, or "s" for sequential.
@@ -1145,6 +1148,11 @@ the colors are repeated in a round-robin fashion.  For example if 2
 entries with colors red and green are specified, then the odd numbered
 bins will be red and the even bins green.  An atom's color is the
 color of its bin.
+
+
+
+
+
 
 Here is an example for using a sequential color map to color all the
 atoms in individual molecules with a different color.  See below for how

@@ -28,7 +28,7 @@ template <class DeviceType>
 class MLIAPModelPythonKokkos : public MLIAPModelPython, public MLIAPModelKokkos<DeviceType> {
  public:
   MLIAPModelPythonKokkos(LAMMPS *, char * = nullptr);
-  ~MLIAPModelPythonKokkos();
+  ~MLIAPModelPythonKokkos() override;
   void read_coeffs(char *fname) override;
 
   void compute_gradients(class MLIAPData *) override;

@@ -1765,6 +1765,8 @@
 /third_order.h
 /thr_data.cpp
 /thr_data.h
+/tune_gpu.cpp
+/tune_gpu.h
 /verlet_split.cpp
 /verlet_split.h
 /verlet_split_rk.cpp

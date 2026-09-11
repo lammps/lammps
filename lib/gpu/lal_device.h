@@ -232,6 +232,18 @@ class Device {
 
   /// Return the number of threads per atom for pair styles
   inline int threads_per_atom() const { return _threads_per_atom; }
+  /// Change the number of threads per atom used by the pair kernels
+  /** Intended for run time auto-tuning.  The value is silently ignored when
+    * it is not a power of 2 or not a divisor of the SIMD width.  A change
+    * only takes effect at the next neighbor list rebuild, because the layout
+    * of the packed neighbor list depends on this setting. **/
+  void set_threads_per_atom(const int t_per_atom);
+  /// Counter that is incremented every time a kernel parameter is changed
+  inline int param_stamp() const { return _param_stamp; }
+  /// Turn on padding of the neighbor arrays for run time tuning of tpa
+  inline void set_tuning(const int flag) { _tuning=flag; }
+  /// 1 if run time tuning of the kernel parameters is enabled
+  inline int tuning() const { return _tuning; }
   /// Return the number of threads per atom for pair styles using charge
   inline int threads_per_charge() const { return _threads_per_charge; }
   /// Return the number of threads per atom for 3-body pair styles
@@ -239,6 +251,16 @@ class Device {
 
   /// Return the min of the pair block size or the device max block size
   inline int pair_block_size() const { return _block_pair; }
+  /// Change the thread block size used by the pair kernels
+  /** Intended for run time auto-tuning.  Values outside the range returned
+    * by pair_block_size_range() are silently ignored, since the shared
+    * memory used by the pair kernels is sized at compile time. **/
+  void set_pair_block_size(const int block_pair);
+  /// Range of thread block sizes that the pair kernels can be launched with
+  /** \param lo smallest valid block size
+    * \param hi largest valid block size
+    * \param step block sizes must be a multiple of this value **/
+  void pair_block_size_range(int &lo, int &hi, int &step) const;
   /// Return the block size for "bio" pair styles
   inline int block_bio_pair() const { return _block_bio_pair; }
   /// Return the block size for "ellipse" pair styles
@@ -325,7 +347,11 @@ class Device {
 
   int _config_id, _simd_size, _num_mem_threads, _shuffle_avail, _fast_math;
   int _threads_per_atom, _threads_per_charge, _threads_per_three;
+  int _param_stamp;        // incremented whenever a kernel parameter changes
+  int _tuning;             // 1 if run time tuning of kernel params is enabled
   int _block_pair, _block_bio_pair, _block_ellipse;
+  int _max_block_pair;     // block sizes the pair kernels were compiled for
+  int _max_block_bio_pair;
   int _pppm_block, _block_nbor_build, _block_cell_2d, _block_cell_id;
   int _max_shared_types, _max_bio_shared_types, _pppm_max_spline;
   int _nbor_prefetch;

@@ -32,7 +32,10 @@ class FixNHGPU : public FixNH {
 
  protected:
   double *_dtfm;
-  int _nlocal3, _nlocal_max, _respa_on;
+  int _nlocal, _nlocal3, _nlocal_max, _respa_on;
+
+  /// 1 when all atoms share the same mass, so that _dtfm is not needed
+  int _uniform_dtfm;
 
   void remap() override;
   void nve_x() override;

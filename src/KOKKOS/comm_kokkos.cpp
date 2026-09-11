@@ -1111,15 +1111,22 @@ void CommKokkos::exchange_device()
   //   new ghosts are created in borders()
   // map_set() is done at end of borders()
 
-  if (lmp->kokkos->atom_map_legacy)
-    if (map_style != Atom::MAP_NONE) atom->map_clear();
+  // AtomKokkos::map_clear() clears the host or the device map itself, so this
+  // must not be limited to the legacy map: map_set_device() only clears the
+  // hash, leaving a MAP_ARRAY map full of stale indices for migrated atoms
+
+  if (map_style != Atom::MAP_NONE) atom->map_clear();
 
   // clear ghost count and any ghost bonus data internal to AtomVec
 
   atom->nghost = 0;
   atom->avec->clear_bonus();
 
-  if (comm->nprocs > 1) { // otherwise no-op
+  // even on a single rank this is not a no-op: an atom that moves out of a
+  // non-periodic boundary is not wrapped by domain->pbc() and must be deleted
+  // here, exactly as CommBrick::exchange() does.  the per-dimension code below
+  // already sends nothing and drops those atoms when procgrid[dim] == 1
+  {
 
     // subbox bounds for orthogonal or triclinic
 
@@ -1196,7 +1203,7 @@ void CommKokkos::exchange_device()
           MemKK::realloc_kokkos(k_exchange_copylist,"comm:k_exchange_copylist",count*1.1);
           k_count.view_host()(0) = k_exchange_sendlist.view_host().extent(0);
         }
-        if (count >= (int)k_exchange_sendlist_bonus.view_host().extent(0)) {
+        if (count_bonus >= (int)k_exchange_sendlist_bonus.view_host().extent(0)) {
           MemKK::realloc_kokkos(k_exchange_sendlist_bonus,"comm:k_exchange_sendlist_bonus",\
                                 count*1.1);
           MemKK::realloc_kokkos(k_exchange_copylist_bonus,"comm:k_exchange_copylist_bonus",\
@@ -1283,10 +1290,10 @@ void CommKokkos::exchange_device()
             icopy--;
           }
         }
-      }
 
-      k_exchange_copylist_bonus.modify_host();
-      k_exchange_copylist_bonus.sync<DeviceType>();
+        k_exchange_copylist_bonus.modify_host();
+        k_exchange_copylist_bonus.sync<DeviceType>();
+      }
 
       if (nsend > maxsend) grow_send_kokkos(nsend,0);
       nsend =
@@ -1535,7 +1542,7 @@ struct BuildBorderListFunctor {
     }
   }
 
-  [[nodiscard]] size_t shmem_size(const int team_size) const { (void) team_size; return 1000u;}
+  [[nodiscard]] size_t shmem_size(const int team_size) const { (void) team_size; return 1000U;}
 };
 
 /* ---------------------------------------------------------------------- */
@@ -1545,7 +1552,6 @@ void CommKokkos::borders_device() {
   int n,iswap,dim,ineed,twoneed,smax,rmax;
   int nsend,nrecv,sendflag,nfirst,nlast;
   double lo,hi;
-  double *mlo,*mhi;
   MPI_Request request;
 
   ExecutionSpace exec_space = ExecutionSpaceFromDevice<DeviceType>::space;
@@ -1573,13 +1579,14 @@ void CommKokkos::borders_device() {
       //   for later swaps in a dim, only check newly arrived ghosts
       // store sent atom indices in list for use in future timesteps
 
-      if (mode == Comm::SINGLE) {
-        lo = slablo[iswap];
-        hi = slabhi[iswap];
-      } else {
-        mlo = multilo[iswap];
-        mhi = multihi[iswap];
-      }
+      // borders() sends every mode other than Comm::SINGLE down the legacy
+      // path, so only the single-cutoff slab bounds are ever needed here; the
+      // multi cutoffs the commented-out blocks below refer to would have to be
+      // looked up again by whoever implements them
+
+      lo = slablo[iswap];
+      hi = slabhi[iswap];
+
       if (ineed % 2 == 0) {
         nfirst = nlast;
         nlast = atom->nlocal + atom->nghost;
@@ -1866,8 +1873,14 @@ void CommKokkos::grow_recv(int n)
 void CommKokkos::grow_send_kokkos(int n, int flag, ExecutionSpace space)
 {
 
+  // bufextra, not the bare BUFEXTRA constant: CommBrick::exchange() packs one
+  // atom of up to maxexchange doubles beyond maxsend before it grows the
+  // buffer again, and rounding up keeps the truncating division from handing
+  // back less than the caller asked for
+
   maxsend = static_cast<int> (BUFFACTOR * n);
-  int maxsend_border = (maxsend+Comm::BUFEXTRA)/atomKK->avecKK->size_border;
+  int maxsend_border = (maxsend + bufextra + atomKK->avecKK->size_border - 1)/
+    atomKK->avecKK->size_border;
   if (flag) {
     if (space == Device)
       k_buf_send.modify_device();
@@ -1903,7 +1916,8 @@ void CommKokkos::grow_send_kokkos(int n, int flag, ExecutionSpace space)
 void CommKokkos::grow_recv_kokkos(int n, ExecutionSpace /*space*/)
 {
   maxrecv = static_cast<int> (BUFFACTOR * n);
-  int maxrecv_border = (maxrecv+Comm::BUFEXTRA)/atomKK->avecKK->size_border;
+  int maxrecv_border = (maxrecv + Comm::BUFEXTRA + atomKK->avecKK->size_border - 1)/
+    atomKK->avecKK->size_border;
 
   MemoryKokkos::realloc_kokkos(k_buf_recv,"comm:k_buf_recv",maxrecv_border,
     atomKK->avecKK->size_border);

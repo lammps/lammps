@@ -452,7 +452,9 @@ parameter-selection guidance in the more general dielectric-confined
 setting, see :ref:`(Gao2025) <Gao2025>`. The *auto* setting is
 currently supported by :doc:`kspace_style <kspace_style>` *ewald*, *pppm*,
 *pppm/cg*, *pppm/tip4p*, *pppm/stagger*, and the corresponding
-OpenMP/GPU/Intel variants that reuse the same slab-correction setup.
+OpenMP/GPU/Intel variants that reuse the same slab-correction setup.  The
+KOKKOS variants do not support it and will stop with an error if it is
+requested; use an explicit volfactor with those.
 
 An alternative slab option can be invoked with the *nozforce* keyword
 in lieu of the volfactor.  This turns off all kspace forces in the z

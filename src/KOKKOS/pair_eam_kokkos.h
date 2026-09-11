@@ -59,6 +59,7 @@ class PairEAMKokkos : public PairEAM, public KokkosBase {
   ~PairEAMKokkos() override;
   void compute(int, int) override;
   void init_style() override;
+  double init_one(int, int) override;
 
 
 // NOLINTNEXTLINE
@@ -178,6 +179,16 @@ class PairEAMKokkos : public PairEAM, public KokkosBase {
   typename AT::t_kkfloat_1d d_fp;
   HAT::t_kkfloat_1d h_rho;
   HAT::t_kkfloat_1d h_fp;
+
+  // set on the device when a per-atom density runs past the end of the
+  // embedding table, so compute() can issue the same warning as the CPU style
+
+  DAT::tdual_int_scalar k_beyond_rhomax;
+
+  // per type pair scale factor, settable through fix adapt
+
+  DAT::tdual_kkfloat_2d k_scale;
+  typename AT::t_kkfloat_2d d_scale;
 
   typename AT::t_int_1d d_type2frho;
   typename AT::t_int_2d_dl d_type2rhor;

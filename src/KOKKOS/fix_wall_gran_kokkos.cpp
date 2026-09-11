@@ -40,7 +40,7 @@ FixWallGranKokkos<DeviceType>::FixWallGranKokkos(LAMMPS *lmp, int narg, char **a
   datamask_modify = F_MASK | TORQUE_MASK;
 
   memory->destroy(history_one);
-  history_one = NULL;
+  history_one = nullptr;
   grow_arrays(atom->nmax);
 }
 
@@ -102,6 +102,11 @@ void FixWallGranKokkos<DeviceType>::post_force(int /*vflag*/)
 
   atomKK->sync(execution_space,datamask_read);
 
+  if (use_history) {
+    k_history_one.template sync<DeviceType>();
+    d_history_one = k_history_one.template view<DeviceType>();
+  }
+
   copymode = 1;
 
   if (pairstyle == HOOKE)
@@ -117,8 +122,12 @@ void FixWallGranKokkos<DeviceType>::post_force(int /*vflag*/)
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagFixWallGranHookeHistory<ZCYLINDER>>(0,nlocal),*this);
   } else if (pairstyle == HERTZ_HISTORY)
     error->all(FLERR, "Fix wall/gran/kk doesn't yet support hertz/history style");
+  else if (pairstyle == GRANULAR)
+    error->all(FLERR, "Fix wall/gran/kk doesn't yet support granular style");
 
   atomKK->modified(execution_space,datamask_modify);
+
+  if (use_history) k_history_one.template modify<DeviceType>();
 
   copymode = 0;
 }
@@ -322,6 +331,18 @@ void FixWallGranKokkos<DeviceType>::copy_arrays(int i, int j, int delflag)
   }
 }
 
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixWallGranKokkos<DeviceType>::set_arrays(int i)
+{
+  if (use_history) {
+    k_history_one.sync_host();
+    FixWallGranOld::set_arrays(i);
+    k_history_one.modify_host();
+  }
+}
+
 /* ----------------------------------------------------------------------
    sort local atom-based arrays
 ------------------------------------------------------------------------- */
@@ -363,12 +384,36 @@ int FixWallGranKokkos<DeviceType>::unpack_exchange(int nlocal, double *buf)
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+int FixWallGranKokkos<DeviceType>::pack_restart(int i, double *buf)
+{
+  if (!use_history) return 0;
+
+  k_history_one.sync_host();
+
+  return FixWallGranOld::pack_restart(i,buf);
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixWallGranKokkos<DeviceType>::unpack_restart(int nlocal, int nth)
+{
+  if (!use_history) return;
+
+  FixWallGranOld::unpack_restart(nlocal,nth);
+
+  k_history_one.modify_host();
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
 // NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixWallGranKokkos<DeviceType>::operator()(TagFixWallGranPackExchange, const int &mysend) const
 {
   const int i = d_sendlist(mysend);
-  int m = i*size_history;
+  int m = mysend*size_history;
   for (int v = 0; v < size_history; v++)
     d_buf(m++) = static_cast<double>(d_history_one(i,v));
 
@@ -421,7 +466,7 @@ void FixWallGranKokkos<DeviceType>::operator()(TagFixWallGranUnpackExchange, con
   if (index > -1) {
     int m = i*size_history;
     for (int v = 0; v < size_history; v++)
-      d_history_one(i,v) = static_cast<KK_FLOAT>(d_buf(m++));
+      d_history_one(index,v) = static_cast<KK_FLOAT>(d_buf(m++));
   }
 }
 
@@ -433,10 +478,20 @@ void FixWallGranKokkos<DeviceType>::unpack_exchange_kokkos(
   int /*nrecv1*/, int /*nextrarecv1*/,
   ExecutionSpace /*space*/)
 {
+  k_buf.template sync<DeviceType>();
+  k_indices.template sync<DeviceType>();
+
   d_buf = typename AT::t_double_1d_um(
     k_buf.template view<DeviceType>().data(),
     k_buf.extent(0)*k_buf.extent(1));
   d_indices = k_indices.view<DeviceType>();
+
+  // the kernel below writes only the rows of the atoms that arrived, so the
+  // rest have to be current on the device first.  syncing here also retires
+  // any outstanding host claim, which the modify<DeviceType>() at the end
+  // would otherwise hit as a concurrent modification
+
+  k_history_one.template sync<DeviceType>();
 
   d_history_one = k_history_one.template view<DeviceType>();
 

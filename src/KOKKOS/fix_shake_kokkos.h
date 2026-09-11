@@ -248,9 +248,6 @@ class FixShakeKokkos : public FixShake, public KokkosBase {
   typename AT::t_int_1d d_copylist;
   typename AT::t_int_1d d_indices;
 
-  typename AT::t_double_2d d_b_stats;
-  typename AT::t_double_2d d_a_stats;
-
   KK_FLOAT dx,dy,dz;
   KK_FLOAT dtv_kk,dtfsq_kk;
 
@@ -261,7 +258,7 @@ class FixShakeKokkos : public FixShake, public KokkosBase {
     if constexpr (std::is_same_v<real_t, double>) {
       return 1e150;
     } else {
-      return 1e30f;
+      return 1e30F;
     }
   }
 

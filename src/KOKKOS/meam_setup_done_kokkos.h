@@ -14,6 +14,8 @@
 
 #include "meam_kokkos.h"
 
+namespace LAMMPS_NS {
+
 template<class DeviceType>
 void MEAMKokkos<DeviceType>::meam_setup_done(double* cutmax)
 {
@@ -58,3 +60,5 @@ void MEAMKokkos<DeviceType>::meam_setup_done(double* cutmax)
   Kokkos::deep_copy(d_phirar5,h_phirar5);
   Kokkos::deep_copy(d_phirar6,h_phirar6);
 }
+
+}    // namespace LAMMPS_NS

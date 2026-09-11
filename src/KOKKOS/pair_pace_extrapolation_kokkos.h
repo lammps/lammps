@@ -331,7 +331,7 @@ class PairPACEExtrapolationKokkos : public PairPACEExtrapolation {
 
     t_ace_3d4_lr lookupTable;
 
-    void operator=(const SplineInterpolator &spline);
+    SplineInterpolatorKokkos &operator=(const SplineInterpolator &spline);
 
     void deallocate() {
       lookupTable = t_ace_3d4_lr();

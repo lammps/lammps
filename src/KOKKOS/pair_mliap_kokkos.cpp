@@ -97,9 +97,9 @@ void PairMLIAPKokkos<DeviceType>::compute(int eflag, int vflag)
   }
 
   if (vflag_atom) {
-    if ((int)k_vatom.view_host().extent(0) < maxeatom) {
+    if ((int)k_vatom.view_host().extent(0) < maxvatom) {
       memoryKK->destroy_kokkos(k_vatom,vatom);
-      memoryKK->create_kokkos(k_vatom,vatom,maxeatom,6,"pair:eatom");
+      memoryKK->create_kokkos(k_vatom,vatom,maxvatom,6,"pair:vatom");
     } else {
       Kokkos::deep_copy(k_vatom.template view<DeviceType>(),0);
       k_vatom.modify<DeviceType>();

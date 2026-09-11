@@ -51,6 +51,9 @@ class FixNeighHistoryKokkos : public FixNeighHistory, public KokkosBase {
   void sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorter) override;
   int pack_exchange(int, double *) override;
   int unpack_exchange(int, double *) override;
+  int pack_restart(int, double *) override;
+  void unpack_restart(int, int) override;
+  int size_restart(int) override;
   double memory_usage() override;
 
 // NOLINTNEXTLINE

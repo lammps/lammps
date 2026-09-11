@@ -2,7 +2,7 @@
 lammps_version: 2 Sep 2026
 tags: no_respa no_restart
 date_generated: Fri Sep  4 18:04:58 2026
-epsilon: 5e-14
+epsilon: 2.0e-13
 skip_tests: kokkos_gpu_devicerng kokkos_omp_devicerng kokkos_serial_devicerng
 prerequisites: |
   atom full

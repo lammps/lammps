@@ -66,7 +66,7 @@ template <class DeviceType> class FixRigidSmallKokkos : public FixRigidSmall, pu
   typedef ArrayTypes<DeviceType> AT;
 
   FixRigidSmallKokkos(class LAMMPS *, int, char **);
-  ~FixRigidSmallKokkos();
+  ~FixRigidSmallKokkos() override;
   int setmask() override;
   void pre_exchange() override;
 

@@ -48,7 +48,7 @@ class FixWallFlowKokkos : public FixWallFlow, public KokkosBase {
   struct MassTag{};
   struct RMassTag{};
   FixWallFlowKokkos(class LAMMPS *, int, char **);
-  ~FixWallFlowKokkos();
+  ~FixWallFlowKokkos() override;
 
   void init() override;
   void end_of_step() override;

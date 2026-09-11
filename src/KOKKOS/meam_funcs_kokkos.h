@@ -16,6 +16,9 @@
    Contributing author: Naga Vydyanathan (NVIDIA)
 ------------------------------------------------------------------------- */
 
+#ifndef LMP_MEAM_FUNCS_KOKKOS_H
+#define LMP_MEAM_FUNCS_KOKKOS_H
+
 #include "math_special_kokkos.h"
 
 #include <cmath>
@@ -303,5 +306,5 @@ int MEAMKokkos<DeviceType>::get_Zij(const lattice_t latt) const
   }
   return 0;
 }
-
 }    // namespace LAMMPS_NS
+#endif

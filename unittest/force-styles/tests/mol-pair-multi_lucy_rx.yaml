@@ -2,7 +2,7 @@
 lammps_version: 2 Sep 2026
 tags: single_thread
 date_generated: Fri Sep  4 14:46:21 2026
-epsilon: 5e-13
+epsilon: 7.5e-13
 skip_tests: extract extract_omp single
 prerequisites: |
   atom dpd

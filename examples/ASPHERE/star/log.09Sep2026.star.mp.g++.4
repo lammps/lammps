@@ -1,6 +1,4 @@
-LAMMPS (21 Nov 2023 - Development - patch_21Nov2023-665-g17f869bf5e)
-OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
-  using 1 OpenMP thread(s) per MPI task
+LAMMPS (2 Sep 2026)
 # SRD viscosity demo - rigid star particles
 
 units           lj
@@ -56,7 +54,7 @@ Neighbor list info ...
   max neighbors/atom: 2000, page size: 100000
   master list distance cutoff = 1.42
   ghost atom cutoff = 1.42
-  binsize = 0.71, bins = 38 38 2
+  binsize = 0.71, bins = 38 38 1
   1 neighbor lists, perpetual/occasional/extra = 1 0 0
   (1) pair soft, perpetual
       attributes: half, newton on
@@ -76,20 +74,20 @@ Per MPI rank memory allocation (min/avg/max) = 5.554 | 5.554 | 5.555 Mbytes
        800   19.082984      16.464746      0              19.574566      2.2424126    
        900   20.702091      18.253108      0              21.626782      1.8041661    
       1000   18.299191      20.699563      0              23.681654      2.9475408    
-Loop time of 0.0311841 on 4 procs for 1000 steps with 270 atoms
+Loop time of 0.0163608 on 4 procs for 1000 steps with 270 atoms
 
-Performance: 13853197.664 tau/day, 32067.587 timesteps/s, 8.658 Matom-step/s
-97.6% CPU use with 4 MPI tasks x 1 OpenMP threads
+Performance: 26404652.646 tau/day, 61121.881 timesteps/s, 16.503 Matom-step/s
+98.9% CPU use with 4 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.0027957  | 0.0031644  | 0.0035219  |   0.5 | 10.15
-Neigh   | 0.001171   | 0.0012862  | 0.0014036  |   0.3 |  4.12
-Comm    | 0.0099068  | 0.010544   | 0.011053   |   0.4 | 33.81
-Output  | 0.00014281 | 0.00016091 | 0.00020823 |   0.0 |  0.52
-Modify  | 0.013319   | 0.013618   | 0.014047   |   0.2 | 43.67
-Other   |            | 0.002411   |            |       |  7.73
+Pair    | 0.0024009  | 0.0026711  | 0.0028425  |   0.3 | 16.33
+Neigh   | 0.00055706 | 0.00061258 | 0.00065027 |   0.0 |  3.74
+Comm    | 0.0048535  | 0.005054   | 0.0052335  |   0.2 | 30.89
+Output  | 4.111e-05  | 4.7391e-05 | 6.4683e-05 |   0.0 |  0.29
+Modify  | 0.0068661  | 0.0070169  | 0.0071269  |   0.1 | 42.89
+Other   |            | 0.0009588  |            |       |  5.86
 
 Nlocal:           67.5 ave          80 max          54 min
 Histogram: 1 1 0 0 0 0 0 0 1 1
@@ -153,7 +151,7 @@ Neighbor list info ...
       pair build: half/bin/atomonly/newton
       stencil: half/bin/2d
       bin: standard
-WARNING: Delete_atoms cutoff > minimum neighbor cutoff (src/delete_atoms.cpp:312)
+WARNING: Delete_atoms cutoff > minimum neighbor cutoff (src/delete_atoms.cpp:417)
 Deleted 16305 atoms, new total = 43990
 
 # SRD run
@@ -191,10 +189,10 @@ compute         tbig big temp/sphere
 variable        pebig equal pe*atoms/count(big)
 variable        ebig equal etotal*atoms/count(big)
 thermo_style    custom step temp f_2[8] etotal v_pebig v_ebig press                 f_2[1] f_2[2] f_2[3] f_2[4] f_2[5]                 f_2[6] f_2[7] f_2[8] f_2[9] f_2[10] f_2[11] f_2[12]
-WARNING: New thermo_style command, previous thermo_modify settings will be lost (src/output.cpp:904)
+WARNING: New thermo_style command, previous thermo_modify settings will be lost (src/output.cpp:1091)
 
 thermo_modify   temp tbig
-WARNING: Temperature for thermo pressure is not for group all (src/thermo.cpp:530)
+WARNING: Temperature for thermo pressure is not for group all (src/thermo.cpp:578)
 thermo          1000
 
 #dump           1 all atom 1000 dump.star.mp
@@ -208,7 +206,7 @@ CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
 
 Your simulation uses code contributions which should be cited:
 
-- neighbor multi command: doi:10.1016/j.cpc.2008.03.005, doi:10.1007/s40571-020-00361-2
+- neighbor multi command: https://doi.org/10.1016/j.cpc.2008.03.005, https://doi.org/10.1007/s40571-020-00361-2
 
 @Article{Intveld08,
  author =  {in 't Veld, P. J. and S. J.~Plimpton and G. S. Grest},
@@ -238,7 +236,7 @@ Your simulation uses code contributions which should be cited:
  year = {2022}
 }
 
-- fix srd command: doi:10.1063/1.3419070
+- fix srd command: https://doi.org/10.1063/1.3419070
 
 @Article{Petersen10,
  author = {M. K. Petersen and J. B. Lechman and S. J. Plimpton and
@@ -264,7 +262,8 @@ SRD info:
   SRD per actual grid cell = 5.5586635
   SRD viscosity = 0.23558168
   big/SRD mass density ratio = 0.14409881
-WARNING: Fix srd grid size > 1/4 of big particle diameter (src/SRD/fix_srd.cpp:2830)
+  unbiased profile = no
+WARNING: Fix srd grid size > 1/4 of big particle diameter (src/SRD/fix_srd.cpp:2835)
   # of rescaled SRD velocities = 0
   ave/max small velocity = 4.1908497 7.725824
   ave/max big velocity = 2.202625 5.4167964
@@ -273,7 +272,8 @@ Neighbor list info ...
   max neighbors/atom: 2000, page size: 100000
   master list distance cutoff = 2.8
   ghost atom cutoff = 2.8
-  binsize = 26.586808, bins = 1 1 1
+  collection 1 binsize = 1.4, bins = 19 19 1
+  collection 2 binsize = 26.586808, bins = 1 1 1
   1 neighbor lists, perpetual/occasional/extra = 1 0 0
   (1) pair lj/cut, perpetual
       attributes: half, newton on
@@ -283,40 +283,40 @@ Neighbor list info ...
 Per MPI rank memory allocation (min/avg/max) = 14.19 | 14.19 | 14.2 Mbytes
    Step          Temp          f_2[8]         TotEng        v_pebig         v_ebig         Press          f_2[1]         f_2[2]         f_2[3]         f_2[4]         f_2[5]         f_2[6]         f_2[7]         f_2[8]         f_2[9]        f_2[10]        f_2[11]        f_2[12]    
          0   18.299191      0              0.25067776     37.859815      40.841906      5.7680841      0              0              0              0              0              0              0              0              0              0              0              0            
-      1000   1.3506473      8186           0.22968182     37.201018      37.421123      5.6398923      14572          54             54             0              654            42436          11236          8186           1.0228728      0              3              0            
-      2000   0.99412905     8212           0.22952823     37.234094      37.3961        8.5863689      14257          69             69             0              1394           42436          11236          8212           1.0206297      0              12             0            
-      3000   1.4469134      8192           0.22970951     37.189841      37.425634      8.0408437      14439          53             53             0              2178           42436          11236          8192           1.0121272      0              12             0            
-      4000   1.6112802      8172           0.2303679      37.270324      37.532903      8.3379947      14098          57             57             0              2992           42436          11236          8172           1.0171443      0              12             0            
-      5000   2.0436283      8191           0.23016186     37.166298      37.499334      7.1370191      14030          49             49             0              3804           42436          11236          8191           1.0054513      0              12             0            
-      6000   2.2894073      8184           0.2303867      37.162878      37.535967      7.6496143      13970          50             50             0              4662           42436          11236          8184           1.0084738      0              12             0            
-      7000   2.1640822      8183           0.23045121     37.193812      37.546477      7.1526683      13926          56             57             0              5445           42436          11236          8183           1.0046108      0              15             0            
-      8000   2.8851243      8199           0.23121762     37.201176      37.671344      9.1644504      13849          58             58             0              6237           42436          11236          8199           1.0081629      0              15             0            
-      9000   2.6422092      8180           0.23070839     37.157795      37.588377      2.4816571      13651          70             70             0              7007           42436          11236          8180           1.0089869      0              15             0            
-     10000   2.7121051      8189           0.23087145     37.172972      37.614945      11.176036      13901          63             64             0              7845           42436          11236          8189           1.0023484      0              15             0            
-Loop time of 6.56969 on 4 procs for 10000 steps with 43990 atoms
+      1000   1.1843198      8198           0.22948743     37.196451      37.389452      5.2533566      14373          70             70             0              654            42436          11236          8198           1.0156455      0              3              0            
+      2000   1.2029974      8218           0.22950665     37.19654       37.392584      8.3621031      14698          58             58             0              1380           42436          11236          8218           1.0139339      0              3              0            
+      3000   1.6343102      8221           0.22996201     37.200441      37.466773      5.237498       14289          56             56             0              2192           42436          11236          8221           1.0157159      0              7              0            
+      4000   1.6161781      8193           0.23007489     37.221787      37.485164      5.1945368      13854          64             64             0              2990           42436          11236          8193           1.0067402      0              7              0            
+      5000   1.3649668      8218           0.22987482     37.230128      37.452567      8.8949228      14362          63             63             0              3762           42436          11236          8218           1.005311       0              7              0            
+      6000   2.0985862      8184           0.23045136     37.204509      37.546501      9.4880167      14130          55             56             1              4565           42436          11236          8184           1.0088486      0              7              0            
+      7000   2.2910034      8191           0.23062483     37.201415      37.574764      4.0561478      14068          59             59             0              5381           42436          11236          8191           1.0087569      0              7              0            
+      8000   2.3716996      8183           0.23063378     37.189723      37.576222      3.4084111      14136          65             65             0              6250           42436          11236          8183           1.0014244      0              7              0            
+      9000   2.7197591      8178           0.23136224     37.251687      37.694907      8.4232441      13960          40             40             0              7110           42436          11236          8178           1.0042783      0              9              0            
+     10000   2.5426457      8165           0.23111109     37.239631      37.653988      5.224295       13736          51             52             0              7992           42436          11236          8165           0.99905544     0              9              0            
+Loop time of 1.87835 on 4 procs for 10000 steps with 43990 atoms
 
-Performance: 131513.146 tau/day, 1522.143 timesteps/s, 66.959 Matom-step/s
-99.1% CPU use with 4 MPI tasks x 1 OpenMP threads
+Performance: 459978.688 tau/day, 5323.827 timesteps/s, 234.195 Matom-step/s
+99.1% CPU use with 4 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.037869   | 0.059232   | 0.073664   |   5.4 |  0.90
-Neigh   | 0.015688   | 0.017835   | 0.019891   |   1.1 |  0.27
-Comm    | 0.22905    | 0.24375    | 0.26098    |   2.3 |  3.71
-Output  | 0.00069058 | 0.00071614 | 0.00078869 |   0.0 |  0.01
-Modify  | 6.1124     | 6.1385     | 6.1881     |   1.2 | 93.44
-Other   |            | 0.1096     |            |       |  1.67
+Pair    | 0.010894   | 0.017664   | 0.022048   |   3.1 |  0.94
+Neigh   | 0.005209   | 0.0066741  | 0.0077112  |   1.2 |  0.36
+Comm    | 0.082105   | 0.08665    | 0.09246    |   1.3 |  4.61
+Output  | 0.00039857 | 0.00042228 | 0.00049254 |   0.0 |  0.02
+Modify  | 1.7185     | 1.727      | 1.7423     |   0.7 | 91.94
+Other   |            | 0.03998    |            |       |  2.13
 
-Nlocal:        10997.5 ave       12305 max       10259 min
-Histogram: 1 1 0 1 0 0 0 0 0 1
-Nghost:          58.25 ave          73 max          48 min
-Histogram: 1 0 1 0 1 0 0 0 0 1
-Neighs:         402.75 ave         520 max         207 min
-Histogram: 1 0 0 0 0 0 0 2 0 1
+Nlocal:        10997.5 ave       11891 max        9975 min
+Histogram: 1 0 0 0 0 1 1 0 0 1
+Nghost:          66.75 ave          83 max          52 min
+Histogram: 1 1 0 0 0 0 0 1 0 1
+Neighs:          392.5 ave         551 max         249 min
+Histogram: 1 0 0 0 2 0 0 0 0 1
 
-Total # of neighbors = 1611
-Ave neighs/atom = 0.03662196
+Total # of neighbors = 1570
+Ave neighs/atom = 0.03568993
 Neighbor list builds = 500
 Dangerous builds = 0
-Total wall time: 0:00:06
+Total wall time: 0:00:02

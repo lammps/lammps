@@ -17,6 +17,9 @@
                          Evan Weinberg (NVIDIA)
 ------------------------------------------------------------------------- */
 
+#ifndef LMP_SNA_KOKKOS_IMPL_H
+#define LMP_SNA_KOKKOS_IMPL_H
+
 #include "sna_kokkos.h"
 #include "math_const.h"
 #include "memory_kokkos.h"
@@ -74,11 +77,10 @@ SNAKokkos<DeviceType, real_type, accum_type, vector_length>::SNAKokkos(const Cop
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType, typename real_type, typename accum_type, int vector_length>
-// NOLINTNEXTLINE
+// NOLINTBEGIN
 KOKKOS_INLINE_FUNCTION
-SNAKokkos<DeviceType, real_type, accum_type, vector_length>::~SNAKokkos()
-{
-}
+  SNAKokkos<DeviceType, real_type, accum_type, vector_length>::~SNAKokkos() {}
+// NOLINTEND
 
 template<class DeviceType, typename real_type, typename accum_type, int vector_length>
 inline
@@ -2392,5 +2394,5 @@ double SNAKokkos<DeviceType, real_type, accum_type, vector_length>::memory_usage
 
   return bytes;
 }
-
 } // namespace LAMMPS_NS
+#endif

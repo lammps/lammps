@@ -12,6 +12,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#ifndef LMP_MEAM_DENS_FINAL_KOKKOS_H
+#define LMP_MEAM_DENS_FINAL_KOKKOS_H
+
 #include "meam_kokkos.h"
 #include "math_special.h"
 
@@ -190,5 +193,5 @@ void MEAMKokkos<DeviceType>::operator()(TagMEAMDensFinal, const int &i, EV_FLOAT
     }
   }
 }
-
 }    // namespace LAMMPS_NS
+#endif

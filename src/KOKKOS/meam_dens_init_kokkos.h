@@ -12,6 +12,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#ifndef LMP_MEAM_DENS_INIT_KOKKOS_H
+#define LMP_MEAM_DENS_INIT_KOKKOS_H
+
 #include "meam_kokkos.h"
 #include "math_special_kokkos.h"
 
@@ -688,5 +691,5 @@ KK_FLOAT MEAMKokkos<DeviceType>::fcut(const KK_FLOAT xi) const
     return a * a;
   }
 }
-
 }    // namespace LAMMPS_NS
+#endif

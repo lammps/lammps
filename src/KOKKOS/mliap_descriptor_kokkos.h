@@ -40,10 +40,6 @@ template <class DeviceType> class MLIAPDescriptorKokkos : virtual protected Poin
     k_wjelem.sync_device();
   }
 
-  virtual ~MLIAPDescriptorKokkos()
-  {
-  }
-
   MLIAPDescriptor *descriptor;
   DAT::tdual_double_1d k_wjelem;
 };

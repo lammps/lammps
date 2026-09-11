@@ -16,13 +16,15 @@
    Contributing author: Naga Vydyanathan (NVIDIA), Stan Moore (SNL)
 ------------------------------------------------------------------------- */
 
+#ifndef LMP_MEAM_IMPL_KOKKOS_H
+#define LMP_MEAM_IMPL_KOKKOS_H
+
 #include "memory_kokkos.h"
 #include "meam_kokkos.h"
 
-namespace LAMMPS_NS {
-
-
 /* ---------------------------------------------------------------------- */
+
+namespace LAMMPS_NS {
 
 template<class DeviceType>
 MEAMKokkos<DeviceType>::MEAMKokkos(Memory *mem) : MEAM(mem)
@@ -31,10 +33,7 @@ MEAMKokkos<DeviceType>::MEAMKokkos(Memory *mem) : MEAM(mem)
 }
 
 template<class DeviceType>
-MEAMKokkos<DeviceType>::~MEAMKokkos()
-{
-
-}
+MEAMKokkos<DeviceType>::~MEAMKokkos() {}
 
 }    // namespace LAMMPS_NS
 
@@ -43,4 +42,4 @@ MEAMKokkos<DeviceType>::~MEAMKokkos()
 #include "meam_dens_init_kokkos.h"
 #include "meam_dens_final_kokkos.h"
 #include "meam_force_kokkos.h"
-
+#endif

@@ -67,7 +67,7 @@ namespace Kokkos {
     float x,y,z;
 // NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
-    lmp_float3():x(0.0f),y(0.0f),z(0.0f) {}
+    lmp_float3():x(0.0F),y(0.0F),z(0.0F) {}
 
 // NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION

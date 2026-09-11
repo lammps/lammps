@@ -539,8 +539,8 @@ Play the movie:
       vlc foo.mpg
       ffplay bar.avi
 
-#. Use the `Pizza.py <https://lammps.github.io/pizza/>`_
-   `animate tool <https://lammps.github.io/pizza/doc/animate.html>`_,
+#. Use the `Pizza.py <https://sjplimp.github.io/pizza/>`_
+   `animate tool <https://sjplimp.github.io/pizza/doc/animate.html>`_,
    which works directly on a series of image files.
 
    .. code-block:: python

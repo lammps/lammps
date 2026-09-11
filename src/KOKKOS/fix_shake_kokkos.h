@@ -258,7 +258,7 @@ class FixShakeKokkos : public FixShake, public KokkosBase {
     if constexpr (std::is_same_v<real_t, double>) {
       return 1e150;
     } else {
-      return 1e30f;
+      return 1e30F;
     }
   }
 

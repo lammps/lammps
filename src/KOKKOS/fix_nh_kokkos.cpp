@@ -372,7 +372,7 @@ void FixNHKokkos<DeviceType>::remap()
   if (allremap) domainKK->x2lamda(nlocal);
   else domainKK->x2lamda(nlocal,dilate_group_bit);
 
-  if (rfix.size() > 0)
+  if (!rfix.empty())
     error->all(FLERR,"Cannot (yet) use rigid bodies with fix nh and Kokkos");
   // for (auto &ifix : rfix) ifix->deform(0);
 

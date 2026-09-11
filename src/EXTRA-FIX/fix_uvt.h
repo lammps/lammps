@@ -61,9 +61,9 @@ class FixUVT : public FixNH {
   double u_current, u_target;
   double u_freq;
   int ustat_flag;
-  double *Ne;
-  double *Ne_dot;
-  double *Ne_mass;
+  double Ne;
+  double Ne_dot;
+  double Ne_mass;
   char *dedn_name;
   int dedn_which;
   int dedn_index;

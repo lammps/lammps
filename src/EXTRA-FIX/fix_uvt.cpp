@@ -115,7 +115,7 @@ void release_uvt_args()
 FixUVT::FixUVT(LAMMPS *lmp, int narg, char **arg) :
     FixNH(lmp, uvt_argc(narg, arg), uvt_argv(narg, arg)),
     u_start(0.0), u_stop(0.0), u_current(0.0), u_target(0.0), u_freq(0.0), ustat_flag(0),
-    Ne(nullptr), Ne_dot(nullptr), Ne_mass(nullptr), dedn_name(nullptr), dedn_which(ArgInfo::NONE),
+    Ne(0.0), Ne_dot(0.0), Ne_mass(0.0), dedn_name(nullptr), dedn_which(ArgInfo::NONE),
     dedn_index(0), dedn_var(-1), dedn_compute(nullptr), dedn_fix(nullptr), dedn_current(0.0),
     dedn_defer(0)
 {
@@ -139,14 +139,12 @@ FixUVT::FixUVT(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[i], "ne") == 0) {
       if (i + 2 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} ne", style), error);
       ne_seen = true;
-      if (!Ne) Ne = new double[1];
-      *Ne = utils::numeric(FLERR, arg[i + 1], false, lmp);
+      Ne = utils::numeric(FLERR, arg[i + 1], false, lmp);
       i += 2;
     } else if (strcmp(arg[i], "ne_velocity") == 0) {
       if (i + 2 > narg)
         utils::missing_cmd_args(FLERR, fmt::format("fix {} ne_velocity", style), error);
-      if (!Ne_dot) Ne_dot = new double[1];
-      *Ne_dot = utils::numeric(FLERR, arg[i + 1], false, lmp);
+      Ne_dot = utils::numeric(FLERR, arg[i + 1], false, lmp);
       i += 2;
     } else if (strcmp(arg[i], "dedn") == 0) {
       if (i + 2 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} dedn", style), error);
@@ -174,16 +172,10 @@ FixUVT::FixUVT(LAMMPS *lmp, int narg, char **arg) :
   if (!ne_seen) error->all(FLERR, "Missing ne keyword for fix {}", style);
   if (!dedn_seen) error->all(FLERR, "Missing dedn keyword for fix {}", style);
   if (u_period <= 0.0) error->all(FLERR, "Chemical-potential damping for fix {} must be > 0.0", style);
-  if (!Ne_dot) {
-    Ne_dot = new double[1];
-    *Ne_dot = 0.0;
-  }
 
   u_freq = 1.0 / u_period;
   u_current = u_start;
 
-  if (!Ne_mass) Ne_mass = new double[1];
-  *Ne_mass = 0.0;
   size_vector += 6;
 
   id_temp = utils::strdup(std::string(id) + "_temp");
@@ -199,9 +191,6 @@ FixUVT::~FixUVT()
 {
   if (copymode) return;
 
-  delete[] Ne;
-  delete[] Ne_dot;
-  delete[] Ne_mass;
   delete[] dedn_name;
 }
 
@@ -281,7 +270,7 @@ void FixUVT::setup(int vflag)
   else
     dedn_current = evaluate_dedn();
   u_current = dedn_current;
-  *Ne_mass = tdof * boltz * t_target / (u_freq*u_freq);
+  Ne_mass = tdof * boltz * t_target / (u_freq*u_freq);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -415,7 +404,7 @@ double FixUVT::compute_scalar()
 {
   double energy = FixNH::compute_scalar();
   double kt = boltz * t_target;
-  energy += 0.5*(*Ne_mass)*(*Ne_dot)*(*Ne_dot) + kt * eta[0] - u_target*(*Ne);
+  energy += 0.5*Ne_mass*Ne_dot*Ne_dot + kt * eta[0] - u_target*Ne;
   return energy;
 }
 
@@ -427,12 +416,12 @@ double FixUVT::compute_vector(int n)
   if (n < base_n) return FixNH::compute_vector(n);
   n -= base_n;
 
-  if (n == 0) return *Ne;
-  if (n == 1) return *Ne_dot;
+  if (n == 0) return Ne;
+  if (n == 1) return Ne_dot;
   if (n == 2) return dedn_current;
   if (n == 3) return u_target;
-  if (n == 4) return 0.5*(*Ne_mass)*(*Ne_dot)*(*Ne_dot);
-  if (n == 5) return -u_target*(*Ne);
+  if (n == 4) return 0.5*Ne_mass*Ne_dot*Ne_dot;
+  if (n == 5) return -u_target*Ne;
   return 0.0;
 }
 
@@ -468,8 +457,8 @@ int FixUVT::pack_restart_data(double *list)
 {
   int n = FixNH::pack_restart_data(list);
   list[n++] = ustat_flag;
-  list[n++] = *Ne;
-  list[n++] = *Ne_dot;
+  list[n++] = Ne;
+  list[n++] = Ne_dot;
   return n;
 }
 
@@ -533,8 +522,8 @@ void FixUVT::restart(char *buf)
 
   flag = static_cast<int>(list[n++]);
   if (flag) {
-    *Ne = list[n++];
-    *Ne_dot = list[n++];
+    Ne = list[n++];
+    Ne_dot = list[n++];
   } else n += 2;
 }
 
@@ -550,9 +539,9 @@ void *FixUVT::extract(const char *str, int &dim)
   if (strcmp(str, "u_freq") == 0) return &u_freq;
 
   dim = 1;
-  if (strcmp(str, "ne") == 0) return Ne;
-  if (strcmp(str, "ne_dot") == 0) return Ne_dot;
-  if (strcmp(str, "ne_mass") == 0) return Ne_mass;
+  if (strcmp(str, "ne") == 0) return &Ne;
+  if (strcmp(str, "ne_dot") == 0) return &Ne_dot;
+  if (strcmp(str, "ne_mass") == 0) return &Ne_mass;
   if (strcmp(str, "dedn") == 0) return &dedn_current;
   return FixNH::extract(str, dim);
 }
@@ -573,7 +562,7 @@ void FixUVT::nve_v()
     dedn_current = evaluate_dedn();
     u_current = dedn_current;
   }
-  *Ne_dot += (dthalf / *Ne_mass) * (-dedn_current + u_target);
+  Ne_dot += (dthalf / Ne_mass) * (-dedn_current + u_target);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -581,7 +570,7 @@ void FixUVT::nve_v()
 void FixUVT::nve_x()
 {
   FixNH::nve_x();
-  *Ne += dtv * (*Ne_dot);
+  Ne += dtv * Ne_dot;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -597,14 +586,14 @@ void FixUVT::nhc_mu_integrate()
     // The first thermostat variable controls the atomistic kinetic energy
     // plus the single quadratic Ne degree of freedom.
     eta_mass[0] = ext_ke_target / (t_freq*t_freq);
-    *Ne_mass = tdof * boltz * t_target / (u_freq*u_freq);
+    Ne_mass = tdof * boltz * t_target / (u_freq*u_freq);
     for (ich = 1; ich < mtchain; ich++)
       eta_mass[ich] = boltz * t_target / (t_freq*t_freq);
   }
 
   if (eta_mass[0] > 0.0)
     eta_dotdot[0] =
-      (kecurrent + (*Ne_mass)*(*Ne_dot)*(*Ne_dot) - ext_ke_target) / eta_mass[0];
+      (kecurrent + Ne_mass*Ne_dot*Ne_dot - ext_ke_target) / eta_mass[0];
   else eta_dotdot[0] = 0.0;
 
   double ncfac = 1.0/nc_tchain;
@@ -625,14 +614,14 @@ void FixUVT::nhc_mu_integrate()
 
     factor_eta = exp(-ncfac*dthalf*eta_dot[0]);
     nh_v_temp();
-    *Ne_dot *= factor_eta;
+    Ne_dot *= factor_eta;
 
     t_current *= factor_eta*factor_eta;
     kecurrent = tdof * boltz * t_current;
 
     if (eta_mass[0] > 0.0)
       eta_dotdot[0] =
-        (kecurrent + (*Ne_mass)*(*Ne_dot)*(*Ne_dot) - ext_ke_target) / eta_mass[0];
+        (kecurrent + Ne_mass*Ne_dot*Ne_dot - ext_ke_target) / eta_mass[0];
     else eta_dotdot[0] = 0.0;
 
     for (ich = 0; ich < mtchain; ich++)

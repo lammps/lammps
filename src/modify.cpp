@@ -800,7 +800,7 @@ void Modify::reset_grid()
 }
 
 /* ----------------------------------------------------------------------
-   called by FixDeform for any fix which needs to know a box flip was performed
+   called by FixDeform for fixes which need to know a box flip was performed
 ------------------------------------------------------------------------- */
 
 void Modify::image_flip(int flipxy, int flipxz, int flipyz)

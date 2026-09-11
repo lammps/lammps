@@ -773,7 +773,7 @@ void FixDeform::init()
   reset box tilts for flipped config and create new box in domain
   image_flip() adjusts image flags due to box shape change induced by flip
   remap_all() puts atoms outside the new box back into the new box,
-    adjusts their image flags further, adjusts their velocity due to 
+    adjusts their image flags further, adjusts their velocity due to
   important that image_flip comes before remap, since remap may change
     image flags to new values, making eqs in doc of Domain:image_flip incorrect
   modify->image_flip triggers rigid fixes to do same 2 operations

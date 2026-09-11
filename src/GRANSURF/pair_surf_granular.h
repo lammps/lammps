@@ -27,7 +27,6 @@ PairStyle(surf/granular,PairSurfGranular)
 
 #include <map>
 #include <unordered_set>
-#include <vector>
 
 namespace LAMMPS_NS {
 

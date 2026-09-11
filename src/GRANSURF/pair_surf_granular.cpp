@@ -125,21 +125,23 @@ void PairSurfGranular::compute(int eflag, int vflag)
   // also grab current line connectivity info from FixSurfaceLocal
 
   if (neighbor->ago == 0) {
-    if (fix_rigid) {
-      int tmp;
-      int *body = (int *) fix_rigid->extract("body", tmp);
-      auto *mass_body = (double *) fix_rigid->extract("masstotal", tmp);
+    if (!fix_rigid.empty()) {
       if (atom->nmax > nmax) {
         memory->destroy(mass_rigid);
         nmax = atom->nmax;
         memory->create(mass_rigid, nmax, "surf/granular:mass_rigid");
       }
       int nlocal = atom->nlocal;
-      for (int i = 0; i < nlocal; i++)
-        if (body[i] >= 0)
-          mass_rigid[i] = mass_body[body[i]];
-        else
-          mass_rigid[i] = 0.0;
+      for (int i = 0; i < nlocal; i++) mass_rigid[i] = 0.0;
+      
+      for (const auto &ifix : fix_rigid) {
+        int tmp;
+        int *body = (int *) ifix->extract("body",tmp);
+        auto *mass_body = (double *) ifix->extract("masstotal",tmp);
+
+        for (int i = 0; i < nlocal; i++)
+          if (body[i] >= 0) mass_rigid[i] = mass_body[body[i]];
+      }
       comm->forward_comm(this);
     }
 
@@ -326,7 +328,7 @@ void PairSurfGranular::compute(int eflag, int vflag)
       contact_surfs.push_back(mycontact);
     }
 
-    if (contact_surfs.size() == 0) continue;
+    if (contact_surfs.empty()) continue;
 
     // Sort contacts by overlap and create a map
     std::sort(contact_surfs.begin(), contact_surfs.end(), FixSurface::contact_presort);
@@ -404,7 +406,7 @@ void PairSurfGranular::compute(int eflag, int vflag)
       // if line/tri is not part of rigidbody assume infinite mass
 
       meff = rmass[i];
-      if (fix_rigid) {
+      if (!fix_rigid.empty()) {
         if (mass_rigid[i] > 0.0) meff = mass_rigid[i];
         if (mass_rigid[j] > 0.0) {
           mj = mass_rigid[j];
@@ -644,7 +646,7 @@ void PairSurfGranular::init_style()
   // check for FixFreeze and set freeze_group_bit
 
   fixlist = modify->get_fix_by_style("^freeze");
-  if (fixlist.size() == 0)
+  if (fixlist.empty())
     freeze_group_bit = 0;
   else if (fixlist.size() > 1)
     error->all(FLERR, Error::NOLASTLINE,
@@ -654,16 +656,9 @@ void PairSurfGranular::init_style()
 
   // check for FixRigid so can extract rigid body masses
 
-  fix_rigid = nullptr;
-  for (const auto &ifix : modify->get_fix_list()) {
-    if (ifix->rigid_flag) {
-      if (fix_rigid)
-        error->all(FLERR, Error::NOLASTLINE,
-                   "Only one fix rigid command at a time is allowed with pair style surf/granular");
-      else
-        fix_rigid = ifix;
-    }
-  }
+  fix_rigid.clear();
+  for (const auto &ifix : modify->get_fix_list())
+    if (ifix->rigid_flag) fix_rigid.push_back(ifix);
 
   // check for FixPour and FixDeposit so can extract particle radii
 

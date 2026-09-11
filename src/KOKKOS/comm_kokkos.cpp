@@ -1542,7 +1542,7 @@ struct BuildBorderListFunctor {
     }
   }
 
-  [[nodiscard]] size_t shmem_size(const int team_size) const { (void) team_size; return 1000u;}
+  [[nodiscard]] size_t shmem_size(const int team_size) const { (void) team_size; return 1000U;}
 };
 
 /* ---------------------------------------------------------------------- */

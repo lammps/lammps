@@ -1018,10 +1018,6 @@ color map.  The color map is used to assign a specific RGB
 based on the atom's attribute, which is a numeric value, e.g. its
 x-component of velocity if the atom-attribute "vx" was specified.
 
-
-
-
-
 The basic idea of a color map is that the atom-attribute will be
 within a range of values, and that range is associated with a series
 of colors (e.g. red, blue, green).  An atom's specific value (vx =
@@ -1053,32 +1049,26 @@ color interpolated between the two adjacent colors.
 
 A *discrete* color map is one in which discrete colors are assigned to
 sub-ranges of values within the overall range.  Each sub-range can be
-of variable width and overlap with other sub-ranges.  An atom with an
-attribute value is mapped to one of the sub-ranges and assigned that
-color.
+of variable width, and the sub-ranges can overlap, as explained below.
+An atom with an attribute value is mapped to one of the sub-ranges and
+assigned that color.
 
 A *sequential* color map is similar to a discrete color map except that
 all sub-ranges are of equal width and discrete colors are assigned to
 each sub-range in a round-robin fashion until the overall range is
 covered from *lo* to *hi*.
 
-An *absolute* color map is one in which the numeric settings
-associated with assigned colors are specified explicitly as values
-within the range.
+An *absolute* color map is one in which colors are assigned to numeric
+values within the range.
 
-A *fractional* color map is one in which the numeric settings
-associated with assigned colors are specified as a fractional position
-within the range.
+A *fractional* color map is one in which colors are assigned to
+fractional positions within the range between *lo* and *hi*\ .
 
-For a continuous color map, the numeric settings are the specific
-values each color is assigned to.  For a discrete color map, the
-numeric settings are the bounds of each sub-range.  For a sequential
-color map, the numeric settings is the width of all the sub-ranges.
-For example if the overall range is from -10.0 to 10.0, and the color
-red is to be assigned to atoms with an attribute value of 5.0, then
-for an absolute color map the numeric value of 5.0 should map to red.
-But for a fractional map, the numeric value of 0.75 should map to red,
-since 5.0 is 3/4 of the way from -10.0 to 10.0.
+For example if the range is from -10.0 to 10.0, and the color red is
+to be assigned to atoms with a value of 5.0, then for an absolute
+color map the number 5.0 would be used.  But for a fractional map, the
+number 0.75 would be used since 5.0 is 3/4 of the way from -10.0 to
+10.0.
 
 The *delta* setting must be specified for all styles, but is only used
 for the *sequential* style; otherwise the setting is ignored.  It
@@ -1148,11 +1138,6 @@ the colors are repeated in a round-robin fashion.  For example if 2
 entries with colors red and green are specified, then the odd numbered
 bins will be red and the even bins green.  An atom's color is the
 color of its bin.
-
-
-
-
-
 
 Here is an example for using a sequential color map to color all the
 atoms in individual molecules with a different color.  See below for how

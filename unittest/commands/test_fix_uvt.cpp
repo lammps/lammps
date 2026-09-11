@@ -123,6 +123,10 @@ TEST_F(FixUVTTest, ExtractCurrentMuReportsCurrentDEDN)
     int dim = 0;
     auto *u_current = static_cast<double *>(fix->extract("u_current", dim));
     ASSERT_NE(u_current, nullptr);
+    EXPECT_EQ(dim, 0);
+    auto *dedn = static_cast<double *>(fix->extract("dedn", dim));
+    EXPECT_EQ(u_current, dedn);
+    EXPECT_EQ(dim, 1);
 
     EXPECT_NEAR(*u_current, fix_value("cp", 14), 1.0e-12);
     EXPECT_NE(*u_current, fix_value("cp", 15));

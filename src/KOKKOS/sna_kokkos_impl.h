@@ -77,11 +77,10 @@ SNAKokkos<DeviceType, real_type, accum_type, vector_length>::SNAKokkos(const Cop
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType, typename real_type, typename accum_type, int vector_length>
-// NOLINTNEXTLINE
+// NOLINTBEGIN
 KOKKOS_INLINE_FUNCTION
-SNAKokkos<DeviceType, real_type, accum_type, vector_length>::~SNAKokkos()
-{
-}
+  SNAKokkos<DeviceType, real_type, accum_type, vector_length>::~SNAKokkos() {}
+// NOLINTEND
 
 template<class DeviceType, typename real_type, typename accum_type, int vector_length>
 inline

@@ -62,10 +62,6 @@ struct PairExp6ParamDataTypeKokkosVect
                            nTotal, fractionOFAold, fractionOld1, fractionOld2,
                            nMoleculesOFAold, nMoleculesOld1, nMoleculesOld2,
                            nTotalold;
-
-   // Default constructor -- nullify everything.
-   PairExp6ParamDataTypeKokkosVect()
-   {}
 };
 
 struct TagPairExp6rxZeroMixingWeights{};

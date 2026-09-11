@@ -239,8 +239,7 @@ class SNAKokkos {
   typedef Kokkos::View<complex**[3], DeviceType> t_sna_3c3;
   typedef Kokkos::View<complex*****, DeviceType> t_sna_5c;
 
-  inline
-  SNAKokkos() {};
+  inline SNAKokkos() = default;
 
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION

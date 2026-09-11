@@ -23,8 +23,6 @@ namespace LAMMPS_NS {
 
 class KokkosBase {
  public:
-  KokkosBase() {}
-
   // Forward for Pair, Fix, Compute
   virtual int pack_forward_comm_kokkos(int, DAT::tdual_int_1d,
                                        DAT::tdual_double_1d &,

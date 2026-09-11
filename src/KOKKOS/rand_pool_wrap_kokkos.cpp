@@ -31,11 +31,6 @@ RandPoolWrap::RandPoolWrap(int, LAMMPS *lmp) : Pointers(lmp)
 
 /* ---------------------------------------------------------------------- */
 
-RandPoolWrap::~RandPoolWrap()
-{
-
-}
-
 void RandPoolWrap::destroy()
 {
   if (random_thr) {

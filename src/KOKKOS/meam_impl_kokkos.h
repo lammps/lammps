@@ -33,7 +33,6 @@ MEAMKokkos<DeviceType>::MEAMKokkos(Memory *mem) : MEAM(mem)
 }
 
 template<class DeviceType>
-MEAMKokkos<DeviceType>::~MEAMKokkos() {}
 }    // namespace LAMMPS_NS
 
 #include "meam_setup_done_kokkos.h"

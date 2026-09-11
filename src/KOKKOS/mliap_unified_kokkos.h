@@ -26,7 +26,7 @@ template <class DeviceType>
 class MLIAPDummyDescriptorKokkos : public MLIAPDummyDescriptor, public MLIAPDescriptorKokkos<DeviceType>{
  public:
   MLIAPDummyDescriptorKokkos(LAMMPS *);
-  ~MLIAPDummyDescriptorKokkos() override;
+  ~MLIAPDummyDescriptorKokkos() override = default;
   void compute_descriptors(class MLIAPData *) override;
   void compute_forces(class MLIAPData *) override;
   void compute_force_gradients(class MLIAPData *) override;
@@ -57,7 +57,7 @@ struct MLIAPBuildUnifiedKokkos_t {
   MLIAPDummyModelKokkos<DeviceType> *model;
 };
 template <class DeviceType>
-MLIAPBuildUnifiedKokkos_t<DeviceType> build_unified(char *, MLIAPDataKokkos<DeviceType> *, LAMMPS *, char *=nullptr);
+MLIAPBuildUnifiedKokkos_t<DeviceType> build_unified(char *, MLIAPDataKokkos<DeviceType> *, LAMMPS *, char * = nullptr);
 void update_pair_energy(MLIAPDataKokkosDevice *, double *);
 void update_pair_forces(MLIAPDataKokkosDevice *, double *);
 void update_atom_energy(MLIAPDataKokkosDevice *, double *);

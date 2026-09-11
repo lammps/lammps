@@ -81,18 +81,25 @@ add_test(NAME MathEigen COMMAND test_math_eigen_impl 10 5)
 # FFT Testing Infrastructure
 # =============================================================================
 
+# These tests need the COMPILE_ONLY generator expression added in CMake 3.27.
+if(PKG_KOKKOS AND (CMAKE_VERSION VERSION_LESS 3.27))
+  message(STATUS "Skipping the FFT3D tests: building them with the KOKKOS "
+    "package requires CMake 3.27 or later")
+  set(SKIP_FFT_TESTS TRUE)
+endif()
+
 # -----------------------------------------------------------------------------
 # FFT3D Tests (Standard KSPACE FFT)
 # -----------------------------------------------------------------------------
-if(PKG_KSPACE)
+if(PKG_KSPACE AND NOT SKIP_FFT_TESTS)
   # Build test_fft3d executable
   add_executable(test_fft3d test_fft3d.cpp ../error_stats.cpp)
   target_link_libraries(test_fft3d PRIVATE lammps GTest::GMockMain)
   target_include_directories(test_fft3d PRIVATE ${LAMMPS_SOURCE_DIR})
 
-  # Add Kokkos if enabled
+  # Compile against Kokkos, but do not link it (see test_fft3d_kokkos below).
   if(PKG_KOKKOS)
-    target_link_libraries(test_fft3d PRIVATE Kokkos::kokkos)
+    target_link_libraries(test_fft3d PRIVATE $<COMPILE_ONLY:Kokkos::kokkos>)
   endif()
 
   # Propagate FFT_SINGLE preprocessor definition
@@ -119,10 +126,14 @@ endif()
 # -----------------------------------------------------------------------------
 # FFT3D KOKKOS Tests (KOKKOS FFT - CPU and GPU)
 # -----------------------------------------------------------------------------
-if(PKG_KSPACE AND PKG_KOKKOS)
+if(PKG_KSPACE AND PKG_KOKKOS AND NOT SKIP_FFT_TESTS)
   # Build test_fft3d_kokkos executable
   add_executable(test_fft3d_kokkos test_fft3d_kokkos.cpp ../error_stats.cpp)
-  target_link_libraries(test_fft3d_kokkos PRIVATE lammps GTest::GMockMain Kokkos::kokkos)
+  # Compile against Kokkos, but do not link it: liblammps already provides the
+  # Kokkos runtime, and linking it again duplicates Kokkos' static-library
+  # globals, which double-frees them at exit.
+  target_link_libraries(test_fft3d_kokkos PRIVATE lammps GTest::GMockMain
+    $<COMPILE_ONLY:Kokkos::kokkos>)
   target_include_directories(test_fft3d_kokkos PRIVATE ${LAMMPS_SOURCE_DIR} ${LAMMPS_SOURCE_DIR}/KSPACE)
 
   # Propagate FFT_SINGLE preprocessor definition

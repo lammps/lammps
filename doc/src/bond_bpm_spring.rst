@@ -10,7 +10,7 @@ Syntax
 
    bond_style bpm/spring keyword value attribute1 attribute2 ...
 
-* optional keyword = *overlay/pair* or *store/local* or *write/reference* or *read/reference* or *smooth* or *normalize* or *break* or *volume/factor*
+* optional keyword = *overlay/pair* or *store/local* or *write/history* or *read/history* or *smooth* or *normalize* or *break* or *volume/factor*
 
   .. parsed-literal::
 
@@ -24,12 +24,12 @@ Syntax
             *x, y, z* = the center of mass position of the two atoms when the bond broke (distance units)
             *x/ref, y/ref, z/ref* = the initial center of mass position of the two atoms (distance units)
 
-       *write/reference* values = fix_ID N
+       *write/history* values = fix_ID N
           * fix_ID = ID of associated internal fix to write data
           * N = prepare data for output every this many timesteps
 
-       *read/reference* values = filename
-          * filename = name of reference file to read data from
+       *read/history* values = filename
+          * filename = name of history file to read data from
 
        *overlay/pair* value = *yes* or *no*
           bonded particles will still interact with pair forces
@@ -61,7 +61,7 @@ Examples
    dump 1 all local 1000 dump.broken f_myfix[1] f_myfix[2] f_myfix[3]
    dump_modify 1 write_header no
 
-   bond_style bpm/spring write/reference myfix 1000 read/reference bond.ref
+   bond_style bpm/spring write/history myfix 1000 read/history bond.ref
    dump 1 all local 1000 bond*.ref f_myfix[*]
 
 Description
@@ -205,7 +205,7 @@ query the status of broken bonds or permanently delete them, e.g.:
 
 .. versionadded:: TBD
 
-If the *write/reference* keyword is used, an internal fix will process
+If the *write/history* keyword is used, an internal fix will process
 and transfer the internal bond history (e.g. :math:`r_0`) to an
 internal fix labeled *fix_ID*. This allows the internal bond reference
 and history data to be accessed by other LAMMPS commands. In addition
@@ -213,24 +213,24 @@ to the bond history the IDs of the two atoms in the bond are also
 included. See :doc:`Howto bpm <Howto_bpm>` for the complete list of
 included outputs.
 
-If the *read/reference* keyword is used, data is read from the
+If the *read/history* keyword is used, data is read from the
 file labeled *filename*. This allows internal bond reference and
 history data to be restored to a previous state. The first two columns
-of the reference file must contain the IDs of the two atoms in the bond,
+of the history file must contain the IDs of the two atoms in the bond,
 with the remaining columns corresponding to the internal bond data.
-For more details on formatting the reference file see
+For more details on formatting the history file see
 :doc:`Howto bpm <Howto_bpm>`.
 
 Restart and other info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-This bond style writes the reference state of each bond to
-:doc:`binary restart files <restart>`. Loading a restart
-file will properly restore bonds. However, the reference state is NOT
-written to data files. Therefore reading a data file will not
-restore bonds and will cause their reference states to be redefined.
-However, after restarting, bonds reference data can be restored using
-the *read/reference* option.
+This bond style writes the history data (e.g. reference state) of each
+bond and its per-type coefficients to :doc:`binary restart files <restart>`.
+Loading a restart file restores bonds and their history data.  The history
+data is NOT written to data files.  Reading a data file will therefore not
+restore bond history such that bond reference states will be redefined.
+Alternatively, bond history data can be saved and restored using the
+*write/history* and *read/history* options.
 
 If the *store/local* option is used, an internal fix will calculate
 a local vector or local array depending on the number of input values.
@@ -248,12 +248,18 @@ the specified attribute.
 Any settings with the *store/local* option are not saved to a restart
 file and must be redefined.
 
-If the *write/reference* option is used, an internal fix will calculate
-a local array depending on the number of internal bond history values.
-The length of the vecotr or number of rows in the array is the number of
-bonds. The array can be accessed by any command that uses local values
-from a compute as input. See the :doc:`Howto output <Howto_output>` page
-for an overview of LAMMPS output options.
+If the *write/history* keyword is used, an internal fix will process
+and transfer the internal bond history (e.g. :math:`r_0`) to an
+internal fix labeled *fix_ID*.  This allows the internal bond history data,
+as well as the IDs of the two atoms in the bond,  to be accessed by other
+LAMMPS commands, in particular, :doc:`dump local <dump>`.
+
+If the *read/history* keyword is used, history data is read from the file
+labeled *filename*.  This is expected to be in the format of a LAMMPS
+local dump file. The first two columns of the history file must contain
+the IDs of the two atoms in the bond, with the remaining columns corresponding
+ to the internal bond data.  For more details on formatting the remaining file
+ see :doc:`Howto bpm <Howto_bpm>`.
 
 The potential energy and the single() function of this bond style return
 :math:`k (r - r_0)^2 / 2` as a proxy of the energy of a bonded interaction,

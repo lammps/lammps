@@ -296,13 +296,13 @@ void BondBPM::settings(int narg, char **arg)
       if (iarg + 1 > narg) error->all(FLERR, "Illegal bond bpm command, missing option for break");
       break_flag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
-    } else if (strcmp(arg[iarg], "read/reference") == 0) {
-      if (iarg + 1 > narg) error->all(FLERR, "Illegal bond bpm command, missing option for read/reference");
+    } else if (strcmp(arg[iarg], "read/history") == 0) {
+      if (iarg + 1 > narg) error->all(FLERR, "Illegal bond bpm command, missing option for read/history");
       reference_flag = 1;
       ref_filename = arg[iarg + 1];
       iarg += 2;
-    } else if (strcmp(arg[iarg], "write/reference") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal bond bpm command, missing option for write/reference");
+    } else if (strcmp(arg[iarg], "write/history") == 0) {
+      if (iarg + 2 > narg) error->all(FLERR, "Illegal bond bpm command, missing option for write/history");
       id_fix_write_ref = utils::strdup(arg[iarg + 1]);
       write_ref_freq = utils::inumeric(FLERR, arg[iarg + 2], false, lmp);
       iarg += 3;

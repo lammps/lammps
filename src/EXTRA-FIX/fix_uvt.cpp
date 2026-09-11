@@ -20,7 +20,6 @@
 #include "domain.h"
 #include "group.h"
 #include "input.h"
-#include "kspace.h"
 #include "neighbor.h"
 #include "modify.h"
 #include "force.h"
@@ -288,39 +287,14 @@ void FixUVT::setup(int vflag)
 
 void FixUVT::initial_integrate(int /*vflag*/)
 {
-  if (pstat_flag && mpchain) nhc_press_integrate();
-
   if (tstat_flag) {
     compute_temp_target();
     compute_mu_target();
     nhc_mu_integrate();
   }
 
-  if (pstat_flag) {
-    if (pstyle == ISO) {
-      temperature->compute_scalar();
-      pressure->compute_scalar();
-    } else {
-      temperature->compute_vector();
-      pressure->compute_vector();
-    }
-    couple();
-    pressure->addstep(update->ntimestep+1);
-  }
-
-  if (pstat_flag) {
-    compute_press_target();
-    nh_omega_dot();
-    nh_v_press();
-  }
-
   nve_v();
-  if (pstat_flag) remap();
   nve_x();
-  if (pstat_flag) {
-    remap();
-    if (kspace_flag) force->kspace->setup();
-  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -336,25 +310,10 @@ void FixUVT::final_integrate()
   if (which == BIAS && neighbor->ago == 0)
     t_current = temperature->compute_scalar();
 
-  if (pstat_flag) nh_v_press();
-
   t_current = temperature->compute_scalar();
   tdof = temperature->dof;
 
-  if (pstat_flag) {
-    if (pstyle == ISO) pressure->compute_scalar();
-    else {
-      temperature->compute_vector();
-      pressure->compute_vector();
-    }
-    couple();
-    pressure->addstep(update->ntimestep+1);
-  }
-
-  if (pstat_flag) nh_omega_dot();
-
   if (tstat_flag) nhc_mu_integrate();
-  if (pstat_flag && mpchain) nhc_press_integrate();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -366,39 +325,16 @@ void FixUVT::initial_integrate_respa(int /*vflag*/, int ilevel, int /*iloop*/)
   dthalf = 0.5 * step_respa[ilevel];
 
   if (ilevel == nlevels_respa-1) {
-    if (pstat_flag && mpchain) nhc_press_integrate();
     if (tstat_flag) {
       compute_temp_target();
       compute_mu_target();
       nhc_mu_integrate();
     }
 
-    if (pstat_flag) {
-      if (pstyle == ISO) {
-        temperature->compute_scalar();
-        pressure->compute_scalar();
-      } else {
-        temperature->compute_vector();
-        pressure->compute_vector();
-      }
-      couple();
-      pressure->addstep(update->ntimestep+1);
-    }
-
-    if (pstat_flag) {
-      compute_press_target();
-      nh_omega_dot();
-      nh_v_press();
-    }
-
     nve_v();
   } else nve_v();
 
-  if (ilevel == 0) {
-    if (pstat_flag) remap();
-    nve_x();
-    if (pstat_flag) remap();
-  }
+  if (ilevel == 0) nve_x();
 }
 
 /* ---------------------------------------------------------------------- */

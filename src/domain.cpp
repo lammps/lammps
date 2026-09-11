@@ -1990,7 +1990,7 @@ void Domain::unmap(const double *x, const double *v, imageint image, int mask, d
 }
 
 /* ----------------------------------------------------------------------
-   adjust image flags of all atoms due to triclinic box flip
+   adjust image flags of all atoms due to triclinic box flip in FixDeform
    flip operation chagess box vectors A,B,C to new A',B',C'
      A' = A              (A does not change)
      B' = B + mA         (B shifted by A)
@@ -2006,7 +2006,8 @@ void Domain::unmap(const double *x, const double *v, imageint image, int mask, d
    in other words, for xy flip, change in x flag depends on current y flag
    this is b/c the xy flip dramatically changes which tiled image of
      simulation box an unwrapped point maps to
-   image_flip_one() does same for a single image flag, called by rigid fixes
+   image_flip_one() does this for a single image flag
+      called by rigid fixes for image flag of each rigid body
 ------------------------------------------------------------------------- */
 
 void Domain::image_flip(int m, int n, int p)

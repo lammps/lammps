@@ -152,6 +152,7 @@ class Domain : protected Pointers {
   void unmap(const double *, imageint, double *);
   void unmap(const double *, const double *, imageint, int, double *, double *);
   virtual void image_flip(int, int, int);
+  virtual void image_flip_one(imageint &, int, int, int);
   int ownatom(int, double *, imageint *, int);
 
   void define_general_triclinic(double *, double *, double *, double *);

@@ -760,27 +760,44 @@ void FixRigidSmall::initial_integrate(int vflag)
 }
 
 /* ----------------------------------------------------------------------
-   remap xcm of each rigid body back into periodic simulation box
-   done during pre_neighbor so will be after call to pbc()
-     and after fix_deform::pre_exchange() may have flipped box
-   domain->remap() does 3 things:
-     (1) remaps xcm no matter how far from box
-         due to first-time definition of rigid body in setup_bodies_static()
-         or due to box flip
-     (2) remaps vcm if xcm crosses periodic shearing boundary
-     (3) adjusts imagebody = rigid body image flags, due to xcm remap
-   then communicate bodies so other procs will know of changes to body xcm/vcm
-   image_shift() then resets body xcmimage flags of all atoms in bodies
-     for two effects
-     (1) change in true image flags due to pbc() call during exchange
-     (2) change in imagebody due to xcm remap
-   xcmimage flags are always -1,0,-1 so that body can be unwrapped
-     around in-box xcm and stay close to simulation box
-   if just inferred unwrapped from atom image flags,
-     then an unwrapped body could end up very far away from box
-   set_xv() would then compute huge displacements every step to
-     reset coords of all body atoms to be back inside the box,
-     ditto for triclinic box flip which could cause numeric problems
+   adjustment of body image flags due to a box flip by FixDeform
+   invoked via call by FixDeform to modify->image_flip() in pre_exchange()
+   performs same operation FixDeform does for all per-atom image flags
+   FixDeform also does a remap_all() for x,v,image of all atoms
+     this fix does it in pre_neighbor() for x,v,image of each rigid body
+------------------------------------------------------------------------- */
+
+void FixRigidSmall::image_flip(int flipxy, int flipxz, int flipyz)
+{
+  for (int ibody = 0; ibody < nlocal_body; ibody++) {
+    Body *b = &body[ibody];
+    domain->image_flip_one(b->image, flipxy, flipxz, flipyz);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   called at every reneighbor after atom exchange, performs 3 operations
+   (1) reset body xcm, vcm, image due to 2 effects
+         incremental movement of body xcm across a periodic boundary
+         triclinic box flip in FixDeform, which called image_flip() first
+       atom exchange() already happened, so this body properties
+       remap rigid body xcm back into periodic simulation box
+         can be far away, due to box flip or
+           due to first-time definition of rigid body in setup_bodies_static()
+       remap vcm if xcm crosses periodic shearing boundary
+       adjust rigid body image flags due to xcm remap
+   (2) communicate owned body info to ghost atoms
+       this resets list of ghost bodies
+       reset_atom2body() resets indices for all atoms to new list of bodies
+   (3) image_shift() resets xcmimage flags for each atom in all bodies
+       based on new body image flags and new atom image flags
+       xcmimage flags are always -1,0,-1 so that body can be unwrapped
+         around in-box xcm and stay close to simulation box
+       if just inferred unwrapped from atom image flags,
+         then an unwrapped body could end up very far away from box
+       set_xv() would then compute huge displacements every step to
+         reset coords of all body atoms to be back inside the box,
+         ditto for triclinic box flip which could cause numeric problems
 ------------------------------------------------------------------------- */
 
 void FixRigidSmall::pre_neighbor()
@@ -874,7 +891,7 @@ void FixRigidSmall::final_integrate_respa(int ilevel, int /*iloop*/)
 /* ----------------------------------------------------------------------
    reset body xcmimage flags of atoms in bodies
    xcmimage flags are relative to xcm so that body can be unwrapped
-   xcmimage = true image flag - imagebody flag
+   xcmimage = true image flag of atom - image flag of body
 ------------------------------------------------------------------------- */
 
 void FixRigidSmall::image_shift()

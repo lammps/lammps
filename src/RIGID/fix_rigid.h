@@ -46,6 +46,7 @@ class FixRigid : public Fix {
   int pack_exchange(int, double *) override;
   int unpack_exchange(int, double *) override;
 
+  void image_flip(int, int, int) override;
   void setup_pre_neighbor() override;
   void pre_neighbor() override;
   bigint dof(int) override;

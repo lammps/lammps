@@ -54,6 +54,7 @@ class FixRigidSmall : public Fix {
   int pack_reverse_comm(int, int, double *) override;
   void unpack_reverse_comm(int, int *, double *) override;
 
+  void image_flip(int, int, int) override;
   void setup_pre_neighbor() override;
   void pre_neighbor() override;
   bigint dof(int) override;

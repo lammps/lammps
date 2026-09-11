@@ -1990,12 +1990,12 @@ void Domain::unmap(const double *x, const double *v, imageint image, int mask, d
 }
 
 /* ----------------------------------------------------------------------
-   adjust image flags due to triclinic box flip
-   flip operation is changing box vectors A,B,C to new A',B',C'
+   adjust image flags of all atoms due to triclinic box flip
+   flip operation chagess box vectors A,B,C to new A',B',C'
      A' = A              (A does not change)
      B' = B + mA         (B shifted by A)
      C' = C + pB + nA    (C shifted by B and/or A)
-   this requires the image flags change from (a,b,c) to (a',b',c')
+   this requires image flags change from (a,b,c) to (a',b',c')
    so that x_unwrap for each atom is same before/after
      x_unwrap_before = xlocal + aA + bB + cC
      x_unwrap_after = xlocal + a'A' + b'B' + c'C'
@@ -2006,6 +2006,7 @@ void Domain::unmap(const double *x, const double *v, imageint image, int mask, d
    in other words, for xy flip, change in x flag depends on current y flag
    this is b/c the xy flip dramatically changes which tiled image of
      simulation box an unwrapped point maps to
+   image_flip_one() does same for a single image flag, called by rigid fixes
 ------------------------------------------------------------------------- */
 
 void Domain::image_flip(int m, int n, int p)
@@ -2025,6 +2026,20 @@ void Domain::image_flip(int m, int n, int p)
       (((imageint) (ybox + IMGMAX) & IMGMASK) << IMGBITS) |
       (((imageint) (zbox + IMGMAX) & IMGMASK) << IMG2BITS);
   }
+}
+
+void Domain::image_flip_one(imageint &image, int m, int n, int p)
+{
+  int xbox = (image & IMGMASK) - IMGMAX;
+  int ybox = (image >> IMGBITS & IMGMASK) - IMGMAX;
+  int zbox = (image >> IMG2BITS) - IMGMAX;
+
+  ybox -= p*zbox;
+  xbox -= m*ybox + n*zbox;
+
+  image = ((imageint) (xbox + IMGMAX) & IMGMASK) |
+    (((imageint) (ybox + IMGMAX) & IMGMASK) << IMGBITS) |
+    (((imageint) (zbox + IMGMAX) & IMGMASK) << IMG2BITS);
 }
 
 /* ----------------------------------------------------------------------

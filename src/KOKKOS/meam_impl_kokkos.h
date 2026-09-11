@@ -31,6 +31,10 @@ MEAMKokkos<DeviceType>::MEAMKokkos(Memory *mem) : MEAM(mem)
 {
   d_errorflag = typename AT::t_int_scalar("meam:errorflag");
 }
+
+template<class DeviceType>
+MEAMKokkos<DeviceType>::~MEAMKokkos() {}
+
 }    // namespace LAMMPS_NS
 
 #include "meam_setup_done_kokkos.h"

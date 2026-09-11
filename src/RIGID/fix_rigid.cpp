@@ -900,26 +900,25 @@ void FixRigid::initial_integrate(int vflag)
    remap xcm of each rigid body back into periodic simulation box
    done during pre_neighbor so will be after call to pbc()
      and after fix_deform::pre_exchange() may have flipped box
-   use domain->remap() in case xcm is far away from box
-     due to first-time definition of rigid body in setup_bodies_static()
-     or due to box flip
-   also remap vcm if xcm crosses periodic shearing boundary
-   also adjust imagebody = rigid body image flags, due to xcm remap
-   also reset body xcmimage flags of all atoms in bodies
-   xcmimage flags are relative to xcm so that body can be unwrapped
-   if don't do this, would need xcm to move with true image flags
-     then a body could end up very far away from box
-   set_xv() would then compute huge displacements every step to
-     reset coords of all body atoms to be back inside the box,
-     ditto for triclinic box flip which could cause numeric problems
+   domain->remap() does 3 things:
+     (1) remaps xcm no matter how far from box
+         due to first-time definition of rigid body in setup_bodies_static()
+         or due to box flip
+     (2) remaps vcm if xcm crosses periodic shearing boundary
+     (3) adjusts imagebody = rigid body image flags, due to xcm remap
+   image_shift() then resets body xcmimage flags of all atoms in bodies
+     xcmimage flags are relative to xcm so that body can be unwrapped
+     if don't do this, would need xcm to move with true image flags
+       then a body could end up very far away from box
+     set_xv() would then compute huge displacements every step to
+       reset coords of all body atoms to be back inside the box,
+       ditto for triclinic box flip which could cause numeric problems
 ------------------------------------------------------------------------- */
 
 void FixRigid::pre_neighbor()
 {
-  for (int ibody = 0; ibody < nbody; ibody++) {
-    //domain->remap(xcm[ibody],imagebody[ibody]);
+  for (int ibody = 0; ibody < nbody; ibody++)
     domain->remap(xcm[ibody],imagebody[ibody],vcm[ibody]);
-  }
 
   image_shift();
 }

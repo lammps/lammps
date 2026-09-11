@@ -53,6 +53,8 @@ using MathConst::MY_PI4;
 namespace {
 constexpr double EPSILON = 1.0e-6;
 constexpr double TRANS_DELTA = 0.01;
+constexpr double EPSBIN_ABSOLUTE = 1.0e-9;
+constexpr double EPSBIN_FRACTIONAL = 1.0e-6;
 
 enum { NUMERIC, MINVALUE, MAXVALUE };
 enum { CONTINUOUS, DISCRETE, SEQUENTIAL };
@@ -2896,10 +2898,9 @@ int ColorMap::minmax(double mindynamic, double maxdynamic)
   // rounddown_flag is used in value2color()
 
   } else if (mstyle == SEQUENTIAL) {
-    // NOTE: need to formalize and pre-set these 2 epsilon constants
     double epsbin;
-    if (mrange == ABSOLUTE) epsbin = (hicurrent-locurrent) * 1.0e-12;
-    else epsbin = 1.0e-9;
+    if (mrange == ABSOLUTE) epsbin = (hicurrent-locurrent) * EPSBIN_ABSOLUTE;
+    else epsbin = EPSBIN_FRACTIONAL;
 
     int ibin = static_cast<int> ((hicurrent-locurrent) * mbinsizeinv);
     int jbin = static_cast<int> ((hicurrent-locurrent-epsbin) * mbinsizeinv);

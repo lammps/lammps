@@ -763,13 +763,14 @@ void FixRigidSmall::initial_integrate(int vflag)
    remap xcm of each rigid body back into periodic simulation box
    done during pre_neighbor so will be after call to pbc()
      and after fix_deform::pre_exchange() may have flipped box
-   use domain->remap() in case xcm is far away from box
-     due to first-time definition of rigid body in setup_bodies_static()
-     or due to box flip
-   also adjust imagebody = rigid body image flags, due to xcm remap
-   also remap vcm if xcm crosses periodic shearing boundary
+   domain->remap() does 3 things:
+     (1) remaps xcm no matter how far from box
+         due to first-time definition of rigid body in setup_bodies_static()
+         or due to box flip
+     (2) remaps vcm if xcm crosses periodic shearing boundary
+     (3) adjusts imagebody = rigid body image flags, due to xcm remap
    then communicate bodies so other procs will know of changes to body xcm/vcm
-   then adjust xcmimage flags of all atoms in bodies via image_shift()
+   image_shift() then resets body xcmimage flags of all atoms in bodies
      for two effects
      (1) change in true image flags due to pbc() call during exchange
      (2) change in imagebody due to xcm remap
@@ -910,7 +911,7 @@ void FixRigidSmall::image_shift()
 void FixRigidSmall::apply_langevin_thermostat()
 {
   double gamma1,gamma2;
-  double wbody[3],tbody[3];
+  double wbody[3],tbody[3],vbias[3];
 
   // grow langextra if needed
 
@@ -947,11 +948,11 @@ void FixRigidSmall::apply_langevin_thermostat()
     gamma1 = -body[ibody].mass / t_period / ftm2v;
     gamma2 = sqrt(body[ibody].mass) * tsqrt *
       sqrt(24.0*boltz/t_period/dt/mvv2e) / ftm2v;
-    if (deform_vremap) remove_bias(ibody,vcm);
+    if (deform_vremap) remove_bias(ibody,vcm,vbias);
     langextra[ibody][0] = gamma1*vcm[0] + gamma2*(random->uniform()-0.5);
     langextra[ibody][1] = gamma1*vcm[1] + gamma2*(random->uniform()-0.5);
     langextra[ibody][2] = gamma1*vcm[2] + gamma2*(random->uniform()-0.5);
-    if (deform_vremap) restore_bias(ibody,vcm);
+    if (deform_vremap) restore_bias(vcm,vbias);
 
     gamma1 = -1.0 / t_period / ftm2v;
     gamma2 = tsqrt * sqrt(24.0*boltz/t_period/dt/mvv2e) / ftm2v;
@@ -979,7 +980,7 @@ void FixRigidSmall::apply_langevin_thermostat()
    remove velocity bias from VCM of Body ibody to leave thermal VCM
 ------------------------------------------------------------------------- */
 
-void FixRigidSmall::remove_bias(int ibody, double *vcm)
+void FixRigidSmall::remove_bias(int ibody, double *vcm, double *vbias)
 {
   double lamda[3];
   double *h_rate = domain->h_rate;
@@ -999,7 +1000,7 @@ void FixRigidSmall::remove_bias(int ibody, double *vcm)
    assume remove_bias() was previously called
 ------------------------------------------------------------------------- */
 
-void FixRigidSmall::restore_bias(int /*i*/, double *vcm)
+void FixRigidSmall::restore_bias(double *vcm, double *vbias)
 {
   vcm[0] += vbias[0];
   vcm[1] += vbias[1];

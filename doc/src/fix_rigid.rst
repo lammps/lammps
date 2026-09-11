@@ -875,7 +875,8 @@ All of the *rigid* styles (but not the *rigid/small* styles) compute a
 global array of values which can be accessed by various :doc:`output
 commands <Howto_output>`.  Similar information about the bodies
 defined by the *rigid/small* styles can be accessed via the
-:doc:`compute rigid/local <compute_rigid_local>` command.
+:doc:`compute rigid/local <compute_rigid_local>` or :doc:`compute
+rigid/atom <compute_rigid_atom>` commands.
 
 The number of rows in the array is equal to the number of rigid
 bodies.  The number of columns is 15.  Thus for each rigid body, 15

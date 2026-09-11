@@ -80,7 +80,7 @@ with each atom to a file:
 .. code-block:: LAMMPS
 
    compute 1 all rigid/atom myRigid mol x y z fx fy fz
-   dump 1 all custom 1000 tmp.dump id c_1[\*]
+   dump 1 all custom 1000 tmp.dump id c_1[*]
 
 ----------
 

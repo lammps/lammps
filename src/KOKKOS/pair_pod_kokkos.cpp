@@ -167,6 +167,7 @@ void PairPODKokkos<DeviceType>::allocate()
   PairPOD::allocate();
 }
 
+namespace {
 template<class DeviceType>
 struct FindMaxNumNeighs {
   typedef DeviceType device_type;
@@ -184,6 +185,7 @@ struct FindMaxNumNeighs {
     if (max_neighs<num_neighs) max_neighs = num_neighs;
   }
 };
+}    // namespace
 
 /* ---------------------------------------------------------------------- */
 

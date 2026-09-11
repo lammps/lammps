@@ -184,7 +184,7 @@ void CommKokkos::forward_comm_device()
 
     for (int iswap = 0; iswap < nswap; iswap++) {
       if (sendproc[iswap] != me) {
-        if (comm_x_only && !atomKK->k_x.NEED_TRANSFORM) {
+        if (comm_x_only && !decltype(atomKK->k_x)::NEED_TRANSFORM) {
           if (size_forward_recv[iswap]) {
             buf = (double*)atomKK->k_x.view<DeviceType>().data() +
               firstrecv[iswap]*atomKK->k_x.view<DeviceType>().extent(1);
@@ -302,7 +302,7 @@ void CommKokkos::reverse_comm_device()
 
   for (int iswap = nswap-1; iswap >= 0; iswap--) {
     if (sendproc[iswap] != me) {
-      if (comm_f_only && !atomKK->k_f.NEED_TRANSFORM) {
+      if (comm_f_only && !decltype(atomKK->k_f)::NEED_TRANSFORM) {
 
         // one fence covers both MPI calls: no Kokkos work is launched between
         // them, so a second fence would have nothing left to wait on
@@ -1045,6 +1045,7 @@ void CommKokkos::exchange()
 
 /* ---------------------------------------------------------------------- */
 
+namespace {
 template<class DeviceType, int BONUS_FLAG>
 struct BuildExchangeListFunctor {
   typedef DeviceType device_type;
@@ -1093,6 +1094,7 @@ struct BuildExchangeListFunctor {
     }
   }
 };
+}    // namespace
 
 /* ---------------------------------------------------------------------- */
 
@@ -1496,6 +1498,7 @@ void CommKokkos::borders()
 
 /* ---------------------------------------------------------------------- */
 
+namespace {
 template<class DeviceType>
 struct BuildBorderListFunctor {
         typedef DeviceType device_type;
@@ -1544,6 +1547,7 @@ struct BuildBorderListFunctor {
 
   [[nodiscard]] size_t shmem_size(const int team_size) const { (void) team_size; return 1000U;}
 };
+}    // namespace
 
 /* ---------------------------------------------------------------------- */
 

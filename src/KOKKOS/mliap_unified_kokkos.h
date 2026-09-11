@@ -32,7 +32,7 @@ class MLIAPDummyDescriptorKokkos : public MLIAPDummyDescriptor, public MLIAPDesc
   void compute_force_gradients(class MLIAPData *) override;
   void compute_descriptor_gradients(class MLIAPData *) override;
   void init() override;
-  void set_elements(char **, int);
+  void set_elements(char **, int) override;
 };
 template <class DeviceType>
 class MLIAPDummyModelKokkos : public MLIAPDummyModel, public MLIAPModelKokkos<DeviceType> {

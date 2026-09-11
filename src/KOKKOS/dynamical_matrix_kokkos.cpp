@@ -38,6 +38,7 @@
 using namespace LAMMPS_NS;
 enum{REGULAR,ESKM};
 
+namespace {
 template<class ViewA, class ViewB>
 struct ForceAdder {
   ViewA a;
@@ -51,9 +52,11 @@ struct ForceAdder {
     a(i,2) += b(i,2);
   }
 };
+}    // namespace
 
 /* ---------------------------------------------------------------------- */
 
+namespace {
 template<class View>
 struct Zero {
   View v;
@@ -66,6 +69,7 @@ struct Zero {
     v(i,2) = 0;
   }
 };
+}    // namespace
 
 /* ---------------------------------------------------------------------- */
 
@@ -194,7 +198,7 @@ void DynamicalMatrixKokkos::update_force()
         force->pair->execution_space!=HostKK)) {
       Kokkos::deep_copy(LMPHostType(),atomKK->k_f.view_hostkk(),0.0);
       atomKK->k_f.modify_hostkk_legacy();
-      if (atomKK->k_f.NEED_TRANSFORM)
+      if (decltype(atomKK->k_f)::NEED_TRANSFORM)
         Kokkos::deep_copy(LMPHostType(),atomKK->k_f.view_host(),0.0);
     }
   }
@@ -257,7 +261,7 @@ void DynamicalMatrixKokkos::update_force()
     // Kokkos host view, which is the one that matches f_merge_copy in value
     // type and layout
 
-    if (atomKK->k_f.NEED_TRANSFORM) {
+    if (decltype(atomKK->k_f)::NEED_TRANSFORM) {
       auto h_f_kk = atomKK->k_f.view_hostkk();
       auto h_f_legacy = atomKK->k_f.view_host();
       Kokkos::parallel_for(Kokkos::RangePolicy<LMPHostType>(0,atomKK->k_f.extent(0)),

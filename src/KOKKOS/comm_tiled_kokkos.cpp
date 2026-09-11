@@ -137,7 +137,7 @@ void CommTiledKokkos::forward_comm_device()
     nsend = nsendproc[iswap] - sendself[iswap];
     nrecv = nrecvproc[iswap] - sendself[iswap];
 
-    if (comm_x_only && !atomKK->k_x.NEED_TRANSFORM) {
+    if (comm_x_only && !decltype(atomKK->k_x)::NEED_TRANSFORM) {
       if (recvother[iswap]) {
 
         // no Kokkos work is launched inside the loop, so fence only once
@@ -291,7 +291,7 @@ void CommTiledKokkos::reverse_comm_device()
     nsend = nsendproc[iswap] - sendself[iswap];
     nrecv = nrecvproc[iswap] - sendself[iswap];
 
-    if (comm_f_only  && !atomKK->k_f.NEED_TRANSFORM) {
+    if (comm_f_only  && !decltype(atomKK->k_f)::NEED_TRANSFORM) {
 
       // no Kokkos work is launched inside or between the two loops,
       // so one fence covers both

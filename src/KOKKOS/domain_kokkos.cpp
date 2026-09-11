@@ -36,6 +36,7 @@ DomainKokkos::DomainKokkos(LAMMPS *lmp) : Domain(lmp) {
    for triclinic, atoms must be in lamda coords (0-1) before reset_box is called
 ------------------------------------------------------------------------- */
 
+namespace {
 template<class DeviceType>
 struct DomainResetBoxFunctor{
 public:
@@ -80,6 +81,7 @@ public:
     dst.value[2][1] = MAX(dst.value[2][1],static_cast<double>(x(i,2)));
   }
 };
+}    // namespace
 
 void DomainKokkos::reset_box()
 {
@@ -218,6 +220,7 @@ void DomainKokkos::reset_box()
 
 /* ---------------------------------------------------------------------- */
 
+namespace {
 template<class DeviceType, int PERIODIC, int DEFORM_VREMAP>
 struct DomainPBCFunctor {
   typedef DeviceType device_type;
@@ -331,6 +334,7 @@ struct DomainPBCFunctor {
     }
   }
 };
+}    // namespace
 
 /* ----------------------------------------------------------------------
    check whether atom->x still points to the Kokkos managed atom positions

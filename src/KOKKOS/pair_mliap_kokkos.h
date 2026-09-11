@@ -48,7 +48,7 @@ public:
   void init_style() override;
 
   void compute(int, int) override;
-  void e_tally(MLIAPData* data);
+  void e_tally(MLIAPData* data) override;
 
   void allocate() override;
 

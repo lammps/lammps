@@ -294,7 +294,7 @@ void FixQEqReaxFFKokkos<DeviceType>::pre_force(int /*vflag*/)
 
   k_s_hist.template sync<DeviceType>();
   k_t_hist.template sync<DeviceType>();
-  calculate_q();
+  calculate_Q();
   k_s_hist.template modify<DeviceType>();
   k_t_hist.template modify<DeviceType>();
 
@@ -523,7 +523,7 @@ int FixQEqReaxFFKokkos<DeviceType>::cg_solve()
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void FixQEqReaxFFKokkos<DeviceType>::calculate_q()
+void FixQEqReaxFFKokkos<DeviceType>::calculate_Q()
 {
   KK_double2 sum, sum_all;
 

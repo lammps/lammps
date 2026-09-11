@@ -33,6 +33,7 @@
 
 using namespace LAMMPS_NS;
 
+namespace {
 template<class ViewA, class ViewB>
 struct ForceAdder {
   ViewA a;
@@ -46,9 +47,11 @@ struct ForceAdder {
     a(i,2) += b(i,2);
   }
 };
+}    // namespace
 
 /* ---------------------------------------------------------------------- */
 
+namespace {
 template<class View>
 struct Zero {
   View v;
@@ -61,6 +64,7 @@ struct Zero {
     v(i,2) = 0;
   }
 };
+}    // namespace
 
 /* ----------------------------------------------------------------------
    zero count entries of a per-atom array on both host sides, from first
@@ -467,7 +471,7 @@ void VerletKokkos::run(int n)
         // same reason.  Without this, fusing force_clear() into the pair style
         // leaves it stale and its contents are re-added on every step.
 
-        if (atomKK->k_f.NEED_TRANSFORM)
+        if (decltype(atomKK->k_f)::NEED_TRANSFORM)
           Kokkos::deep_copy(LMPHostType(),atomKK->k_f.view_host(),0.0);
       }
     }
@@ -530,7 +534,7 @@ void VerletKokkos::run(int n)
       // cannot be used here: it would copy one buffer over the other, and it is
       // a no-op anyway since F_MASK is excluded from the modified() calls above.
 
-      if (atomKK->k_f.NEED_TRANSFORM) {
+      if (decltype(atomKK->k_f)::NEED_TRANSFORM) {
         auto h_f_kk = atomKK->k_f.view_hostkk();
         auto h_f_legacy = atomKK->k_f.view_host();
         Kokkos::parallel_for(Kokkos::RangePolicy<LMPHostType>(0,atomKK->k_f.extent(0)),

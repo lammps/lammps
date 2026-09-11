@@ -1135,12 +1135,13 @@ void PairExp6rxKokkos<DeviceType>::operator()(TagPairExp6rxComputeNoAtomics<NEIG
 // Experimental thread-safe approach using duplicated data instead of atomics and
 // temporary local short vector arrays for the inner j-loop to increase vectorization.
 
+namespace {
 template<int n>
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
-KK_FLOAT __powint(const KK_FLOAT& x, const int)
+KK_FLOAT powint_kk(const KK_FLOAT& x, const int)
 {
-   static_assert(n == 12, "__powint<> only supports specific integer powers.");
+   static_assert(n == 12, "powint_kk<> only supports specific integer powers.");
 
    if (n == 12)
    {
@@ -1149,6 +1150,7 @@ KK_FLOAT __powint(const KK_FLOAT& x, const int)
      return x3*x3*x3*x3;
    }
 }
+}    // namespace
 
 template<class DeviceType>
   template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG, bool Site1EqSite2, bool UseAtomics, bool OneType>
@@ -1370,14 +1372,14 @@ void PairExp6rxKokkos<DeviceType>::vectorized_operator(const int &ii, EV_FLOAT& 
 
             const KK_FLOAT win1 = buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) + rin1*durc;
 
-            const KK_FLOAT aRep = win1*__powint<12>(rin1,nRep)/nRep;
+            const KK_FLOAT aRep = win1*powint_kk<12>(rin1,nRep)/nRep;
 
-            const KK_FLOAT uin1rep = aRep/__powint<12>(rin1,nRep);
+            const KK_FLOAT uin1rep = aRep/powint_kk<12>(rin1,nRep);
 
-            const KK_FLOAT forceExp6 = KK_FLOAT(nRep)*aRep/__powint<12>(r,nRep);
+            const KK_FLOAT forceExp6 = KK_FLOAT(nRep)*aRep/powint_kk<12>(r,nRep);
             fpairOldEXP6_12 = factor_lj*forceExp6*r2inv;
 
-            evdwlOldEXP6_12 = uin1 - uin1rep + aRep/__powint<12>(r,nRep);
+            evdwlOldEXP6_12 = uin1 - uin1rep + aRep/powint_kk<12>(r,nRep);
           } else {
             const KK_FLOAT forceExp6 = buck1*buck2*(r*rexp*rminv - rm6ij*r6inv) + r*durc;
             fpairOldEXP6_12 = factor_lj*forceExp6*r2inv;
@@ -1410,14 +1412,14 @@ void PairExp6rxKokkos<DeviceType>::vectorized_operator(const int &ii, EV_FLOAT& 
 
             const KK_FLOAT win1 = buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) + rin1*durc;
 
-            const KK_FLOAT aRep = win1*__powint<12>(rin1,nRep)/nRep;
+            const KK_FLOAT aRep = win1*powint_kk<12>(rin1,nRep)/nRep;
 
-            const KK_FLOAT uin1rep = aRep/__powint<12>(rin1,nRep);
+            const KK_FLOAT uin1rep = aRep/powint_kk<12>(rin1,nRep);
 
-            const KK_FLOAT forceExp6 = KK_FLOAT(nRep)*aRep/__powint<12>(r,nRep);
+            const KK_FLOAT forceExp6 = KK_FLOAT(nRep)*aRep/powint_kk<12>(r,nRep);
             fpairOldEXP6_21 = factor_lj*forceExp6*r2inv;
 
-            evdwlOldEXP6_21 = uin1 - uin1rep + aRep/__powint<12>(r,nRep);
+            evdwlOldEXP6_21 = uin1 - uin1rep + aRep/powint_kk<12>(r,nRep);
           } else {
             const KK_FLOAT forceExp6 = buck1*buck2*(r*rexp*rminv - rm6ij*r6inv) + r*durc;
             fpairOldEXP6_21 = factor_lj*forceExp6*r2inv;
@@ -1466,11 +1468,11 @@ void PairExp6rxKokkos<DeviceType>::vectorized_operator(const int &ii, EV_FLOAT& 
 
             const KK_FLOAT win1 = buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) + rin1*durc;
 
-            const KK_FLOAT aRep = win1*__powint<12>(rin1,nRep)/nRep;
+            const KK_FLOAT aRep = win1*powint_kk<12>(rin1,nRep)/nRep;
 
-            const KK_FLOAT uin1rep = aRep/__powint<12>(rin1,nRep);
+            const KK_FLOAT uin1rep = aRep/powint_kk<12>(rin1,nRep);
 
-            evdwlEXP6_12 = uin1 - uin1rep + aRep/__powint<12>(r,nRep);
+            evdwlEXP6_12 = uin1 - uin1rep + aRep/powint_kk<12>(r,nRep);
           } else {
             evdwlEXP6_12 = buck1*(static_cast<KK_FLOAT>(6.0)*rexp - alpha12_ij*rm6ij*r6inv) - urc - durc*(r-rCut);
           }
@@ -1498,11 +1500,11 @@ void PairExp6rxKokkos<DeviceType>::vectorized_operator(const int &ii, EV_FLOAT& 
 
             const KK_FLOAT win1 = buck1*buck2*(rin1*rin1exp*rminv - rm6ij*rin6inv) + rin1*durc;
 
-            const KK_FLOAT aRep = win1*__powint<12>(rin1,nRep)/nRep;
+            const KK_FLOAT aRep = win1*powint_kk<12>(rin1,nRep)/nRep;
 
-            const KK_FLOAT uin1rep = aRep/__powint<12>(rin1,nRep);
+            const KK_FLOAT uin1rep = aRep/powint_kk<12>(rin1,nRep);
 
-            evdwlEXP6_21 = uin1 - uin1rep + aRep/__powint<12>(r,nRep);
+            evdwlEXP6_21 = uin1 - uin1rep + aRep/powint_kk<12>(r,nRep);
           } else {
             evdwlEXP6_21 = buck1*(static_cast<KK_FLOAT>(6.0)*rexp - alpha21_ij*rm6ij*r6inv) - urc - durc*(r-rCut);
           }
@@ -2006,6 +2008,7 @@ void PairExp6rxKokkos<DeviceType>::getMixingWeights(int id,KK_FLOAT &epsilon1,KK
 }
 
 #ifdef _OPENMP
+namespace {
 void partition_range( const int begin, const int end, int &thread_begin, int &thread_end, const int chunkSize = 1)
 {
    int threadId = omp_get_thread_num();
@@ -2031,6 +2034,7 @@ void partition_range( const int begin, const int end, int &thread_begin, int &th
    thread_end   = std::min(begin + block_hi * chunkSize, end);
    //printf("tid: %d %d %d %d %d\n", threadId, block_lo, block_hi, thread_begin, thread_end);
 }
+}    // namespace
 #endif
 
 /* ---------------------------------------------------------------------- */

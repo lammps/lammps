@@ -57,7 +57,7 @@ struct MLIAPBuildUnifiedKokkos_t {
   MLIAPDummyModelKokkos<DeviceType> *model;
 };
 template <class DeviceType>
-MLIAPBuildUnifiedKokkos_t<DeviceType> build_unified(char *, MLIAPDataKokkos<DeviceType> *, LAMMPS *, char * = NULL);
+MLIAPBuildUnifiedKokkos_t<DeviceType> build_unified(char *, MLIAPDataKokkos<DeviceType> *, LAMMPS *, char *=nullptr);
 void update_pair_energy(MLIAPDataKokkosDevice *, double *);
 void update_pair_forces(MLIAPDataKokkosDevice *, double *);
 void update_atom_energy(MLIAPDataKokkosDevice *, double *);

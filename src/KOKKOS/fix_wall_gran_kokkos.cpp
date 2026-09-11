@@ -40,7 +40,7 @@ FixWallGranKokkos<DeviceType>::FixWallGranKokkos(LAMMPS *lmp, int narg, char **a
   datamask_modify = F_MASK | TORQUE_MASK;
 
   memory->destroy(history_one);
-  history_one = NULL;
+  history_one = nullptr;
   grow_arrays(atom->nmax);
 }
 

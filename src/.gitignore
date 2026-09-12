@@ -1495,12 +1495,16 @@
 /pair_lj_class2_coul_cut.h
 /pair_lj_class2_coul_cut_soft.cpp
 /pair_lj_class2_coul_cut_soft.h
+/pair_lj_class2_coul_cut_soft_gapsys.cpp
+/pair_lj_class2_coul_cut_soft_gapsys.h
 /pair_lj_class2_coul_long.cpp
 /pair_lj_class2_coul_long.h
 /pair_lj_class2_coul_long_soft.cpp
 /pair_lj_class2_coul_long_soft.h
 /pair_lj_class2_soft.cpp
 /pair_lj_class2_soft.h
+/pair_lj_class2_soft_gapsys.cpp
+/pair_lj_class2_soft_gapsys.h
 /pair_lj_coul.cpp
 /pair_lj_coul.h
 /pair_coul_cut_soft.cpp
@@ -1511,6 +1515,8 @@
 /pair_coul_long_soft.h
 /pair_lj_cut_coul_cut_soft.cpp
 /pair_lj_cut_coul_cut_soft.h
+/pair_lj_cut_coul_cut_soft_gapsys.cpp
+/pair_lj_cut_coul_cut_soft_gapsys.h
 /pair_lj_cut_tip4p_cut.cpp
 /pair_lj_cut_tip4p_cut.h
 /pair_lj_cut_coul_esp.cpp

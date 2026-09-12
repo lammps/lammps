@@ -88,6 +88,11 @@ void FixStoreLocal::add_data(double *input_data, int i, int j)
   ncount += 1;
 }
 
+void FixStoreLocal::clear_data()
+{
+  ncount = 0;
+}
+
 /* ---------------------------------------------------------------------- */
 
 void FixStoreLocal::post_force(int /*vflag*/)

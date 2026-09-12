@@ -112,7 +112,7 @@ void release_uvt_args()
 
 FixUVT::FixUVT(LAMMPS *lmp, int narg, char **arg) :
     FixNH(lmp, uvt_argc(narg, arg), uvt_argv(narg, arg)),
-    u_start(0.0), u_stop(0.0), u_current(0.0), u_target(0.0), u_freq(0.0), ustat_flag(0),
+    u_start(0.0), u_stop(0.0), u_target(0.0), u_freq(0.0), ustat_flag(0),
     Ne(0.0), Ne_dot(0.0), Ne_mass(0.0), dedn_name(nullptr), dedn_which(ArgInfo::NONE),
     dedn_index(0), dedn_var(-1), dedn_compute(nullptr), dedn_fix(nullptr), dedn_current(0.0)
 {
@@ -161,7 +161,6 @@ FixUVT::FixUVT(LAMMPS *lmp, int narg, char **arg) :
   if (u_period <= 0.0) error->all(FLERR, "Chemical-potential damping for fix {} must be > 0.0", style);
 
   u_freq = 1.0 / u_period;
-  u_current = u_start;
 
   size_vector += 6;
 
@@ -268,7 +267,6 @@ void FixUVT::post_force(int /*vflag*/)
   // another consumer invoked them earlier in this timestep.
   modify->clearstep_compute();
   dedn_current = evaluate_dedn();
-  u_current = dedn_current;
   modify->addstep_compute(update->ntimestep + 1);
 }
 
@@ -478,7 +476,7 @@ void *FixUVT::extract(const char *str, int &dim)
   if (strcmp(str, "u_start") == 0) return &u_start;
   if (strcmp(str, "u_stop") == 0) return &u_stop;
   if (strcmp(str, "u_target") == 0) return &u_target;
-  if (strcmp(str, "u_current") == 0) return &u_current;
+  if (strcmp(str, "u_current") == 0) return &dedn_current;
   if (strcmp(str, "u_freq") == 0) return &u_freq;
 
   dim = 1;

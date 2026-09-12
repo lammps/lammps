@@ -38,7 +38,7 @@ ComputeRigidAtom::ComputeRigidAtom(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg),
   rstyle(nullptr), idrigid(nullptr), fixrigid(nullptr)
 {
-  if (narg < 5) error->all(FLERR,"Illegal compute rigid/local command");
+  if (narg < 5) utils::missing_cmd_args(FLERR, "compute rigid/atom", error);
 
   peratom_flag = 1;
 
@@ -83,7 +83,7 @@ ComputeRigidAtom::ComputeRigidAtom(LAMMPS *lmp, int narg, char **arg) :
     else if (strcmp(arg[iarg],"inertiax") == 0) rstyle[nvalues++] = INERTIAX;
     else if (strcmp(arg[iarg],"inertiay") == 0) rstyle[nvalues++] = INERTIAY;
     else if (strcmp(arg[iarg],"inertiaz") == 0) rstyle[nvalues++] = INERTIAZ;
-    else error->all(FLERR,"Invalid keyword in compute rigid/local command");
+    else error->all(FLERR,"Unknown keyword in compute rigid/atom command> {}",arg[iarg]);
   }
 
   if (nvalues == 1) size_peratom_cols = 0;
@@ -111,10 +111,10 @@ void ComputeRigidAtom::init()
   // set fixrigid
 
   auto ifix = modify->get_fix_by_id(idrigid);
-  if (!ifix) error->all(FLERR,"FixRigidSmall ID {} for compute rigid/atom does not exist", idrigid);
+  if (!ifix) error->all(FLERR,"Fix ID {} for compute rigid/atom does not exist", idrigid);
   fixrigid = dynamic_cast<FixRigidSmall *>(ifix);
   if (!fixrigid)
-    error->all(FLERR,"Fix ID {} for compute rigid/atom does not point to fix rigid/small", idrigid);
+    error->all(FLERR,"Fix ID {} for compute rigid/atom does not refer to fix rigid/small", idrigid);
 
   // do initial memory allocation so that memory_usage() is correct
 

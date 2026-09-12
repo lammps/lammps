@@ -559,11 +559,12 @@ of (roughly) 100 time units (:math:`\tau` or fs or ps - see the
 :doc:`units <units>` command).  The random # *seed* must be a positive
 integer.
 
-The way that Langevin thermostatting operates is explained on the :doc:`fix langevin <fix_langevin>` doc page.  If you wish to simply viscously
-damp the rotational motion without thermostatting, you can set
-*Tstart* and *Tstop* to 0.0, which means only the viscous drag term in
-the Langevin thermostat will be applied.  See the discussion on the
-:doc:`fix viscous <fix_viscous>` page for details.
+The way that Langevin thermostatting operates is explained on the
+:doc:`fix langevin <fix_langevin>` doc page.  If you wish to simply
+viscously damp the rotational motion without thermostatting, you can
+set *Tstart* and *Tstop* to 0.0, which means only the viscous drag
+term in the Langevin thermostat will be applied.  See the discussion
+on the :doc:`fix viscous <fix_viscous>` page for details.
 
 .. note::
 

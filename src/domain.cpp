@@ -1539,7 +1539,7 @@ void Domain::closest_image(const double * const xi, const double * const xj, dou
    image = 10 or 20 bits for each dimension
    increment/decrement in wrap-around fashion
    if V is specified (default = NULL) and deform_vremap set by fix deform:
-     also remap v via h_rate calclated by fix deform
+     also remap v via h_rate calculated by fix deform
      currently only used by fix rigid commands to remap body VCM
 ------------------------------------------------------------------------- */
 
@@ -1991,7 +1991,7 @@ void Domain::unmap(const double *x, const double *v, imageint image, int mask, d
 
 /* ----------------------------------------------------------------------
    adjust image flags of all atoms due to triclinic box flip in FixDeform
-   flip operation chagess box vectors A,B,C to new A',B',C'
+   flip operation changes box vectors A,B,C to new A',B',C'
      A' = A              (A does not change)
      B' = B + mA         (B shifted by A)
      C' = C + pB + nA    (C shifted by B and/or A)

@@ -155,7 +155,7 @@ corresponding attribute is in:
 
 * id,mol = unitless
 * mass = mass units
-* x,y,z and xy,yu,zu = distance units
+* x,y,z and xu,yu,zu = distance units
 * vx,vy,vz = velocity units
 * fx,fy,fz = force units
 * omegax,omegay,omegaz = radians/time units

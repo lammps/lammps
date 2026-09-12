@@ -1029,7 +1029,7 @@ at the end of this paragraph.
 There are many possible options for the color map, enabled by the *amap*
 keyword.  Here are the details.
 
-he *lo* and *hi* settings determine the range of values allowed for
+The *lo* and *hi* settings determine the range of values allowed for
 the atom attribute.  If numeric values are used for *lo* and/or *hi*,
 then values that are lower/higher than that value are set to the
 value.  I.e. the range is static.  If *lo* is specified as *min* or

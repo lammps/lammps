@@ -29,6 +29,7 @@ class Pair : protected Pointers {
   friend class FixIntel;
   friend class FixOMP;
   friend class FixQEq;
+  friend class FixElectrodeConp;
   friend class PairHybrid;
   friend class PairHybridScaled;
   friend class ThrOMP;

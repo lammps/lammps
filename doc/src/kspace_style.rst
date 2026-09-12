@@ -30,6 +30,7 @@
 .. index:: kspace_style pppm/xtb
 .. index:: kspace_style pppm/tip4p/xtb
 .. index:: kspace_style pppm/electrode
+.. index:: kspace_style pppm/electrode/tip4p
 .. index:: kspace_style pppm/electrode/intel
 .. index:: kspace_style pppm/rk
 .. index:: kspace_style msm
@@ -50,8 +51,12 @@ Syntax
 
    kspace_style style value
 
-* style = *none* or *ewald* or ewald/gpu or *ewald/dipole* or *ewald/dipole/spin* or *ewald/disp* or *ewald/disp/dipole* or *ewald/omp* or *ewald/electrode* or *pppm* or *pppm/cg* or *pppm/disp* or *pppm/tip4p* or *pppm/xtb* or *pppm/tip4p/xtb* or *pppm/stagger* or *pppm/disp/tip4p* or *pppm/gpu* or *pppm/intel* or *pppm/disp/intel* or *pppm/kk* or *pppm/omp* or *pppm/cg/omp* or *pppm/disp/tip4p/omp* or *pppm/tip4p/kk or *pppm/tip4p/omp* or *pppm/dielectic* or *pppm/disp/dielectric* or *pppm/electrode* or *pppm/electrode/intel* or *pppm/rk* or *msm* or *msm/cg* or *msm/omp* or *msm/cg/omp* or *msm/dielectric* or *scafacos* or *zero*
-
+* style = *none* or *ewald* or ewald/gpu or *ewald/dipole* or *ewald/dipole/spin* or
+*ewald/disp* or *ewald/disp/dipole* or *ewald/omp* or *ewald/electrode* or *pppm* or *pppm/cg* or *pppm/disp* or
+*pppm/tip4p* or *pppm/xtb* or *pppm/tip4p/xtb* or *pppm/stagger* or *pppm/disp/tip4p* or *pppm/gpu* or *pppm/intel* or
+*pppm/disp/intel* or *pppm/kk* or *pppm/omp* or *pppm/cg/omp* or *pppm/disp/tip4p/omp* or *pppm/tip4p/kk or
+*pppm/tip4p/omp* or *pppm/dielectic* or *pppm/disp/dielectric* or *pppm/electrode* or *pppm/electrode/tip4p* or
+*pppm/electrode/intel* or *pppm/rk* or *msm* or *msm/cg* or *msm/omp* or *msm/cg/omp* or *msm/dielectric* or *scafacos* or *zero*
   .. parsed-literal::
 
        *none* value = none
@@ -120,6 +125,8 @@ Syntax
          accuracy = desired relative error in forces
        *pppm/electrode* value = accuracy
          accuracy = desired relative error in forces
+       *pppm/electrode/tip4p* value = accuracy
+         accuracy = desired relative error in forces
        *pppm/electrode/intel* value = accuracy
          accuracy = desired relative error in forces
        *pppm/rk* value = accuracy
@@ -149,6 +156,7 @@ Examples
 
    kspace_style esp 1.0e-4
    kspace_style pppm 1.0e-4
+   kspace_style pppm/electrode/tip4p 1.0e-4
    kspace_style pppm/cg 1.0e-5 1.0e-6
    kspace_style msm 1.0e-4
    kspace_style scafacos fmm 1.0e-4
@@ -285,6 +293,13 @@ adds a charge at the massless fourth site in each TIP4P water molecule.
 It should be used with :doc:`pair styles <pair_style>` with a
 *tip4p/long* in their style name.
 
+.. versionadded:: TBD
+
+The *pppm/electrode/tip4p* style combines the TIP4P treatment of
+*pppm/tip4p* with the electrode methods required for the constant
+potential method.  It should be used with a TIP4P-compatible
+long-range pair style and :doc:`fix electrode/* <fix_electrode>`.
+
 .. versionadded:: 2Sep2026
 
 The *pppm/xtb* and *pppm/tip4p/xtb* styles provide the corresponding
@@ -389,7 +404,8 @@ This approach is based on the enhanced baseline decomposition of
 
 The *electrode* styles add methods that are required for the constant potential
 method implemented in :doc:`fix electrode/* <fix_electrode>`.  The styles
-*ewald/electrode*, *pppm/electrode* and *pppm/electrode/intel* are available.
+*ewald/electrode*, *pppm/electrode*, *pppm/electrode/tip4p* and
+*pppm/electrode/intel* are available.
 These styles do not support the `kspace_modify slab nozforce` command.
 
 ----------

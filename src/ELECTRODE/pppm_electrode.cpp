@@ -65,11 +65,11 @@ static const char cite_pppm_electrode[] =
 
 /* ---------------------------------------------------------------------- */
 
-PPPMElectrode::PPPMElectrode(LAMMPS *lmp) :
+PPPMElectrode::PPPMElectrode(LAMMPS *lmp, bool register_citation) :
     PPPM(lmp), electrolyte_density_brick(nullptr), electrolyte_density_fft(nullptr),
     boundcorr(nullptr)
 {
-  if (lmp->citeme) lmp->citeme->add(cite_pppm_electrode);
+  if (register_citation && lmp->citeme) lmp->citeme->add(cite_pppm_electrode);
 
   group_group_enable = 0;
   electrolyte_density_brick = nullptr;
@@ -99,16 +99,16 @@ PPPMElectrode::~PPPMElectrode()
 
 void PPPMElectrode::init()
 {
-  if (me == 0) utils::logmesg(lmp, "PPPM/electrode initialization ...\n");
+  if (me == 0) utils::logmesg(lmp, "{} initialization ...\n", force->kspace_style);
 
   // error check
   if (slabflag == 3)
-    error->all(FLERR, "Cannot (yet) use PPPM/electrode with 'kspace_modify slab ew2d'");
+    error->all(FLERR, "Cannot (yet) use {} with 'kspace_modify slab ew2d'", force->kspace_style);
 
   triclinic_check();
   triclinic = domain->triclinic;
-  if (triclinic) error->all(FLERR, "Cannot (yet) use PPPM/electrode with triclinic box ");
-  if (domain->dimension == 2) error->all(FLERR, "Cannot use PPPM/electrode with 2d simulation");
+  if (triclinic) error->all(FLERR, "Cannot (yet) use {} with triclinic box ", force->kspace_style);
+  if (domain->dimension == 2) error->all(FLERR, "Cannot use {} with 2d simulation", force->kspace_style);
 
   if (!atom->q_flag) error->all(FLERR, "KSpace style requires atom attribute q");
 
@@ -125,11 +125,14 @@ void PPPMElectrode::init()
   }
 
   if (order < 2 || order > MAXORDER)
-    error->all(FLERR, "PPPM/electrode order cannot be < 2 or > {}", MAXORDER);
+    error->all(FLERR, "{} order cannot be < 2 or > {}", force->kspace_style, MAXORDER);
 
   // compute two charge force
 
   two_charge();
+
+  if (tip4pflag && force->newton == 0)
+    error->all(FLERR, "Kspace style pppm/electrode/tip4p with TIP4P requires newton on");
 
   // extract short-range Coulombic cutoff from pair style
 
@@ -140,38 +143,7 @@ void PPPMElectrode::init()
   if (p_cutoff == nullptr) error->all(FLERR, "KSpace style is incompatible with Pair style");
   cutoff = *p_cutoff;
 
-  // if kspace is TIP4P, extract TIP4P params from pair style
-  // bond/angle are not yet init(), so ensure equilibrium request is valid
-
-  qdist = 0.0;
-
-  if (tip4pflag) {
-    if (me == 0) utils::logmesg(lmp, "  extracting TIP4P info from pair style\n");
-
-    auto *p_qdist = (double *) force->pair->extract("qdist", itmp);
-    int *p_typeO = (int *) force->pair->extract("typeO", itmp);
-    int *p_typeH = (int *) force->pair->extract("typeH", itmp);
-    int *p_typeA = (int *) force->pair->extract("typeA", itmp);
-    int *p_typeB = (int *) force->pair->extract("typeB", itmp);
-    if (!p_qdist || !p_typeO || !p_typeH || !p_typeA || !p_typeB)
-      error->all(FLERR, "Pair style is incompatible with TIP4P KSpace style");
-    qdist = *p_qdist;
-    typeO = *p_typeO;
-    typeH = *p_typeH;
-    int typeA = *p_typeA;
-    int typeB = *p_typeB;
-
-    if (force->angle == nullptr || force->bond == nullptr || force->angle->setflag == nullptr ||
-        force->bond->setflag == nullptr)
-      error->all(FLERR, "Bond and angle potentials must be defined for TIP4P");
-    if (typeA < 1 || typeA > atom->nangletypes || force->angle->setflag[typeA] == 0)
-      error->all(FLERR, "Bad TIP4P angle type for PPPM/TIP4P");
-    if (typeB < 1 || typeB > atom->nbondtypes || force->bond->setflag[typeB] == 0)
-      error->all(FLERR, "Bad TIP4P bond type for PPPM/TIP4P");
-    double theta = force->angle->equilibrium_angle(typeA);
-    double blen = force->bond->equilibrium_distance(typeB);
-    alpha = qdist / (cos(0.5 * theta) * blen);
-  }
+  init_tip4p();
 
   // compute qsum & qsqsum and warn if not charge-neutral
 
@@ -228,7 +200,7 @@ void PPPMElectrode::init()
   if (order < minorder) error->all(FLERR, "PPPM/electrode order < minimum allowed order");
   if (!overlap_allowed && !gc->ghost_adjacent())
     error->all(FLERR, "PPPM/electrode grid stencil extends beyond nearest neighbor processor");
-  delete gc;
+  if (gc) delete gc;
 
   // adjust g_ewald
 
@@ -524,7 +496,6 @@ void PPPMElectrode::compute(int eflag, int vflag)
 
   // per-atom energy/virial
   // energy includes self-energy correction
-  // ntotal accounts for TIP4P tallying eatom/vatom for ghost atoms
 
   if (evflag_atom) {
     double *q = atom->q;
@@ -548,12 +519,32 @@ void PPPMElectrode::compute(int eflag, int vflag)
     }
   }
 
-  boundcorr->compute_corr(qsum, eflag_atom, eflag_global, energy, eatom);
+  compute_boundary_corr(qsum, eflag_atom, eflag_global, energy, eatom);
   compute_vector_called = false;
 }
 
 /* ----------------------------------------------------------------------
+   default boundary energy/force correction
 ------------------------------------------------------------------------- */
+
+void PPPMElectrode::compute_boundary_corr(double qsum_in, int eflag_atom_in,
+                                          int eflag_global_in, double &energy_in,
+                                          double *eatom_in)
+{
+  boundcorr->compute_corr(qsum_in, eflag_atom_in, eflag_global_in, energy_in, eatom_in);
+}
+
+/* ----------------------------------------------------------------------
+   default boundary vector correction
+------------------------------------------------------------------------- */
+
+void PPPMElectrode::compute_vector_boundary_corr(double *vec, int sensor_grpbit,
+                                                 int source_grpbit, bool invert_source)
+{
+  boundcorr->vector_corr(vec, sensor_grpbit, source_grpbit, invert_source);
+}
+
+
 void PPPMElectrode::start_compute()
 {
   if (compute_step < update->ntimestep) {
@@ -1102,7 +1093,8 @@ void PPPMElectrode::deallocate()
   memory->destroy(gc_buf1);
   memory->destroy(gc_buf2);
 
-  delete boundcorr;
+  if (boundcorr != nullptr) delete boundcorr;
+  boundcorr = nullptr;
   memory->destroy3d_offset(electrolyte_density_brick, nzlo_out, nylo_out, nxlo_out);
   memory->destroy(electrolyte_density_fft);
 
@@ -1475,8 +1467,6 @@ void PPPMElectrode::set_grid_local()
   // nlo,nhi = global coords of grid pt to "lower left" of
   // smallest/largest
   //           position a particle in my box can be at
-  // dist[3] = particle position bound = subbox + skin/2.0 + qdist
-  //   qdist = offset due to TIP4P fictitious charge
   //   convert to triclinic if necessary
   // nlo_out,nhi_out = nlo,nhi + stencil size for particle mapping
   // for slab PPPM, assign z grid as if it were not extended
@@ -1496,7 +1486,7 @@ void PPPMElectrode::set_grid_local()
   double zprd_slab = zprd * slab_volfactor;
 
   double dist[3] = {0.0, 0.0, 0.0};
-  double cuthalf = 0.5 * neighbor->skin + qdist;
+  double cuthalf = 0.5 * neighbor->skin + (tip4pflag ? qdist : 0.0);
   dist[0] = dist[1] = dist[2] = cuthalf;
 
   int nlo, nhi;
@@ -1859,5 +1849,5 @@ void PPPMElectrode::compute_matrix_corr(bigint *imat, double **matrix)
 void PPPMElectrode::compute_vector_corr(double *vec, int sensor_grpbit, int source_grpbit,
                                         bool invert_source)
 {
-  boundcorr->vector_corr(vec, sensor_grpbit, source_grpbit, invert_source);
+  compute_vector_boundary_corr(vec, sensor_grpbit, source_grpbit, invert_source);
 }

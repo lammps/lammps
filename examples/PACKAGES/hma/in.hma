@@ -17,7 +17,7 @@ pair_coeff * * 1.0 1.0
 mass 1 1.0
 
 atom_modify sort 0 1
-velocity all create 0.1 45678 dist gaussian
+velocity all create 0.1 45678 dist gaussian loop geom
 
 compute u all pe 
   

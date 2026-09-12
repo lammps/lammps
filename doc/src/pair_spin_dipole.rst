@@ -34,6 +34,9 @@ Examples
 Description
 """""""""""
 
+.. versionchanged:: TBD
+   The *spin/dipole/cut* style can be used with the inertial TSPIN integrators.
+
 Style *spin/dipole/cut* computes a short-range dipole-dipole
 interaction between pairs of magnetic particles that each
 have a magnetic spin.
@@ -74,6 +77,22 @@ particles, r is their separation distance, and the vector :math:`\vec{e}_{ij}
 = \frac{r_i - r_j}{\left| r_i - r_j \right|}` is the direction vector
 between the two particles.
 
+More precisely, :math:`\vec{s}_i` is the unit spin direction and :math:`g_i`
+is its modulus, so the complete spin vector is
+:math:`\vec{S}_i=g_i\vec{s}_i`.  The *spin/dipole/cut* magnetic force obeys
+
+.. math::
+
+   \vec{\omega}_i = \frac{g_i}{\hbar}
+   \left(-\frac{\partial \mathcal{H}_\mathrm{long}}
+   {\partial \vec{S}_i}\right).
+
+It therefore contains both the transverse and longitudinal components of the
+energy gradient and can be used with :doc:`fix nve/tspin <fix_nve_tspin>` and
+the other TSPIN integrators.  Since the dipole energy is bilinear in the spin
+moduli, a bounded variable-modulus simulation also needs an on-site
+longitudinal potential, such as :doc:`fix spring/tspin <fix_spring_tspin>`.
+
 Style *spin/dipole/long* computes long-range magnetic dipole-dipole
 interaction.
 A :doc:`kspace_style <kspace_style>` must be defined to
@@ -100,6 +119,10 @@ the SPIN package.  They are only enabled if LAMMPS was built with that
 package.  See the :doc:`Build package <Build_package>` page for more
 info.
 
+Only *spin/dipole/cut* is currently enabled for the TSPIN integrators.  The
+long-range force assembly of *spin/dipole/long* has not been audited against
+the TSPIN full-gradient contract.
+
 Using dipole/spin pair styles with *electron* :doc:`units <units>` is not
 currently supported.
 
@@ -107,7 +130,7 @@ Related commands
 """"""""""""""""
 
 :doc:`pair_coeff <pair_coeff>`, :doc:`kspace_style <kspace_style>`
-:doc:`fix nve/spin <fix_nve_spin>`
+:doc:`fix nve/spin <fix_nve_spin>`, :doc:`fix nve/tspin <fix_nve_tspin>`
 
 Default
 """""""

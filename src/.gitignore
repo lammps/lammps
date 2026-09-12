@@ -384,18 +384,34 @@
 
 /atom_vec_spin.cpp
 /atom_vec_spin.h
+/compute_ke_tspin.cpp
+/compute_ke_tspin.h
 /compute_spin.cpp
 /compute_spin.h
 /fix_langevin_spin.cpp
 /fix_langevin_spin.h
+/fix_langevin_tspin.cpp
+/fix_langevin_tspin.h
 /fix_neb_spin.cpp
 /fix_neb_spin.h
+/fix_nh_tspin.cpp
+/fix_nh_tspin.h
 /fix_nve_spin.cpp
 /fix_nve_spin.h
+/fix_nve_tspin.cpp
+/fix_nve_tspin.h
+/fix_nph_tspin.cpp
+/fix_nph_tspin.h
+/fix_npt_tspin.cpp
+/fix_npt_tspin.h
+/fix_nvt_tspin.cpp
+/fix_nvt_tspin.h
 /fix_precession_spin.cpp
 /fix_precession_spin.h
 /fix_setforce_spin.cpp
 /fix_setforce_spin.h
+/fix_spring_tspin.cpp
+/fix_spring_tspin.h
 /min_spin.cpp
 /min_spin.h
 /min_spin_cg.cpp
@@ -420,6 +436,9 @@
 /pair_spin_magelec.h
 /pair_spin_neel.cpp
 /pair_spin_neel.h
+/tspin.h
+/velocity_tspin.cpp
+/velocity_tspin.h
 
 /atom_vec_mesont.cpp
 /atom_vec_mesont.h

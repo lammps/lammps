@@ -1,0 +1,50 @@
+# bcc iron in an inertial spin dynamics simulation (NVT)
+#
+# fix nvt/tspin drives the lattice and the spin degrees of freedom with two
+# independent Nose-Hoover chains held at a common target temperature.  The
+# lattice keyword and the spin keyword select which of the two sectors is
+# integrated and thermostatted.
+# fix langevin/tspin can be used instead for a stochastic bath.
+
+units           metal
+dimension       3
+boundary        p p p
+atom_style      spin
+
+lattice         bcc 2.8665
+region          box block 0.0 4.0 0.0 4.0 0.0 4.0
+create_box      1 box
+create_atoms    1 box
+
+mass            1 55.845
+set             group all spin/atom/random 31 2.2
+
+pair_style      eam/fs
+pair_coeff      * * Fe_mm.eam.fs Fe
+
+neighbor        0.1 bin
+neigh_modify    every 10 check yes delay 20
+
+# longitudinal potential on the spin modulus, k in eV/muB^2
+
+fix             pin all spring/tspin 1.0 2.2
+fix_modify      pin energy yes
+
+fix             1 all nvt/tspin temp 300.0 300.0 0.05 spinmass 0.0075
+
+velocity        all create 300.0 4928 mom yes
+velocity/tspin  all create 300.0 4929
+
+timestep        0.0001
+
+compute         out_mag all spin
+compute         ske all ke/tspin
+variable        etot equal econserve+c_ske
+
+variable        magnorm equal c_out_mag[4]
+
+thermo          500
+thermo_style    custom step time temp v_magnorm pe c_ske v_etot
+thermo_modify   format float %20.15g
+
+run             20000

@@ -537,6 +537,8 @@ void BondBPM::read_reference(char *file)
 
   int nwords = utils::count_words(line);
   nbonddata = nwords - 2; // number of history variables found in ref file
+  if (nbonddata <= 0)
+    error->one(FLERR, "Invalid number of columns {}, must be greater than 2", nbonddata);
 
   // allocate memory
   if (bListdata) memory->destroy(bListdata);
@@ -826,7 +828,11 @@ void BondBPM::restore_data()
       tagj = atom->tag[j];
 
       searchkey = std::min(tagi, tagj) * natoms + std::max(tagi, tagj);
-      n = hashmap[searchkey];
+      if (hashmap.find(searchkey) != hashmap.end()) {
+        n = hashmap[searchkey];
+      } else {
+        error->one(FLERR, "Cannot find data for bond between atoms {} and {}", tagi, tagj);
+      }
 
       // restore history
       for (int h = 0; h < (nbonddata - 2); h++) {

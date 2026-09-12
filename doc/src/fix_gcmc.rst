@@ -149,7 +149,7 @@ position with the center-of-mass inside the region is found, the move is
 rejected (but still counted as an attempted move) and a warning is
 printed once.
 
-.. versionchanged:: TBD
+.. versionchanged:: 16Sep2026
 
 Previously a region-restricted **translation** move whose center-of-mass
 could not be placed inside the region was retried indefinitely, which

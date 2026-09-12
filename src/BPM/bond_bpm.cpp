@@ -229,7 +229,8 @@ void BondBPM::init_style()
     if (!ifix) {
       ifix = modify->add_fix(fmt::format("{} all STORE/LOCAL {} {}", id_fix_write_ref, write_ref_freq, nvalues_ref));
     } else {
-      if (strcmp(ifix->style, "STORE/LOCAL") != 0) error->all(FLERR, "Incorrect fix style matched, not STORE/LOCAL: {}", ifix->style);
+      if (strcmp(ifix->style, "STORE/LOCAL") != 0)
+        error->all(FLERR, "Incorrect fix style matched, not STORE/LOCAL: {}", ifix->style);
     }
     fix_write_ref = dynamic_cast<FixStoreLocal *>(ifix);
   }
@@ -289,20 +290,23 @@ void BondBPM::settings(int narg, char **arg)
       }
     } else if (strcmp(arg[iarg], "overlay/pair") == 0) {
       if (iarg + 1 > narg)
-        error->all(FLERR, "Illegal bond bpm command, missing option for overlay/pair");
+        utils::missing_cmd_args(FLERR, "bond/bpm overlay/pair", error);
       overlay_flag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "break") == 0) {
-      if (iarg + 1 > narg) error->all(FLERR, "Illegal bond bpm command, missing option for break");
+      if (iarg + 1 > narg)
+        utils::missing_cmd_args(FLERR, "bond/bpm break", error);
       break_flag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg], "read/history") == 0) {
-      if (iarg + 1 > narg) error->all(FLERR, "Illegal bond bpm command, missing option for read/history");
+      if (iarg + 1 > narg)
+        utils::missing_cmd_args(FLERR, "bond/bpm read/history", error);
       reference_flag = 1;
       ref_filename = arg[iarg + 1];
       iarg += 2;
     } else if (strcmp(arg[iarg], "write/history") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal bond bpm command, missing option for write/history");
+      if (iarg + 2 > narg)
+        utils::missing_cmd_args(FLERR, "bond/bpm write/history", error);
       id_fix_write_ref = utils::strdup(arg[iarg + 1]);
       write_ref_freq = utils::inumeric(FLERR, arg[iarg + 2], false, lmp);
       iarg += 3;
@@ -315,7 +319,7 @@ void BondBPM::settings(int narg, char **arg)
   if (id_fix_store_local) {
 
     if (nvalues == 0)
-      error->all(FLERR, "Storing local data must include at least one value to output");
+      error->all(FLERR, "Storing local data requires specifying at least one value to output");
     memory->create(output_data, nvalues, "bond/bpm:output_data");
 
     auto *ifix = modify->get_fix_by_id(id_fix_store_local);
@@ -382,12 +386,14 @@ void BondBPM::settings(int narg, char **arg)
     int me;
     MPI_Comm_rank(world, &me);
     if (me > 0) {
-      memory->create(bListdata, 2*nentries, "bond/bpm:bListdata");
-      memory->create(bHistdata, nentries*(nbonddata-2), "bond/bpm:bHistdata");
+      if (bListdata) memory->destroy(bListdata);
+      if (bHistdata) memory->destroy(bHistdata);
+      memory->create(bListdata, 2 * nentries, "bond/bpm:bListdata");
+      memory->create(bHistdata, nentries * (nbonddata - 2), "bond/bpm:bHistdata");
     }
 
-    MPI_Bcast(bListdata, 2*nentries, MPI_INT, 0, world);
-    MPI_Bcast(bHistdata, nentries*(nbonddata-2), MPI_DOUBLE, 0, world);
+    MPI_Bcast(bListdata, 2 * nentries, MPI_INT, 0, world);
+    MPI_Bcast(bHistdata, nentries * (nbonddata - 2), MPI_DOUBLE, 0, world);
   }
 }
 
@@ -483,13 +489,14 @@ void BondBPM::read_restart(FILE *fp)
 void BondBPM::read_reference(char *file)
 {
 
-  printf("\nReading reference file ...\n");
+  utils::print(screen, fmt::format("Reading BPM bond reference file {}", file));
 
   TableFileReader reader(lmp, file, "bond/bpm");
   std::string keyword = "ENTRIES";
 
   // find first keyword
-  char *line = nullptr; int got_line = 0;
+  char *line = nullptr;
+  int got_line = 0;
   while ((line = reader.next_line())) {
     ValueTokenizer values(line);
 
@@ -532,8 +539,10 @@ void BondBPM::read_reference(char *file)
   nbonddata = nwords - 2; // number of history variables found in ref file
 
   // allocate memory
-  memory->create(bListdata, 2*nentries, "bond/bpm:bListdata");
-  memory->create(bHistdata, nentries*(nbonddata-2), "bond/bpm:bHistdata");
+  if (bListdata) memory->destroy(bListdata);
+  if (bHistdata) memory->destroy(bHistdata);
+  memory->create(bListdata, 2 * nentries, "bond/bpm:bListdata");
+  memory->create(bHistdata, nentries * (nbonddata - 2), "bond/bpm:bHistdata");
 
   // Parse bond data
   for (int t = 0; t < nentries; t++) {
@@ -547,11 +556,11 @@ void BondBPM::read_reference(char *file)
       int ncol = utils::count_words(line);
       if (ncol != nbonddata) error->one(FLERR, "Data missing when parsing file '{}' line {} of {}.", file, t + 1, nentries);
 
-      bListdata[2*t] = values.next_int();
-      bListdata[2*t + 1] = values.next_int();
+      bListdata[2 * t] = values.next_int();
+      bListdata[2 * t + 1] = values.next_int();
       for (int d = 0; d < nbonddata - 2; d++) {
         double hvar = values.next_double();
-        bHistdata[t*(nbonddata-2) + d] = hvar;
+        bHistdata[t * (nbonddata - 2) + d] = hvar;
       }
 
     } catch (TokenizerException &e) {
@@ -560,7 +569,7 @@ void BondBPM::read_reference(char *file)
     }
   }
 
-  printf("  read %i history variables for %i bonds\n",nbonddata-2,nentries);
+  utils::print(screen, fmt::format("  Read {} history variables for {} bonds", nbonddata - 2, nentries));
 }
 
 /* ----------------------------------------------------------------------
@@ -595,12 +604,10 @@ void BondBPM::write_reference()
         output_data_ref[0] = tag[i];
         output_data_ref[1] = tag[j];
 
-        for (int h=0; h < nhistory; h++) {
-          output_data_ref[2+h] = fix_bond_history->get_atom_value(i, m, h);
-        }
+        for (int h = 0; h < nhistory; h++)
+          output_data_ref[2 + h] = fix_bond_history->get_atom_value(i, m, h);
 
         fix_write_ref->add_data(output_data_ref, i, j);
-
       }
     }
   }
@@ -748,9 +755,8 @@ void BondBPM::pre_compute()
 
   if (hybrid_flag) fix_bond_history->compress_history();
 
-  if (fix_write_ref && write_ref_freq > 0 && update->ntimestep % write_ref_freq == 0) {
+  if (fix_write_ref && (write_ref_freq > 0) && (update->ntimestep % write_ref_freq == 0))
     write_reference();
-  }
 
   nbroken = 0;
 }
@@ -784,22 +790,23 @@ void BondBPM::restore_data()
   double **bondstore = fix_bond_history->bondstore;
 
   // error checks
-  if ((nbonddata - 2) != nhistory) error->one(FLERR, "Incorrect number of history variables for {} expected {}",force->bond_style, nhistory);
-  if (nentries != atom->nbonds) error->one(FLERR, "Incorrect number of bond entries in reference file {} expected {}",ref_filename, atom->nbonds);
+  if ((nbonddata - 2) != nhistory)
+    error->one(FLERR, "Incorrect number of history variables for {} expected {}", force->bond_style, nhistory);
+  if (nentries != atom->nbonds)
+    error->one(FLERR, "Incorrect number of bond entries in reference file {} expected {}", ref_filename, atom->nbonds);
 
   // Need to store location of bond data in hash table for fast retrieval when restoring
   std::map<long int,long int> hashmap;
 
   for (int t = 0; t < nentries; t++) {
-    itag = bListdata[2*t];
-    jtag = bListdata[2*t + 1];
+    itag = bListdata[2 * t];
+    jtag = bListdata[2 * t + 1];
 
     // Skip storing a key if atoms not owned
-    if (atom->map(itag) == -1 && atom->map(jtag) == -1) {
+    if (atom->map(itag) == -1 && atom->map(jtag) == -1)
       continue;
-    }
 
-    key = std::min(itag,jtag)*natoms + std::max(itag,jtag);
+    key = std::min(itag, jtag) * natoms + std::max(itag, jtag);
     hashmap[key] = t;
   }
 
@@ -818,19 +825,20 @@ void BondBPM::restore_data()
       tagi = atom->tag[i];
       tagj = atom->tag[j];
 
-      searchkey = std::min(tagi,tagj)*natoms + std::max(tagi,tagj);
+      searchkey = std::min(tagi, tagj) * natoms + std::max(tagi, tagj);
       n = hashmap[searchkey];
 
       // restore history
       for (int h = 0; h < (nbonddata - 2); h++) {
-        hvar = bHistdata[n*(nbonddata-2) + h];
+        hvar = bHistdata[n * (nbonddata - 2) + h];
         fix_bond_history->update_atom_value(i, m, h, hvar);
         bondstore[m][h] = hvar;
       }
     }
   }
 
-  if (comm->me == 0) printf("All reference file bond info was assigned\n");
+  if (comm->me == 0)
+    utils::print(screen, "All reference file bond info was assigned\n");
 }
 
 /* ----------------------------------------------------------------------

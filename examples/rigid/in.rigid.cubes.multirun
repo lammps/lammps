@@ -16,7 +16,7 @@ pair_coeff      1 1 1.0 1.0
 
 neigh_modify    exclude molecule/intra all
 
-velocity        all create 1.5 4928459 mom yes rot yes
+velocity        all create 1.5 4928459 mom yes rot yes loop geom
 
 fix             1 all rigid/small molecule
 

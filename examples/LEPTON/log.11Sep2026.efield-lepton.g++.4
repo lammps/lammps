@@ -1,10 +1,10 @@
-LAMMPS (19 Nov 2024 - Development - patch_19Nov2024-283-g742c869534-modified)
+LAMMPS (2 Sep 2026)
   using 1 OpenMP thread(s) per MPI task
 # Point dipoles in a 3d box with an external potential (ignoring dipolar interactions)
 
 units           lj
 atom_style      hybrid sphere dipole
-WARNING: Atom style hybrid defines both, per-type and per-atom masses; both must be set, but only per-atom masses will be used (src/atom_vec_hybrid.cpp:132)
+WARNING: Atom style hybrid defines both, per-type and per-atom masses; both must be set, but only per-atom masses will be used (src/atom_vec_hybrid.cpp:134)
 dimension       3
 boundary        s s s
 region          box block -2 2 -2 2 -2 2
@@ -15,7 +15,7 @@ Created orthogonal box = (-2 -2 -2) to (2 2 2)
 create_atoms    1 random 100 12345 NULL
 Created 100 atoms
   using lattice units in orthogonal box = (-2.0004 -2.0004 -2.0004) to (2.0004 2.0004 2.0004)
-  create_atoms CPU = 0.000 seconds
+  create_atoms CPU = 0.001 seconds
 
 # need both mass settings due to hybrid atom style
 mass            1 1.0
@@ -32,7 +32,7 @@ Setting atom values ...
 pair_style      none
 comm_modify     cutoff 3.0
 
-velocity        all create 0.0 87287 mom yes rot yes
+velocity        all create 0.0 87287 mom yes rot yes loop geom
 
 fix             1 all nve/sphere update dipole
 
@@ -62,7 +62,7 @@ thermo_modify   norm no
 #dump           1 all custom 500 dump.dipole id x y z diameter mux muy muz fx fy fz tqx tqy tqz
 
 run             10000
-WARNING: No pairwise cutoff or binsize set. Atom sorting therefore disabled. (src/atom.cpp:2442)
+WARNING: No pairwise cutoff or binsize set. Atom sorting therefore disabled. (src/atom.cpp:2486)
 Per MPI rank memory allocation (min/avg/max) = 4.289 | 4.289 | 4.289 Mbytes
    Step          Temp          KinEng         c_erot         PotEng        v_etotal   
          0   0              0              0              0.036419797    0.036419797  
@@ -86,20 +86,20 @@ Per MPI rank memory allocation (min/avg/max) = 4.289 | 4.289 | 4.289 Mbytes
       9000   0.0012738298   0.18916373     0.31082058    -0.46356382     0.036420485  
       9500   0.001464197    0.21743325     0.25669856    -0.43771158     0.036420224  
      10000   0.0016627654   0.24692067     0.36273185    -0.57323194     0.036420578  
-Loop time of 0.985035 on 4 procs for 10000 steps with 100 atoms
+Loop time of 0.768702 on 4 procs for 10000 steps with 100 atoms
 
-Performance: 877125.838 tau/day, 10151.919 timesteps/s, 1.015 Matom-step/s
-67.7% CPU use with 4 MPI tasks x 1 OpenMP threads
+Performance: 1123972.247 tau/day, 13008.938 timesteps/s, 1.301 Matom-step/s
+67.5% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
 Pair    | 0          | 0          | 0          |   0.0 |  0.00
-Neigh   | 7.22e-07   | 8.9125e-07 | 1.031e-06  |   0.0 |  0.00
-Comm    | 0.09818    | 0.1024     | 0.10798    |   1.1 | 10.40
-Output  | 0.00021634 | 0.00028668 | 0.00044312 |   0.0 |  0.03
-Modify  | 0.773      | 0.81845    | 0.84055    |   3.0 | 83.09
-Other   |            | 0.06389    |            |       |  6.49
+Neigh   | 7.92e-07   | 1.102e-06  | 1.262e-06  |   0.0 |  0.00
+Comm    | 0.043347   | 0.045918   | 0.04885    |   0.9 |  5.97
+Output  | 0.00029507 | 0.00032704 | 0.00040252 |   0.0 |  0.04
+Modify  | 0.67984    | 0.68541    | 0.69885    |   0.9 | 89.16
+Other   |            | 0.03705    |            |       |  4.82
 
 Nlocal:             25 ave          30 max          23 min
 Histogram: 2 1 0 0 0 0 0 0 0 1

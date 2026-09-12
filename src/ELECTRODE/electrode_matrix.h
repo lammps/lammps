@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Ludwig Ahrens-Iwers (TUHH), Shern Tee (UQ), Robert Meissner (TUHH)
+   Contributing authors: Ludwig Ahrens-Iwers (TUHH), Shern Tee (GU), Robert Meissner (Hereon, TUHH)
 ------------------------------------------------------------------------- */
 
 #ifndef LMP_ELECTRODE_MATRIX_H
@@ -28,8 +28,9 @@ namespace LAMMPS_NS {
 class ElectrodeMatrix : protected Pointers {
  public:
   ElectrodeMatrix(class LAMMPS *, int, double);
-  void setup(const std::unordered_map<tagint, int> &, class Pair *, class NeighList *);
+  void setup(const std::unordered_map<tagint, int> &, class Pair *, class NeighList *, bool);
   void setup_tf(const std::map<int, double> &);
+  void setup_hardness(int index);
   void setup_eta(int);
   void compute_array(double **, bool);
   int igroup;
@@ -39,21 +40,27 @@ class ElectrodeMatrix : protected Pointers {
   bigint ngroup;
   double **cutsq;
   double g_ewald, eta;
+  bool pairflag;
   bool tfflag;
+  bool hardnessflag;
   bool etaflag;
   int eta_index;
   std::map<int, double> tf_types;
+  int hardness_index;
   std::unordered_map<tagint, int> tag_to_iele;
   bool assigned;
   std::vector<bigint> mpos;
   class Pair *pair;
   class NeighList *list;
+  class ElectrodePair *electrode_pair;
+  bool kspaceflag;
   class ElectrodeKSpace *electrode_kspace;
 
   void update_mpos();
   void pair_contribution(double **);
   void self_contribution(double **);
   void tf_contribution(double **);
+  void hardness_contribution(double **);
 };
 
 }    // namespace LAMMPS_NS

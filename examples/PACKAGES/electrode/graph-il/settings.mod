@@ -12,6 +12,13 @@ kspace_style pppm/electrode 1e-7
 
 read_data "data.graph-il"
 
+pair_coeff 1 1 0.61185 4.38
+pair_coeff 2 2 0.08604 3.41
+pair_coeff 3 3 0.43738 5.04
+pair_coeff 4 4 1.12572 5.06
+pair_coeff 5 5 0.05497 3.37
+pair_coeff 6 6 0.05497 3.37
+
 # replicate 4 4 1 # test different sys sizes
 
 variable zpos atom "z > 0"

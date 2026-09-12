@@ -119,6 +119,21 @@ void EXPECT_TORQUES(const std::string &name, Atom *atom, const std::vector<coord
     if (print_stats) std::cerr << name << " stats: " << stats << std::endl;
 }
 
+void EXPECT_CHARGES(const std::string &name, Atom *atom, const std::vector<double> &q_ref,
+                    double epsilon)
+{
+    SCOPED_TRACE("EXPECT_CHARGES: " + name);
+    double *q       = atom->q;
+    tagint *tag      = atom->tag;
+    const int nlocal = atom->nlocal;
+    ASSERT_EQ(nlocal + 1, q_ref.size());
+    ErrorStats stats;
+    for (int i = 0; i < nlocal; ++i) {
+        EXPECT_FP_LE_WITH_EPS(q[i], q_ref[tag[i]], epsilon);
+    }
+    if (print_stats) std::cerr << name << " stats: " << stats << std::endl;
+}
+
 // magnetic forces and spins are only checked for atom styles that support them
 // (atom_style spin) and when the reference data is present in the yaml file, so
 // these two functions are safe to call unconditionally after any force or

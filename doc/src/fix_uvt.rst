@@ -19,7 +19,7 @@ Syntax
 * ``dedn`` value = global scalar or vector reference used as dE/dN
 
 Optional keywords are the Nose-Hoover keywords supported by
-:doc:`fix nvt <fix_nh>`, plus ``ne_velocity`` and ``dedn_defer``.
+:doc:`fix nvt <fix_nh>`, plus ``ne_velocity``.
 
 Examples
 """"""""
@@ -42,6 +42,24 @@ The ``dedn`` source may be an equal-style variable (``v_name``), a
 global compute (``c_ID``), or a global fix (``f_ID``).  If the source
 provides a global vector, an entry can be selected with the usual
 ``[index]`` syntax.
+
+The derivative is read once during setup, after the initial force calculation,
+and then in ``post_force`` after each force calculation.  The cached value
+is used by the second electronic velocity half-step and the first half-step
+of the next timestep.  This applies to both analytical variables and
+sources whose derivative is produced during force evaluation.  There is no
+``dedn_defer`` option.
+
+If the source is produced by another fix in its ``post_force`` callback,
+define that fix before ``fix uvt`` so it updates the derivative first.
+The provider must also make the initial derivative available during its
+``setup`` callback.  The same ordering requirement applies to indirect
+compute or variable references to such a fix.
+
+With r-RESPA, the derivative is refreshed and the electronic velocity is
+kicked at the outermost level; the electronic coordinate drifts with the
+particle coordinates at the innermost level.  Derivative providers must
+supply the complete derivative at the outermost force stage.
 
 The global fix vector appends six entries after the regular
 Nose-Hoover vector entries: ``Ne``, ``Ne_dot``, ``dEdN``, ``mu``,

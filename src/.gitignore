@@ -798,6 +798,8 @@
 /compute_rattlers_atom.h
 /compute_reaxff_atom.cpp
 /compute_reaxff_atom.h
+/compute_rigid_atom.cpp
+/compute_rigid_atom.h
 /compute_rigid_local.cpp
 /compute_rigid_local.h
 /compute_slcsa_atom.cpp

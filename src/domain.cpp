@@ -1531,16 +1531,19 @@ void Domain::closest_image(const double * const xi, const double * const xj, dou
 }
 
 /* ----------------------------------------------------------------------
-   remap the point into the periodic box no matter how far away
+   remap the point X into the periodic box no matter how far away
    adjust 3 image flags encoded in image accordingly
    resulting coord must satisfy lo <= coord < hi
    MAX is important since coord - prd < lo can happen when coord = hi
    for triclinic, point is converted to lamda coords (0-1) before doing remap
-   image = 10 bits for each dimension
+   image = 10 or 20 bits for each dimension
    increment/decrement in wrap-around fashion
+   if V is specified (default = NULL) and deform_vremap set by fix deform:
+     also remap v via h_rate calculated by fix deform
+     currently only used by fix rigid commands to remap body VCM
 ------------------------------------------------------------------------- */
 
-void Domain::remap(double *x, imageint &image)
+void Domain::remap(double *x, imageint &image, double *v)
 {
   double *lo,*hi,*period,*coord;
   double lamda[3];
@@ -1562,6 +1565,7 @@ void Domain::remap(double *x, imageint &image)
   if (xperiodic) {
     while (coord[0] < lo[0]) {
       coord[0] += period[0];
+      if (deform_vremap && v) v[0] += h_rate[0];
       idim = image & IMGMASK;
       otherdims = image ^ idim;
       idim--;
@@ -1570,6 +1574,7 @@ void Domain::remap(double *x, imageint &image)
     }
     while (coord[0] >= hi[0]) {
       coord[0] -= period[0];
+      if (deform_vremap && v) v[0] -= h_rate[0];
       idim = image & IMGMASK;
       otherdims = image ^ idim;
       idim++;
@@ -1582,6 +1587,10 @@ void Domain::remap(double *x, imageint &image)
   if (yperiodic) {
     while (coord[1] < lo[1]) {
       coord[1] += period[1];
+      if (deform_vremap && v) {
+        v[0] += h_rate[5];
+        v[1] += h_rate[1];
+      }
       idim = (image >> IMGBITS) & IMGMASK;
       otherdims = image ^ (idim << IMGBITS);
       idim--;
@@ -1590,6 +1599,10 @@ void Domain::remap(double *x, imageint &image)
     }
     while (coord[1] >= hi[1]) {
       coord[1] -= period[1];
+      if (deform_vremap && v) {
+        v[0] -= h_rate[5];
+        v[1] -= h_rate[1];
+      }
       idim = (image >> IMGBITS) & IMGMASK;
       otherdims = image ^ (idim << IMGBITS);
       idim++;
@@ -1602,6 +1615,11 @@ void Domain::remap(double *x, imageint &image)
   if (zperiodic) {
     while (coord[2] < lo[2]) {
       coord[2] += period[2];
+      if (deform_vremap && v) {
+        v[0] += h_rate[4];
+        v[1] += h_rate[3];
+        v[2] += h_rate[2];
+      }
       idim = image >> IMG2BITS;
       otherdims = image ^ (idim << IMG2BITS);
       idim--;
@@ -1610,6 +1628,11 @@ void Domain::remap(double *x, imageint &image)
     }
     while (coord[2] >= hi[2]) {
       coord[2] -= period[2];
+      if (deform_vremap && v) {
+        v[0] -= h_rate[4];
+        v[1] -= h_rate[3];
+        v[2] -= h_rate[2];
+      }
       idim = image >> IMG2BITS;
       otherdims = image ^ (idim << IMG2BITS);
       idim++;
@@ -1623,7 +1646,7 @@ void Domain::remap(double *x, imageint &image)
 }
 
 /* ----------------------------------------------------------------------
-   remap the point into the periodic box no matter how far away
+   remap the point X into the periodic box no matter how far away
    no image flag calculation
    resulting coord must satisfy lo <= coord < hi
    MAX is important since coord - prd < lo can happen when coord = hi
@@ -1670,7 +1693,7 @@ void Domain::remap(double *x)
 }
 
 /* ----------------------------------------------------------------------
-   remap all points into the periodic box no matter how far away
+   remap all atom coords into the periodic box no matter how far away
    adjust 3 image flags encoded in image accordingly
    resulting coord must satisfy lo <= coord < hi
    MAX is important since coord - prd < lo can happen when coord = hi
@@ -1967,12 +1990,12 @@ void Domain::unmap(const double *x, const double *v, imageint image, int mask, d
 }
 
 /* ----------------------------------------------------------------------
-   adjust image flags due to triclinic box flip
-   flip operation is changing box vectors A,B,C to new A',B',C'
+   adjust image flags of all atoms due to triclinic box flip in FixDeform
+   flip operation changes box vectors A,B,C to new A',B',C'
      A' = A              (A does not change)
      B' = B + mA         (B shifted by A)
      C' = C + pB + nA    (C shifted by B and/or A)
-   this requires the image flags change from (a,b,c) to (a',b',c')
+   this requires image flags change from (a,b,c) to (a',b',c')
    so that x_unwrap for each atom is same before/after
      x_unwrap_before = xlocal + aA + bB + cC
      x_unwrap_after = xlocal + a'A' + b'B' + c'C'
@@ -1983,6 +2006,8 @@ void Domain::unmap(const double *x, const double *v, imageint image, int mask, d
    in other words, for xy flip, change in x flag depends on current y flag
    this is b/c the xy flip dramatically changes which tiled image of
      simulation box an unwrapped point maps to
+   image_flip_one() does this for a single image flag
+      called by rigid fixes for image flag of each rigid body
 ------------------------------------------------------------------------- */
 
 void Domain::image_flip(int m, int n, int p)
@@ -2002,6 +2027,20 @@ void Domain::image_flip(int m, int n, int p)
       (((imageint) (ybox + IMGMAX) & IMGMASK) << IMGBITS) |
       (((imageint) (zbox + IMGMAX) & IMGMASK) << IMG2BITS);
   }
+}
+
+void Domain::image_flip_one(imageint &image, int m, int n, int p)
+{
+  int xbox = (image & IMGMASK) - IMGMAX;
+  int ybox = (image >> IMGBITS & IMGMASK) - IMGMAX;
+  int zbox = (image >> IMG2BITS) - IMGMAX;
+
+  ybox -= p*zbox;
+  xbox -= m*ybox + n*zbox;
+
+  image = ((imageint) (xbox + IMGMAX) & IMGMASK) |
+    (((imageint) (ybox + IMGMAX) & IMGMASK) << IMGBITS) |
+    (((imageint) (zbox + IMGMAX) & IMGMASK) << IMG2BITS);
 }
 
 /* ----------------------------------------------------------------------

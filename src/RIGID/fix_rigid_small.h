@@ -26,6 +26,7 @@ namespace LAMMPS_NS {
 
 class FixRigidSmall : public Fix {
   friend class ComputeRigidLocal;
+  friend class ComputeRigidAtom;
 
  public:
   FixRigidSmall(class LAMMPS *, int, char **);
@@ -53,6 +54,7 @@ class FixRigidSmall : public Fix {
   int pack_reverse_comm(int, int, double *) override;
   void unpack_reverse_comm(int, int *, double *) override;
 
+  void image_flip(int, int, int) override;
   void setup_pre_neighbor() override;
   void pre_neighbor() override;
   bigint dof(int) override;
@@ -152,6 +154,8 @@ class FixRigidSmall : public Fix {
   double **langextra;                  // Langevin thermostat forces and torques
   int maxlang;                         // max size of langextra
   class RanMars *random;               // RNG
+  int deform_vremap;                   // 1 if fix deform with V_REMAP exists
+                                       //   if so, add/sub bias around Langevin
 
   int tstat_flag, pstat_flag;    // 0/1 = no/yes thermostat/barostat
 
@@ -201,6 +205,8 @@ class FixRigidSmall : public Fix {
   void setup_bodies_static();
   void setup_bodies_dynamic();
   void apply_langevin_thermostat();
+  void remove_bias(int, double *, double *);
+  void restore_bias(double *, double *);
   virtual void compute_forces_and_torques();
   virtual void enforce2d();
   void readfile(int, double **, int *);

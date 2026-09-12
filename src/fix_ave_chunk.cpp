@@ -275,7 +275,7 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR, val.iarg, "Fix ave/chunk compute {} does not calculate a per-atom array",
                    val.id);
       if (val.argindex && (val.argindex > val.val.c->size_peratom_cols))
-        error->all(FLERR, val.iarg, "Fix ave/chunk compute {} vector is accessed out-of-range{}",
+        error->all(FLERR, val.iarg, "Fix ave/chunk compute {} array is accessed out-of-range{}",
                    val.id, utils::errorurl(20));
 
     } else if (val.which == ArgInfo::FIX) {
@@ -292,7 +292,7 @@ FixAveChunk::FixAveChunk(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR, val.iarg, "Fix ave/chunk fix {} does not calculate a per-atom array",
                    val.id);
       if (val.argindex && val.argindex > val.val.f->size_peratom_cols)
-        error->all(FLERR, val.iarg, "Fix ave/chunk fix {} vector is accessed out-of-range{}",
+        error->all(FLERR, val.iarg, "Fix ave/chunk fix {} array is accessed out-of-range{}",
                    val.id, utils::errorurl(20));
     } else if (val.which == ArgInfo::VARIABLE) {
       val.val.v = input->variable->find(val.id.c_str());

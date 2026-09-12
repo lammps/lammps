@@ -559,11 +559,12 @@ of (roughly) 100 time units (:math:`\tau` or fs or ps - see the
 :doc:`units <units>` command).  The random # *seed* must be a positive
 integer.
 
-The way that Langevin thermostatting operates is explained on the :doc:`fix langevin <fix_langevin>` doc page.  If you wish to simply viscously
-damp the rotational motion without thermostatting, you can set
-*Tstart* and *Tstop* to 0.0, which means only the viscous drag term in
-the Langevin thermostat will be applied.  See the discussion on the
-:doc:`fix viscous <fix_viscous>` page for details.
+The way that Langevin thermostatting operates is explained on the
+:doc:`fix langevin <fix_langevin>` doc page.  If you wish to simply
+viscously damp the rotational motion without thermostatting, you can
+set *Tstart* and *Tstop* to 0.0, which means only the viscous drag
+term in the Langevin thermostat will be applied.  See the discussion
+on the :doc:`fix viscous <fix_viscous>` page for details.
 
 .. note::
 
@@ -875,7 +876,8 @@ All of the *rigid* styles (but not the *rigid/small* styles) compute a
 global array of values which can be accessed by various :doc:`output
 commands <Howto_output>`.  Similar information about the bodies
 defined by the *rigid/small* styles can be accessed via the
-:doc:`compute rigid/local <compute_rigid_local>` command.
+:doc:`compute rigid/local <compute_rigid_local>` or :doc:`compute
+rigid/atom <compute_rigid_atom>` commands.
 
 The number of rows in the array is equal to the number of rigid
 bodies.  The number of columns is 15.  Thus for each rigid body, 15

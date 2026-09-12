@@ -21,6 +21,8 @@
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
+#include "fix.h"
+#include "fix_deform.h"
 #include "force.h"
 #include "group.h"
 #include "input.h"
@@ -568,6 +570,16 @@ void FixRigidSmall::init()
     if (ifix->box_change) boxflag = true;
   }
 
+  // check for fix deform with V_REMAP set
+
+  deform_vremap = 0;
+  const auto &fixes = modify->get_fix_list();
+  for (const auto &fix : fixes)
+    if (utils::strmatch(fix->style,"^deform")) {
+      if ((dynamic_cast<FixDeform *>(fix))->remapflag == Domain::V_REMAP)
+        deform_vremap = 1;
+    }
+
   // add gravity forces based on gravity vector from fix
 
   if (id_gravity) {
@@ -748,33 +760,51 @@ void FixRigidSmall::initial_integrate(int vflag)
 }
 
 /* ----------------------------------------------------------------------
-   remap xcm of each rigid body back into periodic simulation box
-   done during pre_neighbor so will be after call to pbc()
-     and after fix_deform::pre_exchange() may have flipped box
-   use domain->remap() in case xcm is far away from box
-     due to first-time definition of rigid body in setup_bodies_static()
-     or due to box flip
-   also adjust imagebody = rigid body image flags, due to xcm remap
-   then communicate bodies so other procs will know of changes to body xcm
-   then adjust xcmimage flags of all atoms in bodies via image_shift()
-     for two effects
-     (1) change in true image flags due to pbc() call during exchange
-     (2) change in imagebody due to xcm remap
-   xcmimage flags are always -1,0,-1 so that body can be unwrapped
-     around in-box xcm and stay close to simulation box
-   if just inferred unwrapped from atom image flags,
-     then a body could end up very far away
-     when unwrapped by true image flags
-   then set_xv() will compute huge displacements every step to reset coords of
-     all the body atoms to be back inside the box, ditto for triclinic box flip
-     note: so just want to avoid that numeric problem?
+   adjustment of body image flags due to a box flip by FixDeform
+   invoked via call by FixDeform to modify->image_flip() in pre_exchange()
+   performs same operation FixDeform does for all per-atom image flags
+   FixDeform also does a remap_all() for x,v,image of all atoms
+     this fix does it in pre_neighbor() for x,v,image of each rigid body
+------------------------------------------------------------------------- */
+
+void FixRigidSmall::image_flip(int flipxy, int flipxz, int flipyz)
+{
+  for (int ibody = 0; ibody < nlocal_body; ibody++) {
+    Body *b = &body[ibody];
+    domain->image_flip_one(b->image, flipxy, flipxz, flipyz);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   called at every reneighbor after atom exchange, performs 3 operations
+   (1) reset body xcm, vcm, image due to 2 effects
+         incremental movement of body xcm across a periodic boundary
+         triclinic box flip in FixDeform, which called image_flip() first
+       atom exchange() already happened, so this body properties
+       remap rigid body xcm back into periodic simulation box
+         can be far away, due to box flip or
+           due to first-time definition of rigid body in setup_bodies_static()
+       remap vcm if xcm crosses periodic shearing boundary
+       adjust rigid body image flags due to xcm remap
+   (2) communicate owned body info to ghost atoms
+       this resets list of ghost bodies
+       reset_atom2body() resets indices for all atoms to new list of bodies
+   (3) image_shift() resets xcmimage flags for each atom in all bodies
+       based on new body image flags and new atom image flags
+       xcmimage flags are always -1,0,-1 so that body can be unwrapped
+         around in-box xcm and stay close to simulation box
+       if just inferred unwrapped from atom image flags,
+         then an unwrapped body could end up very far away from box
+       set_xv() would then compute huge displacements every step to
+         reset coords of all body atoms to be back inside the box,
+         ditto for triclinic box flip which could cause numeric problems
 ------------------------------------------------------------------------- */
 
 void FixRigidSmall::pre_neighbor()
 {
   for (int ibody = 0; ibody < nlocal_body; ibody++) {
     Body *b = &body[ibody];
-    domain->remap(b->xcm,b->image);
+    domain->remap(b->xcm,b->image,b->vcm);
   }
 
   nghost_body = 0;
@@ -861,7 +891,7 @@ void FixRigidSmall::final_integrate_respa(int ilevel, int /*iloop*/)
 /* ----------------------------------------------------------------------
    reset body xcmimage flags of atoms in bodies
    xcmimage flags are relative to xcm so that body can be unwrapped
-   xcmimage = true image flag - imagebody flag
+   xcmimage = true image flag of atom - image flag of body
 ------------------------------------------------------------------------- */
 
 void FixRigidSmall::image_shift()
@@ -898,7 +928,7 @@ void FixRigidSmall::image_shift()
 void FixRigidSmall::apply_langevin_thermostat()
 {
   double gamma1,gamma2;
-  double wbody[3],tbody[3];
+  double wbody[3],tbody[3],vbias[3];
 
   // grow langextra if needed
 
@@ -935,9 +965,11 @@ void FixRigidSmall::apply_langevin_thermostat()
     gamma1 = -body[ibody].mass / t_period / ftm2v;
     gamma2 = sqrt(body[ibody].mass) * tsqrt *
       sqrt(24.0*boltz/t_period/dt/mvv2e) / ftm2v;
+    if (deform_vremap) remove_bias(ibody,vcm,vbias);
     langextra[ibody][0] = gamma1*vcm[0] + gamma2*(random->uniform()-0.5);
     langextra[ibody][1] = gamma1*vcm[1] + gamma2*(random->uniform()-0.5);
     langextra[ibody][2] = gamma1*vcm[2] + gamma2*(random->uniform()-0.5);
+    if (deform_vremap) restore_bias(vcm,vbias);
 
     gamma1 = -1.0 / t_period / ftm2v;
     gamma2 = tsqrt * sqrt(24.0*boltz/t_period/dt/mvv2e) / ftm2v;
@@ -959,6 +991,37 @@ void FixRigidSmall::apply_langevin_thermostat()
 
     MathExtra::matvec(ex_space,ey_space,ez_space,tbody,&langextra[ibody][3]);
   }
+}
+
+/* ----------------------------------------------------------------------
+   remove velocity bias from VCM of Body ibody to leave thermal VCM
+------------------------------------------------------------------------- */
+
+void FixRigidSmall::remove_bias(int ibody, double *vcm, double *vbias)
+{
+  double lamda[3];
+  double *h_rate = domain->h_rate;
+  double *h_ratelo = domain->h_ratelo;
+
+  domain->x2lamda(body[ibody].xcm, lamda);
+  vbias[0] = h_rate[0] * lamda[0] + h_rate[5] * lamda[1] + h_rate[4] * lamda[2] + h_ratelo[0];
+  vbias[1] = h_rate[1] * lamda[1] + h_rate[3] * lamda[2] + h_ratelo[1];
+  vbias[2] = h_rate[2] * lamda[2] + h_ratelo[2];
+  vcm[0] -= vbias[0];
+  vcm[1] -= vbias[1];
+  vcm[2] -= vbias[2];
+}
+
+/* ----------------------------------------------------------------------
+   add back velocity bias to VCM of Body ibody removed by remove_bias()
+   assume remove_bias() was previously called
+------------------------------------------------------------------------- */
+
+void FixRigidSmall::restore_bias(double *vcm, double *vbias)
+{
+  vcm[0] += vbias[0];
+  vcm[1] += vbias[1];
+  vcm[2] += vbias[2];
 }
 
 /* ---------------------------------------------------------------------- */

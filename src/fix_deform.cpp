@@ -772,10 +772,13 @@ void FixDeform::init()
   box flipped on previous step
   reset box tilts for flipped config and create new box in domain
   image_flip() adjusts image flags due to box shape change induced by flip
-  remap() puts atoms outside the new box back into the new box
-  perform irregular on atoms in lamda coords to migrate atoms to new procs
+  remap_all() puts atoms outside the new box back into the new box,
+    adjusts their image flags further, adjusts their velocity due to
   important that image_flip comes before remap, since remap may change
     image flags to new values, making eqs in doc of Domain:image_flip incorrect
+  modify->image_flip triggers rigid fixes to do same 2 operations
+    for body xcm,vcm,imagebody
+  finally perform irregular on atoms in lamda coords to migrate atoms to new procs
 ------------------------------------------------------------------------- */
 
 void FixDeform::migrate_atoms()
@@ -826,6 +829,7 @@ void FixDeform::pre_exchange()
 
   domain->image_flip(flipxy, flipxz, flipyz);
   domain->remap_all();
+  modify->image_flip(flipxy, flipxz, flipyz);
 
   domain->x2lamda(atom->nlocal);
   migrate_atoms();

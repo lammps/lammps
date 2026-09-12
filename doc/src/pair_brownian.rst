@@ -140,7 +140,7 @@ brownian.
 Only spherical particles are allowed for pair_style brownian/poly.  The
 volume fraction correction is not supported by pair_style brownian/poly.
 
-.. versionchanged:: TBD
+.. versionchanged:: 16Sep2026
 
 The KOKKOS versions of these styles require a half neighbor list and will
 stop with an error if a full neighbor list is requested, as it is by default

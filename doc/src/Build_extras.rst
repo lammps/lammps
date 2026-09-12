@@ -976,7 +976,7 @@ speedup on GPUs for some models, but a slowdown for others. LayoutRight
 is always used for positions on GPUs since it has been found to be
 faster, and when compiling exclusively for CPUs.
 
-.. versionadded:: TBD
+.. versionadded:: 16Sep2026
 
 The CMake option ``-D KOKKOS_DEBUG_RNG=on`` makes those KOKKOS styles
 that need random numbers (for example :doc:`fix langevin <fix_langevin>`

@@ -19,7 +19,7 @@ region          cantilever block 3.0 12.0 0 40 -2.5 2.5 units box
 region          cantileverw block 2.0 13.0 -1 41 -3.5 3.5 units box
 create_atoms    1 region cantilever
 
-velocity        all create 0.1 345910
+velocity        all create 0.1 345910 loop geom
 
 pair_style      bpm/spring
 pair_coeff      * * 1.0 1.0 1.0

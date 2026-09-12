@@ -1,4 +1,4 @@
-LAMMPS (2 Jun 2022)
+LAMMPS (2 Sep 2026)
   using 1 OpenMP thread(s) per MPI task
 # Demonstrate calculation of SNAP bispectrum descriptors on a grid
 
@@ -35,11 +35,11 @@ region		box block 0 1 0 1 0 ${nz}
 region		box block 0 1 0 1 0 1
 create_box	1 box
 Created orthogonal box = (0 0 0) to (3.316 3.316 3.316)
-  1 by 2 by 2 MPI processor grid
+  1 by 1 by 1 MPI processor grid
 create_atoms	1 box
 Created 2 atoms
   using lattice units in orthogonal box = (0 0 0) to (3.316 3.316 3.316)
-  create_atoms CPU = 0.001 seconds
+  create_atoms CPU = 0.000 seconds
 
 mass 		1 180.88
 
@@ -91,10 +91,10 @@ compute 	mygridlocal all sna/grid/local grid 2 2 2 	 	4.67637 0.99363 2 0.5 		1 
 
 # define output
 
-variable	B5atom equal c_b[2][5]
+variable	B5atom equal C_b[2][5]
 variable	B5grid equal c_mygrid[8][8]
 
-variable	rmse_global equal "sqrt(   	 (c_mygrid[8][1] - x[2])^2 +      	 (c_mygrid[8][2] - y[2])^2 +      	 (c_mygrid[8][3] - z[2])^2 +      	 (c_mygrid[8][4] - c_b[2][1])^2 + 	 (c_mygrid[8][5] - c_b[2][2])^2 + 	 (c_mygrid[8][6] - c_b[2][3])^2 + 	 (c_mygrid[8][7] - c_b[2][4])^2 + 	 (c_mygrid[8][8] - c_b[2][5])^2   	 )"
+variable	rmse_global equal "sqrt(   	 (c_mygrid[8][1] - x[2])^2 +      	 (c_mygrid[8][2] - y[2])^2 +      	 (c_mygrid[8][3] - z[2])^2 +      	 (c_mygrid[8][4] - C_b[2][1])^2 + 	 (c_mygrid[8][5] - C_b[2][2])^2 + 	 (c_mygrid[8][6] - C_b[2][3])^2 + 	 (c_mygrid[8][7] - C_b[2][4])^2 + 	 (c_mygrid[8][8] - C_b[2][5])^2   	 )"
 
 thermo_style	custom step v_B5atom v_B5grid v_rmse_global
 
@@ -106,10 +106,11 @@ dump 2 all custom 1000 dump.batom id x y z c_b[*]
 # run
 
 run		0
-WARNING: No fixes with time integration, atoms won't move (src/verlet.cpp:60)
+WARNING: No fixes with time integration, atoms won't move
+For more information see https://docs.lammps.org/err0028 (src/verlet.cpp:60)
 Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
 Neighbor list info ...
-  update every 1 steps, delay 10 steps, check yes
+  update: every = 1 steps, delay = 0 steps, check = yes
   max neighbors/atom: 2000, page size: 100000
   master list distance cutoff = 6.67637
   ghost atom cutoff = 6.67637
@@ -125,13 +126,12 @@ Neighbor list info ...
       pair build: full/bin/atomonly
       stencil: full/bin/3d
       bin: standard
-WARNING: Proc sub-domain size < neighbor skin, could lead to lost atoms (src/domain.cpp:970)
-Per MPI rank memory allocation (min/avg/max) = 6.123 | 6.631 | 7.139 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 4.134 | 4.134 | 4.134 Mbytes
    Step        v_B5atom       v_B5grid    v_rmse_global 
-         0   1.0427295      1.0427295      1.6316879e-15
-Loop time of 2.57125e-06 on 4 procs for 0 steps with 2 atoms
+         0   1.0427295      1.0427295      9.1551336e-16
+Loop time of 8.91e-07 on 1 procs for 0 steps with 2 atoms
 
-107.0% CPU use with 4 MPI tasks x 1 OpenMP threads
+0.0% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
@@ -141,16 +141,16 @@ Neigh   | 0          | 0          | 0          |   0.0 |  0.00
 Comm    | 0          | 0          | 0          |   0.0 |  0.00
 Output  | 0          | 0          | 0          |   0.0 |  0.00
 Modify  | 0          | 0          | 0          |   0.0 |  0.00
-Other   |            | 2.571e-06  |            |       |100.00
+Other   |            | 8.91e-07   |            |       |100.00
 
-Nlocal:            0.5 ave           1 max           0 min
-Histogram: 2 0 0 0 0 0 0 0 0 2
-Nghost:          274.5 ave         275 max         274 min
-Histogram: 2 0 0 0 0 0 0 0 0 2
-Neighs:             16 ave          40 max           0 min
-Histogram: 2 0 0 0 0 0 1 0 0 1
-FullNghs:           32 ave          64 max           0 min
-Histogram: 2 0 0 0 0 0 0 0 0 2
+Nlocal:              2 ave           2 max           2 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:            339 ave         339 max         339 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:             64 ave          64 max          64 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:          128 ave         128 max         128 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
 
 Total # of neighbors = 128
 Ave neighs/atom = 64

@@ -1,4 +1,4 @@
-LAMMPS (2 Jun 2022)
+LAMMPS (2 Sep 2026)
   using 1 OpenMP thread(s) per MPI task
 # Demonstrate calculation of SNAP bispectrum
 # descriptors on a grid for triclinic cell
@@ -54,7 +54,6 @@ lattice		custom $a 		a1 1 0 0 		a2 1 1 0  		a3 1 1 1 		basis 0 0 0 		basis 0.0 0
 lattice		custom 3.316 		a1 1 0 0 		a2 1 1 0  		a3 1 1 1 		basis 0 0 0 		basis 0.0 0.0 0.5 		spacing 1 1 1
 Lattice spacing in x,y,z = 3.316 3.316 3.316
 
-box 		tilt large
 region		box prism 0 ${nx} 0 ${ny} 0 ${nz} ${ny} ${nz} ${nz}
 region		box prism 0 3 0 ${ny} 0 ${nz} ${ny} ${nz} ${nz}
 region		box prism 0 3 0 2 0 ${nz} ${ny} ${nz} ${nz}
@@ -64,8 +63,8 @@ region		box prism 0 3 0 2 0 1 2 1 ${nz}
 region		box prism 0 3 0 2 0 1 2 1 1
 create_box	1 box
 Created triclinic box = (0 0 0) to (9.948 6.632 3.316) with tilt (6.632 3.316 3.316)
-WARNING: Triclinic box skew is large (src/domain.cpp:224)
-  2 by 2 by 1 MPI processor grid
+WARNING: Triclinic box skew is large. LAMMPS will run inefficiently. (src/domain.cpp:214)
+  1 by 1 by 1 MPI processor grid
 create_atoms	1 box
 Created 12 atoms
   using lattice units in triclinic box = (0 0 0) to (9.948 6.632 3.316) with tilt (6.632 3.316 3.316)
@@ -121,13 +120,13 @@ compute 	mygridlocal all sna/grid/local grid 6 4 2 	 	4.67637 0.99363 2 0.5 		1 
 
 # define output
 
-variable	B5atom equal c_b[7][5]
+variable	B5atom equal C_b[7][5]
 variable	B5grid equal c_mygrid[13][8]
 
 # do not compare x,y,z because assignment of ids
 # to atoms is not unnique for different processor grids
 
-variable	rmse_global equal "sqrt(    	 (c_mygrid[13][4] - c_b[7][1])^2 + 	 (c_mygrid[13][5] - c_b[7][2])^2 + 	 (c_mygrid[13][6] - c_b[7][3])^2 + 	 (c_mygrid[13][7] - c_b[7][4])^2 + 	 (c_mygrid[13][8] - c_b[7][5])^2   	 )"
+variable	rmse_global equal "sqrt(    	 (c_mygrid[13][4] - C_b[7][1])^2 + 	 (c_mygrid[13][5] - C_b[7][2])^2 + 	 (c_mygrid[13][6] - C_b[7][3])^2 + 	 (c_mygrid[13][7] - C_b[7][4])^2 + 	 (c_mygrid[13][8] - C_b[7][5])^2   	 )"
 
 thermo_style	custom step v_B5atom v_B5grid v_rmse_global
 
@@ -139,10 +138,11 @@ dump 2 all custom 1000 dump.batom.tri id x y z c_b[*]
 # run
 
 run		0
-WARNING: No fixes with time integration, atoms won't move (src/verlet.cpp:60)
+WARNING: No fixes with time integration, atoms won't move
+For more information see https://docs.lammps.org/err0028 (src/verlet.cpp:60)
 Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
 Neighbor list info ...
-  update every 1 steps, delay 10 steps, check yes
+  update: every = 1 steps, delay = 0 steps, check = yes
   max neighbors/atom: 2000, page size: 100000
   master list distance cutoff = 6.67637
   ghost atom cutoff = 6.67637
@@ -150,7 +150,7 @@ Neighbor list info ...
   2 neighbor lists, perpetual/occasional/extra = 1 1 0
   (1) pair zero, perpetual
       attributes: half, newton on
-      pair build: half/bin/newton/tri
+      pair build: half/bin/atomonly/newton/tri
       stencil: half/bin/3d/tri
       bin: standard
   (2) compute sna/atom, occasional
@@ -158,12 +158,12 @@ Neighbor list info ...
       pair build: full/bin/atomonly
       stencil: full/bin/3d
       bin: standard
-Per MPI rank memory allocation (min/avg/max) = 7.15 | 7.15 | 7.15 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 4.115 | 4.115 | 4.115 Mbytes
    Step        v_B5atom       v_B5grid    v_rmse_global 
-         0   1.0427295      1.0427295      1.9367585e-14
-Loop time of 2.65825e-06 on 4 procs for 0 steps with 12 atoms
+         0   1.0427295      1.0427295      7.2262471e-14
+Loop time of 8.82e-07 on 1 procs for 0 steps with 12 atoms
 
-84.6% CPU use with 4 MPI tasks x 1 OpenMP threads
+0.0% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
@@ -173,16 +173,16 @@ Neigh   | 0          | 0          | 0          |   0.0 |  0.00
 Comm    | 0          | 0          | 0          |   0.0 |  0.00
 Output  | 0          | 0          | 0          |   0.0 |  0.00
 Modify  | 0          | 0          | 0          |   0.0 |  0.00
-Other   |            | 2.658e-06  |            |       |100.00
+Other   |            | 8.82e-07   |            |       |100.00
 
-Nlocal:              3 ave           4 max           2 min
-Histogram: 2 0 0 0 0 0 0 0 0 2
-Nghost:            459 ave         460 max         458 min
-Histogram: 2 0 0 0 0 0 0 0 0 2
-Neighs:             96 ave         128 max          64 min
-Histogram: 2 0 0 0 0 0 0 0 0 2
-FullNghs:          192 ave         256 max         128 min
-Histogram: 2 0 0 0 0 0 0 0 0 2
+Nlocal:             12 ave          12 max          12 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:            604 ave         604 max         604 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:            384 ave         384 max         384 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:          768 ave         768 max         768 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
 
 Total # of neighbors = 768
 Ave neighs/atom = 64

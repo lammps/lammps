@@ -1028,6 +1028,8 @@ void FixBondReact::post_integrate()
   superimpose_algorithm();
   // free atoms that have been limited after reacting
   unlimit_bond();
+  // update molecule IDs
+  if (molid_mode == Reset_Mol_IDs::YES) reset_mol_ids->reset();
 }
 
 /* ----------------------------------------------------------------------
@@ -4766,8 +4768,6 @@ void FixBondReact::post_integrate_respa(int ilevel, int /*iloop*/)
 
 void FixBondReact::post_force(int /*vflag*/)
 {
-  if (molid_mode == Reset_Mol_IDs::YES) reset_mol_ids->reset();
-
   // if visualization support is enabled, age vizatoms and remove expired ones
   if (vizsteps > 0) {
     std::vector<tagint> eraseme;

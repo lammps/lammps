@@ -1,5 +1,4 @@
-LAMMPS (21 Nov 2023 - Development - patch_21Nov2023-132-g9edf553332)
-OMP_NUM_THREADS environment is not set. Defaulting to 1 thread. (src/comm.cpp:98)
+LAMMPS (2 Sep 2026)
   using 1 OpenMP thread(s) per MPI task
 # Test volume definitions for 2d and finite systems
 
@@ -27,7 +26,7 @@ region          atoms block 0 4  0 ${len} 0.0 0.0
 region          atoms block 0 4  0 4 0.0 0.0
 create_box      1 box
 Created orthogonal box = (0 0 -0.5) to (4 6.9282032 0.5)
-  2 by 2 by 1 MPI processor grid
+  1 by 1 by 1 MPI processor grid
 create_atoms    1 region atoms
 Created 32 atoms
   using lattice units in orthogonal box = (0 0 -0.5) to (4 6.9282032 0.5)
@@ -50,7 +49,7 @@ compute         v1 all voronoi/atom neighbors yes
 compute         volvor all reduce sum c_v1[1]
 variable        volsys equal lz*lx*ly
 variable        err equal c_volvor-v_volsys
-thermo_style    custom c_volvor v_volsys vol v_err
+thermo_style    custom step c_volvor v_volsys vol v_err
 thermo          1
 
 #
@@ -58,7 +57,8 @@ thermo          1
 #
 
 run             0
-WARNING: No fixes with time integration, atoms won't move (src/verlet.cpp:60)
+WARNING: No fixes with time integration, atoms won't move
+For more information see https://docs.lammps.org/err0028 (src/verlet.cpp:60)
 Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
 Neighbor list info ...
   update: every = 1 steps, delay = 0 steps, check = yes
@@ -71,12 +71,12 @@ Neighbor list info ...
       pair build: half/nsq/newton
       stencil: none
       bin: none
-Per MPI rank memory allocation (min/avg/max) = 3.038 | 3.038 | 3.038 Mbytes
-   c_volvor       v_volsys        Volume         v_err     
- 27.712813      27.712813      27.712813      2.1316282e-14
-Loop time of 2.18725e-06 on 4 procs for 0 steps with 32 atoms
+Per MPI rank memory allocation (min/avg/max) = 3.008 | 3.008 | 3.008 Mbytes
+   Step        c_volvor       v_volsys        Volume         v_err     
+         0   27.712813      27.712813      27.712813     -3.5527137e-15
+Loop time of 1.402e-06 on 1 procs for 0 steps with 32 atoms
 
-45.7% CPU use with 4 MPI tasks x 1 OpenMP threads
+71.3% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
@@ -86,14 +86,14 @@ Neigh   | 0          | 0          | 0          |   0.0 |  0.00
 Comm    | 0          | 0          | 0          |   0.0 |  0.00
 Output  | 0          | 0          | 0          |   0.0 |  0.00
 Modify  | 0          | 0          | 0          |   0.0 |  0.00
-Other   |            | 2.187e-06  |            |       |100.00
+Other   |            | 1.402e-06  |            |       |100.00
 
-Nlocal:              8 ave           8 max           8 min
-Histogram: 4 0 0 0 0 0 0 0 0 0
-Nghost:           2159 ave        2159 max        2159 min
-Histogram: 4 0 0 0 0 0 0 0 0 0
-Neighs:           2064 ave        2077 max        2051 min
-Histogram: 1 0 0 1 0 0 1 0 0 1
+Nlocal:             32 ave          32 max          32 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           2415 ave        2415 max        2415 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:           8256 ave        8256 max        8256 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
 
 Total # of neighbors = 8256
 Ave neighs/atom = 258
@@ -108,14 +108,15 @@ Dangerous builds = 0
 change_box      all boundary f f p
 Changing box ...
 run             0
-WARNING: No fixes with time integration, atoms won't move (src/verlet.cpp:60)
+WARNING: No fixes with time integration, atoms won't move
+For more information see https://docs.lammps.org/err0028 (src/verlet.cpp:60)
 Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
-Per MPI rank memory allocation (min/avg/max) = 7.671 | 7.671 | 7.671 Mbytes
-   c_volvor       v_volsys        Volume         v_err     
- 27.712813      27.712813      27.712813      3.907985e-14 
-Loop time of 2.22e-06 on 4 procs for 0 steps with 32 atoms
+Per MPI rank memory allocation (min/avg/max) = 7.688 | 7.688 | 7.688 Mbytes
+   Step        c_volvor       v_volsys        Volume         v_err     
+         0   27.712813      27.712813      27.712813      3.5527137e-14
+Loop time of 6.31e-07 on 1 procs for 0 steps with 32 atoms
 
-112.6% CPU use with 4 MPI tasks x 1 OpenMP threads
+0.0% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
@@ -125,14 +126,14 @@ Neigh   | 0          | 0          | 0          |   0.0 |  0.00
 Comm    | 0          | 0          | 0          |   0.0 |  0.00
 Output  | 0          | 0          | 0          |   0.0 |  0.00
 Modify  | 0          | 0          | 0          |   0.0 |  0.00
-Other   |            | 2.22e-06   |            |       |100.00
+Other   |            | 6.31e-07   |            |       |100.00
 
-Nlocal:              8 ave           8 max           8 min
-Histogram: 4 0 0 0 0 0 0 0 0 0
-Nghost:             24 ave          24 max          24 min
-Histogram: 4 0 0 0 0 0 0 0 0 0
-Neighs:            124 ave         124 max         124 min
-Histogram: 4 0 0 0 0 0 0 0 0 0
+Nlocal:             32 ave          32 max          32 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:              0 ave           0 max           0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:            496 ave         496 max         496 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
 
 Total # of neighbors = 496
 Ave neighs/atom = 15.5

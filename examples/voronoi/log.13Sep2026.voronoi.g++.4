@@ -1,14 +1,14 @@
-LAMMPS (27 Nov 2018)
+LAMMPS (2 Sep 2026)
   using 1 OpenMP thread(s) per MPI task
 # Test of Kawasaki Dynamics on LJ test system
 
-units		metal
+units           metal
 #newton off
-boundary	p p p
+boundary        p p p
 
 lattice         fcc 1 origin 0.25 0.25 0.25
 Lattice spacing in x,y,z = 1 1 1
-atom_style	atomic
+atom_style      atomic
 
 # indexed atom variables in test 5 need a map
 
@@ -17,10 +17,11 @@ atom_modify     sort 0 0.0 map hash
 region          box block 0 10  0 10 0 10
 create_box      2 box
 Created orthogonal box = (0 0 0) to (10 10 10)
-  1 by 1 by 1 MPI processor grid
+  1 by 2 by 2 MPI processor grid
 create_atoms    1 box basis 1 2
 Created 4000 atoms
-  Time spent = 0.00091362 secs
+  using lattice units in orthogonal box = (0 0 0) to (10 10 10)
+  create_atoms CPU = 0.001 seconds
 
 mass 1 50
 mass 2 50
@@ -30,8 +31,8 @@ pair_coeff      1 1 0.0 1.0
 pair_coeff      1 2 0.0 1.0
 pair_coeff      2 2 0.0 1.0
 
-neighbor	0.3 bin
-neigh_modify	delay 10
+neighbor        0.3 bin
+neigh_modify    delay 10
 
 # set the cut-off to 2.5x the cutoff from the potential
 comm_modify     cutoff 5.0
@@ -57,14 +58,16 @@ thermo 1
 #
 
 compute v1 all voronoi/atom
-dump    d1 all custom 1 dump.voro id type x y z c_v1[1] c_v1[2]
+#dump    d1 all custom 1 dump.voro id type x y z c_v1[1] c_v1[2]
 compute r0 all   reduce sum c_v1[1]
-thermo_style custom c_r0
+thermo_style custom step c_r0
 variable t1 equal c_r0
 run  0
-WARNING: No fixes defined, atoms won't move (src/verlet.cpp:55)
+WARNING: No fixes with time integration, atoms won't move
+For more information see https://docs.lammps.org/err0028 (src/verlet.cpp:60)
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
 Neighbor list info ...
-  update every 1 steps, delay 10 steps, check yes
+  update: every = 1 steps, delay = 10 steps, check = yes
   max neighbors/atom: 2000, page size: 100000
   master list distance cutoff = 2.3
   ghost atom cutoff = 5
@@ -73,14 +76,14 @@ Neighbor list info ...
   (1) pair lj/cut, perpetual
       attributes: half, newton on
       pair build: half/bin/atomonly/newton
-      stencil: half/bin/3d/newton
+      stencil: half/bin/3d
       bin: standard
-Per MPI rank memory allocation (min/avg/max) = 11.02 | 11.02 | 11.02 Mbytes
-c_r0 
-        1000 
-Loop time of 1.43051e-06 on 1 procs for 0 steps with 4000 atoms
+Per MPI rank memory allocation (min/avg/max) = 7.177 | 7.177 | 7.177 Mbytes
+   Step          c_r0     
+         0   1000         
+Loop time of 1.91125e-06 on 4 procs for 0 steps with 4000 atoms
 
-209.7% CPU use with 1 MPI tasks x 1 OpenMP threads
+104.6% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
@@ -90,14 +93,14 @@ Neigh   | 0          | 0          | 0          |   0.0 |  0.00
 Comm    | 0          | 0          | 0          |   0.0 |  0.00
 Output  | 0          | 0          | 0          |   0.0 |  0.00
 Modify  | 0          | 0          | 0          |   0.0 |  0.00
-Other   |            | 1.431e-06  |            |       |100.00
+Other   |            | 1.911e-06  |            |       |100.00
 
-Nlocal:    4000 ave 4000 max 4000 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:    28000 ave 28000 max 28000 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:    400000 ave 400000 max 400000 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
+Nlocal:           1000 ave        1000 max        1000 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:          17000 ave       17000 max       17000 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:         100000 ave      100000 max      100000 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
 
 Total # of neighbors = 400000
 Ave neighs/atom = 100
@@ -107,27 +110,29 @@ print "TEST_1  $(round(abs(v_t1-1000)/10))% Error.  Sum of all voronoi cells is 
 TEST_1  0% Error.  Sum of all voronoi cells is the simulation cell volume
 uncompute v1
 uncompute r0
-undump    d1
+#undump    d1
 
 #
 # TEST 2: Sum of all only_group voronoi cells is the simulation cell volume
 #
 
 compute v1 type2 voronoi/atom only_group
-dump    d1 all custom 1 dump.voro id type x y z c_v1[1] c_v1[2]
+#dump    d1 all custom 1 dump.voro id type x y z c_v1[1] c_v1[2]
 compute r0 type2   reduce sum c_v1[1]
 compute r1 type1   reduce sum c_v1[1]
-thermo_style custom c_r0 c_r1
+thermo_style custom step c_r0 c_r1
 variable t2a equal c_r0
 variable t2b equal c_r1
 run  0
-WARNING: No fixes defined, atoms won't move (src/verlet.cpp:55)
-Per MPI rank memory allocation (min/avg/max) = 11.02 | 11.02 | 11.02 Mbytes
-c_r0 c_r1 
-        1000            0 
-Loop time of 1.19209e-06 on 1 procs for 0 steps with 4000 atoms
+WARNING: No fixes with time integration, atoms won't move
+For more information see https://docs.lammps.org/err0028 (src/verlet.cpp:60)
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Per MPI rank memory allocation (min/avg/max) = 7.177 | 7.177 | 7.177 Mbytes
+   Step          c_r0           c_r1     
+         0   1000           0            
+Loop time of 1.5655e-06 on 4 procs for 0 steps with 4000 atoms
 
-167.8% CPU use with 1 MPI tasks x 1 OpenMP threads
+175.7% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
@@ -137,14 +142,14 @@ Neigh   | 0          | 0          | 0          |   0.0 |  0.00
 Comm    | 0          | 0          | 0          |   0.0 |  0.00
 Output  | 0          | 0          | 0          |   0.0 |  0.00
 Modify  | 0          | 0          | 0          |   0.0 |  0.00
-Other   |            | 1.192e-06  |            |       |100.00
+Other   |            | 1.565e-06  |            |       |100.00
 
-Nlocal:    4000 ave 4000 max 4000 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:    28000 ave 28000 max 28000 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:    400000 ave 400000 max 400000 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
+Nlocal:           1000 ave        1000 max        1000 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:          17000 ave       17000 max       17000 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:         100000 ave      100000 max      100000 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
 
 Total # of neighbors = 400000
 Ave neighs/atom = 100
@@ -157,25 +162,27 @@ TEST_2b 0% Error.  Sum of all only_group not included voronoi cells is zero
 uncompute v1
 uncompute r0
 uncompute r1
-undump    d1
+#undump    d1
 
 #
 # TEST 3: Sum of all radius voronoi cells is the simulation cell volume
 #
 
 compute v1 all voronoi/atom radius v_r
-dump    d1 all custom 1 dump.voro id type x y z c_v1[1] c_v1[2]
+#dump    d1 all custom 1 dump.voro id type x y z c_v1[1] c_v1[2]
 compute r0 all   reduce sum c_v1[1]
-thermo_style custom c_r0
+thermo_style custom step c_r0
 variable t3 equal c_r0
 run  0
-WARNING: No fixes defined, atoms won't move (src/verlet.cpp:55)
-Per MPI rank memory allocation (min/avg/max) = 11.02 | 11.02 | 11.02 Mbytes
-c_r0 
-        1000 
-Loop time of 1.43051e-06 on 1 procs for 0 steps with 4000 atoms
+WARNING: No fixes with time integration, atoms won't move
+For more information see https://docs.lammps.org/err0028 (src/verlet.cpp:60)
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Per MPI rank memory allocation (min/avg/max) = 7.177 | 7.177 | 7.177 Mbytes
+   Step          c_r0     
+         0   1000         
+Loop time of 1.74825e-06 on 4 procs for 0 steps with 4000 atoms
 
-279.6% CPU use with 1 MPI tasks x 1 OpenMP threads
+171.6% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
@@ -185,14 +192,14 @@ Neigh   | 0          | 0          | 0          |   0.0 |  0.00
 Comm    | 0          | 0          | 0          |   0.0 |  0.00
 Output  | 0          | 0          | 0          |   0.0 |  0.00
 Modify  | 0          | 0          | 0          |   0.0 |  0.00
-Other   |            | 1.431e-06  |            |       |100.00
+Other   |            | 1.748e-06  |            |       |100.00
 
-Nlocal:    4000 ave 4000 max 4000 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:    28000 ave 28000 max 28000 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:    400000 ave 400000 max 400000 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
+Nlocal:           1000 ave        1000 max        1000 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:          17000 ave       17000 max       17000 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:         100000 ave      100000 max      100000 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
 
 Total # of neighbors = 400000
 Ave neighs/atom = 100
@@ -202,41 +209,43 @@ print "TEST_3  $(round(abs(v_t3-1000)/10))% Error.  Sum of all radius voronoi ce
 TEST_3  0% Error.  Sum of all radius voronoi cells is the simulation cell volume
 uncompute v1
 uncompute r0
-undump    d1
+#undump    d1
 
 #
 # TEST 4: Edge histogram tests
 #
 
 compute v1 type2 voronoi/atom edge_histo 8
-thermo_style custom c_v1[1] c_v1[2] c_v1[3] c_v1[4] c_v1[5] c_v1[6] c_v1[7]
+thermo_style custom step c_v1[1] c_v1[2] c_v1[3] c_v1[4] c_v1[5] c_v1[6] c_v1[7]
 run  1
-WARNING: No fixes defined, atoms won't move (src/verlet.cpp:55)
-Per MPI rank memory allocation (min/avg/max) = 8.81 | 8.81 | 8.81 Mbytes
-c_v1[1] c_v1[2] c_v1[3] c_v1[4] c_v1[5] c_v1[6] c_v1[7] 
-           0            0            0        12000            0            0            0 
-           0            0            0        12000            0            0            0 
-Loop time of 0.314834 on 1 procs for 1 steps with 4000 atoms
+WARNING: No fixes with time integration, atoms won't move
+For more information see https://docs.lammps.org/err0028 (src/verlet.cpp:60)
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Per MPI rank memory allocation (min/avg/max) = 7.177 | 7.177 | 7.177 Mbytes
+   Step        c_v1[1]        c_v1[2]        c_v1[3]        c_v1[4]        c_v1[5]        c_v1[6]        c_v1[7]    
+         0   0              0              0              12000          0              0              0            
+         1   0              0              0              12000          0              0              0            
+Loop time of 0.119897 on 4 procs for 1 steps with 4000 atoms
 
-Performance: 0.274 ns/day, 87.454 hours/ns, 3.176 timesteps/s
-98.2% CPU use with 1 MPI tasks x 1 OpenMP threads
+Performance: 0.721 ns/day, 33.305 hours/ns, 8.341 timesteps/s, 33.362 katom-step/s
+99.7% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.0057888  | 0.0057888  | 0.0057888  |   0.0 |  1.84
+Pair    | 0.00079824 | 0.00080428 | 0.00080821 |   0.0 |  0.67
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.00023079 | 0.00023079 | 0.00023079 |   0.0 |  0.07
-Output  | 0.30878    | 0.30878    | 0.30878    |   0.0 | 98.08
-Modify  | 9.5367e-07 | 9.5367e-07 | 9.5367e-07 |   0.0 |  0.00
-Other   |            | 3.266e-05  |            |       |  0.01
+Comm    | 0.00022232 | 0.00022925 | 0.00023713 |   0.0 |  0.19
+Output  | 0.11883    | 0.11883    | 0.11883    |   0.0 | 99.11
+Modify  | 5.31e-07   | 6.26e-07   | 6.71e-07   |   0.0 |  0.00
+Other   |            | 3.379e-05  |            |       |  0.03
 
-Nlocal:    4000 ave 4000 max 4000 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:    28000 ave 28000 max 28000 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:    400000 ave 400000 max 400000 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
+Nlocal:           1000 ave        1000 max        1000 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:          17000 ave       17000 max       17000 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:         100000 ave      100000 max      100000 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
 
 Total # of neighbors = 400000
 Ave neighs/atom = 100
@@ -247,34 +256,36 @@ print "TEST_4a $(round(v_t4a))% Error.  Edge histogram of a simple cubic lattice
 TEST_4a 0% Error.  Edge histogram of a simple cubic lattice (6 sides. 4 edges per side)
 uncompute v1
 compute v1 all voronoi/atom edge_histo 8
-thermo_style custom c_v1[1] c_v1[2] c_v1[3] c_v1[4] c_v1[5] c_v1[6] c_v1[7]
+thermo_style custom step c_v1[1] c_v1[2] c_v1[3] c_v1[4] c_v1[5] c_v1[6] c_v1[7]
 run  1
-WARNING: No fixes defined, atoms won't move (src/verlet.cpp:55)
-Per MPI rank memory allocation (min/avg/max) = 8.81 | 8.81 | 8.81 Mbytes
-c_v1[1] c_v1[2] c_v1[3] c_v1[4] c_v1[5] c_v1[6] c_v1[7] 
-           0            0            0        48000            0            0            0 
-           0            0            0        48000            0            0            0 
-Loop time of 0.325299 on 1 procs for 1 steps with 4000 atoms
+WARNING: No fixes with time integration, atoms won't move
+For more information see https://docs.lammps.org/err0028 (src/verlet.cpp:60)
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Per MPI rank memory allocation (min/avg/max) = 7.177 | 7.177 | 7.177 Mbytes
+   Step        c_v1[1]        c_v1[2]        c_v1[3]        c_v1[4]        c_v1[5]        c_v1[6]        c_v1[7]    
+         1   0              0              0              48000          0              0              0            
+         2   0              0              0              48000          0              0              0            
+Loop time of 0.128154 on 4 procs for 1 steps with 4000 atoms
 
-Performance: 0.266 ns/day, 90.361 hours/ns, 3.074 timesteps/s
-98.8% CPU use with 1 MPI tasks x 1 OpenMP threads
+Performance: 0.674 ns/day, 35.598 hours/ns, 7.803 timesteps/s, 31.212 katom-step/s
+99.7% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.0057862  | 0.0057862  | 0.0057862  |   0.0 |  1.78
+Pair    | 0.00079727 | 0.00080008 | 0.00080439 |   0.0 |  0.62
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.00022984 | 0.00022984 | 0.00022984 |   0.0 |  0.07
-Output  | 0.31925    | 0.31925    | 0.31925    |   0.0 | 98.14
-Modify  | 7.1526e-07 | 7.1526e-07 | 7.1526e-07 |   0.0 |  0.00
-Other   |            | 3.242e-05  |            |       |  0.01
+Comm    | 0.00019656 | 0.0002038  | 0.00020727 |   0.0 |  0.16
+Output  | 0.1271     | 0.1271     | 0.12711    |   0.0 | 99.18
+Modify  | 4.91e-07   | 6.9875e-07 | 9.72e-07   |   0.0 |  0.00
+Other   |            | 4.719e-05  |            |       |  0.04
 
-Nlocal:    4000 ave 4000 max 4000 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:    28000 ave 28000 max 28000 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:    400000 ave 400000 max 400000 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
+Nlocal:           1000 ave        1000 max        1000 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:          17000 ave       17000 max       17000 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:         100000 ave      100000 max      100000 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
 
 Total # of neighbors = 400000
 Ave neighs/atom = 100
@@ -287,35 +298,38 @@ uncompute v1
 
 # perturbed fcc lattice
 displace_atoms all random 0.01 0.01 0.01 31423
+Displacing atoms ...
 compute v1 all voronoi/atom edge_histo 8 edge_threshold 0.1
-thermo_style custom c_v1[1] c_v1[2] c_v1[3] c_v1[4] c_v1[5] c_v1[6] c_v1[7]
+thermo_style custom step c_v1[1] c_v1[2] c_v1[3] c_v1[4] c_v1[5] c_v1[6] c_v1[7]
 run  1
-WARNING: No fixes defined, atoms won't move (src/verlet.cpp:55)
-Per MPI rank memory allocation (min/avg/max) = 8.81 | 8.81 | 8.81 Mbytes
-c_v1[1] c_v1[2] c_v1[3] c_v1[4] c_v1[5] c_v1[6] c_v1[7] 
-           0            0            0        48000            0            0            0 
-           0            0            0        48000            0            0            0 
-Loop time of 0.340279 on 1 procs for 1 steps with 4000 atoms
+WARNING: No fixes with time integration, atoms won't move
+For more information see https://docs.lammps.org/err0028 (src/verlet.cpp:60)
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Per MPI rank memory allocation (min/avg/max) = 7.177 | 7.177 | 7.177 Mbytes
+   Step        c_v1[1]        c_v1[2]        c_v1[3]        c_v1[4]        c_v1[5]        c_v1[6]        c_v1[7]    
+         2   0              0              0              48000          0              0              0            
+         3   0              0              0              48000          0              0              0            
+Loop time of 0.139195 on 4 procs for 1 steps with 4000 atoms
 
-Performance: 0.254 ns/day, 94.522 hours/ns, 2.939 timesteps/s
-98.3% CPU use with 1 MPI tasks x 1 OpenMP threads
+Performance: 0.621 ns/day, 38.665 hours/ns, 7.184 timesteps/s, 28.737 katom-step/s
+99.7% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.0062513  | 0.0062513  | 0.0062513  |   0.0 |  1.84
+Pair    | 0.00098652 | 0.0010139  | 0.0010891  |   0.1 |  0.73
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.00023031 | 0.00023031 | 0.00023031 |   0.0 |  0.07
-Output  | 0.33376    | 0.33376    | 0.33376    |   0.0 | 98.09
-Modify  | 7.1526e-07 | 7.1526e-07 | 7.1526e-07 |   0.0 |  0.00
-Other   |            | 3.171e-05  |            |       |  0.01
+Comm    | 0.00019441 | 0.00027124 | 0.00030027 |   0.0 |  0.19
+Output  | 0.13787    | 0.13787    | 0.13787    |   0.0 | 99.05
+Modify  | 5.51e-07   | 6.8075e-07 | 8.21e-07   |   0.0 |  0.00
+Other   |            | 3.984e-05  |            |       |  0.03
 
-Nlocal:    4000 ave 4000 max 4000 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:    28000 ave 28000 max 28000 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:    400000 ave 400000 max 400000 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
+Nlocal:           1000 ave        1000 max        1000 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:          17000 ave       17000 max       17000 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:         100000 ave      100016 max       99984 min
+Histogram: 1 0 0 1 0 0 1 0 0 1
 
 Total # of neighbors = 400000
 Ave neighs/atom = 100
@@ -333,36 +347,39 @@ lattice         bcc 1 origin 0.25 0.25 0.25
 Lattice spacing in x,y,z = 1 1 1
 create_atoms    1 box
 Created 2000 atoms
-  Time spent = 0.000280142 secs
+  using lattice units in orthogonal box = (0 0 0) to (10 10 10)
+  create_atoms CPU = 0.000 seconds
 compute v1 all voronoi/atom edge_histo 8
-thermo_style custom c_v1[1] c_v1[2] c_v1[3] c_v1[4] c_v1[5] c_v1[6] c_v1[7]
+thermo_style custom step c_v1[1] c_v1[2] c_v1[3] c_v1[4] c_v1[5] c_v1[6] c_v1[7]
 run  1
-WARNING: No fixes defined, atoms won't move (src/verlet.cpp:55)
-Per MPI rank memory allocation (min/avg/max) = 8.81 | 8.81 | 8.81 Mbytes
-c_v1[1] c_v1[2] c_v1[3] c_v1[4] c_v1[5] c_v1[6] c_v1[7] 
-           0            0            0        12000            0        16000            0 
-           0            0            0        12000            0        16000            0 
-Loop time of 0.140848 on 1 procs for 1 steps with 2000 atoms
+WARNING: No fixes with time integration, atoms won't move
+For more information see https://docs.lammps.org/err0028 (src/verlet.cpp:60)
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Per MPI rank memory allocation (min/avg/max) = 7.177 | 7.177 | 7.177 Mbytes
+   Step        c_v1[1]        c_v1[2]        c_v1[3]        c_v1[4]        c_v1[5]        c_v1[6]        c_v1[7]    
+         3   0              0              0              12000          0              16000          0            
+         4   0              0              0              12000          0              16000          0            
+Loop time of 0.0586687 on 4 procs for 1 steps with 2000 atoms
 
-Performance: 0.613 ns/day, 39.125 hours/ns, 7.100 timesteps/s
-98.4% CPU use with 1 MPI tasks x 1 OpenMP threads
+Performance: 1.473 ns/day, 16.297 hours/ns, 17.045 timesteps/s, 34.090 katom-step/s
+99.8% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.0014246  | 0.0014246  | 0.0014246  |   0.0 |  1.01
+Pair    | 0.0002223  | 0.00022629 | 0.00023003 |   0.0 |  0.39
 Neigh   | 0          | 0          | 0          |   0.0 |  0.00
-Comm    | 0.00011492 | 0.00011492 | 0.00011492 |   0.0 |  0.08
-Output  | 0.13929    | 0.13929    | 0.13929    |   0.0 | 98.89
-Modify  | 4.7684e-07 | 4.7684e-07 | 4.7684e-07 |   0.0 |  0.00
-Other   |            | 1.884e-05  |            |       |  0.01
+Comm    | 9.4021e-05 | 9.8061e-05 | 0.00010168 |   0.0 |  0.17
+Output  | 0.058324   | 0.058326   | 0.058329   |   0.0 | 99.42
+Modify  | 4.01e-07   | 4.7075e-07 | 5.61e-07   |   0.0 |  0.00
+Other   |            | 1.787e-05  |            |       |  0.03
 
-Nlocal:    2000 ave 2000 max 2000 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:    14000 ave 14000 max 14000 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:    112000 ave 112000 max 112000 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
+Nlocal:            500 ave         500 max         500 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:           8500 ave        8500 max        8500 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:          28000 ave       28000 max       28000 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
 
 Total # of neighbors = 112000
 Ave neighs/atom = 56
@@ -380,7 +397,8 @@ lattice         fcc 1 origin 0.25 0.25 0.25
 Lattice spacing in x,y,z = 1 1 1
 create_atoms    1 box basis 1 2
 Created 4000 atoms
-  Time spent = 0.00044775 secs
+  using lattice units in orthogonal box = (0 0 0) to (10 10 10)
+  create_atoms CPU = 0.000 seconds
 
 #
 # TEST 5: Occupation analysis
@@ -395,24 +413,26 @@ variable i2 equal 257
 compute v1 all voronoi/atom occupation
 compute r0 all   reduce sum c_v1[1]
 compute r1 all   reduce sum c_v1[2]
-variable d5a equal c_v1[${i1}][1]
-variable d5a equal c_v1[13][1]
-variable d5b equal c_v1[${i2}][1]
-variable d5b equal c_v1[257][1]
-variable d5c equal c_v1[${i1}][2]
-variable d5c equal c_v1[13][2]
-variable d5d equal c_v1[${i2}][2]
-variable d5d equal c_v1[257][2]
-thermo_style custom c_r0 c_r1 v_d5a v_d5b v_d5c v_d5d
+variable d5a equal C_v1[${i1}][1]
+variable d5a equal C_v1[13][1]
+variable d5b equal C_v1[${i2}][1]
+variable d5b equal C_v1[257][1]
+variable d5c equal C_v1[${i1}][2]
+variable d5c equal C_v1[13][2]
+variable d5d equal C_v1[${i2}][2]
+variable d5d equal C_v1[257][2]
+thermo_style custom step c_r0 c_r1 v_d5a v_d5b v_d5c v_d5d
 
 run 0
-WARNING: No fixes defined, atoms won't move (src/verlet.cpp:55)
-Per MPI rank memory allocation (min/avg/max) = 8.81 | 8.81 | 8.81 Mbytes
-c_r0 c_r1 v_d5a v_d5b v_d5c v_d5d 
-        4000         4000            1            1            1            1 
-Loop time of 1.19209e-06 on 1 procs for 0 steps with 4000 atoms
+WARNING: No fixes with time integration, atoms won't move
+For more information see https://docs.lammps.org/err0028 (src/verlet.cpp:60)
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Per MPI rank memory allocation (min/avg/max) = 7.177 | 7.177 | 7.177 Mbytes
+   Step          c_r0           c_r1          v_d5a          v_d5b          v_d5c          v_d5d     
+         4   4000           4000           1              1              1              1            
+Loop time of 2.92575e-06 on 4 procs for 0 steps with 4000 atoms
 
-251.7% CPU use with 1 MPI tasks x 1 OpenMP threads
+188.0% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
@@ -422,14 +442,14 @@ Neigh   | 0          | 0          | 0          |   0.0 |  0.00
 Comm    | 0          | 0          | 0          |   0.0 |  0.00
 Output  | 0          | 0          | 0          |   0.0 |  0.00
 Modify  | 0          | 0          | 0          |   0.0 |  0.00
-Other   |            | 1.192e-06  |            |       |100.00
+Other   |            | 2.926e-06  |            |       |100.00
 
-Nlocal:    4000 ave 4000 max 4000 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:    28000 ave 28000 max 28000 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:    400000 ave 400000 max 400000 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
+Nlocal:           1000 ave        1000 max        1000 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:          17000 ave       17000 max       17000 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:         100000 ave      100000 max      100000 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
 
 Total # of neighbors = 400000
 Ave neighs/atom = 100
@@ -466,20 +486,23 @@ variable nz equal z[257]
 set atom ${i1} x $(v_nx+0.2) y $(v_ny+0.2) z $(v_nz+0.2)
 set atom 13 x $(v_nx+0.2) y $(v_ny+0.2) z $(v_nz+0.2)
 set atom 13 x 4.4500000000000001776 y $(v_ny+0.2) z $(v_nz+0.2)
-set atom 13 x 4.4500000000000001776 y 6.4500000000000001776 z $(v_nz+0.2)
-set atom 13 x 4.4500000000000001776 y 6.4500000000000001776 z 0.4500000000000000111
+set atom 13 x 4.4500000000000001776 y 1.4499999999999999556 z $(v_nz+0.2)
+set atom 13 x 4.4500000000000001776 y 1.4499999999999999556 z 1.4499999999999999556
+Setting atom values ...
   1 settings made for x
   1 settings made for y
   1 settings made for z
 
 run 0
-WARNING: No fixes defined, atoms won't move (src/verlet.cpp:55)
-Per MPI rank memory allocation (min/avg/max) = 9.31 | 9.31 | 9.31 Mbytes
-c_r0 c_r1 v_d5a v_d5b v_d5c v_d5d 
-        4000         4002            0            2            2            2 
-Loop time of 1.19209e-06 on 1 procs for 0 steps with 4000 atoms
+WARNING: No fixes with time integration, atoms won't move
+For more information see https://docs.lammps.org/err0028 (src/verlet.cpp:60)
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Per MPI rank memory allocation (min/avg/max) = 7.677 | 7.677 | 7.677 Mbytes
+   Step          c_r0           c_r1          v_d5a          v_d5b          v_d5c          v_d5d     
+         4   4000           4002           0              2              2              2            
+Loop time of 1.22225e-06 on 4 procs for 0 steps with 4000 atoms
 
-251.7% CPU use with 1 MPI tasks x 1 OpenMP threads
+184.1% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
@@ -489,17 +512,17 @@ Neigh   | 0          | 0          | 0          |   0.0 |  0.00
 Comm    | 0          | 0          | 0          |   0.0 |  0.00
 Output  | 0          | 0          | 0          |   0.0 |  0.00
 Modify  | 0          | 0          | 0          |   0.0 |  0.00
-Other   |            | 1.192e-06  |            |       |100.00
+Other   |            | 1.222e-06  |            |       |100.00
 
-Nlocal:    4000 ave 4000 max 4000 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:    28000 ave 28000 max 28000 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:    399998 ave 399998 max 399998 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
+Nlocal:           1000 ave        1000 max        1000 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:          17000 ave       17000 max       17000 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:        99999.2 ave      100075 max       99967 min
+Histogram: 2 1 0 0 0 0 0 0 0 1
 
-Total # of neighbors = 399998
-Ave neighs/atom = 99.9995
+Total # of neighbors = 399997
+Ave neighs/atom = 99.99925
 Neighbor list builds = 0
 Dangerous builds = 0
 # expect 0 2 2 2 (vacancy at the original i1 site, interstitial at i2 and both atoms are now sharing a site)
@@ -515,18 +538,21 @@ set atom 13 x ${ox} y ${oy} z ${oz}
 set atom 13 x 3.25 y ${oy} z ${oz}
 set atom 13 x 3.25 y 0.25 z ${oz}
 set atom 13 x 3.25 y 0.25 z 0.25
+Setting atom values ...
   1 settings made for x
   1 settings made for y
   1 settings made for z
 
 run 0
-WARNING: No fixes defined, atoms won't move (src/verlet.cpp:55)
-Per MPI rank memory allocation (min/avg/max) = 9.31 | 9.31 | 9.31 Mbytes
-c_r0 c_r1 v_d5a v_d5b v_d5c v_d5d 
-        4000         4000            1            1            1            1 
-Loop time of 9.53674e-07 on 1 procs for 0 steps with 4000 atoms
+WARNING: No fixes with time integration, atoms won't move
+For more information see https://docs.lammps.org/err0028 (src/verlet.cpp:60)
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Per MPI rank memory allocation (min/avg/max) = 7.677 | 7.677 | 7.677 Mbytes
+   Step          c_r0           c_r1          v_d5a          v_d5b          v_d5c          v_d5d     
+         4   4000           4000           1              1              1              1            
+Loop time of 1.29225e-06 on 4 procs for 0 steps with 4000 atoms
 
-314.6% CPU use with 1 MPI tasks x 1 OpenMP threads
+174.1% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
@@ -536,14 +562,14 @@ Neigh   | 0          | 0          | 0          |   0.0 |  0.00
 Comm    | 0          | 0          | 0          |   0.0 |  0.00
 Output  | 0          | 0          | 0          |   0.0 |  0.00
 Modify  | 0          | 0          | 0          |   0.0 |  0.00
-Other   |            | 9.537e-07  |            |       |100.00
+Other   |            | 1.292e-06  |            |       |100.00
 
-Nlocal:    4000 ave 4000 max 4000 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:    28000 ave 28000 max 28000 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:    400000 ave 400000 max 400000 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
+Nlocal:           1000 ave        1000 max        1000 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:          17000 ave       17000 max       17000 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:         100000 ave      100000 max      100000 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
 
 Total # of neighbors = 400000
 Ave neighs/atom = 100
@@ -569,19 +595,23 @@ uncompute r1
 
 # switch to triclinic box
 change_box all triclinic
+Changing box ...
   triclinic box = (0 0 0) to (10 10 10) with tilt (0 0 0)
 change_box all xy final 5.0 remap units box
+Changing box ...
   triclinic box = (0 0 0) to (10 10 10) with tilt (5 0 0)
 
 compute v1 all voronoi/atom
-dump    d1 all custom 1 dump.voro id type x y z c_v1[1] c_v1[2]
+#dump    d1 all custom 1 dump.voro id type x y z c_v1[1] c_v1[2]
 compute r0 all   reduce sum c_v1[1]
-thermo_style custom c_r0
+thermo_style custom step c_r0
 variable t6 equal c_r0
 run  0
-WARNING: No fixes defined, atoms won't move (src/verlet.cpp:55)
+WARNING: No fixes with time integration, atoms won't move
+For more information see https://docs.lammps.org/err0028 (src/verlet.cpp:60)
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
 Neighbor list info ...
-  update every 1 steps, delay 10 steps, check yes
+  update: every = 1 steps, delay = 10 steps, check = yes
   max neighbors/atom: 2000, page size: 100000
   master list distance cutoff = 2.3
   ghost atom cutoff = 5
@@ -589,15 +619,15 @@ Neighbor list info ...
   1 neighbor lists, perpetual/occasional/extra = 1 0 0
   (1) pair lj/cut, perpetual
       attributes: half, newton on
-      pair build: half/bin/newton/tri
-      stencil: half/bin/3d/newton/tri
+      pair build: half/bin/atomonly/newton/tri
+      stencil: half/bin/3d/tri
       bin: standard
-Per MPI rank memory allocation (min/avg/max) = 15.06 | 15.06 | 15.06 Mbytes
-c_r0 
-        1000 
-Loop time of 1.19209e-06 on 1 procs for 0 steps with 4000 atoms
+Per MPI rank memory allocation (min/avg/max) = 7.442 | 7.442 | 7.442 Mbytes
+   Step          c_r0     
+         4   1000         
+Loop time of 1.5155e-06 on 4 procs for 0 steps with 4000 atoms
 
-251.7% CPU use with 1 MPI tasks x 1 OpenMP threads
+181.5% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
@@ -607,14 +637,14 @@ Neigh   | 0          | 0          | 0          |   0.0 |  0.00
 Comm    | 0          | 0          | 0          |   0.0 |  0.00
 Output  | 0          | 0          | 0          |   0.0 |  0.00
 Modify  | 0          | 0          | 0          |   0.0 |  0.00
-Other   |            | 1.192e-06  |            |       |100.00
+Other   |            | 1.515e-06  |            |       |100.00
 
-Nlocal:    4000 ave 4000 max 4000 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:    29600 ave 29600 max 29600 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:    432000 ave 432000 max 432000 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
+Nlocal:           1000 ave        1000 max        1000 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Nghost:          17900 ave       17900 max       17900 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+Neighs:         108000 ave      111060 max      104940 min
+Histogram: 1 0 0 0 1 1 0 0 0 1
 
 Total # of neighbors = 432000
 Ave neighs/atom = 108
@@ -624,10 +654,10 @@ print "TEST_6  $(round((v_t6-1000)/10))% Error.  Sum of all voronoi cells is the
 TEST_6  0% Error.  Sum of all voronoi cells is the triclinic simulation cell volume
 uncompute v1
 uncompute r0
-undump    d1
+#undump    d1
 
 # All tests done
 
 print TEST_DONE
 TEST_DONE
-Total wall time: 0:00:04
+Total wall time: 0:00:01

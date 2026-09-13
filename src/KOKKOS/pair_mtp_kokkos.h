@@ -46,6 +46,7 @@ template <class DeviceType> class PairMTPKokkos : public PairMTP {
 
   enum { EnabledNeighFlags = HALF | HALFTHREAD };
   enum { COUL_FLAG = 0 };
+  static constexpr int ATOM_TILE_SIZE = 32;
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
   typedef EV_FLOAT value_type;
@@ -57,7 +58,7 @@ template <class DeviceType> class PairMTPKokkos : public PairMTP {
   void coeff(int, char **) override;
   void init_style() override;
   double init_one(int, int) override;
-  void prepare_waves();    //Precalculates the waves of alpha times by dependency
+  void prepare_waves();    //Precalculates node waves and rule lists
 
   // ========== Kokkos kernels ==========
   //Utility routines
@@ -110,6 +111,7 @@ template <class DeviceType> class PairMTPKokkos : public PairMTP {
       chunk_offset;    // Needed to process the computation in batches to avoid running out of VRAM.
 
   int inum, max_neighs, max_valid_neighs, num_waves;
+  int wave_begin, wave_end, node_partitions;
   int host_flag, neighflag;
 
   int eflag, vflag;    // Energy and virial flag
@@ -131,9 +133,13 @@ template <class DeviceType> class PairMTPKokkos : public PairMTP {
 
   // ---------- Device Arrays  ----------
   // Alphas indicies
-  Kokkos::View<int **, DeviceType> d_alpha_index_basic;      // For constructing the basic alphas.
-  Kokkos::View<int **, DeviceType> d_alpha_index_times;      // For combining alphas
-  Kokkos::View<int *, DeviceType> d_waves;                   // Dependency waves
+  Kokkos::View<int **, DeviceType> d_alpha_index_basic;    // For constructing the basic alphas.
+  Kokkos::View<int **, DeviceType> d_alpha_index_times;    // For combining alphas
+  Kokkos::View<int *, Kokkos::HostSpace> h_waves;          // Node wave offsets
+  Kokkos::View<int *, DeviceType> d_wave_nodes;
+  Kokkos::View<int *, DeviceType> d_forward_offsets, d_forward_rules;
+  Kokkos::View<int *, DeviceType> d_reverse_offsets;
+  Kokkos::View<int *[3], Kokkos::LayoutRight, DeviceType> d_reverse_terms;
   Kokkos::View<int *, DeviceType> d_alpha_moment_mapping;    // Maps alphas to the basis functions.
 
   // The learned coefficients.
@@ -150,11 +156,15 @@ template <class DeviceType> class PairMTPKokkos : public PairMTP {
   Kokkos::View<KK_FLOAT ***, Kokkos::LayoutLeft, DeviceType> d_radial_ders;
   Kokkos::View<KK_FLOAT **, Kokkos::LayoutLeft, DeviceType> d_inv_dist;
 
-  Kokkos::View<KK_FLOAT **, Kokkos::LayoutRight, DeviceType>
-      d_moment_tensor_vals;    // This promotes some memory coalescing
-  Kokkos::View<KK_FLOAT **, Kokkos::LayoutRight, DeviceType> d_nbh_energy_ders_wrt_moments;
+  // Indexed by atom tile, moment, and atom lane.
+  Kokkos::View<KK_FLOAT **[ATOM_TILE_SIZE], Kokkos::LayoutRight, DeviceType> d_moment_tensor_vals;
+  Kokkos::View<KK_FLOAT **[ATOM_TILE_SIZE], Kokkos::LayoutRight, DeviceType>
+      d_nbh_energy_ders_wrt_moments;
 
   // Typedefs for shared memory
+  typedef Kokkos::View<KK_FLOAT *, typename DeviceType::scratch_memory_space,
+                       Kokkos::MemoryTraits<Kokkos::Unmanaged>>
+      shared_kk_float_1d;    // Used for basic adjoints
   typedef Kokkos::View<KK_FLOAT **[3], typename DeviceType::scratch_memory_space,
                        Kokkos::MemoryTraits<Kokkos::Unmanaged>>
       shared_kk_float_3d;    // Used for coord powers

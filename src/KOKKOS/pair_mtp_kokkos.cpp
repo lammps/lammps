@@ -28,6 +28,8 @@
 #include "neigh_request.h"
 #include "neighbor_kokkos.h"
 
+#include <vector>
+
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
@@ -51,6 +53,8 @@ template <class DeviceType> PairMTPKokkos<DeviceType>::PairMTPKokkos(LAMMPS *lmp
   max_neighs = 0;
   max_valid_neighs = 0;
   num_waves = 0;
+  wave_begin = wave_end = 0;
+  node_partitions = 1;
   time_basic = 0.0;
   time_times = 0.0;
   time_nbhders = 0.0;
@@ -197,29 +201,83 @@ template <class DeviceType> void PairMTPKokkos<DeviceType>::settings(int narg, c
 }
 
 /* ----------------------------------------------------------------------
-   Finds the size of each alpha times waves.
+   Groups rules and nodes by dependency.
 ------------------------------------------------------------------------- */
 template <class DeviceType> void PairMTPKokkos<DeviceType>::prepare_waves()
 {
-  // The alpha times in the MLIP-3 format are already sorted by child node.
-  std::vector<int> waves;
-  int last_max_node = alpha_index_basic_count - 1;
-  int last_max_edge = 0;
+  const int n = alpha_moment_count;
+  std::vector<int> forward_offsets(n + 1, 0), reverse_offsets(n + 1, 0);
+  for (int k = 0; k < alpha_index_times_count; k++) {
+    const int a0 = alpha_index_times[k][0];
+    const int a1 = alpha_index_times[k][1];
+    const int a3 = alpha_index_times[k][3];
+    if (a0 < 0 || a0 >= n || a1 < 0 || a1 >= n || a3 < alpha_index_basic_count || a3 >= n)
+      error->all(FLERR, "Invalid MTP contraction indices.");
+    forward_offsets[a3 + 1]++;
+    reverse_offsets[a0 + 1]++;
+    reverse_offsets[a1 + 1]++;
+  }
+  for (int i = 0; i < n; i++) {
+    forward_offsets[i + 1] += forward_offsets[i];
+    reverse_offsets[i + 1] += reverse_offsets[i];
+  }
 
-  for (int i = 0; i < alpha_index_times_count; i++) {
-    if (alpha_index_times[i][0] > last_max_node || alpha_index_times[i][1] > last_max_node) {
-      waves.push_back(i - last_max_edge);
-      last_max_node = alpha_index_times[i - 1][3];
-      last_max_edge = i;
+  std::vector<int> forward_rules(alpha_index_times_count);
+  std::vector<int> reverse_rules(2 * alpha_index_times_count);
+  auto forward_pos = forward_offsets;
+  auto reverse_pos = reverse_offsets;
+  for (int k = 0; k < alpha_index_times_count; k++) {
+    forward_rules[forward_pos[alpha_index_times[k][3]]++] = k;
+    // Each operand occurrence contributes a derivative.
+    reverse_rules[reverse_pos[alpha_index_times[k][0]]++] = 2 * k;
+    reverse_rules[reverse_pos[alpha_index_times[k][1]]++] = 2 * k + 1;
+  }
+
+  std::vector<int> pending(n), depth(n, 0), ready;
+  ready.reserve(n);
+  for (int i = 0; i < n; i++) {
+    pending[i] = 2 * (forward_offsets[i + 1] - forward_offsets[i]);
+    if (pending[i] == 0) ready.push_back(i);
+  }
+  num_waves = 1;
+  for (size_t q = 0; q < ready.size(); q++) {
+    const int i = ready[q];
+    for (int e = reverse_offsets[i]; e < reverse_offsets[i + 1]; e++) {
+      const int child = alpha_index_times[reverse_rules[e] / 2][3];
+      depth[child] = MAX(depth[child], depth[i] + 1);
+      num_waves = MAX(num_waves, depth[child] + 1);
+      if (--pending[child] == 0) ready.push_back(child);
     }
   }
-  waves.push_back(alpha_index_times_count - last_max_edge);
-  num_waves = waves.size();
+  if ((int) ready.size() != n) error->all(FLERR, "Cyclic MTP contraction graph.");
 
-  MemKK::realloc_kokkos(d_waves, "mtp/kk:d_waves", num_waves);
-  auto h_waves = Kokkos::create_mirror_view(d_waves);
-  for (int i = 0; i < num_waves; i++) { h_waves(i) = waves[i]; }
-  Kokkos::deep_copy(d_waves, h_waves);
+  std::vector<int> waves(num_waves + 1, 0), nodes(n);
+  for (int i = 0; i < n; i++) waves[depth[i] + 1]++;
+  for (int i = 0; i < num_waves; i++) waves[i + 1] += waves[i];
+  auto wave_pos = waves;
+  for (int i = 0; i < n; i++) nodes[wave_pos[depth[i]]++] = i;
+
+  auto copy_indices = [](auto &dst, const std::vector<int> &src, const char *label) {
+    MemKK::realloc_kokkos(dst, label, src.size());
+    auto h_dst = Kokkos::create_mirror_view(dst);
+    for (size_t i = 0; i < src.size(); i++) h_dst(i) = src[i];
+    Kokkos::deep_copy(dst, h_dst);
+  };
+  copy_indices(h_waves, waves, "mtp/kk:h_waves");
+  copy_indices(d_wave_nodes, nodes, "mtp/kk:wave_nodes");
+  copy_indices(d_forward_offsets, forward_offsets, "mtp/kk:forward_offsets");
+  copy_indices(d_forward_rules, forward_rules, "mtp/kk:forward_rules");
+  copy_indices(d_reverse_offsets, reverse_offsets, "mtp/kk:reverse_offsets");
+  MemKK::realloc_kokkos(d_reverse_terms, "mtp/kk:reverse_terms", reverse_rules.size());
+  auto h_reverse_terms = Kokkos::create_mirror_view(d_reverse_terms);
+  for (size_t e = 0; e < reverse_rules.size(); e++) {
+    const int use = reverse_rules[e];
+    const int k = use / 2;
+    h_reverse_terms(e, 0) = alpha_index_times[k][3];
+    h_reverse_terms(e, 1) = alpha_index_times[k][1 - use % 2];
+    h_reverse_terms(e, 2) = alpha_index_times[k][2];
+  }
+  Kokkos::deep_copy(d_reverse_terms, h_reverse_terms);
 }
 
 // Finds the maximum number of neighbours in all neigbhourhoods. (Copied from other potentials)
@@ -403,10 +461,11 @@ template <class DeviceType> void PairMTPKokkos<DeviceType>::compute(int eflag_in
   chunk_offset = 0;
 
   // Resize the arrays to the chunksize if needed. Do not initialize.
-  if ((int) d_moment_tensor_vals.extent(0) < chunk_size) {
-    Kokkos::realloc(Kokkos::WithoutInitializing, d_moment_tensor_vals, chunk_size,
+  const int capacity_tiles = (chunk_size + ATOM_TILE_SIZE - 1) / ATOM_TILE_SIZE;
+  if ((int) d_moment_tensor_vals.extent(0) < capacity_tiles) {
+    Kokkos::realloc(Kokkos::WithoutInitializing, d_moment_tensor_vals, capacity_tiles,
                     alpha_moment_count);
-    Kokkos::realloc(Kokkos::WithoutInitializing, d_nbh_energy_ders_wrt_moments, chunk_size,
+    Kokkos::realloc(Kokkos::WithoutInitializing, d_nbh_energy_ders_wrt_moments, capacity_tiles,
                     alpha_moment_count);
   }
 
@@ -423,15 +482,20 @@ template <class DeviceType> void PairMTPKokkos<DeviceType>::compute(int eflag_in
   }
 
   EV_FLOAT ev;
+  typename DeviceType::execution_space graph_space;
 
   // ========== Begin Main Computation ==========
   while (chunk_offset < inum) {    // batching to prevent OOM on device
     EV_FLOAT ev_tmp;
     if (chunk_size > inum - chunk_offset) chunk_size = inum - chunk_offset;
+    const int atom_tiles = (chunk_size + ATOM_TILE_SIZE - 1) / ATOM_TILE_SIZE;
+    const int graph_partitions = MIN(16, MAX(1, (2048 + atom_tiles - 1) / atom_tiles));
 
     // ========== Init working views as 0  ==========
     {
-      typename Kokkos::MDRangePolicy<Kokkos::Rank<2>, DeviceType, TagPairMTPInitMomentValsDers>
+      typename Kokkos::MDRangePolicy<
+          Kokkos::Rank<2, Kokkos::Iterate::Right, Kokkos::Iterate::Right>, DeviceType,
+          TagPairMTPInitMomentValsDers>
           policy_moment_init({0, 0}, {alpha_moment_count, chunk_size});
       Kokkos::parallel_for("InitMomentValDers", policy_moment_init, *this);
     }
@@ -461,31 +525,54 @@ template <class DeviceType> void PairMTPKokkos<DeviceType>::compute(int eflag_in
 
     // ========== Calculate the composite moment values  ==========
     {
-      int team_size = team_size_default;
-      Kokkos::TeamPolicy<DeviceType, TagPairMTPComputeAlphaTimes> policy_basic_alpha(chunk_size,
-                                                                                     team_size);
+      using TimesPolicy = Kokkos::TeamPolicy<DeviceType, TagPairMTPComputeAlphaTimes>;
+      TimesPolicy limits(graph_space, 1, Kokkos::AUTO, ATOM_TILE_SIZE);
+      const int team_size = MIN(4, limits.team_size_max(*this, Kokkos::ParallelForTag()));
+      if (team_size < 1)
+        error->all(FLERR, "Insufficient device resources for MTP alpha times computation.");
       Kokkos::fence();
       Kokkos::Timer timer;
-      Kokkos::parallel_for("ComputeAlphaTimes", policy_basic_alpha, *this);
+      for (int wave = 1; wave < num_waves; wave++) {
+        wave_begin = h_waves(wave);
+        wave_end = h_waves(wave + 1);
+        if (wave_begin == wave_end) continue;
+        node_partitions =
+            MIN(graph_partitions, (wave_end - wave_begin + team_size - 1) / team_size);
+        TimesPolicy policy(graph_space, atom_tiles * node_partitions, team_size, ATOM_TILE_SIZE);
+        Kokkos::parallel_for("ComputeAlphaTimes", policy, *this);
+      }
       Kokkos::fence();
       time_times += timer.seconds();
     }
 
     // ========== Set the scalar nbh ders wrt moments ==========
     {
-      typename Kokkos::MDRangePolicy<Kokkos::Rank<2>, DeviceType, TagPairMTPSetScalarNbhDers>
+      typename Kokkos::MDRangePolicy<
+          Kokkos::Rank<2, Kokkos::Iterate::Right, Kokkos::Iterate::Right>, DeviceType,
+          TagPairMTPSetScalarNbhDers>
           policy_nbh_init({0, 0}, {alpha_scalar_count, chunk_size});
       Kokkos::parallel_for("SetScalarNbhDers", policy_nbh_init, *this);
     }
 
     // ========== Calc the nbh ders wrt moments ==========
     {
-      int team_size = team_size_default;
-      Kokkos::TeamPolicy<DeviceType, TagPairMTPComputeNbhDers> policy_basic_alpha(chunk_size,
-                                                                                  team_size);
+      using NbhDersPolicy = Kokkos::TeamPolicy<DeviceType, TagPairMTPComputeNbhDers>;
+      NbhDersPolicy limits(graph_space, 1, Kokkos::AUTO, ATOM_TILE_SIZE);
+      const int team_size = MIN(4, limits.team_size_max(*this, Kokkos::ParallelForTag()));
+      if (team_size < 1)
+        error->all(FLERR, "Insufficient device resources for MTP nbh derivatives computation.");
       Kokkos::fence();
       Kokkos::Timer timer;
-      Kokkos::parallel_for("ComputeNbhDers", policy_basic_alpha, *this);
+      // The deepest nodes already have their scalar seeds.
+      for (int wave = num_waves - 2; wave >= 0; wave--) {
+        wave_begin = h_waves(wave);
+        wave_end = h_waves(wave + 1);
+        if (wave_begin == wave_end) continue;
+        node_partitions =
+            MIN(graph_partitions, (wave_end - wave_begin + team_size - 1) / team_size);
+        NbhDersPolicy policy(graph_space, atom_tiles * node_partitions, team_size, ATOM_TILE_SIZE);
+        Kokkos::parallel_for("ComputeNbhDers", policy, *this);
+      }
       Kokkos::fence();
       time_nbhders += timer.seconds();
     }
@@ -497,30 +584,35 @@ template <class DeviceType> void PairMTPKokkos<DeviceType>::compute(int eflag_in
 
       const int force_scratch_size =
           scratch_size_helper<KK_FLOAT>(2 * radial_func_count + 3 * max_alpha_index_basic);
+      const int force_team_scratch_size = shared_kk_float_1d::shmem_size(alpha_index_basic_count);
 
       Kokkos::fence();
       Kokkos::Timer timer;
       if (neighflag == HALF) {
         using ForcePolicy = Kokkos::TeamPolicy<DeviceType, TagPairMTPComputeForce<HALF, 1>>;
         ForcePolicy policy_force(chunk_size, Kokkos::AUTO);
-        policy_force = policy_force.set_scratch_size(0, Kokkos::PerThread(force_scratch_size));
+        policy_force = policy_force.set_scratch_size(0, Kokkos::PerTeam(force_team_scratch_size),
+                                                     Kokkos::PerThread(force_scratch_size));
         const int force_team_size =
             MIN(team_size, policy_force.team_size_max(*this, Kokkos::ParallelReduceTag()));
         if (force_team_size < 1)
           error->all(FLERR, "Insufficient device resources for MTP force recomputation.");
         policy_force = ForcePolicy(chunk_size, force_team_size)
-                           .set_scratch_size(0, Kokkos::PerThread(force_scratch_size));
+                           .set_scratch_size(0, Kokkos::PerTeam(force_team_scratch_size),
+                                             Kokkos::PerThread(force_scratch_size));
         Kokkos::parallel_reduce(policy_force, *this, ev_tmp);
       } else if (neighflag == HALFTHREAD) {
         using ForcePolicy = Kokkos::TeamPolicy<DeviceType, TagPairMTPComputeForce<HALFTHREAD, 1>>;
         ForcePolicy policy_force(chunk_size, Kokkos::AUTO);
-        policy_force = policy_force.set_scratch_size(0, Kokkos::PerThread(force_scratch_size));
+        policy_force = policy_force.set_scratch_size(0, Kokkos::PerTeam(force_team_scratch_size),
+                                                     Kokkos::PerThread(force_scratch_size));
         const int force_team_size =
             MIN(team_size, policy_force.team_size_max(*this, Kokkos::ParallelReduceTag()));
         if (force_team_size < 1)
           error->all(FLERR, "Insufficient device resources for MTP force recomputation.");
         policy_force = ForcePolicy(chunk_size, force_team_size)
-                           .set_scratch_size(0, Kokkos::PerThread(force_scratch_size));
+                           .set_scratch_size(0, Kokkos::PerTeam(force_team_scratch_size),
+                                             Kokkos::PerThread(force_scratch_size));
         Kokkos::parallel_reduce(policy_force, *this, ev_tmp);
       }
       Kokkos::fence();
@@ -576,8 +668,8 @@ template <class DeviceType>
 KOKKOS_INLINE_FUNCTION void PairMTPKokkos<DeviceType>::operator()(TagPairMTPInitMomentValsDers,
                                                                   const int &k, const int &ii) const
 {
-  d_moment_tensor_vals(ii, k) = 0;
-  d_nbh_energy_ders_wrt_moments(ii, k) = 0;
+  d_moment_tensor_vals(ii / ATOM_TILE_SIZE, k, ii % ATOM_TILE_SIZE) = 0;
+  d_nbh_energy_ders_wrt_moments(ii / ATOM_TILE_SIZE, k, ii % ATOM_TILE_SIZE) = 0;
 }
 
 // Calculates the basic alphas using fused operations where possible
@@ -677,7 +769,7 @@ KOKKOS_INLINE_FUNCTION void PairMTPKokkos<DeviceType>::operator()(
       moment_val = Kokkos::fma(s_radial_vals(mu, jj), pow, moment_val);
     }
 
-    d_moment_tensor_vals(ii, k) = moment_val;
+    d_moment_tensor_vals(ii / ATOM_TILE_SIZE, k, ii % ATOM_TILE_SIZE) = moment_val;
   });
 }
 
@@ -688,34 +780,37 @@ KOKKOS_INLINE_FUNCTION void PairMTPKokkos<DeviceType>::operator()(
     const typename Kokkos::TeamPolicy<DeviceType, TagPairMTPComputeAlphaTimes>::member_type &team)
     const
 {
-  const int ii = team.league_rank();
+  const int tile = team.league_rank() / node_partitions;
+  const int part = team.league_rank() % node_partitions;
+  const int count = (wave_end - wave_begin + node_partitions - 1 - part) / node_partitions;
 
-  int offset = 0;
-  // Traverse all edges in the alpha times compute graph. We need to do this in waves to ensure dependencies.
-  for (int i = 0; i < num_waves; i++) {
-    const int wave_size = d_waves[i];
-    Kokkos::parallel_for(Kokkos::TeamThreadRange(team, wave_size), [&](const int kk) {
-      const int k = offset + kk;    // Offset for the wave
-      const int a0 = d_alpha_index_times(k, 0);
-      const int a1 = d_alpha_index_times(k, 1);
-      const int mult = d_alpha_index_times(k, 2);
-      const int a3 = d_alpha_index_times(k, 3);
-
-      const KK_FLOAT val0 = d_moment_tensor_vals(ii, a0);
-      const KK_FLOAT val1 = d_moment_tensor_vals(ii, a1);
-
-      Kokkos::atomic_add(&d_moment_tensor_vals(ii, a3), mult * val0 * val1);
+  Kokkos::parallel_for(Kokkos::TeamThreadRange(team, count), [&](const int q) {
+    const int node = d_wave_nodes(wave_begin + part + q * node_partitions);
+    const int begin = d_forward_offsets(node);
+    const int end = d_forward_offsets(node + 1);
+    Kokkos::parallel_for(Kokkos::ThreadVectorRange(team, ATOM_TILE_SIZE), [&](const int lane) {
+      if (tile * ATOM_TILE_SIZE + lane >= chunk_size) return;
+      KK_FLOAT sum = 0;
+      for (int e = begin; e < end; e++) {
+        const int k = d_forward_rules(e);
+        const int a0 = d_alpha_index_times(k, 0);
+        const int a1 = d_alpha_index_times(k, 1);
+        const int mult = d_alpha_index_times(k, 2);
+        sum += mult * d_moment_tensor_vals(tile, a0, lane) * d_moment_tensor_vals(tile, a1, lane);
+      }
+      d_moment_tensor_vals(tile, node, lane) = sum;
     });
-    offset += wave_size;
-    team.team_barrier();    // Wait for the wave to finish
-  }
+  });
 }
 
 // Sets the nbh energy ders as the linear coeffs
 template <class DeviceType>
 KOKKOS_INLINE_FUNCTION void PairMTPKokkos<DeviceType>::operator()(TagPairMTPSetScalarNbhDers,
                                                                   const int &k, const int &ii) const
-{ d_nbh_energy_ders_wrt_moments(ii, d_alpha_moment_mapping(k)) = d_linear_coeffs(k); }
+{
+  d_nbh_energy_ders_wrt_moments(ii / ATOM_TILE_SIZE, d_alpha_moment_mapping(k),
+                                ii % ATOM_TILE_SIZE) = d_linear_coeffs(k);
+}
 
 // Calculates the nbh ders (backwards pass)
 template <class DeviceType>
@@ -724,29 +819,27 @@ KOKKOS_INLINE_FUNCTION void PairMTPKokkos<DeviceType>::operator()(
     const typename Kokkos::TeamPolicy<DeviceType, TagPairMTPComputeNbhDers>::member_type &team)
     const
 {
-  const int ii = team.league_rank();
+  const int tile = team.league_rank() / node_partitions;
+  const int part = team.league_rank() % node_partitions;
+  const int count = (wave_end - wave_begin + node_partitions - 1 - part) / node_partitions;
 
-  int offset = alpha_index_times_count;
-  // Traverse all edges in the alpha times compute graph. We need to do this in reverse waves to ensure dependencies.
-  for (int i = num_waves - 1; i >= 0; i--) {
-    const int wave_size = d_waves[i];
-    offset -= wave_size;
-    Kokkos::parallel_for(Kokkos::TeamThreadRange(team, wave_size), [&](const int kk) {
-      const int k = kk + offset;    // Offset for the wave
-      const int a0 = d_alpha_index_times(k, 0);
-      const int a1 = d_alpha_index_times(k, 1);
-      const int mult = d_alpha_index_times(k, 2);
-      const int a3 = d_alpha_index_times(k, 3);
-
-      const KK_FLOAT val0 = d_moment_tensor_vals(ii, a0);
-      const KK_FLOAT val1 = d_moment_tensor_vals(ii, a1);
-      const KK_FLOAT val3 = d_nbh_energy_ders_wrt_moments(ii, a3);
-
-      Kokkos::atomic_add(&d_nbh_energy_ders_wrt_moments(ii, a1), val3 * mult * val0);
-      Kokkos::atomic_add(&d_nbh_energy_ders_wrt_moments(ii, a0), val3 * mult * val1);
+  Kokkos::parallel_for(Kokkos::TeamThreadRange(team, count), [&](const int q) {
+    const int node = d_wave_nodes(wave_begin + part + q * node_partitions);
+    const int begin = d_reverse_offsets(node);
+    const int end = d_reverse_offsets(node + 1);
+    Kokkos::parallel_for(Kokkos::ThreadVectorRange(team, ATOM_TILE_SIZE), [&](const int lane) {
+      if (tile * ATOM_TILE_SIZE + lane >= chunk_size) return;
+      KK_FLOAT sum = d_nbh_energy_ders_wrt_moments(tile, node, lane);
+      for (int e = begin; e < end; e++) {
+        const int child = d_reverse_terms(e, 0);
+        const int partner = d_reverse_terms(e, 1);
+        const int mult = d_reverse_terms(e, 2);
+        sum += d_nbh_energy_ders_wrt_moments(tile, child, lane) * mult *
+            d_moment_tensor_vals(tile, partner, lane);
+      }
+      d_nbh_energy_ders_wrt_moments(tile, node, lane) = sum;
     });
-    team.team_barrier();    // Wait for the wave to finish
-  }
+  });
 }
 
 // Computes forces from  radial functions and ders
@@ -771,9 +864,16 @@ KOKKOS_INLINE_FUNCTION void PairMTPKokkos<DeviceType>::operator()(
   const KK_FLOAT xi[3] = {x(i, 0), x(i, 1), x(i, 2)};
   const int array_size = Kokkos::min(team.team_size(), jnum);
 
+  shared_kk_float_1d s_basic_adj(team.team_scratch(0), alpha_index_basic_count);
   shared_kk_float_2d s_radial_vals(team.team_scratch(0), array_size, radial_func_count);
   shared_kk_float_2d s_radial_ders(team.team_scratch(0), array_size, radial_func_count);
   shared_kk_float_3d s_coord_powers(team.team_scratch(0), array_size, max_alpha_index_basic);
+
+  // Reuse the central atom's adjoints across neighbours.
+  Kokkos::parallel_for(Kokkos::TeamThreadRange(team, alpha_index_basic_count), [&](const int k) {
+    s_basic_adj(k) = d_nbh_energy_ders_wrt_moments(ii / ATOM_TILE_SIZE, k, ii % ATOM_TILE_SIZE);
+  });
+  team.team_barrier();
 
   bool need_energies = EVFLAG && eflag_either;
   bool need_virial = EVFLAG && vflag_either;
@@ -830,7 +930,7 @@ KOKKOS_INLINE_FUNCTION void PairMTPKokkos<DeviceType>::operator()(
           KK_FLOAT pow = pow0 * pow1 * pow2;
 
           // Get the component's derivatives too
-          KK_FLOAT adj = d_nbh_energy_ders_wrt_moments(ii, k);
+          KK_FLOAT adj = s_basic_adj(k);
           radial_force += adj * der * pow;
           val *= adj * inv_dist;
 
@@ -878,7 +978,9 @@ KOKKOS_INLINE_FUNCTION void PairMTPKokkos<DeviceType>::operator()(
     Kokkos::parallel_reduce(
         Kokkos::TeamThreadRange(team, alpha_scalar_count),
         [&](const int k, KK_FLOAT &sum) {
-          sum += d_linear_coeffs(k) * d_moment_tensor_vals(ii, d_alpha_moment_mapping(k));
+          sum += d_linear_coeffs(k) *
+              d_moment_tensor_vals(ii / ATOM_TILE_SIZE, d_alpha_moment_mapping(k),
+                                   ii % ATOM_TILE_SIZE);
         },
         nbh_energy);
 

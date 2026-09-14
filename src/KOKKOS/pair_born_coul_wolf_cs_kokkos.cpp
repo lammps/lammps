@@ -193,12 +193,18 @@ KK_FLOAT PairBornCoulWolfCSKokkos<DeviceType>::
 compute_fpair(const KK_FLOAT& rsq_in, const int& /*i*/, const int& /*j*/,
               const int& itype, const int& jtype) const
 {
-  // r = 0 must stay finite here, as in the CPU style.  Applied as a floor
-  // rather than an unconditional add, so that a value large enough to keep the
-  // single-precision kernel in range cannot perturb a normal pair
+  // r = 0 must stay finite here.  In double precision add EPSILON
+  // unconditionally, exactly as the CPU style and every other KOKKOS
+  // core/shell style do: a floor makes the regularized rsq independent of
+  // rsq_in, and for a coincident core/shell pair the excluded-coulomb terms
+  // cancel catastrophically before being multiplied by 1/rsq, so any
+  // difference there is amplified into an O(0.1) force.  In single precision
+  // EPSILON has to be large enough to keep 1/rsq**3 in range, which is too
+  // large to add to a normal pair, so there it stays a floor.
 
-  const KK_FLOAT rsq = (rsq_in > static_cast<KK_FLOAT>(EPSILON)) ?
-    rsq_in : static_cast<KK_FLOAT>(EPSILON);
+  const KK_FLOAT rsq = std::is_same_v<KK_FLOAT, float> ?
+    ((rsq_in > static_cast<KK_FLOAT>(EPSILON)) ? rsq_in : static_cast<KK_FLOAT>(EPSILON)) :
+    rsq_in + static_cast<KK_FLOAT>(EPSILON);
 
   const KK_FLOAT r2inv = static_cast<KK_FLOAT>(1.0)/rsq;
   const KK_FLOAT r6inv = r2inv*r2inv*r2inv;
@@ -226,12 +232,18 @@ compute_fcoul(const KK_FLOAT& rsq_in, const int& /*i*/, const int& j,
               const int& /*itype*/, const int& /*jtype*/,
               const KK_FLOAT& factor_coul, const KK_FLOAT& qtmp) const
 {
-  // r = 0 must stay finite here, as in the CPU style.  Applied as a floor
-  // rather than an unconditional add, so that a value large enough to keep the
-  // single-precision kernel in range cannot perturb a normal pair
+  // r = 0 must stay finite here.  In double precision add EPSILON
+  // unconditionally, exactly as the CPU style and every other KOKKOS
+  // core/shell style do: a floor makes the regularized rsq independent of
+  // rsq_in, and for a coincident core/shell pair the excluded-coulomb terms
+  // cancel catastrophically before being multiplied by 1/rsq, so any
+  // difference there is amplified into an O(0.1) force.  In single precision
+  // EPSILON has to be large enough to keep 1/rsq**3 in range, which is too
+  // large to add to a normal pair, so there it stays a floor.
 
-  const KK_FLOAT rsq = (rsq_in > static_cast<KK_FLOAT>(EPSILON)) ?
-    rsq_in : static_cast<KK_FLOAT>(EPSILON);
+  const KK_FLOAT rsq = std::is_same_v<KK_FLOAT, float> ?
+    ((rsq_in > static_cast<KK_FLOAT>(EPSILON)) ? rsq_in : static_cast<KK_FLOAT>(EPSILON)) :
+    rsq_in + static_cast<KK_FLOAT>(EPSILON);
 
   const KK_FLOAT r2inv = static_cast<KK_FLOAT>(1.0)/rsq;
   const KK_FLOAT r = Kokkos::sqrt(rsq);
@@ -256,12 +268,18 @@ KK_FLOAT PairBornCoulWolfCSKokkos<DeviceType>::
 compute_evdwl(const KK_FLOAT& rsq_in, const int& /*i*/, const int& /*j*/,
                const int& itype, const int& jtype) const
 {
-  // r = 0 must stay finite here, as in the CPU style.  Applied as a floor
-  // rather than an unconditional add, so that a value large enough to keep the
-  // single-precision kernel in range cannot perturb a normal pair
+  // r = 0 must stay finite here.  In double precision add EPSILON
+  // unconditionally, exactly as the CPU style and every other KOKKOS
+  // core/shell style do: a floor makes the regularized rsq independent of
+  // rsq_in, and for a coincident core/shell pair the excluded-coulomb terms
+  // cancel catastrophically before being multiplied by 1/rsq, so any
+  // difference there is amplified into an O(0.1) force.  In single precision
+  // EPSILON has to be large enough to keep 1/rsq**3 in range, which is too
+  // large to add to a normal pair, so there it stays a floor.
 
-  const KK_FLOAT rsq = (rsq_in > static_cast<KK_FLOAT>(EPSILON)) ?
-    rsq_in : static_cast<KK_FLOAT>(EPSILON);
+  const KK_FLOAT rsq = std::is_same_v<KK_FLOAT, float> ?
+    ((rsq_in > static_cast<KK_FLOAT>(EPSILON)) ? rsq_in : static_cast<KK_FLOAT>(EPSILON)) :
+    rsq_in + static_cast<KK_FLOAT>(EPSILON);
 
   const KK_FLOAT r2inv = static_cast<KK_FLOAT>(1.0)/rsq;
   const KK_FLOAT r6inv = r2inv*r2inv*r2inv;
@@ -289,12 +307,18 @@ compute_ecoul(const KK_FLOAT& rsq_in, const int& /*i*/, const int& j,
                const int& /*itype*/, const int& /*jtype*/,
                const KK_FLOAT& factor_coul, const KK_FLOAT& qtmp) const
 {
-  // r = 0 must stay finite here, as in the CPU style.  Applied as a floor
-  // rather than an unconditional add, so that a value large enough to keep the
-  // single-precision kernel in range cannot perturb a normal pair
+  // r = 0 must stay finite here.  In double precision add EPSILON
+  // unconditionally, exactly as the CPU style and every other KOKKOS
+  // core/shell style do: a floor makes the regularized rsq independent of
+  // rsq_in, and for a coincident core/shell pair the excluded-coulomb terms
+  // cancel catastrophically before being multiplied by 1/rsq, so any
+  // difference there is amplified into an O(0.1) force.  In single precision
+  // EPSILON has to be large enough to keep 1/rsq**3 in range, which is too
+  // large to add to a normal pair, so there it stays a floor.
 
-  const KK_FLOAT rsq = (rsq_in > static_cast<KK_FLOAT>(EPSILON)) ?
-    rsq_in : static_cast<KK_FLOAT>(EPSILON);
+  const KK_FLOAT rsq = std::is_same_v<KK_FLOAT, float> ?
+    ((rsq_in > static_cast<KK_FLOAT>(EPSILON)) ? rsq_in : static_cast<KK_FLOAT>(EPSILON)) :
+    rsq_in + static_cast<KK_FLOAT>(EPSILON);
 
   const KK_FLOAT r = Kokkos::sqrt(rsq);
   const KK_FLOAT prefactor = qqrd2e * qtmp * q(j) / r;

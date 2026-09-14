@@ -33,6 +33,7 @@
 
 using namespace LAMMPS_NS;
 
+namespace {
 template<class ViewA, class ViewB>
 struct ForceAdder {
   ViewA a;
@@ -46,9 +47,11 @@ struct ForceAdder {
     a(i,2) += b(i,2);
   }
 };
+}    // namespace
 
 /* ---------------------------------------------------------------------- */
 
+namespace {
 template<class View>
 struct Zero {
   View v;
@@ -61,6 +64,7 @@ struct Zero {
     v(i,2) = 0;
   }
 };
+}    // namespace
 
 /* ----------------------------------------------------------------------
    zero count entries of a per-atom array on both host sides, from first
@@ -467,7 +471,7 @@ void VerletKokkos::run(int n)
         // same reason.  Without this, fusing force_clear() into the pair style
         // leaves it stale and its contents are re-added on every step.
 
-        if (atomKK->k_f.NEED_TRANSFORM)
+        if (decltype(atomKK->k_f)::NEED_TRANSFORM)
           Kokkos::deep_copy(LMPHostType(),atomKK->k_f.view_host(),0.0);
       }
     }
@@ -530,7 +534,7 @@ void VerletKokkos::run(int n)
       // cannot be used here: it would copy one buffer over the other, and it is
       // a no-op anyway since F_MASK is excluded from the modified() calls above.
 
-      if (atomKK->k_f.NEED_TRANSFORM) {
+      if (decltype(atomKK->k_f)::NEED_TRANSFORM) {
         auto h_f_kk = atomKK->k_f.view_hostkk();
         auto h_f_legacy = atomKK->k_f.view_host();
         Kokkos::parallel_for(Kokkos::RangePolicy<LMPHostType>(0,atomKK->k_f.extent(0)),
@@ -569,11 +573,22 @@ void VerletKokkos::run(int n)
     // all output
 
     if (ntimestep == output->next) {
-       atomKK->sync(Host,ALL_MASK);
+      // a compute or fix that is not Kokkos-aware writes through the host
+      // pointers, and some of them re-enter the force pipeline while doing it:
+      // compute born/matrix numdiff displaces the atoms, recomputes the virial
+      // and restores them.  auto_sync is what makes those writes reach the
+      // device; without it the displacement never lands.
+
+      int prev_auto_sync = lmp->kokkos->auto_sync;
+      lmp->kokkos->auto_sync = 1;
+      atomKK->sync(Host,ALL_MASK);
 
       timer->stamp();
       output->write(ntimestep);
       timer->stamp(Timer::OUTPUT);
+
+      atomKK->modified(Host,ALL_MASK);
+      lmp->kokkos->auto_sync = prev_auto_sync;
     }
   }
 

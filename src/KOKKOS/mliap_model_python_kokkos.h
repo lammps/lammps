@@ -34,7 +34,7 @@ class MLIAPModelPythonKokkos : public MLIAPModelPython, public MLIAPModelKokkos<
   void compute_gradients(class MLIAPData *) override;
   void compute_gradgrads(class MLIAPData *) override;
   void compute_force_gradients(class MLIAPData *) override;
-  void connect_param_counts();
+  void connect_param_counts() override;
 };
 
 // Non-template handle type for the Cython coupling in

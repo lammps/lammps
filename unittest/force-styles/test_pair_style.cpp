@@ -426,6 +426,12 @@ TEST(PairStyle, plain)
     const int nlocal = lmp->atom->nlocal;
     ASSERT_EQ(lmp->atom->natoms, nlocal);
 
+    // init_lammps() was asked for "newton on" above, so newton pair being off
+    // here means the yaml file overrides it.  styles that require newton off
+    // (e.g. pair lubricate/poly) would fail the restarted runs below, which
+    // otherwise always switch newton back on.
+    const bool forced_newton_off = (lmp->force->newton_pair == 0);
+
     double epsilon = test_config.epsilon;
     // relax test precision when using pppm and single precision FFTs
 #if defined(FFT_SINGLE)
@@ -512,7 +518,7 @@ TEST(PairStyle, plain)
     }
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    restart_lammps(lmp, test_config);
+    restart_lammps(lmp, test_config, false, !forced_newton_off);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     pair = lmp->force->pair;
@@ -532,7 +538,7 @@ TEST(PairStyle, plain)
     // the "nofdotr" token in skip_tests.
     if ((test_config.pair_style != "rann") && !test_config.skip_tests.count("nofdotr")) {
         if (!verbose) ::testing::internal::CaptureStdout();
-        restart_lammps(lmp, test_config, true);
+        restart_lammps(lmp, test_config, true, !forced_newton_off);
         if (!verbose) ::testing::internal::GetCapturedStdout();
 
         pair = lmp->force->pair;
@@ -637,6 +643,9 @@ TEST(PairStyle, omp)
     const int nlocal = lmp->atom->nlocal;
     ASSERT_EQ(lmp->atom->natoms, nlocal);
 
+    // see the comment on the same flag in the "plain" test case
+    const bool forced_newton_off = (lmp->force->newton_pair == 0);
+
     // relax error a bit for OPENMP package
     double epsilon = 5.0 * test_config.epsilon;
     // relax test precision when using pppm and single precision FFTs
@@ -725,7 +734,7 @@ TEST(PairStyle, omp)
 
     if (!test_config.skip_tests.count("nofdotr")) {
         if (!verbose) ::testing::internal::CaptureStdout();
-        restart_lammps(lmp, test_config, true);
+        restart_lammps(lmp, test_config, true, !forced_newton_off);
         if (!verbose) ::testing::internal::GetCapturedStdout();
 
         pair = lmp->force->pair;
@@ -1649,6 +1658,9 @@ TEST(PairStyle, opt)
     const int nlocal = lmp->atom->nlocal;
     ASSERT_EQ(lmp->atom->natoms, nlocal);
 
+    // see the comment on the same flag in the "plain" test case
+    const bool forced_newton_off = (lmp->force->newton_pair == 0);
+
     // relax error a bit for OPT package
     double epsilon = 2.0 * test_config.epsilon;
     // relax test precision when using pppm and single precision FFTs
@@ -1690,7 +1702,7 @@ TEST(PairStyle, opt)
 
     if (!test_config.skip_tests.count("nofdotr")) {
         if (!verbose) ::testing::internal::CaptureStdout();
-        restart_lammps(lmp, test_config, true);
+        restart_lammps(lmp, test_config, true, !forced_newton_off);
         if (!verbose) ::testing::internal::GetCapturedStdout();
 
         pair = lmp->force->pair;

@@ -51,22 +51,35 @@ NeighborKokkos::NeighborKokkos(LAMMPS *lmp) : Neighbor(lmp),
 
 NeighborKokkos::~NeighborKokkos()
 {
-  if (!copymode) {
-    memoryKK->destroy_kokkos(k_cutneighsq,cutneighsq);
-    cutneighsq = nullptr;
-
-    memoryKK->destroy_kokkos(k_cutneighghostsq,cutneighghostsq);
-    cutneighghostsq = nullptr;
-
-    memoryKK->destroy_kokkos(k_ex_type,ex_type);
-    memoryKK->destroy_kokkos(k_ex1_type,ex1_type);
-    memoryKK->destroy_kokkos(k_ex2_type,ex2_type);
-    memoryKK->destroy_kokkos(k_ex_mol_group,ex_mol_group);
-    memoryKK->destroy_kokkos(k_ex1_bit,ex1_bit);
-    memoryKK->destroy_kokkos(k_ex2_bit,ex2_bit);
-    memoryKK->destroy_kokkos(k_ex_mol_bit,ex_mol_bit);
-    memoryKK->destroy_kokkos(k_ex_mol_intra,ex_mol_intra);
+  // this object (and its neighbond_host/neighbond_device members, held by
+  // value) gets bitwise-copied whenever copymode=1 code below hands *this
+  // to a Kokkos parallel_for/parallel_reduce (e.g. check_distance_kokkos()).
+  // Kokkos destroys that temporary copy when the loop finishes.  Checking
+  // copymode here protects this object's own arrays, but neighbond_host and
+  // neighbond_device have their own independent copymode flag that this
+  // copy never set, so their destructors would still run for real and free
+  // neighbor->bondlist/anglelist/etc out from under the live Neighbor -- so
+  // propagate the guard into them before their member destructors run.
+  if (copymode) {
+    neighbond_host.copymode = 1;
+    neighbond_device.copymode = 1;
+    return;
   }
+
+  memoryKK->destroy_kokkos(k_cutneighsq,cutneighsq);
+  cutneighsq = nullptr;
+
+  memoryKK->destroy_kokkos(k_cutneighghostsq,cutneighghostsq);
+  cutneighghostsq = nullptr;
+
+  memoryKK->destroy_kokkos(k_ex_type,ex_type);
+  memoryKK->destroy_kokkos(k_ex1_type,ex1_type);
+  memoryKK->destroy_kokkos(k_ex2_type,ex2_type);
+  memoryKK->destroy_kokkos(k_ex_mol_group,ex_mol_group);
+  memoryKK->destroy_kokkos(k_ex1_bit,ex1_bit);
+  memoryKK->destroy_kokkos(k_ex2_bit,ex2_bit);
+  memoryKK->destroy_kokkos(k_ex_mol_bit,ex_mol_bit);
+  memoryKK->destroy_kokkos(k_ex_mol_intra,ex_mol_intra);
 }
 
 /* ---------------------------------------------------------------------- */

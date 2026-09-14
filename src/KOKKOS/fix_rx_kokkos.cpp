@@ -1369,21 +1369,21 @@ void FixRxKokkos<DeviceType>::solve_reactions(const int /*vflag*/, const bool is
 #define _template_switch(_wtflag, _localTempFlag) {                               \
       if (neighflag == HALF) {                                                    \
         if (newton_pair) {                                                        \
-          computeLocalTemperature<_wtflag, _localTempFlag, true , HALF> ();       \
+          computeLocalTemperatureKokkos<_wtflag, _localTempFlag, true , HALF> ();       \
         } else {                                                                  \
-          computeLocalTemperature<_wtflag, _localTempFlag, false, HALF> ();       \
+          computeLocalTemperatureKokkos<_wtflag, _localTempFlag, false, HALF> ();       \
         }                                                                         \
       } else if (neighflag == HALFTHREAD) {                                       \
         if (newton_pair) {                                                        \
-          computeLocalTemperature<_wtflag, _localTempFlag, true , HALFTHREAD> (); \
+          computeLocalTemperatureKokkos<_wtflag, _localTempFlag, true , HALFTHREAD> (); \
         } else {                                                                  \
-          computeLocalTemperature<_wtflag, _localTempFlag, false, HALFTHREAD> (); \
+          computeLocalTemperatureKokkos<_wtflag, _localTempFlag, false, HALFTHREAD> (); \
         }                                                                         \
       } else if (neighflag == FULL) {                                             \
         if (newton_pair)  {                                                       \
-          computeLocalTemperature<_wtflag, _localTempFlag, true , FULL> ();       \
+          computeLocalTemperatureKokkos<_wtflag, _localTempFlag, true , FULL> ();       \
         } else {                                                                  \
-          computeLocalTemperature<_wtflag, _localTempFlag, false, FULL> ();       \
+          computeLocalTemperatureKokkos<_wtflag, _localTempFlag, false, FULL> ();       \
         }                                                                         \
       }                                                                           \
     }
@@ -1769,7 +1769,7 @@ void FixRxKokkos<DeviceType>::operator()(Tag_FixRxKokkos_2ndPairOperator<WT_FLAG
 
 template <typename DeviceType>
   template <int WT_FLAG, int LOCAL_TEMP_FLAG, bool NEWTON_PAIR, int NEIGHFLAG>
-void FixRxKokkos<DeviceType>::computeLocalTemperature()
+void FixRxKokkos<DeviceType>::computeLocalTemperatureKokkos()
 {
   d_x        = atomKK->k_x.view<DeviceType>();
   d_type     = atomKK->k_type.view<DeviceType>();

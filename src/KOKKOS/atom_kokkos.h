@@ -214,9 +214,10 @@ class AtomKokkos : public Atom {
   void map_set_device();
   void map_set_host();
 
+  class AtomVec *new_avec(const std::string &, int, int &) override;
+
  private:
   void sort_device();
-  class AtomVec *new_avec(const std::string &, int, int &) override;
 };
 
 template<class ViewType, class IndexView>

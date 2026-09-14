@@ -50,6 +50,7 @@ enum{NONE,RLINEAR,RSQ,BMP};
 #define OneFluidValue (-1)
 #define isOneFluid(_site_) ( (_site_) == OneFluidValue )
 
+namespace {
 template<class DeviceType>
 // NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
@@ -151,6 +152,7 @@ void getMixingWeights(
     mixWtSite2 = nMolecules2;
   }
 }
+}    // namespace
 
 /* ---------------------------------------------------------------------- */
 
@@ -292,6 +294,7 @@ compute_evdwl(
   return evdwl;
 }
 
+namespace {
 template<class DeviceType, int NEIGHFLAG, int TABSTYLE, int NEWTON_PAIR>
 // NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
@@ -402,6 +405,7 @@ ev_tally(
     }
   }
 }
+}    // namespace
 
 template <class DeviceType, int NEIGHFLAG, bool STACKPARAMS, int TABSTYLE,
           int EVFLAG, int NEWTON_PAIR>

@@ -217,8 +217,14 @@ void MinKokkos::setup(int flag)
 
   lmp->kokkos->auto_sync = 0;
   modify->setup(vflag);
-  output->setup(flag);
   lmp->kokkos->auto_sync = 1;
+
+  // VerletKokkos::setup() already runs the setup output with auto_sync on,
+  // for the same reason the iterate loops now do
+
+  atomKK->sync(Host,ALL_MASK);
+  output->setup(flag);
+  atomKK->modified(Host,ALL_MASK);
   update->setupflag = 0;
 
   // stats for initial thermo output
@@ -386,8 +392,12 @@ void MinKokkos::run(int n)
     modify->addstep_compute_all(update->ntimestep);
     ecurrent = energy_force(0);
 
+    int prev_auto_sync = lmp->kokkos->auto_sync;
+    lmp->kokkos->auto_sync = 1;
     atomKK->sync(Host,ALL_MASK);
     output->write(update->ntimestep);
+    atomKK->modified(Host,ALL_MASK);
+    lmp->kokkos->auto_sync = prev_auto_sync;
   }
 
   atomKK->sync(Host,ALL_MASK);

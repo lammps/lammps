@@ -144,6 +144,7 @@ void FFT3dKokkos<DeviceType>::timing1d(typename FFT_AT::t_FFT_SCALAR_1d d_in, in
    plan         plan returned by previous call to fft_3d_create_plan
 ------------------------------------------------------------------------- */
 
+namespace {
 template<class DeviceType>
 struct norm_functor {
 public:
@@ -171,6 +172,7 @@ public:
 #endif
   }
 };
+}    // namespace
 
 #ifdef FFT_KOKKOS_KISS
 template<class DeviceType>

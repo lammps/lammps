@@ -433,8 +433,10 @@ void PairEAMKokkos<DeviceType>::file2array()
 template<class DeviceType>
 void PairEAMKokkos<DeviceType>::array2spline()
 {
-  rdr = 1.0/dr;
-  rdrho = 1.0/drho;
+  // also build the host tables of the base class, so that CPU-only consumers
+  // of the spline data (e.g. compute_atomic_energy()) keep working
+
+  PairEAM::array2spline();
 
   rdr_kk = static_cast<KK_FLOAT>(rdr);
   rdrho_kk = static_cast<KK_FLOAT>(rdrho);

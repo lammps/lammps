@@ -54,6 +54,7 @@ AtomVecKokkos::~AtomVecKokkos()
 
 /* ---------------------------------------------------------------------- */
 
+namespace {
 template<class DeviceType,int PBC_FLAG,int TRICLINIC,int DEFAULT>
 struct AtomVecKokkos_PackComm {
   typedef DeviceType device_type;
@@ -145,6 +146,7 @@ struct AtomVecKokkos_PackComm {
     }
   }
 };
+}    // namespace
 
 /* ---------------------------------------------------------------------- */
 
@@ -276,6 +278,7 @@ int AtomVecKokkos::pack_comm_kokkos(const int &n,
 
 /* ---------------------------------------------------------------------- */
 
+namespace {
 template<class DeviceType,int DEFAULT>
 struct AtomVecKokkos_UnpackComm {
   typedef DeviceType device_type;
@@ -345,6 +348,7 @@ struct AtomVecKokkos_UnpackComm {
     }
   }
 };
+}    // namespace
 
 /* ---------------------------------------------------------------------- */
 
@@ -377,6 +381,7 @@ void AtomVecKokkos::unpack_comm_kokkos(const int &n, const int &first,
 
 /* ---------------------------------------------------------------------- */
 
+namespace {
 template<class DeviceType,int PBC_FLAG,int TRICLINIC,int DEFAULT>
 struct AtomVecKokkos_PackCommSelf {
   typedef DeviceType device_type;
@@ -463,6 +468,7 @@ struct AtomVecKokkos_PackCommSelf {
     }
   }
 };
+}    // namespace
 
 /* ---------------------------------------------------------------------- */
 
@@ -592,6 +598,7 @@ int AtomVecKokkos::pack_comm_self_kokkos(const int &n, const DAT::tdual_int_1d &
 
 /* ---------------------------------------------------------------------- */
 
+namespace {
 template<class DeviceType,int TRICLINIC,int DEFAULT>
 struct AtomVecKokkos_PackCommSelfFused {
   typedef DeviceType device_type;
@@ -700,6 +707,7 @@ struct AtomVecKokkos_PackCommSelfFused {
     }
   }
 };
+}    // namespace
 
 /* ---------------------------------------------------------------------- */
 
@@ -776,6 +784,7 @@ int AtomVecKokkos::pack_comm_self_fused_kokkos(const int &n,
 
 /* ---------------------------------------------------------------------- */
 
+namespace {
 template<class DeviceType,int PBC_FLAG,int TRICLINIC,int DEFORM_VREMAP>
 struct AtomVecKokkos_PackCommVel {
   typedef DeviceType device_type;
@@ -915,6 +924,7 @@ struct AtomVecKokkos_PackCommVel {
     }
   }
 };
+}    // namespace
 
 /* ---------------------------------------------------------------------- */
 
@@ -1052,6 +1062,7 @@ int AtomVecKokkos::pack_comm_vel_kokkos(
 
 /* ---------------------------------------------------------------------- */
 
+namespace {
 template<class DeviceType,int DEFAULT>
 struct AtomVecKokkos_UnpackCommVel {
   typedef DeviceType device_type;
@@ -1146,6 +1157,7 @@ struct AtomVecKokkos_UnpackCommVel {
     }
   }
 };
+}    // namespace
 
 /* ---------------------------------------------------------------------- */
 
@@ -1179,6 +1191,7 @@ void AtomVecKokkos::unpack_comm_vel_kokkos(const int &n, const int &first,
 
 /* ---------------------------------------------------------------------- */
 
+namespace {
 template<class DeviceType,int DEFAULT>
 struct AtomVecKokkos_PackReverse {
   typedef DeviceType device_type;
@@ -1236,6 +1249,7 @@ struct AtomVecKokkos_PackReverse {
     }
   }
 };
+}    // namespace
 
 /* ---------------------------------------------------------------------- */
 
@@ -1266,6 +1280,7 @@ int AtomVecKokkos::pack_reverse_kokkos(const int &n, const int &first,
 
 /* ---------------------------------------------------------------------- */
 
+namespace {
 template<class DeviceType,int DEFAULT>
 struct AtomVecKokkos_UnPackReverse {
   typedef DeviceType device_type;
@@ -1326,6 +1341,7 @@ struct AtomVecKokkos_UnPackReverse {
     }
   }
 };
+}    // namespace
 
 /* ---------------------------------------------------------------------- */
 
@@ -1361,6 +1377,7 @@ void AtomVecKokkos::unpack_reverse_kokkos(const int &n,
 
 /* ---------------------------------------------------------------------- */
 
+namespace {
 template<class DeviceType,int DEFAULT>
 struct AtomVecKokkos_UnPackReverseSelf {
   typedef DeviceType device_type;
@@ -1416,6 +1433,7 @@ struct AtomVecKokkos_UnPackReverseSelf {
     }
   }
 };
+}    // namespace
 
 /* ---------------------------------------------------------------------- */
 
@@ -1447,6 +1465,7 @@ int AtomVecKokkos::pack_reverse_self_kokkos(const int &n, const DAT::tdual_int_1
 }
 /* ---------------------------------------------------------------------- */
 
+namespace {
 template<class DeviceType,int PBC_FLAG,int DEFAULT>
 struct AtomVecKokkos_PackBorder {
   typedef DeviceType device_type;
@@ -1552,6 +1571,7 @@ struct AtomVecKokkos_PackBorder {
     }
   }
 };
+}    // namespace
 
 /* ---------------------------------------------------------------------- */
 
@@ -1634,6 +1654,7 @@ int AtomVecKokkos::pack_border_kokkos(int n, DAT::tdual_int_1d k_sendlist,
 
 /* ---------------------------------------------------------------------- */
 
+namespace {
 template<class DeviceType,int DEFAULT>
 struct AtomVecKokkos_UnpackBorder {
   typedef DeviceType device_type;
@@ -1729,6 +1750,7 @@ struct AtomVecKokkos_UnpackBorder {
     }
   }
 };
+}    // namespace
 
 /* ---------------------------------------------------------------------- */
 
@@ -1768,6 +1790,7 @@ void AtomVecKokkos::unpack_border_kokkos(const int &n, const int &first,
 
 /* ---------------------------------------------------------------------- */
 
+namespace {
 template<class DeviceType,int PBC_FLAG,int DEFORM_VREMAP>
 struct AtomVecKokkos_PackBorderVel {
   typedef DeviceType device_type;
@@ -1918,6 +1941,7 @@ struct AtomVecKokkos_PackBorderVel {
     }
   }
 };
+}    // namespace
 
 /* ---------------------------------------------------------------------- */
 
@@ -2002,6 +2026,7 @@ int AtomVecKokkos::pack_border_vel_kokkos(
 
 /* ---------------------------------------------------------------------- */
 
+namespace {
 template<class DeviceType,int DEFAULT>
 struct AtomVecKokkos_UnpackBorderVel {
   typedef DeviceType device_type;
@@ -2125,6 +2150,7 @@ struct AtomVecKokkos_UnpackBorderVel {
     }
   }
 };
+}    // namespace
 
 /* ---------------------------------------------------------------------- */
 
@@ -2173,6 +2199,7 @@ void AtomVecKokkos::unpack_border_vel_kokkos(
 
 /* ---------------------------------------------------------------------- */
 
+namespace {
 template<class DeviceType,int DEFAULT>
 struct AtomVecKokkos_PackExchangeFunctor {
   typedef DeviceType device_type;
@@ -2509,6 +2536,7 @@ struct AtomVecKokkos_PackExchangeFunctor {
     }
   }
 };
+}    // namespace
 
 /* ---------------------------------------------------------------------- */
 
@@ -2564,6 +2592,7 @@ int AtomVecKokkos::pack_exchange_kokkos(const int &nsend,DAT::tdual_double_2d_lr
 
 /* ---------------------------------------------------------------------- */
 
+namespace {
 template<class DeviceType,int OUTPUT_INDICES,int DEFAULT>
 struct AtomVecKokkos_UnpackExchangeFunctor {
   typedef DeviceType device_type;
@@ -2791,6 +2820,7 @@ struct AtomVecKokkos_UnpackExchangeFunctor {
       _indices(myrecv) = i;
   }
 };
+}    // namespace
 
 /* ---------------------------------------------------------------------- */
 int AtomVecKokkos::unpack_exchange_kokkos(DAT::tdual_double_2d_lr &k_buf, int nrecv, int nlocal,

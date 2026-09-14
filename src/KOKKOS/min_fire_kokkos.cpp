@@ -18,6 +18,7 @@
 
 #include "min_fire_kokkos.h"
 #include "atom_kokkos.h"
+#include "kokkos.h"
 #include "atom_masks.h"
 #include "comm.h"
 #include "error.h"
@@ -410,11 +411,20 @@ int MinFireKokkos::run_iterate(int maxiter) {
     // output for thermo, dump, restart files
 
     if (output->next == ntimestep) {
+      // as in VerletKokkos::run(): a plain compute or fix reached from the
+      // output may write through the host pointers and re-enter the force
+      // pipeline, and auto_sync is what carries those writes to the device
+
+      int prev_auto_sync = lmp->kokkos->auto_sync;
+      lmp->kokkos->auto_sync = 1;
       atomKK->sync(Host,ALL_MASK);
 
       timer->stamp();
       output->write(ntimestep);
       timer->stamp(Timer::OUTPUT);
+
+      atomKK->modified(Host,ALL_MASK);
+      lmp->kokkos->auto_sync = prev_auto_sync;
     }
   }
   atomKK->modified(Device, X_MASK | V_MASK | F_MASK);

@@ -68,6 +68,9 @@ class NeighborKokkos : public Neighbor {
 
   int device_flag;
 
+  int check_distance() override;
+  void build(int) override;
+
  private:
 
   DAT::ttransform_kkfloat_1d_3_lr x;
@@ -82,9 +85,7 @@ class NeighborKokkos : public Neighbor {
   void init_ex_bit_kokkos() override;
   void init_ex_mol_bit_kokkos() override;
   void grow_ex_mol_intra_kokkos() override;
-  int check_distance() override;
   template<class DeviceType> int check_distance_kokkos();
-  void build(int) override;
   template<class DeviceType> void build_kokkos(int);
   void modify_ex_type_grow_kokkos();
   void modify_ex_group_grow_kokkos();

@@ -22,6 +22,7 @@
 #include "atom_masks.h"
 #include "atom_vec.h"
 #include "domain_kokkos.h"
+#include "bond.h"
 #include "error.h"
 #include "fix.h"
 #include "force.h"
@@ -126,7 +127,7 @@ void NeighBondKokkos<DeviceType>::init_topology_kk() {
   // bonds,etc can only be broken for atom->molecular = Atom::MOLECULAR, not Atom::TEMPLATE
   // SHAKE sets bonds and angles negative
   // gcmc sets all bonds, angles, etc negative
-  // bond_quartic sets bonds to 0
+  // a bond style that turns bonds off sets partial_flag
   // delete_bonds sets all interactions negative
 
   int i,m;
@@ -142,7 +143,7 @@ void NeighBondKokkos<DeviceType>::init_topology_kk() {
     if (utils::strmatch(ifix->style,"^shake") || utils::strmatch(ifix->style,"^rattle") ||
         utils::strmatch(ifix->style,"^ilves"))
       bond_off = angle_off = 1;
-  if (force->bond && force->bond_match("quartic")) bond_off = 1;
+  if (force->bond && force->bond->partial_flag) bond_off = 1;
 
   if (atom->avec->bonds_allow && atom->molecular == Atom::MOLECULAR) {
     for (i = 0; i < atom->nlocal; i++) {

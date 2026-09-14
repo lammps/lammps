@@ -402,7 +402,7 @@ void FixLangevinKokkos<DeviceType>::post_force(int /*vflag*/)
   atomKK->modified(execution_space,datamask_modify);
 
   // thermostat omega and angmom
-  if (oflag) omega_thermostat();
+  if (oflag) omega_thermostat_kokkos();
   if (ascale != 0.0) angmom_thermostat();
 
 }

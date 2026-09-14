@@ -724,7 +724,8 @@ void FixDeformPressure::apply_volume()
       }
     }
 
-    h_rate[i] = (2.0 * shift / domain->prd[i] - 1.0) / dt;
+    // (2*shift - prd)/dt is d(box length)/dt; domain->h_rate is not a strain rate
+    h_rate[i] = (2.0 * shift - domain->prd[i]) / dt;
     h_ratelo[i] = -0.5 * h_rate[i];
 
     set[i].lo_target = 0.5 * (set[i].lo_start + set[i].hi_start) - shift;
@@ -784,9 +785,8 @@ void FixDeformPressure::apply_box()
       set[i].lo_target = 0.5 * (set[i].lo_start + set[i].hi_start) - shift;
       set[i].hi_target = 0.5 * (set[i].lo_start + set[i].hi_start) + shift;
 
-      // Recalculate h_rate
-      h_rate[i] = (set[i].hi_target - set[i].lo_target) / domain->prd[i] - 1.0;
-      h_rate[i] /= dt;
+      // Recalculate h_rate: d(box length)/dt, not a strain rate
+      h_rate[i] = (set[i].hi_target - set[i].lo_target - domain->prd[i]) / dt;
       h_ratelo[i] = -0.5 * h_rate[i];
     }
 
@@ -823,9 +823,8 @@ void FixDeformPressure::apply_box()
       set[i].lo_target -= 0.5 * set_extra[6].cumulative_vshift[i];
       set[i].hi_target += 0.5 * set_extra[6].cumulative_vshift[i];
 
-      // Recalculate h_rate
-      h_rate[i] = (set[i].hi_target - set[i].lo_target) / domain->prd[i] - 1.0;
-      h_rate[i] /= dt;
+      // Recalculate h_rate: d(box length)/dt, not a strain rate
+      h_rate[i] = (set[i].hi_target - set[i].lo_target - domain->prd[i]) / dt;
       h_ratelo[i] = -0.5 * h_rate[i];
     }
   }

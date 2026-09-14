@@ -19,6 +19,7 @@
 #include "create_atoms.h"
 
 #include "atom.h"
+#include "atom_masks.h"
 #include "atom_vec.h"
 #include "comm.h"
 #include "domain.h"
@@ -512,6 +513,14 @@ void CreateAtoms::command(int narg, char **arg)
   atom->nghost = 0;
   atom->avec->clear_bonus();
 
+  // the add() methods below create atoms and write their per-atom data through
+  // the plain pointers, so bring the host side up to date first and hand the
+  // writes over after the IDs are assigned; without the KOKKOS package these
+  // do nothing.  a create_atoms between two runs finds the device holding the
+  // newer copy of the per-atom arrays
+
+  atom->sync_host_arrays(ALL_MASK);
+
   // add atoms/molecules with appropriate add() method
 
   bigint natoms_previous = atom->natoms;
@@ -542,6 +551,8 @@ void CreateAtoms::command(int narg, char **arg)
 
   if (atom->tag_enable) atom->tag_extend();
   atom->tag_check();
+
+  atom->modified_host_arrays(ALL_MASK);
 
   // if global map exists, reset it
   // invoke map_init() b/c atom count has grown

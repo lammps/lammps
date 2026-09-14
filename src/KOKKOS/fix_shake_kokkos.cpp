@@ -32,8 +32,6 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
 
-static constexpr double BIG = 1.0e20; // Exact match to fix_shake.cpp
-
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
@@ -429,22 +427,9 @@ void FixShakeKokkos<DeviceType>::min_post_force(int vflag)
 
   copymode = 1;
 
-  if (output_every) {
-    d_b_stats = typename AT::t_double_2d("shake:b_stats", atom->nbondtypes + 1, 4);
-    d_a_stats = typename AT::t_double_2d("shake:a_stats", atom->nangletypes + 1, 4);
-
-    // Capture views locally for the lambda
-    auto l_b_stats = this->d_b_stats;
-    auto l_a_stats = this->d_a_stats;
-    const int nb = atom->nbondtypes + 1;
-    const int na = atom->nangletypes + 1;
-
-    Kokkos::parallel_for("FixShake:zero_stats", Kokkos::RangePolicy<DeviceType>(0, MAX(nb, na)),
-      KOKKOS_LAMBDA(const int &i) {
-        if (i < nb) { l_b_stats(i,0) = 0; l_b_stats(i,1) = 0; l_b_stats(i,2) = 0; l_b_stats(i,3) = BIG; }
-        if (i < na) { l_a_stats(i,0) = 0; l_a_stats(i,1) = 0; l_a_stats(i,2) = 0; l_a_stats(i,3) = BIG; }
-    });
-  }
+  // the bond and angle statistics that are printed on an output step are
+  // recomputed from the current coordinates by stats() below, so nothing is
+  // accumulated in the kernel
 
   EV_FLOAT ev;
 
@@ -470,7 +455,9 @@ void FixShakeKokkos<DeviceType>::min_post_force(int vflag)
     if (vflag_atom) Kokkos::Experimental::contribute(d_vatom, dup_vatom);
   }
 
-  comm->reverse_comm(this);
+  // no reverse communication here: this fix defines no comm_reverse and no
+  // pack/unpack_reverse_comm, and the restraint force is applied to the owners
+
   this->ebond = static_cast<double>(ev.evdwl);
 
   if (vflag_global) {
@@ -501,10 +488,10 @@ void FixShakeKokkos<DeviceType>::min_post_force(int vflag)
     dup_vatom = {};
   }
 
-  if (update->ntimestep == next_output) {
-    atomKK->modified(execution_space, X_MASK);
-    stats();
-  }
+  // the kernel above only reads x, so no modify() here; stats() syncs the
+  // coordinates to the host itself
+
+  if (update->ntimestep == next_output) stats();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -536,17 +523,13 @@ void FixShakeKokkos<DeviceType>::operator()(TagFixShakeMinPostForce<NEIGHFLAG,EV
     const KK_FLOAT rk = static_cast<KK_FLOAT>(kbond) * dr;
     const KK_FLOAT fbond = (r > static_cast<KK_FLOAT>(0.0)) ? static_cast<KK_FLOAT>(-2.0) * rk / r : static_cast<KK_FLOAT>(0.0);
     const KK_FLOAT eb = rk * dr;
-    a_f(idx0, 0) += static_cast<KK_ACC_FLOAT>(delx * fbond);
-    a_f(idx0, 1) += static_cast<KK_ACC_FLOAT>(dely * fbond);
-    a_f(idx0, 2) += static_cast<KK_ACC_FLOAT>(delz * fbond);
-    a_f(idx1, 0) -= static_cast<KK_ACC_FLOAT>(delx * fbond);
-    a_f(idx1, 1) -= static_cast<KK_ACC_FLOAT>(dely * fbond);
-    a_f(idx1, 2) -= static_cast<KK_ACC_FLOAT>(delz * fbond);
 
-    // energy and virial are shared out over the owned atoms of the pair, as
+    // force, energy and virial all go to the owned atoms of the pair, as
     // FixShake::bond_force() does.  the closest image of an atom owned by
     // this processor is mapped back onto the owner first, so that a cluster
     // reaching across a periodic boundary is still credited to both atoms.
+    // this fix has no reverse communication, so a contribution written into
+    // a ghost slot would be lost.
 
     int atomlist[2];
     int count = 0;
@@ -554,8 +537,18 @@ void FixShakeKokkos<DeviceType>::operator()(TagFixShakeMinPostForce<NEIGHFLAG,EV
                                                         k_map_array,k_map_hash);
     const int own1 = AtomKokkos::map_kokkos<DeviceType>(d_shake_atom(m,slot1),map_style,
                                                         k_map_array,k_map_hash);
-    if ((own0 >= 0) && (own0 < nlocal)) atomlist[count++] = own0;
-    if ((own1 >= 0) && (own1 < nlocal)) atomlist[count++] = own1;
+    if ((own0 >= 0) && (own0 < nlocal)) {
+      a_f(own0, 0) += static_cast<KK_ACC_FLOAT>(delx * fbond);
+      a_f(own0, 1) += static_cast<KK_ACC_FLOAT>(dely * fbond);
+      a_f(own0, 2) += static_cast<KK_ACC_FLOAT>(delz * fbond);
+      atomlist[count++] = own0;
+    }
+    if ((own1 >= 0) && (own1 < nlocal)) {
+      a_f(own1, 0) -= static_cast<KK_ACC_FLOAT>(delx * fbond);
+      a_f(own1, 1) -= static_cast<KK_ACC_FLOAT>(dely * fbond);
+      a_f(own1, 2) -= static_cast<KK_ACC_FLOAT>(delz * fbond);
+      atomlist[count++] = own1;
+    }
 
     const KK_FLOAT total = static_cast<KK_FLOAT>(2.0);
     ev.evdwl += static_cast<KK_ACC_FLOAT>((static_cast<KK_FLOAT>(count)/total) * eb);
@@ -570,16 +563,6 @@ void FixShakeKokkos<DeviceType>::operator()(TagFixShakeMinPostForce<NEIGHFLAG,EV
       v[5] = static_cast<KK_FLOAT>(0.5) * dely * delz * fbond;
       ev_tally<NEIGHFLAG>(ev,count,atomlist,total,eb,v);
     }
-    if (output_every && !is_angle) {
-      // only atoms owned by this processor are counted, as on the CPU
-      const double nown = (double) ((idx0 < nlocal) + (idx1 < nlocal));
-      if (nown > 0.0) {
-        Kokkos::atomic_add(&d_b_stats(type_idx, 0), nown);
-        Kokkos::atomic_add(&d_b_stats(type_idx, 1), nown * (double)r);
-      }
-      Kokkos::atomic_max(&d_b_stats(type_idx, 2), (double)r);
-      Kokkos::atomic_min(&d_b_stats(type_idx, 3), (double)r);
-    }
     return r;
   };
 
@@ -593,24 +576,9 @@ void FixShakeKokkos<DeviceType>::operator()(TagFixShakeMinPostForce<NEIGHFLAG,EV
     apply_restraint(0, 2, d_shake_type(m, 1), false);
     apply_restraint(0, 3, d_shake_type(m, 2), false);
   } else if (flag == 1) {
-    int i1 = d_closest_list(i, 1);
-    int i2 = d_closest_list(i, 2);
-    KK_FLOAT r1 = apply_restraint(0, 1, d_shake_type(m, 0), false);
-    KK_FLOAT r2 = apply_restraint(0, 2, d_shake_type(m, 1), false);
-    KK_FLOAT r3 = apply_restraint(1, 2, d_shake_type(m, 2), true);
-    if (output_every) {
-      KK_FLOAT angle = Kokkos::acos((r1*r1 + r2*r2 - r3*r3) / (static_cast<KK_FLOAT>(2.0)*r1*r2)) * static_cast<KK_FLOAT>(180.0)/static_cast<KK_FLOAT>(MY_PI);
-      int mt = d_shake_type(m, 2);
-      // the plain style counts the angle once per owned outer atom and
-      // leaves the central one out, see FixShake::bond_force()
-      int count = (i1 < nlocal) + (i2 < nlocal);
-      if (count > 0) {
-        Kokkos::atomic_add(&d_a_stats(mt, 0), (double)count);
-        Kokkos::atomic_add(&d_a_stats(mt, 1), (double)count * static_cast<double>(angle));
-        Kokkos::atomic_max(&d_a_stats(mt, 2), (double)angle);
-        Kokkos::atomic_min(&d_a_stats(mt, 3), (double)angle);
-      }
-    }
+    apply_restraint(0, 1, d_shake_type(m, 0), false);
+    apply_restraint(0, 2, d_shake_type(m, 1), false);
+    apply_restraint(1, 2, d_shake_type(m, 2), true);
   }
 }
 
@@ -630,12 +598,14 @@ template<class DeviceType>
 void FixShakeKokkos<DeviceType>::post_force(int vflag)
 {
   ebond = 0.0;
-  copymode = 1;
 
   d_x = atomKK->k_x.view<DeviceType>();
   d_f = atomKK->k_f.view<DeviceType>();
   d_type = atomKK->k_type.view<DeviceType>();
   d_rmass = atomKK->k_rmass.view<DeviceType>();
+  // the per-type masses have no datamask bit, so atomKK->sync() cannot carry
+  // them: push the dual view to the device by hand
+  atomKK->k_mass.template sync<DeviceType>();
   d_mass = atomKK->k_mass.view<DeviceType>();
   nlocal = atomKK->nlocal;
 
@@ -723,7 +693,12 @@ void FixShakeKokkos<DeviceType>::post_force(int vflag)
   // update just in case tolerance was changed
   tolerance_kk = static_cast<KK_FLOAT>(tolerance);
 
-  // loop over clusters to add constraint forces
+  // loop over clusters to add constraint forces.  set copymode only now:
+  // the earlier setup (unconstrained_update, forward_comm) dispatches its own
+  // kernels that toggle copymode back to 0, so claiming it up front would leave
+  // it clear here and let Kokkos' functor copies free the shared views twice
+
+  copymode = 1;
 
   if (neighflag == HALF) {
    if (evflag)
@@ -862,6 +837,9 @@ void FixShakeKokkos<DeviceType>::unconstrained_update()
   d_f = atomKK->k_f.view<DeviceType>();
   d_type = atomKK->k_type.view<DeviceType>();
   d_rmass = atomKK->k_rmass.view<DeviceType>();
+  // the per-type masses have no datamask bit, so atomKK->sync() cannot carry
+  // them: push the dual view to the device by hand
+  atomKK->k_mass.template sync<DeviceType>();
   d_mass = atomKK->k_mass.view<DeviceType>();
   nlocal = atom->nlocal;
 
@@ -2127,10 +2105,15 @@ int FixShakeKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_int_1
     dz = static_cast<KK_FLOAT>(pbc[2]*domain->zprd);
   }
 
+  copymode = 1;
+
   if (pbc_flag)
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixShakePackForwardComm<1> >(0,n),*this);
   else
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixShakePackForwardComm<0> >(0,n),*this);
+
+  copymode = 0;
+
   return n*3;
 }
 
@@ -2175,7 +2158,12 @@ void FixShakeKokkos<DeviceType>::unpack_forward_comm_kokkos(int n, int first_in,
 {
   first = first_in;
   d_buf = buf.view<DeviceType>();
+
+  copymode = 1;
+
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixShakeUnpackForwardComm>(0,n),*this);
+
+  copymode = 0;
 
   k_xshake.modify<DeviceType>();
 }

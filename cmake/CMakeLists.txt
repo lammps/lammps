@@ -27,6 +27,12 @@ if(POLICY CMP0135)
   cmake_policy(SET CMP0135 NEW)
 endif()
 
+# set policy to ignore CMAKE_WARN_DEPRECATED and CMAKE_ERROR_DEPRECATED if available.
+# we are not using those AFAIK anyway.
+if(POLICY CMP0218)
+  cmake_policy(SET CMP0218 NEW)
+endif()
+
 ########################################
 # General project settings
 project(lammps
@@ -902,6 +908,13 @@ install(
 )
 
 ###############################################################################
+# On Linux systems (any others, too?) we may need to update the shared linker cache
+###############################################################################
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  install(CODE "execute_process(COMMAND ldconfig || exit 0)")
+endif()
+
+###############################################################################
 # Install LAMMPS lib and python module into site-packages folder with
 # "install-python" target.  Behaves exactly like "make install-python" for
 # conventional build.  Only available, if a shared library is built.
@@ -938,7 +951,6 @@ endif()
 add_custom_target(tarball
   COMMAND ${LAMMPS_DIR}/cmake/packaging/build_tarball.sh ${LAMMPS_DIR}/doc
 )
-
 
 include(Testing)
 include(CodeCoverage)

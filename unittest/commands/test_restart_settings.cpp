@@ -21,6 +21,7 @@
 
 #include "atom.h"
 #include "info.h"
+#include "library.h"
 #include "utils.h"
 
 #include "../testing/core.h"
@@ -96,6 +97,8 @@ protected:
 TEST_F(RestartSettingsTest, granular_limit_damping)
 {
     if (!Info::has_package("GRANULAR")) GTEST_SKIP();
+    // fix neigh/history/kk requires "newton off" for the exchange communication
+    if (lmp->suffix_enable) GTEST_SKIP() << "granular pair styles need newton off with KOKKOS";
 
     BEGIN_HIDE_OUTPUT();
     command("units si");
@@ -150,6 +153,11 @@ TEST_F(RestartSettingsTest, eff_cut_settings)
 {
     if (!Info::has_package("EFF")) GTEST_SKIP();
 
+    // the KOKKOS package requires a Kokkos-enabled atom style, and there is
+    // no accelerated version of atom style electron
+    if (lmp->kokkos && !info->has_style("atom", "electron/kk"))
+        GTEST_SKIP() << "atom style electron has no KOKKOS version";
+
     BEGIN_HIDE_OUTPUT();
     command("units electron");
     command("atom_style electron");
@@ -187,6 +195,13 @@ int main(int argc, char **argv)
     if ((argc > 1) && (strcmp(argv[1], "-v") == 0)) verbose = true;
 
     int rv = RUN_ALL_TESTS();
+
+    // finalize the KOKKOS package explicitly: otherwise Kokkos is torn down by
+    // static destructors at program exit, leading to segfaults in some cases
+    // same workaround as the force-style and FFT3d test drivers
+
+    lammps_kokkos_finalize();
+
     MPI_Finalize();
     return rv;
 }

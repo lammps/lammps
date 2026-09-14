@@ -41,11 +41,13 @@ FixAddTorqueAtomKokkos<DeviceType>::FixAddTorqueAtomKokkos(LAMMPS *lmp, int narg
   datamask_read = TORQUE_MASK | MASK_MASK;
   datamask_modify = TORQUE_MASK;
 
-  // the base class allocated a plain storque array; release it here so that the
-  // dual view created in post_force() takes over without orphaning it
+  // the base class allocated a plain storque array; replace it by the dual
+  // view right away, so the array is valid even on a rank whose atom->nmax
+  // never grows beyond the base class' initial maxatom
 
   memory->destroy(storque);
-  storque = nullptr;
+  memoryKK->create_kokkos(k_storque,storque,maxatom,3,"addtorque/atom:storque");
+  d_storque = k_storque.template view<DeviceType>();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -117,6 +119,11 @@ void FixAddTorqueAtomKokkos<DeviceType>::post_force(int /*vflag*/)
   // variable torques, wrap with clear/add
 
   } else {
+
+    // the variables are evaluated on the host through atom->x, atom->v, ...
+    // so the host copies have to be up to date first
+
+    atomKK->sync(Host, ALL_MASK);
 
     modify->clearstep_compute();
 

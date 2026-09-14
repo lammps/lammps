@@ -1,0 +1,189 @@
+LAMMPS (2 Sep 2026)
+  using 1 OpenMP thread(s) per MPI task
+# Generation and relaxation of a partial dislocation in Cu perfect FCC crystal
+
+# Initialization
+units           metal
+boundary        p p p
+atom_style      atomic
+
+# create simulation box and system
+lattice         fcc 3.615  origin 0.01 0.01 0.01 orient x -1 -1 2 orient y 1 1 1 orient z -1 1 0
+Lattice spacing in x,y,z = 5.9032703 6.2613637 5.112382
+region          mdbox  block 0 3 0.0 14.0 0 84 units lattice
+region          system block 0 3 1.1 13.1 0 84 units lattice
+create_box      2 mdbox
+Created orthogonal box = (0 0 0) to (17.709811 87.659091 429.44009)
+  1 by 1 by 1 MPI processor grid
+create_atoms    1 region system
+Created 48384 atoms
+  using lattice units in orthogonal box = (0 0 0) to (17.709811 87.659091 429.44009)
+  create_atoms CPU = 0.024 seconds
+
+# Define atoms mass and force field
+mass            *  63.54
+pair_style      eam/alloy
+pair_coeff      * * Cu_mishin1.eam.alloy Cu Cu
+Reading eam/alloy potential file Cu_mishin1.eam.alloy with DATE: 2007-10-12
+
+# Delete a plane of atoms along the z direction to generate a partial dislocation
+region          dislocation_atoms block 0 3 7 14 41.9 42.1 units lattice
+delete_atoms    region dislocation_atoms
+Deleted 76 atoms, new total = 48308
+region          quarter_up block 0 3 7 11 0 84 units lattice
+group           middle region quarter_up
+16080 atoms in group middle
+
+# specify simulation parameters
+timestep        0.004
+
+# Relax configuration using conjugate gradient
+#min_style cg
+#minimize 1.0e-4 1.0e-6 100 1000
+
+# Setup calculations
+compute         1 all cnp/atom 3.086
+compute         2 all cna/atom 3.086
+compute         3 all centro/atom fcc
+compute         4 all coord/atom cutoff 3.086
+#dump            1 all custom 100 dump.lammpstrj id type xu yu zu c_1 c_2 c_3 c_4
+compute  min all reduce min c_1 c_2 c_3 c_4
+compute  max all reduce max c_1 c_2 c_3 c_4
+
+### Set up thermo display
+thermo          10
+thermo_style    custom step atoms temp press pe ke etotal c_min[2] c_min[4] c_max[*]
+
+velocity all set 0.0 0.0 0.0
+# Relax the system (freeze motion along y 111 direction)
+fix             2 all nvt temp 30 1 0.01
+fix             3 all setforce NULL 0.0 NULL
+fix             4 middle setforce 0.0  0.0 0.0
+run             100
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 7.50679
+  ghost atom cutoff = 7.50679
+  binsize = 3.753395, bins = 5 24 115
+  5 neighbor lists, perpetual/occasional/extra = 1 4 0
+  (1) pair eam/alloy, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+  (2) compute cnp/atom, occasional
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+  (3) compute cna/atom, occasional
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+  (4) compute centro/atom, occasional
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+  (5) compute coord/atom, occasional
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 37.77 | 37.77 | 37.77 Mbytes
+   Step        Atoms         Temp          Press          PotEng         KinEng         TotEng        c_min[2]       c_min[4]       c_max[1]       c_max[2]       c_max[3]       c_max[4]   
+         0       48308   0             -3388.0911     -169746.07      0             -169746.07      1              6              23.958413      5              32.670562      12           
+        10       48308   49.985687     -565.91496     -169189.68      312.11912     -168877.56      1              6              28.055468      5              26.827308      12           
+        20       48308   3.8077126     -3298.5402     -169718.36      23.776004     -169694.58      1              6              21.509824      5              28.449812      12           
+        30       48308   4.8199618     -2674.6398     -169679.11      30.09666      -169649.01      1              5              23.78403       5              22.702557      13           
+        40       48308   7.836834      -2261.3663     -169619.44      48.934522     -169570.5       1              5              34.102404      5              36.074166      13           
+        50       48308   12.655223     -2369.8017     -169634.34      79.02136      -169555.32      1              5              25.652728      5              22.001968      13           
+        60       48308   16.44183      -2364.9137     -169651.28      102.66558     -169548.61      1              4              34.966179      5              22.029508      13           
+        70       48308   14.39115      -2503.921      -169672.32      89.860785     -169582.46      1              4              28.646683      5              33.431316      13           
+        80       48308   8.9683498     -2893.0665     -169708.13      55.999899     -169652.13      1              5              33.630558      5              36.575899      12           
+        90       48308   5.0188873     -3026.7714     -169716.44      31.338785     -169685.1       1              5              30.996106      5              33.512726      12           
+       100       48308   1.3112403     -3147.493      -169726.57      8.1876068     -169718.38      1              5              27.390264      5              31.966037      12           
+Loop time of 5.87011 on 1 procs for 100 steps with 48308 atoms
+
+Performance: 5.887 ns/day, 4.076 hours/ns, 17.035 timesteps/s, 822.948 katom-step/s
+99.6% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 2.4664     | 2.4664     | 2.4664     |   0.0 | 42.02
+Neigh   | 0.19042    | 0.19042    | 0.19042    |   0.0 |  3.24
+Comm    | 0.020823   | 0.020823   | 0.020823   |   0.0 |  0.35
+Output  | 3.1196     | 3.1196     | 3.1196     |   0.0 | 53.14
+Modify  | 0.061714   | 0.061714   | 0.061714   |   0.0 |  1.05
+Other   |            | 0.01112    |            |       |  0.19
+
+Nlocal:          48308 ave       48308 max       48308 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:          47824 ave       47824 max       47824 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:     3.2579e+06 ave  3.2579e+06 max  3.2579e+06 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:   6.5148e+06 ave  6.5148e+06 max  6.5148e+06 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 6514800
+Ave neighs/atom = 134.85965
+Neighbor list builds = 5
+Dangerous builds = 0
+unfix           4
+run             200
+Per MPI rank memory allocation (min/avg/max) = 157.2 | 157.2 | 157.2 Mbytes
+   Step        Atoms         Temp          Press          PotEng         KinEng         TotEng        c_min[2]       c_min[4]       c_max[1]       c_max[2]       c_max[3]       c_max[4]   
+       100       48308   1.3112403     -3147.493      -169726.57      8.1876068     -169718.38      1              5              27.390264      5              31.966037      12           
+       110       48308   16.028519     -2047.2671     -169603.67      100.0848      -169503.59      1              5              33.538482      5              27.644158      13           
+       120       48308   51.543995     -2060.1527     -169628.75      321.84946     -169306.9       1              5              23.109033      5              29.297315      13           
+       130       48308   39.615911     -2276.755      -169637.91      247.36847     -169390.54      1              5              43.536493      5              29.43946       13           
+       140       48308   20.561947     -2106.1798     -169586.74      128.39229     -169458.35      1              5              45.662341      5              24.682331      13           
+       150       48308   18.615159     -2175.6206     -169599.86      116.23621     -169483.63      1              5              29.9216        5              24.766005      13           
+       160       48308   18.572573     -2421.7063     -169634.96      115.9703      -169518.99      1              6              27.675179      5              28.766036      12           
+       170       48308   17.910007     -2623.218      -169645.3       111.83312     -169533.46      1              6              32.328226      5              20.014634      13           
+       180       48308   18.330891     -2454.1517     -169624.43      114.4612      -169509.97      1              6              33.639376      5              20.157043      13           
+       190       48308   16.339505     -2445.1182     -169627.8       102.02664     -169525.78      1              6              31.262583      5              22.136836      13           
+       200       48308   13.876939     -2723.024      -169654.58      86.649963     -169567.93      1              6              32.752184      5              19.795135      13           
+       210       48308   13.014292     -2779.6309     -169665.52      81.263448     -169584.25      1              6              34.347629      5              25.351904      13           
+       220       48308   12.146865     -2776.2621     -169674.85      75.847088     -169599.01      1              5              25.098501      5              25.876469      12           
+       230       48308   12.156895     -2745.1889     -169671.8       75.909717     -169595.89      1              5              25.927264      5              26.816123      13           
+       240       48308   10.62069      -2961.7978     -169687.38      66.317394     -169621.07      1              5              30.487706      5              27.859485      12           
+       250       48308   8.6852802     -3074.8985     -169697.18      54.232365     -169642.94      1              6              26.02859       5              29.037587      12           
+       260       48308   7.6412422     -3093.0165     -169701.83      47.713214     -169654.12      1              6              23.823731      5              30.84778       12           
+       270       48308   5.9851181     -3196.6729     -169713.61      37.372094     -169676.24      1              6              23.614398      5              32.38584       12           
+       280       48308   4.3949757     -3262.9261     -169719.76      27.442975     -169692.32      1              6              25.32908       5              24.378179      12           
+       290       48308   2.5426017     -3383.7306     -169731.36      15.876437     -169715.49      1              6              25.370727      5              31.292339      12           
+       300       48308   1.052455      -3445.9423     -169737.52      6.5717077     -169730.95      1              6              24.422372      5              30.640634      12           
+Loop time of 10.9992 on 1 procs for 200 steps with 48308 atoms
+
+Performance: 6.284 ns/day, 3.819 hours/ns, 18.183 timesteps/s, 878.390 katom-step/s
+99.6% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 5.1506     | 5.1506     | 5.1506     |   0.0 | 46.83
+Neigh   | 0.27413    | 0.27413    | 0.27413    |   0.0 |  2.49
+Comm    | 0.043329   | 0.043329   | 0.043329   |   0.0 |  0.39
+Output  | 5.3939     | 5.3939     | 5.3939     |   0.0 | 49.04
+Modify  | 0.11432    | 0.11432    | 0.11432    |   0.0 |  1.04
+Other   |            | 0.02288    |            |       |  0.21
+
+Nlocal:          48308 ave       48308 max       48308 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:          47799 ave       47799 max       47799 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:    3.25962e+06 ave 3.25962e+06 max 3.25962e+06 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:  6.51922e+06 ave 6.51922e+06 max 6.51922e+06 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 6519216
+Ave neighs/atom = 134.95106
+Neighbor list builds = 7
+Dangerous builds = 0
+Total wall time: 0:00:18

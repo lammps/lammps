@@ -18,6 +18,7 @@
 
 #include "compute_gyration_shape.h"
 
+#include "compute_gyration.h"
 #include "error.h"
 #include "math_eigen.h"
 #include "math_special.h"
@@ -25,7 +26,6 @@
 #include "update.h"
 
 #include <cmath>
-#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -62,11 +62,15 @@ ComputeGyrationShape::~ComputeGyrationShape()
 void ComputeGyrationShape::init()
 {
   // check that the compute gyration command exist
-  c_gyration = modify->get_compute_by_id(id_gyration);
-  if (!c_gyration)
+  Compute *compute = modify->get_compute_by_id(id_gyration);
+  if (!compute)
     error->all(FLERR,"Compute gyration ID does not exist for "
                "compute gyration/shape");
-  if (strcmp(c_gyration->style,"gyration") != 0)
+
+  // accept compute gyration and any of its accelerated variants
+
+  c_gyration = dynamic_cast<ComputeGyration *>(compute);
+  if (!c_gyration)
     error->all(FLERR,"Compute gyration compute ID does not point to "
                "gyration compute for compute gyration/shape");
 }

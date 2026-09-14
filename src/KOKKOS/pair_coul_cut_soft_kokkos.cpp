@@ -110,7 +110,7 @@ void PairCoulCutSoftKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   EV_FLOAT ev = pair_compute<PairCoulCutSoftKokkos<DeviceType>,void >
     (this,(NeighListKokkos<DeviceType>*)list);
 
-  if (eflag) eng_coul += static_cast<double>(ev.ecoul);
+  if (eflag_global) eng_coul += static_cast<double>(ev.ecoul);
   if (vflag_global) {
     virial[0] += static_cast<double>(ev.v[0]);
     virial[1] += static_cast<double>(ev.v[1]);

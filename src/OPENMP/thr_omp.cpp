@@ -249,7 +249,9 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
   case THR_BOND:
 
     if (evflag) {
-      Bond * const bond = lmp->force->bond;
+      // reduce into the style that set up the per-thread arrays: for a hybrid
+      // style this is the sub-style, not lmp->force->bond
+      auto *const bond = (Bond *) style;
 #if defined(_OPENMP)
 #pragma omp critical
 #endif
@@ -281,7 +283,7 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
   case THR_ANGLE:
 
     if (evflag) {
-      Angle * const angle = lmp->force->angle;
+      auto *const angle = (Angle *) style;
 #if defined(_OPENMP)
 #pragma omp critical
 #endif
@@ -315,7 +317,7 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
   case THR_ANGLE|THR_CHARMM: // special case for angle styles with a 1-3 pairwise term
 
     if (evflag) {
-      Angle * const angle = lmp->force->angle;
+      auto *const angle = (Angle *) style;
       Pair * const pair = lmp->force->pair;
 #if defined(_OPENMP)
 #pragma omp critical
@@ -365,7 +367,7 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
   case THR_DIHEDRAL:
 
     if (evflag) {
-      Dihedral * const dihedral = lmp->force->dihedral;
+      auto *const dihedral = (Dihedral *) style;
 #if defined(_OPENMP)
 #pragma omp critical
 #endif
@@ -399,7 +401,7 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
   case THR_DIHEDRAL|THR_CHARMM: // special case for CHARMM dihedrals
 
     if (evflag) {
-      Dihedral * const dihedral = lmp->force->dihedral;
+      auto *const dihedral = (Dihedral *) style;
       Pair * const pair = lmp->force->pair;
 #if defined(_OPENMP)
 #pragma omp critical
@@ -449,7 +451,7 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
   case THR_IMPROPER:
 
     if (evflag) {
-      Improper *improper = lmp->force->improper;
+      auto *const improper = (Improper *) style;
 #if defined(_OPENMP)
 #pragma omp critical
 #endif

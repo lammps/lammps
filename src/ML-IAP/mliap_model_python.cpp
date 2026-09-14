@@ -70,7 +70,7 @@ MLIAPModelPython::MLIAPModelPython(LAMMPS *lmp, char *coefffilename, bool is_chi
     PyList_Append(py_path, PyUnicode_FromString(potentials_path));
   }
   PyGILState_Release(gstate);
-  if (coefffilename) read_coeffs(coefffilename);
+  if (coefffilename) MLIAPModelPython::read_coeffs(coefffilename);
 
 
 }

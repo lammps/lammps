@@ -173,9 +173,9 @@ void BondFENENMKokkos<DeviceType>::operator()(TagBondFENENMCompute<NEWTON_BOND,E
 
   if (rlogarg < static_cast<KK_FLOAT>(0.02)) {
     if (rlogarg <= static_cast<KK_FLOAT>(-0.21))
-      d_flag() = 2;
+      Kokkos::atomic_max(&d_flag(), 2);
     else
-      d_flag() = 1;
+      Kokkos::atomic_max(&d_flag(), 1);
     rlogarg = static_cast<KK_FLOAT>(0.02);
   }
 

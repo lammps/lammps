@@ -145,9 +145,7 @@ struct NPairKokkosBinAtomsFunctor {
 
   const NBinKokkos<DeviceType> c;
 
-  NPairKokkosBinAtomsFunctor(const NBinKokkos<DeviceType> &_c):
-    c(_c) {};
-  ~NPairKokkosBinAtomsFunctor() {}
+  NPairKokkosBinAtomsFunctor(const NBinKokkos<DeviceType> &_c): c(_c) {};
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator() (const int & i) const {

@@ -137,6 +137,10 @@ void AtomKokkos::map_clear()
       k_map_array.modify_device();
     }
   } else {
+    // same reasoning as the array branch above: the whole hash is cleared, so release
+    // both sides first.  without this a preceding map_one() leaves the host side dirty
+    // and the modify_device() below trips dual_hash_type's concurrent-modification abort
+    k_map_hash.clear_sync_state();
     if (lmp->kokkos->atom_map_legacy) {
       Atom::map_clear();
       k_map_hash.view_host().clear();
@@ -172,23 +176,23 @@ void AtomKokkos::map_set_device()
 {
   int nall = nlocal + nghost;
 
-  // possible reallocation of sametag must come before loop over atoms
-  // since loop sets sametag
+  if (map_style == MAP_HASH) {
+
+    // if this proc has more atoms than hash table size, call map_init()
+    //   call with 0 since max atomID in system has not changed
+
+    if (nall > map_nhash) map_init(0);
+  }
+
+  // possible reallocation of sametag must come before the loop over atoms
+  // since the loop sets sametag, and after map_init() above, because
+  // map_init() may invoke map_delete(), whacking sametag.  Atom::map_set()
+  // observes the same ordering.
 
   if (nall > max_same) {
     max_same = nall + EXTRA;
     memoryKK->destroy_kokkos(k_sametag, sametag);
     memoryKK->create_kokkos(k_sametag, sametag, max_same, "atom:sametag");
-  }
-
-  if (map_style == MAP_HASH) {
-
-    // if this proc has more atoms than hash table size, call map_init()
-    //   call with 0 since max atomID in system has not changed
-    // possible reallocation of sametag must come after map_init(),
-    //   b/c map_init() may invoke map_delete(), whacking sametag
-
-    if (nall > map_nhash) map_init(0);
   }
 
   atomKK->sync(Device, TAG_MASK);

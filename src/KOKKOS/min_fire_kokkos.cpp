@@ -427,6 +427,11 @@ int MinFireKokkos::run_iterate(int maxiter) {
       lmp->kokkos->auto_sync = prev_auto_sync;
     }
   }
-  atomKK->modified(Device, X_MASK | V_MASK | F_MASK);
+
+  // no claim is taken here: every device write in the loop above claims itself,
+  // and the output block leaves the host claimed.  Claiming the device on top
+  // of that makes both sides dirty with nothing to say which one is current,
+  // which is what the early exits above and the other minimizers already do.
+
   return MAXITER;
 }

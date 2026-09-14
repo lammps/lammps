@@ -341,7 +341,8 @@ FixDeformPressure::FixDeformPressure(LAMMPS *lmp, int narg, char **arg) :
 
   if (set_box.style)
     for (int i = 0; i < 3; i++)
-      if (set[i].style == FINAL || set[i].style == DELTA || set[i].style == SCALE || set[i].style == PMEAN || set[i].style == VARIABLE)
+      if (set[i].style == FINAL || set[i].style == DELTA || set[i].style == SCALE || set[i].style == PMEAN ||
+          set[i].style == VARIABLE || set[i].style == VOLUME)
         error->all(FLERR, "Cannot use fix deform/pressure box parameter with x, y, or z styles other than vel, erate, trate, pressure, and wiggle");
 
   // check pressure used for max rate and normalize error flag

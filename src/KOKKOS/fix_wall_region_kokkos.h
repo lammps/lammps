@@ -46,7 +46,7 @@ class FixWallRegionKokkos : public FixWallRegion {
   template<class T>
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
-  void wall_particle(T, const int, value_type) const;
+  void wall_particle(const T &, const int, value_type) const;
 
  private:
 
@@ -94,15 +94,19 @@ struct FixWallRegionKokkosFunctor {
   typedef double value_type[];
   const int value_count;
   FixWallRegionKokkos<DeviceType> c;
-  T *regionKK;
 
-  FixWallRegionKokkosFunctor(FixWallRegionKokkos<DeviceType>* c_ptr, T *regionKK):
-    value_count(10), c(*c_ptr), regionKK(regionKK) {}
+  // the region must be held by value: regions are plain host heap objects, so
+  // a pointer to one cannot be dereferenced from a kernel running on the device
+
+  T regionKK;
+
+  FixWallRegionKokkosFunctor(FixWallRegionKokkos<DeviceType>* c_ptr, T *region_ptr):
+    value_count(11), c(*c_ptr), regionKK(*region_ptr) {}
 
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void init(value_type result) const {
-    for (int i=0 ; i<10 ; i++ ) result[i] = 0.0;
+    for (int i=0 ; i<11 ; i++ ) result[i] = 0.0;
   }
 
 // NOLINTNEXTLINE

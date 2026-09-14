@@ -87,9 +87,10 @@ class RegSphereKokkos : public RegSphere, public KokkosBase  {
     xnear[0] = x; xnear[1] = y; xnear[2] = z;
 
     if (!openflag) {
-      if (interior) ncontact = surface_interior_kokkos(xnear, cutoff, contact);
-    else
-      ncontact = surface_exterior_kokkos(xnear, cutoff, contact);
+      if (interior)
+        ncontact = surface_interior_kokkos(xnear, cutoff, contact);
+      else
+        ncontact = surface_exterior_kokkos(xnear, cutoff, contact);
     } else {
       // most of the time, one of surface_int/ext() will return 0
       //   however, when exactly on top of a periodic boundary

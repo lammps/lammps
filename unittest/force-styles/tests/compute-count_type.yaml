@@ -1,0 +1,20 @@
+---
+lammps_version: 2 Sep 2026
+tags:
+date_generated: Fri Sep 11 23:24:27 2026
+epsilon: 1e-08
+timestep: 0.25
+skip_tests:
+prerequisites: |
+  atom full
+  compute count/type
+pre_commands: ""
+post_commands: |
+  compute test all count/type bond
+input_file: in.fourmol
+input_coeffs: coeffs.fourmol
+natoms: 29
+global_scalar: 0
+global_vector: |-
+  5  3.0000000000000000e+00  6.0000000000000000e+00  3.0000000000000000e+00  2.0000000000000000e+00  1.0000000000000000e+01
+...

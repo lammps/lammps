@@ -16,12 +16,14 @@
 #include "yaml.h"
 
 #include <cstdio>
+#include <exception>
 #include <string>
 
-YamlWriter::YamlWriter(const char *outfile)
+YamlWriter::YamlWriter(const char *outfile) :
+    outpath(outfile), temppath(std::string(outfile) + ".tmp")
 {
     yaml_emitter_initialize(&emitter);
-    fp = fopen(outfile, "w");
+    fp = fopen(temppath.c_str(), "w");
     if (!fp) {
         perror(__FILE__);
         return;
@@ -40,6 +42,11 @@ YamlWriter::YamlWriter(const char *outfile)
 
 YamlWriter::~YamlWriter()
 {
+    if (!fp) {
+        yaml_emitter_delete(&emitter);
+        return;
+    }
+
     yaml_mapping_end_event_initialize(&event);
     yaml_emitter_emit(&emitter, &event);
     yaml_document_end_event_initialize(&event, 0);
@@ -48,6 +55,15 @@ YamlWriter::~YamlWriter()
     yaml_emitter_emit(&emitter, &event);
     yaml_emitter_delete(&emitter);
     fclose(fp);
+
+    // only replace the original when the document was completed normally.  if
+    // we are unwinding from an exception the partial file is discarded, and if
+    // the process aborts outright this destructor does not run at all, which
+    // leaves the original in place as well.
+    if (std::uncaught_exceptions() > 0)
+        remove(temppath.c_str());
+    else
+        rename(temppath.c_str(), outpath.c_str());
 }
 
 void YamlWriter::emit(const std::string &key, const double value)

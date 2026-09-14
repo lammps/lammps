@@ -34,6 +34,13 @@ public:
     void emit_block(const std::string &key, const std::string &value);
 
 private:
+    // the reference data is written to a temporary file that replaces the
+    // requested one only after the document has been completed.  this way a
+    // run that dies part way through (a style that refuses the setup, an
+    // unstable system) leaves the existing reference file untouched instead
+    // of truncating it, which matters because "-u" updates files in place.
+    std::string outpath;
+    std::string temppath;
     FILE *fp;
     yaml_emitter_t emitter;
     yaml_event_t event;

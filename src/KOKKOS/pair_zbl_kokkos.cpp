@@ -145,10 +145,14 @@ void PairZBLKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   nlocal = atom->nlocal;
   nall = atom->nlocal + atom->nghost;
   newton_pair = force->newton_pair;
-  special_lj[0] = static_cast<KK_FLOAT>(force->special_lj[0]);
-  special_lj[1] = static_cast<KK_FLOAT>(force->special_lj[1]);
-  special_lj[2] = static_cast<KK_FLOAT>(force->special_lj[2]);
-  special_lj[3] = static_cast<KK_FLOAT>(force->special_lj[3]);
+  // pair style zbl does not scale its interactions with the special_bonds
+  // factors: neither PairZBL::compute() nor the OPENMP and GPU versions look
+  // at special_lj or the sbmask bits.  the generic pair_compute() kernels this
+  // style uses multiply by special_lj[sbmask(j)] unconditionally, so the
+  // factors have to be neutralized here to match.  a factor of exactly 0.0
+  // still excludes the pair, because then the neighbor list does not contain
+  // it in the first place, for this style just as for all others.
+  special_lj[0] = special_lj[1] = special_lj[2] = special_lj[3] = 1.0;
 
   c1_kk = static_cast<KK_FLOAT>(c1);
   c2_kk = static_cast<KK_FLOAT>(c2);

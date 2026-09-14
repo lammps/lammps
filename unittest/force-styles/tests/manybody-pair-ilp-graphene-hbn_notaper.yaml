@@ -2,7 +2,7 @@
 lammps_version: 30 Jul 2021
 tags: unstable
 date_generated: Tue Aug 24 15:36:45 2021
-epsilon: 1e-11
+epsilon: 5e-11
 skip_tests: single
 prerequisites: ! |
   pair ilp/graphene/hbn

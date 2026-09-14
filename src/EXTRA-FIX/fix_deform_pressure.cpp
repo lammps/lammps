@@ -134,8 +134,8 @@ FixDeformPressure::FixDeformPressure(LAMMPS *lmp, int narg, char **arg) :
   }
 
   // read options from end of input line
-  // leftover_iarg indices refer to the full, unshifted argument list
-  // (see FixDeform::options()), so pass arg/narg unshifted here too
+  // unlike parent, leftover_iarg indices refer to the full, unshifted argument list
+  // so pass arg/narg unshifted here too
 
   options(i, narg, arg);
 
@@ -581,11 +581,10 @@ void FixDeformPressure::apply_pressure()
     if (normalize_pressure_flag) {
       if (set_extra[i].ptarget == 0) {
         if (max_strain_rate == 0) {
-          error->all(FLERR, "Cannot normalize error for zero pressure without defining a max rate");
-        } else if (strain_rate != 0.0)
+          error->all(FLERR, "Cannot normalize pressure deviation by zero pressure target without defining a max rate");
+        } else if (strain_rate != 0.0) {
           strain_rate = max_strain_rate * strain_rate / fabs(strain_rate);
-        // else: pressure is exactly on target, no deformation needed; taking
-        //   the sign of a zero rate would divide zero by zero
+        }
       } else strain_rate /= fabs(set_extra[i].ptarget);
     }
 
@@ -624,10 +623,9 @@ void FixDeformPressure::apply_pressure()
       if (set_extra[i].ptarget == 0) {
         if (max_strain_rate == 0) {
           error->all(FLERR, "Cannot normalize error for zero pressure without defining a max rate");
-        } else if (strain_rate != 0.0)
+        } else if (strain_rate != 0.0) {
           strain_rate = max_strain_rate * strain_rate / fabs(strain_rate);
-        // else: pressure is exactly on target, no deformation needed; taking
-        //   the sign of a zero rate would divide zero by zero
+        }
       } else strain_rate /= fabs(set_extra[i].ptarget);
     }
 
@@ -802,8 +800,10 @@ void FixDeformPressure::apply_box()
     if (normalize_pressure_flag) {
       if (set_extra[6].ptarget == 0) {
         if (max_strain_rate == 0) {
-          error->all(FLERR, "Cannot normalize error for zero pressure without defining a max rate");
-        } else v_rate = max_strain_rate * v_rate / fabs(v_rate);
+          error->all(FLERR, "Cannot normalize pressure deviation by zero pressure target without defining a max rate");
+        } else if (v_rate != 0.0) {
+          v_rate = max_strain_rate * v_rate / fabs(v_rate);
+        }
       } else v_rate /= fabs(set_extra[6].ptarget);
     }
 
@@ -899,6 +899,7 @@ void FixDeformPressure::options(int i, int narg, char **arg)
   normalize_pressure_flag = 0;
 
   // parse only options not handled by parent class
+  //   unlike parent, iarg not shifted
 
   int iarg;
   while (i < (int) leftover_iarg.size()) {

@@ -1,6 +1,6 @@
 ---
 lammps_version: 2 Sep 2026
-tags: unstable
+tags:
 date_generated: Mon Sep 14 02:05:19 2026
 epsilon: 7.5e-09
 skip_tests: extract_omp kokkos_gpu_mixed kokkos_gpu_single kokkos_omp_mixed kokkos_omp_single

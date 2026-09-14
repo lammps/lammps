@@ -1,6 +1,6 @@
 ---
 lammps_version: 2 Sep 2026
-tags: unstable
+tags:
 date_generated: Mon Sep 14 02:03:28 2026
 epsilon: 1e-08
 timestep: 0.25

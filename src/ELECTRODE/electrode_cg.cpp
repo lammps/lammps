@@ -203,7 +203,6 @@ void ElectrodeCG::predict_q()
   assert(predictor_count <= predictor_cols);
   assert(predictor_weights.size() == predictor_cols);
   double *q = atom->q;
-  for (int i = 0; i < nele; i++) q_ele[i] = q[atom->map(taglist[i])];
   if (!predictor_count) {    // predict with current charges
     for (int i = 0; i < nele; i++) q_ele[i] = q[atom->map(taglist[i])];
   } else {    // ASPC method, cf. Kolafa 2003
@@ -219,7 +218,7 @@ void ElectrodeCG::predict_q()
   }
 
   // move current charges to predictor array for following steps
-  if (predictor_cols) {
+  if (predictor_cols && (update->ntimestep != update->beginstep)) {
     const int nlocal = atom->nlocal;
     double **qold = atom->darray[predictor_index];
     for (int i = predictor_count; i > 0; i--) {

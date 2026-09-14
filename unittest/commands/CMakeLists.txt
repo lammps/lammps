@@ -176,6 +176,13 @@ if(PKG_PHONON)
   add_kokkos_test(NAME PhononCommands COMMAND test_phonon_commands)
 endif()
 
+if(PKG_VORONOI)
+  add_executable(test_compute_voronoi test_compute_voronoi.cpp)
+  target_link_libraries(test_compute_voronoi PRIVATE lammps GTest::GMock)
+  add_test(NAME ComputeVoronoi COMMAND test_compute_voronoi)
+  add_mpi_test(NAME ComputeVoronoiMPI NUM_PROCS 4 COMMAND $<TARGET_FILE:test_compute_voronoi>)
+endif()
+
 if(PKG_REAXFF)
   add_executable(test_reaxff_output test_reaxff_output.cpp)
   target_link_libraries(test_reaxff_output PRIVATE lammps GTest::GMock)

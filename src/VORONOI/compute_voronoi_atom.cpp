@@ -41,7 +41,7 @@ static constexpr int FACESDELTA = 10000;
 
 ComputeVoronoi::ComputeVoronoi(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg), con_mono(nullptr), con_poly(nullptr), radstr(nullptr),
-  voro(nullptr), edge(nullptr), sendvector(nullptr), rfield(nullptr), tags(nullptr),
+  voro(nullptr), edge(nullptr), rfield(nullptr), tags(nullptr),
   occvec(nullptr), lroot(nullptr), lnext(nullptr), faces(nullptr)
 {
   int sgroup;
@@ -52,11 +52,10 @@ ComputeVoronoi::ComputeVoronoi(LAMMPS *lmp, int narg, char **arg) :
   faces_flag = 0;
 
   surface = VOROSURF_NONE;
-  maxedge = 0;
+  nmax = rmax = maxedge = sgroupbit = 0;
   fthresh = ethresh = 0.0;
   onlyGroup = false;
   occupation = false;
-
   oldmaxtag = 0;
 
   int iarg = 3;
@@ -114,17 +113,15 @@ ComputeVoronoi::ComputeVoronoi(LAMMPS *lmp, int narg, char **arg) :
   if (occupation && (atom->map_style == Atom::MAP_NONE))
     error->all(FLERR,"Compute voronoi/atom occupation requires an atom map, see atom_modify");
 
-  nmax = rmax = 0;
-  edge = rfield = sendvector = nullptr;
-  voro = nullptr;
+  // edge holds the histogram of the local atoms, vector its sum over all
+  // MPI ranks. they must be separate, see compute_vector()
 
   if (maxedge > 0) {
     vector_flag = 1;
     extvector = 0;
     size_vector = maxedge+1;
     memory->create(edge,maxedge+1,"voronoi/atom:edge");
-    memory->create(sendvector,maxedge+1,"voronoi/atom:sendvector");
-    vector = edge;
+    memory->create(vector,maxedge+1,"voronoi/atom:vector");
   }
 
   // store local face data: i, j, area
@@ -142,8 +139,8 @@ ComputeVoronoi::ComputeVoronoi(LAMMPS *lmp, int narg, char **arg) :
 ComputeVoronoi::~ComputeVoronoi()
 {
   memory->destroy(edge);
+  memory->destroy(vector);
   memory->destroy(rfield);
-  memory->destroy(sendvector);
   memory->destroy(voro);
   delete[] radstr;
 
@@ -627,10 +624,18 @@ double ComputeVoronoi::memory_usage()
 void ComputeVoronoi::compute_vector()
 {
   invoked_vector = update->ntimestep;
-  if (invoked_peratom < invoked_vector) compute_peratom();
+  if (invoked_peratom < invoked_vector) {
+    compute_peratom();
+    invoked_flag |= Compute::INVOKED_PERATOM;
+  }
 
-  for (int i=0; i<size_vector; ++i) sendvector[i] = edge[i];
-  MPI_Allreduce(sendvector,edge,size_vector,MPI_DOUBLE,MPI_SUM,world);
+  // sum the histogram of the local atoms into the separate output vector:
+  // summing in place would add up the counts twice when the vector is
+  // invoked again on the same step (e.g. by fix ave/time and then by the
+  // thermo output), and a per-atom invocation after the vector (e.g. by a
+  // dump) would replace the sum with the counts of the local atoms
+
+  MPI_Allreduce(edge,vector,size_vector,MPI_DOUBLE,MPI_SUM,world);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -638,7 +643,10 @@ void ComputeVoronoi::compute_vector()
 void ComputeVoronoi::compute_local()
 {
   invoked_local = update->ntimestep;
-  if (invoked_peratom < invoked_local) compute_peratom();
+  if (invoked_peratom < invoked_local) {
+    compute_peratom();
+    invoked_flag |= Compute::INVOKED_PERATOM;
+  }
 }
 
 /* ---------------------------------------------------------------------- */

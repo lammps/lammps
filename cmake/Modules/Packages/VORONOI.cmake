@@ -41,6 +41,7 @@ if(DOWNLOAD_VORO)
     URL     ${VORO_URL}
     URL_HASH SHA256=${VORO_SHA256}
     PATCH_COMMAND patch -b -p0 < ${LAMMPS_DIR}/cmake/patches/voro-make.patch
+    COMMAND patch -b -p0 < ${LAMMPS_DIR}/cmake/patches/voro-fma-roundoff.patch
     CONFIGURE_COMMAND ""
     BUILD_COMMAND make ${VORO_BUILD_OPTIONS}
     BUILD_IN_SOURCE 1

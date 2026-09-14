@@ -346,7 +346,7 @@ FixDeformPressure::FixDeformPressure(LAMMPS *lmp, int narg, char **arg) :
 
   // check pressure used for max rate and normalize error flag
 
-  if (!pressure_flag && max_h_rate != 0)
+  if (!pressure_flag && max_strain_rate != 0)
     error->all(FLERR, "Can only assign a maximum strain rate using pressure-controlled dimensions");
 
   if (!pressure_flag && normalize_pressure_flag)
@@ -574,23 +574,26 @@ void FixDeformPressure::apply_pressure()
   for (int i = 0; i < 3; i++) {
     if (set[i].style != PRESSURE && set[i].style != PMEAN) continue;
 
-    h_rate[i] = set_extra[i].pgain * (p_current[i] - set_extra[i].ptarget);
+    // proportional control gives an engineering strain rate (1/time)
+    double strain_rate = set_extra[i].pgain * (p_current[i] - set_extra[i].ptarget);
 
     if (normalize_pressure_flag) {
       if (set_extra[i].ptarget == 0) {
-        if (max_h_rate == 0) {
+        if (max_strain_rate == 0) {
           error->all(FLERR, "Cannot normalize error for zero pressure without defining a max rate");
-        } else h_rate[i] = max_h_rate * h_rate[i] / fabs(h_rate[i]);
-      } else h_rate[i] /= fabs(set_extra[i].ptarget);
+        } else strain_rate = max_strain_rate * strain_rate / fabs(strain_rate);
+      } else strain_rate /= fabs(set_extra[i].ptarget);
     }
 
-    if (max_h_rate != 0)
-      if (fabs(h_rate[i]) > max_h_rate)
-        h_rate[i] = max_h_rate * h_rate[i] / fabs(h_rate[i]);
+    if (max_strain_rate != 0)
+      if (fabs(strain_rate) > max_strain_rate)
+        strain_rate = max_strain_rate * strain_rate / fabs(strain_rate);
 
+    // domain->h_rate is the rate of change of the box length, not a strain rate
+    h_rate[i] = strain_rate * domain->prd[i];
     h_ratelo[i] = -0.5 * h_rate[i];
 
-    double shift = domain->prd[i] * dt * h_rate[i];
+    double shift = dt * h_rate[i];
     set[i].cumulative_shift += shift;
     set[i].lo_target = set[i].lo_start - 0.5 * set[i].cumulative_shift;
     set[i].hi_target = set[i].hi_start + 0.5 * set[i].cumulative_shift;
@@ -614,15 +617,15 @@ void FixDeformPressure::apply_pressure()
     h_rate[i] = L * set_extra[i].pgain * (pcurrent - set_extra[i].ptarget);
     if (normalize_pressure_flag) {
       if (set_extra[i].ptarget == 0) {
-        if (max_h_rate == 0) {
+        if (max_strain_rate == 0) {
           error->all(FLERR, "Cannot normalize error for zero pressure without defining a max rate");
-        } else h_rate[i] = max_h_rate * h_rate[i] / fabs(h_rate[i]);
+        } else h_rate[i] = max_strain_rate * h_rate[i] / fabs(h_rate[i]);
       } else h_rate[i] /= fabs(set_extra[i].ptarget);
     }
 
-    if (max_h_rate != 0)
-      if (fabs(h_rate[i]) > max_h_rate)
-        h_rate[i] = max_h_rate * h_rate[i] / fabs(h_rate[i]);
+    if (max_strain_rate != 0)
+      if (fabs(h_rate[i]) > max_strain_rate)
+        h_rate[i] = max_strain_rate * h_rate[i] / fabs(h_rate[i]);
 
     set[i].cumulative_shift += dt * h_rate[i];
     set[i].tilt_target = set[i].tilt_start + set[i].cumulative_shift;
@@ -694,8 +697,8 @@ void FixDeformPressure::apply_volume()
             e2 = (Vi - V * (1 + e1 * dt)) / (V * (1 + e1 * dt) * dt);
 
             // If strain rate exceeds limit in either dimension, cap it at the maximum compatible rate
-            if (max_h_rate != 0) {
-              if ((fabs(e1) > max_h_rate) || (fabs(e2) > max_h_rate)) {
+            if (max_strain_rate != 0) {
+              if ((fabs(e1) > max_strain_rate) || (fabs(e2) > max_strain_rate)) {
                 if (fabs(e1) > fabs(e2))
                   adjust_linked_rates(e1, e2, e3, Vi, V);
                 else
@@ -727,24 +730,24 @@ void FixDeformPressure::apply_volume()
 
 void FixDeformPressure::adjust_linked_rates(double &e_larger, double &e_smaller, double e3, double Vi, double V)
 {
-  double e_lim_positive = (Vi - V * (1 + max_h_rate * dt)) / (V * (1 + max_h_rate * dt) * dt);
-  double e_lim_negative = (Vi - V * (1 - max_h_rate * dt)) / (V * (1 - max_h_rate * dt) * dt);
+  double e_lim_positive = (Vi - V * (1 + max_strain_rate * dt)) / (V * (1 + max_strain_rate * dt) * dt);
+  double e_lim_negative = (Vi - V * (1 - max_strain_rate * dt)) / (V * (1 - max_strain_rate * dt) * dt);
   if ((e_larger * e3) >= 0) {
     if (e_larger > 0.0) {
       // Same sign as primary strain rate, cap third dimension
-      e_smaller = -max_h_rate;
+      e_smaller = -max_strain_rate;
       e_larger = e_lim_negative;
     } else {
-      e_smaller = max_h_rate;
+      e_smaller = max_strain_rate;
       e_larger = e_lim_positive;
     }
   } else {
     // Opposite sign, set to maxrate.
     if (e_larger > 0.0) {
-      e_larger = max_h_rate;
+      e_larger = max_strain_rate;
       e_smaller = e_lim_positive;
     } else {
-      e_larger = -max_h_rate;
+      e_larger = -max_strain_rate;
       e_smaller = e_lim_negative;
     }
   }
@@ -788,15 +791,15 @@ void FixDeformPressure::apply_box()
 
     if (normalize_pressure_flag) {
       if (set_extra[6].ptarget == 0) {
-        if (max_h_rate == 0) {
+        if (max_strain_rate == 0) {
           error->all(FLERR, "Cannot normalize error for zero pressure without defining a max rate");
-        } else v_rate = max_h_rate * v_rate / fabs(v_rate);
+        } else v_rate = max_strain_rate * v_rate / fabs(v_rate);
       } else v_rate /= fabs(set_extra[6].ptarget);
     }
 
-    if (max_h_rate != 0)
-      if (fabs(v_rate) > max_h_rate)
-        v_rate = max_h_rate * v_rate / fabs(v_rate);
+    if (max_strain_rate != 0)
+      if (fabs(v_rate) > max_strain_rate)
+        v_rate = max_strain_rate * v_rate / fabs(v_rate);
 
     for (i = 0; i < 3; i++) {
       shift = (set[i].hi_target - set[i].lo_target) * dt * v_rate;
@@ -882,7 +885,7 @@ void FixDeformPressure::restart(char *buf)
 void FixDeformPressure::options(int i, int narg, char **arg)
 {
   pcouple = NOCOUPLE;
-  max_h_rate = 0.0;
+  max_strain_rate = 0.0;
   vol_balance_flag = 0;
   normalize_pressure_flag = 0;
 
@@ -902,8 +905,8 @@ void FixDeformPressure::options(int i, int narg, char **arg)
       i += 2;
     } else if (strcmp(arg[iarg], "max/rate") == 0) {
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix deform/pressure max/rate", error);
-      max_h_rate = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
-      if (max_h_rate <= 0.0)
+      max_strain_rate = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
+      if (max_strain_rate <= 0.0)
         error->all(FLERR, "Maximum strain rate must be a positive, non-zero value");
       i += 2;
     } else if (strcmp(arg[iarg], "normalize/pressure") == 0) {

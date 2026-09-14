@@ -284,7 +284,13 @@ void FixQEqReaxFFKokkos<DeviceType>::pre_force(int /*vflag*/)
 
   //  cg solve over b_s, s & b_t, t
 
-  matvecs = cg_solve();
+  // cg_solve() advances the s and t systems together in a single fused loop,
+  // so one iteration of it is one matvec on each of the two systems.  The base
+  // class counts matvecs summed over the two separate CPU-side CG solves and
+  // reports matvecs/2.0 from compute_scalar(), so scale by two here; otherwise
+  // fix qeq/reaxff/kk reports half the iteration count that fix qeq/reaxff does.
+
+  matvecs = 2*cg_solve();
 
   k_s_hist.template sync<DeviceType>();
   k_t_hist.template sync<DeviceType>();

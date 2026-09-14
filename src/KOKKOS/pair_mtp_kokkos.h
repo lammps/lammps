@@ -37,16 +37,16 @@ namespace LAMMPS_NS {
 template <class DeviceType> class PairMTPKokkos : public PairMTP {
  public:
   // Structs for kernels
-  struct TagPairMTPInitMomentValsDers {};
   struct TagPairMTPComputeAlphaBasic {};
   struct TagPairMTPComputeAlphaTimes {};
-  struct TagPairMTPSetScalarNbhDers {};
   struct TagPairMTPComputeNbhDers {};
+  struct TagPairMTPComputeNbhDersLong {};
   template <int NEIGHFLAG, int EVFLAG> struct TagPairMTPComputeForce {};
 
   enum { EnabledNeighFlags = HALF | HALFTHREAD };
   enum { COUL_FLAG = 0 };
   static constexpr int ATOM_TILE_SIZE = 32;
+  static constexpr int REVERSE_LONG_THRESHOLD = 128;
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
   typedef EV_FLOAT value_type;
@@ -73,10 +73,6 @@ template <class DeviceType> class PairMTPKokkos : public PairMTP {
 
   // ---------- MTP routines (in order of execution) ----------
 
-  //Kernels for initing working views
-  KOKKOS_INLINE_FUNCTION
-  void operator()(TagPairMTPInitMomentValsDers, const int &k, const int &ii) const;
-
   // Kernels for computation
   KOKKOS_INLINE_FUNCTION
   void
@@ -91,13 +87,15 @@ template <class DeviceType> class PairMTPKokkos : public PairMTP {
                  &team) const;
 
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagPairMTPSetScalarNbhDers, const int &k, const int &ii) const;
-
-  KOKKOS_INLINE_FUNCTION
   void
   operator()(TagPairMTPComputeNbhDers,
              const typename Kokkos::TeamPolicy<DeviceType, TagPairMTPComputeNbhDers>::member_type
                  &team) const;
+
+  KOKKOS_INLINE_FUNCTION void operator()(
+      TagPairMTPComputeNbhDersLong,
+      const typename Kokkos::TeamPolicy<DeviceType, TagPairMTPComputeNbhDersLong>::member_type
+          &team) const;
 
   template <int NEIGHFLAG, int EVFLAG>
   KOKKOS_INLINE_FUNCTION void
@@ -139,6 +137,8 @@ template <class DeviceType> class PairMTPKokkos : public PairMTP {
   Kokkos::View<int *, DeviceType> d_wave_nodes;
   Kokkos::View<int *, DeviceType> d_forward_offsets, d_forward_rules;
   Kokkos::View<int *, DeviceType> d_reverse_offsets;
+  Kokkos::View<int *, Kokkos::HostSpace> h_long_waves;
+  Kokkos::View<int *, DeviceType> d_long_nodes;
   Kokkos::View<int *[3], Kokkos::LayoutRight, DeviceType> d_reverse_terms;
   Kokkos::View<int *, DeviceType> d_alpha_moment_mapping;    // Maps alphas to the basis functions.
 
@@ -146,6 +146,7 @@ template <class DeviceType> class PairMTPKokkos : public PairMTP {
   Kokkos::View<KK_FLOAT *, DeviceType> d_radial_basis_coeffs;    // The radial components.
   Kokkos::View<KK_FLOAT *, DeviceType> d_species_coeffs;         // The species-based constants
   Kokkos::View<KK_FLOAT *, DeviceType> d_linear_coeffs;          // Basis coeffs
+  Kokkos::View<KK_FLOAT *, DeviceType> d_moment_coeffs;          // Scalar seeds
 
   // Global working buffers.
   Kokkos::View<int **, DeviceType> d_valid_neighs;

@@ -2673,6 +2673,16 @@ void Atom::delete_callback(const char *id, int flag)
 
   int ifix = modify->find_fix(id);
 
+  // a fix whose constructor raises an error is destroyed while unwinding, before
+  // Modify has put it in its list, so find_fix() cannot see it.  add_callback()
+  // recorded the slot the fix was about to occupy, so resolve it the same way
+  // here: without this the lookup below fails and the destructor raises a second
+  // error, which turns a graceful error into an abort
+
+  if (ifix < 0)
+    for (ifix = 0; ifix < modify->nfix; ifix++)
+      if (modify->fix[ifix] == nullptr) break;
+
   // compact the list of callbacks
 
   if (flag == GROW) {

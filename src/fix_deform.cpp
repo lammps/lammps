@@ -1364,7 +1364,11 @@ void FixDeform::options(int narg, char **arg)
       auto nskip = child_options[arg[iarg]];
       if (iarg + nskip > narg)
         utils::missing_cmd_args(FLERR, fmt::format("fix {} {}", style, arg[iarg]), error);
-      for (int i = 0; i < nskip; i++) leftover_iarg.push_back(iarg + i);
+      // arg here is already shifted to the start of the options section
+      // (see the options(narg - iarg, &arg[iarg]) call below), but
+      // leftover_iarg is read back against the full, unshifted argument
+      // list, so record indices in that same, full-list numbering
+      for (int i = 0; i < nskip; i++) leftover_iarg.push_back(iarg_options_start + iarg + i);
       iarg += nskip;
     } else error->all(FLERR, "Unknown fix {} keyword: {}", style, arg[iarg]);
   }

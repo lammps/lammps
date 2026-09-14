@@ -134,10 +134,10 @@ FixDeformPressure::FixDeformPressure(LAMMPS *lmp, int narg, char **arg) :
   }
 
   // read options from end of input line
-  // shift arguments before reading
+  // leftover_iarg indices refer to the full, unshifted argument list
+  // (see FixDeform::options()), so pass arg/narg unshifted here too
 
-  iarg = iarg_options_start;
-  options(i, narg - iarg, &arg[iarg]);
+  options(i, narg, arg);
 
   // repeat: setup dimflags used by other classes to check for volume-change conflicts
 

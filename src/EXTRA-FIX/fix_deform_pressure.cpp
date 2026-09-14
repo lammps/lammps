@@ -581,7 +581,10 @@ void FixDeformPressure::apply_pressure()
       if (set_extra[i].ptarget == 0) {
         if (max_strain_rate == 0) {
           error->all(FLERR, "Cannot normalize error for zero pressure without defining a max rate");
-        } else strain_rate = max_strain_rate * strain_rate / fabs(strain_rate);
+        } else if (strain_rate != 0.0)
+          strain_rate = max_strain_rate * strain_rate / fabs(strain_rate);
+        // else: pressure is exactly on target, no deformation needed; taking
+        //   the sign of a zero rate would divide zero by zero
       } else strain_rate /= fabs(set_extra[i].ptarget);
     }
 
@@ -614,19 +617,25 @@ void FixDeformPressure::apply_pressure()
       pcurrent = tensor[3];
     }
 
-    h_rate[i] = L * set_extra[i].pgain * (pcurrent - set_extra[i].ptarget);
+    // proportional control gives an engineering shear strain rate (1/time)
+    double strain_rate = set_extra[i].pgain * (pcurrent - set_extra[i].ptarget);
     if (normalize_pressure_flag) {
       if (set_extra[i].ptarget == 0) {
         if (max_strain_rate == 0) {
           error->all(FLERR, "Cannot normalize error for zero pressure without defining a max rate");
-        } else h_rate[i] = max_strain_rate * h_rate[i] / fabs(h_rate[i]);
-      } else h_rate[i] /= fabs(set_extra[i].ptarget);
+        } else if (strain_rate != 0.0)
+          strain_rate = max_strain_rate * strain_rate / fabs(strain_rate);
+        // else: pressure is exactly on target, no deformation needed; taking
+        //   the sign of a zero rate would divide zero by zero
+      } else strain_rate /= fabs(set_extra[i].ptarget);
     }
 
     if (max_strain_rate != 0)
-      if (fabs(h_rate[i]) > max_strain_rate)
-        h_rate[i] = max_strain_rate * h_rate[i] / fabs(h_rate[i]);
+      if (fabs(strain_rate) > max_strain_rate)
+        strain_rate = max_strain_rate * strain_rate / fabs(strain_rate);
 
+    // domain->h_rate is the rate of change of the tilt factor, not a strain rate
+    h_rate[i] = strain_rate * L;
     set[i].cumulative_shift += dt * h_rate[i];
     set[i].tilt_target = set[i].tilt_start + set[i].cumulative_shift;
   }

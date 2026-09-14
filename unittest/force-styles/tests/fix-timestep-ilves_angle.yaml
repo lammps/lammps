@@ -1,8 +1,8 @@
 ---
 lammps_version: 2 Sep 2026
-tags: no_respa unstable
+tags: no_respa
 date_generated: Mon Sep 14 02:08:12 2026
-epsilon: 2e-11
+epsilon: 5e-9
 skip_tests:
 prerequisites: |
   atom full

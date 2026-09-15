@@ -46,6 +46,7 @@ using namespace NeighConst;
 
 enum { OTHER, GRANULAR };
 enum {
+  NATOM,
   DENSITY,
   VOLFRAC,
   MOMENTUM,
@@ -157,7 +158,10 @@ ComputeContinuumChunk::ComputeContinuumChunk(LAMMPS *lmp, int narg, char **arg) 
   values.clear();
   labels.clear();
   while (iarg < narg) {
-    if (strcmp(arg[iarg], "density") == 0) {
+    if (strcmp(arg[iarg], "natoms") == 0) {
+      values.push_back(std::make_pair(NATOM, -1));
+      labels.push_back("natoms");
+    } else if (strcmp(arg[iarg], "density") == 0) {
       values.push_back(std::make_pair(DENSITY, -1));
       labels.push_back("density");
       index_density = static_cast<int>(values.size()) - 1;
@@ -500,7 +504,9 @@ void ComputeContinuumChunk::compute_array()
           a = component % 3;
           b = (component - a) / 3;
 
-          if (style == DENSITY) {
+          if (style == NATOMS) {
+            values_local[mtmp][field_index] += 1.0;
+          } else if (style == DENSITY) {
             values_local[mtmp][field_index] += mi * w;
           } else if (style == VOLFRAC) {
             values_local[mtmp][field_index] += voli * w;
@@ -1015,4 +1021,3 @@ void ComputeContinuumChunk::build_stencil()
     }
   }
 }
-

@@ -20,6 +20,7 @@ Syntax
 
   .. parsed-literal::
 
+       *natoms* = number of atoms in the kernel's support
        *density* = density field
        *volume/fraction* = volume fraction field
        *momentum/a* = a-component of the momentum field
@@ -98,7 +99,19 @@ pair sums, both atoms must be in the group.  The referenced
 group and optional region.  Atoms with chunk ID = 0 are not assigned to
 any chunk and do not contribute.
 
+One may want to use this compute in conjunction with
+:doc:`compute property/chunk <compute_property_chunk>` to additionally
+obtain the positions of each chunk's center (where kernels are centered)
+and :doc:`fix ave/time <fix_ave_time>` to provide optional time averaging
+and data output.
+
 ----------
+
+The *natoms* field is simply a count of the number of atoms within the
+cutoff distance of the kernel. Note that this is not equivalent to the
+number of atoms in the chunk (as calculated by
+:doc:`compute property/chunk <compute_property_chunk>`) as the kernel
+may not span an entire chunk or it may span beyond a single chunk.
 
 The *density* field is
 

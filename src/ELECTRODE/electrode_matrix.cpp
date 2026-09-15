@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Ludwig Ahrens-Iwers (TUHH), Shern Tee (UQ), Robert Meissner (TUHH)
+   Contributing authors: Ludwig Ahrens-Iwers (TUHH), Shern Tee (GU), Robert Meissner (Hereon, TUHH)
 ------------------------------------------------------------------------- */
 
 #include "electrode_matrix.h"
@@ -21,6 +21,7 @@
 #include "comm.h"
 #include "electrode_kspace.h"
 #include "electrode_math.h"
+#include "electrode_pair.h"
 #include "error.h"
 #include "force.h"
 #include "group.h"
@@ -46,20 +47,32 @@ ElectrodeMatrix::ElectrodeMatrix(LAMMPS *lmp, int electrode_group, double eta) :
   this->eta = eta;
   etaflag = false;
   tfflag = false;
+  hardnessflag = false;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void ElectrodeMatrix::setup(const std::unordered_map<tagint, int> &tag_ids, class Pair *fix_pair,
-                            class NeighList *fix_neighlist)
+                            class NeighList *fix_neighlist, bool pairflag)
 {
   pair = fix_pair;
   cutsq = pair->cutsq;
   list = fix_neighlist;
+  this->pairflag = pairflag;
 
-  electrode_kspace = dynamic_cast<ElectrodeKSpace *>(force->kspace);
-  if (electrode_kspace == nullptr) error->all(FLERR, "KSpace does not implement ElectrodeKSpace");
-  g_ewald = force->kspace->g_ewald;
+  if (pairflag) {
+    electrode_pair = dynamic_cast<ElectrodePair *>(pair);
+    if (electrode_pair == nullptr) error->all(FLERR, "Pair style does not implement ElectrodePair");
+  }
+  kspaceflag = (force->kspace != nullptr);
+  if (kspaceflag) {
+    electrode_kspace = dynamic_cast<ElectrodeKSpace *>(force->kspace);
+    if (electrode_kspace == nullptr) error->all(FLERR, "KSpace does not implement ElectrodeKSpace");
+    g_ewald = force->kspace->g_ewald;
+    if (comm->me == 0)
+      utils::logmesg(lmp, "ELECTRODE matrix setup with KSpace {}\n", force->kspace_style);
+  } else if (comm->me == 0)
+    utils::logmesg(lmp, "ELECTRODE matrix setup without KSpace\n");
 
   tag_to_iele = tag_ids;
 }
@@ -70,6 +83,14 @@ void ElectrodeMatrix::setup_tf(const std::map<int, double> &tf_types)
 {
   tfflag = true;
   this->tf_types = tf_types;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ElectrodeMatrix::setup_hardness(int index)
+{
+  hardnessflag = true;
+  hardness_index = index;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -88,19 +109,26 @@ void ElectrodeMatrix::compute_array(double **array, bool timer_flag)
   size_t nbytes = sizeof(double) * ngroup * ngroup;
   if (nbytes) memset(&array[0][0], 0, nbytes);
 
-  MPI_Barrier(world);
-  double kspace_time = MPI_Wtime();
   update_mpos();
-  electrode_kspace->compute_matrix(mpos.data(), array, timer_flag);
-  MPI_Barrier(world);
-  if (timer_flag && (comm->me == 0))
-    utils::logmesg(lmp, "KSpace time: {:.4g} s\n", MPI_Wtime() - kspace_time);
-  //cout << array[0][0] << ", " << array[0][1] << endl;
-  pair_contribution(array);
-  //cout << array[0][0] << ", " << array[0][1] << endl;
-  self_contribution(array);
-  electrode_kspace->compute_matrix_corr(mpos.data(), array);
+  if (pairflag) {
+    electrode_pair->compute_matrix(mpos.data(), array, groupbit);
+    electrode_pair->compute_matrix_self(mpos.data(), array, groupbit);
+  } else {
+    pair_contribution(array);
+    self_contribution(array);
+  }
   if (tfflag) tf_contribution(array);
+  if (hardnessflag) hardness_contribution(array);
+  if (kspaceflag) {
+    MPI_Barrier(world);
+    double kspace_time = MPI_Wtime();
+    electrode_kspace->compute_matrix(&mpos[0], array, timer_flag);
+    electrode_kspace->compute_matrix_corr(&mpos[0], array);
+    MPI_Barrier(world);
+    if (timer_flag && (comm->me == 0)) {
+      utils::logmesg(lmp, "KSpace time: {:.4g} s\n", MPI_Wtime() - kspace_time);
+    }
+  }
 
   // reduce coulomb matrix with contributions from all procs
   // all procs need to know full matrix for matrix inversion
@@ -171,7 +199,7 @@ void ElectrodeMatrix::pair_contribution(double **array)
         aij -= ElectrodeMath::safe_erfc(etaij * r) * rinv;
         // newton on or off?
         if (!newton_pair && j >= nlocal) aij *= 0.5;
-        bigint jpos = tag_to_iele[tag[j]];
+        bigint jpos = mpos[j];
         array[ipos][jpos] += aij;
         array[jpos][ipos] += aij;
       }
@@ -205,6 +233,25 @@ void ElectrodeMatrix::tf_contribution(double **array)
   int *mask = atom->mask;
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) array[mpos[i]][mpos[i]] += tf_types[type[i]];
+}
+
+/* ---------------------------------------------------------------------- */
+
+void ElectrodeMatrix::hardness_contribution(double **array)
+{
+  double *d_hardness = atom->dvector[hardness_index];
+  int nlocal = atom->nlocal;
+  int *mask = atom->mask;
+  bool warn = false;
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) {
+      double hardness = d_hardness[i] / force->qqrd2e;
+      array[mpos[i]][mpos[i]] += hardness;
+      if (hardness < 0) warn = true;
+    }
+  }
+  if (warn && comm->me == 0)
+    error->warning(FLERR, "Hardness smaller than zero. Qeq might not converge.");
 }
 
 /* ---------------------------------------------------------------------- */

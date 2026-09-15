@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Ludwig Ahrens-Iwers (TUHH), Shern Tee (UQ), Robert Meissner (TUHH)
+   Contributing authors: Ludwig Ahrens-Iwers (TUHH), Shern Tee (GU), Robert Meissner (Hereon, TUHH)
 ------------------------------------------------------------------------- */
 
 #include "pppm_electrode.h"
@@ -52,7 +52,7 @@ static constexpr double EPS_HOC = 1.0e-7;
 static constexpr FFT_SCALAR ZEROF = 0.0;
 
 static const char cite_pppm_electrode[] =
-    "kspace_style pppm/electrode command:\n\n"
+    "kspace_style pppm/electrode command: https://doi.org/10.1063/5.0063381\n\n"
     "@article{Ahrens2021,\n"
     "author = {Ahrens-Iwers, Ludwig J.V. and Mei{\\ss}ner, Robert H.},\n"
     "doi = {10.1063/5.0063381},\n"
@@ -439,7 +439,7 @@ void PPPMElectrode::compute(int eflag, int vflag)
     // electrolyte_density_brick is filled, so we can grab only electrode atoms.
     // Does not work for direct cg algorithm because electrode charges change after compute_vector.
     // Therefore, only when last_invert_source true.
-    // TODO: this is dangerous now that compute_vector's interface has been
+    // Future work: this is dangerous now that compute_vector's interface has been
     // changed since a compute could call an arbitrary source, needs tightening
     make_rho_in_brick(last_source_grpbit, density_brick, !last_invert_source);
     gc->reverse_comm(Grid3d::KSPACE, this, REVERSE_RHO, 1, sizeof(FFT_SCALAR), gc_buf1, gc_buf2,

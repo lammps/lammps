@@ -26,6 +26,7 @@ FixStyle(electrode/thermo/intel, FixElectrodeThermoIntel)
 #ifndef LMP_FIX_ELECTRODE_THERMO_INTEL_H
 #define LMP_FIX_ELECTRODE_THERMO_INTEL_H
 
+#include "electrode_vector_intel.h"
 #include "fix_electrode_thermo.h"
 #include "pppm_electrode_intel.h"
 
@@ -34,8 +35,12 @@ namespace LAMMPS_NS {
 class FixElectrodeThermoIntel : public FixElectrodeThermo {
  public:
   FixElectrodeThermoIntel(class LAMMPS *lmp, int narg, char **arg) :
-      FixElectrodeThermo(lmp, narg, arg), _intel_kspace(nullptr)
+    FixElectrodeThermo(lmp, narg, arg), _intel_kspace(nullptr)
   {
+    elyt_vector = new ElectrodeVectorIntel(lmp, 0, arg, igroup, igroup, eta, true);
+    if (need_elec_vector) {
+      elec_vector = new ElectrodeVectorIntel(lmp, 0, arg, igroup, igroup, eta, false);
+    }
   }
   inline void init() final override
   {

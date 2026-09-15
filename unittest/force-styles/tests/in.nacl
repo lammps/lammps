@@ -1,0 +1,24 @@
+variable  newton_pair     index  off
+variable  data_file       index ${input_dir}/data.nacl
+variable  pair_style      index 'zero 8.0'
+variable  bond_style      index zero
+variable  angle_style     index zero
+variable  dihedral_style  index zero
+variable  improper_style  index zero
+variable  etypes          index off
+
+atom_style       full
+units            real
+newton           ${newton_pair}
+
+pair_style       ${pair_style}
+bond_style       ${bond_style}
+angle_style      ${angle_style}
+dihedral_style   ${dihedral_style}
+improper_style   ${improper_style}
+
+read_data        ${data_file}
+
+
+group Na type 1
+group Cl type 2

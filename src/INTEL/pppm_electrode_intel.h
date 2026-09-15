@@ -66,6 +66,9 @@ class PPPMElectrodeIntel : public PPPMIntel, public ElectrodeKSpace {
   int last_source_grpbit;
   bool last_invert_source;
   void start_compute();
+  template <class flt_t, class acc_t>
+  void pack_buffers_q(IntelBuffers<flt_t, acc_t> *buffers);
+
   template <class flt_t, class acc_t, int use_table>
   void make_rho_in_brick(IntelBuffers<flt_t, acc_t> *buffers, int, FFT_SCALAR ***, bool);
   template <class flt_t, class acc_t>

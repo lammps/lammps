@@ -1,0 +1,25 @@
+variable  newton_pair     index  on
+variable  data_file       index ${input_dir}/data.electrode_efield
+variable  pair_style      index 'zero 8.0'
+variable  etypes          index off
+
+atom_style       full
+units            real
+newton           ${newton_pair}
+
+pair_style       ${pair_style}
+
+read_data        ${data_file}
+pair_style lj/cut/coul/long 10
+kspace_style ewald/electrode 1e-5
+kspace_modify gewald 2.0 
+
+
+variable zright atom "z > lz/2"
+group zright variable zright
+group ele type 1
+group right intersect ele zright
+group left subtract ele right
+
+variable eta equal 1.979 
+variable efield equal -2.0/lz

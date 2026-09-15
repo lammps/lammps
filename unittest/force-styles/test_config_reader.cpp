@@ -141,6 +141,7 @@ TestConfigReader::TestConfigReader(TestConfig &config) : config(config)
     consumers["run_pos"]        = &TestConfigReader::run_pos;
     consumers["run_vel"]        = &TestConfigReader::run_vel;
     consumers["run_torque"]     = &TestConfigReader::run_torque;
+    consumers["init_charges"]    = &TestConfigReader::init_charges;
     consumers["init_mag_forces"] = &TestConfigReader::init_mag_forces;
     consumers["run_mag_forces"] = &TestConfigReader::run_mag_forces;
     consumers["run_spin"]       = &TestConfigReader::run_spin;
@@ -266,6 +267,23 @@ void TestConfigReader::run_stress(const yaml_event_t &event)
 void TestConfigReader::init_forces(const yaml_event_t &event)
 {
     parse_coord_block(event, config.init_forces, config.natoms);
+}
+
+void TestConfigReader::init_charges(const yaml_event_t &event)
+{
+    config.init_charges.clear();
+    config.init_charges.resize(config.natoms + 1);
+    ValueTokenizer data(event_string(event));
+    for (const auto &line : Tokenizer(event_string(event), "\n").as_vector()) {
+        try {
+            ValueTokenizer values(line);
+            int tag = values.next_int();
+            if ((tag < 1) || (tag > config.natoms)) parse_error("atom tag out of range", line);
+            config.init_charges[tag] = values.next_double();
+        } catch (TokenizerException &e) {
+            parse_error(e.what(), event_string(event));
+        }
+    }
 }
 
 void TestConfigReader::run_forces(const yaml_event_t &event)

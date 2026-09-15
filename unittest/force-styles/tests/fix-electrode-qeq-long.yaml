@@ -1,0 +1,51 @@
+---
+lammps_version: 29 Aug 2024
+tags: generated
+date_generated: Tue Dec  2 11:37:50 2025
+epsilon: 3e-11
+skip_tests:
+prerequisites: ! |
+  atom full
+  pair lj/cut/coul/long/gauss
+  kspace ewald/electrode
+  fix electrode/conp
+pre_commands: ! |
+  boundary p p p
+post_commands: ! |
+  pair_modify table 0
+  pair_modify table/disp 0
+  kspace_style ewald/electrode 1.0e-8
+  kspace_modify gewald 0.2
+  fix fxprop all property/atom d_chi d_hardness d_eta ghost yes
+  set type 1 d_chi  65.56 d_hardness 210.636 # Na
+  set type 2 d_chi 197.49 d_hardness 332.856 # Cl
+  fix fxqeq all electrode/conp 0.0 qtotal 0 pair lj/cut/coul/long/gauss algo cg 1e-6 electronegativity d_chi hardness d_hardness
+input_file: in.nacl
+pair_style: lj/cut/coul/long/gauss 15.0
+pair_coeff: ! |
+  1 1  0.0  0.0 NULL
+  2 2  0.0  0.0 NULL
+extract: ! ""
+natoms: 8
+init_coul: 563.4168624375067
+init_charges: ! |2
+    1  9.9977046763634481e-01
+    2  9.9977046763634481e-01
+    3  9.9977046763634481e-01
+    4  9.9977046763634481e-01
+    5 -9.9977046763634458e-01
+    6 -9.9977046763634458e-01
+    7 -9.9977046763634458e-01
+    8 -9.9977046763634458e-01
+init_stress: ! |-
+  -2.7384761799394113e+02 -2.7384761799394147e+02 -2.7384761799394118e+02  0.0 0.0 0.0
+init_forces: ! |2
+    1 0.0 0.0 0.0
+    2 0.0 0.0 0.0
+    3 0.0 0.0 0.0
+    4 0.0 0.0 0.0
+    5 0.0 0.0 0.0
+    6 0.0 0.0 0.0
+    7 0.0 0.0 0.0
+    8 0.0 0.0 0.0
+...

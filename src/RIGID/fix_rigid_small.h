@@ -148,7 +148,7 @@ class FixRigidSmall : public Fix {
   int nmax_mass;
 
   // rigid bodies in conjunction with fix deform
-  
+
   int deform_vremap;       // 1 if fix deform with V_REMAP exists
                            //   if so, special treatment of bodies when cross PBC
                            //   if so, add/sub bias with Langevin

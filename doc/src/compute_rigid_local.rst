@@ -194,7 +194,7 @@ Related commands
 """"""""""""""""
 
 :doc:`dump local <dump>`, :doc:`compute rigid/atom <compute_rigid_atom>`
-    
+
 
 Default
 """""""

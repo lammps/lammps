@@ -573,7 +573,7 @@ void FixRigidSmall::init()
   // check for fix deform with V_REMAP set
   // if yes, require all atoms in each body be entirely in or out of deform group
   // check in init() b/c fix deform could be turned on/off between runs
-  
+
   deform_vremap = 0;
   deform_groupbit = 0;
   const auto &fixes = modify->get_fix_list();
@@ -589,7 +589,7 @@ void FixRigidSmall::init()
     int *mask = atom->mask;
     int nlocal = atom->nlocal;
     int atomflag,ilocal,bodyflag;
-    
+
     int flag = 0;
     for (int i = 0; i < nlocal; i++) {
       if (atom2body[i] < 0) continue;
@@ -604,7 +604,7 @@ void FixRigidSmall::init()
                             "entire bodies be included/excluded "
                             "from velocity remap");
   }
-  
+
   // add gravity forces based on gravity vector from fix
 
   if (id_gravity) {
@@ -832,9 +832,9 @@ void FixRigidSmall::pre_neighbor()
   for (int ibody = 0; ibody < nlocal_body; ibody++) {
     Body *b = &body[ibody];
     // also remap VCM if fix deform AND vremap AND body in fix deform group
-    if (deform_vremap && (mask[body[ibody].ilocal] & deform_groupbit)) 
+    if (deform_vremap && (mask[body[ibody].ilocal] & deform_groupbit))
       domain->remap(b->xcm,b->image,b->vcm);
-    else 
+    else
       domain->remap(b->xcm,b->image,nullptr);
   }
 

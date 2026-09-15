@@ -112,15 +112,15 @@ class FixRigid : public Fix {
   double **dorient;      // orientation of dipole mu wrt rigid body
 
   // rigid bodies in conjunction with fix deform
-  
+
   int deform_vremap;       // 1 if fix deform with V_REMAP exists
                            //   if so, special treatment of bodies when cross PBC
                            //   if so, add/sub bias with Langevin
   int deform_groupbit;     // groupbit of fix deform command
   int *body_in_defgroup;   // 1/0 for body entirely in or out of deform group
-  
+
   // Langevin thermostatting
-  
+
   double tfactor;    // scale factor on temperature of rigid bodies
   int langflag;      // 0/1 = no/yes Langevin thermostat
 

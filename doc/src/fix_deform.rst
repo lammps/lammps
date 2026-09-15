@@ -670,7 +670,7 @@ box without explicit remapping of their coordinates.
    bodies and solvent separately using the fix commands for each
    constituent described in the preceeding notes.  Atoms in flexible
    molecules can be thermostatted the same as solvent particles.
-   
+
 The *flip* keyword allows the tilt factors for a triclinic box to
 exceed half the distance of the parallel box length, as discussed
 above.  If the *flip* value is set to *yes*, the bound is enforced by

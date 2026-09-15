@@ -93,7 +93,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
 
   mol2body = nullptr;
   body2mol = nullptr;
-  
+
   // single rigid body
   // nbody = 1
   // all atoms in fix group are part of body
@@ -592,7 +592,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   }
 
   // fix deform body flags
-  
+
   body_in_defgroup = nullptr;
 
   // initialize vector output quantities in case accessed before run
@@ -759,11 +759,11 @@ void FixRigid::init()
   // check for fix deform with V_REMAP set
   // if yes, require all atoms in each body be entirely in or out of deform group
   // check in init() b/c fix deform could be turned on/off between runs
-  
+
   deform_vremap = 0;
   deform_groupbit = 0;
   delete [] body_in_defgroup;
-    
+
   const auto &fixes = modify->get_fix_list();
   for (const auto &fix : fixes)
     if (utils::strmatch(fix->style,"^deform")) {
@@ -800,7 +800,7 @@ void FixRigid::init()
         body_in_defgroup[ibody] = 1;
       else
         body_in_defgroup[ibody] = 0;
-        
+
     delete [] bodyone;
     delete [] bodyall;
   }
@@ -994,12 +994,12 @@ void FixRigid::pre_neighbor()
 {
   for (int ibody = 0; ibody < nbody; ibody++) {
     // also remap VCM if fix deform AND vremap AND body in fix deform group
-    if (deform_vremap && body_in_defgroup[ibody]) 
+    if (deform_vremap && body_in_defgroup[ibody])
       domain->remap(xcm[ibody],imagebody[ibody],vcm[ibody]);
-    else 
+    else
       domain->remap(xcm[ibody],imagebody[ibody],nullptr);
   }
-  
+
   image_shift();
 }
 

@@ -46,7 +46,7 @@ using namespace NeighConst;
 
 enum { OTHER, GRANULAR };
 enum {
-  NATOM,
+  NATOMS,
   DENSITY,
   VOLFRAC,
   MOMENTUM,
@@ -159,7 +159,7 @@ ComputeContinuumChunk::ComputeContinuumChunk(LAMMPS *lmp, int narg, char **arg) 
   labels.clear();
   while (iarg < narg) {
     if (strcmp(arg[iarg], "natoms") == 0) {
-      values.push_back(std::make_pair(NATOM, -1));
+      values.push_back(std::make_pair(NATOMS, -1));
       labels.push_back("natoms");
     } else if (strcmp(arg[iarg], "density") == 0) {
       values.push_back(std::make_pair(DENSITY, -1));

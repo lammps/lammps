@@ -49,6 +49,13 @@ AtomVecKokkos::~AtomVecKokkos()
 {
   // Kokkos already deallocated host memory
 
+  // the pinned staging buffer of perform_pinned_copy() is raw Kokkos memory
+  // and is not tracked by a view, so it has to be released explicitly
+
+  if (buffer) Kokkos::kokkos_free<LMPPinnedHostType>(buffer);
+  buffer = nullptr;
+  buffer_size = 0;
+
   ngrow = 0;
 }
 

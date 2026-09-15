@@ -146,8 +146,14 @@ void NeighborKokkos::create_kokkos_list(int i)
 
 /* ---------------------------------------------------------------------- */
 
+// create_kokkos() overwrites the plain pointer without looking at it, so an
+// allocation left from an earlier run has to be released first.  Neighbor::init()
+// calls these once per run, and the exclusion lists are the only arrays of the
+// base class that the KOKKOS package re-allocates behind its back
+
 void NeighborKokkos::init_ex_type_kokkos(int n)
 {
+  memoryKK->destroy_kokkos(k_ex_type,ex_type);
   memoryKK->create_kokkos(k_ex_type,ex_type,n+1,n+1,"neigh:ex_type");
   k_ex_type.modify_host();
 }
@@ -156,8 +162,10 @@ void NeighborKokkos::init_ex_type_kokkos(int n)
 
 void NeighborKokkos::init_ex_bit_kokkos()
 {
+  memoryKK->destroy_kokkos(k_ex1_bit, ex1_bit);
   memoryKK->create_kokkos(k_ex1_bit, ex1_bit, nex_group, "neigh:ex1_bit");
   k_ex1_bit.modify_host();
+  memoryKK->destroy_kokkos(k_ex2_bit, ex2_bit);
   memoryKK->create_kokkos(k_ex2_bit, ex2_bit, nex_group, "neigh:ex2_bit");
   k_ex2_bit.modify_host();
 }
@@ -166,6 +174,7 @@ void NeighborKokkos::init_ex_bit_kokkos()
 
 void NeighborKokkos::init_ex_mol_bit_kokkos()
 {
+  memoryKK->destroy_kokkos(k_ex_mol_bit, ex_mol_bit);
   memoryKK->create_kokkos(k_ex_mol_bit, ex_mol_bit, nex_mol, "neigh:ex_mol_bit");
   k_ex_mol_bit.modify_host();
 }

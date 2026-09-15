@@ -1538,7 +1538,7 @@ void Domain::closest_image(const double * const xi, const double * const xj, dou
    for triclinic, point is converted to lamda coords (0-1) before doing remap
    image = 10 or 20 bits for each dimension
    increment/decrement in wrap-around fashion
-   if V is specified (default = NULL) and deform_vremap set by fix deform:
+   if V is specified (default = nullptr) and deform_vremap set by fix deform:
      also remap v via h_rate calculated by fix deform
      currently only used by fix rigid commands to remap body VCM
        passes v = nullptr if velocity remap should NOT be done for a rigid body

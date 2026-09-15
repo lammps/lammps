@@ -26,7 +26,6 @@
 
 using namespace LAMMPS_NS;
 
-static constexpr int DELTA = 10000;
 
 enum{ID,MOL,MASS,X,Y,Z,XU,YU,ZU,VX,VY,VZ,FX,FY,FZ,IX,IY,IZ,
      TQX,TQY,TQZ,OMEGAX,OMEGAY,OMEGAZ,ANGMOMX,ANGMOMY,ANGMOMZ,
@@ -50,7 +49,11 @@ ComputeRigidAtom::ComputeRigidAtom(LAMMPS *lmp, int narg, char **arg) :
   nvalues = 0;
   for (int iarg = 4; iarg < narg; iarg++) {
     if (strcmp(arg[iarg],"id") == 0) rstyle[nvalues++] = ID;
-    else if (strcmp(arg[iarg],"mol") == 0) rstyle[nvalues++] = MOL;
+    else if (strcmp(arg[iarg],"mol") == 0) {
+      if (!atom->molecule_flag)
+        error->all(FLERR, iarg, "Compute rigid/atom keyword mol requires atom attribute molecule");
+      rstyle[nvalues++] = MOL;
+    }
     else if (strcmp(arg[iarg],"mass") == 0) rstyle[nvalues++] = MASS;
     else if (strcmp(arg[iarg],"x") == 0) rstyle[nvalues++] = X;
     else if (strcmp(arg[iarg],"y") == 0) rstyle[nvalues++] = Y;
@@ -83,7 +86,7 @@ ComputeRigidAtom::ComputeRigidAtom(LAMMPS *lmp, int narg, char **arg) :
     else if (strcmp(arg[iarg],"inertiax") == 0) rstyle[nvalues++] = INERTIAX;
     else if (strcmp(arg[iarg],"inertiay") == 0) rstyle[nvalues++] = INERTIAY;
     else if (strcmp(arg[iarg],"inertiaz") == 0) rstyle[nvalues++] = INERTIAZ;
-    else error->all(FLERR,"Unknown keyword in compute rigid/atom command> {}",arg[iarg]);
+    else error->all(FLERR, iarg, "Unknown compute rigid/atom keyword: {}", arg[iarg]);
   }
 
   if (nvalues == 1) size_peratom_cols = 0;
@@ -116,7 +119,18 @@ void ComputeRigidAtom::init()
   if (!fixrigid)
     error->all(FLERR,"Fix ID {} for compute rigid/atom does not refer to fix rigid/small", idrigid);
 
-  // do initial memory allocation so that memory_usage() is correct
+}
+
+/* ----------------------------------------------------------------------
+   loop over atoms, store rigid body info for the body it is in
+   set output to zero if atom not in group or not in a body
+------------------------------------------------------------------------- */
+
+void ComputeRigidAtom::compute_peratom()
+{
+  invoked_peratom = update->ntimestep;
+
+  // grow vector_atom or array_atom if necessary
 
   if (atom->nmax > maxatom) {
     maxatom = atom->nmax;
@@ -128,16 +142,6 @@ void ComputeRigidAtom::init()
       memory->create(array_atom, maxatom, nvalues, "rigid/atom:array_atom");
     }
   }
-}
-
-/* ----------------------------------------------------------------------
-   loop over atoms, store rigid body info for the body it is in
-   set output to zero if atom not in group or not in a body
-------------------------------------------------------------------------- */
-
-void ComputeRigidAtom::compute_peratom()
-{
-  invoked_peratom = update->ntimestep;
 
   int i,m,n,ibody;
   double *ptr;

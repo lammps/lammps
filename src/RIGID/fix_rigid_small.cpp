@@ -576,14 +576,8 @@ void FixRigidSmall::init()
 
   deform_vremap = 0;
   deform_groupbit = 0;
-  const auto &fixes = modify->get_fix_list();
-  for (const auto &fix : fixes)
-    if (utils::strmatch(fix->style,"^deform")) {
-      if ((dynamic_cast<FixDeform *>(fix))->remapflag == Domain::V_REMAP) {
-        deform_vremap = 1;
-        deform_groupbit = (dynamic_cast<FixDeform *>(fix))->groupbit;
-      }
-    }
+  deform_vremap = domain->deform_vremap;
+  deform_groupbit = domain->deform_groupbit;
 
   if (deform_vremap) {
     int *mask = atom->mask;
@@ -832,7 +826,7 @@ void FixRigidSmall::pre_neighbor()
   for (int ibody = 0; ibody < nlocal_body; ibody++) {
     Body *b = &body[ibody];
     // also remap VCM if fix deform AND vremap AND body in fix deform group
-    if (deform_vremap && (mask[body[ibody].ilocal] & deform_groupbit))
+    if (deform_vremap && (mask[b->ilocal] & deform_groupbit))
       domain->remap(b->xcm,b->image,b->vcm);
     else
       domain->remap(b->xcm,b->image,nullptr);

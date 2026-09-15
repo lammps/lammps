@@ -560,9 +560,9 @@ can set *Tstart* and *Tstop* to 0.0, which means only the viscous drag
 term in the Langevin thermostat will be applied.  See the discussion
 on the :doc:`fix viscous <fix_viscous>` page for details.
 
-.. versionadded:: TBD
+.. versionchanged:: TBD
 
-When *rigid/small* and *rigid/small/nve* are used in conjunction with
+When *rigid/small* or *rigid/nve/small* are used in conjunction with
 :doc:`fix deform <fix_deform>` to model a system undergoing shear, the
 Langevin thermostatting procedure is altered as follows.  Note this
 alteration is only done when the *remap v* option is used with
@@ -583,7 +583,7 @@ the group defined for the :doc:`fix deform <fix_deform>` command, so
 that the entire system is induced to follow the box deformation.  Also
 note that this procedure is similar to shearing an atomic system (no
 rigid bodies) with :doc:`fix deform <fix_deform>` and using :doc:`fix
-langevin <fix_langevin>` as a thermotat with an assigned temperature
+langevin <fix_langevin>` as a thermostat with an assigned temperature
 bias via :doc:`compute temp/deform <compute_temp_deform>`.
 
 The *temp* and *tparam* keywords apply a Nose/Hoover thermostat to the

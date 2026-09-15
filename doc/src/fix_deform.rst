@@ -650,11 +650,11 @@ box without explicit remapping of their coordinates.
 
 .. note::
 
-   for NEMD simulations, if a :doc:`fix rigid <fix_rigid>` or
-   :doc:`fix rigid/small <fix_rigid>` commands is defined for rigid
+   For NEMD simulations, if a :doc:`fix rigid <fix_rigid>` or
+   :doc:`fix rigid/small <fix_rigid>` command is defined for rigid
    bodies and you intend for the rigid bodies to flow with the box
    deformation you should set *remap* to *v* and use either the NVT or
-   Langenvin thermostat options provided by the fix rigid commands and
+   Langevin thermostat options provided by the fix rigid commands and
    their variants.  The center-of-mass velocities of each rigid body
    will only be remapped if the entire rigid body is in the fix group
    defined by the :doc:`fix deform <fix_deform>` command.  In this
@@ -668,7 +668,7 @@ box without explicit remapping of their coordinates.
    solvent (and optionally also non-rigid bodies, e.g. flexible
    molecules) you can set *remap* to *v* and thermostat the rigid
    bodies and solvent separately using the fix commands for each
-   constituent described in the preceeding notes.  Atoms in flexible
+   constituent described in the preceding notes.  Atoms in flexible
    molecules can be thermostatted the same as solvent particles.
 
 The *flip* keyword allows the tilt factors for a triclinic box to

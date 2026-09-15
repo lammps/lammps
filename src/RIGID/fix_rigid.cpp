@@ -56,7 +56,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
     ez_space(nullptr), angmom(nullptr), omega(nullptr), torque(nullptr), quat(nullptr),
     imagebody(nullptr), fflag(nullptr), tflag(nullptr), langextra(nullptr), sum(nullptr),
     all(nullptr), remapflag(nullptr), xcmimage(nullptr), eflags(nullptr), orient(nullptr),
-    dorient(nullptr), id_dilate(nullptr), body_in_defgroup(nullptr),
+    dorient(nullptr), body_in_defgroup(nullptr), id_dilate(nullptr),
     id_gravity(nullptr), random(nullptr),
     avec_ellipsoid(nullptr), avec_line(nullptr), avec_tri(nullptr)
 {
@@ -763,20 +763,14 @@ void FixRigid::init()
   deform_vremap = 0;
   deform_groupbit = 0;
   delete [] body_in_defgroup;
+  body_in_defgroup = nullptr;
 
-  const auto &fixes = modify->get_fix_list();
-  for (const auto &fix : fixes)
-    if (utils::strmatch(fix->style,"^deform")) {
-      if ((dynamic_cast<FixDeform *>(fix))->remapflag == Domain::V_REMAP) {
-        deform_vremap = 1;
-        deform_groupbit = (dynamic_cast<FixDeform *>(fix))->groupbit;
-      }
-    }
+  deform_vremap = domain->deform_vremap;
+  deform_groupbit = domain->deform_groupbit;
 
   if (deform_vremap) {
     int *mask = atom->mask;
     int nlocal = atom->nlocal;
-    int atomflag;
 
     int *bodyone = new int[nbody];
     int *bodyall = new int[nbody];

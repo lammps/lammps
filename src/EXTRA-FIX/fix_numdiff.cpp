@@ -192,7 +192,10 @@ void FixNumDiff::calculate_forces()
 
   // store copy of current forces for owned and ghost atoms
 
-  atom->sync_host_arrays(X_MASK | F_MASK);
+  // MASK_MASK because the group test below walks atom->mask on the host, and
+  // this fix declares an empty datamask, so nothing is synced on its behalf.
+
+  atom->sync_host_arrays(X_MASK | F_MASK | MASK_MASK);
 
   double **x = atom->x;
   double **f = atom->f;

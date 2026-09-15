@@ -32,8 +32,9 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixNeighHistory::FixNeighHistory(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg), pair(nullptr), npartner(nullptr), partner(nullptr), valuepartner(nullptr),
-    ipage_atom(nullptr), dpage_atom(nullptr), ipage_neigh(nullptr), dpage_neigh(nullptr), otherlist(nullptr)
+    Fix(lmp, narg, arg), firstflag(nullptr), firstvalue(nullptr), pair(nullptr), otherlist(nullptr),
+    zeroes(nullptr), npartner(nullptr), partner(nullptr), valuepartner(nullptr),
+    ipage_atom(nullptr), dpage_atom(nullptr), ipage_neigh(nullptr), dpage_neigh(nullptr)
 {
   if (narg < 4) error->all(FLERR, "Illegal fix NEIGH_HISTORY command");
 
@@ -56,19 +57,20 @@ FixNeighHistory::FixNeighHistory(LAMMPS *lmp, int narg, char **arg) :
   surface_global = 0;
   int iarg = 4;
   while (iarg < narg) {
-    if (strcmp(arg[iarg], "onesided") == 0) onesided = 1;
-    else if (strcmp(arg[iarg], "surface/global") == 0) surface_global = 1;
-    else error->all(FLERR, "Illegal fix neigh/history command {}", arg[iarg]);
+    if (strcmp(arg[iarg], "onesided") == 0)
+      onesided = 1;
+    else if (strcmp(arg[iarg], "surface/global") == 0)
+      surface_global = 1;
+    else
+      error->all(FLERR, "Illegal fix neigh/history command {}", arg[iarg]);
     iarg += 1;
   }
 
-  if (surface_global && !onesided)
-    error->all(FLERR, "Surface global must be used with onesided");
+  if (surface_global && !onesided) error->all(FLERR, "Surface global must be used with onesided");
 
-  if (newton_pair)
-    comm_reverse = 1;    // just for single npartner value
-                         // variable-size history communicated via
-                         // reverse_comm_variable()
+  if (newton_pair) comm_reverse = 1;    // just for single npartner value
+                                        // variable-size history communicated via
+                                        // reverse_comm_variable()
 
   // perform initial allocation of atom-based arrays
   // register with atom class
@@ -273,8 +275,7 @@ void FixNeighHistory::pre_exchange_onesided()
   tagint *tag = atom->tag;
   NeighList *list;
   if (surface_global) {
-    if (!otherlist)
-      error->all(FLERR, "Cannot find fix surface/global neighbor list");
+    if (!otherlist) error->all(FLERR, "Cannot find fix surface/global neighbor list");
     list = otherlist;
   } else {
     list = pair->list;
@@ -302,7 +303,8 @@ void FixNeighHistory::pre_exchange_onesided()
     partner[i] = ipage_atom->get(n);
     valuepartner[i] = dpage_atom->get(dnum * n);
     if (partner[i] == nullptr || valuepartner[i] == nullptr)
-      error->one(FLERR, Error::NOLASTLINE, "Neighbor history overflow, boost neigh_modify one" + utils::errorurl(36));
+      error->one(FLERR, Error::NOLASTLINE,
+                 "Neighbor history overflow, boost neigh_modify one" + utils::errorurl(36));
   }
 
   // 2nd loop over neighbor list, I = sphere, J = tri
@@ -413,7 +415,8 @@ void FixNeighHistory::pre_exchange_newton()
     partner[i] = ipage_atom->get(n);
     valuepartner[i] = dpage_atom->get(dnum * n);
     if (partner[i] == nullptr || valuepartner[i] == nullptr) {
-      error->one(FLERR, Error::NOLASTLINE, "Neighbor history overflow, boost neigh_modify one" + utils::errorurl(36));
+      error->one(FLERR, Error::NOLASTLINE,
+                 "Neighbor history overflow, boost neigh_modify one" + utils::errorurl(36));
     }
   }
 
@@ -422,7 +425,8 @@ void FixNeighHistory::pre_exchange_newton()
     partner[i] = ipage_atom->get(n);
     valuepartner[i] = dpage_atom->get(dnum * n);
     if (partner[i] == nullptr || valuepartner[i] == nullptr) {
-      error->one(FLERR, Error::NOLASTLINE, "Neighbor history overflow, boost neigh_modify one" + utils::errorurl(36));
+      error->one(FLERR, Error::NOLASTLINE,
+                 "Neighbor history overflow, boost neigh_modify one" + utils::errorurl(36));
     }
   }
 
@@ -538,7 +542,8 @@ void FixNeighHistory::pre_exchange_no_newton()
     partner[i] = ipage_atom->get(n);
     valuepartner[i] = dpage_atom->get(dnum * n);
     if (partner[i] == nullptr || valuepartner[i] == nullptr)
-      error->one(FLERR, Error::NOLASTLINE, "Neighbor history overflow, boost neigh_modify one" + utils::errorurl(36));
+      error->one(FLERR, Error::NOLASTLINE,
+                 "Neighbor history overflow, boost neigh_modify one" + utils::errorurl(36));
   }
 
   // 2nd loop over neighbor list

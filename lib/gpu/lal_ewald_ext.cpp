@@ -19,6 +19,7 @@
 #include <cmath>
 
 #include "lal_ewald.h"
+#include "lammps_gpu.h"
 
 using namespace std;
 using namespace LAMMPS_AL;
@@ -28,6 +29,8 @@ static EwaldGPU<PRECISION,ACC_PRECISION> EWALDMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
+
+namespace LAMMPS_GPU {
 void ewald_gpu_init(const int nlocal, const int nall, FILE *screen,
                       int &success) {
   EWALDMF.clear(0.0);
@@ -117,3 +120,5 @@ void ewald_gpu_clear(const double cpu_time) {
 double ewald_gpu_bytes() {
   return EWALDMF.host_memory_usage();
 }
+
+} // namespace LAMMPS_GPU

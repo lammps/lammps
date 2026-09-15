@@ -18,7 +18,6 @@
 #define LAL_BASE_AMOEBA_H
 
 #include "lal_device.h"
-#include "lal_balance.h"
 #include "mpi.h"
 
 #if defined(USE_OPENCL)
@@ -54,7 +53,6 @@ class BaseAmoeba {
   /// Clear any previous data and set up for a new LAMMPS run
   /** \param max_nbors initial number of rows in the neighbor matrix
     * \param cell_size cutoff + skin
-    * \param gpu_split fraction of particles handled by device
     * \param k_name name for the kernel for force calculation
     *
     * Returns:
@@ -65,7 +63,7 @@ class BaseAmoeba {
     * - -5 Double precision is not supported on card **/
   int init_atomic(const int nlocal, const int nall, const int max_nbors,
                   const int maxspecial, const int maxspecial15, const double cell_size,
-                  const double gpu_split, FILE *screen, const void *pair_program,
+                  FILE *screen, const void *pair_program,
                   const char *kname_multipole, const char *kname_udirect2b,
                   const char *kname_umutual2b, const char *kname_polar,
                   const char *kname_fphi_uind, const char *kname_fphi_mpole,
@@ -151,8 +149,7 @@ class BaseAmoeba {
                 tagint *tag, int **nspecial, tagint **special,
                 int *nspecial15, tagint **special15,
                 const bool eflag, const bool vflag,
-                const bool eatom, const bool vatom, int &host_start,
-                int **&ilist, int **&numj, const double cpu_time, bool &success,
+                const bool eatom, const bool vatom, int **&ilist, int **&numj, bool &success,
                 double *charge, double *boxlo, double *prd);
 
   /// Compute multipole real-space with device neighboring
@@ -162,8 +159,7 @@ class BaseAmoeba {
                 double *sublo, double *subhi, tagint *tag,
                 int **nspecial, tagint **special, int *nspecial15, tagint **special15,
                 const bool eflag, const bool vflag, const bool eatom, const bool vatom,
-                int &host_start, int **ilist, int **numj, const double cpu_time,
-                bool &success, const double aewald, const double felec,
+                int **ilist, int **numj, bool &success, const double aewald, const double felec,
                 const double off2_mpole, double *charge, double *boxlo,
                 double *prd, void **tep_ptr);
 
@@ -228,7 +224,6 @@ class BaseAmoeba {
   UCL_Timer time_pair;
 
   /// Host device load balancer
-  Balance<numtyp,acctyp> hd_balancer;
 
   /// LAMMPS pointer for screen output
   FILE *screen;
@@ -294,6 +289,7 @@ class BaseAmoeba {
   int _extra_fields;
   double _max_bytes, _max_an_bytes, _maxspecial, _maxspecial15, _max_nbors;
   double _gpu_overhead, _driver_overhead;
+  int _timestep;
   bool short_nbor_polar_avail;
   UCL_D_Vec<int> *_nbor_data;
 

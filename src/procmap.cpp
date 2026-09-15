@@ -38,7 +38,8 @@ static constexpr int MAXLINE = 128;
 
 /* ---------------------------------------------------------------------- */
 
-ProcMap::ProcMap(LAMMPS *lmp) : Pointers(lmp) {}
+ProcMap::ProcMap(LAMMPS *lmp) : Pointers(lmp), cmap(nullptr)
+{}
 
 /* ----------------------------------------------------------------------
    create a one-level 3d grid of procs
@@ -667,8 +668,10 @@ void ProcMap::output(char *file, int *procgrid, int ***grid2proc)
   }
 
   // find me in the grid
+  // grid2proc is a bijection, so the scan always finds a match;
+  // initialize anyway so the values are always defined
 
-  int ime,jme,kme;
+  int ime = 0, jme = 0, kme = 0;
   for (int i = 0; i < procgrid[0]; i++)
     for (int j = 0; j < procgrid[1]; j++)
       for (int k = 0; k < procgrid[2]; k++)

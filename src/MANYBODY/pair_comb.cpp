@@ -49,7 +49,7 @@ static constexpr int MAXNEIGH = 24;
 
 /* ---------------------------------------------------------------------- */
 
-PairComb::PairComb(LAMMPS *lmp) : Pair(lmp)
+PairComb::PairComb(LAMMPS *lmp) : Pair(lmp), qf(nullptr), charge(nullptr), typeno(nullptr)
 {
   single_enable = 0;
   restartinfo = 0;
@@ -472,13 +472,6 @@ void PairComb::init_style()
     error->all(FLERR, Error::NOLASTLINE, "Pair style COMB requires newton pair on");
   if (!atom->q_flag)
     error->all(FLERR, Error::NOLASTLINE, "Pair style COMB requires atom attribute q");
-
-  // ptr to QEQ fix
-
-  //for (i = 0; i < modify->nfix; i++)
-  //  if (strcmp(modify->fix[i]->style,"qeq") == 0) break;
-  //if (i < modify->nfix) fixqeq = (FixQEQ *) modify->fix[i];
-  //else fixqeq = nullptr;
 
   // need a full neighbor list
 

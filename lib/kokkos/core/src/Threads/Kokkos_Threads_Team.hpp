@@ -202,6 +202,8 @@ class ThreadsExecTeamMember {
         team_fan_out();
 
         return accum;))
+
+    KOKKOS_IMPL_UNREACHABLE();
   }
 
   template <typename ReducerType>
@@ -328,6 +330,7 @@ class ThreadsExecTeamMember {
         team_fan_out();
 
         return *work_value;))
+    KOKKOS_IMPL_UNREACHABLE();
   }
 
   /** \brief  Intra-team exclusive prefix sum with team_rank() ordering.
@@ -640,7 +643,7 @@ class TeamPolicyInternal<Kokkos::Threads, Properties...>
 
   inline static int scratch_size_max(int level) {
     return (level == 0 ? 1024 * 32 :  // Roughly L1 size
-                20 * 1024 * 1024);    // Limit to keep compatibility with CUDA
+                80 * 1024 * 1024);    // Limit to keep compatibility with CUDA
   }
 
   //----------------------------------------

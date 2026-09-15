@@ -13,6 +13,7 @@ post_commands: ! |
   fix move all nve
   fix test solute wall/reflect xlo EDGE xhi EDGE ylo EDGE yhi EDGE zlo EDGE zhi EDGE units box
 input_file: in.fourmol
+input_coeffs: coeffs.fourmol
 natoms: 29
 run_pos: ! |2
     1 -2.7045559775384026e-01  2.4912159905679729e+00 -1.6695851791541885e-01

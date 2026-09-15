@@ -50,9 +50,11 @@ thermo_style    custom step atoms temp c_1 c_2 press
 thermo_modify   lost ignore
 compute_modify  thermo_temp dynamic/dof yes
 
-#dump           2 all image 100 tmp.image.*.ppm type type &
-#               zoom 1.4 adiam 1.0 fix 20 type 2 0.5
-#dump_modify        2 pad 5
+#dump           viz all image 100 tri.gran.global-*.ppm type diameter &
+#                   size 800 600 zoom 1.5 shiny 0.4 fsaa yes view 70 10 box yes 0.025 &
+#                   region zcylinder white transparent 0.5 fix 20 const 1 0 
+#dump_modify    viz pad 6 acolor 1 orange boxcolor midnightblue backcolor black &
+#                   backcolor2 white lights 0.2 0.9 0.45 0.9 fcolor 20 silver ftrans 20 1 
 
 run             5000
 

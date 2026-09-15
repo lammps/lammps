@@ -672,7 +672,7 @@ void MSM::deallocate()
   memory->destroy2d_offset(phi1d,-order_allocated);
   memory->destroy2d_offset(dphi1d,-order_allocated);
 
-  if (gcall) delete gcall;
+  delete gcall;
   memory->destroy(gcall_buf1);
   memory->destroy(gcall_buf2);
   gcall = nullptr;
@@ -830,6 +830,10 @@ void MSM::allocate_levels()
 
 void MSM::deallocate_levels()
 {
+  // the per-atom virial grids are allocated per level, too, so they must be freed first
+
+  if (peratom_allocate_flag) deallocate_peratom();
+
   if (world_levels) {
     for (int n=0; n < levels; ++n) {
       memory->destroy3d_offset(qgrid[n],nzlo_out[n],nylo_out[n],nxlo_out[n]);

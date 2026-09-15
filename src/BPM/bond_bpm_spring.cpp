@@ -68,7 +68,7 @@ BondBPMSpring::BondBPMSpring(LAMMPS *_lmp) :
 BondBPMSpring::~BondBPMSpring()
 {
   delete[] svector;
-  if (id_fix_property_bond && modify->nfix) {
+  if (id_fix_property_bond) {
     modify->delete_fix(id_fix_property_bond);
     delete[] id_fix_property_bond;
   }
@@ -535,10 +535,17 @@ double BondBPMSpring::single(int type, double rsq, int i, int j, double &fforce)
 {
   if (type <= 0) return 0.0;
 
-  double r0;
+  double r0 = 0.0;
+  int found = 0;
   for (int n = 0; n < atom->num_bond[i]; n++) {
-    if (atom->bond_atom[i][n] == atom->tag[j]) r0 = fix_bond_history->get_atom_value(i, n, 0);
+    if (atom->bond_atom[i][n] == atom->tag[j]) {
+      r0 = fix_bond_history->get_atom_value(i, n, 0);
+      found = 1;
+    }
   }
+  if (!found)
+    error->one(FLERR, "Bond between atoms {} and {} not found in bond history",
+               atom->tag[i], atom->tag[j]);
 
   double r = sqrt(rsq);
   double rinv = 1.0 / r;

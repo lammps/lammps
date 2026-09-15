@@ -115,7 +115,7 @@ bool check_error_thr(const bool cond, const int tid, const char *fname, const in
       return false;
   }
   return false;
-};
+}
 
 protected:
 // threading adapted versions of the ev_tally infrastructure
@@ -180,11 +180,16 @@ void ev_tally_thr(Improper *const, const int, const int, const int, const int, c
 // style independent versions
 void ev_tally_list_thr(Pair *const, const int, const int *const, const double *const, const double,
                        const double, ThrData *const);
-}
-;
+};
+
+#if defined(_OPENMP)
+#define OMP_ONLY_PARAM(x) x
+#else
+#define OMP_ONLY_PARAM(x)
+#endif
 
 // set loop range thread id, and force array offset for threaded runs.
-inline void loop_setup_thr(int &ifrom, int &ito, int &tid, int inum, int nthreads)
+inline void loop_setup_thr(int &ifrom, int &ito, int &tid, int inum, int OMP_ONLY_PARAM(nthreads))
 {
 #if defined(_OPENMP)
   tid = omp_get_thread_num();
@@ -197,9 +202,9 @@ inline void loop_setup_thr(int &ifrom, int &ito, int &tid, int inum, int nthread
   tid = 0;
   ifrom = 0;
   ito = inum;
-  nthreads = 1;
 #endif
 }
+#undef OMP_ONLY_PARAM
 
 // helpful definitions to help compilers optimizing code better
 

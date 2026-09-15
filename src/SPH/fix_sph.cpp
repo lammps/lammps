@@ -27,7 +27,7 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixSPH::FixSPH(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+    Fix(lmp, narg, arg), list(nullptr), step_respa(nullptr), pair(nullptr)
 {
   if ((atom->esph_flag != 1) || (atom->rho_flag != 1) || (atom->vest_flag != 1))
     error->all(FLERR, "Fix sph requires atom attributes energy, density, and velocity estimates, e.g. in atom_style sph");

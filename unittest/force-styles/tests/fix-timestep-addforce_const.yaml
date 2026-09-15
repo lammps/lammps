@@ -11,6 +11,7 @@ post_commands: ! |
   fix move all nve
   fix test solute addforce 0.0 -0.1 0.1
 input_file: in.fourmol
+input_coeffs: coeffs.fourmol
 natoms: 29
 global_scalar: 1.4890183573812936
 global_vector: ! |-

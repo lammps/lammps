@@ -13,6 +13,7 @@ post_commands: ! |
   fix test solute wall/lj126 ylo EDGE 100.0 2.0 5.0 yhi EDGE 100.0 2.0 5.0
   fix_modify test virial yes
 input_file: in.fourmol
+input_coeffs: coeffs.fourmol
 natoms: 29
 run_stress: ! |2-
    0.0000000000000000e+00 -3.4585143439781433e+01  0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00

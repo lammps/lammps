@@ -1,6 +1,6 @@
 ---
 lammps_version: 4 May 2022
-tags: slow
+tags:
 date_generated: Mon May 23 20:12:38 2022
 epsilon: 5e-13
 prerequisites: ! |

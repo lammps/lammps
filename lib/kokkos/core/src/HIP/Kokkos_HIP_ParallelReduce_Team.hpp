@@ -254,6 +254,11 @@ class ParallelReduce<CombinedFunctorReducerType,
     if (!is_empty_range || need_device_set) {
       int const block_count = compute_block_count();
 
+      // Only let one instance at a time resize the instance's scratch memory
+      // allocations.
+      std::scoped_lock<std::mutex> scratch_buffers_lock(
+          m_policy.space().impl_internal_space_instance()->m_mutexScratchSpace);
+
       m_scratch_space =
           reinterpret_cast<word_size_type*>(hip_internal_scratch_space(
               m_policy.space(), reducer.value_size() * block_count));

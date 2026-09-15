@@ -27,32 +27,32 @@ struct Increment {
 };
 
 // This test checks the promises of Kokkos::Graph against its
-// underlying HIP native objects.
-TEST(TEST_CATEGORY, graph_promises_on_native_objects) {
+// underlying HIP graph objects.
+TEST(TEST_CATEGORY, graph_promises_on_hip_objects) {
   Kokkos::Experimental::Graph<Kokkos::HIP> graph{};
   // Before instantiation, the HIP graph is valid, but the HIP executable
   // graph is still null.
-  hipGraph_t hip_graph = graph.native_graph();
+  hipGraph_t hip_graph = graph.hip_graph();
 
   ASSERT_NE(hip_graph, nullptr);
-  ASSERT_EQ(graph.native_graph_exec(), nullptr);
+  ASSERT_EQ(graph.hip_graph_exec(), nullptr);
 
-  // After instantiation, both native objects are valid.
+  // After instantiation, both HIP objects are valid.
   graph.instantiate();
 
-  hipGraphExec_t hip_graph_exec = graph.native_graph_exec();
+  hipGraphExec_t hip_graph_exec = graph.hip_graph_exec();
 
-  ASSERT_EQ(graph.native_graph(), hip_graph);
+  ASSERT_EQ(graph.hip_graph(), hip_graph);
   ASSERT_NE(hip_graph_exec, nullptr);
 
   // Submission should not affect the underlying objects.
   graph.submit();
 
-  ASSERT_EQ(graph.native_graph(), hip_graph);
-  ASSERT_EQ(graph.native_graph_exec(), hip_graph_exec);
+  ASSERT_EQ(graph.hip_graph(), hip_graph);
+  ASSERT_EQ(graph.hip_graph_exec(), hip_graph_exec);
 }
 
-// Use native HIP graph to generate a DOT representation.
+// Use HIP graph to generate a DOT representation.
 TEST(TEST_CATEGORY, graph_instantiate_and_debug_dot_print) {
   using view_t = Kokkos::View<int, Kokkos::HIP>;
 
@@ -70,14 +70,14 @@ TEST(TEST_CATEGORY, graph_instantiate_and_debug_dot_print) {
   size_t num_nodes;
 
   KOKKOS_IMPL_HIP_SAFE_CALL(
-      hipGraphGetNodes(graph.native_graph(), nullptr, &num_nodes));
+      hipGraphGetNodes(graph.hip_graph(), nullptr, &num_nodes));
 
   ASSERT_EQ(num_nodes, 2u);
 
   const auto dot = std::filesystem::temp_directory_path() / "hip_graph.dot";
 
   KOKKOS_IMPL_HIP_SAFE_CALL(hipGraphDebugDotPrint(
-      graph.native_graph(), dot.c_str(), hipGraphDebugDotFlagsVerbose));
+      graph.hip_graph(), dot.c_str(), hipGraphDebugDotFlagsVerbose));
 
   ASSERT_TRUE(std::filesystem::exists(dot));
   ASSERT_GT(std::filesystem::file_size(dot), 0u);
@@ -97,28 +97,71 @@ TEST(TEST_CATEGORY, graph_instantiate_and_debug_dot_print) {
 }
 
 // Build a Kokkos::Graph from an existing hipGraph_t.
-TEST(TEST_CATEGORY, graph_construct_from_native) {
+TEST(TEST_CATEGORY, graph_construct_from_hip_graph) {
   using view_t = Kokkos::View<int, Kokkos::HIPManagedSpace>;
 
-  hipGraph_t native_graph = nullptr;
-  KOKKOS_IMPL_HIP_SAFE_CALL(hipGraphCreate(&native_graph, 0));
+  hipGraph_t hip_graph = nullptr;
+  KOKKOS_IMPL_HIP_SAFE_CALL(hipGraphCreate(&hip_graph, 0));
 
   const Kokkos::HIP exec{};
 
-  Kokkos::Experimental::Graph graph_from_native(
-      Kokkos::Experimental::get_device_handle(exec), native_graph);
+  Kokkos::Experimental::Graph graph_from_hip_graph(
+      Kokkos::Experimental::get_device_handle(exec), hip_graph);
 
-  ASSERT_EQ(native_graph, graph_from_native.native_graph());
+  ASSERT_EQ(hip_graph, graph_from_hip_graph.hip_graph());
 
   const view_t data(Kokkos::view_alloc(exec, "witness"));
 
-  graph_from_native.root_node().then_parallel_for(1, Increment<view_t>{data});
+  graph_from_hip_graph.root_node().then_parallel_for(1,
+                                                     Increment<view_t>{data});
 
-  graph_from_native.submit(exec);
+  graph_from_hip_graph.submit(exec);
 
   exec.fence();
 
   ASSERT_EQ(data(), 1);
+}
+
+// Retrieve the underlying HIP node.
+TEST(TEST_CATEGORY, interact_with_hip_node) {
+  using view_t = Kokkos::View<int, Kokkos::HIPManagedSpace>;
+
+  const Kokkos::HIP exec{};
+
+  view_t data(Kokkos::view_alloc(exec, "witness"));
+
+  Kokkos::Experimental::Graph graph{
+      Kokkos::Experimental::get_device_handle(exec)};
+
+  auto node = graph.root_node().then_parallel_for(1, Increment<view_t>{data});
+
+  static_assert(std::same_as<decltype(node.hip_node()), hipGraphNode_t>);
+
+  hipGraphNode_t hip_node = node.hip_node();
+
+  hipGraphNodeType node_type;
+  KOKKOS_IMPL_HIP_SAFE_CALL(hipGraphNodeGetType(hip_node, &node_type));
+
+  ASSERT_EQ(node_type, hipGraphNodeTypeKernel);
+
+  ASSERT_EQ(data(), 0);
+  graph.submit(exec);
+  exec.fence();
+  ASSERT_EQ(data(), 1);
+
+  KOKKOS_IMPL_HIP_SAFE_CALL(
+      hipGraphNodeSetEnabled(graph.hip_graph_exec(), hip_node, false));
+
+  graph.submit(exec);
+  exec.fence();
+  ASSERT_EQ(data(), 1);
+
+  KOKKOS_IMPL_HIP_SAFE_CALL(
+      hipGraphNodeSetEnabled(graph.hip_graph_exec(), hip_node, true));
+
+  graph.submit(exec);
+  exec.fence();
+  ASSERT_EQ(data(), 2);
 }
 
 }  // namespace

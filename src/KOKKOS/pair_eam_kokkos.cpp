@@ -44,6 +44,13 @@ PairEAMKokkos<DeviceType>::PairEAMKokkos(LAMMPS *lmp) : PairEAM(lmp)
   respa_enable = 0;
   single_enable = 0;
 
+  // PairEAMKokkos::array2spline() only builds the device side spline tables,
+  // so the host tables PairEAM::compute_atomic_energy() needs do not exist
+
+  atomic_energy_enable = 0;
+
+  k_beyond_rhomax = DAT::tdual_int_scalar("pair:beyond_rhomax");
+
   kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
@@ -134,6 +141,14 @@ void PairEAMKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   }
 
   rhomax_kk = static_cast<KK_FLOAT>(rhomax);
+  rhomin_kk = static_cast<KK_FLOAT>(rhomin);
+
+  k_scale.template sync<DeviceType>();
+
+  k_beyond_rhomax.view_host()() = 0;
+  k_beyond_rhomax.modify_host();
+  k_beyond_rhomax.template sync<DeviceType>();
+
   copymode = 1;
 
   // zero out density
@@ -279,6 +294,19 @@ void PairEAMKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   if (need_dup)
     Kokkos::Experimental::contribute(f, dup_f);
 
+  if (eflag && (!exceeded_rhomax)) {
+    k_beyond_rhomax.template modify<DeviceType>();
+    k_beyond_rhomax.sync_host();
+    int beyond_rhomax = k_beyond_rhomax.view_host()();
+    MPI_Allreduce(&beyond_rhomax,&exceeded_rhomax,1,MPI_INT,MPI_SUM,world);
+    if (exceeded_rhomax) {
+      if (comm->me == 0)
+        error->warning(FLERR,
+                       "A per-atom density exceeded rhomax of EAM potential table - "
+                       "a linear extrapolation to the energy was made");
+    }
+  }
+
   if (eflag_global) eng_vdwl += static_cast<double>(ev.evdwl);
   if (vflag_global) {
     virial[0] += static_cast<double>(ev.v[0]);
@@ -335,6 +363,29 @@ void PairEAMKokkos<DeviceType>::init_style()
                            !std::is_same_v<DeviceType,LMPDeviceType>);
   request->set_kokkos_device(std::is_same_v<DeviceType,LMPDeviceType>);
   if (neighflag == FULL) request->enable_full();
+
+  const int n = atom->ntypes + 1;
+  if (static_cast<int>(k_scale.extent(0)) != n)
+    k_scale = DAT::tdual_kkfloat_2d("pair:scale",n,n);
+  d_scale = k_scale.template view<DeviceType>();
+}
+
+/* ----------------------------------------------------------------------
+   init for one type pair i,j and corresponding j,i
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+double PairEAMKokkos<DeviceType>::init_one(int i, int j)
+{
+  double cutone = PairEAM::init_one(i,j);
+
+  // Pair::reinit() calls init_one() again after fix adapt has changed scale,
+  // so this is also the hook that carries a new scale factor to the device
+
+  k_scale.view_host()(i,j) = k_scale.view_host()(j,i) = static_cast<KK_FLOAT>(scale[i][j]);
+  k_scale.modify_host();
+
+  return cutone;
 }
 
 /* ----------------------------------------------------------------------
@@ -598,7 +649,7 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelA<NEIGHFLAG,NEWTON_PA
     const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
 
     if (rsq < cutforcesq_kk) {
-      KK_FLOAT p = sqrt(rsq)*rdr_kk + static_cast<KK_FLOAT>(1.0);
+      KK_FLOAT p = Kokkos::sqrt(rsq)*rdr_kk + static_cast<KK_FLOAT>(1.0);
       int m = static_cast<int> (p);
       m = MIN(m,nr-1);
       p -= static_cast<KK_FLOAT>(m);
@@ -628,23 +679,27 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelB<EFLAG>, const int &
 
   // fp = derivative of embedding energy at each atom
   // phi = embedding energy at each atom
-  // if rho > rhomax (e.g. due to close approach of two atoms),
-  //   will exceed table, so add linear term to conserve energy
+  // if rho > rhomax (e.g. due to close approach of two atoms) the table is
+  //   exceeded, so add linear term to conserve energy; for eam/he the table
+  //   starts at rhomin and may be exceeded on either side
 
   const int i = d_ilist[ii];
   const int itype = type(i);
 
-  KK_FLOAT p = d_rho[i]*rdrho_kk + static_cast<KK_FLOAT>(1.0);
-  int m = static_cast<int> (p);
-  m = MAX(1,MIN(m,nrho-1));
-  p -= static_cast<KK_FLOAT>(m);
-  p = MIN(p,static_cast<KK_FLOAT>(1.0));
+  KK_FLOAT p;
+  int m;
+  embedding_index_kk(d_rho[i],m,p);
   const int d_type2frho_i = d_type2frho[itype];
   d_fp[i] = (d_frho_spline(d_type2frho_i,m,0)*p + d_frho_spline(d_type2frho_i,m,1))*p + d_frho_spline(d_type2frho_i,m,2);
   if (EFLAG) {
     KK_FLOAT phi = ((d_frho_spline(d_type2frho_i,m,3)*p + d_frho_spline(d_type2frho_i,m,4))*p +
                     d_frho_spline(d_type2frho_i,m,5))*p + d_frho_spline(d_type2frho_i,m,6);
-    if (d_rho[i] > rhomax_kk) phi += d_fp[i] * (d_rho[i]-rhomax_kk);
+    if (he_flag && (d_rho[i] < rhomin_kk)) phi += d_fp[i] * (d_rho[i]-rhomin_kk);
+    else if (d_rho[i] > rhomax_kk) {
+      phi += d_fp[i] * (d_rho[i]-rhomax_kk);
+      if (!he_flag) k_beyond_rhomax.template view<DeviceType>()() = 1;
+    }
+    phi *= d_scale(itype,itype);
     if (eflag_global) ev.evdwl += static_cast<KK_ACC_FLOAT>(phi);
     if (eflag_atom) d_eatom[i] += static_cast<KK_ACC_FLOAT>(phi);
   }
@@ -692,7 +747,7 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelAB<EFLAG>, const int 
     const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
 
     if (rsq < cutforcesq_kk) {
-      KK_FLOAT p = sqrt(rsq)*rdr_kk + static_cast<KK_FLOAT>(1.0);
+      KK_FLOAT p = Kokkos::sqrt(rsq)*rdr_kk + static_cast<KK_FLOAT>(1.0);
       int m = static_cast<int> (p);
       m = MIN(m,nr-1);
       p -= static_cast<KK_FLOAT>(m);
@@ -707,20 +762,24 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelAB<EFLAG>, const int 
 
   // fp = derivative of embedding energy at each atom
   // phi = embedding energy at each atom
-  // if rho > rhomax (e.g. due to close approach of two atoms),
-  //   will exceed table, so add linear term to conserve energy
+  // if rho > rhomax (e.g. due to close approach of two atoms) the table is
+  //   exceeded, so add linear term to conserve energy; for eam/he the table
+  //   starts at rhomin and may be exceeded on either side
 
-  KK_FLOAT p = d_rho[i]*rdrho_kk + static_cast<KK_FLOAT>(1.0);
-  int m = static_cast<int> (p);
-  m = MAX(1,MIN(m,nrho-1));
-  p -= static_cast<KK_FLOAT>(m);
-  p = MIN(p,static_cast<KK_FLOAT>(1.0));
+  KK_FLOAT p;
+  int m;
+  embedding_index_kk(d_rho[i],m,p);
   const int d_type2frho_i = d_type2frho[itype];
   d_fp[i] = (d_frho_spline(d_type2frho_i,m,0)*p + d_frho_spline(d_type2frho_i,m,1))*p + d_frho_spline(d_type2frho_i,m,2);
   if (EFLAG) {
     KK_FLOAT phi = ((d_frho_spline(d_type2frho_i,m,3)*p + d_frho_spline(d_type2frho_i,m,4))*p +
                     d_frho_spline(d_type2frho_i,m,5))*p + d_frho_spline(d_type2frho_i,m,6);
-    if (d_rho[i] > rhomax_kk) phi += d_fp[i] * (d_rho[i]-rhomax_kk);
+    if (he_flag && (d_rho[i] < rhomin_kk)) phi += d_fp[i] * (d_rho[i]-rhomin_kk);
+    else if (d_rho[i] > rhomax_kk) {
+      phi += d_fp[i] * (d_rho[i]-rhomax_kk);
+      if (!he_flag) k_beyond_rhomax.template view<DeviceType>()() = 1;
+    }
+    phi *= d_scale(itype,itype);
     if (eflag_global) ev.evdwl += static_cast<KK_ACC_FLOAT>(phi);
     if (eflag_atom) d_eatom[i] += static_cast<KK_ACC_FLOAT>(phi);
   }
@@ -772,7 +831,7 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelC<NEIGHFLAG,NEWTON_PA
     const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
 
     if (rsq < cutforcesq_kk) {
-      const KK_FLOAT r = sqrt(rsq);
+      const KK_FLOAT r = Kokkos::sqrt(rsq);
       KK_FLOAT p = r*rdr_kk + static_cast<KK_FLOAT>(1.0);
       int m = static_cast<int> (p);
       m = MIN(m,nr-1);
@@ -811,7 +870,9 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelC<NEIGHFLAG,NEWTON_PA
       const KK_FLOAT phi = z2*recip;
       const KK_FLOAT phip = z2p*recip - phi*recip;
       const KK_FLOAT psip = d_fp[i]*rhojp + d_fp[j]*rhoip + phip;
-      const KK_FLOAT fpair = -psip*recip;
+      const KK_FLOAT scale_ij = d_scale(itype,jtype);
+      const KK_FLOAT fpair = -scale_ij*psip*recip;
+      const KK_FLOAT evdwl = scale_ij*phi;
 
       fxtmp += static_cast<KK_ACC_FLOAT>(delx*fpair);
       fytmp += static_cast<KK_ACC_FLOAT>(dely*fpair);
@@ -825,10 +886,10 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelC<NEIGHFLAG,NEWTON_PA
 
       if (EVFLAG) {
         if (eflag) {
-          ev.evdwl += static_cast<KK_ACC_FLOAT>((((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD)&&(NEWTON_PAIR||(j<nlocal)))?static_cast<KK_FLOAT>(1.0):static_cast<KK_FLOAT>(0.5))*phi);
+          ev.evdwl += static_cast<KK_ACC_FLOAT>((((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD)&&(NEWTON_PAIR||(j<nlocal)))?static_cast<KK_FLOAT>(1.0):static_cast<KK_FLOAT>(0.5))*evdwl);
         }
 
-        if (vflag_either || eflag_atom) this->template ev_tally<NEIGHFLAG,NEWTON_PAIR>(ev,i,j,phi,fpair,delx,dely,delz);
+        if (vflag_either || eflag_atom) this->template ev_tally<NEIGHFLAG,NEWTON_PAIR>(ev,i,j,evdwl,fpair,delx,dely,delz);
       }
 
     }
@@ -897,7 +958,7 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelAB<EFLAG>,
       const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
 
       if (rsq < cutforcesq_kk) {
-        KK_FLOAT p = sqrt(rsq)*rdr_kk + static_cast<KK_FLOAT>(1.0);
+        KK_FLOAT p = Kokkos::sqrt(rsq)*rdr_kk + static_cast<KK_FLOAT>(1.0);
         int m = static_cast<int> (p);
         m = MIN(m,nr-1);
         p -= m;
@@ -916,20 +977,24 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelAB<EFLAG>,
 
     // fp = derivative of embedding energy at each atom
     // phi = embedding energy at each atom
-    // if rho > rhomax (e.g. due to close approach of two atoms),
-    //   will exceed table, so add linear term to conserve energy
+    // if rho > rhomax (e.g. due to close approach of two atoms) the table is
+    //   exceeded, so add linear term to conserve energy; for eam/he the table
+    //   starts at rhomin and may be exceeded on either side
 
-    KK_FLOAT p = d_rho[i]*rdrho_kk + static_cast<KK_FLOAT>(1.0);
-    int m = static_cast<int> (p);
-    m = MAX(1,MIN(m,nrho-1));
-    p -= static_cast<KK_FLOAT>(m);
-    p = MIN(p,static_cast<KK_FLOAT>(1.0));
+    KK_FLOAT p;
+    int m;
+    embedding_index_kk(d_rho[i],m,p);
     const int d_type2frho_i = d_type2frho[itype];
     d_fp[i] = (d_frho_spline(d_type2frho_i,m,0)*p + d_frho_spline(d_type2frho_i,m,1))*p + d_frho_spline(d_type2frho_i,m,2);
     if (EFLAG) {
       KK_FLOAT phi = ((d_frho_spline(d_type2frho_i,m,3)*p + d_frho_spline(d_type2frho_i,m,4))*p +
                       d_frho_spline(d_type2frho_i,m,5))*p + d_frho_spline(d_type2frho_i,m,6);
-      if (d_rho[i] > rhomax_kk) phi += d_fp[i] * (d_rho[i]-rhomax_kk);
+      if (he_flag && (d_rho[i] < rhomin_kk)) phi += d_fp[i] * (d_rho[i]-rhomin_kk);
+      else if (d_rho[i] > rhomax_kk) {
+        phi += d_fp[i] * (d_rho[i]-rhomax_kk);
+        if (!he_flag) k_beyond_rhomax.template view<DeviceType>()() = 1;
+      }
+      phi *= d_scale(itype,itype);
       if (eflag_global) ev.evdwl += static_cast<KK_ACC_FLOAT>(phi);
       if (eflag_atom) d_eatom[i] += static_cast<KK_ACC_FLOAT>(phi);
     }
@@ -1001,7 +1066,7 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelC<NEIGHFLAG,NEWTON_PA
       const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
 
       if (rsq < cutforcesq_kk) {
-        const KK_FLOAT r = sqrt(rsq);
+        const KK_FLOAT r = Kokkos::sqrt(rsq);
         KK_FLOAT p = r*rdr_kk + static_cast<KK_FLOAT>(1.0);
         int m = static_cast<int> (p);
         m = MIN(m,nr-1);
@@ -1041,7 +1106,9 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelC<NEIGHFLAG,NEWTON_PA
         const KK_FLOAT phi = z2*recip;
         const KK_FLOAT phip = z2p*recip - phi*recip;
         const KK_FLOAT psip = d_fp[i]*rhojp + d_fp[j]*rhoip + phip;
-        const KK_FLOAT fpair = -psip*recip;
+        const KK_FLOAT scale_ij = d_scale(itype,jtype);
+        const KK_FLOAT fpair = -scale_ij*psip*recip;
+        const KK_FLOAT evdwl = scale_ij*phi;
 
         fxtmp += static_cast<KK_ACC_FLOAT>(delx*fpair);
         fytmp += static_cast<KK_ACC_FLOAT>(dely*fpair);
@@ -1055,10 +1122,10 @@ void PairEAMKokkos<DeviceType>::operator()(TagPairEAMKernelC<NEIGHFLAG,NEWTON_PA
 
         if (EVFLAG) {
           if (eflag) {
-            ev.evdwl += static_cast<KK_ACC_FLOAT>((((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD)&&(NEWTON_PAIR||(j<nlocal)))?static_cast<KK_FLOAT>(1.0):static_cast<KK_FLOAT>(0.5))*phi);
+            ev.evdwl += static_cast<KK_ACC_FLOAT>((((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD)&&(NEWTON_PAIR||(j<nlocal)))?static_cast<KK_FLOAT>(1.0):static_cast<KK_FLOAT>(0.5))*evdwl);
           }
 
-          if (vflag_either || eflag_atom) this->template ev_tally<NEIGHFLAG,NEWTON_PAIR>(ev,i,j,phi,fpair,delx,dely,delz);
+          if (vflag_either || eflag_atom) this->template ev_tally<NEIGHFLAG,NEWTON_PAIR>(ev,i,j,evdwl,fpair,delx,dely,delz);
         }
 
       }
@@ -1172,15 +1239,15 @@ struct PairEAMKokkos<DeviceType>::policyInstance {
 #ifdef KOKKOS_ENABLE_HIP
 template<>
 template<class TAG>
-struct PairEAMKokkos<Kokkos::Experimental::HIP>::policyInstance {
+struct PairEAMKokkos<Kokkos::HIP>::policyInstance {
 
   static auto get(int inum) {
     static_assert(t_kkfloat_2d_n7::static_extent(2) == 7,
                   "Breaking assumption of spline dim for KernelAB and KernelC scratch caching");
 
-    auto policy = Kokkos::TeamPolicy<Kokkos::Experimental::HIP,TAG>((inum+1023)/1024, 1024)
+    auto policy = Kokkos::TeamPolicy<Kokkos::HIP,TAG>((inum+1023)/1024, 1024)
                            .set_scratch_size(0,
-                                Kokkos::PerTeam(MAX_CACHE_ROWS*7*sizeof(double)));
+                                Kokkos::PerTeam(MAX_CACHE_ROWS*7*sizeof(KK_FLOAT)));
     return policy;
   }
 };

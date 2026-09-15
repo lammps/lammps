@@ -115,7 +115,7 @@ void ReadRestart::command(int narg, char **arg)
   format_revision();
   check_eof_magic();
 
-  if ((comm->me == 0) && (modify->get_fix_by_style("property/atom").size() > 0))
+  if ((comm->me == 0) && (!modify->get_fix_by_style("property/atom").empty()))
     error->warning(FLERR, "Fix property/atom command must be specified after read_restart "
                    "to restore its data.");
 
@@ -202,6 +202,7 @@ void ReadRestart::command(int narg, char **arg)
         error->all(FLERR, 1, "Invalid flag in peratom section of restart file");
 
       n = read_int();
+      if (n < 0) error->all(FLERR, 1, "Invalid data size in peratom section of restart file");
       if (n > maxbuf) {
         maxbuf = n;
         memory->destroy(buf);
@@ -209,8 +210,13 @@ void ReadRestart::command(int narg, char **arg)
       }
       read_double_vec(n,buf);
 
+      // the first value of each per-atom chunk is the size of the chunk;
+      // it must be positive so the loop below always advances
+
       m = 0;
       while (m < n) {
+        if (static_cast<int>(buf[m]) < 1)
+          error->all(FLERR, 1, "Invalid data in peratom section of restart file");
         x = &buf[m+1];
         if (remapflag) {
           iptr = (imageint *) &buf[m+7];
@@ -984,7 +990,7 @@ void ReadRestart::magic_string()
   if (count < n)
     error->all(FLERR,"Invalid LAMMPS restart file");
   MPI_Bcast(str,n,MPI_CHAR,0,world);
-  if (strcmp(str,MAGIC_STRING) != 0)
+  if (memcmp(str,MAGIC_STRING,n) != 0)
     error->all(FLERR,"Invalid LAMMPS restart file");
   delete[] str;
 }
@@ -1032,7 +1038,7 @@ void ReadRestart::check_eof_magic()
   }
 
   MPI_Bcast(str,n,MPI_CHAR,0,world);
-  if (strcmp(str,MAGIC_STRING) != 0)
+  if (memcmp(str,MAGIC_STRING,n) != 0)
     error->all(FLERR,"Incomplete or corrupted LAMMPS restart file");
 
   delete[] str;

@@ -98,7 +98,7 @@ PPPM::PPPM(LAMMPS *lmp) : KSpace(lmp),
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
 
-  nfft_both = 0;
+  ngrid = nfft_both = 0;
   nxhi_in = nxlo_in = nxhi_out = nxlo_out = 0;
   nyhi_in = nylo_in = nyhi_out = nylo_out = 0;
   nzhi_in = nzlo_in = nzhi_out = nzlo_out = 0;
@@ -252,39 +252,9 @@ void PPPM::init()
   cutoff = *p_cutoff;
 
   // if kspace is TIP4P, extract TIP4P params from pair style
-  // bond/angle are not yet init(), so ensure equilibrium request is valid
 
   qdist = 0.0;
-
-  if (tip4pflag) {
-    if (me == 0) utils::logmesg(lmp,"  extracting TIP4P info from pair style\n");
-
-    auto *p_qdist = (double *) force->pair->extract("qdist",itmp);
-    int *p_typeO = (int *) force->pair->extract("typeO",itmp);
-    int *p_typeH = (int *) force->pair->extract("typeH",itmp);
-    int *p_typeA = (int *) force->pair->extract("typeA",itmp);
-    int *p_typeB = (int *) force->pair->extract("typeB",itmp);
-    if (!p_qdist || !p_typeO || !p_typeH || !p_typeA || !p_typeB)
-      error->all(FLERR,"Pair style is incompatible with TIP4P KSpace style");
-    qdist = *p_qdist;
-    typeO = *p_typeO;
-    typeH = *p_typeH;
-    int typeA = *p_typeA;
-    int typeB = *p_typeB;
-
-    if (force->angle == nullptr || force->bond == nullptr ||
-        force->angle->setflag == nullptr || force->bond->setflag == nullptr)
-      error->all(FLERR,"Bond and angle potentials must be defined for TIP4P");
-    if (typeA < 1 || typeA > atom->nangletypes ||
-        force->angle->setflag[typeA] == 0)
-      error->all(FLERR,"Bad TIP4P angle type for PPPM/TIP4P");
-    if (typeB < 1 || typeB > atom->nbondtypes ||
-        force->bond->setflag[typeB] == 0)
-      error->all(FLERR,"Bad TIP4P bond type for PPPM/TIP4P");
-    double theta = force->angle->equilibrium_angle(typeA);
-    double blen = force->bond->equilibrium_distance(typeB);
-    alpha = qdist / (cos(0.5*theta) * blen);
-  }
+  if (tip4pflag) init_tip4p();
 
   // compute qsum & qsqsum and warn if not charge-neutral
 
@@ -434,6 +404,43 @@ void PPPM::init()
                        ngrid_max,nfft_both_max);
     utils::logmesg(lmp,mesg);
   }
+}
+
+/* ----------------------------------------------------------------------
+   extract TIP4P settings (qdist, O/H atom types, alpha) from pair style.
+   bond/angle are not yet init(), so ensure equilibrium request is valid
+------------------------------------------------------------------------- */
+
+void PPPM::init_tip4p()
+{
+  int itmp = 0;
+  if (me == 0) utils::logmesg(lmp,"  extracting TIP4P info from pair style\n");
+
+  auto *p_qdist = (double *) force->pair->extract("qdist",itmp);
+  int *p_typeO = (int *) force->pair->extract("typeO",itmp);
+  int *p_typeH = (int *) force->pair->extract("typeH",itmp);
+  int *p_typeA = (int *) force->pair->extract("typeA",itmp);
+  int *p_typeB = (int *) force->pair->extract("typeB",itmp);
+  if (!p_qdist || !p_typeO || !p_typeH || !p_typeA || !p_typeB)
+    error->all(FLERR,"Pair style is incompatible with TIP4P KSpace style");
+  qdist = *p_qdist;
+  typeO = *p_typeO;
+  typeH = *p_typeH;
+  int typeA = *p_typeA;
+  int typeB = *p_typeB;
+
+  if (force->angle == nullptr || force->bond == nullptr ||
+      force->angle->setflag == nullptr || force->bond->setflag == nullptr)
+    error->all(FLERR,"Bond and angle potentials must be defined for TIP4P");
+  if (typeA < 1 || typeA > atom->nangletypes ||
+      force->angle->setflag[typeA] == 0)
+    error->all(FLERR,"Bad TIP4P angle type for PPPM/TIP4P");
+  if (typeB < 1 || typeB > atom->nbondtypes ||
+      force->bond->setflag[typeB] == 0)
+    error->all(FLERR,"Bad TIP4P bond type for PPPM/TIP4P");
+  double theta = force->angle->equilibrium_angle(typeA);
+  double blen = force->bond->equilibrium_distance(typeB);
+  alpha = qdist / (cos(0.5*theta) * blen);
 }
 
 /* ----------------------------------------------------------------------
@@ -1346,7 +1353,10 @@ void PPPM::adjust_gewald()
   double dx;
 
   for (int i = 0; i < LARGE; i++) {
-    dx = newton_raphson_f() / derivf();
+    double dfx = derivf();
+    if (dfx == 0.0 || dfx != dfx) break;    // flat/invalid derivative
+    dx = newton_raphson_f() / dfx;
+    while (g_ewald - dx <= 0.0) dx *= 0.5;   // damp the step so g_ewald stays > 0
     g_ewald -= dx;
     if (fabs(newton_raphson_f()) < SMALL) return;
   }

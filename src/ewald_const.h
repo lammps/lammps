@@ -46,8 +46,8 @@ enum {
   TERM_DISP_ARITH = 2,    // dispersion 1/r^6, arithmetic mixing
   TERM_DIPOLE = 3,        // point dipoles (ewald/disp only)
   TERM_DISP_NONE = 3,     // dispersion 1/r^6, no mixing (pppm/disp only)
-  EWALD_NTERMS = 4
 };
+static constexpr int EWALD_NTERMS = 4;
 
 }    // namespace LAMMPS_NS::EwaldConst
 

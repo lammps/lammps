@@ -41,10 +41,6 @@ class ScratchMemorySpace {
   mutable int m_offset        = 0;
   mutable int m_default_level = 0;
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-  constexpr static int DEFAULT_ALIGNMENT_MASK = ALIGN - 1;
-#endif
-
  public:
   //! Tag this class as a memory space
   using memory_space    = ScratchMemorySpace<ExecSpace>;
@@ -54,6 +50,7 @@ class ScratchMemorySpace {
 
   using array_layout = typename ExecSpace::array_layout;
   using size_type    = typename ExecSpace::size_type;
+  using index_type   = typename ExecSpace::index_type;
 
   static constexpr const char* name() { return "ScratchMemorySpace"; }
 

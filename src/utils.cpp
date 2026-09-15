@@ -30,20 +30,23 @@
 #include "update.h"
 #include "variable.h"
 
+#include <algorithm>
 #include <cctype>
 #include <cerrno>
 #include <cmath>
+#include <cstdarg>
+#include <cstdio>
 #include <cstring>
 #include <ctime>
 #include <stdexcept>
 
 namespace {
-/** Match text against a (simplified) regular expression
-   * (regexp will be compiled automatically). */
+/* Match text against a (simplified) regular expression
+   (regexp will be compiled automatically). */
 int re_match(const char *text, const char *pattern);
 
-/** Find sub-string that matches a (simplified) regular expression
-   * (regexp will be compiled automatically). */
+/* Find sub-string that matches a (simplified) regular expression
+   (regexp will be compiled automatically). */
 int re_find(const char *text, const char *pattern, int *matchlen);
 
 ////////////////////////////////////////////////////////////////////////
@@ -289,6 +292,245 @@ void utils::print(const std::string &mesg)
 void utils::fmtargs_print(FILE *fp, fmt::string_view format, fmt::format_args args)
 {
   print(fp, fmt::vformat(format, args));
+}
+
+/* internal function handling the variable argument list for utils::sprintf() */
+
+std::string utils::varargs_sprintf(const char *format, ...)
+{
+  constexpr int firstsize = 512;
+  char firstbuf[firstsize];
+  va_list ap, ap2;
+
+  va_start(ap, format);
+  va_copy(ap2, ap);
+  int len = vsnprintf(firstbuf, firstsize, format, ap);
+  va_end(ap);
+
+  // conversion or output error
+  if (len < 0) {
+    va_end(ap2);
+    return "";
+  }
+
+  // output fits into the fixed size buffer
+  if (len < firstsize) {
+    va_end(ap2);
+    return {firstbuf, (std::size_t) len};
+  }
+
+  // otherwise repeat the conversion with a suitably sized buffer
+  std::string result(len + 1, '\0');
+  vsnprintf(result.data(), len + 1, format, ap2);
+  va_end(ap2);
+  result.resize(len);
+  return result;
+}
+
+/* ----------------------------------------------------------------------
+   scanning and checking of printf() style format strings.  LAMMPS accepts
+   those from users in several places (dump_modify, thermo_modify, ...) and
+   passing an argument that does not match its conversion is undefined
+   behavior, so the format strings must be validated before they are used.
+------------------------------------------------------------------------- */
+
+// one conversion in a printf() style format string
+
+namespace {
+struct FmtSpec {
+  std::size_t start;      // offset of the leading '%'
+  std::size_t len;        // length of the entire conversion
+  std::size_t lenmod;     // offset of the length modifier
+  char conv;              // conversion character
+  utils::FmtArg type;     // type of value consumed
+};
+
+// classify a conversion character.  returns FmtArg::NONE if unsupported.
+
+utils::FmtArg conv_type(char conv)
+{
+  // strchr() also matches the terminating null byte
+  if (conv == '\0') return utils::FmtArg::NONE;
+  if (strchr("diouxXc", conv)) return utils::FmtArg::INTEGER;
+  if (strchr("eEfFgGaA", conv)) return utils::FmtArg::FLOAT;
+  if (conv == 's') return utils::FmtArg::STRING;
+  if (conv == 'p') return utils::FmtArg::POINTER;
+  return utils::FmtArg::NONE;
+}
+
+// scan a format string and return its conversions.  on a malformed or
+// unsupported conversion, errmsg is set and scanning stops.
+
+std::vector<FmtSpec> scan_format(const std::string &format, std::string &errmsg)
+{
+  std::vector<FmtSpec> specs;
+  const std::size_t num = format.size();
+  errmsg.clear();
+
+  for (std::size_t i = 0; i < num; ++i) {
+    if (format[i] != '%') continue;
+    const std::size_t start = i++;
+
+    // "%%" is a literal percent sign and consumes no argument
+    if ((i < num) && (format[i] == '%')) continue;
+
+    // flags
+    while ((i < num) && (format[i] != '\0') && strchr("-+ #0'", format[i])) ++i;
+
+    // field width.  a '*' would consume an extra argument, so it is rejected
+    if ((i < num) && (format[i] == '*')) {
+      errmsg = fmt::format("variable field width '*' is not supported in '{}'", format);
+      return specs;
+    }
+    while ((i < num) && isdigit((unsigned char) format[i])) ++i;
+
+    // precision
+    if ((i < num) && (format[i] == '.')) {
+      ++i;
+      if ((i < num) && (format[i] == '*')) {
+        errmsg = fmt::format("variable precision '*' is not supported in '{}'", format);
+        return specs;
+      }
+      while ((i < num) && isdigit((unsigned char) format[i])) ++i;
+    }
+
+    // length modifier
+    const std::size_t lenmod = i;
+    if ((i < num) && ((format[i] == 'h') || (format[i] == 'l'))) {
+      const char mod = format[i++];
+      if ((i < num) && (format[i] == mod)) ++i;
+    } else if ((i < num) && (format[i] != '\0') && strchr("jztL", format[i])) {
+      ++i;
+    }
+
+    if (i >= num) {
+      errmsg = fmt::format("incomplete conversion '{}' in '{}'", format.substr(start), format);
+      return specs;
+    }
+
+    FmtSpec spec;
+    spec.start = start;
+    spec.len = i - start + 1;
+    spec.lenmod = lenmod;
+    spec.conv = format[i];
+    spec.type = conv_type(spec.conv);
+
+    if (spec.type == utils::FmtArg::NONE) {
+      errmsg = fmt::format("unsupported conversion '{}' in '{}'",
+                           format.substr(start, spec.len), format);
+      return specs;
+    }
+
+    // a length modifier only makes sense for numbers
+    if ((lenmod < i) && ((spec.type == utils::FmtArg::STRING) ||
+                         (spec.type == utils::FmtArg::POINTER))) {
+      errmsg = fmt::format("unsupported length modifier in conversion '{}' of '{}'",
+                           format.substr(start, spec.len), format);
+      return specs;
+    }
+    specs.push_back(spec);
+  }
+  return specs;
+}
+
+// Integer conversions can be retyped by adjust_format(), so both integer types
+// are equivalent when a conversion is checked against an expected value type.
+
+utils::FmtArg fmtarg_group(utils::FmtArg type)
+{
+  return (type == utils::FmtArg::BIGINT) ? utils::FmtArg::INTEGER : type;
+}
+
+// name of an argument type for use in error messages
+
+std::string fmtarg_name(utils::FmtArg type)
+{
+  switch (type) {
+    case utils::FmtArg::INTEGER: return "integer";
+    case utils::FmtArg::BIGINT: return "large integer";
+    case utils::FmtArg::FLOAT: return "floating-point";
+    case utils::FmtArg::STRING: return "string";
+    case utils::FmtArg::POINTER: return "pointer";
+    default: return "unknown";
+  }
+}
+
+// Length modifier required for a bigint argument.  This must not be hardcoded:
+// int64_t is "long int" on LP64 platforms (Linux, macOS) but "long long int" on
+// LLP64 platforms (Windows), so the required modifier is "l" on the former and
+// "ll" on the latter.  BIGINT_FORMAT is built from the PRId64 macro of
+// <cinttypes>, which is the standardized way to spell this per platform, so the
+// modifier is extracted from it instead.
+
+const std::string &bigint_lenmod()
+{
+  static const std::string lenmod = []() {
+    std::string errmsg;
+    const std::string bigfmt = BIGINT_FORMAT;
+    const auto specs = scan_format(bigfmt, errmsg);
+    if (specs.empty()) return std::string();
+    // the length modifier reaches from its offset to the conversion character
+    const std::size_t conv = specs[0].start + specs[0].len - 1;
+    return bigfmt.substr(specs[0].lenmod, conv - specs[0].lenmod);
+  }();
+  return lenmod;
+}
+}    // namespace
+
+std::string utils::check_format(const std::string &format, const std::vector<FmtArg> &expect)
+{
+  std::string errmsg;
+  const auto specs = scan_format(format, errmsg);
+  if (!errmsg.empty()) return errmsg;
+
+  // more conversions than values would consume arguments that were never
+  // passed.  fewer conversions are harmless: the surplus values are simply not
+  // printed, and literal text without any conversion is a valid format string.
+
+  if (specs.size() > expect.size())
+    return fmt::format("'{}' has {} conversion(s) but only {} value(s) are provided", format,
+                       specs.size(), expect.size());
+
+  for (std::size_t i = 0; i < specs.size(); ++i) {
+    if (fmtarg_group(specs[i].type) != fmtarg_group(expect[i]))
+      return fmt::format("conversion {} of '{}' formats {} values, but {} values are provided",
+                         i + 1, format, fmtarg_name(specs[i].type), fmtarg_name(expect[i]));
+
+    // a c conversion consumes an int and has no length modifier for 64-bit values
+    if ((specs[i].conv == 'c') && (expect[i] == FmtArg::BIGINT))
+      return fmt::format("conversion {} of '{}' cannot be used for {} values", i + 1, format,
+                         fmtarg_name(expect[i]));
+  }
+  return "";
+}
+
+std::string utils::check_format(const std::string &format, FmtArg expect)
+{
+  return check_format(format, std::vector<FmtArg>{expect});
+}
+
+std::string utils::adjust_format(const std::string &format, const std::vector<FmtArg> &expect)
+{
+  if (!check_format(format, expect).empty()) return format;
+
+  std::string errmsg;
+  const auto specs = scan_format(format, errmsg);
+  std::string adjusted;
+  std::size_t pos = 0;
+
+  for (std::size_t i = 0; i < specs.size(); ++i) {
+    // copy text and conversion prefix, then substitute the length modifier
+    adjusted += format.substr(pos, specs[i].lenmod - pos);
+    if ((expect[i] == FmtArg::BIGINT) && (specs[i].conv != 'c')) adjusted += bigint_lenmod();
+    pos = specs[i].start + specs[i].len - 1;
+  }
+  adjusted += format.substr(pos);
+  return adjusted;
+}
+
+std::string utils::adjust_format(const std::string &format, FmtArg expect)
+{
+  return adjust_format(format, std::vector<FmtArg>{expect});
 }
 
 std::string utils::errorurl(int errorcode)
@@ -840,12 +1082,15 @@ void utils::bounds(const char *file, int line, const std::string &str,
   }
 }
 
+/// \cond DOXYGEN_EXCLUDE
+// explicit instantiations (documented via the template declaration in utils.h)
 template void utils::bounds<>(const char *, int, const std::string &,
                               bigint, bigint, int &, int &, Error *, int);
 template void utils::bounds<>(const char *, int, const std::string &,
                               bigint, bigint, long &, long &, Error *, int);
 template void utils::bounds<>(const char *, int, const std::string &,
                               bigint, bigint, long long &, long long &, Error *, int);
+/// \endcond
 
 // clang-format on
 /* ----------------------------------------------------------------------
@@ -859,8 +1104,10 @@ void utils::bounds_typelabel(const char *file, int line, const std::string &str,
   nlo = nhi = -1;
 
   // cannot check for typelabels without a LAMMPS instance or a box
-  if (!lmp || !lmp->domain->box_exist)
-    utils::bounds(file, line, str, nmin, nmax, nlo, nhi, nullptr);
+  if (!lmp || !lmp->domain->box_exist) {
+    utils::bounds(file, line, str, nmin, nmax, nlo, nhi, lmp ? lmp->error : nullptr);
+    return;
+  }
 
   char *typestr = nullptr;
   if ((typestr = utils::expand_type(FLERR, str, mode, lmp)))
@@ -873,12 +1120,15 @@ void utils::bounds_typelabel(const char *file, int line, const std::string &str,
     utils::bounds(file, line, str, nmin, nmax, nlo, nhi, lmp->error);
 }
 
+/// \cond DOXYGEN_EXCLUDE
+// explicit instantiations (documented via the template declaration in utils.h)
 template void utils::bounds_typelabel<>(const char *, int, const std::string &, bigint, bigint,
                                         int &, int &, LAMMPS *, int);
 template void utils::bounds_typelabel<>(const char *, int, const std::string &, bigint, bigint,
                                         long &, long &, LAMMPS *, int);
 template void utils::bounds_typelabel<>(const char *, int, const std::string &, bigint, bigint,
                                         long long &, long long &, LAMMPS *, int);
+/// \endcond
 
 /* -------------------------------------------------------------------------
    Expand list of arguments in arg to earg if arg contains wildcards
@@ -1376,6 +1626,65 @@ std::string utils::uppercase(const std::string &text)
 }
 
 /* ----------------------------------------------------------------------
+   Arrange a list of words into aligned, ls-style columns (column-major)
+------------------------------------------------------------------------- */
+
+std::string utils::columnize(const std::vector<std::string> &words, int width, int gap)
+{
+  if (words.empty()) return "(none)\n";
+  if (gap < 1) gap = 1;
+  if (width < 1) width = 1;
+  const int nwords = (int) words.size();
+
+  // pick the largest number of columns whose summed per-column widths fit the
+  // line.  with a column-major layout, column c spans words[c*nrows .. ].
+
+  int ncols = 1;
+  for (int cols = std::min(nwords, width); cols >= 1; --cols) {
+    const int nrows = (nwords + cols - 1) / cols;
+    int total = gap * (cols - 1);
+    for (int c = 0; c < cols; ++c) {
+      std::size_t cw = 0;
+      for (int r = 0; r < nrows; ++r) {
+        const int idx = c * nrows + r;
+        if (idx < nwords) cw = std::max(cw, words[idx].size());
+      }
+      total += (int) cw;
+    }
+    if (total <= width) { ncols = cols; break; }
+  }
+
+  const int nrows = (nwords + ncols - 1) / ncols;
+
+  // per-column field widths (widest entry in the column plus the gap)
+
+  std::vector<std::size_t> field(ncols, 0);
+  for (int c = 0; c < ncols; ++c) {
+    for (int r = 0; r < nrows; ++r) {
+      const int idx = c * nrows + r;
+      if (idx < nwords) field[c] = std::max(field[c], words[idx].size());
+    }
+    field[c] += gap;
+  }
+
+  std::string out;
+  for (int r = 0; r < nrows; ++r) {
+    std::string line;
+    for (int c = 0; c < ncols; ++c) {
+      const int idx = c * nrows + r;
+      if (idx >= nwords) break;
+      line += fmt::format("{:<{}}", words[idx], field[c]);
+    }
+    // strip the trailing gap (and any padding) from the last column in the row
+    const auto last = line.find_last_not_of(' ');
+    if (last != std::string::npos) line.erase(last + 1);
+    out += line;
+    out += '\n';
+  }
+  return out;
+}
+
+/* ----------------------------------------------------------------------
    Return string without leading or trailing whitespace
 ------------------------------------------------------------------------- */
 
@@ -1590,7 +1899,7 @@ template <typename T> std::string join_impl(const std::vector<T> &values, const 
 {
   std::string result;
 
-  if (values.size() > 0) result = fmt::format("{}", values[0]);
+  if (!values.empty()) result = fmt::format("{}", values[0]);
   for (std::size_t i = 1; i < values.size(); ++i) result += sep + fmt::format("{}", values[i]);
 
   return result;
@@ -1598,6 +1907,8 @@ template <typename T> std::string join_impl(const std::vector<T> &values, const 
 }    // namespace
 
 // specializations
+/// \cond DOXYGEN_EXCLUDE
+// (documented via the template declaration in utils.h)
 template <> std::string utils::join<int>(const std::vector<int> &values, const std::string &sep)
 {
   return join_impl<int>(values, sep);
@@ -1645,6 +1956,7 @@ std::string utils::join<const char *>(const std::vector<const char *> &values,
 {
   return join_impl<const char *>(values, sep);
 }
+/// \endcond
 
 // clang-format on
 
@@ -1655,7 +1967,7 @@ std::string utils::join_words(const std::vector<std::string> &words, const std::
 {
   std::string result;
 
-  if (words.size() > 0) result = words[0];
+  if (!words.empty()) result = words[0];
   for (std::size_t i = 1; i < words.size(); ++i) result += sep + words[i];
 
   return result;
@@ -1691,7 +2003,7 @@ std::vector<std::string> utils::split_words(const std::string &text)
       ++beg;
       add = 1;
       c = *++buf;
-      while (((c != '\'') && (c != '\0')) || ((c == '\\') && (buf[1] == '\''))) {
+      while ((c != '\'') && (c != '\0')) {
         if ((c == '\\') && (buf[1] == '\'')) {
           ++buf;
           ++len;
@@ -1700,7 +2012,9 @@ std::vector<std::string> utils::split_words(const std::string &text)
         ++len;
       }
       if (c != '\'') ++len;
-      c = *++buf;
+      // for an unterminated quote c is already the terminating NUL, so do not
+      // advance past it (which would read one byte beyond the string buffer)
+      if (c) c = *++buf;
 
       // handle triple double quotation marks
     } else if ((c == '"') && (buf[1] == '"') && (buf[2] == '"') && (buf[3] != '"')) {
@@ -1714,7 +2028,7 @@ std::vector<std::string> utils::split_words(const std::string &text)
       ++beg;
       add = 1;
       c = *++buf;
-      while (((c != '"') && (c != '\0')) || ((c == '\\') && (buf[1] == '"'))) {
+      while ((c != '"') && (c != '\0')) {
         if ((c == '\\') && (buf[1] == '"')) {
           ++buf;
           ++len;
@@ -1723,7 +2037,8 @@ std::vector<std::string> utils::split_words(const std::string &text)
         ++len;
       }
       if (c != '"') ++len;
-      c = *++buf;
+      // see comment above: do not advance past the terminating NUL
+      if (c) c = *++buf;
     }
 
     // unquoted

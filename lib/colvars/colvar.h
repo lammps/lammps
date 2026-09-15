@@ -50,7 +50,7 @@
 /// \link colvarvalue \endlink type, you should also add its
 /// initialization line in the \link colvar \endlink constructor.
 
-class colvar : public colvarparse, public colvardeps {
+class colvar : public colvardeps {
 
 public:
 
@@ -96,11 +96,11 @@ public:
   static std::vector<feature *> cv_features;
 
   /// \brief Implementation of the feature list accessor for colvar
-  virtual const std::vector<feature *> &features() const
+  virtual const std::vector<feature *> &features() const override
   {
     return cv_features;
   }
-  virtual std::vector<feature *> &modify_features()
+  virtual std::vector<feature *> &modify_features() override
   {
     return cv_features;
   }
@@ -114,7 +114,7 @@ public:
   /// Implements possible actions to be carried out
   /// when a given feature is enabled
   /// This overloads the base function in colvardeps
-  void do_feature_side_effects(int id);
+  void do_feature_side_effects(int id) override;
 
   /// List of biases that depend on this colvar
   std::vector<colvarbias *> biases;
@@ -165,7 +165,7 @@ protected:
     // using the gradient of the square distance to calculate the
     // velocity (non-scalar variables automatically taken into
     // account)
-    cvm::real dt = cvm::dt();
+    cvm::real dt = cvmodule->dt();
     return ( ( (dt > 0.0) ? (1.0/dt) : 1.0 ) *
              0.5 * dist2_lgrad(xnew, xold) );
   }
@@ -246,7 +246,7 @@ public:
 
 
   /// Constructor
-  colvar();
+  colvar(colvarmodule *cvmodule_in);
 
   /// Main init function
   int init(std::string const &conf);
@@ -276,7 +276,7 @@ public:
   int init_output_flags(std::string const &conf);
 
   /// \brief Initialize dependency tree
-  virtual int init_dependencies();
+  int init_dependencies() override;
 
 private:
 
@@ -660,6 +660,16 @@ public:
   /// \brief function for sorting cvcs by their names
   static bool compare_cvc(const colvar::cvc* const i, const colvar::cvc* const j);
 
+  /// \brief Get all colvarcomp objects
+  const std::vector<std::shared_ptr<colvar::cvc>>& get_cvcs() const {
+    return cvcs;
+  }
+
+  /// \brief Get all colvarcomp objects
+  std::vector<std::shared_ptr<colvar::cvc>>& get_cvcs() {
+    return cvcs;
+  }
+
 protected:
 
   /// Array of components objects
@@ -760,10 +770,13 @@ inline colvarvalue const & colvar::total_force() const
 
 inline void colvar::add_bias_force(colvarvalue const &force)
 {
-  check_enabled(f_cv_apply_force,
-                std::string("applying a force to the variable \""+name+"\""));
+  if (! is_enabled(f_cv_apply_force)) {
+    cvmodule->error("Error: applying a force to the variable \""+name+" requires that the feature \""+
+                features()[f_cv_apply_force]->description+"\" is active.\n", COLVARS_BUG_ERROR);
+  }
+
   if (cvm::debug()) {
-    cvm::log("Adding biasing force "+cvm::to_str(force)+" to colvar \""+name+"\".\n");
+    cvmodule->log("Adding biasing force "+cvm::to_str(force)+" to colvar \""+name+"\".\n");
   }
   fb += force;
 }
@@ -772,7 +785,7 @@ inline void colvar::add_bias_force(colvarvalue const &force)
 inline void colvar::add_bias_force_actual_value(colvarvalue const &force)
 {
   if (cvm::debug()) {
-    cvm::log("Adding biasing force "+cvm::to_str(force)+" to colvar \""+name+"\".\n");
+    cvmodule->log("Adding biasing force "+cvm::to_str(force)+" to colvar \""+name+"\".\n");
   }
   fb_actual += force;
 }

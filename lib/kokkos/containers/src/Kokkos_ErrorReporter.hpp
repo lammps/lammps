@@ -71,28 +71,6 @@ class ErrorReporter {
     return std::pair{std::move(reporters_out), std::move(reports_out)};
   }
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-  KOKKOS_DEPRECATED_WITH_COMMENT("Use capacity() instead")
-  int getCapacity() const { return capacity(); }
-
-  KOKKOS_DEPRECATED_WITH_COMMENT("Use num_reports() instead")
-  int getNumReports() const { return num_reports(); }
-
-  KOKKOS_DEPRECATED_WITH_COMMENT("Use num_report_attempts() instead")
-  int getNumReportAttempts() const { return num_report_attempts(); }
-
-  KOKKOS_DEPRECATED_WITH_COMMENT("Use get_reports() instead")
-  void getReports(std::vector<int> &reporters_out,
-                  std::vector<report_type> &reports_out);
-  KOKKOS_DEPRECATED_WITH_COMMENT("Use get_reports() instead")
-  void getReports(
-      typename Kokkos::View<int *, typename DeviceType::execution_space>::
-          host_mirror_type &reporters_out,
-      typename Kokkos::View<
-          report_type *, typename DeviceType::execution_space>::host_mirror_type
-          &reports_out);
-#endif
-
   bool full() const { return (num_report_attempts() >= capacity()); }
 
   void clear() const { Kokkos::deep_copy(m_numReportsAttempted, 0); }
@@ -129,52 +107,6 @@ class ErrorReporter {
   Kokkos::View<report_type *, device_type> m_reports;
   Kokkos::View<int *, device_type> m_reporters;
 };
-
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-template <typename ReportType, typename DeviceType>
-void ErrorReporter<ReportType, DeviceType>::getReports(
-    std::vector<int> &reporters_out, std::vector<report_type> &reports_out) {
-  reporters_out.clear();
-  reports_out.clear();
-  int num_reps = num_reports();
-
-  if (num_reps > 0) {
-    reporters_out.resize(num_reps);
-    reports_out.resize(num_reps);
-
-    Kokkos::View<int *, Kokkos::HostSpace> h_reporters(reporters_out.data(),
-                                                       num_reps);
-    Kokkos::View<report_type *, Kokkos::HostSpace> h_reports(reports_out.data(),
-                                                             num_reps);
-
-    Kokkos::deep_copy(h_reporters,
-                      Kokkos::subview(m_reporters, Kokkos::pair{0, num_reps}));
-    Kokkos::deep_copy(h_reports,
-                      Kokkos::subview(m_reports, Kokkos::pair{0, num_reps}));
-  }
-}
-
-template <typename ReportType, typename DeviceType>
-void ErrorReporter<ReportType, DeviceType>::getReports(
-    typename Kokkos::View<int *, typename DeviceType::execution_space>::
-        host_mirror_type &reporters_out,
-    typename Kokkos::View<report_type *, typename DeviceType::execution_space>::
-        host_mirror_type &reports_out) {
-  int num_reps  = num_reports();
-  reporters_out = typename Kokkos::View<int *, DeviceType>::host_mirror_type(
-      "ErrorReport::reporters_out", num_reps);
-  reports_out =
-      typename Kokkos::View<report_type *, DeviceType>::host_mirror_type(
-          "ErrorReport::reports_out", num_reps);
-
-  if (num_reps > 0) {
-    Kokkos::deep_copy(reporters_out,
-                      Kokkos::subview(m_reporters, Kokkos::pair{0, num_reps}));
-    Kokkos::deep_copy(reports_out,
-                      Kokkos::subview(m_reports, Kokkos::pair{0, num_reps}));
-  }
-}
-#endif
 
 }  // namespace Experimental
 }  // namespace Kokkos

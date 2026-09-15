@@ -45,8 +45,9 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-FixDeform::FixDeform(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
-irregular(nullptr), set(nullptr)
+FixDeform::FixDeform(LAMMPS *lmp, int narg, char **arg) :
+    Fix(lmp, narg, arg), h_rate(nullptr), h_ratelo(nullptr), irregular(nullptr),
+    step_respa(nullptr), set(nullptr)
 {
   const std::string thiscmd = fmt::format("fix {}", style);
   if (narg < 4) utils::missing_cmd_args(FLERR, thiscmd, error);
@@ -695,7 +696,7 @@ void FixDeform::init()
     if (ifix->rigid_flag) rfix.push_back(ifix);
 
   auto fix_sllod = modify->get_fix_by_style("nvt/sllod");
-  if (fix_sllod.size() > 0) {
+  if (!fix_sllod.empty()) {
     const auto *ifix = fix_sllod[0];
 
     // warn about flows which may produce a non-constant flow tensor
@@ -777,6 +778,13 @@ void FixDeform::init()
     image flags to new values, making eqs in doc of Domain:image_flip incorrect
 ------------------------------------------------------------------------- */
 
+void FixDeform::migrate_atoms()
+{
+  irregular->migrate_atoms();
+}
+
+/* ---------------------------------------------------------------------- */
+
 void FixDeform::pre_exchange()
 {
   if (flip == 0) return;
@@ -820,7 +828,7 @@ void FixDeform::pre_exchange()
   domain->remap_all();
 
   domain->x2lamda(atom->nlocal);
-  irregular->migrate_atoms();
+  migrate_atoms();
   domain->lamda2x(atom->nlocal);
 
   flip = 0;
@@ -1075,7 +1083,8 @@ void FixDeform::apply_volume()
                  (set[fixed].hi_start - set[fixed].lo_start));
     }
 
-    h_rate[i] = (2.0 * shift / (domain->boxhi[i] - domain->boxlo[i]) - 1.0) / update->dt;
+    // (2*shift - L_old)/dt is d(box length)/dt; domain->h_rate is not a strain rate
+    h_rate[i] = (2.0 * shift - (domain->boxhi[i] - domain->boxlo[i])) / update->dt;
     h_ratelo[i] = -0.5 * h_rate[i];
 
     set[i].lo_target = 0.5 * (set[i].lo_start + set[i].hi_start) - shift;
@@ -1355,7 +1364,9 @@ void FixDeform::options(int narg, char **arg)
       auto nskip = child_options[arg[iarg]];
       if (iarg + nskip > narg)
         utils::missing_cmd_args(FLERR, fmt::format("fix {} {}", style, arg[iarg]), error);
-      for (int i = 0; i < nskip; i++) leftover_iarg.push_back(iarg + i);
+      // arg here is shifted, but need to store unshifted indices in leftover => add start location
+      //   (see options(narg - iarg, &arg[iarg]) call in the constructor)
+      for (int i = 0; i < nskip; i++) leftover_iarg.push_back(iarg_options_start + iarg + i);
       iarg += nskip;
     } else error->all(FLERR, "Unknown fix {} keyword: {}", style, arg[iarg]);
   }

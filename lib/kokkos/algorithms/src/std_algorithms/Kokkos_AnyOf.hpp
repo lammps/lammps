@@ -5,7 +5,12 @@
 #define KOKKOS_STD_ALGORITHMS_ANY_OF_HPP
 
 #include "impl/Kokkos_AllOfAnyOfNoneOf.hpp"
-#include "Kokkos_BeginEnd.hpp"
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core_impl;
+#else
+#include <Kokkos_Iterator.hpp>
+#endif
 
 namespace Kokkos {
 namespace Experimental {

@@ -2,7 +2,6 @@
 // SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #include <TestStdAlgorithmsCommon.hpp>
-#include <std_algorithms/Kokkos_BeginEnd.hpp>
 #include "std_algorithms/Kokkos_AdjacentFind.hpp"
 #include <utility>
 

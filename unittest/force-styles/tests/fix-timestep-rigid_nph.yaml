@@ -1,6 +1,6 @@
 ---
 lammps_version: 7 Feb 2024
-tags:
+tags: no_respa
 date_generated: Thu Apr  4 21:27:11 2024
 epsilon: 5e-13
 skip_tests:
@@ -13,6 +13,7 @@ post_commands: ! |
   fix test solvent rigid/nph molecule iso 1.0 1.0 100.0
   fix_modify test virial yes
 input_file: in.fourmol
+input_coeffs: coeffs.fourmol
 natoms: 29
 run_stress: ! |2-
    4.3578059175768836e+01  1.7275105168781163e+01  6.7372361277896715e+01  5.1985075050485008e+01 -2.0990677388216337e+01 -7.5321398110797180e+00

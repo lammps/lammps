@@ -22,8 +22,6 @@ CommandStyle(info,Info);
 
 #include "command.h"
 
-#include <vector>
-
 namespace LAMMPS_NS {
 
 class Info : public Command {
@@ -52,6 +50,8 @@ class Info : public Command {
   static std::string get_fmt_info();
   static std::string get_json_info();
   static bool has_gpu_device();
+  static bool has_kokkos_gpu_device();
+  static void gpu_defer_device_clear(int);
   static std::string get_gpu_device_info();
   static std::string get_accelerator_info(const std::string &pkg = "");
 

@@ -329,7 +329,7 @@ The *augt1* parameter is related to modifications in the MEAM
 formulation of the partial electron density function.  In recent
 literature, an extra term is included in the expression for the
 third-order density in order to make the densities orthogonal (see for
-example :ref:`(Wang) <Wang2>`, equation 3d); this term is included in the
+example :ref:`(Wang4) <Wang2>`, equation 3d); this term is included in the
 MEAM implementation in LAMMPS.  However, in earlier published work
 this term was not included when deriving parameters, including most of
 those provided in the ``library.meam`` file included with LAMMPS, and to
@@ -472,7 +472,7 @@ This report may be accessed on-line via `this link <https://download.lammps.org/
 
 .. _Wang2:
 
-**(Wang)** Wang, Van Hove, Ross, Baskes, J. Chem. Phys., 121, 5410 (2004).
+**(Wang4)** Wang, Van Hove, Ross, Baskes, J. Chem. Phys., 121, 5410 (2004).
 
 .. _ZBL:
 

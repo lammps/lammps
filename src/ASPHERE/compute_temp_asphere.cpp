@@ -27,6 +27,7 @@
 #include "math_extra.h"
 #include "modify.h"
 #include "update.h"
+#include "utils.h"
 
 #include <cstring>
 
@@ -58,6 +59,7 @@ ComputeTempAsphere::ComputeTempAsphere(LAMMPS *lmp, int narg, char **arg) :
     if (strcmp(arg[iarg],"bias") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "compute temp/asphere bias", error);
       tempbias = 1;
+      delete[] id_bias;
       id_bias = utils::strdup(arg[iarg+1]);
       iarg += 2;
     } else if (strcmp(arg[iarg],"dof") == 0) {
@@ -118,7 +120,8 @@ void ComputeTempAsphere::init()
       error->all(FLERR,"Bias compute {} does not calculate a velocity bias", id_bias);
     if (tbias->igroup != igroup)
       error->all(FLERR,"Bias compute group does not match compute group");
-    if (strcmp(tbias->style,"temp/region") == 0) tempbias = 2;
+    // match the accelerated variants too (see compute_temp_sphere.cpp)
+    if (utils::strmatch(tbias->style,"^temp/region")) tempbias = 2;
     else tempbias = 1;
 
     // init and setup bias compute because

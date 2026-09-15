@@ -29,7 +29,7 @@ using namespace LAMMPS_NS;
 
 ComputeERotateAsphere::
 ComputeERotateAsphere(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+  Compute(lmp, narg, arg), avec_ellipsoid(nullptr), avec_line(nullptr), avec_tri(nullptr)
 {
   if (narg != 3) error->all(FLERR,"Illegal compute erotate/asphere command");
 

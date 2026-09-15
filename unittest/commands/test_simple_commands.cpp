@@ -19,6 +19,7 @@
 #include "force.h"
 #include "info.h"
 #include "input.h"
+#include "library.h"
 #include "output.h"
 #include "platform.h"
 #include "update.h"
@@ -262,6 +263,9 @@ TEST_F(SimpleCommandsTest, ResetTimestep)
 
 TEST_F(SimpleCommandsTest, Suffix)
 {
+    // this test enables suffixes from scratch, so it cannot run in a
+    // configuration that already has one active
+    if (lmp->suffix_enable) GTEST_SKIP() << "a suffix is already enabled";
     ASSERT_EQ(lmp->suffix_enable, 0);
     ASSERT_EQ(lmp->suffix, nullptr);
     ASSERT_EQ(lmp->suffix2, nullptr);
@@ -591,49 +595,6 @@ TEST_F(SimpleCommandsTest, CiteMe)
     ASSERT_THAT(text, Not(ContainsRegex(".*CITE-CITE-CITE-CITE.*")));
 }
 
-TEST_F(SimpleCommandsTest, Geturl)
-{
-    if (!Info::has_package("EXTRA-COMMAND")) GTEST_SKIP();
-    platform::unlink("index.html");
-    platform::unlink("myindex.html");
-    if (Info::has_curl_support()) {
-        BEGIN_CAPTURE_OUTPUT();
-        command("geturl https://www.lammps.org/index.html");
-        command("geturl https://www.lammps.org/index.html output myindex.html");
-        END_CAPTURE_OUTPUT();
-        EXPECT_TRUE(platform::file_is_readable("index.html"));
-        EXPECT_TRUE(platform::file_is_readable("myindex.html"));
-        FILE *fp = fopen("index.html", "wb");
-        fputs("just testing\n", fp);
-        fclose(fp);
-        BEGIN_CAPTURE_OUTPUT();
-        command("geturl https://www.lammps.org/index.html overwrite no");
-        END_CAPTURE_OUTPUT();
-        char checkme[20];
-        fp = fopen("index.html", "rb");
-        fgets(checkme, 19, fp);
-        fclose(fp);
-        EXPECT_EQ(strcmp(checkme, "just testing\n"), 0);
-        BEGIN_CAPTURE_OUTPUT();
-        command("geturl https://www.lammps.org/index.html overwrite yes");
-        END_CAPTURE_OUTPUT();
-        fp = fopen("index.html", "rb");
-        fgets(checkme, 19, fp);
-        fclose(fp);
-        EXPECT_NE(strcmp(checkme, "just testing\n"), 0);
-        TEST_FAILURE(".*ERROR: Illegal geturl command: missing argument.*", command("geturl "););
-        TEST_FAILURE(".*ERROR: URL 'dummy' is not a supported URL.*", command("geturl dummy"););
-        TEST_FAILURE(".*ERROR on proc 0: Download of xxx.txt failed with: "
-                     "HTTP response code said error 404.*",
-                     command("geturl https://www.lammps.org/xxx.txt"););
-    } else {
-        TEST_FAILURE(".*ERROR: LAMMPS has not been compiled with libcurl support*",
-                     command("geturl https:://www.lammps.org/index.html"););
-    }
-    platform::unlink("index.html");
-    platform::unlink("myindex.html");
-}
-
 TEST_F(SimpleCommandsTest, run)
 {
     bool caught = false;
@@ -711,6 +672,13 @@ int main(int argc, char **argv)
     if ((argc > 1) && (strcmp(argv[1], "-v") == 0)) verbose = true;
 
     int rv = RUN_ALL_TESTS();
+
+    // finalize the KOKKOS package explicitly: otherwise Kokkos is torn down by
+    // static destructors at program exit, leading to segfaults in some cases
+    // same workaround as the force-style and FFT3d test drivers
+
+    lammps_kokkos_finalize();
+
     MPI_Finalize();
     return rv;
 }

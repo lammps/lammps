@@ -49,6 +49,8 @@ ComputeErotateSphereAtom::ComputeErotateSphereAtom(LAMMPS *lmp, int narg, char *
 
 ComputeErotateSphereAtom::~ComputeErotateSphereAtom()
 {
+  if (copymode) return;
+
   memory->destroy(erot);
 }
 
@@ -56,8 +58,8 @@ ComputeErotateSphereAtom::~ComputeErotateSphereAtom()
 
 void ComputeErotateSphereAtom::init()
 {
-  if (modify->get_compute_by_style(style).size() > 1)
-    if (comm->me == 0) error->warning(FLERR, "More than one compute {}", style);
+  if ((comm->me == 0) && (modify->get_compute_by_style("^erotate/sphere/atom").size() > 1))
+    error->warning(FLERR, "More than one compute {}", style);
 
   pfactor = 0.5 * force->mvv2e * INERTIA;
 }

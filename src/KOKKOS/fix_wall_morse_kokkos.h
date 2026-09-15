@@ -40,6 +40,7 @@ class FixWallMorseKokkos : public FixWallMorse {
   ~FixWallMorseKokkos() override;
   void precompute(int) override;
   void post_force(int) override;
+  void v_setup_peratom(int) override;
   void wall_particle(int, int, double) override;
 
   int m;

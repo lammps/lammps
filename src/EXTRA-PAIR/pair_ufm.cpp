@@ -33,7 +33,9 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairUFM::PairUFM(LAMMPS *lmp) : Pair(lmp)
+PairUFM::PairUFM(LAMMPS *lmp) :
+    Pair(lmp), cut(nullptr), scale(nullptr), epsilon(nullptr), sigma(nullptr), uf1(nullptr),
+    uf2(nullptr), uf3(nullptr), offset(nullptr)
 {
   writedata = 1;
 }

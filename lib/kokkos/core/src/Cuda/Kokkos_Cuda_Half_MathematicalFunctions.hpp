@@ -38,8 +38,7 @@ KOKKOS_INLINE_FUNCTION Kokkos::Experimental::half_t impl_test_fallback_half(
 }
 
 // Function for bhalf are not available prior to Ampere
-#if defined(KOKKOS_IMPL_BHALF_TYPE_DEFINED) && \
-    (KOKKOS_IMPL_ARCH_NVIDIA_GPU >= 80)
+#if !KOKKOS_BHALF_T_IS_FLOAT && (KOKKOS_IMPL_ARCH_NVIDIA_GPU >= 80)
 
 #define KOKKOS_CUDA_BHALF_UNARY_FUNCTION_IMPL(OP, CUDA_NAME) \
   KOKKOS_CUDA_HALF_UNARY_FUNCTION(OP, CUDA_NAME, Kokkos::Experimental::bhalf_t)

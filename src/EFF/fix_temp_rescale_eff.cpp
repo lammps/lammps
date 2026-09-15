@@ -38,7 +38,7 @@ enum{NOBIAS,BIAS};
 /* ---------------------------------------------------------------------- */
 
 FixTempRescaleEff::FixTempRescaleEff(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg)
+    Fix(lmp, narg, arg), temperature(nullptr)
 {
   if (narg < 8) error->all(FLERR,"Illegal fix temp/rescale/eff command");
 

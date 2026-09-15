@@ -43,6 +43,10 @@ ImproperFourierKokkos<DeviceType>::ImproperFourierKokkos(LAMMPS *lmp) : Improper
   datamask_read = X_MASK | F_MASK | ENERGY_MASK | VIRIAL_MASK;
   datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
 
+  k_warning_flag = DAT::tdual_int_scalar("ImproperFourier:warning_flag");
+  d_warning_flag = k_warning_flag.template view<DeviceType>();
+  h_warning_flag = k_warning_flag.view_host();
+
   centroidstressflag = CENTROID_NOTAVAIL;
 }
 
@@ -87,8 +91,6 @@ void ImproperFourierKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   k_C1.template sync<DeviceType>();
   k_C2.template sync<DeviceType>();
   k_all.template sync<DeviceType>();
-  if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
-  else atomKK->modified(execution_space,F_MASK);
 
   x = atomKK->k_x.view<DeviceType>();
   f = atomKK->k_f.view<DeviceType>();
@@ -99,9 +101,7 @@ void ImproperFourierKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   newton_bond = force->newton_bond;
 
   // zero warning flag
-  k_warning_flag = DAT::tdual_int_scalar("ImproperFourier::warning_flag");
-  d_warning_flag = k_warning_flag.template view<DeviceType>();
-  h_warning_flag = k_warning_flag.view_host();
+
   h_warning_flag() = 0;
   k_warning_flag.modify_host();
   k_warning_flag.template sync<DeviceType>();
@@ -221,8 +221,8 @@ void ImproperFourierKokkos<DeviceType>::addone(EV_FLOAT &ev,
   az = vb1x*vb2y - vb1y*vb2x;
   ra2 = ax*ax + ay*ay + az*az;
   rh2 = vb3x*vb3x + vb3y*vb3y + vb3z*vb3z;
-  ra = sqrt(ra2);
-  rh = sqrt(rh2);
+  ra = Kokkos::sqrt(ra2);
+  rh = Kokkos::sqrt(rh2);
   if (ra < static_cast<KK_FLOAT>(SMALL)) ra = static_cast<KK_FLOAT>(SMALL);
   if (rh < static_cast<KK_FLOAT>(SMALL)) rh = static_cast<KK_FLOAT>(SMALL);
 
@@ -237,21 +237,21 @@ void ImproperFourierKokkos<DeviceType>::addone(EV_FLOAT &ev,
 
   c = arx*hrx + ary*hry + arz*hrz;
 
-  if (c > static_cast<KK_FLOAT>(1.0) + static_cast<KK_FLOAT>(TOLERANCE) ||
-      c < static_cast<KK_FLOAT>(-1.0) - static_cast<KK_FLOAT>(TOLERANCE))
+  if ((c > static_cast<KK_FLOAT>(1.0) + static_cast<KK_FLOAT>(TOLERANCE) ||
+       c < static_cast<KK_FLOAT>(-1.0) - static_cast<KK_FLOAT>(TOLERANCE)) && !d_warning_flag())
     d_warning_flag() = 1;
 
   if (c > static_cast<KK_FLOAT>(1.0)) c = static_cast<KK_FLOAT>(1.0);
   if (c < static_cast<KK_FLOAT>(-1.0)) c = static_cast<KK_FLOAT>(-1.0);
 
-  s = sqrt(static_cast<KK_FLOAT>(1.0) - c*c);
+  s = Kokkos::sqrt(static_cast<KK_FLOAT>(1.0) - c*c);
   if (s < static_cast<KK_FLOAT>(SMALL)) s = static_cast<KK_FLOAT>(SMALL);
   cotphi = c/s;
 
   projhfg = (vb3x*vb1x + vb3y*vb1y + vb3z*vb1z) /
-    sqrt(vb1x*vb1x + vb1y*vb1y + vb1z*vb1z);
+    Kokkos::sqrt(vb1x*vb1x + vb1y*vb1y + vb1z*vb1z);
   projhfg += (vb3x*vb2x + vb3y*vb2y + vb3z*vb2z) /
-    sqrt(vb2x*vb2x + vb2y*vb2y + vb2z*vb2z);
+    Kokkos::sqrt(vb2x*vb2x + vb2y*vb2y + vb2z*vb2z);
   if (projhfg > static_cast<KK_FLOAT>(0.0)) {
     s *= static_cast<KK_FLOAT>(-1.0);
     cotphi *= static_cast<KK_FLOAT>(-1.0);

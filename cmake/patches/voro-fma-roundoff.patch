@@ -1,0 +1,42 @@
+Backport of the upstream Voro++ fix for premature termination of the radical Voronoi
+cell computation (https://github.com/chr1shr/voro commit 04fecfabd0, 2026-02-25,
+"Fixed numerical roundoff bug identified by Ivan Chernyshov in radical Voronoi
+tessellation").  With fused multiply-add instructions (default on ARM64), r_mul is
+not exactly zero for the particles with the largest radius and the search for
+neighboring blocks stops before any of them has been visited.
+
+--- src/rad_option.hh.orig
++++ src/rad_option.hh
+@@ -96,8 +96,9 @@
+ 		 * \param[in] ijk the block that the particle is within.
+ 		 * \param[in] s the index of the particle within the block. */
+ 		inline void r_init(int ijk,int s) {
+-			r_rad=ppr[ijk][4*s+3]*ppr[ijk][4*s+3];
+-			r_mul=r_rad-max_radius*max_radius;
++			double &r=ppr[ijk][4*s+3];
++			r_rad=r*r;
++			r_mul=(r-max_radius)*(r+max_radius);
+ 		}
+ 		/** Sets a required constant to be used when carrying out a
+ 		 * plane bounds check. */
+@@ -108,7 +109,10 @@
+ 		 *                vertex multiplied by two.
+ 		 * \return True if particles at this radius could not possibly
+ 		 * cut the cell, false otherwise. */		
+-		inline bool r_ctest(double crs,double mrs) {return crs+r_mul>sqrt(mrs*crs);}
++		inline bool r_ctest(double crs,double mrs) {
++			double cc=crs+r_mul;
++			return cc>0&&cc*cc>mrs*crs;
++		}
+ 		/** Scales a plane displacement during a plane bounds check.
+ 		 * \param[in] lrs the plane displacement.
+ 		 * \return The scaled value. */		
+@@ -148,7 +152,7 @@
+ 		inline bool r_scale_check(double &rs,double mrs,int ijk,int q) {
+ 			double trs=rs;
+ 			rs+=r_rad-ppr[ijk][4*q+3]*ppr[ijk][4*q+3];
+-			return rs<sqrt(mrs*trs);
++			return rs<=0||rs*rs<mrs*trs;
+ 		}
+ 	private:
+ 		double r_rad,r_mul,r_val;

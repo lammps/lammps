@@ -1,0 +1,110 @@
+# GitHub action to build LAMMPS on Linux and run standard unit tests.
+# This configuration complements unittest-linux.yml: default (smallbig) integer
+# sizes instead of -DLAMMPS_BIGBIG, MPI enabled so that MPI-only packages like
+# LATBOLTZ can be included, FFTW3 instead of the bundled KISS FFT, and the
+# KOKKOS package with the OpenMP backend.  The check-examples.yml workflow
+# builds the same configuration and shares the ccache cache with this one.
+name: "Unittest for Linux /w MPI and FFTW3"
+
+on:
+  push:
+    branches:
+      - develop
+      - maintenance
+  pull_request:
+    branches:
+      - develop
+
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.event_name }}-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{github.event_name == 'pull_request'}}
+
+jobs:
+  build:
+    name: Linux Unit Test MPI FFTW3
+    if: ${{ github.repository == 'lammps/lammps' }}
+    runs-on: ubuntu-latest
+    env:
+      CCACHE_DIR: ${{ github.workspace }}/.ccache
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v7
+      with:
+        fetch-depth: 2
+
+    - name: Install extra packages
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y ccache \
+                                libeigen3-dev \
+                                libcurl4-openssl-dev \
+                                libfftw3-dev \
+                                mold \
+                                mpi-default-bin \
+                                mpi-default-dev \
+                                ninja-build \
+                                python3-dev
+
+    - name: Create Build Environment
+      run: mkdir build
+
+    - name: Set up ccache
+      uses: actions/cache@v6
+      with:
+        path: ${{ env.CCACHE_DIR }}
+        key: linux-fftw-ccache-${{ github.sha }}
+        restore-keys: linux-fftw-ccache-
+
+    - name: Building LAMMPS via CMake
+      shell: bash
+      run: |
+        ccache -z -M 5
+        python3 -m venv linuxenv
+        source linuxenv/bin/activate
+        python3 -m pip install numpy
+        python3 -m pip install pyyaml
+        cmake -S cmake -B build \
+              -C cmake/presets/gcc.cmake \
+              -C cmake/presets/most.cmake \
+              -C cmake/presets/kokkos-openmp.cmake \
+              -D CMAKE_CXX_COMPILER_LAUNCHER=ccache \
+              -D CMAKE_C_COMPILER_LAUNCHER=ccache \
+              -D BUILD_MPI=on \
+              -D BUILD_SHARED_LIBS=on \
+              -D FFT=FFTW3 \
+              -D DOWNLOAD_POTENTIALS=off \
+              -D ENABLE_TESTING=on \
+              -D MLIAP_ENABLE_ACE=on \
+              -D MLIAP_ENABLE_PYTHON=off \
+              -D PKG_LATBOLTZ=on \
+              -D PKG_MESONT=off \
+              -D PKG_MANIFOLD=on \
+              -D PKG_ML-PACE=on \
+              -D PKG_RHEO=on \
+              -D PKG_PTM=on \
+              -D PKG_PYTHON=on \
+              -D PKG_QTB=on \
+              -D PKG_SMTBQ=on \
+              -G Ninja
+        cmake --build build
+        ccache -s
+
+    - name: Run Tests
+      working-directory: build
+      shell: bash
+      run: |
+        export OMP_NUM_THREADS=2
+        export OMP_PROC_BIND=false
+        ctest -V --output-junit junit-linux-x86_64-fftw.xml
+
+    # test results from pull request branches are only for the submitters,
+    # only post-merge results are published for downstream reporting
+    - name: Upload JUnit test results for post-merge runs
+      if: ${{ always() && (github.event_name == 'push') }}
+      uses: actions/upload-artifact@v7
+      with:
+        name: junit-linux-x86_64-fftw
+        path: build/junit-linux-x86_64-fftw.xml

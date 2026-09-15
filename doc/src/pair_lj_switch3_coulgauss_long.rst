@@ -133,7 +133,7 @@ These pair styles support the :doc:`pair_modify <pair_modify>` table and
 options since they can tabulate the short-range portion of the
 long-range Coulombic interactions.
 
-Thes pair styles do not support the :doc:`pair_modify <pair_modify>`
+These pair styles do not support the :doc:`pair_modify <pair_modify>`
 tail option for adding a long-range tail correction to the
 Lennard-Jones portion of the energy and pressure.
 

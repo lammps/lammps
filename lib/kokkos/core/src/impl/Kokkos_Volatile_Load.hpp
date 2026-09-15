@@ -2,6 +2,9 @@
 // SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #include <Kokkos_Macros.hpp>
+#include <desul/atomics.hpp>
+
+#include <type_traits>
 
 #if defined(KOKKOS_ATOMIC_HPP) && !defined(KOKKOS_VOLATILE_LOAD_HPP)
 #define KOKKOS_VOLATILE_LOAD_HPP
@@ -21,6 +24,23 @@ namespace Kokkos {
 
 //----------------------------------------------------------------------------
 
+// FIXME_SYCL use old compare and swap way of storing value as we saw that
+// otherwise the volatile load will not be honored correctly
+#if defined KOKKOS_ENABLE_SYCL
+template <typename T>
+KOKKOS_FORCEINLINE_FUNCTION T volatile_load(T const volatile* const src_ptr) {
+  KOKKOS_IF_ON_HOST(
+      (return desul::Impl::device_atomic_fetch_oper(
+                  desul::Impl::_load_fetch_operator<T, const T>(),
+                  const_cast<T*>(src_ptr), T(), desul::MemoryOrderRelaxed(),
+                  desul::MemoryScopeDevice());))
+  KOKKOS_IF_ON_DEVICE(
+      (return desul::Impl::device_atomic_fetch_oper(
+                  desul::Impl::_load_fetch_operator<T, const T>(),
+                  const_cast<T*>(src_ptr), T(), desul::MemoryOrderRelaxed(),
+                  desul::MemoryScopeDevice());))
+}
+#else
 template <typename T>
 KOKKOS_FORCEINLINE_FUNCTION T volatile_load(T const volatile* const src_ptr) {
   typedef uint64_t KOKKOS_IMPL_MAY_ALIAS T64;  // NOLINT(modernize-use-using)
@@ -71,6 +91,7 @@ KOKKOS_FORCEINLINE_FUNCTION T volatile_load(T const volatile* const src_ptr) {
 
   return result;
 }
+#endif
 
 template <typename T>
 KOKKOS_FORCEINLINE_FUNCTION void volatile_store(

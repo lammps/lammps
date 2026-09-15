@@ -1,0 +1,19 @@
+---
+lammps_version: 4 Jul 2026
+tags:
+date_generated: Thu Jul  9 16:21:38 2026
+epsilon: 1e-08
+timestep: 0.25
+skip_tests:
+prerequisites: |
+  atom full
+  compute msd
+pre_commands: ""
+post_commands: |
+  compute test all msd
+input_file: in.fourmol
+input_coeffs: coeffs.fourmol
+natoms: 29
+global_vector: |-
+  4  3.5217463963338805e-04  4.3623938889077993e-04  1.0253985432348860e-03  1.8138125717590532e-03
+...

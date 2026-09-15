@@ -1,0 +1,68 @@
+---
+lammps_version: 4 Jul 2026
+tags: granular
+date_generated: Tue Jul 21 21:40:56 2026
+epsilon: 1e-10
+skip_tests:
+prerequisites: |
+  atom sphere
+  pair granular
+pre_commands: |
+  units si
+  dimension 3
+  boundary p p f
+  atom_style sphere
+  region box block -0.05 0.05 -0.05 0.05 -0.01 0.05 units box
+  create_box 1 box
+  create_atoms 1 single 0.0 0.0 ${z0} units box
+  set group all diameter ${diam} density ${dens}
+  set group all omega 0.0 ${omega0} 0.0
+  comm_modify vel yes
+  neighbor 0.001 bin
+  neigh_modify delay 0
+  timestep ${dt}
+post_commands: |
+  fix grav all gravity 1.0 vector 0.0 0.0 -1.0
+  fix integr all nve/sphere
+  fix zwall all wall/gran granular hertz/material ${emod} ${en} ${poisson} damping coeff_restitution tangential linear_nohistory 0.0 0.0 rolling sds ${kr} 0.0 ${mur} zplane 0.0 NULL
+input_file:
+natoms: 1
+variables: |
+  diam 0.005
+  dens 2700.0
+  emod 1.0e4
+  poisson 0.33
+  en 1.0
+  mur 0.05
+  kr 1.0e4
+  grav 1.0
+  omega0 1.0
+  radius 0.0025
+  dt 1.0e-6
+  z0 0.0024393
+pair_style: granular
+pair_coeff: |
+  * * hertz/material ${emod} ${en} ${poisson} damping coeff_restitution tangential linear_nohistory 0.0 0.0 rolling sds ${kr} 0.0 ${mur}
+run_segments: |-
+  3000 4000 3000
+analytic_enable: yes
+analytic_model: rolling_decay
+analytic_tol: 0.01
+analytic_segment: 1
+run_pos: |2
+    0   1  0.0000000000000000e+00  0.0000000000000000e+00  2.4393047109726824e-03
+    1   1  0.0000000000000000e+00  0.0000000000000000e+00  2.4393235948414883e-03
+    2   1  0.0000000000000000e+00  0.0000000000000000e+00  2.4393432012658920e-03
+run_vel: |2
+    0   1  0.0000000000000000e+00  0.0000000000000000e+00  3.0821618401636272e-06
+    1   1  0.0000000000000000e+00  0.0000000000000000e+00  6.0463003134993147e-06
+    2   1  0.0000000000000000e+00  0.0000000000000000e+00  6.7812991755638290e-06
+run_torque: |2
+    0   1  0.0000000000000000e+00 -2.2110307897107791e-08  0.0000000000000000e+00
+    1   1  0.0000000000000000e+00 -2.2099990069744646e-08  0.0000000000000000e+00
+    2   1  0.0000000000000000e+00 -2.2089279148959932e-08  0.0000000000000000e+00
+run_omega: |2
+    0   1  0.0000000000000000e+00  8.4987091857109898e-01  0.0000000000000000e+00
+    1   1  0.0000000000000000e+00  6.4972271164742845e-01  0.0000000000000000e+00
+    2   1  0.0000000000000000e+00  4.9968596170431628e-01  0.0000000000000000e+00
+...

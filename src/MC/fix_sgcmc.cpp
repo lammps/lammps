@@ -452,7 +452,7 @@ void FixSemiGrandCanonicalMC::doMC()
           A += deltaNGlobal[i] * deltaNGlobal[i];
           A += 2.0 * deltaNGlobal[i] * (speciesCounts[i] - (int)(targetConcentration[i] * atom->natoms));
         }
-        double deltaB = -(kappa / atom->natoms) * A;
+        double deltaB = -beta * (kappa / atom->natoms) * A;
         if (deltaB < 0.0) {
           if (deltaB < log(random->uniform())) {
             std::fill(deltaN.begin(), deltaN.end(), 0);

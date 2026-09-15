@@ -27,7 +27,6 @@
 #include "group.h"
 #include "math_extra.h"
 #include "modify.h"
-#include "utils.h"
 
 #include <cstring>
 
@@ -122,7 +121,7 @@ void FixNVTSllod::init()
   // check fix deform remap settings
 
   auto deform = modify->get_fix_by_style("^deform");
-  if (deform.size() < 1)
+  if (deform.empty())
     error->all(FLERR, Error::NOLASTLINE, "Using fix {} with no fix deform defined", style);
 
   for (auto &ifix : deform) {

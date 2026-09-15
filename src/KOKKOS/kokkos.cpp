@@ -15,8 +15,18 @@
 #include "kokkos.h"
 
 #include "citeme.h"
+#include "comm.h"
+#include "compute.h"
 #include "error.h"
+#include "angle.h"
+#include "bond.h"
+#include "dihedral.h"
+#include "fix.h"
 #include "force.h"
+#include "improper.h"
+#include "kspace.h"
+#include "modify.h"
+#include "pair.h"
 #include "memory_kokkos.h"
 #include "neigh_list_kokkos.h"
 #include "neighbor_kokkos.h"
@@ -42,6 +52,15 @@
 #endif
 #endif
 
+// vendor runtime headers for the GPU device probe below
+#if defined(KOKKOS_ENABLE_CUDA)
+#include <cuda_runtime.h>
+#elif defined(KOKKOS_ENABLE_HIP)
+#include <hip/hip_runtime.h>
+#elif defined(KOKKOS_ENABLE_SYCL)
+#include <sycl/sycl.hpp>
+#endif
+
 using namespace LAMMPS_NS;
 
 static const char cite_kokkos_package[] =
@@ -52,11 +71,45 @@ static const char cite_kokkos_package[] =
   " year = 2025,\n"
   " booktitle = {Proceedings of the SC '25 Workshops of the International Conference for High Performance Computing,\n"
   "  Networking, Storage and Analysis},\n"
-  " pages = {1217–1232},\n"
+  " pages = {1217--1232},\n"
   "}\n\n";
 
 int KokkosLMP::is_finalized = 0;
 int KokkosLMP::init_ngpus = 0;
+
+/* ----------------------------------------------------------------------
+   probe at runtime whether a compatible GPU device is present and usable
+   without initializing the KOKKOS package (which would abort for a GPU
+   backend when no device is available).  The vendor runtime device-count
+   queries return an error code instead of aborting, so this is safe to
+   call before deciding to enable the KOKKOS package, e.g. for skipping
+   tests gracefully.  Returns false for host-only KOKKOS builds.
+   This mirrors lmp_has_compatible_gpu_device() of the GPU package and is
+   wrapped by Info::has_kokkos_gpu_device().
+------------------------------------------------------------------------- */
+
+bool lmp_has_compatible_kokkos_gpu()
+{
+#if defined(KOKKOS_ENABLE_CUDA)
+  int ndev = 0;
+  if (cudaGetDeviceCount(&ndev) != cudaSuccess) return false;
+  return ndev > 0;
+#elif defined(KOKKOS_ENABLE_HIP)
+  int ndev = 0;
+  if (hipGetDeviceCount(&ndev) != hipSuccess) return false;
+  return ndev > 0;
+#elif defined(KOKKOS_ENABLE_SYCL)
+  try {
+    return !sycl::device::get_devices(sycl::info::device_type::gpu).empty();
+  } catch (...) {
+    return false;
+  }
+#else
+  // host-only KOKKOS build (Serial/OpenMP/Pthreads) or a GPU backend
+  // without a runtime device probe (e.g. OpenMPTarget)
+  return false;
+#endif
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -110,7 +163,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   // unified memory
 
-#if ((defined(KOKKOS_ENABLE_CUDA) && defined(KOKKOS_ENABLE_CUDA_UVM)) || \
+#if ((defined(KOKKOS_ENABLE_CUDA) && defined(KOKKOS_ENABLE_IMPL_CUDA_UNIFIED_MEMORY)) || \
      (defined(KOKKOS_ENABLE_HIP) && defined(KOKKOS_ARCH_AMD_GFX942_APU)))
   if (me == 0)
     utils::logmesg(lmp,"  using unified memory\n");
@@ -168,10 +221,12 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
       int set_flag = 0;
       char *str;
       if ((str = getenv("SLURM_LOCALID"))) {
-        int local_rank = std::stoi(str);
-        device = local_rank % ngpus;
-        if (device >= skip_gpu) device++;
-        set_flag = 1;
+        if (ngpus > 0) {
+          int local_rank = std::stoi(str);
+          device = local_rank % ngpus;
+          if (device >= skip_gpu) device++;
+          set_flag = 1;
+        }
       }
       if ((str = getenv("FLUX_TASK_LOCAL_ID"))) {
         if (ngpus > 0) {
@@ -215,7 +270,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
       }
       if ((str = getenv("PALS_LOCAL_RANKID"))) {
         if (ngpus > 0) {
-          int local_rank = atoi(str);
+          int local_rank = std::stoi(str);
           device = local_rank % ngpus;
           if (device >= skip_gpu) device++;
           set_flag = 1;
@@ -228,6 +283,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
     } else if (strcmp(arg[iarg],"t") == 0 ||
                strcmp(arg[iarg],"threads") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Invalid Kokkos command-line args");
       nthreads = utils::inumeric(FLERR, arg[iarg+1], false, lmp);
 
       if (nthreads <= 0)
@@ -243,12 +299,16 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   Kokkos::InitializationSettings args;
 
-  if (args.has_num_threads()) {
-    if ((args.get_num_threads() != nthreads) || (args.get_device_id() != device))
+  // the settings object was just created, so it has nothing to compare against.
+  // ask the library itself whether it is already running, which is the case when
+  // a second LAMMPS instance is created in the same process
+
+  if (Kokkos::is_initialized()) {
+    if ((Kokkos::num_threads() != nthreads) || (Kokkos::device_id() != device))
       if (me == 0)
         error->warning(FLERR,"Kokkos package already initalized. Cannot change parameters");
-    nthreads = args.get_num_threads();
-    device = args.get_device_id();
+    nthreads = Kokkos::num_threads();
+    device = Kokkos::device_id();
     ngpus = init_ngpus;
   } else {
     args.set_num_threads(nthreads);
@@ -463,6 +523,15 @@ void KokkosLMP::finalize()
 void KokkosLMP::accelerator(int narg, char **arg)
 {
   if (lmp->citeme) lmp->citeme->add(cite_kokkos_package);
+
+  // unless set with the neigh/thread option, neigh_thread may have been
+  // enabled by the small-system heuristic in pair_compute_neighlist(), which
+  // is only valid for the run it was made for.  discard that state here so it
+  // cannot conflict with the settings of this package command (e.g. after a
+  // clear command re-applies the package defaults and command line options,
+  // "newton on" would be rejected because of the stale neigh_thread setting)
+
+  if (!neigh_thread_set) neigh_thread = 0;
 
   int iarg = 0;
   while (iarg < narg) {
@@ -759,7 +828,10 @@ void KokkosLMP::accelerator(int narg, char **arg)
     }
   }
 
-  if (lmp->pair_only_flag) {
+  // if "pair/only off" and the sort and atom map flags were changed previously,
+  // change them back
+
+  if (!lmp->pair_only_flag) {
     if (sort_changed) {
       sort_legacy = 0;
       sort_changed = 0;
@@ -852,4 +924,75 @@ void KokkosLMP::my_signal_handler(int sig)
     kill(getpid(),SIGABRT);
 #endif
   }
+}
+
+/* ----------------------------------------------------------------------
+   warn (rank 0) when a KOKKOS style relies on a non-KOKKOS helper compute
+   (e.g. a thermostat/barostat whose temperature compute is not kokkosable).
+   Such a helper runs on the host, forcing a per-step host/device sync of the
+   per-atom data it reads.  Results stay correct (the KOKKOS styles guard their
+   device paths), but performance silently degrades.  No-op if the compute is
+   null or already kokkosable.
+------------------------------------------------------------------------- */
+
+void KokkosLMP::warn_nonkokkos_compute(LAMMPS *lmp, const std::string &parentstyle,
+                                       Compute *c, const std::string &role)
+{
+  if (!c || c->kokkosable) return;
+  if (lmp->comm->me == 0)
+    lmp->error->warning(FLERR, "KOKKOS fix {} is using non-KOKKOS {} compute {}; this forces a "
+                        "host/device synchronization every step.  Use the '-sf kk' command-line "
+                        "switch or a {} compute with a '/kk' suffix for best performance.",
+                        parentstyle, role, c->id, role);
+}
+
+/* ----------------------------------------------------------------------
+   run_style respa keeps its own copies of the forces of each level and
+   clears and sums them through the plain host arrays, and it calls the
+   force computations without the host/device transfers that run_style
+   verlet/kk performs.  That is only correct while every participant works
+   on the host side of the atom data.  A style running in the device
+   execution space, or the atom communication, sorting or atom map running
+   on the device, leaves the host copies behind with nothing to say so and
+   the forces come out wrong.  A build without a device backend has no such
+   participants, and neither does a device build whose styles all carry the
+   /kk/host suffix and whose package settings keep comm, sort and atom/map
+   on the host.  Called from Respa::init().
+------------------------------------------------------------------------- */
+
+void KokkosLMP::respa_check()
+{
+#ifdef LMP_KOKKOS_GPU
+  auto refuse = [&](const std::string &what) {
+    error->all(FLERR, "Run style respa is not supported by the KOKKOS package with {} running "
+               "on the device; use the /kk/host suffix and package kokkos comm host, "
+               "sort no and atom/map no, or run_style verlet", what);
+  };
+
+  if (force->pair && (force->pair->execution_space == Device))
+    refuse(fmt::format("pair style {}", force->pair_style));
+  if (force->bond && (force->bond->execution_space == Device))
+    refuse(fmt::format("bond style {}", force->bond_style));
+  if (force->angle && (force->angle->execution_space == Device))
+    refuse(fmt::format("angle style {}", force->angle_style));
+  if (force->dihedral && (force->dihedral->execution_space == Device))
+    refuse(fmt::format("dihedral style {}", force->dihedral_style));
+  if (force->improper && (force->improper->execution_space == Device))
+    refuse(fmt::format("improper style {}", force->improper_style));
+  if (force->kspace && (force->kspace->execution_space == Device))
+    refuse(fmt::format("kspace style {}", force->kspace_style));
+
+  for (auto *fix : modify->get_fix_list())
+    if (fix->execution_space == Device) refuse(fmt::format("fix {} ({})", fix->id, fix->style));
+  for (auto *compute : modify->get_compute_list())
+    if (compute->execution_space == Device)
+      refuse(fmt::format("compute {} ({})", compute->id, compute->style));
+
+  if ((!exchange_comm_legacy && !exchange_comm_on_host) ||
+      (!forward_comm_legacy && !forward_comm_on_host) ||
+      (!reverse_comm_legacy && !reverse_comm_on_host))
+    refuse("the atom communication");
+  if (!sort_legacy) refuse("atom sorting");
+  if (!atom_map_legacy) refuse("the atom map");
+#endif
 }

@@ -19,6 +19,7 @@
 /src/CG-SPICA/        @yskmiyazaki
 /src/COLVARS/         @giacomofiorin
 /src/DIELECTRIC/      @ndtrung81
+/src/DPD-REACT/       @jjramsey
 /src/ELECTRODE/       @ludwig-ahrens @srtee
 /src/FEP/             @agiliopadua
 /src/GPU/             @ndtrung81

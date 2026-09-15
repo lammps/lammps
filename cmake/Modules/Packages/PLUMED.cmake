@@ -1,8 +1,9 @@
 # Plumed2 support for PLUMED package
 
-# set policy to silence warnings about timestamps of downloaded files. review occasionally if it may be set to NEW
+# set policy to use the time of extraction as timestamps of files unpacked from downloaded
+# archives, so that updating an archive version triggers rebuilding all dependent objects
 if(POLICY CMP0135)
-  cmake_policy(SET CMP0135 OLD)
+  cmake_policy(SET CMP0135 NEW)
 endif()
 
 # for supporting multiple concurrent plumed2 installations for debugging and testing
@@ -32,12 +33,9 @@ endif()
 
 # Note: must also adjust check for supported API versions in
 # fix_plumed.cpp when version changes from v2.n.x to v2.n+1.y
-set(PLUMED_URL "https://github.com/plumed/plumed2/releases/download/v2.9.4/plumed-src-2.9.4.tgz"
-  CACHE STRING "URL for PLUMED tarball")
-set(PLUMED_SHA256 "830bc880fec66f92c2d7a7bc5723336e65400ed8a24e561717e2c5a88eee0765" CACHE STRING "SHA256 checksum of PLUMED tarball")
-
-mark_as_advanced(PLUMED_URL)
-mark_as_advanced(PLUMED_SHA256)
+SetDownloadSettings(PLUMED "PLUMED"
+  "https://github.com/plumed/plumed2/releases/download/v2.9.5/plumed-src-2.9.5.tgz"
+  "d2fe917ec594d0c036eded0a94ebca90d76f56efa1764fa6c79e76b3167ce2c9")
 GetFallbackURL(PLUMED_URL PLUMED_FALLBACK)
 
 # adjust C++ standard support for self-compiled Plumed2
@@ -61,6 +59,8 @@ if((CMAKE_SYSTEM_NAME STREQUAL "Windows") AND (CMAKE_CROSSCOMPILING))
     URL     ${PLUMED_URL} ${PLUMED_FALLBACK}
     URL_HASH SHA256=${PLUMED_SHA256}
     BUILD_IN_SOURCE 1
+    # restore the timestamp order that autotools generated files require (see AutotoolsTouch.cmake)
+    PATCH_COMMAND ${CMAKE_COMMAND} -D SOURCE_DIR=<SOURCE_DIR> -P ${LAMMPS_DIR}/cmake/Modules/AutotoolsTouch.cmake
     CONFIGURE_COMMAND ${CROSS_CONFIGURE} --disable-shared --disable-bsymbolic --disable-dlopen
                                          --disable-python --enable-cxx=${PLUMED_CXX_STANDARD}
                                          --enable-modules=-adjmat:+crystallization:-dimred:+drr:+eds:-fisst:+funnel:+logmfd:+manyrestraints:+maze:+opes:+multicolvar:-pamm:-piv:+s2cm:-sasa:-ves
@@ -146,6 +146,8 @@ else()
       URL     ${PLUMED_URL} ${PLUMED_FALLBACK}
       URL_HASH SHA256=${PLUMED_SHA256}
       BUILD_IN_SOURCE 1
+      # restore the timestamp order that autotools generated files require (see AutotoolsTouch.cmake)
+      PATCH_COMMAND ${CMAKE_COMMAND} -D SOURCE_DIR=<SOURCE_DIR> -P ${LAMMPS_DIR}/cmake/Modules/AutotoolsTouch.cmake
       CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR>
                                              ${CONFIGURE_REQUEST_PIC}
                                              --enable-modules=all

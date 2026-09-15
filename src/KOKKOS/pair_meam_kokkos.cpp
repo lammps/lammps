@@ -256,14 +256,14 @@ void PairMEAMKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
                            d_ilist_half, d_offset, d_neighbors_half, d_neighbors_full,
                            neighflag, need_dup, ev);
 
-  if (eflag_global) eng_vdwl += ev.evdwl;
+  if (eflag_global) eng_vdwl += static_cast<double>(ev.evdwl);
   if (vflag_global) {
-    virial[0] += ev.v[0];
-    virial[1] += ev.v[1];
-    virial[2] += ev.v[2];
-    virial[3] += ev.v[3];
-    virial[4] += ev.v[4];
-    virial[5] += ev.v[5];
+    virial[0] += static_cast<double>(ev.v[0]);
+    virial[1] += static_cast<double>(ev.v[1]);
+    virial[2] += static_cast<double>(ev.v[2]);
+    virial[3] += static_cast<double>(ev.v[3]);
+    virial[4] += static_cast<double>(ev.v[4]);
+    virial[5] += static_cast<double>(ev.v[5]);
   }
 
   if (vflag_fdotr) pair_virial_fdotr_compute(this);
@@ -300,14 +300,67 @@ void PairMEAMKokkos<DeviceType>::coeff(int narg, char **arg)
   auto h_map = Kokkos::create_mirror_view(d_map);
   auto h_scale = Kokkos::create_mirror_view(d_scale);
 
+  // PairMEAM::coeff() only writes the upper triangle of scale[][]; the lower
+  // triangle stays uninitialised until init_one() mirrors it.  Seed the whole
+  // device copy with the same default instead of reading that memory here, and
+  // let init_one() install the real values once they exist
+
   for (int i = 1; i <= n; i++) {
     h_map[i] = map[i];
     for (int j = 1; j <= n; j++)
-      h_scale(i,j) = scale[i][j];
+      h_scale(i,j) = static_cast<KK_FLOAT>(1.0);
   }
 
   Kokkos::deep_copy(d_map,h_map);
   Kokkos::deep_copy(d_scale,h_scale);
+}
+
+/* ----------------------------------------------------------------------
+   Pair::init() calls init_one() for every type pair after coeff() has run, and
+   PairMEAM::init_one() is what makes scale[][] symmetric.  Refresh the device
+   copy here so it never holds the pre-symmetrised values
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+double PairMEAMKokkos<DeviceType>::init_one(int i, int j)
+{
+  const double cut = PairMEAM::init_one(i,j);
+
+  if (d_scale.data()) {
+    const int n = atom->ntypes;
+    auto h_scale = Kokkos::create_mirror_view(d_scale);
+    for (int ii = 1; ii <= n; ii++)
+      for (int jj = 1; jj <= n; jj++)
+        h_scale(ii,jj) = scale[ii][jj];
+    Kokkos::deep_copy(d_scale,h_scale);
+  }
+
+  return cut;
+}
+
+/* ----------------------------------------------------------------------
+   refresh the device copy of scale[][]
+
+   fix adapt writes scale[][] through PairMEAM::extract() and then calls
+   Pair::reinit(), so without this override the device keeps the values
+   captured at pair_coeff time and the requested scaling never takes effect
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void PairMEAMKokkos<DeviceType>::reinit()
+{
+  PairMEAM::reinit();
+
+  if (!d_scale.data()) return;
+
+  const int n = atom->ntypes;
+  auto h_scale = Kokkos::create_mirror_view(d_scale);
+  for (int i = 1; i <= n; i++)
+    for (int j = 1; j <= n; j++)
+      h_scale(i,j) = scale[i][j];
+  Kokkos::deep_copy(d_scale,h_scale);
+
+  // meam_inst_kk->d_scale is refreshed from this view on the next meam_dens_final()
 }
 
 /* ----------------------------------------------------------------------
@@ -355,50 +408,50 @@ KOKKOS_INLINE_FUNCTION
 void PairMEAMKokkos<DeviceType>::operator()(TagPairMEAMPackForwardComm, const int &i) const {
   int j = d_sendlist(i);
   int m = i*comm_forward;
-  v_buf[m++] = d_rho0[j];
-  v_buf[m++] = d_rho1[j];
-  v_buf[m++] = d_rho2[j];
-  v_buf[m++] = d_rho3[j];
-  v_buf[m++] = d_frhop[j];
-  v_buf[m++] = d_gamma[j];
-  v_buf[m++] = d_dgamma1[j];
-  v_buf[m++] = d_dgamma2[j];
-  v_buf[m++] = d_dgamma3[j];
-  v_buf[m++] = d_arho2b[j];
-  v_buf[m++] = d_arho1(j,0);
-  v_buf[m++] = d_arho1(j,1);
-  v_buf[m++] = d_arho1(j,2);
-  v_buf[m++] = d_arho2(j,0);
-  v_buf[m++] = d_arho2(j,1);
-  v_buf[m++] = d_arho2(j,2);
-  v_buf[m++] = d_arho2(j,3);
-  v_buf[m++] = d_arho2(j,4);
-  v_buf[m++] = d_arho2(j,5);
-  for (int k = 0; k < 10; k++) v_buf[m++] = d_arho3(j,k);
-  v_buf[m++] = d_arho3b(j,0);
-  v_buf[m++] = d_arho3b(j,1);
-  v_buf[m++] = d_arho3b(j,2);
-  v_buf[m++] = d_t_ave(j,0);
-  v_buf[m++] = d_t_ave(j,1);
-  v_buf[m++] = d_t_ave(j,2);
-  v_buf[m++] = d_tsq_ave(j,0);
-  v_buf[m++] = d_tsq_ave(j,1);
-  v_buf[m++] = d_tsq_ave(j,2);
+  v_buf[m++] = static_cast<double>(d_rho0[j]);
+  v_buf[m++] = static_cast<double>(d_rho1[j]);
+  v_buf[m++] = static_cast<double>(d_rho2[j]);
+  v_buf[m++] = static_cast<double>(d_rho3[j]);
+  v_buf[m++] = static_cast<double>(d_frhop[j]);
+  v_buf[m++] = static_cast<double>(d_gamma[j]);
+  v_buf[m++] = static_cast<double>(d_dgamma1[j]);
+  v_buf[m++] = static_cast<double>(d_dgamma2[j]);
+  v_buf[m++] = static_cast<double>(d_dgamma3[j]);
+  v_buf[m++] = static_cast<double>(d_arho2b[j]);
+  v_buf[m++] = static_cast<double>(d_arho1(j,0));
+  v_buf[m++] = static_cast<double>(d_arho1(j,1));
+  v_buf[m++] = static_cast<double>(d_arho1(j,2));
+  v_buf[m++] = static_cast<double>(d_arho2(j,0));
+  v_buf[m++] = static_cast<double>(d_arho2(j,1));
+  v_buf[m++] = static_cast<double>(d_arho2(j,2));
+  v_buf[m++] = static_cast<double>(d_arho2(j,3));
+  v_buf[m++] = static_cast<double>(d_arho2(j,4));
+  v_buf[m++] = static_cast<double>(d_arho2(j,5));
+  for (int k = 0; k < 10; k++) v_buf[m++] = static_cast<double>(d_arho3(j,k));
+  v_buf[m++] = static_cast<double>(d_arho3b(j,0));
+  v_buf[m++] = static_cast<double>(d_arho3b(j,1));
+  v_buf[m++] = static_cast<double>(d_arho3b(j,2));
+  v_buf[m++] = static_cast<double>(d_t_ave(j,0));
+  v_buf[m++] = static_cast<double>(d_t_ave(j,1));
+  v_buf[m++] = static_cast<double>(d_t_ave(j,2));
+  v_buf[m++] = static_cast<double>(d_tsq_ave(j,0));
+  v_buf[m++] = static_cast<double>(d_tsq_ave(j,1));
+  v_buf[m++] = static_cast<double>(d_tsq_ave(j,2));
   if (msmeamflag) {
-    v_buf[m++] = d_arho2mb[j];
-    v_buf[m++] = d_arho1m(j,0);
-    v_buf[m++] = d_arho1m(j,1);
-    v_buf[m++] = d_arho1m(j,2);
-    v_buf[m++] = d_arho2m(j,0);
-    v_buf[m++] = d_arho2m(j,1);
-    v_buf[m++] = d_arho2m(j,2);
-    v_buf[m++] = d_arho2m(j,3);
-    v_buf[m++] = d_arho2m(j,4);
-    v_buf[m++] = d_arho2m(j,5);
-    for (int k = 0; k < 10; k++) v_buf[m++] = d_arho3m(j,k);
-    v_buf[m++] = d_arho3mb(j,0);
-    v_buf[m++] = d_arho3mb(j,1);
-    v_buf[m++] = d_arho3mb(j,2);
+    v_buf[m++] = static_cast<double>(d_arho2mb[j]);
+    v_buf[m++] = static_cast<double>(d_arho1m(j,0));
+    v_buf[m++] = static_cast<double>(d_arho1m(j,1));
+    v_buf[m++] = static_cast<double>(d_arho1m(j,2));
+    v_buf[m++] = static_cast<double>(d_arho2m(j,0));
+    v_buf[m++] = static_cast<double>(d_arho2m(j,1));
+    v_buf[m++] = static_cast<double>(d_arho2m(j,2));
+    v_buf[m++] = static_cast<double>(d_arho2m(j,3));
+    v_buf[m++] = static_cast<double>(d_arho2m(j,4));
+    v_buf[m++] = static_cast<double>(d_arho2m(j,5));
+    for (int k = 0; k < 10; k++) v_buf[m++] = static_cast<double>(d_arho3m(j,k));
+    v_buf[m++] = static_cast<double>(d_arho3mb(j,0));
+    v_buf[m++] = static_cast<double>(d_arho3mb(j,1));
+    v_buf[m++] = static_cast<double>(d_arho3mb(j,2));
   }
 }
 
@@ -421,50 +474,50 @@ void PairMEAMKokkos<DeviceType>::operator()(TagPairMEAMUnpackForwardComm, const 
   //int m = i*38;
   int m = i*comm_forward;
 
-    d_rho0[i+first] = v_buf[m++];
-    d_rho1[i+first] = v_buf[m++];
-    d_rho2[i+first] = v_buf[m++];
-    d_rho3[i+first] = v_buf[m++];
-    d_frhop[i+first] = v_buf[m++];
-    d_gamma[i+first] = v_buf[m++];
-    d_dgamma1[i+first] = v_buf[m++];
-    d_dgamma2[i+first] = v_buf[m++];
-    d_dgamma3[i+first] = v_buf[m++];
-    d_arho2b[i+first] = v_buf[m++];
-    d_arho1(i+first,0) = v_buf[m++];
-    d_arho1(i+first,1) = v_buf[m++];
-    d_arho1(i+first,2) = v_buf[m++];
-    d_arho2(i+first,0) = v_buf[m++];
-    d_arho2(i+first,1) = v_buf[m++];
-    d_arho2(i+first,2) = v_buf[m++];
-    d_arho2(i+first,3) = v_buf[m++];
-    d_arho2(i+first,4) = v_buf[m++];
-    d_arho2(i+first,5) = v_buf[m++];
-    for (int k = 0; k < 10; k++) d_arho3(i+first,k) = v_buf[m++];
-    d_arho3b(i+first,0) = v_buf[m++];
-    d_arho3b(i+first,1) = v_buf[m++];
-    d_arho3b(i+first,2) = v_buf[m++];
-    d_t_ave(i+first,0) = v_buf[m++];
-    d_t_ave(i+first,1) = v_buf[m++];
-    d_t_ave(i+first,2) = v_buf[m++];
-    d_tsq_ave(i+first,0) = v_buf[m++];
-    d_tsq_ave(i+first,1) = v_buf[m++];
-    d_tsq_ave(i+first,2) = v_buf[m++];
+    d_rho0[i+first] = static_cast<KK_FLOAT>(v_buf[m++]);
+    d_rho1[i+first] = static_cast<KK_FLOAT>(v_buf[m++]);
+    d_rho2[i+first] = static_cast<KK_FLOAT>(v_buf[m++]);
+    d_rho3[i+first] = static_cast<KK_FLOAT>(v_buf[m++]);
+    d_frhop[i+first] = static_cast<KK_FLOAT>(v_buf[m++]);
+    d_gamma[i+first] = static_cast<KK_FLOAT>(v_buf[m++]);
+    d_dgamma1[i+first] = static_cast<KK_FLOAT>(v_buf[m++]);
+    d_dgamma2[i+first] = static_cast<KK_FLOAT>(v_buf[m++]);
+    d_dgamma3[i+first] = static_cast<KK_FLOAT>(v_buf[m++]);
+    d_arho2b[i+first] = static_cast<KK_FLOAT>(v_buf[m++]);
+    d_arho1(i+first,0) = static_cast<KK_FLOAT>(v_buf[m++]);
+    d_arho1(i+first,1) = static_cast<KK_FLOAT>(v_buf[m++]);
+    d_arho1(i+first,2) = static_cast<KK_FLOAT>(v_buf[m++]);
+    d_arho2(i+first,0) = static_cast<KK_FLOAT>(v_buf[m++]);
+    d_arho2(i+first,1) = static_cast<KK_FLOAT>(v_buf[m++]);
+    d_arho2(i+first,2) = static_cast<KK_FLOAT>(v_buf[m++]);
+    d_arho2(i+first,3) = static_cast<KK_FLOAT>(v_buf[m++]);
+    d_arho2(i+first,4) = static_cast<KK_FLOAT>(v_buf[m++]);
+    d_arho2(i+first,5) = static_cast<KK_FLOAT>(v_buf[m++]);
+    for (int k = 0; k < 10; k++) d_arho3(i+first,k) = static_cast<KK_FLOAT>(v_buf[m++]);
+    d_arho3b(i+first,0) = static_cast<KK_FLOAT>(v_buf[m++]);
+    d_arho3b(i+first,1) = static_cast<KK_FLOAT>(v_buf[m++]);
+    d_arho3b(i+first,2) = static_cast<KK_FLOAT>(v_buf[m++]);
+    d_t_ave(i+first,0) = static_cast<KK_FLOAT>(v_buf[m++]);
+    d_t_ave(i+first,1) = static_cast<KK_FLOAT>(v_buf[m++]);
+    d_t_ave(i+first,2) = static_cast<KK_FLOAT>(v_buf[m++]);
+    d_tsq_ave(i+first,0) = static_cast<KK_FLOAT>(v_buf[m++]);
+    d_tsq_ave(i+first,1) = static_cast<KK_FLOAT>(v_buf[m++]);
+    d_tsq_ave(i+first,2) = static_cast<KK_FLOAT>(v_buf[m++]);
     if (msmeamflag) {
-      d_arho2mb[i+first] = v_buf[m++];
-      d_arho1m(i+first,0) = v_buf[m++];
-      d_arho1m(i+first,1) = v_buf[m++];
-      d_arho1m(i+first,2) = v_buf[m++];
-      d_arho2m(i+first,0) = v_buf[m++];
-      d_arho2m(i+first,1) = v_buf[m++];
-      d_arho2m(i+first,2) = v_buf[m++];
-      d_arho2m(i+first,3) = v_buf[m++];
-      d_arho2m(i+first,4) = v_buf[m++];
-      d_arho2m(i+first,5) = v_buf[m++];
-      for (int k = 0; k < 10; k++) d_arho3m(i+first,k) = v_buf[m++];
-      d_arho3mb(i+first,0) = v_buf[m++];
-      d_arho3mb(i+first,1) = v_buf[m++];
-      d_arho3mb(i+first,2) = v_buf[m++];
+      d_arho2mb[i+first] = static_cast<KK_FLOAT>(v_buf[m++]);
+      d_arho1m(i+first,0) = static_cast<KK_FLOAT>(v_buf[m++]);
+      d_arho1m(i+first,1) = static_cast<KK_FLOAT>(v_buf[m++]);
+      d_arho1m(i+first,2) = static_cast<KK_FLOAT>(v_buf[m++]);
+      d_arho2m(i+first,0) = static_cast<KK_FLOAT>(v_buf[m++]);
+      d_arho2m(i+first,1) = static_cast<KK_FLOAT>(v_buf[m++]);
+      d_arho2m(i+first,2) = static_cast<KK_FLOAT>(v_buf[m++]);
+      d_arho2m(i+first,3) = static_cast<KK_FLOAT>(v_buf[m++]);
+      d_arho2m(i+first,4) = static_cast<KK_FLOAT>(v_buf[m++]);
+      d_arho2m(i+first,5) = static_cast<KK_FLOAT>(v_buf[m++]);
+      for (int k = 0; k < 10; k++) d_arho3m(i+first,k) = static_cast<KK_FLOAT>(v_buf[m++]);
+      d_arho3mb(i+first,0) = static_cast<KK_FLOAT>(v_buf[m++]);
+      d_arho3mb(i+first,1) = static_cast<KK_FLOAT>(v_buf[m++]);
+      d_arho3mb(i+first,2) = static_cast<KK_FLOAT>(v_buf[m++]);
     }
  }
 
@@ -501,50 +554,50 @@ int PairMEAMKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *buf,
   int m = 0;
   for (int i = 0; i < n; i++) {
     const int j = list[i];
-    buf[m++] = meam_inst_kk->h_rho0[j];
-    buf[m++] = meam_inst_kk->h_rho1[j];
-    buf[m++] = meam_inst_kk->h_rho2[j];
-    buf[m++] = meam_inst_kk->h_rho3[j];
-    buf[m++] = meam_inst_kk->h_frhop[j];
-    buf[m++] = meam_inst_kk->h_gamma[j];
-    buf[m++] = meam_inst_kk->h_dgamma1[j];
-    buf[m++] = meam_inst_kk->h_dgamma2[j];
-    buf[m++] = meam_inst_kk->h_dgamma3[j];
-    buf[m++] = meam_inst_kk->h_arho2b[j];
-    buf[m++] = meam_inst_kk->h_arho1(j,0);
-    buf[m++] = meam_inst_kk->h_arho1(j,1);
-    buf[m++] = meam_inst_kk->h_arho1(j,2);
-    buf[m++] = meam_inst_kk->h_arho2(j,0);
-    buf[m++] = meam_inst_kk->h_arho2(j,1);
-    buf[m++] = meam_inst_kk->h_arho2(j,2);
-    buf[m++] = meam_inst_kk->h_arho2(j,3);
-    buf[m++] = meam_inst_kk->h_arho2(j,4);
-    buf[m++] = meam_inst_kk->h_arho2(j,5);
-    for (int k = 0; k < 10; k++) buf[m++] = meam_inst_kk->h_arho3(j,k);
-    buf[m++] = meam_inst_kk->h_arho3b(j,0);
-    buf[m++] = meam_inst_kk->h_arho3b(j,1);
-    buf[m++] = meam_inst_kk->h_arho3b(j,2);
-    buf[m++] = meam_inst_kk->h_t_ave(j,0);
-    buf[m++] = meam_inst_kk->h_t_ave(j,1);
-    buf[m++] = meam_inst_kk->h_t_ave(j,2);
-    buf[m++] = meam_inst_kk->h_tsq_ave(j,0);
-    buf[m++] = meam_inst_kk->h_tsq_ave(j,1);
-    buf[m++] = meam_inst_kk->h_tsq_ave(j,2);
+    buf[m++] = static_cast<double>(meam_inst_kk->h_rho0[j]);
+    buf[m++] = static_cast<double>(meam_inst_kk->h_rho1[j]);
+    buf[m++] = static_cast<double>(meam_inst_kk->h_rho2[j]);
+    buf[m++] = static_cast<double>(meam_inst_kk->h_rho3[j]);
+    buf[m++] = static_cast<double>(meam_inst_kk->h_frhop[j]);
+    buf[m++] = static_cast<double>(meam_inst_kk->h_gamma[j]);
+    buf[m++] = static_cast<double>(meam_inst_kk->h_dgamma1[j]);
+    buf[m++] = static_cast<double>(meam_inst_kk->h_dgamma2[j]);
+    buf[m++] = static_cast<double>(meam_inst_kk->h_dgamma3[j]);
+    buf[m++] = static_cast<double>(meam_inst_kk->h_arho2b[j]);
+    buf[m++] = static_cast<double>(meam_inst_kk->h_arho1(j,0));
+    buf[m++] = static_cast<double>(meam_inst_kk->h_arho1(j,1));
+    buf[m++] = static_cast<double>(meam_inst_kk->h_arho1(j,2));
+    buf[m++] = static_cast<double>(meam_inst_kk->h_arho2(j,0));
+    buf[m++] = static_cast<double>(meam_inst_kk->h_arho2(j,1));
+    buf[m++] = static_cast<double>(meam_inst_kk->h_arho2(j,2));
+    buf[m++] = static_cast<double>(meam_inst_kk->h_arho2(j,3));
+    buf[m++] = static_cast<double>(meam_inst_kk->h_arho2(j,4));
+    buf[m++] = static_cast<double>(meam_inst_kk->h_arho2(j,5));
+    for (int k = 0; k < 10; k++) buf[m++] = static_cast<double>(meam_inst_kk->h_arho3(j,k));
+    buf[m++] = static_cast<double>(meam_inst_kk->h_arho3b(j,0));
+    buf[m++] = static_cast<double>(meam_inst_kk->h_arho3b(j,1));
+    buf[m++] = static_cast<double>(meam_inst_kk->h_arho3b(j,2));
+    buf[m++] = static_cast<double>(meam_inst_kk->h_t_ave(j,0));
+    buf[m++] = static_cast<double>(meam_inst_kk->h_t_ave(j,1));
+    buf[m++] = static_cast<double>(meam_inst_kk->h_t_ave(j,2));
+    buf[m++] = static_cast<double>(meam_inst_kk->h_tsq_ave(j,0));
+    buf[m++] = static_cast<double>(meam_inst_kk->h_tsq_ave(j,1));
+    buf[m++] = static_cast<double>(meam_inst_kk->h_tsq_ave(j,2));
     if (msmeamflag) {
-      buf[m++] = meam_inst_kk->h_arho2mb[j];
-      buf[m++] = meam_inst_kk->h_arho1m(j,0);
-      buf[m++] = meam_inst_kk->h_arho1m(j,1);
-      buf[m++] = meam_inst_kk->h_arho1m(j,2);
-      buf[m++] = meam_inst_kk->h_arho2m(j,0);
-      buf[m++] = meam_inst_kk->h_arho2m(j,1);
-      buf[m++] = meam_inst_kk->h_arho2m(j,2);
-      buf[m++] = meam_inst_kk->h_arho2m(j,3);
-      buf[m++] = meam_inst_kk->h_arho2m(j,4);
-      buf[m++] = meam_inst_kk->h_arho2m(j,5);
-      for (int k = 0; k < 10; k++) buf[m++] = meam_inst_kk->h_arho3m(j,k);
-      buf[m++] = meam_inst_kk->h_arho3mb(j,0);
-      buf[m++] = meam_inst_kk->h_arho3mb(j,1);
-      buf[m++] = meam_inst_kk->h_arho3mb(j,2);
+      buf[m++] = static_cast<double>(meam_inst_kk->h_arho2mb[j]);
+      buf[m++] = static_cast<double>(meam_inst_kk->h_arho1m(j,0));
+      buf[m++] = static_cast<double>(meam_inst_kk->h_arho1m(j,1));
+      buf[m++] = static_cast<double>(meam_inst_kk->h_arho1m(j,2));
+      buf[m++] = static_cast<double>(meam_inst_kk->h_arho2m(j,0));
+      buf[m++] = static_cast<double>(meam_inst_kk->h_arho2m(j,1));
+      buf[m++] = static_cast<double>(meam_inst_kk->h_arho2m(j,2));
+      buf[m++] = static_cast<double>(meam_inst_kk->h_arho2m(j,3));
+      buf[m++] = static_cast<double>(meam_inst_kk->h_arho2m(j,4));
+      buf[m++] = static_cast<double>(meam_inst_kk->h_arho2m(j,5));
+      for (int k = 0; k < 10; k++) buf[m++] = static_cast<double>(meam_inst_kk->h_arho3m(j,k));
+      buf[m++] = static_cast<double>(meam_inst_kk->h_arho3mb(j,0));
+      buf[m++] = static_cast<double>(meam_inst_kk->h_arho3mb(j,1));
+      buf[m++] = static_cast<double>(meam_inst_kk->h_arho3mb(j,2));
     }
   }
 
@@ -583,50 +636,50 @@ void PairMEAMKokkos<DeviceType>::unpack_forward_comm(int n, int first, double *b
   int m = 0;
   const int last = first + n;
   for (int i = first; i < last; i++) {
-    meam_inst_kk->h_rho0[i] = buf[m++];
-    meam_inst_kk->h_rho1[i] = buf[m++];
-    meam_inst_kk->h_rho2[i] = buf[m++];
-    meam_inst_kk->h_rho3[i] = buf[m++];
-    meam_inst_kk->h_frhop[i] = buf[m++];
-    meam_inst_kk->h_gamma[i] = buf[m++];
-    meam_inst_kk->h_dgamma1[i] = buf[m++];
-    meam_inst_kk->h_dgamma2[i] = buf[m++];
-    meam_inst_kk->h_dgamma3[i] = buf[m++];
-    meam_inst_kk->h_arho2b[i] = buf[m++];
-    meam_inst_kk->h_arho1(i,0) = buf[m++];
-    meam_inst_kk->h_arho1(i,1) = buf[m++];
-    meam_inst_kk->h_arho1(i,2) = buf[m++];
-    meam_inst_kk->h_arho2(i,0) = buf[m++];
-    meam_inst_kk->h_arho2(i,1) = buf[m++];
-    meam_inst_kk->h_arho2(i,2) = buf[m++];
-    meam_inst_kk->h_arho2(i,3) = buf[m++];
-    meam_inst_kk->h_arho2(i,4) = buf[m++];
-    meam_inst_kk->h_arho2(i,5) = buf[m++];
-    for (int k = 0; k < 10; k++) meam_inst_kk->h_arho3(i,k) = buf[m++];
-    meam_inst_kk->h_arho3b(i,0) = buf[m++];
-    meam_inst_kk->h_arho3b(i,1) = buf[m++];
-    meam_inst_kk->h_arho3b(i,2) = buf[m++];
-    meam_inst_kk->h_t_ave(i,0) = buf[m++];
-    meam_inst_kk->h_t_ave(i,1) = buf[m++];
-    meam_inst_kk->h_t_ave(i,2) = buf[m++];
-    meam_inst_kk->h_tsq_ave(i,0) = buf[m++];
-    meam_inst_kk->h_tsq_ave(i,1) = buf[m++];
-    meam_inst_kk->h_tsq_ave(i,2) = buf[m++];
+    meam_inst_kk->h_rho0[i] = static_cast<KK_FLOAT>(buf[m++]);
+    meam_inst_kk->h_rho1[i] = static_cast<KK_FLOAT>(buf[m++]);
+    meam_inst_kk->h_rho2[i] = static_cast<KK_FLOAT>(buf[m++]);
+    meam_inst_kk->h_rho3[i] = static_cast<KK_FLOAT>(buf[m++]);
+    meam_inst_kk->h_frhop[i] = static_cast<KK_FLOAT>(buf[m++]);
+    meam_inst_kk->h_gamma[i] = static_cast<KK_FLOAT>(buf[m++]);
+    meam_inst_kk->h_dgamma1[i] = static_cast<KK_FLOAT>(buf[m++]);
+    meam_inst_kk->h_dgamma2[i] = static_cast<KK_FLOAT>(buf[m++]);
+    meam_inst_kk->h_dgamma3[i] = static_cast<KK_FLOAT>(buf[m++]);
+    meam_inst_kk->h_arho2b[i] = static_cast<KK_FLOAT>(buf[m++]);
+    meam_inst_kk->h_arho1(i,0) = static_cast<KK_FLOAT>(buf[m++]);
+    meam_inst_kk->h_arho1(i,1) = static_cast<KK_FLOAT>(buf[m++]);
+    meam_inst_kk->h_arho1(i,2) = static_cast<KK_FLOAT>(buf[m++]);
+    meam_inst_kk->h_arho2(i,0) = static_cast<KK_FLOAT>(buf[m++]);
+    meam_inst_kk->h_arho2(i,1) = static_cast<KK_FLOAT>(buf[m++]);
+    meam_inst_kk->h_arho2(i,2) = static_cast<KK_FLOAT>(buf[m++]);
+    meam_inst_kk->h_arho2(i,3) = static_cast<KK_FLOAT>(buf[m++]);
+    meam_inst_kk->h_arho2(i,4) = static_cast<KK_FLOAT>(buf[m++]);
+    meam_inst_kk->h_arho2(i,5) = static_cast<KK_FLOAT>(buf[m++]);
+    for (int k = 0; k < 10; k++) meam_inst_kk->h_arho3(i,k) = static_cast<KK_FLOAT>(buf[m++]);
+    meam_inst_kk->h_arho3b(i,0) = static_cast<KK_FLOAT>(buf[m++]);
+    meam_inst_kk->h_arho3b(i,1) = static_cast<KK_FLOAT>(buf[m++]);
+    meam_inst_kk->h_arho3b(i,2) = static_cast<KK_FLOAT>(buf[m++]);
+    meam_inst_kk->h_t_ave(i,0) = static_cast<KK_FLOAT>(buf[m++]);
+    meam_inst_kk->h_t_ave(i,1) = static_cast<KK_FLOAT>(buf[m++]);
+    meam_inst_kk->h_t_ave(i,2) = static_cast<KK_FLOAT>(buf[m++]);
+    meam_inst_kk->h_tsq_ave(i,0) = static_cast<KK_FLOAT>(buf[m++]);
+    meam_inst_kk->h_tsq_ave(i,1) = static_cast<KK_FLOAT>(buf[m++]);
+    meam_inst_kk->h_tsq_ave(i,2) = static_cast<KK_FLOAT>(buf[m++]);
     if (msmeamflag) {
-      meam_inst_kk->h_arho2mb[i] = buf[m++];
-      meam_inst_kk->h_arho1m(i,0) = buf[m++];
-      meam_inst_kk->h_arho1m(i,1) = buf[m++];
-      meam_inst_kk->h_arho1m(i,2) = buf[m++];
-      meam_inst_kk->h_arho2m(i,0) = buf[m++];
-      meam_inst_kk->h_arho2m(i,1) = buf[m++];
-      meam_inst_kk->h_arho2m(i,2) = buf[m++];
-      meam_inst_kk->h_arho2m(i,3) = buf[m++];
-      meam_inst_kk->h_arho2m(i,4) = buf[m++];
-      meam_inst_kk->h_arho2m(i,5) = buf[m++];
-      for (int k = 0; k < 10; k++) meam_inst_kk->h_arho3m(i,k) = buf[m++];
-      meam_inst_kk->h_arho3mb(i,0) = buf[m++];
-      meam_inst_kk->h_arho3mb(i,1) = buf[m++];
-      meam_inst_kk->h_arho3mb(i,2) = buf[m++];
+      meam_inst_kk->h_arho2mb[i] = static_cast<KK_FLOAT>(buf[m++]);
+      meam_inst_kk->h_arho1m(i,0) = static_cast<KK_FLOAT>(buf[m++]);
+      meam_inst_kk->h_arho1m(i,1) = static_cast<KK_FLOAT>(buf[m++]);
+      meam_inst_kk->h_arho1m(i,2) = static_cast<KK_FLOAT>(buf[m++]);
+      meam_inst_kk->h_arho2m(i,0) = static_cast<KK_FLOAT>(buf[m++]);
+      meam_inst_kk->h_arho2m(i,1) = static_cast<KK_FLOAT>(buf[m++]);
+      meam_inst_kk->h_arho2m(i,2) = static_cast<KK_FLOAT>(buf[m++]);
+      meam_inst_kk->h_arho2m(i,3) = static_cast<KK_FLOAT>(buf[m++]);
+      meam_inst_kk->h_arho2m(i,4) = static_cast<KK_FLOAT>(buf[m++]);
+      meam_inst_kk->h_arho2m(i,5) = static_cast<KK_FLOAT>(buf[m++]);
+      for (int k = 0; k < 10; k++) meam_inst_kk->h_arho3m(i,k) = static_cast<KK_FLOAT>(buf[m++]);
+      meam_inst_kk->h_arho3mb(i,0) = static_cast<KK_FLOAT>(buf[m++]);
+      meam_inst_kk->h_arho3mb(i,1) = static_cast<KK_FLOAT>(buf[m++]);
+      meam_inst_kk->h_arho3mb(i,2) = static_cast<KK_FLOAT>(buf[m++]);
     }
   }
 
@@ -676,42 +729,42 @@ void PairMEAMKokkos<DeviceType>::operator()(TagPairMEAMPackReverseComm, const in
   //int m = i*30;
   int m = i*comm_reverse;
 
-  v_buf[m++] = d_rho0[i+first];
-  v_buf[m++] = d_arho2b[i+first];
-  v_buf[m++] = d_arho1(i+first,0);
-  v_buf[m++] = d_arho1(i+first,1);
-  v_buf[m++] = d_arho1(i+first,2);
-  v_buf[m++] = d_arho2(i+first,0);
-  v_buf[m++] = d_arho2(i+first,1);
-  v_buf[m++] = d_arho2(i+first,2);
-  v_buf[m++] = d_arho2(i+first,3);
-  v_buf[m++] = d_arho2(i+first,4);
-  v_buf[m++] = d_arho2(i+first,5);
-  for (int k = 0; k < 10; k++) v_buf[m++] = d_arho3(i+first,k);
-  v_buf[m++] = d_arho3b(i+first,0);
-  v_buf[m++] = d_arho3b(i+first,1);
-  v_buf[m++] = d_arho3b(i+first,2);
-  v_buf[m++] = d_t_ave(i+first,0);
-  v_buf[m++] = d_t_ave(i+first,1);
-  v_buf[m++] = d_t_ave(i+first,2);
-  v_buf[m++] = d_tsq_ave(i+first,0);
-  v_buf[m++] = d_tsq_ave(i+first,1);
-  v_buf[m++] = d_tsq_ave(i+first,2);
+  v_buf[m++] = static_cast<double>(d_rho0[i+first]);
+  v_buf[m++] = static_cast<double>(d_arho2b[i+first]);
+  v_buf[m++] = static_cast<double>(d_arho1(i+first,0));
+  v_buf[m++] = static_cast<double>(d_arho1(i+first,1));
+  v_buf[m++] = static_cast<double>(d_arho1(i+first,2));
+  v_buf[m++] = static_cast<double>(d_arho2(i+first,0));
+  v_buf[m++] = static_cast<double>(d_arho2(i+first,1));
+  v_buf[m++] = static_cast<double>(d_arho2(i+first,2));
+  v_buf[m++] = static_cast<double>(d_arho2(i+first,3));
+  v_buf[m++] = static_cast<double>(d_arho2(i+first,4));
+  v_buf[m++] = static_cast<double>(d_arho2(i+first,5));
+  for (int k = 0; k < 10; k++) v_buf[m++] = static_cast<double>(d_arho3(i+first,k));
+  v_buf[m++] = static_cast<double>(d_arho3b(i+first,0));
+  v_buf[m++] = static_cast<double>(d_arho3b(i+first,1));
+  v_buf[m++] = static_cast<double>(d_arho3b(i+first,2));
+  v_buf[m++] = static_cast<double>(d_t_ave(i+first,0));
+  v_buf[m++] = static_cast<double>(d_t_ave(i+first,1));
+  v_buf[m++] = static_cast<double>(d_t_ave(i+first,2));
+  v_buf[m++] = static_cast<double>(d_tsq_ave(i+first,0));
+  v_buf[m++] = static_cast<double>(d_tsq_ave(i+first,1));
+  v_buf[m++] = static_cast<double>(d_tsq_ave(i+first,2));
   if (msmeamflag) {
-    v_buf[m++] = d_arho2mb[i+first];
-    v_buf[m++] = d_arho1m(i+first,0);
-    v_buf[m++] = d_arho1m(i+first,1);
-    v_buf[m++] = d_arho1m(i+first,2);
-    v_buf[m++] = d_arho2m(i+first,0);
-    v_buf[m++] = d_arho2m(i+first,1);
-    v_buf[m++] = d_arho2m(i+first,2);
-    v_buf[m++] = d_arho2m(i+first,3);
-    v_buf[m++] = d_arho2m(i+first,4);
-    v_buf[m++] = d_arho2m(i+first,5);
-    for (int k = 0; k < 10; k++) v_buf[m++] = d_arho3m(i+first,k);
-    v_buf[m++] = d_arho3mb(i+first,0);
-    v_buf[m++] = d_arho3mb(i+first,1);
-    v_buf[m++] = d_arho3mb(i+first,2);
+    v_buf[m++] = static_cast<double>(d_arho2mb[i+first]);
+    v_buf[m++] = static_cast<double>(d_arho1m(i+first,0));
+    v_buf[m++] = static_cast<double>(d_arho1m(i+first,1));
+    v_buf[m++] = static_cast<double>(d_arho1m(i+first,2));
+    v_buf[m++] = static_cast<double>(d_arho2m(i+first,0));
+    v_buf[m++] = static_cast<double>(d_arho2m(i+first,1));
+    v_buf[m++] = static_cast<double>(d_arho2m(i+first,2));
+    v_buf[m++] = static_cast<double>(d_arho2m(i+first,3));
+    v_buf[m++] = static_cast<double>(d_arho2m(i+first,4));
+    v_buf[m++] = static_cast<double>(d_arho2m(i+first,5));
+    for (int k = 0; k < 10; k++) v_buf[m++] = static_cast<double>(d_arho3m(i+first,k));
+    v_buf[m++] = static_cast<double>(d_arho3mb(i+first,0));
+    v_buf[m++] = static_cast<double>(d_arho3mb(i+first,1));
+    v_buf[m++] = static_cast<double>(d_arho3mb(i+first,2));
   }
 }
 
@@ -739,42 +792,42 @@ int PairMEAMKokkos<DeviceType>::pack_reverse_comm(int n, int first, double *buf)
   int m = 0;
   const int last = first + n;
   for (int i = first; i < last; i++) {
-    buf[m++] = meam_inst_kk->h_rho0[i];
-    buf[m++] = meam_inst_kk->h_arho2b[i];
-    buf[m++] = meam_inst_kk->h_arho1(i,0);
-    buf[m++] = meam_inst_kk->h_arho1(i,1);
-    buf[m++] = meam_inst_kk->h_arho1(i,2);
-    buf[m++] = meam_inst_kk->h_arho2(i,0);
-    buf[m++] = meam_inst_kk->h_arho2(i,1);
-    buf[m++] = meam_inst_kk->h_arho2(i,2);
-    buf[m++] = meam_inst_kk->h_arho2(i,3);
-    buf[m++] = meam_inst_kk->h_arho2(i,4);
-    buf[m++] = meam_inst_kk->h_arho2(i,5);
-    for (int k = 0; k < 10; k++) buf[m++] = meam_inst_kk->h_arho3(i,k);
-    buf[m++] = meam_inst_kk->h_arho3b(i,0);
-    buf[m++] = meam_inst_kk->h_arho3b(i,1);
-    buf[m++] = meam_inst_kk->h_arho3b(i,2);
-    buf[m++] = meam_inst_kk->h_t_ave(i,0);
-    buf[m++] = meam_inst_kk->h_t_ave(i,1);
-    buf[m++] = meam_inst_kk->h_t_ave(i,2);
-    buf[m++] = meam_inst_kk->h_tsq_ave(i,0);
-    buf[m++] = meam_inst_kk->h_tsq_ave(i,1);
-    buf[m++] = meam_inst_kk->h_tsq_ave(i,2);
+    buf[m++] = static_cast<double>(meam_inst_kk->h_rho0[i]);
+    buf[m++] = static_cast<double>(meam_inst_kk->h_arho2b[i]);
+    buf[m++] = static_cast<double>(meam_inst_kk->h_arho1(i,0));
+    buf[m++] = static_cast<double>(meam_inst_kk->h_arho1(i,1));
+    buf[m++] = static_cast<double>(meam_inst_kk->h_arho1(i,2));
+    buf[m++] = static_cast<double>(meam_inst_kk->h_arho2(i,0));
+    buf[m++] = static_cast<double>(meam_inst_kk->h_arho2(i,1));
+    buf[m++] = static_cast<double>(meam_inst_kk->h_arho2(i,2));
+    buf[m++] = static_cast<double>(meam_inst_kk->h_arho2(i,3));
+    buf[m++] = static_cast<double>(meam_inst_kk->h_arho2(i,4));
+    buf[m++] = static_cast<double>(meam_inst_kk->h_arho2(i,5));
+    for (int k = 0; k < 10; k++) buf[m++] = static_cast<double>(meam_inst_kk->h_arho3(i,k));
+    buf[m++] = static_cast<double>(meam_inst_kk->h_arho3b(i,0));
+    buf[m++] = static_cast<double>(meam_inst_kk->h_arho3b(i,1));
+    buf[m++] = static_cast<double>(meam_inst_kk->h_arho3b(i,2));
+    buf[m++] = static_cast<double>(meam_inst_kk->h_t_ave(i,0));
+    buf[m++] = static_cast<double>(meam_inst_kk->h_t_ave(i,1));
+    buf[m++] = static_cast<double>(meam_inst_kk->h_t_ave(i,2));
+    buf[m++] = static_cast<double>(meam_inst_kk->h_tsq_ave(i,0));
+    buf[m++] = static_cast<double>(meam_inst_kk->h_tsq_ave(i,1));
+    buf[m++] = static_cast<double>(meam_inst_kk->h_tsq_ave(i,2));
     if (msmeamflag) {
-      buf[m++] = meam_inst_kk->h_arho2mb[i];
-      buf[m++] = meam_inst_kk->h_arho1m(i,0);
-      buf[m++] = meam_inst_kk->h_arho1m(i,1);
-      buf[m++] = meam_inst_kk->h_arho1m(i,2);
-      buf[m++] = meam_inst_kk->h_arho2m(i,0);
-      buf[m++] = meam_inst_kk->h_arho2m(i,1);
-      buf[m++] = meam_inst_kk->h_arho2m(i,2);
-      buf[m++] = meam_inst_kk->h_arho2m(i,3);
-      buf[m++] = meam_inst_kk->h_arho2m(i,4);
-      buf[m++] = meam_inst_kk->h_arho2m(i,5);
-      for (int k = 0; k < 10; k++) buf[m++] = meam_inst_kk->h_arho3m(i,k);
-      buf[m++] = meam_inst_kk->h_arho3mb(i,0);
-      buf[m++] = meam_inst_kk->h_arho3mb(i,1);
-      buf[m++] = meam_inst_kk->h_arho3mb(i,2);
+      buf[m++] = static_cast<double>(meam_inst_kk->h_arho2mb[i]);
+      buf[m++] = static_cast<double>(meam_inst_kk->h_arho1m(i,0));
+      buf[m++] = static_cast<double>(meam_inst_kk->h_arho1m(i,1));
+      buf[m++] = static_cast<double>(meam_inst_kk->h_arho1m(i,2));
+      buf[m++] = static_cast<double>(meam_inst_kk->h_arho2m(i,0));
+      buf[m++] = static_cast<double>(meam_inst_kk->h_arho2m(i,1));
+      buf[m++] = static_cast<double>(meam_inst_kk->h_arho2m(i,2));
+      buf[m++] = static_cast<double>(meam_inst_kk->h_arho2m(i,3));
+      buf[m++] = static_cast<double>(meam_inst_kk->h_arho2m(i,4));
+      buf[m++] = static_cast<double>(meam_inst_kk->h_arho2m(i,5));
+      for (int k = 0; k < 10; k++) buf[m++] = static_cast<double>(meam_inst_kk->h_arho3m(i,k));
+      buf[m++] = static_cast<double>(meam_inst_kk->h_arho3mb(i,0));
+      buf[m++] = static_cast<double>(meam_inst_kk->h_arho3mb(i,1));
+      buf[m++] = static_cast<double>(meam_inst_kk->h_arho3mb(i,2));
     }
   }
 
@@ -801,42 +854,42 @@ void PairMEAMKokkos<DeviceType>::operator()(TagPairMEAMUnpackReverseComm, const 
   //int m = i*30;
   int m = i*comm_reverse;
 
-  d_rho0[j] += v_buf[m++];
-  d_arho2b[j] += v_buf[m++];
-  d_arho1(j,0) += v_buf[m++];
-  d_arho1(j,1) += v_buf[m++];
-  d_arho1(j,2) += v_buf[m++];
-  d_arho2(j,0) += v_buf[m++];
-  d_arho2(j,1) += v_buf[m++];
-  d_arho2(j,2) += v_buf[m++];
-  d_arho2(j,3) += v_buf[m++];
-  d_arho2(j,4) += v_buf[m++];
-  d_arho2(j,5) += v_buf[m++];
-  for (int k = 0; k < 10; k++) d_arho3(j,k) += v_buf[m++];
-  d_arho3b(j,0) += v_buf[m++];
-  d_arho3b(j,1) += v_buf[m++];
-  d_arho3b(j,2) += v_buf[m++];
-  d_t_ave(j,0) += v_buf[m++];
-  d_t_ave(j,1) += v_buf[m++];
-  d_t_ave(j,2) += v_buf[m++];
-  d_tsq_ave(j,0) += v_buf[m++];
-  d_tsq_ave(j,1) += v_buf[m++];
-  d_tsq_ave(j,2) += v_buf[m++];
+  d_rho0[j] += static_cast<KK_FLOAT>(v_buf[m++]);
+  d_arho2b[j] += static_cast<KK_FLOAT>(v_buf[m++]);
+  d_arho1(j,0) += static_cast<KK_FLOAT>(v_buf[m++]);
+  d_arho1(j,1) += static_cast<KK_FLOAT>(v_buf[m++]);
+  d_arho1(j,2) += static_cast<KK_FLOAT>(v_buf[m++]);
+  d_arho2(j,0) += static_cast<KK_FLOAT>(v_buf[m++]);
+  d_arho2(j,1) += static_cast<KK_FLOAT>(v_buf[m++]);
+  d_arho2(j,2) += static_cast<KK_FLOAT>(v_buf[m++]);
+  d_arho2(j,3) += static_cast<KK_FLOAT>(v_buf[m++]);
+  d_arho2(j,4) += static_cast<KK_FLOAT>(v_buf[m++]);
+  d_arho2(j,5) += static_cast<KK_FLOAT>(v_buf[m++]);
+  for (int k = 0; k < 10; k++) d_arho3(j,k) += static_cast<KK_FLOAT>(v_buf[m++]);
+  d_arho3b(j,0) += static_cast<KK_FLOAT>(v_buf[m++]);
+  d_arho3b(j,1) += static_cast<KK_FLOAT>(v_buf[m++]);
+  d_arho3b(j,2) += static_cast<KK_FLOAT>(v_buf[m++]);
+  d_t_ave(j,0) += static_cast<KK_FLOAT>(v_buf[m++]);
+  d_t_ave(j,1) += static_cast<KK_FLOAT>(v_buf[m++]);
+  d_t_ave(j,2) += static_cast<KK_FLOAT>(v_buf[m++]);
+  d_tsq_ave(j,0) += static_cast<KK_FLOAT>(v_buf[m++]);
+  d_tsq_ave(j,1) += static_cast<KK_FLOAT>(v_buf[m++]);
+  d_tsq_ave(j,2) += static_cast<KK_FLOAT>(v_buf[m++]);
   if (msmeamflag) {
-    d_arho2mb[j] += v_buf[m++];
-    d_arho1m(j,0) += v_buf[m++];
-    d_arho1m(j,1) += v_buf[m++];
-    d_arho1m(j,2) += v_buf[m++];
-    d_arho2m(j,0) += v_buf[m++];
-    d_arho2m(j,1) += v_buf[m++];
-    d_arho2m(j,2) += v_buf[m++];
-    d_arho2m(j,3) += v_buf[m++];
-    d_arho2m(j,4) += v_buf[m++];
-    d_arho2m(j,5) += v_buf[m++];
-    for (int k = 0; k < 10; k++) d_arho3m(j,k) += v_buf[m++];
-    d_arho3mb(j,0) += v_buf[m++];
-    d_arho3mb(j,1) += v_buf[m++];
-    d_arho3mb(j,2) += v_buf[m++];
+    d_arho2mb[j] += static_cast<KK_FLOAT>(v_buf[m++]);
+    d_arho1m(j,0) += static_cast<KK_FLOAT>(v_buf[m++]);
+    d_arho1m(j,1) += static_cast<KK_FLOAT>(v_buf[m++]);
+    d_arho1m(j,2) += static_cast<KK_FLOAT>(v_buf[m++]);
+    d_arho2m(j,0) += static_cast<KK_FLOAT>(v_buf[m++]);
+    d_arho2m(j,1) += static_cast<KK_FLOAT>(v_buf[m++]);
+    d_arho2m(j,2) += static_cast<KK_FLOAT>(v_buf[m++]);
+    d_arho2m(j,3) += static_cast<KK_FLOAT>(v_buf[m++]);
+    d_arho2m(j,4) += static_cast<KK_FLOAT>(v_buf[m++]);
+    d_arho2m(j,5) += static_cast<KK_FLOAT>(v_buf[m++]);
+    for (int k = 0; k < 10; k++) d_arho3m(j,k) += static_cast<KK_FLOAT>(v_buf[m++]);
+    d_arho3mb(j,0) += static_cast<KK_FLOAT>(v_buf[m++]);
+    d_arho3mb(j,1) += static_cast<KK_FLOAT>(v_buf[m++]);
+    d_arho3mb(j,2) += static_cast<KK_FLOAT>(v_buf[m++]);
   }
 }
 
@@ -864,42 +917,42 @@ void PairMEAMKokkos<DeviceType>::unpack_reverse_comm(int n, int *list, double *b
   int m = 0;
   for (int i = 0; i < n; i++) {
     const int j = list[i];
-    meam_inst_kk->h_rho0[j] += buf[m++];
-    meam_inst_kk->h_arho2b[j] += buf[m++];
-    meam_inst_kk->h_arho1(j,0) += buf[m++];
-    meam_inst_kk->h_arho1(j,1) += buf[m++];
-    meam_inst_kk->h_arho1(j,2) += buf[m++];
-    meam_inst_kk->h_arho2(j,0) += buf[m++];
-    meam_inst_kk->h_arho2(j,1) += buf[m++];
-    meam_inst_kk->h_arho2(j,2) += buf[m++];
-    meam_inst_kk->h_arho2(j,3) += buf[m++];
-    meam_inst_kk->h_arho2(j,4) += buf[m++];
-    meam_inst_kk->h_arho2(j,5) += buf[m++];
-    for (int k = 0; k < 10; k++) meam_inst_kk->h_arho3(j,k) += buf[m++];
-    meam_inst_kk->h_arho3b(j,0) += buf[m++];
-    meam_inst_kk->h_arho3b(j,1) += buf[m++];
-    meam_inst_kk->h_arho3b(j,2) += buf[m++];
-    meam_inst_kk->h_t_ave(j,0) += buf[m++];
-    meam_inst_kk->h_t_ave(j,1) += buf[m++];
-    meam_inst_kk->h_t_ave(j,2) += buf[m++];
-    meam_inst_kk->h_tsq_ave(j,0) += buf[m++];
-    meam_inst_kk->h_tsq_ave(j,1) += buf[m++];
-    meam_inst_kk->h_tsq_ave(j,2) += buf[m++];
+    meam_inst_kk->h_rho0[j] += static_cast<KK_FLOAT>(buf[m++]);
+    meam_inst_kk->h_arho2b[j] += static_cast<KK_FLOAT>(buf[m++]);
+    meam_inst_kk->h_arho1(j,0) += static_cast<KK_FLOAT>(buf[m++]);
+    meam_inst_kk->h_arho1(j,1) += static_cast<KK_FLOAT>(buf[m++]);
+    meam_inst_kk->h_arho1(j,2) += static_cast<KK_FLOAT>(buf[m++]);
+    meam_inst_kk->h_arho2(j,0) += static_cast<KK_FLOAT>(buf[m++]);
+    meam_inst_kk->h_arho2(j,1) += static_cast<KK_FLOAT>(buf[m++]);
+    meam_inst_kk->h_arho2(j,2) += static_cast<KK_FLOAT>(buf[m++]);
+    meam_inst_kk->h_arho2(j,3) += static_cast<KK_FLOAT>(buf[m++]);
+    meam_inst_kk->h_arho2(j,4) += static_cast<KK_FLOAT>(buf[m++]);
+    meam_inst_kk->h_arho2(j,5) += static_cast<KK_FLOAT>(buf[m++]);
+    for (int k = 0; k < 10; k++) meam_inst_kk->h_arho3(j,k) += static_cast<KK_FLOAT>(buf[m++]);
+    meam_inst_kk->h_arho3b(j,0) += static_cast<KK_FLOAT>(buf[m++]);
+    meam_inst_kk->h_arho3b(j,1) += static_cast<KK_FLOAT>(buf[m++]);
+    meam_inst_kk->h_arho3b(j,2) += static_cast<KK_FLOAT>(buf[m++]);
+    meam_inst_kk->h_t_ave(j,0) += static_cast<KK_FLOAT>(buf[m++]);
+    meam_inst_kk->h_t_ave(j,1) += static_cast<KK_FLOAT>(buf[m++]);
+    meam_inst_kk->h_t_ave(j,2) += static_cast<KK_FLOAT>(buf[m++]);
+    meam_inst_kk->h_tsq_ave(j,0) += static_cast<KK_FLOAT>(buf[m++]);
+    meam_inst_kk->h_tsq_ave(j,1) += static_cast<KK_FLOAT>(buf[m++]);
+    meam_inst_kk->h_tsq_ave(j,2) += static_cast<KK_FLOAT>(buf[m++]);
     if (msmeamflag) {
-      meam_inst_kk->h_arho2mb[j] += buf[m++];
-      meam_inst_kk->h_arho1m(j,0) += buf[m++];
-      meam_inst_kk->h_arho1m(j,1) += buf[m++];
-      meam_inst_kk->h_arho1m(j,2) += buf[m++];
-      meam_inst_kk->h_arho2m(j,0) += buf[m++];
-      meam_inst_kk->h_arho2m(j,1) += buf[m++];
-      meam_inst_kk->h_arho2m(j,2) += buf[m++];
-      meam_inst_kk->h_arho2m(j,3) += buf[m++];
-      meam_inst_kk->h_arho2m(j,4) += buf[m++];
-      meam_inst_kk->h_arho2m(j,5) += buf[m++];
-      for (int k = 0; k < 10; k++) meam_inst_kk->h_arho3m(j,k) += buf[m++];
-      meam_inst_kk->h_arho3mb(j,0) += buf[m++];
-      meam_inst_kk->h_arho3mb(j,1) += buf[m++];
-      meam_inst_kk->h_arho3mb(j,2) += buf[m++];
+      meam_inst_kk->h_arho2mb[j] += static_cast<KK_FLOAT>(buf[m++]);
+      meam_inst_kk->h_arho1m(j,0) += static_cast<KK_FLOAT>(buf[m++]);
+      meam_inst_kk->h_arho1m(j,1) += static_cast<KK_FLOAT>(buf[m++]);
+      meam_inst_kk->h_arho1m(j,2) += static_cast<KK_FLOAT>(buf[m++]);
+      meam_inst_kk->h_arho2m(j,0) += static_cast<KK_FLOAT>(buf[m++]);
+      meam_inst_kk->h_arho2m(j,1) += static_cast<KK_FLOAT>(buf[m++]);
+      meam_inst_kk->h_arho2m(j,2) += static_cast<KK_FLOAT>(buf[m++]);
+      meam_inst_kk->h_arho2m(j,3) += static_cast<KK_FLOAT>(buf[m++]);
+      meam_inst_kk->h_arho2m(j,4) += static_cast<KK_FLOAT>(buf[m++]);
+      meam_inst_kk->h_arho2m(j,5) += static_cast<KK_FLOAT>(buf[m++]);
+      for (int k = 0; k < 10; k++) meam_inst_kk->h_arho3m(j,k) += static_cast<KK_FLOAT>(buf[m++]);
+      meam_inst_kk->h_arho3mb(j,0) += static_cast<KK_FLOAT>(buf[m++]);
+      meam_inst_kk->h_arho3mb(j,1) += static_cast<KK_FLOAT>(buf[m++]);
+      meam_inst_kk->h_arho3mb(j,2) += static_cast<KK_FLOAT>(buf[m++]);
     }
   }
 

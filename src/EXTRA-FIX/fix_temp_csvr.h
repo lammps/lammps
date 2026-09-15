@@ -38,7 +38,7 @@ class FixTempCSVR : public Fix {
   void restart(char *buf) override;
   void *extract(const char *, int &) override;
 
- private:
+ protected:
   double t_start, t_stop, t_period, t_target;
   double energy;
   int nmax, which;
@@ -51,7 +51,7 @@ class FixTempCSVR : public Fix {
 
   class RanMars *random;
 
- private:
+ protected:
   double resamplekin(double, double);
   double sumnoises(int);
   double gamdev(int);

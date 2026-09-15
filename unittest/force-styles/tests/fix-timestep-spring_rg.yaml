@@ -11,6 +11,7 @@ post_commands: ! |
   fix move all nve
   fix test solute spring/rg 10.0 NULL
 input_file: in.fourmol
+input_coeffs: coeffs.fourmol
 natoms: 29
 global_scalar: 2.2828440511327632
 run_pos: ! |2

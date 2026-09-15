@@ -92,7 +92,7 @@ PPPMDisp::PPPMDisp(LAMMPS *lmp) : KSpace(lmp),
    fft2_6(nullptr), remap(nullptr), remap_6(nullptr), gc(nullptr), gc6(nullptr),
    part2grid(nullptr), part2grid_6(nullptr), boxlo(nullptr)
 {
-  triclinic_support = 0;
+  triclinic_support = 1;
   pppmflag = dispersionflag = 1;
   triclinic = domain->triclinic;
 
@@ -256,6 +256,20 @@ void PPPMDisp::init()
   if (triclinic != domain->triclinic)
     error->all(FLERR,"Must redefine kspace_style after changing to triclinic box");
 
+  // triclinic support is currently limited to ik differentiation.  The slab
+  // correction is supported only as the EW3DC volume-factor variant and only
+  // for an xy tilt (the slab normal must remain the z axis).
+
+  if (domain->triclinic && differentiation_flag == 1)
+    error->all(FLERR,"Cannot (yet) use PPPMDisp with triclinic box and "
+               "kspace_modify diff ad");
+  if (domain->triclinic && (slabflag == 2 || slabflag == 3))
+    error->all(FLERR,"Triclinic boxes only support the 'kspace_modify slab "
+               "<volfactor>' correction, not 'slab nozforce' or 'slab ew2d'");
+  if (domain->triclinic && slabflag == 1 && (domain->yz != 0.0 || domain->xz != 0.0))
+    error->all(FLERR,"Triclinic slab (EW3DC) correction requires xz = yz = 0 "
+               "(the slab normal must be the z axis); xy tilt is allowed");
+
   if (domain->dimension == 2)
     error->all(FLERR,"Cannot use PPPMDisp with 2d simulation");
   if (comm->style != Comm::BRICK)
@@ -291,7 +305,7 @@ void PPPMDisp::init()
   int *ptr = pair ? (int *) pair->extract("ewald_order",tmp) : nullptr;
   double *p_cutoff = pair ? (double *) pair->extract("cut_coul",tmp) : nullptr;
   double *p_cutoff_lj = pair ? (double *) pair->extract("cut_vdwl",tmp) : nullptr;
-  if (!(ptr||p_cutoff||p_cutoff_lj))
+  if (!ptr || !p_cutoff || !p_cutoff_lj)
     error->all(FLERR,"KSpace style is incompatible with Pair style");
   cutoff = *p_cutoff;
   cutoff_lj = *p_cutoff_lj;
@@ -449,7 +463,7 @@ void PPPMDisp::init()
       error->all(FLERR,"Coulomb PPPMDisp order has been reduced below minorder");
     if (!overlap_allowed && !gc->ghost_adjacent())
       error->all(FLERR,"PPPMDisp grid stencil extends beyond nearest neighbor processor");
-    if (gc) delete gc;
+    delete gc;
 
     // adjust g_ewald
 
@@ -506,7 +520,7 @@ void PPPMDisp::init()
                  "reduced below minorder");
     if (!overlap_allowed && !gc6->ghost_adjacent())
       error->all(FLERR,"Dispersion PPPMDisp grid stencil extends beyond nearest neighbor proc");
-    if (gc6) delete gc6;
+    delete gc6;
 
     // adjust g_ewald_6
 
@@ -606,6 +620,13 @@ void PPPMDisp::setup()
     if (domain->xperiodic != 1 || domain->yperiodic != 1 ||
         domain->boundary[2][0] != 1 || domain->boundary[2][1] != 1)
       error->all(FLERR,"Incorrect boundaries with slab PPPMDisp");
+  }
+
+  // triclinic boxes use non-separable wave vectors and a dedicated setup
+
+  if (triclinic) {
+    setup_triclinic();
+    return;
   }
 
   double *prd;
@@ -778,6 +799,261 @@ void PPPMDisp::setup()
     }
     compute_gf_6();
     if (differentiation_flag == 1) compute_sf_coeff_6();
+  }
+}
+
+/* ----------------------------------------------------------------------
+   pre-compute volume-dependent coeffs and Green's functions for a
+   triclinic box.  The reciprocal-space wave vectors are no longer
+   separable, so fkx/fky/fkz (and the order-6 analogs) are stored per
+   FFT grid point.  ik differentiation only (ad is rejected in init).
+------------------------------------------------------------------------- */
+
+void PPPMDisp::setup_triclinic()
+{
+  int i,j,k,n,im,jm,km;
+  double per_i,per_j,per_k,per_im,per_jm,per_km;
+  double uk[3],ukm[3];
+  double sqk,vterm;
+
+  // use the real box volume but lamda (0-1) grid spacing, since particles
+  // are mapped in lamda coordinates for a triclinic box.
+  // slab_volfactor == 1.0 here (triclinic + slab is rejected in init()).
+
+  double *prd = domain->prd;
+  double xprd = prd[0];
+  double yprd = prd[1];
+  double zprd = prd[2];
+  double zprd_slab = zprd*slab_volfactor;
+  volume = xprd * yprd * zprd_slab;
+
+  // coulomb (order-2) grid
+
+  if (termflag[TERM_COUL]) {
+    delxinv = nx_pppm;
+    delyinv = ny_pppm;
+    delzinv = nz_pppm/slab_volfactor;
+    delvolinv = delxinv*delyinv*nz_pppm/volume;
+
+    double gew2inv = 1.0/(g_ewald*g_ewald);
+
+    n = 0;
+    for (k = nzlo_fft; k <= nzhi_fft; k++) {
+      per_k = k - nz_pppm*(2*k/nz_pppm);
+      km = (nz_pppm - k) % nz_pppm;
+      per_km = km - nz_pppm*(2*km/nz_pppm);
+      for (j = nylo_fft; j <= nyhi_fft; j++) {
+        per_j = j - ny_pppm*(2*j/ny_pppm);
+        jm = (ny_pppm - j) % ny_pppm;
+        per_jm = jm - ny_pppm*(2*jm/ny_pppm);
+        for (i = nxlo_fft; i <= nxhi_fft; i++) {
+          per_i = i - nx_pppm*(2*i/nx_pppm);
+          im = (nx_pppm - i) % nx_pppm;
+          per_im = im - nx_pppm*(2*im/nx_pppm);
+
+          // real-space wave vector and its mirror (-k) partner
+          uk[0] = 2.0*MY_PI*per_i; uk[1] = 2.0*MY_PI*per_j; uk[2] = 2.0*MY_PI*per_k;
+          x2lamdaT(&uk[0],&uk[0]);
+          ukm[0] = 2.0*MY_PI*per_im; ukm[1] = 2.0*MY_PI*per_jm; ukm[2] = 2.0*MY_PI*per_km;
+          x2lamdaT(&ukm[0],&ukm[0]);
+
+          fkx[n] = uk[0]; fky[n] = uk[1]; fkz[n] = uk[2];
+
+          sqk = uk[0]*uk[0] + uk[1]*uk[1] + uk[2]*uk[2];
+          if (sqk == 0.0) {
+            vg[n][0] = vg[n][1] = vg[n][2] = 0.0;
+            vg[n][3] = vg[n][4] = vg[n][5] = 0.0;
+            vg2[n][0] = vg2[n][1] = vg2[n][2] = 0.0;
+          } else {
+            vterm = -2.0 * (1.0/sqk + 0.25*gew2inv);
+            vg[n][0] = 1.0 + vterm*uk[0]*uk[0];
+            vg[n][1] = 1.0 + vterm*uk[1]*uk[1];
+            vg[n][2] = 1.0 + vterm*uk[2]*uk[2];
+            vg[n][3] = vterm*uk[0]*uk[1];
+            vg[n][4] = vterm*uk[0]*uk[2];
+            vg[n][5] = vterm*uk[1]*uk[2];
+            vg2[n][0] = vterm*0.5*(uk[0]*uk[1] + ukm[0]*ukm[1]);
+            vg2[n][1] = vterm*0.5*(uk[0]*uk[2] + ukm[0]*ukm[2]);
+            vg2[n][2] = vterm*0.5*(uk[1]*uk[2] + ukm[1]*ukm[2]);
+          }
+          n++;
+        }
+      }
+    }
+    compute_gf_triclinic();
+  }
+
+  // dispersion (order-6) grid
+
+  if (termflag[TERM_DISP_GEOM] + termflag[TERM_DISP_ARITH] + termflag[TERM_DISP_NONE]) {
+    delxinv_6 = nx_pppm_6;
+    delyinv_6 = ny_pppm_6;
+    delzinv_6 = nz_pppm_6/slab_volfactor;
+    delvolinv_6 = delxinv_6*delyinv_6*nz_pppm_6/volume;
+
+    double erft,expt,nom,denom,b,bs,bt;
+    double rtpi = sqrt(MY_PI);
+    double gewinv = 1.0/g_ewald_6;
+
+    n = 0;
+    for (k = nzlo_fft_6; k <= nzhi_fft_6; k++) {
+      per_k = k - nz_pppm_6*(2*k/nz_pppm_6);
+      km = (nz_pppm_6 - k) % nz_pppm_6;
+      per_km = km - nz_pppm_6*(2*km/nz_pppm_6);
+      for (j = nylo_fft_6; j <= nyhi_fft_6; j++) {
+        per_j = j - ny_pppm_6*(2*j/ny_pppm_6);
+        jm = (ny_pppm_6 - j) % ny_pppm_6;
+        per_jm = jm - ny_pppm_6*(2*jm/ny_pppm_6);
+        for (i = nxlo_fft_6; i <= nxhi_fft_6; i++) {
+          per_i = i - nx_pppm_6*(2*i/nx_pppm_6);
+          im = (nx_pppm_6 - i) % nx_pppm_6;
+          per_im = im - nx_pppm_6*(2*im/nx_pppm_6);
+
+          uk[0] = 2.0*MY_PI*per_i; uk[1] = 2.0*MY_PI*per_j; uk[2] = 2.0*MY_PI*per_k;
+          x2lamdaT(&uk[0],&uk[0]);
+          ukm[0] = 2.0*MY_PI*per_im; ukm[1] = 2.0*MY_PI*per_jm; ukm[2] = 2.0*MY_PI*per_km;
+          x2lamdaT(&ukm[0],&ukm[0]);
+
+          fkx_6[n] = uk[0]; fky_6[n] = uk[1]; fkz_6[n] = uk[2];
+
+          sqk = uk[0]*uk[0] + uk[1]*uk[1] + uk[2]*uk[2];
+          if (sqk == 0.0) {
+            vg_6[n][0] = vg_6[n][1] = vg_6[n][2] = 0.0;
+            vg_6[n][3] = vg_6[n][4] = vg_6[n][5] = 0.0;
+            vg2_6[n][0] = vg2_6[n][1] = vg2_6[n][2] = 0.0;
+          } else {
+            b = 0.5*sqrt(sqk)*gewinv;
+            bs = b*b;
+            bt = bs*b;
+            erft = 2*bt*rtpi*erfc((double) b);
+            expt = exp(-bs);
+            nom = erft - 2*bs*expt;
+            denom = nom + expt;
+            if (denom == 0) vterm = 3.0/sqk;
+            else vterm = 3.0*nom/(sqk*denom);
+            vg_6[n][0] = 1.0 + vterm*uk[0]*uk[0];
+            vg_6[n][1] = 1.0 + vterm*uk[1]*uk[1];
+            vg_6[n][2] = 1.0 + vterm*uk[2]*uk[2];
+            vg_6[n][3] = vterm*uk[0]*uk[1];
+            vg_6[n][4] = vterm*uk[0]*uk[2];
+            vg_6[n][5] = vterm*uk[1]*uk[2];
+            vg2_6[n][0] = vterm*0.5*(uk[0]*uk[1] + ukm[0]*ukm[1]);
+            vg2_6[n][1] = vterm*0.5*(uk[0]*uk[2] + ukm[0]*ukm[2]);
+            vg2_6[n][2] = vterm*0.5*(uk[1]*uk[2] + ukm[1]*ukm[2]);
+          }
+          n++;
+        }
+      }
+    }
+    compute_gf_6_triclinic();
+  }
+}
+
+/* ----------------------------------------------------------------------
+   compute the coulomb Green's function for a triclinic box (ik scheme).
+   The assignment-function and denominator factors depend only on the grid
+   indices (argx = pi*kper/nx_pppm, box-independent); the Gaussian and 1/k^2
+   factors use the real-space (triclinic) wave vector magnitude.
+------------------------------------------------------------------------- */
+
+void PPPMDisp::compute_gf_triclinic()
+{
+  int k,l,m,n,kper,lper,mper;
+  double snx,sny,snz,snx2,sny2,snz2;
+  double argx,argy,argz,wx,wy,wz,ss,sqk;
+  double numerator,denominator;
+  double uk[3];
+  double gew2inv = 1.0/(g_ewald*g_ewald);
+
+  n = 0;
+  for (m = nzlo_fft; m <= nzhi_fft; m++) {
+    mper = m - nz_pppm*(2*m/nz_pppm);
+    argz = MY_PI*mper/nz_pppm;
+    snz = sin(argz); snz2 = snz*snz;
+    wz = 1.0; if (argz != 0.0) wz = pow(sin(argz)/argz,order);
+    wz *= wz;
+
+    for (l = nylo_fft; l <= nyhi_fft; l++) {
+      lper = l - ny_pppm*(2*l/ny_pppm);
+      argy = MY_PI*lper/ny_pppm;
+      sny = sin(argy); sny2 = sny*sny;
+      wy = 1.0; if (argy != 0.0) wy = pow(sin(argy)/argy,order);
+      wy *= wy;
+
+      for (k = nxlo_fft; k <= nxhi_fft; k++) {
+        kper = k - nx_pppm*(2*k/nx_pppm);
+        argx = MY_PI*kper/nx_pppm;
+        snx = sin(argx); snx2 = snx*snx;
+        wx = 1.0; if (argx != 0.0) wx = pow(sin(argx)/argx,order);
+        wx *= wx;
+
+        uk[0] = 2.0*MY_PI*kper; uk[1] = 2.0*MY_PI*lper; uk[2] = 2.0*MY_PI*mper;
+        x2lamdaT(&uk[0],&uk[0]);
+        sqk = uk[0]*uk[0] + uk[1]*uk[1] + uk[2]*uk[2];
+
+        if (sqk != 0.0) {
+          numerator = 4.0*MY_PI/sqk;
+          denominator = gf_denom(snx2,sny2,snz2, gf_b, order);
+          ss = exp(-0.25*sqk*gew2inv);
+          greensfn[n++] = numerator*ss*wx*wy*wz/denominator;
+        } else greensfn[n++] = 0.0;
+      }
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   compute the dispersion Green's function for a triclinic box (ik scheme)
+------------------------------------------------------------------------- */
+
+void PPPMDisp::compute_gf_6_triclinic()
+{
+  int k,l,m,n,kper,lper,mper;
+  double snx,sny,snz,snx2,sny2,snz2;
+  double argx,argy,argz,wx,wy,wz,ss,sqk,rtsqk,term;
+  double numerator,denominator;
+  double uk[3];
+  double inv2ew = 1.0/(2.0*g_ewald_6);
+  double rtpi = sqrt(MY_PI);
+
+  numerator = -MY_PI*rtpi*g_ewald_6*g_ewald_6*g_ewald_6/3.0;
+
+  n = 0;
+  for (m = nzlo_fft_6; m <= nzhi_fft_6; m++) {
+    mper = m - nz_pppm_6*(2*m/nz_pppm_6);
+    argz = MY_PI*mper/nz_pppm_6;
+    snz = sin(argz); snz2 = snz*snz;
+    wz = 1.0; if (argz != 0.0) wz = pow(sin(argz)/argz,order_6);
+    wz *= wz;
+
+    for (l = nylo_fft_6; l <= nyhi_fft_6; l++) {
+      lper = l - ny_pppm_6*(2*l/ny_pppm_6);
+      argy = MY_PI*lper/ny_pppm_6;
+      sny = sin(argy); sny2 = sny*sny;
+      wy = 1.0; if (argy != 0.0) wy = pow(sin(argy)/argy,order_6);
+      wy *= wy;
+
+      for (k = nxlo_fft_6; k <= nxhi_fft_6; k++) {
+        kper = k - nx_pppm_6*(2*k/nx_pppm_6);
+        argx = MY_PI*kper/nx_pppm_6;
+        snx = sin(argx); snx2 = snx*snx;
+        wx = 1.0; if (argx != 0.0) wx = pow(sin(argx)/argx,order_6);
+        wx *= wx;
+
+        uk[0] = 2.0*MY_PI*kper; uk[1] = 2.0*MY_PI*lper; uk[2] = 2.0*MY_PI*mper;
+        x2lamdaT(&uk[0],&uk[0]);
+        sqk = uk[0]*uk[0] + uk[1]*uk[1] + uk[2]*uk[2];
+
+        if (sqk != 0.0) {
+          denominator = gf_denom(snx2,sny2,snz2, gf_b_6, order_6);
+          rtsqk = sqrt(sqk);
+          ss = exp(-sqk*inv2ew*inv2ew);
+          term = (1.0-2.0*sqk*inv2ew*inv2ew)*ss +
+                  2.0*sqk*rtsqk*inv2ew*inv2ew*inv2ew*rtpi*erfc(rtsqk*inv2ew);
+          greensfn_6[n++] = numerator*term*wx*wy*wz/denominator;
+        } else greensfn_6[n++] = 0.0;
+      }
+    }
   }
 }
 
@@ -1244,15 +1520,16 @@ void PPPMDisp::compute(int eflag, int vflag)
     }
   }
 
+  // convert atoms back from lamda to box coords
+  // must precede slabcorr(), which needs Cartesian z-coordinates
+
+  if (triclinic) domain->lamda2x(atom->nlocal);
+
   // 2d slab correction
 
   if (slabflag) slabcorr(eflag);
   if (termflag[TERM_COUL]) energy += energy_1;
   if (termflag[TERM_DISP_GEOM] + termflag[TERM_DISP_ARITH] + termflag[TERM_DISP_NONE]) energy += energy_6;
-
-  // convert atoms back from lamda to box coords
-
-  if (triclinic) domain->lamda2x(atom->nlocal);
 }
 
 /* ----------------------------------------------------------------------
@@ -1720,9 +1997,19 @@ void _noopt PPPMDisp::allocate()
     memory->create(work1,2*nfft_both,"pppm/disp:work1");
     memory->create(work2,2*nfft_both,"pppm/disp:work2");
 
-    memory->create1d_offset(fkx,nxlo_fft,nxhi_fft,"pppm/disp:fkx");
-    memory->create1d_offset(fky,nylo_fft,nyhi_fft,"pppm/disp:fky");
-    memory->create1d_offset(fkz,nzlo_fft,nzhi_fft,"pppm/disp:fkz");
+    // for a triclinic box the per-grid-point wave vectors are not separable,
+    // so fkx/fky/fkz are stored as flat per-FFT-point arrays (size nfft_both)
+    // instead of the per-grid-line offset arrays used for orthogonal boxes.
+
+    if (triclinic == 0) {
+      memory->create1d_offset(fkx,nxlo_fft,nxhi_fft,"pppm/disp:fkx");
+      memory->create1d_offset(fky,nylo_fft,nyhi_fft,"pppm/disp:fky");
+      memory->create1d_offset(fkz,nzlo_fft,nzhi_fft,"pppm/disp:fkz");
+    } else {
+      memory->create(fkx,nfft_both,"pppm/disp:fkx");
+      memory->create(fky,nfft_both,"pppm/disp:fky");
+      memory->create(fkz,nfft_both,"pppm/disp:fkz");
+    }
 
     memory->create1d_offset(fkx2,nxlo_fft,nxhi_fft,"pppm/disp:fkx2");
     memory->create1d_offset(fky2,nylo_fft,nyhi_fft,"pppm/disp:fky2");
@@ -1872,9 +2159,15 @@ void _noopt PPPMDisp::allocate()
     memory->create(work1_6,2*nfft_both_6,"pppm/disp:work1_6");
     memory->create(work2_6,2*nfft_both_6,"pppm/disp:work2_6");
 
-    memory->create1d_offset(fkx_6,nxlo_fft_6,nxhi_fft_6,"pppm/disp:fkx_6");
-    memory->create1d_offset(fky_6,nylo_fft_6,nyhi_fft_6,"pppm/disp:fky_6");
-    memory->create1d_offset(fkz_6,nzlo_fft_6,nzhi_fft_6,"pppm/disp:fkz_6");
+    if (triclinic == 0) {
+      memory->create1d_offset(fkx_6,nxlo_fft_6,nxhi_fft_6,"pppm/disp:fkx_6");
+      memory->create1d_offset(fky_6,nylo_fft_6,nyhi_fft_6,"pppm/disp:fky_6");
+      memory->create1d_offset(fkz_6,nzlo_fft_6,nzhi_fft_6,"pppm/disp:fkz_6");
+    } else {
+      memory->create(fkx_6,nfft_both_6,"pppm/disp:fkx_6");
+      memory->create(fky_6,nfft_both_6,"pppm/disp:fky_6");
+      memory->create(fkz_6,nfft_both_6,"pppm/disp:fkz_6");
+    }
 
     memory->create1d_offset(fkx2_6,nxlo_fft_6,nxhi_fft_6,"pppm/disp:fkx2_6");
     memory->create1d_offset(fky2_6,nylo_fft_6,nyhi_fft_6,"pppm/disp:fky2_6");
@@ -1925,9 +2218,15 @@ void _noopt PPPMDisp::allocate()
     memory->create(work1_6,2*nfft_both_6,"pppm/disp:work1_6");
     memory->create(work2_6,2*nfft_both_6,"pppm/disp:work2_6");
 
-    memory->create1d_offset(fkx_6,nxlo_fft_6,nxhi_fft_6,"pppm/disp:fkx_6");
-    memory->create1d_offset(fky_6,nylo_fft_6,nyhi_fft_6,"pppm/disp:fky_6");
-    memory->create1d_offset(fkz_6,nzlo_fft_6,nzhi_fft_6,"pppm/disp:fkz_6");
+    if (triclinic == 0) {
+      memory->create1d_offset(fkx_6,nxlo_fft_6,nxhi_fft_6,"pppm/disp:fkx_6");
+      memory->create1d_offset(fky_6,nylo_fft_6,nyhi_fft_6,"pppm/disp:fky_6");
+      memory->create1d_offset(fkz_6,nzlo_fft_6,nzhi_fft_6,"pppm/disp:fkz_6");
+    } else {
+      memory->create(fkx_6,nfft_both_6,"pppm/disp:fkx_6");
+      memory->create(fky_6,nfft_both_6,"pppm/disp:fky_6");
+      memory->create(fkz_6,nfft_both_6,"pppm/disp:fkz_6");
+    }
 
     memory->create1d_offset(fkx2_6,nxlo_fft_6,nxhi_fft_6,"pppm/disp:fkx2_6");
     memory->create1d_offset(fky2_6,nylo_fft_6,nyhi_fft_6,"pppm/disp:fky2_6");
@@ -2059,9 +2358,15 @@ void _noopt PPPMDisp::allocate()
     memory->create(work1_6,2*nfft_both_6,"pppm/disp:work1_6");
     memory->create(work2_6,2*nfft_both_6,"pppm/disp:work2_6");
 
-    memory->create1d_offset(fkx_6,nxlo_fft_6,nxhi_fft_6,"pppm/disp:fkx_6");
-    memory->create1d_offset(fky_6,nylo_fft_6,nyhi_fft_6,"pppm/disp:fky_6");
-    memory->create1d_offset(fkz_6,nzlo_fft_6,nzhi_fft_6,"pppm/disp:fkz_6");
+    if (triclinic == 0) {
+      memory->create1d_offset(fkx_6,nxlo_fft_6,nxhi_fft_6,"pppm/disp:fkx_6");
+      memory->create1d_offset(fky_6,nylo_fft_6,nyhi_fft_6,"pppm/disp:fky_6");
+      memory->create1d_offset(fkz_6,nzlo_fft_6,nzhi_fft_6,"pppm/disp:fkz_6");
+    } else {
+      memory->create(fkx_6,nfft_both_6,"pppm/disp:fkx_6");
+      memory->create(fky_6,nfft_both_6,"pppm/disp:fky_6");
+      memory->create(fkz_6,nfft_both_6,"pppm/disp:fkz_6");
+    }
 
     memory->create1d_offset(fkx2_6,nxlo_fft_6,nxhi_fft_6,"pppm/disp:fkx2_6");
     memory->create1d_offset(fky2_6,nylo_fft_6,nyhi_fft_6,"pppm/disp:fky2_6");
@@ -2471,9 +2776,15 @@ void PPPMDisp::deallocate()
   work1 = work2 = work1_6 = work2_6 = nullptr;
   vg = vg2 = vg_6 = vg2_6 = nullptr;
 
-  memory->destroy1d_offset(fkx,nxlo_fft);
-  memory->destroy1d_offset(fky,nylo_fft);
-  memory->destroy1d_offset(fkz,nzlo_fft);
+  if (triclinic == 0) {
+    memory->destroy1d_offset(fkx,nxlo_fft);
+    memory->destroy1d_offset(fky,nylo_fft);
+    memory->destroy1d_offset(fkz,nzlo_fft);
+  } else {
+    memory->destroy(fkx);
+    memory->destroy(fky);
+    memory->destroy(fkz);
+  }
   fkx = fky = fkz = nullptr;
 
   memory->destroy1d_offset(fkx2,nxlo_fft);
@@ -2481,9 +2792,15 @@ void PPPMDisp::deallocate()
   memory->destroy1d_offset(fkz2,nzlo_fft);
   fkx2 = fky2 = fkz2 = nullptr;
 
-  memory->destroy1d_offset(fkx_6,nxlo_fft_6);
-  memory->destroy1d_offset(fky_6,nylo_fft_6);
-  memory->destroy1d_offset(fkz_6,nzlo_fft_6);
+  if (triclinic == 0) {
+    memory->destroy1d_offset(fkx_6,nxlo_fft_6);
+    memory->destroy1d_offset(fky_6,nylo_fft_6);
+    memory->destroy1d_offset(fkz_6,nzlo_fft_6);
+  } else {
+    memory->destroy(fkx_6);
+    memory->destroy(fky_6);
+    memory->destroy(fkz_6);
+  }
   fkx_6 = fky_6 = fkz_6 = nullptr;
 
   memory->destroy1d_offset(fkx2_6,nxlo_fft_6);
@@ -2944,8 +3261,9 @@ double PPPMDisp::compute_qopt_ik()
   int k,l,m;
   double *prd;
 
-  if (triclinic == 0) prd = domain->prd;
-  else prd = domain->prd_lamda;
+  // use the real box dimensions even for a triclinic box so that the grid
+  // size and accuracy estimate match the orthogonal case (cf. set_grid_global)
+  prd = domain->prd;
 
   double xprd = prd[0];
   double yprd = prd[1];
@@ -3125,8 +3443,9 @@ double PPPMDisp::compute_qopt_6_ik()
   int k,l,m;
   double *prd;
 
-  if (triclinic == 0) prd = domain->prd;
-  else prd = domain->prd_lamda;
+  // use the real box dimensions even for a triclinic box so that the grid
+  // size and accuracy estimate match the orthogonal case (cf. set_grid_global)
+  prd = domain->prd;
 
   double xprd = prd[0];
   double yprd = prd[1];
@@ -3452,7 +3771,10 @@ void PPPMDisp::adjust_gewald_6()
   // start loop
 
   for (int i = 0; i <  LARGE; i++) {
-    dx = f_6() / derivf_6();
+    double dfx = derivf_6();
+    if (dfx == 0.0 || dfx != dfx) break;    // flat/invalid derivative
+    dx = f_6() / dfx;
+    while (g_ewald_6 - dx <= 0.0) dx *= 0.5;   // damp the step so g_ewald_6 stays > 0
     g_ewald_6 -= dx; //update g_ewald_6
     if (fabs(f_6()) < SMALL) return;
   }
@@ -3471,8 +3793,9 @@ double PPPMDisp::f_6()
   double df_rspace, df_kspace;
   double *prd;
 
-  if (triclinic == 0) prd = domain->prd;
-  else prd = domain->prd_lamda;
+  // use the real box dimensions even for a triclinic box so that the grid
+  // size and accuracy estimate match the orthogonal case (cf. set_grid_global)
+  prd = domain->prd;
 
   double xprd = prd[0];
   double yprd = prd[1];
@@ -3583,8 +3906,9 @@ void PPPMDisp::set_n_pppm_6()
 
   double *prd;
 
-  if (triclinic == 0) prd = domain->prd;
-  else prd = domain->prd_lamda;
+  // use the real box dimensions even for a triclinic box so that the grid
+  // size and accuracy estimate match the orthogonal case (cf. set_grid_global)
+  prd = domain->prd;
 
   double xprd = prd[0];
   double yprd = prd[1];
@@ -4566,6 +4890,89 @@ void PPPMDisp::poisson_ik(FFT_SCALAR* wk1, FFT_SCALAR* wk2,
     wk1[n++] *= scaleinv * gfn[i];
   }
 
+  // triclinic: the wave vectors are not separable, so the xy-gradient packing
+  // used below does not apply.  Compute the three Cartesian gradients with
+  // separate FFTs using the per-grid-point kx/ky/kz, plus the potential for
+  // per-atom energy.  Mirrors PPPM::poisson_ik_triclinic.
+
+  if (triclinic) {
+
+    // x direction gradient
+
+    n = 0;
+    for (i = 0; i < nft; i++) {
+      wk2[n] = -kx[i]*wk1[n+1];
+      wk2[n+1] = kx[i]*wk1[n];
+      n += 2;
+    }
+    ft2->compute(wk2,wk2,FFT3d::BACKWARD);
+    n = 0;
+    for (k = nzlo_i; k <= nzhi_i; k++)
+      for (j = nylo_i; j <= nyhi_i; j++)
+        for (i = nxlo_i; i <= nxhi_i; i++) {
+          vx_brick[k][j][i] = wk2[n];
+          n += 2;
+        }
+
+    // y direction gradient
+
+    n = 0;
+    for (i = 0; i < nft; i++) {
+      wk2[n] = -ky[i]*wk1[n+1];
+      wk2[n+1] = ky[i]*wk1[n];
+      n += 2;
+    }
+    ft2->compute(wk2,wk2,FFT3d::BACKWARD);
+    n = 0;
+    for (k = nzlo_i; k <= nzhi_i; k++)
+      for (j = nylo_i; j <= nyhi_i; j++)
+        for (i = nxlo_i; i <= nxhi_i; i++) {
+          vy_brick[k][j][i] = wk2[n];
+          n += 2;
+        }
+
+    // z direction gradient
+
+    n = 0;
+    for (i = 0; i < nft; i++) {
+      wk2[n] = -kz[i]*wk1[n+1];
+      wk2[n+1] = kz[i]*wk1[n];
+      n += 2;
+    }
+    ft2->compute(wk2,wk2,FFT3d::BACKWARD);
+    n = 0;
+    for (k = nzlo_i; k <= nzhi_i; k++)
+      for (j = nylo_i; j <= nyhi_i; j++)
+        for (i = nxlo_i; i <= nxhi_i; i++) {
+          vz_brick[k][j][i] = wk2[n];
+          n += 2;
+        }
+
+    // potential for per-atom energy
+
+    if (eflag_atom) {
+      n = 0;
+      for (i = 0; i < nft; i++) {
+        wk2[n] = wk1[n];
+        wk2[n+1] = wk1[n+1];
+        n += 2;
+      }
+      ft2->compute(wk2,wk2,FFT3d::BACKWARD);
+      n = 0;
+      for (k = nzlo_i; k <= nzhi_i; k++)
+        for (j = nylo_i; j <= nyhi_i; j++)
+          for (i = nxlo_i; i <= nxhi_i; i++) {
+            u_pa[k][j][i] = wk2[n];
+            n += 2;
+          }
+    }
+
+    if (vflag_atom) poisson_peratom(wk1,wk2,ft2,vcoeff,vcoeff2,nft,
+                                    nxlo_i,nylo_i,nzlo_i,nxhi_i,nyhi_i,nzhi_i,
+                                    v0_pa,v1_pa,v2_pa,v3_pa,v4_pa,v5_pa);
+    return;
+  }
+
   // compute gradients of V(r) in each of 3 dims by transformimg -ik*V(k)
   // FFT leaves data in 3d brick decomposition
   // copy it into inner portion of vdx,vdy,vdz arrays
@@ -4827,6 +5234,101 @@ poisson_2s_ik(FFT_SCALAR* dfft_1, FFT_SCALAR* dfft_2,
   bigint ngridtotal = (bigint) nx_pppm_6 * ny_pppm_6 * nz_pppm_6;
   double scaleinv = 1.0/ngridtotal;
 
+  // triclinic: the real-FFT packing of the two densities used below relies on
+  // separable wave vectors.  Instead transform each density on its own and
+  // compute its gradients with the per-grid-point kx/ky/kz (work2_6 scratch).
+
+  if (triclinic) {
+    double s2 = scaleinv*scaleinv;
+
+    n = 0;
+    for (i = 0; i < nfft_6; i++) { work1_6[n] = dfft_1[i]; work1_6[n+1] = ZEROF; n += 2; }
+    fft1_6->compute(work1_6,work1_6,FFT3d::FORWARD);
+    n = 0;
+    for (i = 0; i < nfft_6; i++) { work2_6[n] = dfft_2[i]; work2_6[n+1] = ZEROF; n += 2; }
+    fft1_6->compute(work2_6,work2_6,FFT3d::FORWARD);
+
+    // global energy/virial from the cross term  2 * GF * Re(V1 conj(V2))
+    if (eflag_global || vflag_global) {
+      n = 0;
+      for (i = 0; i < nfft_6; i++) {
+        eng = 2.0*s2*greensfn_6[i]*(work1_6[n]*work2_6[n] + work1_6[n+1]*work2_6[n+1]);
+        if (vflag_global) for (j = 0; j < 6; j++) virial_6[j] += eng*vg_6[i][j];
+        if (eflag_global) energy_6 += eng;
+        n += 2;
+      }
+    }
+
+    // gradients + per-atom potential for each density; density 1's V(k) is
+    // already in work1_6, density 2 is re-transformed (work2_6 is scratch)
+    for (int pass = 0; pass < 2; pass++) {
+      FFT_SCALAR *dfft = (pass == 0) ? dfft_1 : dfft_2;
+      FFT_SCALAR ***vxb = (pass == 0) ? vxbrick_1 : vxbrick_2;
+      FFT_SCALAR ***vyb = (pass == 0) ? vybrick_1 : vybrick_2;
+      FFT_SCALAR ***vzb = (pass == 0) ? vzbrick_1 : vzbrick_2;
+      FFT_SCALAR ***upa = (pass == 0) ? u_pa_1 : u_pa_2;
+      FFT_SCALAR ***vpa[6];
+      if (pass == 0) { vpa[0]=v0_pa_1; vpa[1]=v1_pa_1; vpa[2]=v2_pa_1;
+                       vpa[3]=v3_pa_1; vpa[4]=v4_pa_1; vpa[5]=v5_pa_1; }
+      else           { vpa[0]=v0_pa_2; vpa[1]=v1_pa_2; vpa[2]=v2_pa_2;
+                       vpa[3]=v3_pa_2; vpa[4]=v4_pa_2; vpa[5]=v5_pa_2; }
+
+      if (pass == 1) {
+        n = 0;
+        for (i = 0; i < nfft_6; i++) { work1_6[n] = dfft[i]; work1_6[n+1] = ZEROF; n += 2; }
+        fft1_6->compute(work1_6,work1_6,FFT3d::FORWARD);
+      }
+      n = 0;
+      for (i = 0; i < nfft_6; i++) {
+        work1_6[n++] *= scaleinv*greensfn_6[i];
+        work1_6[n++] *= scaleinv*greensfn_6[i];
+      }
+
+      for (int dim = 0; dim < 3; dim++) {
+        double *kk = (dim == 0) ? fkx_6 : (dim == 1) ? fky_6 : fkz_6;
+        FFT_SCALAR ***vb = (dim == 0) ? vxb : (dim == 1) ? vyb : vzb;
+        n = 0;
+        for (i = 0; i < nfft_6; i++) {
+          work2_6[n] = -kk[i]*work1_6[n+1];
+          work2_6[n+1] = kk[i]*work1_6[n];
+          n += 2;
+        }
+        fft2_6->compute(work2_6,work2_6,FFT3d::BACKWARD);
+        n = 0;
+        for (k = nzlo_in_6; k <= nzhi_in_6; k++)
+          for (j = nylo_in_6; j <= nyhi_in_6; j++)
+            for (i = nxlo_in_6; i <= nxhi_in_6; i++) { vb[k][j][i] = work2_6[n]; n += 2; }
+      }
+
+      if (eflag_atom) {
+        n = 0;
+        for (i = 0; i < nfft_6; i++) { work2_6[n] = work1_6[n]; work2_6[n+1] = work1_6[n+1]; n += 2; }
+        fft2_6->compute(work2_6,work2_6,FFT3d::BACKWARD);
+        n = 0;
+        for (k = nzlo_in_6; k <= nzhi_in_6; k++)
+          for (j = nylo_in_6; j <= nyhi_in_6; j++)
+            for (i = nxlo_in_6; i <= nxhi_in_6; i++) { upa[k][j][i] = work2_6[n]; n += 2; }
+      }
+
+      if (vflag_atom) {
+        for (int c = 0; c < 6; c++) {
+          n = 0;
+          for (i = 0; i < nfft_6; i++) {
+            work2_6[n] = work1_6[n]*vg_6[i][c];
+            work2_6[n+1] = work1_6[n+1]*vg_6[i][c];
+            n += 2;
+          }
+          fft2_6->compute(work2_6,work2_6,FFT3d::BACKWARD);
+          n = 0;
+          for (k = nzlo_in_6; k <= nzhi_in_6; k++)
+            for (j = nylo_in_6; j <= nyhi_in_6; j++)
+              for (i = nxlo_in_6; i <= nxhi_in_6; i++) { vpa[c][k][j][i] = work2_6[n]; n += 2; }
+        }
+      }
+    }
+    return;
+  }
+
   // transform charge/dispersion density (r -> k)
   // only one transform when energies and pressures not calculated
 
@@ -5000,6 +5502,98 @@ poisson_none_ik(int n1, int n2,FFT_SCALAR* dfft_1, FFT_SCALAR* dfft_2,
 
   bigint ngridtotal = (bigint) nx_pppm_6 * ny_pppm_6 * nz_pppm_6;
   double scaleinv = 1.0/ngridtotal;
+
+  // triclinic: transform each per-type density separately and compute its
+  // gradients with the per-grid-point kx/ky/kz (the separable real-FFT
+  // packing used below is not valid for triclinic wave vectors).
+
+  if (triclinic) {
+    double s2 = scaleinv*scaleinv;
+
+    n = 0;
+    for (i = 0; i < nfft_6; i++) { work1_6[n] = dfft_1[i]; work1_6[n+1] = ZEROF; n += 2; }
+    fft1_6->compute(work1_6,work1_6,FFT3d::FORWARD);
+    n = 0;
+    for (i = 0; i < nfft_6; i++) { work2_6[n] = dfft_2[i]; work2_6[n+1] = ZEROF; n += 2; }
+    fft1_6->compute(work2_6,work2_6,FFT3d::FORWARD);
+
+    if (eflag_global || vflag_global) {
+      n = 0;
+      for (i = 0; i < nfft_6; i++) {
+        eng = s2*greensfn_6[i] *
+          (B[n1]*(work1_6[n]*work1_6[n] + work1_6[n+1]*work1_6[n+1]) +
+           B[n2]*(work2_6[n]*work2_6[n] + work2_6[n+1]*work2_6[n+1]));
+        if (vflag_global) for (j = 0; j < 6; j++) virial_6[j] += eng*vg_6[i][j];
+        if (eflag_global) energy_6 += eng;
+        n += 2;
+      }
+    }
+
+    for (int pass = 0; pass < 2; pass++) {
+      FFT_SCALAR *dfft = (pass == 0) ? dfft_1 : dfft_2;
+      int np = (pass == 0) ? n1 : n2;
+      double Bp = B[np];
+      FFT_SCALAR ***vxb = (pass == 0) ? vxbrick_1 : vxbrick_2;
+      FFT_SCALAR ***vyb = (pass == 0) ? vybrick_1 : vybrick_2;
+      FFT_SCALAR ***vzb = (pass == 0) ? vzbrick_1 : vzbrick_2;
+      FFT_SCALAR ***vpa[6] = {v0_pa[np],v1_pa[np],v2_pa[np],
+                              v3_pa[np],v4_pa[np],v5_pa[np]};
+
+      if (pass == 1) {
+        n = 0;
+        for (i = 0; i < nfft_6; i++) { work1_6[n] = dfft[i]; work1_6[n+1] = ZEROF; n += 2; }
+        fft1_6->compute(work1_6,work1_6,FFT3d::FORWARD);
+      }
+      n = 0;
+      for (i = 0; i < nfft_6; i++) {
+        work1_6[n++] *= scaleinv*greensfn_6[i];
+        work1_6[n++] *= scaleinv*greensfn_6[i];
+      }
+
+      for (int dim = 0; dim < 3; dim++) {
+        double *kk = (dim == 0) ? fkx_6 : (dim == 1) ? fky_6 : fkz_6;
+        FFT_SCALAR ***vb = (dim == 0) ? vxb : (dim == 1) ? vyb : vzb;
+        n = 0;
+        for (i = 0; i < nfft_6; i++) {
+          work2_6[n] = -kk[i]*work1_6[n+1];
+          work2_6[n+1] = kk[i]*work1_6[n];
+          n += 2;
+        }
+        fft2_6->compute(work2_6,work2_6,FFT3d::BACKWARD);
+        n = 0;
+        for (k = nzlo_in_6; k <= nzhi_in_6; k++)
+          for (j = nylo_in_6; j <= nyhi_in_6; j++)
+            for (i = nxlo_in_6; i <= nxhi_in_6; i++) { vb[k][j][i] = Bp*work2_6[n]; n += 2; }
+      }
+
+      if (eflag_atom) {
+        n = 0;
+        for (i = 0; i < nfft_6; i++) { work2_6[n] = work1_6[n]; work2_6[n+1] = work1_6[n+1]; n += 2; }
+        fft2_6->compute(work2_6,work2_6,FFT3d::BACKWARD);
+        n = 0;
+        for (k = nzlo_in_6; k <= nzhi_in_6; k++)
+          for (j = nylo_in_6; j <= nyhi_in_6; j++)
+            for (i = nxlo_in_6; i <= nxhi_in_6; i++) { u_pa[np][k][j][i] = Bp*work2_6[n]; n += 2; }
+      }
+
+      if (vflag_atom) {
+        for (int c = 0; c < 6; c++) {
+          n = 0;
+          for (i = 0; i < nfft_6; i++) {
+            work2_6[n] = work1_6[n]*vg_6[i][c];
+            work2_6[n+1] = work1_6[n+1]*vg_6[i][c];
+            n += 2;
+          }
+          fft2_6->compute(work2_6,work2_6,FFT3d::BACKWARD);
+          n = 0;
+          for (k = nzlo_in_6; k <= nzhi_in_6; k++)
+            for (j = nylo_in_6; j <= nyhi_in_6; j++)
+              for (i = nxlo_in_6; i <= nxhi_in_6; i++) { vpa[c][k][j][i] = Bp*work2_6[n]; n += 2; }
+        }
+      }
+    }
+    return;
+  }
 
   // transform charge/dispersion density (r -> k)
   // only one transform required when energies and pressures not needed

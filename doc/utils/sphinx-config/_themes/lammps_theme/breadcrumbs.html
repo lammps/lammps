@@ -57,7 +57,7 @@
           {%- elif show_source and has_source and sourcename %}
             <a href="{{ pathto('_sources/' + sourcename, true)|e }}" rel="nofollow"> {{ _('View page source') }}</a>
           {%- endif %}
-          <a href="https://www.lammps.org"><img src="_static/lammps-logo.png" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="Commands_all.html">Commands</a>
+          <a href="https://www.lammps.org"><img src="{{ pathto('_static/lammps-logo.png', 1) }}" width="64" height="16" alt="LAMMPS Homepage"></a> | <a href="{{ pathto('Commands_all') }}">Commands</a>
         {%- endif %}
       </li>
     {%- endblock %}

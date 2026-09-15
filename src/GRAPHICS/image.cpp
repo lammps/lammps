@@ -25,7 +25,6 @@
 #include "math_const.h"
 #include "math_extra.h"
 #include "memory.h"
-#include "random_mars.h"
 #include "version.h"
 
 #include <array>
@@ -46,6 +45,7 @@
 
 using namespace LAMMPS_NS;
 using MathConst::DEG2RAD;
+using MathConst::MY_2PI;
 using MathConst::MY_PI;
 using MathConst::MY_PI4;
 
@@ -340,6 +340,14 @@ constexpr char letter_z[] = {
   "    ########################    "
   "                                "};
 
+// the surroundings mirrored by metallic surfaces: a bright sky above a dark
+// ground.  these are not adjustable on purpose.  the effect is a cheap
+// imitation, and a fake environment with more settings still cannot compete
+// with rendering the same scene in a ray tracer
+
+constexpr double SKYCOLOR[3] = {0.90, 0.94, 1.00};
+constexpr double GROUNDCOLOR[3] = {0.10, 0.10, 0.12};
+
 }    // namespace
 
 /* ---------------------------------------------------------------------- */
@@ -349,7 +357,7 @@ constexpr char letter_z[] = {
 Image::Image(LAMMPS *lmp, int nmap_caller) :
     Pointers(lmp), maps(nullptr), depthBuffer(nullptr), surfaceBuffer(nullptr), depthcopy(nullptr),
     surfacecopy(nullptr), imageBuffer(nullptr), rgbcopy(nullptr), writeBuffer(nullptr),
-    recvcounts(nullptr), displs(nullptr), random(nullptr)
+    recvcounts(nullptr), displs(nullptr)
 {
   MPI_Comm_rank(world, &me);
   MPI_Comm_size(world, &nprocs);
@@ -361,8 +369,23 @@ Image::Image(LAMMPS *lmp, int nmap_caller) :
   phi = 30.0 * DEG2RAD;
   zoom = 1.0;
   shiny = 1.0;
+  gamma = 1.0;
   ssao = NO;
+  ssaosamples = 0;
   fsaa = NO;
+  depthcue = NO;
+  depthcueint = 0.0;
+  depthcuecolor = nullptr;
+  depthcuestartflag = 0;
+  depthcuestart = 0.0;
+  defocus = NO;
+  defocusint = 0.0;
+  defocusstartflag = 0;
+  defocusstart = 0.0;
+  outline = NO;
+  outlinewidth = 0;
+  outlinecolor = nullptr;
+  for (auto &b : boxbounds) b = 0.0;
 
   up[0] = 0.0;
   up[1] = 0.0;
@@ -397,6 +420,20 @@ Image::Image(LAMMPS *lmp, int nmap_caller) :
   backLightColor[0] = 0.9;
   backLightColor[1] = 0.9;
   backLightColor[2] = 0.9;
+
+  specularflag = 0;
+  nospecular = 0;
+  specularHardness = 16.0;
+  specularIntensity = 1.0;
+
+  // metallic shading is off by default, so that images are unchanged.
+  // the default surroundings are a bright sky over a dark ground, which
+  // is what makes a polished surface read as metal rather than as plastic
+
+  metallic = 0.0;
+  finishMirror = 0;
+  finishBand = 0.6;
+  finishWidth = 2.0;
 
   // named colors
   rgbcolors = {{"aliceblue", {0.941, 0.973, 1.000}},
@@ -547,16 +584,16 @@ Image::Image(LAMMPS *lmp, int nmap_caller) :
                  {"B", {{0.900, 0.400, 0.000}, 0.85}},    {"C", {{0.350, 0.350, 0.350}, 0.72}},
                  {"N", {{0.200, 0.200, 0.800}, 0.65}},    {"O", {{0.800, 0.200, 0.200}, 0.6}},
                  {"F", {{0.700, 0.850, 0.450}, 0.5}},     {"Ne", {{0.643, 0.667, 0.678}, 1.5662}},
-                 {"Na", {{0.600, 0.600, 0.800}, 1.8}},    {"Mg", {{0.600, 0.600, 0.700}, 1.5}},
-                 {"Al", {{0.643, 0.667, 0.678}, 1.4255}}, {"Si", {{0.690, 0.769, 0.871}, 1.07}},
+                 {"Na", {{0.600, 0.600, 0.800}, 1.8}},    {"Mg", {{0.950, 0.945, 0.935}, 1.5}},
+                 {"Al", {{0.913, 0.922, 0.924}, 1.4255}}, {"Si", {{0.690, 0.769, 0.871}, 1.07}},
                  {"P", {{0.100, 0.700, 0.300}, 1}},       {"S", {{0.950, 0.900, 0.200}, 1}},
                  {"Cl", {{0.150, 0.500, 0.100}, 1}},      {"Ar", {{0.643, 0.667, 0.678}, 1.8597}},
                  {"K", {{0.800, 0.500, 0.500}, 2.2}},     {"Ca", {{0.800, 0.800, 0.700}, 1.8}},
-                 {"Sc", {{0.643, 0.667, 0.678}, 1.6}},    {"Ti", {{0.643, 0.667, 0.678}, 1.4}},
-                 {"V", {{0.643, 0.667, 0.678}, 1.51995}}, {"Cr", {{0.000, 0.800, 0.000}, 1.44225}},
-                 {"Mn", {{0.643, 0.667, 0.678}, 1.4}},    {"Fe", {{0.518, 0.576, 0.653}, 1.43325}},
-                 {"Co", {{0.643, 0.667, 0.678}, 1.35}},   {"Ni", {{0.257, 0.267, 0.271}, 1.35}},
-                 {"Cu", {{0.950, 0.790, 0.014}, 1.278}},  {"Zn", {{0.643, 0.667, 0.678}, 1.35}},
+                 {"Sc", {{0.643, 0.667, 0.678}, 1.6}},    {"Ti", {{0.542, 0.497, 0.449}, 1.4}},
+                 {"V", {{0.643, 0.667, 0.678}, 1.51995}}, {"Cr", {{0.630, 0.650, 0.660}, 1.44225}},
+                 {"Mn", {{0.570, 0.545, 0.545}, 1.4}},    {"Fe", {{0.480, 0.470, 0.462}, 1.43325}},
+                 {"Co", {{0.565, 0.590, 0.645}, 1.35}},   {"Ni", {{0.660, 0.609, 0.526}, 1.35}},
+                 {"Cu", {{0.955, 0.638, 0.538}, 1.278}},  {"Zn", {{0.828, 0.843, 0.855}, 1.35}},
                  {"Ga", {{0.900, 0.000, 1.000}, 1.3}},    {"Ge", {{0.643, 0.667, 0.678}, 1.25}},
                  {"As", {{1.000, 1.000, 0.300}, 1.15}},   {"Se", {{0.643, 0.667, 0.678}, 1.15}},
                  {"Br", {{0.500, 0.080, 0.120}, 1.15}},   {"Kr", {{0.643, 0.667, 0.678}, 2.0223}},
@@ -565,8 +602,8 @@ Image::Image(LAMMPS *lmp, int nmap_caller) :
                  {"Nb", {{0.643, 0.667, 0.678}, 1.6504}}, {"Mo", {{0.643, 0.667, 0.678}, 1.3872}},
                  {"Tc", {{0.643, 0.667, 0.678}, 1.35}},   {"Ru", {{0.643, 0.667, 0.678}, 1.3}},
                  {"Rh", {{0.643, 0.667, 0.678}, 1.35}},   {"Pd", {{0.643, 0.667, 0.678}, 1.4}},
-                 {"Ag", {{0.643, 0.667, 0.678}, 1.6}},    {"Cd", {{0.643, 0.667, 0.678}, 1.55}},
-                 {"In", {{0.643, 0.667, 0.678}, 1.55}},   {"Sn", {{0.643, 0.667, 0.678}, 1.45}},
+                 {"Ag", {{0.972, 0.960, 0.915}, 1.6}},    {"Cd", {{0.643, 0.667, 0.678}, 1.55}},
+                 {"In", {{0.643, 0.667, 0.678}, 1.55}},   {"Sn", {{0.600, 0.596, 0.592}, 1.45}},
                  {"Sb", {{0.643, 0.667, 0.678}, 1.45}},   {"Te", {{0.643, 0.667, 0.678}, 1.4}},
                  {"I", {{0.500, 0.100, 0.500}, 1.4}},     {"Xe", {{0.643, 0.667, 0.678}, 2.192}},
                  {"Cs", {{0.643, 0.667, 0.678}, 2.6}},    {"Ba", {{0.643, 0.667, 0.678}, 2.15}},
@@ -581,8 +618,8 @@ Image::Image(LAMMPS *lmp, int nmap_caller) :
                  {"Ta", {{0.643, 0.667, 0.678}, 1.6529}}, {"W", {{0.643, 0.667, 0.678}, 1.5826}},
                  {"Re", {{0.643, 0.667, 0.678}, 1.35}},   {"Os", {{0.643, 0.667, 0.678}, 1.3}},
                  {"Ir", {{0.643, 0.667, 0.678}, 1.35}},   {"Pt", {{0.643, 0.667, 0.678}, 1.35}},
-                 {"Au", {{0.900, 0.800, 0.000}, 1.35}},   {"Hg", {{0.643, 0.667, 0.678}, 1.5}},
-                 {"Tl", {{0.643, 0.667, 0.678}, 1.9}},    {"Pb", {{0.643, 0.667, 0.678}, 1.8}},
+                 {"Au", {{1.000, 0.766, 0.336}, 1.35}},   {"Hg", {{0.780, 0.779, 0.776}, 1.5}},
+                 {"Tl", {{0.643, 0.667, 0.678}, 1.9}},    {"Pb", {{0.520, 0.535, 0.560}, 1.8}},
                  {"Bi", {{0.643, 0.667, 0.678}, 1.6}},    {"Po", {{0.643, 0.667, 0.678}, 1.9}},
                  {"At", {{0.800, 0.200, 0.200}, 1.6}},    {"Rn", {{0.643, 0.667, 0.678}, 1.0}},
                  {"Fr", {{0.643, 0.667, 0.678}, 1.0}},    {"Ra", {{0.643, 0.667, 0.678}, 2.15}},
@@ -622,8 +659,6 @@ Image::~Image()
   memory->destroy(surfacecopy);
   memory->destroy(rgbcopy);
 
-  delete random;
-
   memory->destroy(recvcounts);
   memory->destroy(displs);
 }
@@ -660,6 +695,15 @@ void Image::buffers()
 void Image::view_params(double boxxlo, double boxxhi, double boxylo,
                         double boxyhi, double boxzlo, double boxzhi)
 {
+  // keep box bounds for projecting the box onto the view direction
+
+  boxbounds[0] = boxxlo;
+  boxbounds[1] = boxxhi;
+  boxbounds[2] = boxylo;
+  boxbounds[3] = boxyhi;
+  boxbounds[4] = boxzlo;
+  boxbounds[5] = boxzhi;
+
   // camDir points at the camera, view direction = -camDir
 
   camDir[0] = sin(theta)*cos(phi);
@@ -723,6 +767,39 @@ void Image::view_params(double boxxlo, double boxxhi, double boxylo,
 
   // light directions in terms of -camDir = z
 
+  setup_lights();
+
+  // the brightness of the specular highlights follows shiny; their width
+  // also follows shiny unless set with a dump_modify specular preset;
+  // dump_modify specular none disables the highlights entirely
+
+  specularIntensity = nospecular ? 0.0 : shiny;
+  if (!specularflag) specularHardness = 16.0 * shiny;
+
+  // adjust strength of the SSAO
+
+  if (ssao) {
+    SSAORadius = maxdel * 0.05 * ssaoint;
+    SSAOSamples = static_cast<int>(8.0 + 32.0*ssaoint);
+    SSAOJitter = MY_PI / 12;
+    ambientColor[0] = 0.5;
+    ambientColor[1] = 0.5;
+    ambientColor[2] = 0.5;
+  }
+
+  // param for rasterizing spheres
+
+  tanPerPixel = -(maxdel / (double) height);
+}
+
+/* ----------------------------------------------------------------------
+   compute light directions from their theta/phi angles
+   the angles are relative to the viewer with z pointing at the camera:
+   theta > 0 moves a light above the view direction, phi > 0 to the right
+------------------------------------------------------------------------- */
+
+void Image::setup_lights()
+{
   keyLightDir[0] = cos(keyLightTheta) * sin(keyLightPhi);
   keyLightDir[1] = sin(keyLightTheta);
   keyLightDir[2] = cos(keyLightTheta) * cos(keyLightPhi);
@@ -739,27 +816,6 @@ void Image::view_params(double boxxlo, double boxxhi, double boxylo,
   keyHalfDir[1] = 0 + keyLightDir[1];
   keyHalfDir[2] = 1 + keyLightDir[2];
   MathExtra::norm3(keyHalfDir);
-
-  // adjust shinyness of the reflection
-
-  specularHardness = 16.0 * shiny;
-  specularIntensity = shiny;
-
-  // adjust strength of the SSAO
-
-  if (ssao) {
-    if (!random) random = new RanMars(lmp,seed+me);
-    SSAORadius = maxdel * 0.05 * ssaoint;
-    SSAOSamples = static_cast<int>(8.0 + 32.0*ssaoint);
-    SSAOJitter = MY_PI / 12;
-    ambientColor[0] = 0.5;
-    ambientColor[1] = 0.5;
-    ambientColor[2] = 0.5;
-  }
-
-  // param for rasterizing spheres
-
-  tanPerPixel = -(maxdel / (double) height);
 }
 
 /* ----------------------------------------------------------------------
@@ -884,6 +940,18 @@ void Image::merge()
   } else {
     writeBuffer = imageBuffer;
   }
+
+  // draw outlines at depth discontinuities
+
+  if (outline && (me == 0)) compute_outline();
+
+  // apply depth cueing to the final composited image
+
+  if (depthcue && (me == 0)) compute_depthcue();
+
+  // blur the more distant objects in the final composited image
+
+  if (defocus && (me == 0)) compute_defocus();
 
   // scale down image for antialiasing. can be done in place with simple averaging
   if (fsaa) {
@@ -1730,33 +1798,93 @@ void Image::draw_pixel(int ix, int iy, double depth, const double *surface,
   diffuseKey = saturate(MathExtra::dot3(surface, keyLightDir));
   diffuseFill = saturate(MathExtra::dot3(surface, fillLightDir));
   diffuseBack = saturate(MathExtra::dot3(surface, backLightDir));
-  specularKey = pow(saturate(MathExtra::dot3(surface, keyHalfDir)),
-                    specularHardness) * specularIntensity;
+
+  // a metal reflects nearly all light directly and tints the reflection with
+  // its own color, while a non-conductor scatters light diffusely and reflects
+  // it without tinting.  "metallic" blends between those two limits: it scales
+  // down the diffuse contributions and turns "reflect" into the color of the
+  // reflected light.  for metallic = 0.0 this reproduces the plain shading.
+
+  const double diffuse = 1.0 - metallic;
+  double reflect[3];
+  reflect[0] = metallic * surfaceColor[0] + diffuse;
+  reflect[1] = metallic * surfaceColor[1] + diffuse;
+  reflect[2] = metallic * surfaceColor[2] + diffuse;
+
+  // every surface becomes mirror-like when viewed at a grazing angle, which
+  // brightens the outline of a curved object.  the amount follows Schlick's
+  // approximation.  the viewing direction is (0,0,1) in these coordinates,
+  // so its dot product with the surface normal is simply the z component
+
+  const double viewdot = saturate(surface[2]);
+  const double grazing = (1.0-viewdot)*(1.0-viewdot)*(1.0-viewdot)*(1.0-viewdot)*(1.0-viewdot);
+  reflect[0] += (1.0 - reflect[0]) * grazing;
+  reflect[1] += (1.0 - reflect[1]) * grazing;
+  reflect[2] += (1.0 - reflect[2]) * grazing;
 
   double c[3];
-  c[0] = surfaceColor[0] * ambientColor[0];
-  c[1] = surfaceColor[1] * ambientColor[1];
-  c[2] = surfaceColor[2] * ambientColor[2];
+  c[0] = surfaceColor[0] * ambientColor[0] * diffuse;
+  c[1] = surfaceColor[1] * ambientColor[1] * diffuse;
+  c[2] = surfaceColor[2] * ambientColor[2] * diffuse;
 
-  c[0] += surfaceColor[0] * keyLightColor[0] * diffuseKey;
-  c[1] += surfaceColor[1] * keyLightColor[1] * diffuseKey;
-  c[2] += surfaceColor[2] * keyLightColor[2] * diffuseKey;
+  c[0] += surfaceColor[0] * keyLightColor[0] * diffuseKey * diffuse;
+  c[1] += surfaceColor[1] * keyLightColor[1] * diffuseKey * diffuse;
+  c[2] += surfaceColor[2] * keyLightColor[2] * diffuseKey * diffuse;
 
-  c[0] += keyLightColor[0] * specularKey;
-  c[1] += keyLightColor[1] * specularKey;
-  c[2] += keyLightColor[2] * specularKey;
+  // specular highlights are disabled with dump_modify specular none.
+  // check the flag here since view_params() may not run again after
+  // dump_modify for static views
 
-  c[0] += surfaceColor[0] * fillLightColor[0] * diffuseFill;
-  c[1] += surfaceColor[1] * fillLightColor[1] * diffuseFill;
-  c[2] += surfaceColor[2] * fillLightColor[2] * diffuseFill;
+  if (!nospecular && (specularIntensity > 0.0)) {
+    specularKey = pow(saturate(MathExtra::dot3(surface, keyHalfDir)),
+                      specularHardness) * specularIntensity;
 
-  c[0] += surfaceColor[0] * backLightColor[0] * diffuseBack;
-  c[1] += surfaceColor[1] * backLightColor[1] * diffuseBack;
-  c[2] += surfaceColor[2] * backLightColor[2] * diffuseBack;
+    c[0] += keyLightColor[0] * reflect[0] * specularKey;
+    c[1] += keyLightColor[1] * reflect[1] * specularKey;
+    c[2] += keyLightColor[2] * reflect[2] * specularKey;
+  }
+
+  c[0] += surfaceColor[0] * fillLightColor[0] * diffuseFill * diffuse;
+  c[1] += surfaceColor[1] * fillLightColor[1] * diffuseFill * diffuse;
+  c[2] += surfaceColor[2] * fillLightColor[2] * diffuseFill * diffuse;
+
+  c[0] += surfaceColor[0] * backLightColor[0] * diffuseBack * diffuse;
+  c[1] += surfaceColor[1] * backLightColor[1] * diffuseBack * diffuse;
+  c[2] += surfaceColor[2] * backLightColor[2] * diffuseBack * diffuse;
+
+  // a metal also mirrors its surroundings, which are approximated by a sky
+  // color above and a ground color below.  the direction into which the
+  // surface reflects the viewer is 2 (n.v) n - v, and only its vertical
+  // component is needed to pick the color from that gradient
+
+  if (metallic > 0.0) {
+    const double updir = finishMirror ? 2.0*viewdot*surface[1] : surface[1];
+    double updown = saturate(0.5 * (updir + 1.0));
+    updown = updown * updown * (3.0 - 2.0*updown);    // narrow the horizon
+
+    // brighten a band around the horizon, where the surroundings of a real
+    // scene are brightest.  this is what produces the light streak across a
+    // polished surface that reads as "shiny metal" rather than "dark paint"
+
+    double band = 0.0;
+    if (finishBand > 0.0) band = finishBand * pow(1.0 - fabs(2.0*updown - 1.0), finishWidth);
+
+    c[0] += metallic * reflect[0] * (GROUNDCOLOR[0] + updown*(SKYCOLOR[0]-GROUNDCOLOR[0]) + band);
+    c[1] += metallic * reflect[1] * (GROUNDCOLOR[1] + updown*(SKYCOLOR[1]-GROUNDCOLOR[1]) + band);
+    c[2] += metallic * reflect[2] * (GROUNDCOLOR[2] + updown*(SKYCOLOR[2]-GROUNDCOLOR[2]) + band);
+  }
 
   c[0] = saturate(c[0]);
   c[1] = saturate(c[1]);
   c[2] = saturate(c[2]);
+
+  // apply gamma adjustment to the summed up light contributions
+
+  if (gamma != 1.0) {
+    c[0] = pow(c[0], 1.0 / gamma);
+    c[1] = pow(c[1], 1.0 / gamma);
+    c[2] = pow(c[2], 1.0 / gamma);
+  }
 
   imageBuffer[0 + ix*3 + iy*width*3] = static_cast<int>(c[0] * 255.0);
   imageBuffer[1 + ix*3 + iy*width*3] = static_cast<int>(c[1] * 255.0);
@@ -1767,9 +1895,14 @@ void Image::draw_pixel(int ix, int iy, double depth, const double *surface,
 
 void Image::compute_SSAO()
 {
+  // number of horizon directions per pixel.  a chosen value must override
+  // the automatic one here, since view_params() may have run before it was set
+
+  const int nsamples = (ssaosamples > 0) ? ssaosamples : SSAOSamples;
+
   // used for rasterizing the spheres
 
-  double delTheta = 2.0*MY_PI / SSAOSamples;
+  double delTheta = 2.0*MY_PI / nsamples;
 
   // typical neighborhood value for shading
 
@@ -1785,9 +1918,18 @@ void Image::compute_SSAO()
   int pixelstart = static_cast<int>(1.0*me/nprocs * npixels);
   int pixelstop = static_cast<int>(1.0*(me+1)/nprocs * npixels);
 
-  // fill buffer with random numbers to avoid race conditions
-  auto *uniform = new double[pixelstop - pixelstart];
-  for (int i = 0; i < pixelstop - pixelstart; ++i) uniform[i] = random->uniform();
+  // shift of the jitter noise pattern derived from the seed value
+
+  const double seedshift = fmod(0.618033988749895 * (double) seed, 1.0);
+
+  // table of evenly spaced horizon directions, computed once; each pixel
+  // rotates the whole table by its per-pixel jitter angle
+
+  auto *dirTable = new double[2*nsamples];
+  for (int s = 0; s < nsamples; ++s) {
+    dirTable[2*s]   = cos(s * delTheta);
+    dirTable[2*s+1] = sin(s * delTheta);
+  }
 
 #if defined(_OPENMP)
 #pragma omp parallel for
@@ -1803,13 +1945,19 @@ void Image::compute_SSAO()
     double sy = surfaceBuffer[index * 2 + 1];
     double sin_t = -sqrt(sx*sx + sy*sy);
 
-    double mytheta = uniform[index - pixelstart] * SSAOJitter;
+    // deterministic per-pixel jitter from interleaved gradient noise, so
+    // shading is independent of the number of MPI ranks and OpenMP threads
+    // and images of unchanged scenes are reproducible
+
+    double ign = fmod(0.06711056 * x + 0.00583715 * y + seedshift, 1.0);
+    const double mytheta = fmod(52.9829189 * ign, 1.0) * SSAOJitter;
+    const double cosj = cos(mytheta);
+    const double sinj = sin(mytheta);
     double ao = 0.0;
 
-    for (int s = 0; s < SSAOSamples; ++s) {
-      double hx = cos(mytheta);
-      double hy = sin(mytheta);
-      mytheta += delTheta;
+    for (int s = 0; s < nsamples; ++s) {
+      double hx = cosj * dirTable[2*s] - sinj * dirTable[2*s+1];
+      double hy = sinj * dirTable[2*s] + cosj * dirTable[2*s+1];
 
       // multiply by z cross surface tangent
       // so that dot (aka cos) works here
@@ -1880,7 +2028,7 @@ void Image::compute_SSAO()
         ao += saturate(-scaled_sin_t);
       }
     }
-    ao /= (double)SSAOSamples;
+    ao /= (double)nsamples;
 
     double c[3];
     c[0] = (double) (*(unsigned char *) &imageBuffer[index * 3 + 0]);
@@ -1893,7 +2041,362 @@ void Image::compute_SSAO()
     imageBuffer[index * 3 + 1] = (int) c[1];
     imageBuffer[index * 3 + 2] = (int) c[2];
   }
-  delete[] uniform;
+
+  delete[] dirTable;
+}
+
+/* ----------------------------------------------------------------------
+   draw outlines on the composited image on the output rank: color
+   drawn pixels that have a significantly more distant pixel or the
+   background within the outline width.  the outline hugs the nearer
+   object at depth discontinuities, which gives the flat illustration
+   look known from hand-drawn molecular graphics.
+------------------------------------------------------------------------- */
+
+void Image::compute_outline()
+{
+  // only depth jumps between immediately adjacent pixels that are larger
+  // than a small fraction of the box size count as edges.  the smooth but
+  // steep depth changes where a curved surface turns away from the viewer
+  // must not be outlined, so the threshold is of the order of typical
+  // particle sizes and the comparison spans only one pixel
+
+  const double delx = 2.0 * (boxbounds[1] - boxbounds[0]);
+  const double dely = 2.0 * (boxbounds[3] - boxbounds[2]);
+  const double delz = 2.0 * (boxbounds[5] - boxbounds[4]);
+  double maxdel = MAX(delx,dely);
+  maxdel = MAX(maxdel,delz);
+  const double threshold = 0.02 * maxdel;
+
+  // the outline width follows the internal image size with FSAA
+
+  int w = outlinewidth;
+  if (fsaa) w *= 2;
+
+  const auto red   = static_cast<unsigned char>(outlinecolor[0] * 255.0);
+  const auto green = static_cast<unsigned char>(outlinecolor[1] * 255.0);
+  const auto blue  = static_cast<unsigned char>(outlinecolor[2] * 255.0);
+
+  // mark drawn pixels that have a much more distant immediate neighbor
+  // or border on the background
+
+  auto *edges = new unsigned char[npixels];
+  memset(edges,0,npixels);
+
+#if defined(_OPENMP)
+#pragma omp parallel for schedule(static)
+#endif
+  for (int iy = 0; iy < height; ++iy) {
+    for (int ix = 0; ix < width; ++ix) {
+      const double d = depthBuffer[iy*width + ix];
+      if (d < 0.0) continue;
+
+      constexpr int xoff[4] = {-1, 1, 0, 0};
+      constexpr int yoff[4] = {0, 0, -1, 1};
+      for (int k = 0; k < 4; ++k) {
+        const int jx = ix + xoff[k];
+        const int jy = iy + yoff[k];
+        if (jx < 0 || jx >= width || jy < 0 || jy >= height) continue;
+        const double dj = depthBuffer[jy*width + jx];
+        if (dj < 0.0 || (dj - d) > threshold) {
+          edges[iy*width + ix] = 1;
+          break;
+        }
+      }
+    }
+  }
+
+  // widen the outline: color drawn pixels near an edge pixel, but only
+  // on the near side of the depth jump so the outline hugs the nearer
+  // object and does not bleed onto more distant objects
+
+#if defined(_OPENMP)
+#pragma omp parallel for schedule(static)
+#endif
+  for (int iy = 0; iy < height; ++iy) {
+    for (int ix = 0; ix < width; ++ix) {
+      const double d = depthBuffer[iy*width + ix];
+      if (d < 0.0) continue;
+
+      bool paint = false;
+      for (int dy = -w+1; dy < w && !paint; ++dy) {
+        const int jy = iy + dy;
+        if (jy < 0 || jy >= height) continue;
+        for (int dx = -w+1; dx < w; ++dx) {
+          const int jx = ix + dx;
+          if (jx < 0 || jx >= width) continue;
+          if (!edges[jy*width + jx]) continue;
+          if ((d - depthBuffer[jy*width + jx]) < threshold) {
+            paint = true;
+            break;
+          }
+        }
+      }
+
+      if (paint) {
+        const int i = iy*width + ix;
+        writeBuffer[i*3+0] = red;
+        writeBuffer[i*3+1] = green;
+        writeBuffer[i*3+2] = blue;
+      }
+    }
+  }
+
+  delete[] edges;
+}
+
+/* ----------------------------------------------------------------------
+   depth range of the drawn pixels of the composited image.  returns
+   false if nothing was drawn; background pixels have a depth < 0
+------------------------------------------------------------------------- */
+
+bool Image::depth_minmax(double &dmin, double &dmax) const
+{
+  bool first = true;
+  dmin = dmax = 0.0;
+  for (int i = 0; i < npixels; i++) {
+    const double d = depthBuffer[i];
+    if (d < 0.0) continue;
+    if (first) {
+      dmin = dmax = d;
+      first = false;
+    } else {
+      dmin = MIN(dmin,d);
+      dmax = MAX(dmax,d);
+    }
+  }
+  return !first;
+}
+
+/* ----------------------------------------------------------------------
+   distance of the near and far side of the simulation box from the
+   camera, by projecting the eight box corners onto the view direction
+------------------------------------------------------------------------- */
+
+void Image::box_depth_minmax(double &dnear, double &dfar) const
+{
+  const double dcam = MathExtra::dot3(camPos,camDir);
+  dnear = dfar = 0.0;
+  for (int ic = 0; ic < 8; ++ic) {
+    double corner[3];
+    corner[0] = ((ic & 1) ? boxbounds[1] : boxbounds[0]) - xctr;
+    corner[1] = ((ic & 2) ? boxbounds[3] : boxbounds[2]) - yctr;
+    corner[2] = ((ic & 4) ? boxbounds[5] : boxbounds[4]) - zctr;
+    const double d = dcam - MathExtra::dot3(corner,camDir);
+    if (ic == 0) {
+      dnear = dfar = d;
+    } else {
+      dnear = MIN(dnear,d);
+      dfar = MAX(dfar,d);
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   apply depth cueing to the composited image on the output rank:
+   fade drawn pixels toward the fog color with increasing distance from
+   the viewer.  the fade ends at the most distant drawn pixel and starts
+   at the nearest drawn pixel or at a chosen fraction of the simulation
+   box projected onto the view direction.
+------------------------------------------------------------------------- */
+
+void Image::compute_depthcue()
+{
+  // determine depth range of drawn pixels; nothing to do without drawn
+  // pixels or without depth variation
+
+  double dmin, dmax;
+  if (!depth_minmax(dmin,dmax)) return;
+  if ((dmax - dmin) < EPSILON) return;
+
+  // start of the fade: by default the nearest drawn pixel.  with a start
+  // fraction set, place it at that fraction between the near and far side
+  // of the simulation box as seen from the camera
+
+  double dstart = dmin;
+  if (depthcuestartflag) {
+    double dnear, dfar;
+    box_depth_minmax(dnear,dfar);
+    dstart = dnear + depthcuestart * (dfar - dnear);
+    if (dstart >= (dmax - EPSILON)) return;    // fading starts behind all drawn pixels
+  }
+  const double dscale = depthcueint / (dmax - dstart);
+
+  // blend pixel colors toward the fog color.  by default this is the
+  // background color, with a gradient enabled the same per-row color as
+  // in clear(); a custom fog color is used for all rows unchanged
+
+#if defined(_OPENMP)
+#pragma omp parallel for schedule(static)
+#endif
+  for (int iy = 0; iy < height; ++iy) {
+    int red, green, blue;
+    if (depthcuecolor) {
+      red   = static_cast<int>(depthcuecolor[0] * 255.0);
+      green = static_cast<int>(depthcuecolor[1] * 255.0);
+      blue  = static_cast<int>(depthcuecolor[2] * 255.0);
+    } else if (background2[0] >= 0) {
+      const double fraction = (double) iy / (double) height;
+      red   = static_cast<int>(fraction * background2[0] + (1.0 - fraction) * background[0]);
+      green = static_cast<int>(fraction * background2[1] + (1.0 - fraction) * background[1]);
+      blue  = static_cast<int>(fraction * background2[2] + (1.0 - fraction) * background[2]);
+    } else {
+      red   = background[0];
+      green = background[1];
+      blue  = background[2];
+    }
+    for (int ix = 0; ix < width; ++ix) {
+      const int i = iy * width + ix;
+      const double d = depthBuffer[i];
+      if (d < 0.0 || d <= dstart) continue;
+      const double f = std::min(1.0, (d - dstart) * dscale);
+      writeBuffer[i*3+0] = static_cast<unsigned char>((1.0 - f) * writeBuffer[i*3+0] + f * red);
+      writeBuffer[i*3+1] = static_cast<unsigned char>((1.0 - f) * writeBuffer[i*3+1] + f * green);
+      writeBuffer[i*3+2] = static_cast<unsigned char>((1.0 - f) * writeBuffer[i*3+2] + f * blue);
+    }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   defocus the background of the composited image on the output rank:
+   objects are blurred more the further they are behind the start of the
+   blur, which puts the visual emphasis on the objects in front of it.
+   everything closer than the start stays sharp, so this is not the full
+   depth of field of a camera lens, which would blur the foreground too.
+------------------------------------------------------------------------- */
+
+void Image::compute_defocus()
+{
+  // largest blur radius in pixels, expressed as a fraction of the image
+  // height so that the effect does not depend on the image size.  the
+  // internal image is twice as large with FSAA, which scales the radius
+  // along with it
+
+  const double maxradius = defocusint * 0.01 * height;
+  if (maxradius < 1.0) return;    // blur is smaller than a pixel
+
+  // determine depth range of drawn pixels; nothing to do without drawn
+  // pixels or without depth variation
+
+  double dmin, dmax;
+  if (!depth_minmax(dmin,dmax)) return;
+  if ((dmax - dmin) < EPSILON) return;
+
+  // start of the blur: by default the nearest drawn pixel, so that the
+  // front of the scene stays sharp.  with a start fraction set, place it
+  // at that fraction between the near and far side of the simulation box
+  // as seen from the camera
+
+  double dstart = dmin;
+  if (defocusstartflag) {
+    double dnear, dfar;
+    box_depth_minmax(dnear,dfar);
+    dstart = dnear + defocusstart * (dfar - dnear);
+    if (dstart >= (dmax - EPSILON)) return;    // blurring starts behind all drawn pixels
+  }
+  const double dscale = maxradius / (dmax - dstart);
+
+  // blur radius of each pixel.  pixels in front of the start of the blur
+  // stay sharp, behind it the radius grows with the distance from the
+  // viewer.  the background has no depth and is treated as maximally
+  // blurred, so that blurred objects in the back dissolve into it
+  // instead of keeping a sharp silhouette
+
+  auto *radiusBuffer = new double[npixels];
+
+#if defined(_OPENMP)
+#pragma omp parallel for schedule(static)
+#endif
+  for (int i = 0; i < npixels; ++i) {
+    const double d = depthBuffer[i];
+    if (d < 0.0) radiusBuffer[i] = maxradius;
+    else if (d <= dstart) radiusBuffer[i] = 0.0;
+    else radiusBuffer[i] = (d - dstart) * dscale;
+  }
+
+  // sample positions on a unit disk, placed on a spiral with the golden
+  // angle between them, which spreads them evenly.  using the disk shape
+  // of a camera aperture rather than a bell shaped blur keeps the blurred
+  // objects looking out of focus instead of looking like fog.  the number
+  // of samples follows the largest blur radius, so that wide blurs do not
+  // show the individual samples
+
+  int nsamples = static_cast<int>(4.0 * maxradius);
+  nsamples = MAX(nsamples,16);
+  nsamples = MIN(nsamples,64);
+
+  constexpr double GOLDEN_ANGLE = 2.39996322972865332;
+  auto *sample = new double[3*nsamples];
+  for (int s = 0; s < nsamples; ++s) {
+    const double r = sqrt((s + 0.5) / nsamples);
+    const double angle = s * GOLDEN_ANGLE;
+    sample[3*s+0] = r * cos(angle);
+    sample[3*s+1] = r * sin(angle);
+    sample[3*s+2] = r;
+  }
+
+  // collect the blur from an unmodified copy of the composited image
+
+  auto *source = new unsigned char[3*npixels];
+  memcpy(source,writeBuffer,3*npixels);
+
+#if defined(_OPENMP)
+#pragma omp parallel for schedule(static)
+#endif
+  for (int iy = 0; iy < height; ++iy) {
+    for (int ix = 0; ix < width; ++ix) {
+      const int i = iy*width + ix;
+      const double radius = radiusBuffer[i];
+      if (radius < 0.5) continue;    // in focus, the pixel is left alone
+
+      // turn the whole sample pattern by a per-pixel angle taken from
+      // interleaved gradient noise.  this replaces the rings that the
+      // repeated sample pattern would leave in wide blurs by a fine
+      // grain, and does not depend on the number of ranks or threads
+
+      const double noise = fmod(0.06711056*ix + 0.00583715*iy, 1.0);
+      const double angle = fmod(52.9829189*noise, 1.0) * MY_2PI;
+      const double cosa = cos(angle);
+      const double sina = sin(angle);
+
+      // a sample only contributes if its own blur circle reaches this
+      // pixel.  that keeps sharp objects in front from bleeding into the
+      // blurred background, which would show up as a halo around them.
+      // the contribution fades out over the last pixel of that reach, so
+      // that the blur does not gain visible steps
+
+      double c[3];
+      c[0] = source[3*i+0];
+      c[1] = source[3*i+1];
+      c[2] = source[3*i+2];
+      double wsum = 1.0;
+
+      for (int s = 0; s < nsamples; ++s) {
+        const double dx = radius * (cosa*sample[3*s+0] - sina*sample[3*s+1]);
+        const double dy = radius * (sina*sample[3*s+0] + cosa*sample[3*s+1]);
+        const int jx = ix + static_cast<int>(lround(dx));
+        const int jy = iy + static_cast<int>(lround(dy));
+        if ((jx < 0) || (jx >= width) || (jy < 0) || (jy >= height)) continue;
+
+        const int j = jy*width + jx;
+        const double weight = saturate(radiusBuffer[j] - radius * sample[3*s+2]);
+        if (weight <= 0.0) continue;
+
+        c[0] += weight * source[3*j+0];
+        c[1] += weight * source[3*j+1];
+        c[2] += weight * source[3*j+2];
+        wsum += weight;
+      }
+
+      writeBuffer[3*i+0] = static_cast<unsigned char>(lround(c[0]/wsum));
+      writeBuffer[3*i+1] = static_cast<unsigned char>(lround(c[1]/wsum));
+      writeBuffer[3*i+2] = static_cast<unsigned char>(lround(c[2]/wsum));
+    }
+  }
+
+  delete[] source;
+  delete[] sample;
+  delete[] radiusBuffer;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2032,7 +2535,7 @@ void Image::write_TGA(FILE *fp, bool compressed)
           old[2] = pix[2];
         }
 
-        if (memcmp(old, pix, 3) || (len == 127) || (j == tgawidth - 1)) {
+        if ((memcmp(old, pix, 3) != 0) || (len == 127) || (j == tgawidth - 1)) {
           if (j != tgawidth - 1) --len;
           len |= 0x80U;
           fputc(len, fp);

@@ -2,17 +2,24 @@
 # use shearing wall, thermostat via fix langevin
 
 # settings
+# (index-style variables can be overridden from the command line or a wrapper
+# input for abbreviated runs, e.g. by the tests in the unittest tree)
 
-variable	x equal 20
-variable	y equal 20
+variable	x index 20
+variable	y index 20
 variable	ylo equal -2.5
-variable	yhi equal 23
+variable	yhi equal $y+3
 
 variable	rho equal 0.6
 variable        t equal 1.0
 variable	rc equal 2.5
 
 variable	srate equal 2.7
+
+variable	nequil index 20000
+variable	nprod index 50000
+variable	wrepeat index 500
+variable	wfreq index 10000
 
 # problem setup
 
@@ -53,7 +60,7 @@ fix_modify      2 temp thermal
 fix		3 wall setforce 0.0 0.0 0.0
 
 compute         layers all chunk/atom bin/1d y center 0.05 units reduced
-fix		4 all ave/chunk 20 500 10000 layers vx file profile.wall.2d
+fix		4 all ave/chunk 20 ${wrepeat} ${wfreq} layers vx file profile.wall.2d
 
 fix	        5 all enforce2d
 
@@ -65,7 +72,7 @@ compute		tilt flow temp/ramp vx 0 ${srate} y 0 ${ybox} units box
 thermo          1000
 thermo_style	custom step temp c_tilt epair etotal press pxy
 
-run	        20000
+run	        ${nequil}
 
 # data gathering run
 
@@ -82,4 +89,4 @@ thermo_modify	temp tilt
 #dump		2 all image 50 image.*.jpg vx type zoom 1.6 adiam 1.2
 #dump_modify	2 pad 5 amap 0.0 ${srate} ca 0.0 2 min blue max red
 
-run		50000
+run		${nprod}

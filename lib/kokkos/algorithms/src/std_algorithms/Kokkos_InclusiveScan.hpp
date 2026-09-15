@@ -5,7 +5,12 @@
 #define KOKKOS_STD_ALGORITHMS_INCLUSIVE_SCAN_HPP
 
 #include "impl/Kokkos_InclusiveScan.hpp"
-#include "Kokkos_BeginEnd.hpp"
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core_impl;
+#else
+#include <Kokkos_Iterator.hpp>
+#endif
 
 namespace Kokkos {
 namespace Experimental {
@@ -55,6 +60,8 @@ auto inclusive_scan(
     const ::Kokkos::View<DataType2, Properties2...>& view_dest) {
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view_from);
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view_dest);
+  Impl::expect_less_or_equal_extents(view_from, view_dest);
+
   namespace KE = ::Kokkos::Experimental;
   return Impl::inclusive_scan_default_op_exespace_impl(
       "Kokkos::inclusive_scan_default_functors_view_api", ex,
@@ -71,6 +78,8 @@ auto inclusive_scan(
     const ::Kokkos::View<DataType2, Properties2...>& view_dest) {
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view_from);
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view_dest);
+  Impl::expect_less_or_equal_extents(view_from, view_dest);
+
   namespace KE = ::Kokkos::Experimental;
   return Impl::inclusive_scan_default_op_exespace_impl(
       label, ex, KE::cbegin(view_from), KE::cend(view_from),
@@ -117,6 +126,8 @@ auto inclusive_scan(const ExecutionSpace& ex,
                     BinaryOp binary_op) {
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view_from);
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view_dest);
+  Impl::expect_less_or_equal_extents(view_from, view_dest);
+
   namespace KE = ::Kokkos::Experimental;
   return Impl::inclusive_scan_custom_binary_op_exespace_impl(
       "Kokkos::inclusive_scan_custom_functors_view_api", ex,
@@ -134,6 +145,8 @@ auto inclusive_scan(const std::string& label, const ExecutionSpace& ex,
                     BinaryOp binary_op) {
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view_from);
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view_dest);
+  Impl::expect_less_or_equal_extents(view_from, view_dest);
+
   namespace KE = ::Kokkos::Experimental;
   return Impl::inclusive_scan_custom_binary_op_exespace_impl(
       label, ex, KE::cbegin(view_from), KE::cend(view_from),
@@ -192,6 +205,7 @@ auto inclusive_scan(const ExecutionSpace& ex,
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view_dest);
   static_assert(std::is_move_constructible_v<ValueType>,
                 "ValueType must be move constructible.");
+  Impl::expect_less_or_equal_extents(view_from, view_dest);
 
   namespace KE = ::Kokkos::Experimental;
   return Impl::inclusive_scan_custom_binary_op_exespace_impl(
@@ -213,6 +227,7 @@ auto inclusive_scan(const std::string& label, const ExecutionSpace& ex,
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view_dest);
   static_assert(std::is_move_constructible_v<ValueType>,
                 "ValueType must be move constructible.");
+  Impl::expect_less_or_equal_extents(view_from, view_dest);
 
   namespace KE = ::Kokkos::Experimental;
   return Impl::inclusive_scan_custom_binary_op_exespace_impl(
@@ -249,6 +264,8 @@ KOKKOS_FUNCTION auto inclusive_scan(
     const ::Kokkos::View<DataType2, Properties2...>& view_dest) {
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view_from);
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view_dest);
+  Impl::expect_less_or_equal_extents(view_from, view_dest);
+
   namespace KE = ::Kokkos::Experimental;
   return Impl::inclusive_scan_default_op_team_impl(
       teamHandle, KE::cbegin(view_from), KE::cend(view_from),
@@ -279,6 +296,8 @@ KOKKOS_FUNCTION auto inclusive_scan(
     BinaryOp binary_op) {
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view_from);
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view_dest);
+  Impl::expect_less_or_equal_extents(view_from, view_dest);
+
   namespace KE = ::Kokkos::Experimental;
   return Impl::inclusive_scan_custom_binary_op_team_impl(
       teamHandle, KE::cbegin(view_from), KE::cend(view_from),
@@ -316,6 +335,7 @@ KOKKOS_FUNCTION auto inclusive_scan(
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view_dest);
   static_assert(std::is_move_constructible_v<ValueType>,
                 "ValueType must be move constructible.");
+  Impl::expect_less_or_equal_extents(view_from, view_dest);
 
   namespace KE = ::Kokkos::Experimental;
   return Impl::inclusive_scan_custom_binary_op_team_impl(

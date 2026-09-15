@@ -30,14 +30,16 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 4Jul2026
 
 This fix allows to add spheres to images rendered with :doc:`dump image
 <dump_image>` using the *fix* keyword to represent atoms from all
 replicas of a multi-replica simulation.
 
 The *group-ID* sets the group ID of the atoms selected to be
-represented.  This may be a dynamic group.
+represented.  This may be a dynamic group.  Since a dynamic group may
+select different atoms on different replicas, the selection of atoms
+from the first replica is applied to all replicas.
 
 The *Nevery* keyword determines how often the replica graphics data is
 updated.  This should be the same value as the corresponding *N*
@@ -61,7 +63,7 @@ an atom to the average position across all replica.
 Dump image info
 """""""""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 4Jul2026
 
 Fix graphics/replica is designed to be used with the *fix* keyword of
 :doc:`dump image <dump_image>`.  The fix will add spheres based on the

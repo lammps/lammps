@@ -71,7 +71,7 @@ int srp_instance = 0;
  set size of pair comms in constructor
  ---------------------------------------------------------------------- */
 
-PairSRP::PairSRP(LAMMPS *lmp) : Pair(lmp)
+PairSRP::PairSRP(LAMMPS *lmp) : Pair(lmp), cut(nullptr), a0(nullptr), srp(nullptr)
 {
   writedata = 1;
   single_enable = 0;
@@ -128,8 +128,7 @@ PairSRP::~PairSRP()
     memory->destroy(segment);
   }
 
-  // check nfix in case all fixes have already been deleted
-  if (modify->nfix && modify->get_fix_by_id(f_srp->id)!=nullptr) modify->delete_fix(f_srp->id);
+  modify->delete_fix(f_srp->id);
 }
 
 /* ----------------------------------------------------------------------
@@ -400,13 +399,13 @@ void PairSRP::coeff(int narg, char **arg)
     error->all(FLERR,"Incorrect args for pair coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
-  if (btype_str.size() > 0) {
+  if (!btype_str.empty()) {
     btype = utils::expand_type_int(FLERR, btype_str, Atom::BOND, lmp);
     if ((btype > atom->nbondtypes) || (btype <= 0))
       error->all(FLERR, Error::NOLASTLINE, "Invalid bond type {} for pair style srp", btype);
   }
 
-  if (bptype_str.size() > 0)
+  if (!bptype_str.empty())
     bptype = utils::expand_type_int(FLERR, bptype_str, Atom::ATOM, lmp);
   if ((bptype < 1) || (bptype > atom->ntypes))
     error->all(FLERR, Error::NOLASTLINE, "Invalid bond particle type {} for pair style srp", bptype);
@@ -464,17 +463,14 @@ void PairSRP::init_style()
   // if bond type is 0, then all bonds have bond particles
   // btype = bond type
 
-  char c0[20];
-  char* arg0[2];
-  sprintf(c0, "%d", btype);
-  arg0[0] = (char *) "btype";
-  arg0[1] = c0;
+  std::string bval = std::to_string(btype);
+  char *arg0[2] = {(char *) "btype", bval.data()};
   f_srp->modify_params(2, arg0);
 
   // bptype = bond particle type
-  sprintf(c0, "%d", bptype);
+  std::string bpval = std::to_string(bptype);
   arg0[0] = (char *) "bptype";
-  arg0[1] = c0;
+  arg0[1] = bpval.data();
   f_srp->modify_params(2, arg0);
 
   // bond particles do not contribute to energy or virial

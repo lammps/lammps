@@ -24,7 +24,6 @@ FixStyle(surface/global,FixSurfaceGlobal)
 
 #include <map>
 #include <unordered_set>
-#include <vector>
 
 namespace LAMMPS_NS {
 
@@ -41,7 +40,7 @@ class FixSurfaceGlobal : public FixSurface {
   class NeighList *listhistory;
 
   FixSurfaceGlobal(class LAMMPS *, int, char **);
-  ~FixSurfaceGlobal();
+  ~FixSurfaceGlobal() override;
   int setmask() override;
   void post_constructor() override;
 
@@ -233,10 +232,10 @@ class FixSurfaceGlobal : public FixSurface {
 
   void prewalk_connections2d();
   void prewalk_connections3d();
-  void walk_connections2d(std::vector<int> *, std::unordered_set<int> *);
-  void walk_connections3d(std::vector<int> *, std::unordered_set<int> *);
-  double calculate_2d_forces(std::vector<int> *);
-  double calculate_3d_forces(std::vector<int> *);
+  void walk_connections2d(std::vector<int> &, std::unordered_set<int> &);
+  void walk_connections3d(std::vector<int> &, std::unordered_set<int> &);
+  double calculate_2d_forces(std::vector<int> &);
+  double calculate_3d_forces(std::vector<int> &);
   void calculate_3d_edge_force(int, double *, double *, double *, double *);
   double dist_away_from_edge(double *, double *, double *, double *, double *);
 

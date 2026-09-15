@@ -63,7 +63,7 @@ This bond style can only be used if LAMMPS was built with the
 EXTRA-MOLECULE package.  See the :doc:`Build package <Build_package>`
 doc page for more info.
 
-.. versionadded:: TBD
+.. versionadded:: 4Jul2026
 
    The *gaussian/omp* style
 

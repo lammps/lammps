@@ -38,7 +38,8 @@ static constexpr double EPSILON = 1.0e-6;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCutCoulMSMDielectric::PairLJCutCoulMSMDielectric(LAMMPS *_lmp) : PairLJCutCoulLong(_lmp)
+PairLJCutCoulMSMDielectric::PairLJCutCoulMSMDielectric(LAMMPS *_lmp) :
+    PairLJCutCoulLong(_lmp), avec(nullptr)
 {
   ewaldflag = pppmflag = 0;
   msmflag = 1;
@@ -188,7 +189,7 @@ void PairLJCutCoulMSMDielectric::compute(int eflag, int vflag)
             }
           }
         } else
-          forcecoul = 0.0;
+          efield_i = forcecoul = 0.0;
 
         if (rsq < cut_ljsq[itype][jtype]) {
           r6inv = r2inv * r2inv * r2inv;
@@ -230,7 +231,7 @@ void PairLJCutCoulMSMDielectric::compute(int eflag, int vflag)
         }
 
         if (eflag) {
-          if (rsq < cut_coulsq) {
+          if (rsq < cut_coulsq && rsq > EPSILON) {
             if (!ncoultablebits || rsq <= tabinnersq)
               ecoul = prefactor * 0.5 * (etmp + eps[j]) * egamma;
             else {

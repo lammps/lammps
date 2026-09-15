@@ -21,6 +21,7 @@ namespace LAMMPS_NS {
 class NBinManual : public NBin {
  public:
   NBinManual(class LAMMPS *);
+  ~NBinManual() override;
 
   void bin_atoms_setup(int) override;
   void setup_bins(int) override;

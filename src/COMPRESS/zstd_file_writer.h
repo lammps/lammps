@@ -22,7 +22,6 @@
 
 #include "file_writer.h"
 
-#include <string>
 #include <zstd.h>
 
 #if ZSTD_VERSION_NUMBER < 10400

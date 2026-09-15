@@ -138,7 +138,7 @@ Creating a virtualenv with lammps installed
 
 .. code-block:: bash
 
-   # create virtual envrionment named 'testing'
+   # create virtual environment named 'testing'
    python3 -m venv $HOME/python/testing
 
    # activate 'testing' environment
@@ -247,7 +247,7 @@ lammps.numpy module.  Those represent the *local* atoms of the
 individual sub-domain for the current MPI process and may contain
 information for the local ghost atoms or not depending on the property.
 Both can be accessed as lists, but for the ctypes list object the size
-is not known and hast to be retrieved first to avoid out-of-bounds
+is not known and has to be retrieved first to avoid out-of-bounds
 accesses.
 
 .. code-block:: python

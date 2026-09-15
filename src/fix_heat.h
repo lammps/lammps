@@ -34,7 +34,9 @@ class FixHeat : public Fix {
   double compute_scalar() override;
   double memory_usage() override;
 
- private:
+ protected:
+  enum { CONSTANT, EQUAL, ATOM };    // values of hstyle
+
   double heat_input;
   double masstotal;
   double scale;

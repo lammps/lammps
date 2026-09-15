@@ -10,10 +10,15 @@
 .. index:: fix rigid/nph/omp
 .. index:: fix rigid/small
 .. index:: fix rigid/small/omp
+.. index:: fix rigid/small/kk
 .. index:: fix rigid/nve/small
+.. index:: fix rigid/nve/small/kk
 .. index:: fix rigid/nvt/small
+.. index:: fix rigid/nvt/small/kk
 .. index:: fix rigid/npt/small
+.. index:: fix rigid/npt/small/kk
 .. index:: fix rigid/nph/small
+.. index:: fix rigid/nph/small/kk
 
 fix rigid command
 =================
@@ -43,19 +48,27 @@ Accelerator Variants: *rigid/nph/omp*
 fix rigid/small command
 =======================
 
-Accelerator Variants: *rigid/small/omp*
+Accelerator Variants: *rigid/small/omp*, *rigid/small/kk*
 
 fix rigid/nve/small command
 ===========================
 
+Accelerator Variants: *rigid/nve/small/kk*
+
 fix rigid/nvt/small command
 ===========================
+
+Accelerator Variants: *rigid/nvt/small/kk*
 
 fix rigid/npt/small command
 ===========================
 
+Accelerator Variants: *rigid/npt/small/kk*
+
 fix rigid/nph/small command
 ===========================
+
+Accelerator Variants: *rigid/nph/small/kk*
 
 Syntax
 """"""
@@ -417,7 +430,7 @@ approach.
 
 The *rigid/nvt* and *rigid/nvt/small* styles performs constant NVT
 integration using a Nose/Hoover thermostat with chains as described
-originally in :ref:`(Hoover) <Hoover>` and :ref:`(Martyna)
+originally in :ref:`(Hoover) <Hoover>` and :ref:`(Martyna3)
 <Martyna2>`, which thermostats both the translational and rotational
 degrees of freedom of the rigid bodies.  They are referred to below as
 the 2 NVT rigid styles.  The rigid-body algorithm used by *rigid/nvt*
@@ -905,6 +918,45 @@ These fixes are all part of the RIGID package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package
 <Build_package>` page for more info.
 
+The Kokkos versions of these fixes (the */kk* accelerator variants of
+*rigid/small* and of *rigid/nve/small*, *rigid/nvt/small*,
+*rigid/npt/small*, and *rigid/nph/small*) implement a subset of the
+functionality of the corresponding non-accelerated styles.  The
+*langevin* thermostat is supported, including with MPI domain
+decomposition.  Because the random forces are drawn from a Kokkos
+device RNG rather than the host RNG, individual trajectories differ
+from the non-Kokkos style (they are not bit-for-bit comparable), but
+the bodies are thermostatted to the same target temperature.  Reading
+body properties from a file (the *infile* keyword) and inserting rigid
+molecules at runtime (:doc:`fix deposit <fix_deposit>` /
+:doc:`fix pour <fix_pour>`) are both supported.  The *kk* styles run on
+3d systems only.
+
+Rigid bodies built from finite-size *sphere*, *ellipsoid*, and point
+*dipole* particles are supported with Kokkos: in each integration step the
+per-particle rotational state is updated from the body orientation on the
+device (sphere angular velocity, ellipsoid space-frame quaternion and
+angular momentum, dipole moment direction), and the per-particle torque is
+added to the body.  Because the molecule information that groups these atoms
+into bodies is supplied through :doc:`fix property/atom <fix_property_atom>`
+(or an :doc:`atom_style hybrid <atom_style>`), which is not itself ported to
+the device, such systems run the atom migration and sorting on the host
+while the rigid-body integration runs on the device.  Rigid bodies of *line*
+and *triangle* particles are not yet supported with Kokkos.
+
+The Kokkos atom exchange (migration) and atom sorting must run on the
+same side (both on the host or both on the device), because the device
+sort reorders the rigid-body owner atoms that the device exchange
+produced.  This is satisfied by the defaults (host on CPU/OpenMP builds,
+device on GPU builds) and by passing matching settings such as ``-pk
+kokkos comm device sort device``.  If the two would not match -- either
+because of an inconsistent override such as ``-pk kokkos comm device``
+while sorting stays on the host, or because another setting forces one of
+them onto the host (bonus data such as *ellipsoid* particles, an
+:doc:`atom_style hybrid <atom_style>`, or a coexisting fix that grows
+per-atom arrays without device support, e.g. :doc:`fix property/atom
+<fix_property_atom>`) -- the fix moves both to the host for the whole run.
+
 Assigning a temperature via the :doc:`velocity create <velocity>`
 command to a system with :doc:`rigid bodies <fix_rigid>` may not have
 the desired outcome for two reasons.  First, the velocity command can
@@ -949,7 +1001,7 @@ torque.  Also Tchain = Pchain = 10, Titer = 1, Torder = 3, reinit = yes.
 
 .. _Martyna2:
 
-**(Martyna)** Martyna, Klein, Tuckerman, J Chem Phys, 97, 2635 (1992);
+**(Martyna3)** Martyna, Klein, Tuckerman, J Chem Phys, 97, 2635 (1992);
 Martyna, Tuckerman, Tobias, Klein, Mol Phys, 87, 1117.
 
 .. _Miller3:
@@ -959,4 +1011,4 @@ J Chem Phys, 116, 8649 (2002).
 
 .. _Zhang1:
 
-**(Zhang)** Zhang, Glotzer, Nanoletters, 4, 1407-1413 (2004).
+**(Zhang2)** Zhang, Glotzer, Nanoletters, 4, 1407-1413 (2004).

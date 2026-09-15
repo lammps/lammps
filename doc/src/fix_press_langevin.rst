@@ -1,7 +1,10 @@
 .. index:: fix press/langevin
+.. index:: fix press/langevin/kk
 
 fix press/langevin command
 ===========================
+
+Accelerator Variants: *press/langevin/kk*
 
 Syntax
 """"""
@@ -16,7 +19,7 @@ Syntax
   .. parsed-literal::
 
      one or more keyword value pairs may be appended
-     keyword = *iso* or *aniso* or *tri* or *x* or *y* or *z* or *xy* or *xz* or *yz* or *couple* or *dilate* or *modulus* or *temp* or *flip*
+     keyword = *iso* or *aniso* or *tri* or *x* or *y* or *z* or *xy* or *xz* or *yz* or *couple* or *dilate* or *temp* or *flip*
        *iso* or *aniso* or *tri* values = Pstart Pstop Pdamp
          Pstart,Pstop = scalar external pressure at start/end of run (pressure units)
          Pdamp = pressure damping parameter (time units)
@@ -276,6 +279,10 @@ thermostatted system. That is, if the system's temperature is ramped by other
 commands, it is recommended to do the same with this pressure control.
 
 This fix is not invoked during :doc:`energy minimization <minimize>`.
+
+----------
+
+.. include:: accel_styles.rst
 
 Restrictions
 """"""""""""

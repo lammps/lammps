@@ -1,5 +1,6 @@
 ---
 lammps_version: 29 Aug 2024
+tags: no_respa
 date_generated: Tue Oct  1 12:45:46 2024
 epsilon: 2.5e-11
 skip_tests:
@@ -12,6 +13,7 @@ post_commands: ! |
   fix move all nve
   fix test solute recenter INIT INIT INIT shift all units box
 input_file: in.fourmol
+input_coeffs: coeffs.fourmol
 natoms: 29
 global_scalar: 4.868395120232176e-05
 global_vector: ! |-

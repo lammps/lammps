@@ -58,8 +58,8 @@ static constexpr double DETF_MAX = 2.0; // maximum tension deformation allowed
 
 /* ---------------------------------------------------------------------- */
 
-PairTlsph::PairTlsph(LAMMPS *lmp) :
-  Pair(lmp) {
+PairTlsph::PairTlsph(LAMMPS *lmp) : Pair(lmp), suffix(nullptr)
+{
 
   onerad_dynamic = onerad_frozen = maxrad_dynamic = maxrad_frozen = nullptr;
 
@@ -488,7 +488,7 @@ void PairTlsph::ComputeForces(int eflag, int vflag) {
       }
 
       if (periodic)
-        domain->minimum_image(FLERR, dx0(0), dx0(1), dx0(2));
+        domain->minimum_image_big(FLERR, dx0(0), dx0(1), dx0(2));
 
       // check that distance between i and j (in the reference config) is less than cutoff
       dx0 = x0j - x0i;

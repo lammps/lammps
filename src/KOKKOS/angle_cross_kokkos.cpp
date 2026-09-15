@@ -154,14 +154,14 @@ void AngleCrossKokkos<DeviceType>::operator()(TagAngleCrossCompute<NEWTON_BOND,E
   const KK_FLOAT delz1 = x(i1,2) - x(i2,2);
 
   const KK_FLOAT rsq1 = delx1*delx1 + dely1*dely1 + delz1*delz1;
-  const KK_FLOAT r1 = sqrt(rsq1);
+  const KK_FLOAT r1 = Kokkos::sqrt(rsq1);
 
   const KK_FLOAT delx2 = x(i3,0) - x(i2,0);
   const KK_FLOAT dely2 = x(i3,1) - x(i2,1);
   const KK_FLOAT delz2 = x(i3,2) - x(i2,2);
 
   const KK_FLOAT rsq2 = delx2*delx2 + dely2*dely2 + delz2*delz2;
-  const KK_FLOAT r2 = sqrt(rsq2);
+  const KK_FLOAT r2 = Kokkos::sqrt(rsq2);
 
   KK_FLOAT c = delx1*delx2 + dely1*dely2 + delz1*delz2;
   c /= r1*r2;
@@ -169,7 +169,7 @@ void AngleCrossKokkos<DeviceType>::operator()(TagAngleCrossCompute<NEWTON_BOND,E
   if (c > static_cast<KK_FLOAT>(1.0)) c = static_cast<KK_FLOAT>(1.0);
   if (c < static_cast<KK_FLOAT>(-1.0)) c = static_cast<KK_FLOAT>(-1.0);
 
-  KK_FLOAT s = sqrt(static_cast<KK_FLOAT>(1.0) - c*c);
+  KK_FLOAT s = Kokkos::sqrt(static_cast<KK_FLOAT>(1.0) - c*c);
   if (s < static_cast<KK_FLOAT>(SMALL)) s = static_cast<KK_FLOAT>(SMALL);
   s = static_cast<KK_FLOAT>(1.0)/s;
 
@@ -192,7 +192,7 @@ void AngleCrossKokkos<DeviceType>::operator()(TagAngleCrossCompute<NEWTON_BOND,E
   if (eflag) eangle = d_kss[type]*dr1*dr2;
 
   // bond-angle contribution
-  const KK_FLOAT dtheta = acos(c) - d_theta0[type];
+  const KK_FLOAT dtheta = Kokkos::acos(c) - d_theta0[type];
 
   const KK_FLOAT aa1 = s * dr1 * d_kbs0[type];
   const KK_FLOAT aa2 = s * dr2 * d_kbs1[type];

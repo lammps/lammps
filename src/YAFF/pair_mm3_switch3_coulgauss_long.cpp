@@ -38,7 +38,10 @@ using namespace EwaldConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairMM3Switch3CoulGaussLong::PairMM3Switch3CoulGaussLong(LAMMPS *lmp) : Pair(lmp)
+PairMM3Switch3CoulGaussLong::PairMM3Switch3CoulGaussLong(LAMMPS *lmp) :
+    Pair(lmp), cut_lj(nullptr), cut_ljsq(nullptr), epsilon(nullptr), sigma(nullptr),
+    gamma(nullptr), lj1(nullptr), lj2(nullptr), lj3(nullptr), lj4(nullptr), offset(nullptr),
+    cut_respa(nullptr)
 {
   ewaldflag = pppmflag = 1;
   writedata = 1;

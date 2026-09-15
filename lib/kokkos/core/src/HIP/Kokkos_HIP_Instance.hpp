@@ -29,7 +29,9 @@ struct HIPTraits {
   static constexpr int WarpIndexMask  = 0x003f; /* hexadecimal for 63 */
   static constexpr int WarpIndexShift = 6;      /* WarpSize == 1 << WarpShift*/
 #elif defined(KOKKOS_ARCH_AMD_GFX1030) || defined(KOKKOS_ARCH_AMD_GFX1100) || \
-    defined(KOKKOS_ARCH_AMD_GFX1103) || defined(KOKKOS_ARCH_AMD_GFX1201)
+    defined(KOKKOS_ARCH_AMD_GFX1101) || defined(KOKKOS_ARCH_AMD_GFX1103) ||   \
+    defined(KOKKOS_ARCH_AMD_GFX1151) || defined(KOKKOS_ARCH_AMD_GFX1152) ||   \
+    defined(KOKKOS_ARCH_AMD_GFX1201)
   static constexpr int WarpSize       = 32;
   static constexpr int WarpIndexMask  = 0x001f; /* hexadecimal for 31 */
   static constexpr int WarpIndexShift = 5;      /* WarpSize == 1 << WarpShift*/
@@ -168,6 +170,9 @@ class HIPInternal {
   mutable size_type *m_scratchFunctor     = nullptr;
   mutable size_type *m_scratchFunctorHost = nullptr;
   static std::mutex scratchFunctorMutex;
+
+  // mutex to access shared memory
+  mutable std::mutex m_mutexScratchSpace;
 
   hipStream_t m_stream = nullptr;
   uint32_t m_instance_id =

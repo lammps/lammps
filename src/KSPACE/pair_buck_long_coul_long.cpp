@@ -41,7 +41,10 @@ using namespace EwaldConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairBuckLongCoulLong::PairBuckLongCoulLong(LAMMPS *lmp) : Pair(lmp)
+PairBuckLongCoulLong::PairBuckLongCoulLong(LAMMPS *lmp) :
+    Pair(lmp), cut_buck(nullptr), cut_buck_read(nullptr), cut_bucksq(nullptr),
+    buck_a_read(nullptr), buck_a(nullptr), buck_c_read(nullptr), buck_c(nullptr), buck1(nullptr),
+    buck2(nullptr), buck_rho_read(nullptr), buck_rho(nullptr), rhoinv(nullptr), offset(nullptr)
 {
   dispersionflag = ewaldflag = pppmflag = 1;
   respa_enable = 1;
@@ -1059,10 +1062,12 @@ double PairBuckLongCoulLong::single(int i, int j, int itype, int jtype,
       force_buck = buck1[itype][jtype]*r*expr-g8term+t*buck2[itype][jtype];
       eng += buck_a[itype][jtype]*expr-g6term+t*buck_c[itype][jtype];
     } else {                                                // cut
+      // expr already carries factor_buck, so the exponential term must not be
+      // scaled a second time (compare with the special case in compute())
       force_buck =
-        factor_buck*(buck1[itype][jtype]*r*expr-buck2[itype][jtype]*r6inv);
+        buck1[itype][jtype]*r*expr-factor_buck*buck2[itype][jtype]*r6inv;
       eng += buck_a[itype][jtype]*expr-
-        factor_buck*(buck_c[itype][jtype]*r6inv-offset[itype][jtype]);
+        factor_buck*(buck_c[itype][jtype]*r6inv+offset[itype][jtype]);
     }
   } else force_buck = 0.0;
 

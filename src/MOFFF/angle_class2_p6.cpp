@@ -38,7 +38,11 @@ static constexpr double SMALL = 0.001;
 
 /* ---------------------------------------------------------------------- */
 
-AngleClass2P6::AngleClass2P6(LAMMPS *lmp) : Angle(lmp) {}
+AngleClass2P6::AngleClass2P6(LAMMPS *lmp) :
+    Angle(lmp), theta0(nullptr), k2(nullptr), k3(nullptr), k4(nullptr), k5(nullptr), k6(nullptr),
+    bb_k(nullptr), bb_r1(nullptr), bb_r2(nullptr), ba_k1(nullptr), ba_k2(nullptr), ba_r1(nullptr),
+    ba_r2(nullptr), setflag_a(nullptr), setflag_bb(nullptr), setflag_ba(nullptr)
+{}
 
 /* ---------------------------------------------------------------------- */
 

@@ -117,9 +117,9 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void FixExternalKokkos<DeviceType>::operator()(TagFixExternal, const int &i) const {
   if (mask[i] & groupbit) {
-    f(i,0) += d_fexternal(i,0);
-    f(i,1) += d_fexternal(i,1);
-    f(i,2) += d_fexternal(i,2);
+    f(i,0) += static_cast<KK_ACC_FLOAT>(d_fexternal(i,0));
+    f(i,1) += static_cast<KK_ACC_FLOAT>(d_fexternal(i,1));
+    f(i,2) += static_cast<KK_ACC_FLOAT>(d_fexternal(i,2));
   }
 }
 

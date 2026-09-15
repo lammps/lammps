@@ -1,0 +1,72 @@
+---
+lammps_version: 4 Jul 2026
+tags: granular
+date_generated: Tue Jul 21 21:40:50 2026
+epsilon: 1e-10
+skip_tests:
+prerequisites: |
+  atom sphere
+  pair granular
+pre_commands: |
+  units lj
+  dimension 2
+  boundary f f p
+  atom_style sphere
+  region box block -8.0 8.0 -2.0 2.0 -0.1 0.1 units box
+  create_box 1 box
+  create_atoms 1 single -${sep} 0.0 0.0 units box
+  create_atoms 1 single  ${sep} 0.0 0.0 units box
+  set group all diameter ${diam} density ${dens}
+  group left id 1
+  group right id 2
+  velocity left set ${vin} 0.0 0.0
+  velocity right set -${vin} 0.0 0.0
+  comm_modify vel yes
+  neighbor 0.05 bin
+  neigh_modify delay 0
+  timestep ${dt}
+post_commands: |
+  fix integr all nve/sphere disc
+  fix twod all enforce2d
+input_file:
+natoms: 2
+variables: |
+  diam 1
+  dens 1
+  knorm 10000
+  en 0.5
+  xmu 0.0
+  vin 1
+  radius 0.5
+  dt 0.0001
+  sep 0.55
+pair_style: granular
+pair_coeff: |
+  * * hooke ${knorm} ${en} tangential linear_nohistory 0.0 0.0 damping coeff_restitution
+run_segments: |-
+  947 500
+analytic_enable: yes
+analytic_model: collision_restitution
+analytic_tol: 0.02
+analytic_segment: 1
+run_pos: |2
+    0   1 -5.1414816868621493e-01  0.0000000000000000e+00  0.0000000000000000e+00
+    0   2  5.1414816868621493e-01  0.0000000000000000e+00  0.0000000000000000e+00
+    1   1 -5.3916945975278863e-01  0.0000000000000000e+00  0.0000000000000000e+00
+    1   2  5.3916945975278863e-01  0.0000000000000000e+00  0.0000000000000000e+00
+run_vel: |2
+    0   1 -5.0042582133180780e-01  0.0000000000000000e+00  0.0000000000000000e+00
+    0   2  5.0042582133180780e-01  0.0000000000000000e+00  0.0000000000000000e+00
+    1   1 -5.0042582133180780e-01  0.0000000000000000e+00  0.0000000000000000e+00
+    1   2  5.0042582133180780e-01  0.0000000000000000e+00  0.0000000000000000e+00
+run_torque: |2
+    0   1  0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00
+    0   2  0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00
+    1   1  0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00
+    1   2  0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00
+run_omega: |2
+    0   1  0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00
+    0   2  0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00
+    1   1  0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00
+    1   2  0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00
+...

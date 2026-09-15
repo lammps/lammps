@@ -19,6 +19,7 @@
 #include "create_atoms.h"
 
 #include "atom.h"
+#include "atom_masks.h"
 #include "atom_vec.h"
 #include "comm.h"
 #include "domain.h"
@@ -70,8 +71,8 @@ static constexpr const char *mesh_name[] = {"recursive bisection", "quasi-random
 
 CreateAtoms::CreateAtoms(LAMMPS *lmp) :
     Command(lmp), basistype(nullptr), xmol(nullptr), vstr(nullptr), xstr(nullptr), ystr(nullptr),
-    zstr(nullptr), groupname(nullptr), region(nullptr), onemol(nullptr), ranmol(nullptr),
-    ranlatt(nullptr)
+    zstr(nullptr), groupname(nullptr), flag(nullptr), next(nullptr), region(nullptr),
+    onemol(nullptr), ranmol(nullptr), ranlatt(nullptr)
 {
 }
 
@@ -512,6 +513,14 @@ void CreateAtoms::command(int narg, char **arg)
   atom->nghost = 0;
   atom->avec->clear_bonus();
 
+  // the add() methods below create atoms and write their per-atom data through
+  // the plain pointers, so bring the host side up to date first and hand the
+  // writes over after the IDs are assigned; without the KOKKOS package these
+  // do nothing.  a create_atoms between two runs finds the device holding the
+  // newer copy of the per-atom arrays
+
+  atom->sync_host_arrays(ALL_MASK);
+
   // add atoms/molecules with appropriate add() method
 
   bigint natoms_previous = atom->natoms;
@@ -542,6 +551,8 @@ void CreateAtoms::command(int narg, char **arg)
 
   if (atom->tag_enable) atom->tag_extend();
   atom->tag_check();
+
+  atom->modified_host_arrays(ALL_MASK);
 
   // if global map exists, reset it
   // invoke map_init() b/c atom count has grown
@@ -880,6 +891,7 @@ void CreateAtoms::add_random()
         } else {
           if (comm->me == 0) get_xmol(xone);
           MPI_Bcast(&xmol[0][0], onemol->natoms * 3, MPI_DOUBLE, 0, world);
+          MPI_Bcast(onemol->quat_external, 4, MPI_DOUBLE, 0, world);
 
           for (int i = 0; i < nlocal; i++) {
             for (int j = 0; j < onemol->natoms; j++) {
@@ -1492,8 +1504,7 @@ void CreateAtoms::get_xmol(double *center)
   MathExtra::quat_to_mat(quatone, rotmat);
 
   // onemol->quat_external is used by atom->add_moleclue_atom()
-
-  onemol->quat_external = quatone;
+  if (onemol->muflag) memcpy(onemol->quat_external, quatone, 4*sizeof(double));
 
   int natoms = onemol->natoms;
   double xnew[3];

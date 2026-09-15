@@ -16,12 +16,16 @@
 #include "atom.h"
 #include "domain.h"
 #include "error.h"
+#include "library.h"
 #include "update.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
+#include <algorithm>
 #include <cstring>
 #include <fstream>
+#include <iterator>
+#include <vector>
 
 using namespace LAMMPS_NS;
 
@@ -398,6 +402,59 @@ TEST_F(FileOperationsTest, write_restart)
     delete_file("triclinic.restart");
 }
 
+TEST_F(FileOperationsTest, corrupted_restart)
+{
+    BEGIN_HIDE_OUTPUT();
+    command("echo none");
+    command("region box block -2 2 -2 2 -2 2");
+    command("create_box 1 box");
+    command("create_atoms 1 single 0.0 0.0 0.0");
+    command("mass 1 1.0");
+    command("run 0 post no");
+    command("write_restart good.restart");
+    command("clear");
+    END_HIDE_OUTPUT();
+
+    std::ifstream in("good.restart", std::ios::binary);
+    std::vector<char> image((std::istreambuf_iterator<char>(in)), std::istreambuf_iterator<char>());
+    in.close();
+    ASSERT_GT(image.size(), 0);
+
+    // corrupt the stored length of the group name "all": the length int
+    // precedes the string. must trigger a clean error, not a crash.
+
+    const char pattern[] = {4, 0, 0, 0, 'a', 'l', 'l', '\0'};
+    auto pos = std::search(image.begin(), image.end(), pattern, pattern + sizeof(pattern));
+    if (pos != image.end()) {
+        auto patched  = image;
+        const int bad = -1;
+        memcpy(&patched[pos - image.begin()], &bad, sizeof(int));
+        std::ofstream out("corrupt.restart", std::ios::binary);
+        out.write(patched.data(), patched.size());
+        out.close();
+        TEST_FAILURE(".*ERROR: Invalid group name length in restart file.*",
+                     command("read_restart corrupt.restart"););
+        BEGIN_HIDE_OUTPUT();
+        command("clear");
+        END_HIDE_OUTPUT();
+        delete_file("corrupt.restart");
+    }
+
+    // truncated restart files must give a clean error, not a crash
+
+    for (auto fraction : {0.25, 0.5, 0.9}) {
+        std::ofstream out("truncated.restart", std::ios::binary);
+        out.write(image.data(), (std::streamsize)(image.size() * fraction));
+        out.close();
+        TEST_FAILURE(".*ERROR.*", command("read_restart truncated.restart"););
+        BEGIN_HIDE_OUTPUT();
+        command("clear");
+        END_HIDE_OUTPUT();
+    }
+    delete_file("truncated.restart");
+    delete_file("good.restart");
+}
+
 TEST_F(FileOperationsTest, write_data)
 {
     BEGIN_HIDE_OUTPUT();
@@ -629,6 +686,13 @@ int main(int argc, char **argv)
     if ((argc > 1) && (strcmp(argv[1], "-v") == 0)) verbose = true;
 
     int rv = RUN_ALL_TESTS();
+
+    // finalize the KOKKOS package explicitly: otherwise Kokkos is torn down by
+    // static destructors at program exit, leading to segfaults in some cases
+    // same workaround as the force-style and FFT3d test drivers
+
+    lammps_kokkos_finalize();
+
     MPI_Finalize();
     return rv;
 }

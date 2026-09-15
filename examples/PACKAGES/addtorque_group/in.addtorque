@@ -29,7 +29,7 @@ neigh_modify    delay 2  every 1  check yes
 minimize        0.0  0.0    1000  10000
 reset_timestep  0
 
-velocity        all create 1.2 12351235
+velocity        all create 1.2 12351235 loop geom
 
 fix             1   all  nve
 fix             2   all  wall/reflect  xlo EDGE xhi EDGE ylo EDGE yhi EDGE zlo EDGE zhi EDGE

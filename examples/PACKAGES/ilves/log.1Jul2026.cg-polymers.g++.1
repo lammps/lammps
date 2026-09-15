@@ -1,0 +1,196 @@
+LAMMPS (30 Mar 2026 - Development - patch_30Mar2026-2152-g107b880cf8-modified)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
+  using 1 OpenMP thread(s) per MPI task
+# Coarse-grain polymer chains with near-linear backbone angles.
+
+units           lj
+atom_style      molecular
+boundary        p p p
+
+pair_style      lj/cut 4.0
+bond_style      harmonic
+angle_style     cosine/squared
+
+read_data data.cg-polymers
+Reading data file ...
+  orthogonal box = (10.906314 17.324206 16.190251) to (21.093686 30.675794 27.809749)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  896 atoms
+  reading velocities ...
+  896 velocities
+  scanning bonds ...
+  1 = max bonds/atom
+  scanning angles ...
+  1 = max angles/atom
+  orthogonal box = (10.906314 17.324206 16.190251) to (21.093686 30.675794 27.809749)
+  1 by 1 by 1 MPI processor grid
+  reading bonds ...
+  768 bonds
+  reading angles ...
+  640 angles
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     2 = max # of 1-2 neighbors
+     2 = max # of 1-3 neighbors
+     4 = max # of 1-4 neighbors
+     6 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+  read_data CPU = 0.009 seconds
+
+pair_coeff 1 1 1.0 1.0
+pair_coeff 2 2 1.2 1.5
+
+bond_coeff 1 100 1
+bond_coeff 2 150 1.2
+
+angle_coeff 1  50.0 180.0
+angle_coeff 2 100.0 180.0
+
+neighbor        0.5 bin
+neigh_modify    every 1 delay 0 check yes
+thermo          100
+thermo_style    custom step temp press pe ke etotal
+
+fix             cstr all ilves 1.0e-4 75 500 b 1 2 a 1 2 linearangle skip 165 # substitute stiff angle potential for constraint
+fix             move all nvt temp 1.5 1.5 0.5
+
+minimize 0 0 100 1000
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- fix ilves command: doi:10.1021/acs.jctc.5c01376
+
+@Article{LopezVillellas2025,
+ author = {L{\'o}pez-Villellas, Lori{\'e}n and Mikkelsen, Carl Christian Kjelgaard and Galano-Frutos, Juan Jos{\'e} and Marco-Sola, Santiago and Alastruey-Bened{\'e}, Jes{\'u}s and Ib{\'a}{\~n}ez, Pablo and Echenique, Pablo and Moret{\'o}, Miquel and {De Rosa}, Maria Cristina and Garc{\'i}a-Risue{\~n}o, Pablo},
+ title = {ILVES: Accurate and Efficient Bond Length and Angle Constraints in Molecular Dynamics},
+ journal = {J.~Chem.\ Theory Comput.},
+ volume = 21,
+ pages = {8711--8719},
+ year = 2025
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Generated 1 of 1 mixed pair_coeff terms from geometric mixing rule
+WARNING: Fix ilves treating near-linear angle type(s) 1 2 with linearangle mode skip (src/RIGID/fix_ilves.cpp:372)
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 4.5
+  ghost atom cutoff = 4.5
+  binsize = 2.25, bins = 5 6 6
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+Fix ilves: replacing 768 bond and 0 angle constraint(s) with harmonic restraints for minimization
+Per MPI rank memory allocation (min/avg/max) = 9.264 | 9.264 | 9.264 Mbytes
+   Step          Temp          Press          PotEng         KinEng         TotEng    
+         0   2.3724673      4.898926       571.36771      2.5379575      573.90567    
+       100   2.3724673      4.8159763     -5.6487418      2.5379575     -3.1107844    
+Loop time of 0.707921 on 1 procs for 100 steps with 896 atoms
+
+99.6% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+Minimization stats:
+  Stopping criterion = max iterations
+  Energy initial, next-to-last, final = 
+      571.367712876675  -5.64873089327156  -5.64874183900102
+  Force two-norm initial, final = 64428646 6679.62
+  Force max component initial, final = 15742054 1229.9599
+  Final line search alpha, max atom move = 4.2084965e-07 0.0005176282
+  Iterations, force evaluations = 100 828
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.67364    | 0.67364    | 0.67364    |   0.0 | 95.16
+Bond    | 0.011747   | 0.011747   | 0.011747   |   0.0 |  1.66
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.0065757  | 0.0065757  | 0.0065757  |   0.0 |  0.93
+Output  | 1.4247e-05 | 1.4247e-05 | 1.4247e-05 |   0.0 |  0.00
+Modify  | 0.011523   | 0.011523   | 0.011523   |   0.0 |  1.63
+Other   |            | 0.004418   |            |       |  0.62
+
+Nlocal:            896 ave         896 max         896 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           4099 ave        4099 max        4099 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:          94577 ave       94577 max       94577 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 94577
+Ave neighs/atom = 105.55469
+Ave special neighs/atom = 4.2857143
+Neighbor list builds = 0
+Dangerous builds = 0
+reset_timestep 0
+
+#dump viz all image 1000 myimage-*.png type type size 600 600 zoom 1 shiny 0.6 fsaa no bond atom type view 60 30 box yes 0.025 subbox no 0.0 axes no 0.0 0.0 center s 0.5 0.5 0.5
+
+#dump_modify viz pad 9 color red 1 0 0 color forestgreen 0.133333 0.545098 0.133333 color blue 0 0 1 color gold 1 0.843137 0 color cyan 0 1 1 color magenta 1 0 1 color silver 0.431373 0.431373 0.431373 color orange 1 0.501961 0 color lime 0 1 0 color gray 0.501961 0.501961 0.501961 color darkred 0.545098 0 0 color darkgreen 0 0.392157 0 color darkblue 0 0 0.545098 color darkcyan 0 0.545098 0.545098 color darkmagenta 0.545098 0 0.545098 color darkgray 0.270588 0.270588 0.270588 acolor 1 red acolor 2 forestgreen boxcolor yellow backcolor black backcolor2 white axestrans 1 boxtrans 1 atrans * 1 lights 0 0.9 0.45 0.9 adiam 1 0.5 adiam 2 0.75 color map1 0.000 0.227 0.427 color map2 0.459 0.055 0.075 amap min max cf 0.0 3 min map1 0.5 white max map2
+
+run             1000
+Generated 1 of 1 mixed pair_coeff terms from geometric mixing rule
+WARNING: Fix ilves treating near-linear angle type(s) 1 2 with linearangle mode skip (src/RIGID/fix_ilves.cpp:372)
+Fix ilves: constraining 768 bond(s) and 0 angle(s)
+ILVES stats (type/ave/delta/count) on step 0 (up to 0 Newton iterations)
+Bond:   1   1         7.72093e-07      448
+Bond:   2   1.2       9.70099e-07      320
+Per MPI rank memory allocation (min/avg/max) = 8.139 | 8.139 | 8.139 Mbytes
+   Step          Temp          Press          PotEng         KinEng         TotEng    
+         0   2.3578221      5.1575096     -5.6487418      2.5222907     -3.1264511    
+       100   1.844466       5.5789932     -5.460242       1.9731257     -3.4871163    
+       200   1.7253923      4.640637      -5.705033       1.8457461     -3.8592869    
+       300   1.5323622      4.5457117     -5.8031182      1.6392513     -4.1638669    
+       400   1.4214111      4.2246836     -5.8610796      1.5205608     -4.3405188    
+ILVES stats (type/ave/delta/count) on step 500 (up to 1 Newton iterations)
+Bond:   1   1         4.07516e-06      448
+Bond:   2   1.2       5.78041e-07      320
+       500   1.4846814      3.8908472     -5.971791       1.5882446     -4.3835464    
+       600   1.4539385      4.2330821     -5.8756756      1.5553572     -4.3203184    
+       700   1.4998172      4.0455589     -5.8235757      1.6044362     -4.2191396    
+       800   1.5683245      4.1361296     -5.8759357      1.6777222     -4.1982135    
+       900   1.4909475      3.964944      -5.8651907      1.5949478     -4.2702429    
+ILVES stats (type/ave/delta/count) on step 1000 (up to 1 Newton iterations)
+Bond:   1   1         2.60847e-06      448
+Bond:   2   1.2       4.09428e-07      320
+      1000   1.492304       4.0133993     -5.9426061      1.5963989     -4.3462072    
+Loop time of 0.9219 on 1 procs for 1000 steps with 896 atoms
+
+Performance: 468597.419 tau/day, 1084.716 timesteps/s, 971.906 katom-step/s
+99.5% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.65768    | 0.65768    | 0.65768    |   0.0 | 71.34
+Bond    | 0.014175   | 0.014175   | 0.014175   |   0.0 |  1.54
+Neigh   | 0.16968    | 0.16968    | 0.16968    |   0.0 | 18.41
+Comm    | 0.011204   | 0.011204   | 0.011204   |   0.0 |  1.22
+Output  | 0.00010473 | 0.00010473 | 0.00010473 |   0.0 |  0.01
+Modify  | 0.066603   | 0.066603   | 0.066603   |   0.0 |  7.22
+Other   |            | 0.002448   |            |       |  0.27
+
+Nlocal:            896 ave         896 max         896 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           4106 ave        4106 max        4106 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:          94455 ave       94455 max       94455 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 94455
+Ave neighs/atom = 105.41853
+Ave special neighs/atom = 4.2857143
+Neighbor list builds = 83
+Dangerous builds = 0
+
+
+
+Total wall time: 0:00:01

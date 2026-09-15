@@ -782,7 +782,7 @@ void FixLbFluid::init()
   //--------------------------------------------------------------------------
   groupbit_viscouslb = 0;
   auto fixlbv = modify->get_fix_by_style("lb/viscous");
-  if (fixlbv.size() > 0) {
+  if (!fixlbv.empty()) {
     if (fixlbv.size() > 1)
       error->all(FLERR, "More than one fix lb/viscous at a time is not supported");
     fixviscouslb = 1;

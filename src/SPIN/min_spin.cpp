@@ -41,7 +41,8 @@ static constexpr int DELAYSTEP = 5;
 
 /* ---------------------------------------------------------------------- */
 
-MinSpin::MinSpin(LAMMPS *lmp) : Min(lmp) {
+MinSpin::MinSpin(LAMMPS *lmp) : Min(lmp), spvec(nullptr), fmvec(nullptr)
+{
   alpha_damp = 1.0;
   discrete_factor = 10.0;
 }

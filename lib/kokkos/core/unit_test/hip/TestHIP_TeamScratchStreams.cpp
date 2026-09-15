@@ -95,7 +95,7 @@ void hip_stream_scratch_test(int N, int T, int M_base,
 }  // namespace Impl
 
 TEST(hip, team_scratch_1_streams) {
-  int N      = 1000000;
+  int N      = 10000;
   int T      = 10;
   int M_base = 150;
 

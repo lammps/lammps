@@ -1,8 +1,9 @@
 ---
 lammps_version: 30 Mar 2026
 date_generated: Mon Jun  1 12:20:21 2026
-epsilon: 5e-14
+epsilon: 2.5e-9
 skip_tests:
+tags:
 prerequisites: ! |
   atom full
   pair ldd

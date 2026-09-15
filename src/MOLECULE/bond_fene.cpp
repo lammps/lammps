@@ -30,7 +30,8 @@ using MathConst::MY_CUBEROOT2;
 
 /* ---------------------------------------------------------------------- */
 
-BondFENE::BondFENE(LAMMPS *_lmp) : Bond(_lmp)
+BondFENE::BondFENE(LAMMPS *_lmp) :
+    Bond(_lmp), k(nullptr), r0(nullptr), epsilon(nullptr), sigma(nullptr)
 {
   born_matrix_enable = 1;
 }

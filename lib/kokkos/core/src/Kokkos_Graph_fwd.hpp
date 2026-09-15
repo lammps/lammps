@@ -10,13 +10,25 @@
 
 #include <Kokkos_Concepts.hpp>
 
+#include <cstdint>
+
 namespace Kokkos {
 namespace Experimental {
 
 struct TypeErasedTag {};
+struct GraphNodeRootTag {};
 
 template <class ExecutionSpace>
 struct Graph;
+
+enum class GraphNodeKind : std::uint8_t {
+  TypeErased,
+  Root,
+  Kernel,
+  Aggregate,
+  Host,
+  Capture,
+};
 
 template <Kokkos::ExecutionSpace ExecutionSpace, class Kernel = TypeErasedTag,
           class Predecessor = TypeErasedTag>

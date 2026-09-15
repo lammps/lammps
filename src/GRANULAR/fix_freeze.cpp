@@ -57,13 +57,11 @@ int FixFreeze::setmask()
 
 void FixFreeze::init()
 {
-  // error if more than one freeze fix
+  // error if more than one freeze fix (also with suffix)
   // because accessed by pair style granular and fix gran/diag
 
-  int count = 0;
-  for (int i = 0; i < modify->nfix; i++)
-    if (strcmp(modify->fix[i]->style,"freeze") == 0) count++;
-  if (count > 1) error->all(FLERR,"More than one fix freeze");
+  if (modify->get_fix_by_style("^freeze").size() > 1)
+    error->all(FLERR,"More than one fix freeze");
 }
 
 /* ---------------------------------------------------------------------- */

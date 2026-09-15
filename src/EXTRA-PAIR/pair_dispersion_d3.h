@@ -41,6 +41,7 @@ class PairDispersionD3 : public Pair {
 
   void unpack_forward_comm(int, int, double *) override;
   void unpack_reverse_comm(int, int *, double *) override;
+  double memory_usage() override;
 
  protected:
   int nmax;
@@ -62,7 +63,6 @@ class PairDispersionD3 : public Pair {
 
   int communicationStage;    // communication stage
 
-  double memory_usage() override;
   void allocate();
   virtual void set_funcpar(std::string &);
 

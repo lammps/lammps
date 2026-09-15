@@ -121,7 +121,10 @@ __kernel void k_lj_coul_long_soft(const __global numtyp4 *restrict x_,
           denc = ucl_sqrt(lj3[mtype].y + rsq);
           prefactor *= qqrd2e * lj1[mtype].x * qtmp / (denc*denc*denc);
 
-          forcecoul = prefactor * (_erfc + EWALD_F*grij*expm2-factor_coul);
+          // the soft core replaces only the 1/r factor, while the Ewald damping
+          // keeps the true distance, so differentiating erfc(g*r)/denc leaves the
+          // exponential term scaled by denc^2/r^2 against a plain 1/r kernel
+          forcecoul = prefactor * (_erfc + EWALD_F*grij*expm2*denc*denc/rsq-factor_coul);
         } else
           forcecoul = (numtyp)0.0;
 
@@ -251,7 +254,10 @@ __kernel void k_lj_coul_long_soft_fast(const __global numtyp4 *restrict x_,
           denc = ucl_sqrt(lj3[mtype].y + rsq);
           prefactor *= qqrd2e * lj1[mtype].x * qtmp / (denc*denc*denc);
 
-          forcecoul = prefactor * (_erfc + EWALD_F*grij*expm2-factor_coul);
+          // the soft core replaces only the 1/r factor, while the Ewald damping
+          // keeps the true distance, so differentiating erfc(g*r)/denc leaves the
+          // exponential term scaled by denc^2/r^2 against a plain 1/r kernel
+          forcecoul = prefactor * (_erfc + EWALD_F*grij*expm2*denc*denc/rsq-factor_coul);
         } else
           forcecoul = (numtyp)0.0;
 

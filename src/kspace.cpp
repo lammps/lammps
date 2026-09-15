@@ -43,6 +43,7 @@ KSpace::KSpace(LAMMPS *lmp) :
 
   triclinic_support = 1;
   ewaldflag = pppmflag = espflag = msmflag = dispersionflag = tip4pflag = dipoleflag = spinflag = rk_flag = 0;
+  xtbflag = 0;
   compute_flag = 1;
   group_group_enable = 0;
   stagger_flag = 0;
@@ -98,6 +99,7 @@ KSpace::KSpace(LAMMPS *lmp) :
   datamask_read = ALL_MASK;
   datamask_modify = ALL_MASK;
   copymode = 0;
+  kokkosable = 0;
 
   memory->create(gcons,7,7,"kspace:gcons");
   gcons[2][0] = 15.0 / 8.0;

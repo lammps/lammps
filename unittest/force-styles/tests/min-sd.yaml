@@ -1,0 +1,21 @@
+---
+lammps_version: 4 Jul 2026
+tags:
+date_generated: Thu Jul  9 18:26:05 2026
+epsilon: 0.001
+skip_tests:
+prerequisites: |
+  atom full
+  minimize sd
+pre_commands: ""
+post_commands: |
+  min_style sd
+input_file: in.fourmol
+input_coeffs: coeffs.fourmol
+natoms: 29
+init_energy: 612.8591176848338
+run_energy: 226.70116779502106
+global_scalar: 9.659343383143069
+global_vector: |-
+  6  1.5000000000000000e+01  1.5000000000000000e+01  1.5000000000000000e+01  0.0000000000000000e+00  0.0000000000000000e+00  0.0000000000000000e+00
+...

@@ -11,6 +11,7 @@ post_commands: ! |
   fix move all nve
   fix test solute drag 2.4 -1.0 -1.0 10.0 0.6
 input_file: in.fourmol
+input_coeffs: coeffs.fourmol
 natoms: 29
 global_vector: ! |-
   3 49.37386569186292 -47.91054585938017 2.7675838589028423

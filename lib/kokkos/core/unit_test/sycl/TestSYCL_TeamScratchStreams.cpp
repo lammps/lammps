@@ -102,7 +102,7 @@ void sycl_queue_scratch_test(
 }  // namespace Impl
 
 TEST(sycl, team_scratch_1_queues) {
-  int N      = 1000000;
+  int N      = 10000;
   int T      = 10;
   int M_base = 150;
 

@@ -68,7 +68,7 @@ formalism.
 
 .. _howto-Ikeshoji:
 
-**(Ikeshoji)** Ikeshoji and Hafskjold, Molecular Physics, 81, 251-261
+**(Ikeshoji2)** Ikeshoji and Hafskjold, Molecular Physics, 81, 251-261
 (1994).
 
 .. _howto-Wirnsberger:

@@ -76,7 +76,7 @@ FixLambdaAPIP::FixLambdaAPIP(LAMMPS *lmp, int narg, char **arg) :
   size_peratom_cols = 5;
   invoked_history_update = invoked_history2_update = -1;
 
-  if (narg < 4) error->all(FLERR, "fix lambda requires two arguments");
+  if (narg < 4) error->all(FLERR, "fix lambda/apip requires two arguments");
   threshold_lo = utils::numeric(FLERR, arg[3], false, lmp);
   threshold_hi = utils::numeric(FLERR, arg[4], false, lmp);
   threshold_width = threshold_hi - threshold_lo;
@@ -85,18 +85,18 @@ FixLambdaAPIP::FixLambdaAPIP(LAMMPS *lmp, int narg, char **arg) :
   for (int iarg = 5; iarg < narg; iarg++) {
     if (strcmp(arg[iarg], "time_averaged_zone") == 0) {
       if (iarg + 4 >= narg)
-        error->all(FLERR, "fix lambda: time_averaged_zone requires four arguments");
+        error->all(FLERR, "fix lambda/apip: time_averaged_zone requires four arguments");
       cut_lo = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       cut_hi = utils::numeric(FLERR, arg[iarg + 2], false, lmp);
       history_length = utils::inumeric(FLERR, arg[iarg + 3], false, lmp);
       history2_length = utils::inumeric(FLERR, arg[iarg + 4], false, lmp);
       iarg += 4;
     } else if (strcmp(arg[iarg], "min_delta_lambda") == 0) {
-      if (iarg + 1 >= narg) error->all(FLERR, "fix lambda: min_delta_lambda requires one argument");
+      if (iarg + 1 >= narg) error->all(FLERR, "fix lambda/apip: min_delta_lambda requires one argument");
       min_delta_lambda = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 1;
     } else if (strcmp(arg[iarg], "lambda_non_group") == 0) {
-      if (iarg + 1 >= narg) error->all(FLERR, "fix lambda: lambda_non_group requires an argument");
+      if (iarg + 1 >= narg) error->all(FLERR, "fix lambda/apip: lambda_non_group requires an argument");
       if (strcmp(arg[iarg + 1], "precise") == 0) {
         lambda_non_group = 0;
       } else if (strcmp(arg[iarg + 1], "fast") == 0) {
@@ -104,7 +104,7 @@ FixLambdaAPIP::FixLambdaAPIP(LAMMPS *lmp, int narg, char **arg) :
       } else {
         lambda_non_group = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
         if (lambda_non_group < 0 || lambda_non_group > 1)
-          error->all(FLERR, "fix lambda: Illegal value of lambda_non_group");
+          error->all(FLERR, "fix lambda/apip: Illegal value of lambda_non_group");
       }
       iarg++;
     } else if (strcmp(arg[iarg], "store_atomic_stats") == 0) {
@@ -114,28 +114,31 @@ FixLambdaAPIP::FixLambdaAPIP(LAMMPS *lmp, int narg, char **arg) :
       dump_history_flag = true;
     } else if (strcmp(arg[iarg], "group_fast") == 0) {
       // read name of group
+      delete[] group_name_simple;
       group_name_simple = utils::strdup(arg[iarg + 1]);
       int tmp = group->find(group_name_simple);
-      if (tmp == -1) error->all(FLERR, "fix lambda: group {} does not exist", group_name_simple);
+      if (tmp == -1) error->all(FLERR, "fix lambda/apip: group {} does not exist", group_name_simple);
       group_bit_simple = group->bitmask[tmp];
       iarg++;
     } else if (strcmp(arg[iarg], "group_precise") == 0) {
       // read name of group
+      delete[] group_name_complex;
       group_name_complex = utils::strdup(arg[iarg + 1]);
       int tmp = group->find(group_name_complex);
-      if (tmp == -1) error->all(FLERR, "fix lambda: group {} does not exist", group_name_complex);
+      if (tmp == -1) error->all(FLERR, "fix lambda/apip: group {} does not exist", group_name_complex);
       group_bit_complex = group->bitmask[tmp];
       iarg++;
     } else if (strcmp(arg[iarg], "group_ignore_lambda_input") == 0) {
       // read name of group
+      delete[] group_name_ignore_lambda_input;
       group_name_ignore_lambda_input = utils::strdup(arg[iarg + 1]);
       int tmp = group->find(group_name_ignore_lambda_input);
       if (tmp == -1)
-        error->all(FLERR, "fix lambda: group {} does not exist", group_name_ignore_lambda_input);
+        error->all(FLERR, "fix lambda/apip: group {} does not exist", group_name_ignore_lambda_input);
       group_bit_ignore_lambda_input = group->bitmask[tmp];
       iarg++;
     } else
-      error->all(FLERR, "fix lambda: unknown argument {}", arg[iarg]);
+      error->all(FLERR, "fix lambda/apip: unknown argument {}", arg[iarg]);
   }
   cut_hi_sq = cut_hi * cut_hi;
   cut_width = cut_hi - cut_lo;
@@ -203,7 +206,7 @@ int FixLambdaAPIP::modify_param(int narg, char **arg)
   if (cut_lo < 0 || cut_hi < cut_lo) error->all(FLERR, "fix lambda/apip: Illegal cutoff values");
 
   if (force->pair->cutforce < cut_hi)
-    error->all(FLERR, "fix lambda: cutoff of potential smaller than cutoff of switching region");
+    error->all(FLERR, "fix lambda/apip: cutoff of potential smaller than cutoff of switching region");
 
   return 2;
 }
@@ -212,10 +215,8 @@ int FixLambdaAPIP::modify_param(int narg, char **arg)
 
 FixLambdaAPIP::~FixLambdaAPIP()
 {
-  // check nfix in case all fixes have already been deleted
-  if (fixstore && modify->nfix) modify->delete_fix(fixstore->id);
-  if (fixstore2 && modify->nfix) modify->delete_fix(fixstore2->id);
-  fixstore = fixstore2 = nullptr;
+  if (fixstore) modify->delete_fix(fixstore->id);
+  if (fixstore2) modify->delete_fix(fixstore2->id);
 
   memory->destroy(peratom_stats);
 
@@ -239,17 +240,13 @@ int FixLambdaAPIP::setmask()
 
 void FixLambdaAPIP::init()
 {
-  if (force->pair == nullptr) error->all(FLERR, "Fix lambda requires a pair style be defined");
+  if (force->pair == nullptr) error->all(FLERR, "Fix lambda/apip requires a pair style be defined");
 
-  // only one fix lambda
-  int count = 0;
-  for (int i = 0; i < modify->nfix; i++) {
-    if (strcmp(modify->fix[i]->style, "lambda/apip") == 0) count++;
-  }
-  if (count > 1) error->all(FLERR, "More than one fix lambda.");
+  if (modify->get_fix_by_style("^lambda/apip").size() > 1)
+    error->all(FLERR, Error::NOLASTLINE, "More than one fix lambda/apip.");
 
   // warn if there is no fix lambda_thermostat/apip
-  if (comm->me == 0 && modify->get_fix_by_style("lambda_thermostat/apip").size() == 0)
+  if (comm->me == 0 && modify->get_fix_by_style("lambda_thermostat/apip").empty())
     error->warning(FLERR,
                    "The energy is not conserved when lambda changes as fix lambda_thermostat/apip "
                    "is not used.");
@@ -265,25 +262,25 @@ void FixLambdaAPIP::init()
   pair_lambda_zone = (PairLambdaZoneAPIP *) pair_tmp;
 
   if (force->pair->cutforce < cut_hi)
-    error->all(FLERR, "fix lambda: cutoff of potential smaller than cutoff of switching region");
+    error->all(FLERR, "fix lambda/apip: cutoff of potential smaller than cutoff of switching region");
 
-  if (strcmp(atom->atom_style, "apip")) error->all(FLERR, "fix lambda requires atom style apip");
+  if (strcmp(atom->atom_style, "apip") != 0) error->all(FLERR, "fix lambda requires atom style apip");
 
   // check that groups have not been deleted
   if (group_name_simple) {
     int tmp = group->find(group_name_simple);
-    if (tmp == -1) error->all(FLERR, "fix lambda: group {} does not exist", group_name_simple);
+    if (tmp == -1) error->all(FLERR, "fix lambda/apip: group {} does not exist", group_name_simple);
     group_bit_simple = group->bitmask[tmp];
   }
   if (group_name_complex) {
     int tmp = group->find(group_name_complex);
-    if (tmp == -1) error->all(FLERR, "fix lambda: group {} does not exist", group_name_complex);
+    if (tmp == -1) error->all(FLERR, "fix lambda/apip: group {} does not exist", group_name_complex);
     group_bit_complex = group->bitmask[tmp];
   }
   if (group_name_ignore_lambda_input) {
     int tmp = group->find(group_name_ignore_lambda_input);
     if (tmp == -1)
-      error->all(FLERR, "fix lambda: group {} does not exist", group_name_ignore_lambda_input);
+      error->all(FLERR, "fix lambda/apip: group {} does not exist", group_name_ignore_lambda_input);
     group_bit_ignore_lambda_input = group->bitmask[tmp];
   }
 }
@@ -295,37 +292,23 @@ void FixLambdaAPIP::init()
 
 void FixLambdaAPIP::post_constructor()
 {
-  std::string cmd, cmd2;
-  cmd = id;
-  cmd2 = id;
-  cmd += "LAMBDA_INPUT_HISTORY";
-  cmd2 += "LAMBDA_HISTORY";
+  std::string cmd = fmt::format("{}LAMBDA_INPUT_HISTORY", id);
+  std::string cmd2 = fmt::format("{}LAMBDA_HISTORY", id);
 
   // delete existing fix store if existing
   fixstore = dynamic_cast<FixStoreAtom *>(modify->get_fix_by_id(cmd));
   fixstore2 = dynamic_cast<FixStoreAtom *>(modify->get_fix_by_id(cmd2));
-  // check nfix in case all fixes have already been deleted
-  if (fixstore && modify->nfix) modify->delete_fix(fixstore->id);
-  if (fixstore2 && modify->nfix) modify->delete_fix(fixstore2->id);
+  if (fixstore) modify->delete_fix(fixstore->id);
+  if (fixstore2) modify->delete_fix(fixstore2->id);
   fixstore = nullptr;
 
   // create new FixStoreAtom
   // store history_length of last values and the sum over all values
-  char history_length_str[40], history2_length_str[40];
-  sprintf(history_length_str, "%d", history_length + 2);      // lambda_input
-  sprintf(history2_length_str, "%d", history2_length + 1);    // lambda
-
-  // arguments of peratom:
-  // first: 1 -> store in restart file
-  // second: number of doubles to store per atom
-  cmd += " all STORE/ATOM ";
-  cmd2 += " all STORE/ATOM ";
-  cmd += history_length_str;      // n1
-  cmd2 += history2_length_str;    // n1
-  cmd += " 0 0 1";                // n2 gflag rflag
-  cmd2 += " 0 0 1";               // n2 gflag rflag
-  fixstore = dynamic_cast<FixStoreAtom *>(modify->add_fix(cmd));
-  fixstore2 = dynamic_cast<FixStoreAtom *>(modify->add_fix(cmd2));
+  // STORE/ATOM arguments: n1 (number of doubles per atom) n2 gflag rflag
+  fixstore = dynamic_cast<FixStoreAtom *>(
+      modify->add_fix(fmt::format("{} all STORE/ATOM {} 0 0 1", cmd, history_length + 2)));
+  fixstore2 = dynamic_cast<FixStoreAtom *>(
+      modify->add_fix(fmt::format("{} all STORE/ATOM {} 0 0 1", cmd2, history2_length + 1)));
 
   // carry weights with atoms during normal atom migration
   fixstore->disable = 0;

@@ -35,7 +35,7 @@ static constexpr int MAXLINE = 1024;
 
 /* ---------------------------------------------------------------------- */
 
-PairSNAP::PairSNAP(LAMMPS *lmp) : Pair(lmp)
+PairSNAP::PairSNAP(LAMMPS *lmp) : Pair(lmp), scale(nullptr)
 {
   single_enable = 0;
   restartinfo = 0;
@@ -673,7 +673,7 @@ void PairSNAP::read_files(char *coefffilename, char *paramfilename)
       // ignore
     }
 
-    if (words.size() == 0) continue;
+    if (words.empty()) continue;
 
     if (words.size() < 2)
       error->all(FLERR,"Incorrect format in SNAP parameter file");

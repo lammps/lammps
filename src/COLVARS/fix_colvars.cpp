@@ -227,6 +227,8 @@ FixColvars::~FixColvars()
   delete[] script_args[0];
 
   memory->sfree(comm_buf);
+  memory->destroy(taglist);
+  memory->destroy(force_buf);
 
   delete proxy;
   if (root2root != MPI_COMM_NULL) MPI_Comm_free(&root2root);
@@ -376,11 +378,12 @@ int FixColvars::modify_param(int narg, char **arg)
     return (error_code == COLVARSCRIPT_OK) ? narg : 0;
   } else { // me != 0
     setup_colvars(); // communicate colvars changes to mpi ranks > 0
+    // the substituted arguments above are allocated on every rank, so they also
+    // have to be released on the ranks that do not run the script
+    for (int i = 0; i < narg; i++) memory->sfree(script_args[i+1]);
     // Return without error, don't block Fix::modify_params()
     return narg;
   }
-
-  return 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -429,6 +432,11 @@ void FixColvars::setup(int vflag)
   }
 
   MPI_Allreduce(&nme,&nmax,1,MPI_INT,MPI_MAX,world);
+
+  // setup() runs for every run command, so release the buffer of the previous one
+
+  memory->sfree(comm_buf);
+  comm_buf = nullptr;
   memory->create(comm_buf,nmax,"colvars:comm_buf");
 
   const double * const * const x = atom->x;

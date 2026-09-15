@@ -18,6 +18,7 @@
 #include "atom_masks.h"
 #include "error.h"
 #include "group.h"
+#include "group_kokkos.h"
 #include "update.h"
 
 #include <cmath>
@@ -62,12 +63,14 @@ void FixSpringKokkos<DeviceType>::post_force(int /*vflag*/)
 
   if (styleflag == TETHER) {
 
-    // compute center of mass of group on host
+    // compute center of mass of group on the device.  the host-only
+    // Group::xcm() also reads image, type and rmass, whose host copies are
+    // stale during a run (DomainKokkos::pbc() rewrites the image flags on the
+    // device), so the unwrapped center of mass would be off by whole boxes
 
-    atomKK->sync(Host, X_MASK | MASK_MASK);
-
-    if (group->dynamic[igroup]) masstotal = group->mass(igroup);
-    group->xcm(igroup, masstotal, xcm);
+    auto *groupKK = (GroupKokkos *) group;
+    if (group->dynamic[igroup]) masstotal = groupKK->mass_kk<DeviceType>(igroup);
+    groupKK->xcm_kk<DeviceType>(igroup, masstotal, xcm);
 
     // compute scalar forces from xcm displacement
 
@@ -121,14 +124,13 @@ void FixSpringKokkos<DeviceType>::post_force(int /*vflag*/)
 
   } else {    // COUPLE
 
-    // compute both centers of mass on host
+    // compute both centers of mass on the device (see the comment above)
 
-    atomKK->sync(Host, X_MASK | MASK_MASK);
-
-    if (group->dynamic[igroup]) masstotal = group->mass(igroup);
-    if (group->dynamic[igroup2]) masstotal2 = group->mass(igroup2);
-    group->xcm(igroup, masstotal, xcm);
-    group->xcm(igroup2, masstotal2, xcm2);
+    auto *groupKK = (GroupKokkos *) group;
+    if (group->dynamic[igroup]) masstotal = groupKK->mass_kk<DeviceType>(igroup);
+    if (group->dynamic[igroup2]) masstotal2 = groupKK->mass_kk<DeviceType>(igroup2);
+    groupKK->xcm_kk<DeviceType>(igroup, masstotal, xcm);
+    groupKK->xcm_kk<DeviceType>(igroup2, masstotal2, xcm2);
 
     // compute scalar forces from xcm displacement
 

@@ -397,29 +397,6 @@ void PairLJCutDipoleCutKokkos<DeviceType>::operator()(TagPairLJCutDipoleCutKerne
           tjzcoul += -pre2 * (mu(j,0)*dely - mu(j,1)*delx);
         }
 
-        KK_FLOAT fq = factor_coul*qqrd2e;
-        fx = fq*forcecoulx + delx*forcelj;
-        fy = fq*forcecouly + dely*forcelj;
-        fz = fq*forcecoulz + delz*forcelj;
-
-        // force & torque accumulation
-
-        fx_i += static_cast<KK_ACC_FLOAT>(fx);
-        fy_i += static_cast<KK_ACC_FLOAT>(fy);
-        fz_i += static_cast<KK_ACC_FLOAT>(fz);
-        torquex_i += static_cast<KK_ACC_FLOAT>(fq*tixcoul);
-        torquey_i += static_cast<KK_ACC_FLOAT>(fq*tiycoul);
-        torquez_i += static_cast<KK_ACC_FLOAT>(fq*tizcoul);
-
-        if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal)) {
-          a_f(j,0) -= static_cast<KK_ACC_FLOAT>(fx);
-          a_f(j,1) -= static_cast<KK_ACC_FLOAT>(fy);
-          a_f(j,2) -= static_cast<KK_ACC_FLOAT>(fz);
-          a_torque(j,0) += static_cast<KK_ACC_FLOAT>(fq*tjxcoul);
-          a_torque(j,1) += static_cast<KK_ACC_FLOAT>(fq*tjycoul);
-          a_torque(j,2) += static_cast<KK_ACC_FLOAT>(fq*tjzcoul);
-        }
-
         if (EVFLAG && eflag_global) {
           ecoul = qtmp*qj*rinv;
           if (mu(i,3) > static_cast<KK_FLOAT>(0.0) && mu(j,3) > static_cast<KK_FLOAT>(0.0))
@@ -432,6 +409,34 @@ void PairLJCutDipoleCutKokkos<DeviceType>::operator()(TagPairLJCutDipoleCutKerne
           ev.ecoul += (((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD)&&(NEWTON_PAIR||(j<nlocal)))?static_cast<KK_ACC_FLOAT>(1.0):static_cast<KK_ACC_FLOAT>(0.5))*static_cast<KK_ACC_FLOAT>(ecoul);
         }
       } // cutsq_coulsq_ij
+
+      // total force and torque, computed unconditionally as the CPU style does.
+      // the coulomb accumulators are zero-initialised above, so for
+      // cut_coul <= r < cut_lj this reduces to the LJ-only contribution instead
+      // of dropping the force and the virial altogether
+
+      KK_FLOAT fq = factor_coul*qqrd2e;
+      fx = fq*forcecoulx + delx*forcelj;
+      fy = fq*forcecouly + dely*forcelj;
+      fz = fq*forcecoulz + delz*forcelj;
+
+      // force & torque accumulation
+
+      fx_i += static_cast<KK_ACC_FLOAT>(fx);
+      fy_i += static_cast<KK_ACC_FLOAT>(fy);
+      fz_i += static_cast<KK_ACC_FLOAT>(fz);
+      torquex_i += static_cast<KK_ACC_FLOAT>(fq*tixcoul);
+      torquey_i += static_cast<KK_ACC_FLOAT>(fq*tiycoul);
+      torquez_i += static_cast<KK_ACC_FLOAT>(fq*tizcoul);
+
+      if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal)) {
+        a_f(j,0) -= static_cast<KK_ACC_FLOAT>(fx);
+        a_f(j,1) -= static_cast<KK_ACC_FLOAT>(fy);
+        a_f(j,2) -= static_cast<KK_ACC_FLOAT>(fz);
+        a_torque(j,0) += static_cast<KK_ACC_FLOAT>(fq*tjxcoul);
+        a_torque(j,1) += static_cast<KK_ACC_FLOAT>(fq*tjycoul);
+        a_torque(j,2) += static_cast<KK_ACC_FLOAT>(fq*tjzcoul);
+      }
 
       if (EVFLAG && (eflag_atom || vflag_either))
         ev_tally_xyz<NEIGHFLAG, NEWTON_PAIR>(ev, i, j, ecoul+evdwl, fx, fy, fz, delx, dely, delz);
@@ -638,23 +643,6 @@ void PairLJCutDipoleCutKokkos<DeviceType>::operator()(TagPairLJCutDipoleCutKerne
           tjzcoul += -pre2 * (mu(j,0)*dely - mu(j,1)*delx);
         }
 
-        KK_FLOAT fq = factor_coul*qqrd2e;
-        fx = fq*forcecoulx + delx*forcelj;
-        fy = fq*forcecouly + dely*forcelj;
-        fz = fq*forcecoulz + delz*forcelj;
-        tx = fq*tixcoul;
-        ty = fq*tiycoul;
-        tz = fq*tizcoul;
-
-        if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal)) {
-          a_f(j,0) -= static_cast<KK_ACC_FLOAT>(fx);
-          a_f(j,1) -= static_cast<KK_ACC_FLOAT>(fy);
-          a_f(j,2) -= static_cast<KK_ACC_FLOAT>(fz);
-          a_torque(j,0) += static_cast<KK_ACC_FLOAT>(fq*tjxcoul);
-          a_torque(j,1) += static_cast<KK_ACC_FLOAT>(fq*tjycoul);
-          a_torque(j,2) += static_cast<KK_ACC_FLOAT>(fq*tjzcoul);
-        }
-
         if (EVFLAG && eflag_global) {
           ecoul = qtmp*qj*rinv;
           if (mu(i,3) > static_cast<KK_FLOAT>(0.0) && mu(j,3) > static_cast<KK_FLOAT>(0.0))
@@ -667,6 +655,26 @@ void PairLJCutDipoleCutKokkos<DeviceType>::operator()(TagPairLJCutDipoleCutKerne
           ev.ecoul += (((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD)&&(NEWTON_PAIR||(j<nlocal)))?static_cast<KK_ACC_FLOAT>(1.0):static_cast<KK_ACC_FLOAT>(0.5))*static_cast<KK_ACC_FLOAT>(ecoul);
         }
       } // cutsq_coulsq_ij
+
+      // total force and torque, computed unconditionally as the CPU style does;
+      // see the range kernel above
+
+      KK_FLOAT fq = factor_coul*qqrd2e;
+      fx = fq*forcecoulx + delx*forcelj;
+      fy = fq*forcecouly + dely*forcelj;
+      fz = fq*forcecoulz + delz*forcelj;
+      tx = fq*tixcoul;
+      ty = fq*tiycoul;
+      tz = fq*tizcoul;
+
+      if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || j < nlocal)) {
+        a_f(j,0) -= static_cast<KK_ACC_FLOAT>(fx);
+        a_f(j,1) -= static_cast<KK_ACC_FLOAT>(fy);
+        a_f(j,2) -= static_cast<KK_ACC_FLOAT>(fz);
+        a_torque(j,0) += static_cast<KK_ACC_FLOAT>(fq*tjxcoul);
+        a_torque(j,1) += static_cast<KK_ACC_FLOAT>(fq*tjycoul);
+        a_torque(j,2) += static_cast<KK_ACC_FLOAT>(fq*tjzcoul);
+      }
 
       if (EVFLAG && (eflag_atom || vflag_either))
         ev_tally_xyz<NEIGHFLAG, NEWTON_PAIR>(ev, i, j, ecoul+evdwl, fx, fy, fz, delx, dely, delz);

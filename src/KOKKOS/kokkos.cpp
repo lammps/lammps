@@ -71,7 +71,7 @@ static const char cite_kokkos_package[] =
   " year = 2025,\n"
   " booktitle = {Proceedings of the SC '25 Workshops of the International Conference for High Performance Computing,\n"
   "  Networking, Storage and Analysis},\n"
-  " pages = {1217–1232},\n"
+  " pages = {1217--1232},\n"
   "}\n\n";
 
 int KokkosLMP::is_finalized = 0;
@@ -221,10 +221,12 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
       int set_flag = 0;
       char *str;
       if ((str = getenv("SLURM_LOCALID"))) {
-        int local_rank = std::stoi(str);
-        device = local_rank % ngpus;
-        if (device >= skip_gpu) device++;
-        set_flag = 1;
+        if (ngpus > 0) {
+          int local_rank = std::stoi(str);
+          device = local_rank % ngpus;
+          if (device >= skip_gpu) device++;
+          set_flag = 1;
+        }
       }
       if ((str = getenv("FLUX_TASK_LOCAL_ID"))) {
         if (ngpus > 0) {
@@ -281,6 +283,7 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
     } else if (strcmp(arg[iarg],"t") == 0 ||
                strcmp(arg[iarg],"threads") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Invalid Kokkos command-line args");
       nthreads = utils::inumeric(FLERR, arg[iarg+1], false, lmp);
 
       if (nthreads <= 0)
@@ -296,12 +299,16 @@ KokkosLMP::KokkosLMP(LAMMPS *lmp, int narg, char **arg) : Pointers(lmp)
 
   Kokkos::InitializationSettings args;
 
-  if (args.has_num_threads()) {
-    if ((args.get_num_threads() != nthreads) || (args.get_device_id() != device))
+  // the settings object was just created, so it has nothing to compare against.
+  // ask the library itself whether it is already running, which is the case when
+  // a second LAMMPS instance is created in the same process
+
+  if (Kokkos::is_initialized()) {
+    if ((Kokkos::num_threads() != nthreads) || (Kokkos::device_id() != device))
       if (me == 0)
         error->warning(FLERR,"Kokkos package already initalized. Cannot change parameters");
-    nthreads = args.get_num_threads();
-    device = args.get_device_id();
+    nthreads = Kokkos::num_threads();
+    device = Kokkos::device_id();
     ngpus = init_ngpus;
   } else {
     args.set_num_threads(nthreads);
@@ -821,7 +828,10 @@ void KokkosLMP::accelerator(int narg, char **arg)
     }
   }
 
-  if (lmp->pair_only_flag) {
+  // if "pair/only off" and the sort and atom map flags were changed previously,
+  // change them back
+
+  if (!lmp->pair_only_flag) {
     if (sort_changed) {
       sort_legacy = 0;
       sort_changed = 0;

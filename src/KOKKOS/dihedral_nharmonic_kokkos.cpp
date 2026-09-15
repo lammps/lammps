@@ -43,7 +43,7 @@ DihedralNHarmonicKokkos<DeviceType>::DihedralNHarmonicKokkos(LAMMPS *lmp) : Dihe
   atomKK = (AtomKokkos *) atom;
   neighborKK = (NeighborKokkos *) neighbor;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
-  datamask_read = X_MASK | F_MASK | Q_MASK | ENERGY_MASK | VIRIAL_MASK;
+  datamask_read = X_MASK | F_MASK | ENERGY_MASK | VIRIAL_MASK;
   datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
 
   k_warning_flag = DAT::tdual_int_scalar("Dihedral:warning_flag");
@@ -346,7 +346,18 @@ void DihedralNHarmonicKokkos<DeviceType>::allocate_kokkos()
     k_a = DAT::tdual_kkfloat_2d("DihedralNHarmonic::a",n+1,nterms_max);
     k_nterms = DAT::tdual_int_1d("DihedralNHarmonic::nterms",n+1);
   } else {
+
+    // make the host side the newest before resizing: Kokkos grows the side
+    // that was last modified, and growing on the device replaces the host
+    // mirror with a fresh zero-filled allocation and leaves the device marked
+    // modified, which makes the modify_host() in coeff() below abort with a
+    // concurrent modification error
+
+    k_a.sync_host();
+    k_a.modify_host();
     k_a.resize(n+1,nterms_max);
+    k_nterms.sync_host();
+    k_nterms.modify_host();
     k_nterms.resize(n+1);
   }
 

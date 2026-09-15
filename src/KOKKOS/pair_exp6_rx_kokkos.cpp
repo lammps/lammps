@@ -1687,6 +1687,23 @@ void PairExp6rxKokkos<DeviceType>::coeff(int narg, char **arg)
   d_params = k_params.template view<DeviceType>();
 }
 
+/* ----------------------------------------------------------------------
+   init for one type pair i,j and corresponding j,i
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+double PairExp6rxKokkos<DeviceType>::init_one(int i, int j)
+{
+  double cutone = PairExp6rx::init_one(i,j);
+
+  // Pair::init() writes cutsq[i][j] on the host after each init_one() call,
+  // so the host side of the shared k_cutsq view must be flagged as modified
+
+  k_cutsq.modify_host();
+
+  return cutone;
+}
+
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>

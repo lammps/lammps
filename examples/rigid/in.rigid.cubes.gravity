@@ -24,7 +24,7 @@ pair_coeff      1 1 1.0 1.0
 # rigid bodies do not feel internal forces; exclude intra-body neighbor pairs
 neigh_modify    exclude molecule/intra all
 
-velocity        all create 1.5 4928459 mom yes rot yes
+velocity        all create 1.5 4928459 mom yes rot yes loop geom
 
 fix             grav all gravity 1.0 vector 0.3 0.4 -0.85
 fix             1 all rigid/small molecule

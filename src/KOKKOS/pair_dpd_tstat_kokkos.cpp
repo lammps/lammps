@@ -122,6 +122,9 @@ void PairDPDTstatKokkos<DeviceType>::compute(int eflagin, int vflagin)
   }
   k_params.modify_host();
 
+  // this style has no per-atom energy, but eatom must exist and be zeroed
+  // because ev_init() above was called with alloc == 0
+
   if (eflag_atom) {
     maxeatom = atom->nmax;
     memory->destroy(eatom);

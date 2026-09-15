@@ -330,6 +330,12 @@ void PairHybrid::settings(int narg, char **arg)
       error->all(FLERR,"Pair style {} cannot have none as a sub-style", mystyle);
 
     styles[nstyles] = force->new_pair(arg[iarg],1,dummy);
+
+    // a sub-style that keeps state in an internal fix builds the fix id from
+    // this position, so that the id is the same in a run that writes a restart
+    // file and in the run that reads it back
+
+    styles[nstyles]->hybrid_index = nstyles;
     keywords[nstyles] = force->store_style(arg[iarg],0);
     special_lj[nstyles] = special_coul[nstyles] = nullptr;
     compute_tally[nstyles] = 1;
@@ -857,6 +863,11 @@ void PairHybrid::read_restart(FILE *fp)
     if (me == 0) utils::sfread(FLERR,keywords[m],sizeof(char),n,fp,nullptr,error);
     MPI_Bcast(keywords[m],n,MPI_CHAR,0,world);
     styles[m] = force->new_pair(keywords[m],1,dummy);
+
+    // same position-based index as in settings(), so that a sub-style with an
+    // internal fix finds the per-atom data written for it in the restart file
+
+    styles[m]->hybrid_index = m;
     styles[m]->read_restart_settings(fp);
     // read back per style special settings, if present
     special_lj[m] = special_coul[m] = nullptr;

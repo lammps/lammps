@@ -43,6 +43,10 @@ ImproperUmbrellaKokkos<DeviceType>::ImproperUmbrellaKokkos(LAMMPS *lmp) : Improp
   datamask_read = X_MASK | F_MASK | ENERGY_MASK | VIRIAL_MASK;
   datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
 
+  k_warning_flag = DAT::tdual_int_scalar("ImproperUmbrella::warning_flag");
+  d_warning_flag = k_warning_flag.template view<DeviceType>();
+  h_warning_flag = k_warning_flag.view_host();
+
   centroidstressflag = CENTROID_NOTAVAIL;
 }
 
@@ -95,9 +99,6 @@ void ImproperUmbrellaKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   newton_bond = force->newton_bond;
 
   // zero warning flag
-  k_warning_flag = DAT::tdual_int_scalar("ImproperUmbrella::warning_flag");
-  d_warning_flag = k_warning_flag.template view<DeviceType>();
-  h_warning_flag = k_warning_flag.view_host();
   h_warning_flag() = 0;
   k_warning_flag.modify_host();
   k_warning_flag.template sync<DeviceType>();

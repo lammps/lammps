@@ -28,7 +28,7 @@ template <class DeviceType>
 class MLIAPModelPythonKokkos : public MLIAPModelPython, public MLIAPModelKokkos<DeviceType> {
  public:
   MLIAPModelPythonKokkos(LAMMPS *, char * = nullptr);
-  ~MLIAPModelPythonKokkos();
+  ~MLIAPModelPythonKokkos() override;
   void read_coeffs(char *fname) override;
 
   void compute_gradients(class MLIAPData *) override;
@@ -36,6 +36,15 @@ class MLIAPModelPythonKokkos : public MLIAPModelPython, public MLIAPModelKokkos<
   void compute_force_gradients(class MLIAPData *) override;
   void connect_param_counts();
 };
+
+// Non-template handle type for the Cython coupling in
+// mliap_model_python_couple_kokkos.pyx, which cannot name a template.  The
+// model objects the couple layer is handed are MLIAPModelPythonKokkos<DeviceType>
+// for either DeviceType, never this class, so the reinterpret_cast in
+// mliap_model_python_kokkos.cpp relies on both instantiations deriving from
+// MLIAPModelPython first, at offset zero, with a layout that does not depend on
+// DeviceType.  The couple layer uses the pointer as an identity key and calls
+// only connect_param_counts() through it.
 
 class  MLIAPModelPythonKokkosDevice: public MLIAPModelPythonKokkos<LMPDeviceType> {
 };

@@ -365,7 +365,7 @@ class RegBlockKokkos : public RegBlock, public KokkosBase  {
 
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
-  double inside_face(double *xproj, int iface) const
+  int inside_face(double *xproj, int iface) const
   {
     if (iface < 2) {
       if (xproj[1] > 0 && (xproj[1] < yhi - ylo) && xproj[2] > 0 && (xproj[2] < zhi - zlo)) return 1;

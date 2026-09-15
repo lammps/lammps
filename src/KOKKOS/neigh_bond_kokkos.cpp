@@ -239,6 +239,17 @@ void NeighBondKokkos<DeviceType>::build_topology_kk()
   if (force->angle) (this->*angle_build_kk)();
   if (force->dihedral) (this->*dihedral_build_kk)();
   if (force->improper) (this->*improper_build_kk)();
+
+  // the topology lists are built on the device, but they are also exposed
+  // through the legacy neighbor->bondlist/anglelist/... host pointers that
+  // non-KOKKOS styles and computes (e.g. compute stress/cartesian) read
+  // directly.  sync the host side so those consumers do not see a stale list;
+  // the device views the KOKKOS bond/angle/... styles use stay valid, as this
+  // leaves both sides of each dual view in sync
+  if (force->bond) k_bondlist.sync_host();
+  if (force->angle) k_anglelist.sync_host();
+  if (force->dihedral) k_dihedrallist.sync_host();
+  if (force->improper) k_improperlist.sync_host();
 }
 
 /* ---------------------------------------------------------------------- */

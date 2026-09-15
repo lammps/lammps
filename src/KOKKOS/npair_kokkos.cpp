@@ -271,24 +271,29 @@ void NPairKokkos<DeviceType,HALF,NEWTON,GHOST,TRI,SIZE>::build(NeighList *list_)
 
       NPairKokkosBuildFunctorGhost<DeviceType,HALF> f(data,atoms_per_bin * 5 * sizeof(double) * factor);
 
-// temporarily disable team policy for ghost due to known bug
+      // the team kernel builds a list only for the atoms it finds in the bins,
+      // while the flat kernel walks 0..nall. Those differ when an include group
+      // keeps atoms out of the bins, so use the flat kernel in that case.
 
-//#ifdef LMP_KOKKOS_GPU
-//      if (ExecutionSpaceFromDevice<DeviceType>::space == Device) {
-//        int team_size = atoms_per_bin*factor;
-//        int team_size_max = Kokkos::TeamPolicy<DeviceType>(team_size,Kokkos::AUTO).team_size_max(f,Kokkos::ParallelForTag());
-//        if (team_size <= team_size_max) {
-//          Kokkos::TeamPolicy<DeviceType> config((mbins+factor-1)/factor,team_size);
-//          Kokkos::parallel_for(config, f);
-//        } else { // fall back to flat method
-//          f.sharedsize = 0;
-//          Kokkos::parallel_for(nall, f);
-//        }
-//      } else
-//        Kokkos::parallel_for(nall, f);
-//#else
+#ifdef LMP_KOKKOS_GPU
+      if (ExecutionSpaceFromDevice<DeviceType>::space == Device && !includegroup) {
+        int team_size = atoms_per_bin*factor;
+        int team_size_max = Kokkos::TeamPolicy<DeviceType>(team_size,Kokkos::AUTO).team_size_max(f,Kokkos::ParallelForTag());
+        if (team_size <= team_size_max) {
+          Kokkos::TeamPolicy<DeviceType> config((mbins+factor-1)/factor,team_size);
+          Kokkos::parallel_for(config, f);
+        } else { // fall back to flat method
+          f.sharedsize = 0;
+          Kokkos::parallel_for(nall, f);
+        }
+      } else {
+        f.sharedsize = 0;
+        Kokkos::parallel_for(nall, f);
+      }
+#else
+      f.sharedsize = 0;
       Kokkos::parallel_for(nall, f);
-//#endif
+#endif
     } else {
       if (SIZE) {
         NPairKokkosBuildFunctorSize<DeviceType,HALF,NEWTON,TRI> f(data,atoms_per_bin * 7 * sizeof(double) * factor);
@@ -1048,7 +1053,7 @@ void NeighborKokkosExecute<DeviceType>::build_ItemGhostGPU(typename Kokkos::Team
     // no molecular test when i = ghost atom
 
     int ghost = (i >= nlocal && i < nall);
-    int binxyz[3];
+    int binxyz[3] = {0,0,0};
     if (ghost)
       coord2bin(xtmp, ytmp, ztmp, binxyz);
     const int xbin = binxyz[0];
@@ -1065,9 +1070,18 @@ void NeighborKokkosExecute<DeviceType>::build_ItemGhostGPU(typename Kokkos::Team
             zbin2 < 0 || zbin2 >= mbinz) active = 0;
       }
 
+      // ghost atoms live in the outermost bins, so unlike the owned-atom
+      // stencil the offset can leave the bin array altogether. build_ItemGhost()
+      // skips such a bin before it is touched; here the threads of a team can
+      // be working on different bins and all of them have to reach the barriers
+      // below, so mask the load rather than skipping the stencil entry. An
+      // empty bin contributes nothing, and the 3d test above still rejects the
+      // bins that stay in range but wrap into a different row or plane.
+
       const int jbin = ibin + stencil[k];
-      bincount_current = c_bincount[jbin];
-      int j = MY_II < bincount_current ? c_bins(jbin, MY_II) : -1;
+      const bool jbin_valid = (jbin >= 0 && jbin < mbins);
+      bincount_current = jbin_valid ? c_bincount[jbin] : 0;
+      int j = (jbin_valid && MY_II < bincount_current) ? c_bins(jbin, MY_II) : -1;
 
       if (j >= 0) {
         other_x[MY_II] = x(j, 0);

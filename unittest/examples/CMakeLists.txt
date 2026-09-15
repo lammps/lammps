@@ -11,9 +11,17 @@
 # Each test runs in its own working directory, since the example inputs
 # write output files with fixed names into the current directory.
 
+
 function(add_example_test NAME TESTNAME FOLDER)
   add_executable(test_examples_${NAME} test_examples_${NAME}.cpp)
-  target_compile_definitions(test_examples_${NAME} PRIVATE -DTEST_EXAMPLES_FOLDER=${LAMMPS_DIR}/examples/${FOLDER})
+
+  if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    string(REPLACE "/" "\\\\" TEST_INPUT_FOLDER "${LAMMPS_DIR}/examples/${FOLDER}")
+  else()
+    set(TEST_INPUT_FOLDER "${LAMMPS_DIR}/examples/${FOLDER}")
+  endif()
+
+  target_compile_definitions(test_examples_${NAME} PRIVATE -DTEST_EXAMPLES_FOLDER=${TEST_INPUT_FOLDER})
   target_link_libraries(test_examples_${NAME} PRIVATE lammps GTest::GMock)
   file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/workdir-${NAME})
   add_test(NAME ${TESTNAME}

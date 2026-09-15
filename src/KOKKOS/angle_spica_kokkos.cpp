@@ -44,6 +44,7 @@ static constexpr double SMALL = 0.001;
 template<class DeviceType>
 AngleSPICAKokkos<DeviceType>::AngleSPICAKokkos(LAMMPS *lmp) : AngleSPICA(lmp)
 {
+  kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
   neighborKK = (NeighborKokkos *) neighbor;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
@@ -77,19 +78,22 @@ void AngleSPICAKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   // reallocate per-atom arrays if necessary
 
   if (eflag_atom) {
+    if ((int)k_eatom.extent(0) < maxeatom) {
     memoryKK->destroy_kokkos(k_eatom,eatom);
     memoryKK->create_kokkos(k_eatom,eatom,maxeatom,"angle:eatom");
     d_eatom = k_eatom.template view<DeviceType>();
+    } else Kokkos::deep_copy(d_eatom,0.0);
   }
   if (vflag_atom) {
+    if ((int)k_vatom.extent(0) < maxvatom) {
     memoryKK->destroy_kokkos(k_vatom,vatom);
     memoryKK->create_kokkos(k_vatom,vatom,maxvatom,"angle:vatom");
     d_vatom = k_vatom.template view<DeviceType>();
+    } else Kokkos::deep_copy(d_vatom,0.0);
   }
 
   k_k.template sync<DeviceType>();
   k_theta0.template sync<DeviceType>();
-  k_repscale.template sync<DeviceType>();
   k_lj_type.template sync<DeviceType>();
   k_lj1.template sync<DeviceType>();
   k_lj2.template sync<DeviceType>();
@@ -331,13 +335,9 @@ void AngleSPICAKokkos<DeviceType>::allocate()
   int nangletypes = atom->nangletypes;
   k_k = DAT::tdual_kkfloat_1d("AngleSPICA::k",nangletypes+1);
   k_theta0 = DAT::tdual_kkfloat_1d("AngleSPICA::theta0",nangletypes+1);
-  k_repscale = DAT::tdual_kkfloat_1d("AngleSPICA::repscale",nangletypes+1);
-  k_setflag = DAT::tdual_int_1d("AngleSPICA::setflag",nangletypes+1);
 
   d_k = k_k.template view<DeviceType>();
   d_theta0 = k_theta0.template view<DeviceType>();
-  d_repscale = k_repscale.template view<DeviceType>();
-  d_setflag = k_setflag.template view<DeviceType>();
 
   int ntypes = atom->ntypes;
   k_lj_type = DAT::tdual_int_2d("AngleSPICA::lj_type",ntypes+1,ntypes+1);
@@ -376,26 +376,31 @@ void AngleSPICAKokkos<DeviceType>::init_style()
       error->all(FLERR,"Cannot use Kokkos pair style with rRESPA inner/middle");
   }
 
-  int ntypes = atom->ntypes;
-  for (int i = 1; i <= ntypes; i++) {
-    for (int j = 1; j <= ntypes; j++) {
-      k_lj_type.view_host()(i,j) = lj_type[i][j];
-      k_lj1.view_host()(i,j) = static_cast<KK_FLOAT>(lj1[i][j]);
-      k_lj2.view_host()(i,j) = static_cast<KK_FLOAT>(lj2[i][j]);
-      k_lj3.view_host()(i,j) = static_cast<KK_FLOAT>(lj3[i][j]);
-      k_lj4.view_host()(i,j) = static_cast<KK_FLOAT>(lj4[i][j]);
-      k_rminsq.view_host()(i,j) = static_cast<KK_FLOAT>(rminsq[i][j]);
-      k_emin.view_host()(i,j) = static_cast<KK_FLOAT>(emin[i][j]);
-    }
-  }
+  // AngleSPICA::init_style() only extracts the pair style parameters when the
+  // 1-3 repulsion is used; without it they are still null pointers
 
-  k_lj_type.modify_host();
-  k_lj1.modify_host();
-  k_lj2.modify_host();
-  k_lj3.modify_host();
-  k_lj4.modify_host();
-  k_rminsq.modify_host();
-  k_emin.modify_host();
+  if (repflag) {
+    int ntypes = atom->ntypes;
+    for (int i = 1; i <= ntypes; i++) {
+      for (int j = 1; j <= ntypes; j++) {
+        k_lj_type.view_host()(i,j) = lj_type[i][j];
+        k_lj1.view_host()(i,j) = static_cast<KK_FLOAT>(lj1[i][j]);
+        k_lj2.view_host()(i,j) = static_cast<KK_FLOAT>(lj2[i][j]);
+        k_lj3.view_host()(i,j) = static_cast<KK_FLOAT>(lj3[i][j]);
+        k_lj4.view_host()(i,j) = static_cast<KK_FLOAT>(lj4[i][j]);
+        k_rminsq.view_host()(i,j) = static_cast<KK_FLOAT>(rminsq[i][j]);
+        k_emin.view_host()(i,j) = static_cast<KK_FLOAT>(emin[i][j]);
+      }
+    }
+
+    k_lj_type.modify_host();
+    k_lj1.modify_host();
+    k_lj2.modify_host();
+    k_lj3.modify_host();
+    k_lj4.modify_host();
+    k_rminsq.modify_host();
+    k_emin.modify_host();
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -413,14 +418,10 @@ void AngleSPICAKokkos<DeviceType>::coeff(int narg, char **arg)
   for (int i = ilo; i <= ihi; i++) {
     k_k.view_host()[i] = static_cast<KK_FLOAT>(k[i]);
     k_theta0.view_host()[i] = static_cast<KK_FLOAT>(theta0[i]);
-    k_repscale.view_host()[i] = static_cast<KK_FLOAT>(repscale[i]);
-    k_setflag.view_host()[i] = setflag[i];
   }
 
   k_k.modify_host();
   k_theta0.modify_host();
-  k_repscale.modify_host();
-  k_setflag.modify_host();
 }
 
 /* ----------------------------------------------------------------------
@@ -436,14 +437,10 @@ void AngleSPICAKokkos<DeviceType>::read_restart(FILE *fp)
   for (int i = 1; i <= n; i++) {
     k_k.view_host()[i] = static_cast<KK_FLOAT>(k[i]);
     k_theta0.view_host()[i] = static_cast<KK_FLOAT>(theta0[i]);
-    k_repscale.view_host()[i] = static_cast<KK_FLOAT>(repscale[i]);
-    k_setflag.view_host()[i] = setflag[i];
   }
 
   k_k.modify_host();
   k_theta0.modify_host();
-  k_repscale.modify_host();
-  k_setflag.modify_host();
 }
 
 /* ----------------------------------------------------------------------

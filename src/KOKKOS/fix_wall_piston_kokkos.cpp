@@ -46,8 +46,10 @@ FixWallPistonKokkos<DeviceType>::FixWallPistonKokkos(LAMMPS *lmp, int narg, char
   datamask_read = X_MASK | V_MASK | F_MASK | MASK_MASK | TYPE_MASK | RMASS_MASK;
   datamask_modify = X_MASK | V_MASK | F_MASK;
 
+  // the random number generator only exists with the temp keyword
+
 #ifdef LMP_KOKKOS_DEBUG_RNG
-  rand_pool.init(randomt,tseed + comm->me);
+  if (tempflag) rand_pool.init(randomt,tseed + comm->me);
 #endif
 }
 
@@ -59,7 +61,7 @@ FixWallPistonKokkos<DeviceType>::~FixWallPistonKokkos()
   if (copymode) return;
 
 #ifdef LMP_KOKKOS_DEBUG_RNG
-  rand_pool.destroy();
+  if (tempflag) rand_pool.destroy();
 #endif
 }
 

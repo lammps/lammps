@@ -15,6 +15,7 @@
 #include "../testing/systems/melt.h"
 #include "../testing/utils.h"
 #include "fmt/format.h"
+#include "library.h"
 #include "output.h"
 #include "thermo.h"
 #include "utils.h"
@@ -73,6 +74,10 @@ public:
 
 TEST_F(DumpLocalTest, run0)
 {
+    // these cases compare the formatted numbers of the dump file literally,
+    // which a reduced precision KOKKOS build does not reproduce digit for digit
+    if (kokkos_reduced_precision())
+        GTEST_SKIP() << "dump output of a reduced precision KOKKOS build differs";
     const auto *dump_file = "dump_local_run0.melt";
     generate_dump(dump_file, "index c_comp[1]", "", 0);
 
@@ -110,6 +115,10 @@ TEST_F(DumpLocalTest, label_run0)
 
 TEST_F(DumpLocalTest, format_line_run0)
 {
+    // these cases compare the formatted numbers of the dump file literally,
+    // which a reduced precision KOKKOS build does not reproduce digit for digit
+    if (kokkos_reduced_precision())
+        GTEST_SKIP() << "dump output of a reduced precision KOKKOS build differs";
     const auto *dump_file = "dump_local_format_line_run0.melt";
     generate_dump(dump_file, "index c_comp[1]", "format line \"%d %20.8g\"", 0);
 
@@ -123,6 +132,10 @@ TEST_F(DumpLocalTest, format_line_run0)
 
 TEST_F(DumpLocalTest, format_int_run0)
 {
+    // these cases compare the formatted numbers of the dump file literally,
+    // which a reduced precision KOKKOS build does not reproduce digit for digit
+    if (kokkos_reduced_precision())
+        GTEST_SKIP() << "dump output of a reduced precision KOKKOS build differs";
     const auto *dump_file = "dump_local_format_int_run0.melt";
     generate_dump(dump_file, "index c_comp[1]", "format int \"%20d\"", 0);
 
@@ -136,6 +149,10 @@ TEST_F(DumpLocalTest, format_int_run0)
 
 TEST_F(DumpLocalTest, format_float_run0)
 {
+    // these cases compare the formatted numbers of the dump file literally,
+    // which a reduced precision KOKKOS build does not reproduce digit for digit
+    if (kokkos_reduced_precision())
+        GTEST_SKIP() << "dump output of a reduced precision KOKKOS build differs";
     const auto *dump_file = "dump_local_format_float_run0.melt";
     generate_dump(dump_file, "index c_comp[1]", "format float \"%20.5g\"", 0);
 
@@ -149,6 +166,10 @@ TEST_F(DumpLocalTest, format_float_run0)
 
 TEST_F(DumpLocalTest, format_column_run0)
 {
+    // these cases compare the formatted numbers of the dump file literally,
+    // which a reduced precision KOKKOS build does not reproduce digit for digit
+    if (kokkos_reduced_precision())
+        GTEST_SKIP() << "dump output of a reduced precision KOKKOS build differs";
     const auto *dump_file = "dump_local_format_column_run0.melt";
     generate_dump(dump_file, "index c_comp[1]", "format 1 \"%20d\"", 0);
 
@@ -162,6 +183,10 @@ TEST_F(DumpLocalTest, format_column_run0)
 
 TEST_F(DumpLocalTest, no_buffer_run0)
 {
+    // these cases compare the formatted numbers of the dump file literally,
+    // which a reduced precision KOKKOS build does not reproduce digit for digit
+    if (kokkos_reduced_precision())
+        GTEST_SKIP() << "dump output of a reduced precision KOKKOS build differs";
     const auto *dump_file = "dump_local_format_line_run0.melt";
     generate_dump(dump_file, "index c_comp[1]", "buffer no", 0);
 
@@ -260,6 +285,13 @@ int main(int argc, char **argv)
     if ((argc > 1) && (strcmp(argv[1], "-v") == 0)) verbose = true;
 
     int rv = RUN_ALL_TESTS();
+
+    // finalize the KOKKOS package explicitly: otherwise Kokkos is torn down by
+    // static destructors at program exit, leading to segfaults in some cases
+    // same workaround as the force-style and FFT3d test drivers
+
+    lammps_kokkos_finalize();
+
     MPI_Finalize();
     return rv;
 }

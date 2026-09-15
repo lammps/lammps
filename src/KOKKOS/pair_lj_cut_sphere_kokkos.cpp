@@ -116,7 +116,7 @@ void PairLJCutSphereKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   ev = pair_compute<PairLJCutSphereKokkos<DeviceType>,void>
     (this,(NeighListKokkos<DeviceType>*)list);
 
-  if (eflag) eng_vdwl += static_cast<double>(ev.evdwl);
+  if (eflag_global) eng_vdwl += static_cast<double>(ev.evdwl);
   if (vflag_global) {
     virial[0] += static_cast<double>(ev.v[0]);
     virial[1] += static_cast<double>(ev.v[1]);

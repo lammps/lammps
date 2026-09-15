@@ -808,6 +808,8 @@ struct AtomVecKokkos_PackCommVel {
     const uint64_t &datamask):
     _x(atomKK->k_x.view<DeviceType>()),
     _mask(atomKK->k_mask.view<DeviceType>()),
+    _mu(atomKK->k_mu.view<DeviceType>()),
+    _sp(atomKK->k_sp.view<DeviceType>()),
     _v(atomKK->k_v.view<DeviceType>()),
     _angmom(atomKK->k_angmom.view<DeviceType>()),
     _omega(atomKK->k_omega.view<DeviceType>()),
@@ -1846,10 +1848,17 @@ struct AtomVecKokkos_PackBorderVel {
     _buf(i,m++) = d_ubuf(_mask(j)).d;
 
     if constexpr (DEFORM_VREMAP) {
-      if (_mask(i) & _deform_groupbit) {
+      if (_mask(j) & _deform_groupbit) {
         _buf(i,m++) = static_cast<double>(_v(j,0)) + _dvx;
         _buf(i,m++) = static_cast<double>(_v(j,1)) + _dvy;
         _buf(i,m++) = static_cast<double>(_v(j,2)) + _dvz;
+      } else {
+        // atoms outside the deform group still contribute three velocity slots;
+        // without this the buffer is short by three doubles for every such atom
+        // and every field packed after it is misaligned
+        _buf(i,m++) = static_cast<double>(_v(j,0));
+        _buf(i,m++) = static_cast<double>(_v(j,1));
+        _buf(i,m++) = static_cast<double>(_v(j,2));
       }
     } else {
       _buf(i,m++) = static_cast<double>(_v(j,0));
@@ -2128,7 +2137,7 @@ void AtomVecKokkos::unpack_border_vel_kokkos(
   atomKK->sync(space,datamask_border_vel);
 
   if (space == HostKK) {
-    if (!ncomm_vel) {
+    if (!nborder_vel) {
       struct AtomVecKokkos_UnpackBorderVel<LMPHostType,1> f(
         atomKK,
         buf.view_host(),
@@ -2142,7 +2151,7 @@ void AtomVecKokkos::unpack_border_vel_kokkos(
       Kokkos::parallel_for(n,f);
     }
   } else {
-    if (!ncomm_vel) {
+    if (!nborder_vel) {
       struct AtomVecKokkos_UnpackBorderVel<LMPDeviceType,1> f(
         atomKK,
         buf.view_device(),
@@ -2953,7 +2962,7 @@ int AtomVecKokkos::field2size(std::string field)
   else if (field == "num_bond") return 1+2*atom->bond_per_atom;
   else if (field == "num_angle") return 1+4*atom->angle_per_atom;
   else if (field == "num_dihedral") return 1+5*atom->dihedral_per_atom;
-  else if (field == "num_improper") return 1+5*atom->dihedral_per_atom;
+  else if (field == "num_improper") return 1+5*atom->improper_per_atom;
   else if (field == "sp") return 4;
   else if (field == "fm") return 3;
   else if (field == "fm_long") return 3;

@@ -299,12 +299,6 @@ class AtomVecKokkos : virtual public AtomVec {
   template<class TransformViewType>
   void perform_pinned_copy_transform(TransformViewType& src, unsigned int space, int async_flag = 0) {
     typedef typename TransformViewType::kk_view ViewType;
-    typedef Kokkos::View<typename ViewType::data_type,
-                 typename ViewType::array_layout,
-                 typename std::conditional<
-                   std::is_same_v<typename ViewType::execution_space,LMPDeviceType>,
-                   LMPPinnedHostType,typename ViewType::memory_space>::type,
-                 Kokkos::MemoryTraits<Kokkos::Unmanaged> > mirror_type;
     if (buffer_size == 0) {
        buffer_size = src.view_device().span()*sizeof(typename ViewType::value_type);
        buffer = Kokkos::kokkos_malloc<LMPPinnedHostType>(buffer_size);

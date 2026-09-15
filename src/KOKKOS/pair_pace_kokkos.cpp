@@ -3202,7 +3202,8 @@ void PairPACEKokkos<DeviceType>::evaluate_splines(const int ii, const int jj, KK
 
 /* ---------------------------------------------------------------------- */
 template<class DeviceType>
-void PairPACEKokkos<DeviceType>::SplineInterpolatorKokkos::operator=(const SplineInterpolator &spline) {
+typename PairPACEKokkos<DeviceType>::SplineInterpolatorKokkos &
+PairPACEKokkos<DeviceType>::SplineInterpolatorKokkos::operator=(const SplineInterpolator &spline) {
     cutoff = spline.cutoff;
     deltaSplineBins = spline.deltaSplineBins;
     ntot = spline.ntot;
@@ -3218,6 +3219,8 @@ void PairPACEKokkos<DeviceType>::SplineInterpolatorKokkos::operator=(const Splin
             for (int k = 0; k < 4; k++)
                 h_lookupTable(i, j, k) = spline.lookupTable(i, j, k);
     Kokkos::deep_copy(lookupTable, h_lookupTable);
+
+    return *this;
 }
 /* ---------------------------------------------------------------------- */
 template<class DeviceType>

@@ -11,7 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-// Contributing author: Pietro Sillano (TU Delft), 2025
+// Contributing author: Pietro Sillano, 2026
 
 #ifdef PAIR_CLASS
 // clang-format off
@@ -45,19 +45,18 @@ class PairMesomem : public Pair {
 
  protected:
   double **cut;
-// double **cutsq;
+  // double **cutsq;
   double **sigma, **eps;
   double **ktilt, **ksplay;
-  double **weight_rcut; 
+  double **weight_rcut;
   double **zeta;
   double cut_global;
-  double **c0; // for spont curvature
+  double **c0;    // for spont curvature
 
-
-virtual void allocate();
+  virtual void allocate();
 };
 
-} // namespace LAMMPS_NS
+}    // namespace LAMMPS_NS
 
 #endif
 #endif

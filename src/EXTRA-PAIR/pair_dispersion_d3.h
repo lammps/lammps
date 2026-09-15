@@ -21,9 +21,10 @@ PairStyle(dispersion/d3,PairDispersionD3);
 #define LMP_PAIR_DISPERSION_D3_H
 
 #include "pair.h"
+#include <cmath>
+#include <type_traits>
 
 namespace LAMMPS_NS {
-
 class PairDispersionD3 : public Pair {
 
  public:
@@ -49,15 +50,16 @@ class PairDispersionD3 : public Pair {
   double rthr;      // R^2 distance to cutoff for D3_calculation
   double cn_thr;    // R^2 distance to cutoff for CN_calculation
 
-  int dampingCode;
-  double s6, s8, s18, rs6, rs8, rs18;    // XC parameters
-  double a1, a2, alpha, alpha6, alpha8;
+  int dampingCode;                         // Which damping function to use
+  double s6, s8, s18, rs6, rs8, rs18;      // XC parameters
+  double a1, a2, alpha, alpha6, alpha8;    // XC parameters
 
   double *r2r4;        // scale r4/r2 values of the atoms by sqrt(Z)
   double *rcov;        // covalent radii
   int *mxci;           // How large the grid for c6 interpolation
   double **r0ab;       // cut-off radii for all element pairs
   double *****c6ab;    // C6 for all element pairs
+  int max_mxci;        // Maximum grid size of the C_i coefficient
   double *cn;          // Coordination numbers
   double *dc6;         // dC6i(iat) saves dE_dsp/dCN(iat)
 

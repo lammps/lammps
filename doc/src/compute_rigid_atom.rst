@@ -52,6 +52,8 @@ Examples
 Description
 """""""""""
 
+.. versionadded:: TBD
+
 Define a calculation that stores one or more rigid-body values with
 each atom in rigid bodies defined by the :doc:`fix rigid/small
 <fix_rigid>` command or one of its NVE, NVT, NPT, NPH variants.  Each

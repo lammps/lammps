@@ -162,8 +162,9 @@ class FixRigidSmall : public Fix {
   int maxlang;                         // max size of langextra
   class RanMars *random;               // RNG
 
-  int tstat_flag, pstat_flag;    // 0/1 = no/yes thermostat/barostat
+  // Nose/Hoover thermostat & barostat
 
+  int tstat_flag, pstat_flag;    // 0/1 = no/yes thermostat/barostat
   int t_chain, t_iter, t_order;
 
   double p_start[3], p_stop[3];

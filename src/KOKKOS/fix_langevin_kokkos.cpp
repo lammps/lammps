@@ -194,6 +194,12 @@ void FixLangevinKokkos<DeviceType>::post_force(int /*vflag*/)
 
   if (zeroflag) {
     fsum[0] = fsum[1] = fsum[2] = 0.0;
+    // Group::count() walks atom->mask on the host, and this fix runs with the
+    // atom data on the device, so the host copy is the stale one.  Bring the
+    // masks down before counting or the group size is whatever the host last
+    // saw -- and with nothing to say so, the force is zeroed over the wrong
+    // number of atoms.
+    atomKK->sync(Host,MASK_MASK);
     count = group->count(igroup);
     if (count == 0)
       error->all(FLERR,"Cannot zero Langevin force of 0 atoms");

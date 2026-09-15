@@ -1982,6 +1982,9 @@ void CommKokkos::grow_swap(int n)
 void CommKokkos::forward_comm_array(int nsize, double **array)
 {
   k_sendlist.sync_host();
+  // CommBrick packs through buf_send, the raw host pointer, so drop any claim
+  // a previous device pack left standing on that dual view first
+  k_buf_send.clear_sync_state();
   CommBrick::forward_comm_array(nsize,array);
 }
 

@@ -92,6 +92,16 @@ void ImproperCvffKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   k_sign.template sync<DeviceType>();
   k_multiplicity.template sync<DeviceType>();
 
+  // Sync what this style reads and claim what it writes, the same way the
+  // KOKKOS pair styles do.  run_style verlet/kk does this for its caller, but
+  // it is not the only caller: the MC fixes re-evaluate the bonded energy out
+  // of band from energy_full(), and there the forces are read from whichever
+  // side is stale.  Syncing here is a no-op when the caller already did it.
+
+  atomKK->sync(execution_space,datamask_read);
+  if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
+  else atomKK->modified(execution_space,F_MASK);
+
   x = atomKK->k_x.view<DeviceType>();
   f = atomKK->k_f.view<DeviceType>();
   neighborKK->k_improperlist.template sync<DeviceType>();

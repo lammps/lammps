@@ -222,6 +222,10 @@ TEST_F(SimpleCommandsTest, Quit)
 #if defined(MPICH_NUMVERSION)
     if (MPICH_NUMVERSION >= 40100000) GTEST_SKIP() << "MPICH with threads";
 #endif
+    // the death tests below run the command in a forked copy of this process.  a
+    // GPU context cannot be used after a fork, so the child fails to talk to the
+    // device instead of reaching the quit command
+    if (using_accelerator() && Info::has_kokkos_gpu_device()) GTEST_SKIP() << "KOKKOS with GPU";
     ASSERT_EXIT(command("quit"), ExitedWithCode(0), "");
     ASSERT_EXIT(command("quit 9"), ExitedWithCode(9), "");
 }

@@ -11,29 +11,29 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef FIX_CLASS
+#ifdef COMPUTE_CLASS
 // clang-format off
-FixStyle(continuum/chunk,FixContinuumChunk);
+ComputeStyle(continuum/chunk,ComputeContinuumChunk);
 // clang-format on
 #else
 
-#ifndef LMP_FIX_CONTINUUM_CHUNK_H
-#define LMP_FIX_CONTINUUM_CHUNK_H
+#ifndef LMP_COMPUTE_CONTINUUM_CHUNK_H
+#define LMP_COMPUTE_CONTINUUM_CHUNK_H
 
-#include "fix.h"
+#include "compute_chunk.h"
+
+#include <string>
+#include <vector>
 
 namespace LAMMPS_NS {
 
-class FixContinuumChunk : public Fix {
+class ComputeContinuumChunk : public ComputeChunk {
  public:
-  FixContinuumChunk(class LAMMPS *, int, char **);
-  ~FixContinuumChunk() override;
-  int setmask() override;
+  ComputeContinuumChunk(class LAMMPS *, int, char **);
+  ~ComputeContinuumChunk() override;
   void init() override;
   void init_list(int, class NeighList *) override;
-  void setup(int) override;
-  void end_of_step() override;
-  double compute_array(int, int) override;
+  void compute_array() override;
   double memory_usage() override;
 
  private:
@@ -51,50 +51,27 @@ class FixContinuumChunk : public Fix {
   int index_density, index_momentum[3], index_velocity[3], index_vgrad[3][3];
   double w_cut, w_cut_sq, w_sd, w_sd_sq, w_scale, w_offset;
 
-  int nvalues, nskip, nrepeat, nfreq, irepeat;
-  int boundaryflag, overwrite, colextra;
-  bigint nvalid, nvalid_last;
-  char *format, *format_user;
-  FILE *fp;
+  int nvalues, nskip, radius_required;
+  int boundaryflag;
 
   class NeighList *list;
 
-  int ave, nwindow;
-  int normcount, iwindow, window_limit;
-
   double *delta;
-  int nchunk, maxchunk, ncoord, reducedflag;
+  int ncoord, reducedflag;
   int *nlayers, *chunk_dim;
-  char *idchunk;
-  class ComputeChunkAtom *cchunk;
-  int lockforever;
 
-  bigint filepos;
+  double **values_local, **values_global;
+  double *density_local, *density_global;
+  double **momentum_local, **momentum_global;
 
-  int maxvar;
-  double *varatom;
-
-  // one,many,sum vecs/arrays are used with a single Nfreq epoch
-  // total,list vecs/arrays are used across epochs
-
-  double *count_one, *count_many, *count_sum;
-  double *countk_one, *countk_many, *countk_sum;
-  double **values_one, **values_many, **values_sum;
-  double *count_total, **count_list;
-  double *countk_total, **countk_list;
-  double **values_total, ***values_list;
-
-  double *density_one, *density_sum;
-  double **momentum_one, **momentum_sum;
-
-  void allocate();
-  bigint nextvalid();
-  inline double calc_w(const double) const;
-  inline double calc_w_int(double*, double*) const;
+  void allocate() override;
+  inline double calc_w(double) const;
+  inline double calc_w_int(double *, double *) const;
   void add_tensor_component(char *, int);
   void add_vector_component(char *, int);
   int shifted_bin(int, int *) const;
   void build_stencil();
+  std::string get_thermo_colname(int) override;
 };
 
 }    // namespace LAMMPS_NS

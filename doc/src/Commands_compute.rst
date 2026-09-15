@@ -34,6 +34,7 @@ OPT.
    * :doc:`com/chunk <compute_com_chunk>`
    * :doc:`composition/atom (k) <compute_composition_atom>`
    * :doc:`contact/atom <compute_contact_atom>`
+   * :doc:`continuum/chunk <compute_continuum_chunk>`
    * :doc:`coord/atom (ko) <compute_coord_atom>`
    * :doc:`count/type <compute_count_type>`
    * :doc:`damage/atom <compute_damage_atom>`

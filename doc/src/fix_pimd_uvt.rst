@@ -70,7 +70,8 @@ Restrictions
 
 This fix currently supports only 3d systems.
 
-This fix requires an atom map, e.g. ``atom_modify map yes``.
+This fix requires an atom map, e.g. ``atom_modify map yes``, and consecutive atom IDs.
+All bead partitions must use the same number of processors.
 
 This fix requires one partition per bead.  In other words, the bead
 count must match ``universe->nworlds``.

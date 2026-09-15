@@ -34,16 +34,43 @@ using namespace LAMMPS_NS;
 
 FixPIMDUVT::FixPIMDUVT(LAMMPS *lmp, int narg, char **arg) :
     FixPIMDNVT(lmp, narg, arg, true), ustat_flag(1), mu_flag(0), mu(-3.5), Ne(nullptr),
-    Ne_dot(nullptr), Ne_mass(nullptr), u_start(0.0), u_stop(0.0), u_current(0.0),
+    Ne_dot(nullptr), Ne_mass(nullptr), u_start(0.0), u_stop(0.0),
     u_target(0.0), u_freq(0.0), u_period(0.0), ne_ecouple_work(0.0), dedn_name(nullptr),
     dedn_which(ArgInfo::NONE), dedn_index(0), dedn_var(-1), dedn_compute(nullptr),
     dedn_fix(nullptr), dedn_current(0.0)
 {
-  parse_nvt_arguments(narg, arg, [this](int parse_narg, char **parse_arg, int &i) {
-    return parse_uvt_keyword(parse_narg, parse_arg, i);
-  });
+  // process keywords
+
+  for (int i = 3; i < narg;) {
+    if (!parse_keyword(narg, arg, i))
+      error->all(FLERR, "Unknown keyword {} for fix {}", arg[i], style);
+  }
+
   finish_nuclear_constructor_setup();
-  finish_uvt_constructor_setup();
+  if (method != NMPIMD) error->all(FLERR, "Fix {} only supports method nmpimd", style);
+  if (!mu_flag) error->all(FLERR, "Missing mu keyword for fix {}", style);
+  if (!Ne) error->all(FLERR, "Missing ne keyword for fix {}", style);
+  if (!dedn_name) error->all(FLERR, "Missing dedn keyword for fix {}", style);
+  if (u_period <= 0.0)
+    error->all(FLERR, "Chemical-potential damping for fix {} must be > 0.0", style);
+
+  if (!Ne_dot) {
+    Ne_dot = new double[1];
+    *Ne_dot = 0.0;
+  }
+  if (!Ne_mass) {
+    Ne_mass = new double[1];
+    *Ne_mass = 0.0;
+  }
+
+  const int old_size = size_vector;
+  size_vector += 9;
+  delete[] extlist;
+  extlist = new int[size_vector];
+  for (int i = 0; i < old_size; i++) extlist[i] = 1;
+  for (int i = old_size; i < size_vector; i++) extlist[i] = 0;
+
+  u_freq = 1.0 / u_period;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -58,7 +85,7 @@ FixPIMDUVT::~FixPIMDUVT()
 
 /* ---------------------------------------------------------------------- */
 
-bool FixPIMDUVT::parse_uvt_keyword(int narg, char **arg, int &i)
+bool FixPIMDUVT::parse_keyword(int narg, char **arg, int &i)
 {
   if (strcmp(arg[i], "ensemble") == 0) {
     if (i + 2 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} ensemble", style), error);
@@ -105,38 +132,7 @@ bool FixPIMDUVT::parse_uvt_keyword(int narg, char **arg, int &i)
     i += 2;
     return true;
   }
-  return false;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixPIMDUVT::finish_uvt_constructor_setup()
-{
-  if (method != NMPIMD) error->all(FLERR, "Fix {} only supports method nmpimd", style);
-  if (!mu_flag) error->all(FLERR, "Missing mu keyword for fix {}", style);
-  if (!Ne) error->all(FLERR, "Missing ne keyword for fix {}", style);
-  if (!dedn_name) error->all(FLERR, "Missing dedn keyword for fix {}", style);
-  if (u_period <= 0.0)
-    error->all(FLERR, "Chemical-potential damping for fix {} must be > 0.0", style);
-
-  if (!Ne_dot) {
-    Ne_dot = new double[1];
-    *Ne_dot = 0.0;
-  }
-  if (!Ne_mass) {
-    Ne_mass = new double[1];
-    *Ne_mass = 0.0;
-  }
-
-  const int old_size = size_vector;
-  size_vector += 9;
-  delete[] extlist;
-  extlist = new int[size_vector];
-  for (int i = 0; i < old_size; i++) extlist[i] = 1;
-  for (int i = old_size; i < size_vector; i++) extlist[i] = 0;
-
-  u_freq = 1.0 / u_period;
-  u_current = u_start;
+  return FixPIMDNVT::parse_keyword(narg, arg, i);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -169,9 +165,9 @@ void FixPIMDUVT::thermostat_step()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMDUVT::force_half_step()
+void FixPIMDUVT::b_step()
 {
-  b_step();
+  FixPIMDNVE::b_step();
 
   if (ustat_flag) {
     double dtfm = dthalf / *Ne_mass;
@@ -182,9 +178,9 @@ void FixPIMDUVT::force_half_step()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMDUVT::centroid_position_half_step()
+void FixPIMDUVT::qc_step()
 {
-  qc_step();
+  FixPIMDNVE::qc_step();
 
   if (ustat_flag) {
     if (universe->iworld == 0) *Ne += dtv * (*Ne_dot);
@@ -284,13 +280,6 @@ int FixPIMDUVT::unpack_subclass_restart(const double *list, int n)
 
 /* ---------------------------------------------------------------------- */
 
-int FixPIMDUVT::subclass_vector_size() const
-{
-  return 9;
-}
-
-/* ---------------------------------------------------------------------- */
-
 double FixPIMDUVT::compute_subclass_vector(int n) const
 {
   if (n == 0) return *Ne;
@@ -351,7 +340,7 @@ void FixPIMDUVT::nhc_mu_integrate()
     double expfac = 1.0;
     if (active) {
       propagate_chain_tail_halfstep(ncfac);
-      expfac = propagate_chain0_halfstep(ncfac, true);
+      expfac = propagate_chain0_halfstep(ncfac);
     }
 
     double eta_dot_k = eta_dot[0];
@@ -421,7 +410,6 @@ void FixPIMDUVT::refresh_dedn_cache()
   double dedn_avg = 0.0;
   MPI_Allreduce(&dedn_local, &dedn_avg, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
   dedn_current = dedn_avg * inverse_np;
-  u_current = dedn_current;
 }
 
 /* ---------------------------------------------------------------------- */

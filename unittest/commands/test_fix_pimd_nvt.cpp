@@ -112,6 +112,26 @@ TEST_F(FixPIMDNVTSerialTest, RejectsEnsembleKeyword)
                            "temp 1.0 Tdamp 0.5 tchain 3 tloop 1"));
 }
 
+TEST_F(FixPIMDNVTSerialTest, ChainArgumentsMatchFixNHBounds)
+{
+  for (const char *style : {"pimd/nvt", "pimd/nvt/bosonic", "pimd/uvt"}) {
+    for (const char *options : {"tchain 0", "tchain -1", "tloop -1"}) {
+      setup_zero_pair_system();
+      try {
+        command(std::string("fix cp all ") + style + " Tdamp 0.5 " + options);
+        FAIL() << "Accepted " << options << " for " << style;
+      } catch (const LAMMPSException &e) {
+        EXPECT_NE(std::string(e.what()).find(std::string("Invalid fix ") + style),
+                  std::string::npos);
+      }
+      command("clear");
+    }
+  }
+
+  setup_zero_pair_system();
+  EXPECT_NO_THROW(command("fix cp all pimd/nvt Tdamp 0.5 tchain 1 tloop 0"));
+}
+
 TEST_F(FixPIMDNVTSerialTest, RejectsUnknownMethods)
 {
   const char *unsupported_methods[] = {"nmrpmd", "tprpmd", "tp-rpmd"};

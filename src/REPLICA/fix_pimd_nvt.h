@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 
 class FixPIMDNVT : public FixPIMDNVE {
  public:
-  FixPIMDNVT(class LAMMPS *, int, char **);
+  FixPIMDNVT(class LAMMPS *, int, char **, bool defer_setup = false);
   ~FixPIMDNVT() override;
 
   void initial_integrate(int) override;
@@ -36,13 +36,9 @@ class FixPIMDNVT : public FixPIMDNVE {
   std::string get_thermo_colname(int) override;
 
  protected:
-  FixPIMDNVT(class LAMMPS *, int, char **, bool);
-  void init_nvt_defaults();
-  void parse_nvt_arguments(int, char **, const KeywordParser &);
-  bool parse_nvt_keyword(int, char **, int &);
+  bool parse_keyword(int, char **, int &) override;
   void finish_nuclear_constructor_setup();
 
-  double fixedpoint[3];
 
   double *eta;
   double *eta_dot;
@@ -67,14 +63,13 @@ class FixPIMDNVT : public FixPIMDNVE {
   int tstat_flag;
 
   void nhc_init();
-  void o_step();
   void nhc_temp_integrate();
   double compute_nuclear_kinetic_energy() const;
   double chain_target_energy() const;
   virtual bool thermostat_chain_active() const;
   void update_chain0_acceleration(double);
   void propagate_chain_tail_halfstep(double);
-  double propagate_chain0_halfstep(double, bool);
+  double propagate_chain0_halfstep(double);
   void update_scaled_nuclear_kinetic(double &, double &) const;
   void advance_chain_positions(double);
   void complete_chain0_halfstep(double, double);
@@ -82,8 +77,6 @@ class FixPIMDNVT : public FixPIMDNVE {
   void complete_chain_tail_halfstep(double, double);
 
   virtual void thermostat_step();
-  virtual void force_half_step();
-  virtual void centroid_position_half_step();
   virtual void nh_v_temp();
   double thermostat_work_delta(double) const;
   virtual double chain0_target_energy() const;

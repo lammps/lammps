@@ -22,8 +22,6 @@ FixStyle(pimd/nve,FixPIMDNVE);
 
 #include "fix.h"
 
-#include <functional>
-
 namespace LAMMPS_NS {
 
 class Compute;
@@ -32,7 +30,7 @@ class FixPIMDNVE : public Fix {
  public:
   enum { PIMD, NMPIMD, CMD };
 
-  FixPIMDNVE(class LAMMPS *, int, char **);
+  FixPIMDNVE(class LAMMPS *, int, char **, bool defer_setup = false);
   ~FixPIMDNVE() override;
 
   int setmask() override;
@@ -49,13 +47,8 @@ class FixPIMDNVE : public Fix {
   void restart(char *) override;
 
  protected:
-  using KeywordParser = std::function<bool(int, char **, int &)>;
-
-  FixPIMDNVE(class LAMMPS *, int, char **, bool);
-  void init_defaults();
   void finish_constructor_setup();
-  void parse_arguments(int, char **, const KeywordParser &);
-  bool parse_common_keyword(int, char **, int &);
+  virtual bool parse_keyword(int, char **, int &);
 
   int method;
   int integrator;
@@ -81,14 +74,14 @@ class FixPIMDNVE : public Fix {
   int x_last, x_next;
   int cmode;
   int sizeplan;
+  int maxsend;
   int *plansend, *planrecv;
   tagint *tagsend, *tagrecv;
-  double **bufsend, **bufrecv, **bufbeads;
+  double *bufsend, *bufrecv, **bufbeads;
   double **bufsorted, **bufsortedall;
-  tagint *tagsendall, *tagrecvall;
-  double **bufsendall, **bufrecvall;
   int *counts, *displacements;
 
+  // M_x2xp: forward (beads -> normal modes); M_xp2x: backward (normal modes -> beads).
   double *lam, **M_x2xp, **M_xp2x;
   int *modeindex;
 
@@ -111,7 +104,10 @@ class FixPIMDNVE : public Fix {
   class Compute *c_press;
 
   void comm_init();
-  virtual void inter_replica_comm(double **);
+  void inter_replica_comm(double **);
+  virtual void prepare_coordinates();
+  void ring_collect(const std::vector<tagint> &, double **,
+                    std::vector<tagint> &, std::vector<double> &);
   void reallocate();
   void reallocate_x_unwrap();
   void reallocate_xc();
@@ -120,8 +116,7 @@ class FixPIMDNVE : public Fix {
   void nmpimd_transform(double **, double **, double *);
 
   void collect_xc();
-  void b_step();
-  void apply_force_velocity_kick();
+  virtual void b_step();    // integrate for dt/2 according to B part (v <- v + f * dt/2)
   void q_step();
   virtual void qc_step();
   virtual void a_step();
@@ -129,27 +124,15 @@ class FixPIMDNVE : public Fix {
   void remove_com_motion();
   void unmap_coordinates(double **, imageint *);
   void remap_coordinates(double **, imageint *);
-  virtual double **normal_mode_transform_buffer();
-  void forward_normal_mode_transform(double **);
-  void backward_normal_mode_transform(double **);
-  void finalize_setup_normal_mode_coordinates();
-  void begin_normal_mode_coordinate_propagation();
-  void propagate_normal_mode_coordinate_halfstep();
-  void finalize_normal_mode_coordinate_propagation();
+  double **normal_mode_transform_buffer();
   void prepare_common_virial_state();
-  void prepare_normal_mode_forces();
   void schedule_common_computes();
 
-  double estimator_atom_count(bool) const;
-  double local_kinetic_energy_sum(bool) const;
-  double local_normal_mode_spring_energy_sum(bool) const;
-  double local_xf_virial_sum(bool) const;
-  double local_centroid_virial_sum(bool) const;
+  double local_kinetic_energy_sum() const;
   void reduce_bead_and_total(double, double &, double &) const;
-  double reduce_partition_scalar(double) const;
 
   void compute_xf_vir();
-  void compute_cvir();
+  virtual void compute_cvir();
   void compute_vir();
   void compute_totke();
   virtual void compute_spring_energy();
@@ -165,7 +148,6 @@ class FixPIMDNVE : public Fix {
   virtual int subclass_restart_size() const;
   virtual int pack_subclass_restart(double *, int) const;
   virtual int unpack_subclass_restart(const double *, int);
-  virtual int subclass_vector_size() const;
   virtual double compute_subclass_vector(int) const;
 
   virtual int nuclear_vector_size() const;
@@ -173,8 +155,6 @@ class FixPIMDNVE : public Fix {
   virtual int base_restart_size() const;
   virtual int pack_base_restart(double *) const;
   virtual int unpack_base_restart(const double *);
-  int size_restart_global();
-  int pack_restart_data(double *);
 };
 
 }    // namespace LAMMPS_NS

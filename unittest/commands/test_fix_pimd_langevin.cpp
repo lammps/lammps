@@ -419,6 +419,68 @@ class FixPIMDLangevinSerialTest : public LAMMPSTest {
   double fix_value(const char *id, int index) { return pimd_langevin_test::fix_value(lmp, id, index); }
 };
 
+TEST_F(FixPIMDLangevinSerialTest, InterleavedCommonAndLangevinKeywords)
+{
+  setup_single_atom_zero_pair([this](const std::string &line) { command(line); });
+  command("fix cp all pimd/langevin temp 2.0 thermostat PILE_L 1234 fmass 0.5 "
+          "ensemble nve sp 1.5 tau 0.7 fmmode physical fixcom no integrator obabo "
+          "method nmpimd temp 3.0");
+  auto *fix = dynamic_cast<FixPIMDLangevin *>(lmp->modify->get_fix_by_id("cp"));
+  ASSERT_NE(fix, nullptr);
+  EXPECT_DOUBLE_EQ(fix->temp, 3.0);
+  EXPECT_DOUBLE_EQ(fix->fmass, 0.5);
+  EXPECT_DOUBLE_EQ(fix->sp, 1.5);
+  EXPECT_DOUBLE_EQ(fix->tau, 0.7);
+  EXPECT_EQ(fix->removecomflag, 0);
+  command("run 2 post no");
+  EXPECT_TRUE(std::isfinite(fix_value("cp", pimd_langevin_test::TOTAL_ENERGY)));
+}
+
+TEST_F(FixPIMDLangevinSerialTest, RejectsUnsupportedAndIncompleteKeywords)
+{
+  for (const char *options : {"method cmd", "lj 1 1 1 1 1", "removecom yes",
+                              "temp", "tau", "thermostat PILE_L", "thermostat NHC",
+                              "thermostat invalid", "unknown 1"}) {
+    setup_single_atom_zero_pair([this](const std::string &line) { command(line); });
+    // universe_all() tears down output state; isolate these errors in a child process.
+    EXPECT_EXIT({
+      try {
+        command(std::string("fix cp all pimd/langevin ensemble nve ") + options);
+      } catch (const LAMMPSException &) {
+        std::_Exit(0);
+      }
+      std::_Exit(1);
+    }, ::testing::ExitedWithCode(0), "") << options;
+    command("clear");
+  }
+}
+
+TEST_F(FixPIMDLangevinSerialTest, BosonicEsynchParsesAndRuns)
+{
+  for (const char *options : {"esynch yes temp 1.0", "temp 1.0 esynch no"}) {
+    setup_single_atom_zero_pair([this](const std::string &line) { command(line); });
+    command(std::string("fix cp all pimd/langevin/bosonic method pimd ensemble nve ") + options);
+    command("run 2 post no");
+    EXPECT_EQ(fix_vector_size("cp"), 6);
+    for (int i = 0; i < 6; ++i) EXPECT_TRUE(std::isfinite(fix_value("cp", i)));
+    command("clear");
+  }
+}
+
+TEST_F(FixPIMDLangevinSerialTest, BosonicEsynchRejectsInvalidValue)
+{
+  setup_single_atom_zero_pair([this](const std::string &line) { command(line); });
+  EXPECT_EXIT({
+    try {
+      command("fix cp all pimd/langevin/bosonic method pimd ensemble nve esynch invalid");
+    } catch (const LAMMPSException &e) {
+      std::_Exit(std::string(e.what()).find("esynch parameter can only receive yes or no") !=
+                         std::string::npos ? 0 : 1);
+    }
+    std::_Exit(1);
+  }, ::testing::ExitedWithCode(0), "");
+}
+
 TEST_F(FixPIMDLangevinSerialTest, NMPIMDNVEBAOABP1)
 {
   setup_single_atom_zero_pair([this](const std::string &line) { command(line); });

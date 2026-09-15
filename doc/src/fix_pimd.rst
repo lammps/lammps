@@ -603,7 +603,8 @@ Fix *pimd/nve*, fix *pimd/nvt*, and fix *pimd/langevin* can be used with
 the *sp* and *lj* keywords.
 
 The normal-mode PIMD path supports one or more processors per bead
-partition.  The Cartesian *method* = *pimd* path currently supports one
+partition, with the same number of processors in every partition.
+Atom IDs must be consecutive.  The Cartesian *method* = *pimd* path currently supports one
 processor per bead partition.
 
 A PIMD simulation can be initialized with a single data file read via

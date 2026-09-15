@@ -35,13 +35,12 @@ class FixPIMDUVT : public FixPIMDNVT {
   void *extract(const char *, int &) override;
 
  protected:
-  bool parse_uvt_keyword(int, char **, int &);
-  void finish_uvt_constructor_setup();
+  bool parse_keyword(int, char **, int &) override;
   void setup_subclass_state() override;
   void after_force_transform_hook() override;
   void thermostat_step() override;
-  void force_half_step() override;
-  void centroid_position_half_step() override;
+  void b_step() override;
+  void qc_step() override;
 
   bool thermostat_chain_active() const override;
   bool ne_thermostat_participates() const;
@@ -54,7 +53,6 @@ class FixPIMDUVT : public FixPIMDNVT {
   int subclass_restart_size() const override;
   int pack_subclass_restart(double *, int) const override;
   int unpack_subclass_restart(const double *, int) override;
-  int subclass_vector_size() const override;
   double compute_subclass_vector(int) const override;
 
   void compute_mu_target();
@@ -71,7 +69,7 @@ class FixPIMDUVT : public FixPIMDNVT {
   double *Ne_dot;
   double *Ne_mass;
   double u_start, u_stop;
-  double u_current, u_target;
+  double u_target;
   double u_freq;
   double u_period;
   double ne_ecouple_work;

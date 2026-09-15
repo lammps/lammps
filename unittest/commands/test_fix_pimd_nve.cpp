@@ -16,6 +16,11 @@
 #include "../testing/core.h"
 #include "gtest/gtest.h"
 #include "pimd_test_utils.h"
+#include "modify.h"
+
+#define protected public
+#include "../../src/REPLICA/fix_pimd_nve.h"
+#undef protected
 
 #include <cmath>
 #include <mpi.h>
@@ -92,7 +97,14 @@ TEST_F(FixPIMDNVESerialTest, DoesNotMoveAtomsOutsideFixGroup)
   ASSERT_TRUE(found);
 
   command("fix cp mobile pimd/nve temp 1.0");
+  command("run 0 post no");
+  // Only the mobile atom contributes, even though the other atom has velocity.
+  const double mobile_ke = 0.5 * (0.2 * 0.2 + 0.1 * 0.1 + 0.05 * 0.05);
+  EXPECT_NEAR(fix_value("cp", 0), mobile_ke, 1.0e-12);
+  EXPECT_NEAR(fix_value("cp", 3), mobile_ke, 1.0e-12);
   command("run 10 post no");
+  EXPECT_NEAR(fix_value("cp", 0), mobile_ke, 1.0e-12);
+  EXPECT_NEAR(fix_value("cp", 3), mobile_ke, 1.0e-12);
 
   found = false;
   for (int i = 0; i < atom->nlocal; ++i) {
@@ -105,6 +117,52 @@ TEST_F(FixPIMDNVESerialTest, DoesNotMoveAtomsOutsideFixGroup)
     }
   }
   ASSERT_TRUE(found);
+
+  command("unfix cp");
+  command("fix cp all pimd/nve temp 1.0");
+  command("run 0 post no");
+  EXPECT_NEAR(fix_value("cp", 0), 2.0 * mobile_ke, 1.0e-12);
+  EXPECT_NEAR(fix_value("cp", 3), 2.0 * mobile_ke, 1.0e-12);
+}
+
+TEST_F(FixPIMDNVESerialTest, GroupRestrictedSpringAndVirialEstimators)
+{
+  setup_zero_pair_system();
+  command("group mobile id 1");
+  command("fix cp mobile pimd/nve temp 1.0");
+  command("run 0 post no");
+  auto *fix = dynamic_cast<FixPIMDNVE *>(lmp->modify->get_fix_by_id("cp"));
+  ASSERT_NE(fix, nullptr);
+
+  // Exercise a nonzero mode's estimator algebra without requiring MPI partitions.
+  // Every atom outside the group has a much larger position and force.
+  fix->lam[0] = 2.0;
+  fix->fbond = 1.0;
+  for (int i = 0; i < lmp->atom->nlocal; ++i) {
+    const bool mobile = lmp->atom->tag[i] == 1;
+    for (int d = 0; d < 3; ++d) {
+      lmp->atom->x[i][d] = mobile ? 1.0 : 10.0;
+      fix->x_unwrap[i][d] = lmp->atom->x[i][d];
+      fix->xc[i][d] = fix->x_unwrap[i][d] - 0.5;
+      lmp->atom->f[i][d] = (mobile ? 1.0 : 10.0) * (d + 1);
+    }
+  }
+  fix->compute_spring_energy();
+  fix->compute_xf_vir();
+  fix->compute_cvir();
+  fix->compute_t_prim();
+  fix->compute_t_vir();
+  fix->compute_p_prim();
+
+  EXPECT_NEAR(fix->se_bead, 3.0, 1.0e-12);
+  EXPECT_NEAR(fix->total_spring_energy, 3.0, 1.0e-12);
+  EXPECT_NEAR(fix->vir_, 6.0, 1.0e-12);
+  EXPECT_NEAR(fix->centroid_vir, 3.0, 1.0e-12);
+  EXPECT_NEAR(fix->t_prim, -1.5, 1.0e-12);
+  EXPECT_NEAR(fix->t_vir, -3.0, 1.0e-12);
+  EXPECT_NEAR(fix->t_cv, 0.0, 1.0e-12);
+  // The cubic lattice contains eight atoms at number density 0.7.
+  EXPECT_NEAR(fix->p_prim, -0.7 / 8.0, 1.0e-12);
 }
 
 TEST_F(FixPIMDNVESerialTest, P1StandaloneRunProducesFiniteVector)
@@ -291,6 +349,50 @@ TEST(FixPIMDNVEMPI, ConservesTotalEnergyOverShortRun)
 
   EXPECT_NEAR(energy_after, energy_before, 1.0e-8);
 
+  lammps_close(lmp);
+}
+
+TEST(FixPIMDNVEMPI, CommunicationMatchesTagsAcrossDifferentDecompositions)
+{
+  int nprocs;
+  MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
+  if (nprocs != 6) GTEST_SKIP() << "This test requires exactly 6 MPI ranks";
+  const char *args[] = {"LAMMPS_test", "-log", "none", "-partition", "3x2",
+                        "-nocite", "-in", "none"};
+  auto *lmp = static_cast<LAMMPS *>(lammps_open(sizeof(args) / sizeof(char *), const_cast<char **>(args),
+                                               MPI_COMM_WORLD, nullptr));
+  auto command = [lmp](const char *line) { lammps_command(lmp, line); };
+  command("units lj");
+  command("atom_style atomic");
+  command("atom_modify map yes");
+  command("processors 2 1 1");
+  command("region box block 0 4 0 2 0 2");
+  command("create_box 1 box");
+  command("variable xpos universe 0.5 2.5 0.5");
+  command("create_atoms 1 single ${xpos} 0.5 0.5");
+  command("create_atoms 1 single 0.5 1.5 0.5");
+  command("create_atoms 1 single 2.5 1.5 0.5");
+  command("mass 1 1.0");
+  command("pair_style zero 0.4");
+  command("pair_coeff * *");
+  command("fix cp all pimd/nve temp 1.0");
+  command("run 0 post no");
+  auto *fix = dynamic_cast<FixPIMDNVE *>(lmp->modify->get_fix_by_id("cp"));
+  ASSERT_NE(fix, nullptr);
+  // Repeat initialization and buffer replacement to check ownership and capacity tracking.
+  for (int pass = 0; pass < 2; ++pass) {
+    fix->comm_init();
+    fix->reallocate();
+    for (int i = 0; i < lmp->atom->nlocal; ++i)
+      for (int d = 0; d < 3; ++d)
+        lmp->atom->v[i][d] = 100.0 * fix->ireplica + 10.0 * lmp->atom->tag[i] + d;
+    fix->inter_replica_comm(lmp->atom->v);
+    for (int bead = 0; bead < 3; ++bead)
+      for (int i = 0; i < lmp->atom->nlocal; ++i)
+        for (int d = 0; d < 3; ++d)
+          EXPECT_DOUBLE_EQ(fix->bufbeads[bead][3*i+d],
+                           100.0 * bead + 10.0 * lmp->atom->tag[i] + d);
+  }
   lammps_close(lmp);
 }
 

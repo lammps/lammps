@@ -30,7 +30,7 @@ class FixPIMDBNVT : public FixPIMDNVT {
   ~FixPIMDBNVT() override;
 
  protected:
-  bool parse_bosonic_keyword(int, char **, int &);
+  bool parse_keyword(int, char **, int &) override;
   void spring_force() override;
   void compute_spring_energy() override;
   void compute_t_prim() override;

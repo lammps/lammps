@@ -36,7 +36,9 @@ enum { SINGLE_PROC, MULTI_PROC };
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMDNVT::init_nvt_defaults()
+FixPIMDNVT::FixPIMDNVT(LAMMPS *lmp, int narg, char **arg, bool defer_setup) :
+    FixPIMDNVE(lmp, narg, arg, true), eta(nullptr), eta_dot(nullptr), eta_dotdot(nullptr),
+    eta_mass(nullptr), tau_k(nullptr)
 {
   pilescale = 1.0;
   tstat_flag = 1;
@@ -56,31 +58,27 @@ void FixPIMDNVT::init_nvt_defaults()
   ecouple_work = 0.0;
   dthalf = dt4 = dt8 = 0.0;
 
-  fixedpoint[0] = fixedpoint[1] = fixedpoint[2] = 0.0;
-
   scalar_flag = 1;
   extscalar = 1;
   ecouple_flag = 1;
   thermo_modify_colname = 1;
-}
 
-/* ---------------------------------------------------------------------- */
+  if (narg < 4) utils::missing_cmd_args(FLERR, std::string("fix ") + style, error);
+  if (defer_setup) return;
 
-void FixPIMDNVT::parse_nvt_arguments(int narg, char **arg, const KeywordParser &subclass_parser)
-{
+  // process keywords
+
   for (int i = 3; i < narg;) {
-    if (subclass_parser && subclass_parser(narg, arg, i)) continue;
-    if (parse_nvt_keyword(narg, arg, i)) continue;
-    if (FixPIMDNVE::parse_common_keyword(narg, arg, i)) continue;
-    error->all(FLERR, "Unknown keyword {} for fix {}", arg[i], style);
+    if (!parse_keyword(narg, arg, i))
+      error->all(FLERR, "Unknown keyword {} for fix {}", arg[i], style);
   }
 
-  if (t_period <= 0.0) error->all(FLERR, "Temperature damping for fix {} must be > 0.0", style);
+  finish_nuclear_constructor_setup();
 }
 
 /* ---------------------------------------------------------------------- */
 
-bool FixPIMDNVT::parse_nvt_keyword(int narg, char **arg, int &i)
+bool FixPIMDNVT::parse_keyword(int narg, char **arg, int &i)
 {
   if (strcmp(arg[i], "ensemble") == 0) {
     if (i + 2 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} ensemble", style), error);
@@ -107,12 +105,16 @@ bool FixPIMDNVT::parse_nvt_keyword(int narg, char **arg, int &i)
   if (strcmp(arg[i], "tchain") == 0) {
     if (i + 2 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} tchain", style), error);
     mtchain = utils::inumeric(FLERR, arg[i + 1], false, lmp);
+    if (mtchain < 1)
+      error->all(FLERR, i + 1, "Invalid fix {} tchain argument: {}", style, mtchain);
     i += 2;
     return true;
   }
   if (strcmp(arg[i], "tloop") == 0) {
     if (i + 2 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} tloop", style), error);
     nc_tchain = utils::inumeric(FLERR, arg[i + 1], false, lmp);
+    if (nc_tchain < 0)
+      error->all(FLERR, i + 1, "Invalid fix {} tloop argument: {}", style, nc_tchain);
     i += 2;
     return true;
   }
@@ -138,33 +140,15 @@ bool FixPIMDNVT::parse_nvt_keyword(int narg, char **arg, int &i)
   if ((strcmp(arg[i], "seed") == 0) || (strcmp(arg[i], "PILE_L_temp") == 0)) {
     error->all(FLERR, "Legacy thermostat options are not supported by fix {}", style);
   }
-  return false;
-}
-
-/* ---------------------------------------------------------------------- */
-
-FixPIMDNVT::FixPIMDNVT(LAMMPS *lmp, int narg, char **arg, bool) :
-    FixPIMDNVE(lmp, narg, arg, true), eta(nullptr), eta_dot(nullptr), eta_dotdot(nullptr),
-    eta_mass(nullptr), tau_k(nullptr)
-{
-  init_nvt_defaults();
-
-  if (narg < 4) utils::missing_cmd_args(FLERR, std::string("fix ") + style, error);
-}
-
-/* ---------------------------------------------------------------------- */
-
-FixPIMDNVT::FixPIMDNVT(LAMMPS *lmp, int narg, char **arg) :
-    FixPIMDNVT(lmp, narg, arg, true)
-{
-  parse_nvt_arguments(narg, arg, {});
-  finish_nuclear_constructor_setup();
+  return FixPIMDNVE::parse_keyword(narg, arg, i);
 }
 
 /* ---------------------------------------------------------------------- */
 
 void FixPIMDNVT::finish_nuclear_constructor_setup()
 {
+  if (t_period <= 0.0) error->all(FLERR, "Temperature damping for fix {} must be > 0.0", style);
+
   if (tstat_flag) {
     eta = new double[mtchain];
     eta_dot = new double[mtchain + 1];
@@ -176,10 +160,6 @@ void FixPIMDNVT::finish_nuclear_constructor_setup()
   }
 
   finish_constructor_setup();
-
-  fixedpoint[0] = 0.5 * (domain->boxlo[0] + domain->boxhi[0]);
-  fixedpoint[1] = 0.5 * (domain->boxlo[1] + domain->boxhi[1]);
-  fixedpoint[2] = 0.5 * (domain->boxlo[2] + domain->boxhi[2]);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -217,12 +197,15 @@ void FixPIMDNVT::initial_integrate(int /*vflag*/)
 {
   if (integrator == OBABO) {
     thermostat_step();
-    force_half_step();
+    b_step();
     if (method == NMPIMD || method == CMD) {
-      begin_normal_mode_coordinate_propagation();
-      centroid_position_half_step();
+      unmap_coordinates(atom->x, atom->image);
+      // Forward: bead coordinates to normal modes.
+      inter_replica_comm(atom->x);
+      nmpimd_transform(normal_mode_transform_buffer(), atom->x, M_x2xp[universe->iworld]);
+      qc_step();
       a_step();
-      centroid_position_half_step();
+      qc_step();
       a_step();
     } else if (method == PIMD) {
       unmap_coordinates(atom->x, atom->image);
@@ -232,10 +215,13 @@ void FixPIMDNVT::initial_integrate(int /*vflag*/)
       error->universe_all(FLERR, fmt::format("Unknown method parameter for fix {}", style));
     }
   } else if (integrator == BAOAB) {
-    force_half_step();
+    b_step();
     if (method == NMPIMD || method == CMD) {
-      begin_normal_mode_coordinate_propagation();
-      centroid_position_half_step();
+      unmap_coordinates(atom->x, atom->image);
+      // Forward: bead coordinates to normal modes.
+      inter_replica_comm(atom->x);
+      nmpimd_transform(normal_mode_transform_buffer(), atom->x, M_x2xp[universe->iworld]);
+      qc_step();
       a_step();
     } else if (method == PIMD) {
       unmap_coordinates(atom->x, atom->image);
@@ -245,7 +231,7 @@ void FixPIMDNVT::initial_integrate(int /*vflag*/)
     }
     thermostat_step();
     if (method == NMPIMD || method == CMD) {
-      centroid_position_half_step();
+      qc_step();
       a_step();
     } else if (method == PIMD) {
       q_step();
@@ -258,7 +244,14 @@ void FixPIMDNVT::initial_integrate(int /*vflag*/)
                                            style));
   }
   if (method == NMPIMD || method == CMD) {
-    finalize_normal_mode_coordinate_propagation();
+    collect_xc();
+    compute_spring_energy();
+    compute_t_prim();
+    compute_p_prim();
+    // Backward: normal modes to bead coordinates.
+    inter_replica_comm(atom->x);
+    nmpimd_transform(normal_mode_transform_buffer(), atom->x, M_xp2x[universe->iworld]);
+    remap_coordinates(atom->x, atom->image);
   } else {
     collect_xc();
     remap_coordinates(atom->x, atom->image);
@@ -269,7 +262,7 @@ void FixPIMDNVT::initial_integrate(int /*vflag*/)
 
 void FixPIMDNVT::final_integrate()
 {
-  force_half_step();
+  b_step();
 
   if (integrator == OBABO) {
     thermostat_step();
@@ -382,27 +375,11 @@ void FixPIMDNVT::nhc_init()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMDNVT::o_step()
-{
-  if (tstat_flag) nhc_temp_integrate();
-}
-
-/* ---------------------------------------------------------------------- */
-
 double FixPIMDNVT::compute_nuclear_kinetic_energy() const
 {
-  int *mask = atom->mask;
-  int *type = atom->type;
-  double **v = atom->v;
-  int nlocal = atom->nlocal;
-  double kecurrent = 0.0;
-
-  for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit)
-      kecurrent += (v[i][0] * v[i][0] + v[i][1] * v[i][1] + v[i][2] * v[i][2]) * mass[type[i]];
-  }
+  // The thermostat equations use twice the kinetic energy.
+  double kecurrent = 2.0 * local_kinetic_energy_sum();
   double ketotal = 0.0;
-  kecurrent *= force->mvv2e;
   MPI_Allreduce(&kecurrent, &ketotal, 1, MPI_DOUBLE, MPI_SUM, world);
   return ketotal;
 }
@@ -450,7 +427,7 @@ void FixPIMDNVT::propagate_chain_tail_halfstep(double ncfac)
 
 /* ---------------------------------------------------------------------- */
 
-double FixPIMDNVT::propagate_chain0_halfstep(double ncfac, bool apply_velocity_scaling)
+double FixPIMDNVT::propagate_chain0_halfstep(double ncfac)
 {
   double expfac = exp(-ncfac * dt8 * eta_dot[1]);
   eta_dot[0] *= expfac;
@@ -459,7 +436,7 @@ double FixPIMDNVT::propagate_chain0_halfstep(double ncfac, bool apply_velocity_s
   eta_dot[0] *= expfac;
 
   factor_eta = exp(-ncfac * dthalf * eta_dot[0]);
-  if (apply_velocity_scaling) nh_v_temp();
+  nh_v_temp();
   return expfac;
 }
 
@@ -533,7 +510,7 @@ void FixPIMDNVT::nhc_temp_integrate()
   const double chain_target = chain_target_energy();
   for (int iloop = 0; iloop < nc_tchain; iloop++) {
     propagate_chain_tail_halfstep(ncfac);
-    double expfac = propagate_chain0_halfstep(ncfac, true);
+    double expfac = propagate_chain0_halfstep(ncfac);
 
     update_scaled_nuclear_kinetic(t_current, kecurrent);
     if (eta_mass[0] > 0.0)
@@ -552,23 +529,9 @@ void FixPIMDNVT::nhc_temp_integrate()
 void FixPIMDNVT::thermostat_step()
 {
   if (tstat_flag) {
-    o_step();
+    nhc_temp_integrate();
     if (removecomflag) remove_com_motion();
   }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixPIMDNVT::force_half_step()
-{
-  b_step();
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixPIMDNVT::centroid_position_half_step()
-{
-  qc_step();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -596,7 +559,7 @@ void FixPIMDNVT::nh_v_temp()
 
 double FixPIMDNVT::thermostat_work_delta(double scale_factor) const
 {
-  const double kinetic_before_local = local_kinetic_energy_sum(true);
+  const double kinetic_before_local = local_kinetic_energy_sum();
   const double kinetic_after_local = kinetic_before_local * scale_factor * scale_factor;
   double work_delta_local = kinetic_before_local - kinetic_after_local;
   double work_delta = 0.0;

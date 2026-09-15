@@ -39,9 +39,13 @@ FixPIMDBNVT::FixPIMDBNVT(LAMMPS *lmp, int narg, char **arg) :
   mtchain = 2;
   t_period = 100.0;
 
-  parse_nvt_arguments(narg, arg, [this](int parse_narg, char **parse_arg, int &i) {
-    return parse_bosonic_keyword(parse_narg, parse_arg, i);
-  });
+  // process keywords
+
+  for (int i = 3; i < narg;) {
+    if (!parse_keyword(narg, arg, i))
+      error->all(FLERR, "Unknown keyword {} for fix {}", arg[i], style);
+  }
+
 
   if (method != PIMD)
     error->all(FLERR, "Fix pimd/nvt/bosonic only supports method pimd");
@@ -64,7 +68,7 @@ FixPIMDBNVT::~FixPIMDBNVT()
 
 /* ---------------------------------------------------------------------- */
 
-bool FixPIMDBNVT::parse_bosonic_keyword(int narg, char **arg, int &i)
+bool FixPIMDBNVT::parse_keyword(int narg, char **arg, int &i)
 {
   if (strcmp(arg[i], "nhc") == 0) {
     if (i + 2 > narg) utils::missing_cmd_args(FLERR, "fix pimd/nvt/bosonic nhc", error);
@@ -73,7 +77,7 @@ bool FixPIMDBNVT::parse_bosonic_keyword(int narg, char **arg, int &i)
     i += 2;
     return true;
   }
-  return false;
+  return FixPIMDNVT::parse_keyword(narg, arg, i);
 }
 
 /* ---------------------------------------------------------------------- */

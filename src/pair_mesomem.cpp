@@ -266,6 +266,7 @@ void PairMesomem::compute(int eflag, int vflag)
       rsq = delx * delx + dely * dely + delz * delz;
 
       if (rsq < cutsq[itype][jtype]) {
+        evdwl = 0.0;
         r = sqrt(rsq);
         inv_r = 1.0 / r;
 

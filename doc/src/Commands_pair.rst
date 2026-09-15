@@ -220,6 +220,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`meam/sw/spline <pair_meam_sw_spline>`
    * :doc:`mesocnt <pair_mesocnt>`
    * :doc:`mesocnt/viscous <pair_mesocnt>`
+   * :doc:`mesomem <pair_mesomem>`
    * :doc:`mgpt <pair_mgpt>`
    * :doc:`mie/cut (gko) <pair_mie>`
    * :doc:`mliap (k) <pair_mliap>`

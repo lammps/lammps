@@ -1133,7 +1133,7 @@ Thus X will fall in a specific bin from 1 to M.  If it falls on a
 boundary between 2 bins, it is considered to be in the higher of the 2
 bins (except in the case of 2 bins whose boundary is the *hi*
 boundary, it is considered to be in the lower of the 2 bins).  Each of
-the M bins is assigned a color from the *N* entries.  If M < *N*, then
+the M bins is assigned a color from the *N* entries.  If M > *N*, then
 the colors are repeated in a round-robin fashion.  For example if 2
 entries with colors red and green are specified, then the odd numbered
 bins will be red and the even bins green.  An atom's color is the

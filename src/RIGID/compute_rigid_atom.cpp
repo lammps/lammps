@@ -27,9 +27,8 @@
 using namespace LAMMPS_NS;
 
 
-enum{ID,MOL,MASS,X,Y,Z,XU,YU,ZU,VX,VY,VZ,FX,FY,FZ,IX,IY,IZ,
-     TQX,TQY,TQZ,OMEGAX,OMEGAY,OMEGAZ,ANGMOMX,ANGMOMY,ANGMOMZ,
-     QUATW,QUATI,QUATJ,QUATK,INERTIAX,INERTIAY,INERTIAZ};
+enum{ID,MOL,MASS,X,Y,Z,XU,YU,ZU,VX,VY,VZ,IX,IY,IZ,
+     OMEGAX,OMEGAY,OMEGAZ,QUATW,QUATI,QUATJ,QUATK,INERTIAX,INERTIAY,INERTIAZ};
 
 /* ---------------------------------------------------------------------- */
 
@@ -64,21 +63,12 @@ ComputeRigidAtom::ComputeRigidAtom(LAMMPS *lmp, int narg, char **arg) :
     else if (strcmp(arg[iarg],"vx") == 0) rstyle[nvalues++] = VX;
     else if (strcmp(arg[iarg],"vy") == 0) rstyle[nvalues++] = VY;
     else if (strcmp(arg[iarg],"vz") == 0) rstyle[nvalues++] = VZ;
-    else if (strcmp(arg[iarg],"fx") == 0) rstyle[nvalues++] = FX;
-    else if (strcmp(arg[iarg],"fy") == 0) rstyle[nvalues++] = FY;
-    else if (strcmp(arg[iarg],"fz") == 0) rstyle[nvalues++] = FZ;
     else if (strcmp(arg[iarg],"ix") == 0) rstyle[nvalues++] = IX;
     else if (strcmp(arg[iarg],"iy") == 0) rstyle[nvalues++] = IY;
     else if (strcmp(arg[iarg],"iz") == 0) rstyle[nvalues++] = IZ;
-    else if (strcmp(arg[iarg],"tqx") == 0) rstyle[nvalues++] = TQX;
-    else if (strcmp(arg[iarg],"tqy") == 0) rstyle[nvalues++] = TQY;
-    else if (strcmp(arg[iarg],"tqz") == 0) rstyle[nvalues++] = TQZ;
     else if (strcmp(arg[iarg],"omegax") == 0) rstyle[nvalues++] = OMEGAX;
     else if (strcmp(arg[iarg],"omegay") == 0) rstyle[nvalues++] = OMEGAY;
     else if (strcmp(arg[iarg],"omegaz") == 0) rstyle[nvalues++] = OMEGAZ;
-    else if (strcmp(arg[iarg],"angmomx") == 0) rstyle[nvalues++] = ANGMOMX;
-    else if (strcmp(arg[iarg],"angmomy") == 0) rstyle[nvalues++] = ANGMOMY;
-    else if (strcmp(arg[iarg],"angmomz") == 0) rstyle[nvalues++] = ANGMOMZ;
     else if (strcmp(arg[iarg],"quatw") == 0) rstyle[nvalues++] = QUATW;
     else if (strcmp(arg[iarg],"quati") == 0) rstyle[nvalues++] = QUATI;
     else if (strcmp(arg[iarg],"quatj") == 0) rstyle[nvalues++] = QUATJ;
@@ -118,7 +108,6 @@ void ComputeRigidAtom::init()
   fixrigid = dynamic_cast<FixRigidSmall *>(ifix);
   if (!fixrigid)
     error->all(FLERR,"Fix ID {} for compute rigid/atom does not refer to fix rigid/small", idrigid);
-
 }
 
 /* ----------------------------------------------------------------------
@@ -151,6 +140,10 @@ void ComputeRigidAtom::compute_peratom()
   double yprd = domain->yprd;
   double zprd = domain->zprd;
 
+  int triclinic = domain->triclinic;
+  double *h = domain->h;
+  int xbox,ybox,zbox;
+  
   tagint *tag = atom->tag;
   tagint *molecule = atom->molecule;
   int *mask = atom->mask;
@@ -195,16 +188,34 @@ void ComputeRigidAtom::compute_peratom()
         ptr[n] = body->xcm[2];
         break;
       case XU:
-        ptr[n] = body->xcm[0] +
-          ((body->image & IMGMASK) - IMGMAX) * xprd;
+        if (triclinic) {
+          xbox = (body->image & IMGMASK) - IMGMAX;
+          ybox = (body->image >> IMGBITS & IMGMASK) - IMGMAX;
+          zbox = (body->image >> IMG2BITS) - IMGMAX;
+          ptr[n] = body->xcm[0] + h[0]*xbox + h[5]*ybox + h[4]*zbox;
+        } else {
+          ptr[n] = body->xcm[0] +
+            ((body->image & IMGMASK) - IMGMAX) * xprd;
+        }
         break;
       case YU:
-        ptr[n] = body->xcm[1] +
-          ((body->image >> IMGBITS & IMGMASK) - IMGMAX) * yprd;
+        if (triclinic) {
+          ybox = (body->image >> IMGBITS & IMGMASK) - IMGMAX;
+          zbox = (body->image >> IMG2BITS) - IMGMAX;
+          ptr[n] = body->xcm[1] + h[1]*ybox + h[3]*zbox;
+        } else {
+          ptr[n] = body->xcm[1] +
+            ((body->image >> IMGBITS & IMGMASK) - IMGMAX) * yprd;
+        }
         break;
       case ZU:
-        ptr[n] = body->xcm[2] +
-          ((body->image >> IMG2BITS) - IMGMAX) * zprd;
+        if (triclinic) {
+          zbox = (body->image >> IMG2BITS) - IMGMAX;
+          ptr[n] = body->xcm[2] + h[2]*zbox;
+        } else {
+          ptr[n] = body->xcm[2] +
+            ((body->image >> IMG2BITS) - IMGMAX) * zprd;
+        }
         break;
       case VX:
         ptr[n] = body->vcm[0];
@@ -215,15 +226,6 @@ void ComputeRigidAtom::compute_peratom()
       case VZ:
         ptr[n] = body->vcm[2];
         break;
-      case FX:
-        ptr[n] = body->fcm[0];
-        break;
-      case FY:
-        ptr[n] = body->fcm[1];
-        break;
-      case FZ:
-        ptr[n] = body->fcm[2];
-        break;
       case IX:
         ptr[n] = (body->image & IMGMASK) - IMGMAX;
         break;
@@ -233,15 +235,6 @@ void ComputeRigidAtom::compute_peratom()
       case IZ:
         ptr[n] = (body->image >> IMG2BITS) - IMGMAX;
         break;
-      case TQX:
-        ptr[n] = body->torque[0];
-        break;
-      case TQY:
-        ptr[n] = body->torque[1];
-        break;
-      case TQZ:
-        ptr[n] = body->torque[2];
-        break;
       case OMEGAX:
         ptr[n] = body->omega[0];
         break;
@@ -250,15 +243,6 @@ void ComputeRigidAtom::compute_peratom()
         break;
       case OMEGAZ:
         ptr[n] = body->omega[2];
-        break;
-      case ANGMOMX:
-        ptr[n] = body->angmom[0];
-        break;
-      case ANGMOMY:
-        ptr[n] = body->angmom[1];
-        break;
-      case ANGMOMZ:
-        ptr[n] = body->angmom[2];
         break;
       case QUATW:
         ptr[n] = body->quat[0];

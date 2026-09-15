@@ -18,12 +18,9 @@ Syntax
   .. parsed-literal::
 
        possible attributes = id, mol, mass,
-                             x, y, z, xu, yu, zu, ix, iy, iz
-                             vx, vy, vz, fx, fy, fz,
+                             x, y, z, xu, yu, zu, ix, iy, iz, vx, vy, vz,
                              omegax, omegay, omegaz,
-                             angmomx, angmomy, angmomz,
                              quatw, quati, quatj, quatk,
-                             tqx, tqy, tqz,
                              inertiax, inertiay, inertiaz
 
   .. parsed-literal::
@@ -35,11 +32,8 @@ Syntax
            xu,yu,zu = unwrapped center of mass coords of body
            ix,iy,iz = box image that the center of mass is in
            vx,vy,vz = center of mass velocities
-           fx,fy,fz = force of center of mass
            omegax,omegay,omegaz = angular velocity of body
-           angmomx,angmomy,angmomz = angular momentum of body
            quatw,quati,quatj,quatk = quaternion components for body
-           tqx,tqy,tqz = torque on body
            inertiax,inertiay,inertiaz = diagonalized moments of inertia of body
 
 Examples
@@ -117,27 +111,30 @@ subtract 1 box length to get the true value.  LAMMPS updates these
 flags as the rigid body COMs cross periodic boundaries during the
 simulation.
 
-The *vx*, *vy*, *vz*, *fx*, *fy*, *fz* attributes are components of
-the COM velocity and force on the COM of the body.
+The *vx*, *vy*, *vz* attributes are components of the COM velocity of
+the body.
 
 The *omegax*, *omegay*, and *omegaz* attributes are the angular
 velocity components of the body in the system frame around its COM.
-
-The *angmomx*, *angmomy*, and *angmomz* attributes are the angular
-momentum components of the body in the system frame around its COM.
 
 The *quatw*, *quati*, *quatj*, and *quatk* attributes are the
 components of the 4-vector quaternion representing the orientation of
 the rigid body.  See the :doc:`set <set>` command for an explanation of
 the quaternion vector.
 
-The *tqx*, *tqy*, *tqz* attributes are components of the torque acting
-on the body around its COM.
-
 The *inertiax*, *inertiay*, *inertiaz* attributes are components of
 diagonalized inertia tensor for the body (i.e., the three moments of
 inertia for the body around its principal axes), as computed
 internally by LAMMPS.
+
+.. note::
+
+   Unlike the :doc:`compute rigid/local <compute_rigid_local>`
+   command, this command does not provide options for the total force,
+   torque, and angular momentum vectors of the rigid bodies.  This is
+   because this information is not communicated by the :doc:`fix
+   rigid/small <fix_rigid>` command so that each atom in a body has
+   access to that information.
 
 ----------
 
@@ -158,12 +155,10 @@ corresponding attribute is in:
 * id,mol = unitless
 * mass = mass units
 * x,y,z and xu,yu,zu = distance units
+* ix,iy,iz = unitless
 * vx,vy,vz = velocity units
-* fx,fy,fz = force units
 * omegax,omegay,omegaz = radians/time units
-* angmomx,angmomy,angmomz = mass\*distance\ :math:`^2`\ /time units
 * quatw,quati,quatj,quatk = unitless
-* tqx,tqy,tqz = torque units
 * inertiax,inertiay,inertiaz = mass\*distance\ :math:`^2` units
 
 Restrictions

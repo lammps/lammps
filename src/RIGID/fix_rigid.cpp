@@ -289,6 +289,8 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   memory->create(all, nbody, 6, "rigid:all");
   memory->create(remapflag, nbody, 4, "rigid:remapflag");
 
+  memory->create(body_in_defgroup, nbody, "rigid:nrigid");
+
   // initialize force/torque flags to default = 1.0
   // for 2d: fz, tx, ty = 0.0
 
@@ -591,10 +593,6 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
     }
   }
 
-  // fix deform body flags
-
-  body_in_defgroup = nullptr;
-
   // initialize vector output quantities in case accessed before run
 
   for (i = 0; i < nbody; i++) {
@@ -687,7 +685,7 @@ FixRigid::~FixRigid()
   memory->destroy(all);
   memory->destroy(remapflag);
 
-  delete [] body_in_defgroup;
+  memory->destroy(body_in_defgroup);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -754,49 +752,6 @@ void FixRigid::init()
     if (boxflag && utils::strmatch(ifix->style,"^rigid"))
         error->all(FLERR,"Rigid fixes must come before any box changing fix");
     if (ifix->box_change) boxflag = true;
-  }
-
-  // check for fix deform with V_REMAP set
-  // if yes, require all atoms in each body be entirely in or out of deform group
-  // check in init() b/c fix deform could be turned on/off between runs
-
-  deform_vremap = 0;
-  deform_groupbit = 0;
-  delete [] body_in_defgroup;
-  body_in_defgroup = nullptr;
-
-  deform_vremap = domain->deform_vremap;
-  deform_groupbit = domain->deform_groupbit;
-
-  if (deform_vremap) {
-    int *mask = atom->mask;
-    int nlocal = atom->nlocal;
-
-    int *bodyone = new int[nbody];
-    int *bodyall = new int[nbody];
-
-    for (int ibody = 0; ibody < nbody; ibody++) bodyone[ibody] = 0;
-    for (int i = 0; i < nlocal; i++) {
-      if (body[i] < 0) continue;
-      if (mask[i] & deform_groupbit) bodyone[body[i]]++;
-    }
-    MPI_Allreduce(bodyone,bodyall,nbody,MPI_INT,MPI_SUM,world);
-
-    for (int ibody = 0; ibody < nbody; ibody++)
-      if (bodyall[ibody] && bodyall[ibody] != nrigid[ibody])
-        error->all(FLERR,"Fix deform remap v with fix rigid requires "
-                            "entire bodies be included/excluded "
-                            "from velocity remap");
-
-    body_in_defgroup = new int[nbody];
-    for (int ibody = 0; ibody < nbody; ibody++)
-      if (bodyall[ibody])
-        body_in_defgroup[ibody] = 1;
-      else
-        body_in_defgroup[ibody] = 0;
-
-    delete [] bodyone;
-    delete [] bodyall;
   }
 
   // add gravity forces based on gravity vector from fix
@@ -869,6 +824,46 @@ void FixRigid::setup(int vflag)
   int i, ibody, n;
   const int nlocal = atom->nlocal;
 
+  // check for fix deform with V_REMAP set
+  // if yes, require all atoms in each body be entirely in or out of deform group
+  // check in setup() to be consistent with fix rigid/small
+  // check at every run, b/c fix deform can be added or unset
+
+  deform_vremap = domain->deform_vremap;
+  deform_groupbit = domain->deform_groupbit;
+
+  if (deform_vremap) {
+    int *mask = atom->mask;
+    int nlocal = atom->nlocal;
+
+    int *bodyone = new int[nbody];
+    int *bodyall = new int[nbody];
+
+    for (int ibody = 0; ibody < nbody; ibody++) bodyone[ibody] = 0;
+    for (int i = 0; i < nlocal; i++) {
+      if (body[i] < 0) continue;
+      if (mask[i] & deform_groupbit) bodyone[body[i]]++;
+    }
+    MPI_Allreduce(bodyone,bodyall,nbody,MPI_INT,MPI_SUM,world);
+
+    for (int ibody = 0; ibody < nbody; ibody++)
+      if (bodyall[ibody] && bodyall[ibody] != nrigid[ibody])
+        error->all(FLERR,"Fix deform remap v with fix rigid requires "
+                            "entire bodies be included/excluded "
+                            "from velocity remap");
+
+    for (int ibody = 0; ibody < nbody; ibody++)
+      if (bodyall[ibody])
+        body_in_defgroup[ibody] = 1;
+      else
+        body_in_defgroup[ibody] = 0;
+
+    delete [] bodyone;
+    delete [] bodyall;
+  }
+
+  // pre-run computation of forces and torques
+  
   compute_forces_and_torques();
 
   // enforce 2d body forces and torques
@@ -1110,7 +1105,8 @@ void FixRigid::apply_langevin_thermostat()
 {
   if (comm->me == 0) {
     double gamma1,gamma2;
-    double wbody[3],tbody[3];
+    double wbody[3],tbody[3],vbias[3];
+    
     double delta = update->ntimestep - update->beginstep;
     if (delta != 0.0) delta /= update->endstep - update->beginstep;
     t_target = t_start + delta * (t_stop-t_start);
@@ -1125,9 +1121,11 @@ void FixRigid::apply_langevin_thermostat()
       gamma1 = -masstotal[i] / t_period / ftm2v;
       gamma2 = sqrt(masstotal[i]) * tsqrt *
         sqrt(24.0*boltz/t_period/dt/mvv2e) / ftm2v;
+      if (deform_vremap) remove_bias(i,vcm[i],vbias);
       langextra[i][0] = gamma1*vcm[i][0] + gamma2*(random->uniform()-0.5);
       langextra[i][1] = gamma1*vcm[i][1] + gamma2*(random->uniform()-0.5);
       langextra[i][2] = gamma1*vcm[i][2] + gamma2*(random->uniform()-0.5);
+      if (deform_vremap) restore_bias(vcm[i],vbias);
 
       gamma1 = -1.0 / t_period / ftm2v;
       gamma2 = tsqrt * sqrt(24.0*boltz/t_period/dt/mvv2e) / ftm2v;
@@ -1152,6 +1150,37 @@ void FixRigid::apply_langevin_thermostat()
   }
 
   MPI_Bcast(&langextra[0][0],6*nbody,MPI_DOUBLE,0,world);
+}
+
+/* ----------------------------------------------------------------------
+   remove velocity bias from VCM of Body ibody to leave thermal VCM
+------------------------------------------------------------------------- */
+
+void FixRigid::remove_bias(int ibody, double *vcm, double *vbias)
+{
+  double lamda[3];
+  double *h_rate = domain->h_rate;
+  double *h_ratelo = domain->h_ratelo;
+
+  domain->x2lamda(xcm[ibody], lamda);
+  vbias[0] = h_rate[0] * lamda[0] + h_rate[5] * lamda[1] + h_rate[4] * lamda[2] + h_ratelo[0];
+  vbias[1] = h_rate[1] * lamda[1] + h_rate[3] * lamda[2] + h_ratelo[1];
+  vbias[2] = h_rate[2] * lamda[2] + h_ratelo[2];
+  vcm[0] -= vbias[0];
+  vcm[1] -= vbias[1];
+  vcm[2] -= vbias[2];
+}
+
+/* ----------------------------------------------------------------------
+   add back velocity bias to VCM of Body ibody removed by remove_bias()
+   assume remove_bias() was previously called
+------------------------------------------------------------------------- */
+
+void FixRigid::restore_bias(double *vcm, double *vbias)
+{
+  vcm[0] += vbias[0];
+  vcm[1] += vbias[1];
+  vcm[2] += vbias[2];
 }
 
 /* ---------------------------------------------------------------------- */

@@ -21,8 +21,6 @@
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
-#include "fix.h"
-#include "fix_deform.h"
 #include "force.h"
 #include "group.h"
 #include "input.h"
@@ -570,35 +568,6 @@ void FixRigidSmall::init()
     if (ifix->box_change) boxflag = true;
   }
 
-  // check for fix deform with V_REMAP set
-  // if yes, require all atoms in each body be entirely in or out of deform group
-  // check in init() b/c fix deform could be turned on/off between runs
-
-  deform_vremap = 0;
-  deform_groupbit = 0;
-  deform_vremap = domain->deform_vremap;
-  deform_groupbit = domain->deform_groupbit;
-
-  if (deform_vremap) {
-    int *mask = atom->mask;
-    int nlocal = atom->nlocal;
-    int atomflag,ilocal,bodyflag;
-
-    int flag = 0;
-    for (int i = 0; i < nlocal; i++) {
-      if (atom2body[i] < 0) continue;
-      atomflag = mask[i] & deform_groupbit;
-      ilocal = body[atom2body[i]].ilocal;
-      bodyflag = mask[ilocal] & deform_groupbit;
-      if (atomflag != bodyflag) flag = 1;
-    }
-    int flagall;
-    MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
-    if (flagall) error->all(FLERR,"Fix deform remap v with fix rigid requires "
-                            "entire bodies be included/excluded "
-                            "from velocity remap");
-  }
-
   // add gravity forces based on gravity vector from fix
 
   if (id_gravity) {
@@ -674,6 +643,36 @@ void FixRigidSmall::setup(int vflag)
   if (maxextent > cutghost)
     error->all(FLERR, Error::NOLASTLINE,
                "Rigid body extent {} > ghost atom cutoff - use comm_modify cutoff", maxextent);
+
+  // check for fix deform with V_REMAP set
+  // if yes, require all atoms in each body be entirely in or out of deform group
+  // check in setup() after atom2body is defined
+  // check at every run, b/c fix deform can be added or unset
+  
+  deform_vremap = domain->deform_vremap;
+  deform_groupbit = domain->deform_groupbit;
+
+  if (deform_vremap) {
+    int *mask = atom->mask;
+    int nlocal = atom->nlocal;
+    int atomflag,ilocal,bodyflag;
+
+    int flag = 0;
+    for (int i = 0; i < nlocal; i++) {
+      if (atom2body[i] < 0) continue;
+      atomflag = mask[i] & deform_groupbit;
+      ilocal = body[atom2body[i]].ilocal;
+      bodyflag = mask[ilocal] & deform_groupbit;
+      if (atomflag != bodyflag) flag = 1;
+    }
+    int flagall;
+    MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
+    if (flagall) error->all(FLERR,"Fix deform remap v with fix rigid requires "
+                            "entire bodies be included/excluded "
+                            "from velocity remap");
+  }
+
+  // Langevin thermostat setup
 
   if (langflag && (nlocal_body > maxlang)) {
     memory->destroy(langextra);
@@ -948,6 +947,7 @@ void FixRigidSmall::image_shift()
    apply Langevin thermostat to all 6 DOF of rigid bodies I own
    unlike fix langevin, this stores extra force in extra arrays,
      which are added in when a new fcm/torque are calculated
+   remove/restore flow bias for all bodies, not just those in fix deform group
 ------------------------------------------------------------------------- */
 
 void FixRigidSmall::apply_langevin_thermostat()

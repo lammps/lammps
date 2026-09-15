@@ -562,13 +562,13 @@ on the :doc:`fix viscous <fix_viscous>` page for details.
 
 .. versionchanged:: TBD
 
-When *rigid/small* or *rigid/nve/small* are used in conjunction with
-:doc:`fix deform <fix_deform>` to model a system undergoing shear, the
-Langevin thermostatting procedure is altered as follows.  Note this
-alteration is only done when the *remap v* option is used with
-:doc:`fix deform <fix_deform>`, which is typically done for liquids to
-induce the desired flow-with-the-box-deformation behavior for both
-atomic and rigid-body shear flows.
+When Langevin thermostatting is used with :doc:`fix deform
+<fix_deform>` to model a system undergoing shear, the Langevin
+thermostatting procedure is altered as follows.  Note this alteration
+is only done when the *remap v* option is used with :doc:`fix deform
+<fix_deform>`, which is typically done for liquids to induce the
+desired flow-with-the-box-deformation behavior for both atomic and
+rigid-body shear flows.
 
 First, the streaming velocity (due to fix deform) is subtracted from
 each rigid body's center-of-mass velocity.  Then the Langevin

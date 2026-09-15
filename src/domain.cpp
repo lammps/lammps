@@ -1541,6 +1541,7 @@ void Domain::closest_image(const double * const xi, const double * const xj, dou
    if V is specified (default = NULL) and deform_vremap set by fix deform:
      also remap v via h_rate calculated by fix deform
      currently only used by fix rigid commands to remap body VCM
+       passes v = nullptr if velocity remap should NOT be done for a rigid body
 ------------------------------------------------------------------------- */
 
 void Domain::remap(double *x, imageint &image, double *v)

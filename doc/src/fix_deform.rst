@@ -591,17 +591,20 @@ box without explicit remapping of their coordinates.
 
 .. note::
 
-   When non-equilibrium MD (NEMD) simulations are performed using
-   this fix, the option "remap v" should normally be used.  This is
-   because :doc:`fix nvt/sllod <fix_nvt_sllod>` with the "peculiar no"
-   option (the default) adjusts the atom positions and velocities to
-   induce a velocity profile that matches the changing box size/shape.
-   Thus atom coordinates should NOT be remapped by fix deform, but
-   velocities SHOULD be when atoms cross periodic boundaries, since
-   that is consistent with maintaining the velocity profile already
-   created by fix nvt/sllod.  If fix nvt/sllod uses "peculiar yes"
-   then fix deform should use "remap none".  LAMMPS will warn you
-   if the *remap* setting is not consistent with fix nvt/sllod.
+   When non-equilibrium MD (NEMD) simulations are performed using this
+   fix with a Nose-Hoover thermostat and the SLLOD algorithm, the
+   option "remap v" should normally be used.  This is because
+   :doc:`fix nvt/sllod <fix_nvt_sllod>` with the "peculiar no" option
+   (the default) adjusts the atom positions and velocities to induce a
+   velocity profile that matches the changing box size/shape.  Thus
+   atom coordinates should NOT be remapped by :doc:`fix deform
+   <fix_deform>`, but velocities SHOULD be when atoms cross periodic
+   boundaries, since that is consistent with maintaining the velocity
+   profile already created by :doc:`fix nvt/sllod <fix_nvt_sllod>`.
+   If :doc:`fix nvt/sllod <fix_nvt_sllod>` uses "peculiar yes" then
+   fix deform should use "remap none".  LAMMPS will warn you if the
+   *remap* setting is not consistent with the :doc:`fix nvt/sllod
+   <fix_nvt_sllod>` command.
 
 .. note::
 
@@ -614,41 +617,60 @@ box without explicit remapping of their coordinates.
    <compute_temp_deform>`), will typically accomplish that.  If you do
    not use a thermostat, then there is no driving force pushing the
    atoms to flow in a manner consistent with the deforming box.
-   E.g. for a shearing system the box deformation velocity may vary
-   from 0 at the bottom to 10 at the top of the box.  But the stream
-   velocity profile of the atoms may vary from -5 at the bottom to +5
-   at the top.  You can monitor these effects using the :doc:`fix
-   ave/chunk <fix_ave_chunk>`, :doc:`compute temp/deform
-   <compute_temp_deform>`, and :doc:`compute temp/profile
-   <compute_temp_profile>` commands.  One way to induce atoms to
-   stream consistent with the box deformation is to give them an
-   initial velocity profile, via the :doc:`velocity ramp <velocity>`
-   command, that matches the box deformation rate.  This also
-   typically helps the system come to equilibrium more quickly, even
-   if a thermostat is used.  In some cases, a convenient way to induce
-   the correct streaming velocity is with the *kick* = yes option of
-   :doc:`fix nvt/sllod <fix_nvt_sllod>`, which superimposes the initial
-   velocity profile such that the velocity added to a particle at the
-   corner of the box will be the same as the velocity of that corner.
-   This ensures the flow is consistent with the box deformation and
-   crossing of periodic boundaries is minimized, but is not compatible
-   with all deformation styles. See :doc:`fix nvt/sllod <fix_nvt_sllod>`
-   for details.
+   E.g. condider a shearing system where the box deformation velocity
+   may varies from at the bottom to 10 at the top of the box.  But the
+   stream velocity profile of the atoms ends up varying from -5 at the
+   bottom to +5 at the top, inconsistent with the box.  You can
+   monitor these effects using the :doc:`fix ave/chunk
+   <fix_ave_chunk>`, :doc:`compute temp/deform <compute_temp_deform>`,
+   and :doc:`compute temp/profile <compute_temp_profile>` commands.
+   One way to induce atoms to stream consistent with the box
+   deformation is to give them an initial velocity profile, via the
+   :doc:`velocity ramp <velocity>` command, that matches the box
+   deformation rate.  This also typically helps the system come to
+   equilibrium more quickly, even if a thermostat is used.  In some
+   cases, a convenient way to induce the correct streaming velocity is
+   with the *kick* = yes option of :doc:`fix nvt/sllod
+   <fix_nvt_sllod>`, which superimposes the initial velocity profile
+   such that the velocity added to a particle at the corner of the box
+   will be the same as the velocity of that corner.  This ensures the
+   flow is consistent with the box deformation and crossing of
+   periodic boundaries is minimized, but is not compatible with all
+   deformation styles. See :doc:`fix nvt/sllod <fix_nvt_sllod>` for
+   details.
 
 .. note::
 
-   If a :doc:`fix rigid <fix_rigid>` is defined for rigid bodies, and
-   *remap* is set to *x*, then the center-of-mass coordinates of rigid
-   bodies will be remapped to the changing simulation box.  This will
-   be done regardless of whether atoms in the rigid bodies are in the
-   fix deform group or not.  The velocity of the centers of mass are
-   not remapped even if *remap* is set to *v*, since :doc:`fix
-   nvt/sllod <fix_nvt_sllod>` does not currently do anything special
-   for rigid particles.  If you wish to perform a NEMD simulation of
-   rigid particles, you can either thermostat them independently or
-   include a background fluid and thermostat the fluid via :doc:`fix
-   nvt/sllod <fix_nvt_sllod>`.
+   For NEMD simulations, if a :doc:`fix rigid <fix_rigid>` or
+   :doc:`fix rigid/small <fix_rigid>` command is used for rigid
+   bodies, and *remap* is set to *x*, then the center-of-mass
+   coordinates of rigid bodies will be remapped to the changing
+   simulation box.  This will be done regardless of whether atoms in
+   the rigid bodies are in the fix deform group or not.
 
+.. note::
+
+   for NEMD simulations, if a :doc:`fix rigid <fix_rigid>` or
+   :doc:`fix rigid/small <fix_rigid>` commands is defined for rigid
+   bodies and you intend for the rigid bodies to flow with the box
+   deformation you should set *remap* to *v* and use either the NVT or
+   Langenvin thermostat options provided by the fix rigid commands and
+   their variants.  The center-of-mass velocities of each rigid body
+   will only be remapped if the entire rigid body is in the fix group
+   defined by the :doc:`fix deform <fix_deform>` command.  In this
+   case, it is an error to define any rigid body as a mix of atoms
+   inside and outside the fix group defined by :doc:`fix deform
+   <fix_deform>`\ .
+
+.. note::
+
+   For NEMD simulation with a mixture of rigid bodies and background
+   solvent (and optionally also non-rigid bodies, e.g. flexible
+   molecules) you can set *remap* to *v* and thermostat the rigid
+   bodies and solvent separately using the fix commands for each
+   constituent described in the preceeding notes.  Atoms in flexible
+   molecules can be thermostatted the same as solvent particles.
+   
 The *flip* keyword allows the tilt factors for a triclinic box to
 exceed half the distance of the parallel box length, as discussed
 above.  If the *flip* value is set to *yes*, the bound is enforced by

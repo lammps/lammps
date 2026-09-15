@@ -147,6 +147,13 @@ class FixRigidSmall : public Fix {
   double *mass_body;
   int nmax_mass;
 
+  // rigid bodies in conjunction with fix deform
+  
+  int deform_vremap;       // 1 if fix deform with V_REMAP exists
+                           //   if so, special treatment of bodies when cross PBC
+                           //   if so, add/sub bias with Langevin
+  int deform_groupbit;     // groupbit of fix deform command
+
   // Langevin thermostatting
 
   int langflag;                        // 0/1 = no/yes Langevin thermostat
@@ -154,8 +161,6 @@ class FixRigidSmall : public Fix {
   double **langextra;                  // Langevin thermostat forces and torques
   int maxlang;                         // max size of langextra
   class RanMars *random;               // RNG
-  int deform_vremap;                   // 1 if fix deform with V_REMAP exists
-                                       //   if so, add/sub bias around Langevin
 
   int tstat_flag, pstat_flag;    // 0/1 = no/yes thermostat/barostat
 

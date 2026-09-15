@@ -571,15 +571,40 @@ void FixRigidSmall::init()
   }
 
   // check for fix deform with V_REMAP set
-
+  // if yes, require all atoms in each body be entirely in or out of deform group
+  // check in init() b/c fix deform could be turned on/off between runs
+  
   deform_vremap = 0;
+  deform_groupbit = 0;
   const auto &fixes = modify->get_fix_list();
   for (const auto &fix : fixes)
     if (utils::strmatch(fix->style,"^deform")) {
-      if ((dynamic_cast<FixDeform *>(fix))->remapflag == Domain::V_REMAP)
+      if ((dynamic_cast<FixDeform *>(fix))->remapflag == Domain::V_REMAP) {
         deform_vremap = 1;
+        deform_groupbit = (dynamic_cast<FixDeform *>(fix))->groupbit;
+      }
     }
 
+  if (deform_vremap) {
+    int *mask = atom->mask;
+    int nlocal = atom->nlocal;
+    int atomflag,ilocal,bodyflag;
+    
+    int flag = 0;
+    for (int i = 0; i < nlocal; i++) {
+      if (atom2body[i] < 0) continue;
+      atomflag = mask[i] & deform_groupbit;
+      ilocal = body[atom2body[i]].ilocal;
+      bodyflag = mask[ilocal] & deform_groupbit;
+      if (atomflag != bodyflag) flag = 1;
+    }
+    int flagall;
+    MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
+    if (flagall) error->all(FLERR,"Fix deform remap v with fix rigid requires "
+                            "entire bodies be included/excluded "
+                            "from velocity remap");
+  }
+  
   // add gravity forces based on gravity vector from fix
 
   if (id_gravity) {
@@ -776,16 +801,16 @@ void FixRigidSmall::image_flip(int flipxy, int flipxz, int flipyz)
 }
 
 /* ----------------------------------------------------------------------
-   called at every reneighbor after atom exchange, performs 3 operations
-   (1) reset body xcm, vcm, image due to 2 effects
+   called at every reneighbor after atom exchange and comm->borders()
+   performs 3 operations
+   (1) reset body xcm, vcm, image via remap() due to 2 effects
          incremental movement of body xcm across a periodic boundary
-         triclinic box flip in FixDeform, which called image_flip() first
-       atom exchange() already happened, so this body properties
-       remap rigid body xcm back into periodic simulation box
-         can be far away, due to box flip or
-           due to first-time definition of rigid body in setup_bodies_static()
-       remap vcm if xcm crosses periodic shearing boundary
-       adjust rigid body image flags due to xcm remap
+         box flip in FixDeform, which invoked image_flip() before atom exchange
+       (a) assign rigid body xcm back into periodic simulation box
+           can be far away, due to box flip or
+             due to first-time definition of rigid body in setup_bodies_static()
+       (b) adjust rigid body image flags due to xcm remap
+       (c) remap vcm if xcm crosses periodic shearing boundary
    (2) communicate owned body info to ghost atoms
        this resets list of ghost bodies
        reset_atom2body() resets indices for all atoms to new list of bodies
@@ -802,9 +827,15 @@ void FixRigidSmall::image_flip(int flipxy, int flipxz, int flipyz)
 
 void FixRigidSmall::pre_neighbor()
 {
+  int *mask = atom->mask;
+
   for (int ibody = 0; ibody < nlocal_body; ibody++) {
     Body *b = &body[ibody];
-    domain->remap(b->xcm,b->image,b->vcm);
+    // also remap VCM if fix deform AND vremap AND body in fix deform group
+    if (deform_vremap && (mask[body[ibody].ilocal] & deform_groupbit)) 
+      domain->remap(b->xcm,b->image,b->vcm);
+    else 
+      domain->remap(b->xcm,b->image,nullptr);
   }
 
   nghost_body = 0;

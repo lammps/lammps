@@ -235,12 +235,6 @@ processors when ghost atom info is accumulated.
    <comm_modify>` command with a setting epsilon larger than the
    distance.
 
-Which of the two variants is faster for a particular problem is hard
-to predict.  The best way to decide is to perform a short test run.
-Both variants should give identical numerical answers for short runs.
-Long runs should give statistically similar results, but round-off
-differences may accumulate to produce divergent trajectories.
-
 .. note::
 
    You should not update the atoms in rigid bodies via other
@@ -314,10 +308,10 @@ rigid body.  This option is only allowed for the *rigid* styles.
 For bodystyle *molecule*, atoms are grouped into rigid bodies by their
 respective molecule IDs: each set of atoms in the fix group with the
 same molecule ID is treated as a different rigid body.  This option is
-allowed for both the *rigid* and *rigid/small* styles.  Note that
+allowed for both the *rigid* and *rigid/small* styles.  Note that all
 atoms with a molecule ID = 0 will be treated as a single rigid body.
 For a system with atomic solvent (typically this is atoms with
-molecule ID = 0) surrounding rigid bodies, this may not be what you
+molecule ID = 0) surrounding rigid bodies, this is likely not what you
 want.  Thus you should be careful to use a fix group that only
 includes atoms you want to be part of rigid bodies.
 
@@ -559,20 +553,38 @@ of (roughly) 100 time units (:math:`\tau` or fs or ps - see the
 :doc:`units <units>` command).  The random # *seed* must be a positive
 integer.
 
-The way that Langevin thermostatting operates is explained on the
-:doc:`fix langevin <fix_langevin>` doc page.  If you wish to simply
-viscously damp the rotational motion without thermostatting, you can
-set *Tstart* and *Tstop* to 0.0, which means only the viscous drag
+The way that Langevin thermostatting operates in general is explained
+on the :doc:`fix langevin <fix_langevin>` doc page.  If you wish to
+viscously damp only the rotational motion without thermostatting, you
+can set *Tstart* and *Tstop* to 0.0, which means only the viscous drag
 term in the Langevin thermostat will be applied.  See the discussion
 on the :doc:`fix viscous <fix_viscous>` page for details.
 
-.. note::
+.. versionadded:: TBD
 
-   When the *langevin* keyword is used with fix rigid versus fix
-   rigid/small, different dynamics will result for parallel runs.  This
-   is because of the way random numbers are used in the two cases.  The
-   dynamics for the two cases should be statistically similar, but will
-   not be identical, even for a single timestep.
+When *rigid/small* and *rigid/small/nve* are used in conjunction with
+:doc:`fix deform <fix_deform>` to model a system undergoing shear, the
+Langevin thermostatting procedure is altered as follows.  Note this
+alteration is only done when the *remap v* option is used with
+:doc:`fix deform <fix_deform>`, which is typically done for liquids to
+induce the desired flow-with-the-box-deformation behavior for both
+atomic and rigid-body shear flows.
+
+First, the streaming velocity (due to fix deform) is subtracted from
+each rigid body's center-of-mass velocity.  Then the Langevin
+thermostat is applied to just the thermal DOFs of the body.  Then the
+streaming velocity is added back to the VCM of each body. The effect
+is that the Langevin thermostat induces the body flow to be consistent
+with the box deformation shear rate.
+
+Note that this streaming velocity subtraction/addition is performed
+for all rigid bodies defined by this command, even if they are not in
+the group defined for the :doc:`fix deform <fix_deform>` command, so
+that the entire system is induced to follow the box deformation.  Also
+note that this procedure is similar to shearing an atomic system (no
+rigid bodies) with :doc:`fix deform <fix_deform>` and using :doc:`fix
+langevin <fix_langevin>` as a thermotat with an assigned temperature
+bias via :doc:`compute temp/deform <compute_temp_deform>`.
 
 The *temp* and *tparam* keywords apply a Nose/Hoover thermostat to the
 NVT time integration performed by the 2 NVT rigid styles.  They cannot

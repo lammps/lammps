@@ -2903,7 +2903,7 @@ int ColorMap::minmax(double mindynamic, double maxdynamic)
     else epsbin = EPSBIN_FRACTIONAL;
 
     int ibin = static_cast<int> ((hicurrent-locurrent) * mbinsizeinv);
-    int jbin = static_cast<int> ((hicurrent-locurrent-epsbin) * mbinsizeinv);
+    int jbin = static_cast<int> ((1.0-epsbin) * mbinsizeinv);
     if (jbin < ibin) rounddown_flag = 1;
     else rounddown_flag = 0;
   }

@@ -4766,8 +4766,13 @@ void FixBondReact::post_integrate_respa(int ilevel, int /*iloop*/)
 
 void FixBondReact::post_force(int /*vflag*/)
 {
-  if (molid_mode == Reset_Mol_IDs::YES) reset_mol_ids->reset();
-
+  // reset_mol_ids must happen in post_force when adding atoms
+  // need to communicate mol IDs so that 'molecule' keyword is enforced immediately in parallel
+  if (molid_mode == Reset_Mol_IDs::YES) {
+    reset_mol_ids->reset();
+    commflag = 4;
+    comm->forward_comm(this,1);
+  }
   // if visualization support is enabled, age vizatoms and remove expired ones
   if (vizsteps > 0) {
     std::vector<tagint> eraseme;
@@ -4809,6 +4814,14 @@ int FixBondReact::pack_forward_comm(int n, int *list, double *buf,
     return m;
   }
 
+  if (commflag == 4) {
+    for (i = 0; i < n; i++) {
+      j = list[i];
+      buf[m++] = ubuf(atom->molecule[j]).d;
+    }
+    return m;
+  }
+
   m = 0;
   for (i = 0; i < n; i++) {
     j = list[i];
@@ -4837,6 +4850,9 @@ void FixBondReact::unpack_forward_comm(int n, int first, double *buf)
   } else if (commflag == 2) {
     for (i = first; i < last; i++)
       partner[i] = (tagint) ubuf(buf[m++]).i;
+  } else if (commflag == 4) {
+    for (i = first; i < last; i++)
+      atom->molecule[i] = (tagint) ubuf(buf[m++]).i;
   } else {
     m = 0;
     last = first + n;

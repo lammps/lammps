@@ -2898,12 +2898,17 @@ int ColorMap::minmax(double mindynamic, double maxdynamic)
   // rounddown_flag is used in value2color()
 
   } else if (mstyle == SEQUENTIAL) {
-    double epsbin;
-    if (mrange == ABSOLUTE) epsbin = (hicurrent-locurrent) * EPSBIN_ABSOLUTE;
-    else epsbin = EPSBIN_FRACTIONAL;
+    double span,epsbin;
+    if (mrange == ABSOLUTE) {
+      span = hicurrent - locurrent;
+      epsbin = span * EPSBIN_ABSOLUTE;
+    } else {
+      span = 1.0;
+      epsbin = EPSBIN_FRACTIONAL;
+    }
 
-    int ibin = static_cast<int> ((hicurrent-locurrent) * mbinsizeinv);
-    int jbin = static_cast<int> ((1.0-epsbin) * mbinsizeinv);
+    int ibin = static_cast<int> (span * mbinsizeinv);
+    int jbin = static_cast<int> ((span - epsbin) * mbinsizeinv);
     if (jbin < ibin) rounddown_flag = 1;
     else rounddown_flag = 0;
   }

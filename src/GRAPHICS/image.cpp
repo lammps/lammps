@@ -2966,7 +2966,7 @@ double *ColorMap::value2color(double value)
       if (value >= mentry[i].lvalue && value <= mentry[i].hvalue) return mentry[i].color;
   } else {
     int ibin = static_cast<int>((value - lo) * mbinsizeinv);
-    if (value == hi && rounddown_flag) ibin--;
+    if (rounddown_flag && (value == hi) && (ibin > 0)) ibin--;
     return mentry[ibin % nentry].color;
   }
 

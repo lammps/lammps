@@ -1044,7 +1044,7 @@ The second letter is either "a" for absolute, or "f" for fractional.
 A *continuous* color map is one in which the color of an atom changes
 continuously as its attribute value increases within the range.
 Colors are assigned to specific values within the range; an atom with
-an attribue value between two adjacent specific values is assigned a
+an attribute value between two adjacent specific values is assigned a
 color interpolated between the two adjacent colors.
 
 A *discrete* color map is one in which discrete colors are assigned to
@@ -1072,7 +1072,7 @@ number 0.75 would be used since 5.0 is 3/4 of the way from -10.0 to
 
 The *delta* setting must be specified for all styles, but is only used
 for the *sequential* style; otherwise the setting is ignored.  It
-specifies the bin size of the sub-ranges of values described above,
+specifies the bin size of the sub-ranges of values described above.
 For example, if the overall range is from :math:`-10.0` to
 :math:`10.0` and a *delta* of :math:`1.0` is used, then 20 colors will
 be assigned to a series of sub-ranges.  The first sub-range will be
@@ -1105,7 +1105,7 @@ atom is linearly interpolated (in each of the RGB values) between the
 
 For *discrete* color maps, each entry has a *lo* and *hi* value and a
 *color*\ .  The *lo* and *hi* settings are either numbers within the
-range of values or *min* (for *lo) or *max* (for *hi*).  The *lo* and
+range of values or *min* (for *lo*) or *max* (for *hi*).  The *lo* and
 *hi* settings of the last entry must be *min* and *max*\ .  Other
 entries can have any *lo* and *hi* values and the sub-ranges of
 different entries can overlap.  There must be one or more entries.
@@ -1118,11 +1118,11 @@ Here is how the *N* entries are used to determine the color of an
 individual atom, based on the value :math:`X` of its atom attribute.
 The entries are scanned from first to last.  The first time that *lo*
 <= X <= *hi*, X is assigned the color associated with that entry.
-This means can the last entry can be thought of as a default color
-(since it will always be matched by X); the earlier entries override
-the default.  Note that for a *discrete* map, no interpolation of a
-color RGB values is done.  All atoms will be drawn with one of the
-colors in the list of entries.
+This means the last entry can be thought of as a default color (since
+it will always be matched by X); the earlier entries override the
+default.  Note that for a *discrete* map, no interpolation of color
+RGB values is done.  All atoms will be drawn with one of the colors in
+the list of entries.
 
 For *sequential* color maps, each entry has only a *color*\ .  There
 must be 1 or more entries.  Here is how the *N* entries are used to
@@ -1131,13 +1131,12 @@ atom attribute.  The range is overlaid with M bins of width *delta*\ ,
 the last of which may extend beyond the *hi* boundary of the range.
 Thus X will fall in a specific bin from 1 to M.  If it falls on a
 boundary between 2 bins, it is considered to be in the higher of the 2
-bins (except in the case of 2 bins whose boundary is the *hi*
-boundary, it is considered to be in the lower of the 2 bins).  Each of
-the M bins is assigned a color from the *N* entries.  If M > *N*, then
-the colors are repeated in a round-robin fashion.  For example if 2
-entries with colors red and green are specified, then the odd numbered
-bins will be red and the even bins green.  An atom's color is the
-color of its bin.
+bins (unless X is at the high boundary of the last bin, in which case
+it is considered to be in the last bin).  Each of the M bins is
+assigned a color from the *N* entries.  If M > *N*, then the colors
+are repeated in a round-robin fashion.  For example if 2 entries with
+colors red and green are specified, then the odd numbered bins will be
+red and the even bins green.  An atom's color is the color of its bin.
 
 Here is an example for using a sequential color map to color all the
 atoms in individual molecules with a different color.  See below for how

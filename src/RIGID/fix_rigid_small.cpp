@@ -648,7 +648,7 @@ void FixRigidSmall::setup(int vflag)
   // if yes, require all atoms in each body be entirely in or out of deform group
   // check in setup() after atom2body is defined
   // check at every run, b/c fix deform can be added or unset
-  
+
   deform_vremap = domain->deform_vremap;
   deform_groupbit = domain->deform_groupbit;
 

@@ -132,7 +132,7 @@ void ComputeRigidAtom::compute_peratom()
     }
   }
 
-  int i,m,n,ibody;
+  int i,n,ibody;
   double *ptr;
   FixRigidSmall::Body *body;
 
@@ -143,13 +143,12 @@ void ComputeRigidAtom::compute_peratom()
   int triclinic = domain->triclinic;
   double *h = domain->h;
   int xbox,ybox,zbox;
-  
+
   tagint *tag = atom->tag;
   tagint *molecule = atom->molecule;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-  m = 0;
   for (i = 0; i < nlocal; i++) {
     if (!(mask[i] & groupbit)) {
       zero(i);

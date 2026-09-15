@@ -2008,26 +2008,16 @@ void Domain::unmap(const double *x, const double *v, imageint image, int mask, d
    this is b/c the xy flip dramatically changes which tiled image of
      simulation box an unwrapped point maps to
    image_flip_one() does this for a single image flag
-      called by rigid fixes for image flag of each rigid body
+      called directly by rigid fixes for image flag of each rigid body
 ------------------------------------------------------------------------- */
 
 void Domain::image_flip(int m, int n, int p)
 {
-  imageint *image = atom->image;
+  int *image = atom->image;
   int nlocal = atom->nlocal;
 
-  for (int i = 0; i < nlocal; i++) {
-    int xbox = (image[i] & IMGMASK) - IMGMAX;
-    int ybox = (image[i] >> IMGBITS & IMGMASK) - IMGMAX;
-    int zbox = (image[i] >> IMG2BITS) - IMGMAX;
-
-    ybox -= p*zbox;
-    xbox -= m*ybox + n*zbox;
-
-    image[i] = ((imageint) (xbox + IMGMAX) & IMGMASK) |
-      (((imageint) (ybox + IMGMAX) & IMGMASK) << IMGBITS) |
-      (((imageint) (zbox + IMGMAX) & IMGMASK) << IMG2BITS);
-  }
+  for (int i = 0; i < nlocal; i++)
+    image_flip_one(image[i], m, n, p);
 }
 
 void Domain::image_flip_one(imageint &image, int m, int n, int p)

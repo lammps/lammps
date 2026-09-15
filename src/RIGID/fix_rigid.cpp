@@ -863,7 +863,7 @@ void FixRigid::setup(int vflag)
   }
 
   // pre-run computation of forces and torques
-  
+
   compute_forces_and_torques();
 
   // enforce 2d body forces and torques
@@ -1106,7 +1106,7 @@ void FixRigid::apply_langevin_thermostat()
   if (comm->me == 0) {
     double gamma1,gamma2;
     double wbody[3],tbody[3],vbias[3];
-    
+
     double delta = update->ntimestep - update->beginstep;
     if (delta != 0.0) delta /= update->endstep - update->beginstep;
     t_target = t_start + delta * (t_stop-t_start);

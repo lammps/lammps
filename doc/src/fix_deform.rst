@@ -617,8 +617,8 @@ box without explicit remapping of their coordinates.
    <compute_temp_deform>`), will typically accomplish that.  If you do
    not use a thermostat, then there is no driving force pushing the
    atoms to flow in a manner consistent with the deforming box.
-   E.g. condider a shearing system where the box deformation velocity
-   may varies from at the bottom to 10 at the top of the box.  But the
+   E.g. consider a shearing system where the box deformation velocity
+   varies from 0 at the bottom to 10 at the top of the box.  But the
    stream velocity profile of the atoms ends up varying from -5 at the
    bottom to +5 at the top, inconsistent with the box.  You can
    monitor these effects using the :doc:`fix ave/chunk

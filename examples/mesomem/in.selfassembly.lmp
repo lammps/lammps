@@ -15,7 +15,7 @@ variable N      index 1500
 variable t_dump equal 1000
 
 units           lj
-atom_style      hybrid sphere dipole 
+atom_style      hybrid sphere dipole
 neighbor        1.0 bin
 neigh_modify    delay 0 every 1 check yes
 

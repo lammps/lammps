@@ -109,7 +109,7 @@ Restrictions
 
 The *mesomem* style is part of the DIPOLE package.  It is only enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
-This pair style requires that atoms store torque and a dipole vector to represent their orientation, as defined by the :doc:`atom_style <atom_style>`. 
+This pair style requires that atoms store torque and a dipole vector to represent their orientation, as defined by the :doc:`atom_style <atom_style>`.
 
 This pair style requires that **all** atoms are hybrid dipole sphere style as defined by the :doc:`atom_style hybrid <atom_style>` command.
 

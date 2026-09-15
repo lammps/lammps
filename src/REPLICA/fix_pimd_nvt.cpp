@@ -96,6 +96,14 @@ FixPIMDNVT::FixPIMDNVT(LAMMPS *lmp, int narg, char **arg) :
   if (strcmp(update->unit_style, "lj") == 0)
     error->all(FLERR, fmt::format("Fix {} does not support lj units", style));
 
+  // a ring polymer of a single bead has no previous and next bead to exchange
+  // coordinates with, so spring_force() would read past the end of buf_beads
+
+  if (np < 2)
+    error->universe_all(FLERR,
+                        fmt::format("Fix {} requires at least 2 beads, i.e. running with the "
+                                    "-partition command line option", style));
+
   /* Initiation */
 
   size_peratom_cols = 12 * nhc_nchain + 3;
@@ -218,6 +226,9 @@ void FixPIMDNVT::init()
 
   comm_init();
 
+  // init() runs once per run command, so release the array of the previous one
+
+  delete[] mass;
   mass = new double[atom->ntypes + 1];
 
   if (method == CMD || method == NMPIMD)
@@ -446,6 +457,15 @@ void FixPIMDNVT::nhc_update_v()
 
 void FixPIMDNVT::nmpimd_init()
 {
+  // init() calls this once per run, so release what an earlier run allocated
+
+  memory->destroy(M_x2xp);
+  memory->destroy(M_xp2x);
+  memory->destroy(M_f2fp);
+  memory->destroy(M_fp2f);
+  memory->sfree(lam);
+  lam = nullptr;
+
   memory->create(M_x2xp, np, np, "fix_feynman:M_x2xp");
   memory->create(M_xp2x, np, np, "fix_feynman:M_xp2x");
   memory->create(M_f2fp, np, np, "fix_feynman:M_f2fp");
@@ -594,6 +614,7 @@ void FixPIMDNVT::comm_init()
   if (size_plan) {
     delete[] plan_send;
     delete[] plan_recv;
+    delete[] mode_index;
   }
 
   if (method == PIMD) {

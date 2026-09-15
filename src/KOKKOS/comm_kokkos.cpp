@@ -300,6 +300,14 @@ void CommKokkos::reverse_comm_device()
 
   k_sendlist.sync<DeviceType>();
 
+  // f is read and accumulated into DeviceType, but not brought into that space.
+  // With DeviceType=LMPHostType(package kokkos comm host),
+  // the forces were computed on the device and the host copy is stale.
+  // sync is no-op when the space is current.
+
+  constexpr auto space = ExecutionSpaceFromDevice<DeviceType>::space;
+  atomKK->sync(space,atomKK->avecKK->datamask_reverse);
+
   for (int iswap = nswap-1; iswap >= 0; iswap--) {
     if (sendproc[iswap] != me) {
       if (comm_f_only && !atomKK->k_f.NEED_TRANSFORM) {
@@ -355,6 +363,8 @@ void CommKokkos::reverse_comm_device()
       }
     }
   }
+  // f was accumulated into in space. The other space's copy is stale.
+  atomKK->modified(space, atomKK->avecKK->datamask_reverse);
 }
 
 /* ----------------------------------------------------------------------

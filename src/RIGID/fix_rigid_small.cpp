@@ -569,7 +569,7 @@ void FixRigidSmall::init()
   }
 
   // fix deform settings from Domain
-  
+
   deform_vremap = domain->deform_vremap;
   deform_groupbit = domain->deform_groupbit;
 

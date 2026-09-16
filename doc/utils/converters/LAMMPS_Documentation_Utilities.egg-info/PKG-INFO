@@ -1,0 +1,15 @@
+Metadata-Version: 2.4
+Name: LAMMPS-Documentation-Utilities
+Version: 2.0.1
+Summary: Utilities to convert existing LAMMPS documentation text files into ReStructured Text
+Home-page: https://github.com/rbberger/lammps-doc-utils
+Author: Richard Berger
+Author-email: richard.berger@outlook.com
+License: GPL
+License-File: LICENSE
+Dynamic: author
+Dynamic: author-email
+Dynamic: home-page
+Dynamic: license
+Dynamic: license-file
+Dynamic: summary

@@ -506,6 +506,8 @@
 /electrode_matrix.cpp
 /electrode_matrix.h
 /electrode_vector.cpp
+/electrode_vector_tip4p.cpp
+/electrode_vector_tip4p.h
 /electrode_vector.h
 /ewald_electrode.cpp
 /ewald_electrode.h
@@ -516,6 +518,7 @@
 /fix_electrode_thermo.cpp
 /fix_electrode_thermo.h
 /pppm_electrode.cpp
+/pppm_electrode_tip4p.cpp
 /pppm_electrode.h
 /slab_2d.cpp
 /slab_2d.h

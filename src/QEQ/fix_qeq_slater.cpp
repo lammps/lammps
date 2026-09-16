@@ -73,14 +73,14 @@ FixQEqSlater::FixQEqSlater(LAMMPS *lmp, int narg, char **arg) :
           }
         }
       }
-    } else if (strcmp(arg[iarg], "warn") == 0) {
-      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix qeq/slater warn", error);
-      maxwarn = utils::logical(FLERR, arg[iarg + 1], false, lmp);
-      iarg += 2;
     } else {
-      error->all(FLERR, "Unknown fix qeq/slater keyword: {}", arg[iarg]);
+      int n = parse_common_keyword(narg, arg, iarg);
+      if (n > 0) iarg += n;
+      else error->all(FLERR, iarg, "Unknown fix {} keyword: {}", style, arg[iarg]);
     }
   }
+
+  finalize_xl();
 
   if (streitz_flag) extract_streitz();
 }
@@ -131,9 +131,7 @@ void FixQEqSlater::pre_force(int /*vflag*/)
     reallocate_matrix();
 
   init_matvec();
-  matvecs = CG(b_s, s);         // CG on s - parallel
-  matvecs += CG(b_t, t);        // CG on t - parallel
-  matvecs /= 2;
+  matvecs = solve_st();
   calculate_Q();
 
   if (force->kspace) force->kspace->qsum_qsq();

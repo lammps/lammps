@@ -300,6 +300,13 @@ void CommKokkos::reverse_comm_device()
 
   k_sendlist.sync<DeviceType>();
 
+  if (comm->nprocs == 1 && !ghost_velocity) {
+    k_swap.sync<DeviceType>();
+    k_swap2.sync<DeviceType>();
+    n = atomKK->avecKK->pack_reverse_self_fused_kokkos(totalsend,k_sendlist,k_sendnum_scan,
+                      k_firstrecv,k_g2l);
+  } else {
+
   for (int iswap = nswap-1; iswap >= 0; iswap--) {
     if (sendproc[iswap] != me) {
       if (comm_f_only && !atomKK->k_f.NEED_TRANSFORM) {
@@ -326,32 +333,33 @@ void CommKokkos::reverse_comm_device()
           DeviceType().fence();
         }
 
-      } else {
-        if (size_reverse_recv[iswap]) {
-          DeviceType().fence();
-          MPI_Irecv(k_buf_recv.view<DeviceType>().data(),
-                    size_reverse_recv[iswap],MPI_DOUBLE,
-                    sendproc[iswap],0,world,&request);
+        } else {
+          if (size_reverse_recv[iswap]) {
+            DeviceType().fence();
+            MPI_Irecv(k_buf_recv.view<DeviceType>().data(),
+                      size_reverse_recv[iswap],MPI_DOUBLE,
+                      sendproc[iswap],0,world,&request);
+          }
+          n = atomKK->avecKK->pack_reverse_kokkos(recvnum[iswap],firstrecv[iswap],k_buf_send);
+          if (n) {
+            DeviceType().fence();
+            MPI_Send(k_buf_send.view<DeviceType>().data(),n,
+                    MPI_DOUBLE,recvproc[iswap],0,world);
+          }
+          if (size_reverse_recv[iswap]) {
+            MPI_Wait(&request,MPI_STATUS_IGNORE);
+            DeviceType().fence();
+          }
         }
-        n = atomKK->avecKK->pack_reverse_kokkos(recvnum[iswap],firstrecv[iswap],k_buf_send);
-        if (n) {
-          DeviceType().fence();
-          MPI_Send(k_buf_send.view<DeviceType>().data(),n,
-                   MPI_DOUBLE,recvproc[iswap],0,world);
-        }
-        if (size_reverse_recv[iswap]) {
-          MPI_Wait(&request,MPI_STATUS_IGNORE);
-          DeviceType().fence();
-        }
-      }
-      auto k_sendlist_iswap = Kokkos::subview(k_sendlist,iswap,Kokkos::ALL);
-      atomKK->avecKK->unpack_reverse_kokkos(sendnum[iswap],k_sendlist_iswap,
-                                k_buf_recv);
-    } else {
-      if (sendnum[iswap]) {
         auto k_sendlist_iswap = Kokkos::subview(k_sendlist,iswap,Kokkos::ALL);
-        n = atomKK->avecKK->pack_reverse_self_kokkos(sendnum[iswap],k_sendlist_iswap,
-                                 firstrecv[iswap]);
+        atomKK->avecKK->unpack_reverse_kokkos(sendnum[iswap],k_sendlist_iswap,
+                                  k_buf_recv);
+      } else {
+        if (sendnum[iswap]) {
+          auto k_sendlist_iswap = Kokkos::subview(k_sendlist,iswap,Kokkos::ALL);
+          n = atomKK->avecKK->pack_reverse_self_kokkos(sendnum[iswap],k_sendlist_iswap,
+                                  firstrecv[iswap]);
+        }
       }
     }
   }

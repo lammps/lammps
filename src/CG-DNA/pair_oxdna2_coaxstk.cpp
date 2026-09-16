@@ -85,7 +85,7 @@ PairOxdna2Coaxstk::PairOxdna2Coaxstk(LAMMPS *lmp) :
 
 PairOxdna2Coaxstk::~PairOxdna2Coaxstk()
 {
-  if (allocated) {
+  if (allocated && !copymode) {
 
     memory->destroy(setflag);
     memory->destroy(cutsq);

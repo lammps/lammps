@@ -16,15 +16,18 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_oxdna3_coaxstk.h"
-#include "nucleotide_oxdna.h"
 
 using namespace LAMMPS_NS;
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   IMPORTANT NOTE ! We entirely code duplicate the sequence-specific eta_cxst
+   setup between PairOxdna3Coaxstk and PairOxdna3CoaxstkKokkos. So any edits
+   made in one need to manually be made to the other !
+   The KOKKOS version is in: src/KOKKOS/pair_oxdna3_coaxstk_kokkos.h
+------------------------------------------------------------------------- */
 
 PairOxdna3Coaxstk::PairOxdna3Coaxstk(LAMMPS *lmp) : PairOxdna2Coaxstk(lmp)
 {
-
   // sequence-specific coaxial stacking strength
   // A:0 C:1 G:2 T:3, 3'- [i] X [j] -5'
 

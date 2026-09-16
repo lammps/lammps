@@ -16,7 +16,6 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_oxdna3_xstk.h"
-#include "constants_oxdna.h"
 #include "mf_oxdna.h"
 #include "nucleotide_oxdna.h"
 
@@ -71,7 +70,7 @@ PairOxdna3Xstk::PairOxdna3Xstk(LAMMPS *lmp) :
 
 PairOxdna3Xstk::~PairOxdna3Xstk()
 {
-  if (allocated) {
+  if (allocated && !copymode) {
 
     memory->destroy(setflag);
     memory->destroy(cutsq);

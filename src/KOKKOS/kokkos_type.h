@@ -55,6 +55,18 @@ namespace LAMMPS_NS {
 // NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION d_ubuf(int arg) : i(arg) {}
   };
+
+  // Route unqualified fma(...) in KOKKOS device code through Kokkos::fma.
+  // Note that "fma" is fine for pure FP32 or FP64 builds, but not for mixed precision
+  // builds as these can encounter floats and doubles in the same expression.
+  // This gave: warning #20013-D and tried to call a host-only promotion.
+  template<typename T1, typename T2, typename T3>
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION auto fma(T1 a, T2 b, T3 c)
+      -> decltype(Kokkos::fma(a, b, c))
+  {
+    return Kokkos::fma(a, b, c);
+  }
 }
 
 namespace Kokkos {
@@ -1222,6 +1234,7 @@ KOKKOS_DEVICE_DUALVIEW(int*, Kokkos::LayoutRight, int_1d)
 KOKKOS_DEVICE_DUALVIEW(LAMMPS_NS::bigint*, Kokkos::LayoutRight, bigint_1d)
 KOKKOS_DEVICE_DUALVIEW(LAMMPS_NS::tagint*, Kokkos::LayoutRight, tagint_1d)
 KOKKOS_DEVICE_DUALVIEW(LAMMPS_NS::imageint*, Kokkos::LayoutRight, imageint_1d)
+KOKKOS_DEVICE_DUALVIEW(uint64_t*, Kokkos::LayoutRight, uint64_1d)
 KOKKOS_DEVICE_DUALVIEW(double*, Kokkos::LayoutRight, double_1d)
 KOKKOS_DEVICE_DUALVIEW(KK_FLOAT*, Kokkos::LayoutRight, kkfloat_1d)
 KOKKOS_DEVICE_DUALVIEW(KK_ACC_FLOAT*, Kokkos::LayoutRight, kkacc_1d)
@@ -1234,6 +1247,7 @@ KOKKOS_DEVICE_DUALVIEW(int**, LMPDeviceLayout, int_2d)
 KOKKOS_DEVICE_DUALVIEW(int**, Kokkos::LayoutRight, int_2d_lr)
 KOKKOS_DEVICE_DUALVIEW(int**, LMPDeviceType::array_layout, int_2d_dl)
 KOKKOS_DEVICE_DUALVIEW(int*[3], LMPDeviceLayout, int_1d_3)
+KOKKOS_DEVICE_DUALVIEW(int*[4], LMPDeviceLayout, int_1d_4)
 KOKKOS_DEVICE_DUALVIEW(LAMMPS_NS::tagint**, LMPDeviceLayout, tagint_2d)
 KOKKOS_DEVICE_DUALVIEW(double**, Kokkos::LayoutRight, double_2d_lr)
 KOKKOS_DEVICE_DUALVIEW(double**, LMPDeviceLayout, double_2d)
@@ -1283,6 +1297,19 @@ KOKKOS_DEVICE_DUALVIEW(KK_FLOAT****, LMPDeviceLayout, kkfloat_4d)
 
 typedef TransformView<KK_FLOAT****, double****, LMPDeviceLayout> ttransform_kkfloat_4d;
 
+// 5D view types
+
+KOKKOS_DEVICE_DUALVIEW(KK_FLOAT*****, LMPDeviceLayout, kkfloat_5d)
+
+typedef TransformView<KK_FLOAT*****, double*****, LMPDeviceLayout> ttransform_kkfloat_5d;
+
+
+// 1 runtime + 4 compile-time dims each with size 4
+
+KOKKOS_DEVICE_DUALVIEW(KK_FLOAT*[4][4][4][4], LMPDeviceLayout, kkfloat_1d_4x4)
+
+typedef TransformView<KK_FLOAT*[4][4][4][4], double*[4][4][4][4], LMPDeviceLayout> ttransform_kkfloat_1d_4x4;
+
 // Neighbor Types
 
 typedef tdual_int_2d_dl tdual_neighbors_2d;
@@ -1320,6 +1347,7 @@ KOKKOS_HOST_DUALVIEW(int*, Kokkos::LayoutRight, int_1d)
 KOKKOS_HOST_DUALVIEW(LAMMPS_NS::bigint*, Kokkos::LayoutRight, bigint_1d)
 KOKKOS_HOST_DUALVIEW(LAMMPS_NS::tagint*, Kokkos::LayoutRight, tagint_1d)
 KOKKOS_HOST_DUALVIEW(LAMMPS_NS::imageint*, Kokkos::LayoutRight, imageint_1d)
+KOKKOS_HOST_DUALVIEW(uint64_t*, Kokkos::LayoutRight, uint64_1d)
 KOKKOS_HOST_DUALVIEW(double*, Kokkos::LayoutRight, double_1d)
 KOKKOS_HOST_DUALVIEW(KK_FLOAT*, Kokkos::LayoutRight, kkfloat_1d)
 KOKKOS_HOST_DUALVIEW(KK_ACC_FLOAT*, Kokkos::LayoutRight, kkacc_1d)
@@ -1330,6 +1358,7 @@ KOKKOS_HOST_DUALVIEW(int**, LMPDeviceLayout, int_2d)
 KOKKOS_HOST_DUALVIEW(int**, Kokkos::LayoutRight, int_2d_lr)
 KOKKOS_HOST_DUALVIEW(int**, LMPDeviceType::array_layout, int_2d_dl)
 KOKKOS_HOST_DUALVIEW(int*[3], LMPDeviceLayout, int_1d_3)
+KOKKOS_HOST_DUALVIEW(int*[4], LMPDeviceLayout, int_1d_4)
 KOKKOS_HOST_DUALVIEW(LAMMPS_NS::tagint**, LMPDeviceLayout, tagint_2d)
 KOKKOS_HOST_DUALVIEW(double**, Kokkos::LayoutRight, double_2d_lr)
 KOKKOS_HOST_DUALVIEW(double**, LMPDeviceLayout, double_2d)
@@ -1360,6 +1389,15 @@ KOKKOS_HOST_DUALVIEW(KK_FLOAT***, LMPDeviceLayout, kkfloat_3d)
 
 KOKKOS_HOST_DUALVIEW(double****, Kokkos::LayoutRight, double_4d_lr)
 KOKKOS_HOST_DUALVIEW(KK_FLOAT****, LMPDeviceLayout, kkfloat_4d)
+
+// 5D view types
+
+KOKKOS_HOST_DUALVIEW(KK_FLOAT*****, LMPDeviceLayout, kkfloat_5d)
+
+
+// 1 runtime + 4 compile-time dims each with size 4
+
+KOKKOS_HOST_DUALVIEW(KK_FLOAT*[4][4][4][4], LMPDeviceLayout, kkfloat_1d_4x4)
 
 // Neighbor Types
 

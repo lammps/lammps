@@ -31,14 +31,19 @@ using namespace LAMMPS_NS;
 using namespace MathSpecial;
 
 /* ----------------------------------------------------------------------
-   set coeffs
+   IMPORTANT NOTE ! We entirely code duplicate PairOxdna3Excv::coeff into
+   PairOxdna3ExcvKokkos::coeff. So any edits made in one need to manually
+   be made to the other !
+   The KOKKOS version is in: src/KOKKOS/pair_oxdna3_excv_kokkos.cpp
 ------------------------------------------------------------------------- */
 
 void PairOxdna3Excv::coeff(int narg, char **arg)
 {
   int count;
 
-  if (narg != 3) error->all(FLERR,"Incorrect args for pair coefficients in oxdna3/excv, use potential file" + utils::errorurl(21));
+  if (narg != 3)
+    error->all(FLERR,"Incorrect args for pair coefficients in oxdna3/excv, use potential file" + utils::errorurl(21));
+
   if (!allocated) allocate();
 
   int ilo,ihi,jlo,jhi,nlo,nhi;
@@ -164,6 +169,8 @@ void PairOxdna3Excv::coeff(int narg, char **arg)
 
   }
 
+  // The 3x3 MPI broadcasts below are indifferent to the version of oxDNA that is simulated at
+  // compile/runtime in the KOKKOS build/case.
   MPI_Bcast(&epsilon_bkbk_one, 1, MPI_DOUBLE, 0, world);
   MPI_Bcast(&sigma_bkbk_one, 1, MPI_DOUBLE, 0, world);
   MPI_Bcast(&cut_bkbk_ast_one, 1, MPI_DOUBLE, 0, world);
@@ -176,6 +183,7 @@ void PairOxdna3Excv::coeff(int narg, char **arg)
   MPI_Bcast(&sigma_bsbs_one, 1, MPI_DOUBLE, 0, world);
   MPI_Bcast(&cut_bsbs_ast_one, 1, MPI_DOUBLE, 0, world);
 
+  // But for the tetramers, we put in the prefix
   MPI_Bcast(&sigma4_bsbs[0][0][0][0], 625, MPI_DOUBLE, 0, world);
   MPI_Bcast(&cut4_bsbs_ast[0][0][0][0], 625, MPI_DOUBLE, 0, world);
 

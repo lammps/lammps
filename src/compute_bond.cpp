@@ -33,9 +33,7 @@ ComputeBond::ComputeBond(LAMMPS *lmp, int narg, char **arg) :
   peflag = 1;
   timeflag = 1;
 
-  // check if bond style hybrid exists
-
-  bond = dynamic_cast<BondHybrid *>(force->bond_match("hybrid"));
+  bond = dynamic_cast<BondHybrid *>(force->bond_match("^hybrid", 0));
   if (!bond) error->all(FLERR, "Bond style for compute bond command is not hybrid");
   size_vector = nsub = bond->nstyles;
 
@@ -57,7 +55,7 @@ void ComputeBond::init()
 {
   // recheck bond style in case it has been changed
 
-  bond = dynamic_cast<BondHybrid *>(force->bond_match("hybrid"));
+  bond = dynamic_cast<BondHybrid *>(force->bond_match("^hybrid", 0));
   if (!bond) error->all(FLERR, "Bond style for compute bond command is not hybrid");
   if (bond->nstyles != nsub) error->all(FLERR, "Bond style for compute bond command has changed");
 }

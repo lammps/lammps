@@ -16,14 +16,8 @@
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"
 #include "comm.h"
-#include "force.h"
 #include "math_extra.h"
 #include "memory.h"
-#include "neigh_list.h"
-#include "neigh_request.h"
-#include "neighbor.h"
-#include "pair.h"
-#include "update.h"
 #include <cstring>
 
 using namespace LAMMPS_NS;

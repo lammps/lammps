@@ -32,7 +32,7 @@ class AtomVecOxdna : virtual public AtomVec {
   void data_atom_post(int) override;
   void data_bonds_post(int, int, tagint, tagint, tagint) override;
 
- private:
+ protected:
   tagint *id3p, *id5p;
   double *qeff;
 };

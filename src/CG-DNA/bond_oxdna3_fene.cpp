@@ -15,8 +15,6 @@
 ------------------------------------------------------------------------- */
 
 #include "bond_oxdna3_fene.h"
-#include "constants_oxdna.h"
-#include "nucleotide_oxdna.h"
 
 #include "atom.h"
 #include "comm.h"
@@ -29,6 +27,11 @@ using namespace MathSpecial;
 
 /* ----------------------------------------------------------------------
    set coeffs
+   IMPORTANT NOTE ! We entirely code duplicate BondOxdna3Fene::coeff into
+   BondOxdna3FENEKokkos::coeff. So any edits made in one needs to manually
+   be made to the other ! We did it this way to avoid messy workarounds in
+   KOKKOS due to its inheritance structure.
+   The KOKKOS version is in: src/KOKKOS/bond_oxdna3_fene_kokkos.cpp
 ------------------------------------------------------------------------- */
 void BondOxdna3Fene::coeff(int narg, char **arg)
 {

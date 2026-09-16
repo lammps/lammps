@@ -351,7 +351,7 @@ static void plugin_unload_locked(const char *style, const char *name, LAMMPS *lm
 
     // must delete bond style instance if in use
 
-    if ((lmp->force->bond_style != nullptr) && (lmp->force->bond_match(name) != nullptr))
+    if ((lmp->force->bond_style != nullptr) && (lmp->force->bond_match(name, 1) != nullptr))
       lmp->force->create_bond("none", 0);
 
     Force::bond_styles().clear_plugin(name);

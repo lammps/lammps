@@ -19,26 +19,25 @@
 
 #include "atom.h"
 #include "comm.h"
-#include "constants_oxdna.h"
 #include "error.h"
-#include "force.h"
-#include "math_extra.h"
-#include "memory.h"
 #include "mf_oxdna.h"
-#include "neighbor.h"
-#include "neigh_list.h"
 #include "potential_file_reader.h"
 #include "math_special.h"
 
-#include <cmath>
-#include <cstring>
 #include <cassert>
+#include <cmath>
 
 using namespace LAMMPS_NS;
 using namespace MathSpecial;
 using namespace MFOxdna;
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   IMPORTANT NOTE ! We entirely code duplicate the sequence-specific eta_st
+   setup between PairOxdna3Stk and PairOxdna3StkKokkos. So any edits made in
+   one need to manually be made to the other !
+   The KOKKOS version is in: src/KOKKOS/pair_oxdna3_stk_kokkos.h
+   Same goes for coeff routine.
+------------------------------------------------------------------------- */
 
 PairOxdna3Stk::PairOxdna3Stk(LAMMPS *lmp) : PairOxdnaStk(lmp)
 {
@@ -71,9 +70,8 @@ PairOxdna3Stk::PairOxdna3Stk(LAMMPS *lmp) : PairOxdnaStk(lmp)
 }
 
 /* ----------------------------------------------------------------------
-   set coeffs for one or more type pairs
+   set coeffs
 ------------------------------------------------------------------------- */
-
 void PairOxdna3Stk::coeff(int narg, char **arg)
 {
   int count;
@@ -240,8 +238,6 @@ void PairOxdna3Stk::coeff(int narg, char **arg)
       error->one(FLERR, "No corresponding stk potential found in file {} for pair type {} {}",
                  arg[3], arg[0], arg[1]);
 
-
-
     // calculate sequence-averaged parameters for terminal base step j-k
     for (int i = nlo; i <= nhi; i++) {
       for (int j = nlo; j <= nhi; j++) {
@@ -386,12 +382,12 @@ void PairOxdna3Stk::coeff(int narg, char **arg)
         for (int l = 0; l <= nhi; l++) { // type 0 for terminal k
 
           cut_st_lc[i][j][k][l] = cut_st_lo[i][j][k][l]
-                - a_st_one*exp(-a_st_one*(cut_st_lo[i][j][k][l]-cut_st_0[i][j][k][l]))*
-                (1-exp(-a_st_one*(cut_st_lo[i][j][k][l]-cut_st_0[i][j][k][l])))/b_st_lo_one;
+              - a_st_one*exp(-a_st_one*(cut_st_lo[i][j][k][l]-cut_st_0[i][j][k][l]))*
+              (1-exp(-a_st_one*(cut_st_lo[i][j][k][l]-cut_st_0[i][j][k][l])))/b_st_lo_one;
 
           cut_st_hc[i][j][k][l] = cut_st_hi[i][j][k][l]
-                - a_st_one*exp(-a_st_one*(cut_st_hi[i][j][k][l]-cut_st_0[i][j][k][l]))*
-                (1-exp(-a_st_one*(cut_st_hi[i][j][k][l]-cut_st_0[i][j][k][l])))/b_st_hi_one;
+              - a_st_one*exp(-a_st_one*(cut_st_hi[i][j][k][l]-cut_st_0[i][j][k][l]))*
+              (1-exp(-a_st_one*(cut_st_hi[i][j][k][l]-cut_st_0[i][j][k][l])))/b_st_hi_one;
 
           cutsq_st_hc[i][j][k][l] = cut_st_hc[i][j][k][l]*cut_st_hc[i][j][k][l];
 
@@ -399,8 +395,8 @@ void PairOxdna3Stk::coeff(int narg, char **arg)
           shift_st[i][j][k][l] = epsilon_st_one * eta_st[j-1][k-1] * tmp * tmp;
 
           b_st4[i][j][k][l] = a_st4[i][j][k][l]*a_st4[i][j][k][l]*dtheta_st4_ast[i][j][k][l]*
-                dtheta_st4_ast[i][j][k][l]/(1-a_st4[i][j][k][l]*dtheta_st4_ast[i][j][k][l]*dtheta_st4_ast[i][j][k][l]);
-          dtheta_st4_c[i][j][k][l] = 1/(a_st4[i][j][k][l]*dtheta_st4_ast[i][j][k][l]);
+              dtheta_st4_ast[i][j][k][l]/(1-a_st4[i][j][k][l]*dtheta_st4_ast[i][j][k][l]*dtheta_st4_ast[i][j][k][l]);
+              dtheta_st4_c[i][j][k][l] = 1/(a_st4[i][j][k][l]*dtheta_st4_ast[i][j][k][l]);
 
         }
       }

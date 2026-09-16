@@ -77,6 +77,10 @@ atoms included in the calculation.
 
 .. note::
 
+   The heat flux vector is formally defined on a cross-section of the system. The compute *heat/flux* calculates a spatially averaged heat flux vector across the volume of the group specified in the command. For the calculation of the heat flux on a control surface, see the :doc:`compute heat/flux/virial/tally <compute_tally>` command.
+
+.. note::
+
    The :doc:`compute pe/atom <compute_pe_atom>` and
    :doc:`compute stress/atom <compute_stress_atom>`
    commands have options for which

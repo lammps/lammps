@@ -15,6 +15,7 @@
 
 #include "atom.h"
 #include "comm.h"
+#include "citeme.h"
 #include "error.h"
 #include "force.h"
 #include "group.h"
@@ -22,7 +23,28 @@
 #include "pair.h"
 #include "update.h"
 
+#include <cstring>
+
 using namespace LAMMPS_NS;
+
+static const char cite_tally_pair_manybody[] =
+    "compute tallying of general many-body forces: "
+    "doi:10.1103/mtkk-kyyy\n\n"
+    "@article{Poulos2026,\n"
+    " title = {Exact formula and spectral decomposition of the heat flux in molecular dynamics \n"
+    "          for arbitrary many-body potentials},\n"
+    " author = {Poulos, Markos and Surblys, Donatas and Termentzidis, Konstantinos},\n"
+    " journal = {Phys. Rev. B},\n"
+    " volume = {113},\n"
+    " issue = {4},\n"
+    " pages = {045414},\n"
+    " numpages = {10},\n"
+    " year = {2026},\n"
+    " month = {Jan},\n"
+    " publisher = {American Physical Society},\n"
+    " doi = {10.1103/mtkk-kyyy},\n"
+    " url = {https://link.aps.org/doi/10.1103/mtkk-kyyy}\n"
+    "}\n\n";
 
 /* ---------------------------------------------------------------------- */
 
@@ -48,6 +70,28 @@ ComputeHeatFluxVirialTally::ComputeHeatFluxVirialTally(LAMMPS *lmp, int narg, ch
   did_setup = invoked_peratom = invoked_scalar = -1;
   nmax = -1;
   fatom = nullptr;
+
+  // process optional args (n-body contribution flags)
+
+  if (narg == 4) {
+    two_bdflag = three_bdflag = four_bdflag = 1;
+  } else {
+    two_bdflag = three_bdflag = four_bdflag = 0;
+    int iarg = 4;
+    while (iarg < narg) {
+      if (strcmp(arg[iarg], "two_body") == 0)
+        two_bdflag = 1;
+      else if (strcmp(arg[iarg], "three_body") == 0)
+        three_bdflag = 1;
+      else if (strcmp(arg[iarg], "four_body") == 0)
+        four_bdflag = 1;
+      else
+        error->all(FLERR, "Illegal compute heat/flux/virial/tally command: unknown keyword {}", arg[iarg]);
+      iarg++;
+    }
+  }
+  if (lmp->citeme && force && force->pair && force->pair->manybody_flag)
+    lmp->citeme->add(cite_tally_pair_manybody);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -68,7 +112,8 @@ void ComputeHeatFluxVirialTally::init()
     force->pair->add_tally_callback(this);
 
   if (comm->me == 0) {
-    if (force->pair->single_enable == 0 || force->pair->manybody_flag)
+    if (force->pair->centroidstressflag != CENTROID_AVAIL &&
+        (force->pair->single_enable == 0 || force->pair->manybody_flag))
       error->warning(FLERR, "Compute heat/flux/virial/tally used with incompatible pair style");
 
     if (force->bond || force->angle || force->dihedral || force->improper || force->kspace)
@@ -127,6 +172,8 @@ void ComputeHeatFluxVirialTally::pair_tally_callback(int i, int j, int nlocal, i
                                                      double, double fpair, double dx, double dy,
                                                      double dz)
 {
+  if (two_bdflag == 0) return;
+
   const int *const mask = atom->mask;
 
   const bool ingroup1 = (mask[i] & groupbit);
@@ -150,7 +197,56 @@ void ComputeHeatFluxVirialTally::pair_tally_callback(int i, int j, int nlocal, i
   }
 }
 
-/* ---------------------------------------------------------------------- */
+/* -----------------------------------  CENTROID  ADDITION  ----------------------------------------- */
+/*
+The H_ij is equal to (H(x_i-x_cs) - H(x_j-x_cs)) where H is the Heaviside step function and x_cs is the control surface coordinate. (Torii 2008)
+
+- H_ij = 1 if i in group1 and j in group2
+- H_ij = -1 if i in group2 and j in group1 (even if i and j belong to both groups; this is a problem of incorrect simulation setup, not of our implementation)
+- H_ij = 0 otherwise (i.e if i and j are both in group1 or both in group2)
+
+These are true even if i and j belong to both groups; this is then a problem of incorrect simulation setup, not of our implementation ;)
+*/
+void ComputeHeatFluxVirialTally::pair_cv_tally3_callback(int i, int j, int k, double *fi, double *fj, double *fk, double Uijk, double pi, double pj, double pk)
+{
+  if (three_bdflag == 0) return;
+
+  const int *const mask = atom->mask;
+  int H_ij = H_ab(i, j, mask, groupbit, groupbit2);
+  int H_ik = H_ab(i, k, mask, groupbit, groupbit2);
+  int H_jk = H_ab(j, k, mask, groupbit, groupbit2);
+
+  for (int m=0; m<3; m++) {
+    fatom[i][m] += (pj*H_ij + pk*H_ik)*fi[m];
+    fatom[j][m] += (-pi*H_ij + pk*H_jk)*fj[m];
+    fatom[k][m] += (-pi*H_ik - pj*H_jk)*fk[m];
+  }
+
+}
+
+void ComputeHeatFluxVirialTally::pair_cv_tally4_callback(int i, int j, int k, int l, double *fi, double *fj, double *fk, double *fl, double Uijkl, double pi, double pj, double pk, double pl)
+{
+  if (four_bdflag == 0) return;
+
+  const int *const mask = atom->mask;
+  int H_ij = H_ab(i, j, mask, groupbit, groupbit2);
+  int H_ik = H_ab(i, k, mask, groupbit, groupbit2);
+  int H_il = H_ab(i, l, mask, groupbit, groupbit2);
+  int H_jk = H_ab(j, k, mask, groupbit, groupbit2);
+  int H_jl = H_ab(j, l, mask, groupbit, groupbit2);
+  int H_kl = H_ab(k, l, mask, groupbit, groupbit2);
+
+  for (int m=0; m<3; m++) {
+    fatom[i][m] += (pj*H_ij + pk*H_ik + pl*H_il)*fi[m];
+    fatom[j][m] += (-pi*H_ij + pk*H_jk + pl*H_jl)*fj[m];
+    fatom[k][m] += (-pi*H_ik - pj*H_jk + pl*H_kl)*fk[m];
+    fatom[l][m] += (-pi*H_il - pj*H_jl - pk*H_kl)*fl[m];
+  }
+}
+
+/* -----------------------------------  CENTROID  ADDITION  ----------------------------------------- */
+
+
 
 int ComputeHeatFluxVirialTally::pack_reverse_comm(int n, int first, double *buf)
 {

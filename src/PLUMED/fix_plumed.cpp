@@ -249,6 +249,7 @@ FixPlumed::FixPlumed(LAMMPS *lmp, int narg, char **arg) :
 
 FixPlumed::~FixPlumed()
 {
+  if (copymode) return;
   delete p;
   modify->delete_compute(id_pe);
   modify->delete_compute(id_press);
@@ -502,10 +503,10 @@ void FixPlumed::post_force(int /* vflag */)
 
   // Ask for the computes in the next time step
   // such that the virial and energy are tallied.
-  // This should be changed to something that triggers the
-  // calculation only if plumed needs it.
-  c_pe->addstep(update->ntimestep + 1);
-  c_press->addstep(update->ntimestep + 1);
+  if (plumedNeedsEnergy) {
+    c_pe->addstep(update->ntimestep + 1);
+    c_press->addstep(update->ntimestep + 1);
+  }
 }
 
 void FixPlumed::post_force_respa(int vflag, int ilevel, int /* iloop */)

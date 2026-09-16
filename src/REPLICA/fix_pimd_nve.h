@@ -126,8 +126,6 @@ class FixPIMDNVE : public Fix {
   void unmap_coordinates(double **, imageint *);
   void remap_coordinates(double **, imageint *);
   double **normal_mode_transform_buffer();
-  void prepare_common_virial_state();
-  void schedule_common_computes();
 
   double local_kinetic_energy_sum() const;
   void reduce_bead_and_total(double, double &, double &) const;
@@ -151,8 +149,8 @@ class FixPIMDNVE : public Fix {
   virtual int unpack_subclass_restart(const double *, int);
   virtual double compute_subclass_vector(int) const;
 
-  virtual int nuclear_vector_size() const;
-  virtual double compute_nuclear_vector(int) const;
+  int nuclear_vector_size() const;
+  double compute_nuclear_vector(int) const;
   virtual int base_restart_size() const;
   virtual int pack_base_restart(double *) const;
   virtual int unpack_base_restart(const double *);

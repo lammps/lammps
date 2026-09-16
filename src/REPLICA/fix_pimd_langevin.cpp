@@ -523,12 +523,12 @@ void FixPIMDLangevin::langevin_init()
       }
       for (int i = 0; i < np; i++) {
         out += fmt::format("      {:d}     {:.8e} {:.8e} {:.8e} {:.8e}\n", i, _omega_k[i], tau_k[i],
-                           c1_k[i], c2_k[i]);
+                          c1_k[i], c2_k[i]);
       }
     } else if (method == PIMD) {
       for (int i = 0; i < np; i++) {
         out += fmt::format("      {:d}     {:.8e} {:.8e} {:.8e} {:.8e}\n", i,
-                           _omega_np / sqrt(fmass), tau, c1, c2);
+                          _omega_np / sqrt(fmass), tau, c1, c2);
       }
     }
     if (thermostat == PILE_L) out += "  PILE_L thermostat successfully initialized!\n";
@@ -579,33 +579,6 @@ void FixPIMDLangevin::o_step()
 /* ----------------------------------------------------------------------
    Normal Mode PIMD
    ------------------------------------------------------------------------- */
-
-void FixPIMDLangevin::remove_com_motion()
-{
-  if (method == NMPIMD) {
-    FixPIMDNVE::remove_com_motion();
-  } else if (method == PIMD) {
-    double **v = atom->v;
-    int *mask = atom->mask;
-    int nlocal = atom->nlocal;
-    if (dynamic) masstotal = group->mass(igroup);
-    double vcm[3];
-    group->vcm(igroup, masstotal, vcm);
-    for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
-        v[i][0] -= vcm[0];
-        v[i][1] -= vcm[1];
-        v[i][2] -= vcm[2];
-      }
-    }
-  } else {
-    error->all(
-        FLERR,
-        fmt::format("Unknown method for fix {}. Only nmpimd and pimd are supported!", style));
-  }
-}
-
-/* ---------------------------------------------------------------------- */
 
 void FixPIMDLangevin::compute_cvir()
 {
@@ -674,6 +647,8 @@ void FixPIMDLangevin::compute_totenthalpy()
   } else if (barostat == MTTK)
     totenthalpy = tote + 1.5 * W * vw[0] * vw[0] * inverse_np + p_hydro * (volume - vol0);
 }
+
+/* ---------------------------------------------------------------------- */
 
 double FixPIMDLangevin::compute_subclass_vector(int n) const
 {

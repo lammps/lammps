@@ -53,6 +53,8 @@ enum { PHYSICAL, NORMAL };
 enum { BAOAB, OBABO };
 enum { SINGLE_PROC, MULTI_PROC };
 
+/* ---------------------------------------------------------------------- */
+
 FixPIMDNVE::FixPIMDNVE(LAMMPS *lmp, int narg, char **arg, bool defer_setup) :
     Fix(lmp, narg, arg), mass(nullptr), rootworld(MPI_COMM_NULL), plansend(nullptr),
     planrecv(nullptr), tagsend(nullptr), tagrecv(nullptr), bufsend(nullptr), bufrecv(nullptr),
@@ -450,7 +452,26 @@ void FixPIMDNVE::prepare_coordinates()
 
 void FixPIMDNVE::post_force(int /*flag*/)
 {
-  prepare_common_virial_state();
+  int nlocal = atom->nlocal;
+  double **x = atom->x;
+  imageint *image = atom->image;
+  tagint *tag = atom->tag;
+
+  if (atom->nmax > maxunwrap) reallocate_x_unwrap();
+  if (atom->nmax > maxxc) reallocate_xc();
+
+  for (int i = 0; i < nlocal; i++) {
+    x_unwrap[i][0] = x[i][0];
+    x_unwrap[i][1] = x[i][1];
+    x_unwrap[i][2] = x[i][2];
+  }
+  unmap_coordinates(x_unwrap, image);
+  for (int i = 0; i < nlocal; i++) {
+    xc[i][0] = xcall[3 * (tag[i] - 1) + 0];
+    xc[i][1] = xcall[3 * (tag[i] - 1) + 1];
+    xc[i][2] = xcall[3 * (tag[i] - 1) + 2];
+  }
+
   compute_vir();
   compute_xf_vir();
   compute_cvir();
@@ -473,7 +494,8 @@ void FixPIMDNVE::post_force(int /*flag*/)
   }
   after_force_transform_hook();
 
-  schedule_common_computes();
+  c_pe->addstep(update->ntimestep + 1);
+  c_press->addstep(update->ntimestep + 1);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -513,43 +535,12 @@ void FixPIMDNVE::remap_coordinates(double **coords, imageint *image)
   for (int i = 0; i < nlocal; i++) domain->unmap_inv(coords[i], image[i]);
 }
 
+/* ---------------------------------------------------------------------- */
+
 double **FixPIMDNVE::normal_mode_transform_buffer()
 {
   if (cmode == SINGLE_PROC) return bufsortedall;
   return bufbeads;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixPIMDNVE::prepare_common_virial_state()
-{
-  int nlocal = atom->nlocal;
-  double **x = atom->x;
-  imageint *image = atom->image;
-  tagint *tag = atom->tag;
-
-  if (atom->nmax > maxunwrap) reallocate_x_unwrap();
-  if (atom->nmax > maxxc) reallocate_xc();
-
-  for (int i = 0; i < nlocal; i++) {
-    x_unwrap[i][0] = x[i][0];
-    x_unwrap[i][1] = x[i][1];
-    x_unwrap[i][2] = x[i][2];
-  }
-  unmap_coordinates(x_unwrap, image);
-  for (int i = 0; i < nlocal; i++) {
-    xc[i][0] = xcall[3 * (tag[i] - 1) + 0];
-    xc[i][1] = xcall[3 * (tag[i] - 1) + 1];
-    xc[i][2] = xcall[3 * (tag[i] - 1) + 2];
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixPIMDNVE::schedule_common_computes()
-{
-  c_pe->addstep(update->ntimestep + 1);
-  c_press->addstep(update->ntimestep + 1);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -972,9 +963,9 @@ void FixPIMDNVE::inter_replica_comm(double **ptr)
       if (nsend > maxsend) {
         maxsend = nsend + 200;
         tagsend = (tagint *) memory->srealloc(tagsend, sizeof(tagint) * maxsend,
-                                              "FixPIMDNVE:tagsend");
+                                            "FixPIMDNVE:tagsend");
         bufsend = (double *) memory->srealloc(bufsend, sizeof(double) * 3 * maxsend,
-                                              "FixPIMDNVE:bufsend");
+                                            "FixPIMDNVE:bufsend");
       }
 
       // 3) exchange tags:
@@ -1025,7 +1016,7 @@ void FixPIMDNVE::inter_replica_comm(double **ptr)
           }
           if (pos < 0) {
             auto mesg = fmt::format("collect failed: tag {} not returned on world [{}] rank [{}]\n",
-                                    (int)t, universe->iworld, comm->me);
+                                  (int)t, universe->iworld, comm->me);
             error->universe_one(FLERR, mesg);
           }
 
@@ -1055,10 +1046,8 @@ void FixPIMDNVE::inter_replica_comm(double **ptr)
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMDNVE::ring_collect(const std::vector<tagint> &miss_tag,
-                                            double **ptr,
-                                            std::vector<tagint> &rep_tag,
-                                            std::vector<double> &rep_val)
+void FixPIMDNVE::ring_collect(const std::vector<tagint> &miss_tag, double **ptr,
+                              std::vector<tagint> &rep_tag, std::vector<double> &rep_val)
 {
   // ring-collection: collect missing atoms from other ranks in this world
   // by passing missing tag lists and found values in a ring
@@ -1148,9 +1137,9 @@ void FixPIMDNVE::ring_collect(const std::vector<tagint> &miss_tag,
     // Print a small sample to help debug
     const tagint t0 = tok_missing[0];
     auto mesg = fmt::format(
-      "ring_collect: unresolved {} tags after {} hops on world [{}] rank [{}]. "
-      "Example tag = {}.\n",
-      (int)tok_missing.size(), P, universe->iworld, me, (int)t0);
+        "ring_collect: unresolved {} tags after {} hops on world [{}] rank [{}]. "
+        "Example tag = {}.\n",
+        (int)tok_missing.size(), P, universe->iworld, me, (int)t0);
     error->universe_one(FLERR, mesg);
   }
 }
@@ -1159,7 +1148,11 @@ void FixPIMDNVE::ring_collect(const std::vector<tagint> &miss_tag,
 
 void FixPIMDNVE::remove_com_motion()
 {
-  if (universe->iworld == 0) {
+  // Do not remove center-of-mass motion for CMD.
+  if (method == CMD) return;
+
+  // Cartesian PIMD: every bead; NMPIMD: only the centroid mode.
+  if (method == PIMD || universe->iworld == 0) {
     double **v = atom->v;
     int *mask = atom->mask;
     int nlocal = atom->nlocal;

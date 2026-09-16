@@ -282,6 +282,10 @@ int FixPIMDUVT::unpack_subclass_restart(const double *list, int n)
 
 double FixPIMDUVT::compute_subclass_vector(int n) const
 {
+  const int nhc_size = tstat_flag ? 4 * mtchain : 0;
+  if (n < nhc_size) return FixPIMDNVT::compute_subclass_vector(n);
+  n -= nhc_size;
+
   if (n == 0) return *Ne;
   if (n == 1) return *Ne_dot;
   if (n == 2) return dedn_current;

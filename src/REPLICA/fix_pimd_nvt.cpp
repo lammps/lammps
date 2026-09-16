@@ -202,8 +202,8 @@ void FixPIMDNVT::o_step()
 void FixPIMDNVT::nhc_init()
 {
   if (kt <= 0.0 || hbar <= 0.0)
-    error->universe_all(FLERR, fmt::format("Fix {} requires positive kt and hbar in nhc_init",
-                                           style));
+    error->universe_all(
+        FLERR, fmt::format("Fix {} requires positive kt and hbar in nhc_init", style));
 
   const double beta_local = 1.0 / kt;
   const double omega_np_local = np / beta_local / hbar;
@@ -552,21 +552,8 @@ int FixPIMDNVT::unpack_base_restart(const double *list)
 
 /* ---------------------------------------------------------------------- */
 
-int FixPIMDNVT::nuclear_vector_size() const
+double FixPIMDNVT::compute_subclass_vector(int n) const
 {
-  int nsize = FixPIMDNVE::nuclear_vector_size();
-  if (tstat_flag) nsize += 4 * mtchain;
-  return nsize;
-}
-
-/* ---------------------------------------------------------------------- */
-
-double FixPIMDNVT::compute_nuclear_vector(int n) const
-{
-  const int prefix = FixPIMDNVE::nuclear_vector_size();
-  if (n < prefix) return FixPIMDNVE::compute_nuclear_vector(n);
-  n -= prefix;
-
   int ilen;
   if (tstat_flag) {
     ilen = mtchain;

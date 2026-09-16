@@ -586,6 +586,11 @@ void PairSurfGranular::init_style()
   // it replaces FixDummy, created in the constructor
   // this is so its order in the fix list is preserved
 
+  if (use_history) {
+    delete[] id_history;
+    id_history = utils::strdup(fmt::format("NEIGH_HISTORY_GRANULAR{}", instance_index()));
+  }
+
   if (use_history && (fix_history == nullptr)) {
     auto fixcmd = fmt::format("{} all NEIGH_HISTORY {} onesided", id_history, size_history);
     fix_history = dynamic_cast<FixNeighHistory *>(modify->replace_fix(id_dummy, fixcmd, 1));

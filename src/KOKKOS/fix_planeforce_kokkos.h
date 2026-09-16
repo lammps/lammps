@@ -37,7 +37,6 @@ class FixPlaneForceKokkos : public FixPlaneForce {
   typedef ArrayTypes<DeviceType> AT;
 
   FixPlaneForceKokkos(class LAMMPS *, int, char **);
-  ~FixPlaneForceKokkos() override {}
   void init() override;
   void post_force(int) override;
 

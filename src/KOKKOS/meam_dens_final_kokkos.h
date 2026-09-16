@@ -12,17 +12,21 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#ifndef LMP_MEAM_DENS_FINAL_KOKKOS_H
+#define LMP_MEAM_DENS_FINAL_KOKKOS_H
+
 #include "meam_kokkos.h"
 #include "math_special.h"
 
-using namespace LAMMPS_NS;
+namespace LAMMPS_NS {
+
 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 void
 MEAMKokkos<DeviceType>::meam_dens_final(int nlocal, int eflag_either, int eflag_global, int eflag_atom,
-                      typename AT::t_kkacc_1d eatom, int ntype, typename AT::t_int_1d type, typename AT::t_int_1d d_map, typename AT::t_int_2d d_scale, int& errorflag, EV_FLOAT &ev_all)
+                      typename AT::t_kkacc_1d eatom, int ntype, typename AT::t_int_1d type, typename AT::t_int_1d d_map, typename AT::t_kkfloat_2d d_scale, int& errorflag, EV_FLOAT &ev_all)
 {
   EV_FLOAT ev;
   this->eflag_either = eflag_either;
@@ -189,4 +193,5 @@ void MEAMKokkos<DeviceType>::operator()(TagMEAMDensFinal, const int &i, EV_FLOAT
     }
   }
 }
-
+}    // namespace LAMMPS_NS
+#endif

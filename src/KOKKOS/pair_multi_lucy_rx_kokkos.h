@@ -63,6 +63,7 @@ class PairMultiLucyRXKokkos : public PairMultiLucyRX, public KokkosBase {
   void compute_style(int, int);
 
   void init_style() override;
+  double init_one(int, int) override;
   int pack_forward_comm_kokkos(int, DAT::tdual_int_1d, DAT::tdual_double_1d&,
                                int, int *) override;
   void unpack_forward_comm_kokkos(int, int, DAT::tdual_double_1d&) override;

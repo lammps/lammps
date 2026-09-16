@@ -40,7 +40,6 @@ class FixSpringKokkos : public FixSpring {
   typedef ArrayTypes<DeviceType> AT;
 
   FixSpringKokkos(class LAMMPS *, int, char **);
-  ~FixSpringKokkos() override {}
   void init() override;
   void post_force(int) override;
 

@@ -102,7 +102,6 @@ void FixSpringSelfKokkos<DeviceType>::post_force(int /*vflag*/)
 
   double espring_kk;
 
-  k_xoriginal.modify_host();
   k_xoriginal.sync<DeviceType>();
 
   copymode = 1;
@@ -180,23 +179,33 @@ void FixSpringSelfKokkos<DeviceType>::copy_arrays(int i, int j, int delflag)
 template<class DeviceType>
 // NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
-void FixSpringSelfKokkos<DeviceType>::pack_exchange_item(const int &mysend, int &offset, const bool &/*final*/) const
+void FixSpringSelfKokkos<DeviceType>::pack_exchange_item(const int &mysend, int &offset, const bool &final) const
 {
   const int i = d_exchange_sendlist(mysend);
 
-  int m = nsend + offset;
-  d_buf[mysend] = m;
-  d_buf[m++] = static_cast<double>(d_xoriginal(i,0));
-  d_buf[m++] = static_cast<double>(d_xoriginal(i,1));
-  d_buf[m++] = static_cast<double>(d_xoriginal(i,2));
-  if (mysend == nsend-1) d_count() = m;
-  offset = m - nsend;
+  // the scan runs this functor once to accumulate the offsets and once more
+  // with final set to pack.  the buffer must only be written and the vacated
+  // slot only be refilled in the final pass, otherwise the first pass has
+  // already overwritten the values of atom i with those of atom j when the
+  // final pass packs them.  same pattern as fix shake/kk and neigh/history/kk
 
-  const int j = d_copylist(mysend);
-  if (j > -1) {
-    d_xoriginal(i,0) = d_xoriginal(j,0);
-    d_xoriginal(i,1) = d_xoriginal(j,1);
-    d_xoriginal(i,2) = d_xoriginal(j,2);
+  if (!final) {
+    offset += 3;
+  } else {
+    int m = nsend + offset;
+    d_buf[mysend] = m;
+    d_buf[m++] = static_cast<double>(d_xoriginal(i,0));
+    d_buf[m++] = static_cast<double>(d_xoriginal(i,1));
+    d_buf[m++] = static_cast<double>(d_xoriginal(i,2));
+    if (mysend == nsend-1) d_count() = m;
+    offset = m - nsend;
+
+    const int j = d_copylist(mysend);
+    if (j > -1) {
+      d_xoriginal(i,0) = d_xoriginal(j,0);
+      d_xoriginal(i,1) = d_xoriginal(j,1);
+      d_xoriginal(i,2) = d_xoriginal(j,2);
+    }
   }
 }
 

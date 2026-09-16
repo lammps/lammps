@@ -216,7 +216,7 @@ else the *line* setting (if specified) for that value is used, else
 the default setting is used.  A setting of *none* clears all previous
 settings, reverting all values to their default format.
 
-.. versionchanged:: TBD
+.. versionchanged:: 2Sep2026
 
 Format strings are checked when the thermo output is set up and LAMMPS
 will stop with an error if a format string does not match the kind of
@@ -233,7 +233,7 @@ arbitrary literal text, and may leave trailing values unformatted.
    the *format* keyword and LAMMPS will convert it to the corresponding
    8-byte form when it is applied to those keywords.
 
-   .. versionchanged:: TBD
+   .. versionchanged:: 2Sep2026
 
    This conversion is now also applied to the *line* option and the
    *format ID string* option.  Previously those required a format string

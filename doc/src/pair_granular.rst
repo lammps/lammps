@@ -416,7 +416,7 @@ The dimensionless coefficient of restitution :math:`e` specified as part
 of the normal contact model parameters should be between 0 and 1, but no
 error check is performed on this.
 
-.. versionchanged:: TBD
+.. versionchanged:: 2Sep2026
 
 This numerical solution is from :ref:`(Marshall, 2009) <Marshall2009_1>`
 where the factor of :math:`\sqrt{2}` arises from a difference in convention

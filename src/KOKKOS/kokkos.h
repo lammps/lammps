@@ -84,6 +84,7 @@ class KokkosLMP : protected Pointers {
   static void finalize();
   void accelerator(int, char **);
   void newton_check();
+  void respa_check();
   bigint neigh_count(int);
 
   // warn (on rank 0) when a KOKKOS-enabled style relies on an internal helper

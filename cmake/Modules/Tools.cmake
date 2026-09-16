@@ -51,12 +51,28 @@ if(BUILD_LAMMPS_GUI)
   if(NOT BUILD_SHARED_LIBS)
     message(FATAL_ERROR "Building LAMMPS-GUI currently requires setting -D BUILD_SHARED_LIBS=ON")
   endif()
+  # hack to support multi-arch builds for external project
+  if("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
+    list(JOIN CMAKE_OSX_ARCHITECTURES , MACOSX_ARCHS)
+  endif()
+  # hack to encode the LAMMPS build folder into the binary's rpath
+  if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    set(LAMMPS_GUI_RPATH "@loader_path")
+  elseif(NOT WIN32)
+    set(LAMMPS_GUI_RPATH "\$ORIGIN")
+  endif()
+  if(LAMMPS_INSTALL_RPATH)
+    list(APPEND LAMMPS_GUI_RPATH ${CMAKE_INSTALL_FULL_LIBDIR})
+  endif()
+  list(JOIN LAMMPS_GUI_RPATH , LAMMPS_GUI_RPATH)
+
   # When building LAMMPS-GUI with LAMMPS we don't support plugin mode and don't include docs.
   ExternalProject_Add(lammps-gui_build
     GIT_REPOSITORY https://github.com/akohlmey/lammps-gui.git
     GIT_TAG main
     GIT_SHALLOW TRUE
     GIT_PROGRESS TRUE
+    LIST_SEPARATOR ,
     CMAKE_ARGS -D BUILD_DOC=OFF
                -D LAMMPS_GUI_USE_PLUGIN=OFF
                -D LAMMPS_SOURCE_DIR=${LAMMPS_SOURCE_DIR}
@@ -67,6 +83,9 @@ if(BUILD_LAMMPS_GUI)
                -D CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
                -D CMAKE_MAKE_PROGRAM=${CMAKE_MAKE_PROGRAM}
                -D CMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
+               -D CMAKE_OSX_ARCHITECTURES=${MACOSX_ARCHS}
+               -D CMAKE_OSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET}
+               -D CMAKE_INSTALL_RPATH=${LAMMPS_GUI_RPATH}
     DEPENDS lammps
     BUILD_BYPRODUCTS <INSTALL_DIR>/bin/lammps-gui
   )
@@ -78,10 +97,9 @@ if(BUILD_LAMMPS_GUI)
   # packaging support for LAMMPS-GUI when compiled with LAMMPS
   option(BUILD_WHAM "Download and compile WHAM executable from Grossfield Lab" YES)
   if(BUILD_WHAM)
-    set(WHAM_URL "https://download.lammps.org/thirdparty/wham-release-2.1.1.tar.gz" CACHE STRING "URL for WHAM tarball")
-    set(WHAM_SHA256 "3c02fb854bf17f6d4bd2aafedcf3e1996cd3384d998e368be03a59b06d39f8d4" CACHE STRING "SHA256 checksum of WHAM tarball")
-    mark_as_advanced(WHAM_URL)
-    mark_as_advanced(WHAM_SHA256)
+    SetDownloadSettings(WHAM "WHAM"
+      "https://download.lammps.org/thirdparty/wham-release-2.1.1.tar.gz"
+      "3c02fb854bf17f6d4bd2aafedcf3e1996cd3384d998e368be03a59b06d39f8d4")
 
     get_filename_component(archive ${WHAM_URL} NAME)
     file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/_deps/src)

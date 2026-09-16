@@ -82,7 +82,13 @@ PairGranular::PairGranular(LAMMPS *lmp) : Pair(lmp), fix_rigid(nullptr)
   // this is so final order of Modify:fix will conform to input script
 
 id_dummy = utils::strdup(std::string("NEIGH_HISTORY_GRANULAR_DUMMY") + std::to_string(instance_me));
-id_history = utils::strdup(std::string("NEIGH_HISTORY_GRANULAR") + std::to_string(instance_me));
+
+  // the id of the history fix is built in init_style() and not here: it has to
+  // be the same in the run that writes a restart file and in the run that reads
+  // it back, so it cannot come from instance_me, which counts every Pair ever
+  // created in the process, and the hybrid sub-style list is not populated yet
+
+  id_history = nullptr;
 
   cutoff_global = -1.0;
   fix_history = nullptr;
@@ -490,6 +496,11 @@ void PairGranular::init_style()
   // if history is stored and first init, create Fix to store history
   // it replaces FixDummy, created in the constructor
   // this is so its order in the fix list is preserved
+
+  if (use_history) {
+    delete[] id_history;
+    id_history = utils::strdup(fmt::format("NEIGH_HISTORY_GRANULAR{}", instance_index()));
+  }
 
   if (use_history && fix_history == nullptr) {
     fix_history = dynamic_cast<FixNeighHistory *>(modify->replace_fix(id_dummy, fmt::format("{} all NEIGH_HISTORY {}", id_history, size_history),0));

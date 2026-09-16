@@ -113,6 +113,42 @@ else()
   endfunction()
 endif()
 
+# environment setting that makes the LAMMPSTest fixture in unittest/testing/core.h
+# append accelerator flags to the LAMMPS command line arguments, so that the very
+# same test bodies also exercise the KOKKOS versions of styles and commands.
+# a GPU-enabled Kokkos backend aborts when no GPU is requested, so ask for one
+# device there; it also defaults to a full neighbor list, which the KOKKOS
+# package only allows with "newton off", while these generic test decks use the
+# default "newton on" -- so pin a half neighbor list, the same way the force
+# style OutputStyle.kokkos_gpu case does.  CPU-only backends (Serial, OpenMP)
+# use a half list with newton on already and keep running threads-only
+if(Kokkos_ENABLE_CUDA OR Kokkos_ENABLE_HIP OR Kokkos_ENABLE_SYCL OR Kokkos_ENABLE_OPENMPTARGET)
+  set(KOKKOS_TEST_ENVIRONMENT "LAMMPS_ACCELERATOR_ARGS=-k on g 1 t 1 -sf kk -pk kokkos neigh half newton on")
+else()
+  set(KOKKOS_TEST_ENVIRONMENT "LAMMPS_ACCELERATOR_ARGS=-k on t 1 -sf kk")
+endif()
+
+# convenience function for adding a second, KOKKOS enabled run of a test that is
+# based on the LAMMPSTest fixture.  The added test is called <NAME>Kokkos and uses
+# the same command.  Environment settings of the original test are not inherited
+# and thus must be repeated in the optional ENVIRONMENT argument.
+function(add_kokkos_test)
+  if(NOT PKG_KOKKOS)
+    return()
+  endif()
+  cmake_parse_arguments(KKTEST "" "NAME" "COMMAND;ENVIRONMENT" ${ARGN})
+  add_test(NAME ${KKTEST_NAME}Kokkos COMMAND ${KKTEST_COMMAND})
+  set(KKTEST_ENV "${KOKKOS_TEST_ENVIRONMENT}")
+  list(APPEND KKTEST_ENV ${KKTEST_ENVIRONMENT})
+  # the KOKKOS entry runs the same executable as the plain one, so it needs a
+  # working directory of its own: the two would otherwise overwrite each
+  # other's scratch files when ctest runs them in parallel
+  file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${KKTEST_NAME}Kokkos)
+  set_tests_properties(${KKTEST_NAME}Kokkos PROPERTIES LABELS "kokkos"
+                       ENVIRONMENT "${KKTEST_ENV}"
+                       WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${KKTEST_NAME}Kokkos)
+endfunction()
+
 # incorporate categories of specific tests from subdirectories
 
 add_subdirectory(utils)

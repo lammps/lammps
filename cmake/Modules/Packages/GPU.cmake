@@ -462,10 +462,9 @@ elseif(GPU_API STREQUAL "HIP")
       if(DOWNLOAD_CUB)
         message(STATUS "CUB download requested")
         # TODO: test update to current version 1.17.2
-        set(CUB_URL "https://github.com/nvidia/cub/archive/1.12.0.tar.gz" CACHE STRING "URL for CUB tarball")
-        set(CUB_SHA256 "3b03d0cbc9549606fbeda69a920562eb563836346b39014c79dfd024165ee549" CACHE STRING "SHA256 checksum of CUB tarball")
-        mark_as_advanced(CUB_URL)
-        mark_as_advanced(CUB_SHA256)
+        SetDownloadSettings(CUB "CUB"
+          "https://github.com/nvidia/cub/archive/1.12.0.tar.gz"
+          "3b03d0cbc9549606fbeda69a920562eb563836346b39014c79dfd024165ee549")
         GetFallbackURL(CUB_URL CUB_FALLBACK)
 
         include(ExternalProject)

@@ -116,29 +116,29 @@ class RegEllipsoidKokkos : public RegEllipsoid, public KokkosBase {
   KOKKOS_INLINE_FUNCTION
   void rotate(double &x, double &y, double &z, double angle) const
   {
-    double a[3],b[3],c[3],d[3],disp[3];
+    double va[3],vb[3],vc[3],vd[3],disp[3];
 
     double sine = sin(angle);
     double cosine = cos(angle);
-    d[0] = x - point[0];
-    d[1] = y - point[1];
-    d[2] = z - point[2];
-    double x0dotr = d[0]*runit[0] + d[1]*runit[1] + d[2]*runit[2];
-    c[0] = x0dotr * runit[0];
-    c[1] = x0dotr * runit[1];
-    c[2] = x0dotr * runit[2];
-    a[0] = d[0] - c[0];
-    a[1] = d[1] - c[1];
-    a[2] = d[2] - c[2];
-    b[0] = runit[1]*a[2] - runit[2]*a[1];
-    b[1] = runit[2]*a[0] - runit[0]*a[2];
-    b[2] = runit[0]*a[1] - runit[1]*a[0];
-    disp[0] = a[0]*cosine  + b[0]*sine;
-    disp[1] = a[1]*cosine  + b[1]*sine;
-    disp[2] = a[2]*cosine  + b[2]*sine;
-    x = point[0] + c[0] + disp[0];
-    y = point[1] + c[1] + disp[1];
-    z = point[2] + c[2] + disp[2];
+    vd[0] = x - point[0];
+    vd[1] = y - point[1];
+    vd[2] = z - point[2];
+    double x0dotr = vd[0]*runit[0] + vd[1]*runit[1] + vd[2]*runit[2];
+    vc[0] = x0dotr * runit[0];
+    vc[1] = x0dotr * runit[1];
+    vc[2] = x0dotr * runit[2];
+    va[0] = vd[0] - vc[0];
+    va[1] = vd[1] - vc[1];
+    va[2] = vd[2] - vc[2];
+    vb[0] = runit[1]*va[2] - runit[2]*va[1];
+    vb[1] = runit[2]*va[0] - runit[0]*va[2];
+    vb[2] = runit[0]*va[1] - runit[1]*va[0];
+    disp[0] = va[0]*cosine  + vb[0]*sine;
+    disp[1] = va[1]*cosine  + vb[1]*sine;
+    disp[2] = va[2]*cosine  + vb[2]*sine;
+    x = point[0] + vc[0] + disp[0];
+    y = point[1] + vc[1] + disp[1];
+    z = point[2] + vc[2] + disp[2];
   }
 
 };

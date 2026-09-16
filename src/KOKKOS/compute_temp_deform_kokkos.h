@@ -84,10 +84,8 @@ class ComputeTempDeformKokkos: public ComputeTempDeform {
   typename AT::t_int_1d_randomread type;
   typename AT::t_int_1d_randomread mask;
 
-  class DomainKokkos *domainKK;
-
-  Few<double, 6> h_rate, d_grad_u;
-  Few<double, 3> h_ratelo;
+  Few<double, 6> h_rate, d_grad_u, d_h_inv;
+  Few<double, 3> h_ratelo, d_boxlo;
   Few<double, 5> d_xref;  // stores xmid[3], ylo, zlo
 
 };

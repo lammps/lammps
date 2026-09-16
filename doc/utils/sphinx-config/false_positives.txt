@@ -2015,6 +2015,7 @@ Khersonskii
 Khrapak
 Khvostov
 Ki
+KiB
 Kikkawa
 Kikugawa
 kim
@@ -3320,6 +3321,7 @@ Pre
 prec
 precession
 precond
+precisions
 prefactor
 prefactors
 prepend
@@ -4330,6 +4332,7 @@ uncompute
 underdamped
 underprediction
 undump
+unformatted
 uniaxial
 uniaxially
 unicaen

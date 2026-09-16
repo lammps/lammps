@@ -165,20 +165,22 @@ template<bool STACKPARAMS,  class Specialisation>
 KOKKOS_INLINE_FUNCTION
 KK_FLOAT PairCoulLongKokkos<DeviceType>::
 compute_fcoul(const KK_FLOAT& rsq, const int& /*i*/, const int&j,
-              const int& /*itype*/, const int& /*jtype*/,
+              const int& itype, const int& jtype,
               const KK_FLOAT& factor_coul, const KK_FLOAT& qtmp) const {
   const KK_FLOAT tabinnersq_kk = static_cast<KK_FLOAT>(tabinnersq);
   const KK_FLOAT g_ewald_kk = static_cast<KK_FLOAT>(g_ewald);
+  const KK_FLOAT scale_kk = (STACKPARAMS && itype<MAX_TYPES_STACKPARAMS+1 && jtype<MAX_TYPES_STACKPARAMS+1) ?
+    m_params[itype][jtype].scale : params(itype,jtype).scale;
   if (Specialisation::DoTable && rsq > tabinnersq_kk) {
     union_int_float_t rsq_lookup;
     rsq_lookup.f = rsq;
     const int itable = (rsq_lookup.i & ncoulmask) >> ncoulshiftbits;
     const KK_FLOAT fraction = ((KK_FLOAT)rsq_lookup.f - d_rtable[itable]) * d_drtable[itable];
     const KK_FLOAT table = d_ftable[itable] + fraction*d_dftable[itable];
-    KK_FLOAT forcecoul = qtmp*q[j] * table;
+    KK_FLOAT forcecoul = scale_kk*qtmp*q[j] * table;
     if (factor_coul < static_cast<KK_FLOAT>(1.0)) {
       const KK_FLOAT table = d_ctable[itable] + fraction*d_dctable[itable];
-      const KK_FLOAT prefactor = qtmp*q[j] * table;
+      const KK_FLOAT prefactor = scale_kk*qtmp*q[j] * table;
       forcecoul -= (static_cast<KK_FLOAT>(1.0)-factor_coul)*prefactor;
     }
     return forcecoul/rsq;
@@ -189,7 +191,7 @@ compute_fcoul(const KK_FLOAT& rsq, const int& /*i*/, const int&j,
     const KK_FLOAT t = static_cast<KK_FLOAT>(1.0) / (static_cast<KK_FLOAT>(1.0) + static_cast<KK_FLOAT>(EWALD_P)*grij);
     const KK_FLOAT rinv = static_cast<KK_FLOAT>(1.0)/r;
     const KK_FLOAT erfc = t * (static_cast<KK_FLOAT>(A1)+t*(static_cast<KK_FLOAT>(A2)+t*(static_cast<KK_FLOAT>(A3)+t*(static_cast<KK_FLOAT>(A4)+t*static_cast<KK_FLOAT>(A5))))) * expm2;
-    const KK_FLOAT prefactor = qqrd2e * qtmp*q[j]*rinv;
+    const KK_FLOAT prefactor = qqrd2e * scale_kk * qtmp*q[j]*rinv;
     KK_FLOAT forcecoul = prefactor * (erfc + static_cast<KK_FLOAT>(EWALD_F)*grij*expm2);
     if (factor_coul < static_cast<KK_FLOAT>(1.0)) forcecoul -= (static_cast<KK_FLOAT>(1.0)-factor_coul)*prefactor;
 
@@ -207,20 +209,22 @@ template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
 KK_FLOAT PairCoulLongKokkos<DeviceType>::
 compute_ecoul(const KK_FLOAT& rsq, const int& /*i*/, const int&j,
-              const int& /*itype*/, const int& /*jtype*/,
+              const int& itype, const int& jtype,
               const KK_FLOAT& factor_coul, const KK_FLOAT& qtmp) const {
   const KK_FLOAT tabinnersq_kk = static_cast<KK_FLOAT>(tabinnersq);
   const KK_FLOAT g_ewald_kk = static_cast<KK_FLOAT>(g_ewald);
+  const KK_FLOAT scale_kk = (STACKPARAMS && itype<MAX_TYPES_STACKPARAMS+1 && jtype<MAX_TYPES_STACKPARAMS+1) ?
+    m_params[itype][jtype].scale : params(itype,jtype).scale;
   if (Specialisation::DoTable && rsq > tabinnersq_kk) {
     union_int_float_t rsq_lookup;
     rsq_lookup.f = rsq;
     const int itable = (rsq_lookup.i & ncoulmask) >> ncoulshiftbits;
     const KK_FLOAT fraction = ((KK_FLOAT)rsq_lookup.f - d_rtable[itable]) * d_drtable[itable];
     const KK_FLOAT table = d_etable[itable] + fraction*d_detable[itable];
-    KK_FLOAT ecoul = qtmp*q[j] * table;
+    KK_FLOAT ecoul = scale_kk*qtmp*q[j] * table;
     if (factor_coul < static_cast<KK_FLOAT>(1.0)) {
       const KK_FLOAT table = d_ctable[itable] + fraction*d_dctable[itable];
-      const KK_FLOAT prefactor = qtmp*q[j] * table;
+      const KK_FLOAT prefactor = scale_kk*qtmp*q[j] * table;
       ecoul -= (static_cast<KK_FLOAT>(1.0)-factor_coul)*prefactor;
     }
     return ecoul;
@@ -230,7 +234,7 @@ compute_ecoul(const KK_FLOAT& rsq, const int& /*i*/, const int&j,
     const KK_FLOAT expm2 = Kokkos::exp(-grij*grij);
     const KK_FLOAT t = static_cast<KK_FLOAT>(1.0) / (static_cast<KK_FLOAT>(1.0) + static_cast<KK_FLOAT>(EWALD_P)*grij);
     const KK_FLOAT erfc = t * (static_cast<KK_FLOAT>(A1)+t*(static_cast<KK_FLOAT>(A2)+t*(static_cast<KK_FLOAT>(A3)+t*(static_cast<KK_FLOAT>(A4)+t*static_cast<KK_FLOAT>(A5))))) * expm2;
-    const KK_FLOAT prefactor = qqrd2e * qtmp*q[j]/r;
+    const KK_FLOAT prefactor = qqrd2e * scale_kk * qtmp*q[j]/r;
     KK_FLOAT ecoul = prefactor * erfc;
     if (factor_coul < static_cast<KK_FLOAT>(1.0)) ecoul -= (static_cast<KK_FLOAT>(1.0)-factor_coul)*prefactor;
     return ecoul;
@@ -404,6 +408,7 @@ double PairCoulLongKokkos<DeviceType>::init_one(int i, int j)
   double cutone = PairCoulLong::init_one(i,j);
 
   k_params.view_host()(i,j).cut_coulsq = static_cast<KK_FLOAT>(cut_coulsq);
+  k_params.view_host()(i,j).scale = static_cast<KK_FLOAT>(scale[i][j]);
 
   k_params.view_host()(j,i) = k_params.view_host()(i,j);
   if (i<MAX_TYPES_STACKPARAMS+1 && j<MAX_TYPES_STACKPARAMS+1) {

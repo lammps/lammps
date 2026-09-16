@@ -36,10 +36,6 @@ using namespace MathConst;
 
 static constexpr int LINEAR_STYLE = 0;
 
-static constexpr double TOLERANCE = 0.05;
-static constexpr double SMALL =     0.001;
-static constexpr double SMALLER =   0.00001;
-
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
@@ -49,7 +45,7 @@ DihedralTableKokkos<DeviceType>::DihedralTableKokkos(LAMMPS *lmp) : DihedralTabl
   atomKK = (AtomKokkos *) atom;
   neighborKK = (NeighborKokkos *) neighbor;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
-  datamask_read = X_MASK | F_MASK | Q_MASK | ENERGY_MASK | VIRIAL_MASK;
+  datamask_read = X_MASK | F_MASK | ENERGY_MASK | VIRIAL_MASK;
   datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
 
 

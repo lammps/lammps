@@ -40,6 +40,8 @@
       in.disp,
       in.disp2,
       in.dos,
+      in.dpdrx-shardlow,
+      in.dsring2,
       in.*_imd*,
       in.bucky-plus-cnt*,
       in.gREM,
@@ -52,11 +54,15 @@
       in.hyper.local,
       in.fix_python*,
       in.python*,
+      in.spin.iron-nve,
+      in.spin.nvt_lattice,
+      in.spin.nvt_spin,
       in.mliap.unified*,
       in.compute,
       in.mliap.*.compute,
       in.reaxff.tatb*,
       in.pod.compute,
+      in.widom.spce,
     ]
 
   timeout: 120

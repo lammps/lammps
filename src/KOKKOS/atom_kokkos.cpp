@@ -169,7 +169,8 @@ void AtomKokkos::update_property_atom()
   std::vector<Fix *> prop_atom_fixes;
   for (auto &ifix : modify->get_fix_by_style("^property/atom")) {
     if (!ifix->kokkosable)
-      error->all(FLERR, "KOKKOS package requires a Kokkos-enabled version of fix property/atom");
+      error->all(FLERR, "Fix property/atom {} must use the Kokkos-enabled style "
+                 "property/atom/kk when running with the KOKKOS package", ifix->id);
 
     ++nprop_atom;
     prop_atom_fixes.push_back(ifix);
@@ -279,6 +280,36 @@ void AtomKokkos::sync_pinned(const ExecutionSpace space, uint64_t mask, int asyn
   avecKK->sync_pinned(space, mask, async_flag);
   for (int n = 0; n < nprop_atom; n++) fix_prop_atom[n]->sync_pinned(space, mask, async_flag);
 }
+/* ----------------------------------------------------------------------
+   the four ways of setting the per-type masses all write the plain host
+   array, so claim that write for the device copy
+------------------------------------------------------------------------- */
+
+void AtomKokkos::set_mass(const char *file, int line, const char *str,
+                          int type_offset, int labelflag, int *ilabel)
+{
+  Atom::set_mass(file, line, str, type_offset, labelflag, ilabel);
+  k_mass.modify_host();
+}
+
+void AtomKokkos::set_mass(const char *file, int line, int itype, double value)
+{
+  Atom::set_mass(file, line, itype, value);
+  k_mass.modify_host();
+}
+
+void AtomKokkos::set_mass(const char *file, int line, int narg, char **arg)
+{
+  Atom::set_mass(file, line, narg, arg);
+  k_mass.modify_host();
+}
+
+void AtomKokkos::set_mass(double *values)
+{
+  Atom::set_mass(values);
+  k_mass.modify_host();
+}
+
 /* ---------------------------------------------------------------------- */
 
 void AtomKokkos::allocate_type_arrays()

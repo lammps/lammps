@@ -93,6 +93,7 @@ folder.  The following ``make`` commands are available:
    make package_check # check for complete and consistent package lists
    make char_check    # check for non-ASCII characters
    make role_check    # check for misformatted role keywords
+   make example_check # check for broken or missing links to examples
 
    make link_check    # check for broken external URLs
    make spelling      # spell-check the manual
@@ -305,6 +306,11 @@ be multiple tests run automatically:
      Pair style entry new is missing or incomplete in pair_style.rst
      Found 6 issue(s) with style lists
 
+- A test if references to files or folders in the examples tree have
+  become broken or are too deeply nested.  The test will examine the git
+  history to detect possible renames.
+
+------
 
 In addition, there is the option to run a spellcheck on the entire
 manual with ``make spelling``.  This requires `a library called enchant

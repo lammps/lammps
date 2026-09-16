@@ -439,7 +439,7 @@ oversubscription
 enables using :ref:`unified memory with Kokkos <kokkos>` when compiling
 LAMMPS; it requires CUDA 12.2 or later.
 
-.. versionchanged:: TBD
+.. versionchanged:: 2Sep2026
 
 This option replaces ``-D Kokkos_ENABLE_CUDA_UVM=on``, which Kokkos no
 longer supports.

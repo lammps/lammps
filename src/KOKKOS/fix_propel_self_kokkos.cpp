@@ -75,7 +75,10 @@ void FixPropelSelfKokkos<DeviceType>::post_force(int vflag)
 
   // energy and virial setup
 
-  if (vflag) v_init(vflag);
+  // the per-atom virial lives in a dual view, so the plain base-class vatom
+  // must not be allocated (alloc = 0)
+
+  if (vflag) v_init(vflag,0);
   else evflag = 0;
 
   if (vflag_atom) {

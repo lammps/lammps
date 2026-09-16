@@ -240,6 +240,12 @@ int MinLineSearchKokkos::linemin_quadratic(double eoriginal, double &alpha)
 
   if (hmaxall == 0.0) return ZEROFORCE;
 
+  // modify->max_alpha() above runs the fixes with extra global dof, and a
+  // non-KOKKOS one (e.g. fix box/relax) runs on the host and claims the host
+  // side of x, which leaves the device view xvec reads below stale
+
+  atomKK->sync(Device,X_MASK);
+
   // store box and values of all dof at start of linesearch
 
   {
@@ -274,6 +280,12 @@ int MinLineSearchKokkos::linemin_quadratic(double eoriginal, double &alpha)
 
   while (true) {
     ecurrent = alpha_step(alpha,1);
+
+    // the force styles and fixes evaluated by alpha_step() may be non-KOKKOS
+    // ones: those run on the host and claim the host side of f, which leaves
+    // the device view fvec reads below stale
+
+    atomKK->sync(Device,F_MASK);
 
     // compute new fh, alpha, delfh
 

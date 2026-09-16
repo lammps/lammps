@@ -420,17 +420,6 @@ void NeighborKokkos::build_topology() {
     k_dihedrallist = neighbond_device.k_dihedrallist;
     k_improperlist = neighbond_device.k_improperlist;
 
-    // Transfer topology neighbor lists to Host for non-Kokkos styles
-
-    if (force->bond && force->bond->execution_space == Host)
-      k_bondlist.sync_host();
-    if (force->angle && force->angle->execution_space == Host)
-      k_anglelist.sync_host();
-    if (force->dihedral && force->dihedral->execution_space == Host)
-      k_dihedrallist.sync_host();
-    if (force->improper && force->improper->execution_space == Host)
-      k_improperlist.sync_host();
-
    } else {
     neighbond_host.build_topology_kk();
 
@@ -439,4 +428,16 @@ void NeighborKokkos::build_topology() {
     k_dihedrallist = neighbond_host.k_dihedrallist;
     k_improperlist = neighbond_host.k_improperlist;
   }
+
+  // transfer topology neighbor lists to the host for non-Kokkos styles,
+  // which read them through the plain pointers in Neighbor
+
+  if (force->bond && force->bond->execution_space == Host)
+    k_bondlist.sync_host();
+  if (force->angle && force->angle->execution_space == Host)
+    k_anglelist.sync_host();
+  if (force->dihedral && force->dihedral->execution_space == Host)
+    k_dihedrallist.sync_host();
+  if (force->improper && force->improper->execution_space == Host)
+    k_improperlist.sync_host();
 }

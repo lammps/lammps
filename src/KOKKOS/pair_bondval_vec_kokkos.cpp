@@ -331,18 +331,6 @@ void PairBondValVecKokkos<DeviceType>::allocate()
 }
 
 /* ----------------------------------------------------------------------
-   global settings
-------------------------------------------------------------------------- */
-
-template<class DeviceType>
-void PairBondValVecKokkos<DeviceType>::settings(int narg, char **arg)
-{
-  if (narg > 3) error->all(FLERR,"Illegal pair_style command");
-
-  PairBondValVec::settings(2,arg);
-}
-
-/* ----------------------------------------------------------------------
    init specific to this pair style
 ------------------------------------------------------------------------- */
 
@@ -598,11 +586,9 @@ void PairBondValVecKokkos<DeviceType>::operator()(TagPairBondValVecKernelB<EFLAG
   d_Di(i,0) = (params(itype,itype).bvvsparam)*power_global_kk*static_cast<KK_FLOAT>(2.0)*s0x_kk*s;
   d_Di(i,1) = (params(itype,itype).bvvsparam)*power_global_kk*static_cast<KK_FLOAT>(2.0)*s0y_kk*s;
   d_Di(i,2) = (params(itype,itype).bvvsparam)*power_global_kk*static_cast<KK_FLOAT>(2.0)*s0z_kk*s;
-  //printf("i: %d, d_Di(i,0): %f, d_Di(i,1): %f, d_Di(i,2): %f\n", i, d_Di(i,0), d_Di(i,1), d_Di(i,2));
 
   if (EFLAG) {
     KK_FLOAT phi = (params(itype,itype).bvvsparam)*ss;
-    //printf("i: %d, phi: %f", i, phi);
     if (eflag_global) ev.evdwl += static_cast<KK_ACC_FLOAT>(phi);
     if (eflag_atom) d_eatom[i] += static_cast<KK_ACC_FLOAT>(phi);
   }

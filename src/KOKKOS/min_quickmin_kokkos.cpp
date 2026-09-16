@@ -46,6 +46,12 @@ void MinQuickMinKokkos::init()
 {
   MinKokkos::init();
 
+  // the per-type masses are written through the plain host array and nothing
+  // else pushes them to the device in a minimization, so do it here (as in
+  // MinFireKokkos::init())
+
+  atomKK->k_mass.sync_device();
+
   dt = update->dt;
   last_negative = update->ntimestep;
 }

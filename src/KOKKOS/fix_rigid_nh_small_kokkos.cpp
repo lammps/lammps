@@ -488,7 +488,7 @@ void FixRigidNHSmallKokkos<DeviceType>::initial_integrate(int vflag)
 
   // virial setup before call to set_xv
 
-  this->v_init(vflag);
+  this->v_init(vflag,0);
 
   // remap simulation box by 1/2 step
 

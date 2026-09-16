@@ -41,8 +41,12 @@ class RegSphereKokkos : public RegSphere, public KokkosBase  {
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
 
+  // maximum number of contacts a particle can have with this region, i.e. the
+  // length of the contact list the caller has to provide.  matches RegSphere::cmax
+
+  static constexpr int MAXCONTACT = 1;
+
   RegSphereKokkos(class LAMMPS *, int, char **);
-  ~RegSphereKokkos() override;
 
   void match_all_kokkos(int, DAT::tdual_int_1d) override;
 
@@ -68,7 +72,7 @@ class RegSphereKokkos : public RegSphere, public KokkosBase  {
 
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
-  int surface_kokkos(double x, double y, double z, double cutoff)
+  int surface_kokkos(double x, double y, double z, double cutoff, Contact *contact) const
   {
     int ncontact;
     double xs, ys, zs;
@@ -83,33 +87,32 @@ class RegSphereKokkos : public RegSphere, public KokkosBase  {
     xnear[0] = x; xnear[1] = y; xnear[2] = z;
 
     if (!openflag) {
-      if (interior) ncontact = surface_interior_kokkos(xnear, cutoff);
+      if (interior) ncontact = surface_interior_kokkos(xnear, cutoff, contact);
     else
-      ncontact = surface_exterior_kokkos(xnear, cutoff);
+      ncontact = surface_exterior_kokkos(xnear, cutoff, contact);
     } else {
       // most of the time, one of surface_int/ext() will return 0
       //   however, when exactly on top of a periodic boundary
       //   both could return 1, so run exterior then interior
-      ncontact = surface_exterior_kokkos(xnear, cutoff);
-      if (ncontact == 0) ncontact = surface_interior_kokkos(xnear, cutoff);
+      ncontact = surface_exterior_kokkos(xnear, cutoff, contact);
+      if (ncontact == 0) ncontact = surface_interior_kokkos(xnear, cutoff, contact);
     }
 
     if (rotateflag && ncontact) {
       for (int i = 0; i < ncontact; i++) {
-        xs = xnear[0] - d_contact[i].delx;
-        ys = xnear[1] - d_contact[i].dely;
-        zs = xnear[2] - d_contact[i].delz;
+        xs = xnear[0] - contact[i].delx;
+        ys = xnear[1] - contact[i].dely;
+        zs = xnear[2] - contact[i].delz;
         forward_transform(xs, ys, zs);
-        d_contact[i].delx = xorig[0] - xs;
-        d_contact[i].dely = xorig[1] - ys;
-        d_contact[i].delz = xorig[2] - zs;
+        contact[i].delx = xorig[0] - xs;
+        contact[i].dely = xorig[1] - ys;
+        contact[i].delz = xorig[2] - zs;
       }
     }
 
     return ncontact;
   }
 
-  Kokkos::View<Contact*, DeviceType> d_contact;
 
  private:
   int groupbit;
@@ -120,7 +123,7 @@ class RegSphereKokkos : public RegSphere, public KokkosBase  {
 
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
-  int surface_interior_kokkos(double *x, double cutoff)
+  int surface_interior_kokkos(double *x, double cutoff, Contact *contact) const
   {
     double delx = x[0] - xc;
     double dely = x[1] - yc;
@@ -130,13 +133,13 @@ class RegSphereKokkos : public RegSphere, public KokkosBase  {
 
     double delta = radius - r;
     if (delta < cutoff) {
-      d_contact[0].r = delta;
-      d_contact[0].delx = delx * (1.0 - radius / r);
-      d_contact[0].dely = dely * (1.0 - radius / r);
-      d_contact[0].delz = delz * (1.0 - radius / r);
-      d_contact[0].radius = -radius;
-      d_contact[0].iwall = 0;
-      d_contact[0].varflag = 1;
+      contact[0].r = delta;
+      contact[0].delx = delx * (1.0 - radius / r);
+      contact[0].dely = dely * (1.0 - radius / r);
+      contact[0].delz = delz * (1.0 - radius / r);
+      contact[0].radius = -radius;
+      contact[0].iwall = 0;
+      contact[0].varflag = 1;
       return 1;
     }
     return 0;
@@ -144,7 +147,7 @@ class RegSphereKokkos : public RegSphere, public KokkosBase  {
 
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
-  int surface_exterior_kokkos(double *x, double cutoff)
+  int surface_exterior_kokkos(double *x, double cutoff, Contact *contact) const
   {
     double delx = x[0] - xc;
     double dely = x[1] - yc;
@@ -154,13 +157,13 @@ class RegSphereKokkos : public RegSphere, public KokkosBase  {
 
     double delta = r - radius;
     if (delta < cutoff) {
-      d_contact[0].r = delta;
-      d_contact[0].delx = delx * (1.0 - radius / r);
-      d_contact[0].dely = dely * (1.0 - radius / r);
-      d_contact[0].delz = delz * (1.0 - radius / r);
-      d_contact[0].radius = radius;
-      d_contact[0].iwall = 0;
-      d_contact[0].varflag = 1;
+      contact[0].r = delta;
+      contact[0].delx = delx * (1.0 - radius / r);
+      contact[0].dely = dely * (1.0 - radius / r);
+      contact[0].delz = delz * (1.0 - radius / r);
+      contact[0].radius = radius;
+      contact[0].iwall = 0;
+      contact[0].varflag = 1;
       return 1;
     }
     return 0;
@@ -168,16 +171,16 @@ class RegSphereKokkos : public RegSphere, public KokkosBase  {
 
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
-  void add_contact(int n, double *x, double xp, double yp, double zp)
+  void add_contact(int n, double *x, double xp, double yp, double zp, Contact *contact) const
   {
     double delx = x[0] - xp;
     double dely = x[1] - yp;
     double delz = x[2] - zp;
-    d_contact[n].r = sqrt(delx * delx + dely * dely + delz * delz);
-    d_contact[n].radius = 0;
-    d_contact[n].delx = delx;
-    d_contact[n].dely = dely;
-    d_contact[n].delz = delz;
+    contact[n].r = sqrt(delx * delx + dely * dely + delz * delz);
+    contact[n].radius = 0;
+    contact[n].delx = delx;
+    contact[n].dely = dely;
+    contact[n].delz = delz;
   }
 
 // NOLINTNEXTLINE

@@ -39,8 +39,23 @@ string(TOUPPER ${KOKKOS_LAYOUT} KOKKOS_LAYOUT)
 
 target_compile_definitions(lammps PRIVATE -DLMP_KOKKOS_LAYOUT_${KOKKOS_LAYOUT})
 
+# Use the host random number generator in KOKKOS styles.  This makes runs with
+# the KOKKOS package reproduce the results of the corresponding plain styles,
+# which is required for validating them, but it is slow and not thread safe.
+option(KOKKOS_DEBUG_RNG "Use the host random number generator in KOKKOS styles (for testing only)" OFF)
+mark_as_advanced(KOKKOS_DEBUG_RNG)
+
+if(KOKKOS_DEBUG_RNG)
+  target_compile_definitions(lammps PRIVATE -DLMP_KOKKOS_DEBUG_RNG)
+endif()
+
 message(STATUS "Using " ${KOKKOS_PREC_LOWER} " precision for KOKKOS package")
 message(STATUS "Using " ${KOKKOS_LAYOUT_LOWER} " view layout for KOKKOS package")
+if(KOKKOS_DEBUG_RNG)
+  message(STATUS "Using host random numbers for KOKKOS package")
+else()
+  message(STATUS "Using device random numbers for KOKKOS package")
+endif()
 
 ########################################################################
 # consistency checks and Kokkos options/settings required by LAMMPS
@@ -112,10 +127,9 @@ if(DOWNLOAD_KOKKOS)
   list(APPEND KOKKOS_LIB_BUILD_ARGS "-DCMAKE_CXX_EXTENSIONS=${CMAKE_CXX_EXTENSIONS}")
   list(APPEND KOKKOS_LIB_BUILD_ARGS "-DCMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}")
   include(ExternalProject)
-  set(KOKKOS_URL "https://github.com/kokkos/kokkos/archive/5.2.1.tar.gz" CACHE STRING "URL for KOKKOS tarball")
-  set(KOKKOS_SHA256 "2b94b8db0ab093f0a3cacc282c737e4ba590542b783e6785a9209004ba9842a3" CACHE STRING "SHA256 checksum of KOKKOS tarball")
-  mark_as_advanced(KOKKOS_URL)
-  mark_as_advanced(KOKKOS_SHA256)
+  SetDownloadSettings(KOKKOS "KOKKOS"
+    "https://github.com/kokkos/kokkos/archive/5.2.1.tar.gz"
+    "2b94b8db0ab093f0a3cacc282c737e4ba590542b783e6785a9209004ba9842a3")
   GetFallbackURL(KOKKOS_URL KOKKOS_FALLBACK)
 
   ExternalProject_Add(kokkos_build
@@ -193,6 +207,7 @@ set(KOKKOS_PKG_SOURCES ${KOKKOS_PKG_SOURCES_DIR}/kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/npair_kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/npair_halffull_kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/domain_kokkos.cpp
+                       ${KOKKOS_PKG_SOURCES_DIR}/math_special_kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/modify_kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/rand_pool_wrap_kokkos.cpp
                        ${KOKKOS_PKG_SOURCES_DIR}/tune_kokkos.cpp

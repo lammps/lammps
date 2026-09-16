@@ -221,7 +221,7 @@ command. For example:
    pair_coeff * * coul/ctip NiO.ctip Ni O
    fix 1 all qeq/ctip 1 12.0 1.0e-8 100 coul/ctip cdamp 0.30 maxrepeat 10
 
-See the examples/ctip directory for an example input script using the
+See the ``examples/streitz`` directory for an example input script using the
 CTIP potential. An Ni-O CTIP and EAM/FS parameterization are included
 for use with the example.
 

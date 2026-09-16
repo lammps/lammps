@@ -21,7 +21,7 @@
 #include "atom_kokkos.h"
 #include "atom_masks.h"
 #include "comm.h"
-#include "domain_kokkos.h"
+#include "domain.h"
 #include "error.h"
 #include "force.h"
 #include "group.h"
@@ -41,7 +41,6 @@ ComputeTempDeformKokkos<DeviceType>::ComputeTempDeformKokkos(LAMMPS *lmp, int na
 {
   kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
-  domainKK = (DomainKokkos *) domain;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
 
   datamask_read = X_MASK | V_MASK | MASK_MASK | RMASS_MASK | TYPE_MASK;
@@ -148,7 +147,7 @@ template<class DeviceType>
 void ComputeTempDeformKokkos<DeviceType>::restore_bias_all_kk()
 {
   if (which == BIAS) {
-    if (temperature->kokkosable) temperature->restore_bias_all();
+    if (temperature->kokkosable) temperature->restore_bias_all_kk();
     else {
       atomKK->sync(this->temperature->execution_space,this->temperature->datamask_read);
       this->temperature->restore_bias_all();
@@ -183,16 +182,20 @@ void ComputeTempDeformKokkos<DeviceType>::remove_deform_bias_all_kk()
     vbiasall = typename AT::t_kkfloat_1d_3("temp/deform/kk:vbiasall", maxbias);
   }
 
-  domainKK->x2lamda(nlocal);
+  // the kernel converts each atom's coordinates to lamda space on the fly,
+  // like the CPU style.  converting atom->x in place with DomainKokkos would
+  // perturb the coordinates by the round-off of two transforms, and its
+  // x2lamda() always runs on the device, so the host instantiation would
+  // read Cartesian coordinates here
 
+  d_boxlo = Few<double,3>(domain->boxlo);
+  d_h_inv = Few<double,6>(domain->h_inv);
   h_rate = domain->h_rate;
   h_ratelo = domain->h_ratelo;
 
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagComputeTempDeformRemoveBias >(0,nlocal),*this);
   copymode = 0;
-
-  domainKK->lamda2x(nlocal);
 
   atomKK->modified(execution_space,V_MASK);
 }
@@ -202,9 +205,19 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void ComputeTempDeformKokkos<DeviceType>::operator()(TagComputeTempDeformRemoveBias, const int &i) const {
   if (mask[i] & groupbit) {
-    vbiasall(i,0) = static_cast<KK_FLOAT>(h_rate[0]*static_cast<double>(x(i,0)) + h_rate[5]*static_cast<double>(x(i,1)) + h_rate[4]*static_cast<double>(x(i,2)) + h_ratelo[0]);
-    vbiasall(i,1) = static_cast<KK_FLOAT>(h_rate[1]*static_cast<double>(x(i,1)) + h_rate[3]*static_cast<double>(x(i,2)) + h_ratelo[1]);
-    vbiasall(i,2) = static_cast<KK_FLOAT>(h_rate[2]*static_cast<double>(x(i,2)) + h_ratelo[2]);
+
+    // Domain::x2lamda() for a single atom, into a local
+
+    const double delx = static_cast<double>(x(i,0)) - d_boxlo[0];
+    const double dely = static_cast<double>(x(i,1)) - d_boxlo[1];
+    const double delz = static_cast<double>(x(i,2)) - d_boxlo[2];
+    const double lamda0 = d_h_inv[0]*delx + d_h_inv[5]*dely + d_h_inv[4]*delz;
+    const double lamda1 = d_h_inv[1]*dely + d_h_inv[3]*delz;
+    const double lamda2 = d_h_inv[2]*delz;
+
+    vbiasall(i,0) = static_cast<KK_FLOAT>(h_rate[0]*lamda0 + h_rate[5]*lamda1 + h_rate[4]*lamda2 + h_ratelo[0]);
+    vbiasall(i,1) = static_cast<KK_FLOAT>(h_rate[1]*lamda1 + h_rate[3]*lamda2 + h_ratelo[1]);
+    vbiasall(i,2) = static_cast<KK_FLOAT>(h_rate[2]*lamda2 + h_ratelo[2]);
     v(i,0) -= vbiasall(i,0);
     v(i,1) -= vbiasall(i,1);
     v(i,2) -= vbiasall(i,2);

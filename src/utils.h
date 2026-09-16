@@ -221,7 +221,7 @@ inline const char *sprintf_arg(const std::string &arg)
 
 \verbatim embed:rst
 
-.. versionadded:: TBD
+.. versionadded:: 2Sep2026
 
 This function formats its arguments according to a printf() style format
 string and returns the result as a ``std::string``, similar to the
@@ -266,7 +266,7 @@ template <typename... Args> std::string sprintf(const std::string &format, Args 
 
 \verbatim embed:rst
 
-.. versionadded:: TBD
+.. versionadded:: 2Sep2026
 
 Conversions are grouped by the kind of value they consume: the d, i, o, u,
 x, X, and c conversions consume integers, the e, E, f, F, g, G, a, and A
@@ -292,7 +292,7 @@ enum class FmtArg {
 
 \verbatim embed:rst
 
-.. versionadded:: TBD
+.. versionadded:: 2Sep2026
 
 LAMMPS accepts printf() style format strings from users in multiple
 places, for example with :doc:`dump_modify format <dump_modify>` or
@@ -344,7 +344,7 @@ std::string check_format(const std::string &format, FmtArg expect);
 
 \verbatim embed:rst
 
-.. versionadded:: TBD
+.. versionadded:: 2Sep2026
 
 The C library derives the size of the value consumed by an integer
 conversion from its length modifier, so ``%d`` and ``%ld`` must be used

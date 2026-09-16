@@ -216,9 +216,6 @@ class PairPODKokkos : public PairPOD {
   void tallyforce(t_pod_1d l_fij, t_pod_1i l_ai, t_pod_1i l_aj, int Nij);
   void tallystress(t_pod_1d l_fij, t_pod_1d l_rij, t_pod_1i l_ai, t_pod_1i l_aj, int Nij);
 
-  void savematrix2binfile(std::string filename, t_pod_1d d_A, int nrows, int ncols);
-  void saveintmatrix2binfile(std::string filename, t_pod_1i d_A, int nrows, int ncols);
-  void savedatafordebugging();
 };
 }    // namespace LAMMPS_NS
 

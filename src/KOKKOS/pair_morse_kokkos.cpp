@@ -173,8 +173,9 @@ compute_evdwl(const KK_FLOAT &rsq, const int &, const int &, const int &itype, c
   // f  = -2*a*d0*[ -exp( -2*a*(x-r0) ) + exp( -a*(x-r0) ) ] * grad(r)
   //    = +2*a*d0*[  exp( -2*a*(x-r0) ) - exp( -a*(x-r0) ) ] * grad(r)
   const KK_FLOAT dexp    = Kokkos::exp( -aa*dr );
+  const KK_FLOAT offset  = STACKPARAMS ? m_params[itype][jtype].offset : params(itype,jtype).offset;
 
-  return d0 * dexp * ( dexp - static_cast<KK_FLOAT>(2.0) );
+  return d0 * dexp * ( dexp - static_cast<KK_FLOAT>(2.0) ) - offset;
 }
 
 /* ----------------------------------------------------------------------

@@ -355,6 +355,7 @@ void FixNHKokkos<DeviceType>::remap()
 {
   double oldlo,oldhi;
   double expfac;
+  double isofac;
 
   int nlocal = atom->nlocal;
   double *h = domain->h;
@@ -365,18 +366,13 @@ void FixNHKokkos<DeviceType>::remap()
 
   // convert pertinent atoms and rigid bodies to lamda coords
 
-  if (allremap) domainKK->x2lamda(nlocal);
-  else {
-    for ( int i = 0; i < nlocal; i++)
-      if (mask[i] & dilate_group_bit) {
-        auto h_x = atomKK->k_x.view_host();
-        atomKK->sync(Host,X_MASK);
-        domainKK->x2lamda(&h_x(i,0), &h_x(i,0));
-        atomKK->modified(Host,X_MASK);
-      }
-  }
+  // the group variants of x2lamda()/lamda2x() run on the device and do their
+  // own sync/modified, so no host round trip of x is needed here
 
-  if (rfix.size() > 0)
+  if (allremap) domainKK->x2lamda(nlocal);
+  else domainKK->x2lamda(nlocal,dilate_group_bit);
+
+  if (!rfix.empty())
     error->all(FLERR,"Cannot (yet) use rigid bodies with fix nh and Kokkos");
   // for (auto &ifix : rfix) ifix->deform(0);
 
@@ -435,12 +431,15 @@ void FixNHKokkos<DeviceType>::remap()
   // scale diagonal components
   // scale tilt factors with cell, if set
 
+  if (isochoric) isofac = vol_start;
+
   if (p_flag[0]) {
     oldlo = domain->boxlo[0];
     oldhi = domain->boxhi[0];
     expfac = exp(dto*omega_dot[0]);
     domain->boxlo[0] = (oldlo-fixedpoint[0])*expfac + fixedpoint[0];
     domain->boxhi[0] = (oldhi-fixedpoint[0])*expfac + fixedpoint[0];
+    if (isochoric) isofac /= domain->boxhi[0] - domain->boxlo[0];
   }
 
   if (p_flag[1]) {
@@ -449,6 +448,7 @@ void FixNHKokkos<DeviceType>::remap()
     expfac = exp(dto*omega_dot[1]);
     domain->boxlo[1] = (oldlo-fixedpoint[1])*expfac + fixedpoint[1];
     domain->boxhi[1] = (oldhi-fixedpoint[1])*expfac + fixedpoint[1];
+    if (isochoric) isofac /= domain->boxhi[1] - domain->boxlo[1];
     if (scalexy) h[5] *= expfac;
   }
 
@@ -458,8 +458,46 @@ void FixNHKokkos<DeviceType>::remap()
     expfac = exp(dto*omega_dot[2]);
     domain->boxlo[2] = (oldlo-fixedpoint[2])*expfac + fixedpoint[2];
     domain->boxhi[2] = (oldhi-fixedpoint[2])*expfac + fixedpoint[2];
+    if (isochoric) isofac /= domain->boxhi[2] - domain->boxlo[2];
     if (scalexz) h[4] *= expfac;
     if (scaleyz) h[3] *= expfac;
+  }
+
+  // isochoric dimensions: rescale so the reference volume is preserved
+  // pure box arithmetic, identical to the CPU base class
+
+  if (isochoric) {
+
+    // We remove remaining dimensions so that only scale factors are left
+    // in isofac
+
+    for (int i = 0; i < 3; i++) {
+      if (p_isoch[i] || !p_flag[i]) isofac /= (domain->boxhi[i]-domain->boxlo[i]);
+    }
+    int iso_sum = p_isoch[0] + p_isoch[1] + p_isoch[2];
+    if (iso_sum == 2) isofac = sqrt(isofac);
+
+    if (p_isoch[0]) {
+      oldlo = domain->boxlo[0];
+      oldhi = domain->boxhi[0];
+      domain->boxlo[0] = (oldlo-fixedpoint[0])*isofac + fixedpoint[0];
+      domain->boxhi[0] = (oldhi-fixedpoint[0])*isofac + fixedpoint[0];
+    }
+    if (p_isoch[1]) {
+      oldlo = domain->boxlo[1];
+      oldhi = domain->boxhi[1];
+      domain->boxlo[1] = (oldlo-fixedpoint[1])*isofac + fixedpoint[1];
+      domain->boxhi[1] = (oldhi-fixedpoint[1])*isofac + fixedpoint[1];
+      if (scalexy) h[5] *= isofac;
+    }
+    if (p_isoch[2]) {
+      oldlo = domain->boxlo[2];
+      oldhi = domain->boxhi[2];
+      domain->boxlo[2] = (oldlo-fixedpoint[2])*isofac + fixedpoint[2];
+      domain->boxhi[2] = (oldhi-fixedpoint[2])*isofac + fixedpoint[2];
+      if (scalexz) h[4] *= isofac;
+      if (scaleyz) h[3] *= isofac;
+    }
   }
 
   // off-diagonal components, second half
@@ -517,15 +555,7 @@ void FixNHKokkos<DeviceType>::remap()
   // convert pertinent atoms and rigid bodies back to box coords
 
   if (allremap) domainKK->lamda2x(nlocal);
-  else {
-    for ( int i = 0; i < nlocal; i++)
-      if (mask[i] & dilate_group_bit) {
-        auto h_x = atomKK->k_x.view_host();
-        atomKK->sync(Host,X_MASK);
-        domainKK->lamda2x(&h_x(i,0), &h_x(i,0));
-        atomKK->modified(Host,X_MASK);
-      }
-  }
+  else domainKK->lamda2x(nlocal,dilate_group_bit);
 
   // for (auto &ifix : rfix) ifix->deform(1);
 }
@@ -568,7 +598,7 @@ void FixNHKokkos<DeviceType>::nh_v_press()
   atomKK->modified(execution_space,V_MASK);
 
   if (which == BIAS) {
-    if (temperature->kokkosable) temperature->restore_bias_all();
+    if (temperature->kokkosable) temperature->restore_bias_all_kk();
     else {
       atomKK->sync(temperature->execution_space,temperature->datamask_read);
       temperature->restore_bias_all();
@@ -660,7 +690,6 @@ template<class DeviceType>
 void FixNHKokkos<DeviceType>::nve_x()
 {
   atomKK->sync(execution_space,X_MASK | V_MASK | MASK_MASK);
-  atomKK->modified(execution_space,X_MASK);
 
   x = atomKK->k_x.view<DeviceType>();
   v = atomKK->k_v.view<DeviceType>();
@@ -673,6 +702,12 @@ void FixNHKokkos<DeviceType>::nve_x()
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixNH_nve_x>(0,nlocal),*this);
   copymode = 0;
+
+  // claim the coordinates after the kernel has written them, not before: a
+  // claim made up front can be taken by a copy that runs in between, which
+  // leaves the coordinates this kernel writes unclaimed
+
+  atomKK->modified(execution_space,X_MASK);
 }
 
 template<class DeviceType>
@@ -718,7 +753,7 @@ void FixNHKokkos<DeviceType>::nh_v_temp()
   atomKK->modified(execution_space,V_MASK);
 
   if (which == BIAS) {
-    if (temperature->kokkosable) temperature->restore_bias_all();
+    if (temperature->kokkosable) temperature->restore_bias_all_kk();
     else {
       atomKK->sync(temperature->execution_space,temperature->datamask_read);
       temperature->restore_bias_all();

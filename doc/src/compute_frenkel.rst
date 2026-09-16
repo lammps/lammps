@@ -36,7 +36,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 2Sep2026
 
 Define a computation that identifies point defects in a crystal by
 Wigner-Seitz analysis and counts the number of vacancies and

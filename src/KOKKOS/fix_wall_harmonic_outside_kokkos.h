@@ -39,6 +39,7 @@ class FixWallHarmonicOutsideKokkos : public FixWallHarmonicOutside {
   FixWallHarmonicOutsideKokkos(class LAMMPS *, int, char **);
   ~FixWallHarmonicOutsideKokkos() override;
   void post_force(int) override;
+  void v_setup_peratom(int) override;
   void wall_particle(int, int, double) override;
 
   int m;

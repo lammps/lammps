@@ -22,17 +22,6 @@
 
 namespace LAMMPS_NS::MathSpecialKokkos {
 
-  /*! Fast tabulated factorial function
-   *
-   *  This function looks up pre-computed factorial values for arguments of n = 0
-   *  to a maximum of 167, which is the maximal value representable by a double
-   *  precision floating point number.  For other values of n a NaN value is returned.
-   *
-   *  \param   n  argument (valid: 0 <= n <= 167)
-   *  \return  value of n! as double precision number or NaN */
-
-  extern double factorial(const int n);
-
   /* optimizer friendly implementation of exp2(x).
    *
    * strategy:

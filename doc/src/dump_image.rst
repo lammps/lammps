@@ -884,7 +884,7 @@ shading is particularly large.  In case LAMMPS has been :doc:`compiled
 with OpenMP support <Build_basics>`, the SSAO processing is distributed
 across multiple threads.
 
-.. versionchanged:: TBD
+.. versionchanged:: 2Sep2026
 
 The randomization of the SSAO shading is now computed from a
 deterministic noise pattern derived from the pixel position and the
@@ -893,7 +893,7 @@ ranks or OpenMP threads, and images of an unchanged scene are exactly
 reproducible, which avoids flickering shading in movies.  Different
 *seed* values shift the noise pattern.
 
-.. versionadded:: TBD
+.. versionadded:: 2Sep2026
 
 The *depthcue* keyword turns on/off depth cueing.  If *yes* is set,
 rendered objects fade toward the fog color the more distant from the
@@ -919,7 +919,7 @@ large depth range.  The fading always ends at the most distant rendered
 object.  Unlike the *ssao* keyword, depth cueing adds no significant
 computational cost, and both can be combined.
 
-.. versionadded:: TBD
+.. versionadded:: 2Sep2026
 
 The *defocus* keyword turns on/off defocusing of distant objects.  If
 *yes* is set, objects are blurred the more distant from the viewer they
@@ -952,7 +952,7 @@ As with the *ssao* keyword, the result does not depend on the number of
 MPI ranks or OpenMP threads, so images of an unchanged scene are exactly
 reproducible.
 
-.. versionadded:: TBD
+.. versionadded:: 2Sep2026
 
 The *outline* keyword turns on/off drawing outlines where the distance
 from the viewer jumps, i.e. along the visible edges of atoms and other
@@ -1292,7 +1292,7 @@ equivalent.
 
 .. versionadded:: 11Feb2026
 
-.. versionchanged:: TBD
+.. versionchanged:: 2Sep2026
 
 Various graphical objects in *dump image* output can be rendered in a
 transparent fashion using the so-called screen-door transparency method.
@@ -1383,7 +1383,7 @@ the main highlights. The *fill* light is a secondary light source that
 softens shadows created by the key light. The *back* light illuminates
 the scene from behind the camera to provide depth.
 
-.. versionadded:: TBD
+.. versionadded:: 2Sep2026
 
 The *gamma* keyword adjusts the gamma value of the rendered objects:
 the summed up light contributions of each pixel are raised to the power
@@ -1399,7 +1399,7 @@ applying a required display correction.  The adjustment applies only to
 rendered objects; the background colors are used exactly as
 specified.
 
-.. versionadded:: TBD
+.. versionadded:: 2Sep2026
 
 The *specular* keyword adjusts the specular highlights independently
 from the *shiny* keyword of the dump image command.  The *none*
@@ -1412,7 +1412,7 @@ plastic-like appearance.  The *sfactor* value of the *shiny* keyword
 scales the brightness of the highlights; without the *specular*
 keyword it also sets their width.
 
-.. versionadded:: TBD
+.. versionadded:: 2Sep2026
 
 The *metal* keyword makes objects look like they are made of metal
 rather than of colored plastic.  Painted surfaces scatter light in all
@@ -1443,7 +1443,7 @@ example, defining a color with the *color* keyword using the values
    with a ray tracing program will always give better results than any
    combination of these settings.
 
-.. versionadded:: TBD
+.. versionadded:: 2Sep2026
 
 The *metalfinish* keyword selects the surface finish used when the
 *metal* keyword is enabled.  A *satin* finish has a broad soft sheen
@@ -1454,7 +1454,7 @@ spheres look like polished ball bearings, with a darker lower half than
 the other two settings.  This keyword has no effect unless the *metal*
 keyword is set to a value larger than 0.0.
 
-.. versionadded:: TBD
+.. versionadded:: 2Sep2026
 
 The *ssaosamples* keyword sets the number of directions that the SSAO
 depth shading enabled by the *ssao* keyword examines around each
@@ -1636,7 +1636,7 @@ Default color sequence: |color_red|  |color_forestgreen|  |color_blue|
 These are the standard 109 element names that LAMMPS pre-defines for
 use with the dump image and dump_modify commands.
 
-.. versionchanged:: TBD
+.. versionchanged:: 2Sep2026
 
 The pre-defined colors of the metals magnesium, aluminum, zinc,
 mercury, silver, titanium, chromium, manganese, iron, cobalt, nickel,

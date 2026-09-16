@@ -285,7 +285,7 @@ adds a charge at the massless fourth site in each TIP4P water molecule.
 It should be used with :doc:`pair styles <pair_style>` with a
 *tip4p/long* in their style name.
 
-.. versionadded:: TBD
+.. versionadded:: 2Sep2026
 
 The *pppm/xtb* and *pppm/tip4p/xtb* styles provide the corresponding
 PPPM electrostatics together with the source-to-sensor potential projection
@@ -603,7 +603,7 @@ versions of these styles.
 The *pppm/xtb* and *pppm/tip4p/xtb* styles currently require an orthorhombic
 simulation box, as does :doc:`fix qmmm/xtb <fix_qmmm_xtb>`.
 
-.. versionchanged:: TBD
+.. versionchanged:: 2Sep2026
 
 The *pppm/cg/omp* style now supports triclinic simulation boxes in the
 same way as the *pppm/cg* and *pppm/omp* styles.

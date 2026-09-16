@@ -14,10 +14,9 @@ endif()
 option(DOWNLOAD_VORO "Download and compile the Voro++ library instead of using an already installed one" ${DOWNLOAD_VORO_DEFAULT})
 if(DOWNLOAD_VORO)
   message(STATUS "Voro++ download requested - we will build our own")
-  set(VORO_URL "${LAMMPS_THIRDPARTY_URL}/voro++-0.4.6.tar.gz" CACHE STRING "URL for Voro++ tarball")
-  set(VORO_SHA256 "ef7970071ee2ce3800daa8723649ca069dc4c71cc25f0f7d22552387f3ea437e" CACHE STRING "SHA256 checksum for Voro++ tarball")
-  mark_as_advanced(VORO_URL)
-  mark_as_advanced(VORO_SHA256)
+  SetDownloadSettings(VORO "Voro++"
+    "${LAMMPS_THIRDPARTY_URL}/voro++-0.4.6.tar.gz"
+    "ef7970071ee2ce3800daa8723649ca069dc4c71cc25f0f7d22552387f3ea437e")
 
   include(ExternalProject)
 
@@ -42,6 +41,7 @@ if(DOWNLOAD_VORO)
     URL     ${VORO_URL}
     URL_HASH SHA256=${VORO_SHA256}
     PATCH_COMMAND patch -b -p0 < ${LAMMPS_DIR}/cmake/patches/voro-make.patch
+    COMMAND patch -b -p0 < ${LAMMPS_DIR}/cmake/patches/voro-fma-roundoff.patch
     CONFIGURE_COMMAND ""
     BUILD_COMMAND make ${VORO_BUILD_OPTIONS}
     BUILD_IN_SOURCE 1

@@ -333,6 +333,21 @@ struct DomainPBCFunctor {
 };
 
 /* ----------------------------------------------------------------------
+   check whether atom->x still points to the Kokkos managed atom positions
+   Dump::write() temporarily replaces atom->x, atom->v, and atom->image by
+   plain host copies when "dump_modify pbc yes" is used.  The Kokkos versions
+   of pbc(), x2lamda(), and lamda2x() work on the Kokkos views instead of
+   atom->x and would thus alter the real atom data instead of those copies.
+   In that case the base class versions must be used on the host.
+------------------------------------------------------------------------- */
+
+int DomainKokkos::detached_atom_x() const
+{
+  if ((atom->nmax == 0) || (atom->x == nullptr)) return 0;
+  return atom->x[0] != atomKK->k_x.view_host().data();
+}
+
+/* ----------------------------------------------------------------------
    enforce PBC and modify box image flags for each atom
    called every reneighboring and by other commands that change atoms
    resulting coord must satisfy lo <= coord < hi
@@ -345,6 +360,17 @@ struct DomainPBCFunctor {
 
 void DomainKokkos::pbc()
 {
+  // atom->x, atom->v, atom->image are temporary host copies (dump_modify pbc
+  // yes).  Apply PBC to those copies and leave the Kokkos views untouched.
+  // Only the group mask is synced here on purpose: the caller owns the three
+  // buffers it substituted and has already filled them, so syncing x, v or
+  // image would overwrite them with the Kokkos data they were copied from.
+
+  if (detached_atom_x()) {
+    atomKK->sync(Host,MASK_MASK);
+    Domain::pbc();
+    return;
+  }
 
   if (lmp->kokkos->exchange_comm_legacy) {
 
@@ -416,6 +442,17 @@ void DomainKokkos::pbc()
 
 void DomainKokkos::remap_all()
 {
+  // the kernel below does not carry the velocity correction that fix deform's
+  // "remap v" applies when an atom is wrapped, so leave that case to the host
+  // implementation rather than drop the correction
+
+  if (deform_vremap) {
+    atomKK->sync(Host,X_MASK | V_MASK | IMAGE_MASK | MASK_MASK);
+    Domain::remap_all();
+    atomKK->modified(Host,X_MASK | V_MASK | IMAGE_MASK);
+    return;
+  }
+
   atomKK->sync(Device,X_MASK | IMAGE_MASK);
 
   x = atomKK->k_x.view_device();
@@ -570,6 +607,11 @@ void DomainKokkos::operator()(TagDomain_image_flip, const int &i) const {
 
 void DomainKokkos::lamda2x(int n)
 {
+  if (detached_atom_x()) {
+    Domain::lamda2x(n);
+    return;
+  }
+
   atomKK->sync(Device,X_MASK);
   x = atomKK->k_x.view_device();
 
@@ -582,6 +624,12 @@ void DomainKokkos::lamda2x(int n)
 
 void DomainKokkos::lamda2x(int n, int groupbit_in)
 {
+  if (detached_atom_x()) {
+    atomKK->sync(Host,MASK_MASK);
+    Domain::lamda2x(n,groupbit_in);
+    return;
+  }
+
   atomKK->sync(Device,X_MASK|MASK_MASK);
   x = atomKK->k_x.view_device();
   mask = atomKK->k_mask.view_device();
@@ -623,6 +671,11 @@ void DomainKokkos::operator()(TagDomain_lamda2x_group, const int &i) const {
 
 void DomainKokkos::x2lamda(int n)
 {
+  if (detached_atom_x()) {
+    Domain::x2lamda(n);
+    return;
+  }
+
   atomKK->sync(Device,X_MASK);
   x = atomKK->k_x.view_device();
 
@@ -635,6 +688,12 @@ void DomainKokkos::x2lamda(int n)
 
 void DomainKokkos::x2lamda(int n, int groupbit_in)
 {
+  if (detached_atom_x()) {
+    atomKK->sync(Host,MASK_MASK);
+    Domain::x2lamda(n,groupbit_in);
+    return;
+  }
+
   atomKK->sync(Device,X_MASK|MASK_MASK);
   x = atomKK->k_x.view_device();
   mask = atomKK->k_mask.view_device();

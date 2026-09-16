@@ -330,7 +330,9 @@ void ComputeTempProfileKokkos<DeviceType>::compute_array()
   bin_average_kk();
 
   atomKK->sync(Host, V_MASK | MASK_MASK | RMASS_MASK | TYPE_MASK);
-  atomKK->k_mass.sync<LMPHostType>();
+  // the loop below reads the plain double array, i.e. the legacy host side of
+  // the transform view, which sync<LMPHostType>() would not refresh
+  atomKK->k_mass.sync_host();
 
   double **v = atom->v;
   double *mass = atom->mass;

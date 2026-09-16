@@ -173,7 +173,7 @@ is desired.
 The *zcylinder* wallstyle has been removed.  Please use :doc:`fix
 wall/gran/region <fix_wall_gran_region>` instead.
 
-.. versionadded:: TBD
+.. versionadded:: 2Sep2026
 
 The *lo* and *hi* wall positions can also be set by an equal-style
 :doc:`variable <variable>`, specified as v_name, where "name" is the

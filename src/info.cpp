@@ -1111,6 +1111,13 @@ bool Info::has_accelerator_feature(const std::string &package,
       return setting == "mixed";
 #endif
     }
+    if (category == "rng") {
+#if defined(LMP_KOKKOS_DEBUG_RNG)
+      return setting == "host";
+#else
+      return setting == "device";
+#endif
+    }
     if (category == "layout") {
 #if defined(LMP_KOKKOS_LAYOUT_LEGACY)
       return setting == "legacy";
@@ -1211,6 +1218,9 @@ std::string Info::get_accelerator_info(const std::string &package)
     if (has_accelerator_feature("KOKKOS","precision","single")) mesg += " single";
     if (has_accelerator_feature("KOKKOS","precision","mixed"))  mesg += " mixed";
     if (has_accelerator_feature("KOKKOS","precision","double")) mesg += " double";
+    mesg +=  "\nKOKKOS package random numbers:";
+    if (has_accelerator_feature("KOKKOS","rng","host"))   mesg += " host";
+    if (has_accelerator_feature("KOKKOS","rng","device")) mesg += " device";
     mesg +=  "\nKOKKOS package view layout:";
     if (has_accelerator_feature("KOKKOS","layout","legacy")) mesg += " legacy";
     if (has_accelerator_feature("KOKKOS","layout","default"))  mesg += " default";

@@ -118,7 +118,7 @@ versions use an incompatible API and thus LAMMPS will fail to compile.
 FENIX package
 -------------
 
-.. versionadded:: TBD
+.. versionadded:: 2Sep2026
 
 To build with this package you must have the `Fenix library
 <https://github.com/sandialabs/fenix>` available on your system. The Fenix
@@ -936,7 +936,7 @@ runtime bounds checking on Kokkos data structures.  As to be expected,
 enabling this option will negatively impact the performance and thus is
 only recommended when developing a Kokkos-enabled style in LAMMPS.
 
-.. versionchanged:: TBD
+.. versionchanged:: 2Sep2026
 
 The CMake option ``-D Kokkos_ENABLE_IMPL_CUDA_UNIFIED_MEMORY=on`` makes
 Kokkos allocate all GPU memory as CUDA managed memory, which the host can
@@ -975,6 +975,20 @@ can be one of: ``legacy`` (mostly LayoutRight, default) or ``default``
 speedup on GPUs for some models, but a slowdown for others. LayoutRight
 is always used for positions on GPUs since it has been found to be
 faster, and when compiling exclusively for CPUs.
+
+.. versionadded:: TBD
+
+The CMake option ``-D KOKKOS_DEBUG_RNG=on`` makes those KOKKOS styles
+that need random numbers (for example :doc:`fix langevin <fix_langevin>`
+or :doc:`fix brownian <fix_brownian>`) use the same random number
+generator as the corresponding plain styles instead of the parallel
+generator of the Kokkos library.  A run on a single MPI process with the
+Serial back end then follows the same trajectory as a run without the
+KOKKOS package, which makes it possible to compare the two directly and
+thus to validate the KOKKOS versions of those styles.  This is a
+validation and debugging aid only: the substitute generator is slower
+and produces the same numbers only when there is no parallelism, so this
+option must not be used for production simulations.
 
 ----------
 
@@ -1336,7 +1350,7 @@ code for the library can be found at:
 
 Instead of including the MBX package directly into LAMMPS, it is also
 possible to skip this step and build the MBX package as a plugin using
-the CMake script files in the ``examples/PACKAGE/mbx/plugin`` folder and
+the CMake script files in the ``examples/PACKAGES/mbx/plugin`` folder and
 then load this plugin at runtime with the :doc:`plugin command
 <plugin>`.
 
@@ -1358,6 +1372,8 @@ then load this plugin at runtime with the :doc:`plugin command
       ``MBXLIB_SHA256`` variable to the corresponding checksum
       (e.g. computed with ``sha256sum``) if you provide a different
       library version than what is downloaded automatically.
+      Both settings are cached and thus retained in the build folder
+      (see :ref:`this explanation <err0039>` for details).
 
 
    .. tab:: Traditional make
@@ -1379,7 +1395,7 @@ at: `https://github.com/ICAMS/lammps-user-pace/ <https://github.com/ICAMS/lammps
 
 Instead of including the ML-PACE package directly into LAMMPS, it
 is also possible to skip this step and build the ML-PACE package as
-a plugin using the CMake script files in the ``examples/PACKAGE/pace/plugin``
+a plugin using the CMake script files in the ``examples/PACKAGES/pace/plugin``
 folder and then load this plugin at runtime with the :doc:`plugin command <plugin>`.
 
 .. tabs::
@@ -1400,6 +1416,8 @@ folder and then load this plugin at runtime with the :doc:`plugin command <plugi
       ``PACELIB_SHA256`` variable to the corresponding checksum
       (e.g. computed with ``sha256sum``) if you provide a different
       library version than what is downloaded automatically.
+      Both settings are cached and thus retained in the build folder
+      (see :ref:`this explanation <err0039>` for details).
 
    .. tab:: Traditional make
 
@@ -1523,7 +1541,7 @@ LAMMPS build.
 
 Instead of including the PLUMED package directly into LAMMPS, it
 is also possible to skip this step and build the PLUMED package as
-a plugin using the CMake script files in the ``examples/PACKAGE/plumed/plugin``
+a plugin using the CMake script files in the ``examples/PACKAGES/plumed/plugin``
 folder and then load this plugin at runtime with the :doc:`plugin command <plugin>`.
 
 .. tabs::

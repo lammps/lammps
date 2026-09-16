@@ -183,7 +183,7 @@ void AngleFourierSimpleKokkos<DeviceType>::operator()(TagAngleFourierSimpleCompu
       sgn = static_cast<KK_FLOAT>(1.0);
     } else {
       term = static_cast<KK_FLOAT>(1.0) + c;
-      sgn = (fmod(static_cast<double>(d_N[type]), 2.0) == 0.0) ?
+      sgn = (Kokkos::fmod(d_N[type], static_cast<KK_FLOAT>(2.0)) == static_cast<KK_FLOAT>(0.0)) ?
             static_cast<KK_FLOAT>(-1.0) : static_cast<KK_FLOAT>(1.0);
     }
     a = d_N[type] + d_N[type] * (static_cast<KK_FLOAT>(1.0) - d_N[type]*d_N[type]) * term / static_cast<KK_FLOAT>(3.0);

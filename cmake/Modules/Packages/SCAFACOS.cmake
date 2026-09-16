@@ -37,9 +37,9 @@ if(DOWNLOAD_SCAFACOS)
                                              --enable-fcs-solvers=fmm,p2nfft,direct,ewald,p3m
                                              --with-internal-fftw --with-internal-pfft
                                              --with-internal-pnfft ${CONFIGURE_REQUEST_PIC}
-                                             FC=${CMAKE_MPI_Fortran_COMPILER}
-                                             CXX=${CMAKE_MPI_CXX_COMPILER}
-                                             CC=${CMAKE_MPI_C_COMPILER}
+                                             FC=${MPI_Fortran_COMPILER}
+                                             CXX=${MPI_CXX_COMPILER}
+                                             CC=${MPI_C_COMPILER}
                                              F77=
                                              CFLAGS=${SCAFACOS_C_FLAGS}
                                              CXXFLAGS=${SCAFACOS_CXX_FLAGS}

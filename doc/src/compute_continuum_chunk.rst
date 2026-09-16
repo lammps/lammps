@@ -8,15 +8,15 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID continuum/chunk chunkID cutoff width value1 value2 ... keyword args ...
+   compute ID group-ID continuum/chunk chunkID cutoff width field1 field2 ... keyword args ...
 
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * continuum/chunk = style name of this compute command
 * chunkID = ID of :doc:`compute chunk/atom <compute_chunk_atom>` command
 * cutoff = cutoff for the truncated Gaussian kernel
 * width = standard deviation of the corresponding untruncated Gaussian kernel
-* one or more input values can be listed
-* value = *density*, *volume/fraction*, *momentum/a*, *velocity/a*, *momentum/grad/ab*, *velocity/grad/ab*, *strain/rate/ab*, *stress/ab*, *stress/ke/ab*, *stress/contacts/ab*, *boundary/force/a*, *fabric/ab*, *temperature*
+* one or more input fields can be listed
+* field = *density*, *volume/fraction*, *momentum/a*, *velocity/a*, *momentum/grad/ab*, *velocity/grad/ab*, *strain/rate/ab*, *stress/ab*, *stress/ke/ab*, *stress/contacts/ab*, *boundary/force/a*, *fabric/ab*, *temperature*
 
   .. parsed-literal::
 
@@ -65,11 +65,13 @@ Description
 
 Define a computation that calculates coarse-grained continuum fields for
 chunks of atoms on demand using the construction in
-:ref:`(Goldhirsch) <_compute_continuum_chunk_goldhirsch>`.  The fields
-are evaluated at the chunk centers with a truncated Gaussian kernel.
-This compute does no time averaging and writes no files itself.  To time
-average or write the per-chunk data, use :doc:`fix ave/time
-<fix_ave_time>` exactly as with other chunk-based compute styles.
+:ref:`(Goldhirsch) <_compute_continuum_chunk_goldhirsch>`.  This formulation
+is designed to construct rigorous macroscopic continuum fields from discrete
+particle data, commonly used in discrete element method simulations. The fields
+are evaluated at the chunk centers with a truncated Gaussian kernel. This compute
+does no time averaging and writes no output files itself. To time average or
+write out the per-chunk data, use :doc:`fix ave/time <fix_ave_time>` exactly as
+with other chunk-based compute styles.
 
 In LAMMPS, chunks are collections of atoms defined by a :doc:`compute
 chunk/atom <compute_chunk_atom>` command, which assigns each atom to a
@@ -85,13 +87,14 @@ all outputs are normalized by the box length in that dimension.  For
 example, if a 3d system is binned only along *z*, the reported fields are
 normalized by *Lx* and *Ly*.
 
-The available fields include scalar, vector, and tensor quantities.  A
-vector field such as the velocity may be requested as an individual
-component such as *velocity/x* or with a wildcard such as
-*velocity/\**.  This expands to all components (two in 2d, three in
-3d).  Tensor fields such as the stress use component names like
-*stress/xy*.  Wildcards such as *stress/\** expand to all components
-(four in 2d, nine in 3d).  Tensors are not assumed to be symmetric.
+The available fields, include scalar, vector, and tensor quantities.
+A vector field such as the velocity may be requested as an individual
+component such as *velocity/x* or with a wildcard such as *velocity/\**.
+This expands to all components (two in 2d, three in 3d).  Tensor fields
+such as the stress use component names like *stress/xy*.  Wildcards such
+as *stress/\** expand to all components (four in 2d, nine in 3d).
+Tensors are not assumed to be symmetric such that the xy component may
+differ from the yx component.
 
 Only atoms in the specified group contribute to the calculations.  In
 pair sums, both atoms must be in the group.  The referenced
@@ -104,6 +107,12 @@ One may want to use this compute in conjunction with
 obtain the positions of each chunk's center (where kernels are centered)
 and :doc:`fix ave/time <fix_ave_time>` to provide optional time averaging
 and data output.
+
+----------
+
+The kernel used in the coarse-graining is a truncated Gaussian function.
+The standard deviation of the function is defined by the *width* parameter.
+The maximum cutoff of the Gaussian function is defined by the *cutoff* parameter.
 
 ----------
 
@@ -211,6 +220,8 @@ The *temperature* field is a local granular temperature:
    \frac{1}{2} \sum_i m_i (v_i - v_\mathrm{chunk})^2
    W(\vec{r}_\mathrm{chunk} - \vec{r}_i)
 
+----------
+
 The optional *boundary/atom* and *boundary/fix* keywords turn on the
 boundary corrections for *stress* and *stress/contacts* described in
 :ref:`(Weinhart) <_compute_continuum_chunk_weinhart>`.  The
@@ -229,7 +240,8 @@ number of chunks :math:`N_\text{chunk}` defined by the referenced
 columns is the number of requested values after wildcard expansion.  The
 columns appear in the same order as specified in the command.  Internal
 intermediate quantities needed to evaluate derived fields are not exposed
-as output columns.
+as output columns. An array is used even if the number of requested column
+is one.
 
 These values can be accessed by any command that uses global arrays from
 a compute as input.  See :doc:`Howto output <Howto_output>` for an

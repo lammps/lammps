@@ -521,11 +521,15 @@ void PairLubricateUPoly::compute_Fh(double **x)
           beta[0][4] = beta[0][3]*beta[0][1];
           beta[1][2] = beta[1][1]*beta[1][1];
           beta[1][3] = beta[1][2]*beta[1][1];
-          double log_h_sep_beta13 = log(1.0/h_sep)/beta[1][3];
+          // symmetric dimensionless gap xi = 2*gap/(radi+radj) = 2*h_sep/beta1
+          // (Jeffrey & Onishi 1984).  Using the per-particle h_sep = gap/radi in
+          // the log-order terms breaks the i<->j resistance symmetry.  See #1933.
+          double xi = 2.0*h_sep/beta[1][1];
+          double log_h_sep_beta13 = log(1.0/xi)/beta[1][3];
           double h_sep_beta11 = h_sep/beta[1][1];
 
           a_sq = pre[0]*(beta[0][2]/beta[1][2]/h_sep
-                +((0.2+1.4*beta[0][1]+0.2*beta[0][2])
+                +((0.2*beta[0][1]+1.4*beta[0][2]+0.2*beta[0][3])
                   +(1.0+18.0*(beta[0][1]+beta[0][3])-29.0*beta[0][2]
                     +beta[0][4])*h_sep_beta11/21.0)*log_h_sep_beta13);
 
@@ -763,12 +767,15 @@ void PairLubricateUPoly::compute_RU(double **x)
           beta[0][4] = beta[0][3]*beta[0][1];
           beta[1][2] = beta[1][1]*beta[1][1];
           beta[1][3] = beta[1][2]*beta[1][1];
-          double log_h_sep = log(1.0/h_sep);
-          double log_h_sep_beta13 = log(1.0/h_sep)/beta[1][3];
+          // symmetric dimensionless gap xi = 2*gap/(radi+radj) = 2*h_sep/beta1
+          // (Jeffrey & Onishi 1984).  Using the per-particle h_sep = gap/radi in
+          // the log-order terms breaks the i<->j resistance symmetry.  See #1933.
+          double xi = 2.0*h_sep/beta[1][1];
+          double log_h_sep_beta13 = log(1.0/xi)/beta[1][3];
           double h_sep_beta11 = h_sep/beta[1][1];
 
           a_sq = pre[0]*(beta[0][2]/beta[1][2]/h_sep
-                +((0.2+1.4*beta[0][1]+0.2*beta[0][2])
+                +((0.2*beta[0][1]+1.4*beta[0][2]+0.2*beta[0][3])
                   +(1.0+18.0*(beta[0][1]+beta[0][3])-29.0*beta[0][2]
                     +beta[0][4])*h_sep_beta11/21.0)*log_h_sep_beta13);
 
@@ -783,7 +790,7 @@ void PairLubricateUPoly::compute_RU(double **x)
 //                  +0.172*beta[0][3])*h_sep)*log_h_sep_beta13;
           a_pu = pre[1]*(0.4*beta[0][1]*beta[1][1]
                 +(0.128+0.096*beta[0][1]+0.528*beta[0][2])*beta[1][2]*h_sep)
-                  *log_h_sep;
+                  *log(1.0/xi);
 
           /*//a_sq = 6*MY_PI*mu*radi*(1.0/4.0/h_sep + 9.0/40.0*log(1/h_sep));
           a_sq = beta0*beta0/beta1/beta1/h_sep
@@ -986,11 +993,15 @@ void PairLubricateUPoly::compute_RE(double **x)
           beta[0][4] = beta[0][3]*beta[0][1];
           beta[1][2] = beta[1][1]*beta[1][1];
           beta[1][3] = beta[1][2]*beta[1][1];
-          double log_h_sep_beta13 = log(1.0/h_sep)/beta[1][3];
+          // symmetric dimensionless gap xi = 2*gap/(radi+radj) = 2*h_sep/beta1
+          // (Jeffrey & Onishi 1984).  Using the per-particle h_sep = gap/radi in
+          // the log-order terms breaks the i<->j resistance symmetry.  See #1933.
+          double xi = 2.0*h_sep/beta[1][1];
+          double log_h_sep_beta13 = log(1.0/xi)/beta[1][3];
           double h_sep_beta11 = h_sep/beta[1][1];
 
           a_sq = pre[0]*(beta[0][2]/beta[1][2]/h_sep
-                +((0.2+1.4*beta[0][1]+0.2*beta[0][2])
+                +((0.2*beta[0][1]+1.4*beta[0][2]+0.2*beta[0][3])
                   +(1.0+18.0*(beta[0][1]+beta[0][3])-29.0*beta[0][2]
                     +beta[0][4])*h_sep_beta11/21.0)*log_h_sep_beta13);
 

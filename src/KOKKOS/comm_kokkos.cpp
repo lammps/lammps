@@ -371,6 +371,11 @@ void CommKokkos::forward_comm(Fix *fix, int size)
   if (fix->execution_space == Host || fix->execution_space == HostKK ||
       !fix->forward_comm_device || forward_fix_comm_legacy) {
     k_sendlist.sync_host();
+    // CommBrick packs through buf_send, the raw host pointer, so drop any claim
+    // a previous device pack left standing on that dual view first -- the same
+    // reason forward_comm_array() does.  fix group reaches this from
+    // set_group(), and without it the pack writes into the side the device owns.
+    k_buf_send.clear_sync_state();
     CommBrick::forward_comm(fix, size);
   } else {
     k_sendlist.sync_device();

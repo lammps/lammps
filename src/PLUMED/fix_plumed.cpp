@@ -199,6 +199,11 @@ FixPlumed::FixPlumed(LAMMPS *lmp, int narg, char **arg) :
   double dt = update->dt;
   p->cmd("setTimestep", &dt);
 
+  energyEverNeeded = 0;
+  // Every stride divides step 0. So a fix at 0 will see every PLUMED action active atleast once
+  // mid-trajectory fix / restarts are not guaranteed so falls back to legacy behavior
+  startedAtStepZero = (update->ntimestep == 0);
+
   extscalar = 1;
   scalar_flag = 1;
   energy_global_flag = virial_global_flag = 1;
@@ -503,7 +508,13 @@ void FixPlumed::post_force(int /* vflag */)
 
   // Ask for the computes in the next time step
   // such that the virial and energy are tallied.
-  if (plumedNeedsEnergy) {
+  // isEnergyNeeded - current step only. Clears every step.
+  // For STRIDE>1, says 0 and cant predict for the next step.
+  // As every STRIDE divides 0, fix at 0, sees if plumed asks for energy.
+  // If it does then updates everystep as before.
+  // Speedup only in case with no energy calls.
+  if (plumedNeedsEnergy) energyEverNeeded = 1;
+  if (energyEverNeeded || !startedAtStepZero) {
     c_pe->addstep(update->ntimestep + 1);
     c_press->addstep(update->ntimestep + 1);
   }

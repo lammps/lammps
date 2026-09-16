@@ -568,6 +568,11 @@ void FixRigidSmall::init()
     if (ifix->box_change) boxflag = true;
   }
 
+  // fix deform settings from Domain
+  
+  deform_vremap = domain->deform_vremap;
+  deform_groupbit = domain->deform_groupbit;
+
   // add gravity forces based on gravity vector from fix
 
   if (id_gravity) {

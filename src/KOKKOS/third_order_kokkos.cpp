@@ -164,6 +164,23 @@ void ThirdOrderKokkos::update_force()
     }
   }
 
+  // keep the force array out of play for the length of the force region, the
+  // same way VerletKokkos::run() does: the host styles accumulate into the host
+  // copy alone and the two sides are merged at the end of the region.  Masking
+  // centrally also covers the sync() and modified() calls inside the force
+  // styles themselves, which name the plain datamask_read and so include
+  // F_MASK; left unmasked they copy the device force over the zeroed host
+  // buffer and the merge counts the device contribution twice.
+  //
+  // gated on exactly the condition of that merge: with no host style, or with
+  // the two sides sharing one allocation, there is nothing to keep apart and
+  // nothing to merge, and masking anyway would strip the claim the pair style
+  // makes on its own device write
+
+  AtomKokkos::ExcludeMask exclude_guard(atomKK,
+    (execute_on_host && !std::is_same_v<LMPHostType,LMPDeviceType>)
+      ? (F_MASK | ENERGY_MASK | VIRIAL_MASK) : 0);
+
   // when a non-KOKKOS style runs inside a KOKKOS run, enable auto_sync for
   // the duration of its compute so that any sync()/modified() it triggers
   // (e.g. via the DomainKokkos x2lamda/lamda2x overrides) writes changes
@@ -173,12 +190,10 @@ void ThirdOrderKokkos::update_force()
     int prev_auto_sync = lmp->kokkos->auto_sync;
     if (!force->pair->kokkosable) lmp->kokkos->auto_sync = 1;
     atomKK->sync(force->pair->execution_space,force->pair->datamask_read);
-    atomKK->sync(force->pair->execution_space,~(~force->pair->datamask_read|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
     Kokkos::Timer ktimer;
     force->pair->compute(eflag,vflag);
     lmp->kokkos->auto_sync = prev_auto_sync;
     atomKK->modified(force->pair->execution_space,force->pair->datamask_modify);
-    atomKK->modified(force->pair->execution_space,~(~force->pair->datamask_modify|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
     timer->stamp(Timer::PAIR);
   }
 
@@ -208,34 +223,34 @@ void ThirdOrderKokkos::update_force()
     if (force->bond) {
       int prev_auto_sync = lmp->kokkos->auto_sync;
       if (!force->bond->kokkosable) lmp->kokkos->auto_sync = 1;
-      atomKK->sync(force->bond->execution_space,~(~force->bond->datamask_read|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
+      atomKK->sync(force->bond->execution_space,force->bond->datamask_read);
       force->bond->compute(eflag,vflag);
       lmp->kokkos->auto_sync = prev_auto_sync;
-      atomKK->modified(force->bond->execution_space,~(~force->bond->datamask_modify|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
+      atomKK->modified(force->bond->execution_space,force->bond->datamask_modify);
     }
     if (force->angle) {
       int prev_auto_sync = lmp->kokkos->auto_sync;
       if (!force->angle->kokkosable) lmp->kokkos->auto_sync = 1;
-      atomKK->sync(force->angle->execution_space,~(~force->angle->datamask_read|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
+      atomKK->sync(force->angle->execution_space,force->angle->datamask_read);
       force->angle->compute(eflag,vflag);
       lmp->kokkos->auto_sync = prev_auto_sync;
-      atomKK->modified(force->angle->execution_space,~(~force->angle->datamask_modify|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
+      atomKK->modified(force->angle->execution_space,force->angle->datamask_modify);
     }
     if (force->dihedral) {
       int prev_auto_sync = lmp->kokkos->auto_sync;
       if (!force->dihedral->kokkosable) lmp->kokkos->auto_sync = 1;
-      atomKK->sync(force->dihedral->execution_space,~(~force->dihedral->datamask_read|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
+      atomKK->sync(force->dihedral->execution_space,force->dihedral->datamask_read);
       force->dihedral->compute(eflag,vflag);
       lmp->kokkos->auto_sync = prev_auto_sync;
-      atomKK->modified(force->dihedral->execution_space,~(~force->dihedral->datamask_modify|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
+      atomKK->modified(force->dihedral->execution_space,force->dihedral->datamask_modify);
     }
     if (force->improper) {
       int prev_auto_sync = lmp->kokkos->auto_sync;
       if (!force->improper->kokkosable) lmp->kokkos->auto_sync = 1;
-      atomKK->sync(force->improper->execution_space,~(~force->improper->datamask_read|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
+      atomKK->sync(force->improper->execution_space,force->improper->datamask_read);
       force->improper->compute(eflag,vflag);
       lmp->kokkos->auto_sync = prev_auto_sync;
-      atomKK->modified(force->improper->execution_space,~(~force->improper->datamask_modify|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
+      atomKK->modified(force->improper->execution_space,force->improper->datamask_modify);
     }
     timer->stamp(Timer::BOND);
   }
@@ -243,10 +258,10 @@ void ThirdOrderKokkos::update_force()
   if (kspace_compute_flag) {
     int prev_auto_sync = lmp->kokkos->auto_sync;
     if (!force->kspace->kokkosable) lmp->kokkos->auto_sync = 1;
-    atomKK->sync(force->kspace->execution_space,~(~force->kspace->datamask_read|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
+    atomKK->sync(force->kspace->execution_space,force->kspace->datamask_read);
     force->kspace->compute(eflag,vflag);
     lmp->kokkos->auto_sync = prev_auto_sync;
-    atomKK->modified(force->kspace->execution_space,~(~force->kspace->datamask_modify|(F_MASK | ENERGY_MASK | VIRIAL_MASK)));
+    atomKK->modified(force->kspace->execution_space,force->kspace->datamask_modify);
     timer->stamp(Timer::KSPACE);
   }
 
@@ -274,6 +289,12 @@ void ThirdOrderKokkos::update_force()
     atomKK->k_f.clear_sync_state(); // special case
     atomKK->k_f.modify_device();
   }
+
+  // the two sides have been brought together, so the force array is back in
+  // play for the reverse communication and everything after it
+
+  exclude_guard.release();
+
   if (n_pre_reverse) {
     modify->pre_reverse(eflag,vflag);
     timer->stamp(Timer::MODIFY);

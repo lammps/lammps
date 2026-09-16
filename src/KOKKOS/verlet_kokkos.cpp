@@ -425,10 +425,35 @@ void VerletKokkos::run(int n)
     uint64_t datamask_read_host = 0;
     uint64_t datamask_exclude = 0;
 
-    if (overlap_possible()) {
-      datamask_exclude = (F_MASK | ENERGY_MASK | VIRIAL_MASK);
-      execute_on_host = host_force_styles(&datamask_read_host);
-    }
+    // host_force_styles() already returns 0 when there is no overlap, so this
+    // also settles whether the host force copies are in play at all
+
+    execute_on_host = host_force_styles(&datamask_read_host);
+
+    // exclude the force array exactly when the merge below will run: that is
+    // what keeps the two sides apart, and what puts the device side back in
+    // play afterwards.  With no host style there is nothing to keep apart, and
+    // masking anyway would strip the claim the pair style makes on its own
+    // device write -- which is the only claim there is when force_clear() has
+    // been fused into the pair compute and so did not run
+
+    if (execute_on_host) datamask_exclude = (F_MASK | ENERGY_MASK | VIRIAL_MASK);
+
+    // publish the exclude mask on atomKK for the length of the force region.
+    // The host styles accumulate their forces into the host copy alone and the
+    // two sides are added together at the end of the region, so nothing may
+    // sync or claim the force array in between.  Masking centrally covers the
+    // call sites below and, just as importantly, the sync() and modified()
+    // calls inside the styles themselves: a KOKKOS pair or bonded style syncs
+    // what it reads and claims what it writes on its own behalf, since
+    // run_style verlet/kk is not its only caller, and those calls name the
+    // plain datamask_read, which includes F_MASK.  Left unmasked they copy the
+    // device force over the zeroed host buffer the host styles are about to
+    // add into, and the merge then counts the device contribution twice.
+    // The mask is zero when no host style runs, so an all-device run and a
+    // build where the two sides share one allocation are both unaffected.
+
+    AtomKokkos::ExcludeMask exclude_guard(atomKK,datamask_exclude);
 
     // when a non-KOKKOS style runs inside a KOKKOS run, enable auto_sync for
     // the duration of its compute so that any sync()/modified() it triggers
@@ -438,20 +463,17 @@ void VerletKokkos::run(int n)
     if (pair_compute_flag) {
       int prev_auto_sync = lmp->kokkos->auto_sync;
       if (!force->pair->kokkosable) lmp->kokkos->auto_sync = 1;
-      // the masked form only: the mask is the plain one when nothing is
-      // excluded, and syncing or claiming the full one first would put the
-      // force array back in play exactly where the overlap path is trying to
-      // keep it out
-      atomKK->sync(force->pair->execution_space,~(~force->pair->datamask_read|datamask_exclude));
+      atomKK->sync(force->pair->execution_space,force->pair->datamask_read);
       force->pair->compute(eflag,vflag);
       lmp->kokkos->auto_sync = prev_auto_sync;
-      atomKK->modified(force->pair->execution_space,~(~force->pair->datamask_modify|datamask_exclude));
+      atomKK->modified(force->pair->execution_space,force->pair->datamask_modify);
       timer->stamp(Timer::PAIR);
     }
 
     if (execute_on_host) {
       if (pair_compute_flag && force->pair->datamask_modify != datamask_exclude)
         Kokkos::fence();
+      // sync_pinned() is not routed through the exclude mask, so mask here
       atomKK->sync_pinned(HostKK,~(~datamask_read_host|datamask_exclude),1);
       // zero the host-side force buffer before the host styles accumulate into
       // it, so the later device/host force merge does not re-add stale values.
@@ -480,34 +502,34 @@ void VerletKokkos::run(int n)
       if (force->bond) {
         int prev_auto_sync = lmp->kokkos->auto_sync;
         if (!force->bond->kokkosable) lmp->kokkos->auto_sync = 1;
-        atomKK->sync(force->bond->execution_space,~(~force->bond->datamask_read|datamask_exclude));
+        atomKK->sync(force->bond->execution_space,force->bond->datamask_read);
         force->bond->compute(eflag,vflag);
         lmp->kokkos->auto_sync = prev_auto_sync;
-        atomKK->modified(force->bond->execution_space,~(~force->bond->datamask_modify|datamask_exclude));
+        atomKK->modified(force->bond->execution_space,force->bond->datamask_modify);
       }
       if (force->angle) {
         int prev_auto_sync = lmp->kokkos->auto_sync;
         if (!force->angle->kokkosable) lmp->kokkos->auto_sync = 1;
-        atomKK->sync(force->angle->execution_space,~(~force->angle->datamask_read|datamask_exclude));
+        atomKK->sync(force->angle->execution_space,force->angle->datamask_read);
         force->angle->compute(eflag,vflag);
         lmp->kokkos->auto_sync = prev_auto_sync;
-        atomKK->modified(force->angle->execution_space,~(~force->angle->datamask_modify|datamask_exclude));
+        atomKK->modified(force->angle->execution_space,force->angle->datamask_modify);
       }
       if (force->dihedral) {
         int prev_auto_sync = lmp->kokkos->auto_sync;
         if (!force->dihedral->kokkosable) lmp->kokkos->auto_sync = 1;
-        atomKK->sync(force->dihedral->execution_space,~(~force->dihedral->datamask_read|datamask_exclude));
+        atomKK->sync(force->dihedral->execution_space,force->dihedral->datamask_read);
         force->dihedral->compute(eflag,vflag);
         lmp->kokkos->auto_sync = prev_auto_sync;
-        atomKK->modified(force->dihedral->execution_space,~(~force->dihedral->datamask_modify|datamask_exclude));
+        atomKK->modified(force->dihedral->execution_space,force->dihedral->datamask_modify);
       }
       if (force->improper) {
         int prev_auto_sync = lmp->kokkos->auto_sync;
         if (!force->improper->kokkosable) lmp->kokkos->auto_sync = 1;
-        atomKK->sync(force->improper->execution_space,~(~force->improper->datamask_read|datamask_exclude));
+        atomKK->sync(force->improper->execution_space,force->improper->datamask_read);
         force->improper->compute(eflag,vflag);
         lmp->kokkos->auto_sync = prev_auto_sync;
-        atomKK->modified(force->improper->execution_space,~(~force->improper->datamask_modify|datamask_exclude));
+        atomKK->modified(force->improper->execution_space,force->improper->datamask_modify);
       }
       timer->stamp(Timer::BOND);
     }
@@ -515,10 +537,10 @@ void VerletKokkos::run(int n)
     if (kspace_compute_flag) {
       int prev_auto_sync = lmp->kokkos->auto_sync;
       if (!force->kspace->kokkosable) lmp->kokkos->auto_sync = 1;
-      atomKK->sync(force->kspace->execution_space,~(~force->kspace->datamask_read|datamask_exclude));
+      atomKK->sync(force->kspace->execution_space,force->kspace->datamask_read);
       force->kspace->compute(eflag,vflag);
       lmp->kokkos->auto_sync = prev_auto_sync;
-      atomKK->modified(force->kspace->execution_space,~(~force->kspace->datamask_modify|datamask_exclude));
+      atomKK->modified(force->kspace->execution_space,force->kspace->datamask_modify);
       timer->stamp(Timer::KSPACE);
     }
 
@@ -532,7 +554,8 @@ void VerletKokkos::run(int n)
       // legacy host array behind atom->f, which is a separate allocation when
       // the two need a transform.  Add the legacy one in.  sync_legacy_to_hostkk()
       // cannot be used here: it would copy one buffer over the other, and it is
-      // a no-op anyway since F_MASK is excluded from the modified() calls above.
+      // a no-op anyway, since F_MASK is in the exclude mask published above and
+      // so never reaches the modified() calls of the force region.
 
       if (decltype(atomKK->k_f)::NEED_TRANSFORM) {
         auto h_f_kk = atomKK->k_f.view_hostkk();
@@ -546,6 +569,12 @@ void VerletKokkos::run(int n)
       atomKK->k_f.clear_sync_state(); // special case
       atomKK->k_f.modify_device();
     }
+
+    // the two sides have been brought together, so the force array is back in
+    // play: the reverse communication, the force modifications and the time
+    // integration below all have to be able to sync and claim it again
+
+    exclude_guard.release();
 
     if (n_pre_reverse) {
       modify->pre_reverse(eflag,vflag);

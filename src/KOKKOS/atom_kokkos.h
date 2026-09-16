@@ -205,6 +205,7 @@ class AtomKokkos : public Atom {
   void *extract(const char *) override;
   void sync(const ExecutionSpace space, uint64_t mask);
   void modified(const ExecutionSpace space, uint64_t mask);
+  void sync_mass(const ExecutionSpace space, uint64_t mask);
   void sync_pinned(const ExecutionSpace space, uint64_t mask, int async_flag = 0);
   void sort() override;
   int add_custom(const char *, int, int, int border = 0) override;

@@ -140,6 +140,18 @@ void CommTiledKokkos::forward_comm_device()
     if (comm_x_only && !decltype(atomKK->k_x)::NEED_TRANSFORM) {
       if (recvother[iswap]) {
 
+        // MPI receives the ghost coordinates straight into the coordinate
+        // array, so the dual view never sees the write: unlike the
+        // unpack_comm_kokkos() path below there is no kernel to sync before and
+        // claim after.  Do both here, or the flags keep calling the two sides
+        // reconciled while only one of them has the new ghosts -- the next sync
+        // to the other side then copies nothing, and a later claim on the stale
+        // side pushes the old ghost coordinates back over them.  Costs nothing
+        // where the two sides are one memory space.  Same defect, and the same
+        // fix, as CommKokkos::forward_comm_device().
+
+        atomKK->sync(ExecutionSpaceFromDevice<DeviceType>::space,X_MASK);
+
         // no Kokkos work is launched inside the loop, so fence only once
 
         DeviceType().fence();
@@ -167,6 +179,7 @@ void CommTiledKokkos::forward_comm_device()
       if (recvother[iswap]) {
         MPI_Waitall(nrecv,requests,MPI_STATUSES_IGNORE);
         DeviceType().fence();
+        atomKK->modified(ExecutionSpaceFromDevice<DeviceType>::space,X_MASK);
       }
 
     } else if (ghost_velocity) {

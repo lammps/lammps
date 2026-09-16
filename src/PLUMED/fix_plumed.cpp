@@ -199,10 +199,8 @@ FixPlumed::FixPlumed(LAMMPS *lmp, int narg, char **arg) :
   double dt = update->dt;
   p->cmd("setTimestep", &dt);
 
-  energyEverNeeded = 0;
-  // Every stride divides step 0. So a fix at 0 will see every PLUMED action active atleast once
-  // mid-trajectory fix / restarts are not guaranteed so falls back to legacy behavior
-  startedAtStepZero = (update->ntimestep == 0);
+  plumedStopCondition = 0;
+  plumedStopScratch = 0;
 
   extscalar = 1;
   scalar_flag = 1;
@@ -409,7 +407,7 @@ void FixPlumed::post_force(int /* vflag */)
 
   // pass all pointers to plumed:
   p->cmd("setStep", &step);
-  int plumedStopCondition = 0;
+  plumedStopCondition = 0;
   p->cmd("setStopFlag", &plumedStopCondition);
   p->cmd("setPositions", &atom->x[0][0]);
   p->cmd("setBox", &box[0][0]);
@@ -506,17 +504,29 @@ void FixPlumed::post_force(int /* vflag */)
     virial[5] = -plmd_virial[1][2];
   }
 
-  // Ask for the computes in the next time step
-  // such that the virial and energy are tallied.
+  // Ask PLUMED if it needs the energy on the next step
+  // Tally the energy and virial computes
+  // Integrate::ev_set() fixes eflag/vflag at the top of the step in advance
   // isEnergyNeeded - current step only. Clears every step.
-  // For STRIDE>1, says 0 and cant predict for the next step.
-  // As every STRIDE divides 0, fix at 0, sees if plumed asks for energy.
-  // If it does then updates everystep as before.
-  // Speedup only in case with no energy calls.
-  if (plumedNeedsEnergy) energyEverNeeded = 1;
-  if (energyEverNeeded || !startedAtStepZero) {
-    c_pe->addstep(update->ntimestep + 1);
-    c_press->addstep(update->ntimestep + 1);
+  // prepareDependencies() needs the next step only
+  // and activates.deactivate the pilots based on stride modulo
+  // Doesnt touch positions, forces, or box
+  // setStep() issued at the start of the next post_force() resets this - cleanup
+
+  bigint nextstep = update->ntimestep + 1;
+  if (nextstep<=MAXSMALLINT) {
+    int nextstep_int = int(nextstep);
+    // prepareDependencies() raises the stop flag in inactive steps
+    // writing to scratch to avoid it overwriting the actual flag
+    p->cmd("setStopFlag", &plumedStopScratch);
+    p->cmd("setStep", &nextstep_int);
+    p->cmd("prepareDependencies");
+    int needsEnergyNext = 0;
+    p->cmd("isEnergyNeeded", &needsEnergyNext);
+    if (needsEnergyNext) {
+      c_pe->addstep(update->ntimestep + 1);
+      c_press->addstep(update->ntimestep + 1);
+    }
   }
 }
 

@@ -394,14 +394,19 @@ void FixPIMDNVE::setup(int vflag)
 
 void FixPIMDNVE::initial_integrate(int /*vflag*/)
 {
+  if (integrator != OBABO && integrator != BAOAB)
+    error->universe_all(FLERR, fmt::format("Unknown integrator parameter for fix {}", style));
+
+  if (integrator == OBABO) o_step();
   b_step();
+  unmap_coordinates(atom->x, atom->image);
   if (method == NMPIMD || method == CMD) {
-    unmap_coordinates(atom->x, atom->image);
     // Forward: bead coordinates to normal modes.
     inter_replica_comm(atom->x);
     nmpimd_transform(normal_mode_transform_buffer(), atom->x, M_x2xp[universe->iworld]);
     qc_step();
     a_step();
+    if (integrator == BAOAB) o_step();
     qc_step();
     a_step();
     collect_xc();
@@ -411,16 +416,15 @@ void FixPIMDNVE::initial_integrate(int /*vflag*/)
     // Backward: normal modes to bead coordinates.
     inter_replica_comm(atom->x);
     nmpimd_transform(normal_mode_transform_buffer(), atom->x, M_xp2x[universe->iworld]);
-    remap_coordinates(atom->x, atom->image);
   } else if (method == PIMD) {
-    unmap_coordinates(atom->x, atom->image);
     q_step();
+    if (integrator == BAOAB) o_step();
     q_step();
     collect_xc();
-    remap_coordinates(atom->x, atom->image);
   } else {
     error->universe_all(FLERR, fmt::format("Unknown method parameter for fix {}", style));
   }
+  remap_coordinates(atom->x, atom->image);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -428,7 +432,12 @@ void FixPIMDNVE::initial_integrate(int /*vflag*/)
 void FixPIMDNVE::final_integrate()
 {
   b_step();
+  if (integrator == OBABO) o_step();
 }
+
+/* ---------------------------------------------------------------------- */
+
+void FixPIMDNVE::o_step() {}
 
 /* ---------------------------------------------------------------------- */
 

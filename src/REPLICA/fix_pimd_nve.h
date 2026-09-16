@@ -119,6 +119,7 @@ class FixPIMDNVE : public Fix {
   virtual void b_step();    // integrate for dt/2 according to B part (v <- v + f * dt/2)
   void q_step();
   virtual void qc_step();
+  virtual void o_step();    // thermostat propagation; no-op for NVE
   virtual void a_step();
   virtual void spring_force();
   void remove_com_motion();

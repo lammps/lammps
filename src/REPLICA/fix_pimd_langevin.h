@@ -37,8 +37,6 @@ class FixPIMDLangevin : public FixPIMDNVE {
   enum { NVE, NVT, NPH, NPT };
   enum { SINGLE_PROC, MULTI_PROC };
 
-  void initial_integrate(int) override;
-  void final_integrate() override;
   void end_of_step() override;
 
  protected:
@@ -65,7 +63,8 @@ class FixPIMDLangevin : public FixPIMDNVE {
   int tstat_flag;    // tstat_flat = 1 if thermostat if used
   void langevin_init();
   void qc_step() override;    // integrate for dt/2 for the centroid mode (x <- x + v * dt/2)
-  void o_step();     // integrate for dt according to O part (O-U process, for thermostating)
+  void o_step() override;    // thermostat velocities and optional barostat momentum
+  void b_step() override;
 
   /* Bussi-Zykova-Parrinello barostat */
 

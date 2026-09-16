@@ -30,8 +30,6 @@ class FixPIMDNVT : public FixPIMDNVE {
   FixPIMDNVT(class LAMMPS *, int, char **, bool defer_setup = false);
   ~FixPIMDNVT() override;
 
-  void initial_integrate(int) override;
-  void final_integrate() override;
   double compute_scalar() override;
   std::string get_thermo_colname(int) override;
 
@@ -76,6 +74,7 @@ class FixPIMDNVT : public FixPIMDNVE {
   void update_outer_chain_accelerations(double);
   void complete_chain_tail_halfstep(double, double);
 
+  void o_step() override;
   virtual void thermostat_step();
   virtual void nh_v_temp();
   double thermostat_work_delta(double) const;

@@ -31,7 +31,6 @@ using namespace LAMMPS_NS;
 using MathConst::THIRD;
 
 enum { PHYSICAL, NORMAL };
-enum { BAOAB, OBABO };
 enum { SINGLE_PROC, MULTI_PROC };
 
 /* ---------------------------------------------------------------------- */
@@ -193,84 +192,9 @@ void FixPIMDNVT::setup_subclass_state()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMDNVT::initial_integrate(int /*vflag*/)
+void FixPIMDNVT::o_step()
 {
-  if (integrator == OBABO) {
-    thermostat_step();
-    b_step();
-    if (method == NMPIMD || method == CMD) {
-      unmap_coordinates(atom->x, atom->image);
-      // Forward: bead coordinates to normal modes.
-      inter_replica_comm(atom->x);
-      nmpimd_transform(normal_mode_transform_buffer(), atom->x, M_x2xp[universe->iworld]);
-      qc_step();
-      a_step();
-      qc_step();
-      a_step();
-    } else if (method == PIMD) {
-      unmap_coordinates(atom->x, atom->image);
-      q_step();
-      q_step();
-    } else {
-      error->universe_all(FLERR, fmt::format("Unknown method parameter for fix {}", style));
-    }
-  } else if (integrator == BAOAB) {
-    b_step();
-    if (method == NMPIMD || method == CMD) {
-      unmap_coordinates(atom->x, atom->image);
-      // Forward: bead coordinates to normal modes.
-      inter_replica_comm(atom->x);
-      nmpimd_transform(normal_mode_transform_buffer(), atom->x, M_x2xp[universe->iworld]);
-      qc_step();
-      a_step();
-    } else if (method == PIMD) {
-      unmap_coordinates(atom->x, atom->image);
-      q_step();
-    } else {
-      error->universe_all(FLERR, fmt::format("Unknown method parameter for fix {}", style));
-    }
-    thermostat_step();
-    if (method == NMPIMD || method == CMD) {
-      qc_step();
-      a_step();
-    } else if (method == PIMD) {
-      q_step();
-    } else {
-      error->universe_all(FLERR, fmt::format("Unknown method parameter for fix {}", style));
-    }
-  } else {
-    error->universe_all(FLERR, fmt::format("Unknown integrator parameter for fix {}. Only obabo "
-                                           "and baoab integrators are supported!",
-                                           style));
-  }
-  if (method == NMPIMD || method == CMD) {
-    collect_xc();
-    compute_spring_energy();
-    compute_t_prim();
-    compute_p_prim();
-    // Backward: normal modes to bead coordinates.
-    inter_replica_comm(atom->x);
-    nmpimd_transform(normal_mode_transform_buffer(), atom->x, M_xp2x[universe->iworld]);
-    remap_coordinates(atom->x, atom->image);
-  } else {
-    collect_xc();
-    remap_coordinates(atom->x, atom->image);
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixPIMDNVT::final_integrate()
-{
-  b_step();
-
-  if (integrator == OBABO) {
-    thermostat_step();
-  } else if (integrator == BAOAB) {
-
-  } else {
-    error->universe_all(FLERR, fmt::format("Unknown integrator parameter for fix {}", style));
-  }
+  thermostat_step();
 }
 
 /* ---------------------------------------------------------------------- */

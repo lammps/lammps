@@ -283,117 +283,14 @@ void FixPIMDLangevin::setup_subclass_state()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMDLangevin::initial_integrate(int /*vflag*/)
-{
-  if (integrator == OBABO) {
-    if (tstat_flag) {
-      o_step();
-      if (removecomflag) remove_com_motion();
-      if (pstat_flag) press_o_step();
-    }
-    if (pstat_flag) {
-      compute_totke();
-      compute_p_cv();
-      press_v_step();
-    }
-    b_step();
-    if (method == NMPIMD) {
-      unmap_coordinates(atom->x, atom->image);
-      // Forward: bead coordinates to normal modes.
-      inter_replica_comm(atom->x);
-      nmpimd_transform(normal_mode_transform_buffer(), atom->x, M_x2xp[universe->iworld]);
-      qc_step();
-      a_step();
-      qc_step();
-      a_step();
-    } else if (method == PIMD) {
-      unmap_coordinates(atom->x, atom->image);
-      q_step();
-      q_step();
-    } else {
-      error->universe_all(
-          FLERR,
-          fmt::format("Unknown method parameter for fix {}. Only nmpimd and pimd are supported!",
-                      style));
-    }
-  } else if (integrator == BAOAB) {
-    if (pstat_flag) {
-      compute_totke();
-      compute_p_cv();
-      press_v_step();
-    }
-    b_step();
-    if (method == NMPIMD) {
-      unmap_coordinates(atom->x, atom->image);
-      // Forward: bead coordinates to normal modes.
-      inter_replica_comm(atom->x);
-      nmpimd_transform(normal_mode_transform_buffer(), atom->x, M_x2xp[universe->iworld]);
-      qc_step();
-      a_step();
-    } else if (method == PIMD) {
-      unmap_coordinates(atom->x, atom->image);
-      q_step();
-    } else {
-      error->universe_all(
-          FLERR,
-          fmt::format("Unknown method parameter for fix {}. Only nmpimd and pimd are supported!",
-                      style));
-    }
-    if (tstat_flag) {
-      o_step();
-      if (removecomflag) remove_com_motion();
-      if (pstat_flag) press_o_step();
-    }
-    if (method == NMPIMD) {
-      qc_step();
-      a_step();
-    } else if (method == PIMD) {
-      q_step();
-    } else {
-      error->universe_all(
-          FLERR,
-          fmt::format("Unknown method parameter for fix {}. Only nmpimd and pimd are supported!",
-                      style));
-    }
-  } else {
-    error->universe_all(FLERR,
-                        fmt::format("Unknown integrator parameter for fix {}. Only obabo and baoab "
-                                    "integrators are supported!",
-                                    style));
-  }
-  collect_xc();
-  if (method == NMPIMD) {
-    compute_spring_energy();
-    compute_t_prim();
-    compute_p_prim();
-    // Backward: normal modes to bead coordinates.
-    inter_replica_comm(atom->x);
-    nmpimd_transform(normal_mode_transform_buffer(), atom->x, M_xp2x[universe->iworld]);
-  }
-  remap_coordinates(atom->x, atom->image);
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixPIMDLangevin::final_integrate()
+void FixPIMDLangevin::b_step()
 {
   if (pstat_flag) {
     compute_totke();
     compute_p_cv();
     press_v_step();
   }
-  b_step();
-  if (integrator == OBABO) {
-    if (tstat_flag) {
-      o_step();
-      if (removecomflag) remove_com_motion();
-      if (pstat_flag) press_o_step();
-    }
-  } else if (integrator == BAOAB) {
-
-  } else {
-    error->universe_all(FLERR, fmt::format("Unknown integrator parameter for fix {}", style));
-  }
+  FixPIMDNVE::b_step();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -644,6 +541,8 @@ void FixPIMDLangevin::langevin_init()
 
 void FixPIMDLangevin::o_step()
 {
+  if (!tstat_flag) return;
+
   int nlocal = atom->nlocal;
   int *mask = atom->mask;
   int *type = atom->type;
@@ -673,6 +572,8 @@ void FixPIMDLangevin::o_step()
       }
     }
   }
+  if (removecomflag) remove_com_motion();
+  if (pstat_flag) press_o_step();
 }
 
 /* ----------------------------------------------------------------------

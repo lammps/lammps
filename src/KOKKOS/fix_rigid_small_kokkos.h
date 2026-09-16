@@ -85,6 +85,14 @@ template <class DeviceType> class FixRigidSmallKokkos : public FixRigidSmall, pu
   void pre_neighbor() override;
 
   void grow_arrays(int) override;
+
+  // The base initialises and moves the per-atom body bookkeeping through its
+  // plain host pointers.  fix gcmc reaches both out of band, while the device
+  // owns those arrays -- see the definitions.
+  void set_arrays(int) override;
+
+  bool flush_bookkeeping_if_device_owns();
+  void claim_bookkeeping_host();
   void grow_body() override;
   void set_molecule(int, tagint, int, double *, double *, double *) override;
   void resample_momenta(int, int, class RanPark *, double) override;

@@ -273,6 +273,87 @@ void FixRigidSmallKokkos<DeviceType>::pre_exchange()
 }
 
 /* ----------------------------------------------------------------------
+   Bring the per-atom body bookkeeping down to the host, but only when the
+   device is actually the side that owns it.
+
+   The guard matters: these callbacks also run on paths that have already put
+   the host in charge -- the host sort flushes through sync_host_for_sort()
+   before it starts permuting -- and re-flushing there would copy the device's
+   older copy back over work in progress.  Asking need_sync_host() first makes
+   those paths a no-op and leaves only the case this is for.
+
+   Returns whether it flushed, so the caller claims the host side only when it
+   actually took ownership; when the host already owned the arrays the base's
+   write needs no claim.
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+bool FixRigidSmallKokkos<DeviceType>::flush_bookkeeping_if_device_owns()
+{
+  if (!setupflag) return false;
+  // Per-array, not one array as a proxy for all six: these carry independent
+  // coherence flags and bodyown can be host-current while displace is not.
+  if (!(k_bodyown.need_sync_host() || k_bodytag.need_sync_host() ||
+        k_atom2body.need_sync_host() || k_xcmimage.need_sync_host() ||
+        k_displace.need_sync_host() || k_vatom.need_sync_host())) return false;
+
+  // Deliberately NOT copy_body_host(): set_arrays() writes only the per-atom
+  // arrays.  body[] is outside the DualView protocol -- the device kernels
+  // write d_body without ever calling modify_device(), so its flags mean
+  // nothing and copy_body_host() is an unconditional deep copy.  Pulling it
+  // here would overwrite host body[] edits that the base makes elsewhere in
+  // the same sequence.  Bringing body[] into the protocol is what the rest of
+  // this problem needs; see FINDINGS.md.
+  k_bodytag.sync_host();
+  k_bodyown.sync_host();
+  k_atom2body.sync_host();
+  k_xcmimage.sync_host();
+  k_displace.sync_host();
+  k_vatom.sync_host();
+  if (extended) {
+    k_eflags.sync_host();
+    if (orientflag) k_orient.sync_host();
+    if (dorientflag) k_dorient.sync_host();
+  }
+  return true;
+}
+
+template<class DeviceType>
+void FixRigidSmallKokkos<DeviceType>::claim_bookkeeping_host()
+{
+  k_bodytag.modify_host();
+  k_bodyown.modify_host();
+  k_atom2body.modify_host();
+  k_xcmimage.modify_host();
+  k_displace.modify_host();
+  k_vatom.modify_host();
+  if (extended) {
+    k_eflags.modify_host();
+    if (orientflag) k_orient.modify_host();
+    if (dorientflag) k_dorient.modify_host();
+  }
+}
+
+/* ----------------------------------------------------------------------
+   initialise one atom's body bookkeeping, called when an atom is created.
+
+   fix gcmc creates atoms inside its own pre_exchange(), by which point these
+   arrays are claimed on the device, so the base's write lands on the side that
+   is about to be discarded.  The atom then keeps whatever the device held --
+   including a bodyown >= 0 naming a body that does not exist, which is the
+   state copy_arrays() below later turns into body[nlocal_body-1] with
+   nlocal_body == 0.
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixRigidSmallKokkos<DeviceType>::set_arrays(int i)
+{
+  const bool took = flush_bookkeeping_if_device_owns();
+  FixRigidSmall::set_arrays(i);
+  if (took) claim_bookkeeping_host();
+}
+
+/* ----------------------------------------------------------------------
    setup static/dynamic properties of rigid bodies, using current atom info.
    if reinitflag is not set, do the initialization only once, b/c properties
    may not be re-computable especially if overlapping particles or bodies
@@ -464,6 +545,7 @@ void FixRigidSmallKokkos<DeviceType>::setup(int vflag)
 
   forward_comm_device = saved_forward_comm_device;
   reverse_comm_device = saved_reverse_comm_device;
+
 
   atomKK->modified(Host, datamask_modify);
 

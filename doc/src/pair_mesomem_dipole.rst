@@ -1,15 +1,15 @@
-.. index:: pair_style mesomem
+.. index:: pair_style mesomem/dipole
 
 
-pair_style mesomem command
-======================
+pair_style mesomem/dipole command
+==================================
 
 Syntax
 """"""
 
 .. code-block:: LAMMPS
 
-   pair_style mesomem cutoff
+   pair_style mesomem/dipole cutoff
 
 
 * cutoff = global cutoff for interactions (distance units)
@@ -19,7 +19,7 @@ Examples
 
 .. code-block:: LAMMPS
 
-   pair_style   mesomem  2.5
+   pair_style   mesomem/dipole  2.5
    pair_coeff   *  *  1.0  1.0  15.0  1.0  2.5  2.0  5  0.0
 
 
@@ -28,7 +28,7 @@ Description
 
 .. versionadded:: 15Dec2026
 
-The *mesomem* style computes an anisotropic interaction
+The *mesomem/dipole* style computes an anisotropic interaction
 between pairs of coarse-grained particles considering the relative particle orientations. This potential is  developed as a particle-based solvent-free model for biological membranes :ref:`(Sillano2026) <_Sillano>`. Unlike :doc:`pair_style ylz <pair_ylz>`, where the angular dependence multiplies the isotropic radial potential, this pair style adds an independent tilt/splay energy, weighted by a smooth radial window function, on top of a purely radial isotropic potential. The total pair energy is:
 
 .. math::
@@ -107,7 +107,7 @@ This pair style writes its information to :doc:`binary restart files <restart>`,
 Restrictions
 """"""""""""
 
-The *mesomem* style is part of the DIPOLE package.  It is only enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
+The *mesomem/dipole* style is part of the DIPOLE package.  It is only enabled if LAMMPS was built with that package.  See the :doc:`Build package <Build_package>` page for more info.
 
 This pair style requires that atoms store torque and a dipole vector to represent their orientation, as defined by the :doc:`atom_style <atom_style>`.
 

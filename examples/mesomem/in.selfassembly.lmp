@@ -47,7 +47,7 @@ thermo ${t_dump}
 ######## PAIR STYLE ##########
 ##############################
 
-pair_style      mesomem ${rcut}
+pair_style      mesomem/dipole ${rcut}
 # i j sigma eps ktilt ksplay rcut weight_rc zeta c0
 pair_coeff      1 1 1.0 ${eps} ${ktilt} ${ksplay} ${rcut} ${wc} ${zeta} ${c0}
 

@@ -15,22 +15,22 @@
 
 #ifdef PAIR_CLASS
 // clang-format off
-PairStyle(mesomem,PairMesomem);
+PairStyle(mesomem/dipole,PairMesomemDipole);
 // clang-format on
 
 #else
 
-#ifndef LMP_PAIR_MESOMEM_H
-#define LMP_PAIR_MESOMEM_H
+#ifndef LMP_PAIR_MESOMEM_DIPOLE_H
+#define LMP_PAIR_MESOMEM_DIPOLE_H
 
 #include "pair.h"
 
 namespace LAMMPS_NS {
 
-class PairMesomem : public Pair {
+class PairMesomemDipole : public Pair {
  public:
-  PairMesomem(LAMMPS *lmp);
-  ~PairMesomem() override;
+  PairMesomemDipole(LAMMPS *lmp);
+  ~PairMesomemDipole() override;
   void compute(int, int) override;
   void settings(int, char **) override;
   void coeff(int, char **) override;

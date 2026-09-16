@@ -24,7 +24,7 @@
 // - update tilt with new form
 // - update Usplay, splay radial force and splay torques with new form
 
-#include "pair_mesomem.h"
+#include "pair_mesomem_dipole.h"
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
@@ -41,7 +41,8 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairMesomem::PairMesomem(LAMMPS *lmp) : Pair(lmp), eps(nullptr), sigma(nullptr), cut(nullptr)
+PairMesomemDipole::PairMesomemDipole(LAMMPS *lmp) :
+    Pair(lmp), eps(nullptr), sigma(nullptr), cut(nullptr)
 
 {
   writedata = 1;
@@ -50,7 +51,7 @@ PairMesomem::PairMesomem(LAMMPS *lmp) : Pair(lmp), eps(nullptr), sigma(nullptr),
 
 /* ---------------------------------------------------------------------- */
 
-PairMesomem::~PairMesomem()
+PairMesomemDipole::~PairMesomemDipole()
 {
   if (copymode) return;
   if (allocated) {
@@ -70,7 +71,7 @@ PairMesomem::~PairMesomem()
 
 /* ---------------------------------------------------------------------- */
 
-void PairMesomem::allocate()
+void PairMesomemDipole::allocate()
 {
   allocated = 1;
   int np1 = atom->ntypes + 1;
@@ -92,9 +93,9 @@ void PairMesomem::allocate()
 
 /* ---------------------------------------------------------------------- */
 
-void PairMesomem::settings(int narg, char **arg)
+void PairMesomemDipole::settings(int narg, char **arg)
 {
-  if (narg != 1) utils::missing_cmd_args(FLERR, "pair_style mesomem", error);
+  if (narg != 1) utils::missing_cmd_args(FLERR, "pair_style mesomem/dipole", error);
   cut_global = utils::numeric(FLERR, arg[0], false, lmp);
 
   // Reset cutoffs that have been explicitly set
@@ -111,7 +112,7 @@ void PairMesomem::settings(int narg, char **arg)
    Args: sigma, eps, ktilt, ksplay, cut, weight_rcut, zeta
 ------------------------------------------------------------------------- */
 
-void PairMesomem::coeff(int narg, char **arg)
+void PairMesomemDipole::coeff(int narg, char **arg)
 {
   if (narg != 10) error->all(FLERR, "Incorrect args for pair coefficients");
   if (!allocated) allocate();
@@ -155,25 +156,25 @@ void PairMesomem::coeff(int narg, char **arg)
 
 /* ---------------------------------------------------------------------- */
 
-void PairMesomem::init_style()
+void PairMesomemDipole::init_style()
 {
   // Requirement: atoms must have orientation (mu) and torque
   if (!atom->q_flag || !atom->mu_flag || !atom->torque_flag)
-    error->all(FLERR, "Pair mesomem requires atom attributes q, mu, torque");
+    error->all(FLERR, "Pair mesomem/dipole requires atom attributes q, mu, torque");
 
   neighbor->request(this, instance_me);
 }
 
 /* ---------------------------------------------------------------------- */
 
-double PairMesomem::init_one(int i, int j)
+double PairMesomemDipole::init_one(int i, int j)
 {
   // Strict Manual Mixing:
   // If the user did not set coefficients for this pair, we error out.
   // Automatic mixing for ktilt/ksplay/zeta is not physically defined here.
 
   if (setflag[i][j] == 0) {
-    error->all(FLERR, "All pair coeffs must be set manually for pair_style mesomem");
+    error->all(FLERR, "All pair coeffs must be set manually for pair_style mesomem/dipole");
   }
 
   eps[j][i] = eps[i][j];
@@ -190,14 +191,13 @@ double PairMesomem::init_one(int i, int j)
 
 /* ---------------------------------------------------------------------- */
 
-void PairMesomem::compute(int eflag, int vflag)
+void PairMesomemDipole::compute(int eflag, int vflag)
 {
   int i, j, ii, jj, inum, jnum, itype, jtype;
   double xtmp, ytmp, ztmp, delx, dely, delz, evdwl, rsq, r, inv_r;
   int *ilist, *jlist, *numneigh, **firstneigh;
 
   evdwl = 0.0;
-  double Utot = 0.0;
   ev_init(eflag, vflag);
 
   double **x = atom->x;
@@ -494,7 +494,7 @@ void PairMesomem::compute(int eflag, int vflag)
    proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
-void PairMesomem::write_restart(FILE *fp)
+void PairMesomemDipole::write_restart(FILE *fp)
 {
   write_restart_settings(fp);
 
@@ -519,7 +519,7 @@ void PairMesomem::write_restart(FILE *fp)
    proc 0 reads from restart file, bcasts
 ------------------------------------------------------------------------- */
 
-void PairMesomem::read_restart(FILE *fp)
+void PairMesomemDipole::read_restart(FILE *fp)
 {
   read_restart_settings(fp);
   allocate();
@@ -558,7 +558,7 @@ void PairMesomem::read_restart(FILE *fp)
    proc 0 writes to restart file
 ------------------------------------------------------------------------- */
 
-void PairMesomem::write_restart_settings(FILE *fp)
+void PairMesomemDipole::write_restart_settings(FILE *fp)
 {
   fwrite(&cut_global, sizeof(double), 1, fp);
   fwrite(&offset_flag, sizeof(int), 1, fp);
@@ -569,7 +569,7 @@ void PairMesomem::write_restart_settings(FILE *fp)
    proc 0 reads from restart file, bcasts
 ------------------------------------------------------------------------- */
 
-void PairMesomem::read_restart_settings(FILE *fp)
+void PairMesomemDipole::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
 
@@ -587,7 +587,7 @@ void PairMesomem::read_restart_settings(FILE *fp)
    proc 0 writes to data file
 ------------------------------------------------------------------------- */
 
-void PairMesomem::write_data(FILE *fp)
+void PairMesomemDipole::write_data(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
     fprintf(fp, "%d %g %g %g %g %g %g %g %g\n", i, sigma[i][i], eps[i][i], ktilt[i][i],
@@ -598,10 +598,10 @@ void PairMesomem::write_data(FILE *fp)
    proc 0 writes all pairs to data file
 ------------------------------------------------------------------------- */
 
-void PairMesomem::write_data_all(FILE *fp)
+void PairMesomemDipole::write_data_all(FILE *fp)
 {
   for (int i = 1; i <= atom->ntypes; i++)
     for (int j = i; j <= atom->ntypes; j++)
-      fprintf(fp, "%d %d %g %g %g %g %g %g %g \n", i, j, sigma[i][i], eps[i][i], ktilt[i][j],
-              ksplay[i][j], cut[i][i], weight_rcut[i][j], zeta[i][i]);
+      fprintf(fp, "%d %d %g %g %g %g %g %g %g %g\n", i, j, sigma[i][j], eps[i][j], ktilt[i][j],
+              ksplay[i][j], cut[i][j], weight_rcut[i][j], zeta[i][j], c0[i][j]);
 }

@@ -310,7 +310,7 @@ accelerated styles exist.
 * :doc:`meam/sw/spline <pair_meam_sw_spline>` - Splined version of MEAM with a Stillinger-Weber term
 * :doc:`mesocnt <pair_mesocnt>` - Mesoscopic vdW potential for (carbon) nanotubes
 * :doc:`mesocnt/viscous <pair_mesocnt>` - Mesoscopic vdW potential for (carbon) nanotubes with friction
-* :doc:`mesomem <pair_mesomem>` - Anisotropic potential for coarse-grained membrane
+* :doc:`mesomem/dipole <pair_mesomem_dipole>` - Anisotropic potential for coarse-grained membrane
 * :doc:`mgpt <pair_mgpt>` - Simplified model generalized pseudopotential theory (MGPT) potential
 * :doc:`mie/cut <pair_mie>` - Mie potential
 * :doc:`mliap <pair_mliap>` - Multiple styles of machine-learning potential

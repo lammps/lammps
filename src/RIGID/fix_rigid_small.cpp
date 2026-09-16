@@ -646,19 +646,15 @@ void FixRigidSmall::setup(int vflag)
 
   // check for fix deform with V_REMAP set
   // if yes, require all atoms in each body be entirely in or out of deform group
-  // check in setup() after atom2body is defined
-  // check at every run, b/c fix deform can be added or unset
-
-  deform_vremap = domain->deform_vremap;
-  deform_groupbit = domain->deform_groupbit;
+  // check in setup() b/c atom2body is only defined after setup_pre_neighbor()
+  // deform_vremap and deform_groupbit are set in init(), pre_neighbor() needs them earlier
 
   if (deform_vremap) {
     int *mask = atom->mask;
-    int nlocal = atom->nlocal;
     int atomflag,ilocal,bodyflag;
 
     int flag = 0;
-    for (int i = 0; i < nlocal; i++) {
+    for (i = 0; i < nlocal; i++) {
       if (atom2body[i] < 0) continue;
       atomflag = mask[i] & deform_groupbit;
       ilocal = body[atom2body[i]].ilocal;

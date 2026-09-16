@@ -1,4 +1,4 @@
-,.. index:: compute rigid/local
+.. index:: compute rigid/local
 
 compute rigid/local command
 ===========================

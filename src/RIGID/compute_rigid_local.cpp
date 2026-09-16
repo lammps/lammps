@@ -195,14 +195,14 @@ int ComputeRigidLocal::compute_rigid(int flag)
           break;
         case XU:
           if (triclinic) {
-          xbox = (body->image & IMGMASK) - IMGMAX;
-          ybox = (body->image >> IMGBITS & IMGMASK) - IMGMAX;
-          zbox = (body->image >> IMG2BITS) - IMGMAX;
-          ptr[n] = body->xcm[0] + h[0]*xbox + h[5]*ybox + h[4]*zbox;
-        } else {
-          ptr[n] = body->xcm[0] +
-            ((body->image & IMGMASK) - IMGMAX) * xprd;
-        }
+            xbox = (body->image & IMGMASK) - IMGMAX;
+            ybox = (body->image >> IMGBITS & IMGMASK) - IMGMAX;
+            zbox = (body->image >> IMG2BITS) - IMGMAX;
+            ptr[n] = body->xcm[0] + h[0]*xbox + h[5]*ybox + h[4]*zbox;
+          } else {
+            ptr[n] = body->xcm[0] +
+              ((body->image & IMGMASK) - IMGMAX) * xprd;
+          }
           break;
         case YU:
           if (triclinic) {

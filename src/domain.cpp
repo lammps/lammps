@@ -2013,7 +2013,7 @@ void Domain::unmap(const double *x, const double *v, imageint image, int mask, d
 
 void Domain::image_flip(int m, int n, int p)
 {
-  int *image = atom->image;
+  imageint *image = atom->image;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++)

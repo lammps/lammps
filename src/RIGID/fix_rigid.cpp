@@ -20,8 +20,6 @@
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
-#include "fix.h"
-#include "fix_deform.h"
 #include "force.h"
 #include "group.h"
 #include "input.h"
@@ -289,7 +287,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
   memory->create(all, nbody, 6, "rigid:all");
   memory->create(remapflag, nbody, 4, "rigid:remapflag");
 
-  memory->create(body_in_defgroup, nbody, "rigid:nrigid");
+  memory->create(body_in_defgroup, nbody, "rigid:body_in_defgroup");
 
   // initialize force/torque flags to default = 1.0
   // for 2d: fz, tx, ty = 0.0

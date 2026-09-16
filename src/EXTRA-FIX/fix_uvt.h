@@ -53,6 +53,7 @@ class FixUVT : public FixNH {
  protected:
   void nve_v() override;
   void nve_x() override;
+  void nh_v_temp() override;
 
  private:
   void nhc_mu_integrate();

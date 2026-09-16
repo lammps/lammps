@@ -62,6 +62,14 @@ add_executable(test_fix_uvt test_fix_uvt.cpp)
 target_link_libraries(test_fix_uvt PRIVATE lammps GTest::GMock)
 add_test(NAME FixUVT COMMAND test_fix_uvt)
 
+if(PKG_EXTRA-FIX)
+  add_executable(test_compute_temp_uvt test_compute_temp_uvt.cpp)
+  target_link_libraries(test_compute_temp_uvt PRIVATE lammps GTest::GMock)
+  add_test(NAME ComputeTempUVT COMMAND test_compute_temp_uvt)
+  add_mpi_test(NAME ComputeTempUVTMPI NUM_PROCS 2
+               COMMAND $<TARGET_FILE:test_compute_temp_uvt>)
+endif()
+
 if(PKG_REPLICA)
   add_executable(test_fix_pimd_nve test_fix_pimd_nve.cpp)
   target_link_libraries(test_fix_pimd_nve PRIVATE lammps GTest::GMock)

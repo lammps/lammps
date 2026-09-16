@@ -56,7 +56,7 @@ protected:
     {
         command("variable k_quad equal 5.0");
         command("variable N0_quad equal 1.0");
-        command("variable dEdN equal v_k_quad*(f_cp[13]-v_N0_quad)");
+        command("variable dEdN equal v_k_quad*(f_cp[1]-v_N0_quad)");
         command("fix cp all uvt temp 1.0 1.0 0.5 mu 2.0 2.0 0.5 ne 1.8 ne_velocity 0.0 dedn v_dEdN");
     }
 
@@ -105,11 +105,11 @@ TEST_F(FixUVTTest, DerivativeIsInitializedAndUpdatedAfterCoordinateDrift)
     setup_quadratic_system();
     setup_quadratic_fix();
     command("run 0 post no");
-    EXPECT_NEAR(fix_value("cp", 14), 4.0, 1.0e-12);
+    EXPECT_NEAR(fix_value("cp", 3), 4.0, 1.0e-12);
     command("run 1 post no");
-    const double ne = fix_value("cp", 12);
+    const double ne = fix_value("cp", 0);
     EXPECT_LT(ne, 1.8);
-    EXPECT_NEAR(fix_value("cp", 14), 5.0 * (ne - 1.0), 1.0e-12);
+    EXPECT_NEAR(fix_value("cp", 3), 5.0 * (ne - 1.0), 1.0e-12);
 }
 
 TEST_F(FixUVTTest, ForceStageProviderIsReadOncePerStep)
@@ -124,7 +124,7 @@ TEST_F(FixUVTTest, ForceStageProviderIsReadOncePerStep)
     command("run 10 post no");
     auto *provider = static_cast<FixDEDNProvider *>(lmp->modify->get_fix_by_id("provider"));
     EXPECT_EQ(provider->reads, 11);
-    EXPECT_NEAR(fix_value("cp", 14), 5.0 * (fix_value("cp", 12) - 1.0), 1.0e-12);
+    EXPECT_NEAR(fix_value("cp", 3), 5.0 * (fix_value("cp", 0) - 1.0), 1.0e-12);
     command("run 10 post no");
     EXPECT_EQ(provider->reads, 22);
 }
@@ -157,7 +157,7 @@ TEST_F(FixUVTTest, ComputeDependencyIsRefreshedAfterDrift)
     double local = 0.0, total = 0.0;
     for (int i = 0; i < lmp->atom->nlocal; ++i) local += lmp->atom->x[i][0];
     MPI_Allreduce(&local, &total, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
-    EXPECT_NEAR(fix_value("cp", 14), total, 1.0e-10);
+    EXPECT_NEAR(fix_value("cp", 3), total, 1.0e-10);
 }
 
 TEST_F(FixUVTTest, RespaElectronicKicksUseOutermostTimestep)
@@ -171,16 +171,16 @@ TEST_F(FixUVTTest, RespaElectronicKicksUseOutermostTimestep)
     auto *cp = lmp->modify->get_fix_by_id("cp");
     const double mass = *static_cast<double *>(cp->extract("ne_mass", dim));
     command("run 1 post no");
-    EXPECT_NEAR(fix_value("cp", 13), -2.0 * 0.005 / mass, 1.0e-12);
-    EXPECT_NEAR(fix_value("cp", 12), 1.8 - 0.005 * 0.005 / mass, 1.0e-12);
-    EXPECT_DOUBLE_EQ(fix_value("cp", 14), 4.0);
+    EXPECT_NEAR(fix_value("cp", 2), -2.0 * 0.005 / mass, 1.0e-12);
+    EXPECT_NEAR(fix_value("cp", 0), 1.8 - 0.005 * 0.005 / mass, 1.0e-12);
+    EXPECT_DOUBLE_EQ(fix_value("cp", 3), 4.0);
 }
 
 TEST_F(FixUVTTest, QuadraticToyPhysicsAveragesConverge)
 {
     setup_quadratic_system();
     setup_quadratic_fix();
-    command("fix avg all ave/time 1 10000 10000 f_cp[13] f_cp[14] f_cp[15]");
+    command("fix avg all ave/time 1 10000 10000 f_cp[1] f_cp[3] f_cp[4]");
     command("run 10000 post no");
 
     EXPECT_NEAR(fix_value("avg", 0), 1.4, 1.0e-1);
@@ -197,24 +197,24 @@ TEST_F(FixUVTTest, RestartRestoresElectronState)
     setup_quadratic_system();
     setup_quadratic_fix();
     command("run 1000 post no");
-    ne_before = fix_value("cp", 12);
-    nedot_before = fix_value("cp", 13);
-    dedn_before = fix_value("cp", 14);
-    energy_before = fix_value("cp", 15);
+    ne_before = fix_value("cp", 0);
+    nedot_before = fix_value("cp", 2);
+    dedn_before = fix_value("cp", 3);
+    energy_before = fix_value("cp", 4);
     command("write_restart uvt.restart");
     command("clear");
     command("read_restart uvt.restart");
     command("variable k_quad equal 5.0");
     command("variable N0_quad equal 1.0");
-    command("variable dEdN equal v_k_quad*(f_cp[13]-v_N0_quad)");
+    command("variable dEdN equal v_k_quad*(f_cp[1]-v_N0_quad)");
     command("fix cp all uvt temp 1.0 1.0 0.5 mu 2.0 2.0 0.5 ne 1.8 ne_velocity 0.0 dedn v_dEdN");
     command("run 0 post no");
     platform::unlink("uvt.restart");
 
-    EXPECT_NEAR(fix_value("cp", 12), ne_before, 1.0e-10);
-    EXPECT_NEAR(fix_value("cp", 13), nedot_before, 1.0e-10);
-    EXPECT_NEAR(fix_value("cp", 14), dedn_before, 1.0e-10);
-    EXPECT_NEAR(fix_value("cp", 15), energy_before, 1.0e-10);
+    EXPECT_NEAR(fix_value("cp", 0), ne_before, 1.0e-10);
+    EXPECT_NEAR(fix_value("cp", 2), nedot_before, 1.0e-10);
+    EXPECT_NEAR(fix_value("cp", 3), dedn_before, 1.0e-10);
+    EXPECT_NEAR(fix_value("cp", 4), energy_before, 1.0e-10);
 }
 
 TEST_F(FixUVTTest, ExtractCurrentMuReportsCurrentDEDN)
@@ -222,7 +222,7 @@ TEST_F(FixUVTTest, ExtractCurrentMuReportsCurrentDEDN)
     setup_quadratic_system();
     command("variable k_quad equal 5.0");
     command("variable N0_quad equal 1.0");
-    command("variable dEdN equal v_k_quad*(f_cp[13]-v_N0_quad)");
+    command("variable dEdN equal v_k_quad*(f_cp[1]-v_N0_quad)");
     command("fix cp all uvt temp 1.0 1.0 0.5 mu 2.0 3.0 0.5 ne 1.8 ne_velocity 0.0 dedn v_dEdN");
     command("run 0 post no");
 
@@ -237,8 +237,8 @@ TEST_F(FixUVTTest, ExtractCurrentMuReportsCurrentDEDN)
     EXPECT_EQ(u_current, dedn);
     EXPECT_EQ(dim, 1);
 
-    EXPECT_NEAR(*u_current, fix_value("cp", 14), 1.0e-12);
-    EXPECT_NE(*u_current, fix_value("cp", 15));
+    EXPECT_NEAR(*u_current, fix_value("cp", 3), 1.0e-12);
+    EXPECT_NE(*u_current, fix_value("cp", 4));
 }
 
 } // namespace LAMMPS_NS

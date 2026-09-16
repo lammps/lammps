@@ -44,6 +44,7 @@ bool Neighbor::init(NeighborShared *shared, const int inum,
   _ilist_map = ilist_map;
 
   _threads_per_atom=threads_per_atom;
+  if (_max_tpa < _threads_per_atom) _max_tpa=_threads_per_atom;
   _block_cell_2d=block_cell_2d;
   _block_cell_id=block_cell_id;
   _block_nbor_build=block_nbor_build;
@@ -149,7 +150,7 @@ void Neighbor::alloc(bool &success) {
   host_acc.clear();
   int nt=_max_atoms+_max_host;
   if (_max_nbors)
-    _max_nbors = ((_max_nbors-1)/_threads_per_atom+1)*_threads_per_atom;
+    _max_nbors = ((_max_nbors-1)/_max_tpa+1)*_max_tpa;
   if (!_use_packing || _gpu_nbor>0) {
     if (_max_nbors)
       success=success &&
@@ -465,7 +466,7 @@ void Neighbor::resize_max_neighbors(int maxn, bool &success) {
   if (maxn == 0) maxn = 1;
   if (maxn>_max_nbors) {
     int mn=static_cast<int>(static_cast<double>(maxn)*1.10);
-    mn = ((mn-1)/_threads_per_atom+1)*_threads_per_atom;
+    mn = ((mn-1)/_max_tpa+1)*_max_tpa;
     dev_nbor.clear();
     success=success &&
       (dev_nbor.alloc((mn+2)*_max_atoms,*dev)==UCL_SUCCESS);

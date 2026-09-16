@@ -19,7 +19,6 @@
 #include "fix_nve_gpu.h"
 
 #include "atom.h"
-#include "comm.h"
 #include "force.h"
 #include "gpu_extra.h"
 #include "memory.h"
@@ -79,21 +78,23 @@ void FixNVEGPU::initial_integrate(int vflag)
   const double * _noalias const f = atom->f[0];
   const int nlocal = (igroup == atom->firstgroup) ? atom->nfirst :
     atom->nlocal;
-  const int nlocal3 = nlocal * 3;
 
   #if (LAL_USE_OMP == 1)
   #pragma omp parallel
   #endif
   {
     #if (LAL_USE_OMP == 1)
-    const int nthreads = comm->nthreads;
-    const int idelta = nlocal3 / nthreads + 1;
-    const int ifrom3 = omp_get_thread_num() * idelta;
-    const int ito3 = MIN(ifrom3 + idelta, nlocal3);
+    const int nthreads = omp_get_num_threads();
+    const int idelta = nlocal / nthreads + 1;
+    const int ifrom = omp_get_thread_num() * idelta;
+    const int ito = MIN(ifrom + idelta, nlocal);
     #else
-    const int ifrom3 = 0;
-    const int ito3 = nlocal3;
+    const int ifrom = 0;
+    const int ito = nlocal;
     #endif
+    const int ifrom3 = ifrom * 3;
+    const int ito3 = ito * 3;
+
     if (igroup == 0 && atom->ntypes == 1 && !atom->rmass) {
       const double dtfm = dtf / atom->mass[1];
       #if (LAL_USE_OMP_SIMD == 1)
@@ -104,22 +105,27 @@ void FixNVEGPU::initial_integrate(int vflag)
         x[i] += dtv * v[i];
       }
     } else if (igroup == 0) {
-      #if (LAL_USE_OMP_SIMD == 1)
-      #pragma omp simd
-      #endif
-      for (int i = ifrom3; i < ito3; i++) {
-        v[i] += _dtfm[i] * f[i];
-        x[i] += dtv * v[i];
+      for (int i = ifrom; i < ito; i++) {
+        const double dtfm = _dtfm[i];
+        const int n = i * 3;
+        v[n] += dtfm * f[n];
+        v[n+1] += dtfm * f[n+1];
+        v[n+2] += dtfm * f[n+2];
+        x[n] += dtv * v[n];
+        x[n+1] += dtv * v[n+1];
+        x[n+2] += dtv * v[n+2];
       }
     } else {
-      #if (LAL_USE_OMP_SIMD == 1)
-      #pragma omp simd
-      #endif
-      for (int i = ifrom3; i < ito3; i++) {
-        if (_dtfm[i] != 0.0) {
-          v[i] += _dtfm[i] * f[i];
-          x[i] += dtv * v[i];
-        }
+      for (int i = ifrom; i < ito; i++) {
+        const double dtfm = _dtfm[i];
+        if (dtfm == 0.0) continue;
+        const int n = i * 3;
+        v[n] += dtfm * f[n];
+        v[n+1] += dtfm * f[n+1];
+        v[n+2] += dtfm * f[n+2];
+        x[n] += dtv * v[n];
+        x[n+1] += dtv * v[n+1];
+        x[n+2] += dtv * v[n+2];
       }
     }
   }
@@ -141,7 +147,7 @@ void FixNVEGPU::final_integrate()
       if (nlocal > _nlocal_max) {
         if (_nlocal_max) memory->destroy(_dtfm);
         _nlocal_max = static_cast<int>(1.20 * nlocal);
-        memory->create(_dtfm, _nlocal_max * 3, "fix_nve_gpu:dtfm");
+        memory->create(_dtfm, _nlocal_max, "fix_nve_gpu:dtfm");
       }
     }
   }
@@ -151,7 +157,7 @@ void FixNVEGPU::final_integrate()
   #endif
   {
     #if (LAL_USE_OMP == 1)
-    const int nthreads = comm->nthreads;
+    const int nthreads = omp_get_num_threads();
     const int tid = omp_get_thread_num();
     const int idelta = nlocal / nthreads + 1;
     const int ifrom = tid * idelta;
@@ -172,20 +178,15 @@ void FixNVEGPU::final_integrate()
       #endif
       for (int i = ifrom3; i < ito3; i++)
         v[i] += dtfm * f[i];
-    } else if (igroup == 0) {
-      if (neighbor->ago == 0) reset_dt_omp(ifrom,ito,tid);
-      #if (LAL_USE_OMP_SIMD == 1)
-      #pragma omp simd
-      #endif
-      for (int i = ifrom3; i < ito3; i++)
-        v[i] += _dtfm[i] * f[i];
     } else {
       if (neighbor->ago == 0) reset_dt_omp(ifrom,ito,tid);
-      #if (LAL_USE_OMP_SIMD == 1)
-      #pragma omp simd
-      #endif
-      for (int i = ifrom3; i < ito3; i++)
-        v[i] += _dtfm[i] * f[i];
+      for (int i = ifrom; i < ito; i++) {
+        const double dtfm = _dtfm[i];
+        const int n = i * 3;
+        v[n] += dtfm * f[n];
+        v[n+1] += dtfm * f[n+1];
+        v[n+2] += dtfm * f[n+2];
+      }
     }
   }
 }
@@ -201,7 +202,7 @@ void FixNVEGPU::reset_dt() {
     if (nlocal > _nlocal_max) {
       if (_nlocal_max) memory->destroy(_dtfm);
       _nlocal_max = static_cast<int>(1.20 * nlocal);
-      memory->create(_dtfm, _nlocal_max * 3, "fix_nve_gpu:dtfm");
+      memory->create(_dtfm, _nlocal_max, "fix_nve_gpu:dtfm");
     }
 
     #if (LAL_USE_OMP == 1)
@@ -209,7 +210,7 @@ void FixNVEGPU::reset_dt() {
     #endif
     {
       #if (LAL_USE_OMP == 1)
-      const int nthreads = comm->nthreads;
+      const int nthreads = omp_get_num_threads();
       const int tid = omp_get_thread_num();
       const int idelta = nlocal / nthreads + 1;
       const int ifrom = tid * idelta;
@@ -236,61 +237,27 @@ void FixNVEGPU::reset_dt_omp(const int ifrom, const int ito, const int tid) {
   if (igroup == 0) {
     if (atom->rmass) {
       const double * const rmass = atom->rmass;
-      int n = ifrom * 3;
-      for (int i = ifrom; i < ito; i++) {
-        const double dtfir = dtfo / rmass[i];
-        _dtfm[n++] = dtfir;
-        _dtfm[n++] = dtfir;
-        _dtfm[n++] = dtfir;
-      }
+      for (int i = ifrom; i < ito; i++) _dtfm[i] = dtfo / rmass[i];
     } else {
       const double * const mass = atom->mass;
       const int * const type = atom->type;
-      int n = ifrom * 3;
-      for (int i = ifrom; i < ito; i++) {
-        const double dtfim = dtfo / mass[type[i]];
-        _dtfm[n++] = dtfim;
-        _dtfm[n++] = dtfim;
-        _dtfm[n++] = dtfim;
-      }
+      for (int i = ifrom; i < ito; i++) _dtfm[i] = dtfo / mass[type[i]];
     }
   } else {
     if (atom->rmass) {
       const double * const rmass = atom->rmass;
-      int n = ifrom * 3;
       for (int i = ifrom; i < ito; i++)
-        if (mask[i] & groupbit) {
-          const double dtfir = dtfo / rmass[i];
-          _dtfm[n++] = dtfir;
-          _dtfm[n++] = dtfir;
-          _dtfm[n++] = dtfir;
-        } else {
-          _dtfm[n++] = 0.0;
-          _dtfm[n++] = 0.0;
-          _dtfm[n++] = 0.0;
-        }
+        _dtfm[i] = (mask[i] & groupbit) ? dtfo / rmass[i] : 0.0;
     } else {
       const double * const mass = atom->mass;
       const int * const type = atom->type;
-      int n = ifrom * 3;
       for (int i = ifrom; i < ito; i++)
-        if (mask[i] & groupbit) {
-          const double dtfim = dtfo / mass[type[i]];
-          _dtfm[n++] = dtfim;
-          _dtfm[n++] = dtfim;
-          _dtfm[n++] = dtfim;
-        } else {
-          _dtfm[n++] = 0.0;
-          _dtfm[n++] = 0.0;
-          _dtfm[n++] = 0.0;
-        }
+        _dtfm[i] = (mask[i] & groupbit) ? dtfo / mass[type[i]] : 0.0;
     }
   }
 }
 
 double FixNVEGPU::memory_usage()
 {
-  const int nlocal = (igroup == atom->firstgroup) ? atom->nfirst :
-    atom->nlocal;
-  return FixNVE::memory_usage() + nlocal * 3 * sizeof(double);
+  return FixNVE::memory_usage() + _nlocal_max * sizeof(double);
 }

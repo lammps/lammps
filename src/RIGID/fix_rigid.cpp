@@ -752,6 +752,44 @@ void FixRigid::init()
     if (ifix->box_change) boxflag = true;
   }
 
+  // check for fix deform with V_REMAP set
+  // if yes, require all atoms in each body be entirely in or out of deform group
+  // can check in init() for fix rigid, needs to be in setup() for fix rigid/small
+  // check at every run, b/c fix deform can be added or unset
+
+  deform_vremap = domain->deform_vremap;
+  deform_groupbit = domain->deform_groupbit;
+
+  if (deform_vremap) {
+    int *mask = atom->mask;
+    int nlocal = atom->nlocal;
+
+    int *bodyone = new int[nbody];
+    int *bodyall = new int[nbody];
+
+    for (int ibody = 0; ibody < nbody; ibody++) bodyone[ibody] = 0;
+    for (int i = 0; i < nlocal; i++) {
+      if (body[i] < 0) continue;
+      if (mask[i] & deform_groupbit) bodyone[body[i]]++;
+    }
+    MPI_Allreduce(bodyone,bodyall,nbody,MPI_INT,MPI_SUM,world);
+
+    for (int ibody = 0; ibody < nbody; ibody++)
+      if (bodyall[ibody] && bodyall[ibody] != nrigid[ibody])
+        error->all(FLERR,"Fix deform remap v with fix rigid requires "
+                            "entire bodies be included/excluded "
+                            "from velocity remap");
+
+    for (int ibody = 0; ibody < nbody; ibody++)
+      if (bodyall[ibody])
+        body_in_defgroup[ibody] = 1;
+      else
+        body_in_defgroup[ibody] = 0;
+
+    delete [] bodyone;
+    delete [] bodyall;
+  }
+
   // add gravity forces based on gravity vector from fix
 
   if (id_gravity) {
@@ -821,44 +859,6 @@ void FixRigid::setup(int vflag)
 {
   int i, ibody, n;
   const int nlocal = atom->nlocal;
-
-  // check for fix deform with V_REMAP set
-  // if yes, require all atoms in each body be entirely in or out of deform group
-  // check in setup() to be consistent with fix rigid/small
-  // check at every run, b/c fix deform can be added or unset
-
-  deform_vremap = domain->deform_vremap;
-  deform_groupbit = domain->deform_groupbit;
-
-  if (deform_vremap) {
-    int *mask = atom->mask;
-    int nlocal = atom->nlocal;
-
-    int *bodyone = new int[nbody];
-    int *bodyall = new int[nbody];
-
-    for (int ibody = 0; ibody < nbody; ibody++) bodyone[ibody] = 0;
-    for (int i = 0; i < nlocal; i++) {
-      if (body[i] < 0) continue;
-      if (mask[i] & deform_groupbit) bodyone[body[i]]++;
-    }
-    MPI_Allreduce(bodyone,bodyall,nbody,MPI_INT,MPI_SUM,world);
-
-    for (int ibody = 0; ibody < nbody; ibody++)
-      if (bodyall[ibody] && bodyall[ibody] != nrigid[ibody])
-        error->all(FLERR,"Fix deform remap v with fix rigid requires "
-                            "entire bodies be included/excluded "
-                            "from velocity remap");
-
-    for (int ibody = 0; ibody < nbody; ibody++)
-      if (bodyall[ibody])
-        body_in_defgroup[ibody] = 1;
-      else
-        body_in_defgroup[ibody] = 0;
-
-    delete [] bodyone;
-    delete [] bodyall;
-  }
 
   // pre-run computation of forces and torques
 

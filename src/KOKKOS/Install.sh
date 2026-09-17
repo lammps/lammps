@@ -394,6 +394,8 @@ action pair_coul_shield_kokkos.cpp pair_coul_shield.cpp
 action pair_coul_shield_kokkos.h pair_coul_shield.h
 action pair_cosine_squared_kokkos.cpp pair_cosine_squared.cpp
 action pair_cosine_squared_kokkos.h pair_cosine_squared.h
+action pair_dispersion_d3_kokkos.cpp pair_dispersion_d3.cpp
+action pair_dispersion_d3_kokkos.h pair_dispersion_d3.h
 action pair_dpd_ext_kokkos.cpp pair_dpd_ext.cpp
 action pair_dpd_ext_kokkos.h pair_dpd_ext.h
 action pair_dpd_ext_tstat_kokkos.cpp pair_dpd_ext_tstat.cpp

@@ -41,26 +41,12 @@
 #include <utility>
 
 using namespace LAMMPS_NS;
-
-// global ad hoc parameters
-static constexpr double K1 = 16.0;
-static constexpr double K3 = -4.0;
-
-/*  reasonable choices for k3 are between 3 and 5 :
-    this gives smoth curves with maxima around the integer values
-    k3=3 give for CN=0 a slightly smaller value than computed
-    for the free atom. This also yields to larger CN for atoms
-    in larger molecules but with the same chemical environment
-    which is physically not right.
-    values >5 might lead to bumps in the potential.
-*/
+using namespace LAMMPS_NS::DispersionD3;
 
 static constexpr int NUM_ELEMENTS = 94;      // maximum element number
 static constexpr int N_PARS_COLS = 5;        // number of columns in C6 table
 static constexpr int N_PARS_ROWS = 32385;    // number of rows in C6 table
-
-static constexpr double AUTOANG = 0.52917725;    // atomic units (Bohr) to Angstrom
-static constexpr double AUTOEV = 27.21140795;    // atomic units (Hartree) to eV
+static constexpr int N_C6AB_GRID = 5;        // reference CN grid size of the C6 table
 
 #include "d3_parameters.h"
 
@@ -130,7 +116,7 @@ void PairDispersionD3::allocate()
   memory->create(rcov, n + 1, "pair:rcov");
 
   memory->create(r0ab, n + 1, n + 1, "pair:r0ab");
-  memory->create(c6ab, n + 1, n + 1, 5, 5, 3, "pair:c6ab");
+  memory->create(c6ab, n + 1, n + 1, N_C6AB_GRID, N_C6AB_GRID, 3, "pair:c6ab");
 }
 
 /* ----------------------------------------------------------------------
@@ -259,6 +245,10 @@ void PairDispersionD3::read_c6ab(int *atomic_numbers, int ntypes)
 
     set_limit_in_pars_array(atom_number_1, atom_number_2, grid_i, grid_j);
 
+    if ((grid_i >= N_C6AB_GRID) || (grid_j >= N_C6AB_GRID))
+      error->all(FLERR, Error::NOLASTLINE,
+                 "Reference C6 grid index out of range in the compiled in D3 parameters");
+
     std::vector<int> idx_atoms_1 = is_int_in_array(atomic_numbers, ntypes, atom_number_1);
     if (idx_atoms_1.empty()) continue;
 
@@ -297,7 +287,7 @@ void PairDispersionD3::coeff(int narg, char **arg)
   if (!allocated) allocate();
 
   std::string element;
-  int *atomic_numbers = (int *) malloc(sizeof(int) * ntypes);
+  std::vector<int> atomic_numbers(ntypes);
   for (int i = 0; i < ntypes; i++) {
     element = arg[i + 2];
     atomic_numbers[i] = find_atomic_number(element);
@@ -321,22 +311,14 @@ void PairDispersionD3::coeff(int narg, char **arg)
   }
 
   // set r0ab
-  read_r0ab(atomic_numbers, ntypes);
+  read_r0ab(atomic_numbers.data(), ntypes);
 
-  // read c6ab and determine max grid size
-  read_c6ab(atomic_numbers, ntypes);
+  // read c6ab and record the largest reference CN grid index that is in use.
+  // The accelerated variants size their coefficient tables from it.
+
+  read_c6ab(atomic_numbers.data(), ntypes);
   max_mxci = 0;
-  for (int i = 1; i <= ntypes; i++) {
-    if (mxci[i] > max_mxci) max_mxci = mxci[i];
-  }
-  if (max_mxci < 4) max_mxci = 4;
-  if (max_mxci > 4) {
-    memory->destroy(c6ab);
-    memory->create(c6ab, ntypes + 1, ntypes + 1, max_mxci + 1, max_mxci + 1, 3, "pair:c6ab");
-    read_c6ab(atomic_numbers, ntypes);
-  }
-
-  free(atomic_numbers);
+  for (int i = 1; i <= ntypes; i++) max_mxci = std::max(max_mxci, mxci[i]);
 }
 
 /* ----------------------------------------------------------------------
@@ -410,10 +392,8 @@ void PairDispersionD3::calc_coordination_number()
    Get derivative of C6
 ------------------------------------------------------------------------- */
 
-double *PairDispersionD3::get_dC6(int iat, int jat, double cni, double cnj)
+void PairDispersionD3::get_dC6(int iat, int jat, double cni, double cnj, double *c6_res)
 {
-
-  static double c6_res[3] = {};
   double c6_ref, cni_ref, cnj_ref;
   double c6mem, r_save, r;
   double expterm, term;
@@ -431,9 +411,7 @@ double *PairDispersionD3::get_dC6(int iat, int jat, double cni, double cnj)
     for (int cj = 0; cj <= mxci[jat]; cj++) {
 
       c6_ref = c6ab[iat][jat][ci][cj][0];
-      double autoang6 = AUTOANG * AUTOANG * AUTOANG;
-      autoang6 = MathSpecial::square(autoang6);
-      c6_ref *= AUTOEV * autoang6;
+      c6_ref *= AUTOEV * AUTOANG6;
 
       if (c6_ref > 0) {
         cni_ref = c6ab[iat][jat][ci][cj][1];
@@ -473,7 +451,6 @@ double *PairDispersionD3::get_dC6(int iat, int jat, double cni, double cnj)
     c6_res[1] = 0;
     c6_res[2] = 0;
   }
-  return c6_res;
 }
 
 /* ----------------------------------------------------------------------
@@ -531,7 +508,9 @@ void PairDispersionD3::compute(int eflag, int vflag)
         double r8inv = r2inv * r2inv * r2inv * r2inv;
         double r10inv = r2inv * r2inv * r2inv * r2inv * r2inv;
 
-        double *c6_res = get_dC6(type[i], type[j], cn[i], cn[j]);
+        // get_dC6 writes {C6, dC6/dCN_i, dC6/dCN_j}
+        double c6_res[3] = {};
+        get_dC6(type[i], type[j], cn[i], cn[j], c6_res);
 
         double C6 = c6_res[0];
         double C8 = 3.0 * C6 * r2r4[type[i]] * r2r4[type[j]] * AUTOANG * AUTOANG;
@@ -599,32 +578,8 @@ void PairDispersionD3::compute(int eflag, int vflag)
             fpair *= factor_lj;
           } break;
 
-          case 3: {    // bj
-
-            double r0 = sqrt(C8 / C6);
-
-            double r4 = rsq * rsq;
-            double r6 = rsq * rsq * rsq;
-            double r8 = rsq * rsq * rsq * rsq;
-
-            double d = a1 * r0 + a2;
-            double d2 = d * d;
-            double d4 = d2 * d2;
-
-            t6 = r6 + MathSpecial::cube(d2);
-            t8 = r8 + MathSpecial::square(d4);
-
-            e6 = C6 / t6;
-            e8 = C8 / t8;
-
-            tmp6 = 6.0 * s6 * C6 * r4 / (t6 * t6);
-            tmp8 = 8.0 * s8 * C8 * r6 / (t8 * t8);
-
-            fpair = -(tmp6 + tmp8);
-            fpair *= factor_lj;
-          } break;
-
-          case 4: {    // bjm
+          case 3:      // bj
+          case 4: {    // bjm, same functional form as bj, different parameters
 
             double r0 = sqrt(C8 / C6);
 
@@ -1475,6 +1430,14 @@ void PairDispersionD3::init_style()
 {
   if (atom->tag_enable == 0) error->all(FLERR, "Pair style D3 requires atom IDs");
 
+  // settings() only accepts known damping keywords, so this can not trigger.
+  // It is checked once here so that the threaded and device variants of the
+  // compute loop below do not have to report an error from inside a parallel
+  // region or a device kernel.
+
+  if ((dampingCode < 1) || (dampingCode > 4))
+    error->all(FLERR, Error::NOLASTLINE, "Damping code {} unknown", dampingCode);
+
   // need an half neighbor list
   neighbor->add_request(this);
 }
@@ -1559,8 +1522,8 @@ double PairDispersionD3::memory_usage()
 {
   double bytes = Pair::memory_usage();
   int n = atom->ntypes;
-  // c6ab[n+1][n+1][5][5][3] coefficient table
-  bytes += (double) (n + 1) * (n + 1) * 5 * 5 * 3 * sizeof(double);
+  // c6ab[n+1][n+1][N_C6AB_GRID][N_C6AB_GRID][3] coefficient table
+  bytes += (double) (n + 1) * (n + 1) * N_C6AB_GRID * N_C6AB_GRID * 3 * sizeof(double);
   // per-atom coordination number and C6 derivative arrays
   bytes += (double) nmax * 2 * sizeof(double);    // cn[nmax] + dc6[nmax]
   return bytes;

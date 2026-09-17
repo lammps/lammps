@@ -28,24 +28,15 @@ PairStyle(dispersion/d3/kk/host,PairDispersionD3Kokkos<LMPHostType>);
 #include "pair_dispersion_d3.h"
 #include "pair_kokkos.h"
 
-// global ad hoc parameters
-static constexpr double K1 = 16.0;
-static constexpr double K3 = -4.0;
-
-/*  reasonable choices for k3 are between 3 and 5 :
-    this gives smoth curves with maxima around the integer values
-    k3=3 give for CN=0 a slightly smaller value than computed
-    for the free atom. This also yields to larger CN for atoms
-    in larger molecules but with the same chemical environment
-    which is physically not right.
-    values >5 might lead to bumps in the potential.
-*/
-
-static constexpr double AUTOANG = 0.52917725;    // atomic units (Bohr) to Angstrom
-static constexpr double AUTOEV = 27.21140795;    // atomic units (Hartree) to eV
-
+#include <limits>
 
 namespace LAMMPS_NS {
+
+using DispersionD3::AUTOANG;
+using DispersionD3::AUTOANG6;
+using DispersionD3::AUTOEV;
+using DispersionD3::K1;
+using DispersionD3::K3;
 
 /* ---------------------------------------------------------------------- */
 //    Functor to initialize cn and dc6 arrays
@@ -131,9 +122,7 @@ struct PairDispersionD3UnpackReverseCommFunctor {
 template <class DeviceType, int NEIGHFLAG, int NEWTON_PAIR>
 struct PairDispersionD3CoordinationNumberKernel {
   typedef ArrayTypes<DeviceType> AT;
-  using DUP = std::conditional_t<std::is_same_v<DeviceType,LMPDeviceType>,
-                                 Kokkos::Experimental::ScatterNonDuplicated,
-                                 NeedDup_v<NEIGHFLAG,DeviceType>>;
+  using DUP = NeedDup_v<NEIGHFLAG,DeviceType>;
   using ScatterAccess = std::conditional_t<
       std::is_same_v<DUP,Kokkos::Experimental::ScatterDuplicated>,
       Kokkos::Experimental::ScatterNonAtomic,
@@ -147,7 +136,6 @@ struct PairDispersionD3CoordinationNumberKernel {
   typename AT::t_int_1d d_numneigh;
   typename AT::t_neighbors_2d d_neighbors;
   int nlocal;
-  int nall;
   KK_FLOAT cn_thr;
 
   KKScatterView<KK_FLOAT*, typename DAT::t_kkfloat_1d::array_layout,
@@ -161,10 +149,10 @@ struct PairDispersionD3CoordinationNumberKernel {
       const typename AT::t_int_1d &d_ilist_in,
       const typename AT::t_int_1d &d_numneigh_in,
       const typename AT::t_neighbors_2d &d_neighbors_in,
-      int nlocal_in, int nall_in, KK_FLOAT cn_thr_in)
+      int nlocal_in, KK_FLOAT cn_thr_in)
     : x(x_in), type(type_in), d_rcov(d_rcov_in), d_cn(d_cn_in),
       d_ilist(d_ilist_in), d_numneigh(d_numneigh_in),
-      d_neighbors(d_neighbors_in), nlocal(nlocal_in), nall(nall_in), cn_thr(cn_thr_in)
+      d_neighbors(d_neighbors_in), nlocal(nlocal_in), cn_thr(cn_thr_in)
   {
     dup_cn = Kokkos::Experimental::create_scatter_view<KKScatterSum, DUP>(d_cn);
   }
@@ -202,7 +190,7 @@ struct PairDispersionD3CoordinationNumberKernel {
 
       const KK_FLOAT rr = Kokkos::sqrt(rsq);
       const KK_FLOAT rcov_ij = (d_rcov(itype) + d_rcov(jtype)) * AUTOANG;
-      const KK_FLOAT cn_ij = 1.0 / (1.0 + exp(-K1 * ((rcov_ij / rr) - 1.0)));
+      const KK_FLOAT cn_ij = 1.0 / (1.0 + Kokkos::exp(-K1 * ((rcov_ij / rr) - 1.0)));
 
       cn_i += cn_ij;
       if (NEIGHFLAG != FULL && (NEWTON_PAIR || j < nlocal)) a_cn(j) += cn_ij;
@@ -221,9 +209,7 @@ template <class DeviceType, int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
 struct PairDispersionD3KernelA {
   typedef ArrayTypes<DeviceType> AT;
   using value_type = EV_FLOAT;
-  using DUP = std::conditional_t<std::is_same_v<DeviceType,LMPDeviceType>,
-                                 Kokkos::Experimental::ScatterNonDuplicated,
-                                 NeedDup_v<NEIGHFLAG,DeviceType>>;
+  using DUP = NeedDup_v<NEIGHFLAG,DeviceType>;
   using ScatterAccess = std::conditional_t<
       std::is_same_v<DUP,Kokkos::Experimental::ScatterDuplicated>,
       Kokkos::Experimental::ScatterNonAtomic,
@@ -236,14 +222,12 @@ struct PairDispersionD3KernelA {
   using NonDupScatterView = KKScatterView<DataType, Layout, KKDeviceType, KKScatterSum, KKScatterNonDuplicated>;
 
   typename AT::t_kkfloat_1d_3_lr_randomread x;
-  typename AT::t_kkacc_1d_3 f;
   typename AT::t_int_1d_randomread type;
   typename AT::t_kkfloat_2d d_cutsq;
   typename AT::t_kkfloat_1d d_cn;
   typename AT::t_kkfloat_1d d_dc6;
   typename AT::t_kkfloat_1d d_r2r4;
   typename AT::t_kkfloat_2d d_r0ab;
-  typename AT::t_kkfloat_1d d_rcov;
   Kokkos::View<KK_FLOAT*****, LMPDeviceLayout, DeviceType> d_c6ab;
   typename AT::t_int_1d d_mxci;
 
@@ -262,7 +246,6 @@ struct PairDispersionD3KernelA {
 
   KK_FLOAT special_lj[4];
   int nlocal;
-  int nall;
   int eflag;
   int vflag_either;
   int eflag_global;
@@ -272,18 +255,15 @@ struct PairDispersionD3KernelA {
 
   int dampingCode;
   KK_FLOAT s6, s8, rs6, rs8, a1, a2, alpha;
-  KK_FLOAT cn_thr;
 
   PairDispersionD3KernelA(
       const typename AT::t_kkfloat_1d_3_lr_randomread &x_in,
-      const typename AT::t_kkacc_1d_3 &f_in,
       const typename AT::t_int_1d_randomread &type_in,
       const typename AT::t_kkfloat_2d &d_cutsq_in,
       const typename AT::t_kkfloat_1d &d_cn_in,
       const typename AT::t_kkfloat_1d &d_dc6_in,
       const typename AT::t_kkfloat_1d &d_r2r4_in,
       const typename AT::t_kkfloat_2d &d_r0ab_in,
-      const typename AT::t_kkfloat_1d &d_rcov_in,
       const Kokkos::View<KK_FLOAT*****, LMPDeviceLayout, DeviceType> &d_c6ab_in,
       const typename AT::t_int_1d &d_mxci_in,
       const typename AT::t_int_1d &d_numneigh_in,
@@ -298,25 +278,25 @@ struct PairDispersionD3KernelA {
       const DupScatterView<KK_FLOAT*, typename DAT::t_kkfloat_1d::array_layout> &dup_dc6_in,
       const NonDupScatterView<KK_FLOAT*, typename DAT::t_kkfloat_1d::array_layout> &ndup_dc6_in,
       const KK_FLOAT *special_lj_in,
-      int nlocal_in, int nall_in, int eflag_in, int vflag_either_in,
+      int nlocal_in, int eflag_in, int vflag_either_in,
       int eflag_global_in, int eflag_atom_in, int vflag_global_in, int vflag_atom_in,
       int dampingCode_in, KK_FLOAT s6_in, KK_FLOAT s8_in,
       KK_FLOAT rs6_in, KK_FLOAT rs8_in, KK_FLOAT a1_in, KK_FLOAT a2_in,
-      KK_FLOAT alpha_in, KK_FLOAT cn_thr_in)
-    : x(x_in), f(f_in), type(type_in), d_cutsq(d_cutsq_in), d_cn(d_cn_in), d_dc6(d_dc6_in),
-      d_r2r4(d_r2r4_in), d_r0ab(d_r0ab_in), d_rcov(d_rcov_in),
+      KK_FLOAT alpha_in)
+    : x(x_in), type(type_in), d_cutsq(d_cutsq_in), d_cn(d_cn_in), d_dc6(d_dc6_in),
+      d_r2r4(d_r2r4_in), d_r0ab(d_r0ab_in),
       d_c6ab(d_c6ab_in), d_mxci(d_mxci_in),
       d_numneigh(d_numneigh_in), d_neighbors(d_neighbors_in), d_ilist(d_ilist_in),
       dup_f(dup_f_in), ndup_f(ndup_f_in),
       dup_eatom(dup_eatom_in), ndup_eatom(ndup_eatom_in),
       dup_vatom(dup_vatom_in), ndup_vatom(ndup_vatom_in),
       dup_dc6(dup_dc6_in), ndup_dc6(ndup_dc6_in),
-      nlocal(nlocal_in), nall(nall_in), eflag(eflag_in), vflag_either(vflag_either_in),
+      nlocal(nlocal_in), eflag(eflag_in), vflag_either(vflag_either_in),
       eflag_global(eflag_global_in), eflag_atom(eflag_atom_in),
       vflag_global(vflag_global_in), vflag_atom(vflag_atom_in),
       dampingCode(dampingCode_in), s6(s6_in), s8(s8_in),
       rs6(rs6_in), rs8(rs8_in), a1(a1_in), a2(a2_in),
-      alpha(alpha_in), cn_thr(cn_thr_in)
+      alpha(alpha_in)
   {
     special_lj[0] = special_lj_in[0];
     special_lj[1] = special_lj_in[1];
@@ -329,22 +309,6 @@ struct PairDispersionD3KernelA {
   KOKKOS_INLINE_FUNCTION
   static int sbmask(const int &j) {
     return j >> SBBITS & 3;
-  }
-
-  // Init per-thread reduction variable
-  // NOLINTNEXTLINE
-  KOKKOS_INLINE_FUNCTION
-  void init(value_type &ev) const {
-    ev.evdwl = 0.0;
-    for (int i = 0; i < 6; i++) ev.v[i] = 0.0;
-  }
-
-  // Combine per-thread reduction variables
-  // NOLINTNEXTLINE
-  KOKKOS_INLINE_FUNCTION
-  void join(value_type &dst, const value_type &src) const {
-    dst.evdwl += src.evdwl;
-    for (int i = 0; i < 6; i++) dst.v[i] += src.v[i];
   }
 
   /* ----------------------------------------------------------------------
@@ -370,15 +334,12 @@ struct PairDispersionD3KernelA {
     d_den_i = 0.0;
     d_den_j = 0.0;
 
-    KK_FLOAT autoang6 = AUTOANG * AUTOANG * AUTOANG;
-    autoang6 = MathSpecialKokkos::square(autoang6);
-
     int maxci = d_mxci(iat);
     int maxcj = d_mxci(jat);
     for (int ci = 0; ci <= maxci; ci++) {
       for (int cj = 0; cj <= maxcj; cj++) {
         c6_ref = d_c6ab(iat, jat, ci, cj, 0);
-        c6_ref *= AUTOEV * autoang6;
+        c6_ref *= AUTOEV * AUTOANG6;
 
         if (c6_ref > 0) {
           cni_ref = d_c6ab(iat, jat, ci, cj, 1);
@@ -391,7 +352,7 @@ struct PairDispersionD3KernelA {
             c6mem = c6_ref;
           }
 
-          expterm = exp(static_cast<KK_FLOAT>(K3) * r);
+          expterm = Kokkos::exp(static_cast<KK_FLOAT>(K3) * r);
 
           num += c6_ref * expterm;
           den += expterm;
@@ -409,7 +370,10 @@ struct PairDispersionD3KernelA {
       }
     }
 
-    if (den > 1.0E-99) {
+    // the reference threshold of 1.0e-99 underflows to zero in a single
+    // precision build, so use the smallest normalized value of KK_FLOAT
+
+    if (den > std::numeric_limits<KK_FLOAT>::min()) {
       c6 = num / den;
       dc6i = ((d_num_i * den) - (d_den_i * num)) / (den * den);
       dc6j = ((d_num_j * den) - (d_den_j * num)) / (den * den);
@@ -633,7 +597,8 @@ struct PairDispersionD3KernelA {
             fpair *= factor_lj;
           } break;
 
-          case 3: {    // bj
+          case 3:      // bj
+          case 4: {    // bjm, same functional form as bj, different parameters
 
             const KK_FLOAT r0 = Kokkos::sqrt(C8 / C6);
 
@@ -658,34 +623,7 @@ struct PairDispersionD3KernelA {
             fpair *= factor_lj;
           } break;
 
-          case 4: {    // bjm
-
-            const KK_FLOAT r0 = Kokkos::sqrt(C8 / C6);
-
-            const KK_FLOAT r4 = rsq * rsq;
-            KK_FLOAT r6 = rsq * rsq * rsq;
-            KK_FLOAT r8 = r6 * rsq;
-
-            const KK_FLOAT d = a1 * r0 + a2;
-            const KK_FLOAT d2 = d * d;
-            const KK_FLOAT d4 = d2 * d2;
-
-            t6 = r6 + MathSpecialKokkos::cube(d2);
-            t8 = r8 + MathSpecialKokkos::square(d4);
-
-            e6 = C6 / t6;
-            e8 = C8 / t8;
-
-            tmp6 = 6.0 * s6 * C6 * r4 / (t6 * t6);
-            tmp8 = 8.0 * s8 * C8 * r6 / (t8 * t8);
-
-            fpair = -(tmp6 + tmp8);
-            fpair *= factor_lj;
-          } break;
-
-          default: {
-            Kokkos::abort("PairDispersionD3Kokkos: invalid dampingCode");
-          } break;
+          // no default case: dampingCode is validated in init_style()
         }
 
         if (EVFLAG) evdwl = -(s6 * e6 + s8 * e8) * factor_lj;
@@ -733,9 +671,7 @@ template <class DeviceType, int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
 struct PairDispersionD3KernelB {
   typedef ArrayTypes<DeviceType> AT;
   using value_type = EV_FLOAT;
-  using DUP = std::conditional_t<std::is_same_v<DeviceType,LMPDeviceType>,
-                                 Kokkos::Experimental::ScatterNonDuplicated,
-                                 NeedDup_v<NEIGHFLAG,DeviceType>>;
+  using DUP = NeedDup_v<NEIGHFLAG,DeviceType>;
   using ScatterAccess = std::conditional_t<
       std::is_same_v<DUP,Kokkos::Experimental::ScatterDuplicated>,
       Kokkos::Experimental::ScatterNonAtomic,
@@ -748,7 +684,6 @@ struct PairDispersionD3KernelB {
   using NonDupScatterView = KKScatterView<DataType, Layout, KKDeviceType, KKScatterSum, KKScatterNonDuplicated>;
 
   typename AT::t_kkfloat_1d_3_lr_randomread x;
-  typename AT::t_kkacc_1d_3 f;
   typename AT::t_int_1d_randomread type;
   typename AT::t_kkfloat_2d d_cutsq;
   typename AT::t_kkfloat_1d d_dc6;
@@ -756,7 +691,6 @@ struct PairDispersionD3KernelB {
   typename AT::t_int_1d d_numneigh;
   typename AT::t_neighbors_2d d_neighbors;
   typename AT::t_int_1d d_ilist;
-  int nall;
 
   DupScatterView<KK_ACC_FLOAT*[3], typename DAT::t_kkacc_1d_3::array_layout> dup_f;
   NonDupScatterView<KK_ACC_FLOAT*[3], typename DAT::t_kkacc_1d_3::array_layout> ndup_f;
@@ -777,7 +711,6 @@ struct PairDispersionD3KernelB {
 
   PairDispersionD3KernelB(
       const typename AT::t_kkfloat_1d_3_lr_randomread &x_in,
-      const typename AT::t_kkacc_1d_3 &f_in,
       const typename AT::t_int_1d_randomread &type_in,
       const typename AT::t_kkfloat_2d &d_cutsq_in,
       const typename AT::t_kkfloat_1d &d_dc6_in,
@@ -785,7 +718,6 @@ struct PairDispersionD3KernelB {
       const typename AT::t_int_1d &d_numneigh_in,
       const typename AT::t_neighbors_2d &d_neighbors_in,
       const typename AT::t_int_1d &d_ilist_in,
-      int nall_in,
       const DupScatterView<KK_ACC_FLOAT*[3], typename DAT::t_kkacc_1d_3::array_layout> &dup_f_in,
       const NonDupScatterView<KK_ACC_FLOAT*[3], typename DAT::t_kkacc_1d_3::array_layout> &ndup_f_in,
       const DupScatterView<KK_ACC_FLOAT*, typename DAT::t_kkacc_1d::array_layout> &dup_eatom_in,
@@ -796,9 +728,9 @@ struct PairDispersionD3KernelB {
       int nlocal_in, int eflag_in, int vflag_either_in,
       int eflag_global_in, int eflag_atom_in, int vflag_global_in, int vflag_atom_in,
       KK_FLOAT cn_thr_in)
-    : x(x_in), f(f_in), type(type_in), d_cutsq(d_cutsq_in), d_dc6(d_dc6_in),
+    : x(x_in), type(type_in), d_cutsq(d_cutsq_in), d_dc6(d_dc6_in),
       d_rcov(d_rcov_in), d_numneigh(d_numneigh_in), d_neighbors(d_neighbors_in),
-      d_ilist(d_ilist_in), nall(nall_in), dup_f(dup_f_in), ndup_f(ndup_f_in),
+      d_ilist(d_ilist_in), dup_f(dup_f_in), ndup_f(ndup_f_in),
       dup_eatom(dup_eatom_in), ndup_eatom(ndup_eatom_in),
       dup_vatom(dup_vatom_in), ndup_vatom(ndup_vatom_in),
       nlocal(nlocal_in), eflag(eflag_in), vflag_either(vflag_either_in),
@@ -817,22 +749,6 @@ struct PairDispersionD3KernelB {
   KOKKOS_INLINE_FUNCTION
   static int sbmask(const int &j) {
     return j >> SBBITS & 3;
-  }
-
-  // Init per-thread reduction variable
-  // NOLINTNEXTLINE
-  KOKKOS_INLINE_FUNCTION
-  void init(value_type &ev) const {
-    ev.evdwl = 0.0;
-    for (int i = 0; i < 6; i++) ev.v[i] = 0.0;
-  }
-
-  // Combine thread reduction variables
-  // NOLINTNEXTLINE
-  KOKKOS_INLINE_FUNCTION
-  void join(value_type &dst, const value_type &src) const {
-    dst.evdwl += src.evdwl;
-    for (int i = 0; i < 6; i++) dst.v[i] += src.v[i];
   }
 
 
@@ -971,7 +887,7 @@ struct PairDispersionD3KernelB {
 
         if (rsq < cn_thr) {
           const KK_FLOAT rcovij = (d_rcov(itype) + d_rcov(jtype)) * AUTOANG;
-          const KK_FLOAT expterm = exp(-K1 * (rcovij / r - 1.0));
+          const KK_FLOAT expterm = Kokkos::exp(-K1 * (rcovij / r - 1.0));
           dcn = -K1 * rcovij * expterm / (rsq * (expterm + 1.0) * (expterm + 1.0));
         } else {
           dcn = 0.0;
@@ -1022,11 +938,11 @@ class PairDispersionD3Kokkos : public PairDispersionD3, public KokkosBase {
   PairDispersionD3Kokkos(class LAMMPS *);
   ~PairDispersionD3Kokkos() override;
 
-  void calc_coordination_number();
+  void calc_coordination_number() override;
   void compute(int, int) override;
   double init_one(int, int) override;
   void init_style() override;
-  void allocate();
+  void allocate() override;
   void coeff(int, char **) override;
 
   int pack_forward_comm_kokkos(int, DAT::tdual_int_1d, DAT::tdual_double_1d&,
@@ -1038,12 +954,6 @@ class PairDispersionD3Kokkos : public PairDispersionD3, public KokkosBase {
   void unpack_forward_comm(int, int, double *) override;
   int pack_reverse_comm(int, int, double *) override;
   void unpack_reverse_comm(int, int *, double *) override;
-  // NOLINTNEXTLINE
-  KOKKOS_INLINE_FUNCTION
-  static int sbmask(const int &j) {
-    return j >> SBBITS & 3;
-  }
-
 
  protected:
   typename AT::t_kkfloat_1d_3_lr_randomread x; // atom positions
@@ -1095,7 +1005,7 @@ class PairDispersionD3Kokkos : public PairDispersionD3, public KokkosBase {
   typename AT::t_kkfloat_2d d_r0ab;   // device R0 table
   Kokkos::View<KK_FLOAT*****, LMPDeviceLayout, DeviceType> d_c6ab; // device C6 table
 
-  typename AT::tdual_kkfloat_2d k_cutsq; // cutoff^2 table (dual view)
+  DAT::ttransform_kkfloat_2d k_cutsq;    // cutoff^2 table (host double, device KK_FLOAT)
   typename AT::t_kkfloat_2d d_cutsq;     // device cutoff^2 table
 
   typename AT::t_neighbors_2d d_neighbors; // neighbor list
@@ -1111,6 +1021,9 @@ class PairDispersionD3Kokkos : public PairDispersionD3, public KokkosBase {
   friend void pair_virial_fdotr_compute<PairDispersionD3Kokkos<DeviceType>>(PairDispersionD3Kokkos<DeviceType>*);
 
   // To make the compute() function cleaner:
+  template<int NEIGHFLAG>
+  void dispatch_coordination_kernel();
+
   template<int NEIGHFLAG>
   void dispatch_kernel_A(EV_FLOAT &ev);
 

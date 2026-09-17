@@ -39,14 +39,10 @@ class PairDispersionD3OMP : public PairDispersionD3, public ThrOMP {
 
   template <int NEWTON_PAIR> void eval_coordination(int iifrom, int iito, ThrData *const thr);
 
-  void calc_coordination_number();
-
-  void get_dC6(int iat, int jat, double cni, double cnj, double c6_res[3]);
+  void calc_coordination_number() override;
 
   template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
   void eval_second_phase(int ifrom, int ito, ThrData *const thr);
-
-  int thr_evflag;    // Flag for ev_tally thread usage
 };
 
 }    // namespace LAMMPS_NS

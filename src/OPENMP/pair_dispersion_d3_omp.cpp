@@ -22,33 +22,19 @@
 
 #include "atom.h"
 #include "comm.h"
-#include "domain.h"
-#include "error.h"
 #include "force.h"
 #include "math_special.h"
 #include "memory.h"
 #include "neigh_list.h"
-#include "neighbor.h"
 #include "suffix.h"
-#include "update.h"   // needed for Update::ntimestep
 
-#include <algorithm>
 #include <cmath>
-#include <cstdlib>  // for setenv
 #include <cstring>
-#include <unordered_map>
-#include <vector>
 
 #include "omp_compat.h"
 
 using namespace LAMMPS_NS;
-
-// global ad hoc parameters - copied from pair_dispersion_d3.cpp
-static constexpr double K1 = 16.0;
-static constexpr double K3 = -4.0;
-
-static constexpr double AUTOANG = 0.52917725;    // atomic units (Bohr) to Angstrom
-static constexpr double AUTOEV = 27.21140795;    // atomic units (Hartree) to eV
+using namespace LAMMPS_NS::DispersionD3;
 
 /* ---------------------------------------------------------------------- */
 
@@ -62,23 +48,20 @@ PairDispersionD3OMP::PairDispersionD3OMP(LAMMPS *lmp) :
 
 void PairDispersionD3OMP::calc_coordination_number()
 {
-  int nlocal = atom->nlocal;
   const int nthreads = comm->nthreads;
-  int nall = nlocal + atom->nghost;
+  const int newton_pair = force->newton_pair;
 
-  int newton_pair = force->newton_pair;
+  // cn and dc6 hold one copy per thread, each nall long.  The threads only
+  // ever touch their own copy; data_reduce_thr() sums the copies into the
+  // first nall elements at the end of the respective loops.
 
   if (atom->nmax > nmax) {
     nmax = atom->nmax;
-    memory->grow(cn, nmax, "pair:cn");
-    memory->grow(dc6, nmax, "pair:dc6");
+    memory->grow(cn, nthreads * nmax, "pair:cn");
+    memory->grow(dc6, nthreads * nmax, "pair:dc6");
   }
 
-  // zero out coordination number
-  memset(cn, 0, sizeof(double) * (newton_pair ? nall : nlocal));
-  memset(dc6, 0, sizeof(double) * (newton_pair ? nall : nlocal));
-
-  int inum = list->inum;
+  const int inum = list->inum;
 
   // Begin parallel region, the central atoms indexed by ii are assigned to different threads.
   #if defined(_OPENMP)
@@ -119,12 +102,16 @@ void PairDispersionD3OMP::eval_coordination(int iifrom, int iito, ThrData * cons
   const auto * _noalias const x = (dbl3_t *) atom->x[0];
   const int * _noalias const type = atom->type;
   const int nlocal = atom->nlocal;
+  const int nall = nlocal + atom->nghost;
+  const int nthreads = comm->nthreads;
+  const int tid = thr->get_tid();
   const int * _noalias const ilist = list->ilist;
   const int * _noalias const numneigh = list->numneigh;
   const int * const * const firstneigh = list->firstneigh;
 
-  // Thread-local cn array to avoid race conditions
-  auto thr_cn = std::vector<double>(atom->nmax);  // Initialize to zero
+  // this thread's private copy of the coordination number accumulator
+  double * _noalias const thr_cn = cn + tid * nall;
+  memset(thr_cn, 0, sizeof(double) * nall);
 
   for (int ii = iifrom; ii < iito; ii++) {
 
@@ -159,12 +146,11 @@ void PairDispersionD3OMP::eval_coordination(int iifrom, int iito, ThrData * cons
     }
   }
 
-  // Contribute thread-local cn to global cn
-  for (int i = 0; i < atom->nmax; i++) {
-    // No need for atomic if newton_pair is false
-    #pragma omp atomic
-    cn[i] += thr_cn[i];
-  }
+  // sum the per thread copies into cn[0] ... cn[nall-1]
+
+  sync_threads();
+  data_reduce_thr(cn, nall, nthreads, 1, tid);
+  sync_threads();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -172,15 +158,17 @@ void PairDispersionD3OMP::eval_coordination(int iifrom, int iito, ThrData * cons
 void PairDispersionD3OMP::compute(int eflag, int vflag)
 {
   ev_init(eflag, vflag);
+
+  // dampingCode is validated in PairDispersionD3::init_style(), so the loops
+  // below need no default case (error->all() must not be called from inside a
+  // parallel region)
+
   // First call coordination number calculation
   calc_coordination_number();
 
   const int nall = atom->nlocal + atom->nghost;
   const int nthreads = comm->nthreads;
   const int inum = list->inum;
-
-  // Zero out dc6 values before OpenMP section
-  memset(dc6, 0, sizeof(double) * nall);
 
 // Parallel direct force computation and some other quantities calculation.
 #if defined(_OPENMP)
@@ -215,6 +203,12 @@ firstprivate(inum,nthreads,nall)
     }
     thr->timer(Timer::PAIR);
   } // end of omp parallel region
+
+  // Both phases tally into the same ThrData, so ev_setup_thr() is called only
+  // in the first region (it zeroes the per thread accumulators) and
+  // reduce_thr() only at the end of the second one.  The per thread force
+  // arrays therefore stay unreduced across the communication below, which is
+  // safe because it only exchanges dc6.
 
   // Communication stage 2 for dc6 values in preparation for calculation of indirect forces in the second phase
   communicationStage = 2;
@@ -255,77 +249,8 @@ firstprivate(inum,nthreads,nall)
       else eval_second_phase<0,0,0>(ifrom, ito, thr);
     }
     thr->timer(Timer::PAIR);
-    reduce_thr(this, eflag, vflag_either, thr);
+    reduce_thr(this, eflag, vflag, thr);
   } //end of omp parallel region
-
-  if (vflag_fdotr) virial_fdotr_compute();
-}
-
-/* ----------------------------------------------------------------------
-   Modified from serial code to avoid race conditions
-------------------------------------------------------------------------- */
-
-void PairDispersionD3OMP::get_dC6(int iat, int jat, double cni, double cnj, double c6_res[3])
-{
-  double c6_ref, cni_ref, cnj_ref;
-  double c6mem, r_save, r;
-  double expterm, term;
-  double num, den, d_num_i, d_num_j, d_den_i, d_den_j;
-
-  c6mem = -1.0e20, r_save = 1.0e20;
-  num = 0;
-  den = 0;
-  d_num_i = 0;
-  d_num_j = 0;
-  d_den_i = 0;
-  d_den_j = 0;
-
-  for (int ci = 0; ci <= mxci[iat]; ci++) {
-    for (int cj = 0; cj <= mxci[jat]; cj++) {
-
-      c6_ref = c6ab[iat][jat][ci][cj][0];
-      double autoang6 = AUTOANG * AUTOANG * AUTOANG;
-      autoang6 = MathSpecial::square(autoang6);
-      c6_ref *= AUTOEV * autoang6;
-
-      if (c6_ref > 0) {
-        cni_ref = c6ab[iat][jat][ci][cj][1];
-        cnj_ref = c6ab[iat][jat][ci][cj][2];
-
-        r = (cni - cni_ref) * (cni - cni_ref) + (cnj - cnj_ref) * (cnj - cnj_ref);
-
-        if (r < r_save) {
-          r_save = r;
-          c6mem = c6_ref;
-        }
-
-        expterm = exp(static_cast<double>(K3) * static_cast<double>(r));
-
-        num += c6_ref * expterm;
-        den += expterm;
-
-        expterm = expterm * 2.0 * K3;
-
-        term = expterm * (cni - cni_ref);
-        d_num_i += c6_ref * term;
-        d_den_i += term;
-
-        term = expterm * (cnj - cnj_ref);
-        d_num_j += c6_ref * term;
-        d_den_j += term;
-      }
-    }
-  }
-
-  if (den > 1.0E-99) {
-    c6_res[0] = num / den;
-    c6_res[1] = ((d_num_i * den) - (d_den_i * num)) / (den * den);
-    c6_res[2] = ((d_num_j * den) - (d_den_j * num)) / (den * den);
-  } else {
-    c6_res[0] = c6mem;
-    c6_res[1] = 0;
-    c6_res[2] = 0;
-  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -341,10 +266,14 @@ void PairDispersionD3OMP::eval_first_phase(int iifrom, int iito, ThrData * const
   const int * _noalias const ilist = list->ilist;
   const int * _noalias const numneigh = list->numneigh;
   const int * const * const firstneigh = list->firstneigh;
+  const int nall = nlocal + atom->nghost;
+  const int nthreads = comm->nthreads;
+  const int tid = thr->get_tid();
   double evdwl = 0.0;
 
-  // Thread-local dc6 array to avoid race conditions
-  auto thr_dc6 = std::vector<double>(atom->nmax);  // Initialize to zero.
+  // this thread's private copy of the dE/dC6 accumulator
+  double * _noalias const thr_dc6 = dc6 + tid * nall;
+  memset(thr_dc6, 0, sizeof(double) * nall);
 
   // Loop over assigned atoms
   for (int ii = iifrom; ii < iito; ++ii) {
@@ -377,7 +306,7 @@ void PairDispersionD3OMP::eval_first_phase(int iifrom, int iito, ThrData * const
         double r8inv = r2inv * r2inv * r2inv * r2inv;
         double r10inv = r2inv * r2inv * r2inv * r2inv * r2inv;
 
-        // Modified from original code to avoid race conditions
+        // get_dC6 writes {C6, dC6/dCN_i, dC6/dCN_j}
         double c6_res[3] = {};
         get_dC6(itype, jtype, cn[i], cn[j], c6_res);
 
@@ -448,7 +377,8 @@ void PairDispersionD3OMP::eval_first_phase(int iifrom, int iito, ThrData * const
             fpair *= factor_lj;
           } break;
 
-          case 3: {    // bj
+          case 3:      // bj
+          case 4: {    // bjm, same functional form as bj, different parameters
             double r0 = sqrt(C8 / C6);
 
             double r4 = rsq * rsq;
@@ -470,34 +400,6 @@ void PairDispersionD3OMP::eval_first_phase(int iifrom, int iito, ThrData * const
 
             fpair = -(tmp6 + tmp8);
             fpair *= factor_lj;
-          } break;
-
-          case 4: {    // bjm
-            double r0 = sqrt(C8 / C6);
-
-            double r4 = rsq * rsq;
-            double r6 = rsq * rsq * rsq;
-            double r8 = rsq * rsq * rsq * rsq;
-
-            double d = a1 * r0 + a2;
-            double d2 = d * d;
-            double d4 = d2 * d2;
-
-            t6 = r6 + MathSpecial::cube(d2);
-            t8 = r8 + MathSpecial::square(d4);
-
-            e6 = C6 / t6;
-            e8 = C8 / t8;
-
-            tmp6 = 6.0 * s6 * C6 * r4 / (t6 * t6);
-            tmp8 = 8.0 * s8 * C8 * r6 / (t8 * t8);
-
-            fpair = -(tmp6 + tmp8);
-            fpair *= factor_lj;
-          } break;
-
-          default: {
-            error->all(FLERR, Error::NOLASTLINE, "Damping code {} unknown", dampingCode);
           } break;
         }
 
@@ -530,12 +432,11 @@ void PairDispersionD3OMP::eval_first_phase(int iifrom, int iito, ThrData * const
     }
   }
 
-  // Contribute thread-local dc6 to global dc6
-  for (int i = 0; i < atom->nmax; i++) {
-    // Possibly no need for atomic if newton_pair is false
-    #pragma omp atomic
-    dc6[i] += thr_dc6[i];
-  }
+  // sum the per thread copies into dc6[0] ... dc6[nall-1]
+
+  sync_threads();
+  data_reduce_thr(dc6, nall, nthreads, 1, tid);
+  sync_threads();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -552,7 +453,7 @@ void PairDispersionD3OMP::eval_second_phase(int iifrom, int iito, ThrData * cons
   const int * _noalias const numneigh = list->numneigh;
   const int * const * const firstneigh = list->firstneigh;
 
-  double dc6tmp,xtmp,ytmp,ztmp,delx,dely,delz,rsq,factor_lj,dcn,rcovij,expterm,fpair,fxtmp,fytmp,fztmp,r;
+  double xtmp,ytmp,ztmp,delx,dely,delz,rsq,factor_lj,dcn,rcovij,expterm,fpair,fxtmp,fytmp,fztmp,r;
 
   // Loop over assigned center atoms
   for (int ii = iifrom; ii < iito; ii++) {
@@ -618,5 +519,7 @@ double PairDispersionD3OMP::memory_usage()
 {
   double bytes = memory_usage_thr();
   bytes += PairDispersionD3::memory_usage();
+  // cn and dc6 hold comm->nthreads copies here, the base class counts one each
+  bytes += (double) (comm->nthreads - 1) * nmax * 2 * sizeof(double);
   return bytes;
 }

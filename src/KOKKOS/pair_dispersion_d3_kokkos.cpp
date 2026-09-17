@@ -37,31 +37,17 @@
 
 using namespace LAMMPS_NS;
 
-static constexpr int NUM_ELEMENTS = 94;   // maximum element number
-static constexpr int N_PARS_COLS = 5;     // number of columns in C6 table
-static constexpr int N_PARS_ROWS = 32385; // number of rows in C6 table
-
-#include "d3_parameters.h"
-
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 PairDispersionD3Kokkos<DeviceType>::PairDispersionD3Kokkos(LAMMPS *lmp) : PairDispersionD3(lmp)
 {
-  respa_enable = 0;
-
-  nmax = 0;
-  comm_forward = 2;
-  comm_reverse = 2;
-
-  restartinfo = 0;
-  one_coeff = 1;
-  single_enable = 0;
-
-  dampingCode = 0;
-  s6 = s8 = s18 = rs6 = rs8 = rs18 = a1 = a2 = alpha = alpha6 = alpha8 = 0.0;
-
   kokkosable = 1;
+
+  // cn and dc6 are reduced with reverse_comm() and are device resident, so
+  // let CommKokkos use the device pack/unpack methods below
+  reverse_comm_device = 1;
+
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = X_MASK | F_MASK | TYPE_MASK | ENERGY_MASK | VIRIAL_MASK;
@@ -106,74 +92,47 @@ void PairDispersionD3Kokkos<DeviceType>::calc_coordination_number()
   k_cn.template modify<DeviceType>();
   k_dc6.template modify<DeviceType>();
 
-  // zero out coordination number
-  if (newton_pair){
-    Kokkos::parallel_for(
-      Kokkos::RangePolicy<DeviceType>(0, nall),
-      PairDispersionD3InitializeFunctor<DeviceType>{d_cn, d_dc6});
-  }
-  else {
-    Kokkos::parallel_for(
-      Kokkos::RangePolicy<DeviceType>(0, nlocal),
-      PairDispersionD3InitializeFunctor<DeviceType>{d_cn, d_dc6});
-  }
+  // zero out coordination number and dC6
+
+  Kokkos::parallel_for(
+    Kokkos::RangePolicy<DeviceType>(0, newton_pair ? nall : nlocal),
+    PairDispersionD3InitializeFunctor<DeviceType>{d_cn, d_dc6});
 
   // calculate coordination number
-  if (newton_pair) {
-    if (neighflag == FULL) {
-      // Initialize coordination number kernel
-      PairDispersionD3CoordinationNumberKernel<DeviceType,FULL,1> cnkernel(
-        x, type, d_rcov, d_cn, d_ilist, d_numneigh, d_neighbors, nlocal, nall, cn_thr);
 
-      // Do parallel computation
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0, inum),cnkernel);
-
-      // Contribute to coordination number
-      cnkernel.contribute();
-
-    } else if (neighflag == HALFTHREAD) {
-      PairDispersionD3CoordinationNumberKernel<DeviceType,HALFTHREAD,1> cnkernel(
-        x, type, d_rcov, d_cn, d_ilist, d_numneigh, d_neighbors, nlocal, nall, cn_thr);
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0, inum),cnkernel);
-      cnkernel.contribute();
-    } else if (neighflag == HALF) {
-      PairDispersionD3CoordinationNumberKernel<DeviceType,HALF,1> cnkernel(
-        x, type, d_rcov, d_cn, d_ilist, d_numneigh, d_neighbors, nlocal, nall, cn_thr);
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0, inum),cnkernel);
-      cnkernel.contribute();
-    } else {
-      error->all(FLERR, "Invalid neighflag in PairDispersionD3Kokkos");
-    }
-
+  if (neighflag == FULL) {
+    dispatch_coordination_kernel<FULL>();
+  } else if (neighflag == HALFTHREAD) {
+    dispatch_coordination_kernel<HALFTHREAD>();
+  } else if (neighflag == HALF) {
+    dispatch_coordination_kernel<HALF>();
   } else {
-    if (neighflag == FULL) {
-      PairDispersionD3CoordinationNumberKernel<DeviceType,FULL,0> cnkernel(
-        x, type, d_rcov, d_cn, d_ilist, d_numneigh, d_neighbors, nlocal, nall, cn_thr);
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0, inum),cnkernel);
-      cnkernel.contribute();
-    } else if (neighflag == HALFTHREAD) {
-      PairDispersionD3CoordinationNumberKernel<DeviceType,HALFTHREAD,0> cnkernel(
-        x, type, d_rcov, d_cn, d_ilist, d_numneigh, d_neighbors, nlocal, nall, cn_thr);
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0, inum),cnkernel);
-      cnkernel.contribute();
-    } else if (neighflag == HALF) {
-      PairDispersionD3CoordinationNumberKernel<DeviceType,HALF,0> cnkernel(
-        x, type, d_rcov, d_cn, d_ilist, d_numneigh, d_neighbors, nlocal, nall, cn_thr);
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0, inum),cnkernel);
-      cnkernel.contribute();
-    } else {
-      error->all(FLERR, "Invalid neighflag in PairDispersionD3Kokkos");
-    }
+    error->all(FLERR, "Must use half or full neighbor list style with pair dispersion/d3/kk");
   }
-
-  // sync to host before host-side communication to avoid dual modification
-  k_cn.sync_host();
-  k_dc6.sync_host();
 
   // communicate coordination number
   communicationStage = 1;
   if (newton_pair) comm->reverse_comm(this);
   comm->forward_comm(this);
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+template<int NEIGHFLAG>
+void PairDispersionD3Kokkos<DeviceType>::dispatch_coordination_kernel()
+{
+  if (newton_pair) {
+    PairDispersionD3CoordinationNumberKernel<DeviceType,NEIGHFLAG,1> cnkernel(
+      x, type, d_rcov, d_cn, d_ilist, d_numneigh, d_neighbors, nlocal, cn_thr);
+    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0, inum), cnkernel);
+    cnkernel.contribute();
+  } else {
+    PairDispersionD3CoordinationNumberKernel<DeviceType,NEIGHFLAG,0> cnkernel(
+      x, type, d_rcov, d_cn, d_ilist, d_numneigh, d_neighbors, nlocal, cn_thr);
+    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0, inum), cnkernel);
+    cnkernel.contribute();
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -185,7 +144,7 @@ double PairDispersionD3Kokkos<DeviceType>::init_one(int i, int j)
 {
   const double cut = PairDispersionD3::init_one(i, j);
   // Since cutsq is written on host by base class we mark the host view modified
-  k_cutsq.template modify<LMPHostType>();
+  k_cutsq.modify_host();
   return cut;
 }
 
@@ -201,6 +160,12 @@ void PairDispersionD3Kokkos<DeviceType>::init_style()
   // adjust neighbor list request for KOKKOS
 
   neighflag = lmp->kokkos->neighflag;
+
+  // a full neighbor list visits every pair twice, so the pairwise forces do
+  // not add up to the fdotr virial and it has to be tallied explicitly
+
+  if (neighflag == FULL) no_virial_fdotr_compute = 1;
+
   auto request = neighbor->find_request(this);
   request->set_kokkos_host(std::is_same_v<DeviceType,LMPHostType> &&
                            !std::is_same_v<DeviceType,LMPDeviceType>);
@@ -226,13 +191,13 @@ void PairDispersionD3Kokkos<DeviceType>::allocate()
   k_rcov = DAT::tdual_kkfloat_1d("pair:rcov", n+1);
   k_mxci = DAT::tdual_int_1d("pair:mxci", n+1);
   k_r0ab = DAT::tdual_kkfloat_2d("pair:r0ab", n+1, n+1);
-  k_c6ab = decltype(k_c6ab)("pair:c6ab", n+1, n+1, this->max_mxci + 1, this->max_mxci + 1, 3);
 
   d_r2r4 = k_r2r4.template view<DeviceType>();
   d_rcov = k_rcov.template view<DeviceType>();
   d_mxci = k_mxci.template view<DeviceType>();
   d_r0ab = k_r0ab.template view<DeviceType>();
-  d_c6ab = k_c6ab.template view<DeviceType>();
+
+  // k_c6ab is created in coeff(), where the reference CN grid size is known
 }
 
 /* ----------------------------------------------------------------------
@@ -243,57 +208,21 @@ void PairDispersionD3Kokkos<DeviceType>::allocate()
 template<class DeviceType>
 void PairDispersionD3Kokkos<DeviceType>::coeff(int narg, char **arg)
 {
-  int ntypes = atom->ntypes;
-  if (narg != ntypes + 2) error->all(FLERR, "Pair_coeff * * needs: element1 element2 ...");
+  // the base class parses the arguments and fills the host side tables
+  PairDispersionD3::coeff(narg, arg);
 
-  if (!allocated) allocate();
-  std::string element;
-  int *atomic_numbers = (int *) malloc(sizeof(int) * ntypes);
-  for (int i = 0; i < ntypes; i++) {
-    element = arg[i + 2];
-    atomic_numbers[i] = find_atomic_number(element);
-    if (atomic_numbers[i] < 0)
-      error->all(FLERR, Error::NOLASTLINE, "Element {} not supported", element);
-  }
+  const int ntypes = atom->ntypes;
 
-  int count = 0;
-  for (int i = 1; i <= ntypes; i++) {
-    for (int j = 1; j <= ntypes; j++) {
-      setflag[i][j] = 1;
-      count++;
-    }
-  }
+  // now that max_mxci is known, resize the C6 table to the grid actually used
 
-  if (count == 0) error->all(FLERR, "Incorrect args for pair coefficients" + utils::errorurl(21));
-
-  for (int i = 1; i <= ntypes; i++) {
-    r2r4[i] = r2r4_ref[atomic_numbers[i - 1]];
-    rcov[i] = rcov_ref[atomic_numbers[i - 1]];
-  }
-
-  // set r0ab
-  read_r0ab(atomic_numbers, ntypes);
-
-  // read c6ab and determine max grid size
-  read_c6ab(atomic_numbers, ntypes);
-  max_mxci = 0;
-  for (int i = 1; i <= ntypes; i++) {
-    if (mxci[i] > max_mxci) max_mxci = mxci[i];
-  }
-  if (max_mxci < 4) max_mxci = 4;
-  if (max_mxci > 4) {
-    memory->destroy(c6ab);
-    memory->create(c6ab, ntypes + 1, ntypes + 1, max_mxci + 1, max_mxci + 1, 3, "pair:c6ab");
-    read_c6ab(atomic_numbers, ntypes);
-  }
-
-  const int desired_c6ab = max_mxci + 1;
-  if (k_c6ab.extent_int(2) != desired_c6ab || k_c6ab.extent_int(3) != desired_c6ab) {
-    k_c6ab = decltype(k_c6ab)("pair:c6ab", ntypes + 1, ntypes + 1, desired_c6ab, desired_c6ab, 3);
+  const int ngrid = max_mxci + 1;
+  if ((k_c6ab.extent_int(2) != ngrid) || (k_c6ab.extent_int(3) != ngrid)) {
+    k_c6ab = decltype(k_c6ab)("pair:c6ab", ntypes + 1, ntypes + 1, ngrid, ngrid, 3);
     d_c6ab = k_c6ab.template view<DeviceType>();
   }
 
   // copy coefficients to device
+
   auto h_r2r4 = k_r2r4.view_host();
   auto h_rcov = k_rcov.view_host();
   auto h_mxci = k_mxci.view_host();
@@ -309,13 +238,9 @@ void PairDispersionD3Kokkos<DeviceType>::coeff(int narg, char **arg)
   for (int i = 1; i <= ntypes; i++) {
     for (int j = 1; j <= ntypes; j++) {
       h_r0ab(i, j) = r0ab[i][j];
-      for (int ci = 0; ci <= this->max_mxci; ci++) {
-        for (int cj = 0; cj <= this->max_mxci; cj++) {
-          for (int k = 0; k < 3; k++) {
-            h_c6ab(i, j, ci, cj, k) = c6ab[i][j][ci][cj][k];
-          }
-        }
-      }
+      for (int ci = 0; ci < ngrid; ci++)
+        for (int cj = 0; cj < ngrid; cj++)
+          for (int k = 0; k < 3; k++) h_c6ab(i, j, ci, cj, k) = c6ab[i][j][ci][cj][k];
     }
   }
 
@@ -330,8 +255,6 @@ void PairDispersionD3Kokkos<DeviceType>::coeff(int narg, char **arg)
   k_mxci.template sync<DeviceType>();
   k_r0ab.template sync<DeviceType>();
   k_c6ab.template sync<DeviceType>();
-
-  free(atomic_numbers);
 }
 
 /* ----------------------------------------------------------------------
@@ -343,8 +266,6 @@ void PairDispersionD3Kokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 {
   eflag = eflag_in;
   vflag = vflag_in;
-
-  if (neighflag == FULL) no_virial_fdotr_compute = 1;
 
   ev_init(eflag,vflag,0);
 
@@ -387,9 +308,10 @@ void PairDispersionD3Kokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   d_ilist = k_list->d_ilist;
   inum = list->inum;
 
-  if constexpr (std::is_same_v<DeviceType,LMPDeviceType>) {
-    need_dup = false;
-  } else if (neighflag == FULL) {
+  // must stay in sync with the DUP alias of the kernels below, or the wrong
+  // one of the dup_/ndup_ scatter view pair is handed to the functor
+
+  if (neighflag == FULL) {
     need_dup = std::is_same_v<NeedDup_v<FULL,DeviceType>, Kokkos::Experimental::ScatterDuplicated>;
   } else if (neighflag == HALFTHREAD) {
     need_dup = std::is_same_v<NeedDup_v<HALFTHREAD,DeviceType>, Kokkos::Experimental::ScatterDuplicated>;
@@ -444,7 +366,7 @@ void PairDispersionD3Kokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   } else if (neighflag == FULL) {
     dispatch_kernel_A<FULL>(ev);
   } else {
-    error->all(FLERR, "Invalid neighflag in PairDispersionD3Kokkos");
+    error->all(FLERR, "Must use half or full neighbor list style with pair dispersion/d3/kk");
   }
 
   if (evflag) ev_all += ev;
@@ -473,7 +395,7 @@ void PairDispersionD3Kokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   } else if (neighflag == FULL) {
     dispatch_kernel_B<FULL>(ev);
   } else {
-    error->all(FLERR, "Invalid neighflag in PairDispersionD3Kokkos");
+    error->all(FLERR, "Must use half or full neighbor list style with pair dispersion/d3/kk");
   }
 
   if (evflag) ev_all += ev;
@@ -531,23 +453,22 @@ template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
 void PairDispersionD3Kokkos<DeviceType>::launch_kernel_A(EV_FLOAT &ev)
 {
   auto functor = PairDispersionD3KernelA<DeviceType, NEIGHFLAG, NEWTON_PAIR, EVFLAG>(
-      x, f, type,
+      x, type,
       d_cutsq, d_cn, d_dc6,
-      d_r2r4, d_r0ab, d_rcov, d_c6ab, d_mxci,
+      d_r2r4, d_r0ab, d_c6ab, d_mxci,
       d_numneigh, d_neighbors, d_ilist,
       dup_f, ndup_f,
       dup_eatom, ndup_eatom,
       dup_vatom, ndup_vatom,
       dup_dc6, ndup_dc6,
       special_lj,
-      nlocal, nall,
+      nlocal,
       eflag, vflag_either,
       eflag_global, eflag_atom,
       vflag_global, vflag_atom,
       dampingCode,
       s6, s8, rs6, rs8,
-      a1, a2, alpha,
-      cn_thr);
+      a1, a2, alpha);
 
   if constexpr (EVFLAG) {
     Kokkos::parallel_reduce(
@@ -583,10 +504,9 @@ template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
 void PairDispersionD3Kokkos<DeviceType>::launch_kernel_B(EV_FLOAT &ev)
 {
   auto functor = PairDispersionD3KernelB<DeviceType, NEIGHFLAG, NEWTON_PAIR, EVFLAG>(
-      x, f, type,
+      x, type,
       d_cutsq, d_dc6, d_rcov,
       d_numneigh, d_neighbors, d_ilist,
-      nall,
       dup_f, ndup_f,
       dup_eatom, ndup_eatom,
       dup_vatom, ndup_vatom,

@@ -332,6 +332,9 @@ mathematical functions for a variety of applications.
 .. doxygenfunction:: powint
    :project: progguide
 
+.. doxygenfunction:: powauto
+   :project: progguide
+
 .. doxygenfunction:: powsinxx
    :project: progguide
 

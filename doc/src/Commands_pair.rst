@@ -84,7 +84,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`coul/tt <pair_coul_tt>`
    * :doc:`coul/wolf (ko) <pair_coul>`
    * :doc:`coul/wolf/cs (o) <pair_cs>`
-   * :doc:`dispersion/d3 <pair_dispersion_d3>`
+   * :doc:`dispersion/d3 (ko) <pair_dispersion_d3>`
    * :doc:`dpd (giko) <pair_dpd>`
    * :doc:`dpd/coul/slater/long (g) <pair_dpd_coul_slater_long>`
    * :doc:`dpd/ext (ko) <pair_dpd_ext>`

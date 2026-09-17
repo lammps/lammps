@@ -1,4 +1,4 @@
-LAMMPS and LAMMPS GUI universal binaries for macOS (arm64/x86_64)
+LAMMPS and LAMMPS-GUI universal binaries for macOS (arm64/x86_64)
 =================================================================
 
 This package provides universal binaries of LAMMPS and LAMMPS GUI that should
@@ -9,7 +9,7 @@ of the available packages.
 The following individual commands are included:
 binary2txt lammps-gui lmp msi2lmp phana stl_bin2txt
 
-After copying the LAMMPS_GUI folder into your Applications folder, please follow
+After copying the LAMMPS-GUI folder into your Applications folder, please follow
 these steps:
 
 1. Open the Terminal app
@@ -23,7 +23,7 @@ these steps:
 
 3. Add the following lines to the end of the file, save it, and close the editor
 
-   LAMMPS_INSTALL_DIR=/Applications/LAMMPS_GUI.app/Contents
+   LAMMPS_INSTALL_DIR=/Applications/LAMMPS-GUI.app/Contents
    LAMMPS_POTENTIALS=${LAMMPS_INSTALL_DIR}/share/lammps/potentials
    LAMMPS_BENCH_DIR=${LAMMPS_INSTALL_DIR}/share/lammps/bench
    MSI2LMP_LIBRARY=${LAMMPS_INSTALL_DIR}/share/lammps/frc_files

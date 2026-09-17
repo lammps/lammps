@@ -10,6 +10,11 @@ mv -v ${LAMMPS_GUI_APP} .
 echo "Delete old files, if they exist"
 rm -f ${APP_NAME}.dmg ${APP_NAME}-rw.dmg LAMMPS-macOS-multiarch-GUI-*.dmg
 
+echo "Sign dynamic LAMMPS library and LAMMPS-GUI"
+codesign --force -s - ${BUILD_DIR}/liblammps.0.dylib
+codesign --force -s - ${BUILD_DIR}/lammps-gui.app/Contents/MacOS/lammps-gui
+codesign --force -s - ${BUILD_DIR}/lammps-gui.app/Contents/Frameworks/liblammps.0.dylib
+
 echo "Create initial dmg file with macdeployqt"
 macdeployqt ${APP_NAME}.app -dmg
 echo "Create writable dmg file"
@@ -30,16 +35,23 @@ mv ${APP_NAME}.app/Contents/Resources/LAMMPS_DMG_Background.png .background/back
 mv ${APP_NAME}.app LAMMPS-GUI.app
 cd LAMMPS-GUI.app/Contents
 
+echo "Update rpath for LAMMPS and LAMMPS-GUI to link to bundled liblammps.0.dylib"
+install_name_tool -delete_rpath ${BUILD_DIR} bin/lmp
+install_name_tool -add_rpath '@executable_path/../Frameworks' bin/lmp
+
 echo "Codesign bundled plugins"
 codesign --force -s - PlugIns/*/*.dylib
 echo "Codesign bundled frameworks"
 codesign --force -s - Frameworks/Qt*.framework/Versions/A/Qt*
-echo "Codesign LAMMPS-GUI executable"
+echo "Codesign bundled executables"
+for s in bin/*
+do \
+    test "$s" = "bin/ffmpeg" && continue
+    test "$s" = "bin/lammps-gui" && continue
+    test -f $s && codesign --force -s - $s
+done
 codesign --force -s - MacOS/lammps-gui
-
-echo "Update rpath for LAMMPS to link to bundled liblammps.0.dylib"
-install_name_tool -delete_rpath ${BUILD_DIR} bin/lmp
-install_name_tool -add_rpath '@executable_path/../Frameworks' bin/lmp
+codesign -v --verbose=4 MacOS/lammps-gui
 
 echo "Attach icons to LAMMPS console and GUI executables and lib"
 echo "read 'icns' (-16455) \"Resources/lammps.icns\";" > icon.rsrc

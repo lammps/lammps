@@ -45,14 +45,21 @@ template <class DeviceType> class PairMTPKokkos : public PairMTP {
 
   enum { EnabledNeighFlags = HALF | HALFTHREAD };
   enum { COUL_FLAG = 0 };
+
   static constexpr int ATOM_TILE_SIZE = 32;
   static constexpr int REVERSE_LONG_THRESHOLD = 128;
+
+  // Kokkos caps a team parallel_reduce grid at this many blocks and strides the
+  // rest; parallel_for does not, so we bound both by hand and stride ourselves.
+  static constexpr int FORCE_MAX_BLOCKS = 32768;
+
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
   typedef EV_FLOAT value_type;
 
   PairMTPKokkos(class LAMMPS *);
   ~PairMTPKokkos() override;
+
   void compute(int, int) override;
   void settings(int, char **) override;
   void coeff(int, char **) override;
@@ -61,6 +68,7 @@ template <class DeviceType> class PairMTPKokkos : public PairMTP {
   void prepare_waves();    //Precalculates node waves and rule lists
 
   // ========== Kokkos kernels ==========
+
   //Utility routines
   template <typename scratch_type>
   int scratch_size_helper(int values_per_team);    // Helps calcs scratch size for calcalphabasic
@@ -72,7 +80,6 @@ template <class DeviceType> class PairMTPKokkos : public PairMTP {
                                           const KK_FLOAT &dely, const KK_FLOAT &delz) const;
 
   // ---------- MTP routines (in order of execution) ----------
-
   // Kernels for computation
   KOKKOS_INLINE_FUNCTION
   void
@@ -92,7 +99,8 @@ template <class DeviceType> class PairMTPKokkos : public PairMTP {
              const typename Kokkos::TeamPolicy<DeviceType, TagPairMTPComputeNbhDers>::member_type
                  &team) const;
 
-  KOKKOS_INLINE_FUNCTION void operator()(
+  KOKKOS_INLINE_FUNCTION
+  void operator()(
       TagPairMTPComputeNbhDersLong,
       const typename Kokkos::TeamPolicy<DeviceType, TagPairMTPComputeNbhDersLong>::member_type
           &team) const;
@@ -104,16 +112,30 @@ template <class DeviceType> class PairMTPKokkos : public PairMTP {
                  DeviceType, TagPairMTPComputeForce<NEIGHFLAG, EVFLAG>>::member_type &team,
              EV_FLOAT &ev) const;
 
+  template <int NEIGHFLAG>
+  KOKKOS_INLINE_FUNCTION void
+  operator()(const TagPairMTPComputeForce<NEIGHFLAG, 0> &,
+             const typename Kokkos::TeamPolicy<
+                 DeviceType, TagPairMTPComputeForce<NEIGHFLAG, 0>>::member_type &team) const;
+
  protected:
+  template <int NEIGHFLAG, int EVFLAG>
+  EV_FLOAT compute_force(const typename DeviceType::execution_space &, int, int, int);
+
   int input_chunk_size, chunk_size,
       chunk_offset;    // Needed to process the computation in batches to avoid running out of VRAM.
-
-  int inum, max_neighs, max_valid_neighs, num_waves;
+  int inum, max_valid_neighs, num_waves;
   int wave_begin, wave_end, node_partitions;
   int host_flag, neighflag;
-
   int eflag, vflag;    // Energy and virial flag
-  double time_basic, time_times, time_nbhders, time_force;
+
+  // Loop-invariant radial-basis constants, resolved once in coeff() instead of
+  // once per neighbour pair. Kept in double to match min_cutoff/max_cutoff so the
+  // arithmetic is unchanged in a KK_FLOAT == float build.
+  double inv_cutoff_range, cutoff_sum, radial_mult;
+
+  // Occupancy queries are launch-geometry independent, so they are resolved once.
+  int ts_basic, ts_times, ts_nbh, ts_nbh_long, ts_force[2][2];
 
   typename AT::t_neighbors_2d d_neighbors;
   typename AT::t_int_1d_randomread d_ilist;
@@ -129,17 +151,19 @@ template <class DeviceType> class PairMTPKokkos : public PairMTP {
   typename AT::t_int_1d_randomread type;
   typename AT::t_int_1d d_map;
 
-  // ---------- Device Arrays  ----------
+  // ---------- Device Arrays ----------
   // Alphas indicies
   Kokkos::View<int **, DeviceType> d_alpha_index_basic;    // For constructing the basic alphas.
   Kokkos::View<int **, DeviceType> d_alpha_index_times;    // For combining alphas
-  Kokkos::View<int *, Kokkos::HostSpace> h_waves;          // Node wave offsets
+
+  Kokkos::View<int *, Kokkos::HostSpace> h_waves;    // Node wave offsets
   Kokkos::View<int *, DeviceType> d_wave_nodes;
   Kokkos::View<int *, DeviceType> d_forward_offsets, d_forward_rules;
-  Kokkos::View<int *, DeviceType> d_reverse_offsets;
+  Kokkos::View<int *, DeviceType> d_reverse_offsets, d_reverse_split;
   Kokkos::View<int *, Kokkos::HostSpace> h_long_waves;
   Kokkos::View<int *, DeviceType> d_long_nodes;
   Kokkos::View<int *[3], Kokkos::LayoutRight, DeviceType> d_reverse_terms;
+
   Kokkos::View<int *, DeviceType> d_alpha_moment_mapping;    // Maps alphas to the basis functions.
 
   // The learned coefficients.
@@ -176,7 +200,6 @@ template <class DeviceType> class PairMTPKokkos : public PairMTP {
   int need_dup;
 
   // ---------- Define the forces, per-atom energy, and virials----------
-
   using KKDeviceType = typename KKDevice<DeviceType>::value;
 
   template <typename DataType, typename Layout>
@@ -189,7 +212,6 @@ template <class DeviceType> class PairMTPKokkos : public PairMTP {
 
   DupScatterView<KK_ACC_FLOAT *[3], typename DAT::t_kkacc_1d_3::array_layout> dup_f;
   DupScatterView<KK_ACC_FLOAT *[6], typename DAT::t_kkacc_1d_6::array_layout> dup_vatom;
-
   NonDupScatterView<KK_ACC_FLOAT *[3], typename DAT::t_kkacc_1d_3::array_layout> ndup_f;
   NonDupScatterView<KK_ACC_FLOAT *[6], typename DAT::t_kkacc_1d_6::array_layout> ndup_vatom;
 

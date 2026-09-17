@@ -250,7 +250,7 @@ void PairLJClass2CoulCutSoftGapsys::settings(int narg, char **arg)
     error->all(FLERR, "Pair style lj/class2/coul/cut/soft/gapsys requires alphaq > 0");
 
   cut_lj_global = utils::numeric(FLERR, arg[3], false, lmp);
-  if (narg == 1)
+  if (narg == 4)
     cut_coul_global = cut_lj_global;
   else
     cut_coul_global = utils::numeric(FLERR, arg[4], false, lmp);

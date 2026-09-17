@@ -24,23 +24,34 @@ echo "Create link to Application folder and move README and background image fil
 
 pushd "${VOLUME}"
 ln -s /Applications .
-mv  ${APP_NAME}.app/Contents/Resources/README.txt .
+mv ${APP_NAME}.app/Contents/Resources/README.txt .
 mkdir  .background
 mv ${APP_NAME}.app/Contents/Resources/LAMMPS_DMG_Background.png .background/background.png
-mv ${APP_NAME}.app LAMMPS_GUI.app
-cd LAMMPS_GUI.app/Contents
+mv ${APP_NAME}.app LAMMPS-GUI.app
+cd LAMMPS-GUI.app/Contents
+
+echo "Codesign bundled plugins"
+codesign --force -s - PlugIns/*/*.dylib
+echo "Codesign bundled frameworks"
+codesign --force -s - Frameworks/Qt*.framework/Versions/A/Qt*
+echo "Codesign LAMMPS-GUI executable"
+codesign --force -s - MacOS/lammps-gui
 
 echo "Update rpath for LAMMPS to link to bundled liblammps.0.dylib"
 install_name_tool -delete_rpath ${BUILD_DIR} bin/lmp
 install_name_tool -add_rpath '@executable_path/../Frameworks' bin/lmp
 
-echo "Attach icons to LAMMPS console and GUI executables"
+echo "Attach icons to LAMMPS console and GUI executables and lib"
 echo "read 'icns' (-16455) \"Resources/lammps.icns\";" > icon.rsrc
 Rez -a icon.rsrc -o bin/lmp
 SetFile -a C bin/lmp
 echo "read 'icns' (-16455) \"Resources/lammps-gui.icns\";" > icon.rsrc
 Rez -a icon.rsrc -o MacOS/lammps-gui
 SetFile -a C MacOS/lammps-gui
+if [ -f Frameworks/liblammps.0.dylib ]; then
+    Rez -a icon.rsrc -o Frameworks/liblammps.0.dylib
+    SetFile -a C Frameworks/liblammps.0.dylib
+fi
 rm icon.rsrc
 popd
 
@@ -85,7 +96,7 @@ echo '
           set statusbar visible to false
           set toolbar visible to false
           set the bounds to { 100, 40, 868, 640 }
-          set position of item "'LAMMPS_GUI'.app" to { 190, 216 }
+          set position of item "'LAMMPS-GUI'.app" to { 190, 216 }
           set position of item "Applications" to { 576, 216 }
           set position of item "README.txt" to { 190, 400 }
         end tell

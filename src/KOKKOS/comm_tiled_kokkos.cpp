@@ -306,6 +306,13 @@ void CommTiledKokkos::reverse_comm_device()
 
     if (comm_f_only  && !decltype(atomKK->k_f)::NEED_TRANSFORM) {
 
+      // MPI sends the ghost forces straight out of the force array, so unlike
+      // the pack_reverse_kokkos() path below nothing brings that side up to date
+      // first.  Same defect, and the same fix, as
+      // CommKokkos::reverse_comm_device(); see there for what it costs a run.
+
+      atomKK->sync(ExecutionSpaceFromDevice<DeviceType>::space,F_MASK);
+
       // no Kokkos work is launched inside or between the two loops,
       // so one fence covers both
 

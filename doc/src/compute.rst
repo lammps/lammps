@@ -295,6 +295,7 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`reduce/chunk <compute_reduce_chunk>` - reduce per-atom quantities within each chunk
 * :doc:`reduce/region <compute_reduce>` - same as compute reduce, within a region
 * :doc:`rheo/property/atom <compute_rheo_property_atom>` - convert atom attributes in RHEO package to per-atom vectors/arrays
+* :doc:`rigid/atom <compute_rigid_atom>` - copy of rigid body attributes for each atom
 * :doc:`rigid/local <compute_rigid_local>` - extract rigid body attributes
 * :doc:`saed <compute_saed>` - electron diffraction intensity on a mesh of reciprocal lattice nodes
 * :doc:`slcsa/atom <compute_slcsa_atom>` - perform Supervised Learning Crystal Structure Analysis (SL-CSA)

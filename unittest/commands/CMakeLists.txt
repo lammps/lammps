@@ -98,7 +98,7 @@ if(PKG_REPLICA)
                COMMAND $<TARGET_FILE:test_fix_pimd_uvt> --gtest_filter=FixPIMDUVTMPI.*)
   add_mpi_test(NAME FixPIMDUVTMultiRankPerBead NUM_PROCS 4
                COMMAND $<TARGET_FILE:test_fix_pimd_uvt>
-                       --gtest_filter=FixPIMDUVTMPI.MultiRankPerBeadAveragesDerivativeOncePerBead)
+                       --gtest_filter=FixPIMDUVTMPI.MultiRankPerBeadAveragesDerivativeOncePerBead:FixPIMDUVTMPI.ElectronicVelocityUsesMeanChainFriction)
 
 endif()
 

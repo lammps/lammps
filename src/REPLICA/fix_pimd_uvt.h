@@ -46,7 +46,7 @@ class FixPIMDUVT : public FixPIMDNVT {
   bool ne_thermostat_participates() const;
   double ne_thermostat_chain_count() const;
   double ne_target_current_share() const;
-  double ne_kinetic_current_share() const;
+  double thermostat_extra_kinetic_energy() const override;
   void scale_ne_velocity(double);
   double chain0_target_energy() const override;
 
@@ -56,7 +56,7 @@ class FixPIMDUVT : public FixPIMDNVT {
   double compute_subclass_vector(int) const override;
 
   void compute_mu_target();
-  void nhc_mu_integrate();
+  void thermostat_extra_velocity_step() override;
   double evaluate_dedn();
   void refresh_dedn_cache();
   void parse_dedn_source(const char *);

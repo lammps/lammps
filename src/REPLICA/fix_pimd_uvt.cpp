@@ -87,14 +87,6 @@ FixPIMDUVT::~FixPIMDUVT()
 
 bool FixPIMDUVT::parse_keyword(int narg, char **arg, int &i)
 {
-  if (strcmp(arg[i], "ensemble") == 0) {
-    if (i + 2 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} ensemble", style), error);
-    if (strcmp(arg[i + 1], "uvt") == 0)
-      error->all(FLERR, "Fix {} is already UVT; remove the ensemble keyword", style);
-    if (strcmp(arg[i + 1], "nvt") == 0)
-      error->all(FLERR, "Fix {} does not support ensemble nvt; use fix pimd/nvt instead", style);
-    error->all(FLERR, "Fix {} only supports the UVT ensemble", style);
-  }
   if (strcmp(arg[i], "mu") == 0) {
     if (i + 2 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} mu", style), error);
     u_start = utils::numeric(FLERR, arg[i + 1], false, lmp);
@@ -159,8 +151,7 @@ void FixPIMDUVT::thermostat_step()
   if (!tstat_flag) return;
 
   compute_mu_target();
-  nhc_mu_integrate();
-  if (removecomflag) remove_com_motion();
+  FixPIMDNVT::thermostat_step();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -170,7 +161,8 @@ void FixPIMDUVT::b_step()
   FixPIMDNVE::b_step();
 
   if (ustat_flag) {
-    double dtfm = dthalf / *Ne_mass;
+    // Force kicks are half-steps for both OBABO and BAOAB.
+    double dtfm = dtv / *Ne_mass;
     if (universe->iworld == 0) *Ne_dot += dtfm * (-dedn_current + u_target);
     MPI_Bcast(Ne_dot, 1, MPI_DOUBLE, 0, universe->uworld);
   }
@@ -221,7 +213,7 @@ double FixPIMDUVT::ne_target_current_share() const
 
 /* ---------------------------------------------------------------------- */
 
-double FixPIMDUVT::ne_kinetic_current_share() const
+double FixPIMDUVT::thermostat_extra_kinetic_energy() const
 {
   const double chain_count = ne_thermostat_chain_count();
   if (chain_count <= 0.0 || !ne_thermostat_participates()) return 0.0;
@@ -330,46 +322,20 @@ void FixPIMDUVT::compute_mu_target()
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMDUVT::nhc_mu_integrate()
+void FixPIMDUVT::thermostat_extra_velocity_step()
 {
-  double kecurrent = compute_nuclear_kinetic_energy();
-  double t_current = kecurrent / force->boltz / tdof;
+  // The electronic coordinate is shared by all beads and couples to their
+  // mean chain friction, while nuclear velocities use each bead's own chain.
+  double eta_dot_k = eta_dot[0];
+  double eta_dot_world = 0.0;
+  MPI_Allreduce(&eta_dot_k, &eta_dot_world, 1, MPI_DOUBLE, MPI_SUM, world);
+  eta_dot_k = (comm->me == 0) ? eta_dot_world / comm->nprocs : 0.0;
+  double eta_dot_ave = 0.0;
+  MPI_Allreduce(&eta_dot_k, &eta_dot_ave, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
+  eta_dot_ave *= inverse_np;
 
-  if (thermostat_chain_active()) update_chain0_acceleration(ne_kinetic_current_share());
-
-  double ncfac = 1.0 / nc_tchain;
-  const double chain_target = chain_target_energy();
-  for (int iloop = 0; iloop < nc_tchain; iloop++) {
-    bool active = thermostat_chain_active();
-    double expfac = 1.0;
-    if (active) {
-      propagate_chain_tail_halfstep(ncfac);
-      expfac = propagate_chain0_halfstep(ncfac);
-    }
-
-    double eta_dot_k = eta_dot[0];
-    double eta_dot_world = 0.0;
-    MPI_Allreduce(&eta_dot_k, &eta_dot_world, 1, MPI_DOUBLE, MPI_SUM, world);
-    eta_dot_k = (comm->me == 0) ? eta_dot_world / comm->nprocs : 0.0;
-    double eta_dot_ave = 0.0;
-    MPI_Allreduce(&eta_dot_k, &eta_dot_ave, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
-    eta_dot_ave *= inverse_np;
-
-    scale_ne_velocity(exp(-ncfac * dthalf * eta_dot_ave));
-
-    if (active) {
-      update_scaled_nuclear_kinetic(t_current, kecurrent);
-      if (eta_mass[0] > 0.0)
-        eta_dotdot[0] = (kecurrent + ne_kinetic_current_share() - chain0_target_energy()) /
-            eta_mass[0];
-      else
-        eta_dotdot[0] = 0.0;
-
-      advance_chain_positions(ncfac);
-      complete_chain0_halfstep(ncfac, expfac);
-      complete_chain_tail_halfstep(ncfac, chain_target);
-    }
-  }
+  const double ncfac = 1.0 / nc_tchain;
+  scale_ne_velocity(exp(-ncfac * dthalf * eta_dot_ave));
 }
 
 /* ---------------------------------------------------------------------- */

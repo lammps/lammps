@@ -307,16 +307,15 @@ void FixPIMDLangevin::qc_step()
 {
   // used for NMPIMD
   // evolve the centroid mode
-  int nlocal = atom->nlocal;
-  int *mask = atom->mask;
-  double **x = atom->x;
-  double **v = atom->v;
-  double oldlo, oldhi;
-
   if (!pstat_flag) {
     FixPIMDNVE::qc_step();
   } else {
     if (universe->iworld == 0) {
+      int nlocal = atom->nlocal;
+      int *mask = atom->mask;
+      double **x = atom->x;
+      double **v = atom->v;
+      double oldlo, oldhi;
       double expp[3], expq[3];
       if (pstyle == ISO) {
         vw[1] = vw[0];
@@ -459,32 +458,10 @@ void FixPIMDLangevin::press_o_step()
 
 void FixPIMDLangevin::langevin_init()
 {
-  double beta = 1.0 / kt;
-  const double _omega_np = np / beta / hbar;
-  const double _omega_np_dt_half = _omega_np * update->dt * 0.5;
-
-  if (method == NMPIMD) {
-    if (fmmode == PHYSICAL) {
-      for (int i = 0; i < np; i++) {
-        _omega_k[i] = _omega_np * sqrt(lam[i]) / sqrt(fmass);
-        Lan_c[i] = cos(sqrt(lam[i]) * _omega_np_dt_half);
-        Lan_s[i] = sin(sqrt(lam[i]) * _omega_np_dt_half);
-      }
-    } else if (fmmode == NORMAL) {
-      for (int i = 0; i < np; i++) {
-        _omega_k[i] = _omega_np / sqrt(fmass);
-        Lan_c[i] = cos(_omega_np_dt_half);
-        Lan_s[i] = sin(_omega_np_dt_half);
-      }
-    } else {
-      error->universe_all(FLERR, "Unknown fmmode setting; only physical and normal are supported!");
-    }
-  }
-
   if (tau > 0)
     gamma = 1.0 / tau;
   else
-    gamma = np / beta / hbar;
+    gamma = omega_np;
 
   if (integrator == OBABO)
     c1 = exp(-gamma * 0.5 * update->dt);    // tau is the damping time of the centroid mode.
@@ -528,7 +505,7 @@ void FixPIMDLangevin::langevin_init()
     } else if (method == PIMD) {
       for (int i = 0; i < np; i++) {
         out += fmt::format("      {:d}     {:.8e} {:.8e} {:.8e} {:.8e}\n", i,
-                          _omega_np / sqrt(fmass), tau, c1, c2);
+                          omega_np / sqrt(fmass), tau, c1, c2);
       }
     }
     if (thermostat == PILE_L) out += "  PILE_L thermostat successfully initialized!\n";

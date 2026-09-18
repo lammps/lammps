@@ -10,6 +10,9 @@
 #define LAMMPS_LIB_MPI 1
 
 #include "atom.h"
+#include "force.h"
+#include "universe.h"
+#include "update.h"
 #include "lammps.h"
 #include "platform.h"
 
@@ -188,6 +191,12 @@ TEST_F(FixPIMDNVESerialTest, PIMDStyleParsesAndRuns)
   }
 }
 
+TEST_F(FixPIMDNVESerialTest, RejectsZeroFictitiousMass)
+{
+  setup_zero_pair_system();
+  EXPECT_ANY_THROW(command("fix cp all pimd/nve temp 1.0 fmass 0.0"));
+}
+
 TEST_F(FixPIMDNVESerialTest, RejectsCMDMethod)
 {
   setup_zero_pair_system();
@@ -213,6 +222,69 @@ TEST_F(FixPIMDNVESerialTest, RestartRestoresNuclearPrefix)
   for (int i = 0; i < 10; ++i) {
     EXPECT_NEAR(fix_value("cp", i), before[i], 1.0e-10) << "index=" << i;
   }
+}
+
+TEST(FixPIMDNVEMPI, FreeRingPolymerMatchesAnalyticalMotion)
+{
+  int nprocs = 0;
+  MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
+  if (nprocs != 2) GTEST_SKIP() << "This test requires two bead partitions";
+
+  for (const std::string units : {"lj", "real", "metal"})
+    for (const std::string style : {"pimd/nve", "pimd/nvt", "pimd/uvt", "pimd/langevin"})
+      for (const std::string mode : {"physical", "normal"})
+        for (const std::string fmass : {"0.25", "1.0"}) {
+          SCOPED_TRACE(units + " " + style + " " + mode + " fmass=" + fmass);
+          const char *args[] = {"LAMMPS_test", "-log", "none", "-screen", "none",
+                               "-partition", "2x1", "-in", "none", "-nocite"};
+          auto *lmp = static_cast<LAMMPS *>(lammps_open(
+              sizeof(args) / sizeof(char *), (char **) args, MPI_COMM_WORLD, nullptr));
+          auto command = [lmp](const std::string &line) { lmp->input->one(line); };
+          command("units " + units);
+          command("atom_style atomic");
+          command("atom_modify map yes");
+          command("region box block 0 4 0 4 0 4");
+          command("create_box 1 box");
+          command("create_atoms 1 single 1 1 1");
+          command("mass 1 2.0");
+          command("pair_style zero 1.0");
+          command("pair_coeff * *");
+          command("timestep " + std::string(units == "real" ? "0.1" : "0.001"));
+          std::string options = (style == "pimd/nvt" || style == "pimd/uvt") ? " Tdamp 1.0 tloop 2" : "";
+          if (style == "pimd/langevin") options = " ensemble nvt thermostat PILE_L 1234 tau 1.0";
+          if (style == "pimd/uvt") {
+            command("variable dEdN equal 0.0");
+            options += " mu 0.0 Udamp 1.0 ne 1.0 ne_velocity 0.0 dedn v_dEdN";
+          }
+          options += style == "pimd/langevin" ? " fixcom no" : " removecom no";
+          command("fix cp all " + style + " method nmpimd temp 1.0 fmmode " + mode +
+                  " fmass " + fmass + options);
+          command("run 0 post no");
+          auto *fix = dynamic_cast<FixPIMDNVE *>(lmp->modify->get_fix_by_id("cp"));
+          ASSERT_NE(fix, nullptr);
+          EXPECT_DOUBLE_EQ(fix->_omega_k[0], 0.0);
+          EXPECT_DOUBLE_EQ(fix->Lan_c[0], 1.0);
+          EXPECT_DOUBLE_EQ(fix->Lan_s[0], 0.0);
+          if (lmp->universe->iworld == 1) {
+            // Derive frequency from spring curvature and integration mass,
+            // independently of the cached normal-mode propagation coefficients.
+            const double expected_mass = 2.0 * std::stod(fmass) * (mode == "normal" ? 4.0 : 1.0);
+            EXPECT_DOUBLE_EQ(fix->mass[1], expected_mass);
+            const double stiffness = fix->fbond * lmp->atom->mass[1] * fix->lam[1];
+            const double omega = std::sqrt(stiffness * lmp->force->ftm2v / fix->mass[1]);
+            EXPECT_NEAR(fix->_omega_k[1], omega, 1.0e-10 * omega);
+            const double x0 = 0.3, v0 = 0.2;
+            lmp->atom->x[0][0] = x0;
+            lmp->atom->v[0][0] = v0;
+            for (int step = 0; step < 100; ++step) fix->a_step();
+            const double angle = omega * 50.0 * lmp->update->dt;
+            const double expected_x = x0 * std::cos(angle) + v0 / omega * std::sin(angle);
+            const double expected_v = v0 * std::cos(angle) - x0 * omega * std::sin(angle);
+            EXPECT_NEAR(lmp->atom->x[0][0], expected_x, 1.0e-10);
+            EXPECT_NEAR(lmp->atom->v[0][0], expected_v, 1.0e-10);
+          }
+          lammps_close(lmp);
+        }
 }
 
 TEST(FixPIMDNVEMPI, PartitionedRunExercisesBeadExpansion)

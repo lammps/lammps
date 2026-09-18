@@ -13,13 +13,11 @@
 
 #include "fix_pimd_nvt.h"
 
-#include "atom.h"
 #include "domain.h"
 #include "error.h"
+#include "fix_nh.h"
 #include "force.h"
 #include "group.h"
-#include "math_const.h"
-#include "memory.h"
 #include "modify.h"
 #include "universe.h"
 #include "update.h"
@@ -28,15 +26,82 @@
 #include <cstring>
 
 using namespace LAMMPS_NS;
-using MathConst::THIRD;
 
-enum { PHYSICAL, NORMAL };
-enum { SINGLE_PROC, MULTI_PROC };
+// Thermostat-only composition: this object is never registered with Modify.
+// FixPIMDNVT supplies the kinetic energy, chain masses, and timestep. We do not
+// call FixNH::init/setup or its particle/barostat integration callbacks.
+namespace LAMMPS_NS {
+class PIMDNoseHoover : public FixNH {
+ public:
+  PIMDNoseHoover(LAMMPS *lmp, int narg, char **arg, FixPIMDNVT *owner) :
+      FixNH(lmp, narg, arg), owner(owner)
+  {
+    owner->eta = eta;
+    owner->eta_dot = eta_dot;
+    owner->eta_dotdot = eta_dotdot;
+    owner->eta_mass = eta_mass;
+    eta_mass_flag = 0;
+    // FixNH::init normally selects this mode. PIMD scales velocities without
+    // a temperature-compute bias (NOBIAS = 0 in fix_nh.cpp).
+    which = 0;
+  }
+
+  void integrate()
+  {
+    if (!owner->thermostat_chain_active()) {
+      // CMD leaves the centroid unthermostatted, but every partition must
+      // participate in the work-accounting collective used by nh_v_temp().
+      for (int iloop = 0; iloop < owner->nc_tchain; iloop++)
+        owner->ecouple_work += owner->thermostat_work_delta(1.0);
+      return;
+    }
+
+    boltz = force->boltz;
+    tdof = owner->tdof;
+    nuclear_temperature = owner->compute_nuclear_kinetic_energy() / boltz / tdof;
+    update_temperature();
+    t_target = owner->np * owner->temp;
+    ke_target = owner->chain0_target_energy();
+    nc_tchain = owner->nc_tchain;
+    tdrag_factor = owner->tdrag_factor;
+    dthalf = owner->dthalf;
+    dt4 = owner->dt4;
+    dt8 = owner->dt8;
+    FixNH::nhc_temp_integrate();
+  }
+
+ protected:
+  void nh_v_temp() override
+  {
+    const double work_delta = owner->thermostat_work_delta(factor_eta);
+    FixNH::nh_v_temp();
+    owner->ecouple_work += work_delta;
+    owner->thermostat_extra_velocity_step();
+    nuclear_temperature *= factor_eta * factor_eta;
+    update_temperature();
+
+    // UVT scales the shared electronic velocity using the mean chain friction,
+    // which can differ from this bead's nuclear scaling. Supply the updated
+    // combined kinetic energy and suppress FixNH's subsequent uniform rescaling.
+    factor_eta = 1.0;
+  }
+
+ private:
+  void update_temperature()
+  {
+    t_current = (tdof * boltz * nuclear_temperature +
+                 owner->thermostat_extra_kinetic_energy()) / (tdof * boltz);
+  }
+
+  FixPIMDNVT *owner;
+  double nuclear_temperature;
+};
+}    // namespace LAMMPS_NS
 
 /* ---------------------------------------------------------------------- */
 
 FixPIMDNVT::FixPIMDNVT(LAMMPS *lmp, int narg, char **arg, bool defer_setup) :
-    FixPIMDNVE(lmp, narg, arg, true), eta(nullptr), eta_dot(nullptr), eta_dotdot(nullptr),
+    FixPIMDNVE(lmp, narg, arg, true), nhc(nullptr), eta(nullptr), eta_dot(nullptr), eta_dotdot(nullptr),
     eta_mass(nullptr), tau_k(nullptr)
 {
   pilescale = 1.0;
@@ -47,7 +112,6 @@ FixPIMDNVT::FixPIMDNVT(LAMMPS *lmp, int narg, char **arg, bool defer_setup) :
   t_period = 0.0;
   drag = 0.0;
 
-  factor_eta = 1.0;
   tdrag_factor = 1.0;
   t_freq = 0.0;
   tdof = 0.0;
@@ -79,14 +143,6 @@ FixPIMDNVT::FixPIMDNVT(LAMMPS *lmp, int narg, char **arg, bool defer_setup) :
 
 bool FixPIMDNVT::parse_keyword(int narg, char **arg, int &i)
 {
-  if (strcmp(arg[i], "ensemble") == 0) {
-    if (i + 2 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} ensemble", style), error);
-    if (strcmp(arg[i + 1], "nvt") == 0)
-      error->all(FLERR, "Fix {} is already NVT; remove the ensemble keyword", style);
-    if (strcmp(arg[i + 1], "uvt") == 0)
-      error->all(FLERR, "Fix {} does not support ensemble uvt; use fix pimd/uvt instead", style);
-    error->all(FLERR, "Fix {} only supports the NVT ensemble", style);
-  }
   if (strcmp(arg[i], "thermostat") == 0) {
     if (i + 2 > narg)
       utils::missing_cmd_args(FLERR, fmt::format("fix {} thermostat", style), error);
@@ -131,14 +187,6 @@ bool FixPIMDNVT::parse_keyword(int narg, char **arg, int &i)
     i += 2;
     return true;
   }
-  if ((strcmp(arg[i], "barostat") == 0) || (strcmp(arg[i], "iso") == 0) ||
-      (strcmp(arg[i], "aniso") == 0) || (strcmp(arg[i], "taup") == 0) ||
-      (strcmp(arg[i], "fixedpoint") == 0)) {
-    error->all(FLERR, "Pressure control is not supported by fix {}", style);
-  }
-  if ((strcmp(arg[i], "seed") == 0) || (strcmp(arg[i], "PILE_L_temp") == 0)) {
-    error->all(FLERR, "Legacy thermostat options are not supported by fix {}", style);
-  }
   return FixPIMDNVE::parse_keyword(narg, arg, i);
 }
 
@@ -149,12 +197,13 @@ void FixPIMDNVT::finish_nuclear_constructor_setup()
   if (t_period <= 0.0) error->all(FLERR, "Temperature damping for fix {} must be > 0.0", style);
 
   if (tstat_flag) {
-    eta = new double[mtchain];
-    eta_dot = new double[mtchain + 1];
-    eta_dot[mtchain] = 0.0;
-    eta_dotdot = new double[mtchain];
-    for (int ich = 0; ich < mtchain; ich++) eta[ich] = eta_dot[ich] = eta_dotdot[ich] = 0.0;
-    eta_mass = new double[mtchain];
+    // Only ask the FixNH constructor to allocate a chain. Physical parameters
+    // are initialized by nhc_init() and supplied to the adapter at each call.
+    std::string chain_length = std::to_string(mtchain);
+    std::string nh_id = std::string(id) + "_nhc";
+    const char *args[] = {nh_id.c_str(), group->names[igroup], "nvt", "temp",
+                          "1.0", "1.0", "1.0", "tchain", chain_length.c_str()};
+    nhc = new PIMDNoseHoover(lmp, 9, const_cast<char **>(args), this);
     size_vector += 4 * mtchain;
   }
 
@@ -166,10 +215,7 @@ void FixPIMDNVT::finish_nuclear_constructor_setup()
 FixPIMDNVT::~FixPIMDNVT()
 {
   delete[] tau_k;
-  delete[] eta;
-  delete[] eta_dot;
-  delete[] eta_dotdot;
-  delete[] eta_mass;
+  delete nhc;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -184,9 +230,11 @@ double FixPIMDNVT::chain0_target_energy() const
 
 void FixPIMDNVT::setup_subclass_state()
 {
-  dthalf = 0.5 * update->dt;
-  dt4 = 0.25 * update->dt;
-  dt8 = 0.125 * update->dt;
+  // FixNH propagates for dthalf per call: OBABO has two thermostat
+  // half-steps, whereas BAOAB has one full thermostat step.
+  dthalf = (integrator == BAOAB ? 1.0 : 0.5) * update->dt;
+  dt4 = 0.5 * dthalf;
+  dt8 = 0.25 * dthalf;
   nhc_init();
 }
 
@@ -201,28 +249,6 @@ void FixPIMDNVT::o_step()
 
 void FixPIMDNVT::nhc_init()
 {
-  if (kt <= 0.0 || hbar <= 0.0)
-    error->universe_all(
-        FLERR, fmt::format("Fix {} requires positive kt and hbar in nhc_init", style));
-
-  const double beta_local = 1.0 / kt;
-  const double omega_np_local = np / beta_local / hbar;
-  const double omega_np_dt_half = omega_np_local * update->dt * 0.5;
-
-  if (fmmode == PHYSICAL) {
-    for (int i = 0; i < np; i++) {
-      _omega_k[i] = omega_np_local * sqrt(lam[i]) / sqrt(fmass);
-      Lan_c[i] = cos(sqrt(lam[i]) * omega_np_dt_half);
-      Lan_s[i] = sin(sqrt(lam[i]) * omega_np_dt_half);
-    }
-  } else {
-    for (int i = 0; i < np; i++) {
-      _omega_k[i] = omega_np_local / sqrt(fmass);
-      Lan_c[i] = cos(omega_np_dt_half);
-      Lan_s[i] = sin(omega_np_dt_half);
-    }
-  }
-
   if (tstat_flag) {
     t_freq = 1.0 / t_period;
     tdrag_factor = 1.0 - (update->dt * t_freq * drag / nc_tchain);
@@ -263,7 +289,6 @@ void FixPIMDNVT::nhc_init()
   }
 
   if (tstat_flag) {
-    const double omega_np_local_unscaled = np / beta_local / hbar;
     const double chain0_target = chain0_target_energy();
     const double chain_target = chain_target_energy();
 
@@ -275,7 +300,7 @@ void FixPIMDNVT::nhc_init()
       if (np == 1)
         eta_mass[ich] = chain_target / (t_freq * t_freq);
       else
-        eta_mass[ich] = chain_target / (omega_np_local_unscaled * omega_np_local_unscaled);
+        eta_mass[ich] = chain_target / (omega_np * omega_np);
       if (eta_mass[ich] > 0.0)
         eta_dotdot[ich] =
             (eta_mass[ich - 1] * eta_dot[ich - 1] * eta_dot[ich - 1] - chain_target) /
@@ -325,158 +350,12 @@ double FixPIMDNVT::chain_target_energy() const
 
 /* ---------------------------------------------------------------------- */
 
-void FixPIMDNVT::update_chain0_acceleration(double extra_ke)
-{
-  if (!thermostat_chain_active()) return;
-
-  const double chain0_target = chain0_target_energy();
-  if (eta_mass[0] > 0.0)
-    eta_dotdot[0] = (compute_nuclear_kinetic_energy() + extra_ke - chain0_target) / eta_mass[0];
-  else
-    eta_dotdot[0] = 0.0;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixPIMDNVT::propagate_chain_tail_halfstep(double ncfac)
-{
-  for (int ich = mtchain - 1; ich > 0; ich--) {
-    double expfac = exp(-ncfac * dt8 * eta_dot[ich + 1]);
-    eta_dot[ich] *= expfac;
-    eta_dot[ich] += eta_dotdot[ich] * ncfac * dt4;
-    eta_dot[ich] *= tdrag_factor;
-    eta_dot[ich] *= expfac;
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-double FixPIMDNVT::propagate_chain0_halfstep(double ncfac)
-{
-  double expfac = exp(-ncfac * dt8 * eta_dot[1]);
-  eta_dot[0] *= expfac;
-  eta_dot[0] += eta_dotdot[0] * ncfac * dt4;
-  eta_dot[0] *= tdrag_factor;
-  eta_dot[0] *= expfac;
-
-  factor_eta = exp(-ncfac * dthalf * eta_dot[0]);
-  nh_v_temp();
-  return expfac;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixPIMDNVT::update_scaled_nuclear_kinetic(double &t_current, double &kecurrent) const
-{
-  t_current *= factor_eta * factor_eta;
-  kecurrent = tdof * force->boltz * t_current;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixPIMDNVT::advance_chain_positions(double ncfac)
-{
-  for (int ich = 0; ich < mtchain; ich++) eta[ich] += ncfac * dthalf * eta_dot[ich];
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixPIMDNVT::complete_chain0_halfstep(double ncfac, double expfac)
-{
-  eta_dot[0] *= expfac;
-  eta_dot[0] += eta_dotdot[0] * ncfac * dt4;
-  eta_dot[0] *= expfac;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixPIMDNVT::update_outer_chain_accelerations(double chain_target)
-{
-  for (int ich = 1; ich < mtchain; ich++) {
-    if (eta_mass[ich] > 0.0)
-      eta_dotdot[ich] =
-          (eta_mass[ich - 1] * eta_dot[ich - 1] * eta_dot[ich - 1] - chain_target) /
-          eta_mass[ich];
-    else
-      eta_dotdot[ich] = 0.0;
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixPIMDNVT::complete_chain_tail_halfstep(double ncfac, double chain_target)
-{
-  for (int ich = 1; ich < mtchain; ich++) {
-    double expfac = exp(-ncfac * dt8 * eta_dot[ich + 1]);
-    eta_dot[ich] *= expfac;
-    if (eta_mass[ich] > 0.0)
-      eta_dotdot[ich] =
-          (eta_mass[ich - 1] * eta_dot[ich - 1] * eta_dot[ich - 1] - chain_target) /
-          eta_mass[ich];
-    else
-      eta_dotdot[ich] = 0.0;
-    eta_dot[ich] += eta_dotdot[ich] * ncfac * dt4;
-    eta_dot[ich] *= expfac;
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixPIMDNVT::nhc_temp_integrate()
-{
-  double kecurrent = compute_nuclear_kinetic_energy();
-  double t_current = kecurrent / force->boltz / tdof;
-  if (!thermostat_chain_active()) return;
-
-  update_chain0_acceleration(0.0);
-
-  double ncfac = 1.0 / nc_tchain;
-  const double chain_target = chain_target_energy();
-  for (int iloop = 0; iloop < nc_tchain; iloop++) {
-    propagate_chain_tail_halfstep(ncfac);
-    double expfac = propagate_chain0_halfstep(ncfac);
-
-    update_scaled_nuclear_kinetic(t_current, kecurrent);
-    if (eta_mass[0] > 0.0)
-      eta_dotdot[0] = (kecurrent - chain0_target_energy()) / eta_mass[0];
-    else
-      eta_dotdot[0] = 0.0;
-
-    advance_chain_positions(ncfac);
-    complete_chain0_halfstep(ncfac, expfac);
-    complete_chain_tail_halfstep(ncfac, chain_target);
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
 void FixPIMDNVT::thermostat_step()
 {
   if (tstat_flag) {
-    nhc_temp_integrate();
+    nhc->integrate();
     if (removecomflag) remove_com_motion();
   }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixPIMDNVT::nh_v_temp()
-{
-  const double work_delta = thermostat_work_delta(factor_eta);
-
-  double **v = atom->v;
-  int *mask = atom->mask;
-  int nlocal = atom->nlocal;
-
-  for (int i = 0; i < nlocal; i++) {
-    if (mask[i] & groupbit) {
-      v[i][0] *= factor_eta;
-      v[i][1] *= factor_eta;
-      v[i][2] *= factor_eta;
-    }
-  }
-
-  ecouple_work += work_delta;
 }
 
 /* ---------------------------------------------------------------------- */

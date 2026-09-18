@@ -50,7 +50,6 @@ constexpr int TAG_RING_REP_VALS   = 404;
 } // namespace
 
 enum { PHYSICAL, NORMAL };
-enum { BAOAB, OBABO };
 enum { SINGLE_PROC, MULTI_PROC };
 
 /* ---------------------------------------------------------------------- */
@@ -158,7 +157,7 @@ bool FixPIMDNVE::parse_keyword(int narg, char **arg, int &i)
   if (strcmp(arg[i], "fmass") == 0) {
     if (i + 2 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} fmass", style), error);
     fmass = utils::numeric(FLERR, arg[i + 1], false, lmp);
-    if (fmass < 0.0 || fmass > np) error->all(FLERR, "Invalid fmass value for fix {}", style);
+    if (fmass <= 0.0 || fmass > np) error->all(FLERR, "Invalid fmass value for fix {}", style);
     i += 2;
     return true;
   }
@@ -295,7 +294,9 @@ void FixPIMDNVE::init()
   beta = 1.0 / kt;
   double bond_prefactor = static_cast<double>(np) * static_cast<double>(np) / (beta * beta * hbar * hbar);
 
-  omega_np = np / (hbar * beta) * sqrt(force->mvv2e);
+  // hbar and kBT use the same energy unit, so their ratio is a frequency.
+  // mvv2e belongs in the spring energy/force coefficient, not this frequency.
+  omega_np = np / (hbar * beta);
   beta_np = 1.0 / force->boltz / temp * inverse_np;
   fbond = bond_prefactor * force->mvv2e;
 
@@ -770,27 +771,32 @@ void FixPIMDNVE::nmpimd_init()
   for (int i = 0; i < np; i++)
     for (int j = 0; j < np; j++) M_xp2x[i][j] = M_x2xp[j][i];
 
-  double omega_np_dt_half = omega_np * update->dt * 0.5;
-  if (fmmode == PHYSICAL) {
-    for (int i = 0; i < np; i++) {
-      _omega_k[i] = omega_np * sqrt(lam[i]) / sqrt(fmass);
-      Lan_c[i] = cos(sqrt(lam[i]) * omega_np_dt_half);
-      Lan_s[i] = sin(sqrt(lam[i]) * omega_np_dt_half);
-    }
-  } else if (fmmode == NORMAL) {
-    for (int i = 0; i < np; i++) {
-      _omega_k[i] = omega_np / sqrt(fmass);
-      Lan_c[i] = cos(omega_np_dt_half);
-      Lan_s[i] = sin(omega_np_dt_half);
-    }
-  } else {
-    error->universe_all(FLERR, "Unknown fmmode setting; only physical and normal are supported!");
-  }
+  init_normal_mode_coefficients();
 
   int iworld = universe->iworld;
   for (int i = 1; i <= atom->ntypes; i++) {
     mass[i] = atom->mass[i] * fmass;
     if (iworld != 0 && fmmode == NORMAL) mass[i] *= lam[iworld];
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixPIMDNVE::init_normal_mode_coefficients()
+{
+  if (fmmode != PHYSICAL && fmmode != NORMAL)
+    error->universe_all(FLERR, "Unknown fmmode setting; only physical and normal are supported!");
+
+  // The centroid is free; only internal modes have a spring frequency.
+  _omega_k[0] = 0.0;
+  Lan_c[0] = 1.0;
+  Lan_s[0] = 0.0;
+  for (int i = 1; i < np; i++) {
+    _omega_k[i] = omega_np / sqrt(fmass);
+    if (fmmode == PHYSICAL) _omega_k[i] *= sqrt(lam[i]);
+    const double angle = _omega_k[i] * update->dt * 0.5;
+    Lan_c[i] = cos(angle);
+    Lan_s[i] = sin(angle);
   }
 }
 

@@ -11,6 +11,8 @@
 
 #include "lammps.h"
 #include "platform.h"
+#include "modify.h"
+#include "universe.h"
 
 #include "../testing/core.h"
 #include "gtest/gtest.h"
@@ -66,6 +68,22 @@ TEST_F(FixPIMDNVTSerialTest, NMPIMDStyleParsesAndRuns)
   command("run 0 post no");
   for (int i = 0; i < pimd_test::nuclear_vector_size(); ++i) {
     EXPECT_TRUE(std::isfinite(fix_value("cp", i))) << "index=" << i;
+  }
+}
+
+TEST_F(FixPIMDNVTSerialTest, InternalThermostatIsNotRegisteredAsAnIntegrator)
+{
+  setup_zero_pair_system();
+  const auto nfix = lmp->modify->get_fix_list().size();
+  const auto ncompute = lmp->modify->get_compute_list().size();
+  for (int repeat = 0; repeat < 2; ++repeat) {
+    setup_nuclear_fix("pimd/nvt");
+    EXPECT_EQ(lmp->modify->get_fix_list().size(), nfix + 1);
+    EXPECT_EQ(lmp->modify->get_fix_by_id("cp_nhc"), nullptr);
+    command("run 2 post no");
+    command("unfix cp");
+    EXPECT_EQ(lmp->modify->get_fix_list().size(), nfix);
+    EXPECT_EQ(lmp->modify->get_compute_list().size(), ncompute);
   }
 }
 
@@ -155,6 +173,32 @@ TEST_F(FixPIMDNVTSerialTest, P1StandaloneRunProducesNuclearState)
   }
   EXPECT_GT(fix_value("cp", 0), 0.0);
   EXPECT_TRUE(std::isfinite(fix_value("cp", 13)));
+}
+
+TEST_F(FixPIMDNVTSerialTest, ThermostatAdvancesFullElapsedTime)
+{
+  for (const std::string style : {"pimd/nvt", "pimd/uvt"})
+    for (const std::string split : {"obabo", "baoab"})
+      for (const std::string loops : {"1", "3"}) {
+        SCOPED_TRACE(style + " " + split + " tloop=" + loops);
+        command("clear");
+        setup_zero_pair_system();
+        command("velocity all set 0.0 0.0 0.0");
+        command("timestep 0.001");
+        std::string extra;
+        if (style == "pimd/uvt") {
+          command("variable dEdN equal 0.0");
+          extra = " mu 0.0 Udamp 1.0 ne 1.0 ne_velocity 0.0 dedn v_dEdN";
+        }
+        command("fix cp all " + style + " method nmpimd temp 1.0 Tdamp 1.0 "
+                "tchain 1 removecom no integrator " + split + " tloop " + loops + extra);
+        command("run 7 post no");
+        // With zero forces and velocities, K remains zero. For a single
+        // thermostat and Tdamp=1, zeta_dot=-1, zeta=-t, eta=-t*t/2.
+        const double elapsed = 0.007;
+        EXPECT_NEAR(fix_value("cp", 10), -0.5 * elapsed * elapsed, 1.0e-13);
+        EXPECT_NEAR(fix_value("cp", 11), -elapsed, 1.0e-13);
+      }
 }
 
 TEST_F(FixPIMDNVTSerialTest, RestartRestoresNuclearState)
@@ -269,6 +313,47 @@ TEST(FixPIMDNVTMPI, PIMDPartitionedRunSupportsOneRankPerBead)
   }
 
   lammps_close(lmp);
+}
+
+TEST(FixPIMDNVTMPI, CMDLeavesCentroidChainInactive)
+{
+  int nprocs = 0;
+  MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
+  if (nprocs != 2) GTEST_SKIP() << "This test requires exactly 2 MPI ranks";
+
+  for (const char *integrator : {"obabo", "baoab"}) {
+    const char *args[] = {"LAMMPS_test", "-log", "none", "-partition", "2x1",
+                          "-echo", "screen", "-nocite", "-in", "none"};
+    void *handle = lammps_open(10, (char **) args, MPI_COMM_WORLD, nullptr);
+    ASSERT_NE(handle, nullptr);
+    auto command = [handle](const std::string &line) { lammps_command(handle, line.c_str()); };
+    command("units lj");
+    command("atom_style atomic");
+    command("atom_modify map yes");
+    command("region box block 0 4 0 4 0 4");
+    command("create_box 1 box");
+    command("create_atoms 1 single 1 1 1");
+    command("create_atoms 1 single 2 2 2");
+    command("mass 1 1.0");
+    command("pair_style zero 2.5");
+    command("pair_coeff * *");
+    command("velocity all set 0.2 0.1 -0.05");
+    command("timestep 0.001");
+    command(std::string("fix cp all pimd/nvt method cmd temp 1.0 Tdamp 0.5 ") +
+            "tchain 3 tloop 2 removecom no integrator " + integrator);
+    command("run 5 post no");
+
+    auto *lmp = static_cast<LAMMPS *>(handle);
+    for (int i = 0; i < pimd_test::nuclear_vector_size(); ++i)
+      EXPECT_TRUE(std::isfinite(pimd_test::fix_value(handle, "cp", i)));
+    if (lmp->universe->iworld == 0) {
+      for (int i = 10; i < 16; ++i)
+        EXPECT_DOUBLE_EQ(pimd_test::fix_value(handle, "cp", i), 0.0);
+    } else {
+      EXPECT_NE(pimd_test::fix_value(handle, "cp", 13), 0.0);
+    }
+    lammps_close(handle);
+  }
 }
 
 TEST(FixPIMDNVTMPI, MultiRankPerBeadRunProducesFiniteThermostatState)

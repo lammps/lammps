@@ -25,7 +25,11 @@ FixStyle(pimd/nvt,FixPIMDNVT);
 
 namespace LAMMPS_NS {
 
+class PIMDNoseHoover;
+
 class FixPIMDNVT : public FixPIMDNVE {
+  friend class PIMDNoseHoover;
+
  public:
   FixPIMDNVT(class LAMMPS *, int, char **, bool defer_setup = false);
   ~FixPIMDNVT() override;
@@ -37,6 +41,9 @@ class FixPIMDNVT : public FixPIMDNVE {
   bool parse_keyword(int, char **, int &) override;
   void finish_nuclear_constructor_setup();
 
+  // The unregistered FixNH adapter owns these arrays; aliases preserve the
+  // existing restart/output layout.
+  PIMDNoseHoover *nhc;
   double *eta;
   double *eta_dot;
   double *eta_dotdot;
@@ -44,7 +51,6 @@ class FixPIMDNVT : public FixPIMDNVE {
 
   int mtchain;
   int nc_tchain;
-  double factor_eta;
   double drag, tdrag_factor;
   double t_freq;
   double t_period;
@@ -54,28 +60,22 @@ class FixPIMDNVT : public FixPIMDNVE {
   double ke_target;
   double ecouple_work;
 
+  // NHC substep durations; dthalf is a full timestep for BAOAB.
   double dthalf, dt4, dt8;
   double *tau_k;
   double pilescale;
   int tstat_flag;
 
   void nhc_init();
-  void nhc_temp_integrate();
   double compute_nuclear_kinetic_energy() const;
   double chain_target_energy() const;
   virtual bool thermostat_chain_active() const;
-  void update_chain0_acceleration(double);
-  void propagate_chain_tail_halfstep(double);
-  double propagate_chain0_halfstep(double);
-  void update_scaled_nuclear_kinetic(double &, double &) const;
-  void advance_chain_positions(double);
-  void complete_chain0_halfstep(double, double);
-  void update_outer_chain_accelerations(double);
-  void complete_chain_tail_halfstep(double, double);
+  // Twice the additional kinetic energy coupled to this chain (zero for NVT).
+  virtual double thermostat_extra_kinetic_energy() const { return 0.0; }
 
   void o_step() override;
   virtual void thermostat_step();
-  virtual void nh_v_temp();
+  virtual void thermostat_extra_velocity_step() {}
   double thermostat_work_delta(double) const;
   virtual double chain0_target_energy() const;
 

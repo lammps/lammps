@@ -250,12 +250,12 @@ masses of beads, which can be used for the Partial Adiabatic CMD
 :ref:`(Hone) <Hone>`, or to be set as P, which results in the fictitious
 masses to be equal to the real particle masses.
 
-The keyword *fmmode* of *fix pimd/langevin* determines the mode of fictitious
+The keyword *fmmode* determines the mode of fictitious
 mass preconditioning. There are two options: *physical* and *normal*. If *fmmode* is
 *physical*, then the physical mass of the particles are used (and then multiplied by
 *fmass*). If *fmmode* is *normal*, then the physical mass is first multiplied by the
 eigenvalue of each normal mode, and then multiplied by *fmass*. More precisely, the
-fictitious mass of *fix pimd/langevin* is determined by two factors: *fmmode* and *fmass*.
+fictitious mass is determined by two factors: *fmmode* and *fmass*.
 If *fmmode* is *physical*, then the fictitious mass is
 
 .. math::
@@ -269,6 +269,18 @@ If *fmmode* is *normal*, then the fictitious mass is
    M_i = \mathrm{fmass} \times \lambda_i \times m
 
 where :math:`\lambda_i` is the eigenvalue of the :math:`i`-th normal mode.
+
+The centroid has no spring restoring force and uses
+:math:`M_0=\mathrm{fmass}\,m` for either mass mode.  The mass factor *fmass*
+must be positive.  These mass definitions are shared by *pimd/nve*,
+*pimd/nvt*, *pimd/uvt*, and *pimd/langevin*.
+
+For internal normal modes, the harmonic propagation frequency is
+:math:`\omega_i=\omega_P\sqrt{\lambda_i/\mathrm{fmass}}` for *physical*
+masses, and :math:`\omega_i=\omega_P/\sqrt{\mathrm{fmass}}` for *normal*
+masses, where :math:`\omega_P=P k_B T/\hbar`.  The exact harmonic
+propagator uses this same frequency in both its velocity/position
+prefactors and its sine and cosine arguments.
 
 In *pimd/langevin/bosonic*, *fmmode* should not be used, and would raise
 an error if set to a value other than *physical*, due to the lack of

@@ -29,6 +29,7 @@ class Compute;
 class FixPIMDNVE : public Fix {
  public:
   enum { PIMD, NMPIMD, CMD };
+  enum { BAOAB, OBABO };
 
   FixPIMDNVE(class LAMMPS *, int, char **, bool defer_setup = false);
   ~FixPIMDNVE() override;
@@ -113,6 +114,7 @@ class FixPIMDNVE : public Fix {
   void reallocate_xc();
 
   void nmpimd_init();
+  void init_normal_mode_coefficients();
   void nmpimd_transform(double **, double **, double *);
 
   void collect_xc();

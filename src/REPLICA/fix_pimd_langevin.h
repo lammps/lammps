@@ -30,7 +30,6 @@ class FixPIMDLangevin : public FixPIMDNVE {
   ~FixPIMDLangevin() override;
 
   enum { PHYSICAL, NORMAL };
-  enum { BAOAB, OBABO };
   enum { ISO, ANISO, TRICLINIC };
   enum { PILE_L };
   enum { MTTK, BZP };

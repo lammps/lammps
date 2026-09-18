@@ -369,6 +369,54 @@ TEST(FixPIMDUVTMPI, MultiRankPerBeadAveragesDerivativeOncePerBead)
   lammps_close(lmp);
 }
 
+TEST(FixPIMDUVTMPI, ElectronicVelocityUsesMeanChainFriction)
+{
+  int nprocs = 0;
+  MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
+  if (nprocs != 2 && nprocs != 4)
+    GTEST_SKIP() << "This test requires 2 or 4 MPI ranks";
+
+  for (const char *split : {"obabo", "baoab"}) {
+    const char *args[] = {"LAMMPS_test", "-log", "none", "-partition",
+                         nprocs == 2 ? "2x1" : "2x2", "-screen", "none",
+                         "-nocite", "-in", "none"};
+    void *lmp = lammps_open(sizeof(args) / sizeof(char *), (char **) args,
+                            MPI_COMM_WORLD, nullptr);
+    ASSERT_NE(lmp, nullptr);
+    auto command = [lmp](const char *line) { lammps_command(lmp, line); };
+    command("units lj");
+    command("atom_style atomic");
+    command("atom_modify map yes");
+    command("lattice sc 0.7");
+    command("region box block 0 2 0 2 0 2");
+    command("create_box 1 box");
+    command("create_atoms 1 box");
+    command("mass 1 1.0");
+    command("pair_style zero 2.5");
+    command("pair_coeff * *");
+    command("variable beadtemp world 0.6 1.2");
+    command("velocity all create ${beadtemp} 97531 mom yes rot no dist gaussian");
+    command("timestep 0.002");
+    // Equal mu and dE/dN leave only thermostat scaling of the electronic velocity.
+    command("variable dEdN equal 1.5");
+    command((std::string("fix cp all pimd/uvt method nmpimd integrator ") + split +
+             " temp 0.8 Tdamp 0.2 tchain 3 tloop 3 drag 0.1 removecom no "
+             "mu 1.5 Udamp 0.2 ne 1.7 ne_velocity 0.1 dedn v_dEdN").c_str());
+    command("run 20 post no");
+
+    const double eta0 = pimd_test::fix_value(lmp, "cp", pimd_test::kNuclearPrefixScalars);
+    double eta_sum = 0.0, eta_min = 0.0, eta_max = 0.0;
+    MPI_Allreduce(&eta0, &eta_sum, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+    MPI_Allreduce(&eta0, &eta_min, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD);
+    MPI_Allreduce(&eta0, &eta_max, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD);
+    EXPECT_GT(eta_max - eta_min, 1.0e-6);
+    const double nedot = pimd_test::fix_value(lmp, "cp", pimd_test::uvt_vector_indices().ne_dot);
+    // Integral of mean friction equals the mean displacement of eta[0].
+    EXPECT_NEAR(nedot, 0.1 * std::exp(-eta_sum / nprocs), 1.0e-12);
+    lammps_close(lmp);
+  }
+}
+
 TEST(FixPIMDUVTMPI, P4LongTimeConvergence)
 {
   int nprocs = 0;

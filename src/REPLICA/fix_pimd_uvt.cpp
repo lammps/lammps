@@ -373,10 +373,10 @@ double FixPIMDUVT::evaluate_dedn()
 
 void FixPIMDUVT::refresh_dedn_cache()
 {
+  // Evaluate on all ranks: the source may perform collective communication.
+  // The source returns a global bead value; contribute it once per partition.
   double dedn_local = evaluate_dedn();
-  double dedn_world = 0.0;
-  MPI_Allreduce(&dedn_local, &dedn_world, 1, MPI_DOUBLE, MPI_SUM, world);
-  dedn_local = (comm->me == 0) ? dedn_world / comm->nprocs : 0.0;
+  if (comm->me != 0) dedn_local = 0.0;
   double dedn_avg = 0.0;
   MPI_Allreduce(&dedn_local, &dedn_avg, 1, MPI_DOUBLE, MPI_SUM, universe->uworld);
   dedn_current = dedn_avg * inverse_np;

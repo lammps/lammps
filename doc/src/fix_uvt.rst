@@ -121,7 +121,8 @@ This fix supports temperature control only.  Pressure control keywords
 are not allowed.
 
 This fix is part of the EXTRA-FIX package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package
+LAMMPS was built with both EXTRA-FIX and EXTRA-COMPUTE, which provides
+the required :doc:`compute temp/uvt <compute_temp_uvt>`.  See the :doc:`Build package
 <Build_package>` page for more info.
 
 Related commands

@@ -68,8 +68,9 @@ uses the compute temp convention without the factor of one half.
 Restrictions
 """"""""""""
 
-This compute is part of the EXTRA-FIX package.  The referenced fix must
-be a fix uvt on the same group.  It must exist when the run is initialized;
+This compute is part of the EXTRA-COMPUTE package.  Using it also requires
+the EXTRA-FIX package for the referenced fix uvt, which must use the same
+group.  It must exist when the run is initialized;
 the electronic mass must be initialized before the combined temperature
 is evaluated.  A normal run setup initializes that mass in fix uvt.
 

@@ -14,10 +14,12 @@
 #include "compute_temp_uvt.h"
 
 #include "error.h"
-#include "fix_uvt.h"
+#include "fix.h"
 #include "force.h"
 #include "modify.h"
 #include "utils.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
@@ -42,8 +44,9 @@ ComputeTempUVT::~ComputeTempUVT()
 void ComputeTempUVT::init()
 {
   // Resolve the fix after construction, so FixUVT may create this compute itself.
-  auto *fix = dynamic_cast<FixUVT *>(modify->get_fix_by_id(id_fix));
-  if (!fix) error->all(FLERR, "Compute temp/uvt requires a fix uvt with ID {}", id_fix);
+  auto *fix = modify->get_fix_by_id(id_fix);
+  if (!fix || strcmp(fix->style, "uvt") != 0)
+    error->all(FLERR, "Compute temp/uvt requires a fix uvt with ID {}", id_fix);
   if (fix->igroup != igroup)
     error->all(FLERR, "Compute temp/uvt and fix {} must use the same group", id_fix);
 

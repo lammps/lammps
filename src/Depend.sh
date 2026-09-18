@@ -67,6 +67,10 @@ if (test $1 = "DIPOLE") then
   depend OPENMP
 fi
 
+if (test $1 = "EXTRA-COMPUTE") then
+  depend EXTRA-FIX
+fi
+
 if (test $1 = "DPD-BASIC") then
   depend OPENMP
   depend INTEL

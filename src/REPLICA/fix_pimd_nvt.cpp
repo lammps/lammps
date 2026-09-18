@@ -270,24 +270,6 @@ void FixPIMDNVT::nhc_init()
   tau_k[0] = t_period;
   for (int i = 1; i < np; i++) tau_k[i] = 0.5 / pilescale / _omega_k[i];
 
-  if (tstat_flag && nc_tchain == 1 && np > 1) {
-    double tau_min = tau_k[1];
-    for (int i = 2; i < np; i++) tau_min = MIN(tau_min, tau_k[i]);
-    if (tau_min > 0.0) {
-      const int required_tloop = MAX(1, static_cast<int>(ceil(update->dt / tau_min)));
-      if (required_tloop > nc_tchain) {
-        nc_tchain = required_tloop;
-        if (universe->me == 0) {
-          utils::logmesg(
-              lmp,
-              fmt::format("  Auto-increased NHC tloop to {:d} so dt/tau_min = {:.6f} does not "
-                          "under-resolve the fastest internal thermostat mode.\n",
-                          nc_tchain, update->dt / tau_min));
-        }
-      }
-    }
-  }
-
   if (tstat_flag) {
     const double chain0_target = chain0_target_energy();
     const double chain_target = chain_target_energy();

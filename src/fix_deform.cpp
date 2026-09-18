@@ -780,7 +780,16 @@ void FixDeform::init()
 
 void FixDeform::migrate_atoms()
 {
-  irregular->migrate_atoms();
+  // sort the received messages by sending processor rank.  Irregular otherwise
+  // discovers its senders with MPI_ANY_SOURCE and appends their atoms in message
+  // arrival order, so the local atom order after a flip -- and with it the order
+  // the forces are summed in -- depends on how the messages happened to arrive.
+  // That makes a run irreproducible: two runs of the same binary on the same
+  // ranks part company at a flip, by one ulp in one coordinate, and the
+  // trajectory diverges from there.  A flip is rare, so the sort costs nothing
+  // worth measuring, and the readers already pass this flag for the same reason.
+
+  irregular->migrate_atoms(1);
 }
 
 /* ---------------------------------------------------------------------- */

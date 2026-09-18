@@ -18,6 +18,7 @@
 #include "compute_fep.h"
 
 #include "atom.h"
+#include "atom_masks.h"
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
@@ -367,6 +368,12 @@ void ComputeFEP::perturb_params()
     } else if (pert->which == ATOM) {
 
       if (pert->aparam == CHARGE) {    // modify charges
+
+        // read and written through the plain host pointers, in front of a force
+        // evaluation that works from the KOKKOS copies
+
+        atom->sync_host_arrays(Q_MASK | TYPE_MASK | MASK_MASK);
+
         int *atype = atom->type;
         double *q = atom->q;
         int *mask = atom->mask;
@@ -375,6 +382,8 @@ void ComputeFEP::perturb_params()
         for (i = 0; i < natom; i++)
           if (atype[i] >= pert->ilo && atype[i] <= pert->ihi)
             if (mask[i] & groupbit) q[i] += delta;
+
+        atom->modified_host_arrays(Q_MASK);
       }
     }
   }
@@ -474,6 +483,12 @@ void ComputeFEP::backup_qfev()
 {
   int i;
 
+  // the forces and charges are read here through the plain host pointers while
+  // the force evaluations around this call work from the KOKKOS copies, so
+  // bring the host side up to date first
+
+  atom->sync_host_arrays(F_MASK | (chgflag ? Q_MASK : EMPTY_MASK));
+
   int nall = atom->nlocal + atom->nghost;
   int natom = atom->nlocal;
   if (force->newton || (force->kspace && force->kspace->tip4pflag)) natom += atom->nghost;
@@ -549,6 +564,13 @@ void ComputeFEP::restore_qfev()
 {
   int i;
 
+  // see backup_qfev(): the same two arrays are written back here, and the write
+  // has to be handed over to the device afterwards or the next force evaluation
+  // keeps the perturbed values
+
+  const uint64_t qfev_mask = F_MASK | (chgflag ? Q_MASK : EMPTY_MASK);
+  atom->sync_host_arrays(qfev_mask);
+
   int nall = atom->nlocal + atom->nghost;
   int natom = atom->nlocal;
   if (force->newton || (force->kspace && force->kspace->tip4pflag)) natom += atom->nghost;
@@ -616,6 +638,8 @@ void ComputeFEP::restore_qfev()
       }
     }
   }
+
+  atom->modified_host_arrays(qfev_mask);
 }
 
 /* ---------------------------------------------------------------------- */

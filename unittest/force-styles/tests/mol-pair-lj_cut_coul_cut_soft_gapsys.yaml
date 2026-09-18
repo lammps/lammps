@@ -23,7 +23,6 @@ extract: |
   epsilon 2
   sigma 2
   lambda 2
-  cut_coul 0
 natoms: 29
 init_vdwl: -0.1552548993804782
 init_coul: -103.94851608585842

@@ -573,7 +573,6 @@ double PairLJCutCoulCutSoftGapsys::single(int i, int j, int itype, int jtype, do
 void *PairLJCutCoulCutSoftGapsys::extract(const char *str, int &dim)
 {
   dim = 2;
-  if (strcmp(str, "cut_coul") == 0) return (void *) cut_coul;
   if (strcmp(str, "epsilon") == 0) return (void *) epsilon;
   if (strcmp(str, "sigma") == 0) return (void *) sigma;
   if (strcmp(str,"lambda") == 0) return (void *) lambda;

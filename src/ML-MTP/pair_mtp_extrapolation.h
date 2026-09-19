@@ -32,18 +32,18 @@ class PairMTPExtrapolation : public PairMTP {
  public:
   PairMTPExtrapolation(class LAMMPS *);
   ~PairMTPExtrapolation() override;
-  void compute(int, int) override;                        //Workhorse comuptation
+  void compute(int, int) override;                        //Workhorse computation
   void settings(int, char **) override;                   // Reads args from "pair_style"
   void coeff(int, char **) override;                      // Reads args from "pair_coeff"
   void *extract(const char *, int &) override;            // Provides access to compute grade flag
   void *extract_peratom(const char *, int &) override;    // Provides access to per-atom data
 
  protected:
-  void read_file(FILE *);                    //Parsing file using LAMMPS utils
-  double calculate_extrapolation_grade();    // Grades from candidate vector
-  void compile_grades();                     // Collect grades across collective
-  void evaluate_grades();                    // Evaluate grades against the thresholds
-  void write_config();                       // Write to a MLIP-3 preselected compatible file.
+  void read_file(FILE *);                                  //Parsing file using LAMMPS utils
+  double calculate_extrapolation_grade(int itype = -1);    // Grades from candidate vector
+  void compile_grades();                                   // Collect grades across collective
+  void evaluate_grades();                                  // Evaluate grades against the thresholds
+  void write_config();    // Write to a MLIP-3 preselected compatible file.
 
   int coeff_count;    // Sum of radial, species and linear coeff count
 
@@ -61,11 +61,11 @@ class PairMTPExtrapolation : public PairMTP {
   double **inverse_active_set;    // Inverse of the current active set
 
   //Working buffers
-  double ***radial_jacobian;         // Jacobian of radial component wrt to basic moment
-  double *radial_moment_ders;        //Ders of non-elemnetary moments wrt to basis moments
+  double **radial_basis_cache;
+  int radial_basis_cache_size;
   double *energy_ders_wrt_coeffs;    // Candidate information vector
 
-  // Only needed for neigbhourhood mode
+  // Only needed for neighbourhood mode
   int nbh_count;
   double *nbh_extrapolation_grades;    // Extrapolation grades of all neighbourhoods
 

@@ -30,7 +30,6 @@ class RadialMTPBasis : protected Pointers {
   RadialMTPBasis(int size, LAMMPS *lmp);
   virtual ~RadialMTPBasis();
 
-  virtual void calc_radial_basis(double dist) = 0;
   virtual void calc_radial_basis_ders(double dist) = 0;
 
   int size;             // The size of the radial basis functions
@@ -52,7 +51,6 @@ class RBChebyshev : public RadialMTPBasis {
  public:
   RBChebyshev(int size, LAMMPS *lmp) : RadialMTPBasis(size, lmp) {}
   RBChebyshev(TextFileReader &tfr, LAMMPS *lmp) : RadialMTPBasis(tfr, lmp) {}
-  void calc_radial_basis(double val) override;
   void calc_radial_basis_ders(double val) override;
 };
 

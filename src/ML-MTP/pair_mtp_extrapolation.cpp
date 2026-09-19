@@ -28,9 +28,10 @@
 #include "neighbor.h"
 #include "text_file_reader.h"
 
+#include <algorithm>
 #include <cmath>
+#include <cstdio>
 #include <cstring>
-#include <fstream>
 
 using namespace LAMMPS_NS;
 
@@ -42,14 +43,14 @@ PairMTPExtrapolation::PairMTPExtrapolation(LAMMPS *lmp) : PairMTP(lmp)
 
   active_set = nullptr;
   inverse_active_set = nullptr;
-  radial_jacobian = nullptr;
-  radial_moment_ders = nullptr;
+  radial_basis_cache = nullptr;
   energy_ders_wrt_coeffs = nullptr;
   nbh_extrapolation_grades = nullptr;
   write_buffer = nullptr;
   preselected_file = nullptr;
 
   coeff_count = 0;
+  radial_basis_cache_size = 0;
   extrapolation_flag = 0;
   mlip3_style = false;
   configuration_mode = 0;
@@ -67,24 +68,26 @@ PairMTPExtrapolation::~PairMTPExtrapolation()
 {
   if (copymode) return;
 
+  delete[] pvector;
+
   if (allocated) {
     memory->destroy(active_set);
     memory->destroy(inverse_active_set);
-    memory->destroy(radial_jacobian);
-    memory->destroy(radial_moment_ders);
+    memory->destroy(radial_basis_cache);
     memory->destroy(energy_ders_wrt_coeffs);
-    if (!configuration_mode) memory->destroy(nbh_extrapolation_grades);
-    if (mlip3_style) memory->destroy(write_buffer);
+    memory->destroy(nbh_extrapolation_grades);
+    memory->destroy(write_buffer);
+  }
 
-    if (comm->me == 0 && preselected_file) {
-      std::fclose(preselected_file);
-      preselected_file = nullptr;
-    }
+  // settings() may have opened this before coeff() ran, so close it unconditionally.
+  if (comm->me == 0 && preselected_file) {
+    std::fclose(preselected_file);
+    preselected_file = nullptr;
   }
 }
 
 /* ----------------------------------------------------------------------
-   Straightfoward MTP implementation based on MLIP3
+   Straightforward MTP implementation based on MLIP3
    ---------------------------------------------------------------------- */
 void PairMTPExtrapolation::compute(int eflag, int vflag)
 {
@@ -98,56 +101,61 @@ void PairMTPExtrapolation::compute(int eflag, int vflag)
 
   ev_init(eflag, vflag);
 
-  double **x = atom->x;      // atomic positons
+  // The candidate vector needs every scalar moment, so the pruned force-only
+  // contraction list the base style uses does not apply here.
+  const int *times_data = alpha_index_times_count ? alpha_index_times[0] : nullptr;
+
+  double **x = atom->x;      // atomic positions
   double **f = atom->f;      // atomic forces
   int *type = atom->type;    //atomic types
 
   int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;
-  int inum = list->inum;             // The number of central atoms (neigbhourhoods)
+  int inum = list->inum;             // The number of central atoms (neighbourhoods)
   int *ilist = list->ilist;          // List of central atom ids
   int *numneigh = list->numneigh;    // List of the number of neighbours for each central atom
   int **firstneigh =
       list->firstneigh;    //List  (head of array) of neighbours for a given central atom
 
   // Resize the nbh extrapolation grades if needed.
-  if (!configuration_mode && nbh_count < inum) {
-    memory->grow(nbh_extrapolation_grades, inum, "nbh_extrapolation_grades");
-    nbh_count = inum;
+  if (!configuration_mode) {
+    if (nbh_count < atom->nmax) {
+      memory->grow(nbh_extrapolation_grades, atom->nmax, "nbh_extrapolation_grades");
+      nbh_count = atom->nmax;
+    }
+    if (inum < nlocal) std::fill(nbh_extrapolation_grades, nbh_extrapolation_grades + nlocal, 0.0);
   }
 
   // If are in configuration, we need to reset the working array once per compute call / config
   if (configuration_mode)
-    std::fill(&energy_ders_wrt_coeffs[0], &energy_ders_wrt_coeffs[0] + coeff_count, 0.0);
+    std::fill(energy_ders_wrt_coeffs, energy_ders_wrt_coeffs + coeff_count, 0.0);
 
   // Loop over all provided neighbourhoods
   for (int ii = 0; ii < inum; ii++) {
     int valid_count = 0;
     const int i = ilist[ii];
     const int itype = map[type[i]];
-    int jnum = numneigh[i];
+    const int jnum = numneigh[i];
     double nbh_energy = 0;
     const double xi[3] = {x[i][0], x[i][1], x[i][2]};
 
     // Resize per neighbor arrays
-    if (jac_size < jnum) {
-      memory->grow(moment_jacobian, jnum, alpha_index_basic_count, 3, "moment_jacobian");
-      memory->grow(valid_j, jnum, "valid_j");
-      jac_size = jnum;
+    if (cache_size < jnum) {
+      memory->grow(neighbor_cache, jnum, 1 + 2 * radial_func_count, "neighbor_cache");
+      memory->grow(cached_j, jnum, "cached_j");
+      cache_size = jnum;
+    }
+    if (radial_basis_cache_size < jnum) {
+      memory->grow(radial_basis_cache, jnum, radial_basis_size, "radial_basis_cache");
+      radial_basis_cache_size = jnum;
     }
 
     // Reset the working arrays
-    std::fill(&moment_tensor_vals[0], &moment_tensor_vals[0] + alpha_moment_count, 0.0);
-    std::fill(&nbh_energy_ders_wrt_moments[0], &nbh_energy_ders_wrt_moments[0] + alpha_moment_count,
-              0.0);
-    std::fill(&radial_moment_ders[0], &radial_moment_ders[0] + alpha_moment_count, 0.0);
-    std::fill(&radial_jacobian[0][0][0],
-              &radial_jacobian[0][0][0] +
-                  (alpha_index_basic_count * species_count * radial_coeff_count_per_pair),
-              0.0);
+    std::fill(moment_tensor_vals, moment_tensor_vals + alpha_moment_count, 0.0);
+    std::fill(nbh_energy_ders_wrt_moments, nbh_energy_ders_wrt_moments + alpha_moment_count, 0.0);
 
     if (!configuration_mode)
-      std::fill(&energy_ders_wrt_coeffs[0], &energy_ders_wrt_coeffs[0] + coeff_count, 0.0);
+      std::fill(energy_ders_wrt_coeffs, energy_ders_wrt_coeffs + coeff_count, 0.0);
 
     // ------------ Calculate Basic Moments ------------
     for (int jj = 0; jj < jnum; jj++) {
@@ -158,93 +166,56 @@ void PairMTPExtrapolation::compute(int eflag, int vflag)
       const double rsq = r[0] * r[0] + r[1] * r[1] + r[2] * r[2];
 
       if (rsq > max_cutoff_sq) continue;
-
-      valid_j[valid_count] = j;
+      cached_j[valid_count] = j;
 
       const double dist = std::sqrt(rsq);
+      const double inv_dist = 1.0 / dist;
+      const double u[3] = {r[0] * inv_dist, r[1] * inv_dist, r[2] * inv_dist};
+      neighbor_cache[valid_count][0] = inv_dist;
+      double *vals = neighbor_cache[valid_count] + 1;
+      double *ders = vals + radial_func_count;
       radial_basis->calc_radial_basis_ders(dist);
+      const double *basis_vals = radial_basis->radial_basis_vals;
+      const double *basis_ders = radial_basis->radial_basis_ders;
+      std::copy(basis_vals, basis_vals + radial_basis_size, radial_basis_cache[valid_count]);
 
-      // Precompute the coord and distance power
-      for (int k = 1; k < max_alpha_index_basic; k++) {
-        dist_powers[k] = dist_powers[k - 1] * dist;
-        for (int a = 0; a < 3; a++) coord_powers[k][a] = coord_powers[k - 1][a] * r[a];
-      }
+      // Evaluate each shared angular monomial once.
+      for (int k = 1; k < angular_count; k++)
+        angular_vals[k] = angular_vals[angular_parent[k]] * u[angular_axis[k]];
 
       // Compute the radial basis values and derivatives
-      int pair_offset = itype * species_count + jtype;
+      const int pair_offset = itype * species_count + jtype;
       for (int mu = 0; mu < radial_func_count; mu++) {
         double val = 0;
         double der = 0;
-        int offset = (pair_offset * radial_coeff_count_per_pair) + mu * radial_basis_size;
+        const int offset = (pair_offset * radial_coeff_count_per_pair) + mu * radial_basis_size;
 
         for (int ri = 0; ri < radial_basis_size; ri++) {
-          val += radial_basis_coeffs[offset + ri] * radial_basis->radial_basis_vals[ri];
-          der += radial_basis_coeffs[offset + ri] * radial_basis->radial_basis_ders[ri];
+          val += radial_basis_coeffs[offset + ri] * basis_vals[ri];
+          der += radial_basis_coeffs[offset + ri] * basis_ders[ri];
         }
-        radial_vals[mu] = val;
-        radial_ders[mu] = der;
-      }
+        vals[mu] = val;
+        ders[mu] = der;
 
-      // Accumulate into the basic moment elements
-      for (int k = 0; k < alpha_index_basic_count; k++) {
-        double val = 0;
-        double der = 0;
-        int mu = alpha_index_basic[k][0];
-
-        val = radial_vals[mu];
-        der = radial_ders[mu];
-
-        // Normalize by the rank of alpha's coresponding tensor
-        int norm_rank = alpha_index_basic[k][1] + alpha_index_basic[k][2] + alpha_index_basic[k][3];
-        double norm_fac = 1.0 / dist_powers[norm_rank];
-
-        double pow0 = coord_powers[alpha_index_basic[k][1]][0];
-        double pow1 = coord_powers[alpha_index_basic[k][2]][1];
-        double pow2 = coord_powers[alpha_index_basic[k][3]][2];
-        double pow = pow0 * pow1 * pow2;
-
-        // Calculate the radial jacobian
-        int mu_offset = mu * radial_basis_size;
-        for (int ri = 0; ri < radial_basis_size; ri++) {
-          radial_jacobian[k][jtype][mu_offset + ri] +=
-              radial_basis->radial_basis_vals[ri] * norm_fac * pow;
+        // Accumulate into the basic moment elements
+        for (int t = mu_offsets[mu]; t < mu_offsets[mu + 1]; t++) {
+          const int k = basic_by_mu[t];
+          const double ang = angular_vals[angular_by_mu[t]];
+          moment_tensor_vals[k] += val * ang;
         }
-
-        val *= norm_fac;
-        der = der * norm_fac - norm_rank * val / dist;
-        moment_tensor_vals[k] += val * pow;
-
-        // Calculate the Jacobian from derivatives
-        pow *= der / dist;
-        moment_jacobian[valid_count][k][0] = pow * r[0];
-        moment_jacobian[valid_count][k][1] = pow * r[1];
-        moment_jacobian[valid_count][k][2] = pow * r[2];
-        if (alpha_index_basic[k][1] != 0) {
-          moment_jacobian[valid_count][k][0] += val * alpha_index_basic[k][1] *
-              coord_powers[alpha_index_basic[k][1] - 1][0] * pow1 * pow2;
-        }    //Chain rule for nonzero rank
-        if (alpha_index_basic[k][2] != 0) {
-          moment_jacobian[valid_count][k][1] += val * alpha_index_basic[k][2] * pow0 *
-              coord_powers[alpha_index_basic[k][2] - 1][1] * pow2;
-        }    //Chain rule for nonzero rank
-        if (alpha_index_basic[k][3] != 0) {
-          moment_jacobian[valid_count][k][2] += val * alpha_index_basic[k][3] * pow0 * pow1 *
-              coord_powers[alpha_index_basic[k][3] - 1][2];
-        }    //Chain rule for nonzero rank
       }
       valid_count++;
     }
 
-    // ------------ Contruct Composite Moment Values  ------------
+    // ------------ Construct Composite Moment Values  ------------
     for (int k = 0; k < alpha_index_times_count; k++) {
-      double val0 = moment_tensor_vals[alpha_index_times[k][0]];
-      double val1 = moment_tensor_vals[alpha_index_times[k][1]];
-      int val2 = alpha_index_times[k][2];
-      moment_tensor_vals[alpha_index_times[k][3]] += val2 * val0 * val1;
+      const int *term = times_data + 4 * k;
+      moment_tensor_vals[term[3]] +=
+          term[2] * moment_tensor_vals[term[0]] * moment_tensor_vals[term[1]];
     }
 
     // ------------ If Energies Are Needed Compute Basis Set From Alpha Map ------------
-    int linear_basis_offset = radial_coeff_count + species_count;
+    const int linear_basis_offset = radial_coeff_count + species_count;
     if (eflag_either) {
       nbh_energy = species_coeffs[itype];    // Essentially the reference point energy per species
       for (int k = 0; k < alpha_scalar_count; k++) {
@@ -262,65 +233,94 @@ void PairMTPExtrapolation::compute(int eflag, int vflag)
 
     energy_ders_wrt_coeffs[radial_coeff_count + itype] += 1;
 
-    // =========== Begin Backpropogation ===========
+    // =========== Begin Backpropagation ===========
     //------------ NBH energy derivative is the corresponding linear combination------------
     for (int k = 0; k < alpha_scalar_count; k++)
       nbh_energy_ders_wrt_moments[alpha_moment_mapping[k]] = linear_coeffs[k];
 
-    //------------ Propogate chain rule through the composite moment elements times to the basics ------------
+    //------------ Propagate chain rule through the composite moment elements times to the basics ------------
     for (int k = alpha_index_times_count - 1; k >= 0; k--) {
-      int a0 = alpha_index_times[k][0];
-      int a1 = alpha_index_times[k][1];
-      int multipiler = alpha_index_times[k][2];
-      int a3 = alpha_index_times[k][3];
+      const int *term = times_data + 4 * k;
+      const int a0 = term[0];
+      const int a1 = term[1];
 
-      double val0 = moment_tensor_vals[a0];
-      double val1 = moment_tensor_vals[a1];
-      double val3 = nbh_energy_ders_wrt_moments[a3];
+      const double w = term[2] * nbh_energy_ders_wrt_moments[term[3]];
 
-      nbh_energy_ders_wrt_moments[a1] += val3 * multipiler * val0;
-      nbh_energy_ders_wrt_moments[a0] += val3 * multipiler * val1;
+      nbh_energy_ders_wrt_moments[a1] += w * moment_tensor_vals[a0];
+      nbh_energy_ders_wrt_moments[a0] += w * moment_tensor_vals[a1];
     }
 
-    //------------  Multiply energy ders wrt basic moments by the Jacobian to get forces ------------
+    for (int t = 0; t < alpha_index_basic_count; t++)
+      basic_ders_by_mu[t] = nbh_energy_ders_wrt_moments[basic_by_mu[t]];
+
+    //------------ Compute forces from basic moment derivatives ------------
+    double fi[3] = {f[i][0], f[i][1], f[i][2]};
     for (int jj = 0; jj < valid_count; jj++) {
-      int j = valid_j[jj];
+      int j = cached_j[jj];
+      const double inv_dist = neighbor_cache[jj][0];
+      const double u[3] = {(x[j][0] - xi[0]) * inv_dist, (x[j][1] - xi[1]) * inv_dist,
+                           (x[j][2] - xi[2]) * inv_dist};
+      const double *vals = neighbor_cache[jj] + 1;
+      const double *ders = vals + radial_func_count;
+      const double *basis_vals = radial_basis_cache[jj];
+      double *pair_ders = energy_ders_wrt_coeffs +
+          (itype * species_count + map[type[j]]) * radial_coeff_count_per_pair;
+      for (int k = 1; k < angular_count; k++)
+        angular_vals[k] = angular_vals[angular_parent[k]] * u[angular_axis[k]];
+      std::fill(angular_ders, angular_ders + angular_count, 0.0);
 
       double temp_force[3] = {0, 0, 0};
-      for (int k = 0; k < alpha_index_basic_count; k++) {
-        for (int a = 0; a < 3; a++) {
-          temp_force[a] += nbh_energy_ders_wrt_moments[k] * moment_jacobian[jj][k][a];
+      double radial_force = 0;
+      for (int mu = 0; mu < radial_func_count; mu++) {
+        const int end = mu_offsets[mu + 1];
+        if (mu_offsets[mu] == end) continue;
+        const double val = vals[mu];
+        double radial_sum = 0;
+        for (int t = mu_offsets[mu]; t < end; t++) {
+          const int angular = angular_by_mu[t];
+          const double adj = basic_ders_by_mu[t];
+          radial_sum += adj * angular_vals[angular];
+          angular_ders[angular] += val * adj;
         }
+        radial_force += ders[mu] * radial_sum;
+        double *coeff_ders = pair_ders + mu * radial_basis_size;
+        for (int ri = 0; ri < radial_basis_size; ri++)
+          coeff_ders[ri] += radial_sum * basis_vals[ri];
       }
+      // Reverse the shared angular products; no division by components of u.
+      for (int k = angular_count - 1; k > 0; k--) {
+        const int parent = angular_parent[k];
+        const int axis = angular_axis[k];
+        const double adj = angular_ders[k];
+        temp_force[axis] += adj * angular_vals[parent];
+        angular_ders[parent] += adj * u[axis];
+      }
+      radial_force -=
+          inv_dist * (temp_force[0] * u[0] + temp_force[1] * u[1] + temp_force[2] * u[2]);
+      for (int a = 0; a < 3; a++) temp_force[a] = inv_dist * temp_force[a] + radial_force * u[a];
 
-      f[i][0] += temp_force[0];
-      f[i][1] += temp_force[1];
-      f[i][2] += temp_force[2];
+      fi[0] += temp_force[0];
+      fi[1] += temp_force[1];
+      fi[2] += temp_force[2];
 
       f[j][0] -= temp_force[0];
       f[j][1] -= temp_force[1];
       f[j][2] -= temp_force[2];
 
       // Accumulate virial stress only if requested
-      if (evflag) {
+      if (vflag_either) {
         const double del[3] = {xi[0] - x[j][0], xi[1] - x[j][1], xi[2] - x[j][2]};
         ev_tally_xyz(i, j, nlocal, newton_pair, 0.0, 0.0, temp_force[0], temp_force[1],
                      temp_force[2], del[0], del[1], del[2]);
       }
     }
+    f[i][0] = fi[0];
+    f[i][1] = fi[1];
+    f[i][2] = fi[2];
 
-    //------------ Multiply energy ders wrt moment by the radial jacobian to get rad ders ------------
-    for (int k = 0; k < alpha_index_basic_count; k++)
-      for (int jjtype = 0; jjtype < species_count; jjtype++) {
-        int offset = (itype * species_count + jjtype) * radial_coeff_count_per_pair;
-        for (int ri = 0; ri < radial_coeff_count_per_pair; ri++)
-          energy_ders_wrt_coeffs[offset + ri] +=
-              nbh_energy_ders_wrt_moments[k] * radial_jacobian[k][jjtype][ri];
-      }
-
-    // Directly calculate extraplation grade for neighbourhood mode
+    // Directly calculate extrapolation grade for neighbourhood mode
     if (!configuration_mode) {
-      double grade = calculate_extrapolation_grade();
+      double grade = calculate_extrapolation_grade(itype);
       max_grade = std::max(grade, max_grade);
       nbh_extrapolation_grades[i] = grade;
     }
@@ -334,13 +334,21 @@ void PairMTPExtrapolation::compute(int eflag, int vflag)
 /* ----------------------------------------------------------------------
    Extrapolation Calculation Function
 ------------------------------------------------------------------------- */
-double PairMTPExtrapolation::calculate_extrapolation_grade()
+double PairMTPExtrapolation::calculate_extrapolation_grade(int itype)
 {
+  const int begin = itype < 0 ? 0 : itype * species_count * radial_coeff_count_per_pair;
+  const int end = itype < 0 ? coeff_count : begin + species_count * radial_coeff_count_per_pair;
+  const int linear_offset = radial_coeff_count + species_count;
   double max_grade = 0;
   for (int i = 0; i < coeff_count; i++) {
     double current_grade = 0;
-    for (int j = 0; j < coeff_count; j++) {
-      current_grade += energy_ders_wrt_coeffs[j] * inverse_active_set[i][j];
+    const double *row = inverse_active_set[i];
+    for (int j = begin; j < end; j++) { current_grade += energy_ders_wrt_coeffs[j] * row[j]; }
+    if (itype >= 0) {
+      const int species_offset = radial_coeff_count + itype;
+      current_grade += energy_ders_wrt_coeffs[species_offset] * row[species_offset];
+      for (int j = linear_offset; j < coeff_count; j++)
+        current_grade += energy_ders_wrt_coeffs[j] * row[j];
     }
     max_grade = std::max(std::abs(current_grade), max_grade);
   }
@@ -381,6 +389,7 @@ void PairMTPExtrapolation::evaluate_grades()
   if (max_grade >= break_threshold && comm->me == 0) {
     std::fflush(preselected_file);    // Ensure the writing buffers are flushed before breaking.
     std::fclose(preselected_file);
+    preselected_file = nullptr;
     error->one(FLERR, "Exceeded Break Threshold: {:.5f}. Terminating simulation.\n", max_grade);
   }
 }
@@ -487,9 +496,11 @@ void PairMTPExtrapolation::settings(int narg, char **arg)
 
       mlip3_style = true;
       if (comm->me == 0) {
+        if (preselected_file) std::fclose(preselected_file);
         preselected_file = std::fopen(arg[iarg + 1], "w");
         if (!preselected_file)
-          error->one(FLERR, "Cannot open mtp/extrapolation output file: {}", arg[iarg + 1]);
+          error->one(FLERR, "Cannot open mtp/extrapolation output file {}: {}", arg[iarg + 1],
+                     utils::getsyserror());
       }
       select_threshold = utils::numeric(FLERR, arg[iarg + 2], true, lmp);
       break_threshold = utils::numeric(FLERR, arg[iarg + 3], true, lmp);
@@ -509,11 +520,16 @@ void PairMTPExtrapolation::coeff(int narg, char **arg)
   if (narg != 3 + n) error->all(FLERR, "Incorrect args for pair coefficients.");
 
   // Read in MTP and allocate memory
-  FILE *mtp_file = utils::open_potential(arg[2], lmp, nullptr);
+  FILE *mtp_file = nullptr;
+  if (comm->me == 0) {
+    mtp_file = utils::open_potential(arg[2], lmp, nullptr);
+    if (mtp_file == nullptr)
+      error->one(FLERR, "Cannot open MTP potential file {}: {}", arg[2], utils::getsyserror());
+  }
   PairMTPExtrapolation::read_file(mtp_file);
-  fclose(mtp_file);
+  if (mtp_file) fclose(mtp_file);
 
-  if (comm->me == 0)
+  if (comm->me == 0) {
     if (mlip3_style)
       utils::logmesg(lmp,
                      "Extrapolation Scheme: {} mode, with a selection threshold of {} "
@@ -523,6 +539,7 @@ void PairMTPExtrapolation::coeff(int narg, char **arg)
     else
       utils::logmesg(lmp, "Extrapolation Mode: {} mode.\n",
                      (configuration_mode ? "Configuration" : "Neighborhood"));
+  }
 
   PairMTP::prepare_map(narg - 3, arg + 3);
 }
@@ -536,14 +553,12 @@ void PairMTPExtrapolation::read_file(FILE *mtp_file)
 
   coeff_count = radial_coeff_count + species_count + alpha_scalar_count;
   int num_doubles = coeff_count * coeff_count;
+  radial_basis_cache_size = 0;
 
   // Now we allocate memory for the additional memory needed for calculations
   memory->create(active_set, coeff_count, coeff_count, "active_set");
   memory->create(inverse_active_set, coeff_count, coeff_count, "inverse_active_set");
-  memory->create(radial_moment_ders, alpha_moment_count, "radial_moment_ders");
   memory->create(energy_ders_wrt_coeffs, coeff_count, "energy_ders_wrt_coeffs");
-  memory->create(radial_jacobian, alpha_index_basic_count, species_count,
-                 radial_coeff_count_per_pair, "radial_jacobian");
 
   if (comm->me == 0) {
     const std::string new_separators = "=, ";

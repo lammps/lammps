@@ -447,7 +447,7 @@ The *nper* argument is the number of values per grid cell to be
 communicated.  The *nbyte* argument is the number of bytes per value,
 e.g. 8 for double-precision values.  The *buf1* and *buf2* arguments
 are the two allocated buffers described above.  So long as they are
-allocated for the maximum size communication, they can be re-used for
+allocated for the maximum size communication, they can be reused for
 any *forward_comm()/reverse_comm()* call.  The *datatype* argument is
 the MPI_Datatype setting, which should match the buffer allocation and
 the *nbyte* argument.  E.g. MPI_DOUBLE for buffers storing double

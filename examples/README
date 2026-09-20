@@ -62,6 +62,8 @@ amoeba:   small water and bio models with AMOEBA and HIPPO potentials
 atm:      Axilrod-Teller-Muto potential
 balance:  dynamic load balancing, 2d system
 body:     body particles, 2d system
+bpm:      simulations of solid elastic/plastic deformation and fracture
+charmmfsw: solvated protein with CHARMM force field and force switching
 cmap:     CMAP 5-body contributions to CHARMM force field
 colloid:  big colloid particles in a small particle solvent, 2d system
 comb:     models using the COMB potential
@@ -76,9 +78,10 @@ ellipse:  ellipsoidal particles in spherical solvent, 2d system
 fire:     examples for using minimization styles fire and quickmin
 flow:     Couette and Poiseuille flow in a 2d channel
 friction: frictional contact of spherical asperities between 2d surfaces
-gjf:      use of fix gjf for Gronbech-Jensen/Farago thermostat
 granregion: use of fix wall/region/gran as boundary on granular particles
-grid      use of commands which overlay grids on the simulation domain
+gransurf: granular particles interacting with line or triangle surfaces
+granular: granular models using the pair style granular variants
+grid:     use of commands which overlay grids on the simulation domain
 hyper:    global and local hyperdynamics of diffusion on Pt surface
 indent:   spherical indenter into a 2d solid
 kim:      use of potentials in Knowledge Base for Interatomic Models (KIM)
@@ -90,6 +93,7 @@ mesh:     create_atoms mesh command examples
 micelle:  self-assembly of small lipid-like molecules into 2d bilayers
 min:      energy minimization of 2d LJ melt
 mliap:    examples for using several bundled ML-IAP potentials
+multi:    multi neighboring for systems with large interaction disparities
 nb3b:     use of nonbonded 3-body harmonic pair style
 neb:      nudged elastic band (NEB) calculation for barrier finding
 nemd:     non-equilibrium MD of 2d sheared system
@@ -97,6 +101,7 @@ numdiff:  numerical difference computation of forces, virial, and Born matrix
 obstacle: flow around two voids in a 2d channel
 peptide:  dynamics of a small solvated peptide chain (5-mer)
 peri:     Peridynamic model of cylinder impacted by indenter
+plugins:  example plugins loading LAMMPS styles from shared object files
 pour:     pouring of granular particles into a 3d box, then chute flow
 prd:      parallel replica dynamics of vacancy diffusion in bulk Si
 python:   use of PYTHON package to invoke Python code from input script
@@ -105,8 +110,8 @@ rdf-adf:  computing radial and angle distribution functions for water
 reaxff:   RDX and TATB and several other models using ReaxFF
 replicate: use of replicate command
 rerun:    use of rerun and read_dump commands
-rigid:    rigid bodies modeled as independent or coupled
 rheo:     RHEO simulations of fluid flows and phase transitions
+rigid:    rigid bodies modeled as independent or coupled
 shear:    sideways shear applied to 2d solid, with and without a void
 snap:     examples for using several bundled SNAP potentials
 srd:      stochastic rotation dynamics (SRD) particles as solvent
@@ -118,7 +123,7 @@ template: examples for using atom_style template and comparing to atom style mol
 tersoff:  regression test input for Tersoff variants
 threebody: regression test input for a variety of threebody potentials
 triclinic: general triclinic simulation boxes versus orthogonal boxes
-ttm:      two-temeprature model examples
+ttm:      two-temperature model examples
 vashishta: models using the Vashishta potential
 voronoi:  Voronoi tesselation via compute voronoi/atom command
 wall:     use of reflective walls with different stochastic models
@@ -155,6 +160,10 @@ ASPHERE/README file to get started.
 The COUPLE directory has examples of how to use LAMMPS as a library,
 either by itself or in tandem with another code or library.  See the
 COUPLE/README file to get started.
+
+The DIFFUSE directory has example scripts for computing the diffusion
+coefficient of a 2d LJ fluid using 2 different methods.  See the
+DIFFUSE/README file for more info.
 
 The ELASTIC directory has an example script for computing elastic
 stiffness tensor (elastic constants)

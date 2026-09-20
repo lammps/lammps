@@ -1,7 +1,10 @@
 .. index:: compute inertia
+.. index:: compute inertia/kk
 
 compute inertia command
 =======================
+
+Accelerator Variants: *inertia/kk*
 
 Syntax
 """"""
@@ -23,7 +26,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 2Sep2026
 
 Define a computation that calculates the symmetric moment of inertia
 tensor of the group of atoms around its center of mass, including all
@@ -73,6 +76,8 @@ LAMMPS output options.
 
 The vector values calculated by this compute are "intensive".  The vector
 values will be in mass\*distance\ :math:`^2` :doc:`units <units>`.
+
+.. include:: accel_styles.rst
 
 Restrictions
 """"""""""""

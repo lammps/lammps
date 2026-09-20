@@ -1,7 +1,10 @@
 .. index:: compute contact/atom
+.. index:: compute contact/atom/omp
 
 compute contact/atom command
 ============================
+
+Accelerator Variants: *contact/atom/omp*
 
 Syntax
 """"""
@@ -49,6 +52,10 @@ overview of LAMMPS output options.
 
 The per-atom vector values will be a number :math:`\ge 0.0`, as explained
 above.
+
+----------
+
+.. include:: accel_styles.rst
 
 Restrictions
 """"""""""""

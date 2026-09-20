@@ -48,6 +48,8 @@ BondTable::BondTable(LAMMPS *_lmp) : Bond(_lmp), r0(nullptr), tabindex(nullptr)
 
 BondTable::~BondTable()
 {
+  if (copymode) return;
+
   for (int m = 0; m < ntables; m++) free_table(&tables[m]);
   memory->sfree(tables);
 

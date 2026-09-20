@@ -5,7 +5,7 @@
 #define KOKKOS_STD_ALGORITHMS_MOVE_BACKWARD_HPP
 
 #include "impl/Kokkos_MoveBackward.hpp"
-#include "Kokkos_BeginEnd.hpp"
+#include <Kokkos_Iterator.hpp>
 
 namespace Kokkos {
 namespace Experimental {

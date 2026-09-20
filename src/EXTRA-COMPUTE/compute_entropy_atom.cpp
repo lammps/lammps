@@ -99,6 +99,8 @@ ComputeEntropyAtom(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeEntropyAtom::~ComputeEntropyAtom()
 {
+  if (copymode) return;
+
   memory->destroy(pair_entropy);
   if (avg_flag) memory->destroy(pair_entropy_avg);
 }

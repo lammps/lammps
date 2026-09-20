@@ -1,9 +1,28 @@
+// clang-format off
+/* ----------------------------------------------------------------------
+   LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
+   https://www.lammps.org/, Sandia National Laboratories
+   LAMMPS development team: developers@lammps.org
+
+   Copyright (2003) Sandia Corporation.  Under the terms of Contract
+   DE-AC04-94AL85000 with Sandia Corporation, the U.S. Government retains
+   certain rights in this software.  This software is distributed under
+   the GNU General Public License.
+
+   See the README file in the top-level LAMMPS directory.
+------------------------------------------------------------------------- */
+
+#ifndef LMP_MEAM_FORCE_KOKKOS_H
+#define LMP_MEAM_FORCE_KOKKOS_H
+
 #include "math_special_kokkos.h"
 #include "meam_kokkos.h"
 #include <algorithm>
 
-using namespace LAMMPS_NS;
+namespace LAMMPS_NS {
+
 using namespace MathSpecialKokkos;
+
 
 template <class DeviceType>
 void MEAMKokkos<DeviceType>::meam_force(
@@ -183,13 +202,14 @@ KOKKOS_INLINE_FUNCTION void MEAMKokkos<DeviceType>::operator()(TagMEAMForce<NEIG
             d_phirar(ind, kk);
         phip = (d_phirar6(ind, kk) * pp + d_phirar5(ind, kk)) * pp + d_phirar4(ind, kk);
 
+        const KK_FLOAT scaleij = d_scale(type[i], type[j]);
+
         if (eflag_either) {
-          KK_FLOAT scaleij = d_scale(type[i], type[i]);
           KK_FLOAT phi_sc = phi * scaleij;
           if (eflag_global) ev.evdwl += static_cast<KK_ACC_FLOAT>(phi_sc * sij);
           if (eflag_atom) {
-            a_eatom[i] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * phi * sij);
-            a_eatom[j] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * phi * sij);
+            a_eatom[i] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * phi_sc * sij);
+            a_eatom[j] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * phi_sc * sij);
           }
         }
 
@@ -697,6 +717,13 @@ KOKKOS_INLINE_FUNCTION void MEAMKokkos<DeviceType>::operator()(TagMEAMForce<NEIG
         for (m = 0; m < 3; m++) {
           dUdrijm[m] = d_frhop[i] * drhodrm1[m] + d_frhop[j] * drhodrm2[m];
         }
+        if (scaleij != static_cast<KK_FLOAT>(1.0)) {
+          dUdrij *= scaleij;
+          dUdsij *= scaleij;
+          dUdrijm[0] *= scaleij;
+          dUdrijm[1] *= scaleij;
+          dUdrijm[2] *= scaleij;
+        }
 
         // Add the part of the force due to dUdrij and dUdsij
         force = dUdrij * recip + dUdsij * d_dscrfcn[fnoffset + jn];
@@ -832,3 +859,5 @@ KOKKOS_INLINE_FUNCTION void MEAMKokkos<DeviceType>::operator()(TagMEAMForce<NEIG
     // end of j loop
   }
 }
+}    // namespace LAMMPS_NS
+#endif

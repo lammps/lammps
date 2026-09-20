@@ -59,12 +59,29 @@ void DumpAtom::init_style()
   // default depends on image flags
 
   delete[] format;
+  std::string lineformat;
   if (format_line_user) {
-    format = utils::strdup(std::string(format_line_user) + "\n");
+    lineformat = std::string(format_line_user) + "\n";
   } else {
-    if (image_flag == 0) format = utils::strdup(TAGINT_FORMAT " %d %g %g %g\n");
-    else format = utils::strdup(TAGINT_FORMAT " %d %g %g %g %d %d %d\n");
+    if (image_flag == 0) lineformat = TAGINT_FORMAT " %d %g %g %g\n";
+    else lineformat = TAGINT_FORMAT " %d %g %g %g %d %d %d\n";
   }
+
+  // the line format may come from the user, so it has to be checked against
+  // the values it is used with.  the length modifiers of the integer
+  // conversions are adjusted, so that a user may write %d regardless of the
+  // integer sizes LAMMPS was compiled with.
+
+  const auto tagtype = (sizeof(tagint) == sizeof(smallint)) ? utils::FmtArg::INTEGER
+                                                            : utils::FmtArg::BIGINT;
+  std::vector<utils::FmtArg> expect = {tagtype, utils::FmtArg::INTEGER, utils::FmtArg::FLOAT,
+                                       utils::FmtArg::FLOAT, utils::FmtArg::FLOAT};
+  if (image_flag) expect.insert(expect.end(), 3, utils::FmtArg::INTEGER);
+
+  auto errmsg = utils::check_format(lineformat, expect);
+  if (!errmsg.empty())
+    error->all(FLERR, Error::NOLASTLINE, "Invalid dump {} format line: {}", id, errmsg);
+  format = utils::strdup(utils::adjust_format(lineformat, expect));
 
   // setup boundary string
 

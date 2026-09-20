@@ -20,6 +20,9 @@ read_data      data.cos.1000SPCE
 variable T equal 300
 variable P equal 1.0
 
+# can be overridden for abbreviated test runs
+variable nprod index 2000
+
 velocity       all create ${T} 12345 mom yes rot yes dist gaussian
 
 timestep       1.0
@@ -50,4 +53,4 @@ thermo         100
 dump           1 all custom 10000 dump.lammpstrj id mol type element q xu yu zu
 dump_modify    1 sort id element O H
 
-run            2000
+run            ${nprod}

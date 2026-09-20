@@ -645,11 +645,11 @@ void MathExtraKokkos::angmom_to_omega(KK_FLOAT *m, KK_FLOAT *ex, KK_FLOAT *ey, K
 {
   KK_FLOAT wbody[3];
 
-  if (idiag[0] == 0.0) wbody[0] = 0.0;
+  if (idiag[0] == static_cast<KK_FLOAT>(0.0)) wbody[0] = 0.0;
   else wbody[0] = (m[0]*ex[0] + m[1]*ex[1] + m[2]*ex[2]) / idiag[0];
-  if (idiag[1] == 0.0) wbody[1] = 0.0;
+  if (idiag[1] == static_cast<KK_FLOAT>(0.0)) wbody[1] = 0.0;
   else wbody[1] = (m[0]*ey[0] + m[1]*ey[1] + m[2]*ey[2]) / idiag[1];
-  if (idiag[2] == 0.0) wbody[2] = 0.0;
+  if (idiag[2] == static_cast<KK_FLOAT>(0.0)) wbody[2] = 0.0;
   else wbody[2] = (m[0]*ez[0] + m[1]*ez[1] + m[2]*ez[2]) / idiag[2];
 
   w[0] = wbody[0]*ex[0] + wbody[1]*ey[0] + wbody[2]*ez[0];
@@ -665,17 +665,17 @@ void MathExtraKokkos::angmom_to_omega(KK_FLOAT *m, KK_FLOAT *ex, KK_FLOAT *ey, K
 KOKKOS_INLINE_FUNCTION
 void MathExtraKokkos::q_to_exyz(double *q, KK_FLOAT *ex, KK_FLOAT *ey, KK_FLOAT *ez)
 {
-  ex[0] = q[0]*q[0] + q[1]*q[1] - q[2]*q[2] - q[3]*q[3];
-  ex[1] = 2.0 * (q[1]*q[2] + q[0]*q[3]);
-  ex[2] = 2.0 * (q[1]*q[3] - q[0]*q[2]);
+  ex[0] = static_cast<KK_FLOAT>(q[0]*q[0] + q[1]*q[1] - q[2]*q[2] - q[3]*q[3]);
+  ex[1] = static_cast<KK_FLOAT>(2.0 * (q[1]*q[2] + q[0]*q[3]));
+  ex[2] = static_cast<KK_FLOAT>(2.0 * (q[1]*q[3] - q[0]*q[2]));
 
-  ey[0] = 2.0 * (q[1]*q[2] - q[0]*q[3]);
-  ey[1] = q[0]*q[0] - q[1]*q[1] + q[2]*q[2] - q[3]*q[3];
-  ey[2] = 2.0 * (q[2]*q[3] + q[0]*q[1]);
+  ey[0] = static_cast<KK_FLOAT>(2.0 * (q[1]*q[2] - q[0]*q[3]));
+  ey[1] = static_cast<KK_FLOAT>(q[0]*q[0] - q[1]*q[1] + q[2]*q[2] - q[3]*q[3]);
+  ey[2] = static_cast<KK_FLOAT>(2.0 * (q[2]*q[3] + q[0]*q[1]));
 
-  ez[0] = 2.0 * (q[1]*q[3] + q[0]*q[2]);
-  ez[1] = 2.0 * (q[2]*q[3] - q[0]*q[1]);
-  ez[2] = q[0]*q[0] - q[1]*q[1] - q[2]*q[2] + q[3]*q[3];
+  ez[0] = static_cast<KK_FLOAT>(2.0 * (q[1]*q[3] + q[0]*q[2]));
+  ez[1] = static_cast<KK_FLOAT>(2.0 * (q[2]*q[3] - q[0]*q[1]));
+  ez[2] = static_cast<KK_FLOAT>(q[0]*q[0] - q[1]*q[1] - q[2]*q[2] + q[3]*q[3]);
 }
 
 /* ----------------------------------------------------------------------
@@ -710,34 +710,34 @@ void MathExtraKokkos::exyz_to_q(KK_FLOAT *ex, KK_FLOAT *ey, KK_FLOAT *ez, double
 {
   // squares of quaternion components (kept double: they feed the double quat)
 
-  double q0sq = 0.25 * (ex[0] + ey[1] + ez[2] + 1.0);
-  double q1sq = q0sq - 0.5 * (ey[1] + ez[2]);
-  double q2sq = q0sq - 0.5 * (ex[0] + ez[2]);
-  double q3sq = q0sq - 0.5 * (ex[0] + ey[1]);
+  double q0sq = 0.25 * (static_cast<double>(ex[0] + ey[1] + ez[2]) + 1.0);
+  double q1sq = q0sq - 0.5 * static_cast<double>(ey[1] + ez[2]);
+  double q2sq = q0sq - 0.5 * static_cast<double>(ex[0] + ez[2]);
+  double q3sq = q0sq - 0.5 * static_cast<double>(ex[0] + ey[1]);
 
   // some component must be greater than 1/4 since they sum to 1
   // compute other components from it
 
   if (q0sq >= 0.25) {
     q[0] = sqrt(q0sq);
-    q[1] = (ey[2] - ez[1]) / (4.0*q[0]);
-    q[2] = (ez[0] - ex[2]) / (4.0*q[0]);
-    q[3] = (ex[1] - ey[0]) / (4.0*q[0]);
+    q[1] = static_cast<double>(ey[2] - ez[1]) / (4.0*q[0]);
+    q[2] = static_cast<double>(ez[0] - ex[2]) / (4.0*q[0]);
+    q[3] = static_cast<double>(ex[1] - ey[0]) / (4.0*q[0]);
   } else if (q1sq >= 0.25) {
     q[1] = sqrt(q1sq);
-    q[0] = (ey[2] - ez[1]) / (4.0*q[1]);
-    q[2] = (ey[0] + ex[1]) / (4.0*q[1]);
-    q[3] = (ex[2] + ez[0]) / (4.0*q[1]);
+    q[0] = static_cast<double>(ey[2] - ez[1]) / (4.0*q[1]);
+    q[2] = static_cast<double>(ey[0] + ex[1]) / (4.0*q[1]);
+    q[3] = static_cast<double>(ex[2] + ez[0]) / (4.0*q[1]);
   } else if (q2sq >= 0.25) {
     q[2] = sqrt(q2sq);
-    q[0] = (ez[0] - ex[2]) / (4.0*q[2]);
-    q[1] = (ey[0] + ex[1]) / (4.0*q[2]);
-    q[3] = (ez[1] + ey[2]) / (4.0*q[2]);
+    q[0] = static_cast<double>(ez[0] - ex[2]) / (4.0*q[2]);
+    q[1] = static_cast<double>(ey[0] + ex[1]) / (4.0*q[2]);
+    q[3] = static_cast<double>(ez[1] + ey[2]) / (4.0*q[2]);
   } else if (q3sq >= 0.25) {
     q[3] = sqrt(q3sq);
-    q[0] = (ex[1] - ey[0]) / (4.0*q[3]);
-    q[1] = (ez[0] + ex[2]) / (4.0*q[3]);
-    q[2] = (ez[1] + ey[2]) / (4.0*q[3]);
+    q[0] = static_cast<double>(ex[1] - ey[0]) / (4.0*q[3]);
+    q[1] = static_cast<double>(ez[0] + ex[2]) / (4.0*q[3]);
+    q[2] = static_cast<double>(ez[1] + ey[2]) / (4.0*q[3]);
   }
 
   MathExtraKokkos::qnormalize(q);
@@ -761,10 +761,16 @@ void MathExtraKokkos::quatquat(double *a, double *b, double *c)
 KOKKOS_INLINE_FUNCTION
 void MathExtraKokkos::quatvec(double *a, KK_FLOAT *b, double *c)
 {
-  c[0] = -a[1] * b[0] - a[2] * b[1] - a[3] * b[2];
-  c[1] = a[0] * b[0] + a[2] * b[2] - a[3] * b[1];
-  c[2] = a[0] * b[1] + a[3] * b[0] - a[1] * b[2];
-  c[3] = a[0] * b[2] + a[1] * b[1] - a[2] * b[0];
+  // the result quaternion is double, so promote the KK_FLOAT vector explicitly
+
+  const double b0 = static_cast<double>(b[0]);
+  const double b1 = static_cast<double>(b[1]);
+  const double b2 = static_cast<double>(b[2]);
+
+  c[0] = -a[1] * b0 - a[2] * b1 - a[3] * b2;
+  c[1] = a[0] * b0 + a[2] * b2 - a[3] * b1;
+  c[2] = a[0] * b1 + a[3] * b0 - a[1] * b2;
+  c[3] = a[0] * b2 + a[1] * b1 - a[2] * b0;
 }
 
 /* ----------------------------------------------------------------------
@@ -776,9 +782,9 @@ void MathExtraKokkos::quatvec(double *a, KK_FLOAT *b, double *c)
 KOKKOS_INLINE_FUNCTION
 void MathExtraKokkos::invquatvec(double *a, double *b, KK_FLOAT *c)
 {
-  c[0] = -a[1] * b[0] + a[0] * b[1] + a[3] * b[2] - a[2] * b[3];
-  c[1] = -a[2] * b[0] - a[3] * b[1] + a[0] * b[2] + a[1] * b[3];
-  c[2] = -a[3] * b[0] + a[2] * b[1] - a[1] * b[2] + a[0] * b[3];
+  c[0] = static_cast<KK_FLOAT>(-a[1] * b[0] + a[0] * b[1] + a[3] * b[2] - a[2] * b[3]);
+  c[1] = static_cast<KK_FLOAT>(-a[2] * b[0] - a[3] * b[1] + a[0] * b[2] + a[1] * b[3]);
+  c[2] = static_cast<KK_FLOAT>(-a[3] * b[0] + a[2] * b[1] - a[1] * b[2] + a[0] * b[3]);
 }
 
 /* ----------------------------------------------------------------------
@@ -813,10 +819,10 @@ void MathExtraKokkos::no_squish_rotate(int k, double *p, double *q, KK_FLOAT *in
   // obtain phi, cosines and sines
 
   phi = p[0]*kq[0] + p[1]*kq[1] + p[2]*kq[2] + p[3]*kq[3];
-  if (inertia[k-1] == 0.0) phi = 0.0;
-  else phi /= 4.0 * inertia[k-1];
-  c_phi = cos(dt * phi);
-  s_phi = sin(dt * phi);
+  if (inertia[k-1] == static_cast<KK_FLOAT>(0.0)) phi = 0.0;
+  else phi /= 4.0 * static_cast<double>(inertia[k-1]);
+  c_phi = cos(static_cast<double>(dt) * phi);
+  s_phi = sin(static_cast<double>(dt) * phi);
 
   // advance p and q
 

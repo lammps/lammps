@@ -38,6 +38,7 @@ class HostSpace {
   //! Tag this class as a kokkos memory space
   using memory_space = HostSpace;
   using size_type    = size_t;
+  using index_type   = std::make_signed_t<size_type>;
 
   /// \typedef execution_space
   /// \brief Default execution space for this memory space.
@@ -101,32 +102,49 @@ namespace Impl {
 static_assert(Kokkos::Impl::MemorySpaceAccess<Kokkos::HostSpace,
                                               Kokkos::HostSpace>::assignable);
 
-template <typename S>
+template <typename MemSpace>
 struct HostMirror {
  private:
+  static_assert(is_memory_space_v<MemSpace>);
+
   // If input execution space can access HostSpace then keep it.
   // Example: Kokkos::OpenMP can access, Kokkos::Cuda cannot
   enum {
-    keep_exe = Kokkos::Impl::MemorySpaceAccess<
-        typename S::execution_space::memory_space,
-        Kokkos::HostSpace>::accessible
+    keep_exe = Kokkos::SpaceAccessibility<typename MemSpace::execution_space,
+                                          Kokkos::HostSpace>::accessible
   };
-
   // If HostSpace can access memory space then keep it.
-  // Example:  Cannot access Kokkos::CudaSpace, can access Kokkos::CudaUVMSpace
+  // Example: Cannot access Kokkos::CudaSpace, can access Kokkos::CudaUVMSpace
   enum {
     keep_mem =
-        Kokkos::Impl::MemorySpaceAccess<Kokkos::HostSpace,
-                                        typename S::memory_space>::accessible
+        Kokkos::Impl::MemorySpaceAccess<Kokkos::HostSpace, MemSpace>::accessible
   };
 
  public:
-  using Space = std::conditional_t<
-      keep_exe && keep_mem, S,
-      std::conditional_t<keep_mem,
-                         Kokkos::Device<Kokkos::HostSpace::execution_space,
-                                        typename S::memory_space>,
-                         Kokkos::HostSpace>>;
+  // Construct a device mirror type
+  // Decision logic: First check if HostSpace can access the memory space.
+  // If yes, keep it and check execution space compatibility.
+  // If no, fall back to HostSpace::device_type.
+
+  // keep_exe | keep_mem | Result
+  // ---------|----------|-------
+  //    T     |    T     | MemSpace::device_type
+  //    F     |    T     | Device<HostSpace::execution_space, MemSpace>
+  //    T     |    F     | HostSpace::device_type
+  //    F     |    F     | HostSpace::device_type
+
+  using device_type = std::conditional_t<
+      keep_mem,
+      std::conditional_t<
+          keep_exe, typename MemSpace::device_type,
+          Kokkos::Device<Kokkos::HostSpace::execution_space, MemSpace>>,
+      Kokkos::HostSpace::device_type>;
+
+  using execution_space = typename device_type::execution_space;
+  using memory_space    = typename device_type::memory_space;
+
+  // FIXME: should be deprecated eventually
+  using Space = memory_space;
 };
 
 }  // namespace Impl

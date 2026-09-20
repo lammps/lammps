@@ -207,7 +207,7 @@ void FixWallBodyPolygon::init()
     error->all(FLERR,"Pair body/rounded/polygon requires body style rounded/polygon");
   bptr = dynamic_cast<BodyRoundedPolygon *>(avec->bptr);
 
-  if (!force->pair_match("body/rounded/polygon",1))
+  if (!force->pair_match("^body/rounded/polygon",0))
     error->all(FLERR,"Fix wall/body/polygon is incompatible with Pair style");
 }
 

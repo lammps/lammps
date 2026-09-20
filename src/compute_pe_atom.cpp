@@ -109,8 +109,10 @@ void ComputePEAtom::compute_peratom()
   // npair includes ghosts if either newton flag is set
   //   b/c some bonds/dihedrals call pair::ev_tally with pairwise info
   // nbond includes ghosts if newton_bond is set
-  // ntotal includes ghosts if either newton flag is set
   // KSpace includes ghosts if tip4pflag is set
+  // ntotal includes ghosts if either newton flag is set or if the ghost
+  //   values are reverse communicated below (tip4pflag), since the entries
+  //   of atoms that are not tallied by any style must be zero for that
 
   int nlocal = atom->nlocal;
   int npair = nlocal;
@@ -119,8 +121,8 @@ void ComputePEAtom::compute_peratom()
   int nkspace = nlocal;
   if (force->newton) npair += atom->nghost;
   if (force->newton_bond) nbond += atom->nghost;
-  if (force->newton) ntotal += atom->nghost;
   if (force->kspace && force->kspace->tip4pflag) nkspace += atom->nghost;
+  if (force->newton || (force->kspace && force->kspace->tip4pflag)) ntotal += atom->nghost;
 
   // clear local energy array
 

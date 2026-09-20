@@ -76,7 +76,7 @@ int BaseEllipsoidT::bytes_per_atom_ellipsoid(const int max_nbors) const {
 template <class numtyp, class acctyp>
 int BaseEllipsoidT::init_base(const int nlocal, const int nall,
                               const int max_nbors, const int maxspecial,
-                              const double cell_size, const double gpu_split,
+                              const double cell_size,
                               FILE *_screen, const int ntypes, int **h_form,
                               const void *ellipsoid_program,
                               const void *lj_program, const char *k_name,
@@ -90,10 +90,6 @@ int BaseEllipsoidT::init_base(const int nlocal, const int nall,
   else if (device->gpu_mode()==Device<numtyp,acctyp>::GPU_HYB_NEIGH)
     gpu_nbor=2;
 
-  int _gpu_host=0;
-  int host_nlocal=hd_balancer.first_host_count(nlocal,gpu_split,gpu_nbor);
-  if (host_nlocal>0)
-    _gpu_host=1;
 
   _threads_per_atom=device->threads_per_atom();
 
@@ -109,13 +105,11 @@ int BaseEllipsoidT::init_base(const int nlocal, const int nall,
   _block_size=device->block_ellipse();
   compile_kernels(*ucl_device,ellipsoid_program,lj_program,k_name,ellip_sphere);
 
-  success = device->init_nbor(nbor,nlocal,host_nlocal,nall,maxspecial,_gpu_host,
+  success = device->init_nbor(nbor,nlocal,0,nall,maxspecial,0,
                   max_nbors,cell_size,true,1);
   if (success!=0)
     return success;
 
-  // Initialize host-device load balancer
-  hd_balancer.init(device,gpu_nbor,gpu_split);
 
   // Initialize timers for the selected GPU
   time_lj.init(*ucl_device);
@@ -140,8 +134,6 @@ int BaseEllipsoidT::init_base(const int nlocal, const int nall,
     for (int j=i; j<ntypes; j++)
       if (_host_form[i][j]!=ELLIPSE_ELLIPSE)
         _multiple_forms=true;
-  if (_multiple_forms && host_nlocal>0)
-    return -8;
   if (_multiple_forms && gpu_nbor!=0)
     return -9;
 
@@ -183,7 +175,6 @@ void BaseEllipsoidT::clear_base() {
   time_nbor3.clear();
   time_ellipsoid3.clear();
   time_lj.clear();
-  hd_balancer.clear();
 
   nbor->clear();
   ans->clear();
@@ -213,7 +204,6 @@ void BaseEllipsoidT::output_times() {
   single[9]=nbor->bin_time();
 
   MPI_Reduce(single,times,10,MPI_DOUBLE,MPI_SUM,0,device->replica());
-  double avg_split=hd_balancer.all_avg_split();
 
   _max_bytes+=atom->max_gpu_bytes();
   double mpi_max_bytes;
@@ -251,7 +241,6 @@ void BaseEllipsoidT::output_times() {
       }
       if (times[6] > 0.0)
         fprintf(screen,"Device Overhead: %.4f s.\n",times[6]/replica_size);
-      fprintf(screen,"Average split:   %.4f.\n",avg_split);
       fprintf(screen,"Lanes / atom:    %d.\n",_threads_per_atom);
       fprintf(screen,"Vector width:    %d.\n", device->simd_size());
       fprintf(screen,"Max Mem / Proc:  %.2f MB.\n",max_mb);
@@ -374,7 +363,6 @@ int* BaseEllipsoidT::compute(const int f_ago, const int inum_full,
                              int *ilist, int *numj, int **firstneigh,
                              const bool eflag_in, const bool vflag_in,
                              const bool eatom, const bool vatom,
-                             int &host_start, const double cpu_time,
                              bool &success, const int *ellipsoid,
                              const EllipsoidBonus *bonus) {
   acc_timers();
@@ -386,16 +374,15 @@ int* BaseEllipsoidT::compute(const int f_ago, const int inum_full,
 
   set_kernel(eflag,vflag);
   if (inum_full==0) {
-    host_start=0;
     zero_timers();
     return nullptr;
   }
 
-  int ago=hd_balancer.ago_first(f_ago);
-  int inum=hd_balancer.balance(ago,inum_full,cpu_time);
+  int ago=f_ago;
+  int inum=inum_full;
+  _timestep++;
   ans->inum(inum);
   _last_ellipse=std::min(inum,_max_last_ellipse);
-  host_start=inum;
 
   if (ago==0) {
     reset_nbors(nall, inum, inum_full, ilist, numj, host_type, firstneigh,
@@ -411,14 +398,12 @@ int* BaseEllipsoidT::compute(const int f_ago, const int inum_full,
 
   atom->cast_x_data(host_x,host_type);
   atom->cast_quat_data(ellipsoid,bonus);
-  hd_balancer.start_timer();
   atom->add_x_data(host_x,host_type);
   atom->add_quat_data();
 
   loop(eflag,vflag);
   ans->copy_answers(eflag_in,vflag_in,eatom,vatom,list,inum);
   device->add_ans_object(ans);
-  hd_balancer.stop_timer();
   return list;
 }
 
@@ -432,8 +417,8 @@ int** BaseEllipsoidT::compute(const int ago, const int inum_full,
                               int **nspecial, tagint **special,
                               const bool eflag_in, const bool vflag_in,
                               const bool eatom, const bool vatom,
-                              int &host_start, int **ilist, int **jnum,
-                              const double cpu_time, bool &success,
+                              int **ilist, int **jnum,
+                              bool &success,
                               const int *ellipsoid,
                               const EllipsoidBonus *bonus) {
   acc_timers();
@@ -445,16 +430,14 @@ int** BaseEllipsoidT::compute(const int ago, const int inum_full,
 
   set_kernel(eflag,vflag);
   if (inum_full==0) {
-    host_start=0;
     zero_timers();
     return nullptr;
   }
 
-  hd_balancer.balance(cpu_time);
-  int inum=hd_balancer.get_gpu_count(ago,inum_full);
+  int inum=inum_full;
+  _timestep++;
   ans->inum(inum);
   _last_ellipse=std::min(inum,_max_last_ellipse);
-  host_start=inum;
 
   // Build neighbor list on GPU if necessary
   if (ago==0) {
@@ -463,11 +446,9 @@ int** BaseEllipsoidT::compute(const int ago, const int inum_full,
     if (!success)
       return nullptr;
     atom->cast_quat_data(ellipsoid,bonus);
-    hd_balancer.start_timer();
   } else {
     atom->cast_x_data(host_x,host_type);
     atom->cast_quat_data(ellipsoid,bonus);
-    hd_balancer.start_timer();
     atom->add_x_data(host_x,host_type);
   }
 
@@ -478,9 +459,8 @@ int** BaseEllipsoidT::compute(const int ago, const int inum_full,
   loop(eflag,vflag);
   ans->copy_answers(eflag_in,vflag_in,eatom,vatom,inum);
   device->add_ans_object(ans);
-  hd_balancer.stop_timer();
 
-  return nbor->host_jlist.begin()-host_start;
+  return nbor->host_jlist.begin()-inum;
 }
 
 template <class numtyp, class acctyp>

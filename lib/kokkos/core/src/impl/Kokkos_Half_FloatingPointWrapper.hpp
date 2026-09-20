@@ -10,6 +10,17 @@
 #include <type_traits>
 #include <iosfwd>  // istream & ostream for extraction and insertion ops
 #include <string>
+#include <cstdint>
+
+#ifdef KOKKOS_ENABLE_CUDA
+#include <Cuda/Kokkos_Cuda_Half_Impl_Type.hpp>
+#endif
+#ifdef KOKKOS_ENABLE_HIP
+#include <HIP/Kokkos_HIP_Half_Impl_Type.hpp>
+#endif
+#ifdef KOKKOS_ENABLE_SYCL
+#include <SYCL/Kokkos_SYCL_Half_Impl_Type.hpp>
+#endif
 
 namespace Kokkos::Experimental::Impl {
 /// @brief templated struct for determining if half_t is an alias to float.
@@ -23,21 +34,7 @@ template <class T>
 struct is_bfloat16 : std::false_type {};
 }  // namespace Kokkos::Experimental::Impl
 
-#ifdef KOKKOS_IMPL_HALF_TYPE_DEFINED
-
-// KOKKOS_HALF_IS_FULL_TYPE_ON_ARCH: A macro to select which
-// floating_pointer_wrapper operator paths should be used. For CUDA, let the
-// compiler conditionally select when device ops are used. For SYCL, we have a
-// full half type on both host and device. For HIP, we have a full half type on
-// host and device only for ROCm 6.4 and later.
-#if defined(__CUDA_ARCH__) ||                                 \
-    (defined(KOKKOS_ENABLE_HIP) &&                            \
-     ((HIP_VERSION_MAJOR > 6 ||                               \
-       (HIP_VERSION_MAJOR == 6 && HIP_VERSION_MINOR >= 4)) || \
-      defined(__HIP_DEVICE_COMPILE__))) ||                    \
-    defined(KOKKOS_ENABLE_SYCL)
-#define KOKKOS_HALF_IS_FULL_TYPE_ON_ARCH
-#endif
+#if !KOKKOS_HALF_T_IS_FLOAT
 
 /************************* BEGIN forward declarations *************************/
 namespace Kokkos {
@@ -49,7 +46,7 @@ class floating_point_wrapper;
 
 // Declare half_t (binary16)
 using half_t = Kokkos::Experimental::Impl::floating_point_wrapper<
-    Kokkos::Impl::half_impl_t ::type>;
+    Kokkos::Impl::half_impl_t::type>;
 namespace Impl {
 template <>
 struct is_float16<half_t> : std::true_type {};
@@ -115,7 +112,7 @@ KOKKOS_INLINE_FUNCTION
         cast_from_half(half_t);
 
 // declare bhalf_t
-#ifdef KOKKOS_IMPL_BHALF_TYPE_DEFINED
+#if !KOKKOS_BHALF_T_IS_FLOAT
 using bhalf_t = Kokkos::Experimental::Impl::floating_point_wrapper<
     Kokkos::Impl ::bhalf_impl_t ::type>;
 namespace Impl {
@@ -181,27 +178,27 @@ template <class T>
 KOKKOS_INLINE_FUNCTION
     std::enable_if_t<std::is_same_v<T, unsigned long long>, T>
         cast_from_bhalf(bhalf_t);
-#endif  // KOKKOS_IMPL_BHALF_TYPE_DEFINED
+#endif
 
 template <class T>
 static KOKKOS_INLINE_FUNCTION Kokkos::Experimental::half_t cast_to_wrapper(
     T x, const Kokkos::Impl::half_impl_t::type&);
 
-#ifdef KOKKOS_IMPL_BHALF_TYPE_DEFINED
+#if !KOKKOS_BHALF_T_IS_FLOAT
 template <class T>
 static KOKKOS_INLINE_FUNCTION Kokkos::Experimental::bhalf_t cast_to_wrapper(
     T x, const Kokkos::Impl::bhalf_impl_t::type&);
-#endif  // KOKKOS_IMPL_BHALF_TYPE_DEFINED
+#endif
 
 template <class T>
 static KOKKOS_INLINE_FUNCTION T
 cast_from_wrapper(const Kokkos::Experimental::half_t& x);
 
-#ifdef KOKKOS_IMPL_BHALF_TYPE_DEFINED
+#if !KOKKOS_BHALF_T_IS_FLOAT
 template <class T>
 static KOKKOS_INLINE_FUNCTION T
 cast_from_wrapper(const Kokkos::Experimental::bhalf_t& x);
-#endif  // KOKKOS_IMPL_BHALF_TYPE_DEFINED
+#endif
 /************************** END forward declarations **************************/
 
 namespace Impl {
@@ -251,7 +248,7 @@ inline constexpr BitComparisonWrapper<FloatType> exponent_mask;
 template <typename FloatType>
 inline constexpr BitComparisonWrapper<FloatType> fraction_mask;
 
-#ifdef KOKKOS_IMPL_HALF_TYPE_DEFINED
+#if !KOKKOS_HALF_T_IS_FLOAT
 template <>
 inline constexpr BitComparisonWrapper<Kokkos::Experimental::half_t>
     exponent_mask<Kokkos::Experimental::half_t>{0b0'11111'0000000000};
@@ -260,7 +257,7 @@ inline constexpr BitComparisonWrapper<Kokkos::Experimental::half_t>
     fraction_mask<Kokkos::Experimental::half_t>{0b0'00000'1111111111};
 #endif
 
-#ifdef KOKKOS_IMPL_BHALF_TYPE_DEFINED
+#if !KOKKOS_BHALF_T_IS_FLOAT
 template <>
 inline constexpr BitComparisonWrapper<Kokkos::Experimental::bhalf_t>
     exponent_mask<Kokkos::Experimental::bhalf_t>{0b0'11111111'0000000};
@@ -889,13 +886,13 @@ static KOKKOS_INLINE_FUNCTION Kokkos::Experimental::half_t cast_to_wrapper(
   return Kokkos::Experimental::cast_to_half(x);
 }
 
-#ifdef KOKKOS_IMPL_BHALF_TYPE_DEFINED
+#if !KOKKOS_BHALF_T_IS_FLOAT
 template <class T>
 static KOKKOS_INLINE_FUNCTION Kokkos::Experimental::bhalf_t cast_to_wrapper(
     T x, const Kokkos::Impl::bhalf_impl_t::type&) {
   return Kokkos::Experimental::cast_to_bhalf(x);
 }
-#endif  // KOKKOS_IMPL_BHALF_TYPE_DEFINED
+#endif
 
 template <class T>
 static KOKKOS_INLINE_FUNCTION T
@@ -903,24 +900,22 @@ cast_from_wrapper(const Kokkos::Experimental::half_t& x) {
   return Kokkos::Experimental::cast_from_half<T>(x);
 }
 
-#ifdef KOKKOS_IMPL_BHALF_TYPE_DEFINED
+#if !KOKKOS_BHALF_T_IS_FLOAT
 template <class T>
 static KOKKOS_INLINE_FUNCTION T
 cast_from_wrapper(const Kokkos::Experimental::bhalf_t& x) {
   return Kokkos::Experimental::cast_from_bhalf<T>(x);
 }
-#endif  // KOKKOS_IMPL_BHALF_TYPE_DEFINED
+#endif
 
 }  // namespace Experimental
 }  // namespace Kokkos
 
-#endif  // KOKKOS_IMPL_HALF_TYPE_DEFINED
+#endif
 
 // If none of the above actually did anything and defined a half precision type
 // define a fallback implementation here using float
-#ifndef KOKKOS_IMPL_HALF_TYPE_DEFINED
-#define KOKKOS_IMPL_HALF_TYPE_DEFINED
-#define KOKKOS_HALF_T_IS_FLOAT true
+#if KOKKOS_HALF_T_IS_FLOAT
 namespace Kokkos {
 namespace Impl {
 struct half_impl_t {
@@ -973,14 +968,9 @@ cast_from_half(half_t val) {
 
 }  // namespace Experimental
 }  // namespace Kokkos
+#endif
 
-#else
-#define KOKKOS_HALF_T_IS_FLOAT false
-#endif  // KOKKOS_IMPL_HALF_TYPE_DEFINED
-
-#ifndef KOKKOS_IMPL_BHALF_TYPE_DEFINED
-#define KOKKOS_IMPL_BHALF_TYPE_DEFINED
-#define KOKKOS_BHALF_T_IS_FLOAT true
+#if KOKKOS_BHALF_T_IS_FLOAT
 namespace Kokkos {
 namespace Impl {
 struct bhalf_impl_t {
@@ -1031,8 +1021,6 @@ cast_from_bhalf(bhalf_t val) {
 }
 }  // namespace Experimental
 }  // namespace Kokkos
-#else
-#define KOKKOS_BHALF_T_IS_FLOAT false
-#endif  // KOKKOS_IMPL_BHALF_TYPE_DEFINED
+#endif
 
 #endif  // KOKKOS_HALF_FLOATING_POINT_WRAPPER_HPP_

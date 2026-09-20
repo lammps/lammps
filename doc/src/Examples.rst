@@ -56,6 +56,8 @@ Lowercase directories
 +-------------+------------------------------------------------------------------+
 | bpm         | simulations of solid elastic/plastic deformation and fracture    |
 +-------------+------------------------------------------------------------------+
+| charmmfsw   | solvated protein with CHARMM force field and force switching     |
++-------------+------------------------------------------------------------------+
 | cmap        | CMAP 5-body contributions to CHARMM force field                  |
 +-------------+------------------------------------------------------------------+
 | colloid     | big colloid particles in a small particle solvent, 2d system     |
@@ -84,13 +86,13 @@ Lowercase directories
 +-------------+------------------------------------------------------------------+
 | friction    | frictional contact of spherical asperities between 2d surfaces   |
 +-------------+------------------------------------------------------------------+
-| gjf         | examples for Gronbech-Jensen thermostats with large time step    |
-+-------------+------------------------------------------------------------------+
 | granregion  | use of fix wall/region/gran as boundary on granular particles    |
 +-------------+------------------------------------------------------------------+
-| grid        | use of commands which overlay grids on the simulation domain     |
+| gransurf    | granular particles interacting with line or triangle surfaces    |
 +-------------+------------------------------------------------------------------+
-| hugoniostat | Hugoniostat shock dynamics                                       |
+| granular    | granular models using the pair style granular variants           |
++-------------+------------------------------------------------------------------+
+| grid        | use of commands which overlay grids on the simulation domain     |
 +-------------+------------------------------------------------------------------+
 | hyper       | global and local hyperdynamics of diffusion on Pt surface        |
 +-------------+------------------------------------------------------------------+
@@ -114,8 +116,6 @@ Lowercase directories
 +-------------+------------------------------------------------------------------+
 | mliap       | examples for using several bundled ML-IAP potentials             |
 +-------------+------------------------------------------------------------------+
-| msst        | MSST shock dynamics                                              |
-+-------------+------------------------------------------------------------------+
 | multi       | multi neighboring for systems with large interaction disparities |
 +-------------+------------------------------------------------------------------+
 | nb3b        | use of non-bonded 3-body harmonic pair style                     |
@@ -131,6 +131,8 @@ Lowercase directories
 | peptide     | dynamics of a small solvated peptide chain (5-mer)               |
 +-------------+------------------------------------------------------------------+
 | peri        | Peridynamic model of cylinder impacted by indenter               |
++-------------+------------------------------------------------------------------+
+| plugins     | example plugins loading LAMMPS styles from shared object files   |
 +-------------+------------------------------------------------------------------+
 | pour        | pouring of granular particles into a 3d box, then chute flow     |
 +-------------+------------------------------------------------------------------+
@@ -166,11 +168,11 @@ Lowercase directories
 +-------------+------------------------------------------------------------------+
 | tad         | temperature-accelerated dynamics of vacancy diffusion in bulk Si |
 +-------------+------------------------------------------------------------------+
+| template    | use of atom_style template compared to atom style molecular      |
++-------------+------------------------------------------------------------------+
 | tersoff     | regression test input for Tersoff potential variants             |
 +-------------+------------------------------------------------------------------+
 | threebody   | regression test input for a variety of manybody potentials       |
-+-------------+------------------------------------------------------------------+
-| tracker     | track interactions in LJ melt                                    |
 +-------------+------------------------------------------------------------------+
 | triclinic   | general triclinic simulation boxes versus orthogonal boxes       |
 +-------------+------------------------------------------------------------------+
@@ -178,7 +180,7 @@ Lowercase directories
 +-------------+------------------------------------------------------------------+
 | vashishta   | use of the Vashishta potential                                   |
 +-------------+------------------------------------------------------------------+
-| voronoi     | Voronoi tesselation via compute voronoi/atom command             |
+| voronoi     | Voronoi tessellation via compute voronoi/atom command            |
 +-------------+------------------------------------------------------------------+
 | wall        | use of reflective walls with different stochastic models         |
 +-------------+------------------------------------------------------------------+
@@ -190,8 +192,8 @@ Here is how you can run and visualize one of the sample problems:
 .. code-block:: bash
 
    cd indent
-   cp ../../src/lmp_linux .           # copy LAMMPS executable to this dir
-   lmp_linux -in in.indent            # run the problem
+   cp ../../src/lmp_mpi .           # copy LAMMPS executable to this dir
+   lmp_mpi -in in.indent            # run the problem
 
 Running the simulation produces the files *dump.indent* and
 *log.lammps*\ .  You can visualize the dump file of snapshots with a
@@ -228,6 +230,8 @@ Uppercase directories
 | ELASTIC    | compute elastic constants at zero temperature                                                    |
 +------------+--------------------------------------------------------------------------------------------------+
 | ELASTIC_T  | compute elastic constants at finite temperature                                                  |
++------------+--------------------------------------------------------------------------------------------------+
+| GRAPHICS   | advanced visualizations and animations using the GRAPHICS package                                |
 +------------+--------------------------------------------------------------------------------------------------+
 | HEAT       | compute thermal conductivity for LJ and water via fix ehex                                       |
 +------------+--------------------------------------------------------------------------------------------------+

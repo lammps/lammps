@@ -300,14 +300,67 @@ void PairMEAMKokkos<DeviceType>::coeff(int narg, char **arg)
   auto h_map = Kokkos::create_mirror_view(d_map);
   auto h_scale = Kokkos::create_mirror_view(d_scale);
 
+  // PairMEAM::coeff() only writes the upper triangle of scale[][]; the lower
+  // triangle stays uninitialised until init_one() mirrors it.  Seed the whole
+  // device copy with the same default instead of reading that memory here, and
+  // let init_one() install the real values once they exist
+
   for (int i = 1; i <= n; i++) {
     h_map[i] = map[i];
     for (int j = 1; j <= n; j++)
-      h_scale(i,j) = scale[i][j];
+      h_scale(i,j) = static_cast<KK_FLOAT>(1.0);
   }
 
   Kokkos::deep_copy(d_map,h_map);
   Kokkos::deep_copy(d_scale,h_scale);
+}
+
+/* ----------------------------------------------------------------------
+   Pair::init() calls init_one() for every type pair after coeff() has run, and
+   PairMEAM::init_one() is what makes scale[][] symmetric.  Refresh the device
+   copy here so it never holds the pre-symmetrised values
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+double PairMEAMKokkos<DeviceType>::init_one(int i, int j)
+{
+  const double cut = PairMEAM::init_one(i,j);
+
+  if (d_scale.data()) {
+    const int n = atom->ntypes;
+    auto h_scale = Kokkos::create_mirror_view(d_scale);
+    for (int ii = 1; ii <= n; ii++)
+      for (int jj = 1; jj <= n; jj++)
+        h_scale(ii,jj) = scale[ii][jj];
+    Kokkos::deep_copy(d_scale,h_scale);
+  }
+
+  return cut;
+}
+
+/* ----------------------------------------------------------------------
+   refresh the device copy of scale[][]
+
+   fix adapt writes scale[][] through PairMEAM::extract() and then calls
+   Pair::reinit(), so without this override the device keeps the values
+   captured at pair_coeff time and the requested scaling never takes effect
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void PairMEAMKokkos<DeviceType>::reinit()
+{
+  PairMEAM::reinit();
+
+  if (!d_scale.data()) return;
+
+  const int n = atom->ntypes;
+  auto h_scale = Kokkos::create_mirror_view(d_scale);
+  for (int i = 1; i <= n; i++)
+    for (int j = 1; j <= n; j++)
+      h_scale(i,j) = scale[i][j];
+  Kokkos::deep_copy(d_scale,h_scale);
+
+  // meam_inst_kk->d_scale is refreshed from this view on the next meam_dens_final()
 }
 
 /* ----------------------------------------------------------------------

@@ -333,19 +333,6 @@ void PairBondValKokkos<DeviceType>::allocate()
 }
 
 /* ----------------------------------------------------------------------
-   global settings
-------------------------------------------------------------------------- */
-
-template<class DeviceType>
-void PairBondValKokkos<DeviceType>::settings(int narg, char **arg)
-{
-  if (narg > 3) error->all(FLERR,"Illegal pair_style command");
-
-  PairBondVal::settings(2,arg);
-}
-
-
-/* ----------------------------------------------------------------------
    init specific to this pair style
 ------------------------------------------------------------------------- */
 

@@ -179,7 +179,10 @@ class PythonCapabilities(unittest.TestCase):
                 self.assertIn('openmp',settings['KOKKOS']['api'])
             if 'Kokkos_ENABLE_SERIAL' in self.cmake_cache and self.cmake_cache['Kokkos_ENABLE_SERIAL']:
                 self.assertIn('serial',settings['KOKKOS']['api'])
-            self.assertIn('double',settings['KOKKOS']['precision'])
+            if 'KOKKOS_PREC' in self.cmake_cache:
+                self.assertIn(self.cmake_cache['KOKKOS_PREC'].lower(),settings['KOKKOS']['precision'])
+            else:
+                self.assertIn('double',settings['KOKKOS']['precision'])
 
     def test_gpu_device(self):
 

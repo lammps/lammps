@@ -698,7 +698,7 @@ void ReadData::command(int narg, char **arg)
       }
     }
 
-    // setup simulation box and partioning in Domain and Comm classes
+    // setup simulation box and partitioning in Domain and Comm classes
 
     domain->print_box("  ");
     domain->set_initial_box();

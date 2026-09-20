@@ -45,8 +45,8 @@ consistent with the rest of LAMMPS.
 
 The "Examples" column is a subdirectory in the examples directory of the
 distribution which has one or more input scripts that use the package.
-E.g. ``peptide`` refers to the ``examples/peptide`` directory; ``PACKAGES/atc`` refers
-to the ``examples/PACKAGES/atc`` directory.  The "Lib" column indicates``
+E.g. ``peptide`` refers to the ``examples/peptide`` directory; ``PACKAGES/fep`` refers
+to the ``examples/PACKAGES/fep`` directory.  The "Lib" column indicates``
 whether an extra library is needed to build and use the package:
 
 * no  = no library
@@ -529,7 +529,7 @@ whether an extra library is needed to build and use the package:
      - ``PACKAGES/uef``
      - no
    * - :ref:`VORONOI <PKG-VORONOI>`
-     - Voronoi tesselation
+     - Voronoi tessellation
      - :doc:`compute voronoi/atom <compute_voronoi_atom>`
      - n/a
      - ext

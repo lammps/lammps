@@ -37,7 +37,6 @@
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
-using MathSpecial::powint;
 
 enum{FS,FS_SHIFTEDSCALED};
 
@@ -86,6 +85,13 @@ PairPODKokkos<DeviceType>::~PairPODKokkos()
 template<class DeviceType>
 void PairPODKokkos<DeviceType>::init_style()
 {
+  // record the neighbor list style for both backends.  unlike other KOKKOS pair
+  // styles the host backend does not fall back to the non-accelerated compute()
+  // but runs the same kernels on a neighbor list copied over from a non-KOKKOS
+  // list, and compute() reads neighflag to decide how the virial is tallied.
+
+  neighflag = lmp->kokkos->neighflag;
+
   if (host_flag) {
     if (lmp->kokkos->nthreads > 1)
       error->all(FLERR,"Pair style pod/kk can currently only run on a single "
@@ -98,14 +104,12 @@ void PairPODKokkos<DeviceType>::init_style()
   if (atom->tag_enable == 0) error->all(FLERR, "Pair style POD requires atom IDs");
   if (force->newton_pair == 0) error->all(FLERR, "Pair style POD requires newton pair on");
 
-  neighflag = lmp->kokkos->neighflag;
-
   auto request = neighbor->add_request(this, NeighConst::REQ_FULL);
   request->set_kokkos_host(std::is_same_v<DeviceType,LMPHostType> &&
                            !std::is_same_v<DeviceType,LMPDeviceType>);
   request->set_kokkos_device(std::is_same_v<DeviceType,LMPDeviceType>);
   if (neighflag == FULL)
-    error->all(FLERR,"Must use half neighbor list style with pair pace/kk");
+    error->all(FLERR,"Must use half neighbor list style with pair pod/kk");
 }
 
 /* ----------------------------------------------------------------------
@@ -305,7 +309,6 @@ void PairPODKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     end = std::chrono::high_resolution_clock::now();
     comptime[3] += std::chrono::duration_cast<std::chrono::nanoseconds>(end-begin).count()/1e6;
 
-    //savedatafordebugging();
   }
 
   if (vflag_fdotr) pair_virial_fdotr_compute(this);
@@ -1774,66 +1777,6 @@ void PairPODKokkos<DeviceType>::tallystress(t_pod_1d l_fij, t_pod_1d l_rij, t_po
     });
   }
 }
-
-template<class DeviceType>
-void PairPODKokkos<DeviceType>::savematrix2binfile(std::string filename, t_pod_1d d_A, int nrows, int ncols)
-{
-  auto A = Kokkos::create_mirror_view(d_A);
-  Kokkos::deep_copy(A, d_A);
-
-  SafeFilePtr fp = fopen(filename.c_str(), "wb");
-  double sz[2];
-  sz[0] = (double) nrows;
-  sz[1] = (double) ncols;
-  fwrite( reinterpret_cast<char*>( sz ), sizeof(double) * (2), 1, fp);
-  fwrite( reinterpret_cast<char*>( A.data() ), sizeof(double) * (nrows*ncols), 1, fp);
-}
-
-template<class DeviceType>
-void PairPODKokkos<DeviceType>::saveintmatrix2binfile(std::string filename, t_pod_1i d_A, int nrows, int ncols)
-{
-  auto A = Kokkos::create_mirror_view(d_A);
-  Kokkos::deep_copy(A, d_A);
-
-  SafeFilePtr fp = fopen(filename.c_str(), "wb");
-  int sz[2];
-  sz[0] = nrows;
-  sz[1] = ncols;
-  fwrite( reinterpret_cast<char*>( sz ), sizeof(int) * (2), 1, fp);
-  fwrite( reinterpret_cast<char*>( A.data() ), sizeof(int) * (nrows*ncols), 1, fp);
-}
-
-template<class DeviceType>
-void PairPODKokkos<DeviceType>::savedatafordebugging()
-{
-  saveintmatrix2binfile("podkktypeai.bin", typeai, ni, 1);
-  saveintmatrix2binfile("podkknumij.bin", numij, ni+1, 1);
-  saveintmatrix2binfile("podkkai.bin", ai, nij, 1);
-  saveintmatrix2binfile("podkkaj.bin", aj, nij, 1);
-  saveintmatrix2binfile("podkkti.bin", ti, nij, 1);
-  saveintmatrix2binfile("podkktj.bin", tj, nij, 1);
-  saveintmatrix2binfile("podkkidxi.bin", idxi, nij, 1);
-  savematrix2binfile("podkkrbf.bin", rbf, nrbfmax, nij);
-  savematrix2binfile("podkkrbfx.bin", rbfx, nrbfmax, nij);
-  savematrix2binfile("podkkrbfy.bin", rbfy, nrbfmax, nij);
-  savematrix2binfile("podkkrbfz.bin", rbfz, nrbfmax, nij);
-  int kmax = (K3 > ns) ? K3 : ns;
-  savematrix2binfile("podkkabf.bin", abf,   kmax, nij);
-  savematrix2binfile("podkkabfx.bin", abfx, kmax, nij);
-  savematrix2binfile("podkkabfy.bin", abfy, kmax, nij);
-  savematrix2binfile("podkkabfz.bin", abfz, kmax, nij);
-  savematrix2binfile("podkkbd.bin", bd, ni, Mdesc);
-  savematrix2binfile("podkkaccU.bin", sumU, nelements * K3 * nrbfmax, ni);
-  savematrix2binfile("podkkrij.bin", rij, 3, nij);
-  savematrix2binfile("podkkfij.bin", fij, 3, nij);
-  savematrix2binfile("podkkei.bin", ei, ni, 1);
-
-  error->all(FLERR, "Save data and stop the run for debugging");
-}
-
-/* ----------------------------------------------------------------------
-   memory usage of arrays
-------------------------------------------------------------------------- */
 
 template<class DeviceType>
 double PairPODKokkos<DeviceType>::memory_usage()

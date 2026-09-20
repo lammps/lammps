@@ -311,10 +311,10 @@ void AngleCharmmKokkos<DeviceType>::read_restart(FILE *fp)
   AngleCharmm::read_restart(fp);
 
   int n = atom->nangletypes;
-  DAT::tdual_kkfloat_1d k_k("AngleCharmm::k",n+1);
-  DAT::tdual_kkfloat_1d k_theta0("AngleCharmm::theta0",n+1);
-  DAT::tdual_kkfloat_1d k_k_ub("AngleCharmm::k_ub",n+1);
-  DAT::tdual_kkfloat_1d k_r_ub("AngleCharmm::r_ub",n+1);
+  k_k = DAT::tdual_kkfloat_1d("AngleCharmm::k",n+1);
+  k_theta0 = DAT::tdual_kkfloat_1d("AngleCharmm::theta0",n+1);
+  k_k_ub = DAT::tdual_kkfloat_1d("AngleCharmm::k_ub",n+1);
+  k_r_ub = DAT::tdual_kkfloat_1d("AngleCharmm::r_ub",n+1);
 
   d_k = k_k.template view<DeviceType>();
   d_theta0 = k_theta0.template view<DeviceType>();

@@ -205,15 +205,15 @@ TEST_F(DumpVTKTest, legacy_binary_run0)
     EXPECT_THAT(data, HasSubstr("# vtk DataFile Version 5.1\nmy title\nBINARY\n"));
     EXPECT_THAT(data, Not(HasSubstr("\nASCII\n")));
 
-    // coordinates are stored as big endian floats.  the first atom sits in
-    // the lower left corner of the box.
+    // coordinates are stored as big endian floats.  the first atom sits a
+    // quarter lattice spacing away from the lower left corner of the box.
 
     const std::string points = "POINTS 32 float\n";
     auto pos                 = data.find(points);
     ASSERT_NE(pos, std::string::npos);
     pos += points.size();
     for (int i = 0; i < 3; ++i)
-        EXPECT_FLOAT_EQ(read_be<float>(data.data() + pos + 4 * i), 0.0);
+        EXPECT_FLOAT_EQ(read_be<float>(data.data() + pos + 4 * i), 0.41989905);
     EXPECT_EQ(data.compare(pos + 32 * 3 * 4, 10, "\nVERTICES "), 0);
 
     // integer attributes are stored as big endian 32-bit integers
@@ -568,9 +568,10 @@ TEST_F(DumpVTKTest, thresh)
     const std::string dump_file = "dump_vtk_thresh.vtk";
     const std::string box_file  = "dump_vtk_thresh_boundingBox.vtk";
 
-    // the lattice has 8 atoms in each of its 4 layers along x
+    // the lattice has 8 atoms in each of its 4 layers along x at 0.42, 1.26,
+    // 2.10, and 2.94, so the threshold selects three of them
 
-    generate_dump(dump_file, "id type", "thresh x < 1.7 sort id", 0);
+    generate_dump(dump_file, "id type", "thresh x < 2.5 sort id", 0);
 
     ASSERT_FILE_EXISTS(dump_file);
     auto text = slurp(dump_file);
@@ -588,7 +589,7 @@ TEST_F(DumpVTKTest, region)
     const std::string box_file  = "dump_vtk_region_boundingBox.vtr";
 
     BEGIN_HIDE_OUTPUT();
-    command("region left block INF 1.7 INF INF INF INF units box");
+    command("region left block INF 2.5 INF INF INF INF units box");
     END_HIDE_OUTPUT();
     generate_dump(dump_file, "id type", "region left sort id", 0);
 

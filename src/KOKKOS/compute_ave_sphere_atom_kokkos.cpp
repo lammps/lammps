@@ -111,6 +111,7 @@ void ComputeAveSphereAtomKokkos<DeviceType>::compute_peratom()
   x = atomKK->k_x.view<DeviceType>();
   v = atomKK->k_v.view<DeviceType>();
   rmass = atomKK->k_rmass.view<DeviceType>();
+  atomKK->k_mass.sync<DeviceType>();
   mass = atomKK->k_mass.view<DeviceType>();
   type = atomKK->k_type.view<DeviceType>();
   mask = atomKK->k_mask.view<DeviceType>();
@@ -225,7 +226,7 @@ void ComputeAveSphereAtomKokkos<DeviceType>::operator()(TagComputeAveSphereAtom,
 template<class DeviceType>
 int ComputeAveSphereAtomKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_int_1d k_sendlist,
                                                          DAT::tdual_double_1d &k_buf,
-                                                         int pbc_flag, int* pbc)
+                                                         int /*pbc_flag*/, int * /*pbc*/)
 {
   d_sendlist = k_sendlist.view<DeviceType>();
   d_buf = k_buf.view<DeviceType>();

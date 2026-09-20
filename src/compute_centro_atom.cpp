@@ -81,6 +81,8 @@ ComputeCentroAtom::ComputeCentroAtom(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeCentroAtom::~ComputeCentroAtom()
 {
+  if (copymode) return;
+
   memory->destroy(centro);
   memory->destroy(distsq);
   memory->destroy(nearest);

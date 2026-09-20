@@ -28,7 +28,7 @@ Syntax
           *transcolor* arg = select color for transparency: *auto* or *none* or *r/g/b*
              *auto* = uses the color in the lower left corner of the image for transparency
              *none* = disables transparency
-             *r/g/b* = provide three integers in the range 0 to 255 to select transparancy color in RGB color space
+             *r/g/b* = provide three integers in the range 0 to 255 to select transparency color in RGB color space
 
      *text* labeltext x y z keyword args = display text in visualization
         labeltext = text for the label, must be quoted if it contains whitespace

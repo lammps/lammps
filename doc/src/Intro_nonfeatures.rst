@@ -31,7 +31,7 @@ Here are suggestions on how to perform these tasks:
   together with LAMMPS and linked to the LAMMPS library for running and
   visualizing LAMMPS simulation inputs.  As of August 2025, LAMMPS-GUI
   is maintained in its own `repository on GitHub
-  <https://github.com/akohlmey/lammps-gui/>`_.
+  <https://github.com/lammps/lammps-gui/>`_.
   Also, there are several external wrappers or GUI
   front ends that are mentioned on the `Pre-/post-processing tools page
   <https://www.lammps.org/ecosystem/prepost/>`_ of the LAMMPS homepage.
@@ -110,8 +110,8 @@ Here are suggestions on how to perform these tasks:
   collected during the simulation and plotted immediately.
 
 * **Pizza.py:** Our group has also written a separate toolkit called
-  `Pizza.py <https://lammps.github.io/pizza/>`_ which can do certain kinds of
+  `Pizza.py <https://sjplimp.github.io/pizza/>`_ which can do certain kinds of
   setup, analysis, plotting, and visualization (via OpenGL) for LAMMPS
   simulations.  It thus provides some functionality for several of the
   above bullets.  Pizza.py is written in `Python <https://www.python.org>`_
-  and is available for download from https://lammps.github.io/pizza/.
+  and is available for download from https://sjplimp.github.io/pizza/.

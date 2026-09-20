@@ -5,7 +5,7 @@
 #define KOKKOS_STD_ALGORITHMS_REPLACE_COPY_HPP
 
 #include "impl/Kokkos_ReplaceCopy.hpp"
-#include "Kokkos_BeginEnd.hpp"
+#include <Kokkos_Iterator.hpp>
 
 namespace Kokkos {
 namespace Experimental {
@@ -49,6 +49,8 @@ auto replace_copy(const ExecutionSpace& ex,
                   const ValueType& old_value, const ValueType& new_value) {
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view_from);
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view_dest);
+  Impl::expect_less_or_equal_extents(view_from, view_dest);
+
   namespace KE = ::Kokkos::Experimental;
   return Impl::replace_copy_exespace_impl(
       "Kokkos::replace_copy_view_api", ex, KE::cbegin(view_from),
@@ -65,6 +67,8 @@ auto replace_copy(const std::string& label, const ExecutionSpace& ex,
                   const ValueType& old_value, const ValueType& new_value) {
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view_from);
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(view_dest);
+  Impl::expect_less_or_equal_extents(view_from, view_dest);
+
   namespace KE = ::Kokkos::Experimental;
   return Impl::replace_copy_exespace_impl(
       label, ex, KE::cbegin(view_from), KE::cend(view_from),

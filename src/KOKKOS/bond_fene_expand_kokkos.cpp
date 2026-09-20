@@ -190,9 +190,9 @@ void BondFENEExpandKokkos<DeviceType>::operator()(TagBondFENEExpandCompute<NEWTO
 
   if (rlogarg < static_cast<KK_FLOAT>(0.1)) {
     if (rlogarg <= static_cast<KK_FLOAT>(-3.0))
-      d_flag() = 2;
+      Kokkos::atomic_max(&d_flag(), 2);
     else
-      d_flag() = 1;
+      Kokkos::atomic_max(&d_flag(), 1);
     rlogarg = static_cast<KK_FLOAT>(0.1);
   }
 

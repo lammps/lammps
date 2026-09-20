@@ -51,7 +51,7 @@ velocity        projectile set -0.05 0.0 0.0
 # are run one the same steps and making this an index style variable lets you
 # override it from the command line with -var dumpfreq 100
 
-variable        dumpfreq index 200
+variable        dumpfreq index 100
 
 # to add a color scale we have to reference a dump that has not been created.
 # the fix has to come *before* the dump image command so it can be enabled by it,

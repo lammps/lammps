@@ -609,6 +609,13 @@ capturer can exist at a time" failure -- the drivers echo each captured section 
 completes, so the last echoed line pinpoints where the throw escaped. A style with no
 `/kk` variant that cannot run under VerletKokkos needs `skip_tests: kokkos_gpu` in YAML.
 
+Mixed precision is a separate validation target per backend: a style that passes the
+mixed-precision fixtures in a HOST-only KOKKOS build can still produce NaNs on a GPU
+build when intermediate float-range limits are hit (class example: `exp()` of a large
+positive argument overflows in `float` -- reaxff/kk).  Run the `kokkos_gpu_mixed`
+fixture on a real device before declaring mixed-precision support clean; if a style is
+numerically unfit for single/mixed, add the corresponding `skip_tests` entries instead.
+
 ## KOKKOS test build
 
 ```bash

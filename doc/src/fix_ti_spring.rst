@@ -1,7 +1,10 @@
 .. index:: fix ti/spring
+.. index:: fix ti/spring/kk
 
 fix ti/spring command
 =====================
+
+Accelerator Variant: *ti/spring/kk*
 
 Syntax
 """"""
@@ -167,8 +170,17 @@ Related commands
 
 :doc:`fix spring <fix_spring>`, :doc:`fix adapt <fix_adapt>`
 
+----------
+
+.. include:: accel_styles.rst
+
+----------
+
 Restrictions
 """"""""""""
+
+The *ti/spring/kk* accelerator variant cannot (yet) be used with
+:doc:`run_style respa <run_style>` and stops with an error in that case.
 
 This fix is part of the EXTRA-FIX package. It is only enabled if
 LAMMPS was built with that package. See the

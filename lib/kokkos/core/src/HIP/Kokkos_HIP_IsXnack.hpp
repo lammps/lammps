@@ -42,8 +42,9 @@ constexpr bool gpu_arch_can_access_system_allocations() {
     defined(KOKKOS_ARCH_AMD_GFX950)
   return true;
 #elif defined(KOKKOS_ARCH_AMD_GFX906) || defined(KOKKOS_ARCH_AMD_GFX1103) || \
-    defined(KOKKOS_ARCH_AMD_GFX1100) || defined(KOKKOS_ARCH_AMD_GFX1030) ||  \
-    defined(KOKKOS_ARCH_AMD_GFX1201)
+    defined(KOKKOS_ARCH_AMD_GFX1101) || defined(KOKKOS_ARCH_AMD_GFX1100) ||  \
+    defined(KOKKOS_ARCH_AMD_GFX1030) || defined(KOKKOS_ARCH_AMD_GFX1151) ||  \
+    defined(KOKKOS_ARCH_AMD_GFX1152) || defined(KOKKOS_ARCH_AMD_GFX1201)
   return false;
 #endif
 }

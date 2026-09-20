@@ -84,7 +84,7 @@ pencil-to-pencil or pencil-to-brick) converts one tiling of the 3d grid
 to another, where a tiling in this context means an assignment of a
 small brick-shaped subset of grid points to each processor, the union of
 which comprise the entire grid.  The parallel `fftMPI library
-<https://lammps.github.io/fftmpi/>`_ written for LAMMPS allows arbitrary
+<https://sjplimp.github.io/fftmpi/>`_ written for LAMMPS allows arbitrary
 definitions of the tiling so that an irregular partitioning of the
 simulation domain can use it directly.  Transforming data from one
 tiling to another is implemented in `fftMPI` using point-to-point

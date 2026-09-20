@@ -18,6 +18,7 @@
 #include <cmath>
 
 #include "lal_eam.h"
+#include "lammps_gpu.h"
 
 using namespace std;
 using namespace LAMMPS_AL;
@@ -27,6 +28,8 @@ static EAM<PRECISION,ACC_PRECISION> EAMALMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
+
+namespace LAMMPS_GPU {
 int eam_alloy_gpu_init(const int ntypes, double host_cutforcesq,
                  int **host_type2rhor, int **host_type2z2r, int *host_type2frho,
                  double ***host_rhor_spline, double ***host_z2r_spline,
@@ -39,16 +42,12 @@ int eam_alloy_gpu_init(const int ntypes, double host_cutforcesq,
                  int &gpu_mode, FILE *screen, int &fp_size) {
   EAMALMF.clear();
   gpu_mode=EAMALMF.device->gpu_mode();
-  double gpu_split=EAMALMF.device->particle_split();
   int first_gpu=EAMALMF.device->first_device();
   int last_gpu=EAMALMF.device->last_device();
   int world_me=EAMALMF.device->world_me();
   int gpu_rank=EAMALMF.device->gpu_rank();
   int procs_per_gpu=EAMALMF.device->procs_per_gpu();
 
-  // disable host/device split for now
-  if (gpu_split != 1.0)
-    return -8;
 
   fp_size=sizeof(PRECISION);
 
@@ -69,7 +68,7 @@ int eam_alloy_gpu_init(const int ntypes, double host_cutforcesq,
                        host_type2frho, host_rhor_spline, host_z2r_spline,
                        host_frho_spline, host_cutsq, rdr, rdrho, rhomax, rhomin, he_flag, nrhor, nrho, nz2r,
                        nfrho, nr, nlocal, nall, max_nbors, maxspecial, cell_size,
-                       gpu_split, screen);
+                       screen);
 
   EAMALMF.device->world_barrier();
   if (message)
@@ -89,7 +88,7 @@ int eam_alloy_gpu_init(const int ntypes, double host_cutforcesq,
                          host_type2frho, host_rhor_spline, host_z2r_spline,
                          host_frho_spline, host_cutsq, rdr, rdrho, rhomax, rhomin, he_flag, nrhor, nrho,
                          nz2r, nfrho, nr, nlocal, nall, max_nbors, maxspecial,
-                         cell_size, gpu_split, screen);
+                         cell_size, screen);
 
     EAMALMF.device->serialize_init();
     if (message)
@@ -107,16 +106,16 @@ void eam_alloy_gpu_clear() {
   EAMALMF.clear();
 }
 
-int ** eam_alloy_gpu_compute_n(const int ago, const int inum_full,
-                         const int nall, double **host_x, int *host_type,
-                         double *sublo, double *subhi, tagint *tag, int **nspecial,
-                         tagint **special, const bool eflag, const bool vflag,
-                         const bool eatom, const bool vatom, int &host_start,
-                         int **ilist, int **jnum,  const double cpu_time,
-                         bool &success, int &inum, void **fp_ptr, double *prd, int *periodicity) {
+int **eam_alloy_gpu_compute_n(const int ago, const int inum_full, const int nall, double **host_x,
+                              int *host_type, double *sublo, double *subhi, tagint *tag,
+                              int **nspecial, tagint **special, const bool eflag, const bool vflag,
+                              const bool eatom, const bool vatom, int **ilist, int **jnum,
+                              bool &success, int &inum, void **fp_ptr, double *prd,
+                              int *periodicity)
+{
   return EAMALMF.compute(ago, inum_full, nall, host_x, host_type, sublo,
                        subhi, tag, nspecial, special, eflag, vflag, eatom,
-                       vatom, host_start, ilist, jnum, cpu_time, success,
+                       vatom, ilist, jnum, success,
                        inum, fp_ptr, prd, periodicity);
 }
 
@@ -124,10 +123,10 @@ void eam_alloy_gpu_compute(const int ago, const int inum_full, const int nlocal,
                      const int nall, double **host_x, int *host_type,
                      int *ilist, int *numj, int **firstneigh, const bool eflag,
                      const bool vflag, const bool eatom, const bool vatom,
-                     int &host_start, const double cpu_time, bool &success,
+                     bool &success,
                      void **fp_ptr) {
   EAMALMF.compute(ago,inum_full,nlocal,nall,host_x,host_type,ilist,numj,
-                firstneigh,eflag,vflag,eatom,vatom,host_start,cpu_time,success,
+                firstneigh,eflag,vflag,eatom,vatom,success,
                 fp_ptr);
 }
 
@@ -141,4 +140,4 @@ double eam_alloy_gpu_bytes() {
   return EAMALMF.host_memory_usage();
 }
 
-
+} // namespace LAMMPS_GPU

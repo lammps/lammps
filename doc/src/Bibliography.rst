@@ -1498,9 +1498,6 @@ Bibliography
 **(Sanyal2)**
    Sanyal and Shell, Journal of Physical Chemistry B, 122 (21), 5678-5693.
 
-**(Saomoto et al., 2023)**
-   H. Saomoto, N. Kikkawa, S. Moriguchi, Y. Nakata, et al., Round robin test on angle of repose: DEM simulation results collected from 16 groups around the world, Soils and Foundations, 63, 101272 (2023), https://doi.org/10.1016/j.sandf.2023.101272
-
 **(Scalfi)**
    Scalfi *et al.*, J. Chem. Phys., 153, 174704 (2020).
 
@@ -1849,11 +1846,11 @@ Bibliography
 **(Wang4)**
    Wang, Van Hove, Ross, Baskes, J. Chem. Phys., 121, 5410 (2004).
 
-**(Wang5)**
-   J.\  Wang, and A. Rockett, Phys. Rev. B, 43, 12571 (1991).
-
 **(Wang2020)**
    X. Wang, S. Ramirez-Hinestrosa, J. Dobnikar, and D. Frenkel, Phys. Chem. Chem. Phys. 22, 10624 (2020).
+
+**(Wang5)**
+   J.\  Wang, and A. Rockett, Phys. Rev. B, 43, 12571 (1991).
 
 **(Wang and Mora)**
    Wang and Mora, Advances in Geocomputing, 119, p 183-228 (2009).
@@ -1881,6 +1878,12 @@ Bibliography
 
 **(Wennberg)**
    Wennberg, Murtola, Hess, Lindahl, J Chem Theory Comput, 9, 3527 (2013).
+
+**(Whitlock2022)**
+   Whitlock, Morales, Bosilca, Bouteiller, Nicolae, Teranishi, Giem, and Sarkar, Proceedings of the IEEE International Conference on Cluster Computing (CLUSTER), (2022). https://doi.org/10.1109/CLUSTER51413.2022.00052
+
+**(Whitlock2024)**
+   Whitlock, PhD dissertation, Georgia Institute of Technology (2024). https://hdl.handle.net/1853/77831
 
 **(Wicaksono1)**
    Wicaksono, Sinclair, Militzer, Computational Materials Science, 117, 397-405 (2016).

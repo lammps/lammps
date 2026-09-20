@@ -290,12 +290,11 @@ I/O and output formatting
 C-style stdio versus C++ style iostreams
 ========================================
 
-LAMMPS uses the `stdio <https://cppreference.com/cpp/io/c>`
-library of the standard C library for reading from and writing to files
-and console instead of C++ `iostreams
-<https://cppreference.com/cpp/io.html>`_.  This is mainly motivated
-by better performance, better control over formatting, and less effort
-to achieve specific formatting.
+LAMMPS uses the `stdio <https://en.cppreference.com/cpp/io/c>`_ library
+of the standard C library for reading from and writing to files and
+console instead of C++ `iostreams <https://cppreference.com/cpp/io>`_.
+This is mainly motivated by better performance, better control over
+formatting, and less effort to achieve specific formatting.
 
 Since mixing "stdio" and "iostreams" can lead to unexpected behavior,
 use of the latter is strongly discouraged.  Output to the screen should
@@ -307,12 +306,12 @@ Furthermore, output should generally only be done by MPI rank 0
 function <LAMMPS_NS::utils::logmesg>`.
 
 We strongly discourage the use of `stringstreams
-<https://cppreference.com/cpp/io/basic_stringstream>`_ because
-the bundled `{fmt} library <https://fmt.dev>`_ or the `C++ format
-library <https://cppreference.com/cpp/utility/format>`_ (for
-C++20 and later) and the customized tokenizer classes provide the same
-functionality in a cleaner way with better performance.  This also helps
-maintain a consistent programming syntax with code from many different
+<https://cppreference.com/cpp/header/sstream>`_ because the bundled
+`{fmt} library <https://fmt.dev>`_ or the `C++ format library
+<https://cppreference.com/cpp/utility/format>`_ (for C++20 and later)
+and the customized tokenizer classes provide the same functionality in a
+cleaner way with better performance.  This also helps maintain a
+consistent programming syntax with code from many different
 contributors.
 
 Formatting with the {fmt} library and std::format

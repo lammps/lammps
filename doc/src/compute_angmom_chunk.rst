@@ -42,7 +42,7 @@ atoms in the chunk around the center-of-mass of the chunk.  The
 calculation includes all effects due to atoms passing through periodic
 boundaries.
 
-.. versionchanged:: TBD
+.. versionchanged:: 2Sep2026
 
 For :doc:`finite-size particles <Howto_spherical>` the intrinsic (spin)
 angular momentum of each particle is now added: sphere and line

@@ -92,7 +92,9 @@ platform, style, and regression workflows.
 `src/` and the corresponding `make fix-*`; build failures -> check for `-S cmake`,
 package dependencies, and VLA usage; unit tests -> rerun the single test with
 `ctest -V -R <name>`; regression tests -> verify the Python environment and whether
-example inputs were modified.
+example inputs were modified.  A unit-test failure on only ONE Linux CI job is
+usually the `LAMMPS_SIZES=bigbig` configuration (64-bit `tagint`) -- reproduce with
+a minimal bigbig build first (see the testing guide) before suspecting anything else.
 
 ## Repository Structure
 
@@ -244,6 +246,7 @@ automatically: read them before starting the corresponding kind of work.
 |---|---|
 | `src/KOKKOS/` styles (rules, policies) | `.github/instructions/kokkos.instructions.md` (auto) |
 | porting a style to KOKKOS | `.github/dev-docs/kokkos-porting-guide.md` + `kokkos-porting-backlog.md` |
+| porting/auditing `src/OPENMP/` (`/omp`) styles | `.github/dev-docs/openmp-porting.md` |
 | granular/DEM code or tests | `.github/instructions/granular-tests.instructions.md` (auto) |
 | documentation (`doc/`) | `.github/instructions/documentation.instructions.md` (auto) |
 | force-style YAML tests (`unittest/`) | `.github/instructions/force-style-tests.instructions.md` (auto) |

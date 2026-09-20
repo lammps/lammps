@@ -1,0 +1,28 @@
+---
+lammps_version: 2 Sep 2026
+tags:
+date_generated: Thu Sep  3 12:56:06 2026
+epsilon: 1e-08
+timestep: 0.001
+skip_tests:
+prerequisites: |
+  atom sphere
+  pair zero
+  compute temp/sphere
+pre_commands: |
+  variable atom_style delete
+  variable atom_style index sphere
+  variable pair_style delete
+  variable pair_style index 'zero 4.0'
+post_commands: |
+  pair_coeff * *
+  set group all diameter 1.0 density 2.0
+  set group all omega 0.4 -0.3 0.7
+  set atom 1*8 omega -0.2 0.5 -0.9
+  compute test all temp/sphere
+input_file: in.colloid
+natoms: 27
+global_scalar: 0.9030785937251846
+global_vector: |-
+  6  4.6429613283360126e+01  5.2038904512285598e+01  4.5120978606658603e+01  4.2315245952666336e+00 -3.4536958155102457e+00 -3.6023972918251768e+00
+...

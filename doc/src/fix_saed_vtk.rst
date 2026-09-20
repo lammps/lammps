@@ -103,7 +103,7 @@ uniform grid of reciprocal space points.  The filename assigned by the
 *file* keyword is appended with .N.vtk where N is an index (0,1,2...) to
 account for multiple diffraction intensity outputs.
 
-.. versionadded:: TBD
+.. versionadded:: 2Sep2026
 
 The *format* and *binary* keywords select how that data is stored.  With
 *format* set to *legacy*, the default, the simple legacy VTK format is
@@ -135,7 +135,7 @@ By default the header contains the following information (with example data):
    LOOKUP_TABLE default
    ...data
 
-.. versionchanged:: TBD
+.. versionchanged:: 2Sep2026
 
 The files are now written through the built-in VTK file writer that is
 shared with the :doc:`dump vtk and dump grid/vtk <dump>` styles.  The

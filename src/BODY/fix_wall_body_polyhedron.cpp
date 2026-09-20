@@ -241,7 +241,7 @@ void FixWallBodyPolyhedron::init()
                "Pair body/rounded/polyhedron requires body style rounded/polyhedron");
   bptr = dynamic_cast<BodyRoundedPolyhedron *>(avec->bptr);
 
-  if (!force->pair_match("body/rounded/polyhedron",1))
+  if (!force->pair_match("^body/rounded/polyhedron",0))
     error->all(FLERR,Error::NOLASTLINE,"Fix wall/body/polyhedron is incompatible with Pair style");
 }
 

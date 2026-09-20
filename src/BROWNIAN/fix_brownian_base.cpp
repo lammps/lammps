@@ -234,6 +234,8 @@ int FixBrownianBase::setmask()
 FixBrownianBase::~FixBrownianBase()
 {
 
+  if (copymode) return;
+
   if (gamma_t_eigen_flag) {
     delete[] gamma_t_inv;
     delete[] gamma_t_invsqrt;

@@ -268,7 +268,7 @@ having to re-compile or re-install all of LAMMPS.
 
 When using the :doc:`clear <clear>` command, plugins are not unloaded.
 
-.. versionchanged:: TBD
+.. versionchanged:: 2Sep2026
 
 Style factory functions are stored in a process-global registry instead of in
 per-instance style maps.  As a result, a loaded plugin persists across the

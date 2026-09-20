@@ -56,6 +56,22 @@ overflows the heap once a fix packs more than ~1024 doubles/atom.  Fixed upper b
 `maxexchange_dynamic = 1` and update `maxexchange` as it grows (canonical example:
 `fix_neigh_history` with `maxpartner`).
 
+## Array sizing and zeroing
+
+**Size copies of `tagint`/`bigint` arrays by the element type.** These types change
+width with `LAMMPS_SIZES`: under `bigbig` a `memcpy(dst, src, n*sizeof(int))` on a
+`tagint` array copies only HALF the data and leaves the rest zero -- silently wrong
+special-bond exclusions/forces that only the bigbig CI job catches (a bug of this
+shape hid in `rebuild_special_one()` for 12 years).  Always `n*sizeof(tagint)` (or
+`sizeof(*dst)`).
+
+**`memory->create(double**&, n, m)` arrays: the variable IS the row-pointer table.**
+The contiguous data block is `&array[0][0]`; `memset(array, 0, n*m*sizeof(double))`
+nulls the row pointers and overruns the heap past the table.  Also mind lifecycle:
+`init()` runs before EVERY `run`, so blanket zeroing there wipes values accumulated
+across consecutive runs -- when growing in an init path, zero only the newly grown
+region `[oldmax, newmax)`.
+
 ## Fix lifecycle ordering
 
 **A fix that reads dynamic-group membership must take its first snapshot in
@@ -64,6 +80,19 @@ overflows the heap once a fix packs more than ~1024 doubles/atom.  Fixed upper b
 a group referenced by a fix always precedes that fix in the fix list, so the
 membership is current by the time the fix's own `setup()` runs.  Reading it in
 `init()` sees stale membership.
+
+**Any data a fix publishes for step-0 output must be primed in `setup()`.**  Data
+filled only in `init()` or lazily in `post_integrate()`/`end_of_step()` is stale or
+absent on the very first frame -- dumps, graphics, and `run 0` output silently show
+zeros (three graphics fixes shipped with invisible first frames from exactly this).
+Prime in `setup(int)`, keep the per-step update where it is.
+
+**A fix whose hooks all lack `_RESPA` variants never runs under `run_style respa`.**
+Masks like `PRE_FORCE` and `PRE_REVERSE` are only invoked by verlet-family
+integrators; under respa such a fix is silently skipped entirely (the ELECTRODE fixes
+left charges frozen this way).  Either implement the respa hooks (see
+`.github/dev-docs/respa-integration.md`) or refuse in `init()`:
+`if (utils::strmatch(update->integrate_style, "^respa")) error->all(...)`.
 
 **A fix that creates its own group must guard the destructor's cleanup.**
 `LAMMPS::destroy()` deletes the `Group` class BEFORE `Modify`, so a fix destructor

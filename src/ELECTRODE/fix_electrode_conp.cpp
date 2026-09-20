@@ -36,6 +36,7 @@
 #include "neighbor.h"
 #include "pair.h"
 #include "text_file_reader.h"
+#include "update.h"
 #include "variable.h"
 
 #include <algorithm>
@@ -405,6 +406,11 @@ int FixElectrodeConp::groupnum_from_name(char *groupname)
 
 void FixElectrodeConp::init()
 {
+  // the electrode charges are updated from pre_force() and pre_reverse(), for which
+  // run style respa provides no hooks -> the charges would silently never be updated
+  if (utils::strmatch(update->integrate_style, "^respa"))
+    error->all(FLERR, Error::NOLASTLINE, "Fix {} is not compatible with run_style respa", style);
+
   pair = nullptr;    // not sure if needed -- remove if unnecessary
   pair = (Pair *) force->pair_match("coul", 0);
   if (pair == nullptr) {    // couldn't find a pair with name coul -- maybe hybrid

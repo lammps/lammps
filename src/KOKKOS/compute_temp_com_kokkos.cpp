@@ -222,6 +222,15 @@ void ComputeTempCOMKokkos<DeviceType>::operator()(TagComputeTempCOMRemoveBias, c
 template<class DeviceType>
 void ComputeTempCOMKokkos<DeviceType>::restore_bias_all()
 {
+  restore_bias_all_kk();
+  atomKK->sync(Host,V_MASK);
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void ComputeTempCOMKokkos<DeviceType>::restore_bias_all_kk()
+{
   atomKK->sync(execution_space,V_MASK|MASK_MASK);
   v = atomKK->k_v.view<DeviceType>();
   mask = atomKK->k_mask.view<DeviceType>();

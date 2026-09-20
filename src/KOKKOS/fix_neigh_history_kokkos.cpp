@@ -22,6 +22,8 @@
 #include "atom_vec_kokkos.h"
 #include "atom_masks.h"
 
+#include <cstring>
+
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
@@ -139,6 +141,13 @@ void FixNeighHistoryKokkos<DeviceType>::pre_exchange_no_newton()
       maxpartner += 8;
       memoryKK->grow_kokkos(k_partner,partner,atom->nmax,maxpartner,"neighbor_history:partner");
       memoryKK->grow_kokkos(k_valuepartner,valuepartner,atom->nmax,dnum*maxpartner,"neighbor_history:valuepartner");
+
+      // grow_kokkos() reallocates the dual views, so the device views cached in
+      // this class are stale and must be refreshed before the loop runs again,
+      // otherwise the retry writes past the end of the old, narrower rows
+
+      d_partner = k_partner.template view<DeviceType>();
+      d_valuepartner = k_valuepartner.template view<DeviceType>();
     }
   }
 
@@ -258,7 +267,7 @@ void FixNeighHistoryKokkos<DeviceType>::operator()(TagFixNeighHistoryPostNeighbo
     if (use_bit_flag) {
       rflag = histmask(j) | beyond_contact;
       j &= HISTMASK;
-      d_firstflag(i,jj) = j;
+      d_neighbors(i,jj) = j;
     } else {
       rflag = 1;
     }
@@ -482,6 +491,9 @@ void FixNeighHistoryKokkos<DeviceType>::unpack_exchange_kokkos(
   int nrecv1, int nextrarecv1,
   ExecutionSpace /*space*/)
 {
+  k_buf.template sync<DeviceType>();
+  k_indices.template sync<DeviceType>();
+
   d_buf = typename AT::t_double_1d_um(
     k_buf.template view<DeviceType>().data(),
     k_buf.extent(0)*k_buf.extent(1));
@@ -489,6 +501,15 @@ void FixNeighHistoryKokkos<DeviceType>::unpack_exchange_kokkos(
 
   this->nrecv1 = nrecv1;
   this->nextrarecv1 = nextrarecv1;
+
+  // the kernel below writes only the rows of the atoms that arrived, so the
+  // rest have to be current on the device first.  syncing here also retires
+  // any outstanding host claim, which the modify<DeviceType>() at the end
+  // would otherwise hit as a concurrent modification
+
+  k_npartner.template sync<DeviceType>();
+  k_partner.template sync<DeviceType>();
+  k_valuepartner.template sync<DeviceType>();
 
   d_npartner = k_npartner.template view<DeviceType>();
   d_partner = k_partner.template view<DeviceType>();
@@ -526,6 +547,94 @@ int FixNeighHistoryKokkos<DeviceType>::unpack_exchange(int nlocal, double *buf)
   k_valuepartner.modify_host();
 
   return n;
+}
+
+/* ----------------------------------------------------------------------
+   pack values in local atom-based arrays for restart file
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+int FixNeighHistoryKokkos<DeviceType>::pack_restart(int i, double *buf)
+{
+  k_npartner.sync_host();
+  k_partner.sync_host();
+  k_valuepartner.sync_host();
+
+  return FixNeighHistory::pack_restart(i,buf);
+}
+
+/* ----------------------------------------------------------------------
+   unpack values from atom->extra array to restart the fix
+
+   the base class hands out a ragged row per atom from its page allocators,
+   while this class keeps the partner lists in rectangular dual views.
+   unpacking through the base class would replace the row pointers of those
+   views with pointers into the pages, so that the values read back from the
+   restart file never reach the device copy and are lost at the next resize
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixNeighHistoryKokkos<DeviceType>::unpack_restart(int nlocal, int nth)
+{
+  k_npartner.sync_host();
+  k_partner.sync_host();
+  k_valuepartner.sync_host();
+
+  // skip to Nth set of extra values
+  // unpack the Nth first values this way because other fixes pack them
+
+  double **extra = atom->extra;
+
+  int m = 0;
+  for (int i = 0; i < nth; i++) m += static_cast<int>(extra[nlocal][m]);
+  m++;
+
+  const int np = static_cast<int>(extra[nlocal][m++]);
+
+  // widen the partner lists when this atom has more contacts than any atom
+  // seen so far, the same way pre_exchange() does when the device loop runs
+  // out of room
+
+  if (np > maxpartner) {
+    maxpartner = np;
+    memoryKK->grow_kokkos(k_partner,partner,atom->nmax,maxpartner,
+                          "neighbor_history:partner");
+    memoryKK->grow_kokkos(k_valuepartner,valuepartner,atom->nmax,dnum*maxpartner,
+                          "neighbor_history:valuepartner");
+    d_partner = k_partner.template view<DeviceType>();
+    d_valuepartner = k_valuepartner.template view<DeviceType>();
+    maxexchange = (dnum+1)*maxpartner + 2;
+
+    // grow_kokkos() resizes the dual views, which marks their device side
+    // modified.  the authoritative restart values are written to the host
+    // side just below, so drop that stale device claim first: otherwise the
+    // modify_host() at the end would see both sides modified and abort
+    k_partner.clear_sync_state();
+    k_valuepartner.clear_sync_state();
+  }
+
+  npartner[nlocal] = np;
+  for (int n = 0; n < np; n++) {
+    partner[nlocal][n] = static_cast<tagint>(ubuf(extra[nlocal][m++]).i);
+    memcpy(&valuepartner[nlocal][dnum*n],&extra[nlocal][m],dnumbytes);
+    m += dnum;
+  }
+
+  k_npartner.modify_host();
+  k_partner.modify_host();
+  k_valuepartner.modify_host();
+}
+
+/* ----------------------------------------------------------------------
+   size of atom nlocal's restart data
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+int FixNeighHistoryKokkos<DeviceType>::size_restart(int nlocal)
+{
+  k_npartner.sync_host();
+
+  return FixNeighHistory::size_restart(nlocal);
 }
 
 /* ----------------------------------------------------------------------

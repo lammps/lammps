@@ -18,6 +18,7 @@
 #include <cmath>
 
 #include "lal_lj_class2_long.h"
+#include "lammps_gpu.h"
 
 using namespace std;
 using namespace LAMMPS_AL;
@@ -27,6 +28,8 @@ static LJClass2Long<PRECISION,ACC_PRECISION> C2CLMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
+
+namespace LAMMPS_GPU {
 int c2cl_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
                   double **host_lj2, double **host_lj3, double **host_lj4,
                   double **offset, double *special_lj, const int inum,
@@ -37,7 +40,6 @@ int c2cl_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
                   const double g_ewald) {
   C2CLMF.clear();
   gpu_mode=C2CLMF.device->gpu_mode();
-  double gpu_split=C2CLMF.device->particle_split();
   int first_gpu=C2CLMF.device->first_device();
   int last_gpu=C2CLMF.device->last_device();
   int world_me=C2CLMF.device->world_me();
@@ -59,7 +61,7 @@ int c2cl_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
   if (world_me==0)
     init_ok=C2CLMF.init(ntypes, cutsq, host_lj1, host_lj2, host_lj3, host_lj4,
                         offset, special_lj, inum, nall, max_nbors, maxspecial,
-                        cell_size, gpu_split, screen, host_cut_ljsq,
+                        cell_size, screen, host_cut_ljsq,
                         host_cut_coulsq, host_special_coul, qqrd2e, g_ewald);
 
   C2CLMF.device->world_barrier();
@@ -78,7 +80,7 @@ int c2cl_gpu_init(const int ntypes, double **cutsq, double **host_lj1,
     if (gpu_rank==i && world_me!=0)
       init_ok=C2CLMF.init(ntypes, cutsq, host_lj1, host_lj2, host_lj3, host_lj4,
                           offset, special_lj, inum, nall, max_nbors, maxspecial,
-                          cell_size, gpu_split, screen, host_cut_ljsq,
+                          cell_size, screen, host_cut_ljsq,
                           host_cut_coulsq, host_special_coul, qqrd2e, g_ewald);
 
     C2CLMF.device->serialize_init();
@@ -97,28 +99,25 @@ void c2cl_gpu_clear() {
   C2CLMF.clear();
 }
 
-int** c2cl_gpu_compute_n(const int ago, const int inum_full,
-                         const int nall, double **host_x, int *host_type,
-                         double *sublo, double *subhi, tagint *tag, int **nspecial,
-                         tagint **special, const bool eflag, const bool vflag,
-                         const bool eatom, const bool vatom, int &host_start,
-                         int **ilist, int **jnum,  const double cpu_time,
-                         bool &success, double *host_q, double *boxlo,
-                         double *prd, int *periodicity) {
+int **c2cl_gpu_compute_n(const int ago, const int inum_full, const int nall, double **host_x,
+                         int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
+                         tagint **special, const bool eflag, const bool vflag, const bool eatom,
+                         const bool vatom, int **ilist, int **jnum, bool &success, double *host_q,
+                         double *boxlo, double *prd, int *periodicity)
+{
   return C2CLMF.compute(ago, inum_full, nall, host_x, host_type, sublo,
                         subhi, tag, nspecial, special, eflag, vflag, eatom,
-                        vatom, host_start, ilist, jnum, cpu_time, success,
+                        vatom, ilist, jnum, success,
                         host_q, boxlo, prd, periodicity);
 }
 
 void c2cl_gpu_compute(const int ago, const int inum_full, const int nall,
                       double **host_x, int *host_type, int *ilist, int *numj,
                       int **firstneigh, const bool eflag, const bool vflag,
-                      const bool eatom, const bool vatom, int &host_start,
-                      const double cpu_time, bool &success, double *host_q,
+                      const bool eatom, const bool vatom, bool &success, double *host_q,
                       const int nlocal, double *boxlo, double *prd) {
   C2CLMF.compute(ago,inum_full,nall,host_x,host_type,ilist,numj,
-                firstneigh,eflag,vflag,eatom,vatom,host_start,cpu_time,success,
+                firstneigh,eflag,vflag,eatom,vatom,success,
                 host_q,nlocal,boxlo,prd);
 }
 
@@ -126,4 +125,4 @@ double c2cl_gpu_bytes() {
   return C2CLMF.host_memory_usage();
 }
 
-
+} // namespace LAMMPS_GPU

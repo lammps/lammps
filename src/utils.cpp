@@ -327,6 +327,212 @@ std::string utils::varargs_sprintf(const char *format, ...)
   return result;
 }
 
+/* ----------------------------------------------------------------------
+   scanning and checking of printf() style format strings.  LAMMPS accepts
+   those from users in several places (dump_modify, thermo_modify, ...) and
+   passing an argument that does not match its conversion is undefined
+   behavior, so the format strings must be validated before they are used.
+------------------------------------------------------------------------- */
+
+// one conversion in a printf() style format string
+
+namespace {
+struct FmtSpec {
+  std::size_t start;      // offset of the leading '%'
+  std::size_t len;        // length of the entire conversion
+  std::size_t lenmod;     // offset of the length modifier
+  char conv;              // conversion character
+  utils::FmtArg type;     // type of value consumed
+};
+
+// classify a conversion character.  returns FmtArg::NONE if unsupported.
+
+utils::FmtArg conv_type(char conv)
+{
+  // strchr() also matches the terminating null byte
+  if (conv == '\0') return utils::FmtArg::NONE;
+  if (strchr("diouxXc", conv)) return utils::FmtArg::INTEGER;
+  if (strchr("eEfFgGaA", conv)) return utils::FmtArg::FLOAT;
+  if (conv == 's') return utils::FmtArg::STRING;
+  if (conv == 'p') return utils::FmtArg::POINTER;
+  return utils::FmtArg::NONE;
+}
+
+// scan a format string and return its conversions.  on a malformed or
+// unsupported conversion, errmsg is set and scanning stops.
+
+std::vector<FmtSpec> scan_format(const std::string &format, std::string &errmsg)
+{
+  std::vector<FmtSpec> specs;
+  const std::size_t num = format.size();
+  errmsg.clear();
+
+  for (std::size_t i = 0; i < num; ++i) {
+    if (format[i] != '%') continue;
+    const std::size_t start = i++;
+
+    // "%%" is a literal percent sign and consumes no argument
+    if ((i < num) && (format[i] == '%')) continue;
+
+    // flags
+    while ((i < num) && (format[i] != '\0') && strchr("-+ #0'", format[i])) ++i;
+
+    // field width.  a '*' would consume an extra argument, so it is rejected
+    if ((i < num) && (format[i] == '*')) {
+      errmsg = fmt::format("variable field width '*' is not supported in '{}'", format);
+      return specs;
+    }
+    while ((i < num) && isdigit((unsigned char) format[i])) ++i;
+
+    // precision
+    if ((i < num) && (format[i] == '.')) {
+      ++i;
+      if ((i < num) && (format[i] == '*')) {
+        errmsg = fmt::format("variable precision '*' is not supported in '{}'", format);
+        return specs;
+      }
+      while ((i < num) && isdigit((unsigned char) format[i])) ++i;
+    }
+
+    // length modifier
+    const std::size_t lenmod = i;
+    if ((i < num) && ((format[i] == 'h') || (format[i] == 'l'))) {
+      const char mod = format[i++];
+      if ((i < num) && (format[i] == mod)) ++i;
+    } else if ((i < num) && (format[i] != '\0') && strchr("jztL", format[i])) {
+      ++i;
+    }
+
+    if (i >= num) {
+      errmsg = fmt::format("incomplete conversion '{}' in '{}'", format.substr(start), format);
+      return specs;
+    }
+
+    FmtSpec spec;
+    spec.start = start;
+    spec.len = i - start + 1;
+    spec.lenmod = lenmod;
+    spec.conv = format[i];
+    spec.type = conv_type(spec.conv);
+
+    if (spec.type == utils::FmtArg::NONE) {
+      errmsg = fmt::format("unsupported conversion '{}' in '{}'",
+                           format.substr(start, spec.len), format);
+      return specs;
+    }
+
+    // a length modifier only makes sense for numbers
+    if ((lenmod < i) && ((spec.type == utils::FmtArg::STRING) ||
+                         (spec.type == utils::FmtArg::POINTER))) {
+      errmsg = fmt::format("unsupported length modifier in conversion '{}' of '{}'",
+                           format.substr(start, spec.len), format);
+      return specs;
+    }
+    specs.push_back(spec);
+  }
+  return specs;
+}
+
+// Integer conversions can be retyped by adjust_format(), so both integer types
+// are equivalent when a conversion is checked against an expected value type.
+
+utils::FmtArg fmtarg_group(utils::FmtArg type)
+{
+  return (type == utils::FmtArg::BIGINT) ? utils::FmtArg::INTEGER : type;
+}
+
+// name of an argument type for use in error messages
+
+std::string fmtarg_name(utils::FmtArg type)
+{
+  switch (type) {
+    case utils::FmtArg::INTEGER: return "integer";
+    case utils::FmtArg::BIGINT: return "large integer";
+    case utils::FmtArg::FLOAT: return "floating-point";
+    case utils::FmtArg::STRING: return "string";
+    case utils::FmtArg::POINTER: return "pointer";
+    default: return "unknown";
+  }
+}
+
+// Length modifier required for a bigint argument.  This must not be hardcoded:
+// int64_t is "long int" on LP64 platforms (Linux, macOS) but "long long int" on
+// LLP64 platforms (Windows), so the required modifier is "l" on the former and
+// "ll" on the latter.  BIGINT_FORMAT is built from the PRId64 macro of
+// <cinttypes>, which is the standardized way to spell this per platform, so the
+// modifier is extracted from it instead.
+
+const std::string &bigint_lenmod()
+{
+  static const std::string lenmod = []() {
+    std::string errmsg;
+    const std::string bigfmt = BIGINT_FORMAT;
+    const auto specs = scan_format(bigfmt, errmsg);
+    if (specs.empty()) return std::string();
+    // the length modifier reaches from its offset to the conversion character
+    const std::size_t conv = specs[0].start + specs[0].len - 1;
+    return bigfmt.substr(specs[0].lenmod, conv - specs[0].lenmod);
+  }();
+  return lenmod;
+}
+}    // namespace
+
+std::string utils::check_format(const std::string &format, const std::vector<FmtArg> &expect)
+{
+  std::string errmsg;
+  const auto specs = scan_format(format, errmsg);
+  if (!errmsg.empty()) return errmsg;
+
+  // more conversions than values would consume arguments that were never
+  // passed.  fewer conversions are harmless: the surplus values are simply not
+  // printed, and literal text without any conversion is a valid format string.
+
+  if (specs.size() > expect.size())
+    return fmt::format("'{}' has {} conversion(s) but only {} value(s) are provided", format,
+                       specs.size(), expect.size());
+
+  for (std::size_t i = 0; i < specs.size(); ++i) {
+    if (fmtarg_group(specs[i].type) != fmtarg_group(expect[i]))
+      return fmt::format("conversion {} of '{}' formats {} values, but {} values are provided",
+                         i + 1, format, fmtarg_name(specs[i].type), fmtarg_name(expect[i]));
+
+    // a c conversion consumes an int and has no length modifier for 64-bit values
+    if ((specs[i].conv == 'c') && (expect[i] == FmtArg::BIGINT))
+      return fmt::format("conversion {} of '{}' cannot be used for {} values", i + 1, format,
+                         fmtarg_name(expect[i]));
+  }
+  return "";
+}
+
+std::string utils::check_format(const std::string &format, FmtArg expect)
+{
+  return check_format(format, std::vector<FmtArg>{expect});
+}
+
+std::string utils::adjust_format(const std::string &format, const std::vector<FmtArg> &expect)
+{
+  if (!check_format(format, expect).empty()) return format;
+
+  std::string errmsg;
+  const auto specs = scan_format(format, errmsg);
+  std::string adjusted;
+  std::size_t pos = 0;
+
+  for (std::size_t i = 0; i < specs.size(); ++i) {
+    // copy text and conversion prefix, then substitute the length modifier
+    adjusted += format.substr(pos, specs[i].lenmod - pos);
+    if ((expect[i] == FmtArg::BIGINT) && (specs[i].conv != 'c')) adjusted += bigint_lenmod();
+    pos = specs[i].start + specs[i].len - 1;
+  }
+  adjusted += format.substr(pos);
+  return adjusted;
+}
+
+std::string utils::adjust_format(const std::string &format, FmtArg expect)
+{
+  return adjust_format(format, std::vector<FmtArg>{expect});
+}
+
 std::string utils::errorurl(int errorcode)
 {
   if (errorcode == 0)

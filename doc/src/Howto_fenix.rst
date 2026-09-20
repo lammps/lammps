@@ -1,29 +1,33 @@
 Fenix online recovery
 =====================
 
-The :ref:`Fenix package <PKG-FENIX>` enables the use of new and emerging User
-Level Failure Mitigation (ULFM) MPI functionality described at the `ULFM
-research hub <https://fault-tolerance.org>`_, in the `Open MPI ULFM
-documentation <https://docs.open-mpi.org/en/v5.0.x/features/ulfm.html>`_, and in
+The :ref:`Fenix package <PKG-FENIX>` enables the use of new and emerging
+User Level Failure Mitigation (ULFM) MPI functionality described at the
+`ULFM research hub <https://fault-tolerance.org>`_, in the `Open MPI
+ULFM documentation
+<https://docs.open-mpi.org/en/v5.0.x/features/ulfm.html>`_, and in
 :ref:`(Bland2013) <Bland2013>`. The `Fenix library
-<https://github.com/sandialabs/fenix>`_ uses the low-level ULFM functionality to
-enable high-level online recovery of MPI applications. The benefits of Fenix
-are described in :ref:`(Whitlock2022) <Whitlock2022>` and :ref:`(Whitlock2024)
+<https://github.com/sandialabs/fenix>`_ uses the low-level ULFM
+functionality to enable high-level online recovery of MPI
+applications. The benefits of Fenix are described in
+:ref:`(Whitlock2022) <Whitlock2022>` and :ref:`(Whitlock2024)
 <Whitlock2024>`.
 
-As of writing this text, Fenix requires Open MPI (v5+) for the fault tolerance
-features it uses. Newer versions of Open MPI may have significant fault
-tolerance performance improvements for some systems. To run Open MPI with fault
-tolerance enabled, users must include the :code:`--with-ft=ulfm` flag to the
-:code:`mpirun` command.
+As of writing this text, Fenix requires `Open MPI (v5+)
+<https://www.open-mpi.org/>`_ for the fault tolerance features it uses.
+Newer versions of Open MPI may have significant fault tolerance
+performance improvements for some systems.  To run Open MPI with fault
+tolerance enabled, users must include the ``--with-ft=ulfm`` flag to the
+``mpirun`` command.
 
-At a high level, Fenix provides LAMMPS with a resilient communicator that is
-repaired after a process is lost. Processes may be lost due to hardware failure,
-application bugs, memory starvation, network issues, or any number of other
-root causes, all of which are handled in the same manner using Fenix. Fenix
-repairs the MPI communicator without requiring a full relaunch of MPI, which
-allows applications to avoid the expensive startup costs of MPI (often minutes
-per restart on large scale runs). By default, Fenix performs a "shrinking" repair
+At a high level, Fenix provides LAMMPS with a resilient communicator
+that is repaired after a process is lost.  Processes may be lost due to
+hardware failure, application bugs, memory starvation, network issues,
+or any number of other root causes, all of which are handled in the same
+manner using Fenix.  Fenix repairs the MPI communicator without
+requiring a full relaunch of MPI, which allows applications to avoid the
+expensive startup costs of MPI (often minutes per restart on large scale
+runs).  By default, Fenix performs a "shrinking" repair
 - meaning the repaired communicator simply excludes the lost process(es) and is
 therefore smaller than the pre-failure communicator.
 

@@ -97,3 +97,5 @@ kokkos_device_option(SYCL OFF DEVICE "Whether to build SYCL backend")
 if(KOKKOS_ENABLE_SYCL)
   list(APPEND DEVICE_SETUP_LIST SYCL)
 endif()
+
+kokkos_device_option(NEXTSILICON OFF DEVICE "Whether to build NextSilicon backend")

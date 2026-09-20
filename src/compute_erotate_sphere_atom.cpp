@@ -49,6 +49,8 @@ ComputeErotateSphereAtom::ComputeErotateSphereAtom(LAMMPS *lmp, int narg, char *
 
 ComputeErotateSphereAtom::~ComputeErotateSphereAtom()
 {
+  if (copymode) return;
+
   memory->destroy(erot);
 }
 

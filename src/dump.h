@@ -168,6 +168,11 @@ class Dump : protected Pointers {
   virtual void write_data(int, double *) = 0;
   virtual void write_footer() {}
 
+  // type of value a column of this dump is formatted from
+  static utils::FmtArg fmtarg_type(int vtype);
+  // check the format string of a single column and adjust its length modifier
+  void check_column_format(std::string &colformat, int vtype, int icol);
+
   void pbc_allocate();
   double compute_time();
 

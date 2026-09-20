@@ -5,7 +5,7 @@
 #define KOKKOS_STD_ALGORITHMS_IS_PARTITIONED_HPP
 
 #include "impl/Kokkos_IsPartitioned.hpp"
-#include "Kokkos_BeginEnd.hpp"
+#include <Kokkos_Iterator.hpp>
 
 namespace Kokkos {
 namespace Experimental {

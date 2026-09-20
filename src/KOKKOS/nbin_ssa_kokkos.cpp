@@ -106,17 +106,24 @@ void NBinSSAKokkos<DeviceType>::bin_atoms()
   int nghost = atom->nghost;
   int nall = nlocal + nghost;
 
-  // with "neigh_modify include" only atoms of that group are binned
-  // the owned atoms of that group come first, ghosts must be tested one by one
+  // an include group leaves out the atoms its pairs are not built from: the
+  // owned atoms of the group are the first nfirst, and of the ghosts only
+  // those in the group are binned.  This is what NBinSSA::bin_atoms() does,
+  // and without it the atoms outside the group turn up in the lists of the
+  // atoms inside it.  The ghosts still start at the number of owned atoms.
 
   const int nowned = nlocal;
+  const int group_bitmask = includegroup ? group->bitmask[includegroup] : 0;
   if (includegroup) nlocal = atom->nfirst;
-  bitmask_ = includegroup ? group->bitmask[includegroup] : 0;
 
-  atomKK->sync(ExecutionSpaceFromDevice<DeviceType>::space,
-               includegroup ? (X_MASK | MASK_MASK) : X_MASK);
+  typename AT::t_int_1d mask_;
+  if (includegroup) {
+    atomKK->sync(ExecutionSpaceFromDevice<DeviceType>::space,MASK_MASK);
+    mask_ = atomKK->k_mask.view<DeviceType>();
+  }
+
+  atomKK->sync(ExecutionSpaceFromDevice<DeviceType>::space,X_MASK);
   x = atomKK->k_x.view<DeviceType>();
-  mask = atomKK->k_mask.view<DeviceType>();
 
   sublo_[0] = domain->sublo[0];
   sublo_[1] = domain->sublo[1];
@@ -134,10 +141,11 @@ void NBinSSAKokkos<DeviceType>::bin_atoms()
   // find each local atom's binID
   {
     atoms_per_bin = 0;
+    copymode = 1;
     NPairSSAKokkosBinIDAtomsFunctor<DeviceType> f(*this);
     Kokkos::parallel_reduce(nlocal, f, atoms_per_bin);
+    copymode = 0;
   }
-
   Kokkos::deep_copy(h_lbinxlo, d_lbinxlo);
   Kokkos::deep_copy(h_lbinylo, d_lbinylo);
   Kokkos::deep_copy(h_lbinzlo, d_lbinzlo);
@@ -151,8 +159,10 @@ void NBinSSAKokkos<DeviceType>::bin_atoms()
     k_gbincount.modify_host();
     k_gbincount.sync<DeviceType>();
     ghosts_per_gbin = 0;
+    copymode = 1;
     NPairSSAKokkosBinIDGhostsFunctor<DeviceType> f(*this);
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType>(nowned,nall), f, ghosts_per_gbin);
+    copymode = 0;
   }
 
   // actually bin the ghost atoms
@@ -171,6 +181,7 @@ void NBinSSAKokkos<DeviceType>::bin_atoms()
 
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(nowned,nall),
      LAMMPS_LAMBDA (const int i) {
+      if (group_bitmask && !(mask_(i) & group_bitmask)) return;
       const int iAIR = binID_(i);
       if (iAIR > 0) { // include only ghost atoms in an AIR
         const int ac = Kokkos::atomic_fetch_add(&gbincount_[iAIR], (int)1);
@@ -198,8 +209,10 @@ void NBinSSAKokkos<DeviceType>::bin_atoms()
     auto bincount_ = bincount;
     auto bins_ = bins;
 
+    copymode = 1;
     NPairSSAKokkosBinAtomsFunctor<DeviceType> f(*this);
     Kokkos::parallel_for(nlocal, f);
+    copymode = 0;
 
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0,mbins),
      LAMMPS_LAMBDA (const int i) {
@@ -272,13 +285,6 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void NBinSSAKokkos<DeviceType>::binIDGhostsItem(const int &i, int &update) const
 {
-  // with "neigh_modify include" skip ghosts that are not in the include group
-
-  if (bitmask_ && !(mask(i) & bitmask_)) {
-    binID(i) = -1;
-    return;
-  }
-
   const int iAIR = coord2ssaAIR(static_cast<double>(x(i, 0)), static_cast<double>(x(i, 1)), static_cast<double>(x(i, 2)));
   binID(i) = iAIR;
   if (iAIR > 0) { // include only ghost atoms in an AIR

@@ -105,7 +105,6 @@ Thermo::Thermo(LAMMPS *_lmp, int narg, char **arg) :
     vtype(nullptr), cache_mutex(nullptr), field2index(nullptr), argindex1(nullptr),
     argindex2(nullptr)
 {
-  style = utils::strdup(arg[0]);
 
   // set thermo_modify defaults
 
@@ -128,17 +127,17 @@ Thermo::Thermo(LAMMPS *_lmp, int narg, char **arg) :
   // CUSTOMIZATION: add a new thermo style by adding it to the if statement
   // set line string with default keywords if not custom style.
 
-  if (strcmp(style, "one") == 0) {
+  if (strcmp(arg[0], "one") == 0) {
     line = ONE;
     lineflag = ONELINE;
-  } else if (strcmp(style, "multi") == 0) {
+  } else if (strcmp(arg[0], "multi") == 0) {
     line = MULTI;
     lineflag = MULTILINE;
-  } else if (strcmp(style, "yaml") == 0) {
+  } else if (strcmp(arg[0], "yaml") == 0) {
     line = YAML;
     lineflag = YAMLLINE;
 
-  } else if (strcmp(style, "custom") == 0) {
+  } else if (strcmp(arg[0], "custom") == 0) {
     if (narg == 1)
       error->all(FLERR, Error::ARGZERO, "Cannot use thermo style custom without custom keywords");
 
@@ -163,7 +162,7 @@ Thermo::Thermo(LAMMPS *_lmp, int narg, char **arg) :
     }
 
   } else
-    error->all(FLERR, Error::ARGZERO, "Unknown thermo style {}", style);
+    error->all(FLERR, Error::ARGZERO, "Unknown thermo style {}", arg[0]);
 
   index_temp = index_press_scalar = index_press_vector = index_pe = -1;
 
@@ -171,9 +170,25 @@ Thermo::Thermo(LAMMPS *_lmp, int narg, char **arg) :
   // allocate per-field memory
   // process line of keywords
 
+  // only now that the style name is known to be one of the above: an error
+  // raised while decoding it leaves the constructor, and the destructor that
+  // would release this copy is never called
+  style = utils::strdup(arg[0]);
+
   nfield_initial = utils::trim_and_count_words(line);
   allocate();
-  parse_fields(line);
+
+  // parse_fields() raises an error on a keyword it does not know, and the
+  // destructor of an object whose constructor threw is never called, so give
+  // back what this constructor has taken before letting the error out
+  try {
+    parse_fields(line);
+  } catch (...) {
+    deallocate();
+    delete[] style;
+    delete cache_mutex;
+    throw;
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -270,14 +285,22 @@ void Thermo::init()
           format_this = FORMAT_INT_MULTI_DEFAULT;
         else
           format_this = FORMAT_INT_YAML_DEFAULT;
-        if (vtype[i] == BIGINT) {
-          // replace "d" in int format with bigint format specifier
-          auto found = format_this.find('%');
-          found = format_this.find('d', found);
-          format_this = format_this.replace(found, 1, std::string(BIGINT_FORMAT).substr(1));
-        }
       }
     }
+
+    // the format string may come from the user, so it must be checked against
+    // the type of the value before it is used.  the length modifier of integer
+    // conversions is adjusted so that users need not care about the integer
+    // size LAMMPS was compiled with.
+
+    const auto expect = (vtype[i] == FLOAT)    ? utils::FmtArg::FLOAT
+                        : (vtype[i] == BIGINT) ? utils::FmtArg::BIGINT
+                                               : utils::FmtArg::INTEGER;
+    auto errmsg = utils::check_format(format_this, expect);
+    if (!errmsg.empty())
+      error->all(FLERR, Error::NOLASTLINE, "Invalid thermo format for column {} ({}): {}", i + 1,
+                 keyword_user[i].empty() ? keyword[i] : keyword_user[i], errmsg);
+    format_this = utils::adjust_format(format_this, expect);
 
     if (lineflag == ONELINE)
       format[i] += format_this + " ";
@@ -734,16 +757,16 @@ void Thermo::modify_params(int narg, char **arg)
       if (strcmp(arg[iarg + 1], "line") == 0) {
         format_line_user = arg[iarg + 2];
       } else if (strcmp(arg[iarg + 1], "int") == 0) {
+        auto errmsg = utils::check_format(arg[iarg + 2], utils::FmtArg::INTEGER);
+        if (!errmsg.empty())
+          error->all(FLERR, iarg + 2, "Invalid thermo_modify int format: {}", errmsg);
         format_int_user = arg[iarg + 2];
-        // replace "d" in format_int_user with bigint format specifier
-        auto found = format_int_user.find('%');
-        found = format_int_user.find('d', found);
-        if (found == std::string::npos)
-          error->all(FLERR, iarg + 2,
-                     "Thermo_modify int format does not contain a d conversion character");
-        format_bigint_user =
-            format_int_user.replace(found, 1, std::string(BIGINT_FORMAT).substr(1));
+        // derive the format for large integers from the one given by the user
+        format_bigint_user = utils::adjust_format(format_int_user, utils::FmtArg::BIGINT);
       } else if (strcmp(arg[iarg + 1], "float") == 0) {
+        auto errmsg = utils::check_format(arg[iarg + 2], utils::FmtArg::FLOAT);
+        if (!errmsg.empty())
+          error->all(FLERR, iarg + 2, "Invalid thermo_modify float format: {}", errmsg);
         format_float_user = arg[iarg + 2];
       } else if (utils::strmatch(arg[iarg + 1], R"(^\d*\*\d*$)")) {
         // handles cases such as 2*6; currently doesn't allow negatives

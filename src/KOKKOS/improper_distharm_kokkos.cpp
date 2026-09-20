@@ -81,9 +81,6 @@ void ImproperDistHarmKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   k_k.template sync<DeviceType>();
   k_chi.template sync<DeviceType>();
-  atomKK->sync(execution_space,datamask_read);
-  if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
-  else atomKK->modified(execution_space,F_MASK);
 
   x = atomKK->k_x.view<DeviceType>();
   f = atomKK->k_f.view<DeviceType>();

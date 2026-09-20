@@ -192,6 +192,7 @@ void PairDPDKokkos<DeviceType>::compute(int eflagin, int vflagin)
 
   nlocal = atom->nlocal;
   dtinvsqrt = static_cast<KK_FLOAT>(1.0/sqrt(update->dt));
+  ntimestep = update->ntimestep;
 
   NeighListKokkos<DeviceType>* k_list = static_cast<NeighListKokkos<DeviceType>*>(list);
   d_numneigh = k_list->d_numneigh;
@@ -423,7 +424,8 @@ void PairDPDKokkos<DeviceType>::operator()(TagDPDKokkos<NEIGHFLAG,EVFLAG>,
   jnum = d_numneigh[i];
 
   const tagint itag = tag(i);
-  auto timestep = update->ntimestep;
+  // update is a host object, do not dereference it in the kernel
+  const auto timestep = ntimestep;
 
   KK_FLOAT fxtmp = 0.0;
   KK_FLOAT fytmp = 0.0;

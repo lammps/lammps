@@ -96,6 +96,8 @@ FixTempCSLD::FixTempCSLD(LAMMPS *lmp, int narg, char **arg) :
 
 FixTempCSLD::~FixTempCSLD()
 {
+  if (copymode) return;
+
   delete[] tstr;
 
   // delete temperature if fix created it

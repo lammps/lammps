@@ -164,8 +164,6 @@ void PairDPDfdtEnergyKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   k_cutsq.template sync<DeviceType>();
   k_params.template sync<DeviceType>();
   atomKK->sync(execution_space,X_MASK | F_MASK | TYPE_MASK | ENERGY_MASK | VIRIAL_MASK);
-  if (evflag) atomKK->modified(execution_space,F_MASK | ENERGY_MASK | VIRIAL_MASK);
-  else atomKK->modified(execution_space,F_MASK);
 
   special_lj[0] = static_cast<KK_FLOAT>(force->special_lj[0]);
   special_lj[1] = static_cast<KK_FLOAT>(force->special_lj[1]);
@@ -328,7 +326,25 @@ void PairDPDfdtEnergyKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     k_duMech.template modify<DeviceType>();
     k_duMech.sync_host();
     comm->reverse_comm(this);
+
+    // the reverse communication adds the ghost contributions through the plain
+    // host arrays, so claim that write: without it the device copy keeps the
+    // pre-communication values and the sync in fix dpd/energy/kk has nothing
+    // left to copy
+
+    k_duCond.modify_host();
+    k_duMech.modify_host();
   }
+
+
+  // claim the forces here rather than before the kernels above: this style
+  // declares an empty datamask, so this is the only claim they get, and the
+  // reverse communication of the energy changes syncs the host in between,
+  // which would take a claim made up there with it and leave the forces the
+  // kernels wrote unclaimed
+
+  if (evflag) atomKK->modified(execution_space,F_MASK | ENERGY_MASK | VIRIAL_MASK);
+  else atomKK->modified(execution_space,F_MASK);
 
   if (eflag_global) eng_vdwl += static_cast<double>(ev.evdwl);
   if (vflag_global) {

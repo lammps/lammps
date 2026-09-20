@@ -239,8 +239,7 @@ class SNAKokkos {
   typedef Kokkos::View<complex**[3], DeviceType> t_sna_3c3;
   typedef Kokkos::View<complex*****, DeviceType> t_sna_5c;
 
-  inline
-  SNAKokkos() {};
+  inline SNAKokkos() = default;
 
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
@@ -297,7 +296,7 @@ class SNAKokkos {
   void compute_yi_with_zlist(const int&, const int&) const; // ForceSNAP
 // NOLINTNEXTLINE
   template <bool chemsnap, int yi_batch = 1> KOKKOS_INLINE_FUNCTION
-  void compute_bi(const int&, const int&) const;    // ForceSNAP
+  void compute_bi(const int&, const int&, const Kokkos::Array<int, yi_batch>&) const;    // ForceSNAP
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void compute_beta_linear(const int&, const int&, const int&) const;
@@ -338,7 +337,7 @@ class SNAKokkos {
 // NOLINTNEXTLINE
   template <int yi_batch> KOKKOS_FORCEINLINE_FUNCTION
   auto evaluate_bi(const int&, const int&, const int&, const int&,
-                          const int&, const int&, const int&) const;
+                          const int&, const int&, const int&, const Kokkos::Array<int, yi_batch>&) const;
   // plugged into compute_yi, compute_yi_with_zlist; returns real_type
 // NOLINTNEXTLINE
   template <bool chemsnap, int yi_batch> KOKKOS_FORCEINLINE_FUNCTION

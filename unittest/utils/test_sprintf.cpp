@@ -312,3 +312,208 @@ TEST(Sprintf, oversize_output)
     ASSERT_EQ((int) text.size(), 2002);
     ASSERT_THAT(text, Eq('<' + big + '>'));
 }
+
+// these test the validation of user provided format strings that are
+// passed to utils::sprintf() and other printf() style functions
+
+using utils::FmtArg;
+
+TEST(CheckFormat, accept_float)
+{
+    for (const auto *fmt : {"%g", "%e", "%f", "%G", "%20.15g", "%-15.8e", "%+8.3f", "%08.4f",
+                            "% .6g", "%#g", "%.0f", "%La", "%lf", "[%g]", "x = %g", "%g\n"})
+        ASSERT_THAT(utils::check_format(fmt, FmtArg::FLOAT), Eq("")) << "format: " << fmt;
+}
+
+TEST(CheckFormat, accept_integer)
+{
+    for (const auto *fmt : {"%d", "%i", "%8d", "%-8d", "%08d", "%+d", "%.5d", "%x", "%X", "%o",
+                            "%u", "%ld", "%lld", "%zd", "id=%d", "%d\n"})
+        ASSERT_THAT(utils::check_format(fmt, FmtArg::INTEGER), Eq("")) << "format: " << fmt;
+}
+
+TEST(CheckFormat, accept_bigint)
+{
+    // integer conversions are interchangeable, the width is fixed up later
+    for (const auto *fmt : {"%d", "%ld", "%lld", "%20d"})
+        ASSERT_THAT(utils::check_format(fmt, FmtArg::BIGINT), Eq("")) << "format: " << fmt;
+}
+
+TEST(CheckFormat, accept_string)
+{
+    for (const auto *fmt : {"%s", "%-8s", "%.4s", "<%s>"})
+        ASSERT_THAT(utils::check_format(fmt, FmtArg::STRING), Eq("")) << "format: " << fmt;
+}
+
+TEST(CheckFormat, percent_literal_is_not_a_conversion)
+{
+    ASSERT_THAT(utils::check_format("%g%%", FmtArg::FLOAT), Eq(""));
+    ASSERT_THAT(utils::check_format("100%% done", std::vector<FmtArg>{}), Eq(""));
+    ASSERT_THAT(utils::check_format("%%%d", FmtArg::INTEGER), Eq(""));
+}
+
+TEST(CheckFormat, literal_text_is_valid)
+{
+    // a format string need not use all values, and need not have any
+    // conversion at all: printf() ignores the surplus arguments
+    ASSERT_THAT(utils::check_format("plain text", std::vector<FmtArg>{}), Eq(""));
+    ASSERT_THAT(utils::check_format("", std::vector<FmtArg>{}), Eq(""));
+    ASSERT_THAT(utils::check_format("plain text", FmtArg::FLOAT), Eq(""));
+    ASSERT_THAT(utils::check_format("x", FmtArg::INTEGER), Eq(""));
+    ASSERT_THAT(utils::check_format("", FmtArg::BIGINT), Eq(""));
+    ASSERT_THAT(utils::check_format("%g", {FmtArg::FLOAT, FmtArg::FLOAT}), Eq(""));
+    ASSERT_THAT(utils::check_format("just text", {FmtArg::FLOAT, FmtArg::STRING}), Eq(""));
+}
+
+TEST(CheckFormat, accept_char_conversion)
+{
+    // %c consumes an int and is harmless for one
+    ASSERT_THAT(utils::check_format("%c", FmtArg::INTEGER), Eq(""));
+    ASSERT_THAT(utils::check_format("%-3c", FmtArg::INTEGER), Eq(""));
+    // but there is no valid length modifier to make it consume a bigint
+    ASSERT_THAT(utils::check_format("%c", FmtArg::BIGINT),
+                Eq("conversion 1 of '%c' cannot be used for large integer values"));
+    ASSERT_THAT(utils::adjust_format("%c", FmtArg::INTEGER), Eq("%c"));
+}
+
+TEST(CheckFormat, reject_type_mismatch)
+{
+    // this is the case that silently produced garbage before
+    ASSERT_THAT(utils::check_format("%d", FmtArg::FLOAT), StartsWith("conversion 1"));
+    ASSERT_THAT(utils::check_format("%s", FmtArg::FLOAT), StartsWith("conversion 1"));
+    ASSERT_THAT(utils::check_format("%x", FmtArg::FLOAT), StartsWith("conversion 1"));
+    ASSERT_THAT(utils::check_format("%g", FmtArg::INTEGER), StartsWith("conversion 1"));
+    ASSERT_THAT(utils::check_format("%f", FmtArg::BIGINT), StartsWith("conversion 1"));
+    ASSERT_THAT(utils::check_format("%s", FmtArg::INTEGER), StartsWith("conversion 1"));
+    ASSERT_THAT(utils::check_format("%d", FmtArg::STRING), StartsWith("conversion 1"));
+}
+
+TEST(CheckFormat, mismatch_message_is_informative)
+{
+    ASSERT_THAT(utils::check_format("%d", FmtArg::FLOAT),
+                Eq("conversion 1 of '%d' formats integer values, "
+                   "but floating-point values are provided"));
+}
+
+TEST(CheckFormat, reject_surplus_conversions)
+{
+    // these would consume arguments that are never passed
+    ASSERT_THAT(utils::check_format("%g %g", FmtArg::FLOAT),
+                Eq("'%g %g' has 2 conversion(s) but only 1 value(s) are provided"));
+    // this slipped past the regular expression check for immediate variables
+    ASSERT_THAT(utils::check_format("%.3f%d", FmtArg::FLOAT),
+                StartsWith("'%.3f%d' has 2 conversion(s)"));
+    ASSERT_THAT(utils::check_format("%g", std::vector<FmtArg>{}),
+                StartsWith("'%g' has 1 conversion(s)"));
+}
+
+TEST(CheckFormat, reject_malformed)
+{
+    ASSERT_THAT(utils::check_format("%", FmtArg::FLOAT), StartsWith("incomplete conversion"));
+    ASSERT_THAT(utils::check_format("%g %", {FmtArg::FLOAT}), StartsWith("incomplete conversion"));
+    ASSERT_THAT(utils::check_format("%12.4", FmtArg::FLOAT), StartsWith("incomplete conversion"));
+    ASSERT_THAT(utils::check_format("%y", FmtArg::FLOAT), StartsWith("unsupported conversion"));
+    // %n writes through a pointer argument and must never be accepted
+    ASSERT_THAT(utils::check_format("%n", FmtArg::FLOAT), StartsWith("unsupported conversion"));
+    // '*' consumes an extra argument
+    ASSERT_THAT(utils::check_format("%*g", FmtArg::FLOAT), StartsWith("variable field width"));
+    ASSERT_THAT(utils::check_format("%.*g", FmtArg::FLOAT), StartsWith("variable precision"));
+    // a length modifier on a string conversion changes the argument type
+    ASSERT_THAT(utils::check_format("%ls", FmtArg::STRING), StartsWith("unsupported length"));
+}
+
+TEST(CheckFormat, multiple_conversions)
+{
+    // whole line format for dump atom without image flags
+    const std::vector<FmtArg> line = {FmtArg::BIGINT, FmtArg::INTEGER, FmtArg::FLOAT,
+                                      FmtArg::FLOAT, FmtArg::FLOAT};
+    ASSERT_THAT(utils::check_format("%d %d %g %g %g", line), Eq(""));
+    ASSERT_THAT(utils::check_format("%ld %d %20.15g %20.15g %20.15g", line), Eq(""));
+    // printing only the leading values is allowed
+    ASSERT_THAT(utils::check_format("%d %d %g %g", line), Eq(""));
+    ASSERT_THAT(utils::check_format("%d %d %g %g %g %g", line),
+                StartsWith("'%d %d %g %g %g %g' has 6 conversion(s)"));
+    ASSERT_THAT(utils::check_format("%d %g %g %g %d", line), StartsWith("conversion 2"));
+    // dump xyz passes the element name as a string
+    ASSERT_THAT(utils::check_format("%s %g %g %g",
+                                    {FmtArg::STRING, FmtArg::FLOAT, FmtArg::FLOAT, FmtArg::FLOAT}),
+                Eq(""));
+}
+
+TEST(CheckFormat, conversions_are_classified_in_order)
+{
+    // each conversion must be matched against the value in its own position
+    ASSERT_THAT(utils::check_format("%d %g %s", {FmtArg::INTEGER, FmtArg::FLOAT, FmtArg::STRING}),
+                Eq(""));
+    ASSERT_THAT(utils::check_format("%d %g %s", {FmtArg::INTEGER, FmtArg::STRING, FmtArg::FLOAT}),
+                StartsWith("conversion 2"));
+    ASSERT_THAT(utils::check_format("%s %g %d", {FmtArg::INTEGER, FmtArg::FLOAT, FmtArg::STRING}),
+                StartsWith("conversion 1"));
+    // the c conversion belongs to the integer group
+    ASSERT_THAT(utils::check_format("id %d = %c", {FmtArg::INTEGER, FmtArg::INTEGER}), Eq(""));
+    // a %% sequence is literal text and consumes no value
+    ASSERT_THAT(utils::check_format("100%% done", std::vector<FmtArg>{}), Eq(""));
+    ASSERT_THAT(utils::check_format("%d%% of %d", {FmtArg::INTEGER, FmtArg::INTEGER}), Eq(""));
+}
+
+TEST(AdjustFormat, bigint_length_modifier)
+{
+    // the resulting format must print a bigint value correctly
+    constexpr bigint big = 123456789012345;
+    for (const auto *fmt : {"%d", "%8d", "id=%d", "%-10d", "%ld", "%.5d", "%d\n"}) {
+        auto adjusted = utils::adjust_format(fmt, FmtArg::BIGINT);
+        auto text     = utils::sprintf(adjusted, big);
+        ASSERT_THAT(text, ::testing::HasSubstr("123456789012345"))
+            << "format: " << fmt << " adjusted: " << adjusted;
+    }
+}
+
+TEST(AdjustFormat, uses_platform_length_modifier)
+{
+    // int64_t is "long int" on LP64 and "long long int" on LLP64, so the
+    // length modifier must come from PRId64 rather than being hardcoded
+    ASSERT_THAT(utils::adjust_format("%d", FmtArg::BIGINT), Eq(std::string("%") + PRId64));
+    ASSERT_THAT(utils::adjust_format("%d", FmtArg::BIGINT), Eq(BIGINT_FORMAT));
+    // and the result must actually round-trip a value that needs all 64 bits
+    ASSERT_THAT(utils::sprintf(utils::adjust_format("%d", FmtArg::BIGINT), MAXBIGINT),
+                Eq(std::to_string(MAXBIGINT)));
+}
+
+TEST(AdjustFormat, preserves_surrounding_text)
+{
+    // find('d') used to mangle these into "illd=%d" and "%llld"
+    ASSERT_THAT(utils::adjust_format("id=%d", FmtArg::BIGINT),
+                Eq(std::string("id=") + BIGINT_FORMAT));
+    ASSERT_THAT(utils::adjust_format("%ld", FmtArg::BIGINT), Eq(BIGINT_FORMAT));
+    ASSERT_THAT(utils::adjust_format("%d %d", {FmtArg::BIGINT, FmtArg::BIGINT}),
+                Eq(std::string(BIGINT_FORMAT) + " " + BIGINT_FORMAT));
+}
+
+TEST(AdjustFormat, int_strips_length_modifier)
+{
+    ASSERT_THAT(utils::adjust_format("%ld", FmtArg::INTEGER), Eq("%d"));
+    ASSERT_THAT(utils::adjust_format("%8lld", FmtArg::INTEGER), Eq("%8d"));
+    ASSERT_THAT(utils::sprintf(utils::adjust_format("%5d", FmtArg::INTEGER), 42), Eq("   42"));
+}
+
+TEST(AdjustFormat, leaves_other_types_alone)
+{
+    ASSERT_THAT(utils::adjust_format("%20.15g", FmtArg::FLOAT), Eq("%20.15g"));
+    ASSERT_THAT(utils::adjust_format("%-8s", FmtArg::STRING), Eq("%-8s"));
+    // a format that does not match is returned unchanged
+    ASSERT_THAT(utils::adjust_format("%g", FmtArg::BIGINT), Eq("%g"));
+    ASSERT_THAT(utils::adjust_format("bogus %", FmtArg::BIGINT), Eq("bogus %"));
+}
+
+TEST(AdjustFormat, mixed_line_format)
+{
+    // dump atom with image flags: tagint, int, 3 doubles, 3 ints
+    const std::vector<FmtArg> line = {FmtArg::BIGINT, FmtArg::INTEGER, FmtArg::FLOAT,
+                                      FmtArg::FLOAT,  FmtArg::FLOAT,   FmtArg::INTEGER,
+                                      FmtArg::INTEGER, FmtArg::INTEGER};
+    auto adjusted = utils::adjust_format("%d %d %g %g %g %d %d %d", line);
+    ASSERT_THAT(adjusted, Eq(std::string(BIGINT_FORMAT) + " %d %g %g %g %d %d %d"));
+    // a format that uses only the leading values is adjusted the same way
+    adjusted = utils::adjust_format("id=%d type=%d", line);
+    ASSERT_THAT(adjusted, Eq(std::string("id=") + BIGINT_FORMAT + " type=%d"));
+}

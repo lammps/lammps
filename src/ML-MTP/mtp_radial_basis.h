@@ -41,7 +41,6 @@ class RadialMTPBasis : protected Pointers {
   double *radial_basis_vals;
   double *radial_basis_ders;
 
- protected:
  private:
   //Specifically reads the basis properties (ie. cutoffs and size) and not the radial parameters
   void read_basis_properties(TextFileReader &tfr);

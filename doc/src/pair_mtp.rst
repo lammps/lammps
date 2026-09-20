@@ -28,8 +28,12 @@ Syntax
 
   .. parsed-literal::
 
-     keyword = *chunksize*
+     keyword = *chunksize* or *mlip3_style*
        *chunksize* value = number of atoms in each pass
+       *mlip3_style* values = file select break
+         file = name of the file to write extrapolative configurations to
+         select = extrapolation grade above which a configuration is written
+         break = extrapolation grade above which the simulation is stopped
 
 Examples
 """"""""
@@ -47,8 +51,9 @@ Examples
 Description
 """""""""""
 
-Pair style *mtp* computes interactions using the Moment Tensor Potentials (MTP), which is a general expansion of the atomic energy in scalar contractions of moment tensors. :ref:`(Shapeev16) <Shapeev2016>`.  The *mtp* pair style provides an efficient implementation that is described in
-this paper :ref:`(Meng26) <Meng2026>`.
+.. versionadded:: TBD
+
+Pair style *mtp* computes interactions using the Moment Tensor Potentials (MTP), which is a general expansion of the atomic energy in scalar contractions of moment tensors. :ref:`(Shapeev16) <Shapeev2016>`.
 
 In the MTP, the total energy is decomposed into a sum over atomic
 energies. The energy of atom *i* is expressed as a linear function of scalar contractions of moment tensors.
@@ -90,12 +95,12 @@ calculation is invoked by :doc:`fix pair <fix_pair>`, which requests the
     fix mtp_extrapolation all pair 10 mtp/extrapolation extrapolation 1
 
     compute max_mtp_extrapolation all pair mtp/extrapolation
-    variable dump_skip equal "c_max_mtp_extrapolation < 2"
+    variable dump_skip equal "c_max_mtp_extrapolation[1] < 2"
 
     dump mtp_dump all custom 20 extrapolative_structures.dump id type x y z f_mtp_extrapolation
     dump_modify mtp_dump skip v_dump_skip
 
-    fix extreme_extrapolation all halt 10 c_max_mtp_extrapolation > 10
+    fix extreme_extrapolation all halt 10 c_max_mtp_extrapolation[1] > 10
 
 The trailing ``0 1`` in the :doc:`pair_coeff <pair_coeff>` command maps LAMMPS
 atom types to species indices in the potential file, in the same way as for
@@ -103,7 +108,9 @@ atom types to species indices in the potential file, in the same way as for
 
 Here the extrapolation grade is computed every 10 steps and stored in the
 per-atom quantity ``f_mtp_extrapolation``.  The largest grade among all atoms
-in the structure is exposed through ``c_max_mtp_extrapolation``.  The structure
+in the structure is exposed through ``c_max_mtp_extrapolation[1]``.  Note the
+index: :doc:`compute pair <compute_pair>` returns the potential energy as its
+scalar and the extrapolation grade as the first element of its global vector.  The structure
 is dumped to ``extrapolative_structures.dump`` only on steps where this value
 reaches the threshold of 2, and at most every 20 steps.  If the value exceeds
 10, the simulation is halted.
@@ -114,6 +121,15 @@ dump is considered.  In the example above the grade is computed every 10
 steps and the dump is evaluated every 20.
 
 On all other steps `pair_style mtp` will be used.
+
+.. versionadded:: TBD
+
+The *mlip3_style* keyword writes the configurations whose extrapolation grade
+reaches the *select* threshold to *file*, in the MLIP-3 preselected
+configuration format, so they can be used to retrain the potential.  If the
+grade reaches the *break* threshold the simulation is stopped.  Unlike the
+grades exposed through :doc:`fix pair <fix_pair>`, this file is written on
+every step.  The keyword is only accepted by *mtp/extrapolation*.
 
 The use of pair style *mtp/extrapolation* is not recommended with
 `pair_style hybrid/overlay` since the extrapolation calculation cannot
@@ -162,13 +178,13 @@ Related commands
 
 :doc:`pair_style snap  <pair_snap>`,
 :doc:`pair_style pace  <pair_pace>`,
-:doc:`fix pair  <fix_pair>`
+:doc:`fix pair  <fix_pair>`,
 :doc:`compute pair  <compute_pair>`
 
 Default
 """""""
 
-chunksize = 4096,
+chunksize = 65536
 
 .. _Shapeev2016:
 

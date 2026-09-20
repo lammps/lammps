@@ -25,7 +25,7 @@
 #include "memory.h"
 #include "mtp_radial_basis.h"
 #include "neigh_list.h"
-#include "neighbor.h"
+#include "platform.h"
 #include "text_file_reader.h"
 
 #include <algorithm>
@@ -41,7 +41,6 @@ PairMTPExtrapolation::PairMTPExtrapolation(LAMMPS *lmp) : PairMTP(lmp)
   pvector = new double[nextra];    // Pointer directly to the max extrapolation grade
   pvector[0] = 0.0;
 
-  active_set = nullptr;
   inverse_active_set = nullptr;
   radial_basis_cache = nullptr;
   energy_ders_wrt_coeffs = nullptr;
@@ -60,7 +59,7 @@ PairMTPExtrapolation::PairMTPExtrapolation(LAMMPS *lmp) : PairMTP(lmp)
   max_grade = 0.0;
   nbh_count = 0;
   write_buffer_size = 0;
-};
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -68,8 +67,10 @@ PairMTPExtrapolation::~PairMTPExtrapolation()
 {
   if (copymode) return;
 
+  delete[] pvector;
+  pvector = nullptr;
+
   if (allocated) {
-    memory->destroy(active_set);
     memory->destroy(inverse_active_set);
     memory->destroy(radial_basis_cache);
     memory->destroy(energy_ders_wrt_coeffs);
@@ -116,9 +117,11 @@ void PairMTPExtrapolation::compute(int eflag, int vflag)
       list->firstneigh;    //List  (head of array) of neighbours for a given central atom
 
   // Resize the nbh extrapolation grades if needed.
-  if (!configuration_mode && nbh_count < inum) {
-    memory->grow(nbh_extrapolation_grades, inum, "nbh_extrapolation_grades");
-    nbh_count = inum;
+  // Indexed below with the atom index ilist[ii] and handed to fix pair as a per-atom
+  // array, so it is sized by the per-atom allocation rather than by the list length.
+  if (!configuration_mode && nbh_count < atom->nmax) {
+    memory->grow(nbh_extrapolation_grades, atom->nmax, "nbh_extrapolation_grades");
+    nbh_count = atom->nmax;
   }
 
   // If are in configuration, we need to reset the working array once per compute call / config
@@ -334,7 +337,7 @@ double PairMTPExtrapolation::calculate_extrapolation_grade(int itype)
   const int begin = itype < 0 ? 0 : itype * species_count * radial_coeff_count_per_pair;
   const int end = itype < 0 ? coeff_count : begin + species_count * radial_coeff_count_per_pair;
   const int linear_offset = radial_coeff_count + species_count;
-  double max_grade = 0;
+  double grade_max = 0;
   for (int i = 0; i < coeff_count; i++) {
     double current_grade = 0;
     const double *row = inverse_active_set[i];
@@ -345,9 +348,9 @@ double PairMTPExtrapolation::calculate_extrapolation_grade(int itype)
       for (int j = linear_offset; j < coeff_count; j++)
         current_grade += energy_ders_wrt_coeffs[j] * row[j];
     }
-    max_grade = std::max(std::abs(current_grade), max_grade);
+    grade_max = std::max(std::abs(current_grade), grade_max);
   }
-  return max_grade;
+  return grade_max;
 }
 
 /* ----------------------------------------------------------------------
@@ -482,28 +485,32 @@ void PairMTPExtrapolation::write_config()
 void PairMTPExtrapolation::settings(int narg, char **arg)
 {
   mlip3_style = false;
+  PairMTP::settings(narg, arg);
+}
 
-  int iarg = 0;
-  while (iarg < narg) {
-    if (strcmp(arg[iarg], "mlip3_style") == 0) {
-      if (iarg + 3 >= narg)
-        utils::missing_cmd_args(FLERR, "pair_style mtp/extrapolation mlip3_style", error);
+/* ----------------------------------------------------------------------
+   parse a single pair_style keyword, return the number of arguments used
+------------------------------------------------------------------------- */
+int PairMTPExtrapolation::settings_keyword(int narg, char **arg, int iarg)
+{
+  if (strcmp(arg[iarg], "mlip3_style") == 0) {
+    if (iarg + 3 >= narg)
+      utils::missing_cmd_args(FLERR, fmt::format("pair_style {} mlip3_style", force->pair_style),
+                              error);
 
-      mlip3_style = true;
-      if (comm->me == 0) {
-        if (preselected_file) std::fclose(preselected_file);
-        preselected_file = std::fopen(arg[iarg + 1], "w");
-        if (!preselected_file)
-          error->one(FLERR, "Cannot open mtp/extrapolation output file {}: {}", arg[iarg + 1],
-                     utils::getsyserror());
-      }
-      select_threshold = utils::numeric(FLERR, arg[iarg + 2], true, lmp);
-      break_threshold = utils::numeric(FLERR, arg[iarg + 3], true, lmp);
-      iarg += 4;
-    } else {
-      error->all(FLERR, "Unknown pair_style mtp/extrapolation keyword: {}", arg[iarg]);
+    mlip3_style = true;
+    if (comm->me == 0) {
+      if (preselected_file) std::fclose(preselected_file);
+      preselected_file = std::fopen(arg[iarg + 1], "w");
+      if (!preselected_file)
+        error->one(FLERR, "Cannot open {} output file {}: {}", force->pair_style, arg[iarg + 1],
+                   utils::getsyserror());
     }
+    select_threshold = utils::numeric(FLERR, arg[iarg + 2], true, lmp);
+    break_threshold = utils::numeric(FLERR, arg[iarg + 3], true, lmp);
+    return 4;
   }
+  return PairMTP::settings_keyword(narg, arg, iarg);
 }
 
 /* ----------------------------------------------------------------------
@@ -511,18 +518,8 @@ void PairMTPExtrapolation::settings(int narg, char **arg)
 ------------------------------------------------------------------------- */
 void PairMTPExtrapolation::coeff(int narg, char **arg)
 {
-  const int n = atom->ntypes;
-  if (narg != 3 + n) error->all(FLERR, "Incorrect args for pair coefficients.");
-
-  // Read in MTP and allocate memory
-  FILE *mtp_file = nullptr;
-  if (comm->me == 0) {
-    mtp_file = utils::open_potential(arg[2], lmp, nullptr);
-    if (mtp_file == nullptr)
-      error->one(FLERR, "Cannot open MTP potential file {}: {}", arg[2], utils::getsyserror());
-  }
-  PairMTPExtrapolation::read_file(mtp_file);
-  if (mtp_file) fclose(mtp_file);
+  // read_file() is virtual, so the base implementation reads the .almtp section too.
+  PairMTP::coeff(narg, arg);
 
   if (comm->me == 0) {
     if (mlip3_style)
@@ -535,8 +532,6 @@ void PairMTPExtrapolation::coeff(int narg, char **arg)
       utils::logmesg(lmp, "Extrapolation Mode: {} mode.\n",
                      (configuration_mode ? "Configuration" : "Neighborhood"));
   }
-
-  PairMTP::prepare_map(narg - 3, arg + 3);
 }
 
 /* ----------------------------------------------------------------------
@@ -547,11 +542,18 @@ void PairMTPExtrapolation::read_file(FILE *mtp_file)
   PairMTP::read_file(mtp_file);
 
   coeff_count = radial_coeff_count + species_count + alpha_scalar_count;
-  int num_doubles = coeff_count * coeff_count;
+  const bigint num_doubles_big = (bigint) coeff_count * (bigint) coeff_count;
+  if (num_doubles_big > MAXSMALLINT)
+    error->all(FLERR, "MTP active set is too large for a single MPI message");
+  const int num_doubles = (int) num_doubles_big;
   radial_basis_cache_size = 0;
 
   // Now we allocate memory for the additional memory needed for calculations
-  memory->create(active_set, coeff_count, coeff_count, "active_set");
+  // The MaxVol active set itself is not used by any computation here - only its
+  // inverse is - so it is neither stored nor broadcast.  Its bytes still have to be
+  // stepped over in the file so the inverse is read from the right offset.  Kept
+  // commented rather than deleted in case the active set is needed again.
+  // memory->create(active_set, coeff_count, coeff_count, "active_set");
   memory->create(inverse_active_set, coeff_count, coeff_count, "inverse_active_set");
   memory->create(energy_ders_wrt_coeffs, coeff_count, "energy_ders_wrt_coeffs");
 
@@ -616,7 +618,10 @@ void PairMTPExtrapolation::read_file(FILE *mtp_file)
     configuration_mode = cfg_mode;
 
     fgetc(mtp_file);    // We need to skip foward 1 character. There is a # before the binary data.
-    utils::sfread(FLERR, &active_set[0][0], sizeof(double), num_doubles, mtp_file, nullptr, error);
+    // Step over the active set rather than reading it; see the note above.
+    const bigint set_bytes = num_doubles_big * (bigint) sizeof(double);
+    if (platform::fseek(mtp_file, platform::ftell(mtp_file) + set_bytes) != 0)
+      error->one(FLERR, "Error reading MTP file. Active set section is truncated.");
     utils::sfread(FLERR, &inverse_active_set[0][0], sizeof(double), num_doubles, mtp_file, nullptr,
                   error);
   }
@@ -624,7 +629,6 @@ void PairMTPExtrapolation::read_file(FILE *mtp_file)
   //Broadcast active set to others
   MPI_Bcast(&configuration_mode, 1, MPI_INT, 0, world);
   MPI_Bcast(&weight_scaling, 1, MPI_INT, 0, world);
-  MPI_Bcast(&active_set[0][0], num_doubles, MPI_DOUBLE, 0, world);
   MPI_Bcast(&inverse_active_set[0][0], num_doubles, MPI_DOUBLE, 0, world);
   allocated = 1;
 }

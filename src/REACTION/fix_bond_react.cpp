@@ -838,8 +838,6 @@ void FixBondReact::post_integrate()
   superimpose_algorithm();
   // free atoms that have been limited after reacting
   unlimit_bond();
-  // update molecule IDs
-  if (molid_mode == Reset_Mol_IDs::YES) reset_mol_ids->reset();
 }
 
 /* ----------------------------------------------------------------------

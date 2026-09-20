@@ -50,7 +50,6 @@ PairMTP::PairMTP(LAMMPS *lmp) : Pair(lmp)
   species_coeffs = nullptr;
   alpha_index_basic = nullptr;
   alpha_index_times = nullptr;
-  force_index_times = nullptr;
   alpha_moment_mapping = nullptr;
   nbh_energy_ders_wrt_moments = nullptr;
   basic_to_angular = nullptr;
@@ -88,7 +87,6 @@ PairMTP::~PairMTP()
     memory->destroy(species_coeffs);
     memory->destroy(alpha_index_basic);
     memory->destroy(alpha_index_times);
-    memory->destroy(force_index_times);
     memory->destroy(alpha_moment_mapping);
     memory->destroy(nbh_energy_ders_wrt_moments);
     memory->destroy(cached_j);
@@ -125,10 +123,8 @@ void PairMTP::compute(int eflag, int vflag)
 {
   ev_init(eflag, vflag);
   const bool need_energy = eflag_atom || eflag_global;
-  int **forward_times = need_energy ? alpha_index_times : force_index_times;
+  const int *times_data = alpha_index_times_count ? alpha_index_times[0] : nullptr;
   const int forward_count = need_energy ? alpha_index_times_count : force_index_times_count;
-  const int *forward_data = forward_count ? forward_times[0] : nullptr;
-  const int *reverse_data = alpha_index_times_count ? alpha_index_times[0] : nullptr;
 
   double **x = atom->x;      // atomic positions
   double **f = atom->f;      // atomic forces
@@ -180,6 +176,8 @@ void PairMTP::compute(int eflag, int vflag)
       double *vals = neighbor_cache[valid_count] + 1;
       double *ders = vals + radial_func_count;
       radial_basis->calc_radial_basis_ders(dist);
+      const double *basis_vals = radial_basis->radial_basis_vals;
+      const double *basis_ders = radial_basis->radial_basis_ders;
 
       // Evaluate each shared angular monomial once.
       for (int k = 1; k < angular_count; k++)
@@ -193,8 +191,8 @@ void PairMTP::compute(int eflag, int vflag)
         const int offset = (pair_offset * radial_coeff_count_per_pair) + mu * radial_basis_size;
 
         for (int ri = 0; ri < radial_basis_size; ri++) {
-          val += radial_basis_coeffs[offset + ri] * radial_basis->radial_basis_vals[ri];
-          der += radial_basis_coeffs[offset + ri] * radial_basis->radial_basis_ders[ri];
+          val += radial_basis_coeffs[offset + ri] * basis_vals[ri];
+          der += radial_basis_coeffs[offset + ri] * basis_ders[ri];
         }
         vals[mu] = val;
         ders[mu] = der;
@@ -210,7 +208,7 @@ void PairMTP::compute(int eflag, int vflag)
 
     // ------------ Construct Composite Moment Values  ------------
     for (int k = 0; k < forward_count; k++) {
-      const int *term = forward_data + 4 * k;
+      const int *term = times_data + 4 * k;
       moment_tensor_vals[term[3]] +=
           term[2] * moment_tensor_vals[term[0]] * moment_tensor_vals[term[1]];
     }
@@ -232,7 +230,7 @@ void PairMTP::compute(int eflag, int vflag)
 
     //------------ Propagate chain rule through the composite moment elements times to the basics ------------
     for (int k = alpha_index_times_count - 1; k >= 0; k--) {
-      const int *term = reverse_data + 4 * k;
+      const int *term = times_data + 4 * k;
       const int a0 = term[0];
       const int a1 = term[1];
 
@@ -692,19 +690,28 @@ void PairMTP::read_file(FILE *mtp_file)
   }
 
   // Contractions whose product is never consumed are dead when only forces are wanted.
+  // Sink them below the live terms so both passes stream one table: the forward pass
+  // stops at force_index_times_count, the reverse pass walks the whole list. A dead
+  // output feeds nothing, so the partitioned order stays topologically valid.
   std::vector<char> moment_used(alpha_moment_count, 0);
   for (int k = 0; k < alpha_index_times_count; k++) {
     moment_used[alpha_index_times[k][0]] = 1;
     moment_used[alpha_index_times[k][1]] = 1;
   }
-  force_index_times_count = 0;
-  for (int k = 0; k < alpha_index_times_count; k++)
-    if (moment_used[alpha_index_times[k][3]]) force_index_times_count++;
-  memory->create(force_index_times, force_index_times_count, 4, "force_index_times");
-  int next = 0;
-  for (int k = 0; k < alpha_index_times_count; k++)
-    if (moment_used[alpha_index_times[k][3]])
-      std::copy(alpha_index_times[k], alpha_index_times[k] + 4, force_index_times[next++]);
+
+  std::vector<std::array<int, 4>> dead;
+  int live = 0;
+  for (int k = 0; k < alpha_index_times_count; k++) {
+    const int *term = alpha_index_times[k];
+    if (moment_used[term[3]]) {
+      if (live != k) std::copy(term, term + 4, alpha_index_times[live]);
+      live++;
+    } else {
+      dead.push_back({{term[0], term[1], term[2], term[3]}});
+    }
+  }
+  force_index_times_count = live;
+  for (const auto &term : dead) std::copy(term.begin(), term.end(), alpha_index_times[live++]);
 
   cache_size = 0;
 

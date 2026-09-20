@@ -70,7 +70,6 @@ class PairMTP : public Pair {
   int **alpha_index_basic;
   int **alpha_index_times;
   int force_index_times_count;
-  int **force_index_times;
   int *alpha_moment_mapping;
 
   // Shared angular monomials and per-neighbor scratch.

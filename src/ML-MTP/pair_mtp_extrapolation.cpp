@@ -68,8 +68,6 @@ PairMTPExtrapolation::~PairMTPExtrapolation()
 {
   if (copymode) return;
 
-  delete[] pvector;
-
   if (allocated) {
     memory->destroy(active_set);
     memory->destroy(inverse_active_set);
@@ -101,8 +99,8 @@ void PairMTPExtrapolation::compute(int eflag, int vflag)
 
   ev_init(eflag, vflag);
 
-  // The candidate vector needs every scalar moment, so the pruned force-only
-  // contraction list the base style uses does not apply here.
+  // The candidate vector needs every scalar moment, so this walks the full list
+  // including the dead tail the base style skips when only forces are wanted.
   const int *times_data = alpha_index_times_count ? alpha_index_times[0] : nullptr;
 
   double **x = atom->x;      // atomic positions
@@ -118,12 +116,9 @@ void PairMTPExtrapolation::compute(int eflag, int vflag)
       list->firstneigh;    //List  (head of array) of neighbours for a given central atom
 
   // Resize the nbh extrapolation grades if needed.
-  if (!configuration_mode) {
-    if (nbh_count < atom->nmax) {
-      memory->grow(nbh_extrapolation_grades, atom->nmax, "nbh_extrapolation_grades");
-      nbh_count = atom->nmax;
-    }
-    if (inum < nlocal) std::fill(nbh_extrapolation_grades, nbh_extrapolation_grades + nlocal, 0.0);
+  if (!configuration_mode && nbh_count < inum) {
+    memory->grow(nbh_extrapolation_grades, inum, "nbh_extrapolation_grades");
+    nbh_count = inum;
   }
 
   // If are in configuration, we need to reset the working array once per compute call / config

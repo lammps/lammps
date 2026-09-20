@@ -23,8 +23,8 @@ PairStyle(mtp/extrapolation/kk/host,PairMTPExtrapolationKokkos<LMPHostType>);
 // clang-format on
 #else
 
-#ifndef LMP_PAIR_MTP_KOKKOS_EXTRAPOLATION_H
-#define LMP_PAIR_MTP_KOKKOS_EXTRAPOLATION_H
+#ifndef LMP_PAIR_MTP_EXTRAPOLATION_KOKKOS_H
+#define LMP_PAIR_MTP_EXTRAPOLATION_KOKKOS_H
 
 #include "pair_mtp_extrapolation.h"
 
@@ -44,13 +44,27 @@ template <class DeviceType> class PairMTPExtrapolationKokkos : public PairMTPExt
   struct TagPairMTPCombineCoeffDers {};
   template <int NEIGHFLAG, int EVFLAG> struct TagPairMTPComputeForce {};
 
-  enum { EnabledNeighFlags = HALF | HALFTHREAD };
-  enum { COUL_FLAG = 0 };
-
   static constexpr int ATOM_TILE_SIZE = 32;
   static constexpr int REVERSE_LONG_THRESHOLD = 128;
+
+  // Kokkos caps a team parallel_reduce grid at this many blocks and strides the
+  // rest; parallel_for does not, so we bound both by hand and stride ourselves.
   static constexpr int FORCE_MAX_BLOCKS = 32768;
   static constexpr int COEFF_REDUCE_BLOCK_SIZE = 1024;
+
+  // Upper bounds on the probed team sizes.  The graph kernels vectorize over the atom
+  // tile, so a wide team buys nothing there and costs occupancy.
+  static constexpr int MAX_TEAM_SIZE_BASIC = 64;
+  static constexpr int MAX_TEAM_SIZE_GRAPH = 4;
+
+  // Valid-neighbour capacity is grown with 1/8 headroom and rounded up to this many
+  // entries so the compacted list stays warp aligned.
+  static constexpr int NEIGH_CAPACITY_ALIGN = 32;
+
+  // Graph waves are split across at most this many partitions, targeting roughly
+  // GRAPH_PARTITION_TARGET teams in flight before the node loop is subdivided.
+  static constexpr int GRAPH_PARTITION_MAX = 16;
+  static constexpr int GRAPH_PARTITION_TARGET = 2048;
 
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
@@ -59,11 +73,8 @@ template <class DeviceType> class PairMTPExtrapolationKokkos : public PairMTPExt
   PairMTPExtrapolationKokkos(class LAMMPS *);
   ~PairMTPExtrapolationKokkos() override;
   void compute(int, int) override;
-  void settings(int, char **) override;
   void coeff(int, char **) override;
   void init_style() override;
-  double init_one(int, int) override;
-  void evaluate_grades();
   void prepare_waves();
 
   template <typename scratch_type> int scratch_size_helper(int values_per_team);
@@ -118,10 +129,14 @@ template <class DeviceType> class PairMTPExtrapolationKokkos : public PairMTPExt
                  DeviceType, TagPairMTPComputeForce<NEIGHFLAG, 0>>::member_type &team) const;
 
  protected:
+  void evaluate_grades() override;
+
   template <int NEIGHFLAG, int EVFLAG>
   EV_FLOAT compute_force(const typename DeviceType::execution_space &, int, int, int);
 
-  int input_chunk_size, chunk_size, chunk_offset;
+  // input_chunk_size (the chunksize keyword) lives in PairMTP, so a script parses
+  // identically on a CPU-only build.
+  int chunk_size, chunk_offset;
   int inum, max_valid_neighs, num_waves;
   int wave_begin, wave_end, node_partitions;
   int host_flag, neighflag;
@@ -129,7 +144,8 @@ template <class DeviceType> class PairMTPExtrapolationKokkos : public PairMTPExt
   bool calculate_grade_this_step;
   double inv_cutoff_range, cutoff_sum, radial_mult;
   int ts_basic, ts_times, ts_nbh, ts_nbh_long, ts_force[2][2];
-  int ts_reduce, ts_grade;
+  // The two grade reductions are separate functors, so they get separate caches.
+  int ts_reduce, ts_nbh_grade, ts_cfg_grade;
   int coeff_reduce_blocks;
   int cached_force_team_scratch_size;
 

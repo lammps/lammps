@@ -43,11 +43,22 @@ template <class DeviceType> class PairMTPKokkos : public PairMTP {
   struct TagPairMTPComputeNbhDersLong {};
   template <int NEIGHFLAG, int EVFLAG> struct TagPairMTPComputeForce {};
 
-  enum { EnabledNeighFlags = HALF | HALFTHREAD };
-  enum { COUL_FLAG = 0 };
-
   static constexpr int ATOM_TILE_SIZE = 32;
   static constexpr int REVERSE_LONG_THRESHOLD = 128;
+
+  // Upper bounds on the probed team sizes.  The graph kernels vectorize over the atom
+  // tile, so a wide team buys nothing there and costs occupancy.
+  static constexpr int MAX_TEAM_SIZE_BASIC = 64;
+  static constexpr int MAX_TEAM_SIZE_GRAPH = 4;
+
+  // Valid-neighbour capacity is grown with 1/8 headroom and rounded up to this many
+  // entries so the compacted list stays warp aligned.
+  static constexpr int NEIGH_CAPACITY_ALIGN = 32;
+
+  // Graph waves are split across at most this many partitions, targeting roughly
+  // GRAPH_PARTITION_TARGET teams in flight before the node loop is subdivided.
+  static constexpr int GRAPH_PARTITION_MAX = 16;
+  static constexpr int GRAPH_PARTITION_TARGET = 2048;
 
   // Kokkos caps a team parallel_reduce grid at this many blocks and strides the
   // rest; parallel_for does not, so we bound both by hand and stride ourselves.
@@ -61,10 +72,8 @@ template <class DeviceType> class PairMTPKokkos : public PairMTP {
   ~PairMTPKokkos() override;
 
   void compute(int, int) override;
-  void settings(int, char **) override;
   void coeff(int, char **) override;
   void init_style() override;
-  double init_one(int, int) override;
   void prepare_waves();    //Precalculates node waves and rule lists
 
   // ========== Kokkos kernels ==========
@@ -122,8 +131,13 @@ template <class DeviceType> class PairMTPKokkos : public PairMTP {
   template <int NEIGHFLAG, int EVFLAG>
   EV_FLOAT compute_force(const typename DeviceType::execution_space &, int, int, int);
 
-  int input_chunk_size, chunk_size,
-      chunk_offset;    // Needed to process the computation in batches to avoid running out of VRAM.
+  // Needed to process the computation in batches to avoid running out of VRAM.
+  // input_chunk_size (the chunksize keyword) lives in PairMTP, so a script parses
+  // identically on a CPU-only build.  The chunk-resident device arrays cost roughly
+  //   8 * chunk * (2*alpha_moment_count + 2*max_neighs*radial_func_count + max_neighs)
+  // bytes, so a large model (alpha_moment_count ~ 1e4) needs about 11 GB at the
+  // default.  Raise it on a device with more memory, or lower it on a small one.
+  int chunk_size, chunk_offset;
   int inum, max_valid_neighs, num_waves;
   int wave_begin, wave_end, node_partitions;
   int host_flag, neighflag;

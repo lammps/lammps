@@ -22,7 +22,6 @@
 #include "error.h"
 #include "force.h"
 #include "kokkos.h"
-#include "math_const.h"
 #include "memory_kokkos.h"
 #include "neigh_request.h"
 #include "neighbor_kokkos.h"
@@ -46,7 +45,6 @@ template <class DeviceType> PairMTPKokkos<DeviceType>::PairMTPKokkos(LAMMPS *lmp
 
   host_flag = (execution_space == Host);
 
-  input_chunk_size = 65536;
   chunk_size = 0;
   chunk_offset = 0;
   inum = 0;
@@ -68,6 +66,10 @@ template <class DeviceType> PairMTPKokkos<DeviceType>::PairMTPKokkos(LAMMPS *lmp
 template <class DeviceType> PairMTPKokkos<DeviceType>::~PairMTPKokkos()
 {
   if (copymode) return;
+
+  // On the host path compute() delegates to PairMTP, so eatom/vatom are the plain
+  // arrays allocated by Pair::ev_setup() and are freed by ~Pair().
+  if (host_flag) return;
 
   memoryKK->destroy_kokkos(k_eatom, eatom);
   memoryKK->destroy_kokkos(k_vatom, vatom);
@@ -99,15 +101,6 @@ template <class DeviceType> void PairMTPKokkos<DeviceType>::init_style()
 }
 
 /* ----------------------------------------------------------------------
-   init for one type pair i,j and corresponding j,i
-------------------------------------------------------------------------- */
-template <class DeviceType> double PairMTPKokkos<DeviceType>::init_one(int i, int j)
-{
-  double cutone = PairMTP::init_one(i, j);
-  return cutone;
-}
-
-/* ----------------------------------------------------------------------
    set coeffs for one or more type pairs
 ------------------------------------------------------------------------- */
 
@@ -115,6 +108,11 @@ template <class DeviceType> void PairMTPKokkos<DeviceType>::coeff(int narg, char
 {
   PairMTP::coeff(narg, arg);
   PairMTPKokkos::prepare_waves();
+
+  // The occupancy probes below depend on the model dimensions, so a second
+  // pair_coeff must re-run them instead of reusing the previous model's sizes.
+  ts_basic = ts_times = ts_nbh = ts_nbh_long = 0;
+  ts_force[0][0] = ts_force[0][1] = ts_force[1][0] = ts_force[1][1] = 0;
 
   // Loop-invariant radial-basis constants. PairMTP::coeff() leaves min_cutoff and
   // max_cutoff final, so they are resolved once here rather than per neighbour pair.
@@ -135,7 +133,6 @@ template <class DeviceType> void PairMTPKokkos<DeviceType>::coeff(int narg, char
   MemKK::realloc_kokkos(d_map, "mtp/kk:mapping", atom->ntypes + 1);
 
   // Setup the learned coefficients
-  int radial_coeff_count = species_count * species_count * radial_basis_size * radial_func_count;
   MemKK::realloc_kokkos(d_radial_basis_coeffs, "mtp/kk:radial_coeffs", radial_coeff_count);
   MemKK::realloc_kokkos(d_species_coeffs, "mtp/kk:species_coeffs", species_count);
   MemKK::realloc_kokkos(d_linear_coeffs, "mtp/kk:linear_coeffs", alpha_scalar_count);
@@ -174,7 +171,10 @@ template <class DeviceType> void PairMTPKokkos<DeviceType>::coeff(int narg, char
     h_linear_coeffs(i) = linear_coeffs[i];
     h_moment_coeffs(alpha_moment_mapping[i]) += linear_coeffs[i];
   }
-  for (int i = 0; i < atom->ntypes + 1; i++) h_map[i] = map[i];
+  // prepare_map() fills map[1..ntypes] only, so element 0 is set explicitly
+  // rather than copied from uninitialized memory.
+  h_map[0] = -1;
+  for (int i = 1; i < atom->ntypes + 1; i++) h_map[i] = map[i];
   for (int i = 0; i < radial_coeff_count; i++) h_radial_basis_coeffs(i) = radial_basis_coeffs[i];
   for (int i = 0; i < species_count; i++) h_species_coeffs(i) = species_coeffs[i];
 
@@ -190,31 +190,13 @@ template <class DeviceType> void PairMTPKokkos<DeviceType>::coeff(int narg, char
 }
 
 /* ----------------------------------------------------------------------
-   global settings
-------------------------------------------------------------------------- */
-template <class DeviceType> void PairMTPKokkos<DeviceType>::settings(int narg, char **arg)
-{
-  // Default chunksize. The chunk-resident device arrays cost roughly
-  //   8 * chunk * (2*alpha_moment_count + 2*max_neighs*radial_func_count + max_neighs)
-  // bytes, so a large model (alpha_moment_count ~ 1e4) needs about 11 GB here.
-  // Raise it with the chunksize keyword on a device with more memory, or lower it
-  // on a small one.
-  input_chunk_size = 65536;
-
-  int iarg = 0;
-  while (iarg < narg) {
-    if (strcmp(arg[iarg], "chunksize") == 0) {
-      if (iarg + 1 >= narg) utils::missing_cmd_args(FLERR, "pair_style mtp/kk chunksize", error);
-      input_chunk_size = utils::inumeric(FLERR, arg[iarg + 1], true, lmp);
-      iarg += 2;
-    } else {
-      error->all(FLERR, "Unknown pair_style mtp/kk keyword: {}", arg[iarg]);
-    }
-  }
-}
-
-/* ----------------------------------------------------------------------
    Groups rules and nodes by dependency.
+
+   NOTE: this routine is duplicated verbatim in pair_mtp_kokkos.cpp and
+   pair_mtp_extrapolation_kokkos.cpp, because the extrapolation KOKKOS style
+   derives from the CPU class rather than from PairMTPKokkos (the same shape
+   pair_pace_extrapolation_kokkos.cpp uses).  Any change here must be made in
+   both copies.
 ------------------------------------------------------------------------- */
 template <class DeviceType> void PairMTPKokkos<DeviceType>::prepare_waves()
 {
@@ -341,8 +323,6 @@ template <class DeviceType> struct FindMaxValidNeighsMTP {
       d_valid_neighs(d_valid_neighs), capacity(capacity)
   {
   }
-  ~FindMaxValidNeighsMTP() {}
-
   KOKKOS_INLINE_FUNCTION
   void operator()(const typename Kokkos::TeamPolicy<DeviceType>::member_type &team,
                   int &max_valid_neighs) const
@@ -426,8 +406,6 @@ template <class DeviceType> void PairMTPKokkos<DeviceType>::compute(int eflag_in
   }
 
   copymode = 1;
-  int newton_pair = force->newton_pair;
-  if (newton_pair == false) error->all(FLERR, "PairMTPKokkos requires 'newton on'.");
 
   // Now, ensure the atom data is synced
   atomKK->sync(execution_space, X_MASK | F_MASK | TYPE_MASK);
@@ -466,7 +444,7 @@ template <class DeviceType> void PairMTPKokkos<DeviceType>::compute(int eflag_in
     using BasicPolicy = Kokkos::TeamPolicy<DeviceType, TagPairMTPComputeAlphaBasic>;
     const int basic_limit =
         BasicPolicy(inum, Kokkos::AUTO).team_size_max(*this, Kokkos::ParallelForTag());
-    ts_basic = basic_limit < 64 ? basic_limit : 64;
+    ts_basic = MIN(basic_limit, MAX_TEAM_SIZE_BASIC);
     if (ts_basic < 1) error->all(FLERR, "Insufficient device resources for MTP basic alpha.");
   }
   const int team_size_default = ts_basic;
@@ -484,7 +462,10 @@ template <class DeviceType> void PairMTPKokkos<DeviceType>::compute(int eflag_in
                             Kokkos::Max<int>(max_valid_neighs));
     if (max_valid_neighs <= (int) d_valid_neighs.extent(0)) break;
     const int grown = max_valid_neighs + max_valid_neighs / 8 + 1;
-    Kokkos::realloc(Kokkos::WithoutInitializing, d_valid_neighs, ((grown + 31) / 32) * 32, inum);
+    Kokkos::realloc(Kokkos::WithoutInitializing, d_valid_neighs,
+                    ((grown + NEIGH_CAPACITY_ALIGN - 1) / NEIGH_CAPACITY_ALIGN) *
+                        NEIGH_CAPACITY_ALIGN,
+                    inum);
   }
 
   // Handling batching
@@ -518,7 +499,11 @@ template <class DeviceType> void PairMTPKokkos<DeviceType>::compute(int eflag_in
   using TimesPolicy = Kokkos::TeamPolicy<DeviceType, TagPairMTPComputeAlphaTimes>;
   using NbhDersPolicy = Kokkos::TeamPolicy<DeviceType, TagPairMTPComputeNbhDers>;
   using LongPolicy = Kokkos::TeamPolicy<DeviceType, TagPairMTPComputeNbhDersLong>;
-  const int long_scratch = shared_kk_float_1d::shmem_size(4 * ATOM_TILE_SIZE);
+  const int long_scratch = shared_kk_float_1d::shmem_size(MAX_TEAM_SIZE_GRAPH * ATOM_TILE_SIZE);
+  if (d_long_nodes.extent(0) &&
+      (size_t) long_scratch > LongPolicy(graph_space, 1, Kokkos::AUTO, ATOM_TILE_SIZE)
+                                  .scratch_size_max(0))
+    error->all(FLERR, "Insufficient scratch memory for MTP long reverse accumulation.");
 
   // Team sizes depend only on the functor and its scratch, never on chunk_size,
   // so the occupancy queries are resolved once instead of once per chunk.
@@ -527,14 +512,14 @@ template <class DeviceType> void PairMTPKokkos<DeviceType>::compute(int eflag_in
                                 .team_size_max(*this, Kokkos::ParallelForTag());
     const int limit_nbh = NbhDersPolicy(graph_space, 1, Kokkos::AUTO, ATOM_TILE_SIZE)
                               .team_size_max(*this, Kokkos::ParallelForTag());
-    ts_times = limit_times < 4 ? limit_times : 4;
-    ts_nbh = limit_nbh < 4 ? limit_nbh : 4;
+    ts_times = MIN(limit_times, MAX_TEAM_SIZE_GRAPH);
+    ts_nbh = MIN(limit_nbh, MAX_TEAM_SIZE_GRAPH);
     ts_nbh_long = 1;
     if (d_long_nodes.extent(0)) {
       LongPolicy long_limits(graph_space, 1, Kokkos::AUTO, ATOM_TILE_SIZE);
       long_limits.set_scratch_size(0, Kokkos::PerTeam(long_scratch));
       const int limit_long = long_limits.team_size_max(*this, Kokkos::ParallelForTag());
-      ts_nbh_long = limit_long < 4 ? limit_long : 4;
+      ts_nbh_long = MIN(limit_long, MAX_TEAM_SIZE_GRAPH);
     }
     if (ts_times < 1 || ts_nbh < 1 || ts_nbh_long < 1)
       error->all(FLERR, "Insufficient device resources for MTP graph kernels.");
@@ -550,8 +535,14 @@ template <class DeviceType> void PairMTPKokkos<DeviceType>::compute(int eflag_in
 
   // Force scratch is alpha_index_basic_count + team_size * (2*radial_func_count
   // + 3*max_alpha_index_basic) doubles, so team_size sets blocks-per-SM.
+  // The inner range is over neighbours, so a team wider than the neighbour count only
+  // idles lanes; clamp to that count rounded up to a full warp.
   int force_team_size = team_size_default;
-  if (max_valid_neighs < 32) force_team_size = MIN(force_team_size, 32);
+  if (max_valid_neighs < MAX_TEAM_SIZE_BASIC)
+    force_team_size = MIN(force_team_size,
+                          ((max_valid_neighs + NEIGH_CAPACITY_ALIGN - 1) / NEIGH_CAPACITY_ALIGN) *
+                              NEIGH_CAPACITY_ALIGN);
+  force_team_size = MAX(force_team_size, 1);
 
   const int force_scratch_size =
       scratch_size_helper<KK_FLOAT>(2 * radial_func_count + 3 * max_alpha_index_basic);
@@ -562,7 +553,8 @@ template <class DeviceType> void PairMTPKokkos<DeviceType>::compute(int eflag_in
     EV_FLOAT ev_tmp;
     if (chunk_size > inum - chunk_offset) chunk_size = inum - chunk_offset;
     const int atom_tiles = (chunk_size + ATOM_TILE_SIZE - 1) / ATOM_TILE_SIZE;
-    const int graph_partitions = MIN(16, MAX(1, (2048 + atom_tiles - 1) / atom_tiles));
+    const int graph_partitions = MIN(GRAPH_PARTITION_MAX,
+                                     MAX(1, (GRAPH_PARTITION_TARGET + atom_tiles - 1) / atom_tiles));
 
     // ========== Calculate the basic alphas (Per outer-atom parallelizaton) ==========
     {
@@ -682,10 +674,21 @@ EV_FLOAT PairMTPKokkos<DeviceType>::compute_force(const typename DeviceType::exe
 {
   using ForcePolicy = Kokkos::TeamPolicy<DeviceType, TagPairMTPComputeForce<NEIGHFLAG, EVFLAG>>;
 
+  // The kernel claims all of its scratch through team.team_scratch(0), so the whole
+  // budget is requested as PerTeam rather than split into a PerThread part that is
+  // never taken from team.thread_scratch(0).  Requesting it the way it is consumed
+  // keeps per-allocation alignment padding inside the amount Kokkos reserves.
   int &cached = ts_force[NEIGHFLAG == HALFTHREAD][EVFLAG];
   if (!cached) {
-    ForcePolicy probe(space, chunk_size, Kokkos::AUTO);
-    probe.set_scratch_size(0, Kokkos::PerTeam(team_scratch), Kokkos::PerThread(thread_scratch));
+    // Probe against the widest team we would ask for; scratch grows with team size,
+    // so the resolved size is conservative for the narrower launch below.  The bound
+    // check has to come first: team_size_max() throws for an over-budget request
+    // instead of returning zero, which would make the check below unreachable.
+    const int probe_scratch = team_scratch + team_size * thread_scratch;
+    ForcePolicy probe(space, MAX(chunk_size, 1), Kokkos::AUTO);
+    if ((size_t) probe_scratch > probe.scratch_size_max(0))
+      error->all(FLERR, "Insufficient scratch memory for MTP force recomputation.");
+    probe.set_scratch_size(0, Kokkos::PerTeam(probe_scratch));
     if constexpr (EVFLAG)
       cached = probe.team_size_max(*this, Kokkos::ParallelReduceTag());
     else
@@ -701,9 +704,9 @@ EV_FLOAT PairMTPKokkos<DeviceType>::compute_force(const typename DeviceType::exe
   int league = chunk_size;
   if (league > FORCE_MAX_BLOCKS) league = FORCE_MAX_BLOCKS;
 
-  ForcePolicy policy =
-      ForcePolicy(space, league, team_size)
-          .set_scratch_size(0, Kokkos::PerTeam(team_scratch), Kokkos::PerThread(thread_scratch));
+  ForcePolicy policy = ForcePolicy(space, league, team_size)
+                           .set_scratch_size(0, Kokkos::PerTeam(team_scratch +
+                                                                team_size * thread_scratch));
 
   EV_FLOAT ev = {};
   if constexpr (EVFLAG)
@@ -729,7 +732,7 @@ KOKKOS_INLINE_FUNCTION void PairMTPKokkos<DeviceType>::operator()(
   // Get information about the central atom
   const int i = d_ilist[ii + chunk_offset];
   const KK_FLOAT xi[3] = {x(i, 0), x(i, 1), x(i, 2)};
-  const int itype = d_map(type[i]);
+  const int itype = d_map(type(i));
   const int jnum = d_num_valid_neighs(ii + chunk_offset);
   const int array_size = Kokkos::min(team.team_size(), jnum);
   // max_alpha_index_basic is max(a0+a1+a2)+1, so every component index is at most
@@ -743,10 +746,10 @@ KOKKOS_INLINE_FUNCTION void PairMTPKokkos<DeviceType>::operator()(
   // First we calc every neighbour's radial functions and powers.
   Kokkos::parallel_for(Kokkos::TeamThreadRange(team, jnum), [&](const int jj) {
     const int j = d_valid_neighs(jj, ii + chunk_offset);
-    const int jtype = d_map(type[j]);
+    const int jtype = d_map(type(j));
     const KK_FLOAT r[3] = {x(j, 0) - xi[0], x(j, 1) - xi[1], x(j, 2) - xi[2]};
     const KK_FLOAT rsq = Kokkos::fma(r[0], r[0], Kokkos::fma(r[1], r[1], r[2] * r[2]));
-    const KK_FLOAT dist = sqrt(rsq);
+    const KK_FLOAT dist = Kokkos::sqrt(rsq);
     const KK_FLOAT inv_dist = 1.0 / dist;
     const KK_FLOAT u[3] = {r[0] * inv_dist, r[1] * inv_dist, r[2] * inv_dist};
     d_inv_dist(jj, ii) = inv_dist;
@@ -966,7 +969,8 @@ KOKKOS_INLINE_FUNCTION void PairMTPKokkos<DeviceType>::operator()(
   const int thread = team.team_rank();
 
   // Team scratch comes from a bump allocator that is not reset between league
-  // iterations, so it is claimed once here, at full team width.
+  // iterations, so it is claimed once here, at full team width.  The launch requests
+  // the whole amount as PerTeam, which is exactly how these four views consume it.
   shared_kk_float_1d s_basic_adj(team.team_scratch(0), alpha_index_basic_count);
   shared_kk_float_2d s_radial_vals(team.team_scratch(0), team.team_size(), radial_func_count);
   shared_kk_float_2d s_radial_ders(team.team_scratch(0), team.team_size(), radial_func_count);
@@ -1079,7 +1083,7 @@ KOKKOS_INLINE_FUNCTION void PairMTPKokkos<DeviceType>::operator()(
 
     if (need_energies) {
       team.team_barrier();
-      const int itype = d_map(type[i]);
+      const int itype = d_map(type(i));
       KK_FLOAT nbh_energy = 0;
 
       // Reduction to find the dot product of the linear coeffs and the moment tensor vals

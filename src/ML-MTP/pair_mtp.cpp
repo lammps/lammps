@@ -31,6 +31,7 @@
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <cstring>
 #include <map>
 #include <vector>
 
@@ -72,6 +73,25 @@ PairMTP::PairMTP(LAMMPS *lmp) : Pair(lmp)
   scaling = 1.0;
   potential_name = "Untitled";
   potential_tag = "";
+
+  input_chunk_size = DEFAULT_CHUNKSIZE;
+
+  // read_file() fills these, but a failure before that point must not leave the
+  // destructor and the accessors reading indeterminate values.
+  species_count = 0;
+  radial_basis_type_index = 0;
+  radial_func_count = 0;
+  radial_basis_size = 0;
+  radial_coeff_count = 0;
+  radial_coeff_count_per_pair = 0;
+  min_cutoff = 0.0;
+  max_cutoff = 0.0;
+  max_cutoff_sq = 0.0;
+  alpha_moment_count = 0;
+  alpha_index_basic_count = 0;
+  alpha_index_times_count = 0;
+  alpha_scalar_count = 0;
+  max_alpha_index_basic = 0;
 }
 
 PairMTP::~PairMTP()
@@ -104,16 +124,9 @@ PairMTP::~PairMTP()
 
     delete radial_basis;
     radial_basis = nullptr;
-
-    delete[] map;
-    map = nullptr;
   }
 
-  if (elements) {
-    for (int i = 0; i < nelements; i++) delete[] elements[i];
-    delete[] elements;
-    elements = nullptr;
-  }
+  // map and elements are freed by ~Pair().
 }
 
 /* ----------------------------------------------------------------------
@@ -310,12 +323,31 @@ void PairMTP::compute(int eflag, int vflag)
 ------------------------------------------------------------------------- */
 void PairMTP::settings(int narg, char **arg)
 {
-  if (comm->me == 0) {
-    if (narg > 1)
-      utils::logmesg(lmp,
-                     "pair_style mtp does not accept arguments. Ignoring excessive "
-                     "arguments!\n");
+  input_chunk_size = DEFAULT_CHUNKSIZE;
+
+  int iarg = 0;
+  while (iarg < narg) {
+    const int consumed = settings_keyword(narg, arg, iarg);
+    if (consumed == 0)
+      error->all(FLERR, "Unknown pair_style {} keyword: {}", force->pair_style, arg[iarg]);
+    iarg += consumed;
   }
+}
+
+/* ----------------------------------------------------------------------
+   parse a single pair_style keyword, return the number of arguments used
+------------------------------------------------------------------------- */
+int PairMTP::settings_keyword(int narg, char **arg, int iarg)
+{
+  if (strcmp(arg[iarg], "chunksize") == 0) {
+    if (iarg + 1 >= narg)
+      utils::missing_cmd_args(FLERR, fmt::format("pair_style {} chunksize", force->pair_style),
+                              error);
+    input_chunk_size = utils::inumeric(FLERR, arg[iarg + 1], true, lmp);
+    if (input_chunk_size < 1) error->all(FLERR, "MTP chunksize must be a positive number");
+    return 2;
+  }
+  return 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -324,7 +356,9 @@ void PairMTP::settings(int narg, char **arg)
 void PairMTP::coeff(int narg, char **arg)
 {
   const int n = atom->ntypes;
-  if (narg != 3 + n) error->all(FLERR, "Incorrect args for pair coefficients.");
+  if (narg < 3 + n) utils::missing_cmd_args(FLERR, "pair_coeff", error);
+  if (narg != 3 + n)
+    error->all(FLERR, Error::ARGZERO, "Incorrect number of arguments for pair_coeff command");
 
   // Read in MTP and allocate memory
   FILE *mtp_file = nullptr;
@@ -504,7 +538,7 @@ void PairMTP::read_file(FILE *mtp_file)
     line_tokens = ValueTokenizer(tfr.next_line(), separators);
     keyword = line_tokens.next_string();
     if (keyword != "alpha_index_basic_count")
-      error->one(FLERR, "Error reading MTP file. Alpha moment count not found.");
+      error->one(FLERR, "Error reading MTP file. Alpha index basic count not found.");
     alpha_index_basic_count = line_tokens.next_int();
     if (alpha_index_basic_count < 1 || alpha_index_basic_count > alpha_moment_count)
       error->one(FLERR, "MTP alpha index basic count is out of range.");
@@ -643,11 +677,19 @@ void PairMTP::read_file(FILE *mtp_file)
     memory->create(species_coeffs, species_count, "species_coeffs");
   }
 
-  //We can then populate the cutoffs
-  MPI_Bcast(&radial_basis->min_cutoff, 1, MPI_DOUBLE, 0, world);
-  MPI_Bcast(&radial_basis->max_cutoff, 1, MPI_DOUBLE, 0, world);
-  min_cutoff = radial_basis->min_cutoff;
-  max_cutoff = radial_basis->max_cutoff;
+  // We can then populate the cutoffs.  These go through the members because
+  // radial_basis is only constructed above for a known basis type, so on a
+  // non-root rank it may still be null for an unsupported one.
+  if (comm->me == 0) {
+    min_cutoff = radial_basis->min_cutoff;
+    max_cutoff = radial_basis->max_cutoff;
+  }
+  MPI_Bcast(&min_cutoff, 1, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&max_cutoff, 1, MPI_DOUBLE, 0, world);
+  if (radial_basis) {
+    radial_basis->min_cutoff = min_cutoff;
+    radial_basis->max_cutoff = max_cutoff;
+  }
   max_cutoff_sq = max_cutoff * max_cutoff;
 
   // Now we B Cast arrays
@@ -767,15 +809,24 @@ void PairMTP::prepare_angular()
    Sets up the MTP element mapping and allocates memory for cutoffs and setflag
 ------------------------------------------------------------------------- */
 
+void PairMTP::allocate()
+{
+  const int np1 = atom->ntypes + 1;
+
+  memory->create(setflag, np1, np1, "pair:setflag");
+  memory->create(cutsq, np1, np1, "pair:cutsq");
+  map = new int[np1];
+}
+
+/* ----------------------------------------------------------------------
+   map atom types to the species indices of the potential file
+------------------------------------------------------------------------- */
 void PairMTP::prepare_map(int narg, char **arg)
 {
   const int n = atom->ntypes;
   const int np1 = n + 1;
 
-  // Set up basic flags
-  memory->create(setflag, np1, np1, "pair:setflag");
-  memory->create(cutsq, np1, np1, "pair:cutsq");
-  map = new int[np1];
+  allocate();
   map_element2type(narg, arg);
 
   // Readjust Map

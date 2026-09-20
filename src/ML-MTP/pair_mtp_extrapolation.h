@@ -39,11 +39,13 @@ class PairMTPExtrapolation : public PairMTP {
   void *extract_peratom(const char *, int &) override;    // Provides access to per-atom data
 
  protected:
-  void read_file(FILE *);                                  //Parsing file using LAMMPS utils
+  int settings_keyword(int narg, char **arg, int iarg) override;
+  void read_file(FILE *) override;                         //Parsing file using LAMMPS utils
   double calculate_extrapolation_grade(int itype = -1);    // Grades from candidate vector
   void compile_grades();                                   // Collect grades across collective
-  void evaluate_grades();                                  // Evaluate grades against the thresholds
-  void write_config();    // Write to a MLIP-3 preselected compatible file.
+  // Overridden by the KOKKOS variant, so it must dispatch virtually.
+  virtual void evaluate_grades();    // Evaluate grades against the thresholds
+  void write_config();               // Write to a MLIP-3 preselected compatible file.
 
   int coeff_count;    // Sum of radial, species and linear coeff count
 
@@ -57,7 +59,7 @@ class PairMTPExtrapolation : public PairMTP {
   double max_grade;           // Grade of current iteration
 
   // Active set
-  double **active_set;            // Current active set
+  // double **active_set;  // unused; see read_file()
   double **inverse_active_set;    // Inverse of the current active set
 
   //Working buffers

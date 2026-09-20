@@ -1318,11 +1318,29 @@ void FixBondReact::superimpose_algorithm()
 
         for (int i = 0; i < max_natoms; i++) sp.pioneers[i] = 0;
 
+        int npioneers = 0;
         for (int i = 0; i < rxn.reactant->natoms; i++) {
           if (sp.glove[i] != 0 && sp.pioneer_count[i] < rxn.reactant->nspecial[i][0] && rxn.atoms[i].edge == 0) {
+
+            // make sure all neighbors aren't already assigned
+            // an issue discovered for coarse-grained example
+            int assigned_count = 0;
+            int nfirst_neighs = rxn.reactant->nspecial[i][0];
+            for (int j = 0; j < nfirst_neighs; j++) {
+              for (int k = 0; k < rxn.reactant->natoms; k++) {
+                if (xspecial[atom->map(sp.glove[i])][j] == sp.glove[k]) {
+                  assigned_count++;
+                  break;
+                }
+              }
+            }
+            if (assigned_count == nfirst_neighs) continue;
+
             sp.pioneers[i] = 1;
+            npioneers++;
           }
         }
+        if (npioneers == 0) status = Status::GUESSFAIL;
 
         // run through the pioneers
         // due to use of restore points, 'pion' index can change in loop
@@ -1572,18 +1590,6 @@ void FixBondReact::make_a_guess(Superimpose &super, Reaction &rxn)
     status = Status::GUESSFAIL;
     return;
   }
-
-  // make sure all neighbors aren't already assigned
-  // an issue discovered for coarse-grained example
-  int assigned_count = 0;
-  for (int i = 0; i < nfirst_neighs; i++)
-    for (int j = 0; j < rxn.reactant->natoms; j++)
-      if (xspecial[atom->map(sp.glove[sp.pion])][i] == sp.glove[j]) {
-        assigned_count++;
-        break;
-      }
-
-  if (assigned_count == nfirst_neighs) status = Status::GUESSFAIL;
 
   // check if all neigh atom types are the same between simulation and unreacted mol
   std::multiset<int> mol_types, lcl_types;

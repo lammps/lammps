@@ -73,11 +73,7 @@ PairMTP::PairMTP(LAMMPS *lmp) : Pair(lmp)
   scaling = 1.0;
   potential_name = "Untitled";
   potential_tag = "";
-
   input_chunk_size = DEFAULT_CHUNKSIZE;
-
-  // read_file() fills these, but a failure before that point must not leave the
-  // destructor and the accessors reading indeterminate values.
   species_count = 0;
   radial_basis_type_index = 0;
   radial_func_count = 0;
@@ -130,7 +126,7 @@ PairMTP::~PairMTP()
 }
 
 /* ----------------------------------------------------------------------
-   Straightforward MTP implementation based on MLIP3
+   Main Computation Function
    ---------------------------------------------------------------------- */
 void PairMTP::compute(int eflag, int vflag)
 {
@@ -284,7 +280,8 @@ void PairMTP::compute(int eflag, int vflag)
         }
         radial_force += ders[mu] * radial_sum;
       }
-      // Reverse the shared angular products; no division by components of u.
+
+      // Reverse the shared angular products
       for (int k = angular_count - 1; k > 0; k--) {
         const int parent = angular_parent[k];
         const int axis = angular_axis[k];
@@ -359,6 +356,9 @@ void PairMTP::coeff(int narg, char **arg)
   if (narg < 3 + n) utils::missing_cmd_args(FLERR, "pair_coeff", error);
   if (narg != 3 + n)
     error->all(FLERR, Error::ARGZERO, "Incorrect number of arguments for pair_coeff command");
+  if (allocated)
+    error->all(FLERR, "Pair style {} does not support repeated pair_coeff commands",
+               force->pair_style);
 
   // Read in MTP and allocate memory
   FILE *mtp_file = nullptr;
@@ -719,7 +719,7 @@ void PairMTP::read_file(FILE *mtp_file)
   for (int t = 0; t < alpha_index_basic_count; t++)
     angular_by_mu[t] = basic_to_angular[basic_by_mu[t]];
 
-  // Sanity check the contraction graph: basic moments own [0, alpha_index_basic_count)
+  // Check the contraction graph: basic moments own [0, alpha_index_basic_count)
   // and no term may read a moment that has not been produced yet.
   std::vector<char> produced(alpha_moment_count, 0);
   std::fill(produced.begin(), produced.begin() + alpha_index_basic_count, 1);
@@ -731,10 +731,7 @@ void PairMTP::read_file(FILE *mtp_file)
     produced[alpha_index_times[k][3]] = 1;
   }
 
-  // Contractions whose product is never consumed are dead when only forces are wanted.
-  // Sink them below the live terms so both passes stream one table: the forward pass
-  // stops at force_index_times_count, the reverse pass walks the whole list. A dead
-  // output feeds nothing, so the partitioned order stays topologically valid.
+  // Terminal contractions are not used when energies are not required.
   std::vector<char> moment_used(alpha_moment_count, 0);
   for (int k = 0; k < alpha_index_times_count; k++) {
     moment_used[alpha_index_times[k][0]] = 1;

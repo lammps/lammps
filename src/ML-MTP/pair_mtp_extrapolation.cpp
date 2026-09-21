@@ -78,7 +78,6 @@ PairMTPExtrapolation::~PairMTPExtrapolation()
     memory->destroy(write_buffer);
   }
 
-  // settings() may have opened this before coeff() ran, so close it unconditionally.
   if (comm->me == 0 && preselected_file) {
     std::fclose(preselected_file);
     preselected_file = nullptr;
@@ -117,8 +116,6 @@ void PairMTPExtrapolation::compute(int eflag, int vflag)
       list->firstneigh;    //List  (head of array) of neighbours for a given central atom
 
   // Resize the nbh extrapolation grades if needed.
-  // Indexed below with the atom index ilist[ii] and handed to fix pair as a per-atom
-  // array, so it is sized by the per-atom allocation rather than by the list length.
   if (!configuration_mode && nbh_count < atom->nmax) {
     memory->grow(nbh_extrapolation_grades, atom->nmax, "nbh_extrapolation_grades");
     nbh_count = atom->nmax;
@@ -224,10 +221,11 @@ void PairMTPExtrapolation::compute(int eflag, int vflag)
       // Tally energies per flags if needed
       if (eflag_atom) eatom[i] = nbh_energy;
       if (eflag_global) eng_vdwl += nbh_energy;
-    } else
+    } else {
       for (int k = 0; k < alpha_scalar_count; k++)
         energy_ders_wrt_coeffs[linear_basis_offset + k] +=
             moment_tensor_vals[alpha_moment_mapping[k]];
+    }
 
     energy_ders_wrt_coeffs[radial_coeff_count + itype] += 1;
 
@@ -285,7 +283,8 @@ void PairMTPExtrapolation::compute(int eflag, int vflag)
         for (int ri = 0; ri < radial_basis_size; ri++)
           coeff_ders[ri] += radial_sum * basis_vals[ri];
       }
-      // Reverse the shared angular products; no division by components of u.
+
+      // Reverse the shared angular products
       for (int k = angular_count - 1; k > 0; k--) {
         const int parent = angular_parent[k];
         const int axis = angular_axis[k];
@@ -548,11 +547,8 @@ void PairMTPExtrapolation::read_file(FILE *mtp_file)
   const int num_doubles = (int) num_doubles_big;
   radial_basis_cache_size = 0;
 
-  // Now we allocate memory for the additional memory needed for calculations
-  // The MaxVol active set itself is not used by any computation here - only its
-  // inverse is - so it is neither stored nor broadcast.  Its bytes still have to be
-  // stepped over in the file so the inverse is read from the right offset.  Kept
-  // commented rather than deleted in case the active set is needed again.
+  // Now we allocate memory for the additional memory needed for extrapolation
+  // Active set is still present but not needed.
   // memory->create(active_set, coeff_count, coeff_count, "active_set");
   memory->create(inverse_active_set, coeff_count, coeff_count, "inverse_active_set");
   memory->create(energy_ders_wrt_coeffs, coeff_count, "energy_ders_wrt_coeffs");
@@ -618,7 +614,7 @@ void PairMTPExtrapolation::read_file(FILE *mtp_file)
     configuration_mode = cfg_mode;
 
     fgetc(mtp_file);    // We need to skip foward 1 character. There is a # before the binary data.
-    // Step over the active set rather than reading it; see the note above.
+    // Step over the active set rather than reading it
     const bigint set_bytes = num_doubles_big * (bigint) sizeof(double);
     if (platform::fseek(mtp_file, platform::ftell(mtp_file) + set_bytes) != 0)
       error->one(FLERR, "Error reading MTP file. Active set section is truncated.");
@@ -639,7 +635,6 @@ void PairMTPExtrapolation::read_file(FILE *mtp_file)
 void *PairMTPExtrapolation::extract(const char *str, int &dim)
 {
   dim = 0;
-  //check if str=="gamma_flag" then compute extrapolation grades on this iteration
   if (strcmp(str, "extrapolation_flag") == 0) return (void *) &extrapolation_flag;
 
   return nullptr;

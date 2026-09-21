@@ -40,16 +40,11 @@ class PairMTP : public Pair {
   double init_one(int, int) override;
 
  protected:
-  // Atoms per pass.  Only the KOKKOS styles batch their work, but the keyword is
-  // parsed here so that a script runs unchanged on a CPU-only build.
+  // Atoms per pass. Used only for Kokkos versions. Processed here for CPU parsing.
   static constexpr int DEFAULT_CHUNKSIZE = 65536;
   int input_chunk_size;
 
-  // Consumes one pair_style keyword starting at arg[iarg] and returns the number of
-  // arguments used, or 0 if the keyword is not recognized.  Derived styles override
-  // this to add their own keywords and delegate the rest here.
   virtual int settings_keyword(int narg, char **arg, int iarg);
-
   virtual void allocate();
   virtual void read_file(FILE *);
   void prepare_map(int narg, char **arg);

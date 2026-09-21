@@ -43,9 +43,8 @@ class PairMTPExtrapolation : public PairMTP {
   void read_file(FILE *) override;                         //Parsing file using LAMMPS utils
   double calculate_extrapolation_grade(int itype = -1);    // Grades from candidate vector
   void compile_grades();                                   // Collect grades across collective
-  // Overridden by the KOKKOS variant, so it must dispatch virtually.
-  virtual void evaluate_grades();    // Evaluate grades against the thresholds
-  void write_config();               // Write to a MLIP-3 preselected compatible file.
+  virtual void evaluate_grades();                          // Evaluate grades against the thresholds
+  void write_config();    // Write to a MLIP-3 preselected compatible file.
 
   int coeff_count;    // Sum of radial, species and linear coeff count
 

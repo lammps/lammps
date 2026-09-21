@@ -45,23 +45,13 @@ template <class DeviceType> class PairMTPKokkos : public PairMTP {
 
   static constexpr int ATOM_TILE_SIZE = 32;
   static constexpr int REVERSE_LONG_THRESHOLD = 128;
-
-  // Upper bounds on the probed team sizes.  The graph kernels vectorize over the atom
-  // tile, so a wide team buys nothing there and costs occupancy.
   static constexpr int MAX_TEAM_SIZE_BASIC = 64;
   static constexpr int MAX_TEAM_SIZE_GRAPH = 4;
-
-  // Valid-neighbour capacity is grown with 1/8 headroom and rounded up to this many
-  // entries so the compacted list stays warp aligned.
   static constexpr int NEIGH_CAPACITY_ALIGN = 32;
-
-  // Graph waves are split across at most this many partitions, targeting roughly
-  // GRAPH_PARTITION_TARGET teams in flight before the node loop is subdivided.
   static constexpr int GRAPH_PARTITION_MAX = 16;
   static constexpr int GRAPH_PARTITION_TARGET = 2048;
-
   // Kokkos caps a team parallel_reduce grid at this many blocks and strides the
-  // rest; parallel_for does not, so we bound both by hand and stride ourselves.
+  // rest; parallel_for does not.
   static constexpr int FORCE_MAX_BLOCKS = 32768;
 
   typedef DeviceType device_type;
@@ -132,22 +122,13 @@ template <class DeviceType> class PairMTPKokkos : public PairMTP {
   EV_FLOAT compute_force(const typename DeviceType::execution_space &, int, int, int);
 
   // Needed to process the computation in batches to avoid running out of VRAM.
-  // input_chunk_size (the chunksize keyword) lives in PairMTP, so a script parses
-  // identically on a CPU-only build.  The chunk-resident device arrays cost roughly
-  //   8 * chunk * (2*alpha_moment_count + 2*max_neighs*radial_func_count + max_neighs)
-  // bytes, so a large model (alpha_moment_count ~ 1e4) needs about 11 GB at the
-  // default.  Raise it on a device with more memory, or lower it on a small one.
+  // input_chunk_size (the chunksize keyword) is parse on parent class
   int chunk_size, chunk_offset;
   int inum, max_valid_neighs, num_waves;
   int wave_begin, wave_end, node_partitions;
   int host_flag, neighflag;
   int eflag, vflag;    // Energy and virial flag
-
-  // Loop-invariant radial-basis constants, resolved once in coeff() instead of
-  // once per neighbour pair. Kept in double to match min_cutoff/max_cutoff so the
-  // arithmetic is unchanged in a KK_FLOAT == float build.
   double inv_cutoff_range, cutoff_sum, radial_mult;
-
   // Occupancy queries are launch-geometry independent, so they are resolved once.
   int ts_basic, ts_times, ts_nbh, ts_nbh_long, ts_force[2][2];
 
@@ -177,7 +158,6 @@ template <class DeviceType> class PairMTPKokkos : public PairMTP {
   Kokkos::View<int *, Kokkos::HostSpace> h_long_waves;
   Kokkos::View<int *, DeviceType> d_long_nodes;
   Kokkos::View<int *[3], Kokkos::LayoutRight, DeviceType> d_reverse_terms;
-
   Kokkos::View<int *, DeviceType> d_alpha_moment_mapping;    // Maps alphas to the basis functions.
 
   // The learned coefficients.

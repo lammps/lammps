@@ -36,6 +36,7 @@ namespace LAMMPS_NS {
 
 template <class DeviceType> class PairMTPExtrapolationKokkos : public PairMTPExtrapolation {
  public:
+  // Structs for kernels
   struct TagPairMTPComputeAlphaBasic {};
   struct TagPairMTPComputeAlphaTimes {};
   struct TagPairMTPComputeNbhDers {};
@@ -48,21 +49,15 @@ template <class DeviceType> class PairMTPExtrapolationKokkos : public PairMTPExt
   static constexpr int REVERSE_LONG_THRESHOLD = 128;
 
   // Kokkos caps a team parallel_reduce grid at this many blocks and strides the
-  // rest; parallel_for does not, so we bound both by hand and stride ourselves.
+  // rest; parallel_for does not.
   static constexpr int FORCE_MAX_BLOCKS = 32768;
   static constexpr int COEFF_REDUCE_BLOCK_SIZE = 1024;
 
-  // Upper bounds on the probed team sizes.  The graph kernels vectorize over the atom
-  // tile, so a wide team buys nothing there and costs occupancy.
   static constexpr int MAX_TEAM_SIZE_BASIC = 64;
   static constexpr int MAX_TEAM_SIZE_GRAPH = 4;
 
-  // Valid-neighbour capacity is grown with 1/8 headroom and rounded up to this many
-  // entries so the compacted list stays warp aligned.
   static constexpr int NEIGH_CAPACITY_ALIGN = 32;
 
-  // Graph waves are split across at most this many partitions, targeting roughly
-  // GRAPH_PARTITION_TARGET teams in flight before the node loop is subdivided.
   static constexpr int GRAPH_PARTITION_MAX = 16;
   static constexpr int GRAPH_PARTITION_TARGET = 2048;
 
@@ -75,8 +70,11 @@ template <class DeviceType> class PairMTPExtrapolationKokkos : public PairMTPExt
   void compute(int, int) override;
   void coeff(int, char **) override;
   void init_style() override;
-  void prepare_waves();
+  void prepare_waves();    //Precalculates node waves and rule lists
 
+  // ========== Kokkos kernels ==========
+
+  //Utility routines
   template <typename scratch_type> int scratch_size_helper(int values_per_team);
 
   template <int NEIGHFLAG>
@@ -85,6 +83,8 @@ template <class DeviceType> class PairMTPExtrapolationKokkos : public PairMTPExt
                                           const KK_FLOAT &fz, const KK_FLOAT &delx,
                                           const KK_FLOAT &dely, const KK_FLOAT &delz) const;
 
+  // ---------- MTP routines (in order of execution) ----------
+  // Kernels for computation
   KOKKOS_INLINE_FUNCTION
   void
   operator()(TagPairMTPComputeAlphaBasic,
@@ -134,8 +134,8 @@ template <class DeviceType> class PairMTPExtrapolationKokkos : public PairMTPExt
   template <int NEIGHFLAG, int EVFLAG>
   EV_FLOAT compute_force(const typename DeviceType::execution_space &, int, int, int);
 
-  // input_chunk_size (the chunksize keyword) lives in PairMTP, so a script parses
-  // identically on a CPU-only build.
+  // Needed to process the computation in batches to avoid running out of VRAM.
+  // input_chunk_size (the chunksize keyword) is parse on parent class
   int chunk_size, chunk_offset;
   int inum, max_valid_neighs, num_waves;
   int wave_begin, wave_end, node_partitions;
@@ -144,7 +144,6 @@ template <class DeviceType> class PairMTPExtrapolationKokkos : public PairMTPExt
   bool calculate_grade_this_step;
   double inv_cutoff_range, cutoff_sum, radial_mult;
   int ts_basic, ts_times, ts_nbh, ts_nbh_long, ts_force[2][2];
-  // The two grade reductions are separate functors, so they get separate caches.
   int ts_reduce, ts_nbh_grade, ts_cfg_grade;
   int coeff_reduce_blocks;
   int cached_force_team_scratch_size;
@@ -163,6 +162,8 @@ template <class DeviceType> class PairMTPExtrapolationKokkos : public PairMTPExt
   typename AT::t_int_1d_randomread type;
   typename AT::t_int_1d d_map;
 
+  // ---------- Device Arrays ----------
+  // Alphas indicies
   Kokkos::View<int **, DeviceType> d_alpha_index_basic;
   Kokkos::View<int **, DeviceType> d_alpha_index_times;
   Kokkos::View<int *, Kokkos::HostSpace> h_waves;
@@ -174,27 +175,32 @@ template <class DeviceType> class PairMTPExtrapolationKokkos : public PairMTPExt
   Kokkos::View<int *[3], Kokkos::LayoutRight, DeviceType> d_reverse_terms;
   Kokkos::View<int *, DeviceType> d_alpha_moment_mapping;
 
+  // The learned coefficients.
   Kokkos::View<KK_FLOAT *, DeviceType> d_radial_basis_coeffs;
   Kokkos::View<KK_FLOAT *, DeviceType> d_species_coeffs;
   Kokkos::View<KK_FLOAT *, DeviceType> d_linear_coeffs;
   Kokkos::View<KK_FLOAT *, DeviceType> d_moment_coeffs;
 
+  // Global working buffers.
   Kokkos::View<int **, DeviceType> d_valid_neighs;
   Kokkos::View<int *, DeviceType> d_num_valid_neighs;
   Kokkos::View<KK_FLOAT ***, Kokkos::LayoutLeft, DeviceType> d_radial_vals;
   Kokkos::View<KK_FLOAT ***, Kokkos::LayoutLeft, DeviceType> d_radial_ders;
   Kokkos::View<KK_FLOAT **, Kokkos::LayoutLeft, DeviceType> d_inv_dist;
+  // Indexed by atom tile, moment, and atom lane.
   Kokkos::View<KK_FLOAT **[ATOM_TILE_SIZE], Kokkos::LayoutRight, DeviceType> d_moment_tensor_vals;
   Kokkos::View<KK_FLOAT **[ATOM_TILE_SIZE], Kokkos::LayoutRight, DeviceType>
       d_nbh_energy_ders_wrt_moments;
 
+  // Extrapolation-grade buffers.
   Kokkos::View<KK_FLOAT ***, Kokkos::LayoutLeft, DeviceType> d_radial_basis_cache;
   Kokkos::View<KK_FLOAT **, Kokkos::LayoutLeft, DeviceType> d_local_coeff_ders;
-  Kokkos::View<KK_FLOAT **, DeviceType> d_inverse_active_set;
-  Kokkos::View<KK_FLOAT *, DeviceType> d_nbh_extrapolation_grades;
-  Kokkos::View<KK_FLOAT *, DeviceType> d_energy_ders_wrt_coeffs;
-  Kokkos::View<KK_FLOAT **, Kokkos::LayoutLeft, DeviceType> d_coeff_ders_partials;
+  Kokkos::View<KK_FLOAT **, DeviceType> d_inverse_active_set;    // Active-set inverse matrix
+  Kokkos::View<KK_FLOAT *, DeviceType> d_nbh_extrapolation_grades;    // Per-atom grades
+  Kokkos::View<KK_FLOAT *, DeviceType> d_energy_ders_wrt_coeffs;      // Configuration derivative
+  Kokkos::View<KK_FLOAT **, Kokkos::LayoutLeft, DeviceType> d_coeff_ders_partials;    // Chunk sums
 
+  // Typedefs for shared memory
   typedef Kokkos::View<KK_FLOAT *, typename DeviceType::scratch_memory_space,
                        Kokkos::MemoryTraits<Kokkos::Unmanaged>>
       shared_kk_float_1d;
@@ -206,6 +212,7 @@ template <class DeviceType> class PairMTPExtrapolationKokkos : public PairMTPExt
       shared_kk_float_2d;
 
   int need_dup;
+  // ---------- Define the forces, per-atom energy, and virials----------
   using KKDeviceType = typename KKDevice<DeviceType>::value;
   template <typename DataType, typename Layout>
   using DupScatterView =
@@ -223,6 +230,7 @@ template <class DeviceType> class PairMTPExtrapolationKokkos : public PairMTPExt
 };
 
 template <class DeviceType> struct ComputeNbhGrades {
+  // Computes grades for a tile of neighbourhoods from local coefficient derivatives.
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
   typedef KK_FLOAT value_type;
@@ -272,6 +280,7 @@ template <class DeviceType> struct ComputeNbhGrades {
 };
 
 template <class DeviceType> struct ComputeCfgGrade {
+  // Computes the maximum configuration grade from the accumulated derivatives.
   typedef DeviceType device_type;
   typedef KK_FLOAT value_type;
 

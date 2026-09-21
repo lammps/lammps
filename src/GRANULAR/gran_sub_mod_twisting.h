@@ -15,6 +15,7 @@
 #define GRAN_SUB_MOD_TWISTING_H
 
 #include "gran_sub_mod.h"
+#include "gran_sub_mod_twisting_kernel.h"
 
 
 namespace LAMMPS_NS::Granular_NS {
@@ -23,6 +24,24 @@ namespace LAMMPS_NS::Granular_NS {
    public:
     GranSubModTwisting(class GranularModel *, class LAMMPS *);
     virtual double calculate_forces() = 0;
+
+    void fill_kernel_params(GranKernel::GranTwistingParams<double> &p) const
+    {
+      p.model = GRAN_TWISTING_NONE;    // host classes call the models directly
+      p.k = get_k();
+      p.damp = get_damp();
+      p.mu = get_mu();
+      p.k_tang = get_k_tang();
+      p.mu_tang = get_mu_tang();
+    }
+
+   protected:
+    // each model defines only part of these, so the base returns zero
+    [[nodiscard]] virtual double get_k() const { return 0.0; }
+    [[nodiscard]] virtual double get_damp() const { return 0.0; }
+    [[nodiscard]] virtual double get_mu() const { return 0.0; }
+    [[nodiscard]] virtual double get_k_tang() const { return 0.0; }
+    [[nodiscard]] virtual double get_mu_tang() const { return 0.0; }
   };
 
   /* ---------------------------------------------------------------------- */
@@ -43,6 +62,8 @@ namespace LAMMPS_NS::Granular_NS {
 
    protected:
     double k_tang, mu_tang;
+    [[nodiscard]] double get_k_tang() const override { return k_tang; }
+    [[nodiscard]] double get_mu_tang() const override { return mu_tang; }
   };
 
   /* ---------------------------------------------------------------------- */
@@ -55,6 +76,9 @@ namespace LAMMPS_NS::Granular_NS {
 
    protected:
     double k, mu, damp;
+    [[nodiscard]] double get_k() const override { return k; }
+    [[nodiscard]] double get_damp() const override { return damp; }
+    [[nodiscard]] double get_mu() const override { return mu; }
   };
 
 } // namespace LAMMPS_NS::Granular_NS

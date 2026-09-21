@@ -13,6 +13,8 @@
 
 #include "gran_sub_mod_normal.h"
 
+#include "gran_sub_mod_normal_kernel.h"
+
 #include "atom.h"
 #include "error.h"
 #include "citeme.h"
@@ -26,6 +28,7 @@
 
 using namespace LAMMPS_NS;
 using namespace Granular_NS;
+using namespace Granular_NS::GranKernel;
 using namespace MathConst;
 using MathSpecial::square;
 using MathSpecial::cube;
@@ -33,16 +36,11 @@ using MathSpecial::powint;
 
 static constexpr double PISQ = 9.8696044010893579923;            // PI^2
 static constexpr double PIINV = 0.318309886183790691216;         // 1/PI
-static constexpr double PI27SQ = 266.479318829412648029;         // 27*PI^2
 static constexpr double PITOFIVETHIRDS = 6.73880859569814116838; // PI^(5/3)
 static constexpr double CBRT2 = 1.25992104989487319067;          // cbrt(2)
 static constexpr double SQRTHALFPI = 1.25331413731550012081;     // sqrt(PI/2)
 static constexpr double CBRTHALFPI = 1.16244735150962652526;     // cbrt(PI/2)
 static constexpr double FOURTHIRDS = 1.33333333333333333333;     // 4/3
-static constexpr double THREEROOT3 = 5.19615242270663202362;     // 3*sqrt(3)
-static constexpr double SIXROOT6 = 14.69693845669906728801;      // 6*sqrt(6)
-static constexpr double INVROOT6 = 0.40824829046386307274;       // 1/sqrt(6)
-static constexpr double JKRPREFIX = 1.2277228507842888;          // cbrt(3*PI**2/16)
 
 static constexpr int MDR_MAX_IT = 100;                           // Newton-Raphson for MDR
 static constexpr double MDR_EPSILON1 = 1e-10;                    // Newton-Raphson for MDR
@@ -110,14 +108,14 @@ double GranSubModNormal::pulloff_distance(double /*radi*/, double /*radj*/)
 
 double GranSubModNormal::calculate_contact_radius()
 {
-  return sqrt(gm->dR);
+  return gran_normal_contact_radius_default(gm->dR);
 }
 
 /* ---------------------------------------------------------------------- */
 
 void GranSubModNormal::set_fncrit()
 {
-  Fncrit = fabs(gm->Fntot);
+  Fncrit = gran_normal_fncrit_default(gm->Fntot);
 }
 
 /* ----------------------------------------------------------------------
@@ -160,7 +158,7 @@ void GranSubModNormalHooke::coeffs_to_local()
 
 double GranSubModNormalHooke::calculate_forces()
 {
-  return k * gm->delta;
+  return gran_normal_hooke_force(k, gm->delta);
 }
 
 /* ----------------------------------------------------------------------
@@ -188,7 +186,7 @@ void GranSubModNormalHertz::coeffs_to_local()
 
 double GranSubModNormalHertz::calculate_forces()
 {
-  return k * gm->contact_radius * gm->delta;
+  return gran_normal_hertz_force(k, gm->contact_radius, gm->delta);
 }
 
 /* ----------------------------------------------------------------------
@@ -288,17 +286,15 @@ void GranSubModNormalDMT::mix_coeffs(double *icoeffs, double *jcoeffs)
 
 double GranSubModNormalDMT::calculate_forces()
 {
-  Fne = k * gm->contact_radius * gm->delta;
-  F_pulloff = 4.0 * MY_PI * cohesion * gm->Reff;
-  Fne -= F_pulloff;
-  return Fne;
+  return gran_normal_dmt_force(k, gm->contact_radius, gm->delta, cohesion, gm->Reff, Fne,
+                               F_pulloff);
 }
 
 /* ---------------------------------------------------------------------- */
 
 void GranSubModNormalDMT::set_fncrit()
 {
-  Fncrit = fabs(Fne + 2.0 * F_pulloff);
+  Fncrit = gran_normal_fncrit_cohesive(Fne, F_pulloff);
 }
 
 /* ----------------------------------------------------------------------
@@ -356,22 +352,7 @@ void GranSubModNormalJKR::mix_coeffs(double *icoeffs, double *jcoeffs)
 
 bool GranSubModNormalJKR::touch()
 {
-  double delta_pulloff, dist_pulloff;
-  bool touchflag;
-
-  double rsq = gm->rsq;
-  double radsum = gm->radsum;
-
-  if (gm->touch) {
-    // delta_pulloff defined as positive so center-to-center separation is > radsum
-    delta_pulloff = JKRPREFIX * cbrt(gm->Reff * cohesion * cohesion / (Emix * Emix));
-    dist_pulloff = radsum + delta_pulloff;
-    touchflag = rsq < (dist_pulloff * dist_pulloff);
-  } else {
-    touchflag = rsq < (radsum * radsum);
-  }
-
-  return touchflag;
+  return gran_normal_jkr_touch(gm->rsq, gm->radsum, gm->Reff, cohesion, Emix, (bool) gm->touch);
 }
 
 /* ----------------------------------------------------------------------
@@ -380,64 +361,29 @@ bool GranSubModNormalJKR::touch()
 
 double GranSubModNormalJKR::pulloff_distance(double radi, double radj)
 {
-  double Reff_tmp;
-
-  Reff_tmp = radi * radj / (radi + radj);    // May not be defined
-  if (Reff_tmp <= 0) return 0;
-  // Defined as positive so center-to-center separation is > radsum
-  return JKRPREFIX * cbrt(Reff_tmp * cohesion * cohesion / (Emix * Emix));
+  double Reff_tmp = radi * radj / (radi + radj);    // May not be defined
+  return gran_normal_jkr_pulloff_distance(Reff_tmp, cohesion, Emix);
 }
 
 /* ---------------------------------------------------------------------- */
 
 double GranSubModNormalJKR::calculate_contact_radius()
 {
-  double R2, dR2, t0, t1, t2, t3, t4, t5, t6;
-  double sqrt1, sqrt2, sqrt3;
-
-  double Reff = gm->Reff;
-  double dR = gm->dR;
-
-  R2 = Reff * Reff;
-  dR2 = dR * dR;
-  t0 = cohesion * cohesion * R2 * R2 * Emix;
-  t1 = PI27SQ * t0;
-  t2 = 8.0 * dR * dR2 * Emix * Emix * Emix;
-  t3 = 4.0 * dR2 * Emix;
-
-  // in case sqrt(0) < 0 due to precision issues
-  sqrt1 = MAX(0, t0 * (t1 + 2.0 * t2));
-  t4 = cbrt(t1 + t2 + THREEROOT3 * MY_PI * sqrt(sqrt1));
-  t5 = t3 / t4 + t4 / Emix;
-  sqrt2 = MAX(0, 2.0 * dR + t5);
-  t6 = sqrt(sqrt2);
-  sqrt3 = MAX(0, 4.0 * dR - t5 + SIXROOT6 * cohesion * MY_PI * R2 / (Emix * t6));
-
-  return INVROOT6 * (t6 + sqrt(sqrt3));
+  return gran_normal_jkr_contact_radius(gm->Reff, gm->dR, cohesion, Emix);
 }
 
 /* ---------------------------------------------------------------------- */
 
 double GranSubModNormalJKR::calculate_forces()
 {
-  double a2;
-
-  double contact_radius = gm->contact_radius;
-  double Reff = gm->Reff;
-
-  a2 = contact_radius * contact_radius;
-  Fne = k * contact_radius * a2 / Reff -
-      MY_2PI * a2 * sqrt(4.0 * cohesion * Emix / (MY_PI * contact_radius));
-  F_pulloff = 3.0 * MY_PI * cohesion * Reff;
-
-  return Fne;
+  return gran_normal_jkr_force(k, gm->contact_radius, gm->Reff, cohesion, Emix, Fne, F_pulloff);
 }
 
 /* ---------------------------------------------------------------------- */
 
 void GranSubModNormalJKR::set_fncrit()
 {
-  Fncrit = fabs(Fne + 2.0 * F_pulloff);
+  Fncrit = gran_normal_fncrit_cohesive(Fne, F_pulloff);
 }
 
 /* ----------------------------------------------------------------------

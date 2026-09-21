@@ -21,6 +21,8 @@
 ----------------------------------------------------------------------- */
 
 #include "gran_sub_mod.h"
+
+#include "gran_sub_mod_kernel_defs.h"
 #include "math_extra.h"
 
 #include <cmath>
@@ -144,19 +146,5 @@ double GranSubMod::mix_mean(double val1, double val2)
   ---------------------------------------------------------------------- */
 void GranSubMod::rotate_rescale_vec(double *v, double *n)
 {
-  double rsht, shrmag, prjmag, temp_dbl, temp_array[3];
-
-  rsht = dot3(v, n);
-  shrmag = len3(v);
-
-  scale3(rsht, n, temp_array);
-  sub3(v, temp_array, v);
-
-  // also rescale to preserve magnitude
-  prjmag = len3(v);
-  if (prjmag > 0)
-    temp_dbl = shrmag / prjmag;
-  else
-    temp_dbl = 0;
-  scale3(temp_dbl, v);
+  GranKernel::gk_rotate_rescale_vec(v, n);
 }

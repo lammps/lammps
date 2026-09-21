@@ -120,6 +120,8 @@ class GranularModel : protected Pointers {
   int calculate_svector, nsvector;
   double *svector;
 
+  [[nodiscard]] int get_contact_radius_flag() const { return contact_radius_flag; }
+
  protected:
   int rolling_defined, twisting_defined, heat_defined; // Flag optional sub models
   int classic_model;                                   // Flag original pair/gran calculations

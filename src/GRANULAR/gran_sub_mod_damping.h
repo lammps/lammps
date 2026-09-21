@@ -15,6 +15,7 @@
 #define GRAN_SUB_MOD_DAMPING_H
 
 #include "gran_sub_mod.h"
+#include "gran_sub_mod_damping_kernel.h"
 
 
 namespace LAMMPS_NS::Granular_NS {
@@ -25,6 +26,13 @@ namespace LAMMPS_NS::Granular_NS {
     void init() override;
     virtual double calculate_forces() = 0;
     [[nodiscard]] double get_damp_prefactor() const { return damp_prefactor; }
+
+    // collect the run-constant coefficients for the shared kernels
+    void fill_kernel_params(GranKernel::GranDampingParams<double> &p) const
+    {
+      p.model = GRAN_DAMPING_NONE;    // host classes call the models directly
+      p.damp = damp;
+    }
 
    protected:
     double damp_prefactor;

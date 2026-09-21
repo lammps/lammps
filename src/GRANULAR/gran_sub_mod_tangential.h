@@ -15,6 +15,7 @@
 #define GRAN_SUB_MOD_TANGENTIAL_H
 
 #include "gran_sub_mod.h"
+#include "gran_sub_mod_tangential_kernel.h"
 
 
 namespace LAMMPS_NS::Granular_NS {
@@ -28,8 +29,24 @@ namespace LAMMPS_NS::Granular_NS {
     [[nodiscard]] double get_damp() const { return damp; }
     [[nodiscard]] double get_mu() const { return mu; }
 
+    // collect the run-constant coefficients for the shared kernels
+    void fill_kernel_params(GranKernel::GranTangentialParams<double> &p) const
+    {
+      p.model = GRAN_TANGENTIAL_NONE;    // host classes call the models directly
+      p.k = k;
+      p.xt = xt_kernel();
+      p.mu = mu;
+      p.mindlin_force = mindlin_force;
+      p.mindlin_rescale = mindlin_rescale;
+      p.contact_radius_flag = contact_radius_flag;
+    }
+
    protected:
     double k, damp, mu;    // Used by Marshall twisting model
+    int mindlin_force, mindlin_rescale;
+
+    // xt lives in the derived classes that define a tangential stiffness
+    virtual double xt_kernel() const { return 0.0; }
   };
 
   /* ---------------------------------------------------------------------- */
@@ -50,6 +67,7 @@ namespace LAMMPS_NS::Granular_NS {
 
    protected:
     double xt;
+    double xt_kernel() const override { return xt; }
   };
 
   /* ---------------------------------------------------------------------- */
@@ -62,6 +80,7 @@ namespace LAMMPS_NS::Granular_NS {
 
    protected:
     double xt;
+    double xt_kernel() const override { return xt; }
   };
 
   /* ---------------------------------------------------------------------- */
@@ -89,8 +108,8 @@ namespace LAMMPS_NS::Granular_NS {
     void calculate_forces() override;
 
    protected:
-    int mindlin_rescale, mindlin_force;
     double xt;
+    double xt_kernel() const override { return xt; }
   };
 
   /* ---------------------------------------------------------------------- */

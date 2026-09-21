@@ -15,6 +15,7 @@
 #define GRAN_SUB_MOD_ROLLING_H
 
 #include "gran_sub_mod.h"
+#include "gran_sub_mod_rolling_kernel.h"
 
 
 namespace LAMMPS_NS::Granular_NS {
@@ -23,6 +24,20 @@ namespace LAMMPS_NS::Granular_NS {
    public:
     GranSubModRolling(class GranularModel *, class LAMMPS *);
     virtual void calculate_forces() = 0;
+
+    void fill_kernel_params(GranKernel::GranRollingParams<double> &p) const
+    {
+      p.model = GRAN_ROLLING_NONE;    // host classes call the models directly
+      p.k = get_k();
+      p.gamma = get_gamma();
+      p.mu = get_mu();
+    }
+
+   protected:
+    // only the SDS model defines coefficients, so the base returns zero
+    [[nodiscard]] virtual double get_k() const { return 0.0; }
+    [[nodiscard]] virtual double get_gamma() const { return 0.0; }
+    [[nodiscard]] virtual double get_mu() const { return 0.0; }
   };
 
   /* ---------------------------------------------------------------------- */
@@ -43,6 +58,9 @@ namespace LAMMPS_NS::Granular_NS {
 
    protected:
     double k, mu, gamma;
+    [[nodiscard]] double get_k() const override { return k; }
+    [[nodiscard]] double get_gamma() const override { return gamma; }
+    [[nodiscard]] double get_mu() const override { return mu; }
   };
 
 } // namespace LAMMPS_NS::Granular_NS

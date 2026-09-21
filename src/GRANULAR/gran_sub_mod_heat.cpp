@@ -13,12 +13,15 @@
 
 #include "gran_sub_mod_heat.h"
 
+#include "gran_sub_mod_heat_kernel.h"
+
 #include "error.h"
 #include "granular_model.h"
 #include "math_const.h"
 
 using namespace LAMMPS_NS;
 using namespace Granular_NS;
+using namespace Granular_NS::GranKernel;
 
 using MathConst::MY_PI;
 
@@ -66,7 +69,7 @@ void GranSubModHeatRadius::coeffs_to_local()
 
 double GranSubModHeatRadius::calculate_heat()
 {
-  double heat = 2 * conductivity * gm->contact_radius * (gm->Tj - gm->Ti);
+  double heat = gran_heat_radius(conductivity, gm->contact_radius, gm->Ti, gm->Tj);
   if (gm->calculate_svector) gm->svector[index_svector] = heat;
   return heat;
 }
@@ -97,7 +100,7 @@ void GranSubModHeatArea::coeffs_to_local()
 
 double GranSubModHeatArea::calculate_heat()
 {
-  double heat = heat_transfer_coeff * MY_PI * gm->contact_radius * gm->contact_radius * (gm->Tj - gm->Ti);
+  double heat = gran_heat_area(heat_transfer_coeff, gm->contact_radius, gm->Ti, gm->Tj);
   if (gm->calculate_svector) gm->svector[index_svector] = heat;
   return heat;
 }

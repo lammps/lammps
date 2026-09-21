@@ -13,6 +13,8 @@
 
 #include "gran_sub_mod_damping.h"
 
+#include "gran_sub_mod_damping_kernel.h"
+
 #include "error.h"
 #include "gran_sub_mod_normal.h"
 #include "fix_granular_mdr.h"
@@ -24,6 +26,7 @@
 
 using namespace LAMMPS_NS;
 using namespace Granular_NS;
+using namespace Granular_NS::GranKernel;
 using namespace MathConst;
 
 using MathSpecial::cube;
@@ -79,7 +82,7 @@ GranSubModDampingVelocity::GranSubModDampingVelocity(GranularModel *gm, LAMMPS *
 
 double GranSubModDampingVelocity::calculate_forces()
 {
-  damp_prefactor = damp;
+  damp_prefactor = gran_damping_velocity_prefactor(damp);
   return -damp_prefactor * gm->vnnr;
 }
 
@@ -96,7 +99,7 @@ GranSubModDampingMassVelocity::GranSubModDampingMassVelocity(GranularModel *gm, 
 
 double GranSubModDampingMassVelocity::calculate_forces()
 {
-  damp_prefactor = damp * gm->meff;
+  damp_prefactor = gran_damping_mass_velocity_prefactor(damp, gm->meff);
   return -damp_prefactor * gm->vnnr;
 }
 
@@ -114,7 +117,7 @@ GranSubModDampingViscoelastic::GranSubModDampingViscoelastic(GranularModel *gm, 
 
 double GranSubModDampingViscoelastic::calculate_forces()
 {
-  damp_prefactor = damp * gm->meff * gm->contact_radius;
+  damp_prefactor = gran_damping_viscoelastic_prefactor(damp, gm->meff, gm->contact_radius);
   return -damp_prefactor * gm->vnnr;
 }
 
@@ -149,13 +152,7 @@ void GranSubModDampingTsuji::init()
 
 double GranSubModDampingTsuji::calculate_forces()
 {
-  // in case argument <= 0 due to precision issues
-  double sqrt1;
-  if (gm->delta > 0.0)
-    sqrt1 = MAX(0.0, gm->meff * gm->Fnormal / gm->delta);
-  else
-    sqrt1 = 0.0;
-  damp_prefactor = damp * sqrt(sqrt1);
+  damp_prefactor = gran_damping_tsuji_prefactor(damp, gm->meff, gm->Fnormal, gm->delta);
   return -damp_prefactor * gm->vnnr;
 }
 

@@ -13,6 +13,8 @@
 
 #include "gran_sub_mod_twisting.h"
 
+#include "gran_sub_mod_twisting_kernel.h"
+
 #include "error.h"
 #include "gran_sub_mod_normal.h"
 #include "gran_sub_mod_tangential.h"
@@ -23,6 +25,7 @@
 
 using namespace LAMMPS_NS;
 using namespace Granular_NS;
+using namespace Granular_NS::GranKernel;
 
 using MathConst::TWOTHIRDS;
 
@@ -65,37 +68,18 @@ void GranSubModTwistingMarshall::init()
 
 double GranSubModTwistingMarshall::calculate_forces()
 {
-  double signtwist, Mtcrit, magtortwist;
+  GranTwistingParams<double> p;
+  p.model = GRAN_TWISTING_NONE;    // host classes call the models directly
+  p.k = 0.0;
+  p.damp = 0.0;
+  p.mu = 0.0;
+  p.k_tang = k_tang;
+  p.mu_tang = mu_tang;
 
-  double dt = gm->dt;
-  double magtwist = gm->magtwist;
-  double contact_radius = gm->contact_radius;
-  double *history = gm->history;
-  int history_update = gm->history_update;
-
-  double Fncrit = gm->normal_model->get_fncrit();
-  double tdamp = gm->tangential_model->get_damp();
-
-  // Calculate twist coefficients from tangential model & contact geometry
-  // eq 32 of Marshall paper
-
-  double k = 0.5 * k_tang * contact_radius * contact_radius;
-  double damp = 0.5 * tdamp * contact_radius * contact_radius;
-  double mu = TWOTHIRDS * mu_tang * contact_radius;
-
-  if (history_update) history[history_index] += magtwist * dt;
-
-  // M_t torque (eq 30)
-  magtortwist = -k * history[history_index] - damp * magtwist;
-  signtwist = (magtwist > 0) - (magtwist < 0);
-  Mtcrit = mu * Fncrit; // critical torque (eq 44)
-
-  if (fabs(magtortwist) > Mtcrit) {
-    history[history_index] = (Mtcrit * signtwist - damp * magtwist) / k;
-    magtortwist = -Mtcrit * signtwist;    // eq 34
-  }
-
-  return magtortwist;
+  return gran_twisting_marshall(p, gm->magtwist, gm->dt, gm->contact_radius,
+                                gm->normal_model->get_fncrit(),
+                                gm->tangential_model->get_damp(), gm->history_update,
+                                &gm->history[history_index]);
 }
 
 /* ----------------------------------------------------------------------
@@ -124,26 +108,14 @@ void GranSubModTwistingSDS::coeffs_to_local()
 
 double GranSubModTwistingSDS::calculate_forces()
 {
-  double signtwist, Mtcrit, magtortwist;
+  GranTwistingParams<double> p;
+  p.model = GRAN_TWISTING_NONE;    // host classes call the models directly
+  p.k = k;
+  p.damp = damp;
+  p.mu = mu;
+  p.k_tang = 0.0;
+  p.mu_tang = 0.0;
 
-  double magtwist = gm->magtwist;
-  double dt = gm->dt;
-  double *history = gm->history;
-  int history_update = gm->history_update;
-
-  double Fncrit = gm->normal_model->get_fncrit();
-
-  if (history_update) history[history_index] += magtwist * dt;
-
-  // M_t torque (eq 30)
-  magtortwist = -k * history[history_index] - damp * magtwist;
-  signtwist = (magtwist > 0) - (magtwist < 0);
-  Mtcrit = mu * Fncrit;    // critical torque (eq 44)
-
-  if (fabs(magtortwist) > Mtcrit) {
-    history[history_index] = (Mtcrit * signtwist - damp * magtwist) / k;
-    magtortwist = -Mtcrit * signtwist;    // eq 34
-  }
-
-  return magtortwist;
+  return gran_twisting_sds(p, gm->magtwist, gm->dt, gm->normal_model->get_fncrit(),
+                           gm->history_update, &gm->history[history_index]);
 }

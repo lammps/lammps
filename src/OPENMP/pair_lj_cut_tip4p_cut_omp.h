@@ -43,6 +43,7 @@ class PairLJCutTIP4PCutOMP : public PairLJCutTIP4PCut, public ThrOMP {
   int3_t *hneigh_thr;
 
   template <int, int, int> void eval(int, int, ThrData *const);
+  void cache_msite_thr(int);
   void compute_newsite_thr(const dbl3_t &, const dbl3_t &, const dbl3_t &, dbl3_t &) const;
 };
 

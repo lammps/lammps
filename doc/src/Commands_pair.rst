@@ -123,7 +123,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`gran/hertz/history (o) <pair_gran>`
    * :doc:`gran/hooke (o) <pair_gran>`
    * :doc:`gran/hooke/history (ko) <pair_gran>`
-   * :doc:`granular <pair_granular>`
+   * :doc:`granular (k) <pair_granular>`
    * :doc:`granular/superellipsoid <pair_granular_superellipsoid>`
    * :doc:`gw (o) <pair_gw>`
    * :doc:`gw/zbl (o) <pair_gw>`

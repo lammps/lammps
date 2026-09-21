@@ -430,6 +430,8 @@ action pair_gauss_kokkos.cpp pair_gauss.cpp
 action pair_gauss_kokkos.h pair_gauss.h
 action pair_gran_hooke_history_kokkos.cpp pair_gran_hooke_history.cpp
 action pair_gran_hooke_history_kokkos.h pair_gran_hooke_history.h
+action pair_granular_kokkos.cpp pair_granular.cpp
+action pair_granular_kokkos.h pair_granular.h
 action pair_gauss_cut_kokkos.cpp pair_gauss_cut.cpp
 action pair_gauss_cut_kokkos.h pair_gauss_cut.h
 action pair_hybrid_kokkos.cpp

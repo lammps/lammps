@@ -95,6 +95,10 @@ id_history = utils::strdup(std::string("NEIGH_HISTORY_GRANULAR") + std::to_strin
 
 PairGranular::~PairGranular()
 {
+  // Kokkos functors are shallow copies of the pair object; their destructors
+  // must not release storage owned by the original instance
+  if (copymode) return;
+
   delete[] svector;
 
   if (!fix_history) modify->delete_fix(id_dummy);
@@ -492,7 +496,7 @@ void PairGranular::init_style()
   // this is so its order in the fix list is preserved
 
   if (use_history && fix_history == nullptr) {
-    fix_history = dynamic_cast<FixNeighHistory *>(modify->replace_fix(id_dummy, fmt::format("{} all NEIGH_HISTORY {}", id_history, size_history),0));
+    fix_history = dynamic_cast<FixNeighHistory *>(modify->replace_fix(id_dummy, history_fix_command(), 0));
     fix_history->pair = this;
   } else if (use_history) {
     fix_history = dynamic_cast<FixNeighHistory *>(modify->get_fix_by_id(id_history));
@@ -875,8 +879,18 @@ double PairGranular::memory_usage()
 }
 
 /* ----------------------------------------------------------------------
+   command used to create the neighbor history fix
+   accelerator variants override this to request their own version
+------------------------------------------------------------------------- */
+
+std::string PairGranular::history_fix_command()
+{
+  return fmt::format("{} all NEIGH_HISTORY {}", id_history, size_history);
+}
+
+/* ----------------------------------------------------------------------
    transfer history during fix/neigh/history exchange
-   only needed if any history entries i-j are not just negative of j-i entries
+   only needed if any history entries i-j are not negative of j-i entries
 ------------------------------------------------------------------------- */
 
 void PairGranular::transfer_history(double* source, double* target, int itype, int jtype)

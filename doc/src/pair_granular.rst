@@ -1,7 +1,10 @@
 .. index:: pair_style granular
+.. index:: pair_style granular/kk
 
 pair_style granular command
 ===========================
+
+Accelerator Variants: *granular/kk*
 
 Syntax
 """"""
@@ -989,6 +992,25 @@ is only specified in the *pair coeff* command and no global cutoff is
 appended to the *pair_style granular* command, then LAMMPS will use that
 cutoff for the specified atom type combination, and automatically set
 pairwise cutoffs for the remaining atom types.
+
+----------
+
+.. include:: accel_styles.rst
+
+.. versionadded:: TBD
+
+The KOKKOS version of this pair style supports a subset of the available
+sub-models.  It accepts the *hooke*, *hertz* and *hertz/material* normal
+models, the cohesive *dmt* and *jkr* normal models, every damping model
+except *mdr*, every tangential model except *mindlin_rescale* and
+*mindlin_rescale/force*, the *sds* rolling model, and the *marshall* and
+*sds* twisting models.  The *mdr* normal model, heat conduction models,
+the *synchronized_verlet* option of :doc:`fix nve/sphere <fix_nve_sphere>`,
+and rigid body masses taken from a :doc:`fix rigid <fix_rigid>` command are
+not supported yet and produce an error.  Contact history additionally
+requires :doc:`newton <newton>` *off* and a half or half/thread neighbor
+list, because the KOKKOS version of the internal neighbor history fix only
+implements that communication path.
 
 ----------
 

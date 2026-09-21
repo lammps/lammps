@@ -22,6 +22,8 @@ PairStyle(granular,PairGranular);
 
 #include "pair.h"
 
+#include <string>
+
 namespace LAMMPS_NS {
 
 namespace Granular_NS {
@@ -74,6 +76,10 @@ class PairGranular : public Pair {
 
   void allocate();
   void prune_models();
+
+  // command used to create the neighbor history fix; accelerator variants
+  // override this to request their own version of the fix
+  virtual std::string history_fix_command();
 
   int size_history;
   int heat_flag;

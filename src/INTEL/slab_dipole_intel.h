@@ -13,8 +13,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Ludwig Ahrens-Iwers (TUHH), Robert Meissner (Hereon, TUHH),
-   Shern Tee (GU) with LLM (GLM-5.1)
+   Contributing authors: Ludwig Ahrens-Iwers (MPSD, TUHH), Robert Meissner (Hereon, TUHH), Shern Tee (GU)
 ------------------------------------------------------------------------- */
 
 #ifndef LMP_SLAB_INTEL_DIPOLE_H

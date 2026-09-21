@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Ludwig Ahrens-Iwers (TUHH), Shern Tee (GU), Kamila Savvidi (TUHH), Robert Meissner (Hereon, TUHH)
+   Contributing authors: Ludwig Ahrens-Iwers (MPSD, TUHH), Shern Tee (GU), Kamila Savvidi (TUHH), Robert Meissner (Hereon, TUHH)
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
@@ -132,7 +132,7 @@ class FixElectrodeConp : public Fix {
   int predictor_cols;
 
   // fix-specific electrode ID storage system:
-  bool taglist_constructed;
+  bool taglist_constructed, solver_constructed;
   ElectrodeTaglist *electrode_taglist;
   int nlocalele_outdated;    // trigger rebuilding of following structures:
   std::vector<tagint> taglist_local;

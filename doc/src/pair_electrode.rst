@@ -42,7 +42,10 @@ Examples
 Description
 """""""""""
 
-The style computes the standard 12/6 Lennard-Jones potential, given by
+.. versionadded:: TBD
+
+The *lj/cut/coul/long/gauss* and *lj/cut/coul/wolf/gauss* styles compute
+the standard 12/6 Lennard-Jones potential, given by
 
 .. math::
 

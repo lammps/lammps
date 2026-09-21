@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Ludwig Ahrens-Iwers (TUHH), Shern Tee (GU), Kamila Savvidi (TUHH), Robert Meissner (Hereon, TUHH)
+   Contributing authors: Ludwig Ahrens-Iwers (MPSD, TUHH), Shern Tee (GU), Kamila Savvidi (TUHH), Robert Meissner (Hereon, TUHH)
 ------------------------------------------------------------------------- */
 
 #include "fix_electrode_conp.h"
@@ -98,6 +98,7 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
   bool symm = false;
   ffield = false;
   taglist_constructed = false;
+  solver_constructed = false;
   thermo_time = 0.;
 
   top_group = 0;
@@ -276,10 +277,13 @@ FixElectrodeConp::FixElectrodeConp(LAMMPS *lmp, int narg, char **arg) :
     }
     // toggle parameters
     else if ((strcmp(arg[iarg], "etypes") == 0)) {
+      if (iarg + 2 > narg) error->all(FLERR, "Need one argument after etypes command");
       etypes_neighlists = utils::logical(FLERR, arg[++iarg], false, lmp);
     } else if ((strncmp(arg[iarg], "symm", 4) == 0)) {
+      if (iarg + 2 > narg) error->all(FLERR, "Need one argument after symm command");
       symm = utils::logical(FLERR, arg[++iarg], false, lmp);
     } else if ((strcmp(arg[iarg], "ffield") == 0)) {
+      if (iarg + 2 > narg) error->all(FLERR, "Need one argument after ffield command");
       ffield = utils::logical(FLERR, arg[++iarg], false, lmp);
     } else if (iarg == 4) {    // deprecated option to specify eta as fourth argument
       char *eta_str = arg[iarg];
@@ -427,6 +431,11 @@ int FixElectrodeConp::modify_param(int narg, char **arg)
 {
   if (strcmp(arg[0], "tf") == 0) {
     if (narg < 4) error->all(FLERR, "Incorrect number of arguments for fix_modify {}", style);
+    if (solver_constructed)
+      error->all(FLERR,
+                 "Thomas-Fermi parameters cannot be modified after the solver is constructed by "
+                 "fix_modify {}",
+                 style);
     tfflag = true;
     // read atom type, Thomas-Fermi length, and voronoi volume (reciprocal
     // number density)
@@ -489,6 +498,28 @@ void FixElectrodeConp::init()
   if (utils::strmatch(update->integrate_style, "^respa"))
     error->all(FLERR, Error::NOLASTLINE, "Fix {} is not compatible with run_style respa", style);
 
+  // get equal-style variable ids:
+  group_psi_var_ids = std::vector<int>(num_of_groups, -1);
+  for (int g = 0; g < num_of_groups; g++) {
+    assert(group_psi_var_styles[g] != VarStyle::UNSET);
+    if (group_psi_var_styles[g] == VarStyle::CONST) continue;
+    const char *var_name = group_psi_var_names[g].c_str();
+    int var_id = input->variable->find(var_name);
+    if (var_id < 0) error->all(FLERR, "Variable '{}' for fix {} does not exist", var_name, style);
+    if (!input->variable->equalstyle(var_id))
+      error->all(FLERR, "Variable '{}' for fix {} is not equal-style", var_name, style);
+    group_psi_var_ids[g] = var_id;
+  }
+  if (qtotal_var_style == VarStyle::EQUAL) {
+    const char *var_name = qtotal_var_name.c_str();
+    int var_id = input->variable->find(var_name);
+    if (var_id < 0) error->all(FLERR, "Variable '{}' for fix electrode does not exist", var_name);
+    if (!input->variable->equalstyle(var_id))
+      error->all(FLERR, "Variable '{}' for fix electrode is not equal-style", var_name);
+    qtotal_var_id = var_id;
+  }
+
+
   pair = nullptr;    // not sure if needed -- remove if unnecessary
   if (pairflag) {
     pair = force->pair_match(pair_str, 1);
@@ -529,6 +560,20 @@ void FixElectrodeConp::init()
                        "without matrix ('algo cg').",
                        fix->id, fix->style);
   }
+
+  // if Thomas-Fermi, make sure all electrode atoms have parameters
+  if (tfflag) {
+    int unset_tf = 0;
+    int *type = atom->type;
+    for (int i = 0; i < nlocal; i++) {
+      if ((groupbit & mask[i]) && (tf_types.count(type[i]) == 0)) unset_tf++;
+    }
+    MPI_Allreduce(MPI_IN_PLACE, &unset_tf, 1, MPI_INT, MPI_SUM, world);
+    if (unset_tf)
+      error->all(FLERR, "Thomas-Fermi parameters not set for all types in fix {}", style);
+  }
+
+  evscale = force->qe2f / force->qqrd2e;
 
   // check for package intel
   if (etypes_neighlists)
@@ -586,111 +631,79 @@ void FixElectrodeConp::post_constructor()
 
 void FixElectrodeConp::setup_post_neighbor()
 {
-  const int nlocal = atom->nlocal;
-  int *mask = atom->mask;
-
-  // if Thomas-Fermi, make sure all electrode atoms have parameters
-  if (tfflag) {
-    int unset_tf = 0;
-    int *type = atom->type;
-    for (int i = 0; i < nlocal; i++) {
-      if ((groupbit & mask[i]) && (tf_types.count(type[i]) == 0)) unset_tf++;
+  if (!solver_constructed) {
+    // setup vectors
+    elyt_vector->setup_general(pair, vec_neighlist, pairflag, timer_flag);
+    if (etapropflag) elyt_vector->setup_eta(eta_index);
+    if (need_elec_vector) {
+      elec_vector->setup_general(pair, mat_neighlist, pairflag, timer_flag);
+      if (etapropflag) elec_vector->setup_eta(eta_index);
+      if (tfflag) elec_vector->setup_tf(tf_types);
+      if (hardnessflag) elec_vector->setup_hardness(hardness_index);
     }
-    MPI_Allreduce(MPI_IN_PLACE, &unset_tf, 1, MPI_INT, MPI_SUM, world);
-    if (unset_tf)
-      error->all(FLERR, "Thomas-Fermi parameters not set for all types in fix {}", style);
-  }
 
-  // get equal-style variable ids:
-  group_psi_var_ids = std::vector<int>(num_of_groups, -1);
-  for (int g = 0; g < num_of_groups; g++) {
-    assert(group_psi_var_styles[g] != VarStyle::UNSET);
-    if (group_psi_var_styles[g] == VarStyle::CONST) continue;
-    const char *var_name = group_psi_var_names[g].c_str();
-    int var_id = input->variable->find(var_name);
-    if (var_id < 0) error->all(FLERR, "Variable '{}' for fix {} does not exist", var_name, style);
-    if (!input->variable->equalstyle(var_id))
-      error->all(FLERR, "Variable '{}' for fix {} is not equal-style", var_name, style);
-    group_psi_var_ids[g] = var_id;
-  }
-  if (qtotal_var_style == VarStyle::EQUAL) {
-    const char *var_name = qtotal_var_name.c_str();
-    int var_id = input->variable->find(var_name);
-    if (var_id < 0) error->all(FLERR, "Variable '{}' for fix electrode does not exist", var_name);
-    if (!input->variable->equalstyle(var_id))
-      error->all(FLERR, "Variable '{}' for fix electrode is not equal-style", var_name);
-    qtotal_var_id = var_id;
-  }
-
-  // pair and list setups:
-
-  evscale = force->qe2f / force->qqrd2e;
-  elyt_vector->setup_general(pair, vec_neighlist, pairflag, timer_flag);
-  if (etapropflag) elyt_vector->setup_eta(eta_index);
-  if (need_elec_vector) {
-    elec_vector->setup_general(pair, mat_neighlist, pairflag, timer_flag);
-    if (etapropflag) elec_vector->setup_eta(eta_index);
-    if (tfflag) elec_vector->setup_tf(tf_types);
-    if (hardnessflag) elec_vector->setup_hardness(hardness_index);
-  }
-
-  if (matrix_algo) {
-    assert(taglist_constructed);
-    memory->destroy(matrix);
-    memory->create(matrix, ngroup, ngroup, "fix_electrode:matrix");
-    if (read_mat)
-      electrode_taglist->read_from_file(input_file_mat, matrix, "elastance");
-    else if (!read_inv) {
-      if (etypes_neighlists) neighbor->build_one(mat_neighlist);
-      auto array_compute = std::make_unique<ElectrodeMatrix>(lmp, igroup, eta);
-      array_compute->setup(electrode_taglist->get_tag_to_iele(), pair, mat_neighlist, pairflag);
-      if (etapropflag) array_compute->setup_eta(eta_index);
-      if (tfflag) array_compute->setup_tf(tf_types);
-      if (hardnessflag) array_compute->setup_hardness(hardness_index);
-      array_compute->compute_array(matrix, timer_flag);
-    } else
-      assert(algo == Algo::MATRIX_INV);
-    // write_mat before proceeding
-    if (write_mat) electrode_taglist->write_to_file(output_file_mat, matrix);
-  }
-  // construct charge solver
-  switch (algo) {
-    case Algo::MATRIX_INV: {
+    // read or calculate matrix
+    if (matrix_algo) {
       assert(taglist_constructed);
-      ElectrodeInv *inv = new ElectrodeInv(lmp);
-      if (read_inv) {
-        if (comm->me == 0 && ffield)
-          error->warning(FLERR,
-                         "Symmetrizing matrix from file. Make sure the provided matrix has not "
-                         "been symmetrized yet.");
-        electrode_taglist->read_from_file(input_file_inv, matrix, "capacitance");
-        inv->set_capacitance(ngroup, matrix);
-      } else {
-        inv->set_elastance(ngroup, matrix, timer_flag);
+      memory->destroy(matrix);
+      memory->create(matrix, ngroup, ngroup, "fix_electrode:matrix");
+      if (read_mat)
+        electrode_taglist->read_from_file(input_file_mat, matrix, "elastance");
+      else if (!read_inv) {
+        if (etypes_neighlists) neighbor->build_one(mat_neighlist);
+        auto array_compute = std::make_unique<ElectrodeMatrix>(lmp, igroup, eta);
+        array_compute->setup(electrode_taglist->get_tag_to_iele(), pair, mat_neighlist, pairflag);
+        if (etapropflag) array_compute->setup_eta(eta_index);
+        if (tfflag) array_compute->setup_tf(tf_types);
+        if (hardnessflag) array_compute->setup_hardness(hardness_index);
+        array_compute->compute_array(matrix, timer_flag);
+      } else
+        assert(algo == Algo::MATRIX_INV);
+      // write_mat before proceeding
+      if (write_mat) electrode_taglist->write_to_file(output_file_mat, matrix);
+    }
+
+    // construct charge solver
+    switch (algo) {
+      case Algo::MATRIX_INV: {
+        assert(taglist_constructed);
+        ElectrodeInv *inv = new ElectrodeInv(lmp);
+        if (read_inv) {
+          if (comm->me == 0 && ffield)
+            error->warning(FLERR,
+                           "Symmetrizing matrix from file. Make sure the provided matrix has not "
+                           "been symmetrized yet.");
+          electrode_taglist->read_from_file(input_file_inv, matrix, "capacitance");
+          inv->set_capacitance(ngroup, matrix);
+        } else {
+          inv->set_elastance(ngroup, matrix, timer_flag);
+        }
+        assert(taglist_constructed);
+        inv->setup_solver(groupbit, electrode_taglist->get_tag_to_iele(), group_bits, ffield,
+                          timer_flag);
+        charge_solver = inv;
+        break;
       }
-      assert(taglist_constructed);
-      inv->setup_solver(groupbit, electrode_taglist->get_tag_to_iele(), group_bits, ffield,
-                        timer_flag);
-      charge_solver = inv;
-      break;
+      case Algo::MATRIX_CG: {
+        ElectrodeMatCG *mat_cg = new ElectrodeMatCG(lmp);
+        mat_cg->set_elastance(ngroup, matrix);
+        mat_cg->setup_solver(cg_threshold, electrode_taglist->get_tag_to_iele(), predictor_cols);
+        charge_solver = mat_cg;
+        break;
+      }
+      case Algo::CG: {
+        ElectrodeCG *cg = new ElectrodeCG(lmp, this);
+        cg->setup_solver(cg_threshold, elec_vector, predictor_cols);
+        charge_solver = cg;
+        break;
+      }
+      default:
+        error->all(FLERR, "This algorithm is not implemented, yet");
     }
-    case Algo::MATRIX_CG: {
-      ElectrodeMatCG *mat_cg = new ElectrodeMatCG(lmp);
-      mat_cg->set_elastance(ngroup, matrix);
-      mat_cg->setup_solver(cg_threshold, electrode_taglist->get_tag_to_iele(), predictor_cols);
-      charge_solver = mat_cg;
-      break;
-    }
-    case Algo::CG: {
-      ElectrodeCG *cg = new ElectrodeCG(lmp, this);
-      cg->setup_solver(cg_threshold, elec_vector, predictor_cols);
-      charge_solver = cg;
-      break;
-    }
-    default:
-      error->all(FLERR, "This algorithm is not implemented, yet");
+    if (qtotal_var_style == VarStyle::CONST) charge_solver->set_constraint(qtotal);
+    if (write_inv) electrode_taglist->write_to_file(output_file_inv, matrix);
+    solver_constructed = true;
   }
-  if (qtotal_var_style == VarStyle::CONST) charge_solver->set_constraint(qtotal);
   // initial charges and b vector
   update_charges();
 
@@ -704,7 +717,6 @@ void FixElectrodeConp::setup_post_neighbor()
     electrode_taglist->write_to_file(output_file_vec, potential_iele);
     memory->destroy(potential_iele);
   }
-  if (write_inv) electrode_taglist->write_to_file(output_file_inv, matrix);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1036,7 +1048,7 @@ FixElectrodeConp::~FixElectrodeConp()
   delete elyt_vector;
   memory->destroy(matrix);
   if (need_elec_vector) delete elec_vector;
-  if (charge_solver != nullptr) delete charge_solver;
+  if (solver_constructed) delete charge_solver;
   if (taglist_constructed) delete electrode_taglist;
 }
 

@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Ludwig Ahrens-Iwers (TUHH), Shern Tee (GU), Kamila Savvidi (TUHH), Robert Meissner (Hereon, TUHH)
+   Contributing authors: Ludwig Ahrens-Iwers (MPSD, TUHH), Shern Tee (GU), Kamila Savvidi (TUHH), Robert Meissner (Hereon, TUHH)
 ------------------------------------------------------------------------- */
 
 #include "pair_lj_cut_coul_wolf_gauss.h"
@@ -566,7 +566,7 @@ void PairLJCutCoulWolfGauss::compute_matrix(bigint *mpos, double **array, int gr
         double aij = rinv * ElectrodeMath::safe_erfc(alpha * r) - e_shift;
         double erfc_eta = 0.0;
         if (!(ipoint && !!ispoint[jtype])) {
-          double const erfc_eta = ElectrodeMath::safe_erfc(eta[itype][jtype] * r);
+          erfc_eta = ElectrodeMath::safe_erfc(eta[itype][jtype] * r);
           aij -= rinv * erfc_eta - eshift_eta[itype][jtype];
         }
         if (factor_coul < 1.0) aij -= (1.0 - factor_coul) * rinv * (1.0 - erfc_eta);

@@ -12,8 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Ludwig Ahrens-Iwers (TUHH), Robert Meissner (Hereon, TUHH),
-   Shern Tee (GU) with LLM (GLM-5.1)
+   Contributing authors: Ludwig Ahrens-Iwers (MPSD, TUHH), Robert Meissner (Hereon, TUHH), Shern Tee (GU)
 ------------------------------------------------------------------------- */
 
 #include "slab_2d_intel.h"
@@ -76,24 +75,28 @@ void Slab2dIntel::compute_corr(IntelBuffers<flt_t, acc_t> *buffers, double /*qsu
     nthr = comm->nthreads;
 
   std::vector<double> z = std::vector<double>(nlocal);
+  std::vector<double> q_local = std::vector<double>(nlocal);
 
   #if defined(_OPENMP)
   #pragma omp parallel \
-    shared(nlocal, nthr, x, z) if (!_use_lrt)
+    shared(nlocal, nthr, x, q, z, q_local) if (!_use_lrt)
   #endif
   {
     int ifrom, ito, tid;
     IP_PRE_omp_range_id(ifrom, ito, tid, nlocal, nthr);
 
-    for (int i = ifrom; i < ito; i++) z[i] = x[i].z;
+    for (int i = ifrom; i < ito; i++) {
+      z[i] = x[i].z;
+      q_local[i] = q[i];
+    }
   }
 
   std::vector<double> z_all = std::vector<double>(natoms);
   std::vector<double> q_all = std::vector<double>(natoms);
   std::vector<int> recvcounts = gather_recvcounts(nlocal);
   std::vector<int> displs = gather_displs(recvcounts);
-  MPI_Allgatherv(q, nlocal, MPI_DOUBLE, q_all.data(), recvcounts.data(), displs.data(), MPI_DOUBLE,
-                 world);
+  MPI_Allgatherv(q_local.data(), nlocal, MPI_DOUBLE, q_all.data(), recvcounts.data(),
+                 displs.data(), MPI_DOUBLE, world);
   MPI_Allgatherv(z.data(), nlocal, MPI_DOUBLE, z_all.data(), recvcounts.data(), displs.data(),
                  MPI_DOUBLE, world);
 

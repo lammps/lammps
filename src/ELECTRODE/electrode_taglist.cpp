@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 /* ----------------------------------------------------------------------
-   Contributing authors: Ludwig Ahrens-Iwers (TUHH), Shern Tee (GU), Robert Meissner (Hereon, TUHH)
+   Contributing authors: Ludwig Ahrens-Iwers (MPSD, TUHH), Shern Tee (GU), Robert Meissner (Hereon, TUHH)
 ------------------------------------------------------------------------- */
 
 #include "electrode_taglist.h"
@@ -124,7 +124,7 @@ std::vector<std::vector<double>> ElectrodeTaglist::sort_by_group(double **mat)
   for (std::size_t i = 0; i < n; i++) {
     const bigint gi = group_idx[i];
     assert(gi < n);
-    for (std::size_t j = 0; j < n; j++) ordered_mat[gi][group_idx[j]] = mat[i][j];
+    for (std::size_t j = 0; j < n; j++) ordered_mat[i][j] = mat[gi][group_idx[j]];
   }
   return ordered_mat;
 }
@@ -134,7 +134,7 @@ std::vector<std::vector<double>> ElectrodeTaglist::sort_by_group(double **mat)
 std::vector<std::vector<double>> ElectrodeTaglist::sort_by_group(double *vec)
 {
   std::vector<std::vector<double>> ordered_vec(n, std::vector<double>(1));
-  for (std::size_t i = 0; i < n; i++) ordered_vec[group_idx[i]][0] = vec[i];
+  for (std::size_t i = 0; i < n; i++) ordered_vec[i][0] = vec[group_idx[i]];
   return ordered_vec;
 }
 
@@ -175,7 +175,7 @@ void ElectrodeTaglist::read_from_file(const std::string &input_file, double **ar
         }
       }
     }
-    if (idx.size() != n) error->all(FLERR, "Read tags do not match taglist of fix electrode");
+    if (idx.size() != n) error->one(FLERR, "Read tags do not match taglist of fix electrode");
     for (std::size_t i = 0; i < n; i++) {
       const bigint ii = idx[i];
       for (std::size_t j = 0; j < n; j++) array[i][j] = matrix[ii][idx[j]];

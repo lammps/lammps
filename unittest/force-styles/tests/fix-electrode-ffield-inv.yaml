@@ -1,6 +1,6 @@
 ---
 lammps_version: 29 Aug 2024
-tags: generated
+tags:
 date_generated: Tue Jan 20 15:36:25 2026
 epsilon: 1e-09
 skip_tests: intel

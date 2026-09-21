@@ -86,7 +86,7 @@ void ElectrodeCG::setup_cg(double cg_threshold, int predictor_cols)
   // setup atom/property array to store prior charges
   if (predictor_cols) {
     std::string property_call = "fx_electrode_cg_predictor all property/atom d2_predict_array " +
-        std::to_string(predictor_cols);
+        std::to_string(predictor_cols) + " ghost no";
     modify->add_fix(property_call, 1);
     int is_double, cols;
     predictor_index = atom->find_custom("predict_array", is_double, cols);

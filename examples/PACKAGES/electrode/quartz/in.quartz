@@ -11,7 +11,7 @@ timestep 1.0 #1 fs
 
 # -------------------- ELECTRODE/QEQ --------------------- #
 fix pra all property/atom d_chi d_hardness d_eta ghost yes
-fix qeq all electrode/conp 0 algo cg 1e-4 symm on electronegativity d_chi hardness d_hardness eta d_eta
+fix qeq all electrode/conp 0 algo cg 1e-4 predictor 1 qtotal 0 electronegativity d_chi hardness d_hardness eta d_eta
 
 # reciprocal width in 1/A
 variable eta_Si equal 0.4738752  
@@ -31,7 +31,5 @@ set type 1 d_chi 201.5444 d_hardness ${hard_O} d_eta ${eta_O}  # O
 fix fxnpt all npt temp 298.0 298.0 $(100.0*dt) iso 1.0 1.0 $(1000.0*dt) 
 
 run     1000
-
-write_data data.quartz_final nocoeff
 
 # ------------------------ END --------------------------- #

@@ -1,8 +1,14 @@
-LAMMPS (29 Aug 2024 - Development - patch_27Jun2024-1648-gdd8105bc33-modified)
+LAMMPS (2 Sep 2026)
   using 1 OpenMP thread(s) per MPI task
 boundary p p f
 kspace_style ewald/electrode 1.0e-8
 kspace_modify slab 8.0 # ew3dc
+Updated KSpace settings:
+  KSpace computation is turned:    ON
+  Use MPI collective operations:   OFF
+  Use MPI non-blocking operations: OFF
+  Gewald is determined automatically
+  Slab volfactor manually set to:    8
 
 include "settings_pair.mod" # styles, computes, groups and fixes
 # set boundary in main script because ffield is periodic
@@ -54,7 +60,7 @@ fix fxprint all print 1 "${vpe}, ${charge}, ${p3}" file "out.csv"
 dump dump_forces all custom 1 forces.lammpstrj id fx fy fz
 
 thermo_style custom step pe c_qbot c_qtop
-fix conp bot electrode/conp 0 NULL couple top 1 symm on write_inv inv.csv write_vec vec.csv pair lj/cut/coul/long/gauss
+fix conp bot electrode/conp 0 couple top 1 qtotal 0 write_inv inv.csv write_vec vec.csv pair lj/cut/coul/long/gauss
 2 atoms in group conp_group
 
 run 0
@@ -63,22 +69,10 @@ CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
 
 Your simulation uses code contributions which should be cited:
 
-- Type Label Framework: https://doi.org/10.1021/acs.jpcb.3c08419
-
-@Article{Gissinger24,
- author = {Jacob R. Gissinger, Ilia Nikiforov, Yaser Afshar, Brendon Waters, Moon-ki Choi, Daniel S. Karls, Alexander Stukowski, Wonpil Im, Hendrik Heinz, Axel Kohlmeyer, and Ellad B. Tadmor},
- title = {Type Label Framework for Bonded Force Fields in LAMMPS},
- journal = {J. Phys. Chem. B},
- year =    2024,
- volume =  128,
- number =  13,
- pages =   {3282--3297}
-}
-
-- fix electrode command:
+- fix electrode command: https://doi.org/10.1063/5.0099239
 
 @article{Ahrens2022
-author = {Ahrens-Iwers, Ludwig J.V. and Janssen, Mahijs and Tee, Shern R. and Mei{\ss}ner, Robert H.},
+author = {Ahrens-Iwers, Ludwig J.V. and Janssen, Mathijs and Tee, Shern R. and Mei{\ss}ner, Robert H.},
 doi = {10.1063/5.0099239},
 title = {{ELECTRODE: An electrochemistry package for LAMMPS}},
 journal = {The Journal of Chemical Physics},
@@ -88,10 +82,11 @@ pages = {084801},
 }
 CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
 
-WARNING: No fixes with time integration, atoms won't move (src/verlet.cpp:60)
+WARNING: No fixes with time integration, atoms won't move
+For more information see https://docs.lammps.org/err0028 (src/verlet.cpp:60)
 Ewald/electrode initialization ...
-  using 12-bit tables for long-range coulomb (src/kspace.cpp:342)
-WARNING: For better accuracy use 'pair_modify table 0' (src/kspace.cpp:365)
+  using 12-bit tables for long-range coulomb
+WARNING: For better accuracy use 'pair_modify table 0' (src/kspace.cpp:368)
   G vector (1/distance) = 0.32261103
   estimated absolute RMS force accuracy = 3.8272011e-06
   estimated relative force accuracy = 1.1525502e-08
@@ -115,14 +110,16 @@ Neighbor list info ...
       pair build: copy
       stencil: none
       bin: none
-WARNING: Proc sub-domain size < neighbor skin, could lead to lost atoms (src/domain.cpp:1202)
-139.943964815515, 0.279214485147224, -1812901.54215923
+WARNING: Proc sub-domain size < neighbor skin, could lead to lost atoms (src/domain.cpp:1197)
+ELECTRODE vector setup with KSpace ewald/electrode
+ELECTRODE matrix setup with KSpace ewald/electrode
+139.94395235744, 0.279214485147241, -1812901.54276975
 Per MPI rank memory allocation (min/avg/max) = 144.3 | 144.3 | 144.3 Mbytes
    Step         PotEng         c_qbot         c_qtop    
-         0   139.94396     -0.27921449     0.27921449   
-Loop time of 1.8285e-06 on 4 procs for 0 steps with 4 atoms
+         0   139.94395     -0.27921449     0.27921449   
+Loop time of 4.0605e-06 on 4 procs for 0 steps with 4 atoms
 
-123.1% CPU use with 4 MPI tasks x 1 OpenMP threads
+55.4% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
@@ -134,7 +131,7 @@ Neigh   | 0          | 0          | 0          |   0.0 |  0.00
 Comm    | 0          | 0          | 0          |   0.0 |  0.00
 Output  | 0          | 0          | 0          |   0.0 |  0.00
 Modify  | 0          | 0          | 0          |   0.0 |  0.00
-Other   |            | 1.828e-06  |            |       |100.00
+Other   |            | 4.06e-06   |            |       |100.00
 
 Nlocal:              1 ave           2 max           0 min
 Histogram: 2 0 0 0 0 0 0 0 0 2

@@ -1,4 +1,4 @@
-LAMMPS (29 Aug 2024 - Development - patch_29Aug2024-651-gf962842718)
+LAMMPS (2 Sep 2026)
   using 1 OpenMP thread(s) per MPI task
 # -------------------- INITIALIZATION -------------------- #
 # -------------------------------------------------------- #
@@ -6,7 +6,7 @@ units		real
 dimension	3
 boundary	p p p
 atom_style	full
-include "in.settings"
+include "settings.mod"
 pair_style	hybrid/overlay morse 9.0 coul/long 12.0    #
 kspace_style	pppm/electrode 1.0e-6
 # -------------------------------------------------------- #
@@ -27,8 +27,8 @@ Finding 1-2 1-3 1-4 neighbors ...
      0 = max # of 1-3 neighbors
      0 = max # of 1-4 neighbors
      1 = max # of special neighbors
-  special bonds CPU = 0.001 seconds
-  read_data CPU = 0.035 seconds
+  special bonds CPU = 0.000 seconds
+  read_data CPU = 0.055 seconds
 #
 pair_coeff      2 2 morse 0.29560 1.717429552 3.4103 # Si-Si
 pair_coeff      1 1 morse 0.53630 1.375868904 3.7835  # O-O
@@ -61,7 +61,7 @@ timestep 1.0 #1 fs
 
 # -------------------- ELECTRODE/QEQ --------------------- #
 fix pra all property/atom d_chi d_hardness d_eta ghost yes
-fix qeq all electrode/conp 0 algo cg 1e-4 symm on electronegativity d_chi hardness d_hardness eta d_eta
+fix qeq all electrode/conp 0 algo cg 1e-4 predictor 1 qtotal 0 electronegativity d_chi hardness d_hardness eta d_eta
 1944 atoms in group conp_group
 
 # reciprocal width in 1/A
@@ -107,7 +107,7 @@ CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
 
 Your simulation uses code contributions which should be cited:
 
-- kspace_style pppm/electrode command:
+- kspace_style pppm/electrode command: https://doi.org/10.1063/5.0063381
 
 @article{Ahrens2021,
 author = {Ahrens-Iwers, Ludwig J.V. and Mei{\ss}ner, Robert H.},
@@ -118,22 +118,10 @@ year = {2021}
 volume = {155},
 pages = {104104},
 }
-- Type Label Framework: https://doi.org/10.1021/acs.jpcb.3c08419
-
-@Article{Gissinger24,
- author = {Jacob R. Gissinger, Ilia Nikiforov, Yaser Afshar, Brendon Waters, Moon-ki Choi, Daniel S. Karls, Alexander Stukowski, Wonpil Im, Hendrik Heinz, Axel Kohlmeyer, and Ellad B. Tadmor},
- title = {Type Label Framework for Bonded Force Fields in LAMMPS},
- journal = {J. Phys. Chem. B},
- year =    2024,
- volume =  128,
- number =  13,
- pages =   {3282--3297}
-}
-
-- fix electrode command:
+- fix electrode command: https://doi.org/10.1063/5.0099239
 
 @article{Ahrens2022
-author = {Ahrens-Iwers, Ludwig J.V. and Janssen, Mahijs and Tee, Shern R. and Mei{\ss}ner, Robert H.},
+author = {Ahrens-Iwers, Ludwig J.V. and Janssen, Mathijs and Tee, Shern R. and Mei{\ss}ner, Robert H.},
 doi = {10.1063/5.0099239},
 title = {{ELECTRODE: An electrochemistry package for LAMMPS}},
 journal = {The Journal of Chemical Physics},
@@ -144,13 +132,13 @@ pages = {084801},
 CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
 
 PPPM/electrode initialization ...
-  using 12-bit tables for long-range coulomb (src/kspace.cpp:342)
+  using 12-bit tables for long-range coulomb
   G vector (1/distance) = 0.28930045
   grid = 40 36 45
   stencil order = 5
   estimated absolute RMS force accuracy = 0.000362114
   estimated relative force accuracy = 1.0904956e-06
-  using double precision KISS FFT
+  using double precision FFTW3
   3d grid and FFT values/proc = 105092 64800
 Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
 Neighbor list info ...
@@ -177,62 +165,49 @@ Neighbor list info ...
       bin: none
 ELECTRODE vector setup with KSpace pppm/electrode
 ELECTRODE vector setup with KSpace pppm/electrode
-Per MPI rank memory allocation (min/avg/max) = 25.82 | 25.82 | 25.82 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 26.24 | 26.24 | 26.24 Mbytes
    Step          Temp          Press          TotEng         KinEng         PotEng         E_coul         E_long        Density      v_charge_qsi   v_charge_qo  
-         0   301.22737      382.62275     -57673.733      1744.6228     -59418.356      133451.18     -89040.141      2.4938955      1.3001013     -0.65005065   
-       100   295.70222      2769.2904     -57713.6        1712.6227     -59426.223      133410.78     -89008.17       2.4932026      1.2998678     -0.64993388   
-       200   289.75161     -2806.8309     -57792.581      1678.1585     -59470.739      133393.36     -88993.987      2.483357       1.2997728     -0.64988639   
-       300   291.07923     -1092.4863     -57788.18       1685.8476     -59474.028      133455.24     -89043.543      2.4925109      1.3001325     -0.65006623   
-       400   290.93127      2478.7123     -57762.639      1684.9907     -59447.63       133459.79     -89047.043      2.4963614      1.3001602     -0.65008012   
-       500   300.87803     -1111.4823     -57761.822      1742.5995     -59504.422      133377.03     -88981.134      2.4853253      1.2996736     -0.6498368    
-       600   297.18897     -2021.7348     -57724.617      1721.2335     -59445.85       133387.13     -88989.314      2.4856083      1.2997263     -0.64986313   
-       700   297.26394      1550.4601     -57674.257      1721.6677     -59395.924      133470.58     -89056.167      2.4967954      1.300214      -0.65010698   
-       800   296.55286     -509.3219      -57752.042      1717.5493     -59469.592      133458.1      -89046.218      2.4928712      1.3001453     -0.65007264   
-       900   287.04996     -1461.0091     -57818.808      1662.5112     -59481.32       133430.27     -89023.324      2.4882447      1.2999827     -0.64999136   
-      1000   290.92046      1614.2087     -57770.823      1684.9281     -59455.752      133440        -89031.02       2.4927894      1.3000404     -0.65002021   
-Loop time of 749.136 on 1 procs for 1000 steps with 1944 atoms
+         0   301.22737      382.62518     -57673.731      1744.6228     -59418.354      133451.18     -89040.141      2.4938955      1.3001013     -0.65005065   
+       100   295.68116      2770.8813     -57713.264      1712.5007     -59425.765      133412.15     -89009.312      2.4932015      1.2998713     -0.64993566   
+       200   289.76509     -2806.3742     -57792.221      1678.2365     -59470.457      133394.95     -88995.352      2.4833579      1.2997768     -0.64988841   
+       300   291.07709     -1091.1977     -57787.531      1685.8352     -59473.366      133456.64     -89044.727      2.4925181      1.3001366     -0.65006832   
+       400   290.86274      2489.2445     -57761.655      1684.5938     -59446.248      133461.77     -89048.594      2.4963722      1.3001669     -0.65008345   
+       500   300.77558     -1111.2327     -57760.885      1742.0061     -59502.891      133379.3      -88982.867      2.485319       1.2996824     -0.64984122   
+       600   297.1503      -2023.1179     -57724.123      1721.0095     -59445.133      133389.02     -88990.874      2.4856235      1.2997323     -0.64986616   
+       700   297.20597      1567.3296     -57673.444      1721.332      -59394.776      133472.54     -89057.698      2.496835       1.3002222     -0.65011109   
+       800   296.47917     -523.71838     -57750.656      1717.1225     -59467.779      133463.2      -89049.971      2.4928709      1.3001673     -0.65008364   
+       900   287.17447     -1469.0262     -57818.165      1663.2324     -59481.397      133431.13     -89024.139      2.4882242      1.2999859     -0.64999295   
+      1000   290.90399      1649.7915     -57769.77       1684.8327     -59454.602      133441.6      -89032.36       2.4928157      1.3000463     -0.65002317   
+Loop time of 244.042 on 1 procs for 1000 steps with 1944 atoms
 
-Performance: 0.115 ns/day, 208.093 hours/ns, 1.335 timesteps/s, 2.595 katom-step/s
+Performance: 0.354 ns/day, 67.789 hours/ns, 4.098 timesteps/s, 7.966 katom-step/s
 100.0% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 42.214     | 42.214     | 42.214     |   0.0 |  5.64
-Bond    | 0.00074039 | 0.00074039 | 0.00074039 |   0.0 |  0.00
-Kspace  | 32.462     | 32.462     | 32.462     |   0.0 |  4.33
-Neigh   | 0.05463    | 0.05463    | 0.05463    |   0.0 |  0.01
-Comm    | 0.17487    | 0.17487    | 0.17487    |   0.0 |  0.02
-Output  | 0.0015603  | 0.0015603  | 0.0015603  |   0.0 |  0.00
-Modify  | 674.2      | 674.2      | 674.2      |   0.0 | 90.00
-Other   |            | 0.0314     |            |       |  0.00
+Pair    | 31.933     | 31.933     | 31.933     |   0.0 | 13.09
+Bond    | 0.00036874 | 0.00036874 | 0.00036874 |   0.0 |  0.00
+Kspace  | 9.5409     | 9.5409     | 9.5409     |   0.0 |  3.91
+Neigh   | 0.034227   | 0.034227   | 0.034227   |   0.0 |  0.01
+Comm    | 0.10759    | 0.10759    | 0.10759    |   0.0 |  0.04
+Output  | 0.0016694  | 0.0016694  | 0.0016694  |   0.0 |  0.00
+Modify  | 202.41     | 202.41     | 202.41     |   0.0 | 82.94
+Other   |            | 0.01828    |            |       |  0.01
 
 Nlocal:           1944 ave        1944 max        1944 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
 Nghost:          12212 ave       12212 max       12212 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:         400500 ave      400500 max      400500 min
+Neighs:         400504 ave      400504 max      400504 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
 
-Total # of neighbors = 400500
-Ave neighs/atom = 206.01852
+Total # of neighbors = 400504
+Ave neighs/atom = 206.02058
 Ave special neighs/atom = 0
 Neighbor list builds = 1
 Dangerous builds = 0
 
-write_data data.quartz_final nocoeff
-System init for write_data ...
-PPPM/electrode initialization ...
-  using 12-bit tables for long-range coulomb (src/kspace.cpp:342)
-  G vector (1/distance) = 0.28929341
-  grid = 40 36 45
-  stencil order = 5
-  estimated absolute RMS force accuracy = 0.00036221931
-  estimated relative force accuracy = 1.0908127e-06
-  using double precision KISS FFT
-  3d grid and FFT values/proc = 105092 64800
-Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
-
 # ------------------------ END --------------------------- #
-Average conjugate gradient steps: 10.03
-Total wall time: 0:12:29
+Average conjugate gradient steps: 3.71
+Total wall time: 0:04:04

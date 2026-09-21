@@ -294,7 +294,7 @@ void PairMesomemDipole::compute(int eflag, int vflag)
         // --- 2. Anisotropic (Tilt/Splay) Force ---
         double wr = weight_rcut[itype][jtype];
 
-        if (r < wr) {
+        if (r < wr && mu[i][3] > 0.0 && mu[j][3] > 0.0) {
           // --- A. Weight Calculation ---
           double rga = 0.5 * wr;
           double r_wr = r / wr;
@@ -382,9 +382,8 @@ void PairMesomemDipole::compute(int eflag, int vflag)
           double Usplay = 0.5 * ks * (ninj - 1.0 + 2.0 * (sin_a2 * sin_a2)) *
               (ninj - 1.0 + 2.0 * (sin_a2 * sin_a2));
 
-          // --- F. Radial Correction (Energy Conservation) ---
-          // This force is purely radial (along rhat) and repulsive
-          // Derived from - (Utilt + Usplay) * (dw/dr)
+          // --- F. Radial Contribution deriving from:
+          // - (Utilt + Usplay) * (dw/dr)
 
           double U_ang_sum = Utilt + Usplay;
 

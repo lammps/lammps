@@ -1,0 +1,144 @@
+LAMMPS (4 Jul 2026)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
+  using 1 OpenMP thread(s) per MPI task
+# two LJ particles
+
+units real
+boundary p p p
+
+atom_style charge
+pair_style lj/cut/coul/long/soft 1.0 0.0 0.0 12.0 12.0
+
+region box block -15.0 15.0 -15.0 15.0 -15.0 15.0
+create_box 2 box
+Created orthogonal box = (-15 -15 -15) to (15 15 15)
+  1 by 2 by 2 MPI processor grid
+
+# just two atoms...
+#create_atoms 1 single  0.0 0.0 0.0
+## create_atoms 2 single  3.36738 0.0 0.0
+#create_atoms 2 single  6.0 0.0 0.0
+
+# ...or a few on a lattice
+lattice bcc 5.0
+Lattice spacing in x,y,z = 5 5 5
+create_atoms 1 box basis 1 1 basis 2 2
+Created 432 atoms
+  using lattice units in orthogonal box = (-15 -15 -15) to (15 15 15)
+  create_atoms CPU = 0.000 seconds
+
+
+mass   1  12.011
+mass   2  12.011
+
+pair_coeff   1   1   0.1   3.0  1.0
+pair_coeff   1   2   0.1   3.0  1.0
+pair_coeff   2   2   0.1   3.0  1.0
+
+set type 1 charge  0.1
+Setting atom values ...
+  216 settings made for charge
+set type 2 charge -0.1
+Setting atom values ...
+  216 settings made for charge
+
+kspace_style pppm 1.0e-5
+
+timestep 2.0
+
+velocity all create 300.0 12345
+
+fix INTEG all nvt temp 300.0 300.0 $(100.0*dt)
+fix INTEG all nvt temp 300.0 300.0 200
+
+# evaluate the reduced potential at 6 states along the decoupling path:
+# lambda 1.0 -> 0.0 and charges shrinking to 0 in step, all with matching grids.
+# state 1 is the fully-coupled (live) state, so c_MBAR[1] must equal the
+# current pair energy (evdwl+ecoul+elong) divided by kB*T.
+
+compute MBAR all mbar 300.0   pair lj/cut/coul/long/soft lambda * * 1.0 0.0 6   atom charge 1 0.1 0.0 6   atom charge 2 -0.1 0.0 6
+
+# kB*T in real units (kcal/mol); consistency check should stay ~ 0
+variable kT equal 0.0019872067*300.0
+variable check equal "c_MBAR[1] - (evdwl+ecoul+elong)/v_kT"
+
+thermo_style custom step etotal epair evdwl ecoul elong temp press   c_MBAR[1] c_MBAR[6] v_check
+thermo 200
+
+#dump TRAJ all custom 20 dump.lammpstrj id type element xu yu zu
+#dump_modify TRAJ element C N
+
+run 2000
+PPPM initialization ...
+  using 12-bit tables for long-range coulomb
+  G vector (1/distance) = 0.18385633
+  grid = 8 8 8
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.0026371085
+  estimated relative force accuracy = 7.9415739e-06
+  using double precision FFTW3
+  3d grid and FFT values/proc = 1053 128
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+MBAR settings ...
+  temperature = 300.000000
+  tail no
+  states = 6
+  pair lj/cut/coul/long/soft lambda 1-2 1-2 grid: 1 0.8 0.6 0.4 0.2 0
+  atom charge 1-1 grid: 0.1 0.08 0.06 0.04 0.02 0
+  atom charge 2-2 grid: -0.1 -0.08 -0.06 -0.04 -0.02 0
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 14
+  ghost atom cutoff = 14
+  binsize = 7, bins = 5 5 5
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut/coul/long/soft, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 3.71 | 3.71 | 3.71 Mbytes
+   Step         TotEng         E_pair         E_vdwl         E_coul         E_long          Temp          Press        c_MBAR[1]      c_MBAR[6]       v_check    
+WARNING: Using kspace solver on system with no charge (src/kspace.cpp:316)
+         0  -12.26816      -397.6869      -104.94426     -143.9636      -148.77903      300           -85.376499     -667.07857      0             -1.1368684e-13
+       200   36.621361     -327.09938     -71.260439     -113.68806     -142.15088      283.11084      994.16489     -548.67532      0             -1.1368684e-13
+       400   76.981578     -323.27778     -85.19335      -99.188631     -138.8958       311.55155      885.44471     -542.26497      0             -1.1368684e-13
+       600   73.651446     -309.45079     -77.241254     -97.395074     -134.81446      298.19689      960.46361     -519.07163      0             -1.1368684e-13
+       800   71.978805     -313.72698     -73.189143     -102.35102     -138.18682      300.22343      1033.4524     -526.2445       0              0            
+      1000   41.908313     -321.53741     -80.379575     -103.813       -137.34484      282.89677      916.43233     -539.3457       0              0            
+      1200   86.979171     -319.00064     -76.788776     -102.0478      -140.16406      316.00421      997.48143     -535.09051      0             -1.1368684e-13
+      1400   56.112633     -308.72421     -70.056707     -99.75343      -138.91407      283.97958      1034.8251     -517.85288      0             -1.1368684e-13
+      1600   96.526261     -316.22159     -75.153098     -101.99882     -139.06968      321.27228      1033.1072     -530.42895      0              0            
+      1800   75.504557     -296.41956     -60.485225     -98.578978     -137.35535      289.49613      1179.1859     -497.21309      0             -5.6843419e-14
+      2000   57.27466      -314.90869     -66.497417     -109.70181     -138.70946      289.69791      1097.3911     -528.2267       0             -1.1368684e-13
+Loop time of 0.978727 on 4 procs for 2000 steps with 432 atoms
+
+Performance: 353.112 ns/day, 0.068 hours/ns, 2043.470 timesteps/s, 882.779 katom-step/s
+99.7% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.62046    | 0.65157    | 0.68226    |   2.7 | 66.57
+Kspace  | 0.18533    | 0.21413    | 0.24396    |   4.5 | 21.88
+Neigh   | 0.021836   | 0.022524   | 0.023452   |   0.4 |  2.30
+Comm    | 0.071358   | 0.0735     | 0.074944   |   0.6 |  7.51
+Output  | 0.00069577 | 0.00084281 | 0.00096199 |   0.0 |  0.09
+Modify  | 0.008359   | 0.0086635  | 0.0089202  |   0.3 |  0.89
+Other   |            | 0.007497   |            |       |  0.77
+
+Nlocal:            108 ave         120 max         102 min
+Histogram: 1 1 1 0 0 0 0 0 0 1
+Nghost:         1614.5 ave        1651 max        1584 min
+Histogram: 2 0 0 0 0 0 0 1 0 1
+Neighs:        9877.75 ave       11082 max        9123 min
+Histogram: 1 0 1 1 0 0 0 0 0 1
+
+Total # of neighbors = 39511
+Ave neighs/atom = 91.460648
+Neighbor list builds = 68
+Dangerous builds = 0
+
+#write_data data.*.lmp
+Total wall time: 0:00:00

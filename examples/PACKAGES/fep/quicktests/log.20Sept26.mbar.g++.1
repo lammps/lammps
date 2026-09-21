@@ -1,4 +1,6 @@
-LAMMPS (30 Mar 2026 - Development - patch_30Mar2026-1479-g46892ed8cf-modified)
+LAMMPS (4 Jul 2026)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
+  using 1 OpenMP thread(s) per MPI task
 # two LJ particles
 
 units real
@@ -74,7 +76,7 @@ PPPM initialization ...
   stencil order = 5
   estimated absolute RMS force accuracy = 0.0026371085
   estimated relative force accuracy = 7.9415739e-06
-  using double precision KISS FFT
+  using double precision FFTW3
   3d grid and FFT values/proc = 2197 512
 Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
 MBAR settings ...
@@ -98,33 +100,33 @@ Neighbor list info ...
       bin: standard
 Per MPI rank memory allocation (min/avg/max) = 3.832 | 3.832 | 3.832 Mbytes
    Step         TotEng         E_pair         E_vdwl         E_coul         E_long          Temp          Press        c_MBAR[1]      c_MBAR[6]       v_check    
-WARNING: Using kspace solver on system with no charge (src/lammps/src/kspace.cpp:315)
+WARNING: Using kspace solver on system with no charge (src/kspace.cpp:316)
          0  -12.26816      -397.6869      -104.94426     -143.9636      -148.77903      300           -85.376499     -667.07857      0             -1.1368684e-13
        200   37.48027      -329.94625     -90.682292     -100.26614     -138.99782      285.99532      753.55244     -553.45065      0             -1.1368684e-13
        400   90.468672     -316.02846     -73.92701      -103.34631     -138.75514      316.40687      1029.3728     -530.10499      0             -1.1368684e-13
-       600   51.256072     -323.62945     -73.949374     -108.09188     -141.5882       291.80122      1016.7465     -542.85488      0              0            
+       600   51.256072     -323.62945     -73.949374     -108.09188     -141.5882       291.80122      1016.7465     -542.85488      0             -1.1368684e-13
        800   81.04264      -324.43236     -81.254005     -105.21556     -137.9628       315.61128      993.70961     -544.20167      0             -1.1368684e-13
       1000   49.737002     -317.2545      -83.027749     -96.415828     -137.81092      285.65671      868.03876     -532.16154      0             -1.1368684e-13
       1200   75.239535     -312.294       -70.8241       -102.021       -139.4489       301.6461       1070.4194     -523.84083      0             -1.1368684e-13
       1400   66.48368      -328.58216     -82.267016     -106.59484     -139.72031      307.50906      929.51913     -551.16253      0             -1.1368684e-13
-      1600   44.171107     -313.98549     -64.634967     -109.51577     -139.83476      278.77985      1072.9026     -526.67813      0              0            
-      1800   75.795844     -307.72311     -70.578314     -98.50762      -138.63717      298.52125      1093.0178     -516.17363      0             -1.1368684e-13
-      2000   66.677947     -312.73751     -69.196549     -104.10753     -139.43342      295.3272       1084.1493     -524.58476      0              0            
-Loop time of 1.4894 on 1 procs for 2000 steps with 432 atoms
+      1600   44.171107     -313.98549     -64.634967     -109.51577     -139.83476      278.77985      1072.9026     -526.67813      0             -1.1368684e-13
+      1800   75.795844     -307.72311     -70.578314     -98.507621     -138.63717      298.52125      1093.0178     -516.17363      0             -1.1368684e-13
+      2000   66.677947     -312.73751     -69.196548     -104.10753     -139.43342      295.3272       1084.1493     -524.58476      0             -1.1368684e-13
+Loop time of 2.64588 on 1 procs for 2000 steps with 432 atoms
 
-Performance: 232.040 ns/day, 0.103 hours/ns, 1342.823 timesteps/s, 580.100 katom-step/s
-99.3% CPU use with 1 MPI tasks x no OpenMP threads
+Performance: 130.618 ns/day, 0.184 hours/ns, 755.892 timesteps/s, 326.546 katom-step/s
+99.8% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 1.0714     | 1.0714     | 1.0714     |   0.0 | 71.94
-Kspace  | 0.3328     | 0.3328     | 0.3328     |   0.0 | 22.34
-Neigh   | 0.058452   | 0.058452   | 0.058452   |   0.0 |  3.92
-Comm    | 0.014818   | 0.014818   | 0.014818   |   0.0 |  0.99
-Output  | 0.00041292 | 0.00041292 | 0.00041292 |   0.0 |  0.03
-Modify  | 0.0079645  | 0.0079645  | 0.0079645  |   0.0 |  0.53
-Other   |            | 0.003551   |            |       |  0.24
+Pair    | 2.1883     | 2.1883     | 2.1883     |   0.0 | 82.70
+Kspace  | 0.33948    | 0.33948    | 0.33948    |   0.0 | 12.83
+Neigh   | 0.075452   | 0.075452   | 0.075452   |   0.0 |  2.85
+Comm    | 0.022613   | 0.022613   | 0.022613   |   0.0 |  0.85
+Output  | 0.0006161  | 0.0006161  | 0.0006161  |   0.0 |  0.02
+Modify  | 0.012      | 0.012      | 0.012      |   0.0 |  0.45
+Other   |            | 0.007448   |            |       |  0.28
 
 Nlocal:            432 ave         432 max         432 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -139,4 +141,4 @@ Neighbor list builds = 68
 Dangerous builds = 0
 
 #write_data data.*.lmp
-Total wall time: 0:00:01
+Total wall time: 0:00:02

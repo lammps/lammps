@@ -36,7 +36,7 @@ variable my_volume equal (4.0/3.0)*PI*((${my_diameter}*0.5)^3)
 variable my_mass equal 1.0
 variable my_density equal ${my_mass}/${my_volume}
 set      type 1 density ${my_density}
-print    "m:${my_mass} V:${my_volume} rho:${my_density}" file info_mass.dat screen yes
+print    "m:${my_mass} V:${my_volume} rho:${my_density}" screen yes
 
 
 compute Tall all temp/sphere dof all

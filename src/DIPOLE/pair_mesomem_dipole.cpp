@@ -247,9 +247,7 @@ void PairMesomemDipole::compute(int eflag, int vflag)
         // --- 1. Isotropic (LJ/Cos) Force ---
         // Calculated for all pairs within r_cut
         double eps_val = eps[itype][jtype];
-        double sigma_val = sigma
-            [itype]
-            [jtype];    // we are not using sigma*1.12 because we want to be transparent in the code!
+        double sigma_val = sigma[itype][jtype];
         double rmin = sigma_val;
         double eps_lj = 0.0;
         double Ulj = 0.0;

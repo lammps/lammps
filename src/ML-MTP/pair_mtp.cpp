@@ -94,35 +94,35 @@ PairMTP::~PairMTP()
 {
   if (copymode) return;
 
+  memory->destroy(moment_tensor_vals);
+  memory->destroy(radial_basis_coeffs);
+  memory->destroy(linear_coeffs);
+  memory->destroy(species_coeffs);
+  memory->destroy(alpha_index_basic);
+  memory->destroy(alpha_index_times);
+  memory->destroy(alpha_moment_mapping);
+  memory->destroy(nbh_energy_ders_wrt_moments);
+  memory->destroy(cached_j);
+  memory->destroy(neighbor_cache);
+
+  memory->destroy(basic_to_angular);
+  memory->destroy(basic_by_mu);
+  memory->destroy(angular_by_mu);
+  memory->destroy(mu_offsets);
+  memory->destroy(angular_parent);
+  memory->destroy(angular_axis);
+  memory->destroy(angular_vals);
+  memory->destroy(angular_ders);
+  memory->destroy(basic_ders_by_mu);
+
+  delete radial_basis;
+  radial_basis = nullptr;
+  // map and elements are freed by ~Pair().
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
-    memory->destroy(moment_tensor_vals);
-    memory->destroy(radial_basis_coeffs);
-    memory->destroy(linear_coeffs);
-    memory->destroy(species_coeffs);
-    memory->destroy(alpha_index_basic);
-    memory->destroy(alpha_index_times);
-    memory->destroy(alpha_moment_mapping);
-    memory->destroy(nbh_energy_ders_wrt_moments);
-    memory->destroy(cached_j);
-    memory->destroy(neighbor_cache);
-
-    memory->destroy(basic_to_angular);
-    memory->destroy(basic_by_mu);
-    memory->destroy(angular_by_mu);
-    memory->destroy(mu_offsets);
-    memory->destroy(angular_parent);
-    memory->destroy(angular_axis);
-    memory->destroy(angular_vals);
-    memory->destroy(angular_ders);
-    memory->destroy(basic_ders_by_mu);
-
-    delete radial_basis;
-    radial_basis = nullptr;
   }
-
-  // map and elements are freed by ~Pair().
 }
 
 /* ----------------------------------------------------------------------
@@ -356,9 +356,6 @@ void PairMTP::coeff(int narg, char **arg)
   if (narg < 3 + n) utils::missing_cmd_args(FLERR, "pair_coeff", error);
   if (narg != 3 + n)
     error->all(FLERR, Error::ARGZERO, "Incorrect number of arguments for pair_coeff command");
-  if (allocated)
-    error->all(FLERR, "Pair style {} does not support repeated pair_coeff commands",
-               force->pair_style);
 
   // Read in MTP and allocate memory
   FILE *mtp_file = nullptr;
@@ -402,6 +399,29 @@ double PairMTP::init_one(int i, int j)
 ------------------------------------------------------------------------- */
 void PairMTP::read_file(FILE *mtp_file)
 {
+  // Clear any state left by a previous pair_coeff. destroy() nulls each pointer.
+  delete radial_basis;
+  radial_basis = nullptr;
+  memory->destroy(radial_basis_coeffs);
+  memory->destroy(linear_coeffs);
+  memory->destroy(species_coeffs);
+  memory->destroy(moment_tensor_vals);
+  memory->destroy(nbh_energy_ders_wrt_moments);
+  memory->destroy(alpha_index_basic);
+  memory->destroy(alpha_index_times);
+  memory->destroy(alpha_moment_mapping);
+  memory->destroy(basic_to_angular);
+  memory->destroy(basic_by_mu);
+  memory->destroy(angular_by_mu);
+  memory->destroy(basic_ders_by_mu);
+  memory->destroy(mu_offsets);
+  memory->destroy(angular_parent);
+  memory->destroy(angular_axis);
+  memory->destroy(angular_vals);
+  memory->destroy(angular_ders);
+  memory->destroy(neighbor_cache);
+  memory->destroy(cached_j);
+
   //Open the MTP file on proc 0
   if (comm->me == 0) {
     TextFileReader tfr(mtp_file, "ml-mtp");
@@ -753,8 +773,6 @@ void PairMTP::read_file(FILE *mtp_file)
   for (const auto &term : dead) std::copy(term.begin(), term.end(), alpha_index_times[live++]);
 
   cache_size = 0;
-
-  allocated = 1;
 }
 
 /* ----------------------------------------------------------------------
@@ -808,6 +826,7 @@ void PairMTP::prepare_angular()
 
 void PairMTP::allocate()
 {
+  allocated = 1;
   const int np1 = atom->ntypes + 1;
 
   memory->create(setflag, np1, np1, "pair:setflag");
@@ -823,7 +842,7 @@ void PairMTP::prepare_map(int narg, char **arg)
   const int n = atom->ntypes;
   const int np1 = n + 1;
 
-  allocate();
+  if (!allocated) allocate();
   map_element2type(narg, arg);
 
   // Readjust Map

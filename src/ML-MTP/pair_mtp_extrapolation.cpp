@@ -70,13 +70,11 @@ PairMTPExtrapolation::~PairMTPExtrapolation()
   delete[] pvector;
   pvector = nullptr;
 
-  if (allocated) {
-    memory->destroy(inverse_active_set);
-    memory->destroy(radial_basis_cache);
-    memory->destroy(energy_ders_wrt_coeffs);
-    memory->destroy(nbh_extrapolation_grades);
-    memory->destroy(write_buffer);
-  }
+  memory->destroy(inverse_active_set);
+  memory->destroy(radial_basis_cache);
+  memory->destroy(energy_ders_wrt_coeffs);
+  memory->destroy(nbh_extrapolation_grades);
+  memory->destroy(write_buffer);
 
   if (comm->me == 0 && preselected_file) {
     std::fclose(preselected_file);
@@ -540,6 +538,15 @@ void PairMTPExtrapolation::read_file(FILE *mtp_file)
 {
   PairMTP::read_file(mtp_file);
 
+  // Clear any state left by a previous pair_coeff. destroy() nulls each pointer.
+  memory->destroy(inverse_active_set);
+  memory->destroy(energy_ders_wrt_coeffs);
+  memory->destroy(radial_basis_cache);
+  memory->destroy(nbh_extrapolation_grades);
+  memory->destroy(write_buffer);
+  nbh_count = 0;
+  write_buffer_size = 0;
+
   coeff_count = radial_coeff_count + species_count + alpha_scalar_count;
   const bigint num_doubles_big = (bigint) coeff_count * (bigint) coeff_count;
   if (num_doubles_big > MAXSMALLINT)
@@ -626,7 +633,6 @@ void PairMTPExtrapolation::read_file(FILE *mtp_file)
   MPI_Bcast(&configuration_mode, 1, MPI_INT, 0, world);
   MPI_Bcast(&weight_scaling, 1, MPI_INT, 0, world);
   MPI_Bcast(&inverse_active_set[0][0], num_doubles, MPI_DOUBLE, 0, world);
-  allocated = 1;
 }
 
 /* ----------------------------------------------------------------------

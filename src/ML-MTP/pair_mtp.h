@@ -90,8 +90,11 @@ class PairMTP : public Pair {
   double *angular_ders;
   double *basic_ders_by_mu;
 
+  // Graph traversal, forwards and backwards pass
   double *moment_tensor_vals;
   double *nbh_energy_ders_wrt_moments;
+
+  // Cache values between forwards and backwards pass
   int cache_size;
   int *cached_j;
   double **neighbor_cache;

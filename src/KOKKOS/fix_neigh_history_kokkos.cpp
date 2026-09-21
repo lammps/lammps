@@ -93,6 +93,14 @@ void FixNeighHistoryKokkos<DeviceType>::pre_exchange()
   if (newton_pair)
     error->all(FLERR,"Fix neigh/history/kk requires newton 'off' for exchange communication");
 
+  // the device path below assumes the J values are the negative of the I
+  // values; pair styles that need per-value transfer factors (for instance
+  // the mindlin_rescale tangential models of pair granular) are not supported
+
+  if (pair && pair->nondefault_history_transfer)
+    error->all(FLERR,"Fix neigh/history/kk does not (yet) support pair styles that "
+               "require a non-default contact history transfer");
+
   pre_exchange_no_newton();
 }
 
@@ -139,6 +147,12 @@ void FixNeighHistoryKokkos<DeviceType>::pre_exchange_no_newton()
       maxpartner += 8;
       memoryKK->grow_kokkos(k_partner,partner,atom->nmax,maxpartner,"neighbor_history:partner");
       memoryKK->grow_kokkos(k_valuepartner,valuepartner,atom->nmax,dnum*maxpartner,"neighbor_history:valuepartner");
+
+      // grow_kokkos() reallocates, so the views the functor reads must be
+      // refreshed before the retry, exactly as grow_arrays() does
+
+      d_partner = k_partner.template view<DeviceType>();
+      d_valuepartner = k_valuepartner.template view<DeviceType>();
     }
   }
 
@@ -258,13 +272,19 @@ void FixNeighHistoryKokkos<DeviceType>::operator()(TagFixNeighHistoryPostNeighbo
     if (use_bit_flag) {
       rflag = histmask(j) | beyond_contact;
       j &= HISTMASK;
-      d_firstflag(i,jj) = j;
+      d_neighbors(i,jj) = j;
     } else {
       rflag = 1;
     }
 
     // Remove special bond bits
     j &= NEIGHMASK;
+
+    // firstflag must end up as 0 or 1; it was cleared before this loop, but
+    // be explicit because pair styles with a cohesive normal model read it
+    // back as the previous contact state
+
+    d_firstflag(i,jj) = 0;
 
     // rflag = 1 if r < radsum in npair_size() method or if pair interactions extend further
     // preserve neigh history info if tag[j] is in old-neigh partner list

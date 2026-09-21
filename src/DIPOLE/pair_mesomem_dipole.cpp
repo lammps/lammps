@@ -11,18 +11,7 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-// Contributing author: Pietro Sillano (TU Delft), 2026
-
-// 07-02-2026 branched from working pair_membrane_sillano_gemini3_radial.cpp (19/12/2025 last edit). it is the potential I used for the paper anaysis.
-
-// in this code we will change:
-// - splay to the new form
-// - we will introduce curvature as distance dependent term
-
-// - new name for the pair: membrane_sillano_v2
-// - new parameter: c0
-// - update tilt with new form
-// - update Usplay, splay radial force and splay torques with new form
+// Contributing author: Pietro Sillano, 2026
 
 #include "pair_mesomem_dipole.h"
 #include "atom.h"
@@ -128,10 +117,14 @@ void PairMesomemDipole::coeff(int narg, char **arg)
   double cut_one = utils::numeric(FLERR, arg[6], false, lmp);
   double weight_rcut_one = utils::numeric(FLERR, arg[7], false, lmp);
   double zeta_one = utils::numeric(FLERR, arg[8], false, lmp);
-  double c0_one = utils::numeric(FLERR, arg[9], false, lmp);    // New arg
+  double c0_one = utils::numeric(FLERR, arg[9], false, lmp);
 
   if (weight_rcut_one > cut_one || weight_rcut_one > cut_global) {
     error->all(FLERR, "Orientation cutoff w_c > isotropic distance cutoff r_c");
+  }
+
+  if (weight_rcut_one <= 0.0) {
+    error->all(FLERR, "Orientation cutoff w_c needs to greater than 0.0");
   }
 
   int count = 0;
@@ -170,13 +163,10 @@ void PairMesomemDipole::init_style()
 double PairMesomemDipole::init_one(int i, int j)
 {
   // Strict Manual Mixing:
-  // If the user did not set coefficients for this pair, we error out.
-  // Automatic mixing for ktilt/ksplay/zeta is not physically defined here.
 
   if (setflag[i][j] == 0) {
     error->all(FLERR, "All pair coeffs must be set manually for pair_style mesomem/dipole");
   }
-
   eps[j][i] = eps[i][j];
   sigma[j][i] = sigma[i][j];
   ktilt[j][i] = ktilt[i][j];
@@ -184,7 +174,7 @@ double PairMesomemDipole::init_one(int i, int j)
   weight_rcut[j][i] = weight_rcut[i][j];
   zeta[j][i] = zeta[i][j];
   cut[j][i] = cut[i][j];
-  c0[j][i] = c0[i][j];    // Copy c0
+  c0[j][i] = c0[i][j];
 
   return cut[i][j];
 }
@@ -214,11 +204,9 @@ void PairMesomemDipole::compute(int eflag, int vflag)
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
-  // Local vector registers
   double ni[3], nj[3], rhat[3];
   double fx, fy, fz, tx, ty, tz, tx_j, ty_j, tz_j;
 
-  // Math vars
   double inv_mag_i, inv_mag_j;
   double factor_lj;
 
@@ -231,7 +219,6 @@ void PairMesomemDipole::compute(int eflag, int vflag)
     jlist = firstneigh[i];
     jnum = numneigh[i];
 
-    // OPTIMIZATION: Cache inverse magnitude of I once per neighbor list
     inv_mag_i = 1.0 / mu[i][3];
     ni[0] = mu[i][0] * inv_mag_i;
     ni[1] = mu[i][1] * inv_mag_i;
@@ -274,7 +261,7 @@ void PairMesomemDipole::compute(int eflag, int vflag)
           Ulj = eps_val * (t4 - 2.0 * t2);
           eps_lj = 4.0 * eps_val * inv_r * (t4 - t2);
         } else {
-          double rcut = sqrt(cutsq[itype][jtype]);
+          double rcut = cut[itype][jtype];
           double zt = zeta[itype][jtype];
 
           // Precompute constant factors to avoid division in calc
@@ -407,7 +394,6 @@ void PairMesomemDipole::compute(int eflag, int vflag)
           if (w > 0) {
             // Factor = w * [ 2 * (D+1) ] / [ rga^2 * (D-1)^2 ]
 
-            // 8 Feb 2026 removed the minus sign in rad_numerator
             double rad_numerator = 2.0 * w * (r_wr_4 + 1.0) * r;
             double rad_denominator = rga_sq * denom_w * denom_w;
 

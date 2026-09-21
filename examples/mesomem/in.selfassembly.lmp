@@ -51,8 +51,6 @@ pair_style      mesomem/dipole ${rcut}
 # i j sigma eps ktilt ksplay rcut weight_rc zeta c0
 pair_coeff      1 1 1.0 ${eps} ${ktilt} ${ksplay} ${rcut} ${wc} ${zeta} ${c0}
 
-dump coords all custom ${t_dump} position.lammpstrj id type xu yu zu ix iy iz mux muy muz
-
 timestep        0.01
 
 fix             f_nve all nve/sphere update dipole

@@ -26,7 +26,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: 15Dec2026
+.. versionadded:: TBD
 
 The *mesomem/dipole* style computes an anisotropic interaction
 between pairs of coarse-grained particles considering the relative particle orientations. This potential is  developed as a particle-based solvent-free model for biological membranes :ref:`(Sillano2026) <_Sillano>`. Unlike :doc:`pair_style ylz <pair_ylz>`, where the angular dependence multiplies the isotropic radial potential, this pair style adds an independent tilt/splay energy, weighted by a smooth radial window function, on top of a purely radial isotropic potential. The total pair energy is:

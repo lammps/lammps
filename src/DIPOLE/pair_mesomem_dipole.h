@@ -45,13 +45,12 @@ class PairMesomemDipole : public Pair {
 
  protected:
   double **cut;
-  // double **cutsq;
   double **sigma, **eps;
   double **ktilt, **ksplay;
   double **weight_rcut;
   double **zeta;
   double cut_global;
-  double **c0;    // for spont curvature
+  double **c0;
 
   virtual void allocate();
 };

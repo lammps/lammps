@@ -150,6 +150,11 @@ void run_lammps(LAMMPS *lmp, const TestConfig &cfg)
         command("fix 1 all nve/asphere");
         command("compute etemp all temp/asphere");
         command("thermo_modify temp etemp");
+    } else if (std::find(cfg.tags.begin(), cfg.tags.end(), "sphere") != cfg.tags.end()) {
+        // finite size spherical particles need their angular velocity integrated,
+        // otherwise the tangential, rolling and twisting models of the granular
+        // pair styles never see omega change
+        command("fix 1 all nve/sphere");
     } else if (std::find(cfg.tags.begin(), cfg.tags.end(), "spin") != cfg.tags.end()) {
         // spin systems must define "fix nve/spin" in the yaml post_commands so it is
         // present in all test stages: the spin pair styles compute the mechanical
@@ -707,10 +712,29 @@ static std::string kokkos_precision()
 
 static void run_kokkos_test(LAMMPS::argv &args)
 {
+    // styles whose KOKKOS version only implements the newton off code path
+    // (for instance the granular pair styles, because fix neigh/history/kk
+    // exchanges contact history only that way) flag themselves "newton_off"
+    const bool newton = !test_config.has_tag("newton_off");
+    if (!newton) {
+        // replace the setting of an existing "-pk kokkos ... newton on" so we
+        // do not end up with two conflicting package commands
+        auto it = std::find(args.begin(), args.end(), "newton");
+        if ((it != args.end()) && ((it + 1) != args.end())) {
+            *(it + 1) = "off";
+        } else {
+            args.insert(args.end(), {"-pk", "kokkos", "newton", "off"});
+        }
+        // "package kokkos newton off" turns off newton for bonds as well, and
+        // the input templates would try to turn it back on after the box is
+        // defined. define the variable up front so they do not.
+        args.insert(args.end(), {"-var", "newton_bond", "off"});
+    }
+
     ::testing::internal::CaptureStdout();
     LAMMPS *lmp = nullptr;
     try {
-        lmp = init_lammps(args, test_config, true);
+        lmp = init_lammps(args, test_config, newton);
     } catch (std::exception &e) {
         std::string output = ::testing::internal::GetCapturedStdout();
         if (verbose) std::cout << output;
@@ -824,7 +848,7 @@ static void run_kokkos_test(LAMMPS::argv &args)
     }
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    restart_lammps(lmp, test_config, true);
+    restart_lammps(lmp, test_config, true, newton);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     pair = lmp->force->pair;

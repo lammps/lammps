@@ -81,10 +81,22 @@ add_test(NAME MathEigen COMMAND test_math_eigen_impl 10 5)
 # FFT Testing Infrastructure
 # =============================================================================
 
+# These tests need the COMPILE_ONLY generator expression added in CMake 3.27.
+if(PKG_KOKKOS AND (CMAKE_VERSION VERSION_LESS 3.27))
+  message(WARNING "FFT3D tests with KOKKOS enabled require CMake 3.27 or later. Skipping...")
+  set(SKIP_FFT_TESTS TRUE)
+  # make certain we pull in the CUDA toolkit target when compiling KOKKOS for CUDA
+  if(Kokkos_ENABLE_CUDA)
+    if(NOT TARGET CUDA::cudart)
+      find_package(CUDAToolkit REQUIRED)
+    endif()
+  endif()
+endif()
+
 # -----------------------------------------------------------------------------
 # FFT3D Tests (Standard KSPACE FFT)
 # -----------------------------------------------------------------------------
-if(PKG_KSPACE)
+if(PKG_KSPACE AND NOT SKIP_FFT_TESTS)
   # Build test_fft3d executable
   add_executable(test_fft3d test_fft3d.cpp ../error_stats.cpp)
   target_link_libraries(test_fft3d PRIVATE lammps GTest::GMockMain)
@@ -92,7 +104,11 @@ if(PKG_KSPACE)
 
   # Add Kokkos if enabled
   if(PKG_KOKKOS)
-    target_link_libraries(test_fft3d PRIVATE Kokkos::kokkos)
+    if(Kokkos_ENABLE_CUDA)
+      target_link_libraries(test_fft3d PRIVATE $<COMPILE_ONLY:Kokkos::kokkos> CUDA::cudart)
+    else()
+      target_link_libraries(test_fft3d PRIVATE $<COMPILE_ONLY:Kokkos::kokkos>)
+    endif()
   endif()
 
   # Propagate FFT_SINGLE preprocessor definition
@@ -119,10 +135,14 @@ endif()
 # -----------------------------------------------------------------------------
 # FFT3D KOKKOS Tests (KOKKOS FFT - CPU and GPU)
 # -----------------------------------------------------------------------------
-if(PKG_KSPACE AND PKG_KOKKOS)
+if(PKG_KSPACE AND PKG_KOKKOS AND NOT SKIP_FFT_TESTS)
   # Build test_fft3d_kokkos executable
   add_executable(test_fft3d_kokkos test_fft3d_kokkos.cpp ../error_stats.cpp)
-  target_link_libraries(test_fft3d_kokkos PRIVATE lammps GTest::GMockMain Kokkos::kokkos)
+  if(Kokkos_ENABLE_CUDA)
+    target_link_libraries(test_fft3d_kokkos PRIVATE lammps GTest::GMockMain $<COMPILE_ONLY:Kokkos::kokkos> CUDA::cudart)
+  else()
+    target_link_libraries(test_fft3d_kokkos PRIVATE lammps GTest::GMockMain $<COMPILE_ONLY:Kokkos::kokkos>)
+  endif()
   target_include_directories(test_fft3d_kokkos PRIVATE ${LAMMPS_SOURCE_DIR} ${LAMMPS_SOURCE_DIR}/KSPACE)
 
   # Propagate FFT_SINGLE preprocessor definition

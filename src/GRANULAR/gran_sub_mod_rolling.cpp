@@ -54,6 +54,13 @@ GranSubModRollingSDS::GranSubModRollingSDS(GranularModel *gm, LAMMPS *lmp) :
   num_coeffs = 3;
   size_history = 3;
   allow_synchronization = 1;
+
+  // the rolling displacement is the same seen from either particle:
+  // vrl = Reff * (relrot x nx) is unchanged when both relrot and nx flip
+  // sign, so this history must NOT be negated when it is transferred
+  nondefault_history_transfer = 1;
+  transfer_history_factor = new double[size_history];
+  for (int i = 0; i < size_history; i++) transfer_history_factor[i] = +1.0;
 }
 
 /* ---------------------------------------------------------------------- */

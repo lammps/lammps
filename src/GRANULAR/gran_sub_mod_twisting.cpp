@@ -54,6 +54,13 @@ GranSubModTwistingMarshall::GranSubModTwistingMarshall(GranularModel *gm, LAMMPS
   num_coeffs = 0;
   size_history = 3;
   contact_radius_flag = 1;
+
+  // the twist angle is the same seen from either particle: magtwist =
+  // relrot . nx is unchanged when both relrot and nx flip sign, so this
+  // history must NOT be negated when it is transferred
+  nondefault_history_transfer = 1;
+  transfer_history_factor = new double[size_history];
+  for (int i = 0; i < size_history; i++) transfer_history_factor[i] = +1.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -91,6 +98,11 @@ GranSubModTwistingSDS::GranSubModTwistingSDS(GranularModel *gm, LAMMPS *lmp) :
 {
   num_coeffs = 3;
   size_history = 3;
+
+  // see the comment in the Marshall constructor above
+  nondefault_history_transfer = 1;
+  transfer_history_factor = new double[size_history];
+  for (int i = 0; i < size_history; i++) transfer_history_factor[i] = +1.0;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -22,6 +22,7 @@
 #include "atom_vec_kokkos.h"
 #include "atom_masks.h"
 
+#include <algorithm>
 #include <vector>
 
 using namespace LAMMPS_NS;
@@ -140,9 +141,14 @@ void FixNeighHistoryKokkos<DeviceType>::pre_exchange_no_newton()
           "neighbor_history:transfer_factor", ntypes + 1, ntypes + 1, dnum);
 
     auto h_factor = Kokkos::create_mirror_view(d_transfer_factor);
-    std::vector<double> ones(dnum, 1.0), factors(dnum, 0.0);
+    std::vector<double> ones(dnum, 1.0), factors(dnum);
     for (int itype = 1; itype <= ntypes; itype++)
       for (int jtype = 1; jtype <= ntypes; jtype++) {
+        // a pair style only rewrites the entries its model for this type pair
+        // actually owns, which can be fewer than dnum when different type
+        // pairs use different sub-models.  Seed with the default sign flip so
+        // the entries it leaves alone keep the usual behavior.
+        std::fill(factors.begin(), factors.end(), -1.0);
         pair->transfer_history(ones.data(), factors.data(), itype, jtype);
         for (int k = 0; k < dnum; k++) h_factor(itype, jtype, k) = factors[k];
       }

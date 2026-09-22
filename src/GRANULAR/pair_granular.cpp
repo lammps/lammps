@@ -896,13 +896,24 @@ std::string PairGranular::history_fix_command()
 void PairGranular::transfer_history(double* source, double* target, int itype, int jtype)
 {
   class GranularModel* model = models_list[types_indices[itype][jtype]];
-  if (model->nondefault_history_transfer) {
-    for (int i = 0; i < model->size_history; i++) {
-      target[i] = model->transfer_history_factor[i] * source[i];
-    }
-  } else {
-    for (int i = 0; i < model->size_history; i++) {
-      target[i] = -source[i];
+
+  // by default the partner sees the negative of our values
+
+  for (int i = 0; i < size_history; i++) target[i] = -source[i];
+
+  // sub models that need a different rule overwrite their own slice.  Locate
+  // it through history_index: the slice a sub model occupies is assigned from
+  // the largest size over all models of this pair style, so a model that is
+  // missing a sub model another model has still leaves room for it.  Indexing
+  // by this model's own cumulative sizes instead would address the wrong
+  // values as soon as the models are not all built the same way.
+
+  for (int m = 0; m < NSUBMODELS; m++) {
+    auto *sub = model->sub_models[m];
+    if (!sub->nondefault_history_transfer) continue;
+    for (int k = 0; k < sub->size_history; k++) {
+      const int idx = sub->history_index + k;
+      target[idx] = sub->transfer_history_factor[k] * source[idx];
     }
   }
 }

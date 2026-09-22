@@ -250,9 +250,6 @@ void PairGranularKokkos<DeviceType>::pack_models()
       error->all(FLERR,"Pair granular/kk does not yet support heat conduction models");
     if (gm->synchronized_verlet)
       error->all(FLERR,"Pair granular/kk does not yet support synchronized verlet");
-    if (gm->nondefault_history_transfer)
-      error->all(FLERR,"Pair granular/kk does not yet support the {} tangential model "
-                 "because fix neigh/history/kk cannot transfer its history",tangential);
 
     // ---- history layout ----
 

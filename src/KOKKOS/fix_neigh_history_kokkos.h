@@ -87,6 +87,13 @@ class FixNeighHistoryKokkos : public FixNeighHistory, public KokkosBase {
   int nlocal,nsend,beyond_contact;
 
   typename AT::t_tagint_1d tag;
+  typename AT::t_int_1d_randomread type;
+
+  // per type pair factors used to turn the history of a contact into the
+  // history the partner atom sees.  Only allocated for pair styles that need
+  // something other than a plain sign flip.
+  Kokkos::View<double***,DeviceType> d_transfer_factor;
+  int use_transfer_factor;
 
   typename AT::t_int_2d d_firstflag;
   typename AT::t_kkfloat_2d d_firstvalue;

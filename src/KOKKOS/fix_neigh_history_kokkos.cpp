@@ -22,6 +22,8 @@
 #include "atom_vec_kokkos.h"
 #include "atom_masks.h"
 
+#include <vector>
+
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
@@ -93,14 +95,6 @@ void FixNeighHistoryKokkos<DeviceType>::pre_exchange()
   if (newton_pair)
     error->all(FLERR,"Fix neigh/history/kk requires newton 'off' for exchange communication");
 
-  // the device path below assumes the J values are the negative of the I
-  // values; pair styles that need per-value transfer factors (for instance
-  // the mindlin_rescale tangential models of pair granular) are not supported
-
-  if (pair && pair->nondefault_history_transfer)
-    error->all(FLERR,"Fix neigh/history/kk does not (yet) support pair styles that "
-               "require a non-default contact history transfer");
-
   pre_exchange_no_newton();
 }
 
@@ -131,6 +125,32 @@ void FixNeighHistoryKokkos<DeviceType>::pre_exchange_no_newton()
   d_numneigh = k_list->d_numneigh;
   d_neighbors = k_list->d_neighbors;
   d_ilist = k_list->d_ilist;
+
+  // pair styles may need per-value factors rather than a plain sign flip when
+  // a contact history is handed to the partner atom.  Recover them through the
+  // existing Pair::transfer_history() interface: it is a diagonal linear map,
+  // so transferring a vector of ones yields the factors themselves.
+
+  use_transfer_factor = (pair && pair->nondefault_history_transfer) ? 1 : 0;
+  if (use_transfer_factor) {
+    const int ntypes = atom->ntypes;
+    if ((int) d_transfer_factor.extent(0) != ntypes + 1 ||
+        (int) d_transfer_factor.extent(2) != dnum)
+      d_transfer_factor = Kokkos::View<double***,DeviceType>(
+          "neighbor_history:transfer_factor", ntypes + 1, ntypes + 1, dnum);
+
+    auto h_factor = Kokkos::create_mirror_view(d_transfer_factor);
+    std::vector<double> ones(dnum, 1.0), factors(dnum, 0.0);
+    for (int itype = 1; itype <= ntypes; itype++)
+      for (int jtype = 1; jtype <= ntypes; jtype++) {
+        pair->transfer_history(ones.data(), factors.data(), itype, jtype);
+        for (int k = 0; k < dnum; k++) h_factor(itype, jtype, k) = factors[k];
+      }
+    Kokkos::deep_copy(d_transfer_factor, h_factor);
+
+    type = atomKK->k_type.view<DeviceType>();
+    atomKK->sync(execution_space, TYPE_MASK);
+  }
 
   h_resize() = 1;
 
@@ -191,8 +211,16 @@ void FixNeighHistoryKokkos<DeviceType>::operator()(TagFixNeighHistoryPreExchange
         m = Kokkos::atomic_fetch_add(&d_npartner[j],1);
         if (m < maxpartner) {
           d_partner(j,m) = tag[i];
-          for (int k = 0; k < dnum; k++)
-            d_valuepartner(j,dnum*m+k) = -d_firstvalue(i,dnum*jj+k);
+          if (use_transfer_factor) {
+            const int itype = type[i];
+            const int jtype = type[j];
+            for (int k = 0; k < dnum; k++)
+              d_valuepartner(j,dnum*m+k) =
+                  d_transfer_factor(itype,jtype,k) * d_firstvalue(i,dnum*jj+k);
+          } else {
+            for (int k = 0; k < dnum; k++)
+              d_valuepartner(j,dnum*m+k) = -d_firstvalue(i,dnum*jj+k);
+          }
         } else {
           d_resize() = 1;
         }

@@ -487,7 +487,7 @@ double PairCombOMP::yasu_char(double *qf_fix, int &igroup)
 
         qfo_field(&params[iparam_ij],rsq1,iq,jq,fqji,fqjj);
         fqi   += jq * fqij + fqji;
-#if defined(_OPENMP) && !defined(__NVCC__)
+#if defined(_OPENMP)
 #pragma omp atomic
 #endif
         qf[j] += (iq * fqij + fqjj);
@@ -514,13 +514,13 @@ double PairCombOMP::yasu_char(double *qf_fix, int &igroup)
 
         qfo_short(&params[iparam_ij],i,nj,rsq1,iq,jq,fqij,fqjj);
         fqi += fqij;
-#if defined(_OPENMP) && !defined(__NVCC__)
+#if defined(_OPENMP)
 #pragma omp atomic
 #endif
         qf[j] += fqjj;
       }
 
-#if defined(_OPENMP) && !defined(__NVCC__)
+#if defined(_OPENMP)
 #pragma omp atomic
 #endif
       qf[i] += fqi;

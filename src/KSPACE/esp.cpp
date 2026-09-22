@@ -666,8 +666,6 @@ void ESP::reset_grid()
 
 void ESP::compute(int eflag, int vflag)
 {
-  int i,j;
-
   // set energy/virial flags
   // invoke allocate_peratom() if needed for first time
 
@@ -762,14 +760,11 @@ void ESP::compute(int eflag, int vflag)
     energy = energy_all;
 
     double self_coeff = 0.00;
-
-    for(int i=1;i<num_of_energy_poly;i++)
-    {
+    for (int i=1;i<num_of_energy_poly;i++) {
       self_coeff += 2 * (i+0.00) * energy_poly_coeff[i] * (i%2==1?1.0:-1.0);
     }
 
     energy *= 0.5*volume;
-    //energy -= (-energy_poly_coeff[1]/cutoff) * qsqsum / 2.0;
     energy -= (-self_coeff/cutoff) * qsqsum / 2.0;
     energy *= qscale;
   }
@@ -779,7 +774,7 @@ void ESP::compute(int eflag, int vflag)
   if (vflag_global) {
     double virial_all[6];
     MPI_Allreduce(virial,virial_all,6,MPI_DOUBLE,MPI_SUM,world);
-    for (i = 0; i < 6; i++) virial[i] = 0.5*qscale*volume*virial_all[i];
+    for (int i = 0; i < 6; i++) virial[i] = 0.5*qscale*volume*virial_all[i];
   }
 
   // per-atom energy/virial
@@ -794,22 +789,20 @@ void ESP::compute(int eflag, int vflag)
 
     if (eflag_atom) {
       double self_coeff = 0.00;
-      for(int i=1;i<num_of_energy_poly;i++)
-      {
+      for(int i=1;i<num_of_energy_poly;i++) {
         self_coeff += 2 * (i+0.00) * energy_poly_coeff[i] * (i%2==1?1.0:-1.0);
       }
-      for (i = 0; i < nlocal; i++) {
+      for (int i = 0; i < nlocal; i++) {
         eatom[i] *= 0.5;
-        //eatom[i] -= (-energy_poly_coeff[1]/cutoff) * q[i] * q[i] / 2.0;
         eatom[i] -= (-self_coeff/cutoff) * q[i] * q[i] / 2.0;
         eatom[i] *= qscale;
       }
-      for (i = nlocal; i < ntotal; i++) eatom[i] *= 0.5*qscale;
+      for (int i = nlocal; i < ntotal; i++) eatom[i] *= 0.5*qscale;
     }
 
     if (vflag_atom) {
-      for (i = 0; i < ntotal; i++)
-        for (j = 0; j < 6; j++) vatom[i][j] *= 0.5*qscale;
+      for (int i = 0; i < ntotal; i++)
+        for (int j = 0; j < 6; j++) vatom[i][j] *= 0.5*qscale;
     }
   }
 

@@ -1436,8 +1436,14 @@ TEST(PairStyle, gpu)
                                  "gpu",       "-pk",  "gpu",  "0",     "neigh",  "no"};
     LAMMPS::argv args         = args_neigh;
 
-    // cannot use GPU neighbor list with hybrid pair style (yet)
+    // cannot use GPU neighbor lists with hybrid pair styles (yet)
     if (test_config.pair_style.substr(0, 6) == "hybrid") {
+        args = args_noneigh;
+    }
+
+    // cannot use GPU neighbor lists for some other reason
+    if (std::find(test_config.tags.begin(), test_config.tags.end(), "host_neigh") !=
+        test_config.tags.end()) {
         args = args_noneigh;
     }
 

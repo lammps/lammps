@@ -37,7 +37,7 @@
 #if __has_include(<version>)
 #include <version>
 #endif
-#if defined(__cpp_lib_format) && (__cpp_lib_format >= 201907L) && (defined(__GNUC__) && !defined(__clang__) && (__GNUC__ > 13))
+#if defined(__cpp_lib_format) && (__cpp_lib_format >= 201907L) && (defined(__clang__) || (defined(__GNUC__) && (__GNUC__ > 13)))
 
 // when compiling for C++20 or later we emulate
 // the parts of fmt::format we use with std::format

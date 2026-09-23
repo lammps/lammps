@@ -12,6 +12,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
 
    * :doc:`accelerate/cos <fix_accelerate_cos>`
    * :doc:`acks2/reaxff (k) <fix_acks2_reaxff>`
+   * :doc:`active <fix_active>`
    * :doc:`adapt <fix_adapt>`
    * :doc:`adapt/fep <fix_adapt_fep>`
    * :doc:`addforce (k) <fix_addforce>`

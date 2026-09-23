@@ -1,0 +1,221 @@
+LAMMPS (2 Sep 2026)
+# Minimal example for fix active: three of the ten models, each of which
+# exercises a different code path of the fix
+#
+#   1. abp    : the fix only adds a force, nve and langevin integrate the atoms
+#   2. vicsek : alignment with neighbors, which needs a neighbor list and the
+#               communication of the orientations to ghost atoms
+#   3. iabp   : friction and noise are part of the model, used with nve only
+
+units           lj
+dimension       2
+boundary        p p p
+atom_style      atomic
+atom_modify     sort 100 1.0        # sort often to test moving the orientations
+
+lattice         sq 0.5
+Lattice spacing in x,y,z = 1.4142136 1.4142136 1.4142136
+region          box block 0 14 0 14 -0.5 0.5
+create_box      1 box
+Created orthogonal box = (0 0 -0.70710678) to (19.79899 19.79899 0.70710678)
+  2 by 2 by 1 MPI processor grid
+create_atoms    1 box
+Created 196 atoms
+  using lattice units in orthogonal box = (0 0 -0.70710678) to (19.79899 19.79899 0.70710678)
+  create_atoms CPU = 0.001 seconds
+mass            1 1.0
+velocity        all create 0.1 87287 loop geom
+
+timestep        0.005
+neighbor        0.3 bin
+neigh_modify    delay 0 every 1 check yes
+
+##### 1. active Brownian particles with steric repulsion #####
+
+pair_style      lj/cut 1.122462
+pair_modify     shift yes
+pair_coeff      1 1 1.0 1.0
+
+fix             integ all nve
+fix             thermo all langevin 0.1 0.1 1.0 48279
+fix             active all active abp v0 1.0 Dr 0.5 gamma 1.0 seed 54321
+fix             plane all enforce2d
+
+compute         msd all msd com yes
+thermo_style    custom step temp epair c_msd[4]
+thermo          500
+run             2000
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 1.422462
+  ghost atom cutoff = 1.422462
+  binsize = 0.711231, bins = 28 28 1
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/2d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 4.423 | 4.423 | 4.423 Mbytes
+   Step          Temp          E_pair        c_msd[4]   
+         0   0.1            0              0            
+       500   0.22527523     0.030111672    0.89725174   
+      1000   0.24329698     0.02846874     2.6020782    
+      1500   0.21575226     0.030391914    4.0528819    
+      2000   0.24564179     0.021175322    5.8648081    
+Loop time of 0.0536414 on 4 procs for 2000 steps with 196 atoms
+
+Performance: 16106970.417 tau/day, 37284.654 timesteps/s, 7.308 Matom-step/s
+97.8% CPU use with 4 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.0028554  | 0.0031825  | 0.0034734  |   0.4 |  5.93
+Neigh   | 0.00094239 | 0.0010522  | 0.0011161  |   0.2 |  1.96
+Comm    | 0.020845   | 0.021433   | 0.02193    |   0.3 | 39.96
+Output  | 0.0001339  | 0.00013727 | 0.00014198 |   0.0 |  0.26
+Modify  | 0.016204   | 0.017514   | 0.018588   |   0.7 | 32.65
+Other   |            | 0.01032    |            |       | 19.24
+
+Nlocal:             49 ave          53 max          46 min
+Histogram: 1 0 1 0 1 0 0 0 0 1
+Nghost:             34 ave          35 max          32 min
+Histogram: 1 0 0 0 0 0 1 0 0 2
+Neighs:          64.25 ave          80 max          54 min
+Histogram: 1 0 1 1 0 0 0 0 0 1
+
+Total # of neighbors = 257
+Ave neighs/atom = 1.3112245
+Neighbor list builds = 96
+Dangerous builds = 0
+
+##### 2. Vicsek alignment, point particles with a neighbor cutoff of 1.5 #####
+
+uncompute       msd
+unfix           active
+unfix           thermo
+
+pair_style      zero 1.5
+pair_coeff      * *
+
+fix             thermo all langevin 0.0 0.0 1.0 48279
+fix             active all active vicsek v0 1.0 Dr 0.5 Rcut 1.2 alignment 1.0 gamma 1.0 seed 54321
+
+compute         vsum all reduce sum vx vy
+variable        phi equal sqrt(c_vsum[1]^2+c_vsum[2]^2)/(count(all)*1.0)
+thermo_style    custom step temp v_phi
+thermo          500
+run             2000
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 1.8
+  ghost atom cutoff = 1.8
+  binsize = 0.9, bins = 22 22 1
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair zero, perpetual, half/full from (2)
+      attributes: half, newton on
+      pair build: halffull/newton
+      stencil: none
+      bin: none
+  (2) fix active, perpetual
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/2d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 4.679 | 4.679 | 4.679 Mbytes
+   Step          Temp          v_phi     
+      2000   0.24564179     0.025224816  
+      2500   0.31731972     0.3239695    
+      3000   0.41712322     0.39326862   
+      3500   0.3921304      0.50256939   
+      4000   0.45002102     0.86500487   
+Loop time of 0.188967 on 4 procs for 2000 steps with 196 atoms
+
+Performance: 4572224.441 tau/day, 10583.853 timesteps/s, 2.074 Matom-step/s
+97.8% CPU use with 4 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.00029523 | 0.0003336  | 0.00036237 |   0.0 |  0.18
+Neigh   | 0.0018399  | 0.0027322  | 0.0045959  |   2.1 |  1.45
+Comm    | 0.026588   | 0.027822   | 0.02852    |   0.4 | 14.72
+Output  | 0.00024224 | 0.00032646 | 0.00035812 |   0.0 |  0.17
+Modify  | 0.098103   | 0.11197    | 0.14383    |   5.6 | 59.26
+Other   |            | 0.04578    |            |       | 24.23
+
+Nlocal:             49 ave          82 max          27 min
+Histogram: 1 1 0 0 1 0 0 0 0 1
+Nghost:          48.75 ave          60 max          37 min
+Histogram: 1 0 0 0 1 0 1 0 0 1
+Neighs:          339.5 ave         706 max         112 min
+Histogram: 1 1 0 0 1 0 0 0 0 1
+FullNghs:          679 ave        1503 max         210 min
+Histogram: 1 1 0 1 0 0 0 0 0 1
+
+Total # of neighbors = 2716
+Ave neighs/atom = 13.857143
+Neighbor list builds = 67
+Dangerous builds = 0
+
+##### 3. inertial active Brownian particles #####
+
+unfix           active
+unfix           thermo
+
+fix             active all active iabp v0 1.0 Dr 0.5 gamma 5.0 kT 0.1 seed 54321
+
+thermo_style    custom step temp v_phi
+run             2000
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 1.8
+  ghost atom cutoff = 1.8
+  binsize = 0.9, bins = 22 22 1
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair zero, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/2d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 4.048 | 4.048 | 4.048 Mbytes
+   Step          Temp          v_phi     
+      4000   0.45002102     0.86500487   
+      4500   0.54800482     0.070530804  
+      5000   0.56367853     0.034289214  
+      5500   0.53794437     0.073579351  
+      6000   0.60146245     0.076620387  
+Loop time of 0.0656445 on 4 procs for 2000 steps with 196 atoms
+
+Performance: 13161800.142 tau/day, 30467.130 timesteps/s, 5.972 Matom-step/s
+99.0% CPU use with 4 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.00025187 | 0.00027673 | 0.00031534 |   0.0 |  0.42
+Neigh   | 0.0012387  | 0.0021288  | 0.0030109  |   1.6 |  3.24
+Comm    | 0.025059   | 0.025446   | 0.025806   |   0.2 | 38.76
+Output  | 0.00023305 | 0.00024812 | 0.00026097 |   0.0 |  0.38
+Modify  | 0.014223   | 0.021685   | 0.029111   |   4.0 | 33.03
+Other   |            | 0.01586    |            |       | 24.16
+
+Nlocal:             49 ave          67 max          35 min
+Histogram: 1 0 0 2 0 0 0 0 0 1
+Nghost:          41.25 ave          45 max          34 min
+Histogram: 1 0 0 0 0 0 0 1 0 2
+Neighs:            142 ave         232 max          71 min
+Histogram: 1 0 0 1 1 0 0 0 0 1
+
+Total # of neighbors = 568
+Ave neighs/atom = 2.8979592
+Neighbor list builds = 115
+Dangerous builds = 0
+Total wall time: 0:00:00

@@ -1,0 +1,68 @@
+# Minimal example for fix active: three of the ten models, each of which
+# exercises a different code path of the fix
+#
+#   1. abp    : the fix only adds a force, nve and langevin integrate the atoms
+#   2. vicsek : alignment with neighbors, which needs a neighbor list and the
+#               communication of the orientations to ghost atoms
+#   3. iabp   : friction and noise are part of the model, used with nve only
+
+units           lj
+dimension       2
+boundary        p p p
+atom_style      atomic
+atom_modify     sort 100 1.0        # sort often to test moving the orientations
+
+lattice         sq 0.5
+region          box block 0 14 0 14 -0.5 0.5
+create_box      1 box
+create_atoms    1 box
+mass            1 1.0
+velocity        all create 0.1 87287 loop geom
+
+timestep        0.005
+neighbor        0.3 bin
+neigh_modify    delay 0 every 1 check yes
+
+##### 1. active Brownian particles with steric repulsion #####
+
+pair_style      lj/cut 1.122462
+pair_modify     shift yes
+pair_coeff      1 1 1.0 1.0
+
+fix             integ all nve
+fix             thermo all langevin 0.1 0.1 1.0 48279
+fix             active all active abp v0 1.0 Dr 0.5 gamma 1.0 seed 54321
+fix             plane all enforce2d
+
+compute         msd all msd com yes
+thermo_style    custom step temp epair c_msd[4]
+thermo          500
+run             2000
+
+##### 2. Vicsek alignment, point particles with a neighbor cutoff of 1.5 #####
+
+uncompute       msd
+unfix           active
+unfix           thermo
+
+pair_style      zero 1.5
+pair_coeff      * *
+
+fix             thermo all langevin 0.0 0.0 1.0 48279
+fix             active all active vicsek v0 1.0 Dr 0.5 Rcut 1.2 alignment 1.0 gamma 1.0 seed 54321
+
+compute         vsum all reduce sum vx vy
+variable        phi equal sqrt(c_vsum[1]^2+c_vsum[2]^2)/(count(all)*1.0)
+thermo_style    custom step temp v_phi
+thermo          500
+run             2000
+
+##### 3. inertial active Brownian particles #####
+
+unfix           active
+unfix           thermo
+
+fix             active all active iabp v0 1.0 Dr 0.5 gamma 5.0 kT 0.1 seed 54321
+
+thermo_style    custom step temp v_phi
+run             2000

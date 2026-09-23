@@ -190,6 +190,7 @@ accelerated styles exist.
 
 * :doc:`accelerate/cos <fix_accelerate_cos>` - apply cosine-shaped acceleration to atoms
 * :doc:`acks2/reaxff <fix_acks2_reaxff>` - apply ACKS2 charge equilibration
+* :doc:`active <fix_active>` - add self-propulsion forces for models of active matter
 * :doc:`adapt <fix_adapt>` - change a simulation parameter over time
 * :doc:`adapt/fep <fix_adapt_fep>` - enhanced version of fix adapt
 * :doc:`addforce <fix_addforce>` - add a force to each atom

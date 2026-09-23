@@ -1,0 +1,5 @@
+# the SPH pair styles do not store their settings in restart files,
+# so they are defined in the post_commands section of the YAML file
+
+group solute  type 1
+group solvent type 2

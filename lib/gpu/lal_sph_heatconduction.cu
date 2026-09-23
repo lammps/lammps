@@ -38,14 +38,14 @@ _texture_2d( vel_tex,int4);
     dE[i]=dEacc;                                                            \
   }
 #else
-#define store_drhoE(dEacc, ii, inum, tid, t_per_atom, offset, i, dE)        \
+#define store_dE(dEacc, ii, inum, tid, t_per_atom, offset, i, dE)           \
   if (t_per_atom>1) {                                                       \
     for (unsigned int s=t_per_atom/2; s>0; s>>=1) {                         \
       dEacc += shfl_down(dEacc, s, t_per_atom);                             \
     }                                                                       \
   }                                                                         \
   if (offset==0 && ii<inum) {                                               \
-    dE[i]=dEacc;                                                           \
+    dE[i]=dEacc;                                                            \
   }
 #endif
 
@@ -140,7 +140,7 @@ __kernel void k_sph_heatconduction(const __global numtyp4 *restrict x_,
     } // for nbor
   } // if ii
 
-  store_drhoE(dEacc,ii,inum,tid,t_per_atom,offset,i,dE);
+  store_dE(dEacc,ii,inum,tid,t_per_atom,offset,i,dE);
 }
 
 __kernel void k_sph_heatconduction_fast(const __global numtyp4 *restrict x_,
@@ -252,6 +252,6 @@ __kernel void k_sph_heatconduction_fast(const __global numtyp4 *restrict x_,
     } // for nbor
   } // if ii
 
-  store_drhoE(dEacc,ii,inum,tid,t_per_atom,offset,i,dE);
+  store_dE(dEacc,ii,inum,tid,t_per_atom,offset,i,dE);
 }
 

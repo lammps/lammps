@@ -259,7 +259,6 @@ void FixWallBodyPolyhedron::post_force(int /*vflag*/)
 {
   double vwall[3],dx,dy,dz,del1,del2,rsq,wall_pos;
   int i,ni,npi,ifirst,nei,iefirst;
-  double facc[3];
 
   // set position of wall to initial settings and velocity to 0.0
   // if wiggle, set wall position and velocity accordingly
@@ -391,7 +390,6 @@ void FixWallBodyPolyhedron::post_force(int /*vflag*/)
         edge[iefirst+ni][5] = 0;
       }
 
-      facc[0] = facc[1] = facc[2] = 0;
       edge_against_wall(i, wall_pos, vwall, x);
     } // group bit
   }

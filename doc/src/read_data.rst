@@ -1735,6 +1735,10 @@ To read compressed data files, you must compile LAMMPS with the
 ``-DLAMMPS_GZIP`` option.  See the :doc:`Build settings <Build_settings>`
 doc page for details.
 
+.. versionchanged:: TBD
+
+Type label sections are supported when using the KOKKOS package.
+
 Related commands
 """"""""""""""""
 

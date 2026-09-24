@@ -16,6 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_snap_kokkos.h"
+#include "sna_kokkos_impl.h"
 
 #include "atom_kokkos.h"
 #include "atom_masks.h"

@@ -26,12 +26,12 @@
 #include "domain.h"
 #include "force.h"
 #include "info.h"
-#include "utils.h"
 #include "input.h"
 #include "kspace.h"
 #include "modify.h"
 #include "pair.h"
 #include "update.h"
+#include "utils.h"
 
 #include <cmath>
 #include <cstdlib>
@@ -933,7 +933,6 @@ static void run_kokkos_test(LAMMPS::argv &args, bool newton = true)
     if (!verbose) ::testing::internal::GetCapturedStdout();
 }
 
-
 /* ----------------------------------------------------------------------
    collect per-atom pair energies from a direct pair->compute() call
    with explicit energy/virial flags on the current configuration,
@@ -949,7 +948,7 @@ std::vector<double> eatom_direct(LAMMPS *lmp, bool with_virial)
 {
     // satisfy the tally timestamp checks of pair->compute consumers
 
-    lmp->update->eflag_atom  = lmp->update->ntimestep;
+    lmp->update->eflag_atom   = lmp->update->ntimestep;
     lmp->update->eflag_global = lmp->update->ntimestep;
     // request the same global-virial mode the integrator would use;
     // per-atom virial support is not universal (e.g. pair rann)
@@ -963,9 +962,9 @@ std::vector<double> eatom_direct(LAMMPS *lmp, bool with_virial)
     auto *pea = lmp->modify->get_compute_by_id("peaonly");
     EXPECT_NE(pea, nullptr);
     pea->compute_peratom();
-    pea->invoked_peratom = -1;    // force a fresh evaluation on the next call
+    pea->invoked_peratom = -1; // force a fresh evaluation on the next call
 
-    const int nlocal = lmp->atom->nlocal;
+    const int nlocal  = lmp->atom->nlocal;
     const tagint *tag = lmp->atom->tag;
     std::vector<double> eatom(nlocal, 0.0);
     for (int i = 0; i < nlocal; i++)
@@ -1185,9 +1184,8 @@ TEST(PairStyle, vatom_only_kokkos)
     LAMMPS::argv args = {"PairStyle", "-log", "none", "-echo", "screen", "-nocite",
                          "-k",        "on",   "t",    "1",     "-sf",    "kk"};
     if (kk_gpu)
-        args = {"PairStyle", "-log", "none",   "-echo",  "screen", "-nocite", "-k",
-                "on",        "g",    "1",      "-sf",    "kk",     "-pk",     "kokkos",
-                "neigh",     "half", "newton", "on"};
+        args = {"PairStyle", "-log", "none", "-echo", "screen", "-nocite", "-k",   "on",     "g",
+                "1",         "-sf",  "kk",   "-pk",   "kokkos", "neigh",   "half", "newton", "on"};
     else if (kk_threads && !test_config.has_tag("single_thread"))
         args[9] = "4";
 
@@ -1224,8 +1222,9 @@ TEST(PairStyle, kokkos_omp)
         GTEST_SKIP() << "Cannot test KOKKOS/OpenMP with GPU support enabled";
     }
 
-    LAMMPS::argv args = {"PairStyle", "-log", "none", "-echo", "screen", "-nocite",
-                         "-k",        "on",   "t", kokkos_omp_nthreads(), "-sf", "kk"};
+    LAMMPS::argv args = {"PairStyle", "-log", "none", "-echo", "screen",
+                         "-nocite",   "-k",   "on",   "t",     kokkos_omp_nthreads(),
+                         "-sf",       "kk"};
 
     // some styles cannot run with more than one thread in the test (dpd uses
     // multiple pRNGs, snap and pace due to their implementation); these are
@@ -1252,8 +1251,7 @@ TEST(PairStyle, kokkos_omp_full)
     // with a full neighbor list either, so the plain "kokkos_omp"
     // skip entries apply here as well
     if (test_config.skip_tests.count("kokkos_omp")) GTEST_SKIP();
-    if (test_config.skip_tests.count("kokkos_omp_" + kokkos_precision()))
-        GTEST_SKIP();
+    if (test_config.skip_tests.count("kokkos_omp_" + kokkos_precision())) GTEST_SKIP();
     if (Info::has_accelerator_feature("KOKKOS", "rng", "device") &&
         test_config.skip_tests.count("kokkos_omp_devicerng"))
         GTEST_SKIP();
@@ -1274,10 +1272,11 @@ TEST(PairStyle, kokkos_omp_full)
     // newton settings of the input template must be overridden as well: an
     // index style variable defined with -var on the command line takes
     // precedence over the "variable ... index" definition inside the template
-    LAMMPS::argv args = {"PairStyle", "-log", "none", "-echo", "screen", "-nocite",
-                         "-k", "on", "t", kokkos_omp_nthreads(), "-sf", "kk",
-                         "-pk", "kokkos", "neigh", "full", "newton", "off",
-                         "-var", "newton_pair", "off", "-var", "newton_bond", "off"};
+    LAMMPS::argv args = {"PairStyle", "-log",   "none",        "-echo",  "screen",
+                         "-nocite",   "-k",     "on",          "t",      kokkos_omp_nthreads(),
+                         "-sf",       "kk",     "-pk",         "kokkos", "neigh",
+                         "full",      "newton", "off",         "-var",   "newton_pair",
+                         "off",       "-var",   "newton_bond", "off"};
 
     // some styles cannot run with more than one thread in the test (dpd uses
     // multiple pRNGs, snap and pace due to their implementation); these are
@@ -1338,8 +1337,7 @@ TEST(PairStyle, kokkos_serial_full)
     // with a full neighbor list either, so the plain "kokkos_serial"
     // skip entries apply here as well
     if (test_config.skip_tests.count("kokkos_serial")) GTEST_SKIP();
-    if (test_config.skip_tests.count("kokkos_serial_" + kokkos_precision()))
-        GTEST_SKIP();
+    if (test_config.skip_tests.count("kokkos_serial_" + kokkos_precision())) GTEST_SKIP();
     if (Info::has_accelerator_feature("KOKKOS", "rng", "device") &&
         test_config.skip_tests.count("kokkos_serial_devicerng"))
         GTEST_SKIP();
@@ -1363,10 +1361,10 @@ TEST(PairStyle, kokkos_serial_full)
     // newton settings of the input template must be overridden as well: an
     // index style variable defined with -var on the command line takes
     // precedence over the "variable ... index" definition inside the template
-    LAMMPS::argv args = {"PairStyle", "-log", "none", "-echo", "screen", "-nocite",
-                         "-k", "on", "t", "1", "-sf", "kk",
-                         "-pk", "kokkos", "neigh", "full", "newton", "off",
-                         "-var", "newton_pair", "off", "-var", "newton_bond", "off"};
+    LAMMPS::argv args = {"PairStyle", "-log",        "none",  "-echo", "screen",      "-nocite",
+                         "-k",        "on",          "t",     "1",     "-sf",         "kk",
+                         "-pk",       "kokkos",      "neigh", "full",  "newton",      "off",
+                         "-var",      "newton_pair", "off",   "-var",  "newton_bond", "off"};
 
     kokkos_full_neigh = true;
     run_kokkos_test(args, false);
@@ -1392,16 +1390,15 @@ TEST(PairStyle, kokkos_gpu)
         !Info::has_accelerator_feature("KOKKOS", "api", "sycl"))
         GTEST_SKIP() << "KOKKOS GPU backend not enabled";
     // transparently skip when no compatible GPU device is present
-    if (!Info::has_kokkos_gpu_device())
-        GTEST_SKIP() << "No compatible GPU device available";
+    if (!Info::has_kokkos_gpu_device()) GTEST_SKIP() << "No compatible GPU device available";
 
     // use a half neighbor list with newton on so the GPU kernels run the way the
     // input templates expect; the GPU default is "neigh full" + newton off, which
     // (a) the templates do not use and (b) would make the package set newton off
     // at startup, so a later "newton on" after the box exists would error out
-    LAMMPS::argv args = {"PairStyle", "-log", "none",   "-echo",  "screen", "-nocite", "-k",
-                         "on",        "g",    "1",      "-sf",    "kk",     "-pk",     "kokkos",
-                         "neigh",     "half", "newton", "on"};
+    LAMMPS::argv args = {"PairStyle", "-log",   "none",  "-echo", "screen", "-nocite",
+                         "-k",        "on",     "g",     "1",     "-sf",    "kk",
+                         "-pk",       "kokkos", "neigh", "half",  "newton", "on"};
 
     run_kokkos_test(args);
 };
@@ -1436,8 +1433,14 @@ TEST(PairStyle, gpu)
                                  "gpu",       "-pk",  "gpu",  "0",     "neigh",  "no"};
     LAMMPS::argv args         = args_neigh;
 
-    // cannot use GPU neighbor list with hybrid pair style (yet)
+    // cannot use GPU neighbor lists with hybrid pair styles (yet)
     if (test_config.pair_style.substr(0, 6) == "hybrid") {
+        args = args_noneigh;
+    }
+
+    // cannot use GPU neighbor lists for some other reason
+    if (std::find(test_config.tags.begin(), test_config.tags.end(), "host_neigh") !=
+        test_config.tags.end()) {
         args = args_noneigh;
     }
 
@@ -1868,14 +1871,13 @@ TEST(PairStyle, single)
     command("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    int idx1       = lmp->atom->map(1);
-    int idx2       = lmp->atom->map(2);
-    double epsilon = test_config.epsilon;
-    double **f     = lmp->atom->f;
-    double **x     = lmp->atom->x;
-    bool is_ellipsoid =
-        std::find(test_config.tags.begin(), test_config.tags.end(), "ellipsoid") !=
-        test_config.tags.end();
+    int idx1          = lmp->atom->map(1);
+    int idx2          = lmp->atom->map(2);
+    double epsilon    = test_config.epsilon;
+    double **f        = lmp->atom->f;
+    double **x        = lmp->atom->x;
+    bool is_ellipsoid = std::find(test_config.tags.begin(), test_config.tags.end(), "ellipsoid") !=
+                        test_config.tags.end();
     double **tor   = is_ellipsoid ? lmp->atom->torque : nullptr;
     double delx    = x[idx2][0] - x[idx1][0];
     double dely    = x[idx2][1] - x[idx1][1];
@@ -1914,8 +1916,8 @@ TEST(PairStyle, single)
     command("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    f       = lmp->atom->f;
-    x       = lmp->atom->x;
+    f = lmp->atom->f;
+    x = lmp->atom->x;
     if (is_ellipsoid) tor = lmp->atom->torque;
     idx1    = lmp->atom->map(1);
     idx2    = lmp->atom->map(2);
@@ -1952,8 +1954,8 @@ TEST(PairStyle, single)
     command("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    f       = lmp->atom->f;
-    x       = lmp->atom->x;
+    f = lmp->atom->f;
+    x = lmp->atom->x;
     if (is_ellipsoid) tor = lmp->atom->torque;
     idx1    = lmp->atom->map(1);
     idx2    = lmp->atom->map(2);
@@ -1990,8 +1992,8 @@ TEST(PairStyle, single)
     command("run 0 post no");
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
-    f       = lmp->atom->f;
-    x       = lmp->atom->x;
+    f = lmp->atom->f;
+    x = lmp->atom->x;
     if (is_ellipsoid) tor = lmp->atom->torque;
     idx1    = lmp->atom->map(1);
     idx2    = lmp->atom->map(2);

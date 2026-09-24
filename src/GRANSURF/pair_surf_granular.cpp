@@ -133,7 +133,7 @@ void PairSurfGranular::compute(int eflag, int vflag)
       }
       int nlocal = atom->nlocal;
       for (int i = 0; i < nlocal; i++) mass_rigid[i] = 0.0;
-      
+
       for (const auto &ifix : fix_rigid) {
         int tmp;
         int *body = (int *) ifix->extract("body",tmp);
@@ -392,6 +392,8 @@ void PairSurfGranular::compute(int eflag, int vflag)
 
       jtype = type[j];
       model = models_list[types_indices[itype][jtype]];
+      model->i = i;
+      model->j = j;
       model->xi = x[i];
       model->radi = radi;
       model->vi = v[i];

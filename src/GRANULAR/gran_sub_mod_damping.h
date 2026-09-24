@@ -25,6 +25,7 @@ namespace LAMMPS_NS::Granular_NS {
     void init() override;
     virtual double calculate_forces() = 0;
     [[nodiscard]] double get_damp_prefactor() const { return damp_prefactor; }
+    [[nodiscard]] double get_damp() const { return damp; }
 
    protected:
     double damp_prefactor;

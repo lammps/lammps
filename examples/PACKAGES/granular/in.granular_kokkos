@@ -1,0 +1,26 @@
+units si
+atom_style sphere
+boundary f f f
+newton off
+comm_modify vel yes
+region box block -2 2 -2 2 -2 2
+create_box 1 box
+create_atoms 1 single 0.0 0.0 0.0
+create_atoms 1 single 0.9 0.0 0.0
+set atom 1 diameter 1.0 density 1.0
+set atom 2 diameter 1.0 density 1.0
+group first id 1
+group second id 2
+velocity first set 0.10 0.20 0.00
+velocity second set -0.10 -0.10 0.00
+pair_style granular
+pair_coeff * * hooke 4000.0 100.0 tangential linear_history 1000.0 1.0 0.5 damping mass_velocity
+neighbor 0.2 bin
+neigh_modify every 1 delay 0 check yes
+timestep 0.00001
+fix int all nve/sphere
+thermo 1
+thermo_style custom step atoms ke
+dump out all custom 1 granular.dump id x y z vx vy vz omegax omegay omegaz fx fy fz
+dump_modify out sort id format line "%d %.16g %.16g %.16g %.16g %.16g %.16g %.16g %.16g %.16g %.16g %.16g %.16g"
+run 20

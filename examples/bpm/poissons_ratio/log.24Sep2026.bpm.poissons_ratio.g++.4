@@ -15,7 +15,7 @@ comm_modify     vel yes cutoff 2.6
 lattice         fcc 1.41
 Lattice spacing in x,y,z = 1.4156209 1.4156209 1.4156209
 region          box block 0 20 -10 10 -1 21 units box
-create_box      4 box bond/types 4 extra/bond/per/atom 20 extra/special/per/atom 50
+create_box      4 box bond/types 4 extra/bond/per/atom 20
 Created orthogonal box = (0 -10 -1) to (20 10 21)
   1 by 2 by 2 MPI processor grid
 mass            * 1.0
@@ -55,7 +55,7 @@ Neighbor list info ...
       pair build: half/bin/newton
       stencil: half/bin/3d
       bin: standard
-Per MPI rank memory allocation (min/avg/max) = 9.783 | 9.787 | 9.791 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 6.658 | 6.662 | 6.666 Mbytes
    Step         KinEng         PotEng          Pxx            Pyy            Pzz      
          0   0.1499655      0              0.055430061    0.055308111    0.053729104  
        100   0.0047014171   0.0040647412   0.019925302    0.020725263    0.020275596  
@@ -258,21 +258,21 @@ Per MPI rank memory allocation (min/avg/max) = 9.783 | 9.787 | 9.791 Mbytes
      19800   3.1431598e-07  2.0445245e-07  0.00015423965  0.00015011552  0.000148781  
      19900   3.1442232e-07  2.044442e-07   0.00015421972  0.00015107441  0.0001483271 
      20000   3.1450146e-07  2.0384605e-07  0.00015329256  0.00015033201  0.0001487256 
-Loop time of 1.56058 on 4 procs for 20000 steps with 4348 atoms
+Loop time of 1.60129 on 4 procs for 20000 steps with 4348 atoms
 
-Performance: 110727900.196 tau/day, 12815.729 timesteps/s, 55.723 Matom-step/s
-98.6% CPU use with 4 MPI tasks x 1 OpenMP threads
+Performance: 107912856.794 tau/day, 12489.914 timesteps/s, 54.306 Matom-step/s
+98.8% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.48201    | 0.5104     | 0.53301    |   2.6 | 32.71
-Bond    | 0.00051225 | 0.00051473 | 0.00051856 |   0.0 |  0.03
-Neigh   | 0.036981   | 0.039024   | 0.041708   |   0.9 |  2.50
-Comm    | 0.30105    | 0.34716    | 0.39907    |   5.9 | 22.25
-Output  | 0.002215   | 0.0025162  | 0.0030863  |   0.7 |  0.16
-Modify  | 0.59646    | 0.60116    | 0.60393    |   0.4 | 38.52
-Other   |            | 0.0598     |            |       |  3.83
+Pair    | 0.48108    | 0.50642    | 0.52272    |   2.2 | 31.63
+Bond    | 0.00052215 | 0.00052515 | 0.00053051 |   0.0 |  0.03
+Neigh   | 0.037332   | 0.039711   | 0.041586   |   0.9 |  2.48
+Comm    | 0.31208    | 0.35173    | 0.40247    |   5.5 | 21.97
+Output  | 0.0021174  | 0.0027155  | 0.0032994  |   0.8 |  0.17
+Modify  | 0.60105    | 0.61689    | 0.64022    |   1.8 | 38.52
+Other   |            | 0.0833     |            |       |  5.20
 
 Nlocal:           1087 ave        1091 max        1080 min
 Histogram: 1 0 0 0 0 0 0 1 1 1
@@ -299,7 +299,7 @@ Finding 1-2 1-3 1-4 neighbors ...
   special bond factors lj:    0        1        1       
   special bond factors coul:  0        1        1       
      0 = max # of 1-2 neighbors
-   101 = max # of special neighbors
+     1 = max # of special neighbors
   special bonds CPU = 0.000 seconds
   replicate CPU = 0.002 seconds
 
@@ -354,8 +354,8 @@ Finding 1-2 1-3 1-4 neighbors ...
   special bond factors lj:    0        1        1       
   special bond factors coul:  0        1        1       
     19 = max # of 1-2 neighbors
-   101 = max # of special neighbors
-  special bonds CPU = 0.002 seconds
+    19 = max # of special neighbors
+  special bonds CPU = 0.001 seconds
 create_bonds    many p2 p2 2 0.0 1.5
 Generated 0 of 6 mixed pair_coeff terms from geometric mixing rule
 WARNING: Bonds are defined but no bond style is set (src/force.cpp:165)
@@ -382,7 +382,7 @@ Finding 1-2 1-3 1-4 neighbors ...
   special bond factors lj:    0        1        1       
   special bond factors coul:  0        1        1       
     19 = max # of 1-2 neighbors
-   101 = max # of special neighbors
+    19 = max # of special neighbors
   special bonds CPU = 0.001 seconds
 create_bonds    many p3 p3 3 0.0 1.5
 Generated 0 of 6 mixed pair_coeff terms from geometric mixing rule
@@ -410,7 +410,7 @@ Finding 1-2 1-3 1-4 neighbors ...
   special bond factors lj:    0        1        1       
   special bond factors coul:  0        1        1       
     19 = max # of 1-2 neighbors
-   101 = max # of special neighbors
+    19 = max # of special neighbors
   special bonds CPU = 0.001 seconds
 create_bonds    many p4 p4 4 0.0 1.5
 Generated 0 of 6 mixed pair_coeff terms from geometric mixing rule
@@ -438,7 +438,7 @@ Finding 1-2 1-3 1-4 neighbors ...
   special bond factors lj:    0        1        1       
   special bond factors coul:  0        1        1       
     19 = max # of 1-2 neighbors
-   101 = max # of special neighbors
+    19 = max # of special neighbors
   special bonds CPU = 0.001 seconds
 
 neighbor        0.3 bin
@@ -502,7 +502,7 @@ Neighbor list info ...
       pair build: half/bin/newton
       stencil: half/bin/3d
       bin: standard
-Per MPI rank memory allocation (min/avg/max) = 16.85 | 16.86 | 16.86 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 11.72 | 11.73 | 11.74 Mbytes
    Step         KinEng         PotEng          Pxx            Pyy            Pzz           c_zmax    
      20000   7.3167483e-07  0              5.6347138e-05  5.6689399e-05  0.0001685299   20.000806    
      20100   3.1240626e-06  4.2205214e-06 -0.00014806439 -0.00013796159  0.0029617201   19.965415    
@@ -605,21 +605,21 @@ Per MPI rank memory allocation (min/avg/max) = 16.85 | 16.86 | 16.86 Mbytes
      29800   2.3321015e-06  0.032543214   -0.011233488   -0.0099115079   0.24475911     16.532535    
      29900   2.3323981e-06  0.033162156   -0.011276522   -0.0099367729   0.24637013     16.497144    
      30000   2.3335843e-06  0.033785752   -0.011317973   -0.0099603002   0.2479631      16.461754    
-Loop time of 7.3996 on 4 procs for 10000 steps with 17392 atoms
+Loop time of 7.17272 on 4 procs for 10000 steps with 17392 atoms
 
-Performance: 11676303.336 tau/day, 1351.424 timesteps/s, 23.504 Matom-step/s
-99.5% CPU use with 4 MPI tasks x 1 OpenMP threads
+Performance: 12045635.646 tau/day, 1394.171 timesteps/s, 24.247 Matom-step/s
+99.6% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.17969    | 0.18639    | 0.19396    |   1.4 |  2.52
-Bond    | 6.7839     | 6.7915     | 6.7965     |   0.2 | 91.78
-Neigh   | 0.051148   | 0.051194   | 0.051315   |   0.0 |  0.69
-Comm    | 0.013547   | 0.01958    | 0.023814   |   2.7 |  0.26
-Output  | 0.0043959  | 0.004532   | 0.0048645  |   0.3 |  0.06
-Modify  | 0.26435    | 0.26715    | 0.26901    |   0.3 |  3.61
-Other   |            | 0.07929    |            |       |  1.07
+Pair    | 0.17334    | 0.1758     | 0.1783     |   0.4 |  2.45
+Bond    | 6.6086     | 6.612      | 6.614      |   0.1 | 92.18
+Neigh   | 0.043969   | 0.044004   | 0.044082   |   0.0 |  0.61
+Comm    | 0.011266   | 0.014815   | 0.017761   |   1.9 |  0.21
+Output  | 0.0040975  | 0.0042292  | 0.0045734  |   0.3 |  0.06
+Modify  | 0.25889    | 0.26026    | 0.26141    |   0.2 |  3.63
+Other   |            | 0.06164    |            |       |  0.86
 
 Nlocal:           4348 ave        4348 max        4348 min
 Histogram: 4 0 0 0 0 0 0 0 0 0
@@ -633,4 +633,4 @@ Ave neighs/atom = 5.9165133
 Ave special neighs/atom = 13.49264
 Neighbor list builds = 23
 Dangerous builds = 0
-Total wall time: 0:00:09
+Total wall time: 0:00:08

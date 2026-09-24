@@ -45,6 +45,17 @@ using ::testing::StartsWith;
 
 using namespace LAMMPS_NS;
 
+// torques are compared only when the reference data has them.  pair styles
+// for finite size particles (granular, "sphere" tag) record them; for all
+// other styles the yaml file has no torque blocks and this does nothing.
+
+static void EXPECT_PAIR_TORQUES(const std::string &name, Atom *atom,
+                                const std::vector<coord_t> &t_ref, double epsilon)
+{
+    if (!atom->torque_flag || t_ref.empty()) return;
+    EXPECT_TORQUES(name, atom, t_ref, epsilon);
+}
+
 void cleanup_lammps(LAMMPS *&lmp, const TestConfig &cfg)
 {
     platform::unlink(cfg.basename + ".restart");
@@ -303,6 +314,18 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
     }
     writer.emit_block("init_forces", block);
 
+    // init_torque (only for finite size spherical particles)
+    if (lmp->atom->torque_flag && config.has_tag("sphere")) {
+        block.clear();
+        auto *t = lmp->atom->torque;
+        for (int i = 1; i <= natoms; ++i) {
+            const int j = lmp->atom->map(i);
+            block +=
+                fmt::format("{:3} {:23.16e} {:23.16e} {:23.16e}\n", i, t[j][0], t[j][1], t[j][2]);
+        }
+        writer.emit_block("init_torque", block);
+    }
+
     // init_mag_forces (only for atom_style spin)
     if (lmp->atom->sp_flag) {
         block.clear();
@@ -340,6 +363,18 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
         block += fmt::format("{:3} {:23.16e} {:23.16e} {:23.16e}\n", i, f[j][0], f[j][1], f[j][2]);
     }
     writer.emit_block("run_forces", block);
+
+    // run_torque (only for finite size spherical particles)
+    if (lmp->atom->torque_flag && config.has_tag("sphere")) {
+        block.clear();
+        auto *t = lmp->atom->torque;
+        for (int i = 1; i <= natoms; ++i) {
+            const int j = lmp->atom->map(i);
+            block +=
+                fmt::format("{:3} {:23.16e} {:23.16e} {:23.16e}\n", i, t[j][0], t[j][1], t[j][2]);
+        }
+        writer.emit_block("run_torque", block);
+    }
 
     // run_mag_forces (only for atom_style spin)
     if (lmp->atom->sp_flag) {
@@ -399,6 +434,8 @@ TEST(PairStyle, plain)
     auto *pair = lmp->force->pair;
 
     EXPECT_FORCES("init_forces (newton on)", lmp->atom, test_config.init_forces, epsilon);
+
+    EXPECT_PAIR_TORQUES("init_torque (newton on)", lmp->atom, test_config.init_torque, epsilon);
     EXPECT_MAG_FORCES("init_mag_forces (newton on)", lmp->atom, test_config.init_mag_forces,
                       epsilon);
     EXPECT_STRESS("init_stress (newton on)", pair->virial, test_config.init_stress, epsilon);
@@ -414,6 +451,8 @@ TEST(PairStyle, plain)
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     EXPECT_FORCES("run_forces (newton on)", lmp->atom, test_config.run_forces, 5 * epsilon);
+
+    EXPECT_PAIR_TORQUES("run_torque (newton on)", lmp->atom, test_config.run_torque, 5 * epsilon);
     EXPECT_MAG_FORCES("run_mag_forces (newton on)", lmp->atom, test_config.run_mag_forces,
                       5 * epsilon);
     EXPECT_STRESS("run_stress (newton on)", pair->virial, test_config.run_stress, epsilon);
@@ -445,6 +484,9 @@ TEST(PairStyle, plain)
         pair = lmp->force->pair;
 
         EXPECT_FORCES("init_forces (newton off)", lmp->atom, test_config.init_forces, epsilon);
+
+        EXPECT_PAIR_TORQUES("init_torque (newton off)", lmp->atom, test_config.init_torque,
+                            epsilon);
         EXPECT_MAG_FORCES("init_mag_forces (newton off)", lmp->atom, test_config.init_mag_forces,
                           epsilon);
         EXPECT_STRESS("init_stress (newton off)", pair->virial, test_config.init_stress,
@@ -460,6 +502,9 @@ TEST(PairStyle, plain)
         if (!verbose) ::testing::internal::GetCapturedStdout();
 
         EXPECT_FORCES("run_forces (newton off)", lmp->atom, test_config.run_forces, 5 * epsilon);
+
+        EXPECT_PAIR_TORQUES("run_torque (newton off)", lmp->atom, test_config.run_torque,
+                            5 * epsilon);
         EXPECT_MAG_FORCES("run_mag_forces (newton off)", lmp->atom, test_config.run_mag_forces,
                           5 * epsilon);
         EXPECT_STRESS("run_stress (newton off)", pair->virial, test_config.run_stress, epsilon);
@@ -482,6 +527,8 @@ TEST(PairStyle, plain)
     pair = lmp->force->pair;
 
     EXPECT_FORCES("restart_forces", lmp->atom, test_config.init_forces, epsilon);
+
+    EXPECT_PAIR_TORQUES("restart_torque", lmp->atom, test_config.init_torque, epsilon);
     EXPECT_MAG_FORCES("restart_mag_forces", lmp->atom, test_config.init_mag_forces, epsilon);
     EXPECT_STRESS("restart_stress", pair->virial, test_config.init_stress, epsilon);
 
@@ -502,6 +549,8 @@ TEST(PairStyle, plain)
         pair = lmp->force->pair;
 
         EXPECT_FORCES("nofdotr_forces", lmp->atom, test_config.init_forces, epsilon);
+
+        EXPECT_PAIR_TORQUES("nofdotr_torque", lmp->atom, test_config.init_torque, epsilon);
         EXPECT_MAG_FORCES("nofdotr_mag_forces", lmp->atom, test_config.init_mag_forces, epsilon);
         EXPECT_STRESS("nofdotr_stress", pair->virial, test_config.init_stress, epsilon);
 
@@ -517,6 +566,7 @@ TEST(PairStyle, plain)
 
     pair = lmp->force->pair;
     EXPECT_FORCES("data_forces", lmp->atom, test_config.init_forces, epsilon);
+    EXPECT_PAIR_TORQUES("data_torque", lmp->atom, test_config.init_torque, epsilon);
     EXPECT_MAG_FORCES("data_mag_forces", lmp->atom, test_config.init_mag_forces, epsilon);
     EXPECT_STRESS("data_stress", pair->virial, test_config.init_stress, epsilon);
 
@@ -545,6 +595,8 @@ TEST(PairStyle, plain)
         if (pair->ncoultablebits) epsilon *= 5.0e6;
 
         EXPECT_FORCES("run_forces (r-RESPA)", lmp->atom, test_config.run_forces, 5 * epsilon);
+
+        EXPECT_PAIR_TORQUES("run_torque (r-RESPA)", lmp->atom, test_config.run_torque, 5 * epsilon);
         EXPECT_STRESS("run_stress (r-RESPA)", pair->virial, test_config.run_stress, epsilon);
 
         stats.reset();
@@ -611,6 +663,8 @@ TEST(PairStyle, omp)
     ErrorStats stats;
 
     EXPECT_FORCES("init_forces (newton on)", lmp->atom, test_config.init_forces, epsilon);
+
+    EXPECT_PAIR_TORQUES("init_torque (newton on)", lmp->atom, test_config.init_torque, epsilon);
     EXPECT_MAG_FORCES("init_mag_forces (newton on)", lmp->atom, test_config.init_mag_forces,
                       epsilon);
     EXPECT_STRESS("init_stress (newton on)", pair->virial, test_config.init_stress, 10 * epsilon);
@@ -625,6 +679,8 @@ TEST(PairStyle, omp)
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     EXPECT_FORCES("run_forces (newton on)", lmp->atom, test_config.run_forces, 5 * epsilon);
+
+    EXPECT_PAIR_TORQUES("run_torque (newton on)", lmp->atom, test_config.run_torque, 5 * epsilon);
     EXPECT_MAG_FORCES("run_mag_forces (newton on)", lmp->atom, test_config.run_mag_forces,
                       5 * epsilon);
     EXPECT_STRESS("run_stress (newton on)", pair->virial, test_config.run_stress, 10 * epsilon);
@@ -653,6 +709,9 @@ TEST(PairStyle, omp)
     if (lmp->force->newton_pair == 0) {
 
         EXPECT_FORCES("init_forces (newton off)", lmp->atom, test_config.init_forces, epsilon);
+
+        EXPECT_PAIR_TORQUES("init_torque (newton off)", lmp->atom, test_config.init_torque,
+                            epsilon);
         EXPECT_MAG_FORCES("init_mag_forces (newton off)", lmp->atom, test_config.init_mag_forces,
                           epsilon);
         EXPECT_STRESS("init_stress (newton off)", pair->virial, test_config.init_stress,
@@ -668,6 +727,9 @@ TEST(PairStyle, omp)
         if (!verbose) ::testing::internal::GetCapturedStdout();
 
         EXPECT_FORCES("run_forces (newton off)", lmp->atom, test_config.run_forces, 5 * epsilon);
+
+        EXPECT_PAIR_TORQUES("run_torque (newton off)", lmp->atom, test_config.run_torque,
+                            5 * epsilon);
         EXPECT_MAG_FORCES("run_mag_forces (newton off)", lmp->atom, test_config.run_mag_forces,
                           5 * epsilon);
         EXPECT_STRESS("run_stress (newton off)", pair->virial, test_config.run_stress,
@@ -689,6 +751,8 @@ TEST(PairStyle, omp)
     pair = lmp->force->pair;
 
     EXPECT_FORCES("nofdotr_forces", lmp->atom, test_config.init_forces, 5 * epsilon);
+
+    EXPECT_PAIR_TORQUES("nofdotr_torque", lmp->atom, test_config.init_torque, 5 * epsilon);
     EXPECT_MAG_FORCES("nofdotr_mag_forces", lmp->atom, test_config.init_mag_forces, 5 * epsilon);
     EXPECT_STRESS("nofdotr_stress", pair->virial, test_config.init_stress, 10 * epsilon);
 
@@ -776,6 +840,8 @@ static void run_kokkos_test(LAMMPS::argv &args)
     ErrorStats stats;
 
     EXPECT_FORCES("init_forces (newton on)", lmp->atom, test_config.init_forces, epsilon);
+
+    EXPECT_PAIR_TORQUES("init_torque (newton on)", lmp->atom, test_config.init_torque, epsilon);
     EXPECT_MAG_FORCES("init_mag_forces (newton on)", lmp->atom, test_config.init_mag_forces,
                       epsilon);
     EXPECT_STRESS("init_stress (newton on)", pair->virial, test_config.init_stress, 10 * epsilon);
@@ -790,6 +856,8 @@ static void run_kokkos_test(LAMMPS::argv &args)
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     EXPECT_FORCES("run_forces (newton on)", lmp->atom, test_config.run_forces, 5 * epsilon);
+
+    EXPECT_PAIR_TORQUES("run_torque (newton on)", lmp->atom, test_config.run_torque, 5 * epsilon);
     EXPECT_MAG_FORCES("run_mag_forces (newton on)", lmp->atom, test_config.run_mag_forces,
                       5 * epsilon);
     EXPECT_STRESS("run_stress (newton on)", pair->virial, test_config.run_stress, 10 * epsilon);
@@ -818,6 +886,9 @@ static void run_kokkos_test(LAMMPS::argv &args)
     if (lmp->force->newton_pair == 0) {
 
         EXPECT_FORCES("init_forces (newton off)", lmp->atom, test_config.init_forces, epsilon);
+
+        EXPECT_PAIR_TORQUES("init_torque (newton off)", lmp->atom, test_config.init_torque,
+                            epsilon);
         EXPECT_MAG_FORCES("init_mag_forces (newton off)", lmp->atom, test_config.init_mag_forces,
                           epsilon);
         EXPECT_STRESS("init_stress (newton off)", pair->virial, test_config.init_stress,
@@ -833,6 +904,9 @@ static void run_kokkos_test(LAMMPS::argv &args)
         if (!verbose) ::testing::internal::GetCapturedStdout();
 
         EXPECT_FORCES("run_forces (newton off)", lmp->atom, test_config.run_forces, 5 * epsilon);
+
+        EXPECT_PAIR_TORQUES("run_torque (newton off)", lmp->atom, test_config.run_torque,
+                            5 * epsilon);
         EXPECT_MAG_FORCES("run_mag_forces (newton off)", lmp->atom, test_config.run_mag_forces,
                           5 * epsilon);
         EXPECT_STRESS("run_stress (newton off)", pair->virial, test_config.run_stress,
@@ -854,6 +928,8 @@ static void run_kokkos_test(LAMMPS::argv &args)
     pair = lmp->force->pair;
 
     EXPECT_FORCES("nofdotr_forces", lmp->atom, test_config.init_forces, 5 * epsilon);
+
+    EXPECT_PAIR_TORQUES("nofdotr_torque", lmp->atom, test_config.init_torque, 5 * epsilon);
     EXPECT_MAG_FORCES("nofdotr_mag_forces", lmp->atom, test_config.init_mag_forces, 5 * epsilon);
     EXPECT_STRESS("nofdotr_stress", pair->virial, test_config.init_stress, 10 * epsilon);
 
@@ -1134,6 +1210,8 @@ TEST(PairStyle, gpu)
     auto *pair = lmp->force->pair;
 
     EXPECT_FORCES("init_forces (newton off)", lmp->atom, test_config.init_forces, epsilon);
+
+    EXPECT_PAIR_TORQUES("init_torque (newton off)", lmp->atom, test_config.init_torque, epsilon);
     EXPECT_MAG_FORCES("init_mag_forces (newton off)", lmp->atom, test_config.init_mag_forces,
                       epsilon);
     EXPECT_STRESS("init_stress (newton off)", pair->virial, test_config.init_stress, 10 * epsilon);
@@ -1148,6 +1226,8 @@ TEST(PairStyle, gpu)
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     EXPECT_FORCES("run_forces (newton off)", lmp->atom, test_config.run_forces, 5 * epsilon);
+
+    EXPECT_PAIR_TORQUES("run_torque (newton off)", lmp->atom, test_config.run_torque, 5 * epsilon);
     EXPECT_MAG_FORCES("run_mag_forces (newton off)", lmp->atom, test_config.run_mag_forces,
                       5 * epsilon);
     EXPECT_STRESS("run_stress (newton off)", pair->virial, test_config.run_stress, 10 * epsilon);
@@ -1226,6 +1306,8 @@ TEST(PairStyle, intel)
     auto *pair = lmp->force->pair;
 
     EXPECT_FORCES("init_forces", lmp->atom, test_config.init_forces, epsilon);
+
+    EXPECT_PAIR_TORQUES("init_torque", lmp->atom, test_config.init_torque, epsilon);
     EXPECT_STRESS("init_stress", pair->virial, test_config.init_stress, 10 * epsilon);
 
     stats.reset();
@@ -1238,6 +1320,8 @@ TEST(PairStyle, intel)
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     EXPECT_FORCES("run_forces", lmp->atom, test_config.run_forces, 5 * epsilon);
+
+    EXPECT_PAIR_TORQUES("run_torque", lmp->atom, test_config.run_torque, 5 * epsilon);
     EXPECT_STRESS("run_stress", pair->virial, test_config.run_stress, 10 * epsilon);
 
     stats.reset();
@@ -1303,6 +1387,8 @@ TEST(PairStyle, opt)
     auto *pair = lmp->force->pair;
 
     EXPECT_FORCES("init_forces (newton off)", lmp->atom, test_config.init_forces, epsilon);
+
+    EXPECT_PAIR_TORQUES("init_torque (newton off)", lmp->atom, test_config.init_torque, epsilon);
     EXPECT_MAG_FORCES("init_mag_forces (newton off)", lmp->atom, test_config.init_mag_forces,
                       epsilon);
     EXPECT_STRESS("init_stress", pair->virial, test_config.init_stress, 10 * epsilon);
@@ -1317,6 +1403,8 @@ TEST(PairStyle, opt)
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     EXPECT_FORCES("run_forces", lmp->atom, test_config.run_forces, 5 * epsilon);
+
+    EXPECT_PAIR_TORQUES("run_torque", lmp->atom, test_config.run_torque, 5 * epsilon);
     EXPECT_STRESS("run_stress", pair->virial, test_config.run_stress, 10 * epsilon);
 
     stats.reset();
@@ -1334,6 +1422,8 @@ TEST(PairStyle, opt)
     pair = lmp->force->pair;
 
     EXPECT_FORCES("nofdotr_forces", lmp->atom, test_config.init_forces, 5 * epsilon);
+
+    EXPECT_PAIR_TORQUES("nofdotr_torque", lmp->atom, test_config.init_torque, 5 * epsilon);
     EXPECT_MAG_FORCES("nofdotr_mag_forces", lmp->atom, test_config.init_mag_forces, 5 * epsilon);
     EXPECT_STRESS("nofdotr_stress", pair->virial, test_config.init_stress, 10 * epsilon);
 

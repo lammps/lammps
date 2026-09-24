@@ -80,6 +80,7 @@ public:
     std::vector<coord_t> restart_pos;
     std::vector<coord_t> run_vel;
     std::vector<coord_t> restart_vel;
+    std::vector<coord_t> init_torque;
     std::vector<coord_t> run_torque;
     // magnetic force (precession vector) and spin data for atom_style spin systems
     std::vector<coord_t> init_mag_forces;
@@ -114,6 +115,7 @@ public:
         restart_pos.clear();
         run_vel.clear();
         restart_vel.clear();
+        init_torque.clear();
         run_torque.clear();
         init_mag_forces.clear();
         run_mag_forces.clear();

@@ -140,6 +140,7 @@ TestConfigReader::TestConfigReader(TestConfig &config) : config(config)
     consumers["run_forces"]     = &TestConfigReader::run_forces;
     consumers["run_pos"]        = &TestConfigReader::run_pos;
     consumers["run_vel"]        = &TestConfigReader::run_vel;
+    consumers["init_torque"]    = &TestConfigReader::init_torque;
     consumers["run_torque"]     = &TestConfigReader::run_torque;
     consumers["init_mag_forces"] = &TestConfigReader::init_mag_forces;
     consumers["run_mag_forces"] = &TestConfigReader::run_mag_forces;
@@ -281,6 +282,11 @@ void TestConfigReader::run_pos(const yaml_event_t &event)
 void TestConfigReader::run_vel(const yaml_event_t &event)
 {
     parse_coord_block(event, config.run_vel, config.natoms);
+}
+
+void TestConfigReader::init_torque(const yaml_event_t &event)
+{
+    parse_coord_block(event, config.init_torque, config.natoms);
 }
 
 void TestConfigReader::run_torque(const yaml_event_t &event)

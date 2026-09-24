@@ -113,8 +113,6 @@ This command must come after the simulation box is defined by a
 :doc:`read_data <read_data>`, :doc:`read_restart <read_restart>`, or
 :doc:`create_box <create_box>` command.
 
-Label maps are considered experimental when using the KOKKOS package.
-
 Related commands
 """"""""""""""""
 

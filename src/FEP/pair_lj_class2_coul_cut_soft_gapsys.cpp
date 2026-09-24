@@ -274,7 +274,7 @@ void PairLJClass2CoulCutSoftGapsys::settings(int narg, char **arg)
 
 void PairLJClass2CoulCutSoftGapsys::coeff(int narg, char **arg)
 {
-  if (narg < 4 || narg > 6) error->all(FLERR, "Incorrect args for pair coefficients" + utils::errorurl(21));
+  if (narg < 5 || narg > 7) error->all(FLERR, "Incorrect args for pair coefficients" + utils::errorurl(21));
 
   if (!allocated) allocate();
 

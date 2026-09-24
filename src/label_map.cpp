@@ -14,6 +14,7 @@
 #include "label_map.h"
 
 #include "atom.h"
+#include "atom_masks.h"
 #include "citeme.h"
 #include "comm.h"
 #include "error.h"
@@ -823,6 +824,13 @@ void LabelMap::write_map(const std::string &filename)
 
 void LabelMap::check_labels()
 {
+  // the loops below read the per-atom arrays through the plain pointers,
+  // so bring the host side up to date first; without the KOKKOS package
+  // this does nothing
+
+  atom->sync_host_arrays(TAG_MASK | TYPE_MASK | BOND_MASK | ANGLE_MASK | DIHEDRAL_MASK |
+                         IMPROPER_MASK);
+
   int *type = atom->type;
   tagint *tag = atom->tag;
   // in rare cases, bonds are not symmetric. only check if newton on for bonds

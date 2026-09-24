@@ -37,7 +37,7 @@ struct [[nodiscard]] Graph {
 
   using execution_space = ExecutionSpace;
   using graph           = Graph;
-  using root_t          = GraphNodeRef<ExecutionSpace>;
+  using root_t          = GraphNodeRef<ExecutionSpace, GraphNodeRootTag>;
 
   // </editor-fold> end public member types }}}2
   //----------------------------------------------------------------------------
@@ -56,11 +56,10 @@ struct [[nodiscard]] Graph {
   //----------------------------------------------------------------------------
   // <editor-fold desc="private data members"> {{{2
 
-  using impl_t      = Kokkos::Impl::GraphImpl<ExecutionSpace>;
-  using root_impl_t = typename impl_t::root_node_impl_t;
+  using impl_t = Kokkos::Impl::GraphImpl<ExecutionSpace>;
 
-  std::shared_ptr<impl_t> m_impl_ptr  = nullptr;
-  std::shared_ptr<root_impl_t> m_root = nullptr;
+  std::shared_ptr<impl_t> m_impl_ptr                                = nullptr;
+  std::shared_ptr<Kokkos::Impl::root_impl_t<ExecutionSpace>> m_root = nullptr;
 
   // </editor-fold> end private data members }}}2
   //----------------------------------------------------------------------------
@@ -112,9 +111,30 @@ struct [[nodiscard]] Graph {
     (*m_impl_ptr).submit(exec);
   }
 
-  decltype(auto) native_graph();
-
-  decltype(auto) native_graph_exec();
+#if defined(KOKKOS_ENABLE_CUDA)
+  cudaGraph_t cuda_graph() const
+  // FIXME_MSVC Did not work with Visual Studio 17 2022.
+#if !defined(KOKKOS_COMPILER_MSVC)
+    requires std::same_as<ExecutionSpace, Kokkos::Cuda>
+#endif
+  ;
+  cudaGraphExec_t cuda_graph_exec() const
+  // FIXME_MSVC Did not work with Visual Studio 17 2022.
+#if !defined(KOKKOS_COMPILER_MSVC)
+    requires std::same_as<ExecutionSpace, Kokkos::Cuda>
+#endif
+  ;
+#elif defined(KOKKOS_ENABLE_HIP)
+  hipGraph_t hip_graph() const
+    requires std::same_as<ExecutionSpace, Kokkos::HIP>;
+  hipGraphExec_t hip_graph_exec() const
+    requires std::same_as<ExecutionSpace, Kokkos::HIP>;
+#elif defined(KOKKOS_ENABLE_SYCL) && defined(KOKKOS_IMPL_SYCL_GRAPH_SUPPORT)
+  const auto& sycl_graph() const
+    requires std::same_as<ExecutionSpace, Kokkos::SYCL>;
+  const auto& sycl_graph_exec() const
+    requires std::same_as<ExecutionSpace, Kokkos::SYCL>;
+#endif
 };
 
 // </editor-fold> end Graph }}}1
@@ -181,41 +201,58 @@ create_graph(Closure&& arg_closure) {
 // </editor-fold> end create_graph }}}1
 //==============================================================================
 
-template <class ExecutionSpace>
-decltype(auto) Graph<ExecutionSpace>::native_graph() {
-  KOKKOS_EXPECTS(bool(m_impl_ptr));
 #if defined(KOKKOS_ENABLE_CUDA)
-  if constexpr (std::is_same_v<ExecutionSpace, Kokkos::Cuda>) {
-    return m_impl_ptr->cuda_graph();
-  }
-#elif defined(KOKKOS_ENABLE_HIP)
-  if constexpr (std::is_same_v<ExecutionSpace, Kokkos::HIP>) {
-    return m_impl_ptr->hip_graph();
-  }
-#elif defined(KOKKOS_ENABLE_SYCL) && defined(KOKKOS_IMPL_SYCL_GRAPH_SUPPORT)
-  if constexpr (std::is_same_v<ExecutionSpace, Kokkos::SYCL>) {
-    return m_impl_ptr->sycl_graph();
-  }
-#endif
-}
-
 template <class ExecutionSpace>
-decltype(auto) Graph<ExecutionSpace>::native_graph_exec() {
-  KOKKOS_EXPECTS(bool(m_impl_ptr));
-#if defined(KOKKOS_ENABLE_CUDA)
-  if constexpr (std::is_same_v<ExecutionSpace, Kokkos::Cuda>) {
-    return m_impl_ptr->cuda_graph_exec();
-  }
-#elif defined(KOKKOS_ENABLE_HIP)
-  if constexpr (std::is_same_v<ExecutionSpace, Kokkos::HIP>) {
-    return m_impl_ptr->hip_graph_exec();
-  }
-#elif defined(KOKKOS_ENABLE_SYCL) && defined(KOKKOS_IMPL_SYCL_GRAPH_SUPPORT)
-  if constexpr (std::is_same_v<ExecutionSpace, Kokkos::SYCL>) {
-    return m_impl_ptr->sycl_graph_exec();
-  }
+cudaGraph_t Graph<ExecutionSpace>::cuda_graph() const
+// FIXME_MSVC Did not work with Visual Studio 17 2022.
+#if !defined(KOKKOS_COMPILER_MSVC)
+  requires std::same_as<ExecutionSpace, Kokkos::Cuda>
 #endif
+{
+  KOKKOS_EXPECTS(bool(m_impl_ptr));
+  return m_impl_ptr->cuda_graph();
 }
+template <class ExecutionSpace>
+cudaGraphExec_t Graph<ExecutionSpace>::cuda_graph_exec() const
+// FIXME_MSVC Did not work with Visual Studio 17 2022.
+#if !defined(KOKKOS_COMPILER_MSVC)
+  requires std::same_as<ExecutionSpace, Kokkos::Cuda>
+#endif
+{
+  KOKKOS_EXPECTS(bool(m_impl_ptr));
+  return m_impl_ptr->cuda_graph_exec();
+}
+#elif defined(KOKKOS_ENABLE_HIP)
+template <class ExecutionSpace>
+hipGraph_t Graph<ExecutionSpace>::hip_graph() const
+  requires std::same_as<ExecutionSpace, Kokkos::HIP>
+{
+  KOKKOS_EXPECTS(bool(m_impl_ptr));
+  return m_impl_ptr->hip_graph();
+}
+template <class ExecutionSpace>
+hipGraphExec_t Graph<ExecutionSpace>::hip_graph_exec() const
+  requires std::same_as<ExecutionSpace, Kokkos::HIP>
+{
+  KOKKOS_EXPECTS(bool(m_impl_ptr));
+  return m_impl_ptr->hip_graph_exec();
+}
+#elif defined(KOKKOS_ENABLE_SYCL) && defined(KOKKOS_IMPL_SYCL_GRAPH_SUPPORT)
+template <class ExecutionSpace>
+const auto& Graph<ExecutionSpace>::sycl_graph() const
+  requires std::same_as<ExecutionSpace, Kokkos::SYCL>
+{
+  KOKKOS_EXPECTS(bool(m_impl_ptr));
+  return m_impl_ptr->sycl_graph();
+}
+template <class ExecutionSpace>
+const auto& Graph<ExecutionSpace>::sycl_graph_exec() const
+  requires std::same_as<ExecutionSpace, Kokkos::SYCL>
+{
+  KOKKOS_EXPECTS(bool(m_impl_ptr));
+  return m_impl_ptr->sycl_graph_exec();
+}
+#endif
 
 }  // end namespace Experimental
 }  // namespace Kokkos

@@ -25,6 +25,11 @@ compute         10 all property/atom end1x end1y end2x end2y
 #dump           1 all custom 500 dump1.atom id type x y z ix iy iz
 #dump           2 all custom 500 dump1.line id type &
 #               c_10[1] c_10[2] c_10[3] c_10[4]
+#dump            viz all image 500 line-*.png type type line atom 0.4 box yes 0.015 &
+#                    size 600 600 zoom 4.0 center s 0.5 0.5 0.5 &
+#                    shiny 0.3 fsaa yes ssao yes 453983 0.3
+#dump_modify     viz pad 6 color someorange 0.897993 0.646998 0.0390021 &
+#                    acolor 1 someorange boxcolor steelblue lights 0.1 0.9 0.45 0.9
 
 timestep        0.001
 
@@ -44,11 +49,18 @@ run             10000
 #undump          2
 unfix           3
 
+#undump           viz
+
+
 change_box      all triclinic
 
 #dump           1 all custom 500 dump2.atom id type x y z ix iy iz
 #dump           2 all custom 500 dump2.line id type &
 #               c_10[1] c_10[2] c_10[3] c_10[4]
+#dump            viz all image 500 line-*.png type type line atom 0.4 box yes 0.015 &
+#                    size 600 600 zoom 1.6 shiny 0.3 fsaa yes ssao yes 453983 0.3
+#dump_modify     viz pad 6 color someorange 0.897993 0.646998 0.0390021 &
+#                    acolor 1 someorange boxcolor steelblue lights 0.1 0.9 0.45 0.9
 
 fix             3 all deform 1 xy erate 0.01 units box
 

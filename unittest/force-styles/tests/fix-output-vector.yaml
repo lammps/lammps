@@ -1,0 +1,26 @@
+---
+lammps_version: 4 Jul 2026
+tags:
+date_generated: Wed Aug  5 09:52:23 2026
+epsilon: 1e-08
+timestep: 0.25
+skip_tests:
+prerequisites: |
+  atom full
+  fix vector
+pre_commands: ""
+post_commands: |
+  compute output_temp all temp
+  variable pe equal pe
+  fix test all vector 2 c_output_temp v_pe
+input_file: in.fourmol
+input_coeffs: coeffs.fourmol
+natoms: 29
+global_array: |2
+   2.8042780385852982e+01  6.1285911768483379e+02
+   4.4473450821985728e+02  5.7766955763912608e+02
+   1.3903737638445416e+03  4.9808973194149473e+02
+   2.3824799088210912e+03  4.1495531474650403e+02
+   3.1177096412749956e+03  3.5355720415193946e+02
+   3.5092822981307081e+03  3.2096791673189210e+02
+...

@@ -84,9 +84,7 @@ FixSMDIntegrateTlsph::FixSMDIntegrateTlsph(LAMMPS *lmp, int narg, char **arg) :
                                 printf("... will limit velocities to <= %g\n", vlimit);
                         }
                 } else {
-                        char msg[128];
-                        snprintf(msg,128, "Illegal keyword for smd/integrate_tlsph: %s\n", arg[iarg]);
-                        error->all(FLERR, msg);
+                        error->all(FLERR, iarg, "Unknown fix smd/integrate_tlsph keyword: {}", arg[iarg]);
                 }
 
                 iarg++;

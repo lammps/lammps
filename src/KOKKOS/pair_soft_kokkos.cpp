@@ -95,10 +95,10 @@ void PairSoftKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   nlocal = atom->nlocal;
   nall = atom->nlocal + atom->nghost;
   newton_pair = force->newton_pair;
-  special_lj[0] = force->special_lj[0];
-  special_lj[1] = force->special_lj[1];
-  special_lj[2] = force->special_lj[2];
-  special_lj[3] = force->special_lj[3];
+  special_lj[0] = static_cast<KK_FLOAT>(force->special_lj[0]);
+  special_lj[1] = static_cast<KK_FLOAT>(force->special_lj[1]);
+  special_lj[2] = static_cast<KK_FLOAT>(force->special_lj[2]);
+  special_lj[3] = static_cast<KK_FLOAT>(force->special_lj[3]);
 
   // loop over neighbors of my atoms
 
@@ -106,14 +106,14 @@ void PairSoftKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   EV_FLOAT ev = pair_compute<PairSoftKokkos<DeviceType>,void >(this,(NeighListKokkos<DeviceType>*)list);
 
-  if (eflag_global) eng_vdwl += ev.evdwl;
+  if (eflag_global) eng_vdwl += static_cast<double>(ev.evdwl);
   if (vflag_global) {
-    virial[0] += ev.v[0];
-    virial[1] += ev.v[1];
-    virial[2] += ev.v[2];
-    virial[3] += ev.v[3];
-    virial[4] += ev.v[4];
-    virial[5] += ev.v[5];
+    virial[0] += static_cast<double>(ev.v[0]);
+    virial[1] += static_cast<double>(ev.v[1]);
+    virial[2] += static_cast<double>(ev.v[2]);
+    virial[3] += static_cast<double>(ev.v[3]);
+    virial[4] += static_cast<double>(ev.v[4]);
+    virial[5] += static_cast<double>(ev.v[5]);
   }
 
   if (eflag_atom) {
@@ -137,13 +137,13 @@ template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
 KK_FLOAT PairSoftKokkos<DeviceType>::
 compute_fpair(const KK_FLOAT& rsq, const int &, const int &, const int& itype, const int& jtype) const {
-  const KK_FLOAT r = sqrt(rsq);
+  const KK_FLOAT r = Kokkos::sqrt(rsq);
   const KK_FLOAT cut_ij = STACKPARAMS?m_params[itype][jtype].cut:params(itype,jtype).cut;
   const KK_FLOAT prefactor_ij = STACKPARAMS?m_params[itype][jtype].prefactor:params(itype,jtype).prefactor;
-  const KK_FLOAT arg = MY_PI*r/cut_ij;
+  const KK_FLOAT arg = static_cast<KK_FLOAT>(MY_PI)*r/cut_ij;
 
   KK_FLOAT fpair = 0.0;
-  if (r > 0.0) fpair = prefactor_ij * sin(arg) * MY_PI/cut_ij/r;
+  if (r > static_cast<KK_FLOAT>(0.0)) fpair = prefactor_ij * Kokkos::sin(arg) * static_cast<KK_FLOAT>(MY_PI)/cut_ij/r;
 
   return fpair;
 }
@@ -154,12 +154,12 @@ template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
 KK_FLOAT PairSoftKokkos<DeviceType>::
 compute_evdwl(const KK_FLOAT& rsq, const int &, const int &, const int& itype, const int& jtype) const {
-  const KK_FLOAT r = sqrt(rsq);
+  const KK_FLOAT r = Kokkos::sqrt(rsq);
   const KK_FLOAT cut_ij = STACKPARAMS?m_params[itype][jtype].cut:params(itype,jtype).cut;
   const KK_FLOAT prefactor_ij = STACKPARAMS?m_params[itype][jtype].prefactor:params(itype,jtype).prefactor;
-  const KK_FLOAT arg = MY_PI*r/cut_ij;
+  const KK_FLOAT arg = static_cast<KK_FLOAT>(MY_PI)*r/cut_ij;
 
-  return prefactor_ij*(1.0+cos(arg));
+  return prefactor_ij*(static_cast<KK_FLOAT>(1.0)+Kokkos::cos(arg));
 }
 
 /* ----------------------------------------------------------------------
@@ -217,13 +217,13 @@ double PairSoftKokkos<DeviceType>::init_one(int i, int j)
 {
   double cutone = PairSoft::init_one(i,j);
 
-  k_params.view_host()(i,j).prefactor = prefactor[i][j];
-  k_params.view_host()(i,j).cut = cutone;
-  k_params.view_host()(i,j).cutsq = cutone*cutone;
+  k_params.view_host()(i,j).prefactor = static_cast<KK_FLOAT>(prefactor[i][j]);
+  k_params.view_host()(i,j).cut = static_cast<KK_FLOAT>(cutone);
+  k_params.view_host()(i,j).cutsq = static_cast<KK_FLOAT>(cutone*cutone);
   k_params.view_host()(j,i) = k_params.view_host()(i,j);
   if (i<MAX_TYPES_STACKPARAMS+1 && j<MAX_TYPES_STACKPARAMS+1) {
     m_params[i][j] = m_params[j][i] = k_params.view_host()(i,j);
-    m_cutsq[j][i] = m_cutsq[i][j] = cutone*cutone;
+    m_cutsq[j][i] = m_cutsq[i][j] = static_cast<KK_FLOAT>(cutone*cutone);
   }
 
   k_cutsq.view_host()(i,j) = k_cutsq.view_host()(j,i) = cutone*cutone;

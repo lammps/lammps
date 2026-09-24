@@ -29,7 +29,7 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputeKERigid::ComputeKERigid(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), rfix(nullptr)
+  Compute(lmp, narg, arg), irfix(nullptr), rfix(nullptr)
 {
   if (narg != 4) error->all(FLERR,"Illegal compute ke/rigid command");
 
@@ -43,18 +43,18 @@ ComputeKERigid::ComputeKERigid(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeKERigid::~ComputeKERigid()
 {
-  delete [] rfix;
+  delete[] rfix;
 }
 
 /* ---------------------------------------------------------------------- */
 
 void ComputeKERigid::init()
 {
-  irfix = modify->find_fix(rfix);
-  if (irfix < 0) error->all(FLERR,"Fix ID for compute ke/rigid does not exist");
+  irfix = modify->get_fix_by_id(rfix);
+  if (!irfix) error->all(FLERR,"Fix ID {} for compute ke/rigid does not exist", rfix);
 
-  if (strncmp(modify->fix[irfix]->style,"rigid",5))
-    error->all(FLERR,"Compute ke/rigid with non-rigid fix-ID");
+  if (!utils::strmatch(irfix->style,"^rigid"))
+    error->all(FLERR,"Compute ke/rigid with non-rigid fix {}", rfix);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -63,10 +63,12 @@ double ComputeKERigid::compute_scalar()
 {
   invoked_scalar = update->ntimestep;
 
-  if (strncmp(modify->fix[irfix]->style,"rigid",5) == 0) {
-    if (strstr(modify->fix[irfix]->style,"/small")) {
-      scalar = (dynamic_cast<FixRigidSmall *>(modify->fix[irfix]))->extract_ke();
-    } else scalar = (dynamic_cast<FixRigid *>(modify->fix[irfix]))->extract_ke();
+  if (utils::strmatch(irfix->style,"^rigid")) {
+    if (auto *smallfix = dynamic_cast<FixRigidSmall *>(irfix)) {
+      scalar = smallfix->extract_ke();
+    } else if (auto *plainfix =dynamic_cast<FixRigid *>(irfix)) {
+      scalar = plainfix->extract_ke();
+    } else scalar = 0.0;
   }
   scalar *= force->mvv2e;
   return scalar;

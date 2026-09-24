@@ -1,0 +1,265 @@
+LAMMPS (4 Jul 2026 - Development - patch_4Jul2026-854-g51def89584-modified)
+  using 1 OpenMP thread(s) per MPI task
+units           lj
+dimension       3
+boundary        f f f
+atom_style      bond
+special_bonds   lj 0.0 1.0 1.0 coul 0.0 1.0 1.0
+newton          on off
+comm_modify     vel yes cutoff 2.6
+lattice         fcc 1.0
+Lattice spacing in x,y,z = 1.5874011 1.5874011 1.5874011
+region          box block -25 15 -22 22 -22 22
+create_box      1 box bond/types 2 extra/bond/per/atom 20 extra/special/per/atom 50
+Created orthogonal box = (-39.685026 -34.922823 -34.922823) to (23.811016 34.922823 34.922823)
+  1 by 2 by 2 MPI processor grid
+
+region          disk cylinder x 0.0 0.0 20.0 -0.5 0.5
+create_atoms    1 region disk
+Created 7529 atoms
+  using lattice units in orthogonal box = (-39.685026 -34.922823 -34.922823) to (23.811016 34.922823 34.922823)
+  create_atoms CPU = 0.001 seconds
+group           plate region disk
+7529 atoms in group plate
+
+region          ball sphere 8.0 0.0 0.0 6.0
+create_atoms    1 region ball
+Created 3589 atoms
+  using lattice units in orthogonal box = (-39.685026 -34.922823 -34.922823) to (23.811016 34.922823 34.922823)
+  create_atoms CPU = 0.001 seconds
+group           projectile region ball
+3589 atoms in group projectile
+
+displace_atoms  all random 0.1 0.1 0.1 134598738
+Displacing atoms ...
+
+mass            1 1.0
+
+neighbor        1.0 bin
+pair_style      bpm/spring
+pair_coeff      1 1 1.0 1.0 1.0
+
+fix             1 all nve
+
+create_bonds    many plate plate 1 0.0 1.5
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 2
+  ghost atom cutoff = 2.6
+  binsize = 1, bins = 64 70 70
+  2 neighbor lists, perpetual/occasional/extra = 1 1 0
+  (1) command create_bonds, occasional
+      attributes: full, newton on
+      pair build: full/bin
+      stencil: full/bin/3d
+      bin: standard
+  (2) pair bpm/spring, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+Added 38559 bonds, new total = 38559
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        1        1       
+  special bond factors coul:  0        1        1       
+    15 = max # of 1-2 neighbors
+   101 = max # of special neighbors
+  special bonds CPU = 0.001 seconds
+create_bonds    many projectile projectile 2 0.0 1.5
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+WARNING: Bonds are defined but no bond style is set (src/force.cpp:198)
+WARNING: Likewise 1-2 special neighbor interactions != 1.0 (src/force.cpp:200)
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 2
+  ghost atom cutoff = 2.6
+  binsize = 1, bins = 64 70 70
+  2 neighbor lists, perpetual/occasional/extra = 1 1 0
+  (1) command create_bonds, occasional
+      attributes: full, newton on
+      pair build: full/bin
+      stencil: full/bin/3d
+      bin: standard
+  (2) pair bpm/spring, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+Added 21869 bonds, new total = 60428
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        1        1       
+  special bond factors coul:  0        1        1       
+    16 = max # of 1-2 neighbors
+   101 = max # of special neighbors
+  special bonds CPU = 0.001 seconds
+
+neighbor        0.3 bin
+special_bonds   lj 0.0 1.0 1.0 coul 1.0 1.0 1.0
+
+bond_style      bpm/spring store/local brkbond 100 time id1 id2
+bond_coeff      1 1.0 0.04 1.0
+bond_coeff      2 1.0 0.20 1.0
+
+velocity        projectile set -0.05 0.0 0.0
+compute         nbond all nbond/atom
+compute         tbond all reduce sum c_nbond
+
+timestep        0.1
+thermo_style    custom step ke pe pxx pyy pzz c_tbond
+thermo          100
+thermo_modify   lost ignore lost/bond ignore
+#dump            1 all custom 100 atomDump id x y z c_nbond
+
+#dump            2 all local 100 brokenDump f_brkbond[1] f_brkbond[2] f_brkbond[3]
+#dump_modify     2 header no
+
+# color each intact bond by the force it carries and render an image of the
+# fracturing disk (viewed face-on with view 90 0); see examples/GRAPHICS
+#compute         bforce all bond/local force
+#dump            3 all image 100 impact.*.ppm type type adiam 0.4 bond c_bforce 0.3 #                size 800 800 zoom 1.7 view 90 0 box no 0.0
+#dump_modify     3 bmap 0.0 0.04 ca 0.0 2 min blue max red backcolor white
+
+run             7500
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- BPM bond style: https://doi.org/10.1039/D3SM01373A
+
+@Article{Clemmer2024,
+ author =  {Clemmer, Joel T. and Monti, Joseph M. and Lechman, Jeremy B.},
+ title =   {A soft departure from jamming: the compaction of deformable
+            granular matter under high pressures},
+ journal = {Soft Matter},
+ year =    2024,
+ volume =  20,
+ number =  8,
+ pages =   {1702--1718}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 1.3
+  ghost atom cutoff = 2.6
+  binsize = 0.65, bins = 98 108 108
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair bpm/spring, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 17.49 | 17.49 | 17.49 Mbytes
+   Step         KinEng         PotEng          Pxx            Pyy            Pzz          c_tbond    
+         0   0.0010167873   0              7.298968e-05   0              0              10.8703      
+       100   0.0010167873   4.4685178e-32  7.298968e-05  -8.7429897e-20 -8.8470837e-20  10.8703      
+       200   0.0010167873   7.0495619e-32  7.298968e-05  -7.2809565e-20 -8.0915788e-20  10.8703      
+       300   0.0009951439   1.5057963e-05  9.9273671e-05  8.1569216e-06  8.0922512e-06  10.868142    
+       400   0.00095142792  3.5493864e-05  0.00012669557 -1.3413721e-05 -1.4800745e-05  10.849793    
+       500   0.00092272662  4.0693565e-05  8.1708784e-05 -9.7488701e-06 -1.3603634e-05  10.819752    
+       600   0.00088967612  4.7863227e-05  6.2587266e-05 -5.1954127e-06 -6.781587e-06   10.797985    
+       700   0.00086070919  5.6230545e-05  8.8529902e-05 -9.9431205e-06 -7.9905211e-06  10.776579    
+       800   0.00083543943  6.472348e-05   7.5920357e-05  3.6381024e-07  3.7747551e-06  10.759309    
+       900   0.00081190799  7.3641256e-05  6.3678219e-05  5.4158243e-06  1.2751247e-05  10.744199    
+      1000   0.00078828988  8.1710063e-05  7.3079869e-05 -6.6410613e-06 -1.198683e-06   10.728368    
+      1100   0.00075664718  9.6380171e-05  6.2976995e-05 -4.7863299e-06 -3.9814556e-06  10.711819    
+      1200   0.00072472205  0.00011439708  4.9680233e-05  9.3093553e-06  4.4426393e-06  10.69401     
+      1300   0.00070176532  0.00011856261  5.4048176e-05  1.3051954e-05  7.5448558e-06  10.671164    
+      1400   0.00068599319  0.00011303042  5.4062404e-05  9.9930199e-06  1.0353154e-05  10.650117    
+      1500   0.0006786164   0.00010648746  4.5038593e-05  8.067571e-06   9.8825461e-06  10.636266    
+      1600   0.00067466823  9.3917275e-05  4.6733251e-05  9.8595584e-06  1.1551081e-05  10.621335    
+      1700   0.00066847126  9.0369526e-05  5.1472453e-05  2.1569974e-07  6.0070599e-06  10.6127      
+      1800   0.00065711827  8.7557949e-05  5.0355189e-05 -8.030203e-06  -3.1395588e-06  10.599568    
+      1900   0.00063882539  9.0770067e-05  4.7146888e-05 -2.0596242e-05 -1.6494542e-05  10.581939    
+      2000   0.00061717894  9.8428859e-05  4.6698781e-05 -2.5473048e-05 -2.7703615e-05  10.567188    
+      2100   0.00059261327  0.00010705907  3.7701055e-05 -2.4637803e-05 -3.3919162e-05  10.552617    
+      2200   0.00056527158  0.00011880688  3.2239421e-05 -1.8786685e-05 -2.4202734e-05  10.538406    
+      2300   0.00054054919  0.00012847174  2.7410334e-05 -6.701111e-06  -7.4354974e-06  10.520777    
+      2400   0.00051820065  0.00013598934  2.2997206e-05  1.5623767e-05  1.8687824e-05  10.501889    
+      2500   0.00049647925  0.00014353268  1.746693e-05   2.8814144e-05  3.5569425e-05  10.487498    
+      2600   0.00047837258  0.00014765542  1.4127067e-05  3.4245611e-05  4.0208577e-05  10.472387    
+      2700   0.00046626924  0.00014502032  1.3714876e-05  3.7922196e-05  4.1550346e-05  10.456377    
+      2800   0.0004560167   0.00013939773  1.5260976e-05  3.5632577e-05  3.7885738e-05  10.440007    
+      2900   0.00045331059  0.0001281556   1.5194832e-05  3.1036124e-05  2.8633755e-05  10.427955    
+      3000   0.00045227799  0.00011597343  1.4877378e-05  1.9327028e-05  2.1189487e-05  10.414283    
+      3100   0.00044866178  0.00010876667  2.0424612e-05 -2.7242288e-06  7.7121438e-06  10.40349     
+      3200   0.00044336453  0.00010108543  2.3276121e-05 -1.979069e-05  -4.2311089e-06  10.395575    
+      3300   0.00043526526  0.00010125086  2.3338132e-05 -2.834945e-05  -1.7302033e-05  10.389998    
+      3400   0.00042817758  9.8904147e-05  2.4374527e-05 -2.9870076e-05 -3.0623264e-05  10.382803    
+      3500   0.00042182658  9.8167838e-05  2.6120627e-05 -2.9449521e-05 -3.787776e-05   10.378126    
+      3600   0.00041794291  9.5544363e-05  2.4736957e-05 -2.4098172e-05 -3.0529166e-05  10.373628    
+      3700   0.0004156005   9.2961473e-05  2.7543305e-05 -1.2431749e-05 -1.8626096e-05  10.37075     
+      3800   0.0004141461   9.0514444e-05  2.4630482e-05 -6.345489e-06  -1.7375803e-05  10.368771    
+      3900   0.00041328832  8.8484211e-05  2.2220142e-05  4.1471034e-07 -1.3339476e-05  10.366972    
+      4000   0.00041121725  8.691668e-05   2.3491321e-05  1.1284551e-05 -5.8651834e-06  10.364634    
+      4100   0.00040761876  8.6323561e-05  2.6688248e-05  1.9721625e-05  3.7536871e-06  10.362655    
+      4200   0.00040301362  8.7244804e-05  2.7601916e-05  1.9212118e-05  9.7175996e-06  10.359417    
+      4300   0.00040001545  8.6321845e-05  2.7243769e-05  1.6889359e-05  1.1857147e-05  10.3551      
+      4400   0.00039654521  8.4622086e-05  2.561083e-05   1.3863551e-05  1.0593597e-05  10.351142    
+      4500   0.00039435924  8.3497654e-05  2.4366458e-05  1.2545563e-05  1.1323962e-05  10.348804    
+      4600   0.00039250006  8.3695593e-05  2.3719127e-05  1.1015167e-05  8.5964046e-06  10.348444    
+      4700   0.00039145496  8.2803979e-05  2.2943915e-05  8.7824224e-06  5.0397129e-06  10.346825    
+      4800   0.00039105331  8.0336152e-05  2.4005757e-05  7.5899773e-06  9.033741e-07   10.344846    
+      4900   0.0003898798   7.9396626e-05  2.3819433e-05  4.9673894e-06 -2.3466459e-06  10.343587    
+      5000   0.00038747508  8.0018082e-05  2.3605028e-05 -1.1717437e-06 -6.1096657e-06  10.343047    
+      5100   0.00038549022  7.9471135e-05  2.3453798e-05 -9.9256693e-06 -9.3584148e-06  10.341788    
+      5200   0.00038283936  7.9628625e-05  2.5243567e-05 -1.5877598e-05 -9.9474447e-06  10.340169    
+      5300   0.00038140888  7.8471215e-05  2.5522223e-05 -1.9331435e-05 -1.1067039e-05  10.33873     
+      5400   0.00037916674  7.8219155e-05  2.5181488e-05 -2.1581255e-05 -1.1252641e-05  10.336931    
+      5500   0.00037782932  7.602399e-05   2.691805e-05  -1.5768241e-05 -5.6704695e-06  10.334952    
+      5600   0.00037628832  7.4675501e-05  2.5851445e-05 -1.4239811e-05 -1.9122536e-06  10.333153    
+      5700   0.00037451913  7.3991611e-05  2.4758416e-05 -1.3252284e-05 -1.9222041e-06  10.331714    
+      5800   0.00037328662  7.3983843e-05  2.2507032e-05 -9.6704092e-06 -7.5470215e-06  10.330095    
+      5900   0.00037253111  7.1935779e-05  2.3303086e-05 -4.2828034e-06 -7.888056e-06   10.328476    
+      6000   0.00037171133  7.0629223e-05  2.4042456e-05 -4.7684985e-06 -6.5164336e-06  10.327397    
+      6100   0.00036986726  7.1181805e-05  2.4938695e-05 -4.8738316e-06 -4.5380007e-06  10.327037    
+      6200   0.0003675822   7.2540499e-05  2.3322229e-05 -4.6333093e-06 -5.7086464e-06  10.327037    
+      6300   0.00036552389  7.3927872e-05  2.1435354e-05 -4.8971566e-06 -3.5935426e-06  10.327037    
+      6400   0.00036488091  7.3994871e-05  2.0813994e-05 -3.8333319e-06 -3.6595059e-06  10.327037    
+      6500   0.00036447973  7.3734379e-05  2.2241876e-05  8.7797361e-08 -4.141203e-06   10.327037    
+      6600   0.00036383343  7.3435016e-05  2.269485e-05   4.9364593e-06  1.3062133e-06  10.326677    
+      6700   0.00036305076  7.3307399e-05  2.1838759e-05  6.4587048e-06  4.7758772e-06  10.326318    
+      6800   0.00036226601  7.3293345e-05  2.2916622e-05  6.044926e-06   5.0291597e-06  10.325598    
+      6900   0.00036175279  7.3175753e-05  2.2691667e-05  6.9998847e-06  5.8988637e-06  10.324699    
+      7000   0.00036143633  7.2783756e-05  2.1725813e-05  8.1268152e-06  5.0390503e-06  10.324519    
+      7100   0.0003610248   7.1959244e-05  2.1799675e-05  8.65795e-06    3.1360368e-06  10.323439    
+      7200   0.00036086259  7.1186855e-05  2.2198029e-05  5.1764734e-06  5.4798783e-07  10.32308     
+      7300   0.00036099757  7.0141476e-05  2.4160496e-05  1.0310325e-06 -5.115075e-07   10.32254     
+      7400   0.00036129334  6.9901413e-05  2.5325018e-05 -9.4918158e-07 -1.7064957e-06  10.32218     
+      7500   0.00036136655  6.8164394e-05  2.3513198e-05 -3.8618451e-06 -4.4344772e-06  10.321281    
+Loop time of 2.25538 on 4 procs for 7500 steps with 11118 atoms
+
+Performance: 28731236.892 tau/day, 3325.375 timesteps/s, 36.972 Matom-step/s
+99.2% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.083545   | 0.085767   | 0.088055   |   0.5 |  3.80
+Bond    | 1.0578     | 1.0659     | 1.0771     |   0.8 | 47.26
+Neigh   | 0.51702    | 0.53692    | 0.54733    |   1.6 | 23.81
+Comm    | 0.19682    | 0.21758    | 0.2386     |   3.2 |  9.65
+Output  | 0.0077634  | 0.007949   | 0.0083517  |   0.3 |  0.35
+Modify  | 0.29436    | 0.29779    | 0.30212    |   0.6 | 13.20
+Other   |            | 0.0435     |            |       |  1.93
+
+Nlocal:         2779.5 ave        2862 max        2686 min
+Histogram: 1 0 0 0 0 1 1 0 0 1
+Nghost:        1183.25 ave        1220 max        1134 min
+Histogram: 1 0 0 0 1 0 0 0 1 1
+Neighs:        11828.8 ave       12387 max       11053 min
+Histogram: 1 0 0 0 1 0 0 0 1 1
+
+Total # of neighbors = 47315
+Ave neighs/atom = 4.2557115
+Ave special neighs/atom = 10.321281
+Neighbor list builds = 421
+Dangerous builds = 0
+Total wall time: 0:00:02

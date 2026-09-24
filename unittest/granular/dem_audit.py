@@ -98,6 +98,15 @@ def formulas(model, v, txt):
             f['oblique_impact vz_out']  = ("vz_out = e*vz_in", e * vz)
             f['oblique_impact vx_out']  = ("vx_out = vx_in - mu*(1+e)*vz_in", vx - mu * (1 + e) * vz)
             f['oblique_impact omega_y'] = ("omega_y = (5/2)*mu*(1+e)*vz_in/r", 2.5 * mu * (1 + e) * vz / r)
+        elif model == 'oblique_impact_pair':
+            e, mu, vn, vt = v['en'], v['xmu'], v['vn_in'], v['vt_in']
+            dvt = mu * (1 + e) * vn
+            f['oblique_impact_pair v1x'] = ("v1x = -e*vn_in", -e * vn)
+            f['oblique_impact_pair v1y'] = ("v1y = vt_in - mu*(1+e)*vn_in", vt - dvt)
+            f['oblique_impact_pair v2x'] = ("v2x = +e*vn_in", e * vn)
+            f['oblique_impact_pair v2y'] = ("v2y = -(vt_in - mu*(1+e)*vn_in)", -(vt - dvt))
+            f['oblique_impact_pair omega1z'] = ("omega1z = -(5/2)*mu*(1+e)*vn_in/r", -2.5 * dvt / r)
+            f['oblique_impact_pair omega2z'] = ("omega2z = -(5/2)*mu*(1+e)*vn_in/r", -2.5 * dvt / r)
         elif model == 'slip_cessation':
             u0 = v['u0']
             f['slip_cessation vx']      = ("vx = 5*u0/7", 5 * u0 / 7)
@@ -116,10 +125,111 @@ def formulas(model, v, txt):
                 f['rolling_decay omega_y'] = ("omega_y(t) = omega0 - (5*mur*g)/(2r)*t", None)
         elif model == 'pulloff_dmt':
             f['pulloff_dmt force'] = ("F = 4*pi*coh*reff", 4 * PI * v['coh'] * v['reff'])
+        elif model == 'spin_no_friction':
+            f['spin_no_friction omega_y preserved'] = ("omega_y = omega0 (no tangential force)", v['omega0'])
+        elif model == 'energy_dissipation':
+            m = massof(v, txt)
+            f['energy_dissipation initial energy'] = (
+                "E_init = (1/2)*m*(vx_in^2+vz_in^2)  [final E must not exceed this]",
+                0.5 * m * (v['vx_in'] ** 2 + v['vz_in'] ** 2))
+        elif model == 'terminal_velocity_linear':
+            m = massof(v, txt)
+            f['terminal_velocity_linear'] = ("v_term = m*g/gamma", m * v['grav'] / v['gamma'])
+        elif model == 'terminal_velocity_schiller_naumann':
+            m, r = massof(v, txt), radius(v)
+            rho, mu, g = v['rho_gas'], v['mu_gas'], v['grav']
+            def drag(u):
+                re = rho * u * (2.0 * r) / mu
+                cd = (24.0 / re) * (1.0 + 0.15 * re ** 0.687)
+                return 0.5 * cd * rho * PI * r * r * u * u
+            lo, hi = 1e-12, 1.0
+            while drag(hi) < m * g:
+                hi *= 2.0
+            for _ in range(200):
+                mid = 0.5 * (lo + hi)
+                if drag(mid) < m * g:
+                    lo = mid
+                else:
+                    hi = mid
+            f['terminal_velocity_schiller_naumann'] = (
+                "v_term solves m*g = (1/2)*Cd(Re)*rho_g*pi*r^2*v^2 (Schiller-Naumann)",
+                0.5 * (lo + hi))
         elif model == 'hertz_normal_impact':
             f['hertz_normal_impact peak energy balance'] = (
                 "(1/2)*m_red*vrela^2 = (2/5)*Pmax*alpha  [LHS here; RHS from sim force]",
                 0.5 * v['mred_factor'] * massof(v, txt) * v['vrela'] ** 2)
+        elif model == 'hertz_peak':
+            mred = v['mred_factor'] * massof(v, txt)
+            alpha = (5.0 * mred * v['vrela'] ** 2 / (4.0 * v['kfac'])) ** 0.4
+            f['hertz_peak alpha_max'] = ("alpha_max = (5*m_red*vrela^2/(4*kfac))^(2/5)", alpha)
+            f['hertz_peak P_max'] = ("P_max = kfac*alpha_max^(3/2)", v['kfac'] * alpha ** 1.5)
+        elif model == 'slip_transient':
+            tt = seg_time(txt)
+            if tt is not None:
+                f['slip_transient u'] = (f"u(t) = u0 - mu*g*t  [t={tt:.4g}s]",
+                                         v['u0'] - v['xmu'] * v['grav'] * tt)
+                f['slip_transient omega_y'] = ("omega_y(t) = (5/2)*mu*g*t/r",
+                                               2.5 * v['xmu'] * v['grav'] * tt / radius(v))
+        elif model == 'incline_rolling':
+            tt = seg_time(txt)
+            a = (5.0 / 7.0) * v['grav'] * (v['sin_t'] - v['mur'] * v['cos_t'])
+            if a > 0 and tt is not None:
+                f['incline_rolling v'] = (f"v(t) = (5/7)*g*(sin-mur*cos)*t  [t={tt:.4g}s]", a * tt)
+                f['incline_rolling omega_y'] = ("omega_y = v/r", a * tt / radius(v))
+            elif a <= 0:
+                f['incline_rolling v'] = ("mur >= tan(theta): stays at rest, v = 0", None)
+        elif model == 'wall_restitution':
+            f['wall_restitution vx_out'] = ("vx_out = -e*vx_in", -v['en'] * v['vx_in'])
+        elif model == 'pulloff_jkr':
+            f['pulloff_jkr force'] = ("|F(delta=0)| = (8/3)*pi*coh*reff = (8/9)*F_pulloff",
+                                      (8.0 / 3.0) * PI * v['coh'] * v['reff'])
+        elif model == 'twist_decay':
+            tt = seg_time(txt)
+            if tt is not None:
+                r = radius(v)
+                f['twist_decay omega_z'] = (
+                    f"omega_z(t) = omega0 - (5*mut*g)/(2*r^2)*t  [t={tt:.4g}s]",
+                    v['omega0'] - 5.0 * v['mut'] * v['grav'] / (2.0 * r * r) * tt)
+        elif model == 'twist_decay_marshall':
+            tt = seg_time(txt)
+            if tt is not None:
+                r = radius(v)
+                a = math.sqrt((r - v['z0']) * r)
+                f['twist_decay_marshall omega_z'] = (
+                    f"omega_z(t) = omega0 - (5*xmu*a*g)/(3*r^2)*t  [a={a:.4g}, t={tt:.4g}s]",
+                    v['omega0'] - 5.0 * v['xmu'] * a * v['grav'] / (3.0 * r * r) * tt)
+        elif model == 'heat_equilibration':
+            tt = seg_time(txt)
+            if tt is not None:
+                r = radius(v)
+                delta = v['diam'] - 2.0 * v['sep']
+                a = math.sqrt(delta * 0.5 * r)    # R_eff = r/2 for an equal pair
+                hcond = v.get('htc_area', 0.0) * PI * a * a if 'htc_area' in v \
+                    else 2.0 * v['htc_radius'] * a
+                m = massof(v, txt)
+                rate = 2.0 * hcond / (v['cp'] * m)
+                f['heat_equilibration temperature difference'] = (
+                    f"T1-T2 = dT0*exp(-t*H*2/(cp*m))  [H={hcond:.4g}, t={tt:.4g}s]",
+                    (v['t1_0'] - v['t2_0']) * math.exp(-rate * tt))
+                f['heat_equilibration mean temperature'] = (
+                    "mean T constant (equal masses)", 0.5 * (v['t1_0'] + v['t2_0']))
+        elif model == 'freefall':
+            tt = seg_time(txt)
+            if tt is not None:
+                f['freefall z'] = (f"z(t) = z0 - g*t^2/2  [t={tt:.4g}s]",
+                                   v['z0'] - 0.5 * v['grav'] * tt * tt)
+                f['freefall vz'] = ("vz(t) = -g*t", -v['grav'] * tt)
+        elif model == 'stack_energy':
+            r = v['diam'] / 2.0
+            m1 = v['dens1'] * (PI / 6.0) * v['diam'] ** 3
+            m2 = v['dens2'] * (PI / 6.0) * v['diam'] ** 3
+            df = max(0.0, r - (v['y1'] - v['ylo']))
+            dc = max(0.0, (v['y2'] + r) - v['yhi'])
+            dpp = max(0.0, 2.0 * r - (v['y2'] - v['y1']))
+            pe0 = 0.5 * v['knorm'] * (df * df + dc * dc + dpp * dpp)
+            f['stack_energy total energy'] = (
+                "E0 = m1*g*y1 + m2*g*y2 + (1/2)*kn*(d_floor^2+d_pair^2+d_ceil^2)",
+                m1 * v['grav'] * v['y1'] + m2 * v['grav'] * v['y2'] + pe0)
     except KeyError:
         pass
     return f

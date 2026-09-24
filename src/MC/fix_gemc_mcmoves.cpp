@@ -227,10 +227,6 @@ void FixGEMC::attempt_atomic_exchange_full()
   int tmp_mask;
   double q_tmp;
 
-  // save old coordinates in case exchange rejected
-
-  double old_coord[3];
-
   // pick atom to send
 
   if (sender) {
@@ -240,11 +236,6 @@ void FixGEMC::attempt_atomic_exchange_full()
 
     iatom = pick_random_gas_atom();
     if (iatom >= 0) {
-      // save old coordinates
-
-      old_coord[0] = atom->x[iatom][0];
-      old_coord[1] = atom->x[iatom][1];
-      old_coord[2] = atom->x[iatom][2];
 
       // temporarily set mask to exclusion for full energy later
 

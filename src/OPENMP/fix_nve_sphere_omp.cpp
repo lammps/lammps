@@ -25,7 +25,6 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathExtra;
 
-static constexpr double INERTIA = 0.4;          // moment of inertia prefactor for sphere
 
 enum{NONE,DIPOLE};
 enum{NODLM,DLM};
@@ -47,7 +46,7 @@ void FixNVESphereOMP::initial_integrate(int /* vflag */)
   const int nlocal = (igroup == atom->firstgroup) ? atom->nfirst : atom->nlocal;
 
   // set timestep here since dt may have changed or come via rRESPA
-  const double dtfrotate = dtf / INERTIA;
+  const double dtfrotate = dtf / inertia;
 
   // update v,x,omega for all particles
   // d_omega/dt = torque / inertia
@@ -220,7 +219,7 @@ void FixNVESphereOMP::final_integrate()
 
   // set timestep here since dt may have changed or come via rRESPA
 
-  const double dtfrotate = dtf / INERTIA;
+  const double dtfrotate = dtf / inertia;
 
   // update v,omega for all particles
   // d_omega/dt = torque / inertia

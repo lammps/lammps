@@ -842,7 +842,7 @@ void EwaldDipole::musum_musq()
     mu2 = musqsum * force->qqrd2e;
   }
 
-  if (mu2 == 0 && comm->me == 0)
+  if (mu2 == 0)
     error->all(FLERR,"Using kspace solver EwaldDipole on system with no dipoles");
 }
 

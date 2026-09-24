@@ -59,7 +59,7 @@ Molecule::Molecule(LAMMPS *lmp) :
     improper_atom4(nullptr), nspecial(nullptr), special(nullptr), shake_flag(nullptr),
     shake_atom(nullptr), shake_type(nullptr), avec_body(nullptr), ibodyparams(nullptr),
     dbodyparams(nullptr), fragmentmask(nullptr), dx(nullptr), dxcom(nullptr), dxbody(nullptr),
-    quat_external(nullptr), count(nullptr)
+    count(nullptr)
 {
   // parse args until reach unknown arg (next file)
 
@@ -68,6 +68,7 @@ Molecule::Molecule(LAMMPS *lmp) :
   sizescale = 1.0;
   for (int i = 0; i < 4; i++) check_which_labels[i] = 0;
   json_format = 0;
+  quat_external[0] = quat_external[1] = quat_external[2] = quat_external[3] = 0.0;
 
   // initialize all fields to empty
 
@@ -1729,7 +1730,7 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
             APPLY_SHAKE_ATOMS(4);
             break;
           case 0:
-            APPLY_SHAKE_ATOMS(0);
+            APPLY_SHAKE_ATOMS(0); // NOLINT
             break;
           default:
             error->all(FLERR, Error::NOLASTLINE,
@@ -1806,7 +1807,7 @@ void Molecule::from_json(const std::string &molid, const json &moldata)
             SET_SHAKE_TYPE(Atom::ANGLE, 2, 3, aoffset);
             break;
           case 2:
-            SET_SHAKE_TYPE(Atom::BOND, 0, 1, boffset);
+            SET_SHAKE_TYPE(Atom::BOND, 0, 1, boffset); // NOLINT
             break;
           case 3:
             SET_SHAKE_TYPE(Atom::BOND, 0, 2, boffset);

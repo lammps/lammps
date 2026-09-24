@@ -15,6 +15,40 @@
 namespace Kokkos {
 namespace Impl {
 
+template <class F, class WTag, class ref_type>
+concept has_init_tag_function = requires(const F f) {
+  { f.init(WTag{}, std::declval<ref_type>()) } -> std::same_as<void>;
+};
+
+template <class F, class ref_type>
+concept has_init_no_tag_function = requires(const F f) {
+  { f.init(std::declval<ref_type>()) } -> std::same_as<void>;
+};
+
+template <class F, class WTag, class ref_type, class cref_type>
+concept has_join_tag_function = requires(const F f) {
+  {
+    f.join(WTag{}, std::declval<ref_type>(), std::declval<cref_type>())
+  } -> std::same_as<void>;
+};
+
+template <class F, class ref_type, class cref_type>
+concept has_join_no_tag_function = requires(const F f) {
+  {
+    f.join(std::declval<ref_type>(), std::declval<cref_type>())
+  } -> std::same_as<void>;
+};
+
+template <class F, class WTag, class ref_type>
+concept has_final_tag_function = requires(const F f) {
+  { f.final(WTag{}, std::declval<ref_type>()) } -> std::same_as<void>;
+};
+
+template <class F, class ref_type>
+concept has_final_no_tag_function = requires(const F f) {
+  { f.final(std::declval<ref_type>()) } -> std::same_as<void>;
+};
+
 struct FunctorPatternInterface {
   struct FOR {};
   struct REDUCE {};
@@ -71,14 +105,15 @@ struct FunctorAnalysis {
 
   struct void_tag {};
 
-  template <typename P = Policy, typename = std::false_type>
+  template <typename P = Policy>
   struct has_work_tag {
     using type = void;
     using wtag = void_tag;
   };
 
   template <typename P>
-  struct has_work_tag<P, typename std::is_void<typename P::work_tag>::type> {
+    requires requires { typename P::work_tag; }
+  struct has_work_tag<P> {
     using type = typename P::work_tag;
     using wtag = typename P::work_tag;
   };
@@ -89,15 +124,15 @@ struct FunctorAnalysis {
   //----------------------------------------
   // Check for T::execution_space
 
-  template <typename T, typename = std::false_type>
+  template <typename T>
   struct has_execution_space {
     using type = void;
     enum : bool { value = false };
   };
 
   template <typename T>
-  struct has_execution_space<
-      T, typename std::is_void<typename T::execution_space>::type> {
+    requires requires { typename T::execution_space; }
+  struct has_execution_space<T> {
     using type = typename T::execution_space;
     enum : bool { value = true };
   };
@@ -114,14 +149,14 @@ struct FunctorAnalysis {
   // Check for Functor::value_type, which is either a simple type T or T[]
 
   // If the functor doesn't have a value_type alias, use OverrideValueType.
-  template <typename F, typename = std::false_type>
+  template <typename F>
   struct has_value_type {
     using type = OverrideValueType;
   };
 
   template <typename F>
-  struct has_value_type<F,
-                        typename std::is_void<typename F::value_type>::type> {
+    requires requires { typename F::value_type; }
+  struct has_value_type<F> {
     using type = typename F::value_type;
 
     static_assert(!std::is_reference_v<type> && std::rank_v<type> <= 1 &&
@@ -309,17 +344,11 @@ struct FunctorAnalysis {
 
  private:
   template <bool IsArray, class FF>
-  KOKKOS_INLINE_FUNCTION static constexpr std::enable_if_t<IsArray,
-                                                           unsigned int>
-  get_length(FF const& f) {
-    return f.value_count;
-  }
-
-  template <bool IsArray, class FF>
-  KOKKOS_INLINE_FUNCTION static constexpr std::enable_if_t<!IsArray,
-                                                           unsigned int>
-  get_length(FF const&) {
-    return candidate_is_void ? 0 : 1;
+  KOKKOS_INLINE_FUNCTION static constexpr unsigned int get_length(FF const& f) {
+    if constexpr (IsArray)
+      return f.value_count;
+    else
+      return candidate_is_void ? 0 : 1;
   }
 
  public:
@@ -354,242 +383,15 @@ struct FunctorAnalysis {
   }
 
  private:
+  using ref_type =
+      std::conditional_t<candidate_is_array, ValueType*, ValueType&>;
+  using cref_type = std::conditional_t<candidate_is_array, const ValueType*,
+                                       const ValueType&>;
+
   //----------------------------------------
   // parallel_reduce join operator
 
-  template <class F, bool is_array = candidate_is_array>
-  struct has_join_no_tag_function;
-
-  template <class F>
-  struct has_join_no_tag_function<F, /*is_array*/ false> {
-    using ref_type  = ValueType&;
-    using cref_type = const ValueType&;
-
-    KOKKOS_INLINE_FUNCTION static void enable_if(void (F::*)(ref_type,
-                                                             cref_type) const);
-
-    KOKKOS_INLINE_FUNCTION static void enable_if(void (*)(ref_type, cref_type));
-
-    KOKKOS_INLINE_FUNCTION static void join(F const* const f, ValueType* dst,
-                                            ValueType const* src) {
-      f->join(*dst, *src);
-    }
-  };
-
-  template <class F>
-  struct has_join_no_tag_function<F, /*is_array*/ true> {
-    using ref_type  = ValueType*;
-    using cref_type = const ValueType*;
-
-    KOKKOS_INLINE_FUNCTION static void enable_if(void (F::*)(ref_type,
-                                                             cref_type) const);
-
-    KOKKOS_INLINE_FUNCTION static void enable_if(void (*)(ref_type, cref_type));
-
-    KOKKOS_INLINE_FUNCTION static void join(F const* const f, ValueType* dst,
-                                            ValueType const* src) {
-      f->join(dst, src);
-    }
-  };
-
-  template <class F, bool is_array = candidate_is_array>
-  struct has_volatile_join_no_tag_function;
-
-  template <class F>
-  struct KOKKOS_DEPRECATED_WITH_COMMENT(
-      "Reduce/scan join() taking `volatile`-qualified parameters is "
-      "deprecated. Remove the `volatile` qualifier.")
-      has_volatile_join_no_tag_function<F, /*is_array*/ false> {
-    using vref_type  = volatile ValueType&;
-    using cvref_type = const volatile ValueType&;
-
-    KOKKOS_INLINE_FUNCTION static void enable_if(void (F::*)(vref_type,
-                                                             cvref_type) const);
-
-    KOKKOS_INLINE_FUNCTION static void enable_if(void (*)(vref_type,
-                                                          cvref_type));
-
-    KOKKOS_INLINE_FUNCTION static void join(F const* const f, ValueType* dst,
-                                            ValueType const* src) {
-      f->join(*dst, *src);
-    }
-  };
-
-  template <class F>
-  struct KOKKOS_DEPRECATED_WITH_COMMENT(
-      "Reduce/scan join() taking `volatile`-qualified parameters is "
-      "deprecated. Remove the `volatile` qualifier.")
-      has_volatile_join_no_tag_function<F, /*is_array*/ true> {
-    using vref_type  = volatile ValueType*;
-    using cvref_type = const volatile ValueType*;
-
-    KOKKOS_INLINE_FUNCTION static void enable_if(void (F::*)(vref_type,
-                                                             cvref_type) const);
-
-    KOKKOS_INLINE_FUNCTION static void enable_if(void (*)(vref_type,
-                                                          cvref_type));
-
-    KOKKOS_INLINE_FUNCTION static void join(F const* const f, ValueType* dst,
-                                            ValueType const* src) {
-      f->join(dst, src);
-    }
-  };
-
-  template <class F, bool is_array = candidate_is_array>
-  struct has_join_tag_function;
-
-  template <class F>
-  struct has_join_tag_function<F, /*is_array*/ false> {
-    using ref_type  = ValueType&;
-    using cref_type = const ValueType&;
-
-    KOKKOS_INLINE_FUNCTION static void enable_if(void (F::*)(WTag, ref_type,
-                                                             cref_type) const);
-
-    KOKKOS_INLINE_FUNCTION static void enable_if(void (*)(WTag, ref_type,
-                                                          cref_type));
-
-    KOKKOS_INLINE_FUNCTION static void enable_if(void (F::*)(WTag const&,
-                                                             ref_type,
-                                                             cref_type) const);
-
-    KOKKOS_INLINE_FUNCTION static void enable_if(void (*)(WTag const&, ref_type,
-                                                          cref_type));
-
-    KOKKOS_INLINE_FUNCTION static void join(F const* const f, ValueType* dst,
-                                            ValueType const* src) {
-      f->join(WTag(), *dst, *src);
-    }
-  };
-
-  template <class F>
-  struct has_join_tag_function<F, /*is_array*/ true> {
-    using ref_type  = ValueType*;
-    using cref_type = const ValueType*;
-
-    KOKKOS_INLINE_FUNCTION static void enable_if(void (F::*)(WTag, ref_type,
-                                                             cref_type) const);
-
-    KOKKOS_INLINE_FUNCTION static void enable_if(void (*)(WTag, ref_type,
-                                                          cref_type));
-
-    KOKKOS_INLINE_FUNCTION static void enable_if(void (F::*)(WTag const&,
-                                                             ref_type,
-                                                             cref_type) const);
-
-    KOKKOS_INLINE_FUNCTION static void enable_if(void (*)(WTag const&, ref_type,
-                                                          cref_type));
-
-    KOKKOS_INLINE_FUNCTION static void join(F const* const f, ValueType* dst,
-                                            ValueType const* src) {
-      f->join(WTag(), dst, src);
-    }
-  };
-
-  template <class F, bool is_array = candidate_is_array>
-  struct has_volatile_join_tag_function;
-
-  template <class F>
-  struct KOKKOS_DEPRECATED_WITH_COMMENT(
-      "Reduce/scan join() taking `volatile`-qualified parameters is "
-      "deprecated. Remove the `volatile` qualifier.")
-      has_volatile_join_tag_function<F, /*is_array*/ false> {
-    using vref_type  = volatile ValueType&;
-    using cvref_type = const volatile ValueType&;
-
-    KOKKOS_INLINE_FUNCTION static void enable_if(void (F::*)(WTag, vref_type,
-                                                             cvref_type) const);
-
-    KOKKOS_INLINE_FUNCTION static void enable_if(void (*)(WTag, vref_type,
-                                                          cvref_type));
-
-    KOKKOS_INLINE_FUNCTION static void enable_if(void (F::*)(WTag const&,
-                                                             vref_type,
-                                                             cvref_type) const);
-
-    KOKKOS_INLINE_FUNCTION static void enable_if(void (*)(WTag const&,
-                                                          vref_type,
-                                                          cvref_type));
-
-    KOKKOS_INLINE_FUNCTION static void join(F const* const f, ValueType* dst,
-                                            ValueType const* src) {
-      f->join(WTag(), *dst, *src);
-    }
-  };
-
-  template <class F>
-  struct KOKKOS_DEPRECATED_WITH_COMMENT(
-      "Reduce/scan join() taking `volatile`-qualified parameters is "
-      "deprecated. Remove the `volatile` qualifier.")
-      has_volatile_join_tag_function<F, /*is_array*/ true> {
-    using vref_type  = volatile ValueType*;
-    using cvref_type = const volatile ValueType*;
-
-    KOKKOS_INLINE_FUNCTION static void enable_if(void (F::*)(WTag, vref_type,
-                                                             cvref_type) const);
-
-    KOKKOS_INLINE_FUNCTION static void enable_if(void (*)(WTag, vref_type,
-                                                          cvref_type));
-
-    KOKKOS_INLINE_FUNCTION static void enable_if(void (F::*)(WTag const&,
-                                                             vref_type,
-                                                             cvref_type) const);
-
-    KOKKOS_INLINE_FUNCTION static void enable_if(void (*)(WTag const&,
-                                                          vref_type,
-                                                          cvref_type));
-
-    KOKKOS_INLINE_FUNCTION static void join(F const* const f, ValueType* dst,
-                                            ValueType const* src) {
-      f->join(WTag(), dst, src);
-    }
-  };
-
-  template <class F, class = void>
-  struct detected_join_no_tag {
-    enum : bool { value = false };
-  };
-
-  template <class F>
-  struct detected_join_no_tag<
-      F, decltype(has_join_no_tag_function<F>::enable_if(&F::join))> {
-    enum : bool { value = true };
-  };
-
-  template <class F, class = void>
-  struct detected_volatile_join_no_tag {
-    enum : bool { value = false };
-  };
-
-  template <class F>
-  struct detected_volatile_join_no_tag<
-      F, decltype(has_volatile_join_no_tag_function<F>::enable_if(&F::join))> {
-    enum : bool { value = true };
-  };
-
-  template <class F, class = void>
-  struct detected_join_tag {
-    enum : bool { value = false };
-  };
-
-  template <class F>
-  struct detected_join_tag<F, decltype(has_join_tag_function<F>::enable_if(
-                                  &F::join))> {
-    enum : bool { value = true };
-  };
-
-  template <class F, class = void>
-  struct detected_volatile_join_tag {
-    enum : bool { value = false };
-  };
-
-  template <class F>
-  struct detected_volatile_join_tag<
-      F, decltype(has_volatile_join_tag_function<F>::enable_if(&F::join))> {
-    enum : bool { value = true };
-  };
-
-  template <class F = Functor, typename = void>
+  template <class F = Functor>
   struct DeduceJoinNoTag {
     enum : bool { value = false };
 
@@ -600,116 +402,40 @@ struct FunctorAnalysis {
     }
   };
 
-  template <class F>
-  struct DeduceJoinNoTag<
-      F, std::enable_if_t<(is_reducer<F>::value ||
-                           (!is_reducer<F>::value && std::is_void_v<Tag>)) &&
-                          detected_join_no_tag<F>::value>>
-      : public has_join_no_tag_function<F> {
+  template <has_join_no_tag_function<ref_type, cref_type> F>
+    requires Kokkos::Reducer<F> || (!Kokkos::Reducer<F> && std::is_void_v<Tag>)
+  struct DeduceJoinNoTag<F> {
     enum : bool { value = true };
+
+    KOKKOS_INLINE_FUNCTION static void join(F const* const f, ValueType* dst,
+                                            ValueType const* src) {
+      if constexpr (candidate_is_array)
+        f->join(dst, src);
+      else
+        f->join(*dst, *src);
+    }
   };
 
-  template <class F>
-  struct DeduceJoinNoTag<
-      F, std::enable_if_t<(is_reducer<F>::value ||
-                           (!is_reducer<F>::value && std::is_void_v<Tag>)) &&
-                          (!detected_join_no_tag<F>::value &&
-                           detected_volatile_join_no_tag<F>::value)>>
-      : public has_volatile_join_no_tag_function<F> {
-    enum : bool { value = true };
-    static_assert(Impl::dependent_false_v<F>,
-                  "Reducer with a join() operator taking "
-                  "volatile-qualified parameters is no longer supported");
-  };
-
-  template <class F = Functor, typename = void>
+  template <class F = Functor>
   struct DeduceJoin : public DeduceJoinNoTag<F> {};
 
-  template <class F>
-  struct DeduceJoin<
-      F, std::enable_if_t<!is_reducer<F>::value && detected_join_tag<F>::value>>
-      : public has_join_tag_function<F> {
+  template <has_join_tag_function<WTag, ref_type, cref_type> F>
+    requires(!Kokkos::Reducer<F>)
+  struct DeduceJoin<F> {
     enum : bool { value = true };
-  };
 
-  template <class F>
-  struct DeduceJoin<F, std::enable_if_t<!is_reducer<F>::value &&
-                                        (!detected_join_tag<F>::value &&
-                                         detected_volatile_join_tag<F>::value)>>
-      : public has_volatile_join_tag_function<F> {
-    enum : bool { value = true };
-    static_assert(Impl::dependent_false_v<F>,
-                  "Reducer with a join() operator taking "
-                  "volatile-qualified parameters is no longer supported");
+    KOKKOS_INLINE_FUNCTION static void join(F const* const f, ValueType* dst,
+                                            ValueType const* src) {
+      if constexpr (candidate_is_array)
+        f->join(WTag(), dst, src);
+      else
+        f->join(WTag(), *dst, *src);
+    }
   };
 
   //----------------------------------------
 
-  template <class, bool is_array = candidate_is_array>
-  struct has_init_no_tag_function;
-
-  template <class F>
-  struct has_init_no_tag_function<F, /*is_array*/ false> {
-    KOKKOS_INLINE_FUNCTION static void enable_if(void (F::*)(ValueType&) const);
-
-    KOKKOS_INLINE_FUNCTION static void enable_if(void (*)(ValueType&));
-
-    KOKKOS_INLINE_FUNCTION static void init(F const* const f, ValueType* dst) {
-      f->init(*dst);
-    }
-  };
-
-  template <class F>
-  struct has_init_no_tag_function<F, /*is_array*/ true> {
-    KOKKOS_INLINE_FUNCTION static void enable_if(void (F::*)(ValueType*) const);
-
-    KOKKOS_INLINE_FUNCTION static void enable_if(void (*)(ValueType*));
-
-    KOKKOS_INLINE_FUNCTION static void init(F const* const f, ValueType* dst) {
-      f->init(dst);
-    }
-  };
-
-  template <class, bool is_array = candidate_is_array>
-  struct has_init_tag_function;
-
-  template <class F>
-  struct has_init_tag_function<F, /*is_array*/ false> {
-    KOKKOS_INLINE_FUNCTION static void enable_if(void (F::*)(WTag, ValueType&)
-                                                     const);
-
-    KOKKOS_INLINE_FUNCTION static void enable_if(void (F::*)(WTag const&,
-                                                             ValueType&) const);
-
-    KOKKOS_INLINE_FUNCTION static void enable_if(void (*)(WTag, ValueType&));
-
-    KOKKOS_INLINE_FUNCTION static void enable_if(void (*)(WTag const&,
-                                                          ValueType&));
-
-    KOKKOS_INLINE_FUNCTION static void init(F const* const f, ValueType* dst) {
-      f->init(WTag(), *dst);
-    }
-  };
-
-  template <class F>
-  struct has_init_tag_function<F, /*is_array*/ true> {
-    KOKKOS_INLINE_FUNCTION static void enable_if(void (F::*)(WTag, ValueType*)
-                                                     const);
-
-    KOKKOS_INLINE_FUNCTION static void enable_if(void (F::*)(WTag const&,
-                                                             ValueType*) const);
-
-    KOKKOS_INLINE_FUNCTION static void enable_if(void (*)(WTag, ValueType*));
-
-    KOKKOS_INLINE_FUNCTION static void enable_if(void (*)(WTag const&,
-                                                          ValueType*));
-
-    KOKKOS_INLINE_FUNCTION static void init(F const* const f, ValueType* dst) {
-      f->init(WTag(), dst);
-    }
-  };
-
-  template <class F = Functor, typename = void>
+  template <class F = Functor>
   struct DeduceInitNoTag {
     enum : bool { value = false };
 
@@ -719,99 +445,38 @@ struct FunctorAnalysis {
     }
   };
 
-  template <class F>
-  struct DeduceInitNoTag<
-      F, std::enable_if_t<is_reducer<F>::value ||
-                              (!is_reducer<F>::value && std::is_void_v<Tag>),
-                          decltype(has_init_no_tag_function<F>::enable_if(
-                              &F::init))>>
-      : public has_init_no_tag_function<F> {
+  template <has_init_no_tag_function<ref_type> F>
+    requires Kokkos::Reducer<F> || (!Kokkos::Reducer<F> && std::is_void_v<Tag>)
+  struct DeduceInitNoTag<F> {
     enum : bool { value = true };
+
+    KOKKOS_INLINE_FUNCTION static void init(F const* const f, ValueType* dst) {
+      if constexpr (candidate_is_array)
+        f->init(dst);
+      else
+        f->init(*dst);
+    }
   };
 
-  template <class F = Functor, typename = void>
+  template <class F = Functor>
   struct DeduceInit : public DeduceInitNoTag<F> {};
 
-  template <class F>
-  struct DeduceInit<
-      F,
-      std::enable_if_t<!is_reducer<F>::value,
-                       decltype(has_init_tag_function<F>::enable_if(&F::init))>>
-      : public has_init_tag_function<F> {
+  template <has_init_tag_function<WTag, ref_type> F>
+    requires Kokkos::Reducer<F>
+  struct DeduceInit<F> {
     enum : bool { value = true };
+
+    KOKKOS_INLINE_FUNCTION static void init(F const* const f, ValueType* dst) {
+      if constexpr (candidate_is_array)
+        f->init(WTag(), dst);
+      else
+        f->init(WTag(), *dst);
+    }
   };
 
   //----------------------------------------
 
-  template <class, bool is_array = candidate_is_array>
-  struct has_final_no_tag_function;
-
-  // No tag, not array
-  template <class F>
-  struct has_final_no_tag_function<F, /*is_array*/ false> {
-    KOKKOS_INLINE_FUNCTION static void enable_if(void (F::*)(ValueType&) const);
-
-    KOKKOS_INLINE_FUNCTION static void enable_if(void (*)(ValueType&));
-
-    KOKKOS_INLINE_FUNCTION static void final(F const* const f, ValueType* dst) {
-      f->final(*dst);
-    }
-  };
-
-  // No tag, is array
-  template <class F>
-  struct has_final_no_tag_function<F, /*is_array*/ true> {
-    KOKKOS_INLINE_FUNCTION static void enable_if(void (F::*)(ValueType*) const);
-
-    KOKKOS_INLINE_FUNCTION static void enable_if(void (*)(ValueType*));
-
-    KOKKOS_INLINE_FUNCTION static void final(F const* const f, ValueType* dst) {
-      f->final(dst);
-    }
-  };
-
-  template <class, bool is_array = candidate_is_array>
-  struct has_final_tag_function;
-
-  // Has tag, not array
-  template <class F>
-  struct has_final_tag_function<F, /*is_array*/ false> {
-    KOKKOS_INLINE_FUNCTION static void enable_if(void (F::*)(WTag, ValueType&)
-                                                     const);
-
-    KOKKOS_INLINE_FUNCTION static void enable_if(void (F::*)(WTag const&,
-                                                             ValueType&) const);
-
-    KOKKOS_INLINE_FUNCTION static void enable_if(void (*)(WTag, ValueType&));
-
-    KOKKOS_INLINE_FUNCTION static void enable_if(void (*)(WTag const&,
-                                                          ValueType&));
-
-    KOKKOS_INLINE_FUNCTION static void final(F const* const f, ValueType* dst) {
-      f->final(WTag(), *dst);
-    }
-  };
-
-  // Has tag, is array
-  template <class F>
-  struct has_final_tag_function<F, /*is_array*/ true> {
-    KOKKOS_INLINE_FUNCTION static void enable_if(void (F::*)(WTag, ValueType*)
-                                                     const);
-
-    KOKKOS_INLINE_FUNCTION static void enable_if(void (F::*)(WTag const&,
-                                                             ValueType*) const);
-
-    KOKKOS_INLINE_FUNCTION static void enable_if(void (*)(WTag, ValueType*));
-
-    KOKKOS_INLINE_FUNCTION static void enable_if(void (*)(WTag const&,
-                                                          ValueType*));
-
-    KOKKOS_INLINE_FUNCTION static void final(F const* const f, ValueType* dst) {
-      f->final(WTag(), dst);
-    }
-  };
-
-  template <class F = Functor, typename = void>
+  template <class F = Functor>
   struct DeduceFinalNoTag {
     enum : bool { value = false };
 
@@ -819,25 +484,33 @@ struct FunctorAnalysis {
     static void final(F const* const, ValueType*) {}
   };
 
-  template <class F>
-  struct DeduceFinalNoTag<
-      F, std::enable_if_t<is_reducer<F>::value ||
-                              (!is_reducer<F>::value && std::is_void_v<Tag>),
-                          decltype(has_final_no_tag_function<F>::enable_if(
-                              &F::final))>>
-      : public has_final_no_tag_function<F> {
+  template <has_final_no_tag_function<ref_type> F>
+    requires Kokkos::Reducer<F> || (!Kokkos::Reducer<F> && std::is_void_v<Tag>)
+  struct DeduceFinalNoTag<F> {
     enum : bool { value = true };
+
+    KOKKOS_INLINE_FUNCTION static void final(F const* const f, ValueType* dst) {
+      if constexpr (candidate_is_array)
+        f->final(dst);
+      else
+        f->final(*dst);
+    }
   };
 
-  template <class F = Functor, typename = void>
+  template <class F = Functor>
   struct DeduceFinal : public DeduceFinalNoTag<F> {};
 
-  template <class F>
-  struct DeduceFinal<F, std::enable_if_t<!is_reducer<F>::value,
-                                         decltype(has_final_tag_function<
-                                                  F>::enable_if(&F::final))>>
-      : public has_final_tag_function<F> {
+  template <has_final_tag_function<WTag, ref_type> F>
+    requires(!Kokkos::Reducer<F>)
+  struct DeduceFinal<F> {
     enum : bool { value = true };
+
+    KOKKOS_INLINE_FUNCTION static void final(F const* const f, ValueType* dst) {
+      if constexpr (candidate_is_array)
+        f->final(WTag(), dst);
+      else
+        f->final(WTag(), *dst);
+    }
   };
 
  public:
@@ -853,18 +526,6 @@ struct FunctorAnalysis {
   struct Reducer {
    private:
     Functor m_functor;
-
-    template <bool IsArray>
-    KOKKOS_INLINE_FUNCTION constexpr std::enable_if_t<IsArray, int> len()
-        const noexcept {
-      return m_functor.value_count;
-    }
-
-    template <bool IsArray>
-    KOKKOS_INLINE_FUNCTION constexpr std::enable_if_t<!IsArray, int> len()
-        const noexcept {
-      return candidate_is_void ? 0 : 1;
-    }
 
    public:
     using reducer        = Reducer;
@@ -895,26 +556,24 @@ struct FunctorAnalysis {
       return StaticValueSize;
     }
 
-    template <bool is_array = candidate_is_array>
-    KOKKOS_INLINE_FUNCTION static std::enable_if_t<is_array, reference_type>
-    reference(ValueType* dst) noexcept {
-      return dst;
-    }
-
-    template <bool is_array = candidate_is_array>
-    KOKKOS_INLINE_FUNCTION static std::enable_if_t<!is_array, reference_type>
-    reference(ValueType* dst) noexcept {
-      return *dst;
+    KOKKOS_INLINE_FUNCTION static reference_type reference(
+        ValueType* dst) noexcept {
+      if constexpr (candidate_is_array)
+        return dst;
+      else
+        return *dst;
     }
 
     KOKKOS_INLINE_FUNCTION constexpr int length() const noexcept {
-      return Reducer::template len<candidate_is_array>();
+      if constexpr (candidate_is_array)
+        return m_functor.value_count;
+      else
+        return candidate_is_void ? 0 : 1;
     }
 
     KOKKOS_INLINE_FUNCTION
     void copy(ValueType* const dst, ValueType const* const src) const noexcept {
-      for (int i = 0; i < Reducer::template len<candidate_is_array>(); ++i)
-        dst[i] = src[i];
+      for (int i = 0; i < length(); ++i) dst[i] = src[i];
     }
 
     KOKKOS_INLINE_FUNCTION

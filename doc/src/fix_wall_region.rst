@@ -110,7 +110,7 @@ region surface will move over time in the corresponding manner.
    they now "see" the wall.  In a worst-case scenario, this can blow
    particles out of the simulation box.  Thus, as a general rule you
    should not use the fix wall/gran/region command with *union* or
-   *interesect* regions that have convex points or edges resulting from
+   *intersect* regions that have convex points or edges resulting from
    the union/intersection (convex points/edges in the union/intersection
    due to a single sub-region are still OK).
 

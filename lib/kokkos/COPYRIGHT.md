@@ -43,6 +43,27 @@ Date Range: present -- 2025-08-11
 - Thomas Padioleau; CEA; thomas.padioleau@cea.fr
 - Cédric Chevalier; CEA; cedric.chevalier@cea.fr
 
+### NextSilicon
+
+    Next Silicon Ltd.
+    Copyright (c) 2017-2026, Next Silicon Ltd.
+
+- Patrick Fasano; NextSilicon; patrick.fasano@nextsilicon.com
+- Adi Nissim; NextSilicon; adi.nissim@nextsilicon.com
+- Christian Ulmann; NextSilicon; christian.ulmann@nextsilicon.com
+- Efi Plotkin; NextSilicon; efi.plotkin@nextsilicon.com
+- Guy Malinovitch; NextSilicon; guy.malinovitch@nextsilicon.com
+- Ilia Sixtel; NextSilicon; ilia.sixtel@nextsilicon.com
+- Irina Lipov; NextSilicon; irina.lipov@nextsilicon.com
+- Johannes de Fine Licht; NextSilicon; johannes.definelicht@nextsilicon.com
+- Mihailo Stojanovic; NextSilicon; mihailo.stojanovic@nextsilicon.com
+- Natan Hoffmann; NextSilicon; natan.hoffmann@nextsilicon.com
+- Nemanja Grujic; NextSilicon; nemanja.grujic@nextsilicon.com
+- Nikola Tesic; NextSilicon; nikola.tesic@nextsilicon.com
+- Stevan Cvetkovic; NextSilicon; stevan.cvetkovic@nextsilicon.com
+- Yael Newman; NextSilicon; yael.newman@nextsilicon.com
+- Ziv Dunkelman; NextSilicon; ziv.dunkelman@nextsilicon.com
+
 ### Individual Contributors (OTHER)
 
 - Romin Tomasetti; OTHER; romin.tomasetti@gmail.com

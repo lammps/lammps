@@ -64,7 +64,7 @@ void ComputePlasticityAtom::init()
   // find associated PERI_NEIGH fix that must exist
 
   auto fixes = modify->get_fix_by_style("PERI_NEIGH");
-  if (fixes.size() == 0)
+  if (fixes.empty())
     error->all(FLERR,"Compute plasticity/atom requires a peridynamic potential");
   else fix_peri_neigh = dynamic_cast<FixPeriNeigh *>(fixes.front());
 }

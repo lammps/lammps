@@ -230,6 +230,8 @@ FixPressBerendsen::FixPressBerendsen(LAMMPS *lmp, int narg, char **arg) :
 
 FixPressBerendsen::~FixPressBerendsen()
 {
+  if (copymode) return;
+
   // delete temperature and pressure if fix created them
 
   if (tflag) modify->delete_compute(id_temp);

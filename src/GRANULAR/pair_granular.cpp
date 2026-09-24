@@ -82,7 +82,13 @@ PairGranular::PairGranular(LAMMPS *lmp) : Pair(lmp)
   // this is so final order of Modify:fix will conform to input script
 
 id_dummy = utils::strdup(std::string("NEIGH_HISTORY_GRANULAR_DUMMY") + std::to_string(instance_me));
-id_history = utils::strdup(std::string("NEIGH_HISTORY_GRANULAR") + std::to_string(instance_me));
+
+  // the id of the history fix is built in init_style() and not here: it has to
+  // be the same in the run that writes a restart file and in the run that reads
+  // it back, so it cannot come from instance_me, which counts every Pair ever
+  // created in the process, and the hybrid sub-style list is not populated yet
+
+  id_history = nullptr;
 
   cutoff_global = -1.0;
   fix_history = nullptr;
@@ -495,8 +501,13 @@ void PairGranular::init_style()
   // it replaces FixDummy, created in the constructor
   // this is so its order in the fix list is preserved
 
+  if (use_history) {
+    delete[] id_history;
+    id_history = utils::strdup(fmt::format("NEIGH_HISTORY_GRANULAR{}", instance_index()));
+  }
+
   if (use_history && fix_history == nullptr) {
-    fix_history = dynamic_cast<FixNeighHistory *>(modify->replace_fix(id_dummy, fmt::format("{} all NEIGH_HISTORY {}", id_history, size_history),1));
+    fix_history = dynamic_cast<FixNeighHistory *>(modify->replace_fix(id_dummy, fmt::format("{} all NEIGH_HISTORY {}", id_history, size_history),0));
     fix_history->pair = this;
   } else if (use_history) {
     fix_history = dynamic_cast<FixNeighHistory *>(modify->get_fix_by_id(id_history));
@@ -506,7 +517,7 @@ void PairGranular::init_style()
   // check for FixFreeze and set freeze_group_bit
 
   auto fixlist = modify->get_fix_by_style("^freeze");
-  if (fixlist.size() == 0)
+  if (fixlist.empty())
     freeze_group_bit = 0;
   else if (fixlist.size() > 1)
     error->all(FLERR, "Only one fix freeze command at a time allowed");

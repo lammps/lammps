@@ -20,7 +20,6 @@
 #include "math_special.h"
 #include "math_const.h"
 
-#include "style_gran_sub_mod.h"    // IWYU pragma: keep
 #include <cmath>
 
 using namespace LAMMPS_NS;

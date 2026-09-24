@@ -17,6 +17,11 @@ applyTo: "doc/**"
   library" -- even where the library is technically meant.  Single exception: the build
   documentation (`Build_extras` KOKKOS section) that explicitly discusses the bundled,
   downloaded, or external Kokkos *library*.
+- Never add legacy-status disclaimers ("no longer actively developed", "superseded
+  by ...") to manual pages: they undermine user trust and confuse inexperienced users.
+  Steer users toward a modern alternative by improving that style and its docs, not by
+  talking down the old one.  Legacy status belongs only in developer-facing notes and
+  test nomenclature (e.g. a `legacy` filename token or tag).
 
 ## versionadded / versionchanged policy
 

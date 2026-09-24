@@ -312,7 +312,7 @@ void FixEOStable::spline(double *x, double *y, int n,
   y2[n-1] = (un-qn*u[n-2]) / (qn*y2[n-2] + 1.0);
   for (k = n-2; k >= 0; k--) y2[k] = y2[k]*y2[k+1] + u[k];
 
-  delete [] u;
+  delete[] u;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -348,16 +348,15 @@ void FixEOStable::energy_lookup(double t, double &u)
   double fraction;
 
   Table *tb = &tables[0];
-  if (t < tb->lo || t > tb->hi) {
-    printf("Temperature=%lf TableMin=%lf TableMax=%lf\n",t,tb->lo,tb->hi);
-    error->one(FLERR,"Temperature is not within table cutoffs");
-  }
+  if ((t < tb->lo) || (t > tb->hi))
+    error->one(FLERR,"Temperature {} is not within table cutoffs ({}, {})", t, tb->lo, tb->hi);
 
   if (tabstyle == LINEAR) {
     itable = static_cast<int> ((t - tb->lo) * tb->invdelta);
     fraction = (t - tb->r[itable]) * tb->invdelta;
     u = tb->e[itable] + fraction*tb->de[itable];
-  }
+  } else
+    error->one(FLERR,"Unknown tabulation style {}", tabstyle);
 }
 /* ----------------------------------------------------------------------
    calculate temperature t at energy u
@@ -370,14 +369,13 @@ void FixEOStable::temperature_lookup(double u, double &t)
   double fraction;
 
   Table *tb = &tables[1];
-  if (u < tb->lo || u > tb->hi) {
-    printf("Energy=%lf TableMin=%lf TableMax=%lf\n",u,tb->lo,tb->hi);
-    error->one(FLERR,"Energy is not within table cutoffs");
-  }
+  if ((u < tb->lo) || (u > tb->hi))
+    error->one(FLERR,"Energy {} is not within table cutoffs ({}, {})", u, tb->lo, tb->hi);
 
   if (tabstyle == LINEAR) {
     itable = static_cast<int> ((u - tb->lo) * tb->invdelta);
     fraction = (u - tb->r[itable]) * tb->invdelta;
     t = tb->e[itable] + fraction*tb->de[itable];
-  }
+  } else
+    error->one(FLERR,"Unknown tabulation style {}", tabstyle);
 }

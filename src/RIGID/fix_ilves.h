@@ -24,8 +24,6 @@ FixStyle(ilves,FixIlves);
 
 #include "ilves.h"
 
-#include <vector>
-
 namespace LAMMPS_NS {
 
 class FixIlves : public Fix {

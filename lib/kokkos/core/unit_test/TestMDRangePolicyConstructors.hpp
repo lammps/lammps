@@ -29,6 +29,21 @@ void construct_mdrange_policy_variable_type() {
 
 TEST(TEST_CATEGORY, md_range_policy_construction_from_arrays) {
   {
+    // Check that rank-1 construction from actual 1-element bounds objects
+    // works.
+    using IndexType = unsigned long long;
+    Kokkos::Array<IndexType, 1> lower{0};
+    Kokkos::Array<IndexType, 1> upper{2};
+    Kokkos::Array<IndexType, 1> tile{4};
+
+    Kokkos::MDRangePolicy<TEST_EXECSPACE, Kokkos::Rank<1>,
+                          Kokkos::IndexType<IndexType>>
+        p1(lower, upper);
+    Kokkos::MDRangePolicy<TEST_EXECSPACE, Kokkos::Rank<1>,
+                          Kokkos::IndexType<IndexType>>
+        p2(lower, upper, tile);
+  }
+  {
     // Check that construction from Kokkos::Array of the specified index type
     // works.
     using IndexType = unsigned long long;
@@ -77,8 +92,10 @@ TEST(TEST_CATEGORY, md_range_policy_construction_from_arrays) {
 }
 
 TEST(TEST_CATEGORY_DEATH, md_range_policy_bounds_unsafe_narrowing_conversions) {
-  using Policy = Kokkos::MDRangePolicy<TEST_EXECSPACE, Kokkos::Rank<2>,
-                                       Kokkos::IndexType<unsigned>>;
+  using Rank1Policy = Kokkos::MDRangePolicy<TEST_EXECSPACE, Kokkos::Rank<1>,
+                                            Kokkos::IndexType<unsigned>>;
+  using Rank2Policy = Kokkos::MDRangePolicy<TEST_EXECSPACE, Kokkos::Rank<2>,
+                                            Kokkos::IndexType<unsigned>>;
 
   std::string msg =
       "Kokkos::MDRangePolicy bound type error: an unsafe implicit conversion "
@@ -88,25 +105,34 @@ TEST(TEST_CATEGORY_DEATH, md_range_policy_bounds_unsafe_narrowing_conversions) {
   std::string expected = std::regex_replace(msg, std::regex("\\(|\\)"), "\\$&");
 
   ::testing::FLAGS_gtest_death_test_style = "threadsafe";
-  ASSERT_DEATH({ (void)Policy({-1, 0}, {2, 3}); }, expected);
+  ASSERT_DEATH({ (void)Rank1Policy({-1}, {2}); }, expected);
+  ASSERT_DEATH({ (void)Rank2Policy({-1, 0}, {2, 3}); }, expected);
 }
 
 TEST(TEST_CATEGORY_DEATH, md_range_policy_invalid_bounds) {
-  using Policy = Kokkos::MDRangePolicy<TEST_EXECSPACE, Kokkos::Rank<2>>;
+  using Rank1Policy = Kokkos::MDRangePolicy<TEST_EXECSPACE, Kokkos::Rank<1>>;
+  using Rank2Policy = Kokkos::MDRangePolicy<TEST_EXECSPACE, Kokkos::Rank<2>>;
 
   ::testing::FLAGS_gtest_death_test_style = "threadsafe";
 
-  auto dim0 = (Policy::inner_direction == Kokkos::Iterate::Right) ? 1 : 0;
+  auto rank2_dim0 =
+      (Rank2Policy::inner_direction == Kokkos::Iterate::Right) ? 1 : 0;
 
-  std::string msg1 =
-      "Kokkos::MDRangePolicy bounds error: The lower bound (100) is greater "
-      "than its upper bound (90) in dimension " +
-      std::to_string(dim0) + ".\n";
+  auto expected_msg = [](int dimension) {
+    std::string msg =
+        "Kokkos::MDRangePolicy bounds error: The lower bound (100) is greater "
+        "than its upper bound (90) in dimension " +
+        std::to_string(dimension) + ".\n";
+    // escape the parentheses in the regex to match the error message
+    return std::regex_replace(msg, std::regex("\\(|\\)"), "\\$&");
+  };
 
-  // escape the parentheses in the regex to match the error message
-  msg1 = std::regex_replace(msg1, std::regex("\\(|\\)"), "\\$&");
-  ::testing::FLAGS_gtest_death_test_style = "threadsafe";
-  ASSERT_DEATH({ (void)Policy({100, 100}, {90, 90}); }, msg1);
+  ASSERT_DEATH({ (void)Rank1Policy({100}, {90}); }, expected_msg(0));
+  ASSERT_DEATH(
+      {
+        (void)Rank2Policy({100, 100}, {90, 90});
+      },
+      expected_msg(rank2_dim0));
 }
 
 // Verify that we get an error if the user requests tile dimensions too large
@@ -185,7 +211,7 @@ void test_get_tile_size() {
           << " invalid default tile size for rank " << i;
       prod_rec_tile_size *= rec_tile_sizes[i];
     }
-    EXPECT_LT(prod_rec_tile_size, policy.max_total_tile_size());
+    EXPECT_LE(prod_rec_tile_size, policy.max_total_tile_size());
   }
 }
 
@@ -198,7 +224,7 @@ void test_get_tile_size_for_ranks(std::integer_sequence<int, Ranks...>) {
 // Check that tile_size_recommended() returns valid tile sizes consistent with
 // internal tile dimensions
 TEST(TEST_CATEGORY, md_range_policy_get_tile_size) {
-  constexpr auto ranks = std::integer_sequence<int, 2, 3, 4, 5, 6>{};
+  constexpr auto ranks = std::integer_sequence<int, 1, 2, 3, 4, 5, 6>{};
   test_get_tile_size_for_ranks(ranks);
 }
 
@@ -227,7 +253,7 @@ void test_default_tiles_respect_launch_bounds() {
       << (InnerDirection == Kokkos::Iterate::Left ? "Left" : "Right");
 }
 
-// Expand ranks (2, 3, 4, 5, 6)
+// Expand ranks (1, 2, 3, 4, 5, 6)
 template <int MaxTperB, Kokkos::Iterate InnerDirection, int... Ranks>
 void test_default_tiles_for_ranks(std::integer_sequence<int, Ranks...>) {
   (test_default_tiles_respect_launch_bounds<Ranks, MaxTperB, InnerDirection>(),
@@ -238,7 +264,7 @@ void test_default_tiles_for_ranks(std::integer_sequence<int, Ranks...>) {
 template <int... MaxTperBs>
 void test_default_tiles_for_all_configs(
     std::integer_sequence<int, MaxTperBs...>) {
-  constexpr auto ranks = std::integer_sequence<int, 2, 3, 4, 5, 6>{};
+  constexpr auto ranks = std::integer_sequence<int, 1, 2, 3, 4, 5, 6>{};
   (test_default_tiles_for_ranks<MaxTperBs, Kokkos::Iterate::Left>(ranks), ...);
   (test_default_tiles_for_ranks<MaxTperBs, Kokkos::Iterate::Right>(ranks), ...);
 }

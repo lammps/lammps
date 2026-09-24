@@ -1,7 +1,10 @@
 .. index:: fix store/force
+.. index:: fix store/force/kk
 
 fix store/force command
 =======================
+
+Accelerator Variants: *store/force/kk*
 
 Syntax
 """"""
@@ -50,6 +53,12 @@ indent <fix_indent>`.
    i.e. before other fixes that apply constraints.  However, if you wish
    to include certain constraints (e.g. fix shake) in the stored force,
    then it could be specified after some fixes and before others.
+
+----------
+
+.. include:: accel_styles.rst
+
+----------
 
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""

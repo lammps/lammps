@@ -21,6 +21,23 @@ Unit tests are CTest-based; build with `-D ENABLE_TESTING=on`, run with
 - Regenerate or update reference data with the driver's command-line flags
   (`-g <file>` generate, `-u` update in place, `-s` print per-quantity error
   statistics for tuning `epsilon`).  Prefer `-u` so the file history stays clean.
+  Regeneration can reset the `tags:` line -- re-check it after every `-u`.
+- A YAML with a missing prerequisite or `input_coeffs` entry SKIPS silently while
+  ctest still reports "Passed".  After adding or editing a YAML, confirm from the
+  gtest output that its cases actually executed.
+
+## Torque coverage
+
+- Per-atom torque trajectories are recorded and compared ONLY by the
+  `test_fix_timestep` driver (`run_torque` blocks).  To lock in the torque behavior
+  of a pair style (e.g. dipole styles), add a fix-timestep fixture with
+  `fix ... nve/sphere update dipole` and that pair style in `post_commands`
+  (precedent: `fix-timestep-nve_sphere_dipole_ljlong.yaml`, which pins the
+  LJ-only cutoff shell where a torque bug once hid).
+- The `ellipsoid` entry on a `tags:` line makes `test_pair_style` ALSO assert
+  `pair->single()` extra output (`svector` forces+torques, `single_extra >= 6`).
+  Only tag styles that implement that interface (gayberne/resquared family) --
+  never dipole styles.
 
 ## rRESPA coverage in fix tests
 
@@ -41,3 +58,8 @@ Unit tests are CTest-based; build with `-D ENABLE_TESTING=on`, run with
   reference data with `-g`/`-u`, then re-run CMake so new files register with CTest.
 - Verify new force styles against numerical differentiation (`fix numdiff`) where
   possible; see `.github/dev-docs/testing-and-verification.md`.
+- The generators add a `generated` entry to the `tags:` line of newly written
+  files on purpose: it marks reference data that has not been reviewed yet and
+  makes such files easy to find with grep.  Remove the tag as the LAST step,
+  after the reference data has been reviewed and validated -- never leave it in
+  a file you commit as finished work.

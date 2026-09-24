@@ -1,0 +1,28 @@
+# Rigid bodies of ellipsoidal particles -- exercises the extended (ELLIPSOID)
+# path of fix rigid/small/kk: each particle's space-frame quaternion and angmom
+# are recomputed from the body orientation in set_xv on the device (the bonus
+# quat is reached through the ellipsoid atom-vec).  erotate/asphere reflects the
+# per-particle angmom that the kernel sets.
+#   lmp -in in.rigid.ellipsoids
+#   lmp -k on -sf kk -in in.rigid.ellipsoids
+
+units           lj
+atom_style      ellipsoid
+atom_modify     map array
+
+fix             prop all property/atom mol ghost yes
+read_data       data.rigid.ell fix prop NULL Molecules
+
+pair_style      lj/cut 2.5
+pair_coeff      1 1 1.0 1.0
+neigh_modify    exclude molecule/intra all
+
+velocity        all create 0.8 12345 mom yes rot yes
+
+fix             1 all rigid/small molecule
+
+compute         erot all erotate/asphere
+thermo_style    custom step pe f_1 c_erot
+thermo          200
+timestep        0.002
+run             2000

@@ -303,7 +303,6 @@ void PairBondValVec::coeff(int narg, char **arg)
   utils::bounds(FLERR, arg[0], 1, atom->ntypes, ilo, ihi, error);
   utils::bounds(FLERR, arg[1], 1, atom->ntypes, jlo, jhi, error);
 
-  /*  double epsilon_one = atof(arg[2]);*/
   double r0_one = utils::numeric(FLERR, arg[2], false, lmp);
   double alpha_one = utils::numeric(FLERR, arg[3], false, lmp);
   double bvvs_one = utils::numeric(FLERR, arg[4], false, lmp);

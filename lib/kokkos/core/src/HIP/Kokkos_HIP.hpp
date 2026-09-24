@@ -30,6 +30,7 @@ class HIP {
   using device_type     = Kokkos::Device<execution_space, memory_space>;
 
   using array_layout = LayoutLeft;
+  using index_type   = HIPSpace::index_type;
   using size_type    = HIPSpace::size_type;
 
   using scratch_memory_space = ScratchMemorySpace<HIP>;
@@ -106,7 +107,6 @@ template <>
 struct MemorySpaceAccess<HIPSpace, HIP::scratch_memory_space> {
   enum : bool { assignable = false };
   enum : bool { accessible = true };
-  enum : bool { deepcopy = false };
 };
 }  // namespace Impl
 

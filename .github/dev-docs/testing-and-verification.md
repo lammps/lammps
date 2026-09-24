@@ -20,7 +20,13 @@ from the pre-change commit.  Gotchas:
   Template-int parameters (`if (FLAG)` on `template <int FLAG>`) fold at compile time
   and stay bit-identical.
 - WARNING lines can land inside the thermo table and embed FLERR line numbers that
-  shift with the source; strip them before comparing.
+  shift with the source; strip them before comparing.  Likewise strip timing columns
+  (`spcpu`, `cpu`, ...) -- they never reproduce.
+- Runs using `fix balance` are not reproducible even at a fixed rank count:
+  `Irregular` migration receives with `MPI_ANY_SOURCE`, so atom ordering -- and with
+  it summation order and roundoff -- differs from run to run and trajectories diverge
+  chaotically.  Gate such changes on analytic equivalence or disable balancing for
+  the comparison; never on re-run matching.
 - `-sf X` silently falls back to the base style when no `/X` variant exists; once a
   port adds the variant, those runs legitimately change -- exclude them from the
   byte-compare and validate numerically instead.
@@ -28,6 +34,21 @@ from the pre-change commit.  Gotchas:
   established style's gpu-vs-cpu deviation as the reference scale.
 - A test program that segfaults AFTER `[ PASSED ]` is destroying globals in undefined
   order at exit (for Kokkos: `lammps_kokkos_finalize()` never called).
+- OPENMP pair trajectories are NOT thread-count invariant: the per-thread force-array
+  reduction changes the summation order, so `-sf omp` runs only byte-compare at a
+  FIXED thread count.  Never gate on matching across different `OMP_NUM_THREADS`.
+- A failure seen only against force-style references generated with the kspace
+  contribution suppressed (`pair_modify compute no` configs) can be a harness
+  artifact -- that setup leaves the pair style's energy/virial accumulators in an
+  undefined lifecycle.  Cross-check with a realistic full deck before root-causing
+  (an ELECTRODE/omp "garbage results" report evaporated this way, 2026-08).
+
+**Restart/settings I/O -> behavioral assertions, not just round-trips.**  A
+write/read/write byte-compare only proves the new code reads back what it writes; a
+setting missing from BOTH write paths passes it silently.  Add one assertion per
+setting that the restored value changes observable behavior (example: a granular
+`limit_damping` restart test must show the contact force clamped to zero after the
+read-back, not just identical restart bytes).
 
 **Re-implementation with an analytic spec -> gate on the spec.** When new code has an
 independent closed-form oracle (analytic model results), the specification is the
@@ -54,6 +75,48 @@ the transition region (rcmin..rcmax).  At equilibrium, bonds sit inside rcmin an
 non-bonds beyond rcmax, so such bugs are invisible.  Expose them by straining the
 system (`change_box all z scale 1.2 remap`) or using fractional-coordination clusters.
 
+## Test-system pitfalls
+
+**Never use a huge simulation box in tests.**  Memory scales with box VOLUME, not
+just atom count: neighbor-list bins and atom-sorting bins are allocated over the
+whole box, so an almost empty box of 20000^3 length units OOMs or dies with "Too
+many atom sorting bins".  For large coordinate *values* (e.g. a single-precision
+resolution check) prefer a unit test that calls the class directly and runs no
+simulation at all.  If a huge box is unavoidable, disable both volume-scaling
+allocations:
+
+```
+neighbor        2.0 nsq        # N^2 neighbor list, no binning grid
+atom_modify     sort 0 0       # no atom sorting bins
+```
+
+The same caution applies to anything else that multiplies out over the box volume:
+fine `fix ave/grid`/`dump grid` grids and kspace meshes.
+
+**Portability and silent-skip pitfalls in unit tests.**
+
+- gtest's `ContainsRegex`/`MatchesRegex` are NOT portable: on Windows gtest falls back
+  to its own regex engine with no character classes, groups, or alternation, while the
+  POSIX path lacks `\d`.  For content checks use `utils::strmatch()` (via the
+  `ASSERT_MATCH` idiom in `unittest/commands/test_info.cpp`); note the bundled
+  tiny-regex also has no `{n}` repetition.
+- CTest reports "Passed" even when EVERY gtest case in the binary skipped, and a
+  force-style YAML with a missing prerequisite or `input_coeffs` entry self-skips
+  silently (one shipped test never ran for weeks that way).  After adding a test,
+  verify from the gtest/junit output that its cases actually EXECUTED, not just that
+  ctest went green (see the note in `doc/src/Developer_unittest.rst`).
+- End states of iterative algorithms (minimizers, converged solvers) are not portable
+  reference data -- assert energies/box dimensions with tolerances, never per-atom
+  end-state positions.
+- A CI failure confined to one Linux job usually means `LAMMPS_SIZES=bigbig` (64-bit
+  `tagint`/`bigint`); a minimal bigbig build (`-D LAMMPS_SIZES=bigbig` plus only the
+  needed packages) reproduces it in a few minutes.
+
+**Test executables do not inherit the lammps target's PRIVATE compile definitions.**
+Feature macros like `LAMMPS_ZLIB` (from `WITH_ZLIB`) are PRIVATE to the library, so
+a unit test that must mirror the library configuration adds the define itself under
+the same CMake option (see `test_vtk_writer` in `unittest/formats/CMakeLists.txt`).
+
 ## Benchmark construction
 
 Grow a benchmark from a small example by inserting a `replicate Nx Ny Nz` command
@@ -72,3 +135,8 @@ needs at least one concrete `fun:`/`obj:` frame (an all-`...` stack is a fatal s
 error).  Validate against an existing binary with `valgrind --suppressions=...` and
 confirm the finding moves into the "suppressed" count; the small masking risk is an
 accepted trade-off.
+
+`fun:` patterns match MANGLED C++ symbol names: `fun:amd::guessTlsSize*` never
+matches, `fun:_ZN3amd*guessTlsSizeEv*` does.  Do not hand-write patterns -- run the
+reproducer once with `valgrind --gen-suppressions=all` and generalize the emitted
+blocks.

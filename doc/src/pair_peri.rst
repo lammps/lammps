@@ -164,7 +164,7 @@ details please see the description in "(Mitchell2011a)".
 .. note::
 
    Prior versions of LAMMPS, had an incorrect the plasticity model in style
-   *peri/eps* relative to the source report :ref:`(Mitchell2011a) <Mitchell2011a>`.
+   *peri/eps* relative to the source report :ref:`(Mitchell2) <Mitchell2011a>`.
    These affected the evolution of the plastic deviatoric extension and caused
    significant overshooting of the yield surface. These have since been corrected,
    however, there is still no radial return rule to ensure the plastic deviatoric
@@ -271,12 +271,12 @@ none
 
 .. _Mitchell2011:
 
-**(Mitchell2011)** Mitchell. A non-local, ordinary-state-based
+**(Mitchell)** Mitchell. A non-local, ordinary-state-based
 viscoelasticity model for peridynamics. Sandia National Lab Report,
 8064:1-28 (2011).
 
 .. _Mitchell2011a:
 
-**(Mitchell2011a)** Mitchell. A Nonlocal, Ordinary, State-Based
+**(Mitchell2)** Mitchell. A Nonlocal, Ordinary, State-Based
 Plasticity Model for Peridynamics. Sandia National Lab Report,
 3166:1-34 (2011).

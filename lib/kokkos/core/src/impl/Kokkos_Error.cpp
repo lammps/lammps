@@ -10,11 +10,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <Kokkos_Macros.hpp>
-#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
-import kokkos.core; // show_warnings
-#else
 #include <Kokkos_Core.hpp>  // show_warnings
-#endif
 #include <impl/Kokkos_Error.hpp>
 
 void Kokkos::Impl::throw_runtime_exception(const std::string &msg) {
@@ -23,11 +19,7 @@ void Kokkos::Impl::throw_runtime_exception(const std::string &msg) {
 
 void Kokkos::Impl::throw_bad_alloc(std::string_view memory_space_name,
                                    std::size_t size, std::string_view label) {
-  std::stringstream ss;
-  ss << "Kokkos ERROR: " << memory_space_name
-     << " memory space failed to allocate " << human_memory_size(size)
-     << " (label=\"" << label << "\").";
-  throw std::runtime_error(ss.str());
+  throw Kokkos::Experimental::BadAlloc(memory_space_name, size, label);
 }
 
 void Kokkos::Impl::log_warning(const std::string &msg) {

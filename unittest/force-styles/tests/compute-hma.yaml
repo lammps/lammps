@@ -1,0 +1,21 @@
+---
+lammps_version: 4 Jul 2026
+tags:
+date_generated: Wed Aug  5 09:54:58 2026
+epsilon: 1e-08
+timestep: 0.001
+skip_tests:
+prerequisites: |
+  atom atomic
+  compute hma
+pre_commands: ""
+post_commands: |
+  pair_style lj/cut 4.0
+  pair_coeff * * 0.4 2.3
+  fix output_nvt all nvt temp 300.0 300.0 0.1
+  compute test all hma output_nvt anharmonic u p 9.579586
+input_file: in.metal
+natoms: 32
+global_vector: |-
+  2  4.1294322848359686e+00 -1.3241147874441212e+04
+...

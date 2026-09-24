@@ -80,10 +80,11 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void FixNVENoforceKokkos<DeviceType>::operator()(TagFixNVENoforce, const int &i) const
 {
+  const KK_FLOAT dtv_kk = static_cast<KK_FLOAT>(dtv);
   if (mask[i] & groupbit) {
-    x(i,0) += dtv * v(i,0);
-    x(i,1) += dtv * v(i,1);
-    x(i,2) += dtv * v(i,2);
+    x(i,0) += dtv_kk * v(i,0);
+    x(i,1) += dtv_kk * v(i,1);
+    x(i,2) += dtv_kk * v(i,2);
   }
 }
 

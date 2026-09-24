@@ -14,12 +14,19 @@
 #include "compute_inertia_chunk.h"
 
 #include "atom.h"
+#include "atom_vec_body.h"
+#include "atom_vec_ellipsoid.h"
+#include "atom_vec_line.h"
+#include "atom_vec_tri.h"
 #include "compute_chunk_atom.h"
 #include "domain.h"
 #include "error.h"
+#include "math_extra.h"
 #include "memory.h"
 
 using namespace LAMMPS_NS;
+
+static constexpr double SINERTIA = 0.4;    // moment of inertia prefactor for sphere
 
 /* ---------------------------------------------------------------------- */
 
@@ -107,6 +114,20 @@ void ComputeInertiaChunk::compute_array()
   }
 
   // compute inertia tensor for each chunk
+  // finite-size particles add their own moment of inertia about their center
+  //   (parallel-axis theorem); MathExtra::inertia_* return the tensor in
+  //   (Ixx,Iyy,Izz,Iyz,Ixz,Ixy) order, remapped here to the (Ixx,Iyy,Izz,
+  //   Ixy,Iyz,Ixz) column order of this compute
+
+  auto *avec_ellipsoid = dynamic_cast<AtomVecEllipsoid *>(atom->style_match("ellipsoid"));
+  auto *avec_line = dynamic_cast<AtomVecLine *>(atom->style_match("line"));
+  auto *avec_tri = dynamic_cast<AtomVecTri *>(atom->style_match("tri"));
+  auto *avec_body = dynamic_cast<AtomVecBody *>(atom->style_match("body"));
+  double *radius = atom->radius;
+  int *ellipsoid = atom->ellipsoid;
+  int *line = atom->line;
+  int *tri = atom->tri;
+  int *body = atom->body;
 
   for (i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {
@@ -126,6 +147,40 @@ void ComputeInertiaChunk::compute_array()
       inertia[index][3] -= massone * dx * dy;
       inertia[index][4] -= massone * dy * dz;
       inertia[index][5] -= massone * dx * dz;
+
+      // finite-size particle spin inertia as a Voigt 6-vector
+      // (Ixx,Iyy,Izz,Iyz,Ixz,Ixy); zero for point particles
+      // check the shape-defining bonus indices before the sphere (radius)
+      // case: ellipsoid/superellipsoid/triangle/body particles also carry a
+      // (bounding) radius, so the finite-sphere branch must only catch true
+      // spheres
+
+      double ivec[6] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+      if (avec_ellipsoid && ellipsoid[i] >= 0) {
+        if (atom->superellipsoid_flag)
+          MathExtra::inertia_ellipsoid(avec_ellipsoid->bonus_super[ellipsoid[i]].inertia,
+                                       avec_ellipsoid->bonus_super[ellipsoid[i]].quat, ivec);
+        else
+          MathExtra::inertia_ellipsoid(avec_ellipsoid->bonus[ellipsoid[i]].shape,
+                                       avec_ellipsoid->bonus[ellipsoid[i]].quat, massone, ivec);
+      } else if (avec_line && line[i] >= 0) {
+        MathExtra::inertia_line(avec_line->bonus[line[i]].length, avec_line->bonus[line[i]].theta,
+                                massone, ivec);
+      } else if (avec_tri && tri[i] >= 0) {
+        MathExtra::inertia_triangle(avec_tri->bonus[tri[i]].inertia, avec_tri->bonus[tri[i]].quat,
+                                    massone, ivec);
+      } else if (avec_body && body[i] >= 0) {
+        MathExtra::inertia_ellipsoid(avec_body->bonus[body[i]].inertia,
+                                     avec_body->bonus[body[i]].quat, ivec);
+      } else if (radius && radius[i] > 0.0) {
+        ivec[0] = ivec[1] = ivec[2] = SINERTIA * massone * radius[i] * radius[i];
+      }
+      inertia[index][0] += ivec[0];
+      inertia[index][1] += ivec[1];
+      inertia[index][2] += ivec[2];
+      inertia[index][3] += ivec[5];
+      inertia[index][4] += ivec[3];
+      inertia[index][5] += ivec[4];
     }
 
   MPI_Allreduce(&inertia[0][0], &inertiaall[0][0], 6 * nchunk, MPI_DOUBLE, MPI_SUM, world);

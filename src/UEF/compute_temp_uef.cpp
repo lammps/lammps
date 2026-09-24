@@ -38,18 +38,13 @@ ComputeTempUef::ComputeTempUef(LAMMPS *lmp, int narg, char **arg) :
 void ComputeTempUef::init()
 {
   ComputeTemp::init();
+
   // check to make sure the other uef fix is on
-  // borrowed from Pieter's nvt/sllod code
-  int i=0;
-  for (i=0; i<modify->nfix; i++) {
-    if (strcmp(modify->fix[i]->style,"nvt/uef")==0)
-      break;
-    if (strcmp(modify->fix[i]->style,"npt/uef")==0)
-      break;
-  }
-  if (i==modify->nfix)
+
+  auto uef_fixes = modify->get_fix_by_style("^n[vp]t/uef");
+  if (uef_fixes.empty())
     error->all(FLERR,"Can't use compute temp/uef without defining a fix nvt/npt/uef");
-  ifix_uef=i;
+  fix_uef = dynamic_cast<FixNHUef *>(uef_fixes.front());
 }
 
 
@@ -61,7 +56,7 @@ void ComputeTempUef::compute_vector()
   ComputeTemp::compute_vector();
   if (rot_flag) {
     double rot[3][3];
-    ( dynamic_cast<FixNHUef*>(modify->fix[ifix_uef]))->get_rot(rot);
+    fix_uef->get_rot(rot);
     virial_rot(vector,rot);
   }
 

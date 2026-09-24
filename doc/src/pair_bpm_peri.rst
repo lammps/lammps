@@ -21,7 +21,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 2Sep2026
 
 Style *bpm/peri* supplies the short-range repulsive contact force
 between non-bonded peridynamic nodes for the :doc:`bond_style bpm/peri

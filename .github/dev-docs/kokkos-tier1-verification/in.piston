@@ -1,0 +1,7 @@
+variable        bnd index "p p s"
+include         common_lj.mod
+fix             1 all nve
+fix             wp all wall/piston zlo vel 0.1 pos 0.0
+thermo_style    custom step temp pe ke etotal press
+thermo          5
+run             20 post no

@@ -96,6 +96,7 @@ Packages howto
    Howto_spins
    Howto_apip
    Howto_ldd
+   Howto_fenix
 
 Tutorials howto
 ===============

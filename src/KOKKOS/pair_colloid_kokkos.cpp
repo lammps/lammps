@@ -101,24 +101,24 @@ void PairColloidKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   nlocal = atom->nlocal;
   nall = atom->nlocal + atom->nghost;
   newton_pair = force->newton_pair;
-  special_lj[0] = force->special_lj[0];
-  special_lj[1] = force->special_lj[1];
-  special_lj[2] = force->special_lj[2];
-  special_lj[3] = force->special_lj[3];
+  special_lj[0] = static_cast<KK_FLOAT>(force->special_lj[0]);
+  special_lj[1] = static_cast<KK_FLOAT>(force->special_lj[1]);
+  special_lj[2] = static_cast<KK_FLOAT>(force->special_lj[2]);
+  special_lj[3] = static_cast<KK_FLOAT>(force->special_lj[3]);
 
   // loop over neighbors of my atoms
 
   copymode = 1;
   EV_FLOAT ev = pair_compute<PairColloidKokkos<DeviceType>,void >(this,(NeighListKokkos<DeviceType>*)list);
 
-  if (eflag_global) eng_vdwl += ev.evdwl;
+  if (eflag_global) eng_vdwl += static_cast<double>(ev.evdwl);
   if (vflag_global) {
-    virial[0] += ev.v[0];
-    virial[1] += ev.v[1];
-    virial[2] += ev.v[2];
-    virial[3] += ev.v[3];
-    virial[4] += ev.v[4];
-    virial[5] += ev.v[5];
+    virial[0] += static_cast<double>(ev.v[0]);
+    virial[1] += static_cast<double>(ev.v[1]);
+    virial[2] += static_cast<double>(ev.v[2]);
+    virial[3] += static_cast<double>(ev.v[3]);
+    virial[4] += static_cast<double>(ev.v[4]);
+    virial[5] += static_cast<double>(ev.v[5]);
   }
 
   if (vflag_fdotr) pair_virial_fdotr_compute(this);
@@ -173,7 +173,7 @@ compute_fpair(const KK_FLOAT &rsq, const int &, const int &, const int &itype, c
                * sigma6/K6 - static_cast<KK_FLOAT>(5.0)) / K0;
 
   } else { // LARGE_LARGE
-    const KK_FLOAT r  = sqrt(rsq);
+    const KK_FLOAT r  = Kokkos::sqrt(rsq);
     const KK_FLOAT c1 = ppA1;
     const KK_FLOAT c2 = ppA2;
     const KK_FLOAT K0 = c1*c2;
@@ -244,7 +244,7 @@ compute_evdwl(const KK_FLOAT &rsq, const int &, const int &, const int &itype, c
               * sigma6/K6) - offset;
 
   } else { // LARGE_LARGE
-    const KK_FLOAT r  = sqrt(rsq);
+    const KK_FLOAT r  = Kokkos::sqrt(rsq);
     const KK_FLOAT c1 = ppA1;
     const KK_FLOAT c2 = ppA2;
     const KK_FLOAT K0 = c1*c2;
@@ -267,7 +267,7 @@ compute_evdwl(const KK_FLOAT &rsq, const int &, const int &, const int &itype, c
     const KK_FLOAT fR  = a12*sigma6/r/static_cast<KK_FLOAT>(37800.0);
     return fR*(h0-h1-h2+h3)
            + a12/static_cast<KK_FLOAT>(6.0)
-             *(static_cast<KK_FLOAT>(2.0)*K0*(K7+K8)-log(K8/K7)) - offset;
+             *(static_cast<KK_FLOAT>(2.0)*K0*(K7+K8)-Kokkos::log(K8/K7)) - offset;
   }
 }
 

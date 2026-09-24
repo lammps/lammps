@@ -17,8 +17,6 @@
 #include "lmptype.h"
 #include <vector>
 
-
-
 namespace LAMMPS_NS::user_manifold {
 
   // The thylakoid is composed of many parts

@@ -49,7 +49,7 @@ Description
 
 Perform a pseudo simulation run where atom information is read one
 snapshot at a time from a dump file(s), and energies and forces are
-computed on the shapshot to produce thermodynamic or other output.
+computed on the snapshot to produce thermodynamic or other output.
 
 This can be useful in the following kinds of scenarios, after an
 initial simulation produced the dump file:

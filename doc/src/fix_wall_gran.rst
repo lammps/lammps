@@ -168,12 +168,12 @@ pair of walls in a dimension.  Wall positions are given by *lo* and
 *hi*\ .  Either of the values can be specified as NULL if a single wall
 is desired.
 
-.. deprecated:: 11Feb2026
+.. versionremoved:: 11Feb2026
 
-The *zcylinder* wallstyle has been removed.  Pleas use :doc:`fix
+The *zcylinder* wallstyle has been removed.  Please use :doc:`fix
 wall/gran/region <fix_wall_gran_region>` instead.
 
-.. versionadded:: TBD
+.. versionadded:: 2Sep2026
 
 The *lo* and *hi* wall positions can also be set by an equal-style
 :doc:`variable <variable>`, specified as v_name, where "name" is the

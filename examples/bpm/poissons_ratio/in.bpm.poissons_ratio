@@ -21,7 +21,7 @@ region          pillar cylinder z 10.0 0.0 7.0 0.0 20.0 units box
 region          pillarw cylinder z 10.0 0.0 8.0 -1.0 21.0 units box
 create_atoms    1 region pillar
 
-velocity        all create 0.1 345910
+velocity        all create 0.1 345910 loop geom
 
 pair_style      bpm/spring
 pair_coeff      * * 1.0 1.0 1.0

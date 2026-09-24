@@ -38,7 +38,6 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 
 enum { NOBIAS, BIAS };
-enum { CONSTANT, EQUAL, ATOM };
 
 // size of the Marsaglia RNG state vector (see RanMars::get_state())
 static constexpr int PRNGSIZE = 98 + 2 + 3;

@@ -151,14 +151,14 @@ void BondMorseKokkos<DeviceType>::operator()(TagBondMorseCompute<NEWTON_BOND,EVF
   const KK_FLOAT delz = x(i1,2) - x(i2,2);
 
   const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
-  const KK_FLOAT r = sqrt(rsq);
+  const KK_FLOAT r = Kokkos::sqrt(rsq);
   const KK_FLOAT dr = r - d_r0[type];
-  const KK_FLOAT ralpha = exp(-d_alpha[type] * dr);
+  const KK_FLOAT ralpha = Kokkos::exp(-d_alpha[type] * dr);
 
   // force & energy
 
   KK_FLOAT fbond = 0.0;
-  if (r > 0.0)
+  if (r > static_cast<KK_FLOAT>(0.0))
     fbond = -static_cast<KK_FLOAT>(2.0) * d_d0[type] * d_alpha[type] *
         (static_cast<KK_FLOAT>(1.0) - ralpha) * ralpha / r;
 

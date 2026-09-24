@@ -49,7 +49,7 @@ class PairBornCoulDSF : public Pair {
   double **rhoinv, **born1, **born2, **born3, **offset;
   double f_shift, e_shift;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }    // namespace LAMMPS_NS

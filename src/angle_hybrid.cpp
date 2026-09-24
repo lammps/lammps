@@ -231,7 +231,7 @@ void AngleHybrid::settings(int narg, char **arg)
     // by looking for the next known angle style name.
 
     int jarg = i + 1;
-    while ((jarg < narg) && !force->angle_map->count(arg[jarg]) &&
+    while ((jarg < narg) && !Force::angle_styles().contains(arg[jarg]) &&
            !lmp->match_style("angle", arg[jarg]))
       jarg++;
 

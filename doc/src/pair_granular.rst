@@ -220,7 +220,7 @@ The model requires the following inputs:
    when the bulk elastic response is triggered.  Lower values of
    :math:`\psi_b` delay the onset of the bulk elastic response.
 
-   6. *Damping coefficent* :math:`\eta_{n0} \ge 0` : The damping
+   6. *Damping coefficient* :math:`\eta_{n0} \ge 0` : The damping
    coefficient is a tunable parameter that controls damping in the
    normal direction.
 
@@ -416,7 +416,7 @@ The dimensionless coefficient of restitution :math:`e` specified as part
 of the normal contact model parameters should be between 0 and 1, but no
 error check is performed on this.
 
-.. versionchanged:: TBD
+.. versionchanged:: 2Sep2026
 
 This numerical solution is from :ref:`(Marshall, 2009) <Marshall2009_1>`
 where the factor of :math:`\sqrt{2}` arises from a difference in convention
@@ -1137,7 +1137,7 @@ reduction. Journal of the Mechanics and Physics of Solids, 183, 105492.
 
 .. _Zunker2024II:
 
-**(Zunker and Kamrin, 2024)** Zunker, W., & Kamrin, K. (2024).
+**(Zunker and Kamrin, 2024b)** Zunker, W., & Kamrin, K. (2024).
 A mechanically-derived contact model for adhesive elastic-perfectly
 plastic particles, Part II: Contact under high compaction-modeling
 a bulk elastic response. Journal of the Mechanics and Physics of Solids,

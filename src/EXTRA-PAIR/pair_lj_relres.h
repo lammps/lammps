@@ -51,7 +51,7 @@ class PairLJRelRes : public Pair {
   double **ljswf0, **ljswf1, **ljswf2, **ljswf3, **ljswf4;
   double **offset, **offsetsp, **offsetsm;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }    // namespace LAMMPS_NS

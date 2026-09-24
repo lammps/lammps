@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
  *
  *                    *** Smooth Mach Dynamics ***
@@ -24,17 +23,19 @@
  ------------------------------------------------------------------------- */
 
 #include "compute_smd_ulsph_stress.h"
-#include <cmath>
-#include <cstring>
-#include <Eigen/Eigen>
+
 #include "atom.h"
-#include "update.h"
-#include "modify.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
 #include "memory.h"
-#include "error.h"
+#include "modify.h"
 #include "pair.h"
+#include "update.h"
+
+#include <Eigen/Eigen>
+#include <cmath>
+#include <cstring>
 
 using namespace Eigen;
 using namespace LAMMPS_NS;
@@ -42,96 +43,96 @@ using namespace LAMMPS_NS;
 /*
  * deviator of a tensor
  */
-static Matrix3d Deviator(const Matrix3d& M) {
-        Matrix3d eye;
-        eye.setIdentity();
-        eye *= M.trace() / 3.0;
-        return M - eye;
+static Matrix3d Deviator(const Matrix3d &M)
+{
+  Matrix3d eye;
+  eye.setIdentity();
+  eye *= M.trace() / 3.0;
+  return M - eye;
 }
 
 /* ---------------------------------------------------------------------- */
 
 ComputeSMDULSPHStress::ComputeSMDULSPHStress(LAMMPS *lmp, int narg, char **arg) :
-                Compute(lmp, narg, arg) {
-        if (narg != 3)
-                error->all(FLERR, "Illegal compute smd/ulsph_stress command");
+    Compute(lmp, narg, arg)
+{
+  if (narg != 3) error->all(FLERR, 2, "Illegal compute smd/ulsph/stress command");
 
-        peratom_flag = 1;
-        size_peratom_cols = 7;
+  peratom_flag = 1;
+  size_peratom_cols = 7;
 
-        nmax = 0;
-        stress_array = nullptr;
+  nmax = 0;
+  stress_array = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
 
-ComputeSMDULSPHStress::~ComputeSMDULSPHStress() {
-        memory->sfree(stress_array);
+ComputeSMDULSPHStress::~ComputeSMDULSPHStress()
+{
+  memory->sfree(stress_array);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeSMDULSPHStress::init() {
+void ComputeSMDULSPHStress::init()
+{
 
-        int count = 0;
-        for (int i = 0; i < modify->ncompute; i++)
-                if (strcmp(modify->compute[i]->style, "smd/ulsph_stress") == 0)
-                        count++;
-        if (count > 1 && comm->me == 0)
-                error->warning(FLERR, "More than one compute smd/ulsph_stress");
+  if ((comm->me == 0) && (modify->get_compute_by_style("^smd/ulsph/stress").size() > 1))
+    error->warning(FLERR, "More than one compute {}", style);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeSMDULSPHStress::compute_peratom() {
-        invoked_peratom = update->ntimestep;
-        int *mask = atom->mask;
-        Matrix3d stress_deviator;
-        double von_mises_stress;
+void ComputeSMDULSPHStress::compute_peratom()
+{
+  invoked_peratom = update->ntimestep;
+  int *mask = atom->mask;
+  Matrix3d stress_deviator;
+  double von_mises_stress;
 
-        // grow vector array if necessary
+  // grow vector array if necessary
 
-        if (atom->nmax > nmax) {
-                memory->destroy(stress_array);
-                nmax = atom->nmax;
-                memory->create(stress_array, nmax, size_peratom_cols, "stresstensorVector");
-                array_atom = stress_array;
-        }
+  if (atom->nmax > nmax) {
+    memory->destroy(stress_array);
+    nmax = atom->nmax;
+    memory->create(stress_array, nmax, size_peratom_cols, "stresstensorVector");
+    array_atom = stress_array;
+  }
 
-        int itmp = 0;
-        auto *T = (Matrix3d *) force->pair->extract("smd/ulsph/stressTensor_ptr", itmp);
-        if (T == nullptr) {
-                error->all(FLERR, "compute smd/ulsph_stress could not access stress tensors. Are the matching pair styles present?");
-        }
-        int nlocal = atom->nlocal;
+  int itmp = 0;
+  auto *T = (Matrix3d *) force->pair->extract("smd/ulsph/stressTensor_ptr", itmp);
+  if (T == nullptr) {
+    error->all(FLERR,
+               "compute smd/ulsph/stress could not access stress tensors. Are the matching pair "
+               "styles present?");
+  }
+  int nlocal = atom->nlocal;
 
-        for (int i = 0; i < nlocal; i++) {
+  for (int i = 0; i < nlocal; i++) {
 
-                if (mask[i] & groupbit) {
-                        stress_deviator = Deviator(T[i]);
-                        von_mises_stress = sqrt(3. / 2.) * stress_deviator.norm();
-                        stress_array[i][0] = T[i](0, 0); // xx
-                        stress_array[i][1] = T[i](1, 1); // yy
-                        stress_array[i][2] = T[i](2, 2); // zz
-                        stress_array[i][3] = T[i](0, 1); // xy
-                        stress_array[i][4] = T[i](0, 2); // xz
-                        stress_array[i][5] = T[i](1, 2); // yz
-                        stress_array[i][6] = von_mises_stress;
+    if (mask[i] & groupbit) {
+      stress_deviator = Deviator(T[i]);
+      von_mises_stress = sqrt(3. / 2.) * stress_deviator.norm();
+      stress_array[i][0] = T[i](0, 0);    // xx
+      stress_array[i][1] = T[i](1, 1);    // yy
+      stress_array[i][2] = T[i](2, 2);    // zz
+      stress_array[i][3] = T[i](0, 1);    // xy
+      stress_array[i][4] = T[i](0, 2);    // xz
+      stress_array[i][5] = T[i](1, 2);    // yz
+      stress_array[i][6] = von_mises_stress;
 
-                } else {
-                        for (int j = 0; j < size_peratom_cols; j++) {
-                                stress_array[i][j] = 0.0;
-                        }
-                }
-        }
+    } else {
+      for (int j = 0; j < size_peratom_cols; j++) stress_array[i][j] = 0.0;
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------
  memory usage of local atom-based array
  ------------------------------------------------------------------------- */
 
-double ComputeSMDULSPHStress::memory_usage() {
-        double bytes = (double)size_peratom_cols * nmax * sizeof(double);
-        return bytes;
+double ComputeSMDULSPHStress::memory_usage()
+{
+  double bytes = (double) size_peratom_cols * nmax * sizeof(double);
+  return bytes;
 }
-

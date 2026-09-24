@@ -53,7 +53,7 @@ class ReadADIOSInternal {
   // list of column names for the atom table
   // (individual list of 'columns' string)
   std::vector<std::string> columnNames;
-  float timeout = 0.0;
+  double timeout = 0.0;
 };
 }    // namespace LAMMPS_NS
 
@@ -112,7 +112,7 @@ void ReaderADIOS::settings(int narg, char **arg)
   while (idx < narg) {
     if (!strcmp(arg[idx], "timeout")) {
       if (idx + 1 < narg) {
-        internal->timeout = std::stof(arg[idx + 1]);
+        internal->timeout = utils::numeric(FLERR, arg[idx + 1], false, lmp);
         internal->io.SetParameter("OpenTimeoutSecs", arg[idx + 1]);
         ++idx;
       } else {
@@ -164,7 +164,7 @@ void ReaderADIOS::close_file()
 
 int ReaderADIOS::read_time(bigint &ntimestep)
 {
-  adios2::StepStatus status = internal->fh.BeginStep(adios2::StepMode::Read, internal->timeout);
+  adios2::StepStatus status = internal->fh.BeginStep(adios2::StepMode::Read, (float)internal->timeout);
 
   switch (status) {
     case adios2::StepStatus::EndOfStream:

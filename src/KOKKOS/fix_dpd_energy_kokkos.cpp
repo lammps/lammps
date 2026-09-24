@@ -57,12 +57,12 @@ void FixDPDenergyKokkos<DeviceType>::take_half_step()
   pairDPDEKK->k_duMech.template sync<DeviceType>();
   typename AT::t_kkfloat_1d_const duMech = pairDPDEKK->k_duMech.template view<DeviceType>();
 
-  auto dt = update->dt;
+  const KK_FLOAT dt = static_cast<KK_FLOAT>(update->dt);
 
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0,nlocal),
    LAMMPS_LAMBDA(int i) {
-    uCond(i) += 0.5*dt*duCond(i);
-    uMech(i) += 0.5*dt*duMech(i);
+    uCond(i) += static_cast<KK_FLOAT>(0.5)*dt*duCond(i);
+    uMech(i) += static_cast<KK_FLOAT>(0.5)*dt*duMech(i);
   });
 
   atomKK->modified(execution_space, UCOND_MASK);

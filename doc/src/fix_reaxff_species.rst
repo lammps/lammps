@@ -138,7 +138,7 @@ value.  For example, AuO.pos.\* becomes AuO.pos.0, AuO.pos.1000, etc.
 .. versionadded:: 3Aug2022
 
 The optional keyword *delete* enables the periodic removal of molecules
-from the system :ref:`(Gissinger) <Delete>`.  Criteria for deletion can
+from the system :ref:`(Gissinger2) <Delete>`.  Criteria for deletion can
 be either a list of specific chemical formulae or a range of molecular
 weights.  Molecules are deleted every *Nfreq* timesteps, and bond
 connectivity is determined using the *Nevery* and *Nrepeat* keywords.  The
@@ -315,4 +315,4 @@ Position files are not written by default.
 
 .. _Delete:
 
-**(Gissinger)** Jacob R. Gissinger, Scott R. Zavada, Joseph G. Smith, Josh Kemppainen, Ivan Gallegos, Gregory M. Odegard, Emilie J. Siochi, and Kristopher E. Wise, Carbon, 202, 336-347 (2023).
+**(Gissinger2)** Jacob R. Gissinger, Scott R. Zavada, Joseph G. Smith, Josh Kemppainen, Ivan Gallegos, Gregory M. Odegard, Emilie J. Siochi, and Kristopher E. Wise, Carbon, 202, 336-347 (2023).

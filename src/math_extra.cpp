@@ -482,7 +482,7 @@ void quat_to_mat_trans(const double *quat, double mat[3][3])
 /* ----------------------------------------------------------------------
    compute space-frame inertia tensor of an ellipsoid
    shape = 3 semiaxes of ellipsoid
-   quat = orientiation quaternion of ellipsoid
+   quat = orientation quaternion of ellipsoid
    return symmetric inertia tensor as 6-vector in Voigt ordering
 ------------------------------------------------------------------------- */
 
@@ -532,7 +532,7 @@ void inertia_ellipsoid(double *idiag, double *quat, double *inertia)
 /* ----------------------------------------------------------------------
    compute space-frame inertia tensor of a line segment in 2d
    length = length of line
-   theta = orientiation of line
+   theta = orientation of line
    return symmetric inertia tensor as 6-vector in Voigt ordering
 ------------------------------------------------------------------------- */
 
@@ -611,7 +611,7 @@ void inertia_triangle(double *v0, double *v1, double *v2,
 /* ----------------------------------------------------------------------
    compute space-frame inertia tensor of a triangle
    idiag = previously computed diagonal inertia tensor
-   quat = orientiation quaternion of triangle
+   quat = orientation quaternion of triangle
    return symmetric inertia tensor as 6-vector in Voigt ordering
 ------------------------------------------------------------------------- */
 

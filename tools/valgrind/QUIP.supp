@@ -1,0 +1,42 @@
+# ---------------------------------------------------------------------------
+# The QUIP library (ML-QUIP package) has a bug in its Stillinger-Weber
+# parameter parsing: IPModel_SW.F90 allocates the AA, BB, p, q, eps2, lambda,
+# gamma, and eps3 parameter arrays without initializing them, so entries for
+# type combinations that are not listed in the potential file (e.g. in
+# SiGeH.sw.quip) remain uninitialized and valgrind flags their use during the
+# force computation and when QUIP prints its output.  This must be fixed
+# upstream in QUIP; until then these entries silence the reports that are
+# triggered from inside the QUIP library.  Reports where the uninitialized
+# data propagates into LAMMPS (thermo output, force arrays) cannot be
+# suppressed safely and will remain until the upstream fix.
+# ---------------------------------------------------------------------------
+{
+   QUIP_wrapper_cond
+   Memcheck:Cond
+   ...
+   fun:quip_lammps_*
+   ...
+}
+{
+   QUIP_wrapper_value8
+   Memcheck:Value8
+   ...
+   fun:quip_lammps_*
+   ...
+}
+# QUIP formatting real numbers for its own log output; the deep libc printf
+# call chain pushes the quip_lammps_* entry point out of the recorded stack.
+{
+   QUIP_system_module_cond
+   Memcheck:Cond
+   ...
+   fun:__system_module_MOD_*
+   ...
+}
+{
+   QUIP_system_module_value8
+   Memcheck:Value8
+   ...
+   fun:__system_module_MOD_*
+   ...
+}

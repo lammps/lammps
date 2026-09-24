@@ -1,7 +1,10 @@
 .. index:: fix spring/rg
+.. index:: fix spring/rg/kk
 
 fix spring/rg command
 =====================
+
+Accelerator Variant: *spring/rg/kk*
 
 Syntax
 """"""
@@ -81,8 +84,17 @@ The :doc:`fix_modify <fix_modify>` *respa* option is supported by this
 fix. This allows to set at which level of the :doc:`r-RESPA <run_style>`
 integrator the fix is adding its forces. Default is the outermost level.
 
+----------
+
+.. include:: accel_styles.rst
+
+----------
+
 Restrictions
 """"""""""""
+
+The *spring/rg/kk* accelerator variant cannot (yet) be used with
+:doc:`run_style respa <run_style>` and stops with an error in that case.
 
 This fix is part of the EXTRA-FIX package.  It is only enabled if LAMMPS
 was built with that package.  See the :doc:`Build package <Build_package>` page for more info.

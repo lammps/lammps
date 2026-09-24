@@ -11,14 +11,6 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef GRAN_SUB_MOD_CLASS
-// clang-format off
-GranSubModStyle(none,GranSubModTwistingNone,TWISTING);
-GranSubModStyle(marshall,GranSubModTwistingMarshall,TWISTING);
-GranSubModStyle(sds,GranSubModTwistingSDS,TWISTING);
-// clang-format on
-#else
-
 #ifndef GRAN_SUB_MOD_TWISTING_H
 #define GRAN_SUB_MOD_TWISTING_H
 
@@ -69,4 +61,3 @@ namespace LAMMPS_NS::Granular_NS {
 
 
 #endif /*GRAN_SUB_MOD_TWISTING_H */
-#endif /*GRAN_SUB_MOD_CLASS_H */

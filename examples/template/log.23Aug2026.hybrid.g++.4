@@ -1,0 +1,166 @@
+LAMMPS (4 Jul 2026 - Development - patch_4Jul2026-848-gd03be1b44b)
+  using 1 OpenMP thread(s) per MPI task
+# demo using atom style hybrid template charge to simulate a h2o/co2 mixture
+
+units           real
+molecule        twomols h2o.mol co2.mol offset 2 1 1 0 0
+Read molecule template twomols:
+# Water molecule. SPC/E model.
+  1 molecules
+  0 fragments
+  0 bodies
+  3 atoms with max type 2
+  2 bonds with max type 1
+  1 angles with max type 1
+  0 dihedrals with max type 0
+  0 impropers with max type 0
+Read molecule template twomols:
+# CO2 molecule file. TraPPE model.
+  1 molecules
+  0 fragments
+  0 bodies
+  3 atoms with max type 4
+  2 bonds with max type 2
+  1 angles with max type 2
+  0 dihedrals with max type 0
+  0 impropers with max type 0
+atom_style      hybrid template twomols charge
+boundary        p p p
+pair_style      lj/cut/coul/long  12
+pair_modify     mix arithmetic tail yes
+kspace_style    pppm 0.0001
+pair_style      lj/cut/coul/long  12
+bond_style      harmonic
+angle_style     harmonic
+
+read_data h2o-co2.data
+Reading data file ...
+  orthogonal box = (-10 -10 -10) to (10 10 10)
+  1 by 2 by 2 MPI processor grid
+  reading atoms ...
+  384 atoms
+  256 template bonds
+  128 template angles
+  read_data CPU = 0.003 seconds
+
+group           h2o type 1 2
+192 atoms in group h2o
+group           co2 type 3 4
+192 atoms in group co2
+neighbor        1.0 bin
+neigh_modify    every 1 delay 1 check yes
+timestep        1.0
+
+velocity all create 300.0 34672
+thermo 100
+
+fix             1 all nve
+fix             2 all shake 1.0e-4 1000 500 b 1 a 1 mol twomols
+WARNING: Molecule template for fix shake has multiple molecules (src/RIGID/fix_shake.cpp:205)
+Finding SHAKE clusters ...
+       0 = # of size 2 clusters
+       0 = # of size 3 clusters
+       0 = # of size 4 clusters
+      64 = # of frozen angles
+  find clusters CPU = 0.000 seconds
+#dump            1 all custom 100 h2o-co2.lammpstrj id mol xu yu zu
+
+run 2500
+PPPM initialization ...
+  using 12-bit tables for long-range coulomb
+  G vector (1/distance) = 0.21452218
+  grid = 8 8 8
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.0237525
+  estimated relative force accuracy = 7.1529949e-05
+  using double precision FFTW3
+  3d grid and FFT values/proc = 1053 128
+Generated 0 of 6 mixed pair_coeff terms from arithmetic mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 1 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 15
+  ghost atom cutoff = 15
+  binsize = 7.5, bins = 3 3 3
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut/coul/long, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+SHAKE stats (type/ave/delta/count) on step 0
+Bond:   1   0.999977  1.29379e-05      128
+Angle:  1   109.47    1.7053e-13        64
+Per MPI rank memory allocation (min/avg/max) = 4.952 | 4.952 | 4.952 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+         0   360.18809     -173.24467      3.5527137e-13  169.25041      2429.6023    
+       100   363.1919      -274.40145      44.351072      115.30096     -883.36938    
+       200   427.7949      -329.78834      38.354106      115.3467       1523.3788    
+       300   465.88632     -350.56153      22.604291      115.044        385.4683     
+       400   436.95981     -357.24703      57.161549      115.41016      2307.0154    
+SHAKE stats (type/ave/delta/count) on step 500
+Bond:   1   1         4.02607e-07      128
+Angle:  1   109.47    5.78417e-05       64
+       500   480.94896     -378.10032      36.267666      115.49133      2822.0386    
+       600   457.62329     -382.22739      62.735812      115.65253     -390.05251    
+       700   488.29883     -393.99166      45.209112      115.53027      3085.4916    
+       800   471.50575     -392.16256      59.99396       116.17604      3154.2026    
+       900   497.56652     -422.50537      65.598781      116.21867     -477.40074    
+SHAKE stats (type/ave/delta/count) on step 1000
+Bond:   1   1         9.6071e-07       128
+Angle:  1   109.47    7.72541e-05       64
+      1000   544.30192     -448.69976      46.981053      115.84623      3426.9289    
+      1100   473.96411     -405.09299      70.691006      116.28026      2250.8414    
+      1200   487.51942     -404.37912      56.791137      115.9837       1180.7524    
+      1300   538.77505     -447.31714      50.714701      115.70712      2712.8732    
+      1400   515.52059     -426.02655      51.521683      115.69254      2487.9668    
+SHAKE stats (type/ave/delta/count) on step 1500
+Bond:   1   1         5.01055e-07      128
+Angle:  1   109.47    5.33512e-05       64
+      1500   526.9587      -434.73139      49.255732      115.59799      1163.3788    
+      1600   525.75798     -426.66661      41.902726      115.16802      5106.8304    
+      1700   547.60949     -443.23349      37.347665      114.82422      1782.8179    
+      1800   536.2578      -440.9364       46.209004      115.18856      1752.4061    
+      1900   557.34008     -448.39066      33.463026      115.03502      3254.5605    
+SHAKE stats (type/ave/delta/count) on step 2000
+Bond:   1   1         7.41472e-07      128
+Angle:  1   109.47    5.68632e-05       64
+      2000   559.83853     -454.5961       37.271556      115.01382      833.47692    
+      2100   524.01682     -430.21154      47.15146       115.2162       2788.3652    
+      2200   521.60002     -424.20653      43.379221      115.15089      4600.7332    
+      2300   538.26213     -444.90393      48.32754       115.24544      538.9862     
+      2400   530.28698     -440.36137      51.732342      115.60941      1750.1003    
+SHAKE stats (type/ave/delta/count) on step 2500
+Bond:   1   1         1.22761e-06      128
+Angle:  1   109.47    7.32568e-05       64
+      2500   540.18423     -459.2959       61.583385      115.93701      2580.9795    
+Loop time of 1.25304 on 4 procs for 2500 steps with 384 atoms
+
+Performance: 172.380 ns/day, 0.139 hours/ns, 1995.140 timesteps/s, 766.134 katom-step/s
+98.5% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.67934    | 0.73096    | 0.8455     |   7.8 | 58.33
+Bond    | 0.0022432  | 0.0022626  | 0.0023093  |   0.1 |  0.18
+Kspace  | 0.0955     | 0.20738    | 0.25733    |  14.3 | 16.55
+Neigh   | 0.17852    | 0.17864    | 0.17871    |   0.0 | 14.26
+Comm    | 0.081262   | 0.083685   | 0.085391   |   0.5 |  6.68
+Output  | 0.00023917 | 0.00025777 | 0.00030214 |   0.0 |  0.02
+Modify  | 0.043494   | 0.043845   | 0.044234   |   0.2 |  3.50
+Other   |            | 0.006014   |            |       |  0.48
+
+Nlocal:             96 ave         107 max          83 min
+Histogram: 1 0 1 0 0 0 0 0 1 1
+Nghost:           3740 ave        3753 max        3729 min
+Histogram: 1 1 0 0 0 0 0 1 0 1
+Neighs:          32478 ave       36614 max       27791 min
+Histogram: 1 0 0 0 1 0 1 0 0 1
+
+Total # of neighbors = 129912
+Ave neighs/atom = 338.3125
+Ave special neighs/atom = 2
+Neighbor list builds = 316
+Dangerous builds = 0
+Total wall time: 0:00:01

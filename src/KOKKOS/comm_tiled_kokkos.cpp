@@ -139,10 +139,13 @@ void CommTiledKokkos::forward_comm_device()
 
     if (comm_x_only && !atomKK->k_x.NEED_TRANSFORM) {
       if (recvother[iswap]) {
+
+        // no Kokkos work is launched inside the loop, so fence only once
+
+        DeviceType().fence();
         for (i = 0; i < nrecv; i++) {
           buf = (double*)atomKK->k_x.view<DeviceType>().data() +
             firstrecv[iswap][i]*atomKK->k_x.view<DeviceType>().extent(1);
-          DeviceType().fence();
           MPI_Irecv(buf,size_forward_recv[iswap][i],
                     MPI_DOUBLE,recvproc[iswap][i],0,world,&requests[i]);
         }
@@ -162,16 +165,19 @@ void CommTiledKokkos::forward_comm_device()
                         firstrecv[iswap][nrecv],pbc_flag[iswap][nsend],pbc[iswap][nsend]);
       }
       if (recvother[iswap]) {
-        MPI_Waitall(nrecv,requests,MPI_STATUS_IGNORE);
+        MPI_Waitall(nrecv,requests,MPI_STATUSES_IGNORE);
         DeviceType().fence();
       }
 
     } else if (ghost_velocity) {
       if (recvother[iswap]) {
+
+        // no Kokkos work is launched inside the loop, so fence only once
+
+        DeviceType().fence();
         for (i = 0; i < nrecv; i++) {
           buf = k_buf_recv.view<DeviceType>().data() +
             forward_recv_offset[iswap][i]*k_buf_recv.view<DeviceType>().extent(1);
-          DeviceType().fence();
           MPI_Irecv(buf,
                     size_forward_recv[iswap][i],MPI_DOUBLE,recvproc[iswap][i],0,world,&requests[i]);
         }
@@ -204,10 +210,13 @@ void CommTiledKokkos::forward_comm_device()
 
     } else {
       if (recvother[iswap]) {
+
+        // no Kokkos work is launched inside the loop, so fence only once
+
+        DeviceType().fence();
         for (i = 0; i < nrecv; i++) {
           buf = k_buf_recv.view<DeviceType>().data() +
             forward_recv_offset[iswap][i]*k_buf_recv.view<DeviceType>().extent(1);
-          DeviceType().fence();
           MPI_Irecv(buf,
                     size_forward_recv[iswap][i],MPI_DOUBLE,recvproc[iswap][i],0,world,&requests[i]);
         }
@@ -223,8 +232,9 @@ void CommTiledKokkos::forward_comm_device()
       }
       if (sendself[iswap]) {
         auto k_sendlist_small = Kokkos::subview(k_sendlist,iswap,nsend,Kokkos::ALL);
-        n = atomKK->avecKK->pack_comm_kokkos(sendnum[iswap][nsend],k_sendlist_small,
+        atomKK->avecKK->pack_comm_kokkos(sendnum[iswap][nsend],k_sendlist_small,
                         k_buf_send,pbc_flag[iswap][nsend],pbc[iswap][nsend]);
+        atomKK->avecKK->unpack_comm_kokkos(recvnum[iswap][nrecv],firstrecv[iswap][nrecv],k_buf_send);
       }
       if (recvother[iswap]) {
         for (i = 0; i < nrecv; i++) {
@@ -282,11 +292,17 @@ void CommTiledKokkos::reverse_comm_device()
     nrecv = nrecvproc[iswap] - sendself[iswap];
 
     if (comm_f_only  && !atomKK->k_f.NEED_TRANSFORM) {
+
+      // no Kokkos work is launched inside or between the two loops,
+      // so one fence covers both
+
+      if ((sendother[iswap]) || (recvother[iswap]))
+        DeviceType().fence();
+
       if (sendother[iswap]) {
         for (i = 0; i < nsend; i++) {
           buf = k_buf_recv.view<DeviceType>().data() +
             reverse_recv_offset[iswap][i]*k_buf_recv.view<DeviceType>().extent(1);
-          DeviceType().fence();
           MPI_Irecv(buf,
                     size_reverse_recv[iswap][i],MPI_DOUBLE,sendproc[iswap][i],0,world,&requests[i]);
         }
@@ -295,7 +311,6 @@ void CommTiledKokkos::reverse_comm_device()
         for (i = 0; i < nrecv; i++) {
           buf = (double*)atomKK->k_f.view<DeviceType>().data() +
             firstrecv[iswap][i]*atomKK->k_f.view<DeviceType>().extent(1);
-          DeviceType().fence();
           MPI_Send(buf,size_reverse_send[iswap][i],
                    MPI_DOUBLE,recvproc[iswap][i],0,world);
         }
@@ -318,10 +333,13 @@ void CommTiledKokkos::reverse_comm_device()
 
     } else {
       if (sendother[iswap]) {
+
+        // no Kokkos work is launched inside the loop, so fence only once
+
+        DeviceType().fence();
         for (i = 0; i < nsend; i++) {
           buf = k_buf_recv.view<DeviceType>().data() +
             reverse_recv_offset[iswap][i]*k_buf_recv.view<DeviceType>().extent(1);
-          DeviceType().fence();
           MPI_Irecv(buf,
                     size_reverse_recv[iswap][i],MPI_DOUBLE,sendproc[iswap][i],0,world,&requests[i]);
         }
@@ -418,7 +436,14 @@ void CommTiledKokkos::borders()
 
 void CommTiledKokkos::forward_comm(Pair *pair, int size)
 {
-  if (pair->execution_space == Host || pair->execution_space == HostKK || forward_pair_comm_legacy) {
+  // a pair style that runs on the device but does not implement the KOKKOS
+  // packing (e.g. pair hybrid/scaled, which communicates its scale factors
+  // through the plain buffers) has to take the host path as well
+
+  KokkosBase *pairKKBase = dynamic_cast<KokkosBase *>(pair);
+
+  if (pair->execution_space == Host || pair->execution_space == HostKK ||
+      forward_pair_comm_legacy || !pairKKBase) {
     k_sendlist.sync_host();
     CommTiled::forward_comm(pair, size);
   } else {
@@ -460,13 +485,10 @@ void CommTiledKokkos::forward_comm_device(Pair *pair, int size)
   // copy data to self if sendself is set
   // wait on all procs except self and unpack received data
 
-  double* buf_send_pair;
   double* buf_recv_pair;
   if (lmp->kokkos->gpu_aware_flag) {
-    buf_send_pair = k_buf_send_pair.view<DeviceType>().data();
     buf_recv_pair = k_buf_recv_pair.view<DeviceType>().data();
   } else {
-    buf_send_pair = k_buf_send_pair.view_host().data();
     buf_recv_pair = k_buf_recv_pair.view_host().data();
   }
 
@@ -475,6 +497,11 @@ void CommTiledKokkos::forward_comm_device(Pair *pair, int size)
     nrecv = nrecvproc[iswap] - sendself[iswap];
 
     if (recvother[iswap]) {
+
+      // fence before posting the receives: the unpack kernels of the previous
+      // swap may still be reading from the same receive buffer
+
+      DeviceType().fence();
       for (i = 0; i < nrecv; i++)
         MPI_Irecv(&buf_recv_pair[nsize*forward_recv_offset[iswap][i]],
                   nsize*recvnum[iswap][i],MPI_DOUBLE,recvproc[iswap][i],0,world,&requests[i]);
@@ -490,6 +517,9 @@ void CommTiledKokkos::forward_comm_device(Pair *pair, int size)
           k_buf_send_pair.sync_host();
         }
         DeviceType().fence();
+        // take the pointer after the pack, which may have resized the buffer
+        double *buf_send_pair = lmp->kokkos->gpu_aware_flag ? k_buf_send_pair.view<DeviceType>().data()
+                                                    : k_buf_send_pair.view_host().data();
         MPI_Send(buf_send_pair,n,MPI_DOUBLE,sendproc[iswap][i],0,world);
       }
     }
@@ -503,7 +533,7 @@ void CommTiledKokkos::forward_comm_device(Pair *pair, int size)
     }
 
     if (recvother[iswap]) {
-      MPI_Waitall(nrecv,requests,MPI_STATUS_IGNORE);
+      MPI_Waitall(nrecv,requests,MPI_STATUSES_IGNORE);
       DeviceType().fence();
       if (!lmp->kokkos->gpu_aware_flag) {
         k_buf_recv_pair.modify_host();
@@ -548,8 +578,8 @@ void CommTiledKokkos::reverse_comm_device(Pair *pair, int size)
 {
   int i,n,nsize,nsend,nrecv;
 
-  if (size) nsize = MAX(pair->comm_reverse, pair->comm_reverse_off);
-  else nsize = pair->comm_reverse;
+  if (size) nsize = size;
+  else nsize = MAX(pair->comm_reverse, pair->comm_reverse_off);
 
   KokkosBase* pairKKBase = dynamic_cast<KokkosBase*>(pair);
 
@@ -589,6 +619,11 @@ void CommTiledKokkos::reverse_comm_device(Pair *pair, int size)
     nrecv = nrecvproc[iswap] - sendself[iswap];
 
     if (sendother[iswap]) {
+
+      // fence before posting the receives: the unpack kernels of the previous
+      // swap may still be reading from the same receive buffer
+
+      DeviceType().fence();
       for (i = 0; i < nsend; i++)
         MPI_Irecv(&buf_recv_pair[nsize*reverse_recv_offset[iswap][i]],
                   nsize*sendnum[iswap][i],MPI_DOUBLE,sendproc[iswap][i],0,world,&requests[i]);
@@ -603,6 +638,9 @@ void CommTiledKokkos::reverse_comm_device(Pair *pair, int size)
           k_buf_send_pair.sync_host();
         }
         DeviceType().fence();
+        // take the pointer after the pack, which may have resized the buffer
+        buf_send_pair = lmp->kokkos->gpu_aware_flag ? k_buf_send_pair.view<DeviceType>().data()
+                                                    : k_buf_send_pair.view_host().data();
         MPI_Send(buf_send_pair,n,MPI_DOUBLE,recvproc[iswap][i],0,world);
       }
     }
@@ -616,7 +654,7 @@ void CommTiledKokkos::reverse_comm_device(Pair *pair, int size)
     }
 
     if (sendother[iswap]) {
-      MPI_Waitall(nsend,requests,MPI_STATUS_IGNORE);
+      MPI_Waitall(nsend,requests,MPI_STATUSES_IGNORE);
       DeviceType().fence();
       if (!lmp->kokkos->gpu_aware_flag) {
         k_buf_recv_pair.modify_host();
@@ -641,6 +679,12 @@ void CommTiledKokkos::grow_buf_pair(int n)
   max_buf_pair = n * BUFFACTOR;
   k_buf_send_pair.resize(max_buf_pair);
   k_buf_recv_pair.resize(max_buf_pair);
+
+  // resizing claims a side; these are scratch buffers that are filled
+  // before they are read, so drop the claim rather than leave it for the
+  // next modify_host() to collide with
+  k_buf_send_pair.clear_sync_state();
+  k_buf_recv_pair.clear_sync_state();
 }
 
 /* ----------------------------------------------------------------------
@@ -828,6 +872,12 @@ void CommTiledKokkos::grow_send_kokkos(int n, int flag, ExecutionSpace space)
                         atomKK->avecKK->size_border + atomKK->avecKK->size_velocity);
     else
       k_buf_send.resize(maxsend_border,atomKK->avecKK->size_border);
+
+    // the claim above only steers the resize to the side whose contents have
+    // to survive; after it this is a scratch buffer again, filled through raw
+    // pointers on whichever side does the packing, so drop the claim rather
+    // than leave it standing forever
+    k_buf_send.clear_sync_state();
   } else {
     if (ghost_velocity)
       MemoryKokkos::realloc_kokkos(k_buf_send,"comm:k_buf_send",maxsend_border,
@@ -859,7 +909,7 @@ void CommTiledKokkos::grow_recv_kokkos(int n, int flag, ExecutionSpace /*space*/
    realloc the size of the iswap sendlist as needed with BUFFACTOR
 ------------------------------------------------------------------------- */
 
-void CommTiledKokkos::grow_list(int iswap, int iwhich, int n)
+void CommTiledKokkos::grow_list(int /*iswap*/, int /*iwhich*/, int n)
 {
   int size = static_cast<int> (BUFFACTOR * n);
 

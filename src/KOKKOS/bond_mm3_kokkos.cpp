@@ -157,7 +157,7 @@ void BondMM3Kokkos<DeviceType>::operator()(TagBondMM3Compute<NEWTON_BOND,EVFLAG>
   const KK_FLOAT delz = x(i1,2) - x(i2,2);
 
   const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
-  const KK_FLOAT r = sqrt(rsq);
+  const KK_FLOAT r = Kokkos::sqrt(rsq);
   const KK_FLOAT dr = r - d_r0[type];
   const KK_FLOAT dr2 = dr*dr;
 

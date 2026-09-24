@@ -165,7 +165,7 @@ the number of physical cores per node, to use your available hardware
 optimally.  This also sets the number of threads used by the host when
 LAMMPS is compiled with CUDA=yes.
 
-.. deprecated:: 22Dec2022
+.. versionremoved:: 22Dec2022
 
 Support for the "numa" or "n" option was removed as its functionality
 was ignored in Kokkos for some time already.

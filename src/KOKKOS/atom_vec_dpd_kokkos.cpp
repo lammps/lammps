@@ -28,8 +28,8 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-AtomVecDPDKokkos::AtomVecDPDKokkos(LAMMPS *lmp) : AtomVec(lmp),
-AtomVecKokkos(lmp), AtomVecDPD(lmp)
+AtomVecDPDKokkos::AtomVecDPDKokkos(LAMMPS *lmp) :
+    AtomVec(lmp), AtomVecKokkos(lmp), AtomVecDPD(lmp), duChem(nullptr)
 {
 }
 

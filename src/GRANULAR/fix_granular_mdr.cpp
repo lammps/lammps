@@ -63,7 +63,7 @@ FixGranularMDR::FixGranularMDR(LAMMPS *lmp, int narg, char **arg) :
 
 FixGranularMDR::~FixGranularMDR()
 {
-  if (id_fix && modify->nfix) modify->delete_fix(id_fix);
+  if (id_fix) modify->delete_fix(id_fix);
   delete[] id_fix;
 }
 

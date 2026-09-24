@@ -269,8 +269,8 @@ removed.  On the other hand, :doc:`fix bond/react <fix_bond_react>` can
 relax high-energy configurations via the ``stabilization`` keyword,
 whereby a small local group of atoms involved in the discontinuity are
 integrated with :doc:`fix nve/limit <fix_nve_limit>`.  `LUNAR
-<https://www.lammps.org/prepost.html>`_ can also be used to assist with
-setting up simulations that include :doc:`fix bond/react
+<https://www.lammps.org/ecosystem/prepost/>`_ can also be used to assist
+with setting up simulations that include :doc:`fix bond/react
 <fix_bond_react>`.
 
 DREIDING
@@ -326,7 +326,7 @@ OPLS
 OPLS (Optimized Potentials for Liquid Simulations) is a general force
 field for atomistic simulation of organic molecules in solvent.  It was
 developed by the `Jorgensen group
-<https://traken.chem.yale.edu/oplsaam.html>`_ at Purdue University and
+<https://zarbi.chem.yale.edu/oplsaam.html>`_ at Purdue University and
 later at Yale University.  Multiple versions of the OPLS parameters
 exist for united atom representations (OPLS-UA) and for all-atom
 representations (OPLS-AA).
@@ -358,7 +358,7 @@ compatible with a subset of OPLS interactions.
 
 .. _howto-MacKerell:
 
-**(MacKerell)** MacKerell, Bashford, Bellott, Dunbrack, Evanseck, Field, Fischer, Gao, Guo, Ha, et al (1998).  J Phys Chem, 102, 3586 . https://doi.org/10.1021/jp973084f
+**(MacKerell)** MacKerell, Bashford, Bellott, Dunbrack, Evanseck, Field, Fischer, Gao, Guo, Ha, et al (1998).  J Phys Chem B, 102, 3586. https://doi.org/10.1021/jp973084f
 
 .. _howto-Cornell:
 
@@ -382,7 +382,7 @@ compatible with a subset of OPLS interactions.
 
 .. _howto-Jorgensen:
 
-**(Jorgensen)** Jorgensen, Tirado-Rives (1988). J Am Chem Soc, 110, 1657-1666. https://doi.org/10.1021/ja00214a001
+**(Jorgensen2)** Jorgensen, Tirado-Rives (1988). J Am Chem Soc, 110, 1657-1666. https://doi.org/10.1021/ja00214a001
 
 .. _howto-Maple:
 

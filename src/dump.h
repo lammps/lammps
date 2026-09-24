@@ -92,6 +92,8 @@ class Dump : protected Pointers {
   int write_header_flag;    // 1 if write header, 0 if not
   int has_id;               // 1 if output contains Atom-IDs
 
+  int nfile, nper;
+
   bigint delaystep;
 
   int refreshflag;      // 1 if dump_modify refresh specified
@@ -165,6 +167,11 @@ class Dump : protected Pointers {
   virtual int convert_string(int, double *) { return 0; }
   virtual void write_data(int, double *) = 0;
   virtual void write_footer() {}
+
+  // type of value a column of this dump is formatted from
+  static utils::FmtArg fmtarg_type(int vtype);
+  // check the format string of a single column and adjust its length modifier
+  void check_column_format(std::string &colformat, int vtype, int icol);
 
   void pbc_allocate();
   double compute_time();

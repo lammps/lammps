@@ -2,7 +2,7 @@
 lammps_version: 11 Feb 2026
 date_generated: Thu Mar  5 08:39:25 2026
 epsilon: 5e-12
-skip_tests: kokkos_omp kokkos_serial kokkos_gpu omp
+skip_tests: kokkos_omp kokkos_serial kokkos_gpu
 
 prerequisites: ! |
   atom full

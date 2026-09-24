@@ -45,8 +45,8 @@ consistent with the rest of LAMMPS.
 
 The "Examples" column is a subdirectory in the examples directory of the
 distribution which has one or more input scripts that use the package.
-E.g. ``peptide`` refers to the ``examples/peptide`` directory; ``PACKAGES/atc`` refers
-to the ``examples/PACKAGES/atc`` directory.  The "Lib" column indicates``
+E.g. ``peptide`` refers to the ``examples/peptide`` directory; ``PACKAGES/fep`` refers
+to the ``examples/PACKAGES/fep`` directory.  The "Lib" column indicates``
 whether an extra library is needed to build and use the package:
 
 * no  = no library
@@ -199,9 +199,9 @@ whether an extra library is needed to build and use the package:
      - n/a
      - no
    * - :ref:`EXTRA-DUMP <PKG-EXTRA-DUMP>`
-     - additional dump styles
+     - additional dump styles, including VTK output
      - :doc:`dump <dump>`
-     - n/a
+     - ``PACKAGES/vtk``
      - no
    * - :ref:`EXTRA-FIX <PKG-EXTRA-FIX>`
      - additional fix styles
@@ -218,6 +218,11 @@ whether an extra library is needed to build and use the package:
      - :doc:`pair_style <pair_style>`
      - n/a
      - no
+   * - :ref:`FENIX <PKG-FENIX>`
+     - online process recovery with Fenix
+     - :doc:`Howto Fenix <Howto_fenix>`
+     - ``PACKAGES/fenix``
+     - ext
    * - :ref:`FEP <PKG-FEP>`
      - free energy perturbation
      - :doc:`compute fep <compute_fep>`
@@ -448,6 +453,11 @@ whether an extra library is needed to build and use the package:
      - :doc:`fix qmmm <fix_qmmm>`
      - ``PACKAGES/qmmm``
      - ext
+   * - :ref:`QMMM-XTB <PKG-QMMM-XTB>`
+     - GFN1/GFN2-xTB QM/MM coupling with PPPM
+     - :doc:`fix qmmm/xtb <fix_qmmm_xtb>`
+     - ``PACKAGES/qmmm-xtb``
+     - ext
    * - :ref:`QTB <PKG-QTB>`
      - quantum nuclear effects
      - :doc:`fix qtb <fix_qtb>` :doc:`fix qbmsst <fix_qbmsst>`
@@ -519,13 +529,8 @@ whether an extra library is needed to build and use the package:
      - ``PACKAGES/uef``
      - no
    * - :ref:`VORONOI <PKG-VORONOI>`
-     - Voronoi tesselation
+     - Voronoi tessellation
      - :doc:`compute voronoi/atom <compute_voronoi_atom>`
-     - n/a
-     - ext
-   * - :ref:`VTK <PKG-VTK>`
-     - dump output via VTK
-     - :doc:`compute vtk <dump_vtk>`
      - n/a
      - ext
    * - :ref:`YAFF <PKG-YAFF>`

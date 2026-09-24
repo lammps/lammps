@@ -19,6 +19,7 @@
 /src/CG-SPICA/        @yskmiyazaki
 /src/COLVARS/         @giacomofiorin
 /src/DIELECTRIC/      @ndtrung81
+/src/DPD-REACT/       @jjramsey
 /src/ELECTRODE/       @ludwig-ahrens @srtee
 /src/FEP/             @agiliopadua
 /src/GPU/             @ndtrung81
@@ -84,6 +85,8 @@
 /src/REPLICA/fix_pimd_langevin.*     @Yi-FanLi
 /src/DPD-BASIC/pair_dpd_coul_slater_long.* @Eddy-Barraud
 /src/GPU/pair_dpd_coul_slater_long.* @Eddy-Barraud
+/src/BODY/*polygon.*                 @ndtrung81
+/src/BODY/*polyhedron.*              @ndtrung81
 
 # core LAMMPS classes
 /src/lammps.*              @sjplimp

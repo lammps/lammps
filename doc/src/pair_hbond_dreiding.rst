@@ -106,7 +106,7 @@ Donor-Acceptor interactions. To match the results in the original paper,
 use n = 4.
 
 Style *hbond/dreiding/morse* is an improved version using a Morse
-potential for the Donor-Acceptor interactions. :ref:`(Liu) <Liu>` showed
+potential for the Donor-Acceptor interactions. :ref:`(Liu3) <Liu>` showed
 that the Morse form gives improved results for Dendrimer simulations,
 when n = 2.
 
@@ -174,11 +174,11 @@ in the examples above.
    A :doc:`pair_coeff <pair_coeff>` command can be specified multiple
    times for the same donor/acceptor type pair.  This enables multiple
    hydrogen types to be assigned to the same donor/acceptor type pair.
-   For other pair_styles, if the pair_coeff command is re-used for the
+   For other pair_styles, if the pair_coeff command is reused for the
    same I.J type pair, the settings for that type pair are overwritten.
    For the hydrogen bond potentials this is not the case; the settings
    are cumulative.  This means the only way to turn off a previous
-   setting, is to re-use the pair_style command and start over.
+   setting, is to reuse the pair_style command and start over.
 
 For the *hbond/dreiding/lj* style the list of coefficients is as
 follows:
@@ -306,5 +306,5 @@ none
 
 .. _Liu:
 
-**(Liu)** Liu, Bryantsev, Diallo, Goddard III, J. Am. Chem. Soc 131 (8)
+**(Liu3)** Liu, Bryantsev, Diallo, Goddard III, J. Am. Chem. Soc 131 (8)
 2798 (2009)

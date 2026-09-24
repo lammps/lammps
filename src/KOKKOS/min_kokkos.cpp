@@ -624,14 +624,14 @@ double MinKokkos::fnorm_sqr()
     if constexpr (F_LAYOUTRIGHT) {
       auto l_fvec = fvec;
       Kokkos::parallel_reduce(nvec, LAMMPS_LAMBDA(int i, double& local_norm2_sqr) {
-        local_norm2_sqr += l_fvec[i]*l_fvec[i];
+        local_norm2_sqr += static_cast<double>(l_fvec[i]*l_fvec[i]);
       },local_norm2_sqr);
     } else {
       auto l_f = atomKK->k_f.view_device();
       Kokkos::parallel_reduce(atom->nlocal, LAMMPS_LAMBDA(int i, double& local_norm2_sqr) {
-        local_norm2_sqr += l_f(i,0)*l_f(i,0);
-        local_norm2_sqr += l_f(i,1)*l_f(i,1);
-        local_norm2_sqr += l_f(i,2)*l_f(i,2);
+        local_norm2_sqr += static_cast<double>(l_f(i,0)*l_f(i,0));
+        local_norm2_sqr += static_cast<double>(l_f(i,1)*l_f(i,1));
+        local_norm2_sqr += static_cast<double>(l_f(i,2)*l_f(i,2));
       },local_norm2_sqr);
     }
   }
@@ -661,14 +661,14 @@ double MinKokkos::fnorm_inf()
     if constexpr (F_LAYOUTRIGHT) {
       auto l_fvec = fvec;
       Kokkos::parallel_reduce(nvec, LAMMPS_LAMBDA(int i, double& local_norm_inf) {
-        local_norm_inf = MAX(l_fvec[i]*l_fvec[i],local_norm_inf);
+        local_norm_inf = MAX(static_cast<double>(l_fvec[i]*l_fvec[i]),local_norm_inf);
       },Kokkos::Max<double>(local_norm_inf));
     } else {
       auto l_f = atomKK->k_f.view_device();
       Kokkos::parallel_reduce(atom->nlocal, LAMMPS_LAMBDA(int i, double& local_norm_inf) {
-        local_norm_inf = MAX(l_f(i,0)*l_f(i,0),local_norm_inf);
-        local_norm_inf = MAX(l_f(i,1)*l_f(i,1),local_norm_inf);
-        local_norm_inf = MAX(l_f(i,2)*l_f(i,2),local_norm_inf);
+        local_norm_inf = MAX(static_cast<double>(l_f(i,0)*l_f(i,0)),local_norm_inf);
+        local_norm_inf = MAX(static_cast<double>(l_f(i,1)*l_f(i,1)),local_norm_inf);
+        local_norm_inf = MAX(static_cast<double>(l_f(i,2)*l_f(i,2)),local_norm_inf);
       },Kokkos::Max<double>(local_norm_inf));
     }
   }
@@ -697,14 +697,15 @@ double MinKokkos::fnorm_max()
 
     if constexpr (F_LAYOUTRIGHT) {
       auto l_fvec = fvec;
-      Kokkos::parallel_reduce(nvec, LAMMPS_LAMBDA(int i, double& local_norm_max) {
-        double fdotf = l_fvec[i]*l_fvec[i]+l_fvec[i+1]*l_fvec[i+1]+l_fvec[i+2]*l_fvec[i+2];
+      Kokkos::parallel_reduce(nvec/3, LAMMPS_LAMBDA(int i, double& local_norm_max) {
+        const int n = 3*i;
+        double fdotf = static_cast<double>(l_fvec[n]*l_fvec[n]+l_fvec[n+1]*l_fvec[n+1]+l_fvec[n+2]*l_fvec[n+2]);
         local_norm_max = MAX(fdotf,local_norm_max);
       },Kokkos::Max<double>(local_norm_max));
     } else {
       auto l_f = atomKK->k_f.view_device();
       Kokkos::parallel_reduce(atom->nlocal, LAMMPS_LAMBDA(int i, double& local_norm_max) {
-        double fdotf = l_f(i,0)*l_f(i,0)+l_f(i,1)*l_f(i,1)+l_f(i,2)*l_f(i,2);
+        double fdotf = static_cast<double>(l_f(i,0)*l_f(i,0)+l_f(i,1)*l_f(i,1)+l_f(i,2)*l_f(i,2));
         local_norm_max = MAX(fdotf,local_norm_max);
       },Kokkos::Max<double>(local_norm_max));
     }

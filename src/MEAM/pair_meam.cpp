@@ -73,7 +73,7 @@ PairMEAM::~PairMEAM()
 {
   if (copymode) return;
 
-  if (meam_inst) delete meam_inst;
+  delete meam_inst;
 
   if (allocated) {
     memory->destroy(setflag);

@@ -174,7 +174,7 @@ void FixAlchemy::init()
   memory->destroy(commbuf);
   memory->create(commbuf, sizeof(double) * nmax, "alchemy:nmax");
 
-  if (modify->get_fix_by_style("^balance").size() > 0)
+  if (!modify->get_fix_by_style("^balance").empty())
     error->universe_all(FLERR, "Fix alchemy is not compatible with load balancing");
 
   if (modify->get_fix_by_style("^alchemy").size() > 1)

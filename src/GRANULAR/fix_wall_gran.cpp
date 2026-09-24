@@ -49,7 +49,7 @@ static constexpr double BIG = 1.0e20;
 
 // XYZ PLANE need to be 0,1,2
 
-enum {NOSTYLE=-1,XPLANE=0,YPLANE=1,ZPLANE=2,REGION};
+enum {NOSTYLE=-1,XPLANE=0,YPLANE=1,ZPLANE=2,REGION=3};
 enum {NONE,CONSTANT,EQUAL};
 
 /* ---------------------------------------------------------------------- */
@@ -376,9 +376,9 @@ void FixWallGran::init()
 
   // check for FixRigid so can extract rigid body masses
 
-  for (i = 0; i < modify->nfix; i++)
-    if (modify->fix[i]->rigid_flag) break;
-  if (i < modify->nfix) fix_rigid = modify->fix[i];
+  fix_rigid = nullptr;
+  for (const auto &ifix : modify->get_fix_list())
+    if (ifix->rigid_flag) { fix_rigid = ifix; break; }
 
   // Define history indices
 

@@ -579,7 +579,7 @@ void PairGranularSuperellipsoid::init_style()
                                                             "NEIGH_HISTORY_GRANULAR_SE"
                                                             " all NEIGH_HISTORY " +
                                                                 std::to_string(size_history),
-                                                            1));
+                                                            0));
     fix_history->pair = this;
   } else {
     fix_history =
@@ -590,7 +590,7 @@ void PairGranularSuperellipsoid::init_style()
   // check for FixFreeze and set freeze_group_bit
 
   auto fixlist = modify->get_fix_by_style("^freeze");
-  if (fixlist.size() == 0)
+  if (fixlist.empty())
     freeze_group_bit = 0;
   else if (fixlist.size() > 1)
     error->all(FLERR, "Only one fix freeze command at a time allowed");

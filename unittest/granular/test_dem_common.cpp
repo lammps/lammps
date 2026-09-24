@@ -40,8 +40,10 @@
 
 #include "fmt/format.h"
 
+#include <cstdio>
 #include <exception>
 #include <iostream>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -154,26 +156,30 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
     }
 
     const int natoms = lmp->atom->natoms;
-    YamlWriter writer(outfile);
+
+    // write to a temporary file and rename into place only on success, so a
+    // failed generation run cannot clobber the existing reference file
+    const std::string tmpfile = std::string(outfile) + ".tmp";
+    auto writer               = std::make_unique<YamlWriter>(tmpfile.c_str());
 
     // write yaml header
-    write_yaml_header(&writer, &test_config, lmp->version);
+    write_yaml_header(writer.get(), &test_config, lmp->version);
 
     // natoms
-    writer.emit("natoms", natoms);
+    writer->emit("natoms", natoms);
 
     // variables block (echo back verbatim)
     std::string block;
     for (const auto &var : config.variables)
         block += var.first + " " + var.second + "\n";
-    writer.emit_block("variables", block);
+    writer->emit_block("variables", block);
 
     // pair style and coefficients
-    writer.emit("pair_style", config.pair_style);
+    writer->emit("pair_style", config.pair_style);
     block.clear();
     for (const auto &pair_coeff : config.pair_coeff)
         block += pair_coeff + "\n";
-    writer.emit_block("pair_coeff", block);
+    writer->emit_block("pair_coeff", block);
 
     // run segments
     block.clear();
@@ -181,15 +187,15 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
         if (i) block += " ";
         block += std::to_string(config.run_segments[i]);
     }
-    writer.emit_block("run_segments", block);
+    writer->emit_block("run_segments", block);
 
     // optional analytic check flags (echo back if enabled)
     if (config.analytic_enable) {
-        writer.emit("analytic_enable", std::string("yes"));
-        writer.emit("analytic_model", config.analytic_model);
-        writer.emit("analytic_tol", config.analytic_tol);
-        writer.emit("analytic_segment", (long) config.analytic_segment);
-        if (config.analytic_only) writer.emit("analytic_only", std::string("yes"));
+        writer->emit("analytic_enable", std::string("yes"));
+        writer->emit("analytic_model", config.analytic_model);
+        writer->emit("analytic_tol", config.analytic_tol);
+        writer->emit("analytic_segment", (long) config.analytic_segment);
+        if (config.analytic_only) writer->emit("analytic_only", std::string("yes"));
     }
 
     auto command = [&](const std::string &line) {
@@ -205,6 +211,10 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
         for (std::size_t i = 0; i < config.run_segments.size(); ++i)
             command("run " + std::to_string(config.run_segments[i]) + " post no");
         cleanup_lammps(lmp, config);
+        writer.reset();
+        platform::unlink(outfile);
+        if (std::rename(tmpfile.c_str(), outfile) != 0)
+            FAIL() << "cannot rename " << tmpfile << " to " << outfile;
         return;
     }
 
@@ -241,13 +251,17 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
                                             angmom[j][0], angmom[j][1], angmom[j][2]);
         }
     }
-    writer.emit_block("run_pos", pos_block);
-    writer.emit_block("run_vel", vel_block);
-    if (has_torque) writer.emit_block("run_torque", torque_block);
-    if (has_omega) writer.emit_block("run_omega", omega_block);
-    if (has_angmom) writer.emit_block("run_angmom", angmom_block);
+    writer->emit_block("run_pos", pos_block);
+    writer->emit_block("run_vel", vel_block);
+    if (has_torque) writer->emit_block("run_torque", torque_block);
+    if (has_omega) writer->emit_block("run_omega", omega_block);
+    if (has_angmom) writer->emit_block("run_angmom", angmom_block);
 
     cleanup_lammps(lmp, config);
+    writer.reset();
+    platform::unlink(outfile);
+    if (std::rename(tmpfile.c_str(), outfile) != 0)
+        FAIL() << "cannot rename " << tmpfile << " to " << outfile;
 }
 
 void run_dem_trajectory_test(bool newton, const std::string &label)

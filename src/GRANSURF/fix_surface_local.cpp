@@ -463,7 +463,7 @@ void FixSurfaceLocal::setup(int /*vflag*/)
   // movelist = pointers to each instance
 
   auto movelist = modify->get_fix_by_style("^move");
-  if (movelist.size() == 0) return;
+  if (movelist.empty()) return;
 
   // check for inconsistent surf motion
   // error if a single surf is assigned to multiple motions
@@ -763,7 +763,7 @@ void FixSurfaceLocal::pre_neighbor()
   MPI_Allreduce(&count2, &all2, 1, MPI_INT, MPI_SUM, world);
 
   if ((all1 || all2) && (comm->me == 0))
-    error->warning(FLERR, "Fix surface/local atom2connect vector mis-match: {} {}: {}\n", all1,
+    error->warning(FLERR, "Fix surface/local atom2connect vector mismatch: {} {}: {}\n", all1,
                    all2, update->ntimestep);
 }
 

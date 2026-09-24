@@ -70,7 +70,7 @@ class FixPressLangevin : public Fix {
   void couple_pressure();
   void couple_kinetic();
   void couple_beta();
-  void remap();
+  virtual void remap();
 };
 
 }    // namespace LAMMPS_NS

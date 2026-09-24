@@ -135,7 +135,7 @@ discussion of the validity of the approximation is available in
 To sample the canonical ensemble, any thermostat can be applied.
 
 Fix *pimd/nvt* applies a Nose-Hoover massive chain thermostat
-:ref:`(Tuckerman) <pimd-Tuckerman>`.  With the massive chain
+:ref:`(Tuckerman3) <pimd-Tuckerman>`.  With the massive chain
 algorithm, a chain of NH thermostats is coupled to each degree of
 freedom for each quasi-bead.  The keyword *temp* sets the target
 temperature for the system and the keyword *nhc* sets the number *Nc* of
@@ -205,7 +205,7 @@ which is the default in this fix. These restrictions are related to the
 use of normal modes, which change in bosons.
 
 The keyword *integrator* specifies the Trotter splitting method used by *fix
-pimd/langevin*.  See :ref:`(Liu) <Liu>` for a discussion on the OBABO and BAOAB
+pimd/langevin*.  See :ref:`(Liu3) <Liu>` for a discussion on the OBABO and BAOAB
 splitting schemes. Typically either of the two should work fine.
 
 The keyword *fmass* sets a further scaling factor for the fictitious
@@ -294,7 +294,7 @@ number.
 
 The keyword *thermostat* reads *style* and *seed* of thermostat for fix
 style *pimd/langevin*.  *style* can only be *PILE_L* (path integral
-Langevin equation local thermostat, as described in :ref:`Ceriotti
+Langevin equation local thermostat, as described in :ref:`Ceriotti3
 <Ceriotti3>`), and *seed* should a positive integer number, which serves
 as the seed of the pseudo random number generator.
 
@@ -331,7 +331,7 @@ pressure.  These parameters are not supported in
 The keyword *barostat* reads *style* of barostat for fix style
 *pimd/langevin*. *style* can be *BZP* (Bussi-Zykova-Parrinello, as
 described in :ref:`Bussi <Bussi>`) or *MTTK*
-(Martyna-Tuckerman-Tobias-Klein, as described in :ref:`Martyna1
+(Martyna-Tuckerman-Tobias-Klein, as described in :ref:`Martyna
 <Martyna3>` and :ref:`Martyna2 <Martyna4>`).
 
 The keyword *taup* specifies the barostat damping time parameter for fix
@@ -593,7 +593,7 @@ Path Integrals, McGraw-Hill, New York (1965).
 
 .. _pimd-Tuckerman:
 
-**(Tuckerman)** M. Tuckerman and B. Berne, J Chem Phys, 99, 2796 (1993).
+**(Tuckerman3)** M. Tuckerman and B. Berne, J Chem Phys, 99, 2796 (1993).
 
 .. _Cao1:
 
@@ -627,11 +627,11 @@ Path Integrals, McGraw-Hill, New York (1965).
 
 .. _Ceriotti3:
 
-**(Ceriotti)** M. Ceriotti, M. Parrinello, T. Markland, D. Manolopoulos, J. Chem. Phys. 133, 124104 (2010).
+**(Ceriotti3)** M. Ceriotti, M. Parrinello, T. Markland, D. Manolopoulos, J. Chem. Phys. 133, 124104 (2010).
 
 .. _Martyna3:
 
-**(Martyna1)** G. Martyna, D. Tobias, M. Klein, J. Chem. Phys. 101, 4177 (1994).
+**(Martyna)** G. Martyna, D. Tobias, M. Klein, J. Chem. Phys. 101, 4177 (1994).
 
 .. _Martyna4:
 

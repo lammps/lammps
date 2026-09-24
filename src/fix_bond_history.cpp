@@ -63,7 +63,7 @@ FixBondHistory::FixBondHistory(LAMMPS *lmp, int narg, char **arg) :
 
 FixBondHistory::~FixBondHistory()
 {
-  if (id_fix && modify->nfix) modify->delete_fix(id_fix);
+  if (id_fix) modify->delete_fix(id_fix);
   delete[] id_fix;
   delete[] id_array;
 

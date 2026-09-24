@@ -1,0 +1,238 @@
+LAMMPS (2 Sep 2026)
+  using 1 OpenMP thread(s) per MPI task
+# Toy demonstration of SNAP "scale" parameter, using fix/adapt and hybrid/overlay
+# Mixing linear and quadratic SNAP Ni potentials by Zuo et al. JCPA 2020
+
+# mixing parameter
+
+variable lambda equal 0.2
+
+
+# Initialize simulation
+
+variable nsteps index 100
+variable nrep equal 3
+variable a equal 3.52
+units           metal
+
+# generate the box and atom positions using a FCC lattice
+variable nx equal ${nrep}
+variable nx equal 3
+variable ny equal ${nrep}
+variable ny equal 3
+variable nz equal ${nrep}
+variable nz equal 3
+
+boundary        p p p
+
+lattice         fcc $a
+lattice         fcc 3.52
+Lattice spacing in x,y,z = 3.52 3.52 3.52
+region          box block 0 ${nx} 0 ${ny} 0 ${nz}
+region          box block 0 3 0 ${ny} 0 ${nz}
+region          box block 0 3 0 3 0 ${nz}
+region          box block 0 3 0 3 0 3
+create_box      1 box
+Created orthogonal box = (0 0 0) to (10.56 10.56 10.56)
+  1 by 1 by 1 MPI processor grid
+create_atoms    1 box
+Created 108 atoms
+  using lattice units in orthogonal box = (0 0 0) to (10.56 10.56 10.56)
+  create_atoms CPU = 0.000 seconds
+
+mass 1 34.
+
+# choose bundled SNAP Ni potential from Zuo et al. JCPA 2020
+pair_style hybrid/overlay snap snap
+pair_coeff * * snap 1 Ni_Zuo_JPCA2020.snapcoeff Ni_Zuo_JPCA2020.snapparam Ni
+Reading potential file Ni_Zuo_JPCA2020.snapcoeff with DATE: 2020-01-31
+SNAP Element = Ni, Radius 0.5, Weight 1
+Reading potential file Ni_Zuo_JPCA2020.snapparam with DATE: 2020-01-31
+SNAP keyword rcutfac 4.1
+SNAP keyword twojmax 8
+SNAP keyword rfac0 0.99363
+SNAP keyword rmin0 0
+SNAP keyword quadraticflag 0
+SNAP keyword bzeroflag 0
+pair_coeff * * snap 2 Ni_Zuo_JPCA2020.quadratic.snapcoeff Ni_Zuo_JPCA2020.quadratic.snapparam Ni
+Reading potential file Ni_Zuo_JPCA2020.quadratic.snapcoeff with DATE: 2020-01-31
+SNAP Element = Ni, Radius 0.5, Weight 1
+Reading potential file Ni_Zuo_JPCA2020.quadratic.snapparam with DATE: 2020-01-31
+SNAP keyword rcutfac 3.8
+SNAP keyword twojmax 6
+SNAP keyword rfac0 0.99363
+SNAP keyword rmin0 0
+SNAP keyword quadraticflag 1
+SNAP keyword bzeroflag 0
+
+# scale according to mixing parameter
+variable l1 equal ${lambda}
+variable l1 equal 0.2
+variable l2 equal 1.0-${lambda}
+variable l2 equal 1.0-0.2
+fix scale1 all adapt 1 pair snap:1 scale * * v_l1
+fix scale2 all adapt 1 pair snap:2 scale * * v_l2
+
+# Setup output
+thermo          1
+thermo_modify norm yes
+
+# Set up NVE run
+timestep 0.5e-3
+neighbor 1.0 bin
+neigh_modify every 1 delay 0 check yes
+
+# Run MD
+velocity all create 300.0 4928459 loop geom
+fix 1 all nve
+run             ${nsteps}
+run             100
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 5.1
+  ghost atom cutoff = 5.1
+  binsize = 2.55, bins = 5 5 5
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair snap, perpetual
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+  (2) pair snap, perpetual, trim from (1)
+      attributes: full, newton on, cut 4.8
+      pair build: trim
+      stencil: none
+      bin: none
+Per MPI rank memory allocation (min/avg/max) = 4.436 | 4.436 | 4.436 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+         0   300           -5.7803044      0             -5.7418854      5405.399     
+         1   299.79168     -5.7802777      0             -5.7418854      5417.3696    
+         2   299.16718     -5.7801977      0             -5.7418854      5453.2548    
+         3   298.12809     -5.7800646      0             -5.7418854      5512.9477    
+         4   296.67727     -5.7798788      0             -5.7418853      5596.2545    
+         5   294.81887     -5.7796408      0             -5.7418853      5702.8949    
+         6   292.55836     -5.7793512      0             -5.7418852      5832.5034    
+         7   289.90243     -5.779011       0             -5.7418852      5984.6299    
+         8   286.85908     -5.7786212      0             -5.7418851      6158.7419    
+         9   283.43751     -5.778183       0             -5.741885       6354.2259    
+        10   279.64818     -5.7776976      0             -5.7418849      6570.39      
+        11   275.50273     -5.7771666      0             -5.7418848      6806.4666    
+        12   271.01399     -5.7765917      0             -5.7418847      7061.6145    
+        13   266.19592     -5.7759745      0             -5.7418846      7334.9232    
+        14   261.0636      -5.7753171      0             -5.7418845      7625.4155    
+        15   255.63318     -5.7746216      0             -5.7418843      7932.0518    
+        16   249.92184     -5.77389        0             -5.7418842      8253.7337    
+        17   243.94774     -5.7731248      0             -5.7418841      8589.309     
+        18   237.72996     -5.7723284      0             -5.7418839      8937.5756    
+        19   231.28848     -5.7715033      0             -5.7418837      9297.2866    
+        20   224.64407     -5.7706522      0             -5.7418836      9667.1553    
+        21   217.81824     -5.7697779      0             -5.7418834      10045.86     
+        22   210.83319     -5.7688832      0             -5.7418832      10432.05     
+        23   203.71173     -5.767971       0             -5.741883       10824.351    
+        24   196.47717     -5.7670443      0             -5.7418828      11221.37     
+        25   189.15328     -5.7661062      0             -5.7418826      11621.7      
+        26   181.76415     -5.7651598      0             -5.7418825      12023.93     
+        27   174.33417     -5.7642081      0             -5.7418823      12426.645    
+        28   166.88788     -5.7632543      0             -5.7418821      12828.435    
+        29   159.44987     -5.7623015      0             -5.7418819      13227.901    
+        30   152.04473     -5.761353       0             -5.7418817      13623.66     
+        31   144.69692     -5.7604118      0             -5.7418815      14014.35     
+        32   137.43064     -5.7594811      0             -5.7418813      14398.635    
+        33   130.26979     -5.7585639      0             -5.7418811      14775.211    
+        34   123.23781     -5.7576632      0             -5.7418809      15142.814    
+        35   116.3576      -5.7567819      0             -5.7418807      15500.219    
+        36   109.65144     -5.7559229      0             -5.7418806      15846.251    
+        37   103.14084     -5.755089       0             -5.7418804      16179.785    
+        38   96.846501     -5.7542827      0             -5.7418802      16499.751    
+        39   90.788182     -5.7535067      0             -5.7418801      16805.142    
+        40   84.984628     -5.7527634      0             -5.74188        17095.014    
+        41   79.453481     -5.7520549      0             -5.7418798      17368.488    
+        42   74.2112       -5.7513834      0             -5.7418797      17624.758    
+        43   69.272994     -5.7507509      0             -5.7418796      17863.091    
+        44   64.652749     -5.7501591      0             -5.7418795      18082.83     
+        45   60.362971     -5.7496097      0             -5.7418794      18283.417    
+        46   56.414733     -5.749104       0             -5.7418793      18464.385    
+        47   52.817633     -5.7486433      0             -5.7418793      18625.261    
+        48   49.579761     -5.7482286      0             -5.7418792      18765.71     
+        49   46.707665     -5.7478607      0             -5.7418792      18885.479    
+        50   44.20634      -5.7475404      0             -5.7418791      18984.4      
+        51   42.07921      -5.7472679      0             -5.7418791      19062.388    
+        52   40.328128     -5.7470437      0             -5.7418791      19119.475    
+        53   38.953387     -5.7468676      0             -5.7418791      19155.745    
+        54   37.953735     -5.7467396      0             -5.7418792      19171.321    
+        55   37.326402     -5.7466593      0             -5.7418792      19166.444    
+        56   37.06713      -5.7466262      0             -5.7418792      19141.436    
+        57   37.170215     -5.7466394      0             -5.7418793      19096.691    
+        58   37.628554     -5.7466982      0             -5.7418794      19032.678    
+        59   38.433702     -5.7468014      0             -5.7418794      18949.936    
+        60   39.575934     -5.7469477      0             -5.7418795      18849.073    
+        61   41.04431      -5.7471359      0             -5.7418796      18730.757    
+        62   42.826752     -5.7473643      0             -5.7418797      18595.721    
+        63   44.910121     -5.7476312      0             -5.7418798      18444.751    
+        64   47.280296     -5.7479348      0             -5.74188        18278.686    
+        65   49.922267     -5.7482733      0             -5.7418801      18098.413    
+        66   52.820216     -5.7486445      0             -5.7418802      17904.863    
+        67   55.957612     -5.7490465      0             -5.7418804      17699.005    
+        68   59.317303     -5.7494769      0             -5.7418805      17481.842    
+        69   62.881607     -5.7499335      0             -5.7418806      17254.406    
+        70   66.632406     -5.750414       0             -5.7418808      17017.755    
+        71   70.551243     -5.750916       0             -5.7418809      16772.965    
+        72   74.619407     -5.7514371      0             -5.7418811      16521.125    
+        73   78.818028     -5.7519749      0             -5.7418812      16263.338    
+        74   83.128165     -5.752527       0             -5.7418814      16000.706    
+        75   87.530892     -5.753091       0             -5.7418815      15734.336    
+        76   92.007381     -5.7536644      0             -5.7418817      15465.328    
+        77   96.538982     -5.7542449      0             -5.7418818      15194.773    
+        78   101.1073      -5.7548301      0             -5.741882       14923.746    
+        79   105.69427     -5.7554177      0             -5.7418821      14653.308    
+        80   110.28221     -5.7560053      0             -5.7418822      14384.496    
+        81   114.85392     -5.7565909      0             -5.7418824      14118.318    
+        82   119.39271     -5.7571723      0             -5.7418825      13855.757    
+        83   123.88247     -5.7577474      0             -5.7418826      13597.759    
+        84   128.30772     -5.7583142      0             -5.7418827      13345.3      
+        85   132.65366     -5.7588709      0             -5.7418828      13099.184    
+        86   136.9062      -5.7594156      0             -5.741883       12860.241    
+        87   141.05202     -5.7599466      0             -5.7418831      12629.25     
+        88   145.07856     -5.7604624      0             -5.7418831      12406.955    
+        89   148.97411     -5.7609613      0             -5.7418832      12194.099    
+        90   152.72781     -5.7614421      0             -5.7418833      11991.25     
+        91   156.32962     -5.7619035      0             -5.7418834      11798.988    
+        92   159.77044     -5.7623442      0             -5.7418834      11617.838    
+        93   163.04201     -5.7627632      0             -5.7418835      11448.268    
+        94   166.13701     -5.7631596      0             -5.7418835      11290.692    
+        95   169.04901     -5.7635326      0             -5.7418836      11145.463    
+        96   171.77251     -5.7638814      0             -5.7418836      11012.881    
+        97   174.30289     -5.7642055      0             -5.7418836      10893.183    
+        98   176.63647     -5.7645043      0             -5.7418837      10786.553    
+        99   178.77044     -5.7647776      0             -5.7418837      10693.113    
+       100   180.70289     -5.7650251      0             -5.7418837      10612.932    
+Loop time of 2.40536 on 1 procs for 100 steps with 108 atoms
+
+Performance: 1.796 ns/day, 13.363 hours/ns, 41.574 timesteps/s, 4.490 katom-step/s
+99.6% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 2.4045     | 2.4045     | 2.4045     |   0.0 | 99.96
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 0.00013235 | 0.00013235 | 0.00013235 |   0.0 |  0.01
+Output  | 0.00053932 | 0.00053932 | 0.00053932 |   0.0 |  0.02
+Modify  | 0.0001648  | 0.0001648  | 0.0001648  |   0.0 |  0.01
+Other   |            | 5.32e-05   |            |       |  0.00
+
+Nlocal:            108 ave         108 max         108 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:            558 ave         558 max         558 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:              0 ave           0 max           0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:         5832 ave        5832 max        5832 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 5832
+Ave neighs/atom = 54
+Neighbor list builds = 0
+Dangerous builds = 0
+Total wall time: 0:00:02

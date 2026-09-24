@@ -165,7 +165,8 @@ void AtomKokkos::update_property_atom()
   std::vector<Fix *> prop_atom_fixes;
   for (auto &ifix : modify->get_fix_by_style("^property/atom")) {
     if (!ifix->kokkosable)
-      error->all(FLERR, "KOKKOS package requires a Kokkos-enabled version of fix property/atom");
+      error->all(FLERR, "Fix property/atom {} must use the Kokkos-enabled style "
+                 "property/atom/kk when running with the KOKKOS package", ifix->id);
 
     ++nprop_atom;
     prop_atom_fixes.push_back(ifix);
@@ -275,6 +276,36 @@ void AtomKokkos::sync_pinned(const ExecutionSpace space, uint64_t mask, int asyn
   avecKK->sync_pinned(space, mask, async_flag);
   for (int n = 0; n < nprop_atom; n++) fix_prop_atom[n]->sync_pinned(space, mask, async_flag);
 }
+/* ----------------------------------------------------------------------
+   the four ways of setting the per-type masses all write the plain host
+   array, so claim that write for the device copy
+------------------------------------------------------------------------- */
+
+void AtomKokkos::set_mass(const char *file, int line, const char *str,
+                          int type_offset, int labelflag, int *ilabel)
+{
+  Atom::set_mass(file, line, str, type_offset, labelflag, ilabel);
+  k_mass.modify_host();
+}
+
+void AtomKokkos::set_mass(const char *file, int line, int itype, double value)
+{
+  Atom::set_mass(file, line, itype, value);
+  k_mass.modify_host();
+}
+
+void AtomKokkos::set_mass(const char *file, int line, int narg, char **arg)
+{
+  Atom::set_mass(file, line, narg, arg);
+  k_mass.modify_host();
+}
+
+void AtomKokkos::set_mass(double *values)
+{
+  Atom::set_mass(values);
+  k_mass.modify_host();
+}
+
 /* ---------------------------------------------------------------------- */
 
 void AtomKokkos::allocate_type_arrays()
@@ -333,10 +364,31 @@ void AtomKokkos::sort()
 
   if (sort_legacy) {
     sync(Host, ALL_MASK);
+
+    // Atom::sort() permutes the per-atom arrays of the fixes that grow with the
+    // atoms as well, through their copy_arrays() on the host, so those have to
+    // be host-current here and claimed again below.  ALL_MASK above covers only
+    // the arrays that Atom owns.
+
+    for (int iextra = 0; iextra < atom->nextra_grow; iextra++) {
+      auto fix_iextra = modify->fix[atom->extra_grow[iextra]];
+      if (!fix_iextra->kokkosable) continue;
+      KokkosBase *kkbase = dynamic_cast<KokkosBase *>(fix_iextra);
+      if (kkbase) kkbase->sync_host_for_sort();
+    }
+
     int prev_auto_sync = lmp->kokkos->auto_sync;
     lmp->kokkos->auto_sync = 1;
     Atom::sort();
     lmp->kokkos->auto_sync = prev_auto_sync;
+
+    for (int iextra = 0; iextra < atom->nextra_grow; iextra++) {
+      auto fix_iextra = modify->fix[atom->extra_grow[iextra]];
+      if (!fix_iextra->kokkosable) continue;
+      KokkosBase *kkbase = dynamic_cast<KokkosBase *>(fix_iextra);
+      if (kkbase) kkbase->modified_host_for_sort();
+    }
+
     modified(Host, ALL_MASK);
   } else sort_device();
 }

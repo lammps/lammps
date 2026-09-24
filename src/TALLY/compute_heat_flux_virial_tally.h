@@ -42,11 +42,17 @@ class ComputeHeatFluxVirialTally : public Compute {
   void pair_setup_callback(int, int) override;
   void pair_tally_callback(int, int, int, int, double, double, double, double, double,
                            double) override;
+  void pair_cv_tally3_callback(int, int, int, double *, double *, double *, double, double, double, double) override;
+  void pair_cv_tally4_callback(int, int, int, int, double *, double *, double *, double *, double, double, double, double, double) override;
 
  private:
   bigint did_setup;
+  int two_bdflag, three_bdflag, four_bdflag; // Flags for 2-body, 3-body, 4-body contributions
   int nmax, igroup2, groupbit2;
   double **fatom;
+  inline int H_ab(int i, int j, const int *mask, int gbit1, int gbit2)
+  {return (int) ((bool)(mask[i] & gbit1) * (bool)(mask[j] & gbit2) - (bool)(mask[i] & gbit2) * (bool)(mask[j] & gbit1));};
+
 };
 
 }    // namespace LAMMPS_NS

@@ -1407,6 +1407,12 @@ void Atom::data_bonds(int n, char *buf, int *count, tagint id_offset,
             avec->data_bonds_post(m, num_bond[m], atom1, atom2, id_offset);
           }
         }
+      } else if (!count && (map(atom1) < 0) && ((m = map(atom2)) >= 0)) {
+
+        // with newton_bond on the bond is only stored with atom1, but the
+        // atom style may also need to process it for atom2 on its own processor
+
+        avec->data_bonds_post(m, num_bond[m], atom1, atom2, id_offset);
       }
     }
     buf = next + 1;

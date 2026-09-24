@@ -6,6 +6,7 @@
 .. index:: pair_style lj/cut/coul/cut/soft/kk
 .. index:: pair_style lj/cut/coul/cut/soft/gpu
 .. index:: pair_style lj/cut/coul/cut/soft/omp
+.. index:: pair_style lj/cut/coul/cut/soft/gapsys
 .. index:: pair_style lj/cut/coul/long/soft
 .. index:: pair_style lj/cut/coul/long/soft/kk
 .. index:: pair_style lj/cut/coul/long/soft/gpu
@@ -18,8 +19,10 @@
 .. index:: pair_style lj/class2/soft
 .. index:: pair_style lj/class2/soft/kk
 .. index:: pair_style lj/class2/soft/omp
+.. index:: pair_style lj/class2/soft/gapsys
 .. index:: pair_style lj/class2/coul/cut/soft
 .. index:: pair_style lj/class2/coul/cut/soft/omp
+.. index:: pair_style lj/class2/coul/cut/soft/gapsys
 .. index:: pair_style lj/class2/coul/long/soft
 .. index:: pair_style lj/class2/coul/long/soft/omp
 .. index:: pair_style coul/cut/soft
@@ -49,6 +52,9 @@ pair_style lj/cut/coul/cut/soft command
 
 Accelerator Variants: *lj/cut/coul/cut/soft/gpu*, *lj/cut/coul/cut/soft/kk*, *lj/cut/coul/cut/soft/omp*
 
+pair_style lj/cut/coul/cut/soft/gapsys command
+==============================================
+
 pair_style lj/cut/coul/long/soft command
 ========================================
 
@@ -69,10 +75,16 @@ pair_style lj/class2/soft command
 
 Accelerator Variants: *lj/class2/soft/kk*, *lj/class2/soft/omp*
 
+pair_style lj/class2/soft/gapsys command
+========================================
+
 pair_style lj/class2/coul/cut/soft command
 ==========================================
 
 Accelerator Variants: *lj/class2/coul/cut/soft/omp*
+
+pair_style lj/class2/coul/cut/soft/gapsys command
+=================================================
 
 pair_style lj/class2/coul/long/soft command
 ===========================================
@@ -111,7 +123,7 @@ Syntax
 
    pair_style style args
 
-* style = *lj/cut/soft* or *lj/cut/soft/gapsys* or *lj/cut/coul/cut/soft* or *lj/cut/coul/long/soft* or *lj/cut/tip4p/long/soft* or *lj/charmm/coul/long/soft* or *lj/class2/soft* or *lj/class2/coul/cut/soft* or *lj/class2/coul/long/soft* or *coul/cut/soft* or *coul/cut/soft/gapsys* or *coul/long/soft* or *tip4p/long/soft* or *morse/soft*
+* style = *lj/cut/soft* or *lj/cut/soft/gapsys* or *lj/cut/coul/cut/soft* or *lj/cut/coul/cut/soft/gapsys* or *lj/cut/coul/long/soft* or *lj/cut/tip4p/long/soft* or *lj/charmm/coul/long/soft* or *lj/class2/soft* or *lj/class2/soft/gapsys* or *lj/class2/coul/cut/soft* or *lj/class2/coul/cut/soft/gapsys* or *lj/class2/coul/long/soft* or *coul/cut/soft* or *coul/cut/soft/gapsys* or *coul/long/soft* or *tip4p/long/soft* or *morse/soft*
 * args = list of arguments for a particular style
 
 .. parsed-literal::
@@ -125,6 +137,10 @@ Syntax
      *lj/cut/coul/cut/soft* args = n alpha_LJ alpha_C cutoff (cutoff2)
        n, alpha_LJ, alpha_C = parameters of soft-core potential
        cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
+       cutoff2 = global cutoff for Coulombic (optional) (distance units)
+     *lj/cut/coul/cut/soft/gapsys* args = alpha_LJ sigma_q alpha_q cutoff (cutoff2)
+       alpha_LJ, sigma_q, alpha_q = parameters of the soft-core potential
+       cutoff = global cutoff for Coulomb interactions (distance units)
        cutoff2 = global cutoff for Coulombic (optional) (distance units)
      *lj/cut/coul/long/soft* args = n alpha_LJ alpha_C cutoff
        n, alpha_LJ, alpha_C = parameters of the soft-core potential
@@ -144,9 +160,16 @@ Syntax
      *lj/class2/soft* args = n alpha_lj cutoff
        n, alpha_LJ = parameters of soft-core potential
        cutoff = global cutoff for Lennard-Jones interactions (distance units)
+     *lj/class2/soft/gapsys* args = alpha_lj cutoff
+       alpha_LJ = parameter of soft-core potential
+       cutoff = global cutoff for Lennard-Jones interactions (distance units)
      *lj/class2/coul/cut/soft* args = n alpha_LJ alpha_C cutoff (cutoff2)
        n, alpha_LJ, alpha_C = parameters of soft-core potential
        cutoff = global cutoff for LJ (and Coulombic if only 1 arg) (distance units)
+       cutoff2 = global cutoff for Coulombic (optional) (distance units)
+     *lj/class2/coul/cut/soft/gapsys* args = alpha_LJ sigma_q alpha_q cutoff (cutoff2)
+       alpha_LJ, sigma_q, alpha_q = parameters of the soft-core potential
+       cutoff = global cutoff for Coulomb interactions (distance units)
        cutoff2 = global cutoff for Coulombic (optional) (distance units)
      *lj/class2/coul/long/soft* args = n alpha_LJ alpha_C cutoff (cutoff2)
        n, alpha_LJ, alpha_C = parameters of soft-core potential
@@ -190,6 +213,9 @@ Examples
    pair_coeff 1 1 0.28 3.1 0.5 10.0
    pair_coeff 1 1 0.28 3.1 0.5 10.0 9.5
 
+   pair_style lj/cut/coul/cut/soft/gapsys 1.0 1.0 10.0 9.5 9.5
+   pair_coeff * * 0.28 3.1 1.0
+
    pair_style lj/cut/coul/long/soft 2.0 0.5 10.0 9.5
    pair_style lj/cut/coul/long/soft 2.0 0.5 10.0 9.5 9.5
    pair_coeff * * 0.28 3.1 1.0
@@ -212,6 +238,12 @@ Examples
    pair_style lj/charmm/coul/long 2.0 0.5 10.0 8.0 10.0 9.0
    pair_coeff * * 0.28 3.1 1.0
    pair_coeff 1 1 0.28 3.1 1.0 0.14 3.1
+
+   pair_style lj/class2/soft/gapsys 1.0 9.5
+   pair_coeff * * 0.28 3.1 1.0
+
+   pair_style lj/class2/coul/cut/soft/gapsys 1.0 1.0 10.0 9.5 9.5
+   pair_coeff * * 0.28 3.1 1.0
 
    pair_style lj/class2/coul/long/soft 2.0 0.5 10.0 9.5
    pair_style lj/class2/coul/long/soft 2.0 0.5 10.0 9.5 9.5
@@ -494,6 +526,18 @@ For distances shorter than :math:`r_{inner}`, the energy is computed by
    c_1 = 26 \sigma^12 / r_{inner}^14 - 7 \sigma^6 / r_{inner}^8
    c_2 = 7 \sigma^12 / r_{inner}^13 - 2 \sigma^6 / r_{inner}^7
    c_3 = 13 \sigma^12 / r_{inner}^12 - 4 \sigma^6 / r_{inner}^6
+
+This pair style requires the following pair coefficients:
+
+* :math:`\alpha_lj` (distance units, positive real number)
+* :math:`\lambda` (unitless, between 0.0 and 1.0)
+* cutoff (distance units)
+
+.. versionadded:: TBD
+
+The pair style *lj/class2/soft/gapsys* implements a soft-core version of the 9-6 potential in
+:doc:`pair_style lj/class2 <pair_class2>` following the notion of a linear force for short
+distances as proposed by Gapsys et al :ref:`(Gapsys) <Gapsys>`.
 
 This pair style requires the following pair coefficients:
 

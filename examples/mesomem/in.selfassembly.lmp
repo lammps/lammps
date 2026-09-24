@@ -1,0 +1,59 @@
+# example of self assembly membrane
+#
+# run as:  lmp -in in.selfassembly.lmp
+
+variable eps    index 1.0
+variable rcut   index 2.5
+variable ktilt  index 15.0
+variable ksplay index 1.0
+variable wc     index 2.0
+variable zeta   index 5.0
+variable c0     index 0.0
+
+variable T      index 0.2
+variable N      index 1500
+variable t_dump equal 1000
+
+units           lj
+atom_style      hybrid sphere dipole
+neighbor        1.0 bin
+neigh_modify    delay 0 every 1 check yes
+
+dimension       3
+boundary        p p p
+
+
+region myreg block -14 14 -14 14 -14 14
+create_box 1 myreg
+create_atoms 1 random ${N} 341341 NULL overlap 1.0  maxtry 100
+set type 1  dipole/random 341341 1.0
+
+
+# This density settings are required to get an effective bigger inertia, stabilize the rotational dynamics.
+variable my_diameter equal 4.0
+set      type 1 diameter ${my_diameter}
+variable my_volume equal (4.0/3.0)*PI*((${my_diameter}*0.5)^3)
+variable my_mass equal 1.0
+variable my_density equal ${my_mass}/${my_volume}
+set      type 1 density ${my_density}
+print    "m:${my_mass} V:${my_volume} rho:${my_density}" screen yes
+
+
+compute Tall all temp/sphere dof all
+thermo_style custom step spcpu temp c_Tall
+thermo ${t_dump}
+
+##############################
+######## PAIR STYLE ##########
+##############################
+
+pair_style      mesomem/dipole ${rcut}
+# i j sigma eps ktilt ksplay rcut weight_rc zeta c0
+pair_coeff      1 1 1.0 ${eps} ${ktilt} ${ksplay} ${rcut} ${wc} ${zeta} ${c0}
+
+timestep        0.01
+
+fix             f_nve all nve/sphere update dipole
+fix fLANG   all   langevin ${T} ${T} 1.0 123 zero yes omega yes
+fix_modify fLANG temp Tall
+run 1000

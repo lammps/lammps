@@ -534,6 +534,7 @@ CGSDK
 cgspica
 CGSPICA
 Chaimovich
+Challacombe
 Chalopin
 Champaign
 charmm
@@ -1673,6 +1674,7 @@ Hochbruck
 Hofling
 Holian
 Holm
+Holmstrom
 holonomic
 Homebrew
 hooke
@@ -2881,6 +2883,7 @@ noforce
 noguess
 Noid
 nolib
+Nomura
 nonaffine
 nonblocking
 nonequilibrium
@@ -3008,6 +3011,7 @@ octahedral
 octahedron
 octants
 Odegard
+Odell
 Og
 Ohara
 O'Hearn
@@ -3965,6 +3969,7 @@ Steinbach
 steinhardt
 Steinhardt
 Steinhauser
+Steneteg
 Stepaniants
 stepwise
 stereolithography
@@ -4282,6 +4287,7 @@ tx
 txt
 ty
 Tyagi
+Tymczak
 typeargs
 typedefs
 typeI
@@ -4603,6 +4609,10 @@ xindy
 xk
 xlat
 xlattice
+xlcg
+xldamp
+xlkappa
+xlmd
 xlo
 xmax
 Xmax

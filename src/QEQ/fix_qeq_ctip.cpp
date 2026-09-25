@@ -60,12 +60,11 @@ FixQEqCTIP::FixQEqCTIP(LAMMPS *lmp, int narg, char **arg) :
       if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix qeq/ctip maxrepeat", error);
       maxrepeat = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
-    } else if (strcmp(arg[iarg], "warn") == 0) {
-      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix qeq/ctip warn", error);
-      maxwarn = utils::logical(FLERR, arg[iarg + 1], false, lmp);
-      iarg += 2;
-    } else
-      error->all(FLERR, iarg, "Unknown fix qeq/ctip keyword: {}", arg[iarg]);
+    } else {
+      int n = parse_common_keyword(narg, arg, iarg);
+      if (n > 0) iarg += n;
+      else error->all(FLERR, iarg, "Unknown fix {} keyword: {}", style, arg[iarg]);
+    }
   }
 
   extract_ctip();
@@ -216,9 +215,7 @@ void FixQEqCTIP::pre_force(int /*vflag*/)
 
   for (i=1; i <= maxrepeat; i++) {
        init_matvec();
-       matvecs = CG(b_s, s);         // CG on s - parallel
-       matvecs += CG(b_t, t);        // CG on t - parallel
-       matvecs /= 2;
+       matvecs = solve_st();
        n=calculate_check_Q();
        MPI_Allreduce(&n, &nout, 1, MPI_INT, MPI_SUM, world);
        if (nout == 0) break;

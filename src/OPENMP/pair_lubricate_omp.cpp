@@ -249,9 +249,9 @@ void PairLubricateOMP::eval(int iifrom, int iito, ThrData * const thr)
 
       if (shearing && vflag_either) {
         vRS0 = -vxmu2f * RS0;
-        v_tally_tensor(i,i,nlocal,NEWTON_PAIR,
-                       vRS0*Ef[0][0],vRS0*Ef[1][1],vRS0*Ef[2][2],
-                       vRS0*Ef[0][1],vRS0*Ef[0][2],vRS0*Ef[1][2]);
+        const double vRS[6] = {vRS0*Ef[0][0], vRS0*Ef[1][1], vRS0*Ef[2][2],
+                               vRS0*Ef[0][1], vRS0*Ef[0][2], vRS0*Ef[1][2]};
+        v_tally_thr(this,i,i,nlocal,NEWTON_PAIR,vRS,thr);
       }
     }
 

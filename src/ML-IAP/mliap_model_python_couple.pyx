@@ -64,7 +64,7 @@ cdef public int MLIAPPY_load_model(MLIAPModelPython * c_model, char* fname) with
     else:
         if str_fname.endswith(".pt") or str_fname.endswith('.pth'):
             import torch
-            model = torch.load(str_fname)
+            model = torch.load(str_fname, weights_only=False)
         else:
             with open(str_fname,'rb') as pfile:
                 model = pickle.load(pfile)

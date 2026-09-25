@@ -106,7 +106,11 @@ length of the contact region (see *delta_ua*), following
 :ref:`Fraige <pair-Fraige>`.  The elastic force :math:`k_n \delta_n` is not
 scaled.  The damping forces act at each
 contact, while there is a single friction force per pair of particles,
-at the contact with the largest overlap.
+at the contact with the largest overlap.  Each vertex of one particle
+interacts with a single edge of the other particle, namely the edge whose
+sector, bounded by the rays from the particle center through the two
+vertices of the edge, encloses the vertex, or with a vertex at an end of
+that edge, following :ref:`Fraige <pair-Fraige>`.
 
 In :ref:`Fraige <pair-Fraige>`, the tangential friction force between two
 particles that are in contact is modeled differently prior to gross
@@ -132,7 +136,9 @@ term was applied along the normal direction at every contact and thus
 only increased the normal repulsion.  Also, the scaling factor
 :math:`j_a` now applies only to the cohesive force as in the reference
 model, instead of to the whole normal force, and the cohesive force keeps
-growing when the surfaces deform, instead of staying constant.
+growing when the surfaces deform, instead of staying constant.  Each
+vertex now interacts with a single edge of the other particle, selected
+as described above, instead of with all edges within the cutoff.
 
 The following coefficients must be defined for each pair of atom types
 via the :doc:`pair_coeff <pair_coeff>` command as in the examples above,

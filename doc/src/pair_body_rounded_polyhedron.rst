@@ -100,7 +100,14 @@ area of the contact region (see *A_ua*), following
 :ref:`Wang <pair-Wang>`.  The elastic force :math:`k_n \delta_n` is not
 scaled.  The damping forces act at each
 contact, while there is a single friction force per pair of particles,
-at the contact with the largest overlap.
+at the contact with the largest overlap.  Following :ref:`Wang
+<pair-Wang>`, a vertex of one particle interacts with a face of the other
+particle if its projection onto the face lies inside the face, else with
+the nearest edge if its projection onto that edge lies inside the edge,
+else with the nearest vertex, where each vertex has at most one such
+interaction.  In addition, the edges of the two particles interact with
+each other, which takes precedence over the interaction of a vertex at
+the end of an edge.
 
 In :ref:`Wang <pair-Wang>`, the tangential friction force between two
 particles that are in contact is modeled differently prior to gross
@@ -127,6 +134,10 @@ only increased the normal repulsion.  Also, the scaling factor
 :math:`j_a` now applies only to the cohesive force as in the reference
 model, instead of to the whole normal force, and the cohesive force keeps
 growing when the surfaces deform, instead of staying constant.
+Contacts between a vertex and an edge or between two vertices are now
+detected, both triangles of a quadrilateral face are tested for edges
+crossing the face, and the cohesive force is also scaled for two contact
+points.
 
 The following coefficients must be defined for each pair of atom types
 via the :doc:`pair_coeff <pair_coeff>` command as in the examples above,
@@ -168,11 +179,10 @@ mix, shift, table, and tail options.
      discontinuously.  With cohesion (:math:`k_{na} > 0`), the energy
      of a contact does not vanish when the surfaces just touch, so that
      these changes also change the energy.
-   * Some kinds of contacts are not detected: a vertex of one particle
-     against an edge or a vertex of the other particle, and an edge whose
-     two end points both lie outside of a face that it overlaps.  Two
-     particles may thus overlap without repelling each other until
-     another kind of contact is detected.
+   * Each vertex interacts with at most one face, edge, or vertex of the
+     other particle, so that a new interaction can appear abruptly with a
+     finite overlap when the vertex moves from the region of one of them
+     to another.
    * The reported pair energy includes the interactions at all contacts,
      also those that do not receive an elastic force by the rules above.
      While such contacts exist, the reported energy does not match the

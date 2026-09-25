@@ -102,11 +102,12 @@ void AngleSPICAKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   k_rminsq.template sync<DeviceType>();
   k_emin.template sync<DeviceType>();
 
-
-  // "It has to do with overlapping host/device in verlet_kokkos.cpp. For this reason, all topology styles (bond, angle, etc.) must set DATAMASK_READ, DATAMASK_MODIFY in the constructor and must not use atomKK->sync/modified. This is a gotcha that needed to be better documented."
-  // https://matsci.org/t/a-few-kokkos-development-questions/56598
-  //
-  //atomKK->k_type.template sync<DeviceType>();
+  // Topology styles were once told never to call atomKK->sync/modified,
+  // because run_style verlet/kk overlaps host and device force work and a sync
+  // there would copy the device forces over the host buffer being added into.
+  // That no longer holds: for the length of the overlap VerletKokkos publishes
+  // AtomKokkos::datamask_exclude, and sync() and modified() leave the force,
+  // energy and virial arrays alone while it is set.  See VerletKokkos::run().
 
   // Sync what this style reads and claim what it writes, the same way the
   // KOKKOS pair styles do.  run_style verlet/kk does this for its caller, but

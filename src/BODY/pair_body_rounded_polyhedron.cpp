@@ -312,6 +312,11 @@ void PairBodyRoundedPolyhedron::pair_interaction(int i, int j, double delx, doub
 
   contacts.clear();
 
+  // facc is the force on body i, fj collects the forces on body j
+  // returned by the routines below, which is subtracted at the end
+
+  double fj[3] = {0.0, 0.0, 0.0};
+
   // check interaction between i's edges and j' faces
   #ifdef _POLYHEDRON_DEBUG
   printf("INTERACTION between edges of %d vs. faces of %d:\n", i, j);
@@ -324,21 +329,26 @@ void PairBodyRoundedPolyhedron::pair_interaction(int i, int j, double delx, doub
   printf("\nINTERACTION between edges of %d vs. faces of %d:\n", j, i);
   #endif
   edge_against_face(j, i, jtype, itype, x, v, f, torque, angmom,
-                    fnc, s, evdwl, facc);
+                    fnc, s, evdwl, fj);
 
-  // check interaction between i's edges and j' edges
+  // check interaction between i's edges and j' edges, which returns
+  // the force on body j
   #ifdef _POLYHEDRON_DEBUG
   printf("INTERACTION between edges of %d vs. edges of %d:\n", i, j);
   #endif
   edge_against_edge(i, j, itype, jtype, x, v, f, torque, angmom,
-                    fnc, s, evdwl, facc);
+                    fnc, s, evdwl, fj);
 
   // estimate the contact area
   // also consider point contacts and line contacts
 
   if (!contacts.empty()) {
-    rescale_cohesive_forces(x, f, torque, fnc, contacts, itype, jtype, facc);
+    rescale_cohesive_forces(x, f, torque, fnc, contacts, itype, jtype, i, facc);
   }
+
+  facc[0] -= fj[0];
+  facc[1] -= fj[1];
+  facc[2] -= fj[2];
 }
 
 /* ----------------------------------------------------------------------
@@ -1854,11 +1864,12 @@ void PairBodyRoundedPolyhedron::contact_forces(int ibody, int jbody,
 
 /* ----------------------------------------------------------------------
   Rescale the forces and torques for all the contacts
+  the total force on body iref is accumulated to facc
 ------------------------------------------------------------------------- */
 
 void PairBodyRoundedPolyhedron::rescale_cohesive_forces(double** x,
      double** f, double** torque, double** fnc, std::vector<Contact> &contacts,
-     int itype, int jtype, double* facc)
+     int itype, int jtype, int iref, double* facc)
 {
   int m,ibody,jbody;
   double delx,dely,delz,fx,fy,fz,R,fpair,r,contact_area;
@@ -1933,7 +1944,13 @@ void PairBodyRoundedPolyhedron::rescale_cohesive_forces(double** x,
     f[jbody][2] -= fz;
     sum_torque(x[jbody], contacts[m].xj, -fx, -fy, -fz, torque[jbody]);
 
-    facc[0] += fx; facc[1] += fy; facc[2] += fz;
+    // facc is the force on body iref
+
+    if (ibody == iref) {
+      facc[0] += fx; facc[1] += fy; facc[2] += fz;
+    } else {
+      facc[0] -= fx; facc[1] -= fy; facc[2] -= fz;
+    }
 
     // the part of the force added by the j_a scaling does not derive
     // from the energy

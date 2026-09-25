@@ -161,7 +161,8 @@ class PairBodyRoundedPolyhedron : public Pair {
 
   // rescale the cohesive forces if a contact area is detected
   void rescale_cohesive_forces(double **x, double **f, double **torque, double **fnc,
-                               std::vector<Contact> &contacts, int itype, int jtype, double *facc);
+                               std::vector<Contact> &contacts, int itype, int jtype, int iref,
+                               double *facc);
 
   // compute the separation between two contacts
   double contact_separation(const Contact &c1, const Contact &c2);

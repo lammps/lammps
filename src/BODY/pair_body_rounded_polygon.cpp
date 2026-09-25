@@ -273,8 +273,10 @@ void PairBodyRoundedPolygon::pair_interaction(int i, int j, double delx, double 
   vertex_against_edge(i, j, k_nij, k_naij, x, f, torque, tag, s, evdwl, facc);
 
   // check interaction between j's vertices and i' edges
+  // this returns the force on body j in fj, facc is the force on body i
 
-  vertex_against_edge(j, i, k_nij, k_naij, x, f, torque, tag, s, evdwl, facc);
+  double fj[3] = {0.0, 0.0, 0.0};
+  vertex_against_edge(j, i, k_nij, k_naij, x, f, torque, tag, s, evdwl, fj);
 
   num_contacts = contacts.size();
 
@@ -292,8 +294,10 @@ void PairBodyRoundedPolygon::pair_interaction(int i, int j, double delx, double 
 
           // scale the force at both contacts
 
-          contact_forces(contacts[m], j_a, x, v, angmom, f, torque, fnc, evdwl, facc);
-          contact_forces(contacts[n], j_a, x, v, angmom, f, torque, fnc, evdwl, facc);
+          contact_forces(contacts[m], j_a, x, v, angmom, f, torque, fnc, evdwl,
+                         (contacts[m].ibody == i) ? facc : fj);
+          contact_forces(contacts[n], j_a, x, v, angmom, f, torque, fnc, evdwl,
+                         (contacts[n].ibody == i) ? facc : fj);
           done = 1;
 
           #ifdef _POLYGON_DEBUG
@@ -327,7 +331,8 @@ void PairBodyRoundedPolygon::pair_interaction(int i, int j, double delx, double 
     // if there's only one contact, it should be handled here
     // since forces/torques have not been accumulated from vertex2edge()
 
-    contact_forces(contacts[0], 1.0, x, v, angmom, f, torque, fnc, evdwl, facc);
+    contact_forces(contacts[0], 1.0, x, v, angmom, f, torque, fnc, evdwl,
+                   (contacts[0].ibody == i) ? facc : fj);
 
     #ifdef _POLYGON_DEBUG
     printf("One contact between vertex %d of body %d and edge %d of body %d:\n",
@@ -350,6 +355,10 @@ void PairBodyRoundedPolygon::pair_interaction(int i, int j, double delx, double 
   printf("There are %d contacts detected, %d of which overlap.\n",
          num_contacts, num_overlapping_contacts);
   #endif
+
+  facc[0] -= fj[0];
+  facc[1] -= fj[1];
+  facc[2] -= fj[2];
 }
 
 /* ----------------------------------------------------------------------

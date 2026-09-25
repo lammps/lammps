@@ -93,6 +93,7 @@ template <class DeviceType> class FixRigidSmallKokkos : public FixRigidSmall, pu
   void set_arrays(int) override;
   void copy_arrays(int, int, int) override;
   void check_device_owns_bookkeeping(const char *what);
+  void claim_host_bookkeeping(bool copied);
   void check_handover_open();
   void check_second_setup();
 

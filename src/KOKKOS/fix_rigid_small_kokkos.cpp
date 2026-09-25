@@ -371,6 +371,7 @@ void FixRigidSmallKokkos<DeviceType>::set_arrays(int i)
 {
   if (setupflag) check_device_owns_bookkeeping("creating");
   FixRigidSmall::set_arrays(i);
+  claim_host_bookkeeping(false);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -380,6 +381,44 @@ void FixRigidSmallKokkos<DeviceType>::copy_arrays(int i, int j, int delflag)
 {
   if (setupflag && delflag) check_device_owns_bookkeeping("deleting");
   FixRigidSmall::copy_arrays(i, j, delflag);
+  claim_host_bookkeeping(true);
+}
+
+/* ----------------------------------------------------------------------
+   the base class set_arrays() and copy_arrays() above write the per-atom
+   bookkeeping through the plain host pointers.  Claim what they wrote, so
+   that the next sync to the device carries it.  Without the claim a
+   delete_atoms or create_atoms between two runs changed only the host copy:
+   the next run's device sort then synced nothing up, permuted the pre-deletion
+   device copy along with the atoms, and brought that back to the host, where
+   reset_atom2body() found atoms pointing at bodies that no longer existed.
+
+   Nothing reaches the base calls while the device holds the newer copy: a
+   deletion or creation during a run is refused by
+   check_device_owns_bookkeeping(), and the atom exchange and sort, the other
+   callers, only use these calls on the path where init() moved both to the
+   host, which flushes the bookkeeping in pre_exchange() first.  So claiming
+   the host here never retires a device write.
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixRigidSmallKokkos<DeviceType>::claim_host_bookkeeping(bool copied)
+{
+  k_bodyown.modify_host();
+  k_bodytag.modify_host();
+  k_xcmimage.modify_host();
+  k_displace.modify_host();
+  if (vflag_atom) k_vatom.modify_host();
+
+  if (copied) {
+    if (extended) {
+      k_eflags.modify_host();
+      if (orient) k_orient.modify_host();
+      if (dorient) k_dorient.modify_host();
+    }
+  } else {
+    k_atom2body.modify_host();
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -1330,6 +1369,15 @@ void FixRigidSmallKokkos<DeviceType>::post_run()
   k_bodytag.sync_host();
   k_atom2body.sync_host();
   k_xcmimage.sync_host();
+
+  // displace belongs with the four above: it is per-atom bookkeeping that
+  // copy_arrays() and set_arrays() move on the host when atoms are deleted or
+  // created between runs, and check_device_owns_bookkeeping() tests it with
+  // them.  Left on the device, a delete_atoms after a run was refused even
+  // with no other fix involved, and with "reinit no" -- which keeps displace
+  // rather than recomputing it at the next setup -- the host would have moved
+  // stale values.
+  k_displace.sync_host();
 }
 
 /* ----------------------------------------------------------------------

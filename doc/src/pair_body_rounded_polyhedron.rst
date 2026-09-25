@@ -107,8 +107,12 @@ contact.
 The friction term :math:`\mu k_n \delta_n` in :math:`F_t` acts in the
 tangential direction, opposite to the tangential relative velocity
 :math:`v_t` at the contact point, with a magnitude of :math:`\mu` times
-the normal contact force.  Previously, it was applied along the normal
-direction and thus only increased the normal repulsion.
+the normal contact force, but at most :math:`c_t |v_t|`.  This limit
+lets the friction force vanish smoothly as the sliding stops, instead of
+reversing the sliding direction within a time step, and implies that the
+friction term requires :math:`c_t > 0`.  Previously, the friction term
+was applied along the normal direction and thus only increased the
+normal repulsion.
 
 The following coefficients must be defined for each pair of atom types
 via the :doc:`pair_coeff <pair_coeff>` command as in the examples above,

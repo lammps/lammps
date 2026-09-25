@@ -1310,12 +1310,14 @@ void PairBodyRoundedPolygon::contact_forces(Contact& contact, double j_a,
   ft[2] = -c_t * vt3;
 
   // kinetic friction during gross sliding, see Eq. 4, Fraige et al.:
-  // magnitude mu * |F_ne|, opposite to the tangential relative velocity
+  // magnitude mu * |F_ne|, opposite to the tangential relative velocity,
+  // capped by c_t * |v_t| so that it vanishes smoothly as sliding stops
+  // instead of reversing the sliding direction within a time step
 
   double vtmag = sqrt(vt1*vt1 + vt2*vt2 + vt3*vt3);
   if (vtmag > 0.0) {
     double fne = sqrt(contact.fv[0]*contact.fv[0] + contact.fv[1]*contact.fv[1] + contact.fv[2]*contact.fv[2]);
-    double scale = mu * fne / vtmag;
+    double scale = MIN(mu * fne, c_t * vtmag) / vtmag;
     ft[0] -= scale * vt1;
     ft[1] -= scale * vt2;
     ft[2] -= scale * vt3;

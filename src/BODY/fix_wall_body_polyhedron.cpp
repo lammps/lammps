@@ -40,11 +40,8 @@ using namespace MathConst;
 
 enum{XPLANE=0,YPLANE=1,ZPLANE=2};    // XYZ PLANE need to be 0,1,2
 
-enum {INVALID=0,NONE=1,VERTEX=2};
-enum {FAR=0,XLO,XHI,YLO,YHI,ZLO,ZHI};
 
 static constexpr int DELTA = 10000;
-static constexpr double EPSILON = 1.0e-3; // dimensionless threshold (dot products, end point checks)
 static constexpr double BIG = 1.0e20;
 
 /* ---------------------------------------------------------------------- */
@@ -257,8 +254,8 @@ void FixWallBodyPolyhedron::setup(int vflag)
 
 void FixWallBodyPolyhedron::post_force(int /*vflag*/)
 {
-  double vwall[3],dx,dy,dz,del1,del2,rsq,wall_pos;
-  int i,ni,npi,ifirst,nei,iefirst;
+  double vwall[3],del1,del2,wall_pos;
+  int i,ni,npi,ifirst;
 
   // set position of wall to initial settings and velocity to 0.0
   // if wiggle, set wall position and velocity accordingly
@@ -325,72 +322,38 @@ void FixWallBodyPolyhedron::post_force(int /*vflag*/)
 
       if (body[i] < 0) continue;
 
-      dx = dy = dz = 0.0;
-      if (wallstyle == XPLANE) {
-        del1 = x[i][0] - wlo;
-        del2 = whi - x[i][0];
-        if (del1 < del2) {
-          dx = del1;
-          wall_pos = wlo;
-        } else {
-          dx = -del2;
-          wall_pos = whi;
-        }
-      } else if (wallstyle == YPLANE) {
-        del1 = x[i][1] - wlo;
-        del2 = whi - x[i][1];
-        if (del1 < del2) {
-          dy = del1;
-          wall_pos = wlo;
-        } else {
-          dy = -del2;
-          wall_pos = whi;
-        }
-      } else if (wallstyle == ZPLANE) {
-        del1 = x[i][2] - wlo;
-        del2 = whi - x[i][2];
-        if (del1 < del2) {
-          dy = del1;
-          wall_pos = wlo;
-        } else {
-          dy = -del2;
-          wall_pos = whi;
-        }
-      } else {
-        error->one(FLERR, "Unknown wall style in fix wall/body/polyhedron");
-      }
+      // the nearer of the two walls, its inward unit normal, and the signed
+      // distance of the center of the body from the wall, positive inside
 
-      rsq = dx*dx + dy*dy + dz*dz;
-      if (rsq > radius[i]*radius[i]) continue;
+      int dim = wallstyle;
+      double nw[3] = {0.0, 0.0, 0.0};
+      double scom;
+      del1 = x[i][dim] - wlo;
+      del2 = whi - x[i][dim];
+      if (del1 < del2) {
+        wall_pos = wlo;
+        nw[dim] = 1.0;
+        scom = del1;
+      } else {
+        wall_pos = whi;
+        nw[dim] = -1.0;
+        scom = del2;
+      }
+      if (scom > radius[i]) continue;
 
       if (dnum[i] == 0) body2space(i);
       npi = dnum[i];
       ifirst = dfirst[i];
-      nei = ednum[i];
-      iefirst = edfirst[i];
 
-      if (npi == 1) {
-        sphere_against_wall(i, wall_pos, vwall, x, v, f, angmom, torque);
-        continue;
-      }
-
-      // reset vertex and edge forces
+      // every vertex of the body, or the center of a sphere,
+      // interacts with the wall, using its signed distance from the wall
 
       for (ni = 0; ni < npi; ni++) {
-        discrete[ifirst+ni][3] = 0;
-        discrete[ifirst+ni][4] = 0;
-        discrete[ifirst+ni][5] = 0;
-        discrete[ifirst+ni][6] = 0;
+        double xpi[3];
+        MathExtra::add3(x[i], discrete[ifirst+ni], xpi);
+        double sv = (xpi[dim] - wall_pos) * nw[dim];
+        wall_force(i, xpi, nw, sv, vwall, x, v, angmom, f, torque);
       }
-
-      for (ni = 0; ni < nei; ni++) {
-        edge[iefirst+ni][2] = 0;
-        edge[iefirst+ni][3] = 0;
-        edge[iefirst+ni][4] = 0;
-        edge[iefirst+ni][5] = 0;
-      }
-
-      edge_against_wall(i, wall_pos, vwall, x);
     } // group bit
   }
 
@@ -530,407 +493,41 @@ void FixWallBodyPolyhedron::body2space(int i)
 }
 
 /* ----------------------------------------------------------------------
-   Determine the interaction mode between a sphere against the wall
-
-   i = atom i (body i)
-   x      = atoms' coordinates
-   f      = atoms' forces
-   torque = atoms' torques
----------------------------------------------------------------------- */
-
-int FixWallBodyPolyhedron::sphere_against_wall(int i, double wall_pos,double* vwall, double** x,
-                                               double** v, double** f, double** angmom,
-                                               double** torque)
-{
-  int mode;
-  double rradi,hi[3],d,delx,dely,delz,R,fpair,fx,fy,fz;
-
-  rradi = rounded_radius[i];
-  mode = NONE;
-
-  if (wallstyle == XPLANE) {
-    hi[0] = wall_pos;
-    hi[1] = x[i][1];
-    hi[2] = x[i][2];
-  } else if (wallstyle == YPLANE) {
-    hi[0] = x[i][0];
-    hi[1] = wall_pos;
-    hi[2] = x[i][2];
-  } else { // if (wallstyle == ZPLANE) {
-    hi[0] = x[i][0];
-    hi[1] = x[i][1];
-    hi[2] = wall_pos;
-  }
-
-  distance(hi, x[i], d);
-
-  if (d <= rradi) {
-    delx = x[i][0] - hi[0];
-    dely = x[i][1] - hi[1];
-    delz = x[i][2] - hi[2];
-    R = d - rradi;
-
-    fpair = -kn * R;
-
-    fx = delx*fpair/d;
-    fy = dely*fpair/d;
-    fz = delz*fpair/d;
-
-    contact_forces(i, 1.0, x[i], delx, dely, delz, fx, fy, fz, x, v, angmom, f, torque, vwall);
-    mode = VERTEX;
-  }
-
-  return mode;
-}
-
-/* ----------------------------------------------------------------------
-   Determine the interaction mode between i's vertices against the wall
-
-   i = atom i (body i)
-   x      = atoms' coordinates
-   f      = atoms' forces
-   torque = atoms' torques
-   Output:
-     contact_list = list of contacts between i and the wall
-     num_contacts = number of contacts between i's vertices and the wall
-   Return:
-     number of contacts of the edge to the wall (0, 1 or 2)
----------------------------------------------------------------------- */
-
-int FixWallBodyPolyhedron::edge_against_wall(int i, double wall_pos, double* vwall, double** x)
-{
-  int ni, nei, contact;
-  double rradi;
-
-  nei = ednum[i];
-  rradi = rounded_radius[i];
-
-  contact = 0;
-
-  // loop through body i's edges
-
-  for (ni = 0; ni < nei; ni++)
-    compute_distance_to_wall(i, ni, x[i], rradi, wall_pos, vwall, contact);
-
-  return contact;
-}
-
-/* -------------------------------------------------------------------------
-  Compute the distance between a vertex to the wall
-  another body
-  Input:
-    x0         = coordinate of the tested vertex
-    rradi      = rounded radius of the vertex
-    wall_pos   = position of the wall
-  Output:
-    d          = Distance from a point x0 to an wall
-    hi         = coordinates of the projection of x0 on the wall
-  contact      = 0 no contact between the queried vertex and the wall
-                 1 contact detected
-  return NONE    if there is no interaction
-         VERTEX  if the tested vertex interacts with the wall
+   Force between a vertex of body i, or the center of a sphere, and the wall
+   xp = position of the vertex
+   n  = inward unit normal of the wall
+   sd = signed distance of the vertex from the wall, positive inside
+   the rounded vertex overlaps the wall by -R = rounded radius - sd:
+   elastic force k_n (-R) along n, and damping from the velocity of the
+   body at the contact point relative to the wall, which both act at the
+   contact point halfway between the rounded surface and the wall
 ------------------------------------------------------------------------- */
 
-int FixWallBodyPolyhedron::compute_distance_to_wall(int ibody, int edge_index, double *xmi,
-                                                    double rounded_radius_i, double wall_pos,
-                                                    double* vwall, int &contact)
+void FixWallBodyPolyhedron::wall_force(int i, const double *xp, const double *n, double sd,
+                                       const double *vwall, double **x, double **v,
+                                       double **angmom, double **f, double **torque)
 {
-  int mode,ifirst,iefirst,npi1,npi2;
-  double d1,d2,xpi1[3],xpi2[3],hi[3];
-  double fx,fy,fz,fpair,delx,dely,delz,R;
+  double rradi = rounded_radius[i];
+  double R = sd - rradi;
+  if (R >= 0.0) return;
 
-  double** x = atom->x;
-  double** v = atom->v;
-  double** f = atom->f;
-  double** torque = atom->torque;
-  double** angmom = atom->angmom;
+  double pc[3], vi[3], vr[3], vn[3], vt[3], fw[3];
+  for (int k = 0; k < 3; k++) pc[k] = xp[k] - 0.5 * (sd + rradi) * n[k];
 
-  // two ends of the edge from body i
-
-  ifirst = dfirst[ibody];
-  iefirst = edfirst[ibody];
-  npi1 = static_cast<int>(edge[iefirst+edge_index][0]);
-  npi2 = static_cast<int>(edge[iefirst+edge_index][1]);
-
-  xpi1[0] = xmi[0] + discrete[ifirst+npi1][0];
-  xpi1[1] = xmi[1] + discrete[ifirst+npi1][1];
-  xpi1[2] = xmi[2] + discrete[ifirst+npi1][2];
-
-  xpi2[0] = xmi[0] + discrete[ifirst+npi2][0];
-  xpi2[1] = xmi[1] + discrete[ifirst+npi2][1];
-  xpi2[2] = xmi[2] + discrete[ifirst+npi2][2];
-
-  // determine the intersection of the edge to the wall
-
-  mode = NONE;
-  double j_a = 1.0;
-
-  if (wallstyle == XPLANE) {
-    hi[0] = wall_pos;
-    hi[1] = xpi1[1];
-    hi[2] = xpi1[2];
-  } else if (wallstyle == YPLANE) {
-    hi[0] = xpi1[0];
-    hi[1] = wall_pos;
-    hi[2] = xpi1[2];
-  } else { // if (wallstyle == ZPLANE) {
-    hi[0] = xpi1[0];
-    hi[1] = xpi1[1];
-    hi[2] = wall_pos;
+  AtomVecBody::Bonus *bonus = &avec->bonus[atom->body[i]];
+  total_velocity(pc, x[i], v[i], angmom[i], bonus->inertia, bonus->quat, vi);
+  MathExtra::sub3(vi, vwall, vr);
+  double vnnr = MathExtra::dot3(vr, n);
+  for (int k = 0; k < 3; k++) {
+    vn[k] = vnnr * n[k];
+    vt[k] = vr[k] - vn[k];
+    fw[k] = -kn * R * n[k] - c_n * vn[k] - c_t * vt[k];
   }
 
-  distance(hi, xpi1, d1);
-
-  if (d1 <= rounded_radius_i && static_cast<int>(discrete[ifirst+npi1][6]) == 0) {
-    delx = xpi1[0] - hi[0];
-    dely = xpi1[1] - hi[1];
-    delz = xpi1[2] - hi[2];
-    R = d1 - rounded_radius_i;
-
-    fpair = -kn * R;
-
-    fx = delx*fpair/d1;
-    fy = dely*fpair/d1;
-    fz = delz*fpair/d1;
-
-    contact_forces(ibody, j_a, xpi1, delx, dely, delz, fx, fy, fz, x, v, angmom, f, torque, vwall);
-    discrete[ifirst+npi1][6] = 1;
-    contact++;
-    mode = VERTEX;
-  }
-
-  if (wallstyle == XPLANE) {
-    hi[0] = wall_pos;
-    hi[1] = xpi2[1];
-    hi[2] = xpi2[2];
-  } else if (wallstyle == YPLANE) {
-    hi[0] = xpi2[0];
-    hi[1] = wall_pos;
-    hi[2] = xpi2[2];
-  } else if (wallstyle == ZPLANE) {
-    hi[0] = xpi2[0];
-    hi[1] = xpi2[1];
-    hi[2] = wall_pos;
-  }
-
-  distance(hi, xpi2, d2);
-
-  if (d2 <= rounded_radius_i && static_cast<int>(discrete[ifirst+npi2][6]) == 0) {
-    delx = xpi2[0] - hi[0];
-    dely = xpi2[1] - hi[1];
-    delz = xpi2[2] - hi[2];
-    R = d2 - rounded_radius_i;
-
-    fpair = -kn * R;
-
-    fx = delx*fpair/d2;
-    fy = dely*fpair/d2;
-    fz = delz*fpair/d2;
-
-    contact_forces(ibody, j_a, xpi2, delx, dely, delz, fx, fy, fz, x, v, angmom, f, torque, vwall);
-    discrete[ifirst+npi2][6] = 1;
-    contact++;
-    mode = VERTEX;
-  }
-
-  return mode;
-}
-
-/* ----------------------------------------------------------------------
-  Compute contact forces between two bodies
-  modify the force stored at the vertex and edge in contact by j_a
-  sum forces and torque to the corresponding bodies
-  fn = normal friction component
-  ft = tangential friction component (-c_t * v_t)
-------------------------------------------------------------------------- */
-
-void FixWallBodyPolyhedron::contact_forces(int ibody, double j_a, double *xi, double delx,
-                                           double dely, double delz, double fx, double fy,
-                                           double fz, double** x, double** v, double** angmom,
-                                           double** f, double** torque, double* vwall)
-{
-  int ibonus;
-  double fxt,fyt,fzt,rsq,rsqinv;
-  double vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3;
-  double fn[3],ft[3],vi[3];
-  double *quat, *inertia;
-  AtomVecBody::Bonus *bonus;
-
-  // compute the velocity of the vertex in the space-fixed frame
-
-  ibonus = atom->body[ibody];
-  bonus = &avec->bonus[ibonus];
-  quat = bonus->quat;
-  inertia = bonus->inertia;
-  total_velocity(xi, x[ibody], v[ibody], angmom[ibody],
-                 inertia, quat, vi);
-
-  // vector pointing from the contact point on ibody to the wall
-
-  rsq = delx*delx + dely*dely + delz*delz;
-  rsqinv = 1.0/rsq;
-
-  // relative translational velocity
-
-  vr1 = vi[0] - vwall[0];
-  vr2 = vi[1] - vwall[1];
-  vr3 = vi[2] - vwall[2];
-
-  // normal component
-
-  vnnr = vr1*delx + vr2*dely + vr3*delz;
-  vn1 = delx*vnnr * rsqinv;
-  vn2 = dely*vnnr * rsqinv;
-  vn3 = delz*vnnr * rsqinv;
-
-  // tangential component
-
-  vt1 = vr1 - vn1;
-  vt2 = vr2 - vn2;
-  vt3 = vr3 - vn3;
-
-  // normal friction term at contact
-
-  fn[0] = -c_n * vn1;
-  fn[1] = -c_n * vn2;
-  fn[2] = -c_n * vn3;
-
-  // tangential friction term at contact
-  // excluding the tangential deformation term for now
-
-  ft[0] = -c_t * vt1;
-  ft[1] = -c_t * vt2;
-  ft[2] = -c_t * vt3;
-
-  fxt = fx; fyt = fy; fzt = fz;
-  fx = fxt * j_a + fn[0] + ft[0];
-  fy = fyt * j_a + fn[1] + ft[1];
-  fz = fzt * j_a + fn[2] + ft[2];
-
-  f[ibody][0] += fx;
-  f[ibody][1] += fy;
-  f[ibody][2] += fz;
-  sum_torque(x[ibody], xi, fx, fy, fz, torque[ibody]);
-}
-
-/* ----------------------------------------------------------------------
-  Compute the contact forces between two bodies
-  modify the force stored at the vertex and edge in contact by j_a
-  sum forces and torque to the corresponding bodies
-    fn = normal friction component
-    ft = tangential friction component (-c_t * vrt)
-------------------------------------------------------------------------- */
-
-void FixWallBodyPolyhedron::contact_forces(Contact& contact, double j_a,
-                      double** x, double** v, double** angmom, double** f,
-                      double** torque, double* vwall, double* facc)
-{
-  int ibody,ibonus,ifirst,ni;
-  double fx,fy,fz,delx,dely,delz,rsq,rsqinv;
-  double vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3;
-  double fn[3],ft[3],vi[3];
-  double *quat, *inertia;
-  AtomVecBody::Bonus *bonus;
-
-  ibody = contact.ibody;
-
-  // compute the velocity of the vertex in the space-fixed frame
-
-  ibonus = atom->body[ibody];
-  bonus = &avec->bonus[ibonus];
-  quat = bonus->quat;
-  inertia = bonus->inertia;
-  total_velocity(contact.xv, x[ibody], v[ibody], angmom[ibody],
-                 inertia, quat, vi);
-
-  // vector pointing from the vertex to the point on the wall
-
-  delx = contact.xv[0] - contact.xe[0];
-  dely = contact.xv[1] - contact.xe[1];
-  delz = contact.xv[2] - contact.xe[2];
-  rsq = delx*delx + dely*dely + delz*delz;
-  rsqinv = 1.0/rsq;
-
-  // relative translational velocity
-
-  vr1 = vi[0] - vwall[0];
-  vr2 = vi[1] - vwall[1];
-  vr3 = vi[2] - vwall[2];
-
-  // normal component
-
-  vnnr = vr1*delx + vr2*dely + vr3*delz;
-  vn1 = delx*vnnr * rsqinv;
-  vn2 = dely*vnnr * rsqinv;
-  vn3 = delz*vnnr * rsqinv;
-
-  // tangential component
-
-  vt1 = vr1 - vn1;
-  vt2 = vr2 - vn2;
-  vt3 = vr3 - vn3;
-
-  // normal friction term at contact
-
-  fn[0] = -c_n * vn1;
-  fn[1] = -c_n * vn2;
-  fn[2] = -c_n * vn3;
-
-  // tangential friction term at contact
-  // excluding the tangential deformation term for now
-
-  ft[0] = -c_t * vt1;
-  ft[1] = -c_t * vt2;
-  ft[2] = -c_t * vt3;
-
-  // only the cohesive force is scaled by j_a
-
-  ifirst = dfirst[ibody];
-  ni = contact.vertex;
-
-  fx = discrete[ifirst+ni][3] * j_a + fn[0] + ft[0];
-  fy = discrete[ifirst+ni][4] * j_a + fn[1] + ft[1];
-  fz = discrete[ifirst+ni][5] * j_a + fn[2] + ft[2];
-  f[ibody][0] += fx;
-  f[ibody][1] += fy;
-  f[ibody][2] += fz;
-  sum_torque(x[ibody], contact.xv, fx, fy, fz, torque[ibody]);
-
-  // accumulate forces to the vertex only
-
-  facc[0] += fx; facc[1] += fy; facc[2] += fz;
-
-  #ifdef _POLYHEDRON_DEBUG
-  printf("From contact forces: vertex fx %f fy %f fz %f\n"
-         "      torque body %d: %f %f %f\n",
-         discrete[ifirst+ni][3], discrete[ifirst+ni][4], discrete[ifirst+ni][5],
-         atom->tag[ibody],torque[ibody][0],torque[ibody][1],torque[ibody][2]);
-  #endif
-}
-
-/* ----------------------------------------------------------------------
-  Determine the length of the contact segment, i.e. the separation between
-  2 contacts
-------------------------------------------------------------------------- */
-
-double FixWallBodyPolyhedron::contact_separation(const Contact& c1, const Contact& c2)
-{
-  double x1 = c1.xv[0];
-  double y1 = c1.xv[1];
-  double x2 = c1.xe[0];
-  double y2 = c1.xe[1];
-  double x3 = c2.xv[0];
-  double y3 = c2.xv[1];
-
-  double delta_a = 0.0;
-  if (fabs(x2 - x1) > EPSILON) {
-    double A = (y2 - y1) / (x2 - x1);
-    delta_a = fabs(y1 - A * x1 - y3 + A * x3) / sqrt(1 + A * A);
-  } else {
-    delta_a = fabs(x1 - x3);
-  }
-
-  return delta_a;
+  f[i][0] += fw[0];
+  f[i][1] += fw[1];
+  f[i][2] += fw[2];
+  sum_torque(x[i], pc, fw[0], fw[1], fw[2], torque[i]);
 }
 
 /* ----------------------------------------------------------------------
@@ -956,7 +553,7 @@ void FixWallBodyPolyhedron::sum_torque(double* xm, double *x, double fx,
     vi = vcm + omega ^ (p - xcm)
 ------------------------------------------------------------------------- */
 
-void FixWallBodyPolyhedron::total_velocity(double* p, double *xcm, double* vcm, double *angmom,
+void FixWallBodyPolyhedron::total_velocity(const double* p, double *xcm, double* vcm, double *angmom,
                                            double *inertia, double *quat, double* vi)
 {
   double r[3],omega[3],ex_space[3],ey_space[3],ez_space[3];

@@ -46,6 +46,7 @@ class FixRigid : public Fix {
   int pack_exchange(int, double *) override;
   int unpack_exchange(int, double *) override;
 
+  void image_flip(int, int, int) override;
   void setup_pre_neighbor() override;
   void pre_neighbor() override;
   bigint dof(int) override;
@@ -84,9 +85,9 @@ class FixRigid : public Fix {
   double **xcm;         // coords of center-of-mass of each rigid body
   double **vcm;         // velocity of center-of-mass of each
   double **fcm;         // force on center-of-mass of each
-  double **inertia;     // 3 principal components of inertia of each
+  double **inertia;     // 3 principal components of inertia of each body
   double **ex_space, **ey_space, **ez_space;
-  // principal axes of each in space coords
+                          // principal axes of each in space coords
   double **angmom;        // angular momentum of each in space coords
   double **omega;         // angular velocity of each in space coords
   double **torque;        // torque on each rigid body in space coords
@@ -110,15 +111,27 @@ class FixRigid : public Fix {
   double **orient;       // orientation vector of particle wrt rigid body
   double **dorient;      // orientation of dipole mu wrt rigid body
 
+  // rigid bodies in conjunction with fix deform
+
+  int deform_vremap;       // 1 if fix deform with V_REMAP exists
+                           //   if so, special treatment of bodies when cross PBC
+                           //   if so, add/sub bias with Langevin
+  int deform_groupbit;     // groupbit of fix deform command
+  int *body_in_defgroup;   // 1/0 for body entirely in or out of deform group
+
+  // Langevin thermostatting
+
   double tfactor;    // scale factor on temperature of rigid bodies
   int langflag;      // 0/1 = no/yes Langevin thermostat
 
-  int tstat_flag;    // NVT settings
+  // Nose/Hoover thermostat & barostat
+
+  int tstat_flag;
   double t_start, t_stop, t_target;
   double t_period, t_freq;
   int t_chain, t_iter, t_order;
 
-  int pstat_flag;    // NPT settings
+  int pstat_flag;
   double p_start[3], p_stop[3];
   double p_period[3], p_freq[3];
   int p_flag[3];
@@ -143,6 +156,8 @@ class FixRigid : public Fix {
   void setup_bodies_static();
   void setup_bodies_dynamic();
   void apply_langevin_thermostat();
+  void remove_bias(int, double *, double *);
+  void restore_bias(double *, double *);
   virtual void compute_forces_and_torques();
   void enforce2d();
   void readfile(int, double *, double **, double **, double **, imageint *, int *);

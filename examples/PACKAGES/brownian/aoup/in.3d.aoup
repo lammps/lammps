@@ -1,0 +1,42 @@
+# 3d active Ornstein-Uhlenbeck particles: overdamped translation with an
+# exponentially correlated Gaussian active force and WCA repulsion
+
+variable        temp equal 0.1       # sets the translational diffusion D_t = temp/gamma_t
+variable        gamma_t equal 10.0
+variable        f0 equal 10.0        # rms active force per component, rms active speed = f0/gamma_t
+variable        tau equal 1.0        # persistence time, D_active = f0^2*tau/gamma_t^2 = 1.0
+variable        seed equal 12345
+
+units           lj
+dimension       3
+atom_style      atomic
+newton          off
+
+lattice         sc 0.2
+region          box block 0 8 0 8 0 8
+create_box      1 box
+create_atoms    1 box
+mass            * 1.0
+
+# WCA potential (purely repulsive)
+pair_style      lj/cut 1.122462
+pair_coeff      * * 1.0 1.0
+pair_modify     shift yes
+neigh_modify    every 1 delay 0 check yes
+
+fix             step all brownian ${temp} ${seed} gamma_t ${gamma_t}
+fix             prop all propel/ou ${f0} ${tau} ${seed}
+
+# mean squared active force per component (should fluctuate around f0^2)
+# and mean squared displacement (slope 6*(D_t+D_active) at long times)
+variable        fsq atom (f_prop[1]^2+f_prop[2]^2+f_prop[3]^2)/3.0
+compute         fsq all reduce ave v_fsq
+compute         msd all msd
+compute         press all pressure NULL virial
+
+thermo_style    custom step time pe c_fsq c_msd[4] c_press
+thermo_modify   norm no
+thermo          500
+timestep        0.002
+
+run             10000

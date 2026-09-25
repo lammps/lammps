@@ -22,6 +22,8 @@ PairStyle(body/rounded/polyhedron,PairBodyRoundedPolyhedron);
 
 #include "pair.h"
 
+#include <vector>
+
 namespace LAMMPS_NS {
 
 class PairBodyRoundedPolyhedron : public Pair {
@@ -44,6 +46,8 @@ class PairBodyRoundedPolyhedron : public Pair {
     double xi[3];         // coordinates of the contact point on ibody
     double xj[3];         // coordinates of the contact point on jbody
     double separation;    // contact surface separation
+    double r;             // distance used to normalize xi - xj into the force direction,
+                          // negative when jbody has crossed a face or an edge of ibody
     int unique;
   };
 
@@ -84,6 +88,8 @@ class PairBodyRoundedPolyhedron : public Pair {
   double *rounded_radius;      // rounded radii for all bodies
   double *maxerad;             // per-type maximum enclosing radius
 
+  std::vector<Contact> contacts;    // contacts between the current pair of bodies
+
   void allocate();
   void body2space(int);
 
@@ -98,21 +104,21 @@ class PairBodyRoundedPolyhedron : public Pair {
                            double **f, double **torque, double **angmom, int evflag);
   // edge-edge interactions
   int edge_against_edge(int ibody, int jbody, int itype, int jtype, double **x,
-                        Contact *contact_list, int &num_contacts, double &evdwl, double *facc);
+                        std::vector<Contact> &contacts, double &evdwl, double *facc);
   // edge-face interactions
   int edge_against_face(int ibody, int jbody, int itype, int jtype, double **x,
-                        Contact *contact_list, int &num_contacts, double &evdwl, double *facc);
+                        std::vector<Contact> &contacts, double &evdwl, double *facc);
 
   // a face vs. a single edge
   int interaction_face_to_edge(int ibody, int face_index, double *xmi, double rounded_radius_i,
                                int jbody, int edge_index, double *xmj, double rounded_radius_j,
-                               int itype, int jtype, double cut_inner, Contact *contact_list,
-                               int &num_contacts, double &energy, double *facc);
+                               int itype, int jtype, double cut_inner,
+                               std::vector<Contact> &contacts, double &energy, double *facc);
   // an edge vs. an edge from another body
   int interaction_edge_to_edge(int ibody, int edge_index_i, double *xmi, double rounded_radius_i,
                                int jbody, int edge_index_j, double *xmj, double rounded_radius_j,
-                               int itype, int jtype, double cut_inner, Contact *contact_list,
-                               int &num_contacts, double &energy, double *facc);
+                               int itype, int jtype, double cut_inner,
+                               std::vector<Contact> &contacts, double &energy, double *facc);
 
   // compute contact forces if contact points are detected
   void contact_forces(int ibody, int jbody, double *xi, double *xj, double delx, double dely,
@@ -126,14 +132,14 @@ class PairBodyRoundedPolyhedron : public Pair {
                              double &energy, double *facc);
 
   // rescale the cohesive forces if a contact area is detected
-  void rescale_cohesive_forces(double **x, double **f, double **torque, Contact *contact_list,
-                               int &num_contacts, int itype, int jtype, double *facc);
+  void rescale_cohesive_forces(double **x, double **f, double **torque,
+                               std::vector<Contact> &contacts, int itype, int jtype, double *facc);
 
   // compute the separation between two contacts
   double contact_separation(const Contact &c1, const Contact &c2);
 
   // detect the unique contact points (as there may be double counts)
-  void find_unique_contacts(Contact *contact_list, int &num_contacts);
+  void find_unique_contacts(std::vector<Contact> &contacts);
 
   // accumulate torque to a body given a force at a given point
   void sum_torque(double *xm, double *x, double fx, double fy, double fz, double *torque);
@@ -141,6 +147,8 @@ class PairBodyRoundedPolyhedron : public Pair {
   // find the intersection point (if any) between an edge and a face
   int edge_face_intersect(double *x1, double *x2, double *x3, double *a, double *b, double *hi1,
                           double *hi2, double &d1, double &d2, int &inside_a, int &inside_b);
+  // find the face of a body with the largest signed distance to a point
+  double nearest_face(int ibody, double *xmi, const double *q, double *n);
   // helper functions
   int opposite_sides(double *n, double *x0, double *a, double *b);
   void project_pt_plane(const double *q, const double *p, const double *n, double *q_proj,

@@ -324,7 +324,7 @@ void AtomKokkos::modified(const ExecutionSpace space, uint64_t mask)
 
   // see sync_mass(): only the host writes the per-type masses, so a claim from
   // the device side is not one and must not retire the host's
-  if ((mask & MASS_MASK) && mass && space == Host) k_mass.modify_host();
+  if ((mask & MASS_MASK) && mass && (space == Host)) k_mass.modify_host();
 
   if ((space == Device || space == HostKK) && lmp->kokkos->auto_sync) {
     avecKK->sync(Host, mask);

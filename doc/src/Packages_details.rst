@@ -408,7 +408,13 @@ This package provides :doc:`fix brownian, fix brownian/sphere, and fix
 brownian/asphere <fix_brownian>` as well as :doc:`fix propel/self
 <fix_propel_self>` which allow performing Brownian Dynamics time
 integration of point, spherical and aspherical particles and also
-support self-propelled particles.
+support self-propelled particles.  Further fixes provide the building
+blocks of common active matter models: :doc:`fix propel/ou
+<fix_propel_ou>` (active Ornstein-Uhlenbeck particles), :doc:`fix tumble
+<fix_tumble>` (run-and-tumble particles), :doc:`fix align/self
+<fix_align_self>` (self-alignment), and :doc:`fix align/neighbor
+<fix_align_neighbor>` (Vicsek-type alignment with neighbors).  See the
+:doc:`Howto active matter <Howto_active>` page for an overview.
 
 **Authors:** Sam Cameron (University of Bristol), Arthur Straube (Zuse
 Institute Berlin), Stefan Paquay (while at Brandeis University) (initial

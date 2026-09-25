@@ -1,0 +1,85 @@
+LAMMPS (2 Sep 2026)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
+  using 1 OpenMP thread(s) per MPI task
+WARNING: Atom style hybrid defines both, per-type and per-atom masses; both must be set, but only per-atom masses will be used (src/atom_vec_hybrid.cpp:134)
+Lattice spacing in x,y,z = 1.7099759 1.7099759 1.7099759
+Created orthogonal box = (0 0 0) to (13.679808 13.679808 13.679808)
+  1 by 1 by 1 MPI processor grid
+Created 512 atoms
+  using lattice units in orthogonal box = (0 0 0) to (13.679808 13.679808 13.679808)
+  create_atoms CPU = 0.001 seconds
+Setting atom values ...
+  512 settings made for diameter
+  512 settings made for density
+Setting atom values ...
+  512 settings made for dipole/random
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 1.422462
+  ghost atom cutoff = 2
+  binsize = 0.711231, bins = 20 20 20
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair lj/cut, perpetual, half/full trim from (2)
+      attributes: half, newton off
+      pair build: halffull/trim/newtoff
+      stencil: none
+      bin: none
+  (2) fix align/neighbor, perpetual
+      attributes: full, newton off, cut 1.8, cut fixed 1
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 5.801 | 5.801 | 5.801 Mbytes
+   Step          Time          PotEng        v_polar        c_press    
+         0   0              0              0.042580001    0.023245749  
+       500   1              12.990328      0.08883373     0.6123999    
+      1000   2              12.484876      0.14150604     1.1606898    
+      1500   3              14.160732      0.15820082     1.770635     
+      2000   4              19.642493      0.2530616      2.5714225    
+      2500   5              17.909392      0.32512198     2.9860987    
+      3000   6              15.468477      0.43892417     3.7933839    
+      3500   7              14.501955      0.5279178      4.2673105    
+      4000   8              14.347668      0.61333616     4.7790727    
+      4500   9              17.721317      0.65412755     5.188024     
+      5000   10             13.383319      0.70287309     5.4581646    
+      5500   11             11.683263      0.74355262     6.1587459    
+      6000   12             12.838304      0.76880252     6.5424493    
+      6500   13             13.671198      0.78533853     7.1041269    
+      7000   14             15.596944      0.81604011     7.7712002    
+      7500   15             13.809831      0.83406821     8.1663058    
+      8000   16             14.985091      0.85224315     8.8250113    
+      8500   17             14.959365      0.87161874     9.5030536    
+      9000   18             16.45377       0.89061538     9.9575421    
+      9500   19             16.535814      0.91175486     10.286809    
+     10000   20             17.557552      0.91752492     10.926107    
+Loop time of 0.996872 on 1 procs for 10000 steps with 512 atoms
+
+Performance: 1733422.461 tau/day, 10031.380 timesteps/s, 5.136 Matom-step/s
+92.4% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.085482   | 0.085482   | 0.085482   |   0.0 |  8.58
+Neigh   | 0.14427    | 0.14427    | 0.14427    |   0.0 | 14.47
+Comm    | 0.051703   | 0.051703   | 0.051703   |   0.0 |  5.19
+Output  | 0.00096568 | 0.00096568 | 0.00096568 |   0.0 |  0.10
+Modify  | 0.69541    | 0.69541    | 0.69541    |   0.0 | 69.76
+Other   |            | 0.01904    |            |       |  1.91
+
+Nlocal:            512 ave         512 max         512 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:            446 ave         446 max         446 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:           1411 ave        1411 max        1411 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:         4758 ave        4758 max        4758 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 4758
+Ave neighs/atom = 9.2929688
+Neighbor list builds = 409
+Dangerous builds = 0
+Total wall time: 0:00:00

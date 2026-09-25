@@ -99,6 +99,14 @@ No information about this fix is written to :doc:`binary restart files
 <restart>`.  No global or per-atom quantities are stored by this fix for
 access by various :doc:`output commands <Howto_output>`.
 
+.. versionchanged:: TBD
+
+The :doc:`fix_modify <fix_modify>` *respa* option is supported by this
+fix.  This allows to set at which level of the :doc:`r-RESPA
+<run_style>` integrator the fix is adding its torques.  Default is the
+outermost level.  Previous versions did not apply the torque with
+:doc:`run_style respa <run_style>`.
+
 No parameter of this fix can be used with the *start/stop* keywords of
 the :doc:`run <run>` command.  This fix is not invoked during
 :doc:`energy minimization <minimize>`.
@@ -121,6 +129,7 @@ ellipsoid <atom_style>` command.
 Related commands
 """"""""""""""""
 
+:doc:`fix align/neighbor <fix_align_neighbor>`,
 :doc:`fix propel/self <fix_propel_self>`,
 :doc:`fix brownian <fix_brownian>`,
 :doc:`fix addtorque/group <fix_addtorque_group>`

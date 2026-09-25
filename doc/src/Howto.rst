@@ -94,6 +94,7 @@ Packages howto
    Howto_manifold
    Howto_rheo
    Howto_spins
+   Howto_active
    Howto_apip
    Howto_ldd
    Howto_fenix

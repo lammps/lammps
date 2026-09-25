@@ -13,37 +13,41 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(align/self,FixAlignSelf);
+FixStyle(tumble,FixTumble);
 // clang-format on
 #else
 
-#ifndef LMP_FIX_ALIGN_SELF_H
-#define LMP_FIX_ALIGN_SELF_H
+#ifndef LMP_FIX_TUMBLE_H
+#define LMP_FIX_TUMBLE_H
 
 #include "fix.h"
+
 namespace LAMMPS_NS {
 
-class FixAlignSelf : public Fix {
+class FixTumble : public Fix {
  public:
-  FixAlignSelf(class LAMMPS *, int, char **);
-
-  void init() override;
-  void setup(int) override;
-  void post_force(int) override;
-  void post_force_respa(int, int, int) override;
+  FixTumble(class LAMMPS *, int, char **);
+  ~FixTumble() override;
   int setmask() override;
+  void init() override;
+  void post_integrate() override;
+  void post_integrate_respa(int, int) override;
+  void reset_dt() override;
+  void write_restart(FILE *) override;
+  void restart(char *) override;
 
  private:
-  double magnitude;
-  double sx, sy, sz;
-  int mode;
-  int ilevel_respa;
+  int mode;             // per-atom property that stores the orientation
+  double rate;          // tumbling rate (inverse time units)
+  int seed;             // random number generator seed
+  int planar_flag;      // 1 if new orientations are confined to the xy plane in 3d
+  double ptumble;       // probability of a tumble during one timestep
+  int nlevels_respa;    // number of rRESPA levels
+  class RanMars *rng;
 
-  void post_force_dipole(int);
-  void post_force_quaternion(int);
-
-  class AtomVecEllipsoid *avec;
+  void tumble_dipole();
 };
+
 }    // namespace LAMMPS_NS
 #endif
 #endif

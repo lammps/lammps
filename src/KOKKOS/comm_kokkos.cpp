@@ -310,22 +310,20 @@ void CommKokkos::reverse_comm_device()
 
   k_sendlist.sync<DeviceType>();
 
+  // with comm_f_only MPI sends the ghost forces straight out of the force
+  // array, so unlike the pack_reverse_kokkos() path nothing brings that side
+  // up to date first.  A fix that is not Kokkos-aware and adds to the forces
+  // of ghost atoms -- fix langevin/drude does, to the Drude partner of a core
+  // it does not own -- leaves the new forces on the other side, and without
+  // this MPI sends the forces from before the fix ran.  Costs nothing where
+  // the two sides are one memory space.
+
   constexpr auto space = ExecutionSpaceFromDevice<DeviceType>::space;
   atomKK->sync(space,atomKK->avecKK->datamask_reverse);
 
   for (int iswap = nswap-1; iswap >= 0; iswap--) {
     if (sendproc[iswap] != me) {
       if (comm_f_only && !decltype(atomKK->k_f)::NEED_TRANSFORM) {
-
-        // MPI sends the ghost forces straight out of the force array, so unlike
-        // the pack_reverse_kokkos() path below nothing brings that side up to
-        // date first.  A fix that is not Kokkos-aware and adds to the forces of
-        // ghost atoms -- fix langevin/drude does, to the Drude partner of a core
-        // it does not own -- leaves the new forces on the host, and without this
-        // MPI reads the device copy and sends the forces from before the fix
-        // ran.  Costs nothing where the two sides are one memory space.
-
-        atomKK->sync(ExecutionSpaceFromDevice<DeviceType>::space,F_MASK);
 
         // one fence covers both MPI calls: no Kokkos work is launched between
         // them, so a second fence would have nothing left to wait on

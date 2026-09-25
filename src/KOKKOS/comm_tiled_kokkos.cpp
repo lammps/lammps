@@ -300,18 +300,17 @@ void CommTiledKokkos::reverse_comm_device()
 
   k_sendlist.sync<DeviceType>();
 
+  // with comm_f_only MPI sends the ghost forces straight out of the force
+  // array; the same sync as in CommKokkos::reverse_comm_device(), see there
+
+  constexpr auto space = ExecutionSpaceFromDevice<DeviceType>::space;
+  atomKK->sync(space,atomKK->avecKK->datamask_reverse);
+
   for (int iswap = nswap-1; iswap >= 0; iswap--) {
     nsend = nsendproc[iswap] - sendself[iswap];
     nrecv = nrecvproc[iswap] - sendself[iswap];
 
     if (comm_f_only  && !decltype(atomKK->k_f)::NEED_TRANSFORM) {
-
-      // MPI sends the ghost forces straight out of the force array, so unlike
-      // the pack_reverse_kokkos() path below nothing brings that side up to date
-      // first.  Same defect, and the same fix, as
-      // CommKokkos::reverse_comm_device(); see there for what it costs a run.
-
-      atomKK->sync(ExecutionSpaceFromDevice<DeviceType>::space,F_MASK);
 
       // no Kokkos work is launched inside or between the two loops,
       // so one fence covers both
@@ -388,6 +387,8 @@ void CommTiledKokkos::reverse_comm_device()
       }
     }
   }
+
+  atomKK->modified(space,atomKK->avecKK->datamask_reverse);
 }
 
 /* ----------------------------------------------------------------------

@@ -334,7 +334,7 @@ void FixRigidSmallKokkos<DeviceType>::check_handover_open()
 {
   if (handover_open) return;
 
-  error->one(FLERR, "Fix {} does not yet support another fix rebuilding the "
+  error->all(FLERR, "Fix {} does not yet support another fix rebuilding the "
              "neighbor lists during a run; run this input without the KOKKOS "
              "package", style);
 }
@@ -346,7 +346,7 @@ void FixRigidSmallKokkos<DeviceType>::check_second_setup()
 {
   if (++setup_pushes == 1) return;
 
-  error->one(FLERR, "Fix {} does not yet support another fix running its setup "
+  error->all(FLERR, "Fix {} does not yet support another fix running its setup "
              "a second time; run this input without the KOKKOS package", style);
 }
 

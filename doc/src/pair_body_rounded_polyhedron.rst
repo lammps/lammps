@@ -33,7 +33,7 @@ Examples
 Description
 """""""""""
 
-Style *body/rounded/polygon* is for use with 3d models of body
+Style *body/rounded/polyhedron* is for use with 3d models of body
 particles of style *rounded/polyhedron*\ .  It calculates pairwise
 body/body interactions which can include body particles modeled as
 1-vertex spheres with a specified diameter.  See the
@@ -45,7 +45,7 @@ in :ref:`Wang <pair-Wang>`, where a polyhedron does not have sharp corners
 and edges, but is rounded at its vertices and edges by spheres
 centered on each vertex with a specified diameter.  The edges of the
 polyhedron are defined between pairs of adjacent vertices.  Its faces
-are defined by a loop of edges.  The sphere diameter for each polygon
+are defined by a loop of edges.  The sphere diameter for each polyhedron
 is specified in the data file read by the :doc:`read data <read_data>`
 command.  This is a discrete element model (DEM) which allows for
 multiple contact points.

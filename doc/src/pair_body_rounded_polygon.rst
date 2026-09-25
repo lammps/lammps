@@ -143,6 +143,30 @@ Mixing, shift, table, tail correction, restart, rRESPA info
 This pair style does not support the :doc:`pair_modify <pair_modify>`
 mix, shift, table, and tail options.
 
+.. note::
+
+   The forces of this pair style do not conserve the total energy, even
+   without damping and friction (*c_n* = *c_t* = *mu* = 0).  This is a
+   property of the model of :ref:`Fraige <pair-Fraige>` as implemented
+   here:
+
+   * The contact forces are scaled up with the length of the contact
+     region (controlled by *delta_ua*), but no corresponding energy is
+     defined.
+   * When two particles touch at more than two points, the contact forces
+     are applied only at the first two contacts that are at different
+     places, and a contact between two vertices is counted only once.
+     As the particles move, contacts appear and disappear abruptly, which
+     changes the forces discontinuously.
+   * The reported pair energy includes all vertex-edge interactions,
+     also those at contacts that do not receive a force by the rule
+     above.  While such contacts exist, the reported energy does not
+     match the applied forces.
+
+   The damping and friction forces dissipate energy as intended.  The
+   quantities described next can be used to check the energy balance of
+   a simulation.
+
 .. versionadded:: TBD
 
 This pair style computes two extra quantities that can be accessed by

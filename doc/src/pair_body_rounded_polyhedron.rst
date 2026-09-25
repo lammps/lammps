@@ -137,6 +137,34 @@ Mixing, shift, table, tail correction, restart, rRESPA info
 This pair style does not support the :doc:`pair_modify <pair_modify>`
 mix, shift, table, and tail options.
 
+.. note::
+
+   The forces of this pair style do not conserve the total energy, even
+   without damping and friction (*c_n* = *c_t* = *mu* = 0).  This is a
+   property of the model of :ref:`Wang <pair-Wang>` as implemented
+   here:
+
+   * The contact forces are scaled up with the estimated area of the
+     contact region (controlled by *A_ua*), but no corresponding energy
+     is defined.
+   * The elastic forces are applied only once for contacts at (nearly)
+     the same place, and the set of contacts between two particles
+     changes abruptly as they move, which changes the forces
+     discontinuously.
+   * Some kinds of contacts are not detected: a vertex of one particle
+     against an edge or a vertex of the other particle, and an edge whose
+     two end points both lie outside of a face that it overlaps.  Two
+     particles may thus overlap without repelling each other until
+     another kind of contact is detected.
+   * The reported pair energy includes the interactions at all contacts,
+     also those that do not receive an elastic force by the rules above.
+     While such contacts exist, the reported energy does not match the
+     applied forces.
+
+   The damping and friction forces dissipate energy as intended.  The
+   quantities described next can be used to check the energy balance of
+   a simulation.
+
 .. versionadded:: TBD
 
 This pair style computes two extra quantities that can be accessed by

@@ -106,8 +106,9 @@ class PairBodyRoundedPolygon : public Pair {
                         double **fnc, Scratch &s, double &evdwl, double *facc);
   // sphere-sphere interaction
   void sphere_against_sphere(int i, int j, double delx, double dely, double delz, double rsq,
-                             double k_n, double k_na, double **v, double **f, double **fnc,
-                             double &evdwl, double *facc);
+                             double k_n, double k_na, double **x, double **v, double **angmom,
+                             double **f, double **torque, double **fnc, double &evdwl,
+                             double *facc);
   // vertex-edge interaction
   int vertex_against_edge(int i, int j, double k_n, double k_na, double **x, double **f,
                           double **torque, tagint *tag, Scratch &s, double &evdwl,
@@ -122,6 +123,13 @@ class PairBodyRoundedPolygon : public Pair {
   void contact_forces(Contact &contact, double j_a, int friction, double **x, double **v,
                       double **angmom, double **f, double **torque, double **fnc, double &evdwl,
                       double *facc);
+  // contact point between the rounded surfaces of two bodies
+  void contact_point(const double *pi, const double *pj, const double *n, double rradi,
+                     double rradj, double *pc);
+  // damping and friction forces at a contact point
+  void damping_friction(int ibody, int jbody, double *pc, const double *n, double fne,
+                        int damping, int friction, double **x, double **v, double **angmom,
+                        double **f, double **torque, double **fnc, int iref, double *facc);
   // normal force and energy at a given surface separation
   double normal_force(double R, double k_n, double k_na, double &fe, double &fc);
 

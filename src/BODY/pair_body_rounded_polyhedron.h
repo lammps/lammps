@@ -118,8 +118,9 @@ class PairBodyRoundedPolyhedron : public Pair {
                         double **fnc, Scratch &s, double &evdwl, double *facc);
   // sphere-sphere interaction
   void sphere_against_sphere(int ibody, int jbody, int itype, int jtype, double delx, double dely,
-                             double delz, double rsq, double **v, double **f, double **fnc,
-                             double &evdwl, double *facc);
+                             double delz, double rsq, double **x, double **v, double **angmom,
+                             double **f, double **torque, double **fnc, double &evdwl,
+                             double *facc);
   // sphere-edge interaction
   void sphere_against_edge(int ibody, int jbody, int itype, int jtype, double **x, double **v,
                            double **f, double **torque, double **angmom, double **fnc,
@@ -162,8 +163,15 @@ class PairBodyRoundedPolyhedron : public Pair {
 
   // compute contact forces if contact points are detected
   void contact_forces(int ibody, int jbody, double *xi, double *xj, double delx, double dely,
-                      double delz, double **x, double **v, double **angmom, double **f,
-                      double **torque, double **fnc, double *facc);
+                      double delz, double r, double **x, double **v, double **angmom,
+                      double **f, double **torque, double **fnc, double *facc);
+  // contact point between the rounded surfaces of two bodies
+  void contact_point(const double *pi, const double *pj, const double *n, double rradi,
+                     double rradj, double *pc);
+  // damping and friction forces at a contact point
+  void damping_friction(int ibody, int jbody, const double *pc, const double *n, double fne,
+                        int damping, int friction, double **x, double **v, double **angmom,
+                        double **f, double **torque, double **fnc, int iref, double *facc);
   // friction force at the contact with the largest overlap
   void friction_force(Contact &contact, int itype, int jtype, double **x, double **v,
                       double **angmom, double **f, double **torque, double **fnc, int iref,

@@ -258,8 +258,8 @@ void PairBodyRoundedPolygon::pair_interaction(int i, int j, double delx, double 
   std::vector<Contact> &contacts = s.contacts;
 
   if (npi == 1 && npj == 1) {
-    sphere_against_sphere(i, j, delx, dely, delz, rsq, k_nij, k_naij, v, f, fnc,
-                          evdwl, facc);
+    sphere_against_sphere(i, j, delx, dely, delz, rsq, k_nij, k_naij, x, v, angmom, f, torque,
+                          fnc, evdwl, facc);
     return;
   }
 
@@ -682,19 +682,18 @@ double PairBodyRoundedPolygon::normal_force(double R, double kn, double kna,
 
 void PairBodyRoundedPolygon::sphere_against_sphere(int i, int j,
                        double delx, double dely, double delz, double rsq,
-                       double k_n, double k_na, double** v, double** f,
+                       double k_n, double k_na, double** x, double** v,
+                       double** angmom, double** f, double** torque,
                        double** fnc, double &evdwl, double* facc)
 {
   double rradi,rradj;
-  double vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3;
-  double rij,rsqinv,R,fx,fy,fz,fn[3],ft[3],fpair,fe,fc,energy;
+  double rij,R,fx,fy,fz,fpair,fe,fc,energy;
   int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;
 
   rradi = rounded_radius[i];
   rradj = rounded_radius[j];
 
-  rsqinv = 1.0/rsq;
   rij = sqrt(rsq);
   R = rij - (rradi + rradj);
 
@@ -704,53 +703,6 @@ void PairBodyRoundedPolygon::sphere_against_sphere(int i, int j,
   fx = delx*fpair/rij;
   fy = dely*fpair/rij;
   fz = delz*fpair/rij;
-
-  double rmin = MIN(rradi, rradj);
-  if (R <= EPSILON*rmin) { // in contact
-
-    // relative translational velocity
-
-    vr1 = v[i][0] - v[j][0];
-    vr2 = v[i][1] - v[j][1];
-    vr3 = v[i][2] - v[j][2];
-
-    // normal component
-
-    vnnr = vr1*delx + vr2*dely + vr3*delz;
-    vn1 = delx*vnnr * rsqinv;
-    vn2 = dely*vnnr * rsqinv;
-    vn3 = delz*vnnr * rsqinv;
-
-    // tangential component
-
-    vt1 = vr1 - vn1;
-    vt2 = vr2 - vn2;
-    vt3 = vr3 - vn3;
-
-    // normal friction term at contact
-
-    fn[0] = -c_n * vn1;
-    fn[1] = -c_n * vn2;
-    fn[2] = -c_n * vn3;
-
-    // tangential friction term at contact,
-    // excluding the tangential deformation term for now
-
-    ft[0] = -c_t * vt1;
-    ft[1] = -c_t * vt2;
-    ft[2] = -c_t * vt3;
-
-    fx += fn[0] + ft[0];
-    fy += fn[1] + ft[1];
-    fz += fn[2] + ft[2];
-
-    // damping does not derive from the energy, the disks do not rotate
-
-    for (int k = 0; k < 3; k++) {
-      fnc[i][6+k] += fn[k] + ft[k];
-      fnc[j][6+k] -= fn[k] + ft[k];
-    }
-  }
 
   f[i][0] += fx;
   f[i][1] += fy;
@@ -764,6 +716,16 @@ void PairBodyRoundedPolygon::sphere_against_sphere(int i, int j,
 
   evdwl += energy;
   facc[0] += fx; facc[1] += fy; facc[2] += fz;
+
+  // damping and friction at the contact point between the surfaces
+
+  double rmin = MIN(rradi, rradj);
+  if (R <= EPSILON*rmin) {
+    double n[3] = {delx/rij, dely/rij, delz/rij};
+    double pc[3];
+    contact_point(x[i], x[j], n, rradi, rradj, pc);
+    damping_friction(i, j, pc, n, fe, 1, 1, x, v, angmom, f, torque, fnc, i, facc);
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -1314,140 +1276,134 @@ void PairBodyRoundedPolygon::contact_forces(Contact& contact, double j_a,
                        double** torque, double** fnc, double &/*evdwl*/,
                        double* facc)
 {
-  int ibody,jbody,ibonus,jbonus;
-  double fx,fy,fz,delx,dely,delz,rsq,rsqinv;
-  double vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3;
-  double fn[3],ft[3],vi[3],vj[3];
-  double *quat, *inertia;
-  AtomVecBody::Bonus *bonus;
+  int ibody = contact.ibody;
+  int jbody = contact.jbody;
 
-  ibody = contact.ibody;
-  jbody = contact.jbody;
+  // unit normal from the point on the edge to the vertex, and the contact
+  // point between the rounded surfaces, where all contact forces act
 
-  // compute the velocity of the vertex in the space-fixed frame
+  double n[3], pc[3];
+  MathExtra::sub3(contact.xv, contact.xe, n);
+  double r = MathExtra::len3(n);
+  if (r == 0.0) return;
+  MathExtra::scale3(1.0/r, n);
+  contact_point(contact.xv, contact.xe, n, rounded_radius[ibody], rounded_radius[jbody], pc);
 
-  ibonus = atom->body[ibody];
-  bonus = &avec->bonus[ibonus];
-  quat = bonus->quat;
-  inertia = bonus->inertia;
-  total_velocity(contact.xv, x[ibody], v[ibody], angmom[ibody],
-                 inertia, quat, vi);
+  // elastic force and cohesive force, only the latter is scaled by j_a,
+  // see Eq. 5, Fraige et al.
 
-  // compute the velocity of the point on the edge in the space-fixed frame
-
-  jbonus = atom->body[jbody];
-  bonus = &avec->bonus[jbonus];
-  quat = bonus->quat;
-  inertia = bonus->inertia;
-  total_velocity(contact.xe, x[jbody], v[jbody], angmom[jbody],
-                 inertia, quat, vj);
-
-  // vector pointing from the vertex to the point on the edge
-
-  delx = contact.xv[0] - contact.xe[0];
-  dely = contact.xv[1] - contact.xe[1];
-  delz = contact.xv[2] - contact.xe[2];
-  rsq = delx*delx + dely*dely + delz*delz;
-  rsqinv = 1.0/rsq;
-
-  // relative translational velocity
-
-  vr1 = vi[0] - vj[0];
-  vr2 = vi[1] - vj[1];
-  vr3 = vi[2] - vj[2];
-
-  // normal component
-
-  vnnr = vr1*delx + vr2*dely + vr3*delz;
-  vn1 = delx*vnnr * rsqinv;
-  vn2 = dely*vnnr * rsqinv;
-  vn3 = delz*vnnr * rsqinv;
-
-  // tangential component
-
-  vt1 = vr1 - vn1;
-  vt2 = vr2 - vn2;
-  vt3 = vr3 - vn3;
-
-  // normal friction term at contact
-
-  fn[0] = -c_n * vn1;
-  fn[1] = -c_n * vn2;
-  fn[2] = -c_n * vn3;
-
-  // tangential friction term at contact
-  // excluding the tangential deformation term for now
-
-  ft[0] = -c_t * vt1;
-  ft[1] = -c_t * vt2;
-  ft[2] = -c_t * vt3;
-
-  // kinetic friction during gross sliding, see Eq. 4, Fraige et al.:
-  // magnitude mu * |F_ne|, opposite to the tangential relative velocity,
-  // capped by c_t * |v_t| so that it vanishes smoothly as sliding stops
-  // instead of reversing the sliding direction within a time step
-
-  // there is one friction force per pair of bodies, at the contact with
-  // the largest overlap, and F_ne is the elastic normal force only
-
-  double vtmag = sqrt(vt1*vt1 + vt2*vt2 + vt3*vt3);
-  if (friction && (vtmag > 0.0)) {
-    double fne = sqrt(contact.fe[0]*contact.fe[0] + contact.fe[1]*contact.fe[1] +
-                      contact.fe[2]*contact.fe[2]);
-    double scale = MIN(mu * fne, c_t * vtmag) / vtmag;
-    ft[0] -= scale * vt1;
-    ft[1] -= scale * vt2;
-    ft[2] -= scale * vt3;
-  }
-
-  // the part of the contact force added by the j_a scaling, and damping and
-  // friction do not derive from the energy: accumulate them per body
-  // to compute their work, see work_nonconservative()
-
-  double fja[3], fdiss[3];
-  for (int k = 0; k < 3; k++) {
-    fja[k] = (j_a - 1.0) * contact.fc[k];
-    fdiss[k] = fn[k] + ft[k];
-    fnc[ibody][k] += fja[k];
-    fnc[jbody][k] -= fja[k];
-    fnc[ibody][6+k] += fdiss[k];
-    fnc[jbody][6+k] -= fdiss[k];
-  }
-  sum_torque(x[ibody], contact.xv, fja[0], fja[1], fja[2], &fnc[ibody][3]);
-  sum_torque(x[jbody], contact.xe, -fja[0], -fja[1], -fja[2], &fnc[jbody][3]);
-  sum_torque(x[ibody], contact.xv, fdiss[0], fdiss[1], fdiss[2], &fnc[ibody][9]);
-  sum_torque(x[jbody], contact.xe, -fdiss[0], -fdiss[1], -fdiss[2], &fnc[jbody][9]);
-
-  // only the cohesive force is scaled by j_a, see Eq. 5, Fraige et al.
-
-  fx = contact.fe[0] + contact.fc[0] * j_a + fn[0] + ft[0];
-  fy = contact.fe[1] + contact.fc[1] * j_a + fn[1] + ft[1];
-  fz = contact.fe[2] + contact.fc[2] * j_a + fn[2] + ft[2];
+  double fx = contact.fe[0] + contact.fc[0] * j_a;
+  double fy = contact.fe[1] + contact.fc[1] * j_a;
+  double fz = contact.fe[2] + contact.fc[2] * j_a;
   f[ibody][0] += fx;
   f[ibody][1] += fy;
   f[ibody][2] += fz;
-  sum_torque(x[ibody], contact.xv, fx, fy, fz, torque[ibody]);
-
-  // accumulate forces to the vertex only
-
+  sum_torque(x[ibody], pc, fx, fy, fz, torque[ibody]);
+  f[jbody][0] -= fx;
+  f[jbody][1] -= fy;
+  f[jbody][2] -= fz;
+  sum_torque(x[jbody], pc, -fx, -fy, -fz, torque[jbody]);
   facc[0] += fx; facc[1] += fy; facc[2] += fz;
 
-  fx = -contact.fe[0] - contact.fc[0] * j_a - fn[0] - ft[0];
-  fy = -contact.fe[1] - contact.fc[1] * j_a - fn[1] - ft[1];
-  fz = -contact.fe[2] - contact.fc[2] * j_a - fn[2] - ft[2];
-  f[jbody][0] += fx;
-  f[jbody][1] += fy;
-  f[jbody][2] += fz;
-  sum_torque(x[jbody], contact.xe, fx, fy, fz, torque[jbody]);
+  // the part of the contact force added by the j_a scaling does not derive
+  // from the energy: accumulate it per body to compute its work,
+  // see work_nonconservative()
 
-  #ifdef _POLYGON_DEBUG
-  printf("From contact forces: vertex fx %f fy %f fz %f\n"
-         "      torque body %d: %f %f %f\n"
-         "      torque body %d: %f %f %f\n",
-         contact.fe[0], contact.fe[1], contact.fe[2],
-         atom->tag[ibody],torque[ibody][0],torque[ibody][1],torque[ibody][2],
-         atom->tag[jbody],torque[jbody][0],torque[jbody][1],torque[jbody][2]);
-  #endif
+  double fja[3];
+  for (int k = 0; k < 3; k++) {
+    fja[k] = (j_a - 1.0) * contact.fc[k];
+    fnc[ibody][k] += fja[k];
+    fnc[jbody][k] -= fja[k];
+  }
+  sum_torque(x[ibody], pc, fja[0], fja[1], fja[2], &fnc[ibody][3]);
+  sum_torque(x[jbody], pc, -fja[0], -fja[1], -fja[2], &fnc[jbody][3]);
+
+  // damping and, if requested, friction at the contact point
+
+  double fne = MathExtra::len3(contact.fe);
+  damping_friction(ibody, jbody, pc, n, fne, 1, friction, x, v, angmom, f, torque, fnc,
+                   ibody, facc);
+}
+
+/* ----------------------------------------------------------------------
+  Contact point between the rounded surfaces of two bodies, halfway between
+  the surface points on the line through the points pi on ibody and pj on
+  jbody, where n is the unit normal pointing from jbody to ibody
+------------------------------------------------------------------------- */
+
+void PairBodyRoundedPolygon::contact_point(const double *pi, const double *pj,
+                                           const double *n, double rradi, double rradj,
+                                           double *pc)
+{
+  for (int k = 0; k < 3; k++)
+    pc[k] = 0.5 * ((pi[k] - rradi * n[k]) + (pj[k] + rradj * n[k]));
+}
+
+/* ----------------------------------------------------------------------
+  Damping and friction forces at the contact point pc between two bodies,
+  from the relative velocity of the two bodies at that point:
+    damping:  -c_n v_n - c_t v_t
+    friction: magnitude mu * fne with the elastic normal force fne, opposite
+              to v_t, capped by c_t * |v_t| so that it vanishes smoothly
+              as sliding stops, see Eq. 4, Fraige et al.
+  n = unit normal pointing from jbody to ibody
+  the forces act at pc on both bodies, so that they exert torques
+  the total force on body iref is accumulated to facc
+------------------------------------------------------------------------- */
+
+void PairBodyRoundedPolygon::damping_friction(int ibody, int jbody, double *pc,
+  const double *n, double fne, int damping, int friction, double** x, double** v,
+  double** angmom, double** f, double** torque, double** fnc, int iref, double* facc)
+{
+  double vi[3], vj[3], vr[3], vn[3], vt[3], fdiss[3];
+  AtomVecBody::Bonus *bonus;
+
+  bonus = &avec->bonus[atom->body[ibody]];
+  total_velocity(pc, x[ibody], v[ibody], angmom[ibody], bonus->inertia, bonus->quat, vi);
+  bonus = &avec->bonus[atom->body[jbody]];
+  total_velocity(pc, x[jbody], v[jbody], angmom[jbody], bonus->inertia, bonus->quat, vj);
+
+  MathExtra::sub3(vi, vj, vr);
+  double vnnr = MathExtra::dot3(vr, n);
+  for (int k = 0; k < 3; k++) {
+    vn[k] = vnnr * n[k];
+    vt[k] = vr[k] - vn[k];
+    fdiss[k] = 0.0;
+  }
+
+  if (damping)
+    for (int k = 0; k < 3; k++) fdiss[k] = -c_n * vn[k] - c_t * vt[k];
+
+  double vtmag = MathExtra::len3(vt);
+  if (friction && (fne > 0.0) && (vtmag > 0.0)) {
+    double scale = MIN(mu * fne, c_t * vtmag) / vtmag;
+    for (int k = 0; k < 3; k++) fdiss[k] -= scale * vt[k];
+  }
+
+  f[ibody][0] += fdiss[0];
+  f[ibody][1] += fdiss[1];
+  f[ibody][2] += fdiss[2];
+  sum_torque(x[ibody], pc, fdiss[0], fdiss[1], fdiss[2], torque[ibody]);
+
+  f[jbody][0] -= fdiss[0];
+  f[jbody][1] -= fdiss[1];
+  f[jbody][2] -= fdiss[2];
+  sum_torque(x[jbody], pc, -fdiss[0], -fdiss[1], -fdiss[2], torque[jbody]);
+
+  // damping and friction do not derive from the energy
+
+  for (int k = 0; k < 3; k++) {
+    fnc[ibody][6+k] += fdiss[k];
+    fnc[jbody][6+k] -= fdiss[k];
+  }
+  sum_torque(x[ibody], pc, fdiss[0], fdiss[1], fdiss[2], &fnc[ibody][9]);
+  sum_torque(x[jbody], pc, -fdiss[0], -fdiss[1], -fdiss[2], &fnc[jbody][9]);
+
+  if (ibody == iref) {
+    facc[0] += fdiss[0]; facc[1] += fdiss[1]; facc[2] += fdiss[2];
+  } else {
+    facc[0] -= fdiss[0]; facc[1] -= fdiss[1]; facc[2] -= fdiss[2];
+  }
 }
 
 /* ----------------------------------------------------------------------

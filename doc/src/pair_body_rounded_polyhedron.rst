@@ -133,6 +133,38 @@ Mixing, shift, table, tail correction, restart, rRESPA info
 This pair style does not support the :doc:`pair_modify <pair_modify>`
 mix, shift, table, and tail options.
 
+.. versionadded:: TBD
+
+This pair style computes two extra quantities that can be accessed by
+the :doc:`compute pair <compute_pair>` command, as elements 1 and 2 of
+its global vector.  They are the accumulated work (energy units) done
+since the pair style was defined by two kinds of forces that do not
+derive from the reported pair energy:
+
+#. the part of the contact forces added by their scaling with the
+   contact size (controlled by *A_ua*),
+#. the damping and friction forces (controlled by *c_n*, *c_t*, and *mu*).
+
+The first one exists because the model scales the contact forces but not
+the energy.  The kinetic plus potential energy minus these two
+quantities stays constant during a time integration with :doc:`fix
+nve/body <fix_nve_body>`, up to the time integration error and to the
+changes of the set of contacts between two particles, which the model
+treats as discontinuous.  Note that the
+kinetic energy must include the rotational energy of the particles,
+e.g. via :doc:`compute temp/body <compute_temp_body>` with 6 degrees
+of freedom per particle as in the example below, while the thermo
+keyword *ke* includes only the translational part.
+
+.. code-block:: LAMMPS
+
+   compute wp all pair body/rounded/polyhedron
+   compute tb all temp/body
+   compute_modify tb extra/dof 0
+   compute pe all pe
+   variable etot equal c_tb*6*count(all)/2+c_pe
+   variable ebal equal v_etot-c_wp[1]-c_wp[2]
+
 This pair style does not write its information to :doc:`binary restart files <restart>`.
 Thus, you need to re-specify the pair_style and pair_coeff
 commands in an input script that reads a restart file.

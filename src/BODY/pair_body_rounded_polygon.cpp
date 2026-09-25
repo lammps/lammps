@@ -27,12 +27,15 @@
 #include "comm.h"
 #include "error.h"
 #include "fix.h"
+#include "fix_store_atom.h"
 #include "force.h"
+#include "group.h"
 #include "math_extra.h"
 #include "memory.h"
 #include "modify.h"
 #include "neigh_list.h"
 #include "neighbor.h"
+#include "update.h"
 
 #include <cmath>
 #include <cstring>
@@ -42,6 +45,8 @@ using namespace LAMMPS_NS;
 static constexpr int DELTA = 10000;
 static constexpr double EPSILON = 1.0e-3; // dimensionless threshold (dot products, end point checks, contact checks)
 static constexpr int EFF_CONTACTS = 2;    // effective contacts for 2D models
+static constexpr int NFNC = 12;           // per-body force and torque of the j_a scaling, and of damping
+static constexpr char id_fix_store_prefix[] = "BODY_ROUNDED_POLYGON_WORK_";
 
 //#define _CONVEX_POLYGON
 //#define _POLYGON_DEBUG
@@ -68,6 +73,19 @@ PairBodyRoundedPolygon::PairBodyRoundedPolygon(LAMMPS *lmp) :
   single_enable = 0;
   restartinfo = 0;
 
+  // work done by the forces that do not derive from the energy,
+  // accessible via compute pair
+
+  nextra = 2;
+  pvector = new double[nextra];
+  w_ja = w_diss = 0.0;
+
+  fnc = nullptr;
+  nmax_fnc = 0;
+  id_fix_store = nullptr;
+  fix_store = nullptr;
+  comm_reverse = NFNC;
+
   c_n = 0.1;
   c_t = 0.2;
   mu = 0.0;
@@ -88,6 +106,11 @@ PairBodyRoundedPolygon::~PairBodyRoundedPolygon()
 
   memory->destroy(enclosing_radius);
   memory->destroy(rounded_radius);
+
+  delete[] pvector;
+  memory->destroy(fnc);
+  if (id_fix_store && modify) modify->delete_fix(id_fix_store);
+  delete[] id_fix_store;
 
   if (allocated) {
     memory->destroy(setflag);
@@ -152,6 +175,16 @@ void PairBodyRoundedPolygon::compute(int eflag, int vflag)
   ndiscrete = nedge = 0;
   for (i = 0; i < nall; i++)
     dnum[i] = ednum[i] = 0;
+
+  // per-body forces and torques that do not derive from the energy
+
+  if (atom->nmax > nmax_fnc) {
+    memory->destroy(fnc);
+    nmax_fnc = atom->nmax;
+    memory->create(fnc,nmax_fnc,NFNC,"pair:fnc");
+  }
+  for (i = 0; i < nall; i++)
+    for (int k = 0; k < NFNC; k++) fnc[i][k] = 0.0;
 
   // loop over neighbors of my atoms
 
@@ -303,6 +336,75 @@ void PairBodyRoundedPolygon::compute(int eflag, int vflag)
   }
 
   if (vflag_fdotr) virial_fdotr_compute();
+
+  work_nonconservative();
+}
+
+/* ----------------------------------------------------------------------
+   accumulate the work done by the forces that do not derive from the
+   energy: the part of the contact forces added by the j_a scaling (w_ja),
+   and damping and friction (w_diss), so that the total energy minus
+   w_ja and w_diss is conserved
+   with velocity Verlet, the work over a time step is
+     0.5 * dt * (F(n) + F(n+1)) . v(n+1/2)
+   with F(n) of the previous step stored per atom with fix STORE/ATOM
+------------------------------------------------------------------------- */
+
+void PairBodyRoundedPolygon::work_nonconservative()
+{
+  if (force->newton_pair) comm->reverse_comm(this);
+
+  double **fprev = fix_store->astore;
+  double **v = atom->v;
+  double **angmom = atom->angmom;
+  int *body = atom->body;
+  int nlocal = atom->nlocal;
+  double halfdt = 0.5 * update->dt;
+  double omega[3],ex[3],ey[3],ez[3];
+
+  for (int i = 0; i < nlocal; i++) {
+    if (body[i] < 0) continue;
+
+    // no time step has been taken during setup
+
+    if (!update->setupflag) {
+      AtomVecBody::Bonus *bonus = &avec->bonus[body[i]];
+      MathExtra::q_to_exyz(bonus->quat,ex,ey,ez);
+      MathExtra::angmom_to_omega(angmom[i],ex,ey,ez,bonus->inertia,omega);
+      for (int k = 0; k < 3; k++) {
+        w_ja += halfdt * ((fprev[i][k] + fnc[i][k]) * v[i][k] +
+                          (fprev[i][3+k] + fnc[i][3+k]) * omega[k]);
+        w_diss += halfdt * ((fprev[i][6+k] + fnc[i][6+k]) * v[i][k] +
+                            (fprev[i][9+k] + fnc[i][9+k]) * omega[k]);
+      }
+    }
+    for (int k = 0; k < NFNC; k++) fprev[i][k] = fnc[i][k];
+  }
+
+  pvector[0] = w_ja;
+  pvector[1] = w_diss;
+}
+
+/* ---------------------------------------------------------------------- */
+
+int PairBodyRoundedPolygon::pack_reverse_comm(int n, int first, double *buf)
+{
+  int m = 0;
+  int last = first + n;
+  for (int i = first; i < last; i++)
+    for (int k = 0; k < NFNC; k++) buf[m++] = fnc[i][k];
+  return m;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairBodyRoundedPolygon::unpack_reverse_comm(int n, int *list, double *buf)
+{
+  int m = 0;
+  for (int i = 0; i < n; i++) {
+    int j = list[i];
+    for (int k = 0; k < NFNC; k++) fnc[j][k] += buf[m++];
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -393,6 +495,20 @@ void PairBodyRoundedPolygon::init_style()
     error->all(FLERR,"Pair body/rounded/polygon requires ghost atoms store velocity");
 
   neighbor->add_request(this);
+
+  // per-atom storage of the forces and torques that do not derive
+  // from the energy at the previous step, see work_nonconservative()
+
+  if (!id_fix_store) {
+    id_fix_store = utils::strdup(std::string(id_fix_store_prefix) + std::to_string(instance_me));
+    fix_store = dynamic_cast<FixStoreAtom *>(
+      modify->add_fix(fmt::format("{} {} STORE/ATOM {} 0 0 0", id_fix_store,
+                                  group->names[0], NFNC)));
+  } else {
+    fix_store = dynamic_cast<FixStoreAtom *>(modify->get_fix_by_id(id_fix_store));
+    if (!fix_store)
+      error->all(FLERR, "Could not find internal fix STORE/ATOM id {}", id_fix_store);
+  }
 
   // find the maximum radius (enclosing + rounded) for each atom type
 
@@ -613,6 +729,13 @@ void PairBodyRoundedPolygon::sphere_against_sphere(int i, int j,
     fx += fn[0] + ft[0];
     fy += fn[1] + ft[1];
     fz += fn[2] + ft[2];
+
+    // damping does not derive from the energy, the disks do not rotate
+
+    for (int k = 0; k < 3; k++) {
+      fnc[i][6+k] += fn[k] + ft[k];
+      fnc[j][6+k] -= fn[k] + ft[k];
+    }
   }
 
   f[i][0] += fx;
@@ -1197,6 +1320,24 @@ void PairBodyRoundedPolygon::contact_forces(Contact& contact, double j_a,
     ft[1] -= scale * vt2;
     ft[2] -= scale * vt3;
   }
+
+  // the part of the contact force added by the j_a scaling, and damping and
+  // friction do not derive from the energy: accumulate them per body
+  // to compute their work, see work_nonconservative()
+
+  double fja[3], fdiss[3];
+  for (int k = 0; k < 3; k++) {
+    fja[k] = (j_a - 1.0) * contact.fv[k];
+    fdiss[k] = fn[k] + ft[k];
+    fnc[ibody][k] += fja[k];
+    fnc[jbody][k] -= fja[k];
+    fnc[ibody][6+k] += fdiss[k];
+    fnc[jbody][6+k] -= fdiss[k];
+  }
+  sum_torque(x[ibody], contact.xv, fja[0], fja[1], fja[2], &fnc[ibody][3]);
+  sum_torque(x[jbody], contact.xe, -fja[0], -fja[1], -fja[2], &fnc[jbody][3]);
+  sum_torque(x[ibody], contact.xv, fdiss[0], fdiss[1], fdiss[2], &fnc[ibody][9]);
+  sum_torque(x[jbody], contact.xe, -fdiss[0], -fdiss[1], -fdiss[2], &fnc[jbody][9]);
 
   // only the cohesive force is scaled by j_a
 

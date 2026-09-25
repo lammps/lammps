@@ -36,6 +36,8 @@ class PairBodyRoundedPolyhedron : public Pair {
   void init_style() override;
   double init_one(int, int) override;
   double memory_usage() override;
+  int pack_reverse_comm(int, int, double *) override;
+  void unpack_reverse_comm(int, int *, double *) override;
 
   virtual void kernel_force(double R, int itype, int jtype, double &energy, double &fpair);
 
@@ -87,6 +89,14 @@ class PairBodyRoundedPolyhedron : public Pair {
   double *enclosing_radius;    // enclosing radii for all bodies
   double *rounded_radius;      // rounded radii for all bodies
   double *maxrad;              // per-type maximum radius (enclosing + rounded)
+  double w_ja;                 // work done by the force added by the j_a scaling
+  double w_diss;               // work done by damping and friction
+  double **fnc;                // per-body force and torque not deriving from the energy
+  int nmax_fnc;                // allocated size of fnc
+  char *id_fix_store;          // ID of fix STORE/ATOM with fnc of the previous step
+  class FixStoreAtom *fix_store;
+
+  void work_nonconservative();
 
   std::vector<Contact> contacts;    // contacts between the current pair of bodies
 

@@ -500,11 +500,22 @@
 
 /boundary_correction.cpp
 /boundary_correction.h
+/charge_solver.cpp
+/charge_solver.h
+/electrode_cg.cpp
+/electrode_cg.h
+/electrode_inv.cpp
+/electrode_inv.h
 /electrode_accel_interface.h
 /electrode_kspace.h
+/electrode_mat_cg.cpp
+/electrode_mat_cg.h
 /electrode_math.h
 /electrode_matrix.cpp
 /electrode_matrix.h
+/electrode_pair.h
+/electrode_taglist.cpp
+/electrode_taglist.h
 /electrode_vector.cpp
 /electrode_vector.h
 /ewald_electrode.cpp
@@ -515,6 +526,10 @@
 /fix_electrode_conq.h
 /fix_electrode_thermo.cpp
 /fix_electrode_thermo.h
+/pair_lj_cut_coul_long_gauss.cpp
+/pair_lj_cut_coul_long_gauss.h
+/pair_lj_cut_coul_wolf_gauss.cpp
+/pair_lj_cut_coul_wolf_gauss.h
 /pppm_electrode.cpp
 /pppm_electrode.h
 /slab_2d.cpp

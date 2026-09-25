@@ -8,6 +8,10 @@ pair_style lj/cut/coul/long 12
 
 read_data "data.au-elyt"
 
+pair_coeff 1 1 0 0
+pair_coeff 2 2 0 0
+pair_coeff 3 3 0 0
+
 group bot type 1
 group top type 2
 

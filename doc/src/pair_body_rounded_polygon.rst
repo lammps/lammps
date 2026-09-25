@@ -79,12 +79,12 @@ are given by:
 .. math::
 
    F_n &= \begin{cases}
-           k_n \delta_n - c_n v_n     &  \delta_n \le 0 \\
-          -k_{na} \delta_n - c_n v_n  &  0 < \delta_n \le r_c \\
-          0                           & \delta_n > r_c \\
+          -k_n \delta_n - j_a k_{na} (r_c - \delta_n) - c_n v_n  &  \delta_n \le 0 \\
+          -k_{na} (r_c - \delta_n)                                &  0 < \delta_n \le r_c \\
+          0                                                       & \delta_n > r_c \\
           \end{cases} \\
    F_t &= \begin{cases}
-          \mu k_n \delta_n - c_t v_t & \delta_n \le 0 \\
+          - \min(\mu k_n |\delta_n|, c_t |v_t|) \frac{v_t}{|v_t|} - c_t v_t & \delta_n \le 0 \\
           0                          & \delta_n > 0
           \end{cases}
 
@@ -96,6 +96,17 @@ Note that :math:`F_n` and :math:`F_t` are functions of the surface separation
 :math:`(R_i + R_j) < d < (R_i + R_j) + r_c`, that is, :math:`0 < \delta_n < r_c`,
 the cohesive region of the two surfaces overlap and the two surfaces are
 attractive to each other.
+
+Here, positive values of :math:`F_n` are repulsive.  The cohesive force
+:math:`k_{na} (r_c - \delta_n)` grows with the overlap of the cohesive
+regions of the two surfaces, also when the surfaces deform.  When two
+particles touch at multiple contact points, the cohesive force at the
+contacts is scaled by the factor :math:`j_a \ge 1`, which grows with the
+length of the contact region (see *delta_ua*), following
+:ref:`Fraige <pair-Fraige>`.  The elastic force :math:`k_n \delta_n` is not
+scaled.  The damping forces act at each
+contact, while there is a single friction force per pair of particles,
+at the contact with the largest overlap.
 
 In :ref:`Fraige <pair-Fraige>`, the tangential friction force between two
 particles that are in contact is modeled differently prior to gross
@@ -110,15 +121,18 @@ contact.
 
 .. versionchanged:: TBD
 
-The friction term :math:`\mu k_n \delta_n` in :math:`F_t` acts in the
-tangential direction, opposite to the tangential relative velocity
-:math:`v_t` at the contact point, with a magnitude of :math:`\mu` times
-the normal contact force, but at most :math:`c_t |v_t|`.  This limit
-lets the friction force vanish smoothly as the sliding stops, instead of
-reversing the sliding direction within a time step, and implies that the
-friction term requires :math:`c_t > 0`.  Previously, the friction term
-was applied along the normal direction and thus only increased the
-normal repulsion.
+The friction term in :math:`F_t` acts in the tangential direction,
+opposite to the tangential relative velocity :math:`v_t` at the contact
+point, with a magnitude of :math:`\mu` times the elastic normal force
+:math:`k_n |\delta_n|`, but at most :math:`c_t |v_t|`.  This limit lets
+the friction force vanish smoothly as the sliding stops, instead of
+reversing the sliding direction within a time step, and implies that
+the friction term requires :math:`c_t > 0`.  Previously, the friction
+term was applied along the normal direction at every contact and thus
+only increased the normal repulsion.  Also, the scaling factor
+:math:`j_a` now applies only to the cohesive force as in the reference
+model, instead of to the whole normal force, and the cohesive force keeps
+growing when the surfaces deform, instead of staying constant.
 
 The following coefficients must be defined for each pair of atom types
 via the :doc:`pair_coeff <pair_coeff>` command as in the examples above,
@@ -127,9 +141,10 @@ or in the data file read by the :doc:`read_data <read_data>` command:
 * :math:`k_n` (energy/distance\^2 units)
 * :math:`k_{na}` (energy/distance\^2 units)
 
-Effectively, :math:`k_n` and :math:`k_{na}` are the slopes of the red lines in the plot
-above for force versus surface separation, for :math:`\delta_n < 0` and
-:math:`0 < \delta_n < r_c` respectively.
+Effectively, :math:`k_n - k_{na}` and :math:`k_{na}` are the magnitudes
+of the slopes of the lines in the plot above for force versus surface
+separation, for :math:`\delta_n < 0` and :math:`0 < \delta_n < r_c`
+respectively.
 
 ----------
 
@@ -153,11 +168,14 @@ mix, shift, table, and tail options.
    * The contact forces are scaled up with the length of the contact
      region (controlled by *delta_ua*), but no corresponding energy is
      defined.
-   * When two particles touch at more than two points, the contact forces
-     are applied only at the first two contacts that are at different
-     places, and a contact between two vertices is counted only once.
-     As the particles move, contacts appear and disappear abruptly, which
-     changes the forces discontinuously.
+   * When a vertex of one particle touches more than two points on the
+     edges of the other particle, the contact forces are applied only at
+     the first two contacts that are at different places, and a contact
+     between two vertices is counted only once.  As the particles move,
+     contacts appear and disappear abruptly, which changes the forces
+     discontinuously.  With cohesion (:math:`k_{na} > 0`), the energy
+     of a contact does not vanish when the surfaces just touch, so that
+     these changes also change the energy.
    * The reported pair energy includes all vertex-edge interactions,
      also those at contacts that do not receive a force by the rule
      above.  While such contacts exist, the reported energy does not

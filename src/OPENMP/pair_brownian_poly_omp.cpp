@@ -176,14 +176,15 @@ void PairBrownianPolyOMP::eval(int iifrom, int iito, ThrData * const thr)
   double * const * const torque = thr->get_torque();
   const double * const radius = atom->radius;
   const int * const type = atom->type;
+  const tagint * const tag = atom->tag;
   const int nlocal = atom->nlocal;
+  const bigint step = update->ntimestep;
 
   RanMars &rng = *random_thr[thr->get_tid()];
 
   double vxmu2f = force->vxmu2f;
-  double randr;
   double prethermostat;
-  double xl[3],a_sq,a_sh,a_pu,Fbmag;
+  double a_sq,a_sh,a_pu,Fbmag;
   double p1[3],p2[3],p3[3];
 
   // scale factor for Brownian moments
@@ -237,7 +238,23 @@ void PairBrownianPolyOMP::eval(int iifrom, int iito, ThrData * const thr)
       if (rsq < cutsq[itype][jtype]) {
         r = sqrt(rsq);
 
-        // scalar resistances a_sq and a_sh
+        // canonical (tag-ordered) description of the pair: the random Brownian
+        // force is computed identically regardless of which atom -- or which
+        // thread / MPI rank under "newton off" -- evaluates the pair, using the
+        // lower-tag atom as the reference particle.  csgn = +1 if local atom i
+        // is that reference, -1 otherwise; (ex,ey,ez) is the unit line of
+        // centers from the higher-tag toward the lower-tag atom.  This makes
+        // the pairwise force equal and opposite (Newton's 3rd law) and fixes
+        // the momentum/energy injection of GitHub issue #2933.
+
+        const double csgn = (tag[i] < tag[j]) ? 1.0 : -1.0;
+        const double rref = (csgn > 0.0) ? radi : radj;   // lower-tag radius
+        const double roth = (csgn > 0.0) ? radj : radi;   // higher-tag radius
+        const double ex = csgn*delx/r;
+        const double ey = csgn*dely/r;
+        const double ez = csgn*delz/r;
+
+        // scalar resistances a_sq, a_sh, a_pu
 
         h_sep = r - radi-radj;
 
@@ -246,135 +263,115 @@ void PairBrownianPolyOMP::eval(int iifrom, int iito, ThrData * const thr)
         if (r < cut_inner[itype][jtype])
           h_sep = cut_inner[itype][jtype] - radi-radj;
 
-        // scale h_sep by radi
+        // scale h_sep by the reference radius
 
-        h_sep = h_sep/radi;
-        beta0 = radj/radi;
+        h_sep = h_sep/rref;
+        beta0 = roth/rref;
         beta1 = 1.0 + beta0;
 
-        // scalar resistances
+        // scalar resistances; symmetric-gap Jeffrey & Onishi expansion as in
+        // pair lubricate/poly (FDT consistency), xi = 2*h_sep/beta1, GitHub
+        // issue #1933.
 
         if (FLAGLOG) {
+          double xi = 2.0*h_sep/beta1;
           a_sq = beta0*beta0/beta1/beta1/h_sep +
-            (1.0+7.0*beta0+beta0*beta0)/5.0/cube(beta1)*log(1.0/h_sep);
-          a_sq += (1.0+18.0*beta0-29.0*beta0*beta0+18.0*cube(beta0) +
-                   powint(beta0,4))/21.0/powint(beta1,4)*h_sep*log(1.0/h_sep);
-          a_sq *= 6.0*MY_PI*mu*radi;
-          a_sh = 4.0*beta0*(2.0+beta0+2.0*beta0*beta0)/15.0/cube(beta1) *
-            log(1.0/h_sep);
-          a_sh += 4.0*(16.0-45.0*beta0+58.0*beta0*beta0-45.0*cube(beta0) +
-                       16.0*powint(beta0,4))/375.0/powint(beta1,4) *
-            h_sep*log(1.0/h_sep);
-          a_sh *= 6.0*MY_PI*mu*radi;
-          a_pu = beta0*(4.0+beta0)/10.0/beta1/beta1*log(1.0/h_sep);
-          a_pu += (32.0-33.0*beta0+83.0*beta0*beta0+43.0 *
-                   cube(beta0))/250.0/cube(beta1)*h_sep*log(1.0/h_sep);
-          a_pu *= 8.0*MY_PI*mu*cube(radi);
+            beta0*(1.0+7.0*beta0+beta0*beta0)/5.0/pow(beta1,3.0)*log(1.0/xi);
+          a_sq += (1.0+18.0*beta0-29.0*beta0*beta0+18.0 *
+                   pow(beta0,3.0)+pow(beta0,4.0))/21.0/pow(beta1,4.0) *
+            h_sep*log(1.0/xi);
+          a_sq *= 6.0*MY_PI*mu*rref;
+          a_sh = 4.0*beta0*(2.0+beta0+2.0*beta0*beta0)/15.0/pow(beta1,3.0) *
+            log(1.0/xi);
+          a_sh += 4.0*(16.0-45.0*beta0+58.0*beta0*beta0-45.0*pow(beta0,3.0) +
+                       16.0*pow(beta0,4.0))/375.0/pow(beta1,4.0) *
+            h_sep*log(1.0/xi);
+          a_sh *= 6.0*MY_PI*mu*rref;
+          a_pu = 2.0*beta0/5.0/beta1*log(1.0/xi);
+          a_pu += 2.0*(8.0+6.0*beta0+33.0*beta0*beta0)/125.0/beta1/beta1*
+                   h_sep*log(1.0/xi);
+          a_pu *= 8.0*MY_PI*mu*pow(rref,3.0);
+        } else a_sq = 6.0*MY_PI*mu*rref*(beta0*beta0/beta1/beta1/h_sep);
 
-        } else a_sq = 6.0*MY_PI*mu*radi*(beta0*beta0/beta1/beta1/h_sep);
-
-        // generate the Pairwise Brownian Force: a_sq
+        // random Brownian force on the reference (lower-tag) atom, drawn from
+        // the order-independent pair RNG (one stream per component)
 
         Fbmag = prethermostat*sqrt(a_sq);
-
-        // generate a random number
-
-        randr = rng.uniform()-0.5;
-
-        // contribution due to Brownian motion
-
-        fx = Fbmag*randr*delx/r;
-        fy = Fbmag*randr*dely/r;
-        fz = Fbmag*randr*delz/r;
-
-        // add terms due to a_sh
+        double s0 = pair_uniform(tag[i],tag[j],step,seed,0)-0.5;
+        fx = Fbmag*s0*ex;
+        fy = Fbmag*s0*ey;
+        fz = Fbmag*s0*ez;
 
         if (FLAGLOG) {
 
-          // generate two orthogonal vectors to the line of centers
+          // two orthogonal vectors to the (canonical) line of centers
 
-          p1[0] = delx/r; p1[1] = dely/r; p1[2] = delz/r;
+          p1[0] = ex; p1[1] = ey; p1[2] = ez;
           set_3_orthogonal_vectors(p1,p2,p3);
-
-          // magnitude
 
           Fbmag = prethermostat*sqrt(a_sh);
 
-          // force in each of the two directions
+          double s2 = pair_uniform(tag[i],tag[j],step,seed,1)-0.5;
+          fx += Fbmag*s2*p2[0];
+          fy += Fbmag*s2*p2[1];
+          fz += Fbmag*s2*p2[2];
 
-          randr = rng.uniform()-0.5;
-          fx += Fbmag*randr*p2[0];
-          fy += Fbmag*randr*p2[1];
-          fz += Fbmag*randr*p2[2];
-
-          randr = rng.uniform()-0.5;
-          fx += Fbmag*randr*p3[0];
-          fy += Fbmag*randr*p3[1];
-          fz += Fbmag*randr*p3[2];
+          double s3 = pair_uniform(tag[i],tag[j],step,seed,2)-0.5;
+          fx += Fbmag*s3*p3[0];
+          fy += Fbmag*s3*p3[1];
+          fz += Fbmag*s3*p3[2];
         }
 
-        // scale forces to appropriate units
+        // scale to force units
 
-        fx = vxmu2f*fx;
-        fy = vxmu2f*fy;
-        fz = vxmu2f*fz;
+        fx *= vxmu2f;
+        fy *= vxmu2f;
+        fz *= vxmu2f;
 
-        // sum to total force
+        // apply equal and opposite to the local atom (csgn); the other atom
+        // accumulates its share when processed as a local atom (newton off)
 
-        f[i][0] -= fx;
-        f[i][1] -= fy;
-        f[i][2] -= fz;
-
-        // torque due to the Brownian Force
+        f[i][0] -= csgn*fx;
+        f[i][1] -= csgn*fy;
+        f[i][2] -= csgn*fz;
 
         if (FLAGLOG) {
 
-          // location of the point of closest approach on I from its center
+          // torque on the local atom from the Brownian force at the point of
+          // closest approach: radi*(e x F) for either pair member
 
-          xl[0] = -delx/r*radi;
-          xl[1] = -dely/r*radi;
-          xl[2] = -delz/r*radi;
+          tx = radi*(ey*fz - ez*fy);
+          ty = radi*(ez*fx - ex*fz);
+          tz = radi*(ex*fy - ey*fx);
 
-          // torque = xl_cross_F
+          torque[i][0] += tx;
+          torque[i][1] += ty;
+          torque[i][2] += tz;
 
-          tx = xl[1]*fz - xl[2]*fy;
-          ty = xl[2]*fx - xl[0]*fz;
-          tz = xl[0]*fy - xl[1]*fx;
-
-          // torque is same on both particles
-
-          torque[i][0] -= tx;
-          torque[i][1] -= ty;
-          torque[i][2] -= tz;
-
-          // torque due to a_pu
+          // pumping (rotational) Brownian torque: antisymmetric pair torque
+          // (carries csgn); as in the original code, not scaled by vxmu2f
 
           Fbmag = prethermostat*sqrt(a_pu);
 
-          // force in each direction
+          double t2 = pair_uniform(tag[i],tag[j],step,seed,3)-0.5;
+          tx = Fbmag*t2*p2[0];
+          ty = Fbmag*t2*p2[1];
+          tz = Fbmag*t2*p2[2];
 
-          randr = rng.uniform()-0.5;
-          tx = Fbmag*randr*p2[0];
-          ty = Fbmag*randr*p2[1];
-          tz = Fbmag*randr*p2[2];
+          double t3 = pair_uniform(tag[i],tag[j],step,seed,4)-0.5;
+          tx += Fbmag*t3*p3[0];
+          ty += Fbmag*t3*p3[1];
+          tz += Fbmag*t3*p3[2];
 
-          randr = rng.uniform()-0.5;
-          tx += Fbmag*randr*p3[0];
-          ty += Fbmag*randr*p3[1];
-          tz += Fbmag*randr*p3[2];
-
-          // torque has opposite sign on two particles
-
-          torque[i][0] -= tx;
-          torque[i][1] -= ty;
-          torque[i][2] -= tz;
-
+          torque[i][0] -= csgn*tx;
+          torque[i][1] -= csgn*ty;
+          torque[i][2] -= csgn*tz;
         }
 
-        // set j = nlocal so that only I gets tallied
+        // tally only the local atom's contribution (j = nlocal, newton 0)
 
         if (EVFLAG) ev_tally_xyz(i,nlocal,nlocal,/* newton_pair */ 0,
-                                 0.0,0.0,-fx,-fy,-fz,delx,dely,delz);
+                                 0.0,0.0,-csgn*fx,-csgn*fy,-csgn*fz,delx,dely,delz);
       }
     }
   }

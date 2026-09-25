@@ -344,6 +344,14 @@ void PairBodyRoundedPolyhedron::pair_interaction(int i, int j, double delx, doub
 
   if (!contacts.empty()) {
     rescale_cohesive_forces(x, f, torque, fnc, contacts, itype, jtype, i, facc);
+
+    // one friction force per pair of bodies, at the contact with the largest
+    // overlap, see Wang et al.
+
+    int mmax = 0;
+    for (int m = 1; m < (int) contacts.size(); m++)
+      if (contacts[m].separation < contacts[mmax].separation) mmax = m;
+    friction_force(contacts[mmax], itype, jtype, x, v, angmom, f, torque, fnc, i, facc);
   }
 
   facc[0] -= fj[0];
@@ -1686,7 +1694,7 @@ void PairBodyRoundedPolyhedron::pair_force_and_torque(int ibody, int jbody,
 
     // contact: accumulate normal and tangential contact force components
 
-    contact_forces(ibody, jbody, pi, pj, delx, dely, delz, fx, fy, fz,
+    contact_forces(ibody, jbody, pi, pj, delx, dely, delz,
                    x, v, angmom, f, torque, fnc, facc);
   } else {
 
@@ -1716,21 +1724,36 @@ void PairBodyRoundedPolyhedron::pair_force_and_torque(int ibody, int jbody,
 void PairBodyRoundedPolyhedron::kernel_force(double R, int itype, int jtype,
   double& energy, double& fpair)
 {
+  double fe, fc;
+  energy += normal_force(R, itype, jtype, fe, fc);
+  fpair = fe + fc;
+}
+
+/* ----------------------------------------------------------------------
+   Normal force at the surface separation R, see Eq. 1, Wang et al.:
+     fe = elastic (repulsive) force, k_n * delta_n, for R < 0
+     fc = cohesive (attractive) force, -k_na * delta_na, for R <= cut_inner,
+          where delta_na = cut_inner - R is the overlap of the cohesive regions,
+          which keeps growing when the surfaces deform
+   return the energy, which is zero at R = cut_inner
+------------------------------------------------------------------------- */
+
+double PairBodyRoundedPolyhedron::normal_force(double R, int itype, int jtype,
+                                               double &fe, double &fc)
+{
+  fe = fc = 0.0;
+  if (R > cut_inner) return 0.0;
+
   double kn = k_n[itype][jtype];
   double kna = k_na[itype][jtype];
-  double shift = kna * cut_inner;
-  double e = 0;
-
-  // the energy is shifted to be zero at R = cut_inner
-
-  if (R <= 0) {           // deformation occurs
-    fpair = -kn * R - shift;
-    e = (0.5 * kn * R + shift) * R - 0.5 * shift * cut_inner;
-  } else if (R <= cut_inner) {   // not deforming but cohesive ranges overlap
-    fpair = kna * R - shift;
-    e = (-0.5 * kna * R + shift) * R - 0.5 * shift * cut_inner;
-  } else fpair = 0.0;
-  energy += e;
+  double dna = cut_inner - R;
+  fc = -kna * dna;
+  double energy = -0.5 * kna * dna * dna;
+  if (R < 0.0) {
+    fe = -kn * R;
+    energy += 0.5 * kn * R * R;
+  }
+  return energy;
 }
 
 /* ----------------------------------------------------------------------
@@ -1744,10 +1767,11 @@ void PairBodyRoundedPolyhedron::kernel_force(double R, int itype, int jtype,
 
 void PairBodyRoundedPolyhedron::contact_forces(int ibody, int jbody,
   double *xi, double *xj, double delx, double dely, double delz,
-  double fx, double fy, double fz, double** x, double** v, double** angmom,
+  double** x, double** v, double** angmom,
   double** f, double** torque, double** fnc, double* facc)
 {
   int ibonus,jbonus;
+  double fx,fy,fz;
   double rsq,rsqinv,vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3;
   double fn[3],ft[3],vi[3],vj[3];
   double *quat, *inertia;
@@ -1808,22 +1832,9 @@ void PairBodyRoundedPolyhedron::contact_forces(int ibody, int jbody,
   ft[1] = -c_t * vt2;
   ft[2] = -c_t * vt3;
 
-  // kinetic friction during gross sliding, see Eq. 4, Fraige et al.:
-  // magnitude mu * |F_ne|, opposite to the tangential relative velocity,
-  // capped by c_t * |v_t| so that it vanishes smoothly as sliding stops
-  // instead of reversing the sliding direction within a time step
-
-  double vtmag = sqrt(vt1*vt1 + vt2*vt2 + vt3*vt3);
-  if (vtmag > 0.0) {
-    double fne = sqrt(fx*fx + fy*fy + fz*fz);
-    double scale = MIN(mu * fne, c_t * vtmag) / vtmag;
-    ft[0] -= scale * vt1;
-    ft[1] -= scale * vt2;
-    ft[2] -= scale * vt3;
-  }
-
-  // these are the damping and friction forces only
-  // cohesive forces will be scaled by j_a after contact area is computed
+  // these are the damping forces only, the friction force is computed
+  // once per pair of bodies in friction_force(), and the elastic and
+  // cohesive forces after the contact area is known
 
   fx = fn[0] + ft[0];
   fy = fn[1] + ft[1];
@@ -1839,7 +1850,7 @@ void PairBodyRoundedPolyhedron::contact_forces(int ibody, int jbody,
   f[jbody][2] -= fz;
   sum_torque(x[jbody], xj, -fx, -fy, -fz, torque[jbody]);
 
-  // damping and friction do not derive from the energy
+  // damping does not derive from the energy
 
   fnc[ibody][6] += fx;
   fnc[ibody][7] += fy;
@@ -1926,10 +1937,11 @@ void PairBodyRoundedPolyhedron::rescale_cohesive_forces(double** x,
     r = contacts[m].r;
     R = contacts[m].separation;
 
-    double energy = 0;
-    kernel_force(R, itype, jtype, energy, fpair);
+    // only the cohesive force is scaled by j_a, see Eq. 6, Wang et al.
 
-    fpair *= j_a;
+    double fe, fc;
+    normal_force(R, itype, jtype, fe, fc);
+    fpair = fe + j_a * fc;
     fx = delx*fpair/r;
     fy = dely*fpair/r;
     fz = delz*fpair/r;
@@ -1955,15 +1967,87 @@ void PairBodyRoundedPolyhedron::rescale_cohesive_forces(double** x,
     // the part of the force added by the j_a scaling does not derive
     // from the energy
 
-    double s = (j_a - 1.0) / j_a;
-    fnc[ibody][0] += s*fx;
-    fnc[ibody][1] += s*fy;
-    fnc[ibody][2] += s*fz;
-    fnc[jbody][0] -= s*fx;
-    fnc[jbody][1] -= s*fy;
-    fnc[jbody][2] -= s*fz;
-    sum_torque(x[ibody], contacts[m].xi, s*fx, s*fy, s*fz, &fnc[ibody][3]);
-    sum_torque(x[jbody], contacts[m].xj, -s*fx, -s*fy, -s*fz, &fnc[jbody][3]);
+    double s = (j_a - 1.0) * fc / r;
+    double fja[3] = {s*delx, s*dely, s*delz};
+    fnc[ibody][0] += fja[0];
+    fnc[ibody][1] += fja[1];
+    fnc[ibody][2] += fja[2];
+    fnc[jbody][0] -= fja[0];
+    fnc[jbody][1] -= fja[1];
+    fnc[jbody][2] -= fja[2];
+    sum_torque(x[ibody], contacts[m].xi, fja[0], fja[1], fja[2], &fnc[ibody][3]);
+    sum_torque(x[jbody], contacts[m].xj, -fja[0], -fja[1], -fja[2], &fnc[jbody][3]);
+  }
+}
+
+/* ----------------------------------------------------------------------
+  Friction force at a contact during gross sliding, see Eq. 4, Wang et al.:
+  magnitude mu * F_ne with the elastic normal force F_ne, opposite to the
+  tangential relative velocity, capped by c_t * |v_t| so that it vanishes
+  smoothly as sliding stops instead of reversing the sliding direction
+  within a time step
+  the total force on body iref is accumulated to facc
+------------------------------------------------------------------------- */
+
+void PairBodyRoundedPolyhedron::friction_force(Contact &contact, int itype, int jtype,
+  double** x, double** v, double** angmom, double** f, double** torque, double** fnc,
+  int iref, double* facc)
+{
+  if (contact.separation >= 0.0) return;
+
+  int ibody = contact.ibody;
+  int jbody = contact.jbody;
+  double vi[3], vj[3], del[3], vr[3], vt[3];
+  AtomVecBody::Bonus *bonus;
+
+  bonus = &avec->bonus[atom->body[ibody]];
+  total_velocity(contact.xi, x[ibody], v[ibody], angmom[ibody], bonus->inertia, bonus->quat, vi);
+  bonus = &avec->bonus[atom->body[jbody]];
+  total_velocity(contact.xj, x[jbody], v[jbody], angmom[jbody], bonus->inertia, bonus->quat, vj);
+
+  MathExtra::sub3(contact.xi, contact.xj, del);
+  double rsq = MathExtra::lensq3(del);
+  if (rsq == 0.0) return;
+
+  MathExtra::sub3(vi, vj, vr);
+  double vnnr = MathExtra::dot3(vr, del) / rsq;
+  vt[0] = vr[0] - vnnr * del[0];
+  vt[1] = vr[1] - vnnr * del[1];
+  vt[2] = vr[2] - vnnr * del[2];
+  double vtmag = MathExtra::len3(vt);
+  if (vtmag == 0.0) return;
+
+  double fne = -k_n[itype][jtype] * contact.separation;
+  double scale = -MIN(mu * fne, c_t * vtmag) / vtmag;
+  double fx = scale * vt[0];
+  double fy = scale * vt[1];
+  double fz = scale * vt[2];
+
+  f[ibody][0] += fx;
+  f[ibody][1] += fy;
+  f[ibody][2] += fz;
+  sum_torque(x[ibody], contact.xi, fx, fy, fz, torque[ibody]);
+
+  f[jbody][0] -= fx;
+  f[jbody][1] -= fy;
+  f[jbody][2] -= fz;
+  sum_torque(x[jbody], contact.xj, -fx, -fy, -fz, torque[jbody]);
+
+  // friction does not derive from the energy
+
+  fnc[ibody][6] += fx;
+  fnc[ibody][7] += fy;
+  fnc[ibody][8] += fz;
+  fnc[jbody][6] -= fx;
+  fnc[jbody][7] -= fy;
+  fnc[jbody][8] -= fz;
+  sum_torque(x[ibody], contact.xi, fx, fy, fz, &fnc[ibody][9]);
+  sum_torque(x[jbody], contact.xj, -fx, -fy, -fz, &fnc[jbody][9]);
+
+  if (ibody == iref) {
+    facc[0] += fx; facc[1] += fy; facc[2] += fz;
+  } else {
+    facc[0] -= fx; facc[1] -= fy; facc[2] -= fz;
   }
 }
 
@@ -2641,34 +2725,6 @@ void PairBodyRoundedPolyhedron::sanity_check()
 
   project_pt_line(a, x1, x2, h_a, d_a, t_a);
   project_pt_line(b, x1, x2, h_b, d_b, t_b);
-/*
-  printf("h_a: %f %f %f; h_b: %f %f %f; t_a = %f; t_b = %f; d = %f; d_b = %f\n",
-    h_a[0], h_a[1], h_a[2], h_b[0], h_b[1], h_b[2], t_a, t_b, d_a, d_b);
-*/
-/*
-  int inside_a, inside_b;
-  int mode = edge_face_intersect(x1, x2, x3, a, b, h_a, h_b, d_a, d_b,
-                                 inside_a, inside_b);
-
-  double u[3],v[3],n[3];
-  MathExtra::sub3(x2, x1, u);
-  MathExtra::sub3(x3, x1, v);
-  MathExtra::cross3(u, v, n);
-  MathExtra::norm3(n);
-*/
-/*
-  project_pt_plane(a, x1, x2, x3, h_a, d_a, inside_a);
-  printf("h_a: %f %f %f; d = %f: inside %d\n",
-    h_a[0], h_a[1], h_a[2], d_a, inside_a);
-  project_pt_plane(b, x1, x2, x3, h_b, d_b, inside_b);
-  printf("h_b: %f %f %f; d = %f: inside %d\n",
-    h_b[0], h_b[1], h_b[2], d_b, inside_b);
-*/
-/*
-  distance_bt_edges(x1, x2, x3, x4, h_a, h_b, t_a, t_b, d_a);
-  printf("h_a: %f %f %f; h_b: %f %f %f; t_a = %f; t_b = %f; d = %f\n",
-    h_a[0], h_a[1], h_a[2], h_b[0], h_b[1], h_b[2], t_a, t_b, d_a);
-*/
 }
 
 /* ---------------------------------------------------------------------- */

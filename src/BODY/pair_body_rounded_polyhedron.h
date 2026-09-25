@@ -40,6 +40,8 @@ class PairBodyRoundedPolyhedron : public Pair {
   void unpack_reverse_comm(int, int *, double *) override;
 
   virtual void kernel_force(double R, int itype, int jtype, double &energy, double &fpair);
+  // elastic and cohesive parts of the normal force, returns the energy
+  double normal_force(double R, int itype, int jtype, double &fe, double &fc);
 
   struct Contact {
     int ibody, jbody;     // body (i.e. atom) indices (not tags)
@@ -150,8 +152,12 @@ class PairBodyRoundedPolyhedron : public Pair {
 
   // compute contact forces if contact points are detected
   void contact_forces(int ibody, int jbody, double *xi, double *xj, double delx, double dely,
-                      double delz, double fx, double fy, double fz, double **x, double **v,
-                      double **angmom, double **f, double **torque, double **fnc, double *facc);
+                      double delz, double **x, double **v, double **angmom, double **f,
+                      double **torque, double **fnc, double *facc);
+  // friction force at the contact with the largest overlap
+  void friction_force(Contact &contact, int itype, int jtype, double **x, double **v,
+                      double **angmom, double **f, double **torque, double **fnc, int iref,
+                      double *facc);
 
   // compute force and torque between two bodies given a pair of interacting points
   void pair_force_and_torque(int ibody, int jbody, double *pi, double *pj, double r,

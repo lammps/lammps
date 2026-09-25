@@ -280,67 +280,54 @@ void PairBodyRoundedPolygon::pair_interaction(int i, int j, double delx, double 
 
   num_contacts = contacts.size();
 
-  if (num_contacts >= 2) {
+  // the vertex-edge contact forces are applied at up to two contacts, see
+  // Fraige et al.: the first two contacts at different places, whose
+  // separation is the contact length that scales the cohesive forces, or else
+  // at a single contact.  the vertex-vertex contacts (edge = -1) are always
+  // applied, without scaling.  there is one friction force per pair of bodies,
+  // at the applied contact with the largest overlap
 
-    // find the first two distinct contacts
+  if (num_contacts > 0) {
+    int m0 = -1, n0 = -1;
+    j_a = 1.0;
 
     done = 0;
-    for (int m = 0; m < num_contacts-1; m++) {
+    for (int m = 0; (m < num_contacts) && !done; m++) {
+      if (contacts[m].edge < 0) continue;
+      if (m0 < 0) m0 = m;
       for (int n = m+1; n < num_contacts; n++) {
+        if (contacts[n].edge < 0) continue;
         delta_a = contact_separation(contacts[m], contacts[n]);
         if (delta_a > 0) {
+          m0 = m;
+          n0 = n;
           j_a = delta_a / (EFF_CONTACTS * delta_ua);
           if (j_a < 1.0) j_a = 1.0;
-
-          // scale the force at both contacts
-
-          contact_forces(contacts[m], j_a, x, v, angmom, f, torque, fnc, evdwl,
-                         (contacts[m].ibody == i) ? facc : fj);
-          contact_forces(contacts[n], j_a, x, v, angmom, f, torque, fnc, evdwl,
-                         (contacts[n].ibody == i) ? facc : fj);
           done = 1;
-
-          #ifdef _POLYGON_DEBUG
-          printf("  Two separate contacts %d and %d: delta_a = %f; j_a = %f\n",
-            m, n, delta_a, j_a);
-          printf("    %d: vertex %d of body %d and edge %d of body %d; "
-                 "xv = %f %f %f; xe = %f %f %f\n",
-                 m, contacts[m].vertex, contacts[m].ibody,
-                 contacts[m].edge, contacts[m].jbody,
-                 contacts[m].xv[0], contacts[m].xv[1],
-                 contacts[m].xv[2], contacts[m].xe[0],
-                 contacts[m].xe[1], contacts[m].xe[2]);
-          printf("    %d: vertex %d of body %d and edge %d of body %d; "
-                 "xv = %f %f %f; xe = %f %f %f\n",
-                 n, contacts[n].vertex, contacts[n].ibody,
-                 contacts[n].edge, contacts[n].jbody,
-                 contacts[n].xv[0], contacts[n].xv[1],
-                 contacts[n].xv[2], contacts[n].xe[0],
-                 contacts[n].xe[1], contacts[n].xe[2]);
-          #endif
-
           break;
         }
       }
-      if (done == 1) break;
     }
 
+    // the applied contact with the largest overlap gets the friction force
 
-  } else if (num_contacts == 1) {
+    int mfric = -1;
+    for (int m = 0; m < num_contacts; m++) {
+      if ((contacts[m].edge >= 0) && (m != m0) && (m != n0)) continue;
+      if ((mfric < 0) || (contacts[m].separation < contacts[mfric].separation)) mfric = m;
+    }
 
-    // if there's only one contact, it should be handled here
-    // since forces/torques have not been accumulated from vertex2edge()
-
-    contact_forces(contacts[0], 1.0, x, v, angmom, f, torque, fnc, evdwl,
-                   (contacts[0].ibody == i) ? facc : fj);
+    for (int m = 0; m < num_contacts; m++) {
+      double scale;
+      if (contacts[m].edge < 0) scale = 1.0;
+      else if ((m == m0) || (m == n0)) scale = j_a;
+      else continue;
+      contact_forces(contacts[m], scale, (m == mfric) ? 1 : 0, x, v, angmom, f, torque, fnc,
+                     evdwl, (contacts[m].ibody == i) ? facc : fj);
+    }
 
     #ifdef _POLYGON_DEBUG
-    printf("One contact between vertex %d of body %d and edge %d of body %d:\n",
-            contacts[0].vertex, tag[contacts[0].ibody],
-            contacts[0].edge, tag[contacts[0].jbody]);
-    printf("xv = %f %f %f; xe = %f %f %f\n",
-           contacts[0].xv[0], contacts[0].xv[1], contacts[0].xv[2],
-           contacts[0].xe[0], contacts[0].xe[1], contacts[0].xe[2]);
+    printf("  Contacts %d and %d: j_a = %f\n", m0, n0, j_a);
     #endif
   }
 
@@ -675,6 +662,31 @@ void PairBodyRoundedPolygon::body2space(int i)
 }
 
 /* ----------------------------------------------------------------------
+   Normal force at the surface separation R, see Eq. 1, Fraige et al.:
+     fe = elastic (repulsive) force, k_n * delta_n, for R < 0
+     fc = cohesive (attractive) force, -k_na * delta_na, for R <= cut_inner,
+          where delta_na = cut_inner - R is the overlap of the cohesive regions,
+          which keeps growing when the surfaces deform
+   return the energy, which is zero at R = cut_inner
+------------------------------------------------------------------------- */
+
+double PairBodyRoundedPolygon::normal_force(double R, double kn, double kna,
+                                            double &fe, double &fc)
+{
+  fe = fc = 0.0;
+  if (R > cut_inner) return 0.0;
+
+  double dna = cut_inner - R;
+  fc = -kna * dna;
+  double energy = -0.5 * kna * dna * dna;
+  if (R < 0.0) {
+    fe = -kn * R;
+    energy += 0.5 * kn * R * R;
+  }
+  return energy;
+}
+
+/* ----------------------------------------------------------------------
    Interaction between two spheres with different radii
    according to the 2D model from Fraige et al.
 ---------------------------------------------------------------------- */
@@ -686,7 +698,7 @@ void PairBodyRoundedPolygon::sphere_against_sphere(int i, int j,
 {
   double rradi,rradj;
   double vr1,vr2,vr3,vnnr,vn1,vn2,vn3,vt1,vt2,vt3;
-  double rij,rsqinv,R,fx,fy,fz,fn[3],ft[3],fpair,shift,energy;
+  double rij,rsqinv,R,fx,fy,fz,fn[3],ft[3],fpair,fe,fc,energy;
   int nlocal = atom->nlocal;
   int newton_pair = force->newton_pair;
 
@@ -696,17 +708,9 @@ void PairBodyRoundedPolygon::sphere_against_sphere(int i, int j,
   rsqinv = 1.0/rsq;
   rij = sqrt(rsq);
   R = rij - (rradi + rradj);
-  shift = k_na * cut_inner;
 
-  energy = 0;
-
-  if (R <= 0) {           // deformation occurs
-    fpair = -k_n * R - shift;
-    energy = (0.5 * k_n * R + shift) * R - 0.5 * shift * cut_inner;
-  } else if (R <= cut_inner) {   // not deforming but cohesive ranges overlap
-    fpair = k_na * R - shift;
-    energy = (-0.5 * k_na * R + shift) * R - 0.5 * shift * cut_inner;
-  } else fpair = 0.0;
+  energy = normal_force(R, k_n, k_na, fe, fc);
+  fpair = fe + fc;
 
   fx = delx*fpair/rij;
   fy = dely*fpair/rij;
@@ -852,8 +856,9 @@ int PairBodyRoundedPolygon::vertex_against_edge(int i, int j,
     for (int m = 0; m < dnum[j]; m++) vertex_done[m] = 0;
 
     int mode, contact, p2vertex;
-    double d, R, hi[3], t, delx, dely, delz, fpair, shift;
+    double d, R, hi[3], t, delx, dely, delz, fe, fc;
     double rij;
+    double rmin = MIN(rradi, rradj);
 
     // loop through body j's edges
 
@@ -900,22 +905,14 @@ int PairBodyRoundedPolygon::vertex_against_edge(int i, int j,
 
         rij = sqrt(delx*delx + dely*dely + delz*delz);
         R = rij - (rradi + rradj);
-        shift = k_na * cut_inner;
 
-        // the normal frictional term -c_n * vn will be added later
+        // the normal damping term -c_n * vn will be added later
 
-        double evertex = 0.0;
-        if (R <= 0) {           // deformation occurs
-          fpair = -k_n * R - shift;
-          evertex = (0.5 * k_n * R + shift) * R - 0.5 * shift * cut_inner;
-        } else if (R <= cut_inner) {   // not deforming but cohesive ranges overlap
-          fpair = k_na * R - shift;
-          evertex = (-0.5 * k_na * R + shift) * R - 0.5 * shift * cut_inner;
-        } else fpair = 0.0;
+        double evertex = normal_force(R, k_n, k_na, fe, fc);
 
-        fx = delx*fpair/rij;
-        fy = dely*fpair/rij;
-        fz = delz*fpair/rij;
+        fx = delx*(fe + fc)/rij;
+        fy = dely*(fe + fc)/rij;
+        fz = delz*(fe + fc)/rij;
 
         #ifdef _POLYGON_DEBUG
         printf("  Interaction between vertex %d of %d and vertex %d of %d:",
@@ -923,7 +920,7 @@ int PairBodyRoundedPolygon::vertex_against_edge(int i, int j,
         printf("    mode = %d; contact = %d; d = %f; rij = %f, t = %f\n",
                mode, contact, d, rij, t);
         printf("    R = %f; cut_inner = %f\n", R, cut_inner);
-        printf("    fpair = %f\n", fpair);
+        printf("    fe = %f; fc = %f\n", fe, fc);
         #endif
 
         // add forces to body i and body j directly
@@ -939,6 +936,36 @@ int PairBodyRoundedPolygon::vertex_against_edge(int i, int j,
 
         if (tag[i] < tag[j] || npi == 1) {
 
+          energy += evertex;
+
+          if (R < EPSILON*rmin) {
+
+            // vertex ni of body i contacts vertex p2vertex of body j:
+            // store the forces with the contact like for a vertex-edge contact,
+            // so that damping and friction apply
+
+            Contact c;
+            c.ibody = i;
+            c.jbody = j;
+            c.vertex = ni;
+            c.edge = -1;
+            c.xv[0] = xpi[0];
+            c.xv[1] = xpi[1];
+            c.xv[2] = xpi[2];
+            c.xe[0] = xpj[0];
+            c.xe[1] = xpj[1];
+            c.xe[2] = xpj[2];
+            c.separation = R;
+            c.fe[0] = delx*fe/rij;
+            c.fe[1] = dely*fe/rij;
+            c.fe[2] = delz*fe/rij;
+            c.fc[0] = delx*fc/rij;
+            c.fc[1] = dely*fc/rij;
+            c.fc[2] = delz*fc/rij;
+            contacts.push_back(c);
+            continue;
+          }
+
           f[i][0] += fx;
           f[i][1] += fy;
           f[i][2] += fz;
@@ -950,7 +977,6 @@ int PairBodyRoundedPolygon::vertex_against_edge(int i, int j,
           sum_torque(x[j], xpj, -fx, -fy, -fz, torque[j]);
 
           facc[0] += fx; facc[1] += fy; facc[2] += fz;
-          energy += evertex;
 
           #ifdef _POLYGON_DEBUG
           printf("    from vertex-vertex: "
@@ -988,21 +1014,14 @@ int PairBodyRoundedPolygon::vertex_against_edge(int i, int j,
         // rij = sqrt(delx*delx + dely*dely + delz*delz);
 
         R = d - (rradi + rradj);
-        shift = k_na * cut_inner;
 
-        // the normal frictional term -c_n * vn will be added later
+        // the normal damping term -c_n * vn will be added later
 
-        if (R <= 0) {           // deformation occurs
-          fpair = -k_n * R - shift;
-          energy += (0.5 * k_n * R + shift) * R - 0.5 * shift * cut_inner;
-        } else if (R <= cut_inner) {   // not deforming but cohesive ranges overlap
-          fpair = k_na * R - shift;
-          energy += (-0.5 * k_na * R + shift) * R - 0.5 * shift * cut_inner;
-        } else fpair = 0.0;
+        energy += normal_force(R, k_n, k_na, fe, fc);
 
-        fx = delx*fpair/d;
-        fy = dely*fpair/d;
-        fz = delz*fpair/d;
+        fx = delx*(fe + fc)/d;
+        fy = dely*(fe + fc)/d;
+        fz = delz*(fe + fc)/d;
 
         #ifdef _POLYGON_DEBUG
         printf("  Interaction between vertex %d of %d and edge %d of %d:",
@@ -1010,7 +1029,7 @@ int PairBodyRoundedPolygon::vertex_against_edge(int i, int j,
         printf("    mode = %d; contact = %d; d = %f; t = %f\n",
                mode, contact, d, t);
         printf("    R = %f; cut_inner = %f\n", R, cut_inner);
-        printf("    fpair = %f\n", fpair);
+        printf("    fe = %f; fc = %f\n", fe, fc);
         #endif
 
         if (contact == 1) {
@@ -1033,9 +1052,12 @@ int PairBodyRoundedPolygon::vertex_against_edge(int i, int j,
           c.xe[1] = hi[1];
           c.xe[2] = hi[2];
           c.separation = R;
-          c.fv[0] = fx;
-          c.fv[1] = fy;
-          c.fv[2] = fz;
+          c.fe[0] = delx*fe/d;
+          c.fe[1] = dely*fe/d;
+          c.fe[2] = delz*fe/d;
+          c.fc[0] = delx*fc/d;
+          c.fc[1] = dely*fc/d;
+          c.fc[2] = delz*fc/d;
           contacts.push_back(c);
 
         } else { // no contact
@@ -1262,7 +1284,7 @@ int PairBodyRoundedPolygon::compute_distance_to_vertex(int ibody,
 ------------------------------------------------------------------------- */
 
 void PairBodyRoundedPolygon::contact_forces(Contact& contact, double j_a,
-                       double** x, double** v, double** angmom, double** f,
+                       int friction, double** x, double** v, double** angmom, double** f,
                        double** torque, double** fnc, double &/*evdwl*/,
                        double* facc)
 {
@@ -1339,9 +1361,13 @@ void PairBodyRoundedPolygon::contact_forces(Contact& contact, double j_a,
   // capped by c_t * |v_t| so that it vanishes smoothly as sliding stops
   // instead of reversing the sliding direction within a time step
 
+  // there is one friction force per pair of bodies, at the contact with
+  // the largest overlap, and F_ne is the elastic normal force only
+
   double vtmag = sqrt(vt1*vt1 + vt2*vt2 + vt3*vt3);
-  if (vtmag > 0.0) {
-    double fne = sqrt(contact.fv[0]*contact.fv[0] + contact.fv[1]*contact.fv[1] + contact.fv[2]*contact.fv[2]);
+  if (friction && (vtmag > 0.0)) {
+    double fne = sqrt(contact.fe[0]*contact.fe[0] + contact.fe[1]*contact.fe[1] +
+                      contact.fe[2]*contact.fe[2]);
     double scale = MIN(mu * fne, c_t * vtmag) / vtmag;
     ft[0] -= scale * vt1;
     ft[1] -= scale * vt2;
@@ -1354,7 +1380,7 @@ void PairBodyRoundedPolygon::contact_forces(Contact& contact, double j_a,
 
   double fja[3], fdiss[3];
   for (int k = 0; k < 3; k++) {
-    fja[k] = (j_a - 1.0) * contact.fv[k];
+    fja[k] = (j_a - 1.0) * contact.fc[k];
     fdiss[k] = fn[k] + ft[k];
     fnc[ibody][k] += fja[k];
     fnc[jbody][k] -= fja[k];
@@ -1366,11 +1392,11 @@ void PairBodyRoundedPolygon::contact_forces(Contact& contact, double j_a,
   sum_torque(x[ibody], contact.xv, fdiss[0], fdiss[1], fdiss[2], &fnc[ibody][9]);
   sum_torque(x[jbody], contact.xe, -fdiss[0], -fdiss[1], -fdiss[2], &fnc[jbody][9]);
 
-  // only the cohesive force is scaled by j_a
+  // only the cohesive force is scaled by j_a, see Eq. 5, Fraige et al.
 
-  fx = contact.fv[0] * j_a + fn[0] + ft[0];
-  fy = contact.fv[1] * j_a + fn[1] + ft[1];
-  fz = contact.fv[2] * j_a + fn[2] + ft[2];
+  fx = contact.fe[0] + contact.fc[0] * j_a + fn[0] + ft[0];
+  fy = contact.fe[1] + contact.fc[1] * j_a + fn[1] + ft[1];
+  fz = contact.fe[2] + contact.fc[2] * j_a + fn[2] + ft[2];
   f[ibody][0] += fx;
   f[ibody][1] += fy;
   f[ibody][2] += fz;
@@ -1380,11 +1406,9 @@ void PairBodyRoundedPolygon::contact_forces(Contact& contact, double j_a,
 
   facc[0] += fx; facc[1] += fy; facc[2] += fz;
 
-  // only the cohesive force is scaled by j_a
-
-  fx = -contact.fv[0] * j_a - fn[0] - ft[0];
-  fy = -contact.fv[1] * j_a - fn[1] - ft[1];
-  fz = -contact.fv[2] * j_a - fn[2] - ft[2];
+  fx = -contact.fe[0] - contact.fc[0] * j_a - fn[0] - ft[0];
+  fy = -contact.fe[1] - contact.fc[1] * j_a - fn[1] - ft[1];
+  fz = -contact.fe[2] - contact.fc[2] * j_a - fn[2] - ft[2];
   f[jbody][0] += fx;
   f[jbody][1] += fy;
   f[jbody][2] += fz;
@@ -1394,7 +1418,7 @@ void PairBodyRoundedPolygon::contact_forces(Contact& contact, double j_a,
   printf("From contact forces: vertex fx %f fy %f fz %f\n"
          "      torque body %d: %f %f %f\n"
          "      torque body %d: %f %f %f\n",
-         contact.fv[0], contact.fv[1], contact.fv[2],
+         contact.fe[0], contact.fe[1], contact.fe[2],
          atom->tag[ibody],torque[ibody][0],torque[ibody][1],torque[ibody][2],
          atom->tag[jbody],torque[jbody][0],torque[jbody][1],torque[jbody][2]);
   #endif

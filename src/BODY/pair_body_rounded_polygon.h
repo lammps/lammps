@@ -46,7 +46,8 @@ class PairBodyRoundedPolygon : public Pair {
     double xv[3];         // coordinates of the vertex
     double xe[3];         // coordinates of the projection of the vertex on the edge
     double separation;    // separation at contact
-    double fv[3];         // unscaled force on the vertex, the edge gets -fv
+    double fe[3];         // elastic force on the vertex, the edge gets -fe
+    double fc[3];         // unscaled cohesive force on the vertex, the edge gets -fc
   };
 
   // scratch space for the interaction of a pair of bodies, one per thread
@@ -116,8 +117,11 @@ class PairBodyRoundedPolygon : public Pair {
                                  double *x0, double x0_rounded_radius, double cut_inner, double &d,
                                  double hi[3], double &t, int &contact);
   // compute contact forces if contact points are detected
-  void contact_forces(Contact &contact, double j_a, double **x, double **v, double **angmom,
-                      double **f, double **torque, double **fnc, double &evdwl, double *facc);
+  void contact_forces(Contact &contact, double j_a, int friction, double **x, double **v,
+                      double **angmom, double **f, double **torque, double **fnc, double &evdwl,
+                      double *facc);
+  // normal force and energy at a given surface separation
+  double normal_force(double R, double k_n, double k_na, double &fe, double &fc);
 
   // compute the separation between two contacts
   double contact_separation(const Contact &c1, const Contact &c2);

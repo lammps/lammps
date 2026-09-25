@@ -2895,6 +2895,14 @@ int AtomVecKokkos::unpack_exchange_kokkos(DAT::tdual_double_2d_lr &k_buf, int nr
 
   if (bonus_flag) unpack_exchange_bonus_kokkos(k_buf,nrecv,space,k_indices);
 
+  // the fix unpacks read the new local indices in their own space
+
+  if (k_indices.view_host().data()) {
+    k_indices.clear_sync_state();
+    if (space == HostKK) k_indices.modify_host();
+    else k_indices.modify_device();
+  }
+
   atomKK->modified(space,datamask_exchange);
 
   return k_count.view_host()(0);

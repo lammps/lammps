@@ -1381,6 +1381,13 @@ void CommKokkos::exchange_device()
         }
         DeviceType().fence();
 
+        // MPI wrote the buffer through the view in the exchange space; claim
+        // it there so the fix unpacks below, which sync it to their own
+        // space, see the atoms that arrived
+
+        k_buf_recv.clear_sync_state();
+        k_buf_recv.modify<DeviceType>();
+
         if (nrecv) {
           if (atom->nextra_grow || atomKK->avecKK->size_exchange_bonus) {
             if ((int) k_indices.extent(0) < nrecv/data_size)
@@ -1404,6 +1411,12 @@ void CommKokkos::exchange_device()
           if (nsend) {
             if (nsend*fix_iextra->maxexchange > maxsend)
               grow_send_kokkos(nsend*fix_iextra->maxexchange,0);
+
+            // the atoms were packed into the buffer in the exchange space
+            // without a claim and are sent already; the fix fills the buffer
+            // anew in its own space, so there is nothing to copy over first
+
+            k_buf_send.clear_sync_state();
             nextrasend = kkbase->pack_exchange_kokkos(
               count,k_buf_send,k_exchange_sendlist,k_exchange_copylist,
               ExecutionSpaceFromDevice<DeviceType>::space);
@@ -1451,6 +1464,9 @@ void CommKokkos::exchange_device()
               MPI_Wait(&request,MPI_STATUS_IGNORE);
             }
             DeviceType().fence();
+
+            k_buf_recv.clear_sync_state();
+            k_buf_recv.modify<DeviceType>();
 
             if (nextrarecv) {
               kkbase->unpack_exchange_kokkos(

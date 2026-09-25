@@ -1,0 +1,119 @@
+LAMMPS (4 Jul 2026 - Development - c817842e5b)
+# bcc iron in an inertial spin dynamics simulation (NVE)
+#
+# The spin modulus is a dynamical degree of freedom here, so every spin needs a
+# potential of its own.  fix spring/tspin provides the simplest one, a harmonic
+# longitudinal potential, and it is enough to make this deck self-contained.  A
+# production run would add a TSPIN-compatible magnetic potential.  It keeps fm
+# in rad.THz and encodes the full force as fm = |S|/hbar * (-dU/dS).
+#
+# The conserved quantity is econserve plus the spin kinetic energy, which the
+# thermo keyword ke does not include.
+
+units           metal
+dimension       3
+boundary        p p p
+atom_style      spin
+
+lattice         bcc 2.8665
+Lattice spacing in x,y,z = 2.8665 2.8665 2.8665
+region          box block 0.0 4.0 0.0 4.0 0.0 4.0
+create_box      1 box
+Created orthogonal box = (0 0 0) to (11.466 11.466 11.466)
+  1 by 2 by 2 MPI processor grid
+create_atoms    1 box
+Created 128 atoms
+  using lattice units in orthogonal box = (0 0 0) to (11.466 11.466 11.466)
+  create_atoms CPU = 0.002 seconds
+
+# setting mass, mag. moments, and interactions for bcc iron
+
+mass            1 55.845
+set             group all spin/atom/random 31 2.2
+Setting atom values ...
+  128 settings made for spin/atom/random
+
+pair_style      eam/fs
+pair_coeff      * * Fe_mm.eam.fs Fe
+Reading eam/fs potential file Fe_mm.eam.fs with DATE: 2007-06-11
+
+neighbor        0.1 bin
+neigh_modify    every 10 check yes delay 20
+
+# longitudinal potential on the spin modulus, k in eV/muB^2
+
+fix             pin all spring/tspin 1.0 2.2
+fix_modify      pin energy yes
+
+# inertial spin dynamics, spin mass = 0.0075 * atomic mass, then 300 K
+
+fix             1 all nve/tspin lattice moving spinmass 0.0075
+
+velocity        all create 300.0 4928 mom yes
+velocity/tspin  all create 300.0 4929
+
+timestep        0.0001
+
+compute         out_mag all spin
+compute         ske all ke/tspin
+variable        etot equal econserve+c_ske
+
+variable        magnorm equal c_out_mag[4]
+
+thermo          200
+thermo_style    custom step time temp v_magnorm pe c_ske v_etot
+thermo_modify   format float %20.15g
+
+run             2000
+Neighbor list info ...
+  update: every = 10 steps, delay = 20 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 5.4
+  ghost atom cutoff = 5.4
+  binsize = 2.7, bins = 5 5 5
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair eam/fs, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 5.46 | 5.46 | 5.46 Mbytes
+   Step          Time           Temp        v_magnorm        PotEng         c_ske          v_etot    
+         0                     0                  300    0.155361980793619    -527.557932950803          4.963589568    -517.669531858303
+       200                  0.02     149.437137244001     0.15693432792308    -524.797037520391     4.67435485837479    -517.669516876391
+       400                  0.04     47.5910373630607    0.148476075027327    -523.384050170609     4.93328116283037    -517.669512710217
+       600                  0.06      135.13483764756    0.129104964309518    -524.514151813593     4.62625443708175    -517.669518690484
+       800                  0.08     164.615327791521    0.104535191424206    -525.217804359299     4.84595750637986    -517.669515308196
+      1000                   0.1     151.275749912301   0.0826104159892925    -524.684085849822     4.53122807601782    -517.669509251986
+      1200                  0.12     160.136240761164   0.0730128937015757    -525.009830566492     4.71152005257271     -517.66950783395
+      1400                  0.14     144.580925919938   0.0786573624027053    -524.444390134888     4.40144284143918    -517.669501259471
+      1600                  0.16     144.869453968852    0.085233710707469    -524.592388927908     4.54470853286889    -517.669497873527
+      1800                  0.18     142.888561856802    0.084767663580621    -524.267932799352     4.25277560046363    -517.669493078383
+      2000                   0.2     132.048300783764   0.0786005472343873    -524.200423258659     4.36322733331202    -517.669485947045
+Loop time of 0.136489 on 4 procs for 2000 steps with 128 atoms
+
+Performance: 126.603 ns/day, 0.190 hours/ns, 14653.144 timesteps/s, 1.876 Matom-step/s
+68.5% CPU use with 4 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.049911   | 0.052173   | 0.056835   |   1.2 | 38.23
+Neigh   | 0.00042433 | 0.00045343 | 0.00047246 |   0.0 |  0.33
+Comm    | 0.068533   | 0.073219   | 0.075765   |   1.0 | 53.64
+Output  | 0.0067612  | 0.0067697  | 0.0067912  |   0.0 |  4.96
+Modify  | 0.0012561  | 0.0014005  | 0.00146    |   0.2 |  1.03
+Other   |            | 0.002473   |            |       |  1.81
+
+Nlocal:             32 ave          35 max          29 min
+Histogram: 1 0 0 0 0 2 0 0 0 1
+Nghost:            431 ave         434 max         428 min
+Histogram: 1 0 0 0 0 2 0 0 0 1
+Neighs:            928 ave        1053 max         802 min
+Histogram: 1 0 0 0 1 1 0 0 0 1
+
+Total # of neighbors = 3712
+Ave neighs/atom = 29
+Neighbor list builds = 18
+Dangerous builds = 0
+Total wall time: 0:00:00

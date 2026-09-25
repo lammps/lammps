@@ -27,7 +27,9 @@
 #include "atom.h"
 #include "comm.h"
 #include "error.h"
+#include "fix_nh_tspin.h"
 #include "fix_nve_spin.h"
+#include "fix_nve_tspin.h"
 #include "force.h"
 #include "math_const.h"
 #include "memory.h"
@@ -50,6 +52,7 @@ PairSpin::PairSpin(LAMMPS *lmp) : Pair(lmp), emag(nullptr)
   respa_enable = 0;
   no_virial_fdotr_compute = 1;
   lattice_flag = 0;
+  full_spin_gradient = 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -76,11 +79,26 @@ void PairSpin::init_style()
   if (!atom->sp_flag)
     error->all(FLERR,"Pair spin requires atom/spin style");
 
-  // checking if nve/spin or neb/spin is a listed fix
+  auto tspin_nve = modify->get_fix_by_style("^nve/tspin");
+  auto tspin_nvt = modify->get_fix_by_style("^nvt/tspin");
+  auto tspin_npt = modify->get_fix_by_style("^npt/tspin");
+  auto tspin_nph = modify->get_fix_by_style("^nph/tspin");
+  const int ntspin = tspin_nve.size() + tspin_nvt.size() + tspin_npt.size() + tspin_nph.size();
+
+  // the tspin integrators need the derivative of the energy with respect to
+  // the full spin vector, magnitude as well as direction
+
+  if ((ntspin > 0) && !full_spin_gradient)
+    error->all(FLERR, Error::NOLASTLINE,
+               "Pair style {} does not provide the derivative of the energy with respect "
+               "to the full spin vector and cannot be used with the tspin integrators",
+               force->pair_style);
+
+  // checking if a spin integrator or neb/spin is a listed fix
 
   if ((comm->me == 0) && ((modify->get_fix_by_style("^nve/spin").size()
-                           + modify->get_fix_by_style("^neb/spin").size()) == 0))
-    error->warning(FLERR,"Using spin pair style without nve/spin or neb/spin");
+                           + modify->get_fix_by_style("^neb/spin").size() + ntspin) == 0))
+    error->warning(FLERR,"Using spin pair style without a spin integrator or neb/spin");
 
   // check if newton pair is on
 
@@ -91,13 +109,26 @@ void PairSpin::init_style()
 
   neighbor->add_request(this, NeighConst::REQ_FULL);
 
-  // get the lattice_flag from nve/spin
+  // get the lattice_flag from the spin integrator
 
   auto fixes = modify->get_fix_by_style("^nve/spin");
   if (fixes.size() == 1)
     lattice_flag = (dynamic_cast<FixNVESpin *>(fixes.front()))->lattice_flag;
   else if (fixes.size() > 1)
     error->warning(FLERR,"Using multiple instances of fix nve/spin or neb/spin");
+
+  if (ntspin == 1) {
+    if (!tspin_nve.empty())
+      lattice_flag = (dynamic_cast<FixNVETSpin *>(tspin_nve.front()))->lattice_flag;
+    else if (!tspin_nvt.empty())
+      lattice_flag = (dynamic_cast<FixNHTSpin *>(tspin_nvt.front()))->lattice_flag;
+    else if (!tspin_npt.empty())
+      lattice_flag = (dynamic_cast<FixNHTSpin *>(tspin_npt.front()))->lattice_flag;
+    else
+      lattice_flag = (dynamic_cast<FixNHTSpin *>(tspin_nph.front()))->lattice_flag;
+  } else if (ntspin > 1) {
+    error->warning(FLERR, "Using multiple instances of tspin integrators");
+  }
 
   // init. size of energy stacking lists
 

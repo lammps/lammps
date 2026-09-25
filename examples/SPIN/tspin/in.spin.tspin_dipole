@@ -1,0 +1,67 @@
+# Two coupled variable-magnitude spins driven by the native dipole interaction
+#
+# The dipole energy depends on the complete spin vectors S_i = |S_i| s_i.
+# pair_style spin/dipole/cut therefore provides both transverse and longitudinal
+# components of -dU/dS, encoded as fm = |S|/hbar * (-dU/dS).  The two modulus
+# springs keep the bilinear dipole Hamiltonian bounded during this NVE test.
+
+units           metal
+dimension       3
+boundary        f f f
+atom_style      spin
+
+region          box block -5.0 5.0 -5.0 5.0 -5.0 5.0 units box
+create_box      1 box
+create_atoms    1 single -0.75 0.0 0.0 units box
+create_atoms    1 single  0.75 0.0 0.0 units box
+
+# A large lattice mass separates the slow atomic motion from the spin motion.
+# With spinmass 0.001 below, the generalized spin mass is still 1.0.
+
+mass            1 1000.0
+
+# Non-collinear spins with different initial moduli.  This geometry gives the
+# dipole force on each spin both radial and tangential components.
+
+set             atom 1 spin/atom 2.0 0.7071067811865475 0.7071067811865475 0.0
+set             atom 2 spin/atom 3.0 0.6 0.0 0.8
+
+pair_style      spin/dipole/cut 4.0
+pair_coeff      * * 4.0
+
+neighbor        0.3 bin
+neigh_modify    every 1 delay 0 check yes
+
+group           spin1 id 1
+group           spin2 id 2
+
+fix             pin1 spin1 spring/tspin 0.01 2.0
+fix             pin2 spin2 spring/tspin 0.01 3.0
+fix_modify      pin1 energy yes
+fix_modify      pin2 energy yes
+
+fix             integrate all nve/tspin lattice moving spinmass 0.001
+
+velocity        all set 0.0 0.0 0.0
+
+# Start from rest so the trajectory is deterministic across MPI partitions.
+
+set             group all d2_tspin_vs[1] 0.0
+set             group all d2_tspin_vs[2] 0.0
+set             group all d2_tspin_vs[3] 0.0
+
+variable        dt index 0.0005
+variable        nsteps index 4000
+timestep        ${dt}
+
+compute         ske all ke/tspin
+compute         smod all property/atom sp
+compute         smodavg all reduce ave c_smod
+compute         mag all spin
+variable        conserved equal etotal+c_ske
+
+thermo          200
+thermo_style    custom step time temp pe ke c_ske v_conserved c_smodavg c_mag[4]
+thermo_modify   format float %20.15g
+
+run             ${nsteps}

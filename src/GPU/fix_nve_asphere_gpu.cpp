@@ -20,7 +20,6 @@
 
 #include "atom.h"
 #include "atom_vec_ellipsoid.h"
-#include "comm.h"
 #include "error.h"
 #include "force.h"
 #include "gpu_extra.h"
@@ -226,7 +225,7 @@ void FixNVEAsphereGPU::initial_integrate(int /*vflag*/)
   #endif
   {
     #if (LAL_USE_OMP == 1)
-    const int nthreads = comm->nthreads;
+    const int nthreads = omp_get_num_threads();
     const int tid = omp_get_thread_num();
     const int idelta = nlocal / nthreads + 1;
     const int ifrom = tid * idelta;
@@ -306,7 +305,7 @@ void FixNVEAsphereGPU::final_integrate()
   #endif
   {
     #if (LAL_USE_OMP == 1)
-    const int nthreads = comm->nthreads;
+    const int nthreads = omp_get_num_threads();
     const int tid = omp_get_thread_num();
     const int idelta = nlocal / nthreads + 1;
     const int ifrom = tid * idelta;
@@ -358,7 +357,7 @@ void FixNVEAsphereGPU::reset_dt() {
   #endif
   {
     #if (LAL_USE_OMP == 1)
-    const int nthreads = comm->nthreads;
+    const int nthreads = omp_get_num_threads();
     const int tid = omp_get_thread_num();
     const int idelta = nlocal / nthreads + 1;
     const int ifrom = tid * idelta;

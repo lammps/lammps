@@ -72,7 +72,7 @@ PairBodyRoundedPolyhedron::PairBodyRoundedPolyhedron(LAMMPS *lmp) :
 
   enclosing_radius = nullptr;
   rounded_radius = nullptr;
-  maxerad = nullptr;
+  maxrad = nullptr;
 
   single_enable = 0;
   restartinfo = 0;
@@ -104,7 +104,7 @@ PairBodyRoundedPolyhedron::~PairBodyRoundedPolyhedron()
 
   memory->destroy(enclosing_radius);
   memory->destroy(rounded_radius);
-  memory->destroy(maxerad);
+  memory->destroy(maxrad);
 
   if (allocated) {
     memory->destroy(setflag);
@@ -122,7 +122,7 @@ void PairBodyRoundedPolyhedron::compute(int eflag, int vflag)
   int i,j,ii,jj,inum,jnum,itype,jtype;
   int ni,nj,npi,npj,ifirst,jfirst,nei,nej,iefirst,jefirst;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,facc[3];
-  double rsq,eradi,eradj;
+  double rsq;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
@@ -133,6 +133,7 @@ void PairBodyRoundedPolyhedron::compute(int eflag, int vflag)
   double **f = atom->f;
   double **torque = atom->torque;
   double **angmom = atom->angmom;
+  double *radius = atom->radius;
   int *body = atom->body;
   int *type = atom->type;
   int nlocal = atom->nlocal;
@@ -187,7 +188,6 @@ void PairBodyRoundedPolyhedron::compute(int eflag, int vflag)
       ifirst = dfirst[i];
       nei = ednum[i];
       iefirst = edfirst[i];
-      eradi = enclosing_radius[i];
      }
 
     for (jj = 0; jj < jnum; jj++) {
@@ -212,12 +212,11 @@ void PairBodyRoundedPolyhedron::compute(int eflag, int vflag)
       jfirst = dfirst[j];
       nej = ednum[j];
       jefirst = edfirst[j];
-      eradj = enclosing_radius[j];
 
-      // no interaction
+      // no interaction, radius = enclosing + rounded radius
 
       double r = sqrt(rsq);
-      if (r > eradi + eradj + cut_inner) continue;
+      if (r > radius[i] + radius[j] + cut_inner) continue;
 
       // sphere-sphere interaction
 
@@ -330,7 +329,7 @@ void PairBodyRoundedPolyhedron::allocate()
 
   memory->create(k_n,n+1,n+1,"pair:k_n");
   memory->create(k_na,n+1,n+1,"pair:k_na");
-  memory->create(maxerad,n+1,"pair:maxerad");
+  memory->create(maxrad,n+1,"pair:maxrad");
 }
 
 /* ----------------------------------------------------------------------
@@ -400,11 +399,11 @@ void PairBodyRoundedPolyhedron::init_style()
 
   neighbor->add_request(this);
 
-  // find the maximum enclosing radius for each atom type
+  // find the maximum radius (enclosing + rounded) for each atom type
 
   int i, itype;
-  double eradi;
   int* body = atom->body;
+  double *radius = atom->radius;
   int* type = atom->type;
   int ntypes = atom->ntypes;
   int nlocal = atom->nlocal;
@@ -433,10 +432,10 @@ void PairBodyRoundedPolyhedron::init_style()
   for (i = 0; i < nlocal; i++)
     dnum[i] = ednum[i] = facnum[i] = 0;
 
-  double *merad = nullptr;
-  memory->create(merad,ntypes+1,"pair:merad");
+  double *mrad = nullptr;
+  memory->create(mrad,ntypes+1,"pair:mrad");
   for (i = 1; i <= ntypes; i++)
-    maxerad[i] = merad[i] = 0;
+    maxrad[i] = mrad[i] = 0;
 
   Fix *fixpour = nullptr;
   auto pours = modify->get_fix_by_style("^pour");
@@ -447,30 +446,25 @@ void PairBodyRoundedPolyhedron::init_style()
   if (!deps.empty()) fixdep = deps[0];
 
   for (i = 1; i <= ntypes; i++) {
-    merad[i] = 0.0;
+    mrad[i] = 0.0;
     if (fixpour) {
       itype = i;
-      merad[i] = *((double *) fixpour->extract("radius",itype));
+      mrad[i] = *((double *) fixpour->extract("radius",itype));
     }
     if (fixdep) {
       itype = i;
-      merad[i] = *((double *) fixdep->extract("radius",itype));
+      mrad[i] = *((double *) fixdep->extract("radius",itype));
     }
   }
 
   for (i = 0; i < nlocal; i++) {
     itype = type[i];
-    if (body[i] >= 0) {
-      if (dnum[i] == 0) body2space(i);
-      eradi = enclosing_radius[i];
-      if (eradi > merad[itype]) merad[itype] = eradi;
-    } else
-      merad[itype] = 0;
+    if ((body[i] >= 0) && (radius[i] > mrad[itype])) mrad[itype] = radius[i];
   }
 
-  MPI_Allreduce(&merad[1],&maxerad[1],ntypes,MPI_DOUBLE,MPI_MAX,world);
+  MPI_Allreduce(&mrad[1],&maxrad[1],ntypes,MPI_DOUBLE,MPI_MAX,world);
 
-  memory->destroy(merad);
+  memory->destroy(mrad);
 
   sanity_check();
 }
@@ -484,7 +478,9 @@ double PairBodyRoundedPolyhedron::init_one(int i, int j)
   k_n[j][i] = k_n[i][j];
   k_na[j][i] = k_na[i][j];
 
-  return (maxerad[i]+maxerad[j]);
+  // the surfaces of two bodies interact up to cut_inner
+
+  return (maxrad[i]+maxrad[j]+cut_inner);
 }
 
 /* ----------------------------------------------------------------------
@@ -1589,12 +1585,15 @@ void PairBodyRoundedPolyhedron::kernel_force(double R, int itype, int jtype,
   double kna = k_na[itype][jtype];
   double shift = kna * cut_inner;
   double e = 0;
+
+  // the energy is shifted to be zero at R = cut_inner
+
   if (R <= 0) {           // deformation occurs
     fpair = -kn * R - shift;
-    e = (0.5 * kn * R + shift) * R;
+    e = (0.5 * kn * R + shift) * R - 0.5 * shift * cut_inner;
   } else if (R <= cut_inner) {   // not deforming but cohesive ranges overlap
     fpair = kna * R - shift;
-    e = (-0.5 * kna * R + shift) * R;
+    e = (-0.5 * kna * R + shift) * R - 0.5 * shift * cut_inner;
   } else fpair = 0.0;
   energy += e;
 }
@@ -1674,14 +1673,24 @@ void PairBodyRoundedPolyhedron::contact_forces(int ibody, int jbody,
   ft[1] = -c_t * vt2;
   ft[2] = -c_t * vt3;
 
-  // these are contact forces (F_n, F_t and F_ne) only
-  // cohesive forces will be scaled by j_a after contact area is computed
-  // mu * fne = tangential friction deformation during gross sliding
-  // see Eq. 4, Fraige et al.
+  // kinetic friction during gross sliding, see Eq. 4, Fraige et al.:
+  // magnitude mu * |F_ne|, opposite to the tangential relative velocity
 
-  fx = fn[0] + ft[0] + mu * fx;
-  fy = fn[1] + ft[1] + mu * fy;
-  fz = fn[2] + ft[2] + mu * fz;
+  double vtmag = sqrt(vt1*vt1 + vt2*vt2 + vt3*vt3);
+  if (vtmag > 0.0) {
+    double fne = sqrt(fx*fx + fy*fy + fz*fz);
+    double scale = mu * fne / vtmag;
+    ft[0] -= scale * vt1;
+    ft[1] -= scale * vt2;
+    ft[2] -= scale * vt3;
+  }
+
+  // these are the damping and friction forces only
+  // cohesive forces will be scaled by j_a after contact area is computed
+
+  fx = fn[0] + ft[0];
+  fy = fn[1] + ft[1];
+  fz = fn[2] + ft[2];
 
   f[ibody][0] += fx;
   f[ibody][1] += fy;

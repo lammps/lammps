@@ -75,9 +75,10 @@ class PairBodyRoundedPolygon : public Pair {
 
   double *enclosing_radius;    // enclosing radii for all bodies
   double *rounded_radius;      // rounded radii for all bodies
-  double *maxerad;             // per-type maximum enclosing radius
+  double *maxrad;              // per-type maximum radius (enclosing + rounded)
 
   std::vector<Contact> contacts;    // vertex-edge contacts between the current pair of bodies
+  std::vector<int> vertex_done;     // flags for the vertices of a body already interacted with
 
   void allocate();
   void body2space(int);

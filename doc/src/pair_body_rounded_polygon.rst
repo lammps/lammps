@@ -108,6 +108,14 @@ contact nor calculate the tangential deformation.  Instead, we assume
 that gross sliding takes place as soon as two particles are in
 contact.
 
+.. versionchanged:: TBD
+
+The friction term :math:`\mu k_n \delta_n` in :math:`F_t` acts in the
+tangential direction, opposite to the tangential relative velocity
+:math:`v_t` at the contact point, with a magnitude of :math:`\mu` times
+the normal contact force.  Previously, it was applied along the normal
+direction and thus only increased the normal repulsion.
+
 The following coefficients must be defined for each pair of atom types
 via the :doc:`pair_coeff <pair_coeff>` command as in the examples above,
 or in the data file read by the :doc:`read_data <read_data>` command:

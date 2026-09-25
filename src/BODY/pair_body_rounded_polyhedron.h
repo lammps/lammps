@@ -86,7 +86,7 @@ class PairBodyRoundedPolyhedron : public Pair {
 
   double *enclosing_radius;    // enclosing radii for all bodies
   double *rounded_radius;      // rounded radii for all bodies
-  double *maxerad;             // per-type maximum enclosing radius
+  double *maxrad;              // per-type maximum radius (enclosing + rounded)
 
   std::vector<Contact> contacts;    // contacts between the current pair of bodies
 

@@ -63,7 +63,7 @@ PairBodyRoundedPolygon::PairBodyRoundedPolygon(LAMMPS *lmp) :
 
   enclosing_radius = nullptr;
   rounded_radius = nullptr;
-  maxerad = nullptr;
+  maxrad = nullptr;
 
   single_enable = 0;
   restartinfo = 0;
@@ -95,7 +95,7 @@ PairBodyRoundedPolygon::~PairBodyRoundedPolygon()
 
     memory->destroy(k_n);
     memory->destroy(k_na);
-    memory->destroy(maxerad);
+    memory->destroy(maxrad);
   }
 }
 
@@ -323,7 +323,7 @@ void PairBodyRoundedPolygon::allocate()
 
   memory->create(k_n,n+1,n+1,"pair:k_n");
   memory->create(k_na,n+1,n+1,"pair:k_na");
-  memory->create(maxerad,n+1,"pair:maxerad");
+  memory->create(maxrad,n+1,"pair:maxrad");
 }
 
 /* ----------------------------------------------------------------------
@@ -394,11 +394,11 @@ void PairBodyRoundedPolygon::init_style()
 
   neighbor->add_request(this);
 
-  // find the maximum enclosing radius for each atom type
+  // find the maximum radius (enclosing + rounded) for each atom type
 
   int i, itype;
-  double eradi;
   int* body = atom->body;
+  double *radius = atom->radius;
   int* type = atom->type;
   int ntypes = atom->ntypes;
   int nlocal = atom->nlocal;
@@ -423,10 +423,10 @@ void PairBodyRoundedPolygon::init_style()
   for (i = 0; i < nlocal; i++)
     dnum[i] = ednum[i] = 0;
 
-  double *merad = nullptr;
-  memory->create(merad,ntypes+1,"pair:merad");
+  double *mrad = nullptr;
+  memory->create(mrad,ntypes+1,"pair:mrad");
   for (i = 1; i <= ntypes; i++)
-    maxerad[i] = merad[i] = 0;
+    maxrad[i] = mrad[i] = 0;
 
   Fix *fixpour = nullptr;
   auto pours = modify->get_fix_by_style("^pour");
@@ -438,30 +438,25 @@ void PairBodyRoundedPolygon::init_style()
 
 
   for (i = 1; i <= ntypes; i++) {
-    merad[i] = 0.0;
+    mrad[i] = 0.0;
     if (fixpour) {
       itype = i;
-      merad[i] = *((double *) fixpour->extract("radius",itype));
+      mrad[i] = *((double *) fixpour->extract("radius",itype));
     }
     if (fixdep) {
       itype = i;
-      merad[i] = *((double *) fixdep->extract("radius",itype));
+      mrad[i] = *((double *) fixdep->extract("radius",itype));
     }
   }
 
   for (i = 0; i < nlocal; i++) {
     itype = type[i];
-    if (body[i] >= 0) {
-      if (dnum[i] == 0) body2space(i);
-      eradi = enclosing_radius[i];
-      if (eradi > merad[itype]) merad[itype] = eradi;
-    } else
-      merad[itype] = 0;
+    if ((body[i] >= 0) && (radius[i] > mrad[itype])) mrad[itype] = radius[i];
   }
 
-  MPI_Allreduce(&merad[1],&maxerad[1],ntypes,MPI_DOUBLE,MPI_MAX,world);
+  MPI_Allreduce(&mrad[1],&maxrad[1],ntypes,MPI_DOUBLE,MPI_MAX,world);
 
-  memory->destroy(merad);
+  memory->destroy(mrad);
 }
 
 /* ----------------------------------------------------------------------
@@ -473,7 +468,9 @@ double PairBodyRoundedPolygon::init_one(int i, int j)
   k_n[j][i] = k_n[i][j];
   k_na[j][i] = k_na[i][j];
 
-  return (maxerad[i]+maxerad[j]);
+  // the surfaces of two bodies interact up to cut_inner
+
+  return (maxrad[i]+maxrad[j]+cut_inner);
 }
 
 /* ----------------------------------------------------------------------
@@ -568,10 +565,10 @@ void PairBodyRoundedPolygon::sphere_against_sphere(int i, int j,
 
   if (R <= 0) {           // deformation occurs
     fpair = -k_n * R - shift;
-    energy = (0.5 * k_n * R + shift) * R;
+    energy = (0.5 * k_n * R + shift) * R - 0.5 * shift * cut_inner;
   } else if (R <= cut_inner) {   // not deforming but cohesive ranges overlap
     fpair = k_na * R - shift;
-    energy = (-0.5 * k_na * R + shift) * R;
+    energy = (-0.5 * k_na * R + shift) * R - 0.5 * shift * cut_inner;
   } else fpair = 0.0;
 
   fx = delx*fpair/rij;
@@ -675,6 +672,8 @@ int PairBodyRoundedPolygon::vertex_against_edge(int i, int j,
   energy = 0;
   interact = 0;
 
+  if ((int) vertex_done.size() < dnum[j]) vertex_done.resize(dnum[j]);
+
   // loop through body i's vertices
 
   for (ni = 0; ni < npi; ni++) {
@@ -701,6 +700,10 @@ int PairBodyRoundedPolygon::vertex_against_edge(int i, int j,
 
     if (dist > eradj + rradj + rradi + cut_inner) continue;
 
+    // a vertex of body j is shared by two edges and both can report it
+
+    for (int m = 0; m < dnum[j]; m++) vertex_done[m] = 0;
+
     int mode, contact, p2vertex;
     double d, R, hi[3], t, delx, dely, delz, fpair, shift;
     double rij;
@@ -724,7 +727,12 @@ int PairBodyRoundedPolygon::vertex_against_edge(int i, int j,
         // vertex i interacts with a vertex of the edge, but does not contact
 
         if (mode == VERTEXI) p2vertex = (int)edge[jefirst+nj][0];
-        else if (mode == VERTEXJ) p2vertex = (int)edge[jefirst+nj][1];
+        else p2vertex = (int)edge[jefirst+nj][1];
+
+        // count the interaction with this vertex of body j only once
+
+        if (vertex_done[p2vertex]) continue;
+        vertex_done[p2vertex] = 1;
 
         // double xj[3];
         // p2.body2space(p2vertex, xj);
@@ -749,12 +757,13 @@ int PairBodyRoundedPolygon::vertex_against_edge(int i, int j,
 
         // the normal frictional term -c_n * vn will be added later
 
+        double evertex = 0.0;
         if (R <= 0) {           // deformation occurs
           fpair = -k_n * R - shift;
-          energy += (0.5 * k_n * R + shift) * R;
+          evertex = (0.5 * k_n * R + shift) * R - 0.5 * shift * cut_inner;
         } else if (R <= cut_inner) {   // not deforming but cohesive ranges overlap
           fpair = k_na * R - shift;
-          energy += (-0.5 * k_na * R + shift) * R;
+          evertex = (-0.5 * k_na * R + shift) * R - 0.5 * shift * cut_inner;
         } else fpair = 0.0;
 
         fx = delx*fpair/rij;
@@ -794,6 +803,7 @@ int PairBodyRoundedPolygon::vertex_against_edge(int i, int j,
           sum_torque(x[j], xpj, -fx, -fy, -fz, torque[j]);
 
           facc[0] += fx; facc[1] += fy; facc[2] += fz;
+          energy += evertex;
 
           #ifdef _POLYGON_DEBUG
           printf("    from vertex-vertex: "
@@ -837,10 +847,10 @@ int PairBodyRoundedPolygon::vertex_against_edge(int i, int j,
 
         if (R <= 0) {           // deformation occurs
           fpair = -k_n * R - shift;
-          energy += (0.5 * k_n * R + shift) * R;
+          energy += (0.5 * k_n * R + shift) * R - 0.5 * shift * cut_inner;
         } else if (R <= cut_inner) {   // not deforming but cohesive ranges overlap
           fpair = k_na * R - shift;
-          energy += (-0.5 * k_na * R + shift) * R;
+          energy += (-0.5 * k_na * R + shift) * R - 0.5 * shift * cut_inner;
         } else fpair = 0.0;
 
         fx = delx*fpair/d;
@@ -1176,13 +1186,23 @@ void PairBodyRoundedPolygon::contact_forces(Contact& contact, double j_a,
   ft[1] = -c_t * vt2;
   ft[2] = -c_t * vt3;
 
-  // only the cohesive force is scaled by j_a
-  // mu * fne = tangential friction deformation during gross sliding
-  // see Eq. 4, Fraige et al.
+  // kinetic friction during gross sliding, see Eq. 4, Fraige et al.:
+  // magnitude mu * |F_ne|, opposite to the tangential relative velocity
 
-  fx = contact.fv[0] * j_a + fn[0] + ft[0] + mu * contact.fv[0];
-  fy = contact.fv[1] * j_a + fn[1] + ft[1] + mu * contact.fv[1];
-  fz = contact.fv[2] * j_a + fn[2] + ft[2] + mu * contact.fv[2];
+  double vtmag = sqrt(vt1*vt1 + vt2*vt2 + vt3*vt3);
+  if (vtmag > 0.0) {
+    double fne = sqrt(contact.fv[0]*contact.fv[0] + contact.fv[1]*contact.fv[1] + contact.fv[2]*contact.fv[2]);
+    double scale = mu * fne / vtmag;
+    ft[0] -= scale * vt1;
+    ft[1] -= scale * vt2;
+    ft[2] -= scale * vt3;
+  }
+
+  // only the cohesive force is scaled by j_a
+
+  fx = contact.fv[0] * j_a + fn[0] + ft[0];
+  fy = contact.fv[1] * j_a + fn[1] + ft[1];
+  fz = contact.fv[2] * j_a + fn[2] + ft[2];
   f[ibody][0] += fx;
   f[ibody][1] += fy;
   f[ibody][2] += fz;
@@ -1193,12 +1213,10 @@ void PairBodyRoundedPolygon::contact_forces(Contact& contact, double j_a,
   facc[0] += fx; facc[1] += fy; facc[2] += fz;
 
   // only the cohesive force is scaled by j_a
-  // mu * fne = tangential friction deformation during gross sliding
-  // Eq. 4, Fraige et al.
 
-  fx = -contact.fv[0] * j_a - fn[0] - ft[0] - mu * contact.fv[0];
-  fy = -contact.fv[1] * j_a - fn[1] - ft[1] - mu * contact.fv[1];
-  fz = -contact.fv[2] * j_a - fn[2] - ft[2] - mu * contact.fv[2];
+  fx = -contact.fv[0] * j_a - fn[0] - ft[0];
+  fy = -contact.fv[1] * j_a - fn[1] - ft[1];
+  fz = -contact.fv[2] * j_a - fn[2] - ft[2];
   f[jbody][0] += fx;
   f[jbody][1] += fy;
   f[jbody][2] += fz;

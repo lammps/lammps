@@ -259,7 +259,7 @@ int FixWallFlowKokkos<DeviceType>::pack_exchange_kokkos(const int &nsend,
                                                         DAT::tdual_double_2d_lr &k_buf,
                                                         DAT::tdual_int_1d k_sendlist,
                                                         DAT::tdual_int_1d k_copylist,
-                                                        ExecutionSpace /*space*/)
+                                                        ExecutionSpace space)
 {
   k_current_segment.template sync<DeviceType>();
 
@@ -280,7 +280,13 @@ int FixWallFlowKokkos<DeviceType>::pack_exchange_kokkos(const int &nsend,
 
   copymode = 0;
 
+  // the buffer goes to MPI through the view in the exchange space, so leave
+  // it current there
+
   k_buf.template modify<DeviceType>();
+  if (space == HostKK) k_buf.sync_host();
+  else k_buf.sync_device();
+
   k_current_segment.template modify<DeviceType>();
 
   return nsend;

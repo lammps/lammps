@@ -441,7 +441,7 @@ template<class DeviceType>
 int FixWallGranKokkos<DeviceType>::pack_exchange_kokkos(
    const int &nsend, DAT::tdual_double_2d_lr &k_buf,
    DAT::tdual_int_1d k_sendlist, DAT::tdual_int_1d k_copylist,
-   ExecutionSpace /*space*/)
+   ExecutionSpace space)
 {
   k_history_one.template sync<DeviceType>();
 
@@ -461,6 +461,13 @@ int FixWallGranKokkos<DeviceType>::pack_exchange_kokkos(
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagFixWallGranPackExchange>(0,nsend),*this);
 
   copymode = 0;
+
+  // the buffer goes to MPI through the view in the exchange space, so leave
+  // it current there
+
+  k_buf.modify<DeviceType>();
+  if (space == HostKK) k_buf.sync_host();
+  else k_buf.sync_device();
 
   return nsend*size_history;
 }

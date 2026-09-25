@@ -106,7 +106,10 @@ length of the contact region (see *delta_ua*), following
 :ref:`Fraige <pair-Fraige>`.  The elastic force :math:`k_n \delta_n` is not
 scaled.  The damping forces act at each
 contact, while there is a single friction force per pair of particles,
-at the contact with the largest overlap.  Each vertex of one particle
+at the contact with the largest overlap.  The damping and friction forces
+act at the contact point between the rounded surfaces and depend on the
+relative velocity of the two particles at that point, including their
+rotation, so that they also exert torques, e.g. to make disks roll.  Each vertex of one particle
 interacts with a single edge of the other particle, namely the edge whose
 sector, bounded by the rays from the particle center through the two
 vertices of the edge, encloses the vertex, or with a vertex at an end of
@@ -136,7 +139,10 @@ term was applied along the normal direction at every contact and thus
 only increased the normal repulsion.  Also, the scaling factor
 :math:`j_a` now applies only to the cohesive force as in the reference
 model, instead of to the whole normal force, and the cohesive force keeps
-growing when the surfaces deform, instead of staying constant.  Each
+growing when the surfaces deform, instead of staying constant.
+The damping and friction forces now act at the contact point between the
+rounded surfaces, instead of at the vertices, and the friction force now
+also applies to disks.  Each
 vertex now interacts with a single edge of the other particle, selected
 as described above, instead of with all edges within the cutoff.
 

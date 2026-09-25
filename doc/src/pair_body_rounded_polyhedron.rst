@@ -100,7 +100,10 @@ area of the contact region (see *A_ua*), following
 :ref:`Wang <pair-Wang>`.  The elastic force :math:`k_n \delta_n` is not
 scaled.  The damping forces act at each
 contact, while there is a single friction force per pair of particles,
-at the contact with the largest overlap.  Following :ref:`Wang
+at the contact with the largest overlap.  The damping and friction forces
+act at the contact point between the rounded surfaces and depend on the
+relative velocity of the two particles at that point, including their
+rotation, so that they also exert torques, e.g. to make spheres roll.  Following :ref:`Wang
 <pair-Wang>`, a vertex of one particle interacts with a face of the other
 particle if its projection onto the face lies inside the face, else with
 the nearest edge if its projection onto that edge lies inside the edge,
@@ -134,6 +137,9 @@ only increased the normal repulsion.  Also, the scaling factor
 :math:`j_a` now applies only to the cohesive force as in the reference
 model, instead of to the whole normal force, and the cohesive force keeps
 growing when the surfaces deform, instead of staying constant.
+The damping and friction forces now act at the contact point between the
+rounded surfaces, instead of at the vertices, and the friction force now
+also applies to spheres.
 Contacts between a vertex and an edge or between two vertices are now
 detected, both triangles of a quadrilateral face are tested for edges
 crossing the face, and the cohesive force is also scaled for two contact

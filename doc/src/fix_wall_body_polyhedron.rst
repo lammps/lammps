@@ -56,6 +56,20 @@ body particles.
 The parameters *k_n*, *c_n*, *c_t* have the same meaning and units as
 those specified with the :doc:`pair_style body/rounded/polyhedron <pair_body_rounded_polyhedron>` command.
 
+.. versionchanged:: TBD
+
+Each vertex of a particle, or the center of a sphere or disk, is repelled
+by the wall with the force :math:`k_n (r_v - d)`, when its signed distance
+:math:`d` from the wall along the wall normal is smaller than its rounded
+radius :math:`r_v`, also when the vertex has moved past the wall.  The
+damping forces act at the contact point between the rounded surface and
+the wall, using the velocity of the particle at that point relative to the
+wall, so that they also exert torques.  There is no cohesion and no
+friction force with the wall, and the contact forces are not scaled by
+the size of the contact region.  Previously, a vertex that had moved past
+the wall was no longer repelled, or even pushed further out, and in 2d
+the wall forces were scaled by the length of the contact region.
+
 The *wallstyle* can be planar or cylindrical.  The 3 planar options
 specify a pair of walls in a dimension.  Wall positions are given by
 *lo* and *hi*\ .  Either of the values can be specified as NULL if a

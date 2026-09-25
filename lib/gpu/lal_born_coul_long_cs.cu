@@ -122,10 +122,10 @@ __kernel void k_born_coul_long_cs(const __global numtyp4 *restrict x_,
         acctyp forcecoul,_erfc,prefactor,r6inv,rexp,force;
 
         rsq += EPSILON; // Add Epsilon for case: r = 0; Interaction must be removed by special bond;
-        acctyp r2inv = ucl_recip(rsq);
+        acctyp r2inv = (acctyp)1.0/rsq;
 
         if (rsq < cut_coulsq) {
-          acctyp r = ucl_sqrt(rsq);
+          acctyp r = ucl_sqrt((numtyp)rsq);
           numtyp qj;
           fetch(qj,j,q_tex);
           prefactor = qqrd2e * qj*qtmp;
@@ -135,15 +135,15 @@ __kernel void k_born_coul_long_cs(const __global numtyp4 *restrict x_,
             // has to be added to the prefactor and erfc in order to make the
             // used approximation functions valid
             acctyp grij = g_ewald * (r+EPS_EWALD);
-            acctyp expm2 = ucl_exp(-grij*grij);
-            acctyp t = ucl_recip((acctyp)1.0 + CS_EWALD_P*grij);
+            acctyp expm2 = exp(-grij*grij);
+            acctyp t = (acctyp)1.0/((acctyp)1.0 + CS_EWALD_P*grij);
             acctyp u = (acctyp)1.0 - t;
             _erfc = t * ((acctyp)1.0 + u*(B0+u*(B1+u*(B2+u*(B3+u*(B4+u*B5)))))) * expm2;
-            prefactor *= ucl_recip(r+EPS_EWALD);
+            prefactor /= (r+EPS_EWALD);
             forcecoul = prefactor * (_erfc + EWALD_F*grij*expm2 - factor_coul);
             // Additionally r2inv needs to be accordingly modified since the later
             // scaling of the overall force shall be consistent
-            r2inv = ucl_recip(rsq + EPS_EWALD_SQR);
+            r2inv = (acctyp)1.0/(rsq + EPS_EWALD_SQR);
 
             #if defined(_SINGLE_SINGLE)
             // in the single precision mode, any approximations used for 1/(r+EPS_EWALD)
@@ -154,16 +154,16 @@ __kernel void k_born_coul_long_cs(const __global numtyp4 *restrict x_,
           } else {
             numtyp grij = g_ewald * r;
             numtyp expm2 = ucl_exp(-grij*grij);
-            acctyp t = ucl_recip((numtyp)1.0 + CS_EWALD_P*grij);
+            acctyp t = (acctyp)1.0/((numtyp)1.0 + CS_EWALD_P*grij);
             numtyp u = (numtyp)1.0 - t;
             _erfc = t * ((numtyp)1.0 + u*(B0+u*(B1+u*(B2+u*(B3+u*(B4+u*B5)))))) * expm2;
-            prefactor *= ucl_recip(r);
+            prefactor /= r;
             forcecoul = prefactor*(_erfc + EWALD_F*grij*expm2);
           }
         } else forcecoul = (numtyp)0.0;
 
         if (rsq < cutsq_sigma[mtype].y) { // cut_ljsq
-          numtyp r = ucl_sqrt(rsq);
+          numtyp r = ucl_sqrt((numtyp)rsq);
           rexp = ucl_exp((cutsq_sigma[mtype].z-r)*coeff1[mtype].x);
           r6inv = r2inv*r2inv*r2inv;
           forceborn = (coeff1[mtype].y*r*rexp - coeff1[mtype].z*r6inv
@@ -277,10 +277,10 @@ __kernel void k_born_coul_long_cs_fast(const __global numtyp4 *restrict x_,
         acctyp forcecoul,_erfc,prefactor,r6inv,rexp,force;
 
         rsq += EPSILON; // Add Epsilon for case: r = 0; Interaction must be removed by special bond;
-        acctyp r2inv = ucl_recip(rsq);
+        acctyp r2inv = (acctyp)1.0/rsq;
 
         if (rsq < cut_coulsq) {
-          acctyp r = ucl_sqrt(rsq);
+          acctyp r = ucl_sqrt((numtyp)rsq);
           numtyp qj;
           fetch(qj,j,q_tex);
           prefactor = qqrd2e * qj*qtmp;
@@ -291,14 +291,14 @@ __kernel void k_born_coul_long_cs_fast(const __global numtyp4 *restrict x_,
             // used approximation functions valid
             acctyp grij = g_ewald * (r+EPS_EWALD);
             acctyp expm2 = exp(-grij*grij);
-            acctyp t = ucl_recip((acctyp)1.0 + CS_EWALD_P*grij);
+            acctyp t = (acctyp)1.0/((acctyp)1.0 + CS_EWALD_P*grij);
             acctyp u = (acctyp)1.0 - t;
             _erfc = t * ((acctyp)1.0 + u*(B0+u*(B1+u*(B2+u*(B3+u*(B4+u*B5)))))) * expm2;
-            prefactor *= ucl_recip(r+EPS_EWALD);
+            prefactor /= (r+EPS_EWALD);
             forcecoul = prefactor * (_erfc + EWALD_F*grij*expm2 - factor_coul);
             // Additionally r2inv needs to be accordingly modified since the later
             // scaling of the overall force shall be consistent
-            r2inv = ucl_recip(rsq + EPS_EWALD_SQR);
+            r2inv = (acctyp)1.0/(rsq + EPS_EWALD_SQR);
 
             #if defined(_SINGLE_SINGLE)
             // in the single precision mode, any approximations used for 1/(r+EPS_EWALD)
@@ -311,17 +311,17 @@ __kernel void k_born_coul_long_cs_fast(const __global numtyp4 *restrict x_,
           else {
             numtyp grij = g_ewald * r;
             numtyp expm2 = ucl_exp(-grij*grij);
-            numtyp t = ucl_recip((numtyp)1.0 + CS_EWALD_P*grij);
+            numtyp t = (acctyp)1.0/((numtyp)1.0 + CS_EWALD_P*grij);
             numtyp u = (numtyp)1.0 - t;
             _erfc = t * ((numtyp)1.0 + u*(B0+u*(B1+u*(B2+u*(B3+u*(B4+u*B5)))))) * expm2;
-            prefactor *= ucl_recip(r);
+            prefactor /= r;
             forcecoul = prefactor*(_erfc + EWALD_F*grij*expm2);
           }
 
         } else forcecoul = (numtyp)0.0;
 
         if (rsq < cutsq_sigma[mtype].y) { // cut_ljsq
-          acctyp r = ucl_sqrt(rsq);
+          numtyp r = ucl_sqrt((numtyp)rsq);
           rexp = ucl_exp((cutsq_sigma[mtype].z-r)*coeff1[mtype].x);
           r6inv = r2inv*r2inv*r2inv;
           forceborn = (coeff1[mtype].y*r*rexp - coeff1[mtype].z*r6inv

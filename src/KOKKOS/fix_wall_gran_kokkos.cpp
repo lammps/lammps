@@ -462,6 +462,10 @@ int FixWallGranKokkos<DeviceType>::pack_exchange_kokkos(
 
   copymode = 0;
 
+  // the kernel also moves the history of the last atoms into the holes
+
+  k_history_one.template modify<DeviceType>();
+
   // the buffer goes to MPI through the view in the exchange space, so leave
   // it current there
 

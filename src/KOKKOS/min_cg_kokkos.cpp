@@ -257,7 +257,6 @@ int MinCGKokkos::iterate(int maxiter)
       output->write(ntimestep);
       timer->stamp(Timer::OUTPUT);
 
-      atomKK->modified(Host,ALL_MASK);
       lmp->kokkos->auto_sync = prev_auto_sync;
     }
   }

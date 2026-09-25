@@ -606,7 +606,11 @@ void VerletKokkos::run(int n)
       // pointers, and some of them re-enter the force pipeline while doing it:
       // compute born/matrix numdiff displaces the atoms, recomputes the virial
       // and restores them.  auto_sync is what makes those writes reach the
-      // device; without it the displacement never lands.
+      // device; without it the displacement never lands.  A style that writes
+      // through the host pointers claims its own writes (compute born/matrix,
+      // compute fep and fep/ta, fix numdiff do), so there is no blanket host
+      // claim after the output: that re-uploaded every per-atom array to the
+      // device after every output step, whether anything was written or not.
 
       int prev_auto_sync = lmp->kokkos->auto_sync;
       lmp->kokkos->auto_sync = 1;
@@ -616,7 +620,6 @@ void VerletKokkos::run(int n)
       output->write(ntimestep);
       timer->stamp(Timer::OUTPUT);
 
-      atomKK->modified(Host,ALL_MASK);
       lmp->kokkos->auto_sync = prev_auto_sync;
     }
   }

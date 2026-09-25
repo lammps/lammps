@@ -224,7 +224,6 @@ void MinKokkos::setup(int flag)
 
   atomKK->sync(Host,ALL_MASK);
   output->setup(flag);
-  atomKK->modified(Host,ALL_MASK);
   update->setupflag = 0;
 
   // stats for initial thermo output
@@ -396,7 +395,6 @@ void MinKokkos::run(int n)
     lmp->kokkos->auto_sync = 1;
     atomKK->sync(Host,ALL_MASK);
     output->write(update->ntimestep);
-    atomKK->modified(Host,ALL_MASK);
     lmp->kokkos->auto_sync = prev_auto_sync;
   }
 

@@ -31,10 +31,10 @@ Examples
 .. code-block:: LAMMPS
 
    bond_style bpm/peri
-   bond_coeff 1 pmb 1.6863e22 0.0015001 0.0005 0.25
-   bond_coeff 1 lps 14.9e9 14.9e9 0.0015001 0.0005 0.25
-   bond_coeff 1 ves 14.9e9 14.9e9 0.5 0.001 0.0015001 0.0005 0.25
-   bond_coeff 1 eps 14.9e9 14.9e9 118.43 0.0015001 0.0005 0.25
+   bond_coeff 1 pmb 2e22 0.0015 0.0005 0.25
+   bond_coeff 1 lps 15e9 15e9 0.0015 0.0005 0.25
+   bond_coeff 1 ves 15e9 15e9 0.5 0.001 0.0015 0.0005 0.25
+   bond_coeff 1 eps 15e9 15e9 120 0.0015 0.0005 0.25
 
 Description
 """""""""""

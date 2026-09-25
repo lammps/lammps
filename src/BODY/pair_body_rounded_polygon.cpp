@@ -849,9 +849,17 @@ int PairBodyRoundedPolygon::vertex_against_edge(int i, int j,
     double rij;
     double rmin = MIN(rradi, rradj);
 
+    // the vertex interacts with the edge of body j whose sector, as seen
+    // from the center of body j, encloses the vertex, see Fig. 4b in
+    // Fraige et al., or with all edges if there is no such sector
+
+    int nsector = sector_edge(j, xpi);
+
     // loop through body j's edges
 
     for (nj = 0; nj < nej; nj++) {
+
+      if ((nsector >= 0) && (nj != nsector)) continue;
 
       // compute the distance between the edge nj to the vertex xpi
 
@@ -1091,6 +1099,40 @@ int PairBodyRoundedPolygon::vertex_against_edge(int i, int j,
   return interact;
 }
 
+/* ----------------------------------------------------------------------
+  Find the edge of body ibody whose sector encloses the point xp, where the
+  sector of an edge is bounded by the rays from the center of the body
+  through the two vertices of the edge, see Fig. 4b in Fraige et al.
+  return the edge index, or -1 if there is no such edge,
+    e.g. for rods and disks, or for a non-convex polygon
+------------------------------------------------------------------------- */
+
+int PairBodyRoundedPolygon::sector_edge(int ibody, const double *xp)
+{
+  if (dnum[ibody] < 3) return -1;
+
+  double **x = atom->x;
+  int ifirst = dfirst[ibody];
+  int iefirst = edfirst[ibody];
+  double cx = xp[0] - x[ibody][0];
+  double cy = xp[1] - x[ibody][1];
+
+  for (int ne = 0; ne < ednum[ibody]; ne++) {
+    int np1 = static_cast<int>(edge[iefirst+ne][0]);
+    int np2 = static_cast<int>(edge[iefirst+ne][1]);
+    double ax = discrete[ifirst+np1][0];
+    double ay = discrete[ifirst+np1][1];
+    double bx = discrete[ifirst+np2][0];
+    double by = discrete[ifirst+np2][1];
+    double s0 = ax*by - ay*bx;
+    if (s0 == 0.0) continue;
+    double s1 = ax*cy - ay*cx;
+    double s2 = cx*by - cy*bx;
+    if ((s1*s0 >= 0.0) && (s2*s0 >= 0.0)) return ne;
+  }
+  return -1;
+}
+
 /* -------------------------------------------------------------------------
   Compute the distance between an edge of body i and a vertex from
   another body
@@ -1221,12 +1263,7 @@ int PairBodyRoundedPolygon::compute_distance_to_vertex(int ibody,
       // x0 and xmi are on the different sides
       // t is the ratio to detect if x0 is closer to the vertices xi or xj
 
-      if (fabs(xi2[0] - xi1[0]) > EPSILON*rmin)
-        t = (hi[0] - xi1[0]) / (xi2[0] - xi1[0]);
-      else if (fabs(xi2[1] - xi1[1]) > EPSILON*rmin)
-        t = (hi[1] - xi1[1]) / (xi2[1] - xi1[1]);
-      else if (fabs(xi2[2] - xi1[2]) > EPSILON*rmin)
-        t = (hi[2] - xi1[2]) / (xi2[2] - xi1[2]);
+      t = (magv > 0.0) ? magucostheta / magv : 0.0;
 
       double contact_dist = rounded_radius + x0_rounded_radius;
       if (t >= 0 && t <= 1) {

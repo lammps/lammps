@@ -128,6 +128,16 @@ class PairBodyRoundedPolyhedron : public Pair {
   void sphere_against_face(int ibody, int jbody, int itype, int jtype, double **x, double **v,
                            double **f, double **torque, double **angmom, double **fnc,
                            Scratch &s, double &evdwl, double *facc);
+  // whether two edges, or the edges at two vertices, interact as edges
+  int edges_interact(int ibody, int ei, int jbody, int ej);
+  int vertex_edges_interact(int ibody, int ni, int jbody, int ej, int nj);
+  // vertex-edge and vertex-vertex interactions
+  void vertex_against_edge(int ibody, int jbody, int itype, int jtype, double **x, double **v,
+                           double **f, double **torque, double **angmom, double **fnc,
+                           Scratch &s, double &evdwl, double *facc);
+  void vertex_against_vertex(int ibody, int jbody, int itype, int jtype, double **x, double **v,
+                             double **f, double **torque, double **angmom, double **fnc,
+                             Scratch &s, double &evdwl, double *facc);
   // edge-edge interactions
   int edge_against_edge(int ibody, int jbody, int itype, int jtype, double **x, double **v,
                         double **f, double **torque, double **angmom, double **fnc, Scratch &s,

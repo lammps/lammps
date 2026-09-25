@@ -331,6 +331,13 @@ void PairBodyRoundedPolyhedron::pair_interaction(int i, int j, double delx, doub
   edge_against_face(j, i, jtype, itype, x, v, f, torque, angmom,
                     fnc, s, evdwl, fj);
 
+  // vertices without a vertex-face interaction interact with the edges,
+  // and else with the vertices of the other body, see Fig. 7, Wang et al.
+
+  vertex_against_edge(i, j, itype, jtype, x, v, f, torque, angmom, fnc, s, evdwl, facc);
+  vertex_against_edge(j, i, jtype, itype, x, v, f, torque, angmom, fnc, s, evdwl, fj);
+  vertex_against_vertex(i, j, itype, jtype, x, v, f, torque, angmom, fnc, s, evdwl, facc);
+
   // check interaction between i's edges and j' edges, which returns
   // the force on body j
   #ifdef _POLYHEDRON_DEBUG
@@ -1102,6 +1109,209 @@ void PairBodyRoundedPolyhedron::sphere_against_face(int ibody, int jbody,
 }
 
 /* ----------------------------------------------------------------------
+   Return 1 if edge ei of body ibody and edge ej of body jbody interact
+   as edges, i.e. the nearest points of both edges are inside the edges
+   and within the interaction range, as in interaction_edge_to_edge()
+------------------------------------------------------------------------- */
+
+int PairBodyRoundedPolyhedron::edges_interact(int ibody, int ei, int jbody, int ej)
+{
+  double **x = atom->x;
+  double xi1[3], xi2[3], xj1[3], xj2[3], h1[3], h2[3], t1, t2, r;
+  int ifirst = dfirst[ibody];
+  int jfirst = dfirst[jbody];
+  int iefirst = edfirst[ibody];
+  int jefirst = edfirst[jbody];
+  MathExtra::add3(x[ibody], discrete[ifirst+static_cast<int>(edge[iefirst+ei][0])], xi1);
+  MathExtra::add3(x[ibody], discrete[ifirst+static_cast<int>(edge[iefirst+ei][1])], xi2);
+  MathExtra::add3(x[jbody], discrete[jfirst+static_cast<int>(edge[jefirst+ej][0])], xj1);
+  MathExtra::add3(x[jbody], discrete[jfirst+static_cast<int>(edge[jefirst+ej][1])], xj2);
+  distance_bt_edges(xj1, xj2, xi1, xi2, h1, h2, t1, t2, r);
+
+  double contact_dist = rounded_radius[ibody] + rounded_radius[jbody];
+  double rmin = MIN(rounded_radius[ibody], rounded_radius[jbody]);
+  if (r < EPSILON*rmin) return 0;
+  return ((t1 >= 0) && (t1 <= 1) && (t2 >= 0) && (t2 <= 1) &&
+          (r < contact_dist + cut_inner)) ? 1 : 0;
+}
+
+/* ----------------------------------------------------------------------
+   Return 1 if an edge of body ibody that ends at vertex ni interacts with
+   edge ej of body jbody, or with an edge of body jbody that ends at vertex
+   nj if ej < 0: then the contact is represented by an edge-edge interaction
+------------------------------------------------------------------------- */
+
+int PairBodyRoundedPolyhedron::vertex_edges_interact(int ibody, int ni, int jbody, int ej,
+                                                     int nj)
+{
+  int iefirst = edfirst[ibody];
+  int jefirst = edfirst[jbody];
+  for (int ei = 0; ei < ednum[ibody]; ei++) {
+    if ((static_cast<int>(edge[iefirst+ei][0]) != ni) &&
+        (static_cast<int>(edge[iefirst+ei][1]) != ni)) continue;
+    if (ej >= 0) {
+      if (edges_interact(ibody, ei, jbody, ej)) return 1;
+    } else {
+      for (int e = 0; e < ednum[jbody]; e++) {
+        if ((static_cast<int>(edge[jefirst+e][0]) != nj) &&
+            (static_cast<int>(edge[jefirst+e][1]) != nj)) continue;
+        if (edges_interact(ibody, ei, jbody, e)) return 1;
+      }
+    }
+  }
+  return 0;
+}
+
+/* ----------------------------------------------------------------------
+   Interaction between the vertices of body i and the edges of body j,
+   see step 4 in Fig. 7, Wang et al.: a vertex of body i that has no
+   interaction with a face of body j interacts with the nearest edge of
+   body j whose nearest point to the vertex is inside the edge
+   the vertices that interact are flagged in the scratch space
+   the total force on body i is accumulated to facc
+------------------------------------------------------------------------- */
+
+void PairBodyRoundedPolyhedron::vertex_against_edge(int ibody, int jbody,
+  int itype, int jtype, double** x, double** v, double** f, double** torque,
+  double** angmom, double** fnc, Scratch &s, double &evdwl, double* facc)
+{
+  std::vector<int> &vertex_done = s.vertex_done;
+  std::vector<Contact> &contacts = s.contacts;
+
+  int ifirst = dfirst[ibody];
+  int jfirst = dfirst[jbody];
+  int jefirst = edfirst[jbody];
+  double rradi = rounded_radius[ibody];
+  double rradj = rounded_radius[jbody];
+  double eradj = enclosing_radius[jbody];
+  double contact_dist = rradi + rradj;
+  double energy = 0.0;
+  double xpi[3], xj1[3], xj2[3], u[3], w[3], h[3], hmin[3], n[3];
+
+  for (int ni = 0; ni < dnum[ibody]; ni++) {
+    if (vertex_done[ifirst+ni]) continue;
+    MathExtra::add3(x[ibody], discrete[ifirst+ni], xpi);
+
+    double dist = sqrt(MathExtra::distsq3(xpi, x[jbody]));
+    if (dist > eradj + rradj + rradi + cut_inner) continue;
+
+    // a vertex inside body j is handled by the vertex-face interactions
+
+    if (nearest_face(jbody, x[jbody], xpi, n) < 0.0) continue;
+
+    double dmin = -1.0;
+    for (int ne = 0; ne < ednum[jbody]; ne++) {
+      MathExtra::add3(x[jbody], discrete[jfirst+static_cast<int>(edge[jefirst+ne][0])], xj1);
+      MathExtra::add3(x[jbody], discrete[jfirst+static_cast<int>(edge[jefirst+ne][1])], xj2);
+      MathExtra::sub3(xj2, xj1, u);
+      MathExtra::sub3(xpi, xj1, w);
+      double uu = MathExtra::dot3(u, u);
+      if (uu == 0.0) continue;
+      double t = MathExtra::dot3(w, u) / uu;
+      if ((t <= 0.0) || (t >= 1.0)) continue;
+      h[0] = xj1[0] + t*u[0];
+      h[1] = xj1[1] + t*u[1];
+      h[2] = xj1[2] + t*u[2];
+      double d = sqrt(MathExtra::distsq3(xpi, h));
+
+      // an edge ending at the vertex interacts with this edge as an edge,
+      // which represents the contact until its nearest point reaches the vertex
+
+      if ((dmin < 0.0) || (d < dmin)) {
+        if (vertex_edges_interact(ibody, ni, jbody, ne, -1)) continue;
+        dmin = d;
+        MathExtra::copy3(h, hmin);
+      }
+    }
+
+    if ((dmin <= 0.0) || (dmin > contact_dist + cut_inner)) continue;
+
+    pair_force_and_torque(ibody, jbody, xpi, hmin, dmin, contact_dist, itype, jtype,
+                          x, v, f, torque, angmom, fnc, 1, energy, facc);
+
+    if (dmin <= contact_dist) {
+      Contact c;
+      c.ibody = ibody;
+      c.jbody = jbody;
+      MathExtra::copy3(xpi, c.xi);
+      MathExtra::copy3(hmin, c.xj);
+      c.type = 0;
+      c.separation = dmin - contact_dist;
+      c.r = dmin;
+      c.unique = 1;
+      contacts.push_back(c);
+    }
+    vertex_done[ifirst+ni] = 1;
+  }
+
+  evdwl += energy;
+}
+
+/* ----------------------------------------------------------------------
+   Interaction between the vertices of body i and those of body j, see
+   step 5 in Fig. 7, Wang et al.: a vertex of body i that has no interaction
+   with a face or an edge of body j interacts with the nearest vertex of
+   body j that has no such interaction with body i either
+   each vertex interacts with at most one vertex of the other body
+   the total force on body i is accumulated to facc
+------------------------------------------------------------------------- */
+
+void PairBodyRoundedPolyhedron::vertex_against_vertex(int ibody, int jbody,
+  int itype, int jtype, double** x, double** v, double** f, double** torque,
+  double** angmom, double** fnc, Scratch &s, double &evdwl, double* facc)
+{
+  std::vector<int> &vertex_done = s.vertex_done;
+  std::vector<Contact> &contacts = s.contacts;
+
+  int ifirst = dfirst[ibody];
+  int jfirst = dfirst[jbody];
+  double contact_dist = rounded_radius[ibody] + rounded_radius[jbody];
+  double energy = 0.0;
+  double xpi[3], xpj[3], xmin[3];
+
+  for (int ni = 0; ni < dnum[ibody]; ni++) {
+    if (vertex_done[ifirst+ni]) continue;
+    MathExtra::add3(x[ibody], discrete[ifirst+ni], xpi);
+
+    double dmin = -1.0;
+    int nmin = -1;
+    for (int nj = 0; nj < dnum[jbody]; nj++) {
+      if (vertex_done[jfirst+nj]) continue;
+      MathExtra::add3(x[jbody], discrete[jfirst+nj], xpj);
+      double d = sqrt(MathExtra::distsq3(xpi, xpj));
+      if ((dmin < 0.0) || (d < dmin)) {
+        if (vertex_edges_interact(ibody, ni, jbody, -1, nj)) continue;
+        dmin = d;
+        nmin = nj;
+        MathExtra::copy3(xpj, xmin);
+      }
+    }
+
+    if ((nmin < 0) || (dmin <= 0.0) || (dmin > contact_dist + cut_inner)) continue;
+
+    pair_force_and_torque(ibody, jbody, xpi, xmin, dmin, contact_dist, itype, jtype,
+                          x, v, f, torque, angmom, fnc, 1, energy, facc);
+
+    if (dmin <= contact_dist) {
+      Contact c;
+      c.ibody = ibody;
+      c.jbody = jbody;
+      MathExtra::copy3(xpi, c.xi);
+      MathExtra::copy3(xmin, c.xj);
+      c.type = 0;
+      c.separation = dmin - contact_dist;
+      c.r = dmin;
+      c.unique = 1;
+      contacts.push_back(c);
+    }
+    vertex_done[ifirst+ni] = 1;
+    vertex_done[jfirst+nmin] = 1;
+  }
+
+  evdwl += energy;
+}
+
+/* ----------------------------------------------------------------------
    Determine the interaction mode between i's edges against j's edges
 
    i = atom i (body i)
@@ -1465,6 +1675,20 @@ int PairBodyRoundedPolyhedron::interaction_face_to_edge(int ibody,
 
   int interact = edge_face_intersect(xi1, xi2, xi3, xpj1, xpj2,
                                      hi1, hi2, d1, d2, inside1, inside2);
+
+  // a quadrilateral face consists of the triangles (1,2,3) and (1,3,4):
+  // test the second triangle if the edge intersects the face plane outside
+  // of the first one
+
+  int npi4 = static_cast<int>(face[iffirst+face_index][3]);
+  if ((interact == EF_INTERSECT_OUTSIDE) && (npi4 >= 0)) {
+    double xi4[3], h1tmp[3], h2tmp[3], d1tmp, d2tmp;
+    int in1tmp, in2tmp;
+    MathExtra::add3(xmi, discrete[ifirst+npi4], xi4);
+    if (edge_face_intersect(xi1, xi3, xi4, xpj1, xpj2, h1tmp, h2tmp, d1tmp, d2tmp,
+                            in1tmp, in2tmp) == EF_INTERSECT_INSIDE)
+      interact = EF_INTERSECT_INSIDE;
+  }
 
   inside_polygon(ibody, face_index, xmi, hi1, hi2, inside1, inside2);
 
@@ -1887,12 +2111,12 @@ void PairBodyRoundedPolyhedron::rescale_cohesive_forces(double** x,
 
   const int num_contacts = contacts.size();
   int num_unique_contacts = 0;
+  // contact area A_a = pi <r_k^2> from the distances r_k of the unique
+  // contacts to their average position, see Eq. 6, Wang et al.
+
   if (num_contacts == 1) {
     num_unique_contacts = 1;
     contact_area = 0;
-  } else if (num_contacts == 2) {
-    num_unique_contacts = 2;
-    contact_area = num_contacts * A_ua;
   } else {
     find_unique_contacts(contacts);
 
@@ -2704,7 +2928,7 @@ void PairBodyRoundedPolyhedron::find_unique_contacts(std::vector<Contact> &conta
       double rradi = rounded_radius[ibody];
       double rradj = rounded_radius[jbody];
       double rmin = MIN(rradi, rradj);
-      if (d < EPSILON*rmin) contacts[j].unique = 0;
+      if (d < EPSILON*EPSILON*rmin*rmin) contacts[j].unique = 0;
     }
   }
 }

@@ -112,6 +112,8 @@ class PairBodyRoundedPolygon : public Pair {
   int vertex_against_edge(int i, int j, double k_n, double k_na, double **x, double **f,
                           double **torque, tagint *tag, Scratch &s, double &evdwl,
                           double *facc);
+  // find the edge whose sector encloses a point
+  int sector_edge(int ibody, const double *xp);
   // compute distance between a point and an edge from another body
   int compute_distance_to_vertex(int ibody, int edge_index, double *xmi, double rounded_radius,
                                  double *x0, double x0_rounded_radius, double cut_inner, double &d,

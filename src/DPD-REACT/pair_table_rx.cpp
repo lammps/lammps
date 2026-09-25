@@ -331,6 +331,9 @@ void PairTableRX::coeff(int narg, char **arg)
   nspecies = rx_fix->get_nspecies();
   if (nspecies==0) error->all(FLERR,"There are no rx species specified.");
 
+  // pair_coeff may be used more than once, so release the names of the last one
+
+  delete[] site1;
   site1 = utils::strdup(arg[4]);
 
   const auto & species_str_to_species_ind =
@@ -341,6 +344,7 @@ void PairTableRX::coeff(int narg, char **arg)
     error->all(FLERR,"Site1 name not recognized in pair coefficients");
   }
 
+  delete[] site2;
   site2 = utils::strdup(arg[5]);
 
   if (species_str_to_species_ind.find(site2) == species_str_to_species_ind.end()

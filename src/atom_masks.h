@@ -80,4 +80,10 @@
 #define IARRAY_MASK    0x0000010000000000
 #define DARRAY_MASK    0x0000020000000000
 
+// per-type masses (atom->mass), which are not a per-atom array and so are not
+// one of the arrays the atom style transfers.  Not to be confused with
+// MASK_MASK (the per-atom group masks) or RMASS_MASK (the per-atom masses).
+
+#define MASS_MASK      0x0000040000000000
+
 #endif

@@ -549,6 +549,14 @@ LAMMPS was built with that package.  See the :doc:`Build package
 <Build_package>` page for more info.
 
 Fix *pimd/nvt* cannot be used with :doc:`lj units <units>`.
+
+.. versionchanged:: TBD
+
+Fixes *pimd/nvt* and *pimd/nvt/bosonic* require at least two beads,
+i.e. running with the :doc:`-partition <Run_options>` command-line
+switch, and stop with an error otherwise.  A ring polymer of a single
+bead has no neighboring beads to couple to, and previously such a run
+read past the end of an internal buffer.
 Fix *pimd/langevin* can be used with :doc:`lj units <units>`.
 See the documentation above for how to use it.
 

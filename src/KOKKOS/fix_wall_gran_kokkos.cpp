@@ -30,6 +30,16 @@ template<class DeviceType>
 FixWallGranKokkos<DeviceType>::FixWallGranKokkos(LAMMPS *lmp, int narg, char **arg) :
   FixWallGranOld(lmp, narg, arg)
 {
+  // the per-atom contact array of the "contacts" keyword is parsed and
+  // allocated by FixWallGranOld, but nothing here maintains it: post_force()
+  // below never writes it, so every atom reads as out of contact, and
+  // grow_arrays() below grows only the history, so once atoms outnumber the
+  // allocation the inherited set_arrays() and copy_arrays() write past its
+  // end.  Refuse it here, before create_atoms or read_data can reach either.
+
+  if (peratom_flag)
+    error->all(FLERR, "Fix wall/gran/kk does not yet support the contacts keyword");
+
   kokkosable = 1;
   exchange_comm_device = sort_device = 1;
   maxexchange = size_history;
@@ -431,7 +441,7 @@ template<class DeviceType>
 int FixWallGranKokkos<DeviceType>::pack_exchange_kokkos(
    const int &nsend, DAT::tdual_double_2d_lr &k_buf,
    DAT::tdual_int_1d k_sendlist, DAT::tdual_int_1d k_copylist,
-   ExecutionSpace /*space*/)
+   ExecutionSpace space)
 {
   k_history_one.template sync<DeviceType>();
 
@@ -451,6 +461,17 @@ int FixWallGranKokkos<DeviceType>::pack_exchange_kokkos(
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagFixWallGranPackExchange>(0,nsend),*this);
 
   copymode = 0;
+
+  // the kernel also moves the history of the last atoms into the holes
+
+  k_history_one.template modify<DeviceType>();
+
+  // the buffer goes to MPI through the view in the exchange space, so leave
+  // it current there
+
+  k_buf.modify<DeviceType>();
+  if (space == HostKK) k_buf.sync_host();
+  else k_buf.sync_device();
 
   return nsend*size_history;
 }

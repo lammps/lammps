@@ -33,22 +33,43 @@
 using namespace LAMMPS_NS;
 
 // A minimal separation so that r = 0 core/shell pairs stay finite until the
-// special-bond factor removes them.  The CPU style uses 1.0e-20, which cannot
-// be carried over unchanged when KK_FLOAT is float.
+// special-bond factor removes them.  The CPU styles use 1.0e-20, which cannot
+// be carried over unchanged when KK_FLOAT is float, for two reasons.
 //
-// The quantity that has to stay in range is the steepest one the kernel forms,
-// not the energy: compute_fpair() returns forceborn*r2inv, whose born3 term is
-// born3 * rsq^-5.  At rsq = 1.0e-20 that is 1e100 -- finite in double, infinite
-// in single -- and the zero special-bond factor then gives NaN rather than
-// removing the pair.  1.0e-6 puts it at 1e30, eight orders inside the range of
-// float, and leaves the r^-8 energy term at 1e24.
+// It overflows.  What has to stay in range is the steepest quantity the kernel
+// forms, not the energy: the vdW force is returned as force*r2inv, which for
+// these styles reaches rsq^-4 to rsq^-7.  At rsq = 1.0e-20 that is 1e80 to
+// 1e140 -- finite in double, infinite in single -- and the zero special-bond
+// factor of a core/shell pair then gives NaN rather than removing the pair.
 //
-// The value is applied as a floor, not as an unconditional add, so it can be
-// this large without consequence: a floor only changes separations already
-// below it, and never perturbs a normal pair.  (An *added* 1.0e-6 would have
-// perturbed one, since 1.0f + 1.0e-6f != 1.0f.)
+// It also cancels.  The excluded Coulomb term of a bonded pair is formed as
+// prefactor*erfc(g*r) - prefactor, a difference of two values of order 1/r
+// whose true value is finite as r -> 0, and the force divides that difference
+// by rsq as well.  The smaller the separation, the fewer significant digits
+// survive; in float this alone puts an O(1) error on the energy of a nearly
+// coincident pair, which is where the NaN-free but still wrong results come
+// from.
+//
+// 1.0e-4 addresses both: it keeps even rsq^-7 at 1e28, ten orders inside the
+// range of float, and leaves the excluded Coulomb term with enough digits to
+// be correct to ~1e-4 absolute.  It is applied as a floor rather than as an
+// unconditional add, which is what lets it be this large -- an *added* 1.0e-4
+// would perturb every normal pair, since 1.0f + 1.0e-4f != 1.0f, whereas a
+// floor only touches separations below 0.01 distance units, which no
+// non-bonded pair ever reaches.
+//
+// Bonded core/shell pairs do get down to ~0.001 in practice, so the floor is
+// a deliberate approximation for them, and a favorable one: both the excluded
+// force and the excluded energy are within a fraction of a percent of their
+// r -> 0 limits already at 0.01, so clamping costs far less than the
+// cancellation error of evaluating them at the true separation in float.  On
+// examples/coreshell this is the difference between a step-0 Coulomb energy
+// off by 0.6 and one off by 0.04.
+//
+// In double precision it stays an unconditional add of 1.0e-20, exactly as the
+// CPU styles do.
 
-static constexpr double EPSILON = std::is_same_v<KK_FLOAT, float> ? 1.0e-6 : 1.0e-20;
+static constexpr double EPSILON = std::is_same_v<KK_FLOAT, float> ? 1.0e-4 : 1.0e-20;
 using MathConst::MY_PIS;
 
 /* ---------------------------------------------------------------------- */
@@ -193,12 +214,13 @@ KK_FLOAT PairBornCoulWolfCSKokkos<DeviceType>::
 compute_fpair(const KK_FLOAT& rsq_in, const int& /*i*/, const int& /*j*/,
               const int& itype, const int& jtype) const
 {
-  // r = 0 must stay finite here, as in the CPU style.  Applied as a floor
-  // rather than an unconditional add, so that a value large enough to keep the
-  // single-precision kernel in range cannot perturb a normal pair
+  // r = 0 must stay finite here.  In double precision EPSILON is added
+  // unconditionally, exactly as the CPU style does; in single precision it is
+  // applied as a floor instead.  See the comment on EPSILON above.
 
-  const KK_FLOAT rsq = (rsq_in > static_cast<KK_FLOAT>(EPSILON)) ?
-    rsq_in : static_cast<KK_FLOAT>(EPSILON);
+  const KK_FLOAT rsq = std::is_same_v<KK_FLOAT, float> ?
+    ((rsq_in > static_cast<KK_FLOAT>(EPSILON)) ? rsq_in : static_cast<KK_FLOAT>(EPSILON)) :
+    rsq_in + static_cast<KK_FLOAT>(EPSILON);
 
   const KK_FLOAT r2inv = static_cast<KK_FLOAT>(1.0)/rsq;
   const KK_FLOAT r6inv = r2inv*r2inv*r2inv;
@@ -226,12 +248,13 @@ compute_fcoul(const KK_FLOAT& rsq_in, const int& /*i*/, const int& j,
               const int& /*itype*/, const int& /*jtype*/,
               const KK_FLOAT& factor_coul, const KK_FLOAT& qtmp) const
 {
-  // r = 0 must stay finite here, as in the CPU style.  Applied as a floor
-  // rather than an unconditional add, so that a value large enough to keep the
-  // single-precision kernel in range cannot perturb a normal pair
+  // r = 0 must stay finite here.  In double precision EPSILON is added
+  // unconditionally, exactly as the CPU style does; in single precision it is
+  // applied as a floor instead.  See the comment on EPSILON above.
 
-  const KK_FLOAT rsq = (rsq_in > static_cast<KK_FLOAT>(EPSILON)) ?
-    rsq_in : static_cast<KK_FLOAT>(EPSILON);
+  const KK_FLOAT rsq = std::is_same_v<KK_FLOAT, float> ?
+    ((rsq_in > static_cast<KK_FLOAT>(EPSILON)) ? rsq_in : static_cast<KK_FLOAT>(EPSILON)) :
+    rsq_in + static_cast<KK_FLOAT>(EPSILON);
 
   const KK_FLOAT r2inv = static_cast<KK_FLOAT>(1.0)/rsq;
   const KK_FLOAT r = Kokkos::sqrt(rsq);
@@ -256,12 +279,13 @@ KK_FLOAT PairBornCoulWolfCSKokkos<DeviceType>::
 compute_evdwl(const KK_FLOAT& rsq_in, const int& /*i*/, const int& /*j*/,
                const int& itype, const int& jtype) const
 {
-  // r = 0 must stay finite here, as in the CPU style.  Applied as a floor
-  // rather than an unconditional add, so that a value large enough to keep the
-  // single-precision kernel in range cannot perturb a normal pair
+  // r = 0 must stay finite here.  In double precision EPSILON is added
+  // unconditionally, exactly as the CPU style does; in single precision it is
+  // applied as a floor instead.  See the comment on EPSILON above.
 
-  const KK_FLOAT rsq = (rsq_in > static_cast<KK_FLOAT>(EPSILON)) ?
-    rsq_in : static_cast<KK_FLOAT>(EPSILON);
+  const KK_FLOAT rsq = std::is_same_v<KK_FLOAT, float> ?
+    ((rsq_in > static_cast<KK_FLOAT>(EPSILON)) ? rsq_in : static_cast<KK_FLOAT>(EPSILON)) :
+    rsq_in + static_cast<KK_FLOAT>(EPSILON);
 
   const KK_FLOAT r2inv = static_cast<KK_FLOAT>(1.0)/rsq;
   const KK_FLOAT r6inv = r2inv*r2inv*r2inv;
@@ -289,12 +313,13 @@ compute_ecoul(const KK_FLOAT& rsq_in, const int& /*i*/, const int& j,
                const int& /*itype*/, const int& /*jtype*/,
                const KK_FLOAT& factor_coul, const KK_FLOAT& qtmp) const
 {
-  // r = 0 must stay finite here, as in the CPU style.  Applied as a floor
-  // rather than an unconditional add, so that a value large enough to keep the
-  // single-precision kernel in range cannot perturb a normal pair
+  // r = 0 must stay finite here.  In double precision EPSILON is added
+  // unconditionally, exactly as the CPU style does; in single precision it is
+  // applied as a floor instead.  See the comment on EPSILON above.
 
-  const KK_FLOAT rsq = (rsq_in > static_cast<KK_FLOAT>(EPSILON)) ?
-    rsq_in : static_cast<KK_FLOAT>(EPSILON);
+  const KK_FLOAT rsq = std::is_same_v<KK_FLOAT, float> ?
+    ((rsq_in > static_cast<KK_FLOAT>(EPSILON)) ? rsq_in : static_cast<KK_FLOAT>(EPSILON)) :
+    rsq_in + static_cast<KK_FLOAT>(EPSILON);
 
   const KK_FLOAT r = Kokkos::sqrt(rsq);
   const KK_FLOAT prefactor = qqrd2e * qtmp * q(j) / r;

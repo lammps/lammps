@@ -192,6 +192,14 @@ So far, this has been implemented for EAM type potentials.
 It is straightforward to extend this to other potentials,
 requiring adding an atomic energy method to the pair style.
 
+.. versionchanged:: TBD
+
+The optimized EAM calculation is not available with a KOKKOS EAM pair
+style (for example *eam/kk*), so with one of those the *atomic/energy
+yes* keyword is required and the fix stops with an error without it.
+Previously the fix accepted this combination and read per-atom EAM
+data that the KOKKOS pair styles do not provide.
+
 ------------
 
 Default

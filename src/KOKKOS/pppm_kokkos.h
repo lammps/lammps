@@ -355,6 +355,11 @@ class PPPMKokkos : public PPPM, public KokkosBaseFFT {
   //KOKKOS_INLINE_FUNCTION
   //void operator()(TagPPPMKernelA<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int&) const;
 
+  void pack_forward_grid_kokkos(int, FFT_DAT::tdual_FFT_SCALAR_1d &, int, DAT::tdual_int_2d_lr &, int) override;
+  void unpack_forward_grid_kokkos(int, FFT_DAT::tdual_FFT_SCALAR_1d &, int, int, DAT::tdual_int_2d_lr &, int) override;
+  void pack_reverse_grid_kokkos(int, FFT_DAT::tdual_FFT_SCALAR_1d &, int, DAT::tdual_int_2d_lr &, int) override;
+  void unpack_reverse_grid_kokkos(int, FFT_DAT::tdual_FFT_SCALAR_1d &, int, int, DAT::tdual_int_2d_lr &, int) override;
+
  protected:
   double unitkx,unitky,unitkz;
   double scaleinv,s2;
@@ -484,21 +489,17 @@ class PPPMKokkos : public PPPM, public KokkosBaseFFT {
   KOKKOS_INLINE_FUNCTION
   void compute_rho1d(const int i, const FFT_SCALAR &, const FFT_SCALAR &,
                      const FFT_SCALAR &) const;
-  void compute_rho_coeff();
+  void compute_rho_coeff() override;
   void slabcorr() override;
 
   // grid communication
 
-  void pack_forward_grid_kokkos(int, FFT_DAT::tdual_FFT_SCALAR_1d &, int, DAT::tdual_int_2d_lr &, int) override;
-  void unpack_forward_grid_kokkos(int, FFT_DAT::tdual_FFT_SCALAR_1d &, int, int, DAT::tdual_int_2d_lr &, int) override;
-  void pack_reverse_grid_kokkos(int, FFT_DAT::tdual_FFT_SCALAR_1d &, int, DAT::tdual_int_2d_lr &, int) override;
-  void unpack_reverse_grid_kokkos(int, FFT_DAT::tdual_FFT_SCALAR_1d &, int, int, DAT::tdual_int_2d_lr &, int) override;
 
   // triclinic
 
-  void setup_triclinic();
-  void compute_gf_ik_triclinic();
-  void poisson_ik_triclinic();
+  void setup_triclinic() override;
+  void compute_gf_ik_triclinic() override;
+  void poisson_ik_triclinic() override;
 
 /* ----------------------------------------------------------------------
    denominator for Hockney-Eastwood Green's function

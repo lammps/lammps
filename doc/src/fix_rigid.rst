@@ -927,10 +927,28 @@ decomposition.  Because the random forces are drawn from a Kokkos
 device RNG rather than the host RNG, individual trajectories differ
 from the non-Kokkos style (they are not bit-for-bit comparable), but
 the bodies are thermostatted to the same target temperature.  Reading
-body properties from a file (the *infile* keyword) and inserting rigid
-molecules at runtime (:doc:`fix deposit <fix_deposit>` /
-:doc:`fix pour <fix_pour>`) are both supported.  The *kk* styles run on
-3d systems only.
+body properties from a file (the *infile* keyword) is supported, and so is
+inserting rigid molecules at runtime with :doc:`fix deposit <fix_deposit>`
+and :doc:`fix pour <fix_pour>`.  The *kk* styles run on 3d systems only.
+
+.. versionchanged:: TBD
+
+The *kk* styles hand the rigid-body state between the host and the device
+at fixed points, once per timestep, so a fix that reaches in between those
+points now stops the run with an error instead of quietly returning wrong
+numbers.  That covers three cases.  A fix that rebuilds the neighbor lists
+in the middle of a timestep, which the Monte Carlo fixes do around a trial
+energy evaluation (:doc:`fix gcmc <fix_gcmc>`, :doc:`fix gemc <fix_gemc>`,
+:doc:`fix widom <fix_widom>`, :doc:`fix atom/swap <fix_atom_swap>` and
+others), overwrites the body state with a copy that is no longer current.
+A fix that runs the rigid fix's setup a second time, as
+:doc:`fix hmc <fix_hmc>` does, rebuilds the bodies from a stale copy.  And
+a fix that creates or deletes atoms during a run loses the new atom's body
+bookkeeping where the host and the device have separate memory, as they do
+on a GPU -- this last one only stops the run there; on a CPU or OpenMP
+build, where the two share one memory space, nothing is lost and
+:doc:`fix deposit <fix_deposit>` keeps working.  Run the affected inputs
+without the KOKKOS package.
 
 Rigid bodies built from finite-size *sphere*, *ellipsoid*, and point
 *dipole* particles are supported with Kokkos: in each integration step the

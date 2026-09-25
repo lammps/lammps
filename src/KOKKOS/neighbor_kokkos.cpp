@@ -51,22 +51,35 @@ NeighborKokkos::NeighborKokkos(LAMMPS *lmp) : Neighbor(lmp),
 
 NeighborKokkos::~NeighborKokkos()
 {
-  if (!copymode) {
-    memoryKK->destroy_kokkos(k_cutneighsq,cutneighsq);
-    cutneighsq = nullptr;
-
-    memoryKK->destroy_kokkos(k_cutneighghostsq,cutneighghostsq);
-    cutneighghostsq = nullptr;
-
-    memoryKK->destroy_kokkos(k_ex_type,ex_type);
-    memoryKK->destroy_kokkos(k_ex1_type,ex1_type);
-    memoryKK->destroy_kokkos(k_ex2_type,ex2_type);
-    memoryKK->destroy_kokkos(k_ex_mol_group,ex_mol_group);
-    memoryKK->destroy_kokkos(k_ex1_bit,ex1_bit);
-    memoryKK->destroy_kokkos(k_ex2_bit,ex2_bit);
-    memoryKK->destroy_kokkos(k_ex_mol_bit,ex_mol_bit);
-    memoryKK->destroy_kokkos(k_ex_mol_intra,ex_mol_intra);
+  // this object (and its neighbond_host/neighbond_device members, held by
+  // value) gets bitwise-copied whenever copymode=1 code below hands *this
+  // to a Kokkos parallel_for/parallel_reduce (e.g. check_distance_kokkos()).
+  // Kokkos destroys that temporary copy when the loop finishes.  Checking
+  // copymode here protects this object's own arrays, but neighbond_host and
+  // neighbond_device have their own independent copymode flag that this
+  // copy never set, so their destructors would still run for real and free
+  // neighbor->bondlist/anglelist/etc out from under the live Neighbor -- so
+  // propagate the guard into them before their member destructors run.
+  if (copymode) {
+    neighbond_host.copymode = 1;
+    neighbond_device.copymode = 1;
+    return;
   }
+
+  memoryKK->destroy_kokkos(k_cutneighsq,cutneighsq);
+  cutneighsq = nullptr;
+
+  memoryKK->destroy_kokkos(k_cutneighghostsq,cutneighghostsq);
+  cutneighghostsq = nullptr;
+
+  memoryKK->destroy_kokkos(k_ex_type,ex_type);
+  memoryKK->destroy_kokkos(k_ex1_type,ex1_type);
+  memoryKK->destroy_kokkos(k_ex2_type,ex2_type);
+  memoryKK->destroy_kokkos(k_ex_mol_group,ex_mol_group);
+  memoryKK->destroy_kokkos(k_ex1_bit,ex1_bit);
+  memoryKK->destroy_kokkos(k_ex2_bit,ex2_bit);
+  memoryKK->destroy_kokkos(k_ex_mol_bit,ex_mol_bit);
+  memoryKK->destroy_kokkos(k_ex_mol_intra,ex_mol_intra);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -133,8 +146,14 @@ void NeighborKokkos::create_kokkos_list(int i)
 
 /* ---------------------------------------------------------------------- */
 
+// create_kokkos() overwrites the plain pointer without looking at it, so an
+// allocation left from an earlier run has to be released first.  Neighbor::init()
+// calls these once per run, and the exclusion lists are the only arrays of the
+// base class that the KOKKOS package re-allocates behind its back
+
 void NeighborKokkos::init_ex_type_kokkos(int n)
 {
+  memoryKK->destroy_kokkos(k_ex_type,ex_type);
   memoryKK->create_kokkos(k_ex_type,ex_type,n+1,n+1,"neigh:ex_type");
   k_ex_type.modify_host();
 }
@@ -143,8 +162,10 @@ void NeighborKokkos::init_ex_type_kokkos(int n)
 
 void NeighborKokkos::init_ex_bit_kokkos()
 {
+  memoryKK->destroy_kokkos(k_ex1_bit, ex1_bit);
   memoryKK->create_kokkos(k_ex1_bit, ex1_bit, nex_group, "neigh:ex1_bit");
   k_ex1_bit.modify_host();
+  memoryKK->destroy_kokkos(k_ex2_bit, ex2_bit);
   memoryKK->create_kokkos(k_ex2_bit, ex2_bit, nex_group, "neigh:ex2_bit");
   k_ex2_bit.modify_host();
 }
@@ -153,6 +174,7 @@ void NeighborKokkos::init_ex_bit_kokkos()
 
 void NeighborKokkos::init_ex_mol_bit_kokkos()
 {
+  memoryKK->destroy_kokkos(k_ex_mol_bit, ex_mol_bit);
   memoryKK->create_kokkos(k_ex_mol_bit, ex_mol_bit, nex_mol, "neigh:ex_mol_bit");
   k_ex_mol_bit.modify_host();
 }

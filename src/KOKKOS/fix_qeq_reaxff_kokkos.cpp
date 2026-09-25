@@ -284,11 +284,17 @@ void FixQEqReaxFFKokkos<DeviceType>::pre_force(int /*vflag*/)
 
   //  cg solve over b_s, s & b_t, t
 
-  matvecs = cg_solve();
+  // cg_solve() advances the s and t systems together in a single fused loop,
+  // so one iteration of it is one matvec on each of the two systems.  The base
+  // class counts matvecs summed over the two separate CPU-side CG solves and
+  // reports matvecs/2.0 from compute_scalar(), so scale by two here; otherwise
+  // fix qeq/reaxff/kk reports half the iteration count that fix qeq/reaxff does.
+
+  matvecs = 2*cg_solve();
 
   k_s_hist.template sync<DeviceType>();
   k_t_hist.template sync<DeviceType>();
-  calculate_q();
+  calculate_Q();
   k_s_hist.template modify<DeviceType>();
   k_t_hist.template modify<DeviceType>();
 
@@ -517,7 +523,7 @@ int FixQEqReaxFFKokkos<DeviceType>::cg_solve()
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void FixQEqReaxFFKokkos<DeviceType>::calculate_q()
+void FixQEqReaxFFKokkos<DeviceType>::calculate_Q()
 {
   KK_double2 sum, sum_all;
 
@@ -1312,7 +1318,7 @@ template<class DeviceType>
 int FixQEqReaxFFKokkos<DeviceType>::pack_exchange_kokkos(
    const int &nsend, DAT::tdual_double_2d_lr &k_buf,
    DAT::tdual_int_1d k_exchange_sendlist, DAT::tdual_int_1d k_copylist,
-   ExecutionSpace /*space*/)
+   ExecutionSpace space)
 {
   k_buf.sync<DeviceType>();
   k_copylist.sync<DeviceType>();
@@ -1333,6 +1339,13 @@ int FixQEqReaxFFKokkos<DeviceType>::pack_exchange_kokkos(
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagQEqPackExchange>(0,nsend),*this);
 
   copymode = 0;
+
+  // the buffer goes to MPI through the view in the exchange space, so leave
+  // it current there
+
+  k_buf.modify<DeviceType>();
+  if (space == HostKK) k_buf.sync_host();
+  else k_buf.sync_device();
 
   k_s_hist.template modify<DeviceType>();
   k_t_hist.template modify<DeviceType>();

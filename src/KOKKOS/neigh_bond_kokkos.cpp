@@ -22,6 +22,7 @@
 #include "atom_masks.h"
 #include "atom_vec.h"
 #include "domain_kokkos.h"
+#include "bond.h"
 #include "error.h"
 #include "fix.h"
 #include "force.h"
@@ -126,7 +127,7 @@ void NeighBondKokkos<DeviceType>::init_topology_kk() {
   // bonds,etc can only be broken for atom->molecular = Atom::MOLECULAR, not Atom::TEMPLATE
   // SHAKE sets bonds and angles negative
   // gcmc sets all bonds, angles, etc negative
-  // bond_quartic sets bonds to 0
+  // a bond style that turns bonds off sets partial_flag
   // delete_bonds sets all interactions negative
 
   int i,m;
@@ -142,7 +143,7 @@ void NeighBondKokkos<DeviceType>::init_topology_kk() {
     if (utils::strmatch(ifix->style,"^shake") || utils::strmatch(ifix->style,"^rattle") ||
         utils::strmatch(ifix->style,"^ilves"))
       bond_off = angle_off = 1;
-  if (force->bond && force->bond_match("quartic")) bond_off = 1;
+  if (force->bond && force->bond->partial_flag) bond_off = 1;
 
   if (atom->avec->bonds_allow && atom->molecular == Atom::MOLECULAR) {
     for (i = 0; i < atom->nlocal; i++) {
@@ -301,6 +302,13 @@ void NeighBondKokkos<DeviceType>::bond_all()
     }
   } while (h_fail_flag());
 
+  // claim the list here, where the device loop above wrote it, and not at
+  // the end of this function: the "lost/bond ignore" setting returns before
+  // that point, so on those runs the claim never happened, the sync_host in
+  // build_topology_kk() then had nothing to copy, and a non-KOKKOS bond style
+  // kept reading the previous build's list through neighbor->bondlist
+  k_bondlist.modify<DeviceType>();
+
   if (nmissing && lostbond == Thermo::ERROR)
     error->one(FLERR, Error::NOLASTLINE, "Bond atoms missing at step {}" + utils::errorurl(5),
                update->ntimestep);
@@ -312,8 +320,6 @@ void NeighBondKokkos<DeviceType>::bond_all()
   MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
   if (all && me == 0)
     error->warning(FLERR,"Bond atoms missing at step {}" + utils::errorurl(5), update->ntimestep);
-
-  k_bondlist.modify<DeviceType>();
 }
 
 template<class DeviceType>
@@ -389,6 +395,13 @@ void NeighBondKokkos<DeviceType>::bond_partial()
     }
   } while (h_fail_flag());
 
+  // claim the list here, where the device loop above wrote it, and not at
+  // the end of this function: the "lost/bond ignore" setting returns before
+  // that point, so on those runs the claim never happened, the sync_host in
+  // build_topology_kk() then had nothing to copy, and a non-KOKKOS bond style
+  // kept reading the previous build's list through neighbor->bondlist
+  k_bondlist.modify<DeviceType>();
+
   if (nmissing && lostbond == Thermo::ERROR)
     error->one(FLERR, Error::NOLASTLINE, "Bond atoms missing at step {}" + utils::errorurl(5), update->ntimestep);
 
@@ -399,8 +412,6 @@ void NeighBondKokkos<DeviceType>::bond_partial()
   MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
   if (all && me == 0)
     error->warning(FLERR, "Bond atoms missing at step {}" + utils::errorurl(5), update->ntimestep);
-
-  k_bondlist.modify<DeviceType>();
 }
 
 template<class DeviceType>
@@ -505,6 +516,13 @@ void NeighBondKokkos<DeviceType>::angle_all()
     }
   } while (h_fail_flag());
 
+  // claim the list here, where the device loop above wrote it, and not at
+  // the end of this function: the "lost/bond ignore" setting returns before
+  // that point, so on those runs the claim never happened, the sync_host in
+  // build_topology_kk() then had nothing to copy, and a non-KOKKOS angle style
+  // kept reading the previous build's list through neighbor->anglelist
+  k_anglelist.modify<DeviceType>();
+
   if (nmissing && lostbond == Thermo::ERROR)
     error->one(FLERR, Error::NOLASTLINE, "Angle atoms missing at step {}" + utils::errorurl(5), update->ntimestep);
 
@@ -515,8 +533,6 @@ void NeighBondKokkos<DeviceType>::angle_all()
   MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
   if (all && (me == 0))
     error->warning(FLERR, "Angle atoms missing at step {}" + utils::errorurl(5), update->ntimestep);
-
-  k_anglelist.modify<DeviceType>();
 }
 
 template<class DeviceType>
@@ -599,6 +615,13 @@ void NeighBondKokkos<DeviceType>::angle_partial()
     }
   } while (h_fail_flag());
 
+  // claim the list here, where the device loop above wrote it, and not at
+  // the end of this function: the "lost/bond ignore" setting returns before
+  // that point, so on those runs the claim never happened, the sync_host in
+  // build_topology_kk() then had nothing to copy, and a non-KOKKOS angle style
+  // kept reading the previous build's list through neighbor->anglelist
+  k_anglelist.modify<DeviceType>();
+
   if (nmissing && lostbond == Thermo::ERROR)
     error->one(FLERR, Error::NOLASTLINE, "Angle atoms missing at step {}" + utils::errorurl(5), update->ntimestep);
 
@@ -609,8 +632,6 @@ void NeighBondKokkos<DeviceType>::angle_partial()
   MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
   if (all && (me == 0))
     error->warning(FLERR, "Angle atoms missing at step {}" + utils::errorurl(5), update->ntimestep);
-
-  k_anglelist.modify<DeviceType>();
 }
 
 template<class DeviceType>
@@ -735,6 +756,13 @@ void NeighBondKokkos<DeviceType>::dihedral_all()
     }
   } while (h_fail_flag());
 
+  // claim the list here, where the device loop above wrote it, and not at
+  // the end of this function: the "lost/bond ignore" setting returns before
+  // that point, so on those runs the claim never happened, the sync_host in
+  // build_topology_kk() then had nothing to copy, and a non-KOKKOS dihedral style
+  // kept reading the previous build's list through neighbor->dihedrallist
+  k_dihedrallist.modify<DeviceType>();
+
   if (nmissing && lostbond == Thermo::ERROR)
     error->one(FLERR, Error::NOLASTLINE, "Dihedral atoms missing at step {}" + utils::errorurl(5), update->ntimestep);
 
@@ -745,8 +773,6 @@ void NeighBondKokkos<DeviceType>::dihedral_all()
   MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
   if (all && (me == 0))
     error->warning(FLERR, "Dihedral atoms missing at step {}" + utils::errorurl(5), update->ntimestep);
-
-  k_dihedrallist.modify<DeviceType>();
 }
 
 template<class DeviceType>
@@ -834,6 +860,13 @@ void NeighBondKokkos<DeviceType>::dihedral_partial()
     }
   } while (h_fail_flag());
 
+  // claim the list here, where the device loop above wrote it, and not at
+  // the end of this function: the "lost/bond ignore" setting returns before
+  // that point, so on those runs the claim never happened, the sync_host in
+  // build_topology_kk() then had nothing to copy, and a non-KOKKOS dihedral style
+  // kept reading the previous build's list through neighbor->dihedrallist
+  k_dihedrallist.modify<DeviceType>();
+
   if (nmissing && lostbond == Thermo::ERROR)
     error->one(FLERR, Error::NOLASTLINE, "Dihedral atoms missing at step {}" + utils::errorurl(5), update->ntimestep);
 
@@ -844,8 +877,6 @@ void NeighBondKokkos<DeviceType>::dihedral_partial()
   MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
   if (all && (me == 0))
     error->warning(FLERR, "Dihedral atoms missing at step {}" + utils::errorurl(5), update->ntimestep);
-
-  k_dihedrallist.modify<DeviceType>();
 }
 
 template<class DeviceType>
@@ -992,6 +1023,13 @@ void NeighBondKokkos<DeviceType>::improper_all()
     }
   } while (h_fail_flag());
 
+  // claim the list here, where the device loop above wrote it, and not at
+  // the end of this function: the "lost/bond ignore" setting returns before
+  // that point, so on those runs the claim never happened, the sync_host in
+  // build_topology_kk() then had nothing to copy, and a non-KOKKOS improper style
+  // kept reading the previous build's list through neighbor->improperlist
+  k_improperlist.modify<DeviceType>();
+
   if (nmissing && lostbond == Thermo::ERROR)
     error->one(FLERR, Error::NOLASTLINE, "Improper atoms missing at step {}" + utils::errorurl(5), update->ntimestep);
 
@@ -1002,8 +1040,6 @@ void NeighBondKokkos<DeviceType>::improper_all()
   MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
   if (all && (me == 0))
     error->warning(FLERR, "Improper atoms missing at step {}" + utils::errorurl(5), update->ntimestep);
-
-  k_improperlist.modify<DeviceType>();
 }
 
 template<class DeviceType>
@@ -1091,6 +1127,13 @@ void NeighBondKokkos<DeviceType>::improper_partial()
     }
   } while (h_fail_flag());
 
+  // claim the list here, where the device loop above wrote it, and not at
+  // the end of this function: the "lost/bond ignore" setting returns before
+  // that point, so on those runs the claim never happened, the sync_host in
+  // build_topology_kk() then had nothing to copy, and a non-KOKKOS improper style
+  // kept reading the previous build's list through neighbor->improperlist
+  k_improperlist.modify<DeviceType>();
+
   if (nmissing && lostbond == Thermo::ERROR)
     error->one(FLERR, Error::NOLASTLINE, "Improper atoms missing at step {}" + utils::errorurl(5), update->ntimestep);
 
@@ -1101,8 +1144,6 @@ void NeighBondKokkos<DeviceType>::improper_partial()
   MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
   if (all && (me == 0))
     error->warning(FLERR, "Improper atoms missing at step {}" + utils::errorurl(5), update->ntimestep);
-
-  k_improperlist.modify<DeviceType>();
 }
 
 template<class DeviceType>

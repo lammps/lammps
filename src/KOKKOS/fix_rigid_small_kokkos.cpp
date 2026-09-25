@@ -156,6 +156,9 @@ template<class DeviceType>
 void FixRigidSmallKokkos<DeviceType>::init()
 {
   FixRigidSmall::init();
+
+  // one setup() per run; see check_second_setup()
+  setup_pushes = 0;
   if (utils::strmatch(update->integrate_style,"^respa"))
     error->all(FLERR,"Cannot yet use respa with Kokkos");
 
@@ -244,6 +247,9 @@ void FixRigidSmallKokkos<DeviceType>::pre_exchange()
 {
   if (!setupflag) return;
 
+  // the host is about to own the body state until pre_neighbor() takes it back
+  handover_open = true;
+
   // Device exchange path: pack_exchange_kokkos reads from the device DualViews
   // which are always authoritative during the run; no host flush needed.
   // Only skip the flush when CommKokkos is actually using the device exchange
@@ -269,6 +275,149 @@ void FixRigidSmallKokkos<DeviceType>::pre_exchange()
     k_eflags.sync_host();
     if (orientflag) k_orient.sync_host();
     if (dorientflag) k_dorient.sync_host();
+  }
+}
+
+/* ----------------------------------------------------------------------
+   Refuse the combinations this fix cannot support yet.
+
+   This class keeps the body state on the device for the length of a step and
+   hands it to the host and back at two points that have to alternate:
+   pre_exchange() brings body[] and the per-atom bookkeeping down so the host
+   atom migration can rewrite them, and pre_neighbor() pushes the result back
+   up.  body[] is the part that cannot look after itself -- it is a plain host
+   array that the device kernels do not mirror, so copy_body_device() pushes it
+   whole, on the strength of that pairing alone.
+
+   Eight fixes in the MC package call modify->pre_neighbor() on their own, from
+   inside their pre_exchange(), around a trial energy evaluation: gcmc, gemc,
+   gemc/mcmoves, widom, atom/swap, neighbor/swap, mol/swap and
+   charge/regulation.  Every extra call pushes a body[] that nothing has
+   refreshed since the one flush, so it overwrites whatever the device kernels
+   and the remap in the previous pre_neighbor() wrote.  In
+   examples/mc/in.gcmc.co2 that happens 54 times in the first step and the body
+   velocities never recover: the potential energy still matches a non-KOKKOS run
+   while the kinetic energy does not, and the run dies a few steps later.
+
+   fix hmc breaks the same pairing from the other end.  FixHMC::setup() calls
+   the rigid fix's setup() a second time, after ModifyKokkos::setup() has
+   already run it and the device kernels have claimed the bookkeeping again, so
+   the host rebuild reads a stale copy.
+
+   fix gcmc and fix deposit also create and delete atoms during the run, which
+   reaches the base class' set_arrays() and copy_arrays().  Those write the
+   per-atom bookkeeping -- bodyown, bodytag, atom2body, xcmimage, displace --
+   through plain host pointers, and where the device has its own copy that
+   write is discarded at the next push down.  The atom then keeps whatever the
+   device held, which can be a bodyown naming a body that does not exist, and
+   the base later indexes body[nlocal_body-1] with nlocal_body == 0, driving
+   nlocal_body negative until a Kokkos bounds check stops it.
+
+   Supporting any of this needs body[] brought into the dual view protocol it is
+   currently outside of: the device kernels write d_body without ever claiming
+   it, so nothing records which side owns it and an out-of-band caller cannot
+   know whether it has to flush first.  Until then, say so plainly rather than
+   return wrong numbers.
+
+   The three checks below are deliberately different in kind, because the three
+   failures are.  The handover and second-setup checks are about call order and
+   fire on every build.  The lost per-atom write only exists where the host and
+   the device really have separate memory, so that check asks the coherence
+   state: it stays quiet when the two share one memory space (Kokkos makes
+   modify_* a no-op there, so need_sync_host() is always false), which is why an
+   ordinary CPU KOKKOS run with fix deposit keeps working -- and it does keep
+   working, matching the non-KOKKOS style exactly.
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixRigidSmallKokkos<DeviceType>::check_handover_open()
+{
+  if (handover_open) return;
+
+  error->all(FLERR, "Fix {} does not yet support another fix rebuilding the "
+             "neighbor lists during a run; run this input without the KOKKOS "
+             "package", style);
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixRigidSmallKokkos<DeviceType>::check_second_setup()
+{
+  if (++setup_pushes == 1) return;
+
+  error->all(FLERR, "Fix {} does not yet support another fix running its setup "
+             "a second time; run this input without the KOKKOS package", style);
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixRigidSmallKokkos<DeviceType>::check_device_owns_bookkeeping(const char *what)
+{
+  if (!(k_bodyown.need_sync_host() || k_bodytag.need_sync_host() ||
+        k_atom2body.need_sync_host() || k_xcmimage.need_sync_host() ||
+        k_displace.need_sync_host())) return;
+
+  error->one(FLERR, "Fix {} does not yet support another fix {} atoms when the "
+             "host and the device have separate memory; run this input on the "
+             "CPU", style, what);
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixRigidSmallKokkos<DeviceType>::set_arrays(int i)
+{
+  if (setupflag) check_device_owns_bookkeeping("creating");
+  FixRigidSmall::set_arrays(i);
+  claim_host_bookkeeping(false);
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixRigidSmallKokkos<DeviceType>::copy_arrays(int i, int j, int delflag)
+{
+  if (setupflag && delflag) check_device_owns_bookkeeping("deleting");
+  FixRigidSmall::copy_arrays(i, j, delflag);
+  claim_host_bookkeeping(true);
+}
+
+/* ----------------------------------------------------------------------
+   the base class set_arrays() and copy_arrays() above write the per-atom
+   bookkeeping through the plain host pointers.  Claim what they wrote, so
+   that the next sync to the device carries it.  Without the claim a
+   delete_atoms or create_atoms between two runs changed only the host copy:
+   the next run's device sort then synced nothing up, permuted the pre-deletion
+   device copy along with the atoms, and brought that back to the host, where
+   reset_atom2body() found atoms pointing at bodies that no longer existed.
+
+   Nothing reaches the base calls while the device holds the newer copy: a
+   deletion or creation during a run is refused by
+   check_device_owns_bookkeeping(), and the atom exchange and sort, the other
+   callers, only use these calls on the path where init() moved both to the
+   host, which flushes the bookkeeping in pre_exchange() first.  So claiming
+   the host here never retires a device write.
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixRigidSmallKokkos<DeviceType>::claim_host_bookkeeping(bool copied)
+{
+  k_bodyown.modify_host();
+  k_bodytag.modify_host();
+  k_xcmimage.modify_host();
+  k_displace.modify_host();
+  if (vflag_atom) k_vatom.modify_host();
+
+  if (copied) {
+    if (extended) {
+      k_eflags.modify_host();
+      if (orient) k_orient.modify_host();
+      if (dorient) k_dorient.modify_host();
+    }
+  } else {
+    k_atom2body.modify_host();
   }
 }
 
@@ -491,12 +640,16 @@ void FixRigidSmallKokkos<DeviceType>::setup(int vflag)
 template<class DeviceType>
 void FixRigidSmallKokkos<DeviceType>::setup_device_push()
 {
+  check_second_setup();
+
   // FixRigidSmall::setup() populated the host per-atom arrays, which are the
   // host mirrors of the tied DualViews -> mark host-modified and push to device.
   // setup_pre_neighbor() always runs earlier in the same setup sequence and
   // leaves no device claim outstanding (on the first run it retires the one the
   // setup-time exchange made, and on later runs it syncs the device copy down),
-  // so a plain modify_host() cannot trip the concurrent-modification guard.
+  // so a plain modify_host() cannot trip the concurrent-modification guard --
+  // and check_second_setup() above has already turned the one case that would,
+  // another fix calling setup() out of turn, into an explanation.
   k_bodyown.modify_host();
   k_bodytag.modify_host();
   k_atom2body.modify_host();
@@ -662,6 +815,11 @@ void FixRigidSmallKokkos<DeviceType>::pre_neighbor(){
     FixRigidSmall::pre_neighbor();
     return;
   }
+
+  // one pre_neighbor() per pre_exchange(), no more
+  check_handover_open();
+  handover_open = false;
+
   Kokkos::Profiling::pushRegion("rigid/small pre_neighbor");
 
   nghost_body = 0;
@@ -1211,6 +1369,15 @@ void FixRigidSmallKokkos<DeviceType>::post_run()
   k_bodytag.sync_host();
   k_atom2body.sync_host();
   k_xcmimage.sync_host();
+
+  // displace belongs with the four above: it is per-atom bookkeeping that
+  // copy_arrays() and set_arrays() move on the host when atoms are deleted or
+  // created between runs, and check_device_owns_bookkeeping() tests it with
+  // them.  Left on the device, a delete_atoms after a run was refused even
+  // with no other fix involved, and with "reinit no" -- which keeps displace
+  // rather than recomputing it at the next setup -- the host would have moved
+  // stale values.
+  k_displace.sync_host();
 }
 
 /* ----------------------------------------------------------------------

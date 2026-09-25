@@ -46,8 +46,8 @@ enum { DEFAULT, TERSE, VERBOSE };
 /* ---------------------------------------------------------------------- */
 
 NEB::NEB(LAMMPS *lmp) :
-    Command(lmp), fp(nullptr), inpfile(nullptr), fneb(nullptr), all(nullptr), rdist(nullptr),
-    freplica(nullptr), fmaxatomInRepl(nullptr)
+    Command(lmp), roots(MPI_COMM_NULL), fp(nullptr), inpfile(nullptr), fneb(nullptr), all(nullptr),
+    rdist(nullptr), freplica(nullptr), fmaxatomInRepl(nullptr)
 {
   print_mode = DEFAULT;
 

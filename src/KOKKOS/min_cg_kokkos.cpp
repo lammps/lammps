@@ -15,6 +15,7 @@
 #include "min_cg_kokkos.h"
 
 #include "atom_kokkos.h"
+#include "kokkos.h"
 #include "atom_masks.h"
 #include "error.h"
 #include "fix_minimize_kokkos.h"
@@ -244,11 +245,19 @@ int MinCGKokkos::iterate(int maxiter)
     // output for thermo, dump, restart files
 
     if (output->next == ntimestep) {
+      // as in VerletKokkos::run(): a plain compute or fix reached from the
+      // output may write through the host pointers and re-enter the force
+      // pipeline, and auto_sync is what carries those writes to the device
+
+      int prev_auto_sync = lmp->kokkos->auto_sync;
+      lmp->kokkos->auto_sync = 1;
       atomKK->sync(Host,ALL_MASK);
 
       timer->stamp();
       output->write(ntimestep);
       timer->stamp(Timer::OUTPUT);
+
+      lmp->kokkos->auto_sync = prev_auto_sync;
     }
   }
 

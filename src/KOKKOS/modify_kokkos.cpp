@@ -540,15 +540,15 @@ void ModifyKokkos::post_run()
 
 void ModifyKokkos::setup_pre_force_respa(int vflag, int ilevel)
 {
-  for (int i = 0; i < n_pre_force; i++) {
-    atomKK->sync(fix[list_pre_force[i]]->execution_space,
-                 fix[list_pre_force[i]]->datamask_read);
+  for (int i = 0; i < n_pre_force_respa; i++) {
+    atomKK->sync(fix[list_pre_force_respa[i]]->execution_space,
+                 fix[list_pre_force_respa[i]]->datamask_read);
     int prev_auto_sync = lmp->kokkos->auto_sync;
-    if (!fix[list_pre_force[i]]->kokkosable) lmp->kokkos->auto_sync = 1;
-    fix[list_pre_force[i]]->setup_pre_force_respa(vflag,ilevel);
+    if (!fix[list_pre_force_respa[i]]->kokkosable) lmp->kokkos->auto_sync = 1;
+    fix[list_pre_force_respa[i]]->setup_pre_force_respa(vflag,ilevel);
     lmp->kokkos->auto_sync = prev_auto_sync;
-    atomKK->modified(fix[list_pre_force[i]]->execution_space,
-                     fix[list_pre_force[i]]->datamask_modify);
+    atomKK->modified(fix[list_pre_force_respa[i]]->execution_space,
+                     fix[list_pre_force_respa[i]]->datamask_modify);
   }
 }
 
@@ -613,6 +613,20 @@ void ModifyKokkos::pre_force_respa(int vflag, int ilevel, int iloop)
 
 void ModifyKokkos::post_force_respa(int vflag, int ilevel, int iloop)
 {
+  // the GROUP fixes go first, as they do in post_force(): a dynamic group has
+  // to be up to date before the fixes that act on it run
+
+  for (int i = 0; i < n_post_force_group; i++) {
+    atomKK->sync(fix[list_post_force_group[i]]->execution_space,
+                 fix[list_post_force_group[i]]->datamask_read);
+    int prev_auto_sync = lmp->kokkos->auto_sync;
+    if (!fix[list_post_force_group[i]]->kokkosable) lmp->kokkos->auto_sync = 1;
+    fix[list_post_force_group[i]]->post_force_respa(vflag,ilevel,iloop);
+    lmp->kokkos->auto_sync = prev_auto_sync;
+    atomKK->modified(fix[list_post_force_group[i]]->execution_space,
+                     fix[list_post_force_group[i]]->datamask_modify);
+  }
+
   for (int i = 0; i < n_post_force_respa; i++) {
     atomKK->sync(fix[list_post_force_respa[i]]->execution_space,
                  fix[list_post_force_respa[i]]->datamask_read);

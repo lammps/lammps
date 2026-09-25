@@ -179,7 +179,10 @@ void FixPressLangevinKokkos<DeviceType>::pre_exchange()
 
     domainKK->x2lamda(atom->nlocal);
     atomKK->sync(Host, ALL_MASK);
-    irregular->migrate_atoms();
+    // sorted, so that the local atom order after a flip does not depend on the
+    // order the irregular messages happen to arrive in; see the note in
+    // FixDeform::migrate_atoms()
+    irregular->migrate_atoms(1);
     atomKK->modified(Host, ALL_MASK);
     domainKK->lamda2x(atom->nlocal);
   }

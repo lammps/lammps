@@ -205,6 +205,7 @@ class AtomKokkos : public Atom {
   void *extract(const char *) override;
   void sync(const ExecutionSpace space, uint64_t mask);
   void modified(const ExecutionSpace space, uint64_t mask);
+  void sync_mass(const ExecutionSpace space, uint64_t mask);
   void sync_pinned(const ExecutionSpace space, uint64_t mask, int async_flag = 0);
   void sort() override;
   int add_custom(const char *, int, int, int border = 0) override;
@@ -214,9 +215,36 @@ class AtomKokkos : public Atom {
   void map_set_device();
   void map_set_host();
 
+  class AtomVec *new_avec(const std::string &, int, int &) override;
+
+  // per-atom arrays that are off limits to sync() and modified() for the
+  // duration of a force region that overlaps host and device work.  The host
+  // styles accumulate their forces into the host copy alone and the two sides
+  // are brought together at the end of the region, so nothing may sync or
+  // claim those arrays in between, whether from the run style or from inside a
+  // force style.  See VerletKokkos::overlap_possible().  Zero outside such a
+  // region, which leaves every other caller unaffected.
+
+  uint64_t datamask_exclude = 0;
+
+  // scope guard that publishes an exclude mask and restores the previous one,
+  // either at release(), where the region ends before the end of the enclosing
+  // scope, or in the destructor, which also covers an error unwind
+
+  class ExcludeMask {
+    AtomKokkos *atomKK;
+    uint64_t prev;
+   public:
+    ExcludeMask(AtomKokkos *a, uint64_t mask) : atomKK(a), prev(a->datamask_exclude)
+      { atomKK->datamask_exclude = mask; }
+    ~ExcludeMask() { release(); }
+    void release() { atomKK->datamask_exclude = prev; }
+    ExcludeMask(const ExcludeMask &) = delete;
+    ExcludeMask &operator=(const ExcludeMask &) = delete;
+  };
+
  private:
   void sort_device();
-  class AtomVec *new_avec(const std::string &, int, int &) override;
 };
 
 template<class ViewType, class IndexView>

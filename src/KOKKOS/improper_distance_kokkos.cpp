@@ -82,6 +82,19 @@ void ImproperDistanceKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   k_k.template sync<DeviceType>();
   k_chi.template sync<DeviceType>();
 
+  // Sync what this style reads and claim what it writes, the same way the
+  // KOKKOS pair styles do.  run_style verlet/kk does this for its caller, but
+  // it is not the only caller: the MC fixes re-evaluate the bonded energy out
+  // of band from energy_full(), and there the forces are read from whichever
+  // side is stale.  Under run_style verlet/kk the sync finds nothing to copy.
+  // An out-of-band caller runs with auto_sync on, and there every call copies
+  // x and f to the device and f back, as the pair styles' own sync does: the
+  // price of not knowing what that caller wrote through the host pointers.
+
+  atomKK->sync(execution_space,datamask_read);
+  if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
+  else atomKK->modified(execution_space,F_MASK);
+
   x = atomKK->k_x.view<DeviceType>();
   f = atomKK->k_f.view<DeviceType>();
   neighborKK->k_improperlist.template sync<DeviceType>();

@@ -85,6 +85,18 @@ template <class DeviceType> class FixRigidSmallKokkos : public FixRigidSmall, pu
   void pre_neighbor() override;
 
   void grow_arrays(int) override;
+
+  // Refuse, rather than silently corrupt, when another fix reaches this fix's
+  // host bookkeeping at a point where the device owns it.  See the definition
+  // of check_device_owns_bookkeeping() for why those combinations cannot work
+  // as this class stands.
+  void set_arrays(int) override;
+  void copy_arrays(int, int, int) override;
+  void check_device_owns_bookkeeping(const char *what);
+  void claim_host_bookkeeping(bool copied);
+  void check_handover_open();
+  void check_second_setup();
+
   void grow_body() override;
   void set_molecule(int, tagint, int, double *, double *, double *) override;
   void resample_momenta(int, int, class RanPark *, double) override;
@@ -214,6 +226,15 @@ template <class DeviceType> class FixRigidSmallKokkos : public FixRigidSmall, pu
   // later runs, so the pre_neighbor()/reset_atom2body()/image_shift() overrides
   // take their host fallback even though setupflag is already 1 by then
   bool setup_host_rebuild = false;
+
+  // pre_exchange() hands the body state to the host and pre_neighbor() hands it
+  // back, so the two have to alternate; this says a handover is open.  See
+  // check_handover_open().
+  bool handover_open = false;
+
+  // how many times setup_device_push() has run since init(); more than once
+  // means a second fix called this one's setup().  See check_second_setup().
+  int setup_pushes = 0;
 
   // scratch reused across calls: allocating a device View (and, for the counter,
   // a fenced readback) inside every pack_exchange_kokkos / reset_atom2body call

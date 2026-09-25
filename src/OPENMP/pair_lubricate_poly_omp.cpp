@@ -250,9 +250,9 @@ void PairLubricatePolyOMP::eval(int iifrom, int iito, ThrData * const thr)
 
       if (SHEARING && vflag_either) {
         vRS0 = -vxmu2f * RS0*rad3;
-        v_tally_tensor(i,i,nlocal,/* newton_pair */ 0,
-                       vRS0*Ef[0][0],vRS0*Ef[1][1],vRS0*Ef[2][2],
-                       vRS0*Ef[0][1],vRS0*Ef[0][2],vRS0*Ef[1][2]);
+        const double vRS[6] = {vRS0*Ef[0][0], vRS0*Ef[1][1], vRS0*Ef[2][2],
+                               vRS0*Ef[0][1], vRS0*Ef[0][2], vRS0*Ef[1][2]};
+        v_tally_thr(this,i,i,nlocal,/* newton_pair */ 0,vRS,thr);
       }
     }
 
@@ -429,8 +429,8 @@ void PairLubricatePolyOMP::eval(int iifrom, int iito, ThrData * const thr)
 
         }
 
-        if (EVFLAG) ev_tally_xyz(i,nlocal,nlocal, /* newton_pair */ 0,
-                                 0.0,0.0,-fx,-fy,-fz,delx,dely,delz);
+        if (EVFLAG) ev_tally_xyz_thr(this,i,nlocal,nlocal, /* newton_pair */ 0,
+                                     0.0,0.0,-fx,-fy,-fz,delx,dely,delz,thr);
       }
     }
   }
@@ -440,6 +440,14 @@ void PairLubricatePolyOMP::eval(int iifrom, int iito, ThrData * const thr)
   if (SHEARING) {
     double *h_rate = domain->h_rate;
     double *h_ratelo = domain->h_ratelo;
+
+    // wait for every thread to leave the pair loop first: it reads v[j] and
+    // omega[j] for neighbors that another thread's range owns, so restoring a
+    // thread's atoms while the others are still looping hands them lab-frame
+    // velocities where the streaming-frame ones belong, and the forces come
+    // out wrong -- for different atoms on every run
+
+    sync_threads();
 
     for (ii = iifrom; ii < iito; ii++) {
       i = ilist[ii];

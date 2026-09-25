@@ -692,13 +692,30 @@ void PairVashishtaKokkos<DeviceType>::threebody(const Param& paramij, const Para
   const KK_FLOAT big2b_kk = static_cast<KK_FLOAT>(paramijk.big2b);
 
   r1 = Kokkos::sqrt(rsq1);
+  r2 = Kokkos::sqrt(rsq2);
+
+  // the caller admits this triplet on rsq < r0*r0 for both separations, but
+  // rounding rsq to KK_FLOAT and taking its square root does not preserve that:
+  // r can come out equal to (or above) r0 even though rsq was strictly below
+  // r0*r0, and 1/(r - r0) below is then infinite.  The three-body term and its
+  // derivative both go to zero as r approaches r0, so returning zero here is the
+  // exact limit rather than an approximation.  The base style has the same shape,
+  // but a double precision ulp is narrow enough that it has never been seen to
+  // trigger there.
+
+  if ((r1 >= r0ij_kk) || (r2 >= r0ik_kk)) {
+    fj[0] = fj[1] = fj[2] = 0.0;
+    fk[0] = fk[1] = fk[2] = 0.0;
+    if (eflag) eng = 0.0;
+    return;
+  }
+
   rinvsq1 = static_cast<KK_FLOAT>(1.0)/rsq1;
   rainv1 = static_cast<KK_FLOAT>(1.0)/(r1 - r0ij_kk);
   gsrainv1 = gammaij_kk * rainv1;
   gsrainvsq1 = gsrainv1*rainv1/r1;
   expgsrainv1 = Kokkos::exp(gsrainv1);
 
-  r2 = Kokkos::sqrt(rsq2);
   rinvsq2 = static_cast<KK_FLOAT>(1.0)/rsq2;
   rainv2 = static_cast<KK_FLOAT>(1.0)/(r2 - r0ik_kk);
   gsrainv2 = gammaik_kk * rainv2;
@@ -759,13 +776,21 @@ void PairVashishtaKokkos<DeviceType>::threebodyj(const Param& paramij, const Par
   const KK_FLOAT big2b_kk = static_cast<KK_FLOAT>(paramijk.big2b);
 
   r1 = Kokkos::sqrt(rsq1);
+  r2 = Kokkos::sqrt(rsq2);
+
+  // either separation can round up to r0, see the note in threebody()
+
+  if ((r1 >= r0ij_kk) || (r2 >= r0ik_kk)) {
+    fj[0] = fj[1] = fj[2] = 0.0;
+    return;
+  }
+
   rinvsq1 = static_cast<KK_FLOAT>(1.0)/rsq1;
   rainv1 = static_cast<KK_FLOAT>(1.0)/(r1 - r0ij_kk);
   gsrainv1 = gammaij_kk * rainv1;
   gsrainvsq1 = gsrainv1*rainv1/r1;
   expgsrainv1 = Kokkos::exp(gsrainv1);
 
-  r2 = Kokkos::sqrt(rsq2);
   rainv2 = static_cast<KK_FLOAT>(1.0)/(r2 - r0ik_kk);
   gsrainv2 = gammaik_kk * rainv2;
   expgsrainv2 = Kokkos::exp(gsrainv2);

@@ -77,6 +77,15 @@ LAMMPS was built with that package. See the :doc:`Build package <Build_package>`
 
 Currently, it does not support :doc:`molecule templates <molecule>`.
 
+.. versionchanged:: TBD
+
+This fix cannot be used with the KOKKOS versions of pair, bond, angle,
+dihedral, improper, or kspace styles, as selected for example with the
+*-sf kk* :doc:`command-line switch <Run_options>`, and stops with an
+error when one is present.  Those styles do not see the filtered
+coordinates this fix provides, so the forces were computed from the
+unfiltered positions and the run was silently not filtered.
+
 Related commands
 """"""""""""""""
 

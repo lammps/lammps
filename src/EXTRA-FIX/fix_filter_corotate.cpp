@@ -25,12 +25,16 @@
 #include "bond.h"
 #include "citeme.h"
 #include "comm.h"
+#include "dihedral.h"
 #include "domain.h"
 #include "error.h"
 #include "force.h"
+#include "improper.h"
+#include "kspace.h"
 #include "math_const.h"
 #include "memory.h"
 #include "modify.h"
+#include "pair.h"
 #include "respa.h"
 #include "update.h"
 
@@ -280,6 +284,30 @@ void FixFilterCorotate::init()
     nlevels_respa = (dynamic_cast<Respa *>(update->integrate))->nlevels;
   }
   else error->all(FLERR,"Fix filter/corotate requires rRESPA!");
+
+  // This fix does its work by pointing atom->x at its own filtered copy of the
+  // coordinates for the duration of the force computation and putting the
+  // original pointer back afterwards.  A KOKKOS force style never reads
+  // atom->x: it reads the coordinates through the KOKKOS copy, which still
+  // refers to the unfiltered buffer, so it computes the forces at the
+  // unfiltered positions while filter_outer() goes on transforming them as
+  // though they had been filtered.  The run is then not a less accurate
+  // version of the intended one, it is a different one and it says nothing
+  // about it, so turn it away instead.  examples/PACKAGES/filter_corotate
+  // in.respa run this way matched the energy of the same input with the fix
+  // deleted, to every digit printed.
+
+  const char *kk_style = nullptr;
+  if (force->pair && force->pair->kokkosable) kk_style = force->pair_style;
+  else if (force->bond && force->bond->kokkosable) kk_style = force->bond_style;
+  else if (force->angle && force->angle->kokkosable) kk_style = force->angle_style;
+  else if (force->dihedral && force->dihedral->kokkosable) kk_style = force->dihedral_style;
+  else if (force->improper && force->improper->kokkosable) kk_style = force->improper_style;
+  else if (force->kspace && force->kspace->kokkosable) kk_style = force->kspace_style;
+  if (kk_style)
+    error->all(FLERR, "Fix {} does not support the KOKKOS version of {}, which would "
+               "not see the filtered coordinates; run this input without the KOKKOS "
+               "package, or without the -sf kk suffix", style, kk_style);
 
   // set equilibrium bond distances
 

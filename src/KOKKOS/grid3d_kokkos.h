@@ -38,7 +38,7 @@ class Grid3dKokkos : public Grid3d {
   void reverse_comm(int, void *, int, int, int,
                     FFT_DAT::tdual_FFT_SCALAR_1d &, FFT_DAT::tdual_FFT_SCALAR_1d &, MPI_Datatype);
 
- private:
+ protected:
   DAT::tdual_int_2d_lr k_swap_packlist;
   DAT::tdual_int_2d_lr k_swap_unpacklist;
 

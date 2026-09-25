@@ -168,10 +168,10 @@ mix, shift, table, and tail options.
    * The contact forces are scaled up with the length of the contact
      region (controlled by *delta_ua*), but no corresponding energy is
      defined.
-   * When a vertex of one particle touches more than two points on the
-     edges of the other particle, the contact forces are applied only at
-     the first two contacts that are at different places, and a contact
-     between two vertices is counted only once.  As the particles move,
+   * When two particles touch at more than two points, whether between
+     a vertex and an edge or between two vertices, the contact forces are
+     applied only at the first two contacts that are at different places,
+     and a contact between two vertices is counted only once.  As the particles move,
      contacts appear and disappear abruptly, which changes the forces
      discontinuously.  With cohesion (:math:`k_{na} > 0`), the energy
      of a contact does not vanish when the surfaces just touch, so that

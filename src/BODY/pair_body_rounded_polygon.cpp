@@ -280,23 +280,20 @@ void PairBodyRoundedPolygon::pair_interaction(int i, int j, double delx, double 
 
   num_contacts = contacts.size();
 
-  // the vertex-edge contact forces are applied at up to two contacts, see
-  // Fraige et al.: the first two contacts at different places, whose
-  // separation is the contact length that scales the cohesive forces, or else
-  // at a single contact.  the vertex-vertex contacts (edge = -1) are always
-  // applied, without scaling.  there is one friction force per pair of bodies,
-  // at the applied contact with the largest overlap
+  // the contact forces are applied at up to two contacts, see Fraige et al.:
+  // the first two contacts at different places, whose separation is the
+  // contact length that scales the cohesive forces, or else a single contact.
+  // contacts between two vertices are treated like vertex-edge contacts.
+  // there is one friction force per pair of bodies, at the applied contact
+  // with the largest overlap
 
   if (num_contacts > 0) {
-    int m0 = -1, n0 = -1;
+    int m0 = 0, n0 = -1;
     j_a = 1.0;
 
     done = 0;
-    for (int m = 0; (m < num_contacts) && !done; m++) {
-      if (contacts[m].edge < 0) continue;
-      if (m0 < 0) m0 = m;
+    for (int m = 0; (m < num_contacts-1) && !done; m++) {
       for (int n = m+1; n < num_contacts; n++) {
-        if (contacts[n].edge < 0) continue;
         delta_a = contact_separation(contacts[m], contacts[n]);
         if (delta_a > 0) {
           m0 = m;
@@ -309,22 +306,14 @@ void PairBodyRoundedPolygon::pair_interaction(int i, int j, double delx, double 
       }
     }
 
-    // the applied contact with the largest overlap gets the friction force
+    int friction_m = 1;
+    if ((n0 >= 0) && (contacts[n0].separation < contacts[m0].separation)) friction_m = 0;
 
-    int mfric = -1;
-    for (int m = 0; m < num_contacts; m++) {
-      if ((contacts[m].edge >= 0) && (m != m0) && (m != n0)) continue;
-      if ((mfric < 0) || (contacts[m].separation < contacts[mfric].separation)) mfric = m;
-    }
-
-    for (int m = 0; m < num_contacts; m++) {
-      double scale;
-      if (contacts[m].edge < 0) scale = 1.0;
-      else if ((m == m0) || (m == n0)) scale = j_a;
-      else continue;
-      contact_forces(contacts[m], scale, (m == mfric) ? 1 : 0, x, v, angmom, f, torque, fnc,
-                     evdwl, (contacts[m].ibody == i) ? facc : fj);
-    }
+    contact_forces(contacts[m0], j_a, friction_m, x, v, angmom, f, torque, fnc, evdwl,
+                   (contacts[m0].ibody == i) ? facc : fj);
+    if (n0 >= 0)
+      contact_forces(contacts[n0], j_a, 1 - friction_m, x, v, angmom, f, torque, fnc, evdwl,
+                     (contacts[n0].ibody == i) ? facc : fj);
 
     #ifdef _POLYGON_DEBUG
     printf("  Contacts %d and %d: j_a = %f\n", m0, n0, j_a);

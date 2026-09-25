@@ -53,6 +53,13 @@ class PairBodyRoundedPolyhedron : public Pair {
     int unique;
   };
 
+  // scratch space for the interaction of a pair of bodies, one per thread
+
+  struct Scratch {
+    std::vector<Contact> contacts;    // contacts between the two bodies
+    std::vector<int> vertex_done;     // flags for the vertices already interacted with
+  };
+
  protected:
   double **k_n;        // normal repulsion strength
   double **k_na;       // normal attraction strength
@@ -98,51 +105,62 @@ class PairBodyRoundedPolyhedron : public Pair {
 
   void work_nonconservative();
 
-  std::vector<Contact> contacts;    // contacts between the current pair of bodies
+  Scratch scratch;    // scratch space of the serial compute()
 
   void allocate();
   void body2space(int);
 
+  // interaction between two bodies
+  void pair_interaction(int i, int j, double delx, double dely, double delz, double rsq,
+                        double **x, double **v, double **angmom, double **f, double **torque,
+                        double **fnc, Scratch &s, double &evdwl, double *facc);
   // sphere-sphere interaction
   void sphere_against_sphere(int ibody, int jbody, int itype, int jtype, double delx, double dely,
-                             double delz, double rsq, double **v, double **f, int evflag);
+                             double delz, double rsq, double **v, double **f, double **fnc,
+                             double &evdwl, double *facc);
   // sphere-edge interaction
   void sphere_against_edge(int ibody, int jbody, int itype, int jtype, double **x, double **v,
-                           double **f, double **torque, double **angmom, int evflag);
+                           double **f, double **torque, double **angmom, double **fnc,
+                           Scratch &s, double &evdwl, double *facc);
   // sphere-face interaction
   void sphere_against_face(int ibody, int jbody, int itype, int jtype, double **x, double **v,
-                           double **f, double **torque, double **angmom, int evflag);
+                           double **f, double **torque, double **angmom, double **fnc,
+                           Scratch &s, double &evdwl, double *facc);
   // edge-edge interactions
-  int edge_against_edge(int ibody, int jbody, int itype, int jtype, double **x,
-                        std::vector<Contact> &contacts, double &evdwl, double *facc);
+  int edge_against_edge(int ibody, int jbody, int itype, int jtype, double **x, double **v,
+                        double **f, double **torque, double **angmom, double **fnc, Scratch &s,
+                        double &evdwl, double *facc);
   // edge-face interactions
-  int edge_against_face(int ibody, int jbody, int itype, int jtype, double **x,
-                        std::vector<Contact> &contacts, double &evdwl, double *facc);
+  int edge_against_face(int ibody, int jbody, int itype, int jtype, double **x, double **v,
+                        double **f, double **torque, double **angmom, double **fnc, Scratch &s,
+                        double &evdwl, double *facc);
 
   // a face vs. a single edge
   int interaction_face_to_edge(int ibody, int face_index, double *xmi, double rounded_radius_i,
                                int jbody, int edge_index, double *xmj, double rounded_radius_j,
-                               int itype, int jtype, double cut_inner,
-                               std::vector<Contact> &contacts, double &energy, double *facc);
+                               int itype, int jtype, double cut_inner, double **v, double **f,
+                               double **torque, double **angmom, double **fnc, Scratch &s,
+                               double &energy, double *facc);
   // an edge vs. an edge from another body
   int interaction_edge_to_edge(int ibody, int edge_index_i, double *xmi, double rounded_radius_i,
                                int jbody, int edge_index_j, double *xmj, double rounded_radius_j,
-                               int itype, int jtype, double cut_inner,
-                               std::vector<Contact> &contacts, double &energy, double *facc);
+                               int itype, int jtype, double cut_inner, double **v, double **f,
+                               double **torque, double **angmom, double **fnc, Scratch &s,
+                               double &energy, double *facc);
 
   // compute contact forces if contact points are detected
   void contact_forces(int ibody, int jbody, double *xi, double *xj, double delx, double dely,
                       double delz, double fx, double fy, double fz, double **x, double **v,
-                      double **angmom, double **f, double **torque, double *facc);
+                      double **angmom, double **f, double **torque, double **fnc, double *facc);
 
   // compute force and torque between two bodies given a pair of interacting points
   void pair_force_and_torque(int ibody, int jbody, double *pi, double *pj, double r,
                              double contact_dist, int itype, int jtype, double **x, double **v,
-                             double **f, double **torque, double **angmom, int jflag,
-                             double &energy, double *facc);
+                             double **f, double **torque, double **angmom, double **fnc,
+                             int jflag, double &energy, double *facc);
 
   // rescale the cohesive forces if a contact area is detected
-  void rescale_cohesive_forces(double **x, double **f, double **torque,
+  void rescale_cohesive_forces(double **x, double **f, double **torque, double **fnc,
                                std::vector<Contact> &contacts, int itype, int jtype, double *facc);
 
   // compute the separation between two contacts

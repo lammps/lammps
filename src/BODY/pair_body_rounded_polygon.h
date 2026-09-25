@@ -49,6 +49,13 @@ class PairBodyRoundedPolygon : public Pair {
     double fv[3];         // unscaled force on the vertex, the edge gets -fv
   };
 
+  // scratch space for the interaction of a pair of bodies, one per thread
+
+  struct Scratch {
+    std::vector<Contact> contacts;    // vertex-edge contacts
+    std::vector<int> vertex_done;     // flags for the vertices already interacted with
+  };
+
  protected:
   double **k_n;        // normal repulsion strength
   double **k_na;       // normal attraction strength
@@ -87,27 +94,30 @@ class PairBodyRoundedPolygon : public Pair {
 
   void work_nonconservative();
 
-  std::vector<Contact> contacts;    // vertex-edge contacts between the current pair of bodies
-  std::vector<int> vertex_done;     // flags for the vertices of a body already interacted with
+  Scratch scratch;    // scratch space of the serial compute()
 
   void allocate();
   void body2space(int);
 
+  // interaction between two bodies
+  void pair_interaction(int i, int j, double delx, double dely, double delz, double rsq,
+                        double **x, double **v, double **angmom, double **f, double **torque,
+                        double **fnc, Scratch &s, double &evdwl, double *facc);
   // sphere-sphere interaction
   void sphere_against_sphere(int i, int j, double delx, double dely, double delz, double rsq,
-                             double k_n, double k_na, double **x, double **v, double **f,
-                             int evflag);
+                             double k_n, double k_na, double **v, double **f, double **fnc,
+                             double &evdwl, double *facc);
   // vertex-edge interaction
   int vertex_against_edge(int i, int j, double k_n, double k_na, double **x, double **f,
-                          double **torque, tagint *tag, std::vector<Contact> &contacts,
-                          double &evdwl, double *facc);
+                          double **torque, tagint *tag, Scratch &s, double &evdwl,
+                          double *facc);
   // compute distance between a point and an edge from another body
   int compute_distance_to_vertex(int ibody, int edge_index, double *xmi, double rounded_radius,
                                  double *x0, double x0_rounded_radius, double cut_inner, double &d,
                                  double hi[3], double &t, int &contact);
   // compute contact forces if contact points are detected
   void contact_forces(Contact &contact, double j_a, double **x, double **v, double **angmom,
-                      double **f, double **torque, double &evdwl, double *facc);
+                      double **f, double **torque, double **fnc, double &evdwl, double *facc);
 
   // compute the separation between two contacts
   double contact_separation(const Contact &c1, const Contact &c2);

@@ -46,7 +46,6 @@ enum {FAR=0,XLO,XHI,YLO,YHI};
 static constexpr int DELTA = 10000;
 static constexpr double EPSILON = 1.0e-2; // dimensionless threshold (dot products, end point checks, contact checks)
 static constexpr double BIG = 1.0e20;
-static constexpr int MAX_CONTACTS = 4;    // maximum number of contacts for 2D models
 static constexpr int EFF_CONTACTS = 2;    // effective contacts for 2D models
 
 /* ---------------------------------------------------------------------- */
@@ -340,11 +339,11 @@ void FixWallBodyPolygon::post_force(int /*vflag*/)
 
       int num_contacts, done;
       double delta_a, delta_ua, j_a;
-      Contact contact_list[MAX_CONTACTS];
 
-      num_contacts = 0;
+      contacts.clear();
       facc[0] = facc[1] = facc[2] = 0;
-      vertex_against_wall(i, wall_pos, x, f, torque, side, contact_list, num_contacts, facc);
+      vertex_against_wall(i, wall_pos, x, f, torque, side, contacts, facc);
+      num_contacts = contacts.size();
 
       if (num_contacts >= 2) {
 
@@ -353,7 +352,7 @@ void FixWallBodyPolygon::post_force(int /*vflag*/)
         done = 0;
         for (int m = 0; m < num_contacts-1; m++) {
           for (int n = m+1; n < num_contacts; n++) {
-            delta_a = contact_separation(contact_list[m], contact_list[n]);
+            delta_a = contact_separation(contacts[m], contacts[n]);
             if (delta_a > 0) {
               delta_ua = 1.0;
               j_a = delta_a / (EFF_CONTACTS * delta_ua);
@@ -361,8 +360,8 @@ void FixWallBodyPolygon::post_force(int /*vflag*/)
 
               // scale the force at both contacts
 
-              contact_forces(contact_list[m], j_a, x, v, angmom, f, torque, vwall, facc);
-              contact_forces(contact_list[n], j_a, x, v, angmom, f, torque, vwall, facc);
+              contact_forces(contacts[m], j_a, x, v, angmom, f, torque, vwall, facc);
+              contact_forces(contacts[n], j_a, x, v, angmom, f, torque, vwall, facc);
               done = 1;
               break;
             }
@@ -375,7 +374,7 @@ void FixWallBodyPolygon::post_force(int /*vflag*/)
         // if there's only one contact, it should be handled here
         // since forces/torques have not been accumulated from vertex2wall()
 
-        contact_forces(contact_list[0], 1.0, x, v, angmom, f, torque, vwall, facc);
+        contact_forces(contacts[0], 1.0, x, v, angmom, f, torque, vwall, facc);
       }
     } // group bit
   }
@@ -487,8 +486,7 @@ void FixWallBodyPolygon::body2space(int i)
    f      = atoms' forces
    torque = atoms' torques
    Return:
-     contact_list = list of contacts between i and the wall
-     num_contacts = number of contacts between i's vertices and the wall
+     contacts = list of contacts between i's vertices and the wall
      interact = 0 no interaction with the wall
                 1 there's at least one vertex of i interacts
                   with the wall
@@ -496,7 +494,7 @@ void FixWallBodyPolygon::body2space(int i)
 
 int FixWallBodyPolygon::vertex_against_wall(int i, double wall_pos,
                 double** x, double** f, double** torque, int side,
-                Contact* contact_list, int &num_contacts, double* /*facc*/)
+                std::vector<Contact> &contacts, double* /*facc*/)
 {
   int ni, npi, ifirst, interact;
   double xpi[3], rradi;
@@ -561,18 +559,19 @@ int FixWallBodyPolygon::vertex_against_wall(int i, double wall_pos,
 
         // vertex ni of body i contacts with edge nj of body j
 
-        contact_list[num_contacts].ibody = i;
-        contact_list[num_contacts].jbody = -1;
-        contact_list[num_contacts].vertex = ni;
-        contact_list[num_contacts].edge = -1;
-        contact_list[num_contacts].xv[0] = xpi[0];
-        contact_list[num_contacts].xv[1] = xpi[1];
-        contact_list[num_contacts].xv[2] = xpi[2];
-        contact_list[num_contacts].xe[0] = hi[0];
-        contact_list[num_contacts].xe[1] = hi[1];
-        contact_list[num_contacts].xe[2] = hi[2];
-        contact_list[num_contacts].separation = R;
-        num_contacts++;
+        Contact c;
+        c.ibody = i;
+        c.jbody = -1;
+        c.vertex = ni;
+        c.edge = -1;
+        c.xv[0] = xpi[0];
+        c.xv[1] = xpi[1];
+        c.xv[2] = xpi[2];
+        c.xe[0] = hi[0];
+        c.xe[1] = hi[1];
+        c.xe[2] = hi[2];
+        c.separation = R;
+        contacts.push_back(c);
 
         // store forces to vertex ni to be rescaled later,
         // if there are 2 contacts

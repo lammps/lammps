@@ -22,6 +22,8 @@ PairStyle(body/rounded/polygon,PairBodyRoundedPolygon);
 
 #include "pair.h"
 
+#include <vector>
+
 namespace LAMMPS_NS {
 
 class PairBodyRoundedPolygon : public Pair {
@@ -42,6 +44,7 @@ class PairBodyRoundedPolygon : public Pair {
     double xv[3];         // coordinates of the vertex
     double xe[3];         // coordinates of the projection of the vertex on the edge
     double separation;    // separation at contact
+    double fv[3];         // unscaled force on the vertex, the edge gets -fv
   };
 
  protected:
@@ -74,6 +77,8 @@ class PairBodyRoundedPolygon : public Pair {
   double *rounded_radius;      // rounded radii for all bodies
   double *maxerad;             // per-type maximum enclosing radius
 
+  std::vector<Contact> contacts;    // vertex-edge contacts between the current pair of bodies
+
   void allocate();
   void body2space(int);
 
@@ -83,7 +88,7 @@ class PairBodyRoundedPolygon : public Pair {
                              int evflag);
   // vertex-edge interaction
   int vertex_against_edge(int i, int j, double k_n, double k_na, double **x, double **f,
-                          double **torque, tagint *tag, Contact *contact_list, int &num_contacts,
+                          double **torque, tagint *tag, std::vector<Contact> &contacts,
                           double &evdwl, double *facc);
   // compute distance between a point and an edge from another body
   int compute_distance_to_vertex(int ibody, int edge_index, double *xmi, double rounded_radius,

@@ -22,6 +22,8 @@ FixStyle(wall/body/polygon,FixWallBodyPolygon);
 
 #include "fix.h"
 
+#include <vector>
+
 namespace LAMMPS_NS {
 
 class FixWallBodyPolygon : public Fix {
@@ -76,6 +78,8 @@ class FixWallBodyPolygon : public Fix {
   double *enclosing_radius;    // enclosing radii for all bodies
   double *rounded_radius;      // rounded radii for all bodies
 
+  std::vector<Contact> contacts;    // contacts between the current body and the wall
+
   // for dump image support
 
   int numwalls;
@@ -85,7 +89,7 @@ class FixWallBodyPolygon : public Fix {
   void body2space(int);
 
   int vertex_against_wall(int ibody, double wall_pos, double **x, double **f, double **torque,
-                          int side, Contact *contact_list, int &num_contacts, double *facc);
+                          int side, std::vector<Contact> &contacts, double *facc);
 
   int compute_distance_to_wall(double *x0, double rradi, double wall_pos, int side, double &d,
                                double hi[3], int &contact);

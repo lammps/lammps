@@ -16,9 +16,11 @@
 #include <cmath>
 #include "atom.h"
 #include "force.h"
+#include "math_const.h"
 #include "neigh_list.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 static constexpr double EWALD_F =  1.12837917;
 static constexpr double EWALD_P =  9.95473818e-1;
@@ -30,8 +32,6 @@ static constexpr double B4      = -5.80844129e-3;
 static constexpr double B5      =  1.14652755e-1;
 
 static constexpr double EPSILON = 1.0e-20;
-static constexpr double EPS_EWALD = 1.0e-6;
-static constexpr double EPS_EWALD_SQR = 1.0e-12;
 
 /* ---------------------------------------------------------------------- */
 
@@ -106,19 +106,15 @@ void PairLJClass2CoulLongCS::compute(int eflag, int vflag)
             r = sqrt(rsq);
             prefactor = qqrd2e * qtmp*q[j];
             if (factor_coul < 1.0) {
-              // When bonded parts are being calculated a minimal distance (EPS_EWALD)
-              // has to be added to the prefactor and erfc in order to make the
-              // used approximation functions for the Ewald correction valid
-              grij = g_ewald * (r+EPS_EWALD);
+              // for excluded pairs (e.g. a bonded core/shell pair) the Ewald term and
+              // the special bond correction nearly cancel at short distances, which
+              // amplifies the error of the erfc() approximation. So use the exact
+              // erf() and its derivative, and store erfc - (1 - factor_coul) in erfc
+              grij = g_ewald * r;
               expm2 = exp(-grij*grij);
-              t = 1.0 / (1.0 + EWALD_P*grij);
-              u = 1.0 - t;
-              erfc = t * (1.+u*(B0+u*(B1+u*(B2+u*(B3+u*(B4+u*B5)))))) * expm2;
-              prefactor /= (r+EPS_EWALD);
-              forcecoul = prefactor * (erfc + EWALD_F*grij*expm2 - (1.0-factor_coul));
-              // Additionally r2inv needs to be accordingly modified since the later
-              // scaling of the overall force shall be consistent
-              r2inv = 1.0/(rsq + EPS_EWALD_SQR);
+              erfc = factor_coul - erf(grij);
+              prefactor /= r;
+              forcecoul = prefactor * (erfc + MY_ISPI4*grij*expm2);
             } else {
               grij = g_ewald * r;
               expm2 = exp(-grij*grij);
@@ -169,8 +165,8 @@ void PairLJClass2CoulLongCS::compute(int eflag, int vflag)
             else {
               table = etable[itable] + fraction*detable[itable];
               ecoul = qtmp*q[j] * table;
+              if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
             }
-            if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
           } else ecoul = 0.0;
           if (rsq < cut_ljsq[itype][jtype]) {
             evdwl = r6inv*(lj3[itype][jtype]*r3inv-lj4[itype][jtype]) -
@@ -442,11 +438,18 @@ void PairLJClass2CoulLongCS::compute_outer(int eflag, int vflag)
             r = sqrt(rsq);
             grij = g_ewald * r;
             expm2 = exp(-grij*grij);
-            t = 1.0 / (1.0 + EWALD_P*grij);
-            u = 1. - t;
-            erfc = t * (1.+u*(B0+u*(B1+u*(B2+u*(B3+u*(B4+u*B5)))))) * expm2;
             prefactor = qqrd2e * qtmp*q[j]/r;
-            forcecoul = prefactor * (erfc + EWALD_F*grij*expm2 - 1.0);
+            if (factor_coul < 1.0) {
+              // use the exact erf() for excluded pairs as in compute(),
+              // and store erfc - (1 - factor_coul) in erfc
+              erfc = factor_coul - erf(grij);
+              forcecoul = prefactor * (erfc - factor_coul + MY_ISPI4*grij*expm2);
+            } else {
+              t = 1.0 / (1.0 + EWALD_P*grij);
+              u = 1. - t;
+              erfc = t * (1.+u*(B0+u*(B1+u*(B2+u*(B3+u*(B4+u*B5)))))) * expm2;
+              forcecoul = prefactor * (erfc + EWALD_F*grij*expm2 - 1.0);
+            }
             if (rsq > cut_in_off_sq) {
               if (rsq < cut_in_on_sq) {
                 rsw = (r - cut_in_off)/cut_in_diff;
@@ -502,7 +505,6 @@ void PairLJClass2CoulLongCS::compute_outer(int eflag, int vflag)
           if (rsq < cut_coulsq) {
             if (!ncoultablebits || rsq <= tabinnersq) {
               ecoul = prefactor*erfc;
-              if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
             } else {
               table = etable[itable] + fraction*detable[itable];
               ecoul = qtmp*q[j] * table;
@@ -527,8 +529,8 @@ void PairLJClass2CoulLongCS::compute_outer(int eflag, int vflag)
         if (vflag) {
           if (rsq < cut_coulsq) {
             if (!ncoultablebits || rsq <= tabinnersq) {
-              forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
-              if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
+              if (factor_coul < 1.0) forcecoul = prefactor * (erfc + MY_ISPI4*grij*expm2);
+              else forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
             } else {
               table = vtable[itable] + fraction*dvtable[itable];
               forcecoul = qtmp*q[j] * table;

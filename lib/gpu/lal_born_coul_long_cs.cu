@@ -38,14 +38,13 @@ _texture( q_tex,int2);
 #define B4        (acctyp)-5.80844129e-3
 #define B5        (acctyp)1.14652755e-1
 
+// 2/sqrt(pi) with full precision for the excluded pair correction
+#define CS_EWALD_F (acctyp)1.12837916709551257389
+
 #if defined(_DOUBLE_DOUBLE) || defined(_SINGLE_DOUBLE)
 #define EPSILON (acctyp)(1.0e-20)
-#define EPS_EWALD (acctyp)(1.0e-6)
-#define EPS_EWALD_SQR (acctyp)(1.0e-12)
 #else
 #define EPSILON (numtyp)(1.0e-7)
-#define EPS_EWALD (numtyp)(1.0e-4)
-#define EPS_EWALD_SQR (numtyp)(1.0e-8)
 #endif
 
 __kernel void k_born_coul_long_cs(const __global numtyp4 *restrict x_,
@@ -131,26 +130,15 @@ __kernel void k_born_coul_long_cs(const __global numtyp4 *restrict x_,
           prefactor = qqrd2e * qj*qtmp;
 
           if (factor_coul > (acctyp)0) {
-            // When bonded parts are being calculated, a minimal distance (EPS_EWALD)
-            // has to be added to the prefactor and erfc in order to make the
-            // used approximation functions valid
-            acctyp grij = g_ewald * (r+EPS_EWALD);
+            // for excluded pairs (e.g. a bonded core/shell pair) the Ewald term
+            // and the special bond correction nearly cancel at short distances,
+            // which amplifies the error of the erfc() approximation. So use the
+            // exact erf() and its derivative, and store erfc - factor_coul in _erfc
+            acctyp grij = g_ewald * r;
             acctyp expm2 = exp(-grij*grij);
-            acctyp t = (acctyp)1.0/((acctyp)1.0 + CS_EWALD_P*grij);
-            acctyp u = (acctyp)1.0 - t;
-            _erfc = t * ((acctyp)1.0 + u*(B0+u*(B1+u*(B2+u*(B3+u*(B4+u*B5)))))) * expm2;
-            prefactor /= (r+EPS_EWALD);
-            forcecoul = prefactor * (_erfc + EWALD_F*grij*expm2 - factor_coul);
-            // Additionally r2inv needs to be accordingly modified since the later
-            // scaling of the overall force shall be consistent
-            r2inv = (acctyp)1.0/(rsq + EPS_EWALD_SQR);
-
-            #if defined(_SINGLE_SINGLE)
-            // in the single precision mode, any approximations used for 1/(r+EPS_EWALD)
-            // for prefactor and r2inv will be as good as setting forcecoul to zero
-            // bonded interaction is supposed to be dominated by the born term, and bonded interactions
-            if (r > EPSILON) forcecoul = (acctyp)0.0;
-            #endif
+            _erfc = (acctyp)1.0 - factor_coul - erf(grij);
+            prefactor /= r;
+            forcecoul = prefactor * (_erfc + CS_EWALD_F*grij*expm2);
           } else {
             numtyp grij = g_ewald * r;
             numtyp expm2 = ucl_exp(-grij*grij);
@@ -178,7 +166,7 @@ __kernel void k_born_coul_long_cs(const __global numtyp4 *restrict x_,
 
         if (EVFLAG && eflag) {
           if (rsq < cut_coulsq) {
-            e_coul += prefactor*(_erfc-factor_coul);
+            e_coul += prefactor*_erfc;
           }
           if (rsq < cutsq_sigma[mtype].y) {
             numtyp e=coeff2[mtype].x*rexp - coeff2[mtype].y*r6inv
@@ -286,26 +274,15 @@ __kernel void k_born_coul_long_cs_fast(const __global numtyp4 *restrict x_,
           prefactor = qqrd2e * qj*qtmp;
 
           if (factor_coul > (acctyp)0) {
-            // When bonded parts are being calculated, a minimal distance (EPS_EWALD)
-            // has to be added to the prefactor and erfc in order to make the
-            // used approximation functions valid
-            acctyp grij = g_ewald * (r+EPS_EWALD);
+            // for excluded pairs (e.g. a bonded core/shell pair) the Ewald term
+            // and the special bond correction nearly cancel at short distances,
+            // which amplifies the error of the erfc() approximation. So use the
+            // exact erf() and its derivative, and store erfc - factor_coul in _erfc
+            acctyp grij = g_ewald * r;
             acctyp expm2 = exp(-grij*grij);
-            acctyp t = (acctyp)1.0/((acctyp)1.0 + CS_EWALD_P*grij);
-            acctyp u = (acctyp)1.0 - t;
-            _erfc = t * ((acctyp)1.0 + u*(B0+u*(B1+u*(B2+u*(B3+u*(B4+u*B5)))))) * expm2;
-            prefactor /= (r+EPS_EWALD);
-            forcecoul = prefactor * (_erfc + EWALD_F*grij*expm2 - factor_coul);
-            // Additionally r2inv needs to be accordingly modified since the later
-            // scaling of the overall force shall be consistent
-            r2inv = (acctyp)1.0/(rsq + EPS_EWALD_SQR);
-
-            #if defined(_SINGLE_SINGLE)
-            // in the single precision mode, any approximations used for 1/(r+EPS_EWALD)
-            // for prefactor and r2inv will be as good as setting forcecoul to zero
-            // bonded interaction is supposed to be dominated by the born term, and bonded interactions
-            if (r > EPSILON) forcecoul = (acctyp)0.0;
-            #endif
+            _erfc = (acctyp)1.0 - factor_coul - erf(grij);
+            prefactor /= r;
+            forcecoul = prefactor * (_erfc + CS_EWALD_F*grij*expm2);
           }
 
           else {
@@ -336,7 +313,7 @@ __kernel void k_born_coul_long_cs_fast(const __global numtyp4 *restrict x_,
 
         if (EVFLAG && eflag) {
           if (rsq < cut_coulsq) {
-            e_coul += prefactor*(_erfc-factor_coul);
+            e_coul += prefactor*_erfc;
           }
           if (rsq < cutsq_sigma[mtype].y) {
             numtyp e=coeff2[mtype].x*rexp - coeff2[mtype].y*r6inv

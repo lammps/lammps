@@ -39,14 +39,13 @@ _texture( q_tex,int2);
 #define B4        (acctyp)-5.80844129e-3
 #define B5        (acctyp)1.14652755e-1
 
+// 2/sqrt(pi) with full precision for the excluded pair correction
+#define CS_EWALD_F (acctyp)1.12837916709551257389
+
 #if defined _DOUBLE_DOUBLE
 #define EPSILON (acctyp)(1.0e-20)
-#define EPS_EWALD (acctyp)(1.0e-6)
-#define EPS_EWALD_SQR (acctyp)(1.0e-12)
 #else
 #define EPSILON (numtyp)(1.0e-7)
-#define EPS_EWALD (numtyp)(1.0e-6)
-#define EPS_EWALD_SQR (numtyp)(1.0e-8)
 #endif
 
 __kernel void k_coul_long_cs(const __global numtyp4 *restrict x_,
@@ -119,16 +118,17 @@ __kernel void k_coul_long_cs(const __global numtyp4 *restrict x_,
         fetch(prefactor,j,q_tex);
         prefactor *= qqrd2e * scale[mtype] * qtmp;
         if (factor_coul > (acctyp)0) {
-          numtyp grij = g_ewald * (r+EPS_EWALD);
-          numtyp expm2 = ucl_exp(-grij*grij);
-          acctyp t = (acctyp)1.0/((numtyp)1.0 + CS_EWALD_P*grij);
-          numtyp u = (numtyp)1.0 - t;
-          _erfc = t * ((numtyp)1.0 + u*(B0+u*(B1+u*(B2+u*(B3+u*(B4+u*B5)))))) * expm2;
-          prefactor /= (r+EPS_EWALD);
-          force = prefactor * (_erfc + EWALD_F*grij*expm2 - factor_coul);
-          // Additionally r2inv needs to be accordingly modified since the later
-          // scaling of the overall force shall be consistent
-          r2inv = ucl_recip(rsq + EPS_EWALD_SQR);
+          // for excluded pairs (e.g. a bonded core/shell pair) the Ewald term
+          // and the special bond correction nearly cancel at short distances,
+          // which amplifies the error of the erfc() approximation. So use the
+          // exact erf() and its derivative in acctyp precision, and store
+          // erfc - factor_coul in _erfc
+          acctyp grij = g_ewald * r;
+          acctyp expm2 = exp(-grij*grij);
+          acctyp erfc_sp = (acctyp)1.0 - factor_coul - erf(grij);
+          _erfc = erfc_sp;
+          prefactor /= r;
+          force = prefactor * (erfc_sp + CS_EWALD_F*grij*expm2);
           force *= r2inv;
         } else {
           numtyp grij = g_ewald * r;
@@ -146,7 +146,7 @@ __kernel void k_coul_long_cs(const __global numtyp4 *restrict x_,
         f.z+=delz*force;
 
         if (EVFLAG && eflag) {
-          e_coul += prefactor*(_erfc-factor_coul);
+          e_coul += prefactor*_erfc;
         }
         if (EVFLAG && vflag) {
           virial[0] += delx*delx*force;
@@ -238,16 +238,17 @@ __kernel void k_coul_long_cs_fast(const __global numtyp4 *restrict x_,
         fetch(prefactor,j,q_tex);
         prefactor *= qqrd2e * scale[mtype] * qtmp;
         if (factor_coul > (acctyp)0) {
-          numtyp grij = g_ewald * (r+EPS_EWALD);
-          numtyp expm2 = ucl_exp(-grij*grij);
-          acctyp t = (acctyp)1.0/((numtyp)1.0 + CS_EWALD_P*grij);
-          numtyp u = (numtyp)1.0 - t;
-          _erfc = t * ((numtyp)1.0 + u*(B0+u*(B1+u*(B2+u*(B3+u*(B4+u*B5)))))) * expm2;
-          prefactor /= (r+EPS_EWALD);
-          force = prefactor * (_erfc + EWALD_F*grij*expm2 - factor_coul);
-          // Additionally r2inv needs to be accordingly modified since the later
-          // scaling of the overall force shall be consistent
-          r2inv = ucl_recip(rsq + EPS_EWALD_SQR);
+          // for excluded pairs (e.g. a bonded core/shell pair) the Ewald term
+          // and the special bond correction nearly cancel at short distances,
+          // which amplifies the error of the erfc() approximation. So use the
+          // exact erf() and its derivative in acctyp precision, and store
+          // erfc - factor_coul in _erfc
+          acctyp grij = g_ewald * r;
+          acctyp expm2 = exp(-grij*grij);
+          acctyp erfc_sp = (acctyp)1.0 - factor_coul - erf(grij);
+          _erfc = erfc_sp;
+          prefactor /= r;
+          force = prefactor * (erfc_sp + CS_EWALD_F*grij*expm2);
         } else {
           numtyp grij = g_ewald * r;
           numtyp expm2 = ucl_exp(-grij*grij);
@@ -265,7 +266,7 @@ __kernel void k_coul_long_cs_fast(const __global numtyp4 *restrict x_,
         f.z+=delz*force;
 
         if (EVFLAG && eflag) {
-          e_coul += prefactor*(_erfc-factor_coul);
+          e_coul += prefactor*_erfc;
         }
         if (EVFLAG && vflag) {
           virial[0] += delx*delx*force;

@@ -47,8 +47,6 @@ static constexpr double B4      = -5.80844129e-3;
 static constexpr double B5      =  1.14652755e-1;
 
 static constexpr double EPSILON = 1.0e-20;
-static constexpr double EPS_EWALD = 1.0e-6;
-static constexpr double EPS_EWALD_SQR = 1.0e-12;
 
 /* ---------------------------------------------------------------------- */
 
@@ -166,15 +164,22 @@ void PairLJCutTholeLong::compute(int eflag, int vflag)
           r = sqrt(rsq);
 
           if (!ncoultablebits || rsq <= tabinnersq) {
-            grij = g_ewald * (r + EPS_EWALD);
+            grij = g_ewald * r;
             expm2 = exp(-grij*grij);
-            t = 1.0 / (1.0 + EWALD_P*grij);
-            u = 1. - t;
-            erfc = t * (1.+u*(B0+u*(B1+u*(B2+u*(B3+u*(B4+u*B5)))))) * expm2;
-            prefactor = qqrd2e * qi*qj/(r + EPS_EWALD);
-            forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
-            if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
-            r2inv = 1.0/(rsq + EPS_EWALD_SQR);
+            prefactor = qqrd2e * qi*qj/r;
+            if (factor_coul < 1.0) {
+              // for excluded pairs (e.g. a core/Drude pair) the Ewald term and
+              // the special bond correction nearly cancel at short distances, which
+              // amplifies the error of the erfc() approximation. So use the exact
+              // erf() and its derivative, and store erfc - (1 - factor_coul) in erfc
+              erfc = factor_coul - erf(grij);
+              forcecoul = prefactor * (erfc + MY_ISPI4*grij*expm2);
+            } else {
+              t = 1.0 / (1.0 + EWALD_P*grij);
+              u = 1. - t;
+              erfc = t * (1.+u*(B0+u*(B1+u*(B2+u*(B3+u*(B4+u*B5)))))) * expm2;
+              forcecoul = prefactor * (erfc + EWALD_F*grij*expm2);
+            }
           } else {
             union_int_float_t rsq_lookup;
             rsq_lookup.f = rsq;
@@ -232,8 +237,8 @@ void PairLJCutTholeLong::compute(int eflag, int vflag)
             else {
               table = etable[itable] + fraction*detable[itable];
               ecoul = qi*qj * table;
+              if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
             }
-            if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
             if (drudetype[type[i]] != NOPOL_TYPE &&
                 drudetype[type[j]] != NOPOL_TYPE && j != di_closest) {
               ecoul += factor_e * dcoul;

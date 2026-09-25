@@ -169,19 +169,29 @@ Specifically, the short-range Coulomb interaction between a core and
 its shell should be turned off using the
 :doc:`special_bonds <special_bonds>` command by setting the 1-2 weight
 to 0.0, which works because the core and shell atoms are bonded to
-each other.  This induces a long-range correction approximation which
-fails at small distances (~< 10e-8). Therefore, the Coulomb term which
-is used to calculate the correction factor is extended by a minimal
-distance (r_min = 1.0-6) when the interaction between a core/shell
-pair is treated, as follows
+each other.  The long-range solver still includes the interaction of
+the core/shell pair, so the pair style computes a correction for it:
 
 .. math::
 
-   E = \frac{C q_i q_j}{\epsilon (r + r_{min})} \qquad r \rightarrow 0
+   E = \frac{C q_i q_j}{\epsilon r} \left[ w - \mathrm{erf}(g_{ewald}\,r) \right]
 
 where C is an energy-conversion constant, :math:`q_i` and :math:`q_j`
 are the charges on the core and shell, epsilon is the dielectric
-constant and :math:`r_{min}` is the minimal distance.
+constant, *w* is the special bond weight, and :math:`g_{ewald}` is the
+Ewald parameter of the long-range solver.  This expression remains
+finite for :math:`r \rightarrow 0` when *w* is 0.0.
+
+.. versionchanged:: TBD
+
+For such excluded or scaled pairs, the correction and its derivative
+are now computed with the exact error function instead of the
+polynomial approximation that is used for all other pairs.  At the
+small distances between a core and its shell, the two terms of the
+correction nearly cancel each other, so that the error of the
+approximation would otherwise lead to forces that are not consistent
+with the energy.  Previously, a minimal distance of 1.0e-6 was added to
+*r* for these pairs.
 
 For styles that are not used with a long-range solver, i.e. those with
 "/dsf" or "/wolf" in the name, the only correction is the addition of

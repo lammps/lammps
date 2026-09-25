@@ -14,6 +14,7 @@
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
+#include "math_const.h"
 #include "neigh_list.h"
 #include "suffix.h"
 
@@ -22,6 +23,7 @@
 #include "omp_compat.h"
 
 using namespace LAMMPS_NS;
+using namespace MathConst;
 
 static constexpr double EWALD_F = 1.12837917;
 static constexpr double EWALD_P = 9.95473818e-1;
@@ -33,8 +35,6 @@ static constexpr double B4 = -5.80844129e-3;
 static constexpr double B5 = 1.14652755e-1;
 
 static constexpr double EPSILON = 1.0e-20;
-static constexpr double EPS_EWALD = 1.0e-6;
-static constexpr double EPS_EWALD_SQR = 1.0e-12;
 
 /* ---------------------------------------------------------------------- */
 
@@ -141,19 +141,15 @@ void PairCoulLongCSOMP::eval(int iifrom, int iito, ThrData * const thr)
           r = sqrt(rsq);
           prefactor = qqrd2e * scale[itype][jtype] * qtmp*q[j];
           if (factor_coul < 1.0) {
-            // When bonded parts are being calculated a minimal distance (EPS_EWALD)
-            // has to be added to the prefactor and erfc in order to make the
-            // used approximation functions for the Ewald correction valid
-            grij = g_ewald * (r+EPS_EWALD);
+            // for excluded pairs (e.g. a bonded core/shell pair) the Ewald term and
+            // the special bond correction nearly cancel at short distances, which
+            // amplifies the error of the erfc() approximation. So use the exact
+            // erf() and its derivative, and store erfc - (1 - factor_coul) in erfc
+            grij = g_ewald * r;
             expm2 = exp(-grij*grij);
-            t = 1.0 / (1.0 + EWALD_P*grij);
-            u = 1.0 - t;
-            erfc = t * (1.+u*(B0+u*(B1+u*(B2+u*(B3+u*(B4+u*B5)))))) * expm2;
-            prefactor /= (r+EPS_EWALD);
-            forcecoul = prefactor * (erfc + EWALD_F*grij*expm2 - (1.0-factor_coul));
-            // Additionally r2inv needs to be accordingly modified since the later
-            // scaling of the overall force shall be consistent
-            r2inv = 1.0/(rsq + EPS_EWALD_SQR);
+            erfc = factor_coul - erf(grij);
+            prefactor /= r;
+            forcecoul = prefactor * (erfc + MY_ISPI4*grij*expm2);
           } else {
             grij = g_ewald * r;
             expm2 = exp(-grij*grij);
@@ -195,8 +191,8 @@ void PairCoulLongCSOMP::eval(int iifrom, int iito, ThrData * const thr)
           else {
             table = etable[itable] + fraction*detable[itable];
             ecoul = scale[itype][jtype] * qtmp*q[j] * table;
+            if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
           }
-          if (factor_coul < 1.0) ecoul -= (1.0-factor_coul)*prefactor;
         }
 
         if (EVFLAG) ev_tally_thr(this, i,j,nlocal,NEWTON_PAIR,

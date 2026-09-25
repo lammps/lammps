@@ -1077,7 +1077,7 @@ if(PKG_GPU)
   message(STATUS "<<< GPU package settings >>>
 -- GPU API:                  ${GPU_API}")
   if(GPU_API STREQUAL "CUDA")
-    message(STATUS "CUDA Compiler:            ${CUDA_NVCC_EXECUTABLE}")
+    message(STATUS "CUDA Compiler:            ${CMAKE_CUDA_COMPILER}")
     message(STATUS "GPU default architecture: ${GPU_ARCH}")
     message(STATUS "GPU binning with CUDPP:   ${CUDPP_OPT}")
     message(STATUS "CUDA MPS support:         ${CUDA_MPS_SUPPORT}")

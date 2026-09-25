@@ -199,6 +199,9 @@ FixPlumed::FixPlumed(LAMMPS *lmp, int narg, char **arg) :
   double dt = update->dt;
   p->cmd("setTimestep", &dt);
 
+  plumedStopCondition = 0;
+  plumedStopScratch = 0;
+
   extscalar = 1;
   scalar_flag = 1;
   energy_global_flag = virial_global_flag = 1;
@@ -249,6 +252,7 @@ FixPlumed::FixPlumed(LAMMPS *lmp, int narg, char **arg) :
 
 FixPlumed::~FixPlumed()
 {
+  if (copymode) return;
   delete p;
   modify->delete_compute(id_pe);
   modify->delete_compute(id_press);
@@ -403,7 +407,7 @@ void FixPlumed::post_force(int /* vflag */)
 
   // pass all pointers to plumed:
   p->cmd("setStep", &step);
-  int plumedStopCondition = 0;
+  plumedStopCondition = 0;
   p->cmd("setStopFlag", &plumedStopCondition);
   p->cmd("setPositions", &atom->x[0][0]);
   p->cmd("setBox", &box[0][0]);
@@ -500,12 +504,30 @@ void FixPlumed::post_force(int /* vflag */)
     virial[5] = -plmd_virial[1][2];
   }
 
-  // Ask for the computes in the next time step
-  // such that the virial and energy are tallied.
-  // This should be changed to something that triggers the
-  // calculation only if plumed needs it.
-  c_pe->addstep(update->ntimestep + 1);
-  c_press->addstep(update->ntimestep + 1);
+  // Ask PLUMED if it needs the energy on the next step
+  // Tally the energy and virial computes
+  // Integrate::ev_set() fixes eflag/vflag at the top of the step in advance
+  // isEnergyNeeded - current step only. Clears every step.
+  // prepareDependencies() needs the next step only
+  // and activates.deactivate the pilots based on stride modulo
+  // Doesnt touch positions, forces, or box
+  // setStep() issued at the start of the next post_force() resets this - cleanup
+
+  bigint nextstep = update->ntimestep + 1;
+  if (nextstep<=MAXSMALLINT) {
+    int nextstep_int = int(nextstep);
+    // prepareDependencies() raises the stop flag in inactive steps
+    // writing to scratch to avoid it overwriting the actual flag
+    p->cmd("setStopFlag", &plumedStopScratch);
+    p->cmd("setStep", &nextstep_int);
+    p->cmd("prepareDependencies");
+    int needsEnergyNext = 0;
+    p->cmd("isEnergyNeeded", &needsEnergyNext);
+    if (needsEnergyNext) {
+      c_pe->addstep(update->ntimestep + 1);
+      c_press->addstep(update->ntimestep + 1);
+    }
+  }
 }
 
 void FixPlumed::post_force_respa(int vflag, int ilevel, int /* iloop */)

@@ -1,0 +1,17 @@
+LICENSE
+README.md
+setup.py
+LAMMPS_Documentation_Utilities.egg-info/PKG-INFO
+LAMMPS_Documentation_Utilities.egg-info/SOURCES.txt
+LAMMPS_Documentation_Utilities.egg-info/dependency_links.txt
+LAMMPS_Documentation_Utilities.egg-info/entry_points.txt
+LAMMPS_Documentation_Utilities.egg-info/top_level.txt
+lammpsdoc/__init__.py
+lammpsdoc/doc_anchor_check.py
+lammpsdoc/lammps_filters.py
+lammpsdoc/rst_anchor_check.py
+lammpsdoc/txt2html.py
+lammpsdoc/txt2rst.py
+tests/test_lammps_filters.py
+tests/test_txt2html.py
+tests/test_txt2rst.py

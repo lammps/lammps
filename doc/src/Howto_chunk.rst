@@ -91,6 +91,7 @@ values.  Any compute whose style name ends in "/chunk" is in this
 category:
 
 * :doc:`compute com/chunk <compute_com_chunk>`
+* :doc:`compute continuum/chunk <compute_continuum_chunk>`
 * :doc:`compute gyration/chunk <compute_gyration_chunk>`
 * :doc:`compute inertia/chunk <compute_inertia_chunk>`
 * :doc:`compute msd/chunk <compute_msd_chunk>`

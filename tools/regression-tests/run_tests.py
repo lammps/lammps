@@ -1412,8 +1412,7 @@ PREFLIGHT_SKIP_PATTERNS = ("package which is not enabled",
                            "KOKKOS package requires a Kokkos-enabled atom_style",
                            "KOKKOS package only supports 'bin' neighbor lists",
                            "Must use a Kokkos-enabled min style",
-                           "not supported by the KOKKOS package",
-                           "Label maps are currently not supported with Kokkos")
+                           "not supported by the KOKKOS package")
 
 # error messages that are a consequence of the run and minimize loops being cut
 # short by -skiprun: post-run analysis (e.g. variables dividing by averages that a

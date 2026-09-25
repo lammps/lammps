@@ -199,7 +199,7 @@ TEST_F(RNGTest, RanMars_state_save_restore)
         rng.uniform();
 
     // Save state
-    double state[103];
+    double state[RanMars::STATE_SIZE];
     rng.get_state(state);
 
     // Generate a sequence
@@ -219,6 +219,59 @@ TEST_F(RNGTest, RanMars_state_save_restore)
 // =========================================================================
 // RanPark tests
 // =========================================================================
+
+TEST_F(RNGTest, RanMars_state_save_restore_gaussian)
+{
+    RanMars rng(lmp, 66666);
+
+    // draw an odd number of gaussian numbers, so that the second number
+    // of the last pair is cached inside the generator when saving the state
+    for (int i = 0; i < 101; i++)
+        rng.gaussian();
+
+    double state[RanMars::STATE_SIZE];
+    rng.get_state(state);
+    EXPECT_EQ(RanMars::state_size(state), RanMars::STATE_SIZE);
+
+    std::vector<double> seq1(50);
+    for (int i = 0; i < 50; i++)
+        seq1[i] = rng.gaussian();
+
+    rng.set_state(state);
+
+    for (int i = 0; i < 50; i++) {
+        EXPECT_DOUBLE_EQ(rng.gaussian(), seq1[i]) << "Gaussian state restore mismatch at index " << i;
+    }
+}
+
+TEST_F(RNGTest, RanMars_state_legacy_layout)
+{
+    RanMars rng(lmp, 77777);
+
+    for (int i = 0; i < 100; i++)
+        rng.uniform();
+
+    // state vector in the layout stored in restart files by older versions:
+    // [u[0..97], i97, j97, c, cd, cm] without the marker and the gaussian cache
+    constexpr int LEGACY_SIZE = 98 + 2 + 3;
+    double state[RanMars::STATE_SIZE];
+    rng.get_state(state);
+    double legacy[LEGACY_SIZE];
+    legacy[0] = 0.0;
+    for (int i = 1; i < LEGACY_SIZE; i++)
+        legacy[i] = state[i];
+    EXPECT_EQ(RanMars::state_size(legacy), LEGACY_SIZE);
+
+    std::vector<double> seq1(50);
+    for (int i = 0; i < 50; i++)
+        seq1[i] = rng.uniform();
+
+    rng.set_state(legacy);
+
+    for (int i = 0; i < 50; i++) {
+        EXPECT_DOUBLE_EQ(rng.uniform(), seq1[i]) << "Legacy state restore mismatch at index " << i;
+    }
+}
 
 TEST_F(RNGTest, RanPark_uniform_range)
 {

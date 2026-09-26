@@ -30,6 +30,7 @@ Contributing Author: Jacob Gissinger (jgissing@stevens.edu)
 #include "variable.h"
 
 #include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;

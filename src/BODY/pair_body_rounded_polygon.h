@@ -22,6 +22,8 @@ PairStyle(body/rounded/polygon,PairBodyRoundedPolygon);
 
 #include "pair.h"
 
+#include <vector>
+
 namespace LAMMPS_NS {
 
 class PairBodyRoundedPolygon : public Pair {
@@ -34,6 +36,9 @@ class PairBodyRoundedPolygon : public Pair {
   void init_style() override;
   double init_one(int, int) override;
   double memory_usage() override;
+  int pack_reverse_comm(int, int, double *) override;
+  void unpack_reverse_comm(int, int *, double *) override;
+  void reset_dt() override;
 
   struct Contact {
     int ibody, jbody;     // body (i.e. atom) indices (not tags)
@@ -42,6 +47,18 @@ class PairBodyRoundedPolygon : public Pair {
     double xv[3];         // coordinates of the vertex
     double xe[3];         // coordinates of the projection of the vertex on the edge
     double separation;    // separation at contact
+    double fe[3];         // elastic force on the vertex, the edge gets -fe
+    double fc[3];         // unscaled cohesive force on the vertex, the edge gets -fc
+  };
+
+  // scratch space for the interaction of a pair of bodies, one per thread
+
+  struct Scratch {
+    std::vector<Contact> contacts;    // vertex-edge contacts
+    std::vector<int> vertex_done;     // flags for the vertices already interacted with
+    double *shear;                    // tangential displacement of the pair, or nullptr
+    int shear_i;                      // body the tangential displacement refers to
+    int touched;                      // 1 if the tangential displacement was updated
   };
 
  protected:
@@ -52,6 +69,11 @@ class PairBodyRoundedPolygon : public Pair {
   double mu;           // normal friction coefficient during gross sliding
   double delta_ua;     // contact line (area for 3D models) modification factor
   double cut_inner;    // cutoff for interaction between vertex-edge surfaces
+  double **k_t;        // tangential stiffness of the contact history
+  int history;         // 1 if the tangential displacement of the contacts is stored
+  double dt;           // time step, for the update of the tangential displacement
+  char *id_history;    // ID of fix NEIGH_HISTORY with the tangential displacements
+  class FixNeighHistory *fix_history;
 
   class AtomVecBody *avec;
   class BodyRoundedPolygon *bptr;
@@ -72,26 +94,57 @@ class PairBodyRoundedPolygon : public Pair {
 
   double *enclosing_radius;    // enclosing radii for all bodies
   double *rounded_radius;      // rounded radii for all bodies
-  double *maxerad;             // per-type maximum enclosing radius
+  double *maxrad;              // per-type maximum radius (enclosing + rounded)
+  double w_ja;                 // work done by the force added by the j_a scaling
+  double w_diss;               // work done by damping and friction
+  double **fnc;                // per-body force and torque not deriving from the energy
+  int nmax_fnc;                // allocated size of fnc
+  char *id_fix_store;          // ID of fix STORE/ATOM with fnc of the previous step
+  class FixStoreAtom *fix_store;
+
+  void work_nonconservative();
+
+  Scratch scratch;    // scratch space of the serial compute()
 
   void allocate();
   void body2space(int);
 
+  // interaction between two bodies
+  void pair_interaction(int i, int j, double delx, double dely, double delz, double rsq,
+                        double **x, double **v, double **angmom, double **f, double **torque,
+                        double **fnc, Scratch &s, double &evdwl, double *facc);
   // sphere-sphere interaction
   void sphere_against_sphere(int i, int j, double delx, double dely, double delz, double rsq,
-                             double k_n, double k_na, double **x, double **v, double **f,
-                             int evflag);
+                             double k_n, double k_na, double **x, double **v, double **angmom,
+                             double **f, double **torque, double **fnc, Scratch &s,
+                             double &evdwl, double *facc);
   // vertex-edge interaction
   int vertex_against_edge(int i, int j, double k_n, double k_na, double **x, double **f,
-                          double **torque, tagint *tag, Contact *contact_list, int &num_contacts,
-                          double &evdwl, double *facc);
+                          double **torque, tagint *tag, Scratch &s, double &evdwl,
+                          double *facc);
+  // find the edge whose sector encloses a point
+  int sector_edge(int ibody, const double *xp);
   // compute distance between a point and an edge from another body
   int compute_distance_to_vertex(int ibody, int edge_index, double *xmi, double rounded_radius,
                                  double *x0, double x0_rounded_radius, double cut_inner, double &d,
                                  double hi[3], double &t, int &contact);
   // compute contact forces if contact points are detected
-  void contact_forces(Contact &contact, double j_a, double **x, double **v, double **angmom,
-                      double **f, double **torque, double &evdwl, double *facc);
+  void contact_forces(Contact &contact, double j_a, int friction, double **x, double **v,
+                      double **angmom, double **f, double **torque, double **fnc, double &evdwl,
+                      double *facc, Scratch &s);
+  // contact point between the rounded surfaces of two bodies
+  void contact_point(const double *pi, const double *pj, const double *n, double rradi,
+                     double rradj, double *pc);
+  // damping and friction forces at a contact point
+  void damping_friction(int ibody, int jbody, double *pc, const double *n, double fne,
+                        int damping, int friction, double **x, double **v, double **angmom,
+                        double **f, double **torque, double **fnc, int iref, double *facc,
+                        Scratch *hs = nullptr);
+  void tangential_spring(int ibody, int jbody, const double *n, const double *vt, double fne,
+                         Scratch &s, double *fs);
+  void history_dummy_fix(int flag);
+  // normal force and energy at a given surface separation
+  double normal_force(double R, double k_n, double k_na, double &fe, double &fc);
 
   // compute the separation between two contacts
   double contact_separation(const Contact &c1, const Contact &c2);

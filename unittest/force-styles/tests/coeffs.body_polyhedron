@@ -1,0 +1,9 @@
+# initial state for the body/rounded/polyhedron fix-timestep tests:
+# in.body_polyhedron provides 27 body particles (2 types) with pair_style zero,
+# the pair style is defined in the YAML file since it is not stored in
+# restart files
+variable ax atom 0.5*sin(1.3*id)
+variable ay atom 0.5*cos(0.7*id)
+variable az atom 0.5*sin(1.7*id)
+set group all angmom v_ax v_ay v_az
+velocity all create 1.0 5234 loop geom

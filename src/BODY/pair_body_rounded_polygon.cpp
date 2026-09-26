@@ -217,6 +217,17 @@ void PairBodyRoundedPolygon::compute(int eflag, int vflag)
 
       // no interaction
 
+      // note: body/rounded/polyhedron additionally skips the pairs, and the
+      // vertices, edges and faces, that do not reach far enough towards the
+      // other body along the line between the centers to interact with it,
+      // see PairBodyRoundedPolyhedron::pair_interaction().  The same test in
+      // this pair style gave the same results, but no speedup for
+      // examples/body/in.squares and in.wall2d: each vertex is already tested
+      // cheaply against the enclosing circle and then against a single edge,
+      // found by sector_edge(), and in these dense systems only 7-19% of the
+      // pairs passing the test below could be skipped as a whole.  It may
+      // still help for dilute systems.
+
       r = sqrt(rsq);
       if (r > radi + radj + cut_inner) continue;
 

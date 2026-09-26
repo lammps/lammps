@@ -8,6 +8,7 @@
 #   app=...         staged LAMMPS-GUI.app bundle
 #   readme=...      README.txt to place next to the app
 #   background=...  background image (1024x768 px at 96 dpi = 768x576 pt)
+#   icon=...        optional .icns file used as volume icon
 
 import os.path
 
@@ -25,6 +26,10 @@ filesystem = "HFS+"
 files = [_app, _readme]
 symlinks = {"Applications": "/Applications"}
 background = defines["background"]
+
+# volume icon: stored inside the image, so unlike the custom icon attached
+# to the .dmg file it is kept when the image is downloaded
+icon = defines.get("icon")
 
 # Same window geometry as the former AppleScript 'bounds {100, 40, 868, 640}',
 # with sidebar, toolbar and status bar hidden.

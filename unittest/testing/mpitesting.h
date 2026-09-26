@@ -29,7 +29,7 @@ class MPIPrinter : public TestEventListener {
     int me;
     int nprocs;
     char *buffer;
-    size_t buffer_size;
+    int buffer_size;
     std::deque<TestPartResult> results;
     bool finalize_test;
 

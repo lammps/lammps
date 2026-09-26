@@ -81,8 +81,6 @@ void ImproperSQDistHarmKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   k_k.template sync<DeviceType>();
   k_chi.template sync<DeviceType>();
-  if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
-  else atomKK->modified(execution_space,F_MASK);
 
   x = atomKK->k_x.view<DeviceType>();
   f = atomKK->k_f.view<DeviceType>();
@@ -171,7 +169,7 @@ void ImproperSQDistHarmKokkos<DeviceType>::operator()(TagImproperSQDistHarmCompu
   KK_FLOAT xna =   ybc*zcd - zbc*ycd;
   KK_FLOAT yna = -(xbc*zcd - zbc*xcd);
   KK_FLOAT zna =   xbc*ycd - ybc*xcd;
-  const KK_FLOAT rna = static_cast<KK_FLOAT>(1.0) / sqrt(xna*xna + yna*yna + zna*zna);
+  const KK_FLOAT rna = static_cast<KK_FLOAT>(1.0) / Kokkos::sqrt(xna*xna + yna*yna + zna*zna);
   xna *= rna;
   yna *= rna;
   zna *= rna;

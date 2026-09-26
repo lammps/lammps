@@ -84,14 +84,8 @@ inline cudaStream_t get_cuda_stream(const NonCudaExecSpace&) {
 
 }  // namespace Impl
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-template <class DataType, class Arg1Type = void, class Arg2Type = void,
-          class Arg3Type = void>
-class DualView;
-#else
 template <class DataType, class... Properties>
 class DualView;
-#endif
 
 template <class>
 struct is_dual_view : public std::false_type {};
@@ -105,35 +99,21 @@ struct is_dual_view<const DualView<DT, DP...>> : public std::true_type {};
 template <class T>
 inline constexpr bool is_dual_view_v = is_dual_view<T>::value;
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-template <class DataType, class Arg1Type, class Arg2Type, class Arg3Type>
-class DualView : public ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type> {
-  template <class, class, class, class>
-#else
 template <class DataType, class... Properties>
 class DualView : public ViewTraits<DataType, Properties...> {
   template <class, class...>
-#endif
   friend class DualView;
 
  public:
   //! \name Typedefs for device types and various Kokkos::View specializations.
   //@{
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-  using traits = ViewTraits<DataType, Arg1Type, Arg2Type, Arg3Type>;
-#else
-  using traits      = ViewTraits<DataType, Properties...>;
-#endif
+  using traits = ViewTraits<DataType, Properties...>;
 
   //! The Kokkos Host Device type;
   using host_mirror_space = typename traits::host_mirror_space;
 
   //! The type of a Kokkos::View on the device.
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-  using t_dev = View<typename traits::data_type, Arg1Type, Arg2Type, Arg3Type>;
-#else
-  using t_dev       = View<typename traits::data_type, Properties...>;
-#endif
+  using t_dev = View<typename traits::data_type, Properties...>;
 
   /// \typedef t_host
   /// \brief The type of a Kokkos::View host mirror of \c t_dev.
@@ -141,12 +121,7 @@ class DualView : public ViewTraits<DataType, Properties...> {
 
   //! The type of a const View on the device.
   //! The type of a Kokkos::View on the device.
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-  using t_dev_const =
-      View<typename traits::const_data_type, Arg1Type, Arg2Type, Arg3Type>;
-#else
   using t_dev_const = View<typename traits::const_data_type, Properties...>;
-#endif
 
   /// \typedef t_host_const
   /// \brief The type of a const View host mirror of \c t_dev_const.
@@ -414,19 +389,11 @@ class DualView : public ViewTraits<DataType, Properties...> {
     }
   }
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-  KOKKOS_INLINE_FUNCTION
-  t_host view_host() const { return h_view; }
-
-  KOKKOS_INLINE_FUNCTION
-  t_dev view_device() const { return d_view; }
-#else
   KOKKOS_INLINE_FUNCTION
   const t_host& view_host() const { return h_view; }
 
   KOKKOS_INLINE_FUNCTION
   const t_dev& view_device() const { return d_view; }
-#endif
 
   KOKKOS_INLINE_FUNCTION constexpr bool is_allocated() const {
     return (d_view.is_allocated() && h_view.is_allocated());

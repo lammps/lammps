@@ -5,7 +5,7 @@
 #define KOKKOS_STD_ALGORITHMS_FIND_IF_NOT_HPP
 
 #include "impl/Kokkos_FindIfOrNot.hpp"
-#include "Kokkos_BeginEnd.hpp"
+#include <Kokkos_Iterator.hpp>
 
 namespace Kokkos {
 namespace Experimental {

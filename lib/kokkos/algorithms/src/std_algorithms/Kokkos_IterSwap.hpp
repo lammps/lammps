@@ -11,6 +11,8 @@ import kokkos.core;
 #include <Kokkos_Core.hpp>
 #endif
 #include "impl/Kokkos_Constraints.hpp"
+#include "Kokkos_Swap.hpp"
+#include <Kokkos_Iterator.hpp>
 
 namespace Kokkos {
 namespace Experimental {

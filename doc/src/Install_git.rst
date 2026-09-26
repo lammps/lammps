@@ -96,11 +96,12 @@ this is as follows.
    git checkout tagID
 
 Stable versions and what tagID to use for a particular stable version
-are discussed on `this page <https://www.lammps.org/bug.html#version>`_.
-Note that this command will print some warnings, because in order to get
-back to the latest revision and to be able to update with ``git pull``
-again, you will need to do ``git checkout release`` (or
-check out any other desired branch) first.
+can be looked up on `GitHub releases pagee
+<https://github.com/lammps/lammps/releases>`_.  Note that this command
+will print some warnings, because in order to get back to the latest
+revision and to be able to update with ``git pull`` again, you will need
+to do ``git checkout release`` (or check out any other desired branch)
+first.
 
 Once you have updated your local files with a ``git pull`` (or ``git
 checkout``), you still need to re-build LAMMPS if any source files have

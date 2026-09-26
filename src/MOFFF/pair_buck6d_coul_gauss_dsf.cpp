@@ -41,7 +41,11 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairBuck6dCoulGaussDSF::PairBuck6dCoulGaussDSF(LAMMPS *lmp) : Pair(lmp)
+PairBuck6dCoulGaussDSF::PairBuck6dCoulGaussDSF(LAMMPS *lmp) :
+    Pair(lmp), cut_lj(nullptr), cut_ljsq(nullptr), alpha_ij(nullptr), buck6d1(nullptr),
+    buck6d2(nullptr), buck6d3(nullptr), buck6d4(nullptr), offset(nullptr), f_shift_ij(nullptr),
+    e_shift_ij(nullptr), c0(nullptr), c1(nullptr), c2(nullptr), c3(nullptr), c4(nullptr),
+    c5(nullptr), rsmooth_sq(nullptr)
 {
   single_enable = 1;
   writedata = 1;
@@ -542,12 +546,13 @@ double PairBuck6dCoulGaussDSF::single(int i, int j, int itype, int jtype, double
   } else forcebuck6d = 0.0;
 
   if (rsq < cut_coulsq) {
-    prefactor = factor_coul * force->qqrd2e * atom->q[i] * atom->q[j] / r;
+    prefactor = force->qqrd2e * atom->q[i] * atom->q[j] / r;
     arg = alpha_ij[itype][jtype]*r;
     erfcd = MathSpecial::expmsq(arg);
     erfcc = 1 - (MathSpecial::my_erfcx(arg) * erfcd);
     forcecoul = prefactor * ((erfcc/r) - (2.0/MY_PIS*alpha_ij[itype][jtype]*erfcd) +
                                           r*f_shift_ij[itype][jtype]) * r;
+    if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
   } else forcecoul = 0.0;
 
   fforce = (forcecoul + factor_lj*forcebuck6d) * r2inv;
@@ -561,6 +566,7 @@ double PairBuck6dCoulGaussDSF::single(int i, int j, int itype, int jtype, double
   if (rsq < cut_coulsq) {
     phicoul = prefactor * (erfcc - r*e_shift_ij[itype][jtype] -
                                  rsq*f_shift_ij[itype][jtype]);
+    if (factor_coul < 1.0) phicoul -= (1.0-factor_coul)*prefactor;
     eng += phicoul;
   }
 

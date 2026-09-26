@@ -115,7 +115,7 @@ streaming component removed.
 
 A symmetric tensor, stored as a six-element vector, is also calculated
 by this compute for use in the computation of a pressure tensor by the
-:doc:`compute pressue <compute_pressure>` command.  The formula for
+:doc:`compute pressure <compute_pressure>` command.  The formula for
 the components of the tensor is also dictated by the internal temperature
 compute. With :doc:`compute temp <compute_temp>` it is the same as the
 above expression for :math:`E_\mathrm{kin}`, except that the 1/2 factor

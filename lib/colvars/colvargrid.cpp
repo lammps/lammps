@@ -305,7 +305,7 @@ cvm::real colvar_grid_scalar::entropy() const
 cvm::real colvar_grid_scalar::grid_rmsd(colvar_grid_scalar const &other_grid) const
 {
   if (other_grid.data.size() != this->data.size()) {
-    cvm::error("Error: trying to subtract two grids with "
+    cvm::error_static("Error: trying to subtract two grids with "
                 "different size.\n");
     return -1.;
   }
@@ -461,7 +461,7 @@ void colvar_grid_gradient::write_1D_integral(std::ostream &os)
   os << "#       xi            A(xi)\n";
 
   if (cv.size() != 1) {
-    cvm::error("Cannot write integral for multi-dimensional gradient grids.");
+    cvm::error_static("Cannot write integral for multi-dimensional gradient grids.");
     return;
   }
 
@@ -494,14 +494,14 @@ void colvar_grid_gradient::write_1D_integral(std::ostream &os)
   bin = 0.0;
   for ( int i = 0; i < nx[0]; i++, bin += 1.0 ) {
     os << std::setw(10) << cv[0]->lower_boundary.real_value + cv[0]->width * bin << " "
-       << std::setw(cvm::cv_width)
-       << std::setprecision(cvm::cv_prec)
+       << std::setw(cvmodule->cv_width)
+       << std::setprecision(cvmodule->cv_prec)
        << int_vals[i] - min << "\n";
   }
 
   os << std::setw(10) << cv[0]->lower_boundary.real_value + cv[0]->width * bin << " "
-     << std::setw(cvm::cv_width)
-     << std::setprecision(cvm::cv_prec)
+     << std::setw(cvmodule->cv_width)
+     << std::setprecision(cvmodule->cv_prec)
      << int_vals[nx[0]] - min << "\n";
 
   return;
@@ -513,13 +513,13 @@ void colvar_grid_gradient::write_1D_integral(std::ostream &os)
 cvm::real colvar_grid_gradient::grid_rmsd(colvar_grid_gradient const &other_grid) const
 {
   if (other_grid.multiplicity() != this->multiplicity()) {
-    cvm::error("Error: trying to subtract two grids with "
+    cvm::error_static("Error: trying to subtract two grids with "
                 "different multiplicity.\n");
     return -1.;
   }
 
   if (other_grid.data.size() != this->data.size()) {
-    cvm::error("Error: trying to subtract two grids with "
+    cvm::error_static("Error: trying to subtract two grids with "
                 "different size.\n");
     return -1.;
   }

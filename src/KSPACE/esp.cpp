@@ -43,25 +43,98 @@ using namespace LAMMPS_NS;
 using namespace MathConst;
 using namespace MathSpecial;
 
-static constexpr int MAXORDER = 32;
-static constexpr int OFFSET = 16384;
-static constexpr double SMALL = 0.00001;
-static constexpr double EPS_HOC = 1.0e-7;
-static constexpr FFT_SCALAR ZEROF = 0.0;
+// clang-format on
+namespace {
+
+constexpr int MAXORDER = 32;
+constexpr int OFFSET = 16384;
+constexpr double SMALL = 0.00001;
+constexpr double EPS_HOC = 1.0e-7;
+constexpr FFT_SCALAR ZEROF = 0.0;
+
+double poly_horner(const double x, const double *coeff, const int n)
+{
+  // coeff[0] + coeff[1] x + ... + coeff[n-1] x^(n-1)
+  double p = coeff[n - 1];
+  for (int i = n - 2; i >= 0; --i) p = p * x + coeff[i];
+  return p;
+}
+
+void poly_and_deriv_horner(const double x, const double *coeff, const int n, double &p, double &dp)
+{
+  // p(x) and dp/dx, Horner form
+  p = coeff[n - 1];
+  dp = 0.0;
+  for (int i = n - 2; i >= 0; --i) {
+    dp = dp * x + p;
+    p = p * x + coeff[i];
+  }
+}
+}    // namespace
+
+// integer-form helper: t = scale * abs_index
+#define spreading_weight2_from_abs_index(abs_index, scale)  \
+  spreading_weight2_from_t(scale * (double) abs_index)
+
+[[nodiscard]] double ESP::spreading_weight2_from_t(const double t) const
+{
+  // t = (order * h / 2) * |q| / spreading_select_c
+  // returns ( (order/2 * poly(2t-1))^2 ), or 0 if t>1
+  if (t > 1.0) return 0.0;
+  const double x = 2.0 * t - 1.0;
+  // apply Horner rule for polynomial evaluation
+  const double appx = poly_horner(x, fourier_spread_poly_coeff, fourier_spreading_order);
+  const double w = 0.5 * order * appx;
+  return w * w;
+}
+[[nodiscard]] double ESP::gf_denom_psw(const double &kx, const double &ky, const double &kz,
+                                  const double &hx, const double &hy, const double &hz) const
+{
+  int Nmax = (differentiation_flag == 0) ? 2 : 0;
+
+  const double stepx = 2.0 * MY_PI / hx;
+  const double stepy = 2.0 * MY_PI / hy;
+  const double stepz = 2.0 * MY_PI / hz;
+
+  // sum_{nx,ny,nz} wx*wy*wz = (sum wx)*(sum wy)*(sum wz)
+  double sumx = 0.0, sumy = 0.0, sumz = 0.0;
+
+  for (int nx = -Nmax; nx <= Nmax; ++nx) {
+    const double qx = kx + stepx * (double) nx;
+    const double t = (0.5 * order * hx * fabs(qx)) / spreading_select_c;
+    sumx += spreading_weight2_from_t(t);
+  }
+
+  for (int ny = -Nmax; ny <= Nmax; ++ny) {
+    const double qy = ky + stepy * (double) ny;
+    const double t = (0.5 * order * hy * fabs(qy)) / spreading_select_c;
+    sumy += spreading_weight2_from_t(t);
+  }
+
+  for (int nz = -Nmax; nz <= Nmax; ++nz) {
+    const double qz = kz + stepz * (double) nz;
+    const double t = (0.5 * order * hz * fabs(qz)) / spreading_select_c;
+    sumz += spreading_weight2_from_t(t);
+  }
+
+  const double denom = sumx * sumy * sumz;
+  return denom * denom;
+};
+
 
 /* ---------------------------------------------------------------------- */
 
-ESP::ESP(LAMMPS *lmp) : KSpace(lmp),
-  factors(nullptr), density_brick(nullptr), vdx_brick(nullptr), vdy_brick(nullptr), vdz_brick(nullptr),
-  u_brick(nullptr), v0_brick(nullptr), v1_brick(nullptr), v2_brick(nullptr), v3_brick(nullptr),
-  v4_brick(nullptr), v5_brick(nullptr), greensfn(nullptr), greensfn2(nullptr), vg(nullptr), vg2(nullptr), fkx(nullptr), fky(nullptr),
-  fkz(nullptr), density_fft(nullptr), work1(nullptr), work2(nullptr), rho1d(nullptr),
-  rho_coeff(nullptr), drho1d(nullptr), drho_coeff(nullptr),
-  sf_precoeff1(nullptr), sf_precoeff2(nullptr), sf_precoeff3(nullptr),
-  sf_precoeff4(nullptr), sf_precoeff5(nullptr), sf_precoeff6(nullptr),
-  fft1(nullptr), fft2(nullptr), remap(nullptr), gc(nullptr),
-  gc_buf1(nullptr), gc_buf2(nullptr), density_A_brick(nullptr), density_B_brick(nullptr), density_A_fft(nullptr),
-  density_B_fft(nullptr), part2grid(nullptr), boxlo(nullptr)
+ESP::ESP(LAMMPS *lmp) :
+    KSpace(lmp), factors(nullptr), density_brick(nullptr), vdx_brick(nullptr), vdy_brick(nullptr),
+    vdz_brick(nullptr), u_brick(nullptr), v0_brick(nullptr), v1_brick(nullptr), v2_brick(nullptr),
+    v3_brick(nullptr), v4_brick(nullptr), v5_brick(nullptr), greensfn(nullptr), greensfn2(nullptr),
+    vg(nullptr), vg2(nullptr), fkx(nullptr), fky(nullptr), fkz(nullptr), density_fft(nullptr),
+    work1(nullptr), work2(nullptr), rho1d(nullptr), rho_coeff(nullptr), drho1d(nullptr),
+    drho_coeff(nullptr), sf_precoeff1(nullptr), sf_precoeff2(nullptr), sf_precoeff3(nullptr),
+    sf_precoeff4(nullptr), sf_precoeff5(nullptr), sf_precoeff6(nullptr), fft1(nullptr),
+    fft2(nullptr), remap(nullptr), gc(nullptr), gc_buf1(nullptr), gc_buf2(nullptr),
+    density_A_brick(nullptr), density_B_brick(nullptr), density_A_fft(nullptr),
+    density_B_fft(nullptr), part2grid(nullptr), boxlo(nullptr)
 {
   peratom_allocate_flag = 0;
   group_allocate_flag = 0;
@@ -303,7 +376,7 @@ void ESP::init()
   if (order < minorder) error->all(FLERR,"ESP order < minimum allowed order");
   if (!overlap_allowed && !gc->ghost_adjacent())
     error->all(FLERR,"ESP grid stencil extends beyond nearest neighbor processor");
-  if (gc) delete gc;
+  delete gc;
 
   // allocate K-space dependent memory
   // don't invoke allocate peratom() or group(), will be allocated when needed
@@ -593,8 +666,6 @@ void ESP::reset_grid()
 
 void ESP::compute(int eflag, int vflag)
 {
-  int i,j;
-
   // set energy/virial flags
   // invoke allocate_peratom() if needed for first time
 
@@ -689,14 +760,11 @@ void ESP::compute(int eflag, int vflag)
     energy = energy_all;
 
     double self_coeff = 0.00;
-
-    for(int i=1;i<num_of_energy_poly;i++)
-    {
+    for (int i=1;i<num_of_energy_poly;i++) {
       self_coeff += 2 * (i+0.00) * energy_poly_coeff[i] * (i%2==1?1.0:-1.0);
     }
 
     energy *= 0.5*volume;
-    //energy -= (-energy_poly_coeff[1]/cutoff) * qsqsum / 2.0;
     energy -= (-self_coeff/cutoff) * qsqsum / 2.0;
     energy *= qscale;
   }
@@ -706,7 +774,7 @@ void ESP::compute(int eflag, int vflag)
   if (vflag_global) {
     double virial_all[6];
     MPI_Allreduce(virial,virial_all,6,MPI_DOUBLE,MPI_SUM,world);
-    for (i = 0; i < 6; i++) virial[i] = 0.5*qscale*volume*virial_all[i];
+    for (int i = 0; i < 6; i++) virial[i] = 0.5*qscale*volume*virial_all[i];
   }
 
   // per-atom energy/virial
@@ -721,22 +789,20 @@ void ESP::compute(int eflag, int vflag)
 
     if (eflag_atom) {
       double self_coeff = 0.00;
-      for(int i=1;i<num_of_energy_poly;i++)
-      {
+      for(int i=1;i<num_of_energy_poly;i++) {
         self_coeff += 2 * (i+0.00) * energy_poly_coeff[i] * (i%2==1?1.0:-1.0);
       }
-      for (i = 0; i < nlocal; i++) {
+      for (int i = 0; i < nlocal; i++) {
         eatom[i] *= 0.5;
-        //eatom[i] -= (-energy_poly_coeff[1]/cutoff) * q[i] * q[i] / 2.0;
         eatom[i] -= (-self_coeff/cutoff) * q[i] * q[i] / 2.0;
         eatom[i] *= qscale;
       }
-      for (i = nlocal; i < ntotal; i++) eatom[i] *= 0.5*qscale;
+      for (int i = nlocal; i < ntotal; i++) eatom[i] *= 0.5*qscale;
     }
 
     if (vflag_atom) {
-      for (i = 0; i < ntotal; i++)
-        for (j = 0; j < 6; j++) vatom[i][j] *= 0.5*qscale;
+      for (int i = 0; i < ntotal; i++)
+        for (int j = 0; j < 6; j++) vatom[i][j] *= 0.5*qscale;
     }
   }
 
@@ -1351,7 +1417,7 @@ void ESP::compute_gf_ik_triclinic()
           for (nx = -nbx; nx <= nbx; nx++) {
             //qx = unitk_lamda[0] + 2.0 * MY_PI * nx_pppm * nx;
 
-            double ph_2_kx_c = order * MY_PI * fabs(kper/nx_pppm + nx) / spreading_select_c;
+            double ph_2_kx_c = order * fabs(MY_PI*kper/nx_pppm + MY_PI*nx) / spreading_select_c;
             wx = 0.00;
             if (ph_2_kx_c <= 1.00) {
               ph_2_kx_c = 2.0 * ph_2_kx_c - 1.0;
@@ -1368,7 +1434,7 @@ void ESP::compute_gf_ik_triclinic()
             for (ny = -nby; ny <= nby; ny++) {
               //qy = unitk_lamda[1] + 2.0 * MY_PI * ny_pppm * ny;
 
-              double ph_2_ky_c = order * MY_PI * fabs(lper/ny_pppm + ny) / spreading_select_c;
+              double ph_2_ky_c = order * fabs(MY_PI*lper/ny_pppm + MY_PI*ny) / spreading_select_c;
               wy = 0.00;
               if (ph_2_ky_c <= 1.00) {
                 ph_2_ky_c = 2.0 * ph_2_ky_c - 1.0;
@@ -1385,7 +1451,7 @@ void ESP::compute_gf_ik_triclinic()
               for (nz = -nbz; nz <= nbz; nz++) {
                 //qz = unitk_lamda[2] + 2.0 * MY_PI * nz_pppm * nz;
 
-                double ph_2_kz_c = order * MY_PI * fabs(mper/nz_pppm + nz) / spreading_select_c;
+                double ph_2_kz_c = order * fabs(MY_PI*mper/nz_pppm + MY_PI*nz) / spreading_select_c;
                 wz = 0.00;
                 if (ph_2_kz_c <= 1.00) {
                   ph_2_kz_c = 2.0 * ph_2_kz_c - 1.0;

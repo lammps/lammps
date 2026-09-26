@@ -1,0 +1,21 @@
+pair_style lj/cut 8.0
+pair_coeff  1 1  0.02   2.5
+pair_coeff  2 2  0.005  1.0
+pair_coeff  2 4  0.005  0.5
+pair_coeff  3 3  0.02   3.2
+pair_coeff  4 4  0.015  3.1
+pair_coeff  5 5  0.015  3.1
+bond_style harmonic
+bond_coeff  1 250.0 1.5
+bond_coeff  2 300.0 1.1
+bond_coeff  3 350.0 1.3
+bond_coeff  4 650.0 1.2
+bond_coeff  5 450.0 1.0
+angle_style harmonic
+angle_coeff  1  75.0 110.1
+angle_coeff  2  45.0 111.0
+angle_coeff  3  50.0 120.0
+angle_coeff  4 100.0 108.5
+group solute  molecule 1:2
+group solvent molecule 3:5
+

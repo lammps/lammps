@@ -41,8 +41,8 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixMSST::FixMSST(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg), old_velocity(nullptr), id_temp(nullptr), id_press(nullptr), id_pe(nullptr),
-    temperature(nullptr), pressure(nullptr), pe(nullptr)
+    Fix(lmp, narg, arg), old_velocity(nullptr), id_temp(nullptr), id_press(nullptr),
+    id_pe(nullptr), temperature(nullptr), pressure(nullptr), pe(nullptr), fix_external(nullptr)
 {
   if (narg < 4) error->all(FLERR, "Illegal fix msst command");
 
@@ -297,11 +297,10 @@ void FixMSST::init()
   // find fix external being used to drive LAMMPS from DFTB+
 
   if (dftb) {
-    for (int i = 0; i < modify->nfix; i++)
-      if (utils::strmatch(modify->fix[i]->style, "^external$"))
-        fix_external = dynamic_cast<FixExternal *>(modify->fix[i]);
-    if (fix_external == nullptr)
+    auto extfixes = modify->get_fix_by_style("^external");
+    if (extfixes.empty())
       error->all(FLERR, "Fix msst dftb cannot be used w/out fix external");
+    fix_external = dynamic_cast<FixExternal *>(extfixes.back());
   }
 }
 

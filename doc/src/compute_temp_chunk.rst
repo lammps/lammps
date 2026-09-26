@@ -129,7 +129,7 @@ all its atoms were moving with the velocity of the center-of-mass of
 the chunk.
 
 The *internal* value calculates the internal kinetic energy of each
-chunk.  The interal KE is summed over the atoms in the chunk using an
+chunk.  The internal KE is summed over the atoms in the chunk using an
 internal "thermal" velocity for each atom, which is its velocity minus
 the center-of-mass velocity of the chunk.
 

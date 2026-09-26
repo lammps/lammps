@@ -32,7 +32,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 4Jul2026
 
 This fix performs Gibbs ensemble Monte Carlo (GEMC) exchanges of atoms
 and volume between two simulation cells at specified *T*.  It also

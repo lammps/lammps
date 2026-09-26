@@ -118,6 +118,7 @@ KOKKOS_INLINE_FUNCTION
 void ComputeCompositionAtomKokkos<DeviceType>::operator()(TagComputeCompositionAtom, const int &ii) const
 {
   const int i = d_ilist[ii];
+  const KK_FLOAT cutsq_kk = static_cast<KK_FLOAT>(cutsq);
 
   if (mask[i] & groupbit) {
 
@@ -143,9 +144,9 @@ void ComputeCompositionAtomKokkos<DeviceType>::operator()(TagComputeCompositionA
       const KK_FLOAT dely = x(j,1) - ytmp;
       const KK_FLOAT delz = x(j,2) - ztmp;
       const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
-      if (rsq < cutsq) {
+      if (rsq < cutsq_kk) {
         count++;
-        d_result(i,jtype) += 1.0;
+        d_result(i,jtype) += static_cast<KK_FLOAT>(1.0);
       }
     }
 
@@ -155,7 +156,7 @@ void ComputeCompositionAtomKokkos<DeviceType>::operator()(TagComputeCompositionA
 
     // local comp fractions per atom type
 
-    KK_FLOAT lfac = 1.0 / count;
+    KK_FLOAT lfac = static_cast<KK_FLOAT>(1.0) / count;
 
     for (int n = 1; n < size_peratom_cols; n++) {
       d_result(i,n) *= lfac;

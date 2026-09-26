@@ -62,12 +62,18 @@ class CommTiledKokkos : public CommTiled {
 
   template<class DeviceType> void forward_comm_device();
   template<class DeviceType> void reverse_comm_device();
+  template<class DeviceType> void forward_comm_device(Pair *pair, int size=0);
+  template<class DeviceType> void reverse_comm_device(Pair *pair, int size=0);
 
  protected:
   int nprocmaxtot;
 
   DAT::tdual_int_3d_lr k_sendlist;
   DAT::tdual_double_2d_lr k_buf_send,k_buf_recv;
+
+  int max_buf_pair;
+  DAT::tdual_double_1d k_buf_send_pair, k_buf_recv_pair;
+  void grow_buf_pair(int);
 
   void grow_send(int, int) override;             // reallocate send buffer
   void grow_recv(int, int flag = 0) override;    // free/allocate recv buffer

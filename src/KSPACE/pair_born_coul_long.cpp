@@ -39,7 +39,10 @@ using namespace EwaldConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairBornCoulLong::PairBornCoulLong(LAMMPS *lmp) : Pair(lmp)
+PairBornCoulLong::PairBornCoulLong(LAMMPS *lmp) :
+    Pair(lmp), cut_lj(nullptr), cut_ljsq(nullptr), a(nullptr), rho(nullptr), sigma(nullptr),
+    c(nullptr), d(nullptr), rhoinv(nullptr), born1(nullptr), born2(nullptr), born3(nullptr),
+    offset(nullptr)
 {
   ewaldflag = pppmflag = 1;
   ftable = nullptr;

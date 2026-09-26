@@ -26,7 +26,27 @@
 bool verbose = false;
 
 // we compare floating point numbers with 8 digits precision after the decimal point
-static constexpr double EPSILON = 1.0e-8;
+// the KOKKOS package keeps the per-atom data in single precision in mixed and
+// single precision builds, so the chunk averages only reproduce the double
+// precision reference values to about 7 decimal digits
+static double chunk_epsilon()
+{
+    if (!kokkos_reduced_precision()) return 1.0e-8;
+    return (kokkos_precision() == "single") ? 1.0e-4 : 1.0e-5;
+}
+
+static const double EPSILON = chunk_epsilon();
+
+// the torque of a chunk is a sum of cross products, and the cancellation
+// between the contributions amplifies the error of the single precision
+// positions and forces well beyond that of the other per-chunk quantities
+static double chunk_torque_epsilon()
+{
+    if (!kokkos_reduced_precision()) return 1.0e-8;
+    return (kokkos_precision() == "single") ? 1.0e-2 : 1.0e-3;
+}
+
+static const double TORQUE_EPSILON = chunk_torque_epsilon();
 
 namespace LAMMPS_NS {
 
@@ -283,12 +303,12 @@ TEST_F(ComputeChunkTest, ChunkComputes)
     EXPECT_NEAR(comg[5][0], 0.00437315, EPSILON);
     EXPECT_NEAR(comg[5][1], 0.00029335, EPSILON);
     EXPECT_NEAR(comg[5][2], 0.00268517, EPSILON);
-    EXPECT_NEAR(ctrq[4][0], -0.94086086, EPSILON);
-    EXPECT_NEAR(ctrq[4][1], 0.56227336, EPSILON);
-    EXPECT_NEAR(ctrq[4][2], 0.75139995, EPSILON);
-    EXPECT_NEAR(ctrq[5][0], -0.07066910, EPSILON);
-    EXPECT_NEAR(ctrq[5][1], -0.58556032, EPSILON);
-    EXPECT_NEAR(ctrq[5][2], -0.81513604, EPSILON);
+    EXPECT_NEAR(ctrq[4][0], -0.94086086, TORQUE_EPSILON);
+    EXPECT_NEAR(ctrq[4][1], 0.56227336, TORQUE_EPSILON);
+    EXPECT_NEAR(ctrq[4][2], 0.75139995, TORQUE_EPSILON);
+    EXPECT_NEAR(ctrq[5][0], -0.07066910, TORQUE_EPSILON);
+    EXPECT_NEAR(ctrq[5][1], -0.58556032, TORQUE_EPSILON);
+    EXPECT_NEAR(ctrq[5][2], -0.81513604, TORQUE_EPSILON);
     EXPECT_NEAR(cvcm[0][0], -0.00011274, EPSILON);
     EXPECT_NEAR(cvcm[0][1], 0.00071452, EPSILON);
     EXPECT_NEAR(cvcm[0][2], -0.00017908, EPSILON);
@@ -396,6 +416,250 @@ TEST_F(ComputeChunkTest, ChunkReduce)
         EXPECT_EQ(cprp[i], cred[i]);
 }
 
+// finite-size particles must contribute their own moment of inertia
+// to compute inertia/chunk (issue #3710).
+
+class ComputeInertiaChunkTest : public ComputeChunkTest {
+protected:
+    void SetUp() override
+    {
+        testbinary = "ComputeInertiaChunkTest";
+        LAMMPSTest::SetUp();
+    }
+};
+
+TEST_F(ComputeInertiaChunkTest, Ellipsoid)
+{
+    if (!info->has_style("atom", "ellipsoid")) GTEST_SKIP();
+
+    // single chunk = both atoms (type 1); same configuration and analytic
+    // result as the ComputeInertiaTest.Ellipsoid global-compute test:
+    // two axis-aligned ellipsoids, semi-axes a=1,b=2,c=3, m1=1 at origin,
+    // m2=3 at (5,0,0) -> tensor (10.4, 26.75, 22.75, 0, 0, 0)
+
+    BEGIN_HIDE_OUTPUT();
+    command("units lj");
+    command("atom_style ellipsoid");
+    command("boundary f f f");
+    command("region box block -20 20 -20 20 -20 20");
+    command("create_box 1 box");
+    command("create_atoms 1 single 0.0 0.0 0.0 units box");
+    command("create_atoms 1 single 5.0 0.0 0.0 units box");
+    command("set group all shape 2.0 4.0 6.0");
+    command("set atom 1 mass 1.0");
+    command("set atom 2 mass 3.0");
+    command("pair_style zero 5.0");
+    command("pair_coeff * *");
+    command("compute ch all chunk/atom type");
+    command("compute icc all inertia/chunk ch");
+    command("fix h all ave/time 1 1 1 c_icc[*] mode vector");
+    command("run 0 post no");
+    END_HIDE_OUTPUT();
+
+    auto *icc = get_array("icc");
+    EXPECT_NEAR(icc[0][0], 10.4, 1.0e-12);
+    EXPECT_NEAR(icc[0][1], 26.75, 1.0e-12);
+    EXPECT_NEAR(icc[0][2], 22.75, 1.0e-12);
+    EXPECT_NEAR(icc[0][3], 0.0, 1.0e-12);
+    EXPECT_NEAR(icc[0][4], 0.0, 1.0e-12);
+    EXPECT_NEAR(icc[0][5], 0.0, 1.0e-12);
+}
+
+TEST_F(ComputeInertiaChunkTest, Sphere)
+{
+    if (!info->has_style("atom", "sphere")) GTEST_SKIP();
+
+    // single chunk = both atoms (type 1); two finite spheres of radius 1,
+    // mass 1, at (0,0,0) and (4,0,0) -> tensor (0.8, 8.8, 8.8, 0, 0, 0)
+
+    BEGIN_HIDE_OUTPUT();
+    command("units lj");
+    command("atom_style sphere");
+    command("boundary f f f");
+    command("region box block -20 20 -20 20 -20 20");
+    command("create_box 1 box");
+    command("create_atoms 1 single 0.0 0.0 0.0 units box");
+    command("create_atoms 1 single 4.0 0.0 0.0 units box");
+    command("set group all diameter 2.0");
+    command("set group all mass 1.0");
+    command("pair_style zero 5.0");
+    command("pair_coeff * *");
+    command("compute ch all chunk/atom type");
+    command("compute icc all inertia/chunk ch");
+    command("fix h all ave/time 1 1 1 c_icc[*] mode vector");
+    command("run 0 post no");
+    END_HIDE_OUTPUT();
+
+    auto *icc = get_array("icc");
+    EXPECT_NEAR(icc[0][0], 0.8, 1.0e-12);
+    EXPECT_NEAR(icc[0][1], 8.8, 1.0e-12);
+    EXPECT_NEAR(icc[0][2], 8.8, 1.0e-12);
+    EXPECT_NEAR(icc[0][3], 0.0, 1.0e-12);
+    EXPECT_NEAR(icc[0][4], 0.0, 1.0e-12);
+    EXPECT_NEAR(icc[0][5], 0.0, 1.0e-12);
+}
+
+TEST_F(ComputeInertiaChunkTest, Superellipsoid)
+{
+    // atom style ellipsoid/kk does not support the superellipsoid option
+    if (lmp->suffix_enable) GTEST_SKIP() << "superellipsoid is not supported with an accelerator suffix";
+    if (!info->has_style("atom", "ellipsoid")) GTEST_SKIP();
+
+    // same as Ellipsoid, but with atom_style "ellipsoid superellipsoid".
+    // With default blockiness (2,2) the result is identical and the
+    // superellipsoid (bonus_super) branch is exercised.  Mass must be set
+    // before the shape, since the stored inertia is computed at set-shape.
+
+    BEGIN_HIDE_OUTPUT();
+    command("units lj");
+    command("atom_style ellipsoid superellipsoid");
+    command("boundary f f f");
+    command("region box block -20 20 -20 20 -20 20");
+    command("create_box 1 box");
+    command("create_atoms 1 single 0.0 0.0 0.0 units box");
+    command("create_atoms 1 single 5.0 0.0 0.0 units box");
+    command("set atom 1 mass 1.0");
+    command("set atom 2 mass 3.0");
+    command("set group all shape 2.0 4.0 6.0");
+    command("pair_style zero 5.0");
+    command("pair_coeff * *");
+    command("compute ch all chunk/atom type");
+    command("compute icc all inertia/chunk ch");
+    command("fix h all ave/time 1 1 1 c_icc[*] mode vector");
+    command("run 0 post no");
+    END_HIDE_OUTPUT();
+
+    auto *icc = get_array("icc");
+    EXPECT_NEAR(icc[0][0], 10.4, 1.0e-12);
+    EXPECT_NEAR(icc[0][1], 26.75, 1.0e-12);
+    EXPECT_NEAR(icc[0][2], 22.75, 1.0e-12);
+    EXPECT_NEAR(icc[0][3], 0.0, 1.0e-12);
+    EXPECT_NEAR(icc[0][4], 0.0, 1.0e-12);
+    EXPECT_NEAR(icc[0][5], 0.0, 1.0e-12);
+}
+
+TEST_F(ComputeInertiaChunkTest, Body)
+{
+    if (!lammps_config_has_package("BODY")) GTEST_SKIP();
+
+    // the KOKKOS package requires a Kokkos-enabled atom style, and there is
+    // no accelerated version of atom style body
+    if (lmp->kokkos && !info->has_style("atom", "body/kk"))
+        GTEST_SKIP() << "atom style body has no KOKKOS version";
+
+    // single body/nparticle at the origin with a known diagonal inertia
+    // tensor (2,3,4); a single chunk must return it unchanged
+
+    const char *datafile = "compute_inertia_chunk_body.data";
+    FILE *fp = fopen(datafile, "w");
+    ASSERT_NE(fp, nullptr);
+    fputs("LAMMPS body nparticle test\n\n"
+          "1 atoms\n1 bodies\n1 atom types\n"
+          "-10 10 xlo xhi\n-10 10 ylo yhi\n-10 10 zlo zhi\n\n"
+          "Atoms\n\n"
+          "1 1 1 1.0 0.0 0.0 0.0 0 0 0\n\n"
+          "Bodies\n\n"
+          "1 1 9\n1\n2.0 3.0 4.0 0.0 0.0 0.0\n0.0 0.0 0.0\n",
+          fp);
+    fclose(fp);
+
+    BEGIN_HIDE_OUTPUT();
+    command("units lj");
+    command("atom_style body nparticle 1 1");
+    command("read_data " + std::string(datafile));
+    command("pair_style zero 5.0");
+    command("pair_coeff * *");
+    command("compute ch all chunk/atom type");
+    command("compute icc all inertia/chunk ch");
+    command("fix h all ave/time 1 1 1 c_icc[*] mode vector");
+    command("run 0 post no");
+    END_HIDE_OUTPUT();
+
+    auto *icc = get_array("icc");
+    EXPECT_NEAR(icc[0][0], 2.0, 1.0e-12);
+    EXPECT_NEAR(icc[0][1], 3.0, 1.0e-12);
+    EXPECT_NEAR(icc[0][2], 4.0, 1.0e-12);
+    EXPECT_NEAR(icc[0][3], 0.0, 1.0e-12);
+    EXPECT_NEAR(icc[0][4], 0.0, 1.0e-12);
+    EXPECT_NEAR(icc[0][5], 0.0, 1.0e-12);
+
+    remove(datafile);
+}
+
+// finite-size particles must contribute their own (spin) angular momentum
+// to compute angmom/chunk (issue #3710).
+
+class ComputeAngmomChunkTest : public ComputeChunkTest {
+protected:
+    void SetUp() override
+    {
+        testbinary = "ComputeAngmomChunkTest";
+        LAMMPSTest::SetUp();
+    }
+};
+
+TEST_F(ComputeAngmomChunkTest, Sphere)
+{
+    if (!info->has_style("atom", "sphere")) GTEST_SKIP();
+
+    // single chunk = both spheres (r=1, m=1) spinning at omega=(0,0,5),
+    // otherwise at rest -> total angular momentum is pure spin (0,0,4)
+
+    BEGIN_HIDE_OUTPUT();
+    command("units lj");
+    command("atom_style sphere");
+    command("boundary f f f");
+    command("region box block -20 20 -20 20 -20 20");
+    command("create_box 1 box");
+    command("create_atoms 1 single 0.0 0.0 0.0 units box");
+    command("create_atoms 1 single 2.0 0.0 0.0 units box");
+    command("set group all diameter 2.0");
+    command("set group all mass 1.0");
+    command("set group all omega 0.0 0.0 5.0");
+    command("pair_style zero 5.0");
+    command("pair_coeff * *");
+    command("compute ch all chunk/atom type");
+    command("compute acc all angmom/chunk ch");
+    command("fix h all ave/time 1 1 1 c_acc[*] mode vector");
+    command("run 0 post no");
+    END_HIDE_OUTPUT();
+
+    auto *acc = get_array("acc");
+    EXPECT_NEAR(acc[0][0], 0.0, 1.0e-12);
+    EXPECT_NEAR(acc[0][1], 0.0, 1.0e-12);
+    EXPECT_NEAR(acc[0][2], 4.0, 1.0e-12);
+}
+
+TEST_F(ComputeAngmomChunkTest, Ellipsoid)
+{
+    if (!info->has_style("atom", "ellipsoid")) GTEST_SKIP();
+
+    // single ellipsoid (one chunk) at rest with angmom set to (1,2,3)
+
+    BEGIN_HIDE_OUTPUT();
+    command("units lj");
+    command("atom_style ellipsoid");
+    command("boundary f f f");
+    command("region box block -20 20 -20 20 -20 20");
+    command("create_box 1 box");
+    command("create_atoms 1 single 0.0 0.0 0.0 units box");
+    command("set group all shape 2.0 4.0 6.0");
+    command("set group all mass 1.0");
+    command("set group all angmom 1.0 2.0 3.0");
+    command("pair_style zero 5.0");
+    command("pair_coeff * *");
+    command("compute ch all chunk/atom type");
+    command("compute acc all angmom/chunk ch");
+    command("fix h all ave/time 1 1 1 c_acc[*] mode vector");
+    command("run 0 post no");
+    END_HIDE_OUTPUT();
+
+    auto *acc = get_array("acc");
+    EXPECT_NEAR(acc[0][0], 1.0, 1.0e-12);
+    EXPECT_NEAR(acc[0][1], 2.0, 1.0e-12);
+    EXPECT_NEAR(acc[0][2], 3.0, 1.0e-12);
+}
+
 TEST_F(ComputeChunkTest, ChunkMoleculeWarning)
 {
     if (lammps_get_natoms(lmp) == 0.0) GTEST_SKIP();
@@ -460,6 +724,13 @@ int main(int argc, char **argv)
     if ((argc > 1) && (strcmp(argv[1], "-v") == 0)) verbose = true;
 
     int rv = RUN_ALL_TESTS();
+
+    // finalize the KOKKOS package explicitly: otherwise Kokkos is torn down by
+    // static destructors at program exit, leading to segfaults in some cases
+    // same workaround as the force-style and FFT3d test drivers
+
+    lammps_kokkos_finalize();
+
     MPI_Finalize();
     return rv;
 }

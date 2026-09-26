@@ -67,7 +67,7 @@ void FixUpdateSpecialBonds::setup(int /*vflag*/)
   if (!atom->avec->bonds_allow)
     error->all(FLERR, "Fix update/special/bonds requires an atom style supporting bonds");
 
-  // special lj must be 0 1 1 to censor pair forces between bonded particles
+  // special lj must be 0 1 1 to exclude pair forces between bonded particles
   // special coulomb must be 1 1 1 to ensure all pairs are included in the
   //   neighbor list and 1-3 and 1-4 special bond lists are skipped
   if (force->special_lj[1] != 0.0 || force->special_lj[2] != 1.0 || force->special_lj[3] != 1.0)
@@ -165,6 +165,9 @@ void FixUpdateSpecialBonds::pre_exchange()
 
 void FixUpdateSpecialBonds::pre_force(int /*vflag*/)
 {
+  // nothing to do if neighbor lists have not been initialized yet
+  if (neighbor->ago < 0) return;
+
   int i1, i2, j, jj, jnum;
   int *jlist, *numneigh, **firstneigh;
   tagint tag1, tag2;

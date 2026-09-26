@@ -191,9 +191,7 @@ FixSMDMoveTriSurf::FixSMDMoveTriSurf(LAMMPS *lmp, int narg, char **arg) :
                         }
 
                 } else {
-                        char msg[128];
-                        snprintf(msg,128, "Illegal keyword for fix smd/move_tri_surf: %s\n", arg[iarg]);
-                        error->all(FLERR, msg);
+                        error->all(FLERR, iarg, "Unknown fix smd/move_tri_surf keyword: {}", arg[iarg]);
                 }
 
                 iarg++;

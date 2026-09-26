@@ -1,0 +1,160 @@
+LAMMPS (4 Jul 2026 - Development - patch_4Jul2026-1067-g777d22319c-modified)
+  using 1 OpenMP thread(s) per MPI task
+# bcc iron in a 3d periodic box
+
+clear
+  using 1 OpenMP thread(s) per MPI task
+units 		metal
+atom_style 	spin
+
+dimension 	3
+boundary 	p p p
+
+# necessary for the serial algorithm (sametag)
+atom_modify 	map array
+
+lattice 	bcc 2.8665
+Lattice spacing in x,y,z = 2.8665 2.8665 2.8665
+region 		box block 0.0 5.0 0.0 5.0 0.0 5.0
+create_box 	1 box
+Created orthogonal box = (0 0 0) to (14.3325 14.3325 14.3325)
+  1 by 1 by 1 MPI processor grid
+create_atoms 	1 box
+Created 250 atoms
+  using lattice units in orthogonal box = (0 0 0) to (14.3325 14.3325 14.3325)
+  create_atoms CPU = 0.000 seconds
+
+# setting mass, mag. moments, and interactions for bcc iron
+
+mass		1 55.845
+
+set 		group all spin/random 31 2.2
+WARNING: Set attribute spin/random is deprecated -- use spin/atom/random instead (src/set.cpp:2447)
+Setting atom values ...
+  250 settings made for spin/random
+# set 		group all spin 2.2 0.0 0.0 1.0
+velocity 	all create 100 4928459 rot yes dist gaussian
+
+pair_style 	hybrid/overlay eam/alloy spin/exchange 3.5
+pair_coeff 	* * eam/alloy Fe_Mishin2006.eam.alloy Fe
+pair_coeff 	* * spin/exchange exchange 3.4 0.02726 0.2171 1.841 offset yes
+
+neighbor 	0.1 bin
+neigh_modify 	every 10 check yes delay 20
+
+fix 		1 all precession/spin zeeman 0.0 0.0 0.0 1.0
+fix_modify 	1 energy yes
+fix 		2 all langevin/spin 0.0 0.0 21
+
+fix 		3 all nve/spin lattice moving
+timestep	0.0001
+
+# compute and output options
+
+compute 	out_mag    all spin
+compute 	out_pe     all pe
+compute 	out_ke     all ke
+compute 	out_temp   all temp
+
+variable 	magz      equal c_out_mag[3]
+variable 	magnorm   equal c_out_mag[4]
+variable 	emag      equal c_out_mag[5]
+variable 	tmag      equal c_out_mag[6]
+
+thermo_style    custom step time v_magnorm v_tmag temp v_emag ke pe press etotal
+thermo          50
+
+compute 	outsp all property/atom spx spy spz sp fmx fmy fmz
+dump 		1 all custom 100 dump_iron.lammpstrj type x y z c_outsp[1] c_outsp[2] c_outsp[3]
+
+run 		1000
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- fix nve/spin command: https://doi.org/10.1016/j.jcp.2018.06.042
+
+@article{tranchida2018massively,
+title={Massively Parallel Symplectic Algorithm for Coupled Magnetic Spin    Dynamics and Molecular Dynamics},
+author={Tranchida, J and Plimpton, S J and Thibaudeau, P and Thompson, A P},
+journal={Journal of Computational Physics},
+volume={372},
+pages={406--425},
+year={2018},
+publisher={Elsevier}
+doi={10.1016/j.jcp.2018.06.042}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Neighbor list info ...
+  update: every = 10 steps, delay = 20 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 5.773367
+  ghost atom cutoff = 5.773367
+  binsize = 2.8866835, bins = 5 5 5
+  2 neighbor lists, perpetual/occasional/extra = 2 0 0
+  (1) pair eam/alloy, perpetual, half/full from (2)
+      attributes: half, newton on, cut 5.7733670002446
+      pair build: halffull/newton
+      stencil: none
+      bin: none
+  (2) pair spin/exchange, perpetual
+      attributes: full, newton on
+      pair build: full/bin/atomonly
+      stencil: full/bin/3d
+      bin: standard
+WARNING: Dump 1 includes no atom IDs and is not sorted by ID. This may complicate post-processing tasks or visualization (src/dump.cpp:211)
+Per MPI rank memory allocation (min/avg/max) = 5.687 | 5.687 | 5.687 Mbytes
+   Step          Time        v_magnorm        v_tmag          Temp          v_emag         KinEng         PotEng         Press          TotEng    
+         0   0              0.076456975    4554.5462      100.00358      27.362389      3.2186929     -1042.6376      18819.513     -1039.4189    
+        50   0.005          0.076456974    4671.307       96.539592      27.359426      3.1072017     -1042.5261      19095.755     -1039.4189    
+       100   0.01           0.076456983    4793.2918      86.598241      27.353381      2.7872316     -1042.2062      19814.825     -1039.4189    
+       150   0.015          0.076456973    4894.2512      71.811281      27.345756      2.3113018     -1041.7302      20856.08      -1039.4189    
+       200   0.02           0.076456944    4860.0121      54.829747      27.336804      1.764738      -1041.1837      22034.088     -1039.4189    
+       250   0.025          0.076456953    4636.3679      38.830341      27.326564      1.2497847     -1040.6687      23112.264     -1039.4189    
+       300   0.03           0.076457027    4333.4952      26.742384      27.31621       0.86072439    -1040.2797      23862.046     -1039.4189    
+       350   0.035          0.076457102    4123.9716      20.45728       27.307397      0.65843343    -1040.0774      24124.411     -1039.4189    
+       400   0.04           0.076457116    4064.4233      20.326334      27.300802      0.65421884    -1040.0731      23878.295     -1039.4189    
+       450   0.045          0.076457072    4075.8788      25.174646      27.296061      0.81026552    -1040.2292      23251.136     -1039.4189    
+       500   0.05           0.076457001    4105.0586      32.851038      27.29233       1.0573361     -1040.4763      22455.559     -1039.4189    
+       550   0.055          0.076456962    4108.4703      41.015098      27.288588      1.3201027     -1040.739       21701.752     -1039.4189    
+       600   0.06           0.076456996    3992.949       47.799965      27.28353       1.538479      -1040.9574      21138.109     -1039.4189    
+       650   0.065          0.076457077    3776.0839      52.127234      27.276476      1.6777555     -1041.0967      20837.764     -1039.4189    
+       700   0.07           0.076457137    3586.7938      53.735306      27.268218      1.7295125     -1041.1484      20790.102     -1039.4189    
+       750   0.075          0.076457135    3535.2047      53.084165      27.259936      1.7085551     -1041.1275      20928.698     -1039.4189    
+       800   0.08           0.076457118    3585.507       51.138468      27.252307      1.6459313     -1041.0649      21168.021     -1039.4189    
+       850   0.085          0.076457119    3633.9159      49.038837      27.245879      1.578353      -1040.9973      21420.859     -1039.4189    
+       900   0.09           0.076457126    3659.3708      47.794059      27.240511      1.5382889     -1040.9572      21611.687     -1039.4189    
+       950   0.095          0.076457129    3670.2566      48.029795      27.235123      1.5458762     -1040.9648      21697.734     -1039.4189    
+      1000   0.1            0.076457139    3627.7025      49.819806      27.22899       1.6034891     -1041.0224      21674.029     -1039.4189    
+Loop time of 0.543546 on 1 procs for 1000 steps with 250 atoms
+
+Performance: 15.896 ns/day, 1.510 hours/ns, 1839.769 timesteps/s, 459.942 katom-step/s
+99.6% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.25423    | 0.25423    | 0.25423    |   0.0 | 46.77
+Neigh   | 0.0027743  | 0.0027743  | 0.0027743  |   0.0 |  0.51
+Comm    | 0.013809   | 0.013809   | 0.013809   |   0.0 |  2.54
+Output  | 0.0024498  | 0.0024498  | 0.0024498  |   0.0 |  0.45
+Modify  | 0.26921    | 0.26921    | 0.26921    |   0.0 | 49.53
+Other   |            | 0.001075   |            |       |  0.20
+
+Nlocal:            250 ave         250 max         250 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           1407 ave        1407 max        1407 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:           7864 ave        7864 max        7864 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+FullNghs:        15728 ave       15728 max       15728 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 15728
+Ave neighs/atom = 62.912
+Neighbor list builds = 6
+Dangerous builds = 0
+Total wall time: 0:00:00

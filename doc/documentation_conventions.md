@@ -1,10 +1,10 @@
 # Outline of LAMMPS documentation file conventions
 
-This purpose of this document is to provide a point of reference
+The purpose of this document is to provide a point of reference
 for LAMMPS developers and contributors as to what conventions
 should be used to structure and format files in the LAMMPS manual.
 
-Last change: 2022-12-30
+Last change: 2026-08-29
 
 ## File format and tools
 
@@ -12,9 +12,9 @@ In fall 2019, the LAMMPS documentation file format has changed from a
 home grown markup designed to generate HTML format files only, to
 [reStructuredText](https://docutils.sourceforge.io/rst.html>).  For a
 transition period all files in the old .txt format were transparently
-converted to .rst and then processed.  The `txt2rst tool` is still
-included in the distribution to obtain an initial .rst file for legacy
-integration into the manual.  Since that transition to reStructured
+converted to .rst with the `txt2rst` tool and then processed; that
+converter code has since been removed from the distribution.  Since
+that transition to reStructured
 text, many of the artifacts of the translation have been removed though,
 and parts of the documentation refactored and expanded to take advantage
 of the capabilities reStructuredText and associated tools.  The

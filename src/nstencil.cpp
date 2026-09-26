@@ -61,7 +61,15 @@ using namespace LAMMPS_NS;
      no versions that allow ghost on (any need for it?)
 ------------------------------------------------------------------------- */
 
-NStencil::NStencil(LAMMPS *lmp) : Pointers(lmp)
+NStencil::NStencil(LAMMPS *lmp) :
+    Pointers(lmp), nb(nullptr), stencil_sx_multi(nullptr), stencil_sy_multi(nullptr),
+    stencil_sz_multi(nullptr), cuttypesq(nullptr), cutneighsq(nullptr), cutcollectionsq(nullptr),
+    collection(nullptr), mbinx_multi(nullptr), mbiny_multi(nullptr), mbinz_multi(nullptr),
+    binsizex_multi(nullptr), binsizey_multi(nullptr), binsizez_multi(nullptr),
+    bininvx_multi(nullptr), bininvy_multi(nullptr), bininvz_multi(nullptr),
+    stencil_mbinx_multi(nullptr), stencil_mbiny_multi(nullptr), stencil_mbinz_multi(nullptr),
+    stencil_binsizex_multi(nullptr), stencil_binsizey_multi(nullptr),
+    stencil_binsizez_multi(nullptr)
 {
   last_stencil = -1;
 

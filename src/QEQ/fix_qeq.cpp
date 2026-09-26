@@ -318,7 +318,7 @@ void FixQEq::init()
   ngroup = group->count(igroup);
   if (ngroup == 0) error->all(FLERR,"Fix {} group has no atoms", style);
 
-  if ((comm->me == 0) && (modify->get_fix_by_style("^efield").size() > 0))
+  if ((comm->me == 0) && (!modify->get_fix_by_style("^efield").empty()))
     error->warning(FLERR,"Fix efield is ignored during charge equilibration");
 
   if (utils::strmatch(update->integrate_style,"^respa"))
@@ -378,11 +378,20 @@ void FixQEq::init_storage()
   nlocal = atom->nlocal;
   nall = atom->nlocal + atom->nghost;
 
+  int *mask = atom->mask;
   for (int i = 0; i < nall; i++) {
     Hdia_inv[i] = 1. / eta[atom->type[i]];
     b_s[i] = -chi[atom->type[i]];
     b_t[i] = -1.0;
-    s[i] = t[i] = atom->q[i];
+    // s is initialized to the current charge so that atoms outside the fix
+    // group contribute their (fixed) charge to the electric field felt by the
+    // group atoms through the sparse matrix-vector product. The t vector,
+    // however, only encodes the charge-neutrality response of the group, so
+    // atoms outside the group must contribute 0 to it -- otherwise their fixed
+    // charge pollutes the neutralization and the equilibrated charges come out
+    // with the wrong sign (see GitHub issue #3543).
+    s[i] = atom->q[i];
+    t[i] = (mask[i] & groupbit) ? atom->q[i] : 0.0;
 
     chizj[i] = 0.0;
     qf[i] = 0.0;

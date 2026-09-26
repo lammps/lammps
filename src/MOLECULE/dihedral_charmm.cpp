@@ -38,7 +38,10 @@ static constexpr double TOLERANCE = 0.05;
 
 /* ---------------------------------------------------------------------- */
 
-DihedralCharmm::DihedralCharmm(LAMMPS *_lmp) : Dihedral(_lmp)
+DihedralCharmm::DihedralCharmm(LAMMPS *_lmp) :
+    Dihedral(_lmp), k(nullptr), weight(nullptr), cos_shift(nullptr), sin_shift(nullptr),
+    multiplicity(nullptr), shift(nullptr), lj14_1(nullptr), lj14_2(nullptr), lj14_3(nullptr),
+    lj14_4(nullptr)
 {
   weightflag = 0;
   writedata = 1;

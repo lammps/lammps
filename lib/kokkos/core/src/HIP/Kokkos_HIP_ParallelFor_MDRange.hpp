@@ -11,8 +11,49 @@
 #include <KokkosExp_MDRangePolicy.hpp>
 #include <impl/KokkosExp_IterateTileGPU.hpp>
 
-namespace Kokkos {
-namespace Impl {
+namespace Kokkos::Impl {
+
+// Device closure for MDRange ParallelFor on HIP.
+// Selects between stride and no-stride iteration patterns at compile time.
+template <typename FunctorType, bool UseStride, typename... Traits>
+class ParallelForMDRange;
+
+template <typename FunctorType, bool UseStride, typename... Traits>
+class ParallelForMDRange<FunctorType, UseStride,
+                         Kokkos::MDRangePolicy<Traits...>> {
+ public:
+  using Policy       = Kokkos::MDRangePolicy<Traits...>;
+  using functor_type = FunctorType;
+
+ private:
+  using array_index_type = typename Policy::array_index_type;
+  using index_type       = typename Policy::index_type;
+  using array_type       = typename Policy::point_type;
+
+  using DeviceIteratePattern =
+      Kokkos::Impl::DeviceIterate<Policy::rank, array_index_type, index_type,
+                                  Policy::inner_direction, UseStride,
+                                  FunctorType, typename Policy::work_tag>;
+
+  const FunctorType m_functor;
+  const array_type m_lower;
+  const array_type m_upper;
+  const array_type m_extent;  // tile_size * num_tiles
+
+ public:
+  ParallelForMDRange() = delete;
+
+  inline __device__ void operator()() const {
+    DeviceIteratePattern(m_lower, m_upper, m_extent, m_functor).exec_range();
+  }
+
+  ParallelForMDRange(FunctorType const& arg_functor, const array_type& lower,
+                     const array_type& upper, const array_type& extent)
+      : m_functor(arg_functor),
+        m_lower(lower),
+        m_upper(upper),
+        m_extent(extent) {}
+};
 
 // ParallelFor
 template <class FunctorType, class... Traits>
@@ -25,7 +66,7 @@ class ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>, HIP> {
   using array_index_type = typename Policy::array_index_type;
   using index_type       = typename Policy::index_type;
   using LaunchBounds     = typename Policy::launch_bounds;
-  using MaxGridSize      = Kokkos::Array<index_type, 3>;
+  using MaxGridSize      = Kokkos::Array<array_index_type, 3>;
   using array_type       = typename Policy::point_type;
 
   const FunctorType m_functor;
@@ -41,34 +82,50 @@ class ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>, HIP> {
 
   inline __device__ void operator()() const {
     Kokkos::Impl::DeviceIterate<Policy::rank, array_index_type, index_type,
-                                FunctorType, Policy::inner_direction,
+                                Policy::inner_direction, true, FunctorType,
                                 typename Policy::work_tag>(m_lower, m_upper,
                                                            m_extent, m_functor)
         .exec_range();
   }
 
   inline void execute() const {
-    using ClosureType = ParallelFor<FunctorType, Policy, HIP>;
     if (m_policy.m_num_tiles == 0) return;
 
     const auto [grid, block] =
         Kokkos::Impl::compute_device_launch_params(m_policy, m_max_grid_size);
 
-    hip_parallel_launch<ClosureType, LaunchBounds>(
-        *this, grid, block, 0, m_policy.space().impl_internal_space_instance(),
-        false);
+    const bool need_grid_stride =
+        Kokkos::Impl::need_grid_stride_loop(m_max_grid_size, block, m_extent);
+
+    if constexpr (Policy::is_graph_kernel::value) {
+      hip_parallel_launch<ParallelFor, LaunchBounds>(
+          *this, grid, block, 0,
+          m_policy.space().impl_internal_space_instance(), false);
+    } else {
+      // launch the kernel
+      if (need_grid_stride) {
+        using ClosureType = ParallelForMDRange<FunctorType, true, Policy>;
+        ClosureType closure(m_functor, m_lower, m_upper, m_extent);
+        hip_parallel_launch<ClosureType, LaunchBounds>(
+            closure, grid, block, 0,
+            m_policy.space().impl_internal_space_instance(), false);
+      } else {
+        using ClosureType = ParallelForMDRange<FunctorType, false, Policy>;
+        ClosureType closure(m_functor, m_lower, m_upper, m_extent);
+        hip_parallel_launch<ClosureType, LaunchBounds>(
+            closure, grid, block, 0,
+            m_policy.space().impl_internal_space_instance(), false);
+      }
+    }
   }  // end execute
 
   ParallelFor(FunctorType const& arg_functor, Policy const& arg_policy)
       : m_functor(arg_functor),
         m_policy(arg_policy),
         m_max_grid_size({
-            static_cast<index_type>(
-                m_policy.space().hip_device_prop().maxGridSize[0]),
-            static_cast<index_type>(
-                m_policy.space().hip_device_prop().maxGridSize[1]),
-            static_cast<index_type>(
-                m_policy.space().hip_device_prop().maxGridSize[2]),
+            m_policy.space().hip_device_prop().maxGridSize[0],
+            m_policy.space().hip_device_prop().maxGridSize[1],
+            m_policy.space().hip_device_prop().maxGridSize[2],
         }) {
     // Initialize begins and ends based on layout
     // Swap the fastest indexes to x dimension
@@ -99,7 +156,6 @@ class ParallelFor<FunctorType, Kokkos::MDRangePolicy<Traits...>, HIP> {
   }
 };
 
-}  // namespace Impl
-}  // namespace Kokkos
+}  // namespace Kokkos::Impl
 
-#endif
+#endif  // KOKKOS_HIP_PARALLEL_FOR_MDRANGE_HPP

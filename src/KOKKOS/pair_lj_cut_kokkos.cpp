@@ -23,6 +23,7 @@
 #include "neigh_request.h"
 #include "neighbor.h"
 #include "respa.h"
+#include "tune_kokkos.h"
 #include "update.h"
 
 using namespace LAMMPS_NS;
@@ -33,6 +34,7 @@ template<class DeviceType>
 PairLJCutKokkos<DeviceType>::PairLJCutKokkos(LAMMPS *lmp) : PairLJCut(lmp)
 {
   respa_enable = 0;
+  tuner = nullptr;
 
   kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
@@ -53,6 +55,8 @@ PairLJCutKokkos<DeviceType>::~PairLJCutKokkos()
     memoryKK->destroy_kokkos(k_vatom,vatom);
     memoryKK->destroy_kokkos(k_cutsq,cutsq);
   }
+
+  delete tuner;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -102,6 +106,8 @@ void PairLJCutKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   copymode = 1;
 
+  if (lmp->kokkos->autotuning && tuner) tuner->tuning_kernel_params();
+
   EV_FLOAT ev = pair_compute<PairLJCutKokkos<DeviceType>,void >(this,(NeighListKokkos<DeviceType>*)list);
 
   if (eflag_global) eng_vdwl += static_cast<double>(ev.evdwl);
@@ -135,14 +141,21 @@ template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
 KK_FLOAT PairLJCutKokkos<DeviceType>::
 compute_fpair(const KK_FLOAT &rsq, const int &, const int &, const int &itype, const int &jtype) const {
+
   const KK_FLOAT r2inv = static_cast<KK_FLOAT>(1.0) / rsq;
   const KK_FLOAT r6inv = r2inv*r2inv*r2inv;
 
-  const KK_FLOAT forcelj = r6inv *
-    ((STACKPARAMS?m_params[itype][jtype].lj1:params(itype,jtype).lj1)*r6inv -
-     (STACKPARAMS?m_params[itype][jtype].lj2:params(itype,jtype).lj2));
+  KK_FLOAT lj1, lj2;
+  if constexpr (STACKPARAMS) {
+    lj1 = m_params[itype][jtype].lj1;
+    lj2 = m_params[itype][jtype].lj2;
+  } else {
+    lj1 = params(itype,jtype).lj1;
+    lj2 = params(itype,jtype).lj2;
+  }
 
-  return forcelj*r2inv;
+  return r6inv * Kokkos::fma(lj1, r6inv, -lj2) * r2inv;
+
 }
 
 template<class DeviceType>
@@ -151,12 +164,23 @@ template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
 KK_FLOAT PairLJCutKokkos<DeviceType>::
 compute_evdwl(const KK_FLOAT &rsq, const int &, const int &, const int &itype, const int &jtype) const {
+
   const KK_FLOAT r2inv = static_cast<KK_FLOAT>(1.0) / rsq;
   const KK_FLOAT r6inv = r2inv*r2inv*r2inv;
 
-  return r6inv*((STACKPARAMS?m_params[itype][jtype].lj3:params(itype,jtype).lj3)*r6inv -
-                (STACKPARAMS?m_params[itype][jtype].lj4:params(itype,jtype).lj4)) -
-                (STACKPARAMS?m_params[itype][jtype].offset:params(itype,jtype).offset);
+  KK_FLOAT lj3, lj4, offset;
+  if constexpr (STACKPARAMS) {
+    lj3 = m_params[itype][jtype].lj3;
+    lj4 = m_params[itype][jtype].lj4;
+    offset = m_params[itype][jtype].offset;
+  } else {
+    lj3 = params(itype,jtype).lj3;
+    lj4 = params(itype,jtype).lj4;
+    offset = params(itype,jtype).offset;
+  }
+
+  return Kokkos::fma(r6inv, Kokkos::fma(lj3, r6inv, -lj4), -offset);
+
 }
 
 /* ----------------------------------------------------------------------
@@ -203,6 +227,14 @@ void PairLJCutKokkos<DeviceType>::init_style()
                            !std::is_same_v<DeviceType,LMPDeviceType>);
   request->set_kokkos_device(std::is_same_v<DeviceType,LMPDeviceType>);
   if (neighflag == FULL) request->enable_full();
+
+  if (lmp->kokkos->autotuning > 0 && !tuner) {
+    if (!force->newton_pair)
+      tuner = new TuneKokkos(lmp, TuneKokkos::PAIR, lmp->kokkos->autotuning,
+        2, "pair-lj-cut");
+    else
+      error->warning(FLERR,"Autotuner for lj/cut/kk is disabled with 'newton on'");
+  }
 }
 
 /* ----------------------------------------------------------------------

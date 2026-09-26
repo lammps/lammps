@@ -405,15 +405,12 @@ struct MDRangePolicy<P, Properties...>
                    static_cast<index_type>(launch_bounds::maxTperB));
     }
 
-    tile_type default_tile = this->tile_size_recommended();
-
     int inner_rank  = (inner_direction == Iterate::Right) ? rank - 1 : 0;
     int outer_bound = (inner_direction == Iterate::Right) ? -1 : rank;
     int iter_step   = (inner_direction == Iterate::Right) ? -1 : 1;
 
+    // Validate bounds before invoking backend-specific tile recommendations.
     for (int i = inner_rank; i != outer_bound; i += iter_step) {
-      const index_type length = this->m_upper[i] - this->m_lower[i];
-
       if (this->m_upper[i] < this->m_lower[i]) {
         std::string msg =
             "Kokkos::MDRangePolicy bounds error: The lower bound (" +
@@ -423,6 +420,12 @@ struct MDRangePolicy<P, Properties...>
             std::to_string(i) + ".\n";
         Kokkos::abort(msg.c_str());
       }
+    }
+
+    tile_type default_tile = this->tile_size_recommended();
+
+    for (int i = inner_rank; i != outer_bound; i += iter_step) {
+      const index_type length = this->m_upper[i] - this->m_lower[i];
 
       // If tile size is not specified or <= 0 set to recommended tile size
       if (this->m_tile[i] <= 0) {

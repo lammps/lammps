@@ -80,7 +80,7 @@ BondRHEOShell::BondRHEOShell(LAMMPS *_lmp) :
 
 BondRHEOShell::~BondRHEOShell()
 {
-  if (modify->nfix) modify->delete_fix(id_fix);
+  modify->delete_fix(id_fix);
   delete[] id_fix;
   delete[] svector;
 
@@ -322,7 +322,7 @@ void BondRHEOShell::init_style()
     error->all(FLERR, Error::NOLASTLINE, "Bond rheo/shell requires ghost atoms store velocity");
 
   auto fixes = modify->get_fix_by_style("^rheo$");
-  if (fixes.size() == 0)
+  if (fixes.empty())
     error->all(FLERR, Error::NOLASTLINE, "Need to define fix rheo to use bond rheo/shell");
   auto *fix_rheo = dynamic_cast<FixRHEO *>(fixes[0]);
 
@@ -331,7 +331,7 @@ void BondRHEOShell::init_style()
   compute_surface = fix_rheo->compute_surface;
 
   fixes = modify->get_fix_by_style("^rheo/oxidation$");
-  if (fixes.size() == 0)
+  if (fixes.empty())
     error->all(FLERR, Error::NOLASTLINE, "Need to define fix rheo/oxidation to use bond rheo/shell");
   auto *fix_rheo_oxidation = dynamic_cast<FixRHEOOxidation *>(fixes[0]);
 

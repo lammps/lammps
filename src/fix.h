@@ -282,25 +282,34 @@ class Fix : protected Pointers {
 
   int dynamic;    // recount atoms for temperature computes
 
-  void ev_init(int eflag, int vflag)
+  // alloc = 0 tells ev_setup()/v_setup() to only update the flags and the
+  // maxeatom/maxvatom/maxcvatom sizes, but not to allocate or zero any of the
+  // plain per-atom arrays.  Styles that manage eatom/vatom themselves (e.g.
+  // the KOKKOS variants, which store them in dual views) must pass alloc = 0,
+  // since otherwise the plain arrays allocated here are orphaned by the style.
+  // Note that this covers cvatom as well: a style that passes alloc = 0 has to
+  // provide the centroid virial itself or set centroidstressflag to
+  // CENTROID_NOTAVAIL, since cvatom is then left unallocated.
+
+  void ev_init(int eflag, int vflag, int alloc = 1)
   {
     if ((eflag && thermo_energy) || (vflag && thermo_virial))
-      ev_setup(eflag, vflag);
+      ev_setup(eflag, vflag, alloc);
     else
       evflag = eflag_either = eflag_global = eflag_atom = eflag_only = vflag_either = vflag_global =
           vflag_atom = cvflag_atom = 0;
   }
-  void ev_setup(int, int);
+  void ev_setup(int, int, int alloc = 1);
   void ev_tally(int, int *, double, double, double *);
 
-  void v_init(int vflag)
+  void v_init(int vflag, int alloc = 1)
   {
     if (vflag && thermo_virial)
-      v_setup(vflag);
+      v_setup(vflag, alloc);
     else
       evflag = vflag_either = vflag_global = vflag_atom = cvflag_atom = 0;
   }
-  void v_setup(int);
+  void v_setup(int, int alloc = 1);
   void v_tally(int, int *, double, double *);
   void v_tally(int, int *, double, double *, int, int, int[][2], double *, double[][3]);
   void v_tally(int, int *, double, double *, double[][3], double[][3], double[]);

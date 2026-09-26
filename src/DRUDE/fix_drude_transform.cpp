@@ -54,12 +54,12 @@ void FixDrudeTransform<inverse>::init()
   if (inverse) substyle = "inverse";
 
   auto fixes = modify->get_fix_by_style("^drude$");
-  if (fixes.size() > 0) fix_drude = dynamic_cast<FixDrude *>(fixes[0]);
+  if (!fixes.empty()) fix_drude = dynamic_cast<FixDrude *>(fixes[0]);
   if (!fix_drude)
     error->all(FLERR, "fix drude/transform/{} requires fix drude", substyle);
 
   fixes = modify->get_fix_by_style("^rigid/np.");
-  if ((comm->me == 0) && (fixes.size() > 0))
+  if ((comm->me == 0) && (!fixes.empty()))
     error->warning(FLERR, "fix drude/transform/{} is not compatible with box changing rigid fixes",
       substyle);
 }

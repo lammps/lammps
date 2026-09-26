@@ -37,9 +37,8 @@ static constexpr int DELTA = 8192;
 /* ---------------------------------------------------------------------- */
 
 FixBondHistory::FixBondHistory(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg), bondstore(nullptr), bondtype_orig(nullptr), bondstore_comp(nullptr),
-    bondstore_orig(nullptr), id_fix(nullptr), id_array(nullptr)
-
+    Fix(lmp, narg, arg), setflag(nullptr), bondstore(nullptr), bondtype_orig(nullptr),
+    bondstore_comp(nullptr), bondstore_orig(nullptr), id_fix(nullptr), id_array(nullptr)
 {
   if (narg != 5) error->all(FLERR, "Illegal fix bond/history command");
   update_flag = utils::inumeric(FLERR, arg[3], false, lmp);
@@ -64,7 +63,7 @@ FixBondHistory::FixBondHistory(LAMMPS *lmp, int narg, char **arg) :
 
 FixBondHistory::~FixBondHistory()
 {
-  if (id_fix && modify->nfix) modify->delete_fix(id_fix);
+  if (id_fix) modify->delete_fix(id_fix);
   delete[] id_fix;
   delete[] id_array;
 
@@ -79,7 +78,9 @@ int FixBondHistory::setmask()
 {
   int mask = 0;
   mask |= PRE_EXCHANGE;
+  mask |= MIN_PRE_EXCHANGE;
   mask |= POST_NEIGHBOR;
+  mask |= MIN_POST_NEIGHBOR;
   return mask;
 }
 
@@ -178,6 +179,14 @@ void FixBondHistory::pre_exchange()
 
 /* ---------------------------------------------------------------------- */
 
+void FixBondHistory::min_pre_exchange()
+{
+  pre_exchange();
+}
+
+
+/* ---------------------------------------------------------------------- */
+
 void FixBondHistory::allocate()
 {
   //Ideally would just ask ntopo for maxbond, but protected
@@ -268,6 +277,13 @@ void FixBondHistory::post_neighbor()
   }
 
   updated_bond_flag = 1;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixBondHistory::min_post_neighbor()
+{
+  post_neighbor();
 }
 
 /* ---------------------------------------------------------------------- */

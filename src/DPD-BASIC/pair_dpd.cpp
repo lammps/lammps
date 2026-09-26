@@ -37,7 +37,8 @@ static constexpr double EPSILON = 1.0e-10;
 
 /* ---------------------------------------------------------------------- */
 
-PairDPD::PairDPD(LAMMPS *lmp) : Pair(lmp)
+PairDPD::PairDPD(LAMMPS *lmp) :
+    Pair(lmp), cut(nullptr), a0(nullptr), gamma(nullptr), sigma(nullptr)
 {
   writedata = 1;
   random = nullptr;
@@ -59,7 +60,7 @@ PairDPD::~PairDPD()
     memory->destroy(sigma);
   }
 
-  if (random) delete random;
+  delete random;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -374,7 +375,7 @@ void PairDPD::read_restart_settings(FILE *fp)
   // initialize Marsaglia RNG with processor-unique seed
   // same seed that pair_style command initially specified
 
-  if (random) delete random;
+  delete random;
   random = new RanMars(lmp,seed + comm->me);
 }
 

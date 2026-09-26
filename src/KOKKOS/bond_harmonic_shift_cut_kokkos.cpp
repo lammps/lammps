@@ -151,7 +151,7 @@ void BondHarmonicShiftCutKokkos<DeviceType>::operator()(TagBondHarmonicShiftCutC
   const KK_FLOAT delz = x(i1,2) - x(i2,2);
 
   const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
-  const KK_FLOAT r = sqrt(rsq);
+  const KK_FLOAT r = Kokkos::sqrt(rsq);
 
   // cutoff check
   if (r > d_r1[type]) return;
@@ -162,7 +162,7 @@ void BondHarmonicShiftCutKokkos<DeviceType>::operator()(TagBondHarmonicShiftCutC
   // force & energy
 
   KK_FLOAT fbond = 0.0;
-  if (r > 0.0) fbond = -static_cast<KK_FLOAT>(2.0) * rk / r;
+  if (r > static_cast<KK_FLOAT>(0.0)) fbond = -static_cast<KK_FLOAT>(2.0) * rk / r;
 
   KK_FLOAT ebond = 0.0;
   if (eflag) {

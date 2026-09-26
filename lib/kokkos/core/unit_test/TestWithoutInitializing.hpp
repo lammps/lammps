@@ -199,7 +199,7 @@ TEST(TEST_CATEGORY, deep_copy_zero_memset) {
   listen_tool_events(Config::DisableAll(), Config::EnableKernels());
   Kokkos::View<int*, TEST_EXECSPACE> bla("bla", 8);
 
-  // for MI300A with unified memory, ZeroMemset uses a parallel for
+  // for MI300A with unified memory, ZeroMemset uses a ViewFill-1D
   auto success = false;
 #ifdef KOKKOS_IMPL_HIP_UNIFIED_MEMORY
   if constexpr (!std::is_same_v<TEST_EXECSPACE::memory_space,
@@ -208,9 +208,8 @@ TEST(TEST_CATEGORY, deep_copy_zero_memset) {
         [&]() { Kokkos::deep_copy(bla, 0); },
         [&](BeginParallelForEvent e) {
           const bool found =
-              (e.descriptor().find("Kokkos::ZeroMemset via parallel_for") !=
-               std::string::npos);
-          return MatchDiagnostic{found, {"Found expected parallel_for label"}};
+              (e.descriptor().find("ViewFill-1D") != std::string::npos);
+          return MatchDiagnostic{found, {"Found expected ViewFill-1D label"}};
         });
   else
 #endif

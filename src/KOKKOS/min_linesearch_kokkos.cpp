@@ -191,15 +191,15 @@ int MinLineSearchKokkos::linemin_quadratic(double eoriginal, double &alpha)
     if constexpr (F_LAYOUTRIGHT) {
       auto l_fvec = fvec;
       Kokkos::parallel_reduce(nvec, LAMMPS_LAMBDA(const int& i, double& fdothme) {
-        fdothme += l_fvec[i]*l_h[i];
+        fdothme += static_cast<double>(l_fvec[i]*static_cast<KK_ACC_FLOAT>(l_h[i]));
       },fdothme);
     } else {
       auto l_f = atomKK->k_f.view_device();
       Kokkos::parallel_reduce(atom->nlocal, LAMMPS_LAMBDA(const int& i, double& fdothme) {
         const int j = i*3;
-        fdothme += l_f(i,0)*l_h[j];
-        fdothme += l_f(i,1)*l_h[j+1];
-        fdothme += l_f(i,2)*l_h[j+2];
+        fdothme += static_cast<double>(l_f(i,0)*static_cast<KK_ACC_FLOAT>(l_h[j]));
+        fdothme += static_cast<double>(l_f(i,1)*static_cast<KK_ACC_FLOAT>(l_h[j+1]));
+        fdothme += static_cast<double>(l_f(i,2)*static_cast<KK_ACC_FLOAT>(l_h[j+2]));
       },fdothme);
     }
   }
@@ -226,7 +226,7 @@ int MinLineSearchKokkos::linemin_quadratic(double eoriginal, double &alpha)
     auto l_h = h;
 
     Kokkos::parallel_reduce(nvec, LAMMPS_LAMBDA(const int& i, double& hme) {
-      hme = MAX(hme,fabs(l_h[i]));
+      hme = MAX(hme,fabs(static_cast<double>(l_h[i])));
     },Kokkos::Max<double>(hme));
   }
   MPI_Allreduce(&hme,&hmaxall,1,MPI_DOUBLE,MPI_MAX,world);
@@ -239,6 +239,12 @@ int MinLineSearchKokkos::linemin_quadratic(double eoriginal, double &alpha)
   }
 
   if (hmaxall == 0.0) return ZEROFORCE;
+
+  // modify->max_alpha() above runs the fixes with extra global dof, and a
+  // non-KOKKOS one (e.g. fix box/relax) runs on the host and claims the host
+  // side of x, which leaves the device view xvec reads below stale
+
+  atomKK->sync(Device,X_MASK);
 
   // store box and values of all dof at start of linesearch
 
@@ -275,6 +281,12 @@ int MinLineSearchKokkos::linemin_quadratic(double eoriginal, double &alpha)
   while (true) {
     ecurrent = alpha_step(alpha,1);
 
+    // the force styles and fixes evaluated by alpha_step() may be non-KOKKOS
+    // ones: those run on the host and claim the host side of f, which leaves
+    // the device view fvec reads below stale
+
+    atomKK->sync(Device,F_MASK);
+
     // compute new fh, alpha, delfh
 
     s_KK_double2 sdot;
@@ -286,24 +298,24 @@ int MinLineSearchKokkos::linemin_quadratic(double eoriginal, double &alpha)
       if constexpr (F_LAYOUTRIGHT) {
         auto l_fvec = fvec;
         Kokkos::parallel_reduce(nvec, LAMMPS_LAMBDA(const int& i, s_KK_double2& sdot) {
-          sdot.d0 += l_fvec[i]*l_fvec[i];
-          sdot.d1 += l_fvec[i]*l_h[i];
+          sdot.d0 += static_cast<KK_FLOAT>(l_fvec[i]*l_fvec[i]);
+          sdot.d1 += static_cast<KK_FLOAT>(l_fvec[i])*l_h[i];
         },sdot);
       } else {
         auto l_f = atomKK->k_f.view_device();
         Kokkos::parallel_reduce(atom->nlocal, LAMMPS_LAMBDA(const int& i, s_KK_double2& sdot) {
-          sdot.d0 += l_f(i,0)*l_f(i,0);
-          sdot.d0 += l_f(i,1)*l_f(i,1);
-          sdot.d0 += l_f(i,2)*l_f(i,2);
+          sdot.d0 += static_cast<KK_FLOAT>(l_f(i,0)*l_f(i,0));
+          sdot.d0 += static_cast<KK_FLOAT>(l_f(i,1)*l_f(i,1));
+          sdot.d0 += static_cast<KK_FLOAT>(l_f(i,2)*l_f(i,2));
 
           const int j = i*3;
-          sdot.d1 += l_f(i,0)*l_h[j];
-          sdot.d1 += l_f(i,1)*l_h[j+1];
-          sdot.d1 += l_f(i,2)*l_h[j+2];
+          sdot.d1 += static_cast<KK_FLOAT>(l_f(i,0))*l_h[j];
+          sdot.d1 += static_cast<KK_FLOAT>(l_f(i,1))*l_h[j+1];
+          sdot.d1 += static_cast<KK_FLOAT>(l_f(i,2))*l_h[j+2];
         },sdot);
       }
     }
-    dot = sdot.d1;
+    dot = static_cast<double>(sdot.d1);
 
     MPI_Allreduce(&dot,&dotall,1,MPI_DOUBLE,MPI_SUM,world);
     if (nextra_global) {
@@ -408,7 +420,7 @@ double MinLineSearchKokkos::alpha_step(double alpha, int resetflag)
     auto l_h = h;
 
     Kokkos::parallel_for(nvec, LAMMPS_LAMBDA(const int& i) {
-      l_xvec[i] += alpha*l_h[i];
+      l_xvec[i] += static_cast<KK_FLOAT>(alpha)*l_h[i];
     });
   }
 
@@ -442,25 +454,25 @@ double MinLineSearchKokkos::compute_dir_deriv(double &ff)
     if constexpr (F_LAYOUTRIGHT) {
       auto l_fvec = fvec;
       Kokkos::parallel_reduce(nvec, LAMMPS_LAMBDA(const int& i, s_KK_double2& sdot) {
-        sdot.d0 += l_fvec[i]*l_fvec[i];
-        sdot.d1 += l_fvec[i]*l_h[i];
+        sdot.d0 += static_cast<KK_FLOAT>(l_fvec[i]*l_fvec[i]);
+        sdot.d1 += static_cast<KK_FLOAT>(l_fvec[i])*l_h[i];
       },sdot);
     } else {
       auto l_f = atomKK->k_f.view_device();
       Kokkos::parallel_reduce(atom->nlocal, LAMMPS_LAMBDA(const int& i, s_KK_double2& sdot) {
-        sdot.d0 += l_f(i,0)*l_f(i,0);
-        sdot.d0 += l_f(i,1)*l_f(i,1);
-        sdot.d0 += l_f(i,2)*l_f(i,2);
+        sdot.d0 += static_cast<KK_FLOAT>(l_f(i,0)*l_f(i,0));
+        sdot.d0 += static_cast<KK_FLOAT>(l_f(i,1)*l_f(i,1));
+        sdot.d0 += static_cast<KK_FLOAT>(l_f(i,2)*l_f(i,2));
 
         const int j = i*3;
-        sdot.d1 += l_f(i,0)*l_h[j];
-        sdot.d1 += l_f(i,1)*l_h[j+1];
-        sdot.d1 += l_f(i,2)*l_h[j+2];
+        sdot.d1 += static_cast<KK_FLOAT>(l_f(i,0))*l_h[j];
+        sdot.d1 += static_cast<KK_FLOAT>(l_f(i,1))*l_h[j+1];
+        sdot.d1 += static_cast<KK_FLOAT>(l_f(i,2))*l_h[j+2];
       },sdot);
     }
   }
-  dot[0] = sdot.d0;
-  dot[1] = sdot.d1;
+  dot[0] = static_cast<double>(sdot.d0);
+  dot[1] = static_cast<double>(sdot.d1);
 
   MPI_Allreduce(dot,dotall,2,MPI_DOUBLE,MPI_SUM,world);
   if (nextra_global) {

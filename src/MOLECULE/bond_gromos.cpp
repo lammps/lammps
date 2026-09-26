@@ -31,7 +31,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-BondGromos::BondGromos(LAMMPS *_lmp) : Bond(_lmp)
+BondGromos::BondGromos(LAMMPS *_lmp) : Bond(_lmp), k(nullptr), r0(nullptr)
 {
   born_matrix_enable = 1;
 }

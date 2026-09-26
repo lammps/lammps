@@ -1,0 +1,20 @@
+---
+lammps_version: 4 Jul 2026
+tags:
+date_generated: Wed Aug  5 09:52:20 2026
+epsilon: 1e-07
+timestep: 0.25
+skip_tests:
+prerequisites: |
+  atom full
+  compute fep
+pre_commands: ""
+post_commands: |
+  variable delta equal 0.02
+  compute test all fep 300.0 pair lj/cut epsilon * * v_delta volume yes
+input_file: in.fourmol
+input_coeffs: coeffs.fourmol
+natoms: 29
+global_vector: |-
+  3  2.6376562064243183e+02 2.3946445934817374e-189  3.3750000000000000e+03
+...

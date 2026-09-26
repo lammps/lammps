@@ -169,8 +169,9 @@ void SearchAndFill(struct FrcFieldItem *item)
     for( i = 0; i < item->number_of_parameters; i++ ) {
       charptr = strtok(NULL, WHITESPACE);
       if(charptr == NULL) {
+        /* with no parameter read yet there is nothing to replicate */
         for ( j = i; j < item->number_of_parameters; j++ )
-          parameters[j] = parameters[j-i];
+          parameters[j] = (i > 0) ? parameters[j-i] : 0.0;
         break;
       } else {
         parameters[i] = atof(charptr);

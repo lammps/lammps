@@ -31,10 +31,10 @@ Here are suggestions on how to perform these tasks:
   together with LAMMPS and linked to the LAMMPS library for running and
   visualizing LAMMPS simulation inputs.  As of August 2025, LAMMPS-GUI
   is maintained in its own `repository on GitHub
-  <https://github.com/akohlmey/lammps-gui/>`_.
+  <https://github.com/lammps/lammps-gui/>`_.
   Also, there are several external wrappers or GUI
   front ends that are mentioned on the `Pre-/post-processing tools page
-  <https://www.lammps.org/prepost.html>`_ of the LAMMPS homepage.
+  <https://www.lammps.org/ecosystem/prepost/>`_ of the LAMMPS homepage.
 
 * **Builder:** Several pre-processing tools are packaged with LAMMPS.
   Some of them convert input files in formats produced by other MD codes
@@ -44,7 +44,7 @@ Here are suggestions on how to perform these tasks:
   a true molecular builder that will generate complex molecular models.
   See the :doc:`Tools <Tools>` page for details on tools packaged with
   LAMMPS.  The `Pre-/post-processing tools page
-  <https://www.lammps.org/prepost.html>`_ of the LAMMPS homepage
+  <https://www.lammps.org/ecosystem/prepost/>`_ of the LAMMPS homepage
   describes a variety of third party tools for this task.  Furthermore,
   some internal LAMMPS commands allow reconstructing, or selectively adding
   topology information, as well as provide the option to insert molecule
@@ -77,7 +77,7 @@ Here are suggestions on how to perform these tasks:
   into other programs.  See the :doc:`Tools <Tools>` page for details on
   these various options.
 
-  The `Pre-/post-processing page <https://www.lammps.org/prepost.html>`_
+  The `Pre-/post-processing page <https://www.lammps.org/ecosystem/prepost/>`_
   on the LAMMPS homepage lists some external packages for analysis of MD
   simulation data, including data produced by LAMMPS.
 
@@ -94,8 +94,9 @@ Here are suggestions on how to perform these tasks:
 
   For high-quality, interactive visualization, there are many excellent
   and free tools available.  See the `Visualization Tools
-  <https://www.lammps.org/viz.html>`_ page of the LAMMPS website for
-  visualization packages that can process LAMMPS output data.
+  <https://www.lammps.org/ecosystem/visualization/>`_ page of the LAMMPS
+  website for visualization packages that can process LAMMPS output
+  data.
 
 * **Plotting:** See the next bullet about Pizza.py as well as the
   :doc:`Python <Python_head>` page for examples of plotting LAMMPS
@@ -109,8 +110,8 @@ Here are suggestions on how to perform these tasks:
   collected during the simulation and plotted immediately.
 
 * **Pizza.py:** Our group has also written a separate toolkit called
-  `Pizza.py <https://lammps.github.io/pizza/>`_ which can do certain kinds of
+  `Pizza.py <https://sjplimp.github.io/pizza/>`_ which can do certain kinds of
   setup, analysis, plotting, and visualization (via OpenGL) for LAMMPS
   simulations.  It thus provides some functionality for several of the
   above bullets.  Pizza.py is written in `Python <https://www.python.org>`_
-  and is available for download from https://lammps.github.io/pizza/.
+  and is available for download from https://sjplimp.github.io/pizza/.

@@ -302,16 +302,31 @@ void PairPACEExtrapolation::allocate()
 
 void PairPACEExtrapolation::settings(int narg, char **arg)
 {
-  //  if (narg > 2) error->all(FLERR, "Pair style pace/extrapolation supports no keywords");
-  if (narg > 2) utils::missing_cmd_args(FLERR, "pair_style pace/extrapolation", error);
+  if (narg > 4) utils::missing_cmd_args(FLERR, "pair_style pace/extrapolation", error);
   // ACE potentials are parameterized in metal units
   if (strcmp("metal", update->unit_style) != 0)
     error->all(FLERR, "ACE potentials require 'metal' units");
+
+  neigh_scratch_request = NEIGH_SCRATCH_AUTO;
 
   int iarg = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg], "chunksize") == 0) {
       chunksize = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
+      iarg += 2;
+    } else if (strcmp(arg[iarg], "neigh") == 0) {
+      // KOKKOS-only: selects the team scratch memory level used to build the
+      // short neighbor list.  Parsed but ignored by this style, so that an
+      // input written for pace/extrapolation/kk also runs without the KOKKOS package.
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "pair_style pace/extrapolation neigh", error);
+      if (strcmp(arg[iarg+1], "auto") == 0)
+        neigh_scratch_request = NEIGH_SCRATCH_AUTO;
+      else if (strcmp(arg[iarg+1], "shared") == 0)
+        neigh_scratch_request = NEIGH_SCRATCH_SHARED;
+      else if (strcmp(arg[iarg+1], "global") == 0)
+        neigh_scratch_request = NEIGH_SCRATCH_GLOBAL;
+      else
+        error->all(FLERR, "Unknown pair_style pace/extrapolation neigh keyword: {}", arg[iarg+1]);
       iarg += 2;
     } else
       error->all(FLERR, "Unknown pair_style pace keyword: {}", arg[iarg]);

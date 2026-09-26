@@ -35,7 +35,7 @@ Style *momb* computes pairwise van der Waals (vdW) and short-range
 interactions using the Morse potential and :ref:`(Grimme) <Grimme>` method
 implemented in the Many-Body Metal-Organic (MOMB) force field
 described comprehensively in :ref:`(Fichthorn) <Fichthorn>` and
-:ref:`(Zhou) <Zhou5>`. Grimme's method is widely used to correct for
+:ref:`(Zhou5) <Zhou5>`. Grimme's method is widely used to correct for
 dispersion in density functional theory calculations.
 
 .. math::
@@ -89,4 +89,4 @@ none
 
 .. _Zhou5:
 
-**(Zhou)** Zhou, Saidi, Fichthorn, J Phys Chem C, 118(6), 3366-3374 (2014).
+**(Zhou5)** Zhou, Saidi, Fichthorn, J Phys Chem C, 118(6), 3366-3374 (2014).

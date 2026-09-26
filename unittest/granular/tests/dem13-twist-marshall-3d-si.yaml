@@ -1,0 +1,62 @@
+---
+lammps_version: 4 Jul 2026
+tags: granular unvetted
+date_generated: Tue Jul 28 19:29:30 2026
+epsilon: 1e-10
+skip_tests:
+prerequisites: |
+  atom sphere
+  pair granular
+pre_commands: |
+  units si
+  dimension 3
+  boundary p p f
+  atom_style sphere
+  region box block -0.05 0.05 -0.05 0.05 -0.01 0.05 units box
+  create_box 1 box
+  create_atoms 1 single 0.0 0.0 ${z0} units box
+  set group all diameter ${diam} density ${dens}
+  set group all omega 0.0 0.0 ${omega0}
+  comm_modify vel yes
+  neighbor 0.001 bin
+  neigh_modify delay 0
+  timestep ${dt}
+post_commands: |
+  fix grav all gravity ${grav} vector 0.0 0.0 -1.0
+  fix integr all nve/sphere
+  fix zwall all wall/gran granular hertz/material ${emod} 1.0 ${poisson} damping coeff_restitution tangential mindlin NULL 0.5 ${xmu} twisting marshall zplane 0.0 NULL
+input_file:
+natoms: 1
+variables: |
+  diam 0.005
+  dens 2700.0
+  emod 1.0e7
+  poisson 0.33
+  xmu 0.5
+  grav 1.0
+  omega0 10.0
+  radius 0.0025
+  dt 1.0e-4
+  z0 0.0024993934
+pair_style: granular
+pair_coeff: |
+  * * hertz/material ${emod} 1.0 ${poisson} damping coeff_restitution tangential mindlin NULL 0.5 ${xmu} twisting marshall
+run_segments: |-
+  3000 2000
+analytic_enable: yes
+analytic_model: twist_decay_marshall
+analytic_tol: 0.02
+analytic_segment: 0
+run_pos: |2
+    0   1  0.0000000000000000e+00  0.0000000000000000e+00  2.4993934147346021e-03
+    1   1  0.0000000000000000e+00  0.0000000000000000e+00  2.4993934349555403e-03
+run_vel: |2
+    0   1  0.0000000000000000e+00  0.0000000000000000e+00  4.1549376231844635e-08
+    1   1  0.0000000000000000e+00  0.0000000000000000e+00  4.8562691917496513e-08
+run_torque: |2
+    0   1  0.0000000000000000e+00  0.0000000000000000e+00 -2.2939543148789634e-09
+    1   1  0.0000000000000000e+00  0.0000000000000000e+00 -2.2938013763295474e-09
+run_omega: |2
+    0   1  0.0000000000000000e+00  0.0000000000000000e+00  8.4426088125743259e+00
+    1   1  0.0000000000000000e+00  0.0000000000000000e+00  7.4041750740792738e+00
+...

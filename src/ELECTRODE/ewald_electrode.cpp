@@ -87,7 +87,7 @@ void EwaldElectrode::init()
   };
   int periodicity_2d[] = {1, 1, 0};
   int periodicity_1d[] = {0, 0, 1};
-  if (boundcorr != nullptr) delete boundcorr;
+  delete boundcorr;
   if (slabflag == 1) {
     // EW3Dc dipole correction
     if (!equal_periodicity(periodicity_2d))

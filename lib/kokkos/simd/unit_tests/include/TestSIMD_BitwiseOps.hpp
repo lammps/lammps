@@ -297,7 +297,7 @@ KOKKOS_INLINE_FUNCTION void device_check_bitwise_ops() {
     constexpr int signed_half_shift =
         std::is_signed_v<DataType> ? half_shift - 1 : half_shift;
     constexpr DataType lo_set =
-        Kokkos::Experimental::finite_max_v<DataType> >> signed_half_shift;
+        Kokkos::finite_max_v<DataType> >> signed_half_shift;
     constexpr DataType hi_set = ~lo_set;
 #else
     constexpr DataType hi_set = all_set << half_shift;

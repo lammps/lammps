@@ -57,6 +57,7 @@ FixSMDSetVel::FixSMDSetVel(LAMMPS *lmp, int narg, char **arg) :
   extvector = 1;
 
   if (strstr(arg[3], "v_") == arg[3]) {
+    delete[] xstr;
     xstr = utils::strdup(&arg[3][2]);
   } else if (strcmp(arg[3], "NULL") == 0) {
     xstyle = NONE;
@@ -65,6 +66,7 @@ FixSMDSetVel::FixSMDSetVel(LAMMPS *lmp, int narg, char **arg) :
     xstyle = CONSTANT;
   }
   if (strstr(arg[4], "v_") == arg[4]) {
+    delete[] ystr;
     ystr = utils::strdup(&arg[4][2]);
   } else if (strcmp(arg[4], "NULL") == 0) {
     ystyle = NONE;
@@ -73,6 +75,7 @@ FixSMDSetVel::FixSMDSetVel(LAMMPS *lmp, int narg, char **arg) :
     ystyle = CONSTANT;
   }
   if (strstr(arg[5], "v_") == arg[5]) {
+    delete[] zstr;
     zstr = utils::strdup(&arg[5][2]);
   } else if (strcmp(arg[5], "NULL") == 0) {
     zstyle = NONE;
@@ -89,6 +92,7 @@ FixSMDSetVel::FixSMDSetVel(LAMMPS *lmp, int narg, char **arg) :
       if (iarg + 2 > narg) error->all(FLERR, "Illegal fix setvelocity command");
       region = domain->get_region_by_id(arg[iarg + 1]);
       if (!region) error->all(FLERR, "Region {} for fix setvelocity does not exist", arg[iarg + 1]);
+      delete[] idregion;
       idregion = utils::strdup(arg[iarg + 1]);
       iarg += 2;
     } else

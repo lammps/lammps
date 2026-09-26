@@ -83,8 +83,6 @@ void ImproperRingKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   k_k.template sync<DeviceType>();
   k_chi.template sync<DeviceType>();
-  if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
-  else atomKK->modified(execution_space,F_MASK);
 
   x = atomKK->k_x.view<DeviceType>();
   f = atomKK->k_f.view<DeviceType>();
@@ -180,12 +178,12 @@ void ImproperRingKokkos<DeviceType>::operator()(TagImproperRingCompute<NEWTON_BO
     bvec1x[icomb] = x(at2[icomb],0) - x(at1[icomb],0);
     bvec1y[icomb] = x(at2[icomb],1) - x(at1[icomb],1);
     bvec1z[icomb] = x(at2[icomb],2) - x(at1[icomb],2);
-    bvec1n[icomb] = sqrt(bvec1x[icomb]*bvec1x[icomb] + bvec1y[icomb]*bvec1y[icomb] + bvec1z[icomb]*bvec1z[icomb]);
+    bvec1n[icomb] = Kokkos::sqrt(bvec1x[icomb]*bvec1x[icomb] + bvec1y[icomb]*bvec1y[icomb] + bvec1z[icomb]*bvec1z[icomb]);
 
     bvec2x[icomb] = x(at3[icomb],0) - x(at2[icomb],0);
     bvec2y[icomb] = x(at3[icomb],1) - x(at2[icomb],1);
     bvec2z[icomb] = x(at3[icomb],2) - x(at2[icomb],2);
-    bvec2n[icomb] = sqrt(bvec2x[icomb]*bvec2x[icomb] + bvec2y[icomb]*bvec2y[icomb] + bvec2z[icomb]*bvec2z[icomb]);
+    bvec2n[icomb] = Kokkos::sqrt(bvec2x[icomb]*bvec2x[icomb] + bvec2y[icomb]*bvec2y[icomb] + bvec2z[icomb]*bvec2z[icomb]);
 
     bend_angle[icomb] = (bvec2x[icomb]*bvec1x[icomb] + bvec2y[icomb]*bvec1y[icomb] + bvec2z[icomb]*bvec1z[icomb]);
     bend_angle[icomb] /= (bvec1n[icomb] * bvec2n[icomb]);
@@ -214,7 +212,7 @@ void ImproperRingKokkos<DeviceType>::operator()(TagImproperRingCompute<NEWTON_BO
     const KK_FLOAT ckjkj = bvec2n[icomb]*bvec2n[icomb];
     const KK_FLOAT ckjji = bvec2x[icomb]*bvec1x[icomb] + bvec2y[icomb]*bvec1y[icomb] + bvec2z[icomb]*bvec1z[icomb];
 
-    const KK_FLOAT cfact1 = angfac / sqrt(ckjkj * cjiji);
+    const KK_FLOAT cfact1 = angfac / Kokkos::sqrt(ckjkj * cjiji);
     const KK_FLOAT cfact2 = ckjji / ckjkj;
     const KK_FLOAT cfact3 = ckjji / cjiji;
 

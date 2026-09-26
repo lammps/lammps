@@ -32,13 +32,20 @@ static constexpr double CUT2BIN_RATIO = 100.0;
 
 /* ---------------------------------------------------------------------- */
 
-NBinManual::NBinManual(LAMMPS *lmp) : NBin(lmp)
+NBinManual::NBinManual(LAMMPS *lmp) :
+  NBin(lmp), binhead_custom(nullptr), bins_custom(nullptr), custom2bin(nullptr)
 {
   cutoff_custom = 0.0;
   maxbin_custom = maxcustom = 0;
-  binhead_custom = nullptr;
-  bins_custom = nullptr;
-  custom2bin = nullptr;
+}
+
+/* ---------------------------------------------------------------------- */
+
+NBinManual::~NBinManual()
+{
+  memory->destroy(binhead_custom);
+  memory->destroy(bins_custom);
+  memory->destroy(custom2bin);
 }
 
 /* ----------------------------------------------------------------------
@@ -147,7 +154,7 @@ void NBinManual::bin_custom_setup(double **xcustom, int ncustom)
    mbin = number of bins I need in a dimension
 ------------------------------------------------------------------------- */
 
-void NBinManual::setup_bins(int style)
+void NBinManual::setup_bins(int /*style*/)
 {
   // bbox = size of bbox of entire domain
   // bsubbox lo/hi = bounding box of my subdomain extended by cutghost or cutneighmax

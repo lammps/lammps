@@ -31,7 +31,10 @@ static constexpr int DELTA = 10000;
 
 /* ---------------------------------------------------------------------- */
 
-PairLineLJ::PairLineLJ(LAMMPS *lmp) : Pair(lmp)
+PairLineLJ::PairLineLJ(LAMMPS *lmp) :
+    Pair(lmp), subsize(nullptr), epsilon(nullptr), sigma(nullptr), cutsub(nullptr),
+    cutsubsq(nullptr), cut(nullptr), lj1(nullptr), lj2(nullptr), lj3(nullptr), lj4(nullptr),
+    avec(nullptr), size(nullptr)
 {
   dmax = nmax = 0;
   discrete = nullptr;
@@ -301,6 +304,17 @@ void PairLineLJ::compute(int eflag, int vflag)
           f[j][1] -= dely*fpair;
           f[j][2] -= delz*fpair;
         }
+      }
+
+      // for interactions involving a discretized line, fpair/delx/dely
+      // hold values of the last sub-particle pair inside the sub cutoff
+      // (or stale data if there was none); the sub-particle forces were
+      // applied at the atom centers and the virial is obtained via
+      // fdotr, so only tally the accumulated energy for those
+
+      if ((line[i] >= 0) || (line[j] >= 0)) {
+        fpair = 0.0;
+        delx = dely = delz = 0.0;
       }
 
       if (evflag) ev_tally(i,j,nlocal,newton_pair,evdwl,0.0,fpair,delx,dely,delz);

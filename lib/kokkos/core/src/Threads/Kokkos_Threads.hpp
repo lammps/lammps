@@ -41,6 +41,7 @@ class Threads {
   using device_type = Kokkos::Device<execution_space, memory_space>;
 
   using array_layout = Kokkos::LayoutRight;
+  using index_type   = memory_space::index_type;
   using size_type    = memory_space::size_type;
 
   using scratch_memory_space = ScratchMemorySpace<Threads>;
@@ -142,7 +143,6 @@ struct MemorySpaceAccess<Kokkos::Threads::memory_space,
                          Kokkos::Threads::scratch_memory_space> {
   enum : bool { assignable = false };
   enum : bool { accessible = true };
-  enum : bool { deepcopy = false };
 };
 
 }  // namespace Impl

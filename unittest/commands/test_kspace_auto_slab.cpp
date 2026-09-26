@@ -16,6 +16,7 @@
 #include "atom.h"
 #include "comm.h"
 #include "domain.h"
+#include "library.h"
 #include "gtest/gtest.h"
 #include "utils.h"
 
@@ -84,6 +85,38 @@ class KSpaceAutoSlabTest : public LAMMPSTest {
     return snapshot_forces();
   }
 
+  // build a triclinic (xy-tilted) charged system and return the MSM forces,
+  // optionally adding the (meaningless for MSM) slab correction.  Used to check
+  // that MSM ignores "kspace_modify slab" -- otherwise the shared
+  // KSpace::x2lamdaT() slab_volfactor scaling would corrupt the MSM z-force in
+  // a triclinic box.
+  ForceVector run_msm_triclinic_forces(const std::string &slab_setting)
+  {
+    command("clear");
+    command("units real");
+    command("atom_style charge");
+    command("boundary p p f");
+    command("region box block 0 20 0 20 0 30 units box");
+    command("create_box 1 box");
+    command("lattice sc 4.0");
+    command("create_atoms 1 region box");
+    command("set group all charge 0.0");
+    command("set atom 1*50 charge  1.0");
+    command("set atom 51*100 charge -1.0");
+    command("change_box all triclinic xy final 5.0 xz final 0.0 yz final 0.0");
+    command("mass 1 1.0");
+
+    HIDE_OUTPUT([&] {
+      command("pair_style lj/cut/coul/msm 9.0");
+      command("pair_coeff * * 0.0 0.0");
+      command("kspace_style msm 1.0e-5");
+      if (!slab_setting.empty()) command("kspace_modify slab " + slab_setting);
+      command("run 0 post no");
+    });
+
+    return snapshot_forces();
+  }
+
   ForceVector snapshot_forces() const
   {
     ForceVector forces(lmp->atom->natoms);
@@ -136,6 +169,29 @@ TEST_F(KSpaceAutoSlabTest, EwaldAutoMatchesTightReferenceWithinTenXAccuracy)
   }
 }
 
+TEST_F(KSpaceAutoSlabTest, MSMTriclinicIgnoresSlabCorrection)
+{
+  if (!info->has_style("kspace", "msm")) GTEST_SKIP();
+  if (!info->has_style("pair", "lj/cut/coul/msm")) GTEST_SKIP();
+
+  const auto without_slab = run_msm_triclinic_forces("");
+  const auto with_slab    = run_msm_triclinic_forces("3.0");
+
+  // MSM is a true non-periodic method and must completely ignore the slab
+  // correction, so its forces in a triclinic box must be bit-for-bit identical
+  // with and without "kspace_modify slab"
+  ASSERT_EQ(without_slab.size(), with_slab.size());
+  double maxdiff = 0.0;
+  for (size_t i = 0; i < without_slab.size(); ++i)
+    for (int d = 0; d < 3; ++d)
+      maxdiff = std::max(maxdiff, std::abs(with_slab[i][d] - without_slab[i][d]));
+
+  if (verbose && (lmp->comm->me == 0))
+    utils::print("msm triclinic slab-ignore max force diff = {}\n", maxdiff);
+
+  EXPECT_LT(maxdiff, 1.0e-12);
+}
+
 }    // namespace LAMMPS_NS
 
 int main(int argc, char **argv)
@@ -156,6 +212,13 @@ int main(int argc, char **argv)
   if ((argc > 1) && (std::string(argv[1]) == "-v")) verbose = true;
 
   const int rv = RUN_ALL_TESTS();
+
+  // finalize the KOKKOS package explicitly: otherwise Kokkos is torn down by
+  // static destructors at program exit, leading to segfaults in some cases
+  // same workaround as the force-style and FFT3d test drivers
+
+  lammps_kokkos_finalize();
+
   MPI_Finalize();
   return rv;
 }

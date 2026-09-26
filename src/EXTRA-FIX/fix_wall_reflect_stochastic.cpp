@@ -181,6 +181,11 @@ FixWallReflectStochastic(LAMMPS *lmp, int narg, char **arg) :
   // random number generator
 
   random = new RanMars(lmp,seedfix + comm->me);
+
+  // must re-create the dump image graphics objects: the base class
+  // constructor sized them before the walls were parsed here
+
+  allocate_image_objects();
 }
 
 /* ---------------------------------------------------------------------- */

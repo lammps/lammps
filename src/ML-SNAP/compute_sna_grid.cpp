@@ -263,8 +263,8 @@ void ComputeSNAGrid::compute_array()
             snaptr->wj[ninside] = wjelem[jtype];
             snaptr->rcutij[ninside] = 2.0 * radelem[jtype] * rcutfac;
             if (switchinnerflag) {
-              snaptr->sinnerij[ninside] = sinnerelem[jelem];
-              snaptr->dinnerij[ninside] = dinnerelem[jelem];
+              snaptr->sinnerij[ninside] = sinnerelem[jtype];
+              snaptr->dinnerij[ninside] = dinnerelem[jtype];
             }
             if (chemflag) snaptr->element[ninside] = jelem;
             ninside++;

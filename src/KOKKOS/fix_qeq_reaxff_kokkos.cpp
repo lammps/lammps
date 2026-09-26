@@ -286,8 +286,6 @@ void FixQEqReaxFFKokkos<DeviceType>::pre_force(int /*vflag*/)
 
   matvecs = cg_solve();
 
-  // calculate_Q();
-
   k_s_hist.template sync<DeviceType>();
   k_t_hist.template sync<DeviceType>();
   calculate_q();

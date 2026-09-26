@@ -11,18 +11,6 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef GRAN_SUB_MOD_CLASS
-// clang-format off
-GranSubModStyle(none,GranSubModDampingNone,DAMPING);
-GranSubModStyle(velocity,GranSubModDampingVelocity,DAMPING);
-GranSubModStyle(mass_velocity,GranSubModDampingMassVelocity,DAMPING);
-GranSubModStyle(viscoelastic,GranSubModDampingViscoelastic,DAMPING);
-GranSubModStyle(tsuji,GranSubModDampingTsuji,DAMPING);
-GranSubModStyle(coeff_restitution,GranSubModDampingCoeffRestitution,DAMPING);
-GranSubModStyle(mdr,GranSubModDampingMDR,DAMPING);
-// clang-format on
-#else
-
 #ifndef GRAN_SUB_MOD_DAMPING_H
 #define GRAN_SUB_MOD_DAMPING_H
 
@@ -111,4 +99,3 @@ namespace LAMMPS_NS::Granular_NS {
 
 
 #endif /*GRAN_SUB_MOD_DAMPING_H */
-#endif /*GRAN_SUB_MOD_CLASS_H */

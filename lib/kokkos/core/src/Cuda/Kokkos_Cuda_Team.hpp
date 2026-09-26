@@ -818,7 +818,7 @@ KOKKOS_INLINE_FUNCTION void parallel_scan(
     // perform team scan
     local_accum = member.team_scan(local_accum);
     // add this blocks accum to total accumulation
-    auto val = accum + local_accum;
+    ValueType val = accum + local_accum;
     // user updates their data with total accumulation
     if (ii < loop_bounds.end) lambda(ii, val, true);
     // the last value needs to be propogated to next chunk

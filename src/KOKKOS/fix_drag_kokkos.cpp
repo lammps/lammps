@@ -116,18 +116,18 @@ void FixDragKokkos<DeviceType>::operator()(TagFixDrag, const int &i, value_type 
     if (!yflag) dy = 0.0;
     if (!zflag) dz = 0.0;
     minimum_image(dx, dy, dz);
-    KK_FLOAT r = sqrt(dx*dx + dy*dy + dz*dz);
+    KK_FLOAT r = Kokkos::sqrt(dx*dx + dy*dy + dz*dz);
     if (r > (KK_FLOAT) delta) {
       KK_FLOAT prefactor = (KK_FLOAT) f_mag / r;
       KK_FLOAT fx = prefactor * dx;
       KK_FLOAT fy = prefactor * dy;
       KK_FLOAT fz = prefactor * dz;
-      f(i,0) -= fx;
-      f(i,1) -= fy;
-      f(i,2) -= fz;
-      result[0] -= fx;
-      result[1] -= fy;
-      result[2] -= fz;
+      f(i,0) -= static_cast<KK_ACC_FLOAT>(fx);
+      f(i,1) -= static_cast<KK_ACC_FLOAT>(fy);
+      f(i,2) -= static_cast<KK_ACC_FLOAT>(fz);
+      result[0] -= static_cast<double>(fx);
+      result[1] -= static_cast<double>(fy);
+      result[2] -= static_cast<double>(fz);
     }
   }
 }

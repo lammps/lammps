@@ -280,6 +280,7 @@ accelerated styles exist.
 * :doc:`hmc <fix_hmc>` -  Hybrid/Hamiltonian Monte Carlo (HMC) particle propagation
 * :doc:`hyper/global <fix_hyper_global>` - global hyperdynamics
 * :doc:`hyper/local <fix_hyper_local>` - local hyperdynamics
+* :doc:`ilves <fix_ilves>` - ILVES constraints on bonds and/or angles
 * :doc:`imd <fix_imd>` - implements the "Interactive MD" (IMD) protocol
 * :doc:`indent <fix_indent>` - impose force due to an indenter
 * :doc:`ipi <fix_ipi>` - enable LAMMPS to run as a client for i-PI path-integral simulations
@@ -386,6 +387,7 @@ accelerated styles exist.
 * :doc:`qeq/shielded <fix_qeq>` - charge equilibration via shielded method
 * :doc:`qeq/slater <fix_qeq>` - charge equilibration via Slater method
 * :doc:`qmmm <fix_qmmm>` - functionality to enable a quantum mechanics/molecular mechanics coupling
+* :doc:`qmmm/xtb <fix_qmmm_xtb>` - self-consistent GFN-xTB QM/MM with periodic PPPM electrostatics
 * :doc:`qtb <fix_qtb>` - implement quantum thermal bath scheme
 * :doc:`qtpie/reaxff <fix_qtpie_reaxff>` - apply QTPIE charge equilibration
 * :doc:`rattle <fix_shake>` - RATTLE constraints on bonds and/or angles
@@ -450,6 +452,7 @@ accelerated styles exist.
 * :doc:`ti/spring <fix_ti_spring>` - perform thermodynamic integration between a solid and an Einstein crystal
 * :doc:`tmd <fix_tmd>` - guide a group of atoms to a new configuration
 * :doc:`ttm <fix_ttm>` - two-temperature model for electronic/atomic coupling (replicated grid)
+* :doc:`ttm/cascade <fix_ttm>` - a two-temperature model for radiation damage cascades
 * :doc:`ttm/grid <fix_ttm>` - two-temperature model for electronic/atomic coupling (distributed grid)
 * :doc:`ttm/mod <fix_ttm>` - enhanced two-temperature model with additional options
 * :doc:`ttm/thermal <fix_ttm>` - a two-temperature model for thermal transport
@@ -457,6 +460,7 @@ accelerated styles exist.
 * :doc:`vector <fix_vector>` - accumulate a global vector every *N* timesteps
 * :doc:`viscosity <fix_viscosity>` - Mueller-Plathe momentum exchange for viscosity calculation
 * :doc:`viscous <fix_viscous>` - viscous damping for granular simulations
+* :doc:`viscous/nonlinear <fix_viscous_nonlinear>` - nonlinear (Schiller-Naumann) viscous drag for granular simulations
 * :doc:`viscous/sphere <fix_viscous_sphere>` - viscous damping on angular velocity for granular simulations
 * :doc:`wall/body/polygon <fix_wall_body_polygon>` - time integration for body particles of style :doc:`rounded/polygon <Howto_body>`
 * :doc:`wall/body/polyhedron <fix_wall_body_polyhedron>` - time integration for body particles of style :doc:`rounded/polyhedron <Howto_body>`

@@ -24,10 +24,12 @@
 using namespace LAMMPS_NS;
 
 /* ----------------------------------------------------------------------
-   multiple inheritance from two parent classes
-   invoke constructor of grandparent class, then of each parent
-   inherit optimized compute() from PairEAMOpt
-   inherit everything else from PairEAMAlloy
+   inherit optimized compute() from PairEAMOpt,
+   select the eam/alloy setfl file format as in PairEAMAlloy
 ------------------------------------------------------------------------- */
 
-PairEAMAlloyOpt::PairEAMAlloyOpt(LAMMPS *lmp) : PairEAM(lmp), PairEAMAlloy(lmp), PairEAMOpt(lmp) {}
+PairEAMAlloyOpt::PairEAMAlloyOpt(LAMMPS *lmp) : PairEAMOpt(lmp)
+{
+  fileformat = SETFL;
+  one_coeff = 1;
+}

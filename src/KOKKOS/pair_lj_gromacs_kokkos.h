@@ -103,10 +103,6 @@ class PairLJGromacsKokkos : public PairLJGromacs {
 
   DAT::ttransform_kkfloat_2d k_cutsq;
   typename AT::t_kkfloat_2d d_cutsq;
-  DAT::ttransform_kkfloat_2d k_cut_inner;
-  typename AT::t_kkfloat_2d d_cut_inner;
-  DAT::ttransform_kkfloat_2d k_cut_inner_sq;
-  typename AT::t_kkfloat_2d d_cut_inner_sq;
 
   typename AT::t_kkfloat_1d_randomread
     d_rtable, d_drtable, d_ftable, d_dftable,

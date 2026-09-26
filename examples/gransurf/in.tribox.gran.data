@@ -5,7 +5,7 @@ atom_style      tri
 atom_modify     map array
 boundary        f f f
 dimension       3
-comm_modify     vel yes
+comm_modify     vel yes cutoff 12.5
 
 read_data       data.tribox
 

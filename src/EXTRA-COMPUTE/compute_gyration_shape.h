@@ -34,7 +34,7 @@ class ComputeGyrationShape : public Compute {
   void compute_vector() override;
 
  private:
-  class Compute *c_gyration;
+  class ComputeGyration *c_gyration;
 };
 
 }    // namespace LAMMPS_NS

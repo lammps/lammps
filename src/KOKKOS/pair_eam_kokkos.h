@@ -59,6 +59,7 @@ class PairEAMKokkos : public PairEAM, public KokkosBase {
   ~PairEAMKokkos() override;
   void compute(int, int) override;
   void init_style() override;
+  double init_one(int, int) override;
 
 
 // NOLINTNEXTLINE
@@ -179,6 +180,16 @@ class PairEAMKokkos : public PairEAM, public KokkosBase {
   HAT::t_kkfloat_1d h_rho;
   HAT::t_kkfloat_1d h_fp;
 
+  // set on the device when a per-atom density runs past the end of the
+  // embedding table, so compute() can issue the same warning as the CPU style
+
+  DAT::tdual_int_scalar k_beyond_rhomax;
+
+  // per type pair scale factor, settable through fix adapt
+
+  DAT::tdual_kkfloat_2d k_scale;
+  typename AT::t_kkfloat_2d d_scale;
+
   typename AT::t_int_1d d_type2frho;
   typename AT::t_int_2d_dl d_type2rhor;
   typename AT::t_int_2d_dl d_type2z2r;
@@ -202,8 +213,32 @@ class PairEAMKokkos : public PairEAM, public KokkosBase {
   typename AT::t_int_1d d_numneigh;
 
   KK_FLOAT rhomax_kk;
+  KK_FLOAT rhomin_kk;
   KK_FLOAT rdr_kk;
   KK_FLOAT rdrho_kk;
+
+  // embedding spline table index m and fractional offset p for density rho_i
+  // mirrors PairEAM::embedding_index(): classic tables start at 0 and clamp
+  // at the table ends; eam/he tables start at rhomin and allow extrapolation
+  // past both ends
+
+  KOKKOS_INLINE_FUNCTION
+  void embedding_index_kk(const KK_FLOAT rho_i, int &m, KK_FLOAT &p) const
+  {
+    if (he_flag) {
+      p = (rho_i - rhomin_kk)*rdrho_kk + static_cast<KK_FLOAT>(1.0);
+      m = static_cast<int>(p);
+      m = MAX(2,MIN(m,nrho-1));
+      p -= static_cast<KK_FLOAT>(m);
+      p = MAX(static_cast<KK_FLOAT>(-1.0),MIN(p,static_cast<KK_FLOAT>(1.0)));
+    } else {
+      p = rho_i*rdrho_kk + static_cast<KK_FLOAT>(1.0);
+      m = static_cast<int>(p);
+      m = MAX(1,MIN(m,nrho-1));
+      p -= static_cast<KK_FLOAT>(m);
+      p = MIN(p,static_cast<KK_FLOAT>(1.0));
+    }
+  }
   KK_FLOAT cutforcesq_kk;
   int first;
   typename AT::t_int_1d d_sendlist;

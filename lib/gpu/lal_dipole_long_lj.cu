@@ -248,9 +248,9 @@ __kernel void k_dipole_long_lj(const __global numtyp4 *restrict x_,
     for (int i=0; i<6; i++) virial[i]=(acctyp)0;
   }
 
-  numtyp pre1 = numtyp(2.0) * g_ewald / MY_PIS;
-  numtyp pre2 = numtyp(4.0) * (g_ewald*g_ewald*g_ewald) / MY_PIS;
-  numtyp pre3 = numtyp(8.0) * (g_ewald*g_ewald*g_ewald*g_ewald*g_ewald) / MY_PIS;
+  numtyp pre1 = (numtyp)2.0 * g_ewald / MY_PIS;
+  numtyp pre2 = (numtyp)4.0 * (g_ewald*g_ewald*g_ewald) / MY_PIS;
+  numtyp pre3 = (numtyp)8.0 * (g_ewald*g_ewald*g_ewald*g_ewald*g_ewald) / MY_PIS;
 
   if (ii<inum) {
     int nbor, nbor_end;
@@ -430,8 +430,8 @@ __kernel void k_dipole_long_lj(const __global numtyp4 *restrict x_,
           if (rsq < cut_coulsq && factor_coul > (numtyp)0.0) {
             e = qqrd2e*(b0*g0 + b1*g1 + b2*g2);
             if (factor_coul < (numtyp)1.0) {
-              e_coul *= factor_coul;
-              e_coul += ((numtyp)1.0-factor_coul) * qqrd2e * (d0*g0 + d1*g1 + d2*g2);
+              e *= factor_coul;
+              e += ((numtyp)1.0-factor_coul) * qqrd2e * (d0*g0 + d1*g1 + d2*g2);
             }
           } else e = (acctyp)0.0;
           e_coul += e;
@@ -503,9 +503,9 @@ __kernel void k_dipole_long_lj_fast(const __global numtyp4 *restrict x_,
 
   __syncthreads();
 
-  numtyp pre1 = numtyp(2.0) * g_ewald / MY_PIS;
-  numtyp pre2 = numtyp(4.0) * (g_ewald*g_ewald*g_ewald) / MY_PIS;
-  numtyp pre3 = numtyp(8.0) * (g_ewald*g_ewald*g_ewald*g_ewald*g_ewald) / MY_PIS;
+  numtyp pre1 = (numtyp)2.0 * g_ewald / MY_PIS;
+  numtyp pre2 = (numtyp)4.0 * (g_ewald*g_ewald*g_ewald) / MY_PIS;
+  numtyp pre3 = (numtyp)8.0 * (g_ewald*g_ewald*g_ewald*g_ewald*g_ewald) / MY_PIS;
 
   if (ii<inum) {
     int nbor, nbor_end;
@@ -685,8 +685,8 @@ __kernel void k_dipole_long_lj_fast(const __global numtyp4 *restrict x_,
           if (rsq < cut_coulsq && factor_coul > (numtyp)0.0) {
             e = qqrd2e*(b0*g0 + b1*g1 + b2*g2);
             if (factor_coul < (numtyp)1.0) {
-              e_coul *= factor_coul;
-              e_coul += ((numtyp)1.0-factor_coul) * qqrd2e * (d0*g0 + d1*g1 + d2*g2);
+              e *= factor_coul;
+              e += ((numtyp)1.0-factor_coul) * qqrd2e * (d0*g0 + d1*g1 + d2*g2);
             }
           } else e = (acctyp)0.0;
           e_coul += e;

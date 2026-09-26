@@ -23,7 +23,7 @@ distributed under the terms of the GNU Public License Version 2 (GPLv2).
 
 The `LAMMPS website <lws_>`_ has a variety of information about the
 code.  It includes links to an online version of this manual, an
-`online forum <https://www.lammps.org/forum.html>`_ where users can post
+`online forum <https://matsci.org/lammps>`_ where users can post
 questions and discuss LAMMPS, and a `GitHub site
 <https://github.com/lammps/lammps>`_ where all LAMMPS development is
 coordinated.

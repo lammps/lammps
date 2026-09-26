@@ -5,7 +5,7 @@
 #define KOKKOS_STD_ALGORITHMS_REVERSE_COPY_HPP
 
 #include "impl/Kokkos_ReverseCopy.hpp"
-#include "Kokkos_BeginEnd.hpp"
+#include <Kokkos_Iterator.hpp>
 
 namespace Kokkos {
 namespace Experimental {
@@ -40,6 +40,7 @@ auto reverse_copy(const ExecutionSpace& ex,
                   const ::Kokkos::View<DataType2, Properties2...>& dest) {
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(source);
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(dest);
+  Impl::expect_less_or_equal_extents(source, dest);
 
   return Impl::reverse_copy_exespace_impl(
       "Kokkos::reverse_copy_view_api_default", ex, cbegin(source), cend(source),
@@ -55,6 +56,7 @@ auto reverse_copy(const std::string& label, const ExecutionSpace& ex,
                   const ::Kokkos::View<DataType2, Properties2...>& dest) {
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(source);
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(dest);
+  Impl::expect_less_or_equal_extents(source, dest);
 
   return Impl::reverse_copy_exespace_impl(label, ex, cbegin(source),
                                           cend(source), begin(dest));
@@ -84,6 +86,7 @@ KOKKOS_FUNCTION auto reverse_copy(
     const ::Kokkos::View<DataType2, Properties2...>& dest) {
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(source);
   Impl::static_assert_is_admissible_to_kokkos_std_algorithms(dest);
+  Impl::expect_less_or_equal_extents(source, dest);
 
   return Impl::reverse_copy_team_impl(teamHandle, cbegin(source), cend(source),
                                       begin(dest));

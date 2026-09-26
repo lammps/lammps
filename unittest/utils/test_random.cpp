@@ -37,18 +37,20 @@ protected:
 
     void SetUp() override
     {
-        int flag;
-        MPI_Initialized(&flag);
-        if (!flag) {
-            int argc     = 1;
-            char *args[] = {(char *)"RNGTest", nullptr};
-            MPI_Init(&argc, (char ***)&args);
-        }
-
         LAMMPS::argv args = {"RNGTest", "-log",    "none", "-echo",
                              "none",    "-screen", "none", "-nocite"};
 
+        int argc    = 1;
+        char **argv = new char *[1];
+        argv[0] = utils::strdup("RNGTest");
+
+        int flag;
+        MPI_Initialized(&flag);
+        if (!flag) MPI_Init(&argc, (char  ***)&argv);
+
         lmp = new LAMMPS(args, MPI_COMM_WORLD);
+        delete[] argv[0];
+        delete[] argv;
     }
 
     void TearDown() override

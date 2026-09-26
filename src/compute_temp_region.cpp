@@ -51,6 +51,8 @@ ComputeTempRegion::ComputeTempRegion(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeTempRegion::~ComputeTempRegion()
 {
+  if (copymode) return;
+
   delete[] idregion;
   memory->destroy(vbiasall);
   delete[] vector;

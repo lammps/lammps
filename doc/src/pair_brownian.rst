@@ -64,7 +64,7 @@ numbers for the thermostatting procedure.
 The *flagHI* and *flagVF* settings are optional.  Neither should be
 used, or both must be defined.
 
-.. versionchanged:: TBD
+.. versionchanged:: 4Jul2026
 
 For *brownian/poly* the pairwise random Brownian force is now generated
 once per pair from a deterministic random number stream (keyed on the
@@ -139,6 +139,15 @@ brownian.
 
 Only spherical particles are allowed for pair_style brownian/poly.  The
 volume fraction correction is not supported by pair_style brownian/poly.
+
+.. versionchanged:: TBD
+
+The KOKKOS versions of these styles require a half neighbor list and will
+stop with an error if a full neighbor list is requested, as it is by default
+on a GPU.  A full list would visit each pair twice and draw independent
+random numbers each time, so the stochastic part of the pair force would no
+longer be equal and opposite.  Use *package kokkos neigh half* with these
+styles.
 
 These pair styles are only compatible with the following wall fixes:
 :doc:`fix wall/lj93, fix wall/lj126, fix wall/lj1043, fix wall/colloid,

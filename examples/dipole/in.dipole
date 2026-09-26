@@ -34,8 +34,13 @@ thermo		500
 
 #dump		1 all custom 500 dump.dipole id type x y z mux muy
 
-#dump		1 all image 250 image.*.jpg mux type &
-#		zoom 1.6 adiam 1.2
-#dump_modify	1 pad 5
+# visualize dipoles as arrows
+#
+#variable dumpfreq index 250
+#fix arrows all graphics/arrows ${dumpfreq} dipole 1.2 0.15
+#dump            viz all image ${dumpfreq} dipole-2d-*.ppm type type atom no &
+#                size 600 600 zoom 1.8 shiny 0.2  fsaa yes ssao yes 31257 0.3 &
+#                box yes 0.015 fix arrows const 0 0  center s 0.5 0.5 0
+#dump_modify viz pad 6 fcolor arrows steelblue ftrans arrows 1
 
 run		10000

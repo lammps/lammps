@@ -49,7 +49,7 @@ static constexpr double BIG = 1.0e20;
 
 // XYZ PLANE need to be 0,1,2
 
-enum {NOSTYLE=-1,XPLANE=0,YPLANE=1,ZPLANE=2,REGION};
+enum {NOSTYLE=-1,XPLANE=0,YPLANE=1,ZPLANE=2,REGION=3};
 enum {NONE,CONSTANT,EQUAL};
 
 /* ---------------------------------------------------------------------- */
@@ -133,54 +133,44 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
   numwalls = 0;
   if (iarg >= narg) error->all(FLERR, "Illegal fix wall/gran command");
 
-  if (strcmp(arg[iarg],"xplane") == 0) {
+  xstyle[0] = xstyle[1] = NONE;
+  xvar[0] = xvar[1] = -1;
+  xstr[0] = xstr[1] = nullptr;
+  velwall[0] = velwall[1] = prevwall[0] = prevwall[1] = 0.0;
+  velstep = -1;
+  velflag = varflag = 0;
+
+  if ((strcmp(arg[iarg],"xplane") == 0) || (strcmp(arg[iarg],"yplane") == 0) ||
+      (strcmp(arg[iarg],"zplane") == 0)) {
     if (narg < iarg+3) error->all(FLERR,"Illegal fix wall/gran command");
-    wallstyle = XPLANE;
+    if (strcmp(arg[iarg],"xplane") == 0) wallstyle = XPLANE;
+    else if (strcmp(arg[iarg],"yplane") == 0) wallstyle = YPLANE;
+    else wallstyle = ZPLANE;
     numwalls = 0;
     if (strcmp(arg[iarg+1],"NULL") == 0) {
       lo = -BIG;
+    } else if (utils::strmatch(arg[iarg+1],"^v_")) {
+      delete[] xstr[0];
+      xstr[0] = utils::strdup(arg[iarg+1]+2);
+      xstyle[0] = EQUAL;
+      lo = 0.0;
+      ++numwalls;
     } else {
       lo = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      xstyle[0] = CONSTANT;
       ++numwalls;
     }
     if (strcmp(arg[iarg+2],"NULL") == 0) {
       hi = BIG;
+    } else if (utils::strmatch(arg[iarg+2],"^v_")) {
+      delete[] xstr[1];
+      xstr[1] = utils::strdup(arg[iarg+2]+2);
+      xstyle[1] = EQUAL;
+      hi = 0.0;
+      ++numwalls;
     } else {
       hi = utils::numeric(FLERR,arg[iarg+2],false,lmp);
-      ++numwalls;
-    }
-    iarg += 3;
-  } else if (strcmp(arg[iarg],"yplane") == 0) {
-    if (narg < iarg+3) error->all(FLERR,"Illegal fix wall/gran command");
-    wallstyle = YPLANE;
-    numwalls = 0;
-    if (strcmp(arg[iarg+1],"NULL") == 0) {
-      lo = -BIG;
-    } else {
-      lo = utils::numeric(FLERR,arg[iarg+1],false,lmp);
-      ++numwalls;
-    }
-    if (strcmp(arg[iarg+2],"NULL") == 0) {
-      hi = BIG;
-    } else {
-      hi = utils::numeric(FLERR,arg[iarg+2],false,lmp);
-      ++numwalls;
-    }
-    iarg += 3;
-  } else if (strcmp(arg[iarg],"zplane") == 0) {
-    if (narg < iarg+3) error->all(FLERR,"Illegal fix wall/gran command");
-    wallstyle = ZPLANE;
-    numwalls = 0;
-    if (strcmp(arg[iarg+1],"NULL") == 0) {
-      lo = -BIG;
-    } else {
-      lo = utils::numeric(FLERR,arg[iarg+1],false,lmp);
-      ++numwalls;
-    }
-    if (strcmp(arg[iarg+2],"NULL") == 0) {
-      hi = BIG;
-    } else {
-      hi = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      xstyle[1] = CONSTANT;
       ++numwalls;
     }
     iarg += 3;
@@ -268,6 +258,12 @@ FixWallGran::FixWallGran(LAMMPS *lmp, int narg, char **arg) :
   if ((wiggle || wshear) && wallstyle == REGION)
     error->all(FLERR,"Cannot wiggle or shear with fix wall/gran/region");
 
+  // walls with a position variable cannot be combined with prescribed wall motion
+
+  if ((xstyle[0] == EQUAL) || (xstyle[1] == EQUAL)) velflag = 1;
+  if ((wiggle || wshear) && velflag)
+    error->all(FLERR,"Cannot wiggle or shear a fix wall/gran wall with a position variable");
+
   // setup oscillations
 
   if (wiggle) omega = 2.0*MY_PI / period;
@@ -338,6 +334,8 @@ FixWallGran::~FixWallGran()
   delete model;
   delete[] tstr;
   delete[] idregion;
+  delete[] xstr[0];
+  delete[] xstr[1];
   memory->destroy(history_one);
   memory->destroy(mass_rigid);
 
@@ -378,9 +376,9 @@ void FixWallGran::init()
 
   // check for FixRigid so can extract rigid body masses
 
-  for (i = 0; i < modify->nfix; i++)
-    if (modify->fix[i]->rigid_flag) break;
-  if (i < modify->nfix) fix_rigid = modify->fix[i];
+  fix_rigid = nullptr;
+  for (const auto &ifix : modify->get_fix_list())
+    if (ifix->rigid_flag) { fix_rigid = ifix; break; }
 
   // Define history indices
 
@@ -397,6 +395,22 @@ void FixWallGran::init()
     if (tvar < 0) error->all(FLERR, "Variable {} for fix wall/gran does not exist", tstr);
     if (! input->variable->equalstyle(tvar))
       error->all(FLERR, "Variable {} for fix wall/gran must be an equal style variable", tstr);
+  }
+
+  // locate and check variables for wall positions and velocities
+
+  varflag = 0;
+  if (tstr) varflag = 1;
+  for (int m = 0; m < 2; m++) {
+    if (xstyle[m] == EQUAL) {
+      xvar[m] = input->variable->find(xstr[m]);
+      if (xvar[m] < 0)
+        error->all(FLERR, "Variable {} for fix wall/gran wall position does not exist", xstr[m]);
+      if (! input->variable->equalstyle(xvar[m]))
+        error->all(FLERR, "Variable {} for fix wall/gran wall position must be "
+                   "an equal style variable", xstr[m]);
+      varflag = 1;
+    }
   }
 }
 
@@ -417,7 +431,7 @@ void FixWallGran::setup(int vflag)
 
 void FixWallGran::post_force(int /*vflag*/)
 {
-  int i,j,n;
+  int i,j,n,mwall;
   double dx,dy,dz,del1,del2,rwall,meff;
   double *forces, *torquesi;
   double vwall[3];
@@ -452,11 +466,34 @@ void FixWallGran::post_force(int /*vflag*/)
   }
 
   // set position of wall to initial settings and velocity to 0.0
+  // evaluate variables for wall position and velocity, if defined
   // if wiggle or shear, set wall position and velocity accordingly
 
   double wlo = lo;
   double whi = hi;
   vwall[0] = vwall[1] = vwall[2] = 0.0;
+  if (varflag) modify->clearstep_compute();
+  if (xstyle[0] == EQUAL) wlo = input->variable->compute_equal(xvar[0]);
+  if (xstyle[1] == EQUAL) whi = input->variable->compute_equal(xvar[1]);
+  if ((xstyle[0] != NONE) && (xstyle[1] != NONE) && (wlo >= whi))
+    error->all(FLERR, Error::NOLASTLINE,
+               "Fix wall/gran lo wall position {} must remain below hi wall position {}", wlo, whi);
+
+  // infer velocity of walls with a position variable from the change of the wall
+  // position since the previous evaluation, as done for moving regions: there is
+  // no analytic formula for the velocity of a variable-defined wall position.
+  // the velocity is zero at the very first evaluation; re-evaluations on the
+  // same timestep (e.g. during setup of a continued run) keep the velocity.
+
+  if (velflag && (update->ntimestep != velstep)) {
+    if (velstep >= 0) {
+      if (xstyle[0] == EQUAL) velwall[0] = (wlo - prevwall[0]) / update->dt;
+      if (xstyle[1] == EQUAL) velwall[1] = (whi - prevwall[1]) / update->dt;
+    }
+    prevwall[0] = wlo;
+    prevwall[1] = whi;
+    velstep = update->ntimestep;
+  }
   if (wiggle) {
     double arg = omega * (update->ntimestep - time_origin) * dt;
     if (wallstyle == axis) {
@@ -506,28 +543,35 @@ void FixWallGran::post_force(int /*vflag*/)
       Twall = input->variable->compute_equal(tvar);
     model->Tj = Twall;
   }
+  if (varflag) modify->addstep_compute(update->ntimestep + 1);
 
   for (int i = 0; i < nlocal; i++) {
     if (!(mask[i] & groupbit)) continue;
 
     dx = dy = dz = 0.0;
+    mwall = 0;
 
     if (wallstyle == XPLANE) {
       del1 = x[i][0] - wlo;
       del2 = whi - x[i][0];
       if (del1 < del2) dx = del1;
-      else dx = -del2;
+      else { dx = -del2; mwall = 1; }
     } else if (wallstyle == YPLANE) {
       del1 = x[i][1] - wlo;
       del2 = whi - x[i][1];
       if (del1 < del2) dy = del1;
-      else dy = -del2;
+      else { dy = -del2; mwall = 1; }
     } else if (wallstyle == ZPLANE) {
       del1 = x[i][2] - wlo;
       del2 = whi - x[i][2];
       if (del1 < del2) dz = del1;
-      else dz = -del2;
+      else { dz = -del2; mwall = 1; }
     }
+
+    // for walls with a position variable, use the velocity of the nearer wall
+    // XPLANE,YPLANE,ZPLANE are 0,1,2, i.e. the index of the wall normal direction
+
+    if (velflag) vwall[wallstyle] = velwall[mwall];
 
     // Reset model and copy initial geometric data
     model->dx[0] = dx;

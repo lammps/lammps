@@ -596,23 +596,16 @@ class DynRankView : private View<DataType*******, Properties...> {
   using view_type::data;
   using view_type::extent;
   using view_type::extent_int;  // FIXME: not tested
-  using view_type::impl_map;    // FIXME: not tested
+#ifndef KOKKOS_ENABLE_IMPL_VIEW_LEGACY
+  using view_type::extents;
+#endif
+  using view_type::impl_map;  // FIXME: not tested
   using view_type::is_allocated;
   using view_type::label;
   using view_type::size;
   using view_type::span;
   using view_type::span_is_contiguous;  // FIXME: not tested
   using view_type::stride;              // FIXME: not tested
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-  using view_type::stride_0;  // FIXME: not tested
-  using view_type::stride_1;  // FIXME: not tested
-  using view_type::stride_2;  // FIXME: not tested
-  using view_type::stride_3;  // FIXME: not tested
-  using view_type::stride_4;  // FIXME: not tested
-  using view_type::stride_5;  // FIXME: not tested
-  using view_type::stride_6;  // FIXME: not tested
-  using view_type::stride_7;  // FIXME: not tested
-#endif
   using view_type::use_count;
 
 #ifdef KOKKOS_ENABLE_CUDA
@@ -1051,13 +1044,15 @@ class DynRankView : private View<DataType*******, Properties...> {
 
   //----------------------------------------
   // Memory span required to wrap these dimensions.
-  // FIXME: this function needs to be tested
   static constexpr size_t required_allocation_size(
       const size_t arg_N0 = 1, const size_t arg_N1 = 1, const size_t arg_N2 = 1,
       const size_t arg_N3 = 1, const size_t arg_N4 = 1, const size_t arg_N5 = 1,
       const size_t arg_N6                  = 1,
       [[maybe_unused]] const size_t arg_N7 = KOKKOS_INVALID_INDEX) {
-    // FIXME: check that arg_N7 is not set by user (in debug mode)
+#if !defined(KOKKOS_ENABLE_DEPRECATED_CODE_5)
+    KOKKOS_ASSERT(arg_N7 == KOKKOS_INVALID_INDEX &&
+                  "DynRankView: Cannot allocate 8 dimensions!");
+#endif
     return view_type::required_allocation_size(arg_N0, arg_N1, arg_N2, arg_N3,
                                                arg_N4, arg_N5, arg_N6);
   }
@@ -1168,6 +1163,26 @@ using Subdynrankview =
 template <class... DRVArgs, class SubArg0 = int, class SubArg1 = int,
           class SubArg2 = int, class SubArg3 = int, class SubArg4 = int,
           class SubArg5 = int, class SubArg6 = int>
+auto subdynrankview(const DynRankView<DRVArgs...>& drv,
+                    SubArg0 arg0 = SubArg0{}, SubArg1 arg1 = SubArg1{},
+                    SubArg2 arg2 = SubArg2{}, SubArg3 arg3 = SubArg3{},
+                    SubArg4 arg4 = SubArg4{}, SubArg5 arg5 = SubArg5{},
+                    SubArg6 arg6 = SubArg6{}) {
+  return subdynrankview(drv, Impl::convert_to_kokkos_pair_if_std_pair(arg0),
+                        Impl::convert_to_kokkos_pair_if_std_pair(arg1),
+                        Impl::convert_to_kokkos_pair_if_std_pair(arg2),
+                        Impl::convert_to_kokkos_pair_if_std_pair(arg3),
+                        Impl::convert_to_kokkos_pair_if_std_pair(arg4),
+                        Impl::convert_to_kokkos_pair_if_std_pair(arg5),
+                        Impl::convert_to_kokkos_pair_if_std_pair(arg6));
+}
+
+// std::pair isn't device-compatible
+template <class... DRVArgs, class SubArg0 = int, class SubArg1 = int,
+          class SubArg2 = int, class SubArg3 = int, class SubArg4 = int,
+          class SubArg5 = int, class SubArg6 = int>
+  requires(!Impl::ContainsStdPair<SubArg0, SubArg1, SubArg2, SubArg3, SubArg4,
+                                  SubArg5, SubArg6>)
 KOKKOS_INLINE_FUNCTION auto subdynrankview(
     const DynRankView<DRVArgs...>& drv, SubArg0 arg0 = SubArg0{},
     SubArg1 arg1 = SubArg1{}, SubArg2 arg2 = SubArg2{},
@@ -1221,11 +1236,16 @@ KOKKOS_INLINE_FUNCTION bool operator==(const DynRankView<LT, LP...>& lhs,
          std::is_same_v<typename lhs_traits::memory_space,
                         typename rhs_traits::memory_space> &&
          lhs.rank() == rhs.rank() && lhs.data() == rhs.data() &&
+         lhs.span() == rhs.span() &&
+#ifndef KOKKOS_ENABLE_IMPL_VIEW_LEGACY
+         lhs.extents() == rhs.extents()
+#else
          lhs.span() == rhs.span() && lhs.extent(0) == rhs.extent(0) &&
          lhs.extent(1) == rhs.extent(1) && lhs.extent(2) == rhs.extent(2) &&
          lhs.extent(3) == rhs.extent(3) && lhs.extent(4) == rhs.extent(4) &&
-         lhs.extent(5) == rhs.extent(5) && lhs.extent(6) == rhs.extent(6) &&
-         lhs.extent(7) == rhs.extent(7);
+         lhs.extent(5) == rhs.extent(5) && lhs.extent(6) == rhs.extent(6)
+#endif
+      ;
 }
 
 template <class LT, class... LP, class RT, class... RP>
@@ -1253,7 +1273,6 @@ struct DynRankViewRemap {
   const size_t n4;
   const size_t n5;
   const size_t n6;
-  const size_t n7;
 
   DynRankViewRemap(const ExecSpace& exec_space, const OutputView& arg_out,
                    const InputView& arg_in)
@@ -1265,8 +1284,7 @@ struct DynRankViewRemap {
         n3(std::min((size_t)arg_out.extent(3), (size_t)arg_in.extent(3))),
         n4(std::min((size_t)arg_out.extent(4), (size_t)arg_in.extent(4))),
         n5(std::min((size_t)arg_out.extent(5), (size_t)arg_in.extent(5))),
-        n6(std::min((size_t)arg_out.extent(6), (size_t)arg_in.extent(6))),
-        n7(std::min((size_t)arg_out.extent(7), (size_t)arg_in.extent(7))) {
+        n6(std::min((size_t)arg_out.extent(6), (size_t)arg_in.extent(6))) {
     using Policy = Kokkos::RangePolicy<ExecSpace>;
 
     Kokkos::parallel_for("Kokkos::DynRankViewRemap", Policy(exec_space, 0, n0),
@@ -1274,20 +1292,7 @@ struct DynRankViewRemap {
   }
 
   DynRankViewRemap(const OutputView& arg_out, const InputView& arg_in)
-      : output(arg_out),
-        input(arg_in),
-        n0(std::min((size_t)arg_out.extent(0), (size_t)arg_in.extent(0))),
-        n1(std::min((size_t)arg_out.extent(1), (size_t)arg_in.extent(1))),
-        n2(std::min((size_t)arg_out.extent(2), (size_t)arg_in.extent(2))),
-        n3(std::min((size_t)arg_out.extent(3), (size_t)arg_in.extent(3))),
-        n4(std::min((size_t)arg_out.extent(4), (size_t)arg_in.extent(4))),
-        n5(std::min((size_t)arg_out.extent(5), (size_t)arg_in.extent(5))),
-        n6(std::min((size_t)arg_out.extent(6), (size_t)arg_in.extent(6))),
-        n7(std::min((size_t)arg_out.extent(7), (size_t)arg_in.extent(7))) {
-    using Policy = Kokkos::RangePolicy<ExecSpace>;
-
-    Kokkos::parallel_for("Kokkos::DynRankViewRemap", Policy(0, n0), *this);
-  }
+      : DynRankViewRemap(ExecSpace{}, arg_out, arg_in) {}
 
   KOKKOS_INLINE_FUNCTION
   void operator()(const size_t i0) const {
@@ -1770,6 +1775,13 @@ auto create_mirror_view_and_copy(const Space&,
                                  std::string const& name = "") {
   return create_mirror_view_and_copy(
       Kokkos::view_alloc(typename Space::memory_space{}, name), src);
+}
+
+template <class T, class... P>
+auto create_mirror_view_and_copy(const Kokkos::DynRankView<T, P...>& src) {
+  return create_mirror_view_and_copy(
+      typename Kokkos::DynRankView<T, P...>::host_mirror_type::memory_space{},
+      src);
 }
 
 }  // namespace Kokkos

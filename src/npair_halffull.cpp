@@ -42,7 +42,7 @@ NPairHalffull<NEWTON, TRI, TRIM>::NPairHalffull(LAMMPS *lmp) : NPair(lmp) {}
      use i < j < nlocal to eliminate half the local/local interactions
    Newton + Triclinic:
      must use delta to eliminate half the local/ghost interactions
-     cannot use I/J exact coord comparision as for orthog
+     cannot use I/J exact coord comparison as for orthog
        b/c transforming orthog -> lambda -> orthog for ghost atoms
        with an added PBC offset can shift all 3 coords by epsilon
 ------------------------------------------------------------------------- */

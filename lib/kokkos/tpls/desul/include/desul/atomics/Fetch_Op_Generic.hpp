@@ -88,31 +88,6 @@ DESUL_IMPL_ATOMIC_FETCH_OP_SHIFT_HOST_AND_DEVICE(_rshift)
 #undef DESUL_IMPL_ATOMIC_FETCH_OP_SHIFT_HOST_AND_DEVICE
 #undef DESUL_IMPL_ATOMIC_FETCH_OP_SHIFT
 
-// NOTE: We would want to use atomic_oper_fetch in the fallback implementation of
-// atomic_store to avoid reading potentially uninitialized values which would yield
-// undefined behavior. As atomic_oper_fetch is not implemented, we have specializations
-// of the lock based fetch_oper for _store_fetch_operator that uses a default
-// constructed value instead of reading from a potentially uninitialized address.
-#define DESUL_IMPL_ATOMIC_LOAD_AND_STORE(ANNOTATION, HOST_OR_DEVICE)                  \
-  template <class T, class MemoryOrder, class MemoryScope>                            \
-  ANNOTATION T HOST_OR_DEVICE##_atomic_load(                                          \
-      const T* const dest, MemoryOrder order, MemoryScope scope) {                    \
-    return HOST_OR_DEVICE##_atomic_fetch_oper(                                        \
-        _load_fetch_operator<T, const T>(), const_cast<T*>(dest), T(), order, scope); \
-  }                                                                                   \
-                                                                                      \
-  template <class T, class MemoryOrder, class MemoryScope>                            \
-  ANNOTATION void HOST_OR_DEVICE##_atomic_store(                                      \
-      T* const dest, const T val, MemoryOrder order, MemoryScope scope) {             \
-    (void)HOST_OR_DEVICE##_atomic_fetch_oper(                                         \
-        _store_fetch_operator<T, const T>(), dest, val, order, scope);                \
-  }
-
-DESUL_IMPL_ATOMIC_LOAD_AND_STORE(DESUL_IMPL_HOST_FUNCTION, host)
-DESUL_IMPL_ATOMIC_LOAD_AND_STORE(DESUL_IMPL_DEVICE_FUNCTION, device)
-
-#undef DESUL_IMPL_ATOMIC_LOAD_AND_STORE
-
 #define DESUL_IMPL_ATOMIC_INCREMENT_DECREMENT(ANNOTATION, HOST_OR_DEVICE) \
   template <class T, class MemoryOrder, class MemoryScope>                \
   ANNOTATION T HOST_OR_DEVICE##_atomic_inc_fetch(                         \

@@ -126,24 +126,6 @@ static inline void pseudo_inverse_SVD(Eigen::Matrix3d &M)
   M = svd.matrixU() * singularValuesInv.asDiagonal() * svd.matrixU().transpose();
 }
 
-/*
- * test if two matrices are equal
- */
-static inline double TestMatricesEqual(const Eigen::Matrix3d &A, const Eigen::Matrix3d &B, double eps)
-{
-  Eigen::Matrix3d diff;
-  diff = A - B;
-  double norm = diff.norm();
-  if (norm > eps) {
-    std::cout << "Matrices A and B are not equal! The L2-norm difference is: " << norm << "\n"
-              << "Here is matrix A:\n"
-              << A << "\n"
-              << "Here is matrix B:\n"
-              << B << std::endl;
-  }
-  return norm;
-}
-
 /* ----------------------------------------------------------------------
  Limit eigenvalues of a matrix to upper and lower bounds.
  ------------------------------------------------------------------------- */

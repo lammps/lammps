@@ -26,6 +26,7 @@ PairStyle(exp6/rx/kk/host,PairExp6rxKokkos<LMPHostType>);
 #include "pair_exp6_rx.h"
 #include "kokkos_type.h"
 #include "pair_kokkos.h"
+#include "fix_rx_kokkos.h"
 
 namespace LAMMPS_NS {
 
@@ -61,10 +62,6 @@ struct PairExp6ParamDataTypeKokkosVect
                            nTotal, fractionOFAold, fractionOld1, fractionOld2,
                            nMoleculesOFAold, nMoleculesOld1, nMoleculesOld2,
                            nTotalold;
-
-   // Default constructor -- nullify everything.
-   PairExp6ParamDataTypeKokkosVect()
-   {}
 };
 
 struct TagPairExp6rxZeroMixingWeights{};
@@ -91,6 +88,7 @@ class PairExp6rxKokkos : public PairExp6rx {
   void compute(int, int) override;
   void coeff(int, char **) override;
   void init_style() override;
+  double init_one(int, int) override;
 
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
@@ -156,6 +154,10 @@ class PairExp6rxKokkos : public PairExp6rx {
   typename AT::t_kkfloat_1d uCG, uCGnew;
   typename AT::t_kkfloat_2d dvector;
 
+  FixRxKokkos<DeviceType> * rx_fixKK;
+  typename AT::t_int_1d species_ind_to_atom_prop_ind;
+  typename AT::t_int_1d species_ind_to_atom_prop_ind_old;
+
   typedef Kokkos::View<KK_FLOAT**[3],Kokkos::LayoutRight,DeviceType> t_kkfloat_1d_3_thread;
   typedef Kokkos::View<KK_FLOAT**,Kokkos::LayoutRight,DeviceType> t_kkfloat_1d_thread;
 
@@ -198,7 +200,7 @@ class PairExp6rxKokkos : public PairExp6rx {
   void getMixingWeights(int, KK_FLOAT &, KK_FLOAT &, KK_FLOAT &, KK_FLOAT &, KK_FLOAT &, KK_FLOAT &, KK_FLOAT &, KK_FLOAT &, KK_FLOAT &, KK_FLOAT &, KK_FLOAT &, KK_FLOAT &, KK_FLOAT &, KK_FLOAT &, KK_FLOAT &, KK_FLOAT &) const;
 
   template <class ArrayT>
-  void getMixingWeightsVect(const int, int, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &) const;
+  void getMixingWeightsVect(const int, int &, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &, ArrayT &) const;
 
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION

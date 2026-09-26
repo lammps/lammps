@@ -124,7 +124,7 @@ cross-stacking *oxrna2/xstk* and coaxial stacking interaction
 well as the hydrogen-bonding interaction *oxrna2/hbond* between
 complementary pairs of nucleotides on opposite strands. Average sequence
 or sequence-dependent stacking and base-pairing strengths are supported
-:ref:`(Sulc2) <Sulc32>`.
+:ref:`(Sulc) <Sulc32>`.
 
 The exact functional form of the pair styles is rather complex.  The
 individual potentials consist of products of modulation factors, which
@@ -181,7 +181,7 @@ this implementation.  The article contains general information on the
 model, its implementation and performance as well as the structure of
 the data and input file. The preprint version of the article can be
 found `here <PDF/CG-DNA.pdf>`_.  Please cite also the relevant oxRNA2
-publications :ref:`(Sulc1) <Sulc31>` and :ref:`(Sulc2) <Sulc32>`.
+publications :ref:`(Sulc1) <Sulc31>` and :ref:`(Sulc) <Sulc32>`.
 
 ----------
 
@@ -334,7 +334,7 @@ none
 
 .. _Sulc32:
 
-**(Sulc2)** P. Sulc, F. Romano, T.E. Ouldridge, L. Rovigatti, J.P.K. Doye, A.A. Louis, J. Chem. Phys. 137, 135101 (2012).
+**(Sulc)** P. Sulc, F. Romano, T.E. Ouldridge, L. Rovigatti, J.P.K. Doye, A.A. Louis, J. Chem. Phys. 137, 135101 (2012).
 
 .. _Ouldridge-DPhil3:
 

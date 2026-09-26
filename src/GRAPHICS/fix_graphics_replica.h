@@ -29,7 +29,7 @@ class FixGraphicsReplica : public Fix {
   FixGraphicsReplica(class LAMMPS *, int, char **);
   ~FixGraphicsReplica() override;
   int setmask() override;
-  void init() override;
+  void setup(int) override;
   void min_post_force(int) override;
   void end_of_step() override;
 
@@ -41,6 +41,7 @@ class FixGraphicsReplica : public Fix {
   double dradius;
   double aradius;
 
+  std::string imggroup;
   int numobjs;
   int *imgobjs;
   double **imgparms;

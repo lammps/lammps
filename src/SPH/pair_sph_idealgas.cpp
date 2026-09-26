@@ -28,7 +28,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairSPHIdealGas::PairSPHIdealGas(LAMMPS *lmp) : Pair(lmp)
+PairSPHIdealGas::PairSPHIdealGas(LAMMPS *lmp) : Pair(lmp), cut(nullptr), viscosity(nullptr)
 {
   if ((atom->esph_flag != 1) || (atom->rho_flag != 1) || (atom->vest_flag != 1))
     error->all(FLERR, Error::NOLASTLINE,

@@ -251,10 +251,12 @@ class
 // the C++26 working draft on 2023-11)
 
 template <typename RealType>
+// NOLINTNEXTLINE(bugprone-std-namespace-modification)
 struct std::tuple_size<Kokkos::complex<RealType>>
     : std::integral_constant<size_t, 2> {};
 
 template <size_t I, typename RealType>
+// NOLINTNEXTLINE(bugprone-std-namespace-modification)
 struct std::tuple_element<I, Kokkos::complex<RealType>> {
   static_assert(I < 2);
   using type = RealType;

@@ -33,7 +33,10 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairBuckMDF::PairBuckMDF(LAMMPS *lmp) : Pair(lmp) {}
+PairBuckMDF::PairBuckMDF(LAMMPS *lmp) :
+    Pair(lmp), cut(nullptr), cut_inner(nullptr), cut_inner_sq(nullptr), a(nullptr), rho(nullptr),
+    c(nullptr), rhoinv(nullptr), buck1(nullptr), buck2(nullptr), offset(nullptr)
+{}
 
 /* ---------------------------------------------------------------------- */
 

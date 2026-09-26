@@ -336,11 +336,13 @@ FixAveGrid::FixAveGrid(LAMMPS *lmp, int narg, char **arg) :
                      utils::errorurl(7));
 
       } else if (which[i] == ArgInfo::VARIABLE) {
+        if (argindex[i])
+          error->all(FLERR, iarg_orig[i], "Fix ave/grid variable {} cannot be indexed", ids[i]);
         int ivariable = input->variable->find(ids[i]);
         if (ivariable < 0)
-          error->all(FLERR, iarg_orig[i], "Variable name for fix ave/atom does not exist");
+          error->all(FLERR, iarg_orig[i], "Variable name for fix ave/grid does not exist");
         if (input->variable->atomstyle(ivariable) == 0)
-          error->all(FLERR, iarg_orig[i], "Fix ave/atom variable is not atom-style variable");
+          error->all(FLERR, iarg_orig[i], "Fix ave/grid variable is not atom-style variable");
       }
     }
   }
@@ -1060,7 +1062,7 @@ void FixAveGrid::atom2grid()
                 vec2d[bin[i][0]][bin[i][1]] += ovector[i];
             }
           } else {
-            int jm1 = j = 1;
+            int jm1 = j - 1;
             for (i = 0; i < nlocal; i++) {
               if (!skip[i])
                 vec2d[bin[i][0]][bin[i][1]] += oarray[i][jm1];

@@ -28,6 +28,7 @@ class FixRespa : public Fix {
   friend class Respa;
   friend class FixShake;
   friend class FixRattle;
+  friend class FixIlves;
 
  public:
   FixRespa(class LAMMPS *, int, char **);

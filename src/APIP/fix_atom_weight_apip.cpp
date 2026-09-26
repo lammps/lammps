@@ -38,7 +38,7 @@ FixAtomWeightAPIP::FixAtomWeightAPIP(LAMMPS *lmp, int narg, char **arg) :
     time_group_extract_name(nullptr), time_lambda_extract_name(nullptr), time_group_name(nullptr),
     fixstore(nullptr), ap_timer(nullptr), fix_lambda(nullptr)
 {
-  if (narg < 9) error->all(FLERR, "Illegal fix balance command");
+  if (narg < 9) utils::missing_cmd_args(FLERR, "fix atom_weight/apip", error);
 
   ap_timer = new APIPtimer(lmp);
 
@@ -96,7 +96,7 @@ FixAtomWeightAPIP::FixAtomWeightAPIP(LAMMPS *lmp, int narg, char **arg) :
   time_group_name = utils::strdup(arg[8]);
   time_group_i = group->find(time_group_name);
   if (time_group_i == -1)
-    error->all(FLERR, "atom_weight/apip: group {} does not exist", time_group_name);
+    error->all(FLERR, 8, "Fix atom_weight/apip: group {} does not exist", time_group_name);
   time_group_bit = group->bitmask[time_group_i];
 
   // parse remaining arguments
@@ -104,60 +104,63 @@ FixAtomWeightAPIP::FixAtomWeightAPIP(LAMMPS *lmp, int narg, char **arg) :
     if (strcmp(arg[iarg], "no_rescale") == 0) {
       rescale_work = false;
     } else {
-      error->all(FLERR, "atom_weight/apip: unknown argument {}", arg[iarg]);
+      error->all(FLERR, iarg, "Fix atom_weight/apip: unknown argument {}", arg[iarg]);
     }
   }
 
   // check arguments
-  if (nevery < 1) error->all(FLERR, "atom_weight/apip: nevery > 0 required");
+  if (nevery < 1) error->all(FLERR, 3, "Fix atom_weight/apip: nevery > 0 required");
   if (!atom->apip_lambda_required_flag)
-    error->all(FLERR, "atom_weight/apip: atomic style with lambda_required required");
+    error->all(FLERR, "Fix atom_weight/apip: atomic style with lambda_required required");
 
   if (time_simple_extract_name || time_complex_extract_name || time_group_extract_name ||
       time_lambda_extract_name) {
     if (force->pair == nullptr)
-      error->all(FLERR, "atom_weight/apip: extract requires a defined pair style");
+      error->all(FLERR, "Fix atom_weight/apip: extract requires a defined pair style");
   }
 
   int useless_dim = -1;
   if (time_simple_extract_name) {
     if (force->pair->extract(time_simple_extract_name, useless_dim) == nullptr)
-      error->all(FLERR, "atom_weight/apip: simple time cannot be extracted with {} from {}",
+      error->all(FLERR, 4, "Fix atom_weight/apip: simple time cannot be extracted with {} from {}",
                  time_simple_extract_name, force->pair_style);
   } else {
     if (time_simple_atom < 0)
-      error->all(FLERR, "atom_weight/apip: time_simple_atom needs to be non-negative instead of {}",
+      error->all(FLERR, 4,
+                 "Fix atom_weight/apip: time_simple_atom needs to be non-negative instead of {}",
                  time_simple_atom);
   }
 
   if (time_complex_extract_name) {
     if (force->pair->extract(time_complex_extract_name, useless_dim) == nullptr)
-      error->all(FLERR, "atom_weight/apip: complex time cannot be extracted with {} from {}",
+      error->all(FLERR, 5, "Fix atom_weight/apip: complex time cannot be extracted with {} from {}",
                  time_complex_extract_name, force->pair_style);
   } else {
     if (time_complex_atom < 0)
-      error->all(FLERR,
-                 "atom_weight/apip: time_complex_atom needs to be non-negative instead of {}",
+      error->all(FLERR, 5,
+                 "Fix atom_weight/apip: time_complex_atom needs to be non-negative instead of {}",
                  time_complex_atom);
   }
 
   if (time_group_extract_name) {
     if (force->pair->extract(time_group_extract_name, useless_dim) == nullptr)
-      error->all(FLERR, "atom_weight/apip: group time cannot be extracted with {} from {}",
+      error->all(FLERR, 6, "Fix atom_weight/apip: group time cannot be extracted with {} from {}",
                  time_group_extract_name, force->pair_style);
   } else {
     if (time_group_atom < 0)
-      error->all(FLERR, "atom_weight/apip: time_group_atom needs to be non-negative instead of {}",
+      error->all(FLERR, 6,
+                 "Fix atom_weight/apip: time_group_atom needs to be non-negative instead of {}",
                  time_group_atom);
   }
 
   if (time_lambda_extract_name) {
     if (force->pair->extract(time_lambda_extract_name, useless_dim) == nullptr)
-      error->all(FLERR, "atom_weight/apip: lambda time cannot be extracted with {} from {}",
+      error->all(FLERR, 7, "Fix atom_weight/apip: lambda time cannot be extracted with {} from {}",
                  time_lambda_extract_name, force->pair_style);
   } else {
     if (time_lambda_atom < 0)
-      error->all(FLERR, "atom_weight/apip: time_lambda_atom needs to be non-negative instead of {}",
+      error->all(FLERR, 7,
+                 "Fix atom_weight/apip: time_lambda_atom needs to be non-negative instead of {}",
                  time_lambda_atom);
   }
 
@@ -198,9 +201,7 @@ FixAtomWeightAPIP::~FixAtomWeightAPIP()
   delete[] time_group_extract_name;
   delete[] time_group_name;
 
-  // check nfix in case all fixes have already been deleted
-  if (fixstore && modify->nfix) modify->delete_fix(fixstore->id);
-  fixstore = nullptr;
+  if (fixstore) modify->delete_fix(fixstore->id);
 }
 
 /**
@@ -242,31 +243,26 @@ int FixAtomWeightAPIP::setmask()
 
 void FixAtomWeightAPIP::init()
 {
-  int counter = 0;
-  for (int i = 0; i < modify->nfix; i++) {
-    if (strcmp(modify->fix[i]->style, "atom_weight/apip") == 0) counter++;
-  }
-  if (counter > 1) error->all(FLERR, "More than one atom_weight/apip fix");
+  if (modify->get_fix_by_style("^atom_weight/apip").size() > 1)
+    error->all(FLERR, Error::NOLASTLINE, "More than one atom_weight/apip fix");
 
   // get ptr to fix lambda
-  counter = 0;
-  for (int i = 0; i < modify->nfix; i++) {
-    if (strcmp(modify->fix[i]->style, "lambda/apip") == 0) {
-      fix_lambda = modify->fix[i];
-      counter++;
-    }
-  }
-  if (counter > 1) error->all(FLERR, "More than one fix lambda");
-  if (counter == 0 && (time_lambda_extract_name || time_lambda_atom > 0))
-    error->all(FLERR, "fix lambda required to approximate weight of pair style lambda/zone");
+  auto lambda_fixes = modify->get_fix_by_style("^lambda/apip");
+  if (lambda_fixes.size() > 1)
+    error->all(FLERR, Error::NOLASTLINE, "More than one fix lambda/apip");
+  if (lambda_fixes.empty() && (time_lambda_extract_name || (time_lambda_atom > 0)))
+    error->all(FLERR, Error::NOLASTLINE,
+               "fix lambda/apip required to approximate weight of pair style lambda/zone/apip");
+  fix_lambda = lambda_fixes.empty() ? nullptr : lambda_fixes.front();
 
   // This fix is evaluated in pre_exchange, but needs to be evaluated before load-balancing fixes.
   for (auto *ifix : modify->get_fix_list()) {
     if (strcmp(id, ifix->id) == 0) {
-      // The remaining fixes are called after fix atom_load_lambda and ,thus, are not of interest.
+      // The remaining fixes are called after fix atom_weight/apip and ,thus, are not of interest.
       break;
     } else if (ifix->box_change == BOX_CHANGE_DOMAIN) {
-      error->all(FLERR, "atom_weight/apip: fix {} should come after fix {}", ifix->id, id);
+      error->all(FLERR, Error::NOLASTLINE,
+                 "Fix atom_weight/apip: fix {} should come after fix {}", ifix->id, id);
     }
   }
 
@@ -274,7 +270,8 @@ void FixAtomWeightAPIP::init()
   if (time_group_name) {
     time_group_i = group->find(time_group_name);
     if (time_group_i == -1)
-      error->all(FLERR, "atom_weight/apip: group {} does not exist", time_group_name);
+      error->all(FLERR, Error::NOLASTLINE,
+                 "Fix atom_weight/apip: group {} does not exist", time_group_name);
     time_group_bit = group->bitmask[time_group_i];
   }
 

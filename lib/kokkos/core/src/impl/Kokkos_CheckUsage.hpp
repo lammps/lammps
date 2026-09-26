@@ -9,7 +9,7 @@
 #include <impl/Kokkos_InitializeFinalize.hpp>
 #include <impl/Kokkos_Utilities.hpp>
 
-#include <sstream>
+#include <string>
 #include <type_traits>
 
 // FIXME: Obtain file and line number information via std::source_location
@@ -58,12 +58,12 @@ struct CheckUsage<UsageRequires::isInitialized> {
   static void check(const char* func_name, const T& exec_policy,
                     const char* meta_data = "no-label") {
     if (!Kokkos::is_initialized()) {
-      std::stringstream ss;
-      ss << "Kokkos ERROR: attempting to call " << func_name << "() "
-         << "**before** Kokkos::initialize() was called."
-         << " Concerns " << meta_data << " with exec policy "
-         << fetch_policy_name(exec_policy) << ".";
-      Kokkos::abort(ss.str().c_str());
+      std::string str("Kokkos ERROR: attempting to call ");
+      str += std::string(func_name) + "() " +
+             "**before** Kokkos::initialize() was called." + " Concerns " +
+             meta_data + " with exec policy " + fetch_policy_name(exec_policy) +
+             ".";
+      Kokkos::abort(str.c_str());
     }
   }
 };
@@ -74,12 +74,12 @@ struct CheckUsage<UsageRequires::isNotFinalized> {
   static void check(const char* func_name, const T& exec_policy,
                     const char* meta_data = "no-label") {
     if (Kokkos::is_finalized()) {
-      std::stringstream ss;
-      ss << "Kokkos ERROR: attempting to call " << func_name << "() "
-         << "**after** Kokkos::finalize() was called."
-         << " Concerns " << meta_data << " with exec policy "
-         << fetch_policy_name(exec_policy) << ".";
-      Kokkos::abort(ss.str().c_str());
+      std::string str("Kokkos ERROR: attempting to call ");
+      str += std::string(func_name) + "() " +
+             "**after** Kokkos::finalize() was called." + " Concerns " +
+             meta_data + " with exec policy " + fetch_policy_name(exec_policy) +
+             ".";
+      Kokkos::abort(str.c_str());
     }
   }
 };
@@ -102,29 +102,29 @@ struct CheckUsage<UsageRequires::insideExecEnv> {
 inline void check_execution_space_constructor_precondition(
     char const* name) noexcept {
   if (Kokkos::is_finalized()) {
-    std::stringstream err;
-    err << "Kokkos ERROR: " << name
-        << " execution space is being constructed"
+    std::string err("Kokkos ERROR: ");
+    err += std::string(name) +
+           " execution space is being constructed"
            " after finalize() has been called";
-    Kokkos::abort(err.str().c_str());
+    Kokkos::abort(err.c_str());
   }
   if (!Kokkos::is_initialized()) {
-    std::stringstream err;
-    err << "Kokkos ERROR: " << name
-        << " execution space is being constructed"
+    std::string err("Kokkos ERROR: ");
+    err += std::string(name) +
+           " execution space is being constructed"
            " before initialize() has been called";
-    Kokkos::abort(err.str().c_str());
+    Kokkos::abort(err.c_str());
   }
 }
 
 inline void check_execution_space_destructor_precondition(
     char const* name) noexcept {
   if (Kokkos::is_finalized()) {
-    std::stringstream err;
-    err << "Kokkos ERROR: " << name
-        << " execution space is being destructed"
+    std::string err("Kokkos ERROR: ");
+    err += std::string(name) +
+           " execution space is being destructed"
            " after finalize() has been called";
-    Kokkos::abort(err.str().c_str());
+    Kokkos::abort(err.c_str());
   }
 }
 // NOLINTEND(bugprone-exception-escape)

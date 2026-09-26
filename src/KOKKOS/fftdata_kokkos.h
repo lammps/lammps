@@ -115,7 +115,7 @@
 
 #if defined(FFT_KOKKOS_MKL_GPU)
   #include "CL/sycl.hpp"
-  #include "oneapi/mkl/dfti.hpp"
+  #include "oneapi/mkl/dft.hpp"
   #include "mkl.h"
   #if defined(FFT_SINGLE)
     typedef std::complex<float> FFT_KOKKOS_DATA;
@@ -125,7 +125,7 @@
     #define FFT_KOKKOS_MKL_PREC DFTI_DOUBLE
   #endif
 #elif defined(FFT_KOKKOS_MKL)
-  #include "mkl_dfti.h"
+  #include "mkl_dft.h"
   #if defined(FFT_SINGLE)
     typedef float _Complex FFT_KOKKOS_DATA;
     #define FFT_KOKKOS_MKL_PREC DFTI_SINGLE
@@ -263,11 +263,5 @@ typedef tdual_int_64::t_host_um t_int_64_um;
 
 typedef struct FFTArrayTypes<LMPDeviceType> FFT_DAT;
 typedef struct FFTArrayTypes<LMPHostType> FFT_HAT;
-
-
-#if defined(FFT_KOKKOS_KISS)
-#include "kissfft_kokkos.h" // uses t_FFT_DATA_1d, needs to come last
-#endif
-
 
 #endif

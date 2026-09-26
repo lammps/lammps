@@ -26,6 +26,50 @@ namespace LAMMPS_NS {
 
 template<class DeviceType>
 struct remap_plan_3d_kokkos {
+  remap_plan_3d_kokkos() :
+    pack(nullptr), unpack(nullptr), send_offset(nullptr), send_size(nullptr),
+    send_proc(nullptr), send_bufloc(nullptr), packplan(nullptr), recv_offset(nullptr),
+    recv_size(nullptr), recv_proc(nullptr), recv_bufloc(nullptr), isend_reqs(nullptr),
+    request(nullptr), unpackplan(nullptr), nrecv(0), nsend(0), self(0), memory(0),
+    comm(MPI_COMM_NULL), usecollective(0), usenonblocking(0), usegpu_aware(0),
+    commringlen(0), commringlist(nullptr), sendcnts(nullptr), rcvcnts(nullptr),
+    sdispls(nullptr), rdispls(nullptr), selfcommringloc(-1), selfnsendloc(-1),
+    selfnrecvloc(-1) {}
+
+  // frees every buffer managed with malloc()/free(), so that "delete plan" is
+  // complete at any point during remap_3d_create_plan_kokkos(), however far it
+  // got.  The Kokkos views clean up after themselves; the communicator does
+  // not belong to the plan until create_plan() succeeds and is released by
+  // remap_3d_destroy_plan_kokkos().
+
+  ~remap_plan_3d_kokkos()
+  {
+#define SAFE_FREE(ptr) if (ptr) free(ptr)
+    SAFE_FREE(send_offset);
+    SAFE_FREE(send_size);
+    SAFE_FREE(send_proc);
+    SAFE_FREE(send_bufloc);
+    SAFE_FREE(packplan);
+    SAFE_FREE(recv_offset);
+    SAFE_FREE(recv_size);
+    SAFE_FREE(recv_proc);
+    SAFE_FREE(recv_bufloc);
+    SAFE_FREE(isend_reqs);
+    SAFE_FREE(request);
+    SAFE_FREE(unpackplan);
+    SAFE_FREE(commringlist);
+    SAFE_FREE(sendcnts);
+    SAFE_FREE(rcvcnts);
+    SAFE_FREE(sdispls);
+    SAFE_FREE(rdispls);
+#undef SAFE_FREE
+  }
+
+  remap_plan_3d_kokkos(const remap_plan_3d_kokkos &) = delete;
+  remap_plan_3d_kokkos(remap_plan_3d_kokkos &&) = delete;
+  remap_plan_3d_kokkos &operator=(const remap_plan_3d_kokkos &) = delete;
+  remap_plan_3d_kokkos &operator=(remap_plan_3d_kokkos &&) = delete;
+
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
   typedef FFTArrayTypes<DeviceType> FFT_AT;
@@ -46,7 +90,6 @@ struct remap_plan_3d_kokkos {
   int *recv_size;                   // size of each recv message
   int *recv_proc;                   // proc to recv each message from
   int *recv_bufloc;                 // offset in scratch buf for each recv
-  int *nrecvmap;                    // maps receive index to rank index
   MPI_Request *isend_reqs;          // MPI request for each posted isend
   MPI_Request *request;             // MPI request for each posted recv
   struct pack_plan_3d *unpackplan;  // unpack plan for each recv message

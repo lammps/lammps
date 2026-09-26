@@ -1,0 +1,26 @@
+# Performance benchmark: legacy PERI package (peri/pmb).
+# Periodic 16^3 simple-cubic block (4096 nodes, horizon = 3 lattice spacings ->
+# 122 bonds/node), run from the reference configuration so the per-step force
+# cost is measured without dynamics/fracture.  Vary the model by editing the
+# pair_style/pair_coeff lines (see README.md).
+
+units           si
+boundary        p p p
+atom_style      peri
+atom_modify     map array
+neighbor        0.0005 bin
+lattice         sc 0.0005
+region          box block 0 16 0 16 0 16 units lattice
+create_box      1 box
+create_atoms    1 box
+
+pair_style      peri/pmb
+pair_coeff      * * 1.6863e22 0.0015001 0.5 0.25
+set             group all density 2200
+set             group all volume 1.25e-10
+
+velocity        all set 0.0 0.0 0.0 units box
+fix             1 all nve
+timestep        1.0e-7
+thermo          100
+run             200

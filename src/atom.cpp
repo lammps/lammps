@@ -14,7 +14,9 @@
 
 #include "atom.h"
 #include "atom_vec.h"
-#include "style_atom.h"  // IWYU pragma: keep
+#include "atom_vec_body.h"
+#include "atom_vec_ellipsoid.h"
+#include "atom_vec_hybrid.h"
 
 #include "comm.h"
 #include "compute.h"
@@ -53,12 +55,15 @@ static constexpr double EPSILON = 1.0e-6;
 static constexpr double EPS_ZCOORD = 1.0e-12;
 
 /* ----------------------------------------------------------------------
-   one instance per AtomVec style in style_atom.h
+   process-global registry of atom (AtomVec) style factory functions.  Shared by
+   all LAMMPS instances and persistent across the "clear" command.  Built-in
+   styles are registered once by the generated register_atom_styles().
 ------------------------------------------------------------------------- */
 
-template <typename T> static AtomVec *avec_creator(LAMMPS *_lmp)
+CreatorRegistry<Atom::AtomVecCreator> &Atom::avec_styles()
 {
-  return new T(_lmp);
+  static CreatorRegistry<Atom::AtomVecCreator> registry;
+  return registry;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -90,7 +95,7 @@ are updated by the AtomVec class as needed.
  *
  * \param  _lmp  pointer to the base LAMMPS class */
 
-Atom::Atom(LAMMPS *_lmp) : Pointers(_lmp), atom_style(nullptr), avec(nullptr), avec_map(nullptr)
+Atom::Atom(LAMMPS *_lmp) : Pointers(_lmp), atom_style(nullptr), avec(nullptr)
 {
   natoms = 0;
   nlocal = nghost = nmax = 0;
@@ -286,14 +291,6 @@ Atom::Atom(LAMMPS *_lmp) : Pointers(_lmp), atom_style(nullptr), avec(nullptr), a
   unique_tags = nullptr;
   reset_image_flag[0] = reset_image_flag[1] = reset_image_flag[2] = false;
 
-  avec_map = new AtomVecCreatorMap();
-
-#define ATOM_CLASS
-#define AtomStyle(key,Class) \
-  (*avec_map)[#key] = &avec_creator<Class>;
-#include "style_atom.h"  // IWYU pragma: keep
-#undef AtomStyle
-#undef ATOM_CLASS
 }
 
 /* ---------------------------------------------------------------------- */
@@ -302,7 +299,6 @@ Atom::~Atom()
 {
   delete[] atom_style;
   delete avec;
-  delete avec_map;
 
   delete[] firstgroupname;
   memory->destroy(binhead);
@@ -325,8 +321,7 @@ Atom::~Atom()
   }
   for (int i = 0; i < ndvector; i++) {
     delete[] dvname[i];
-    if (dvector) // (needed for Kokkos)
-      memory->destroy(dvector[i]);
+    memory->destroy(dvector[i]);
   }
   for (int i = 0; i < niarray; i++) {
     delete[] ianame[i];
@@ -681,7 +676,7 @@ void Atom::set_atomflag_defaults()
 void Atom::create_avec(const std::string &style, int narg, char **arg, int trysuffix)
 {
   delete[] atom_style;
-  if (avec) delete avec;
+  delete avec;
   atom_style = nullptr;
   avec = nullptr;
 
@@ -731,27 +726,20 @@ AtomVec *Atom::new_avec(const std::string &style, int trysuffix, int &sflag)
     if (lmp->non_pair_suffix()) {
       sflag = 1 + 2*lmp->pair_only_flag;
       std::string estyle = style + "/" + lmp->non_pair_suffix();
-      if (avec_map->find(estyle) != avec_map->end()) {
-        AtomVecCreator &avec_creator = (*avec_map)[estyle];
-        return avec_creator(lmp);
-      }
+      AtomVecCreator avec_creator = avec_styles().find(estyle);
+      if (avec_creator) return avec_creator(lmp);
     }
 
     if (lmp->suffix2) {
       sflag = 2;
       std::string estyle = style + "/" + lmp->suffix2;
-      if (avec_map->find(estyle) != avec_map->end()) {
-        AtomVecCreator &avec_creator = (*avec_map)[estyle];
-        return avec_creator(lmp);
-      }
+      AtomVecCreator avec_creator = avec_styles().find(estyle);
+      if (avec_creator) return avec_creator(lmp);
     }
   }
 
   sflag = 0;
-  if (avec_map->find(style) != avec_map->end()) {
-    AtomVecCreator &avec_creator = (*avec_map)[style];
-    return avec_creator(lmp);
-  }
+  if (AtomVecCreator avec_creator = avec_styles().find(style)) return avec_creator(lmp);
 
   error->all(FLERR,utils::check_packages_for_style("atom",style,lmp));
   return nullptr;
@@ -1317,7 +1305,7 @@ void Atom::data_vels(int n, char *buf, tagint id_offset)
     if (!next) error->all(FLERR, "Missing data in Velocities section of data file");
     *next = '\0';
     auto values = Tokenizer(utils::trim_comment(buf)).as_vector();
-    if (values.size() == 0) {
+    if (values.empty()) {
       // skip over empty or comment lines
     } else if ((int)values.size() != avec->size_data_vel) {
       error->all(FLERR, "Incorrect format in Velocities section of data file: {}{}",
@@ -1810,7 +1798,7 @@ void Atom::data_bonus(int n, char *buf, AtomVec *avec_bonus, tagint id_offset)
     if (!next) error->all(FLERR, "Missing data in Bonus section of data file");
     *next = '\0';
     auto values = Tokenizer(utils::trim_comment(buf)).as_vector();
-    if (values.size() == 0) {
+    if (values.empty()) {
       // skip over empty or comment lines
     } else if ((int)values.size() != avec_bonus->size_data_bonus) {
       error->all(FLERR, "Incorrect format in Bonus section of data file: {}{}",
@@ -1853,7 +1841,7 @@ void Atom::data_bodies(int n, char *buf, AtomVec *avec_body, tagint id_offset)
     *next = '\0';
 
     auto values = Tokenizer(utils::trim_comment(buf)).as_vector();
-    if (values.size()) {
+    if (!values.empty()) {
       tagint tagdata = utils::tnumeric(FLERR,values[0],false,lmp) + id_offset;
       int ninteger = utils::inumeric(FLERR,values[1],false,lmp);
       int ndouble = utils::inumeric(FLERR,values[2],false,lmp);

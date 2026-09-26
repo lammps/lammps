@@ -42,6 +42,7 @@ FixWallPiston::FixWallPiston(LAMMPS *lmp, int narg, char **arg) :
   if (narg < 4) utils::missing_cmd_args(FLERR,"fix wall/piston", error);
 
   tempflag = 0;
+  tseed = 0;
   scaleflag = 1;
   roughflag = 0;
   roughdist = 0.0;
@@ -156,6 +157,8 @@ FixWallPiston::FixWallPiston(LAMMPS *lmp, int narg, char **arg) :
 
 FixWallPiston::~FixWallPiston()
 {
+  if (copymode) return;
+
   delete[] gfactor2;
   delete[] gfactor1;
   delete randomt;
@@ -183,7 +186,7 @@ void FixWallPiston::initial_integrate(int /*vflag*/)
 
 void FixWallPiston::post_integrate()
 {
-  double zlo;
+  double zlo = z0;
 
   double **x = atom->x;
   double **v = atom->v;

@@ -62,6 +62,9 @@ class AtomKokkos : public Atom {
   DAT::ttransform_tagint_2d k_improper_atom1, k_improper_atom2, k_improper_atom3, k_improper_atom4;
 
   DAT::ttransform_kkfloat_2d k_dvector;
+  DAT::tdual_int_2d_lr k_ivector;         // width-1: single contiguous 2D view
+  tdual_struct_tdual_int_2d_1d k_iarray;  // ragged cols: view-of-views
+  tdual_struct_tdual_double_2d_1d k_darray;
 
   // SPIN package
 
@@ -161,9 +164,45 @@ class AtomKokkos : public Atom {
     return local;
   }
 
+  // find the periodic image of atom j closest to atom i by walking the
+  // sametag chain: device-callable analog of Domain::closest_image()
+  template<class XViewType, class SametagViewType>
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  static int closest_image_kokkos(const int i, int j, const XViewType &x,
+                                  const SametagViewType &sametag)
+  {
+    if (j < 0) return j;
+    const KK_FLOAT xi0 = x(i,0), xi1 = x(i,1), xi2 = x(i,2);
+    int closest = j;
+    KK_FLOAT delx = xi0 - x(j,0), dely = xi1 - x(j,1), delz = xi2 - x(j,2);
+    KK_FLOAT rsqmin = delx*delx + dely*dely + delz*delz;
+    while (sametag[j] >= 0) {
+      j = sametag[j];
+      delx = xi0 - x(j,0); dely = xi1 - x(j,1); delz = xi2 - x(j,2);
+      const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
+      if (rsq < rsqmin) { rsqmin = rsq; closest = j; }
+    }
+    return closest;
+  }
+
   void init() override;
   void update_property_atom();
   void allocate_type_arrays() override;
+
+  void sync_host_arrays(uint64_t mask) override { sync(Host, mask); }
+  void modified_host_arrays(uint64_t mask) override { modified(Host, mask); }
+
+  // the per-type masses are written through the plain host array, which leaves
+  // the device copy behind with nothing to say so.  Claim the write here, at
+  // the one place all four spellings of the mass command go through, rather
+  // than in each of the styles that read the masses on the device.
+
+  void set_mass(const char *, int, const char *, int, int, int *) override;
+  void set_mass(const char *, int, int, double) override;
+  void set_mass(const char *, int, int, char **) override;
+  void set_mass(double *) override;
+  void *extract(const char *) override;
   void sync(const ExecutionSpace space, uint64_t mask);
   void modified(const ExecutionSpace space, uint64_t mask);
   void sync_pinned(const ExecutionSpace space, uint64_t mask, int async_flag = 0);

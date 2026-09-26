@@ -187,7 +187,7 @@ protected:
     // pair_coeff helpers for each model: weak s00 (s00_12) on the 1-2 interface
     std::function<void(double)> pmb(double s00_bulk, double s00_12, double alpha)
     {
-        return [=](double h) {
+        return [this,s00_bulk,alpha,s00_12](double h) {
             command("pair_style peri/pmb");
             command(fmt::format("pair_coeff * * 1.0 {} {} {}", h, s00_bulk, alpha));
             command(fmt::format("pair_coeff 1 2 1.0 {} {} {}", h, s00_12, alpha));
@@ -195,7 +195,7 @@ protected:
     }
     std::function<void(double)> lps(double s00_bulk, double s00_12, double alpha)
     {
-        return [=](double h) {
+        return [this,s00_bulk,alpha,s00_12](double h) {
             command("pair_style peri/lps");
             command(fmt::format("pair_coeff * * 1.0 1.0 {} {} {}", h, s00_bulk, alpha));
             command(fmt::format("pair_coeff 1 2 1.0 1.0 {} {} {}", h, s00_12, alpha));

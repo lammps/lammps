@@ -164,6 +164,18 @@ trade-off for your model.  The OM distance and the LJ and Coulombic
 cutoffs are set in the :doc:`pair_style lj/cut/tip4p/long
 <pair_lj_cut_tip4p>` command.
 
+In addition, each TIP4P water molecule's O atom and its two H atoms must
+be present within the ghost-atom communication cutoff, so that the
+position of the massless M-site charge can be reconstructed.  This is
+normally ensured automatically by the bond style (which sets a
+bond-length-based communication cutoff) together with the
+:doc:`neighbor <neighbor>` skin distance.  If you use a no-op bond style
+(e.g. :doc:`bond_style zero <bond_zero>`) or unusually short cutoffs,
+LAMMPS will warn that the communication cutoff is shorter than the
+bond-length-based estimate and the run may abort with an "Out of range
+atoms" error; in that case enlarge the ghost cutoff with
+:doc:`comm_modify cutoff <comm_modify>`.
+
 Below is the code for a LAMMPS input file using the implicit method and
 the :ref:`TIP3P molecule file <tip3p_molecule>`.  Because the TIP4P
 charges are different from TIP3P they need to be reset (or the molecule

@@ -28,7 +28,10 @@ constexpr int FULL = 1;
 constexpr int HALFTHREAD = 2;
 constexpr int HALF = 4;
 
-#if defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP) || defined(KOKKOS_ENABLE_SYCL) || defined(KOKKOS_ENABLE_OPENMPTARGET)
+// LMP_KOKKOS_GPU may also be set as a global compile definition by the build
+// system (see cmake/Modules/Packages/KOKKOS.cmake) so that non-KOKKOS sources,
+// which do not include this header, can detect a GPU-enabled Kokkos build.
+#if !defined(LMP_KOKKOS_GPU) && (defined(KOKKOS_ENABLE_CUDA) || defined(KOKKOS_ENABLE_HIP) || defined(KOKKOS_ENABLE_SYCL) || defined(KOKKOS_ENABLE_OPENMPTARGET))
 #define LMP_KOKKOS_GPU
 #endif
 
@@ -64,7 +67,7 @@ namespace Kokkos {
     float x,y,z;
 // NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
-    lmp_float3():x(0.0f),y(0.0f),z(0.0f) {}
+    lmp_float3():x(0.0F),y(0.0F),z(0.0F) {}
 
 // NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
@@ -187,7 +190,7 @@ typedef LMPDeviceType::array_layout LMPDeviceLayout;
 template<class DeviceType>
 class KKDevice {
  public:
-#if ((defined(KOKKOS_ENABLE_CUDA) && defined(KOKKOS_ENABLE_CUDA_UVM)) || \
+#if ((defined(KOKKOS_ENABLE_CUDA) && defined(KOKKOS_ENABLE_IMPL_CUDA_UNIFIED_MEMORY)) || \
      (defined(KOKKOS_ENABLE_HIP) && defined(KOKKOS_ARCH_AMD_GFX942_APU)))
   typedef Kokkos::Device<DeviceType,LMPDeviceType::memory_space> value;
 #else
@@ -563,9 +566,9 @@ struct BinOp3DLAMMPS {
   template <class ViewType>
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION int bin(ViewType& keys, const int& i) const {
-    int ix = static_cast<int> ((keys(i, 0) - min_[0]) * mul_[0]);
-    int iy = static_cast<int> ((keys(i, 1) - min_[1]) * mul_[1]);
-    int iz = static_cast<int> ((keys(i, 2) - min_[2]) * mul_[2]);
+    int ix = static_cast<int> ((static_cast<double>(keys(i, 0)) - min_[0]) * mul_[0]);
+    int iy = static_cast<int> ((static_cast<double>(keys(i, 1)) - min_[1]) * mul_[1]);
+    int iz = static_cast<int> ((static_cast<double>(keys(i, 2)) - min_[2]) * mul_[2]);
     ix = MAX(ix,0);
     iy = MAX(iy,0);
     iz = MAX(iz,0);
@@ -672,6 +675,15 @@ struct dual_hash_type {
       Kokkos::deep_copy(h_view,d_view);
       modified_device = false;
     }
+  }
+
+  // release both sides without copying.  needed where the whole hash is about to be
+  // overwritten, so neither side's contents matter and a pending flag on the other
+  // side would otherwise make the next modify_*() abort.  mirrors DualView.
+  void clear_sync_state()
+  {
+    modified_device = false;
+    modified_host = false;
   }
 
   template<class DeviceType>
@@ -1131,7 +1143,12 @@ struct TransformView {
 
   bool need_sync_device()
   {
-    return (k_view.need_sync_device() || modified_legacy_device);
+    // Under SINGLE_DEVICE the DualView edge is inert and modify_host() records
+    // legacy->device staleness on the HostKK<->Host edge (modified_legacy_hostkk),
+    // so it must be consulted here to stay consistent with need_sync_host() and
+    // with sync_device()'s own SINGLE_DEVICE delegation to sync_hostkk().
+    return (k_view.need_sync_device() || modified_legacy_device ||
+            (SINGLE_DEVICE && modified_legacy_hostkk));
   }
 
   bool need_sync_host()
@@ -1183,9 +1200,6 @@ typedef typename tdual_##SUFFIX::t_host_um t_##SUFFIX##_um; \
 typedef typename tdual_##SUFFIX::t_host_const_um t_##SUFFIX##_const_um; \
 typedef typename tdual_##SUFFIX::t_host_const_randomread t_##SUFFIX##_randomread;
 
-using LAMMPS_NS::bigint;
-using LAMMPS_NS::tagint;
-using LAMMPS_NS::imageint;
 
 template <class DeviceType>
 struct ArrayTypes;
@@ -1196,18 +1210,18 @@ struct ArrayTypes<LMPDeviceType> {
 // scalar types
 
 KOKKOS_DEVICE_DUALVIEW(int, Kokkos::LayoutRight, int_scalar)
-KOKKOS_DEVICE_DUALVIEW(bigint, Kokkos::LayoutRight, bigint_scalar)
-KOKKOS_DEVICE_DUALVIEW(tagint, Kokkos::LayoutRight, tagint_scalar)
-KOKKOS_DEVICE_DUALVIEW(imageint, Kokkos::LayoutRight, imageint_scalar)
+KOKKOS_DEVICE_DUALVIEW(LAMMPS_NS::bigint, Kokkos::LayoutRight, bigint_scalar)
+KOKKOS_DEVICE_DUALVIEW(LAMMPS_NS::tagint, Kokkos::LayoutRight, tagint_scalar)
+KOKKOS_DEVICE_DUALVIEW(LAMMPS_NS::imageint, Kokkos::LayoutRight, imageint_scalar)
 KOKKOS_DEVICE_DUALVIEW(double, Kokkos::LayoutRight, double_scalar)
 KOKKOS_DEVICE_DUALVIEW(KK_FLOAT, Kokkos::LayoutRight, kkfloat_scalar)
 
 // 1D view types
 
 KOKKOS_DEVICE_DUALVIEW(int*, Kokkos::LayoutRight, int_1d)
-KOKKOS_DEVICE_DUALVIEW(bigint*, Kokkos::LayoutRight, bigint_1d)
-KOKKOS_DEVICE_DUALVIEW(tagint*, Kokkos::LayoutRight, tagint_1d)
-KOKKOS_DEVICE_DUALVIEW(imageint*, Kokkos::LayoutRight, imageint_1d)
+KOKKOS_DEVICE_DUALVIEW(LAMMPS_NS::bigint*, Kokkos::LayoutRight, bigint_1d)
+KOKKOS_DEVICE_DUALVIEW(LAMMPS_NS::tagint*, Kokkos::LayoutRight, tagint_1d)
+KOKKOS_DEVICE_DUALVIEW(LAMMPS_NS::imageint*, Kokkos::LayoutRight, imageint_1d)
 KOKKOS_DEVICE_DUALVIEW(double*, Kokkos::LayoutRight, double_1d)
 KOKKOS_DEVICE_DUALVIEW(KK_FLOAT*, Kokkos::LayoutRight, kkfloat_1d)
 KOKKOS_DEVICE_DUALVIEW(KK_ACC_FLOAT*, Kokkos::LayoutRight, kkacc_1d)
@@ -1220,7 +1234,7 @@ KOKKOS_DEVICE_DUALVIEW(int**, LMPDeviceLayout, int_2d)
 KOKKOS_DEVICE_DUALVIEW(int**, Kokkos::LayoutRight, int_2d_lr)
 KOKKOS_DEVICE_DUALVIEW(int**, LMPDeviceType::array_layout, int_2d_dl)
 KOKKOS_DEVICE_DUALVIEW(int*[3], LMPDeviceLayout, int_1d_3)
-KOKKOS_DEVICE_DUALVIEW(tagint**, LMPDeviceLayout, tagint_2d)
+KOKKOS_DEVICE_DUALVIEW(LAMMPS_NS::tagint**, LMPDeviceLayout, tagint_2d)
 KOKKOS_DEVICE_DUALVIEW(double**, Kokkos::LayoutRight, double_2d_lr)
 KOKKOS_DEVICE_DUALVIEW(double**, LMPDeviceLayout, double_2d)
 KOKKOS_DEVICE_DUALVIEW(double*[2], Kokkos::LayoutRight, double_1d_2_lr)
@@ -1294,18 +1308,18 @@ struct ArrayTypes<LMPHostType> {
 // scalar types
 
 KOKKOS_HOST_DUALVIEW(int, Kokkos::LayoutRight, int_scalar)
-KOKKOS_HOST_DUALVIEW(bigint, Kokkos::LayoutRight, bigint_scalar)
-KOKKOS_HOST_DUALVIEW(tagint, Kokkos::LayoutRight, tagint_scalar)
-KOKKOS_HOST_DUALVIEW(imageint, Kokkos::LayoutRight, imageint_scalar)
+KOKKOS_HOST_DUALVIEW(LAMMPS_NS::bigint, Kokkos::LayoutRight, bigint_scalar)
+KOKKOS_HOST_DUALVIEW(LAMMPS_NS::tagint, Kokkos::LayoutRight, tagint_scalar)
+KOKKOS_HOST_DUALVIEW(LAMMPS_NS::imageint, Kokkos::LayoutRight, imageint_scalar)
 KOKKOS_HOST_DUALVIEW(double, Kokkos::LayoutRight, double_scalar)
 KOKKOS_HOST_DUALVIEW(KK_FLOAT, Kokkos::LayoutRight, kkfloat_scalar)
 
 // 1D view types
 
 KOKKOS_HOST_DUALVIEW(int*, Kokkos::LayoutRight, int_1d)
-KOKKOS_HOST_DUALVIEW(bigint*, Kokkos::LayoutRight, bigint_1d)
-KOKKOS_HOST_DUALVIEW(tagint*, Kokkos::LayoutRight, tagint_1d)
-KOKKOS_HOST_DUALVIEW(imageint*, Kokkos::LayoutRight, imageint_1d)
+KOKKOS_HOST_DUALVIEW(LAMMPS_NS::bigint*, Kokkos::LayoutRight, bigint_1d)
+KOKKOS_HOST_DUALVIEW(LAMMPS_NS::tagint*, Kokkos::LayoutRight, tagint_1d)
+KOKKOS_HOST_DUALVIEW(LAMMPS_NS::imageint*, Kokkos::LayoutRight, imageint_1d)
 KOKKOS_HOST_DUALVIEW(double*, Kokkos::LayoutRight, double_1d)
 KOKKOS_HOST_DUALVIEW(KK_FLOAT*, Kokkos::LayoutRight, kkfloat_1d)
 KOKKOS_HOST_DUALVIEW(KK_ACC_FLOAT*, Kokkos::LayoutRight, kkacc_1d)
@@ -1316,7 +1330,7 @@ KOKKOS_HOST_DUALVIEW(int**, LMPDeviceLayout, int_2d)
 KOKKOS_HOST_DUALVIEW(int**, Kokkos::LayoutRight, int_2d_lr)
 KOKKOS_HOST_DUALVIEW(int**, LMPDeviceType::array_layout, int_2d_dl)
 KOKKOS_HOST_DUALVIEW(int*[3], LMPDeviceLayout, int_1d_3)
-KOKKOS_HOST_DUALVIEW(tagint**, LMPDeviceLayout, tagint_2d)
+KOKKOS_HOST_DUALVIEW(LAMMPS_NS::tagint**, LMPDeviceLayout, tagint_2d)
 KOKKOS_HOST_DUALVIEW(double**, Kokkos::LayoutRight, double_2d_lr)
 KOKKOS_HOST_DUALVIEW(double**, LMPDeviceLayout, double_2d)
 KOKKOS_HOST_DUALVIEW(double*[2], Kokkos::LayoutRight, double_1d_2_lr)
@@ -1368,6 +1382,29 @@ typedef tdual_neighbors_2d_lr::t_host_const_randomread t_neighbors_2d_lr_randomr
 //default LAMMPS Types
 typedef struct ArrayTypes<LMPDeviceType> DAT;
 typedef struct ArrayTypes<LMPHostType> HAT;
+
+// View-of-views pattern (used by fix property/atom for the per-atom custom
+// iarray/darray arrays, which are "ragged" -- each property has its own column
+// count, so they cannot be packed into a single rectangular view).  Each struct
+// wraps one inner DualView, and an outer DualView<struct*, ...> holds a
+// dynamically-sized list of them that is accessible on the device.  The custom
+// ivector/dvector are width-1 and instead use a single contiguous 2D view.
+
+namespace LAMMPS_NS {
+
+  struct struct_tdual_int_2d {
+    DAT::tdual_int_2d_lr k_view;
+  };
+  typedef Kokkos::DualView<struct_tdual_int_2d*, Kokkos::LayoutRight, LMPDeviceType>
+    tdual_struct_tdual_int_2d_1d;
+
+  struct struct_tdual_double_2d {
+    DAT::tdual_double_2d_lr k_view;
+  };
+  typedef Kokkos::DualView<struct_tdual_double_2d*, Kokkos::LayoutRight, LMPDeviceType>
+    tdual_struct_tdual_double_2d_1d;
+
+}
 
 
 template<class DeviceType, class BufferView, class DualView>
@@ -1496,7 +1533,7 @@ struct alignas(2*sizeof(real_type_)) SNAComplex
 
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
-  const real_type real_part_product(const complex &cm2) { return re * cm2.re - im * cm2.im; }
+  const real_type real_part_product(const complex &cm2) const { return re * cm2.re - im * cm2.im; }
 
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION

@@ -18,7 +18,6 @@ bond_style      mm3
 angle_style     hybrid cross mm3
 dihedral_style  fourier
 improper_style  distharm
-box tilt large
 
 read_data       lammps.data       # Data file location
 kspace_style    pppm 0.0000001      # Ewald accuracy

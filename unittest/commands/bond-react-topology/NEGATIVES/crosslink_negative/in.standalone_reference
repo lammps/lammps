@@ -1,0 +1,47 @@
+# Counterexample for fix bond/react's "assigned_count == nfirst_neighs" GUESSFAIL
+# check in make_a_guess() (fix_bond_react.cpp, ~line 1586).
+#
+# System: one single coarse-grained homopolymer chain (13 beads, all same type).
+# Beads 5 and 9 sit 1.0 apart in SPACE but only 4 bonds apart on the BACKBONE.
+# The reaction template is two disconnected 7-atom fragments (bonding atom = the
+# middle, 4th, atom of each), meant to model an intermolecular crosslink between
+# two DIFFERENT chains. Because 5 and 9 are so close along the same backbone,
+# the two fragments' outward (radius-3) neighbor searches physically overlap on
+# beads 6, 7, 8 -- a pseudo-intrachain match that is topologically impossible to
+# fill (the same real atom would have to be two different template atoms).
+#
+# Expected WITH the check (as shipped): a clean reject. No reaction happens,
+# no error. Thermo will show 0 reactions.
+#
+# Expected WITHOUT the check (comment out the line noted above and rebuild):
+# a template slot is left permanently unfilled, the same pioneer is reselected
+# every pass, and the run dies with:
+#   "Fix bond/react: Excessive iteration of superimpose algorithm."
+
+units       lj
+dimension   3
+boundary    p p p
+atom_style  molecular
+
+read_data   data.chain extra/special/per/atom 30 extra/bond/per/atom 2
+
+pair_style  zero 2.0
+pair_coeff  * *
+
+bond_style  zero
+bond_coeff  *
+
+special_bonds lj 0.0 0.0 0.0
+
+velocity    all set 0.0 0.0 0.0
+
+molecule    pre_mol  pre.mol
+molecule    post_mol post.mol
+
+fix         rxn all bond/react react wefail1_test all 1 0.0 1.5 pre_mol post_mol map.txt
+
+thermo_style custom step f_rxn[1]
+thermo      1
+
+timestep    1.0
+run         100

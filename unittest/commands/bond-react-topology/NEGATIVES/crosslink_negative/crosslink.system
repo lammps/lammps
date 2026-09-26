@@ -1,0 +1,46 @@
+# Custom-system setup for the "assigned_count == nfirst_neighs" GUESSFAIL
+# counterexample (see fix_bond_react.cpp's make_a_guess(), ~line 1586).
+#
+# Unlike every other reaction in this library, the system tested here is
+# NOT a verbatim copy of the pre-reaction template (crosslink.pre): it's
+# one single 13-bead coarse-grained homopolymer chain, read from
+# crosslink.data. Beads 5 and 9 sit 1.0 apart in SPACE but only 4 bonds
+# apart on the chain's own BACKBONE. crosslink.pre's template describes
+# an intermolecular crosslink between two DIFFERENT, disconnected 7-atom
+# fragments (bonding atom = the middle, 4th, atom of each) -- but because
+# beads 5 and 9 are so close along the very same backbone, trying to
+# match each half of that template against a different side of the chain
+# makes the two fragments' outward (radius-3) neighbor searches
+# physically overlap on beads 6, 7, 8: a pseudo-intrachain match that's
+# topologically impossible to fill (the same real atom would have to
+# simultaneously be two different template atoms). This can only be
+# tested against a real pre-existing system shaped like that -- inserting
+# crosslink.pre as-is (like every ordinary reaction in this library does)
+# would just trivially match itself, with no such ambiguity at all.
+#
+# Expected outcome (this is what make_a_guess()'s assigned_count check
+# defends): a clean reject, zero reactions, no error. See
+# bond-react-topology/README.md, "Custom systems for counterexamples".
+#
+# ${exampledir} is set by the test harness itself (build_system(), in
+# ../test_fix_bond_react_topology.cpp) to this example's own folder, so
+# crosslink.data can be found regardless of the test binary's actual
+# working directory.
+
+units          lj
+dimension      3
+boundary       p p p
+atom_style     molecular
+
+read_data      ${exampledir}/crosslink.data &
+               extra/special/per/atom 30 extra/bond/per/atom 2
+
+pair_style     zero 2.0
+pair_coeff     * *
+
+bond_style     zero
+bond_coeff     *
+
+special_bonds  lj 0.0 0.0 0.0
+
+velocity       all set 0.0 0.0 0.0

@@ -206,3 +206,16 @@ add_executable(test_input_validation test_input_validation.cpp)
 target_link_libraries(test_input_validation PRIVATE lammps GTest::GMock)
 add_test(NAME InputValidation COMMAND test_input_validation)
 add_kokkos_test(NAME InputValidation COMMAND test_input_validation)
+
+if(PKG_REACTION)
+  add_executable(test_fix_bond_react_topology test_fix_bond_react_topology.cpp)
+  target_link_libraries(test_fix_bond_react_topology PRIVATE lammps GTest::GMock)
+  target_compile_definitions(test_fix_bond_react_topology PRIVATE
+      -DBOND_REACT_TEST_DIR="${CMAKE_CURRENT_SOURCE_DIR}/bond-react-topology")
+
+  add_test(NAME FixBondReactTopology COMMAND test_fix_bond_react_topology)
+  add_mpi_test(NAME FixBondReactTopologyMPI3 NUM_PROCS 3
+               COMMAND $<TARGET_FILE:test_fix_bond_react_topology>)
+  add_mpi_test(NAME FixBondReactTopologyMPI4 NUM_PROCS 4
+               COMMAND $<TARGET_FILE:test_fix_bond_react_topology>)
+endif()

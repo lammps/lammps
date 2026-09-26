@@ -60,6 +60,9 @@ class PairBodyRoundedPolyhedron : public Pair {
   struct Scratch {
     std::vector<Contact> contacts;    // contacts between the two bodies
     std::vector<int> vertex_done;     // flags for the vertices already interacted with
+    std::vector<double> reach;        // extent of the vertices towards the other body
+    int ibody, jbody;                 // the two bodies of the pair
+    double reach_min_i, reach_min_j;  // minimum reach of an interacting feature
   };
 
  protected:
@@ -130,6 +133,9 @@ class PairBodyRoundedPolyhedron : public Pair {
                            double **f, double **torque, double **angmom, double **fnc,
                            Scratch &s, double &evdwl, double *facc);
   // whether two edges, or the edges at two vertices, interact as edges
+  int vertex_near(const Scratch &s, int ibody, int ni) const;
+  int edge_near(const Scratch &s, int ibody, int ne) const;
+  int face_near(const Scratch &s, int ibody, int nf) const;
   int edges_interact(int ibody, int ei, int jbody, int ej);
   int vertex_edges_interact(int ibody, int ni, int jbody, int ej, int nj);
   // vertex-edge and vertex-vertex interactions

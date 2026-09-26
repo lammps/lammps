@@ -319,6 +319,40 @@ void PairBodyRoundedPolyhedron::pair_interaction(int i, int j, double delx, doub
     return;
   }
 
+  // reach of the vertices of each body towards the other body along the
+  // line between the centers: all points of body j are at least
+  // r - max reach of j away from the center plane of body i, so a feature of
+  // body i whose vertices do not reach r - max reach of j - cut, cannot
+  // interact with body j and vice versa, and the bodies cannot interact at all
+  // if the gap between their extents exceeds cut
+  // cut includes a margin for rounding, beyond which all interactions vanish
+
+  double r = sqrt(rsq);
+  double cut = (rounded_radius[i] + rounded_radius[j] + cut_inner) * (1.0 + EPSILON);
+  if ((int) s.reach.size() < ndiscrete) s.reach.resize(ndiscrete);
+  s.ibody = i;
+  s.jbody = j;
+  if (r > 0.0) {
+    double u[3] = {-delx/r, -dely/r, -delz/r};
+    double reachi = MathExtra::dot3(discrete[ifirst], u);
+    for (int ni = 0; ni < npi; ni++) {
+      s.reach[ifirst+ni] = MathExtra::dot3(discrete[ifirst+ni], u);
+      reachi = MAX(reachi, s.reach[ifirst+ni]);
+    }
+    double reachj = -MathExtra::dot3(discrete[jfirst], u);
+    for (int nj = 0; nj < npj; nj++) {
+      s.reach[jfirst+nj] = -MathExtra::dot3(discrete[jfirst+nj], u);
+      reachj = MAX(reachj, s.reach[jfirst+nj]);
+    }
+    if (r - reachi - reachj > cut) return;
+    s.reach_min_i = r - reachj - cut;
+    s.reach_min_j = r - reachi - cut;
+  } else {
+    for (int ni = 0; ni < npi; ni++) s.reach[ifirst+ni] = 0.0;
+    for (int nj = 0; nj < npj; nj++) s.reach[jfirst+nj] = 0.0;
+    s.reach_min_i = s.reach_min_j = -cut;
+  }
+
   contacts.clear();
 
   // facc is the force on body i, fj collects the forces on body j
@@ -1009,6 +1043,45 @@ void PairBodyRoundedPolyhedron::sphere_against_face(int ibody, int jbody,
 }
 
 /* ----------------------------------------------------------------------
+   Return 1 if vertex ni of body ibody may interact with the other body
+   of the pair, see pair_interaction(): a vertex, edge or face that does
+   not reach far enough towards the other body is farther than the
+   interaction range from all points of the other body
+------------------------------------------------------------------------- */
+
+int PairBodyRoundedPolyhedron::vertex_near(const Scratch &s, int ibody, int ni) const
+{
+  double reach_min = (ibody == s.ibody) ? s.reach_min_i : s.reach_min_j;
+  return (s.reach[dfirst[ibody]+ni] >= reach_min) ? 1 : 0;
+}
+
+/* ----------------------------------------------------------------------
+   Return 1 if edge ne of body ibody may interact with the other body
+------------------------------------------------------------------------- */
+
+int PairBodyRoundedPolyhedron::edge_near(const Scratch &s, int ibody, int ne) const
+{
+  int iefirst = edfirst[ibody];
+  return (vertex_near(s, ibody, static_cast<int>(edge[iefirst+ne][0])) ||
+          vertex_near(s, ibody, static_cast<int>(edge[iefirst+ne][1]))) ? 1 : 0;
+}
+
+/* ----------------------------------------------------------------------
+   Return 1 if face nf of body ibody may interact with the other body
+------------------------------------------------------------------------- */
+
+int PairBodyRoundedPolyhedron::face_near(const Scratch &s, int ibody, int nf) const
+{
+  int iffirst = facfirst[ibody];
+  for (int k = 0; k < MAX_FACE_SIZE; k++) {
+    int np = static_cast<int>(face[iffirst+nf][k]);
+    if (np < 0) break;
+    if (vertex_near(s, ibody, np)) return 1;
+  }
+  return 0;
+}
+
+/* ----------------------------------------------------------------------
    Return 1 if edge ei of body ibody and edge ej of body jbody interact
    as edges, i.e. the nearest points of both edges are inside the edges
    and within the interaction range, as in interaction_edge_to_edge()
@@ -1090,17 +1163,18 @@ void PairBodyRoundedPolyhedron::vertex_against_edge(int ibody, int jbody,
 
   for (int ni = 0; ni < dnum[ibody]; ni++) {
     if (vertex_done[ifirst+ni]) continue;
+    if (!vertex_near(s, ibody, ni)) continue;
     MathExtra::add3(x[ibody], discrete[ifirst+ni], xpi);
 
     double dist = sqrt(MathExtra::distsq3(xpi, x[jbody]));
     if (dist > eradj + rradj + rradi + cut_inner) continue;
 
-    // a vertex inside body j is handled by the vertex-face interactions
-
-    if (nearest_face(jbody, x[jbody], xpi, n) < 0.0) continue;
+    // only an edge within the interaction range can be the nearest edge
+    // that interacts, so test the more expensive conditions only for those
 
     double dmin = -1.0;
     for (int ne = 0; ne < ednum[jbody]; ne++) {
+      if (!edge_near(s, jbody, ne)) continue;
       MathExtra::add3(x[jbody], discrete[jfirst+static_cast<int>(edge[jefirst+ne][0])], xj1);
       MathExtra::add3(x[jbody], discrete[jfirst+static_cast<int>(edge[jefirst+ne][1])], xj2);
       MathExtra::sub3(xj2, xj1, u);
@@ -1113,6 +1187,7 @@ void PairBodyRoundedPolyhedron::vertex_against_edge(int ibody, int jbody,
       h[1] = xj1[1] + t*u[1];
       h[2] = xj1[2] + t*u[2];
       double d = sqrt(MathExtra::distsq3(xpi, h));
+      if (d > contact_dist + cut_inner) continue;
 
       // an edge ending at the vertex interacts with this edge as an edge,
       // which represents the contact until its nearest point reaches the vertex
@@ -1124,7 +1199,11 @@ void PairBodyRoundedPolyhedron::vertex_against_edge(int ibody, int jbody,
       }
     }
 
-    if ((dmin <= 0.0) || (dmin > contact_dist + cut_inner)) continue;
+    if (dmin <= 0.0) continue;
+
+    // a vertex inside body j is handled by the vertex-face interactions
+
+    if (nearest_face(jbody, x[jbody], xpi, n) < 0.0) continue;
 
     pair_force_and_torque(ibody, jbody, xpi, hmin, dmin, contact_dist, itype, jtype,
                           x, v, f, torque, angmom, fnc, 1, energy, facc);
@@ -1171,14 +1250,20 @@ void PairBodyRoundedPolyhedron::vertex_against_vertex(int ibody, int jbody,
 
   for (int ni = 0; ni < dnum[ibody]; ni++) {
     if (vertex_done[ifirst+ni]) continue;
+    if (!vertex_near(s, ibody, ni)) continue;
     MathExtra::add3(x[ibody], discrete[ifirst+ni], xpi);
+
+    // only a vertex within the interaction range can be the nearest vertex
+    // that interacts, so test the more expensive conditions only for those
 
     double dmin = -1.0;
     int nmin = -1;
     for (int nj = 0; nj < dnum[jbody]; nj++) {
       if (vertex_done[jfirst+nj]) continue;
+      if (!vertex_near(s, jbody, nj)) continue;
       MathExtra::add3(x[jbody], discrete[jfirst+nj], xpj);
       double d = sqrt(MathExtra::distsq3(xpi, xpj));
+      if (d > contact_dist + cut_inner) continue;
       if ((dmin < 0.0) || (d < dmin)) {
         if (vertex_edges_interact(ibody, ni, jbody, -1, nj)) continue;
         dmin = d;
@@ -1187,7 +1272,7 @@ void PairBodyRoundedPolyhedron::vertex_against_vertex(int ibody, int jbody,
       }
     }
 
-    if ((nmin < 0) || (dmin <= 0.0) || (dmin > contact_dist + cut_inner)) continue;
+    if ((nmin < 0) || (dmin <= 0.0)) continue;
 
     pair_force_and_torque(ibody, jbody, xpi, xmin, dmin, contact_dist, itype, jtype,
                           x, v, f, torque, angmom, fnc, 1, energy, facc);
@@ -1244,8 +1329,10 @@ int PairBodyRoundedPolyhedron::edge_against_edge(int ibody, int jbody,
   // loop through body i's edges
 
   for (ni = 0; ni < nei; ni++) {
+    if (!edge_near(s, ibody, ni)) continue;
 
     for (nj = 0; nj < nej; nj++) {
+      if (!edge_near(s, jbody, nj)) continue;
 
       // compute the distance between the edge nj to the edge ni
       #ifdef _POLYHEDRON_DEBUG
@@ -1301,10 +1388,12 @@ int PairBodyRoundedPolyhedron::edge_against_face(int ibody, int jbody,
   // loop through body i's edges
 
   for (ni = 0; ni < nei; ni++) {
+    if (!edge_near(s, ibody, ni)) continue;
 
     // loop through body j's faces
 
     for (nj = 0; nj < nfj; nj++) {
+      if (!face_near(s, jbody, nj)) continue;
 
       // compute the distance between the face nj to the edge ni
       #ifdef _POLYHEDRON_DEBUG

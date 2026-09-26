@@ -1,4 +1,4 @@
-LAMMPS (28 Mar 2023 - Development)
+LAMMPS (2 Sep 2026)
   using 1 OpenMP thread(s) per MPI task
 # pouring 3d rounded polyhedron bodies
 
@@ -44,32 +44,40 @@ fix          2 all gravity 1.0 spherical 0.0 -180.0
 
 molecule     object molecule.cube molecule.tetra toff 1              molecule.rod3d toff 2 molecule.point3d toff 3
 Read molecule template object:
+# 3d polygon body: cubes, moment of inertia I = m edge^2/ 6
   1 molecules
   0 fragments
+  1 bodies
   1 atoms with max type 1
   0 bonds with max type 0
   0 angles with max type 0
   0 dihedrals with max type 0
   0 impropers with max type 0
 Read molecule template object:
+# 3d polygon body: regular tetrahedra, moment of inertia I = m edge^2/ 20
   1 molecules
   0 fragments
+  1 bodies
   1 atoms with max type 2
   0 bonds with max type 0
   0 angles with max type 0
   0 dihedrals with max type 0
   0 impropers with max type 0
 Read molecule template object:
+# 2d polygon body: rods Izz = 1/12 m length^2
   1 molecules
   0 fragments
+  1 bodies
   1 atoms with max type 3
   0 bonds with max type 0
   0 angles with max type 0
   0 dihedrals with max type 0
   0 impropers with max type 0
 Read molecule template object:
+# 2d polygon body: disks Izz = 1/2 m radius^2
   1 molecules
   0 fragments
+  1 bodies
   1 atoms with max type 4
   0 bonds with max type 0
   0 angles with max type 0
@@ -78,7 +86,6 @@ Read molecule template object:
 
 region       slab block 5 45 5 45 25 35 units box
 fix          ins all pour 500 0 4767548 vol 0.4 10 region slab mol object              molfrac 0.25 0.25 0.25 0.25
-Particle insertion: 134 every 4472 steps, 500 by step 13417
 
 fix          4 all wall/body/polyhedron 2000 50 50 zplane 0.0 NULL
 
@@ -96,51 +103,52 @@ thermo       1000
 run	     ${steps}
 run	     6000
 Generated 0 of 6 mixed pair_coeff terms from geometric mixing rule
+Particle insertion: 134 every 4472 steps, 500 by step 13417
 Neighbor list info ...
   update: every = 1 steps, delay = 0 steps, check = yes
   max neighbors/atom: 2000, page size: 100000
-  master list distance cutoff = 5
-  ghost atom cutoff = 5
-  binsize = 2.5, bins = 20 20 20
+  master list distance cutoff = 5.5
+  ghost atom cutoff = 5.5
+  binsize = 2.75, bins = 19 19 19
   1 neighbor lists, perpetual/occasional/extra = 1 0 0
   (1) pair body/rounded/polyhedron, perpetual
       attributes: half, newton on
       pair build: half/bin/atomonly/newton
       stencil: half/bin/3d
       bin: standard
-Per MPI rank memory allocation (min/avg/max) = 0.4666 | 0.4666 | 0.4666 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 0.4529 | 0.4529 | 0.4529 Mbytes
    Step        Atoms        KinEng         PotEng         TotEng         Press     
          0           0  -0              0              0              0            
-      1000         134  -0              0.0038737172   0.0038737172  -3.395325e-06 
-      2000         134  -0             -0.0009235483  -0.0009235483  -6.5977025e-07
-      3000         134  -0              0.004338364    0.004338364   -1.4565607e-05
-      4000         134  -0              0.0028464278   0.0028464278  -7.6723299e-06
-      5000         268  -0              0.017425002    0.017425002    0.000175191  
-      6000         268  -0              0.035730061    0.035730061    0.00019697961
-Loop time of 0.266391 on 4 procs for 6000 steps with 268 atoms
+      1000         134  -0             -0.014819943   -0.014819943   -4.2420298e-06
+      2000         134  -0             -0.019630907   -0.019630907   -1.8633584e-06
+      3000         134  -0             -0.018511365   -0.018511365   -1.3707975e-05
+      4000         134  -0             -0.025112583   -0.025112583   -7.7703367e-06
+      5000         268  -0             -0.039665637   -0.039665637   -9.9153795e-05
+      6000         268  -0             -0.10518164    -0.10518164     0.00023522002
+Loop time of 0.250308 on 4 procs for 6000 steps with 268 atoms
 
-Performance: 1946012.521 tau/day, 22523.293 timesteps/s, 6.036 Matom-step/s
-92.6% CPU use with 4 MPI tasks x 1 OpenMP threads
+Performance: 2071044.395 tau/day, 23970.421 timesteps/s, 6.424 Matom-step/s
+99.3% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.024599   | 0.072944   | 0.14627    |  18.6 | 27.38
-Neigh   | 0.0011942  | 0.0013474  | 0.0014323  |   0.3 |  0.51
-Comm    | 0.047438   | 0.11992    | 0.17106    |  14.8 | 45.02
-Output  | 7.6297e-05 | 0.00017637 | 0.00044875 |   0.0 |  0.07
-Modify  | 0.029377   | 0.035972   | 0.040396   |   2.4 | 13.50
-Other   |            | 0.03603    |            |       | 13.52
+Pair    | 0.12938    | 0.13143    | 0.13359    |   0.5 | 52.51
+Neigh   | 0.0015657  | 0.0016814  | 0.0017772  |   0.2 |  0.67
+Comm    | 0.0495     | 0.050724   | 0.052309   |   0.5 | 20.26
+Output  | 9.4862e-05 | 0.00010632 | 0.00012772 |   0.0 |  0.04
+Modify  | 0.033416   | 0.035986   | 0.039353   |   1.3 | 14.38
+Other   |            | 0.03038    |            |       | 12.14
 
-Nlocal:             67 ave          89 max          43 min
+Nlocal:             67 ave          90 max          43 min
 Histogram: 1 1 0 0 0 0 0 0 1 1
-Nghost:             38 ave          53 max          25 min
+Nghost:             49 ave          68 max          32 min
 Histogram: 1 1 0 0 0 0 0 1 0 1
-Neighs:          23.75 ave          42 max           7 min
-Histogram: 1 0 1 0 0 0 0 1 0 1
+Neighs:          38.25 ave          58 max          17 min
+Histogram: 1 0 1 0 0 0 0 0 1 1
 
-Total # of neighbors = 95
-Ave neighs/atom = 0.35447761
+Total # of neighbors = 153
+Ave neighs/atom = 0.57089552
 Neighbor list builds = 167
 Dangerous builds = 0
 

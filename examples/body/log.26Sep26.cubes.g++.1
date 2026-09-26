@@ -1,4 +1,4 @@
-LAMMPS (28 Mar 2023 - Development)
+LAMMPS (2 Sep 2026)
   using 1 OpenMP thread(s) per MPI task
 # 3d rounded cubes
 
@@ -13,7 +13,7 @@ atom_style  body rounded/polyhedron 1 10
 read_data   data.cubes
 Reading data file ...
   orthogonal box = (0 0 0) to (6 6 6)
-  1 by 2 by 2 MPI processor grid
+  1 by 1 by 1 MPI processor grid
   reading atoms ...
   2 atoms
   2 bodies
@@ -25,9 +25,9 @@ replicate   3 3 $r
 replicate   3 3 3
 Replication is creating a 3x3x3 = 27 times larger system...
   orthogonal box = (0 0 0) to (18 18 18)
-  1 by 2 by 2 MPI processor grid
+  1 by 1 by 1 MPI processor grid
   54 atoms
-  replicate CPU = 0.001 seconds
+  replicate CPU = 0.000 seconds
 
 velocity    all create 1.2 187287 dist gaussian mom yes rot yes
 
@@ -78,53 +78,53 @@ Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
 Neighbor list info ...
   update: every = 1 steps, delay = 0 steps, check = yes
   max neighbors/atom: 2000, page size: 100000
-  master list distance cutoff = 3.9641016
-  ghost atom cutoff = 3.9641016
-  binsize = 1.9820508, bins = 10 10 10
+  master list distance cutoff = 4.9641016
+  ghost atom cutoff = 4.9641016
+  binsize = 2.4820508, bins = 8 8 8
   1 neighbor lists, perpetual/occasional/extra = 1 0 0
   (1) pair body/rounded/polyhedron, perpetual
       attributes: half, newton on
       pair build: half/bin/atomonly/newton
       stencil: half/bin/3d
       bin: standard
-Per MPI rank memory allocation (min/avg/max) = 5.901 | 5.902 | 5.904 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 8.008 | 8.008 | 8.008 Mbytes
    Step         KinEng         PotEng         TotEng          c_p2         c_1_temp   
-         0   1.7666667      0              1.7666667      0.01090535     0.59439252   
-      1000   3.1462962      0.17392649     3.3202227      0.02361912     1.1654694    
-      2000   2.9311648      0.13836102     3.0695258      0.021748224    1.1950624    
-      3000   3.090491       0.16511199     3.255603       0.018691142    1.23672      
-      4000   2.7401565      0.17792155     2.9180781      0.015093853    1.1180839    
-      5000   3.0880849      0.17587085     3.2639557      0.030563042    1.2831154    
-      6000   3.2180776      0.19732251     3.4154001      0.028338151    1.258839     
-      7000   2.9514882      0.25088882     3.202377       0.025296925    1.1746326    
-      8000   3.0101226      0.28825968     3.2983823      0.027273454    1.2138056    
-      9000   3.0164253      0.1901733      3.2065986      0.033228915    1.3095914    
-     10000   2.3780401      0.34082434     2.7188644      0.031838531    1.0208679    
-Loop time of 16.4904 on 4 procs for 10000 steps with 54 atoms
+         0   1.7666667     -0.0044872981   1.7621794      0.010010092    0.59439252   
+      1000   3.2203304     -0.18100621     3.0393242      0.024039977    1.1848059    
+      2000   3.1703887     -0.22445837     2.9459303      0.021419492    1.28318      
+      3000   3.0982961     -0.3007873      2.7975088      0.028430409    1.2414287    
+      4000   2.7703514     -0.33268555     2.4376658      0.021468727    1.1005061    
+      5000   2.9471332     -0.37119866     2.5759345      0.030129743    1.1579038    
+      6000   3.032024      -0.4177854      2.6142386      0.019281669    1.1571271    
+      7000   3.2760469     -0.3821673      2.8938796      0.025360433    1.2305043    
+      8000   3.1165052     -0.39627462     2.7202306      0.023234966    1.1864613    
+      9000   2.833934      -0.37325251     2.4606815      0.034526873    1.1098826    
+     10000   2.7330186     -0.40711285     2.3259058      0.03679727     1.1534219    
+Loop time of 16.077 on 1 procs for 10000 steps with 54 atoms
 
-Performance: 52394.037 tau/day, 606.412 timesteps/s, 32.746 katom-step/s
-95.4% CPU use with 4 MPI tasks x 1 OpenMP threads
+Performance: 53741.408 tau/day, 622.007 timesteps/s, 33.588 katom-step/s
+100.0% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 5.8583     | 8.5985     | 15.966     | 145.2 | 52.14
-Neigh   | 0.00098311 | 0.0011219  | 0.0014163  |   0.5 |  0.01
-Comm    | 0.39088    | 7.7607     | 10.504     | 152.9 | 47.06
-Output  | 0.00016175 | 0.00044056 | 0.0012766  |   0.0 |  0.00
-Modify  | 0.084729   | 0.094756   | 0.10558    |   2.8 |  0.57
-Other   |            | 0.0349     |            |       |  0.21
+Pair    | 15.93      | 15.93      | 15.93      |   0.0 | 99.09
+Neigh   | 0.004398   | 0.004398   | 0.004398   |   0.0 |  0.03
+Comm    | 0.055363   | 0.055363   | 0.055363   |   0.0 |  0.34
+Output  | 0.00014682 | 0.00014682 | 0.00014682 |   0.0 |  0.00
+Modify  | 0.078115   | 0.078115   | 0.078115   |   0.0 |  0.49
+Other   |            | 0.008671   |            |       |  0.05
 
-Nlocal:           13.5 ave          17 max           9 min
-Histogram: 1 0 0 1 0 0 0 0 1 1
-Nghost:           63.5 ave          68 max          58 min
-Histogram: 1 0 0 1 0 0 0 0 0 2
-Neighs:             25 ave          38 max           6 min
-Histogram: 1 0 0 0 0 1 0 0 1 1
+Nlocal:             54 ave          54 max          54 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:            110 ave         110 max         110 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:            157 ave         157 max         157 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
 
-Total # of neighbors = 100
-Ave neighs/atom = 1.8518519
-Neighbor list builds = 268
+Total # of neighbors = 157
+Ave neighs/atom = 2.9074074
+Neighbor list builds = 240
 Dangerous builds = 0
 
 Total wall time: 0:00:16

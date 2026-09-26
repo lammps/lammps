@@ -1072,7 +1072,7 @@ void FixBondReact::superimpose_algorithm()
   std::vector<int> mpi_send(rxns.size()), mpi_recv(rxns.size());
   for (auto &rxn : rxns) mpi_send[rxn.ID] = rxn.local_rxn_count;
   MPI_Allreduce(mpi_send.data(), mpi_recv.data(), rxns.size(), MPI_INT, MPI_SUM, world);
-  for (auto &rxn : rxns) rxn.reaction_count = mpi_send[rxn.ID];
+  for (auto &rxn : rxns) rxn.reaction_count = mpi_recv[rxn.ID];
 
   int rxnflag = 0;
   int *delta_rxn;

@@ -61,7 +61,7 @@ codesign --force -s - "${BUILD_DIR}/lammps-gui.app/Contents/MacOS/lammps-gui"
 codesign --force -s - "${BUILD_DIR}/lammps-gui.app/Contents/Frameworks/liblammps.0.dylib"
 
 echo "Bundle Qt frameworks and plugins with macdeployqt"
-macdeployqt ${APP_NAME}.app
+macdeployqt ${APP_NAME}.app -always-overwrite
 
 echo "Stage a copy of the app bundle plus README and background image"
 mkdir -p "${STAGE_DIR}"

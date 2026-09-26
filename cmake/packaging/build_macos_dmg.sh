@@ -68,7 +68,7 @@ mkdir -p "${STAGE_DIR}"
 ditto ${APP_NAME}.app "${STAGE_DIR}/LAMMPS-GUI.app"
 pushd "${STAGE_DIR}" || exit 1
 mv LAMMPS-GUI.app/Contents/Resources/README.txt .
-mv LAMMPS-GUI.app/Contents/Resources/LAMMPS_DMG_Background.png background.png
+cp "${PACKAGING_DIR}/LAMMPS_DMG_Background.png" background.png
 cd LAMMPS-GUI.app/Contents || exit 2
 
 echo "Update rpath for LAMMPS to link to the bundled liblammps.0.dylib copy"

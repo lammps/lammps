@@ -36,7 +36,9 @@ class FixBondHistory : public Fix {
   void setup_post_neighbor() override;
   void setup_pre_exchange() override;
   void post_neighbor() override;
+  void min_post_neighbor() override;
   void pre_exchange() override;
+  void min_pre_exchange() override;
   double memory_usage() override;
   void write_restart(FILE *fp) override;
   void restart(char *buf) override;

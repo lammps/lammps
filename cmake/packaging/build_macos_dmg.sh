@@ -25,7 +25,7 @@ echo "Delete old files, if they exist"
 rm -f ${APP_NAME}.dmg ${APP_NAME}-rw.dmg LAMMPS-macOS-multiarch-GUI-*.dmg
 rm -rf "${STAGE_DIR}"
 
-echo "Sign dynamic LAMMPS library and LAMMPS-GUI"
+echo "Force ad hoc signing of dynamic LAMMPS library and LAMMPS-GUI"
 codesign --force -s - ${BUILD_DIR}/liblammps.0.dylib
 codesign --force -s - ${BUILD_DIR}/lammps-gui.app/Contents/MacOS/lammps-gui
 codesign --force -s - ${BUILD_DIR}/lammps-gui.app/Contents/Frameworks/liblammps.0.dylib
@@ -41,7 +41,7 @@ mv LAMMPS-GUI.app/Contents/Resources/README.txt .
 mv LAMMPS-GUI.app/Contents/Resources/LAMMPS_DMG_Background.png background.png
 cd LAMMPS-GUI.app/Contents
 
-echo "Update rpath for LAMMPS and LAMMPS-GUI to link to bundled liblammps.0.dylib"
+echo "Update rpath for LAMMPS to link to the bundled liblammps.0.dylib copy"
 install_name_tool -delete_rpath ${BUILD_DIR} bin/lmp
 install_name_tool -add_rpath '@executable_path/../Frameworks' bin/lmp
 
@@ -59,6 +59,8 @@ do \
     test -f $s && codesign --force -s - $s
 done
 codesign --force -s - MacOS/lammps-gui
+
+echo "Codesign status for LAMMPS-GUI and bundle"
 codesign -v --verbose=4 MacOS/lammps-gui
 
 echo "Attach icons to LAMMPS console and GUI executables and lib"
@@ -75,7 +77,7 @@ fi
 rm icon.rsrc
 popd
 
-echo "Create compressed disk image with Finder layout using dmgbuild (no AppleScript)"
+echo "Create compressed disk image using dmgbuild"
 python3 -m dmgbuild -s "${PACKAGING_DIR}/dmg_settings.py" \
     -D app="${STAGE_DIR}/LAMMPS-GUI.app" \
     -D readme="${STAGE_DIR}/README.txt" \

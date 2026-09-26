@@ -29,6 +29,7 @@
 #include "comm.h"
 #include "error.h"
 #include "fix.h"
+#include "fix_neigh_history.h"
 #include "fix_store_atom.h"
 #include "force.h"
 #include "group.h"
@@ -102,6 +103,17 @@ PairBodyRoundedPolyhedron::PairBodyRoundedPolyhedron(LAMMPS *lmp) :
 
   k_n = nullptr;
   k_na = nullptr;
+  k_t = nullptr;
+
+  // the tangential displacement is stored only if requested, see settings()
+  // the surfaces of two bodies interact beyond contact up to cut_inner,
+  // so the history is kept for all pairs in the neighbor list
+
+  history = 0;
+  dt = 0.0;
+  id_history = nullptr;
+  fix_history = nullptr;
+  beyond_contact = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -129,12 +141,19 @@ PairBodyRoundedPolyhedron::~PairBodyRoundedPolyhedron()
   if (id_fix_store && modify) modify->delete_fix(id_fix_store);
   delete[] id_fix_store;
 
+  if (modify) {
+    if (fix_history) modify->delete_fix(id_history);
+    else history_dummy_fix(0);
+  }
+  delete[] id_history;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
 
     memory->destroy(k_n);
     memory->destroy(k_na);
+    memory->destroy(k_t);
   }
 }
 
@@ -202,6 +221,16 @@ void PairBodyRoundedPolyhedron::compute(int eflag, int vflag)
   for (i = 0; i < nall; i++)
     for (int k = 0; k < NFNC; k++) fnc[i][k] = 0.0;
 
+  // tangential displacements of the pairs in the neighbor list
+
+  int *touch = nullptr, **firsttouch = nullptr;
+  double *allshear = nullptr, **firstshear = nullptr;
+  if (history) {
+    firsttouch = fix_history->firstflag;
+    firstshear = fix_history->firstvalue;
+  }
+  scratch.shear = nullptr;
+
   // loop over neighbors of my atoms
 
   for (ii = 0; ii < inum; ii++) {
@@ -211,6 +240,10 @@ void PairBodyRoundedPolyhedron::compute(int eflag, int vflag)
     ztmp = x[i][2];
     jlist = firstneigh[i];
     jnum = numneigh[i];
+    if (history) {
+      touch = firsttouch[i];
+      allshear = firstshear[i];
+    }
 
     if ((body[i] >= 0) && (dnum[i] == 0)) body2space(i);
 
@@ -232,16 +265,29 @@ void PairBodyRoundedPolyhedron::compute(int eflag, int vflag)
 
       if (dnum[j] == 0) body2space(j);
 
+      // the tangential displacement is reset unless the pair is in contact
+
+      if (history) {
+        scratch.shear = &allshear[3*jj];
+        scratch.shear_i = i;
+        scratch.touched = 0;
+      }
+
       // no interaction, radius = enclosing + rounded radius
 
       double r = sqrt(rsq);
-      if (r > radius[i] + radius[j] + cut_inner) continue;
+      if (r <= radius[i] + radius[j] + cut_inner) {
+        pair_interaction(i, j, delx, dely, delz, rsq, x, v, angmom, f, torque, fnc,
+                         scratch, evdwl, facc);
 
-      pair_interaction(i, j, delx, dely, delz, rsq, x, v, angmom, f, torque, fnc,
-                       scratch, evdwl, facc);
+        if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,evdwl,0.0,
+                                 facc[0],facc[1],facc[2],delx,dely,delz);
+      }
 
-      if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,evdwl,0.0,
-                               facc[0],facc[1],facc[2],delx,dely,delz);
+      if (history) {
+        touch[jj] = scratch.touched;
+        if (!scratch.touched) scratch.shear[0] = scratch.shear[1] = scratch.shear[2] = 0.0;
+      }
 
     } // end for jj
   }
@@ -277,7 +323,7 @@ void PairBodyRoundedPolyhedron::pair_interaction(int i, int j, double delx, doub
 
   if (npi == 1 && npj == 1) {
     sphere_against_sphere(i, j, itype, jtype, delx, dely, delz, rsq, x, v, angmom, f, torque,
-                          fnc, evdwl, facc);
+                          fnc, s, evdwl, facc);
     return;
   }
 
@@ -314,7 +360,7 @@ void PairBodyRoundedPolyhedron::pair_interaction(int i, int j, double delx, doub
       int mmax = 0;
       for (int m = 1; m < (int) contacts.size(); m++)
         if (contacts[m].separation < contacts[mmax].separation) mmax = m;
-      friction_force(contacts[mmax], itype, jtype, x, v, angmom, f, torque, fnc, i, facc);
+      friction_force(contacts[mmax], itype, jtype, x, v, angmom, f, torque, fnc, i, facc, s);
     }
     return;
   }
@@ -401,7 +447,7 @@ void PairBodyRoundedPolyhedron::pair_interaction(int i, int j, double delx, doub
     int mmax = 0;
     for (int m = 1; m < (int) contacts.size(); m++)
       if (contacts[m].separation < contacts[mmax].separation) mmax = m;
-    friction_force(contacts[mmax], itype, jtype, x, v, angmom, f, torque, fnc, i, facc);
+    friction_force(contacts[mmax], itype, jtype, x, v, angmom, f, torque, fnc, i, facc, s);
   }
 
   facc[0] -= fj[0];
@@ -494,6 +540,7 @@ void PairBodyRoundedPolyhedron::allocate()
 
   memory->create(k_n,n+1,n+1,"pair:k_n");
   memory->create(k_na,n+1,n+1,"pair:k_na");
+  memory->create(k_t,n+1,n+1,"pair:k_t");
   memory->create(maxrad,n+1,"pair:maxrad");
 }
 
@@ -512,6 +559,39 @@ void PairBodyRoundedPolyhedron::settings(int narg, char **arg)
   cut_inner = utils::numeric(FLERR,arg[4],false,lmp);
 
   if (A_ua < 0) A_ua = 1;
+
+  int history_one = 0;
+  int iarg = 5;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"history") == 0) {
+      history_one = 1;
+      iarg++;
+    } else error->all(FLERR, iarg, "Unknown pair_style body/rounded/polyhedron keyword {}",
+                      arg[iarg]);
+  }
+
+  // create a placeholder for fix NEIGH_HISTORY, which replaces it in init_style(),
+  // so that the order of the fixes follows the input, or remove the history
+
+  if (history_one && !history) {
+    history_dummy_fix(1);
+  } else if (!history_one && history) {
+    if (fix_history) modify->delete_fix(id_history);
+    else history_dummy_fix(0);
+    fix_history = nullptr;
+  }
+  history = history_one;
+}
+
+/* ----------------------------------------------------------------------
+   create (flag = 1) or delete (flag = 0) the placeholder of fix NEIGH_HISTORY
+------------------------------------------------------------------------- */
+
+void PairBodyRoundedPolyhedron::history_dummy_fix(int flag)
+{
+  std::string id_dummy = "NEIGH_HISTORY_BODY_DUMMY" + std::to_string(instance_me);
+  if (flag) modify->add_fix(id_dummy + " all DUMMY");
+  else if (modify->get_fix_by_id(id_dummy)) modify->delete_fix(id_dummy);
 }
 
 /* ----------------------------------------------------------------------
@@ -531,11 +611,21 @@ void PairBodyRoundedPolyhedron::coeff(int narg, char **arg)
   double k_n_one = utils::numeric(FLERR,arg[2],false,lmp);
   double k_na_one = utils::numeric(FLERR,arg[3],false,lmp);
 
+  // the tangential stiffness defaults to 2/7 of the normal stiffness,
+  // as in pair style gran/hooke/history
+
+  double k_t_one = 2.0/7.0 * k_n_one;
+  if (narg == 5) k_t_one = utils::numeric(FLERR,arg[4],false,lmp);
+  if (k_t_one < 0.0)
+    error->all(FLERR, 4, "Tangential stiffness of pair style body/rounded/polyhedron "
+               "must not be negative");
+
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
     for (int j = MAX(jlo,i); j <= jhi; j++) {
       k_n[i][j] = k_n_one;
       k_na[i][j] = k_na_one;
+      k_t[i][j] = k_t_one;
       setflag[i][j] = 1;
       count++;
     }
@@ -562,7 +652,30 @@ void PairBodyRoundedPolyhedron::init_style()
   if (comm->ghost_velocity == 0)
     error->all(FLERR,"Pair body/rounded/polyhedron requires ghost atoms store velocity");
 
-  neighbor->add_request(this);
+  // the neighbor list keeps the regular cutoff, which includes cut_inner,
+  // also with the contact history
+
+  if (history) neighbor->add_request(this, NeighConst::REQ_HISTORY);
+  else neighbor->add_request(this);
+
+  dt = update->dt;
+
+  // on the first init, fix NEIGH_HISTORY replaces the placeholder created in
+  // settings(), so that its position in the list of fixes is preserved
+
+  if (history) {
+    delete[] id_history;
+    id_history = utils::strdup(fmt::format("NEIGH_HISTORY_BODY{}", instance_index()));
+    if (!fix_history) {
+      fix_history = dynamic_cast<FixNeighHistory *>(
+        modify->replace_fix("NEIGH_HISTORY_BODY_DUMMY" + std::to_string(instance_me),
+                            fmt::format("{} all NEIGH_HISTORY 3", id_history), 1));
+      fix_history->pair = this;
+    } else {
+      fix_history = dynamic_cast<FixNeighHistory *>(modify->get_fix_by_id(id_history));
+      if (!fix_history) error->all(FLERR, "Could not find pair fix neigh history ID");
+    }
+  }
 
   // per-atom storage of the forces and torques that do not derive
   // from the energy at the previous step, see work_nonconservative()
@@ -656,6 +769,7 @@ double PairBodyRoundedPolyhedron::init_one(int i, int j)
 {
   k_n[j][i] = k_n[i][j];
   k_na[j][i] = k_na[i][j];
+  k_t[j][i] = k_t[i][j];
 
   // the surfaces of two bodies interact up to cut_inner
 
@@ -758,7 +872,7 @@ void PairBodyRoundedPolyhedron::body2space(int i)
 void PairBodyRoundedPolyhedron::sphere_against_sphere(int ibody, int jbody,
   int itype, int jtype, double delx, double dely, double delz, double rsq,
   double** x, double** v, double** angmom, double** f, double** torque, double** fnc,
-  double &evdwl, double* facc)
+  Scratch &s, double &evdwl, double* facc)
 {
   double rradi,rradj,contact_dist;
   double rij,R,fx,fy,fz,fpair,energy;
@@ -799,7 +913,8 @@ void PairBodyRoundedPolyhedron::sphere_against_sphere(int ibody, int jbody,
     double pc[3];
     contact_point(x[ibody], x[jbody], n, rradi, rradj, pc);
     double fne = -k_n[itype][jtype] * R;
-    damping_friction(ibody, jbody, pc, n, fne, 1, 1, x, v, angmom, f, torque, fnc, ibody, facc);
+    damping_friction(ibody, jbody, pc, n, fne, 1, 1, x, v, angmom, f, torque, fnc, ibody, facc,
+                     &s);
   }
 }
 
@@ -2123,6 +2238,8 @@ void PairBodyRoundedPolyhedron::contact_point(const double *pi, const double *pj
     friction: magnitude mu * fne with the elastic normal force fne, opposite
               to v_t, capped by c_t * |v_t| so that it vanishes smoothly
               as sliding stops, see Eq. 4, Wang et al.
+              with the contact history, the friction force is that of a
+              tangential spring instead, see tangential_spring()
   n = unit normal pointing from jbody to ibody
   the forces act at pc on both bodies, so that they exert torques
   the total force on body iref is accumulated to facc
@@ -2130,7 +2247,8 @@ void PairBodyRoundedPolyhedron::contact_point(const double *pi, const double *pj
 
 void PairBodyRoundedPolyhedron::damping_friction(int ibody, int jbody, const double *pc,
   const double *n, double fne, int damping, int friction, double** x, double** v,
-  double** angmom, double** f, double** torque, double** fnc, int iref, double* facc)
+  double** angmom, double** f, double** torque, double** fnc, int iref, double* facc,
+  Scratch *hs)
 {
   double vi[3], vj[3], vr[3], vn[3], vt[3], fdiss[3];
   AtomVecBody::Bonus *bonus;
@@ -2154,7 +2272,9 @@ void PairBodyRoundedPolyhedron::damping_friction(int ibody, int jbody, const dou
     for (int k = 0; k < 3; k++) fdiss[k] = -c_n * vn[k] - c_t * vt[k];
 
   double vtmag = MathExtra::len3(vt);
-  if (friction && (fne > 0.0) && (vtmag > 0.0)) {
+  if (friction && hs && hs->shear) {
+    tangential_spring(ibody, jbody, n, vt, fne, *hs, fdiss);
+  } else if (friction && (fne > 0.0) && (vtmag > 0.0)) {
     double scale = MIN(mu * fne, c_t * vtmag) / vtmag;
     for (int k = 0; k < 3; k++) fdiss[k] -= scale * vt[k];
   }
@@ -2187,17 +2307,73 @@ void PairBodyRoundedPolyhedron::damping_friction(int ibody, int jbody, const dou
 }
 
 /* ----------------------------------------------------------------------
+  Friction force at a contact point from a tangential spring, with the
+  tangential displacement xi of the pair of bodies stored in s.shear,
+  see e.g. Luding, Granular Matter 10, 235 (2008):
+  xi is rotated into the tangent plane of the contact normal n, keeping its
+  magnitude, since the normal changes, also when the contact with the largest
+  overlap moves to another vertex, edge or face, and xi is incremented by the
+  tangential relative velocity vt times dt.  The spring force -k_t xi is
+  limited to mu times the elastic normal force fne, and then xi is reduced
+  accordingly (sliding).
+  the force on body ibody is added to fs, xi refers to body s.shear_i
+------------------------------------------------------------------------- */
+
+void PairBodyRoundedPolyhedron::tangential_spring(int ibody, int jbody, const double *n,
+                                                  const double *vt, double fne, Scratch &s,
+                                                  double *fs)
+{
+  double sign = (ibody == s.shear_i) ? 1.0 : -1.0;
+  double xi[3], ft[3];
+  for (int k = 0; k < 3; k++) xi[k] = sign * s.shear[k];
+
+  double xin = MathExtra::dot3(xi, n);
+  double mag = MathExtra::len3(xi);
+  for (int k = 0; k < 3; k++) xi[k] -= xin * n[k];
+  double magt = MathExtra::len3(xi);
+  if (magt > 0.0) MathExtra::scale3(mag/magt, xi);
+
+  if (!update->setupflag)
+    for (int k = 0; k < 3; k++) xi[k] += vt[k] * dt;
+
+  double kt = k_t[atom->type[ibody]][atom->type[jbody]];
+  for (int k = 0; k < 3; k++) ft[k] = -kt * xi[k];
+
+  double ftmag = MathExtra::len3(ft);
+  double ftmax = mu * MAX(fne, 0.0);
+  if (ftmag > ftmax) {
+    double scale = ftmax / ftmag;
+    MathExtra::scale3(scale, ft);
+    MathExtra::scale3(scale, xi);
+  }
+
+  for (int k = 0; k < 3; k++) {
+    fs[k] += ft[k];
+    s.shear[k] = sign * xi[k];
+  }
+  s.touched = 1;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairBodyRoundedPolyhedron::reset_dt()
+{
+  dt = update->dt;
+}
+
+/* ----------------------------------------------------------------------
   Friction force at a contact during gross sliding, see Eq. 4, Wang et al.:
   magnitude mu * F_ne with the elastic normal force F_ne, opposite to the
   tangential relative velocity, capped by c_t * |v_t| so that it vanishes
   smoothly as sliding stops instead of reversing the sliding direction
-  within a time step
+  within a time step, or with the contact history from a tangential spring,
+  see tangential_spring()
   the total force on body iref is accumulated to facc
 ------------------------------------------------------------------------- */
 
 void PairBodyRoundedPolyhedron::friction_force(Contact &contact, int itype, int jtype,
   double** x, double** v, double** angmom, double** f, double** torque, double** fnc,
-  int iref, double* facc)
+  int iref, double* facc, Scratch &s)
 {
   if ((contact.separation >= 0.0) || (contact.r == 0.0)) return;
 
@@ -2209,7 +2385,7 @@ void PairBodyRoundedPolyhedron::friction_force(Contact &contact, int itype, int 
 
   double fne = -k_n[itype][jtype] * contact.separation;
   damping_friction(contact.ibody, contact.jbody, pc, n, fne, 0, 1, x, v, angmom, f, torque, fnc,
-                   iref, facc);
+                   iref, facc, &s);
 }
 
 /* ----------------------------------------------------------------------

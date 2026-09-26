@@ -17,6 +17,7 @@
 
 #include "atom.h"
 #include "comm.h"
+#include "fix_neigh_history.h"
 #include "force.h"
 #include "memory.h"
 #include "neigh_list.h"
@@ -164,6 +165,13 @@ void PairBodyRoundedPolygonOMP::eval(int iifrom, int iito, ThrData *const thr,
 
   double facc[3];
 
+  // tangential displacements of the pairs in the neighbor list,
+  // each thread updates those of its own atoms i
+
+  int *touch = nullptr;
+  double *allshear = nullptr;
+  s.shear = nullptr;
+
   for (int ii = iifrom; ii < iito; ++ii) {
     const int i = ilist[ii];
     if (body[i] < 0) continue;
@@ -173,6 +181,10 @@ void PairBodyRoundedPolygonOMP::eval(int iifrom, int iito, ThrData *const thr,
     const double radi = radius[i];
     const int *const jlist = firstneigh[i];
     const int jnum = numneigh[i];
+    if (history) {
+      touch = fix_history->firstflag[i];
+      allshear = fix_history->firstvalue[i];
+    }
 
     for (int jj = 0; jj < jnum; ++jj) {
       const int j = jlist[jj] & NEIGHMASK;
@@ -183,18 +195,31 @@ void PairBodyRoundedPolygonOMP::eval(int iifrom, int iito, ThrData *const thr,
       const double delz = ztmp - x[j][2];
       const double rsq = delx * delx + dely * dely + delz * delz;
 
+      // the tangential displacement is reset unless the pair is in contact
+
+      if (history) {
+        s.shear = &allshear[3 * jj];
+        s.shear_i = i;
+        s.touched = 0;
+      }
+
       // no interaction
 
-      if (sqrt(rsq) > radi + radius[j] + cut_inner) continue;
+      if (sqrt(rsq) <= radi + radius[j] + cut_inner) {
+        double evdwl = 0.0;
+        facc[0] = facc[1] = facc[2] = 0.0;
+        pair_interaction(i, j, delx, dely, delz, rsq, x, v, angmom, f, torque, fnc_t, s, evdwl,
+                         facc);
 
-      double evdwl = 0.0;
-      facc[0] = facc[1] = facc[2] = 0.0;
-      pair_interaction(i, j, delx, dely, delz, rsq, x, v, angmom, f, torque, fnc_t, s, evdwl,
-                       facc);
+        if (EVFLAG)
+          ev_tally_xyz_thr(this, i, j, nlocal, NEWTON_PAIR, EFLAG ? evdwl : 0.0, 0.0, facc[0],
+                           facc[1], facc[2], delx, dely, delz, thr);
+      }
 
-      if (EVFLAG)
-        ev_tally_xyz_thr(this, i, j, nlocal, NEWTON_PAIR, EFLAG ? evdwl : 0.0, 0.0, facc[0],
-                         facc[1], facc[2], delx, dely, delz, thr);
+      if (history) {
+        touch[jj] = s.touched;
+        if (!s.touched) s.shear[0] = s.shear[1] = s.shear[2] = 0.0;
+      }
     }
   }
 }

@@ -38,6 +38,7 @@ class PairBodyRoundedPolygon : public Pair {
   double memory_usage() override;
   int pack_reverse_comm(int, int, double *) override;
   void unpack_reverse_comm(int, int *, double *) override;
+  void reset_dt() override;
 
   struct Contact {
     int ibody, jbody;     // body (i.e. atom) indices (not tags)
@@ -55,6 +56,9 @@ class PairBodyRoundedPolygon : public Pair {
   struct Scratch {
     std::vector<Contact> contacts;    // vertex-edge contacts
     std::vector<int> vertex_done;     // flags for the vertices already interacted with
+    double *shear;                    // tangential displacement of the pair, or nullptr
+    int shear_i;                      // body the tangential displacement refers to
+    int touched;                      // 1 if the tangential displacement was updated
   };
 
  protected:
@@ -65,6 +69,11 @@ class PairBodyRoundedPolygon : public Pair {
   double mu;           // normal friction coefficient during gross sliding
   double delta_ua;     // contact line (area for 3D models) modification factor
   double cut_inner;    // cutoff for interaction between vertex-edge surfaces
+  double **k_t;        // tangential stiffness of the contact history
+  int history;         // 1 if the tangential displacement of the contacts is stored
+  double dt;           // time step, for the update of the tangential displacement
+  char *id_history;    // ID of fix NEIGH_HISTORY with the tangential displacements
+  class FixNeighHistory *fix_history;
 
   class AtomVecBody *avec;
   class BodyRoundedPolygon *bptr;
@@ -107,8 +116,8 @@ class PairBodyRoundedPolygon : public Pair {
   // sphere-sphere interaction
   void sphere_against_sphere(int i, int j, double delx, double dely, double delz, double rsq,
                              double k_n, double k_na, double **x, double **v, double **angmom,
-                             double **f, double **torque, double **fnc, double &evdwl,
-                             double *facc);
+                             double **f, double **torque, double **fnc, Scratch &s,
+                             double &evdwl, double *facc);
   // vertex-edge interaction
   int vertex_against_edge(int i, int j, double k_n, double k_na, double **x, double **f,
                           double **torque, tagint *tag, Scratch &s, double &evdwl,
@@ -122,14 +131,18 @@ class PairBodyRoundedPolygon : public Pair {
   // compute contact forces if contact points are detected
   void contact_forces(Contact &contact, double j_a, int friction, double **x, double **v,
                       double **angmom, double **f, double **torque, double **fnc, double &evdwl,
-                      double *facc);
+                      double *facc, Scratch &s);
   // contact point between the rounded surfaces of two bodies
   void contact_point(const double *pi, const double *pj, const double *n, double rradi,
                      double rradj, double *pc);
   // damping and friction forces at a contact point
   void damping_friction(int ibody, int jbody, double *pc, const double *n, double fne,
                         int damping, int friction, double **x, double **v, double **angmom,
-                        double **f, double **torque, double **fnc, int iref, double *facc);
+                        double **f, double **torque, double **fnc, int iref, double *facc,
+                        Scratch *hs = nullptr);
+  void tangential_spring(int ibody, int jbody, const double *n, const double *vt, double fne,
+                         Scratch &s, double *fs);
+  void history_dummy_fix(int flag);
   // normal force and energy at a given surface separation
   double normal_force(double R, double k_n, double k_na, double &fe, double &fc);
 

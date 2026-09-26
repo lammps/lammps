@@ -38,6 +38,7 @@ class PairBodyRoundedPolyhedron : public Pair {
   double memory_usage() override;
   int pack_reverse_comm(int, int, double *) override;
   void unpack_reverse_comm(int, int *, double *) override;
+  void reset_dt() override;
 
   virtual void kernel_force(double R, int itype, int jtype, double &energy, double &fpair);
   // elastic and cohesive parts of the normal force, returns the energy
@@ -63,6 +64,9 @@ class PairBodyRoundedPolyhedron : public Pair {
     std::vector<double> reach;        // extent of the vertices towards the other body
     int ibody, jbody;                 // the two bodies of the pair
     double reach_min_i, reach_min_j;  // minimum reach of an interacting feature
+    double *shear;                    // tangential displacement of the pair, or nullptr
+    int shear_i;                      // body the tangential displacement refers to
+    int touched;                      // 1 if the tangential displacement was updated
   };
 
  protected:
@@ -73,6 +77,11 @@ class PairBodyRoundedPolyhedron : public Pair {
   double mu;           // normal friction coefficient during gross sliding
   double A_ua;         // characteristic contact area
   double cut_inner;    // cutoff for interaction between vertex-edge surfaces
+  double **k_t;        // tangential stiffness of the contact history
+  int history;         // 1 if the tangential displacement of the contacts is stored
+  double dt;           // time step, for the update of the tangential displacement
+  char *id_history;    // ID of fix NEIGH_HISTORY with the tangential displacements
+  class FixNeighHistory *fix_history;
 
   class AtomVecBody *avec;
   class BodyRoundedPolyhedron *bptr;
@@ -122,8 +131,8 @@ class PairBodyRoundedPolyhedron : public Pair {
   // sphere-sphere interaction
   void sphere_against_sphere(int ibody, int jbody, int itype, int jtype, double delx, double dely,
                              double delz, double rsq, double **x, double **v, double **angmom,
-                             double **f, double **torque, double **fnc, double &evdwl,
-                             double *facc);
+                             double **f, double **torque, double **fnc, Scratch &s,
+                             double &evdwl, double *facc);
   // sphere-edge interaction
   void sphere_against_edge(int ibody, int jbody, int itype, int jtype, double **x, double **v,
                            double **f, double **torque, double **angmom, double **fnc,
@@ -177,11 +186,17 @@ class PairBodyRoundedPolyhedron : public Pair {
   // damping and friction forces at a contact point
   void damping_friction(int ibody, int jbody, const double *pc, const double *n, double fne,
                         int damping, int friction, double **x, double **v, double **angmom,
-                        double **f, double **torque, double **fnc, int iref, double *facc);
+                        double **f, double **torque, double **fnc, int iref, double *facc,
+                        Scratch *hs = nullptr);
   // friction force at the contact with the largest overlap
   void friction_force(Contact &contact, int itype, int jtype, double **x, double **v,
                       double **angmom, double **f, double **torque, double **fnc, int iref,
-                      double *facc);
+                      double *facc, Scratch &s);
+  // friction force from a tangential spring with the contact history
+  void tangential_spring(int ibody, int jbody, const double *n, const double *vt, double fne,
+                         Scratch &s, double *fs);
+  // create or delete the placeholder of fix NEIGH_HISTORY
+  void history_dummy_fix(int flag);
 
   // compute force and torque between two bodies given a pair of interacting points
   void pair_force_and_torque(int ibody, int jbody, double *pi, double *pj, double r,

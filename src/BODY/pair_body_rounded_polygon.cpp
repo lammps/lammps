@@ -27,6 +27,7 @@
 #include "comm.h"
 #include "error.h"
 #include "fix.h"
+#include "fix_neigh_history.h"
 #include "fix_store_atom.h"
 #include "force.h"
 #include "group.h"
@@ -90,6 +91,18 @@ PairBodyRoundedPolygon::PairBodyRoundedPolygon(LAMMPS *lmp) :
   c_t = 0.2;
   mu = 0.0;
   delta_ua = 1.0;
+
+  k_t = nullptr;
+
+  // the tangential displacement is stored only if requested, see settings()
+  // the surfaces of two bodies interact beyond contact up to cut_inner,
+  // so the history is kept for all pairs in the neighbor list
+
+  history = 0;
+  dt = 0.0;
+  id_history = nullptr;
+  fix_history = nullptr;
+  beyond_contact = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -112,12 +125,19 @@ PairBodyRoundedPolygon::~PairBodyRoundedPolygon()
   if (id_fix_store && modify) modify->delete_fix(id_fix_store);
   delete[] id_fix_store;
 
+  if (modify) {
+    if (fix_history) modify->delete_fix(id_history);
+    else history_dummy_fix(0);
+  }
+  delete[] id_history;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
 
     memory->destroy(k_n);
     memory->destroy(k_na);
+    memory->destroy(k_t);
     memory->destroy(maxrad);
   }
 }
@@ -183,6 +203,16 @@ void PairBodyRoundedPolygon::compute(int eflag, int vflag)
   for (i = 0; i < nall; i++)
     for (int k = 0; k < NFNC; k++) fnc[i][k] = 0.0;
 
+  // tangential displacements of the pairs in the neighbor list
+
+  int *touch = nullptr, **firsttouch = nullptr;
+  double *allshear = nullptr, **firstshear = nullptr;
+  if (history) {
+    firsttouch = fix_history->firstflag;
+    firstshear = fix_history->firstvalue;
+  }
+  scratch.shear = nullptr;
+
   // loop over neighbors of my atoms
 
   for (ii = 0; ii < inum; ii++) {
@@ -193,6 +223,10 @@ void PairBodyRoundedPolygon::compute(int eflag, int vflag)
     radi = radius[i];
     jlist = firstneigh[i];
     jnum = numneigh[i];
+    if (history) {
+      touch = firsttouch[i];
+      allshear = firstshear[i];
+    }
 
     if ((body[i] >= 0) && (dnum[i] == 0)) body2space(i);
 
@@ -215,6 +249,14 @@ void PairBodyRoundedPolygon::compute(int eflag, int vflag)
 
       if (dnum[j] == 0) body2space(j);
 
+      // the tangential displacement is reset unless the pair is in contact
+
+      if (history) {
+        scratch.shear = &allshear[3*jj];
+        scratch.shear_i = i;
+        scratch.touched = 0;
+      }
+
       // no interaction
 
       // note: body/rounded/polyhedron additionally skips the pairs, and the
@@ -229,13 +271,18 @@ void PairBodyRoundedPolygon::compute(int eflag, int vflag)
       // still help for dilute systems.
 
       r = sqrt(rsq);
-      if (r > radi + radj + cut_inner) continue;
+      if (r <= radi + radj + cut_inner) {
+        pair_interaction(i, j, delx, dely, delz, rsq, x, v, angmom, f, torque, fnc,
+                         scratch, evdwl, facc);
 
-      pair_interaction(i, j, delx, dely, delz, rsq, x, v, angmom, f, torque, fnc,
-                       scratch, evdwl, facc);
+        if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,evdwl,0.0,
+                                 facc[0],facc[1],facc[2],delx,dely,delz);
+      }
 
-      if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,evdwl,0.0,
-                               facc[0],facc[1],facc[2],delx,dely,delz);
+      if (history) {
+        touch[jj] = scratch.touched;
+        if (!scratch.touched) scratch.shear[0] = scratch.shear[1] = scratch.shear[2] = 0.0;
+      }
 
     } // end for jj
   }
@@ -270,7 +317,7 @@ void PairBodyRoundedPolygon::pair_interaction(int i, int j, double delx, double 
 
   if (npi == 1 && npj == 1) {
     sphere_against_sphere(i, j, delx, dely, delz, rsq, k_nij, k_naij, x, v, angmom, f, torque,
-                          fnc, evdwl, facc);
+                          fnc, s, evdwl, facc);
     return;
   }
 
@@ -321,10 +368,10 @@ void PairBodyRoundedPolygon::pair_interaction(int i, int j, double delx, double 
     if ((n0 >= 0) && (contacts[n0].separation < contacts[m0].separation)) friction_m = 0;
 
     contact_forces(contacts[m0], j_a, friction_m, x, v, angmom, f, torque, fnc, evdwl,
-                   (contacts[m0].ibody == i) ? facc : fj);
+                   (contacts[m0].ibody == i) ? facc : fj, s);
     if (n0 >= 0)
       contact_forces(contacts[n0], j_a, 1 - friction_m, x, v, angmom, f, torque, fnc, evdwl,
-                     (contacts[n0].ibody == i) ? facc : fj);
+                     (contacts[n0].ibody == i) ? facc : fj, s);
 
     #ifdef _POLYGON_DEBUG
     printf("  Contacts %d and %d: j_a = %f\n", m0, n0, j_a);
@@ -433,6 +480,7 @@ void PairBodyRoundedPolygon::allocate()
 
   memory->create(k_n,n+1,n+1,"pair:k_n");
   memory->create(k_na,n+1,n+1,"pair:k_na");
+  memory->create(k_t,n+1,n+1,"pair:k_t");
   memory->create(maxrad,n+1,"pair:maxrad");
 }
 
@@ -451,6 +499,39 @@ void PairBodyRoundedPolygon::settings(int narg, char **arg)
   cut_inner = utils::numeric(FLERR,arg[4],false,lmp);
 
   if (delta_ua < 0) delta_ua = 1;
+
+  int history_one = 0;
+  int iarg = 5;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg],"history") == 0) {
+      history_one = 1;
+      iarg++;
+    } else error->all(FLERR, iarg, "Unknown pair_style body/rounded/polygon keyword {}",
+                      arg[iarg]);
+  }
+
+  // create a placeholder for fix NEIGH_HISTORY, which replaces it in init_style(),
+  // so that the order of the fixes follows the input, or remove the history
+
+  if (history_one && !history) {
+    history_dummy_fix(1);
+  } else if (!history_one && history) {
+    if (fix_history) modify->delete_fix(id_history);
+    else history_dummy_fix(0);
+    fix_history = nullptr;
+  }
+  history = history_one;
+}
+
+/* ----------------------------------------------------------------------
+   create (flag = 1) or delete (flag = 0) the placeholder of fix NEIGH_HISTORY
+------------------------------------------------------------------------- */
+
+void PairBodyRoundedPolygon::history_dummy_fix(int flag)
+{
+  std::string id_dummy = "NEIGH_HISTORY_BODY_DUMMY" + std::to_string(instance_me);
+  if (flag) modify->add_fix(id_dummy + " all DUMMY");
+  else if (modify->get_fix_by_id(id_dummy)) modify->delete_fix(id_dummy);
 }
 
 /* ----------------------------------------------------------------------
@@ -470,11 +551,21 @@ void PairBodyRoundedPolygon::coeff(int narg, char **arg)
   double k_n_one = utils::numeric(FLERR,arg[2],false,lmp);
   double k_na_one = utils::numeric(FLERR,arg[3],false,lmp);
 
+  // the tangential stiffness defaults to 2/7 of the normal stiffness,
+  // as in pair style gran/hooke/history
+
+  double k_t_one = 2.0/7.0 * k_n_one;
+  if (narg == 5) k_t_one = utils::numeric(FLERR,arg[4],false,lmp);
+  if (k_t_one < 0.0)
+    error->all(FLERR, 4, "Tangential stiffness of pair style body/rounded/polygon "
+               "must not be negative");
+
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
     for (int j = MAX(jlo,i); j <= jhi; j++) {
       k_n[i][j] = k_n_one;
       k_na[i][j] = k_na_one;
+      k_t[i][j] = k_t_one;
       setflag[i][j] = 1;
       count++;
     }
@@ -502,7 +593,30 @@ void PairBodyRoundedPolygon::init_style()
   if (comm->ghost_velocity == 0)
     error->all(FLERR,"Pair body/rounded/polygon requires ghost atoms store velocity");
 
-  neighbor->add_request(this);
+  // the neighbor list keeps the regular cutoff, which includes cut_inner,
+  // also with the contact history
+
+  if (history) neighbor->add_request(this, NeighConst::REQ_HISTORY);
+  else neighbor->add_request(this);
+
+  dt = update->dt;
+
+  // on the first init, fix NEIGH_HISTORY replaces the placeholder created in
+  // settings(), so that its position in the list of fixes is preserved
+
+  if (history) {
+    delete[] id_history;
+    id_history = utils::strdup(fmt::format("NEIGH_HISTORY_BODY{}", instance_index()));
+    if (!fix_history) {
+      fix_history = dynamic_cast<FixNeighHistory *>(
+        modify->replace_fix("NEIGH_HISTORY_BODY_DUMMY" + std::to_string(instance_me),
+                            fmt::format("{} all NEIGH_HISTORY 3", id_history), 1));
+      fix_history->pair = this;
+    } else {
+      fix_history = dynamic_cast<FixNeighHistory *>(modify->get_fix_by_id(id_history));
+      if (!fix_history) error->all(FLERR, "Could not find pair fix neigh history ID");
+    }
+  }
 
   // per-atom storage of the forces and torques that do not derive
   // from the energy at the previous step, see work_nonconservative()
@@ -591,6 +705,7 @@ double PairBodyRoundedPolygon::init_one(int i, int j)
 {
   k_n[j][i] = k_n[i][j];
   k_na[j][i] = k_na[i][j];
+  k_t[j][i] = k_t[i][j];
 
   // the surfaces of two bodies interact up to cut_inner
 
@@ -695,7 +810,7 @@ void PairBodyRoundedPolygon::sphere_against_sphere(int i, int j,
                        double delx, double dely, double delz, double rsq,
                        double k_n, double k_na, double** x, double** v,
                        double** angmom, double** f, double** torque,
-                       double** fnc, double &evdwl, double* facc)
+                       double** fnc, Scratch &s, double &evdwl, double* facc)
 {
   double rradi,rradj;
   double rij,R,fx,fy,fz,fpair,fe,fc,energy;
@@ -735,7 +850,7 @@ void PairBodyRoundedPolygon::sphere_against_sphere(int i, int j,
     double n[3] = {delx/rij, dely/rij, delz/rij};
     double pc[3];
     contact_point(x[i], x[j], n, rradi, rradj, pc);
-    damping_friction(i, j, pc, n, fe, 1, 1, x, v, angmom, f, torque, fnc, i, facc);
+    damping_friction(i, j, pc, n, fe, 1, 1, x, v, angmom, f, torque, fnc, i, facc, &s);
   }
 }
 
@@ -1285,7 +1400,7 @@ int PairBodyRoundedPolygon::compute_distance_to_vertex(int ibody,
 void PairBodyRoundedPolygon::contact_forces(Contact& contact, double j_a,
                        int friction, double** x, double** v, double** angmom, double** f,
                        double** torque, double** fnc, double &/*evdwl*/,
-                       double* facc)
+                       double* facc, Scratch &s)
 {
   int ibody = contact.ibody;
   int jbody = contact.jbody;
@@ -1333,7 +1448,7 @@ void PairBodyRoundedPolygon::contact_forces(Contact& contact, double j_a,
 
   double fne = MathExtra::len3(contact.fe);
   damping_friction(ibody, jbody, pc, n, fne, 1, friction, x, v, angmom, f, torque, fnc,
-                   ibody, facc);
+                   ibody, facc, &s);
 }
 
 /* ----------------------------------------------------------------------
@@ -1351,12 +1466,69 @@ void PairBodyRoundedPolygon::contact_point(const double *pi, const double *pj,
 }
 
 /* ----------------------------------------------------------------------
+  Friction force at a contact point from a tangential spring, with the
+  tangential displacement xi of the pair of bodies stored in s.shear,
+  see e.g. Luding, Granular Matter 10, 235 (2008):
+  xi is rotated into the tangent plane of the contact normal n, keeping its
+  magnitude, since the normal changes, also when the contact with the largest
+  overlap moves to another vertex or edge, and xi is incremented by the
+  tangential relative velocity vt times dt.  The spring force -k_t xi is
+  limited to mu times the elastic normal force fne, and then xi is reduced
+  accordingly (sliding).
+  the force on body ibody is added to fs, xi refers to body s.shear_i
+------------------------------------------------------------------------- */
+
+void PairBodyRoundedPolygon::tangential_spring(int ibody, int jbody, const double *n,
+                                               const double *vt, double fne, Scratch &s,
+                                               double *fs)
+{
+  double sign = (ibody == s.shear_i) ? 1.0 : -1.0;
+  double xi[3], ft[3];
+  for (int k = 0; k < 3; k++) xi[k] = sign * s.shear[k];
+
+  double xin = MathExtra::dot3(xi, n);
+  double mag = MathExtra::len3(xi);
+  for (int k = 0; k < 3; k++) xi[k] -= xin * n[k];
+  double magt = MathExtra::len3(xi);
+  if (magt > 0.0) MathExtra::scale3(mag/magt, xi);
+
+  if (!update->setupflag)
+    for (int k = 0; k < 3; k++) xi[k] += vt[k] * dt;
+
+  double kt = k_t[atom->type[ibody]][atom->type[jbody]];
+  for (int k = 0; k < 3; k++) ft[k] = -kt * xi[k];
+
+  double ftmag = MathExtra::len3(ft);
+  double ftmax = mu * MAX(fne, 0.0);
+  if (ftmag > ftmax) {
+    double scale = ftmax / ftmag;
+    MathExtra::scale3(scale, ft);
+    MathExtra::scale3(scale, xi);
+  }
+
+  for (int k = 0; k < 3; k++) {
+    fs[k] += ft[k];
+    s.shear[k] = sign * xi[k];
+  }
+  s.touched = 1;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairBodyRoundedPolygon::reset_dt()
+{
+  dt = update->dt;
+}
+
+/* ----------------------------------------------------------------------
   Damping and friction forces at the contact point pc between two bodies,
   from the relative velocity of the two bodies at that point:
     damping:  -c_n v_n - c_t v_t
     friction: magnitude mu * fne with the elastic normal force fne, opposite
               to v_t, capped by c_t * |v_t| so that it vanishes smoothly
               as sliding stops, see Eq. 4, Fraige et al.
+              with the contact history, the friction force is that of a
+              tangential spring instead, see tangential_spring()
   n = unit normal pointing from jbody to ibody
   the forces act at pc on both bodies, so that they exert torques
   the total force on body iref is accumulated to facc
@@ -1364,7 +1536,8 @@ void PairBodyRoundedPolygon::contact_point(const double *pi, const double *pj,
 
 void PairBodyRoundedPolygon::damping_friction(int ibody, int jbody, double *pc,
   const double *n, double fne, int damping, int friction, double** x, double** v,
-  double** angmom, double** f, double** torque, double** fnc, int iref, double* facc)
+  double** angmom, double** f, double** torque, double** fnc, int iref, double* facc,
+  Scratch *hs)
 {
   double vi[3], vj[3], vr[3], vn[3], vt[3], fdiss[3];
   AtomVecBody::Bonus *bonus;
@@ -1386,7 +1559,9 @@ void PairBodyRoundedPolygon::damping_friction(int ibody, int jbody, double *pc,
     for (int k = 0; k < 3; k++) fdiss[k] = -c_n * vn[k] - c_t * vt[k];
 
   double vtmag = MathExtra::len3(vt);
-  if (friction && (fne > 0.0) && (vtmag > 0.0)) {
+  if (friction && hs && hs->shear) {
+    tangential_spring(ibody, jbody, n, vt, fne, *hs, fdiss);
+  } else if (friction && (fne > 0.0) && (vtmag > 0.0)) {
     double scale = MIN(mu * fne, c_t * vtmag) / vtmag;
     for (int k = 0; k < 3; k++) fdiss[k] -= scale * vt[k];
   }

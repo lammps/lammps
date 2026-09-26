@@ -38,9 +38,9 @@ these steps:
    the changes from .zprofile automatically.
 
    Note: the above assumes you use the default shell (zsh) that comes with
-   MacOS. If you customized MacOS to use a different shell, you'll need to
+   macOS. If you customized macOS to use a different shell, you'll need to
    modify that shell's init file (.cshrc, .bashrc, etc.) instead with
-   appropiate commands to modify the same environment variables.
+   appropriate commands to modify the same environment variables.
 
 5. Try running LAMMPS (which might fail, see step 7)
 
@@ -61,9 +61,15 @@ these steps:
 
 7. Give permission to execute the commands (lmp, lammps-gui, msi2lmp, binary2txt, phana, stl_bin2txt)
 
-   MacOS will likely block the initial run of the executables, since they were
-   downloaded from the internet and are missing a known signature from an
-   identified developer. Go to "Settings" and search for "Security settings".
-   It should display a message that an executable like "lmp" was blocked. Press
-   "Open anyway", which might prompt you for your admin credentials. Afterwards
-   "lmp" and the other executables should work as expected.
+   If the dmg file was downloaded with Safari, macOS will likely block running
+   any of the included executables, since they were downloaded from the internet
+   and are missing a known signature from an identified developer.  After
+   executing any of them once and getting it blocked, go to o to "Settings"
+   and search for "Security settings".  It should display a message that
+   an executable like "lmp" was blocked.  Click on  "Open anyway", which might
+   prompt you for your admin credentials.  Afterwards "lmp" and the other
+   executables should work as expected.
+
+  This complication can be avoided by downloading the .dmg file from a terminal
+  window with curl, with the following (replacing <version> with the LAMMPS version):
+  curl -OL https://github.com/lammps/lammps/releases/download/<version>/LAMMPS-macOS-multiarch-GUI-<version>.dmg

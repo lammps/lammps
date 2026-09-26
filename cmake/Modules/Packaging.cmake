@@ -31,7 +31,6 @@ if(EXISTS /usr/musl/share/cmake/linux-musl.cmake)
     COMMAND /usr/musl/bin/x86_64-linux-musl-strip -g ${CMAKE_BINARY_DIR}/lammps-static/bin/*
     COMMAND ${CMAKE_COMMAND} -E tar czvf lammps-linux-x86_64-${LAMMPS_RELEASE}.tar.gz lammps-static
     COMMENT "Building fully static Linux binaries with MUSL"
-    VERBATIM
     WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
     BYPRODUCTS lammps-linux-x86_64-${PROJECT_VERSION}.tar.gz)
 else()

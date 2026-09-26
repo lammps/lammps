@@ -40,6 +40,7 @@
 
 #include "fmt/format.h"
 
+#include <cmath>
 #include <cstdio>
 #include <exception>
 #include <iostream>
@@ -118,7 +119,10 @@ static void run_and_check(LAMMPS *lmp, const TestConfig &cfg, double epsilon,
     const bool has_angmom = lmp->atom->angmom_flag;
 
     for (std::size_t i = 0; i < cfg.run_segments.size(); ++i) {
+        // capture only the LAMMPS output, so that failure messages are not swallowed
+        if (!verbose) ::testing::internal::CaptureStdout();
         command("run " + std::to_string(cfg.run_segments[i]) + " post no");
+        if (!verbose) ::testing::internal::GetCapturedStdout();
         const std::string tag = label + ", seg " + std::to_string(i);
 
         if (i < cfg.seg_pos.size())
@@ -134,6 +138,18 @@ static void run_and_check(LAMMPS *lmp, const TestConfig &cfg, double epsilon,
 
         check_analytic_model(cfg, lmp, (int) i);
     }
+}
+
+// format one per-atom reference row: segment, tag, and a 3-vector.
+// avoid false positives on tiny values (e.g. from floating-point noise
+// in quantities that should be zero). force them to zero instead.
+static std::string format_row(std::size_t seg, tagint id, const double *vec)
+{
+    auto clean = [](double val) {
+        return (fabs(val) < 1.0e-13) ? 0.0 : val;
+    };
+    return fmt::format("{:3} {:3} {:23.16e} {:23.16e} {:23.16e}\n", seg, id, clean(vec[0]),
+                       clean(vec[1]), clean(vec[2]));
 }
 
 // re-generate yaml file with current settings.
@@ -236,19 +252,11 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
         const int local = lmp->atom->nlocal;
         for (int j = 0; j < local; ++j) {
             const tagint id = tag[j];
-            pos_block += fmt::format("{:3} {:3} {:23.16e} {:23.16e} {:23.16e}\n", i, id, x[j][0],
-                                     x[j][1], x[j][2]);
-            vel_block += fmt::format("{:3} {:3} {:23.16e} {:23.16e} {:23.16e}\n", i, id, v[j][0],
-                                     v[j][1], v[j][2]);
-            if (has_torque)
-                torque_block += fmt::format("{:3} {:3} {:23.16e} {:23.16e} {:23.16e}\n", i, id,
-                                            t[j][0], t[j][1], t[j][2]);
-            if (has_omega)
-                omega_block += fmt::format("{:3} {:3} {:23.16e} {:23.16e} {:23.16e}\n", i, id,
-                                           w[j][0], w[j][1], w[j][2]);
-            if (has_angmom)
-                angmom_block += fmt::format("{:3} {:3} {:23.16e} {:23.16e} {:23.16e}\n", i, id,
-                                            angmom[j][0], angmom[j][1], angmom[j][2]);
+            pos_block += format_row(i, id, x[j]);
+            vel_block += format_row(i, id, v[j]);
+            if (has_torque) torque_block += format_row(i, id, t[j]);
+            if (has_omega) omega_block += format_row(i, id, w[j]);
+            if (has_angmom) angmom_block += format_row(i, id, angmom[j]);
         }
     }
     writer->emit_block("run_pos", pos_block);
@@ -304,10 +312,7 @@ void run_dem_trajectory_test(bool newton, const std::string &label)
     }
 
     double epsilon = test_config.epsilon;
-
-    if (!verbose) ::testing::internal::CaptureStdout();
     run_and_check(lmp, test_config, epsilon, label);
-    if (!verbose) ::testing::internal::GetCapturedStdout();
 
     if (!verbose) ::testing::internal::CaptureStdout();
     cleanup_lammps(lmp, test_config);

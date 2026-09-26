@@ -164,6 +164,30 @@ if(BUILD_LAMMPS_GUI)
       COMMAND ${CMAKE_COMMAND} -E echo "The flatpak and flatpak-builder commands required to build a LAMMPS-GUI flatpak bundle were not found. Skipping.")
   endif()
 
+  # build tarball with fully static LAMMPS executables
+  if(EXISTS /usr/musl/share/cmake/linux-musl.cmake)
+    add_custom_target(musl
+      ${CMAKE_COMMAND} -E remove_directory ${CMAKE_BINARY_DIR}/lammps-static ${CMAKE_BINARY_DIR}/build-musl
+      COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/lammps-static
+      COMMAND ${CMAKE_COMMAND} -S ${LAMMPS_DIR}/cmake -B ${CMAKE_BINARY_DIR}/build-musl -G Ninja
+      -D CMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/lammps-static
+      -D CMAKE_TOOLCHAIN_FILE=/usr/musl/share/cmake/linux-musl.cmake
+      -D BUILD_MPI=OFF -D BUILD_TESTING=OFF -D CMAKE_BUILD_TYPE=Release
+      -C cmake/presets/most.cmake -C cmake/presets/kokkos-openmp.cmake -D DOWNLOAD_POTENTIALS=OFF
+      -D PKG_MANIFOLD=ON -D PKG_MESONT=ON -D PKG_MGPT=ON -D PKG_ML-PACE=ON -D PKG_APIP=ON
+      -D PKG_ML-RUNNER=ON -D PKG_PTM=ON -D PKG_QTB=ON -D PKG_SMTBQ=ON -D PREFER_INTERNAL_LINALG=ON
+      COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/build-musl --target all
+      COMMAND ${CMAKE_COMMAND} --install ${CMAKE_BINARY_DIR}/build-musl
+      COMMAND /usr/musl/bin/x86_64-linux-musl-strip -g ${CMAKE_BINARY_DIR}/lammps-static/bin/*
+      COMMAND ${CMAKE_COMMAND} -E tar czvf lammps-linux-x86_64-${PROJECT_VERSION}.tar.gz lammps-static
+      COMMENT "Building fully static Linux binaries with MUSL"
+      WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
+      BYPRODUCTS lammps-linux-x86_64-${PROJECT_VERSION}.tar.gz)
+  else()
+    add_custom_target(musl
+      COMMAND ${CMAKE_COMMAND} -E echo "Could not find the musl Linux-2-Linux compiler in /usr/musl. Skipping.")
+  endif()
+
   if(APPLE)
     file(STRINGS ${LAMMPS_DIR}/src/version.h line REGEX LAMMPS_VERSION)
     string(REGEX REPLACE "#define LAMMPS_VERSION \"([0-9]+) ([A-Za-z][A-Za-z][A-Za-z])[A-Za-z]* ([0-9]+)\""

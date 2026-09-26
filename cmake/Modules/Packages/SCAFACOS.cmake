@@ -24,8 +24,8 @@ if(DOWNLOAD_SCAFACOS)
     "https://github.com/scafacos/scafacos/releases/download/v1.0.4/scafacos-1.0.4.tar.gz"
     "6634c4202e825e771d1dd75bbe9cac5cee41136c87653fde98fbd634681c1be6")
   GetFallbackURL(SCAFACOS_URL SCAFACOS_FALLBACK)
-  set(SCAFACOS_CXX_FLAGS "${CMAKE_CXX_FLAGS_${CMAKE_BUILD_TYPE}} ${CMAKE_CXX_FLAGS}")
-  set(SCAFACOS_C_FLAGS "${CMAKE_C_FLAGS_${CMAKE_BUILD_TYPE}} ${CMAKE_C_FLAGS}")
+  set(SCAFACOS_CXX_FLAGS "${CMAKE_CXX_FLAGS_${BTYPE}} ${CMAKE_CXX_FLAGS}")
+  set(SCAFACOS_C_FLAGS "${CMAKE_C_FLAGS_${BTYPE}} ${CMAKE_C_FLAGS}")
 
   include(ExternalProject)
   ExternalProject_Add(scafacos_build

@@ -11,7 +11,7 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   pair_style body/rounded/polygon c_n c_t mu delta_ua cutoff
+   pair_style body/rounded/polygon c_n c_t mu delta_ua cutoff keyword
 
 .. parsed-literal::
 
@@ -20,6 +20,9 @@ Syntax
    mu = normal friction coefficient during gross sliding
    delta_ua = multiple contact scaling factor
    cutoff = global separation cutoff for interactions (distance units), see below for definition
+   zero or more keywords may be appended
+   keyword = *history*
+     *history* = keep track of the tangential deformation at the contacts (no value)
 
 Examples
 """"""""
@@ -29,6 +32,9 @@ Examples
    pair_style body/rounded/polygon 20.0 5.0 0.0 1.0 0.5
    pair_coeff * * 100.0 1.0
    pair_coeff 1 1 100.0 1.0
+
+   pair_style body/rounded/polygon 20.0 5.0 0.5 1.0 0.5 history
+   pair_coeff * * 100.0 1.0 30.0
 
 Description
 """""""""""
@@ -119,10 +125,10 @@ In :ref:`Fraige <pair-Fraige>`, the tangential friction force between two
 particles that are in contact is modeled differently prior to gross
 sliding (i.e. static friction) and during gross-sliding (kinetic
 friction).  The latter takes place when the tangential deformation
-exceeds the Coulomb frictional limit.  In the current implementation,
-however, we do not take into account frictional history, i.e. we do
-not keep track of how many time steps the two particles have been in
-contact nor calculate the tangential deformation.  Instead, we assume
+exceeds the Coulomb frictional limit.  Unless the *history* keyword is
+used (see below), we do not take into account frictional history, i.e.
+we do not keep track of how many time steps the two particles have been
+in contact nor calculate the tangential deformation.  Instead, we assume
 that gross sliding takes place as soon as two particles are in
 contact.
 
@@ -146,17 +152,49 @@ also applies to disks.  Each
 vertex now interacts with a single edge of the other particle, selected
 as described above, instead of with all edges within the cutoff.
 
+.. versionadded:: TBD
+
+With the *history* keyword, the friction force is instead that of a
+tangential spring, which also acts prior to gross sliding.  The
+tangential deformation :math:`\xi` of each pair of particles in contact
+is accumulated from the tangential relative velocity at the contact
+point with the largest overlap, :math:`\xi \leftarrow \xi + v_t \Delta t`,
+and the friction force is
+
+.. math::
+
+   F_t = -k_t \xi - c_t v_t
+
+with a magnitude of the spring force :math:`k_t |\xi|` of at most
+:math:`\mu k_n |\delta_n|`.  Once the spring force exceeds this limit,
+the particles slide and :math:`\xi` is reduced accordingly.  Since the
+contact normal changes as the particles move and rotate, and also when
+the contact with the largest overlap moves to another vertex or edge,
+:math:`\xi` is rotated into the current tangent direction at each time
+step, keeping its magnitude, following Eq. 17 of
+:ref:`Luding <pair-body-polygon-Luding>`.  The tangential deformation
+is reset to zero when the particles are no longer in contact.  As in
+:doc:`pair_style gran/hooke/history <pair_gran>`, the tangential
+deformations are stored by an internal fix NEIGH_HISTORY.  The damping
+forces at the other contacts are unchanged.  This extends the model of
+:ref:`Fraige <pair-Fraige>` and makes static packings of particles with
+friction possible.
+
 The following coefficients must be defined for each pair of atom types
 via the :doc:`pair_coeff <pair_coeff>` command as in the examples above,
 or in the data file read by the :doc:`read_data <read_data>` command:
 
 * :math:`k_n` (energy/distance\^2 units)
 * :math:`k_{na}` (energy/distance\^2 units)
+* :math:`k_t` (energy/distance\^2 units) (optional)
 
 Effectively, :math:`k_n - k_{na}` and :math:`k_{na}` are the magnitudes
 of the slopes of the lines in the plot above for force versus surface
 separation, for :math:`\delta_n < 0` and :math:`0 < \delta_n < r_c`
-respectively.
+respectively.  The tangential stiffness :math:`k_t` is used only with
+the *history* keyword.  If it is not specified, it is set to
+:math:`\frac{2}{7} k_n` as in :doc:`pair_style gran/hooke/history
+<pair_gran>`.
 
 ----------
 
@@ -207,7 +245,8 @@ derive from the reported pair energy:
 
 #. the part of the contact forces added by their scaling with the
    contact size (controlled by *delta_ua*),
-#. the damping and friction forces (controlled by *c_n*, *c_t*, and *mu*).
+#. the damping and friction forces (controlled by *c_n*, *c_t*, and *mu*),
+   including the tangential spring with the *history* keyword.
 
 The first one exists because the model scales the contact forces but not
 the energy.  The kinetic plus potential energy minus these two
@@ -230,7 +269,10 @@ keyword *ke* includes only the translational part.
    variable ebal equal v_etot-c_wp[1]-c_wp[2]
 
 This pair style does not write its information to :doc:`binary restart files <restart>`.  Thus, you need to re-specify the pair_style and
-pair_coeff commands in an input script that reads a restart file.
+pair_coeff commands in an input script that reads a restart file.  With
+the *history* keyword, the tangential deformations at the contacts are
+written to the restart file and are used again when the pair style is
+re-specified with the *history* keyword.
 
 This pair style can only be used via the *pair* keyword of the
 :doc:`run_style respa <run_style>` command.  It does not support the
@@ -253,9 +295,14 @@ Related commands
 Default
 """""""
 
-none
+The *history* keyword is not used, and :math:`k_t = \frac{2}{7} k_n`.
 
 .. _pair-Fraige:
 
 **(Fraige)** F. Y. Fraige, P. A. Langston, A. J. Matchett, J. Dodds,
 Particuology, 6, 455 (2008).
+
+.. _pair-body-polygon-Luding:
+
+**(Luding)** S. Luding, Cohesive, frictional powders: contact models for
+tension, Granular Matter, 10, 235 (2008).

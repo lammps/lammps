@@ -24,7 +24,7 @@ Syntax
          lo,hi = position of lower and upper plane (distance units), either can be NULL)
 
 * zero or more keyword/value pairs may be appended to args
-* keyword = *wiggle*
+* keyword = *wiggle* or *history*
 
   .. parsed-literal::
 
@@ -32,6 +32,9 @@ Syntax
          dim = *x* or *y* or *z*
          amplitude = size of oscillation (distance units)
          period = time of oscillation (time units)
+       *history* values = mu k_t
+         mu = friction coefficient between the wall and the particles
+         k_t = tangential stiffness (same units as k_n), or NULL for 2/7 k_n
 
 Examples
 """"""""
@@ -39,6 +42,7 @@ Examples
 .. code-block:: LAMMPS
 
    fix 1 all wall/body/polygon 1000.0 20.0 5.0 xplane -10.0 10.0
+   fix 1 all wall/body/polygon 1000.0 20.0 5.0 yplane 0.0 NULL history 0.5 NULL
 
 Description
 """""""""""
@@ -63,8 +67,9 @@ by the wall with the force :math:`k_n (r_v - d)`, when its signed distance
 radius :math:`r_v`, also when the vertex has moved past the wall.  The
 damping forces act at the contact point between the rounded surface and
 the wall, using the velocity of the particle at that point relative to the
-wall, so that they also exert torques.  There is no cohesion and no
-friction force with the wall, and the contact forces are not scaled by
+wall, so that they also exert torques.  There is no cohesion with the
+wall, and no friction force unless the *history* keyword is used (see
+below), and the contact forces are not scaled by
 the size of the contact region.  Previously, a vertex that had moved past
 the wall was no longer repelled, or even pushed further out, and in 2d
 the wall forces were scaled by the length of the contact region.
@@ -96,6 +101,28 @@ the *amplitude*, *omega* is 2 PI / *period*, and *delta* is the time
 elapsed since the fix was specified.  The velocity of the wall is set
 to the derivative of this expression.
 
+.. versionadded:: TBD
+
+With the *history* keyword, the wall also exerts a friction force from a
+tangential spring on the particles, similar to the *history* keyword of
+:doc:`pair_style body/rounded/polygon <pair_body_rounded_polygon>` between
+two particles.  The tangential deformation :math:`\xi` of a particle
+touching the wall is accumulated from its tangential velocity relative
+to the wall, :math:`\xi \leftarrow \xi + v_t \Delta t`, and the
+friction force is :math:`-k_t \xi`, with a magnitude of at most
+:math:`\mu F_n`, where :math:`F_n` is the sum of the elastic normal
+forces of all vertices of the particle touching the wall.  Once the
+spring force exceeds this limit, the particle slides and :math:`\xi` is
+reduced accordingly.  The friction force acts at the average of the
+contact points of these vertices, weighted by their elastic normal
+forces, and :math:`v_t` is the velocity of the particle at that point,
+so that a particle resting with an edge on the wall is not subject to a
+spurious torque.  The tangential deformation is reset to zero when the
+particle no longer touches the wall.  If *k_t* is specified as NULL, it
+is set to :math:`\frac{2}{7} k_n` as for the pair style.  The damping
+forces are unchanged.  This allows particles to stay at rest on the
+wall, e.g. under gravity that is inclined with respect to the wall.
+
 -----------------
 
 Dump image info
@@ -126,6 +153,14 @@ rendered cylinders.
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
+With the *history* keyword, this fix writes the tangential deformations
+of the particles touching the wall to :doc:`binary restart files
+<restart>`, so that a simulation can continue correctly.  See the
+:doc:`read_restart <read_restart>` command for info on how to re-specify
+a fix in an input script that reads a restart file, so that the
+operation of the fix continues in an uninterrupted fashion.  Otherwise
+no information about this fix is written to binary restart files.
+
 None of the :doc:`fix_modify <fix_modify>` options are relevant to this
 fix.  No global or per-atom quantities are stored by this fix for access
 by various :doc:`output commands <Howto_output>`.  No parameter of this
@@ -151,4 +186,4 @@ Related commands
 Default
 """""""
 
-none
+The *history* keyword is not used.

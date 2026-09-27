@@ -46,7 +46,7 @@ class PairBodyRoundedPolyhedron : public Pair {
 
   struct Contact {
     int ibody, jbody;     // body (i.e. atom) indices (not tags)
-    int type;             // 0 = VERTEX-FACE; 1 = EDGE-EDGE
+    int type;             // 0 = VERTEX-FACE; 1 = EDGE-EDGE; 2 = FACE-FACE
     double fx, fy, fz;    // unscaled cohesive forces at contact
     double xi[3];         // coordinates of the contact point on ibody
     double xj[3];         // coordinates of the contact point on jbody
@@ -54,6 +54,8 @@ class PairBodyRoundedPolyhedron : public Pair {
     double r;             // distance used to normalize xi - xj into the force direction,
                           // negative when jbody has crossed a face or an edge of ibody
     int unique;
+    double w;             // weight of the contact, see vertex_face_weight()
+    int patch;            // 1 for a corner of a region of overlap, see face_face_patches()
   };
 
   // scratch space for the interaction of a pair of bodies, one per thread
@@ -70,6 +72,7 @@ class PairBodyRoundedPolyhedron : public Pair {
     double fnsum;                     // sum of the elastic normal forces of the contacts
     double pcsum[3], vtsum[3], nsum[3];    // contact points, tangential velocities, and
                                            // normals weighted by the elastic normal forces
+    std::vector<double> patch;        // factors of the pairs of faces, see face_face_patches()
   };
 
  protected:
@@ -152,9 +155,21 @@ class PairBodyRoundedPolyhedron : public Pair {
   int edge_edge_nearest(int ibody, int ei, int jbody, int ej, double *hi, double *hj, double &r,
                         int &crossed);
   // normal cones of the vertices and edges, to validate the direction of a contact
-  int vertex_cone(int ibody, int nv, const double *d) const;
+  int vertex_cone(int ibody, int nv, const double *d, const double *ul = nullptr) const;
   int edge_cone(int ibody, int ne, const double *d) const;
-  int vertex_edges_interact(int ibody, int ni, int jbody, int ej, int nj);
+  // geometry of the faces and weights of the contacts, see vertex_face_weight()
+  int face_size(int ibody, int nf) const;
+  void face_normal(int ibody, int nf, double *n) const;
+  double patch_factor(const double *n1, const double *n2) const;
+  void face_face_patches(int ibody, int jbody, int itype, int jtype, double **x, double **v,
+                         double **f, double **torque, double **angmom, double **fnc,
+                         Scratch &s, double &evdwl, double *facc);
+  int face_has(int ibody, int nf, int nv, int ne) const;
+  double feature_patch_factor(const Scratch &s, int ibody, int iv, int ie, int jbody, int jv,
+                              int je, int jf) const;
+  double vertex_face_weight(const Scratch &s, int ibody, int nv, int jbody, int nf) const;
+  double edge_edge_weight(const Scratch &s, int ibody, int ei, int jbody, int ej) const;
+  double vertex_edges_weight(const Scratch &s, int ibody, int ni, int jbody, int ej, int nj);
   // vertex-edge and vertex-vertex interactions
   void vertex_against_edge(int ibody, int jbody, int itype, int jtype, double **x, double **v,
                            double **f, double **torque, double **angmom, double **fnc,
@@ -187,7 +202,7 @@ class PairBodyRoundedPolyhedron : public Pair {
   // compute contact forces if contact points are detected
   void contact_forces(int ibody, int jbody, double *xi, double *xj, double delx, double dely,
                       double delz, double r, double **x, double **v, double **angmom,
-                      double **f, double **torque, double **fnc, double *facc);
+                      double **f, double **torque, double **fnc, double *facc, double w);
   // contact point between the rounded surfaces of two bodies
   void contact_point(const double *pi, const double *pj, const double *n, double rradi,
                      double rradj, double *pc);
@@ -195,7 +210,7 @@ class PairBodyRoundedPolyhedron : public Pair {
   void damping_friction(int ibody, int jbody, const double *pc, const double *n, double fne,
                         int damping, int friction, double **x, double **v, double **angmom,
                         double **f, double **torque, double **fnc, int iref, double *facc,
-                        Scratch *hs = nullptr);
+                        Scratch *hs = nullptr, double w = 1.0);
   // friction force at the contact with the largest overlap
   void friction_force(Contact &contact, int itype, int jtype, double **x, double **v,
                       double **angmom, double **f, double **torque, double **fnc, int iref,
@@ -217,12 +232,12 @@ class PairBodyRoundedPolyhedron : public Pair {
   void pair_force_and_torque(int ibody, int jbody, double *pi, double *pj, double r,
                              double contact_dist, int itype, int jtype, double **x, double **v,
                              double **f, double **torque, double **angmom, double **fnc,
-                             int jflag, double &energy, double *facc);
+                             int jflag, double &energy, double *facc, double w);
 
   // rescale the cohesive forces if a contact area is detected
   void rescale_cohesive_forces(double **x, double **f, double **torque, double **fnc,
                                std::vector<Contact> &contacts, int itype, int jtype, int iref,
-                               double *facc);
+                               double &evdwl, double *facc);
 
   // compute the separation between two contacts
   double contact_separation(const Contact &c1, const Contact &c2);

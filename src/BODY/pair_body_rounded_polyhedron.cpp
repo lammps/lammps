@@ -43,14 +43,18 @@
 
 #include <cmath>
 #include <cstring>
+#include <utility>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
 
 static constexpr int DELTA = 10000;
+static constexpr double BIG = 1.0e20;
 static constexpr double EPSILON = 1.0e-3; // dimensionless threshold (dot products, end point checks, contact checks)
 static constexpr double PARALLEL_TOL = 1.0e-12;   // 1 - |cos| below which two edges are parallel
 static constexpr double CONE_TOL = 1.0e-10;       // tolerance of the normal cone tests
+static constexpr double PATCH_ANGLE = 5.0 * DEG2RAD;   // see patch_factor()
+static constexpr double LINE_ANGLE = 5.0 * DEG2RAD;    // see edge_edge_weight()
 static constexpr int MAX_FACE_SIZE = 4;   // maximum number of vertices per face (same as BodyRoundedPolyhedron)
 static constexpr int NFNC = 12;           // per-body force and torque of the j_a scaling, and of damping
 static constexpr char id_fix_store_prefix[] = "BODY_ROUNDED_POLYHEDRON_WORK_";
@@ -404,6 +408,11 @@ void PairBodyRoundedPolyhedron::pair_interaction(int i, int j, double delx, doub
 
   double fj[3] = {0.0, 0.0, 0.0};
 
+  // corners of the regions of overlap of nearly parallel faces, first, since
+  // the weights of the other contacts depend on them, see vertex_face_weight()
+
+  face_face_patches(i, j, itype, jtype, x, v, f, torque, angmom, fnc, s, evdwl, facc);
+
   // check interaction between i's edges and j' faces
   #ifdef _POLYHEDRON_DEBUG
   printf("INTERACTION between edges of %d vs. faces of %d:\n", i, j);
@@ -433,11 +442,12 @@ void PairBodyRoundedPolyhedron::pair_interaction(int i, int j, double delx, doub
   edge_against_edge(i, j, itype, jtype, x, v, f, torque, angmom,
                     fnc, s, evdwl, fj);
 
+
   // estimate the contact area
   // also consider point contacts and line contacts
 
   if (!contacts.empty()) {
-    rescale_cohesive_forces(x, f, torque, fnc, contacts, itype, jtype, i, facc);
+    rescale_cohesive_forces(x, f, torque, fnc, contacts, itype, jtype, i, evdwl, facc);
 
     // one friction force per pair of bodies, see friction_forces()
 
@@ -1028,6 +1038,8 @@ void PairBodyRoundedPolyhedron::sphere_point_contact(int ibody, int jbody,
     c.separation = R;
     c.r = rij;
     c.unique = 1;
+    c.patch = 0;
+    c.w = 1.0;
     s.contacts.push_back(c);
   }
 
@@ -1101,7 +1113,8 @@ int PairBodyRoundedPolyhedron::face_near(const Scratch &s, int ibody, int nf) co
    are in contact also if not nearest, when the faces are inclined
 ------------------------------------------------------------------------- */
 
-int PairBodyRoundedPolyhedron::vertex_cone(int ibody, int nv, const double *d) const
+int PairBodyRoundedPolyhedron::vertex_cone(int ibody, int nv, const double *d,
+                                           const double *ul) const
 {
   int ifirst = dfirst[ibody];
   int iefirst = edfirst[ibody];
@@ -1116,7 +1129,14 @@ int PairBodyRoundedPolyhedron::vertex_cone(int ibody, int nv, const double *d) c
     else if (nb == nv) nw = na;
     else continue;
     MathExtra::sub3(discrete[ifirst+nw], discrete[ifirst+nv], e);
-    if (MathExtra::dot3(d, e) > CONE_TOL * dlen * MathExtra::len3(e)) return 0;
+    double elen = MathExtra::len3(e);
+
+    // an edge nearly parallel to the direction ul of an edge of the other body
+    // touches it along a line, whose end is the vertex, see edge_edge_weight()
+
+    if (ul && (fabs(MathExtra::dot3(e, ul)) > cos(LINE_ANGLE) * elen * MathExtra::len3(ul)))
+      continue;
+    if (MathExtra::dot3(d, e) > CONE_TOL * dlen * elen) return 0;
   }
   return 1;
 }
@@ -1158,6 +1178,557 @@ int PairBodyRoundedPolyhedron::edge_cone(int ibody, int ne, const double *d) con
     if (MathExtra::dot3(d, tf) > CONE_TOL * dlen * MathExtra::len3(tf)) return 0;
   }
   return 1;
+}
+
+/* ----------------------------------------------------------------------
+   Geometry of the faces of body ibody, in the space frame relative to its
+   center: number of vertices and outward unit normal
+------------------------------------------------------------------------- */
+
+int PairBodyRoundedPolyhedron::face_size(int ibody, int nf) const
+{
+  int iffirst = facfirst[ibody];
+  int n = 0;
+  while ((n < MAX_FACE_SIZE) && (static_cast<int>(face[iffirst+nf][n]) >= 0)) n++;
+  return n;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void PairBodyRoundedPolyhedron::face_normal(int ibody, int nf, double *n) const
+{
+  int ifirst = dfirst[ibody];
+  int iffirst = facfirst[ibody];
+  double *x1 = discrete[ifirst+static_cast<int>(face[iffirst+nf][0])];
+  double *x2 = discrete[ifirst+static_cast<int>(face[iffirst+nf][1])];
+  double *x3 = discrete[ifirst+static_cast<int>(face[iffirst+nf][2])];
+  double u[3], v[3];
+  MathExtra::sub3(x2, x1, u);
+  MathExtra::sub3(x3, x1, v);
+  MathExtra::cross3(u, v, n);
+  MathExtra::norm3(n);
+
+  // the center of the body is at the origin, inside the body
+
+  if (MathExtra::dot3(x1, n) < 0.0) MathExtra::negate3(n);
+}
+
+/* ----------------------------------------------------------------------
+   Weights of the contacts, which scale their forces and energies.
+   Two nearly parallel faces touch over the region where they overlap, which
+   the contacts represent by its corners: the vertices of either face inside
+   the other face, and the crossings of their edges.  The number of corners
+   changes, e.g. when a vertex crosses an edge of the other face and two
+   crossings replace it, or when one face is rotated against the other,
+   which adds crossings near the middle of the edges, where the region
+   hardly turns.  So these regions are found as polygons, and each corner is
+   weighted by the exterior angle of the polygon there, divided by kappa =
+   2 pi / (the larger number of vertices of the two faces), see
+   face_face_patches(): since the exterior angles of a polygon add up to
+   2 pi, the weights of the corners always add up to the same total and
+   change continuously, a corner where the region hardly turns has a small
+   weight, and the corners of a face inside a face of the same shape have
+   a weight of one.  The regions apply fully up to half of PATCH_ANGLE
+   between the faces, see patch_factor(), and fade out as they get narrower
+   than the contact distance, or as the faces penetrate each other by more
+   than the contact distance, see face_face_patches().  The other contacts
+   are part of such a region to the same extent, and only the remaining
+   weight applies to them, see feature_patch_factor().
+   Similarly, two nearly parallel edges touch along the overlap of the edges,
+   which the vertex contacts at its ends represent, while a crossing of the
+   edges represents it once the edges are clearly inclined.  So the weight of
+   a crossing grows from zero for parallel edges to one at an angle of
+   LINE_ANGLE, see edge_edge_weight(), and the contacts of the vertices of
+   the crossing edges keep the remaining weight, see vertex_edges_weight().
+------------------------------------------------------------------------- */
+
+static double smoothstep(double x)
+{
+  if (x <= 0.0) return 0.0;
+  if (x >= 1.0) return 1.0;
+  return x * x * (3.0 - 2.0 * x);
+}
+
+/* ----------------------------------------------------------------------
+   factor for the weights of the corners of a region of overlap of two
+   faces with the outward normals n1 and n2, from the angle between the
+   faces: one up to half of PATCH_ANGLE, zero from PATCH_ANGLE on
+------------------------------------------------------------------------- */
+
+double PairBodyRoundedPolyhedron::patch_factor(const double *n1, const double *n2) const
+{
+  double c = -MathExtra::dot3(n1, n2);
+  if (c <= cos(PATCH_ANGLE)) return 0.0;
+  double phi = acos(MIN(1.0, c));
+  return 1.0 - smoothstep(2.0 * phi / PATCH_ANGLE - 1.0);
+}
+
+/* ----------------------------------------------------------------------
+   vertex of the polygon of a region of overlap of two faces i and j, see
+   face_face_patches(), with coordinates u, v, its origin, and the line of
+   the edge from it to the next vertex:
+     type = 0: vertex a of face j, 1: vertex a of face i, 2: crossing of edge
+            a of face j with edge b of face i, 3: on the boundary of the range
+     src = 0: edge srci of face j, 1: edge srci of face i, 2: boundary of the range
+   edge k of a face runs from its vertex k to vertex k+1
+------------------------------------------------------------------------- */
+
+namespace {
+struct PatchVertex {
+  double u, v;
+  int type, a, b;
+  int src, srci;
+};
+
+/* ----------------------------------------------------------------------
+   clip the convex polygon poly with np vertices by the half-plane
+   hu*u + hv*v + h0 >= 0 along edge line of face i (line >= 0) or along the
+   boundary of the range (line < 0), using the storage work, merge vertices
+   closer than tol, and return the number of vertices of the clipped polygon
+   nvi = number of vertices of face i
+------------------------------------------------------------------------- */
+
+double closest_segments(const double *p1, const double *q1, const double *p2, const double *q2,
+                        double *c1, double *c2);
+
+int clip_patch(PatchVertex *poly, int np, double hu, double hv, double h0, int line, int nvi,
+               PatchVertex *work, double tol)
+{
+  int nw = 0;
+  for (int m = 0; m < np; m++) {
+    PatchVertex &pp = poly[m];
+    PatchVertex &pq = poly[(m+1) % np];
+    double sp = hu*pp.u + hv*pp.v + h0;
+    double sq = hu*pq.u + hv*pq.v + h0;
+    if (sp >= 0.0) work[nw++] = pp;
+    if ((sp >= 0.0) != (sq >= 0.0)) {
+      PatchVertex &pn = work[nw++];
+      double t = sp / (sp - sq);
+      pn.u = pp.u + t*(pq.u - pp.u);
+      pn.v = pp.v + t*(pq.v - pp.v);
+
+      // intersection of the line of the edge from pp with the clipping line
+
+      pn.type = 3;
+      pn.a = pn.b = -1;
+      if (line >= 0) {
+        if (pp.src == 0) {
+          pn.type = 2;
+          pn.a = pp.srci;
+          pn.b = line;
+        } else if (pp.src == 1) {
+          if (line == (pp.srci+1) % nvi) {
+            pn.type = 1;
+            pn.a = line;
+          } else if (pp.srci == (line+1) % nvi) {
+            pn.type = 1;
+            pn.a = pp.srci;
+          }
+        }
+      }
+
+      // the edge from the intersection runs along the clipping line when
+      // leaving the half-plane, else along the edge from pp
+
+      if (sp >= 0.0) {
+        pn.src = (line >= 0) ? 1 : 2;
+        pn.srci = line;
+      } else {
+        pn.src = pp.src;
+        pn.srci = pp.srci;
+      }
+    }
+  }
+
+  // merge vertices that coincide, e.g. a vertex on an edge, keeping the edge
+  // from the last of them
+
+  int n = 0;
+  for (int m = 0; m < nw; m++) {
+    if ((n > 0) && (fabs(work[m].u - poly[n-1].u) < tol) && (fabs(work[m].v - poly[n-1].v) < tol)) {
+      poly[n-1].src = work[m].src;
+      poly[n-1].srci = work[m].srci;
+      continue;
+    }
+    poly[n++] = work[m];
+  }
+  if ((n > 1) && (fabs(poly[n-1].u - poly[0].u) < tol) && (fabs(poly[n-1].v - poly[0].v) < tol))
+    n--;
+  return n;
+}
+
+/* ----------------------------------------------------------------------
+   closest points c1 on the segment p1-q1 and c2 on the segment p2-q2,
+   return their distance, see e.g. Ericson, Real-Time Collision Detection
+------------------------------------------------------------------------- */
+
+double closest_segments(const double *p1, const double *q1, const double *p2, const double *q2,
+                        double *c1, double *c2)
+{
+  double d1[3], d2[3], r[3];
+  MathExtra::sub3(q1, p1, d1);
+  MathExtra::sub3(q2, p2, d2);
+  MathExtra::sub3(p1, p2, r);
+  double a = MathExtra::dot3(d1, d1);
+  double e = MathExtra::dot3(d2, d2);
+  double f = MathExtra::dot3(d2, r);
+  double s, t;
+  if ((a == 0.0) && (e == 0.0)) {
+    s = t = 0.0;
+  } else if (a == 0.0) {
+    s = 0.0;
+    t = MAX(0.0, MIN(1.0, f / e));
+  } else {
+    double cc = MathExtra::dot3(d1, r);
+    if (e == 0.0) {
+      t = 0.0;
+      s = MAX(0.0, MIN(1.0, -cc / a));
+    } else {
+      double b = MathExtra::dot3(d1, d2);
+      double denom = a*e - b*b;
+      s = (denom > 0.0) ? MAX(0.0, MIN(1.0, (b*f - cc*e) / denom)) : 0.0;
+      t = (b*s + f) / e;
+      if (t < 0.0) {
+        t = 0.0;
+        s = MAX(0.0, MIN(1.0, -cc / a));
+      } else if (t > 1.0) {
+        t = 1.0;
+        s = MAX(0.0, MIN(1.0, (b - cc) / a));
+      }
+    }
+  }
+  for (int k = 0; k < 3; k++) {
+    c1[k] = p1[k] + s*d1[k];
+    c2[k] = p2[k] + t*d2[k];
+  }
+  return sqrt(MathExtra::distsq3(c1, c2));
+}
+}    // namespace
+
+/* ----------------------------------------------------------------------
+   Corners of the regions of overlap of the nearly parallel faces of body
+   ibody and body jbody, see the weights above: both faces are projected onto
+   the plane halfway between them, with the unit normal nm from body i to
+   body j, and the face of body j is clipped by the face of body i and by the
+   range of interaction.  Each corner of the clipped polygon interacts with
+   the weight patch_factor() times its exterior angle over kappa, like the
+   vertex of one face at the corner with the other face, along the normal of
+   that face, or like the two edges crossing at the corner, along their
+   common normal, so that the forces derive from the energy of the corner.
+   Since all corners follow from the same polygon, a vertex of one face that
+   crosses an edge of the other face passes its exterior angle exactly on to
+   the two crossings that replace it, also when the faces are not exactly
+   parallel, and the corners on the boundary of the range do not interact.
+   The factors of the pairs of faces are stored in s.patch for the weights
+   of the other contacts, see feature_patch_factor(), which follow.
+   the total force on body i is accumulated to facc
+------------------------------------------------------------------------- */
+
+void PairBodyRoundedPolyhedron::face_face_patches(int ibody, int jbody, int itype, int jtype,
+  double** x, double** v, double** f, double** torque, double** angmom, double** fnc,
+  Scratch &s, double &evdwl, double* facc)
+{
+  static constexpr int MAXP = 2*MAX_FACE_SIZE + 2;   // vertices of a clipped polygon
+  int ifirst = dfirst[ibody];
+  int jfirst = dfirst[jbody];
+  int iffirst = facfirst[ibody];
+  int jffirst = facfirst[jbody];
+  double contact_dist = rounded_radius[ibody] + rounded_radius[jbody];
+  double tol = EPSILON*EPSILON*EPSILON*MAX(enclosing_radius[ibody], enclosing_radius[jbody]);
+  double energy = 0.0;
+  double ni[3], nj[3], nm[3], e1[3], e2[3], o[3], q[3], pa[3], pb[3], xa[3], xb[3];
+  double vi[MAX_FACE_SIZE][3], vj[MAX_FACE_SIZE][3], pi2[MAX_FACE_SIZE][2];
+  PatchVertex poly[MAXP], work[MAXP];
+
+  // factors of the pairs of faces, see feature_patch_factor()
+
+  int nfj = facnum[jbody];
+  s.patch.assign(facnum[ibody]*nfj, 0.0);
+
+  for (int fi = 0; fi < facnum[ibody]; fi++) {
+    if (!face_near(s, ibody, fi)) continue;
+    face_normal(ibody, fi, ni);
+    for (int fj = 0; fj < facnum[jbody]; fj++) {
+      if (!face_near(s, jbody, fj)) continue;
+      face_normal(jbody, fj, nj);
+      double sp = patch_factor(ni, nj);
+      if (sp <= 0.0) continue;
+
+      // plane halfway between the faces with the basis e1, e2, and the
+      // center o of face i as origin
+
+      MathExtra::sub3(ni, nj, nm);
+      MathExtra::norm3(nm);
+      double ax[3] = {1.0, 0.0, 0.0};
+      if (fabs(nm[0]) > 0.9) {
+        ax[0] = 0.0;
+        ax[1] = 1.0;
+      }
+      MathExtra::cross3(nm, ax, e1);
+      MathExtra::norm3(e1);
+      MathExtra::cross3(nm, e1, e2);
+
+      // vertices of both faces in space, and their projections, oriented
+      // counterclockwise
+
+      int nvi = face_size(ibody, fi);
+      int nvj = face_size(jbody, fj);
+      o[0] = o[1] = o[2] = 0.0;
+      for (int k = 0; k < nvi; k++) {
+        MathExtra::add3(x[ibody], discrete[ifirst+static_cast<int>(face[iffirst+fi][k])], vi[k]);
+        MathExtra::add3(o, vi[k], o);
+      }
+      MathExtra::scale3(1.0/nvi, o);
+      for (int k = 0; k < nvj; k++)
+        MathExtra::add3(x[jbody], discrete[jfirst+static_cast<int>(face[jffirst+fj][k])], vj[k]);
+      MathExtra::copy3(vi[0], xa);
+      MathExtra::copy3(vj[0], xb);
+
+      double areai = 0.0, areaj = 0.0;
+      for (int k = 0; k < nvi; k++) {
+        MathExtra::sub3(vi[k], o, q);
+        pi2[k][0] = MathExtra::dot3(q, e1);
+        pi2[k][1] = MathExtra::dot3(q, e2);
+      }
+      for (int k = 0; k < nvj; k++) {
+        MathExtra::sub3(vj[k], o, q);
+        poly[k].u = MathExtra::dot3(q, e1);
+        poly[k].v = MathExtra::dot3(q, e2);
+      }
+      for (int k = 0; k < nvi; k++) {
+        int kn = (k+1) % nvi;
+        areai += pi2[k][0]*pi2[kn][1] - pi2[kn][0]*pi2[k][1];
+      }
+      for (int k = 0; k < nvj; k++) {
+        int kn = (k+1) % nvj;
+        areaj += poly[k].u*poly[kn].v - poly[kn].u*poly[k].v;
+      }
+      if (areai < 0.0)
+        for (int k = 0; k < nvi/2; k++) {
+          std::swap(pi2[k][0], pi2[nvi-1-k][0]);
+          std::swap(pi2[k][1], pi2[nvi-1-k][1]);
+          for (int m = 0; m < 3; m++) std::swap(vi[k][m], vi[nvi-1-k][m]);
+        }
+      if (areaj < 0.0)
+        for (int k = 0; k < nvj/2; k++) {
+          std::swap(poly[k], poly[nvj-1-k]);
+          for (int m = 0; m < 3; m++) std::swap(vj[k][m], vj[nvj-1-k][m]);
+        }
+      for (int k = 0; k < nvj; k++) {
+        poly[k].type = 0;
+        poly[k].a = k;
+        poly[k].b = -1;
+        poly[k].src = 0;
+        poly[k].srci = k;
+      }
+
+      // clip the face of body j by the edges of the face of body i, and by the
+      // range of interaction, where the gap between the planes of the faces
+      // along nm is linear in the coordinates on the plane
+
+      double cni = MathExtra::dot3(nm, ni);
+      double cnj = MathExtra::dot3(nm, nj);
+      double g[3];
+      MathExtra::sub3(xb, o, q);
+      g[0] = MathExtra::dot3(q, nj) / cnj;
+      MathExtra::sub3(xa, o, q);
+      g[0] -= MathExtra::dot3(q, ni) / cni;
+      g[1] = MathExtra::dot3(e1, ni) / cni - MathExtra::dot3(e1, nj) / cnj;
+      g[2] = MathExtra::dot3(e2, ni) / cni - MathExtra::dot3(e2, nj) / cnj;
+
+      int np = nvj;
+      for (int k = 0; (k <= nvi) && (np > 0); k++) {
+
+        // half-plane hu*u + hv*v + h0 >= 0
+
+        double hu, hv, h0;
+        if (k < nvi) {
+          double *pa2 = pi2[k];
+          double *pb2 = pi2[(k+1) % nvi];
+          hu = -(pb2[1] - pa2[1]);
+          hv = pb2[0] - pa2[0];
+          h0 = -(hu*pa2[0] + hv*pa2[1]);
+        } else {
+          hu = -g[1];
+          hv = -g[2];
+          h0 = contact_dist + cut_inner - g[0];
+        }
+        np = clip_patch(poly, np, hu, hv, h0, (k < nvi) ? k : -1, nvi, work, tol);
+      }
+      if (np < 3) continue;
+
+      // the regions of overlap fade out as they get narrower than the
+      // contact distance, e.g. for a body sliding off the face of another,
+      // or two parallel faces that meet at their edges only, and as the faces
+      // penetrate each other by more than the contact distance, which the
+      // contacts of their vertices and edges then represent
+
+      double gmin = BIG;
+      for (int k = 0; k < np; k++) gmin = MIN(gmin, g[0] + g[1]*poly[k].u + g[2]*poly[k].v);
+      sp *= smoothstep(1.0 + gmin / contact_dist);
+
+      double width = BIG;
+      for (int k = 0; k < np; k++) {
+        PatchVertex &pk = poly[k];
+        PatchVertex &pn = poly[(k+1) % np];
+        double ex = pn.u - pk.u, ey = pn.v - pk.v;
+        double elen = sqrt(ex*ex + ey*ey);
+        if (elen == 0.0) continue;
+        double dmax = 0.0;
+        for (int m = 0; m < np; m++)
+          dmax = MAX(dmax, (ex*(poly[m].v - pk.v) - ey*(poly[m].u - pk.u)) / elen);
+        width = MIN(width, dmax);
+      }
+      sp *= smoothstep(width / contact_dist);
+      s.patch[fi*nfj+fj] = sp;
+      if (sp <= 0.0) continue;
+
+      // corners of the region of overlap, with the geometry of the contact of
+      // their vertex with the other face, or of their two crossing edges, whose
+      // forces derive from their energy
+
+      double kappa = MY_2PI / MAX(nvi, nvj);
+      for (int k = 0; k < np; k++) {
+        PatchVertex &pp = poly[(k+np-1) % np];
+        PatchVertex &pc = poly[k];
+        PatchVertex &pn = poly[(k+1) % np];
+        if (pc.type == 3) continue;
+        double d1x = pc.u - pp.u, d1y = pc.v - pp.v;
+        double d2x = pn.u - pc.u, d2y = pn.v - pc.v;
+        double ext = atan2(d1x*d2y - d1y*d2x, d1x*d2x + d1y*d2y);
+        if (ext <= 0.0) continue;
+        double w = sp * ext / kappa;
+
+        double r;
+        if (pc.type == 0) {
+          MathExtra::sub3(vj[pc.a], xa, q);
+          r = MathExtra::dot3(q, ni);
+          MathExtra::copy3(vj[pc.a], pb);
+          for (int m = 0; m < 3; m++) pa[m] = pb[m] - r*ni[m];
+        } else if (pc.type == 1) {
+          MathExtra::sub3(vi[pc.a], xb, q);
+          r = MathExtra::dot3(q, nj);
+          MathExtra::copy3(vi[pc.a], pa);
+          for (int m = 0; m < 3; m++) pb[m] = pa[m] - r*nj[m];
+        } else {
+
+          // the nearest points of the edges themselves, since those of nearly
+          // parallel lines through the edges may be far away from the edges
+
+          r = closest_segments(vj[pc.a], vj[(pc.a+1) % nvj], vi[pc.b], vi[(pc.b+1) % nvi],
+                               pb, pa);
+          MathExtra::sub3(pb, pa, q);
+          if (MathExtra::dot3(q, nm) < 0.0) r = -r;
+        }
+        if ((r > contact_dist + cut_inner) || (fabs(r) < tol)) continue;
+
+        pair_force_and_torque(ibody, jbody, pa, pb, r, contact_dist, itype, jtype,
+                              x, v, f, torque, angmom, fnc, 1, energy, facc, w);
+
+        if (r <= contact_dist) {
+          Contact c;
+          c.ibody = ibody;
+          c.jbody = jbody;
+          MathExtra::copy3(pa, c.xi);
+          MathExtra::copy3(pb, c.xj);
+          c.type = 2;
+          c.separation = r - contact_dist;
+          c.r = r;
+          c.unique = 1;
+          c.w = w;
+          c.patch = 1;
+          s.contacts.push_back(c);
+        }
+      }
+    }
+  }
+
+  evdwl += energy;
+}
+
+/* ----------------------------------------------------------------------
+   Return 1 if face nf of body ibody contains vertex nv (if nv >= 0) or
+   edge ne (if ne >= 0)
+------------------------------------------------------------------------- */
+
+int PairBodyRoundedPolyhedron::face_has(int ibody, int nf, int nv, int ne) const
+{
+  int iefirst = edfirst[ibody];
+  int iffirst = facfirst[ibody];
+  int na = nv, nb = nv;
+  if (ne >= 0) {
+    na = static_cast<int>(edge[iefirst+ne][0]);
+    nb = static_cast<int>(edge[iefirst+ne][1]);
+  }
+  int hasa = 0, hasb = 0;
+  for (int k = 0; k < face_size(ibody, nf); k++) {
+    int np = static_cast<int>(face[iffirst+nf][k]);
+    if (np == na) hasa = 1;
+    if (np == nb) hasb = 1;
+  }
+  return (hasa && hasb) ? 1 : 0;
+}
+
+/* ----------------------------------------------------------------------
+   largest factor of a region of overlap, see face_face_patches(), of a face
+   of body ibody at vertex iv or edge ie (the other one is -1) and a face of
+   body jbody at vertex jv, edge je, or the face jf (the others are -1): the
+   contact of these two features is part of that region to this extent
+------------------------------------------------------------------------- */
+
+double PairBodyRoundedPolyhedron::feature_patch_factor(const Scratch &s, int ibody, int iv, int ie,
+                                                       int jbody, int jv, int je, int jf) const
+{
+  if (s.patch.empty()) return 0.0;
+  int nfj = facnum[s.jbody];
+  double smax = 0.0;
+  for (int mf = 0; mf < facnum[ibody]; mf++) {
+    if (!face_has(ibody, mf, iv, ie)) continue;
+    for (int nf = 0; nf < facnum[jbody]; nf++) {
+      if (jf >= 0) {
+        if (nf != jf) continue;
+      } else if (!face_has(jbody, nf, jv, je)) continue;
+      double sp = (ibody == s.ibody) ? s.patch[mf*nfj+nf] : s.patch[nf*nfj+mf];
+      smax = MAX(smax, sp);
+    }
+  }
+  return smax;
+}
+
+/* ----------------------------------------------------------------------
+   weight of the contact of vertex nv of body ibody with face nf of body
+   jbody, which is part of a region of overlap of two nearly parallel faces
+   to the extent of feature_patch_factor(), see face_face_patches()
+------------------------------------------------------------------------- */
+
+double PairBodyRoundedPolyhedron::vertex_face_weight(const Scratch &s, int ibody, int nv, int jbody,
+                                                     int nf) const
+{
+  return 1.0 - feature_patch_factor(s, ibody, nv, -1, jbody, -1, -1, nf);
+}
+
+/* ----------------------------------------------------------------------
+   weight of the contact at the crossing of edge ei of body ibody and edge
+   ej of body jbody: the crossing of two edges, whose weight vanishes for
+   parallel edges, see above, unless it is part of a region of overlap of
+   two nearly parallel faces next to the edges, see face_face_patches()
+------------------------------------------------------------------------- */
+
+double PairBodyRoundedPolyhedron::edge_edge_weight(const Scratch &s, int ibody, int ei, int jbody,
+                                                   int ej) const
+{
+  int ifirst = dfirst[ibody];
+  int jfirst = dfirst[jbody];
+  int iefirst = edfirst[ibody];
+  int jefirst = edfirst[jbody];
+  double ui[3], uj[3];
+  MathExtra::sub3(discrete[ifirst+static_cast<int>(edge[iefirst+ei][1])],
+                  discrete[ifirst+static_cast<int>(edge[iefirst+ei][0])], ui);
+  MathExtra::sub3(discrete[jfirst+static_cast<int>(edge[jefirst+ej][1])],
+                  discrete[jfirst+static_cast<int>(edge[jefirst+ej][0])], uj);
+  double c = fabs(MathExtra::dot3(ui, uj)) / (MathExtra::len3(ui) * MathExtra::len3(uj));
+  double wline = smoothstep(acos(MIN(1.0, c)) / LINE_ANGLE);
+  return (1.0 - feature_patch_factor(s, ibody, -1, ei, jbody, -1, ej, -1)) * wline;
 }
 
 /* ----------------------------------------------------------------------
@@ -1212,30 +1783,34 @@ int PairBodyRoundedPolyhedron::edges_interact(int ibody, int ei, int jbody, int 
 }
 
 /* ----------------------------------------------------------------------
-   Return 1 if an edge of body ibody that ends at vertex ni interacts with
-   edge ej of body jbody, or with an edge of body jbody that ends at vertex
-   nj if ej < 0: then the contact is represented by an edge-edge interaction
+   Return the largest weight of the edge-edge interactions of an edge of body
+   ibody that ends at vertex ni with edge ej of body jbody, or with an edge
+   of body jbody that ends at vertex nj if ej < 0, zero if there is none:
+   the contact of the vertex is represented by these edge-edge interactions
+   to the extent of their weight, see edge_edge_weight(), e.g. fully when an
+   edge crosses the other edge near the vertex, and not at all for a vertex
+   at the end of two parallel edges, whose crossing has a weight of zero
 ------------------------------------------------------------------------- */
 
-int PairBodyRoundedPolyhedron::vertex_edges_interact(int ibody, int ni, int jbody, int ej,
-                                                     int nj)
+double PairBodyRoundedPolyhedron::vertex_edges_weight(const Scratch &s, int ibody, int ni,
+                                                      int jbody, int ej, int nj)
 {
   int iefirst = edfirst[ibody];
   int jefirst = edfirst[jbody];
+  double wmax = 0.0;
   for (int ei = 0; ei < ednum[ibody]; ei++) {
     if ((static_cast<int>(edge[iefirst+ei][0]) != ni) &&
         (static_cast<int>(edge[iefirst+ei][1]) != ni)) continue;
-    if (ej >= 0) {
-      if (edges_interact(ibody, ei, jbody, ej)) return 1;
-    } else {
-      for (int e = 0; e < ednum[jbody]; e++) {
-        if ((static_cast<int>(edge[jefirst+e][0]) != nj) &&
-            (static_cast<int>(edge[jefirst+e][1]) != nj)) continue;
-        if (edges_interact(ibody, ei, jbody, e)) return 1;
-      }
+    for (int e = 0; e < ednum[jbody]; e++) {
+      if (ej >= 0) {
+        if (e != ej) continue;
+      } else if ((static_cast<int>(edge[jefirst+e][0]) != nj) &&
+                 (static_cast<int>(edge[jefirst+e][1]) != nj)) continue;
+      if (edges_interact(ibody, ei, jbody, e))
+        wmax = MAX(wmax, edge_edge_weight(s, ibody, ei, jbody, e));
     }
   }
-  return 0;
+  return MIN(wmax, 1.0);
 }
 
 /* ----------------------------------------------------------------------
@@ -1275,7 +1850,7 @@ void PairBodyRoundedPolyhedron::vertex_against_edge(int ibody, int jbody,
     // only an edge within the interaction range can be the nearest edge
     // that interacts, so test the more expensive conditions only for those
 
-    double dmin = -1.0;
+    double dmin = -1.0, wmin = 0.0;
     for (int ne = 0; ne < ednum[jbody]; ne++) {
       if (!edge_near(s, jbody, ne)) continue;
       MathExtra::add3(x[jbody], discrete[jfirst+static_cast<int>(edge[jefirst+ne][0])], xj1);
@@ -1298,14 +1873,17 @@ void PairBodyRoundedPolyhedron::vertex_against_edge(int ibody, int jbody,
       double dv[3], dm[3];
       MathExtra::sub3(h, xpi, dv);
       for (int k = 0; k < 3; k++) dm[k] = -dv[k];
-      if (!vertex_cone(ibody, ni, dv) || !edge_cone(jbody, ne, dm)) continue;
+      if (!vertex_cone(ibody, ni, dv, u) || !edge_cone(jbody, ne, dm)) continue;
 
       // an edge ending at the vertex interacts with this edge as an edge,
       // which represents the contact until its nearest point reaches the vertex
 
       if ((dmin < 0.0) || (d < dmin)) {
-        if (vertex_edges_interact(ibody, ni, jbody, ne, -1)) continue;
+        double we = (1.0 - vertex_edges_weight(s, ibody, ni, jbody, ne, -1)) *
+          (1.0 - feature_patch_factor(s, ibody, ni, -1, jbody, -1, ne, -1));
+        if (we <= 0.0) continue;
         dmin = d;
+        wmin = we;
         MathExtra::copy3(h, hmin);
       }
     }
@@ -1317,7 +1895,7 @@ void PairBodyRoundedPolyhedron::vertex_against_edge(int ibody, int jbody,
     if (nearest_face(jbody, x[jbody], xpi, n) < 0.0) continue;
 
     pair_force_and_torque(ibody, jbody, xpi, hmin, dmin, contact_dist, itype, jtype,
-                          x, v, f, torque, angmom, fnc, 1, energy, facc);
+                          x, v, f, torque, angmom, fnc, 1, energy, facc, wmin);
 
     if (dmin <= contact_dist) {
       Contact c;
@@ -1329,6 +1907,8 @@ void PairBodyRoundedPolyhedron::vertex_against_edge(int ibody, int jbody,
       c.separation = dmin - contact_dist;
       c.r = dmin;
       c.unique = 1;
+      c.patch = 0;
+      c.w = wmin;
       contacts.push_back(c);
     }
     vertex_done[ifirst+ni] = 1;
@@ -1367,7 +1947,7 @@ void PairBodyRoundedPolyhedron::vertex_against_vertex(int ibody, int jbody,
     // only a vertex within the interaction range can be the nearest vertex
     // that interacts, so test the more expensive conditions only for those
 
-    double dmin = -1.0;
+    double dmin = -1.0, wmin = 0.0;
     int nmin = -1;
     for (int nj = 0; nj < dnum[jbody]; nj++) {
       if (vertex_done[jfirst+nj]) continue;
@@ -1386,8 +1966,11 @@ void PairBodyRoundedPolyhedron::vertex_against_vertex(int ibody, int jbody,
         if ((!vertex_cone(ibody, ni, dv) || !vertex_cone(jbody, nj, dm)) &&
             (nearest_face(jbody, x[jbody], xpi, n) >= 0.0) &&
             (nearest_face(ibody, x[ibody], xpj, n) >= 0.0)) continue;
-        if (vertex_edges_interact(ibody, ni, jbody, -1, nj)) continue;
+        double we = (1.0 - vertex_edges_weight(s, ibody, ni, jbody, -1, nj)) *
+          (1.0 - feature_patch_factor(s, ibody, ni, -1, jbody, nj, -1, -1));
+        if (we <= 0.0) continue;
         dmin = d;
+        wmin = we;
         nmin = nj;
         MathExtra::copy3(xpj, xmin);
       }
@@ -1396,7 +1979,7 @@ void PairBodyRoundedPolyhedron::vertex_against_vertex(int ibody, int jbody,
     if ((nmin < 0) || (dmin <= 0.0)) continue;
 
     pair_force_and_torque(ibody, jbody, xpi, xmin, dmin, contact_dist, itype, jtype,
-                          x, v, f, torque, angmom, fnc, 1, energy, facc);
+                          x, v, f, torque, angmom, fnc, 1, energy, facc, wmin);
 
     if (dmin <= contact_dist) {
       Contact c;
@@ -1408,6 +1991,8 @@ void PairBodyRoundedPolyhedron::vertex_against_vertex(int ibody, int jbody,
       c.separation = dmin - contact_dist;
       c.r = dmin;
       c.unique = 1;
+      c.patch = 0;
+      c.w = wmin;
       contacts.push_back(c);
     }
     vertex_done[ifirst+ni] = 1;
@@ -1584,11 +2169,14 @@ int PairBodyRoundedPolyhedron::interaction_edge_to_edge(int ibody,
 
   if (crossed) r = -r;
 
+  double w = edge_edge_weight(s, ibody, edge_index_i, jbody, edge_index_j);
+  if (w <= 0.0) return EE_NONE;
+
   double contact_dist = rounded_radius_i + rounded_radius_j;
   int jflag = 1;
   pair_force_and_torque(jbody, ibody, hj, hi, r, contact_dist,
                         jtype, itype, x, v, f, torque, angmom,
-                        fnc, jflag, energy, facc);
+                        fnc, jflag, energy, facc, w);
 
   if (r <= contact_dist) {
     // store the contact info
@@ -1601,6 +2189,8 @@ int PairBodyRoundedPolyhedron::interaction_edge_to_edge(int ibody,
     c.separation = r - contact_dist;
     c.r = r;
     c.unique = 1;
+    c.patch = 0;
+    c.w = w;
     contacts.push_back(c);
   }
   return EE_INTERACT;
@@ -1760,12 +2350,28 @@ int PairBodyRoundedPolyhedron::interaction_face_to_edge(int ibody,
     // and its projection on the face is inside the triangle
     // compute vertex-face interaction and accumulate force/torque to both bodies
 
+    // a vertex interacts only with the face of body i nearest to it, i.e. with
+    // the largest signed distance, see nearest_face(): next to an acute edge
+    // of body i, a vertex may project inside both faces of the edge
+
+    double nc[3];
+    double stol = EPSILON*EPSILON*contact_dist;
+    if (inside1) {
+      double s1 = (xpj1[0]-xi1[0])*n[0] + (xpj1[1]-xi1[1])*n[1] + (xpj1[2]-xi1[2])*n[2];
+      if (s1 < nearest_face(ibody, xmi, xpj1, nc) - stol) inside1 = -1;
+    }
+    if (inside2) {
+      double s2 = (xpj2[0]-xi1[0])*n[0] + (xpj2[1]-xi1[1])*n[1] + (xpj2[2]-xi1[2])*n[2];
+      if (s2 < nearest_face(ibody, xmi, xpj2, nc) - stol) inside2 = -1;
+    }
+
     if (d1 <= contact_dist + cut_inner) {
-      if (inside1) {
+      if (inside1 > 0) {
         if (vertex_done[jfirst+npj1] == 0) {
+          double w = vertex_face_weight(s, jbody, npj1, ibody, face_index);
           pair_force_and_torque(jbody, ibody, xpj1, hi1, d1, contact_dist,
                                 jtype, itype, x, v, f, torque, angmom,
-                                fnc, jflag, energy, facc);
+                                fnc, jflag, energy, facc, w);
           #ifdef _POLYHEDRON_DEBUG
           printf(" - compute pair force between vertex %d from edge %d of body %d "
                  "with face %d of body %d: d1 = %f\n",
@@ -1787,12 +2393,14 @@ int PairBodyRoundedPolyhedron::interaction_face_to_edge(int ibody,
             c.separation = d1 - contact_dist;
             c.r = d1;
             c.unique = 1;
+            c.patch = 0;
+            c.w = w;
             contacts.push_back(c);
           }
 
           vertex_done[jfirst+npj1] = 1;
         }
-      } else {
+      } else if (inside1 == 0) {
         num_outside++;
       }
     }
@@ -1802,11 +2410,12 @@ int PairBodyRoundedPolyhedron::interaction_face_to_edge(int ibody,
     // compute vertex-face interaction and accumulate force/torque to both bodies
 
     if (d2 <= contact_dist + cut_inner) {
-      if (inside2) {
+      if (inside2 > 0) {
         if (vertex_done[jfirst+npj2] == 0) {
+          double w = vertex_face_weight(s, jbody, npj2, ibody, face_index);
           pair_force_and_torque(jbody, ibody, xpj2, hi2, d2, contact_dist,
                                 jtype, itype, x, v, f, torque, angmom,
-                                fnc, jflag, energy, facc);
+                                fnc, jflag, energy, facc, w);
           #ifdef _POLYHEDRON_DEBUG
           printf(" - compute pair force between vertex %d from edge %d of body %d "
                  "with face %d of body %d: d2 = %f\n",
@@ -1828,11 +2437,13 @@ int PairBodyRoundedPolyhedron::interaction_face_to_edge(int ibody,
             c.separation = d2 - contact_dist;
             c.r = d2;
             c.unique = 1;
+            c.patch = 0;
+            c.w = w;
             contacts.push_back(c);
           }
           vertex_done[jfirst+npj2] = 1;
         }
-      } else {
+      } else if (inside2 == 0) {
         num_outside++;
       }
     }
@@ -1885,22 +2496,23 @@ int PairBodyRoundedPolyhedron::interaction_face_to_edge(int ibody,
       // the end point is outside of body i if it is in front of any face
 
       double nc[3];
-      double s = nearest_face(ibody, xmi, xpj, nc);
-      if (s >= 0.0) return interact;
+      double sd = nearest_face(ibody, xmi, xpj, nc);
+      if (sd >= 0.0) return interact;
 
       // avoid a zero distance when the end point lies on the face plane
 
-      s = MIN(s, -EPSILON*EPSILON*contact_dist);
+      sd = MIN(sd, -EPSILON*EPSILON*contact_dist);
 
       double hp[3];
-      hp[0] = xpj[0] - s*nc[0];
-      hp[1] = xpj[1] - s*nc[1];
-      hp[2] = xpj[2] - s*nc[2];
+      hp[0] = xpj[0] - sd*nc[0];
+      hp[1] = xpj[1] - sd*nc[1];
+      hp[2] = xpj[2] - sd*nc[2];
 
       int jflag = 1;
-      pair_force_and_torque(jbody, ibody, xpj, hp, s, contact_dist,
+      double w = vertex_face_weight(s, jbody, npj, ibody, face_index);
+      pair_force_and_torque(jbody, ibody, xpj, hp, sd, contact_dist,
                             jtype, itype, x, v, f, torque, angmom,
-                            fnc, jflag, energy, facc);
+                            fnc, jflag, energy, facc, w);
 
       Contact c;
       c.ibody = ibody;
@@ -1912,9 +2524,11 @@ int PairBodyRoundedPolyhedron::interaction_face_to_edge(int ibody,
       c.xj[1] = xpj[1];
       c.xj[2] = xpj[2];
       c.type = 0;
-      c.separation = s - contact_dist;
-      c.r = s;
+      c.separation = sd - contact_dist;
+      c.r = sd;
       c.unique = 1;
+      c.patch = 0;
+      c.w = w;
       contacts.push_back(c);
 
       vertex_done[jfirst+npj] = 1;
@@ -1933,7 +2547,7 @@ void PairBodyRoundedPolyhedron::pair_force_and_torque(int ibody, int jbody,
                  double* pi, double* pj, double r, double contact_dist,
                  int itype, int jtype, double** x,
                  double** v, double** f, double** torque, double** angmom,
-                 double** fnc, int jflag, double& energy, double* facc)
+                 double** fnc, int jflag, double& energy, double* facc, double w)
 {
   double delx,dely,delz,R,fx,fy,fz,fpair;
 
@@ -1942,11 +2556,15 @@ void PairBodyRoundedPolyhedron::pair_force_and_torque(int ibody, int jbody,
   delz = pi[2] - pj[2];
   R = r - contact_dist;
 
-  kernel_force(R, itype, jtype, energy, fpair);
+  // the force and energy are scaled by the weight w of the interaction,
+  // see vertex_face_weight()
 
-  fx = delx*fpair/r;
-  fy = dely*fpair/r;
-  fz = delz*fpair/r;
+  double e = 0.0;
+  kernel_force(R, itype, jtype, e, fpair);
+
+  fx = w*delx*fpair/r;
+  fy = w*dely*fpair/r;
+  fz = w*delz*fpair/r;
 
   #ifdef _POLYHEDRON_DEBUG
   printf("  - R = %f; r = %f; k_na = %f; shift = %f; fpair = %f;"
@@ -1956,13 +2574,17 @@ void PairBodyRoundedPolyhedron::pair_force_and_torque(int ibody, int jbody,
 
   if (R <= 0) {
 
-    // contact: accumulate normal and tangential contact force components
+    // contact: accumulate normal and tangential contact force components,
+    // the elastic and cohesive forces and the energy are those of the
+    // unique contacts, see rescale_cohesive_forces()
 
     contact_forces(ibody, jbody, pi, pj, delx, dely, delz, r,
-                   x, v, angmom, f, torque, fnc, facc);
+                   x, v, angmom, f, torque, fnc, facc, w);
   } else {
 
     // accumulate force and torque to both bodies directly
+
+    energy += w*e;
 
     f[ibody][0] += fx;
     f[ibody][1] += fy;
@@ -2032,7 +2654,7 @@ double PairBodyRoundedPolyhedron::normal_force(double R, int itype, int jtype,
 void PairBodyRoundedPolyhedron::contact_forces(int ibody, int jbody,
   double *xi, double *xj, double delx, double dely, double delz, double r,
   double** x, double** v, double** angmom,
-  double** f, double** torque, double** fnc, double* facc)
+  double** f, double** torque, double** fnc, double* facc, double w)
 {
   if (r == 0.0) return;
 
@@ -2043,7 +2665,8 @@ void PairBodyRoundedPolyhedron::contact_forces(int ibody, int jbody,
   double n[3] = {delx/r, dely/r, delz/r};
   double pc[3];
   contact_point(xi, xj, n, rounded_radius[ibody], rounded_radius[jbody], pc);
-  damping_friction(ibody, jbody, pc, n, 0.0, 1, 0, x, v, angmom, f, torque, fnc, ibody, facc);
+  damping_friction(ibody, jbody, pc, n, 0.0, 1, 0, x, v, angmom, f, torque, fnc, ibody, facc,
+                   nullptr, w);
 }
 
 /* ----------------------------------------------------------------------
@@ -2053,56 +2676,48 @@ void PairBodyRoundedPolyhedron::contact_forces(int ibody, int jbody,
 
 void PairBodyRoundedPolyhedron::rescale_cohesive_forces(double** x,
      double** f, double** torque, double** fnc, std::vector<Contact> &contacts,
-     int itype, int jtype, int iref, double* facc)
+     int itype, int jtype, int iref, double &evdwl, double* facc)
 {
   int m,ibody,jbody;
-  double delx,dely,delz,fx,fy,fz,R,fpair,r,contact_area;
+  double delx,dely,delz,fx,fy,fz,R,fpair,r,contact_area,w;
 
   const int num_contacts = contacts.size();
-  int num_unique_contacts = 0;
+
   // contact area A_a = pi <r_k^2> from the distances r_k of the unique
   // contacts to their average position, see Eq. 6, Wang et al.
+  // the averages and the number of contacts are weighted by the weights of
+  // the contacts, see vertex_face_weight(), so that they change continuously
 
-  if (num_contacts == 1) {
-    num_unique_contacts = 1;
-    contact_area = 0;
-  } else {
-    find_unique_contacts(contacts);
+  if (num_contacts > 1) find_unique_contacts(contacts);
 
-    double xc[3],dx,dy,dz;
-    xc[0] = xc[1] = xc[2] = 0;
-    num_unique_contacts = 0;
-    for (int m = 0; m < num_contacts; m++) {
-      if (contacts[m].unique == 0) continue;
-      xc[0] += contacts[m].xi[0];
-      xc[1] += contacts[m].xi[1];
-      xc[2] += contacts[m].xi[2];
-      num_unique_contacts++;
-    }
-
-    const double dble_unique_contacts = (num_unique_contacts > 0) ? (double) num_unique_contacts : 1.0;
-    xc[0] /= dble_unique_contacts;
-    xc[1] /= dble_unique_contacts;
-    xc[2] /= dble_unique_contacts;
-
-    contact_area = 0.0;
-    for (int m = 0; m < num_contacts; m++) {
-      if (contacts[m].unique == 0) continue;
-      dx = contacts[m].xi[0] - xc[0];
-      dy = contacts[m].xi[1] - xc[1];
-      dz = contacts[m].xi[2] - xc[2];
-      contact_area += (dx*dx + dy*dy + dz*dz);
-    }
-    contact_area *= (MY_PI/dble_unique_contacts);
+  double xc[3] = {0.0, 0.0, 0.0};
+  double wsum = 0.0;
+  for (m = 0; m < num_contacts; m++) {
+    if (contacts[m].unique == 0) continue;
+    w = contacts[m].w;
+    xc[0] += w * contacts[m].xi[0];
+    xc[1] += w * contacts[m].xi[1];
+    xc[2] += w * contacts[m].xi[2];
+    wsum += w;
   }
+  if (wsum <= 0.0) return;
+  MathExtra::scale3(1.0/wsum, xc);
 
-  double j_a = contact_area / (num_unique_contacts * A_ua);
+  contact_area = 0.0;
+  for (m = 0; m < num_contacts; m++) {
+    if (contacts[m].unique == 0) continue;
+    contact_area += contacts[m].w * MathExtra::distsq3(contacts[m].xi, xc);
+  }
+  contact_area *= MY_PI / wsum;
+
+  double j_a = contact_area / (wsum * A_ua);
   if (j_a < 1.0) j_a = 1.0;
   for (m = 0; m < num_contacts; m++) {
     if (contacts[m].unique == 0) continue;
 
     ibody = contacts[m].ibody;
     jbody = contacts[m].jbody;
+    w = contacts[m].w;
 
     delx = contacts[m].xi[0] - contacts[m].xj[0];
     dely = contacts[m].xi[1] - contacts[m].xj[1];
@@ -2113,8 +2728,8 @@ void PairBodyRoundedPolyhedron::rescale_cohesive_forces(double** x,
     // only the cohesive force is scaled by j_a, see Eq. 6, Wang et al.
 
     double fe, fc;
-    normal_force(R, itype, jtype, fe, fc);
-    fpair = fe + j_a * fc;
+    evdwl += w * normal_force(R, itype, jtype, fe, fc);
+    fpair = w * (fe + j_a * fc);
     fx = delx*fpair/r;
     fy = dely*fpair/r;
     fz = delz*fpair/r;
@@ -2140,7 +2755,7 @@ void PairBodyRoundedPolyhedron::rescale_cohesive_forces(double** x,
     // the part of the force added by the j_a scaling does not derive
     // from the energy
 
-    double s = (j_a - 1.0) * fc / r;
+    double s = w * (j_a - 1.0) * fc / r;
     double fja[3] = {s*delx, s*dely, s*delz};
     fnc[ibody][0] += fja[0];
     fnc[ibody][1] += fja[1];
@@ -2184,7 +2799,7 @@ void PairBodyRoundedPolyhedron::contact_point(const double *pi, const double *pj
 void PairBodyRoundedPolyhedron::damping_friction(int ibody, int jbody, const double *pc,
   const double *n, double fne, int damping, int friction, double** x, double** v,
   double** angmom, double** f, double** torque, double** fnc, int iref, double* facc,
-  Scratch *hs)
+  Scratch *hs, double w)
 {
   double vi[3], vj[3], vr[3], vn[3], vt[3], fdiss[3];
   AtomVecBody::Bonus *bonus;
@@ -2204,8 +2819,11 @@ void PairBodyRoundedPolyhedron::damping_friction(int ibody, int jbody, const dou
     fdiss[k] = 0.0;
   }
 
+  // the damping is scaled by the weight w of the contact, see vertex_face_weight(),
+  // the elastic normal force fne of the friction includes it
+
   if (damping)
-    for (int k = 0; k < 3; k++) fdiss[k] = -c_n * vn[k] - c_t * vt[k];
+    for (int k = 0; k < 3; k++) fdiss[k] = -w * (c_n * vn[k] + c_t * vt[k]);
 
   double vtmag = MathExtra::len3(vt);
   if (friction && hs && hs->shear) {
@@ -2422,7 +3040,7 @@ void PairBodyRoundedPolyhedron::friction_force(Contact &contact, int itype, int 
   contact_point(contact.xi, contact.xj, n, rounded_radius[contact.ibody],
                 rounded_radius[contact.jbody], pc);
 
-  double fne = -k_n[itype][jtype] * contact.separation;
+  double fne = -k_n[itype][jtype] * contact.separation * contact.w;
   damping_friction(contact.ibody, contact.jbody, pc, n, fne, 0, 1, x, v, angmom, f, torque, fnc,
                    iref, facc, &s);
 }
@@ -2927,6 +3545,11 @@ void PairBodyRoundedPolyhedron::find_unique_contacts(std::vector<Contact> &conta
 
     for (int j = i + 1; j < n; j++) {
       if (contacts[i].unique == 0) continue;
+
+      // the corners of a region of overlap are distinct, and nearby corners
+      // have weights that add up, see face_face_patches()
+
+      if (contacts[i].patch || contacts[j].patch) continue;
       double d = contact_separation(contacts[i], contacts[j]);
       int ibody = contacts[i].ibody;
       int jbody = contacts[i].jbody;

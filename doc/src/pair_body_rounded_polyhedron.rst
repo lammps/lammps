@@ -126,6 +126,37 @@ instead.  A sphere touches a polyhedron at a single point, the point of
 the polyhedron nearest to the center of the sphere, which can lie on a
 face, an edge, or a vertex.
 
+Two nearly parallel faces touch over the region where they overlap,
+which the contacts represent by its corners: the vertices of either face
+inside the other face, and the crossings of their edges.  The number of
+corners changes, e.g. when a vertex crosses an edge of the other face and
+two crossings replace it, or when one face is rotated slightly against
+the other, which adds four crossings near the middle of the edges.  Each
+such contact would add a full contact force, so the forces would jump.
+Therefore, the region of overlap of two faces within about 2.5 degrees of
+parallel is determined as a polygon in the plane halfway between the
+faces.  Each of its corners interacts like the vertex there with the other
+face, or like the two edges crossing there, with a weight of its exterior
+angle divided by :math:`2 \pi / N`, where :math:`N` is the larger number
+of vertices of the two faces.  Since the
+exterior angles of a polygon add up to :math:`2 \pi`, the weights always
+add up to :math:`N`, a corner where the region hardly turns has a small
+weight, and the corners of a face inside a face of the same shape have a
+weight of one each, as in :ref:`Wang <pair-Wang>`.  Between 2.5 and 5
+degrees, as the region gets narrower than the contact distance, and as
+the faces penetrate each other by more than the contact distance, the
+region fades out, and the individual contacts of the vertices and edges
+take over.  Similarly, the crossing of two edges within 5 degrees of
+parallel has a reduced weight, which vanishes for parallel edges, while
+the contacts at the ends of their overlap keep the remaining weight.
+These weights also apply to the damping, the friction, the energy, and
+the contact area of the scaling factor :math:`j_a`.  This deviates from
+:ref:`Wang <pair-Wang>`, e.g. two faces of a tetrahedron and a cube in
+contact interact at up to four corners with a total weight of four,
+instead of at each corner of the region of overlap with a weight of one,
+and the weights change as the particles move, so that the forces do not
+derive exactly from the energy.
+
 In :ref:`Wang <pair-Wang>`, the tangential friction force between two
 particles that are in contact is modeled differently prior to gross
 sliding (i.e. static friction) and during gross-sliding (kinetic
@@ -166,7 +197,11 @@ with a face on each other sideways and made them rotate, and made the
 forces jump as the particles moved.  A sphere now also interacts with the
 vertices of a polyhedron, instead of passing through its corners, and
 interacts only once with a polyhedron, instead of with both a face and
-the edges of that face near its boundary.
+the edges of that face near its boundary.  The contacts of nearly parallel
+faces and edges are weighted as described above, so that the forces no
+longer jump as a particle resting on a face is rotated or moved, and a
+vertex interacts only with the face nearest to it.  The energy of two
+contacts at the same point is counted once, as their force.
 
 .. versionadded:: TBD
 

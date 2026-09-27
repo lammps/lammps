@@ -271,6 +271,8 @@ void PairBodyRoundedPolyhedron::compute(int eflag, int vflag)
         scratch.shear = &allshear[3*jj];
         scratch.shear_i = i;
         scratch.touched = 0;
+        scratch.fnsum = 0.0;
+        for (int k = 0; k < 3; k++) scratch.pcsum[k] = scratch.vtsum[k] = scratch.nsum[k] = 0.0;
       }
 
       // no interaction, radius = enclosing + rounded radius
@@ -279,6 +281,7 @@ void PairBodyRoundedPolyhedron::compute(int eflag, int vflag)
       if (r <= radius[i] + radius[j] + cut_inner) {
         pair_interaction(i, j, delx, dely, delz, rsq, x, v, angmom, f, torque, fnc,
                          scratch, evdwl, facc);
+        if (history) history_friction(i, j, x, f, torque, fnc, scratch, facc);
 
         if (evflag) ev_tally_xyz(i,j,nlocal,newton_pair,evdwl,0.0,
                                  facc[0],facc[1],facc[2],delx,dely,delz);
@@ -334,7 +337,7 @@ void PairBodyRoundedPolyhedron::pair_interaction(int i, int j, double delx, doub
   for (int nj = 0; nj < npj; nj++) s.vertex_done[jfirst+nj] = 0;
 
   // one of the two bodies is a sphere
-  // one friction force per pair of bodies, at the contact with the largest overlap
+  // one friction force per pair of bodies, see friction_forces()
 
   if ((npj == 1) || (npi == 1)) {
     contacts.clear();
@@ -357,10 +360,7 @@ void PairBodyRoundedPolyhedron::pair_interaction(int i, int j, double delx, doub
       facc[2] -= fj[2];
     }
     if (!contacts.empty()) {
-      int mmax = 0;
-      for (int m = 1; m < (int) contacts.size(); m++)
-        if (contacts[m].separation < contacts[mmax].separation) mmax = m;
-      friction_force(contacts[mmax], itype, jtype, x, v, angmom, f, torque, fnc, i, facc, s);
+      friction_forces(itype, jtype, x, v, angmom, f, torque, fnc, i, facc, s);
     }
     return;
   }
@@ -441,13 +441,9 @@ void PairBodyRoundedPolyhedron::pair_interaction(int i, int j, double delx, doub
   if (!contacts.empty()) {
     rescale_cohesive_forces(x, f, torque, fnc, contacts, itype, jtype, i, facc);
 
-    // one friction force per pair of bodies, at the contact with the largest
-    // overlap, see Wang et al.
+    // one friction force per pair of bodies, see friction_forces()
 
-    int mmax = 0;
-    for (int m = 1; m < (int) contacts.size(); m++)
-      if (contacts[m].separation < contacts[mmax].separation) mmax = m;
-    friction_force(contacts[mmax], itype, jtype, x, v, angmom, f, torque, fnc, i, facc, s);
+    friction_forces(itype, jtype, x, v, angmom, f, torque, fnc, i, facc, s);
   }
 
   facc[0] -= fj[0];
@@ -2273,7 +2269,20 @@ void PairBodyRoundedPolyhedron::damping_friction(int ibody, int jbody, const dou
 
   double vtmag = MathExtra::len3(vt);
   if (friction && hs && hs->shear) {
-    tangential_spring(ibody, jbody, n, vt, fne, *hs, fdiss);
+
+    // with the contact history, a single friction force of the pair of
+    // bodies is computed from all its contacts in history_friction()
+
+    if (fne > 0.0) {
+      double sign = (ibody == hs->shear_i) ? 1.0 : -1.0;
+      hs->fnsum += fne;
+      for (int k = 0; k < 3; k++) {
+        hs->pcsum[k] += fne * pc[k];
+        hs->vtsum[k] += sign * fne * vt[k];
+        hs->nsum[k] += sign * fne * n[k];
+      }
+    }
+    if (!damping) return;
   } else if (friction && (fne > 0.0) && (vtmag > 0.0)) {
     double scale = MIN(mu * fne, c_t * vtmag) / vtmag;
     for (int k = 0; k < 3; k++) fdiss[k] -= scale * vt[k];
@@ -2311,11 +2320,10 @@ void PairBodyRoundedPolyhedron::damping_friction(int ibody, int jbody, const dou
   tangential displacement xi of the pair of bodies stored in s.shear,
   see e.g. Luding, Granular Matter 10, 235 (2008):
   xi is rotated into the tangent plane of the contact normal n, keeping its
-  magnitude, since the normal changes, also when the contact with the largest
-  overlap moves to another vertex, edge or face, and xi is incremented by the
+  magnitude, since the normal changes, and xi is incremented by the
   tangential relative velocity vt times dt.  The spring force -k_t xi is
   limited to mu times the elastic normal force fne, and then xi is reduced
-  accordingly (sliding).
+  accordingly (sliding), see history_friction().
   the force on body ibody is added to fs, xi refers to body s.shear_i
 ------------------------------------------------------------------------- */
 
@@ -2354,11 +2362,102 @@ void PairBodyRoundedPolyhedron::tangential_spring(int ibody, int jbody, const do
   s.touched = 1;
 }
 
+/* ----------------------------------------------------------------------
+  Friction force of the pair of bodies i and j with the contact history:
+  a single tangential spring, see tangential_spring(), for all contacts of
+  the pair, limited by mu times the sum of their elastic normal forces.
+  It acts at the average of the contact points, with the average tangential
+  relative velocity and normal, all weighted by the elastic normal forces of
+  the contacts, as collected by damping_friction().  A single friction force
+  at the contact with the largest overlap instead would jump between the
+  contacts when that contact changes, e.g. for a body resting with a face on
+  another body under a lateral load, so that the bodies do not come to rest.
+  note: this deviates from Wang et al., where the single friction force of
+  a pair acts at the contact point with the largest solid overlap, with the
+  relative velocity and normal of that contact.  The limit mu F_ne uses the
+  elastic normal force of the whole interaction.  Without the contact
+  history, the friction force still acts at the contact with the largest
+  overlap.
+  the total force on body i is accumulated to facc
+------------------------------------------------------------------------- */
+
+void PairBodyRoundedPolyhedron::history_friction(int i, int j, double **x, double **f,
+                                                 double **torque, double **fnc, Scratch &s,
+                                                 double *facc)
+{
+  if (s.fnsum <= 0.0) return;
+
+  double pc[3], vt[3], n[3], ft[3] = {0.0, 0.0, 0.0};
+  for (int k = 0; k < 3; k++) {
+    pc[k] = s.pcsum[k] / s.fnsum;
+    vt[k] = s.vtsum[k] / s.fnsum;
+    n[k] = s.nsum[k];
+  }
+
+  // the tangential velocities of the contacts refer to their own normals
+
+  double nmag = MathExtra::len3(n);
+  if (nmag > 0.0) {
+    MathExtra::scale3(1.0/nmag, n);
+    double vtn = MathExtra::dot3(vt, n);
+    for (int k = 0; k < 3; k++) vt[k] -= vtn * n[k];
+  }
+
+  tangential_spring(i, j, n, vt, s.fnsum, s, ft);
+
+  f[i][0] += ft[0];
+  f[i][1] += ft[1];
+  f[i][2] += ft[2];
+  sum_torque(x[i], pc, ft[0], ft[1], ft[2], torque[i]);
+
+  f[j][0] -= ft[0];
+  f[j][1] -= ft[1];
+  f[j][2] -= ft[2];
+  sum_torque(x[j], pc, -ft[0], -ft[1], -ft[2], torque[j]);
+
+  // friction does not derive from the energy
+
+  for (int k = 0; k < 3; k++) {
+    fnc[i][6+k] += ft[k];
+    fnc[j][6+k] -= ft[k];
+  }
+  sum_torque(x[i], pc, ft[0], ft[1], ft[2], &fnc[i][9]);
+  sum_torque(x[j], pc, -ft[0], -ft[1], -ft[2], &fnc[j][9]);
+
+  facc[0] += ft[0]; facc[1] += ft[1]; facc[2] += ft[2];
+}
+
 /* ---------------------------------------------------------------------- */
 
 void PairBodyRoundedPolyhedron::reset_dt()
 {
   dt = update->dt;
+}
+
+/* ----------------------------------------------------------------------
+  Friction force of a pair of bodies from its contacts in s.contacts:
+  at the contact with the largest overlap, see Wang et al., or with the
+  contact history from all unique contacts, see history_friction()
+------------------------------------------------------------------------- */
+
+void PairBodyRoundedPolyhedron::friction_forces(int itype, int jtype, double** x, double** v,
+                                                double** angmom, double** f, double** torque,
+                                                double** fnc, int iref, double* facc, Scratch &s)
+{
+  std::vector<Contact> &contacts = s.contacts;
+  if (contacts.empty()) return;
+
+  if (s.shear) {
+    for (auto &contact : contacts)
+      if (contact.unique)
+        friction_force(contact, itype, jtype, x, v, angmom, f, torque, fnc, iref, facc, s);
+    return;
+  }
+
+  int mmax = 0;
+  for (int m = 1; m < (int) contacts.size(); m++)
+    if (contacts[m].separation < contacts[mmax].separation) mmax = m;
+  friction_force(contacts[mmax], itype, jtype, x, v, angmom, f, torque, fnc, iref, facc, s);
 }
 
 /* ----------------------------------------------------------------------

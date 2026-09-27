@@ -59,6 +59,9 @@ class PairBodyRoundedPolygon : public Pair {
     double *shear;                    // tangential displacement of the pair, or nullptr
     int shear_i;                      // body the tangential displacement refers to
     int touched;                      // 1 if the tangential displacement was updated
+    double fnsum;                     // sum of the elastic normal forces of the contacts
+    double pcsum[3], vtsum[3], nsum[3];    // contact points, tangential velocities, and
+                                           // normals weighted by the elastic normal forces
   };
 
  protected:
@@ -142,6 +145,9 @@ class PairBodyRoundedPolygon : public Pair {
                         Scratch *hs = nullptr);
   void tangential_spring(int ibody, int jbody, const double *n, const double *vt, double fne,
                          Scratch &s, double *fs);
+  // single friction force of a pair of bodies from all contacts with the contact history
+  void history_friction(int i, int j, double **x, double **f, double **torque, double **fnc,
+                        Scratch &s, double *facc);
   void history_dummy_fix(int flag);
   // normal force and energy at a given surface separation
   double normal_force(double R, double k_n, double k_na, double &fe, double &fc);

@@ -201,6 +201,8 @@ void PairBodyRoundedPolygonOMP::eval(int iifrom, int iito, ThrData *const thr,
         s.shear = &allshear[3 * jj];
         s.shear_i = i;
         s.touched = 0;
+        s.fnsum = 0.0;
+        for (int k = 0; k < 3; k++) s.pcsum[k] = s.vtsum[k] = s.nsum[k] = 0.0;
       }
 
       // no interaction
@@ -210,6 +212,7 @@ void PairBodyRoundedPolygonOMP::eval(int iifrom, int iito, ThrData *const thr,
         facc[0] = facc[1] = facc[2] = 0.0;
         pair_interaction(i, j, delx, dely, delz, rsq, x, v, angmom, f, torque, fnc_t, s, evdwl,
                          facc);
+        if (history) history_friction(i, j, x, f, torque, fnc_t, s, facc);
 
         if (EVFLAG)
           ev_tally_xyz_thr(this, i, j, nlocal, NEWTON_PAIR, EFLAG ? evdwl : 0.0, 0.0, facc[0],

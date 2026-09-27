@@ -112,7 +112,8 @@ length of the contact region (see *delta_ua*), following
 :ref:`Fraige <pair-Fraige>`.  The elastic force :math:`k_n \delta_n` is not
 scaled.  The damping forces act at each
 contact, while there is a single friction force per pair of particles,
-at the contact with the largest overlap.  The damping and friction forces
+at the contact with the largest overlap (see below for the *history*
+keyword).  The damping and friction forces
 act at the contact point between the rounded surfaces and depend on the
 relative velocity of the two particles at that point, including their
 rotation, so that they also exert torques, e.g. to make disks roll.  Each vertex of one particle
@@ -157,26 +158,34 @@ as described above, instead of with all edges within the cutoff.
 With the *history* keyword, the friction force is instead that of a
 tangential spring, which also acts prior to gross sliding.  The
 tangential deformation :math:`\xi` of each pair of particles in contact
-is accumulated from the tangential relative velocity at the contact
-point with the largest overlap, :math:`\xi \leftarrow \xi + v_t \Delta t`,
-and the friction force is
+is accumulated from their tangential relative velocity,
+:math:`\xi \leftarrow \xi + v_t \Delta t`, and the friction force is
 
 .. math::
 
    F_t = -k_t \xi - c_t v_t
 
 with a magnitude of the spring force :math:`k_t |\xi|` of at most
-:math:`\mu k_n |\delta_n|`.  Once the spring force exceeds this limit,
-the particles slide and :math:`\xi` is reduced accordingly.  Since the
-contact normal changes as the particles move and rotate, and also when
-the contact with the largest overlap moves to another vertex or edge,
+:math:`\mu \sum k_n |\delta_n|`, the sum of the elastic normal forces
+of all contacts of the pair.  Once the spring force exceeds this limit,
+the particles slide and :math:`\xi` is reduced accordingly.  There is
+still a single friction force per pair of particles, but it acts at the
+average of the contact points of the pair, and :math:`v_t` and the
+contact normal are averages over the contacts as well, all weighted by
+the elastic normal forces of the contacts.  This deviates from
+:ref:`Fraige <pair-Fraige>`, where the friction force acts at the contact
+with the largest overlap.  With that choice, the friction force jumps
+between contacts whenever the contact with the largest overlap changes,
+so that e.g. a particle resting with an edge on another particle under
+a sideways load keeps rocking instead of coming to rest.  Since the
+contact normal changes as the particles move and rotate,
 :math:`\xi` is rotated into the current tangent direction at each time
 step, keeping its magnitude, following Eq. 17 of
 :ref:`Luding <pair-body-polygon-Luding>`.  The tangential deformation
 is reset to zero when the particles are no longer in contact.  As in
 :doc:`pair_style gran/hooke/history <pair_gran>`, the tangential
 deformations are stored by an internal fix NEIGH_HISTORY.  The damping
-forces at the other contacts are unchanged.  This extends the model of
+forces are unchanged.  This extends the model of
 :ref:`Fraige <pair-Fraige>` and makes static packings of particles with
 friction possible.
 

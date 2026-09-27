@@ -1,4 +1,4 @@
-LAMMPS (4 Jul 2026 - Development - patch_4Jul2026-854-g51def89584-modified)
+LAMMPS (2 Sep 2026)
   using 1 OpenMP thread(s) per MPI task
 units           lj
 dimension       3
@@ -10,7 +10,7 @@ comm_modify     vel yes cutoff 2.6
 lattice         fcc 1.0
 Lattice spacing in x,y,z = 1.5874011 1.5874011 1.5874011
 region          box block -25 15 -22 22 -22 22
-create_box      1 box bond/types 2 extra/bond/per/atom 20 extra/special/per/atom 50
+create_box      1 box bond/types 2 extra/bond/per/atom 20
 Created orthogonal box = (-39.685026 -34.922823 -34.922823) to (23.811016 34.922823 34.922823)
   1 by 2 by 2 MPI processor grid
 
@@ -18,7 +18,7 @@ region          disk cylinder x 0.0 0.0 20.0 -0.5 0.5
 create_atoms    1 region disk
 Created 7529 atoms
   using lattice units in orthogonal box = (-39.685026 -34.922823 -34.922823) to (23.811016 34.922823 34.922823)
-  create_atoms CPU = 0.001 seconds
+  create_atoms CPU = 0.002 seconds
 group           plate region disk
 7529 atoms in group plate
 
@@ -26,7 +26,7 @@ region          ball sphere 8.0 0.0 0.0 6.0
 create_atoms    1 region ball
 Created 3589 atoms
   using lattice units in orthogonal box = (-39.685026 -34.922823 -34.922823) to (23.811016 34.922823 34.922823)
-  create_atoms CPU = 0.000 seconds
+  create_atoms CPU = 0.001 seconds
 group           projectile region ball
 3589 atoms in group projectile
 
@@ -63,12 +63,12 @@ Finding 1-2 1-3 1-4 neighbors ...
   special bond factors lj:    0        1        1       
   special bond factors coul:  0        1        1       
     15 = max # of 1-2 neighbors
-   101 = max # of special neighbors
+    15 = max # of special neighbors
   special bonds CPU = 0.001 seconds
 create_bonds    many projectile projectile 2 0.0 1.5
 Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
-WARNING: Bonds are defined but no bond style is set (src/force.cpp:198)
-WARNING: Likewise 1-2 special neighbor interactions != 1.0 (src/force.cpp:200)
+WARNING: Bonds are defined but no bond style is set (src/force.cpp:165)
+WARNING: Likewise 1-2 special neighbor interactions != 1.0 (src/force.cpp:167)
 Neighbor list info ...
   update: every = 1 steps, delay = 0 steps, check = yes
   max neighbors/atom: 2000, page size: 100000
@@ -91,7 +91,7 @@ Finding 1-2 1-3 1-4 neighbors ...
   special bond factors lj:    0        1        1       
   special bond factors coul:  0        1        1       
     16 = max # of 1-2 neighbors
-   101 = max # of special neighbors
+    16 = max # of special neighbors
   special bonds CPU = 0.001 seconds
 
 neighbor        0.3 bin
@@ -148,7 +148,7 @@ Neighbor list info ...
       pair build: half/size/bin/newton
       stencil: half/bin/3d
       bin: standard
-Per MPI rank memory allocation (min/avg/max) = 41.24 | 41.24 | 41.24 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 35.92 | 35.93 | 35.93 Mbytes
    Step         KinEng         PotEng          Pxx            Pyy            Pzz          c_tbond    
          0   0.00053238861  6.021285e-17   3.8217307e-05  2.0615538e-20  5.3296238e-20  10.8703      
        100   0.00053238861  6.0289278e-17  3.8217307e-05 -4.5224482e-20  2.9834864e-20  10.8703      
@@ -176,21 +176,21 @@ Per MPI rank memory allocation (min/avg/max) = 41.24 | 41.24 | 41.24 Mbytes
       2300   0.00041721314  1.9268476e-05  1.6019582e-05 -1.0187461e-05 -6.1166068e-07  10.417881    
       2400   0.00041566993  1.6773384e-05  3.091073e-05  -1.483553e-05  -7.3314491e-06  10.393416    
       2500   0.00041084371  1.5966209e-05  2.7815322e-05 -1.7233773e-05 -1.7928246e-05  10.373448    
-Loop time of 10.3669 on 4 procs for 2500 steps with 11118 atoms
+Loop time of 10.3116 on 4 procs for 2500 steps with 11118 atoms
 
-Performance: 1041772.417 tau/day, 241.151 timesteps/s, 2.681 Matom-step/s
-99.4% CPU use with 4 MPI tasks x 1 OpenMP threads
+Performance: 1047363.669 tau/day, 242.445 timesteps/s, 2.696 Matom-step/s
+99.7% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.039019   | 0.04002    | 0.041886   |   0.6 |  0.39
-Bond    | 9.3855     | 9.3964     | 9.4152     |   0.4 | 90.64
-Neigh   | 0.17459    | 0.17644    | 0.18168    |   0.7 |  1.70
-Comm    | 0.17631    | 0.20026    | 0.22795    |   4.1 |  1.93
-Output  | 0.0027627  | 0.0028706  | 0.0030907  |   0.2 |  0.03
-Modify  | 0.50975    | 0.51995    | 0.53234    |   1.1 |  5.02
-Other   |            | 0.03097    |            |       |  0.30
+Pair    | 0.034392   | 0.036961   | 0.040753   |   1.3 |  0.36
+Bond    | 9.3934     | 9.403      | 9.4087     |   0.2 | 91.19
+Neigh   | 0.14695    | 0.1534     | 0.16267    |   1.5 |  1.49
+Comm    | 0.1643     | 0.17606    | 0.19113    |   2.3 |  1.71
+Output  | 0.0026206  | 0.0027176  | 0.0028996  |   0.2 |  0.03
+Modify  | 0.51029    | 0.51536    | 0.5185     |   0.4 |  5.00
+Other   |            | 0.02412    |            |       |  0.23
 
 Nlocal:         2779.5 ave        2794 max        2766 min
 Histogram: 1 0 1 0 0 0 1 0 0 1

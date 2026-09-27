@@ -1,4 +1,4 @@
-LAMMPS (4 Jul 2026 - Development - patch_4Jul2026-854-g51def89584-modified)
+LAMMPS (2 Sep 2026)
   using 1 OpenMP thread(s) per MPI task
 units           lj
 dimension       3
@@ -10,7 +10,7 @@ comm_modify     vel yes cutoff 2.6
 lattice         fcc 1.0
 Lattice spacing in x,y,z = 1.5874011 1.5874011 1.5874011
 region          box block -25 15 -22 22 -22 22
-create_box      1 box bond/types 2 extra/bond/per/atom 20 extra/special/per/atom 50
+create_box      1 box bond/types 2 extra/bond/per/atom 20
 Created orthogonal box = (-39.685026 -34.922823 -34.922823) to (23.811016 34.922823 34.922823)
   1 by 1 by 1 MPI processor grid
 
@@ -18,7 +18,7 @@ region          disk cylinder x 0.0 0.0 20.0 -0.5 0.5
 create_atoms    1 region disk
 Created 7529 atoms
   using lattice units in orthogonal box = (-39.685026 -34.922823 -34.922823) to (23.811016 34.922823 34.922823)
-  create_atoms CPU = 0.004 seconds
+  create_atoms CPU = 0.002 seconds
 group           plate region disk
 7529 atoms in group plate
 
@@ -26,7 +26,7 @@ region          ball sphere 8.0 0.0 0.0 6.0
 create_atoms    1 region ball
 Created 3589 atoms
   using lattice units in orthogonal box = (-39.685026 -34.922823 -34.922823) to (23.811016 34.922823 34.922823)
-  create_atoms CPU = 0.001 seconds
+  create_atoms CPU = 0.002 seconds
 group           projectile region ball
 3589 atoms in group projectile
 
@@ -63,12 +63,12 @@ Finding 1-2 1-3 1-4 neighbors ...
   special bond factors lj:    0        1        1       
   special bond factors coul:  0        1        1       
     15 = max # of 1-2 neighbors
-   101 = max # of special neighbors
+    15 = max # of special neighbors
   special bonds CPU = 0.002 seconds
 create_bonds    many projectile projectile 2 0.0 1.5
 Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
-WARNING: Bonds are defined but no bond style is set (src/force.cpp:198)
-WARNING: Likewise 1-2 special neighbor interactions != 1.0 (src/force.cpp:200)
+WARNING: Bonds are defined but no bond style is set (src/force.cpp:165)
+WARNING: Likewise 1-2 special neighbor interactions != 1.0 (src/force.cpp:167)
 Neighbor list info ...
   update: every = 1 steps, delay = 0 steps, check = yes
   max neighbors/atom: 2000, page size: 100000
@@ -91,8 +91,8 @@ Finding 1-2 1-3 1-4 neighbors ...
   special bond factors lj:    0        1        1       
   special bond factors coul:  0        1        1       
     16 = max # of 1-2 neighbors
-   101 = max # of special neighbors
-  special bonds CPU = 0.003 seconds
+    16 = max # of special neighbors
+  special bonds CPU = 0.002 seconds
 
 neighbor        0.3 bin
 special_bonds   lj 0.0 1.0 1.0 coul 1.0 1.0 1.0
@@ -148,7 +148,7 @@ Neighbor list info ...
       pair build: half/size/bin/newton
       stencil: half/bin/3d
       bin: standard
-Per MPI rank memory allocation (min/avg/max) = 47.97 | 47.97 | 47.97 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 42.66 | 42.66 | 42.66 Mbytes
    Step         KinEng         PotEng          Pxx            Pyy            Pzz          c_tbond    
          0   0.00053238861  6.021285e-17   3.8217307e-05  2.0615538e-20  5.3296238e-20  10.8703      
        100   0.00053238861  6.0289278e-17  3.8217307e-05 -4.5224482e-20  2.9834864e-20  10.8703      
@@ -176,21 +176,21 @@ Per MPI rank memory allocation (min/avg/max) = 47.97 | 47.97 | 47.97 Mbytes
       2300   0.00041721284  1.9268812e-05  1.6019116e-05 -1.018819e-05  -6.1240134e-07  10.417881    
       2400   0.00041567041  1.6773654e-05  3.0911681e-05 -1.4835709e-05 -7.3289127e-06  10.393416    
       2500   0.00041084417  1.5966069e-05  2.7814193e-05 -1.7234464e-05 -1.7930447e-05  10.373448    
-Loop time of 37.7501 on 1 procs for 2500 steps with 11118 atoms
+Loop time of 37.1274 on 1 procs for 2500 steps with 11118 atoms
 
-Performance: 286092.026 tau/day, 66.225 timesteps/s, 736.290 katom-step/s
+Performance: 290889.924 tau/day, 67.336 timesteps/s, 748.638 katom-step/s
 99.7% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.19037    | 0.19037    | 0.19037    |   0.0 |  0.50
-Bond    | 34.873     | 34.873     | 34.873     |   0.0 | 92.38
-Neigh   | 0.62565    | 0.62565    | 0.62565    |   0.0 |  1.66
-Comm    | 0.010825   | 0.010825   | 0.010825   |   0.0 |  0.03
-Output  | 0.0090659  | 0.0090659  | 0.0090659  |   0.0 |  0.02
-Modify  | 1.9784     | 1.9784     | 1.9784     |   0.0 |  5.24
-Other   |            | 0.06311    |            |       |  0.17
+Pair    | 0.16923    | 0.16923    | 0.16923    |   0.0 |  0.46
+Bond    | 34.493     | 34.493     | 34.493     |   0.0 | 92.90
+Neigh   | 0.51275    | 0.51275    | 0.51275    |   0.0 |  1.38
+Comm    | 0.0097386  | 0.0097386  | 0.0097386  |   0.0 |  0.03
+Output  | 0.0087966  | 0.0087966  | 0.0087966  |   0.0 |  0.02
+Modify  | 1.8879     | 1.8879     | 1.8879     |   0.0 |  5.08
+Other   |            | 0.04578    |            |       |  0.12
 
 Nlocal:          11118 ave       11118 max       11118 min
 Histogram: 1 0 0 0 0 0 0 0 0 0

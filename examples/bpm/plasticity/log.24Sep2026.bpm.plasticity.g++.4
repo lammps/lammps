@@ -13,7 +13,7 @@ comm_modify     vel yes cutoff 2.6
 lattice         fcc 1.41
 Lattice spacing in x,y,z = 1.4156209 1.4156209 1.4156209
 region          box block 0 20 -1 41 -5 5 units box
-create_box      4 box bond/types 4 extra/bond/per/atom 20 extra/special/per/atom 50
+create_box      4 box bond/types 4 extra/bond/per/atom 20
 Created orthogonal box = (0 -1 -5) to (20 41 5)
   1 by 4 by 1 MPI processor grid
 mass            * 1.0
@@ -53,7 +53,7 @@ Neighbor list info ...
       pair build: half/bin/newton
       stencil: half/bin/3d
       bin: standard
-Per MPI rank memory allocation (min/avg/max) = 9.649 | 9.65 | 9.655 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 6.524 | 6.525 | 6.53 Mbytes
    Step         KinEng         PotEng          Pxx            Pyy            Pzz      
          0   0.14993734     0              0.071433813    0.069488353    0.072168413  
        100   0.0066849431   0.0030619554   0.016386256    0.017082694    0.016330788  
@@ -256,21 +256,21 @@ Per MPI rank memory allocation (min/avg/max) = 9.649 | 9.65 | 9.655 Mbytes
      19800   1.7932329e-06  2.9159241e-08  1.0864997e-05  8.3360711e-06  1.0970874e-05
      19900   1.7861063e-06  2.946762e-08   1.0790399e-05  9.9527357e-06  7.7976073e-06
      20000   1.7628198e-06  4.0509594e-08  1.1795571e-05  1.0295581e-05  1.1691283e-05
-Loop time of 0.527909 on 4 procs for 20000 steps with 2394 atoms
+Loop time of 0.540853 on 4 procs for 20000 steps with 2394 atoms
 
-Performance: 327328883.549 tau/day, 37885.287 timesteps/s, 90.697 Matom-step/s
+Performance: 319495575.061 tau/day, 36978.655 timesteps/s, 88.527 Matom-step/s
 99.1% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.11287    | 0.11867    | 0.12697    |   1.5 | 22.48
-Bond    | 0.00051104 | 0.00051681 | 0.00052847 |   0.0 |  0.10
-Neigh   | 0.028722   | 0.028896   | 0.029108   |   0.1 |  5.47
-Comm    | 0.08657    | 0.093684   | 0.098459   |   1.5 | 17.75
-Output  | 0.0014681  | 0.0017783  | 0.0022095  |   0.6 |  0.34
-Modify  | 0.22657    | 0.23772    | 0.24818    |   2.0 | 45.03
-Other   |            | 0.04665    |            |       |  8.84
+Pair    | 0.11228    | 0.11985    | 0.12951    |   1.8 | 22.16
+Bond    | 0.00050703 | 0.00050769 | 0.0005085  |   0.0 |  0.09
+Neigh   | 0.028687   | 0.029399   | 0.029755   |   0.2 |  5.44
+Comm    | 0.092203   | 0.10014    | 0.10709    |   1.7 | 18.51
+Output  | 0.0015771  | 0.0018154  | 0.0022463  |   0.6 |  0.34
+Modify  | 0.23179    | 0.24355    | 0.25115    |   1.5 | 45.03
+Other   |            | 0.0456     |            |       |  8.43
 
 Nlocal:          598.5 ave         627 max         588 min
 Histogram: 3 0 0 0 0 0 0 0 0 1
@@ -297,7 +297,7 @@ Finding 1-2 1-3 1-4 neighbors ...
   special bond factors lj:    0        1        1       
   special bond factors coul:  0        1        1       
      0 = max # of 1-2 neighbors
-   101 = max # of special neighbors
+     1 = max # of special neighbors
   special bonds CPU = 0.000 seconds
   replicate CPU = 0.002 seconds
 
@@ -352,7 +352,7 @@ Finding 1-2 1-3 1-4 neighbors ...
   special bond factors lj:    0        1        1       
   special bond factors coul:  0        1        1       
     17 = max # of 1-2 neighbors
-   101 = max # of special neighbors
+    17 = max # of special neighbors
   special bonds CPU = 0.000 seconds
 create_bonds    many c2 c2 2 0.0 1.5
 Generated 0 of 6 mixed pair_coeff terms from geometric mixing rule
@@ -380,7 +380,7 @@ Finding 1-2 1-3 1-4 neighbors ...
   special bond factors lj:    0        1        1       
   special bond factors coul:  0        1        1       
     17 = max # of 1-2 neighbors
-   101 = max # of special neighbors
+    17 = max # of special neighbors
   special bonds CPU = 0.001 seconds
 create_bonds    many c3 c3 3 0.0 1.5
 Generated 0 of 6 mixed pair_coeff terms from geometric mixing rule
@@ -408,7 +408,7 @@ Finding 1-2 1-3 1-4 neighbors ...
   special bond factors lj:    0        1        1       
   special bond factors coul:  0        1        1       
     17 = max # of 1-2 neighbors
-   101 = max # of special neighbors
+    17 = max # of special neighbors
   special bonds CPU = 0.001 seconds
 create_bonds    many c4 c4 4 0.0 1.5
 Generated 0 of 6 mixed pair_coeff terms from geometric mixing rule
@@ -436,8 +436,8 @@ Finding 1-2 1-3 1-4 neighbors ...
   special bond factors lj:    0        1        1       
   special bond factors coul:  0        1        1       
     17 = max # of 1-2 neighbors
-   101 = max # of special neighbors
-  special bonds CPU = 0.001 seconds
+    17 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
 
 neighbor        0.3 bin
 special_bonds   lj 0.0 1.0 1.0 coul 1.0 1.0 1.0
@@ -516,7 +516,7 @@ Neighbor list info ...
       pair build: half/bin/newton
       stencil: half/bin/3d
       bin: standard
-Per MPI rank memory allocation (min/avg/max) = 18.54 | 18.54 | 18.54 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 13.29 | 13.29 | 13.29 Mbytes
    Step         KinEng        c_zmin1        c_zmin2        c_zmin3        c_zmin4    
      20000   0             -2.5009949     -2.5009949     -2.5009949     -2.5009949    
      20100   1.202019e-12  -2.5009949     -2.5009949     -2.5009949     -2.5009949    
@@ -819,21 +819,21 @@ Per MPI rank memory allocation (min/avg/max) = 18.54 | 18.54 | 18.54 Mbytes
      49800   1.9264666e-06 -8.6672894     -9.0558821     -9.6411989     -10.064697    
      49900   1.9512471e-06 -8.6854886     -9.0852485     -9.6821043     -10.112681    
      50000   1.9765155e-06 -8.7036695     -9.1147646     -9.7232722     -10.160946    
-Loop time of 7.41147 on 4 procs for 30000 steps with 9576 atoms
+Loop time of 7.54351 on 4 procs for 30000 steps with 9576 atoms
 
-Performance: 34972801.936 tau/day, 4047.778 timesteps/s, 38.762 Matom-step/s
+Performance: 34360684.632 tau/day, 3976.931 timesteps/s, 38.083 Matom-step/s
 99.4% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.36908    | 0.37746    | 0.38339    |   0.9 |  5.09
-Bond    | 5.9821     | 6.0032     | 6.0331     |   0.9 | 81.00
-Neigh   | 0.056749   | 0.056811   | 0.056896   |   0.0 |  0.77
-Comm    | 0.17361    | 0.20437    | 0.23207    |   6.1 |  2.76
-Output  | 0.0083876  | 0.0090944  | 0.010384   |   0.8 |  0.12
-Modify  | 0.56876    | 0.60478    | 0.64205    |   4.3 |  8.16
-Other   |            | 0.1557     |            |       |  2.10
+Pair    | 0.37897    | 0.3819     | 0.38534    |   0.4 |  5.06
+Bond    | 6.0917     | 6.113      | 6.133      |   0.8 | 81.04
+Neigh   | 0.046483   | 0.046556   | 0.046647   |   0.0 |  0.62
+Comm    | 0.20983    | 0.23929    | 0.27223    |   6.0 |  3.17
+Output  | 0.0091386  | 0.0099001  | 0.011373   |   0.9 |  0.13
+Modify  | 0.56432    | 0.5976     | 0.62743    |   3.8 |  7.92
+Other   |            | 0.1553     |            |       |  2.06
 
 Nlocal:           2394 ave        2420 max        2368 min
 Histogram: 1 0 1 0 0 0 0 1 0 1
@@ -854,7 +854,7 @@ unfix           3
 fix             3 load addforce 0.0 0.0 -0.0005
 run             50000
 Generated 0 of 6 mixed pair_coeff terms from geometric mixing rule
-Per MPI rank memory allocation (min/avg/max) = 18.68 | 18.68 | 18.68 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 13.43 | 13.43 | 13.43 Mbytes
    Step         KinEng        c_zmin1        c_zmin2        c_zmin3        c_zmin4    
      50000   1.9765155e-06 -8.7036695     -9.1147646     -9.7232722     -10.160946    
      50100   2.0005529e-06 -8.7218147     -9.1444184     -9.7646805     -10.209482    
@@ -1357,21 +1357,21 @@ Per MPI rank memory allocation (min/avg/max) = 18.68 | 18.68 | 18.68 Mbytes
      99800   8.1354743e-11 -8.8592304     -10.211107     -12.259219     -14.117217    
      99900   7.9775835e-11 -8.8590784     -10.211377     -12.259452     -14.116965    
     100000   7.8261125e-11 -8.8589159     -10.211635     -12.259695     -14.116724    
-Loop time of 8.18566 on 4 procs for 50000 steps with 9576 atoms
+Loop time of 8.40399 on 4 procs for 50000 steps with 9576 atoms
 
-Performance: 52775212.141 tau/day, 6108.242 timesteps/s, 58.493 Matom-step/s
-99.3% CPU use with 4 MPI tasks x 1 OpenMP threads
+Performance: 51404155.938 tau/day, 5949.555 timesteps/s, 56.973 Matom-step/s
+99.2% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.40037    | 0.4047     | 0.40957    |   0.6 |  4.94
-Bond    | 6.3124     | 6.3403     | 6.3704     |   1.0 | 77.46
-Neigh   | 0.037178   | 0.03729    | 0.037356   |   0.0 |  0.46
-Comm    | 0.30392    | 0.35161    | 0.39655    |   7.5 |  4.30
-Output  | 0.015318   | 0.016424   | 0.018809   |   1.1 |  0.20
-Modify  | 0.79081    | 0.81538    | 0.83683    |   2.3 |  9.96
-Other   |            | 0.2199     |            |       |  2.69
+Pair    | 0.40653    | 0.41279    | 0.42399    |   1.1 |  4.91
+Bond    | 6.4537     | 6.482      | 6.5192     |   1.0 | 77.13
+Neigh   | 0.030152   | 0.030232   | 0.0303     |   0.0 |  0.36
+Comm    | 0.35329    | 0.40761    | 0.46653    |   7.6 |  4.85
+Output  | 0.0161     | 0.017189   | 0.019283   |   1.0 |  0.20
+Modify  | 0.80048    | 0.82466    | 0.84996    |   2.2 |  9.81
+Other   |            | 0.2295     |            |       |  2.73
 
 Nlocal:           2394 ave        2413 max        2375 min
 Histogram: 1 1 0 0 0 0 0 0 1 1
@@ -1391,7 +1391,7 @@ Dangerous builds = 0
 unfix           3
 run             60000
 Generated 0 of 6 mixed pair_coeff terms from geometric mixing rule
-Per MPI rank memory allocation (min/avg/max) = 18.74 | 18.74 | 18.74 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 13.49 | 13.49 | 13.49 Mbytes
    Step         KinEng        c_zmin1        c_zmin2        c_zmin3        c_zmin4    
     100000   7.8261125e-11 -8.8589159     -10.211635     -12.259695     -14.116724    
     100100   3.6724789e-07 -8.8425465     -10.196127     -12.244898     -14.102021    
@@ -1994,21 +1994,21 @@ Per MPI rank memory allocation (min/avg/max) = 18.74 | 18.74 | 18.74 Mbytes
     159800   6.5545335e-10 -2.5447569     -3.763584      -5.6919649     -7.6343239    
     159900   5.2643598e-10 -2.5453379     -3.7642149     -5.6926688     -7.6350599    
     160000   4.125148e-10  -2.5458209     -3.764757      -5.6932956     -7.6357264    
-Loop time of 9.91229 on 4 procs for 60000 steps with 9576 atoms
+Loop time of 10.0231 on 4 procs for 60000 steps with 9576 atoms
 
-Performance: 52298696.627 tau/day, 6053.090 timesteps/s, 57.964 Matom-step/s
+Performance: 51720612.297 tau/day, 5986.182 timesteps/s, 57.324 Matom-step/s
 99.4% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.47914    | 0.48922    | 0.49571    |   0.9 |  4.94
-Bond    | 7.5724     | 7.6128     | 7.6634     |   1.4 | 76.80
-Neigh   | 0.15227    | 0.15248    | 0.15265    |   0.0 |  1.54
-Comm    | 0.32326    | 0.38609    | 0.44218    |   8.9 |  3.90
-Output  | 0.017653   | 0.018436   | 0.020445   |   0.9 |  0.19
-Modify  | 1.0015     | 1.0161     | 1.0289     |   1.0 | 10.25
-Other   |            | 0.2372     |            |       |  2.39
+Pair    | 0.48443    | 0.49326    | 0.49673    |   0.7 |  4.92
+Bond    | 7.6152     | 7.6598     | 7.7055     |   1.3 | 76.42
+Neigh   | 0.1295     | 0.12976    | 0.12999    |   0.1 |  1.29
+Comm    | 0.39539    | 0.45341    | 0.52076    |   8.5 |  4.52
+Output  | 0.019214   | 0.020019   | 0.022042   |   0.8 |  0.20
+Modify  | 1.0256     | 1.0278     | 1.0315     |   0.2 | 10.25
+Other   |            | 0.239      |            |       |  2.38
 
 Nlocal:           2394 ave        2427 max        2361 min
 Histogram: 1 1 0 0 0 0 0 0 1 1

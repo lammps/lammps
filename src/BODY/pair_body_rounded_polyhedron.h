@@ -137,13 +137,13 @@ class PairBodyRoundedPolyhedron : public Pair {
                              double **f, double **torque, double **fnc, Scratch &s,
                              double &evdwl, double *facc);
   // sphere-edge interaction
-  void sphere_against_edge(int ibody, int jbody, int itype, int jtype, double **x, double **v,
-                           double **f, double **torque, double **angmom, double **fnc,
-                           Scratch &s, double &evdwl, double *facc);
   // sphere-face interaction
-  void sphere_against_face(int ibody, int jbody, int itype, int jtype, double **x, double **v,
-                           double **f, double **torque, double **angmom, double **fnc,
-                           Scratch &s, double &evdwl, double *facc);
+  void sphere_against_polyhedron(int ibody, int jbody, int itype, int jtype, double **x,
+                                 double **v, double **f, double **torque, double **angmom,
+                                 double **fnc, Scratch &s, double &evdwl, double *facc);
+  void sphere_point_contact(int ibody, int jbody, int itype, int jtype, double *h, double **x,
+                            double **v, double **f, double **torque, double **angmom,
+                            double **fnc, Scratch &s, double &evdwl, double *facc);
   // whether two edges, or the edges at two vertices, interact as edges
   int vertex_near(const Scratch &s, int ibody, int ni) const;
   int edge_near(const Scratch &s, int ibody, int ne) const;

@@ -344,19 +344,15 @@ void PairBodyRoundedPolyhedron::pair_interaction(int i, int j, double delx, doub
   if ((npj == 1) || (npi == 1)) {
     contacts.clear();
     if (npj == 1) {
-      sphere_against_face(i, j, itype, jtype, x, v, f, torque, angmom, fnc, s,
-                          evdwl, facc);
-      sphere_against_edge(i, j, itype, jtype, x, v, f, torque, angmom, fnc, s,
-                          evdwl, facc);
+      sphere_against_polyhedron(i, j, itype, jtype, x, v, f, torque, angmom, fnc, s,
+                                evdwl, facc);
     } else {
 
       // the force on body j is returned, facc is the force on body i
 
       double fj[3] = {0.0, 0.0, 0.0};
-      sphere_against_face(j, i, jtype, itype, x, v, f, torque, angmom, fnc, s,
-                          evdwl, fj);
-      sphere_against_edge(j, i, jtype, itype, x, v, f, torque, angmom, fnc, s,
-                          evdwl, fj);
+      sphere_against_polyhedron(j, i, jtype, itype, x, v, f, torque, angmom, fnc, s,
+                                evdwl, fj);
       facc[0] -= fj[0];
       facc[1] -= fj[1];
       facc[2] -= fj[2];
@@ -917,243 +913,137 @@ void PairBodyRoundedPolyhedron::sphere_against_sphere(int ibody, int jbody,
 }
 
 /* ----------------------------------------------------------------------
-   Interaction bt the edges of a polyhedron (ibody) and a sphere (jbody)
+   Interaction bt a polyhedron (ibody) and a sphere (jbody): the rounded
+   polyhedron and the sphere touch at a single point, the point of the
+   polyhedron nearest to the center of the sphere, which is the nearest
+   of the projections of the center onto the faces, if inside the face
+   and in front of it, and onto the edges, limited to the ends of the edge.
+   A contact per face, edge, or vertex instead would miss the vertices,
+   or count the same point twice at the boundary of a face and an edge
 ---------------------------------------------------------------------- */
 
-void PairBodyRoundedPolyhedron::sphere_against_edge(int ibody, int jbody,
+void PairBodyRoundedPolyhedron::sphere_against_polyhedron(int ibody, int jbody,
   int itype, int jtype, double** x, double** v, double** f, double** torque,
   double** angmom, double** fnc, Scratch &s, double &evdwl, double* facc)
 {
-  std::vector<int> &vertex_done = s.vertex_done;
-  int ni,nei,ifirst,iefirst,npi1,npi2;
-  double xi1[3],xi2[3],h[3],d,t;
-  double delx,dely,delz,rsq,rij,R,fx,fy,fz,fpair,energy;
-  double rradi,rradj,contact_dist;
+  int ifirst = dfirst[ibody];
+  int iefirst = edfirst[ibody];
+  int iffirst = facfirst[ibody];
+  double contact_dist = rounded_radius[ibody] + rounded_radius[jbody];
+  double xi1[3], xi2[3], xi3[3], ui[3], vi[3], n[3], h[3], hmin[3], d, t;
+  double dmin = -1.0;
+  int inside, tmp;
 
-  int nlocal = atom->nlocal;
-  int newton_pair = force->newton_pair;
+  // faces in front of the center of the sphere with the projection inside
 
-  ifirst = dfirst[ibody];
-  iefirst = edfirst[ibody];
-  nei = ednum[ibody];
-
-  rradi = rounded_radius[ibody];
-  rradj = rounded_radius[jbody];
-  contact_dist = rradi + rradj;
-
-  for (ni = 0; ni < nei; ni++) {
-
-    npi1 = static_cast<int>(edge[iefirst+ni][0]);
-    npi2 = static_cast<int>(edge[iefirst+ni][1]);
-
-    // compute the space-fixed coordinates for the vertices of the face
-
-    xi1[0] = x[ibody][0] + discrete[ifirst+npi1][0];
-    xi1[1] = x[ibody][1] + discrete[ifirst+npi1][1];
-    xi1[2] = x[ibody][2] + discrete[ifirst+npi1][2];
-
-    xi2[0] = x[ibody][0] + discrete[ifirst+npi2][0];
-    xi2[1] = x[ibody][1] + discrete[ifirst+npi2][1];
-    xi2[2] = x[ibody][2] + discrete[ifirst+npi2][2];
-
-    // find the projection of the jbody's COM on the edge
-
-    project_pt_line(x[jbody], xi1, xi2, h, d, t);
-
-    if (d > contact_dist + cut_inner) continue;
-    if (t < 0 || t > 1) continue;
-
-    // the nearest point is a vertex at either end of the edge, which interacts
-    // only once with the sphere
-
-    // the edge, or the vertex near an end of the edge, must be the nearest
-    // feature of the polyhedron to the sphere, see edge_cone(), else a face
-    // next to it is, unless the center of the sphere is inside the polyhedron
-
-    int nv = -1;
-    if (fabs(t) < EPSILON) nv = npi1;
-    else if (fabs(t-1) < EPSILON) nv = npi2;
-    if ((nv >= 0) && (vertex_done[ifirst+nv] == 1)) continue;
-
-    double dv[3], n[3];
-    MathExtra::sub3(x[jbody], h, dv);
-    int nearest = edge_cone(ibody, ni, dv);
-    if (nv >= 0) {
-      MathExtra::add3(x[ibody], discrete[ifirst+nv], h);
-      MathExtra::sub3(x[jbody], h, dv);
-      nearest = nearest || vertex_cone(ibody, nv, dv);
-    }
-    if (!nearest && (nearest_face(ibody, x[ibody], x[jbody], n) >= 0.0)) continue;
-    if (nv >= 0) vertex_done[ifirst+nv] = 1;
-
-    delx = h[0] - x[jbody][0];
-    dely = h[1] - x[jbody][1];
-    delz = h[2] - x[jbody][2];
-    rsq = delx*delx + dely*dely + delz*delz;
-    if (rsq == 0.0) continue;
-    rij = sqrt(rsq);
-    R = rij - contact_dist;
-
-    energy = 0;
-    kernel_force(R, itype, jtype, energy, fpair);
-
-    fx = delx*fpair/rij;
-    fy = dely*fpair/rij;
-    fz = delz*fpair/rij;
-
-    if (R <= 0) { // in contact
-
-      // damping at the contact point between the surfaces, the friction
-      // force is computed once per pair of bodies from the contacts
-
-      double nrm[3] = {delx/rij, dely/rij, delz/rij};
-      double pc[3];
-      contact_point(h, x[jbody], nrm, rradi, rradj, pc);
-      damping_friction(ibody, jbody, pc, nrm, 0.0, 1, 0, x, v, angmom, f, torque, fnc, ibody,
-                       facc);
-
-      Contact c;
-      c.ibody = ibody;
-      c.jbody = jbody;
-      MathExtra::copy3(h, c.xi);
-      MathExtra::copy3(x[jbody], c.xj);
-      c.type = 0;
-      c.separation = R;
-      c.r = rij;
-      c.unique = 1;
-      s.contacts.push_back(c);
-    }
-
-    f[ibody][0] += fx;
-    f[ibody][1] += fy;
-    f[ibody][2] += fz;
-    sum_torque(x[ibody], h, fx, fy, fz, torque[ibody]);
-
-    if (newton_pair || jbody < nlocal) {
-      f[jbody][0] -= fx;
-      f[jbody][1] -= fy;
-      f[jbody][2] -= fz;
-    }
-
-    evdwl += energy;
-    facc[0] += fx; facc[1] += fy; facc[2] += fz;
-  }
-}
-
-/* ----------------------------------------------------------------------
-   Interaction bt the faces of a polyhedron (ibody) and a sphere (jbody)
----------------------------------------------------------------------- */
-
-void PairBodyRoundedPolyhedron::sphere_against_face(int ibody, int jbody,
- int itype, int jtype, double** x, double** v, double** f, double** torque,
- double** angmom, double** fnc, Scratch &s, double &evdwl, double* facc)
-{
-  int ni,nfi,inside,ifirst,iffirst,npi1,npi2,npi3,tmp;
-  double xi1[3],xi2[3],xi3[3],ui[3],vi[3],n[3],h[3],d;
-  double delx,dely,delz,rsq,rij,R,fx,fy,fz,fpair,energy;
-  double rradi,rradj,contact_dist;
-
-  int nlocal = atom->nlocal;
-  int newton_pair = force->newton_pair;
-
-  ifirst = dfirst[ibody];
-  iffirst = facfirst[ibody];
-  nfi = facnum[ibody];
-
-  rradi = rounded_radius[ibody];
-  rradj = rounded_radius[jbody];
-  contact_dist = rradi + rradj;
-
-  for (ni = 0; ni < nfi; ni++) {
-
-    npi1 = static_cast<int>(face[iffirst+ni][0]);
-    npi2 = static_cast<int>(face[iffirst+ni][1]);
-    npi3 = static_cast<int>(face[iffirst+ni][2]);
-
-    // compute the space-fixed coordinates for the vertices of the face
-
-    xi1[0] = x[ibody][0] + discrete[ifirst+npi1][0];
-    xi1[1] = x[ibody][1] + discrete[ifirst+npi1][1];
-    xi1[2] = x[ibody][2] + discrete[ifirst+npi1][2];
-
-    xi2[0] = x[ibody][0] + discrete[ifirst+npi2][0];
-    xi2[1] = x[ibody][1] + discrete[ifirst+npi2][1];
-    xi2[2] = x[ibody][2] + discrete[ifirst+npi2][2];
-
-    xi3[0] = x[ibody][0] + discrete[ifirst+npi3][0];
-    xi3[1] = x[ibody][1] + discrete[ifirst+npi3][1];
-    xi3[2] = x[ibody][2] + discrete[ifirst+npi3][2];
-
-    // find the normal unit vector of the face
-
+  for (int nf = 0; nf < facnum[ibody]; nf++) {
+    MathExtra::add3(x[ibody], discrete[ifirst+static_cast<int>(face[iffirst+nf][0])], xi1);
+    MathExtra::add3(x[ibody], discrete[ifirst+static_cast<int>(face[iffirst+nf][1])], xi2);
+    MathExtra::add3(x[ibody], discrete[ifirst+static_cast<int>(face[iffirst+nf][2])], xi3);
     MathExtra::sub3(xi2, xi1, ui);
     MathExtra::sub3(xi3, xi1, vi);
     MathExtra::cross3(ui, vi, n);
     MathExtra::norm3(n);
-
-    // skip if the COM of the two bodies are in the same side of the face
-
     if (opposite_sides(n, xi1, x[ibody], x[jbody]) == 0) continue;
-
-    // find the projection of the sphere on the face
-
     project_pt_plane(x[jbody], xi1, xi2, xi3, h, d, inside);
-
-    inside_polygon(ibody, ni, x[ibody], h, nullptr, inside, tmp);
-    if (inside == 0) continue;
-
-    delx = h[0] - x[jbody][0];
-    dely = h[1] - x[jbody][1];
-    delz = h[2] - x[jbody][2];
-    rsq = delx*delx + dely*dely + delz*delz;
-    if (rsq == 0.0) continue;
-    rij = sqrt(rsq);
-    R = rij - contact_dist;
-
-    energy = 0;
-    kernel_force(R, itype, jtype, energy, fpair);
-
-    fx = delx*fpair/rij;
-    fy = dely*fpair/rij;
-    fz = delz*fpair/rij;
-
-    if (R <= 0) { // in contact
-
-      // damping at the contact point between the surfaces, the friction
-      // force is computed once per pair of bodies from the contacts
-
-      double nrm[3] = {delx/rij, dely/rij, delz/rij};
-      double pc[3];
-      contact_point(h, x[jbody], nrm, rradi, rradj, pc);
-      damping_friction(ibody, jbody, pc, nrm, 0.0, 1, 0, x, v, angmom, f, torque, fnc, ibody,
-                       facc);
-
-      Contact c;
-      c.ibody = ibody;
-      c.jbody = jbody;
-      MathExtra::copy3(h, c.xi);
-      MathExtra::copy3(x[jbody], c.xj);
-      c.type = 0;
-      c.separation = R;
-      c.r = rij;
-      c.unique = 1;
-      s.contacts.push_back(c);
+    inside_polygon(ibody, nf, x[ibody], h, nullptr, inside, tmp);
+    if (!inside) continue;
+    if ((dmin < 0.0) || (d < dmin)) {
+      dmin = d;
+      MathExtra::copy3(h, hmin);
     }
-
-    f[ibody][0] += fx;
-    f[ibody][1] += fy;
-    f[ibody][2] += fz;
-    sum_torque(x[ibody], h, fx, fy, fz, torque[ibody]);
-
-    if (newton_pair || jbody < nlocal) {
-      f[jbody][0] -= fx;
-      f[jbody][1] -= fy;
-      f[jbody][2] -= fz;
-    }
-
-    evdwl += energy;
-    facc[0] += fx; facc[1] += fy; facc[2] += fz;
   }
+
+  // edges, the nearest point is an end of the edge if the projection is not inside
+
+  for (int ne = 0; ne < ednum[ibody]; ne++) {
+    MathExtra::add3(x[ibody], discrete[ifirst+static_cast<int>(edge[iefirst+ne][0])], xi1);
+    MathExtra::add3(x[ibody], discrete[ifirst+static_cast<int>(edge[iefirst+ne][1])], xi2);
+    project_pt_line(x[jbody], xi1, xi2, h, d, t);
+    if (t < 0.0) {
+      MathExtra::copy3(xi1, h);
+      d = sqrt(MathExtra::distsq3(x[jbody], xi1));
+    } else if (t > 1.0) {
+      MathExtra::copy3(xi2, h);
+      d = sqrt(MathExtra::distsq3(x[jbody], xi2));
+    }
+    if ((dmin < 0.0) || (d < dmin)) {
+      dmin = d;
+      MathExtra::copy3(h, hmin);
+    }
+  }
+
+  if ((dmin < 0.0) || (dmin > contact_dist + cut_inner)) return;
+  sphere_point_contact(ibody, jbody, itype, jtype, hmin, x, v, f, torque, angmom, fnc, s, evdwl,
+                       facc);
+}
+
+/* ----------------------------------------------------------------------
+   Force between the point h of a polyhedron (ibody) and a sphere (jbody)
+---------------------------------------------------------------------- */
+
+void PairBodyRoundedPolyhedron::sphere_point_contact(int ibody, int jbody,
+  int itype, int jtype, double *h, double** x, double** v, double** f, double** torque,
+  double** angmom, double** fnc, Scratch &s, double &evdwl, double* facc)
+{
+  double delx,dely,delz,rsq,rij,R,fx,fy,fz,fpair,energy;
+  int nlocal = atom->nlocal;
+  int newton_pair = force->newton_pair;
+  double rradi = rounded_radius[ibody];
+  double rradj = rounded_radius[jbody];
+  double contact_dist = rradi + rradj;
+
+  delx = h[0] - x[jbody][0];
+  dely = h[1] - x[jbody][1];
+  delz = h[2] - x[jbody][2];
+  rsq = delx*delx + dely*dely + delz*delz;
+  if (rsq == 0.0) return;
+  rij = sqrt(rsq);
+  R = rij - contact_dist;
+
+  energy = 0;
+  kernel_force(R, itype, jtype, energy, fpair);
+
+  fx = delx*fpair/rij;
+  fy = dely*fpair/rij;
+  fz = delz*fpair/rij;
+
+  if (R <= 0) { // in contact
+
+    // damping at the contact point between the surfaces, the friction
+    // force is computed once per pair of bodies from the contacts
+
+    double nrm[3] = {delx/rij, dely/rij, delz/rij};
+    double pc[3];
+    contact_point(h, x[jbody], nrm, rradi, rradj, pc);
+    damping_friction(ibody, jbody, pc, nrm, 0.0, 1, 0, x, v, angmom, f, torque, fnc, ibody,
+                     facc);
+
+    Contact c;
+    c.ibody = ibody;
+    c.jbody = jbody;
+    MathExtra::copy3(h, c.xi);
+    MathExtra::copy3(x[jbody], c.xj);
+    c.type = 0;
+    c.separation = R;
+    c.r = rij;
+    c.unique = 1;
+    s.contacts.push_back(c);
+  }
+
+  f[ibody][0] += fx;
+  f[ibody][1] += fy;
+  f[ibody][2] += fz;
+  sum_torque(x[ibody], h, fx, fy, fz, torque[ibody]);
+
+  if (newton_pair || jbody < nlocal) {
+    f[jbody][0] -= fx;
+    f[jbody][1] -= fy;
+    f[jbody][2] -= fz;
+  }
+
+  evdwl += energy;
+  facc[0] += fx; facc[1] += fy; facc[2] += fz;
 }
 
 /* ----------------------------------------------------------------------

@@ -122,7 +122,9 @@ no edge or face next to either of them is closer to the other particle
 along the line between the two, else the contact is represented by the
 interactions of that edge or face.  Two parallel edges do not interact
 as edges, since the ends of their overlap are vertices, which interact
-instead.
+instead.  A sphere touches a polyhedron at a single point, the point of
+the polyhedron nearest to the center of the sphere, which can lie on a
+face, an edge, or a vertex.
 
 In :ref:`Wang <pair-Wang>`, the tangential friction force between two
 particles that are in contact is modeled differently prior to gross
@@ -161,7 +163,10 @@ interact with each other at a single point in the middle or at an end
 of their overlap.  Previously, edges within about 2.6 degrees of each
 other were treated as parallel.  These contacts pushed particles resting
 with a face on each other sideways and made them rotate, and made the
-forces jump as the particles moved.
+forces jump as the particles moved.  A sphere now also interacts with the
+vertices of a polyhedron, instead of passing through its corners, and
+interacts only once with a polyhedron, instead of with both a face and
+the edges of that face near its boundary.
 
 .. versionadded:: TBD
 

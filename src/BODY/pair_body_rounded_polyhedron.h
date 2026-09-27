@@ -149,6 +149,11 @@ class PairBodyRoundedPolyhedron : public Pair {
   int edge_near(const Scratch &s, int ibody, int ne) const;
   int face_near(const Scratch &s, int ibody, int nf) const;
   int edges_interact(int ibody, int ei, int jbody, int ej);
+  int edge_edge_nearest(int ibody, int ei, int jbody, int ej, double *hi, double *hj, double &r,
+                        int &crossed);
+  // normal cones of the vertices and edges, to validate the direction of a contact
+  int vertex_cone(int ibody, int nv, const double *d) const;
+  int edge_cone(int ibody, int ne, const double *d) const;
   int vertex_edges_interact(int ibody, int ni, int jbody, int ej, int nj);
   // vertex-edge and vertex-vertex interactions
   void vertex_against_edge(int ibody, int jbody, int itype, int jtype, double **x, double **v,

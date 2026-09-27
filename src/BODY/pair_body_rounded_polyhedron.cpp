@@ -49,6 +49,8 @@ using namespace MathConst;
 
 static constexpr int DELTA = 10000;
 static constexpr double EPSILON = 1.0e-3; // dimensionless threshold (dot products, end point checks, contact checks)
+static constexpr double PARALLEL_TOL = 1.0e-12;   // 1 - |cos| below which two edges are parallel
+static constexpr double CONE_TOL = 1.0e-10;       // tolerance of the normal cone tests
 static constexpr int MAX_FACE_SIZE = 4;   // maximum number of vertices per face (same as BodyRoundedPolyhedron)
 static constexpr int NFNC = 12;           // per-body force and torque of the j_a scaling, and of damping
 static constexpr char id_fix_store_prefix[] = "BODY_ROUNDED_POLYHEDRON_WORK_";
@@ -961,27 +963,28 @@ void PairBodyRoundedPolyhedron::sphere_against_edge(int ibody, int jbody,
     if (d > contact_dist + cut_inner) continue;
     if (t < 0 || t > 1) continue;
 
-    if (fabs(t) < EPSILON) {
-      if (vertex_done[ifirst+npi1] == 1)
-        continue;
-      else {
-        h[0] = xi1[0];
-        h[1] = xi1[1];
-        h[2] = xi1[2];
-        vertex_done[ifirst+npi1] = 1;
-      }
-    }
+    // the nearest point is a vertex at either end of the edge, which interacts
+    // only once with the sphere
 
-    if (fabs(t-1) < EPSILON) {
-      if (vertex_done[ifirst+npi2] == 1)
-        continue;
-      else {
-        h[0] = xi2[0];
-        h[1] = xi2[1];
-        h[2] = xi2[2];
-        vertex_done[ifirst+npi2] = 1;
-      }
+    // the edge, or the vertex near an end of the edge, must be the nearest
+    // feature of the polyhedron to the sphere, see edge_cone(), else a face
+    // next to it is, unless the center of the sphere is inside the polyhedron
+
+    int nv = -1;
+    if (fabs(t) < EPSILON) nv = npi1;
+    else if (fabs(t-1) < EPSILON) nv = npi2;
+    if ((nv >= 0) && (vertex_done[ifirst+nv] == 1)) continue;
+
+    double dv[3], n[3];
+    MathExtra::sub3(x[jbody], h, dv);
+    int nearest = edge_cone(ibody, ni, dv);
+    if (nv >= 0) {
+      MathExtra::add3(x[ibody], discrete[ifirst+nv], h);
+      MathExtra::sub3(x[jbody], h, dv);
+      nearest = nearest || vertex_cone(ibody, nv, dv);
     }
+    if (!nearest && (nearest_face(ibody, x[ibody], x[jbody], n) >= 0.0)) continue;
+    if (nv >= 0) vertex_done[ifirst+nv] = 1;
 
     delx = h[0] - x[jbody][0];
     dely = h[1] - x[jbody][1];
@@ -1193,15 +1196,98 @@ int PairBodyRoundedPolyhedron::face_near(const Scratch &s, int ibody, int nf) co
 }
 
 /* ----------------------------------------------------------------------
-   Return 1 if edge ei of body ibody and edge ej of body jbody interact
-   as edges, i.e. the nearest points of both edges are inside the edges
-   and within the interaction range, as in interaction_edge_to_edge()
+   Normal cones of the vertices and edges of body ibody: return 1 if the
+   direction d from a vertex or edge towards the other body of a contact is
+   in the normal cone of that feature, i.e. no incident edge of the vertex,
+   or adjacent face of the edge, is closer to the other body in direction d.
+   Else that edge or face is closer, and the contact is represented by its
+   contacts instead: e.g. a vertex of a face in contact with a parallel face
+   beyond an edge of that face would otherwise get a tilted normal towards
+   the edge and push the bodies sideways.  Ties, e.g. for parallel faces,
+   are accepted within CONE_TOL.
+   only the point-like contacts of a vertex with an edge or a vertex are
+   tested: the contacts of the vertices of a face with another face, and of
+   crossing edges, are the corners of the contact region of two faces, which
+   are in contact also if not nearest, when the faces are inclined
 ------------------------------------------------------------------------- */
 
-int PairBodyRoundedPolyhedron::edges_interact(int ibody, int ei, int jbody, int ej)
+int PairBodyRoundedPolyhedron::vertex_cone(int ibody, int nv, const double *d) const
+{
+  int ifirst = dfirst[ibody];
+  int iefirst = edfirst[ibody];
+  double dlen = MathExtra::len3(d);
+  double e[3];
+
+  for (int ne = 0; ne < ednum[ibody]; ne++) {
+    int na = static_cast<int>(edge[iefirst+ne][0]);
+    int nb = static_cast<int>(edge[iefirst+ne][1]);
+    int nw;
+    if (na == nv) nw = nb;
+    else if (nb == nv) nw = na;
+    else continue;
+    MathExtra::sub3(discrete[ifirst+nw], discrete[ifirst+nv], e);
+    if (MathExtra::dot3(d, e) > CONE_TOL * dlen * MathExtra::len3(e)) return 0;
+  }
+  return 1;
+}
+
+/* ---------------------------------------------------------------------- */
+
+int PairBodyRoundedPolyhedron::edge_cone(int ibody, int ne, const double *d) const
+{
+  int ifirst = dfirst[ibody];
+  int iefirst = edfirst[ibody];
+  int iffirst = facfirst[ibody];
+  int na = static_cast<int>(edge[iefirst+ne][0]);
+  int nb = static_cast<int>(edge[iefirst+ne][1]);
+  double dlen = MathExtra::len3(d);
+  double u[3], tf[3];
+  MathExtra::sub3(discrete[ifirst+nb], discrete[ifirst+na], u);
+  double uu = MathExtra::dot3(u, u);
+  if (uu == 0.0) return 1;
+
+  // the faces adjacent to the edge contain both of its end points,
+  // tf is the direction from the edge into the face, perpendicular to the edge
+
+  for (int nf = 0; nf < facnum[ibody]; nf++) {
+    int hasa = 0, hasb = 0, nvf = 0;
+    double xc[3] = {0.0, 0.0, 0.0};
+    for (int k = 0; k < MAX_FACE_SIZE; k++) {
+      int np = static_cast<int>(face[iffirst+nf][k]);
+      if (np < 0) break;
+      if (np == na) hasa = 1;
+      if (np == nb) hasb = 1;
+      MathExtra::add3(xc, discrete[ifirst+np], xc);
+      nvf++;
+    }
+    if (!hasa || !hasb) continue;
+    MathExtra::scale3(1.0/nvf, xc);
+    MathExtra::sub3(xc, discrete[ifirst+na], tf);
+    double s = MathExtra::dot3(tf, u) / uu;
+    for (int k = 0; k < 3; k++) tf[k] -= s*u[k];
+    if (MathExtra::dot3(d, tf) > CONE_TOL * dlen * MathExtra::len3(tf)) return 0;
+  }
+  return 1;
+}
+
+/* ----------------------------------------------------------------------
+   Nearest points hi and hj, at a distance r, of edge ei of body ibody and
+   edge ej of body jbody, return 1 if the edges interact as edges, i.e. the
+   nearest points are inside the edges and within the interaction range.
+   crossed = 1 if the edges have crossed each other, when the nearest point
+   of the edge of body j is inside body i.
+   the normal cones are not tested, see edge_cone(): two crossing edges of
+   faces in contact are a corner of the contact region, also when the faces
+   are inclined to each other, and a face is then closer than the edge on
+   one side of the crossing
+------------------------------------------------------------------------- */
+
+int PairBodyRoundedPolyhedron::edge_edge_nearest(int ibody, int ei, int jbody, int ej,
+                                                 double *hi, double *hj, double &r,
+                                                 int &crossed)
 {
   double **x = atom->x;
-  double xi1[3], xi2[3], xj1[3], xj2[3], h1[3], h2[3], t1, t2, r;
+  double xi1[3], xi2[3], xj1[3], xj2[3], ti, tj;
   int ifirst = dfirst[ibody];
   int jfirst = dfirst[jbody];
   int iefirst = edfirst[ibody];
@@ -1210,13 +1296,29 @@ int PairBodyRoundedPolyhedron::edges_interact(int ibody, int ei, int jbody, int 
   MathExtra::add3(x[ibody], discrete[ifirst+static_cast<int>(edge[iefirst+ei][1])], xi2);
   MathExtra::add3(x[jbody], discrete[jfirst+static_cast<int>(edge[jefirst+ej][0])], xj1);
   MathExtra::add3(x[jbody], discrete[jfirst+static_cast<int>(edge[jefirst+ej][1])], xj2);
-  distance_bt_edges(xj1, xj2, xi1, xi2, h1, h2, t1, t2, r);
+  distance_bt_edges(xj1, xj2, xi1, xi2, hj, hi, tj, ti, r);
 
+  crossed = 0;
   double contact_dist = rounded_radius[ibody] + rounded_radius[jbody];
   double rmin = MIN(rounded_radius[ibody], rounded_radius[jbody]);
   if (r < EPSILON*rmin) return 0;
-  return ((t1 >= 0) && (t1 <= 1) && (t2 >= 0) && (t2 <= 1) &&
-          (r < contact_dist + cut_inner)) ? 1 : 0;
+  if ((ti < 0) || (ti > 1) || (tj < 0) || (tj > 1) || (r >= contact_dist + cut_inner)) return 0;
+
+  double nc[3];
+  if (nearest_face(ibody, x[ibody], hj, nc) < 0.0) crossed = 1;
+  return 1;
+}
+
+/* ----------------------------------------------------------------------
+   Return 1 if edge ei of body ibody and edge ej of body jbody interact
+   as edges, see edge_edge_nearest() and interaction_edge_to_edge()
+------------------------------------------------------------------------- */
+
+int PairBodyRoundedPolyhedron::edges_interact(int ibody, int ei, int jbody, int ej)
+{
+  double hi[3], hj[3], r;
+  int crossed;
+  return edge_edge_nearest(ibody, ei, jbody, ej, hi, hj, r, crossed);
 }
 
 /* ----------------------------------------------------------------------
@@ -1300,6 +1402,14 @@ void PairBodyRoundedPolyhedron::vertex_against_edge(int ibody, int jbody,
       double d = sqrt(MathExtra::distsq3(xpi, h));
       if (d > contact_dist + cut_inner) continue;
 
+      // the vertex and the edge must be the nearest features of their bodies
+      // to each other, see vertex_cone(), a vertex inside body j is skipped below
+
+      double dv[3], dm[3];
+      MathExtra::sub3(h, xpi, dv);
+      for (int k = 0; k < 3; k++) dm[k] = -dv[k];
+      if (!vertex_cone(ibody, ni, dv) || !edge_cone(jbody, ne, dm)) continue;
+
       // an edge ending at the vertex interacts with this edge as an edge,
       // which represents the contact until its nearest point reaches the vertex
 
@@ -1376,6 +1486,16 @@ void PairBodyRoundedPolyhedron::vertex_against_vertex(int ibody, int jbody,
       double d = sqrt(MathExtra::distsq3(xpi, xpj));
       if (d > contact_dist + cut_inner) continue;
       if ((dmin < 0.0) || (d < dmin)) {
+
+        // both vertices must be the nearest features of their bodies to each
+        // other, see vertex_cone(), unless one is inside the other body
+
+        double dv[3], dm[3], n[3];
+        MathExtra::sub3(xpj, xpi, dv);
+        for (int k = 0; k < 3; k++) dm[k] = -dv[k];
+        if ((!vertex_cone(ibody, ni, dv) || !vertex_cone(jbody, nj, dm)) &&
+            (nearest_face(jbody, x[jbody], xpi, n) >= 0.0) &&
+            (nearest_face(ibody, x[ibody], xpj, n) >= 0.0)) continue;
         if (vertex_edges_interact(ibody, ni, jbody, -1, nj)) continue;
         dmin = d;
         nmin = nj;
@@ -1552,118 +1672,48 @@ int PairBodyRoundedPolyhedron::edge_against_face(int ibody, int jbody,
 ------------------------------------------------------------------------- */
 
 int PairBodyRoundedPolyhedron::interaction_edge_to_edge(int ibody,
-  int edge_index_i,  double *xmi, double rounded_radius_i,
-  int jbody, int edge_index_j, double *xmj, double rounded_radius_j,
-  int itype, int jtype, double cut_inner, double** v, double** f,
+  int edge_index_i,  double * /*xmi*/, double rounded_radius_i,
+  int jbody, int edge_index_j, double * /*xmj*/, double rounded_radius_j,
+  int itype, int jtype, double /*cut_inner*/, double** v, double** f,
   double** torque, double** angmom, double** fnc, Scratch &s,
   double &energy, double* facc)
 {
   std::vector<Contact> &contacts = s.contacts;
-  int ifirst,iefirst,jfirst,jefirst,npi1,npi2,npj1,npj2,interact;
-  double xi1[3],xi2[3],xpj1[3],xpj2[3];
-  double r,t1,t2,h1[3],h2[3];
-  double contact_dist;
-
   double** x = atom->x;
 
-  ifirst = dfirst[ibody];
-  iefirst = edfirst[ibody];
-  npi1 = static_cast<int>(edge[iefirst+edge_index_i][0]);
-  npi2 = static_cast<int>(edge[iefirst+edge_index_i][1]);
+  // nearest points hi on the edge of body i and hj on the edge of body j
 
-  // compute the space-fixed coordinates for the edge ends
+  double hi[3], hj[3], r;
+  int crossed;
+  if (!edge_edge_nearest(ibody, edge_index_i, jbody, edge_index_j, hi, hj, r, crossed))
+    return EE_NONE;
 
-  xi1[0] = xmi[0] + discrete[ifirst+npi1][0];
-  xi1[1] = xmi[1] + discrete[ifirst+npi1][1];
-  xi1[2] = xmi[2] + discrete[ifirst+npi1][2];
+  // the edges have crossed each other if the closest point on the edge
+  // of body j is inside body i: use a negative distance so that the
+  // overlap is deeper than the rounded radii and the force is repulsive
 
-  xi2[0] = xmi[0] + discrete[ifirst+npi2][0];
-  xi2[1] = xmi[1] + discrete[ifirst+npi2][1];
-  xi2[2] = xmi[2] + discrete[ifirst+npi2][2];
+  if (crossed) r = -r;
 
-  // two ends of the edge from body j
-
-  jfirst = dfirst[jbody];
-  jefirst = edfirst[jbody];
-  npj1 = static_cast<int>(edge[jefirst+edge_index_j][0]);
-  npj2 = static_cast<int>(edge[jefirst+edge_index_j][1]);
-
-  xpj1[0] = xmj[0] + discrete[jfirst+npj1][0];
-  xpj1[1] = xmj[1] + discrete[jfirst+npj1][1];
-  xpj1[2] = xmj[2] + discrete[jfirst+npj1][2];
-
-  xpj2[0] = xmj[0] + discrete[jfirst+npj2][0];
-  xpj2[1] = xmj[1] + discrete[jfirst+npj2][1];
-  xpj2[2] = xmj[2] + discrete[jfirst+npj2][2];
-
-  contact_dist = rounded_radius_i + rounded_radius_j;
-
+  double contact_dist = rounded_radius_i + rounded_radius_j;
   int jflag = 1;
-  distance_bt_edges(xpj1, xpj2, xi1, xi2, h1, h2, t1, t2, r);
+  pair_force_and_torque(jbody, ibody, hj, hi, r, contact_dist,
+                        jtype, itype, x, v, f, torque, angmom,
+                        fnc, jflag, energy, facc);
 
-  #ifdef _POLYHEDRON_DEBUG
-  double ui[3],uj[3];
-  MathExtra::sub3(xi1,xi2,ui);
-  MathExtra::norm3(ui);
-  MathExtra::sub3(xpj1,xpj2,uj);
-  MathExtra::norm3(uj);
-  double dot = MathExtra::dot3(ui, uj);
-  printf("  edge npi1 = %d (%f %f %f); npi2 = %d (%f %f %f) vs."
-         "  edge npj1 = %d (%f %f %f); npj2 = %d (%f %f %f): "
-         "t1 = %f; t2 = %f; r = %f; dot = %f\n",
-    npi1, xi1[0], xi1[1], xi1[2], npi2, xi2[0], xi2[1], xi2[2],
-    npj1, xpj1[0], xpj1[1], xpj1[2], npj2, xpj2[0], xpj2[1], xpj2[2],
-    t1, t2, r, dot);
-  #endif
-
-  interact = EE_NONE;
-
-  // singularity case, ignore interactions
-
-  double rmin = MIN(rounded_radius_i, rounded_radius_j);
-  if (r < EPSILON*rmin) {
-    #ifdef _POLYHEDRON_DEBUG
-    printf("ignore interaction: r = %0.16f\n", r);
-    #endif
-    return interact;
+  if (r <= contact_dist) {
+    // store the contact info
+    Contact c;
+    c.ibody = ibody;
+    c.jbody = jbody;
+    MathExtra::copy3(hi, c.xi);
+    MathExtra::copy3(hj, c.xj);
+    c.type = 1;
+    c.separation = r - contact_dist;
+    c.r = r;
+    c.unique = 1;
+    contacts.push_back(c);
   }
-
-  // include the vertices for interactions
-
-  if (t1 >= 0 && t1 <= 1 && t2 >= 0 && t2 <= 1 &&
-      r < contact_dist + cut_inner) {
-
-    // the edges have crossed each other if the closest point on the edge
-    // of body j is inside body i: use a negative distance so that the
-    // overlap is deeper than the rounded radii and the force is repulsive
-
-    double nc[3];
-    if (nearest_face(ibody, xmi, h1, nc) < 0.0) r = -r;
-
-    pair_force_and_torque(jbody, ibody, h1, h2, r, contact_dist,
-                          jtype, itype, x, v, f, torque, angmom,
-                          fnc, jflag, energy, facc);
-
-    interact = EE_INTERACT;
-    if (r <= contact_dist) {
-      // store the contact info
-      Contact c;
-      c.ibody = ibody;
-      c.jbody = jbody;
-      c.xi[0] = h2[0];
-      c.xi[1] = h2[1];
-      c.xi[2] = h2[2];
-      c.xj[0] = h1[0];
-      c.xj[1] = h1[1];
-      c.xj[2] = h1[2];
-      c.type = 1;
-      c.separation = r - contact_dist;
-      c.r = r;
-      c.unique = 1;
-      contacts.push_back(c);
-    }
-  }
-  return interact;
+  return EE_INTERACT;
 }
 
 /* -------------------------------------------------------------------------
@@ -2832,12 +2882,9 @@ void PairBodyRoundedPolyhedron::project_pt_line(const double* q,
   MathExtra::sub3(q, h, r);
   d = MathExtra::len3(r);
 
-  if (fabs(xi2[0] - xi1[0]) > 0)
-    t = (h[0] - xi1[0])/(xi2[0] - xi1[0]);
-  else if (fabs(xi2[1] - xi1[1]) > 0)
-    t = (h[1] - xi1[1])/(xi2[1] - xi1[1]);
-  else if (fabs(xi2[2] - xi1[2]) > 0)
-    t = (h[2] - xi1[2])/(xi2[2] - xi1[2]);
+  // fraction of h along the edge, u is the unit director of the edge
+
+  t = s / sqrt(MathExtra::distsq3(xi1, xi2));
 }
 
 /* ----------------------------------------------------------------------
@@ -2873,167 +2920,22 @@ void PairBodyRoundedPolyhedron::distance_bt_edges(const double* x1,
   dot = MathExtra::dot3(u,v);
   dot = fabs(dot);
 
-  // check if two edges are parallel
-  // find the two ends of the overlapping segment, if any
+  // parallel edges have no pair of nearest points inside both edges: the
+  // ends of their overlap are vertices of either edge, and the contacts there
+  // are those of the vertices, as for nearly parallel edges whose nearest
+  // points are outside of the edges.  A single contact at an end or the middle
+  // of the overlap instead would jump between these points as the edges move
+  // along each other, and would get a tilted normal when they are offset
+  // sideways, while the faces next to the edges are closer, see edge_cone().
+  // only the distance r between the lines is returned
 
-  if (fabs(dot - 1.0) < EPSILON) {
-
-    double s1,s2,x13[3],x23[3],x13h[3];
-    double t13,t23,t31,t41,x31[3],x41[3];
-    t13=t23=t31=t41=0.0;
-
-    MathExtra::sub3(x1,x3,x13); // x13 = x1 - x3
-    MathExtra::sub3(x2,x3,x23); // x23 = x2 - x3
-
-    s1 = MathExtra::dot3(x13,v);
-    x13h[0] = x13[0] - s1*v[0];
-    x13h[1] = x13[1] - s1*v[1];
-    x13h[2] = x13[2] - s1*v[2];
-    r = MathExtra::len3(x13h);
-
-    // x13 is the projection of x1 on x3-x4
-
-    x13[0] = x3[0] + s1*v[0];
-    x13[1] = x3[1] + s1*v[1];
-    x13[2] = x3[2] + s1*v[2];
-
-    // x23 is the projection of x2 on x3-x4
-
-    s2 = MathExtra::dot3(x23,v);
-    x23[0] = x3[0] + s2*v[0];
-    x23[1] = x3[1] + s2*v[1];
-    x23[2] = x3[2] + s2*v[2];
-
-    // find the fraction of the projection points on the edges
-
-    if (fabs(x4[0] - x3[0]) > 0)
-      t13 = (x13[0] - x3[0])/(x4[0] - x3[0]);
-    else if (fabs(x4[1] - x3[1]) > 0)
-      t13 = (x13[1] - x3[1])/(x4[1] - x3[1]);
-    else if (fabs(x4[2] - x3[2]) > 0)
-      t13 = (x13[2] - x3[2])/(x4[2] - x3[2]);
-
-    if (fabs(x4[0] - x3[0]) > 0)
-      t23 = (x23[0] - x3[0])/(x4[0] - x3[0]);
-    else if (fabs(x4[1] - x3[1]) > 0)
-      t23 = (x23[1] - x3[1])/(x4[1] - x3[1]);
-    else if (fabs(x4[2] - x3[2]) > 0)
-      t23 = (x23[2] - x3[2])/(x4[2] - x3[2]);
-
-    if (fabs(x23[0] - x13[0]) > 0)
-      t31 = (x3[0] - x13[0])/(x23[0] - x13[0]);
-    else if (fabs(x23[1] - x13[1]) > 0)
-      t31 = (x3[1] - x13[1])/(x23[1] - x13[1]);
-    else if (fabs(x23[2] - x13[2]) > 0)
-      t31 = (x3[2] - x13[2])/(x23[2] - x13[2]);
-
-    // x31 is the projection of x3 on x1-x2
-
-    x31[0] = x1[0] + t31*(x2[0] - x1[0]);
-    x31[1] = x1[1] + t31*(x2[1] - x1[1]);
-    x31[2] = x1[2] + t31*(x2[2] - x1[2]);
-
-    if (fabs(x23[0] - x13[0]) > 0)
-      t41 = (x4[0] - x13[0])/(x23[0] - x13[0]);
-    else if (fabs(x23[1] - x13[1]) > 0)
-      t41 = (x4[1] - x13[1])/(x23[1] - x13[1]);
-    else if (fabs(x23[2] - x13[2]) > 0)
-      t41 = (x4[2] - x13[2])/(x23[2] - x13[2]);
-
-    // x41 is the projection of x4 on x1-x2
-
-    x41[0] = x1[0] + t41*(x2[0] - x1[0]);
-    x41[1] = x1[1] + t41*(x2[1] - x1[1]);
-    x41[2] = x1[2] + t41*(x2[2] - x1[2]);
-
-    // determine two ends from the overlapping segments
-
-    int n1 = 0;
-    int n2 = 0;
-    if (t13 >= 0 && t13 <= 1) {
-      h1[0] = x1[0];
-      h1[1] = x1[1];
-      h1[2] = x1[2];
-      h2[0] = x13[0];
-      h2[1] = x13[1];
-      h2[2] = x13[2];
-      t1 = 0;
-      t2 = t13;
-      n1++;
-      n2++;
-    }
-    if (t23 >= 0 && t23 <= 1) {
-      if (n1 == 0) {
-        h1[0] = x2[0];
-        h1[1] = x2[1];
-        h1[2] = x2[2];
-        h2[0] = x23[0];
-        h2[1] = x23[1];
-        h2[2] = x23[2];
-        t1 = 1;
-        t2 = t23;
-        n1++;
-        n2++;
-      } else {
-        h1[0] = (x1[0]+x2[0])/2;
-        h1[1] = (x1[1]+x2[1])/2;
-        h1[2] = (x1[2]+x2[2])/2;
-        h2[0] = (x13[0]+x23[0])/2;
-        h2[1] = (x13[1]+x23[1])/2;
-        h2[2] = (x13[2]+x23[2])/2;
-        t1 = 0.5;
-        t2 = (t13+t23)/2;
-        n1++;
-        n2++;
-      }
-    }
-
-    if (n1 == 0 && n2 == 0) {
-      if (t31 >= 0 && t31 <= 1) {
-        h1[0] = x31[0];
-        h1[1] = x31[1];
-        h1[2] = x31[2];
-        h2[0] = x3[0];
-        h2[1] = x3[1];
-        h2[2] = x3[2];
-        t1 = t31;
-        t2 = 0;
-        n1++;
-        n2++;
-      }
-      if (t41 >= 0 && t41 <= 1) {
-        if (n1 == 0) {
-          h1[0] = x41[0];
-          h1[1] = x41[1];
-          h1[2] = x41[2];
-          h2[0] = x4[0];
-          h2[1] = x4[1];
-          h2[2] = x4[2];
-          t1 = t41;
-          t2 = 1;
-          n1++;
-          n2++;
-        } else {
-          h1[0] = (x31[0]+x41[0])/2;
-          h1[1] = (x31[1]+x41[1])/2;
-          h1[2] = (x31[2]+x41[2])/2;
-          h2[0] = (x3[0]+x4[0])/2;
-          h2[1] = (x3[1]+x4[1])/2;
-          h2[2] = (x3[2]+x4[2])/2;
-          t1 = (t31+t41)/2;
-          t2 = 0.5;
-          n1++;
-          n2++;
-        }
-      }
-    }
-
-    // if n1 == 0 and n2 == 0 at this point,
-    // which means no overlapping segments bt two parallel edges,
-    // return the default values of t1 and t2
-
+  if (1.0 - dot < PARALLEL_TOL) {
+    double x13[3];
+    MathExtra::sub3(x1, x3, x13);
+    double s1 = MathExtra::dot3(x13, v);
+    for (int k = 0; k < 3; k++) x13[k] -= s1*v[k];
+    r = MathExtra::len3(x13);
     return;
-
   }
 
   // find the vector n perpendicular to both edges
@@ -3077,12 +2979,13 @@ void PairBodyRoundedPolyhedron::distance_bt_edges(const double* x1,
 
   project_pt_plane(h2, x1, n, h1, r);
 
-  if (fabs(x2[0] - x1[0]) > 0)
-    t1 = (h1[0] - x1[0])/(x2[0] - x1[0]);
-  else if (fabs(x2[1] - x1[1]) > 0)
-    t1 = (h1[1] - x1[1])/(x2[1] - x1[1]);
-  else if (fabs(x2[2] - x1[2]) > 0)
-    t1 = (h1[2] - x1[2])/(x2[2] - x1[2]);
+  // fraction of h1 along the edge from its projection, since a division by
+  // a single coordinate difference is inaccurate when the edge is nearly
+  // perpendicular to that axis
+
+  double h1x1[3];
+  MathExtra::sub3(h1, x1, h1x1);
+  t1 = MathExtra::dot3(h1x1, u) / MathExtra::dot3(u, u);
 }
 
 /* ----------------------------------------------------------------------

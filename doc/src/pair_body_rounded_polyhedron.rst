@@ -117,7 +117,12 @@ the nearest edge if its projection onto that edge lies inside the edge,
 else with the nearest vertex, where each vertex has at most one such
 interaction.  In addition, the edges of the two particles interact with
 each other, which takes precedence over the interaction of a vertex at
-the end of an edge.
+the end of an edge.  A vertex interacts with an edge or a vertex only if
+no edge or face next to either of them is closer to the other particle
+along the line between the two, else the contact is represented by the
+interactions of that edge or face.  Two parallel edges do not interact
+as edges, since the ends of their overlap are vertices, which interact
+instead.
 
 In :ref:`Wang <pair-Wang>`, the tangential friction force between two
 particles that are in contact is modeled differently prior to gross
@@ -150,7 +155,13 @@ also applies to spheres.
 Contacts between a vertex and an edge or between two vertices are now
 detected, both triangles of a quadrilateral face are tested for edges
 crossing the face, and the cohesive force is also scaled for two contact
-points.
+points.  A vertex no longer interacts with an edge or a vertex when an
+edge or face next to them is closer, and two parallel edges no longer
+interact with each other at a single point in the middle or at an end
+of their overlap.  Previously, edges within about 2.6 degrees of each
+other were treated as parallel.  These contacts pushed particles resting
+with a face on each other sideways and made them rotate, and made the
+forces jump as the particles moved.
 
 .. versionadded:: TBD
 

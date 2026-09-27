@@ -36,6 +36,16 @@ class FixWallBodyPolygon : public Fix {
   void reset_dt() override;
   double memory_usage() override;
 
+  void grow_arrays(int) override;
+  void copy_arrays(int, int, int) override;
+  void set_arrays(int) override;
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(int, double *) override;
+  int pack_restart(int, double *) override;
+  void unpack_restart(int, int) override;
+  int size_restart(int) override;
+  int maxsize_restart() override;
+
   int image(int *&, double **&) override;
 
 
@@ -44,6 +54,10 @@ class FixWallBodyPolygon : public Fix {
   double kn;     // normal repulsion strength
   double c_n;    // normal damping coefficient
   double c_t;    // tangential damping coefficient
+  int history;            // 1 if the tangential deformation at the wall is stored
+  double mu;              // friction coefficient of the contact history
+  double kt;              // tangential stiffness of the contact history
+  double **history_one;   // tangential deformation of each body at the wall
   double lo, hi, cylradius;
   double amplitude, period, omega;
   double dt;
@@ -77,8 +91,11 @@ class FixWallBodyPolygon : public Fix {
 
   void body2space(int);
 
-  void wall_force(int i, const double *xp, const double *n, double sd, const double *vwall,
-                  double **x, double **v, double **angmom, double **f, double **torque);
+  double wall_force(int i, const double *xp, const double *n, double sd, const double *vwall,
+                    double **x, double **v, double **angmom, double **f, double **torque,
+                    double *pc, double *vt);
+  void tangential_spring(const double *n, const double *vt, double fne, double *xi,
+                         double *ft);
   void sum_torque(double *xm, double *x, double fx, double fy, double fz, double *torque);
   void total_velocity(const double *p, double *xcm, double *vcm, double *angmom, double *inertia,
                       double *quat, double *vi);

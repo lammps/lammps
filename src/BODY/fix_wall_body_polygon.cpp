@@ -48,15 +48,14 @@ static constexpr double BIG = 1.0e20;
 /* ---------------------------------------------------------------------- */
 
 FixWallBodyPolygon::FixWallBodyPolygon(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg), avec(nullptr), bptr(nullptr), imgobjs(nullptr), imgparms(nullptr)
+    Fix(lmp, narg, arg), history_one(nullptr), avec(nullptr), bptr(nullptr),
+    imgobjs(nullptr), imgparms(nullptr)
 {
   if (narg < 9) utils::missing_cmd_args(FLERR,"fix wall/body/polygon", error);
 
   if (!atom->body_flag)
     error->all(FLERR,"Fix wall/body/polygon requires atom style body/rounded/polygon");
 
-  restart_peratom = 1;
-  create_attribute = 1;
   wallstyle = -1;
 
   // wall/particle coefficients
@@ -113,6 +112,8 @@ FixWallBodyPolygon::FixWallBodyPolygon(LAMMPS *lmp, int narg, char **arg) :
   // check for trailing keyword/values
 
   wiggle = 0;
+  history = 0;
+  mu = kt = 0.0;
   int iarg = 9;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"wiggle") == 0) {
@@ -128,7 +129,36 @@ FixWallBodyPolygon::FixWallBodyPolygon(LAMMPS *lmp, int narg, char **arg) :
       period = utils::numeric(FLERR,arg[iarg+3],false,lmp);
       wiggle = 1;
       iarg += 4;
+    } else if (strcmp(arg[iarg],"history") == 0) {
+      if (iarg+3 > narg)
+        utils::missing_cmd_args(FLERR,"fix wall/body/polygon history", error);
+      mu = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      if (mu < 0.0)
+        error->all(FLERR, iarg+1, "Illegal fix wall/body/polygon history argument {}", mu);
+
+      // the tangential stiffness defaults to 2/7 of the normal stiffness,
+      // as in pair style body/rounded/polygon
+
+      if (strcmp(arg[iarg+2],"NULL") == 0) kt = 2.0/7.0 * kn;
+      else kt = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      if (kt < 0.0)
+        error->all(FLERR, iarg+2, "Illegal fix wall/body/polygon history argument {}", kt);
+      history = 1;
+      iarg += 3;
     } else error->all(FLERR, iarg, "Unknown fix wall/body/polygon keyword {}", arg[iarg]);
+  }
+
+  // the tangential deformation of each body at the wall is stored per atom,
+  // carried along with the atoms, and written to restart files
+
+  if (history) {
+    restart_peratom = 1;
+    create_attribute = 1;
+    FixWallBodyPolygon::grow_arrays(atom->nmax);
+    atom->add_callback(Atom::GROW);
+    atom->add_callback(Atom::RESTART);
+    for (int i = 0; i < atom->nlocal; i++)
+      history_one[i][0] = history_one[i][1] = history_one[i][2] = 0.0;
   }
 
   // setup oscillations
@@ -166,6 +196,12 @@ FixWallBodyPolygon::FixWallBodyPolygon(LAMMPS *lmp, int narg, char **arg) :
 
 FixWallBodyPolygon::~FixWallBodyPolygon()
 {
+  if (history && atom) {
+    atom->delete_callback(id,Atom::GROW);
+    atom->delete_callback(id,Atom::RESTART);
+  }
+  memory->destroy(history_one);
+
   memory->destroy(discrete);
   memory->destroy(dnum);
   memory->destroy(dfirst);
@@ -278,6 +314,17 @@ void FixWallBodyPolygon::post_force(int /*vflag*/)
     dnum[i] = ednum[i] = 0;
 
   for (i = 0; i < nlocal; i++) {
+
+    // the tangential deformation is reset unless the body touches the wall
+
+    double xi[3] = {0.0, 0.0, 0.0};
+    if (history) {
+      for (int k = 0; k < 3; k++) {
+        xi[k] = history_one[i][k];
+        history_one[i][k] = 0.0;
+      }
+    }
+
     if (mask[i] & groupbit) {
 
       if (body[i] < 0) continue;
@@ -317,13 +364,35 @@ void FixWallBodyPolygon::post_force(int /*vflag*/)
 
       // every vertex of the body interacts with the wall,
       // using its signed distance from the wall
+      // with the contact history, a single friction force acts on the body,
+      // at the contact points weighted by their elastic normal forces
+
+      double fnsum = 0.0;
+      double pcsum[3] = {0.0, 0.0, 0.0};
+      double vtsum[3] = {0.0, 0.0, 0.0};
 
       for (ni = 0; ni < npi; ni++) {
-        double xpi[3];
+        double xpi[3], pc[3], vt[3];
         MathExtra::add3(x[i], discrete[ifirst+ni], xpi);
-        double sv = (wallstyle == XPLANE) ? (xpi[0] - wall_pos)*nw[0] :
-          (xpi[1] - wall_pos)*nw[1];
-        wall_force(i, xpi, nw, sv, vwall, x, v, angmom, f, torque);
+        double sv = (xpi[dim] - wall_pos) * nw[dim];
+        double fne = wall_force(i, xpi, nw, sv, vwall, x, v, angmom, f, torque, pc, vt);
+        if (history && (fne > 0.0)) {
+          fnsum += fne;
+          for (int k = 0; k < 3; k++) {
+            pcsum[k] += fne * pc[k];
+            vtsum[k] += fne * vt[k];
+          }
+        }
+      }
+
+      if (fnsum > 0.0) {
+        double ft[3];
+        MathExtra::scale3(1.0/fnsum, pcsum);
+        MathExtra::scale3(1.0/fnsum, vtsum);
+        tangential_spring(nw, vtsum, fnsum, xi, ft);
+        MathExtra::add3(f[i], ft, f[i]);
+        sum_torque(x[i], pcsum, ft[0], ft[1], ft[2], torque[i]);
+        for (int k = 0; k < 3; k++) history_one[i][k] = xi[k];
       }
     } // group bit
   }
@@ -436,17 +505,20 @@ void FixWallBodyPolygon::body2space(int i)
    elastic force k_n (-R) along n, and damping from the velocity of the
    body at the contact point relative to the wall, which both act at the
    contact point halfway between the rounded surface and the wall
+   returns the elastic normal force, 0 if not in contact, and the
+   contact point pc and the tangential velocity vt relative to the wall
 ------------------------------------------------------------------------- */
 
-void FixWallBodyPolygon::wall_force(int i, const double *xp, const double *n, double sd,
-                                    const double *vwall, double **x, double **v,
-                                    double **angmom, double **f, double **torque)
+double FixWallBodyPolygon::wall_force(int i, const double *xp, const double *n, double sd,
+                                      const double *vwall, double **x, double **v,
+                                      double **angmom, double **f, double **torque,
+                                      double *pc, double *vt)
 {
   double rradi = rounded_radius[i];
   double R = sd - rradi;
-  if (R >= 0.0) return;
+  if (R >= 0.0) return 0.0;
 
-  double pc[3], vi[3], vr[3], vn[3], vt[3], fw[3];
+  double vi[3], vr[3], vn[3], fw[3];
   for (int k = 0; k < 3; k++) pc[k] = xp[k] - 0.5 * (sd + rradi) * n[k];
 
   AtomVecBody::Bonus *bonus = &avec->bonus[atom->body[i]];
@@ -463,6 +535,41 @@ void FixWallBodyPolygon::wall_force(int i, const double *xp, const double *n, do
   f[i][1] += fw[1];
   f[i][2] += fw[2];
   sum_torque(x[i], pc, fw[0], fw[1], fw[2], torque[i]);
+  return -kn * R;
+}
+
+/* ----------------------------------------------------------------------
+   Friction force of a body at the wall from a tangential spring with the
+   tangential deformation xi of the body, as for the contact history of
+   pair style body/rounded/polygon:
+   xi is rotated into the tangent plane of the wall normal n, keeping its
+   magnitude, and incremented by the tangential velocity vt times dt.
+   The spring force -kt xi is limited to mu times the total elastic normal
+   force fne of the body, and then xi is reduced accordingly (sliding).
+   the force is returned in ft, xi is updated in place
+------------------------------------------------------------------------- */
+
+void FixWallBodyPolygon::tangential_spring(const double *n, const double *vt, double fne,
+                                           double *xi, double *ft)
+{
+  double xin = MathExtra::dot3(xi, n);
+  double mag = MathExtra::len3(xi);
+  for (int k = 0; k < 3; k++) xi[k] -= xin * n[k];
+  double magt = MathExtra::len3(xi);
+  if (magt > 0.0) MathExtra::scale3(mag/magt, xi);
+
+  if (!update->setupflag)
+    for (int k = 0; k < 3; k++) xi[k] += vt[k] * dt;
+
+  for (int k = 0; k < 3; k++) ft[k] = -kt * xi[k];
+
+  double ftmag = MathExtra::len3(ft);
+  double ftmax = mu * fne;
+  if (ftmag > ftmax) {
+    double scale = ftmax / ftmag;
+    MathExtra::scale3(scale, ft);
+    MathExtra::scale3(scale, xi);
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -525,9 +632,106 @@ int FixWallBodyPolygon::image(int *&objs, double **&parms)
   return numwalls;
 }
 
+/* ----------------------------------------------------------------------
+   allocate local atom-based arrays
+------------------------------------------------------------------------- */
+
+void FixWallBodyPolygon::grow_arrays(int nmax_new)
+{
+  memory->grow(history_one,nmax_new,3,"fix_wall_body:history_one");
+}
+
+/* ----------------------------------------------------------------------
+   copy values within local atom-based arrays
+------------------------------------------------------------------------- */
+
+void FixWallBodyPolygon::copy_arrays(int i, int j, int /*delflag*/)
+{
+  for (int m = 0; m < 3; m++) history_one[j][m] = history_one[i][m];
+}
+
+/* ----------------------------------------------------------------------
+   initialize one atom's array values, called when atom is created
+------------------------------------------------------------------------- */
+
+void FixWallBodyPolygon::set_arrays(int i)
+{
+  for (int m = 0; m < 3; m++) history_one[i][m] = 0.0;
+}
+
+/* ----------------------------------------------------------------------
+   pack values in local atom-based arrays for exchange with another proc
+------------------------------------------------------------------------- */
+
+int FixWallBodyPolygon::pack_exchange(int i, double *buf)
+{
+  for (int m = 0; m < 3; m++) buf[m] = history_one[i][m];
+  return 3;
+}
+
+/* ----------------------------------------------------------------------
+   unpack values into local atom-based arrays after exchange
+------------------------------------------------------------------------- */
+
+int FixWallBodyPolygon::unpack_exchange(int nlocal, double *buf)
+{
+  for (int m = 0; m < 3; m++) history_one[nlocal][m] = buf[m];
+  return 3;
+}
+
+/* ----------------------------------------------------------------------
+   pack values in local atom-based arrays for restart file
+------------------------------------------------------------------------- */
+
+int FixWallBodyPolygon::pack_restart(int i, double *buf)
+{
+  // pack buf[0] this way because other fixes unpack it
+  buf[0] = 4;
+  for (int m = 0; m < 3; m++) buf[m+1] = history_one[i][m];
+  return 4;
+}
+
+/* ----------------------------------------------------------------------
+   unpack values from atom->extra array to restart the fix
+------------------------------------------------------------------------- */
+
+void FixWallBodyPolygon::unpack_restart(int nlocal, int nth)
+{
+  double **extra = atom->extra;
+
+  // skip to Nth set of extra values
+  // unpack the Nth first values this way because other fixes pack them
+
+  int m = 0;
+  for (int i = 0; i < nth; i++) m += static_cast<int> (extra[nlocal][m]);
+  m++;
+
+  for (int i = 0; i < 3; i++) history_one[nlocal][i] = extra[nlocal][m++];
+}
+
+/* ----------------------------------------------------------------------
+   maxsize of any atom's restart data
+------------------------------------------------------------------------- */
+
+int FixWallBodyPolygon::maxsize_restart()
+{
+  return 4;
+}
+
+/* ----------------------------------------------------------------------
+   size of atom nlocal's restart data
+------------------------------------------------------------------------- */
+
+int FixWallBodyPolygon::size_restart(int /*nlocal*/)
+{
+  return 4;
+}
+
 /* ---------------------------------------------------------------------- */
 
 double FixWallBodyPolygon::memory_usage()
 {
-  return (double) nmax * 4 * sizeof(int);    // dnum + dfirst + ednum + edfirst [nmax]
+  double bytes = (double) nmax * 4 * sizeof(int);    // dnum + dfirst + ednum + edfirst [nmax]
+  if (history) bytes += (double) atom->nmax * 3 * sizeof(double);    // history_one
+  return bytes;
 }

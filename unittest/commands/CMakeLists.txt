@@ -127,6 +127,17 @@ target_link_libraries(test_compute_frenkel PRIVATE lammps GTest::GMock)
 add_test(NAME ComputeFrenkel COMMAND test_compute_frenkel)
 add_kokkos_test(NAME ComputeFrenkel COMMAND test_compute_frenkel)
 
+add_executable(test_compute_peratom_group test_compute_peratom_group.cpp)
+target_link_libraries(test_compute_peratom_group PRIVATE lammps GTest::GMock)
+add_test(NAME ComputePeratomGroup COMMAND test_compute_peratom_group)
+add_kokkos_test(NAME ComputePeratomGroup COMMAND test_compute_peratom_group)
+add_mpi_test(NAME ComputePeratomGroupMPI NUM_PROCS 4 COMMAND $<TARGET_FILE:test_compute_peratom_group>)
+if(PKG_OPENMP)
+  add_test(NAME ComputePeratomGroupOMP COMMAND test_compute_peratom_group)
+  set_tests_properties(ComputePeratomGroupOMP PROPERTIES
+                       ENVIRONMENT "LAMMPS_ACCELERATOR_ARGS=-sf omp -pk omp 2")
+endif()
+
 add_executable(test_variables test_variables.cpp)
 target_link_libraries(test_variables PRIVATE lammps GTest::GMock)
 add_test(NAME Variables COMMAND test_variables)

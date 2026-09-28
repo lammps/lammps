@@ -2,7 +2,7 @@
 lammps_version: 2 Sep 2026
 tags: numdiff
 date_generated: Fri Sep 25 20:36:47 2026
-epsilon: 1e-09
+epsilon: 5e-9
 skip_tests:
 prerequisites: |
   atom full

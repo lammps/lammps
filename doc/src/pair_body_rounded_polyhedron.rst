@@ -106,8 +106,8 @@ area of the contact region (see *A_ua*), following
 :ref:`Wang <pair-Wang>`.  The elastic force :math:`k_n \delta_n` is not
 scaled.  The damping forces act at each
 contact, while there is a single friction force per pair of particles,
-at the contact with the largest overlap (see below for the *history*
-keyword).  The damping and friction forces
+at the contact with the largest overlap times its weight (see below for
+the weights and the *history* keyword).  The damping and friction forces
 act at the contact point between the rounded surfaces and depend on the
 relative velocity of the two particles at that point, including their
 rotation, so that they also exert torques, e.g. to make spheres roll.  Following :ref:`Wang
@@ -124,7 +124,11 @@ interactions of that edge or face.  Two parallel edges do not interact
 as edges, since the ends of their overlap are vertices, which interact
 instead.  A sphere touches a polyhedron at a single point, the point of
 the polyhedron nearest to the center of the sphere, which can lie on a
-face, an edge, or a vertex.
+face, an edge, or a vertex.  When the overlap exceeds the contact
+distance, a vertex, or the center of a sphere, that has penetrated the
+other particle is pushed out through the face nearest to it, and two
+edges that have crossed each other are pushed apart along their common
+normal, so that the repulsion keeps growing with the overlap.
 
 Two nearly parallel faces touch over the region where they overlap,
 which the contacts represent by its corners: the vertices of either face
@@ -200,8 +204,11 @@ interacts only once with a polyhedron, instead of with both a face and
 the edges of that face near its boundary.  The contacts of nearly parallel
 faces and edges are weighted as described above, so that the forces no
 longer jump as a particle resting on a face is rotated or moved, and a
-vertex interacts only with the face nearest to it.  The energy of two
-contacts at the same point is counted once, as their force.
+vertex interacts only with the face nearest to it.  The energy and the
+damping of two contacts at the same point are counted once, as their
+force.  A vertex or a sphere that has penetrated the other particle, and
+two edges that have crossed each other, are now pushed out instead of
+further in, and a rod lying on a face no longer falls through it.
 
 .. versionadded:: TBD
 
@@ -317,7 +324,8 @@ the energy.  The kinetic plus potential energy minus these two
 quantities stays constant during a time integration with :doc:`fix
 nve/body <fix_nve_body>`, up to the time integration error and to the
 changes of the set of contacts between two particles, which the model
-treats as discontinuous.  Note that the
+treats as discontinuous.  The work is not accumulated during an
+:doc:`energy minimization <minimize>`.  Note that the
 kinetic energy must include the rotational energy of the particles,
 e.g. via :doc:`compute temp/body <compute_temp_body>` with 6 degrees
 of freedom per particle as in the example below, while the thermo

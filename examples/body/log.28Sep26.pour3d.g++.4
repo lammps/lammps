@@ -14,7 +14,7 @@ atom_modify map array
 region		reg block 0 50 0 50 0 50 units box
 create_box	4 reg
 Created orthogonal box = (0 0 0) to (50 50 50)
-  1 by 1 by 1 MPI processor grid
+  1 by 2 by 2 MPI processor grid
 
 variable cut_inner  equal 0.5
 variable k_n        equal 100
@@ -116,36 +116,36 @@ Neighbor list info ...
       pair build: half/bin/atomonly/newton
       stencil: half/bin/3d
       bin: standard
-Per MPI rank memory allocation (min/avg/max) = 0.4772 | 0.4772 | 0.4772 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 0.4529 | 0.4529 | 0.4529 Mbytes
    Step        Atoms        KinEng         PotEng         TotEng         Press     
          0           0  -0              0              0              0            
-      1000         134  -0             -0.014819943   -0.014819943   -4.2420298e-06
-      2000         134  -0             -0.019630907   -0.019630907   -1.8633584e-06
-      3000         134  -0             -0.018511365   -0.018511365   -1.3707975e-05
-      4000         134  -0             -0.025112583   -0.025112583   -7.7703367e-06
-      5000         268  -0             -0.039665637   -0.039665637   -9.9153795e-05
-      6000         268  -0             -0.10518164    -0.10518164     0.00023522002
-Loop time of 0.388411 on 1 procs for 6000 steps with 268 atoms
+      1000         134  -0             -0.029547996   -0.029547996   -5.7857161e-06
+      2000         134  -0             -0.034358962   -0.034358962   -3.9824678e-06
+      3000         134  -0             -0.03436592    -0.03436592    -3.6832488e-06
+      4000         134  -0             -0.034931447   -0.034931447   -1.0516117e-05
+      5000         268  -0             -0.052234071   -0.052234071   -0.00012919299
+      6000         268  -0             -0.10643796    -0.10643796     0.00021216323
+Loop time of 0.29482 on 4 procs for 6000 steps with 268 atoms
 
-Performance: 1334668.366 tau/day, 15447.551 timesteps/s, 4.140 Matom-step/s
-99.9% CPU use with 1 MPI tasks x 1 OpenMP threads
+Performance: 1758360.135 tau/day, 20351.390 timesteps/s, 5.454 Matom-step/s
+99.4% CPU use with 4 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.2554     | 0.2554     | 0.2554     |   0.0 | 65.75
-Neigh   | 0.0048749  | 0.0048749  | 0.0048749  |   0.0 |  1.26
-Comm    | 0.0057453  | 0.0057453  | 0.0057453  |   0.0 |  1.48
-Output  | 0.00010418 | 0.00010418 | 0.00010418 |   0.0 |  0.03
-Modify  | 0.11657    | 0.11657    | 0.11657    |   0.0 | 30.01
-Other   |            | 0.005717   |            |       |  1.47
+Pair    | 0.16283    | 0.16411    | 0.16612    |   0.3 | 55.66
+Neigh   | 0.0015484  | 0.0017682  | 0.0019636  |   0.4 |  0.60
+Comm    | 0.051858   | 0.053518   | 0.055689   |   0.7 | 18.15
+Output  | 8.8418e-05 | 9.832e-05  | 0.0001158  |   0.0 |  0.03
+Modify  | 0.034676   | 0.039653   | 0.046657   |   2.2 | 13.45
+Other   |            | 0.03567    |            |       | 12.10
 
-Nlocal:            268 ave         268 max         268 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Nghost:             20 ave          20 max          20 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
-Neighs:            153 ave         153 max         153 min
-Histogram: 1 0 0 0 0 0 0 0 0 0
+Nlocal:             67 ave          90 max          43 min
+Histogram: 1 1 0 0 0 0 0 0 1 1
+Nghost:             49 ave          69 max          31 min
+Histogram: 1 1 0 0 0 0 0 1 0 1
+Neighs:          38.25 ave          58 max          17 min
+Histogram: 1 0 1 0 0 0 0 0 1 1
 
 Total # of neighbors = 153
 Ave neighs/atom = 0.57089552

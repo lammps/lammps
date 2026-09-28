@@ -36,6 +36,7 @@
 #include "modify.h"
 #include "neigh_list.h"
 #include "neighbor.h"
+#include "respa.h"
 #include "update.h"
 
 #include <cmath>
@@ -46,13 +47,9 @@ using namespace LAMMPS_NS;
 static constexpr int DELTA = 10000;
 static constexpr double EPSILON = 1.0e-3; // dimensionless threshold (dot products, end point checks, contact checks)
 static constexpr int EFF_CONTACTS = 2;    // effective contacts for 2D models
+static constexpr double BIG = 1.0e20;
 static constexpr int NFNC = 12;           // per-body force and torque of the j_a scaling, and of damping
 static constexpr char id_fix_store_prefix[] = "BODY_ROUNDED_POLYGON_WORK_";
-
-//#define _CONVEX_POLYGON
-//#define _POLYGON_DEBUG
-
-enum { INVALID=0, NONE=1, VERTEXI=2, VERTEXJ=3, EDGE=4 };
 
 /* ---------------------------------------------------------------------- */
 
@@ -245,10 +242,6 @@ void PairBodyRoundedPolygon::compute(int eflag, int vflag)
       evdwl = 0.0;
       facc[0] = facc[1] = facc[2] = 0;
 
-      if (body[i] < 0 || body[j] < 0) continue;
-
-      if (dnum[j] == 0) body2space(j);
-
       // the tangential displacement is reset unless the pair is in contact
 
       if (history) {
@@ -267,13 +260,13 @@ void PairBodyRoundedPolygon::compute(int eflag, int vflag)
       // see PairBodyRoundedPolyhedron::pair_interaction().  The same test in
       // this pair style gave the same results, but no speedup for
       // examples/body/in.squares and in.wall2d: each vertex is already tested
-      // cheaply against the enclosing circle and then against a single edge,
-      // found by sector_edge(), and in these dense systems only 7-19% of the
-      // pairs passing the test below could be skipped as a whole.  It may
-      // still help for dilute systems.
+      // cheaply against the enclosing circle, and in these dense systems only
+      // 7-19% of the pairs passing the test below could be skipped as a whole.
+      // It may still help for dilute systems.
 
       r = sqrt(rsq);
-      if (r <= radi + radj + cut_inner) {
+      if ((body[i] >= 0) && (body[j] >= 0) && (r <= radi + radj + cut_inner)) {
+        if (dnum[j] == 0) body2space(j);
         pair_interaction(i, j, delx, dely, delz, rsq, x, v, angmom, f, torque, fnc,
                          scratch, evdwl, facc);
         if (history) history_friction(i, j, x, f, torque, fnc, scratch, facc);
@@ -309,7 +302,6 @@ void PairBodyRoundedPolygon::pair_interaction(int i, int j, double delx, double 
                                               double **torque, double **fnc, Scratch &s,
                                               double &evdwl, double *facc)
 {
-  tagint *tag = atom->tag;
   int itype = atom->type[i];
   int jtype = atom->type[j];
   int npi = dnum[i];
@@ -324,49 +316,48 @@ void PairBodyRoundedPolygon::pair_interaction(int i, int j, double delx, double 
     return;
   }
 
-  int num_contacts, done;
-  double delta_a, j_a;
-
   contacts.clear();
 
   // check interaction between i's vertices and j' edges
 
-  vertex_against_edge(i, j, k_nij, k_naij, x, f, torque, tag, s, evdwl, facc);
+  vertex_against_edge(i, j, 1, k_nij, k_naij, x, f, torque, s, evdwl, facc);
 
   // check interaction between j's vertices and i' edges
   // this returns the force on body j in fj, facc is the force on body i
 
   double fj[3] = {0.0, 0.0, 0.0};
-  vertex_against_edge(j, i, k_nij, k_naij, x, f, torque, tag, s, evdwl, fj);
+  vertex_against_edge(j, i, 0, k_nij, k_naij, x, f, torque, s, evdwl, fj);
 
-  num_contacts = contacts.size();
+  int num_contacts = contacts.size();
 
   // the contact forces are applied at up to two contacts, see Fraige et al.:
-  // the first two contacts at different places, whose separation is the
-  // contact length that scales the cohesive forces, or else a single contact.
-  // contacts between two vertices are treated like vertex-edge contacts.
-  // there is one friction force per pair of bodies, at the applied contact
-  // with the largest overlap, or with the contact history from both applied
-  // contacts, see history_friction()
+  // the two contacts farthest apart, whose separation is the contact length
+  // that scales the cohesive forces, or else the contact with the largest
+  // overlap.  contacts between two vertices are treated like vertex-edge
+  // contacts.  there is one friction force per pair of bodies, at the applied
+  // contact with the largest overlap, or with the contact history from both
+  // applied contacts, see history_friction()
 
   if (num_contacts > 0) {
     int m0 = 0, n0 = -1;
-    j_a = 1.0;
+    double j_a = 1.0;
 
-    done = 0;
-    for (int m = 0; (m < num_contacts-1) && !done; m++) {
+    for (int m = 1; m < num_contacts; m++)
+      if (contacts[m].separation < contacts[m0].separation) m0 = m;
+
+    double rmin = MIN(rounded_radius[i], rounded_radius[j]);
+    double delta_max = EPSILON*rmin;
+    for (int m = 0; m < num_contacts-1; m++) {
       for (int n = m+1; n < num_contacts; n++) {
-        delta_a = contact_separation(contacts[m], contacts[n]);
-        if (delta_a > 0) {
+        double delta_a = contact_separation(contacts[m], contacts[n]);
+        if (delta_a > delta_max) {
+          delta_max = delta_a;
           m0 = m;
           n0 = n;
-          j_a = delta_a / (EFF_CONTACTS * delta_ua);
-          if (j_a < 1.0) j_a = 1.0;
-          done = 1;
-          break;
         }
       }
     }
+    if (n0 >= 0) j_a = MAX(delta_max / (EFF_CONTACTS * delta_ua), 1.0);
 
     int friction_m = 1;
     if ((n0 >= 0) && (contacts[n0].separation < contacts[m0].separation)) friction_m = 0;
@@ -378,23 +369,7 @@ void PairBodyRoundedPolygon::pair_interaction(int i, int j, double delx, double 
     if (n0 >= 0)
       contact_forces(contacts[n0], j_a, friction_n, x, v, angmom, f, torque, fnc, evdwl,
                      (contacts[n0].ibody == i) ? facc : fj, s);
-
-    #ifdef _POLYGON_DEBUG
-    printf("  Contacts %d and %d: j_a = %f\n", m0, n0, j_a);
-    #endif
   }
-
-  #ifdef _POLYGON_DEBUG
-  int num_overlapping_contacts = 0;
-  for (int m = 0; m < num_contacts-1; m++) {
-    for (int n = m+1; n < num_contacts; n++) {
-      double l = contact_separation(contacts[m], contacts[n]);
-      if (l < EPSILON) num_overlapping_contacts++;
-    }
-  }
-  printf("There are %d contacts detected, %d of which overlap.\n",
-         num_contacts, num_overlapping_contacts);
-  #endif
 
   facc[0] -= fj[0];
   facc[1] -= fj[1];
@@ -420,15 +395,15 @@ void PairBodyRoundedPolygon::work_nonconservative()
   double **angmom = atom->angmom;
   int *body = atom->body;
   int nlocal = atom->nlocal;
-  double halfdt = 0.5 * update->dt;
+  double halfdt = 0.5 * dt;
   double omega[3],ex[3],ey[3],ez[3];
 
   for (int i = 0; i < nlocal; i++) {
     if (body[i] < 0) continue;
 
-    // no time step has been taken during setup
+    // no time step has been taken during setup, nor during minimization
 
-    if (!update->setupflag) {
+    if (!update->setupflag && (update->whichflag == 1)) {
       AtomVecBody::Bonus *bonus = &avec->bonus[body[i]];
       MathExtra::q_to_exyz(bonus->quat,ex,ey,ez);
       MathExtra::angmom_to_omega(angmom[i],ex,ey,ez,bonus->inertia,omega);
@@ -605,7 +580,7 @@ void PairBodyRoundedPolygon::init_style()
   if (history) neighbor->add_request(this, NeighConst::REQ_HISTORY);
   else neighbor->add_request(this);
 
-  dt = update->dt;
+  reset_dt();
 
   // on the first init, fix NEIGH_HISTORY replaces the placeholder created in
   // settings(), so that its position in the list of fixes is preserved
@@ -632,6 +607,11 @@ void PairBodyRoundedPolygon::init_style()
     fix_store = dynamic_cast<FixStoreAtom *>(
       modify->add_fix(fmt::format("{} {} STORE/ATOM {} 0 0 0", id_fix_store,
                                   group->names[0], NFNC)));
+
+    // zero the stored values of the bodies inserted during a run, e.g. by
+    // fix pour or fix deposit, instead of keeping those of a former atom
+
+    fix_store->create_attribute = 1;
   } else {
     fix_store = dynamic_cast<FixStoreAtom *>(modify->get_fix_by_id(id_fix_store));
     if (!fix_store)
@@ -861,56 +841,54 @@ void PairBodyRoundedPolygon::sphere_against_sphere(int i, int j,
 }
 
 /* ----------------------------------------------------------------------
-   Determine the interaction mode between i's vertices against j's edges
+   Interaction between the vertices of body i and the nearest features
+   (edges or vertices) of body j
 
    i = atom i (body i)
    j = atom j (body j)
+   first  = 1 for the first of the two calls for a pair of bodies, where the
+            contacts between two vertices are counted, 0 for the second call
    x      = atoms' coordinates
    f      = atoms' forces
    torque = atoms' torques
-   tag    = atoms' tags
    s      = scratch space, the contacts between i's vertices
             and j's edges are appended to s.contacts
+   each vertex interacts with the nearest point on the core of body j, on an
+   edge or at a vertex, so that the result does not depend on the shape of
+   the polygon.  A vertex-vertex interaction is counted only if each of the
+   two vertices is the nearest feature of its body to the other vertex (the
+   normal cones of the two vertices overlap), otherwise the vertex-edge
+   interaction from the other side covers it.
+   the energy of the contacts is added in contact_forces(), since only
+   the applied contacts contribute
    Return:
      interact = 0 no interaction at all
                 1 there's at least one case where i's vertices interacts
                   with j's edges
 ---------------------------------------------------------------------- */
 
-int PairBodyRoundedPolygon::vertex_against_edge(int i, int j,
+int PairBodyRoundedPolygon::vertex_against_edge(int i, int j, int first,
                                                 double k_n, double k_na,
                                                 double** x, double** f,
-                                                double** torque, tagint* tag,
-                                                Scratch &s,
+                                                double** torque, Scratch &s,
                                                 double &evdwl, double* facc)
 {
   std::vector<Contact> &contacts = s.contacts;
-  std::vector<int> &vertex_done = s.vertex_done;
 
-  int ni, npi, ifirst;
-  int nj, jfirst, nej, jefirst;
-  double xpi[3], xpj[3], dist, eradj, rradi, rradj;
-  double fx, fy, fz, energy;
-  int interact;
+  int npi = dnum[i];
+  int ifirst = dfirst[i];
+  double rradi = rounded_radius[i];
+  double eradj = enclosing_radius[j];
+  double rradj = rounded_radius[j];
+  double rmin = MIN(rradi, rradj);
 
-  npi = dnum[i];
-  ifirst = dfirst[i];
-  rradi = rounded_radius[i];
-
-  jfirst = dfirst[j];
-  nej = ednum[j];
-  jefirst = edfirst[j];
-  eradj = enclosing_radius[j];
-  rradj = rounded_radius[j];
-
-  energy = 0;
-  interact = 0;
-
-  if ((int) vertex_done.size() < dnum[j]) vertex_done.resize(dnum[j]);
+  double xpi[3], h[3], n[3], hh[3], nn[3], dist, d, R, fe, fc, fx, fy, fz;
+  double energy = 0.0;
+  int nv, nvv, interact = 0;
 
   // loop through body i's vertices
 
-  for (ni = 0; ni < npi; ni++) {
+  for (int ni = 0; ni < npi; ni++) {
 
     // convert body-fixed coordinates to space-fixed, xi
 
@@ -918,276 +896,82 @@ int PairBodyRoundedPolygon::vertex_against_edge(int i, int j,
     xpi[1] = x[i][1] + discrete[ifirst+ni][1];
     xpi[2] = x[i][2] + discrete[ifirst+ni][2];
 
-    // compute the distance from the vertex to the COM of body j
-
-    distance(xpi, x[j], dist);
-
-    #ifdef _POLYGON_DEBUG
-    printf("Distance between vertex %d of body %d (%0.1f %0.1f %0.1f) "
-           "to body %d's COM: %f (cut = %0.1f)\n",
-           ni, xpi[0], xpi[1], xpi[2], atom->tag[i], atom->tag[j], dist,
-           eradj + rradi + rradj + cut_inner);
-    #endif
-
     // the vertex is within the enclosing circle (sphere) of body j,
     // possibly interacting
 
+    distance(xpi, x[j], dist);
     if (dist > eradj + rradj + rradi + cut_inner) continue;
 
-    // a vertex of body j is shared by two edges and both can report it
+    // nearest point h on the core of body j, at the signed distance d
 
-    for (int m = 0; m < dnum[j]; m++) vertex_done[m] = 0;
+    d = nearest_point(j, xpi, h, n, nv);
+    R = d - (rradi + rradj);
+    if (R > cut_inner) continue;
 
-    int mode, contact, p2vertex;
-    double d, R, hi[3], t, delx, dely, delz, fe, fc;
-    double rij;
-    double rmin = MIN(rradi, rradj);
+    // vertex-vertex: both vertices must be the nearest feature of their body
+    // to the other one, and the interaction is counted in the first call only
 
-    // the vertex interacts with the edge of body j whose sector, as seen
-    // from the center of body j, encloses the vertex, see Fig. 4b in
-    // Fraige et al., or with all edges if there is no such sector
+    if (nv >= 0) {
+      if (!first) continue;
+      if (npi > 1) {
+        nearest_point(i, h, hh, nn, nvv);
+        if (nvv != ni) continue;
+      }
+    }
 
-    int nsector = sector_edge(j, xpi);
+    interact = 1;
 
-    // loop through body j's edges
+    // R > rc:     no interaction between the vertex and body j
+    // 0 < R < rc: cohesion between the vertex and body j
+    // R < 0:      deformation between the vertex and body j
+    // the normal damping term -c_n * vn will be added later
 
-    for (nj = 0; nj < nej; nj++) {
+    double evertex = normal_force(R, k_n, k_na, fe, fc);
 
-      if ((nsector >= 0) && (nj != nsector)) continue;
+    if (R < EPSILON*rmin) {
 
-      // compute the distance between the edge nj to the vertex xpi
+      // the vertex of body i contacts body j: store the forces with the
+      // contact, to be rescaled and applied later, see pair_interaction()
 
-      mode = compute_distance_to_vertex(j, nj, x[j], rradj,
-                                        xpi, rradi, cut_inner,
-                                        d, hi, t, contact);
+      Contact c;
+      c.ibody = i;
+      c.jbody = j;
+      c.vertex = ni;
+      c.jvertex = nv;
+      for (int k = 0; k < 3; k++) {
+        c.xv[k] = xpi[k];
+        c.xe[k] = h[k];
+        c.n[k] = n[k];
+        c.fe[k] = n[k]*fe;
+        c.fc[k] = n[k]*fc;
+      }
+      c.separation = R;
+      c.energy = evertex;
+      contacts.push_back(c);
 
-      if (mode == INVALID || mode == NONE) continue;
+    } else {
 
-      if (mode == VERTEXI || mode == VERTEXJ) {
+      // cohesion without contact: accumulate the force and torque to both
+      // bodies directly
 
-        interact = 1;
+      energy += evertex;
+      fx = n[0]*fc;
+      fy = n[1]*fc;
+      fz = n[2]*fc;
 
-        // vertex i interacts with a vertex of the edge, but does not contact
+      f[i][0] += fx;
+      f[i][1] += fy;
+      f[i][2] += fz;
+      sum_torque(x[i], xpi, fx, fy, fz, torque[i]);
 
-        if (mode == VERTEXI) p2vertex = (int)edge[jefirst+nj][0];
-        else p2vertex = (int)edge[jefirst+nj][1];
+      f[j][0] -= fx;
+      f[j][1] -= fy;
+      f[j][2] -= fz;
+      sum_torque(x[j], h, -fx, -fy, -fz, torque[j]);
 
-        // count the interaction with this vertex of body j only once
-
-        if (vertex_done[p2vertex]) continue;
-        vertex_done[p2vertex] = 1;
-
-        // double xj[3];
-        // p2.body2space(p2vertex, xj);
-        xpj[0] = x[j][0] + discrete[jfirst+p2vertex][0];
-        xpj[1] = x[j][1] + discrete[jfirst+p2vertex][1];
-        xpj[2] = x[j][2] + discrete[jfirst+p2vertex][2];
-
-        delx = xpi[0] - xpj[0];
-        dely = xpi[1] - xpj[1];
-        delz = xpi[2] - xpj[2];
-
-        // R = surface separation = rij shifted by the rounded radii
-        // R = rij - (p1.rounded_radius + p2.rounded_radius);
-        // note: the force is defined for R, not for rij
-        // R > rc:     no interaction between vertex ni and p2vertex
-        // 0 < R < rc: cohesion between vertex ni and p2vertex
-        // R < 0:      deformation between vertex ni and p2vertex
-
-        rij = sqrt(delx*delx + dely*dely + delz*delz);
-        if (rij == 0.0) error->one(FLERR, "Vertices of bodies {} and {} coincide", tag[i], tag[j]);
-        R = rij - (rradi + rradj);
-
-        // the normal damping term -c_n * vn will be added later
-
-        double evertex = normal_force(R, k_n, k_na, fe, fc);
-
-        fx = delx*(fe + fc)/rij;
-        fy = dely*(fe + fc)/rij;
-        fz = delz*(fe + fc)/rij;
-
-        #ifdef _POLYGON_DEBUG
-        printf("  Interaction between vertex %d of %d and vertex %d of %d:",
-               ni, tag[i], p2vertex, tag[j]);
-        printf("    mode = %d; contact = %d; d = %f; rij = %f, t = %f\n",
-               mode, contact, d, rij, t);
-        printf("    R = %f; cut_inner = %f\n", R, cut_inner);
-        printf("    fe = %f; fc = %f\n", fe, fc);
-        #endif
-
-        // add forces to body i and body j directly
-        // avoid double counts this pair of vertices
-        // i and j can be either local or ghost atoms (bodies)
-        // probably need more work here when the vertices' interaction
-        // are not symmetric, e.g. j interacts with the edge
-        // consisting of i but in mode = EDGE instead of VERTEX*.
-        // OR, for the time being assume that the edge length is
-        // sufficiently greater than the rounded radius to distinguish
-        // vertex-vertex from vertex-edge contact modes.
-        // Special case: when i is a sphere, also accumulate
-
-        if (tag[i] < tag[j] || npi == 1) {
-
-          energy += evertex;
-
-          if (R < EPSILON*rmin) {
-
-            // vertex ni of body i contacts vertex p2vertex of body j:
-            // store the forces with the contact like for a vertex-edge contact,
-            // so that damping and friction apply
-
-            Contact c;
-            c.ibody = i;
-            c.jbody = j;
-            c.vertex = ni;
-            c.edge = -1;
-            c.xv[0] = xpi[0];
-            c.xv[1] = xpi[1];
-            c.xv[2] = xpi[2];
-            c.xe[0] = xpj[0];
-            c.xe[1] = xpj[1];
-            c.xe[2] = xpj[2];
-            c.separation = R;
-            c.fe[0] = delx*fe/rij;
-            c.fe[1] = dely*fe/rij;
-            c.fe[2] = delz*fe/rij;
-            c.fc[0] = delx*fc/rij;
-            c.fc[1] = dely*fc/rij;
-            c.fc[2] = delz*fc/rij;
-            contacts.push_back(c);
-            continue;
-          }
-
-          f[i][0] += fx;
-          f[i][1] += fy;
-          f[i][2] += fz;
-          sum_torque(x[i], xpi, fx, fy, fz, torque[i]);
-
-          f[j][0] -= fx;
-          f[j][1] -= fy;
-          f[j][2] -= fz;
-          sum_torque(x[j], xpj, -fx, -fy, -fz, torque[j]);
-
-          facc[0] += fx; facc[1] += fy; facc[2] += fz;
-
-          #ifdef _POLYGON_DEBUG
-          printf("    from vertex-vertex: "
-                 "force on vertex %d of body %d: fx %f fy %f fz %f\n"
-                 "      torque body %d: %f %f %f\n"
-                 "      torque body %d: %f %f %f\n", ni, tag[i], fx, fy, fz,
-            tag[i],torque[i][0],torque[i][1],torque[i][2],
-            tag[j],torque[j][0],torque[j][1],torque[j][2]);
-        #endif
-        }
-
-        #ifdef _CONVEX_POLYGON
-        // done with the edges from body j,
-        // given that vertex ni interacts with only one vertex
-        //   from one edge of body j
-        break;
-        #endif
-
-      } else if (mode == EDGE) {
-
-        interact = 1;
-
-        // vertex i interacts with the edge
-
-        delx = xpi[0] - hi[0];
-        dely = xpi[1] - hi[1];
-        delz = xpi[2] - hi[2];
-
-        // R = surface separation = d shifted by the rounded radii
-        // R = d - (p1.rounded_radius + p2.rounded_radius);
-        // Note: the force is defined for R, not for d
-        // R > rc:     no interaction between vertex i and edge j
-        // 0 < R < rc: cohesion between vertex i and edge j
-        // R < 0:      deformation between vertex i and edge j
-        // rij = sqrt(delx*delx + dely*dely + delz*delz);
-
-        R = d - (rradi + rradj);
-
-        // the normal damping term -c_n * vn will be added later
-
-        energy += normal_force(R, k_n, k_na, fe, fc);
-
-        fx = delx*(fe + fc)/d;
-        fy = dely*(fe + fc)/d;
-        fz = delz*(fe + fc)/d;
-
-        #ifdef _POLYGON_DEBUG
-        printf("  Interaction between vertex %d of %d and edge %d of %d:",
-               ni, tag[i], nj, tag[j]);
-        printf("    mode = %d; contact = %d; d = %f; t = %f\n",
-               mode, contact, d, t);
-        printf("    R = %f; cut_inner = %f\n", R, cut_inner);
-        printf("    fe = %f; fc = %f\n", fe, fc);
-        #endif
-
-        if (contact == 1) {
-
-          // vertex ni of body i contacts with edge nj of body j
-
-          // store the force with the contact to be rescaled later
-          // the force must be stored per contact, not per vertex or edge,
-          // since several vertices of body i can contact the same edge
-
-          Contact c;
-          c.ibody = i;
-          c.jbody = j;
-          c.vertex = ni;
-          c.edge = nj;
-          c.xv[0] = xpi[0];
-          c.xv[1] = xpi[1];
-          c.xv[2] = xpi[2];
-          c.xe[0] = hi[0];
-          c.xe[1] = hi[1];
-          c.xe[2] = hi[2];
-          c.separation = R;
-          c.fe[0] = delx*fe/d;
-          c.fe[1] = dely*fe/d;
-          c.fe[2] = delz*fe/d;
-          c.fc[0] = delx*fc/d;
-          c.fc[1] = dely*fc/d;
-          c.fc[2] = delz*fc/d;
-          contacts.push_back(c);
-
-        } else { // no contact
-
-          // accumulate force and torque to both bodies directly
-
-          f[i][0] += fx;
-          f[i][1] += fy;
-          f[i][2] += fz;
-          sum_torque(x[i], xpi, fx, fy, fz, torque[i]);
-
-          f[j][0] -= fx;
-          f[j][1] -= fy;
-          f[j][2] -= fz;
-          sum_torque(x[j], hi, -fx, -fy, -fz, torque[j]);
-
-          facc[0] += fx; facc[1] += fy; facc[2] += fz;
-
-          #ifdef _POLYGON_DEBUG
-          printf("    from vertex-edge, no contact: "
-                 "force on vertex %d of body %d: fx %f fy %f fz %f\n"
-                 "      torque body %d: %f %f %f\n"
-                 "      torque body %d: %f %f %f\n", ni, tag[i], fx, fy, fz,
-                 tag[i],torque[i][0],torque[i][1],torque[i][2],
-                 tag[j],torque[j][0],torque[j][1],torque[j][2]);
-          #endif
-        } // end if contact
-
-        #ifdef _CONVEX_POLYGON
-        // done with the edges from body j,
-        // given that vertex ni interacts with only one edge from body j
-        break;
-        #endif
-      } // end if mode
-
-    } // end for looping through the edges of body j
-
-  } // end for looping through the vertices of body i
+      facc[0] += fx; facc[1] += fy; facc[2] += fz;
+    }
+  }
 
   evdwl += energy;
 
@@ -1195,205 +979,111 @@ int PairBodyRoundedPolygon::vertex_against_edge(int i, int j,
 }
 
 /* ----------------------------------------------------------------------
-  Find the edge of body ibody whose sector encloses the point xp, where the
-  sector of an edge is bounded by the rays from the center of the body
-  through the two vertices of the edge, see Fig. 4b in Fraige et al.
-  return the edge index, or -1 if there is no such edge,
-    e.g. for rods and disks, or for a non-convex polygon
+  Find the point h on the core (the polygon without the rounded skin) of body
+  ibody nearest to the point xp
+  return the signed distance from h to xp, negative if xp is inside the core,
+  with the unit normal n pointing from h towards the outside at xp, and
+  the index of the vertex of ibody at h, or -1 if h is inside an edge
+  inside the core, h is on the edge with the largest signed distance, which
+  is the nearest one for a convex polygon, and n is its outward normal
 ------------------------------------------------------------------------- */
 
-int PairBodyRoundedPolygon::sector_edge(int ibody, const double *xp)
+double PairBodyRoundedPolygon::nearest_point(int ibody, const double *xp, double *h,
+                                             double *n, int &nv)
 {
-  if (dnum[ibody] < 3) return -1;
-
   double **x = atom->x;
+  const double *xm = x[ibody];
   int ifirst = dfirst[ibody];
   int iefirst = edfirst[ibody];
-  double cx = xp[0] - x[ibody][0];
-  double cy = xp[1] - x[ibody][1];
+  int nedges = ednum[ibody];
+  double a[3], b[3], v[3], u[3], p[3];
 
-  for (int ne = 0; ne < ednum[ibody]; ne++) {
+  // a disk, or a body without edges: the nearest vertex
+
+  nv = 0;
+  for (int k = 0; k < 3; k++) h[k] = xm[k] + discrete[ifirst][k];
+  double dmin = MathExtra::distsq3(xp, h);
+  if (nedges == 0) {
+    for (int m = 1; m < dnum[ibody]; m++) {
+      for (int k = 0; k < 3; k++) p[k] = xm[k] + discrete[ifirst+m][k];
+      double dsq = MathExtra::distsq3(xp, p);
+      if (dsq < dmin) {
+        dmin = dsq;
+        nv = m;
+        MathExtra::copy3(p, h);
+      }
+    }
+  }
+
+  // the nearest point over all edges, and the signed distances from the
+  // lines of the edges for polygons, whose center of mass is inside the core
+
+  int inside = (dnum[ibody] > 2);
+  double smax = -BIG, nmax[3] = {0.0, 0.0, 0.0};
+  int emax = -1;
+
+  for (int ne = 0; ne < nedges; ne++) {
     int np1 = static_cast<int>(edge[iefirst+ne][0]);
     int np2 = static_cast<int>(edge[iefirst+ne][1]);
-    double ax = discrete[ifirst+np1][0];
-    double ay = discrete[ifirst+np1][1];
-    double bx = discrete[ifirst+np2][0];
-    double by = discrete[ifirst+np2][1];
-    double s0 = ax*by - ay*bx;
-    if (s0 == 0.0) continue;
-    double s1 = ax*cy - ay*cx;
-    double s2 = cx*by - cy*bx;
-    if ((s1*s0 >= 0.0) && (s2*s0 >= 0.0)) return ne;
-  }
-  return -1;
-}
-
-/* -------------------------------------------------------------------------
-  Compute the distance between an edge of body i and a vertex from
-  another body
-  Input:
-    ibody      = body i (i.e. atom i)
-    edge_index = edge index of body i
-    xmi        = atom i's coordinates (body i's center of mass)
-    x0         = coordinate of the tested vertex from another body
-    x0_rounded_radius = rounded radius of the tested vertex
-    cut_inner  = cutoff for vertex-vertex and vertex-edge interaction
-  Output:
-    d          = Distance from a point x0 to an edge
-    hi         = coordinates of the projection of x0 on the edge
-    t          = ratio to determine the relative position of hi
-                 wrt xi and xj on the segment
-  contact      = 0 no contact between the queried vertex and the edge
-                 1 contact detected
-  return
-    INVALID if the edge index is invalid
-    NONE    if there is no interaction
-    VERTEXI if the tested vertex interacts with the first vertex of the edge
-    VERTEXJ if the tested vertex interacts with the second vertex of the edge
-    EDGE    if the tested vertex interacts with the edge
-------------------------------------------------------------------------- */
-
-int PairBodyRoundedPolygon::compute_distance_to_vertex(int ibody,
-                                                int edge_index,
-                                                double *xmi,
-                                                double rounded_radius,
-                                                double* x0,
-                                                double x0_rounded_radius,
-                                                double cut_inner,
-                                                double &d,
-                                                double hi[3],
-                                                double &t,
-                                                int &contact)
-{
-  if (edge_index >= ednum[ibody]) return INVALID;
-
-  int mode,ifirst,iefirst,npi1,npi2;
-  double xi1[3],xi2[3],u[3],v[3],uij[3];
-  double udotv, magv, magucostheta;
-  double delx,dely,delz;
-  double rmin = MIN(rounded_radius, x0_rounded_radius);
-
-  ifirst = dfirst[ibody];
-  iefirst = edfirst[ibody];
-  npi1 = static_cast<int>(edge[iefirst+edge_index][0]);
-  npi2 = static_cast<int>(edge[iefirst+edge_index][1]);
-
-  // compute the space-fixed coordinates for the vertices of the edge
-
-  xi1[0] = xmi[0] + discrete[ifirst+npi1][0];
-  xi1[1] = xmi[1] + discrete[ifirst+npi1][1];
-  xi1[2] = xmi[2] + discrete[ifirst+npi1][2];
-
-  xi2[0] = xmi[0] + discrete[ifirst+npi2][0];
-  xi2[1] = xmi[1] + discrete[ifirst+npi2][1];
-  xi2[2] = xmi[2] + discrete[ifirst+npi2][2];
-
-  // u = x0 - xi1
-
-  u[0] = x0[0] - xi1[0];
-  u[1] = x0[1] - xi1[1];
-  u[2] = x0[2] - xi1[2];
-
-  // v = xi2 - xi1
-
-  v[0] = xi2[0] - xi1[0];
-  v[1] = xi2[1] - xi1[1];
-  v[2] = xi2[2] - xi1[2];
-
-  // dot product between u and v = magu * magv * costheta
-
-  udotv = u[0] * v[0] + u[1] * v[1] + u[2] * v[2];
-  magv = sqrt(v[0] * v[0] + v[1] * v[1] + v[2] * v[2]);
-  magucostheta = udotv / magv;
-
-  // uij is the unit vector pointing from xi to xj
-
-  uij[0] = v[0] / magv;
-  uij[1] = v[1] / magv;
-  uij[2] = v[2] / magv;
-
-  // position of the projection of x0 on the line (xi, xj)
-
-  hi[0] = xi1[0] + magucostheta * uij[0];
-  hi[1] = xi1[1] + magucostheta * uij[1];
-  hi[2] = xi1[2] + magucostheta * uij[2];
-
-  // distance from x0 to the line (xi, xj) = distance from x0 to hi
-
-  distance(hi, x0, d);
-
-  // determine the interaction mode
-  // for 2D: a vertex can interact with one edge at most
-  // for 3D: a vertex can interact with one face at most
-
-  mode = NONE;
-  contact = 0;
-
-  if (d > rounded_radius + x0_rounded_radius + cut_inner) {
-
-    // if the vertex is far away from the edge
-
-    mode = NONE;
-
-  } else {
-
-    // check if x0 (the queried vertex) and xmi (the body's center of mass)
-    // are on the different sides of the edge
-
-    #ifdef _CONVEX_POLYGON
-    int m = opposite_sides(xi1, xi2, x0, xmi);
-    #else
-    int m = 1;
-    #endif
-
-    if (m == 0) {
-
-      // x0 and xmi are on not the opposite sides of the edge
-      // leave xpi for another edge to detect
-
-      mode = NONE;
-
+    for (int k = 0; k < 3; k++) {
+      a[k] = xm[k] + discrete[ifirst+np1][k];
+      b[k] = xm[k] + discrete[ifirst+np2][k];
+    }
+    MathExtra::sub3(b, a, v);
+    MathExtra::sub3(xp, a, u);
+    double vsq = MathExtra::lensq3(v);
+    double t = (vsq > 0.0) ? MathExtra::dot3(u, v) / vsq : 0.0;
+    int nvp = -1;
+    if (t <= 0.0) {
+      MathExtra::copy3(a, p);
+      nvp = np1;
+    } else if (t >= 1.0) {
+      MathExtra::copy3(b, p);
+      nvp = np2;
     } else {
+      for (int k = 0; k < 3; k++) p[k] = a[k] + t * v[k];
+    }
+    double dsq = MathExtra::distsq3(xp, p);
+    if ((ne == 0) || (dsq < dmin)) {
+      dmin = dsq;
+      nv = nvp;
+      MathExtra::copy3(p, h);
+    }
 
-      // x0 and xmi are on the different sides
-      // t is the ratio to detect if x0 is closer to the vertices xi or xj
+    if (inside && (vsq > 0.0)) {
 
-      t = (magv > 0.0) ? magucostheta / magv : 0.0;
+      // outward normal of the edge in the xy plane
 
-      double contact_dist = rounded_radius + x0_rounded_radius;
-      if (t >= 0 && t <= 1) {
-        mode = EDGE;
-        if (d < contact_dist + EPSILON*rmin)
-          contact = 1;
-
-      } else { // t < 0 || t > 1: closer to either vertices of the edge
-
-        if (t < 0) {
-          // measure the distance from x0 to xi1
-          delx = x0[0] - xi1[0];
-          dely = x0[1] - xi1[1];
-          delz = x0[2] - xi1[2];
-          double dx0xi1 = sqrt(delx*delx + dely*dely + delz*delz);
-          if (dx0xi1 > contact_dist + cut_inner)
-            mode = NONE;
-          else
-            mode = VERTEXI;
-        } else {
-          // measure the distance from x0 to xi2
-          delx = x0[0] - xi2[0];
-          dely = x0[1] - xi2[1];
-          delz = x0[2] - xi2[2];
-          double dx0xi2 = sqrt(delx*delx + dely*dely + delz*delz);
-          if (dx0xi2 > contact_dist + cut_inner)
-            mode = NONE;
-          else
-            mode = VERTEXJ;
-        }
-      } // end if t >= 0 && t <= 1
-    } // end if x0 and xmi are on the same side of the edge
+      double en[3] = {v[1], -v[0], 0.0};
+      double am[3] = {a[0] - xm[0], a[1] - xm[1], 0.0};
+      if (MathExtra::dot3(en, am) < 0.0) MathExtra::negate3(en);
+      MathExtra::norm3(en);
+      double sd = MathExtra::dot3(u, en);
+      if (sd >= 0.0) inside = 0;
+      else if (sd > smax) {
+        smax = sd;
+        emax = ne;
+        MathExtra::copy3(en, nmax);
+      }
+    }
   }
 
-  return mode;
+  // xp is inside the core: push it out through the nearest edge
+
+  if (inside && (emax >= 0)) {
+    for (int k = 0; k < 3; k++) {
+      h[k] = xp[k] - smax * nmax[k];
+      n[k] = nmax[k];
+    }
+    nv = -1;
+    return smax;
+  }
+
+  double d = sqrt(dmin);
+  if (d == 0.0)
+    error->one(FLERR, "A vertex of a body touches the core of body {}", atom->tag[ibody]);
+  for (int k = 0; k < 3; k++) n[k] = (xp[k] - h[k]) / d;
+  return d;
 }
 
 /* ----------------------------------------------------------------------
@@ -1406,7 +1096,7 @@ int PairBodyRoundedPolygon::compute_distance_to_vertex(int ibody,
 
 void PairBodyRoundedPolygon::contact_forces(Contact& contact, double j_a,
                        int friction, double** x, double** v, double** angmom, double** f,
-                       double** torque, double** fnc, double &/*evdwl*/,
+                       double** torque, double** fnc, double &evdwl,
                        double* facc, Scratch &s)
 {
   int ibody = contact.ibody;
@@ -1415,12 +1105,10 @@ void PairBodyRoundedPolygon::contact_forces(Contact& contact, double j_a,
   // unit normal from the point on the edge to the vertex, and the contact
   // point between the rounded surfaces, where all contact forces act
 
-  double n[3], pc[3];
-  MathExtra::sub3(contact.xv, contact.xe, n);
-  double r = MathExtra::len3(n);
-  if (r == 0.0) return;
-  MathExtra::scale3(1.0/r, n);
+  const double *n = contact.n;
+  double pc[3];
   contact_point(contact.xv, contact.xe, n, rounded_radius[ibody], rounded_radius[jbody], pc);
+  evdwl += contact.energy;
 
   // elastic force and cohesive force, only the latter is scaled by j_a,
   // see Eq. 5, Fraige et al.
@@ -1588,7 +1276,14 @@ void PairBodyRoundedPolygon::history_friction(int i, int j, double **x, double *
 
 void PairBodyRoundedPolygon::reset_dt()
 {
+  // with run_style respa, the pair style is computed with the time step
+  // of its level
+
   dt = update->dt;
+  if (utils::strmatch(update->integrate_style, "^respa")) {
+    auto *respa = dynamic_cast<Respa *>(update->integrate);
+    if (respa && (respa->level_pair >= 0)) dt = respa->step[respa->level_pair];
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -1678,34 +1373,13 @@ void PairBodyRoundedPolygon::damping_friction(int ibody, int jbody, double *pc,
 
 /* ----------------------------------------------------------------------
   Determine the length of the contact segment, i.e. the separation between
-  2 contacts, should be extended for 3D models.
+  2 contacts along the tangent of the first one
 ------------------------------------------------------------------------- */
 
 double PairBodyRoundedPolygon::contact_separation(const Contact& c1,
                                                   const Contact& c2)
 {
-  double x1 = c1.xv[0];
-  double y1 = c1.xv[1];
-  double x2 = c1.xe[0];
-  double y2 = c1.xe[1];
-  double x3 = c2.xv[0];
-  double y3 = c2.xv[1];
-
-  int ibody = c1.ibody;
-  int jbody = c1.ibody;
-  double rradi = rounded_radius[ibody];
-  double rradj = rounded_radius[jbody];
-  double rmin = MIN(rradi, rradj);
-
-  double delta_a = 0.0;
-  if (fabs(x2 - x1) > EPSILON*rmin) {
-    double A = (y2 - y1) / (x2 - x1);
-    delta_a = fabs(y1 - A * x1 - y3 + A * x3) / sqrt(1 + A * A);
-  } else {
-    delta_a = fabs(x1 - x3);
-  }
-
-  return delta_a;
+  return fabs(-c1.n[1] * (c2.xv[0] - c1.xv[0]) + c1.n[0] * (c2.xv[1] - c1.xv[1]));
 }
 
 /* ----------------------------------------------------------------------
@@ -1724,23 +1398,6 @@ void PairBodyRoundedPolygon::sum_torque(double* xm, double *x, double fx,
   torque[0] += tx;
   torque[1] += ty;
   torque[2] += tz;
-}
-
-/* ----------------------------------------------------------------------
-  Test if two points a and b are in opposite sides of the line that
-  connects two points x1 and x2
-------------------------------------------------------------------------- */
-
-int PairBodyRoundedPolygon::opposite_sides(double* x1, double* x2,
-                                           double* a, double* b)
-{
-  double m_a = (x1[1] - x2[1])*(a[0] - x1[0]) + (x2[0] - x1[0])*(a[1] - x1[1]);
-  double m_b = (x1[1] - x2[1])*(b[0] - x1[0]) + (x2[0] - x1[0])*(b[1] - x1[1]);
-  // equal to zero when either a or b is inline with the line x1-x2
-  if (m_a * m_b <= 0)
-    return 1;
-  else
-    return 0;
 }
 
 /* ----------------------------------------------------------------------

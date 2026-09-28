@@ -174,7 +174,6 @@ void PairBodyRoundedPolygonOMP::eval(int iifrom, int iito, ThrData *const thr,
 
   for (int ii = iifrom; ii < iito; ++ii) {
     const int i = ilist[ii];
-    if (body[i] < 0) continue;
     const double xtmp = x[i][0];
     const double ytmp = x[i][1];
     const double ztmp = x[i][2];
@@ -188,7 +187,6 @@ void PairBodyRoundedPolygonOMP::eval(int iifrom, int iito, ThrData *const thr,
 
     for (int jj = 0; jj < jnum; ++jj) {
       const int j = jlist[jj] & NEIGHMASK;
-      if (body[j] < 0) continue;
 
       const double delx = xtmp - x[j][0];
       const double dely = ytmp - x[j][1];
@@ -207,7 +205,7 @@ void PairBodyRoundedPolygonOMP::eval(int iifrom, int iito, ThrData *const thr,
 
       // no interaction
 
-      if (sqrt(rsq) <= radi + radius[j] + cut_inner) {
+      if ((body[i] >= 0) && (body[j] >= 0) && (sqrt(rsq) <= radi + radius[j] + cut_inner)) {
         double evdwl = 0.0;
         facc[0] = facc[1] = facc[2] = 0.0;
         pair_interaction(i, j, delx, dely, delz, rsq, x, v, angmom, f, torque, fnc_t, s, evdwl,

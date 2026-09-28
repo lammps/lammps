@@ -38,12 +38,11 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 using namespace MathConst;
 
-enum{XPLANE=0,YPLANE=1,ZPLANE=2};    // XYZ PLANE need to be 0,1
-
-enum {XLO=1,XHI,YLO,YHI};
+enum{XPLANE=0,YPLANE=1};    // XY PLANE need to be 0,1
 
 static constexpr int DELTA = 10000;
 static constexpr double BIG = 1.0e20;
+static constexpr int NHISTORY = 6;    // tangential deformations at the two walls
 
 /* ---------------------------------------------------------------------- */
 
@@ -120,9 +119,10 @@ FixWallBodyPolygon::FixWallBodyPolygon(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+4 > narg)
         utils::missing_cmd_args(FLERR,"fix wall/body/polygon wiggle", error);
 
+      // the bodies move in the xy plane only
+
       if (strcmp(arg[iarg+1],"x") == 0) axis = XPLANE;
       else if (strcmp(arg[iarg+1],"y") == 0) axis = YPLANE;
-      else if (strcmp(arg[iarg+1],"z") == 0) axis = ZPLANE;
       else error->all(FLERR, iarg+1,
                       "Illegal fix wall/body/polygon wiggle direction {}", arg[iarg+1]);
       amplitude = utils::numeric(FLERR,arg[iarg+2],false,lmp);
@@ -148,7 +148,7 @@ FixWallBodyPolygon::FixWallBodyPolygon(LAMMPS *lmp, int narg, char **arg) :
     } else error->all(FLERR, iarg, "Unknown fix wall/body/polygon keyword {}", arg[iarg]);
   }
 
-  // the tangential deformation of each body at the wall is stored per atom,
+  // the tangential deformations of each body at the two walls are stored per atom,
   // carried along with the atoms, and written to restart files
 
   if (history) {
@@ -157,8 +157,9 @@ FixWallBodyPolygon::FixWallBodyPolygon(LAMMPS *lmp, int narg, char **arg) :
     FixWallBodyPolygon::grow_arrays(atom->nmax);
     atom->add_callback(Atom::GROW);
     atom->add_callback(Atom::RESTART);
+    maxexchange = NHISTORY;
     for (int i = 0; i < atom->nlocal; i++)
-      history_one[i][0] = history_one[i][1] = history_one[i][2] = 0.0;
+      for (int k = 0; k < NHISTORY; k++) history_one[i][k] = 0.0;
   }
 
   // setup oscillations
@@ -234,9 +235,9 @@ void FixWallBodyPolygon::init()
 
   avec = dynamic_cast<AtomVecBody *>(atom->style_match("body"));
   if (!avec)
-    error->all(FLERR,"Pair body/rounded/polygon requires atom style body");
+    error->all(FLERR,"Fix wall/body/polygon requires atom style body");
   if (strcmp(avec->bptr->style,"rounded/polygon") != 0)
-    error->all(FLERR,"Pair body/rounded/polygon requires body style rounded/polygon");
+    error->all(FLERR,"Fix wall/body/polygon requires body style rounded/polygon");
   bptr = dynamic_cast<BodyRoundedPolygon *>(avec->bptr);
 
   if (!force->pair_match("^body/rounded/polygon",0))
@@ -255,8 +256,8 @@ void FixWallBodyPolygon::setup(int vflag)
 
 void FixWallBodyPolygon::post_force(int /*vflag*/)
 {
-  double vwall[3],del1,del2,wall_pos;
-  int i,ni,npi,ifirst,side;
+  double vwall[3],wall_pos;
+  int i,ni,npi,ifirst;
 
   // set position of wall to initial settings and velocity to 0.0
   // if wiggle, set wall position and velocity accordingly
@@ -315,57 +316,39 @@ void FixWallBodyPolygon::post_force(int /*vflag*/)
 
   for (i = 0; i < nlocal; i++) {
 
-    // the tangential deformation is reset unless the body touches the wall
+    // the tangential deformations at the two walls are reset unless the
+    // body touches the wall
 
-    double xi[3] = {0.0, 0.0, 0.0};
+    double xi[2][3] = {{0.0, 0.0, 0.0}, {0.0, 0.0, 0.0}};
     if (history) {
-      for (int k = 0; k < 3; k++) {
-        xi[k] = history_one[i][k];
+      for (int k = 0; k < NHISTORY; k++) {
+        xi[k/3][k%3] = history_one[i][k];
         history_one[i][k] = 0.0;
       }
     }
 
-    if (mask[i] & groupbit) {
+    if (!(mask[i] & groupbit) || (body[i] < 0)) continue;
 
-      if (body[i] < 0) continue;
+    // both walls, a wall that is not set is at infinity: the inward unit
+    // normal of the wall and the signed distance of the center of the body
+    // from the wall, positive inside
 
-      // the nearer of the two walls
-
-      int dim = (wallstyle == XPLANE) ? 0 : 1;
-      del1 = x[i][dim] - wlo;
-      del2 = whi - x[i][dim];
-      if (del1 < del2) {
-        wall_pos = wlo;
-        side = (dim == 0) ? XLO : YLO;
-      } else {
-        wall_pos = whi;
-        side = (dim == 0) ? XHI : YHI;
-      }
-
-      // inward unit normal of the wall and signed distance of the
-      // center of the body from the wall, positive inside
-
+    int dim = (wallstyle == XPLANE) ? 0 : 1;
+    for (int iwall = 0; iwall < 2; iwall++) {
       double nw[3] = {0.0, 0.0, 0.0};
-      double scom;
-      if (side == XLO) {
-        nw[0] = 1.0; scom = del1;
-      } else if (side == XHI) {
-        nw[0] = -1.0; scom = del2;
-      } else if (side == YLO) {
-        nw[1] = 1.0; scom = del1;
-      } else {
-        nw[1] = -1.0; scom = del2;
-      }
+      wall_pos = iwall ? whi : wlo;
+      nw[dim] = iwall ? -1.0 : 1.0;
+      double scom = (x[i][dim] - wall_pos) * nw[dim];
       if (scom > radius[i]) continue;
 
       if (dnum[i] == 0) body2space(i);
       npi = dnum[i];
       ifirst = dfirst[i];
 
-      // every vertex of the body interacts with the wall,
-      // using its signed distance from the wall
-      // with the contact history, a single friction force acts on the body,
-      // at the contact points weighted by their elastic normal forces
+      // every vertex of the body
+      // interacts with the wall, using its signed distance from the wall
+      // with the contact history, a single friction force per wall acts on
+      // the body, at the contact points weighted by their elastic normal forces
 
       double fnsum = 0.0;
       double pcsum[3] = {0.0, 0.0, 0.0};
@@ -389,12 +372,12 @@ void FixWallBodyPolygon::post_force(int /*vflag*/)
         double ft[3];
         MathExtra::scale3(1.0/fnsum, pcsum);
         MathExtra::scale3(1.0/fnsum, vtsum);
-        tangential_spring(nw, vtsum, fnsum, xi, ft);
+        tangential_spring(nw, vtsum, fnsum, xi[iwall], ft);
         MathExtra::add3(f[i], ft, f[i]);
         sum_torque(x[i], pcsum, ft[0], ft[1], ft[2], torque[i]);
-        for (int k = 0; k < 3; k++) history_one[i][k] = xi[k];
+        for (int k = 0; k < 3; k++) history_one[i][3*iwall+k] = xi[iwall][k];
       }
-    } // group bit
+    }
   }
 
   // update wall image information
@@ -638,7 +621,7 @@ int FixWallBodyPolygon::image(int *&objs, double **&parms)
 
 void FixWallBodyPolygon::grow_arrays(int nmax_new)
 {
-  memory->grow(history_one,nmax_new,3,"fix_wall_body:history_one");
+  memory->grow(history_one,nmax_new,NHISTORY,"fix_wall_body:history_one");
 }
 
 /* ----------------------------------------------------------------------
@@ -647,7 +630,7 @@ void FixWallBodyPolygon::grow_arrays(int nmax_new)
 
 void FixWallBodyPolygon::copy_arrays(int i, int j, int /*delflag*/)
 {
-  for (int m = 0; m < 3; m++) history_one[j][m] = history_one[i][m];
+  for (int m = 0; m < NHISTORY; m++) history_one[j][m] = history_one[i][m];
 }
 
 /* ----------------------------------------------------------------------
@@ -656,7 +639,7 @@ void FixWallBodyPolygon::copy_arrays(int i, int j, int /*delflag*/)
 
 void FixWallBodyPolygon::set_arrays(int i)
 {
-  for (int m = 0; m < 3; m++) history_one[i][m] = 0.0;
+  for (int m = 0; m < NHISTORY; m++) history_one[i][m] = 0.0;
 }
 
 /* ----------------------------------------------------------------------
@@ -665,8 +648,8 @@ void FixWallBodyPolygon::set_arrays(int i)
 
 int FixWallBodyPolygon::pack_exchange(int i, double *buf)
 {
-  for (int m = 0; m < 3; m++) buf[m] = history_one[i][m];
-  return 3;
+  for (int m = 0; m < NHISTORY; m++) buf[m] = history_one[i][m];
+  return NHISTORY;
 }
 
 /* ----------------------------------------------------------------------
@@ -675,8 +658,8 @@ int FixWallBodyPolygon::pack_exchange(int i, double *buf)
 
 int FixWallBodyPolygon::unpack_exchange(int nlocal, double *buf)
 {
-  for (int m = 0; m < 3; m++) history_one[nlocal][m] = buf[m];
-  return 3;
+  for (int m = 0; m < NHISTORY; m++) history_one[nlocal][m] = buf[m];
+  return NHISTORY;
 }
 
 /* ----------------------------------------------------------------------
@@ -686,9 +669,9 @@ int FixWallBodyPolygon::unpack_exchange(int nlocal, double *buf)
 int FixWallBodyPolygon::pack_restart(int i, double *buf)
 {
   // pack buf[0] this way because other fixes unpack it
-  buf[0] = 4;
-  for (int m = 0; m < 3; m++) buf[m+1] = history_one[i][m];
-  return 4;
+  buf[0] = NHISTORY + 1;
+  for (int m = 0; m < NHISTORY; m++) buf[m+1] = history_one[i][m];
+  return NHISTORY + 1;
 }
 
 /* ----------------------------------------------------------------------
@@ -706,7 +689,7 @@ void FixWallBodyPolygon::unpack_restart(int nlocal, int nth)
   for (int i = 0; i < nth; i++) m += static_cast<int> (extra[nlocal][m]);
   m++;
 
-  for (int i = 0; i < 3; i++) history_one[nlocal][i] = extra[nlocal][m++];
+  for (int i = 0; i < NHISTORY; i++) history_one[nlocal][i] = extra[nlocal][m++];
 }
 
 /* ----------------------------------------------------------------------
@@ -715,7 +698,7 @@ void FixWallBodyPolygon::unpack_restart(int nlocal, int nth)
 
 int FixWallBodyPolygon::maxsize_restart()
 {
-  return 4;
+  return NHISTORY + 1;
 }
 
 /* ----------------------------------------------------------------------
@@ -724,7 +707,7 @@ int FixWallBodyPolygon::maxsize_restart()
 
 int FixWallBodyPolygon::size_restart(int /*nlocal*/)
 {
-  return 4;
+  return NHISTORY + 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -732,6 +715,6 @@ int FixWallBodyPolygon::size_restart(int /*nlocal*/)
 double FixWallBodyPolygon::memory_usage()
 {
   double bytes = (double) nmax * 4 * sizeof(int);    // dnum + dfirst + ednum + edfirst [nmax]
-  if (history) bytes += (double) atom->nmax * 3 * sizeof(double);    // history_one
+  if (history) bytes += (double) atom->nmax * NHISTORY * sizeof(double);    // history_one
   return bytes;
 }

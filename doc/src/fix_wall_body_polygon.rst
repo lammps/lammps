@@ -29,7 +29,7 @@ Syntax
   .. parsed-literal::
 
        *wiggle* values = dim amplitude period
-         dim = *x* or *y* or *z*
+         dim = *x* or *y*
          amplitude = size of oscillation (distance units)
          period = time of oscillation (time units)
        *history* values = mu k_t
@@ -61,7 +61,7 @@ those specified with the :doc:`pair_style body/rounded/polygon <pair_body_rounde
 
 .. versionchanged:: TBD
 
-Each vertex of a particle, or the center of a sphere or disk, is repelled
+Each vertex of a particle, or the center of a disk, is repelled
 by the wall with the force :math:`k_n (r_v - d)`, when its signed distance
 :math:`d` from the wall along the wall normal is smaller than its rounded
 radius :math:`r_v`, also when the vertex has moved past the wall.  The
@@ -71,8 +71,13 @@ wall, so that they also exert torques.  There is no cohesion with the
 wall, and no friction force unless the *history* keyword is used (see
 below), and the contact forces are not scaled by
 the size of the contact region.  Previously, a vertex that had moved past
-the wall was no longer repelled, or even pushed further out, and in 2d
-the wall forces were scaled by the length of the contact region.
+the wall was no longer repelled, or even pushed further out, and
+the wall forces were scaled by the length of the contact region.  A
+particle interacts with both walls of a pair, e.g. in a narrow channel.
+Previously, only the wall nearer to the center of the particle was
+checked, so that an elongated particle could overlap the other wall
+without being repelled.  The *wiggle* keyword no longer accepts *z*,
+since the particles move in the xy plane.
 
 The *wallstyle* is planar and allows to specify a pair of walls in x-
 and y direction each.  Wall positions are given by *lo* and *hi*\ .
@@ -118,7 +123,9 @@ contact points of these vertices, weighted by their elastic normal
 forces, and :math:`v_t` is the velocity of the particle at that point,
 so that a particle resting with an edge on the wall is not subject to a
 spurious torque.  The tangential deformation is reset to zero when the
-particle no longer touches the wall.  If *k_t* is specified as NULL, it
+particle no longer touches the wall.  A particle touching both walls of
+a pair has a separate tangential deformation and friction force for
+each wall.  If *k_t* is specified as NULL, it
 is set to :math:`\frac{2}{7} k_n` as for the pair style.  The damping
 forces are unchanged.  This allows particles to stay at rest on the
 wall, e.g. under gravity that is inclined with respect to the wall.

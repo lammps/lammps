@@ -43,10 +43,12 @@ class PairBodyRoundedPolygon : public Pair {
   struct Contact {
     int ibody, jbody;     // body (i.e. atom) indices (not tags)
     int vertex;           // vertex of the first polygon
-    int edge;             // edge of the second polygon
+    int jvertex;          // vertex of the second polygon, -1 for an edge
     double xv[3];         // coordinates of the vertex
-    double xe[3];         // coordinates of the projection of the vertex on the edge
+    double xe[3];         // coordinates of the nearest point on the second polygon
+    double n[3];          // unit normal from xe towards the outside at xv
     double separation;    // separation at contact
+    double energy;        // energy of the contact
     double fe[3];         // elastic force on the vertex, the edge gets -fe
     double fc[3];         // unscaled cohesive force on the vertex, the edge gets -fc
   };
@@ -55,7 +57,6 @@ class PairBodyRoundedPolygon : public Pair {
 
   struct Scratch {
     std::vector<Contact> contacts;    // vertex-edge contacts
-    std::vector<int> vertex_done;     // flags for the vertices already interacted with
     double *shear;                    // tangential displacement of the pair, or nullptr
     int shear_i;                      // body the tangential displacement refers to
     int touched;                      // 1 if the tangential displacement was updated
@@ -122,15 +123,10 @@ class PairBodyRoundedPolygon : public Pair {
                              double **f, double **torque, double **fnc, Scratch &s,
                              double &evdwl, double *facc);
   // vertex-edge interaction
-  int vertex_against_edge(int i, int j, double k_n, double k_na, double **x, double **f,
-                          double **torque, tagint *tag, Scratch &s, double &evdwl,
-                          double *facc);
-  // find the edge whose sector encloses a point
-  int sector_edge(int ibody, const double *xp);
-  // compute distance between a point and an edge from another body
-  int compute_distance_to_vertex(int ibody, int edge_index, double *xmi, double rounded_radius,
-                                 double *x0, double x0_rounded_radius, double cut_inner, double &d,
-                                 double hi[3], double &t, int &contact);
+  int vertex_against_edge(int i, int j, int first, double k_n, double k_na, double **x,
+                          double **f, double **torque, Scratch &s, double &evdwl, double *facc);
+  // nearest point on the core of a body to a point
+  double nearest_point(int ibody, const double *xp, double *h, double *n, int &nv);
   // compute contact forces if contact points are detected
   void contact_forces(Contact &contact, double j_a, int friction, double **x, double **v,
                       double **angmom, double **f, double **torque, double **fnc, double &evdwl,
@@ -158,7 +154,6 @@ class PairBodyRoundedPolygon : public Pair {
   // accumulate torque to a body given a force at a given point
   void sum_torque(double *xm, double *x, double fx, double fy, double fz, double *torque);
   // helper functions
-  int opposite_sides(double *x1, double *x2, double *a, double *b);
   void total_velocity(double *p, double *xcm, double *vcm, double *angmom, double *inertia,
                       double *quat, double *vi);
   inline void distance(const double *x2, const double *x1, double &r);

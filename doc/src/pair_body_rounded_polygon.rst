@@ -117,10 +117,13 @@ keyword).  The damping and friction forces
 act at the contact point between the rounded surfaces and depend on the
 relative velocity of the two particles at that point, including their
 rotation, so that they also exert torques, e.g. to make disks roll.  Each vertex of one particle
-interacts with a single edge of the other particle, namely the edge whose
-sector, bounded by the rays from the particle center through the two
-vertices of the edge, encloses the vertex, or with a vertex at an end of
-that edge, following :ref:`Fraige <pair-Fraige>`.
+interacts with the point of the other particle nearest to it, which lies
+inside an edge or at a vertex.  Two vertices interact with each other
+only if each of them is the vertex of its particle nearest to the other
+one, and a vertex that has penetrated the other particle is pushed out
+through the nearest edge.  Following :ref:`Fraige <pair-Fraige>`, the
+contact forces are applied at up to two contacts, the two contacts
+farthest apart, whose distance is the length of the contact region.
 
 In :ref:`Fraige <pair-Fraige>`, the tangential friction force between two
 particles that are in contact is modeled differently prior to gross
@@ -150,8 +153,11 @@ growing when the surfaces deform, instead of staying constant.
 The damping and friction forces now act at the contact point between the
 rounded surfaces, instead of at the vertices, and the friction force now
 also applies to disks.  Each
-vertex now interacts with a single edge of the other particle, selected
-as described above, instead of with all edges within the cutoff.
+vertex now interacts with the nearest point of the other particle, as
+described above, instead of with all edges within the cutoff, and the
+contact forces are applied at the two contacts farthest apart, instead
+of at the first two contacts found.  The reported energy now includes
+only the contacts to which forces are applied.
 
 .. versionadded:: TBD
 
@@ -262,7 +268,8 @@ the energy.  The kinetic plus potential energy minus these two
 quantities stays constant during a time integration with :doc:`fix
 nve/body <fix_nve_body>`, up to the time integration error and to the
 changes of the set of contacts between two particles, which the model
-treats as discontinuous.  Note that the
+treats as discontinuous.  The work is not accumulated during an
+:doc:`energy minimization <minimize>`.  Note that the
 kinetic energy must include the rotational energy of the particles,
 e.g. via :doc:`compute temp/body <compute_temp_body>` with 3 degrees
 of freedom per particle as in the example below, while the thermo

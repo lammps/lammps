@@ -151,7 +151,8 @@ class PairBodyRoundedPolyhedron : public Pair {
                                  double **fnc, Scratch &s, double &evdwl, double *facc);
   void sphere_point_contact(int ibody, int jbody, int itype, int jtype, double *h, double **x,
                             double **v, double **f, double **torque, double **angmom,
-                            double **fnc, Scratch &s, double &evdwl, double *facc);
+                            double **fnc, Scratch &s, double &evdwl, double *facc,
+                            int inside = 0);
   // whether two edges, or the edges at two vertices, interact as edges
   int vertex_near(const Scratch &s, int ibody, int ni) const;
   int edge_near(const Scratch &s, int ibody, int ne) const;
@@ -192,6 +193,10 @@ class PairBodyRoundedPolyhedron : public Pair {
   int edge_against_edge(int ibody, int jbody, int itype, int jtype, double **x, double **v,
                         double **f, double **torque, double **angmom, double **fnc, Scratch &s,
                         double &evdwl, double *facc);
+  // vertices inside the core of the other body
+  void vertex_against_core(int ibody, int jbody, int itype, int jtype, double **x, double **v,
+                           double **f, double **torque, double **angmom, double **fnc,
+                           Scratch &s, double &evdwl, double *facc);
   // edge-face interactions
   int edge_against_face(int ibody, int jbody, int itype, int jtype, double **x, double **v,
                         double **f, double **torque, double **angmom, double **fnc, Scratch &s,
@@ -210,10 +215,6 @@ class PairBodyRoundedPolyhedron : public Pair {
                                double **torque, double **angmom, double **fnc, Scratch &s,
                                double &energy, double *facc);
 
-  // compute contact forces if contact points are detected
-  void contact_forces(int ibody, int jbody, double *xi, double *xj, double delx, double dely,
-                      double delz, double r, double **x, double **v, double **angmom,
-                      double **f, double **torque, double **fnc, double *facc, double w);
   // contact point between the rounded surfaces of two bodies
   void contact_point(const double *pi, const double *pj, const double *n, double rradi,
                      double rradj, double *pc);
@@ -246,9 +247,9 @@ class PairBodyRoundedPolyhedron : public Pair {
                              int jflag, double &energy, double *facc, double w);
 
   // rescale the cohesive forces if a contact area is detected
-  void rescale_cohesive_forces(double **x, double **f, double **torque, double **fnc,
-                               std::vector<Contact> &contacts, int itype, int jtype, int iref,
-                               double &evdwl, double *facc);
+  void rescale_cohesive_forces(double **x, double **v, double **angmom, double **f,
+                               double **torque, double **fnc, std::vector<Contact> &contacts,
+                               int itype, int jtype, int iref, double &evdwl, double *facc);
 
   // compute the separation between two contacts
   double contact_separation(const Contact &c1, const Contact &c2);
@@ -260,10 +261,8 @@ class PairBodyRoundedPolyhedron : public Pair {
   void sum_torque(double *xm, double *x, double fx, double fy, double fz, double *torque);
 
   // find the intersection point (if any) between an edge and a face
-  int edge_face_intersect(double *x1, double *x2, double *x3, double *a, double *b, double *hi1,
-                          double *hi2, double &d1, double &d2, int &inside_a, int &inside_b);
   // find the face of a body with the largest signed distance to a point
-  double nearest_face(int ibody, double *xmi, const double *q, double *n);
+  double nearest_face(int ibody, double *xmi, const double *q, double *n, int *nf = nullptr);
   // helper functions
   int opposite_sides(double *n, double *x0, double *a, double *b);
   void project_pt_plane(const double *q, const double *p, const double *n, double *q_proj,

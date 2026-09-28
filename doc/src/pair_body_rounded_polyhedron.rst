@@ -236,7 +236,11 @@ deformation is reset to zero when the particles are no longer in
 contact.  As in :doc:`pair_style gran/hooke/history
 <pair_gran>`, the tangential deformations are stored by an internal
 fix NEIGH_HISTORY.  The damping forces are unchanged.  This extends the model of :ref:`Wang <pair-Wang>` and makes
-static packings of particles with friction possible.
+static packings of particles with friction possible.  The input script
+*in.heap3d* in the *examples/body* directory demonstrates this: cubes
+and tetrahedra poured onto a floor, with the *history* keyword also used
+for :doc:`fix wall/body/polyhedron <fix_wall_body_polyhedron>`, settle
+into a heap that stays at rest when gravity is tilted by 20 degrees.
 
 The following coefficients must be defined for each pair of atom types
 via the :doc:`pair_coeff <pair_coeff>` command as in the examples above,

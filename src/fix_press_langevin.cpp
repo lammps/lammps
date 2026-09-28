@@ -42,9 +42,6 @@ static constexpr double TILTMAX = 1.5;
 enum { NONE, XYZ, XY, YZ, XZ };
 enum { ISO, ANISO, TRICLINIC };
 
-// size of the Marsaglia RNG state vector (see RanMars::get_state())
-static constexpr int PRNGSIZE = 98 + 2 + 3;
-
 /* ---------------------------------------------------------------------- */
 
 FixPressLangevin::FixPressLangevin(LAMMPS *lmp, int narg, char **arg) :
@@ -854,8 +851,9 @@ void FixPressLangevin::reset_dt()
 
 void FixPressLangevin::write_restart(FILE *fp)
 {
-  constexpr int NPISTON = 6;                            // f_piston[6]
-  int nsize = PRNGSIZE * comm->nprocs + 1 + NPISTON;    // piston + pRNG per proc + nprocs
+  constexpr int NPISTON = 6;    // f_piston[6]
+  int nsize =
+      RanMars::STATE_SIZE * comm->nprocs + 1 + NPISTON;    // piston + pRNG per proc + nprocs
 
   auto *list = new double[nsize];
 
@@ -864,9 +862,10 @@ void FixPressLangevin::write_restart(FILE *fp)
     for (int i = 0; i < 6; i++) list[1 + i] = f_piston[i];
   }
 
-  double state[PRNGSIZE];
+  double state[RanMars::STATE_SIZE];
   random->get_state(state);
-  MPI_Gather(state, PRNGSIZE, MPI_DOUBLE, list + 1 + NPISTON, PRNGSIZE, MPI_DOUBLE, 0, world);
+  MPI_Gather(state, RanMars::STATE_SIZE, MPI_DOUBLE, list + 1 + NPISTON, RanMars::STATE_SIZE,
+             MPI_DOUBLE, 0, world);
 
   if (comm->me == 0) {
     int size = nsize * sizeof(double);
@@ -891,6 +890,9 @@ void FixPressLangevin::restart(char *buf)
   if (nprocs != comm->nprocs) {
     if (comm->me == 0)
       error->warning(FLERR, "Different number of procs. Cannot restore RNG state.");
-  } else
-    random->set_state(list + 1 + NPISTON + comm->me * PRNGSIZE);
+  } else {
+    // the size of the stored states depends on the version that wrote the restart file
+    const int stride = RanMars::state_size(list + 1 + NPISTON);
+    random->set_state(list + 1 + NPISTON + comm->me * stride);
+  }
 }

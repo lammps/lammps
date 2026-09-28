@@ -164,7 +164,7 @@ void ComputeCentroAtomKokkos<DeviceType>::operator()(TagComputeCentroAtom<AXES>,
   if (!(mask[i] & groupbit_kk)) {
     d_centro[i] = static_cast<KK_FLOAT>(0.0);
     if (AXES)
-      for (int m = 1; m < 10; m++) d_array_atom(i,m) = static_cast<KK_FLOAT>(0.0);
+      for (int m = 0; m < 10; m++) d_array_atom(i,m) = static_cast<KK_FLOAT>(0.0);
     return;
   }
 

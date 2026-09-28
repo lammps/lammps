@@ -72,7 +72,7 @@ class FixACKS2ReaxFFKokkos : public FixACKS2ReaxFF, public KokkosBase {
   void pre_force(int) override;
   void cleanup_copy();
 
-  DAT::ttransform_kkfloat_1d get_s() {return k_s;}
+  DAT::ttransform_kkfloat_1d get_k_s() {return k_s;}
 
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
@@ -198,6 +198,13 @@ class FixACKS2ReaxFFKokkos : public FixACKS2ReaxFF, public KokkosBase {
     KK_FLOAT chi, eta, gamma, bcut_acks2;
   };
 
+  void grow_arrays(int) override;
+  void copy_arrays(int, int, int) override;
+  void sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorter) override;
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(int, double *) override;
+  double memory_usage() override;
+
  private:
   int inum;
   int allocated_flag, last_allocate;
@@ -281,13 +288,7 @@ class FixACKS2ReaxFFKokkos : public FixACKS2ReaxFF, public KokkosBase {
   typename AT::t_int_1d d_sendlist;
   typename AT::t_double_1d_um v_buf;
 
-  void grow_arrays(int) override;
-  void copy_arrays(int, int, int) override;
-  void sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorter) override;
-  int pack_exchange(int, double *) override;
-  int unpack_exchange(int, double *) override;
   void get_chi_field() override;
-  double memory_usage() override;
 
   void sparse_matvec_acks2(typename AT::t_kkfloat_1d &, typename AT::t_kkfloat_1d &);
 };

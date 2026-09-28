@@ -153,7 +153,7 @@ class FixRX : public Fix {
   int *diagnosticCounterPerODE[numDiagnosticCounters];
 
   //!< ODE Solver diagnostics.
-  void odeDiagnostics();
+  virtual void odeDiagnostics();
 
   bool skipChemistry;
 

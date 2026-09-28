@@ -2390,6 +2390,21 @@ NeighRequest *Neighbor::add_request(Command *requestor, const char *style, int f
   return req;
 }
 
+/* ----------------------------------------------------------------------
+   delete all neighbor list requests after the first nkeep ones
+------------------------------------------------------------------------- */
+
+void Neighbor::discard_requests(int nkeep)
+{
+  if (nkeep < 0) return;
+
+  for (int i = nkeep; i < nrequest; i++) {
+    delete requests[i];
+    requests[i] = nullptr;
+  }
+  if (nkeep < nrequest) nrequest = nkeep;
+}
+
 // set neighbor list request OpenMP flag
 
 void Neighbor::set_omp_neighbor(int flag)

@@ -22,6 +22,7 @@
 
 #include "accelerator_kokkos.h"
 #include "atom.h"
+#include "atom_masks.h"
 #include "atom_vec.h"
 #include "comm.h"
 #include "domain.h"
@@ -325,6 +326,10 @@ void Replicate::command(int narg, char **arg)
       atom->mass_setflag[itype] = old->mass_setflag[itype];
       if (atom->mass_setflag[itype]) atom->mass[itype] = old->mass[itype];
     }
+
+    // written through the host pointer, so flag it for the device copy
+
+    atom->modified_host_arrays(MASS_MASK);
   }
 
   // set bounds for my proc

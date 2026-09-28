@@ -88,6 +88,9 @@ PairMultiLucyRX::~PairMultiLucyRX()
 {
   if (copymode) return;
 
+  delete[] site1;
+  delete[] site2;
+
   for (int m = 0; m < ntables; m++) free_table(&tables[m]);
   memory->sfree(tables);
 
@@ -394,7 +397,11 @@ void PairMultiLucyRX::coeff(int narg, char **arg)
 
   nspecies = rx_fix->get_nspecies();
 
+  // pair_coeff may be used more than once, so release the names of the last one
+
+  delete[] site1;
   site1 = utils::strdup(arg[4]);
+  delete[] site2;
   site2 = utils::strdup(arg[5]);
 
   // set table cutoff

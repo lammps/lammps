@@ -354,7 +354,7 @@ void ComputeGlobalAtom::compute_peratom()
         if (update->ntimestep % val.val.f->peratom_freq)
           error->all(FLERR, Error::NOLASTLINE, "Fix {} used in compute global/atom not computed "
                      "at compatible time{}", val.id, utils::errorurl(7));
-        vmax = reference.val.f->size_vector;
+        vmax = val.val.f->size_vector;
 
         if (vmax > maxvector) {
           maxvector = vmax;

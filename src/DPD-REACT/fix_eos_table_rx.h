@@ -52,7 +52,6 @@ class FixEOStableRX : public Fix {
   int ntables;
   Table *tables, *tables2;
 
-  void allocate();
   void null_table(Table *);
   void free_table(Table *);
   void read_table(Table *, Table *, char *, char *);

@@ -84,7 +84,7 @@ output options.
 Eigenvalues that are negligible compared to the largest eigenvalue (less than
 one part in :math:`10^{12}`) are reported as exactly zero.  This is the case
 for planar or linear molecules, where the corresponding eigenvalue is only
-roundoff noise.
+round-off noise.
 
 The array calculated by this compute is
 "intensive".  The first five columns will be in

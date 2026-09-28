@@ -299,6 +299,7 @@ void FixRigidNHSmallKokkos<DeviceType>::setup(int vflag)
   this->forward_comm_device = 0;
   this->reverse_comm_device = 0;
 
+  // NOLINTNEXTLINE(bugprone-parent-virtual-call)
   FixRigidSmall::setup(vflag);
 
   this->forward_comm_device = saved_forward_comm_device;

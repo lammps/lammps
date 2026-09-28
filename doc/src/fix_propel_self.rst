@@ -145,6 +145,13 @@ system's virial as part of :doc:`thermodynamic output <thermo_style>`.
 The default is *virial yes* for keywords *dipole* and *quat*.  The
 default is *virial no* for keyword *velocity*.
 
+.. versionchanged:: TBD
+
+The :doc:`fix_modify <fix_modify>` *respa* option is supported by this
+fix.  This allows to set at which level of the :doc:`r-RESPA
+<run_style>` integrator the fix is adding its forces.  Default is the
+outermost level.  Previous versions applied the force only during the
+setup of a run with :doc:`run_style respa <run_style>`.
 
 No parameter of this fix can be used with the *start/stop* keywords of
 the :doc:`run <run>` command.

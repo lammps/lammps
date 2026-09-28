@@ -577,14 +577,11 @@ void MathExtraKokkos::richardson(float *q, KK_FLOAT *m, KK_FLOAT *w, KK_FLOAT *m
 KOKKOS_INLINE_FUNCTION
 void MathExtraKokkos::qnormalize(double *q)
 {
-  // quaternions stored as double are normalized in double precision also
-  // with single or mixed precision KOKKOS builds to avoid a drift of the norm
-
-  double sum = q[3] * q[3];
-  sum = Kokkos::fma(q[2], q[2], sum);
-  sum = Kokkos::fma(q[1], q[1], sum);
-  sum = Kokkos::fma(q[0], q[0], sum);
-  double norm = 1.0 / Kokkos::sqrt(sum);
+  KK_FLOAT sum = static_cast<KK_FLOAT>(q[3]) * static_cast<KK_FLOAT>(q[3]);
+  sum = Kokkos::fma(static_cast<KK_FLOAT>(q[2]), static_cast<KK_FLOAT>(q[2]), sum);
+  sum = Kokkos::fma(static_cast<KK_FLOAT>(q[1]), static_cast<KK_FLOAT>(q[1]), sum);
+  sum = Kokkos::fma(static_cast<KK_FLOAT>(q[0]), static_cast<KK_FLOAT>(q[0]), sum);
+  double norm = static_cast<double>(Kokkos::rsqrt(sum));
   q[0] *= norm;
   q[1] *= norm;
   q[2] *= norm;

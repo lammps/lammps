@@ -28,34 +28,9 @@ using namespace LAMMPS_NS;
 static constexpr double BIG = 1.0e20;
 
 /* ----------------------------------------------------------------------
-   round a box bound up to the nearest KK_FLOAT that is not below it
-
-   pbc() has to leave every owned atom at a coordinate that the double precision
-   test in Comm::exchange() also considers inside the box, because an atom it
-   decides is outside has nowhere to go when the dimension has a single processor
-   and is deleted.  In single precision static_cast<KK_FLOAT>(boxlo) is not good
-   enough for either the test or the clamp.
-
-   A bound such as the -47.434164902525694 of a 60x60 sq lattice has no exact
-   float and the nearest one lies below it.  An atom created exactly on that
-   boundary is stored as that lower float, so it is not less than the rounded
-   bound and pbc() leaves it alone -- while widening it back to double puts it
-   strictly below boxlo, so the exchange treats it as having left the box.
-   Rounding away from the box interior removes that gap: x < bound_up(lo) in
-   single precision is true for exactly those x that are below lo in double.
-
-   The clamp needs the same value.  Wrapping cannot fix such an atom, since
-   x + static_cast<KK_FLOAT>(period) overshoots boxhi in float and the atom is
-   immediately wrapped back to where it started; what the second wrap must clamp
-   to is the lowest coordinate that is still inside the box in double precision,
-   which is bound_up(lo) and not static_cast<KK_FLOAT>(lo).
-
-   Untouched, this deleted a whole face of a lattice whose bounds happen to fall
-   between two floats: examples/ttm lost 1141 of 16000 atoms and the brownian
-   inputs 119 of 3600, all of them on the lower x or y face, before the first
-   step and on any number of processors.
-
-   In double precision this is the identity, so nothing changes there.
+   round a box bound up to the nearest KK_FLOAT that is not below it, so that
+   pbc() in single precision keeps atoms inside the box as tested in double
+   precision by Comm::exchange(); the identity in double precision
 ------------------------------------------------------------------------- */
 
 static inline KK_FLOAT bound_up(double d)
@@ -512,10 +487,8 @@ void DomainKokkos::remap_all()
   image = atomKK->k_image.view_device();
   int nlocal = atomKK->nlocal;
 
-  // the bounds are rounded up rather than cast, for the same reason as in pbc():
-  // in single precision the wrap and the clamp below have to leave every atom at
-  // a coordinate that Comm::exchange() still considers inside the box.  see
-  // bound_up() above.
+  // round the bounds up rather than cast, as in pbc(), so that in single
+  // precision a wrapped atom stays inside the box for Comm::exchange()
 
   if (triclinic == 0) {
     for (int i=0; i<3; i++) {

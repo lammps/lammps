@@ -340,8 +340,7 @@ equal-style variable.
 .. versionchanged:: TBD
 
 The *wall/gran/kk* style does not support the *contacts* keyword, and
-stops with an error when it is given.  Previously it was accepted, but
-the per-atom array was never filled, so every atom read as out of contact.
+stops with an error when it is given.
 
 Related commands
 """"""""""""""""

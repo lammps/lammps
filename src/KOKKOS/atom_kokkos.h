@@ -217,13 +217,8 @@ class AtomKokkos : public Atom {
 
   class AtomVec *new_avec(const std::string &, int, int &) override;
 
-  // per-atom arrays that are off limits to sync() and modified() for the
-  // duration of a force region that overlaps host and device work.  The host
-  // styles accumulate their forces into the host copy alone and the two sides
-  // are brought together at the end of the region, so nothing may sync or
-  // claim those arrays in between, whether from the run style or from inside a
-  // force style.  See VerletKokkos::overlap_possible().  Zero outside such a
-  // region, which leaves every other caller unaffected.
+  // per-atom arrays that sync() and modified() leave alone while host and
+  // device force work overlap, zero otherwise.  See VerletKokkos::run().
 
   uint64_t datamask_exclude = 0;
 

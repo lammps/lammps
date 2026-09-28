@@ -86,10 +86,8 @@ template <class DeviceType> class FixRigidSmallKokkos : public FixRigidSmall, pu
 
   void grow_arrays(int) override;
 
-  // Refuse, rather than silently corrupt, when another fix reaches this fix's
-  // host bookkeeping at a point where the device owns it.  See the definition
-  // of check_device_owns_bookkeeping() for why those combinations cannot work
-  // as this class stands.
+  // stop with an error when another fix reaches the host bookkeeping while the
+  // device owns it
   void set_arrays(int) override;
   void copy_arrays(int, int, int) override;
   void check_device_owns_bookkeeping(const char *what);

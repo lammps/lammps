@@ -102,21 +102,8 @@ void AngleSPICAKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   k_rminsq.template sync<DeviceType>();
   k_emin.template sync<DeviceType>();
 
-  // Topology styles were once told never to call atomKK->sync/modified,
-  // because run_style verlet/kk overlaps host and device force work and a sync
-  // there would copy the device forces over the host buffer being added into.
-  // That no longer holds: for the length of the overlap VerletKokkos publishes
-  // AtomKokkos::datamask_exclude, and sync() and modified() leave the force,
-  // energy and virial arrays alone while it is set.  See VerletKokkos::run().
-
-  // Sync what this style reads and claim what it writes, the same way the
-  // KOKKOS pair styles do.  run_style verlet/kk does this for its caller, but
-  // it is not the only caller: the MC fixes re-evaluate the bonded energy out
-  // of band from energy_full(), and there the forces are read from whichever
-  // side is stale.  Under run_style verlet/kk the sync finds nothing to copy.
-  // An out-of-band caller runs with auto_sync on, and there every call copies
-  // x and f to the device and f back, as the pair styles' own sync does: the
-  // price of not knowing what that caller wrote through the host pointers.
+  // sync what this style reads and claim what it writes, like the KOKKOS pair
+  // styles: besides run_style verlet/kk, the MC fixes call it via energy_full()
 
   atomKK->sync(execution_space,datamask_read);
   if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);

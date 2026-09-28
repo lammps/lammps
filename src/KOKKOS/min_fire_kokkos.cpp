@@ -427,10 +427,8 @@ int MinFireKokkos::run_iterate(int maxiter) {
     }
   }
 
-  // no claim is taken here: every device write in the loop above claims itself,
-  // and the output block leaves the host claimed.  Claiming the device on top
-  // of that makes both sides dirty with nothing to say which one is current,
-  // which is what the early exits above and the other minimizers already do.
+  // no claim here: the device writes above claim themselves and the output
+  // block leaves the host claimed
 
   return MAXITER;
 }

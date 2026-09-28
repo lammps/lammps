@@ -329,10 +329,7 @@ void Replicate::command(int narg, char **arg)
 
     // written straight into the new Atom through the plain host pointer, so
     // hand the write over: with the KOKKOS package the masses also live in a
-    // device copy, and nothing else here would tell it they changed.  Without
-    // this the device keeps the zeros the array was allocated with, every
-    // temperature computed from it is 0.0, and the first "velocity create"
-    // after a replicate stops with "Attempting to rescale a 0.0 temperature".
+    // device copy, and nothing else here would tell it they changed.
 
     atom->modified_host_arrays(MASS_MASK);
   }

@@ -300,7 +300,7 @@ void vcm_kk(int igroup, double masstotal, double *vcm)
 
   // the image flags are not needed here: the centre-of-mass velocity is a sum
   // of m*v and nothing is unwrapped.  xcm_kk(), angmom_kk() and inertia_kk()
-  // do unwrap and do need them; this routine was copied from one of those.
+  // do unwrap and do need them.
 
   if (atomKK->rmass) {
 

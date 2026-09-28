@@ -480,13 +480,8 @@ void PairSWKokkos<DeviceType>::twobody(const Param& param, const KK_FLOAT& rsq, 
 
   r = Kokkos::sqrt(rsq);
 
-  // the caller admits this pair on rsq < cutsq, but rounding rsq to KK_FLOAT and
-  // taking its square root does not preserve that: r can come out equal to (or
-  // above) the cutoff even though rsq was strictly below cutsq, and 1/(r - cut)
-  // below is then infinite.  Both the force and the energy go to zero as r
-  // approaches the cutoff, so returning zero here is the exact limit rather than
-  // an approximation.  The base style has the same shape, but a double precision
-  // ulp is narrow enough that it has never been seen to trigger there.
+  // in KK_FLOAT, r can round up to the cutoff although rsq < cutsq; force and
+  // energy vanish there, so return zero instead of dividing by zero
 
   if (r >= static_cast<KK_FLOAT>(param.cut)) {
     fforce = 0.0;

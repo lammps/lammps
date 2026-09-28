@@ -74,11 +74,8 @@ template <class DeviceType> void FixWallFlowKokkos<DeviceType>::init()
 
   atomKK->sync(Host, X_MASK);
 
-  // That per-atom loop also writes current_segment[], which is the host side of
-  // k_current_segment.  end_of_step() leaves it claimed on the device, so on the
-  // second and later runs the base writes into the stale copy and the values
-  // never reach the device.  Bring it down first and claim the host side after,
-  // so the sync below pushes what the base wrote back up.
+  // that loop also writes the host side of k_current_segment, which
+  // end_of_step() leaves claimed on the device: sync it first, claim it after
   k_current_segment.sync_host();
   FixWallFlow::init();
   k_current_segment.modify_host();

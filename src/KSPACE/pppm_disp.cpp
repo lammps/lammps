@@ -402,9 +402,8 @@ void PPPMDisp::init()
   if (!gewaldflag_6) g_ewald_6 = 1;
 
   // initialize the pair style to get the coefficients
-  // Force::init() calls it again, so discard the duplicate neighbor requests
-  // made here: find_request() returns the first match, so a duplicate never
-  // gets the accelerator flags and becomes a plain list the style then miscasts
+  // Force::init() calls it again, so discard the neighbor requests made here,
+  // which would shadow the ones that get the accelerator flags
 
   neighrequest_flag = 0;
   int nrequest_hold = neighbor->nrequest;

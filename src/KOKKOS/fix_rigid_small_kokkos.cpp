@@ -279,54 +279,10 @@ void FixRigidSmallKokkos<DeviceType>::pre_exchange()
 }
 
 /* ----------------------------------------------------------------------
-   Refuse the combinations this fix cannot support yet.
-
-   This class keeps the body state on the device for the length of a step and
-   hands it to the host and back at two points that have to alternate:
-   pre_exchange() brings body[] and the per-atom bookkeeping down so the host
-   atom migration can rewrite them, and pre_neighbor() pushes the result back
-   up.  body[] is the part that cannot look after itself -- it is a plain host
-   array that the device kernels do not mirror, so copy_body_device() pushes it
-   whole, on the strength of that pairing alone.
-
-   Eight fixes in the MC package call modify->pre_neighbor() on their own, from
-   inside their pre_exchange(), around a trial energy evaluation: gcmc, gemc,
-   gemc/mcmoves, widom, atom/swap, neighbor/swap, mol/swap and
-   charge/regulation.  Every extra call pushes a body[] that nothing has
-   refreshed since the one flush, so it overwrites whatever the device kernels
-   and the remap in the previous pre_neighbor() wrote.  In
-   examples/mc/in.gcmc.co2 that happens 54 times in the first step and the body
-   velocities never recover: the potential energy still matches a non-KOKKOS run
-   while the kinetic energy does not, and the run dies a few steps later.
-
-   fix hmc breaks the same pairing from the other end.  FixHMC::setup() calls
-   the rigid fix's setup() a second time, after ModifyKokkos::setup() has
-   already run it and the device kernels have claimed the bookkeeping again, so
-   the host rebuild reads a stale copy.
-
-   fix gcmc and fix deposit also create and delete atoms during the run, which
-   reaches the base class' set_arrays() and copy_arrays().  Those write the
-   per-atom bookkeeping -- bodyown, bodytag, atom2body, xcmimage, displace --
-   through plain host pointers, and where the device has its own copy that
-   write is discarded at the next push down.  The atom then keeps whatever the
-   device held, which can be a bodyown naming a body that does not exist, and
-   the base later indexes body[nlocal_body-1] with nlocal_body == 0, driving
-   nlocal_body negative until a Kokkos bounds check stops it.
-
-   Supporting any of this needs body[] brought into the dual view protocol it is
-   currently outside of: the device kernels write d_body without ever claiming
-   it, so nothing records which side owns it and an out-of-band caller cannot
-   know whether it has to flush first.  Until then, say so plainly rather than
-   return wrong numbers.
-
-   The three checks below are deliberately different in kind, because the three
-   failures are.  The handover and second-setup checks are about call order and
-   fire on every build.  The lost per-atom write only exists where the host and
-   the device really have separate memory, so that check asks the coherence
-   state: it stays quiet when the two share one memory space (Kokkos makes
-   modify_* a no-op there, so need_sync_host() is always false), which is why an
-   ordinary CPU KOKKOS run with fix deposit keeps working -- and it does keep
-   working, matching the non-KOKKOS style exactly.
+   refuse what this fix cannot support yet: the body state goes to the host in
+   pre_exchange() and back in pre_neighbor(), so an extra pre_neighbor() (the
+   MC fixes), a second setup() (fix hmc), or, with separate host and device
+   memory, per-atom writes during a run (fix gcmc, fix deposit) break it
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
@@ -386,19 +342,8 @@ void FixRigidSmallKokkos<DeviceType>::copy_arrays(int i, int j, int delflag)
 
 /* ----------------------------------------------------------------------
    the base class set_arrays() and copy_arrays() above write the per-atom
-   bookkeeping through the plain host pointers.  Claim what they wrote, so
-   that the next sync to the device carries it.  Without the claim a
-   delete_atoms or create_atoms between two runs changed only the host copy:
-   the next run's device sort then synced nothing up, permuted the pre-deletion
-   device copy along with the atoms, and brought that back to the host, where
-   reset_atom2body() found atoms pointing at bodies that no longer existed.
-
-   Nothing reaches the base calls while the device holds the newer copy: a
-   deletion or creation during a run is refused by
-   check_device_owns_bookkeeping(), and the atom exchange and sort, the other
-   callers, only use these calls on the path where init() moved both to the
-   host, which flushes the bookkeeping in pre_exchange() first.  So claiming
-   the host here never retires a device write.
+   bookkeeping through the host pointers, so claim the host; the device never
+   holds a newer copy here, see check_device_owns_bookkeeping()
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
@@ -1370,13 +1315,8 @@ void FixRigidSmallKokkos<DeviceType>::post_run()
   k_atom2body.sync_host();
   k_xcmimage.sync_host();
 
-  // displace belongs with the four above: it is per-atom bookkeeping that
-  // copy_arrays() and set_arrays() move on the host when atoms are deleted or
-  // created between runs, and check_device_owns_bookkeeping() tests it with
-  // them.  Left on the device, a delete_atoms after a run was refused even
-  // with no other fix involved, and with "reinit no" -- which keeps displace
-  // rather than recomputing it at the next setup -- the host would have moved
-  // stale values.
+  // displace is per-atom bookkeeping that copy_arrays() and set_arrays() move
+  // on the host, like the four above
   k_displace.sync_host();
 }
 

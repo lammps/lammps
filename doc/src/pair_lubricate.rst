@@ -126,14 +126,11 @@ Results for monodisperse systems are unchanged.
 
 .. versionchanged:: TBD
 
-Style *lubricate* no longer adds the FLD drag force to the virial.  The
-drag acts on each particle individually rather than between pairs, so
-including it through the F dot r sum made the reported pressure depend
-on where the coordinate origin happens to lie, and gave different values
-for *newton on* and *newton off*.  Styles *lubricate/poly*,
-*lubricateU* and *lubricateU/poly* already excluded it.  Pressures
-reported for *lubricate* with *flagfld* set to 1 therefore change; forces
-and energies are unaffected.
+Style *lubricate* does not include the FLD drag force in the virial.
+The drag acts on each particle individually rather than between pairs,
+so it does not contribute to the pressure through the F dot r sum.
+Styles *lubricate/poly*, *lubricateU* and *lubricateU/poly* treat it the
+same way.
 
 The viscosity *mu* can be varied in a time-dependent manner over the
 course of a simulation, in which case in which case the pair_style

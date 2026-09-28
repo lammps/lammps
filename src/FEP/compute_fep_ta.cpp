@@ -264,11 +264,8 @@ void ComputeFEPTA::change_box()
 {
   int i;
 
-  // the test area is applied by rescaling the box and remapping every atom
-  // through the plain host pointer, in front of a force evaluation that works
-  // from the KOKKOS copies: bring the host side up to date first and hand the
-  // write over afterwards, or that evaluation sees the unscaled coordinates and
-  // the perturbed energy comes back equal to the unperturbed one
+  // the box is rescaled through the host pointers ahead of a KOKKOS force
+  // evaluation: sync the host first and hand the write over afterwards
 
   atom->sync_host_arrays(X_MASK);
 

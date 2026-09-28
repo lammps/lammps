@@ -241,12 +241,8 @@ void *AtomKokkos::extract(const char *name)
 
 void AtomKokkos::sync(const ExecutionSpace space, uint64_t mask)
 {
-  // an overlapping force region keeps some arrays, above all the forces, out
-  // of play: the host styles accumulate into the host copy alone and the two
-  // sides are added together afterwards.  Syncing one over the other in the
-  // middle of that would lose a contribution or count one twice, so drop the
-  // excluded arrays from the request.  The mask is zero everywhere else, which
-  // leaves a caller outside such a region unaffected.
+  // leave the arrays excluded by an overlapping force region alone: the host
+  // and device contributions are merged at the end of the region
 
   mask &= ~datamask_exclude;
   if (!mask) return;
@@ -265,38 +261,15 @@ void AtomKokkos::sync(const ExecutionSpace space, uint64_t mask)
   avecKK->sync(space, mask);
   for (int n = 0; n < nprop_atom; n++) fix_prop_atom[n]->sync(space, mask);
 
-  // whatever the caller asked for: the mask names the per-atom arrays and the
-  // per-type masses are not one of them, so no reader ever names them.  See
-  // sync_mass() for why that is safe and cheap.
+  // always, since readers name only per-atom arrays; see sync_mass()
 
   sync_mass(space, MASS_MASK);
 }
 
 /* ----------------------------------------------------------------------
-   atom->mass is indexed by type, not by atom, so the atom style knows nothing
-   about it and neither of the calls above carries it.  It is only ever written
-   on the host -- the KOKKOS styles read the per-type masses and none of them
-   writes one -- so the host copy is the authoritative one, a claim is only
-   meaningful for that side, and these two calls just carry a host write
-   forward.
-
-   The two directions are therefore not symmetric.  A claim happens only when
-   the caller names MASS_MASK, which is what makes ALL_MASK the signal: that is
-   the mask ModifyKokkos brackets a style that is not Kokkos-aware with, so a
-   style that rewrites the masses in place is picked up without having to know
-   about the KOKKOS package.  A sync happens on every call, because the readers
-   name only per-atom arrays and would never ask for this one -- the integrators
-   reconciled the per-type masses in init() and then not again for the rest of
-   the run, which is fine until something changes them mid-run.
-
-   fix drude/transform does change them mid-run, twice a timestep: it folds each
-   Drude particle's mass into its core and unfolds it again.  Without this the
-   device kept the masses from init() and integrated every core and every Drude
-   particle with the wrong one.
-
-   The copy itself is ntypes+1 doubles and only happens after a real host write,
-   so syncing unconditionally costs a flag test on a call that already walks
-   every per-atom array.
+   the per-type masses are written only on the host, so a claim is taken only
+   when the caller names MASS_MASK (as ALL_MASK does around non-Kokkos styles),
+   and the sync runs on every call, since readers name only per-atom arrays
 ------------------------------------------------------------------------- */
 
 void AtomKokkos::sync_mass(const ExecutionSpace space, uint64_t mask)

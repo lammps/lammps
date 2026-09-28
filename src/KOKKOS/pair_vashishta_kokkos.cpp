@@ -694,14 +694,8 @@ void PairVashishtaKokkos<DeviceType>::threebody(const Param& paramij, const Para
   r1 = Kokkos::sqrt(rsq1);
   r2 = Kokkos::sqrt(rsq2);
 
-  // the caller admits this triplet on rsq < r0*r0 for both separations, but
-  // rounding rsq to KK_FLOAT and taking its square root does not preserve that:
-  // r can come out equal to (or above) r0 even though rsq was strictly below
-  // r0*r0, and 1/(r - r0) below is then infinite.  The three-body term and its
-  // derivative both go to zero as r approaches r0, so returning zero here is the
-  // exact limit rather than an approximation.  The base style has the same shape,
-  // but a double precision ulp is narrow enough that it has never been seen to
-  // trigger there.
+  // in KK_FLOAT, r can round up to r0 although rsq < r0*r0; the three-body
+  // term vanishes there, so return zero instead of dividing by zero
 
   if ((r1 >= r0ij_kk) || (r2 >= r0ik_kk)) {
     fj[0] = fj[1] = fj[2] = 0.0;

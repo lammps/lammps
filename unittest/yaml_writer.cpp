@@ -56,10 +56,7 @@ YamlWriter::~YamlWriter()
     yaml_emitter_delete(&emitter);
     fclose(fp);
 
-    // only replace the original when the document was completed normally.  if
-    // we are unwinding from an exception the partial file is discarded, and if
-    // the process aborts outright this destructor does not run at all, which
-    // leaves the original in place as well.
+    // replace the original only when the document was completed normally
     if (std::uncaught_exceptions() > 0)
         remove(temppath.c_str());
     else

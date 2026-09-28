@@ -427,10 +427,8 @@ TEST(PairStyle, plain)
     const int nlocal = lmp->atom->nlocal;
     ASSERT_EQ(lmp->atom->natoms, nlocal);
 
-    // init_lammps() was asked for "newton on" above, so newton pair being off
-    // here means the yaml file overrides it.  styles that require newton off
-    // (e.g. pair lubricate/poly) would fail the restarted runs below, which
-    // otherwise always switch newton back on.
+    // newton pair off here means the yaml file asks for it; keep it off in the
+    // restarted runs below, which otherwise switch newton back on
     const bool forced_newton_off = (lmp->force->newton_pair == 0);
 
     double epsilon = test_config.epsilon;

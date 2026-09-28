@@ -220,7 +220,7 @@ void MinKokkos::setup(int flag)
   lmp->kokkos->auto_sync = 1;
 
   // VerletKokkos::setup() already runs the setup output with auto_sync on,
-  // for the same reason the iterate loops now do
+  // for the same reason the iterate loops do
 
   atomKK->sync(Host,ALL_MASK);
   output->setup(flag);

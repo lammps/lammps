@@ -430,28 +430,14 @@ void VerletKokkos::run(int n)
 
     execute_on_host = host_force_styles(&datamask_read_host);
 
-    // exclude the force array exactly when the merge below will run: that is
-    // what keeps the two sides apart, and what puts the device side back in
-    // play afterwards.  With no host style there is nothing to keep apart, and
-    // masking anyway would strip the claim the pair style makes on its own
-    // device write -- which is the only claim there is when force_clear() has
-    // been fused into the pair compute and so did not run
+    // exclude the force array only when the merge below runs; otherwise it
+    // would also drop the pair style's claim of its own device write
 
     if (execute_on_host) datamask_exclude = (F_MASK | ENERGY_MASK | VIRIAL_MASK);
 
-    // publish the exclude mask on atomKK for the length of the force region.
-    // The host styles accumulate their forces into the host copy alone and the
-    // two sides are added together at the end of the region, so nothing may
-    // sync or claim the force array in between.  Masking centrally covers the
-    // call sites below and, just as importantly, the sync() and modified()
-    // calls inside the styles themselves: a KOKKOS pair or bonded style syncs
-    // what it reads and claims what it writes on its own behalf, since
-    // run_style verlet/kk is not its only caller, and those calls name the
-    // plain datamask_read, which includes F_MASK.  Left unmasked they copy the
-    // device force over the zeroed host buffer the host styles are about to
-    // add into, and the merge then counts the device contribution twice.
-    // The mask is zero when no host style runs, so an all-device run and a
-    // build where the two sides share one allocation are both unaffected.
+    // keep the force array out of sync() and modified(), including the calls
+    // inside the styles, while the host styles add into the host copy; the two
+    // sides are merged at the end of the force region
 
     AtomKokkos::ExcludeMask exclude_guard(atomKK,datamask_exclude);
 
@@ -602,15 +588,9 @@ void VerletKokkos::run(int n)
     // all output
 
     if (ntimestep == output->next) {
-      // a compute or fix that is not Kokkos-aware writes through the host
-      // pointers, and some of them re-enter the force pipeline while doing it:
-      // compute born/matrix numdiff displaces the atoms, recomputes the virial
-      // and restores them.  auto_sync is what makes those writes reach the
-      // device; without it the displacement never lands.  A style that writes
-      // through the host pointers claims its own writes (compute born/matrix,
-      // compute fep and fep/ta, fix numdiff do), so there is no blanket host
-      // claim after the output: that re-uploaded every per-atom array to the
-      // device after every output step, whether anything was written or not.
+      // non-Kokkos computes and fixes write through the host pointers, some
+      // re-entering the force computation; auto_sync carries those writes to
+      // the device, and each such style claims its own writes
 
       int prev_auto_sync = lmp->kokkos->auto_sync;
       lmp->kokkos->auto_sync = 1;

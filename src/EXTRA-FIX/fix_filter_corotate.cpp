@@ -285,17 +285,8 @@ void FixFilterCorotate::init()
   }
   else error->all(FLERR,"Fix filter/corotate requires rRESPA!");
 
-  // This fix does its work by pointing atom->x at its own filtered copy of the
-  // coordinates for the duration of the force computation and putting the
-  // original pointer back afterwards.  A KOKKOS force style never reads
-  // atom->x: it reads the coordinates through the KOKKOS copy, which still
-  // refers to the unfiltered buffer, so it computes the forces at the
-  // unfiltered positions while filter_outer() goes on transforming them as
-  // though they had been filtered.  The run is then not a less accurate
-  // version of the intended one, it is a different one and it says nothing
-  // about it, so turn it away instead.  examples/PACKAGES/filter_corotate
-  // in.respa run this way matched the energy of the same input with the fix
-  // deleted, to every digit printed.
+  // this fix points atom->x at its filtered copy during the force computation,
+  // but KOKKOS force styles read the coordinates through the KOKKOS copy
 
   const char *kk_style = nullptr;
   if (force->pair && force->pair->kokkosable) kk_style = force->pair_style;

@@ -441,11 +441,8 @@ void PairLubricatePolyOMP::eval(int iifrom, int iito, ThrData * const thr)
     double *h_rate = domain->h_rate;
     double *h_ratelo = domain->h_ratelo;
 
-    // wait for every thread to leave the pair loop first: it reads v[j] and
-    // omega[j] for neighbors that another thread's range owns, so restoring a
-    // thread's atoms while the others are still looping hands them lab-frame
-    // velocities where the streaming-frame ones belong, and the forces come
-    // out wrong -- for different atoms on every run
+    // wait for all threads to leave the pair loop before restoring velocities:
+    // it reads v[j] and omega[j] of atoms in other threads' ranges
 
     sync_threads();
 

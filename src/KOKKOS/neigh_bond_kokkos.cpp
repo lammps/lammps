@@ -302,11 +302,8 @@ void NeighBondKokkos<DeviceType>::bond_all()
     }
   } while (h_fail_flag());
 
-  // claim the list here, where the device loop above wrote it, and not at
-  // the end of this function: the "lost/bond ignore" setting returns before
-  // that point, so on those runs the claim never happened, the sync_host in
-  // build_topology_kk() then had nothing to copy, and a non-KOKKOS bond style
-  // kept reading the previous build's list through neighbor->bondlist
+  // claim the list here, not at the end: "lost/bond ignore" returns early,
+  // and build_topology_kk() needs the claim to copy the list to the host
   k_bondlist.modify<DeviceType>();
 
   if (nmissing && lostbond == Thermo::ERROR)
@@ -395,11 +392,8 @@ void NeighBondKokkos<DeviceType>::bond_partial()
     }
   } while (h_fail_flag());
 
-  // claim the list here, where the device loop above wrote it, and not at
-  // the end of this function: the "lost/bond ignore" setting returns before
-  // that point, so on those runs the claim never happened, the sync_host in
-  // build_topology_kk() then had nothing to copy, and a non-KOKKOS bond style
-  // kept reading the previous build's list through neighbor->bondlist
+  // claim the list here, not at the end: "lost/bond ignore" returns early,
+  // and build_topology_kk() needs the claim to copy the list to the host
   k_bondlist.modify<DeviceType>();
 
   if (nmissing && lostbond == Thermo::ERROR)
@@ -516,11 +510,8 @@ void NeighBondKokkos<DeviceType>::angle_all()
     }
   } while (h_fail_flag());
 
-  // claim the list here, where the device loop above wrote it, and not at
-  // the end of this function: the "lost/bond ignore" setting returns before
-  // that point, so on those runs the claim never happened, the sync_host in
-  // build_topology_kk() then had nothing to copy, and a non-KOKKOS angle style
-  // kept reading the previous build's list through neighbor->anglelist
+  // claim the list here, not at the end: "lost/bond ignore" returns early,
+  // and build_topology_kk() needs the claim to copy the list to the host
   k_anglelist.modify<DeviceType>();
 
   if (nmissing && lostbond == Thermo::ERROR)
@@ -615,11 +606,8 @@ void NeighBondKokkos<DeviceType>::angle_partial()
     }
   } while (h_fail_flag());
 
-  // claim the list here, where the device loop above wrote it, and not at
-  // the end of this function: the "lost/bond ignore" setting returns before
-  // that point, so on those runs the claim never happened, the sync_host in
-  // build_topology_kk() then had nothing to copy, and a non-KOKKOS angle style
-  // kept reading the previous build's list through neighbor->anglelist
+  // claim the list here, not at the end: "lost/bond ignore" returns early,
+  // and build_topology_kk() needs the claim to copy the list to the host
   k_anglelist.modify<DeviceType>();
 
   if (nmissing && lostbond == Thermo::ERROR)
@@ -756,11 +744,8 @@ void NeighBondKokkos<DeviceType>::dihedral_all()
     }
   } while (h_fail_flag());
 
-  // claim the list here, where the device loop above wrote it, and not at
-  // the end of this function: the "lost/bond ignore" setting returns before
-  // that point, so on those runs the claim never happened, the sync_host in
-  // build_topology_kk() then had nothing to copy, and a non-KOKKOS dihedral style
-  // kept reading the previous build's list through neighbor->dihedrallist
+  // claim the list here, not at the end: "lost/bond ignore" returns early,
+  // and build_topology_kk() needs the claim to copy the list to the host
   k_dihedrallist.modify<DeviceType>();
 
   if (nmissing && lostbond == Thermo::ERROR)
@@ -860,11 +845,8 @@ void NeighBondKokkos<DeviceType>::dihedral_partial()
     }
   } while (h_fail_flag());
 
-  // claim the list here, where the device loop above wrote it, and not at
-  // the end of this function: the "lost/bond ignore" setting returns before
-  // that point, so on those runs the claim never happened, the sync_host in
-  // build_topology_kk() then had nothing to copy, and a non-KOKKOS dihedral style
-  // kept reading the previous build's list through neighbor->dihedrallist
+  // claim the list here, not at the end: "lost/bond ignore" returns early,
+  // and build_topology_kk() needs the claim to copy the list to the host
   k_dihedrallist.modify<DeviceType>();
 
   if (nmissing && lostbond == Thermo::ERROR)
@@ -1023,11 +1005,8 @@ void NeighBondKokkos<DeviceType>::improper_all()
     }
   } while (h_fail_flag());
 
-  // claim the list here, where the device loop above wrote it, and not at
-  // the end of this function: the "lost/bond ignore" setting returns before
-  // that point, so on those runs the claim never happened, the sync_host in
-  // build_topology_kk() then had nothing to copy, and a non-KOKKOS improper style
-  // kept reading the previous build's list through neighbor->improperlist
+  // claim the list here, not at the end: "lost/bond ignore" returns early,
+  // and build_topology_kk() needs the claim to copy the list to the host
   k_improperlist.modify<DeviceType>();
 
   if (nmissing && lostbond == Thermo::ERROR)
@@ -1127,11 +1106,8 @@ void NeighBondKokkos<DeviceType>::improper_partial()
     }
   } while (h_fail_flag());
 
-  // claim the list here, where the device loop above wrote it, and not at
-  // the end of this function: the "lost/bond ignore" setting returns before
-  // that point, so on those runs the claim never happened, the sync_host in
-  // build_topology_kk() then had nothing to copy, and a non-KOKKOS improper style
-  // kept reading the previous build's list through neighbor->improperlist
+  // claim the list here, not at the end: "lost/bond ignore" returns early,
+  // and build_topology_kk() needs the claim to copy the list to the host
   k_improperlist.modify<DeviceType>();
 
   if (nmissing && lostbond == Thermo::ERROR)

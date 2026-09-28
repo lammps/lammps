@@ -742,19 +742,39 @@ void PairBodyRoundedPolygon::body2space(int i)
   edfirst[i] = nedge;
 
   // grow the edge list if necessary
-  // the 2 columns are for vertex indices within body
+  // the first 2 columns are for vertex indices within body, then the
+  // outward unit normal of the edge in the xy plane, zero for rods and disks
+  // or for an edge of zero length, and the squared length of the edge,
+  // see nearest_point()
 
   if (nedge + body_num_edges > edmax) {
     edmax += DELTA;
-    memory->grow(edge,edmax,2,"pair:edge");
+    memory->grow(edge,edmax,6,"pair:edge");
   }
 
   if ((body_num_edges > 0) && (edge_ends == nullptr))
     error->one(FLERR,"Inconsistent edge data for body of atom {}", atom->tag[i]);
 
   for (int m = 0; m < body_num_edges; m++) {
-    edge[nedge][0] = static_cast<int>(edge_ends[2*m+0]);
-    edge[nedge][1] = static_cast<int>(edge_ends[2*m+1]);
+    int np1 = static_cast<int>(edge_ends[2*m+0]);
+    int np2 = static_cast<int>(edge_ends[2*m+1]);
+    edge[nedge][0] = np1;
+    edge[nedge][1] = np2;
+    const double *a = discrete[dfirst[i]+np1];
+    const double *b = discrete[dfirst[i]+np2];
+    double v[3], en[3] = {0.0, 0.0, 0.0};
+    MathExtra::sub3(b, a, v);
+    double vsq = MathExtra::lensq3(v);
+    if ((nsub > 2) && (vsq > 0.0)) {
+      en[0] = v[1];
+      en[1] = -v[0];
+      if (en[0]*a[0] + en[1]*a[1] < 0.0) MathExtra::negate3(en);
+      MathExtra::norm3(en);
+    }
+    edge[nedge][2] = en[0];
+    edge[nedge][3] = en[1];
+    edge[nedge][4] = en[2];
+    edge[nedge][5] = vsq;
     nedge++;
   }
 
@@ -904,7 +924,7 @@ int PairBodyRoundedPolygon::vertex_against_edge(int i, int j, int first,
 
     // nearest point h on the core of body j, at the signed distance d
 
-    d = nearest_point(j, xpi, h, n, nv);
+    d = nearest_point(j, xpi, h, n, nv, rradi + rradj + cut_inner);
     R = d - (rradi + rradj);
     if (R > cut_inner) continue;
 
@@ -984,12 +1004,13 @@ int PairBodyRoundedPolygon::vertex_against_edge(int i, int j, int first,
   return the signed distance from h to xp, negative if xp is inside the core,
   with the unit normal n pointing from h towards the outside at xp, and
   the index of the vertex of ibody at h, or -1 if h is inside an edge
+  a distance larger than dcut may be returned without h and n
   inside the core, h is on the edge with the largest signed distance, which
   is the nearest one for a convex polygon, and n is its outward normal
 ------------------------------------------------------------------------- */
 
 double PairBodyRoundedPolygon::nearest_point(int ibody, const double *xp, double *h,
-                                             double *n, int &nv)
+                                             double *n, int &nv, double dcut)
 {
   double **x = atom->x;
   const double *xm = x[ibody];
@@ -1015,24 +1036,64 @@ double PairBodyRoundedPolygon::nearest_point(int ibody, const double *xp, double
     }
   }
 
-  // the nearest point over all edges, and the signed distances from the
-  // lines of the edges for polygons, whose center of mass is inside the core
+  // signed distances of xp from the lines of the edges, with their outward
+  // normals in the xy plane, see body2space(), which are zero for rods and
+  // for edges of zero length: xp is inside the core of a polygon, whose
+  // center of mass is inside the core, if all of them are negative
 
-  int inside = (dnum[ibody] > 2);
-  double smax = -BIG, nmax[3] = {0.0, 0.0, 0.0};
+  double smax = -BIG;
   int emax = -1;
-
   for (int ne = 0; ne < nedges; ne++) {
-    int np1 = static_cast<int>(edge[iefirst+ne][0]);
-    int np2 = static_cast<int>(edge[iefirst+ne][1]);
+    const double *eg = edge[iefirst+ne];
+    if (eg[5] == 0.0) continue;
+    const double *da = discrete[ifirst+static_cast<int>(eg[0])];
+    for (int k = 0; k < 3; k++) u[k] = xp[k] - (xm[k] + da[k]);
+    double sd = MathExtra::dot3(u, &eg[2]);
+    if ((emax < 0) || (sd > smax)) {
+      smax = sd;
+      emax = ne;
+    }
+  }
+
+  // the distance from a polygon is at least the largest signed distance:
+  // return it if it exceeds dcut, without h and n
+
+  if ((dnum[ibody] > 2) && (emax >= 0) && (smax > dcut)) {
+    nv = -1;
+    return smax;
+  }
+
+  // xp is inside the core: push it out through the nearest edge
+
+  if ((dnum[ibody] > 2) && (emax >= 0) && (smax < 0.0)) {
+    const double *en = &edge[iefirst+emax][2];
+    for (int k = 0; k < 3; k++) {
+      h[k] = xp[k] - smax * en[k];
+      n[k] = en[k];
+    }
+    nv = -1;
+    return smax;
+  }
+
+  // the nearest point over the edges xp is in front of, i.e. with a
+  // non-negative signed distance, which include the nearest edge or both
+  // edges at the nearest vertex of a convex polygon
+
+  int first = 1;
+  for (int ne = 0; ne < nedges; ne++) {
+    const double *eg = edge[iefirst+ne];
+    int np1 = static_cast<int>(eg[0]);
+    int np2 = static_cast<int>(eg[1]);
     for (int k = 0; k < 3; k++) {
       a[k] = xm[k] + discrete[ifirst+np1][k];
-      b[k] = xm[k] + discrete[ifirst+np2][k];
+      u[k] = xp[k] - a[k];
     }
-    MathExtra::sub3(b, a, v);
-    MathExtra::sub3(xp, a, u);
-    double vsq = MathExtra::lensq3(v);
-    double t = (vsq > 0.0) ? MathExtra::dot3(u, v) / vsq : 0.0;
+    if (MathExtra::dot3(u, &eg[2]) < 0.0) continue;
+    for (int k = 0; k < 3; k++) {
+      b[k] = xm[k] + discrete[ifirst+np2][k];
+      v[k] = b[k] - a[k];
+    }
+    double t = (eg[5] > 0.0) ? MathExtra::dot3(u, v) / eg[5] : 0.0;
     int nvp = -1;
     if (t <= 0.0) {
       MathExtra::copy3(a, p);
@@ -1044,39 +1105,12 @@ double PairBodyRoundedPolygon::nearest_point(int ibody, const double *xp, double
       for (int k = 0; k < 3; k++) p[k] = a[k] + t * v[k];
     }
     double dsq = MathExtra::distsq3(xp, p);
-    if ((ne == 0) || (dsq < dmin)) {
+    if (first || (dsq < dmin)) {
+      first = 0;
       dmin = dsq;
       nv = nvp;
       MathExtra::copy3(p, h);
     }
-
-    if (inside && (vsq > 0.0)) {
-
-      // outward normal of the edge in the xy plane
-
-      double en[3] = {v[1], -v[0], 0.0};
-      double am[3] = {a[0] - xm[0], a[1] - xm[1], 0.0};
-      if (MathExtra::dot3(en, am) < 0.0) MathExtra::negate3(en);
-      MathExtra::norm3(en);
-      double sd = MathExtra::dot3(u, en);
-      if (sd >= 0.0) inside = 0;
-      else if (sd > smax) {
-        smax = sd;
-        emax = ne;
-        MathExtra::copy3(en, nmax);
-      }
-    }
-  }
-
-  // xp is inside the core: push it out through the nearest edge
-
-  if (inside && (emax >= 0)) {
-    for (int k = 0; k < 3; k++) {
-      h[k] = xp[k] - smax * nmax[k];
-      n[k] = nmax[k];
-    }
-    nv = -1;
-    return smax;
   }
 
   double d = sqrt(dmin);

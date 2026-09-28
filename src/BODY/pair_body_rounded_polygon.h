@@ -126,7 +126,8 @@ class PairBodyRoundedPolygon : public Pair {
   int vertex_against_edge(int i, int j, int first, double k_n, double k_na, double **x,
                           double **f, double **torque, Scratch &s, double &evdwl, double *facc);
   // nearest point on the core of a body to a point
-  double nearest_point(int ibody, const double *xp, double *h, double *n, int &nv);
+  double nearest_point(int ibody, const double *xp, double *h, double *n, int &nv,
+                       double dcut = 1.0e20);
   // compute contact forces if contact points are detected
   void contact_forces(Contact &contact, double j_a, int friction, double **x, double **v,
                       double **angmom, double **f, double **torque, double **fnc, double &evdwl,

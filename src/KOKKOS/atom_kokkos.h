@@ -217,14 +217,11 @@ class AtomKokkos : public Atom {
 
   class AtomVec *new_avec(const std::string &, int, int &) override;
 
-  // per-atom arrays that sync() and modified() leave alone while host and
-  // device force work overlap, zero otherwise.  See VerletKokkos::run().
+  // arrays sync() and modified() skip while host and device forces overlap
 
   uint64_t datamask_exclude = 0;
 
-  // scope guard that publishes an exclude mask and restores the previous one,
-  // either at release(), where the region ends before the end of the enclosing
-  // scope, or in the destructor, which also covers an error unwind
+  // sets datamask_exclude; restores it at release() or in the destructor
 
   class ExcludeMask {
     AtomKokkos *atomKK;

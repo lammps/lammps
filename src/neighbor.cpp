@@ -2391,8 +2391,7 @@ NeighRequest *Neighbor::add_request(Command *requestor, const char *style, int f
 }
 
 /* ----------------------------------------------------------------------
-   delete all neighbor list requests made after the first nkeep ones
-   used by KSpace styles that init a pair style only to mix its coefficients
+   delete all neighbor list requests after the first nkeep ones
 ------------------------------------------------------------------------- */
 
 void Neighbor::discard_requests(int nkeep)

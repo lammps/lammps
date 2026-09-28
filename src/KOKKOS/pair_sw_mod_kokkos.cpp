@@ -480,8 +480,7 @@ void PairSWMODKokkos<DeviceType>::twobody(const Param& param, const KK_FLOAT& rs
 
   r = Kokkos::sqrt(rsq);
 
-  // in KK_FLOAT, r can round up to the cutoff although rsq < cutsq; force and
-  // energy vanish there, so return zero instead of dividing by zero
+  // r can round up to the cutoff in KK_FLOAT; the limit there is zero
 
   if (r >= static_cast<KK_FLOAT>(param.cut)) {
     fforce = 0.0;

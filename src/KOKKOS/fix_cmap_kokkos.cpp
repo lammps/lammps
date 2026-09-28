@@ -52,9 +52,7 @@ FixCMAPKokkos<DeviceType>::FixCMAPKokkos(LAMMPS *lmp, int narg, char **arg) :
   datamask_read = EMPTY_MASK;
   datamask_modify = EMPTY_MASK;
 
-  // the base FixCMAP constructor already allocated these with memory->create()/
-  // memory->grow(); free them here so the memoryKK-> calls below take the clean
-  // create path instead of silently orphaning the base-allocated blocks
+  // free what the FixCMAP constructor allocated before reallocating below
 
   memory->destroy(g_axis); g_axis = nullptr;
   memory->destroy(cmapgrid); cmapgrid = nullptr;

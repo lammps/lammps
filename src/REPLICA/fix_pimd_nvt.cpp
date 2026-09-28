@@ -96,8 +96,7 @@ FixPIMDNVT::FixPIMDNVT(LAMMPS *lmp, int narg, char **arg) :
   if (strcmp(update->unit_style, "lj") == 0)
     error->all(FLERR, fmt::format("Fix {} does not support lj units", style));
 
-  // a ring polymer needs a previous and a next bead to exchange coordinates
-  // with in spring_force()
+  // spring_force() needs a previous and a next bead
 
   if (np < 2)
     error->universe_all(FLERR,

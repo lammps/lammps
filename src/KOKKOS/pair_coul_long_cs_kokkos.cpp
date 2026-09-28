@@ -197,9 +197,7 @@ compute_fcoul(const KK_FLOAT& rsq, const int& /*i*/, const int&j,
     m_params[itype][jtype].scale : params(itype,jtype).scale;
   const KK_FLOAT tabinnersq_kk = static_cast<KK_FLOAT>(tabinnersq);
 
-  // r = 0 must stay finite here.  In double precision EPSILON is added
-  // unconditionally, exactly as the CPU style does; in single precision it is
-  // applied as a floor instead.  See the comment on EPSILON above.
+  // EPSILON keeps r = 0 finite, see above
 
   const KK_FLOAT rsq_cs = std::is_same_v<KK_FLOAT, float> ?
     ((rsq > static_cast<KK_FLOAT>(EPSILON)) ? rsq : static_cast<KK_FLOAT>(EPSILON)) :
@@ -267,9 +265,7 @@ compute_ecoul(const KK_FLOAT& rsq, const int& /*i*/, const int&j,
   const KK_FLOAT scale_kk = (STACKPARAMS && itype<MAX_TYPES_STACKPARAMS+1 && jtype<MAX_TYPES_STACKPARAMS+1) ?
     m_params[itype][jtype].scale : params(itype,jtype).scale;
   const KK_FLOAT tabinnersq_kk = static_cast<KK_FLOAT>(tabinnersq);
-  // r = 0 must stay finite here.  In double precision EPSILON is added
-  // unconditionally, exactly as the CPU style does; in single precision it is
-  // applied as a floor instead.  See the comment on EPSILON above.
+  // EPSILON keeps r = 0 finite, see above
 
   const KK_FLOAT rsq_cs = std::is_same_v<KK_FLOAT, float> ?
     ((rsq > static_cast<KK_FLOAT>(EPSILON)) ? rsq : static_cast<KK_FLOAT>(EPSILON)) :

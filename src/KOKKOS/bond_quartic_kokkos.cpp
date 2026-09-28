@@ -107,8 +107,7 @@ void BondQuarticKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   // otherwise collide with a pending host modification
   atomKK->sync(execution_space,X_MASK|F_MASK);
 
-  // sync what this style reads and claim what it writes, like the KOKKOS pair
-  // styles: besides run_style verlet/kk, the MC fixes call it via energy_full()
+  // sync and claim here too: the MC fixes call this outside run_style verlet/kk
 
   atomKK->sync(execution_space,datamask_read);
   if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);

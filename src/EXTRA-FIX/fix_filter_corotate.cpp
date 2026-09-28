@@ -285,8 +285,7 @@ void FixFilterCorotate::init()
   }
   else error->all(FLERR,"Fix filter/corotate requires rRESPA!");
 
-  // this fix points atom->x at its filtered copy during the force computation,
-  // but KOKKOS force styles read the coordinates through the KOKKOS copy
+  // KOKKOS force styles do not read the filtered atom->x
 
   const char *kk_style = nullptr;
   if (force->pair && force->pair->kokkosable) kk_style = force->pair_style;

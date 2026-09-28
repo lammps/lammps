@@ -279,10 +279,8 @@ void FixRigidSmallKokkos<DeviceType>::pre_exchange()
 }
 
 /* ----------------------------------------------------------------------
-   refuse what this fix cannot support yet: the body state goes to the host in
-   pre_exchange() and back in pre_neighbor(), so an extra pre_neighbor() (the
-   MC fixes), a second setup() (fix hmc), or, with separate host and device
-   memory, per-atom writes during a run (fix gcmc, fix deposit) break it
+   refuse calls that break the pre_exchange()/pre_neighbor() handover of the
+   body state: MC fixes, fix hmc, and atom creation/deletion on a GPU
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
@@ -341,9 +339,8 @@ void FixRigidSmallKokkos<DeviceType>::copy_arrays(int i, int j, int delflag)
 }
 
 /* ----------------------------------------------------------------------
-   the base class set_arrays() and copy_arrays() above write the per-atom
-   bookkeeping through the host pointers, so claim the host; the device never
-   holds a newer copy here, see check_device_owns_bookkeeping()
+   the base class set_arrays() and copy_arrays() write through the host
+   pointers, so flag the host side as modified
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
@@ -592,9 +589,7 @@ void FixRigidSmallKokkos<DeviceType>::setup_device_push()
   // setup_pre_neighbor() always runs earlier in the same setup sequence and
   // leaves no device claim outstanding (on the first run it retires the one the
   // setup-time exchange made, and on later runs it syncs the device copy down),
-  // so a plain modify_host() cannot trip the concurrent-modification guard --
-  // and check_second_setup() above has already turned the one case that would,
-  // another fix calling setup() out of turn, into an explanation.
+  // so a plain modify_host() cannot trip the concurrent-modification guard.
   k_bodyown.modify_host();
   k_bodytag.modify_host();
   k_atom2body.modify_host();
@@ -1315,8 +1310,7 @@ void FixRigidSmallKokkos<DeviceType>::post_run()
   k_atom2body.sync_host();
   k_xcmimage.sync_host();
 
-  // displace is per-atom bookkeeping that copy_arrays() and set_arrays() move
-  // on the host, like the four above
+  // displace too is moved on the host by copy_arrays() and set_arrays()
   k_displace.sync_host();
 }
 

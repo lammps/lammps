@@ -186,8 +186,7 @@ void CommKokkos::forward_comm_device()
       if (sendproc[iswap] != me) {
         if (comm_x_only && !decltype(atomKK->k_x)::NEED_TRANSFORM) {
           if (size_forward_recv[iswap]) {
-            // MPI receives the ghosts straight into x, with no unpack kernel
-            // to sync and claim it, so do both here
+            // MPI receives the ghosts straight into x, so sync and claim x here
             atomKK->sync(ExecutionSpaceFromDevice<DeviceType>::space,X_MASK);
             buf = (double*)atomKK->k_x.view<DeviceType>().data() +
               firstrecv[iswap]*atomKK->k_x.view<DeviceType>().extent(1);
@@ -304,8 +303,8 @@ void CommKokkos::reverse_comm_device()
 
   k_sendlist.sync<DeviceType>();
 
-  // with comm_f_only MPI sends the ghost forces straight from f, so sync it
-  // first: a non-Kokkos fix such as langevin/drude may have added to them
+  // with comm_f_only MPI sends straight from f, which a non-Kokkos fix may
+  // have changed (e.g. langevin/drude)
 
   constexpr auto space = ExecutionSpaceFromDevice<DeviceType>::space;
   atomKK->sync(space,atomKK->avecKK->datamask_reverse);
@@ -383,9 +382,7 @@ void CommKokkos::forward_comm(Fix *fix, int size)
   if (fix->execution_space == Host || fix->execution_space == HostKK ||
       !fix->forward_comm_device || forward_fix_comm_legacy) {
     k_sendlist.sync_host();
-    // CommBrick packs through buf_send, the raw host pointer, so drop any claim
-    // a previous device pack left standing on that dual view first, as
-    // forward_comm_array() does.  fix group reaches this from set_group().
+    // CommBrick packs through the raw host pointer buf_send, so drop stale claims
     k_buf_send.clear_sync_state();
     CommBrick::forward_comm(fix, size);
   } else {
@@ -1372,9 +1369,7 @@ void CommKokkos::exchange_device()
         }
         DeviceType().fence();
 
-        // MPI wrote the buffer through the view in the exchange space; claim
-        // it there so the fix unpacks below, which sync it to their own
-        // space, see the atoms that arrived
+        // MPI wrote the buffer in the exchange space, so claim it there
 
         k_buf_recv.clear_sync_state();
         k_buf_recv.modify<DeviceType>();
@@ -1403,9 +1398,7 @@ void CommKokkos::exchange_device()
             if (nsend*fix_iextra->maxexchange > maxsend)
               grow_send_kokkos(nsend*fix_iextra->maxexchange,0);
 
-            // the atoms were packed into the buffer in the exchange space
-            // without a claim and are sent already; the fix fills the buffer
-            // anew in its own space, so there is nothing to copy over first
+            // the fix refills the buffer, so drop the stale claim instead of syncing
 
             k_buf_send.clear_sync_state();
             nextrasend = kkbase->pack_exchange_kokkos(
@@ -2014,8 +2007,7 @@ void CommKokkos::grow_swap(int n)
 void CommKokkos::forward_comm_array(int nsize, double **array)
 {
   k_sendlist.sync_host();
-  // CommBrick packs through buf_send, the raw host pointer, so drop any claim
-  // a previous device pack left standing on that dual view first
+  // CommBrick packs through the raw host pointer buf_send, so drop stale claims
   k_buf_send.clear_sync_state();
   CommBrick::forward_comm_array(nsize,array);
 }

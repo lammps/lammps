@@ -74,8 +74,8 @@ template <class DeviceType> void FixWallFlowKokkos<DeviceType>::init()
 
   atomKK->sync(Host, X_MASK);
 
-  // that loop also writes the host side of k_current_segment, which
-  // end_of_step() leaves claimed on the device: sync it first, claim it after
+  // that loop also writes the host side of k_current_segment,
+  // so sync it to the host before and flag it as modified after
   k_current_segment.sync_host();
   FixWallFlow::init();
   k_current_segment.modify_host();
@@ -277,8 +277,7 @@ int FixWallFlowKokkos<DeviceType>::pack_exchange_kokkos(const int &nsend,
 
   copymode = 0;
 
-  // the buffer goes to MPI through the view in the exchange space, so leave
-  // it current there
+  // MPI sends the buffer from the exchange space, so make it current there
 
   k_buf.template modify<DeviceType>();
   if (space == HostKK) k_buf.sync_host();

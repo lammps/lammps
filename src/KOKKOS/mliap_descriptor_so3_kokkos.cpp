@@ -262,8 +262,7 @@ void MLIAPDescriptorSO3Kokkos<DeviceType>::init()
 template <class DeviceType>
 double MLIAPDescriptorSO3Kokkos<DeviceType>::memory_usage()
 {
-  // MLIAPDescriptorSO3's constructor allocates the host so3ptr even in the
-  // KOKKOS case, so its accounting has to be included, not skipped
+  // the base constructor allocates so3ptr in the KOKKOS case too
   double bytes = MLIAPDescriptorSO3::memory_usage();
   bytes += so3ptr_kokkos->memory_usage();
 

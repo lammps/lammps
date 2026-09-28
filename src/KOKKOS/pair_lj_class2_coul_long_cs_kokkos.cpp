@@ -34,10 +34,8 @@
 
 using namespace LAMMPS_NS;
 
-// the core/shell Ewald correction uses a longer erfc series than the A1..A5
-// form of the parent style, the exact erf() for excluded pairs, and a minimal
-// separation so that r = 0 core/shell pairs stay finite until the
-// special-bond factor removes them
+// the core/shell Ewald correction uses a longer erfc series than A1..A5,
+// and the exact erf() for excluded pairs
 
 // the B series goes with its own EWALD_P, not the value EwaldConst pairs
 // with A1..A5
@@ -189,9 +187,7 @@ KOKKOS_INLINE_FUNCTION
 KK_FLOAT PairLJClass2CoulLongCSKokkos<DeviceType>::
 compute_fpair(const KK_FLOAT &rsq_in, const int &, const int &,
               const int &itype, const int &jtype) const {
-  // r = 0 must stay finite here.  In double precision EPSILON is added
-  // unconditionally, exactly as the CPU style does; in single precision it is
-  // applied as a floor instead.  See the comment on EPSILON above.
+  // EPSILON keeps r = 0 finite, see above
 
   const KK_FLOAT rsq = std::is_same_v<KK_FLOAT, float> ?
     ((rsq_in > static_cast<KK_FLOAT>(EPSILON)) ? rsq_in : static_cast<KK_FLOAT>(EPSILON)) :
@@ -223,9 +219,7 @@ compute_fcoul(const KK_FLOAT &rsq, const int &/*i*/, const int &j,
   const KK_FLOAT g_ewald_kk = static_cast<KK_FLOAT>(g_ewald);
   const KK_FLOAT tabinnersq_kk = static_cast<KK_FLOAT>(tabinnersq);
 
-  // r = 0 must stay finite here.  In double precision EPSILON is added
-  // unconditionally, exactly as the CPU style does; in single precision it is
-  // applied as a floor instead.  See the comment on EPSILON above.
+  // EPSILON keeps r = 0 finite, see above
 
   const KK_FLOAT rsq_cs = std::is_same_v<KK_FLOAT, float> ?
     ((rsq > static_cast<KK_FLOAT>(EPSILON)) ? rsq : static_cast<KK_FLOAT>(EPSILON)) :
@@ -287,9 +281,7 @@ KOKKOS_INLINE_FUNCTION
 KK_FLOAT PairLJClass2CoulLongCSKokkos<DeviceType>::
 compute_evdwl(const KK_FLOAT& rsq_in, const int& i, const int&j,
               const int& itype, const int& jtype) const {
-  // r = 0 must stay finite here.  In double precision EPSILON is added
-  // unconditionally, exactly as the CPU style does; in single precision it is
-  // applied as a floor instead.  See the comment on EPSILON above.
+  // EPSILON keeps r = 0 finite, see above
 
   const KK_FLOAT rsq = std::is_same_v<KK_FLOAT, float> ?
     ((rsq_in > static_cast<KK_FLOAT>(EPSILON)) ? rsq_in : static_cast<KK_FLOAT>(EPSILON)) :
@@ -321,9 +313,7 @@ compute_ecoul(const KK_FLOAT& rsq, const int& /*i*/, const int&j,
   const KK_FLOAT g_ewald_kk = static_cast<KK_FLOAT>(g_ewald);
   const KK_FLOAT tabinnersq_kk = static_cast<KK_FLOAT>(tabinnersq);
 
-  // r = 0 must stay finite here.  In double precision EPSILON is added
-  // unconditionally, exactly as the CPU style does; in single precision it is
-  // applied as a floor instead.  See the comment on EPSILON above.
+  // EPSILON keeps r = 0 finite, see above
 
   const KK_FLOAT rsq_cs = std::is_same_v<KK_FLOAT, float> ?
     ((rsq > static_cast<KK_FLOAT>(EPSILON)) ? rsq : static_cast<KK_FLOAT>(EPSILON)) :

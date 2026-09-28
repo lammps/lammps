@@ -194,8 +194,7 @@ void FixLangevinKokkos<DeviceType>::post_force(int /*vflag*/)
 
   if (zeroflag) {
     fsum[0] = fsum[1] = fsum[2] = 0.0;
-    // Group::count() walks atom->mask on the host, and this fix runs with the
-    // atom data on the device, so bring the masks down before counting.
+    // sync the mask to the host, Group::count() reads it there
     atomKK->sync(Host,MASK_MASK);
     count = group->count(igroup);
     if (count == 0)

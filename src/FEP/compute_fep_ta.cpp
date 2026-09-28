@@ -264,8 +264,7 @@ void ComputeFEPTA::change_box()
 {
   int i;
 
-  // the box is rescaled through the host pointers ahead of a KOKKOS force
-  // evaluation: sync the host first and hand the write over afterwards
+  // rescaled through the host pointers ahead of a KOKKOS force evaluation
 
   atom->sync_host_arrays(X_MASK);
 
@@ -365,9 +364,7 @@ void ComputeFEPTA::backup_xfev()
 {
   int i;
 
-  // the coordinates and forces are read here through the plain host pointers
-  // while the force evaluations around this call work from the KOKKOS copies,
-  // so bring the host side up to date first
+  // sync the host copies, the arrays are read below through the host pointers
 
   atom->sync_host_arrays(X_MASK | F_MASK);
 
@@ -453,9 +450,7 @@ void ComputeFEPTA::restore_xfev()
 {
   int i;
 
-  // see backup_xfev(): the same two arrays are written back here, and the write
-  // has to be handed over to the device afterwards or the next step integrates
-  // from the rescaled coordinates
+  // written back through the host pointers, then handed to the device
 
   atom->sync_host_arrays(X_MASK | F_MASK);
 

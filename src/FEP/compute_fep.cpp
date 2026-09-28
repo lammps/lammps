@@ -369,8 +369,7 @@ void ComputeFEP::perturb_params()
 
       if (pert->aparam == CHARGE) {    // modify charges
 
-        // read and written through the plain host pointers, in front of a force
-        // evaluation that works from the KOKKOS copies
+        // written through the host pointers ahead of a KOKKOS force evaluation
 
         atom->sync_host_arrays(Q_MASK | TYPE_MASK | MASK_MASK);
 
@@ -483,9 +482,7 @@ void ComputeFEP::backup_qfev()
 {
   int i;
 
-  // the forces and charges are read here through the plain host pointers while
-  // the force evaluations around this call work from the KOKKOS copies, so
-  // bring the host side up to date first
+  // sync the host copies, the arrays are read below through the host pointers
 
   atom->sync_host_arrays(F_MASK | (chgflag ? Q_MASK : EMPTY_MASK));
 
@@ -564,9 +561,7 @@ void ComputeFEP::restore_qfev()
 {
   int i;
 
-  // see backup_qfev(): the same two arrays are written back here, and the write
-  // has to be handed over to the device afterwards or the next force evaluation
-  // keeps the perturbed values
+  // written back through the host pointers, then handed to the device
 
   const uint64_t qfev_mask = F_MASK | (chgflag ? Q_MASK : EMPTY_MASK);
   atom->sync_host_arrays(qfev_mask);

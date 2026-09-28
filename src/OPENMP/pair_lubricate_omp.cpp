@@ -433,8 +433,7 @@ void PairLubricateOMP::eval(int iifrom, int iito, ThrData * const thr)
     double *h_rate = domain->h_rate;
     double *h_ratelo = domain->h_ratelo;
 
-    // wait for all threads to leave the pair loop before restoring velocities:
-    // it reads v[j] and omega[j] of atoms in other threads' ranges
+    // wait for all threads, the pair loop reads v and omega of other threads' atoms
 
     sync_threads();
 

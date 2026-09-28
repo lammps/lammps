@@ -122,8 +122,7 @@ void FixWallRegionKokkos<DeviceType>::post_force(int vflag)
 
   double result[11];
 
-  // the functor holds copies of both this fix and the region, so the
-  // destructors of those copies must not release any owned memory
+  // the functor copies this fix and the region; their copies must not free memory
 
   copymode = 1;
   region->copymode = 1;
@@ -175,9 +174,7 @@ KOKKOS_INLINE_FUNCTION
 void FixWallRegionKokkos<DeviceType>::wall_particle(const T &regionKK, const int i, value_type result) const {
   if (d_mask(i) & groupbit) {
 
-    // as in the base class, a particle on the wrong side of the wall is not
-    // an immediate error: flag it in result[10] and let the host raise the
-    // error after the kernel has finished
+    // flag a particle on the wrong side; the host raises the error
 
     if (!regionKK.match_kokkos(static_cast<double>(d_x(i,0)),
                                static_cast<double>(d_x(i,1)),

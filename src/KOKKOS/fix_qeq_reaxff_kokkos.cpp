@@ -284,8 +284,8 @@ void FixQEqReaxFFKokkos<DeviceType>::pre_force(int /*vflag*/)
 
   //  cg solve over b_s, s & b_t, t
 
-  // cg_solve() iterates the s and t systems in one loop, while the base class
-  // counts the matvecs of two separate solves and reports half of them
+  // one fused iteration does a matvec on each of s and t, and the base class
+  // reports half of the count, so count two per iteration
 
   matvecs = 2*cg_solve();
 
@@ -1337,8 +1337,7 @@ int FixQEqReaxFFKokkos<DeviceType>::pack_exchange_kokkos(
 
   copymode = 0;
 
-  // the buffer goes to MPI through the view in the exchange space, so leave
-  // it current there
+  // MPI sends the buffer from the exchange space, so make it current there
 
   k_buf.modify<DeviceType>();
   if (space == HostKK) k_buf.sync_host();

@@ -32,10 +32,8 @@
 
 using namespace LAMMPS_NS;
 
-// minimal separation so that r = 0 core/shell pairs stay finite until the
-// special-bond factor removes them.  In single precision the CPU value 1.0e-20
-// overflows rsq^-7 and cancels in the excluded Coulomb term, so use 1.0e-4 as
-// a floor, which only bonded core/shell pairs ever reach
+// minimal separation for r = 0 core/shell pairs; 1.0e-20 overflows and
+// cancels in single precision, so use 1.0e-4 there, applied as a floor
 
 static constexpr double EPSILON = std::is_same_v<KK_FLOAT, float> ? 1.0e-4 : 1.0e-20;
 using MathConst::MY_PIS;
@@ -182,9 +180,7 @@ KK_FLOAT PairBornCoulDSFCSKokkos<DeviceType>::
 compute_fpair(const KK_FLOAT& rsq_in, const int& /*i*/, const int& /*j*/,
               const int& itype, const int& jtype) const
 {
-  // r = 0 must stay finite here.  In double precision EPSILON is added
-  // unconditionally, exactly as the CPU style does; in single precision it is
-  // applied as a floor instead.  See the comment on EPSILON above.
+  // EPSILON keeps r = 0 finite, see above
 
   const KK_FLOAT rsq = std::is_same_v<KK_FLOAT, float> ?
     ((rsq_in > static_cast<KK_FLOAT>(EPSILON)) ? rsq_in : static_cast<KK_FLOAT>(EPSILON)) :
@@ -216,9 +212,7 @@ compute_fcoul(const KK_FLOAT& rsq_in, const int& /*i*/, const int& j,
               const int& /*itype*/, const int& /*jtype*/,
               const KK_FLOAT& factor_coul, const KK_FLOAT& qtmp) const
 {
-  // r = 0 must stay finite here.  In double precision EPSILON is added
-  // unconditionally, exactly as the CPU style does; in single precision it is
-  // applied as a floor instead.  See the comment on EPSILON above.
+  // EPSILON keeps r = 0 finite, see above
 
   const KK_FLOAT rsq = std::is_same_v<KK_FLOAT, float> ?
     ((rsq_in > static_cast<KK_FLOAT>(EPSILON)) ? rsq_in : static_cast<KK_FLOAT>(EPSILON)) :
@@ -251,9 +245,7 @@ KK_FLOAT PairBornCoulDSFCSKokkos<DeviceType>::
 compute_evdwl(const KK_FLOAT& rsq_in, const int& /*i*/, const int& /*j*/,
                const int& itype, const int& jtype) const
 {
-  // r = 0 must stay finite here.  In double precision EPSILON is added
-  // unconditionally, exactly as the CPU style does; in single precision it is
-  // applied as a floor instead.  See the comment on EPSILON above.
+  // EPSILON keeps r = 0 finite, see above
 
   const KK_FLOAT rsq = std::is_same_v<KK_FLOAT, float> ?
     ((rsq_in > static_cast<KK_FLOAT>(EPSILON)) ? rsq_in : static_cast<KK_FLOAT>(EPSILON)) :
@@ -285,9 +277,7 @@ compute_ecoul(const KK_FLOAT& rsq_in, const int& /*i*/, const int& j,
                const int& /*itype*/, const int& /*jtype*/,
                const KK_FLOAT& factor_coul, const KK_FLOAT& qtmp) const
 {
-  // r = 0 must stay finite here.  In double precision EPSILON is added
-  // unconditionally, exactly as the CPU style does; in single precision it is
-  // applied as a floor instead.  See the comment on EPSILON above.
+  // EPSILON keeps r = 0 finite, see above
 
   const KK_FLOAT rsq = std::is_same_v<KK_FLOAT, float> ?
     ((rsq_in > static_cast<KK_FLOAT>(EPSILON)) ? rsq_in : static_cast<KK_FLOAT>(EPSILON)) :

@@ -302,8 +302,7 @@ void NeighBondKokkos<DeviceType>::bond_all()
     }
   } while (h_fail_flag());
 
-  // claim the list here, not at the end: "lost/bond ignore" returns early,
-  // and build_topology_kk() needs the claim to copy the list to the host
+  // claim here: "lost/bond ignore" returns before the end
   k_bondlist.modify<DeviceType>();
 
   if (nmissing && lostbond == Thermo::ERROR)
@@ -392,8 +391,7 @@ void NeighBondKokkos<DeviceType>::bond_partial()
     }
   } while (h_fail_flag());
 
-  // claim the list here, not at the end: "lost/bond ignore" returns early,
-  // and build_topology_kk() needs the claim to copy the list to the host
+  // claim here: "lost/bond ignore" returns before the end
   k_bondlist.modify<DeviceType>();
 
   if (nmissing && lostbond == Thermo::ERROR)
@@ -510,8 +508,7 @@ void NeighBondKokkos<DeviceType>::angle_all()
     }
   } while (h_fail_flag());
 
-  // claim the list here, not at the end: "lost/bond ignore" returns early,
-  // and build_topology_kk() needs the claim to copy the list to the host
+  // claim here: "lost/bond ignore" returns before the end
   k_anglelist.modify<DeviceType>();
 
   if (nmissing && lostbond == Thermo::ERROR)
@@ -606,8 +603,7 @@ void NeighBondKokkos<DeviceType>::angle_partial()
     }
   } while (h_fail_flag());
 
-  // claim the list here, not at the end: "lost/bond ignore" returns early,
-  // and build_topology_kk() needs the claim to copy the list to the host
+  // claim here: "lost/bond ignore" returns before the end
   k_anglelist.modify<DeviceType>();
 
   if (nmissing && lostbond == Thermo::ERROR)
@@ -744,8 +740,7 @@ void NeighBondKokkos<DeviceType>::dihedral_all()
     }
   } while (h_fail_flag());
 
-  // claim the list here, not at the end: "lost/bond ignore" returns early,
-  // and build_topology_kk() needs the claim to copy the list to the host
+  // claim here: "lost/bond ignore" returns before the end
   k_dihedrallist.modify<DeviceType>();
 
   if (nmissing && lostbond == Thermo::ERROR)
@@ -845,8 +840,7 @@ void NeighBondKokkos<DeviceType>::dihedral_partial()
     }
   } while (h_fail_flag());
 
-  // claim the list here, not at the end: "lost/bond ignore" returns early,
-  // and build_topology_kk() needs the claim to copy the list to the host
+  // claim here: "lost/bond ignore" returns before the end
   k_dihedrallist.modify<DeviceType>();
 
   if (nmissing && lostbond == Thermo::ERROR)
@@ -1005,8 +999,7 @@ void NeighBondKokkos<DeviceType>::improper_all()
     }
   } while (h_fail_flag());
 
-  // claim the list here, not at the end: "lost/bond ignore" returns early,
-  // and build_topology_kk() needs the claim to copy the list to the host
+  // claim here: "lost/bond ignore" returns before the end
   k_improperlist.modify<DeviceType>();
 
   if (nmissing && lostbond == Thermo::ERROR)
@@ -1106,8 +1099,7 @@ void NeighBondKokkos<DeviceType>::improper_partial()
     }
   } while (h_fail_flag());
 
-  // claim the list here, not at the end: "lost/bond ignore" returns early,
-  // and build_topology_kk() needs the claim to copy the list to the host
+  // claim here: "lost/bond ignore" returns before the end
   k_improperlist.modify<DeviceType>();
 
   if (nmissing && lostbond == Thermo::ERROR)

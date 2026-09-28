@@ -2673,8 +2673,8 @@ void Atom::delete_callback(const char *id, int flag)
 
   int ifix = modify->find_fix(id);
 
-  // a fix whose constructor fails is destroyed before Modify lists it, so use
-  // the slot add_callback() recorded rather than find_fix()
+  // a fix whose constructor fails is not in Modify's list yet,
+  // so look it up by the slot that add_callback() recorded
 
   if (ifix < 0)
     for (ifix = 0; ifix < modify->nfix; ifix++)

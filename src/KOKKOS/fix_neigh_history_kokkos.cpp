@@ -449,8 +449,7 @@ int FixNeighHistoryKokkos<DeviceType>::pack_exchange_kokkos(
 
   copymode = 0;
 
-  // the buffer goes to MPI through the view in the exchange space, so leave
-  // it current there
+  // MPI sends the buffer from the exchange space, so make it current there
 
   k_buf.modify<DeviceType>();
   if (space == HostKK) k_buf.sync_host();

@@ -40,8 +40,7 @@ class DomainKokkos : public Domain {
   void x2lamda(int,int) override;
   void lamda2x(int) override;
   void lamda2x(int,int) override;
-  // the overloads above would otherwise hide the remaining x2lamda()/lamda2x()
-  // variants, which this class does not reimplement
+  // keep the base class x2lamda()/lamda2x() overloads visible
   using Domain::x2lamda;
   using Domain::lamda2x;
 

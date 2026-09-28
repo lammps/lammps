@@ -86,8 +86,7 @@ template <class DeviceType> class FixRigidSmallKokkos : public FixRigidSmall, pu
 
   void grow_arrays(int) override;
 
-  // stop with an error when another fix reaches the host bookkeeping while the
-  // device owns it
+  // error out when another fix touches the host bookkeeping the device owns
   void set_arrays(int) override;
   void copy_arrays(int, int, int) override;
   void check_device_owns_bookkeeping(const char *what);
@@ -225,13 +224,10 @@ template <class DeviceType> class FixRigidSmallKokkos : public FixRigidSmall, pu
   // take their host fallback even though setupflag is already 1 by then
   bool setup_host_rebuild = false;
 
-  // pre_exchange() hands the body state to the host and pre_neighbor() hands it
-  // back, so the two have to alternate; this says a handover is open.  See
-  // check_handover_open().
+  // set from pre_exchange() until pre_neighbor()
   bool handover_open = false;
 
-  // how many times setup_device_push() has run since init(); more than once
-  // means a second fix called this one's setup().  See check_second_setup().
+  // calls of setup_device_push() since init()
   int setup_pushes = 0;
 
   // scratch reused across calls: allocating a device View (and, for the counter,

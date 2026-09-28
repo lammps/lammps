@@ -163,9 +163,7 @@ void DynamicalMatrixKokkos::update_force()
     }
   }
 
-  // as in VerletKokkos::run(): keep the force array out of sync() and
-  // modified() during the force region, but only when the host and device
-  // forces are merged at its end
+  // as in VerletKokkos::run()
 
   AtomKokkos::ExcludeMask exclude_guard(atomKK,
     (execute_on_host && !std::is_same_v<LMPHostType,LMPDeviceType>)
@@ -280,8 +278,7 @@ void DynamicalMatrixKokkos::update_force()
     atomKK->k_f.modify_device();
   }
 
-  // the two sides have been brought together, so the force array is back in
-  // play for the reverse communication and everything after it
+  // host and device forces are merged, so sync() and modified() may touch them again
 
   exclude_guard.release();
 

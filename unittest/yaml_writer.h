@@ -34,8 +34,7 @@ public:
     void emit_block(const std::string &key, const std::string &value);
 
 private:
-    // written to a temporary file that replaces the requested one only once
-    // the document is complete, so a run that fails keeps the old file
+    // write to a temporary file and replace the target when complete
     std::string outpath;
     std::string temppath;
     FILE *fp;

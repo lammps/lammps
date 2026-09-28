@@ -30,8 +30,7 @@ template<class DeviceType>
 FixWallGranKokkos<DeviceType>::FixWallGranKokkos(LAMMPS *lmp, int narg, char **arg) :
   FixWallGranOld(lmp, narg, arg)
 {
-  // this class does not maintain the per-atom array of the "contacts" keyword,
-  // so refuse it before create_atoms or read_data can reach it
+  // the per-atom array of the "contacts" keyword is not maintained here
 
   if (peratom_flag)
     error->all(FLERR, "Fix wall/gran/kk does not yet support the contacts keyword");
@@ -462,8 +461,7 @@ int FixWallGranKokkos<DeviceType>::pack_exchange_kokkos(
 
   k_history_one.template modify<DeviceType>();
 
-  // the buffer goes to MPI through the view in the exchange space, so leave
-  // it current there
+  // MPI sends the buffer from the exchange space, so make it current there
 
   k_buf.modify<DeviceType>();
   if (space == HostKK) k_buf.sync_host();

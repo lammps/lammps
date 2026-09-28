@@ -613,8 +613,7 @@ void ModifyKokkos::pre_force_respa(int vflag, int ilevel, int iloop)
 
 void ModifyKokkos::post_force_respa(int vflag, int ilevel, int iloop)
 {
-  // the GROUP fixes go first, as they do in post_force(): a dynamic group has
-  // to be up to date before the fixes that act on it run
+  // GROUP fixes first, as in post_force()
 
   for (int i = 0; i < n_post_force_group; i++) {
     atomKK->sync(fix[list_post_force_group[i]]->execution_space,

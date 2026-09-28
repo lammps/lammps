@@ -145,8 +145,7 @@ void PairZBLKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   nlocal = atom->nlocal;
   nall = atom->nlocal + atom->nghost;
   newton_pair = force->newton_pair;
-  // pair zbl ignores the special_bonds factors, but the generic kernels
-  // multiply by special_lj[sbmask(j)], so neutralize them here
+  // pair zbl ignores special_bonds, but the generic kernels apply them
   special_lj[0] = special_lj[1] = special_lj[2] = special_lj[3] = 1.0;
 
   c1_kk = static_cast<KK_FLOAT>(c1);

@@ -433,8 +433,7 @@ void PairEAMKokkos<DeviceType>::file2array()
 template<class DeviceType>
 void PairEAMKokkos<DeviceType>::array2spline()
 {
-  // also build the host tables of the base class, so that CPU-only consumers
-  // of the spline data (e.g. compute_atomic_energy()) keep working
+  // host tables for compute_atomic_energy()
 
   PairEAM::array2spline();
 

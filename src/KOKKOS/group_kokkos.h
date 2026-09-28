@@ -298,9 +298,7 @@ void vcm_kk(int igroup, double masstotal, double *vcm)
   auto d_mask = atomKK->k_mask.template view<DeviceType>();
   double p[3] = {0.0, 0.0, 0.0};
 
-  // the image flags are not needed here: the centre-of-mass velocity is a sum
-  // of m*v and nothing is unwrapped.  xcm_kk(), angmom_kk() and inertia_kk()
-  // do unwrap and do need them.
+  // no image flags needed: nothing is unwrapped
 
   if (atomKK->rmass) {
 

@@ -219,8 +219,7 @@ void MinKokkos::setup(int flag)
   modify->setup(vflag);
   lmp->kokkos->auto_sync = 1;
 
-  // VerletKokkos::setup() already runs the setup output with auto_sync on,
-  // for the same reason the iterate loops do
+  // VerletKokkos::setup() runs the setup output with auto_sync on
 
   atomKK->sync(Host,ALL_MASK);
   output->setup(flag);

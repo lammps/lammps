@@ -241,12 +241,10 @@ void *AtomKokkos::extract(const char *name)
 
 void AtomKokkos::sync(const ExecutionSpace space, uint64_t mask)
 {
-  // always, and before the exclusion below can return early: readers name
-  // only per-atom arrays, and no force region excludes the masses
+  // before the early return below; readers never name MASS_MASK
   sync_mass(space, MASS_MASK);
 
-  // leave the arrays excluded by an overlapping force region alone: the host
-  // and device contributions are merged at the end of the region
+  // skip arrays excluded by an overlapping force region
 
   mask &= ~datamask_exclude;
   if (!mask) return;
@@ -267,9 +265,8 @@ void AtomKokkos::sync(const ExecutionSpace space, uint64_t mask)
 }
 
 /* ----------------------------------------------------------------------
-   the per-type masses are written only on the host, so a claim is taken only
-   when the caller names MASS_MASK (as ALL_MASK does around non-Kokkos styles),
-   and the sync runs on every call, since readers name only per-atom arrays
+   the per-type masses are only written on the host; sync() calls this every
+   time, modified() only when MASS_MASK is named
 ------------------------------------------------------------------------- */
 
 void AtomKokkos::sync_mass(const ExecutionSpace space, uint64_t mask)
@@ -285,9 +282,7 @@ void AtomKokkos::sync_mass(const ExecutionSpace space, uint64_t mask)
 
 void AtomKokkos::modified(const ExecutionSpace space, uint64_t mask)
 {
-  // see the note in sync(): claiming an excluded array would mark one side
-  // newer than the other and make a later sync copy over a contribution that
-  // still has to be merged in
+  // skip arrays excluded by an overlapping force region
 
   mask &= ~datamask_exclude;
   if (!mask) return;
@@ -295,8 +290,7 @@ void AtomKokkos::modified(const ExecutionSpace space, uint64_t mask)
   avecKK->modified(space, mask);
   for (int n = 0; n < nprop_atom; n++) fix_prop_atom[n]->modified(space, mask);
 
-  // see sync_mass(): only the host writes the per-type masses, so a claim from
-  // the device side is not one and must not retire the host's
+  // only the host writes the per-type masses
   if ((mask & MASS_MASK) && mass && (space == Host)) k_mass.modify_host();
 
   if ((space == Device || space == HostKK) && lmp->kokkos->auto_sync) {

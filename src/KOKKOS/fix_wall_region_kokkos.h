@@ -95,8 +95,7 @@ struct FixWallRegionKokkosFunctor {
   const int value_count;
   FixWallRegionKokkos<DeviceType> c;
 
-  // the region must be held by value: regions are plain host heap objects, so
-  // a pointer to one cannot be dereferenced from a kernel running on the device
+  // held by value so device kernels can use it
 
   T regionKK;
 

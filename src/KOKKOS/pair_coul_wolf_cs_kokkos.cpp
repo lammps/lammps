@@ -33,10 +33,8 @@
 
 using namespace LAMMPS_NS;
 
-// minimal separation so that r = 0 core/shell pairs stay finite until the
-// special-bond factor removes them.  In single precision the CPU value 1.0e-20
-// cancels in the excluded Coulomb term, so use 1.0e-4 as a floor, which only
-// bonded core/shell pairs ever reach
+// minimal separation for r = 0 core/shell pairs; 1.0e-20 cancels in single
+// precision, so use 1.0e-4 there, applied as a floor
 
 static constexpr double EPSILON = std::is_same_v<KK_FLOAT, float> ? 1.0e-4 : 1.0e-20;
 using namespace MathConst;
@@ -265,9 +263,7 @@ void PairCoulWolfCSKokkos<DeviceType>::operator()(TagPairCoulWolfCSKernelA<NEIGH
 
     if (rsq_in < cut_coulsq_kk) {
 
-      // r = 0 must stay finite here.  In double precision EPSILON is added
-      // unconditionally, exactly as the CPU style does; in single precision it is
-      // applied as a floor instead.  See the comment on EPSILON above.
+      // EPSILON keeps r = 0 finite, see above
 
       const KK_FLOAT rsq = std::is_same_v<KK_FLOAT, float> ?
         ((rsq_in > static_cast<KK_FLOAT>(EPSILON)) ? rsq_in : static_cast<KK_FLOAT>(EPSILON)) :

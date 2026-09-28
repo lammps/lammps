@@ -694,8 +694,7 @@ void PairVashishtaKokkos<DeviceType>::threebody(const Param& paramij, const Para
   r1 = Kokkos::sqrt(rsq1);
   r2 = Kokkos::sqrt(rsq2);
 
-  // in KK_FLOAT, r can round up to r0 although rsq < r0*r0; the three-body
-  // term vanishes there, so return zero instead of dividing by zero
+  // r can round up to r0 in KK_FLOAT; the limit there is zero
 
   if ((r1 >= r0ij_kk) || (r2 >= r0ik_kk)) {
     fj[0] = fj[1] = fj[2] = 0.0;

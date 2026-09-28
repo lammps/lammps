@@ -427,8 +427,7 @@ TEST(PairStyle, plain)
     const int nlocal = lmp->atom->nlocal;
     ASSERT_EQ(lmp->atom->natoms, nlocal);
 
-    // newton pair off here means the yaml file asks for it; keep it off in the
-    // restarted runs below, which otherwise switch newton back on
+    // newton pair off here comes from the yaml file; keep it for the restarts
     const bool forced_newton_off = (lmp->force->newton_pair == 0);
 
     double epsilon = test_config.epsilon;

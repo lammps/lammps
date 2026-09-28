@@ -425,19 +425,16 @@ void VerletKokkos::run(int n)
     uint64_t datamask_read_host = 0;
     uint64_t datamask_exclude = 0;
 
-    // host_force_styles() already returns 0 when there is no overlap, so this
-    // also settles whether the host force copies are in play at all
+    // host_force_styles() is 0 without overlap, so this also tells whether
+    // the host force copies are in use
 
     execute_on_host = host_force_styles(&datamask_read_host);
 
-    // exclude the force array only when the merge below runs; otherwise it
-    // would also drop the pair style's claim of its own device write
+    // exclude the forces only when they are merged below
 
     if (execute_on_host) datamask_exclude = (F_MASK | ENERGY_MASK | VIRIAL_MASK);
 
-    // keep the force array out of sync() and modified(), including the calls
-    // inside the styles, while the host styles add into the host copy; the two
-    // sides are merged at the end of the force region
+    // keep the forces out of sync() and modified() until they are merged
 
     AtomKokkos::ExcludeMask exclude_guard(atomKK,datamask_exclude);
 
@@ -540,8 +537,7 @@ void VerletKokkos::run(int n)
       // legacy host array behind atom->f, which is a separate allocation when
       // the two need a transform.  Add the legacy one in.  sync_legacy_to_hostkk()
       // cannot be used here: it would copy one buffer over the other, and it is
-      // a no-op anyway, since F_MASK is in the exclude mask published above and
-      // so never reaches the modified() calls of the force region.
+      // a no-op anyway since F_MASK is excluded from the modified() calls above.
 
       if (decltype(atomKK->k_f)::NEED_TRANSFORM) {
         auto h_f_kk = atomKK->k_f.view_hostkk();
@@ -556,9 +552,7 @@ void VerletKokkos::run(int n)
       atomKK->k_f.modify_device();
     }
 
-    // the two sides have been brought together, so the force array is back in
-    // play: the reverse communication, the force modifications and the time
-    // integration below all have to be able to sync and claim it again
+    // host and device forces are merged, so sync() and modified() may touch them again
 
     exclude_guard.release();
 
@@ -588,9 +582,8 @@ void VerletKokkos::run(int n)
     // all output
 
     if (ntimestep == output->next) {
-      // non-Kokkos computes and fixes write through the host pointers, some
-      // re-entering the force computation; auto_sync carries those writes to
-      // the device, and each such style claims its own writes
+      // non-Kokkos computes and fixes may write through the host pointers,
+      // auto_sync carries those writes to the device
 
       int prev_auto_sync = lmp->kokkos->auto_sync;
       lmp->kokkos->auto_sync = 1;

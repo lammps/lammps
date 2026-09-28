@@ -48,9 +48,7 @@ PairLubricate::PairLubricate(LAMMPS *lmp) :
 {
   single_enable = 0;
 
-  // pair lubricate cannot compute virial as F dot r
-  // due to how the FLD drag forces are applied to atoms
-  // correct method is how per-atom virial does it
+  // the FLD drag acts on single particles, so the virial is not F dot r
 
   no_virial_fdotr_compute = 1;
 

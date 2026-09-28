@@ -378,8 +378,7 @@ int FixColvars::modify_param(int narg, char **arg)
     return (error_code == COLVARSCRIPT_OK) ? narg : 0;
   } else { // me != 0
     setup_colvars(); // communicate colvars changes to mpi ranks > 0
-    // the substituted arguments above are allocated on every rank, so they also
-    // have to be released on the ranks that do not run the script
+    // the substituted arguments are allocated on every rank, so free them here too
     for (int i = 0; i < narg; i++) memory->sfree(script_args[i+1]);
     // Return without error, don't block Fix::modify_params()
     return narg;

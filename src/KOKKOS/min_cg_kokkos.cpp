@@ -245,9 +245,7 @@ int MinCGKokkos::iterate(int maxiter)
     // output for thermo, dump, restart files
 
     if (output->next == ntimestep) {
-      // as in VerletKokkos::run(): a plain compute or fix reached from the
-      // output may write through the host pointers and re-enter the force
-      // pipeline, and auto_sync is what carries those writes to the device
+      // as in VerletKokkos::run()
 
       int prev_auto_sync = lmp->kokkos->auto_sync;
       lmp->kokkos->auto_sync = 1;

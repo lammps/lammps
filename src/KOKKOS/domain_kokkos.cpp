@@ -28,9 +28,8 @@ using namespace LAMMPS_NS;
 static constexpr double BIG = 1.0e20;
 
 /* ----------------------------------------------------------------------
-   round a box bound up to the nearest KK_FLOAT that is not below it, so that
-   pbc() in single precision keeps atoms inside the box as tested in double
-   precision by Comm::exchange(); the identity in double precision
+   round a box bound up to the nearest KK_FLOAT not below it, so atoms that
+   pbc() keeps are inside the box for Comm::exchange()
 ------------------------------------------------------------------------- */
 
 static inline KK_FLOAT bound_up(double d)
@@ -244,8 +243,7 @@ struct DomainPBCFunctor {
   typedef ArrayTypes<DeviceType> AT;
   double period[3];
 
-  // the box bounds rounded to KK_FLOAT, used both for the inside/outside tests
-  // and for the clamp after a wrap.  see bound_up() above.
+  // box bounds rounded with bound_up()
 
   KK_FLOAT lo_kk[3],hi_kk[3];
   typename AT::t_kkfloat_1d_3_lr x;
@@ -487,8 +485,7 @@ void DomainKokkos::remap_all()
   image = atomKK->k_image.view_device();
   int nlocal = atomKK->nlocal;
 
-  // round the bounds up rather than cast, as in pbc(), so that in single
-  // precision a wrapped atom stays inside the box for Comm::exchange()
+  // round the bounds up, as in pbc()
 
   if (triclinic == 0) {
     for (int i=0; i<3; i++) {

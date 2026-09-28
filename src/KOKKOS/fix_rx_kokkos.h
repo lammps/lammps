@@ -155,8 +155,7 @@ class FixRxKokkos : public FixRX {
 
   int rhs       (double, const double *, double *, void *) const;
   int rhs_dense (double, const double *, double *, void *) const;
-  // deliberately not an override: FixRX::rhs_sparse() is called from
-  // FixRX::rhs() inside the ODE integration loop and must stay non-virtual
+  // intentionally hides the non-virtual FixRX::rhs_sparse()
   // NOLINTNEXTLINE(bugprone-derived-method-shadowing-base-method)
   int rhs_sparse(double, const double *, double *, void *) const;
 
@@ -285,8 +284,7 @@ class FixRxKokkos : public FixRX {
   // Error flag for any failures.
   DAT::tdual_int_scalar k_error_flag;
 
-  // the device version is a member template, so it can never override the host
-  // FixRX::computeLocalTemperature(); give it its own name rather than shadow it
+  // a member template cannot override FixRX::computeLocalTemperature()
   template <int WT_FLAG, int LOCAL_TEMP_FLAG, bool NEWTON_PAIR, int NEIGHFLAG>
   void computeLocalTemperatureKokkos();
 

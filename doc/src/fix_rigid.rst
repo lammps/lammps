@@ -931,7 +931,7 @@ body properties from a file (the *infile* keyword) is supported, and so is
 inserting rigid molecules at runtime with :doc:`fix deposit <fix_deposit>`
 and :doc:`fix pour <fix_pour>`.  The *kk* styles run on 3d systems only.
 
-.. versionchanged:: TBD
+.. versionchanged:: 30Sep2026
 
 The *kk* styles hand the rigid-body state between the host and the device
 at fixed points, once per timestep, and stop the run with an error when

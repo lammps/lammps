@@ -1804,7 +1804,7 @@ code when using features from the INTEL package.
 
          -D INTEL_LRT_MODE=value # value = threads, none, or c++17
 
-      .. versionchanged:: TBD
+      .. versionchanged:: 30Sep2026
 
       With the LLVM based Intel compilers (``icx`` and ``icpx``), CMake
       adds the flags ``-xHost`` and ``-qopt-zmm-usage=high`` and compiles

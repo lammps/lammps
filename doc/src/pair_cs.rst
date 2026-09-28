@@ -182,7 +182,7 @@ constant, *w* is the special bond weight, and :math:`g_{ewald}` is the
 Ewald parameter of the long-range solver.  This expression remains
 finite for :math:`r \rightarrow 0` when *w* is 0.0.
 
-.. versionchanged:: TBD
+.. versionchanged:: 30Sep2026
 
 For such excluded or scaled pairs, the correction and its derivative
 are computed with the exact error function instead of the polynomial

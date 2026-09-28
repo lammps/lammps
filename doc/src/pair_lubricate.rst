@@ -124,7 +124,7 @@ reference length, which made the force on particle *i* differ from
 minus the force on particle *j* for strongly polydisperse pairs.
 Results for monodisperse systems are unchanged.
 
-.. versionchanged:: TBD
+.. versionchanged:: 30Sep2026
 
 Style *lubricate* does not include the FLD drag force in the virial.
 The drag acts on each particle individually rather than between pairs,

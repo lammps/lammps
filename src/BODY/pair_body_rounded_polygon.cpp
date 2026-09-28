@@ -995,6 +995,7 @@ int PairBodyRoundedPolygon::vertex_against_edge(int i, int j,
         // R < 0:      deformation between vertex ni and p2vertex
 
         rij = sqrt(delx*delx + dely*dely + delz*delz);
+        if (rij == 0.0) error->one(FLERR, "Vertices of bodies {} and {} coincide", tag[i], tag[j]);
         R = rij - (rradi + rradj);
 
         // the normal damping term -c_n * vn will be added later

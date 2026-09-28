@@ -1,6 +1,6 @@
 ---
 lammps_version: 2 Sep 2026
-tags: generated
+tags:
 date_generated: Sat Sep 26 23:35:17 2026
 epsilon: 5e-13
 skip_tests: single

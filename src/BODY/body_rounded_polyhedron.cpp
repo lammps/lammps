@@ -208,11 +208,11 @@ void BodyRoundedPolyhedron::data_body(int ibonus, int ninteger, int ndouble,
   // nsub > 2:
   //   6 for inertia + 3*nsub + 2*nedges + MAX_FACE_SIZE*nfaces + 1 for rounded radius
 
-  int nedges,nentries;
+  int nedges = ned;
+  int nentries;
   if (nsub < 3) {
     nentries = 6 + 3*nsub + 1;
   } else {
-    nedges = ned; //nsub + nfac - 2;
     nentries = 6 + 3*nsub + 2*nedges + MAX_FACE_SIZE*nfac + 1;
   }
 
@@ -322,6 +322,9 @@ void BodyRoundedPolyhedron::data_body(int ibonus, int ninteger, int ndouble,
   // rods have just 1 edge
 
   } else if (nsub == 2) {
+    if (MathExtra::distsq3(&dfile[6], &dfile[9]) == 0.0)
+      error->one(FLERR, "The two vertices of rod body {} in Bodies section of data file "
+                 "coincide", atom->tag[bonus->ilocal]);
     bonus->dvalue[k] = 0;
     bonus->dvalue[k+1] = 1;
     k += 2;
@@ -339,18 +342,39 @@ void BodyRoundedPolyhedron::data_body(int ibonus, int ninteger, int ndouble,
 
   } else {
 
-    // edges
+    // edges, which must connect two different vertices at different positions
 
+    const double *vfile = &dfile[6];
     for (i = 0; i < nedges; i++) {
+      int na = static_cast<int>(dfile[j]);
+      int nb = static_cast<int>(dfile[j+1]);
+      if ((na < 0) || (na >= nsub) || (nb < 0) || (nb >= nsub) ||
+          (MathExtra::distsq3(&vfile[3*na], &vfile[3*nb]) == 0.0))
+        error->one(FLERR, "Edge {} of body {} in Bodies section of data file has invalid "
+                   "vertices or zero length", i, atom->tag[bonus->ilocal]);
       bonus->dvalue[k] = dfile[j];
       bonus->dvalue[k+1] = dfile[j+1];
       k += 2;
       j += 2;
     }
 
-    // faces
+    // faces, whose normal is computed from their first three vertices
 
     for (i = 0; i < nfac; i++) {
+      int nv[3];
+      for (m = 0; m < 3; m++) {
+        nv[m] = static_cast<int>(dfile[j+m]);
+        if ((nv[m] < 0) || (nv[m] >= nsub))
+          error->one(FLERR, "Face {} of body {} in Bodies section of data file has invalid "
+                     "vertices", i, atom->tag[bonus->ilocal]);
+      }
+      double u[3], v[3], n[3];
+      MathExtra::sub3(&vfile[3*nv[1]], &vfile[3*nv[0]], u);
+      MathExtra::sub3(&vfile[3*nv[2]], &vfile[3*nv[0]], v);
+      MathExtra::cross3(u, v, n);
+      if (MathExtra::lensq3(n) <= 1.0e-24 * MathExtra::lensq3(u) * MathExtra::lensq3(v))
+        error->one(FLERR, "The first three vertices of face {} of body {} in Bodies section "
+                   "of data file are on a line", i, atom->tag[bonus->ilocal]);
       for (m = 0; m < MAX_FACE_SIZE; m++)
         bonus->dvalue[k+m] = dfile[j+m];
       k += MAX_FACE_SIZE;

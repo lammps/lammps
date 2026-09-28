@@ -266,8 +266,8 @@ struct DomainPBCFunctor {
     deform_groupbit(_deform_groupbit),
     xperiodic(_xperiodic), yperiodic(_yperiodic), zperiodic(_zperiodic) {
     for (int d = 0; d < 3; d++) {
-      lo_kk[d]=bound_up(_lo[d]);
-      hi_kk[d]=bound_up(_hi[d]);
+      lo_kk[d] = bound_up(_lo[d]);
+      hi_kk[d] = bound_up(_hi[d]);
     }
     period[0]=_period[0]; period[1]=_period[1]; period[2]=_period[2];
     h_rate[0]=_h_rate[0]; h_rate[1]=_h_rate[1]; h_rate[2]=_h_rate[2];

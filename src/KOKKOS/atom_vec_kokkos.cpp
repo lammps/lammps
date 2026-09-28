@@ -810,7 +810,7 @@ struct AtomVecKokkos_PackCommVel {
   double _xprd,_yprd,_zprd,_xy,_xz,_yz;
   double _pbc[6];
   double _h_rate[6];
-  const int _deform_vremap;
+  const int _deform_groupbit;
   uint64_t _datamask;
 
   AtomVecKokkos_PackCommVel(
@@ -820,7 +820,7 @@ struct AtomVecKokkos_PackCommVel {
     const double &xprd, const double &yprd, const double &zprd,
     const double &xy, const double &xz, const double &yz, const int* const pbc,
     const double * const h_rate,
-    const int &deform_vremap,
+    const int &deform_groupbit,
     const uint64_t &datamask):
     _x(atomKK->k_x.view<DeviceType>()),
     _mask(atomKK->k_mask.view<DeviceType>()),
@@ -836,7 +836,7 @@ struct AtomVecKokkos_PackCommVel {
     _list(list.view<DeviceType>()),
     _xprd(xprd),_yprd(yprd),_zprd(zprd),
     _xy(xy),_xz(xz),_yz(yz),
-    _deform_vremap(deform_vremap),
+    _deform_groupbit(deform_groupbit),
     _datamask(datamask)
   {
     const size_t elements = atomKK->avecKK->size_forward + atomKK->avecKK->size_velocity;
@@ -876,7 +876,7 @@ struct AtomVecKokkos_PackCommVel {
         _buf(i,m++) = static_cast<double>(_v(j,1));
         _buf(i,m++) = static_cast<double>(_v(j,2));
       } else {
-        if (_mask(i) & _deform_vremap) {
+        if (_mask(j) & _deform_groupbit) {
           _buf(i,m++) = static_cast<double>(_v(j,0)) + _pbc[0]*_h_rate[0] + _pbc[5]*_h_rate[5] + _pbc[4]*_h_rate[4];
           _buf(i,m++) = static_cast<double>(_v(j,1)) + _pbc[1]*_h_rate[1] + _pbc[3]*_h_rate[3];
           _buf(i,m++) = static_cast<double>(_v(j,2)) + _pbc[2]*_h_rate[2];
@@ -951,7 +951,7 @@ int AtomVecKokkos::pack_comm_vel_kokkos(
             atomKK,
             buf,list,
             domain->xprd,domain->yprd,domain->zprd,
-            domain->xy,domain->xz,domain->yz,pbc,h_rate,deform_vremap,
+            domain->xy,domain->xz,domain->yz,pbc,h_rate,deform_groupbit,
             datamask_comm_vel);
           Kokkos::parallel_for(n,f);
         } else {
@@ -959,7 +959,7 @@ int AtomVecKokkos::pack_comm_vel_kokkos(
             atomKK,
             buf,list,
             domain->xprd,domain->yprd,domain->zprd,
-            domain->xy,domain->xz,domain->yz,pbc,h_rate,deform_vremap,
+            domain->xy,domain->xz,domain->yz,pbc,h_rate,deform_groupbit,
             datamask_comm_vel);
           Kokkos::parallel_for(n,f);
         }
@@ -969,7 +969,7 @@ int AtomVecKokkos::pack_comm_vel_kokkos(
             atomKK,
             buf,list,
             domain->xprd,domain->yprd,domain->zprd,
-            domain->xy,domain->xz,domain->yz,pbc,h_rate,deform_vremap,
+            domain->xy,domain->xz,domain->yz,pbc,h_rate,deform_groupbit,
             datamask_comm_vel);
           Kokkos::parallel_for(n,f);
         } else {
@@ -977,7 +977,7 @@ int AtomVecKokkos::pack_comm_vel_kokkos(
             atomKK,
             buf,list,
             domain->xprd,domain->yprd,domain->zprd,
-            domain->xy,domain->xz,domain->yz,pbc,h_rate,deform_vremap,
+            domain->xy,domain->xz,domain->yz,pbc,h_rate,deform_groupbit,
             datamask_comm_vel);
           Kokkos::parallel_for(n,f);
         }
@@ -988,7 +988,7 @@ int AtomVecKokkos::pack_comm_vel_kokkos(
           atomKK,
           buf,list,
           domain->xprd,domain->yprd,domain->zprd,
-          domain->xy,domain->xz,domain->yz,pbc,h_rate,deform_vremap,
+          domain->xy,domain->xz,domain->yz,pbc,h_rate,deform_groupbit,
           datamask_comm_vel);
         Kokkos::parallel_for(n,f);
       } else {
@@ -996,7 +996,7 @@ int AtomVecKokkos::pack_comm_vel_kokkos(
           atomKK,
           buf,list,
           domain->xprd,domain->yprd,domain->zprd,
-          domain->xy,domain->xz,domain->yz,pbc,h_rate,deform_vremap,
+          domain->xy,domain->xz,domain->yz,pbc,h_rate,deform_groupbit,
           datamask_comm_vel);
         Kokkos::parallel_for(n,f);
       }
@@ -1010,7 +1010,7 @@ int AtomVecKokkos::pack_comm_vel_kokkos(
             atomKK,
             buf,list,
             domain->xprd,domain->yprd,domain->zprd,
-            domain->xy,domain->xz,domain->yz,pbc,h_rate,deform_vremap,
+            domain->xy,domain->xz,domain->yz,pbc,h_rate,deform_groupbit,
             datamask_comm_vel);
           Kokkos::parallel_for(n,f);
         } else {
@@ -1018,7 +1018,7 @@ int AtomVecKokkos::pack_comm_vel_kokkos(
             atomKK,
             buf,list,
             domain->xprd,domain->yprd,domain->zprd,
-            domain->xy,domain->xz,domain->yz,pbc,h_rate,deform_vremap,
+            domain->xy,domain->xz,domain->yz,pbc,h_rate,deform_groupbit,
             datamask_comm_vel);
           Kokkos::parallel_for(n,f);
         }
@@ -1028,7 +1028,7 @@ int AtomVecKokkos::pack_comm_vel_kokkos(
             atomKK,
             buf,list,
             domain->xprd,domain->yprd,domain->zprd,
-            domain->xy,domain->xz,domain->yz,pbc,h_rate,deform_vremap,
+            domain->xy,domain->xz,domain->yz,pbc,h_rate,deform_groupbit,
             datamask_comm_vel);
           Kokkos::parallel_for(n,f);
         } else {
@@ -1036,7 +1036,7 @@ int AtomVecKokkos::pack_comm_vel_kokkos(
             atomKK,
             buf,list,
             domain->xprd,domain->yprd,domain->zprd,
-            domain->xy,domain->xz,domain->yz,pbc,h_rate,deform_vremap,
+            domain->xy,domain->xz,domain->yz,pbc,h_rate,deform_groupbit,
             datamask_comm_vel);
           Kokkos::parallel_for(n,f);
         }
@@ -1047,7 +1047,7 @@ int AtomVecKokkos::pack_comm_vel_kokkos(
           atomKK,
           buf,list,
           domain->xprd,domain->yprd,domain->zprd,
-          domain->xy,domain->xz,domain->yz,pbc,h_rate,deform_vremap,
+          domain->xy,domain->xz,domain->yz,pbc,h_rate,deform_groupbit,
           datamask_comm_vel);
         Kokkos::parallel_for(n,f);
       } else {
@@ -1055,7 +1055,7 @@ int AtomVecKokkos::pack_comm_vel_kokkos(
           atomKK,
           buf,list,
           domain->xprd,domain->yprd,domain->zprd,
-          domain->xy,domain->xz,domain->yz,pbc,h_rate,deform_vremap,
+          domain->xy,domain->xz,domain->yz,pbc,h_rate,deform_groupbit,
           datamask_comm_vel);
         Kokkos::parallel_for(n,f);
       }

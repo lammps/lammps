@@ -85,6 +85,15 @@ template <class DeviceType> class FixRigidSmallKokkos : public FixRigidSmall, pu
   void pre_neighbor() override;
 
   void grow_arrays(int) override;
+
+  // error out when another fix touches the host bookkeeping the device owns
+  void set_arrays(int) override;
+  void copy_arrays(int, int, int) override;
+  void check_device_owns_bookkeeping(const char *what);
+  void claim_host_bookkeeping(bool copied);
+  void check_handover_open();
+  void check_second_setup();
+
   void grow_body() override;
   void set_molecule(int, tagint, int, double *, double *, double *) override;
   void resample_momenta(int, int, class RanPark *, double) override;
@@ -214,6 +223,12 @@ template <class DeviceType> class FixRigidSmallKokkos : public FixRigidSmall, pu
   // later runs, so the pre_neighbor()/reset_atom2body()/image_shift() overrides
   // take their host fallback even though setupflag is already 1 by then
   bool setup_host_rebuild = false;
+
+  // set from pre_exchange() until pre_neighbor()
+  bool handover_open = false;
+
+  // calls of setup_device_push() since init()
+  int setup_pushes = 0;
 
   // scratch reused across calls: allocating a device View (and, for the counter,
   // a fenced readback) inside every pack_exchange_kokkos / reset_atom2body call

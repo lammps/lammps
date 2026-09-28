@@ -246,9 +246,7 @@ compute_fcoul(const KK_FLOAT &rsq, const int & /*i*/, const int &j,
 
     if (factor_coul < static_cast<KK_FLOAT>(1.0)) {
 
-      // for excluded pairs (e.g. a bonded core/shell pair) the Ewald term and
-      // the special bond correction nearly cancel at short distances, which
-      // amplifies the error of the erfc() approximation, so use the exact erf()
+      // for excluded pairs the correction nearly cancels the Ewald term: use erf()
 
       const KK_FLOAT grij = g_ewald_kk * r;
       const KK_FLOAT expm2 = Kokkos::exp(-grij*grij);

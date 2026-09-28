@@ -111,10 +111,8 @@ void PairBornCoulLongCS::compute(int eflag, int vflag)
             r = sqrt(rsq);
             prefactor = qqrd2e * qtmp*q[j];
             if (factor_coul < 1.0) {
-              // for excluded pairs (e.g. a bonded core/shell pair) the Ewald term and
-              // the special bond correction nearly cancel at short distances, which
-              // amplifies the error of the erfc() approximation. So use the exact
-              // erf() and its derivative, and store erfc - (1 - factor_coul) in erfc
+              // for excluded pairs the correction nearly cancels the Ewald term: use erf()
+              // erfc holds erfc - (1 - factor_coul)
               grij = g_ewald * r;
               expm2 = exp(-grij*grij);
               erfc = factor_coul - erf(grij);

@@ -168,10 +168,8 @@ void PairLJCutTholeLong::compute(int eflag, int vflag)
             expm2 = exp(-grij*grij);
             prefactor = qqrd2e * qi*qj/r;
             if (factor_coul < 1.0) {
-              // for excluded pairs (e.g. a core/Drude pair) the Ewald term and
-              // the special bond correction nearly cancel at short distances, which
-              // amplifies the error of the erfc() approximation. So use the exact
-              // erf() and its derivative, and store erfc - (1 - factor_coul) in erfc
+              // for excluded pairs the correction nearly cancels the Ewald term: use erf()
+              // erfc holds erfc - (1 - factor_coul)
               erfc = factor_coul - erf(grij);
               forcecoul = prefactor * (erfc + MY_ISPI4*grij*expm2);
             } else {

@@ -1724,14 +1724,8 @@ TEST(PairStyle, opt)
     if (!verbose) ::testing::internal::GetCapturedStdout();
 };
 
-// compare the forces with forces from finite differences of the potential
-// energy computed by fix numdiff.  this is enabled with the "numdiff" tag,
-// since many pair styles are not expected to pass this test, e.g. due to
-// tabulation or cutoffs without shifting.  the error of each force component
-// is normalized by the root mean square of all finite difference forces, so
-// that force components close to zero do not require an unreasonably small
-// relative error.  the tolerance is independent of the YAML file epsilon,
-// which is usually determined by the errors in the MD run.
+// compare the forces with finite differences of the energy from fix numdiff,
+// for styles with the "numdiff" tag; errors are normalized by the RMS force
 
 static constexpr double NUMDIFF_EPSILON = 1.0e-6;
 

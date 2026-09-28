@@ -130,10 +130,8 @@ __kernel void k_born_coul_long_cs(const __global numtyp4 *restrict x_,
           prefactor = qqrd2e * qj*qtmp;
 
           if (factor_coul > (acctyp)0) {
-            // for excluded pairs (e.g. a bonded core/shell pair) the Ewald term
-            // and the special bond correction nearly cancel at short distances,
-            // which amplifies the error of the erfc() approximation. So use the
-            // exact erf() and its derivative, and store erfc - factor_coul in _erfc
+            // for excluded pairs the correction nearly cancels the Ewald term: use erf()
+            // _erfc holds erfc - factor_coul
             acctyp grij = g_ewald * r;
             acctyp expm2 = exp(-grij*grij);
             _erfc = (acctyp)1.0 - factor_coul - erf(grij);
@@ -274,10 +272,8 @@ __kernel void k_born_coul_long_cs_fast(const __global numtyp4 *restrict x_,
           prefactor = qqrd2e * qj*qtmp;
 
           if (factor_coul > (acctyp)0) {
-            // for excluded pairs (e.g. a bonded core/shell pair) the Ewald term
-            // and the special bond correction nearly cancel at short distances,
-            // which amplifies the error of the erfc() approximation. So use the
-            // exact erf() and its derivative, and store erfc - factor_coul in _erfc
+            // for excluded pairs the correction nearly cancels the Ewald term: use erf()
+            // _erfc holds erfc - factor_coul
             acctyp grij = g_ewald * r;
             acctyp expm2 = exp(-grij*grij);
             _erfc = (acctyp)1.0 - factor_coul - erf(grij);

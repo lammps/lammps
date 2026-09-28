@@ -185,13 +185,10 @@ finite for :math:`r \rightarrow 0` when *w* is 0.0.
 .. versionchanged:: TBD
 
 For such excluded or scaled pairs, the correction and its derivative
-are now computed with the exact error function instead of the
-polynomial approximation that is used for all other pairs.  At the
-small distances between a core and its shell, the two terms of the
-correction nearly cancel each other, so that the error of the
-approximation would otherwise lead to forces that are not consistent
-with the energy.  Previously, a minimal distance of 1.0e-6 was added to
-*r* for these pairs.
+are computed with the exact error function instead of the polynomial
+approximation used for all other pairs, since the two terms of the
+correction nearly cancel at the small distances between a core and its
+shell.
 
 For styles that are not used with a long-range solver, i.e. those with
 "/dsf" or "/wolf" in the name, the only correction is the addition of

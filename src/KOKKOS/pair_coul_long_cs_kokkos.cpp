@@ -38,10 +38,8 @@
 
 using namespace LAMMPS_NS;
 
-// the core/shell Ewald correction uses a longer erfc series than the A1..A5
-// form of the parent style and the exact erf() for excluded pairs, and adds
-// EPSILON to rsq so that r = 0 core/shell pairs stay finite; all taken
-// verbatim from the CPU style
+// the core/shell Ewald correction uses a longer erfc series than A1..A5,
+// and the exact erf() for excluded pairs
 
 // the B series goes with its own EWALD_P, not the value EwaldConst pairs
 // with A1..A5
@@ -221,9 +219,7 @@ compute_fcoul(const KK_FLOAT& rsq, const int& /*i*/, const int&j,
 
     if (factor_coul < static_cast<KK_FLOAT>(1.0)) {
 
-      // for excluded pairs (e.g. a bonded core/shell pair) the Ewald term and
-      // the special bond correction nearly cancel at short distances, which
-      // amplifies the error of the erfc() approximation, so use the exact erf()
+      // for excluded pairs the correction nearly cancels the Ewald term: use erf()
 
       const KK_FLOAT grij = g_ewald_kk * r;
       const KK_FLOAT expm2 = Kokkos::exp(-grij*grij);

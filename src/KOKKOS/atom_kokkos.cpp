@@ -241,6 +241,10 @@ void *AtomKokkos::extract(const char *name)
 
 void AtomKokkos::sync(const ExecutionSpace space, uint64_t mask)
 {
+  // always, and before the exclusion below can return early: readers name
+  // only per-atom arrays, and no force region excludes the masses
+  sync_mass(space, MASS_MASK);
+
   // leave the arrays excluded by an overlapping force region alone: the host
   // and device contributions are merged at the end of the region
 
@@ -260,10 +264,6 @@ void AtomKokkos::sync(const ExecutionSpace space, uint64_t mask)
 
   avecKK->sync(space, mask);
   for (int n = 0; n < nprop_atom; n++) fix_prop_atom[n]->sync(space, mask);
-
-  // always, since readers name only per-atom arrays; see sync_mass()
-
-  sync_mass(space, MASS_MASK);
 }
 
 /* ----------------------------------------------------------------------

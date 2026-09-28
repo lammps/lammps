@@ -544,10 +544,7 @@ void FixNHUef::pre_exchange()
 
     // move atoms to the right processors
     domain->x2lamda(atom->nlocal);
-    // sorted, so that the local atom order after a flip does not depend on the
-    // order the irregular messages happen to arrive in; see the note in
-    // FixDeform::migrate_atoms()
-    irregular->migrate_atoms(1);
+    irregular->migrate_atoms();
     domain->lamda2x(atom->nlocal);
   }
 }

@@ -73,6 +73,8 @@ class PairBodyRoundedPolyhedron : public Pair {
     double pcsum[3], vtsum[3], nsum[3];    // contact points, tangential velocities, and
                                            // normals weighted by the elastic normal forces
     std::vector<double> patch;        // factors of the pairs of faces, see face_face_patches()
+    int patch_any = 0;                // 1 if any factor of a pair of faces is positive
+    std::vector<int> near_j;          // 1 for the faces of body j near body i
   };
 
  protected:
@@ -112,6 +114,9 @@ class PairBodyRoundedPolyhedron : public Pair {
   int *facnum;      // number of faces per line, 0 if uninit
   int *facfirst;    // index of first face per each line
   int facnummax;    // allocated size of facnum,facfirst vectors
+  double **facnorm;    // outward unit normals of the faces, see face_normal()
+  double **facplane;   // first vertex and outward unit normal in space, see nearest_face()
+  int *facsize;        // number of vertices of the faces
 
   double *enclosing_radius;    // enclosing radii for all bodies
   double *rounded_radius;      // rounded radii for all bodies
@@ -158,8 +163,14 @@ class PairBodyRoundedPolyhedron : public Pair {
   int vertex_cone(int ibody, int nv, const double *d, const double *ul = nullptr) const;
   int edge_cone(int ibody, int ne, const double *d) const;
   // geometry of the faces and weights of the contacts, see vertex_face_weight()
-  int face_size(int ibody, int nf) const;
-  void face_normal(int ibody, int nf, double *n) const;
+  int face_size(int ibody, int nf) const { return facsize[facfirst[ibody] + nf]; }
+  void face_normal(int ibody, int nf, double *n) const
+  {
+    const double *fn = facnorm[facfirst[ibody] + nf];
+    n[0] = fn[0];
+    n[1] = fn[1];
+    n[2] = fn[2];
+  }
   double patch_factor(const double *n1, const double *n2) const;
   void face_face_patches(int ibody, int jbody, int itype, int jtype, double **x, double **v,
                          double **f, double **torque, double **angmom, double **fnc,

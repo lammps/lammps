@@ -55,6 +55,9 @@ static constexpr double PARALLEL_TOL = 1.0e-12;   // 1 - |cos| below which two e
 static constexpr double CONE_TOL = 1.0e-10;       // tolerance of the normal cone tests
 static constexpr double PATCH_ANGLE = 5.0 * DEG2RAD;   // see patch_factor()
 static constexpr double LINE_ANGLE = 5.0 * DEG2RAD;    // see edge_edge_weight()
+static const double COS_PATCH_ANGLE = cos(PATCH_ANGLE);
+static const double COS_HALF_PATCH_ANGLE = cos(0.5 * PATCH_ANGLE);
+static const double COS_LINE_ANGLE = cos(LINE_ANGLE);
 static constexpr int MAX_FACE_SIZE = 4;   // maximum number of vertices per face (same as BodyRoundedPolyhedron)
 static constexpr int NFNC = 12;           // per-body force and torque of the j_a scaling, and of damping
 static constexpr char id_fix_store_prefix[] = "BODY_ROUNDED_POLYHEDRON_WORK_";
@@ -80,6 +83,8 @@ PairBodyRoundedPolyhedron::PairBodyRoundedPolyhedron(LAMMPS *lmp) :
 
   facmax = facnummax = 0;
   face = nullptr;
+  facnorm = facplane = nullptr;
+  facsize = nullptr;
   facnum = facfirst = nullptr;
 
   enclosing_radius = nullptr;
@@ -135,6 +140,9 @@ PairBodyRoundedPolyhedron::~PairBodyRoundedPolyhedron()
   memory->destroy(edfirst);
 
   memory->destroy(face);
+  memory->destroy(facnorm);
+  memory->destroy(facplane);
+  memory->destroy(facsize);
   memory->destroy(facnum);
   memory->destroy(facfirst);
 
@@ -853,6 +861,9 @@ void PairBodyRoundedPolyhedron::body2space(int i)
   if (nface + body_num_faces > facmax) {
     facmax += DELTA;
     memory->grow(face,facmax,MAX_FACE_SIZE,"pair:face");
+    memory->grow(facnorm,facmax,3,"pair:facnorm");
+    memory->grow(facplane,facmax,6,"pair:facplane");
+    memory->grow(facsize,facmax,"pair:facsize");
   }
 
   if ((body_num_faces > 0) && (face_pts == nullptr))
@@ -862,6 +873,46 @@ void PairBodyRoundedPolyhedron::body2space(int i)
     for (int k = 0; k < MAX_FACE_SIZE; k++)
       face[nface][k] = static_cast<int>(face_pts[MAX_FACE_SIZE*m+k]);
     nface++;
+  }
+
+  // geometry of the faces, which is used many times for each pair of bodies,
+  // see face_size(), face_normal(), and nearest_face()
+
+  double **x = atom->x;
+  for (int m = facfirst[i]; m < nface; m++) {
+    int n = 0;
+    while ((n < MAX_FACE_SIZE) && (static_cast<int>(face[m][n]) >= 0)) n++;
+    facsize[m] = n;
+
+    // outward unit normal from the vertices relative to the center
+
+    double *x1 = discrete[dfirst[i]+static_cast<int>(face[m][0])];
+    double *x2 = discrete[dfirst[i]+static_cast<int>(face[m][1])];
+    double *x3 = discrete[dfirst[i]+static_cast<int>(face[m][2])];
+    double u[3], v[3];
+    MathExtra::sub3(x2, x1, u);
+    MathExtra::sub3(x3, x1, v);
+    MathExtra::cross3(u, v, facnorm[m]);
+    MathExtra::norm3(facnorm[m]);
+    if (MathExtra::dot3(x1, facnorm[m]) < 0.0) MathExtra::negate3(facnorm[m]);
+
+    // first vertex and outward unit normal from the vertices in space
+
+    double xi1[3], xi2[3], xi3[3], xc[3], ans[3];
+    double *nf = &facplane[m][3];
+    MathExtra::add3(x[i], x1, xi1);
+    MathExtra::add3(x[i], x2, xi2);
+    MathExtra::add3(x[i], x3, xi3);
+    MathExtra::sub3(xi2, xi1, u);
+    MathExtra::sub3(xi3, xi1, v);
+    MathExtra::cross3(u, v, nf);
+    MathExtra::norm3(nf);
+    xc[0] = (xi1[0] + xi2[0] + xi3[0])/3.0;
+    xc[1] = (xi1[1] + xi2[1] + xi3[1])/3.0;
+    xc[2] = (xi1[2] + xi2[2] + xi3[2])/3.0;
+    MathExtra::sub3(xc, x[i], ans);
+    if (MathExtra::dot3(ans, nf) < 0) MathExtra::negate3(nf);
+    MathExtra::copy3(xi1, facplane[m]);
   }
 
   enclosing_radius[i] = eradius;
@@ -1134,7 +1185,7 @@ int PairBodyRoundedPolyhedron::vertex_cone(int ibody, int nv, const double *d,
     // an edge nearly parallel to the direction ul of an edge of the other body
     // touches it along a line, whose end is the vertex, see edge_edge_weight()
 
-    if (ul && (fabs(MathExtra::dot3(e, ul)) > cos(LINE_ANGLE) * elen * MathExtra::len3(ul)))
+    if (ul && (fabs(MathExtra::dot3(e, ul)) > COS_LINE_ANGLE * elen * MathExtra::len3(ul)))
       continue;
     if (MathExtra::dot3(d, e) > CONE_TOL * dlen * elen) return 0;
   }
@@ -1178,39 +1229,6 @@ int PairBodyRoundedPolyhedron::edge_cone(int ibody, int ne, const double *d) con
     if (MathExtra::dot3(d, tf) > CONE_TOL * dlen * MathExtra::len3(tf)) return 0;
   }
   return 1;
-}
-
-/* ----------------------------------------------------------------------
-   Geometry of the faces of body ibody, in the space frame relative to its
-   center: number of vertices and outward unit normal
-------------------------------------------------------------------------- */
-
-int PairBodyRoundedPolyhedron::face_size(int ibody, int nf) const
-{
-  int iffirst = facfirst[ibody];
-  int n = 0;
-  while ((n < MAX_FACE_SIZE) && (static_cast<int>(face[iffirst+nf][n]) >= 0)) n++;
-  return n;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void PairBodyRoundedPolyhedron::face_normal(int ibody, int nf, double *n) const
-{
-  int ifirst = dfirst[ibody];
-  int iffirst = facfirst[ibody];
-  double *x1 = discrete[ifirst+static_cast<int>(face[iffirst+nf][0])];
-  double *x2 = discrete[ifirst+static_cast<int>(face[iffirst+nf][1])];
-  double *x3 = discrete[ifirst+static_cast<int>(face[iffirst+nf][2])];
-  double u[3], v[3];
-  MathExtra::sub3(x2, x1, u);
-  MathExtra::sub3(x3, x1, v);
-  MathExtra::cross3(u, v, n);
-  MathExtra::norm3(n);
-
-  // the center of the body is at the origin, inside the body
-
-  if (MathExtra::dot3(x1, n) < 0.0) MathExtra::negate3(n);
 }
 
 /* ----------------------------------------------------------------------
@@ -1258,7 +1276,8 @@ static double smoothstep(double x)
 double PairBodyRoundedPolyhedron::patch_factor(const double *n1, const double *n2) const
 {
   double c = -MathExtra::dot3(n1, n2);
-  if (c <= cos(PATCH_ANGLE)) return 0.0;
+  if (c <= COS_PATCH_ANGLE) return 0.0;
+  if (c >= COS_HALF_PATCH_ANGLE) return 1.0;
   double phi = acos(MIN(1.0, c));
   return 1.0 - smoothstep(2.0 * phi / PATCH_ANGLE - 1.0);
 }
@@ -1440,19 +1459,27 @@ void PairBodyRoundedPolyhedron::face_face_patches(int ibody, int jbody, int ityp
   double vi[MAX_FACE_SIZE][3], vj[MAX_FACE_SIZE][3], pi2[MAX_FACE_SIZE][2];
   PatchVertex poly[MAXP], work[MAXP];
 
-  // factors of the pairs of faces, see feature_patch_factor()
+  // factors of the pairs of faces, see feature_patch_factor(), which are
+  // stored once the first pair of faces is nearly parallel, since that is rare
+  // the faces near the other body are determined only for such pairs, with
+  // -1 for not yet determined
 
   int nfj = facnum[jbody];
-  s.patch.assign(facnum[ibody]*nfj, 0.0);
+  s.patch_any = 0;
+  s.near_j.assign(nfj, -1);
 
   for (int fi = 0; fi < facnum[ibody]; fi++) {
-    if (!face_near(s, ibody, fi)) continue;
     face_normal(ibody, fi, ni);
+    int near_i = -1;
     for (int fj = 0; fj < facnum[jbody]; fj++) {
-      if (!face_near(s, jbody, fj)) continue;
       face_normal(jbody, fj, nj);
+      if (-MathExtra::dot3(ni, nj) <= COS_PATCH_ANGLE) continue;
       double sp = patch_factor(ni, nj);
       if (sp <= 0.0) continue;
+      if (near_i < 0) near_i = face_near(s, ibody, fi);
+      if (!near_i) break;
+      if (s.near_j[fj] < 0) s.near_j[fj] = face_near(s, jbody, fj);
+      if (!s.near_j[fj]) continue;
 
       // plane halfway between the faces with the basis e1, e2, and the
       // center o of face i as origin
@@ -1580,8 +1607,12 @@ void PairBodyRoundedPolyhedron::face_face_patches(int ibody, int jbody, int ityp
         width = MIN(width, dmax);
       }
       sp *= smoothstep(width / contact_dist);
-      s.patch[fi*nfj+fj] = sp;
       if (sp <= 0.0) continue;
+      if (!s.patch_any) {
+        s.patch.assign(facnum[ibody]*nfj, 0.0);
+        s.patch_any = 1;
+      }
+      s.patch[fi*nfj+fj] = sp;
 
       // corners of the region of overlap, with the geometry of the contact of
       // their vertex with the other face, or of their two crossing edges, whose
@@ -1679,7 +1710,7 @@ int PairBodyRoundedPolyhedron::face_has(int ibody, int nf, int nv, int ne) const
 double PairBodyRoundedPolyhedron::feature_patch_factor(const Scratch &s, int ibody, int iv, int ie,
                                                        int jbody, int jv, int je, int jf) const
 {
-  if (s.patch.empty()) return 0.0;
+  if (!s.patch_any || s.patch.empty()) return 0.0;
   int nfj = facnum[s.jbody];
   double smax = 0.0;
   for (int mf = 0; mf < facnum[ibody]; mf++) {
@@ -1727,7 +1758,7 @@ double PairBodyRoundedPolyhedron::edge_edge_weight(const Scratch &s, int ibody, 
   MathExtra::sub3(discrete[jfirst+static_cast<int>(edge[jefirst+ej][1])],
                   discrete[jfirst+static_cast<int>(edge[jefirst+ej][0])], uj);
   double c = fabs(MathExtra::dot3(ui, uj)) / (MathExtra::len3(ui) * MathExtra::len3(uj));
-  double wline = smoothstep(acos(MIN(1.0, c)) / LINE_ANGLE);
+  double wline = (c <= COS_LINE_ANGLE) ? 1.0 : smoothstep(acos(MIN(1.0, c)) / LINE_ANGLE);
   return (1.0 - feature_patch_factor(s, ibody, -1, ei, jbody, -1, ej, -1)) * wline;
 }
 
@@ -1806,11 +1837,18 @@ double PairBodyRoundedPolyhedron::vertex_edges_weight(const Scratch &s, int ibod
         if (e != ej) continue;
       } else if ((static_cast<int>(edge[jefirst+e][0]) != nj) &&
                  (static_cast<int>(edge[jefirst+e][1]) != nj)) continue;
-      if (edges_interact(ibody, ei, jbody, e))
-        wmax = MAX(wmax, edge_edge_weight(s, ibody, ei, jbody, e));
+
+      // the weight is cheaper than the test whether the edges interact, and
+      // no weight is larger than one
+
+      double w = edge_edge_weight(s, ibody, ei, jbody, e);
+      if ((w > wmax) && edges_interact(ibody, ei, jbody, e)) {
+        wmax = w;
+        if (wmax >= 1.0) return 1.0;
+      }
     }
   }
-  return MIN(wmax, 1.0);
+  return wmax;
 }
 
 /* ----------------------------------------------------------------------
@@ -3077,39 +3115,22 @@ void PairBodyRoundedPolyhedron::sum_torque(double* xm, double *x, double fx,
     which is negative only if q is inside the (convex) body
 ------------------------------------------------------------------------- */
 
-double PairBodyRoundedPolyhedron::nearest_face(int ibody, double *xmi,
+double PairBodyRoundedPolyhedron::nearest_face(int ibody, double * /*xmi*/,
                                                const double *q, double *n)
 {
-  int ifirst = dfirst[ibody];
   int iffirst = facfirst[ibody];
   double smax = 0.0;
-  double xi1[3],xi2[3],xi3[3],u[3],v[3],nf[3],xc[3],ans[3];
+  double ans[3];
+
+  // planes of the faces with their outward unit normals, see body2space()
 
   for (int nf_index = 0; nf_index < facnum[ibody]; nf_index++) {
-    int npi1 = static_cast<int>(face[iffirst+nf_index][0]);
-    int npi2 = static_cast<int>(face[iffirst+nf_index][1]);
-    int npi3 = static_cast<int>(face[iffirst+nf_index][2]);
-    MathExtra::add3(xmi, discrete[ifirst+npi1], xi1);
-    MathExtra::add3(xmi, discrete[ifirst+npi2], xi2);
-    MathExtra::add3(xmi, discrete[ifirst+npi3], xi3);
-
-    // outward unit normal of the face
-
-    MathExtra::sub3(xi2, xi1, u);
-    MathExtra::sub3(xi3, xi1, v);
-    MathExtra::cross3(u, v, nf);
-    MathExtra::norm3(nf);
-    xc[0] = (xi1[0] + xi2[0] + xi3[0])/3.0;
-    xc[1] = (xi1[1] + xi2[1] + xi3[1])/3.0;
-    xc[2] = (xi1[2] + xi2[2] + xi3[2])/3.0;
-    MathExtra::sub3(xc, xmi, ans);
-    if (MathExtra::dot3(ans, nf) < 0) MathExtra::negate3(nf);
-
-    MathExtra::sub3(q, xi1, ans);
-    double s = MathExtra::dot3(ans, nf);
+    double *plane = facplane[iffirst+nf_index];
+    MathExtra::sub3(q, plane, ans);
+    double s = MathExtra::dot3(ans, &plane[3]);
     if ((nf_index == 0) || (s > smax)) {
       smax = s;
-      MathExtra::copy3(nf, n);
+      MathExtra::copy3(&plane[3], n);
     }
   }
 

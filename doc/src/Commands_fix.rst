@@ -19,6 +19,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`addtorque/atom (k) <fix_addtorque_atom>`
    * :doc:`addtorque/group (k) <fix_addtorque_group>`
    * :doc:`alchemy <fix_alchemy>`
+   * :doc:`align/neighbor <fix_align_neighbor>`
    * :doc:`align/self <fix_align_self>`
    * :doc:`amoeba/bitorsion <fix_amoeba_bitorsion>`
    * :doc:`amoeba/pitorsion <fix_amoeba_pitorsion>`
@@ -194,6 +195,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`press/berendsen (k) <fix_press_berendsen>`
    * :doc:`press/langevin (k) <fix_press_langevin>`
    * :doc:`print <fix_print>`
+   * :doc:`propel/ou <fix_propel_ou>`
    * :doc:`propel/self (k) <fix_propel_self>`
    * :doc:`property/atom (k) <fix_property_atom>`
    * :doc:`python/invoke <fix_python_invoke>`
@@ -278,6 +280,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`ttm/grid <fix_ttm>`
    * :doc:`ttm/mod <fix_ttm>`
    * :doc:`ttm/thermal <fix_ttm>`
+   * :doc:`tumble <fix_tumble>`
    * :doc:`tune/kspace <fix_tune_kspace>`
    * :doc:`vector <fix_vector>`
    * :doc:`viscosity <fix_viscosity>`

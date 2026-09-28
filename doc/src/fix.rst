@@ -197,6 +197,7 @@ accelerated styles exist.
 * :doc:`addtorque/atom <fix_addtorque_atom>` - add a torque to a finite-size particles
 * :doc:`addtorque/group <fix_addtorque_group>` - add a torque to a group of atoms
 * :doc:`alchemy <fix_alchemy>` - perform an "alchemical transformation" between two partitions
+* :doc:`align/neighbor <fix_align_neighbor>` - add torque to atoms that aligns them with their neighbors
 * :doc:`align/self <fix_align_self>` - add torque to groups of atoms due to a self-alignment
 * :doc:`amoeba/bitorsion <fix_amoeba_bitorsion>` - torsion/torsion terms in AMOEBA force field
 * :doc:`amoeba/pitorsion <fix_amoeba_pitorsion>` - 6-body terms in AMOEBA force field
@@ -372,6 +373,7 @@ accelerated styles exist.
 * :doc:`press/berendsen <fix_press_berendsen>` - pressure control by Berendsen barostat
 * :doc:`press/langevin <fix_press_langevin>` - pressure control by Langevin barostat
 * :doc:`print <fix_print>` - print text and variables during a simulation
+* :doc:`propel/ou <fix_propel_ou>` - active force with Ornstein-Uhlenbeck fluctuations
 * :doc:`propel/self <fix_propel_self>` - model self-propelled particles
 * :doc:`property/atom <fix_property_atom>` - add customized per-atom values
 * :doc:`python/invoke <fix_python_invoke>` - call a Python function during a simulation
@@ -456,6 +458,7 @@ accelerated styles exist.
 * :doc:`ttm/grid <fix_ttm>` - two-temperature model for electronic/atomic coupling (distributed grid)
 * :doc:`ttm/mod <fix_ttm>` - enhanced two-temperature model with additional options
 * :doc:`ttm/thermal <fix_ttm>` - a two-temperature model for thermal transport
+* :doc:`tumble <fix_tumble>` - random reorientation of run-and-tumble particles
 * :doc:`tune/kspace <fix_tune_kspace>` - auto-tune :math:`k`-space parameters
 * :doc:`vector <fix_vector>` - accumulate a global vector every *N* timesteps
 * :doc:`viscosity <fix_viscosity>` - Mueller-Plathe momentum exchange for viscosity calculation

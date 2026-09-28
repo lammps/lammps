@@ -1,0 +1,72 @@
+LAMMPS (2 Sep 2026)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
+  using 1 OpenMP thread(s) per MPI task
+Lattice spacing in x,y,z = 1.7099759 1.7099759 1.7099759
+Created orthogonal box = (0 0 0) to (13.679808 13.679808 13.679808)
+  1 by 1 by 1 MPI processor grid
+Created 512 atoms
+  using lattice units in orthogonal box = (0 0 0) to (13.679808 13.679808 13.679808)
+  create_atoms CPU = 0.000 seconds
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 1.422462
+  ghost atom cutoff = 1.422462
+  binsize = 0.711231, bins = 20 20 20
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton off
+      pair build: half/bin/atomonly/newtoff
+      stencil: full/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 3.871 | 3.871 | 3.871 Mbytes
+   Step          Time          PotEng         c_fsq         c_msd[4]       c_press    
+         0   0              0              97.629944      0             -0.66926374   
+       500   1              36.967622      98.075023      1.9109935      1.2078782    
+      1000   2              40.374857      97.22078       5.7213586      2.0474196    
+      1500   3              39.997523      91.83656       9.9604079      2.1024047    
+      2000   4              38.262799      99.838833      14.503888      1.9862828    
+      2500   5              36.597663      95.989152      19.011682      2.2740616    
+      3000   6              48.47087       102.17632      23.511582      2.0018399    
+      3500   7              28.082089      99.562844      28.382465      1.5400717    
+      4000   8              37.933891      102.24634      33.524237      2.5438311    
+      4500   9              36.588558      102.37501      39.107994      2.4957452    
+      5000   10             42.727491      94.67481       43.692694      2.7772941    
+      5500   11             32.972533      99.274633      48.317711      2.445668     
+      6000   12             41.253523      102.76073      52.916348      1.8829404    
+      6500   13             40.735105      103.76073      57.724164      1.9269763    
+      7000   14             39.233105      102.49419      62.15141       2.5916447    
+      7500   15             41.217607      100.25423      67.231201      2.2709751    
+      8000   16             43.059057      103.96417      72.597826      2.9643301    
+      8500   17             27.697578      101.87465      78.398999      2.2169822    
+      9000   18             46.867935      96.117425      83.737675      1.3007067    
+      9500   19             44.475774      103.58559      87.792758      0.87230671   
+     10000   20             41.134223      97.411088      92.371142      2.0195548    
+Loop time of 1.16889 on 1 procs for 10000 steps with 512 atoms
+
+Performance: 1478321.761 tau/day, 8555.103 timesteps/s, 4.380 Matom-step/s
+65.1% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.06197    | 0.06197    | 0.06197    |   0.0 |  5.30
+Neigh   | 0.17899    | 0.17899    | 0.17899    |   0.0 | 15.31
+Comm    | 0.022517   | 0.022517   | 0.022517   |   0.0 |  1.93
+Output  | 0.0018418  | 0.0018418  | 0.0018418  |   0.0 |  0.16
+Modify  | 0.88038    | 0.88038    | 0.88038    |   0.0 | 75.32
+Other   |            | 0.0232     |            |       |  1.98
+
+Nlocal:            512 ave         512 max         512 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:            377 ave         377 max         377 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:            695 ave         695 max         695 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 695
+Ave neighs/atom = 1.3574219
+Neighbor list builds = 637
+Dangerous builds = 0
+Total wall time: 0:00:01

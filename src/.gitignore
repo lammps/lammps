@@ -82,6 +82,12 @@
 /fix_propel_self.h
 /fix_align_self.cpp
 /fix_align_self.h
+/fix_align_neighbor.cpp
+/fix_align_neighbor.h
+/fix_propel_ou.cpp
+/fix_propel_ou.h
+/fix_tumble.cpp
+/fix_tumble.h
 
 /dump_image.cpp
 /dump_image.h

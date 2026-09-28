@@ -13,37 +13,38 @@
 
 #ifdef FIX_CLASS
 // clang-format off
-FixStyle(align/self,FixAlignSelf);
+FixStyle(align/neighbor,FixAlignNeighbor);
 // clang-format on
 #else
 
-#ifndef LMP_FIX_ALIGN_SELF_H
-#define LMP_FIX_ALIGN_SELF_H
+#ifndef LMP_FIX_ALIGN_NEIGHBOR_H
+#define LMP_FIX_ALIGN_NEIGHBOR_H
 
 #include "fix.h"
+
 namespace LAMMPS_NS {
 
-class FixAlignSelf : public Fix {
+class FixAlignNeighbor : public Fix {
  public:
-  FixAlignSelf(class LAMMPS *, int, char **);
-
+  FixAlignNeighbor(class LAMMPS *, int, char **);
+  int setmask() override;
   void init() override;
+  void init_list(int, class NeighList *) override;
   void setup(int) override;
   void post_force(int) override;
   void post_force_respa(int, int, int) override;
-  int setmask() override;
 
  private:
-  double magnitude;
-  double sx, sy, sz;
-  int mode;
-  int ilevel_respa;
+  int mode;                // per-atom property that stores the orientation
+  int symmetry;            // polar or nematic alignment
+  double magnitude;        // prefactor of the alignment torque
+  double cutoff, cutsq;    // alignment cutoff and its square
+  int ilevel_respa;        // rRESPA level at which the torque is applied
+  class NeighList *list;
 
-  void post_force_dipole(int);
-  void post_force_quaternion(int);
-
-  class AtomVecEllipsoid *avec;
+  void post_force_dipole();
 };
+
 }    // namespace LAMMPS_NS
 #endif
 #endif

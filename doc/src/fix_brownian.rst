@@ -280,8 +280,9 @@ was built with that package.  See the :doc:`Build package
 Related commands
 """"""""""""""""
 
-:doc:`fix propel/self <fix_propel_self>`,
+:doc:`fix propel/self <fix_propel_self>`, :doc:`fix tumble <fix_tumble>`,
 :doc:`fix langevin <fix_langevin>`, :doc:`fix nve/sphere <fix_nve_sphere>`,
+:doc:`Howto active matter <Howto_active>`
 
 Default
 """""""

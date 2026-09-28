@@ -24,6 +24,7 @@
 #include "atom.h"
 #include "compute.h"
 #include "domain.h"
+#include "fix.h"
 #include "force.h"
 #include "info.h"
 #include "input.h"
@@ -422,6 +423,9 @@ TEST(PairStyle, plain)
     const int nlocal = lmp->atom->nlocal;
     ASSERT_EQ(lmp->atom->natoms, nlocal);
 
+    // newton pair off here comes from the yaml file; keep it for the restarts
+    const bool forced_newton_off = (lmp->force->newton_pair == 0);
+
     double epsilon = test_config.epsilon;
     // relax test precision when using pppm and single precision FFTs
 #if defined(FFT_SINGLE)
@@ -508,7 +512,7 @@ TEST(PairStyle, plain)
     }
 
     if (!verbose) ::testing::internal::CaptureStdout();
-    restart_lammps(lmp, test_config);
+    restart_lammps(lmp, test_config, false, !forced_newton_off);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 
     pair = lmp->force->pair;
@@ -528,7 +532,7 @@ TEST(PairStyle, plain)
     // the "nofdotr" token in skip_tests.
     if ((test_config.pair_style != "rann") && !test_config.skip_tests.count("nofdotr")) {
         if (!verbose) ::testing::internal::CaptureStdout();
-        restart_lammps(lmp, test_config, true);
+        restart_lammps(lmp, test_config, true, !forced_newton_off);
         if (!verbose) ::testing::internal::GetCapturedStdout();
 
         pair = lmp->force->pair;
@@ -633,6 +637,9 @@ TEST(PairStyle, omp)
     const int nlocal = lmp->atom->nlocal;
     ASSERT_EQ(lmp->atom->natoms, nlocal);
 
+    // see the comment on the same flag in the "plain" test case
+    const bool forced_newton_off = (lmp->force->newton_pair == 0);
+
     // relax error a bit for OPENMP package
     double epsilon = 5.0 * test_config.epsilon;
     // relax test precision when using pppm and single precision FFTs
@@ -721,7 +728,7 @@ TEST(PairStyle, omp)
 
     if (!test_config.skip_tests.count("nofdotr")) {
         if (!verbose) ::testing::internal::CaptureStdout();
-        restart_lammps(lmp, test_config, true);
+        restart_lammps(lmp, test_config, true, !forced_newton_off);
         if (!verbose) ::testing::internal::GetCapturedStdout();
 
         pair = lmp->force->pair;
@@ -1648,6 +1655,9 @@ TEST(PairStyle, opt)
     const int nlocal = lmp->atom->nlocal;
     ASSERT_EQ(lmp->atom->natoms, nlocal);
 
+    // see the comment on the same flag in the "plain" test case
+    const bool forced_newton_off = (lmp->force->newton_pair == 0);
+
     // relax error a bit for OPT package
     double epsilon = 2.0 * test_config.epsilon;
     // relax test precision when using pppm and single precision FFTs
@@ -1689,7 +1699,7 @@ TEST(PairStyle, opt)
 
     if (!test_config.skip_tests.count("nofdotr")) {
         if (!verbose) ::testing::internal::CaptureStdout();
-        restart_lammps(lmp, test_config, true);
+        restart_lammps(lmp, test_config, true, !forced_newton_off);
         if (!verbose) ::testing::internal::GetCapturedStdout();
 
         pair = lmp->force->pair;
@@ -1709,6 +1719,96 @@ TEST(PairStyle, opt)
     cleanup_lammps(lmp, test_config);
     if (!verbose) ::testing::internal::GetCapturedStdout();
 };
+
+// compare the forces with finite differences of the energy from fix numdiff,
+// for styles with the "numdiff" tag; errors are normalized by the RMS force
+
+static constexpr double NUMDIFF_EPSILON = 1.0e-6;
+
+static void run_numdiff_test(LAMMPS::argv &args)
+{
+    ::testing::internal::CaptureStdout();
+    LAMMPS *lmp = nullptr;
+    try {
+        lmp = init_lammps(args, test_config, true);
+    } catch (std::exception &e) {
+        std::string output = ::testing::internal::GetCapturedStdout();
+        if (verbose) std::cout << output;
+        FAIL() << e.what();
+    }
+    std::string output = ::testing::internal::GetCapturedStdout();
+    if (verbose) std::cout << output;
+
+    if (!lmp) {
+        std::cerr << "One or more prerequisite styles are not available "
+                     "in this LAMMPS configuration:\n";
+        for (auto &prerequisite : test_config.prerequisites) {
+            std::cerr << prerequisite.first << "_style " << prerequisite.second << "\n";
+        }
+        GTEST_SKIP();
+    }
+
+    EXPECT_THAT(output, StartsWith("LAMMPS ("));
+    EXPECT_THAT(output, HasSubstr("Loop time"));
+
+    // abort if running in parallel and not all atoms are local
+    const int nlocal = lmp->atom->nlocal;
+    ASSERT_EQ(lmp->atom->natoms, nlocal);
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    lmp->input->one("fix diff all numdiff 2 6.05504e-6");
+    lmp->input->one("run 2 post no");
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+    Fix *ifix = lmp->modify->get_fix_by_id("diff");
+    ASSERT_NE(ifix, nullptr);
+
+    double **f1 = lmp->atom->f;
+    double **f2 = ifix->array_atom;
+    double fscale = 0.0;
+    for (int i = 0; i < nlocal; ++i)
+        fscale += f2[i][0] * f2[i][0] + f2[i][1] * f2[i][1] + f2[i][2] * f2[i][2];
+    fscale = sqrt(fscale / (3.0 * nlocal));
+    ASSERT_GT(fscale, 0.0);
+
+    const double epsilon = NUMDIFF_EPSILON;
+    ErrorStats stats;
+    SCOPED_TRACE("EXPECT FORCES: numdiff");
+    for (int i = 0; i < nlocal; ++i) {
+        for (int k = 0; k < 3; ++k) {
+            const double err = fabs(f1[i][k] - f2[i][k]) / fscale;
+            stats.add(err);
+            EXPECT_LE(err, epsilon) << "atom " << lmp->atom->tag[i] << " component " << k
+                                    << ": force " << f1[i][k] << " numdiff " << f2[i][k];
+        }
+    }
+    if (print_stats) std::cerr << "numdiff  stats: " << stats << " epsilon: " << epsilon << "\n";
+
+    if (!verbose) ::testing::internal::CaptureStdout();
+    cleanup_lammps(lmp, test_config);
+    if (!verbose) ::testing::internal::GetCapturedStdout();
+}
+
+TEST(PairStyle, numdiff)
+{
+    if (!Info::has_package("EXTRA-FIX")) GTEST_SKIP();
+    if (!test_config.has_tag("numdiff")) GTEST_SKIP();
+    if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
+
+    LAMMPS::argv args = {"PairStyle", "-log", "none", "-echo", "screen", "-nocite"};
+    run_numdiff_test(args);
+}
+
+TEST(PairStyle, numdiff_omp)
+{
+    if (!Info::has_package("EXTRA-FIX")) GTEST_SKIP();
+    if (!Info::has_package("OPENMP")) GTEST_SKIP();
+    if (!test_config.has_tag("numdiff")) GTEST_SKIP();
+    if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
+
+    LAMMPS::argv args = {"PairStyle", "-log", "none", "-echo", "screen", "-nocite",
+                         "-pk",       "omp",  "4",    "-sf",   "omp"};
+    run_numdiff_test(args);
+}
 
 TEST(PairStyle, single)
 {

@@ -15,7 +15,6 @@
 
 #include "atom_kokkos.h"
 #include "atom_masks.h"
-#include "constants_oxdna.h"
 #include "kokkos.h"
 #include "memory_kokkos.h"
 #include "neighbor.h"
@@ -137,21 +136,26 @@ void FixOxdnaNpairKokkos<DeviceType>::pre_force(int /*vflag*/)
 
 /* ----------------------------------------------------------------------
    largest distance of any hydrogen-bonding or stacking interaction site
-   from the nucleotide COM over all supported models
+   from the nucleotide COM over all supported models.  The KOKKOS styles
+   only support lj units, so these are the lj unit values that are also
+   hard-coded in their kernels.
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
 double FixOxdnaNpairKokkos<DeviceType>::max_site_offset()
 {
-  double dmax = std::fabs(ConstantsOxdna::get_dx_cbs_oxdna1());
-  dmax = std::max(dmax, std::fabs(ConstantsOxdna::get_dx_cstk_oxdna1()));
-  dmax = std::max(dmax, std::fabs(ConstantsOxdna::get_dx_cbs_pur_oxdna3()));
-  dmax = std::max(dmax, std::fabs(ConstantsOxdna::get_dx_cbs_pyr_oxdna3()));
-  dmax = std::max(dmax, std::fabs(ConstantsOxdna::get_dx_cstk_oxdna3()));
-  dmax = std::max(dmax, std::hypot(ConstantsOxdna::get_dx_cstk_3p_oxrna2(),
-                                   ConstantsOxdna::get_dy_cstk_3p_oxrna2()));
-  dmax = std::max(dmax, std::hypot(ConstantsOxdna::get_dx_cstk_5p_oxrna2(),
-                                   ConstantsOxdna::get_dy_cstk_5p_oxrna2()));
+  constexpr double dx_cbs_oxdna1 = 0.4;                  // base site, oxDNA1/2
+  constexpr double dx_cstk_oxdna1 = 0.34;                // stacking site, oxDNA1/2
+  constexpr double dx_cbs_pur_oxdna3 = 0.43;             // purine base site, oxDNA3
+  constexpr double dx_cbs_pyr_oxdna3 = 0.37;             // pyrimidine base site, oxDNA3
+  constexpr double dx_cstk_oxdna3 = 0.37;                // stacking site, oxDNA3
+  constexpr double dx_cstk_3p_oxrna2 = 0.4, dy_cstk_3p_oxrna2 = 0.1;
+  constexpr double dx_cstk_5p_oxrna2 = 0.124906078525, dy_cstk_5p_oxrna2 = -0.00866274917473;
+
+  double dmax = std::max({dx_cbs_oxdna1, dx_cstk_oxdna1, dx_cbs_pur_oxdna3, dx_cbs_pyr_oxdna3,
+                          dx_cstk_oxdna3});
+  dmax = std::max(dmax, std::hypot(dx_cstk_3p_oxrna2, dy_cstk_3p_oxrna2));
+  dmax = std::max(dmax, std::hypot(dx_cstk_5p_oxrna2, dy_cstk_5p_oxrna2));
   return dmax;
 }
 

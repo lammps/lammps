@@ -5,17 +5,6 @@ code review, chat) and, via an import from `.claude/CLAUDE.md`, by Claude Code. 
 task-specific guides live in `.github/instructions/` (auto-attached by path patterns) and
 `.github/dev-docs/` (read on demand); see the index at the end of this file.
 
-## Repository Overview
-
-**LAMMPS** (Large-scale Atomic/Molecular Massively Parallel Simulator) is a classical
-molecular dynamics simulation code for parallel computers: a large, mature C++ code base
-(~600MB, ~4,000 C++ files in `src/`) maintained by an international team of developers led by
-staff at Sandia National Laboratories, open-source under GPL v2.
-
-**Primary languages:** C++17 (core), C, Fortran, Python (interfaces)
-**Build systems:** CMake (primary), traditional Make (legacy, subset of packages)
-**Key frameworks:** MPI (parallelization), OpenMP (threading), Kokkos (GPU/many-core)
-
 ## Build System
 
 **Always use CMake for new builds; always build out-of-source.**  The `CMakeLists.txt`
@@ -67,8 +56,6 @@ Further named targets: `make check-homepage` (verifies https://www.lammps.org UR
 cd build && ctest -V                # all tests
 cd build && ctest -V -R <pattern>   # subset by regex
 ```
-Tests live in `unittest/` by category: `c-library/`, `commands/`, `force-styles/`,
-`formats/`, `fortran/`, `python/`, `utils/`, `granular/`.
 
 **Regression tests** (CI runs them after code review; local runs rarely needed):
 ```bash
@@ -83,11 +70,6 @@ python3 tools/regression-tests/run_tests.py --lmp-bin=build/lmp \
 
 ## Continuous Integration
 
-GitHub Actions workflows in `.github/workflows/`.  On every PR to `develop`:
-`style-check.yml` (coding standards), `unittest-linux.yml` (CTest), and
-`quick-regression.yml` (regression subset); see that directory for the further
-platform, style, and regression workflows.
-
 **Debugging CI failures:** style-check -> run the matching `make check-*` target in
 `src/` and the corresponding `make fix-*`; build failures -> check for `-S cmake`,
 package dependencies, and VLA usage; unit tests -> rerun the single test with
@@ -95,14 +77,6 @@ package dependencies, and VLA usage; unit tests -> rerun the single test with
 example inputs were modified.  A unit-test failure on only ONE Linux CI job is
 usually the `LAMMPS_SIZES=bigbig` configuration (64-bit `tagint`) -- reproduce with
 a minimal bigbig build first (see the testing guide) before suspecting anything else.
-
-## Repository Structure
-
-The top-level `LAMMPS` class (`src/lammps.h`) owns pointers to all subsystems (`atom`,
-`force`, `neighbor`, `comm`, `domain`, `modify`, `update`, `output`, `error`, `memory`).
-Almost all physics is implemented as named "styles" inheriting from abstract base
-classes (`Pair`, `Fix`, `Compute`, `Bond`, `Angle`, `Dihedral`, `Improper`, `Command`),
-mapped to keywords via macros (`PairStyle`, `FixStyle`, ...) in the style headers.
 
 ## Coding Standards
 
@@ -189,11 +163,6 @@ the change only adds an accelerated variant of an existing style (then
 add the code letter to the respective `Commands_*.rst` file instead).
 Check if any examples use the new or modified commands and whether they
 need updating.
-
-When reviewing C++ code, ensure that no alternative tokens are used for
-logical operators (`&&` not `and`, `||` not `or`, `!` not `not`, `^` not
-`xor`); alternative tokens cause compilation failures with some
-compilers, most prominently Microsoft Visual C++.
 
 There should not be any printf() statements or fprintf(screen,...) /
 fprintf(logfile,...)  in new code. Those should be either removed or

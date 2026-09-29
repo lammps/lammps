@@ -144,8 +144,12 @@ void CommTiledKokkos::forward_comm_device()
     nsend = nsendproc[iswap] - sendself[iswap];
     nrecv = nrecvproc[iswap] - sendself[iswap];
 
-    if (comm_x_only && !atomKK->k_x.NEED_TRANSFORM) {
+    if (comm_x_only && !decltype(atomKK->k_x)::NEED_TRANSFORM) {
       if (recvother[iswap]) {
+
+        // MPI receives the ghosts straight into x, so sync and claim x here
+
+        atomKK->sync(ExecutionSpaceFromDevice<DeviceType>::space,X_MASK);
 
         // no Kokkos work is launched inside the loop, so fence only once
 
@@ -174,6 +178,7 @@ void CommTiledKokkos::forward_comm_device()
       if (recvother[iswap]) {
         MPI_Waitall(nrecv,requests,MPI_STATUSES_IGNORE);
         DeviceType().fence();
+        atomKK->modified(ExecutionSpaceFromDevice<DeviceType>::space,X_MASK);
       }
 
     } else if (ghost_velocity) {
@@ -294,11 +299,17 @@ void CommTiledKokkos::reverse_comm_device()
 
   k_sendlist.sync<DeviceType>();
 
+  // with comm_f_only MPI sends straight from f, which a non-Kokkos fix may
+  // have changed (e.g. langevin/drude)
+
+  constexpr auto space = ExecutionSpaceFromDevice<DeviceType>::space;
+  atomKK->sync(space,atomKK->avecKK->datamask_reverse);
+
   for (int iswap = nswap-1; iswap >= 0; iswap--) {
     nsend = nsendproc[iswap] - sendself[iswap];
     nrecv = nrecvproc[iswap] - sendself[iswap];
 
-    if (comm_f_only  && !atomKK->k_f.NEED_TRANSFORM) {
+    if (comm_f_only  && !decltype(atomKK->k_f)::NEED_TRANSFORM) {
 
       // no Kokkos work is launched inside or between the two loops,
       // so one fence covers both
@@ -375,6 +386,8 @@ void CommTiledKokkos::reverse_comm_device()
       }
     }
   }
+
+  atomKK->modified(space,atomKK->avecKK->datamask_reverse);
 }
 
 /* ----------------------------------------------------------------------
@@ -834,6 +847,8 @@ void CommTiledKokkos::reverse_comm(Dump *dump, int size)
 void CommTiledKokkos::forward_comm_array(int nsize, double **array)
 {
   k_sendlist.sync_host();
+  // CommTiled packs through the raw host pointer buf_send, so drop stale claims
+  k_buf_send.clear_sync_state();
   CommTiled::forward_comm_array(nsize,array);
 }
 

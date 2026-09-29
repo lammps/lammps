@@ -39,7 +39,7 @@ class ImproperHybridKokkos : public ImproperHybrid {
   void init_style() override;
   double memory_usage() override;
 
- private:
+ protected:
   int maximproper_all;
 
   class NeighborKokkos *neighborKK;

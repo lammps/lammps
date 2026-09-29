@@ -210,6 +210,7 @@ void AtomVecEllipsoidKokkos::sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &So
 
 /* ------------------------------------------------------------------------- */
 
+namespace {
 template<class DeviceType>
 struct AtomVecEllipsoidKokkos_PackCommBonus {
   typedef DeviceType device_type;
@@ -252,6 +253,7 @@ struct AtomVecEllipsoidKokkos_PackCommBonus {
     }
   }
 };
+}    // namespace
 
 /* ------------------------------------------------------------------------- */
 
@@ -275,6 +277,7 @@ void AtomVecEllipsoidKokkos::pack_comm_bonus_kokkos(const int &n, const DAT::tdu
 
 /* ---------------------------------------------------------------------- */
 
+namespace {
 template<class DeviceType>
 struct AtomVecEllipsoidKokkos_UnpackCommBonus {
   typedef DeviceType device_type;
@@ -316,6 +319,7 @@ struct AtomVecEllipsoidKokkos_UnpackCommBonus {
     }
   }
 };
+}    // namespace
 
 /* ---------------------------------------------------------------------- */
 
@@ -343,6 +347,7 @@ void AtomVecEllipsoidKokkos::unpack_comm_bonus_kokkos(const int &n, const int &f
 
 /* ---------------------------------------------------------------------- */
 
+namespace {
 template<class DeviceType>
 struct AtomVecEllipsoidKokkos_PackCommSelfBonus {
   typedef DeviceType device_type;
@@ -374,6 +379,7 @@ struct AtomVecEllipsoidKokkos_PackCommSelfBonus {
     }
   }
 };
+}    // namespace
 
 /* ---------------------------------------------------------------------- */
 
@@ -400,6 +406,7 @@ void AtomVecEllipsoidKokkos::pack_comm_self_bonus_kokkos(const int &n,
 
 /* ---------------------------------------------------------------------- */
 
+namespace {
 template<class DeviceType>
 struct AtomVecEllipsoidKokkos_PackCommSelfFusedBonus {
   typedef DeviceType device_type;
@@ -451,6 +458,7 @@ struct AtomVecEllipsoidKokkos_PackCommSelfFusedBonus {
     }
   }
 };
+}    // namespace
 
 /* ---------------------------------------------------------------------- */
 
@@ -476,6 +484,7 @@ void AtomVecEllipsoidKokkos::pack_comm_self_fused_bonus_kokkos(const int &n,
 
 /* ---------------------------------------------------------------------- */
 
+namespace {
 template<class DeviceType>
 struct AtomVecEllipsoidKokkos_PackBorderBonus {
   typedef DeviceType device_type;
@@ -526,6 +535,7 @@ struct AtomVecEllipsoidKokkos_PackBorderBonus {
     }
   }
 };
+}    // namespace
 
 /* ---------------------------------------------------------------------- */
 
@@ -560,6 +570,7 @@ void AtomVecEllipsoidKokkos::pack_border_bonus_kokkos(int n, DAT::tdual_int_1d k
 
 /* ------------------------------------------------------------------------- */
 
+namespace {
 template<class DeviceType>
 struct AtomVecEllipsoidKokkos_UnpackBorderBonus {
   typedef DeviceType device_type;
@@ -620,6 +631,7 @@ struct AtomVecEllipsoidKokkos_UnpackBorderBonus {
     }
   }
 };
+}    // namespace
 
 /* ------------------------------------------------------------------------- */
 
@@ -660,6 +672,7 @@ void AtomVecEllipsoidKokkos::unpack_border_bonus_kokkos(const int &n, const int 
 
 /* ---------------------------------------------------------------------- */
 
+namespace {
 template<class DeviceType>
 struct AtomVecEllipsoidKokkos_PackExchangeBonus {
   typedef DeviceType device_type;
@@ -734,9 +747,11 @@ struct AtomVecEllipsoidKokkos_PackExchangeBonus {
     }
   }
 };
+}    // namespace
 
 /* ---------------------------------------------------------------------- */
 
+namespace {
 template<class DeviceType>
 struct AtomVecEllipsoidKokkos_BackfillEllipsoid {
   typedef DeviceType device_type;
@@ -787,6 +802,7 @@ struct AtomVecEllipsoidKokkos_BackfillEllipsoid {
     }
   }
 };
+}    // namespace
 
 /* ---------------------------------------------------------------------- */
 
@@ -839,6 +855,7 @@ void AtomVecEllipsoidKokkos::pack_exchange_bonus_kokkos(const int &nsend,
 
 /* ---------------------------------------------------------------------- */
 
+namespace {
 template<class DeviceType>
 struct AtomVecEllipsoidKokkos_UnpackExchangeBonus {
   typedef DeviceType device_type;
@@ -894,6 +911,7 @@ struct AtomVecEllipsoidKokkos_UnpackExchangeBonus {
     }
   }
 };
+}    // namespace
 
 /* ---------------------------------------------------------------------- */
 

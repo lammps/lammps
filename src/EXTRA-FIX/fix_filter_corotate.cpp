@@ -25,12 +25,16 @@
 #include "bond.h"
 #include "citeme.h"
 #include "comm.h"
+#include "dihedral.h"
 #include "domain.h"
 #include "error.h"
 #include "force.h"
+#include "improper.h"
+#include "kspace.h"
 #include "math_const.h"
 #include "memory.h"
 #include "modify.h"
+#include "pair.h"
 #include "respa.h"
 #include "update.h"
 
@@ -280,6 +284,20 @@ void FixFilterCorotate::init()
     nlevels_respa = (dynamic_cast<Respa *>(update->integrate))->nlevels;
   }
   else error->all(FLERR,"Fix filter/corotate requires rRESPA!");
+
+  // KOKKOS force styles do not read the filtered atom->x
+
+  const char *kk_style = nullptr;
+  if (force->pair && force->pair->kokkosable) kk_style = force->pair_style;
+  else if (force->bond && force->bond->kokkosable) kk_style = force->bond_style;
+  else if (force->angle && force->angle->kokkosable) kk_style = force->angle_style;
+  else if (force->dihedral && force->dihedral->kokkosable) kk_style = force->dihedral_style;
+  else if (force->improper && force->improper->kokkosable) kk_style = force->improper_style;
+  else if (force->kspace && force->kspace->kokkosable) kk_style = force->kspace_style;
+  if (kk_style)
+    error->all(FLERR, "Fix {} does not support the KOKKOS version of {}, which would "
+               "not see the filtered coordinates; run this input without the KOKKOS "
+               "package, or without the -sf kk suffix", style, kk_style);
 
   // set equilibrium bond distances
 

@@ -1335,7 +1335,16 @@ double PairOxdna3Xstk::init_one(int i, int j)
     }
   }
 
-  return cut_max;
+  // the cutoffs are distances between interaction sites, but the neighbor
+  // lists hold pairs by the distance of the nucleotide centers of mass, so
+  // add the distances of the sites from the centers of mass
+  const double bs_i = site_offset([this, i](double *e1, double *e2, double *e3, double *r) {
+    compute_base_site(i % 4, e1, e2, e3, r);
+  });
+  const double bs_j = site_offset([this, j](double *e1, double *e2, double *e3, double *r) {
+    compute_base_site(j % 4, e1, e2, e3, r);
+  });
+  return cut_max + bs_i + bs_j;
 
 }
 

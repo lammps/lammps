@@ -1086,9 +1086,9 @@ double PairOxdna3XstkKokkos<DeviceType>::init_one(int i, int j)
   k_params_t7.template sync<DeviceType>();
   k_params_t8.template sync<DeviceType>();
 
-  // Register the site-site cutoff of this pair with the COM screen of the npair
-  // fix, which adds the margin for the displacement of the interaction sites
-  // from the COM and takes the max over all consuming styles and type pairs.
+  // Register the cutoff of this pair, which includes the displacement of the
+  // interaction sites from the COM, with the COM screen of the npair fix,
+  // which takes the max over all consuming styles and type pairs.
   fix_oxdna_npairKK->request_screen_cutoff(cutone);
 
   return cutone;

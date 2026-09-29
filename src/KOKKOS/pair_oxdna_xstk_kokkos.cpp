@@ -1577,9 +1577,9 @@ double PairOxdnaXstkKokkos<DeviceType>::init_one(int i, int j)
   k_b_xst8.template sync<DeviceType>();
   k_dtheta_xst8_c.template sync<DeviceType>();
 
-  // Register the site-site cutoff of this pair with the COM screen of the npair
-  // fix, which adds the margin for the displacement of the interaction sites
-  // from the COM and takes the max over all consuming styles and type pairs.
+  // Register the cutoff of this pair, which includes the displacement of the
+  // interaction sites from the COM, with the COM screen of the npair fix,
+  // which takes the max over all consuming styles and type pairs.
   if (fix_oxdna_npairKK) fix_oxdna_npairKK->request_screen_cutoff(cutone);
 
   // "cutone" is "cut_xst_hc[i][j]", sets the master list distance cutoff

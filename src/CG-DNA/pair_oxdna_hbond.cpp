@@ -1061,7 +1061,16 @@ double PairOxdnaHbond::init_one(int i, int j)
   cutsq_hb_hc[j][i] = cutsq_hb_hc[i][j];
 
   // set the master list distance cutoff
-  return cut_hb_hc[i][j];
+  // the cutoffs are distances between interaction sites, but the neighbor
+  // lists hold pairs by the distance of the nucleotide centers of mass, so
+  // add the distances of the sites from the centers of mass
+  const double bs_i = site_offset([this, i](double *e1, double *e2, double *e3, double *r) {
+    compute_base_site(i % 4, e1, e2, e3, r);
+  });
+  const double bs_j = site_offset([this, j](double *e1, double *e2, double *e3, double *r) {
+    compute_base_site(j % 4, e1, e2, e3, r);
+  });
+  return cut_hb_hc[i][j] + bs_i + bs_j;
 
 }
 

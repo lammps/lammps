@@ -841,7 +841,27 @@ double PairOxdnaExcv::init_one(int i, int j)
   cutsq_bsbs_c[i][j] = cutsq_bsbs_c[j][i] = cut_bsbs_c[i][j]*cut_bsbs_c[i][j];
 
   // set the master list distance cutoff
-  return cut_bkbk_c[i][j];
+  // the cutoffs are distances between interaction sites, but the neighbor
+  // lists hold pairs by the distance of the nucleotide centers of mass, so
+  // add the distances of the sites from the centers of mass
+  const double bk = site_offset([this](double *e1, double *e2, double *e3, double *r) {
+    compute_backbone_site(e1, e2, e3, r);
+  });
+  const double bs_i = site_offset([this, i](double *e1, double *e2, double *e3, double *r) {
+    compute_base_site(i % 4, e1, e2, e3, r);
+  });
+  const double bs_j = site_offset([this, j](double *e1, double *e2, double *e3, double *r) {
+    compute_base_site(j % 4, e1, e2, e3, r);
+  });
+  double cut_max = MAX(cut_bkbk_c[i][j] + 2.0 * bk, cut_bkbs_c[i][j] + bk + MAX(bs_i, bs_j));
+  cut_max = MAX(cut_max, cut_bsbs_c[i][j] + bs_i + bs_j);
+  for (int a = 0; a <= atom->ntypes; a++) {
+    for (int b = 0; b <= atom->ntypes; b++) {
+      cut_max = MAX(cut_max, cut4_bsbs_c[a][i][j][b] + bs_i + bs_j);
+      cut_max = MAX(cut_max, cut4_bsbs_c[a][j][i][b] + bs_i + bs_j);
+    }
+  }
+  return cut_max;
 
 }
 

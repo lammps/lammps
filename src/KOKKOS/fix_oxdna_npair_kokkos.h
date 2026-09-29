@@ -50,15 +50,12 @@ class FixOxdnaNpairKokkos : public Fix {
   void compute_neigh_screen_to_npair();
 
   // Derived COM screen cutoff. Each consuming pair style (hbond / xstk /
-  // coaxstk) registers its max interaction-site cutoff in its init_one. The
-  // interaction sites are displaced from the COM, so the screen adds twice the
-  // largest site offset to never drop an interacting pair; the screen uses the
+  // coaxstk) registers its cutoff from init_one, which already includes the
+  // displacement of the interaction sites from the COM; the screen uses the
   // largest request. Falls back to the historical r < 2.0 if nothing registers.
-  void request_screen_cutoff(double cut_site) {
-    const double cut_com = cut_site + 2.0 * max_site_offset();
+  void request_screen_cutoff(double cut_com) {
     if (cut_com > screen_cut_max) screen_cut_max = cut_com;
   }
-  static double max_site_offset();
 
   // By default, screened-pair rebuild is device-only. This override lets
   // selected styles force npair rebuilds on host backends too.

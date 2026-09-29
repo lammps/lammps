@@ -295,19 +295,16 @@ void PairOxdna2CoaxstkKokkos<DeviceType>::operator()(TagPairOxdna2CoaxstkCompute
 
   const int a = d_alist(ia);
   const int atype = type(a);
-  // vectors COM-backbone site, COM-stacking site in lab frame
-  KK_FLOAT ra_cbk[3], rb_cbk[3], ra_cstk[3], rb_cstk[3];
+  // vectors COM-stacking site in lab frame
+  KK_FLOAT ra_cstk[3], rb_cstk[3];
 
   KK_ACC_FLOAT delf[3],delta[3],deltb[3];    // force, torque increment
   KK_ACC_FLOAT evdwl, finc, tpair;           // energy, force, torque
-  KK_FLOAT v1tmp[3];
-  KK_FLOAT delr_bkbk[3],delr_bkbk_norm[3],rsq_bkbk,r_bkbk,rinv_bkbk;
   KK_FLOAT delr_stkstk[3],delr_stkstk_norm[3],rsq_stkstk,r_stkstk,rinv_stkstk;
   KK_FLOAT theta1,theta1p,t1dir[3],cost1;
   KK_FLOAT theta4,t4dir[3],cost4;
   KK_FLOAT theta5,theta5p,t5dir[3],cost5;
   KK_FLOAT theta6,theta6p,t6dir[3],cost6;
-  KK_FLOAT cosphi3;
 
   KK_FLOAT f2,f4f6t1,f4t4,f4t5,f4t6;
   KK_FLOAT prime_cxst_ab;
@@ -318,25 +315,14 @@ void PairOxdna2CoaxstkKokkos<DeviceType>::operator()(TagPairOxdna2CoaxstkCompute
   // we just return to skip the rest of the functor for this a.
   if (id3p(a) != -1 && id5p(a) != -1) return;
 
-  // vector COM-backbone site a, COM-stacking site a
+  // vector COM-stacking site a
   if constexpr (OXDNAFLAG==OXDNA2) {
-    constexpr KK_FLOAT dx_cbk_oxdna2 = static_cast<KK_FLOAT>(-0.34);
-    constexpr KK_FLOAT dy_cbk_oxdna2 = static_cast<KK_FLOAT>(+0.3408);
-    ra_cbk[0] = dx_cbk_oxdna2*d_nx_xtrct(a,0) + dy_cbk_oxdna2*d_ny_xtrct(a,0);
-    ra_cbk[1] = dx_cbk_oxdna2*d_nx_xtrct(a,1) + dy_cbk_oxdna2*d_ny_xtrct(a,1);
-    ra_cbk[2] = dx_cbk_oxdna2*d_nx_xtrct(a,2) + dy_cbk_oxdna2*d_ny_xtrct(a,2);
     constexpr KK_FLOAT dx_cstk_oxdna1 = static_cast<KK_FLOAT>(+0.34);  // oxDNA2 uses same stacking site as oxDNA1
     ra_cstk[0] = dx_cstk_oxdna1*d_nx_xtrct(a,0);
     ra_cstk[1] = dx_cstk_oxdna1*d_nx_xtrct(a,1);
     ra_cstk[2] = dx_cstk_oxdna1*d_nx_xtrct(a,2);
   } else if constexpr (OXDNAFLAG==OXDNA3) {
-    // oxDNA3 uses same backbone site as oxDNA2...
-    constexpr KK_FLOAT dx_cbk_oxdna2 = static_cast<KK_FLOAT>(-0.34);
-    constexpr KK_FLOAT dy_cbk_oxdna2 = static_cast<KK_FLOAT>(+0.3408);
-    ra_cbk[0] = dx_cbk_oxdna2*d_nx_xtrct(a,0) + dy_cbk_oxdna2*d_ny_xtrct(a,0);
-    ra_cbk[1] = dx_cbk_oxdna2*d_nx_xtrct(a,1) + dy_cbk_oxdna2*d_ny_xtrct(a,1);
-    ra_cbk[2] = dx_cbk_oxdna2*d_nx_xtrct(a,2) + dy_cbk_oxdna2*d_ny_xtrct(a,2);
-    // ...But the stacking site is different for oxDNA3.
+    // The stacking site is different for oxDNA3.
     constexpr KK_FLOAT dx_cstk_oxdna3 = static_cast<KK_FLOAT>(+0.37);
     ra_cstk[0] = dx_cstk_oxdna3*d_nx_xtrct(a,0);
     ra_cstk[1] = dx_cstk_oxdna3*d_nx_xtrct(a,1);
@@ -355,25 +341,14 @@ void PairOxdna2CoaxstkKokkos<DeviceType>::operator()(TagPairOxdna2CoaxstkCompute
     // b has to be terminal nucleotide
     if(id3p(b)!=-1 && id5p(b)!=-1) continue;
 
-    // vector COM-backbone site b, COM-stacking site b
+    // vector COM-stacking site b
     if constexpr (OXDNAFLAG==OXDNA2) {
-      constexpr KK_FLOAT dx_cbk_oxdna2 = static_cast<KK_FLOAT>(-0.34);
-      constexpr KK_FLOAT dy_cbk_oxdna2 = static_cast<KK_FLOAT>(+0.3408);
-      rb_cbk[0] = dx_cbk_oxdna2*d_nx_xtrct(b,0) + dy_cbk_oxdna2*d_ny_xtrct(b,0);
-      rb_cbk[1] = dx_cbk_oxdna2*d_nx_xtrct(b,1) + dy_cbk_oxdna2*d_ny_xtrct(b,1);
-      rb_cbk[2] = dx_cbk_oxdna2*d_nx_xtrct(b,2) + dy_cbk_oxdna2*d_ny_xtrct(b,2);
       constexpr KK_FLOAT dx_cstk_oxdna1 = static_cast<KK_FLOAT>(+0.34);  // oxDNA2 uses same stacking site as oxDNA1
       rb_cstk[0] = dx_cstk_oxdna1*d_nx_xtrct(b,0);
       rb_cstk[1] = dx_cstk_oxdna1*d_nx_xtrct(b,1);
       rb_cstk[2] = dx_cstk_oxdna1*d_nx_xtrct(b,2);
     } else if constexpr (OXDNAFLAG==OXDNA3) {
-      // oxDNA3 uses same backbone site as oxDNA2...
-      constexpr KK_FLOAT dx_cbk_oxdna2 = static_cast<KK_FLOAT>(-0.34);
-      constexpr KK_FLOAT dy_cbk_oxdna2 = static_cast<KK_FLOAT>(+0.3408);
-      rb_cbk[0] = dx_cbk_oxdna2*d_nx_xtrct(b,0) + dy_cbk_oxdna2*d_ny_xtrct(b,0);
-      rb_cbk[1] = dx_cbk_oxdna2*d_nx_xtrct(b,1) + dy_cbk_oxdna2*d_ny_xtrct(b,1);
-      rb_cbk[2] = dx_cbk_oxdna2*d_nx_xtrct(b,2) + dy_cbk_oxdna2*d_ny_xtrct(b,2);
-      // ...But the stacking site is different for oxDNA3.
+      // The stacking site is different for oxDNA3.
       constexpr KK_FLOAT dx_cstk_oxdna3 = static_cast<KK_FLOAT>(+0.37);
       rb_cstk[0] = dx_cstk_oxdna3*d_nx_xtrct(b,0);
       rb_cstk[1] = dx_cstk_oxdna3*d_nx_xtrct(b,1);
@@ -393,18 +368,21 @@ void PairOxdna2CoaxstkKokkos<DeviceType>::operator()(TagPairOxdna2CoaxstkCompute
     delr_stkstk_norm[1] = delr_stkstk[1] * rinv_stkstk;
     delr_stkstk_norm[2] = delr_stkstk[2] * rinv_stkstk;
 
-    // vector backbone site b to a
-    delr_bkbk[0] = x(a,0) + ra_cbk[0] - x(b,0) - rb_cbk[0];
-    delr_bkbk[1] = x(a,1) + ra_cbk[1] - x(b,1) - rb_cbk[1];
-    delr_bkbk[2] = x(a,2) + ra_cbk[2] - x(b,2) - rb_cbk[2];
+    // Direction-dependent coaxial stacking strength.
+    if (id5p(a) == -1 && id3p(b) == -1) {
+      prime_cxst_ab = d_k_cxst(atype,btype);
+    } else if (id3p(a) == -1 && id5p(b) == -1) {
+      prime_cxst_ab = d_k_cxst(btype,atype);
+    } else {
+      prime_cxst_ab = static_cast<KK_FLOAT>(0.5) * (d_k_cxst(atype,btype) + d_k_cxst(btype,atype));
+    }
 
-    rsq_bkbk = delr_bkbk[0]*delr_bkbk[0] + delr_bkbk[1]*delr_bkbk[1] + delr_bkbk[2]*delr_bkbk[2];
-    r_bkbk = Kokkos::sqrt(rsq_bkbk);
-    rinv_bkbk = static_cast<KK_FLOAT>(1.0) / r_bkbk;
-
-    delr_bkbk_norm[0] = delr_bkbk[0] * rinv_bkbk;
-    delr_bkbk_norm[1] = delr_bkbk[1] * rinv_bkbk;
-    delr_bkbk_norm[2] = delr_bkbk[2] * rinv_bkbk;
+    // f2 = f2 modulation factor, the cheapest early rejection criterium, so test it first
+    f2 = F2_KK(r_stkstk, prime_cxst_ab, d_cut_cxst_0(atype,btype), d_cut_cxst_lc(atype,btype),
+            d_cut_cxst_hc(atype,btype), d_cut_cxst_lo(atype,btype), d_cut_cxst_hi(atype,btype),
+            d_b_cxst_lo(atype,btype), d_b_cxst_hi(atype,btype),
+            d_cut_cxst_c(atype,btype));
+    if (f2 == static_cast<KK_FLOAT>(0.0)) continue;
 
     cost1 = -(d_nx_xtrct(a,0) * d_nx_xtrct(b,0) + d_nx_xtrct(a,1) * d_nx_xtrct(b,1) + d_nx_xtrct(a,2) * d_nx_xtrct(b,2));
     if (cost1 > static_cast<KK_FLOAT>(1.0)) cost1 = static_cast<KK_FLOAT>(1.0);
@@ -459,28 +437,6 @@ void PairOxdna2CoaxstkKokkos<DeviceType>::operator()(TagPairOxdna2CoaxstkCompute
               d_b_cxst6(atype,btype), d_dtheta_cxst6_c(atype,btype)) + \
              F4_KK(theta6p, d_a_cxst6(atype,btype), d_theta_cxst6_0(atype,btype), d_dtheta_cxst6_ast(atype,btype),
               d_b_cxst6(atype,btype), d_dtheta_cxst6_c(atype,btype));
-
-      v1tmp[0] = delr_bkbk_norm[1] * d_nx_xtrct(a,2) - delr_bkbk_norm[2] * d_nx_xtrct(a,1);
-      v1tmp[1] = delr_bkbk_norm[2] * d_nx_xtrct(a,0) - delr_bkbk_norm[0] * d_nx_xtrct(a,2);
-      v1tmp[2] = delr_bkbk_norm[0] * d_nx_xtrct(a,1) - delr_bkbk_norm[1] * d_nx_xtrct(a,0);
-      cosphi3 = v1tmp[0] * delr_stkstk_norm[0] + v1tmp[1] * delr_stkstk_norm[1] + v1tmp[2] * delr_stkstk_norm[2];
-      if (cosphi3 > static_cast<KK_FLOAT>(1.0)) cosphi3 = static_cast<KK_FLOAT>(1.0);
-      if (cosphi3 < static_cast<KK_FLOAT>(-1.0)) cosphi3 = static_cast<KK_FLOAT>(-1.0);
-
-      // Direction-dependent coaxial stacking strength.
-      if (id5p(a) == -1 && id3p(b) == -1) {
-        prime_cxst_ab = d_k_cxst(atype,btype);
-      } else if (id3p(a) == -1 && id5p(b) == -1) {
-        prime_cxst_ab = d_k_cxst(btype,atype);
-      } else {
-        prime_cxst_ab = static_cast<KK_FLOAT>(0.5) * (d_k_cxst(atype,btype) + d_k_cxst(btype,atype));
-      }
-
-      // f2 = f2 modulation factor
-      f2 = F2_KK(r_stkstk, prime_cxst_ab, d_cut_cxst_0(atype,btype), d_cut_cxst_lc(atype,btype),
-              d_cut_cxst_hc(atype,btype), d_cut_cxst_lo(atype,btype), d_cut_cxst_hi(atype,btype),
-              d_b_cxst_lo(atype,btype), d_b_cxst_hi(atype,btype),
-              d_cut_cxst_c(atype,btype));
 
       evdwl = static_cast<KK_ACC_FLOAT>(f2 * f4f6t1 * f4t4 * f4t5 * f4t6 * factor_lj);
     // end of f4t5
@@ -817,32 +773,6 @@ bool PairOxdna2CoaxstkKokkos<DeviceType>::coaxstk_theta6_terms(const int &atype,
 
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
-void PairOxdna2CoaxstkKokkos<DeviceType>::coaxstk_cosphi3_terms(const int &a, const int &b,
-  const KK_FLOAT (&ra_cbk)[3], const KK_FLOAT (&rb_cbk)[3], const KK_FLOAT (&a_nx)[3],
-  const KK_FLOAT (&delr_stkstk_norm)[3], KK_FLOAT &cosphi3) const
-{
-  KK_FLOAT delr_bkbk[3], delr_bkbk_norm[3];
-  delr_bkbk[0] = x(a,0) + ra_cbk[0] - x(b,0) - rb_cbk[0];
-  delr_bkbk[1] = x(a,1) + ra_cbk[1] - x(b,1) - rb_cbk[1];
-  delr_bkbk[2] = x(a,2) + ra_cbk[2] - x(b,2) - rb_cbk[2];
-
-  KK_FLOAT rsq_bkbk = Kokkos::fma(delr_bkbk[0], delr_bkbk[0],
-                    Kokkos::fma(delr_bkbk[1], delr_bkbk[1], delr_bkbk[2] * delr_bkbk[2]));
-  KK_FLOAT rinv_bkbk = static_cast<KK_FLOAT>(1.0) / Kokkos::sqrt(rsq_bkbk);
-  delr_bkbk_norm[0] = delr_bkbk[0] * rinv_bkbk;
-  delr_bkbk_norm[1] = delr_bkbk[1] * rinv_bkbk;
-  delr_bkbk_norm[2] = delr_bkbk[2] * rinv_bkbk;
-
-  KK_FLOAT v1tmp0 = delr_bkbk_norm[1] * a_nx[2] - delr_bkbk_norm[2] * a_nx[1];
-  KK_FLOAT v1tmp1 = delr_bkbk_norm[2] * a_nx[0] - delr_bkbk_norm[0] * a_nx[2];
-  KK_FLOAT v1tmp2 = delr_bkbk_norm[0] * a_nx[1] - delr_bkbk_norm[1] * a_nx[0];
-  cosphi3 = Kokkos::fma(v1tmp2, delr_stkstk_norm[2], Kokkos::fma(v1tmp1, delr_stkstk_norm[1], v1tmp0 * delr_stkstk_norm[0]));
-  if (cosphi3 > static_cast<KK_FLOAT>(1.0)) cosphi3 = static_cast<KK_FLOAT>(1.0);
-  if (cosphi3 < static_cast<KK_FLOAT>(-1.0)) cosphi3 = static_cast<KK_FLOAT>(-1.0);
-}
-
-template<class DeviceType>
-KOKKOS_INLINE_FUNCTION
 bool PairOxdna2CoaxstkKokkos<DeviceType>::coaxstk_radial_terms(const int &atype, const int &btype, const KK_FLOAT &r_st,
   const KK_FLOAT &prime_cxst_ab,
   KK_FLOAT &f2, KK_FLOAT &df2) const
@@ -1004,18 +934,16 @@ void PairOxdna2CoaxstkKokkos<DeviceType>::operator()(TagPairOxdna2CoaxstkCompute
   const int atype = type(a);
   const int btype = type(b);
 
-  // vectors COM-backbone site, COM-stacking site in lab frame
-  KK_FLOAT ra_cbk[3], rb_cbk[3], ra_cstk[3], rb_cstk[3];
+  // vectors COM-stacking site in lab frame
+  KK_FLOAT ra_cstk[3], rb_cstk[3];
 
   KK_ACC_FLOAT delf[3],delta[3],deltb[3];    // force, torque increment
   KK_ACC_FLOAT evdwl;                        // energy
   KK_FLOAT delr_stkstk[3],delr_stkstk_norm[3],rsq_stkstk,r_stkstk,rinv_stkstk;
-  // NOTE: delr_bkbk[]3, etc is scoped out into coaxstk_cosphi3_terms to reduce register pressure
   KK_FLOAT theta1,theta1p;
   KK_FLOAT theta4;
   KK_FLOAT theta5,theta5p,cost5;
   KK_FLOAT theta6,theta6p,cost6;
-  KK_FLOAT cosphi3;
   KK_FLOAT prime_cxst_ab;
 
   KK_FLOAT f2,f4f6t1,f4t4,f4t5,f4t6;
@@ -1024,19 +952,9 @@ void PairOxdna2CoaxstkKokkos<DeviceType>::operator()(TagPairOxdna2CoaxstkCompute
   // single loads for local axes to reduce repeated global reads
   const KK_FLOAT a_nx_loc[3] = { d_nx_xtrct(a,0), d_nx_xtrct(a,1), d_nx_xtrct(a,2) };
   const KK_FLOAT b_nx_loc[3] = { d_nx_xtrct(b,0), d_nx_xtrct(b,1), d_nx_xtrct(b,2) };
-  const KK_FLOAT a_ny_loc[3] = { d_ny_xtrct(a,0), d_ny_xtrct(a,1), d_ny_xtrct(a,2) };
-  const KK_FLOAT b_ny_loc[3] = { d_ny_xtrct(b,0), d_ny_xtrct(b,1), d_ny_xtrct(b,2) };
 
-  // vector COM-backbone site [a/b], COM-stacking site [a/b]
+  // vector COM-stacking site [a/b]
   if constexpr (OXDNAFLAG==OXDNA2) {
-    constexpr KK_FLOAT dx_cbk_oxdna2 = static_cast<KK_FLOAT>(-0.34);
-    constexpr KK_FLOAT dy_cbk_oxdna2 = static_cast<KK_FLOAT>(+0.3408);
-    ra_cbk[0] = dx_cbk_oxdna2*a_nx_loc[0] + dy_cbk_oxdna2*a_ny_loc[0];
-    ra_cbk[1] = dx_cbk_oxdna2*a_nx_loc[1] + dy_cbk_oxdna2*a_ny_loc[1];
-    ra_cbk[2] = dx_cbk_oxdna2*a_nx_loc[2] + dy_cbk_oxdna2*a_ny_loc[2];
-    rb_cbk[0] = dx_cbk_oxdna2*b_nx_loc[0] + dy_cbk_oxdna2*b_ny_loc[0];
-    rb_cbk[1] = dx_cbk_oxdna2*b_nx_loc[1] + dy_cbk_oxdna2*b_ny_loc[1];
-    rb_cbk[2] = dx_cbk_oxdna2*b_nx_loc[2] + dy_cbk_oxdna2*b_ny_loc[2];
     constexpr KK_FLOAT dx_cstk_oxdna1 = static_cast<KK_FLOAT>(+0.34);  // oxDNA2 uses same stacking site as oxDNA1
     ra_cstk[0] = dx_cstk_oxdna1*a_nx_loc[0];
     ra_cstk[1] = dx_cstk_oxdna1*a_nx_loc[1];
@@ -1045,16 +963,7 @@ void PairOxdna2CoaxstkKokkos<DeviceType>::operator()(TagPairOxdna2CoaxstkCompute
     rb_cstk[1] = dx_cstk_oxdna1*b_nx_loc[1];
     rb_cstk[2] = dx_cstk_oxdna1*b_nx_loc[2];
   } else if constexpr (OXDNAFLAG==OXDNA3) {
-    // oxDNA3 uses same backbone site as oxDNA2...
-    constexpr KK_FLOAT dx_cbk_oxdna2 = static_cast<KK_FLOAT>(-0.34);
-    constexpr KK_FLOAT dy_cbk_oxdna2 = static_cast<KK_FLOAT>(+0.3408);
-    ra_cbk[0] = dx_cbk_oxdna2*a_nx_loc[0] + dy_cbk_oxdna2*a_ny_loc[0];
-    ra_cbk[1] = dx_cbk_oxdna2*a_nx_loc[1] + dy_cbk_oxdna2*a_ny_loc[1];
-    ra_cbk[2] = dx_cbk_oxdna2*a_nx_loc[2] + dy_cbk_oxdna2*a_ny_loc[2];
-    rb_cbk[0] = dx_cbk_oxdna2*b_nx_loc[0] + dy_cbk_oxdna2*b_ny_loc[0];
-    rb_cbk[1] = dx_cbk_oxdna2*b_nx_loc[1] + dy_cbk_oxdna2*b_ny_loc[1];
-    rb_cbk[2] = dx_cbk_oxdna2*b_nx_loc[2] + dy_cbk_oxdna2*b_ny_loc[2];
-    // ...But the stacking site is different for oxDNA3.
+    // The stacking site is different for oxDNA3.
     constexpr KK_FLOAT dx_cstk_oxdna3 = static_cast<KK_FLOAT>(+0.37);
     ra_cstk[0] = dx_cstk_oxdna3*a_nx_loc[0];
     ra_cstk[1] = dx_cstk_oxdna3*a_nx_loc[1];
@@ -1065,7 +974,6 @@ void PairOxdna2CoaxstkKokkos<DeviceType>::operator()(TagPairOxdna2CoaxstkCompute
   }
 
   // vector stacking site b to a
-  // stkstk is needed for theta5/6 and radial terms, so we do not scope out....
   delr_stkstk[0] = x(a,0) + ra_cstk[0] - x(b,0) - rb_cstk[0];
   delr_stkstk[1] = x(a,1) + ra_cstk[1] - x(b,1) - rb_cstk[1];
   delr_stkstk[2] = x(a,2) + ra_cstk[2] - x(b,2) - rb_cstk[2];
@@ -1075,18 +983,6 @@ void PairOxdna2CoaxstkKokkos<DeviceType>::operator()(TagPairOxdna2CoaxstkCompute
   delr_stkstk_norm[0] = delr_stkstk[0] * rinv_stkstk;
   delr_stkstk_norm[1] = delr_stkstk[1] * rinv_stkstk;
   delr_stkstk_norm[2] = delr_stkstk[2] * rinv_stkstk;
-  // .... but bkbk (vector backbone site b to a) is only needed for cosphi3, so we scope out to reduce register pressure
-
-  const KK_FLOAT a_nz_loc[3] = { d_nz_xtrct(a,0), d_nz_xtrct(a,1), d_nz_xtrct(a,2) };
-  const KK_FLOAT b_nz_loc[3] = { d_nz_xtrct(b,0), d_nz_xtrct(b,1), d_nz_xtrct(b,2) };
-
-  // beginning of modulation factors
-  if (!coaxstk_theta1_terms(atype,btype,a_nx_loc,b_nx_loc,theta1,theta1p,f4f6t1,df4f6t1)) return;
-  if (!coaxstk_theta4_terms(atype,btype,a_nz_loc,b_nz_loc,theta4,f4t4,df4t4)) return;
-  if (!coaxstk_theta5_terms(atype,btype,a_nz_loc,delr_stkstk_norm,theta5,theta5p,f4t5,df4t5,cost5)) return;
-  if (!coaxstk_theta6_terms(atype,btype,b_nz_loc,delr_stkstk_norm,theta6,theta6p,f4t6,df4t6,cost6)) return;
-  // cosphi3 is just scoped out for sake of register pressure, but does not feature any early exit criteria
-  coaxstk_cosphi3_terms(a, b, ra_cbk, rb_cbk, a_nx_loc, delr_stkstk_norm, cosphi3);
 
   // Direction-dependent coaxial stacking strength.
   if (id5p(a) == -1 && id3p(b) == -1) {
@@ -1097,7 +993,17 @@ void PairOxdna2CoaxstkKokkos<DeviceType>::operator()(TagPairOxdna2CoaxstkCompute
     prime_cxst_ab = static_cast<KK_FLOAT>(0.5) * (d_k_cxst(atype,btype) + d_k_cxst(btype,atype));
   }
 
+  // the radial factor is the cheapest early rejection criterium, so test it first
   if (!coaxstk_radial_terms(atype,btype,r_stkstk,prime_cxst_ab,f2,df2)) return;
+
+  const KK_FLOAT a_nz_loc[3] = { d_nz_xtrct(a,0), d_nz_xtrct(a,1), d_nz_xtrct(a,2) };
+  const KK_FLOAT b_nz_loc[3] = { d_nz_xtrct(b,0), d_nz_xtrct(b,1), d_nz_xtrct(b,2) };
+
+  // beginning of modulation factors
+  if (!coaxstk_theta1_terms(atype,btype,a_nx_loc,b_nx_loc,theta1,theta1p,f4f6t1,df4f6t1)) return;
+  if (!coaxstk_theta4_terms(atype,btype,a_nz_loc,b_nz_loc,theta4,f4t4,df4t4)) return;
+  if (!coaxstk_theta5_terms(atype,btype,a_nz_loc,delr_stkstk_norm,theta5,theta5p,f4t5,df4t5,cost5)) return;
+  if (!coaxstk_theta6_terms(atype,btype,b_nz_loc,delr_stkstk_norm,theta6,theta6p,f4t6,df4t6,cost6)) return;
 
   evdwl = static_cast<KK_ACC_FLOAT>(f2 * f4f6t1 * f4t4 * f4t5 * f4t6 * factor_lj);
 

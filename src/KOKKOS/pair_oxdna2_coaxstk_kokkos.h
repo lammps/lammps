@@ -232,11 +232,6 @@ class PairOxdna2CoaxstkKokkos : public PairOxdna2Coaxstk, public KokkosBase {
 
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
-  void coaxstk_cosphi3_terms(const int &a, const int &b, const KK_FLOAT (&ra_cbk)[3], const KK_FLOAT (&rb_cbk)[3],
-                             const KK_FLOAT (&a_nx)[3], const KK_FLOAT (&delr_stkstk_norm)[3], KK_FLOAT &cosphi3) const;
-
-// NOLINTNEXTLINE
-  KOKKOS_INLINE_FUNCTION
   void coaxstk_force_contrib(const KK_FLOAT &df2, const KK_FLOAT &f2, const KK_FLOAT &f4f6t1,
     const KK_FLOAT &f4t4, const KK_FLOAT &f4t5, const KK_FLOAT &f4t6, const KK_FLOAT &df4t5, const KK_FLOAT &df4t6, const KK_FLOAT &rinv_st,
     const KK_FLOAT &factor_lj, const KK_FLOAT &cost5, const KK_FLOAT &cost6,

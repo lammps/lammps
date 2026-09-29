@@ -772,6 +772,7 @@ KOKKOS_INLINE_FUNCTION
 void PairOxdna3XstkKokkos<DeviceType>::operator()(TagPairOxdna3XstkComputeNpair<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, \
   const int &ipair, EV_FLOAT &ev) const
 {
+  KK_ACC_FLOAT rxf_a[3], rxf_b[3] = {0.0, 0.0, 0.0};    // r x f torques on a and b
   // one thread per neighbor pair: several threads update the same atoms
   // with any neighbor list style, so all updates must be atomic
 
@@ -883,18 +884,19 @@ void PairOxdna3XstkKokkos<DeviceType>::operator()(TagPairOxdna3XstkComputeNpair<
   a_f(a,0) += delf[0];
   a_f(a,1) += delf[1];
   a_f(a,2) += delf[2];
-  a_torque(a,0) += delta[0];
-  a_torque(a,1) += delta[1];
-  a_torque(a,2) += delta[2];
+  // keep the r x f torques; applied together with the pure torques below
+  rxf_a[0] = delta[0];
+  rxf_a[1] = delta[1];
+  rxf_a[2] = delta[2];
 
   const bool do_newton_b = (NEIGHFLAG == HALF || NEIGHFLAG == HALFTHREAD) && (NEWTON_PAIR || b < nlocal);
   if (do_newton_b) {
     a_f(b,0) -= delf[0];
     a_f(b,1) -= delf[1];
     a_f(b,2) -= delf[2];
-    a_torque(b,0) -= deltb[0];
-    a_torque(b,1) -= deltb[1];
-    a_torque(b,2) -= deltb[2];
+    rxf_b[0] = deltb[0];
+    rxf_b[1] = deltb[1];
+    rxf_b[2] = deltb[2];
   }
 
   if (EVFLAG) {
@@ -922,13 +924,13 @@ void PairOxdna3XstkKokkos<DeviceType>::operator()(TagPairOxdna3XstkComputeNpair<
     delr_bsbs_norm,
     delta, deltb);
 
-  a_torque(a,0) += delta[0];
-  a_torque(a,1) += delta[1];
-  a_torque(a,2) += delta[2];
+  a_torque(a,0) += rxf_a[0] + delta[0];
+  a_torque(a,1) += rxf_a[1] + delta[1];
+  a_torque(a,2) += rxf_a[2] + delta[2];
   if (do_newton_b) {
-    a_torque(b,0) -= deltb[0];
-    a_torque(b,1) -= deltb[1];
-    a_torque(b,2) -= deltb[2];
+    a_torque(b,0) -= rxf_b[0] + deltb[0];
+    a_torque(b,1) -= rxf_b[1] + deltb[1];
+    a_torque(b,2) -= rxf_b[2] + deltb[2];
   }
 }
 

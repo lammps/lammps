@@ -52,8 +52,8 @@ class FixOxdnaLRFKokkos : public Fix {
   // So none of these routines are needed here.
 
   // per-atom arrays for local unit vectors in lab frame
-  DAT::tdual_kkfloat_1d_3 k_nx, k_ny, k_nz;
-  typename AT::t_kkfloat_1d_3 d_nx, d_ny, d_nz;
+  DAT::tdual_kkfloat_1d_3_lr k_nx, k_ny, k_nz;    // LayoutRight: the 3 components of an atom are adjacent
+  typename AT::t_kkfloat_1d_3_lr d_nx, d_ny, d_nz;
 
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION

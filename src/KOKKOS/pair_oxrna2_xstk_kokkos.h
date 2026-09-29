@@ -126,7 +126,7 @@ class PairOxrna2XstkKokkos : public PairOxrna2Xstk, public KokkosBase {
   typename AT::t_kkfloat_2d_randomread d_b_xst8, d_dtheta_xst8_c;
 
   // per-atom arrays for local unit vectors
-  typename AT::t_kkfloat_1d_3_randomread d_nx_xtrct, d_ny_xtrct, d_nz_xtrct;
+  typename AT::t_kkfloat_1d_3_lr_randomread d_nx_xtrct, d_ny_xtrct, d_nz_xtrct;
 
   using KKDeviceType = typename KKDevice<DeviceType>::value;
 

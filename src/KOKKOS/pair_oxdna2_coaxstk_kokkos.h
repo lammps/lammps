@@ -173,7 +173,7 @@ class PairOxdna2CoaxstkKokkos : public PairOxdna2Coaxstk, public KokkosBase {
   typename AT::t_kkfloat_2d_randomread d_AA_cxst1, d_BB_cxst1;
   // per-atom arrays for local unit vectors
   DAT::tdual_kkfloat_1d_3 k_nx_xtrct, k_ny_xtrct, k_nz_xtrct;
-  typename AT::t_kkfloat_1d_3_randomread d_nx_xtrct, d_ny_xtrct, d_nz_xtrct;
+  typename AT::t_kkfloat_1d_3_lr_randomread d_nx_xtrct, d_ny_xtrct, d_nz_xtrct;
   typename AT::t_tagint_1d_randomread id5p;
   typename AT::t_tagint_1d_randomread id3p;
 

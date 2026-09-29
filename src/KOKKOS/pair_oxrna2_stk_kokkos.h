@@ -116,7 +116,7 @@ class PairOxrna2StkKokkos : public PairOxrna2Stk, public KokkosBase {
   typename AT::t_kkfloat_2d_randomread d_a_st2, d_cosphi_st2_ast, d_b_st2, d_cosphi_st2_c;
 
   // per-atom arrays for local unit vectors
-  typename AT::t_kkfloat_1d_3_randomread d_nx_xtrct, d_ny_xtrct, d_nz_xtrct;
+  typename AT::t_kkfloat_1d_3_lr_randomread d_nx_xtrct, d_ny_xtrct, d_nz_xtrct;
 
   void allocate() override;
 

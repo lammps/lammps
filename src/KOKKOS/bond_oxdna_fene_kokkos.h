@@ -102,7 +102,7 @@ class BondOxdnaFENEKokkos : public BondOxdnaFene {
   typename AT::t_kkfloat_5d_randomread d_Delta;
   // per-atom arrays for local unit vectors
   DAT::tdual_kkfloat_1d_3 k_nx_xtrct, k_ny_xtrct, k_nz_xtrct;
-  typename AT::t_kkfloat_1d_3_randomread d_nx_xtrct, d_ny_xtrct, d_nz_xtrct;
+  typename AT::t_kkfloat_1d_3_lr_randomread d_nx_xtrct, d_ny_xtrct, d_nz_xtrct;
 
   void allocate() override;
 

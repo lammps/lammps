@@ -203,6 +203,8 @@ void FixChargeRegulation::init() {
     error->all(FLERR, Error::NOLASTLINE, "Fix {} is not compatible with /intel pair styles", style);
 
   triclinic = domain->triclinic;
+  if (triclinic)
+    error->all(FLERR, Error::NOLASTLINE, "Fix charge/regulation does not support triclinic boxes");
   c_pe = modify->get_compute_by_id("thermo_pe");
 
   if (pHstr) {

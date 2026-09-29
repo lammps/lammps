@@ -46,6 +46,17 @@ struct TagPairOxdnaHbondCompute{};
 template<int OXDNAFLAG, int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
 struct TagPairOxdnaHbondComputeGPUPair{};
 
+// packed per-type-pair coefficients of PairOxdnaHbondKokkos
+struct ParamsHbond {
+  KK_FLOAT epsilon_hb, a_hb, cut_hb_0, cut_hb_c, cut_hb_lo, cut_hb_hi;
+  KK_FLOAT cut_hb_lc, cut_hb_hc, b_hb_lo, b_hb_hi, shift_hb, cutsq_hb_hc;
+  KK_FLOAT a_hb1, theta_hb1_0, dtheta_hb1_ast, b_hb1, dtheta_hb1_c, a_hb2;
+  KK_FLOAT theta_hb2_0, dtheta_hb2_ast, b_hb2, dtheta_hb2_c, a_hb3, theta_hb3_0;
+  KK_FLOAT dtheta_hb3_ast, b_hb3, dtheta_hb3_c, a_hb4, theta_hb4_0, dtheta_hb4_ast;
+  KK_FLOAT b_hb4, dtheta_hb4_c, a_hb7, theta_hb7_0, dtheta_hb7_ast, b_hb7;
+  KK_FLOAT dtheta_hb7_c, a_hb8, theta_hb8_0, dtheta_hb8_ast, b_hb8, dtheta_hb8_c;
+};
+
 template<class DeviceType>
 class PairOxdnaHbondKokkos : public PairOxdnaHbond, public KokkosBase {
  public:
@@ -172,40 +183,10 @@ class PairOxdnaHbondKokkos : public PairOxdnaHbond, public KokkosBase {
   int last_idc_nall;
 
   // hydrogen-bonding interaction parameters
-  typename AT::tdual_kkfloat_2d k_epsilon_hb, k_a_hb, k_cut_hb_0, k_cut_hb_c;
-  typename AT::tdual_kkfloat_2d k_cut_hb_lo, k_cut_hb_hi;
-  typename AT::tdual_kkfloat_2d k_cut_hb_lc, k_cut_hb_hc, k_b_hb_lo, k_b_hb_hi;
-  typename AT::tdual_kkfloat_2d k_shift_hb, k_cutsq_hb_hc;
-  typename AT::tdual_kkfloat_2d k_a_hb1, k_theta_hb1_0, k_dtheta_hb1_ast;
-  typename AT::tdual_kkfloat_2d k_b_hb1, k_dtheta_hb1_c;
-  typename AT::tdual_kkfloat_2d k_a_hb2, k_theta_hb2_0, k_dtheta_hb2_ast;
-  typename AT::tdual_kkfloat_2d k_b_hb2, k_dtheta_hb2_c;
-  typename AT::tdual_kkfloat_2d k_a_hb3, k_theta_hb3_0, k_dtheta_hb3_ast;
-  typename AT::tdual_kkfloat_2d k_b_hb3, k_dtheta_hb3_c;
-  typename AT::tdual_kkfloat_2d k_a_hb4, k_theta_hb4_0, k_dtheta_hb4_ast;
-  typename AT::tdual_kkfloat_2d k_b_hb4, k_dtheta_hb4_c;
-  typename AT::tdual_kkfloat_2d k_a_hb7, k_theta_hb7_0, k_dtheta_hb7_ast;
-  typename AT::tdual_kkfloat_2d k_b_hb7, k_dtheta_hb7_c;
-  typename AT::tdual_kkfloat_2d k_a_hb8, k_theta_hb8_0, k_dtheta_hb8_ast;
-  typename AT::tdual_kkfloat_2d k_b_hb8, k_dtheta_hb8_c;
-  typename AT::t_kkfloat_2d_randomread d_epsilon_hb, d_a_hb, d_cut_hb_0, d_cut_hb_c;
-  typename AT::t_kkfloat_2d_randomread d_cut_hb_lo, d_cut_hb_hi;
-  typename AT::t_kkfloat_2d_randomread d_cut_hb_lc, d_cut_hb_hc, d_b_hb_lo, d_b_hb_hi;
-  typename AT::t_kkfloat_2d_randomread d_shift_hb, d_cutsq_hb_hc;
-  typename AT::t_kkfloat_2d_randomread d_a_hb1, d_theta_hb1_0, d_dtheta_hb1_ast;
-  typename AT::t_kkfloat_2d_randomread d_b_hb1, d_dtheta_hb1_c;
-  typename AT::t_kkfloat_2d_randomread d_a_hb2, d_theta_hb2_0, d_dtheta_hb2_ast;
-  typename AT::t_kkfloat_2d_randomread d_b_hb2, d_dtheta_hb2_c;
-  typename AT::t_kkfloat_2d_randomread d_a_hb3, d_theta_hb3_0, d_dtheta_hb3_ast;
-  typename AT::t_kkfloat_2d_randomread d_b_hb3, d_dtheta_hb3_c;
-  typename AT::t_kkfloat_2d_randomread d_a_hb4, d_theta_hb4_0, d_dtheta_hb4_ast;
-  typename AT::t_kkfloat_2d_randomread d_b_hb4, d_dtheta_hb4_c;
-  typename AT::t_kkfloat_2d_randomread d_a_hb7, d_theta_hb7_0, d_dtheta_hb7_ast;
-  typename AT::t_kkfloat_2d_randomread d_b_hb7, d_dtheta_hb7_c;
-  typename AT::t_kkfloat_2d_randomread d_a_hb8, d_theta_hb8_0, d_dtheta_hb8_ast;
-  typename AT::t_kkfloat_2d_randomread d_b_hb8, d_dtheta_hb8_c;
+  // all per-type-pair coefficients of a pair packed in one struct
+  Kokkos::DualView<ParamsHbond **, Kokkos::LayoutRight, DeviceType> k_params_hb;
+  typename Kokkos::DualView<ParamsHbond **, Kokkos::LayoutRight, DeviceType>::t_dev_const_randomread d_params_hb;
   // per-atom arrays for local unit vectors
-  DAT::tdual_kkfloat_1d_3 k_nx_xtrct, k_ny_xtrct, k_nz_xtrct;
   t_oxdna_packed_sub<DeviceType> d_nx_xtrct, d_ny_xtrct, d_nz_xtrct;
 
   int first;

@@ -374,7 +374,7 @@ void PairOxdnaHbondKokkos<DeviceType>::operator()(TagPairOxdnaHbondCompute<OXDNA
 
     // no hydrogen bonding between these base types (e.g. non-complementary bases):
     // f1 and thus the energy would be zero, so skip the site geometry altogether
-    if (d_epsilon_hb(atype,btype) == static_cast<KK_FLOAT>(0.0)) continue;
+    if (d_params_hb(atype,btype).epsilon_hb == static_cast<KK_FLOAT>(0.0)) continue;
 
     if (unique_basepair_enabled) {
       const int idca = d_idc(a);
@@ -420,10 +420,10 @@ void PairOxdnaHbondKokkos<DeviceType>::operator()(TagPairOxdnaHbondCompute<OXDNA
     // beginning of modulation factors
 
     // f1 = f1 modulation factor
-    f1 = F1_KK(r_hb, d_epsilon_hb(atype,btype), d_a_hb(atype,btype), d_cut_hb_0(atype,btype),
-            d_cut_hb_lc(atype,btype), d_cut_hb_hc(atype,btype), d_cut_hb_lo(atype,btype),
-            d_cut_hb_hi(atype,btype), d_b_hb_lo(atype,btype),
-            d_b_hb_hi(atype,btype), d_shift_hb(atype,btype));
+    f1 = F1_KK(r_hb, d_params_hb(atype,btype).epsilon_hb, d_params_hb(atype,btype).a_hb, d_params_hb(atype,btype).cut_hb_0,
+            d_params_hb(atype,btype).cut_hb_lc, d_params_hb(atype,btype).cut_hb_hc, d_params_hb(atype,btype).cut_hb_lo,
+            d_params_hb(atype,btype).cut_hb_hi, d_params_hb(atype,btype).b_hb_lo,
+            d_params_hb(atype,btype).b_hb_hi, d_params_hb(atype,btype).shift_hb);
 
     // start early rejection criterium
     if (f1) {
@@ -433,8 +433,8 @@ void PairOxdnaHbondKokkos<DeviceType>::operator()(TagPairOxdnaHbondCompute<OXDNA
       if (cost1 < static_cast<KK_FLOAT>(-1.0)) cost1 = static_cast<KK_FLOAT>(-1.0);
       theta1 = Kokkos::acos(cost1);
       // f4t1 = f4 modulation factor
-      f4t1 = F4_KK(theta1, d_a_hb1(atype,btype), d_theta_hb1_0(atype, btype), d_dtheta_hb1_ast(atype, btype),
-              d_b_hb1(atype, btype), d_dtheta_hb1_c(atype, btype));
+      f4t1 = F4_KK(theta1, d_params_hb(atype,btype).a_hb1, d_params_hb(atype, btype).theta_hb1_0, d_params_hb(atype, btype).dtheta_hb1_ast,
+              d_params_hb(atype, btype).b_hb1, d_params_hb(atype, btype).dtheta_hb1_c);
     // end of f1
 
     // f4t1 early rejection criterium
@@ -445,8 +445,8 @@ void PairOxdnaHbondKokkos<DeviceType>::operator()(TagPairOxdnaHbondCompute<OXDNA
       if (cost2 < static_cast<KK_FLOAT>(-1.0)) cost2 = static_cast<KK_FLOAT>(-1.0);
       theta2 = Kokkos::acos(cost2);
       // f4t2 = f4 modulation factor
-      f4t2 = F4_KK(theta2, d_a_hb2(atype,btype), d_theta_hb2_0(atype, btype), d_dtheta_hb2_ast(atype, btype),
-              d_b_hb2(atype, btype), d_dtheta_hb2_c(atype, btype));
+      f4t2 = F4_KK(theta2, d_params_hb(atype,btype).a_hb2, d_params_hb(atype, btype).theta_hb2_0, d_params_hb(atype, btype).dtheta_hb2_ast,
+              d_params_hb(atype, btype).b_hb2, d_params_hb(atype, btype).dtheta_hb2_c);
     // end of f4t1
 
     // f4t2 early rejection criterium
@@ -457,8 +457,8 @@ void PairOxdnaHbondKokkos<DeviceType>::operator()(TagPairOxdnaHbondCompute<OXDNA
       if (cost3 < static_cast<KK_FLOAT>(-1.0)) cost3 = static_cast<KK_FLOAT>(-1.0);
       theta3 = Kokkos::acos(cost3);
       // f4t3 = f4 modulation factor
-      f4t3 = F4_KK(theta3, d_a_hb3(atype,btype), d_theta_hb3_0(atype, btype), d_dtheta_hb3_ast(atype, btype),
-              d_b_hb3(atype, btype), d_dtheta_hb3_c(atype, btype));
+      f4t3 = F4_KK(theta3, d_params_hb(atype,btype).a_hb3, d_params_hb(atype, btype).theta_hb3_0, d_params_hb(atype, btype).dtheta_hb3_ast,
+              d_params_hb(atype, btype).b_hb3, d_params_hb(atype, btype).dtheta_hb3_c);
     // end of f4t2
 
     // f4t3 early rejection criterium
@@ -469,8 +469,8 @@ void PairOxdnaHbondKokkos<DeviceType>::operator()(TagPairOxdnaHbondCompute<OXDNA
       if (cost4 < static_cast<KK_FLOAT>(-1.0)) cost4 = static_cast<KK_FLOAT>(-1.0);
       theta4 = Kokkos::acos(cost4);
       // f4t4 = f4 modulation factor
-      f4t4 = F4_KK(theta4, d_a_hb4(atype,btype), d_theta_hb4_0(atype, btype), d_dtheta_hb4_ast(atype, btype),
-              d_b_hb4(atype, btype), d_dtheta_hb4_c(atype, btype));
+      f4t4 = F4_KK(theta4, d_params_hb(atype,btype).a_hb4, d_params_hb(atype, btype).theta_hb4_0, d_params_hb(atype, btype).dtheta_hb4_ast,
+              d_params_hb(atype, btype).b_hb4, d_params_hb(atype, btype).dtheta_hb4_c);
     // end of f4t3
 
     // f4t4 early rejection criterium
@@ -480,8 +480,8 @@ void PairOxdnaHbondKokkos<DeviceType>::operator()(TagPairOxdnaHbondCompute<OXDNA
       if (cost7 < static_cast<KK_FLOAT>(-1.0)) cost7 = static_cast<KK_FLOAT>(-1.0);
       theta7 = Kokkos::acos(cost7);
       // f4t7 = f4 modulation factor
-      f4t7 = F4_KK(theta7, d_a_hb7(atype,btype), d_theta_hb7_0(atype, btype), d_dtheta_hb7_ast(atype, btype),
-              d_b_hb7(atype, btype), d_dtheta_hb7_c(atype, btype));
+      f4t7 = F4_KK(theta7, d_params_hb(atype,btype).a_hb7, d_params_hb(atype, btype).theta_hb7_0, d_params_hb(atype, btype).dtheta_hb7_ast,
+              d_params_hb(atype, btype).b_hb7, d_params_hb(atype, btype).dtheta_hb7_c);
     // end of f4t4
 
     // f4t7 early rejection criterium
@@ -491,8 +491,8 @@ void PairOxdnaHbondKokkos<DeviceType>::operator()(TagPairOxdnaHbondCompute<OXDNA
       if (cost8 < static_cast<KK_FLOAT>(-1.0)) cost8 = static_cast<KK_FLOAT>(-1.0);
       theta8 = Kokkos::acos(cost8);
       // f4t8 = f4 modulation factor
-      f4t8 = F4_KK(theta8, d_a_hb8(atype,btype), d_theta_hb8_0(atype, btype), d_dtheta_hb8_ast(atype, btype),
-              d_b_hb8(atype, btype), d_dtheta_hb8_c(atype, btype));
+      f4t8 = F4_KK(theta8, d_params_hb(atype,btype).a_hb8, d_params_hb(atype, btype).theta_hb8_0, d_params_hb(atype, btype).dtheta_hb8_ast,
+              d_params_hb(atype, btype).b_hb8, d_params_hb(atype, btype).dtheta_hb8_c);
 
       evdwl = static_cast<KK_ACC_FLOAT>(f1 * f4t1 * f4t2 * f4t3 * f4t4 * f4t7 * f4t8 * factor_lj);
     // end of f4t7
@@ -500,28 +500,28 @@ void PairOxdnaHbondKokkos<DeviceType>::operator()(TagPairOxdnaHbondCompute<OXDNA
     // evdwl early rejection criterium
     if (evdwl) {
       // df1 = DF1 modulation factor
-      df1 = DF1_KK(r_hb, d_epsilon_hb(atype,btype), d_a_hb(atype,btype), d_cut_hb_0(atype,btype),
-            d_cut_hb_lc(atype,btype), d_cut_hb_hc(atype,btype), d_cut_hb_lo(atype,btype),
-            d_cut_hb_hi(atype,btype), d_b_hb_lo(atype,btype),
-            d_b_hb_hi(atype,btype));
+      df1 = DF1_KK(r_hb, d_params_hb(atype,btype).epsilon_hb, d_params_hb(atype,btype).a_hb, d_params_hb(atype,btype).cut_hb_0,
+            d_params_hb(atype,btype).cut_hb_lc, d_params_hb(atype,btype).cut_hb_hc, d_params_hb(atype,btype).cut_hb_lo,
+            d_params_hb(atype,btype).cut_hb_hi, d_params_hb(atype,btype).b_hb_lo,
+            d_params_hb(atype,btype).b_hb_hi);
       // df4t1 = DF4 modulation factor
-      df4t1 = DF4_KK(theta1, d_a_hb1(atype,btype), d_theta_hb1_0(atype, btype), d_dtheta_hb1_ast(atype, btype),
-              d_b_hb1(atype, btype), d_dtheta_hb1_c(atype, btype))/Kokkos::sin(theta1);
+      df4t1 = DF4_KK(theta1, d_params_hb(atype,btype).a_hb1, d_params_hb(atype, btype).theta_hb1_0, d_params_hb(atype, btype).dtheta_hb1_ast,
+              d_params_hb(atype, btype).b_hb1, d_params_hb(atype, btype).dtheta_hb1_c)/Kokkos::sin(theta1);
       // df4t2 = DF4 modulation factor
-      df4t2 = DF4_KK(theta2, d_a_hb2(atype,btype), d_theta_hb2_0(atype, btype), d_dtheta_hb2_ast(atype, btype),
-              d_b_hb2(atype, btype), d_dtheta_hb2_c(atype, btype))/Kokkos::sin(theta2);
+      df4t2 = DF4_KK(theta2, d_params_hb(atype,btype).a_hb2, d_params_hb(atype, btype).theta_hb2_0, d_params_hb(atype, btype).dtheta_hb2_ast,
+              d_params_hb(atype, btype).b_hb2, d_params_hb(atype, btype).dtheta_hb2_c)/Kokkos::sin(theta2);
       // df4t3 = DF4 modulation factor
-      df4t3 = DF4_KK(theta3, d_a_hb3(atype,btype), d_theta_hb3_0(atype, btype), d_dtheta_hb3_ast(atype, btype),
-              d_b_hb3(atype, btype), d_dtheta_hb3_c(atype, btype))/Kokkos::sin(theta3);
+      df4t3 = DF4_KK(theta3, d_params_hb(atype,btype).a_hb3, d_params_hb(atype, btype).theta_hb3_0, d_params_hb(atype, btype).dtheta_hb3_ast,
+              d_params_hb(atype, btype).b_hb3, d_params_hb(atype, btype).dtheta_hb3_c)/Kokkos::sin(theta3);
       // df4t4 = DF4 modulation factor
-      df4t4 = DF4_KK(theta4, d_a_hb4(atype,btype), d_theta_hb4_0(atype, btype), d_dtheta_hb4_ast(atype, btype),
-              d_b_hb4(atype, btype), d_dtheta_hb4_c(atype, btype))/Kokkos::sin(theta4);
+      df4t4 = DF4_KK(theta4, d_params_hb(atype,btype).a_hb4, d_params_hb(atype, btype).theta_hb4_0, d_params_hb(atype, btype).dtheta_hb4_ast,
+              d_params_hb(atype, btype).b_hb4, d_params_hb(atype, btype).dtheta_hb4_c)/Kokkos::sin(theta4);
       // df4t7 = DF4 modulation factor
-      df4t7 = DF4_KK(theta7, d_a_hb7(atype,btype), d_theta_hb7_0(atype, btype), d_dtheta_hb7_ast(atype, btype),
-              d_b_hb7(atype, btype), d_dtheta_hb7_c(atype, btype))/Kokkos::sin(theta7);
+      df4t7 = DF4_KK(theta7, d_params_hb(atype,btype).a_hb7, d_params_hb(atype, btype).theta_hb7_0, d_params_hb(atype, btype).dtheta_hb7_ast,
+              d_params_hb(atype, btype).b_hb7, d_params_hb(atype, btype).dtheta_hb7_c)/Kokkos::sin(theta7);
       // df4t8 = DF4 modulation factor
-      df4t8 = DF4_KK(theta8, d_a_hb8(atype,btype), d_theta_hb8_0(atype, btype), d_dtheta_hb8_ast(atype, btype),
-              d_b_hb8(atype, btype), d_dtheta_hb8_c(atype, btype))/Kokkos::sin(theta8);
+      df4t8 = DF4_KK(theta8, d_params_hb(atype,btype).a_hb8, d_params_hb(atype, btype).theta_hb8_0, d_params_hb(atype, btype).dtheta_hb8_ast,
+              d_params_hb(atype, btype).b_hb8, d_params_hb(atype, btype).dtheta_hb8_c)/Kokkos::sin(theta8);
 
       // force, torque, and viral contributions for forces between h-bonding sites
 
@@ -754,16 +754,16 @@ KOKKOS_INLINE_FUNCTION
 bool PairOxdnaHbondKokkos<DeviceType>::hbond_radial_terms(const int &atype, const int &btype,
   const KK_FLOAT &r_hb, KK_FLOAT &f1, KK_FLOAT &df1) const
 {
-  const KK_FLOAT p_epsilon_hb = d_epsilon_hb(atype,btype);
-  const KK_FLOAT p_a_hb = d_a_hb(atype,btype);
-  const KK_FLOAT p_cut_hb_0 = d_cut_hb_0(atype,btype);
-  const KK_FLOAT p_cut_hb_lc = d_cut_hb_lc(atype,btype);
-  const KK_FLOAT p_cut_hb_hc = d_cut_hb_hc(atype,btype);
-  const KK_FLOAT p_cut_hb_lo = d_cut_hb_lo(atype,btype);
-  const KK_FLOAT p_cut_hb_hi = d_cut_hb_hi(atype,btype);
-  const KK_FLOAT p_b_hb_lo = d_b_hb_lo(atype,btype);
-  const KK_FLOAT p_b_hb_hi = d_b_hb_hi(atype,btype);
-  const KK_FLOAT p_shift_hb = d_shift_hb(atype,btype);
+  const KK_FLOAT p_epsilon_hb = d_params_hb(atype,btype).epsilon_hb;
+  const KK_FLOAT p_a_hb = d_params_hb(atype,btype).a_hb;
+  const KK_FLOAT p_cut_hb_0 = d_params_hb(atype,btype).cut_hb_0;
+  const KK_FLOAT p_cut_hb_lc = d_params_hb(atype,btype).cut_hb_lc;
+  const KK_FLOAT p_cut_hb_hc = d_params_hb(atype,btype).cut_hb_hc;
+  const KK_FLOAT p_cut_hb_lo = d_params_hb(atype,btype).cut_hb_lo;
+  const KK_FLOAT p_cut_hb_hi = d_params_hb(atype,btype).cut_hb_hi;
+  const KK_FLOAT p_b_hb_lo = d_params_hb(atype,btype).b_hb_lo;
+  const KK_FLOAT p_b_hb_hi = d_params_hb(atype,btype).b_hb_hi;
+  const KK_FLOAT p_shift_hb = d_params_hb(atype,btype).shift_hb;
 
     f1 = F1_KK(r_hb, p_epsilon_hb, p_a_hb, p_cut_hb_0,
       p_cut_hb_lc, p_cut_hb_hc, p_cut_hb_lo, p_cut_hb_hi,
@@ -782,11 +782,11 @@ bool PairOxdnaHbondKokkos<DeviceType>::hbond_theta1_terms(const int &atype, cons
   const KK_FLOAT (&a_nx)[3], const KK_FLOAT (&b_nx)[3],
   KK_FLOAT &theta1, KK_FLOAT &f4t1, KK_FLOAT &df4t1) const
 {
-  const KK_FLOAT p_a_hb1 = d_a_hb1(atype,btype);
-  const KK_FLOAT p_theta_hb1_0 = d_theta_hb1_0(atype,btype);
-  const KK_FLOAT p_dtheta_hb1_ast = d_dtheta_hb1_ast(atype,btype);
-  const KK_FLOAT p_b_hb1 = d_b_hb1(atype,btype);
-  const KK_FLOAT p_dtheta_hb1_c = d_dtheta_hb1_c(atype,btype);
+  const KK_FLOAT p_a_hb1 = d_params_hb(atype,btype).a_hb1;
+  const KK_FLOAT p_theta_hb1_0 = d_params_hb(atype,btype).theta_hb1_0;
+  const KK_FLOAT p_dtheta_hb1_ast = d_params_hb(atype,btype).dtheta_hb1_ast;
+  const KK_FLOAT p_b_hb1 = d_params_hb(atype,btype).b_hb1;
+  const KK_FLOAT p_dtheta_hb1_c = d_params_hb(atype,btype).dtheta_hb1_c;
 
   KK_FLOAT cost1 = -Kokkos::fma(a_nx[2], b_nx[2], Kokkos::fma(a_nx[1], b_nx[1], a_nx[0] * b_nx[0]));
   if (cost1 > static_cast<KK_FLOAT>(1.0)) cost1 = static_cast<KK_FLOAT>(1.0);
@@ -812,11 +812,11 @@ bool PairOxdnaHbondKokkos<DeviceType>::hbond_theta2_terms(const int &atype, cons
   const KK_FLOAT (&a_nx)[3], const KK_FLOAT (&delr_hb_norm)[3],
   KK_FLOAT &theta2, KK_FLOAT &cost2, KK_FLOAT &f4t2, KK_FLOAT &df4t2) const
 {
-  const KK_FLOAT p_a_hb2 = d_a_hb2(atype,btype);
-  const KK_FLOAT p_theta_hb2_0 = d_theta_hb2_0(atype,btype);
-  const KK_FLOAT p_dtheta_hb2_ast = d_dtheta_hb2_ast(atype,btype);
-  const KK_FLOAT p_b_hb2 = d_b_hb2(atype,btype);
-  const KK_FLOAT p_dtheta_hb2_c = d_dtheta_hb2_c(atype,btype);
+  const KK_FLOAT p_a_hb2 = d_params_hb(atype,btype).a_hb2;
+  const KK_FLOAT p_theta_hb2_0 = d_params_hb(atype,btype).theta_hb2_0;
+  const KK_FLOAT p_dtheta_hb2_ast = d_params_hb(atype,btype).dtheta_hb2_ast;
+  const KK_FLOAT p_b_hb2 = d_params_hb(atype,btype).b_hb2;
+  const KK_FLOAT p_dtheta_hb2_c = d_params_hb(atype,btype).dtheta_hb2_c;
 
   cost2 = -Kokkos::fma(a_nx[2], delr_hb_norm[2], Kokkos::fma(a_nx[1], delr_hb_norm[1], a_nx[0] * delr_hb_norm[0]));
   if (cost2 > static_cast<KK_FLOAT>(1.0)) cost2 = static_cast<KK_FLOAT>(1.0);
@@ -842,11 +842,11 @@ bool PairOxdnaHbondKokkos<DeviceType>::hbond_theta3_terms(const int &atype, cons
   const KK_FLOAT (&b_nx)[3], const KK_FLOAT (&delr_hb_norm)[3],
   KK_FLOAT &theta3, KK_FLOAT &cost3, KK_FLOAT &f4t3, KK_FLOAT &df4t3) const
 {
-  const KK_FLOAT p_a_hb3 = d_a_hb3(atype,btype);
-  const KK_FLOAT p_theta_hb3_0 = d_theta_hb3_0(atype,btype);
-  const KK_FLOAT p_dtheta_hb3_ast = d_dtheta_hb3_ast(atype,btype);
-  const KK_FLOAT p_b_hb3 = d_b_hb3(atype,btype);
-  const KK_FLOAT p_dtheta_hb3_c = d_dtheta_hb3_c(atype,btype);
+  const KK_FLOAT p_a_hb3 = d_params_hb(atype,btype).a_hb3;
+  const KK_FLOAT p_theta_hb3_0 = d_params_hb(atype,btype).theta_hb3_0;
+  const KK_FLOAT p_dtheta_hb3_ast = d_params_hb(atype,btype).dtheta_hb3_ast;
+  const KK_FLOAT p_b_hb3 = d_params_hb(atype,btype).b_hb3;
+  const KK_FLOAT p_dtheta_hb3_c = d_params_hb(atype,btype).dtheta_hb3_c;
 
   cost3 = Kokkos::fma(b_nx[2], delr_hb_norm[2], Kokkos::fma(b_nx[1], delr_hb_norm[1], b_nx[0] * delr_hb_norm[0]));
   if (cost3 > static_cast<KK_FLOAT>(1.0)) cost3 = static_cast<KK_FLOAT>(1.0);
@@ -872,11 +872,11 @@ bool PairOxdnaHbondKokkos<DeviceType>::hbond_theta4_terms(const int &atype, cons
   const KK_FLOAT (&a_nz)[3], const KK_FLOAT (&b_nz)[3],
   KK_FLOAT &theta4, KK_FLOAT &f4t4, KK_FLOAT &df4t4) const
 {
-  const KK_FLOAT p_a_hb4 = d_a_hb4(atype,btype);
-  const KK_FLOAT p_theta_hb4_0 = d_theta_hb4_0(atype,btype);
-  const KK_FLOAT p_dtheta_hb4_ast = d_dtheta_hb4_ast(atype,btype);
-  const KK_FLOAT p_b_hb4 = d_b_hb4(atype,btype);
-  const KK_FLOAT p_dtheta_hb4_c = d_dtheta_hb4_c(atype,btype);
+  const KK_FLOAT p_a_hb4 = d_params_hb(atype,btype).a_hb4;
+  const KK_FLOAT p_theta_hb4_0 = d_params_hb(atype,btype).theta_hb4_0;
+  const KK_FLOAT p_dtheta_hb4_ast = d_params_hb(atype,btype).dtheta_hb4_ast;
+  const KK_FLOAT p_b_hb4 = d_params_hb(atype,btype).b_hb4;
+  const KK_FLOAT p_dtheta_hb4_c = d_params_hb(atype,btype).dtheta_hb4_c;
 
   KK_FLOAT cost4 = Kokkos::fma(a_nz[2], b_nz[2], Kokkos::fma(a_nz[1], b_nz[1], a_nz[0] * b_nz[0]));
   if (cost4 > static_cast<KK_FLOAT>(1.0)) cost4 = static_cast<KK_FLOAT>(1.0);
@@ -902,11 +902,11 @@ bool PairOxdnaHbondKokkos<DeviceType>::hbond_theta7_terms(const int &atype, cons
   const KK_FLOAT (&a_nz)[3], const KK_FLOAT (&delr_hb_norm)[3],
   KK_FLOAT &theta7, KK_FLOAT &cost7, KK_FLOAT &f4t7, KK_FLOAT &df4t7) const
 {
-  const KK_FLOAT p_a_hb7 = d_a_hb7(atype,btype);
-  const KK_FLOAT p_theta_hb7_0 = d_theta_hb7_0(atype,btype);
-  const KK_FLOAT p_dtheta_hb7_ast = d_dtheta_hb7_ast(atype,btype);
-  const KK_FLOAT p_b_hb7 = d_b_hb7(atype,btype);
-  const KK_FLOAT p_dtheta_hb7_c = d_dtheta_hb7_c(atype,btype);
+  const KK_FLOAT p_a_hb7 = d_params_hb(atype,btype).a_hb7;
+  const KK_FLOAT p_theta_hb7_0 = d_params_hb(atype,btype).theta_hb7_0;
+  const KK_FLOAT p_dtheta_hb7_ast = d_params_hb(atype,btype).dtheta_hb7_ast;
+  const KK_FLOAT p_b_hb7 = d_params_hb(atype,btype).b_hb7;
+  const KK_FLOAT p_dtheta_hb7_c = d_params_hb(atype,btype).dtheta_hb7_c;
 
   cost7 = -Kokkos::fma(a_nz[2], delr_hb_norm[2], Kokkos::fma(a_nz[1], delr_hb_norm[1], a_nz[0] * delr_hb_norm[0]));
   if (cost7 > static_cast<KK_FLOAT>(1.0)) cost7 = static_cast<KK_FLOAT>(1.0);
@@ -932,11 +932,11 @@ bool PairOxdnaHbondKokkos<DeviceType>::hbond_theta8_terms(const int &atype, cons
   const KK_FLOAT (&b_nz)[3], const KK_FLOAT (&delr_hb_norm)[3],
   KK_FLOAT &theta8, KK_FLOAT &cost8, KK_FLOAT &f4t8, KK_FLOAT &df4t8) const
 {
-  const KK_FLOAT p_a_hb8 = d_a_hb8(atype,btype);
-  const KK_FLOAT p_theta_hb8_0 = d_theta_hb8_0(atype,btype);
-  const KK_FLOAT p_dtheta_hb8_ast = d_dtheta_hb8_ast(atype,btype);
-  const KK_FLOAT p_b_hb8 = d_b_hb8(atype,btype);
-  const KK_FLOAT p_dtheta_hb8_c = d_dtheta_hb8_c(atype,btype);
+  const KK_FLOAT p_a_hb8 = d_params_hb(atype,btype).a_hb8;
+  const KK_FLOAT p_theta_hb8_0 = d_params_hb(atype,btype).theta_hb8_0;
+  const KK_FLOAT p_dtheta_hb8_ast = d_params_hb(atype,btype).dtheta_hb8_ast;
+  const KK_FLOAT p_b_hb8 = d_params_hb(atype,btype).b_hb8;
+  const KK_FLOAT p_dtheta_hb8_c = d_params_hb(atype,btype).dtheta_hb8_c;
 
   cost8 = Kokkos::fma(b_nz[2], delr_hb_norm[2], Kokkos::fma(b_nz[1], delr_hb_norm[1], b_nz[0] * delr_hb_norm[0]));
   if (cost8 > static_cast<KK_FLOAT>(1.0)) cost8 = static_cast<KK_FLOAT>(1.0);
@@ -1155,7 +1155,7 @@ bool PairOxdnaHbondKokkos<DeviceType>::screened_pair_body(TagPairOxdnaHbondCompu
 
   // no hydrogen bonding between these base types (e.g. non-complementary bases):
   // f1 and thus the energy would be zero, so skip the site geometry altogether
-  if (d_epsilon_hb(atype,btype) == static_cast<KK_FLOAT>(0.0)) return false;
+  if (d_params_hb(atype,btype).epsilon_hb == static_cast<KK_FLOAT>(0.0)) return false;
 
   if (unique_basepair_enabled) {
     const int idca = d_idc(a);
@@ -1381,103 +1381,21 @@ void PairOxdnaHbondKokkos<DeviceType>::allocate()
 
   int n = atom->ntypes;
 
-  memoryKK->create_kokkos(k_epsilon_hb,n+1,n+1,"PairOxdnaHbond:epsilon_hb");
-  memoryKK->create_kokkos(k_a_hb,n+1,n+1,"PairOxdnaHbond:a_hb");
-  memoryKK->create_kokkos(k_cut_hb_0,n+1,n+1,"PairOxdnaHbond:cut_hb_0");
-  memoryKK->create_kokkos(k_cut_hb_c,n+1,n+1,"PairOxdnaHbond:cut_hb_c");
-  memoryKK->create_kokkos(k_cut_hb_lo,n+1,n+1,"PairOxdnaHbond:cut_hb_lo");
-  memoryKK->create_kokkos(k_cut_hb_hi,n+1,n+1,"PairOxdnaHbond:cut_hb_hi");
-  memoryKK->create_kokkos(k_cut_hb_lc,n+1,n+1,"PairOxdnaHbond:cut_hb_lc");
-  memoryKK->create_kokkos(k_cut_hb_hc,n+1,n+1,"PairOxdnaHbond:cut_hb_hc");
-  memoryKK->create_kokkos(k_b_hb_lo,n+1,n+1,"PairOxdnaHbond:b_hb_lo");
-  memoryKK->create_kokkos(k_b_hb_hi,n+1,n+1,"PairOxdnaHbond:b_hb_hi");
-  memoryKK->create_kokkos(k_shift_hb,n+1,n+1,"PairOxdnaHbond:shift_hb");
-  memoryKK->create_kokkos(k_cutsq_hb_hc,n+1,n+1,"PairOxdnaHbond:cutsq_hb_hc");
+  k_params_hb = decltype(k_params_hb)("PairOxdnaHbondKokkos:params_hb", n+1, n+1);
 
-  memoryKK->create_kokkos(k_a_hb1,n+1,n+1,"PairOxdnaHbond:a_hb1");
-  memoryKK->create_kokkos(k_theta_hb1_0,n+1,n+1,"PairOxdnaHbond:theta_hb1_0");
-  memoryKK->create_kokkos(k_dtheta_hb1_ast,n+1,n+1,"PairOxdnaHbond:dtheta_hb1_ast");
-  memoryKK->create_kokkos(k_b_hb1,n+1,n+1,"PairOxdnaHbond:b_hb1");
-  memoryKK->create_kokkos(k_dtheta_hb1_c,n+1,n+1,"PairOxdnaHbond:dtheta_hb1_c");
 
-  memoryKK->create_kokkos(k_a_hb2,n+1,n+1,"PairOxdnaHbond:a_hb2");
-  memoryKK->create_kokkos(k_theta_hb2_0,n+1,n+1,"PairOxdnaHbond:theta_hb2_0");
-  memoryKK->create_kokkos(k_dtheta_hb2_ast,n+1,n+1,"PairOxdnaHbond:dtheta_hb2_ast");
-  memoryKK->create_kokkos(k_b_hb2,n+1,n+1,"PairOxdnaHbond:b_hb2");
-  memoryKK->create_kokkos(k_dtheta_hb2_c,n+1,n+1,"PairOxdnaHbond:dtheta_hb2_c");
 
-  memoryKK->create_kokkos(k_a_hb3,n+1,n+1,"PairOxdnaHbond:a_hb3");
-  memoryKK->create_kokkos(k_theta_hb3_0,n+1,n+1,"PairOxdnaHbond:theta_hb3_0");
-  memoryKK->create_kokkos(k_dtheta_hb3_ast,n+1,n+1,"PairOxdnaHbond:dtheta_hb3_ast");
-  memoryKK->create_kokkos(k_b_hb3,n+1,n+1,"PairOxdnaHbond:b_hb3");
-  memoryKK->create_kokkos(k_dtheta_hb3_c,n+1,n+1,"PairOxdnaHbond:dtheta_hb3_c");
 
-  memoryKK->create_kokkos(k_a_hb4,n+1,n+1,"PairOxdnaHbond:a_hb4");
-  memoryKK->create_kokkos(k_theta_hb4_0,n+1,n+1,"PairOxdnaHbond:theta_hb4_0");
-  memoryKK->create_kokkos(k_dtheta_hb4_ast,n+1,n+1,"PairOxdnaHbond:dtheta_hb4_ast");
-  memoryKK->create_kokkos(k_b_hb4,n+1,n+1,"PairOxdnaHbond:b_hb4");
-  memoryKK->create_kokkos(k_dtheta_hb4_c,n+1,n+1,"PairOxdnaHbond:dtheta_hb4_c");
 
-  memoryKK->create_kokkos(k_a_hb7,n+1,n+1,"PairOxdnaHbond:a_hb7");
-  memoryKK->create_kokkos(k_theta_hb7_0,n+1,n+1,"PairOxdnaHbond:theta_hb7_0");
-  memoryKK->create_kokkos(k_dtheta_hb7_ast,n+1,n+1,"PairOxdnaHbond:dtheta_hb7_ast");
-  memoryKK->create_kokkos(k_b_hb7,n+1,n+1,"PairOxdnaHbond:b_hb7");
-  memoryKK->create_kokkos(k_dtheta_hb7_c,n+1,n+1,"PairOxdnaHbond:dtheta_hb7_c");
 
-  memoryKK->create_kokkos(k_a_hb8,n+1,n+1,"PairOxdnaHbond:a_hb8");
-  memoryKK->create_kokkos(k_theta_hb8_0,n+1,n+1,"PairOxdnaHbond:theta_hb8_0");
-  memoryKK->create_kokkos(k_dtheta_hb8_ast,n+1,n+1,"PairOxdnaHbond:dtheta_hb8_ast");
-  memoryKK->create_kokkos(k_b_hb8,n+1,n+1,"PairOxdnaHbond:b_hb8");
-  memoryKK->create_kokkos(k_dtheta_hb8_c,n+1,n+1,"PairOxdnaHbond:dtheta_hb8_c");
 
-  d_epsilon_hb = k_epsilon_hb.template view<DeviceType>();
-  d_a_hb = k_a_hb.template view<DeviceType>();
-  d_cut_hb_0 = k_cut_hb_0.template view<DeviceType>();
-  d_cut_hb_c = k_cut_hb_c.template view<DeviceType>();
-  d_cut_hb_lo = k_cut_hb_lo.template view<DeviceType>();
-  d_cut_hb_hi = k_cut_hb_hi.template view<DeviceType>();
-  d_cut_hb_lc = k_cut_hb_lc.template view<DeviceType>();
-  d_cut_hb_hc = k_cut_hb_hc.template view<DeviceType>();
-  d_b_hb_lo = k_b_hb_lo.template view<DeviceType>();
-  d_b_hb_hi = k_b_hb_hi.template view<DeviceType>();
-  d_shift_hb = k_shift_hb.template view<DeviceType>();
-  d_cutsq_hb_hc = k_cutsq_hb_hc.template view<DeviceType>();
+  d_params_hb = k_params_hb.template view<DeviceType>();
 
-  d_a_hb1 = k_a_hb1.template view<DeviceType>();
-  d_theta_hb1_0 = k_theta_hb1_0.template view<DeviceType>();
-  d_dtheta_hb1_ast = k_dtheta_hb1_ast.template view<DeviceType>();
-  d_b_hb1 = k_b_hb1.template view<DeviceType>();
-  d_dtheta_hb1_c = k_dtheta_hb1_c.template view<DeviceType>();
 
-  d_a_hb2 = k_a_hb2.template view<DeviceType>();
-  d_theta_hb2_0 = k_theta_hb2_0.template view<DeviceType>();
-  d_dtheta_hb2_ast = k_dtheta_hb2_ast.template view<DeviceType>();
-  d_b_hb2 = k_b_hb2.template view<DeviceType>();
-  d_dtheta_hb2_c = k_dtheta_hb2_c.template view<DeviceType>();
 
-  d_a_hb3 = k_a_hb3.template view<DeviceType>();
-  d_theta_hb3_0 = k_theta_hb3_0.template view<DeviceType>();
-  d_dtheta_hb3_ast = k_dtheta_hb3_ast.template view<DeviceType>();
-  d_b_hb3 = k_b_hb3.template view<DeviceType>();
-  d_dtheta_hb3_c = k_dtheta_hb3_c.template view<DeviceType>();
 
-  d_a_hb4 = k_a_hb4.template view<DeviceType>();
-  d_theta_hb4_0 = k_theta_hb4_0.template view<DeviceType>();
-  d_dtheta_hb4_ast = k_dtheta_hb4_ast.template view<DeviceType>();
-  d_b_hb4 = k_b_hb4.template view<DeviceType>();
-  d_dtheta_hb4_c = k_dtheta_hb4_c.template view<DeviceType>();
 
-  d_a_hb7 = k_a_hb7.template view<DeviceType>();
-  d_theta_hb7_0 = k_theta_hb7_0.template view<DeviceType>();
-  d_dtheta_hb7_ast = k_dtheta_hb7_ast.template view<DeviceType>();
-  d_b_hb7 = k_b_hb7.template view<DeviceType>();
-  d_dtheta_hb7_c = k_dtheta_hb7_c.template view<DeviceType>();
 
-  d_a_hb8 = k_a_hb8.template view<DeviceType>();
-  d_theta_hb8_0 = k_theta_hb8_0.template view<DeviceType>();
-  d_dtheta_hb8_ast = k_dtheta_hb8_ast.template view<DeviceType>();
-  d_b_hb8 = k_b_hb8.template view<DeviceType>();
-  d_dtheta_hb8_c = k_dtheta_hb8_c.template view<DeviceType>();
 
 }
 
@@ -1549,153 +1467,71 @@ double PairOxdnaHbondKokkos<DeviceType>::init_one(int i, int j)
   double cutone = PairOxdnaHbond::init_one(i,j);
 
   // Assign directionally: [i][j] gets [i][j], [j][i] gets [j][i]
-  k_epsilon_hb.view_host()(i,j) = static_cast<KK_FLOAT>(epsilon_hb[i][j]); k_epsilon_hb.view_host()(j,i) = static_cast<KK_FLOAT>(epsilon_hb[j][i]);
-  k_a_hb.view_host()(i,j) = static_cast<KK_FLOAT>(a_hb[i][j]); k_a_hb.view_host()(j,i) = static_cast<KK_FLOAT>(a_hb[j][i]);
-  k_cut_hb_0.view_host()(i,j) = static_cast<KK_FLOAT>(cut_hb_0[i][j]); k_cut_hb_0.view_host()(j,i) = static_cast<KK_FLOAT>(cut_hb_0[j][i]);
-  k_cut_hb_c.view_host()(i,j) = static_cast<KK_FLOAT>(cut_hb_c[i][j]); k_cut_hb_c.view_host()(j,i) = static_cast<KK_FLOAT>(cut_hb_c[j][i]);
-  k_cut_hb_lo.view_host()(i,j) = static_cast<KK_FLOAT>(cut_hb_lo[i][j]); k_cut_hb_lo.view_host()(j,i) = static_cast<KK_FLOAT>(cut_hb_lo[j][i]);
-  k_cut_hb_hi.view_host()(i,j) = static_cast<KK_FLOAT>(cut_hb_hi[i][j]); k_cut_hb_hi.view_host()(j,i) = static_cast<KK_FLOAT>(cut_hb_hi[j][i]);
-  k_cut_hb_lc.view_host()(i,j) = static_cast<KK_FLOAT>(cut_hb_lc[i][j]); k_cut_hb_lc.view_host()(j,i) = static_cast<KK_FLOAT>(cut_hb_lc[j][i]);
-  k_cut_hb_hc.view_host()(i,j) = static_cast<KK_FLOAT>(cut_hb_hc[i][j]); k_cut_hb_hc.view_host()(j,i) = static_cast<KK_FLOAT>(cut_hb_hc[j][i]);
-  k_b_hb_lo.view_host()(i,j) = static_cast<KK_FLOAT>(b_hb_lo[i][j]); k_b_hb_lo.view_host()(j,i) = static_cast<KK_FLOAT>(b_hb_lo[j][i]);
-  k_b_hb_hi.view_host()(i,j) = static_cast<KK_FLOAT>(b_hb_hi[i][j]); k_b_hb_hi.view_host()(j,i) = static_cast<KK_FLOAT>(b_hb_hi[j][i]);
-  k_shift_hb.view_host()(i,j) = static_cast<KK_FLOAT>(shift_hb[i][j]); k_shift_hb.view_host()(j,i) = static_cast<KK_FLOAT>(shift_hb[j][i]);
-  k_cutsq_hb_hc.view_host()(i,j) = static_cast<KK_FLOAT>(cutsq_hb_hc[i][j]); k_cutsq_hb_hc.view_host()(j,i) = static_cast<KK_FLOAT>(cutsq_hb_hc[j][i]);
+  k_params_hb.view_host()(i,j).epsilon_hb = static_cast<KK_FLOAT>(epsilon_hb[i][j]); k_params_hb.view_host()(j,i).epsilon_hb = static_cast<KK_FLOAT>(epsilon_hb[j][i]);
+  k_params_hb.view_host()(i,j).a_hb = static_cast<KK_FLOAT>(a_hb[i][j]); k_params_hb.view_host()(j,i).a_hb = static_cast<KK_FLOAT>(a_hb[j][i]);
+  k_params_hb.view_host()(i,j).cut_hb_0 = static_cast<KK_FLOAT>(cut_hb_0[i][j]); k_params_hb.view_host()(j,i).cut_hb_0 = static_cast<KK_FLOAT>(cut_hb_0[j][i]);
+  k_params_hb.view_host()(i,j).cut_hb_c = static_cast<KK_FLOAT>(cut_hb_c[i][j]); k_params_hb.view_host()(j,i).cut_hb_c = static_cast<KK_FLOAT>(cut_hb_c[j][i]);
+  k_params_hb.view_host()(i,j).cut_hb_lo = static_cast<KK_FLOAT>(cut_hb_lo[i][j]); k_params_hb.view_host()(j,i).cut_hb_lo = static_cast<KK_FLOAT>(cut_hb_lo[j][i]);
+  k_params_hb.view_host()(i,j).cut_hb_hi = static_cast<KK_FLOAT>(cut_hb_hi[i][j]); k_params_hb.view_host()(j,i).cut_hb_hi = static_cast<KK_FLOAT>(cut_hb_hi[j][i]);
+  k_params_hb.view_host()(i,j).cut_hb_lc = static_cast<KK_FLOAT>(cut_hb_lc[i][j]); k_params_hb.view_host()(j,i).cut_hb_lc = static_cast<KK_FLOAT>(cut_hb_lc[j][i]);
+  k_params_hb.view_host()(i,j).cut_hb_hc = static_cast<KK_FLOAT>(cut_hb_hc[i][j]); k_params_hb.view_host()(j,i).cut_hb_hc = static_cast<KK_FLOAT>(cut_hb_hc[j][i]);
+  k_params_hb.view_host()(i,j).b_hb_lo = static_cast<KK_FLOAT>(b_hb_lo[i][j]); k_params_hb.view_host()(j,i).b_hb_lo = static_cast<KK_FLOAT>(b_hb_lo[j][i]);
+  k_params_hb.view_host()(i,j).b_hb_hi = static_cast<KK_FLOAT>(b_hb_hi[i][j]); k_params_hb.view_host()(j,i).b_hb_hi = static_cast<KK_FLOAT>(b_hb_hi[j][i]);
+  k_params_hb.view_host()(i,j).shift_hb = static_cast<KK_FLOAT>(shift_hb[i][j]); k_params_hb.view_host()(j,i).shift_hb = static_cast<KK_FLOAT>(shift_hb[j][i]);
+  k_params_hb.view_host()(i,j).cutsq_hb_hc = static_cast<KK_FLOAT>(cutsq_hb_hc[i][j]); k_params_hb.view_host()(j,i).cutsq_hb_hc = static_cast<KK_FLOAT>(cutsq_hb_hc[j][i]);
 
-  k_a_hb1.view_host()(i,j) = static_cast<KK_FLOAT>(a_hb1[i][j]); k_a_hb1.view_host()(j,i) = static_cast<KK_FLOAT>(a_hb1[j][i]);
-  k_theta_hb1_0.view_host()(i,j) = static_cast<KK_FLOAT>(theta_hb1_0[i][j]); k_theta_hb1_0.view_host()(j,i) = static_cast<KK_FLOAT>(theta_hb1_0[j][i]);
-  k_dtheta_hb1_ast.view_host()(i,j) = static_cast<KK_FLOAT>(dtheta_hb1_ast[i][j]); k_dtheta_hb1_ast.view_host()(j,i) = static_cast<KK_FLOAT>(dtheta_hb1_ast[j][i]);
-  k_b_hb1.view_host()(i,j) = static_cast<KK_FLOAT>(b_hb1[i][j]); k_b_hb1.view_host()(j,i) = static_cast<KK_FLOAT>(b_hb1[j][i]);
-  k_dtheta_hb1_c.view_host()(i,j) = static_cast<KK_FLOAT>(dtheta_hb1_c[i][j]); k_dtheta_hb1_c.view_host()(j,i) = static_cast<KK_FLOAT>(dtheta_hb1_c[j][i]);
+  k_params_hb.view_host()(i,j).a_hb1 = static_cast<KK_FLOAT>(a_hb1[i][j]); k_params_hb.view_host()(j,i).a_hb1 = static_cast<KK_FLOAT>(a_hb1[j][i]);
+  k_params_hb.view_host()(i,j).theta_hb1_0 = static_cast<KK_FLOAT>(theta_hb1_0[i][j]); k_params_hb.view_host()(j,i).theta_hb1_0 = static_cast<KK_FLOAT>(theta_hb1_0[j][i]);
+  k_params_hb.view_host()(i,j).dtheta_hb1_ast = static_cast<KK_FLOAT>(dtheta_hb1_ast[i][j]); k_params_hb.view_host()(j,i).dtheta_hb1_ast = static_cast<KK_FLOAT>(dtheta_hb1_ast[j][i]);
+  k_params_hb.view_host()(i,j).b_hb1 = static_cast<KK_FLOAT>(b_hb1[i][j]); k_params_hb.view_host()(j,i).b_hb1 = static_cast<KK_FLOAT>(b_hb1[j][i]);
+  k_params_hb.view_host()(i,j).dtheta_hb1_c = static_cast<KK_FLOAT>(dtheta_hb1_c[i][j]); k_params_hb.view_host()(j,i).dtheta_hb1_c = static_cast<KK_FLOAT>(dtheta_hb1_c[j][i]);
 
-  k_a_hb2.view_host()(i,j) = static_cast<KK_FLOAT>(a_hb2[i][j]); k_a_hb2.view_host()(j,i) = static_cast<KK_FLOAT>(a_hb2[j][i]);
-  k_theta_hb2_0.view_host()(i,j) = static_cast<KK_FLOAT>(theta_hb2_0[i][j]); k_theta_hb2_0.view_host()(j,i) = static_cast<KK_FLOAT>(theta_hb2_0[j][i]);
-  k_dtheta_hb2_ast.view_host()(i,j) = static_cast<KK_FLOAT>(dtheta_hb2_ast[i][j]); k_dtheta_hb2_ast.view_host()(j,i) = static_cast<KK_FLOAT>(dtheta_hb2_ast[j][i]);
-  k_b_hb2.view_host()(i,j) = static_cast<KK_FLOAT>(b_hb2[i][j]); k_b_hb2.view_host()(j,i) = static_cast<KK_FLOAT>(b_hb2[j][i]);
-  k_dtheta_hb2_c.view_host()(i,j) = static_cast<KK_FLOAT>(dtheta_hb2_c[i][j]); k_dtheta_hb2_c.view_host()(j,i) = static_cast<KK_FLOAT>(dtheta_hb2_c[j][i]);
+  k_params_hb.view_host()(i,j).a_hb2 = static_cast<KK_FLOAT>(a_hb2[i][j]); k_params_hb.view_host()(j,i).a_hb2 = static_cast<KK_FLOAT>(a_hb2[j][i]);
+  k_params_hb.view_host()(i,j).theta_hb2_0 = static_cast<KK_FLOAT>(theta_hb2_0[i][j]); k_params_hb.view_host()(j,i).theta_hb2_0 = static_cast<KK_FLOAT>(theta_hb2_0[j][i]);
+  k_params_hb.view_host()(i,j).dtheta_hb2_ast = static_cast<KK_FLOAT>(dtheta_hb2_ast[i][j]); k_params_hb.view_host()(j,i).dtheta_hb2_ast = static_cast<KK_FLOAT>(dtheta_hb2_ast[j][i]);
+  k_params_hb.view_host()(i,j).b_hb2 = static_cast<KK_FLOAT>(b_hb2[i][j]); k_params_hb.view_host()(j,i).b_hb2 = static_cast<KK_FLOAT>(b_hb2[j][i]);
+  k_params_hb.view_host()(i,j).dtheta_hb2_c = static_cast<KK_FLOAT>(dtheta_hb2_c[i][j]); k_params_hb.view_host()(j,i).dtheta_hb2_c = static_cast<KK_FLOAT>(dtheta_hb2_c[j][i]);
 
-  k_a_hb3.view_host()(i,j) = static_cast<KK_FLOAT>(a_hb3[i][j]); k_a_hb3.view_host()(j,i) = static_cast<KK_FLOAT>(a_hb3[j][i]);
-  k_theta_hb3_0.view_host()(i,j) = static_cast<KK_FLOAT>(theta_hb3_0[i][j]); k_theta_hb3_0.view_host()(j,i) = static_cast<KK_FLOAT>(theta_hb3_0[j][i]);
-  k_dtheta_hb3_ast.view_host()(i,j) = static_cast<KK_FLOAT>(dtheta_hb3_ast[i][j]); k_dtheta_hb3_ast.view_host()(j,i) = static_cast<KK_FLOAT>(dtheta_hb3_ast[j][i]);
-  k_b_hb3.view_host()(i,j) = static_cast<KK_FLOAT>(b_hb3[i][j]); k_b_hb3.view_host()(j,i) = static_cast<KK_FLOAT>(b_hb3[j][i]);
-  k_dtheta_hb3_c.view_host()(i,j) = static_cast<KK_FLOAT>(dtheta_hb3_c[i][j]); k_dtheta_hb3_c.view_host()(j,i) = static_cast<KK_FLOAT>(dtheta_hb3_c[j][i]);
+  k_params_hb.view_host()(i,j).a_hb3 = static_cast<KK_FLOAT>(a_hb3[i][j]); k_params_hb.view_host()(j,i).a_hb3 = static_cast<KK_FLOAT>(a_hb3[j][i]);
+  k_params_hb.view_host()(i,j).theta_hb3_0 = static_cast<KK_FLOAT>(theta_hb3_0[i][j]); k_params_hb.view_host()(j,i).theta_hb3_0 = static_cast<KK_FLOAT>(theta_hb3_0[j][i]);
+  k_params_hb.view_host()(i,j).dtheta_hb3_ast = static_cast<KK_FLOAT>(dtheta_hb3_ast[i][j]); k_params_hb.view_host()(j,i).dtheta_hb3_ast = static_cast<KK_FLOAT>(dtheta_hb3_ast[j][i]);
+  k_params_hb.view_host()(i,j).b_hb3 = static_cast<KK_FLOAT>(b_hb3[i][j]); k_params_hb.view_host()(j,i).b_hb3 = static_cast<KK_FLOAT>(b_hb3[j][i]);
+  k_params_hb.view_host()(i,j).dtheta_hb3_c = static_cast<KK_FLOAT>(dtheta_hb3_c[i][j]); k_params_hb.view_host()(j,i).dtheta_hb3_c = static_cast<KK_FLOAT>(dtheta_hb3_c[j][i]);
 
-  k_a_hb4.view_host()(i,j) = static_cast<KK_FLOAT>(a_hb4[i][j]); k_a_hb4.view_host()(j,i) = static_cast<KK_FLOAT>(a_hb4[j][i]);
-  k_theta_hb4_0.view_host()(i,j) = static_cast<KK_FLOAT>(theta_hb4_0[i][j]); k_theta_hb4_0.view_host()(j,i) = static_cast<KK_FLOAT>(theta_hb4_0[j][i]);
-  k_dtheta_hb4_ast.view_host()(i,j) = static_cast<KK_FLOAT>(dtheta_hb4_ast[i][j]); k_dtheta_hb4_ast.view_host()(j,i) = static_cast<KK_FLOAT>(dtheta_hb4_ast[j][i]);
-  k_b_hb4.view_host()(i,j) = static_cast<KK_FLOAT>(b_hb4[i][j]); k_b_hb4.view_host()(j,i) = static_cast<KK_FLOAT>(b_hb4[j][i]);
-  k_dtheta_hb4_c.view_host()(i,j) = static_cast<KK_FLOAT>(dtheta_hb4_c[i][j]); k_dtheta_hb4_c.view_host()(j,i) = static_cast<KK_FLOAT>(dtheta_hb4_c[j][i]);
+  k_params_hb.view_host()(i,j).a_hb4 = static_cast<KK_FLOAT>(a_hb4[i][j]); k_params_hb.view_host()(j,i).a_hb4 = static_cast<KK_FLOAT>(a_hb4[j][i]);
+  k_params_hb.view_host()(i,j).theta_hb4_0 = static_cast<KK_FLOAT>(theta_hb4_0[i][j]); k_params_hb.view_host()(j,i).theta_hb4_0 = static_cast<KK_FLOAT>(theta_hb4_0[j][i]);
+  k_params_hb.view_host()(i,j).dtheta_hb4_ast = static_cast<KK_FLOAT>(dtheta_hb4_ast[i][j]); k_params_hb.view_host()(j,i).dtheta_hb4_ast = static_cast<KK_FLOAT>(dtheta_hb4_ast[j][i]);
+  k_params_hb.view_host()(i,j).b_hb4 = static_cast<KK_FLOAT>(b_hb4[i][j]); k_params_hb.view_host()(j,i).b_hb4 = static_cast<KK_FLOAT>(b_hb4[j][i]);
+  k_params_hb.view_host()(i,j).dtheta_hb4_c = static_cast<KK_FLOAT>(dtheta_hb4_c[i][j]); k_params_hb.view_host()(j,i).dtheta_hb4_c = static_cast<KK_FLOAT>(dtheta_hb4_c[j][i]);
 
-  k_a_hb7.view_host()(i,j) = static_cast<KK_FLOAT>(a_hb7[i][j]); k_a_hb7.view_host()(j,i) = static_cast<KK_FLOAT>(a_hb7[j][i]);
-  k_theta_hb7_0.view_host()(i,j) = static_cast<KK_FLOAT>(theta_hb7_0[i][j]); k_theta_hb7_0.view_host()(j,i) = static_cast<KK_FLOAT>(theta_hb7_0[j][i]);
-  k_dtheta_hb7_ast.view_host()(i,j) = static_cast<KK_FLOAT>(dtheta_hb7_ast[i][j]); k_dtheta_hb7_ast.view_host()(j,i) = static_cast<KK_FLOAT>(dtheta_hb7_ast[j][i]);
-  k_b_hb7.view_host()(i,j) = static_cast<KK_FLOAT>(b_hb7[i][j]); k_b_hb7.view_host()(j,i) = static_cast<KK_FLOAT>(b_hb7[j][i]);
-  k_dtheta_hb7_c.view_host()(i,j) = static_cast<KK_FLOAT>(dtheta_hb7_c[i][j]); k_dtheta_hb7_c.view_host()(j,i) = static_cast<KK_FLOAT>(dtheta_hb7_c[j][i]);
+  k_params_hb.view_host()(i,j).a_hb7 = static_cast<KK_FLOAT>(a_hb7[i][j]); k_params_hb.view_host()(j,i).a_hb7 = static_cast<KK_FLOAT>(a_hb7[j][i]);
+  k_params_hb.view_host()(i,j).theta_hb7_0 = static_cast<KK_FLOAT>(theta_hb7_0[i][j]); k_params_hb.view_host()(j,i).theta_hb7_0 = static_cast<KK_FLOAT>(theta_hb7_0[j][i]);
+  k_params_hb.view_host()(i,j).dtheta_hb7_ast = static_cast<KK_FLOAT>(dtheta_hb7_ast[i][j]); k_params_hb.view_host()(j,i).dtheta_hb7_ast = static_cast<KK_FLOAT>(dtheta_hb7_ast[j][i]);
+  k_params_hb.view_host()(i,j).b_hb7 = static_cast<KK_FLOAT>(b_hb7[i][j]); k_params_hb.view_host()(j,i).b_hb7 = static_cast<KK_FLOAT>(b_hb7[j][i]);
+  k_params_hb.view_host()(i,j).dtheta_hb7_c = static_cast<KK_FLOAT>(dtheta_hb7_c[i][j]); k_params_hb.view_host()(j,i).dtheta_hb7_c = static_cast<KK_FLOAT>(dtheta_hb7_c[j][i]);
 
-  k_a_hb8.view_host()(i,j) = static_cast<KK_FLOAT>(a_hb8[i][j]); k_a_hb8.view_host()(j,i) = static_cast<KK_FLOAT>(a_hb8[j][i]);
-  k_theta_hb8_0.view_host()(i,j) = static_cast<KK_FLOAT>(theta_hb8_0[i][j]); k_theta_hb8_0.view_host()(j,i) = static_cast<KK_FLOAT>(theta_hb8_0[j][i]);
-  k_dtheta_hb8_ast.view_host()(i,j) = static_cast<KK_FLOAT>(dtheta_hb8_ast[i][j]); k_dtheta_hb8_ast.view_host()(j,i) = static_cast<KK_FLOAT>(dtheta_hb8_ast[j][i]);
-  k_b_hb8.view_host()(i,j) = static_cast<KK_FLOAT>(b_hb8[i][j]); k_b_hb8.view_host()(j,i) = static_cast<KK_FLOAT>(b_hb8[j][i]);
-  k_dtheta_hb8_c.view_host()(i,j) = static_cast<KK_FLOAT>(dtheta_hb8_c[i][j]); k_dtheta_hb8_c.view_host()(j,i) = static_cast<KK_FLOAT>(dtheta_hb8_c[j][i]);
+  k_params_hb.view_host()(i,j).a_hb8 = static_cast<KK_FLOAT>(a_hb8[i][j]); k_params_hb.view_host()(j,i).a_hb8 = static_cast<KK_FLOAT>(a_hb8[j][i]);
+  k_params_hb.view_host()(i,j).theta_hb8_0 = static_cast<KK_FLOAT>(theta_hb8_0[i][j]); k_params_hb.view_host()(j,i).theta_hb8_0 = static_cast<KK_FLOAT>(theta_hb8_0[j][i]);
+  k_params_hb.view_host()(i,j).dtheta_hb8_ast = static_cast<KK_FLOAT>(dtheta_hb8_ast[i][j]); k_params_hb.view_host()(j,i).dtheta_hb8_ast = static_cast<KK_FLOAT>(dtheta_hb8_ast[j][i]);
+  k_params_hb.view_host()(i,j).b_hb8 = static_cast<KK_FLOAT>(b_hb8[i][j]); k_params_hb.view_host()(j,i).b_hb8 = static_cast<KK_FLOAT>(b_hb8[j][i]);
+  k_params_hb.view_host()(i,j).dtheta_hb8_c = static_cast<KK_FLOAT>(dtheta_hb8_c[i][j]); k_params_hb.view_host()(j,i).dtheta_hb8_c = static_cast<KK_FLOAT>(dtheta_hb8_c[j][i]);
 
-  k_epsilon_hb.modify_host();
-  k_a_hb.modify_host();
-  k_cut_hb_0.modify_host();
-  k_cut_hb_c.modify_host();
-  k_cut_hb_lo.modify_host();
-  k_cut_hb_hi.modify_host();
-  k_cut_hb_lc.modify_host();
-  k_cut_hb_hc.modify_host();
-  k_b_hb_lo.modify_host();
-  k_b_hb_hi.modify_host();
-  k_shift_hb.modify_host();
-  k_cutsq_hb_hc.modify_host();
+  k_params_hb.modify_host();
 
-  k_a_hb1.modify_host();
-  k_theta_hb1_0.modify_host();
-  k_dtheta_hb1_ast.modify_host();
-  k_b_hb1.modify_host();
-  k_dtheta_hb1_c.modify_host();
 
-  k_a_hb2.modify_host();
-  k_theta_hb2_0.modify_host();
-  k_dtheta_hb2_ast.modify_host();
-  k_b_hb2.modify_host();
-  k_dtheta_hb2_c.modify_host();
 
-  k_a_hb3.modify_host();
-  k_theta_hb3_0.modify_host();
-  k_dtheta_hb3_ast.modify_host();
-  k_b_hb3.modify_host();
-  k_dtheta_hb3_c.modify_host();
 
-  k_a_hb4.modify_host();
-  k_theta_hb4_0.modify_host();
-  k_dtheta_hb4_ast.modify_host();
-  k_b_hb4.modify_host();
-  k_dtheta_hb4_c.modify_host();
 
-  k_a_hb7.modify_host();
-  k_theta_hb7_0.modify_host();
-  k_dtheta_hb7_ast.modify_host();
-  k_b_hb7.modify_host();
-  k_dtheta_hb7_c.modify_host();
 
-  k_a_hb8.modify_host();
-  k_theta_hb8_0.modify_host();
-  k_dtheta_hb8_ast.modify_host();
-  k_b_hb8.modify_host();
-  k_dtheta_hb8_c.modify_host();
 
   // Sync to device
-  k_epsilon_hb.template sync<DeviceType>();
-  k_a_hb.template sync<DeviceType>();
-  k_cut_hb_0.template sync<DeviceType>();
-  k_cut_hb_c.template sync<DeviceType>();
-  k_cut_hb_lo.template sync<DeviceType>();
-  k_cut_hb_hi.template sync<DeviceType>();
-  k_cut_hb_lc.template sync<DeviceType>();
-  k_cut_hb_hc.template sync<DeviceType>();
-  k_b_hb_lo.template sync<DeviceType>();
-  k_b_hb_hi.template sync<DeviceType>();
-  k_shift_hb.template sync<DeviceType>();
-  k_cutsq_hb_hc.template sync<DeviceType>();
+  k_params_hb.template sync<DeviceType>();
 
-  k_a_hb1.template sync<DeviceType>();
-  k_theta_hb1_0.template sync<DeviceType>();
-  k_dtheta_hb1_ast.template sync<DeviceType>();
-  k_b_hb1.template sync<DeviceType>();
-  k_dtheta_hb1_c.template sync<DeviceType>();
 
-  k_a_hb2.template sync<DeviceType>();
-  k_theta_hb2_0.template sync<DeviceType>();
-  k_dtheta_hb2_ast.template sync<DeviceType>();
-  k_b_hb2.template sync<DeviceType>();
-  k_dtheta_hb2_c.template sync<DeviceType>();
 
-  k_a_hb3.template sync<DeviceType>();
-  k_theta_hb3_0.template sync<DeviceType>();
-  k_dtheta_hb3_ast.template sync<DeviceType>();
-  k_b_hb3.template sync<DeviceType>();
-  k_dtheta_hb3_c.template sync<DeviceType>();
 
-  k_a_hb4.template sync<DeviceType>();
-  k_theta_hb4_0.template sync<DeviceType>();
-  k_dtheta_hb4_ast.template sync<DeviceType>();
-  k_b_hb4.template sync<DeviceType>();
-  k_dtheta_hb4_c.template sync<DeviceType>();
 
-  k_a_hb7.template sync<DeviceType>();
-  k_theta_hb7_0.template sync<DeviceType>();
-  k_dtheta_hb7_ast.template sync<DeviceType>();
-  k_b_hb7.template sync<DeviceType>();
-  k_dtheta_hb7_c.template sync<DeviceType>();
 
-  k_a_hb8.template sync<DeviceType>();
-  k_theta_hb8_0.template sync<DeviceType>();
-  k_dtheta_hb8_ast.template sync<DeviceType>();
-  k_b_hb8.template sync<DeviceType>();
-  k_dtheta_hb8_c.template sync<DeviceType>();
 
   // Register the cutoff of this pair, which includes the displacement of the
   // interaction sites from the COM, with the COM screen of the npair fix,

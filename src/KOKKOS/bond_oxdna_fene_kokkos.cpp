@@ -140,7 +140,7 @@ void BondOxdnaFENEKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   // which under bond style hybrid is only the subset of its own bond types
 
   if (last_prime_neighs_bond_ncalls != neighbor->ncalls) {
-    fix_oxdna_prime_neighsKK->compute_prime_neighs_bond(d_prime_neighs_bond_own, 1);
+    fix_oxdna_prime_neighsKK->compute_prime_neighs_bond(d_prime_neighs_bond_own);
     last_prime_neighs_bond_ncalls = neighbor->ncalls;
   }
   d_prime_neighs_bond = d_prime_neighs_bond_own;

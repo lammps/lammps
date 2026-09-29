@@ -100,7 +100,7 @@ void PairOxrna2StkKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   // Keep bond-context precompute aligned with the current neighbor-list epoch.
   if (last_prime_neighs_bond_ncalls != neighbor->ncalls) {
-    fix_oxdna_prime_neighsKK->compute_prime_neighs_bond(d_prime_neighs_bond_own, 0);
+    fix_oxdna_prime_neighsKK->compute_prime_neighs_bond(d_prime_neighs_bond_own);
     last_prime_neighs_bond_ncalls = neighbor->ncalls;
   }
 

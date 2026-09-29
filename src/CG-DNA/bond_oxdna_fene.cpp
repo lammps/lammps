@@ -99,8 +99,8 @@ void BondOxdnaFene::compute(int eflag, int vflag)
 
   for (in = 0; in < nbondlist; in++) {
 
-    a = bondlist[in][1];
-    b = bondlist[in][0];
+    a = bondlist[in][0];
+    b = bondlist[in][1];
     type = bondlist[in][2];
 
     // directionality test: a -> b is 3' -> 5'

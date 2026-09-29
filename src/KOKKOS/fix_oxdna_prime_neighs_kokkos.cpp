@@ -40,7 +40,6 @@ FixOxdnaPrimeNeighsKokkos<DeviceType>::FixOxdnaPrimeNeighsKokkos(LAMMPS *lmp, in
   datamask_modify = EMPTY_MASK;
 
   nbondlist = 0;
-  bond_first_atom = 0;
   anum = 0;
   npairlist = 0;
   fix_oxdna_npairKK = nullptr;
@@ -80,17 +79,12 @@ int FixOxdnaPrimeNeighsKokkos<DeviceType>::setmask()
    of the call.  Each caller passes its own output View, since under
    bond style hybrid the bond style is handed a sub-style bond list
    while the stk pair styles loop over the full bond list.
-   first_atom selects which atom of a bond is tried first as the 3' end,
-   which matters only for bonds that match neither direction (branched
-   strands); it follows the corresponding CPU style (1 for FENE, 0 for stk).
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
 void FixOxdnaPrimeNeighsKokkos<DeviceType>::compute_prime_neighs_bond(
-  typename AT::t_int_1d_4 &d_prime_neighs, int first_atom)
+  typename AT::t_int_1d_4 &d_prime_neighs)
 {
-  bond_first_atom = first_atom;
-
   neighborKK->k_bondlist.template sync<DeviceType>();
   bondlist = neighborKK->k_bondlist.view<DeviceType>();
   nbondlist = neighborKK->nbondlist;
@@ -238,8 +232,8 @@ void FixOxdnaPrimeNeighsKokkos<DeviceType>::operator()(TagFixOxdnaPrimeNeighsPre
 {
   // Bondlist contains local atom indices (can be >= nlocal for ghosts).
   // [k/d]_bondlist already has KOKKOS 'closest_image' applied, so we can use these directly.
-  int a = bondlist(in,bond_first_atom);
-  int b = bondlist(in,1-bond_first_atom);
+  int a = bondlist(in,0);
+  int b = bondlist(in,1);
 
   // Directionality test: a -> b must be 3' -> 5'
   int atom_a = a;

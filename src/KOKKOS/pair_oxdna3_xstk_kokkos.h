@@ -69,6 +69,14 @@ class FixOxdnaNpairKokkos;  // forward declaration
 template<class DeviceType>
 class FixOxdnaPrimeNeighsKokkos;  // forward declaration
 
+template<class DeviceType>
+class PairOxdnaHbondKokkos;  // forward declaration
+
+template<class DeviceType, int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+struct PairOxdna3HbXstkFused;    // fused hbond + oxdna3/xstk kernel
+
+struct TagPairOxdna3HbXstkFused{};
+
 template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
 struct TagPairOxdna3XstkComputeNpair{};
 
@@ -127,6 +135,11 @@ class PairOxdna3XstkKokkos : public PairOxdna3Xstk, public KokkosBase {
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   int sbmask(const int& j) const;
+
+  // fused hbond + oxdna3/xstk kernel (OXDNA_KK_FUSE_HBXSTK)
+  PairOxdnaHbondKokkos<DeviceType> *fuse_hb;
+  bigint fuse_ncompute;    // # of compute() calls that used the fused kernel
+  void compute_fused(PairOxdnaHbondKokkos<DeviceType> *, Pair *);
 
  protected:
 
@@ -206,6 +219,7 @@ class PairOxdna3XstkKokkos : public PairOxdna3Xstk, public KokkosBase {
   void allocate() override;
 
   friend void pair_virial_fdotr_compute<PairOxdna3XstkKokkos>(PairOxdna3XstkKokkos*);
+  template<class, int, int, int> friend struct PairOxdna3HbXstkFused;
 
   FixOxdnaLRFKokkos<DeviceType> *fix_oxdna_lrfKK;    // ptr to OXDNA/LRF/kk fix
   FixOxdnaNpairKokkos<DeviceType> *fix_oxdna_npairKK;    // ptr to OXDNA/NPAIR/kk fix

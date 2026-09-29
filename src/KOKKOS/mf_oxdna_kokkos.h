@@ -76,6 +76,17 @@ namespace MFOxdnaKokkos {
 #error "OXDNA_KK_TWO_PHASE and OXDNA_KK_SCREENED_PER_ATOM cannot be combined"
 #endif
 
+// Fused kernel of pair oxdna3/hbond and oxdna3/xstk on the screened-pair
+// path (GPUs): 1 = one kernel evaluates both styles for each screened pair
+// and updates the force and torque of the first atom once (default),
+// 0 = separate kernels.  The fused kernel is not used with the two options
+// above or when per-atom energies or virials are requested.
+#ifndef OXDNA_KK_FUSE_HBXSTK
+#define OXDNA_KK_FUSE_HBXSTK 1
+#endif
+#define OXDNA_KK_FUSE_HBXSTK_ACTIVE \
+  (OXDNA_KK_FUSE_HBXSTK && !OXDNA_KK_TWO_PHASE && !OXDNA_KK_SCREENED_PER_ATOM)
+
 template<class DeviceType, class Tag>
 using OxdnaRangePolicy =
   Kokkos::RangePolicy<DeviceType, Tag, Kokkos::LaunchBounds<OXDNA_KK_ATOM_MAXT, OXDNA_KK_ATOM_MINB>>;

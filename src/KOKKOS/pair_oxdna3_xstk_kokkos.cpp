@@ -27,6 +27,7 @@
 #include "fix_oxdna_npair_kokkos.h"
 #include "fix_oxdna_prime_neighs_kokkos.h"
 #include "mf_oxdna_kokkos.h"
+#include "pair_oxdna_hbond_kokkos_impl.h"
 
 using namespace LAMMPS_NS;
 using namespace MFOxdnaKokkos;
@@ -61,6 +62,8 @@ PairOxdna3XstkKokkos<DeviceType>::PairOxdna3XstkKokkos(LAMMPS *lmp) : PairOxdna3
 
   screened_pair_count = 0;
   screened_launch_count = 0;
+  fuse_hb = nullptr;
+  fuse_ncompute = 0;
   fix_oxdna_lrfKK = nullptr;
   fix_oxdna_npairKK = nullptr;
   fix_oxdna_prime_neighsKK = nullptr;
@@ -220,21 +223,32 @@ void PairOxdna3XstkKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     error->all(FLERR, "Unsupported neighbor flag in pair oxdna3/xstk/kk");
   }
 
-  const int dispatch_key = (evflag ? 8 : 0) | (newton_pair ? 4 : 0) | dispatch_neigh;
-  switch (dispatch_key) {
-    case 0: run_compute_by_flags(std::integral_constant<int,HALF>{},       std::integral_constant<int,0>{}, std::integral_constant<int,0>{}); break;
-    case 1: run_compute_by_flags(std::integral_constant<int,HALFTHREAD>{}, std::integral_constant<int,0>{}, std::integral_constant<int,0>{}); break;
-    case 2: run_compute_by_flags(std::integral_constant<int,FULL>{},       std::integral_constant<int,0>{}, std::integral_constant<int,0>{}); break;
-    case 4: run_compute_by_flags(std::integral_constant<int,HALF>{},       std::integral_constant<int,1>{}, std::integral_constant<int,0>{}); break;
-    case 5: run_compute_by_flags(std::integral_constant<int,HALFTHREAD>{}, std::integral_constant<int,1>{}, std::integral_constant<int,0>{}); break;
-    case 6: run_compute_by_flags(std::integral_constant<int,FULL>{},       std::integral_constant<int,1>{}, std::integral_constant<int,0>{}); break;
-    case 8: run_compute_by_flags(std::integral_constant<int,HALF>{},       std::integral_constant<int,0>{}, std::integral_constant<int,1>{}); break;
-    case 9: run_compute_by_flags(std::integral_constant<int,HALFTHREAD>{}, std::integral_constant<int,0>{}, std::integral_constant<int,1>{}); break;
-    case 10: run_compute_by_flags(std::integral_constant<int,FULL>{},      std::integral_constant<int,0>{}, std::integral_constant<int,1>{}); break;
-    case 12: run_compute_by_flags(std::integral_constant<int,HALF>{},      std::integral_constant<int,1>{}, std::integral_constant<int,1>{}); break;
-    case 13: run_compute_by_flags(std::integral_constant<int,HALFTHREAD>{},std::integral_constant<int,1>{}, std::integral_constant<int,1>{}); break;
-    case 14: run_compute_by_flags(std::integral_constant<int,FULL>{},      std::integral_constant<int,1>{}, std::integral_constant<int,1>{}); break;
-    default: error->all(FLERR, "Internal dispatch error in pair oxdna3/xstk/kk");
+  // with the fused hbond + oxdna3/xstk kernel, the style that is computed
+  // second in this force evaluation launches it for both styles
+  const bool fused = (fuse_hb != nullptr) && !eflag_atom && !vflag_atom && !need_dup;
+  if (fused) {
+    fuse_ncompute++;
+    if (fuse_hb->fuse_ncompute == fuse_ncompute)
+      compute_fused(fuse_hb, fuse_hb);
+    else if (fuse_hb->fuse_ncompute != fuse_ncompute - 1)
+      error->one(FLERR, "Fused kernel of pair oxdna3/hbond/kk and oxdna3/xstk/kk out of step");
+  } else {
+    const int dispatch_key = (evflag ? 8 : 0) | (newton_pair ? 4 : 0) | dispatch_neigh;
+    switch (dispatch_key) {
+      case 0: run_compute_by_flags(std::integral_constant<int,HALF>{},       std::integral_constant<int,0>{}, std::integral_constant<int,0>{}); break;
+      case 1: run_compute_by_flags(std::integral_constant<int,HALFTHREAD>{}, std::integral_constant<int,0>{}, std::integral_constant<int,0>{}); break;
+      case 2: run_compute_by_flags(std::integral_constant<int,FULL>{},       std::integral_constant<int,0>{}, std::integral_constant<int,0>{}); break;
+      case 4: run_compute_by_flags(std::integral_constant<int,HALF>{},       std::integral_constant<int,1>{}, std::integral_constant<int,0>{}); break;
+      case 5: run_compute_by_flags(std::integral_constant<int,HALFTHREAD>{}, std::integral_constant<int,1>{}, std::integral_constant<int,0>{}); break;
+      case 6: run_compute_by_flags(std::integral_constant<int,FULL>{},       std::integral_constant<int,1>{}, std::integral_constant<int,0>{}); break;
+      case 8: run_compute_by_flags(std::integral_constant<int,HALF>{},       std::integral_constant<int,0>{}, std::integral_constant<int,1>{}); break;
+      case 9: run_compute_by_flags(std::integral_constant<int,HALFTHREAD>{}, std::integral_constant<int,0>{}, std::integral_constant<int,1>{}); break;
+      case 10: run_compute_by_flags(std::integral_constant<int,FULL>{},      std::integral_constant<int,0>{}, std::integral_constant<int,1>{}); break;
+      case 12: run_compute_by_flags(std::integral_constant<int,HALF>{},      std::integral_constant<int,1>{}, std::integral_constant<int,1>{}); break;
+      case 13: run_compute_by_flags(std::integral_constant<int,HALFTHREAD>{},std::integral_constant<int,1>{}, std::integral_constant<int,1>{}); break;
+      case 14: run_compute_by_flags(std::integral_constant<int,FULL>{},      std::integral_constant<int,1>{}, std::integral_constant<int,1>{}); break;
+      default: error->all(FLERR, "Internal dispatch error in pair oxdna3/xstk/kk");
+    }
   }
 
   if (need_dup) {
@@ -1115,6 +1129,23 @@ void PairOxdna3XstkKokkos<DeviceType>::init_style()
   // oxdna3/xstk always uses the npair screened list; force rebuilds on all backends.
   fix_oxdna_npairKK->set_force_screening_all_backends(true);
 
+  // use the fused hbond + oxdna3/xstk kernel if there is exactly one
+  // oxdna3/hbond/kk sub-style on the screened-pair path
+
+  if (fuse_hb) fuse_hb->fuse_partner = nullptr;
+  fuse_hb = nullptr;
+#if OXDNA_KK_FUSE_HBXSTK_ACTIVE
+  // pair hybrid/scaled scales the sub-style energies, which the fused kernel
+  // cannot hand over to it
+  auto *hb = dynamic_cast<PairOxdnaHbondKokkos<DeviceType> *>(force->pair_match("^oxdna3/hbond", 0));
+  if (hb && hb->fuse_supported() && compute_flag && !utils::strmatch(force->pair_style, "scaled")) {
+    fuse_hb = hb;
+    fuse_hb->fuse_partner = this;
+    fuse_hb->fuse_ncompute = 0;
+  }
+#endif
+  fuse_ncompute = 0;
+
 }
 
 /* ----------------------------------------------------------------------
@@ -1349,6 +1380,155 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 int PairOxdna3XstkKokkos<DeviceType>::sbmask(const int& j) const {
   return j >> SBBITS & 3;
+}
+
+/* ---------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------
+   fused kernel of pair oxdna3/hbond/kk and oxdna3/xstk/kk: both styles run
+   over the same screened pair list, so evaluate both for each pair and
+   update the force and torque of the first atom once.  The energies and
+   virials are accumulated separately for each style.
+------------------------------------------------------------------------- */
+
+namespace LAMMPS_NS {
+
+struct EV_FLOAT_HBXSTK {
+  EV_FLOAT hb, xs;
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  void operator+=(const EV_FLOAT_HBXSTK &rhs) {
+    hb += rhs.hb;
+    xs += rhs.xs;
+  }
+};
+
+template<class DeviceType, int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+struct PairOxdna3HbXstkFused {
+  typedef PairOxdnaHbondKokkos<DeviceType> HbondType;
+  HbondType hb;
+  PairOxdna3XstkKokkos<DeviceType> xs;
+
+  PairOxdna3HbXstkFused(const HbondType &hb_in, const PairOxdna3XstkKokkos<DeviceType> &xs_in) :
+    hb(hb_in), xs(xs_in) {}
+
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagPairOxdna3HbXstkFused, const int &ipair, EV_FLOAT_HBXSTK &ev) const
+  {
+    auto v_f = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(xs.dup_f),
+      decltype(xs.ndup_f)>::get(xs.dup_f,xs.ndup_f);
+    auto a_f = v_f.template access<Kokkos::Experimental::ScatterAtomic>();
+    auto v_torque = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(xs.dup_torque),
+      decltype(xs.ndup_torque)>::get(xs.dup_torque,xs.ndup_torque);
+    auto a_torque = v_torque.template access<Kokkos::Experimental::ScatterAtomic>();
+
+    KK_ACC_FLOAT fa[3] = {0.0, 0.0, 0.0}, ta[3] = {0.0, 0.0, 0.0};
+    bool any = hb.screened_pair_body(
+      TagPairOxdnaHbondComputeGPUPair<HbondType::OXDNA3,NEIGHFLAG,NEWTON_PAIR,EVFLAG>(),
+      ipair, fa, ta, ev.hb);
+    if (xs.screened_pair_body(TagPairOxdna3XstkComputeNpair<NEIGHFLAG,NEWTON_PAIR,EVFLAG>(),
+                              ipair, fa, ta, ev.xs))
+      any = true;
+    if (any) {
+      const int a = static_cast<int>(xs.d_pairs_screened(ipair) >> 32);
+      a_f(a,0) += fa[0];
+      a_f(a,1) += fa[1];
+      a_f(a,2) += fa[2];
+      a_torque(a,0) += ta[0];
+      a_torque(a,1) += ta[1];
+      a_torque(a,2) += ta[2];
+    }
+  }
+
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagPairOxdna3HbXstkFused, const int &ipair) const
+  {
+    EV_FLOAT_HBXSTK ev;
+    this->operator()(TagPairOxdna3HbXstkFused(), ipair, ev);
+  }
+};
+
+}    // namespace LAMMPS_NS
+
+/* ----------------------------------------------------------------------
+   launch the fused kernel; called by the style computed second
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void PairOxdna3XstkKokkos<DeviceType>::compute_fused(PairOxdnaHbondKokkos<DeviceType> *hb, Pair *deferred)
+{
+  EV_FLOAT_HBXSTK ev;
+
+  // the kernel holds copies of both styles, which must not free their data
+
+  const int hb_copymode = hb->copymode;
+  const int xs_copymode = copymode;
+  hb->copymode = 1;
+  copymode = 1;
+
+  auto run_fused = [&](auto neighflag_tag, auto newtonpair_tag, auto evflag_tag) {
+    constexpr int NEIGHFLAG = decltype(neighflag_tag)::value;
+    constexpr int NEWTON_PAIR = decltype(newtonpair_tag)::value;
+    constexpr int EVFLAG = decltype(evflag_tag)::value;
+    PairOxdna3HbXstkFused<DeviceType,NEIGHFLAG,NEWTON_PAIR,EVFLAG> functor(*hb, *this);
+    if constexpr (EVFLAG) {
+      Kokkos::parallel_reduce(OxdnaPairRangePolicy<DeviceType, TagPairOxdna3HbXstkFused>(0,screened_pair_count),
+                              functor, ev);
+    } else {
+      Kokkos::parallel_for(OxdnaPairRangePolicy<DeviceType, TagPairOxdna3HbXstkFused>(0,screened_pair_count),
+                           functor);
+    }
+  };
+
+  // compile the fused kernel only when it can be used
+#if OXDNA_KK_FUSE_HBXSTK_ACTIVE
+  const int dispatch_neigh =
+      (neighflag == HALF) ? 0 :
+      (neighflag == HALFTHREAD) ? 1 :
+      (neighflag == FULL) ? 2 : -1;
+  const int dispatch_key = (evflag ? 8 : 0) | (newton_pair ? 4 : 0) | dispatch_neigh;
+  switch (dispatch_key) {
+    case 0: run_fused(std::integral_constant<int,HALF>{},       std::integral_constant<int,0>{}, std::integral_constant<int,0>{}); break;
+    case 1: run_fused(std::integral_constant<int,HALFTHREAD>{}, std::integral_constant<int,0>{}, std::integral_constant<int,0>{}); break;
+    case 2: run_fused(std::integral_constant<int,FULL>{},       std::integral_constant<int,0>{}, std::integral_constant<int,0>{}); break;
+    case 4: run_fused(std::integral_constant<int,HALF>{},       std::integral_constant<int,1>{}, std::integral_constant<int,0>{}); break;
+    case 5: run_fused(std::integral_constant<int,HALFTHREAD>{}, std::integral_constant<int,1>{}, std::integral_constant<int,0>{}); break;
+    case 6: run_fused(std::integral_constant<int,FULL>{},       std::integral_constant<int,1>{}, std::integral_constant<int,0>{}); break;
+    case 8: run_fused(std::integral_constant<int,HALF>{},       std::integral_constant<int,0>{}, std::integral_constant<int,1>{}); break;
+    case 9: run_fused(std::integral_constant<int,HALFTHREAD>{}, std::integral_constant<int,0>{}, std::integral_constant<int,1>{}); break;
+    case 10: run_fused(std::integral_constant<int,FULL>{},      std::integral_constant<int,0>{}, std::integral_constant<int,1>{}); break;
+    case 12: run_fused(std::integral_constant<int,HALF>{},      std::integral_constant<int,1>{}, std::integral_constant<int,1>{}); break;
+    case 13: run_fused(std::integral_constant<int,HALFTHREAD>{},std::integral_constant<int,1>{}, std::integral_constant<int,1>{}); break;
+    case 14: run_fused(std::integral_constant<int,FULL>{},      std::integral_constant<int,1>{}, std::integral_constant<int,1>{}); break;
+    default: error->all(FLERR, "Internal dispatch error in pair oxdna3/xstk/kk");
+  }
+#else
+  (void) run_fused;
+  error->all(FLERR, "Internal error: fused hbond + oxdna3/xstk kernel is not compiled in");
+#endif
+
+  hb->copymode = hb_copymode;
+  copymode = xs_copymode;
+
+  if (hb->eflag_global) hb->eng_vdwl += static_cast<double>(ev.hb.evdwl);
+  if (eflag_global) eng_vdwl += static_cast<double>(ev.xs.evdwl);
+  for (int k = 0; k < 6; k++) {
+    if (hb->vflag_global) hb->virial[k] += static_cast<double>(ev.hb.v[k]);
+    if (vflag_global) virial[k] += static_cast<double>(ev.xs.v[k]);
+  }
+
+  // pair hybrid has already added the energy and virial of the style that
+  // was computed first in this force evaluation to its totals, so add the
+  // share of that style computed here to them, too
+
+  if (force->pair != deferred) {
+    const EV_FLOAT &evd = (deferred == hb) ? ev.hb : ev.xs;
+    if (deferred->eflag_global) force->pair->eng_vdwl += static_cast<double>(evd.evdwl);
+    if (deferred->vflag_global)
+      for (int k = 0; k < 6; k++) force->pair->virial[k] += static_cast<double>(evd.v[k]);
+  }
 }
 
 /* ---------------------------------------------------------------------- */

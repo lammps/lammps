@@ -47,6 +47,7 @@
 #include <cmath>
 #include <cstring>
 #include <exception>
+#include <vector>
 #include <algorithm>
 
 using namespace LAMMPS_NS;
@@ -1567,6 +1568,7 @@ void FixGCMC::attempt_atomic_translation_full()
   xtmp[0] = xtmp[1] = xtmp[2] = 0.0;
 
   tagint tmptag = -1;
+  imageint tmpimage = 0;
 
   bool region_ok = true;
   if (i >= 0) {
@@ -1613,6 +1615,7 @@ void FixGCMC::attempt_atomic_translation_full()
       x[i][2] = coord[2];
 
       tmptag = atom->tag[i];
+      tmpimage = atom->image[i];
     }
   }
 
@@ -1645,11 +1648,21 @@ void FixGCMC::attempt_atomic_translation_full()
     double xtmp_all[3];
     MPI_Allreduce(&xtmp,&xtmp_all,3,MPI_DOUBLE,MPI_SUM,world);
 
+    // the atom may have been wrapped around a periodic boundary,
+    // so its image flags must be restored as well
+
+    imageint tmpimage_all;
+    MPI_Allreduce(&tmpimage,&tmpimage_all,1,MPI_LMP_IMAGEINT,MPI_SUM,world);
+
+    // energy_full() may have reallocated the per-atom arrays
+
+    x = atom->x;
     for (int i = 0; i < atom->nlocal; i++) {
       if (tmptag_all == atom->tag[i]) {
         x[i][0] = xtmp_all[0];
         x[i][1] = xtmp_all[1];
         x[i][2] = xtmp_all[2];
+        atom->image[i] = tmpimage_all;
       }
     }
     energy_stored = energy_before;
@@ -1671,11 +1684,13 @@ void FixGCMC::attempt_atomic_deletion_full()
 
   double energy_before = energy_stored;
 
-  const int i = pick_random_gas_atom();
+  int i = pick_random_gas_atom();
 
-  int tmpmask;
+  int tmpmask = 0;
+  tagint tmptag = 0;
   if (i >= 0) {
     tmpmask = atom->mask[i];
+    tmptag = atom->tag[i];
     atom->mask[i] = exclusion_group_bit;
     if (q_flag) {
       q_tmp = atom->q[i];
@@ -1685,6 +1700,26 @@ void FixGCMC::attempt_atomic_deletion_full()
   if (force->kspace) force->kspace->qsum_qsq();
   if (force->pair->tail_flag) force->pair->reinit();
   double energy_after = energy_full();
+
+  // energy_full() may have moved or reordered atoms,
+  // so the atom must be located again by its atom ID
+
+  if (atom->tag_enable) {
+    tagint tmptag_all;
+    MPI_Allreduce(&tmptag,&tmptag_all,1,MPI_LMP_TAGINT,MPI_MAX,world);
+    int tmpmask_all;
+    MPI_Allreduce(&tmpmask,&tmpmask_all,1,MPI_INT,MPI_MAX,world);
+    double q_all = 0.0;
+    if (q_flag) {
+      double q_mine = (i >= 0) ? q_tmp : 0.0;
+      MPI_Allreduce(&q_mine,&q_all,1,MPI_DOUBLE,MPI_SUM,world);
+    }
+    i = -1;
+    for (int k = 0; k < atom->nlocal; k++)
+      if (atom->tag[k] == tmptag_all) i = k;
+    tmpmask = tmpmask_all;
+    q_tmp = q_all;
+  }
 
   if (random_equal->uniform() <
       ngas*exp(beta*(energy_before - energy_after))/(zz*volume)) {
@@ -1790,9 +1825,12 @@ void FixGCMC::attempt_atomic_insertion_full()
   }
 
   atom->natoms++;
+  tagint newtag = 0;
   if (atom->tag_enable) {
     atom->tag_extend();
     if (atom->map_style != Atom::MAP_NONE) atom->map_init();
+    tagint mytag = proc_flag ? atom->tag[atom->nlocal-1] : 0;
+    MPI_Allreduce(&mytag,&newtag,1,MPI_LMP_TAGINT,MPI_MAX,world);
   }
   atom->nghost = 0;
   if (triclinic) domain->x2lamda(atom->nlocal);
@@ -1810,7 +1848,20 @@ void FixGCMC::attempt_atomic_insertion_full()
     energy_stored = energy_after;
   } else {
     atom->natoms--;
-    if (proc_flag) atom->nlocal--;
+
+    // energy_full() may have reordered the local atoms, so the
+    // inserted atom must be located by its atom ID, if available
+
+    if (newtag) {
+      for (int k = 0; k < atom->nlocal; k++) {
+        if (atom->tag[k] == newtag) {
+          atom->avec->copy(atom->nlocal-1,k,1);
+          atom->nlocal--;
+          break;
+        }
+      }
+      if (atom->map_style != Atom::MAP_NONE) atom->map_init();
+    } else if (proc_flag) atom->nlocal--;
     if (force->kspace) force->kspace->qsum_qsq();
     if (force->pair->tail_flag) force->pair->reinit();
     energy_stored = energy_before;
@@ -1909,6 +1960,7 @@ void FixGCMC::attempt_molecule_translation_full()
     energy_stored = energy_after;
   } else {
     energy_stored = energy_before;
+    x = atom->x;
     for (int i = 0; i < atom->nlocal; i++) {
       if (atom->molecule[i] == translation_molecule) {
         x[i][0] -= com_displace[0];
@@ -2005,6 +2057,9 @@ void FixGCMC::attempt_molecule_rotation_full()
     energy_stored = energy_after;
   } else {
     energy_stored = energy_before;
+    x = atom->x;
+    image = atom->image;
+    mask = atom->mask;
     int n = 0;
     for (int i = 0; i < atom->nlocal; i++) {
       if (mask[i] & molecule_group_bit) {
@@ -2047,18 +2102,17 @@ void FixGCMC::attempt_molecule_deletion_full()
   if (nmolq > nmaxmolatoms)
     grow_molecule_arrays(nmolq);
 
-  int m = 0;
-  int *tmpmask = new int[atom->nlocal];
+  // save atom ID, mask, and charge of the molecule atoms
+
+  std::vector<double> saved;
   for (int i = 0; i < atom->nlocal; i++) {
     if (atom->molecule[i] == deletion_molecule) {
-      tmpmask[i] = atom->mask[i];
+      saved.push_back(ubuf(atom->tag[i]).d);
+      saved.push_back(ubuf(atom->mask[i]).d);
+      saved.push_back(atom->q_flag ? atom->q[i] : 0.0);
       atom->mask[i] = exclusion_group_bit;
       toggle_intramolecular(i);
-      if (atom->q_flag) {
-        molq[m] = atom->q[i];
-        m++;
-        atom->q[i] = 0.0;
-      }
+      if (atom->q_flag) atom->q[i] = 0.0;
     }
   }
   if (force->kspace) force->kspace->qsum_qsq();
@@ -2083,22 +2137,38 @@ void FixGCMC::attempt_molecule_deletion_full()
     energy_stored = energy_after;
   } else {
     energy_stored = energy_before;
-    int m = 0;
-    for (int i = 0; i < atom->nlocal; i++) {
-      if (atom->molecule[i] == deletion_molecule) {
-        atom->mask[i] = tmpmask[i];
-        toggle_intramolecular(i);
-        if (atom->q_flag) {
-          atom->q[i] = molq[m];
-          m++;
+
+    // energy_full() may have moved or reordered atoms, so the saved
+    // masks and charges are gathered from all processors and restored by atom ID
+
+    int nprocs = comm->nprocs;
+    std::vector<int> counts(nprocs), displs(nprocs);
+    int nsend = saved.size();
+    MPI_Allgather(&nsend,1,MPI_INT,counts.data(),1,MPI_INT,world);
+    int ntotal = 0;
+    for (int iproc = 0; iproc < nprocs; iproc++) {
+      displs[iproc] = ntotal;
+      ntotal += counts[iproc];
+    }
+    std::vector<double> all(ntotal+1);
+    MPI_Allgatherv(saved.data(),nsend,MPI_DOUBLE,all.data(),counts.data(),displs.data(),
+                   MPI_DOUBLE,world);
+    for (int k = 0; k < ntotal; k += 3) {
+      tagint itag = (tagint) ubuf(all[k]).i;
+      for (int i = 0; i < atom->nlocal; i++) {
+        if (atom->tag[i] == itag) {
+          atom->mask[i] = (int) ubuf(all[k+1]).i;
+          if (atom->q_flag) atom->q[i] = all[k+2];
+          break;
         }
       }
     }
+    for (int i = 0; i < atom->nlocal; i++)
+      if (atom->molecule[i] == deletion_molecule) toggle_intramolecular(i);
     if (force->kspace) force->kspace->qsum_qsq();
     if (force->pair->tail_flag) force->pair->reinit();
   }
   update_gas_atoms_list();
-  delete[] tmpmask;
 }
 
 /* ----------------------------------------------------------------------

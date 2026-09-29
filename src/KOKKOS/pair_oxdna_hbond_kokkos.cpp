@@ -365,6 +365,10 @@ void PairOxdnaHbondKokkos<DeviceType>::operator()(TagPairOxdnaHbondCompute<OXDNA
     b &= NEIGHMASK;
     const int btype = type(b);
 
+    // no hydrogen bonding between these base types (e.g. non-complementary bases):
+    // f1 and thus the energy would be zero, so skip the site geometry altogether
+    if (d_epsilon_hb(atype,btype) == static_cast<KK_FLOAT>(0.0)) continue;
+
     if (unique_basepair_enabled) {
       const int idca = d_idc(a);
       const int idcb = d_idc(b);
@@ -1140,6 +1144,10 @@ void PairOxdnaHbondKokkos<DeviceType>::operator()(TagPairOxdnaHbondComputeGPUPai
   if (factor_lj == static_cast<KK_FLOAT>(0.0)) return;
   b &= NEIGHMASK;
   const int btype = type(b);
+
+  // no hydrogen bonding between these base types (e.g. non-complementary bases):
+  // f1 and thus the energy would be zero, so skip the site geometry altogether
+  if (d_epsilon_hb(atype,btype) == static_cast<KK_FLOAT>(0.0)) return;
 
   if (unique_basepair_enabled) {
     const int idca = d_idc(a);

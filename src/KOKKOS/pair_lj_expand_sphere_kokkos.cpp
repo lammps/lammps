@@ -151,7 +151,7 @@ compute_fpair(const KK_FLOAT &rsq, const int &i, const int &j, const int &itype,
   const KK_FLOAT r2inv = static_cast<KK_FLOAT>(1.0) / (rshift*rshift);
   const KK_FLOAT r6inv = r2inv*r2inv*r2inv;
 
-  return r6inv*(lj1*r6inv - lj2) * rshift / r;
+  return r6inv*(lj1*r6inv - lj2) / rshift / r;
 }
 
 template<class DeviceType>

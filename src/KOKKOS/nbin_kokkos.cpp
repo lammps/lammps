@@ -117,14 +117,41 @@ void NBinKokkos<DeviceType>::bin_atoms()
     bboxlo_[0] = bboxlo[0]; bboxlo_[1] = bboxlo[1]; bboxlo_[2] = bboxlo[2];
     bboxhi_[0] = bboxhi[0]; bboxhi_[1] = bboxhi[1]; bboxhi_[2] = bboxhi[2];
 
+    copymode = 1;
     NPairKokkosBinAtomsFunctor<DeviceType> f(*this);
 
     Kokkos::parallel_for(atom->nlocal+atom->nghost, f);
+    copymode = 0;
 
     Kokkos::deep_copy(h_resize, d_resize);
     if (h_resize()) {
 
-      atoms_per_bin += 16;
+      // A bin overflowed its capacity.  bincount now holds the true
+      // occupancy of every bin, because the atomic increment in
+      // binatomsItem() runs for every binned atom whether or not the bin
+      // was already full.  Size atoms_per_bin from the actual maximum
+      // occupancy in a single step instead of growing by a fixed increment
+      // and re-binning all atoms once per increment.  The latter costs
+      // O(max bin occupancy) reallocations and re-bins and dominates
+      // neighbor setup for skewed distributions, e.g. the large cutoff bins
+      // used by the KOKKOS package on GPUs.
+
+      auto d_bincount = k_bincount.view<DeviceType>();
+      int max_bincount = 0;
+      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType>(0,mbins),
+        LAMMPS_LAMBDA(const int i, int &max_val) {
+          max_val = MAX(max_val,d_bincount[i]);
+        },Kokkos::Max<int>(max_bincount));
+
+      // grow to the true maximum occupancy plus ~10% headroom (at least 16)
+      // so small density fluctuations on later steps do not immediately
+      // force another regrow.  Reaching this branch means a bin overflowed,
+      // so max_bincount > atoms_per_bin and the new capacity strictly
+      // exceeds both the old one and the true occupancy: the next pass
+      // cannot overflow, bounding the loop at one more re-bin.
+
+      atoms_per_bin = max_bincount + MAX(16,max_bincount/10);
+
       k_bins = DAT::tdual_int_2d("Neighbor::bins", mbins, atoms_per_bin);
       bins = k_bins.view<DeviceType>();
       c_bins = bins;

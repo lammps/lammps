@@ -122,7 +122,7 @@ format; this command auto-detects the format. One triangle particle
 is created for each triangle in the STL file(s).  Note that STL files
 cannot be used for 2d simulations since they only define triangles.
 
-.. versionchanged:: TBD
+.. versionchanged:: 2Sep2026
 
 STL files exported by engineering design software may contain
 degenerate triangles, i.e. triangles with duplicate or collinear

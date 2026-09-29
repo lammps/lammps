@@ -307,7 +307,7 @@ printed to a file via the *file* keyword.  Note that all values are
 floating point quantities.  The default format is " %g".  You can specify
 a higher precision if desired (e.g., " %20.16g").
 
-.. versionchanged:: TBD
+.. versionchanged:: 2Sep2026
 
 The format string is checked when it is set and LAMMPS will stop with an
 error if its conversion does not match a floating-point value.  Previously

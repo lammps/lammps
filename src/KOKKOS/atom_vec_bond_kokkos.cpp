@@ -26,8 +26,9 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-AtomVecBondKokkos::AtomVecBondKokkos(LAMMPS *lmp) : AtomVec(lmp),
-AtomVecKokkos(lmp), AtomVecBond(lmp)
+AtomVecBondKokkos::AtomVecBondKokkos(LAMMPS *lmp) :
+    AtomVec(lmp), AtomVecKokkos(lmp), AtomVecBond(lmp), molecule(nullptr), special(nullptr),
+    bond_atom(nullptr)
 {
 }
 

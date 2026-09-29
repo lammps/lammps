@@ -40,6 +40,12 @@ FixSetTorqueAtomKokkos<DeviceType>::FixSetTorqueAtomKokkos(LAMMPS *lmp, int narg
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
   datamask_read = TORQUE_MASK | MASK_MASK;
   datamask_modify = TORQUE_MASK;
+
+  // the base class allocated a plain storque array; release it here so that the
+  // dual view created in post_force() takes over without orphaning it
+
+  memory->destroy(storque);
+  storque = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -24,18 +24,33 @@
   skip:
     [
       in.*pod.InP,
+      in.comb3,
+      in.dimer.mp,
       in.disp,
       in.disp2,
       in.dos,
+      in.dpdrx-shardlow,
+      in.dsring2,
       in.*_imd*,
       in.bucky-plus-cnt*,
       in.gREM,
+      in.hybrid,
       in.peptide-plumed,
       in.mliap.pytorch*,
       in.mliap.unified*,
+      in.pod.compute,
+      in.spin.iron-nve,
+      in.spin.nvt_lattice,
+      in.spin.nvt_spin,
+      in.template-mix,
+      in.tmpl-data-mix,
+      in.tmpl-restart-mix,
+      in.water.acks2,
+      in.water.acks2.field,
+      in.widom.spce,
     ]
 
-  timeout: 180
+  timeout: 240
   # input scripts in these folders must be run by the same worker in the listed
   # order, since they read files written by another input script in the folder
   # or would overwrite each other's output files

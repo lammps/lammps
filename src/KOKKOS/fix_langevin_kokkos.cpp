@@ -56,7 +56,12 @@ FixLangevinKokkos<DeviceType>::FixLangevinKokkos(LAMMPS *lmp, int narg, char **a
   atomKK = (AtomKokkos *) atom;
   int ntypes = atomKK->ntypes;
 
-  // allocate per-type arrays for force prefactors
+  // allocate per-type arrays for force prefactors.  the base class constructor has
+  // already parsed the optional "scale <type> <value>" keywords into ratio[], so
+  // save those values across the re-allocation instead of resetting them to 1.0
+  auto *ratio_base = new double[ntypes+1];
+  for (int i = 1; i <= ntypes; i++) ratio_base[i] = ratio[i];
+
   delete[] gfactor1;
   delete[] gfactor2;
   delete[] ratio;
@@ -70,8 +75,8 @@ FixLangevinKokkos<DeviceType>::FixLangevinKokkos(LAMMPS *lmp, int narg, char **a
   d_ratio = k_ratio.template view<DeviceType>();
   h_ratio = k_ratio.view_host();
 
-  // optional args
-  for (int i = 1; i <= ntypes; i++) ratio[i] = 1.0;
+  for (int i = 1; i <= ntypes; i++) ratio[i] = ratio_base[i];
+  delete[] ratio_base;
   k_ratio.modify_host();
 
   if (zeroflag) {
@@ -189,6 +194,8 @@ void FixLangevinKokkos<DeviceType>::post_force(int /*vflag*/)
 
   if (zeroflag) {
     fsum[0] = fsum[1] = fsum[2] = 0.0;
+    // sync the mask to the host, Group::count() reads it there
+    atomKK->sync(Host,MASK_MASK);
     count = group->count(igroup);
     if (count == 0)
       error->all(FLERR,"Cannot zero Langevin force of 0 atoms");
@@ -397,7 +404,7 @@ void FixLangevinKokkos<DeviceType>::post_force(int /*vflag*/)
   atomKK->modified(execution_space,datamask_modify);
 
   // thermostat omega and angmom
-  if (oflag) omega_thermostat();
+  if (oflag) omega_thermostat_kokkos();
   if (ascale != 0.0) angmom_thermostat();
 
 }
@@ -478,6 +485,14 @@ void FixLangevinKokkos<DeviceType>::zero_force_item(int i) const
     f(i,0) -= static_cast<KK_ACC_FLOAT>(d_fsumall[0]);
     f(i,1) -= static_cast<KK_ACC_FLOAT>(d_fsumall[1]);
     f(i,2) -= static_cast<KK_ACC_FLOAT>(d_fsumall[2]);
+
+    // the tallied thermostat force has to lose the same amount, or the energy
+    // reported by compute_scalar() is that of the force before it was zeroed
+    if (tallyflag) {
+      d_flangevin(i,0) -= static_cast<KK_FLOAT>(d_fsumall[0]);
+      d_flangevin(i,1) -= static_cast<KK_FLOAT>(d_fsumall[1]);
+      d_flangevin(i,2) -= static_cast<KK_FLOAT>(d_fsumall[2]);
+    }
   }
 }
 

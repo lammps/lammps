@@ -44,7 +44,7 @@ using namespace MathExtra;
 
 /* ---------------------------------------------------------------------- */
 
-PairGranular::PairGranular(LAMMPS *lmp) : Pair(lmp), fix_rigid(nullptr)
+PairGranular::PairGranular(LAMMPS *lmp) : Pair(lmp)
 {
   single_enable = 1;
   no_virial_fdotr_compute = 1;
@@ -82,7 +82,13 @@ PairGranular::PairGranular(LAMMPS *lmp) : Pair(lmp), fix_rigid(nullptr)
   // this is so final order of Modify:fix will conform to input script
 
 id_dummy = utils::strdup(std::string("NEIGH_HISTORY_GRANULAR_DUMMY") + std::to_string(instance_me));
-id_history = utils::strdup(std::string("NEIGH_HISTORY_GRANULAR") + std::to_string(instance_me));
+
+  // the id of the history fix is built in init_style() and not here: it has to
+  // be the same in the run that writes a restart file and in the run that reads
+  // it back, so it cannot come from instance_me, which counts every Pair ever
+  // created in the process, and the hybrid sub-style list is not populated yet
+
+  id_history = nullptr;
 
   cutoff_global = -1.0;
   fix_history = nullptr;
@@ -145,19 +151,23 @@ void PairGranular::compute(int eflag, int vflag)
   // body[i] = which body atom I is in, -1 if none
   // mass_body = mass of each rigid body
 
-  if (fix_rigid && neighbor->ago == 0) {
-    int tmp;
-    int *body = (int *) fix_rigid->extract("body",tmp);
-    auto *mass_body = (double *) fix_rigid->extract("masstotal",tmp);
-    if (atom->nmax > nmax) {
-      memory->destroy(mass_rigid);
-      nmax = atom->nmax;
-      memory->create(mass_rigid,nmax,"pair:mass_rigid");
-    }
-    int nlocal = atom->nlocal;
-    for (i = 0; i < nlocal; i++)
-      if (body[i] >= 0) mass_rigid[i] = mass_body[body[i]];
-      else mass_rigid[i] = 0.0;
+  if (!fix_rigid.empty() && neighbor->ago == 0) {
+     if (atom->nmax > nmax) {
+       memory->destroy(mass_rigid);
+       nmax = atom->nmax;
+       memory->create(mass_rigid,nmax,"pair:mass_rigid");
+     }
+     int nlocal = atom->nlocal;
+     for (i = 0; i < nlocal; i++) mass_rigid[i] = 0.0;
+
+     for (const auto &ifix : fix_rigid) {
+       int tmp;
+       int *body = (int *) ifix->extract("body",tmp);
+       auto *mass_body = (double *) ifix->extract("masstotal",tmp);
+
+       for (i = 0; i < nlocal; i++)
+         if (body[i] >= 0) mass_rigid[i] = mass_body[body[i]];
+     }
     comm->forward_comm(this);
   }
 
@@ -239,7 +249,7 @@ void PairGranular::compute(int eflag, int vflag)
       // if I or J is frozen, meff is other particle
       mi = rmass[i];
       mj = rmass[j];
-      if (fix_rigid) {
+      if (!fix_rigid.empty()) {
         if (mass_rigid[i] > 0.0) mi = mass_rigid[i];
         if (mass_rigid[j] > 0.0) mj = mass_rigid[j];
       }
@@ -491,6 +501,11 @@ void PairGranular::init_style()
   // it replaces FixDummy, created in the constructor
   // this is so its order in the fix list is preserved
 
+  if (use_history) {
+    delete[] id_history;
+    id_history = utils::strdup(fmt::format("NEIGH_HISTORY_GRANULAR{}", instance_index()));
+  }
+
   if (use_history && fix_history == nullptr) {
     fix_history = dynamic_cast<FixNeighHistory *>(modify->replace_fix(id_dummy, fmt::format("{} all NEIGH_HISTORY {}", id_history, size_history),0));
     fix_history->pair = this;
@@ -511,14 +526,9 @@ void PairGranular::init_style()
 
   // check for FixRigid so can extract rigid body masses
 
-  fix_rigid = nullptr;
-  for (const auto &ifix : modify->get_fix_list()) {
-    if (ifix->rigid_flag) {
-      if (fix_rigid)
-        error->all(FLERR, "Only one fix rigid command at a time allowed");
-      else fix_rigid = ifix;
-    }
-  }
+  fix_rigid.clear();
+  for (const auto &ifix : modify->get_fix_list())
+    if (ifix->rigid_flag) fix_rigid.push_back(ifix);
 
   // check for FixPour and FixDeposit so can extract particle radii
 
@@ -785,7 +795,7 @@ double PairGranular::single(int i, int j, int itype, int jtype,
 
   double mi = rmass[i];
   double mj = rmass[j];
-  if (fix_rigid) {
+  if (!fix_rigid.empty()) {
     if (mass_rigid[i] > 0.0) mi = mass_rigid[i];
     if (mass_rigid[j] > 0.0) mj = mass_rigid[j];
   }

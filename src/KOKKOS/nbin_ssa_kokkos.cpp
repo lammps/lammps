@@ -141,8 +141,10 @@ void NBinSSAKokkos<DeviceType>::bin_atoms()
   // find each local atom's binID
   {
     atoms_per_bin = 0;
+    copymode = 1;
     NPairSSAKokkosBinIDAtomsFunctor<DeviceType> f(*this);
     Kokkos::parallel_reduce(nlocal, f, atoms_per_bin);
+    copymode = 0;
   }
   Kokkos::deep_copy(h_lbinxlo, d_lbinxlo);
   Kokkos::deep_copy(h_lbinylo, d_lbinylo);
@@ -157,8 +159,10 @@ void NBinSSAKokkos<DeviceType>::bin_atoms()
     k_gbincount.modify_host();
     k_gbincount.sync<DeviceType>();
     ghosts_per_gbin = 0;
+    copymode = 1;
     NPairSSAKokkosBinIDGhostsFunctor<DeviceType> f(*this);
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType>(nowned,nall), f, ghosts_per_gbin);
+    copymode = 0;
   }
 
   // actually bin the ghost atoms
@@ -205,8 +209,10 @@ void NBinSSAKokkos<DeviceType>::bin_atoms()
     auto bincount_ = bincount;
     auto bins_ = bins;
 
+    copymode = 1;
     NPairSSAKokkosBinAtomsFunctor<DeviceType> f(*this);
     Kokkos::parallel_for(nlocal, f);
+    copymode = 0;
 
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0,mbins),
      LAMMPS_LAMBDA (const int i) {

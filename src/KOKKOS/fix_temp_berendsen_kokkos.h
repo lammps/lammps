@@ -35,7 +35,6 @@ class FixTempBerendsenKokkos : public FixTempBerendsen {
   typedef ArrayTypes<DeviceType> AT;
 
   FixTempBerendsenKokkos(class LAMMPS *, int, char **);
-  ~FixTempBerendsenKokkos() override {}
   void init() override;
   void end_of_step() override;
 };

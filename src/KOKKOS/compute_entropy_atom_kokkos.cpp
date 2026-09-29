@@ -174,7 +174,14 @@ KOKKOS_INLINE_FUNCTION
 void ComputeEntropyAtomKokkos<DeviceType>::operator()(TagComputeEntropyAtom<LOCAL>, const int &ii) const
 {
   const int i = d_ilist[ii];
-  if (!(mask[i] & groupbit_kk)) return;
+
+  // with averaging the pair entropy is needed for all atoms, since atoms
+  // in the group may have neighbors outside the group
+
+  if (!avg_flag && !(mask[i] & groupbit_kk)) {
+    d_pair_entropy[i] = static_cast<KK_FLOAT>(0.0);
+    return;
+  }
 
   const KK_FLOAT xtmp = x(i,0);
   const KK_FLOAT ytmp = x(i,1);
@@ -228,8 +235,15 @@ void ComputeEntropyAtomKokkos<DeviceType>::operator()(TagComputeEntropyAtom<LOCA
     else
       integrand = (g*Kokkos::log(g) - g + static_cast<KK_FLOAT>(1.0))*d_rbinsq[k];
 
-    if (k == 0 || k == nbin-1) value += static_cast<KK_FLOAT>(0.5)*integrand;
-    else value += integrand;
+    // the CPU style sums the interior bins and then adds 0.5*integrand[0] and
+    // 0.5*integrand[nbin-1] as two separate terms, so with a single bin that
+    // bin is counted twice at half weight
+
+    KK_FLOAT weight = static_cast<KK_FLOAT>(0.0);
+    if ((k > 0) && (k < nbin-1)) weight += static_cast<KK_FLOAT>(1.0);
+    if (k == 0) weight += static_cast<KK_FLOAT>(0.5);
+    if (k == nbin-1) weight += static_cast<KK_FLOAT>(0.5);
+    value += weight*integrand;
   }
   value *= deltar_kk;
 
@@ -244,7 +258,10 @@ KOKKOS_INLINE_FUNCTION
 void ComputeEntropyAtomKokkos<DeviceType>::operator()(TagComputeEntropyAtomAvg, const int &ii) const
 {
   const int i = d_ilist[ii];
-  if (!(mask[i] & groupbit_kk)) return;
+  if (!(mask[i] & groupbit_kk)) {
+    d_pair_entropy_avg[i] = static_cast<KK_FLOAT>(0.0);
+    return;
+  }
 
   const KK_FLOAT xtmp = x(i,0);
   const KK_FLOAT ytmp = x(i,1);

@@ -2015,6 +2015,7 @@ Khersonskii
 Khrapak
 Khvostov
 Ki
+KiB
 Kikkawa
 Kikugawa
 kim
@@ -3320,6 +3321,7 @@ Pre
 prec
 precession
 precond
+precisions
 prefactor
 prefactors
 prepend
@@ -3993,6 +3995,7 @@ streitz
 Streitz
 strerror
 strided
+Strix
 stringstreams
 strmatch
 strncmp
@@ -4114,6 +4117,7 @@ ters
 tersoff
 Tersoff
 Tetot
+tetrahedra
 tex
 textrm
 tfac
@@ -4329,6 +4333,7 @@ uncompute
 underdamped
 underprediction
 undump
+unformatted
 uniaxial
 uniaxially
 unicaen

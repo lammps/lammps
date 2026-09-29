@@ -16,7 +16,6 @@
 
 #include "atom_kokkos.h"
 #include "atom_masks.h"
-#include "memory_kokkos.h"
 
 using namespace LAMMPS_NS;
 using namespace MathSpecialKokkos;
@@ -28,16 +27,6 @@ RegBlockKokkos<DeviceType>::RegBlockKokkos(LAMMPS *lmp, int narg, char **arg)
   : RegBlock(lmp, narg, arg)
 {
   atomKK = (AtomKokkos*) atom;
-  memoryKK->create_kokkos(d_contact,6,"region_block:d_contact");
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-RegBlockKokkos<DeviceType>::~RegBlockKokkos()
-{
-  if (copymode) return;
-  memoryKK->destroy_kokkos(d_contact);
 }
 
 /* ---------------------------------------------------------------------- */

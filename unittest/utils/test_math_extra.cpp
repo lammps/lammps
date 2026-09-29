@@ -249,7 +249,7 @@ TEST(MathExtraVec3, cross3_anticommutative)
 
 TEST(MathExtraMat3, zeromat3)
 {
-    double m[3][3] = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+    double m[3][3] = {{1.0, 2.0, 3.0}, {4.0, 5.0, 6.0}, {7.0, 8.0, 9.0}};
     MathExtra::zeromat3(m);
     for (int i = 0; i < 3; i++)
         for (int j = 0; j < 3; j++)
@@ -258,7 +258,7 @@ TEST(MathExtraMat3, zeromat3)
 
 TEST(MathExtraMat3, transpose3)
 {
-    double m[3][3] = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+    double m[3][3] = {{1.0, 2.0, 3.0}, {4.0, 5.0, 6.0}, {7.0, 8.0, 9.0}};
     double ans[3][3];
     MathExtra::transpose3(m, ans);
     EXPECT_DOUBLE_EQ(ans[0][0], 1.0);
@@ -274,9 +274,9 @@ TEST(MathExtraMat3, transpose3)
 
 TEST(MathExtraMat3, col2mat)
 {
-    double ex[3] = {1, 4, 7};
-    double ey[3] = {2, 5, 8};
-    double ez[3] = {3, 6, 9};
+    double ex[3] = {1.0, 4.0, 7.0};
+    double ey[3] = {2.0, 5.0, 8.0};
+    double ez[3] = {3.0, 6.0, 9.0};
     double m[3][3];
     MathExtra::col2mat(ex, ey, ez, m);
     // columns are ex, ey, ez
@@ -293,13 +293,13 @@ TEST(MathExtraMat3, col2mat)
 
 TEST(MathExtraMat3, det3_identity)
 {
-    double m[3][3] = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
+    double m[3][3] = {{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}};
     EXPECT_DOUBLE_EQ(MathExtra::det3(m), 1.0);
 }
 
 TEST(MathExtraMat3, det3_known)
 {
-    double m[3][3] = {{1, 2, 3}, {0, 1, 4}, {5, 6, 0}};
+    double m[3][3] = {{1.0, 2.0, 3.0}, {0.0, 1.0, 4.0}, {5.0, 6.0, 0.0}};
     // det = 1*(0-24) - 2*(0-20) + 3*(0-5) = -24+40-15 = 1
     EXPECT_DOUBLE_EQ(MathExtra::det3(m), 1.0);
 }
@@ -307,14 +307,14 @@ TEST(MathExtraMat3, det3_known)
 TEST(MathExtraMat3, det3_singular)
 {
     // linearly dependent rows
-    double m[3][3] = {{1, 2, 3}, {2, 4, 6}, {1, 1, 1}};
+    double m[3][3] = {{1.0, 2.0, 3.0}, {2.0, 4.0, 6.0}, {1.0, 1.0, 1.0}};
     EXPECT_DOUBLE_EQ(MathExtra::det3(m), 0.0);
 }
 
 TEST(MathExtraMat3, plus3)
 {
-    double m1[3][3] = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
-    double m2[3][3] = {{9, 8, 7}, {6, 5, 4}, {3, 2, 1}};
+    double m1[3][3] = {{1.0, 2.0, 3.0}, {4.0, 5.0, 6.0}, {7.0, 8.0, 9.0}};
+    double m2[3][3] = {{9.0, 8.0, 7.0}, {6.0, 5.0, 4.0}, {3.0, 2.0, 1.0}};
     double ans[3][3];
     MathExtra::plus3(m1, m2, ans);
     for (int i = 0; i < 3; i++)
@@ -324,8 +324,8 @@ TEST(MathExtraMat3, plus3)
 
 TEST(MathExtraMat3, minus3)
 {
-    double m1[3][3] = {{10, 20, 30}, {40, 50, 60}, {70, 80, 90}};
-    double m2[3][3] = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+    double m1[3][3] = {{10.0, 20.0, 30.0}, {40.0, 50.0, 60.0}, {70.0, 80.0, 90.0}};
+    double m2[3][3] = {{1.0, 2.0, 3.0}, {4.0, 5.0, 6.0}, {7.0, 8.0, 9.0}};
     double ans[3][3];
     MathExtra::minus3(m1, m2, ans);
     for (int i = 0; i < 3; i++)
@@ -335,8 +335,8 @@ TEST(MathExtraMat3, minus3)
 
 TEST(MathExtraMat3, times3_identity)
 {
-    double m[3][3]  = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
-    double id[3][3] = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
+    double m[3][3]  = {{1.0, 2.0, 3.0}, {4.0, 5.0, 6.0}, {7.0, 8.0, 9.0}};
+    double id[3][3] = {{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}};
     double ans[3][3];
     MathExtra::times3(m, id, ans);
     for (int i = 0; i < 3; i++)
@@ -346,8 +346,8 @@ TEST(MathExtraMat3, times3_identity)
 
 TEST(MathExtraMat3, times3_known)
 {
-    double A[3][3] = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
-    double B[3][3] = {{9, 8, 7}, {6, 5, 4}, {3, 2, 1}};
+    double A[3][3] = {{1.0, 2.0, 3.0}, {4.0, 5.0, 6.0}, {7.0, 8.0, 9.0}};
+    double B[3][3] = {{9.0, 8.0, 7.0}, {6.0, 5.0, 4.0}, {3.0, 2.0, 1.0}};
     double ans[3][3];
     MathExtra::times3(A, B, ans);
     // Row 0: 1*9+2*6+3*3=30, 1*8+2*5+3*2=24, 1*7+2*4+3*1=18
@@ -367,8 +367,8 @@ TEST(MathExtraMat3, times3_known)
 TEST(MathExtraMat3, transpose_times3)
 {
     // transpose_times3(A, B) = A^T * B
-    double A[3][3] = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
-    double B[3][3] = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
+    double A[3][3] = {{1.0, 2.0, 3.0}, {4.0, 5.0, 6.0}, {7.0, 8.0, 9.0}};
+    double B[3][3] = {{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}};
     double ans[3][3];
     MathExtra::transpose_times3(A, B, ans);
     // A^T * I = A^T
@@ -386,8 +386,8 @@ TEST(MathExtraMat3, transpose_times3)
 TEST(MathExtraMat3, times3_transpose)
 {
     // times3_transpose(A, B) = A * B^T
-    double A[3][3] = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
-    double B[3][3] = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+    double A[3][3] = {{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}};
+    double B[3][3] = {{1.0, 2.0, 3.0}, {4.0, 5.0, 6.0}, {7.0, 8.0, 9.0}};
     double ans[3][3];
     MathExtra::times3_transpose(A, B, ans);
     // I * B^T = B^T
@@ -405,7 +405,7 @@ TEST(MathExtraMat3, times3_transpose)
 TEST(MathExtraMat3, diag_times3)
 {
     double d[3]    = {2.0, 3.0, 4.0};
-    double m[3][3] = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+    double m[3][3] = {{1.0, 2.0, 3.0}, {4.0, 5.0, 6.0}, {7.0, 8.0, 9.0}};
     double ans[3][3];
     MathExtra::diag_times3(d, m, ans);
     EXPECT_DOUBLE_EQ(ans[0][0], 2.0);
@@ -421,7 +421,7 @@ TEST(MathExtraMat3, diag_times3)
 
 TEST(MathExtraMat3, times3_diag)
 {
-    double m[3][3] = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+    double m[3][3] = {{1.0, 2.0, 3.0}, {4.0, 5.0, 6.0}, {7.0, 8.0, 9.0}};
     double d[3]    = {2.0, 3.0, 4.0};
     double ans[3][3];
     MathExtra::times3_diag(m, d, ans);
@@ -439,7 +439,7 @@ TEST(MathExtraMat3, times3_diag)
 TEST(MathExtraMat3, invert3)
 {
     // Use a simple invertible matrix: [[2,1,0],[0,3,1],[1,0,2]]
-    double m[3][3] = {{2, 1, 0}, {0, 3, 1}, {1, 0, 2}};
+    double m[3][3] = {{2.0, 1.0, 0.0}, {0.0, 3.0, 1.0}, {1.0, 0.0, 2.0}};
     double inv[3][3];
     MathExtra::invert3(m, inv);
 
@@ -455,7 +455,7 @@ TEST(MathExtraMat3, invert3)
 
 TEST(MathExtraMat3, invert3_identity)
 {
-    double m[3][3] = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
+    double m[3][3] = {{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}};
     double inv[3][3];
     MathExtra::invert3(m, inv);
     for (int i = 0; i < 3; i++)
@@ -467,7 +467,7 @@ TEST(MathExtraMat3, invert3_identity)
 
 TEST(MathExtraMat3, matvec_array)
 {
-    double m[3][3] = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+    double m[3][3] = {{1.0, 2.0, 3.0}, {4.0, 5.0, 6.0}, {7.0, 8.0, 9.0}};
     double v[3]    = {1.0, 0.0, 0.0};
     double ans[3];
     MathExtra::matvec(m, v, ans);
@@ -478,9 +478,9 @@ TEST(MathExtraMat3, matvec_array)
 
 TEST(MathExtraMat3, matvec_columns)
 {
-    double ex[3] = {1, 4, 7};
-    double ey[3] = {2, 5, 8};
-    double ez[3] = {3, 6, 9};
+    double ex[3] = {1.0, 4.0, 7.0};
+    double ey[3] = {2.0, 5.0, 8.0};
+    double ez[3] = {3.0, 6.0, 9.0};
     double v[3]  = {1.0, 1.0, 1.0};
     double ans[3];
     MathExtra::matvec(ex, ey, ez, v, ans);
@@ -491,7 +491,7 @@ TEST(MathExtraMat3, matvec_columns)
 
 TEST(MathExtraMat3, transpose_matvec_array)
 {
-    double m[3][3] = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+    double m[3][3] = {{1.0, 2.0, 3.0}, {4.0, 5.0, 6.0}, {7.0, 8.0, 9.0}};
     double v[3]    = {1.0, 1.0, 1.0};
     double ans[3];
     MathExtra::transpose_matvec(m, v, ans);
@@ -503,9 +503,9 @@ TEST(MathExtraMat3, transpose_matvec_array)
 
 TEST(MathExtraMat3, transpose_matvec_columns)
 {
-    double ex[3] = {1, 2, 3};
-    double ey[3] = {4, 5, 6};
-    double ez[3] = {7, 8, 9};
+    double ex[3] = {1.0, 2.0, 3.0};
+    double ey[3] = {4.0, 5.0, 6.0};
+    double ez[3] = {7.0, 8.0, 9.0};
     double v[3]  = {1.0, 0.0, 0.0};
     double ans[3];
     MathExtra::transpose_matvec(ex, ey, ez, v, ans);
@@ -517,7 +517,7 @@ TEST(MathExtraMat3, transpose_matvec_columns)
 
 TEST(MathExtraMat3, transpose_diag3)
 {
-    double m[3][3] = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+    double m[3][3] = {{1.0, 2.0, 3.0}, {4.0, 5.0, 6.0}, {7.0, 8.0, 9.0}};
     double d[3]    = {2.0, 3.0, 4.0};
     double ans[3][3];
     MathExtra::transpose_diag3(m, d, ans);
@@ -536,7 +536,7 @@ TEST(MathExtraMat3, transpose_diag3)
 TEST(MathExtraMat3, vecmat)
 {
     double v[3]    = {1.0, 2.0, 3.0};
-    double m[3][3] = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+    double m[3][3] = {{1.0, 2.0, 3.0}, {4.0, 5.0, 6.0}, {7.0, 8.0, 9.0}};
     double ans[3];
     MathExtra::vecmat(v, m, ans);
     // v^T * M: 1*1+2*4+3*7=30, 1*2+2*5+3*8=36, 1*3+2*6+3*9=42
@@ -547,7 +547,7 @@ TEST(MathExtraMat3, vecmat)
 
 TEST(MathExtraMat3, scalar_times3)
 {
-    double m[3][3] = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
+    double m[3][3] = {{1.0, 2.0, 3.0}, {4.0, 5.0, 6.0}, {7.0, 8.0, 9.0}};
     MathExtra::scalar_times3(2.0, m);
     EXPECT_DOUBLE_EQ(m[0][0], 2.0);
     EXPECT_DOUBLE_EQ(m[1][1], 10.0);
@@ -579,7 +579,7 @@ TEST(MathExtraMat3, outer3)
 TEST(MathExtraSolver, mldivide3_simple)
 {
     // Solve [[2,0,0],[0,3,0],[0,0,4]] * x = [6,9,12] => x = [3,3,3]
-    double m[3][3] = {{2, 0, 0}, {0, 3, 0}, {0, 0, 4}};
+    double m[3][3] = {{2.0, 0.0, 0.0}, {0.0, 3.0, 0.0}, {0.0, 0.0, 4.0}};
     double v[3]    = {6.0, 9.0, 12.0};
     double ans[3];
     int ret = MathExtra::mldivide3(m, v, ans);
@@ -593,7 +593,7 @@ TEST(MathExtraSolver, mldivide3_general)
 {
     // Solve [[1,2,3],[0,1,4],[5,6,0]] * x = [1,0,0]
     // det = 1 (from earlier test)
-    double m[3][3] = {{1, 2, 3}, {0, 1, 4}, {5, 6, 0}};
+    double m[3][3] = {{1.0, 2.0, 3.0}, {0.0, 1.0, 4.0}, {5.0, 6.0, 0.0}};
     double v[3]    = {1.0, 0.0, 0.0};
     double ans[3];
     int ret = MathExtra::mldivide3(m, v, ans);
@@ -610,7 +610,7 @@ TEST(MathExtraSolver, mldivide3_general)
 TEST(MathExtraSolver, mldivide3_singular)
 {
     // Singular matrix should return 1
-    double m[3][3] = {{1, 2, 3}, {2, 4, 6}, {1, 1, 1}};
+    double m[3][3] = {{1.0, 2.0, 3.0}, {2.0, 4.0, 6.0}, {1.0, 1.0, 1.0}};
     double v[3]    = {1.0, 2.0, 3.0};
     double ans[3];
     int ret = MathExtra::mldivide3(m, v, ans);
@@ -999,7 +999,7 @@ TEST(MathExtraRotation, BuildRzMatrix_preserves_z)
 TEST(MathExtraRotation, rotation_generator_x)
 {
     // For identity matrix, Gx*I should give the x-rotation generator
-    double I[3][3] = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
+    double I[3][3] = {{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}};
     double ans[3][3];
     MathExtra::rotation_generator_x(I, ans);
     // Generator Lx = [[0,0,0],[0,0,1],[0,-1,0]]
@@ -1016,7 +1016,7 @@ TEST(MathExtraRotation, rotation_generator_x)
 
 TEST(MathExtraRotation, rotation_generator_y)
 {
-    double I[3][3] = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
+    double I[3][3] = {{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}};
     double ans[3][3];
     MathExtra::rotation_generator_y(I, ans);
     // Generator Ly = [[0,0,-1],[0,0,0],[1,0,0]]
@@ -1033,7 +1033,7 @@ TEST(MathExtraRotation, rotation_generator_y)
 
 TEST(MathExtraRotation, rotation_generator_z)
 {
-    double I[3][3] = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
+    double I[3][3] = {{1.0, 0.0, 0.0}, {0.0, 1.0, 0.0}, {0.0, 0.0, 1.0}};
     double ans[3][3];
     MathExtra::rotation_generator_z(I, ans);
     // Generator Lz = [[0,1,0],[-1,0,0],[0,0,0]]

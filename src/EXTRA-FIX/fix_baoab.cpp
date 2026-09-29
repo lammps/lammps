@@ -133,6 +133,12 @@ void FixBAOAB::recompute_dt_coeffs()
   dtf = 0.5 * dt * force->ftm2v;    // half-kick: F/m -> dv
   dtby2 = 0.5 * dt;                 // half-drift: v -> dx
   c1 = exp(-gamma * dt);            // O-step decay (full dt)
+
+  // 1 - c1^2 = 1 - exp(-2*gamma*dt) suffers from cancellation for small
+  // gamma*dt (a one ulp difference in exp() from one libm to another shows
+  // up as a relative difference of order ulp/(gamma*dt) in the noise
+  // amplitude); expm1() forms it without that loss of precision.
+  one_minus_c1sq = -std::expm1(-2.0 * gamma * dt);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -179,9 +185,6 @@ void FixBAOAB::initial_integrate(int /*vflag*/)
   //   force->mvv2e converts (1/2)mv^2 to energy: E = mvv2e * m * v^2
   //   so v^2 ~ kT / (mvv2e * m), hence noise scale = sqrt(kT / (mvv2e * m))
   double kT = force->boltz * t_target / force->mvv2e;
-
-  // O-step coefficients that are mass-independent
-  double one_minus_c1sq = 1.0 - c1 * c1;
 
   // For energy tally: accumulate KE change during O step
   energy_onestep = 0.0;

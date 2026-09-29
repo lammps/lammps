@@ -467,8 +467,17 @@ fprintf(stdout, "tota%03d total %3d could use %6d inums, expected %6d inums. inu
     k_ssa_itemLoc.sync_host();
     k_ssa_itemLen.sync_host();
     k_ssa_phaseLen.sync_host();
-    data.neigh_list.inum = h_ssa_itemLoc(ssa_phaseCt-1,h_ssa_phaseLen(ssa_phaseCt-1)-1) +
-      h_ssa_itemLen(ssa_phaseCt-1,h_ssa_phaseLen(ssa_phaseCt-1)-1);
+    // a work phase records only the work items that got at least one atom,
+    // so trailing phases can be empty.  Search back for the last used phase
+    // instead of indexing phase ssa_phaseCt-1 with a length of zero.
+    int lastPhase = ssa_phaseCt - 1;
+    while ((lastPhase >= 0) && (h_ssa_phaseLen(lastPhase) == 0)) --lastPhase;
+    if (lastPhase < 0) data.neigh_list.inum = 0;
+    else {
+      const int lastItem = h_ssa_phaseLen(lastPhase) - 1;
+      data.neigh_list.inum = h_ssa_itemLoc(lastPhase,lastItem) +
+        h_ssa_itemLen(lastPhase,lastItem);
+    }
 
     // loop over AIR ghost atoms, storing their local neighbors
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0,ssa_gphaseCt),
@@ -615,20 +624,6 @@ void NPairSSAKokkosExecute<DeviceType>::build_locals_onePhase(const bool firstTr
         }
       }
     }
-#ifdef DEBUG_SSA_BUILD_LOCALS
-    int len = inum - inum_start;
-    if (len != d_ssa_itemLen(workPhase, workItem + skippedItems)) {
-fprintf(stdout, "Leng%03d workphase (%2d,%3d,%3d): len  = %4d, but ssa_itemLen = %4d%s\n"
-  ,me
-  ,workPhase
-  ,workItem
-  ,workItem + skippedItems
-  ,len
-  ,d_ssa_itemLen(workPhase, workItem + skippedItems)
-  ,(len > d_ssa_itemLen(workPhase, workItem + skippedItems)) ? " OVERFLOW" : ""
-);
-    }
-#endif
     if (inum > inum_start) {
       d_ssa_itemLoc(workPhase,workItem) = inum_start; // record where workItem starts in ilist
       d_ssa_itemLen(workPhase,workItem) = inum - inum_start; // record actual workItem length
@@ -638,16 +633,6 @@ fprintf(stdout, "Leng%03d workphase (%2d,%3d,%3d): len  = %4d, but ssa_itemLen =
   }
   }
 
-#ifdef DEBUG_SSA_BUILD_LOCALS
-fprintf(stdout, "Phas%03d phase %3d used %6d inums, workItems = %3d, skipped = %3d, inums/workItems = %g\n"
-  ,me
-  ,workPhase
-  ,inum - d_ssa_itemLoc(workPhase, 0)
-  ,workItem
-  ,skippedItems
-  ,(inum - d_ssa_itemLoc(workPhase, 0)) / (double) workItem
-);
-#endif
     // record where workPhase actually ends
     if (firstTry) {
       d_ssa_phaseLen(workPhase) = workItem;

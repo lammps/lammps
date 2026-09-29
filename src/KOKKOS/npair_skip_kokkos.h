@@ -103,9 +103,11 @@ class NPairSkipKokkos : public NPair {
   void operator()(TagNPairSkipCountLocal, const int&, int&) const;
 
  private:
-  int nlocal,num_skip,cutsq_custom;
+  int nlocal,num_skip;
+  double cutsq_custom;
 
   typename AT::t_kkfloat_1d_3_lr_randomread x;
+  typename AT::t_kkfloat_2d d_cutneighsq;
   typename AT::t_int_1d_randomread type;
 
   typename AT::t_int_scalar d_inum;

@@ -30,7 +30,6 @@
 #include "neigh_list_kokkos.h"
 #include "neigh_request.h"
 #include "neighbor.h"
-#include "neighbor.h"
 #include "pair_kokkos.h"
 
 #include <cmath>
@@ -480,6 +479,15 @@ void PairSWMODKokkos<DeviceType>::twobody(const Param& param, const KK_FLOAT& rs
   KK_FLOAT r,rinvsq,rp,rq,rainv,rainvsq,expsrainv;
 
   r = Kokkos::sqrt(rsq);
+
+  // r can round up to the cutoff in KK_FLOAT; the limit there is zero
+
+  if (r >= static_cast<KK_FLOAT>(param.cut)) {
+    fforce = 0.0;
+    if (eflag) eng = 0.0;
+    return;
+  }
+
   rinvsq = static_cast<KK_FLOAT>(1.0)/rsq;
   rp = Kokkos::pow(r,static_cast<KK_FLOAT>(-param.powerp));
   rq = Kokkos::pow(r,static_cast<KK_FLOAT>(-param.powerq));
@@ -507,13 +515,23 @@ void PairSWMODKokkos<DeviceType>::threebody_kk(const Param& paramij, const Param
   KK_FLOAT facang,facang12,csfacang,csfac1,csfac2;
 
   r1 = Kokkos::sqrt(rsq1);
+  r2 = Kokkos::sqrt(rsq2);
+
+  // either separation can round up to the cutoff, see the note in twobody()
+
+  if ((r1 >= static_cast<KK_FLOAT>(paramij.cut)) || (r2 >= static_cast<KK_FLOAT>(paramik.cut))) {
+    fj[0] = fj[1] = fj[2] = 0.0;
+    fk[0] = fk[1] = fk[2] = 0.0;
+    if (eflag) eng = 0.0;
+    return;
+  }
+
   rinvsq1 = static_cast<KK_FLOAT>(1.0)/rsq1;
   rainv1 = static_cast<KK_FLOAT>(1.0)/(r1 - static_cast<KK_FLOAT>(paramij.cut));
   gsrainv1 = static_cast<KK_FLOAT>(paramij.sigma_gamma) * rainv1;
   gsrainvsq1 = gsrainv1*rainv1/r1;
   expgsrainv1 = Kokkos::exp(gsrainv1);
 
-  r2 = Kokkos::sqrt(rsq2);
   rinvsq2 = static_cast<KK_FLOAT>(1.0)/rsq2;
   rainv2 = static_cast<KK_FLOAT>(1.0)/(r2 - static_cast<KK_FLOAT>(paramik.cut));
   gsrainv2 = static_cast<KK_FLOAT>(paramik.sigma_gamma) * rainv2;
@@ -524,15 +542,26 @@ void PairSWMODKokkos<DeviceType>::threebody_kk(const Param& paramij, const Param
   cs = (delr1[0]*delr2[0] + delr1[1]*delr2[1] + delr1[2]*delr2[2]) * rinv12;
   delcs = cs - static_cast<KK_FLOAT>(paramijk.costheta);
 
-  // sw/mod tapers delcs to zero between delta1 and delta2
+  // sw/mod tapers delcs to zero between delta1 and delta2.  dfactor is
+  // d(delcs)/d(cs) after the taper, which the angular force below needs:
+  // tapering delcs changes how it responds to the angle, so the taper has to be
+  // differentiated along with it.
 
   const KK_FLOAT absdelcs = delcs < static_cast<KK_FLOAT>(0.0) ? -delcs : delcs;
   const KK_FLOAT d1 = static_cast<KK_FLOAT>(delta1);
   const KK_FLOAT d2 = static_cast<KK_FLOAT>(delta2);
-  if (absdelcs >= d2) delcs = static_cast<KK_FLOAT>(0.0);
-  else if (absdelcs > d1)
-    delcs *= static_cast<KK_FLOAT>(0.5) + static_cast<KK_FLOAT>(0.5) *
-      Kokkos::cos(static_cast<KK_FLOAT>(MY_PI)*(absdelcs - d1)/(d2 - d1));
+  KK_FLOAT dfactor = static_cast<KK_FLOAT>(1.0);
+  if (absdelcs >= d2) {
+    delcs = static_cast<KK_FLOAT>(0.0);
+    dfactor = static_cast<KK_FLOAT>(0.0);
+  } else if (absdelcs > d1) {
+    const KK_FLOAT arg = static_cast<KK_FLOAT>(MY_PI)*(absdelcs - d1)/(d2 - d1);
+    const KK_FLOAT factor = static_cast<KK_FLOAT>(0.5) +
+      static_cast<KK_FLOAT>(0.5) * Kokkos::cos(arg);
+    dfactor = factor - static_cast<KK_FLOAT>(0.5)*static_cast<KK_FLOAT>(MY_PI)*
+      absdelcs*Kokkos::sin(arg)/(d2 - d1);
+    delcs *= factor;
+  }
 
   delcssq = delcs*delcs;
 
@@ -544,7 +573,7 @@ void PairSWMODKokkos<DeviceType>::threebody_kk(const Param& paramij, const Param
   facrad = static_cast<KK_FLOAT>(paramijk.lambda_epsilon) * facexp*delcssq;
   frad1 = facrad*gsrainvsq1;
   frad2 = facrad*gsrainvsq2;
-  facang = static_cast<KK_FLOAT>(paramijk.lambda_epsilon2) * facexp*delcs;
+  facang = static_cast<KK_FLOAT>(paramijk.lambda_epsilon2) * facexp*delcs*dfactor;
   facang12 = rinv12*facang;
   csfacang = cs*facang;
   csfac1 = rinvsq1*csfacang;

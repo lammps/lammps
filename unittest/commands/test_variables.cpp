@@ -18,6 +18,7 @@
 #include "group.h"
 #include "info.h"
 #include "input.h"
+#include "library.h"
 #include "math_const.h"
 #include "region.h"
 #include "variable.h"
@@ -698,6 +699,8 @@ TEST_F(VariableTest, NextCommand)
 
 TEST_F(VariableTest, LabelMapAtomic)
 {
+    // label maps are currently not supported with the KOKKOS package
+    if (lmp->suffix_enable) GTEST_SKIP() << "label maps are not supported with an accelerator suffix";
     BEGIN_HIDE_OUTPUT();
     command("region box block 0 2 0 2 0 2");
     command("create_box 4 box");
@@ -729,6 +732,8 @@ TEST_F(VariableTest, LabelMapAtomic)
 
 TEST_F(VariableTest, LabelMapMolecular)
 {
+    // label maps are currently not supported with the KOKKOS package
+    if (lmp->suffix_enable) GTEST_SKIP() << "label maps are not supported with an accelerator suffix";
     if (!info->has_style("atom", "full")) GTEST_SKIP();
 
     BEGIN_HIDE_OUTPUT();
@@ -1108,6 +1113,13 @@ int main(int argc, char **argv)
     if ((argc > 1) && (strcmp(argv[1], "-v") == 0)) verbose = true;
 
     int rv = RUN_ALL_TESTS();
+
+    // finalize the KOKKOS package explicitly: otherwise Kokkos is torn down by
+    // static destructors at program exit, leading to segfaults in some cases
+    // same workaround as the force-style and FFT3d test drivers
+
+    lammps_kokkos_finalize();
+
     MPI_Finalize();
     return rv;
 }

@@ -129,7 +129,7 @@ void FixGJFKokkos<DeviceType>::initial_integrate(int /* vflag */)
     mass = atomKK->k_mass.view<DeviceType>();
   }
 
-  // vhalf mode: copy lv → v at start of step (all but the first step)
+  // vhalf mode: copy lv to v at start of step (all but the first step)
   if (!osflag && lv_allocated) {
     k_lv.sync<DeviceType>();
     d_lv = k_lv.view<DeviceType>();

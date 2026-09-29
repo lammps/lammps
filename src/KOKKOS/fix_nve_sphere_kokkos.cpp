@@ -15,12 +15,14 @@
 #include "fix_nve_sphere_kokkos.h"
 #include "atom_masks.h"
 #include "atom_kokkos.h"
+#include "error.h"
 
 #include <cmath>
 
 using namespace LAMMPS_NS;
 
 enum{NONE,DIPOLE};
+enum{NODLM,DLM};
 
 /* ---------------------------------------------------------------------- */
 
@@ -52,6 +54,13 @@ template<class DeviceType>
 void FixNVESphereKokkos<DeviceType>::init()
 {
   FixNVESphere::init();
+
+  // the Dullweber-Leimkuhler-Maclachlan orientation update of the base class
+  // has no device kernel yet, and silently running the plain cross product
+  // update instead would integrate the dipoles with a different scheme
+
+  if (dlm == DLM)
+    error->all(FLERR,"Cannot (yet) use update dipole/dlm with fix nve/sphere/kk");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -112,7 +121,7 @@ void FixNVESphereKokkos<DeviceType>::initial_integrate_item(const int i) const
     omega(i,1) += dtirotate * static_cast<KK_FLOAT>(torque(i,1));
     omega(i,2) += dtirotate * static_cast<KK_FLOAT>(torque(i,2));
 
-    if (extra == DIPOLE) {
+    if ((extra == DIPOLE) && (mu(i,3) > 0.0)) {
       const KK_FLOAT g0 = mu(i,0) + dtv_kk * (omega(i,1) * mu(i,2) - omega(i,2) * mu(i,1));
       const KK_FLOAT g1 = mu(i,1) + dtv_kk * (omega(i,2) * mu(i,0) - omega(i,0) * mu(i,2));
       const KK_FLOAT g2 = mu(i,2) + dtv_kk * (omega(i,0) * mu(i,1) - omega(i,1) * mu(i,0));
@@ -231,7 +240,7 @@ void FixNVESphereKokkos<DeviceType>::fused_integrate_item(const int i) const
     omega(i,1) += dtirotate * static_cast<KK_FLOAT>(torque(i,1));
     omega(i,2) += dtirotate * static_cast<KK_FLOAT>(torque(i,2));
 
-    if (extra == DIPOLE) {
+    if ((extra == DIPOLE) && (mu(i,3) > 0.0)) {
       const KK_FLOAT g0 = mu(i,0) + dtv_kk * (omega(i,1) * mu(i,2) - omega(i,2) * mu(i,1));
       const KK_FLOAT g1 = mu(i,1) + dtv_kk * (omega(i,2) * mu(i,0) - omega(i,0) * mu(i,2));
       const KK_FLOAT g2 = mu(i,2) + dtv_kk * (omega(i,0) * mu(i,1) - omega(i,1) * mu(i,0));

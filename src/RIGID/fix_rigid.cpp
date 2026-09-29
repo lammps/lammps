@@ -2623,6 +2623,8 @@ void FixRigid::reset_dt()
 
 void FixRigid::zero_momentum()
 {
+  setup_bodies_early();
+
   for (int ibody = 0; ibody < nbody; ibody++)
     vcm[ibody][0] = vcm[ibody][1] = vcm[ibody][2] = 0.0;
 
@@ -2637,6 +2639,8 @@ void FixRigid::zero_momentum()
 
 void FixRigid::zero_rotation()
 {
+  setup_bodies_early();
+
   for (int ibody = 0; ibody < nbody; ibody++) {
     angmom[ibody][0] = angmom[ibody][1] = angmom[ibody][2] = 0.0;
     omega[ibody][0] = omega[ibody][1] = omega[ibody][2] = 0.0;
@@ -2644,6 +2648,30 @@ void FixRigid::zero_rotation()
 
   evflag = 0;
   set_v();
+}
+
+/* ----------------------------------------------------------------------
+   initialize rigid bodies from current atom info, if not yet done by a run
+   needed when body properties are used before the first run,
+     e.g. by the velocity command with the rigid keyword
+------------------------------------------------------------------------- */
+
+void FixRigid::setup_bodies_early()
+{
+  if (setupflag) return;
+
+  triclinic = domain->triclinic;
+  avec_ellipsoid = dynamic_cast<AtomVecEllipsoid *>(atom->style_match("ellipsoid"));
+  avec_line = dynamic_cast<AtomVecLine *>(atom->style_match("line"));
+  avec_tri = dynamic_cast<AtomVecTri *>(atom->style_match("tri"));
+
+  setup_bodies_static();
+  if (!inpfile) setup_bodies_dynamic();
+  setupflag = 1;
+
+  for (int ibody = 0; ibody < nbody; ibody++)
+    MathExtra::angmom_to_omega(angmom[ibody],ex_space[ibody],ey_space[ibody],
+                               ez_space[ibody],inertia[ibody],omega[ibody]);
 }
 
 /* ---------------------------------------------------------------------- */

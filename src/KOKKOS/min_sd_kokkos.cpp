@@ -100,6 +100,13 @@ int MinSDKokkos::iterate(int maxiter)
     fail = (this->*linemin)(ecurrent,alpha_final);
     if (fail) return fail;
 
+    // the line search ends with a force evaluation, and with
+    // modify->min_reset_ref() when there are extra global dof.  the styles and
+    // fixes it runs may be non-KOKKOS ones, which claim the host side of f and
+    // leave the device view fvec read by set_search_direction() below stale
+
+    atomKK->sync(Device,F_MASK);
+
     // function evaluation criterion
 
     if (neval >= update->max_eval) return MAXEVAL;

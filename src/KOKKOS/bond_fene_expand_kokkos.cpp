@@ -90,6 +90,12 @@ void BondFENEExpandKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   k_sigma.template sync<DeviceType>();
   k_shift.template sync<DeviceType>();
 
+  // sync and claim here too: the MC fixes call this outside run_style verlet/kk
+
+  atomKK->sync(execution_space,datamask_read);
+  if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
+  else atomKK->modified(execution_space,F_MASK);
+
   x = atomKK->k_x.view<DeviceType>();
   f = atomKK->k_f.view<DeviceType>();
   neighborKK->k_bondlist.template sync<DeviceType>();
@@ -190,9 +196,9 @@ void BondFENEExpandKokkos<DeviceType>::operator()(TagBondFENEExpandCompute<NEWTO
 
   if (rlogarg < static_cast<KK_FLOAT>(0.1)) {
     if (rlogarg <= static_cast<KK_FLOAT>(-3.0))
-      d_flag() = 2;
+      Kokkos::atomic_max(&d_flag(), 2);
     else
-      d_flag() = 1;
+      Kokkos::atomic_max(&d_flag(), 1);
     rlogarg = static_cast<KK_FLOAT>(0.1);
   }
 

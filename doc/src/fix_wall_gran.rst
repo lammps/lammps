@@ -173,7 +173,7 @@ is desired.
 The *zcylinder* wallstyle has been removed.  Please use :doc:`fix
 wall/gran/region <fix_wall_gran_region>` instead.
 
-.. versionadded:: TBD
+.. versionadded:: 2Sep2026
 
 The *lo* and *hi* wall positions can also be set by an equal-style
 :doc:`variable <variable>`, specified as v_name, where "name" is the
@@ -336,6 +336,11 @@ Any dimension (xyz) that has a granular wall must be non-periodic.
 
 The *wall/gran/kk* style does not support wall positions set by an
 equal-style variable.
+
+.. versionchanged:: TBD
+
+The *wall/gran/kk* style does not support the *contacts* keyword, and
+stops with an error when it is given.
 
 Related commands
 """"""""""""""""

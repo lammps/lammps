@@ -103,7 +103,7 @@ void FixBAOABKokkos<DeviceType>::initial_integrate(int /*vflag*/)
   l_dtby2 = static_cast<KK_FLOAT>(dtby2);
   l_c1 = static_cast<KK_FLOAT>(c1);
   l_kT = static_cast<KK_FLOAT>(kT);
-  l_one_minus_c1sq = static_cast<KK_FLOAT>(1.0 - c1*c1);
+  l_one_minus_c1sq = static_cast<KK_FLOAT>(one_minus_c1sq);
   l_mvv2e = static_cast<KK_FLOAT>(force->mvv2e);
 
   const int rmass_flag = (atomKK->rmass) ? 1 : 0;

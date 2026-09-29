@@ -85,6 +85,8 @@
 /src/REPLICA/fix_pimd_langevin.*     @Yi-FanLi
 /src/DPD-BASIC/pair_dpd_coul_slater_long.* @Eddy-Barraud
 /src/GPU/pair_dpd_coul_slater_long.* @Eddy-Barraud
+/src/BODY/*polygon.*                 @ndtrung81
+/src/BODY/*polyhedron.*              @ndtrung81
 
 # core LAMMPS classes
 /src/lammps.*              @sjplimp

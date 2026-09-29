@@ -196,7 +196,11 @@ compute_fcoul(const KK_FLOAT& rsq, const int& /*i*/, const int&j,
   const KK_FLOAT denc = Kokkos::sqrt(lj4 + rsq);
   const KK_FLOAT prefactor = qqrd2e * lj1 * qtmp * q(j) / (denc*denc*denc);
 
-  KK_FLOAT forcecoul = prefactor * (erfc + static_cast<KK_FLOAT>(EWALD_F)*grij*expm2);
+  // the soft core replaces only the 1/r factor, while the Ewald damping keeps
+  // the true distance, so differentiating erfc(g*r)/denc leaves the exponential
+  // term scaled by denc^2/r^2 against a plain 1/r kernel
+
+  KK_FLOAT forcecoul = prefactor * (erfc + static_cast<KK_FLOAT>(EWALD_F)*grij*expm2*denc*denc/rsq);
   if (factor_coul < static_cast<KK_FLOAT>(1.0))
     forcecoul -= (static_cast<KK_FLOAT>(1.0)-factor_coul)*prefactor;
 

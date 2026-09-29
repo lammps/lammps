@@ -28,13 +28,14 @@
 #include "update.h"
 
 #include <cmath>
+#include <type_traits>
 
 using namespace LAMMPS_NS;
 
-// a minimal separation so that r = 0 core/shell pairs stay finite until the
-// special-bond factor removes them, taken verbatim from the CPU style
+// minimal separation for r = 0 core/shell pairs; 1.0e-20 overflows and
+// cancels in single precision, so use 1.0e-4 there, applied as a floor
 
-static constexpr double EPSILON = 1.0e-20;
+static constexpr double EPSILON = std::is_same_v<KK_FLOAT, float> ? 1.0e-4 : 1.0e-20;
 using MathConst::MY_PIS;
 
 /* ---------------------------------------------------------------------- */
@@ -121,15 +122,20 @@ void PairBornCoulWolfCSKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   qqrd2e = static_cast<KK_FLOAT>(force->qqrd2e);
   newton_pair = force->newton_pair;
 
-  // Wolf self-energy per atom
-  for (int i = 0; i < nlocal; i++) {
-    double qisq = atom->q[i]*atom->q[i];
-    eng_coul += -(static_cast<double>(e_shift)/2.0 + static_cast<double>(m_alf)/MY_PIS) * qisq * static_cast<double>(qqrd2e);
-  }
-
   EV_FLOAT ev;
 
   copymode = 1;
+
+  // self energy of every local atom, tallied in a device kernel so that the
+  // charges and the per-atom energy stay resident on the device
+
+  if (eflag) {
+    d_ilist = ((NeighListKokkos<DeviceType>*) list)->d_ilist;
+    KK_ACC_FLOAT e_self_sum = 0.0;
+    Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType,TagPairBornCoulWolfCSSelfEnergy>(0,list->inum),
+                            *this,e_self_sum);
+    if (eflag_global) eng_coul += static_cast<double>(e_self_sum);
+  }
 
   ev = pair_compute<PairBornCoulWolfCSKokkos<DeviceType>,void>
     (this,(NeighListKokkos<DeviceType>*)list);
@@ -150,11 +156,6 @@ void PairBornCoulWolfCSKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   if (eflag_atom) {
     k_eatom.template modify<DeviceType>();
     k_eatom.sync_host();
-    // Add Wolf self-energy to per-atom energy after device sync
-    for (int i = 0; i < nlocal; i++) {
-      double qisq = atom->q[i]*atom->q[i];
-      eatom[i] += -(static_cast<double>(e_shift)/2.0 + static_cast<double>(m_alf)/MY_PIS) * qisq * static_cast<double>(qqrd2e);
-    }
   }
 
   if (vflag_atom) {
@@ -179,10 +180,11 @@ KK_FLOAT PairBornCoulWolfCSKokkos<DeviceType>::
 compute_fpair(const KK_FLOAT& rsq_in, const int& /*i*/, const int& /*j*/,
               const int& itype, const int& jtype) const
 {
-  // r = 0 must stay finite here, exactly as in the CPU style, which adds
-  // EPSILON to rsq before evaluating either term of the pair
+  // EPSILON keeps r = 0 finite, see above
 
-  const KK_FLOAT rsq = rsq_in + static_cast<KK_FLOAT>(EPSILON);
+  const KK_FLOAT rsq = std::is_same_v<KK_FLOAT, float> ?
+    ((rsq_in > static_cast<KK_FLOAT>(EPSILON)) ? rsq_in : static_cast<KK_FLOAT>(EPSILON)) :
+    rsq_in + static_cast<KK_FLOAT>(EPSILON);
 
   const KK_FLOAT r2inv = static_cast<KK_FLOAT>(1.0)/rsq;
   const KK_FLOAT r6inv = r2inv*r2inv*r2inv;
@@ -210,10 +212,11 @@ compute_fcoul(const KK_FLOAT& rsq_in, const int& /*i*/, const int& j,
               const int& /*itype*/, const int& /*jtype*/,
               const KK_FLOAT& factor_coul, const KK_FLOAT& qtmp) const
 {
-  // r = 0 must stay finite here, exactly as in the CPU style, which adds
-  // EPSILON to rsq before evaluating either term of the pair
+  // EPSILON keeps r = 0 finite, see above
 
-  const KK_FLOAT rsq = rsq_in + static_cast<KK_FLOAT>(EPSILON);
+  const KK_FLOAT rsq = std::is_same_v<KK_FLOAT, float> ?
+    ((rsq_in > static_cast<KK_FLOAT>(EPSILON)) ? rsq_in : static_cast<KK_FLOAT>(EPSILON)) :
+    rsq_in + static_cast<KK_FLOAT>(EPSILON);
 
   const KK_FLOAT r2inv = static_cast<KK_FLOAT>(1.0)/rsq;
   const KK_FLOAT r = Kokkos::sqrt(rsq);
@@ -238,10 +241,11 @@ KK_FLOAT PairBornCoulWolfCSKokkos<DeviceType>::
 compute_evdwl(const KK_FLOAT& rsq_in, const int& /*i*/, const int& /*j*/,
                const int& itype, const int& jtype) const
 {
-  // r = 0 must stay finite here, exactly as in the CPU style, which adds
-  // EPSILON to rsq before evaluating either term of the pair
+  // EPSILON keeps r = 0 finite, see above
 
-  const KK_FLOAT rsq = rsq_in + static_cast<KK_FLOAT>(EPSILON);
+  const KK_FLOAT rsq = std::is_same_v<KK_FLOAT, float> ?
+    ((rsq_in > static_cast<KK_FLOAT>(EPSILON)) ? rsq_in : static_cast<KK_FLOAT>(EPSILON)) :
+    rsq_in + static_cast<KK_FLOAT>(EPSILON);
 
   const KK_FLOAT r2inv = static_cast<KK_FLOAT>(1.0)/rsq;
   const KK_FLOAT r6inv = r2inv*r2inv*r2inv;
@@ -269,10 +273,11 @@ compute_ecoul(const KK_FLOAT& rsq_in, const int& /*i*/, const int& j,
                const int& /*itype*/, const int& /*jtype*/,
                const KK_FLOAT& factor_coul, const KK_FLOAT& qtmp) const
 {
-  // r = 0 must stay finite here, exactly as in the CPU style, which adds
-  // EPSILON to rsq before evaluating either term of the pair
+  // EPSILON keeps r = 0 finite, see above
 
-  const KK_FLOAT rsq = rsq_in + static_cast<KK_FLOAT>(EPSILON);
+  const KK_FLOAT rsq = std::is_same_v<KK_FLOAT, float> ?
+    ((rsq_in > static_cast<KK_FLOAT>(EPSILON)) ? rsq_in : static_cast<KK_FLOAT>(EPSILON)) :
+    rsq_in + static_cast<KK_FLOAT>(EPSILON);
 
   const KK_FLOAT r = Kokkos::sqrt(rsq);
   const KK_FLOAT prefactor = qqrd2e * qtmp * q(j) / r;
@@ -280,6 +285,29 @@ compute_ecoul(const KK_FLOAT& rsq_in, const int& /*i*/, const int& j,
   KK_FLOAT ecoul = (erfcc - e_shift*r) * prefactor;
   if (factor_coul < static_cast<KK_FLOAT>(1.0)) ecoul -= (static_cast<KK_FLOAT>(1.0)-factor_coul)*prefactor;
   return ecoul;
+}
+
+/* ----------------------------------------------------------------------
+   self energy contribution of atom i; mirrors the ev_tally(i,i,...) call of
+   the CPU style
+   ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+// NOLINTNEXTLINE
+KOKKOS_INLINE_FUNCTION
+void PairBornCoulWolfCSKokkos<DeviceType>::operator()(TagPairBornCoulWolfCSSelfEnergy,
+                                const int &ii, KK_ACC_FLOAT &e_self_sum) const
+{
+  const KK_FLOAT alf_kk = static_cast<KK_FLOAT>(m_alf);
+  const KK_FLOAT e_shift_kk = static_cast<KK_FLOAT>(e_shift);
+
+  const int i = d_ilist[ii];
+  const KK_FLOAT qtmp = q(i);
+  const KK_FLOAT e_self = -(e_shift_kk/static_cast<KK_FLOAT>(2.0) +
+                            alf_kk/static_cast<KK_FLOAT>(MY_PIS)) * qtmp*qtmp*qqrd2e;
+
+  if (eflag_global) e_self_sum += static_cast<KK_ACC_FLOAT>(e_self);
+  if (eflag_atom) d_eatom[i] += static_cast<KK_ACC_FLOAT>(e_self);
 }
 
 /* ----------------------------------------------------------------------

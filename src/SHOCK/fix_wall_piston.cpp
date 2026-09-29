@@ -42,6 +42,7 @@ FixWallPiston::FixWallPiston(LAMMPS *lmp, int narg, char **arg) :
   if (narg < 4) utils::missing_cmd_args(FLERR,"fix wall/piston", error);
 
   tempflag = 0;
+  tseed = 0;
   scaleflag = 1;
   roughflag = 0;
   roughdist = 0.0;

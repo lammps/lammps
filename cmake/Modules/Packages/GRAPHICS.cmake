@@ -34,3 +34,9 @@ if(WITH_FFMPEG)
     message(FATAL_ERROR "ffmpeg executable not found")
   endif()
 endif()
+
+# hack to stop certain versions of nvcc from crashing
+if(PKG_KOKKOS AND Kokkos_ENABLE_CUDA)
+  set_source_files_properties(${CMAKE_SOURCE_DIR}/../src/GRAPHICS/fix_graphics_isosurface.cpp
+    PROPERTIES COMPILE_OPTIONS "--host-only")
+endif()

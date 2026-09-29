@@ -15,7 +15,9 @@ else()
 endif()
 
 if(LEPTON_ENABLE_JIT)
-  file(GLOB ASMJIT_SOURCES CONFIGURE_DEPENDS ${LEPTON_SOURCE_DIR}/asmjit/*/[^.]*.cpp)
+  # Lepton only uses the x86 JIT back-end, so skip compiling the (unused) ARM back-end
+  file(GLOB ASMJIT_SOURCES CONFIGURE_DEPENDS ${LEPTON_SOURCE_DIR}/asmjit/core/[^.]*.cpp
+                                             ${LEPTON_SOURCE_DIR}/asmjit/x86/[^.]*.cpp)
 endif()
 
 add_library(lepton STATIC ${LEPTON_SOURCES} ${ASMJIT_SOURCES})
@@ -31,7 +33,7 @@ if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
 endif()
 
 if(LEPTON_ENABLE_JIT)
-  target_compile_definitions(lepton PUBLIC "LEPTON_USE_JIT=1;ASMJIT_BUILD_X86=1;ASMJIT_STATIC=1;ASMJIT_BUILD_RELEASE=1")
+  target_compile_definitions(lepton PUBLIC "LEPTON_USE_JIT=1;ASMJIT_BUILD_X86=1;ASMJIT_NO_AARCH64=1;ASMJIT_STATIC=1;ASMJIT_BUILD_RELEASE=1")
   target_include_directories(lepton PUBLIC ${LEPTON_SOURCE_DIR})
 endif()
 

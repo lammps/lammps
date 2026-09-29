@@ -18,7 +18,7 @@ pair_coeff       * * AlCu.eam.alloy Al Cu
 mass             1 26.982
 mass             2 63.546
 
-velocity         all create 300 42534 mom yes rot yes
+velocity         all create 300 42534 mom yes rot yes loop geom
 
 set              atom 1 type 2
 group            pka id 1

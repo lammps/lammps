@@ -56,12 +56,15 @@ ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
   if (strcmp(arg[3],"NULL") == 0) {
     id_temp = nullptr;
   } else {
-    id_temp = utils::strdup(arg[3]);
-    auto *icompute = modify->get_compute_by_id(id_temp);
+    // look the compute up first: an error raised here leaves the constructor,
+    // and the destructor that would release the copy is never called
+    auto *icompute = modify->get_compute_by_id(arg[3]);
     if (!icompute)
-      error->all(FLERR, 3, "Could not find compute pressure temperature ID {}", id_temp);
+      error->all(FLERR, 3, "Could not find compute pressure temperature ID {}", arg[3]);
     if (!icompute->tempflag)
-      error->all(FLERR, 3, "Compute pressure temperature ID {} does not compute temperature", id_temp);
+      error->all(FLERR, 3, "Compute pressure temperature ID {} does not compute temperature",
+                 arg[3]);
+    id_temp = utils::strdup(arg[3]);
   }
 
   // process optional args

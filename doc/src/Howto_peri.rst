@@ -91,7 +91,7 @@ Some notes on this input example:
 BPM-based peridynamics
 """"""""""""""""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 2Sep2026
 
 The same four constitutive models are also available through the
 :doc:`bond_style bpm/peri <bond_bpm_peri>` command, which recasts

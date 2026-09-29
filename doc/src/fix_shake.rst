@@ -304,6 +304,14 @@ can make minimization very inefficient and also cause stability problems
 with some minimization algorithms.  Sometimes those can be avoided by
 reducing the :doc:`timestep <timestep>`.
 
+.. versionchanged:: 2Sep2026
+
+The *shake/kk* style does not compute the centroid virial of the
+constraint forces, so it cannot be used with :doc:`compute
+centroid/stress/atom <compute_stress_atom>`.  Use the non-accelerated
+*shake* style for that.  Previously this combination was accepted but
+silently contributed zero.
+
 Related commands
 """"""""""""""""
 

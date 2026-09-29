@@ -380,7 +380,7 @@ floating-point value.  The default format is "%.15g".  This variable
 style allows an equal-style variable to be formatted precisely when it
 is evaluated.
 
-.. versionchanged:: TBD
+.. versionchanged:: 2Sep2026
 
 A conversion in the format string must match a floating-point value.  The
 string may now also contain additional text and use all flags and
@@ -974,7 +974,7 @@ around its center of mass, ordered as Ixx,Iyy,Izz,Ixy,Iyz,Ixz.
 Omega() returns components of the angular velocity of the group of
 atoms around its center of mass.
 
-.. versionchanged:: TBD
+.. versionchanged:: 2Sep2026
 
 The inertia() and angmom() functions now include the contributions of
 :doc:`finite-size particles <Howto_spherical>`; previously all atoms

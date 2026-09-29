@@ -284,7 +284,7 @@ when viewing a dump file.  Many post-processing tools either included
 with LAMMPS or third-party tools can read this format, as does the
 :doc:`rerun <rerun>` command.  See tools described on the :doc:`Tools
 <Tools>` doc page for examples, including `Pizza.py
-<https://lammps.github.io/pizza/>`_.
+<https://sjplimp.github.io/pizza/>`_.
 
 For all these styles, the dimensions of the simulation box are
 included in each snapshot.  The simulation box in LAMMPS can be
@@ -509,7 +509,7 @@ specified it is encoded in the VTK file as a vector quantity (for each
 grid cell).  The filename for this style must include a "\*" wildcard
 character to produce one file per snapshot; see details below.
 
-.. versionchanged:: TBD
+.. versionchanged:: 2Sep2026
 
 The files are now written through the built-in VTK file writer that is
 shared with the :doc:`dump vtk <dump_vtk>` and :doc:`fix saed/vtk
@@ -518,7 +518,7 @@ byte order as the format requires, no longer sets grid origin and
 spacing properties that have no meaning for a rectilinear grid, and the
 grid data is no longer truncated to about 6 digits.
 
-.. versionadded:: TBD
+.. versionadded:: 2Sep2026
 
 The extension of the dump file name selects which of the VTK file
 formats is written.  A name ending in *.vtr* selects the XML rectilinear

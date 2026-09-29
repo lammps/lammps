@@ -299,6 +299,7 @@ void FixRigidNHSmallKokkos<DeviceType>::setup(int vflag)
   this->forward_comm_device = 0;
   this->reverse_comm_device = 0;
 
+  // NOLINTNEXTLINE(bugprone-parent-virtual-call)
   FixRigidSmall::setup(vflag);
 
   this->forward_comm_device = saved_forward_comm_device;
@@ -488,7 +489,7 @@ void FixRigidNHSmallKokkos<DeviceType>::initial_integrate(int vflag)
 
   // virial setup before call to set_xv
 
-  this->v_init(vflag);
+  this->v_init(vflag,0);
 
   // remap simulation box by 1/2 step
 

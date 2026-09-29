@@ -204,8 +204,7 @@ This pair style requires the :doc:`newton <newton>` setting to be "on"
 for pair interactions.
 
 The *shift* keyword is not supported by the *tersoff/gpu*,
-*tersoff/intel*, *tersoff/kk*, *tersoff/table* or *tersoff/table/omp*
-variants.
+*tersoff/intel*, *tersoff/table* or *tersoff/table/omp* variants.
 
 The *tersoff/mod* potential files provided with LAMMPS (see the potentials
 directory) are parameterized for metal :doc:`units <units>`.  You can

@@ -119,7 +119,7 @@ void PairLJExpandSphere::compute(int eflag, int vflag)
           r6inv = r2inv * r2inv * r2inv;
 
           forcelj = r6inv * (lj1[itype][jtype] * r6inv - lj2[itype][jtype]);
-          fpair = factor_lj * forcelj * rshift / r;
+          fpair = factor_lj * forcelj / rshift / r;
 
           f[i][0] += delx * fpair;
           f[i][1] += dely * fpair;
@@ -393,7 +393,7 @@ double PairLJExpandSphere::single(int i, int j, int itype, int jtype, double rsq
     r2inv = 1.0 / rshiftsq;
     r6inv = r2inv * r2inv * r2inv;
     forcelj = r6inv * (lj1[itype][jtype] * r6inv - lj2[itype][jtype]);
-    fforce = factor_lj * forcelj * rshift / r;
+    fforce = factor_lj * forcelj / rshift / r;
 
     philj = r6inv * (lj3[itype][jtype] * r6inv - lj4[itype][jtype]);
     if (offset_flag && (rshiftsq > 0.0)) {

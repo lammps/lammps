@@ -338,6 +338,7 @@ FixWallGran::~FixWallGran()
   delete[] xstr[1];
   memory->destroy(history_one);
   memory->destroy(mass_rigid);
+  memory->destroy(array_atom);
 
   memory->destroy(imgobjs);
   memory->destroy(imgparms);

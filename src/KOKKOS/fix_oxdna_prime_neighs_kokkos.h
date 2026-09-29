@@ -63,7 +63,7 @@ class FixOxdnaPrimeNeighsKokkos : public Fix {
   typename AT::t_int_3d d_prime_neighs_pair;
   void compute_prime_neighs_pair(class NeighList *neigh_list);
   // ------ For PrimeNeighOxdna3Xstk (oxdna3/xstk/kk)
-  // 0-3 : id3p[a], id5p[b], id3p[b], id5p[a] for each pair.
+  // 0-3 : id3p[a], id5p[a], id3p[b], id5p[b] for each pair.
   // As per their order of being called in oxdna3/xstk compute.
   // Layout is per screened pair index from fix_oxdna_npair_kokkos:
   // d_prime_neighs_oxdna3_xstk(ipair,0-3), where ipair maps to the packed

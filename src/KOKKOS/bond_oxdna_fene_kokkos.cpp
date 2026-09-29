@@ -239,11 +239,8 @@ KOKKOS_INLINE_FUNCTION
 void BondOxdnaFENEKokkos<DeviceType>::operator()(TagBondOxdnaFENECompute<OXDNAFLAG,NEWTON_BOND,EVFLAG>, \
   const int &in, EV_FLOAT& ev) const
 {
-  // The f and torque arrays are atomic
-  Kokkos::View<KK_ACC_FLOAT*[3], typename DAT::t_kkacc_1d_3::array_layout,\
-    typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > a_f = f;
-  Kokkos::View<KK_ACC_FLOAT*[3], typename DAT::t_kkacc_1d_3::array_layout,\
-    typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > a_torque = torque;
+  // The f and torque arrays are updated with Kokkos::atomic_add() on the views
+  // directly (an atomic-trait view copy made here would live in local memory)
 
   // Use precomputed bond and prime neighbors.
   // NOTE: already in correct order from precompute, so directionality test: a -> b is 3' -> 5' is already satisfied
@@ -357,27 +354,27 @@ void BondOxdnaFENEKokkos<DeviceType>::operator()(TagBondOxdnaFENECompute<OXDNAFL
   // apply force to each of 2 atoms
 
   if (NEWTON_BOND || a < nlocal) {
-    a_f(a,0) += delf[0];
-    a_f(a,1) += delf[1];
-    a_f(a,2) += delf[2];
+    Kokkos::atomic_add(&f(a,0), delf[0]);
+    Kokkos::atomic_add(&f(a,1), delf[1]);
+    Kokkos::atomic_add(&f(a,2), delf[2]);
     delta[0] = static_cast<KK_ACC_FLOAT>(ra_cbk[1])*delf[2] - static_cast<KK_ACC_FLOAT>(ra_cbk[2])*delf[1];
     delta[1] = static_cast<KK_ACC_FLOAT>(ra_cbk[2])*delf[0] - static_cast<KK_ACC_FLOAT>(ra_cbk[0])*delf[2];
     delta[2] = static_cast<KK_ACC_FLOAT>(ra_cbk[0])*delf[1] - static_cast<KK_ACC_FLOAT>(ra_cbk[1])*delf[0];
-    a_torque(a,0) += delta[0];
-    a_torque(a,1) += delta[1];
-    a_torque(a,2) += delta[2];
+    Kokkos::atomic_add(&torque(a,0), delta[0]);
+    Kokkos::atomic_add(&torque(a,1), delta[1]);
+    Kokkos::atomic_add(&torque(a,2), delta[2]);
   }
 
   if (NEWTON_BOND || b < nlocal) {
-    a_f(b,0) -= delf[0];
-    a_f(b,1) -= delf[1];
-    a_f(b,2) -= delf[2];
+    Kokkos::atomic_add(&f(b,0), -delf[0]);
+    Kokkos::atomic_add(&f(b,1), -delf[1]);
+    Kokkos::atomic_add(&f(b,2), -delf[2]);
     deltb[0] = static_cast<KK_ACC_FLOAT>(rb_cbk[1])*delf[2] - static_cast<KK_ACC_FLOAT>(rb_cbk[2])*delf[1];
     deltb[1] = static_cast<KK_ACC_FLOAT>(rb_cbk[2])*delf[0] - static_cast<KK_ACC_FLOAT>(rb_cbk[0])*delf[2];
     deltb[2] = static_cast<KK_ACC_FLOAT>(rb_cbk[0])*delf[1] - static_cast<KK_ACC_FLOAT>(rb_cbk[1])*delf[0];
-    a_torque(b,0) -= deltb[0];
-    a_torque(b,1) -= deltb[1];
-    a_torque(b,2) -= deltb[2];
+    Kokkos::atomic_add(&torque(b,0), -deltb[0]);
+    Kokkos::atomic_add(&torque(b,1), -deltb[1]);
+    Kokkos::atomic_add(&torque(b,2), -deltb[2]);
   }
 
   if (EVFLAG) { ev_tally_xyz(ev, a, b, nlocal, NEWTON_BOND, ebond, delf[0], delf[1], delf[2], \

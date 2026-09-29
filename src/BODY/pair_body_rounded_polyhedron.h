@@ -54,27 +54,27 @@ class PairBodyRoundedPolyhedron : public Pair {
     double r;             // distance used to normalize xi - xj into the force direction,
                           // negative when jbody has crossed a face or an edge of ibody
     int unique;
-    double w;             // weight of the contact, see vertex_face_weight()
-    int patch;            // 1 for a corner of a region of overlap, see face_face_patches()
+    double w;     // weight of the contact, see vertex_face_weight()
+    int patch;    // 1 for a corner of a region of overlap, see face_face_patches()
   };
 
   // scratch space for the interaction of a pair of bodies, one per thread
 
   struct Scratch {
-    std::vector<Contact> contacts;    // contacts between the two bodies
-    std::vector<int> vertex_done;     // flags for the vertices already interacted with
-    std::vector<double> reach;        // extent of the vertices towards the other body
-    int ibody, jbody;                 // the two bodies of the pair
-    double reach_min_i, reach_min_j;  // minimum reach of an interacting feature
-    double *shear;                    // tangential displacement of the pair, or nullptr
-    int shear_i;                      // body the tangential displacement refers to
-    int touched;                      // 1 if the tangential displacement was updated
-    double fnsum;                     // sum of the elastic normal forces of the contacts
+    std::vector<Contact> contacts;         // contacts between the two bodies
+    std::vector<int> vertex_done;          // flags for the vertices already interacted with
+    std::vector<double> reach;             // extent of the vertices towards the other body
+    int ibody, jbody;                      // the two bodies of the pair
+    double reach_min_i, reach_min_j;       // minimum reach of an interacting feature
+    double *shear;                         // tangential displacement of the pair, or nullptr
+    int shear_i;                           // body the tangential displacement refers to
+    int touched;                           // 1 if the tangential displacement was updated
+    double fnsum;                          // sum of the elastic normal forces of the contacts
     double pcsum[3], vtsum[3], nsum[3];    // contact points, tangential velocities, and
                                            // normals weighted by the elastic normal forces
-    std::vector<double> patch;        // factors of the pairs of faces, see face_face_patches()
-    int patch_any = 0;                // 1 if any factor of a pair of faces is positive
-    std::vector<int> near_j;          // 1 for the faces of body j near body i
+    std::vector<double> patch;             // factors of the pairs of faces, see face_face_patches()
+    int patch_any = 0;                     // 1 if any factor of a pair of faces is positive
+    std::vector<int> near_j;               // 1 for the faces of body j near body i
   };
 
  protected:
@@ -108,15 +108,15 @@ class PairBodyRoundedPolyhedron : public Pair {
   int *edfirst;     // index of first edge per each line
   int ednummax;     // allocated size of ednum,edfirst vectors
 
-  double **face;    // list of all edge for all bodies
-  int nface;        // number of faces in list
-  int facmax;       // allocated size of face list
-  int *facnum;      // number of faces per line, 0 if uninit
-  int *facfirst;    // index of first face per each line
-  int facnummax;    // allocated size of facnum,facfirst vectors
-  double **facnorm;    // outward unit normals of the faces, see face_normal()
-  double **facplane;   // first vertex and outward unit normal in space, see nearest_face()
-  int *facsize;        // number of vertices of the faces
+  double **face;        // list of all edge for all bodies
+  int nface;            // number of faces in list
+  int facmax;           // allocated size of face list
+  int *facnum;          // number of faces per line, 0 if uninit
+  int *facfirst;        // index of first face per each line
+  int facnummax;        // allocated size of facnum,facfirst vectors
+  double **facnorm;     // outward unit normals of the faces, see face_normal()
+  double **facplane;    // first vertex and outward unit normal in space, see nearest_face()
+  int *facsize;         // number of vertices of the faces
 
   double *enclosing_radius;    // enclosing radii for all bodies
   double *rounded_radius;      // rounded radii for all bodies
@@ -136,35 +136,35 @@ class PairBodyRoundedPolyhedron : public Pair {
   void body2space(int);
 
   // interaction between two bodies
-  void pair_interaction(int i, int j, double delx, double dely, double delz, double rsq,
-                        double **x, double **v, double **angmom, double **f, double **torque,
-                        double **fnc, Scratch &s, double &evdwl, double *facc);
+  void pair_interaction(int i, int j, double delx, double dely, double delz, double rsq, double **x,
+                        double **v, double **angmom, double **f, double **torque, double **fnc,
+                        Scratch &s, double &evdwl, double *facc);
   // sphere-sphere interaction
   void sphere_against_sphere(int ibody, int jbody, int itype, int jtype, double delx, double dely,
                              double delz, double rsq, double **x, double **v, double **angmom,
-                             double **f, double **torque, double **fnc, Scratch &s,
-                             double &evdwl, double *facc);
+                             double **f, double **torque, double **fnc, Scratch &s, double &evdwl,
+                             double *facc);
   // sphere-edge interaction
   // sphere-face interaction
-  void sphere_against_polyhedron(int ibody, int jbody, int itype, int jtype, double **x,
-                                 double **v, double **f, double **torque, double **angmom,
-                                 double **fnc, Scratch &s, double &evdwl, double *facc);
+  void sphere_against_polyhedron(int ibody, int jbody, int itype, int jtype, double **x, double **v,
+                                 double **f, double **torque, double **angmom, double **fnc,
+                                 Scratch &s, double &evdwl, double *facc);
   void sphere_point_contact(int ibody, int jbody, int itype, int jtype, double *h, double **x,
-                            double **v, double **f, double **torque, double **angmom,
-                            double **fnc, Scratch &s, double &evdwl, double *facc,
-                            int inside = 0);
+                            double **v, double **f, double **torque, double **angmom, double **fnc,
+                            Scratch &s, double &evdwl, double *facc, int inside = 0);
   // whether two edges, or the edges at two vertices, interact as edges
-  int vertex_near(const Scratch &s, int ibody, int ni) const;
-  int edge_near(const Scratch &s, int ibody, int ne) const;
-  int face_near(const Scratch &s, int ibody, int nf) const;
-  int edges_interact(int ibody, int ei, int jbody, int ej);
-  int edge_edge_nearest(int ibody, int ei, int jbody, int ej, double *hi, double *hj, double &r,
-                        int &crossed);
+  [[nodiscard]] int vertex_near(const Scratch &s, int ibody, int ni) const;
+  [[nodiscard]] int edge_near(const Scratch &s, int ibody, int ne) const;
+  [[nodiscard]] int face_near(const Scratch &s, int ibody, int nf) const;
+  [[nodiscard]] int edges_interact(int ibody, int ei, int jbody, int ej) const;
+  [[nodiscard]] int edge_edge_nearest(int ibody, int ei, int jbody, int ej, double *hi, double *hj,
+                                      double &r, int &crossed) const;
   // normal cones of the vertices and edges, to validate the direction of a contact
-  int vertex_cone(int ibody, int nv, const double *d, const double *ul = nullptr) const;
-  int edge_cone(int ibody, int ne, const double *d) const;
+  [[nodiscard]] int vertex_cone(int ibody, int nv, const double *d,
+                                const double *ul = nullptr) const;
+  [[nodiscard]] int edge_cone(int ibody, int ne, const double *d) const;
   // geometry of the faces and weights of the contacts, see vertex_face_weight()
-  int face_size(int ibody, int nf) const { return facsize[facfirst[ibody] + nf]; }
+  [[nodiscard]] int face_size(int ibody, int nf) const { return facsize[facfirst[ibody] + nf]; }
   void face_normal(int ibody, int nf, double *n) const
   {
     const double *fn = facnorm[facfirst[ibody] + nf];
@@ -172,31 +172,34 @@ class PairBodyRoundedPolyhedron : public Pair {
     n[1] = fn[1];
     n[2] = fn[2];
   }
-  double patch_factor(const double *n1, const double *n2) const;
+  [[nodiscard]] double patch_factor(const double *n1, const double *n2) const;
   void face_face_patches(int ibody, int jbody, int itype, int jtype, double **x, double **v,
-                         double **f, double **torque, double **angmom, double **fnc,
-                         Scratch &s, double &evdwl, double *facc);
-  int face_has(int ibody, int nf, int nv, int ne) const;
-  double feature_patch_factor(const Scratch &s, int ibody, int iv, int ie, int jbody, int jv,
-                              int je, int jf) const;
-  double vertex_face_weight(const Scratch &s, int ibody, int nv, int jbody, int nf) const;
-  double edge_edge_weight(const Scratch &s, int ibody, int ei, int jbody, int ej) const;
-  double vertex_edges_weight(const Scratch &s, int ibody, int ni, int jbody, int ej, int nj);
+                         double **f, double **torque, double **angmom, double **fnc, Scratch &s,
+                         double &evdwl, double *facc);
+  [[nodiscard]] int face_has(int ibody, int nf, int nv, int ne) const;
+  [[nodiscard]] double feature_patch_factor(const Scratch &s, int ibody, int iv, int ie, int jbody,
+                                            int jv, int je, int jf) const;
+  [[nodiscard]] double vertex_face_weight(const Scratch &s, int ibody, int nv, int jbody,
+                                          int nf) const;
+  [[nodiscard]] double edge_edge_weight(const Scratch &s, int ibody, int ei, int jbody,
+                                        int ej) const;
+  [[nodiscard]] double vertex_edges_weight(const Scratch &s, int ibody, int ni, int jbody, int ej,
+                                           int nj) const;
   // vertex-edge and vertex-vertex interactions
   void vertex_against_edge(int ibody, int jbody, int itype, int jtype, double **x, double **v,
-                           double **f, double **torque, double **angmom, double **fnc,
-                           Scratch &s, double &evdwl, double *facc);
+                           double **f, double **torque, double **angmom, double **fnc, Scratch &s,
+                           double &evdwl, double *facc);
   void vertex_against_vertex(int ibody, int jbody, int itype, int jtype, double **x, double **v,
-                             double **f, double **torque, double **angmom, double **fnc,
-                             Scratch &s, double &evdwl, double *facc);
+                             double **f, double **torque, double **angmom, double **fnc, Scratch &s,
+                             double &evdwl, double *facc);
   // edge-edge interactions
   int edge_against_edge(int ibody, int jbody, int itype, int jtype, double **x, double **v,
                         double **f, double **torque, double **angmom, double **fnc, Scratch &s,
                         double &evdwl, double *facc);
   // vertices inside the core of the other body
   void vertex_against_core(int ibody, int jbody, int itype, int jtype, double **x, double **v,
-                           double **f, double **torque, double **angmom, double **fnc,
-                           Scratch &s, double &evdwl, double *facc);
+                           double **f, double **torque, double **angmom, double **fnc, Scratch &s,
+                           double &evdwl, double *facc);
   // edge-face interactions
   int edge_against_face(int ibody, int jbody, int itype, int jtype, double **x, double **v,
                         double **f, double **torque, double **angmom, double **fnc, Scratch &s,
@@ -228,9 +231,8 @@ class PairBodyRoundedPolyhedron : public Pair {
                       double **angmom, double **f, double **torque, double **fnc, int iref,
                       double *facc, Scratch &s);
   // friction force of a pair of bodies from its contacts
-  void friction_forces(int itype, int jtype, double **x, double **v, double **angmom,
-                       double **f, double **torque, double **fnc, int iref, double *facc,
-                       Scratch &s);
+  void friction_forces(int itype, int jtype, double **x, double **v, double **angmom, double **f,
+                       double **torque, double **fnc, int iref, double *facc, Scratch &s);
   // friction force from a tangential spring with the contact history
   void tangential_spring(int ibody, int jbody, const double *n, const double *vt, double fne,
                          Scratch &s, double *fs);
@@ -243,13 +245,13 @@ class PairBodyRoundedPolyhedron : public Pair {
   // compute force and torque between two bodies given a pair of interacting points
   void pair_force_and_torque(int ibody, int jbody, double *pi, double *pj, double r,
                              double contact_dist, int itype, int jtype, double **x, double **v,
-                             double **f, double **torque, double **angmom, double **fnc,
-                             int jflag, double &energy, double *facc, double w);
+                             double **f, double **torque, double **angmom, double **fnc, int jflag,
+                             double &energy, double *facc, double w);
 
   // rescale the cohesive forces if a contact area is detected
-  void rescale_cohesive_forces(double **x, double **v, double **angmom, double **f,
-                               double **torque, double **fnc, std::vector<Contact> &contacts,
-                               int itype, int jtype, int iref, double &evdwl, double *facc);
+  void rescale_cohesive_forces(double **x, double **v, double **angmom, double **f, double **torque,
+                               double **fnc, std::vector<Contact> &contacts, int itype, int jtype,
+                               int iref, double &evdwl, double *facc);
 
   // compute the separation between two contacts
   double contact_separation(const Contact &c1, const Contact &c2);
@@ -262,20 +264,20 @@ class PairBodyRoundedPolyhedron : public Pair {
 
   // find the intersection point (if any) between an edge and a face
   // find the face of a body with the largest signed distance to a point
-  double nearest_face(int ibody, double *xmi, const double *q, double *n, int *nf = nullptr);
+  double nearest_face(int ibody, double *xmi, const double *q, double *n, int *nf = nullptr) const;
   // helper functions
   int opposite_sides(double *n, double *x0, double *a, double *b);
   void project_pt_plane(const double *q, const double *p, const double *n, double *q_proj,
-                        double &d);
+                        double &d) const;
   void project_pt_plane(const double *q, const double *x1, const double *x2, const double *x3,
-                        double *q_proj, double &d, int &inside);
+                        double *q_proj, double &d, int &inside) const;
   void project_pt_line(const double *q, const double *xi1, const double *xi2, double *h, double &d,
-                       double &t);
+                       double &t) const;
   void inside_polygon(int ibody, int face_index, double *xmi, const double *q1, const double *q2,
-                      int &inside1, int &inside2);
+                      int &inside1, int &inside2) const;
 
   void distance_bt_edges(const double *x1, const double *x2, const double *x3, const double *x4,
-                         double *h1, double *h2, double &t1, double &t2, double &r);
+                         double *h1, double *h2, double &t1, double &t2, double &r) const;
   void total_velocity(double *p, double *xcm, double *vcm, double *angmom, double *inertia,
                       double *quat, double *vi);
 };

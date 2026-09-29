@@ -1640,7 +1640,7 @@ void PairBodyRoundedPolyhedron::face_face_patches(int ibody, int jbody, int ityp
       sp *= smoothstep(width / contact_dist);
       if (sp <= 0.0) continue;
       if (!s.patch_any) {
-        s.patch.assign(facnum[ibody]*nfj, 0.0);
+        s.patch.assign(static_cast<std::size_t>(facnum[ibody])*nfj, 0.0);
         s.patch_any = 1;
       }
       s.patch[fi*nfj+fj] = sp;

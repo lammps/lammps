@@ -54,7 +54,8 @@ void PairOxdna3Excv::coeff(int narg, char **arg)
   nlo = ilo;
   nhi = ihi;
 
-  if (nhi > 4) error->all(FLERR, "pair oxdna3/excv does not support more than 4 atom types for A, C, G and T");
+  if (atom->ntypes != 4)
+    error->all(FLERR, "pair oxdna3/excv requires exactly 4 atom types for A, C, G and T, even if not all are used");
 
   double epsilon_bkbk_one, sigma_bkbk_one;
   double cut_bkbk_ast_one, cut_bkbk_c_one, b_bkbk_one;
@@ -184,11 +185,8 @@ void PairOxdna3Excv::coeff(int narg, char **arg)
   MPI_Bcast(&cut_bsbs_ast_one, 1, MPI_DOUBLE, 0, world);
 
   // But for the tetramers, we put in the prefix
-  // number of entries per bond or pair type in the tetramer dependent arrays
-  const int ntetra = (atom->ntypes + 1) * (atom->ntypes + 1) * (atom->ntypes + 1) * (atom->ntypes + 1);
-
-  MPI_Bcast(&sigma4_bsbs[0][0][0][0], ntetra, MPI_DOUBLE, 0, world);
-  MPI_Bcast(&cut4_bsbs_ast[0][0][0][0], ntetra, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&sigma4_bsbs[0][0][0][0], 625, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&cut4_bsbs_ast[0][0][0][0], 625, MPI_DOUBLE, 0, world);
 
   // backbone-backbone
   count = 0;

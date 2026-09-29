@@ -200,6 +200,11 @@ the :ref:`KOKKOS <PKG-KOKKOS>` package has to be included. See the
 The KOKKOS variants of these styles currently only support
 :doc:`units lj <units>`.
 
+Bond style *oxdna3/fene* requires exactly 4 atom types, one for each
+of the nucleotides A, C, G, and T, since the sequence-dependent
+parameters in the potential file are ordered by these 4 types.  All 4
+types must be defined even if a simulation does not use all of them.
+
 Related commands
 """"""""""""""""
 

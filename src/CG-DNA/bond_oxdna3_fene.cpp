@@ -43,9 +43,9 @@ void BondOxdna3Fene::coeff(int narg, char **arg)
   int ilo, ihi;
   utils::bounds(FLERR, arg[0], 1, atom->nbondtypes, ilo, ihi, error);
 
+  if (atom->ntypes != 4)
+    error->all(FLERR, "bond oxdna3/fene requires exactly 4 atom types for A, C, G and T, even if not all are used");
   int n = atom->ntypes;
-  if (n > 4)
-    error->all(FLERR, "bond oxdna3/fene does not support more than 4 atom types for A, C, G and T");
 
   for (int i = 0; i <= n; i++) {
     for (int j = 0; j <= n; j++) {
@@ -132,11 +132,8 @@ void BondOxdna3Fene::coeff(int narg, char **arg)
 
   // communicate parameters for bond type ilo
   MPI_Bcast(&k[ilo], 1, MPI_DOUBLE, 0, world);
-  // number of entries per bond or pair type in the tetramer dependent arrays
-  const int ntetra = (atom->ntypes + 1) * (atom->ntypes + 1) * (atom->ntypes + 1) * (atom->ntypes + 1);
-
-  MPI_Bcast(&Delta[ilo][0][0][0][0], ntetra, MPI_DOUBLE, 0, world);
-  MPI_Bcast(&r0[ilo][0][0][0][0], ntetra, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&Delta[ilo][0][0][0][0], 625, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&r0[ilo][0][0][0][0], 625, MPI_DOUBLE, 0, world);
 
   // set parameters for all other bond types
   int count = 0;

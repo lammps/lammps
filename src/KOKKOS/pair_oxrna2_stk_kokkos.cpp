@@ -19,7 +19,6 @@
 #include "force.h"
 #include "memory_kokkos.h"
 #include "modify.h"
-#include "neigh_request.h"
 #include "neighbor_kokkos.h"
 
 #include "fix_oxdna_lrf_kokkos.h"
@@ -738,11 +737,7 @@ void PairOxrna2StkKokkos<DeviceType>::init_style()
 
   last_prime_neighs_bond_nbuild = -1;
 
-  neighbor->add_request(this);
-  auto request = neighbor->find_request(this);
-  request->set_kokkos_host(std::is_same_v<DeviceType, LMPHostType> &&
-                           !std::is_same_v<DeviceType, LMPDeviceType>);
-  request->set_kokkos_device(std::is_same_v<DeviceType, LMPDeviceType>);
+  // no neighbor list: the stacking interaction loops over the bond list
 
   fix_oxdna_lrfKK = nullptr;
   auto fixes = modify->get_fix_by_style("^OXDNA/LRF/kk");

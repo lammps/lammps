@@ -18,6 +18,7 @@
 #include "error.h"
 #include "memory_kokkos.h"
 #include "update.h"
+#include "verlet_kokkos.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -66,6 +67,14 @@ void FixOxdnaLRFKokkos<DeviceType>::init()
 
   if (utils::strmatch(update->integrate_style, "^respa"))
     error->all(FLERR, "The oxDNA styles do not support run style respa");
+
+  // offer to zero the device forces and torques in the frame kernel, which
+  // runs over all owned and ghost atoms anyway; VerletKokkos::setup() decides
+
+  if (std::is_same_v<DeviceType, LMPDeviceType>) {
+    auto verletKK = dynamic_cast<VerletKokkos *>(update->integrate);
+    if (verletKK) verletKK->request_force_clear_by_fix(this);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -92,7 +101,7 @@ void FixOxdnaLRFKokkos<DeviceType>::min_setup_pre_force(int vflag)
 template<class DeviceType>
 void FixOxdnaLRFKokkos<DeviceType>::min_pre_force(int /*vflag*/)
 {
-  compute_lrf_kokkos();
+  compute_lrf_kokkos(0);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -108,14 +117,21 @@ void FixOxdnaLRFKokkos<DeviceType>::setup_pre_force(int vflag)
 template<class DeviceType>
 void FixOxdnaLRFKokkos<DeviceType>::pre_force(int /*vflag*/)
 {
-  compute_lrf_kokkos();
+  auto verletKK = dynamic_cast<VerletKokkos *>(update->integrate);
+  compute_lrf_kokkos((verletKK && (update->whichflag == 1)) ? verletKK->force_clear_by_fix(this) : 0);
 }
 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void FixOxdnaLRFKokkos<DeviceType>::compute_lrf_kokkos()
+void FixOxdnaLRFKokkos<DeviceType>::compute_lrf_kokkos(int zero_forces_flag)
 {
+  zero_forces = zero_forces_flag;
+  if (zero_forces) {
+    f = atomKK->k_f.template view<DeviceType>();
+    torque = atomKK->k_torque.template view<DeviceType>();
+  }
+
   if (atom->nmax > static_cast<int>(k_nx.extent(0))) {
     MemKK::realloc_kokkos(k_nx, "FixOxdnaLRFKokkos:nx", atom->nmax);
     MemKK::realloc_kokkos(k_ny, "FixOxdnaLRFKokkos:ny", atom->nmax);
@@ -198,6 +214,16 @@ void FixOxdnaLRFKokkos<DeviceType>::operator()(TagFixOxdnaLRFComputeQuatToXYZ, c
   d_xn(i, 13) = 0.0;
   d_xn(i, 14) = 0.0;
   d_xn(i, 15) = 0.0;
+
+  // in place of VerletKokkos::force_clear()
+  if (zero_forces) {
+    f(i, 0) = 0.0;
+    f(i, 1) = 0.0;
+    f(i, 2) = 0.0;
+    torque(i, 0) = 0.0;
+    torque(i, 1) = 0.0;
+    torque(i, 2) = 0.0;
+  }
 }
 
 /* ---------------------------------------------------------------------- */

@@ -85,11 +85,13 @@ class FixOxdnaLRFKokkos : public Fix {
 
   AtomVecEllipsoidKokkos *avecEllipKK;
   typename AT::t_int_1d_randomread mask;
+  typename AT::t_kkacc_1d_3 f, torque;
+  int zero_forces;    // 1 if this fix zeroes f and torque in place of VerletKokkos::force_clear()
   typename AT::t_kkfloat_1d_3_lr_randomread x;
   typename AT::t_int_1d_randomread ellipsoid;
   typename AtomVecEllipsoidKokkosBonusArray<DeviceType>::t_bonus_1d bonus;
 
-  void compute_lrf_kokkos();
+  void compute_lrf_kokkos(int zero_forces_flag);
 };
 
 }    // namespace LAMMPS_NS

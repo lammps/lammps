@@ -1119,8 +1119,8 @@ double PairOxdnaStk::init_one(int i, int j)
   // set the master list distance cutoff
   double cut_max=0.0;
 
-  for (int a=0; a<atom->ntypes; a++) {
-    for (int b=0; b<atom->ntypes; b++) {
+  for (int a=0; a<=atom->ntypes; a++) {
+    for (int b=0; b<=atom->ntypes; b++) {
       cut_max = MAX(cut_st_hc[a][i][j][b],cut_max);
     }
   }

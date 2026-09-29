@@ -103,6 +103,7 @@ class FixOxdnaNpairKokkos : public Fix {
   int screened_max_neigh;
   double screen_cut_max;   // max COM screen cutoff requested by consuming styles (host)
   KK_FLOAT screen_cutsq;   // screen_cut_max^2, read on device by screen_pair_fast
+  int special_skip[4];     // 1 if pairs with this special-bond index have special_lj == 0
   bool force_screening_all_backends;
 
   void update_screen_cutsq();

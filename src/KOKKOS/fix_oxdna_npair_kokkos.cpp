@@ -15,6 +15,7 @@
 
 #include "atom_kokkos.h"
 #include "atom_masks.h"
+#include "force.h"
 #include "kokkos.h"
 #include "memory_kokkos.h"
 #include "neighbor.h"
@@ -43,6 +44,7 @@ FixOxdnaNpairKokkos<DeviceType>::FixOxdnaNpairKokkos(LAMMPS *lmp, int narg, char
   screened_pair_count = 0;
   screen_cut_max = 0.0;
   screen_cutsq = static_cast<KK_FLOAT>(4.0);
+  special_skip[0] = special_skip[1] = special_skip[2] = special_skip[3] = 0;
   force_screening_all_backends = false;
 }
 
@@ -176,6 +178,11 @@ void FixOxdnaNpairKokkos<DeviceType>::compute_neigh_screen_to_npair()
   atomKK->sync(execution_space, datamask_read);
   x = atomKK->k_x.view<DeviceType>();
 
+  // Pairs whose special-bond weight is zero (1-2 bonded partners, which stay in
+  // the neighbor list for the bonded excluded volume) are skipped by every
+  // consumer of the screened list, so leave them out of it.
+  for (int m = 0; m < 4; m++) special_skip[m] = (force->special_lj[m] == 0.0) ? 1 : 0;
+
   // Pass 1 (count): "TagFixOxdnaNpairNeighScreen" loops over each atom a and its
   // raw neighbours, runs 'screen_pair_fast' (a cheap CoM distance bool) for each,
   // and records only the surviving count per atom in d_numneigh_screened. No
@@ -244,6 +251,7 @@ bool FixOxdnaNpairKokkos<DeviceType>::screen_pair_fast(const int &braw,
                                                        const KK_FLOAT &a_com1,
                                                        const KK_FLOAT &a_com2) const
 {
+  if (special_skip[braw >> SBBITS & 3]) return false;
   const int b = braw & NEIGHMASK;
 
   const KK_FLOAT b_com0 = x(b,0);

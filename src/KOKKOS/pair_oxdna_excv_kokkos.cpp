@@ -374,6 +374,11 @@ void PairOxdnaExcvKokkos<DeviceType>::operator()(TagPairOxdnaExcvCompute<OXDNAFL
 
   const int bnum = d_numneigh(a);
 
+  // topology of atom a, used to find its bonded (base-base) partners
+  const tagint tag_a = tag(a);
+  const tagint id3p_a = id3p(a);
+  const tagint id5p_a = id5p(a);
+
   ftmp[0] = 0.0;
   ftmp[1] = 0.0;
   ftmp[2] = 0.0;
@@ -590,7 +595,7 @@ void PairOxdnaExcvKokkos<DeviceType>::operator()(TagPairOxdnaExcvCompute<OXDNAFL
     }
 
     // base-base
-    if (tag(a) == id3p(b) && tag(b) == id5p(a)) {
+    if (tag_a == id3p(b) && tag(b) == id5p_a) {
       const int _3ptype = (d_prime_neighs_pair(a,ib,0) >= 0) ? type(d_prime_neighs_pair(a,ib,0)) : 0;
       const int _5ptype = (d_prime_neighs_pair(a,ib,1) >= 0) ? type(d_prime_neighs_pair(a,ib,1)) : 0;
       if (rsq_bsbs < d_cut4sq_bsbs_c(_3ptype,atype,btype,_5ptype)) {
@@ -633,7 +638,7 @@ void PairOxdnaExcvKokkos<DeviceType>::operator()(TagPairOxdnaExcvCompute<OXDNAFL
           }
         }
       }
-    } else if (tag(a) == id5p(b) && tag(b) == id3p(a)) {
+    } else if (tag_a == id5p(b) && tag(b) == id3p_a) {
       const int _3ptype = (d_prime_neighs_pair(a,ib,2) >= 0) ? type(d_prime_neighs_pair(a,ib,2)) : 0;
       const int _5ptype = (d_prime_neighs_pair(a,ib,3) >= 0) ? type(d_prime_neighs_pair(a,ib,3)) : 0;
       if (rsq_bsbs < d_cut4sq_bsbs_c(_3ptype,btype,atype,_5ptype)) {

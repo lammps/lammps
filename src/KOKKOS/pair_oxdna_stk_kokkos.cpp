@@ -45,6 +45,7 @@ PairOxdnaStkKokkos<DeviceType>::PairOxdnaStkKokkos(LAMMPS *lmp) : PairOxdnaStk(l
   oxdnaflag = EnabledOXDNAFlag::OXDNA;
   fix_oxdna_prime_neighsKK = nullptr;
   last_prime_neighs_bond_nbuild = -1;
+  tetramer_uniform = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -245,14 +246,20 @@ void PairOxdnaStkKokkos<DeviceType>::operator()(TagPairOxdnaStkCompute<OXDNAFLAG
   // is assigned such that we preserve the vanilla oxDNA convention of:
   // 3'neighbor a - a - b - 5'neighbor b
   // throughout the rest of compute.
-  int id3p_local = d_prime_neighs_bond(in,2);
-  a3ptype = (id3p_local != -1) ? type(id3p_local) : 0;
+  // If none of the tetramer-indexed coefficients depend on the 3'/5' context
+  // types, index them with 0,0 and skip the context lookups (bit-identical).
+  if (tetramer_uniform) {
+    a3ptype = 0;
+    b5ptype = 0;
+  } else {
+    const int id3p_local = d_prime_neighs_bond(in,2);
+    a3ptype = (id3p_local != -1) ? type(id3p_local) : 0;
+    const int id5p_local = d_prime_neighs_bond(in,3);
+    b5ptype = (id5p_local != -1) ? type(id5p_local) : 0;
+  }
 
   atype = type(a);
   btype = type(b);
-
-  int id5p_local = d_prime_neighs_bond(in,3);
-  b5ptype = (id5p_local != -1) ? type(id5p_local) : 0;
 
   rsq_stkstk = Kokkos::fma(delr_stkstk[0], delr_stkstk[0], Kokkos::fma(delr_stkstk[1], delr_stkstk[1], delr_stkstk[2]*delr_stkstk[2]));
   r_stkstk = Kokkos::sqrt(rsq_stkstk);
@@ -912,6 +919,33 @@ void PairOxdnaStkKokkos<DeviceType>::coeff_set_tetramers_kokkos(int narg, char *
   k_dtheta_st4_ast.template sync<DeviceType>();
   k_b_st4.template sync<DeviceType>();
   k_dtheta_st4_c.template sync<DeviceType>();
+
+  // check whether the tetramer-indexed coefficients used by the compute kernel
+  // depend on the 3'/5' context types (first and last index) at all
+
+  const int ntypes = atom->ntypes;
+  tetramer_uniform = 1;
+  for (int j = 1; j <= ntypes && tetramer_uniform; j++) {
+    for (int k = 1; k <= ntypes && tetramer_uniform; k++) {
+      for (int i = 0; i <= ntypes && tetramer_uniform; i++) {
+        for (int l = 0; l <= ntypes; l++) {
+          if ((k_cut_st_0.view_host()(i,j,k,l) != k_cut_st_0.view_host()(0,j,k,0)) ||
+              (k_cut_st_lc.view_host()(i,j,k,l) != k_cut_st_lc.view_host()(0,j,k,0)) ||
+              (k_cut_st_hc.view_host()(i,j,k,l) != k_cut_st_hc.view_host()(0,j,k,0)) ||
+              (k_cut_st_lo.view_host()(i,j,k,l) != k_cut_st_lo.view_host()(0,j,k,0)) ||
+              (k_cut_st_hi.view_host()(i,j,k,l) != k_cut_st_hi.view_host()(0,j,k,0)) ||
+              (k_shift_st.view_host()(i,j,k,l) != k_shift_st.view_host()(0,j,k,0)) ||
+              (k_a_st4.view_host()(i,j,k,l) != k_a_st4.view_host()(0,j,k,0)) ||
+              (k_b_st4.view_host()(i,j,k,l) != k_b_st4.view_host()(0,j,k,0)) ||
+              (k_dtheta_st4_ast.view_host()(i,j,k,l) != k_dtheta_st4_ast.view_host()(0,j,k,0)) ||
+              (k_dtheta_st4_c.view_host()(i,j,k,l) != k_dtheta_st4_c.view_host()(0,j,k,0))) {
+            tetramer_uniform = 0;
+            break;
+          }
+        }
+      }
+    }
+  }
 }
 
 /* ----------------------------------------------------------------------

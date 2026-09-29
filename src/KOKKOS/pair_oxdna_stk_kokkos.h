@@ -161,6 +161,7 @@ class PairOxdnaStkKokkos : public PairOxdnaStk, public KokkosBase {
   FixOxdnaLRFKokkos<DeviceType> *fix_oxdna_lrfKK;    // ptr to OXDNA/LRF/kk fix
   FixOxdnaPrimeNeighsKokkos<DeviceType> *fix_oxdna_prime_neighsKK;    // ptr to OXDNA/PRIME_NEIGHS/kk fix
   bigint last_prime_neighs_bond_nbuild;
+  int tetramer_uniform;    // 1 if the tetramer coefficients do not depend on the 3'/5' context types
 
   // Precomputed atom a/b 3'/5' directionality and atom mapping of their 3' and 5' neighbors.
   // 0-3 : atom a, atom b, id3p[a], id5p[b] for each bond.

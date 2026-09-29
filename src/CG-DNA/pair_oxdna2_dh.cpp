@@ -343,8 +343,11 @@ void PairOxdna2Dh::coeff(int narg, char **arg)
     MPI_Bcast(&qeff_dh_one, 1, MPI_DOUBLE, 0, world);
   } else qeff_dh_one = utils::numeric(FLERR,arg[4],false,lmp); // else, it is effective charge
 
-  if (narg == 7 && strcmp(arg[5],"half_charged_ends")  == 0) {
-    half_charged_ends_flag = utils::logical(FLERR, arg[6], false, lmp);
+  if (narg == 7) {
+    if (strcmp(arg[5],"half_charged_ends") == 0)
+      half_charged_ends_flag = utils::logical(FLERR, arg[6], false, lmp);
+    else
+      error->all(FLERR, "Unknown pair_coeff oxdna2/dh keyword: {}", arg[5]);
   }
 
   double lambda_dh_one, kappa_dh_one, qeff_dh_pf_one;

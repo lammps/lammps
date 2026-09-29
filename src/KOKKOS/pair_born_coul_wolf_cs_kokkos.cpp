@@ -32,23 +32,10 @@
 
 using namespace LAMMPS_NS;
 
-// A minimal separation so that r = 0 core/shell pairs stay finite until the
-// special-bond factor removes them.  The CPU style uses 1.0e-20, which cannot
-// be carried over unchanged when KK_FLOAT is float.
-//
-// The quantity that has to stay in range is the steepest one the kernel forms,
-// not the energy: compute_fpair() returns forceborn*r2inv, whose born3 term is
-// born3 * rsq^-5.  At rsq = 1.0e-20 that is 1e100 -- finite in double, infinite
-// in single -- and the zero special-bond factor then gives NaN rather than
-// removing the pair.  1.0e-6 puts it at 1e30, eight orders inside the range of
-// float, and leaves the r^-8 energy term at 1e24.
-//
-// The value is applied as a floor, not as an unconditional add, so it can be
-// this large without consequence: a floor only changes separations already
-// below it, and never perturbs a normal pair.  (An *added* 1.0e-6 would have
-// perturbed one, since 1.0f + 1.0e-6f != 1.0f.)
+// minimal separation for r = 0 core/shell pairs; 1.0e-20 overflows and
+// cancels in single precision, so use 1.0e-4 there, applied as a floor
 
-static constexpr double EPSILON = std::is_same_v<KK_FLOAT, float> ? 1.0e-6 : 1.0e-20;
+static constexpr double EPSILON = std::is_same_v<KK_FLOAT, float> ? 1.0e-4 : 1.0e-20;
 using MathConst::MY_PIS;
 
 /* ---------------------------------------------------------------------- */
@@ -193,12 +180,11 @@ KK_FLOAT PairBornCoulWolfCSKokkos<DeviceType>::
 compute_fpair(const KK_FLOAT& rsq_in, const int& /*i*/, const int& /*j*/,
               const int& itype, const int& jtype) const
 {
-  // r = 0 must stay finite here, as in the CPU style.  Applied as a floor
-  // rather than an unconditional add, so that a value large enough to keep the
-  // single-precision kernel in range cannot perturb a normal pair
+  // EPSILON keeps r = 0 finite, see above
 
-  const KK_FLOAT rsq = (rsq_in > static_cast<KK_FLOAT>(EPSILON)) ?
-    rsq_in : static_cast<KK_FLOAT>(EPSILON);
+  const KK_FLOAT rsq = std::is_same_v<KK_FLOAT, float> ?
+    ((rsq_in > static_cast<KK_FLOAT>(EPSILON)) ? rsq_in : static_cast<KK_FLOAT>(EPSILON)) :
+    rsq_in + static_cast<KK_FLOAT>(EPSILON);
 
   const KK_FLOAT r2inv = static_cast<KK_FLOAT>(1.0)/rsq;
   const KK_FLOAT r6inv = r2inv*r2inv*r2inv;
@@ -226,12 +212,11 @@ compute_fcoul(const KK_FLOAT& rsq_in, const int& /*i*/, const int& j,
               const int& /*itype*/, const int& /*jtype*/,
               const KK_FLOAT& factor_coul, const KK_FLOAT& qtmp) const
 {
-  // r = 0 must stay finite here, as in the CPU style.  Applied as a floor
-  // rather than an unconditional add, so that a value large enough to keep the
-  // single-precision kernel in range cannot perturb a normal pair
+  // EPSILON keeps r = 0 finite, see above
 
-  const KK_FLOAT rsq = (rsq_in > static_cast<KK_FLOAT>(EPSILON)) ?
-    rsq_in : static_cast<KK_FLOAT>(EPSILON);
+  const KK_FLOAT rsq = std::is_same_v<KK_FLOAT, float> ?
+    ((rsq_in > static_cast<KK_FLOAT>(EPSILON)) ? rsq_in : static_cast<KK_FLOAT>(EPSILON)) :
+    rsq_in + static_cast<KK_FLOAT>(EPSILON);
 
   const KK_FLOAT r2inv = static_cast<KK_FLOAT>(1.0)/rsq;
   const KK_FLOAT r = Kokkos::sqrt(rsq);
@@ -256,12 +241,11 @@ KK_FLOAT PairBornCoulWolfCSKokkos<DeviceType>::
 compute_evdwl(const KK_FLOAT& rsq_in, const int& /*i*/, const int& /*j*/,
                const int& itype, const int& jtype) const
 {
-  // r = 0 must stay finite here, as in the CPU style.  Applied as a floor
-  // rather than an unconditional add, so that a value large enough to keep the
-  // single-precision kernel in range cannot perturb a normal pair
+  // EPSILON keeps r = 0 finite, see above
 
-  const KK_FLOAT rsq = (rsq_in > static_cast<KK_FLOAT>(EPSILON)) ?
-    rsq_in : static_cast<KK_FLOAT>(EPSILON);
+  const KK_FLOAT rsq = std::is_same_v<KK_FLOAT, float> ?
+    ((rsq_in > static_cast<KK_FLOAT>(EPSILON)) ? rsq_in : static_cast<KK_FLOAT>(EPSILON)) :
+    rsq_in + static_cast<KK_FLOAT>(EPSILON);
 
   const KK_FLOAT r2inv = static_cast<KK_FLOAT>(1.0)/rsq;
   const KK_FLOAT r6inv = r2inv*r2inv*r2inv;
@@ -289,12 +273,11 @@ compute_ecoul(const KK_FLOAT& rsq_in, const int& /*i*/, const int& j,
                const int& /*itype*/, const int& /*jtype*/,
                const KK_FLOAT& factor_coul, const KK_FLOAT& qtmp) const
 {
-  // r = 0 must stay finite here, as in the CPU style.  Applied as a floor
-  // rather than an unconditional add, so that a value large enough to keep the
-  // single-precision kernel in range cannot perturb a normal pair
+  // EPSILON keeps r = 0 finite, see above
 
-  const KK_FLOAT rsq = (rsq_in > static_cast<KK_FLOAT>(EPSILON)) ?
-    rsq_in : static_cast<KK_FLOAT>(EPSILON);
+  const KK_FLOAT rsq = std::is_same_v<KK_FLOAT, float> ?
+    ((rsq_in > static_cast<KK_FLOAT>(EPSILON)) ? rsq_in : static_cast<KK_FLOAT>(EPSILON)) :
+    rsq_in + static_cast<KK_FLOAT>(EPSILON);
 
   const KK_FLOAT r = Kokkos::sqrt(rsq);
   const KK_FLOAT prefactor = qqrd2e * qtmp * q(j) / r;

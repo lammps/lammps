@@ -44,7 +44,8 @@ LAMMPS output options.
 
 The per-particle array values will be in energy (:math:`u^\text{cond}`,
 :math:`u^\text{mech}`, :math:`u^\text{chem}`)
-and temperature (:math:`\theta`) :doc:`units <units>`.
+and temperature (:math:`\theta`) :doc:`units <units>`.  The values will
+be 0.0 for particles not in the specified compute group.
 
 Restrictions
 """"""""""""

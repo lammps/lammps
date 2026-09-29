@@ -1804,6 +1804,14 @@ code when using features from the INTEL package.
 
          -D INTEL_LRT_MODE=value # value = threads, none, or c++17
 
+      .. versionchanged:: TBD
+
+      With the LLVM based Intel compilers (``icx`` and ``icpx``), CMake
+      adds the flags ``-xHost`` and ``-qopt-zmm-usage=high`` and compiles
+      the INTEL package sources with ``-fp-model=fast=2``.  The ``-xHost``
+      flag is omitted when a target architecture is already selected in
+      ``CMAKE_CXX_FLAGS``, e.g. when compiling for a different CPU.
+
    .. tab:: Traditional make
 
       Choose compiler flags in Makefile.machine via the following

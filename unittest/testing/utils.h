@@ -18,12 +18,12 @@
 #include <string>
 #include <vector>
 
-static void delete_file(const std::string &filename)
+static inline void delete_file(const std::string &filename)
 {
     remove(filename.c_str());
 }
 
-static size_t count_lines(const std::string &filename)
+static inline size_t count_lines(const std::string &filename)
 {
     std::ifstream infile(filename);
     std::string line;
@@ -35,7 +35,7 @@ static size_t count_lines(const std::string &filename)
     return nlines;
 }
 
-static bool equal_lines(const std::string &fileA, const std::string &fileB)
+static inline bool equal_lines(const std::string &fileA, const std::string &fileB)
 {
     std::ifstream afile(fileA);
     std::ifstream bfile(fileB);
@@ -49,7 +49,7 @@ static bool equal_lines(const std::string &fileA, const std::string &fileB)
     return true;
 }
 
-static std::vector<std::string> read_lines(const std::string &filename)
+static inline std::vector<std::string> read_lines(const std::string &filename)
 {
     std::vector<std::string> lines;
     std::ifstream infile(filename);
@@ -61,7 +61,7 @@ static std::vector<std::string> read_lines(const std::string &filename)
     return lines;
 }
 
-static bool file_exists(const std::string &filename)
+static inline bool file_exists(const std::string &filename)
 {
     std::ifstream infile(filename);
     return infile.good();

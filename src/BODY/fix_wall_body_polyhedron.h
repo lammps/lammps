@@ -35,20 +35,26 @@ class FixWallBodyPolyhedron : public Fix {
   void reset_dt() override;
   double memory_usage() override;
 
+  void grow_arrays(int) override;
+  void copy_arrays(int, int, int) override;
+  void set_arrays(int) override;
+  int pack_exchange(int, double *) override;
+  int unpack_exchange(int, double *) override;
+  int pack_restart(int, double *) override;
+  void unpack_restart(int, int) override;
+  int size_restart(int) override;
+  int maxsize_restart() override;
+
   int image(int *&, double **&) override;
 
-  struct Contact {
-    int ibody, jbody;     // body (i.e. atom) indices (not tags)
-    int vertex;           // vertex of the first polygon
-    int edge;             // edge of the second polygon
-    double xv[3];         // coordinates of the vertex
-    double xe[3];         // coordinates of the projection of the vertex on the edge
-    double separation;    // separation at contact
-  };
 
  protected:
   int wallstyle, wiggle, axis;
   double kn, c_n, c_t;
+  int history;            // 1 if the tangential deformation at the wall is stored
+  double mu;              // friction coefficient of the contact history
+  double kt;              // tangential stiffness of the contact history
+  double **history_one;   // tangential deformation of each body at the wall
   double lo, hi;
   double amplitude, period, omega;
   double dt;
@@ -91,21 +97,15 @@ class FixWallBodyPolyhedron : public Fix {
 
   void body2space(int);
 
-  int edge_against_wall(int ibody, double wall_pos, double *vwall, double **x);
-  int sphere_against_wall(int i, double wall_pos, double *vwall, double **x, double **v, double **f,
-                          double **angmom, double **torque);
 
-  int compute_distance_to_wall(int ibody, int edge_index, double *xmi, double rounded_radius_i,
-                               double wall_pos, double *vwall, int &contact);
-  double contact_separation(const Contact &c1, const Contact &c2);
-  void contact_forces(int ibody, double j_a, double *xi, double delx, double dely, double delz,
-                      double fx, double fy, double fz, double **x, double **v, double **angmom,
-                      double **f, double **torque, double *vwall);
 
-  void contact_forces(Contact &contact, double j_a, double **x, double **v, double **angmom,
-                      double **f, double **torque, double *vwall, double *facc);
+  double wall_force(int i, const double *xp, const double *n, double sd, const double *vwall,
+                    double **x, double **v, double **angmom, double **f, double **torque,
+                    double *pc, double *vt);
+  void tangential_spring(const double *n, const double *vt, double fne, double *xi,
+                         double *ft);
   void sum_torque(double *xm, double *x, double fx, double fy, double fz, double *torque);
-  void total_velocity(double *p, double *xcm, double *vcm, double *angmom, double *inertia,
+  void total_velocity(const double *p, double *xcm, double *vcm, double *angmom, double *inertia,
                       double *quat, double *vi);
   void distance(const double *x2, const double *x1, double &r);
 };

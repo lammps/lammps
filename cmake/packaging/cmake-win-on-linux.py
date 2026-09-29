@@ -74,15 +74,12 @@ homedir, exename = os.path.split(os.path.abspath(inspect.getsourcefile(lambda:0)
 
 # default settings help message and default settings
 
-bitflag = '64'
 parflag = 'no'
 pythonflag  = False
 guiflag = False
-thrflag = 'omp'
 revflag = system('git rev-parse --abbrev-ref HEAD').strip()
 verbose = True
 gitdir  = os.path.abspath(os.path.join(homedir,'..','..'))
-adminflag = False
 
 helpmsg = """
 Usage: python %s -p <mpi> -y <yes|no> -a <yes|no> -u <yes|no>
@@ -133,18 +130,17 @@ if pythonflag and guiflag:
 rev1 = re.compile("^(stable|release|develop|maintenance)$")
 rev2 = re.compile(r"^(patch|stable)_\d+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\d{4}$")
 if not rev1.match(revflag) and not rev2.match(revflag):
-    revflag=system('git rev-parse HEAD').strip()
+    newflag=system('git rev-parse HEAD').strip()
+    print("Using revision flag %s for branch %s" % (newflag,revflag))
+    revflag=newflag
 
 # create working directory
-if adminflag:
-    builddir = os.path.join(fullpath('.'),"tmp-%s-%s-%s-%s" % (bitflag,parflag,thrflag,revflag))
+if pythonflag:
+    builddir = os.path.join(fullpath('.'),"tmp-%s-%s-python" % (parflag,revflag))
+elif guiflag:
+    builddir = os.path.join(fullpath('.'),"tmp-%s-%s-gui" % (parflag,revflag))
 else:
-    if pythonflag:
-        builddir = os.path.join(fullpath('.'),"tmp-%s-%s-%s-%s-python" % (bitflag,parflag,thrflag,revflag))
-    elif guiflag:
-        builddir = os.path.join(fullpath('.'),"tmp-%s-%s-%s-%s-gui" % (bitflag,parflag,thrflag,revflag))
-    else:
-        builddir = os.path.join(fullpath('.'),"tmp-%s-%s-%s-%s-noadmin" % (bitflag,parflag,thrflag,revflag))
+    builddir = os.path.join(fullpath('.'),"tmp-%s-%s-noadmin" % (parflag,revflag))
 shutil.rmtree(builddir,True)
 try:
     os.mkdir(builddir)
@@ -161,9 +157,8 @@ nsis_cmd = which('makensis')
 lmp_size = 'smallbig'
 
 print("""
-Settings: building LAMMPS revision %s for %s-bit Windows with %d CPUs
+Settings: building LAMMPS revision %s for 64-bit Windows 10+ with %d CPUs
 Message passing  : %s
-Multi-threading  : %s
 Home folder      : %s
 Source folder    : %s
 Build folder     : %s
@@ -171,23 +166,7 @@ C compiler       : %s
 C++ compiler     : %s
 Fortran compiler : %s
 Library archiver : %s
-""" % (revflag,bitflag,numcpus,parflag,thrflag,homedir,gitdir,builddir,cc_cmd,cxx_cmd,fc_cmd,ar_cmd))
-
-sys.exit(0)
-
-# create/update git checkout
-if not os.path.exists(gitdir):
-    txt = system("git clone https://github.com/lammps/lammps.git %s" % gitdir)
-    if verbose: print(txt)
-
-os.chdir(gitdir)
-txt = system("git fetch origin")
-if verbose: print(txt)
-txt = system("git checkout %s" % revflag)
-if verbose: print(txt)
-if revflag == "develop" or revflag == "stable" or revflag == "release" or revflag == "maintenance":
-    txt = system("git pull")
-    if verbose: print(txt)
+""" % (revflag,numcpus,parflag,homedir,gitdir,builddir,cc_cmd,cxx_cmd,fc_cmd,ar_cmd))
 
 # switch to build folder
 os.chdir(builddir)
@@ -196,7 +175,7 @@ os.chdir(builddir)
 print("Downloading third party tools")
 url='http://download.lammps.org/thirdparty'
 print("FFMpeg")
-getexe("%s/ffmpeg-win%s.exe.gz" % (url,bitflag),"ffmpeg.exe")
+getexe("%s/ffmpeg-win64.exe.gz" % url,"ffmpeg.exe")
 print("gzip")
 getexe("%s/gzip.exe.gz" % url,"gzip.exe")
 
@@ -205,19 +184,11 @@ if parflag == "mpi" or parflag == "ms":
 else:
     mpiflag = "off"
 
-if thrflag == "omp":
-    ompflag = "on"
-else:
-    ompflag = "off"
-
 print("Configuring build with CMake")
-cmd = "mingw%s-cmake -D CMAKE_BUILD_TYPE=Release" % bitflag
-cmd += " -D ADD_PKG_CONFIG_PATH=%s/mingw%s-pkgconfig" % (homedir,bitflag)
-cmd += " -C %s/mingw%s-pkgconfig/addpkg.cmake" % (homedir,bitflag)
+cmd = "mingw64-cmake -D CMAKE_BUILD_TYPE=Release"
 cmd += " -C %s/cmake/presets/mingw-cross.cmake -S %s/cmake" % (gitdir,gitdir)
-if bitflag == '64':
-  cmd += " -C %s/cmake/presets/kokkos-openmp.cmake" % gitdir
-cmd += " -DBUILD_SHARED_LIBS=on -DBUILD_MPI=%s -DBUILD_OMP=%s" % (mpiflag,ompflag)
+cmd += " -C %s/cmake/presets/kokkos-openmp.cmake" % gitdir
+cmd += " -DBUILD_SHARED_LIBS=on -DBUILD_MPI=%s -DBUILD_OMP=ON" % mpiflag
 if parflag == 'ms':
   cmd += " -DUSE_MSMPI=on"
 if guiflag:
@@ -243,28 +214,11 @@ print("Compiling")
 system("cmake --build . --parallel %d" % numcpus)
 print("Done")
 
-print("Configuring demo plugin build with CMake")
-cmd = "mingw%s-cmake -D CMAKE_BUILD_TYPE=Release" % bitflag
-cmd += " -S %s/examples/plugins -B plugins" % gitdir
-cmd += " -DBUILD_SHARED_LIBS=on -DBUILD_MPI=%s -DBUILD_OMP=%s" % (mpiflag,ompflag)
-if parflag == 'ms': cmd += " -DUSE_MSMPI=on"
-cmd += " -DCMAKE_CXX_COMPILER_LAUNCHER=ccache"
-cmd += " -DCMAKE_CXX_STANDARD=20"
-
-print("Running: ",cmd)
-txt = system(cmd)
-if verbose: print(txt)
-
-print("Compiling")
-txt = system("cmake --build plugins")
-if verbose: print(txt)
-print("Done")
-
-if not adminflag and not pythonflag and not guiflag:
+if not pythonflag and not guiflag:
   print("Configuring pace plugin build with CMake")
-  cmd = "mingw%s-cmake -D CMAKE_BUILD_TYPE=Release" % bitflag
+  cmd = "mingw64-cmake -D CMAKE_BUILD_TYPE=Release"
   cmd += " -S %s/examples/PACKAGES/pace/plugin -B paceplugin" % gitdir
-  cmd += " -DBUILD_SHARED_LIBS=on -DBUILD_MPI=%s -DBUILD_OMP=%s" % (mpiflag,ompflag)
+  cmd += " -DBUILD_SHARED_LIBS=on -DBUILD_MPI=%s -DBUILD_OMP=ON" % mpiflag
   cmd += " -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DLAMMPS_SOURCE_DIR=%s/src" % gitdir
   if parflag == 'ms': cmd += " -DUSE_MSMPI=on"
   cmd += " -DCMAKE_CXX_STANDARD=20"
@@ -283,9 +237,9 @@ if not adminflag and not pythonflag and not guiflag:
 
   if True:
     print("Configuring plumed plugin build with CMake")
-    cmd = "mingw%s-cmake -D CMAKE_BUILD_TYPE=Release" % bitflag
+    cmd = "mingw64-cmake -D CMAKE_BUILD_TYPE=Release"
     cmd += " -S %s/examples/PACKAGES/plumed/plugin -B plumedplugin" % gitdir
-    cmd += " -DBUILD_SHARED_LIBS=on -DBUILD_MPI=%s -DBUILD_OMP=%s" % (mpiflag,ompflag)
+    cmd += " -DBUILD_SHARED_LIBS=on -DBUILD_MPI=%s -DBUILD_OMP=ON" % mpiflag
     cmd += " -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DLAMMPS_SOURCE_DIR=%s/src" % gitdir
     if parflag == 'ms': cmd += " -DUSE_MSMPI=on"
     cmd += " -DCMAKE_CXX_STANDARD=20"
@@ -310,9 +264,9 @@ if not adminflag and not pythonflag and not guiflag:
       txt = system("git clone -b develop --depth 1 git@github.com:lammps/lammps-plugins.git")
   if verbose: print(txt)
   print("Configuring LAMMPS plugin collection build with CMake")
-  cmd = "mingw%s-cmake -D CMAKE_BUILD_TYPE=Release" % bitflag
+  cmd = "mingw64-cmake -D CMAKE_BUILD_TYPE=Release"
   cmd += " -S lammps-plugins -B build_plugins"
-  cmd += " -DBUILD_SHARED_LIBS=on -DBUILD_MPI=%s -DBUILD_OMP=%s" % (mpiflag,ompflag)
+  cmd += " -DBUILD_SHARED_LIBS=on -DBUILD_MPI=%s -DBUILD_OMP=ON" % mpiflag
   cmd += " -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DLAMMPS_SOURCE_DIR=%s/src" % gitdir
   if parflag == 'ms': cmd += " -DUSE_MSMPI=on"
   cmd += " -DCMAKE_CXX_STANDARD=20"
@@ -391,20 +345,18 @@ print("Done")
 print("Configuring and building installer")
 os.chdir(builddir)
 if pythonflag:
-    nsisfile = os.path.join(homedir,"installer","lammps-python.nsis")
+    nsisfile = os.path.join(homedir,"lammps-python.nsis")
 elif guiflag:
-    nsisfile = os.path.join(homedir,"installer","lammps-gui.nsis")
-elif adminflag:
-    nsisfile = os.path.join(homedir,"installer","lammps-admin.nsis")
+    nsisfile = os.path.join(homedir,"lammps-gui.nsis")
 elif parflag == 'ms':
-    nsisfile = os.path.join(homedir,"installer","lammps-msmpi.nsis")
+    nsisfile = os.path.join(homedir,"lammps-msmpi.nsis")
 else:
-    nsisfile = os.path.join(homedir,"installer","lammps-noadmin.nsis")
+    nsisfile = os.path.join(homedir,"lammps-noadmin.nsis")
 
 shutil.copy(nsisfile,os.path.join(builddir,"lammps.nsis"))
-shutil.copy(os.path.join(homedir,"installer","FileAssociation.nsh"),os.path.join(builddir,"FileAssociation.nsh"))
-shutil.copy(os.path.join(homedir,"installer","lammps.ico"),os.path.join(builddir,"lammps.ico"))
-shutil.copy(os.path.join(homedir,"installer","lammps-text-logo-wide.bmp"),os.path.join(builddir,"lammps-text-logo-wide.bmp"))
+shutil.copy(os.path.join(homedir,"FileAssociation.nsh"),os.path.join(builddir,"FileAssociation.nsh"))
+shutil.copy(os.path.join(homedir,"lammps.ico"),os.path.join(builddir,"lammps.ico"))
+shutil.copy(os.path.join(homedir,"lammps-text-logo-wide.bmp"),os.path.join(builddir,"lammps-text-logo-wide.bmp"))
 
 # define version flag of the installer:
 # - use current timestamp, when pulling from develop (for daily builds)
@@ -420,19 +372,13 @@ if revflag == 'stable' or revflag == 'release' or rev2.match(revflag):
 elif revflag == 'develop' or revflag == 'maintenance':
     version = time.strftime('%Y-%m-%d')
 
-if bitflag == '32':
-    mingwdir = '/usr/i686-w64-mingw32/sys-root/mingw/bin/'
-elif bitflag == '64':
-    mingwdir = '/usr/x86_64-w64-mingw32/sys-root/mingw/bin/'
+mingwdir = '/usr/x86_64-w64-mingw32/sys-root/mingw/bin/'
 
-if parflag == 'mpi':
-    txt = system("makensis -DMINGW=%s -DVERSION=%s-MPI -DBIT=%s -DLMPREV=%s lammps.nsis" % (mingwdir,version,bitflag,revflag))
-    if verbose: print(txt)
-elif parflag == 'ms':
-    txt = system("makensis -DMINGW=%s -DVERSION=%s-MSMPI -DBIT=%s -DLMPREV=%s lammps.nsis" % (mingwdir,version,bitflag,revflag))
+if parflag == 'ms':
+    txt = system("makensis -DMINGW=%s -DVERSION=%s-MSMPI -DBIT=64 -DLMPREV=%s lammps.nsis" % (mingwdir,version,revflag))
     if verbose: print(txt)
 else:
-    txt = system("makensis -DMINGW=%s -DVERSION=%s -DBIT=%s -DLMPREV=%s lammps.nsis" % (mingwdir,version,bitflag,revflag))
+    txt = system("makensis -DMINGW=%s -DVERSION=%s -DBIT=64 -DLMPREV=%s lammps.nsis" % (mingwdir,version,revflag))
     if verbose: print(txt)
 
 # clean up after successful build

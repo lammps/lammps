@@ -45,6 +45,8 @@ endif()
 find_program(MINGW_CMAKE mingw64-cmake)
 find_program(MINGW_CXX x86_64-w64-mingw32-g++)
 find_package(Python COMPONENTS Interpreter QUIET)
+# disable signing for now
+set(ENV{SIGN_DISABLE} 1)
 if(MINGW_CMAKE AND MINGW_CXX AND Python_EXECUTABLE)
   add_custom_target(nsis
     COMMAND ${Python_EXECUTABLE} "${LAMMPS_PACKAGING_DIR}/cmake-win-on-linux.py" -p no -y no

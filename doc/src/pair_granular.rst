@@ -196,7 +196,6 @@ pure rolling motion of particles.  The options currently supported are:
 If the *rolling* keyword is not specified, the model defaults to *none*\
 .
 
-
 :doc:`Twisting friction models <granular_twisting_models>`
 ----------------------------------------------------------
 
@@ -303,8 +302,9 @@ interactions is set to :math:`\mu_2`, the friction coefficient for
 type1-type2 interactions is computed as :math:`\sqrt{\mu_1\mu_2}`
 (unless explicitly specified to a different value by a *pair_coeff 1 2
 ...* command).  The exception to this is elastic modulus, only
-applicable to *hertz/material*, *dmt* and *jkr* normal contact models.
-In that case, the effective elastic modulus is computed as:
+applicable to *hertz/material*, *dmt*, *jkr* and *epa_linear* 
+normal contact models. In that case, the effective elastic modulus is 
+computed as:
 
 .. math::
 

@@ -1145,21 +1145,10 @@ void PairOxdnaStk::write_restart(FILE *fp)
 
         fwrite(&epsilon_st[i][j],sizeof(double),1,fp);
         fwrite(&a_st[i][j],sizeof(double),1,fp);
-        fwrite(&cut_st_0[i][j],sizeof(double),1,fp);
-        fwrite(&cut_st_c[i][j],sizeof(double),1,fp);
-        fwrite(&cut_st_lo[i][j],sizeof(double),1,fp);
-        fwrite(&cut_st_hi[i][j],sizeof(double),1,fp);
-        fwrite(&cut_st_lc[i][j],sizeof(double),1,fp);
-        fwrite(&cut_st_hc[i][j],sizeof(double),1,fp);
         fwrite(&b_st_lo[i][j],sizeof(double),1,fp);
         fwrite(&b_st_hi[i][j],sizeof(double),1,fp);
-        fwrite(&shift_st[i][j],sizeof(double),1,fp);
 
-        fwrite(&a_st4[i][j],sizeof(double),1,fp);
         fwrite(&theta_st4_0[i][j],sizeof(double),1,fp);
-        fwrite(&dtheta_st4_ast[i][j],sizeof(double),1,fp);
-        fwrite(&b_st4[i][j],sizeof(double),1,fp);
-        fwrite(&dtheta_st4_c[i][j],sizeof(double),1,fp);
 
         fwrite(&a_st5[i][j],sizeof(double),1,fp);
         fwrite(&theta_st5_0[i][j],sizeof(double),1,fp);
@@ -1184,6 +1173,23 @@ void PairOxdnaStk::write_restart(FILE *fp)
 
     }
   }
+
+  // tetramer-dependent coefficients are stored as whole tables
+
+  const int n1 = atom->ntypes + 1;
+  const int ntetra = n1 * n1 * n1 * n1;
+  fwrite(&cut_st_0[0][0][0][0],sizeof(double),ntetra,fp);
+  fwrite(&cut_st_c[0][0][0][0],sizeof(double),ntetra,fp);
+  fwrite(&cut_st_lo[0][0][0][0],sizeof(double),ntetra,fp);
+  fwrite(&cut_st_hi[0][0][0][0],sizeof(double),ntetra,fp);
+  fwrite(&cut_st_lc[0][0][0][0],sizeof(double),ntetra,fp);
+  fwrite(&cut_st_hc[0][0][0][0],sizeof(double),ntetra,fp);
+  fwrite(&shift_st[0][0][0][0],sizeof(double),ntetra,fp);
+  fwrite(&cutsq_st_hc[0][0][0][0],sizeof(double),ntetra,fp);
+  fwrite(&a_st4[0][0][0][0],sizeof(double),ntetra,fp);
+  fwrite(&dtheta_st4_ast[0][0][0][0],sizeof(double),ntetra,fp);
+  fwrite(&b_st4[0][0][0][0],sizeof(double),ntetra,fp);
+  fwrite(&dtheta_st4_c[0][0][0][0],sizeof(double),ntetra,fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -1206,21 +1212,10 @@ void PairOxdnaStk::read_restart(FILE *fp)
 
           utils::sfread(FLERR,&epsilon_st[i][j],sizeof(double),1,fp,nullptr,error);
           utils::sfread(FLERR,&a_st[i][j],sizeof(double),1,fp,nullptr,error);
-          utils::sfread(FLERR,&cut_st_0[i][j],sizeof(double),1,fp,nullptr,error);
-          utils::sfread(FLERR,&cut_st_c[i][j],sizeof(double),1,fp,nullptr,error);
-          utils::sfread(FLERR,&cut_st_lo[i][j],sizeof(double),1,fp,nullptr,error);
-          utils::sfread(FLERR,&cut_st_hi[i][j],sizeof(double),1,fp,nullptr,error);
-          utils::sfread(FLERR,&cut_st_lc[i][j],sizeof(double),1,fp,nullptr,error);
-          utils::sfread(FLERR,&cut_st_hc[i][j],sizeof(double),1,fp,nullptr,error);
           utils::sfread(FLERR,&b_st_lo[i][j],sizeof(double),1,fp,nullptr,error);
           utils::sfread(FLERR,&b_st_hi[i][j],sizeof(double),1,fp,nullptr,error);
-          utils::sfread(FLERR,&shift_st[i][j],sizeof(double),1,fp,nullptr,error);
 
-          utils::sfread(FLERR,&a_st4[i][j],sizeof(double),1,fp,nullptr,error);
           utils::sfread(FLERR,&theta_st4_0[i][j],sizeof(double),1,fp,nullptr,error);
-          utils::sfread(FLERR,&dtheta_st4_ast[i][j],sizeof(double),1,fp,nullptr,error);
-          utils::sfread(FLERR,&b_st4[i][j],sizeof(double),1,fp,nullptr,error);
-          utils::sfread(FLERR,&dtheta_st4_c[i][j],sizeof(double),1,fp,nullptr,error);
 
           utils::sfread(FLERR,&a_st5[i][j],sizeof(double),1,fp,nullptr,error);
           utils::sfread(FLERR,&theta_st5_0[i][j],sizeof(double),1,fp,nullptr,error);
@@ -1247,21 +1242,10 @@ void PairOxdnaStk::read_restart(FILE *fp)
 
         MPI_Bcast(&epsilon_st[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&a_st[i][j],1,MPI_DOUBLE,0,world);
-        MPI_Bcast(&cut_st_0[i][j],1,MPI_DOUBLE,0,world);
-        MPI_Bcast(&cut_st_c[i][j],1,MPI_DOUBLE,0,world);
-        MPI_Bcast(&cut_st_lo[i][j],1,MPI_DOUBLE,0,world);
-        MPI_Bcast(&cut_st_hi[i][j],1,MPI_DOUBLE,0,world);
-        MPI_Bcast(&cut_st_lc[i][j],1,MPI_DOUBLE,0,world);
-        MPI_Bcast(&cut_st_hc[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&b_st_lo[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&b_st_hi[i][j],1,MPI_DOUBLE,0,world);
-        MPI_Bcast(&shift_st[i][j],1,MPI_DOUBLE,0,world);
 
-        MPI_Bcast(&a_st4[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&theta_st4_0[i][j],1,MPI_DOUBLE,0,world);
-        MPI_Bcast(&dtheta_st4_ast[i][j],1,MPI_DOUBLE,0,world);
-        MPI_Bcast(&b_st4[i][j],1,MPI_DOUBLE,0,world);
-        MPI_Bcast(&dtheta_st4_c[i][j],1,MPI_DOUBLE,0,world);
 
         MPI_Bcast(&a_st5[i][j],1,MPI_DOUBLE,0,world);
         MPI_Bcast(&theta_st5_0[i][j],1,MPI_DOUBLE,0,world);
@@ -1286,6 +1270,37 @@ void PairOxdnaStk::read_restart(FILE *fp)
 
       }
     }
+
+  // tetramer-dependent coefficients are stored as whole tables
+
+  const int n1 = atom->ntypes + 1;
+  const int ntetra = n1 * n1 * n1 * n1;
+  if (me == 0) {
+    utils::sfread(FLERR,&cut_st_0[0][0][0][0],sizeof(double),ntetra,fp,nullptr,error);
+    utils::sfread(FLERR,&cut_st_c[0][0][0][0],sizeof(double),ntetra,fp,nullptr,error);
+    utils::sfread(FLERR,&cut_st_lo[0][0][0][0],sizeof(double),ntetra,fp,nullptr,error);
+    utils::sfread(FLERR,&cut_st_hi[0][0][0][0],sizeof(double),ntetra,fp,nullptr,error);
+    utils::sfread(FLERR,&cut_st_lc[0][0][0][0],sizeof(double),ntetra,fp,nullptr,error);
+    utils::sfread(FLERR,&cut_st_hc[0][0][0][0],sizeof(double),ntetra,fp,nullptr,error);
+    utils::sfread(FLERR,&shift_st[0][0][0][0],sizeof(double),ntetra,fp,nullptr,error);
+    utils::sfread(FLERR,&cutsq_st_hc[0][0][0][0],sizeof(double),ntetra,fp,nullptr,error);
+    utils::sfread(FLERR,&a_st4[0][0][0][0],sizeof(double),ntetra,fp,nullptr,error);
+    utils::sfread(FLERR,&dtheta_st4_ast[0][0][0][0],sizeof(double),ntetra,fp,nullptr,error);
+    utils::sfread(FLERR,&b_st4[0][0][0][0],sizeof(double),ntetra,fp,nullptr,error);
+    utils::sfread(FLERR,&dtheta_st4_c[0][0][0][0],sizeof(double),ntetra,fp,nullptr,error);
+  }
+  MPI_Bcast(&cut_st_0[0][0][0][0],ntetra,MPI_DOUBLE,0,world);
+  MPI_Bcast(&cut_st_c[0][0][0][0],ntetra,MPI_DOUBLE,0,world);
+  MPI_Bcast(&cut_st_lo[0][0][0][0],ntetra,MPI_DOUBLE,0,world);
+  MPI_Bcast(&cut_st_hi[0][0][0][0],ntetra,MPI_DOUBLE,0,world);
+  MPI_Bcast(&cut_st_lc[0][0][0][0],ntetra,MPI_DOUBLE,0,world);
+  MPI_Bcast(&cut_st_hc[0][0][0][0],ntetra,MPI_DOUBLE,0,world);
+  MPI_Bcast(&shift_st[0][0][0][0],ntetra,MPI_DOUBLE,0,world);
+  MPI_Bcast(&cutsq_st_hc[0][0][0][0],ntetra,MPI_DOUBLE,0,world);
+  MPI_Bcast(&a_st4[0][0][0][0],ntetra,MPI_DOUBLE,0,world);
+  MPI_Bcast(&dtheta_st4_ast[0][0][0][0],ntetra,MPI_DOUBLE,0,world);
+  MPI_Bcast(&b_st4[0][0][0][0],ntetra,MPI_DOUBLE,0,world);
+  MPI_Bcast(&dtheta_st4_c[0][0][0][0],ntetra,MPI_DOUBLE,0,world);
 }
 
 /* ----------------------------------------------------------------------

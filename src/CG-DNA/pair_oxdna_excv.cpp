@@ -844,6 +844,19 @@ void PairOxdnaExcv::write_restart(FILE *fp)
 
     }
   }
+
+  // tetramer-dependent coefficients are stored as whole tables
+
+  const int n1 = atom->ntypes + 1;
+  const int ntetra = n1 * n1 * n1 * n1;
+  fwrite(&sigma4_bsbs[0][0][0][0],sizeof(double),ntetra,fp);
+  fwrite(&cut4_bsbs_ast[0][0][0][0],sizeof(double),ntetra,fp);
+  fwrite(&cut4sq_bsbs_ast[0][0][0][0],sizeof(double),ntetra,fp);
+  fwrite(&lj14_bsbs[0][0][0][0],sizeof(double),ntetra,fp);
+  fwrite(&lj24_bsbs[0][0][0][0],sizeof(double),ntetra,fp);
+  fwrite(&b4_bsbs[0][0][0][0],sizeof(double),ntetra,fp);
+  fwrite(&cut4_bsbs_c[0][0][0][0],sizeof(double),ntetra,fp);
+  fwrite(&cut4sq_bsbs_c[0][0][0][0],sizeof(double),ntetra,fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -900,6 +913,29 @@ void PairOxdnaExcv::read_restart(FILE *fp)
 
       }
     }
+
+  // tetramer-dependent coefficients are stored as whole tables
+
+  const int n1 = atom->ntypes + 1;
+  const int ntetra = n1 * n1 * n1 * n1;
+  if (me == 0) {
+    utils::sfread(FLERR,&sigma4_bsbs[0][0][0][0],sizeof(double),ntetra,fp,nullptr,error);
+    utils::sfread(FLERR,&cut4_bsbs_ast[0][0][0][0],sizeof(double),ntetra,fp,nullptr,error);
+    utils::sfread(FLERR,&cut4sq_bsbs_ast[0][0][0][0],sizeof(double),ntetra,fp,nullptr,error);
+    utils::sfread(FLERR,&lj14_bsbs[0][0][0][0],sizeof(double),ntetra,fp,nullptr,error);
+    utils::sfread(FLERR,&lj24_bsbs[0][0][0][0],sizeof(double),ntetra,fp,nullptr,error);
+    utils::sfread(FLERR,&b4_bsbs[0][0][0][0],sizeof(double),ntetra,fp,nullptr,error);
+    utils::sfread(FLERR,&cut4_bsbs_c[0][0][0][0],sizeof(double),ntetra,fp,nullptr,error);
+    utils::sfread(FLERR,&cut4sq_bsbs_c[0][0][0][0],sizeof(double),ntetra,fp,nullptr,error);
+  }
+  MPI_Bcast(&sigma4_bsbs[0][0][0][0],ntetra,MPI_DOUBLE,0,world);
+  MPI_Bcast(&cut4_bsbs_ast[0][0][0][0],ntetra,MPI_DOUBLE,0,world);
+  MPI_Bcast(&cut4sq_bsbs_ast[0][0][0][0],ntetra,MPI_DOUBLE,0,world);
+  MPI_Bcast(&lj14_bsbs[0][0][0][0],ntetra,MPI_DOUBLE,0,world);
+  MPI_Bcast(&lj24_bsbs[0][0][0][0],ntetra,MPI_DOUBLE,0,world);
+  MPI_Bcast(&b4_bsbs[0][0][0][0],ntetra,MPI_DOUBLE,0,world);
+  MPI_Bcast(&cut4_bsbs_c[0][0][0][0],ntetra,MPI_DOUBLE,0,world);
+  MPI_Bcast(&cut4sq_bsbs_c[0][0][0][0],ntetra,MPI_DOUBLE,0,world);
 }
 
 /* ----------------------------------------------------------------------

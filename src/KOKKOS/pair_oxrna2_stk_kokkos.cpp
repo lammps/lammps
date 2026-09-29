@@ -117,20 +117,20 @@ void PairOxrna2StkKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   if (evflag) {
     if (newton_bond) {
       Kokkos::parallel_reduce(
-          Kokkos::RangePolicy<DeviceType, TagPairOxrna2StkCompute<1, 1>>(0, nbondlist), *this,
+          OxdnaBondRangePolicy<DeviceType, TagPairOxrna2StkCompute<1, 1>>(0, nbondlist), *this,
           ev);
     } else {
       Kokkos::parallel_reduce(
-          Kokkos::RangePolicy<DeviceType, TagPairOxrna2StkCompute<0, 1>>(0, nbondlist), *this,
+          OxdnaBondRangePolicy<DeviceType, TagPairOxrna2StkCompute<0, 1>>(0, nbondlist), *this,
           ev);
     }
   } else {
     if (newton_bond) {
       Kokkos::parallel_for(
-          Kokkos::RangePolicy<DeviceType, TagPairOxrna2StkCompute<1, 0>>(0, nbondlist), *this);
+          OxdnaBondRangePolicy<DeviceType, TagPairOxrna2StkCompute<1, 0>>(0, nbondlist), *this);
     } else {
       Kokkos::parallel_for(
-          Kokkos::RangePolicy<DeviceType, TagPairOxrna2StkCompute<0, 0>>(0, nbondlist), *this);
+          OxdnaBondRangePolicy<DeviceType, TagPairOxrna2StkCompute<0, 0>>(0, nbondlist), *this);
     }
   }
 

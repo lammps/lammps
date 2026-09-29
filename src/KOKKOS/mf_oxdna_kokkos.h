@@ -18,16 +18,53 @@
 
 namespace MFOxdnaKokkos {
 
+// Launch bounds (max threads per block, min blocks per SM) of the oxDNA
+// device kernels, tunable at compile time for performance studies, e.g.
+// -DOXDNA_KK_PAIR_MAXT=128 -DOXDNA_KK_PAIR_MINB=4.  A value of 0 leaves the
+// choice to Kokkos (no launch bounds).
+//   ATOM: per-atom neighbor-loop kernels (excv, dh)
+//   PAIR: screened-pair kernels (hbond, xstk, oxdna3/xstk, coaxstk)
+//   BOND: per-bond kernels (stk, fene)
+
 #if defined(KOKKOS_ENABLE_HIP)
-template<class DeviceType, class Tag>
-using OxdnaRangePolicy = Kokkos::RangePolicy<DeviceType, Tag, Kokkos::LaunchBounds<128, 1>>;
+#define OXDNA_KK_ATOM_MAXT_DEFAULT 128
+#define OXDNA_KK_ATOM_MINB_DEFAULT 1
 #elif defined(KOKKOS_ENABLE_CUDA)
-template<class DeviceType, class Tag>
-using OxdnaRangePolicy = Kokkos::RangePolicy<DeviceType, Tag, Kokkos::LaunchBounds<64, 1>>;
+#define OXDNA_KK_ATOM_MAXT_DEFAULT 64
+#define OXDNA_KK_ATOM_MINB_DEFAULT 1
 #else
-template<class DeviceType, class Tag>
-using OxdnaRangePolicy = Kokkos::RangePolicy<DeviceType, Tag>;
+#define OXDNA_KK_ATOM_MAXT_DEFAULT 0
+#define OXDNA_KK_ATOM_MINB_DEFAULT 0
 #endif
+
+#ifndef OXDNA_KK_ATOM_MAXT
+#define OXDNA_KK_ATOM_MAXT OXDNA_KK_ATOM_MAXT_DEFAULT
+#endif
+#ifndef OXDNA_KK_ATOM_MINB
+#define OXDNA_KK_ATOM_MINB OXDNA_KK_ATOM_MINB_DEFAULT
+#endif
+#ifndef OXDNA_KK_PAIR_MAXT
+#define OXDNA_KK_PAIR_MAXT 0
+#endif
+#ifndef OXDNA_KK_PAIR_MINB
+#define OXDNA_KK_PAIR_MINB 0
+#endif
+#ifndef OXDNA_KK_BOND_MAXT
+#define OXDNA_KK_BOND_MAXT 0
+#endif
+#ifndef OXDNA_KK_BOND_MINB
+#define OXDNA_KK_BOND_MINB 0
+#endif
+
+template<class DeviceType, class Tag>
+using OxdnaRangePolicy =
+  Kokkos::RangePolicy<DeviceType, Tag, Kokkos::LaunchBounds<OXDNA_KK_ATOM_MAXT, OXDNA_KK_ATOM_MINB>>;
+template<class DeviceType, class Tag>
+using OxdnaPairRangePolicy =
+  Kokkos::RangePolicy<DeviceType, Tag, Kokkos::LaunchBounds<OXDNA_KK_PAIR_MAXT, OXDNA_KK_PAIR_MINB>>;
+template<class DeviceType, class Tag>
+using OxdnaBondRangePolicy =
+  Kokkos::RangePolicy<DeviceType, Tag, Kokkos::LaunchBounds<OXDNA_KK_BOND_MAXT, OXDNA_KK_BOND_MINB>>;
 
 /* ----------------------------------------------------------------------
    f1 modulation factor

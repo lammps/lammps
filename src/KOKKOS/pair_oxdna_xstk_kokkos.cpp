@@ -188,9 +188,9 @@ void PairOxdnaXstkKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   auto run_compute_gpu = [&](auto gpu_tag, auto evflag_tag) {
     constexpr int EVFLAG = decltype(evflag_tag)::value;
     if constexpr (EVFLAG) {
-      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, decltype(gpu_tag)>(0,screened_pair_count),*this,ev);
+      Kokkos::parallel_reduce(OxdnaPairRangePolicy<DeviceType, decltype(gpu_tag)>(0,screened_pair_count),*this,ev);
     } else {
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, decltype(gpu_tag)>(0,screened_pair_count),*this);
+      Kokkos::parallel_for(OxdnaPairRangePolicy<DeviceType, decltype(gpu_tag)>(0,screened_pair_count),*this);
     }
   };
 

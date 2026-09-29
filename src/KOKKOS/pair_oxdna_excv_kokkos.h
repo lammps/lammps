@@ -46,6 +46,21 @@ struct TagPairOxdnaExcvCompute{};
 template<int NEIGHFLAG, int NEWTON_PAIR>
 struct ev_tally_xyz{};
 
+// packed per-type-pair coefficients of PairOxdnaExcvKokkos
+struct ParamsOxdnaExcv2 {
+  KK_FLOAT epsilon_bkbk, sigma_bkbk, cut_bkbk_ast, cutsq_bkbk_ast, lj1_bkbk, lj2_bkbk;
+  KK_FLOAT b_bkbk, cut_bkbk_c, cutsq_bkbk_c, epsilon_bkbs, sigma_bkbs, cut_bkbs_ast;
+  KK_FLOAT cutsq_bkbs_ast, lj1_bkbs, lj2_bkbs, b_bkbs, cut_bkbs_c, cutsq_bkbs_c;
+  KK_FLOAT epsilon_bsbs, sigma_bsbs, cut_bsbs_ast, cutsq_bsbs_ast, lj1_bsbs, lj2_bsbs;
+  KK_FLOAT b_bsbs, cut_bsbs_c, cutsq_bsbs_c;
+};
+
+// packed per-tetramer coefficients of PairOxdnaExcvKokkos
+struct ParamsOxdnaExcv4 {
+  KK_FLOAT sigma4_bsbs, cut4_bsbs_ast, cut4sq_bsbs_ast, lj14_bsbs, lj24_bsbs, b4_bsbs;
+  KK_FLOAT cut4_bsbs_c, cut4sq_bsbs_c;
+};
+
 template<class DeviceType>
 class PairOxdnaExcvKokkos : public PairOxdnaExcv, public KokkosBase {
  public:
@@ -157,25 +172,14 @@ class PairOxdnaExcvKokkos : public PairOxdnaExcv, public KokkosBase {
 
   // s=sugar-phosphate backbone site, b=base site, st=stacking site
   // excluded volume interaction parameters
-  typename AT::tdual_kkfloat_2d k_epsilon_bkbk, k_sigma_bkbk, k_cut_bkbk_ast, k_cutsq_bkbk_ast;
-  typename AT::tdual_kkfloat_2d k_lj1_bkbk, k_lj2_bkbk, k_b_bkbk, k_cut_bkbk_c, k_cutsq_bkbk_c;
-  typename AT::tdual_kkfloat_2d k_epsilon_bkbs, k_sigma_bkbs, k_cut_bkbs_ast, k_cutsq_bkbs_ast;
-  typename AT::tdual_kkfloat_2d k_lj1_bkbs, k_lj2_bkbs, k_b_bkbs, k_cut_bkbs_c, k_cutsq_bkbs_c;
-  typename AT::tdual_kkfloat_2d k_epsilon_bsbs, k_sigma_bsbs, k_cut_bsbs_ast, k_cutsq_bsbs_ast;
-  typename AT::tdual_kkfloat_2d k_lj1_bsbs, k_lj2_bsbs, k_b_bsbs, k_cut_bsbs_c, k_cutsq_bsbs_c;
-  typename AT::t_kkfloat_2d_randomread d_epsilon_bkbk, d_sigma_bkbk, d_cut_bkbk_ast, d_cutsq_bkbk_ast;
-  typename AT::t_kkfloat_2d_randomread d_lj1_bkbk, d_lj2_bkbk, d_b_bkbk, d_cut_bkbk_c, d_cutsq_bkbk_c;
-  typename AT::t_kkfloat_2d_randomread d_epsilon_bkbs, d_sigma_bkbs, d_cut_bkbs_ast, d_cutsq_bkbs_ast;
-  typename AT::t_kkfloat_2d_randomread d_lj1_bkbs, d_lj2_bkbs, d_b_bkbs, d_cut_bkbs_c, d_cutsq_bkbs_c;
-  typename AT::t_kkfloat_2d_randomread d_epsilon_bsbs, d_sigma_bsbs, d_cut_bsbs_ast, d_cutsq_bsbs_ast;
-  typename AT::t_kkfloat_2d_randomread d_lj1_bsbs, d_lj2_bsbs, d_b_bsbs, d_cut_bsbs_c, d_cutsq_bsbs_c;
+  // all per-type-pair coefficients of a pair packed in one struct
+  Kokkos::DualView<ParamsOxdnaExcv2 **, Kokkos::LayoutRight, DeviceType> k_params2_excv;
+  typename Kokkos::DualView<ParamsOxdnaExcv2 **, Kokkos::LayoutRight, DeviceType>::t_dev_const_randomread d_params2_excv;
   // tetramer-dependent coefficients
-  typename AT::tdual_kkfloat_4d k_sigma4_bsbs, k_cut4_bsbs_ast, k_cut4sq_bsbs_ast;
-  typename AT::tdual_kkfloat_4d k_lj14_bsbs, k_lj24_bsbs, k_b4_bsbs, k_cut4_bsbs_c, k_cut4sq_bsbs_c;
-  typename AT::t_kkfloat_4d_randomread d_sigma4_bsbs, d_cut4_bsbs_ast, d_cut4sq_bsbs_ast;
-  typename AT::t_kkfloat_4d_randomread d_lj14_bsbs, d_lj24_bsbs, d_b4_bsbs, d_cut4_bsbs_c, d_cut4sq_bsbs_c;
+  // all per-tetramer coefficients of a pair packed in one struct
+  Kokkos::DualView<ParamsOxdnaExcv4 ****, Kokkos::LayoutRight, DeviceType> k_params4_excv;
+  typename Kokkos::DualView<ParamsOxdnaExcv4 ****, Kokkos::LayoutRight, DeviceType>::t_dev_const_randomread d_params4_excv;
   // per-atom arrays for local unit vectors
-  DAT::tdual_kkfloat_1d_3 k_nx_xtrct, k_ny_xtrct, k_nz_xtrct;
   t_oxdna_packed_sub<DeviceType> d_nx_xtrct, d_ny_xtrct, d_nz_xtrct;
 
   typename ArrayTypes<DeviceType>::t_tagint_1d_randomread tag;

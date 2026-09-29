@@ -41,6 +41,20 @@ class FixOxdnaPrimeNeighsKokkos;  // forward declaration
 template<int OXDNAFLAG, int NEWTON_BOND, int EVFLAG>
 struct TagPairOxdnaStkCompute{};
 
+// packed per-type-pair coefficients of PairOxdnaStkKokkos
+struct ParamsOxdnaStk2 {
+  KK_FLOAT epsilon_st, a_st, b_st_lo, b_st_hi, theta_st4_0, a_st5;
+  KK_FLOAT theta_st5_0, dtheta_st5_ast, b_st5, dtheta_st5_c, a_st6, theta_st6_0;
+  KK_FLOAT dtheta_st6_ast, b_st6, dtheta_st6_c, a_st1, cosphi_st1_ast, b_st1;
+  KK_FLOAT cosphi_st1_c, a_st2, cosphi_st2_ast, b_st2, cosphi_st2_c;
+};
+
+// packed per-tetramer coefficients of PairOxdnaStkKokkos
+struct ParamsOxdnaStk4 {
+  KK_FLOAT cut_st_0, cut_st_c, cut_st_lo, cut_st_hi, cut_st_lc, cut_st_hc;
+  KK_FLOAT shift_st, cutsq_st_hc, a_st4, dtheta_st4_ast, b_st4, dtheta_st4_c;
+};
+
 template<class DeviceType>
 class PairOxdnaStkKokkos : public PairOxdnaStk, public KokkosBase {
  public:
@@ -98,38 +112,13 @@ class PairOxdnaStkKokkos : public PairOxdnaStk, public KokkosBase {
   int nlocal, newton_bond, eflag, vflag;
 
   // stacking interaction parameters
-  typename AT::tdual_kkfloat_2d k_epsilon_st, k_a_st;
-  typename AT::tdual_kkfloat_4d k_cut_st_0, k_cut_st_c, k_cut_st_lo, k_cut_st_hi;
-  typename AT::tdual_kkfloat_4d k_cut_st_lc, k_cut_st_hc;
-  typename AT::tdual_kkfloat_2d k_b_st_lo, k_b_st_hi;
-  typename AT::tdual_kkfloat_4d k_shift_st, k_cutsq_st_hc;
-  typename AT::tdual_kkfloat_4d k_a_st4;
-  typename AT::tdual_kkfloat_2d k_theta_st4_0;
-  typename AT::tdual_kkfloat_4d k_dtheta_st4_ast;
-  typename AT::tdual_kkfloat_4d k_b_st4, k_dtheta_st4_c;
-  typename AT::tdual_kkfloat_2d k_a_st5, k_theta_st5_0, k_dtheta_st5_ast;
-  typename AT::tdual_kkfloat_2d k_b_st5, k_dtheta_st5_c;
-  typename AT::tdual_kkfloat_2d k_a_st6, k_theta_st6_0, k_dtheta_st6_ast;
-  typename AT::tdual_kkfloat_2d k_b_st6, k_dtheta_st6_c;
-  typename AT::tdual_kkfloat_2d k_a_st1, k_cosphi_st1_ast, k_b_st1, k_cosphi_st1_c;
-  typename AT::tdual_kkfloat_2d k_a_st2, k_cosphi_st2_ast, k_b_st2, k_cosphi_st2_c;
-  typename AT::t_kkfloat_2d_randomread d_epsilon_st, d_a_st;
-  typename AT::t_kkfloat_4d_randomread d_cut_st_0, d_cut_st_c, d_cut_st_lo, d_cut_st_hi;
-  typename AT::t_kkfloat_4d_randomread d_cut_st_lc, d_cut_st_hc;
-  typename AT::t_kkfloat_2d_randomread d_b_st_lo, d_b_st_hi;
-  typename AT::t_kkfloat_4d_randomread d_shift_st, d_cutsq_st_hc;
-  typename AT::t_kkfloat_4d_randomread d_a_st4;
-  typename AT::t_kkfloat_2d_randomread d_theta_st4_0;
-  typename AT::t_kkfloat_4d_randomread d_dtheta_st4_ast;
-  typename AT::t_kkfloat_4d_randomread d_b_st4, d_dtheta_st4_c;
-  typename AT::t_kkfloat_2d_randomread d_a_st5, d_theta_st5_0, d_dtheta_st5_ast;
-  typename AT::t_kkfloat_2d_randomread d_b_st5, d_dtheta_st5_c;
-  typename AT::t_kkfloat_2d_randomread d_a_st6, d_theta_st6_0, d_dtheta_st6_ast;
-  typename AT::t_kkfloat_2d_randomread d_b_st6, d_dtheta_st6_c;
-  typename AT::t_kkfloat_2d_randomread d_a_st1, d_cosphi_st1_ast, d_b_st1, d_cosphi_st1_c;
-  typename AT::t_kkfloat_2d_randomread d_a_st2, d_cosphi_st2_ast, d_b_st2, d_cosphi_st2_c;
+  // all per-type-pair coefficients of a pair packed in one struct
+  Kokkos::DualView<ParamsOxdnaStk2 **, Kokkos::LayoutRight, DeviceType> k_params2_st;
+  typename Kokkos::DualView<ParamsOxdnaStk2 **, Kokkos::LayoutRight, DeviceType>::t_dev_const_randomread d_params2_st;
+  // all per-tetramer coefficients of a pair packed in one struct
+  Kokkos::DualView<ParamsOxdnaStk4 ****, Kokkos::LayoutRight, DeviceType> k_params4_st;
+  typename Kokkos::DualView<ParamsOxdnaStk4 ****, Kokkos::LayoutRight, DeviceType>::t_dev_const_randomread d_params4_st;
   // per-atom arrays for local unit vectors
-  DAT::tdual_kkfloat_1d_3 k_nx_xtrct, k_ny_xtrct, k_nz_xtrct;
   t_oxdna_packed_sub<DeviceType> d_nx_xtrct, d_ny_xtrct, d_nz_xtrct;
 
   int first;

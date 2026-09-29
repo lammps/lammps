@@ -293,10 +293,10 @@ void PairOxdnaStkKokkos<DeviceType>::operator()(TagPairOxdnaStkCompute<OXDNAFLAG
   // beginning of modulation factors
 
   // f1 = f1 modulation factor
-  f1 = F1_KK(r_stkstk, d_epsilon_st(atype, btype), d_a_st(atype, btype), d_cut_st_0(a3ptype,atype,btype,b5ptype),
-          d_cut_st_lc(a3ptype,atype,btype,b5ptype), d_cut_st_hc(a3ptype,atype,btype,b5ptype),
-          d_cut_st_lo(a3ptype,atype,btype,b5ptype), d_cut_st_hi(a3ptype,atype,btype,b5ptype),
-          d_b_st_lo(atype, btype), d_b_st_hi(atype, btype), d_shift_st(a3ptype,atype,btype,b5ptype));
+  f1 = F1_KK(r_stkstk, d_params2_st(atype, btype).epsilon_st, d_params2_st(atype, btype).a_st, d_params4_st(a3ptype,atype,btype,b5ptype).cut_st_0,
+          d_params4_st(a3ptype,atype,btype,b5ptype).cut_st_lc, d_params4_st(a3ptype,atype,btype,b5ptype).cut_st_hc,
+          d_params4_st(a3ptype,atype,btype,b5ptype).cut_st_lo, d_params4_st(a3ptype,atype,btype,b5ptype).cut_st_hi,
+          d_params2_st(atype, btype).b_st_lo, d_params2_st(atype, btype).b_st_hi, d_params4_st(a3ptype,atype,btype,b5ptype).shift_st);
 
   // start early rejection criterium
   if (f1 == static_cast<KK_FLOAT>(0.0)) return;
@@ -309,9 +309,9 @@ void PairOxdnaStkKokkos<DeviceType>::operator()(TagPairOxdnaStkCompute<OXDNAFLAG
   if (cost4 < static_cast<KK_FLOAT>(-1.0)) cost4 = static_cast<KK_FLOAT>(-1.0);
   theta4 = Kokkos::acos(cost4);
   // f4t4 = f4 modulation factor
-  f4t4 = F4_KK(theta4, d_a_st4(a3ptype,atype,btype,b5ptype), d_theta_st4_0(atype, btype),
-               d_dtheta_st4_ast(a3ptype,atype,btype,b5ptype), d_b_st4(a3ptype,atype,btype,b5ptype),
-               d_dtheta_st4_c(a3ptype,atype,btype,b5ptype));
+  f4t4 = F4_KK(theta4, d_params4_st(a3ptype,atype,btype,b5ptype).a_st4, d_params2_st(atype, btype).theta_st4_0,
+               d_params4_st(a3ptype,atype,btype,b5ptype).dtheta_st4_ast, d_params4_st(a3ptype,atype,btype,b5ptype).b_st4,
+               d_params4_st(a3ptype,atype,btype,b5ptype).dtheta_st4_c);
 
   // early rejection criterium
   if (f4t4 == static_cast<KK_FLOAT>(0.0)) return;
@@ -324,8 +324,8 @@ void PairOxdnaStkKokkos<DeviceType>::operator()(TagPairOxdnaStkCompute<OXDNAFLAG
   if (cost5p < static_cast<KK_FLOAT>(-1.0)) cost5p = static_cast<KK_FLOAT>(-1.0);
   theta5p = Kokkos::acos(cost5p);
   // f4t5 = f4 modulation factor
-  f4t5 = F4_KK(theta5p, d_a_st5(atype, btype), d_theta_st5_0(atype, btype),
-               d_dtheta_st5_ast(atype, btype), d_b_st5(atype, btype), d_dtheta_st5_c(atype, btype));
+  f4t5 = F4_KK(theta5p, d_params2_st(atype, btype).a_st5, d_params2_st(atype, btype).theta_st5_0,
+               d_params2_st(atype, btype).dtheta_st5_ast, d_params2_st(atype, btype).b_st5, d_params2_st(atype, btype).dtheta_st5_c);
 
   // early rejection criterium
   if (f4t5 == static_cast<KK_FLOAT>(0.0)) return;
@@ -349,14 +349,14 @@ void PairOxdnaStkKokkos<DeviceType>::operator()(TagPairOxdnaStkCompute<OXDNAFLAG
   if (cosphi2 > static_cast<KK_FLOAT>(1.0)) cosphi2 = static_cast<KK_FLOAT>(1.0);
   if (cosphi2 < static_cast<KK_FLOAT>(-1.0)) cosphi2 = static_cast<KK_FLOAT>(-1.0);
   // f4t6 = f4 modulation factor
-  f4t6 = F4_KK(theta6p, d_a_st6(atype, btype), d_theta_st6_0(atype, btype),
-               d_dtheta_st6_ast(atype, btype), d_b_st6(atype, btype), d_dtheta_st6_c(atype, btype));
+  f4t6 = F4_KK(theta6p, d_params2_st(atype, btype).a_st6, d_params2_st(atype, btype).theta_st6_0,
+               d_params2_st(atype, btype).dtheta_st6_ast, d_params2_st(atype, btype).b_st6, d_params2_st(atype, btype).dtheta_st6_c);
   // f5c1 = f5 modulation factor
-  f5c1 = F5_KK(-cosphi1, d_a_st1(atype, btype), -d_cosphi_st1_ast(atype, btype),
-               d_b_st1(atype, btype), -d_cosphi_st1_c(atype, btype));
+  f5c1 = F5_KK(-cosphi1, d_params2_st(atype, btype).a_st1, -d_params2_st(atype, btype).cosphi_st1_ast,
+               d_params2_st(atype, btype).b_st1, -d_params2_st(atype, btype).cosphi_st1_c);
   // f5c2 = f5 modulation factor
-  f5c2 = F5_KK(-cosphi2, d_a_st2(atype, btype), -d_cosphi_st2_ast(atype, btype),
-               d_b_st2(atype, btype), -d_cosphi_st2_c(atype, btype));
+  f5c2 = F5_KK(-cosphi2, d_params2_st(atype, btype).a_st2, -d_params2_st(atype, btype).cosphi_st2_ast,
+               d_params2_st(atype, btype).b_st2, -d_params2_st(atype, btype).cosphi_st2_c);
 
   evdwl = static_cast<KK_ACC_FLOAT>(f1 * f4t4 * f4t5 * f4t6 * f5c1 * f5c2);
 
@@ -364,27 +364,27 @@ void PairOxdnaStkKokkos<DeviceType>::operator()(TagPairOxdnaStkCompute<OXDNAFLAG
   if (evdwl == static_cast<KK_ACC_FLOAT>(0.0)) return;
 
   // df1 = derivative of f1 modulation factor
-  df1 = DF1_KK(r_stkstk, d_epsilon_st(atype, btype), d_a_st(atype, btype),
-      d_cut_st_0(a3ptype,atype,btype,b5ptype),
-      d_cut_st_lc(a3ptype,atype,btype,b5ptype), d_cut_st_hc(a3ptype,atype,btype,b5ptype),
-      d_cut_st_lo(a3ptype,atype,btype,b5ptype), d_cut_st_hi(a3ptype,atype,btype,b5ptype),
-      d_b_st_lo(atype, btype), d_b_st_hi(atype, btype));
+  df1 = DF1_KK(r_stkstk, d_params2_st(atype, btype).epsilon_st, d_params2_st(atype, btype).a_st,
+      d_params4_st(a3ptype,atype,btype,b5ptype).cut_st_0,
+      d_params4_st(a3ptype,atype,btype,b5ptype).cut_st_lc, d_params4_st(a3ptype,atype,btype,b5ptype).cut_st_hc,
+      d_params4_st(a3ptype,atype,btype,b5ptype).cut_st_lo, d_params4_st(a3ptype,atype,btype,b5ptype).cut_st_hi,
+      d_params2_st(atype, btype).b_st_lo, d_params2_st(atype, btype).b_st_hi);
   // df4t4 = derivative of f4 modulation factor
-  df4t4 = DF4_KK(theta4, d_a_st4(a3ptype,atype,btype,b5ptype), d_theta_st4_0(atype, btype),
-      d_dtheta_st4_ast(a3ptype,atype,btype,b5ptype), d_b_st4(a3ptype,atype,btype,b5ptype),
-      d_dtheta_st4_c(a3ptype,atype,btype,b5ptype))/Kokkos::sin(theta4);
+  df4t4 = DF4_KK(theta4, d_params4_st(a3ptype,atype,btype,b5ptype).a_st4, d_params2_st(atype, btype).theta_st4_0,
+      d_params4_st(a3ptype,atype,btype,b5ptype).dtheta_st4_ast, d_params4_st(a3ptype,atype,btype,b5ptype).b_st4,
+      d_params4_st(a3ptype,atype,btype,b5ptype).dtheta_st4_c)/Kokkos::sin(theta4);
   // df4t5 = derivative of f4 modulation factor
-  df4t5 = DF4_KK(theta5p, d_a_st5(atype, btype), d_theta_st5_0(atype, btype), d_dtheta_st5_ast(atype, btype),
-      d_b_st5(atype, btype), d_dtheta_st5_c(atype, btype))/Kokkos::sin(theta5p);
+  df4t5 = DF4_KK(theta5p, d_params2_st(atype, btype).a_st5, d_params2_st(atype, btype).theta_st5_0, d_params2_st(atype, btype).dtheta_st5_ast,
+      d_params2_st(atype, btype).b_st5, d_params2_st(atype, btype).dtheta_st5_c)/Kokkos::sin(theta5p);
   // df4t6 = derivative of f4 modulation factor
-  df4t6 = DF4_KK(theta6p, d_a_st6(atype, btype), d_theta_st6_0(atype, btype), d_dtheta_st6_ast(atype, btype),
-      d_b_st6(atype, btype), d_dtheta_st6_c(atype, btype))/Kokkos::sin(theta6p);
+  df4t6 = DF4_KK(theta6p, d_params2_st(atype, btype).a_st6, d_params2_st(atype, btype).theta_st6_0, d_params2_st(atype, btype).dtheta_st6_ast,
+      d_params2_st(atype, btype).b_st6, d_params2_st(atype, btype).dtheta_st6_c)/Kokkos::sin(theta6p);
   // df5c1 = derivative of f5 modulation factor
-  df5c1 = DF5_KK(-cosphi1, d_a_st1(atype, btype), -d_cosphi_st1_ast(atype, btype),
-      d_b_st1(atype, btype), -d_cosphi_st1_c(atype, btype));
+  df5c1 = DF5_KK(-cosphi1, d_params2_st(atype, btype).a_st1, -d_params2_st(atype, btype).cosphi_st1_ast,
+      d_params2_st(atype, btype).b_st1, -d_params2_st(atype, btype).cosphi_st1_c);
   // df5c2 = derivative of f5 modulation factor
-  df5c2 = DF5_KK(-cosphi2, d_a_st2(atype, btype), -d_cosphi_st2_ast(atype, btype),
-      d_b_st2(atype, btype), -d_cosphi_st2_c(atype, btype));
+  df5c2 = DF5_KK(-cosphi2, d_params2_st(atype, btype).a_st2, -d_params2_st(atype, btype).cosphi_st2_ast,
+      d_params2_st(atype, btype).b_st2, -d_params2_st(atype, btype).cosphi_st2_c);
 
   // force, torque and virial contribution for forces between stacking sites
   delf[0] = 0.0;
@@ -587,85 +587,19 @@ void PairOxdnaStkKokkos<DeviceType>::allocate()
 
   int n = atom->ntypes;
 
-  memoryKK->create_kokkos(k_epsilon_st,n+1,n+1,"PairOxdnaStk:epsilon_st");
-  memoryKK->create_kokkos(k_a_st,n+1,n+1,"PairOxdnaStk:a_st");
-  memoryKK->create_kokkos(k_cut_st_0,n+1,n+1,n+1,n+1,"PairOxdnaStk:cut_st_0");
-  memoryKK->create_kokkos(k_cut_st_c,n+1,n+1,n+1,n+1,"PairOxdnaStk:cut_st_c");
-  memoryKK->create_kokkos(k_cut_st_lo,n+1,n+1,n+1,n+1,"PairOxdnaStk:cut_st_lo");
-  memoryKK->create_kokkos(k_cut_st_hi,n+1,n+1,n+1,n+1,"PairOxdnaStk:cut_st_hi");
-  memoryKK->create_kokkos(k_cut_st_lc,n+1,n+1,n+1,n+1,"PairOxdnaStk:cut_st_lc");
-  memoryKK->create_kokkos(k_cut_st_hc,n+1,n+1,n+1,n+1,"PairOxdnaStk:cut_st_hc");
-  memoryKK->create_kokkos(k_b_st_lo,n+1,n+1,"PairOxdnaStk:b_st_lo");
-  memoryKK->create_kokkos(k_b_st_hi,n+1,n+1,"PairOxdnaStk:b_st_hi");
-  memoryKK->create_kokkos(k_shift_st,n+1,n+1,n+1,n+1,"PairOxdnaStk:shift_st");
-  memoryKK->create_kokkos(k_cutsq_st_hc,n+1,n+1,n+1,n+1,"PairOxdnaStk:cutsq_st_hc");
+  k_params2_st = decltype(k_params2_st)("PairOxdnaStkKokkos:params2_st", n+1, n+1);
+  k_params4_st = decltype(k_params4_st)("PairOxdnaStkKokkos:params4_st", n+1, n+1, n+1, n+1);
 
-  memoryKK->create_kokkos(k_a_st4,n+1,n+1,n+1,n+1,"PairOxdnaStk:a_st4");
-  memoryKK->create_kokkos(k_theta_st4_0,n+1,n+1,"PairOxdnaStk:theta_st4_0");
-  memoryKK->create_kokkos(k_dtheta_st4_ast,n+1,n+1,n+1,n+1,"PairOxdnaStk:dtheta_st4_ast");
-  memoryKK->create_kokkos(k_b_st4,n+1,n+1,n+1,n+1,"PairOxdnaStk:b_st4");
-  memoryKK->create_kokkos(k_dtheta_st4_c,n+1,n+1,n+1,n+1,"PairOxdnaStk:dtheta_st4_c");
 
-  memoryKK->create_kokkos(k_a_st5,n+1,n+1,"PairOxdnaStk:a_st5");
-  memoryKK->create_kokkos(k_theta_st5_0,n+1,n+1,"PairOxdnaStk:theta_st5_0");
-  memoryKK->create_kokkos(k_dtheta_st5_ast,n+1,n+1,"PairOxdnaStk:dtheta_st5_ast");
-  memoryKK->create_kokkos(k_b_st5,n+1,n+1,"PairOxdnaStk:b_st5");
-  memoryKK->create_kokkos(k_dtheta_st5_c,n+1,n+1,"PairOxdnaStk:dtheta_st5_c");
 
-  memoryKK->create_kokkos(k_a_st6,n+1,n+1,"PairOxdnaStk:a_st6");
-  memoryKK->create_kokkos(k_theta_st6_0,n+1,n+1,"PairOxdnaStk:theta_st6_0");
-  memoryKK->create_kokkos(k_dtheta_st6_ast,n+1,n+1,"PairOxdnaStk:dtheta_st6_ast");
-  memoryKK->create_kokkos(k_b_st6,n+1,n+1,"PairOxdnaStk:b_st6");
-  memoryKK->create_kokkos(k_dtheta_st6_c,n+1,n+1,"PairOxdnaStk:dtheta_st6_c");
 
-  memoryKK->create_kokkos(k_a_st1,n+1,n+1,"PairOxdnaStk:a_st1");
-  memoryKK->create_kokkos(k_cosphi_st1_ast,n+1,n+1,"PairOxdnaStk:cosphi_st1_ast");
-  memoryKK->create_kokkos(k_b_st1,n+1,n+1,"PairOxdnaStk:b_st1");
-  memoryKK->create_kokkos(k_cosphi_st1_c,n+1,n+1,"PairOxdnaStk:cosphi_st1_c");
-  memoryKK->create_kokkos(k_a_st2,n+1,n+1,"PairOxdnaStk:a_st2");
-  memoryKK->create_kokkos(k_cosphi_st2_ast,n+1,n+1,"PairOxdnaStk:cosphi_st2_ast");
-  memoryKK->create_kokkos(k_b_st2,n+1,n+1,"PairOxdnaStk:b_st2");
-  memoryKK->create_kokkos(k_cosphi_st2_c,n+1,n+1,"PairOxdnaStk:cosphi_st2_c");
 
-  d_epsilon_st = k_epsilon_st.template view<DeviceType>();
-  d_a_st = k_a_st.template view<DeviceType>();
-  d_cut_st_0 = k_cut_st_0.template view<DeviceType>();
-  d_cut_st_c = k_cut_st_c.template view<DeviceType>();
-  d_cut_st_lo = k_cut_st_lo.template view<DeviceType>();
-  d_cut_st_hi = k_cut_st_hi.template view<DeviceType>();
-  d_cut_st_lc = k_cut_st_lc.template view<DeviceType>();
-  d_cut_st_hc = k_cut_st_hc.template view<DeviceType>();
-  d_b_st_lo = k_b_st_lo.template view<DeviceType>();
-  d_b_st_hi = k_b_st_hi.template view<DeviceType>();
-  d_shift_st = k_shift_st.template view<DeviceType>();
-  d_cutsq_st_hc = k_cutsq_st_hc.template view<DeviceType>();
+  d_params2_st = k_params2_st.template view<DeviceType>();
+  d_params4_st = k_params4_st.template view<DeviceType>();
 
-  d_a_st4 = k_a_st4.template view<DeviceType>();
-  d_theta_st4_0 = k_theta_st4_0.template view<DeviceType>();
-  d_dtheta_st4_ast = k_dtheta_st4_ast.template view<DeviceType>();
-  d_b_st4 = k_b_st4.template view<DeviceType>();
-  d_dtheta_st4_c = k_dtheta_st4_c.template view<DeviceType>();
 
-  d_a_st5 = k_a_st5.template view<DeviceType>();
-  d_theta_st5_0 = k_theta_st5_0.template view<DeviceType>();
-  d_dtheta_st5_ast = k_dtheta_st5_ast.template view<DeviceType>();
-  d_b_st5 = k_b_st5.template view<DeviceType>();
-  d_dtheta_st5_c = k_dtheta_st5_c.template view<DeviceType>();
 
-  d_a_st6 = k_a_st6.template view<DeviceType>();
-  d_theta_st6_0 = k_theta_st6_0.template view<DeviceType>();
-  d_dtheta_st6_ast = k_dtheta_st6_ast.template view<DeviceType>();
-  d_b_st6 = k_b_st6.template view<DeviceType>();
-  d_dtheta_st6_c = k_dtheta_st6_c.template view<DeviceType>();
 
-  d_a_st1 = k_a_st1.template view<DeviceType>();
-  d_cosphi_st1_ast = k_cosphi_st1_ast.template view<DeviceType>();
-  d_b_st1 = k_b_st1.template view<DeviceType>();
-  d_cosphi_st1_c = k_cosphi_st1_c.template view<DeviceType>();
-  d_a_st2 = k_a_st2.template view<DeviceType>();
-  d_cosphi_st2_ast = k_cosphi_st2_ast.template view<DeviceType>();
-  d_b_st2 = k_b_st2.template view<DeviceType>();
-  d_cosphi_st2_c = k_cosphi_st2_c.template view<DeviceType>();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -723,113 +657,69 @@ double PairOxdnaStkKokkos<DeviceType>::init_one(int i, int j)
   // the tetramer Kokkos views are set within ::coeff
 
   // Assign directionally: [i][j] gets [i][j], [j][i] gets [j][i]
-  k_epsilon_st.view_host()(i,j) = static_cast<KK_FLOAT>(epsilon_st[i][j]);
-  k_epsilon_st.view_host()(j,i) = static_cast<KK_FLOAT>(epsilon_st[j][i]);
-  k_a_st.view_host()(i,j) = static_cast<KK_FLOAT>(a_st[i][j]);
-  k_a_st.view_host()(j,i) = static_cast<KK_FLOAT>(a_st[j][i]);
-  k_b_st_lo.view_host()(i,j) = static_cast<KK_FLOAT>(b_st_lo[i][j]);
-  k_b_st_lo.view_host()(j,i) = static_cast<KK_FLOAT>(b_st_lo[j][i]);
-  k_b_st_hi.view_host()(i,j) = static_cast<KK_FLOAT>(b_st_hi[i][j]);
-  k_b_st_hi.view_host()(j,i) = static_cast<KK_FLOAT>(b_st_hi[j][i]);
+  k_params2_st.view_host()(i,j).epsilon_st = static_cast<KK_FLOAT>(epsilon_st[i][j]);
+  k_params2_st.view_host()(j,i).epsilon_st = static_cast<KK_FLOAT>(epsilon_st[j][i]);
+  k_params2_st.view_host()(i,j).a_st = static_cast<KK_FLOAT>(a_st[i][j]);
+  k_params2_st.view_host()(j,i).a_st = static_cast<KK_FLOAT>(a_st[j][i]);
+  k_params2_st.view_host()(i,j).b_st_lo = static_cast<KK_FLOAT>(b_st_lo[i][j]);
+  k_params2_st.view_host()(j,i).b_st_lo = static_cast<KK_FLOAT>(b_st_lo[j][i]);
+  k_params2_st.view_host()(i,j).b_st_hi = static_cast<KK_FLOAT>(b_st_hi[i][j]);
+  k_params2_st.view_host()(j,i).b_st_hi = static_cast<KK_FLOAT>(b_st_hi[j][i]);
 
-  k_theta_st4_0.view_host()(i,j) = static_cast<KK_FLOAT>(theta_st4_0[i][j]);
-  k_theta_st4_0.view_host()(j,i) = static_cast<KK_FLOAT>(theta_st4_0[j][i]);
+  k_params2_st.view_host()(i,j).theta_st4_0 = static_cast<KK_FLOAT>(theta_st4_0[i][j]);
+  k_params2_st.view_host()(j,i).theta_st4_0 = static_cast<KK_FLOAT>(theta_st4_0[j][i]);
 
-  k_a_st5.view_host()(i,j) = static_cast<KK_FLOAT>(a_st5[i][j]);
-  k_a_st5.view_host()(j,i) = static_cast<KK_FLOAT>(a_st5[j][i]);
-  k_theta_st5_0.view_host()(i,j) = static_cast<KK_FLOAT>(theta_st5_0[i][j]);
-  k_theta_st5_0.view_host()(j,i) = static_cast<KK_FLOAT>(theta_st5_0[j][i]);
-  k_dtheta_st5_ast.view_host()(i,j) = static_cast<KK_FLOAT>(dtheta_st5_ast[i][j]);
-  k_dtheta_st5_ast.view_host()(j,i) = static_cast<KK_FLOAT>(dtheta_st5_ast[j][i]);
-  k_b_st5.view_host()(i,j) = static_cast<KK_FLOAT>(b_st5[i][j]);
-  k_b_st5.view_host()(j,i) = static_cast<KK_FLOAT>(b_st5[j][i]);
-  k_dtheta_st5_c.view_host()(i,j) = static_cast<KK_FLOAT>(dtheta_st5_c[i][j]);
-  k_dtheta_st5_c.view_host()(j,i) = static_cast<KK_FLOAT>(dtheta_st5_c[j][i]);
+  k_params2_st.view_host()(i,j).a_st5 = static_cast<KK_FLOAT>(a_st5[i][j]);
+  k_params2_st.view_host()(j,i).a_st5 = static_cast<KK_FLOAT>(a_st5[j][i]);
+  k_params2_st.view_host()(i,j).theta_st5_0 = static_cast<KK_FLOAT>(theta_st5_0[i][j]);
+  k_params2_st.view_host()(j,i).theta_st5_0 = static_cast<KK_FLOAT>(theta_st5_0[j][i]);
+  k_params2_st.view_host()(i,j).dtheta_st5_ast = static_cast<KK_FLOAT>(dtheta_st5_ast[i][j]);
+  k_params2_st.view_host()(j,i).dtheta_st5_ast = static_cast<KK_FLOAT>(dtheta_st5_ast[j][i]);
+  k_params2_st.view_host()(i,j).b_st5 = static_cast<KK_FLOAT>(b_st5[i][j]);
+  k_params2_st.view_host()(j,i).b_st5 = static_cast<KK_FLOAT>(b_st5[j][i]);
+  k_params2_st.view_host()(i,j).dtheta_st5_c = static_cast<KK_FLOAT>(dtheta_st5_c[i][j]);
+  k_params2_st.view_host()(j,i).dtheta_st5_c = static_cast<KK_FLOAT>(dtheta_st5_c[j][i]);
 
-  k_a_st6.view_host()(i,j) = static_cast<KK_FLOAT>(a_st6[i][j]);
-  k_a_st6.view_host()(j,i) = static_cast<KK_FLOAT>(a_st6[j][i]);
-  k_theta_st6_0.view_host()(i,j) = static_cast<KK_FLOAT>(theta_st6_0[i][j]);
-  k_theta_st6_0.view_host()(j,i) = static_cast<KK_FLOAT>(theta_st6_0[j][i]);
-  k_dtheta_st6_ast.view_host()(i,j) = static_cast<KK_FLOAT>(dtheta_st6_ast[i][j]);
-  k_dtheta_st6_ast.view_host()(j,i) = static_cast<KK_FLOAT>(dtheta_st6_ast[j][i]);
-  k_b_st6.view_host()(i,j) = static_cast<KK_FLOAT>(b_st6[i][j]);
-  k_b_st6.view_host()(j,i) = static_cast<KK_FLOAT>(b_st6[j][i]);
-  k_dtheta_st6_c.view_host()(i,j) = static_cast<KK_FLOAT>(dtheta_st6_c[i][j]);
-  k_dtheta_st6_c.view_host()(j,i) = static_cast<KK_FLOAT>(dtheta_st6_c[j][i]);
+  k_params2_st.view_host()(i,j).a_st6 = static_cast<KK_FLOAT>(a_st6[i][j]);
+  k_params2_st.view_host()(j,i).a_st6 = static_cast<KK_FLOAT>(a_st6[j][i]);
+  k_params2_st.view_host()(i,j).theta_st6_0 = static_cast<KK_FLOAT>(theta_st6_0[i][j]);
+  k_params2_st.view_host()(j,i).theta_st6_0 = static_cast<KK_FLOAT>(theta_st6_0[j][i]);
+  k_params2_st.view_host()(i,j).dtheta_st6_ast = static_cast<KK_FLOAT>(dtheta_st6_ast[i][j]);
+  k_params2_st.view_host()(j,i).dtheta_st6_ast = static_cast<KK_FLOAT>(dtheta_st6_ast[j][i]);
+  k_params2_st.view_host()(i,j).b_st6 = static_cast<KK_FLOAT>(b_st6[i][j]);
+  k_params2_st.view_host()(j,i).b_st6 = static_cast<KK_FLOAT>(b_st6[j][i]);
+  k_params2_st.view_host()(i,j).dtheta_st6_c = static_cast<KK_FLOAT>(dtheta_st6_c[i][j]);
+  k_params2_st.view_host()(j,i).dtheta_st6_c = static_cast<KK_FLOAT>(dtheta_st6_c[j][i]);
 
-  k_a_st1.view_host()(i,j) = static_cast<KK_FLOAT>(a_st1[i][j]);
-  k_a_st1.view_host()(j,i) = static_cast<KK_FLOAT>(a_st1[j][i]);
-  k_cosphi_st1_ast.view_host()(i,j) = static_cast<KK_FLOAT>(cosphi_st1_ast[i][j]);
-  k_cosphi_st1_ast.view_host()(j,i) = static_cast<KK_FLOAT>(cosphi_st1_ast[j][i]);
-  k_b_st1.view_host()(i,j) = static_cast<KK_FLOAT>(b_st1[i][j]);
-  k_b_st1.view_host()(j,i) = static_cast<KK_FLOAT>(b_st1[j][i]);
-  k_cosphi_st1_c.view_host()(i,j) = static_cast<KK_FLOAT>(cosphi_st1_c[i][j]);
-  k_cosphi_st1_c.view_host()(j,i) = static_cast<KK_FLOAT>(cosphi_st1_c[j][i]);
-  k_a_st2.view_host()(i,j) = static_cast<KK_FLOAT>(a_st2[i][j]);
-  k_a_st2.view_host()(j,i) = static_cast<KK_FLOAT>(a_st2[j][i]);
-  k_cosphi_st2_ast.view_host()(i,j) = static_cast<KK_FLOAT>(cosphi_st2_ast[i][j]);
-  k_cosphi_st2_ast.view_host()(j,i) = static_cast<KK_FLOAT>(cosphi_st2_ast[j][i]);
-  k_b_st2.view_host()(i,j) = static_cast<KK_FLOAT>(b_st2[i][j]);
-  k_b_st2.view_host()(j,i) = static_cast<KK_FLOAT>(b_st2[j][i]);
-  k_cosphi_st2_c.view_host()(i,j) = static_cast<KK_FLOAT>(cosphi_st2_c[i][j]);
-  k_cosphi_st2_c.view_host()(j,i) = static_cast<KK_FLOAT>(cosphi_st2_c[j][i]);
+  k_params2_st.view_host()(i,j).a_st1 = static_cast<KK_FLOAT>(a_st1[i][j]);
+  k_params2_st.view_host()(j,i).a_st1 = static_cast<KK_FLOAT>(a_st1[j][i]);
+  k_params2_st.view_host()(i,j).cosphi_st1_ast = static_cast<KK_FLOAT>(cosphi_st1_ast[i][j]);
+  k_params2_st.view_host()(j,i).cosphi_st1_ast = static_cast<KK_FLOAT>(cosphi_st1_ast[j][i]);
+  k_params2_st.view_host()(i,j).b_st1 = static_cast<KK_FLOAT>(b_st1[i][j]);
+  k_params2_st.view_host()(j,i).b_st1 = static_cast<KK_FLOAT>(b_st1[j][i]);
+  k_params2_st.view_host()(i,j).cosphi_st1_c = static_cast<KK_FLOAT>(cosphi_st1_c[i][j]);
+  k_params2_st.view_host()(j,i).cosphi_st1_c = static_cast<KK_FLOAT>(cosphi_st1_c[j][i]);
+  k_params2_st.view_host()(i,j).a_st2 = static_cast<KK_FLOAT>(a_st2[i][j]);
+  k_params2_st.view_host()(j,i).a_st2 = static_cast<KK_FLOAT>(a_st2[j][i]);
+  k_params2_st.view_host()(i,j).cosphi_st2_ast = static_cast<KK_FLOAT>(cosphi_st2_ast[i][j]);
+  k_params2_st.view_host()(j,i).cosphi_st2_ast = static_cast<KK_FLOAT>(cosphi_st2_ast[j][i]);
+  k_params2_st.view_host()(i,j).b_st2 = static_cast<KK_FLOAT>(b_st2[i][j]);
+  k_params2_st.view_host()(j,i).b_st2 = static_cast<KK_FLOAT>(b_st2[j][i]);
+  k_params2_st.view_host()(i,j).cosphi_st2_c = static_cast<KK_FLOAT>(cosphi_st2_c[i][j]);
+  k_params2_st.view_host()(j,i).cosphi_st2_c = static_cast<KK_FLOAT>(cosphi_st2_c[j][i]);
 
-  k_epsilon_st.modify_host();
-  k_a_st.modify_host();
-  k_b_st_lo.modify_host();
-  k_b_st_hi.modify_host();
+  k_params2_st.modify_host();
 
-  k_theta_st4_0.modify_host();
 
-  k_a_st5.modify_host();
-  k_theta_st5_0.modify_host();
-  k_dtheta_st5_ast.modify_host();
-  k_b_st5.modify_host();
-  k_dtheta_st5_c.modify_host();
 
-  k_a_st6.modify_host();
-  k_theta_st6_0.modify_host();
-  k_dtheta_st6_ast.modify_host();
-  k_b_st6.modify_host();
-  k_dtheta_st6_c.modify_host();
 
-  k_a_st1.modify_host();
-  k_cosphi_st1_ast.modify_host();
-  k_b_st1.modify_host();
-  k_cosphi_st1_c.modify_host();
-  k_a_st2.modify_host();
-  k_cosphi_st2_ast.modify_host();
-  k_b_st2.modify_host();
-  k_cosphi_st2_c.modify_host();
 
   // Sync to device
-  k_epsilon_st.template sync<DeviceType>();
-  k_a_st.template sync<DeviceType>();
-  k_b_st_lo.template sync<DeviceType>();
-  k_b_st_hi.template sync<DeviceType>();
+  k_params2_st.template sync<DeviceType>();
 
-  k_theta_st4_0.template sync<DeviceType>();
 
-  k_a_st5.template sync<DeviceType>();
-  k_theta_st5_0.template sync<DeviceType>();
-  k_dtheta_st5_ast.template sync<DeviceType>();
-  k_b_st5.template sync<DeviceType>();
-  k_dtheta_st5_c.template sync<DeviceType>();
 
-  k_a_st6.template sync<DeviceType>();
-  k_theta_st6_0.template sync<DeviceType>();
-  k_dtheta_st6_ast.template sync<DeviceType>();
-  k_b_st6.template sync<DeviceType>();
-  k_dtheta_st6_c.template sync<DeviceType>();
 
-  k_a_st1.template sync<DeviceType>();
-  k_cosphi_st1_ast.template sync<DeviceType>();
-  k_b_st1.template sync<DeviceType>();
-  k_cosphi_st1_c.template sync<DeviceType>();
-  k_a_st2.template sync<DeviceType>();
-  k_cosphi_st2_ast.template sync<DeviceType>();
-  k_b_st2.template sync<DeviceType>();
-  k_cosphi_st2_c.template sync<DeviceType>();
 
   // "cutone" is max of "cut_st_hc[a][i][j][b]", sets the master list distance cutoff
   return cutone;
@@ -855,49 +745,27 @@ void PairOxdnaStkKokkos<DeviceType>::coeff_set_tetramers_kokkos(int narg, char *
     for (int j = nlo; j <= nhi; j++) {
       for (int k = nlo; k <= nhi; k++) {
         for (int l = 0; l <= nhi; l++) { // type 0 for terminal k
-          k_cut_st_0.view_host()(i,j,k,l) = static_cast<KK_FLOAT>(cut_st_0[i][j][k][l]);
-          k_cut_st_c.view_host()(i,j,k,l) = static_cast<KK_FLOAT>(cut_st_c[i][j][k][l]);
-          k_cut_st_lo.view_host()(i,j,k,l) = static_cast<KK_FLOAT>(cut_st_lo[i][j][k][l]);
-          k_cut_st_hi.view_host()(i,j,k,l) = static_cast<KK_FLOAT>(cut_st_hi[i][j][k][l]);
-          k_cut_st_lc.view_host()(i,j,k,l) = static_cast<KK_FLOAT>(cut_st_lc[i][j][k][l]);
-          k_cut_st_hc.view_host()(i,j,k,l) = static_cast<KK_FLOAT>(cut_st_hc[i][j][k][l]);
-          k_shift_st.view_host()(i,j,k,l) = static_cast<KK_FLOAT>(shift_st[i][j][k][l]);
-          k_cutsq_st_hc.view_host()(i,j,k,l) = static_cast<KK_FLOAT>(cutsq_st_hc[i][j][k][l]);
-          k_a_st4.view_host()(i,j,k,l) = static_cast<KK_FLOAT>(a_st4[i][j][k][l]);
-          k_dtheta_st4_ast.view_host()(i,j,k,l) = static_cast<KK_FLOAT>(dtheta_st4_ast[i][j][k][l]);
-          k_b_st4.view_host()(i,j,k,l) = static_cast<KK_FLOAT>(b_st4[i][j][k][l]);
-          k_dtheta_st4_c.view_host()(i,j,k,l) = static_cast<KK_FLOAT>(dtheta_st4_c[i][j][k][l]);
+          k_params4_st.view_host()(i,j,k,l).cut_st_0 = static_cast<KK_FLOAT>(cut_st_0[i][j][k][l]);
+          k_params4_st.view_host()(i,j,k,l).cut_st_c = static_cast<KK_FLOAT>(cut_st_c[i][j][k][l]);
+          k_params4_st.view_host()(i,j,k,l).cut_st_lo = static_cast<KK_FLOAT>(cut_st_lo[i][j][k][l]);
+          k_params4_st.view_host()(i,j,k,l).cut_st_hi = static_cast<KK_FLOAT>(cut_st_hi[i][j][k][l]);
+          k_params4_st.view_host()(i,j,k,l).cut_st_lc = static_cast<KK_FLOAT>(cut_st_lc[i][j][k][l]);
+          k_params4_st.view_host()(i,j,k,l).cut_st_hc = static_cast<KK_FLOAT>(cut_st_hc[i][j][k][l]);
+          k_params4_st.view_host()(i,j,k,l).shift_st = static_cast<KK_FLOAT>(shift_st[i][j][k][l]);
+          k_params4_st.view_host()(i,j,k,l).cutsq_st_hc = static_cast<KK_FLOAT>(cutsq_st_hc[i][j][k][l]);
+          k_params4_st.view_host()(i,j,k,l).a_st4 = static_cast<KK_FLOAT>(a_st4[i][j][k][l]);
+          k_params4_st.view_host()(i,j,k,l).dtheta_st4_ast = static_cast<KK_FLOAT>(dtheta_st4_ast[i][j][k][l]);
+          k_params4_st.view_host()(i,j,k,l).b_st4 = static_cast<KK_FLOAT>(b_st4[i][j][k][l]);
+          k_params4_st.view_host()(i,j,k,l).dtheta_st4_c = static_cast<KK_FLOAT>(dtheta_st4_c[i][j][k][l]);
         }
       }
     }
   }
 
-  k_cut_st_0.modify_host();
-  k_cut_st_c.modify_host();
-  k_cut_st_lo.modify_host();
-  k_cut_st_hi.modify_host();
-  k_cut_st_lc.modify_host();
-  k_cut_st_hc.modify_host();
-  k_shift_st.modify_host();
-  k_cutsq_st_hc.modify_host();
-  k_a_st4.modify_host();
-  k_dtheta_st4_ast.modify_host();
-  k_b_st4.modify_host();
-  k_dtheta_st4_c.modify_host();
+  k_params4_st.modify_host();
 
   // Sync to device
-  k_cut_st_0.template sync<DeviceType>();
-  k_cut_st_c.template sync<DeviceType>();
-  k_cut_st_lo.template sync<DeviceType>();
-  k_cut_st_hi.template sync<DeviceType>();
-  k_cut_st_lc.template sync<DeviceType>();
-  k_cut_st_hc.template sync<DeviceType>();
-  k_shift_st.template sync<DeviceType>();
-  k_cutsq_st_hc.template sync<DeviceType>();
-  k_a_st4.template sync<DeviceType>();
-  k_dtheta_st4_ast.template sync<DeviceType>();
-  k_b_st4.template sync<DeviceType>();
-  k_dtheta_st4_c.template sync<DeviceType>();
+  k_params4_st.template sync<DeviceType>();
 
   // check whether the tetramer-indexed coefficients used by the compute kernel
   // depend on the 3'/5' context types (first and last index) at all
@@ -908,16 +776,16 @@ void PairOxdnaStkKokkos<DeviceType>::coeff_set_tetramers_kokkos(int narg, char *
     for (int k = 1; k <= ntypes && tetramer_uniform; k++) {
       for (int i = 0; i <= ntypes && tetramer_uniform; i++) {
         for (int l = 0; l <= ntypes; l++) {
-          if ((k_cut_st_0.view_host()(i,j,k,l) != k_cut_st_0.view_host()(0,j,k,0)) ||
-              (k_cut_st_lc.view_host()(i,j,k,l) != k_cut_st_lc.view_host()(0,j,k,0)) ||
-              (k_cut_st_hc.view_host()(i,j,k,l) != k_cut_st_hc.view_host()(0,j,k,0)) ||
-              (k_cut_st_lo.view_host()(i,j,k,l) != k_cut_st_lo.view_host()(0,j,k,0)) ||
-              (k_cut_st_hi.view_host()(i,j,k,l) != k_cut_st_hi.view_host()(0,j,k,0)) ||
-              (k_shift_st.view_host()(i,j,k,l) != k_shift_st.view_host()(0,j,k,0)) ||
-              (k_a_st4.view_host()(i,j,k,l) != k_a_st4.view_host()(0,j,k,0)) ||
-              (k_b_st4.view_host()(i,j,k,l) != k_b_st4.view_host()(0,j,k,0)) ||
-              (k_dtheta_st4_ast.view_host()(i,j,k,l) != k_dtheta_st4_ast.view_host()(0,j,k,0)) ||
-              (k_dtheta_st4_c.view_host()(i,j,k,l) != k_dtheta_st4_c.view_host()(0,j,k,0))) {
+          if ((k_params4_st.view_host()(i,j,k,l).cut_st_0 != k_params4_st.view_host()(0,j,k,0).cut_st_0) ||
+              (k_params4_st.view_host()(i,j,k,l).cut_st_lc != k_params4_st.view_host()(0,j,k,0).cut_st_lc) ||
+              (k_params4_st.view_host()(i,j,k,l).cut_st_hc != k_params4_st.view_host()(0,j,k,0).cut_st_hc) ||
+              (k_params4_st.view_host()(i,j,k,l).cut_st_lo != k_params4_st.view_host()(0,j,k,0).cut_st_lo) ||
+              (k_params4_st.view_host()(i,j,k,l).cut_st_hi != k_params4_st.view_host()(0,j,k,0).cut_st_hi) ||
+              (k_params4_st.view_host()(i,j,k,l).shift_st != k_params4_st.view_host()(0,j,k,0).shift_st) ||
+              (k_params4_st.view_host()(i,j,k,l).a_st4 != k_params4_st.view_host()(0,j,k,0).a_st4) ||
+              (k_params4_st.view_host()(i,j,k,l).b_st4 != k_params4_st.view_host()(0,j,k,0).b_st4) ||
+              (k_params4_st.view_host()(i,j,k,l).dtheta_st4_ast != k_params4_st.view_host()(0,j,k,0).dtheta_st4_ast) ||
+              (k_params4_st.view_host()(i,j,k,l).dtheta_st4_c != k_params4_st.view_host()(0,j,k,0).dtheta_st4_c)) {
             tetramer_uniform = 0;
             break;
           }

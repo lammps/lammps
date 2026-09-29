@@ -4117,6 +4117,7 @@ ters
 tersoff
 Tersoff
 Tetot
+tetrahedra
 tex
 textrm
 tfac

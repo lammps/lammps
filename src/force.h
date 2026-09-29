@@ -134,7 +134,7 @@ class Force : protected Pointers {
 
   void create_bond(const std::string &, int);
   Bond *new_bond(const std::string &, int, int &);
-  Bond *bond_match(const std::string &, int, int nsub = 0);
+  Bond *bond_match(const std::string &);
 
   void create_angle(const std::string &, int);
   Angle *new_angle(const std::string &, int, int &);

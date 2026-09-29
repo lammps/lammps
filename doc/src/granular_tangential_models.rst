@@ -7,37 +7,59 @@ Tangential models apply a force :math:`\mathbf{F}_t = \mathbf{F}_{i,t} = -\mathb
 on each particle :math:`i,j` in a direction tangential
 to the surfaces of the particles, and induce torques 
 :math:`\tau_i,\tau_j`. The tangential force is added 
-to the total normal force (elastic plus
-damping) to produce the total force on each particle. The torques 
-act at the contact point, defined as the center of the
-overlap region:
+to the total normal force to produce the total force on each particle. 
+
+The general form of the tangential contact force for all models is:
 
 .. math::
+
+   \mathbf{F}_t =  \min(\mu_t F_{n0}, \|\mathbf{F}_{te} + \mathbf{F}_\mathrm{t,damp}\|) \mathbf{t}
    
-   \mathbf{\tau}_i = -(R_i - 0.5 \delta) \mathbf{n} \times \mathbf{F}_t
+where :math:`\mathbf{F}_{te}` and :math:`\mathbf{F}_\mathrm{t,damp}`
+are the elastic and damping components of the tangential force, respectively,
+and :math:`\mathbf{t}` is the direction of the tangential force given by:
+
+.. math::
+   \mathbf{t} = \frac{\mathbf{F}_{te} + \mathbf{F}_\mathrm{t,damp}}{\|\mathbf{F}_{te} + \mathbf{F}_\mathrm{t,damp}\|}
+
+.. _critical_force_definition:
+
+Critical force
+----------------------------
+
+The normal force value :math:`F_{n0}` used to compute the critical force
+at which slip occurs depends on the form of the contact model.  
+For non-cohesive models (\*hertz*, *hertz/material*, *hooke*\ ), it is 
+given by the magnitude of the normal force:
 
 .. math::
 
-   \mathbf{\tau}_j = -(R_j - 0.5 \delta) \mathbf{n} \times \mathbf{F}_t
+   F_{n0} = \|\mathbf{F}_n\|
 
-The direction of the tangential force :math:`\mathbf{t}` is based on 
-the relative tangential velocity :math:`\mathbf{v}_{t,rel}` at the 
-point of contact:
-
-.. math::
-
-   \mathbf{v}_{t, rel} = \mathbf{v}_{t} - (R_i\mathbf{\Omega}_i + R_j\mathbf{\Omega}_j) \times \mathbf{n}
-
-Here, :math:`\mathbf{v}_{t} = \mathbf{v}_r - \mathbf{v}_r\cdot\mathbf{n}\ \mathbf{n}`,
-:math:`\mathbf{v}_r = \mathbf{v}_j - \mathbf{v}_i`, and :math:`\mathbf{n}` is 
-the unit vector along the direction connecting the two 
-particle centers, discussed :ref:`here <normal_models_preamble>`. 
-
-The direction of the tangential force is then:
+For cohesive models such as *jkr* and *dmt* , 
+the critical force is adjusted so that the critical tangential force 
+approaches :math:`\mu_tF_\text{pulloff}`, see :ref:`Marshall <Marshall2009_1>`, 
+equation 43, and :ref:`Thornton <Thornton1991>`. For these models, the
+normal force for purposes of computing the critical force is given by: 
 
 .. math::
 
-   \mathbf{t} = \mathbf{v_{t,rel}}/\|\mathbf{v_{t,rel}}\|
+   F_{n0} = \|\mathbf{F}_{ne} + 2 F_{pulloff}\|
+
+Where :math:`F_\text{pulloff} = 3\pi \gamma R` for *jkr*, 
+:math:`F_\text{pulloff} = 4\pi \gamma R` for *dmt*.
+
+For cohesive models such as *epa_linear* and *epa_nonlinear*, the 
+critical force is incremented by the value of the cohesive force, see
+:ref:`Luding2008 <Luding2008>`, `Morrisey2013 <Morrisey2013>`
+.. math::
+
+   F_{n0} = \|\mathbf{F}_{ne} + F_\text{cohesive}\|
+
+Where :math:`F_\text{cohesive} = f0 + k_c\delta` for *epa_linear*, 
+:math:`F_\text{cohesive} = f0 + k_c\delta^n` for *epa_nonlinear*.
+
+
 
 
 .. _tangential_damping_discussion:
@@ -45,27 +67,36 @@ The direction of the tangential force is then:
 Tangential damping
 --------------------------------
 
-The tangential damping force :math:`\mathbf{F}_\mathrm{t,damp}` used by
-all tangential models has the generic form:
+
+The tangential damping force is the same for all models and is given by:
 
 .. math::
 
    \mathbf{F}_\mathrm{t,damp} = -\eta_t \mathbf{v}_{t,rel}
 
 The tangential damping prefactor :math:`\eta_t` is calculated by scaling
-the normal damping :math:`\eta_n` (see :doc:`granular_damping_models`):
+the normal damping :math:`\eta_n` (see above):
 
 .. math::
 
-   \eta_t = -x_{\gamma,t} \eta_n
+   \eta_t = x_{\gamma,t} \eta_n
 
 The normal damping prefactor :math:`\eta_n` is determined by the choice
-of the *damping* keyword, as discussed :doc:`here <granular_damping_models>`.  
-Thus, the *damping* keyword to the pair coeff command also 
-affects the tangential damping.  The parameter :math:`x_{\gamma,t}` is a 
-scaling coefficient. Several works in the literature use 
-:math:`x_{\gamma,t} = 1` (:ref:`Marshall <Marshall2009>`,
-:ref:`Tsuji et al <Tsuji1992>`, :ref:`Silbert et al <Silbert2001>`).  
+of the *damping* keyword, see :doc:`granular_damping_models`.  Thus, the *damping*
+keyword also affects the tangential damping.  The parameter
+:math:`x_{\gamma,t}` is a scaling coefficient.  Several works in the
+literature use :math:`x_{\gamma,t} = 1` (:ref:`Marshall
+<Marshall2009_1>`, :ref:`Tsuji et al <Tsuji1992>`, :ref:`Silbert et al
+<Silbert2001_1>`).  The relative tangential velocity at the point of
+contact is given by :math:`\mathbf{v}_{t, rel} = \mathbf{v}_{t} -
+(R_i\boldsymbol{\Omega}_i + R_j\boldsymbol{\Omega}_j) \times
+\mathbf{n}`, where :math:`\mathbf{v}_{t} = \mathbf{v}_r -
+\mathbf{v}_r\cdot\mathbf{n}\ \mathbf{n}`, :math:`\mathbf{v}_r =
+\mathbf{v}_j - \mathbf{v}_i` 
+
+
+The elastic tangential force :math:`\mathbf{F}_{te}` depends on the tangential
+model and is detailed for each tangential model.
 
 .. _tangential_displacement_definition:
 
@@ -81,7 +112,7 @@ is denoted :math:`\mathbf{\xi}`, and is given by:
 
 .. math::
 
-   \mathbf{\xi} = \int_{t0}^t \mathbf{v}_{t,rel}(\tau) \mathrm{d}\tau
+   \mathbf{\xi} = \int_{t_0}^t \mathbf{v}_{t,rel}(\tau) \mathrm{d}\tau
 
 This accumulated tangential displacement must be adjusted to account
 for changes in the frame of reference of the contacting pair of
@@ -112,7 +143,7 @@ currently implemented, but are expected to be minor for most
 simulations.
 
 Furthermore, when the tangential force exceeds a critical force 
-:math:`F_{t,crit}` (see :ref:`<critical_force_definition>`),
+:math:`F_{t,crit}` (see :ref:`critical force <critical_force_definition>`),
 the magnitude of the tangential force is truncated to the critical force, i.e., 
 :math:`F_t = F_{t,crit}`. Additionally, the tangential displacement is 
 re-scaled to match the value for the critical force 
@@ -124,46 +155,20 @@ discussion):
    \mathbf{\xi} = -\frac{1}{k_t}\left(\mu_t F_{n0}\mathbf{t} - \mathbf{F}_{t,damp}\right)
 
 
-.. _critical_force_definition:
-
-Critical force
-----------------------------
-
-All friction models use a critical force to determine if slip occurs,
-generically calculated as:
-
-.. math::
-
-   F_{t,crit} = \mu_t F_{n0}
-
-Here, :math:`mu_t` is the tangential friction coefficient.
-The normal force value :math:`F_{n0}` used to compute the critical force
-depends on the form of the contact model. For non-cohesive models
-(\ *hertz*, *hertz/material*, *hooke*\ ), it is given by the magnitude of
-the normal force:
-
-.. math::
-
-   F_{n0} = \|\mathbf{F}_n\|
-
-For cohesive models such as *jkr* and *dmt*, the critical force is
-adjusted so that the critical tangential force approaches :math:`\mu_t F_{pulloff}`, see :ref:`Marshall <Marshall2009>`, equation 43, and
-:ref:`Thornton <Thornton1991>`.  For both models, :math:`F_{n0}` takes the
-form:
-
-.. math::
-
-   F_{n0} = \|\mathbf{F}_{ne} + 2 F_{pulloff}\|
-
-Where :math:`F_{pulloff} = 3\pi \gamma R` for *jkr*, and
-:math:`F_{pulloff} = 4\pi \gamma R` for *dmt*\ .
-
-
-
 .. _linear_nohistory_tangential_model:
 
 *linear_nohistory* tangential model
 ------------------------------------
+
+*Parameters:* :math:`x_{\gamma,t}`, :math:`\mu_t`
+
+Example:
+
+.. code-block:: LAMMPS
+
+   pair_style granular
+   pair_coeff * * hooke 1000.0 50.0 tangential linear_nohistory 1.0 0.4 damping mass_velocity
+
 
 For the *linear_nohistory* tangential model, a simple velocity-dependent Coulomb
 friction criterion is used, which mimics the behavior of the *pair
@@ -178,6 +183,15 @@ gran/hooke* style. The tangential force :math:`\mathbf{F}_t` is given by:
 *linear_history* tangential model
 ----------------------------------
 
+*Parameters:* :math:`k_t`, :math:`x_{\gamma,t}`, :math:`\mu_t`
+
+Example:
+
+.. code-block:: LAMMPS
+
+   pair_style granular
+   pair_coeff * * hooke 1000.0 50.0 tangential linear_history 500.0 1.0 0.4 damping mass_velocity
+
 For *tangential linear_history*, the tangential force is given by:
 
 .. math::
@@ -189,6 +203,15 @@ For *tangential linear_history*, the tangential force is given by:
 
 *mindlin* tangential model
 --------------------------------
+
+*Parameters:* :math:`k_t` or ``NULL``, :math:`x_{\gamma,t}`, :math:`\mu_t`
+
+Example:
+
+.. code-block:: LAMMPS
+
+   pair_style granular
+   pair_coeff * * hertz/material 1.0e8 50.0 0.3 tangential mindlin NULL 1.0 0.4 damping viscoelastic
 
 
 For *tangential mindlin*, the :ref:`Mindlin <Mindlin1949>` no-slip solution
@@ -230,6 +253,16 @@ case, mixing of the shear modulus for different particle types *i* and
 *mindlin/force* tangential model
 --------------------------------
 
+*Parameters:* :math:`k_t` or ``NULL``, :math:`x_{\gamma,t}`, :math:`\mu_t`
+
+Example:
+
+.. code-block:: LAMMPS
+
+   pair_style granular
+   pair_coeff * * hertz/material 1.0e8 50.0 0.3 tangential mindlin/force NULL 1.0 0.4 damping viscoelastic
+
+
 For *tangential mindlin/force*, the accumulated elastic tangential force
 characterizes the contact history, instead of the accumulated tangential
 displacement. This prevents the dependence of the tangential force on the
@@ -248,8 +281,8 @@ The increment of the elastic component of the tangential force
    \mathrm{d}\mathbf{F}_{te} = -k_t a \mathbf{v}_{t,rel} \mathrm{d}\tau
 
 The changes in frame of reference of the contacting pair of particles during
-contact are accounted for by the same formula as :ref:`above <tangential_displacement_definition>`
-, replacing the accumulated tangential displacement :math:`\xi`, by the accumulated tangential
+contact are accounted for by the same formula as :ref:`tangential displacement <tangential_displacement_definition>`, 
+replacing the accumulated tangential displacement :math:`\xi`, by the accumulated tangential
 elastic force :math:`F_{te}`. When the tangential force exceeds the critical
 force, the tangential force is directly re-scaled to match the value for
 the critical force:
@@ -265,6 +298,16 @@ stiffness and mixing of the shear modulus for different particle types.
 
 *mindlin/rescale* tangential model
 ----------------------------------
+
+*Parameters:* :math:`k_t` or ``NULL``, :math:`x_{\gamma,t}`, :math:`\mu_t`
+
+Example:
+
+.. code-block:: LAMMPS
+
+   pair_style granular
+   pair_coeff * * hertz/material 1.0e8 50.0 0.3 tangential mindlin_rescale NULL 1.0 0.4 damping viscoelastic
+
 
 The *mindlin_rescale* option uses the same form as *mindlin*, but the
 magnitude of the tangential displacement is re-scaled as the contact
@@ -296,7 +339,18 @@ created without the rescaling above (:ref:`Walton <WaltonPC>` ).
 *mindlin_rescale/force* tangential model
 -----------------------------------------
 
-The *mindlin_rescale/force* option uses the same form as :ref:`mindlin/force<mindlin_force_tangential_model>`,
+*Parameters:* :math:`k_t` or ``NULL``, :math:`x_{\gamma,t}`, :math:`\mu_t`
+
+Example:
+
+.. code-block:: LAMMPS
+
+   pair_style granular
+   pair_coeff * * hertz/material 1.0e8 50.0 0.3 tangential mindlin_rescale/force NULL 1.0 0.4 damping viscoelastic
+
+
+The *mindlin_rescale/force* option uses the same form as 
+:ref:`mindlin/force <mindlin_force_tangential_model>`,
 but the magnitude of the tangential elastic force is re-scaled as the contact
 unloads, i.e. if :math:`a < a_{t_{n-1}}`:
 
@@ -316,10 +370,19 @@ particularly Appendix A.
 *linear_history/static* tangential model
 -----------------------------------------
 
+*Parameters:* :math:`k_t`, :math:`x_{\gamma,t}`,
+:math:`\mu_{t,\mathrm{static}}`, :math:`\mu_{t,\mathrm{dynamic}}`
+
+Example:
+
+.. code-block:: LAMMPS
+
+   pair_style granular
+   pair_coeff * * hooke 1000.0 50.0 tangential linear_history/static 500.0 1.0 0.5 0.3 damping mass_velocity
+
 The *linear_history/static* option mirrors the :ref:`linear_history <linear_history_tangential_model>`
-model, but allows different static and dynamic friction coefficients, 
-:math:`\mu_{t,static}` and :math:`\mu_{t,dynamic}`. This allows simulation
-of distinct static and dynamic friction.
+model, but allows for different static and dynamic friction coefficients, 
+:math:`\mu_{t,static}` and :math:`\mu_{t,dynamic}`. 
 
 The static and dynamic critical friction forces are defined as:
 
@@ -327,13 +390,11 @@ The static and dynamic critical friction forces are defined as:
 
    F_{t,crit,static} = \mu_{t,static} F_{n0}
 
-
 and 
 
 .. math::
 
    F_{t,crit,dynamic} = \mu_{t,dynamic} F_{n0}
-
 
 The state of a contact is designated as *static* or *dynamic*, and tracked
 throughout a simulation. The initial state of a contact is initialized to 
@@ -341,27 +402,41 @@ throughout a simulation. The initial state of a contact is initialized to
 to other history entries). 
 
 While the contact is designated as *static*, the critical force for purposes
-of determining slip and truncating the tangential displacement 
-(see :ref:`tangential_displacement_definition`) is given by 
-:math:`F_{t,crit} = F_{t,crit,static}`.
+of determining slip and truncating the :ref:`tangential displacement <tangential_displacement_definition>` 
+is given by :math:`F_\text{t,crit} = F_\text{t,crit,static}`.
 If the tangential force exceeds the static critical force while the contact
-is *static*, i.e. :math:`F_t > F_{t,crit,static}`, the contact state is changed
+is *static*, i.e. :math:`F_t > F_\text{t,crit,static}`, the contact state is changed
 to *dynamic*. 
 
 Conversely, while the contact is designated as *dynamic*, the critical force 
-is given by :math:`F_{t,crit} = F_{t,crit,dynamic}`.
+is given by :math:`F_\text{t,crit} = F_\text{t,crit,dynamic}`.
 If the tangential force drops below the dynamic critical force while the contact
-is *dynamic*, i.e. :math:`F_t < F_{t,crit,dynamic}`, the contact state is changed
+is *dynamic*, i.e. :math:`F_t < F_\text{t,crit,dynamic}`, the contact state is changed
 back to *static*. 
+
+In most physical scenarios, :math:`\mu_\text{t,dynamic}\le\mu_\text{t,static}`. If the user
+specifies :math:`\mu_\text{t,dynamic}\ge\mu_\text{t,static}`, the static friction coefficient
+will have no effect, and the model recovers the behavior of a *linear_history*
+model with :math:`\mu = \mu_\text{t,dynamic}`. A warning is issued to this effect.
 
 .. _mindlin_static_tangential_model:
 
 *mindlin/static* tangential model
 -----------------------------------------
 
+*Parameters:* :math:`k_t` or ``NULL``, :math:`x_{\gamma,t}`,
+:math:`\mu_{t,\text{static}}`, :math:`\mu_{t,\text{dynamic}}`
+
+Example:
+
+.. code-block:: LAMMPS
+
+   pair_style granular
+   pair_coeff * * hertz/material 1.0e8 50.0 0.3 tangential mindlin/static NULL 1.0 0.5 0.3 damping viscoelastic
+   
 The *mindlin/static* option mirrors the :ref:`mindlin <mindlin_tangential_model>`
 model, but allows different static and dynamic friction coefficients, 
-:math:`\mu_{t,static}` and :math:`\mu_{t,dynamic}`. The 
+:math:`\mu_\text{t,static}` and :math:`\mu_\text{t,dynamic}`. The 
 determination of the critical force and designation of a contact as *static*
 or *dynamic* are the same as described for 
 :ref:`linear_history/static <linear_history_static_tangential_model>`.

@@ -54,10 +54,23 @@ tangential, rolling and twisting forces resulting from contact between
 two granular particles. This expands on the options offered by the
 :doc:`pair gran/\* <pair_gran>` pair styles. The total computed forces
 and torques are the sum of various models selected for the 
-:doc:`normal <granular_normal_models>`, `damping <granular_damping_models>`
+:doc:`normal <granular_normal_models>`, :doc:`damping <granular_damping_models>`,
 :doc:`tangential <granular_tangential_models>`, 
 :doc:`rolling <granular_rolling_models>`, and 
-:doc:`twisting <granular_twisting_models>` interactions.
+:doc:`twisting <granular_twisting_models>` interactions. Optionally, 
+:doc:`heat transport <granular_heat_models>` between particles can also
+be modeled.
+
+.. toctree::
+   :maxdepth: 1
+   :hidden:
+
+   granular_normal_models
+   granular_damping_models
+   granular_tangential_models
+   granular_rolling_models
+   granular_twisting_models
+   granular_heat_models
 
 All model choices and parameters are entered in the :doc:`pair_coeff
 <pair_coeff>` command, as described below.  Unlike e.g. :doc:`pair
@@ -71,7 +84,7 @@ type 1 as for type 2 - type2 interactions, but coefficients are
 different.  In this case, the mixed coefficients for type 1 - type 2
 interactions can be determined from mixing rules discussed below.  For
 additional flexibility, coefficients as well as model forms can vary
-between particle types, as shown in the fourth example: type 1 - type 1
+between particle types, as shown in the sixth example: type 1 - type 1
 interactions are based on a Johnson-Kendall-Roberts normal contact model
 and 2-2 interactions are based on a DMT cohesive model (see below).  In
 that example, 1-1 and 2-2 interactions have different model forms, in
@@ -81,8 +94,9 @@ command, otherwise an error would result.
 
 ----------
 
-Normal contact models
-----------------------
+:doc:`Normal contact models <granular_normal_models>`
+-----------------------------------------------------
+
 The first required keyword for the *pair_coeff* command is the normal
 contact model, i.e. the force-displacement relation associated with
 motion of particles along the normal direction of the contact plane. 
@@ -96,8 +110,10 @@ and their required arguments are:
 5. :ref:`jkr <jkr_normal_model>` : :math:`E`, :math:`\eta_{n0}` (or :math:`e`), :math:`\nu`, :math:`\gamma`
 6. :ref:`mdr <mdr_normal_model>` : :math:`E`, :math:`\nu`, :math:`Y`, :math:`\Delta\gamma`,
    :math:`\psi_b`, :math:`\eta_{n0}`
-7. :ref:`epa_linear <epa_linear_normal_model>` : :math:`k_1`
-8. :ref:`epa_nonlinear <epa_nonlinear_normal_model>` : :math:`E` 
+7. :ref:`epa_linear <epa_linear_normal_model>` : :math:`k_1`, :math:`\eta_{n0}` (or :math:`e`), :math:`\hat{k_2}`,
+   :math:`k_c`, :math:`\phi_f`, :math:`f_0`
+8. :ref:`epa_nonlinear <epa_nonlinear_normal_model>` : :math:`E`, :math:`\eta_{n0}` (or :math:`e`), :math:`\nu`,
+   :math:`\lambda_p`, :math:`f_0`, :math:`k_{adh}`, :math:`m`, :math:`n`
 
 .. note::
 
@@ -111,147 +127,10 @@ and their required arguments are:
    assign atoms of similar radii the same type. See the
    :doc:`pair lj/cut/sphere <pair_lj_cut_sphere>` page for a related discussion.
 
-The *mdr* model is a mechanically-derived contact model designed to
-capture the contact response between adhesive elastic-plastic particles
-into large deformation.  The theoretical foundations of the *mdr* model
-are detailed in the two-part series :ref:`Zunker and Kamrin Part I
-<Zunker2024I>` and :ref:`Zunker and Kamrin Part II <Zunker2024II>`.
-Further development and demonstrations of its application to
-industrially relevant powder compaction processes are presented in
-:ref:`Zunker et al. <Zunker2025>`.  If you use the *mdr* normal model
-the only supported damping option is the *mdr* damping class described
-below.
-
-The model requires the following inputs:
-
-   1. *Young's modulus* :math:`E > 0` : The Young's modulus is commonly
-   reported for various powders.
-
-   2. *Poisson's ratio* :math:`0 \le \nu \le 0.5` : The Poisson's ratio
-   is commonly reported for various powders.
-
-   3. *Yield stress* :math:`Y \ge 0` : The yield stress is often known
-   for powders composed of materials such as metals but may be
-   unreported for ductile organic materials, in which case it can be
-   treated as a free parameter.
-
-   4. *Effective surface energy* :math:`\Delta\gamma \ge 0` : The
-   effective surface energy for powder compaction applications is most
-   easily determined through its relation to the more commonly reported
-   critical stress intensity factor :math:`K_{Ic} = \sqrt{2\Delta\gamma
-   E/(1-\nu^2)}`.
-
-   5. *Critical confinement ratio* :math:`0 \le \psi_b \le 1` : The
-   critical confinement ratio is a tunable parameter that determines
-   when the bulk elastic response is triggered.  Lower values of
-   :math:`\psi_b` delay the onset of the bulk elastic response.
-
-   6. *Damping coefficient* :math:`\eta_{n0} \ge 0` : The damping
-   coefficient is a tunable parameter that controls damping in the
-   normal direction.
-
-.. note::
-
-   The values for :math:`E`, :math:`\nu`, :math:`Y`, and
-   :math:`\Delta\gamma` (i.e., :math:`K_{Ic}`) should be selected for
-   zero porosity to reflect the intrinsic material property rather than
-   the bulk powder property.
-
-The *mdr* model produces a nonlinear force-displacement response,
-therefore the critical timestep :math:`\Delta t` depends on the inputs
-and level of deformation.  As a conservative starting point the timestep
-can be assumed to be dictated by the bulk elastic response such that
-:math:`\Delta t = 0.08\sqrt{m/k_\textrm{bulk}}`, where :math:`m` is the
-mass of the smallest particle and :math:`k_\textrm{bulk} = \kappa
-R_\textrm{min}` is an effective stiffness related to the bulk elastic
-response.  Here, :math:`\kappa = E/(3(1-2\nu))` is the bulk modulus and
-:math:`R_\textrm{min}` is the radius of the smallest particle.
-
-The *atom_style* must be set to *sphere 1* to enable dynamic particle
-radii.  The *mdr* model is designed to respect the incompressibility of
-plastic deformation and inherently tracks free surface displacements
-induced by all particle contacts.  In practice, this means that all
-particles begin with an initial radius, however as compaction occurs and
-plastic deformation is accumulated, a new enlarged apparent radius is
-defined to ensure that that volume change due to plastic deformation is
-not lost.  This apparent radius is stored as the *atom radius* meaning
-it is used for subsequent neighbor list builds and contact detection
-checks.  The advantage of this is that multi-neighbor dependent effects
-such as formation of secondary contacts caused by radial expansion are
-captured by the *mdr* model.  Setting *atom_style sphere 1* ensures that
-updates to the particle radii are properly reflected throughout the
-simulation.
-
-.. code-block:: LAMMPS
-
-   atom_style sphere 1
-
-Newton's third law must be set to *off*.  This ensures that the neighbor
-lists are constructed properly for the topological penalty algorithm
-used to screen for non-physical contacts occurring through obstructing
-particles, an issue prevalent under large deformation conditions.  For
-more information on this algorithm see :ref:`Zunker et
-al. <Zunker2025>`.
-
-.. code-block:: LAMMPS
-
-   newton off
-
-The definition of multiple *mdr* models in the *pair_style* is currently
-not supported.  Similarly, the *mdr* model cannot be combined with a
-different normal model in the *pair_style*.  Physically this means that
-only one homogeneous collection of particles governed by a single *mdr*
-model is allowed.
-
-The *mdr* model currently only supports *fix wall/gran/region*, not *fix
-wall/gran*.  If the *mdr* model is specified for the *pair_style* any
-*fix wall/gran/region* commands must also use the *mdr* model.
-Additionally, the following *mdr* inputs must match between the
-*pair_style* and *fix wall/gran/region* definitions: :math:`E`,
-:math:`\nu`, :math:`Y`, :math:`\psi_b`, and :math:`\eta_{n0}`.  The
-exception is :math:`\Delta\gamma`, which may vary, permitting different
-adhesive behaviors between particle-particle and particle-wall
-interactions.
-
-.. note::
-
-   The *mdr* model has a number of custom *property/atom* and
-   *pair/local* definitions that can be called in the input file. The
-   useful properties for visualization and analysis are described below.
-
-In addition to contact forces the *mdr* model also tracks the following
-quantities for each particle: elastic volume change, average normal
-stress components, total surface area involved in contact, and
-individual contact areas.  In the input script, these quantities are
-initialized by calling *run 0* and can then be accessed using subsequent
-*compute* commands.  The last *compute* command uses *pair/local p13* to
-calculate the pairwise contact areas for each active contact in the
-*group-ID*.  Due to the use of an apparent radius in the *mdr* model,
-the keyword/arg pair *cutoff radius* must be specified for *pair/local*
-to properly detect existing contacts.
-
-.. code-block:: LAMMPS
-
-   run 0
-   compute ID group-ID property/atom d_Velas
-   compute ID group-ID property/atom d_sigmaxx
-   compute ID group-ID property/atom d_sigmayy
-   compute ID group-ID property/atom d_sigmazz
-   compute ID group-ID property/atom d_Acon1
-   compute ID group-ID pair/local p13 cutoff radius
-
-.. note::
-
-   The *mdr* model has two example input scripts within the
-   *examples/granular* directory.  The first is a die compaction
-   simulation involving 200 particles named *in.tableting.200*.  The
-   second is a triaxial compaction simulation involving 12 particles
-   named *in.triaxial.compaction.12*.
-
 ----------
 
-Damping models
---------------
+:doc:`Damping models <granular_damping_models>`
+-----------------------------------------------
 
 In addition, the normal force is augmented by a damping term of the
 following general form:
@@ -286,8 +165,9 @@ used by default.
 
 ----------
 
-Tangential models
-------------------
+:doc:`Tangential models <granular_tangential_models>`
+-----------------------------------------------------
+
 The *pair_coeff* command requires specification of the tangential
 contact model. The required keyword *tangential* is required, followed
 by the model choice and associated parameters. Currently supported
@@ -304,8 +184,8 @@ tangential model choices and their expected parameters are as follows:
 
 ----------
 
-Rolling friction models
-------------------------
+:doc:`Rolling friction models <granular_rolling_models>`
+--------------------------------------------------------
 
 The optional *rolling* keyword enables rolling friction, which resists
 pure rolling motion of particles.  The options currently supported are:
@@ -317,13 +197,8 @@ If the *rolling* keyword is not specified, the model defaults to *none*\
 .
 
 
-----------
-
-Twisting friction models
-------------------------
-
-Twisting friction models
-------------------------
+:doc:`Twisting friction models <granular_twisting_models>`
+----------------------------------------------------------
 
 The optional *twisting* keyword enables twisting friction, which resists
 rotation of two contacting particles about the vector :math:`\mathbf{n}`
@@ -335,6 +210,26 @@ that connects their centers.  The options currently supported are:
 
 If the *twisting* keyword is not specified, the model defaults to
 *none*\ .
+
+:doc:`Heat conduction models <granular_heat_models>`
+----------------------------------------------------
+
+The optional *heat* keyword enables heat conduction.  The options
+currently supported are:
+
+1. *none*
+2. :ref:`radius <radius_heat_model>` : :math:`k_{s}`
+3. :ref:`area <area_heat_model>` : :math:`h_{s}`
+
+If the *heat* keyword is not specified, the model defaults to
+*none*.  All heat models calculate an additional pairwise quantity
+accessible by the single() function (described below) which is the heat
+conducted between the two particles.
+
+Note that the option *none* must either be used in all or none of the
+*pair_coeff* calls.  See :doc:`fix heat/flow <fix_heat_flow>` and
+:doc:`fix property/atom <fix_property_atom>` for more information on
+this option.
 
 
 ----------
@@ -359,25 +254,6 @@ et al <Vyas2025>`, that synchronizes position and velocity updates for
 force evaluation.  By refining tangential force calculations, the
 *synchronized_verlet* method ensures physically consistent results
 without significantly impacting computational cost.
-
-----------
-
-The optional *heat* keyword enables heat conduction.  The options
-currently supported are:
-
-1. *none*
-2. :ref:`radius <radius_heat_model>` : :math:`k_{s}`
-3. :ref:`area <area_heat_model>` : :math:`h_{s}`
-
-If the *heat* keyword is not specified, the model defaults to
-*none*.  All heat models calculate an additional pairwise quantity
-accessible by the single() function (described below) which is the heat
-conducted between the two particles.
-
-Note that the option *none* must either be used in all or none of of the
-*pair_coeff* calls.  See :doc:`fix heat/flow <fix_heat_flow>` and
-:doc:`fix property/atom <fix_property_atom>` for more information on
-this option.
 
 ----------
 
@@ -432,20 +308,20 @@ In that case, the effective elastic modulus is computed as:
 
 .. math::
 
-   E_{eff,ij} = \left(\frac{1-\nu_i^2}{E_i} + \frac{1-\nu_j^2}{E_j}\right)^{-1}
+   E_\text{eff,ij} = \left(\frac{1-\nu_i^2}{E_i} + \frac{1-\nu_j^2}{E_j}\right)^{-1}
 
 If the *i-j* coefficients :math:`E_{ij}` and :math:`\nu_{ij}` are
 explicitly specified, the effective modulus is computed as:
 
 .. math::
 
-   E_{eff,ij} = \left(\frac{1-\nu_{ij}^2}{E_{ij}} + \frac{1-\nu_{ij}^2}{E_{ij}}\right)^{-1}
+   E_\text{eff,ij} = \left(\frac{1-\nu_{ij}^2}{E_{ij}} + \frac{1-\nu_{ij}^2}{E_{ij}}\right)^{-1}
 
 or
 
 .. math::
 
-   E_{eff,ij} = \frac{E_{ij}}{2(1-\nu_{ij}^2)}
+   E_\text{eff,ij} = \frac{E_{ij}}{2(1-\nu_{ij}^2)}
 
 This pair style writes its information to :doc:`binary restart files
 <restart>`, so a pair_style command does not need to be specified in an
@@ -459,7 +335,7 @@ The single() function of this pair style returns 0.0 for the energy of a
 pairwise interaction, since energy is not conserved in these dissipative
 potentials.  It also returns only the normal component of the pairwise
 interaction force.  However, the single() function also calculates at
-least 13 extra pairwise quantities.  The first 3 are the components of
+least 12 extra pairwise quantities.  The first 3 are the components of
 the tangential force between particles I and J, acting on particle I.
 The fourth is the magnitude of this tangential force.  The next 3 (5-7)
 are the components of the rolling torque acting on particle I.  The next
@@ -472,8 +348,8 @@ heat sub-models calculate the amount of heat exchanged), these
 quantities are appended to the end of this list.  First, any extra
 values from the normal sub-model are appended followed by the damping,
 tangential, rolling, twisting, then heat models.  See the descriptions
-of specific granular sub-models above for information on any extra
-quantities.  If two or more models are defined by pair coefficients, the
+of individual granular sub-models linked above for information on any extra
+quantities. If two or more models are defined by pair coefficients, the
 size of the array is set by the maximum number of extra quantities in a
 model but the order of quantities is determined by each model's specific
 set of sub-models.  Any unused quantities are zeroed.

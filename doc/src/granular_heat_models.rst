@@ -5,6 +5,16 @@ Models for heat transport in granular interactions
 
 *radius* heat model
 --------------------
+
+*Parameters:* :math:`k_s`
+
+Example:
+
+.. code-block:: LAMMPS
+
+   pair_style granular
+   pair_coeff * * hertz 1000.0 50.0 tangential mindlin 1000.0 1.0 0.4 heat radius 0.1
+
 For *heat* *radius*, the heat
 :math:`Q` conducted between two particles is given by
 
@@ -22,6 +32,15 @@ depends on the normal force model. This is the model proposed by
 
 *area* heat model
 ------------------
+
+*Parameters:* :math:`h_s`
+
+Example:
+
+.. code-block:: LAMMPS
+
+   pair_style granular
+   pair_coeff * * hertz 1000.0 50.0 tangential mindlin 1000.0 1.0 0.4 heat area 0.1
 
 For *heat* *area*, the heat
 :math:`Q` conducted between two particles is given by

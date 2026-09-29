@@ -163,7 +163,7 @@ namespace LAMMPS_NS::Granular_NS {
     bool adhesive;
 
    protected:
-    double k1, k2_hat, kc, kc_delta, phi_f, f0;
+    double k1, k2_hat, kc, kc_delta, phi_f, f0, Fne;
     int mixed_coefficients;
   };
 
@@ -180,7 +180,7 @@ namespace LAMMPS_NS::Granular_NS {
     bool adhesive;
 
  protected:
-  double k1, Emod, poiss, damp, lambda_p, f0, kadh, mexp, nexp;
+  double k1, Emod, poiss, damp, lambda_p, f0, kadh, mexp, nexp, Fne;
   double k2fac, delta_p, minv, lp_minv, ka_dn;
   int mixed_coefficients;   
 };

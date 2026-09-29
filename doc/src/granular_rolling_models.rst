@@ -1,10 +1,22 @@
 Models for rolling friction in granular interactions
 ======================================================
 
+If the *rolling* keyword is omitted, or if *rolling none* is specified,
+no rolling friction model is used.
+
 .. _sds_rolling_model:
 
 *sds* rolling model
 -------------------
+
+*Parameters:* :math:`k_{roll}`, :math:`\gamma_{roll}`, :math:`\mu_{roll}`
+
+Example:
+
+.. code-block:: LAMMPS
+
+   pair_style granular
+   pair_coeff * * hertz 1000.0 50.0 tangential mindlin 1000.0 1.0 0.4 rolling sds 500.0 200.0 0.5
 
 For *rolling sds*, rolling friction is computed via a
 spring-dashpot-slider, using a 'pseudo-force' formulation, as described
@@ -38,7 +50,7 @@ exceeds a critical value:
 Here, :math:`\mathbf{k} = \mathbf{v}_{roll}/\|\mathbf{v}_{roll}\|` is the direction of
 the pseudo-force.  As with tangential displacement, the rolling
 displacement is rescaled when the critical force is exceeded, so that
-the spring length corresponds the critical force. Additionally, the
+the spring length corresponds to the critical force. Additionally, the
 displacement is adjusted to account for rotations of the frame of
 reference of the two contacting particles in a manner analogous to the
 tangential displacement.

@@ -197,6 +197,11 @@ GranSubModTangentialLinearHistoryStatic::GranSubModTangentialLinearHistoryStatic
 {
   num_coeffs = 4;
   size_history = 4;
+
+  nondefault_history_transfer = 1;
+  transfer_history_factor = new double[size_history];
+  for (int i = 0; i < size_history-1; i++) transfer_history_factor[i] = -1.0;
+  transfer_history_factor[3] = +1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -208,6 +213,8 @@ void GranSubModTangentialLinearHistoryStatic::coeffs_to_local()
   mu_static = coeffs[2];
   mu_dynamic = coeffs[3];
 
+  if (mu_dynamic >= mu_static)
+    error->warning(FLERR, "Dynamic friction coefficient greater than or equal to static friction, static friction coefficient will have no effect.");
   if (k < 0.0 || xt < 0.0 || mu_static < 0.0 || mu_dynamic < 0.0)
     error->all(FLERR, "Illegal linear_history/static tangential model");
 }
@@ -231,8 +238,10 @@ void GranSubModTangentialLinearHistoryStatic::calculate_forces()
   damp = xt * gm->damping_model->get_damp_prefactor();
   double Fscrit;
   int dynamic;
+  int skip_rescaling;
 
-  dynamic = history[3];
+  skip_rescaling = 0;
+  dynamic = (history[3] > EPSILON);
 
   if (dynamic) {
 	  Fscrit = gm->normal_model->get_fncrit() * mu_dynamic;
@@ -275,24 +284,36 @@ void GranSubModTangentialLinearHistoryStatic::calculate_forces()
 
   // rescale frictional displacements and forces if needed
   magfs = len3(fs);
-  if (magfs > Fscrit) {
-	shrmag = len3(history);
-    if (shrmag != 0.0) {
-      magfs_inv = 1.0 / magfs;
-      scale3(Fscrit * magfs_inv, fs, history);
-      scale3(damp, vtr, temp_array);
-      add3(history, temp_array, history);
-      scale3(-1.0 / k, history);
-      scale3(Fscrit * magfs_inv, fs);
-    } else {
-      zero3(fs);
+  if (magfs > Fscrit && history_update) {
+    if (!dynamic) { //Exceeded static critical force, switch to dynamic
+      history[3] = 1.0;      
+      Fscrit = gm->normal_model->get_fncrit() * mu_dynamic;
+      if (mu_dynamic >= mu_static) { 
+        //User probably should not input mu_dynamic >= mu_static,
+        //but if they do, don't rescale shear to dynamic Fscrit.
+           if (magfs <= Fscrit) skip_rescaling = 1;
+      }
     }
-    if (!dynamic) history[3] = 1; // If force exceeds Fcrit_static,
-  }  					          // switch to dynamic case  
-  else { // magfs <= Fscrit
-	  if (dynamic) history[3] = 0; //If force drops below Fcrit_dynamic,
-	} 	  	  	  	  	  	  	   //switch back to static case  
+    shrmag = len3(history);
+    if (!skip_rescaling) {
+      if (shrmag != 0.0) {
+        magfs_inv = 1.0 / magfs;
+        scale3(Fscrit * magfs_inv, fs, history);
+        scale3(damp, vtr, temp_array);
+        add3(history, temp_array, history);
+        scale3(-1.0 / k, history);
+        scale3(Fscrit * magfs_inv, fs);
+      } else {
+        zero3(fs);
+      }    
+    }
+  }
+  else if (magfs <= Fscrit && dynamic && history_update) { 
+    //fs dropped below dynamic critical force    
+    history[3] = 0.0;          
+  }
 }
+
 
 
 /* ----------------------------------------------------------------------
@@ -580,6 +601,8 @@ void GranSubModTangentialMindlinStatic::coeffs_to_local()
     }
   }
 
+  if (mu_dynamic >= mu_static)
+    error->warning(FLERR, "Dynamic friction coefficient greater than or equal to static friction, static friction coefficient will have no effect.");
   if (k < 0.0 || xt < 0.0 || mu_static < 0.0 || mu_dynamic < 0.0)
     error->all(FLERR, "Illegal Mindlin tangential model");
 }
@@ -615,10 +638,13 @@ void GranSubModTangentialMindlinStatic::calculate_forces()
 
   double Fscrit;
   int dynamic;
+  int skip_rescaling;
 
   damp = xt * gm->damping_model->get_damp_prefactor();
 
   k_scaled = k * gm->contact_radius;
+
+  skip_rescaling = 0;
   dynamic = history[3];
 
   if (dynamic) {
@@ -661,24 +687,35 @@ void GranSubModTangentialMindlinStatic::calculate_forces()
 
   // rescale frictional displacements and forces if needed
   magfs = len3(fs);
-  if (magfs > Fscrit) {
+  if (magfs > Fscrit && history_update) {
+    if (!dynamic) { //Exceeded static critical force, switch to dynamic
+      history[3] = 1.0;      
+      Fscrit = gm->normal_model->get_fncrit() * mu_dynamic;
+      if (mu_dynamic >= mu_static) { 
+        //User probably should not input mu_dynamic >= mu_static,
+        //but if they do, don't rescale shear to dynamic Fscrit.
+        if (magfs <= Fscrit) skip_rescaling = 1;
+      }
+    }
     shrmag = len3(history);
-    if (shrmag != 0.0) {
-      magfs_inv = 1.0 / magfs;
-      scale3(Fscrit * magfs_inv, fs, history);
-      scale3(damp, vtr, temp_array);
-      add3(history, temp_array, history);
-      scale3(-1.0 / k_scaled, history);
-      scale3(Fscrit * magfs_inv, fs);
-    } else {
-      zero3(fs);
+    if (!skip_rescaling){
+      if (shrmag != 0.0) {
+        magfs_inv = 1.0 / magfs;
+        scale3(Fscrit * magfs_inv, fs, history);
+        scale3(damp, vtr, temp_array);
+        add3(history, temp_array, history);
+        scale3(-1.0 / k_scaled, history);
+        scale3(Fscrit * magfs_inv, fs);
+      } else {
+        zero3(fs);
+      }
     }
     if (!dynamic) { 
       history[3] = 1; // If force exceeded Fcrit_static, switch to dynamic case
     }
-  } else { // magfs <= Fscrit
-    if (dynamic) history[3] = 0; //If force drops below Fcrit_dynamic,
-	  	  	  	  	  	  	  	   //switch back to static case
+  } else if (magfs <= Fscrit && dynamic && history_update) { 
+    //fs dropped below dynamic critical force    
+    history[3] = 0.0;  
   }
 }
 

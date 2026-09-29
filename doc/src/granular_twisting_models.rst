@@ -11,13 +11,14 @@ therefore provides the most straightforward treatment:
 
    \tau_{twist,0} = -k_{twist}\xi_{twist} - \gamma_{twist}\Omega_{twist}
 
-Here :math:`\xi_{twist} = \int_{t_0}^t \Omega_{twist} (\tau) \mathrm{d}\tau` is the twisting angular displacement, and
-:math:`\Omega_{twist} = (\mathbf{\Omega}_i - \mathbf{\Omega}_j) \cdot \mathbf{n}` is the relative twisting angular velocity. The torque
-is then truncated according to:
+Here :math:`\xi_{twist} = \int_{t_0}^t \Omega_{twist} (\tau) \mathrm{d}\tau` 
+is the twisting angular displacement, and 
+:math:`\Omega_{twist} = (\mathbf{\Omega}_i - \mathbf{\Omega}_j) \cdot \mathbf{n}` 
+is the relative twisting angular velocity. The torque is then truncated according to:
 
 .. math::
 
-   \tau_{twist} = \min(\mu_{twist} F_{n,0}, \tau_{twist,0})
+   \tau_{twist} = \min\left(\mu_{twist} F_{n,0}, |\tau_{twist,0}|\right)\operatorname{sgn}(\tau_{twist,0})
 
 Similar to the sliding and rolling displacement, the angular
 displacement is rescaled so that it corresponds to the critical value
@@ -25,7 +26,7 @@ if the twisting torque exceeds this critical value:
 
 .. math::
 
-   \xi_{twist} = \frac{1}{k_{twist}} (\mu_{twist} F_{n,0}sgn(\Omega_{twist}) - \gamma_{twist}\Omega_{twist})
+   \xi_{twist} = \frac{1}{k_{twist}} (\mu_{twist} F_{n,0}\operatorname{sgn}(\Omega_{twist}) - \gamma_{twist}\Omega_{twist})
 
 The twisting torque on each particle is then given by:
 
@@ -42,6 +43,15 @@ The twisting torque on each particle is then given by:
 *sds* twisting friction model
 -----------------------------
 
+*Parameters:* :math:`k_{twist}`, :math:`\gamma_{twist}`, :math:`\mu_{twist}`
+
+Example:
+
+.. code-block:: LAMMPS
+
+   pair_style granular
+   pair_coeff * * hertz 1000.0 50.0 tangential mindlin 1000.0 1.0 0.4 twisting sds 100.0 50.0 0.2
+
 For *twisting sds*, the coefficients :math:`k_{twist}, \gamma_{twist}`
 and :math:`\mu_{twist}` are simply the user input parameters that follow
 the *twisting sds* keywords in the *pair_coeff* command.
@@ -51,9 +61,18 @@ the *twisting sds* keywords in the *pair_coeff* command.
 *marshall* twisting history model
 ---------------------------------
 
+*Parameters:* none beyond the tangential model parameters.
+
+Example:
+
+.. code-block:: LAMMPS
+
+   pair_style granular
+   pair_coeff * * hertz 1000.0 50.0 tangential mindlin 1000.0 1.0 0.4 twisting marshall
+
 For *twisting marshall*, the coefficients :math:`k_{twist}, \gamma_{twist}`
 and :math:`\mu_{twist}` are expressed in terms of the
-tangential friction coefficients :math:`k_t, \eta_t, \mu_t`, as discussed in
+tangential friction coefficients :math:`k_t, \gamma_t, \mu_t`, as discussed in
 :ref:`Marshall <Marshall2009>` (see equations 32 and 33 of that work, and
 the doc page for :doc:`granular_tangential_models`):
 
@@ -63,14 +82,22 @@ the doc page for :doc:`granular_tangential_models`):
 
 .. math::
 
-   \eta_{twist} = 0.5\eta_ta^2
+   \gamma_{twist} = 0.5\gamma_ta^2
 
 .. math::
 
    \mu_{twist} = \frac{2}{3}a\mu_t
 
+Here, :math:`k_t`, :math:`mu_t` and :math:`\gamma_t` are the tangential
+stiffness, tangential friction coefficient, and tangential 
+damping coefficient, respectively.
+
+References
+""""""""""
+
+.. _Marshall2009:
 
 **(Marshall, 2009)** Marshall, J. S. (2009). Discrete-element modeling
-of particulate aerosol flows.  Journal of Computational Physics,
+of particulate aerosol flows. Journal of Computational Physics,
 228(5), 1541-1561.
 

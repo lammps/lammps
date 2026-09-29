@@ -1039,13 +1039,6 @@ void GranSubModNormalEPALinear::coeffs_to_local()
 
 /* ---------------------------------------------------------------------- */
 
-
-void GranSubModNormalEPALinear::set_fncrit()
-{
-  Fncrit = gm->Fntot + kc_delta + f0;  
-}
-/* ---------------------------------------------------------------------- */
-
 double GranSubModNormalEPALinear::calculate_forces()
 {
   double dmax, dmax_star, k2;
@@ -1053,6 +1046,8 @@ double GranSubModNormalEPALinear::calculate_forces()
   double *history = & gm->history[history_index];
   double delta = gm->delta;
   double Fne;
+
+  kc_delta = 0;
 
   dmax_star = k2_hat/(k2_hat-k1)*phi_f*2*gm->Reff;
   dmax = history[0];
@@ -1072,9 +1067,11 @@ double GranSubModNormalEPALinear::calculate_forces()
   k2_dd0 = k2*(delta-d0);
   if (k2_dd0 >= k1delta){
     Fne = k1delta;
+    kc_delta = 0; //Set to 0 if not adhesive branch, so that kc_delta doesn't contribute to critical force
   }
   else if ((k1delta > k2_dd0) && (k2_dd0 > -kc_delta)){
-    Fne = k2_dd0;    
+    Fne = k2_dd0;
+    kc_delta = 0; //Set to 0 if not adhesive branch, so that kc_delta doesn't contribute to critical force   
   }
   else if (-kc_delta >= k2_dd0){
     Fne = -kc_delta;    
@@ -1083,6 +1080,14 @@ double GranSubModNormalEPALinear::calculate_forces()
   return Fne;
 }
 
+/* ---------------------------------------------------------------------- */
+
+void GranSubModNormalEPALinear::set_fncrit()
+{
+  Fncrit = Fne + kc_delta + f0;  
+}
+
+
 /* ----------------------------------------------------------------------
    Elastic-plastic-adhesive, non-linear
 ------------------------------------------------------------------------- */
@@ -1090,7 +1095,7 @@ double GranSubModNormalEPALinear::calculate_forces()
 GranSubModNormalEPANonlinear::GranSubModNormalEPANonlinear(GranularModel *gm, LAMMPS *lmp) : GranSubModNormal(gm, lmp)
 {
   cohesive_flag = 1;
-  num_coeffs = 7; //E, poiss, damp, lambda_p, f0, kadh, mexp
+  num_coeffs = 8; //E, poiss, damp, lambda_p, f0, kadh, mexp, nexp
   size_history = 1;
   contact_radius_flag = 1;
   material_properties = 1;
@@ -1121,6 +1126,7 @@ void GranSubModNormalEPANonlinear::coeffs_to_local()
       k1 = FOURTHIRDS * mix_stiffnessE_wall(Emod, poiss);
     }   
   }
+  
   if (Emod < 0.0 || damp < 0.0 || lambda_p < 0.0 || 
       lambda_p >= 1.0 || f0 < 0.0 || kadh < 0.0 || 
       mexp < 1 || nexp < 1)
@@ -1148,13 +1154,6 @@ void GranSubModNormalEPANonlinear::mix_coeffs(double *icoeffs, double *jcoeffs)
 
 /* ---------------------------------------------------------------------- */
 
-void GranSubModNormalEPANonlinear::set_fncrit()
-{
-  Fncrit = fabs(gm->Fntot + ka_dn + f0);  
-}
-
-/* ---------------------------------------------------------------------- */
-
 double GranSubModNormalEPANonlinear::calculate_contact_radius()
 {
   double *history = & gm->history[history_index];
@@ -1175,29 +1174,35 @@ double GranSubModNormalEPANonlinear::calculate_contact_radius()
 
 double GranSubModNormalEPANonlinear::calculate_forces()
 {
-  double k2, delta_max;
-  double dm, dn, dpm, dchi, k2_dmdpm, k1_dm, Reff_2m;  
+  double k1r, k2, delta_max;
+  double dm, dn, dpm, dchi, k2_dmdpm, k1_dm, Reff_2m, Reff_2n;  
   double *history = & gm->history[history_index];
   double delta = gm->delta;
   double Fmin, Fmin_lim, Fne;
 
-  Reff_2m = pow(gm->Reff, 2-mexp)
+  ka_dn = 0;
+
+  Reff_2m = pow(gm->Reff, 2-mexp);
+  Reff_2n = pow(gm->Reff, 2-nexp);
+
+  k1r = k1*Reff_2m;
   k2 = k2fac*Reff_2m;
   
   dm = pow(delta, mexp);  
   dpm = pow(delta_p, mexp);
 
-  k1_dm = k1*Reff_2m*dm;
+  k1_dm = k1r*dm;
   k2_dmdpm = k2*(dm-dpm);  
 
   if (k2_dmdpm >= k1_dm){ 
     Fne = k1_dm;
   }
   else{ //Could be on adhesive branch
-    dn = pow(delta, nexp)
-    ka_dn = kadh*gm->Reff*dn;
+    dn = pow(delta, nexp);
+    ka_dn = kadh*Reff_2n*dn;
     if ((k1_dm > k2_dmdpm) && (k2_dmdpm > -ka_dn)){
-      Fne = k2_dmdpm;     
+      Fne = k2_dmdpm;   
+      ka_dn = 0; //Set to 0 so that critical force is not affected if not on adhesive branch
     }    
     else if (-ka_dn >= k2_dmdpm){
       Fne = -ka_dn;      
@@ -1205,6 +1210,13 @@ double GranSubModNormalEPANonlinear::calculate_forces()
   }  
   Fne -= f0;
   return Fne;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void GranSubModNormalEPANonlinear::set_fncrit()
+{
+  Fncrit = Fne + ka_dn + f0;  
 }
 
 /* ---------------------------------------------------------------------- */

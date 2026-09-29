@@ -22,6 +22,8 @@
 #include "neighbor.h"
 #include "update.h"
 
+#include <cstring>
+
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
@@ -59,6 +61,10 @@ void ComputeAveSphereAtomOMP::compute_peratom()
   // invoke full neighbor list (will copy or build if necessary)
 
   neighbor->build_one(list);
+
+  // zero the result array; atoms not in the group report only zeros
+
+  memset(&result[0][0], 0, (size_t) nmax * 2 * sizeof(double));
 
   const int inum = list->inum;
   const int *const ilist = list->ilist;

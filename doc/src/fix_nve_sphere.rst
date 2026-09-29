@@ -99,6 +99,12 @@ be point particles.
 Use of the *disc* keyword is only allowed for 2d simulations, as
 defined by the :doc:`dimension <dimension>` keyword.
 
+.. versionchanged:: TBD
+
+The KOKKOS version of this fix does not support the *dipole/dlm* option of
+the *update* keyword and will stop with an error if it is requested.  Use the
+non-accelerated version of the fix for the DLM integrator.
+
 Related commands
 """"""""""""""""
 

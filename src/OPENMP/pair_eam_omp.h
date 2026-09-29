@@ -38,7 +38,7 @@ class PairEAMOMP : public PairEAM, public ThrOMP {
   double memory_usage() override;
 
  private:
-  template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
+  template <int EVFLAG, int EFLAG, int NEWTON_PAIR, int HE>
   void eval(int iifrom, int iito, int *beyond_rhomax, ThrData *const thr);
 };
 

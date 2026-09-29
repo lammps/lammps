@@ -49,9 +49,12 @@ class PairEffCut : public Pair {
   int ecp_found;
   double cut_global;
   double **cut;
-  int ecp_type[100];
-  double PAULI_CORE_A[100], PAULI_CORE_B[100], PAULI_CORE_C[100];
-  double PAULI_CORE_D[100], PAULI_CORE_E[100];
+  // only the entries of ECP types set with the "ecp" keyword are filled in,
+  // but write_restart_settings() stores the arrays as a whole, so they must
+  // not contain uninitialized data
+  int ecp_type[100] = {};
+  double PAULI_CORE_A[100] = {}, PAULI_CORE_B[100] = {}, PAULI_CORE_C[100] = {};
+  double PAULI_CORE_D[100] = {}, PAULI_CORE_E[100] = {};
   double hhmss2e, h2e;
 
   int nmax;

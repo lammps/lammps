@@ -47,9 +47,12 @@ class FixWallGranKokkos : public FixWallGranOld, public KokkosBase {
   void post_force(int) override;
   void grow_arrays(int) override;
   void copy_arrays(int, int, int) override;
+  void set_arrays(int) override;
   void sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorter) override;
   int pack_exchange(int, double *) override;
   int unpack_exchange(int, double *) override;
+  int pack_restart(int, double *) override;
+  void unpack_restart(int, int) override;
 
   template <int WallStyle>
 // NOLINTNEXTLINE

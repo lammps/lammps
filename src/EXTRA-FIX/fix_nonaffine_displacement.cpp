@@ -165,7 +165,7 @@ FixNonaffineDisplacement::FixNonaffineDisplacement(LAMMPS *lmp, int narg, char *
 
 FixNonaffineDisplacement::~FixNonaffineDisplacement()
 {
-  if (id_fix && modify->nfix) modify->delete_fix(id_fix);
+  if (id_fix) modify->delete_fix(id_fix);
   delete[] id_fix;
 
   if (nad_style == D2MIN) {
@@ -242,7 +242,8 @@ void FixNonaffineDisplacement::init()
         if (mycutneigh > cutghost)
           error->all(FLERR,"Fix nonaffine/displacement D2Min option cutoff exceeds ghost atom range - use comm_modify cutoff command");
 
-        req->set_cutoff(mycutneigh);
+        // the cutoff is required for all types
+        req->set_cutoff_fixed(mycutneigh);
       }
     }
   }

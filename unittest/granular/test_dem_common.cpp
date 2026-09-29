@@ -12,7 +12,7 @@
 ------------------------------------------------------------------------- */
 
 // Shared implementation for the DEM verification test drivers
-// (test_dem_01 ... test_dem_11).  Every driver builds its system entirely
+// (test_dem_01, test_dem_02, ...).  Every driver builds its system entirely
 // from the YAML file: a 'variables' block provides ${var} substitution,
 // 'pre_commands' create the geometry, 'pair_style'/'pair_coeff' set the
 // contact model, and 'post_commands' add the integrator, gravity and walls.
@@ -40,8 +40,11 @@
 
 #include "fmt/format.h"
 
+#include <cmath>
+#include <cstdio>
 #include <exception>
 #include <iostream>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -116,7 +119,10 @@ static void run_and_check(LAMMPS *lmp, const TestConfig &cfg, double epsilon,
     const bool has_angmom = lmp->atom->angmom_flag;
 
     for (std::size_t i = 0; i < cfg.run_segments.size(); ++i) {
+        // capture only the LAMMPS output, so that failure messages are not swallowed
+        if (!verbose) ::testing::internal::CaptureStdout();
         command("run " + std::to_string(cfg.run_segments[i]) + " post no");
+        if (!verbose) ::testing::internal::GetCapturedStdout();
         const std::string tag = label + ", seg " + std::to_string(i);
 
         if (i < cfg.seg_pos.size())
@@ -132,6 +138,18 @@ static void run_and_check(LAMMPS *lmp, const TestConfig &cfg, double epsilon,
 
         check_analytic_model(cfg, lmp, (int) i);
     }
+}
+
+// format one per-atom reference row: segment, tag, and a 3-vector.
+// avoid false positives on tiny values (e.g. from floating-point noise
+// in quantities that should be zero). force them to zero instead.
+static std::string format_row(std::size_t seg, tagint id, const double *vec)
+{
+    auto clean = [](double val) {
+        return (fabs(val) < 1.0e-13) ? 0.0 : val;
+    };
+    return fmt::format("{:3} {:3} {:23.16e} {:23.16e} {:23.16e}\n", seg, id, clean(vec[0]),
+                       clean(vec[1]), clean(vec[2]));
 }
 
 // re-generate yaml file with current settings.
@@ -154,26 +172,30 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
     }
 
     const int natoms = lmp->atom->natoms;
-    YamlWriter writer(outfile);
+
+    // write to a temporary file and rename into place only on success, so a
+    // failed generation run cannot clobber the existing reference file
+    const std::string tmpfile = std::string(outfile) + ".tmp";
+    auto writer               = std::make_unique<YamlWriter>(tmpfile.c_str());
 
     // write yaml header
-    write_yaml_header(&writer, &test_config, lmp->version);
+    write_yaml_header(writer.get(), &test_config, lmp->version);
 
     // natoms
-    writer.emit("natoms", natoms);
+    writer->emit("natoms", natoms);
 
     // variables block (echo back verbatim)
     std::string block;
     for (const auto &var : config.variables)
         block += var.first + " " + var.second + "\n";
-    writer.emit_block("variables", block);
+    writer->emit_block("variables", block);
 
     // pair style and coefficients
-    writer.emit("pair_style", config.pair_style);
+    writer->emit("pair_style", config.pair_style);
     block.clear();
     for (const auto &pair_coeff : config.pair_coeff)
         block += pair_coeff + "\n";
-    writer.emit_block("pair_coeff", block);
+    writer->emit_block("pair_coeff", block);
 
     // run segments
     block.clear();
@@ -181,15 +203,15 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
         if (i) block += " ";
         block += std::to_string(config.run_segments[i]);
     }
-    writer.emit_block("run_segments", block);
+    writer->emit_block("run_segments", block);
 
     // optional analytic check flags (echo back if enabled)
     if (config.analytic_enable) {
-        writer.emit("analytic_enable", std::string("yes"));
-        writer.emit("analytic_model", config.analytic_model);
-        writer.emit("analytic_tol", config.analytic_tol);
-        writer.emit("analytic_segment", (long) config.analytic_segment);
-        if (config.analytic_only) writer.emit("analytic_only", std::string("yes"));
+        writer->emit("analytic_enable", std::string("yes"));
+        writer->emit("analytic_model", config.analytic_model);
+        writer->emit("analytic_tol", config.analytic_tol);
+        writer->emit("analytic_segment", (long) config.analytic_segment);
+        if (config.analytic_only) writer->emit("analytic_only", std::string("yes"));
     }
 
     auto command = [&](const std::string &line) {
@@ -205,6 +227,10 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
         for (std::size_t i = 0; i < config.run_segments.size(); ++i)
             command("run " + std::to_string(config.run_segments[i]) + " post no");
         cleanup_lammps(lmp, config);
+        writer.reset();
+        platform::unlink(outfile);
+        if (std::rename(tmpfile.c_str(), outfile) != 0)
+            FAIL() << "cannot rename " << tmpfile << " to " << outfile;
         return;
     }
 
@@ -226,28 +252,24 @@ void generate_yaml_file(const char *outfile, const TestConfig &config)
         const int local = lmp->atom->nlocal;
         for (int j = 0; j < local; ++j) {
             const tagint id = tag[j];
-            pos_block += fmt::format("{:3} {:3} {:23.16e} {:23.16e} {:23.16e}\n", i, id, x[j][0],
-                                     x[j][1], x[j][2]);
-            vel_block += fmt::format("{:3} {:3} {:23.16e} {:23.16e} {:23.16e}\n", i, id, v[j][0],
-                                     v[j][1], v[j][2]);
-            if (has_torque)
-                torque_block += fmt::format("{:3} {:3} {:23.16e} {:23.16e} {:23.16e}\n", i, id,
-                                            t[j][0], t[j][1], t[j][2]);
-            if (has_omega)
-                omega_block += fmt::format("{:3} {:3} {:23.16e} {:23.16e} {:23.16e}\n", i, id,
-                                           w[j][0], w[j][1], w[j][2]);
-            if (has_angmom)
-                angmom_block += fmt::format("{:3} {:3} {:23.16e} {:23.16e} {:23.16e}\n", i, id,
-                                            angmom[j][0], angmom[j][1], angmom[j][2]);
+            pos_block += format_row(i, id, x[j]);
+            vel_block += format_row(i, id, v[j]);
+            if (has_torque) torque_block += format_row(i, id, t[j]);
+            if (has_omega) omega_block += format_row(i, id, w[j]);
+            if (has_angmom) angmom_block += format_row(i, id, angmom[j]);
         }
     }
-    writer.emit_block("run_pos", pos_block);
-    writer.emit_block("run_vel", vel_block);
-    if (has_torque) writer.emit_block("run_torque", torque_block);
-    if (has_omega) writer.emit_block("run_omega", omega_block);
-    if (has_angmom) writer.emit_block("run_angmom", angmom_block);
+    writer->emit_block("run_pos", pos_block);
+    writer->emit_block("run_vel", vel_block);
+    if (has_torque) writer->emit_block("run_torque", torque_block);
+    if (has_omega) writer->emit_block("run_omega", omega_block);
+    if (has_angmom) writer->emit_block("run_angmom", angmom_block);
 
     cleanup_lammps(lmp, config);
+    writer.reset();
+    platform::unlink(outfile);
+    if (std::rename(tmpfile.c_str(), outfile) != 0)
+        FAIL() << "cannot rename " << tmpfile << " to " << outfile;
 }
 
 void run_dem_trajectory_test(bool newton, const std::string &label)
@@ -290,10 +312,7 @@ void run_dem_trajectory_test(bool newton, const std::string &label)
     }
 
     double epsilon = test_config.epsilon;
-
-    if (!verbose) ::testing::internal::CaptureStdout();
     run_and_check(lmp, test_config, epsilon, label);
-    if (!verbose) ::testing::internal::GetCapturedStdout();
 
     if (!verbose) ::testing::internal::CaptureStdout();
     cleanup_lammps(lmp, test_config);

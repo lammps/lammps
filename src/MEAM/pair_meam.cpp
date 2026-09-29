@@ -73,7 +73,7 @@ PairMEAM::~PairMEAM()
 {
   if (copymode) return;
 
-  if (meam_inst) delete meam_inst;
+  delete meam_inst;
 
   if (allocated) {
     memory->destroy(setflag);
@@ -469,6 +469,11 @@ void PairMEAM::read_global_meam_file(const std::string &globalfile)
         if (!isone(t0[index]))
           error->one(FLERR, 4, "Unsupported parameter in MEAM library file: t0 != 1");
 
+        // rho0 determines the background reference density which divides the
+        // embedding energy, so it must be positive
+        if (rozero[index] <= 0.0)
+          error->one(FLERR, 4, "Invalid parameter in MEAM library file: rho0 must be > 0");
+
         // z given is ignored: if this is mismatched, we definitely won't do what the user said -> fatal error
         if (z[index] != MEAM::get_Zij(lat[index]))
           error->one(FLERR, 4, "Mismatched parameter in MEAM library file: z != lat");
@@ -614,6 +619,13 @@ void PairMEAM::read_user_meam_file(const std::string &userfile, int uidx)
                    e.what());
       }
     }
+
+    // rho0 determines the background reference density which divides the
+    // embedding energy, so it must remain positive
+
+    if ((which == 2) && (value <= 0.0))
+      error->all(FLERR, uidx, "Error in MEAM parameter file {}:{}: rho0 must be > 0", userfile,
+                 lineno);
 
     // pass single setting to MEAM package
 

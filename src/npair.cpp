@@ -31,14 +31,53 @@ using namespace LAMMPS_NS;
 
 NPair::NPair(LAMMPS *lmp) :
     Pointers(lmp), nb(nullptr), ns(nullptr), atom2bin(nullptr), bins(nullptr),
-    binatoms_hash_multi(nullptr), stencil(nullptr)
+    binatoms_hash_multi(nullptr), stencil(nullptr), nstencil_multi(nullptr),
+    stencil_multi(nullptr)
 {
   last_build = -1;
+  flag_same_multi = nullptr;
+  flag_half_multi = nullptr;
   mycutneighsq = nullptr;
   molecular = atom->molecular;
   copymode = 0;
   cutoff_custom = 0.0;
   execution_space = Host;
+
+  // the members below hold copies of neighbor/bin/stencil settings that
+  // copy_neighbor_info(), copy_bin_info(), and copy_stencil_info() fill in
+  // before each build; zero them so instances never carry indeterminate values
+
+  istyle = 0;
+  includegroup = exclude = 0;
+  skin = 0.0;
+  cutneighsq = cutneighghostsq = nullptr;
+  cut_inner_sq = cut_middle_sq = cut_middle_inside_sq = 0.0;
+  bboxlo = bboxhi = nullptr;
+  ncollections = 0;
+  cutcollectionsq = nullptr;
+  nex_type = nex_group = nex_mol = 0;
+  ex1_type = ex2_type = nullptr;
+  ex_type = nullptr;
+  ex1_group = ex2_group = nullptr;
+  ex1_bit = ex2_bit = nullptr;
+  ex_mol_bit = ex_mol_group = ex_mol_intra = nullptr;
+  special_flag = nullptr;
+
+  nbinx = nbiny = nbinz = 0;
+  mbins = mbinx = mbiny = mbinz = 0;
+  mbinxlo = mbinylo = mbinzlo = 0;
+  bininvx = bininvy = bininvz = 0.0;
+  binhead = nullptr;
+  bin_hash = 0;
+  nbinx_multi = nbiny_multi = nbinz_multi = nullptr;
+  mbins_multi = nullptr;
+  mbinx_multi = mbiny_multi = mbinz_multi = nullptr;
+  mbinxlo_multi = mbinylo_multi = mbinzlo_multi = nullptr;
+  bininvx_multi = bininvy_multi = bininvz_multi = nullptr;
+  binhead_multi = nullptr;
+
+  nstencil = 0;
+  stencilxyz = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -318,6 +357,8 @@ int NPair::coord2bin(double *x, int ic)
 
 /* ----------------------------------------------------------------------
    bigint version for hash bins
+   NOTE: the bin index must be computed in 64-bit: this variant exists
+   for bin counts that overflow 32-bit integers
 ------------------------------------------------------------------------- */
 
 bigint NPair::coord2bin_big(double *x, int ic)
@@ -355,6 +396,6 @@ bigint NPair::coord2bin_big(double *x, int ic)
   ix -= mbinxlo_multi[ic];
   iy -= mbinylo_multi[ic];
   iz -= mbinzlo_multi[ic];
-  ibin = iz*mbiny_multi[ic]*mbinx_multi[ic] + iy*mbinx_multi[ic] + ix;
+  ibin = (bigint) iz*mbiny_multi[ic]*mbinx_multi[ic] + (bigint) iy*mbinx_multi[ic] + ix;
   return ibin;
 }

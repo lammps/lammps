@@ -101,14 +101,14 @@ endfunction()
 
 function(check_git_setup)
   add_custom_target(
-    AlwaysCheckGit COMMAND ${CMAKE_COMMAND} -DRUN_CHECK_GIT_VERSION=1 -DKOKKOS_SOURCE_DIR=${Kokkos_SOURCE_DIR} -P
-                           ${CURRENT_LIST_DIR}/build_env_info.cmake BYPRODUCTS ${post_configure_file}
+    Kokkos_AlwaysCheckGit COMMAND ${CMAKE_COMMAND} -DRUN_CHECK_GIT_VERSION=1 -DKOKKOS_SOURCE_DIR=${Kokkos_SOURCE_DIR} -P
+                                  ${CURRENT_LIST_DIR}/build_env_info.cmake BYPRODUCTS ${post_configure_file}
   )
 
   add_library(impl_git_version ${CMAKE_CURRENT_BINARY_DIR}/generated/Kokkos_Version_Info.cpp)
   target_include_directories(impl_git_version PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/generated)
   target_compile_features(impl_git_version PRIVATE cxx_raw_string_literals)
-  add_dependencies(impl_git_version AlwaysCheckGit)
+  add_dependencies(impl_git_version Kokkos_AlwaysCheckGit)
 
   check_git_version()
 endfunction()

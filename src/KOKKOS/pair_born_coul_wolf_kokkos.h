@@ -29,6 +29,8 @@ PairStyle(born/coul/wolf/kk/host,PairBornCoulWolfKokkos<LMPHostType>);
 
 namespace LAMMPS_NS {
 
+struct TagPairBornCoulWolfSelfEnergy{};
+
 template<class DeviceType>
 class PairBornCoulWolfKokkos : public PairBornCoulWolf {
  public:
@@ -42,6 +44,10 @@ class PairBornCoulWolfKokkos : public PairBornCoulWolf {
   void compute(int, int) override;
   void init_style() override;
   double init_one(int, int) override;
+
+  // NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagPairBornCoulWolfSelfEnergy, const int&, KK_ACC_FLOAT&) const;
 
   struct params_born_wolf {
 // NOLINTNEXTLINE
@@ -95,6 +101,7 @@ class PairBornCoulWolfKokkos : public PairBornCoulWolf {
   typename AT::t_kkacc_1d_3 f;
   typename AT::t_int_1d_randomread type;
   typename AT::t_kkfloat_1d_randomread q;
+  typename AT::t_int_1d_randomread d_ilist;
 
   DAT::ttransform_kkacc_1d k_eatom;
   DAT::ttransform_kkacc_1d_6 k_vatom;

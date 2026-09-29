@@ -647,5 +647,5 @@ Martyna, J Phys A: Math Gen, 39, 5629 (2006).
 
 .. _nc-Miller:
 
-**(Miller)** Miller, Tadmor, Gibson, Bernstein and Pavia, J Chem Phys,
+**(Miller2)** Miller, Tadmor, Gibson, Bernstein and Pavia, J Chem Phys,
 144, 184107 (2016).

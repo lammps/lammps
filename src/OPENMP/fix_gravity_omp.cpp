@@ -45,16 +45,20 @@ void FixGravityOMP::post_force(int /* vflag */)
   if (varflag != CONSTANT) {
     modify->clearstep_compute();
     if (mstyle == EQUAL) magnitude = input->variable->compute_equal(mvar);
-    if (vstyle == EQUAL) magnitude = input->variable->compute_equal(vvar);
-    if (pstyle == EQUAL) magnitude = input->variable->compute_equal(pvar);
-    if (tstyle == EQUAL) magnitude = input->variable->compute_equal(tvar);
-    if (xstyle == EQUAL) magnitude = input->variable->compute_equal(xvar);
-    if (ystyle == EQUAL) magnitude = input->variable->compute_equal(yvar);
-    if (zstyle == EQUAL) magnitude = input->variable->compute_equal(zvar);
+    if (vstyle == EQUAL) vert = input->variable->compute_equal(vvar);
+    if (pstyle == EQUAL) phi = input->variable->compute_equal(pvar);
+    if (tstyle == EQUAL) theta = input->variable->compute_equal(tvar);
+    if (xstyle == EQUAL) xdir = input->variable->compute_equal(xvar);
+    if (ystyle == EQUAL) ydir = input->variable->compute_equal(yvar);
+    if (zstyle == EQUAL) zdir = input->variable->compute_equal(zvar);
     modify->addstep_compute(update->ntimestep + 1);
 
     set_acceleration();
   }
+
+  // just exit if application of force is disabled
+
+  if (disable) return;
 
   const double * const * const x = atom->x;
   double * const * const f = atom->f;

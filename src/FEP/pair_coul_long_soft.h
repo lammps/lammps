@@ -49,7 +49,7 @@ class PairCoulLongSoft : public Pair {
   double qdist;    // TIP4P distance O to negative charge (compatibility of cutoffs)
   double g_ewald;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }    // namespace LAMMPS_NS

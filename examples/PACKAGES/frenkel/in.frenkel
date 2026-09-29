@@ -1,0 +1,55 @@
+# On-the-fly Wigner-Seitz defect analysis of a bcc iron crystal.
+#
+# A single Frenkel pair is created by hand: one atom is removed to leave a
+# vacancy behind and one extra atom is inserted next to an occupied lattice
+# site to create an interstitial.  The crystal is then run at 600 K, and
+# compute frenkel counts the vacancies and interstitials on the fly.  The
+# defect clusters are written to a dump file with dump local.
+#
+# For a simulation with a changing box, e.g. under fix npt, add the keyword
+# "rescale yes" to the compute so that the reference sites follow the box.
+
+units           metal
+atom_style      atomic
+atom_modify     map array
+boundary        p p p
+
+lattice         bcc 2.8553
+region          box block 0 10 0 10 0 10
+create_box      1 box
+create_atoms    1 box
+
+pair_style      eam/fs
+pair_coeff      * * Fe_mm.eam.fs Fe
+
+# remove one atom to create a vacancy
+
+region          hole sphere 5.0 5.0 5.0 0.3 units lattice
+delete_atoms    region hole compress no
+
+# replace the atom of another site by a <110> dumbbell, so that this site
+# holds two atoms and thus one interstitial
+
+region          dumbbell sphere 2.5 2.5 2.5 0.3 units lattice
+delete_atoms    region dumbbell compress no
+create_atoms    1 single 2.25 2.25 2.5 units lattice
+create_atoms    1 single 2.75 2.75 2.5 units lattice
+
+velocity        all create 1200.0 4928459 mom yes rot yes loop geom
+
+# the reference lattice is the one defined by the lattice command above
+
+compute         fr all frenkel
+
+# c_fr[1] = vacancies, c_fr[2] = interstitials, c_fr[3] = sites with > 2 atoms
+
+thermo_style    custom step temp pe c_fr[1] c_fr[2] c_fr[3]
+thermo          100
+
+# one line per defect cluster: ID, size, and the position of its center
+
+# dump            def all local 250 dump.frenkel index c_fr[1] c_fr[2] c_fr[3] c_fr[4] c_fr[5]
+
+fix             1 all nvt temp 600.0 600.0 0.1
+timestep        0.001
+run             1000

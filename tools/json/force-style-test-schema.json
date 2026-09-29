@@ -2,7 +2,7 @@
     "$schema": "https://json-schema.org/draft/2020-12/schema",
     "$id": "https://download.lammps.org/json/force-style-test-schema.json",
     "title": "JSON schema for LAMMPS force-style regression test reference files (unittest/force-styles)",
-    "description": "Version 0.1; last updated 2026-06-13",
+    "description": "Version 0.2; last updated 2026-07-09",
     "type": "object",
     "additionalProperties": false,
     "properties": {
@@ -51,6 +51,11 @@
             "type": "integer",
             "minimum": 0,
             "description": "number of atoms in the input file template"
+        },
+        "timestep": {
+            "type": "number",
+            "exclusiveMinimum": 0,
+            "description": "timestep size applied for the test run (when different from the tester default)"
         },
         "pair_style": {
             "type": "string",
@@ -152,6 +157,18 @@
             "type": "string",
             "description": "per-atom torques after the run, where applicable"
         },
+        "init_mag_forces": {
+            "type": "string",
+            "description": "per-atom magnetic precession vectors after \"run 0\" (atom style spin)"
+        },
+        "run_mag_forces": {
+            "type": "string",
+            "description": "per-atom magnetic precession vectors after the run (atom style spin)"
+        },
+        "run_spin": {
+            "type": "string",
+            "description": "per-atom spin orientations and magnitudes after the run (atom style spin)"
+        },
         "global_scalar": {
             "type": "number",
             "description": "the global scalar output of the tested fix, if any"
@@ -159,6 +176,18 @@
         "global_vector": {
             "type": "string",
             "description": "the global vector output of the tested fix, if any"
+        },
+        "global_array": {
+            "type": "string",
+            "description": "the global array output of the tested compute or fix (test_output_style)"
+        },
+        "peratom_data": {
+            "type": "string",
+            "description": "the per-atom vector or array output of the tested compute or fix (test_output_style)"
+        },
+        "local_data": {
+            "type": "string",
+            "description": "the local vector or array output of the tested compute or fix (test_output_style)"
         }
     },
     "required": [
@@ -249,10 +278,41 @@
         {
             "title": "test_fix_timestep reference",
             "required": [
-                "input_coeffs",
                 "run_pos",
                 "run_vel"
             ]
+        },
+        {
+            "title": "test_min_style reference",
+            "required": [
+                "input_coeffs",
+                "init_energy",
+                "run_energy",
+                "global_scalar",
+                "global_vector"
+            ],
+            "not": {
+                "required": ["run_pos"]
+            }
+        },
+        {
+            "title": "test_output_style reference",
+            "required": [
+                "timestep"
+            ],
+            "anyOf": [
+                { "required": ["global_scalar"] },
+                { "required": ["global_vector"] },
+                { "required": ["global_array"] },
+                { "required": ["peratom_data"] },
+                { "required": ["local_data"] }
+            ],
+            "not": {
+                "anyOf": [
+                    { "required": ["run_pos"] },
+                    { "required": ["init_energy"] }
+                ]
+            }
         }
     ]
 }

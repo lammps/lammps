@@ -19,6 +19,7 @@
 
 #include "angle.h"
 #include "atom.h"
+#include "atom_masks.h"
 #include "bond.h"
 #include "compute.h"
 #include "dihedral.h"
@@ -201,6 +202,8 @@ void FixNumDiffVirial::calculate_virial()
 
   // store copy of current forces for owned and ghost atoms
 
+  atom->sync_host_arrays(X_MASK | F_MASK);
+
   double **x = atom->x;
   double **f = atom->f;
   int nall = atom->nlocal + atom->nghost;
@@ -237,8 +240,12 @@ void FixNumDiffVirial::calculate_virial()
 
   // restore original forces for owned and ghost atoms
 
+  atom->sync_host_arrays(F_MASK);
+
   for (int i = 0; i < nall; i++)
     for (int k = 0; k < 3; k++) f[i][k] = temp_f[i][k];
+
+  atom->modified_host_arrays(F_MASK);
 }
 
 /* ----------------------------------------------------------------------
@@ -247,11 +254,19 @@ void FixNumDiffVirial::calculate_virial()
 
 void FixNumDiffVirial::displace_atoms(int nall, int idir, double magnitude)
 {
+  // the strain goes into the plain coordinate array, and the energy evaluation
+  // that follows works from the KOKKOS copies, so bring the host side up to
+  // date first and hand the write over afterwards
+
+  atom->sync_host_arrays(X_MASK);
+
   double **x = atom->x;
   int k = dirlist[idir][0];
   int l = dirlist[idir][1];
   for (int i = 0; i < nall; i++)
     x[i][k] = temp_x[i][k] + delta * magnitude * (temp_x[i][l] - fixedpoint[l]);
+
+  atom->modified_host_arrays(X_MASK);
 }
 
 /* ----------------------------------------------------------------------
@@ -260,9 +275,13 @@ void FixNumDiffVirial::displace_atoms(int nall, int idir, double magnitude)
 
 void FixNumDiffVirial::restore_atoms(int nall, int idir)
 {
+  atom->sync_host_arrays(X_MASK);
+
   double **x = atom->x;
   int k = dirlist[idir][0];
   for (int i = 0; i < nall; i++) { x[i][k] = temp_x[i][k]; }
+
+  atom->modified_host_arrays(X_MASK);
 }
 
 /* ----------------------------------------------------------------------

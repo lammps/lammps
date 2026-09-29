@@ -12,11 +12,7 @@
 #ifdef KOKKOS_ENABLE_CUDA
 
 #include <Kokkos_Macros.hpp>
-#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
-import kokkos.core;
-#else
 #include <Kokkos_Core.hpp>
-#endif
 
 // #include <Cuda/Kokkos_Cuda_Error.hpp>
 // #include <Cuda/Kokkos_Cuda_BlockSize_Deduction.hpp>
@@ -213,6 +209,10 @@ void CudaInternal::print_configuration(std::ostream &s) const {
       << '\n'
       << "  Shared Memory per Block: "
       << human_memory_size(prop.sharedMemPerBlock) << '\n'
+      << "  Shared Memory per Block (Optin): "
+      << human_memory_size(prop.sharedMemPerBlockOptin) << '\n'
+      << "  Reserved Shared Memory per Block: "
+      << human_memory_size(prop.reservedSharedMemPerBlock) << '\n'
       << "  Can access system allocated memory: " << prop.pageableMemoryAccess
       << '\n'
       << "    via Address Translation Service: "
@@ -288,6 +288,11 @@ CudaInternal::CudaInternal(cudaStream_t stream) : m_stream(stream) {
   if (!constantMemReusablePerDevice[m_cudaDev])
     KOKKOS_IMPL_CUDA_SAFE_CALL(cuda_event_create_with_flags_wrapper(
         &constantMemReusablePerDevice[m_cudaDev], cudaEventDisableTiming));
+
+  // Accessing the mutex (for constant memory launch) through
+  // std::map::operator[] will ensure the mutex is default constructed (and
+  // initialized)
+  constantMemMutexPerDevice[m_cudaDev];
 
   //----------------------------------
   // Multiblock reduction uses scratch flags for counters
@@ -570,8 +575,6 @@ void Cuda::impl_finalize() {
   // Destroy the default instance.
   Impl::CudaInternal::default_instance = nullptr;
 }
-
-Cuda::~Cuda() { Impl::check_execution_space_destructor_precondition(name()); }
 
 Cuda::Cuda()
     : m_space_instance(

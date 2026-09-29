@@ -198,6 +198,9 @@ void PairColloidOMP::eval(int iifrom, int iito, ThrData * const thr)
             (2.0*K[0]*(K[7]+K[8])-log(K[8]/K[7])) - offset[itype][jtype];
         if (r <= K[1]) error->one(FLERR,"Overlapping large/large in pair colloid");
         break;
+
+      default:
+        error->one(FLERR,"Unknown colloid interaction form");
       }
 
       if (EFLAG) evdwl *= factor_lj;

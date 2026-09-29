@@ -29,7 +29,6 @@ class DipoleLJSF : public BaseDipole<numtyp, acctyp> {
   /// Clear any previous data and set up for a new LAMMPS run
   /** \param max_nbors initial number of rows in the neighbor matrix
     * \param cell_size cutoff + skin
-    * \param gpu_split fraction of particles handled by device
     *
     * Returns:
     * -  0 if successful
@@ -42,7 +41,7 @@ class DipoleLJSF : public BaseDipole<numtyp, acctyp> {
            double *host_special_lj,
            const int nlocal, const int nall, const int max_nbors,
            const int maxspecial, const double cell_size,
-           const double gpu_split, FILE *screen, double **host_cut_ljsq,
+           FILE *screen, double **host_cut_ljsq,
            double **host_cut_coulsq, double *host_special_coul,
            const double qqrd2e);
 

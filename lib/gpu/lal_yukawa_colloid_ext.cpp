@@ -18,6 +18,7 @@
 #include <cmath>
 
 #include "lal_yukawa_colloid.h"
+#include "lammps_gpu.h"
 
 using namespace std;
 using namespace LAMMPS_AL;
@@ -27,6 +28,8 @@ static YukawaColloid<PRECISION,ACC_PRECISION> YKCOLLMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
+
+namespace LAMMPS_GPU {
 int ykcolloid_gpu_init(const int ntypes, double **cutsq, double **host_a,
                        double **host_offset, double *special_lj, const int inum,
                        const int nall, const int max_nbors,  const int maxspecial,
@@ -34,7 +37,6 @@ int ykcolloid_gpu_init(const int ntypes, double **cutsq, double **host_a,
                        const double kappa) {
   YKCOLLMF.clear();
   gpu_mode=YKCOLLMF.device->gpu_mode();
-  double gpu_split=YKCOLLMF.device->particle_split();
   int first_gpu=YKCOLLMF.device->first_device();
   int last_gpu=YKCOLLMF.device->last_device();
   int world_me=YKCOLLMF.device->world_me();
@@ -55,8 +57,7 @@ int ykcolloid_gpu_init(const int ntypes, double **cutsq, double **host_a,
   int init_ok=0;
   if (world_me==0)
     init_ok=YKCOLLMF.init(ntypes, cutsq, host_a, host_offset, special_lj,
-                          inum, nall, max_nbors, maxspecial, cell_size, gpu_split,
-                          screen, kappa);
+                          inum, nall, max_nbors, maxspecial, cell_size, screen, kappa);
 
   YKCOLLMF.device->world_barrier();
   if (message)
@@ -73,8 +74,7 @@ int ykcolloid_gpu_init(const int ntypes, double **cutsq, double **host_a,
     }
     if (gpu_rank==i && world_me!=0)
       init_ok=YKCOLLMF.init(ntypes, cutsq, host_a, host_offset, special_lj,
-                            inum, nall, max_nbors, maxspecial, cell_size, gpu_split,
-                            screen, kappa);
+                            inum, nall, max_nbors, maxspecial, cell_size, screen, kappa);
 
     YKCOLLMF.device->serialize_init();
     if (message)
@@ -92,16 +92,15 @@ void ykcolloid_gpu_clear() {
   YKCOLLMF.clear();
 }
 
-int ** ykcolloid_gpu_compute_n(const int ago, const int inum_full,
-                               const int nall, double **host_x, int *host_type,
-                               double *sublo, double *subhi, tagint *tag, int **nspecial,
-                               tagint **special, const bool eflag, const bool vflag,
-                               const bool eatom, const bool vatom, int &host_start,
-                               int **ilist, int **jnum, const double cpu_time,
-                               bool &success, double *host_rad, double *prd, int *periodicity) {
+int **ykcolloid_gpu_compute_n(const int ago, const int inum_full, const int nall, double **host_x,
+                              int *host_type, double *sublo, double *subhi, tagint *tag,
+                              int **nspecial, tagint **special, const bool eflag, const bool vflag,
+                              const bool eatom, const bool vatom, int **ilist, int **jnum,
+                              bool &success, double *host_rad, double *prd, int *periodicity)
+{
   return YKCOLLMF.compute(ago, inum_full, nall, host_x, host_type, sublo,
                           subhi, tag, nspecial, special, eflag, vflag, eatom,
-                          vatom, host_start, ilist, jnum, cpu_time, success,
+                          vatom, ilist, jnum, success,
                           host_rad, prd, periodicity);
 }
 
@@ -109,15 +108,13 @@ void ykcolloid_gpu_compute(const int ago, const int inum_full,
                            const int nall, double **host_x, int *host_type,
                            int *ilist, int *numj, int **firstneigh,
                            const bool eflag, const bool vflag,
-                           const bool eatom, const bool vatom, int &host_start,
-                           const double cpu_time, bool &success, double *host_rad) {
+                           const bool eatom, const bool vatom, bool &success, double *host_rad) {
   YKCOLLMF.compute(ago,inum_full,nall,host_x,host_type,ilist,numj,
-                   firstneigh,eflag,vflag,eatom,vatom,host_start,cpu_time,
-                   success,host_rad);
+                   firstneigh,eflag,vflag,eatom,vatom,success,host_rad);
 }
 
 double ykcolloid_gpu_bytes() {
   return YKCOLLMF.host_memory_usage();
 }
 
-
+} // namespace LAMMPS_GPU

@@ -86,6 +86,9 @@ class Cuda {
   //! This execution space preferred device_type
   using device_type = Kokkos::Device<execution_space, memory_space>;
 
+  //! The index_type best suited for this execution space.
+  using index_type = memory_space::index_type;
+
   //! The size_type best suited for this execution space.
   using size_type = memory_space::size_type;
 
@@ -128,8 +131,16 @@ class Cuda {
   KOKKOS_FUNCTION Cuda& operator=(Cuda&& other) noexcept {
     return *this = static_cast<const Cuda&>(other);
   }
-  ~Cuda();
   Cuda();
+
+  // This destructor is never actually called on device, but, for the implicitly
+  // defined ~RangePolicy<ExecSpace>(), we need destructor to be __host__
+  // __device__ to avoid nvcc warnings. This destructor will only execute
+  // internals on host.
+  KOKKOS_FUNCTION ~Cuda() {
+    KOKKOS_IF_ON_HOST(
+        (Impl::check_execution_space_destructor_precondition(name());))
+  }
 
   explicit Cuda(cudaStream_t stream) : Cuda(stream, Impl::ManageStream::no) {}
 
@@ -190,7 +201,6 @@ struct MemorySpaceAccess<Kokkos::CudaSpace,
                          Kokkos::Cuda::scratch_memory_space> {
   enum : bool { assignable = false };
   enum : bool { accessible = true };
-  enum : bool { deepcopy = false };
 };
 
 }  // namespace Impl

@@ -58,7 +58,8 @@ extensions = [
     'tab_or_note',
     'breathe',
     'sphinx_design',
-    'sphinx_sitemap'
+    'sphinx_sitemap',
+    'notfound.extension'
 ]
 
 images_config = {
@@ -305,6 +306,14 @@ html_permalinks = True
 # This fixed setting should reduce the number of URLs that Google complains
 # about as having a canonical URLs where it chooses a different one.
 html_baseurl = 'https://docs.lammps.org/'
+
+# Settings for the sphinx-notfound-page extension.  The web server delivers
+# the generated 404.html page in place of *any* missing URL, including URLs
+# in subdirectories, so all links on the 404 page must be absolute (rooted
+# at html_baseurl) instead of relative.  The page content is doc/src/404.rst.
+# Do not advertise the 404 page in the sitemap.
+notfound_urls_prefix = '/'
+sitemap_excludes = ['404.html']
 
 if 'epub' in sys.argv:
   html_math_renderer = 'imgmath'

@@ -378,6 +378,17 @@ void PairTriLJ::compute(int eflag, int vflag)
         }
       }
 
+      // for interactions involving a discretized triangle, fpair/delx/
+      // dely/delz hold values of the last sub-particle pair inside the
+      // sub cutoff (or stale data if there was none); the sub-particle
+      // forces were applied at the atom centers and the virial is
+      // obtained via fdotr, so only tally the accumulated energy
+
+      if ((tri[i] >= 0) || (tri[j] >= 0)) {
+        fpair = 0.0;
+        delx = dely = delz = 0.0;
+      }
+
       if (evflag) ev_tally(i,j,nlocal,newton_pair,evdwl,0.0,fpair,delx,dely,delz);
     }
   }

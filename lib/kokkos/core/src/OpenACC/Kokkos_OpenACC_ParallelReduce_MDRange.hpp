@@ -52,7 +52,7 @@ class Kokkos::Impl::ParallelReduce<CombinedFunctorReducerType,
                               typename ViewType::memory_space>::accessible) {}
 
   void execute() const {
-    static_assert(1 < Policy::rank && Policy::rank < 7);
+    static_assert(0 < Policy::rank && Policy::rank < 7);
     static_assert(Policy::inner_direction == Iterate::Left ||
                   Policy::inner_direction == Iterate::Right);
     constexpr int rank = Policy::rank;
@@ -105,6 +105,28 @@ class Kokkos::Impl::ParallelReduce<CombinedFunctorReducerType,
 #define KOKKOS_IMPL_OPENACC_PARALLEL_REDUCE_DISPATCH_ITERATE(REDUCER,       \
                                                              OPERATOR)      \
   namespace Kokkos::Experimental::Impl {                                    \
+  template <class Direction, class ValueType, class Functor>                \
+  void OpenACCParallelReduce##REDUCER(Direction, ValueType& aval,           \
+                                      Functor const& afunctor,              \
+                                      OpenACCMDRangeBegin<1> const& begin,  \
+                                      OpenACCMDRangeEnd<1> const& end,      \
+                                      int async_arg) {                      \
+    static_assert(Direction::value == Iterate::Left ||                      \
+                  Direction::value == Iterate::Right);                      \
+    auto val = aval;                                                        \
+    auto const functor(afunctor);                                           \
+    auto begin0 = begin[0];                                                 \
+    auto end0   = end[0];                                                   \
+    /* clang-format off */ \
+    KOKKOS_IMPL_ACC_PRAGMA(parallel loop gang vector reduction(OPERATOR:val) copyin(functor) async(async_arg))                                                \
+    /* clang-format on */                                                   \
+    for (auto i0 = begin0; i0 < end0; ++i0) {                               \
+      functor(i0, val);                                                     \
+    }                                                                       \
+    acc_wait(async_arg);                                                    \
+    aval = val;                                                             \
+  }                                                                         \
+                                                                            \
   template <class ValueType, class Functor>                                 \
   void OpenACCParallelReduce##REDUCER(OpenACCIterateLeft, ValueType& aval,  \
                                       Functor const& afunctor,              \
@@ -501,6 +523,28 @@ class Kokkos::Impl::ParallelReduce<CombinedFunctorReducerType,
 #define KOKKOS_IMPL_OPENACC_PARALLEL_REDUCE_DISPATCH_ITERATE(REDUCER,         \
                                                              OPERATOR)        \
   namespace Kokkos::Experimental::Impl {                                      \
+  template <class Direction, class ValueType, class Functor>                  \
+  void OpenACCParallelReduce##REDUCER(Direction, ValueType& aval,             \
+                                      Functor const& afunctor,                \
+                                      OpenACCMDRangeBegin<1> const& begin,    \
+                                      OpenACCMDRangeEnd<1> const& end,        \
+                                      int async_arg) {                        \
+    static_assert(Direction::value == Iterate::Left ||                        \
+                  Direction::value == Iterate::Right);                        \
+    auto val = aval;                                                          \
+    auto const functor(afunctor);                                             \
+    auto begin0 = begin[0];                                                   \
+    auto end0   = end[0];                                                     \
+    /* clang-format off */ \
+    KOKKOS_IMPL_ACC_PRAGMA(parallel loop gang vector reduction(OPERATOR:val) copyin(functor) async(async_arg))                                                  \
+    /* clang-format on */                                                     \
+    for (auto i0 = begin0; i0 < end0; ++i0) {                                 \
+      functor(i0, val);                                                       \
+    }                                                                         \
+    acc_wait(async_arg);                                                      \
+    aval = val;                                                               \
+  }                                                                           \
+                                                                              \
   template <class ValueType, class Functor>                                   \
   void OpenACCParallelReduce##REDUCER(OpenACCIterateLeft, ValueType& aval,    \
                                       Functor const& afunctor,                \

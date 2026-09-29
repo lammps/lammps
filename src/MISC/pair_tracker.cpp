@@ -392,7 +392,7 @@ void PairTracker::init_style()
 
   if (fix_history == nullptr) {
     modify->replace_fix("NEIGH_HISTORY_TRACK_DUMMY",
-                        fmt::format("NEIGH_HISTORY_TRACK all NEIGH_HISTORY {}", size_history), 1);
+                        fmt::format("NEIGH_HISTORY_TRACK all NEIGH_HISTORY {}", size_history), 0);
     fix_history = dynamic_cast<FixNeighHistory *>(modify->get_fix_by_id("NEIGH_HISTORY_TRACK"));
     fix_history->pair = this;
     fix_history->use_bit_flag = 0;
@@ -409,7 +409,7 @@ void PairTracker::init_style()
     // check for FixFreeze and set freeze_group_bit
 
     auto fixlist = modify->get_fix_by_style("^freeze");
-    if (fixlist.size() == 0)
+    if (fixlist.empty())
       freeze_group_bit = 0;
     else if (fixlist.size() > 1)
       error->all(FLERR, "Only one fix freeze command at a time allowed");
@@ -593,6 +593,7 @@ void PairTracker::read_restart_settings(FILE *fp)
   int n;
   if (comm->me == 0) utils::sfread(FLERR, &n, sizeof(int), 1, fp, nullptr, error);
   MPI_Bcast(&n, 1, MPI_INT, 0, world);
+  if ((n < 1) || (n > 65536)) error->all(FLERR, "Invalid fix ID length in restart file");
 
   id_fix_store_local = new char[n];
   if (comm->me == 0) utils::sfread(FLERR, id_fix_store_local, sizeof(char), n, fp, nullptr, error);
@@ -601,6 +602,8 @@ void PairTracker::read_restart_settings(FILE *fp)
   if (comm->me == 0)
     utils::sfread(FLERR, &nvalues_restart, sizeof(int), 1, fp, nullptr, error);
   MPI_Bcast(&nvalues_restart, 1, MPI_INT, 0, world);
+  if ((nvalues_restart < 0) || (nvalues_restart > 4096))
+    error->all(FLERR, "Invalid number of values in restart file");
 
   saved_choices.clear();
   delete[] pack_choice;

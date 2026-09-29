@@ -38,7 +38,7 @@ class RegEllipsoid : public Region {
   void shape_update() override;
   void bbox_update() override;
 
- private:
+ protected:
   double xc, yc, zc;
   double a, b, c;
   int xstyle, xvar;

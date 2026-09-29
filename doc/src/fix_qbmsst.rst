@@ -86,7 +86,7 @@ especially when the temperature of the initial state is below the
 classical limit or there is a great change in the zero point energies
 between the initial and final states. Theoretical post processing
 quantum corrections of shock compressed water and methane have been
-reported as much as 30% of the temperatures :ref:`(Goldman) <Goldman1>`.  A
+reported as much as 30% of the temperatures :ref:`(Goldman2) <Goldman1>`.  A
 self-consistent method that couples the shock to a quantum thermal
 bath described by a colored noise Langevin thermostat has been
 developed by Qi et al :ref:`(Qi) <Qi>` and applied to shocked methane.  The
@@ -236,7 +236,7 @@ T_init=300.0. e0, p0, and v0 are calculated on the first step.
 
 .. _Goldman1:
 
-**(Goldman)** Goldman, Reed and Fried, J. Chem. Phys. 131, 204103 (2009)
+**(Goldman2)** Goldman, Reed and Fried, J. Chem. Phys. 131, 204103 (2009)
 
 .. _Qi:
 

@@ -164,7 +164,7 @@ void AngleCosineBuck6d::compute(int eflag, int vflag)
         forcebuck6d = forcebuck6d*sme + ebuck6d*smf;
         ebuck6d *= sme;
       }
-    } else forcebuck6d = 0.0;
+    } else forcebuck6d = r32inv = 0.0;
 
     // add forces of additional LJ interaction
 

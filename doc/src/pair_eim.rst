@@ -29,7 +29,7 @@ Description
 """""""""""
 
 Style *eim* computes pairwise interactions for ionic compounds
-using embedded-ion method (EIM) potentials :ref:`(Zhou) <Zhou2>`.  The
+using embedded-ion method (EIM) potentials :ref:`(Zhou2) <Zhou2>`.  The
 energy of the system E is given by
 
 .. math::
@@ -181,5 +181,5 @@ none
 
 .. _Zhou2:
 
-**(Zhou)** Zhou, submitted for publication (2010).  Please contact
+**(Zhou2)** Zhou, submitted for publication (2010).  Please contact
 Xiaowang Zhou (Sandia) for details via email at xzhou at sandia.gov.

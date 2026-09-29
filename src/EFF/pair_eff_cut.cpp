@@ -997,6 +997,15 @@ void PairEffCut::write_restart_settings(FILE *fp)
   fwrite(&cut_global,sizeof(double),1,fp);
   fwrite(&offset_flag,sizeof(int),1,fp);
   fwrite(&mix_flag,sizeof(int),1,fp);
+  fwrite(&limit_eradius_flag,sizeof(int),1,fp);
+  fwrite(&pressure_with_evirials_flag,sizeof(int),1,fp);
+  fwrite(&ecp_found,sizeof(int),1,fp);
+  fwrite(ecp_type,sizeof(int),100,fp);
+  fwrite(PAULI_CORE_A,sizeof(double),100,fp);
+  fwrite(PAULI_CORE_B,sizeof(double),100,fp);
+  fwrite(PAULI_CORE_C,sizeof(double),100,fp);
+  fwrite(PAULI_CORE_D,sizeof(double),100,fp);
+  fwrite(PAULI_CORE_E,sizeof(double),100,fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -1009,10 +1018,38 @@ void PairEffCut::read_restart_settings(FILE *fp)
     utils::sfread(FLERR,&cut_global,sizeof(double),1,fp,nullptr,error);
     utils::sfread(FLERR,&offset_flag,sizeof(int),1,fp,nullptr,error);
     utils::sfread(FLERR,&mix_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&limit_eradius_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&pressure_with_evirials_flag,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,&ecp_found,sizeof(int),1,fp,nullptr,error);
+    utils::sfread(FLERR,ecp_type,sizeof(int),100,fp,nullptr,error);
+    utils::sfread(FLERR,PAULI_CORE_A,sizeof(double),100,fp,nullptr,error);
+    utils::sfread(FLERR,PAULI_CORE_B,sizeof(double),100,fp,nullptr,error);
+    utils::sfread(FLERR,PAULI_CORE_C,sizeof(double),100,fp,nullptr,error);
+    utils::sfread(FLERR,PAULI_CORE_D,sizeof(double),100,fp,nullptr,error);
+    utils::sfread(FLERR,PAULI_CORE_E,sizeof(double),100,fp,nullptr,error);
   }
   MPI_Bcast(&cut_global,1,MPI_DOUBLE,0,world);
   MPI_Bcast(&offset_flag,1,MPI_INT,0,world);
   MPI_Bcast(&mix_flag,1,MPI_INT,0,world);
+  MPI_Bcast(&limit_eradius_flag,1,MPI_INT,0,world);
+  MPI_Bcast(&pressure_with_evirials_flag,1,MPI_INT,0,world);
+  MPI_Bcast(&ecp_found,1,MPI_INT,0,world);
+  MPI_Bcast(ecp_type,100,MPI_INT,0,world);
+  MPI_Bcast(PAULI_CORE_A,100,MPI_DOUBLE,0,world);
+  MPI_Bcast(PAULI_CORE_B,100,MPI_DOUBLE,0,world);
+  MPI_Bcast(PAULI_CORE_C,100,MPI_DOUBLE,0,world);
+  MPI_Bcast(PAULI_CORE_D,100,MPI_DOUBLE,0,world);
+  MPI_Bcast(PAULI_CORE_E,100,MPI_DOUBLE,0,world);
+
+  // h2e and hhmss2e are derived from the unit system, same as in settings()
+
+  if (force->qqr2e==332.06371) {        // i.e. Real units chosen
+    h2e = 627.509;                      // hartree->kcal/mol
+    hhmss2e = 175.72044219620075;       // hartree->kcal/mol * (Bohr->Angstrom)^2
+  } else if (force->qqr2e==1.0) {        // electron units
+    h2e = 1.0;
+    hhmss2e = 1.0;
+  } else error->all(FLERR,"Check your units");
 }
 
 /* ----------------------------------------------------------------------

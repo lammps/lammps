@@ -29,6 +29,13 @@ int colvar::linearCombination::init(std::string const &conf)
             for (auto it_sub_cvc_conf = sub_cvc_confs.begin(); it_sub_cvc_conf != sub_cvc_confs.end(); ++it_sub_cvc_conf) {
                 cv.push_back((it_cv_map->second)());
                 cv.back()->init(*(it_sub_cvc_conf));
+                if (cv.back()->has_gpu_implementation()) {
+                    // TODO: GPU support for nested CVs
+                    return cvmodule->error(
+                        "Nested CV " + cv.back()->name +
+                        " has GPU implementation but this is not supported in " +
+                        this->name + ". Please consider using \"smp off\" ");
+                }
             }
         }
     }
@@ -41,7 +48,7 @@ int colvar::linearCombination::init(std::string const &conf)
     }
     // Show useful error messages and prevent crashes if no sub CVC is found
     if (cv.size() == 0) {
-       return cvm::error("Error: the CV " + name + " expects one or more nesting components.\n",
+       return cvmodule->error("Error: the CV " + name + " expects one or more nesting components.\n",
                        COLVARS_INPUT_ERROR);
     } else {
         x.type(cv[0]->value());
@@ -185,16 +192,16 @@ int colvar::customColvar::init(std::string const &conf)
     if (key_lookup(conf, "customFunction", &expr_in, &pos)) {
 #ifdef LEPTON
         use_custom_function = true;
-        cvm::log("This colvar uses a custom function.\n");
+        cvmodule->log("This colvar uses a custom function.\n");
         do {
             expr = expr_in;
             if (cvm::debug())
-                cvm::log("Parsing expression \"" + expr + "\".\n");
+                cvmodule->log("Parsing expression \"" + expr + "\".\n");
             try {
                 pexpr = Lepton::Parser::parse(expr);
                 pexprs.push_back(pexpr);
             } catch (...) {
-                return cvm::error("Error parsing expression \"" + expr + "\".\n", COLVARS_INPUT_ERROR);
+                return cvmodule->error("Error parsing expression \"" + expr + "\".\n", COLVARS_INPUT_ERROR);
             }
             try {
                 value_evaluators.push_back(new Lepton::CompiledExpression(pexpr.createCompiledExpression()));
@@ -206,13 +213,13 @@ int colvar::customColvar::init(std::string const &conf)
                             ref = &value_evaluators.back()->getVariableReference(vn);
                         } catch (...) {
                             ref = &dev_null;
-                            cvm::log("Warning: Variable " + vn + " is absent from expression \"" + expr + "\".\n");
+                            cvmodule->log("Warning: Variable " + vn + " is absent from expression \"" + expr + "\".\n");
                         }
                         value_eval_var_refs.push_back(ref);
                     }
                 }
             } catch (...) {
-                return cvm::error("Error compiling expression \"" + expr + "\".\n", COLVARS_INPUT_ERROR);
+                return cvmodule->error("Error compiling expression \"" + expr + "\".\n", COLVARS_INPUT_ERROR);
             }
         } while (key_lookup(conf, "customFunction", &expr_in, &pos));
         // Now define derivative with respect to each scalar sub-component
@@ -227,7 +234,7 @@ int colvar::customColvar::init(std::string const &conf)
                             try {
                                 ref = &gradient_evaluators.back()->getVariableReference(vvn);
                             } catch (...) {
-                                cvm::log("Warning: Variable " + vvn + " is absent from derivative of \"" + expr + "\" wrt " + vn + ".\n");
+                                cvmodule->log("Warning: Variable " + vvn + " is absent from derivative of \"" + expr + "\" wrt " + vn + ".\n");
                                 ref = &dev_null;
                             }
                             grad_eval_var_refs.push_back(ref);
@@ -237,7 +244,7 @@ int colvar::customColvar::init(std::string const &conf)
             }
         }
         if (value_evaluators.size() == 0) {
-            return cvm::error("Error: no custom function defined.\n", COLVARS_INPUT_ERROR);
+            return cvmodule->error("Error: no custom function defined.\n", COLVARS_INPUT_ERROR);
         }
         if (value_evaluators.size() != 1) {
             x.type(colvarvalue::type_vector);
@@ -245,15 +252,15 @@ int colvar::customColvar::init(std::string const &conf)
             x.type(colvarvalue::type_scalar);
         }
 #else
-      return cvm::error(
+      return cvmodule->error(
           "customFunction requires the Lepton library, but it is not enabled during compilation.\n"
           "Please refer to the Compilation Notes section of the Colvars manual for more "
           "information.\n",
           COLVARS_NOT_IMPLEMENTED);
 #endif
     } else {
-        cvm::log("Warning: no customFunction specified.\n");
-        cvm::log("Warning: use linear combination instead.\n");
+        cvmodule->log("Warning: no customFunction specified.\n");
+        cvmodule->log("Warning: use linear combination instead.\n");
     }
     return error_code;
 }
@@ -293,7 +300,7 @@ void colvar::customColvar::calc_value() {
             x[i] = value_evaluators[i]->evaluate();
         }
 #else
-        cvm::error("customFunction requires the Lepton library, but it is not enabled during compilation.\n"
+        cvmodule->error("customFunction requires the Lepton library, but it is not enabled during compilation.\n"
                    "Please refer to the Compilation Notes section of the Colvars manual for more information.\n",
                     COLVARS_INPUT_ERROR);
 #endif
@@ -333,7 +340,7 @@ void colvar::customColvar::calc_gradients() {
             }
         }
 #else
-        cvm::error("customFunction requires the Lepton library, but it is not enabled during compilation.\n"
+        cvmodule->error("customFunction requires the Lepton library, but it is not enabled during compilation.\n"
                    "Please refer to the Compilation Notes section of the Colvars manual for more information.\n",
                     COLVARS_INPUT_ERROR);
 #endif
@@ -374,7 +381,7 @@ void colvar::customColvar::apply_force(colvarvalue const &force) {
             }
         }
 #else
-        cvm::error("customFunction requires the Lepton library, but it is not enabled during compilation.\n"
+        cvmodule->error("customFunction requires the Lepton library, but it is not enabled during compilation.\n"
                    "Please refer to the Compilation Notes section of the Colvars manual for more information.\n",
                     COLVARS_INPUT_ERROR);
 #endif

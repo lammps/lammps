@@ -60,6 +60,7 @@ FixFFL::FixFFL(LAMMPS *lmp, int narg, char **arg) :
   restart_peratom = 1;
   time_integrate = 1;
   scalar_flag = 1;
+  extscalar = 1;
 
   //gamma = 1 / time constant(tau)
   gamma = utils::numeric(FLERR,arg[3],false,lmp);

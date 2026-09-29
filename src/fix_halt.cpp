@@ -144,6 +144,8 @@ FixHalt::FixHalt(LAMMPS *lmp, int narg, char **arg) :
 
 FixHalt::~FixHalt()
 {
+  if (copymode) return;
+
   delete[] idvar;
   delete[] dlimit_path;
 }
@@ -300,6 +302,7 @@ void FixHalt::end_of_step()
       MPI_Wait(req + i, MPI_STATUS_IGNORE);
       MPI_Request_free(req + i);
     }
+    delete[] req;
   }
 
   // hard halt -> exit LAMMPS

@@ -80,6 +80,7 @@ ComputeTempChunk::ComputeTempChunk(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg], "bias") == 0) {
       if (iarg + 2 > narg) error->all(FLERR, "Illegal compute temp/chunk command");
       biasflag = 1;
+      delete[] id_bias;
       id_bias = utils::strdup(arg[iarg + 1]);
       iarg += 2;
     } else if (strcmp(arg[iarg], "adof") == 0) {

@@ -144,7 +144,9 @@ summary screen will look like this:
    -- Performing Test COMPILER_SUPPORTS-march=native - Success
    -- Looking for C++ include cmath
    -- Looking for C++ include cmath - found
-   -- Generating style_angle.h...
+   -- Generating style headers...
+   -- Generating style source files...
+   -- Generating package registry...
    [...]
    -- Generating lmpinstalledpkgs.h...
    -- The following tools and libraries have been found and configured:
@@ -355,6 +357,8 @@ Some common LAMMPS specific variables
      - whether to support JPEG format in :doc:`dump image <dump_image>` (default: ``on`` if found)
    * - ``WITH_PNG``
      - whether to support PNG format in  :doc:`dump image <dump_image>` (default: ``on`` if found)
+   * - ``WITH_ZLIB``
+     - whether to use the zlib library for compression (default: ``on`` if found)
    * - ``WITH_GZIP``
      - whether to support reading and writing compressed files (default: ``on`` if found)
    * - ``WITH_FFMPEG``

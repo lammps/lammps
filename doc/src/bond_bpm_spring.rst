@@ -50,7 +50,7 @@ Examples
    bond_style bpm/spring volume/factor yes
    bond_coeff 1 1.0 0.05 0.1 0.5
 
-   bond_style bpm/spring myfix 1000 time id1 id2
+   bond_style bpm/spring store/local myfix 1000 time id1 id2
    dump 1 all local 1000 dump.broken f_myfix[1] f_myfix[2] f_myfix[3]
    dump_modify 1 write_header no
 
@@ -69,7 +69,7 @@ the system will not reset the reference state of a bond.
 This bond style only applies central-body forces which conserve the
 translational and rotational degrees of freedom of a bonded set of
 particles based on a model described by Clemmer and Robbins
-:ref:`(Clemmer) <fragment-Clemmer>`. The force has a magnitude of
+:ref:`(Clemmer3) <fragment-Clemmer>`. The force has a magnitude of
 
 .. math::
 
@@ -265,7 +265,7 @@ The option defaults are *overlay/pair* = *no*, *smooth* = *yes*, *normalize* = *
 
 .. _fragment-Clemmer:
 
-**(Clemmer)** Clemmer and Robbins, Phys. Rev. Lett. (2022).
+**(Clemmer3)** Clemmer and Robbins, Phys. Rev. Lett. (2022).
 
 .. _Groot4:
 

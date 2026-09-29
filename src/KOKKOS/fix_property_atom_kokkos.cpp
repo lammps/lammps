@@ -31,6 +31,12 @@ FixPropertyAtomKokkos::FixPropertyAtomKokkos(LAMMPS *lmp, int narg, char **arg) 
   atomKK = (AtomKokkos *) atom;
   kokkosable = 1;
 
+  // this fix syncs the atom data it owns itself, through AtomKokkos::sync()
+  // and AtomKokkos::modified(); Modify must not sync or invalidate any of it
+
+  datamask_read = EMPTY_MASK;
+  datamask_modify = EMPTY_MASK;
+
   dvector_flag = 0;
   ivector_flag = 0;
   iarray_flag = 0;
@@ -75,7 +81,16 @@ FixPropertyAtomKokkos::~FixPropertyAtomKokkos()
     }
   }
 
-  atomKK->update_property_atom();
+  // do not rebuild the list from Modify here: Modify::delete_fix() destroys
+  // the fix before unlinking it, so a rescan would put a pointer to this
+  // dying object back into fix_prop_atom[].  Drop this fix from the list
+  // instead.
+
+  int n = 0;
+  for (int i = 0; i < atomKK->nprop_atom; i++)
+    if (atomKK->fix_prop_atom[i] != this)
+      atomKK->fix_prop_atom[n++] = atomKK->fix_prop_atom[i];
+  atomKK->nprop_atom = n;
 }
 
 /* ----------------------------------------------------------------------

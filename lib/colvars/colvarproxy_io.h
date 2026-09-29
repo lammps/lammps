@@ -34,7 +34,7 @@ public:
   // Returns error code
   virtual int get_frame(long int &);
 
-  /// \brief Set the current frame number (as well as colvarmodule::it)
+  /// \brief Set the current frame number (as well as cvmodule->it)
   // Returns error code
   virtual int set_frame(long int);
 

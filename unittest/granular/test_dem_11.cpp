@@ -11,12 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-// DEM verification test 11: elastic Hertzian normal impact at the particle
-// impact level -- two identical spheres (and a sphere on a rigid wall) colliding
-// head-on with restitution 1, verifying the Hertzian peak contact mechanics
-// against the closed-form solution (Chung & Ooi, Granular Matter 13:643-656,
-// 2011, Tests 1 and 2).  All test logic is shared via test_dem_common; the
-// reference systems live in tests/dem11-*.yaml.
+// DEM verification test 11: contact with region walls (restitution).
+// All test logic is shared via test_dem_common; the reference systems
+// live in tests/dem11-*.yaml.
 
 #include "test_dem_common.h"
 #include "test_main.h"

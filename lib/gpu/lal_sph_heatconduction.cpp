@@ -51,7 +51,7 @@ int SPHHeatConductionT::init(const int ntypes,
                  const int nlocal, const int nall,
                  const int max_nbors, const int maxspecial,
                  const double cell_size,
-                 const double gpu_split, FILE *_screen) {
+                           FILE *_screen) {
   const int max_shared_types=this->device->max_shared_types();
 
   int onetype=0;
@@ -72,7 +72,7 @@ int SPHHeatConductionT::init(const int ntypes,
   int extra_fields = 4; // round up to accomodate quadruples of numtyp values
                         // rho, esph
   success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,
-                            gpu_split,_screen,sph_heatconduction,"k_sph_heatconduction",
+                            _screen,sph_heatconduction,"k_sph_heatconduction",
                             onetype,extra_fields);
   if (success!=0)
     return success;

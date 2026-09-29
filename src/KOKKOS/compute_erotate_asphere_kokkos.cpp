@@ -95,9 +95,9 @@ double ComputeERotateAsphereKokkos<DeviceType>::compute_scalar()
 
           // principal moments of inertia
 
-          inertia[0] = l_rmass(i) * ( (shape[1]*shape[1] + shape[2]*shape[2])/5.0 );
-          inertia[1] = l_rmass(i) * ( (shape[0]*shape[0] + shape[2]*shape[2])/5.0 );
-          inertia[2] = l_rmass(i) * ( (shape[0]*shape[0] + shape[1]*shape[1])/5.0 );
+          inertia[0] = static_cast<KK_FLOAT>(static_cast<double>(l_rmass(i)) * ( (shape[1]*shape[1] + shape[2]*shape[2])/5.0 ));
+          inertia[1] = static_cast<KK_FLOAT>(static_cast<double>(l_rmass(i)) * ( (shape[0]*shape[0] + shape[2]*shape[2])/5.0 ));
+          inertia[2] = static_cast<KK_FLOAT>(static_cast<double>(l_rmass(i)) * ( (shape[0]*shape[0] + shape[1]*shape[1])/5.0 ));
 
           // wbody = angular velocity in body frame
 

@@ -11,18 +11,6 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef GRAN_SUB_MOD_CLASS
-// clang-format off
-GranSubModStyle(none,GranSubModNormalNone,NORMAL);
-GranSubModStyle(hooke,GranSubModNormalHooke,NORMAL);
-GranSubModStyle(hertz,GranSubModNormalHertz,NORMAL);
-GranSubModStyle(hertz/material,GranSubModNormalHertzMaterial,NORMAL);
-GranSubModStyle(dmt,GranSubModNormalDMT,NORMAL);
-GranSubModStyle(jkr,GranSubModNormalJKR,NORMAL);
-GranSubModStyle(mdr,GranSubModNormalMDR,NORMAL);
-// clang-format on
-#else
-
 #ifndef GRAN_SUB_MOD_NORMAL_H
 #define GRAN_SUB_MOD_NORMAL_H
 
@@ -168,4 +156,3 @@ namespace LAMMPS_NS::Granular_NS {
 
 
 #endif /*GRAN_SUB_MOD_NORMAL_H */
-#endif /*GRAN_SUB_MOD_CLASS_H */

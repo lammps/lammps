@@ -59,6 +59,7 @@ CommTiled::CommTiled(LAMMPS *lmp) :
   init_pointers();
   init_buffers_flag = 0;
   maxswap = 0;
+  dimension = 3;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -76,6 +77,7 @@ CommTiled::CommTiled(LAMMPS * /*lmp*/, Comm *oldcomm) : Comm(*oldcomm)
   init_pointers();
   init_buffers_flag = 0;
   maxswap = 0;
+  dimension = 3;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -128,6 +130,23 @@ void CommTiled::init_pointers()
   nexchprocmax = nullptr;
   exchproc = nullptr;
   exchnum = nullptr;
+
+  prd = nullptr;
+  boxlo = boxhi = nullptr;
+  sublo = subhi = nullptr;
+
+  box_drop = nullptr;
+  box_other = nullptr;
+  box_touch = nullptr;
+  point_drop = nullptr;
+
+  maxsend = maxrecv = 0;
+  maxoverlap = 0;
+  nswap = 0;
+  noverlap = 0;
+  smaxone = rmaxone = 0;
+  smaxall = rmaxall = 0;
+  maxrequest = 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -1299,8 +1318,8 @@ void CommTiled::reverse_comm(Pair *pair, int size)
 {
   int i,irecv,n,nsize,nsend,nrecv;
 
-  if (size) nsize = MAX(pair->comm_reverse, pair->comm_reverse_off);
-  else nsize = pair->comm_reverse;
+  if (size) nsize = size;
+  else nsize = MAX(pair->comm_reverse, pair->comm_reverse_off);
 
   for (int iswap = nswap-1; iswap >= 0; iswap--) {
     nsend = nsendproc[iswap] - sendself[iswap];
@@ -1804,7 +1823,7 @@ void CommTiled::box_drop_brick(int idim, double *lo, double *hi, int &indexme)
   } else if (lo[idim] == boxlo[idim]) {
     index = 0;
     dir = 1;
-  } else error->one(FLERR,"Comm tiled mis-match in box drop brick");
+  } else error->one(FLERR,"Comm tiled mismatch in box drop brick");
 
   int other1,other2,proc;
   double lower,upper;

@@ -34,7 +34,7 @@ compute         v1 all voronoi/atom neighbors yes
 compute         volvor all reduce sum c_v1[1]
 variable        volsys equal lz*lx*ly
 variable        err equal c_volvor-v_volsys
-thermo_style    custom c_volvor v_volsys vol v_err
+thermo_style    custom step c_volvor v_volsys vol v_err
 thermo          1
 
 #

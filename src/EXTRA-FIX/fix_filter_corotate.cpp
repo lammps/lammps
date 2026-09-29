@@ -25,12 +25,16 @@
 #include "bond.h"
 #include "citeme.h"
 #include "comm.h"
+#include "dihedral.h"
 #include "domain.h"
 #include "error.h"
 #include "force.h"
+#include "improper.h"
+#include "kspace.h"
 #include "math_const.h"
 #include "memory.h"
 #include "modify.h"
+#include "pair.h"
 #include "respa.h"
 #include "update.h"
 
@@ -259,19 +263,18 @@ void FixFilterCorotate::init()
 {
   int i;
   // error if more than one filter
-  int count = 0;
-  for (i = 0; i < modify->nfix; i++) {
-    if (strcmp(modify->fix[i]->style,"filter/corotate") == 0) count++;
-  }
-  if (count > 1) error->all(FLERR,"More than one fix filter/corotate");
+  if (modify->get_fix_by_style("^filter/corotate").size() > 1)
+    error->all(FLERR,"More than one fix filter/corotate");
 
   // check for fix shake:
-  count = 0;
-  for (i = 0; i < modify->nfix; i++) {
-    if (strcmp(modify->fix[i]->style,"shake") == 0) count++;
-  }
-  if (count > 1)
-    error->one(FLERR,"Both fix shake and fix filter/corotate detected.");
+  if (!modify->get_fix_by_style("^shake").empty())
+    error->all(FLERR,"Both fix shake and fix filter/corotate detected.");
+  // check for fix rattle:
+  if (!modify->get_fix_by_style("^rattle").empty())
+    error->all(FLERR,"Both fix rattle and fix filter/corotate detected.");
+  // check for fix ilves:
+  if (!modify->get_fix_by_style("^ilves").empty())
+    error->all(FLERR,"Both fix ilves and fix filter/corotate detected.");
 
   // if rRESPA, find associated fix that must exist
   // could have changed locations in fix list since created
@@ -281,6 +284,20 @@ void FixFilterCorotate::init()
     nlevels_respa = (dynamic_cast<Respa *>(update->integrate))->nlevels;
   }
   else error->all(FLERR,"Fix filter/corotate requires rRESPA!");
+
+  // KOKKOS force styles do not read the filtered atom->x
+
+  const char *kk_style = nullptr;
+  if (force->pair && force->pair->kokkosable) kk_style = force->pair_style;
+  else if (force->bond && force->bond->kokkosable) kk_style = force->bond_style;
+  else if (force->angle && force->angle->kokkosable) kk_style = force->angle_style;
+  else if (force->dihedral && force->dihedral->kokkosable) kk_style = force->dihedral_style;
+  else if (force->improper && force->improper->kokkosable) kk_style = force->improper_style;
+  else if (force->kspace && force->kspace->kokkosable) kk_style = force->kspace_style;
+  if (kk_style)
+    error->all(FLERR, "Fix {} does not support the KOKKOS version of {}, which would "
+               "not see the filtered coordinates; run this input without the KOKKOS "
+               "package, or without the -sf kk suffix", style, kk_style);
 
   // set equilibrium bond distances
 
@@ -638,13 +655,11 @@ void FixFilterCorotate::pre_neighbor()
         int signum = sgn(a*(del1[0]) + b*(del1[1]) + c*(del1[2]));
 
         if (abs(signum)!= 1)
-          error->all(FLERR,"Wrong orientation in cluster of size 5"
-                     "in fix filter/corotate!");
+          error->all(FLERR,"Wrong orientation in cluster of size 5 in fix filter/corotate!");
         clist_q0[i][8] *= signum;
         clist_q0[i][11] *= signum;
       } else {
-        error->all(FLERR,"Fix filter/corotate cluster with size > 5"
-                   "not yet configured...");
+        error->all(FLERR,"Fix filter/corotate cluster with size > 5 not yet configured...");
       }
     }
 }

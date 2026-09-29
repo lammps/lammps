@@ -57,11 +57,12 @@ In the formulas listed for each dihedral style, *phi* is the torsional
 angle defined by the quadruplet of atoms.  This angle has a sign
 convention as shown in this diagram:
 
-.. image:: JPG/dihedral_sign.jpg
+.. image:: JPG/dihedral_sign.png
    :align: center
+   :width: 50%
 
 where the :math:`I,J,K,L` ordering of the four atoms that define the dihedral
-is from left to right.
+is from left to right and the angle :math:`\varphi` points out of the page.
 
 This sign convention effects several of the dihedral styles listed
 below (e.g., charmm, helix) in the sense that the energy formula

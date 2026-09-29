@@ -27,7 +27,6 @@ PairStyle(surf/granular,PairSurfGranular)
 
 #include <map>
 #include <unordered_set>
-#include <vector>
 
 namespace LAMMPS_NS {
 
@@ -41,6 +40,7 @@ class PairSurfGranular : public PairGranular {
 
  protected:
   int surfmoveflag;
+  int missing_surf_warn;    // 1 until warned about a connected surf missing on this proc
 
   int style;
   int emax;           // allocated size of endpt list

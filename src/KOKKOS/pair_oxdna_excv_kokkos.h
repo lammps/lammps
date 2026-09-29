@@ -149,12 +149,10 @@ class PairOxdnaExcvKokkos : public PairOxdnaExcv, public KokkosBase {
   int neighflag;
   int nlocal, eflag, vflag;
   int anum;
-  bigint last_prime_neighs_pair_nbuild;
 
   typename AT::t_neighbors_2d_randomread d_neighbors;
   typename AT::t_int_1d_randomread d_alist;
   typename AT::t_int_1d_randomread d_numneigh;
-  typename AT::t_int_3d_randomread d_prime_neighs_pair;
 
   // s=sugar-phosphate backbone site, b=base site, st=stacking site
   // excluded volume interaction parameters
@@ -186,6 +184,11 @@ class PairOxdnaExcvKokkos : public PairOxdnaExcv, public KokkosBase {
   int map_style;
   DAT::tdual_int_1d k_map_array;
   dual_hash_type k_map_hash;
+
+  // local index of the atom with a given tag (atom->map()), -1 if the tag is -1 or not present
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  int map_tag(const tagint &itag) const;
 
   using KKDeviceType = typename KKDevice<DeviceType>::value;
 

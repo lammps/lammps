@@ -32,7 +32,6 @@ class FixOxdnaNpairKokkos;
 
 struct TagFixOxdnaPrimeNeighsPrecomputePrimeNeighsBond {}; // fene and stk
 
-struct TagFixOxdnaPrimeNeighsPrecomputePrimeNeighsPair {}; // excv
 
 struct TagFixOxdnaPrimeNeighsPrecomputePrimeNeighsOxdna3Xstk {}; // oxdna3/xstk
 
@@ -53,15 +52,6 @@ class FixOxdnaPrimeNeighsKokkos : public Fix {
   // As per their order of being called in fene and stk compute.
   // The caller owns the output View (grown as needed).
   void compute_prime_neighs_bond(typename AT::t_int_1d_4 &d_prime_neighs);
-  // ------ For PrimeNeighPair (excv)
-  // 0-3 : id3p[a], id5p[b], id3p[b], id5p[a] for each pair.
-  // As per their order of being called in excv compute.
-  // Layout matches the native neighlist walk: d_prime_neighs_pair(a,ib,0-3).
-  // Populated by compute_prime_neighs_pair(), called by the pair style from
-  // its compute() using the pair's own neighbor list.
-  DAT::tdual_int_3d k_prime_neighs_pair;
-  typename AT::t_int_3d d_prime_neighs_pair;
-  void compute_prime_neighs_pair(class NeighList *neigh_list);
   // ------ For PrimeNeighOxdna3Xstk (oxdna3/xstk/kk)
   // 0-3 : id3p[a], id5p[a], id3p[b], id5p[b] for each pair.
   // As per their order of being called in oxdna3/xstk compute.
@@ -80,10 +70,6 @@ class FixOxdnaPrimeNeighsKokkos : public Fix {
 
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
-  void operator()(TagFixOxdnaPrimeNeighsPrecomputePrimeNeighsPair, const int &) const;
-
-// NOLINTNEXTLINE
-  KOKKOS_INLINE_FUNCTION
   void operator()(TagFixOxdnaPrimeNeighsPrecomputePrimeNeighsOxdna3Xstk, const int&) const;
 
  private:
@@ -96,11 +82,6 @@ class FixOxdnaPrimeNeighsKokkos : public Fix {
   int nbondlist;
   typename AT::t_int_2d_lr bondlist;
   typename AT::t_int_1d_4 d_prime_neighs_bond;
-  // For PrimeNeighPair (set in compute_prime_neighs_pair)
-  int anum;
-  typename AT::t_neighbors_2d_randomread d_neighbors;
-  typename AT::t_int_1d_randomread d_alist;
-  typename AT::t_int_1d_randomread d_numneigh;
   // For PrimeNeighOxdna3Xstk (set in compute_prime_neighs_oxdna3_xstk)
   int npairlist;
   typename AT::t_uint64_1d pairlist;

@@ -49,7 +49,6 @@ PairOxdnaExcvKokkos<DeviceType>::PairOxdnaExcvKokkos(LAMMPS *lmp) : PairOxdnaExc
   fix_oxdna_lrfKK = nullptr;
   fix_oxdna_npairKK = nullptr;
   fix_oxdna_prime_neighsKK = nullptr;
-  last_prime_neighs_pair_nbuild = -1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -136,15 +135,6 @@ void PairOxdnaExcvKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   anum = list->inum;
   d_alist = k_list->d_ilist;
   d_numneigh = k_list->d_numneigh;
-
-  // Precompute 3'/5' neighbor map lookups for the pair neighbor list.
-  // Done here (not in pre_force) so the pair's own list is always used,
-  // ensuring ib-index correspondence between precompute and kernel.
-  if (neighbor->nbuild != last_prime_neighs_pair_nbuild) {
-    fix_oxdna_prime_neighsKK->compute_prime_neighs_pair(list);
-    last_prime_neighs_pair_nbuild = neighbor->nbuild;
-    d_prime_neighs_pair = fix_oxdna_prime_neighsKK->d_prime_neighs_pair;
-  }
 
   int need_dup = lmp->kokkos->need_dup<DeviceType>();
   if (need_dup) {
@@ -284,6 +274,23 @@ void PairOxdnaExcvKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     dup_vatom    = decltype(dup_vatom)();
   }
 }
+
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+int PairOxdnaExcvKokkos<DeviceType>::map_tag(const tagint &itag) const
+{
+  int mapped = -1;
+  if (itag == -1) return mapped;
+  if (map_style == Atom::MAP_ARRAY) {
+    const auto map_array = k_map_array.view<DeviceType>();
+    if ((itag >= 0) && (itag < static_cast<tagint>(map_array.extent(0)))) mapped = map_array(itag);
+  } else if (map_style == Atom::MAP_HASH) {
+    mapped = AtomKokkos::map_find_hash_kokkos<DeviceType>(itag, k_map_hash);
+  }
+  return mapped;
+}
+
+/* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
 template<int OXDNAFLAG, int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
@@ -596,8 +603,11 @@ void PairOxdnaExcvKokkos<DeviceType>::operator()(TagPairOxdnaExcvCompute<OXDNAFL
 
     // base-base
     if (tag_a == id3p(b) && tag(b) == id5p_a) {
-      const int _3ptype = (d_prime_neighs_pair(a,ib,0) >= 0) ? type(d_prime_neighs_pair(a,ib,0)) : 0;
-      const int _5ptype = (d_prime_neighs_pair(a,ib,1) >= 0) ? type(d_prime_neighs_pair(a,ib,1)) : 0;
+      // types of the 3' neighbor of a and the 5' neighbor of b (0 for a strand end)
+      const int a3p = map_tag(id3p_a);
+      const int b5p = map_tag(id5p(b));
+      const int _3ptype = (a3p >= 0) ? type(a3p) : 0;
+      const int _5ptype = (b5p >= 0) ? type(b5p) : 0;
       if (rsq_bsbs < d_cut4sq_bsbs_c(_3ptype,atype,btype,_5ptype)) {
         // F3 modulation factor, force and energy calculation
         evdwl = static_cast<KK_ACC_FLOAT>(F3_KK(rsq_bsbs,d_cut4sq_bsbs_ast(_3ptype,atype,btype,_5ptype),d_cut4_bsbs_c(_3ptype,atype,btype,_5ptype),
@@ -639,8 +649,11 @@ void PairOxdnaExcvKokkos<DeviceType>::operator()(TagPairOxdnaExcvCompute<OXDNAFL
         }
       }
     } else if (tag_a == id5p(b) && tag(b) == id3p_a) {
-      const int _3ptype = (d_prime_neighs_pair(a,ib,2) >= 0) ? type(d_prime_neighs_pair(a,ib,2)) : 0;
-      const int _5ptype = (d_prime_neighs_pair(a,ib,3) >= 0) ? type(d_prime_neighs_pair(a,ib,3)) : 0;
+      // types of the 3' neighbor of b and the 5' neighbor of a (0 for a strand end)
+      const int b3p = map_tag(id3p(b));
+      const int a5p = map_tag(id5p_a);
+      const int _3ptype = (b3p >= 0) ? type(b3p) : 0;
+      const int _5ptype = (a5p >= 0) ? type(a5p) : 0;
       if (rsq_bsbs < d_cut4sq_bsbs_c(_3ptype,btype,atype,_5ptype)) {
         // F3 modulation factor, force and energy calculation
         evdwl = static_cast<KK_ACC_FLOAT>(F3_KK(rsq_bsbs,d_cut4sq_bsbs_ast(_3ptype,btype,atype,_5ptype),d_cut4_bsbs_c(_3ptype,btype,atype,_5ptype),
@@ -851,11 +864,6 @@ void PairOxdnaExcvKokkos<DeviceType>::init_style()
   if (std::is_same_v<DeviceType, LMPHostType> && !std::is_same_v<DeviceType, LMPDeviceType>)
     error->all(FLERR, "The /kk/host variants of the CG-DNA styles are not supported "
                "when LAMMPS is compiled for a GPU");
-
-  // atoms may have been reordered since the last run, so force a rebuild
-  // of the cached prime neighbor table in the next compute()
-
-  last_prime_neighs_pair_nbuild = -1;
 
   neighbor->add_request(this);
   neighflag = lmp->kokkos->neighflag;

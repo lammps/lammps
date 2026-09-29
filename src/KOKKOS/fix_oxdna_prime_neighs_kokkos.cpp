@@ -40,7 +40,6 @@ FixOxdnaPrimeNeighsKokkos<DeviceType>::FixOxdnaPrimeNeighsKokkos(LAMMPS *lmp, in
   datamask_modify = EMPTY_MASK;
 
   nbondlist = 0;
-  anum = 0;
   npairlist = 0;
   fix_oxdna_npairKK = nullptr;
 }
@@ -55,8 +54,8 @@ FixOxdnaPrimeNeighsKokkos<DeviceType>::~FixOxdnaPrimeNeighsKokkos() = default;
 template<class DeviceType>
 void FixOxdnaPrimeNeighsKokkos<DeviceType>::init()
 {
-  // No neighbor list requested: the pair style supplies its own list to
-  // compute_prime_neighs_pair(); the bond and stk styles supply theirs.
+  // No neighbor list requested: the bond and stk styles supply their bond
+  // lists, and oxdna3/xstk uses the screened list of OXDNA/NPAIR/kk.
   // NOTE: We do not hard-require OXDNA/NPAIR/kk at init time.  Some style
   // combinations initialize PRIME_NEIGHS before NPAIR.  We resolve NPAIR
   // lazily in compute_prime_neighs_oxdna3_xstk(), which is the only path
@@ -110,54 +109,6 @@ void FixOxdnaPrimeNeighsKokkos<DeviceType>::compute_prime_neighs_bond(
   copymode = 1;
   Kokkos::parallel_for(
     Kokkos::RangePolicy<DeviceType, TagFixOxdnaPrimeNeighsPrecomputePrimeNeighsBond>(0, nbondlist),
-    *this);
-  copymode = 0;
-}
-
-/* ----------------------------------------------------------------------
-   Called by the pair style from its compute() to precompute prime-neighbor
-   map lookups for the pair neighbor list.  Uses the pair's own list so
-   that row index "ib" in d_prime_neighs_pair(a,ib,...) always matches the
-   ib-th entry in the pair's d_neighbors(a,ib).
-------------------------------------------------------------------------- */
-
-template<class DeviceType>
-void FixOxdnaPrimeNeighsKokkos<DeviceType>::compute_prime_neighs_pair(NeighList *neigh_list)
-{
-  NeighListKokkos<DeviceType>* k_list = static_cast<NeighListKokkos<DeviceType>*>(neigh_list);
-  d_neighbors = k_list->d_neighbors;
-  anum = neigh_list->inum;
-  d_alist = k_list->d_ilist;
-  d_numneigh = k_list->d_numneigh;
-  const int maxneigh = d_neighbors.extent(1);
-
-  // the table is indexed by atom index like d_neighbors, not by list position,
-  // so it needs as many rows as d_neighbors (inum can be smaller than nlocal)
-
-  const int nrows = d_neighbors.extent(0);
-
-  if (nrows > d_prime_neighs_pair.extent_int(0) || maxneigh > d_prime_neighs_pair.extent_int(1)) {
-    MemKK::realloc_kokkos(k_prime_neighs_pair, "prime_neighs:prime_neighs_pair", nrows, maxneigh, 4);
-    d_prime_neighs_pair = k_prime_neighs_pair.template view<DeviceType>();
-  }
-
-  atomKK->sync(execution_space, datamask_read);
-  tag = atomKK->k_tag.view<DeviceType>();
-  id5p = atomKK->k_id5p.view<DeviceType>();
-  id3p = atomKK->k_id3p.view<DeviceType>();
-
-  map_style = atom->map_style;
-  if (map_style == Atom::MAP_ARRAY) {
-    k_map_array = atomKK->k_map_array;
-    k_map_array.template sync<DeviceType>();
-  } else if (map_style == Atom::MAP_HASH) {
-    k_map_hash = atomKK->k_map_hash;
-    k_map_hash.template sync<DeviceType>();
-  }
-
-  copymode = 1;
-  Kokkos::parallel_for(
-    Kokkos::RangePolicy<DeviceType, TagFixOxdnaPrimeNeighsPrecomputePrimeNeighsPair>(0, anum),
     *this);
   copymode = 0;
 }
@@ -287,79 +238,6 @@ void FixOxdnaPrimeNeighsKokkos<DeviceType>::operator()(TagFixOxdnaPrimeNeighsPre
     // tetramer type sentinel but is expected to be unreachable in normal runs.
   }
   d_prime_neighs_bond(in,3) = id5p_local;
-}
-
-/* ----------------------------------------------------------------------
-   Loop through the neighbor list and precompute the atom mapping for
-   the 3' and 5' neighbors of each pair. This is the KOKKOS
-   equivalent of "atom->map(id{3/5}p[{a/b}])" in the CPU code.
-   These indexes are then used directly within the main compute loop.
-------------------------------------------------------------------------- */
-
-template<class DeviceType>
-// NOLINTNEXTLINE
-KOKKOS_INLINE_FUNCTION
-void FixOxdnaPrimeNeighsKokkos<DeviceType>::operator()(TagFixOxdnaPrimeNeighsPrecomputePrimeNeighsPair,
-                                                       const int &in) const
-{
-  // excv runs thread-per-particle loop. Find one same-strand nearest-neighbor
-  // partner b (if present) and precompute the map() lookups used in the vanilla
-  // excv base-base topology branch.
-  const int a = d_alist(in);
-  const int jnum = d_numneigh(a);
-
-  for (int jj = 0; jj < jnum; jj++) {
-    const int btry = d_neighbors(a,jj) & NEIGHMASK;
-
-    int mapped = -1; // default to -1 for missing neighbor, which is treated as a terminal neighbor in downstream compute path.
-
-    const tagint id3p_a_tag = id3p(a);
-    if (id3p_a_tag != -1) {
-      if (map_style == Atom::MAP_ARRAY) {
-        const auto map_array = k_map_array.view<DeviceType>();
-        if (id3p_a_tag >= 0 && id3p_a_tag < static_cast<tagint>(map_array.extent(0))) mapped = map_array(id3p_a_tag);
-      } else if (map_style == Atom::MAP_HASH) {
-        mapped = AtomKokkos::map_find_hash_kokkos<DeviceType>(id3p_a_tag, k_map_hash);
-      }
-    }
-    d_prime_neighs_pair(a,jj,0) = mapped;
-
-    mapped = -1;
-    const tagint id5p_b_tag = id5p(btry);
-    if (id5p_b_tag != -1) {
-      if (map_style == Atom::MAP_ARRAY) {
-        const auto map_array = k_map_array.view<DeviceType>();
-        if (id5p_b_tag >= 0 && id5p_b_tag < static_cast<tagint>(map_array.extent(0))) mapped = map_array(id5p_b_tag);
-      } else if (map_style == Atom::MAP_HASH) {
-        mapped = AtomKokkos::map_find_hash_kokkos<DeviceType>(id5p_b_tag, k_map_hash);
-      }
-    }
-    d_prime_neighs_pair(a,jj,1) = mapped;
-
-    mapped = -1;
-    const tagint id3p_b_tag = id3p(btry);
-    if (id3p_b_tag != -1) {
-      if (map_style == Atom::MAP_ARRAY) {
-        const auto map_array = k_map_array.view<DeviceType>();
-        if (id3p_b_tag >= 0 && id3p_b_tag < static_cast<tagint>(map_array.extent(0))) mapped = map_array(id3p_b_tag);
-      } else if (map_style == Atom::MAP_HASH) {
-        mapped = AtomKokkos::map_find_hash_kokkos<DeviceType>(id3p_b_tag, k_map_hash);
-      }
-    }
-    d_prime_neighs_pair(a,jj,2) = mapped;
-
-    mapped = -1;
-    const tagint id5p_a_tag = id5p(a);
-    if (id5p_a_tag != -1) {
-      if (map_style == Atom::MAP_ARRAY) {
-        const auto map_array = k_map_array.view<DeviceType>();
-        if (id5p_a_tag >= 0 && id5p_a_tag < static_cast<tagint>(map_array.extent(0))) mapped = map_array(id5p_a_tag);
-      } else if (map_style == Atom::MAP_HASH) {
-        mapped = AtomKokkos::map_find_hash_kokkos<DeviceType>(id5p_a_tag, k_map_hash);
-      }
-    }
-    d_prime_neighs_pair(a,jj,3) = mapped;
-  }
 }
 
 /* ----------------------------------------------------------------------

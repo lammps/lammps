@@ -45,6 +45,7 @@
 #include "kspace.h"
 
 #include <cstring>
+#include <exception>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -125,6 +126,7 @@ FixGEMC::FixGEMC(LAMMPS *lmp, int narg, char **arg) :
 
   gemc_nmax = 0;
   local_gas_list = nullptr;
+  exclusion_group = exclusion_group_bit = 0;
 
   ntranslation_attempts = ntranslation_successes = 0.0;
   nrotation_attempts = nrotation_successes = 0.0;
@@ -142,6 +144,27 @@ FixGEMC::~FixGEMC()
   delete random_universe;
   memory->destroy(local_gas_list);
   MPI_Comm_free(&comm_replica);
+
+  // delete exclusion group created in init()
+  // unset neighbor exclusion settings made in init()
+  // not necessary if group and neighbor classes already destroyed
+  //   when LAMMPS exits
+
+  if (exclusion_group_bit && group) {
+    auto group_id = std::string("FixGEMC:gemc_exclusion_group:") + id;
+    try {
+      group->assign(group_id + " delete");
+    } catch (std::exception &e) {
+      if (comm->me == 0)
+        utils::print(stderr, "Error deleting group {}: {}\n", group_id, e.what());
+    }
+  }
+
+  if (exclusion_group_bit && group && neighbor) {
+    int igroupall = group->find("all");
+    neighbor->exclusion_group_group_delete(exclusion_group, igroupall);
+    neighbor->exclusion_group_group_delete(exclusion_group, exclusion_group);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -234,18 +257,23 @@ void FixGEMC::init()
   // keeps temporarily deleted particles from being added in potential energy calc
 
   // id from fix
+  // skip if already exists from previous init()
 
-  auto group_id = std::string("FixGEMC:gemc_exclusion_group:") + id;
-  group->assign(group_id + " subtract all all");
-  exclusion_group = group->find(group_id);
-  if (exclusion_group == -1)
-    error->universe_all(FLERR,"Could not find fix gemc exclusion group ID");
-  exclusion_group_bit = group->bitmask[exclusion_group];
+  if (!exclusion_group_bit) {
+    auto group_id = std::string("FixGEMC:gemc_exclusion_group:") + id;
+    group->assign(group_id + " subtract all all");
+    exclusion_group = group->find(group_id);
+    if (exclusion_group == -1)
+      error->universe_all(FLERR,"Could not find fix gemc exclusion group ID");
+    exclusion_group_bit = group->bitmask[exclusion_group];
 
-  // neighbor list exclusion setup
-  // turn off interactions between group all and the exclusion group
+    // neighbor list exclusion setup
+    // turn off interactions between group all and the exclusion group
+    // and between atoms in the exclusion group, since those are not in group all
 
-  neighbor->modify_params(fmt::format("exclude group {} all",group_id));
+    neighbor->modify_params(fmt::format("exclude group {} all",group_id));
+    neighbor->modify_params(fmt::format("exclude group {} {}",group_id,group_id));
+  }
 
   groupbitall = 1 | groupbit;
 

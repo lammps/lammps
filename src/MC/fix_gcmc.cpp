@@ -448,9 +448,10 @@ FixGCMC::~FixGCMC()
     }
   }
 
-  if (full_flag && group && neighbor) {
+  if (exclusion_group_bit && group && neighbor) {
     int igroupall = group->find("all");
     neighbor->exclusion_group_group_delete(exclusion_group,igroupall);
+    neighbor->exclusion_group_group_delete(exclusion_group,exclusion_group);
   }
 }
 
@@ -636,8 +637,10 @@ void FixGCMC::init()
 
     // neighbor list exclusion setup
     // turn off interactions between group all and the exclusion group
+    // and between atoms in the exclusion group, since those are not in group all
 
     neighbor->modify_params(fmt::format("exclude group {} all",group_id));
+    neighbor->modify_params(fmt::format("exclude group {} {}",group_id,group_id));
   }
 
   // create a new group for temporary use with selected molecules
@@ -1698,7 +1701,15 @@ void FixGCMC::attempt_atomic_deletion_full()
     }
   }
   if (force->kspace) force->kspace->qsum_qsq();
-  if (force->pair->tail_flag) force->pair->reinit();
+
+  // the tail correction must not count the atom to be deleted,
+  // so its type is negated while the tail correction is updated
+
+  if (force->pair->tail_flag) {
+    if (i >= 0) atom->type[i] = -atom->type[i];
+    force->pair->reinit();
+    if (i >= 0) atom->type[i] = -atom->type[i];
+  }
   double energy_after = energy_full();
 
   // energy_full() may have moved or reordered atoms,
@@ -2103,7 +2114,17 @@ void FixGCMC::attempt_molecule_deletion_full()
     }
   }
   if (force->kspace) force->kspace->qsum_qsq();
-  if (force->pair->tail_flag) force->pair->reinit();
+
+  // the tail correction must not count the atoms to be deleted,
+  // so their types are negated while the tail correction is updated
+
+  if (force->pair->tail_flag) {
+    for (int i = 0; i < atom->nlocal; i++)
+      if (atom->molecule[i] == deletion_molecule) atom->type[i] = -atom->type[i];
+    force->pair->reinit();
+    for (int i = 0; i < atom->nlocal; i++)
+      if (atom->molecule[i] == deletion_molecule) atom->type[i] = -atom->type[i];
+  }
   double energy_after = energy_full();
 
   // energy_before corrected by energy_intra

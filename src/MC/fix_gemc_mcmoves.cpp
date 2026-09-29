@@ -343,7 +343,14 @@ void FixGEMC::attempt_atomic_exchange_full()
     }
   }
 
-  if (force->pair->tail_flag) force->pair->reinit();
+  // the tail correction must not count the atom to be deleted,
+  // so its type is negated while the tail correction is updated
+
+  if (force->pair->tail_flag) {
+    if (iatom >= 0) atom->type[iatom] = -atom->type[iatom];
+    force->pair->reinit();
+    if (iatom >= 0) atom->type[iatom] = -atom->type[iatom];
+  }
 
   update_gas_atoms_list();
 

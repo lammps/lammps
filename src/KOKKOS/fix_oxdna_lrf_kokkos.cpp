@@ -124,10 +124,14 @@ void FixOxdnaLRFKokkos<DeviceType>::compute_lrf_kokkos()
     d_ny = k_ny.template view<DeviceType>();
     d_nz = k_nz.template view<DeviceType>();
   }
+  if (atom->nmax > static_cast<int>(d_xn.extent(0)))
+    d_xn = decltype(d_xn)(Kokkos::view_alloc(Kokkos::WithoutInitializing, "FixOxdnaLRFKokkos:xn"),
+                          atom->nmax);
 
   atomKK->sync(execution_space, datamask_read);
 
   mask = atomKK->k_mask.template view<DeviceType>();
+  x = atomKK->k_x.template view<DeviceType>();
   ellipsoid = atomKK->k_ellipsoid.template view<DeviceType>();
   bonus = avecEllipKK->k_bonus.template view<DeviceType>();
 
@@ -150,51 +154,50 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void FixOxdnaLRFKokkos<DeviceType>::operator()(TagFixOxdnaLRFComputeQuatToXYZ, const int &i) const
 {
-  if (!(mask(i) & groupbit)) {
-    d_nx(i, 0) = 0.0;
-    d_nx(i, 1) = 0.0;
-    d_nx(i, 2) = 0.0;
-    d_ny(i, 0) = 0.0;
-    d_ny(i, 1) = 0.0;
-    d_ny(i, 2) = 0.0;
-    d_nz(i, 0) = 0.0;
-    d_nz(i, 1) = 0.0;
-    d_nz(i, 2) = 0.0;
-    return;
+  // frame vectors nx, ny, nz (zero for atoms outside the group or without ellipsoid)
+  KK_FLOAT n[9] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+
+  const int ne = ellipsoid(i);
+  if ((mask(i) & groupbit) && (ne >= 0)) {
+    const KK_FLOAT q0 = static_cast<KK_FLOAT>(bonus(ne).quat[0]);
+    const KK_FLOAT q1 = static_cast<KK_FLOAT>(bonus(ne).quat[1]);
+    const KK_FLOAT q2 = static_cast<KK_FLOAT>(bonus(ne).quat[2]);
+    const KK_FLOAT q3 = static_cast<KK_FLOAT>(bonus(ne).quat[3]);
+
+    const KK_FLOAT two = 2.0;
+
+    n[0] = Kokkos::fma(q0, q0, Kokkos::fma(q1, q1, -Kokkos::fma(q2, q2, q3 * q3)));
+    n[1] = two * Kokkos::fma(q1, q2, q0 * q3);
+    n[2] = two * Kokkos::fma(q1, q3, -q0 * q2);
+
+    n[3] = two * Kokkos::fma(q1, q2, -q0 * q3);
+    n[4] = Kokkos::fma(q0, q0, Kokkos::fma(q2, q2, -Kokkos::fma(q1, q1, q3 * q3)));
+    n[5] = two * Kokkos::fma(q2, q3, q0 * q1);
+
+    n[6] = two * Kokkos::fma(q1, q3, q0 * q2);
+    n[7] = two * Kokkos::fma(q2, q3, -q0 * q1);
+    n[8] = Kokkos::fma(q0, q0, q3 * q3 - Kokkos::fma(q1, q1, q2 * q2));
   }
 
-  const int n = ellipsoid(i);
-  if (n < 0) {
-    d_nx(i, 0) = 0.0;
-    d_nx(i, 1) = 0.0;
-    d_nx(i, 2) = 0.0;
-    d_ny(i, 0) = 0.0;
-    d_ny(i, 1) = 0.0;
-    d_ny(i, 2) = 0.0;
-    d_nz(i, 0) = 0.0;
-    d_nz(i, 1) = 0.0;
-    d_nz(i, 2) = 0.0;
-    return;
-  }
+  d_nx(i, 0) = n[0];
+  d_nx(i, 1) = n[1];
+  d_nx(i, 2) = n[2];
+  d_ny(i, 0) = n[3];
+  d_ny(i, 1) = n[4];
+  d_ny(i, 2) = n[5];
+  d_nz(i, 0) = n[6];
+  d_nz(i, 1) = n[7];
+  d_nz(i, 2) = n[8];
 
-  const KK_FLOAT q0 = static_cast<KK_FLOAT>(bonus(n).quat[0]);
-  const KK_FLOAT q1 = static_cast<KK_FLOAT>(bonus(n).quat[1]);
-  const KK_FLOAT q2 = static_cast<KK_FLOAT>(bonus(n).quat[2]);
-  const KK_FLOAT q3 = static_cast<KK_FLOAT>(bonus(n).quat[3]);
-
-  const KK_FLOAT two = 2.0;
-
-  d_nx(i, 0) = Kokkos::fma(q0, q0, Kokkos::fma(q1, q1, -Kokkos::fma(q2, q2, q3 * q3)));
-  d_nx(i, 1) = two * Kokkos::fma(q1, q2, q0 * q3);
-  d_nx(i, 2) = two * Kokkos::fma(q1, q3, -q0 * q2);
-
-  d_ny(i, 0) = two * Kokkos::fma(q1, q2, -q0 * q3);
-  d_ny(i, 1) = Kokkos::fma(q0, q0, Kokkos::fma(q2, q2, -Kokkos::fma(q1, q1, q3 * q3)));
-  d_ny(i, 2) = two * Kokkos::fma(q2, q3, q0 * q1);
-
-  d_nz(i, 0) = two * Kokkos::fma(q1, q3, q0 * q2);
-  d_nz(i, 1) = two * Kokkos::fma(q2, q3, -q0 * q1);
-  d_nz(i, 2) = Kokkos::fma(q0, q0, q3 * q3 - Kokkos::fma(q1, q1, q2 * q2));
+  // packed record: position and frame vectors in one row
+  d_xn(i, 0) = x(i, 0);
+  d_xn(i, 1) = x(i, 1);
+  d_xn(i, 2) = x(i, 2);
+  d_xn(i, 3) = 0.0;
+  for (int k = 0; k < 9; k++) d_xn(i, 4 + k) = n[k];
+  d_xn(i, 13) = 0.0;
+  d_xn(i, 14) = 0.0;
+  d_xn(i, 15) = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */

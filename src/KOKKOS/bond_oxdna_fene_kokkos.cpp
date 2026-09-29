@@ -129,7 +129,7 @@ void BondOxdnaFENEKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
   else atomKK->modified(execution_space,F_MASK | TORQUE_MASK);
 
-  x = atomKK->k_x.view<DeviceType>();
+  x = fix_oxdna_lrfKK->packed_x();
   f = atomKK->k_f.view<DeviceType>();
   torque = atomKK->k_torque.template view<DeviceType>();
   atomtype = atomKK->k_type.template view<DeviceType>();
@@ -150,9 +150,9 @@ void BondOxdnaFENEKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   newton_bond = force->newton_bond;
 
   // d_n(x/y/z)_xtrct = extracted local unit vectors in lab frame from fix_oxdna_lrf_kokkos.
-  d_nx_xtrct = fix_oxdna_lrfKK->k_nx.template view<DeviceType>();
-  d_ny_xtrct = fix_oxdna_lrfKK->k_ny.template view<DeviceType>();
-  d_nz_xtrct = fix_oxdna_lrfKK->k_nz.template view<DeviceType>();
+  d_nx_xtrct = fix_oxdna_lrfKK->packed_nx();
+  d_ny_xtrct = fix_oxdna_lrfKK->packed_ny();
+  d_nz_xtrct = fix_oxdna_lrfKK->packed_nz();
 
   copymode = 1;
 

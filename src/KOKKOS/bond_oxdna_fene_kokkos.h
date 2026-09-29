@@ -24,6 +24,7 @@ BondStyle(oxdna/fene/kk/host,BondOxdnaFENEKokkos<LMPHostType>);
 
 #include "bond_oxdna_fene.h"
 #include "kokkos_type.h"
+#include "fix_oxdna_lrf_kokkos.h"
 
 namespace LAMMPS_NS {
 
@@ -75,7 +76,7 @@ class BondOxdnaFENEKokkos : public BondOxdnaFene {
 
   class NeighborKokkos *neighborKK;
 
-  typename AT::t_kkfloat_1d_3_lr_randomread x;
+  t_oxdna_packed_sub<DeviceType> x;    // positions in the packed record of fix OXDNA/LRF/kk
   typename AT::t_kkacc_1d_3 f;
   typename AT::t_kkacc_1d_3 torque;
   typename AT::t_int_2d_lr bondlist;
@@ -102,7 +103,7 @@ class BondOxdnaFENEKokkos : public BondOxdnaFene {
   typename AT::t_kkfloat_5d_randomread d_Delta;
   // per-atom arrays for local unit vectors
   DAT::tdual_kkfloat_1d_3 k_nx_xtrct, k_ny_xtrct, k_nz_xtrct;
-  typename AT::t_kkfloat_1d_3_lr_randomread d_nx_xtrct, d_ny_xtrct, d_nz_xtrct;
+  t_oxdna_packed_sub<DeviceType> d_nx_xtrct, d_ny_xtrct, d_nz_xtrct;
 
   void allocate() override;
 

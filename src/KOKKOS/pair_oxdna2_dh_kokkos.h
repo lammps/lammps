@@ -27,6 +27,7 @@ PairStyle(oxdna3/dh/kk/host,PairOxdna2DhKokkos<LMPHostType>);
 #define LMP_PAIR_OXDNA2_DH_KOKKOS_H
 
 #include "kokkos_base.h"
+#include "fix_oxdna_lrf_kokkos.h"
 #include "pair_kokkos.h"
 #include "pair_oxdna2_dh.h"
 #include "nucleotide_oxdna.h"
@@ -95,7 +96,7 @@ class PairOxdna2DhKokkos : public PairOxdna2Dh, public KokkosBase {
   int oxdnaflag;
   enum EnabledOXDNAFlag{OXDNA2=1,OXRNA2=2};
 
-  typename AT::t_kkfloat_1d_3_lr_randomread x;
+  t_oxdna_packed_sub<DeviceType> x;    // positions in the packed record of fix OXDNA/LRF/kk
   typename AT::t_kkacc_1d_3 f;
   typename AT::t_kkacc_1d_3 torque;
   typename AT::t_int_1d_randomread type;
@@ -129,7 +130,7 @@ class PairOxdna2DhKokkos : public PairOxdna2Dh, public KokkosBase {
   typename AT::t_kkfloat_2d_randomread d_cut_dh_c, d_cutsq_dh_c;
   // per-atom arrays for local unit vectors
   DAT::tdual_kkfloat_1d_3 k_nx_xtrct, k_ny_xtrct, k_nz_xtrct;
-  typename AT::t_kkfloat_1d_3_lr_randomread d_nx_xtrct, d_ny_xtrct, d_nz_xtrct;
+  t_oxdna_packed_sub<DeviceType> d_nx_xtrct, d_ny_xtrct, d_nz_xtrct;
 
   int first;
   typename AT::t_int_1d d_sendlist;

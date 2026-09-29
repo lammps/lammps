@@ -24,6 +24,7 @@ PairStyle(oxdna3/xstk/kk/host,PairOxdna3XstkKokkos<LMPHostType>);
 #define LMP_PAIR_OXDNA3_XSTK_KOKKOS_H
 
 #include "kokkos_base.h"
+#include "fix_oxdna_lrf_kokkos.h"
 #include "pair_kokkos.h"
 #include "pair_oxdna3_xstk.h"
 
@@ -120,7 +121,7 @@ class PairOxdna3XstkKokkos : public PairOxdna3Xstk, public KokkosBase {
 
  protected:
 
-  typename AT::t_kkfloat_1d_3_lr_randomread x;
+  t_oxdna_packed_sub<DeviceType> x;    // positions in the packed record of fix OXDNA/LRF/kk
   typename AT::t_kkacc_1d_3 f;
   typename AT::t_kkacc_1d_3 torque;
   typename AT::t_int_1d_randomread type;
@@ -169,7 +170,7 @@ class PairOxdna3XstkKokkos : public PairOxdna3Xstk, public KokkosBase {
   int screened_pair_count;
 
   // per-atom arrays for local unit vectors
-  typename AT::t_kkfloat_1d_3_lr_randomread d_nx_xtrct, d_ny_xtrct, d_nz_xtrct;
+  t_oxdna_packed_sub<DeviceType> d_nx_xtrct, d_ny_xtrct, d_nz_xtrct;
 
   using KKDeviceType = typename KKDevice<DeviceType>::value;
 

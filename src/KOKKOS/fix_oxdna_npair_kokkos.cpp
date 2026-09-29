@@ -71,6 +71,13 @@ void FixOxdnaNpairKokkos<DeviceType>::init()
   request->set_kokkos_device(std::is_same_v<DeviceType,LMPDeviceType>);
   if (neighflag == FULL) request->enable_full();
 
+  // the screen keeps only pairs closer than screen_cut_max + skin, so ask for
+  // a list with that cutoff: it is then trimmed from a longer list (e.g. that
+  // of oxdna*/dh) and the screening passes loop over fewer neighbors.
+  // screen_cut_max was registered by the pair styles in init_one(), which
+  // runs before the fixes are initialized.
+  if (screen_cut_max > 0.0) request->set_cutoff_fixed(screen_cut_max);
+
   last_allocate = -1;
 }
 

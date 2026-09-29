@@ -70,6 +70,9 @@ FixGEMC::FixGEMC(LAMMPS *lmp, int narg, char **arg) :
   global_freq = 1;
   time_depend = 1;
   restart_global = 1;
+  vector_flag = 1;
+  size_vector = 6;
+  extvector = 0;
 
   // box size changes with volume MC moves
 
@@ -122,6 +125,12 @@ FixGEMC::FixGEMC(LAMMPS *lmp, int narg, char **arg) :
 
   gemc_nmax = 0;
   local_gas_list = nullptr;
+
+  ntranslation_attempts = ntranslation_successes = 0.0;
+  nrotation_attempts = nrotation_successes = 0.0;
+  nvolume_attempts = nvolume_successes = 0.0;
+  nexchange_attempts = nexchange_successes = 0.0;
+  for (auto &n : nlast) n = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -149,6 +158,8 @@ int FixGEMC::setmask()
 void FixGEMC::init()
 {
   if (!atom->mass) error->all(FLERR, Error::NOLASTLINE, "Fix gemc requires per atom type masses");
+  if (domain->triclinic) error->all(FLERR, "Fix gemc does not support triclinic boxes");
+  if (force->kspace) error->all(FLERR, "Fix gemc does not support long-range electrostatics");
   if (atom->rmass_flag && (comm->me == 0))
     error->warning(FLERR, "Fix gemc will use per atom type masses for velocity initialization");
 
@@ -238,17 +249,14 @@ void FixGEMC::init()
 
   groupbitall = 1 | groupbit;
 
-  ntranslation_attempts = ntranslation_successes = 0.0;
-  nvolume_attempts = nvolume_successes = 0.0;
-  nexchange_attempts = nexchange_successes = 0.0;
-
   // initialize log volume ratio
 
   double vol_i, vol_j;
   vol_i = (xhi - xlo) * (yhi - ylo) * (zhi - zlo);
-  MPI_Sendrecv(&vol_i, 1, MPI_DOUBLE, 1 - myworld, 0,
-               &vol_j, 1, MPI_DOUBLE, 1 - myworld, 0,
-               comm_replica, MPI_STATUS_IGNORE);
+  if (me == 0)
+    MPI_Sendrecv(&vol_i, 1, MPI_DOUBLE, 1 - myworld, 0,
+                 &vol_j, 1, MPI_DOUBLE, 1 - myworld, 0,
+                 comm_replica, MPI_STATUS_IGNORE);
   MPI_Bcast(&vol_j, 1, MPI_DOUBLE, 0, world);
 
   voltot = vol_i + vol_j;
@@ -262,9 +270,10 @@ void FixGEMC::init()
   int n_i, n_j;
   update_gas_atoms_list();
   n_i = natom_total;
-  MPI_Sendrecv(&n_i, 1, MPI_INT, 1 - myworld, 0,
-               &n_j, 1, MPI_INT, 1 - myworld, 0,
-               comm_replica, MPI_STATUS_IGNORE);
+  if (me == 0)
+    MPI_Sendrecv(&n_i, 1, MPI_INT, 1 - myworld, 0,
+                 &n_j, 1, MPI_INT, 1 - myworld, 0,
+                 comm_replica, MPI_STATUS_IGNORE);
   MPI_Bcast(&n_j, 1, MPI_INT, 0, world);
   ntot = n_i + n_j;
 
@@ -343,9 +352,9 @@ void FixGEMC::pre_exchange()
           " GEMC run progress: {:>3d}% \n  Trans: {:g}/{:g}\n"
           "  Vol: {:g}/{:g}\n  Ex: {:g}/{:g}\n",
           progress,
-          ntranslation_successes, ntranslation_attempts,
-          nvolume_successes, nvolume_attempts,
-          nexchange_successes, nexchange_attempts);
+          ntranslation_successes - nlast[0], ntranslation_attempts - nlast[1],
+          nvolume_successes - nlast[2], nvolume_attempts - nlast[3],
+          nexchange_successes - nlast[4], nexchange_attempts - nlast[5]);
       if (universe->uscreen) utils::print(universe->uscreen, msg);
       if (universe->ulogfile) utils::print(universe->ulogfile, msg);
 
@@ -374,9 +383,12 @@ void FixGEMC::pre_exchange()
       if (universe->uscreen) utils::print(universe->uscreen, msg);
       if (universe->ulogfile) utils::print(universe->ulogfile, msg);
 
-      ntranslation_attempts = ntranslation_successes = 0.0;
-      nvolume_attempts = nvolume_successes = 0.0;
-      nexchange_attempts = nexchange_successes = 0.0;
+      nlast[0] = ntranslation_successes;
+      nlast[1] = ntranslation_attempts;
+      nlast[2] = nvolume_successes;
+      nlast[3] = nvolume_attempts;
+      nlast[4] = nexchange_successes;
+      nlast[5] = nexchange_attempts;
     }
   }
 }
@@ -391,9 +403,16 @@ void FixGEMC::update_gas_atoms_list()
   int nlocal = atom->nlocal;
   int *mask = atom->mask;
 
+  if (nlocal > gemc_nmax) {
+    memory->destroy(local_gas_list);
+    gemc_nmax = atom->nmax;
+    memory->create(local_gas_list, gemc_nmax, "gemc:local_gas_list");
+  }
+
   natom_local = 0;
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
+      local_gas_list[natom_local] = i;
       natom_local++;
     }
   }

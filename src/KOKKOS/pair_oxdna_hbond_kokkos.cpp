@@ -51,6 +51,7 @@ PairOxdnaHbondKokkos<DeviceType>::PairOxdnaHbondKokkos(LAMMPS *lmp) : PairOxdnaH
 
   oxdnaflag = EnabledOXDNAFlag::OXDNA;
   screened_pair_count = 0;
+  screened_launch_count = 0;
   unique_basepair_enabled = 0;
   last_idc_nbuild = -1;
   last_idc_nall = -1;
@@ -160,6 +161,12 @@ void PairOxdnaHbondKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   if (execution_space != HostKK) {
     screened_pair_count = fix_oxdna_npairKK->screened_pair_count;
     d_pairs_screened = fix_oxdna_npairKK->k_pairs_screened.template view<DeviceType>();
+    d_screened_offsets = fix_oxdna_npairKK->get_screened_offsets();
+#if OXDNA_KK_SCREENED_PER_ATOM
+    screened_launch_count = fix_oxdna_npairKK->get_anum();
+#else
+    screened_launch_count = screened_pair_count;
+#endif
   }
 
   // the complementary nucleotide IDs are a custom per-atom vector that is
@@ -200,9 +207,9 @@ void PairOxdnaHbondKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   auto run_compute_gpu = [&](auto gpu_tag, auto evflag_tag) {
     constexpr int EVFLAG = decltype(evflag_tag)::value;
     if constexpr (EVFLAG) {
-      Kokkos::parallel_reduce(OxdnaPairRangePolicy<DeviceType, decltype(gpu_tag)>(0,screened_pair_count),*this,ev);
+      Kokkos::parallel_reduce(OxdnaPairRangePolicy<DeviceType, decltype(gpu_tag)>(0,screened_launch_count),*this,ev);
     } else {
-      Kokkos::parallel_for(OxdnaPairRangePolicy<DeviceType, decltype(gpu_tag)>(0,screened_pair_count),*this);
+      Kokkos::parallel_for(OxdnaPairRangePolicy<DeviceType, decltype(gpu_tag)>(0,screened_launch_count),*this);
     }
   };
 
@@ -1120,8 +1127,8 @@ void PairOxdnaHbondKokkos<DeviceType>::hbond_torque_contrib(const KK_FLOAT &f1,
 template<class DeviceType>
 template<int OXDNAFLAG, int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
-void PairOxdnaHbondKokkos<DeviceType>::operator()(TagPairOxdnaHbondComputeGPUPair<OXDNAFLAG,NEIGHFLAG,NEWTON_PAIR,EVFLAG>, \
-  const int &ipair, EV_FLOAT &ev) const
+bool PairOxdnaHbondKokkos<DeviceType>::screened_pair_body(TagPairOxdnaHbondComputeGPUPair<OXDNAFLAG,NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int &ipair,
+  KK_ACC_FLOAT (&fa)[3], KK_ACC_FLOAT (&ta)[3], EV_FLOAT &ev) const
 {
   KK_ACC_FLOAT rxf_a[3], rxf_b[3] = {0.0, 0.0, 0.0};    // r x f torques on a and b
   // one thread per neighbor pair: several threads update the same atoms
@@ -1142,18 +1149,18 @@ void PairOxdnaHbondKokkos<DeviceType>::operator()(TagPairOxdnaHbondComputeGPUPai
   // "pair & 0xffffffffu" keeps only the lower 32 bits to recover the atom-b index.
   int b = static_cast<int>(pair & 0xffffffffu);
   const KK_FLOAT factor_lj = static_cast<KK_FLOAT>(special_lj[sbmask(b)]);
-  if (factor_lj == static_cast<KK_FLOAT>(0.0)) return;
+  if (factor_lj == static_cast<KK_FLOAT>(0.0)) return false;
   b &= NEIGHMASK;
   const int btype = type(b);
 
   // no hydrogen bonding between these base types (e.g. non-complementary bases):
   // f1 and thus the energy would be zero, so skip the site geometry altogether
-  if (d_epsilon_hb(atype,btype) == static_cast<KK_FLOAT>(0.0)) return;
+  if (d_epsilon_hb(atype,btype) == static_cast<KK_FLOAT>(0.0)) return false;
 
   if (unique_basepair_enabled) {
     const int idca = d_idc(a);
     const int idcb = d_idc(b);
-    if (idca != tag(b) && idcb != tag(a) && idca > 0 && idcb > 0) return;
+    if (idca != tag(b) && idcb != tag(a) && idca > 0 && idcb > 0) return false;
   }
 
   KK_FLOAT a_nx[3], a_nz[3], b_nx[3], b_nz[3];
@@ -1217,7 +1224,7 @@ void PairOxdnaHbondKokkos<DeviceType>::operator()(TagPairOxdnaHbondComputeGPUPai
 
   rsq_hb = Kokkos::fma(delr_hb[2], delr_hb[2],
       Kokkos::fma(delr_hb[1], delr_hb[1], delr_hb[0] * delr_hb[0]));
-  if (rsq_hb <= static_cast<KK_FLOAT>(0.0)) return;
+  if (rsq_hb <= static_cast<KK_FLOAT>(0.0)) return false;
   rinv_hb = static_cast<KK_FLOAT>(1.0) / Kokkos::sqrt(rsq_hb);
   r_hb = rsq_hb * rinv_hb;
 
@@ -1230,16 +1237,16 @@ void PairOxdnaHbondKokkos<DeviceType>::operator()(TagPairOxdnaHbondComputeGPUPai
   KK_FLOAT theta1, theta2, theta3, theta4, theta7, theta8;
   KK_FLOAT cost2, cost3, cost7, cost8;
 
-  if (!hbond_radial_terms(atype, btype, r_hb, f1, df1)) return;
-  if (!hbond_theta1_terms(atype, btype, a_nx, b_nx, theta1, f4t1, df4t1)) return;
-  if (!hbond_theta2_terms(atype, btype, a_nx, delr_hb_norm, theta2, cost2, f4t2, df4t2)) return;
-  if (!hbond_theta3_terms(atype, btype, b_nx, delr_hb_norm, theta3, cost3, f4t3, df4t3)) return;
-  if (!hbond_theta4_terms(atype, btype, a_nz, b_nz, theta4, f4t4, df4t4)) return;
-  if (!hbond_theta7_terms(atype, btype, a_nz, delr_hb_norm, theta7, cost7, f4t7, df4t7)) return;
-  if (!hbond_theta8_terms(atype, btype, b_nz, delr_hb_norm, theta8, cost8, f4t8, df4t8)) return;
+  if (!hbond_radial_terms(atype, btype, r_hb, f1, df1)) return false;
+  if (!hbond_theta1_terms(atype, btype, a_nx, b_nx, theta1, f4t1, df4t1)) return false;
+  if (!hbond_theta2_terms(atype, btype, a_nx, delr_hb_norm, theta2, cost2, f4t2, df4t2)) return false;
+  if (!hbond_theta3_terms(atype, btype, b_nx, delr_hb_norm, theta3, cost3, f4t3, df4t3)) return false;
+  if (!hbond_theta4_terms(atype, btype, a_nz, b_nz, theta4, f4t4, df4t4)) return false;
+  if (!hbond_theta7_terms(atype, btype, a_nz, delr_hb_norm, theta7, cost7, f4t7, df4t7)) return false;
+  if (!hbond_theta8_terms(atype, btype, b_nz, delr_hb_norm, theta8, cost8, f4t8, df4t8)) return false;
 
   evdwl = f1 * f4t1 * f4t2 * f4t3 * f4t4 * f4t7 * f4t8 * factor_lj;
-  if (evdwl == static_cast<KK_FLOAT>(0.0)) return;
+  if (evdwl == static_cast<KK_FLOAT>(0.0)) return false;
 
   KK_ACC_FLOAT delf[3], delta[3], deltb[3];
   delf[0] = 0.0;
@@ -1263,9 +1270,9 @@ void PairOxdnaHbondKokkos<DeviceType>::operator()(TagPairOxdnaHbondComputeGPUPai
     ra_chb, rb_chb,
     delf, delta, deltb);
 
-  a_f(a,0) += delf[0];
-  a_f(a,1) += delf[1];
-  a_f(a,2) += delf[2];
+  fa[0] += delf[0];
+  fa[1] += delf[1];
+  fa[2] += delf[2];
   // keep the r x f torques; applied together with the pure torques below
   rxf_a[0] = delta[0];
   rxf_a[1] = delta[1];
@@ -1297,15 +1304,61 @@ void PairOxdnaHbondKokkos<DeviceType>::operator()(TagPairOxdnaHbondComputeGPUPai
     a_nx, b_nx, a_nz, b_nz, delr_hb_norm,
     delta, deltb);
 
-  a_torque(a,0) += rxf_a[0] + delta[0];
-  a_torque(a,1) += rxf_a[1] + delta[1];
-  a_torque(a,2) += rxf_a[2] + delta[2];
+  ta[0] += rxf_a[0] + delta[0];
+  ta[1] += rxf_a[1] + delta[1];
+  ta[2] += rxf_a[2] + delta[2];
 
   if ( (NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || b < nlocal) ) {
     a_torque(b,0) -= rxf_b[0] + deltb[0];
     a_torque(b,1) -= rxf_b[1] + deltb[1];
     a_torque(b,2) -= rxf_b[2] + deltb[2];
   }
+  return true;
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+template<int OXDNAFLAG, int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+KOKKOS_INLINE_FUNCTION
+void PairOxdnaHbondKokkos<DeviceType>::operator()(TagPairOxdnaHbondComputeGPUPair<OXDNAFLAG,NEIGHFLAG,NEWTON_PAIR,EVFLAG>, \
+  const int &ipair, EV_FLOAT &ev) const
+{
+  auto v_f = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
+  auto a_f = v_f.template access<Kokkos::Experimental::ScatterAtomic>();
+  auto v_torque = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,\
+    decltype(dup_torque),decltype(ndup_torque)>::get(dup_torque,ndup_torque);
+  auto a_torque = v_torque.template access<Kokkos::Experimental::ScatterAtomic>();
+
+  KK_ACC_FLOAT fa[3] = {0.0, 0.0, 0.0}, ta[3] = {0.0, 0.0, 0.0};
+#if OXDNA_KK_SCREENED_PER_ATOM
+  // one thread per atom: loop over its screened pairs, index ipair is the atom
+  const int ibeg = d_screened_offsets(ipair);
+  const int iend = d_screened_offsets(ipair+1);
+  bool any = false;
+  for (int jpair = ibeg; jpair < iend; jpair++)
+    if (screened_pair_body(TagPairOxdnaHbondComputeGPUPair<OXDNAFLAG,NEIGHFLAG,NEWTON_PAIR,EVFLAG>(), jpair, fa, ta, ev)) any = true;
+  if (any) {
+    const int a = static_cast<int>(d_pairs_screened(ibeg) >> 32);
+    a_f(a,0) += fa[0];
+    a_f(a,1) += fa[1];
+    a_f(a,2) += fa[2];
+    a_torque(a,0) += ta[0];
+    a_torque(a,1) += ta[1];
+    a_torque(a,2) += ta[2];
+  }
+#else
+  // one thread per screened pair
+  if (screened_pair_body(TagPairOxdnaHbondComputeGPUPair<OXDNAFLAG,NEIGHFLAG,NEWTON_PAIR,EVFLAG>(), ipair, fa, ta, ev)) {
+    const int a = static_cast<int>(d_pairs_screened(ipair) >> 32);
+    a_f(a,0) += fa[0];
+    a_f(a,1) += fa[1];
+    a_f(a,2) += fa[2];
+    a_torque(a,0) += ta[0];
+    a_torque(a,1) += ta[1];
+    a_torque(a,2) += ta[2];
+  }
+#endif
 }
 
 template<class DeviceType>

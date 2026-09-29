@@ -56,6 +56,14 @@ namespace MFOxdnaKokkos {
 #define OXDNA_KK_BOND_MINB 0
 #endif
 
+// Thread mapping of the screened-pair kernels (hbond, oxdna3/xstk, coaxstk):
+// 0 = one thread per screened pair (default), 1 = one thread per atom that
+// loops over the screened pairs of that atom and accumulates its force and
+// torque in registers (atomic updates only for the partner atoms).
+#ifndef OXDNA_KK_SCREENED_PER_ATOM
+#define OXDNA_KK_SCREENED_PER_ATOM 0
+#endif
+
 template<class DeviceType, class Tag>
 using OxdnaRangePolicy =
   Kokkos::RangePolicy<DeviceType, Tag, Kokkos::LaunchBounds<OXDNA_KK_ATOM_MAXT, OXDNA_KK_ATOM_MINB>>;

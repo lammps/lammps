@@ -77,6 +77,12 @@ class FixOxdnaNpairKokkos : public Fix {
   // strand ends (no 3' or no 5' neighbor), the only pairs with coaxial stacking.
   void request_coax_list() { coax_list_requested = true; }
   void build_coax_list();    // public: contains a device lambda
+
+  // per-atom segments of the pair lists: the pairs of the ia-th atom of the
+  // neighbor list are offsets(ia) .. offsets(ia+1)-1, for ia < get_anum()
+  int get_anum() const { return anum; }
+  typename AT::t_int_1d get_screened_offsets() const { return d_screened_offsets; }
+  typename AT::t_int_1d get_coax_offsets() const { return d_coax_offsets; }
   DAT::tdual_uint64_1d k_pairs_coax;
   int coax_pair_count;
 

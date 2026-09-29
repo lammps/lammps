@@ -54,6 +54,7 @@ PairOxdna2CoaxstkKokkos<DeviceType>::PairOxdna2CoaxstkKokkos(LAMMPS *lmp) : Pair
   fix_oxdna_lrfKK = nullptr;
   fix_oxdna_npairKK = nullptr;
   screened_pair_count = 0;
+  screened_launch_count = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -162,6 +163,12 @@ void PairOxdna2CoaxstkKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     // only pairs of two strand ends can stack coaxially: use the reduced list
     screened_pair_count = fix_oxdna_npairKK->coax_pair_count;
     d_pairs_screened = fix_oxdna_npairKK->k_pairs_coax.template view<DeviceType>();
+    d_screened_offsets = fix_oxdna_npairKK->get_coax_offsets();
+#if OXDNA_KK_SCREENED_PER_ATOM
+    screened_launch_count = fix_oxdna_npairKK->get_anum();
+#else
+    screened_launch_count = screened_pair_count;
+#endif
   }
 
   // loop over neighbors of my atoms for compute functors
@@ -178,9 +185,9 @@ void PairOxdna2CoaxstkKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   auto run_compute_gpu = [&](auto gpu_tag, auto evflag_tag) {
     if constexpr (decltype(evflag_tag)::value) {
-      Kokkos::parallel_reduce(OxdnaPairRangePolicy<DeviceType, decltype(gpu_tag)>(0,screened_pair_count), *this, ev);
+      Kokkos::parallel_reduce(OxdnaPairRangePolicy<DeviceType, decltype(gpu_tag)>(0,screened_launch_count), *this, ev);
     } else {
-      Kokkos::parallel_for(OxdnaPairRangePolicy<DeviceType, decltype(gpu_tag)>(0,screened_pair_count), *this);
+      Kokkos::parallel_for(OxdnaPairRangePolicy<DeviceType, decltype(gpu_tag)>(0,screened_launch_count), *this);
     }
   };
 
@@ -902,8 +909,8 @@ void PairOxdna2CoaxstkKokkos<DeviceType>::coaxstk_torque_contrib(const KK_FLOAT 
 template<class DeviceType>
 template<int OXDNAFLAG, int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
-void PairOxdna2CoaxstkKokkos<DeviceType>::operator()(TagPairOxdna2CoaxstkComputeGPUPair<OXDNAFLAG,NEIGHFLAG,NEWTON_PAIR,EVFLAG>, \
-  const int &ipair, EV_FLOAT &ev) const
+bool PairOxdna2CoaxstkKokkos<DeviceType>::screened_pair_body(TagPairOxdna2CoaxstkComputeGPUPair<OXDNAFLAG,NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int &ipair,
+  KK_ACC_FLOAT (&fa)[3], KK_ACC_FLOAT (&ta)[3], EV_FLOAT &ev) const
 {
   KK_ACC_FLOAT rxf_a[3], rxf_b[3] = {0.0, 0.0, 0.0};    // r x f torques on a and b
   // f and torque array are duplicated for OpenMP, atomic for GPU, and neither for Serial
@@ -925,13 +932,13 @@ void PairOxdna2CoaxstkKokkos<DeviceType>::operator()(TagPairOxdna2CoaxstkCompute
   // "pair & 0xffffffffu" keeps only the lower 32 bits to recover the atom-b index.
   int b = static_cast<int>(pair & 0xffffffffu);
   const KK_FLOAT factor_lj = static_cast<KK_FLOAT>(special_lj[sbmask(b)]);
-  if (factor_lj == static_cast<KK_FLOAT>(0.0)) return;
+  if (factor_lj == static_cast<KK_FLOAT>(0.0)) return false;
   b &= NEIGHMASK;
 
   // a has to be terminal nucleotide
-  if(id3p[a]!=-1 && id5p[a]!=-1) return;
+  if(id3p[a]!=-1 && id5p[a]!=-1) return false;
   // b has to be terminal nucleotide
-  if(id3p[b]!=-1 && id5p[b]!=-1) return;
+  if(id3p[b]!=-1 && id5p[b]!=-1) return false;
 
   const int atype = type(a);
   const int btype = type(b);
@@ -996,16 +1003,16 @@ void PairOxdna2CoaxstkKokkos<DeviceType>::operator()(TagPairOxdna2CoaxstkCompute
   }
 
   // the radial factor is the cheapest early rejection criterium, so test it first
-  if (!coaxstk_radial_terms(atype,btype,r_stkstk,prime_cxst_ab,f2,df2)) return;
+  if (!coaxstk_radial_terms(atype,btype,r_stkstk,prime_cxst_ab,f2,df2)) return false;
 
   const KK_FLOAT a_nz_loc[3] = { d_nz_xtrct(a,0), d_nz_xtrct(a,1), d_nz_xtrct(a,2) };
   const KK_FLOAT b_nz_loc[3] = { d_nz_xtrct(b,0), d_nz_xtrct(b,1), d_nz_xtrct(b,2) };
 
   // beginning of modulation factors
-  if (!coaxstk_theta1_terms(atype,btype,a_nx_loc,b_nx_loc,theta1,theta1p,f4f6t1,df4f6t1)) return;
-  if (!coaxstk_theta4_terms(atype,btype,a_nz_loc,b_nz_loc,theta4,f4t4,df4t4)) return;
-  if (!coaxstk_theta5_terms(atype,btype,a_nz_loc,delr_stkstk_norm,theta5,theta5p,f4t5,df4t5,cost5)) return;
-  if (!coaxstk_theta6_terms(atype,btype,b_nz_loc,delr_stkstk_norm,theta6,theta6p,f4t6,df4t6,cost6)) return;
+  if (!coaxstk_theta1_terms(atype,btype,a_nx_loc,b_nx_loc,theta1,theta1p,f4f6t1,df4f6t1)) return false;
+  if (!coaxstk_theta4_terms(atype,btype,a_nz_loc,b_nz_loc,theta4,f4t4,df4t4)) return false;
+  if (!coaxstk_theta5_terms(atype,btype,a_nz_loc,delr_stkstk_norm,theta5,theta5p,f4t5,df4t5,cost5)) return false;
+  if (!coaxstk_theta6_terms(atype,btype,b_nz_loc,delr_stkstk_norm,theta6,theta6p,f4t6,df4t6,cost6)) return false;
 
   evdwl = static_cast<KK_ACC_FLOAT>(f2 * f4f6t1 * f4t4 * f4t5 * f4t6 * factor_lj);
 
@@ -1020,9 +1027,9 @@ void PairOxdna2CoaxstkKokkos<DeviceType>::operator()(TagPairOxdna2CoaxstkCompute
       delr_stkstk,delr_stkstk_norm,a_nz_loc,b_nz_loc,ra_cstk,rb_cstk,delf,delta,deltb);
 
   // increment forces and torques
-  a_f(a,0) += delf[0];
-  a_f(a,1) += delf[1];
-  a_f(a,2) += delf[2];
+  fa[0] += delf[0];
+  fa[1] += delf[1];
+  fa[2] += delf[2];
   // keep the r x f torques; applied together with the pure torques below
   rxf_a[0] = delta[0];
   rxf_a[1] = delta[1];
@@ -1061,9 +1068,9 @@ void PairOxdna2CoaxstkKokkos<DeviceType>::operator()(TagPairOxdna2CoaxstkCompute
     a_nx_loc,b_nx_loc,a_nz_loc,b_nz_loc,delr_stkstk_norm,delta,deltb);
 
   // increment torques
-  a_torque(a,0) += rxf_a[0] + delta[0];
-  a_torque(a,1) += rxf_a[1] + delta[1];
-  a_torque(a,2) += rxf_a[2] + delta[2];
+  ta[0] += rxf_a[0] + delta[0];
+  ta[1] += rxf_a[1] + delta[1];
+  ta[2] += rxf_a[2] + delta[2];
 
   if ( (NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || b < nlocal) ) {
     a_torque(b,0) -= rxf_b[0] + deltb[0];
@@ -1071,6 +1078,52 @@ void PairOxdna2CoaxstkKokkos<DeviceType>::operator()(TagPairOxdna2CoaxstkCompute
     a_torque(b,2) -= rxf_b[2] + deltb[2];
   }
 // end of early rejection criterion
+  return true;
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+template<int OXDNAFLAG, int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+KOKKOS_INLINE_FUNCTION
+void PairOxdna2CoaxstkKokkos<DeviceType>::operator()(TagPairOxdna2CoaxstkComputeGPUPair<OXDNAFLAG,NEIGHFLAG,NEWTON_PAIR,EVFLAG>, \
+  const int &ipair, EV_FLOAT &ev) const
+{
+  auto v_f = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
+  auto a_f = v_f.template access<Kokkos::Experimental::ScatterAtomic>();
+  auto v_torque = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,\
+    decltype(dup_torque),decltype(ndup_torque)>::get(dup_torque,ndup_torque);
+  auto a_torque = v_torque.template access<Kokkos::Experimental::ScatterAtomic>();
+
+  KK_ACC_FLOAT fa[3] = {0.0, 0.0, 0.0}, ta[3] = {0.0, 0.0, 0.0};
+#if OXDNA_KK_SCREENED_PER_ATOM
+  // one thread per atom: loop over its screened pairs, index ipair is the atom
+  const int ibeg = d_screened_offsets(ipair);
+  const int iend = d_screened_offsets(ipair+1);
+  bool any = false;
+  for (int jpair = ibeg; jpair < iend; jpair++)
+    if (screened_pair_body(TagPairOxdna2CoaxstkComputeGPUPair<OXDNAFLAG,NEIGHFLAG,NEWTON_PAIR,EVFLAG>(), jpair, fa, ta, ev)) any = true;
+  if (any) {
+    const int a = static_cast<int>(d_pairs_screened(ibeg) >> 32);
+    a_f(a,0) += fa[0];
+    a_f(a,1) += fa[1];
+    a_f(a,2) += fa[2];
+    a_torque(a,0) += ta[0];
+    a_torque(a,1) += ta[1];
+    a_torque(a,2) += ta[2];
+  }
+#else
+  // one thread per screened pair
+  if (screened_pair_body(TagPairOxdna2CoaxstkComputeGPUPair<OXDNAFLAG,NEIGHFLAG,NEWTON_PAIR,EVFLAG>(), ipair, fa, ta, ev)) {
+    const int a = static_cast<int>(d_pairs_screened(ipair) >> 32);
+    a_f(a,0) += fa[0];
+    a_f(a,1) += fa[1];
+    a_f(a,2) += fa[2];
+    a_torque(a,0) += ta[0];
+    a_torque(a,1) += ta[1];
+    a_torque(a,2) += ta[2];
+  }
+#endif
 }
 
 template<class DeviceType>

@@ -536,7 +536,7 @@ double PairLJCutCoulCutSoftGapsys::single(int i, int j, int itype, int jtype, do
     forcelj = b1 + b2 / sqrt(rsq);
   } else if (rsq < cut_ljsq[itype][jtype]) {
     r6inv = r2inv * r2inv * r2inv;
-    forcelj = r6inv * (lj1[itype][jtype] * r6inv - lj2[itype][jtype]);
+    forcelj = r6inv * (lj1[itype][jtype] * r6inv - lj2[itype][jtype]) * r2inv;
   }
 
   fforce = factor_coul * forcecoul + factor_lj * forcelj;

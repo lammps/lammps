@@ -29,6 +29,8 @@ namespace LAMMPS_NS {
 
 struct TagFixOxdnaNpairNeighScreen{};
 struct TagFixOxdnaNpairFill{};
+struct TagFixOxdnaNpairCoaxCount{};
+struct TagFixOxdnaNpairCoaxFill{};
 
 template<class DeviceType>
 class FixOxdnaNpairKokkos : public Fix {
@@ -71,6 +73,13 @@ class FixOxdnaNpairKokkos : public Fix {
   typename AT::t_uint64_1d d_pairs_screened;
   int screened_pair_count; // ComputeGPUPair functors use this in place of the usual anum.
 
+  // Optional second list with only the screened pairs in which both nucleotides are
+  // strand ends (no 3' or no 5' neighbor), the only pairs with coaxial stacking.
+  void request_coax_list() { coax_list_requested = true; }
+  void build_coax_list();    // public: contains a device lambda
+  DAT::tdual_uint64_1d k_pairs_coax;
+  int coax_pair_count;
+
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagFixOxdnaNpairNeighScreen, const int &) const;
@@ -79,12 +88,21 @@ class FixOxdnaNpairKokkos : public Fix {
   KOKKOS_INLINE_FUNCTION
   void operator()(TagFixOxdnaNpairFill, const int &) const;
 
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagFixOxdnaNpairCoaxCount, const int &) const;
+
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagFixOxdnaNpairCoaxFill, const int &) const;
+
  private:
 
   class NeighList *list;
 
   typename AT::t_kkfloat_1d_3_lr_randomread x;
   typename AT::t_int_1d_randomread type;
+  typename AT::t_tagint_1d_randomread id3p, id5p;
 
   int anum;
   int neighflag;
@@ -106,7 +124,21 @@ class FixOxdnaNpairKokkos : public Fix {
   int special_skip[4];     // 1 if pairs with this special-bond index have special_lj == 0
   bool force_screening_all_backends;
 
+  // coaxial stacking pair list (see request_coax_list())
+  bool coax_list_requested;
+  DAT::tdual_int_1d k_numneigh_coax;
+  typename AT::t_int_1d d_numneigh_coax;
+  DAT::tdual_int_1d k_coax_offsets;
+  typename AT::t_int_1d d_coax_offsets;
+  DAT::tdual_int_scalar k_coax_pair_count;
+  typename AT::t_uint64_1d d_pairs_coax;
+  int coax_max_atoms;
+
   void update_screen_cutsq();
+
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  bool is_strand_end(const int &i) const { return (id3p(i) == -1) || (id5p(i) == -1); }
 
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION

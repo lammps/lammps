@@ -159,8 +159,9 @@ void PairOxdna2CoaxstkKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   // If we're on a GPU, look up fix_oxdna_npairKK screened pair count and packed pair view.
   if (execution_space != HostKK) {
-    screened_pair_count = fix_oxdna_npairKK->screened_pair_count;
-    d_pairs_screened = fix_oxdna_npairKK->k_pairs_screened.template view<DeviceType>();
+    // only pairs of two strand ends can stack coaxially: use the reduced list
+    screened_pair_count = fix_oxdna_npairKK->coax_pair_count;
+    d_pairs_screened = fix_oxdna_npairKK->k_pairs_coax.template view<DeviceType>();
   }
 
   // loop over neighbors of my atoms for compute functors
@@ -1210,6 +1211,8 @@ void PairOxdna2CoaxstkKokkos<DeviceType>::init_style()
     fix_oxdna_npairKK = dynamic_cast<FixOxdnaNpairKokkos<DeviceType> *>(npair_fixes[0]);
   }
   if (!fix_oxdna_npairKK) error->all(FLERR, "Fix OXDNA/NPAIR/kk lookup failed");
+  // the screened-pair (GPU) kernel runs over the list of strand-end pairs only
+  if (execution_space != HostKK) fix_oxdna_npairKK->request_coax_list();
 
 }
 

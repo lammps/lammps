@@ -45,6 +45,10 @@ FixOxdnaNpairKokkos<DeviceType>::FixOxdnaNpairKokkos(LAMMPS *lmp, int narg, char
   screen_cut_max = 0.0;
   screen_cutsq = static_cast<KK_FLOAT>(4.0);
   special_skip[0] = special_skip[1] = special_skip[2] = special_skip[3] = 0;
+  coax_list_requested = false;
+  coax_pair_count = 0;
+  coax_max_atoms = 0;
+  k_coax_pair_count = DAT::tdual_int_scalar("FixOxdnaNpair:coax_pair_count");
   force_screening_all_backends = false;
 }
 
@@ -240,6 +244,61 @@ void FixOxdnaNpairKokkos<DeviceType>::compute_neigh_screen_to_npair()
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixOxdnaNpairFill>(0, anum), *this);
   copymode = 0;
+
+  if (coax_list_requested) build_coax_list();
+}
+
+/* ----------------------------------------------------------------------
+   build the list of screened pairs in which both nucleotides are strand
+   ends; coaxial stacking acts only between those.  Same count / scan /
+   fill scheme as the screened list, in the same pair order.
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixOxdnaNpairKokkos<DeviceType>::build_coax_list()
+{
+  if (atom->nmax > coax_max_atoms) {
+    coax_max_atoms = atom->nmax;
+    MemKK::realloc_kokkos(k_numneigh_coax, "FixOxdnaNpair:numneigh_coax", coax_max_atoms);
+    MemKK::realloc_kokkos(k_coax_offsets, "FixOxdnaNpair:coax_offsets", coax_max_atoms + 1);
+    d_numneigh_coax = k_numneigh_coax.template view<DeviceType>();
+    d_coax_offsets = k_coax_offsets.template view<DeviceType>();
+  }
+
+  atomKK->sync(execution_space, CG_DNA_MASK);
+  id3p = atomKK->k_id3p.template view<DeviceType>();
+  id5p = atomKK->k_id5p.template view<DeviceType>();
+
+  copymode = 1;
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixOxdnaNpairCoaxCount>(0, anum), *this);
+  copymode = 0;
+
+  const auto d_alist_local = d_alist;
+  const auto d_numneigh_coax_local = d_numneigh_coax;
+  const auto d_coax_offsets_local = d_coax_offsets;
+  const int anum_local = anum;
+  Kokkos::parallel_scan(
+    Kokkos::RangePolicy<DeviceType>(0, anum + 1),
+    KOKKOS_LAMBDA(const int i, int &update, const bool final) {
+      if (i < anum_local) {
+        if (final) d_coax_offsets_local(i) = update;
+        update += d_numneigh_coax_local(d_alist_local(i));
+      } else if (final) {
+        d_coax_offsets_local(anum_local) = update;
+      }
+    });
+  Kokkos::deep_copy(k_coax_pair_count.view_host(), Kokkos::subview(d_coax_offsets_local, anum_local));
+  coax_pair_count = k_coax_pair_count.view_host()();
+
+  if ((bigint) coax_pair_count > (bigint) k_pairs_coax.extent(0)) {
+    const bigint newsize = (bigint) coax_pair_count + coax_pair_count / 5 + 1;
+    MemKK::realloc_kokkos(k_pairs_coax, "FixOxdnaNpair:pairs_coax", (size_t) newsize);
+  }
+  d_pairs_coax = k_pairs_coax.template view<DeviceType>();
+
+  copymode = 1;
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixOxdnaNpairCoaxFill>(0, anum), *this);
+  copymode = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -310,6 +369,50 @@ void FixOxdnaNpairKokkos<DeviceType>::operator()(TagFixOxdnaNpairFill, const int
     const int braw = d_neighbors(a,ib);
     if (screen_pair_fast(braw, a_com0, a_com1, a_com2)) {
       d_pairs_screened(nscreen++) =
+        (static_cast<uint64_t>(static_cast<uint32_t>(a)) << 32) |
+        static_cast<uint64_t>(static_cast<uint32_t>(braw));
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void FixOxdnaNpairKokkos<DeviceType>::operator()(TagFixOxdnaNpairCoaxCount, const int &ia) const
+{
+  const int a = d_alist(ia);
+  int ncoax = 0;
+  if (is_strand_end(a)) {
+    const int bnum = d_numneigh(a);
+    const KK_FLOAT a_com0 = x(a,0);
+    const KK_FLOAT a_com1 = x(a,1);
+    const KK_FLOAT a_com2 = x(a,2);
+    for (int ib = 0; ib < bnum; ib++) {
+      const int braw = d_neighbors(a,ib);
+      if (is_strand_end(braw & NEIGHMASK) && screen_pair_fast(braw, a_com0, a_com1, a_com2)) ncoax++;
+    }
+  }
+  d_numneigh_coax(a) = ncoax;
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+KOKKOS_INLINE_FUNCTION
+void FixOxdnaNpairKokkos<DeviceType>::operator()(TagFixOxdnaNpairCoaxFill, const int &ia) const
+{
+  const int a = d_alist(ia);
+  if (!is_strand_end(a)) return;
+  const int bnum = d_numneigh(a);
+  const KK_FLOAT a_com0 = x(a,0);
+  const KK_FLOAT a_com1 = x(a,1);
+  const KK_FLOAT a_com2 = x(a,2);
+  int ncoax = d_coax_offsets(ia);
+  for (int ib = 0; ib < bnum; ib++) {
+    const int braw = d_neighbors(a,ib);
+    if (is_strand_end(braw & NEIGHMASK) && screen_pair_fast(braw, a_com0, a_com1, a_com2)) {
+      d_pairs_coax(ncoax++) =
         (static_cast<uint64_t>(static_cast<uint32_t>(a)) << 32) |
         static_cast<uint64_t>(static_cast<uint32_t>(braw));
     }

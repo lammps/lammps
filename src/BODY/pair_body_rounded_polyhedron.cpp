@@ -777,8 +777,6 @@ void PairBodyRoundedPolyhedron::init_style()
   MPI_Allreduce(&mrad[1],&maxrad[1],ntypes,MPI_DOUBLE,MPI_MAX,world);
 
   memory->destroy(mrad);
-
-  sanity_check();
 }
 
 /* ----------------------------------------------------------------------
@@ -3489,24 +3487,6 @@ void PairBodyRoundedPolyhedron::find_unique_contacts(std::vector<Contact> &conta
       if (d < EPSILON*EPSILON*rmin*rmin) contacts[j].unique = 0;
     }
   }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void PairBodyRoundedPolyhedron::sanity_check()
-{
-
-  double x1[3],x2[3],h_a[3],h_b[3],d_a,d_b;
-  double a[3],b[3],t_a,t_b;
-
-  x1[0] = 0; x1[1] = 3; x1[2] = 0;
-  x2[0] = 3; x2[1] = 0; x2[2] = 0;
-
-  a[0] = 0; a[1] = 0; a[2] = 0;
-  b[0] = 4; b[1] = 0; b[2] = 0;
-
-  project_pt_line(a, x1, x2, h_a, d_a, t_a);
-  project_pt_line(b, x1, x2, h_b, d_b, t_b);
 }
 
 /* ---------------------------------------------------------------------- */

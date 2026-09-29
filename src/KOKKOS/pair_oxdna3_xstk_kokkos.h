@@ -72,6 +72,9 @@ class FixOxdnaPrimeNeighsKokkos;  // forward declaration
 template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
 struct TagPairOxdna3XstkComputeNpair{};
 
+template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+struct TagPairOxdna3XstkComputeRadial{};
+
 template<class DeviceType>
 class PairOxdna3XstkKokkos : public PairOxdna3Xstk, public KokkosBase {
  public:
@@ -97,7 +100,7 @@ class PairOxdna3XstkKokkos : public PairOxdna3Xstk, public KokkosBase {
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairOxdna3XstkComputeNpair<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int&, EV_FLOAT&) const;
 
-  template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+  template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG, int RADIAL_ONLY = 0>
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   bool screened_pair_body(TagPairOxdna3XstkComputeNpair<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int &ipair,
@@ -107,6 +110,12 @@ class PairOxdna3XstkKokkos : public PairOxdna3Xstk, public KokkosBase {
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairOxdna3XstkComputeNpair<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int&) const;
+
+  // first phase of the two-phase evaluation (OXDNA_KK_TWO_PHASE)
+  template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagPairOxdna3XstkComputeRadial<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int&) const;
 
   template<int NEIGHFLAG, int NEWTON_PAIR, int PAIRWISE = 0>
 // NOLINTNEXTLINE
@@ -168,6 +177,9 @@ class PairOxdna3XstkKokkos : public PairOxdna3Xstk, public KokkosBase {
   typename AT::t_int_1d d_screened_offsets;  // per-atom segments of d_pairs_screened
   int screened_launch_count;   // number of threads of the screened-pair kernels
   int screened_pair_count;
+  // compact list of the screened pairs that pass the radial test (OXDNA_KK_TWO_PHASE)
+  typename AT::t_int_1d d_radial_pairs;
+  typename AT::t_int_scalar d_radial_count;
 
   // per-atom arrays for local unit vectors
   t_oxdna_packed_sub<DeviceType> d_nx_xtrct, d_ny_xtrct, d_nz_xtrct;

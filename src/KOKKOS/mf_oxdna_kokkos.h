@@ -64,6 +64,18 @@ namespace MFOxdnaKokkos {
 #define OXDNA_KK_SCREENED_PER_ATOM 0
 #endif
 
+// Two-phase evaluation of the screened-pair kernels of hbond and oxdna3/xstk:
+// 0 = one kernel (default), 1 = a first kernel collects the pairs that pass
+// the radial cutoff test into a compact list and a second kernel evaluates
+// the angular terms only for those pairs, so that the threads of a warp
+// follow the same code path.
+#ifndef OXDNA_KK_TWO_PHASE
+#define OXDNA_KK_TWO_PHASE 0
+#endif
+#if OXDNA_KK_TWO_PHASE && OXDNA_KK_SCREENED_PER_ATOM
+#error "OXDNA_KK_TWO_PHASE and OXDNA_KK_SCREENED_PER_ATOM cannot be combined"
+#endif
+
 template<class DeviceType, class Tag>
 using OxdnaRangePolicy =
   Kokkos::RangePolicy<DeviceType, Tag, Kokkos::LaunchBounds<OXDNA_KK_ATOM_MAXT, OXDNA_KK_ATOM_MINB>>;

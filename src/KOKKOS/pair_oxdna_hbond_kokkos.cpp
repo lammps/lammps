@@ -167,6 +167,13 @@ void PairOxdnaHbondKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 #else
     screened_launch_count = screened_pair_count;
 #endif
+#if OXDNA_KK_TWO_PHASE
+    if (static_cast<int>(d_radial_pairs.extent(0)) < screened_pair_count)
+      d_radial_pairs = typename AT::t_int_1d(Kokkos::view_alloc(Kokkos::WithoutInitializing, "pair:radial_pairs"),
+                                             screened_pair_count + screened_pair_count/10);
+    if (d_radial_count.data() == nullptr) d_radial_count = typename AT::t_int_scalar("pair:radial_count");
+    Kokkos::deep_copy(d_radial_count, 0);
+#endif
   }
 
   // the complementary nucleotide IDs are a custom per-atom vector that is
@@ -204,8 +211,13 @@ void PairOxdnaHbondKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, decltype(host_tag)>(0,anum),*this);
     }
   };
-  auto run_compute_gpu = [&](auto gpu_tag, auto evflag_tag) {
+  auto run_compute_gpu = [&](auto gpu_tag, auto radial_tag, auto evflag_tag) {
     constexpr int EVFLAG = decltype(evflag_tag)::value;
+#if OXDNA_KK_TWO_PHASE
+    Kokkos::parallel_for(OxdnaPairRangePolicy<DeviceType, decltype(radial_tag)>(0,screened_pair_count),*this);
+#else
+    (void) radial_tag;
+#endif
     if constexpr (EVFLAG) {
       Kokkos::parallel_reduce(OxdnaPairRangePolicy<DeviceType, decltype(gpu_tag)>(0,screened_launch_count),*this,ev);
     } else {
@@ -224,13 +236,15 @@ void PairOxdnaHbondKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       if (use_host_launch) {
         run_compute_host(TagPairOxdnaHbondCompute<OXDNA,NEIGHFLAG,NEWTON_PAIR,EVFLAG>{}, evflag_tag);
       } else {
-        run_compute_gpu(TagPairOxdnaHbondComputeGPUPair<OXDNA,NEIGHFLAG,NEWTON_PAIR,EVFLAG>{}, evflag_tag);
+        run_compute_gpu(TagPairOxdnaHbondComputeGPUPair<OXDNA,NEIGHFLAG,NEWTON_PAIR,EVFLAG>{},
+                        TagPairOxdnaHbondComputeGPURadial<OXDNA,NEIGHFLAG,NEWTON_PAIR,EVFLAG>{}, evflag_tag);
       }
     } else if (oxdnaflag == OXDNA3) {
       if (use_host_launch) {
         run_compute_host(TagPairOxdnaHbondCompute<OXDNA3,NEIGHFLAG,NEWTON_PAIR,EVFLAG>{}, evflag_tag);
       } else {
-        run_compute_gpu(TagPairOxdnaHbondComputeGPUPair<OXDNA3,NEIGHFLAG,NEWTON_PAIR,EVFLAG>{}, evflag_tag);
+        run_compute_gpu(TagPairOxdnaHbondComputeGPUPair<OXDNA3,NEIGHFLAG,NEWTON_PAIR,EVFLAG>{},
+                        TagPairOxdnaHbondComputeGPURadial<OXDNA3,NEIGHFLAG,NEWTON_PAIR,EVFLAG>{}, evflag_tag);
       }
     } else {
       error->all(FLERR, "Unknown OXDNA model flag in pair oxdna/hbond/kk");
@@ -745,6 +759,23 @@ void PairOxdnaHbondKokkos<DeviceType>::operator()(TagPairOxdnaHbondCompute<OXDNA
 }
 
 /* ----------------------------------------------------------------------
+   first phase of the two-phase evaluation: append the screened pairs that
+   pass the radial test to d_radial_pairs
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+template<int OXDNAFLAG, int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+KOKKOS_INLINE_FUNCTION
+void PairOxdnaHbondKokkos<DeviceType>::operator()(TagPairOxdnaHbondComputeGPURadial<OXDNAFLAG,NEIGHFLAG,NEWTON_PAIR,EVFLAG>,
+  const int &ipair) const
+{
+  KK_ACC_FLOAT fa[3], ta[3];
+  EV_FLOAT ev;
+  if (this->template screened_pair_body<OXDNAFLAG,NEIGHFLAG,NEWTON_PAIR,EVFLAG,1>(TagPairOxdnaHbondComputeGPUPair<OXDNAFLAG,NEIGHFLAG,NEWTON_PAIR,EVFLAG>(), ipair, fa, ta, ev))
+    d_radial_pairs(Kokkos::atomic_fetch_add(&d_radial_count(), 1)) = ipair;
+}
+
+/* ----------------------------------------------------------------------
    ComputeGPUPair Functor(s) and staged hbond helpers for lower
    live register pressure in GPU kernels.
 -------------------------------------------------------------------------- */
@@ -1125,7 +1156,7 @@ void PairOxdnaHbondKokkos<DeviceType>::hbond_torque_contrib(const KK_FLOAT &f1,
 }
 
 template<class DeviceType>
-template<int OXDNAFLAG, int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+template<int OXDNAFLAG, int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG, int RADIAL_ONLY>
 KOKKOS_INLINE_FUNCTION
 bool PairOxdnaHbondKokkos<DeviceType>::screened_pair_body(TagPairOxdnaHbondComputeGPUPair<OXDNAFLAG,NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int &ipair,
   KK_ACC_FLOAT (&fa)[3], KK_ACC_FLOAT (&ta)[3], EV_FLOAT &ev) const
@@ -1238,6 +1269,7 @@ bool PairOxdnaHbondKokkos<DeviceType>::screened_pair_body(TagPairOxdnaHbondCompu
   KK_FLOAT cost2, cost3, cost7, cost8;
 
   if (!hbond_radial_terms(atype, btype, r_hb, f1, df1)) return false;
+  if constexpr (RADIAL_ONLY) return true;
   if (!hbond_theta1_terms(atype, btype, a_nx, b_nx, theta1, f4t1, df4t1)) return false;
   if (!hbond_theta2_terms(atype, btype, a_nx, delr_hb_norm, theta2, cost2, f4t2, df4t2)) return false;
   if (!hbond_theta3_terms(atype, btype, b_nx, delr_hb_norm, theta3, cost3, f4t3, df4t3)) return false;
@@ -1348,9 +1380,16 @@ void PairOxdnaHbondKokkos<DeviceType>::operator()(TagPairOxdnaHbondComputeGPUPai
     a_torque(a,2) += ta[2];
   }
 #else
+#if OXDNA_KK_TWO_PHASE
+  // one thread per screened pair that passed the radial test
+  if (ipair >= d_radial_count()) return;
+  const int jpair = d_radial_pairs(ipair);
+#else
   // one thread per screened pair
-  if (screened_pair_body(TagPairOxdnaHbondComputeGPUPair<OXDNAFLAG,NEIGHFLAG,NEWTON_PAIR,EVFLAG>(), ipair, fa, ta, ev)) {
-    const int a = static_cast<int>(d_pairs_screened(ipair) >> 32);
+  const int jpair = ipair;
+#endif
+  if (screened_pair_body(TagPairOxdnaHbondComputeGPUPair<OXDNAFLAG,NEIGHFLAG,NEWTON_PAIR,EVFLAG>(), jpair, fa, ta, ev)) {
+    const int a = static_cast<int>(d_pairs_screened(jpair) >> 32);
     a_f(a,0) += fa[0];
     a_f(a,1) += fa[1];
     a_f(a,2) += fa[2];

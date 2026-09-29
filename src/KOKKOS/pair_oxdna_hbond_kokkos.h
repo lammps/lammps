@@ -46,6 +46,9 @@ struct TagPairOxdnaHbondCompute{};
 template<int OXDNAFLAG, int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
 struct TagPairOxdnaHbondComputeGPUPair{};
 
+template<int OXDNAFLAG, int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+struct TagPairOxdnaHbondComputeGPURadial{};
+
 // packed per-type-pair coefficients of PairOxdnaHbondKokkos
 struct ParamsHbond {
   KK_FLOAT epsilon_hb, a_hb, cut_hb_0, cut_hb_c, cut_hb_lo, cut_hb_hi;
@@ -118,7 +121,7 @@ class PairOxdnaHbondKokkos : public PairOxdnaHbond, public KokkosBase {
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairOxdnaHbondComputeGPUPair<OXDNAFLAG,NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int&, EV_FLOAT&) const;
 
-  template<int OXDNAFLAG, int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+  template<int OXDNAFLAG, int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG, int RADIAL_ONLY = 0>
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   bool screened_pair_body(TagPairOxdnaHbondComputeGPUPair<OXDNAFLAG,NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int &ipair,
@@ -128,6 +131,12 @@ class PairOxdnaHbondKokkos : public PairOxdnaHbond, public KokkosBase {
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairOxdnaHbondComputeGPUPair<OXDNAFLAG,NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int&) const;
+
+  // first phase of the two-phase evaluation (OXDNA_KK_TWO_PHASE)
+  template<int OXDNAFLAG, int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagPairOxdnaHbondComputeGPURadial<OXDNAFLAG,NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int&) const;
 
   template<int NEIGHFLAG, int NEWTON_PAIR, int PAIRWISE = 0>
 // NOLINTNEXTLINE
@@ -175,6 +184,9 @@ class PairOxdnaHbondKokkos : public PairOxdnaHbond, public KokkosBase {
   typename AT::t_int_1d d_screened_offsets;  // per-atom segments of d_pairs_screened
   int screened_launch_count;   // number of threads of the screened-pair kernels
   int screened_pair_count;
+  // compact list of the screened pairs that pass the radial test (OXDNA_KK_TWO_PHASE)
+  typename AT::t_int_1d d_radial_pairs;
+  typename AT::t_int_scalar d_radial_count;
 
   DAT::tdual_int_1d k_idc;
   typename AT::t_int_1d_randomread d_idc;

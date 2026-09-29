@@ -168,6 +168,13 @@ void PairOxdna3XstkKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 #else
   screened_launch_count = screened_pair_count;
 #endif
+#if OXDNA_KK_TWO_PHASE
+  if (static_cast<int>(d_radial_pairs.extent(0)) < screened_pair_count)
+    d_radial_pairs = typename AT::t_int_1d(Kokkos::view_alloc(Kokkos::WithoutInitializing, "pair:radial_pairs"),
+                                           screened_pair_count + screened_pair_count/10);
+  if (d_radial_count.data() == nullptr) d_radial_count = typename AT::t_int_scalar("pair:radial_count");
+  Kokkos::deep_copy(d_radial_count, 0);
+#endif
 
   // Then get the precomputed 3'/5' neighbor map lookups for the screened npair list.
   // Done here (not in pre_force) so the pair's own list is always used,
@@ -183,8 +190,13 @@ void PairOxdna3XstkKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   EV_FLOAT ev;
 
   // Launch from screened npair pairs regardless of backend.
-  auto run_compute_screened = [&](auto screened_tag, auto evflag_tag) {
+  auto run_compute_screened = [&](auto screened_tag, auto radial_tag, auto evflag_tag) {
     constexpr int EVFLAG = decltype(evflag_tag)::value;
+#if OXDNA_KK_TWO_PHASE
+    Kokkos::parallel_for(OxdnaPairRangePolicy<DeviceType, decltype(radial_tag)>(0,screened_pair_count),*this);
+#else
+    (void) radial_tag;
+#endif
     if constexpr (EVFLAG) {
       Kokkos::parallel_reduce(OxdnaPairRangePolicy<DeviceType, decltype(screened_tag)>(0,screened_launch_count),*this,ev);
     } else {
@@ -196,7 +208,8 @@ void PairOxdna3XstkKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     constexpr int NEIGHFLAG = decltype(neighflag_tag)::value;
     constexpr int NEWTON_PAIR = decltype(newtonpair_tag)::value;
     constexpr int EVFLAG = decltype(evflag_tag)::value;
-    run_compute_screened(TagPairOxdna3XstkComputeNpair<NEIGHFLAG,NEWTON_PAIR,EVFLAG>{}, evflag_tag);
+    run_compute_screened(TagPairOxdna3XstkComputeNpair<NEIGHFLAG,NEWTON_PAIR,EVFLAG>{},
+                         TagPairOxdna3XstkComputeRadial<NEIGHFLAG,NEWTON_PAIR,EVFLAG>{}, evflag_tag);
   };
 
   const int dispatch_neigh =
@@ -774,7 +787,7 @@ void PairOxdna3XstkKokkos<DeviceType>::xstk_torque_contrib(const KK_FLOAT &f2_33
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG, int RADIAL_ONLY>
 KOKKOS_INLINE_FUNCTION
 bool PairOxdna3XstkKokkos<DeviceType>::screened_pair_body(TagPairOxdna3XstkComputeNpair<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int &ipair,
   KK_ACC_FLOAT (&fa)[3], KK_ACC_FLOAT (&ta)[3], EV_FLOAT &ev) const
@@ -824,6 +837,7 @@ bool PairOxdna3XstkKokkos<DeviceType>::screened_pair_body(TagPairOxdna3XstkCompu
   KK_FLOAT f2_33, f2_55, df2_33, df2_55;
   if (!xstk_radial_terms(atype, btype, a3ptype, a5ptype, b3ptype, b5ptype,
       r_bsbs, f2_33, f2_55, df2_33, df2_55)) return false;
+  if constexpr (RADIAL_ONLY) return true;
 
   KK_FLOAT f4t1, df4t1;
   if (!xstk_theta1_terms(atype, btype, a_nx, b_nx, f4t1, df4t1)) return false;
@@ -974,9 +988,16 @@ void PairOxdna3XstkKokkos<DeviceType>::operator()(TagPairOxdna3XstkComputeNpair<
     a_torque(a,2) += ta[2];
   }
 #else
+#if OXDNA_KK_TWO_PHASE
+  // one thread per screened pair that passed the radial test
+  if (ipair >= d_radial_count()) return;
+  const int jpair = d_radial_pairs(ipair);
+#else
   // one thread per screened pair
-  if (screened_pair_body(TagPairOxdna3XstkComputeNpair<NEIGHFLAG,NEWTON_PAIR,EVFLAG>(), ipair, fa, ta, ev)) {
-    const int a = static_cast<int>(d_pairs_screened(ipair) >> 32);
+  const int jpair = ipair;
+#endif
+  if (screened_pair_body(TagPairOxdna3XstkComputeNpair<NEIGHFLAG,NEWTON_PAIR,EVFLAG>(), jpair, fa, ta, ev)) {
+    const int a = static_cast<int>(d_pairs_screened(jpair) >> 32);
     a_f(a,0) += fa[0];
     a_f(a,1) += fa[1];
     a_f(a,2) += fa[2];
@@ -996,6 +1017,23 @@ void PairOxdna3XstkKokkos<DeviceType>::operator()(TagPairOxdna3XstkComputeNpair<
   EV_FLOAT ev;
   this->template operator()<NEIGHFLAG,NEWTON_PAIR,EVFLAG>
     (TagPairOxdna3XstkComputeNpair<NEIGHFLAG,NEWTON_PAIR,EVFLAG>(),ipair,ev);
+}
+
+/* ----------------------------------------------------------------------
+   first phase of the two-phase evaluation: append the screened pairs that
+   pass the radial test to d_radial_pairs
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+KOKKOS_INLINE_FUNCTION
+void PairOxdna3XstkKokkos<DeviceType>::operator()(TagPairOxdna3XstkComputeRadial<NEIGHFLAG,NEWTON_PAIR,EVFLAG>,
+  const int &ipair) const
+{
+  KK_ACC_FLOAT fa[3], ta[3];
+  EV_FLOAT ev;
+  if (this->template screened_pair_body<NEIGHFLAG,NEWTON_PAIR,EVFLAG,1>(TagPairOxdna3XstkComputeNpair<NEIGHFLAG,NEWTON_PAIR,EVFLAG>(), ipair, fa, ta, ev))
+    d_radial_pairs(Kokkos::atomic_fetch_add(&d_radial_count(), 1)) = ipair;
 }
 
 /* ---------------------------------------------------------------------- */

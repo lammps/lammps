@@ -807,6 +807,39 @@ double PairOxdnaExcv::init_one(int i, int j)
     error->all(FLERR,"Offset not supported in oxdna");
   }
 
+  // mirror the coefficients and recompute the derived ones, which are
+  // not stored in restart files
+
+  epsilon_bkbk[j][i] = epsilon_bkbk[i][j];
+  sigma_bkbk[j][i] = sigma_bkbk[i][j];
+  cut_bkbk_ast[j][i] = cut_bkbk_ast[i][j];
+  b_bkbk[j][i] = b_bkbk[i][j];
+  cut_bkbk_c[j][i] = cut_bkbk_c[i][j];
+  lj1_bkbk[i][j] = lj1_bkbk[j][i] = 4.0 * epsilon_bkbk[i][j] * pow(sigma_bkbk[i][j],12.0);
+  lj2_bkbk[i][j] = lj2_bkbk[j][i] = 4.0 * epsilon_bkbk[i][j] * pow(sigma_bkbk[i][j],6.0);
+  cutsq_bkbk_ast[i][j] = cutsq_bkbk_ast[j][i] = cut_bkbk_ast[i][j]*cut_bkbk_ast[i][j];
+  cutsq_bkbk_c[i][j] = cutsq_bkbk_c[j][i] = cut_bkbk_c[i][j]*cut_bkbk_c[i][j];
+
+  epsilon_bkbs[j][i] = epsilon_bkbs[i][j];
+  sigma_bkbs[j][i] = sigma_bkbs[i][j];
+  cut_bkbs_ast[j][i] = cut_bkbs_ast[i][j];
+  b_bkbs[j][i] = b_bkbs[i][j];
+  cut_bkbs_c[j][i] = cut_bkbs_c[i][j];
+  lj1_bkbs[i][j] = lj1_bkbs[j][i] = 4.0 * epsilon_bkbs[i][j] * pow(sigma_bkbs[i][j],12.0);
+  lj2_bkbs[i][j] = lj2_bkbs[j][i] = 4.0 * epsilon_bkbs[i][j] * pow(sigma_bkbs[i][j],6.0);
+  cutsq_bkbs_ast[i][j] = cutsq_bkbs_ast[j][i] = cut_bkbs_ast[i][j]*cut_bkbs_ast[i][j];
+  cutsq_bkbs_c[i][j] = cutsq_bkbs_c[j][i] = cut_bkbs_c[i][j]*cut_bkbs_c[i][j];
+
+  epsilon_bsbs[j][i] = epsilon_bsbs[i][j];
+  sigma_bsbs[j][i] = sigma_bsbs[i][j];
+  cut_bsbs_ast[j][i] = cut_bsbs_ast[i][j];
+  b_bsbs[j][i] = b_bsbs[i][j];
+  cut_bsbs_c[j][i] = cut_bsbs_c[i][j];
+  lj1_bsbs[i][j] = lj1_bsbs[j][i] = 4.0 * epsilon_bsbs[i][j] * pow(sigma_bsbs[i][j],12.0);
+  lj2_bsbs[i][j] = lj2_bsbs[j][i] = 4.0 * epsilon_bsbs[i][j] * pow(sigma_bsbs[i][j],6.0);
+  cutsq_bsbs_ast[i][j] = cutsq_bsbs_ast[j][i] = cut_bsbs_ast[i][j]*cut_bsbs_ast[i][j];
+  cutsq_bsbs_c[i][j] = cutsq_bsbs_c[j][i] = cut_bsbs_c[i][j]*cut_bsbs_c[i][j];
+
   // set the master list distance cutoff
   return cut_bkbk_c[i][j];
 

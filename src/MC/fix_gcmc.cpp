@@ -1708,15 +1708,13 @@ void FixGCMC::attempt_atomic_deletion_full()
     tagint tmptag_all;
     MPI_Allreduce(&tmptag,&tmptag_all,1,MPI_LMP_TAGINT,MPI_MAX,world);
     int tmpmask_all;
-    MPI_Allreduce(&tmpmask,&tmpmask_all,1,MPI_INT,MPI_MAX,world);
+    MPI_Allreduce(&tmpmask,&tmpmask_all,1,MPI_INT,MPI_BOR,world);
     double q_all = 0.0;
     if (q_flag) {
       double q_mine = (i >= 0) ? q_tmp : 0.0;
       MPI_Allreduce(&q_mine,&q_all,1,MPI_DOUBLE,MPI_SUM,world);
     }
-    i = -1;
-    for (int k = 0; k < atom->nlocal; k++)
-      if (atom->tag[k] == tmptag_all) i = k;
+    i = local_index(tmptag_all);
     tmpmask = tmpmask_all;
     q_tmp = q_all;
   }
@@ -1853,14 +1851,11 @@ void FixGCMC::attempt_atomic_insertion_full()
     // inserted atom must be located by its atom ID, if available
 
     if (newtag) {
-      for (int k = 0; k < atom->nlocal; k++) {
-        if (atom->tag[k] == newtag) {
-          atom->avec->copy(atom->nlocal-1,k,1);
-          atom->nlocal--;
-          break;
-        }
+      int k = local_index(newtag);
+      if (k >= 0) {
+        atom->avec->copy(atom->nlocal-1,k,1);
+        atom->nlocal--;
       }
-      if (atom->map_style != Atom::MAP_NONE) atom->map_init();
     } else if (proc_flag) atom->nlocal--;
     if (force->kspace) force->kspace->qsum_qsq();
     if (force->pair->tail_flag) force->pair->reinit();
@@ -2092,24 +2087,16 @@ void FixGCMC::attempt_molecule_deletion_full()
 
   double energy_before = energy_stored;
 
-  // check nmolq, grow arrays if necessary
-
-  int nmolq = 0;
-  for (int i = 0; i < atom->nlocal; i++)
-    if (atom->molecule[i] == deletion_molecule)
-      if (atom->q_flag) nmolq++;
-
-  if (nmolq > nmaxmolatoms)
-    grow_molecule_arrays(nmolq);
-
   // save atom ID, mask, and charge of the molecule atoms
 
-  std::vector<double> saved;
+  std::vector<tagint> savedtag;
+  std::vector<int> savedmask;
+  std::vector<double> savedq;
   for (int i = 0; i < atom->nlocal; i++) {
     if (atom->molecule[i] == deletion_molecule) {
-      saved.push_back(ubuf(atom->tag[i]).d);
-      saved.push_back(ubuf(atom->mask[i]).d);
-      saved.push_back(atom->q_flag ? atom->q[i] : 0.0);
+      savedtag.push_back(atom->tag[i]);
+      savedmask.push_back(atom->mask[i]);
+      savedq.push_back(atom->q_flag ? atom->q[i] : 0.0);
       atom->mask[i] = exclusion_group_bit;
       toggle_intramolecular(i);
       if (atom->q_flag) atom->q[i] = 0.0;
@@ -2139,28 +2126,31 @@ void FixGCMC::attempt_molecule_deletion_full()
     energy_stored = energy_before;
 
     // energy_full() may have moved or reordered atoms, so the saved
-    // masks and charges are gathered from all processors and restored by atom ID
+    // masks and charges are shared by all processors and restored by atom ID.
+    // each processor places its values at an offset from a prefix sum,
+    // so a single allreduce of the size of one molecule is sufficient.
 
-    int nprocs = comm->nprocs;
-    std::vector<int> counts(nprocs), displs(nprocs);
-    int nsend = saved.size();
-    MPI_Allgather(&nsend,1,MPI_INT,counts.data(),1,MPI_INT,world);
-    int ntotal = 0;
-    for (int iproc = 0; iproc < nprocs; iproc++) {
-      displs[iproc] = ntotal;
-      ntotal += counts[iproc];
+    int nsend = savedtag.size();
+    int offset = 0, ntotal = 0;
+    MPI_Scan(&nsend,&offset,1,MPI_INT,MPI_SUM,world);
+    offset -= nsend;
+    MPI_Allreduce(&nsend,&ntotal,1,MPI_INT,MPI_SUM,world);
+    std::vector<tagint> tagmine(ntotal,0), tagall(ntotal,0);
+    std::vector<int> maskmine(ntotal,0), maskall(ntotal,0);
+    std::vector<double> qmine(ntotal,0.0), qall(ntotal,0.0);
+    for (int k = 0; k < nsend; k++) {
+      tagmine[offset+k] = savedtag[k];
+      maskmine[offset+k] = savedmask[k];
+      qmine[offset+k] = savedq[k];
     }
-    std::vector<double> all(ntotal+1);
-    MPI_Allgatherv(saved.data(),nsend,MPI_DOUBLE,all.data(),counts.data(),displs.data(),
-                   MPI_DOUBLE,world);
-    for (int k = 0; k < ntotal; k += 3) {
-      tagint itag = (tagint) ubuf(all[k]).i;
-      for (int i = 0; i < atom->nlocal; i++) {
-        if (atom->tag[i] == itag) {
-          atom->mask[i] = (int) ubuf(all[k+1]).i;
-          if (atom->q_flag) atom->q[i] = all[k+2];
-          break;
-        }
+    MPI_Allreduce(tagmine.data(),tagall.data(),ntotal,MPI_LMP_TAGINT,MPI_SUM,world);
+    MPI_Allreduce(maskmine.data(),maskall.data(),ntotal,MPI_INT,MPI_BOR,world);
+    MPI_Allreduce(qmine.data(),qall.data(),ntotal,MPI_DOUBLE,MPI_SUM,world);
+    for (int k = 0; k < ntotal; k++) {
+      int i = local_index(tagall[k]);
+      if (i >= 0) {
+        atom->mask[i] = maskall[k];
+        if (atom->q_flag) atom->q[i] = qall[k];
       }
     }
     for (int i = 0; i < atom->nlocal; i++)
@@ -2727,6 +2717,21 @@ double FixGCMC::memory_usage()
 {
   double bytes = (double)gcmc_nmax * sizeof(int);
   return bytes;
+}
+
+/* ----------------------------------------------------------------------
+   return local index of the owned atom with atom ID itag or -1 if not owned
+------------------------------------------------------------------------- */
+
+int FixGCMC::local_index(tagint itag)
+{
+  if (atom->map_style != Atom::MAP_NONE) {
+    int i = atom->map(itag);
+    return (i < atom->nlocal) ? i : -1;
+  }
+  for (int i = 0; i < atom->nlocal; i++)
+    if (atom->tag[i] == itag) return i;
+  return -1;
 }
 
 /* ----------------------------------------------------------------------

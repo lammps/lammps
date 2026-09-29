@@ -120,10 +120,8 @@ void FixOxdnaPrimeNeighsKokkos<DeviceType>::compute_prime_neighs_bond(
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
-void FixOxdnaPrimeNeighsKokkos<DeviceType>::compute_prime_neighs_oxdna3_xstk(NeighList *neigh_list)
+void FixOxdnaPrimeNeighsKokkos<DeviceType>::compute_prime_neighs_oxdna3_xstk()
 {
-  (void) neigh_list;
-
   // look up the fix every time, since it may have been replaced since the last call
 
   fix_oxdna_npairKK = nullptr;

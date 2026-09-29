@@ -59,10 +59,10 @@ class FixOxdnaPrimeNeighsKokkos : public Fix {
   // d_prime_neighs_oxdna3_xstk(ipair,0-3), where ipair maps to the packed
   // (a,braw) pair in npair's d_pairs_screened.
   // Populated by compute_prime_neighs_oxdna3_xstk(), called by the pair style
-  // from its compute() using the pair's own neighbor list.
+  // from its compute() whenever the screened list was rebuilt.
   DAT::tdual_int_2d k_prime_neighs_oxdna3_xstk;
   typename AT::t_int_2d d_prime_neighs_oxdna3_xstk;
-  void compute_prime_neighs_oxdna3_xstk(class NeighList *neigh_list);
+  void compute_prime_neighs_oxdna3_xstk();
 
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION

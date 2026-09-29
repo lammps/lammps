@@ -124,11 +124,13 @@ void PairOxdnaXstkKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   // get the neighbor list and neighbors used in operator()
 
-  NeighListKokkos<DeviceType>* k_list = static_cast<NeighListKokkos<DeviceType>*>(list);
-  d_neighbors = k_list->d_neighbors;
-  anum = list->inum;
-  d_alist = k_list->d_ilist;
-  d_numneigh = k_list->d_numneigh;
+  if (execution_space == HostKK) {
+    NeighListKokkos<DeviceType>* k_list = static_cast<NeighListKokkos<DeviceType>*>(list);
+    d_neighbors = k_list->d_neighbors;
+    anum = list->inum;
+    d_alist = k_list->d_ilist;
+    d_numneigh = k_list->d_numneigh;
+  }
 
   int need_dup = lmp->kokkos->need_dup<DeviceType>();
   if (need_dup) {
@@ -1405,13 +1407,18 @@ void PairOxdnaXstkKokkos<DeviceType>::init_style()
     error->all(FLERR, "The /kk/host variants of the CG-DNA styles are not supported "
                "when LAMMPS is compiled for a GPU");
 
-  neighbor->add_request(this);
+  // on GPUs the screened-pair kernel runs over the pair list of fix
+  // OXDNA/NPAIR/kk, so only the host kernel needs a neighbor list
+
   neighflag = lmp->kokkos->neighflag;
-  auto request = neighbor->find_request(this);
-  request->set_kokkos_host(std::is_same_v<DeviceType,LMPHostType> &&
-                           !std::is_same_v<DeviceType,LMPDeviceType>);
-  request->set_kokkos_device(std::is_same_v<DeviceType,LMPDeviceType>);
-  if (neighflag == FULL) request->enable_full();
+  if (execution_space == HostKK) {
+    neighbor->add_request(this);
+    auto request = neighbor->find_request(this);
+    request->set_kokkos_host(std::is_same_v<DeviceType,LMPHostType> &&
+                             !std::is_same_v<DeviceType,LMPDeviceType>);
+    request->set_kokkos_device(std::is_same_v<DeviceType,LMPDeviceType>);
+    if (neighflag == FULL) request->enable_full();
+  }
 
   fix_oxdna_lrfKK = nullptr;
   auto fixes = modify->get_fix_by_style("^OXDNA/LRF/kk");

@@ -21,7 +21,6 @@
 #include "math_const.h"
 #include "memory_kokkos.h"
 #include "modify.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 
 #include "fix_oxdna_lrf_kokkos.h"
@@ -177,10 +176,10 @@ void PairOxdna3XstkKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 #endif
 
   // Then get the precomputed 3'/5' neighbor map lookups for the screened npair list.
-  // Done here (not in pre_force) so the pair's own list is always used,
-  // ensuring ib-index correspondence between precompute and kernel.
+  // Done here (not in pre_force) so that they are indexed like the current
+  // screened list.
   if (last_prime_neighs_xstk3_nbuild != neighbor->nbuild) {
-    fix_oxdna_prime_neighsKK->compute_prime_neighs_oxdna3_xstk(list);
+    fix_oxdna_prime_neighsKK->compute_prime_neighs_oxdna3_xstk();
     last_prime_neighs_xstk3_nbuild = neighbor->nbuild;
     d_prime_neighs_oxdna3_xstk = fix_oxdna_prime_neighsKK->d_prime_neighs_oxdna3_xstk;
   }
@@ -1085,13 +1084,10 @@ void PairOxdna3XstkKokkos<DeviceType>::init_style()
 
   last_prime_neighs_xstk3_nbuild = -1;
 
-  neighbor->add_request(this);
+  // the kernel runs over the pair list of fix OXDNA/NPAIR/kk on all
+  // backends, so this style needs no neighbor list of its own
+
   neighflag = lmp->kokkos->neighflag;
-  auto request = neighbor->find_request(this);
-  request->set_kokkos_host(std::is_same_v<DeviceType,LMPHostType> &&
-                           !std::is_same_v<DeviceType,LMPDeviceType>);
-  request->set_kokkos_device(std::is_same_v<DeviceType,LMPDeviceType>);
-  if (neighflag == FULL) request->enable_full();
 
   fix_oxdna_lrfKK = nullptr;
   auto fixes = modify->get_fix_by_style("^OXDNA/LRF/kk");

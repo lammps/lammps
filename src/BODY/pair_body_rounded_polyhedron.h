@@ -40,9 +40,13 @@ class PairBodyRoundedPolyhedron : public Pair {
   void unpack_reverse_comm(int, int *, double *) override;
   void reset_dt() override;
 
-  virtual void kernel_force(double R, int itype, int jtype, double &energy, double &fpair);
+  // normal force and energy of a contact between the surfaces of ibody and jbody
+  // at the separation R, which can be overridden for other contact models
+  virtual void kernel_force(int ibody, int jbody, double R, int itype, int jtype, double &energy,
+                            double &fpair);
   // elastic and cohesive parts of the normal force, returns the energy
-  double normal_force(double R, int itype, int jtype, double &fe, double &fc);
+  virtual double normal_force(int ibody, int jbody, double R, int itype, int jtype, double &fe,
+                              double &fc);
 
   struct Contact {
     int ibody, jbody;     // body (i.e. atom) indices (not tags)
@@ -87,6 +91,7 @@ class PairBodyRoundedPolyhedron : public Pair {
   double cut_inner;    // cutoff for interaction between vertex-edge surfaces
   double **k_t;        // tangential stiffness of the contact history
   int history;         // 1 if the tangential displacement of the contacts is stored
+  int size_history;    // number of values stored per pair of bodies with the history
   double dt;           // time step, for the update of the tangential displacement
   char *id_history;    // ID of fix NEIGH_HISTORY with the tangential displacements
   class FixNeighHistory *fix_history;
@@ -218,11 +223,15 @@ class PairBodyRoundedPolyhedron : public Pair {
   // contact point between the rounded surfaces of two bodies
   void contact_point(const double *pi, const double *pj, const double *n, double rradi,
                      double rradj, double *pc);
-  // damping and friction forces at a contact point
+  // damping and friction forces at a contact point at the surface separation R
   void damping_friction(int ibody, int jbody, const double *pc, const double *n, double fne,
-                        int damping, int friction, double **x, double **v, double **angmom,
-                        double **f, double **torque, double **fnc, int iref, double *facc,
-                        Scratch *hs = nullptr, double w = 1.0);
+                        double R, int damping, int friction, double **x, double **v,
+                        double **angmom, double **f, double **torque, double **fnc, int iref,
+                        double *facc, Scratch *hs = nullptr, double w = 1.0);
+  // damping force of a contact from the normal and tangential relative velocities
+  virtual void contact_damping(int ibody, int jbody, double R, double w, double vnnr,
+                               const double *n, const double *vn, const double *vt,
+                               double *fdiss);
   // friction force at the contact with the largest overlap
   void friction_force(Contact &contact, int itype, int jtype, double **x, double **v,
                       double **angmom, double **f, double **torque, double **fnc, int iref,
@@ -232,7 +241,7 @@ class PairBodyRoundedPolyhedron : public Pair {
                        double **f, double **torque, double **fnc, int iref, double *facc,
                        Scratch &s);
   // friction force from a tangential spring with the contact history
-  void tangential_spring(int ibody, int jbody, const double *n, const double *vt, double fne,
+  virtual void tangential_spring(int ibody, int jbody, const double *n, const double *vt, double fne,
                          Scratch &s, double *fs);
   // single friction force of a pair of bodies from all contacts with the contact history
   void history_friction(int i, int j, double **x, double **f, double **torque, double **fnc,

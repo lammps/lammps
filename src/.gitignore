@@ -1321,6 +1321,8 @@
 /pair_body_rounded_polygon.h
 /pair_body_rounded_polyhedron.cpp
 /pair_body_rounded_polyhedron.h
+/pair_body_rounded_polyhedron_granular.cpp
+/pair_body_rounded_polyhedron_granular.h
 /pair_bop.cpp
 /pair_bop.h
 /pair_born_coul_long.cpp

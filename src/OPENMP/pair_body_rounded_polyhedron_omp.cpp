@@ -205,7 +205,7 @@ void PairBodyRoundedPolyhedronOMP::eval(int iifrom, int iito, ThrData *const thr
       // the tangential displacement is reset unless the pair is in contact
 
       if (history) {
-        s.shear = &allshear[3 * jj];
+        s.shear = &allshear[size_history * jj];
         s.shear_i = i;
         s.touched = 0;
         s.fnsum = 0.0;
@@ -228,7 +228,8 @@ void PairBodyRoundedPolyhedronOMP::eval(int iifrom, int iito, ThrData *const thr
 
       if (history) {
         touch[jj] = s.touched;
-        if (!s.touched) s.shear[0] = s.shear[1] = s.shear[2] = 0.0;
+        if (!s.touched)
+          for (int k = 0; k < size_history; k++) s.shear[k] = 0.0;
       }
     }
   }

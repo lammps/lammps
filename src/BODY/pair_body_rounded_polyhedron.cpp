@@ -121,6 +121,7 @@ PairBodyRoundedPolyhedron::PairBodyRoundedPolyhedron(LAMMPS *lmp) :
   // so the history is kept for all pairs in the neighbor list
 
   history = 0;
+  size_history = 3;
   dt = 0.0;
   id_history = nullptr;
   fix_history = nullptr;
@@ -278,7 +279,7 @@ void PairBodyRoundedPolyhedron::compute(int eflag, int vflag)
       // the tangential displacement is reset unless the pair is in contact
 
       if (history) {
-        scratch.shear = &allshear[3*jj];
+        scratch.shear = &allshear[size_history*jj];
         scratch.shear_i = i;
         scratch.touched = 0;
         scratch.fnsum = 0.0;
@@ -300,7 +301,8 @@ void PairBodyRoundedPolyhedron::compute(int eflag, int vflag)
 
       if (history) {
         touch[jj] = scratch.touched;
-        if (!scratch.touched) scratch.shear[0] = scratch.shear[1] = scratch.shear[2] = 0.0;
+        if (!scratch.touched)
+          for (int k = 0; k < size_history; k++) scratch.shear[k] = 0.0;
       }
 
     } // end for jj
@@ -684,7 +686,7 @@ void PairBodyRoundedPolyhedron::init_style()
     if (!fix_history) {
       fix_history = dynamic_cast<FixNeighHistory *>(
         modify->replace_fix("NEIGH_HISTORY_BODY_DUMMY" + std::to_string(instance_me),
-                            fmt::format("{} all NEIGH_HISTORY 3", id_history), 1));
+                            fmt::format("{} all NEIGH_HISTORY {}", id_history, size_history), 1));
       fix_history->pair = this;
     } else {
       fix_history = dynamic_cast<FixNeighHistory *>(modify->get_fix_by_id(id_history));
@@ -950,7 +952,7 @@ void PairBodyRoundedPolyhedron::sphere_against_sphere(int ibody, int jbody,
   R = rij - contact_dist;
 
   energy = 0;
-  kernel_force(R, itype, jtype, energy, fpair);
+  kernel_force(ibody, jbody, R, itype, jtype, energy, fpair);
 
   fx = delx*fpair/rij;
   fy = dely*fpair/rij;
@@ -975,8 +977,9 @@ void PairBodyRoundedPolyhedron::sphere_against_sphere(int ibody, int jbody,
     double n[3] = {delx/rij, dely/rij, delz/rij};
     double pc[3];
     contact_point(x[ibody], x[jbody], n, rradi, rradj, pc);
-    double fne = -k_n[itype][jtype] * R;
-    damping_friction(ibody, jbody, pc, n, fne, 1, 1, x, v, angmom, f, torque, fnc, ibody, facc,
+    double fne, fc;
+    normal_force(ibody, jbody, R, itype, jtype, fne, fc);
+    damping_friction(ibody, jbody, pc, n, fne, R, 1, 1, x, v, angmom, f, torque, fnc, ibody, facc,
                      &s);
   }
 }
@@ -1087,7 +1090,7 @@ void PairBodyRoundedPolyhedron::sphere_point_contact(int ibody, int jbody,
   R = rij - contact_dist;
 
   energy = 0;
-  kernel_force(R, itype, jtype, energy, fpair);
+  kernel_force(ibody, jbody, R, itype, jtype, energy, fpair);
 
   fx = delx*fpair/rij;
   fy = dely*fpair/rij;
@@ -1101,7 +1104,7 @@ void PairBodyRoundedPolyhedron::sphere_point_contact(int ibody, int jbody,
     double nrm[3] = {delx/rij, dely/rij, delz/rij};
     double pc[3];
     contact_point(h, x[jbody], nrm, rradi, rradj, pc);
-    damping_friction(ibody, jbody, pc, nrm, 0.0, 1, 0, x, v, angmom, f, torque, fnc, ibody,
+    damping_friction(ibody, jbody, pc, nrm, 0.0, R, 1, 0, x, v, angmom, f, torque, fnc, ibody,
                      facc);
 
     Contact c;
@@ -2581,7 +2584,7 @@ void PairBodyRoundedPolyhedron::pair_force_and_torque(int ibody, int jbody,
   // see vertex_face_weight()
 
   double e = 0.0;
-  kernel_force(R, itype, jtype, e, fpair);
+  kernel_force(ibody, jbody, R, itype, jtype, e, fpair);
 
   fx = w*delx*fpair/r;
   fy = w*dely*fpair/r;
@@ -2623,11 +2626,11 @@ void PairBodyRoundedPolyhedron::pair_force_and_torque(int ibody, int jbody,
     here is the harmonic potential (linear piece-wise forces) in Wang et al.
 ------------------------------------------------------------------------- */
 
-void PairBodyRoundedPolyhedron::kernel_force(double R, int itype, int jtype,
-  double& energy, double& fpair)
+void PairBodyRoundedPolyhedron::kernel_force(int ibody, int jbody, double R, int itype,
+                                             int jtype, double &energy, double &fpair)
 {
   double fe, fc;
-  energy += normal_force(R, itype, jtype, fe, fc);
+  energy += normal_force(ibody, jbody, R, itype, jtype, fe, fc);
   fpair = fe + fc;
 }
 
@@ -2640,8 +2643,8 @@ void PairBodyRoundedPolyhedron::kernel_force(double R, int itype, int jtype,
    return the energy, which is zero at R = cut_inner
 ------------------------------------------------------------------------- */
 
-double PairBodyRoundedPolyhedron::normal_force(double R, int itype, int jtype,
-                                               double &fe, double &fc)
+double PairBodyRoundedPolyhedron::normal_force(int /*ibody*/, int /*jbody*/, double R, int itype,
+                                               int jtype, double &fe, double &fc)
 {
   fe = fc = 0.0;
   if (R > cut_inner) return 0.0;
@@ -2718,7 +2721,7 @@ void PairBodyRoundedPolyhedron::rescale_cohesive_forces(double** x,
     // only the cohesive force is scaled by j_a, see Eq. 6, Wang et al.
 
     double fe, fc;
-    evdwl += w * normal_force(R, itype, jtype, fe, fc);
+    evdwl += w * normal_force(ibody, jbody, R, itype, jtype, fe, fc);
     fpair = w * (fe + j_a * fc);
     fx = delx*fpair/r;
     fy = dely*fpair/r;
@@ -2764,8 +2767,8 @@ void PairBodyRoundedPolyhedron::rescale_cohesive_forces(double** x,
       double pc[3];
       contact_point(contacts[m].xi, contacts[m].xj, n, rounded_radius[ibody],
                     rounded_radius[jbody], pc);
-      damping_friction(ibody, jbody, pc, n, 0.0, 1, 0, x, v, angmom, f, torque, fnc, iref, facc,
-                       nullptr, w);
+      damping_friction(ibody, jbody, pc, n, 0.0, R, 1, 0, x, v, angmom, f, torque, fnc, iref,
+                       facc, nullptr, w);
     }
   }
 }
@@ -2799,7 +2802,7 @@ void PairBodyRoundedPolyhedron::contact_point(const double *pi, const double *pj
 ------------------------------------------------------------------------- */
 
 void PairBodyRoundedPolyhedron::damping_friction(int ibody, int jbody, const double *pc,
-  const double *n, double fne, int damping, int friction, double** x, double** v,
+  const double *n, double fne, double R, int damping, int friction, double** x, double** v,
   double** angmom, double** f, double** torque, double** fnc, int iref, double* facc,
   Scratch *hs, double w)
 {
@@ -2824,8 +2827,7 @@ void PairBodyRoundedPolyhedron::damping_friction(int ibody, int jbody, const dou
   // the damping is scaled by the weight w of the contact, see vertex_face_weight(),
   // the elastic normal force fne of the friction includes it
 
-  if (damping)
-    for (int k = 0; k < 3; k++) fdiss[k] = -w * (c_n * vn[k] + c_t * vt[k]);
+  if (damping) contact_damping(ibody, jbody, R, w, vnnr, n, vn, vt, fdiss);
 
   double vtmag = MathExtra::len3(vt);
   if (friction && hs && hs->shear) {
@@ -2873,6 +2875,21 @@ void PairBodyRoundedPolyhedron::damping_friction(int ibody, int jbody, const dou
   } else {
     facc[0] -= fdiss[0]; facc[1] -= fdiss[1]; facc[2] -= fdiss[2];
   }
+}
+
+/* ----------------------------------------------------------------------
+  Damping force of a contact at the surface separation R with the weight w,
+  see vertex_face_weight(), from the normal and tangential relative
+  velocities vn and vt, with vnnr = vn . n, see Eq. 4, Wang et al.:
+    -w (c_n v_n + c_t v_t)
+------------------------------------------------------------------------- */
+
+void PairBodyRoundedPolyhedron::contact_damping(int /*ibody*/, int /*jbody*/, double /*R*/,
+                                                double w, double /*vnnr*/, const double * /*n*/,
+                                                const double *vn, const double *vt,
+                                                double *fdiss)
+{
+  for (int k = 0; k < 3; k++) fdiss[k] = -w * (c_n * vn[k] + c_t * vt[k]);
 }
 
 /* ----------------------------------------------------------------------
@@ -3062,9 +3079,11 @@ void PairBodyRoundedPolyhedron::friction_force(Contact &contact, int itype, int 
   contact_point(contact.xi, contact.xj, n, rounded_radius[contact.ibody],
                 rounded_radius[contact.jbody], pc);
 
-  double fne = -k_n[itype][jtype] * contact.separation * contact.w;
-  damping_friction(contact.ibody, contact.jbody, pc, n, fne, 0, 1, x, v, angmom, f, torque, fnc,
-                   iref, facc, &s);
+  double fne, fc;
+  normal_force(contact.ibody, contact.jbody, contact.separation, itype, jtype, fne, fc);
+  fne *= contact.w;
+  damping_friction(contact.ibody, contact.jbody, pc, n, fne, contact.separation, 0, 1, x, v,
+                   angmom, f, torque, fnc, iref, facc, &s);
 }
 
 /* ----------------------------------------------------------------------

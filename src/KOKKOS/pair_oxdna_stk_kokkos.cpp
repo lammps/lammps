@@ -189,11 +189,8 @@ KOKKOS_INLINE_FUNCTION
 void PairOxdnaStkKokkos<DeviceType>::operator()(TagPairOxdnaStkCompute<OXDNAFLAG,NEWTON_BOND,EVFLAG>, \
   const int &in, EV_FLOAT &ev) const
 {
-  // The f and torque arrays are atomic
-  Kokkos::View<KK_ACC_FLOAT*[3], typename DAT::t_kkacc_1d_3::array_layout,\
-    typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > a_f = f;
-  Kokkos::View<KK_ACC_FLOAT*[3], typename DAT::t_kkacc_1d_3::array_layout,\
-    typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > a_torque = torque;
+  // The f and torque arrays are updated with Kokkos::atomic_add() on the views
+  // directly (an atomic-trait view copy made here would live in local memory)
 
   // Use precomputed bond and prime neighbors.
   // NOTE: already in correct order from precompute, so directionality test: a -> b is 3' -> 5' is already satisfied
@@ -205,6 +202,7 @@ void PairOxdnaStkKokkos<DeviceType>::operator()(TagPairOxdnaStkCompute<OXDNAFLAG
   KK_FLOAT ra_cbk[3], rb_cbk[3];             // vectors COM-backbone sites in lab frame
 
   KK_ACC_FLOAT delf[3], delta[3], deltb[3];    // force, torque increment
+  KK_ACC_FLOAT fsum[3], tsuma[3], tsumb[3];    // total force and torques of this bond
   KK_ACC_FLOAT evdwl,finc,tpair;
   KK_FLOAT delr_bkbk[3],delr_bkbk_norm[3],rsq_bkbk,r_bkbk,rinv_bkbk;
   KK_FLOAT delr_stkstk[3],delr_stkstk_norm[3],rsq_stkstk,r_stkstk,rinv_stkstk;
@@ -424,29 +422,17 @@ void PairOxdnaStkKokkos<DeviceType>::operator()(TagPairOxdnaStkCompute<OXDNAFLAG
     delf[2] += static_cast<KK_ACC_FLOAT>(delr_stkstk_norm[2]*cost6p - d_nz_xtrct(a,2)) * finc;
   }
 
-  // increment forces and torques
-  if ( NEWTON_BOND || a < nlocal ) {
-    a_f(a,0) -= delf[0];
-    a_f(a,1) -= delf[1];
-    a_f(a,2) -= delf[2];
-    delta[0] = static_cast<KK_ACC_FLOAT>(ra_cstk[1])*delf[2] - static_cast<KK_ACC_FLOAT>(ra_cstk[2])*delf[1];
-    delta[1] = static_cast<KK_ACC_FLOAT>(ra_cstk[2])*delf[0] - static_cast<KK_ACC_FLOAT>(ra_cstk[0])*delf[2];
-    delta[2] = static_cast<KK_ACC_FLOAT>(ra_cstk[0])*delf[1] - static_cast<KK_ACC_FLOAT>(ra_cstk[1])*delf[0];
-    a_torque(a,0) -= delta[0];
-    a_torque(a,1) -= delta[1];
-    a_torque(a,2) -= delta[2];
-  }
-  if ( NEWTON_BOND || b < nlocal ) {
-    a_f(b,0) += delf[0];
-    a_f(b,1) += delf[1];
-    a_f(b,2) += delf[2];
-    deltb[0] = static_cast<KK_ACC_FLOAT>(rb_cstk[1])*delf[2] - static_cast<KK_ACC_FLOAT>(rb_cstk[2])*delf[1];
-    deltb[1] = static_cast<KK_ACC_FLOAT>(rb_cstk[2])*delf[0] - static_cast<KK_ACC_FLOAT>(rb_cstk[0])*delf[2];
-    deltb[2] = static_cast<KK_ACC_FLOAT>(rb_cstk[0])*delf[1] - static_cast<KK_ACC_FLOAT>(rb_cstk[1])*delf[0];
-    a_torque(b,0) += deltb[0];
-    a_torque(b,1) += deltb[1];
-    a_torque(b,2) += deltb[2];
-  }
+  // accumulate the force and torques of this bond; they are applied with a
+  // single atomic update per atom and component at the end
+  fsum[0] = delf[0];
+  fsum[1] = delf[1];
+  fsum[2] = delf[2];
+  tsuma[0] = static_cast<KK_ACC_FLOAT>(ra_cstk[1])*delf[2] - static_cast<KK_ACC_FLOAT>(ra_cstk[2])*delf[1];
+  tsuma[1] = static_cast<KK_ACC_FLOAT>(ra_cstk[2])*delf[0] - static_cast<KK_ACC_FLOAT>(ra_cstk[0])*delf[2];
+  tsuma[2] = static_cast<KK_ACC_FLOAT>(ra_cstk[0])*delf[1] - static_cast<KK_ACC_FLOAT>(ra_cstk[1])*delf[0];
+  tsumb[0] = static_cast<KK_ACC_FLOAT>(rb_cstk[1])*delf[2] - static_cast<KK_ACC_FLOAT>(rb_cstk[2])*delf[1];
+  tsumb[1] = static_cast<KK_ACC_FLOAT>(rb_cstk[2])*delf[0] - static_cast<KK_ACC_FLOAT>(rb_cstk[0])*delf[2];
+  tsumb[2] = static_cast<KK_ACC_FLOAT>(rb_cstk[0])*delf[1] - static_cast<KK_ACC_FLOAT>(rb_cstk[1])*delf[0];
 
   if (EVFLAG) { ev_tally_xyz(ev, a, b, nlocal, NEWTON_BOND, static_cast<KK_FLOAT>(evdwl), delf[0], delf[1], delf[2], \
     x(b,0)-x(a,0), x(b,1)-x(a,1), x(b,2)-x(a,2)); }
@@ -480,29 +466,16 @@ void PairOxdnaStkKokkos<DeviceType>::operator()(TagPairOxdnaStkCompute<OXDNAFLAG
     delf[2] += static_cast<KK_ACC_FLOAT>(delr_bkbk_norm[2]*cosphi2 - d_ny_xtrct(a,2)) * finc;
   }
 
-  // increment forces and torques
-  if ( NEWTON_BOND || a < nlocal ) {
-    a_f(a,0) -= delf[0];
-    a_f(a,1) -= delf[1];
-    a_f(a,2) -= delf[2];
-    delta[0] = static_cast<KK_ACC_FLOAT>(ra_cbk[1])*delf[2] - static_cast<KK_ACC_FLOAT>(ra_cbk[2])*delf[1];
-    delta[1] = static_cast<KK_ACC_FLOAT>(ra_cbk[2])*delf[0] - static_cast<KK_ACC_FLOAT>(ra_cbk[0])*delf[2];
-    delta[2] = static_cast<KK_ACC_FLOAT>(ra_cbk[0])*delf[1] - static_cast<KK_ACC_FLOAT>(ra_cbk[1])*delf[0];
-    a_torque(a,0) -= delta[0];
-    a_torque(a,1) -= delta[1];
-    a_torque(a,2) -= delta[2];
-  }
-  if ( NEWTON_BOND || b < nlocal ) {
-    a_f(b,0) += delf[0];
-    a_f(b,1) += delf[1];
-    a_f(b,2) += delf[2];
-    deltb[0] = static_cast<KK_ACC_FLOAT>(rb_cbk[1])*delf[2] - static_cast<KK_ACC_FLOAT>(rb_cbk[2])*delf[1];
-    deltb[1] = static_cast<KK_ACC_FLOAT>(rb_cbk[2])*delf[0] - static_cast<KK_ACC_FLOAT>(rb_cbk[0])*delf[2];
-    deltb[2] = static_cast<KK_ACC_FLOAT>(rb_cbk[0])*delf[1] - static_cast<KK_ACC_FLOAT>(rb_cbk[1])*delf[0];
-    a_torque(b,0) += deltb[0];
-    a_torque(b,1) += deltb[1];
-    a_torque(b,2) += deltb[2];
-  }
+  // accumulate the force and torques of this bond
+  fsum[0] += delf[0];
+  fsum[1] += delf[1];
+  fsum[2] += delf[2];
+  tsuma[0] += static_cast<KK_ACC_FLOAT>(ra_cbk[1])*delf[2] - static_cast<KK_ACC_FLOAT>(ra_cbk[2])*delf[1];
+  tsuma[1] += static_cast<KK_ACC_FLOAT>(ra_cbk[2])*delf[0] - static_cast<KK_ACC_FLOAT>(ra_cbk[0])*delf[2];
+  tsuma[2] += static_cast<KK_ACC_FLOAT>(ra_cbk[0])*delf[1] - static_cast<KK_ACC_FLOAT>(ra_cbk[1])*delf[0];
+  tsumb[0] += static_cast<KK_ACC_FLOAT>(rb_cbk[1])*delf[2] - static_cast<KK_ACC_FLOAT>(rb_cbk[2])*delf[1];
+  tsumb[1] += static_cast<KK_ACC_FLOAT>(rb_cbk[2])*delf[0] - static_cast<KK_ACC_FLOAT>(rb_cbk[0])*delf[2];
+  tsumb[2] += static_cast<KK_ACC_FLOAT>(rb_cbk[0])*delf[1] - static_cast<KK_ACC_FLOAT>(rb_cbk[1])*delf[0];
 
   // increment viral only
   if (EVFLAG) { ev_tally_xyz(ev, a, b, nlocal, NEWTON_BOND, 0.0, delf[0], delf[1], delf[2], \
@@ -575,16 +548,22 @@ void PairOxdnaStkKokkos<DeviceType>::operator()(TagPairOxdnaStkCompute<OXDNAFLAG
     delta[2] -= static_cast<KK_ACC_FLOAT>(cosphi2dir[2]) * tpair;
   }
 
-  // increment torques
+  // increment forces and torques, once per atom and component
   if ( NEWTON_BOND || a < nlocal ) {
-    a_torque(a,0) -= delta[0];
-    a_torque(a,1) -= delta[1];
-    a_torque(a,2) -= delta[2];
+    Kokkos::atomic_add(&f(a,0), -fsum[0]);
+    Kokkos::atomic_add(&f(a,1), -fsum[1]);
+    Kokkos::atomic_add(&f(a,2), -fsum[2]);
+    Kokkos::atomic_add(&torque(a,0), -(tsuma[0] + delta[0]));
+    Kokkos::atomic_add(&torque(a,1), -(tsuma[1] + delta[1]));
+    Kokkos::atomic_add(&torque(a,2), -(tsuma[2] + delta[2]));
   }
   if ( NEWTON_BOND || b < nlocal ) {
-    a_torque(b,0) += deltb[0];
-    a_torque(b,1) += deltb[1];
-    a_torque(b,2) += deltb[2];
+    Kokkos::atomic_add(&f(b,0), fsum[0]);
+    Kokkos::atomic_add(&f(b,1), fsum[1]);
+    Kokkos::atomic_add(&f(b,2), fsum[2]);
+    Kokkos::atomic_add(&torque(b,0), tsumb[0] + deltb[0]);
+    Kokkos::atomic_add(&torque(b,1), tsumb[1] + deltb[1]);
+    Kokkos::atomic_add(&torque(b,2), tsumb[2] + deltb[2]);
   }
 }
 

@@ -47,7 +47,7 @@ BondOxdnaFENEKokkos<DeviceType>::BondOxdnaFENEKokkos(LAMMPS *lmp) : BondOxdnaFen
 
   oxdnaflag = EnabledOXDNAFlag::OXDNA;
   fix_oxdna_prime_neighsKK = nullptr;
-  last_prime_neighs_bond_ncalls = -1;
+  last_prime_neighs_bond_nbuild = -1;
 
   d_flag = typename AT::t_int_scalar("bond:flag");
   h_flag = HAT::t_int_scalar("bond:flag_mirror");
@@ -95,7 +95,7 @@ void BondOxdnaFENEKokkos<DeviceType>::init_style()
   if (!fix_oxdna_prime_neighsKK)
     error->all(FLERR, "Fix OXDNA/PRIME_NEIGHS/kk not found");
 
-  last_prime_neighs_bond_ncalls = -1;
+  last_prime_neighs_bond_nbuild = -1;
 
 }
 
@@ -139,9 +139,9 @@ void BondOxdnaFENEKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   // the 3'/5' lookups are indexed like the bond list this style is handed,
   // which under bond style hybrid is only the subset of its own bond types
 
-  if (last_prime_neighs_bond_ncalls != neighbor->ncalls) {
+  if (last_prime_neighs_bond_nbuild != neighbor->nbuild) {
     fix_oxdna_prime_neighsKK->compute_prime_neighs_bond(d_prime_neighs_bond_own);
-    last_prime_neighs_bond_ncalls = neighbor->ncalls;
+    last_prime_neighs_bond_nbuild = neighbor->nbuild;
   }
   d_prime_neighs_bond = d_prime_neighs_bond_own;
   nlocal = atom->nlocal;

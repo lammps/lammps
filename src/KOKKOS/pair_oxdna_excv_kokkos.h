@@ -149,7 +149,7 @@ class PairOxdnaExcvKokkos : public PairOxdnaExcv, public KokkosBase {
   int neighflag;
   int nlocal, eflag, vflag;
   int anum;
-  bigint last_prime_neighs_pair_ncalls;
+  bigint last_prime_neighs_pair_nbuild;
 
   typename AT::t_neighbors_2d_randomread d_neighbors;
   typename AT::t_int_1d_randomread d_alist;

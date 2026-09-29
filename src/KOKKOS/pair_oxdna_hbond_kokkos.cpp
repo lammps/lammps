@@ -52,7 +52,7 @@ PairOxdnaHbondKokkos<DeviceType>::PairOxdnaHbondKokkos(LAMMPS *lmp) : PairOxdnaH
   oxdnaflag = EnabledOXDNAFlag::OXDNA;
   screened_pair_count = 0;
   unique_basepair_enabled = 0;
-  last_idc_ncalls = -1;
+  last_idc_nbuild = -1;
   last_idc_nall = -1;
 }
 
@@ -170,7 +170,7 @@ void PairOxdnaHbondKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   idc = unique_basepair_enabled ? atom->ivector[idc_index] : nullptr;
   if (idc) {
     const int nall = atom->nlocal + atom->nghost;
-    if ((neighbor->ncalls != last_idc_ncalls) || (nall != last_idc_nall)) {
+    if ((neighbor->nbuild != last_idc_nbuild) || (nall != last_idc_nall)) {
       if (k_idc.extent(0) < static_cast<size_t>(nall))
         k_idc = DAT::tdual_int_1d("pair:idc", nall);
       atomKK->sync(Host, IVECTOR_MASK);
@@ -178,7 +178,7 @@ void PairOxdnaHbondKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       for (int i = 0; i < nall; i++) h_idc(i) = idc[i];
       k_idc.modify_host();
       k_idc.template sync<DeviceType>();
-      last_idc_ncalls = neighbor->ncalls;
+      last_idc_nbuild = neighbor->nbuild;
       last_idc_nall = nall;
     }
     d_idc = k_idc.template view<DeviceType>();
@@ -1464,7 +1464,7 @@ void PairOxdnaHbondKokkos<DeviceType>::init_style()
   unique_basepair_enabled = 0;
   idc = nullptr;
   idc_index = -1;
-  last_idc_ncalls = -1;
+  last_idc_nbuild = -1;
   last_idc_nall = -1;
   const int ifix = modify->find_fix("Basepairs");
   if (ifix >= 0) {

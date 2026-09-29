@@ -102,9 +102,9 @@ template<class DeviceType>
 void FixOxdnaNpairKokkos<DeviceType>::min_pre_force(int /*vflag*/)
 {
   if ((force_screening_all_backends || execution_space != HostKK) &&
-      last_allocate != neighbor->ncalls) {
+      last_allocate != neighbor->nbuild) {
      compute_neigh_screen_to_npair();
-     last_allocate = neighbor->ncalls;
+     last_allocate = neighbor->nbuild;
   }
 }
 
@@ -123,9 +123,9 @@ template<class DeviceType>
 void FixOxdnaNpairKokkos<DeviceType>::pre_force(int /*vflag*/)
 {
   if ((force_screening_all_backends || execution_space != HostKK) &&
-      last_allocate != neighbor->ncalls) {
+      last_allocate != neighbor->nbuild) {
      compute_neigh_screen_to_npair();
-     last_allocate = neighbor->ncalls;
+     last_allocate = neighbor->nbuild;
   }
 }
 

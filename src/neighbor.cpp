@@ -127,6 +127,7 @@ Neighbor::Neighbor(LAMMPS *lmp) :
   build_once = 0;
   cluster_check = 0;
   ago = -1;
+  nbuild = 0;
 
   cutneighmax = 0.0;
   cutneighmin = BIG;
@@ -2547,6 +2548,7 @@ void Neighbor::build(int topoflag)
 
   ago = 0;
   ncalls++;
+  nbuild++;
   lastcall = update->ntimestep;
 
   int nlocal = atom->nlocal;

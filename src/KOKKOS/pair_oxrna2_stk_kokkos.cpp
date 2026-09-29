@@ -45,7 +45,7 @@ PairOxrna2StkKokkos<DeviceType>::PairOxrna2StkKokkos(LAMMPS *lmp) : PairOxrna2St
 
   fix_oxdna_lrfKK = nullptr;
   fix_oxdna_prime_neighsKK = nullptr;
-  last_prime_neighs_bond_ncalls = -1;
+  last_prime_neighs_bond_nbuild = -1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -99,9 +99,9 @@ void PairOxrna2StkKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   nbondlist = neighborKK->nbondlist;
 
   // Keep bond-context precompute aligned with the current neighbor-list epoch.
-  if (last_prime_neighs_bond_ncalls != neighbor->ncalls) {
+  if (last_prime_neighs_bond_nbuild != neighbor->nbuild) {
     fix_oxdna_prime_neighsKK->compute_prime_neighs_bond(d_prime_neighs_bond_own);
-    last_prime_neighs_bond_ncalls = neighbor->ncalls;
+    last_prime_neighs_bond_nbuild = neighbor->nbuild;
   }
 
   d_prime_neighs_bond = d_prime_neighs_bond_own;
@@ -736,7 +736,7 @@ void PairOxrna2StkKokkos<DeviceType>::init_style()
   // atoms may have been reordered since the last run, so force a rebuild
   // of the cached prime neighbor table in the next compute()
 
-  last_prime_neighs_bond_ncalls = -1;
+  last_prime_neighs_bond_nbuild = -1;
 
   neighbor->add_request(this);
   auto request = neighbor->find_request(this);

@@ -49,7 +49,7 @@ PairOxdnaExcvKokkos<DeviceType>::PairOxdnaExcvKokkos(LAMMPS *lmp) : PairOxdnaExc
   fix_oxdna_lrfKK = nullptr;
   fix_oxdna_npairKK = nullptr;
   fix_oxdna_prime_neighsKK = nullptr;
-  last_prime_neighs_pair_ncalls = -1;
+  last_prime_neighs_pair_nbuild = -1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -140,9 +140,9 @@ void PairOxdnaExcvKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   // Precompute 3'/5' neighbor map lookups for the pair neighbor list.
   // Done here (not in pre_force) so the pair's own list is always used,
   // ensuring ib-index correspondence between precompute and kernel.
-  if (neighbor->ncalls != last_prime_neighs_pair_ncalls) {
+  if (neighbor->nbuild != last_prime_neighs_pair_nbuild) {
     fix_oxdna_prime_neighsKK->compute_prime_neighs_pair(list);
-    last_prime_neighs_pair_ncalls = neighbor->ncalls;
+    last_prime_neighs_pair_nbuild = neighbor->nbuild;
     d_prime_neighs_pair = fix_oxdna_prime_neighsKK->d_prime_neighs_pair;
   }
 
@@ -850,7 +850,7 @@ void PairOxdnaExcvKokkos<DeviceType>::init_style()
   // atoms may have been reordered since the last run, so force a rebuild
   // of the cached prime neighbor table in the next compute()
 
-  last_prime_neighs_pair_ncalls = -1;
+  last_prime_neighs_pair_nbuild = -1;
 
   neighbor->add_request(this);
   neighflag = lmp->kokkos->neighflag;

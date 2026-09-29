@@ -283,6 +283,7 @@ void NeighborKokkos::build_kokkos(int topoflag)
 
   ago = 0;
   ncalls++;
+  nbuild++;
   lastcall = update->ntimestep;
 
   int nlocal = atom->nlocal;

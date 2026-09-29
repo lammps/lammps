@@ -64,7 +64,7 @@ PairOxdna3XstkKokkos<DeviceType>::PairOxdna3XstkKokkos(LAMMPS *lmp) : PairOxdna3
   fix_oxdna_lrfKK = nullptr;
   fix_oxdna_npairKK = nullptr;
   fix_oxdna_prime_neighsKK = nullptr;
-  last_prime_neighs_xstk3_ncalls = -1;
+  last_prime_neighs_xstk3_nbuild = -1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -165,9 +165,9 @@ void PairOxdna3XstkKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   // Then get the precomputed 3'/5' neighbor map lookups for the screened npair list.
   // Done here (not in pre_force) so the pair's own list is always used,
   // ensuring ib-index correspondence between precompute and kernel.
-  if (last_prime_neighs_xstk3_ncalls != neighbor->ncalls) {
+  if (last_prime_neighs_xstk3_nbuild != neighbor->nbuild) {
     fix_oxdna_prime_neighsKK->compute_prime_neighs_oxdna3_xstk(list);
-    last_prime_neighs_xstk3_ncalls = neighbor->ncalls;
+    last_prime_neighs_xstk3_nbuild = neighbor->nbuild;
     d_prime_neighs_oxdna3_xstk = fix_oxdna_prime_neighsKK->d_prime_neighs_oxdna3_xstk;
   }
 
@@ -990,7 +990,7 @@ void PairOxdna3XstkKokkos<DeviceType>::init_style()
   // atoms may have been reordered since the last run, so force a rebuild
   // of the cached prime neighbor table in the next compute()
 
-  last_prime_neighs_xstk3_ncalls = -1;
+  last_prime_neighs_xstk3_nbuild = -1;
 
   neighbor->add_request(this);
   neighflag = lmp->kokkos->neighflag;

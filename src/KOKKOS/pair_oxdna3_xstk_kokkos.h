@@ -189,7 +189,7 @@ class PairOxdna3XstkKokkos : public PairOxdna3Xstk, public KokkosBase {
   FixOxdnaLRFKokkos<DeviceType> *fix_oxdna_lrfKK;    // ptr to OXDNA/LRF/kk fix
   FixOxdnaNpairKokkos<DeviceType> *fix_oxdna_npairKK;    // ptr to OXDNA/NPAIR/kk fix
   FixOxdnaPrimeNeighsKokkos<DeviceType> *fix_oxdna_prime_neighsKK;    // ptr to OXDNA/PRIME_NEIGHS/kk fix
-  bigint last_prime_neighs_xstk3_ncalls;
+  bigint last_prime_neighs_xstk3_nbuild;
   typename AT::t_int_2d d_prime_neighs_oxdna3_xstk;
 
  private:

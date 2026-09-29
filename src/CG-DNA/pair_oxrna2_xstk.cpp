@@ -56,7 +56,6 @@ PairOxrna2Xstk::PairOxrna2Xstk(LAMMPS *lmp) :
 {
   single_enable = 0;
   writedata = 0;
-  trim_flag = 0;
 }
 
 /* ---------------------------------------------------------------------- */

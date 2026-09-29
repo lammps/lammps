@@ -66,7 +66,6 @@ PairOxdna3Stk::PairOxdna3Stk(LAMMPS *lmp) : PairOxdnaStk(lmp)
 
   single_enable = 0;
   writedata = 0;
-  trim_flag = 0;
 }
 
 /* ----------------------------------------------------------------------

@@ -162,7 +162,8 @@ Section "${LAMMPS}" SecLammps
   File ${MINGW}/libwinpthread-1.dll
   File ${MINGW}/libbz2-1.dll
   File ${MINGW}/libzstd.dll
-  File ${MINGW}/tcl9*.dll
+  File /nonfatal ${MINGW}/tcl9*.dll
+  File /nonfatal ${MINGW}/tcl8*.dll
   File ${MINGW}/libcurl-4.dll
   File ${MINGW}/libpsl-5.dll
   File ${MINGW}/libunistring-2.dll

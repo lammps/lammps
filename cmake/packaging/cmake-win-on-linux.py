@@ -96,7 +96,7 @@ Flags (all flags are optional, defaults listed below):
     -u no       : build does not include LAMMPS GUI
 
 Example:
-  python %s -r release -p ms
+  python %s -p ms -y no -u no
 """ % (exename,parflag,pythonflag,guiflag,exename)
 
 # parse arguments
@@ -129,10 +129,12 @@ if pythonflag and guiflag:
 # test for valid revision name format: branch names, release tags, or commit hashes
 rev1 = re.compile("^(stable|release|develop|maintenance)$")
 rev2 = re.compile(r"^(patch|stable)_\d+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\d{4}$")
+use_gitrev=False
 if not rev1.match(revflag) and not rev2.match(revflag):
     newflag=system('git rev-parse HEAD').strip()
     print("Using revision flag %s for branch %s" % (newflag,revflag))
     revflag=newflag
+    use_gitrev=True
 
 # create working directory
 if pythonflag:
@@ -214,12 +216,28 @@ print("Compiling")
 system("cmake --build . --parallel %d" % numcpus)
 print("Done")
 
+
+# define version flag of the installers:
+# - use current timestamp, when pulling from develop (for daily builds)
+# - parse version from src/version.h when pulling from stable, release, or specific tag
+# - otherwise use revflag, i.e. the commit hash
+version = revflag
+if revflag == 'stable' or revflag == 'release' or rev2.match(revflag):
+  with open(os.path.join(gitdir,"src","version.h"),'r') as v_file:
+    verexp = re.compile(r'^.*"(\w+) (\w+) (\w+)".*$')
+    vertxt = v_file.readline()
+    verseq = verexp.match(vertxt).groups()
+    version = "".join(verseq)
+elif revflag == 'develop' or revflag == 'maintenance':
+    version = time.strftime('%Y-%m-%d')
+
 if not pythonflag and not guiflag:
   print("Configuring pace plugin build with CMake")
   cmd = "mingw64-cmake -D CMAKE_BUILD_TYPE=Release"
   cmd += " -S %s/examples/PACKAGES/pace/plugin -B paceplugin" % gitdir
   cmd += " -DBUILD_SHARED_LIBS=on -DBUILD_MPI=%s -DBUILD_OMP=ON" % mpiflag
   cmd += " -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DLAMMPS_SOURCE_DIR=%s/src" % gitdir
+  cmd += " -DLAMMPS_VERSION=%s" % version
   if parflag == 'ms': cmd += " -DUSE_MSMPI=on"
   cmd += " -DCMAKE_CXX_STANDARD=20"
 
@@ -235,27 +253,26 @@ if not pythonflag and not guiflag:
     shutil.move(exe,os.path.join('..',os.path.basename(exe)))
   print("Done")
 
-  if True:
-    print("Configuring plumed plugin build with CMake")
-    cmd = "mingw64-cmake -D CMAKE_BUILD_TYPE=Release"
-    cmd += " -S %s/examples/PACKAGES/plumed/plugin -B plumedplugin" % gitdir
-    cmd += " -DBUILD_SHARED_LIBS=on -DBUILD_MPI=%s -DBUILD_OMP=ON" % mpiflag
-    cmd += " -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DLAMMPS_SOURCE_DIR=%s/src" % gitdir
-    if parflag == 'ms': cmd += " -DUSE_MSMPI=on"
-    cmd += " -DCMAKE_CXX_STANDARD=20"
+  print("Configuring plumed plugin build with CMake")
+  cmd = "mingw64-cmake -D CMAKE_BUILD_TYPE=Release"
+  cmd += " -S %s/examples/PACKAGES/plumed/plugin -B plumedplugin" % gitdir
+  cmd += " -DBUILD_SHARED_LIBS=on -DBUILD_MPI=%s -DBUILD_OMP=ON" % mpiflag
+  cmd += " -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DLAMMPS_SOURCE_DIR=%s/src" % gitdir
+  cmd += " -DLAMMPS_VERSION=%s" % version
+  if parflag == 'ms': cmd += " -DUSE_MSMPI=on"
+  cmd += " -DCMAKE_CXX_STANDARD=20"
 
-    print("Running: ",cmd)
-    txt = system(cmd)
-    if verbose: print(txt)
-    print("Done")
+  print("Running: ",cmd)
+  txt = system(cmd)
+  if verbose: print(txt)
+  print("Done")
 
-
-    print("Compiling and building installer")
-    txt = system("cmake --build plumedplugin --target package --parallel %d" % numcpus)
-    if verbose: print(txt)
-    for exe in glob.glob('plumedplugin/LAMMPS*plugin*.exe'):
-      shutil.move(exe,os.path.join('..',os.path.basename(exe)))
-    print("Done")
+  print("Compiling and building installer")
+  txt = system("cmake --build plumedplugin --target package --parallel %d" % numcpus)
+  if verbose: print(txt)
+  for exe in glob.glob('plumedplugin/LAMMPS*plugin*.exe'):
+    shutil.move(exe,os.path.join('..',os.path.basename(exe)))
+  print("Done")
 
   print("Cloning lammps-plugin package")
   if revflag == 'stable' or revflag == 'release' or rev2.match(revflag):
@@ -268,6 +285,7 @@ if not pythonflag and not guiflag:
   cmd += " -S lammps-plugins -B build_plugins"
   cmd += " -DBUILD_SHARED_LIBS=on -DBUILD_MPI=%s -DBUILD_OMP=ON" % mpiflag
   cmd += " -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DLAMMPS_SOURCE_DIR=%s/src" % gitdir
+  cmd += " -DLAMMPS_VERSION=%s" % version
   if parflag == 'ms': cmd += " -DUSE_MSMPI=on"
   cmd += " -DCMAKE_CXX_STANDARD=20"
 
@@ -357,20 +375,6 @@ shutil.copy(nsisfile,os.path.join(builddir,"lammps.nsis"))
 shutil.copy(os.path.join(homedir,"FileAssociation.nsh"),os.path.join(builddir,"FileAssociation.nsh"))
 shutil.copy(os.path.join(homedir,"lammps.ico"),os.path.join(builddir,"lammps.ico"))
 shutil.copy(os.path.join(homedir,"lammps-text-logo-wide.bmp"),os.path.join(builddir,"lammps-text-logo-wide.bmp"))
-
-# define version flag of the installer:
-# - use current timestamp, when pulling from develop (for daily builds)
-# - parse version from src/version.h when pulling from stable, release, or specific tag
-# - otherwise use revflag, i.e. the commit hash
-version = revflag
-if revflag == 'stable' or revflag == 'release' or rev2.match(revflag):
-  with open(os.path.join(gitdir,"src","version.h"),'r') as v_file:
-    verexp = re.compile(r'^.*"(\w+) (\w+) (\w+)".*$')
-    vertxt = v_file.readline()
-    verseq = verexp.match(vertxt).groups()
-    version = "".join(verseq)
-elif revflag == 'develop' or revflag == 'maintenance':
-    version = time.strftime('%Y-%m-%d')
 
 mingwdir = '/usr/x86_64-w64-mingw32/sys-root/mingw/bin/'
 

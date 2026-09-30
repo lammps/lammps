@@ -49,11 +49,12 @@ find_package(Python COMPONENTS Interpreter QUIET)
 set(ENV{SIGN_DISABLE} 1)
 if(MINGW_CMAKE AND MINGW_CXX AND Python_EXECUTABLE)
   add_custom_target(nsis
-    COMMAND ${Python_EXECUTABLE} "${LAMMPS_PACKAGING_DIR}/cmake-win-on-linux.py" -p no -y no
-    COMMAND ${Python_EXECUTABLE} "${LAMMPS_PACKAGING_DIR}/cmake-win-on-linux.py" -p no -y yes
-    COMMAND ${Python_EXECUTABLE} "${LAMMPS_PACKAGING_DIR}/cmake-win-on-linux.py" -p ms -y no
-    COMMAND ${Python_EXECUTABLE} "${LAMMPS_PACKAGING_DIR}/cmake-win-on-linux.py" -p ms -y yes
+    COMMAND ${Python_EXECUTABLE} "${LAMMPS_PACKAGING_DIR}/cmake-win-on-linux.py" -p no -y no -u no
+    COMMAND ${Python_EXECUTABLE} "${LAMMPS_PACKAGING_DIR}/cmake-win-on-linux.py" -p no -y yes -u no
+    COMMAND ${Python_EXECUTABLE} "${LAMMPS_PACKAGING_DIR}/cmake-win-on-linux.py" -p ms -y no -u no
+    COMMAND ${Python_EXECUTABLE} "${LAMMPS_PACKAGING_DIR}/cmake-win-on-linux.py" -p ms -y yes -u no
     COMMAND ${Python_EXECUTABLE} "${LAMMPS_PACKAGING_DIR}/cmake-win-on-linux.py" -p no -y no -u yes
+    DEPENDS gitversion
   )
 else()
   add_custom_target(nsis

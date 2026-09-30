@@ -28,19 +28,19 @@ import sys
 # Windows system DLLs and API sets that must not be bundled.
 # Merged from the skip list in lammps-gui's build_windows_cross_nsis.sh.
 SYSTEM_DLLS = {
-    'advapi32.dll', 'authz.dll', 'avicap32.dll', 'bcrypt.dll', 'cabinet.dll',
-    'cfgmgr32.dll', 'comctl32.dll', 'comdlg32.dll', 'crypt32.dll', 'd2d1.dll',
-    'd3d9.dll', 'd3d11.dll', 'd3d12.dll', 'dbghelp.dll', 'dnsapi.dll',
-    'dwmapi.dll', 'dwrite.dll', 'dxgi.dll', 'gdi32.dll', 'gdiplus.dll',
-    'imm32.dll', 'iphlpapi.dll', 'kernel32.dll', 'mpr.dll', 'msvcrt.dll',
-    'ncrypt.dll', 'netapi32.dll', 'ntdll.dll', 'ole32.dll', 'oleaut32.dll',
-    'opengl32.dll', 'psapi.dll', 'secur32.dll', 'setupapi.dll', 'shcore.dll',
-    'shell32.dll', 'shlwapi.dll', 'user32.dll', 'userenv.dll', 'uxtheme.dll',
-    'version.dll', 'winhttp.dll', 'winmm.dll', 'winspool.drv', 'wldap32.dll',
-    'ws2_32.dll', 'wsock32.dll', 'wtsapi32.dll',
+    'advapi32.dll', 'authz.dll', 'avicap32.dll', 'avrt.dll', 'bcrypt.dll',
+    'cabinet.dll', 'cfgmgr32.dll', 'comctl32.dll', 'comdlg32.dll',
+    'crypt32.dll', 'd2d1.dll', 'd3d9.dll', 'd3d11.dll', 'd3d12.dll',
+    'dbghelp.dll', 'dnsapi.dll', 'dwmapi.dll', 'dwrite.dll', 'dxgi.dll',
+    'gdi32.dll', 'gdiplus.dll', 'imm32.dll', 'iphlpapi.dll', 'kernel32.dll',
+    'mpr.dll', 'msvcrt.dll', 'msimg32.dll', 'ncrypt.dll', 'netapi32.dll',
+    'ntdll.dll', 'ole32.dll', 'oleaut32.dll', 'opengl32.dll', 'psapi.dll',
+    'secur32.dll', 'setupapi.dll', 'shcore.dll', 'shell32.dll', 'shlwapi.dll',
+    'user32.dll', 'userenv.dll', 'uxtheme.dll', 'version.dll', 'winhttp.dll',
+    'winmm.dll', 'winspool.drv', 'wldap32.dll', 'ws2_32.dll', 'wsock32.dll',
+    'wtsapi32.dll'
 }
 SYSTEM_PREFIXES = ('api-ms-win-', 'ext-ms-')
-
 
 def is_system_dll(name):
     return name in SYSTEM_DLLS or name.startswith(SYSTEM_PREFIXES)

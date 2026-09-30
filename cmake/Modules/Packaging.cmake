@@ -42,6 +42,29 @@ else()
     COMMAND ${CMAKE_COMMAND} -E echo "Could not find the musl Linux-2-Linux compiler in /usr/musl. Skipping.")
 endif()
 
+#########################################################################
+# add custom target nsis to build LAMMPS installer packages for Windows #
+#########################################################################
+
+find_program(MINGW_CMAKE mingw64-cmake)
+find_program(MINGW_CXX x86_64-w64-mingw32-g++)
+find_package(Python COMPONENTS Interpreter QUIET)
+# disable signing for now
+set(ENV{SIGN_DISABLE} 1)
+if(MINGW_CMAKE AND MINGW_CXX AND Python_EXECUTABLE)
+  add_custom_target(nsis
+    COMMAND ${Python_EXECUTABLE} "${LAMMPS_PACKAGING_DIR}/cmake-win-on-linux.py" -p no -y no -u no
+    COMMAND ${Python_EXECUTABLE} "${LAMMPS_PACKAGING_DIR}/cmake-win-on-linux.py" -p no -y yes -u no
+    COMMAND ${Python_EXECUTABLE} "${LAMMPS_PACKAGING_DIR}/cmake-win-on-linux.py" -p ms -y no -u no
+    COMMAND ${Python_EXECUTABLE} "${LAMMPS_PACKAGING_DIR}/cmake-win-on-linux.py" -p ms -y yes -u no
+    COMMAND ${Python_EXECUTABLE} "${LAMMPS_PACKAGING_DIR}/cmake-win-on-linux.py" -p no -y no -u yes
+    DEPENDS gitversion
+  )
+else()
+  add_custom_target(nsis
+    ${CMAKE_COMMAND} -E echo "The Mingw64 cross-compiler build environment required to build Windows installer packages is not available. Skipping.")
+endif()
+
 ###############################################################################
 # LAMMPS-GUI related targets
 ###############################################################################

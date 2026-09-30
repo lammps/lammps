@@ -379,10 +379,10 @@ shutil.copy(os.path.join(homedir,"lammps-text-logo-wide.bmp"),os.path.join(build
 mingwdir = '/usr/x86_64-w64-mingw32/sys-root/mingw/bin/'
 
 if parflag == 'ms':
-    txt = system("makensis -DMINGW=%s -DVERSION=%s-MSMPI -DBIT=64 -DLMPREV=%s lammps.nsis" % (mingwdir,version,revflag))
+    txt = system("makensis -DMINGW=%s -DVERSION=%s-MSMPI -DLMPREV=%s lammps.nsis" % (mingwdir,version,revflag))
     if verbose: print(txt)
 else:
-    txt = system("makensis -DMINGW=%s -DVERSION=%s -DBIT=64 -DLMPREV=%s lammps.nsis" % (mingwdir,version,revflag))
+    txt = system("makensis -DMINGW=%s -DVERSION=%s -DLMPREV=%s lammps.nsis" % (mingwdir,version,revflag))
     if verbose: print(txt)
 
 # clean up after successful build

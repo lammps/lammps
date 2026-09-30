@@ -2,7 +2,6 @@
 #
 # The following external defines are recognized:
 # ${VERSION} = YYYYMMDD
-# ${BIT}     = 32 or 64
 # ${LIBGCC}  = name of libgcc dll file to use
 # ${MINGW}   = <path to mingw windows dlls>
 
@@ -80,8 +79,8 @@ FunctionEnd
 
 !define StrContains '!insertmacro "_StrContainsConstructor"'
 
-!define LAMMPS "LAMMPS ${BIT}-bit ${VERSION} with GUI"
-OutFile "../LAMMPS-${BIT}bit-GUI-${VERSION}.exe"
+!define LAMMPS "LAMMPS ${VERSION} with GUI"
+OutFile "../LAMMPS-Win10-x64-GUI-${VERSION}.exe"
 
 Name "${LAMMPS}"
 InstallDir "$LOCALAPPDATA\${LAMMPS}"
@@ -126,7 +125,7 @@ function .onInit
   ${ElseIf} $0 == "64"
     SetRegView 64
   ${Else}
-    SetRegView ${BIT}
+    SetRegView 64
   ${EndIf}
   ClearErrors
   ReadRegStr $R0 HKCU "Software\Microsoft\Windows\CurrentVersion\Uninstall\LAMMPS" "UninstallString"
@@ -134,7 +133,7 @@ function .onInit
   ${If} ${Errors}
     DetailPrint "LAMMPS not (yet) installed"
   ${Else}
-    MessageBox MB_YESNO "LAMMPS ($0 bit) is already installed. Uninstall existing version?" /SD IDYES IDNO Quit
+    MessageBox MB_YESNO "LAMMPS is already installed. Uninstall existing version?" /SD IDYES IDNO Quit
       Pop $R1
       StrCmp $R1 2 Quit +1
       Exec $R0
@@ -148,11 +147,11 @@ Section "${LAMMPS}" SecLammps
   SectionIn RO
   # Write LAMMPS installation bitness marker. Always use 32-bit registry view
   SetRegView 32
-  IntFmt $0 "0x%08X" ${BIT}
+  IntFmt $0 "0x%08X" 64
   WriteRegDWORD HKCU "Software\LAMMPS" "Bits" $0
 
   # Switch to "native" registry view
-  SetRegView ${BIT}
+  SetRegView 64
   SetShellVarContext current
 
   CreateDirectory "$SMPROGRAMS\${LAMMPS}"
@@ -324,7 +323,7 @@ Section "Uninstall"
   DeleteRegKey HKCU "Software\LAMMPS"
 
   # unregister extension, and uninstall info
-  SetRegView ${BIT}
+  SetRegView 64
   SetShellVarContext current
   ${unregisterExtension} ".lmp" "LAMMPS Input File"
   # unregister installation

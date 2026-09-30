@@ -451,12 +451,7 @@ For KOKKOS acceleration also the :ref:`KOKKOS <PKG-KOKKOS>` has to be installed.
    For performance reasons we strongly advise to always run with *half* neighbor lists and
    setting the Newton flag to *on* when using the CG-DNA package in combination with KOKKOS.
    This can be achieved through the :doc:`package <package>` command or appropriate command-line flag.
-   The skin size can also significantly affect the performance.  Note, however, that the
-   pair cutoffs of the oxDNA and oxRNA styles refer to the distances between interaction
-   sites, which are displaced from the nucleotide centers by up to about 0.5 (in LJ units),
-   while the neighbor lists are built from the distances between the centers.  The skin
-   set via :doc:`neighbor <neighbor>` must therefore not be smaller than about 1.0 (in LJ
-   units), or interactions are silently lost.  This applies with and without KOKKOS.
+   The skin size can also significantly affect the performance.
 
    The KOKKOS variants of the CG-DNA styles currently only support :doc:`units lj <units>`.
 

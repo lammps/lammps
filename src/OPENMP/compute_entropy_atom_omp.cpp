@@ -93,6 +93,9 @@ void ComputeEntropyAtomOMP::compute_peratom()
   const double global_density = atom->natoms / volume;
 
   // compute pair entropy for each atom in group
+  // with averaging it is needed for all atoms, since atoms in the group
+  //   may have neighbors outside the group
+  // atoms not in the group report only zeros
   // use full neighbor list
 
   const double *const *const x = atom->x;
@@ -110,7 +113,7 @@ void ComputeEntropyAtomOMP::compute_peratom()
 #endif
     for (int ii = 0; ii < inum; ii++) {
       const int i = ilist[ii];
-      if (mask[i] & groupbit) {
+      if (avg_flag || (mask[i] & groupbit)) {
         const double xtmp = x[i][0];
         const double ytmp = x[i][1];
         const double ztmp = x[i][2];
@@ -181,7 +184,8 @@ void ComputeEntropyAtomOMP::compute_peratom()
         value *= deltar;
 
         pair_entropy[i] = -2 * MY_PI * density * value;
-      }
+      } else
+        pair_entropy[i] = 0.0;
     }
 
     delete[] gofr;
@@ -217,7 +221,8 @@ void ComputeEntropyAtomOMP::compute_peratom()
           }
         }
         pair_entropy_avg[i] /= counter;
-      }
+      } else
+        pair_entropy_avg[i] = 0.0;
     }
   }
 

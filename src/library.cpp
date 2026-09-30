@@ -594,24 +594,35 @@ char *lammps_expand(void *handle, const char *line)
     STORE_ERROR_MESSAGE(lmp, mesg);
     return nullptr;
   }
-  char *copy, *work;
+  char *copy = nullptr, *work = nullptr, *result = nullptr;
   int n, maxcopy, maxwork;
 
   if (!line) return nullptr;
 
+  // Input::substitute() may grow the buffers with Memory::srealloc(),
+  // so they must be allocated with Memory::smalloc() and not malloc()
+
   BEGIN_CAPTURE
   {
     n = strlen(line) + 1;
-    copy = (char *) malloc(n * sizeof(char));
-    work = (char *) malloc(n * sizeof(char));
+    copy = (char *) lmp->memory->smalloc(n * sizeof(char), "lammps_expand:copy");
+    work = (char *) lmp->memory->smalloc(n * sizeof(char), "lammps_expand:work");
     maxwork = maxcopy = n;
     memcpy(copy, line, maxcopy);
     lmp->input->substitute(copy, work, maxcopy, maxwork, 0);
-    free(work);
   }
   END_CAPTURE
 
-  return copy;
+  // return the expanded string in a buffer that can be freed with lammps_free()
+
+  if (copy) {
+    n = strlen(copy) + 1;
+    result = (char *) malloc(n * sizeof(char));
+    if (result) memcpy(result, copy, n);
+  }
+  lmp->memory->sfree(copy);
+  lmp->memory->sfree(work);
+  return result;
 }
 
 // ----------------------------------------------------------------------

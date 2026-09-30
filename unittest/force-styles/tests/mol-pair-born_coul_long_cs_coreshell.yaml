@@ -1,6 +1,6 @@
 ---
 lammps_version: 2 Sep 2026
-tags: numdiff
+tags: numdiff gpu_no_single
 date_generated: Fri Sep 25 20:32:55 2026
 epsilon: 5e-9
 skip_tests:

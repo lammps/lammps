@@ -165,6 +165,10 @@ void DynamicalMatrixKokkos::update_force()
 
   // as in VerletKokkos::run()
 
+  if (execute_on_host)
+    atomKK->sync(pair_compute_flag ? force->pair->execution_space : Device,
+                 F_MASK | ENERGY_MASK | VIRIAL_MASK);
+
   AtomKokkos::ExcludeMask exclude_guard(atomKK,
     (execute_on_host && !std::is_same_v<LMPHostType,LMPDeviceType>)
       ? (F_MASK | ENERGY_MASK | VIRIAL_MASK) : 0);

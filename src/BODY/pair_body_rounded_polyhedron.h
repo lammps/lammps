@@ -47,7 +47,6 @@ class PairBodyRoundedPolyhedron : public Pair {
   struct Contact {
     int ibody, jbody;     // body (i.e. atom) indices (not tags)
     int type;             // 0 = VERTEX-FACE; 1 = EDGE-EDGE; 2 = FACE-FACE
-    double fx, fy, fz;    // unscaled cohesive forces at contact
     double xi[3];         // coordinates of the contact point on ibody
     double xj[3];         // coordinates of the contact point on jbody
     double separation;    // contact surface separation

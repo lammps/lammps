@@ -29,6 +29,7 @@ PairStyle(oxdna2/hbond/kk/host,PairOxdnaHbondKokkos<LMPHostType>);
 #include "kokkos_base.h"
 #include "pair_kokkos.h"
 #include "pair_oxdna_hbond.h"
+#include "nucleotide_oxdna.h"
 
 namespace LAMMPS_NS {
 
@@ -58,6 +59,33 @@ class PairOxdnaHbondKokkos : public PairOxdnaHbond, public KokkosBase {
   void settings(int, char **) override;
   void init_style() override;
   double init_one(int, int) override;
+
+  // interaction sites of the model, used by init_one() of the CPU base class
+  // for the cutoffs; the kernels compute the sites themselves
+  void compute_base_site(int type, double e1[3], double /*e2*/[3], double /*e3*/[3],
+                         double rbs[3]) const override
+  {
+    if (oxdnaflag == OXDNA3) {
+      NucleotideOxdna3 oxdna3;
+      switch (type) {
+        case 0:
+          oxdna3.base_site<0>(e1, nullptr, nullptr, rbs);
+          break;
+        case 1:
+          oxdna3.base_site<1>(e1, nullptr, nullptr, rbs);
+          break;
+        case 2:
+          oxdna3.base_site<2>(e1, nullptr, nullptr, rbs);
+          break;
+        case 3:
+          oxdna3.base_site<3>(e1, nullptr, nullptr, rbs);
+          break;
+      }
+    } else {
+      NucleotideOxdna1 oxdna1;
+      oxdna1.base_site<0>(e1, nullptr, nullptr, rbs);
+    }
+  }
 
   // Standard non-GPU Compute Functor(s). 1 with EV_FLOAT, 1 without.
 

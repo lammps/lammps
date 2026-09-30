@@ -26,6 +26,7 @@ PairStyle(oxdna2/coaxstk/kk/host,PairOxdna2CoaxstkKokkos<LMPHostType>);
 #include "kokkos_base.h"
 #include "pair_kokkos.h"
 #include "pair_oxdna2_coaxstk.h"
+#include "nucleotide_oxdna.h"
 
 namespace LAMMPS_NS {
 
@@ -55,6 +56,20 @@ class PairOxdna2CoaxstkKokkos : public PairOxdna2Coaxstk, public KokkosBase {
   void settings(int, char **) override;
   void init_style() override;
   double init_one(int, int) override;
+
+  // interaction sites of the model, used by init_one() of the CPU base class
+  // for the cutoffs; the kernels compute the sites themselves
+  void compute_stacking_site(double e1[3], double /*e2*/[3], double /*e3*/[3],
+                             double rstk[3]) const override
+  {
+    if (oxdnaflag == OXDNA3) {
+      NucleotideOxdna3 oxdna3;
+      oxdna3.stacking_site(e1, nullptr, nullptr, rstk);
+    } else {
+      NucleotideOxdna1 oxdna1;
+      oxdna1.stacking_site(e1, nullptr, nullptr, rstk);
+    }
+  }
 
   // Standard non-GPU Compute Functor(s). 1 with EV_FLOAT, 1 without.
 

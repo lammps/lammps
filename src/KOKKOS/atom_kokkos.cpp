@@ -390,13 +390,6 @@ void AtomKokkos::sort()
       }
       sort_legacy = true;
     }
-    if (hybrid_flag) {
-      if (comm->me == 0) {
-        error->warning(FLERR,"Atom style hybrid not compatible with Kokkos sorting on device, "
-                           "switching to classic host sorting");
-      }
-      sort_classic = true;
-    }
   }
 
   if (sort_legacy) {

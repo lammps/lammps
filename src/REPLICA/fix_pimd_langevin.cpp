@@ -37,7 +37,6 @@
 #include "kspace.h"
 #include "math_const.h"
 #include "math_special.h"
-#include "kspace.h"
 #include "memory.h"
 #include "modify.h"
 #include "random_mars.h"

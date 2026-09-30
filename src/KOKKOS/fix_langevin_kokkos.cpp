@@ -374,9 +374,6 @@ void FixLangevinKokkos<DeviceType>::post_force(int /*vflag*/)
   // f is modified by post_force functor
   atomKK->modified(execution_space,datamask_modify);
 
-  // f is modified by post_force functor
-  atomKK->modified(execution_space,datamask_modify);
-
   if (tbiasflag == BIAS) {
     if (temperature->kokkosable) temperature->restore_bias_all_kk();
     else {

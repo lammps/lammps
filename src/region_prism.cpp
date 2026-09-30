@@ -194,7 +194,7 @@ RegPrism::RegPrism(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg),
 
   // extent of prism
 
-  if (interior && !dynamic && !varshape) {
+  if (interior) {
     bboxflag = 1;
     if (dynamic || varshape) {
       RegPrism::bbox_update();

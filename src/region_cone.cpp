@@ -275,7 +275,7 @@ RegCone::RegCone(LAMMPS *lmp, int narg, char **arg) :
   // extent of cone
   maxradius = std::max(radiuslo, radiushi);
 
-  if (interior && !dynamic && !varshape) {
+  if (interior) {
     bboxflag = 1;
     if (dynamic || varshape) {
       RegCone::bbox_update();

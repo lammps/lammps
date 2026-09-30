@@ -330,24 +330,17 @@ void PairLubricatePolyOMP::eval(int iifrom, int iito, ThrData * const thr)
         // scalar resistances
 
         if (FLAGLOG) {
-          // Jeffrey & Onishi (1984) near-field resistance functions are
-          // expansions in the *symmetric* dimensionless gap
-          // xi = 2*gap/(radi+radj) = 2*h_sep/beta1, not in the per-particle
-          // h_sep = gap/radi.  Using h_sep (and dropping the beta0 prefactor of
-          // the squeeze log term) breaks pairwise force symmetry (Newton's 3rd
-          // law) for unequal radii.  See GitHub issue #1933.
-          double xi = 2.0*h_sep/beta1;
           a_sq = beta0*beta0/beta1/beta1/h_sep +
-            beta0*(1.0+7.0*beta0+beta0*beta0)/5.0/pow(beta1,3.0)*log(1.0/xi);
+            (1.0+7.0*beta0+beta0*beta0)/5.0/pow(beta1,3.0)*log(1.0/h_sep);
           a_sq += (1.0+18.0*beta0-29.0*beta0*beta0+18.0 *
                    pow(beta0,3.0)+pow(beta0,4.0))/21.0/pow(beta1,4.0) *
-            h_sep*log(1.0/xi);
+            h_sep*log(1.0/h_sep);
           a_sq *= 6.0*MY_PI*mu*radi;
           a_sh = 4.0*beta0*(2.0+beta0+2.0*beta0*beta0)/15.0/pow(beta1,3.0) *
-            log(1.0/xi);
+            log(1.0/h_sep);
           a_sh += 4.0*(16.0-45.0*beta0+58.0*beta0*beta0-45.0*pow(beta0,3.0) +
                        16.0*pow(beta0,4.0))/375.0/pow(beta1,4.0) *
-            h_sep*log(1.0/xi);
+            h_sep*log(1.0/h_sep);
           a_sh *= 6.0*MY_PI*mu*radi;
           // old invalid eq for pumping term
           // changed 29Jul16 from eq 9.25 -> 9.27 in Kim and Karilla
@@ -355,9 +348,9 @@ void PairLubricatePolyOMP::eval(int iifrom, int iito, ThrData * const thr)
 //          a_pu += (32.0-33.0*beta0+83.0*beta0*beta0+43.0 *
 //                   pow(beta0,3.0))/250.0/pow(beta1,3.0)*h_sep*log(1.0/h_sep);
 //          a_pu *= 8.0*MY_PI*mu*pow(radi,3.0);
-          a_pu = 2.0*beta0/5.0/beta1*log(1.0/xi);
+          a_pu = 2.0*beta0/5.0/beta1*log(1.0/h_sep);
           a_pu += 2.0*(8.0+6.0*beta0+33.0*beta0*beta0)/125.0/beta1/beta1*
-                   h_sep*log(1.0/xi);
+                   h_sep*log(1.0/h_sep);
           a_pu *= 8.0*MY_PI*mu*pow(radi,3.0);
         } else a_sq = 6.0*MY_PI*mu*radi*(beta0*beta0/beta1/beta1/h_sep);
 

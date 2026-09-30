@@ -30,7 +30,6 @@
 #include "modify.h"
 #include "random_mars.h"
 #include "respa.h"
-#include "safe_pointers.h"
 #include "rigid_const.h"
 #include "safe_pointers.h"
 #include "tokenizer.h"

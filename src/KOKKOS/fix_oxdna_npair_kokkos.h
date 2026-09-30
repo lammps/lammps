@@ -29,8 +29,20 @@ namespace LAMMPS_NS {
 
 struct TagFixOxdnaNpairNeighScreen{};
 struct TagFixOxdnaNpairFill{};
-struct TagFixOxdnaNpairCoaxCount{};
-struct TagFixOxdnaNpairCoaxFill{};
+
+// running sums of the scan over the per-atom pair counts of both lists
+struct FixOxdnaNpairScanCounts {
+  int screened, coax;
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  FixOxdnaNpairScanCounts() : screened(0), coax(0) {}
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  void operator+=(const FixOxdnaNpairScanCounts &rhs) {
+    screened += rhs.screened;
+    coax += rhs.coax;
+  }
+};
 
 template<class DeviceType>
 class FixOxdnaNpairKokkos : public Fix {
@@ -75,8 +87,8 @@ class FixOxdnaNpairKokkos : public Fix {
 
   // Optional second list with only the screened pairs in which both nucleotides are
   // strand ends (no 3' or no 5' neighbor), the only pairs with coaxial stacking.
+  // It is built in the same passes as the screened list.
   void request_coax_list() { coax_list_requested = true; }
-  void build_coax_list();    // public: contains a device lambda
 
   // per-atom segments of the pair lists: the pairs of the ia-th atom of the
   // neighbor list are offsets(ia) .. offsets(ia+1)-1, for ia < get_anum()
@@ -93,14 +105,6 @@ class FixOxdnaNpairKokkos : public Fix {
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagFixOxdnaNpairFill, const int &) const;
-
-// NOLINTNEXTLINE
-  KOKKOS_INLINE_FUNCTION
-  void operator()(TagFixOxdnaNpairCoaxCount, const int &) const;
-
-// NOLINTNEXTLINE
-  KOKKOS_INLINE_FUNCTION
-  void operator()(TagFixOxdnaNpairCoaxFill, const int &) const;
 
  private:
 
@@ -121,8 +125,7 @@ class FixOxdnaNpairKokkos : public Fix {
   typename AT::t_int_1d d_numneigh_screened;
   DAT::tdual_int_1d k_screened_offsets;
   typename AT::t_int_1d d_screened_offsets;
-  DAT::tdual_int_scalar k_screened_pair_count;
-  typename AT::t_int_scalar d_screened_pair_count;
+  DAT::tdual_int_1d k_pair_counts;    // totals of the screened and coax lists
   int screened_max_atoms;
   int screened_max_neigh;
   double screen_cut_max;   // max COM screen cutoff requested by consuming styles (host)
@@ -132,11 +135,11 @@ class FixOxdnaNpairKokkos : public Fix {
 
   // coaxial stacking pair list (see request_coax_list())
   bool coax_list_requested;
+  int coax_active;    // coax list built in the current rebuild (read on device)
   DAT::tdual_int_1d k_numneigh_coax;
   typename AT::t_int_1d d_numneigh_coax;
   DAT::tdual_int_1d k_coax_offsets;
   typename AT::t_int_1d d_coax_offsets;
-  DAT::tdual_int_scalar k_coax_pair_count;
   typename AT::t_uint64_1d d_pairs_coax;
   int coax_max_atoms;
 

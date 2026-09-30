@@ -134,6 +134,8 @@ void FixOxdnaLRFKokkos<DeviceType>::compute_lrf_kokkos(int zero_forces_flag)
   mask = atomKK->k_mask.template view<DeviceType>();
   x = atomKK->k_x.template view<DeviceType>();
   ellipsoid = atomKK->k_ellipsoid.template view<DeviceType>();
+  type = atomKK->k_type.template view<DeviceType>();
+  qeff = atomKK->k_qeff.template view<DeviceType>();
   bonus = avecEllipKK->k_bonus.template view<DeviceType>();
 
   copymode = 1;
@@ -180,9 +182,9 @@ void FixOxdnaLRFKokkos<DeviceType>::operator()(TagFixOxdnaLRFComputeQuatToXYZ, c
   d_xn(i, 0) = x(i, 0);
   d_xn(i, 1) = x(i, 1);
   d_xn(i, 2) = x(i, 2);
-  d_xn(i, 3) = 0.0;
+  d_xn(i, 3) = static_cast<KK_FLOAT>(type(i));
   for (int k = 0; k < 9; k++) d_xn(i, 4 + k) = n[k];
-  d_xn(i, 13) = 0.0;
+  d_xn(i, 13) = qeff(i);
   d_xn(i, 14) = 0.0;
   d_xn(i, 15) = 0.0;
 

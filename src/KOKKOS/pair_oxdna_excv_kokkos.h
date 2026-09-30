@@ -147,6 +147,7 @@ class PairOxdnaExcvKokkos : public PairOxdnaExcv, public KokkosBase {
   enum EnabledOXDNAFlag{OXDNA=1,OXDNA2=2,OXRNA2=4,OXDNA3=8};
 
   t_oxdna_packed_sub<DeviceType> x;    // positions in the packed record of fix OXDNA/LRF/kk
+  t_oxdna_packed_col<DeviceType> xn_type;    // atom types in the packed record
   typename AT::t_kkacc_1d_3 f;
   typename AT::t_kkacc_1d_3 torque;
   typename AT::t_int_1d_randomread type;

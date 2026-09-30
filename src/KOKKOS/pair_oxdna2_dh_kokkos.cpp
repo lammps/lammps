@@ -92,6 +92,8 @@ void PairOxdna2DhKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   else atomKK->modified(execution_space,F_MASK | TORQUE_MASK);
 
   x = fix_oxdna_lrfKK->packed_x();
+  xn_type = fix_oxdna_lrfKK->packed_type();
+  xn_qeff = fix_oxdna_lrfKK->packed_qeff();
   f = atomKK->k_f.template view<DeviceType>();
   torque = atomKK->k_torque.template view<DeviceType>();
   type = atomKK->k_type.template view<DeviceType>();
@@ -340,7 +342,7 @@ void PairOxdna2DhKokkos<DeviceType>::operator()(TagPairOxdna2DhCompute<OXDNAFLAG
     const KK_FLOAT factor_lj = static_cast<KK_FLOAT>(special_lj[sbmask(b)]);
     if (factor_lj == static_cast<KK_FLOAT>(0.0)) continue;
     b &= NEIGHMASK;
-    const int btype = type(b);
+    const int btype = static_cast<int>(xn_type(b));    // from the packed record, next to x(b)
 
     KK_FLOAT rb_cs0, rb_cs1, rb_cs2;
     if constexpr (OXDNAFLAG==OXDNA2) {
@@ -364,7 +366,7 @@ void PairOxdna2DhKokkos<DeviceType>::operator()(TagPairOxdna2DhCompute<OXDNAFLAG
 
     if (rsq > d_cutsq_dh_c(atype, btype)) continue; // Note the switch of sign, > vs <=, due to using continue
 
-    const KK_FLOAT qeff_b = qeff(b);
+    const KK_FLOAT qeff_b = xn_qeff(b);
     const KK_FLOAT qeff_dh_pf = d_qeff_dh_pf(atype, btype);
     const KK_FLOAT kappa = d_kappa_dh(atype, btype);
     const KK_FLOAT b_dh = d_b_dh(atype, btype);

@@ -39,6 +39,12 @@ using t_oxdna_packed_sub = Kokkos::View<const KK_FLOAT**, Kokkos::LayoutStride,
   typename ArrayTypes<DeviceType>::t_kkfloat_1d_3_lr::device_type,
   Kokkos::MemoryTraits<Kokkos::RandomAccess>>;
 
+// one column of the packed per-atom record (e.g. the atom type)
+template<class DeviceType>
+using t_oxdna_packed_col = Kokkos::View<const KK_FLOAT*, Kokkos::LayoutStride,
+  typename ArrayTypes<DeviceType>::t_kkfloat_1d_3_lr::device_type,
+  Kokkos::MemoryTraits<Kokkos::RandomAccess>>;
+
 template<class DeviceType>
 class FixOxdnaLRFKokkos : public Fix {
  public:
@@ -60,7 +66,8 @@ class FixOxdnaLRFKokkos : public Fix {
   // So none of these routines are needed here.
 
   // Packed per-atom record for the force kernels, one 64-byte row per atom:
-  // columns 0-2 position, 4-6 nx, 7-9 ny, 10-12 nz (3, 13-15 unused), so that
+  // columns 0-2 position, 3 type, 4-6 nx, 7-9 ny, 10-12 nz, 13 qeff (14-15
+  // unused), so that
   // all data of a neighbor atom is fetched with one or two memory transactions.
   // Filled for all owned and ghost atoms every time the frames are computed.
   Kokkos::View<KK_FLOAT*[16], Kokkos::LayoutRight, typename AT::t_kkfloat_1d_3_lr::device_type> d_xn;
@@ -72,6 +79,11 @@ class FixOxdnaLRFKokkos : public Fix {
     { return Kokkos::subview(d_xn, Kokkos::ALL, Kokkos::make_pair(7,10)); }
   t_oxdna_packed_sub<DeviceType> packed_nz() const
     { return Kokkos::subview(d_xn, Kokkos::ALL, Kokkos::make_pair(10,13)); }
+  // atom type (exact as KK_FLOAT) and effective charge
+  t_oxdna_packed_col<DeviceType> packed_type() const
+    { return Kokkos::subview(d_xn, Kokkos::ALL, 3); }
+  t_oxdna_packed_col<DeviceType> packed_qeff() const
+    { return Kokkos::subview(d_xn, Kokkos::ALL, 13); }
 
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
@@ -85,6 +97,8 @@ class FixOxdnaLRFKokkos : public Fix {
   int zero_forces;    // 1 if this fix zeroes f and torque in place of VerletKokkos::force_clear()
   typename AT::t_kkfloat_1d_3_lr_randomread x;
   typename AT::t_int_1d_randomread ellipsoid;
+  typename AT::t_int_1d_randomread type;
+  typename AT::t_kkfloat_1d_randomread qeff;
   typename AtomVecEllipsoidKokkosBonusArray<DeviceType>::t_bonus_1d bonus;
 
   void compute_lrf_kokkos(int zero_forces_flag);

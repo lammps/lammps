@@ -104,6 +104,7 @@ void PairOxdnaExcvKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   else atomKK->modified(execution_space,F_MASK | TORQUE_MASK);
 
   x = fix_oxdna_lrfKK->packed_x();
+  xn_type = fix_oxdna_lrfKK->packed_type();
   f = atomKK->k_f.template view<DeviceType>();
   torque = atomKK->k_torque.template view<DeviceType>();
   type = atomKK->k_type.template view<DeviceType>();
@@ -398,7 +399,7 @@ void PairOxdnaExcvKokkos<DeviceType>::operator()(TagPairOxdnaExcvCompute<OXDNAFL
     int b = d_neighbors(a,ib);
     const KK_FLOAT factor_lj = static_cast<KK_FLOAT>(special_lj[sbmask(b)]);
     b &= NEIGHMASK;
-    const int btype = type(b);
+    const int btype = static_cast<int>(xn_type(b));    // from the packed record, next to x(b)
 
     // vector COM - backbone and base sites b
     if constexpr (OXDNAFLAG==OXDNA) {

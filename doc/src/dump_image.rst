@@ -333,9 +333,7 @@ described below.
 
 To write out JPEG and PNG format files, you must build LAMMPS with
 support for the corresponding JPEG or PNG library.  To convert images
-into movies, LAMMPS has to be compiled with the ``-DLAMMPS_FFMPEG``
-flag. See the :doc:`Build settings <Build_settings>` page for
-details.
+into movies, a suitable FFmpeg executable must be installed and usable.
 
 .. note::
 
@@ -1547,16 +1545,15 @@ graphics libraries must have been compiled and linked into LAMMPS.
 Please see the :ref:`instructions for building LAMMPS with the
 GRAPHICS package <graphics>` for more information on how to do that.
 
-To write *movie* dumps, you must use the -DLAMMPS_FFMPEG switch when
-building LAMMPS and have the FFmpeg executable available on the
+To write *movie* dumps an FFmpeg executable must be available on the
 machine where LAMMPS is being run.  Typically its name is lowercase
 (i.e., "ffmpeg").
 
-Note that since FFmpeg is run as an external program via a pipe,
-LAMMPS has limited control over its execution and no knowledge about
-errors and warnings printed by it. Those warnings and error messages
-will be printed to the screen only. Due to the way image data are
-communicated to FFmpeg, it will often print the message
+Note that since FFmpeg is run as an external program via a pipe, LAMMPS
+has limited control over its execution and no knowledge about errors and
+warnings printed by it.  Those warnings and error messages will be
+printed to the screen only.  Due to the way image data are communicated
+to FFmpeg, it will often print the message
 
 .. parsed-literal::
 

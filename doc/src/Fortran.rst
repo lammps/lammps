@@ -2398,9 +2398,10 @@ Procedures Bound to the :f:type:`lammps` Derived Type
    The LAMMPS :doc:`dump style movie <dump_image>` supports generating movies
    from images on-the-fly via creating a pipe to the
    `ffmpeg <https://ffmpeg.org/>`_ program.
-   This function checks whether this feature was
-   :ref:`enabled at compile time <graphics>`.
-   It does **not** check whether the ``ffmpeg`` itself is installed and usable.
+
+   .. versionchanged:: TBD
+
+   This function checks whether ``ffmpeg`` is installed and executable.
 
    :to: :cpp:func:`lammps_config_has_ffmpeg_support`
    :r has_ffmpeg:

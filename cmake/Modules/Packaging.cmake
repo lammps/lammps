@@ -233,6 +233,8 @@ if(BUILD_LAMMPS_GUI)
       )
       set(WHAM_TARGET copy-wham)
     endif()
+    find_program(FFMPEG_EXECUTABLE ffmpeg)
+    find_package_handle_standard_args(FFMPEG REQUIRED_VARS FFMPEG_EXECUTABLE)
     if(FFMPEG_EXECUTABLE)
       add_custom_target(copy-ffmpeg
         COMMAND ${CMAKE_COMMAND} -E copy_if_different ${FFMPEG_EXECUTABLE} ${APP_CONTENTS}/bin/

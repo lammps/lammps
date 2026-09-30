@@ -42,7 +42,7 @@ Step 1: Building LAMMPS as a shared library
 To use LAMMPS inside of Python it has to be compiled as shared library.
 This library is then loaded by the Python interface.  In this example we
 enable the :ref:`MOLECULE package <PKG-MOLECULE>` and compile LAMMPS
-with :ref:`PNG, JPEG and FFMPEG output support <graphics>` enabled.
+with :ref:`PNG and JPEG output support <graphics>` enabled.
 
 .. tabs::
 
@@ -53,7 +53,7 @@ with :ref:`PNG, JPEG and FFMPEG output support <graphics>` enabled.
          mkdir $LAMMPS_DIR/build-shared
          cd  $LAMMPS_DIR/build-shared
 
-         # MPI, PNG, Jpeg, FFMPEG are auto-detected
+         # MPI, PNG, and Jpeg are auto-detected
          cmake ../cmake -DPKG_MOLECULE=yes -DPKG_PYTHON=on -DBUILD_SHARED_LIBS=yes
          make
 
@@ -68,7 +68,7 @@ with :ref:`PNG, JPEG and FFMPEG output support <graphics>` enabled.
          make yes-PYTHON
 
          # compile shared library using Makefile
-         make mpi mode=shlib LMP_INC="-DLAMMPS_PNG -DLAMMPS_JPEG -DLAMMPS_FFMPEG" JPG_LIB="-lpng -ljpeg"
+         make mpi mode=shlib LMP_INC="-DLAMMPS_PNG -DLAMMPS_JPEG" JPG_LIB="-lpng -ljpeg"
 
 Step 2: Installing the LAMMPS Python module
 """""""""""""""""""""""""""""""""""""""""""
@@ -342,11 +342,11 @@ Python environment (this assumes you followed the Quick Start instructions):
 Interactive Python Examples
 ---------------------------
 
-Examples of IPython notebooks can be found in the ``python/examples/ipython``
-subdirectory. To open these notebooks launch ``jupyter notebook`` inside this
-directory and navigate to one of them. If you compiled and installed
-a LAMMPS shared library with PNG, JPEG and FFMPEG support
-you should be able to rerun all of these notebooks.
+Examples of IPython notebooks can be found in the
+``python/examples/ipython`` subdirectory. To open these notebooks launch
+``jupyter notebook`` inside this directory and navigate to one of
+them.  If you compiled and installed a LAMMPS shared library with PNG,
+and JPEG support, you should be able to rerun all of these notebooks.
 
 Validating a dihedral potential
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

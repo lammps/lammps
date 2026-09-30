@@ -81,7 +81,7 @@ This will create a folder called ``build``, then run the configuration
 step to generate build files for the default build command and then
 launch that build command to compile LAMMPS.  During the configuration
 step CMake will try to detect whether support for MPI, OpenMP, FFTW,
-gzip, JPEG, PNG, and ffmpeg are available and enable the corresponding
+gzip, JPEG, and PNG are available and enable the corresponding
 configuration settings.  The progress of this configuration can be
 followed on the screen and a summary of selected options and settings
 will be printed at the end.  The ``cmake --build build`` command will

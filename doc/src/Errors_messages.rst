@@ -1753,10 +1753,6 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
    Your LAMMPS simulation has run out of memory.  You need to run a
    smaller simulation or on more processors.
 
-*Failed to open FFmpeg pipeline to file %s*
-   The specified file cannot be opened.  Check that the path and name are
-   correct and writable and that the FFmpeg executable can be found and run.
-
 *Failed to reallocate %ld bytes for array %s*
    Your LAMMPS simulation has run out of memory.  You need to run a
    smaller simulation or on more processors.
@@ -4428,9 +4424,6 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
 
 *Support for writing images in PNG format not included*
    LAMMPS was not built with the -DLAMMPS_PNG switch in the Makefile.
-
-*Support for writing movies not included*
-   LAMMPS was not built with the -DLAMMPS_FFMPEG switch in the Makefile
 
 *System in data file is too big*
    See the setting for bigint in the src/lmptype.h file.

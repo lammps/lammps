@@ -177,8 +177,6 @@ Using these additional options requires the following settings:
          -D WITH_PNG=value     # yes or no
                                # default = yes if CMake finds PNG and ZLIB development files,
                                # else no
-         -D WITH_FFMPEG=value  # yes or no
-                               # default = yes if CMake can find ffmpeg, else no
 
       Usually these settings are all that is needed.  If CMake cannot
       find the graphics header, library, executable files, you can set
@@ -192,13 +190,12 @@ Using these additional options requires the following settings:
          -D PNG_LIBRARY=path         # path to libpng.a (.so) file
          -D ZLIB_INCLUDE_DIR=path    # path to zlib.h header file
          -D ZLIB_LIBRARY=path        # path to libz.a (.so) file
-         -D FFMPEG_EXECUTABLE=path   # path to ffmpeg executable
 
    .. tab:: Traditional make
 
       .. code-block:: make
 
-         LMP_INC = -DLAMMPS_JPEG -DLAMMPS_PNG -DLAMMPS_FFMPEG  <other LMP_INC settings>
+         LMP_INC = -DLAMMPS_JPEG -DLAMMPS_PNG <other LMP_INC settings>
 
          JPG_INC = -I/usr/local/include   # path to jpeglib.h, png.h, zlib.h headers
                                           # if make cannot find them

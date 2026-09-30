@@ -12,8 +12,14 @@ mark_as_advanced(PLUMED_SUFFIX)
 
 if(BUILD_MPI)
   set(PLUMED_CONFIG_MPI "--enable-mpi")
-  set(PLUMED_CONFIG_CC  ${CMAKE_MPI_C_COMPILER})
-  set(PLUMED_CONFIG_CXX  ${CMAKE_MPI_CXX_COMPILER})
+  if(MPI_C_COMPILER)
+    set(PLUMED_CONFIG_CC  ${MPI_C_COMPILER})
+  else()
+    set(PLUMED_CONFIG_CC  ${CMAKE_C_COMPILER})
+  endif()
+  if(MPI_CXX_COMPILER)
+    set(PLUMED_CONFIG_CXX  ${MPI_CXX_COMPILER})
+  endif()
   set(PLUMED_CONFIG_CPP "-I ${MPI_CXX_INCLUDE_PATH}")
   set(PLUMED_CONFIG_LIB "${MPI_CXX_LIBRARIES}")
   set(PLUMED_CONFIG_DEP "mpi4win_build")
@@ -60,7 +66,7 @@ if((CMAKE_SYSTEM_NAME STREQUAL "Windows") AND (CMAKE_CROSSCOMPILING))
     URL_HASH SHA256=${PLUMED_SHA256}
     BUILD_IN_SOURCE 1
     # restore the timestamp order that autotools generated files require (see AutotoolsTouch.cmake)
-    PATCH_COMMAND ${CMAKE_COMMAND} -D SOURCE_DIR=<SOURCE_DIR> -P ${LAMMPS_DIR}/cmake/Modules/AutotoolsTouch.cmake
+    PATCH_COMMAND ${CMAKE_COMMAND} -D SOURCE_DIR=<SOURCE_DIR> -P ${CMAKE_SOURCE_DIR}/AutotoolsTouch.cmake
     CONFIGURE_COMMAND ${CROSS_CONFIGURE} --disable-shared --disable-bsymbolic --disable-dlopen
                                          --disable-python --enable-cxx=${PLUMED_CXX_STANDARD}
                                          --enable-modules=-adjmat:+crystallization:-dimred:+drr:+eds:-fisst:+funnel:+logmfd:+manyrestraints:+maze:+opes:+multicolvar:-pamm:-piv:+s2cm:-sasa:-ves

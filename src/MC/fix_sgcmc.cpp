@@ -260,6 +260,12 @@ void FixSemiGrandCanonicalMC::init()
       error->all(FLERR, "SGC - Pair style does not support atomic energy method");
     }
   } else {
+    // KOKKOS EAM styles do not fill the base class rho and fp
+
+    if (force->pair->kokkosable && dynamic_cast<PairEAM*>(force->pair))
+      error->all(FLERR, Error::NOLASTLINE, "Fix {} requires the keyword 'atomic/energy yes' "
+                 "when used with a KOKKOS EAM pair style", style);
+
     // Save a pointer to the EAM potential.
     pairEAM = dynamic_cast<PairEAM*>(force->pair);
     if (!pairEAM) {

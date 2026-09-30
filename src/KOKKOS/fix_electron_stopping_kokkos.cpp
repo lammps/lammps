@@ -43,11 +43,11 @@ FixElectronStoppingKokkos<DeviceType>::FixElectronStoppingKokkos(LAMMPS *lmp, in
 
   const int ncol = atomKK->ntypes + 1;
   typename AT::tdual_double_2d k_elstop_ranges("k_elstop_ranges", ncol, table_entries);
-  typename AT::tdual_double_2d::t_host h_elstop_ranges = k_elstop_ranges.h_view;
+  typename AT::tdual_double_2d::t_host h_elstop_ranges = k_elstop_ranges.view_host();
   for (int r = 0; r < table_entries; r++) {
     for (int c = 0; c < ncol; c++) { h_elstop_ranges(c, r) = elstop_ranges[c][r]; }
   }
-  k_elstop_ranges.template modify<LMPHostType>();
+  k_elstop_ranges.modify_host();
   k_elstop_ranges.template sync<DeviceType>();
   d_elstop_ranges = k_elstop_ranges.template view<DeviceType>();
 }
@@ -92,12 +92,12 @@ template <class DeviceType> void FixElectronStoppingKokkos<DeviceType>::post_for
   // update region if necessary
 
   if (region) {
-    if (!(utils::strmatch(region->style, "^block") || utils::strmatch(region->style, "^sphere")))
-      error->all(FLERR, "Cannot (yet) use {}-style region with fix electron/stopping/kk",
+    KokkosBase *regionKKBase = dynamic_cast<KokkosBase *>(region);
+    if (!regionKKBase)
+      error->all(FLERR, "Cannot use fix electron/stopping/kk with region style {} that has no KOKKOS support",
                  region->style);
     region->prematch();
     DAT::tdual_int_1d k_match = DAT::tdual_int_1d("electron_stopping:k_match", nlocal);
-    KokkosBase *regionKKBase = dynamic_cast<KokkosBase *>(region);
     regionKKBase->match_all_kokkos(groupbit, k_match);
     k_match.template sync<DeviceType>();
     d_match = k_match.template view<DeviceType>();
@@ -129,6 +129,7 @@ template <class DeviceType> void FixElectronStoppingKokkos<DeviceType>::post_for
 /* ---------------------------------------------------------------------- */
 
 template <class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION void
 FixElectronStoppingKokkos<DeviceType>::operator()(TagFixElectronStopping, const int &i,
                                                   double &seloss,
@@ -139,8 +140,8 @@ FixElectronStoppingKokkos<DeviceType>::operator()(TagFixElectronStopping, const 
     if (region && !d_match(i)) return;
 
     int itype = type(i);
-    double massone = (d_rmass.data()) ? d_rmass(i) : d_mass(itype);
-    double v2 = v(i, 0) * v(i, 0) + v(i, 1) * v(i, 1) + v(i, 2) * v(i, 2);
+    double massone = (d_rmass.data()) ? static_cast<double>(d_rmass(i)) : static_cast<double>(d_mass(itype));
+    double v2 = static_cast<double>(v(i, 0) * v(i, 0) + v(i, 1) * v(i, 1) + v(i, 2) * v(i, 2));
     double energy = 0.5 * mvv2e * massone * v2;
 
     if (energy < Ecut) return;
@@ -173,9 +174,9 @@ FixElectronStoppingKokkos<DeviceType>::operator()(TagFixElectronStopping, const 
     double vabs = Kokkos::sqrt(v2);
     double factor = -Se / vabs;
 
-    f(i, 0) += v(i, 0) * factor;
-    f(i, 1) += v(i, 1) * factor;
-    f(i, 2) += v(i, 2) * factor;
+    f(i, 0) += static_cast<KK_ACC_FLOAT>(v(i, 0) * static_cast<KK_FLOAT>(factor));
+    f(i, 1) += static_cast<KK_ACC_FLOAT>(v(i, 1) * static_cast<KK_FLOAT>(factor));
+    f(i, 2) += static_cast<KK_ACC_FLOAT>(v(i, 2) * static_cast<KK_FLOAT>(factor));
 
     seloss += Se * vabs * dt;
   }

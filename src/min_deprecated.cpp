@@ -36,9 +36,9 @@ MinDeprecated::MinDeprecated(LAMMPS *_lmp) : Min(_lmp)
   }
 
   if (my_style == "fire/old")
-    error->all(FLERR,
-               "Minimize style 'fire/old' has been removed from LAMMPS after "
-               "the 22 December 2022 version.\nERROR: Please use 'min_style fire'");
+    error->all(FLERR, Error::ARGZERO, "\nMinimize style 'fire/old' has been removed from LAMMPS. "
+               "Please use 'min_style fire' instead. {}", utils::errorurl(38));
 
-  error->all(FLERR, "This minimize style is no longer available");
+  error->all(FLERR, Error::ARGZERO, "The minimize style {} is no longer available. {}", my_style,
+             utils::errorurl(38));
 }

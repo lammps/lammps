@@ -228,7 +228,7 @@ void PPPMElectrode::init()
   if (order < minorder) error->all(FLERR, "PPPM/electrode order < minimum allowed order");
   if (!overlap_allowed && !gc->ghost_adjacent())
     error->all(FLERR, "PPPM/electrode grid stencil extends beyond nearest neighbor processor");
-  if (gc) delete gc;
+  delete gc;
 
   // adjust g_ewald
 
@@ -1069,15 +1069,15 @@ void PPPMElectrode::allocate()
 
   fft1 = new FFT3d(lmp, world, nx_pppm, ny_pppm, nz_pppm, nxlo_fft, nxhi_fft, nylo_fft, nyhi_fft,
                    nzlo_fft, nzhi_fft, nxlo_fft, nxhi_fft, nylo_fft, nyhi_fft, nzlo_fft, nzhi_fft,
-                   0, 0, &tmp, collective_flag);
+                   0, 0, &tmp, collective_flag, 0);
 
   fft2 = new FFT3d(lmp, world, nx_pppm, ny_pppm, nz_pppm, nxlo_fft, nxhi_fft, nylo_fft, nyhi_fft,
                    nzlo_fft, nzhi_fft, nxlo_in, nxhi_in, nylo_in, nyhi_in, nzlo_in, nzhi_in, 0, 0,
-                   &tmp, collective_flag);
+                   &tmp, collective_flag, 0);
 
   remap = new Remap(lmp, world, nxlo_in, nxhi_in, nylo_in, nyhi_in, nzlo_in, nzhi_in, nxlo_fft,
                     nxhi_fft, nylo_fft, nyhi_fft, nzlo_fft, nzhi_fft, 1, 0, 0, FFT_PRECISION,
-                    collective_flag);
+                    collective_flag, 0);
 
   // ELECTRODE specific allocations
 
@@ -1102,7 +1102,7 @@ void PPPMElectrode::deallocate()
   memory->destroy(gc_buf1);
   memory->destroy(gc_buf2);
 
-  if (boundcorr != nullptr) delete boundcorr;
+  delete boundcorr;
   memory->destroy3d_offset(electrolyte_density_brick, nzlo_out, nylo_out, nxlo_out);
   memory->destroy(electrolyte_density_fft);
 

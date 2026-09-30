@@ -16,8 +16,7 @@ Syntax
 
 * ID, group are documented in :doc:`fix <fix>` command
 * gravity = style name of this fix command
-* magnitude = size of acceleration (force/mass units)
-* magnitude can be a variable (see below)
+* magnitude = size of acceleration (force/mass units), magnitude can be a variable (see below)
 * style = *chute* or *spherical* or *gradient* or *vector*
 
   .. parsed-literal::
@@ -127,7 +126,7 @@ the :doc:`run <run>` command.  This fix is not invoked during
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""

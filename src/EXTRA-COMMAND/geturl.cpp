@@ -19,6 +19,7 @@
 
 #include "comm.h"
 #include "error.h"
+#include "safe_pointers.h"
 
 #include <cstring>
 
@@ -108,7 +109,7 @@ void GetURL::command(int narg, char **arg)
 
   // open output file for writing
 
-  FILE *out = fopen(output.c_str(), "wb");
+  SafeFilePtr out = fopen(output.c_str(), "wb");
   if (!out)
     error->one(FLERR, "Cannot open output file {} for writing: {}", output, utils::getsyserror());
 
@@ -143,6 +144,5 @@ void GetURL::command(int narg, char **arg)
     curl_easy_cleanup(curl);
   }
   curl_global_cleanup();
-  fclose(out);
 #endif
 }

@@ -39,14 +39,14 @@ class DihedralHybridKokkos : public DihedralHybrid {
   void init_style() override;
   double memory_usage() override;
 
- private:
+ protected:
   int maxdihedral_all;
 
   class NeighborKokkos *neighborKK;
 
   DAT::tdual_int_1d k_map;       // which style each dihedral type points to
   DAT::tdual_int_1d k_ndihedrallist; // # of dihedrals in sub-style dihedrallists
-  DAT::tdual_int_3d k_dihedrallist;  // dihedrallist for each sub-style
+  DAT::tdual_int_3d_lr k_dihedrallist;  // dihedrallist for each sub-style
 
   void allocate() override;
   void deallocate() override;

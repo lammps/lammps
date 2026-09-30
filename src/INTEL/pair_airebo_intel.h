@@ -45,7 +45,7 @@ class PairAIREBOIntel : public PairAIREBO {
   void compute(int eflag, int vflag, IntelBuffers<flt_t, acc_t> *buffers);
 
   template <int EVFLAG, int EFLAG, class flt_t, class acc_t>
-  void eval(const int offload, const int vflag, IntelBuffers<flt_t, acc_t> *buffers,
+  void eval(const int vflag, IntelBuffers<flt_t, acc_t> *buffers,
             const int astart, const int aend);
 
   template <class flt_t, class acc_t> void pack_force_const(IntelBuffers<flt_t, acc_t> *buffers);
@@ -53,7 +53,6 @@ class PairAIREBOIntel : public PairAIREBO {
   template <class flt_t, class acc_t> PairAIREBOIntelParam<flt_t, acc_t> get_param();
 
   FixIntel *fix;
-  int _cop;
 
   int *REBO_cnumneigh;
   int *REBO_num_skin;

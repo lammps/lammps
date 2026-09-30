@@ -58,12 +58,12 @@ A particle/wall collision occurs if an SRD particle moves outside the
 wall on a timestep.  This alters the position and velocity of the SRD
 particle and imparts a force to the wall.
 
-The *collision* and *Tsrd* settings specified via the :doc:`fix srd <fix_srd>` command affect the SRD/wall collisions.  A *slip*
-setting for the *collision* keyword means that the tangential
-component of the SRD particle momentum is preserved.  Thus only a
-normal force is imparted to the wall.  The normal component of the new
-SRD velocity is sampled from a Gaussian distribution at temperature
-*Tsrd*\ .
+The *collision* and *Tsrd* settings specified via the :doc:`fix srd
+<fix_srd>` command affect the SRD/wall collisions.  A *slip* setting for
+the *collision* keyword means that the tangential component of the SRD
+particle momentum is preserved.  Thus only a normal force is imparted to
+the wall.  The normal component of the new SRD velocity is sampled from
+a Gaussian distribution at temperature *Tsrd*\ .
 
 For a *noslip* setting of the *collision* keyword, both the normal and
 tangential components of the new SRD velocity are sampled from a
@@ -174,6 +174,37 @@ perturbation on the particles:
 .. parsed-literal::
 
    position = c0 + A (1 - cos(omega\*delta))
+
+-----------------
+
+Dump image info
+"""""""""""""""
+
+.. versionadded:: 11Feb2026
+
+Fix *wall/srd* supports the *fix* keyword of :doc:`dump image
+<dump_image>`.  The fix will pass geometry information about the walls
+to *dump image* so that the walls will be included in the rendered
+image.  Please note, that for :doc:`2d systems <dimension>`, a wall
+rendered as a plane would be invisible and it is thus rendered as a
+cylinder.
+
+The color of the wall is by default that of the first atom type when
+using color styles "type" or "element".  With color style "const" the
+default value of "white" can be changed using :doc:`dump_modify fcolor
+<dump_image>`.  The transparency is by default fully opaque and can be
+changed with *dump\_modify ftrans*\ .
+
+For 2d systems, the *fflag1* setting determines whether the cylinder
+representing the wall is capped with a sphere at the ends: 0 means no
+caps, 1 means the lower end is capped, 2 means the upper end is capped,
+and 3 means both ends are capped.  The *fflag2* setting allows to adjust
+the radius of the rendered cylinder.  It should be set to a value > 0 or
+the cylinder will not be visible since the diameter is set internally to
+zero due to lack of a suitable heuristic for deriving a meaningful
+diameter for all types of walls and unit settings.
+
+For 3d systems, both *fflag1* and *fflag2* are ignored.
 
 ----------
 

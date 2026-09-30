@@ -34,6 +34,11 @@ DihedralHybridKokkos::DihedralHybridKokkos(LAMMPS *lmp) : DihedralHybrid(lmp)
 {
   kokkosable = 1;
 
+  // every KOKKOS sub-style sets CENTROID_NOTAVAIL, so the hybrid style cannot
+  // offer a centroid virial either - otherwise cvatom is never allocated and the
+  // per-substyle accumulation dereferences a null pointer
+  centroidstressflag = CENTROID_NOTAVAIL;
+
   atomKK = (AtomKokkos *) atom;
   neighborKK = (NeighborKokkos *) neighbor;
 
@@ -59,9 +64,9 @@ void DihedralHybridKokkos::compute(int eflag, int vflag)
   int ndihedrallist_orig = neighbor->ndihedrallist;
   neighborKK->k_dihedrallist.sync_device();
   auto k_dihedrallist_orig = neighborKK->k_dihedrallist;
-  auto d_dihedrallist_orig = k_dihedrallist_orig.d_view;
-  auto d_ndihedrallist = k_ndihedrallist.d_view;
-  auto h_ndihedrallist = k_ndihedrallist.h_view;
+  auto d_dihedrallist_orig = k_dihedrallist_orig.view_device();
+  auto d_ndihedrallist = k_ndihedrallist.view_device();
+  auto h_ndihedrallist = k_ndihedrallist.view_host();
 
   // if this is re-neighbor step, create sub-style dihedrallists
   // ndihedrallist[] = length of each sub-style list
@@ -72,7 +77,7 @@ void DihedralHybridKokkos::compute(int eflag, int vflag)
     Kokkos::deep_copy(d_ndihedrallist,0);
 
     k_map.sync_device();
-    auto d_map = k_map.d_view;
+    auto d_map = k_map.view_device();
 
     Kokkos::parallel_for(ndihedrallist_orig,LAMMPS_LAMBDA(int i) {
       const int m = d_map[d_dihedrallist_orig(i,4)];
@@ -87,9 +92,9 @@ void DihedralHybridKokkos::compute(int eflag, int vflag)
       if (h_ndihedrallist[m] > maxdihedral_all)
         maxdihedral_all = h_ndihedrallist[m] + EXTRA;
 
-    if ((int)k_dihedrallist.d_view.extent(1) < maxdihedral_all)
+    if ((int)k_dihedrallist.view_device().extent(1) < maxdihedral_all)
       MemKK::realloc_kokkos(k_dihedrallist, "dihedral_hybrid:dihedrallist", nstyles, maxdihedral_all, 5);
-    auto d_dihedrallist = k_dihedrallist.d_view;
+    auto d_dihedrallist = k_dihedrallist.view_device();
 
     Kokkos::deep_copy(d_ndihedrallist,0);
 
@@ -204,7 +209,7 @@ void DihedralHybridKokkos::init_style()
     if (!styles[m]->kokkosable)
       error->all(FLERR,"Must use only Kokkos-enabled dihedral styles with dihedral_style hybrid/kk");
 
-    if (styles[m]->execution_space == Host)
+    if (styles[m]->execution_space == HostKK)
       lmp->kokkos->allow_overlap = 0;
   }
 }

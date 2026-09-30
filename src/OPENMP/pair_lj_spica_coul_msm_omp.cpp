@@ -44,8 +44,8 @@ PairLJSPICACoulMSMOMP::PairLJSPICACoulMSMOMP(LAMMPS *lmp) :
 void PairLJSPICACoulMSMOMP::compute(int eflag, int vflag)
 {
   if (force->kspace->scalar_pressure_flag)
-    error->all(FLERR,"Must use 'kspace_modify pressure/scalar no' "
-      "with OMP MSM Pair styles");
+    error->all(FLERR, Error::NOLASTLINE,
+               "Must use 'kspace_modify pressure/scalar no' with OMP MSM Pair styles");
 
   ev_init(eflag,vflag);
 

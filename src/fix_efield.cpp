@@ -304,8 +304,6 @@ void FixEfield::post_force(int vflag)
   v_init(vflag);
 
   // reallocate efield array if necessary
-  // an atom-style energy or potential variable writes into efield[i][3],
-  // so the array is needed for those as well, not only for varflag == ATOM
 
   if (((varflag == ATOM) || (estyle == ATOM) || (pstyle == ATOM)) && (atom->nmax > maxatom)) {
     maxatom = atom->nmax;

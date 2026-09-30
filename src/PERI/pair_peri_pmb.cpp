@@ -62,6 +62,7 @@ void PairPeriPMB::compute(int eflag, int vflag)
 
   double *vfrac = atom->vfrac;
   double *s0 = atom->s0;
+  double *smin = atom->smin;
   double **x0 = atom->x0;
   double **r0   = fix_peri_neigh->r0;
   tagint **partner = fix_peri_neigh->partner;
@@ -153,13 +154,18 @@ void PairPeriPMB::compute(int eflag, int vflag)
 
   if (atom->nmax > nmax) {
     memory->destroy(s0_new);
+    memory->destroy(smin_new);
     nmax = atom->nmax;
     memory->create(s0_new,nmax,"pair:s0_new");
+    memory->create(smin_new,nmax,"pair:smin_new");
   }
 
   // loop over my particles and their partners
   // partner list contains all bond partners, so I-J appears twice
   // if bond already broken, skip this partner
+  // first = true if this is first neighbor of particle i
+
+  bool first;
 
   for (i = 0; i < nlocal; i++) {
     xtmp = x[i][0];
@@ -168,6 +174,8 @@ void PairPeriPMB::compute(int eflag, int vflag)
     itype = type[i];
     jnum = npartner[i];
     s0_new[i] = DBL_MAX;
+    smin_new[i] = DBL_MAX;
+    first = true;
 
     for (jj = 0; jj < jnum; jj++) {
       if (partner[i][jj] == 0) continue;
@@ -217,26 +225,36 @@ void PairPeriPMB::compute(int eflag, int vflag)
       if (eflag) evdwl = 0.5*rk*dr;
       if (evflag) ev_tally(i,i,nlocal,0,0.5*evdwl,0.0,0.5*fbond*vfrac[i],delx,dely,delz);
 
-      // find stretch in bond I-J and break if necessary.
-      // use the minimum stretch (s0) from the previous timestep to form the
-      // per-bond critical stretch crit = s00 - alpha*s0 (Parks 2008, eq. 9).
-      // Evaluating s00/alpha per bond (instead of collapsing into one
-      // per-particle scalar) is required when these coefficients depend on
-      // the type pair; s0 stores min stretch so crit = s00 - alpha*MAX(s0_i,s0_j).
+      // find stretch in bond I-J and break if necessary
+      // use the minimum stretch (smin) from the previous timestep to form the
+      // per-bond critical stretch s0 = s00 - alpha*smin (Parks 2008, eq. 9).
+      // Evaluating s00/alpha per bond (instead of collapsing s0 into one
+      // per-particle scalar) is required when these coeffs depend on the type
+      // pair; min(s0_i,s0_j) = s00 - alpha*max(smin_i,smin_j).
 
-      if (stretch > s00[itype][jtype] - alpha[itype][jtype]*MAX(s0[i],s0[j]))
+      if (stretch > s00[itype][jtype] - alpha[itype][jtype]*MAX(smin[i],smin[j]))
         partner[i][jj] = 0;
 
-      // update minimum stretch s0 for next timestep
-      s0_new[i] = MIN(s0_new[i], stretch);
+      // update minimum stretch smin (for breaking) and s0 (for diagnostic
+      // output) for the next timestep
+
+      smin_new[i] = MIN(smin_new[i],stretch);
+      if (first)
+         s0_new[i] = s00[itype][jtype] - (alpha[itype][jtype] * stretch);
+      else
+         s0_new[i] = MAX(s0_new[i],s00[itype][jtype] - (alpha[itype][jtype] * stretch));
+      first = false;
     }
   }
 
-  // store new s0 (minimum bond stretch; used for bond-breaking criterion).
+  // store new s0 (diagnostic) and smin (used for bond breaking)
   // an atom with no surviving bonds keeps the no-breaking sentinel (-DBL_MAX)
-  // so that via the MAX() it cannot trigger breaking of a neighbor's bond.
-  for (i = 0; i < nlocal; i++)
-    s0[i] = (s0_new[i] == DBL_MAX) ? -DBL_MAX : s0_new[i];
+  // so that via the max() in the criterion it cannot trigger breaking of a
+  // neighbor's bond (and so the implied critical stretch stays +infinity)
+  for (i = 0; i < nlocal; i++) {
+    s0[i] = s0_new[i];
+    smin[i] = (smin_new[i] == DBL_MAX) ? -DBL_MAX : smin_new[i];
+  }
 }
 
 /* ----------------------------------------------------------------------

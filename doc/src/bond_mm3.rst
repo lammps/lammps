@@ -1,7 +1,11 @@
 .. index:: bond_style mm3
+.. index:: bond_style mm3/kk
+.. index:: bond_style mm3/omp
 
 bond_style mm3 command
 ======================
+
+Accelerator Variants: *mm3/kk*, *mm3/omp*
 
 Syntax
 """"""
@@ -42,6 +46,12 @@ or :doc:`read_restart <read_restart>` commands:
 
 * :math:`K` (energy/distance\^2)
 * :math:`r_0` (distance)
+
+----------
+
+.. include:: accel_styles.rst
+
+----------
 
 Restrictions
 """"""""""""

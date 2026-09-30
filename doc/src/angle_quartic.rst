@@ -1,10 +1,11 @@
 .. index:: angle_style quartic
+.. index:: angle_style quartic/kk
 .. index:: angle_style quartic/omp
 
 angle_style quartic command
 ===========================
 
-Accelerator Variants: *quartic/omp*
+Accelerator Variants: *quartic/kk*, *quartic/omp*
 
 Syntax
 """"""

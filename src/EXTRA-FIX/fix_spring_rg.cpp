@@ -112,7 +112,7 @@ void FixSpringRG::post_force(int /*vflag*/)
   // rg == 0 means that either there are no atoms in the group or that
   //         they are exactly on top of each other. nothing to do then
 
-  if (rg == 0.0) return;
+  if ((rg == 0.0) || (masstotal == 0.0)) return;
 
   // apply restoring force to atoms in group
 
@@ -130,21 +130,20 @@ void FixSpringRG::post_force(int /*vflag*/)
   double unwrap[3];
 
   const double term1 = 2.0 * k * (1.0 - rg0/rg);
-  for (int i = 0; i < nlocal; i++)
+  for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
       domain->unmap(x[i],image[i],unwrap);
       dx = unwrap[0] - xcm[0];
       dy = unwrap[1] - xcm[1];
       dz = unwrap[2] - xcm[2];
-        if (masstotal > 0.0) {
-        if (rmass) massfrac = rmass[i]/masstotal;
-        else  massfrac = mass[type[i]]/masstotal;
+      if (rmass) massfrac = rmass[i]/masstotal;
+      else  massfrac = mass[type[i]]/masstotal;
 
-        f[i][0] -= term1*dx*massfrac;
-        f[i][1] -= term1*dy*massfrac;
-        f[i][2] -= term1*dz*massfrac;
-      }
+      f[i][0] -= term1*dx*massfrac;
+      f[i][1] -= term1*dy*massfrac;
+      f[i][2] -= term1*dz*massfrac;
     }
+  }
 }
 
 /* ---------------------------------------------------------------------- */

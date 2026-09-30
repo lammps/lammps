@@ -175,7 +175,7 @@ void PairLJCharmmCoulMSM::compute(int eflag, int vflag)
         } else {
           // separate LJ and Coulombic forces
 
-          fpair = (factor_lj*forcelj) * r2inv;
+          fpair = factor_lj * forcelj * r2inv;
 
           f[i][0] += delx*fpair;
           f[i][1] += dely*fpair;
@@ -186,7 +186,7 @@ void PairLJCharmmCoulMSM::compute(int eflag, int vflag)
             f[j][2] -= delz*fpair;
           }
 
-          fcoul = (forcecoul) * r2inv;
+          fcoul = forcecoul * r2inv;
 
           ftmp[i][0] += delx*fcoul;
           ftmp[i][1] += dely*fcoul;
@@ -533,6 +533,8 @@ void *PairLJCharmmCoulMSM::extract(const char *str, int &dim)
   if (strcmp(str,"lj14_2") == 0) return (void *) lj14_2;
   if (strcmp(str,"lj14_3") == 0) return (void *) lj14_3;
   if (strcmp(str,"lj14_4") == 0) return (void *) lj14_4;
+  if (strcmp(str,"sigma") == 0) return (void *) sigma;
+  if (strcmp(str,"epsilon") == 0) return (void *) epsilon;
 
   dim = 0;
   if (strcmp(str,"implicit") == 0) return (void *) &implicit;

@@ -13,6 +13,7 @@ SPDX-License-Identifier: (BSD-3-Clause)
 
 #include <desul/atomics/Adapt_GCC.hpp>
 #include <desul/atomics/Common.hpp>
+#include <desul/atomics/Lock_Free_Types_OpenMP.hpp>
 #include <desul/atomics/Thread_Fence_OpenMP.hpp>
 
 namespace desul {
@@ -39,17 +40,17 @@ T host_atomic_exchange(T* dest, T value, MemoryOrder, MemoryScope) {
 // OpenMP doesn't have compare exchange, so we use built-in functions and rely on
 // testing that this works Note that means we test this in OpenMPTarget offload regions!
 template <class T, class MemoryOrder, class MemoryScope>
-std::enable_if_t<atomic_always_lock_free(sizeof(T)), T> host_atomic_compare_exchange(
+std::enable_if_t<host_atomic_always_lock_free<T>, T> host_atomic_compare_exchange(
     T* dest, T compare, T value, MemoryOrder, MemoryScope) {
   using cas_t = atomic_compare_exchange_t<T>;
   cas_t retval = __sync_val_compare_and_swap(reinterpret_cast<volatile cas_t*>(dest),
-                                             reinterpret_cast<cas_t&>(compare),
-                                             reinterpret_cast<cas_t&>(value));
+                                             *reinterpret_cast<cas_t*>(&compare),
+                                             *reinterpret_cast<cas_t*>(&value));
   return reinterpret_cast<T&>(retval);
 }
 
 template <class T, class MemoryOrder, class MemoryScope>
-std::enable_if_t<!atomic_always_lock_free(sizeof(T)), T>  // FIXME_OPENMP
+std::enable_if_t<!host_atomic_always_lock_free<T>, T>  // FIXME_OPENMP
 host_atomic_compare_exchange(T* dest, T compare, T value, MemoryOrder, MemoryScope) {
 #if 0
   (void)__atomic_compare_exchange(dest,
@@ -79,7 +80,7 @@ host_atomic_compare_exchange(T* dest, T compare, T value, MemoryOrder, MemorySco
 // Make 16 byte cas work on host at least
 #pragma omp begin declare variant match(device = {kind(host)})
 template <class T, class MemoryOrder, class MemoryScope>
-std::enable_if_t<!atomic_always_lock_free(sizeof(T)) && (sizeof(T) == 16), T>
+std::enable_if_t<!host_atomic_always_lock_free<T> && (sizeof(T) == 16), T>
 host_atomic_compare_exchange(T* dest, T compare, T value, MemoryOrder, MemoryScope) {
   (void)__atomic_compare_exchange(dest,
                                   &compare,
@@ -93,7 +94,7 @@ host_atomic_compare_exchange(T* dest, T compare, T value, MemoryOrder, MemorySco
 
 #pragma omp begin declare variant match(device = {kind(nohost)})
 template <class T, class MemoryOrder, class MemoryScope>
-std::enable_if_t<!atomic_always_lock_free(sizeof(T)) && (sizeof(T) == 16), T>
+std::enable_if_t<!host_atomic_always_lock_free<T> && (sizeof(T) == 16), T>
 device_atomic_compare_exchange(
     T* /*dest*/, T /*compare*/, T value, MemoryOrder, MemoryScope) {
   // FIXME_OPENMP make sure this never gets called

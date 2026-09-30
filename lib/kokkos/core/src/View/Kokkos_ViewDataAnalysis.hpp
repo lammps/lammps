@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
 static_assert(false,
@@ -60,9 +47,7 @@ struct rank_dynamic<Val, Args...> {
     static constexpr size_t ArgN##R = (V != KOKKOS_INVALID_INDEX ? V : 1);  \
     static constexpr size_t N##R    = (V != KOKKOS_INVALID_INDEX ? V : 1);  \
     KOKKOS_INLINE_FUNCTION explicit ViewDimension##R(size_t) {}             \
-    ViewDimension##R()                                   = default;         \
-    ViewDimension##R(const ViewDimension##R&)            = default;         \
-    ViewDimension##R& operator=(const ViewDimension##R&) = default;         \
+    ViewDimension##R() = default;                                           \
   };                                                                        \
   template <size_t V, unsigned RD>                                          \
   constexpr size_t ViewDimension##R<V, RD>::ArgN##R;                        \
@@ -72,9 +57,7 @@ struct rank_dynamic<Val, Args...> {
   struct ViewDimension##R<0u, RD> {                                         \
     static constexpr size_t ArgN##R = 0;                                    \
     std::conditional_t<(RD < 3), size_t, unsigned> N##R;                    \
-    ViewDimension##R()                                   = default;         \
-    ViewDimension##R(const ViewDimension##R&)            = default;         \
-    ViewDimension##R& operator=(const ViewDimension##R&) = default;         \
+    ViewDimension##R() = default;                                           \
     KOKKOS_INLINE_FUNCTION explicit ViewDimension##R(size_t V) : N##R(V) {} \
   };                                                                        \
   template <unsigned RD>                                                    \
@@ -149,9 +132,7 @@ struct KOKKOS_IMPL_ENFORCE_EMPTY_BASE_OPTIMIZATION ViewDimension
   static constexpr unsigned rank         = sizeof...(Vals);
   static constexpr unsigned rank_dynamic = Impl::rank_dynamic<Vals...>::value;
 
-  ViewDimension()                                = default;
-  ViewDimension(const ViewDimension&)            = default;
-  ViewDimension& operator=(const ViewDimension&) = default;
+  ViewDimension() = default;
 
   KOKKOS_INLINE_FUNCTION
   constexpr ViewDimension(size_t n0, size_t n1, size_t n2, size_t n3, size_t n4,
@@ -381,15 +362,28 @@ struct ViewDataAnalysis {
   using non_const_value_type = typename array_analysis::non_const_value_type;
 
   // Generate analogous multidimensional array specification type.
-  using type       = typename ViewDataType<value_type, dimension>::type;
-  using const_type = typename ViewDataType<const_value_type, dimension>::type;
-  using non_const_type =
+  using data_type = typename ViewDataType<value_type, dimension>::type;
+  using const_data_type =
+      typename ViewDataType<const_value_type, dimension>::type;
+  using non_const_data_type =
       typename ViewDataType<non_const_value_type, dimension>::type;
 
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_5
+  using type KOKKOS_DEPRECATED_WITH_COMMENT("Use data_type instead.") =
+      data_type;
+  using const_type KOKKOS_DEPRECATED_WITH_COMMENT(
+      "Use const_data_type instead.") = const_data_type;
+  using non_const_type KOKKOS_DEPRECATED_WITH_COMMENT(
+      "Use non_const_data_type instead.") = non_const_data_type;
+
   // Generate "flattened" multidimensional array specification type.
-  using scalar_array_type           = type;
-  using const_scalar_array_type     = const_type;
-  using non_const_scalar_array_type = non_const_type;
+  using scalar_array_type KOKKOS_DEPRECATED_WITH_COMMENT(
+      "Use data_type instead.") = data_type;
+  using const_scalar_array_type KOKKOS_DEPRECATED_WITH_COMMENT(
+      "Use const_data_type instead.") = const_data_type;
+  using non_const_scalar_array_type KOKKOS_DEPRECATED_WITH_COMMENT(
+      "Use non_const_data_type instead.") = non_const_data_type;
+#endif
 };
 
 template <class Dimension, class Layout, class Enable = void>

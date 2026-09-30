@@ -51,11 +51,11 @@ static constexpr int OFFSET = 16384;
 ------------------------------------------------------------------------- */
 
 Grid3d::Grid3d(LAMMPS *lmp, MPI_Comm gcomm, int gnx, int gny, int gnz) :
-  Pointers(lmp), swap(nullptr), requests(nullptr), srequest(nullptr), rrequest(nullptr),
+    Pointers(lmp), swap(nullptr), requests(nullptr), srequest(nullptr), rrequest(nullptr),
     sresponse(nullptr), rresponse(nullptr), send(nullptr), recv(nullptr), copy(nullptr),
-    send_remap(nullptr), recv_remap(nullptr), overlap_procs(nullptr), xsplit(nullptr),
-    ysplit(nullptr), zsplit(nullptr), grid2proc(nullptr), rcbinfo(nullptr), overlap_list(nullptr)
-
+    requests_remap(nullptr), send_remap(nullptr), recv_remap(nullptr), overlap_procs(nullptr),
+    xsplit(nullptr), ysplit(nullptr), zsplit(nullptr), grid2proc(nullptr), rcbinfo(nullptr),
+    overlap_list(nullptr)
 {
   gridcomm = gcomm;
   MPI_Comm_rank(gridcomm,&me);
@@ -75,6 +75,7 @@ Grid3d::Grid3d(LAMMPS *lmp, MPI_Comm gcomm, int gnx, int gny, int gnz) :
   fullxlo = fullxhi = fullylo = fullyhi = fullzlo = fullzhi = 0;
   procxlo = procxhi = procylo = procyhi = proczlo = proczhi = 0;
   ghostxlo = ghostxhi = ghostylo = ghostyhi = ghostzlo = ghostzhi = 0;
+
   // default settings, can be overridden by set() methods
   // these affect assignment of owned and ghost cells
 
@@ -133,6 +134,7 @@ Grid3d::Grid3d(LAMMPS *lmp, MPI_Comm gcomm, int gnx, int gny, int gnz,
   nz = gnz;
 
   noverlap_list = maxoverlap_list = 0;
+
   // store owned/ghost indices provided by caller
 
   inxlo = ixlo;
@@ -148,6 +150,7 @@ Grid3d::Grid3d(LAMMPS *lmp, MPI_Comm gcomm, int gnx, int gny, int gnz,
   outyhi = oyhi;
   outzlo = ozlo;
   outzhi = ozhi;
+
   // these settings are only used by setup_grid(), which must not be
   // called with this constructor; assign the same defaults as above
 
@@ -519,6 +522,8 @@ void Grid3d::initialize()
   nsend_remap = nrecv_remap = self_remap = 0;
   send_remap = nullptr;
   recv_remap = nullptr;
+  copy_remap.npack = copy_remap.nunpack = 0;
+  copy_remap.packlist = copy_remap.unpacklist = nullptr;
 
   // store info about Comm decomposition needed for remap operation
   // two Grid instances will exist for duration of remap
@@ -1791,7 +1796,7 @@ void Grid3d::write_file_style(T *ptr, int which,
   // ping each proc for its grid data
   // call back to caller with each proc's grid data
 
-  int tmp;
+  int tmp = 0;
   int bounds[6];
 
   if (me == 0) {

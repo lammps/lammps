@@ -34,7 +34,9 @@ static constexpr double TOLERANCE = 0.05;
 
 /* ---------------------------------------------------------------------- */
 
-DihedralCosineShiftExp::DihedralCosineShiftExp(LAMMPS *lmp) : Dihedral(lmp)
+DihedralCosineShiftExp::DihedralCosineShiftExp(LAMMPS *lmp) :
+    Dihedral(lmp), doExpansion(nullptr), umin(nullptr), a(nullptr), opt1(nullptr), sint(nullptr),
+    cost(nullptr), theta(nullptr)
 {
   writedata = 1;
 }
@@ -43,6 +45,7 @@ DihedralCosineShiftExp::DihedralCosineShiftExp(LAMMPS *lmp) : Dihedral(lmp)
 
 DihedralCosineShiftExp::~DihedralCosineShiftExp()
 {
+  if (copymode) return;
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(umin);

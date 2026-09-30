@@ -43,7 +43,6 @@ class PairBuckIntel : public PairBuck {
 
  private:
   FixIntel *fix;
-  int _cop;
 
   template <class flt_t> class ForceConst;
 
@@ -52,7 +51,7 @@ class PairBuckIntel : public PairBuck {
                const ForceConst<flt_t> &fc);
 
   template <int EFLAG, int NEWTON_PAIR, class flt_t, class acc_t>
-  void eval(const int offload, const int vflag, IntelBuffers<flt_t, acc_t> *buffers,
+  void eval(const int vflag, IntelBuffers<flt_t, acc_t> *buffers,
             const ForceConst<flt_t> &fc, const int astart, const int aend);
 
   template <class flt_t, class acc_t>
@@ -73,12 +72,12 @@ class PairBuckIntel : public PairBuck {
     c_energy_t **c_energy;
 
     ForceConst() : _ntypes(0) {}
-    ~ForceConst() noexcept(false) { set_ntypes(0, nullptr, _cop); }
+    ~ForceConst() noexcept(false) { set_ntypes(0, nullptr); }
 
-    void set_ntypes(const int ntypes, Memory *memory, const int cop);
+    void set_ntypes(const int ntypes, Memory *memory);
 
    private:
-    int _ntypes, _cop;
+    int _ntypes;
     Memory *_memory;
   };
 

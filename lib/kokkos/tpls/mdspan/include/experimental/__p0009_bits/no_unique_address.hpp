@@ -23,72 +23,72 @@ namespace detail {
 
 //==============================================================================
 
-template <class _T, size_t _Disambiguator = 0, class _Enable = void>
-struct __no_unique_address_emulation {
-  using __stored_type = _T;
-  _T __v;
-  MDSPAN_FORCE_INLINE_FUNCTION constexpr _T const &__ref() const noexcept {
-    return __v;
+template <class T, size_t Disambiguator = 0, class Enable = void>
+struct no_unique_address_emulation {
+  using stored_type = T;
+  T m_v;
+  MDSPAN_FORCE_INLINE_FUNCTION constexpr T const &ref() const noexcept {
+    return m_v;
   }
-  MDSPAN_FORCE_INLINE_FUNCTION MDSPAN_IMPL_CONSTEXPR_14 _T &__ref() noexcept {
-    return __v;
+  MDSPAN_FORCE_INLINE_FUNCTION MDSPAN_IMPL_CONSTEXPR_14 T &ref() noexcept {
+    return m_v;
   }
 };
 
 // Empty case
-// This doesn't work if _T is final, of course, but we're not using anything
+// This doesn't work if T is final, of course, but we're not using anything
 // like that currently. That kind of thing could be added pretty easily though
-template <class _T, size_t _Disambiguator>
-struct __no_unique_address_emulation<
-    _T, _Disambiguator,
-    std::enable_if_t<MDSPAN_IMPL_TRAIT(std::is_empty, _T) &&
+template <class T, size_t Disambiguator>
+struct no_unique_address_emulation<
+    T, Disambiguator,
+    std::enable_if_t<MDSPAN_IMPL_TRAIT(std::is_empty, T) &&
                 // If the type isn't trivially destructible, its destructor
                 // won't be called at the right time, so don't use this
                 // specialization
-                MDSPAN_IMPL_TRAIT(std::is_trivially_destructible, _T)>> :
+                MDSPAN_IMPL_TRAIT(std::is_trivially_destructible, T)>> :
 #ifdef MDSPAN_IMPL_COMPILER_MSVC
     // MSVC doesn't allow you to access public static member functions of a type
     // when you *happen* to privately inherit from that type.
     protected
 #else
     // But we still want this to be private if possible so that we don't accidentally
-    // access members of _T directly rather than calling __ref() first, which wouldn't
-    // work if _T happens to be stateful and thus we're using the unspecialized definition
-    // of __no_unique_address_emulation above.
+    // access members of T directly rather than calling ref() first, which wouldn't
+    // work if T happens to be stateful and thus we're using the unspecialized definition
+    // of no_unique_address_emulation above.
     private
 #endif
-    _T {
-  using __stored_type = _T;
-  MDSPAN_FORCE_INLINE_FUNCTION constexpr _T const &__ref() const noexcept {
-    return *static_cast<_T const *>(this);
+    T {
+  using stored_type = T;
+  MDSPAN_FORCE_INLINE_FUNCTION constexpr T const &ref() const noexcept {
+    return *static_cast<T const *>(this);
   }
-  MDSPAN_FORCE_INLINE_FUNCTION MDSPAN_IMPL_CONSTEXPR_14 _T &__ref() noexcept {
-    return *static_cast<_T *>(this);
+  MDSPAN_FORCE_INLINE_FUNCTION MDSPAN_IMPL_CONSTEXPR_14 T &ref() noexcept {
+    return *static_cast<T *>(this);
   }
 
   MDSPAN_INLINE_FUNCTION_DEFAULTED
-  constexpr __no_unique_address_emulation() noexcept = default;
+  constexpr no_unique_address_emulation() noexcept = default;
   MDSPAN_INLINE_FUNCTION_DEFAULTED
-  constexpr __no_unique_address_emulation(
-      __no_unique_address_emulation const &) noexcept = default;
+  constexpr no_unique_address_emulation(
+      no_unique_address_emulation const &) noexcept = default;
   MDSPAN_INLINE_FUNCTION_DEFAULTED
-  constexpr __no_unique_address_emulation(
-      __no_unique_address_emulation &&) noexcept = default;
+  constexpr no_unique_address_emulation(
+      no_unique_address_emulation &&) noexcept = default;
   MDSPAN_INLINE_FUNCTION_DEFAULTED
-  MDSPAN_IMPL_CONSTEXPR_14_DEFAULTED __no_unique_address_emulation &
-  operator=(__no_unique_address_emulation const &) noexcept = default;
+  MDSPAN_IMPL_CONSTEXPR_14_DEFAULTED no_unique_address_emulation &
+  operator=(no_unique_address_emulation const &) noexcept = default;
   MDSPAN_INLINE_FUNCTION_DEFAULTED
-  MDSPAN_IMPL_CONSTEXPR_14_DEFAULTED __no_unique_address_emulation &
-  operator=(__no_unique_address_emulation &&) noexcept = default;
+  MDSPAN_IMPL_CONSTEXPR_14_DEFAULTED no_unique_address_emulation &
+  operator=(no_unique_address_emulation &&) noexcept = default;
   MDSPAN_INLINE_FUNCTION_DEFAULTED
-  ~__no_unique_address_emulation() noexcept = default;
+  ~no_unique_address_emulation() noexcept = default;
 
   // Explicitly make this not a reference so that the copy or move
   // constructor still gets called.
   MDSPAN_INLINE_FUNCTION
-  explicit constexpr __no_unique_address_emulation(_T const& __v) noexcept : _T(__v) {}
+  explicit constexpr no_unique_address_emulation(T const& v) noexcept : T(v) {}
   MDSPAN_INLINE_FUNCTION
-  explicit constexpr __no_unique_address_emulation(_T&& __v) noexcept : _T(::std::move(__v)) {}
+  explicit constexpr no_unique_address_emulation(T&& v) noexcept : T(::std::move(v)) {}
 };
 
 //==============================================================================

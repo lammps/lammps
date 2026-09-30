@@ -18,6 +18,7 @@
 #include "compute_fep.h"
 
 #include "atom.h"
+#include "atom_masks.h"
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
@@ -267,8 +268,9 @@ void ComputeFEP::compute_vector()
 {
   double pe0, pe1;
 
-  eflag = 1;
-  vflag = 0;
+  // flag that we only need to compute the global energy
+  int eflag = ENERGY_GLOBAL | ENERGY_ONLY;
+  int vflag = VIRIAL_NONE;
 
   invoked_vector = update->ntimestep;
 
@@ -366,6 +368,11 @@ void ComputeFEP::perturb_params()
     } else if (pert->which == ATOM) {
 
       if (pert->aparam == CHARGE) {    // modify charges
+
+        // written through the host pointers ahead of a KOKKOS force evaluation
+
+        atom->sync_host_arrays(Q_MASK | TYPE_MASK | MASK_MASK);
+
         int *atype = atom->type;
         double *q = atom->q;
         int *mask = atom->mask;
@@ -374,6 +381,8 @@ void ComputeFEP::perturb_params()
         for (i = 0; i < natom; i++)
           if (atype[i] >= pert->ilo && atype[i] <= pert->ihi)
             if (mask[i] & groupbit) q[i] += delta;
+
+        atom->modified_host_arrays(Q_MASK);
       }
     }
   }
@@ -473,9 +482,13 @@ void ComputeFEP::backup_qfev()
 {
   int i;
 
+  // sync the host copies, the arrays are read below through the host pointers
+
+  atom->sync_host_arrays(F_MASK | (chgflag ? Q_MASK : EMPTY_MASK));
+
   int nall = atom->nlocal + atom->nghost;
   int natom = atom->nlocal;
-  if (force->newton || force->kspace->tip4pflag) natom += atom->nghost;
+  if (force->newton || (force->kspace && force->kspace->tip4pflag)) natom += atom->nghost;
 
   double **f = atom->f;
   for (i = 0; i < natom; i++) {
@@ -548,9 +561,14 @@ void ComputeFEP::restore_qfev()
 {
   int i;
 
+  // written back through the host pointers, then handed to the device
+
+  const uint64_t qfev_mask = F_MASK | (chgflag ? Q_MASK : EMPTY_MASK);
+  atom->sync_host_arrays(qfev_mask);
+
   int nall = atom->nlocal + atom->nghost;
   int natom = atom->nlocal;
-  if (force->newton || force->kspace->tip4pflag) natom += atom->nghost;
+  if (force->newton || (force->kspace && force->kspace->tip4pflag)) natom += atom->nghost;
 
   double **f = atom->f;
   for (i = 0; i < natom; i++) {
@@ -615,4 +633,21 @@ void ComputeFEP::restore_qfev()
       }
     }
   }
+
+  atom->modified_host_arrays(qfev_mask);
+}
+
+/* ---------------------------------------------------------------------- */
+
+double ComputeFEP::memory_usage()
+{
+  double bytes = (double) nmax * 3 * sizeof(double);    // f_orig[nmax][3]
+  bytes += (double) nmax * sizeof(double);              // peatom_orig[nmax]
+  bytes += (double) nmax * 6 * sizeof(double);          // pvatom_orig[nmax][6]
+  if (q_orig) bytes += (double) nmax * sizeof(double);  // q_orig[nmax] (when chgflag)
+  if (keatom_orig) {
+    bytes += (double) nmax * sizeof(double);            // keatom_orig[nmax]
+    bytes += (double) nmax * 6 * sizeof(double);        // kvatom_orig[nmax][6]
+  }
+  return bytes;
 }

@@ -31,6 +31,7 @@ class PairHybridOverlay : public PairHybrid {
 
   void coeff(int, char **) override;
 
+ protected:
   void init_svector() override;
   void copy_svector(int, int) override;
 };

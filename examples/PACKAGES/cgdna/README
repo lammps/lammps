@@ -22,6 +22,7 @@ are sequence-averaged (cf. keyword 'seqav' in according pair styles).
 
 /examples/oxDNA/duplex2:
 /examples/oxDNA2/duplex2:
+/examples/oxDNA3/duplex2:
 
 Input, data and log files for a nicked DNA duplex (double-stranded DNA) 
 consisiting of 8 base pairs. The duplex contains strands with 
@@ -54,29 +55,29 @@ are sequence-dependent (cf. keyword 'seqdep' in according pair styles).
 
 /******************************************************************************/
 
-/examples/oxDNA2/unique_bp:
-
-This example uses atom types 1-8 to model a 13 base pair duplex.
-The nucleotide types are assigned as follows:
-A = 1,5; C = 2,6; G = 3,7; T = 4,8
-
-The topology is
-A   C   G   T   A   C   G   T   A   C   G   T   A
-1 - 2 - 3 - 4 - 5 - 6 - 7 - 8 - 1 - 2 - 7 - 8 - 1
-|   |   |   |   |   |   |   |   |   |   |   |   |
-4 - 3 - 2 - 1 - 8 - 7 - 6 - 5 - 4 - 3 - 6 - 5 - 4
-T   G   C   A   T   G   C   A   T   G   C   A   T
-
-With a large (32 or 64) number of atom types quasi-unique base pairing 
-between two individual nucleotides can be established.
-
-/******************************************************************************/
-
 /examples/oxDNA2/dsring:
 
 This example uses a dsDNA ring of 74 base pairs. The bonds which close the ring 
 are (in 3' to 5' direction) between nucleotide 74 and 1 and between nucleotide 
 148 and 75, respectively. 
+
+/******************************************************************************/
+
+/examples/oxDNA3/unique_bp:
+
+This example uses a dsDNA ring of 74 that contains only C-G base pairs. The 
+bonds which close the ring are (in 3' to 5' direction) between nucleotide 
+74 and 1 and between nucleotide 148 and 75, respectively.
+
+The unique base pairs are defined in such a way that no nucleotide is
+complementary to the one that is opposite of it in the initial configuration,
+but rather complementary to one nucleotide down in 5'-direction. For instance,
+nucleotides 1-148 2-147, ... , 73-76, 74-75 are opposite of each other, but the
+base pairs are defined as 1-75, 2-148, 3-147 ... 74-76.
+
+Thus, all base pairs are initially broken and anneal during a longer NVT run.  
+The associated test compares the average kinetic energy and the hydrogen bonding
+energy after annealing.
 
 /******************************************************************************/
 

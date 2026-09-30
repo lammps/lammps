@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_STRING_MANIPULATION_HPP
 #define KOKKOS_STRING_MANIPULATION_HPP
@@ -161,9 +148,10 @@ struct to_chars_result {
 template <class Integral>
 KOKKOS_FUNCTION constexpr to_chars_result to_chars_i(char *first, char *last,
                                                      Integral value) {
+  // NOLINTBEGIN(bugprone-invalid-enum-default-initialization)
   using Unsigned = std::conditional_t<sizeof(Integral) <= sizeof(unsigned int),
                                       unsigned int, unsigned long long>;
-  Unsigned unsigned_val = value;
+  Unsigned unsigned_val = value;  // NOLINT(bugprone-signed-char-misuse)
   if (value == 0) {
     *first = '0';
     return {first + 1, {}};
@@ -179,6 +167,7 @@ KOKKOS_FUNCTION constexpr to_chars_result to_chars_i(char *first, char *last,
   }
   to_chars_impl(first, len, unsigned_val);
   return {first + len, {}};
+  // NOLINTEND(bugprone-invalid-enum-default-initialization)
 }
 //</editor-fold>
 

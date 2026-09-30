@@ -1,7 +1,10 @@
 .. index:: fix propel/self
+.. index:: fix propel/self/kk
 
 fix propel/self command
 =======================
+
+Accelerator Variants: *propel/self/kk*
 
 Syntax
 """"""
@@ -47,9 +50,9 @@ is the magnitude of the force, and :math:`e_i` is the vector direction
 of the force. The specification of :math:`e_i` is based on which of the
 three keywords (*dipole* or *velocity* or *quat*) one selects.
 
-For mode *dipole*, :math:`e_i` is just equal to
-the dipole vectors of the atoms in the group. Therefore, if the dipoles
-are not unit vectors, the :math:`e_i` will not be unit vectors.
+For mode *dipole*, :math:`e_i` is just equal to the dipole vectors of
+the atoms in the group. Therefore, if the dipoles are not unit vectors,
+the :math:`e_i` will not be unit vectors.
 
 .. note::
 
@@ -126,17 +129,29 @@ in pressure computations.
 
 ----------
 
+.. include:: accel_styles.rst
+
+----------
+
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-No information about this fix is written to :doc:`binary restart files <restart>`.
+No information about this fix is written to :doc:`binary restart files
+<restart>`.
 
 The :doc:`fix_modify <fix_modify>` *virial* option is supported by this
 fix to add the contribution due to the added forces on atoms to the
 system's virial as part of :doc:`thermodynamic output <thermo_style>`.
-The default is *virial yes* for keywords *dipole* and *quat*. The
+The default is *virial yes* for keywords *dipole* and *quat*.  The
 default is *virial no* for keyword *velocity*.
 
+.. versionchanged:: 30Sep2026
+
+The :doc:`fix_modify <fix_modify>` *respa* option is supported by this
+fix.  This allows to set at which level of the :doc:`r-RESPA
+<run_style>` integrator the fix is adding its forces.  Default is the
+outermost level.  Previous versions applied the force only during the
+setup of a run with :doc:`run_style respa <run_style>`.
 
 No parameter of this fix can be used with the *start/stop* keywords of
 the :doc:`run <run>` command.
@@ -145,18 +160,20 @@ the :doc:`run <run>` command.
 Restrictions
 """"""""""""
 
-With keyword *dipole*, this fix only works when the DIPOLE package is enabled.
-See the :doc:`Build package <Build_package>` page for more info.
+This fix is part of the BROWNIAN package.  It is only enabled if LAMMPS
+was built with that package.  See the :doc:`Build package
+<Build_package>` doc page for more info.
 
-This fix is part of the BROWNIAN package.  It is only enabled if
-LAMMPS was built with that package.  See the :doc:`Build package <Build_package>`
-doc page for more info.
-
+With keyword *dipole*, this fix only works when the DIPOLE package is
+also enabled.  See the :doc:`Build package <Build_package>` page for
+more info.
 
 Related commands
 """"""""""""""""
 
-:doc:`fix efield <fix_efield>` , :doc:`fix setforce <fix_setforce>`,
+:doc:`fix align/self <fix_align_self>`,
+:doc:`fix efield <fix_efield>`,
+:doc:`fix setforce <fix_setforce>`,
 :doc:`fix addforce <fix_addforce>`
 
 Default

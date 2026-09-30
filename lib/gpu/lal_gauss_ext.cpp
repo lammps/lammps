@@ -18,6 +18,7 @@
 #include <cmath>
 
 #include "lal_gauss.h"
+#include "lammps_gpu.h"
 
 using namespace std;
 using namespace LAMMPS_AL;
@@ -27,6 +28,8 @@ static Gauss<PRECISION,ACC_PRECISION> GLMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
+
+namespace LAMMPS_GPU {
 int gauss_gpu_init(const int ntypes, double **cutsq, double **host_a,
                    double **host_b, double **offset, double *special_lj,
                    const int inum, const int nall, const int max_nbors,
@@ -34,7 +37,6 @@ int gauss_gpu_init(const int ntypes, double **cutsq, double **host_a,
                    const double cell_size, int &gpu_mode, FILE *screen) {
   GLMF.clear();
   gpu_mode=GLMF.device->gpu_mode();
-  double gpu_split=GLMF.device->particle_split();
   int first_gpu=GLMF.device->first_device();
   int last_gpu=GLMF.device->last_device();
   int world_me=GLMF.device->world_me();
@@ -56,7 +58,7 @@ int gauss_gpu_init(const int ntypes, double **cutsq, double **host_a,
   if (world_me==0)
     init_ok=GLMF.init(ntypes, cutsq, host_a, host_b,
                        offset, special_lj, inum, nall, max_nbors,
-                       maxspecial, cell_size, gpu_split, screen);
+                       maxspecial, cell_size, screen);
 
   GLMF.device->world_barrier();
   if (message)
@@ -74,7 +76,7 @@ int gauss_gpu_init(const int ntypes, double **cutsq, double **host_a,
     if (gpu_rank==i && world_me!=0)
       init_ok=GLMF.init(ntypes, cutsq, host_a, host_b,
                         offset, special_lj, inum, nall, max_nbors, maxspecial,
-                        cell_size, gpu_split, screen);
+                        cell_size, screen);
 
     GLMF.device->serialize_init();
     if (message)
@@ -114,29 +116,27 @@ void gauss_gpu_clear() {
   GLMF.clear();
 }
 
-int ** gauss_gpu_compute_n(const int ago, const int inum_full,
-                           const int nall, double **host_x, int *host_type,
-                           double *sublo, double *subhi, tagint *tag, int **nspecial,
-                           tagint **special, const bool eflag, const bool vflag,
-                           const bool eatom, const bool vatom, int &host_start,
-                           int **ilist, int **jnum, const double cpu_time,
-                           bool &success, double *prd, int *periodicity) {
+int **gauss_gpu_compute_n(const int ago, const int inum_full, const int nall, double **host_x,
+                          int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
+                          tagint **special, const bool eflag, const bool vflag, const bool eatom,
+                          const bool vatom, int **ilist, int **jnum, bool &success, double *prd,
+                          int *periodicity)
+{
   return GLMF.compute(ago, inum_full, nall, host_x, host_type, sublo,
                       subhi, tag, nspecial, special, eflag, vflag, eatom,
-                      vatom, host_start, ilist, jnum, cpu_time, success, prd, periodicity);
+                      vatom, ilist, jnum, success, prd, periodicity);
 }
 
 void gauss_gpu_compute(const int ago, const int inum_full, const int nall,
                        double **host_x, int *host_type, int *ilist, int *numj,
                        int **firstneigh, const bool eflag, const bool vflag,
-                       const bool eatom, const bool vatom, int &host_start,
-                       const double cpu_time, bool &success) {
+                       const bool eatom, const bool vatom, bool &success) {
   GLMF.compute(ago,inum_full,nall,host_x,host_type,ilist,numj,
-               firstneigh,eflag,vflag,eatom,vatom,host_start,cpu_time,success);
+               firstneigh,eflag,vflag,eatom,vatom,success);
 }
 
 double gauss_gpu_bytes() {
   return GLMF.host_memory_usage();
 }
 
-
+} // namespace LAMMPS_GPU

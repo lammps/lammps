@@ -54,7 +54,7 @@ static constexpr double SMALL = 1.0e-14;
 static constexpr double QSUMSMALL = 0.00001;
 
 static const char cite_fix_qeq_reaxff[] =
-  "fix qeq/reaxff command: doi:10.1016/j.parco.2011.08.005\n\n"
+  "fix qeq/reaxff command: https://doi.org/10.1016/j.parco.2011.08.005\n\n"
   "@Article{Aktulga12,\n"
   " author = {H. M. Aktulga and J. C. Fogarty and S. A. Pandit and A. Y. Grama},\n"
   " title = {Parallel Reactive Molecular Dynamics: {N}umerical Methods and Algorithmic Techniques},\n"
@@ -67,7 +67,9 @@ static const char cite_fix_qeq_reaxff[] =
 /* ---------------------------------------------------------------------- */
 
 FixQEqReaxFF::FixQEqReaxFF(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), matvecs(0), pertype_option(nullptr)
+    Fix(lmp, narg, arg), matvecs(0), list(nullptr), efield(nullptr), ilist(nullptr),
+    numneigh(nullptr), firstneigh(nullptr), chi(nullptr), eta(nullptr), gamma(nullptr),
+    pertype_option(nullptr)
 {
   scalar_flag = 1;
   extscalar = 0;
@@ -88,11 +90,16 @@ FixQEqReaxFF::FixQEqReaxFF(LAMMPS *lmp, int narg, char **arg) :
   // check for compatibility is in Fix::post_constructor()
 
   dual_enabled = 0;
+  matvecs_s = matvecs_t = 0;
+
+  // matrix-free support only available for Kokkos backend
+  matrix_free = 0; // default to false
 
   int iarg = 8;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"dual") == 0) dual_enabled = 1;
     else if (strcmp(arg[iarg],"nowarn") == 0) maxwarn = 0;
+    else if (strcmp(arg[iarg],"matfree") == 0) matrix_free = 1;
     else if (strcmp(arg[iarg],"maxiter") == 0) {
       if (iarg+1 > narg-1)
         error->all(FLERR, iarg, "Illegal fix {} command", style);
@@ -142,8 +149,12 @@ FixQEqReaxFF::FixQEqReaxFF(LAMMPS *lmp, int narg, char **arg) :
   // register with Atom class
 
   reaxff = dynamic_cast<PairReaxFF *>(force->pair_match("^reaxff",0));
+  reaxflag = 0;
+  nlevels_respa = 1;
 
   s_hist = t_hist = nullptr;
+  ilist = jlist = numneigh = nullptr;
+  firstneigh = nullptr;
   H.n = H.m = 0;
   H.firstnbr = H.numnbrs = H.jlist = nullptr;
   H.val = nullptr;

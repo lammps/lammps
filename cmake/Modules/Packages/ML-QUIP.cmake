@@ -49,8 +49,7 @@ if(DOWNLOAD_QUIP)
 
   message(STATUS "QUIP download via git requested - we will build our own")
   set(CMAKE_EP_GIT_REMOTE_UPDATE_STRATEGY CHECKOUT)
-  # QUIP has no releases. We use a tested specific commit from the "public" branch.
-  # This needs to be updated occasionally
+  # QUIP has no releases. We use a tested specific commit from the "public" branch. This needs to be updated occasionally
   # The LAMMPS interface wrapper has a compatibility constant that is being checked at runtime.
   include(ExternalProject)
   ExternalProject_Add(quip_build

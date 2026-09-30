@@ -38,7 +38,8 @@ static constexpr double SMALL = 0.001;
 
 /* ---------------------------------------------------------------------- */
 
-AngleQuartic::AngleQuartic(LAMMPS *lmp) : Angle(lmp)
+AngleQuartic::AngleQuartic(LAMMPS *lmp) :
+    Angle(lmp), k2(nullptr), k3(nullptr), k4(nullptr), theta0(nullptr)
 {
   born_matrix_enable = 1;
 }
@@ -47,6 +48,8 @@ AngleQuartic::AngleQuartic(LAMMPS *lmp) : Angle(lmp)
 
 AngleQuartic::~AngleQuartic()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(k2);

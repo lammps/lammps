@@ -20,8 +20,8 @@ FixStyle(setforce/kk/host,FixSetForceKokkos<LMPHostType>);
 #else
 
 // clang-format off
-#ifndef LMP_FIX_SET_FORCE_KOKKOS_H
-#define LMP_FIX_SET_FORCE_KOKKOS_H
+#ifndef LMP_FIX_SETFORCE_KOKKOS_H
+#define LMP_FIX_SETFORCE_KOKKOS_H
 
 #include "fix_setforce.h"
 #include "kokkos_type.h"
@@ -30,10 +30,12 @@ namespace LAMMPS_NS {
 
 struct s_double_3 {
   double d0, d1, d2;
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   s_double_3() {
     d0 = d1 = d2 = 0.0;
   }
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   s_double_3& operator+=(const s_double_3 &rhs) {
     d0 += rhs.d0;
@@ -52,27 +54,28 @@ template<class DeviceType>
 class FixSetForceKokkos : public FixSetForce {
  public:
   typedef DeviceType device_type;
-  typedef double_3 value_type;
   typedef ArrayTypes<DeviceType> AT;
+  typedef double_3 value_type;
 
   FixSetForceKokkos(class LAMMPS *, int, char **);
   ~FixSetForceKokkos() override;
   void init() override;
   void post_force(int) override;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagFixSetForceConstant, const int&, double_3&) const;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagFixSetForceNonConstant, const int&, double_3&) const;
 
  private:
-  DAT::tdual_ffloat_2d k_sforce;
-  typename AT::t_ffloat_2d_randomread d_sforce;
+  DAT::ttransform_kkfloat_2d k_sforce;
+  typename AT::t_kkfloat_2d_randomread d_sforce;
   typename AT::t_int_1d d_match;
 
-  typename AT::t_x_array_randomread x;
-  typename AT::t_f_array f;
+  typename AT::t_kkacc_1d_3 f;
   typename AT::t_int_1d_randomread mask;
 };
 

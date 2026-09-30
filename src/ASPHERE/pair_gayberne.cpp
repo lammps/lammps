@@ -30,12 +30,11 @@
 #include "neighbor.h"
 
 #include <cmath>
-#include <cstring>
 
 using namespace LAMMPS_NS;
 
 static const char cite_pair_gayberne[] =
-  "pair gayberne command: doi:10.1063/1.3058435\n\n"
+  "pair gayberne command: https://doi.org/10.1063/1.3058435\n\n"
   "@Article{Brown09,\n"
   " author =  {W. M. Brown and M. K. Petersen and S. J. Plimpton and G. S. Grest},\n"
   " title =   {Liquid Crystal Nanodroplets in Solution},\n"
@@ -46,19 +45,18 @@ static const char cite_pair_gayberne[] =
   " pages =   {044901}\n"
   "}\n\n";
 
-
-namespace {
-double DETM_EPSILON = 1.0e-14;
-}
-
 /* ---------------------------------------------------------------------- */
 
-PairGayBerne::PairGayBerne(LAMMPS *lmp) : Pair(lmp)
+PairGayBerne::PairGayBerne(LAMMPS *lmp) :
+    Pair(lmp), cut(nullptr), shape1(nullptr), shape2(nullptr), lshape(nullptr), well(nullptr),
+    epsilon(nullptr), sigma(nullptr), form(nullptr), lj1(nullptr), lj2(nullptr), lj3(nullptr),
+    lj4(nullptr), offset(nullptr), setwell(nullptr), avec(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_pair_gayberne);
 
-  single_enable = 0;
   writedata = 1;
+  single_extra = 6;
+  svector = new double[6];
 }
 
 /* ----------------------------------------------------------------------
@@ -67,6 +65,7 @@ PairGayBerne::PairGayBerne(LAMMPS *lmp) : Pair(lmp)
 
 PairGayBerne::~PairGayBerne()
 {
+  delete[] svector;
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
@@ -558,6 +557,97 @@ void PairGayBerne::write_data_all(FILE *fp)
 }
 
 /* ----------------------------------------------------------------------
+   compute energy and force between two atoms for use in pair_write, GCMC, etc.
+   returns energy; sets fforce = radial force component (dot of force with r12hat / r)
+   stores full 3D force vector in svector[0-2] and torque on atom i in svector[3-5]
+------------------------------------------------------------------------- */
+
+double PairGayBerne::single(int i, int j, int itype, int jtype, double rsq,
+                            double /*factor_coul*/, double factor_lj, double &fforce)
+{
+  double one_eng;
+  double fvec[3], ttor[3], rtor[3], r12[3];
+  double a1[3][3], b1[3][3], g1[3][3], a2[3][3], b2[3][3], g2[3][3], temp[3][3];
+  double *iquat, *jquat;
+
+  AtomVecEllipsoid::Bonus *bonus = avec->bonus;
+  int *ellipsoid = atom->ellipsoid;
+  double **x = atom->x;
+
+  r12[0] = x[j][0] - x[i][0];
+  r12[1] = x[j][1] - x[i][1];
+  r12[2] = x[j][2] - x[i][2];
+  ttor[0] = ttor[1] = ttor[2] = 0.0;
+
+  switch (form[itype][jtype]) {
+
+    case SPHERE_SPHERE: {
+      double r2inv = 1.0 / rsq;
+      double r6inv = r2inv * r2inv * r2inv;
+      double forcelj = r6inv * (lj1[itype][jtype] * r6inv - lj2[itype][jtype]);
+      fforce = factor_lj * forcelj * r2inv;
+      svector[0] = -fforce * r12[0];
+      svector[1] = -fforce * r12[1];
+      svector[2] = -fforce * r12[2];
+      svector[3] = svector[4] = svector[5] = 0.0;
+      one_eng = r6inv * (r6inv * lj3[itype][jtype] - lj4[itype][jtype]) - offset[itype][jtype];
+      return factor_lj * one_eng;
+    }
+
+    case SPHERE_ELLIPSE:
+      jquat = bonus[ellipsoid[j]].quat;
+      MathExtra::quat_to_mat_trans(jquat, a2);
+      MathExtra::diag_times3(well[jtype], a2, temp);
+      MathExtra::transpose_times3(a2, temp, b2);
+      MathExtra::diag_times3(shape2[jtype], a2, temp);
+      MathExtra::transpose_times3(a2, temp, g2);
+      one_eng = gayberne_lj(j, i, a2, b2, g2, r12, rsq, fvec, rtor);
+      break;
+
+    case ELLIPSE_SPHERE:
+      iquat = bonus[ellipsoid[i]].quat;
+      MathExtra::quat_to_mat_trans(iquat, a1);
+      MathExtra::diag_times3(well[itype], a1, temp);
+      MathExtra::transpose_times3(a1, temp, b1);
+      MathExtra::diag_times3(shape2[itype], a1, temp);
+      MathExtra::transpose_times3(a1, temp, g1);
+      one_eng = gayberne_lj(i, j, a1, b1, g1, r12, rsq, fvec, ttor);
+      break;
+
+    default:    // ELLIPSE_ELLIPSE
+      iquat = bonus[ellipsoid[i]].quat;
+      MathExtra::quat_to_mat_trans(iquat, a1);
+      MathExtra::diag_times3(well[itype], a1, temp);
+      MathExtra::transpose_times3(a1, temp, b1);
+      MathExtra::diag_times3(shape2[itype], a1, temp);
+      MathExtra::transpose_times3(a1, temp, g1);
+      jquat = bonus[ellipsoid[j]].quat;
+      MathExtra::quat_to_mat_trans(jquat, a2);
+      MathExtra::diag_times3(well[jtype], a2, temp);
+      MathExtra::transpose_times3(a2, temp, b2);
+      MathExtra::diag_times3(shape2[jtype], a2, temp);
+      MathExtra::transpose_times3(a2, temp, g2);
+      one_eng = gayberne_analytic(i, j, a1, a2, b1, b2, g1, g2, r12, rsq, fvec, ttor, rtor);
+      break;
+  }
+
+  // store full 3D force vector and torque on i in svector[0-5]
+
+  svector[0] = factor_lj * fvec[0];
+  svector[1] = factor_lj * fvec[1];
+  svector[2] = factor_lj * fvec[2];
+  svector[3] = factor_lj * ttor[0];
+  svector[4] = factor_lj * ttor[1];
+  svector[5] = factor_lj * ttor[2];
+
+  // project 3D force vector onto the center-center axis (r12 = x[j]-x[i])
+  // fforce is the scalar such that the radial force on i = fforce * (x[i]-x[j])
+
+  fforce = factor_lj * (-MathExtra::dot3(fvec, r12) / rsq);
+  return factor_lj * one_eng;
+}
+
+/* ----------------------------------------------------------------------
    compute analytic energy, force (fforce), and torque (ttor & rtor)
    based on rotation matrices a and precomputed matrices b and g
    if newton is off, rtor is not calculated for ghost atoms
@@ -897,64 +987,61 @@ double PairGayBerne::gayberne_lj(const int i,const int j,double a1[3][3],
 void PairGayBerne::compute_eta_torque(double m[3][3], double m2[3][3],
                                       double *s, double ans[3][3])
 {
-  double den = MathExtra::det3(m);
+  double den = m[1][0]*m[0][2]*m[2][1]-m[0][0]*m[1][2]*m[2][1]-
+    m[0][2]*m[2][0]*m[1][1]+m[0][1]*m[2][0]*m[1][2]-
+    m[1][0]*m[0][1]*m[2][2]+m[0][0]*m[1][1]*m[2][2];
 
-  if (fabs(den) < DETM_EPSILON)  {
-    memset(ans, 0, sizeof(double)*9);
-  } else {
+  ans[0][0] = s[0]*(m[1][2]*m[0][1]*m2[0][2]+2.0*m[1][1]*m[2][2]*m2[0][0]-
+                    m[1][1]*m2[0][2]*m[0][2]-2.0*m[1][2]*m2[0][0]*m[2][1]+
+                    m2[0][1]*m[0][2]*m[2][1]-m2[0][1]*m[0][1]*m[2][2]-
+                    m[1][0]*m[2][2]*m2[0][1]+m[2][0]*m[1][2]*m2[0][1]+
+                    m[1][0]*m2[0][2]*m[2][1]-m2[0][2]*m[2][0]*m[1][1])/den;
 
-    ans[0][0] = s[0]*(m[1][2]*m[0][1]*m2[0][2]+2.0*m[1][1]*m[2][2]*m2[0][0]-
-                      m[1][1]*m2[0][2]*m[0][2]-2.0*m[1][2]*m2[0][0]*m[2][1]+
-                      m2[0][1]*m[0][2]*m[2][1]-m2[0][1]*m[0][1]*m[2][2]-
-                      m[1][0]*m[2][2]*m2[0][1]+m[2][0]*m[1][2]*m2[0][1]+
-                      m[1][0]*m2[0][2]*m[2][1]-m2[0][2]*m[2][0]*m[1][1])/den;
+  ans[0][1] = s[0]*(m[0][2]*m2[0][0]*m[2][1]-m[2][2]*m2[0][0]*m[0][1]+
+                    2.0*m[0][0]*m[2][2]*m2[0][1]-m[0][0]*m2[0][2]*m[1][2]-
+                    2.0*m[2][0]*m[0][2]*m2[0][1]+m2[0][2]*m[1][0]*m[0][2]-
+                    m[2][2]*m[1][0]*m2[0][0]+m[2][0]*m2[0][0]*m[1][2]+
+                    m[2][0]*m2[0][2]*m[0][1]-m2[0][2]*m[0][0]*m[2][1])/den;
 
-    ans[0][1] = s[0]*(m[0][2]*m2[0][0]*m[2][1]-m[2][2]*m2[0][0]*m[0][1]+
-                      2.0*m[0][0]*m[2][2]*m2[0][1]-m[0][0]*m2[0][2]*m[1][2]-
-                      2.0*m[2][0]*m[0][2]*m2[0][1]+m2[0][2]*m[1][0]*m[0][2]-
-                      m[2][2]*m[1][0]*m2[0][0]+m[2][0]*m2[0][0]*m[1][2]+
-                      m[2][0]*m2[0][2]*m[0][1]-m2[0][2]*m[0][0]*m[2][1])/den;
+  ans[0][2] = s[0]*(m[0][1]*m[1][2]*m2[0][0]-m[0][2]*m2[0][0]*m[1][1]-
+                    m[0][0]*m[1][2]*m2[0][1]+m[1][0]*m[0][2]*m2[0][1]-
+                    m2[0][1]*m[0][0]*m[2][1]-m[2][0]*m[1][1]*m2[0][0]+
+                    2.0*m[1][1]*m[0][0]*m2[0][2]-2.0*m[1][0]*m2[0][2]*m[0][1]+
+                    m[1][0]*m[2][1]*m2[0][0]+m[2][0]*m2[0][1]*m[0][1])/den;
 
-    ans[0][2] = s[0]*(m[0][1]*m[1][2]*m2[0][0]-m[0][2]*m2[0][0]*m[1][1]-
-                      m[0][0]*m[1][2]*m2[0][1]+m[1][0]*m[0][2]*m2[0][1]-
-                      m2[0][1]*m[0][0]*m[2][1]-m[2][0]*m[1][1]*m2[0][0]+
-                      2.0*m[1][1]*m[0][0]*m2[0][2]-2.0*m[1][0]*m2[0][2]*m[0][1]+
-                      m[1][0]*m[2][1]*m2[0][0]+m[2][0]*m2[0][1]*m[0][1])/den;
+  ans[1][0] = s[1]*(-m[1][1]*m2[1][2]*m[0][2]+2.0*m[1][1]*m[2][2]*m2[1][0]+
+                    m[1][2]*m[0][1]*m2[1][2]-2.0*m[1][2]*m2[1][0]*m[2][1]+
+                    m2[1][1]*m[0][2]*m[2][1]-m2[1][1]*m[0][1]*m[2][2]-
+                    m[1][0]*m[2][2]*m2[1][1]+m[2][0]*m[1][2]*m2[1][1]-
+                    m2[1][2]*m[2][0]*m[1][1]+m[1][0]*m2[1][2]*m[2][1])/den;
 
-    ans[1][0] = s[1]*(-m[1][1]*m2[1][2]*m[0][2]+2.0*m[1][1]*m[2][2]*m2[1][0]+
-                      m[1][2]*m[0][1]*m2[1][2]-2.0*m[1][2]*m2[1][0]*m[2][1]+
-                      m2[1][1]*m[0][2]*m[2][1]-m2[1][1]*m[0][1]*m[2][2]-
-                      m[1][0]*m[2][2]*m2[1][1]+m[2][0]*m[1][2]*m2[1][1]-
-                      m2[1][2]*m[2][0]*m[1][1]+m[1][0]*m2[1][2]*m[2][1])/den;
+  ans[1][1] = s[1]*(m[0][2]*m2[1][0]*m[2][1]-m[0][1]*m[2][2]*m2[1][0]+
+                    2.0*m[2][2]*m[0][0]*m2[1][1]-m2[1][2]*m[0][0]*m[1][2]-
+                    2.0*m[2][0]*m2[1][1]*m[0][2]-m[1][0]*m[2][2]*m2[1][0]+
+                    m[2][0]*m[1][2]*m2[1][0]+m[1][0]*m2[1][2]*m[0][2]-
+                    m[0][0]*m2[1][2]*m[2][1]+m2[1][2]*m[0][1]*m[2][0])/den;
 
-    ans[1][1] = s[1]*(m[0][2]*m2[1][0]*m[2][1]-m[0][1]*m[2][2]*m2[1][0]+
-                      2.0*m[2][2]*m[0][0]*m2[1][1]-m2[1][2]*m[0][0]*m[1][2]-
-                      2.0*m[2][0]*m2[1][1]*m[0][2]-m[1][0]*m[2][2]*m2[1][0]+
-                      m[2][0]*m[1][2]*m2[1][0]+m[1][0]*m2[1][2]*m[0][2]-
-                      m[0][0]*m2[1][2]*m[2][1]+m2[1][2]*m[0][1]*m[2][0])/den;
+  ans[1][2] = s[1]*(m[0][1]*m[1][2]*m2[1][0]-m[0][2]*m2[1][0]*m[1][1]-
+                    m[0][0]*m[1][2]*m2[1][1]+m[1][0]*m[0][2]*m2[1][1]+
+                    2.0*m[1][1]*m[0][0]*m2[1][2]-m[0][0]*m2[1][1]*m[2][1]+
+                    m[0][1]*m[2][0]*m2[1][1]-m2[1][0]*m[2][0]*m[1][1]-
+                    2.0*m[1][0]*m[0][1]*m2[1][2]+m[1][0]*m2[1][0]*m[2][1])/den;
 
-    ans[1][2] = s[1]*(m[0][1]*m[1][2]*m2[1][0]-m[0][2]*m2[1][0]*m[1][1]-
-                      m[0][0]*m[1][2]*m2[1][1]+m[1][0]*m[0][2]*m2[1][1]+
-                      2.0*m[1][1]*m[0][0]*m2[1][2]-m[0][0]*m2[1][1]*m[2][1]+
-                      m[0][1]*m[2][0]*m2[1][1]-m2[1][0]*m[2][0]*m[1][1]-
-                      2.0*m[1][0]*m[0][1]*m2[1][2]+m[1][0]*m2[1][0]*m[2][1])/den;
+  ans[2][0] = s[2]*(-m[1][1]*m[0][2]*m2[2][2]+m[0][1]*m[1][2]*m2[2][2]+
+                    2.0*m[1][1]*m2[2][0]*m[2][2]-m[0][1]*m2[2][1]*m[2][2]+
+                    m[0][2]*m[2][1]*m2[2][1]-2.0*m2[2][0]*m[2][1]*m[1][2]-
+                    m[1][0]*m2[2][1]*m[2][2]+m[1][2]*m[2][0]*m2[2][1]-
+                    m[1][1]*m[2][0]*m2[2][2]+m[2][1]*m[1][0]*m2[2][2])/den;
 
-    ans[2][0] = s[2]*(-m[1][1]*m[0][2]*m2[2][2]+m[0][1]*m[1][2]*m2[2][2]+
-                      2.0*m[1][1]*m2[2][0]*m[2][2]-m[0][1]*m2[2][1]*m[2][2]+
-                      m[0][2]*m[2][1]*m2[2][1]-2.0*m2[2][0]*m[2][1]*m[1][2]-
-                      m[1][0]*m2[2][1]*m[2][2]+m[1][2]*m[2][0]*m2[2][1]-
-                      m[1][1]*m[2][0]*m2[2][2]+m[2][1]*m[1][0]*m2[2][2])/den;
+  ans[2][1] = s[2]*-(m[0][1]*m[2][2]*m2[2][0]-m[0][2]*m2[2][0]*m[2][1]-
+                     2.0*m2[2][1]*m[0][0]*m[2][2]+m[1][2]*m2[2][2]*m[0][0]+
+                     2.0*m2[2][1]*m[0][2]*m[2][0]+m[1][0]*m2[2][0]*m[2][2]-
+                     m[1][0]*m[0][2]*m2[2][2]-m[1][2]*m[2][0]*m2[2][0]+
+                     m[0][0]*m2[2][2]*m[2][1]-m2[2][2]*m[0][1]*m[2][0])/den;
 
-    ans[2][1] = s[2]*-(m[0][1]*m[2][2]*m2[2][0]-m[0][2]*m2[2][0]*m[2][1]-
-                       2.0*m2[2][1]*m[0][0]*m[2][2]+m[1][2]*m2[2][2]*m[0][0]+
-                       2.0*m2[2][1]*m[0][2]*m[2][0]+m[1][0]*m2[2][0]*m[2][2]-
-                       m[1][0]*m[0][2]*m2[2][2]-m[1][2]*m[2][0]*m2[2][0]+
-                       m[0][0]*m2[2][2]*m[2][1]-m2[2][2]*m[0][1]*m[2][0])/den;
-
-    ans[2][2] = s[2]*(m[0][1]*m[1][2]*m2[2][0]-m[0][2]*m2[2][0]*m[1][1]-
-                      m[0][0]*m[1][2]*m2[2][1]+m[1][0]*m[0][2]*m2[2][1]-
-                      m[1][1]*m[2][0]*m2[2][0]-m[2][1]*m2[2][1]*m[0][0]+
-                      2.0*m[1][1]*m2[2][2]*m[0][0]+m[2][1]*m[1][0]*m2[2][0]+
-                      m[2][0]*m[0][1]*m2[2][1]-2.0*m2[2][2]*m[1][0]*m[0][1])/den;
-  }
+  ans[2][2] = s[2]*(m[0][1]*m[1][2]*m2[2][0]-m[0][2]*m2[2][0]*m[1][1]-
+                    m[0][0]*m[1][2]*m2[2][1]+m[1][0]*m[0][2]*m2[2][1]-
+                    m[1][1]*m[2][0]*m2[2][0]-m[2][1]*m2[2][1]*m[0][0]+
+                    2.0*m[1][1]*m2[2][2]*m[0][0]+m[2][1]*m[1][0]*m2[2][0]+
+                    m[2][0]*m[0][1]*m2[2][1]-2.0*m2[2][2]*m[1][0]*m[0][1])/den;
 }

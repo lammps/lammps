@@ -37,7 +37,7 @@ using namespace FixConst;
 
 FixQEQCombOMP::FixQEQCombOMP(LAMMPS *lmp, int narg, char **arg) : FixQEQComb(lmp, narg, arg)
 {
-  if (narg < 5) error->all(FLERR, "Illegal fix qeq/comb/omp command");
+  if (narg < 5) utils::missing_cmd_args(FLERR, "fix qeq/comb/omp", error);
 }
 
 /* ---------------------------------------------------------------------- */

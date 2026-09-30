@@ -17,6 +17,7 @@
 #include "atom_kokkos.h"
 #include "atom_masks.h"
 #include "comm.h"
+#include "group.h"
 #include "kokkos.h"
 #include "memory_kokkos.h"
 #include "update.h"
@@ -63,14 +64,14 @@ NBinKokkos<DeviceType>::NBinKokkos(LAMMPS *lmp) : NBinStandard(lmp) {
 template<class DeviceType>
 void NBinKokkos<DeviceType>::bin_atoms_setup(int nall)
 {
-  if (mbins > (int)k_bins.d_view.extent(0)) {
+  if (mbins > (int)k_bins.view_device().extent(0)) {
     MemoryKokkos::realloc_kokkos(k_bins,"Neighbor::d_bins",mbins,atoms_per_bin);
     bins = k_bins.view<DeviceType>();
 
     MemoryKokkos::realloc_kokkos(k_bincount,"Neighbor::d_bincount",mbins);
     bincount = k_bincount.view<DeviceType>();
   }
-  if (nall > (int)k_atom2bin.d_view.extent(0)) {
+  if (nall > (int)k_atom2bin.view_device().extent(0)) {
     MemoryKokkos::realloc_kokkos(k_atom2bin,"Neighbor::d_atom2bin",nall);
     atom2bin = k_atom2bin.view<DeviceType>();
   }
@@ -84,6 +85,12 @@ template<class DeviceType>
 void NBinKokkos<DeviceType>::bin_atoms()
 {
   last_bin = update->ntimestep;
+
+  // an include group restricts which atoms go into the bins, see below
+
+  includegroup_bitmask = includegroup ? group->bitmask[includegroup] : 0;
+  includegroup_nfirst = atom->nfirst;
+  includegroup_nlocal = atom->nlocal;
 
   k_bins.template sync<DeviceType>();
   k_bincount.template sync<DeviceType>();
@@ -102,12 +109,19 @@ void NBinKokkos<DeviceType>::bin_atoms()
     atomKK->sync(ExecutionSpaceFromDevice<DeviceType>::space,X_MASK);
     x = atomKK->k_x.view<DeviceType>();
 
+    if (includegroup_bitmask) {
+      atomKK->sync(ExecutionSpaceFromDevice<DeviceType>::space,MASK_MASK);
+      mask = atomKK->k_mask.view<DeviceType>();
+    }
+
     bboxlo_[0] = bboxlo[0]; bboxlo_[1] = bboxlo[1]; bboxlo_[2] = bboxlo[2];
     bboxhi_[0] = bboxhi[0]; bboxhi_[1] = bboxhi[1]; bboxhi_[2] = bboxhi[2];
 
+    copymode = 1;
     NPairKokkosBinAtomsFunctor<DeviceType> f(*this);
 
     Kokkos::parallel_for(atom->nlocal+atom->nghost, f);
+    copymode = 0;
 
     Kokkos::deep_copy(h_resize, d_resize);
     if (h_resize()) {
@@ -152,12 +166,40 @@ void NBinKokkos<DeviceType>::bin_atoms()
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void NBinKokkos<DeviceType>::binatomsItem(const int &i) const
 {
-  const int ibin = coord2bin(x(i, 0), x(i, 1), x(i, 2));
+  // a non-numeric coordinate would produce a bogus bin index and the atomic
+  // update below would write out of bounds, so stop right here
+
+  if (!Kokkos::isfinite(x(i, 0)) || !Kokkos::isfinite(x(i, 1)) || !Kokkos::isfinite(x(i, 2)))
+    Kokkos::abort("Non-numeric positions - simulation unstable");
+
+  const int ibin = coord2bin(static_cast<double>(x(i, 0)), static_cast<double>(x(i, 1)), static_cast<double>(x(i, 2)));
+
+  // an atom that has left the region covered by the bins gets a bin index
+  // outside of the bin arrays and the atomic update below would write out of
+  // bounds.  this happens when atoms are lost or move too far between two
+  // neighbor list builds, so stop right here as well
+
+  if ((ibin < 0) || (ibin >= mbins))
+    Kokkos::abort("Atom outside of neighbor bin range - simulation unstable");
 
   atom2bin(i) = ibin;
+
+  // with an include group only the atoms the group's pairs are built from
+  // belong in the bins: the owned atoms of the group, which sorting has put
+  // first, and the ghosts that are in the group.  Binning the rest would put
+  // them in the neighbor lists of the group's atoms, which is what the plain
+  // NBinStandard::bin_atoms() leaves out.
+
+  if (includegroup_bitmask) {
+    if (i < includegroup_nlocal) {
+      if (i >= includegroup_nfirst) return;
+    } else if (!(mask(i) & includegroup_bitmask)) return;
+  }
+
   const int ac = Kokkos::atomic_fetch_add(&bincount[ibin], (int)1);
   if (ac < (int)bins.extent(1)) {
     bins(ibin, ac) = i;

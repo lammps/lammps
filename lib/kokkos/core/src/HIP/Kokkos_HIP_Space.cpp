@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
 #define KOKKOS_IMPL_PUBLIC_INCLUDE
@@ -20,6 +7,7 @@
 
 #include <Kokkos_Macros.hpp>
 
+#include <Kokkos_Macros.hpp>
 #include <Kokkos_Core.hpp>
 #include <HIP/Kokkos_HIP_Space.hpp>
 #include <HIP/Kokkos_HIP_IsXnack.hpp>
@@ -96,9 +84,7 @@ void* HIPSpace::impl_allocate(const int device_id,
                               const size_t arg_logical_size,
                               [[maybe_unused]] bool stream_sync_only) const {
   void* ptr = nullptr;
-  // ROCm 5.5 and earlier throw an error when using hipMallocAsync and
-  // arg_alloc_size is zero. Instead of trying to allocate memory, just return
-  // early.
+  // Instead of trying to allocate zero memory, return early.
   if (arg_alloc_size == 0) return ptr;
 
   KOKKOS_IMPL_HIP_SAFE_CALL(hipSetDevice(device_id));
@@ -256,8 +242,8 @@ void HIPSpace::impl_deallocate(
   }
 #ifdef KOKKOS_ENABLE_IMPL_HIP_MALLOC_ASYNC
   KOKKOS_IMPL_HIP_SAFE_CALL(hipSetDevice(m_device));
-  KOKKOS_IMPL_HIP_SAFE_CALL(hipFreeAsync(arg_alloc_ptr, m_stream));
   KOKKOS_IMPL_HIP_SAFE_CALL(hipDeviceSynchronize());
+  KOKKOS_IMPL_HIP_SAFE_CALL(hipFreeAsync(arg_alloc_ptr, m_stream));
 #else
   KOKKOS_IMPL_HIP_SAFE_CALL(hipSetDevice(m_device));
   KOKKOS_IMPL_HIP_SAFE_CALL(hipFree(arg_alloc_ptr));

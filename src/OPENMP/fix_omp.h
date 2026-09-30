@@ -58,11 +58,11 @@ class FixOMP : public Fix {
 
  public:
   ThrData *get_thr(int tid) { return thr[tid]; }
-  int get_nthr() const { return _nthr; }
+  [[nodiscard]] int get_nthr() const { return _nthr; }
 
-  bool get_neighbor() const { return _neighbor; }
-  bool get_mixed() const { return _mixed; }
-  bool get_reduced() const { return _reduced; }
+  [[nodiscard]] bool get_neighbor() const { return _neighbor; }
+  [[nodiscard]] bool get_mixed() const { return _mixed; }
+  [[nodiscard]] bool get_reduced() const { return _reduced; }
 
  private:
   int _nthr;                    // number of currently active ThrData objects

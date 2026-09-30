@@ -74,7 +74,8 @@ class PairPACEAPIP : public Pair {
   virtual double compute_factor_lambda(double);
   virtual int check_abort_condition(double *, double *, int *, int);
 
-  bool lambda_thermostat;    // true/false there is one/no fix lambda_thermostat
+  bool lambda_thermostat;    // true/false there is one/no fix lambda_thermostat/apip
+  bool lambda_la;            // true/false there is one/no fix lambda/la/apip
 
   void calculate_time_per_atom();
 

@@ -23,8 +23,8 @@ using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 
-FixNVEBody::FixNVEBody(LAMMPS *lmp, int narg, char **arg) :
-  FixNVE(lmp, narg, arg) {}
+FixNVEBody::FixNVEBody(LAMMPS *lmp, int narg, char **arg) : FixNVE(lmp, narg, arg), avec(nullptr)
+{}
 
 /* ---------------------------------------------------------------------- */
 

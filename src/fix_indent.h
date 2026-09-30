@@ -38,6 +38,8 @@ class FixIndent : public Fix {
   double compute_scalar() override;
   double compute_vector(int) override;
 
+  int image(int *&, double **&) override;
+
  private:
   int istyle, scaleflag, side;
   double k, k3;
@@ -52,6 +54,11 @@ class FixIndent : public Fix {
   char *rlostr, *rhistr, *lostr, *histr;
   int rlovar, rhivar, lovar, hivar;
   double rlovalue, rhivalue, lovalue, hivalue;
+
+  // arrays for dump image rendering
+
+  int *imgobjs;
+  double **imgparms;
 
   // methods for argument parsing
 

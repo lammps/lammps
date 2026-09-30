@@ -31,7 +31,7 @@
 using namespace LAMMPS_NS;
 
 static const char cite_relres[] =
-  "Pair style lj/relres: doi:10.1021/acs.jctc.0c01003, doi:10.1021/acs.jctc.0c01003\n\n"
+  "Pair style lj/relres: https://doi.org/10.1021/acs.jctc.0c01003, https://doi.org/10.1021/acs.jctc.0c01003\n\n"
   "@Article{Chaimovich1,\n"
   " author = {A. Chaimovich, C. Peter, K. Kremer},\n"
   " title = {Relative Resolution: {A} Hybrid Formalism for Fluid Mixtures},\n"
@@ -50,7 +50,14 @@ static const char cite_relres[] =
 
 /* ---------------------------------------------------------------------- */
 
-PairLJRelRes::PairLJRelRes(LAMMPS *lmp) : Pair(lmp)
+PairLJRelRes::PairLJRelRes(LAMMPS *lmp) :
+    Pair(lmp), cut(nullptr), cut_inner(nullptr), cut_inner_sq(nullptr), cutf(nullptr),
+    cutfsq(nullptr), cutf_inner(nullptr), cutf_inner_sq(nullptr), epsilon(nullptr), sigma(nullptr),
+    epsilonf(nullptr), sigmaf(nullptr), lj1(nullptr), lj2(nullptr), lj3(nullptr), lj4(nullptr),
+    ljf1(nullptr), ljf2(nullptr), ljf3(nullptr), ljf4(nullptr), ljsw0(nullptr), ljsw1(nullptr),
+    ljsw2(nullptr), ljsw3(nullptr), ljsw4(nullptr), ljswf0(nullptr), ljswf1(nullptr),
+    ljswf2(nullptr), ljswf3(nullptr), ljswf4(nullptr), offset(nullptr), offsetsp(nullptr),
+    offsetsm(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_relres);
   writedata = 1;
@@ -60,6 +67,8 @@ PairLJRelRes::PairLJRelRes(LAMMPS *lmp) : Pair(lmp)
 
 PairLJRelRes::~PairLJRelRes()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);

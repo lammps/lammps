@@ -34,7 +34,7 @@ the rest the build process will attempt to download and install them into
 a python virtual environment and local folders.
 
 A current version of the manual (latest feature release, that is the state
-of the *release* branch) is is available online at:
+of the *release* branch) is available online at:
 `https://docs.lammps.org/ <https://docs.lammps.org/>`_.
 A version of the manual corresponding to the ongoing development (that is
 the state of the *develop* branch) is available online at:
@@ -87,11 +87,13 @@ folder.  The following ``make`` commands are available:
    make clean-all     # remove entire build folder and any cached data
    make upgrade       # upgrade the python packages in the virtual environment
 
+   make check         # run all checks listed in this block
    make anchor_check  # check for duplicate anchor labels
    make style_check   # check for complete and consistent style lists
    make package_check # check for complete and consistent package lists
    make char_check    # check for non-ASCII characters
    make role_check    # check for misformatted role keywords
+   make example_check # check for broken or missing links to examples
 
    make link_check    # check for broken external URLs
    make spelling      # spell-check the manual
@@ -122,7 +124,7 @@ environment variable.
 Prerequisites for HTML
 ----------------------
 
-To run the HTML documentation build toolchain, Python 3.8 or later, git,
+To run the HTML documentation build tool chain, Python 3.8 or later, git,
 doxygen, and virtualenv have to be installed locally.  Here are
 instructions for common setups:
 
@@ -304,6 +306,11 @@ be multiple tests run automatically:
      Pair style entry new is missing or incomplete in pair_style.rst
      Found 6 issue(s) with style lists
 
+- A test if references to files or folders in the examples tree have
+  become broken or are too deeply nested.  The test will examine the git
+  history to detect possible renames.
+
+------
 
 In addition, there is the option to run a spellcheck on the entire
 manual with ``make spelling``.  This requires `a library called enchant

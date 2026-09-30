@@ -30,8 +30,6 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-enum { NONE, CONSTANT, EQUAL, ATOM };
-
 /* ---------------------------------------------------------------------- */
 
 FixAddForce::FixAddForce(LAMMPS *lmp, int narg, char **arg) :
@@ -51,6 +49,10 @@ FixAddForce::FixAddForce(LAMMPS *lmp, int narg, char **arg) :
   virial_global_flag = virial_peratom_flag = 1;
   respa_level_support = 1;
   ilevel_respa = 0;
+
+  xstyle = ystyle = zstyle = NONE;
+  xvar = yvar = zvar = -1;
+  varflag = NONE;
 
   if (utils::strmatch(arg[3], "^v_")) {
     xstr = utils::strdup(arg[3] + 2);
@@ -105,17 +107,13 @@ FixAddForce::FixAddForce(LAMMPS *lmp, int narg, char **arg) :
 
   maxatom = 1;
   memory->create(sforce, maxatom, 4, "addforce:sforce");
-
-  // KOKKOS package
-
-  datamask_read = X_MASK | F_MASK | MASK_MASK | IMAGE_MASK;
-  datamask_modify = F_MASK;
 }
 
 /* ---------------------------------------------------------------------- */
 
 FixAddForce::~FixAddForce()
 {
+  if (copymode) return;
   delete[] xstr;
   delete[] ystr;
   delete[] zstr;

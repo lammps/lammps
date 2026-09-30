@@ -28,7 +28,7 @@ using namespace LAMMPS_NS;
 ComputeTempCOM::ComputeTempCOM(LAMMPS *lmp, int narg, char **arg) :
   Compute(lmp, narg, arg)
 {
-  if (narg != 3) error->all(FLERR,"Illegal compute temp command");
+  if (narg != 3) error->all(FLERR, "Compute temp/com command requires exactly 3 arguments");
 
   scalar_flag = vector_flag = 1;
   size_vector = 6;
@@ -44,7 +44,8 @@ ComputeTempCOM::ComputeTempCOM(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeTempCOM::~ComputeTempCOM()
 {
-  delete [] vector;
+  if (!copymode)
+    delete [] vector;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -68,10 +69,10 @@ void ComputeTempCOM::setup()
 void ComputeTempCOM::dof_compute()
 {
   adjust_dof_fix();
-  natoms_temp = group->count(igroup);
+  natoms_temp = (double)group->count(igroup);
   dof = domain->dimension * natoms_temp;
   dof -= extra_dof + fix_dof;
-  if (dof > 0) tfactor = force->mvv2e / (dof * force->boltz);
+  if (dof > 0.0) tfactor = force->mvv2e / (dof * force->boltz);
   else tfactor = 0.0;
 }
 
@@ -109,8 +110,8 @@ double ComputeTempCOM::compute_scalar()
 
   MPI_Allreduce(&t,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
   if (dynamic) dof_compute();
-  if (dof < 0.0 && natoms_temp > 0.0)
-    error->all(FLERR,"Temperature compute degrees of freedom < 0");
+  if ((dof < 0.0) && (natoms_temp > 0.0))
+    error->all(FLERR, Error::NOLASTLINE, "Temperature compute {} degrees of freedom < 0", id);
   scalar *= tfactor;
   return scalar;
 }

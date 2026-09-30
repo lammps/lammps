@@ -45,7 +45,7 @@ class PairBuckMDF : public Pair {
   double **a, **rho, **c;
   double **rhoinv, **buck1, **buck2, **offset;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }    // namespace LAMMPS_NS

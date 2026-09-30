@@ -128,7 +128,7 @@ FixRHEOThermal::FixRHEOThermal(LAMMPS *lmp, int narg, char **arg) :
           utils::missing_cmd_args(FLERR, "fix rheo/thermal specific/heat constant", error);
 
         double cv_one = utils::numeric(FLERR, arg[iarg + 3], false, lmp);
-        if (cv_one < 0.0) error->all(FLERR, "The specific heat must be positive");
+        if (cv_one <= 0.0) error->all(FLERR, "The specific heat must be greater than zero");
         iarg += 2;
 
         for (i = nlo; i <= nhi; i++) {
@@ -249,7 +249,7 @@ int FixRHEOThermal::setmask()
 void FixRHEOThermal::init()
 {
   auto fixes = modify->get_fix_by_style("^rheo$");
-  if (fixes.size() == 0) error->all(FLERR, "Need to define fix rheo to use fix rheo/thermal");
+  if (fixes.empty()) error->all(FLERR, "Need to define fix rheo to use fix rheo/thermal");
   fix_rheo = dynamic_cast<FixRHEO *>(fixes[0]);
   cut_kernel = fix_rheo->cut;
 
@@ -282,7 +282,7 @@ void FixRHEOThermal::init()
     if (force->special_lj[0] != 1.0 || force->special_lj[1] != 1.0 || force->special_lj[2] != 1.0 ||
         force->special_lj[3] != 1.0) {
       auto fixes = modify->get_fix_by_style("UPDATE_SPECIAL_BONDS");
-      if (fixes.size() == 0)
+      if (fixes.empty())
         error->all(FLERR,
                    "Without fix update/special/bonds, reactive bond generation in fix rheo/thermal "
                    "requires special weights of 1.0");
@@ -294,7 +294,8 @@ void FixRHEOThermal::init()
 
     // need a half neighbor list, built only when particles freeze
     auto *req = neighbor->add_request(this, NeighConst::REQ_OCCASIONAL);
-    req->set_cutoff(cut_kernel);
+
+    req->set_cutoff_fixed(cut_kernel);
 
     // find instances of bond history to delete/shift data
     histories = modify->get_fix_by_style("BOND_HISTORY");

@@ -1,0 +1,58 @@
+# 3d rounded cubes and tetragonal pyramids
+
+variable    r     index 4
+variable    steps index 10050
+variable    out   index 100  # graphics output every this many steps
+
+units       lj
+dimension   3
+boundary p p p
+
+atom_style  body rounded/polyhedron 1 10
+read_data   data.cubes-and-pyramids extra/atom/types 2
+
+# data file consists of one cube "atom" and one pyramid "atom"
+# the cube is atom type 1 the pyramid atom type 2
+# add two atom types so we can set colors for the progress bar
+
+replicate   $r $r $r
+
+velocity    all create 1.2 187287 dist gaussian mom yes rot yes
+
+variable cut_inner  equal 0.5
+variable k_n        equal 100
+variable k_na       equal 1
+variable c_n        equal 20
+variable c_t        equal 5
+variable mu         equal 0
+variable A_ua       equal 1
+
+pair_style body/rounded/polyhedron ${c_n} ${c_t} ${mu} ${A_ua} ${cut_inner}
+pair_coeff * * ${k_n} ${k_na}
+
+comm_modify vel yes
+
+neighbor     0.5 bin
+neigh_modify every 1 delay 0 check yes
+
+timestep     0.001
+
+fix          1 all npt/body temp 1.2 1.2 0.1 iso 0.02 0.05 1.0
+compute      p2 all pressure 1_temp
+thermo_style custom step ke pe etotal c_p2 c_1_temp
+thermo       1000
+
+variable progress equal step/v_steps
+fix pbar all graphics/objects ${out} progbar 3 4 y 24.0 12.0 -1.4 30.0 0.5 v_progress 10
+
+dump         2 all image ${out} cubes-and-pyramids.*.ppm type type size 600 600 shiny 0.4 &
+                         box yes 0.025 axes no 0.5 0.1 zoom 1.5 view 80 0 fsaa yes ssao yes 315123 0.4 &
+                         body atom 0.2 3 fix pbar type 0 0
+#            set cylinder diameter--^  ^-- set viz style (1 only faces, 2 cylinders, 3 both)
+dump_modify  2 pad 6 backcolor darkgray backcolor2 gray boxcolor white &
+                     acolor 1 steelblue acolor 2 orange  acolor 3 slategray  acolor 4 red
+#                                                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#                                                        || colors for progress bar ||
+
+run          ${steps}
+

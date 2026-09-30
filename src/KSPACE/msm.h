@@ -81,8 +81,8 @@ class MSM : public KSpace {
   int myloc[3];               // which proc I am in each dim
   int ***procneigh_levels;    // my 6 neighboring procs, 0/1 = left/right
 
-  class Grid3d *gcall;        // GridComm class for finest level grid
-  class Grid3d **gc;          // GridComm classes for each hierarchical level
+  class Grid3d *gcall;    // GridComm class for finest level grid
+  class Grid3d **gc;      // GridComm classes for each hierarchical level
 
   double *gcall_buf1, *gcall_buf2;
   double **gc_buf1, **gc_buf2;
@@ -97,10 +97,18 @@ class MSM : public KSpace {
   int triclinic;
   double *boxlo;
 
+ public:
+  // grid management and communication
+  void reset_grid() override;
+  void pack_forward_grid(int, void *, int, int *) override;
+  void unpack_forward_grid(int, void *, int, int *) override;
+  void pack_reverse_grid(int, void *, int, int *) override;
+  void unpack_reverse_grid(int, void *, int, int *) override;
+
+ protected:
   void set_grid_global();
   void set_proc_grid(int);
   void set_grid_local();
-  void reset_grid() override;
   double estimate_1d_error(double, double);
   double estimate_3d_error();
   double estimate_total_error();
@@ -131,15 +139,7 @@ class MSM : public KSpace {
   void get_virial_direct();
   void get_g_direct_top(int);
   void get_virial_direct_top(int);
-
-  // grid communication
-
-  void pack_forward_grid(int, void *, int, int *) override;
-  void unpack_forward_grid(int, void *, int, int *) override;
-  void pack_reverse_grid(int, void *, int, int *) override;
-  void unpack_reverse_grid(int, void *, int, int *) override;
 };
-
 }    // namespace LAMMPS_NS
 
 #endif

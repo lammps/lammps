@@ -29,6 +29,11 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ThrData::ThrData(int tid, Timer *t) :
+    eng_vdwl(0.0), eng_coul(0.0), eng_bond(0.0), eng_angle(0.0), eng_dihed(0.0),
+    eng_imprp(0.0), eng_kspce(0.0),
+    eatom_pair(nullptr), eatom_bond(nullptr), eatom_angle(nullptr), eatom_dihed(nullptr),
+    eatom_imprp(nullptr), eatom_kspce(nullptr), vatom_pair(nullptr), vatom_bond(nullptr), vatom_angle(nullptr), vatom_dihed(nullptr),
+    vatom_imprp(nullptr), vatom_kspce(nullptr), cvatom_pair(nullptr), cvatom_angle(nullptr), cvatom_dihed(nullptr), cvatom_imprp(nullptr),
     _f(nullptr), _torque(nullptr), _erforce(nullptr), _de(nullptr), _drho(nullptr), _mu(nullptr),
     _lambda(nullptr), _rhoB(nullptr), _D_values(nullptr), _rho(nullptr), _fp(nullptr),
     _rho1d(nullptr), _drho1d(nullptr), _rho1d_6(nullptr), _drho1d_6(nullptr), _tid(tid), _timer(t)
@@ -81,6 +86,7 @@ void ThrData::init_force(int nall, double **f, double **torque, double *erforce,
 
   eatom_pair = eatom_bond = eatom_angle = eatom_dihed = eatom_imprp = eatom_kspce = nullptr;
   vatom_pair = vatom_bond = vatom_angle = vatom_dihed = vatom_imprp = vatom_kspce = nullptr;
+  cvatom_pair = cvatom_angle = cvatom_dihed = cvatom_imprp = nullptr;
 
   if (nall >= 0 && f) {
     _f = f + _tid * nall;

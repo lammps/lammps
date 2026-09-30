@@ -19,6 +19,10 @@
 #include "remap_kokkos.h"
 #include "fftdata_kokkos.h"
 
+#if defined(FFT_KOKKOS_KISS)
+#include "kissfft_kokkos.h"
+#endif
+
 namespace LAMMPS_NS {
 
 #if defined(FFT_KOKKOS_MKL_GPU)
@@ -36,6 +40,7 @@ namespace LAMMPS_NS {
 template<class DeviceType>
 struct fft_plan_3d_kokkos {
   typedef DeviceType device_type;
+  typedef ArrayTypes<DeviceType> AT;
   typedef FFTArrayTypes<DeviceType> FFT_AT;
 
   struct remap_plan_3d_kokkos<DeviceType> *pre_plan;       // remap from input -> 1st FFTs
@@ -91,11 +96,12 @@ class FFT3dKokkos : protected Pointers {
  public:
   enum{FORWARD=1,BACKWARD=-1};
   typedef DeviceType device_type;
+  typedef ArrayTypes<DeviceType> AT;
   typedef FFTArrayTypes<DeviceType> FFT_AT;
 
   FFT3dKokkos(class LAMMPS *, MPI_Comm,
         int,int,int,int,int,int,int,int,int,int,int,int,int,int,int,
-        int,int,int *,int,int);
+        int,int,int *,int,int,int);
   ~FFT3dKokkos() override;
   void compute(typename FFT_AT::t_FFT_SCALAR_1d, typename FFT_AT::t_FFT_SCALAR_1d, int);
   void timing1d(typename FFT_AT::t_FFT_SCALAR_1d, int, int);
@@ -113,7 +119,7 @@ class FFT3dKokkos : protected Pointers {
   struct fft_plan_3d_kokkos<DeviceType> *fft_3d_create_plan_kokkos(MPI_Comm, int, int, int,
                                          int, int, int, int, int,
                                          int, int, int, int, int, int, int,
-                                         int, int, int *, int, int, int);
+                                         int, int, int *, int, int, int, int);
 
   void fft_3d_destroy_plan_kokkos(struct fft_plan_3d_kokkos<DeviceType> *);
 

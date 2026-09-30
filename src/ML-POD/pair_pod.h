@@ -46,8 +46,8 @@ class PairPOD : public Pair {
   void tallyenergy(double *ei, int istart, int Ni);
   void tallystress(double *fij, double *rij, int *ai, int *aj, int nlocal, int N);
   void tallyforce(double **force, double *fij, int *ai, int *aj, int N);
-  void divideInterval(int *intervals, int N, int M);
-  int calculateNumberOfIntervals(int N, int intervalSize);
+  virtual void divideInterval(int *intervals, int N, int M);
+  virtual int calculateNumberOfIntervals(int N, int intervalSize);
   int numberOfNeighbors();
 
   void copy_data_from_pod_class();
@@ -87,15 +87,15 @@ class PairPOD : public Pair {
   void fourbody_forcecoeff(double *fb4, double *cb4, int Ni);
   void allbody_forces(double *fij, double *forcecoeff, int Nij);
 
-  void savematrix2binfile(std::string filename, double *A, int nrows, int ncols);
-  void saveintmatrix2binfile(std::string filename, int *A, int nrows, int ncols);
+  void savematrix2binfile(const std::string &filename, double *A, int nrows, int ncols);
+  void saveintmatrix2binfile(const std::string &filename, int *A, int nrows, int ncols);
   void savedatafordebugging();
 
  protected:
   class EAPOD *fastpodptr;
   virtual void allocate();
-  void grow_atoms(int Ni);
-  void grow_pairs(int Nij);
+  virtual void grow_atoms(int Ni);
+  virtual void grow_pairs(int Nij);
 
   int atomBlockSize;      // size of each atom block
   int nAtomBlocks;        // number of atoms blocks

@@ -29,6 +29,8 @@ class PPPMDielectric : public PPPM {
   PPPMDielectric(class LAMMPS *);
   ~PPPMDielectric() override;
   void compute(int, int) override;
+  void qsum_qsq(int warning_flag = 1) override;
+  double memory_usage() override;
 
   double **efield;
 
@@ -37,7 +39,6 @@ class PPPMDielectric : public PPPM {
   void make_rho() override;
   void fieldforce_ik() override;
   void fieldforce_ad() override;
-  void qsum_qsq(int warning_flag = 1) override;
 
   class AtomVecDielectric *avec;
   bool use_qscaled;

@@ -48,8 +48,8 @@ struct ArithmeticPathImpl: public ArithmeticPathCV::ArithmeticPathBase<cvm::real
             }
         }
     }
-    ArithmeticPathImpl(size_t p_num_elements, size_t p_total_frames, cvm::real p_lambda, const std::vector<cvm::real>& p_weights) {
-        ArithmeticPathCV::ArithmeticPathBase<cvm::real>::initialize(p_num_elements, p_total_frames, p_lambda, p_weights);
+    ArithmeticPathImpl(size_t p_num_elements, size_t p_total_frames, cvm::real p_lambda, const std::vector<cvm::real>& p_weights, colvarmodule *cvmodule_in) {
+        ArithmeticPathCV::ArithmeticPathBase<cvm::real>::initialize(p_num_elements, p_total_frames, p_lambda, p_weights, cvmodule_in);
         frame_element_distances.resize(p_total_frames, std::vector<colvarvalue>(p_num_elements, colvarvalue(colvarvalue::Type::type_notset)));
         dsdx.resize(p_total_frames, std::vector<colvarvalue>(p_num_elements, colvarvalue(colvarvalue::Type::type_notset)));
         dzdx.resize(p_total_frames, std::vector<colvarvalue>(p_num_elements, colvarvalue(colvarvalue::Type::type_notset)));
@@ -145,15 +145,15 @@ int colvar::aspath::init(std::string const &conf)
 {
     int error_code = CartesianBasedPath::init(conf);
     if (error_code != COLVARS_OK) return error_code;
-    cvm::log(std::string("Total number of frames: ") + cvm::to_str(total_reference_frames) + std::string("\n"));
+    cvmodule->log(std::string("Total number of frames: ") + cvm::to_str(total_reference_frames) + std::string("\n"));
     cvm::real p_lambda;
     get_keyval(conf, "lambda", p_lambda, -1.0);
     const size_t num_atoms = atoms->size();
-    std::vector<cvm::real> p_weights(num_atoms, std::sqrt(1.0 / num_atoms));
+    std::vector<cvm::real> p_weights(num_atoms, cvm::sqrt(1.0 / num_atoms));
     // ArithmeticPathCV::ArithmeticPathBase<cvm::atom_pos, cvm::real, ArithmeticPathCV::path_sz::S>::initialize(num_atoms, total_reference_frames, p_lambda, reference_frames[0], p_weights);
     if (impl_) impl_.reset();
-    impl_ = std::unique_ptr<ArithmeticPathImpl>(new ArithmeticPathImpl(num_atoms, total_reference_frames, p_lambda, p_weights));
-    cvm::log(std::string("Lambda is ") + cvm::to_str(impl_->get_lambda()) + std::string("\n"));
+    impl_ = std::unique_ptr<ArithmeticPathImpl>(new ArithmeticPathImpl(num_atoms, total_reference_frames, p_lambda, p_weights, cvmodule));
+    cvmodule->log(std::string("Lambda is ") + cvm::to_str(impl_->get_lambda()) + std::string("\n"));
     return error_code;
 }
 
@@ -163,12 +163,12 @@ void colvar::aspath::calc_value() {
     if (impl_->get_lambda() < 0) {
         // this implies that the user may not set a valid lambda value
         // so recompute it by the suggested value in Parrinello's paper
-        cvm::log("A non-positive value of lambda is detected, which implies that it may not set in the configuration.\n");
-        cvm::log("This component (aspath) will recompute a value for lambda following the suggestion in the origin paper.\n");
+        cvmodule->log("A non-positive value of lambda is detected, which implies that it may not set in the configuration.\n");
+        cvmodule->log("This component (aspath) will recompute a value for lambda following the suggestion in the origin paper.\n");
         std::vector<cvm::real> rmsd_between_refs(total_reference_frames - 1, 0.0);
         computeDistanceBetweenReferenceFrames(rmsd_between_refs);
         impl_->reComputeLambda(rmsd_between_refs);
-        cvm::log("Ok, the value of lambda is updated to " + cvm::to_str(impl_->get_lambda()));
+        cvmodule->log("Ok, the value of lambda is updated to " + cvm::to_str(impl_->get_lambda()));
     }
     impl_->updateCartesianDistanceToReferenceFrames(this);
     x = impl_->compute_s();
@@ -178,7 +178,9 @@ void colvar::aspath::calc_gradients() {
     impl_->compute_s_derivatives();
     for (size_t i_frame = 0; i_frame < reference_frames.size(); ++i_frame) {
         for (size_t i_atom = 0; i_atom < atoms->size(); ++i_atom) {
-            (*(comp_atoms[i_frame]))[i_atom].grad += impl_->dsdx[i_frame][i_atom];
+            comp_atoms[i_frame]->grad_x(i_atom) += impl_->dsdx[i_frame][i_atom][0];
+            comp_atoms[i_frame]->grad_y(i_atom) += impl_->dsdx[i_frame][i_atom][1];
+            comp_atoms[i_frame]->grad_z(i_atom) += impl_->dsdx[i_frame][i_atom][2];
         }
     }
 }
@@ -200,15 +202,15 @@ int colvar::azpath::init(std::string const &conf)
 {
     int error_code = CartesianBasedPath::init(conf);
     if (error_code != COLVARS_OK) return error_code;
-    cvm::log(std::string("Total number of frames: ") + cvm::to_str(total_reference_frames) + std::string("\n"));
+    cvmodule->log(std::string("Total number of frames: ") + cvm::to_str(total_reference_frames) + std::string("\n"));
     x.type(colvarvalue::type_scalar);
     cvm::real p_lambda;
     get_keyval(conf, "lambda", p_lambda, -1.0);
     const size_t num_atoms = atoms->size();
-    std::vector<cvm::real> p_weights(num_atoms, std::sqrt(1.0 / num_atoms));
+    std::vector<cvm::real> p_weights(num_atoms, cvm::sqrt(1.0 / num_atoms));
     if (impl_) impl_.reset();
-    impl_ = std::unique_ptr<ArithmeticPathImpl>(new ArithmeticPathImpl(num_atoms, total_reference_frames, p_lambda, p_weights));
-    cvm::log(std::string("Lambda is ") + cvm::to_str(impl_->get_lambda()) + std::string("\n"));
+    impl_ = std::unique_ptr<ArithmeticPathImpl>(new ArithmeticPathImpl(num_atoms, total_reference_frames, p_lambda, p_weights, cvmodule));
+    cvmodule->log(std::string("Lambda is ") + cvm::to_str(impl_->get_lambda()) + std::string("\n"));
     return error_code;
 }
 
@@ -218,12 +220,12 @@ void colvar::azpath::calc_value() {
     if (impl_->get_lambda() < 0) {
         // this implies that the user may not set a valid lambda value
         // so recompute it by the suggested value in Parrinello's paper
-        cvm::log("A non-positive value of lambda is detected, which implies that it may not set in the configuration.\n");
-        cvm::log("This component (azpath) will recompute a value for lambda following the suggestion in the origin paper.\n");
+        cvmodule->log("A non-positive value of lambda is detected, which implies that it may not set in the configuration.\n");
+        cvmodule->log("This component (azpath) will recompute a value for lambda following the suggestion in the origin paper.\n");
         std::vector<cvm::real> rmsd_between_refs(total_reference_frames - 1, 0.0);
         computeDistanceBetweenReferenceFrames(rmsd_between_refs);
         impl_->reComputeLambda(rmsd_between_refs);
-        cvm::log("Ok, the value of lambda is updated to " + cvm::to_str(impl_->get_lambda()));
+        cvmodule->log("Ok, the value of lambda is updated to " + cvm::to_str(impl_->get_lambda()));
     }
     impl_->updateCartesianDistanceToReferenceFrames(this);
     x = impl_->compute_z();
@@ -233,7 +235,9 @@ void colvar::azpath::calc_gradients() {
     impl_->compute_z_derivatives();
     for (size_t i_frame = 0; i_frame < reference_frames.size(); ++i_frame) {
         for (size_t i_atom = 0; i_atom < atoms->size(); ++i_atom) {
-            (*(comp_atoms[i_frame]))[i_atom].grad += impl_->dzdx[i_frame][i_atom];
+            comp_atoms[i_frame]->grad_x(i_atom) += impl_->dzdx[i_frame][i_atom][0];
+            comp_atoms[i_frame]->grad_y(i_atom) += impl_->dzdx[i_frame][i_atom][1];
+            comp_atoms[i_frame]->grad_z(i_atom) += impl_->dzdx[i_frame][i_atom][2];
         }
     }
 }
@@ -255,20 +259,20 @@ int colvar::aspathCV::init(std::string const &conf)
 {
     int error_code = CVBasedPath::init(conf);
     if (error_code != COLVARS_OK) return error_code;
-    cvm::log(std::string("Total number of frames: ") + cvm::to_str(total_reference_frames) + std::string("\n"));
+    cvmodule->log(std::string("Total number of frames: ") + cvm::to_str(total_reference_frames) + std::string("\n"));
     std::vector<cvm::real> p_weights(cv.size(), 1.0);
     get_keyval(conf, "weights", p_weights, std::vector<cvm::real>(cv.size(), 1.0));
     use_explicit_gradients = true;
     cvm::real p_lambda;
     get_keyval(conf, "lambda", p_lambda, -1.0);
     if (impl_) impl_.reset();
-    impl_ = std::unique_ptr<ArithmeticPathImpl>(new ArithmeticPathImpl(cv.size(), total_reference_frames, p_lambda, p_weights));
-    cvm::log(std::string("Lambda is ") + cvm::to_str(impl_->get_lambda()) + std::string("\n"));
+    impl_ = std::unique_ptr<ArithmeticPathImpl>(new ArithmeticPathImpl(cv.size(), total_reference_frames, p_lambda, p_weights, cvmodule));
+    cvmodule->log(std::string("Lambda is ") + cvm::to_str(impl_->get_lambda()) + std::string("\n"));
     for (size_t i_cv = 0; i_cv < cv.size(); ++i_cv) {
         if (!cv[i_cv]->is_enabled(f_cvc_explicit_gradient)) {
             use_explicit_gradients = false;
         }
-        cvm::log(std::string("The weight of CV ") + cvm::to_str(i_cv) + std::string(" is ") + cvm::to_str(p_weights[i_cv]) + std::string("\n"));
+        cvmodule->log(std::string("The weight of CV ") + cvm::to_str(i_cv) + std::string(" is ") + cvm::to_str(p_weights[i_cv]) + std::string("\n"));
     }
     return error_code;
 }
@@ -279,12 +283,12 @@ void colvar::aspathCV::calc_value() {
     if (impl_->get_lambda() < 0) {
         // this implies that the user may not set a valid lambda value
         // so recompute it by the suggested value in Parrinello's paper
-        cvm::log("A non-positive value of lambda is detected, which implies that it may not set in the configuration.\n");
-        cvm::log("This component (aspathCV) will recompute a value for lambda following the suggestion in the origin paper.\n");
+        cvmodule->log("A non-positive value of lambda is detected, which implies that it may not set in the configuration.\n");
+        cvmodule->log("This component (aspathCV) will recompute a value for lambda following the suggestion in the origin paper.\n");
         std::vector<cvm::real> rmsd_between_refs(total_reference_frames - 1, 0.0);
         computeDistanceBetweenReferenceFrames(rmsd_between_refs);
         impl_->reComputeLambda(rmsd_between_refs);
-        cvm::log("Ok, the value of lambda is updated to " + cvm::to_str(impl_->get_lambda()));
+        cvmodule->log("Ok, the value of lambda is updated to " + cvm::to_str(impl_->get_lambda()));
     }
     impl_->updateCVDistanceToReferenceFrames(this);
     x = impl_->compute_s();
@@ -306,7 +310,9 @@ void colvar::aspathCV::calc_gradients() {
             for (size_t j_elem = 0; j_elem < cv[i_cv]->value().size(); ++j_elem) {
                 for (size_t k_ag = 0 ; k_ag < cv[i_cv]->atom_groups.size(); ++k_ag) {
                     for (size_t l_atom = 0; l_atom < (cv[i_cv]->atom_groups)[k_ag]->size(); ++l_atom) {
-                        (*(cv[i_cv]->atom_groups)[k_ag])[l_atom].grad = grad[j_elem] * factor_polynomial * (*(cv[i_cv]->atom_groups)[k_ag])[l_atom].grad;
+                        cv[i_cv]->atom_groups[k_ag]->grad_x(l_atom) *= grad[j_elem] * factor_polynomial;
+                        cv[i_cv]->atom_groups[k_ag]->grad_y(l_atom) *= grad[j_elem] * factor_polynomial;
+                        cv[i_cv]->atom_groups[k_ag]->grad_z(l_atom) *= grad[j_elem] * factor_polynomial;
                     }
                 }
             }
@@ -332,19 +338,21 @@ void colvar::aspathCV::apply_force(colvarvalue const &force) {
             cv[i_cv]->apply_force(force.real_value * grad);
             // try my best to debug gradients even if the sub-CVs do not have explicit gradients
             if (is_enabled(f_cvc_debug_gradient)) {
-                cvm::log("Debugging gradients for " + description +
+                cvmodule->log("Debugging gradients for " + description +
                          " with respect to sub-CV " + cv[i_cv]->description +
                          ", which has no explicit gradient with respect to its own input(s)");
                 colvarvalue analytical_grad(cv[i_cv]->value().type());
                 for (size_t m_frame = 0; m_frame < impl_->dsdx.size(); ++m_frame) {
                     analytical_grad += impl_->compute_s_analytical_derivative_ij(
-                        m_frame, i_cv, cvm::debug_gradients_step_size, this);
+                        m_frame, i_cv, cvmodule->debug_gradients_step_size, this);
                 }
-                cvm::log("dx(actual) = "+cvm::to_str(analytical_grad, 21, 14)+"\n");
-                cvm::log("dx(interp) = "+cvm::to_str(grad, 21, 14)+"\n");
-                cvm::log("|dx(actual) - dx(interp)|/|dx(actual)| = "+
-                  cvm::to_str((analytical_grad - grad).norm() /
-                              (analytical_grad).norm(), 12, 5)+"\n");
+                cvmodule->log("dx(actual) = "+cvm::to_str(analytical_grad, 21, 14)+"\n");
+                cvmodule->log("dx(interp) = "+cvm::to_str(grad, 21, 14)+"\n");
+
+                cvm::real rel_error = (analytical_grad - grad).norm() / (analytical_grad).norm();
+                cvmodule->record_gradient_error(rel_error);
+                cvmodule->log ("|dx(actual) - dx(interp)|/|dx(actual)| = "+
+                            cvm::to_str(rel_error, 12, 5) + ".\n");
             }
         }
     }
@@ -360,20 +368,20 @@ int colvar::azpathCV::init(std::string const &conf)
 {
     int error_code = CVBasedPath::init(conf);
     if (error_code != COLVARS_OK) return error_code;
-    cvm::log(std::string("Total number of frames: ") + cvm::to_str(total_reference_frames) + std::string("\n"));
+    cvmodule->log(std::string("Total number of frames: ") + cvm::to_str(total_reference_frames) + std::string("\n"));
     std::vector<cvm::real> p_weights(cv.size(), 1.0);
     get_keyval(conf, "weights", p_weights, std::vector<cvm::real>(cv.size(), 1.0));
     use_explicit_gradients = true;
     cvm::real p_lambda;
     get_keyval(conf, "lambda", p_lambda, -1.0);
     if (impl_) impl_.reset();
-    impl_ = std::unique_ptr<ArithmeticPathImpl>(new ArithmeticPathImpl(cv.size(), total_reference_frames, p_lambda, p_weights));
-    cvm::log(std::string("Lambda is ") + cvm::to_str(impl_->get_lambda()) + std::string("\n"));
+    impl_ = std::unique_ptr<ArithmeticPathImpl>(new ArithmeticPathImpl(cv.size(), total_reference_frames, p_lambda, p_weights, cvmodule));
+    cvmodule->log(std::string("Lambda is ") + cvm::to_str(impl_->get_lambda()) + std::string("\n"));
     for (size_t i_cv = 0; i_cv < cv.size(); ++i_cv) {
         if (!cv[i_cv]->is_enabled(f_cvc_explicit_gradient)) {
             use_explicit_gradients = false;
         }
-        cvm::log(std::string("The weight of CV ") + cvm::to_str(i_cv) + std::string(" is ") + cvm::to_str(p_weights[i_cv]) + std::string("\n"));
+        cvmodule->log(std::string("The weight of CV ") + cvm::to_str(i_cv) + std::string(" is ") + cvm::to_str(p_weights[i_cv]) + std::string("\n"));
     }
     return error_code;
 }
@@ -382,12 +390,12 @@ void colvar::azpathCV::calc_value() {
     if (impl_->get_lambda() < 0) {
         // this implies that the user may not set a valid lambda value
         // so recompute it by the suggested value in Parrinello's paper
-        cvm::log("A non-positive value of lambda is detected, which implies that it may not set in the configuration.\n");
-        cvm::log("This component (azpathCV) will recompute a value for lambda following the suggestion in the origin paper.\n");
+        cvmodule->log("A non-positive value of lambda is detected, which implies that it may not set in the configuration.\n");
+        cvmodule->log("This component (azpathCV) will recompute a value for lambda following the suggestion in the origin paper.\n");
         std::vector<cvm::real> rmsd_between_refs(total_reference_frames - 1, 0.0);
         computeDistanceBetweenReferenceFrames(rmsd_between_refs);
         impl_->reComputeLambda(rmsd_between_refs);
-        cvm::log("Ok, the value of lambda is updated to " + cvm::to_str(impl_->get_lambda()));
+        cvmodule->log("Ok, the value of lambda is updated to " + cvm::to_str(impl_->get_lambda()));
     }
     impl_->updateCVDistanceToReferenceFrames(this);
     x = impl_->compute_z();
@@ -409,7 +417,9 @@ void colvar::azpathCV::calc_gradients() {
             for (size_t j_elem = 0; j_elem < cv[i_cv]->value().size(); ++j_elem) {
                 for (size_t k_ag = 0 ; k_ag < cv[i_cv]->atom_groups.size(); ++k_ag) {
                     for (size_t l_atom = 0; l_atom < (cv[i_cv]->atom_groups)[k_ag]->size(); ++l_atom) {
-                        (*(cv[i_cv]->atom_groups)[k_ag])[l_atom].grad = grad[j_elem] * factor_polynomial * (*(cv[i_cv]->atom_groups)[k_ag])[l_atom].grad;
+                        cv[i_cv]->atom_groups[k_ag]->grad_x(l_atom) *= grad[j_elem] * factor_polynomial;
+                        cv[i_cv]->atom_groups[k_ag]->grad_y(l_atom) *= grad[j_elem] * factor_polynomial;
+                        cv[i_cv]->atom_groups[k_ag]->grad_z(l_atom) *= grad[j_elem] * factor_polynomial;
                     }
                 }
             }
@@ -436,19 +446,21 @@ void colvar::azpathCV::apply_force(colvarvalue const &force) {
             cv[i_cv]->apply_force(force.real_value * grad);
             // try my best to debug gradients even if the sub-CVs do not have explicit gradients
             if (is_enabled(f_cvc_debug_gradient)) {
-                cvm::log("Debugging gradients for " + description +
+                cvmodule->log("Debugging gradients for " + description +
                          " with respect to sub-CV " + cv[i_cv]->description +
                          ", which has no explicit gradient with respect to its own input(s)");
                 colvarvalue analytical_grad(cv[i_cv]->value().type());
                 for (size_t m_frame = 0; m_frame < impl_->dzdx.size(); ++m_frame) {
                     analytical_grad += impl_->compute_z_analytical_derivative_ij(
-                        m_frame, i_cv, cvm::debug_gradients_step_size, this);
+                        m_frame, i_cv, cvmodule->debug_gradients_step_size, this);
                 }
-                cvm::log("dx(actual) = "+cvm::to_str(analytical_grad, 21, 14)+"\n");
-                cvm::log("dx(interp) = "+cvm::to_str(grad, 21, 14)+"\n");
-                cvm::log("|dx(actual) - dx(interp)|/|dx(actual)| = "+
-                  cvm::to_str((analytical_grad - grad).norm() /
-                              (analytical_grad).norm(), 12, 5)+"\n");
+                cvmodule->log("dx(actual) = "+cvm::to_str(analytical_grad, 21, 14)+"\n");
+                cvmodule->log("dx(interp) = "+cvm::to_str(grad, 21, 14)+"\n");
+
+                cvm::real rel_error = (analytical_grad - grad).norm() / (analytical_grad).norm();
+                cvmodule->record_gradient_error(rel_error);
+                cvmodule->log ("|dx(actual) - dx(interp)|/|dx(actual)| = "+
+                            cvm::to_str(rel_error, 12, 5) + ".\n");
             }
         }
     }

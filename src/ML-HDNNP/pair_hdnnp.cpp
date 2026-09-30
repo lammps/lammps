@@ -36,7 +36,7 @@
 using namespace LAMMPS_NS;
 
 static const char cite_user_hdnnp_package[] =
-    "ML-HDNNP package: doi:10.1021/acs.jctc.8b00770\n\n"
+    "ML-HDNNP package: https://doi.org/10.1021/acs.jctc.8b00770\n\n"
     "@Article{Singraber19,\n"
     " author = {Singraber, Andreas and Behler, J{\"o}rg and Dellago, Christoph},\n"
     " title = {Library-Based {LAMMPS} Implementation of High-Dimensional\n"
@@ -63,6 +63,17 @@ PairHDNNP::PairHDNNP(LAMMPS *lmp) : Pair(lmp)
   unit_convert_flag =
       0;    // TODO: Check possible values. value != 0 indicates support for unit conversion.
   reinitflag = 0;    // 1 if compatible with fix adapt and alike
+
+  showew = false;
+  resetew = false;
+  showewsum = 0;
+  maxew = 0;
+  numExtrapolationWarningsTotal = 0;
+  numExtrapolationWarningsSummary = 0;
+  cflength = 0.0;
+  cfenergy = 0.0;
+  maxCutoffRadius = 0.0;
+  directory = nullptr;
 
   interface = new nnp::InterfaceLammps();
 }

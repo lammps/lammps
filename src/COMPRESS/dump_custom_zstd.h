@@ -34,6 +34,7 @@ namespace LAMMPS_NS {
 class DumpCustomZstd : public DumpCustom {
  public:
   DumpCustomZstd(class LAMMPS *, int, char **);
+  void write() override;
 
  protected:
   ZstdFileWriter writer;
@@ -41,7 +42,6 @@ class DumpCustomZstd : public DumpCustom {
   void openfile() override;
   void write_header(bigint) override;
   void write_data(int, double *) override;
-  void write() override;
 
   int modify_param(int, char **) override;
 };

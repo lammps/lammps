@@ -57,7 +57,14 @@ static constexpr double BISECTION_EPS = 1.0e-15;
 
 /* ---------------------------------------------------------------------- */
 
-PairMesoCNT::PairMesoCNT(LAMMPS *lmp) : Pair(lmp)
+PairMesoCNT::PairMesoCNT(LAMMPS *lmp) :
+    Pair(lmp), end_types(nullptr), reduced_nlist(nullptr), numchainlist(nullptr), selfid(nullptr),
+    reduced_neighlist(nullptr), nchainlist(nullptr), endlist(nullptr), selfpos(nullptr),
+    chainlist(nullptr), param(nullptr), w(nullptr), wnode(nullptr), dq_w(nullptr), q1_dq_w(nullptr),
+    q2_dq_w(nullptr), gl_nodes_finf(nullptr), gl_nodes_fsemi(nullptr), gl_weights_finf(nullptr),
+    gl_weights_fsemi(nullptr), uinf_data(nullptr), gamma_data(nullptr), phi_data(nullptr),
+    usemi_data(nullptr), uinf_coeff(nullptr), gamma_coeff(nullptr), phi_coeff(nullptr),
+    usemi_coeff(nullptr), flocal(nullptr), fglobal(nullptr), basis(nullptr)
 {
   single_enable = 0;
   restartinfo = 0;
@@ -1892,7 +1899,7 @@ void PairMesoCNT::spline_coeff(double **data, double ****coeff, double dx, doubl
 inline double PairMesoCNT::spline(double x, double xstart, double dx, double **coeff,
                                   int coeff_size)
 {
-  int i = ceil((x - xstart) / dx);
+  int i = ceil((x - xstart) / dx); // NOLINT
 
   // linear extrapolation
 
@@ -1921,7 +1928,7 @@ inline double PairMesoCNT::spline(double x, double xstart, double dx, double **c
 inline double PairMesoCNT::dspline(double x, double xstart, double dx, double **coeff,
                                    int coeff_size)
 {
-  int i = ceil((x - xstart) / dx);
+  int i = ceil((x - xstart) / dx); // NOLINT
 
   // constant extrapolation
 
@@ -1950,8 +1957,8 @@ inline double PairMesoCNT::dspline(double x, double xstart, double dx, double **
 inline double PairMesoCNT::spline(double x, double y, double xstart, double ystart, double dx,
                                   double dy, double ****coeff, int coeff_size)
 {
-  int i = ceil((x - xstart) / dx);
-  int j = ceil((y - ystart) / dy);
+  int i = ceil((x - xstart) / dx); // NOLINT
+  int j = ceil((y - ystart) / dy); // NOLINT
 
   // constant extrapolation
 
@@ -1997,8 +2004,8 @@ inline double PairMesoCNT::spline(double x, double y, double xstart, double ysta
 inline double PairMesoCNT::dxspline(double x, double y, double xstart, double ystart, double dx,
                                     double dy, double ****coeff, int coeff_size)
 {
-  int i = ceil((x - xstart) / dx);
-  int j = ceil((y - ystart) / dy);
+  int i = ceil((x - xstart) / dx); // NOLINT
+  int j = ceil((y - ystart) / dy); // NOLINT
 
   // constant extrapolation
 
@@ -2042,8 +2049,8 @@ inline double PairMesoCNT::dxspline(double x, double y, double xstart, double ys
 inline double PairMesoCNT::dyspline(double x, double y, double xstart, double ystart, double dx,
                                     double dy, double ****coeff, int coeff_size)
 {
-  int i = ceil((x - xstart) / dx);
-  int j = ceil((y - ystart) / dy);
+  int i = ceil((x - xstart) / dx); // NOLINT
+  int j = ceil((y - ystart) / dy); // NOLINT
 
   // constant extrapolation
 
@@ -2184,9 +2191,9 @@ void PairMesoCNT::geometry(const double *r1, const double *r2, const double *p1,
    computes gradients with respect to positions
 ------------------------------------------------------------------------- */
 
-inline void PairMesoCNT::weight(const double *r1, const double *r2, const double *p1,
-                                const double *p2, double &w, double *dr1_w, double *dr2_w,
-                                double *dp1_w, double *dp2_w)
+void PairMesoCNT::weight(const double *r1, const double *r2, const double *p1,
+                         const double *p2, double &w, double *dr1_w, double *dr2_w,
+                         double *dp1_w, double *dp2_w)
 {
   double dr, dp, rhoc, rhomin, rho, frac, arg, factor;
   double r[3], p[3];

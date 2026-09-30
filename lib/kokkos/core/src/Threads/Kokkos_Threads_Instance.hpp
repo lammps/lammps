@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_THREADS_INSTANCE_HPP
 #define KOKKOS_THREADS_INSTANCE_HPP
@@ -79,9 +66,6 @@ class ThreadsInternal {
   static void first_touch_allocate_thread_private_scratch(ThreadsInternal &,
                                                           const void *);
 
-  ThreadsInternal(const ThreadsInternal &);
-  ThreadsInternal &operator=(const ThreadsInternal &);
-
   static void execute_resize_scratch_in_serial();
 
  public:
@@ -103,6 +87,8 @@ class ThreadsInternal {
 
   static void driver(void);
 
+  ThreadsInternal(const ThreadsInternal &)            = delete;
+  ThreadsInternal &operator=(const ThreadsInternal &) = delete;
   ~ThreadsInternal();
   ThreadsInternal();
 
@@ -402,9 +388,6 @@ class ThreadsInternal {
    */
   static void start(void (*)(ThreadsInternal &, const void *), const void *);
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-  static int in_parallel();
-#endif
   static void fence();
   static void fence(const std::string &);
   static void internal_fence();
@@ -545,16 +528,6 @@ class ThreadsInternal {
 //----------------------------------------------------------------------------
 
 namespace Kokkos {
-
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-KOKKOS_DEPRECATED inline int Threads::in_parallel() {
-  return Impl::ThreadsInternal::in_parallel();
-}
-#endif
-
-inline int Threads::impl_is_initialized() {
-  return Impl::ThreadsInternal::is_initialized();
-}
 
 inline void Threads::impl_initialize(InitializationSettings const &settings) {
   Impl::ThreadsInternal::initialize(

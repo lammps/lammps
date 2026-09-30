@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_BIN_OPS_PUBLIC_API_HPP_
 #define KOKKOS_BIN_OPS_PUBLIC_API_HPP_
@@ -28,11 +15,7 @@ struct BinOp1D {
   double mul_   = {};
   double min_   = {};
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-  KOKKOS_DEPRECATED BinOp1D() = default;
-#else
   BinOp1D() = delete;
-#endif
 
   // Construct BinOp with number of bins, minimum value and maximum value
   BinOp1D(int max_bins, typename KeyViewType::const_value_type min,
@@ -76,11 +59,7 @@ struct BinOp3D {
   double mul_[3]   = {};
   double min_[3]   = {};
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-  KOKKOS_DEPRECATED BinOp3D() = default;
-#else
   BinOp3D() = delete;
-#endif
 
   BinOp3D(int max_bins[], typename KeyViewType::const_value_type min[],
           typename KeyViewType::const_value_type max[]) {

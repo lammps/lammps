@@ -28,7 +28,7 @@ static constexpr int EXTRA = 1000;
 
 /* ---------------------------------------------------------------------- */
 
-AngleHybrid::AngleHybrid(LAMMPS *lmp) : Angle(lmp)
+AngleHybrid::AngleHybrid(LAMMPS *lmp) : Angle(lmp), styles(nullptr), keywords(nullptr), map(nullptr)
 {
   writedata = 0;
   nstyles = 0;
@@ -231,7 +231,7 @@ void AngleHybrid::settings(int narg, char **arg)
     // by looking for the next known angle style name.
 
     int jarg = i + 1;
-    while ((jarg < narg) && !force->angle_map->count(arg[jarg]) &&
+    while ((jarg < narg) && !Force::angle_styles().contains(arg[jarg]) &&
            !lmp->match_style("angle", arg[jarg]))
       jarg++;
 

@@ -35,7 +35,8 @@ static constexpr double EPSILON = 1.0e-6;
 
 /* ---------------------------------------------------------------------- */
 
-PairCoulCutDielectric::PairCoulCutDielectric(LAMMPS *_lmp) : PairCoulCut(_lmp), efield(nullptr)
+PairCoulCutDielectric::PairCoulCutDielectric(LAMMPS *_lmp) :
+    PairCoulCut(_lmp), efield(nullptr), avec(nullptr)
 {
   nmax = 0;
   no_virial_fdotr_compute = 1;

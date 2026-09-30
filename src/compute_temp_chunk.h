@@ -58,6 +58,8 @@ class ComputeTempChunk : public ComputeChunk {
   void temperature(int);
   void kecom(int);
   void internal(int);
+
+ protected:
   void allocate() override;
 };
 }    // namespace LAMMPS_NS

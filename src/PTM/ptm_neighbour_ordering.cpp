@@ -22,7 +22,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 
 
 namespace ptm {
-
+// NOLINTBEGIN
 typedef struct
 {
         double area;
@@ -41,7 +41,7 @@ typedef struct
         double offset[3];
 
 } solidnbr_t;
-
+// NOLINTEND
 static bool sorthelper_compare(sorthelper_t const& a, sorthelper_t const& b)
 {
         if (a.area > b.area)

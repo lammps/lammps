@@ -190,6 +190,7 @@ extern void   lammps_neighlist_element_neighbors(void *, int, int, int *, int *,
 extern int    lammps_version(void *handle);
 extern void   lammps_get_os_info(char *buffer, int buf_size);
 extern int    lammps_config_has_mpi_support();
+extern int    lammps_config_has_omp_support();
 extern int    lammps_config_has_gzip_support();
 extern int    lammps_config_has_png_support();
 extern int    lammps_config_has_jpeg_support();
@@ -391,6 +392,7 @@ extern void   lammps_neighlist_element_neighbors(void *, int, int, int *, int *,
 extern int    lammps_version(void *handle);
 extern void   lammps_get_os_info(char *buffer, int buf_size);
 extern int    lammps_config_has_mpi_support();
+extern int    lammps_config_has_omp_support();
 extern int    lammps_config_has_gzip_support();
 extern int    lammps_config_has_png_support();
 extern int    lammps_config_has_jpeg_support();

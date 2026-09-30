@@ -49,15 +49,12 @@ PairSAIPMETALOpt::PairSAIPMETALOpt(LAMMPS *lmp) :
 
 void PairSAIPMETALOpt::coeff(int narg, char **args)
 {
-  PairSAIPMETAL::coeff(narg, args);
-  memory->create(special_type, atom->ntypes + 1, "PairSAIPMETALOpt:special_type");
+  PairILPGrapheneHBNOpt::coeff(narg, args);
   for (int i = 1; i <= atom->ntypes; i++) {
     int itype = map[i];
     if (strcmp(elements[itype], "C") != 0 && strcmp(elements[itype], "H") != 0 &&
         strcmp(elements[itype], "B") != 0 && strcmp(elements[itype], "N") != 0) {
-      special_type[i] = true;
-    } else {
-      special_type[i] = false;
+      special_type[i] = SAIP_METAL;
     }
   }
 }

@@ -88,7 +88,7 @@ the page for the pair style for details.
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""

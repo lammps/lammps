@@ -28,8 +28,8 @@ DumpDeprecated::DumpDeprecated(LAMMPS *lmp, int narg, char **arg) : Dump(lmp, na
     if (lmp->comm->me == 0) utils::logmesg(lmp, "\nDump style 'DEPRECATED' is a dummy style\n\n");
     return;
   } else if (utils::strmatch(my_style, "/mpiio$")) {
-    utils::logmesg(lmp, "\nThe MPIIO and thus dump style {} have been removed from LAMMPS.\n\n",
-                   my_style);
+    utils::logmesg(lmp, "\nThe MPIIO package has been removed from LAMMPS.\n\n");
   }
-  error->all(FLERR, "This dump style is no longer available");
+  error->all(FLERR, Error::ARGZERO, "Dump style {} is no longer available. {}", my_style,
+             utils::errorurl(38));
 }

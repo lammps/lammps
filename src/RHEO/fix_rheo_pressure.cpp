@@ -157,7 +157,7 @@ int FixRHEOPressure::setmask()
 void FixRHEOPressure::init()
 {
   auto fixes = modify->get_fix_by_style("^rheo$");
-  if (fixes.size() == 0) error->all(FLERR, "Need to define fix rheo to use fix rheo/pressure");
+  if (fixes.empty()) error->all(FLERR, "Need to define fix rheo to use fix rheo/pressure");
   fix_rheo = dynamic_cast<FixRHEO *>(fixes[0]);
 
   csq = fix_rheo->csq;
@@ -246,11 +246,7 @@ double FixRHEOPressure::calc_pressure(double rho, int i)
     rho_ratio = rho * rho0inv[type];
     p = csq[type] * rho0[type] * (pow(rho_ratio, tpower[type]) - 1.0) / tpower[type];
   } else if (pressure_style[type] == IDEAL) {
-    double imass;
-    if (atom->rmass)
-      imass = atom->rmass[i];
-    else
-      imass = atom->mass[type];
+    const double imass = atom->rmass ? atom->rmass[i] : atom->mass[type];
     p = (gamma[type] - 1.0) * rho * atom->esph[i] / imass;
   }
 
@@ -286,11 +282,7 @@ double FixRHEOPressure::calc_rho(double p, int i)
     rho *= pow(rho0[type], 1.0 - 1.0 / tpower[type]);
     rho *= pow(csq[type], -1.0 / tpower[type]);
   } else if (pressure_style[type] == IDEAL) {
-    double imass;
-    if (atom->rmass)
-      imass = atom->rmass[i];
-    else
-      imass = atom->mass[type];
+    const double imass = atom->rmass ? atom->rmass[i] : atom->mass[type];
     rho = p * imass / ((gamma[type] - 1.0) * atom->esph[i]);
   }
   return rho;

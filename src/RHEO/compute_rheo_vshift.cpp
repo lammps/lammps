@@ -42,7 +42,7 @@ using namespace MathExtra;
 /* ---------------------------------------------------------------------- */
 
 ComputeRHEOVShift::ComputeRHEOVShift(LAMMPS *lmp, int narg, char **arg) :
-    Compute(lmp, narg, arg), vshift(nullptr), fix_rheo(nullptr), rho0(nullptr), wsame(nullptr),
+    Compute(lmp, narg, arg), vshift(nullptr), fix_rheo(nullptr), rho0(nullptr), rsame(nullptr),
     ct(nullptr), cgradt(nullptr), shift_type(nullptr), list(nullptr), compute_interface(nullptr),
     compute_kernel(nullptr), compute_surface(nullptr)
 {
@@ -84,7 +84,7 @@ void ComputeRHEOVShift::init()
   cross_type_flag = fix_rheo->shift_cross_type_flag;
   if (cross_type_flag) {
     scale = fix_rheo->shift_scale;
-    wmin = fix_rheo->shift_wmin;
+    rmin = fix_rheo->shift_rmin;
     cmin = fix_rheo->shift_cmin;
     comm_forward = 1;
     comm_reverse = 4;
@@ -137,7 +137,7 @@ void ComputeRHEOVShift::compute_peratom()
     if (cross_type_flag) {
       memory->grow(ct, atom->nmax, "rheo:ct");
       memory->grow(cgradt, atom->nmax, 3, "rheo:cgradt");
-      memory->grow(wsame, atom->nmax, "rheo:wsame");
+      memory->grow(rsame, atom->nmax, "rheo:rsame");
     }
 
     nmax_store = atom->nmax;
@@ -343,7 +343,7 @@ void ComputeRHEOVShift::correct_type_interface()
 
   size_t nbytes = nmax_store * sizeof(double);
   memset(&ct[0], 0, nbytes);
-  memset(&wsame[0], 0, nbytes);
+  memset(&rsame[0], 0, nbytes);
   memset(&cgradt[0][0], 0, 3 * nbytes);
   double ctmp, *dWij, *dWji;
 
@@ -470,6 +470,7 @@ void ComputeRHEOVShift::correct_type_interface()
       volj = jmass / rhoj;
 
       w = compute_kernel->calc_w(i, j, dx[0], dx[1], dx[2], r);
+      (void) compute_kernel->calc_dw(i, j, dx[0], dx[1], dx[2], r);
       dWij = compute_kernel->dWij;
       dWji = compute_kernel->dWji;
 
@@ -483,9 +484,9 @@ void ComputeRHEOVShift::correct_type_interface()
       }
 
       if (itype == jtype) {
-        wsame[i] += w * r;
+        rsame[i] += w * r;
         if (newton_pair || j < nlocal)
-          wsame[j] += w * r;
+          rsame[j] += w * r;
       }
     }
   }
@@ -503,7 +504,7 @@ void ComputeRHEOVShift::correct_type_interface()
   for (i = 0; i < nlocal; i++) {
 
     // If isolated, just don't shift
-    if (wsame[i] < wmin) {
+    if (rsame[i] < rmin) {
       for (a = 0; a < dim; a++)
         vshift[i][a] = 0.0;
       continue;
@@ -542,7 +543,7 @@ int ComputeRHEOVShift::pack_forward_comm(int n, int *list, double *buf, int /*pb
 
   for (i = 0; i < n; i++) {
     j = list[i];
-    buf[m++] = wsame[j];
+    buf[m++] = rsame[j];
   }
 
   return m;
@@ -557,7 +558,7 @@ void ComputeRHEOVShift::unpack_forward_comm(int n, int first, double *buf)
   m = 0;
   last = first + n;
   for (i = first; i < last; i++)
-    wsame[i] = buf[m++];
+    rsame[i] = buf[m++];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -581,7 +582,7 @@ int ComputeRHEOVShift::pack_reverse_comm(int n, int first, double *buf)
     for (i = first; i < last; i++) {
       for (a = 0; a < 3; a++)
         buf[m++] = cgradt[i][a];
-      buf[m++] = wsame[i];
+      buf[m++] = rsame[i];
     }
   }
   return m;
@@ -611,7 +612,7 @@ void ComputeRHEOVShift::unpack_reverse_comm(int n, int *list, double *buf)
       j = list[i];
       for (a = 0; a < 3; a++)
         cgradt[j][a] += buf[m++];
-      wsame[j] += buf[m++];
+      rsame[j] += buf[m++];
     }
   }
 }

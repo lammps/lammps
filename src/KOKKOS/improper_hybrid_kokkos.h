@@ -39,14 +39,14 @@ class ImproperHybridKokkos : public ImproperHybrid {
   void init_style() override;
   double memory_usage() override;
 
- private:
+ protected:
   int maximproper_all;
 
   class NeighborKokkos *neighborKK;
 
   DAT::tdual_int_1d k_map;       // which style each improper type points to
   DAT::tdual_int_1d k_nimproperlist; // # of impropers in sub-style improperlists
-  DAT::tdual_int_3d k_improperlist;  // improperlist for each sub-style
+  DAT::tdual_int_3d_lr k_improperlist;  // improperlist for each sub-style
 
   void allocate() override;
   void deallocate() override;

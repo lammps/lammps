@@ -16,9 +16,9 @@
 
 #include "manifold.h"
 
-namespace LAMMPS_NS {
 
-namespace user_manifold {
+
+namespace LAMMPS_NS::user_manifold {
 
   // A 2D wiggly/wave-y plane (Like z = A cos(kx))
   class manifold_plane_wiggle : public manifold {
@@ -32,8 +32,8 @@ namespace user_manifold {
     static int expected_argc() { return NPARAMS; }
     int nparams() override { return NPARAMS; }
   };
-}    // namespace user_manifold
+} // namespace LAMMPS_NS::user_manifold
 
-}    // namespace LAMMPS_NS
+
 
 #endif    // LMP_MANIFOLD_PLANE_WIGGLE_H

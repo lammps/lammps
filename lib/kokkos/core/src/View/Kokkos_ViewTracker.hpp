@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_VIEW_TRACKER_HPP
 #define KOKKOS_VIEW_TRACKER_HPP
@@ -47,7 +34,11 @@ struct ViewTracker {
 
   KOKKOS_INLINE_FUNCTION
   ViewTracker(const ViewTracker& vt) noexcept
-      : m_tracker(vt.m_tracker, view_traits::is_managed) {}
+      : m_tracker(vt.m_tracker, !view_traits::memory_traits::is_unmanaged) {}
+
+  KOKKOS_INLINE_FUNCTION
+  ViewTracker(ViewTracker&& vt) noexcept
+      : m_tracker(vt.m_tracker, !view_traits::memory_traits::is_unmanaged) {}
 
   KOKKOS_INLINE_FUNCTION
   explicit ViewTracker(const ParentView& vt) noexcept : m_tracker() {
@@ -61,24 +52,27 @@ struct ViewTracker {
     assign(vt);
   }
 
+  ~ViewTracker() = default;
+
   template <class RT, class... RP>
-  KOKKOS_INLINE_FUNCTION void assign(const View<RT, RP...>& vt) noexcept {
+  KOKKOS_INLINE_FUNCTION void assign(const View<RT, RP...>& vt) {
     if (this == reinterpret_cast<const ViewTracker*>(&vt.m_track)) return;
     KOKKOS_IF_ON_HOST((
-        if (view_traits::is_managed && Kokkos::Impl::SharedAllocationRecord<
-                                           void, void>::tracking_enabled()) {
+        if (!view_traits::memory_traits::is_unmanaged &&
+            Kokkos::Impl::SharedAllocationRecord<void,
+                                                 void>::tracking_enabled()) {
           m_tracker.assign_direct(vt.m_track.m_tracker);
         } else { m_tracker.assign_force_disable(vt.m_track.m_tracker); }))
 
     KOKKOS_IF_ON_DEVICE((m_tracker.assign_force_disable(vt.m_track.m_tracker);))
   }
 
-  KOKKOS_INLINE_FUNCTION ViewTracker& operator=(
-      const ViewTracker& rhs) noexcept {
+  KOKKOS_INLINE_FUNCTION ViewTracker& operator=(const ViewTracker& rhs) {
     if (this == &rhs) return *this;
     KOKKOS_IF_ON_HOST((
-        if (view_traits::is_managed && Kokkos::Impl::SharedAllocationRecord<
-                                           void, void>::tracking_enabled()) {
+        if (!view_traits::memory_traits::is_unmanaged &&
+            Kokkos::Impl::SharedAllocationRecord<void,
+                                                 void>::tracking_enabled()) {
           m_tracker.assign_direct(rhs.m_tracker);
         } else { m_tracker.assign_force_disable(rhs.m_tracker); }))
 
@@ -86,9 +80,14 @@ struct ViewTracker {
     return *this;
   }
 
+  // NOLINTNEXTLINE(bugprone-exception-escape)
+  KOKKOS_INLINE_FUNCTION ViewTracker& operator=(ViewTracker&& rhs) {
+    return *this = static_cast<const ViewTracker&>(rhs);
+  }
+
   KOKKOS_INLINE_FUNCTION
   explicit ViewTracker(const track_type& tt) noexcept
-      : m_tracker(tt, view_traits::is_managed) {}
+      : m_tracker(tt, !view_traits::memory_traits::is_unmanaged) {}
 };
 
 }  // namespace Impl

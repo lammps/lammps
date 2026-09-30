@@ -10,7 +10,7 @@ See the doc page for the fix phonon command or the dynamical_matrix
 or third_order commands for detailed usage instructions.
 
 Use of this package requires building LAMMPS with FFT suppport, as
-described in doc/Section_start.html.
+described in doc/Build_settings.html.
 
 There are example scripts for using commands in this package in
 examples/PACKAGES/phonon.

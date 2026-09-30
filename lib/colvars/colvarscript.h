@@ -23,15 +23,28 @@
 #define COLVARSCRIPT_ERROR -1
 #define COLVARSCRIPT_OK 0
 
+#define COLVARSCRIPT_MAGIC 0x5349474E
 
 class colvardeps;
 
-class colvarscript  {
+class colvarscript {
+
+public:
+  /// This magic number is used to validate colvarscript pointers
+  uint32_t const magic = COLVARSCRIPT_MAGIC;
+
+  /// Validate colvarscript pointer to catch invalid pointers passed by legacy code
+  /// e.g. legacy NAMD Tcl interface
+  static bool is_valid(const colvarscript* script_ptr) {
+    if (!script_ptr) return false;
+    // if address is inaccessible, this will sefgault
+    return script_ptr->magic == COLVARSCRIPT_MAGIC;
+  }
 
 private:
 
   colvarproxy *proxy_;
-  colvarmodule *colvars;
+  colvarmodule *cvmodule;
 
   inline colvarscript() {} // no-argument construction forbidden
 
@@ -191,7 +204,7 @@ public:
   /// Pointer to the Colvars main object
   inline colvarmodule *module()
   {
-    return this->colvars;
+    return this->cvmodule;
   }
 
   /// Pointer to the colvarproxy object (interface with host engine)
@@ -230,14 +243,16 @@ public:
   int set_result_real(cvm::real const &x, unsigned char *obj = NULL);
 
   /// Copy x into obj if not NULL, or into the script object's result otherwise
-  int set_result_real_vec(std::vector<cvm::real> const &x,
+  template <typename T>
+  int set_result_real_vec(T const &x,
                           unsigned char *obj = NULL);
 
   /// Copy x into obj if not NULL, or into the script object's result otherwise
   int set_result_rvector(cvm::rvector const &x, unsigned char *obj = NULL);
 
   /// Copy x into obj if not NULL, or into the script object's result otherwise
-  int set_result_rvector_vec(std::vector<cvm::rvector> const &x,
+  template <typename T>
+  int set_result_rvector_vec(T const &x,
                              unsigned char *obj = NULL);
 
   /// Copy x into obj if not NULL, or into the script object's result otherwise
@@ -313,7 +328,7 @@ private: // TODO
 
   /// Code reused by instances of set_result_text()
   template <typename T>
-  int pack_vector_elements_text(std::vector<T> const &x, std::string &x_str);
+  int pack_vector_elements_text(T const &x, std::string &x_str);
 
   /// Code reused by all instances of set_result_text()
   int set_result_text_from_str(std::string const &x_str, unsigned char *obj);
@@ -322,12 +337,17 @@ private: // TODO
 };
 
 
+/// Get a pointer to the colvarscript object pointed to by pobj
+inline static colvarscript *colvarscript_obj(void *pobj)
+{
+  return reinterpret_cast<colvarscript *>(pobj);
+}
+
 /// Get a pointer to the main colvarscript object
 inline static colvarscript *colvarscript_obj()
 {
   return cvm::main()->proxy->script;
 }
-
 
 /// Get a pointer to the colvar object pointed to by pobj
 inline static colvar *colvar_obj(void *pobj)
@@ -445,12 +465,12 @@ int colvarscript::cmd_arg_shift()
 extern "C" {
 
   /// Generic wrapper for string-based scripting
-  int run_colvarscript_command(int objc, unsigned char *const objv[]);
+  // New: requires pointer to colvarscript object - TODO - pass it in ctypes Python example
+  int run_colvarscript_command(colvarscript *script, int objc, unsigned char *const objv[]);
 
   /// Get the string result of a script call
   const char * get_colvarscript_result();
 
 }
-
 
 #endif // #ifndef COLVARSCRIPT_H

@@ -31,7 +31,6 @@ class ModifyKokkos : public Modify {
   void setup_pre_reverse(int, int) override;
   void initial_integrate(int) override;
   void post_integrate() override;
-  void pre_decide();
   void pre_exchange() override;
   void pre_neighbor() override;
   void post_neighbor() override;

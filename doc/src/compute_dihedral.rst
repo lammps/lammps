@@ -47,7 +47,7 @@ The vector values are "extensive" and will be in energy
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""

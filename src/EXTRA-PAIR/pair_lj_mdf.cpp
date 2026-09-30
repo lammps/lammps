@@ -33,7 +33,10 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJMDF::PairLJMDF(LAMMPS *lmp) : Pair(lmp) {
+PairLJMDF::PairLJMDF(LAMMPS *lmp) :
+    Pair(lmp), cut(nullptr), cut_inner(nullptr), cut_inner_sq(nullptr), epsilon(nullptr),
+    sigma(nullptr), lj1(nullptr), lj2(nullptr), lj3(nullptr), lj4(nullptr)
+{
   writedata = 1;
 }
 
@@ -41,6 +44,8 @@ PairLJMDF::PairLJMDF(LAMMPS *lmp) : Pair(lmp) {
 
 PairLJMDF::~PairLJMDF()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);

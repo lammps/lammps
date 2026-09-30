@@ -65,6 +65,7 @@ AmoebaConvolution::AmoebaConvolution(LAMMPS *lmp, Pair *pair,
   nz = nz_caller;
   order = order_caller;
   which = which_caller;
+  time_fft = 0.0;
 
   flag3d = 1;
   if (which == POLAR_GRIDC || which == INDUCE_GRIDC) flag3d = 0;
@@ -173,17 +174,17 @@ void AmoebaConvolution::allocate_grid()
   fft1 = new FFT3d(lmp,world,nx,ny,nz,
                    nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
                    nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
-                   1,0,&tmp,0);
+                   1,0,&tmp,0,0);
 
   fft2 = new FFT3d(lmp,world,nx,ny,nz,
                    nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
                    nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
-                   0,0,&tmp,0);
+                   0,0,&tmp,0,0);
 
   remap = new Remap(lmp,world,
                     nxlo_in,nxhi_in,nylo_in,nyhi_in,nzlo_in,nzhi_in,
                     nxlo_fft,nxhi_fft,nylo_fft,nyhi_fft,nzlo_fft,nzhi_fft,
-                    nqty,0,0,FFT_PRECISION,0);
+                    nqty,0,0,FFT_PRECISION,0,0);
 
   // memory allocations
 

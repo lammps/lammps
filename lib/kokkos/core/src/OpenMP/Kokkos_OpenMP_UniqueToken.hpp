@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_OPENMP_UNIQUE_TOKEN_HPP
 #define KOKKOS_OPENMP_UNIQUE_TOKEN_HPP
@@ -57,6 +44,7 @@ class UniqueToken<OpenMP, UniqueTokenScope::Instance> {
     KOKKOS_IF_ON_HOST((return m_count;))
 
     KOKKOS_IF_ON_DEVICE((return 0;))
+    KOKKOS_IMPL_UNREACHABLE();
   }
 
   /// \brief acquire value such that 0 <= value < size()
@@ -78,6 +66,7 @@ class UniqueToken<OpenMP, UniqueTokenScope::Instance> {
          return result.first;))
 
     KOKKOS_IF_ON_DEVICE((return 0;))
+    KOKKOS_IMPL_UNREACHABLE();
   }
 
   /// \brief release a value acquired by generate
@@ -109,6 +98,7 @@ class UniqueToken<OpenMP, UniqueTokenScope::Global> {
         (return Kokkos::Impl::OpenMPInternal::max_hardware_threads();))
 
     KOKKOS_IF_ON_DEVICE((return 0;))
+    KOKKOS_IMPL_UNREACHABLE();
   }
 
   /// \brief acquire value such that 0 <= value < size()
@@ -119,6 +109,7 @@ class UniqueToken<OpenMP, UniqueTokenScope::Global> {
     KOKKOS_IF_ON_HOST((return omp_get_thread_num();))
 
     KOKKOS_IF_ON_DEVICE((return 0;))
+    KOKKOS_IMPL_UNREACHABLE();
   }
 
   /// \brief release a value acquired by generate

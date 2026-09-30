@@ -5,10 +5,11 @@ DESTDIR=${PWD}/../LAMMPS_GUI
 VERSION="$1"
 
 echo "Delete old files, if they exist"
-rm -rf ${DESTDIR} ../LAMMPS-GUI-Linux-amd64*.tar.gz
+rm -rf ${DESTDIR} LAMMPS-Linux-x86_64-GUI-*.tar.gz
 
 echo "Create staging area for deployment and populate"
 DESTDIR=${DESTDIR} cmake --install .  --prefix "/"
+cp lammps-gui_build-prefix/bin/lammps-gui ${DESTDIR}/bin/
 
 echo "Remove debug info"
 for s in ${DESTDIR}/bin/* ${DESTDIR}/lib/liblammps*
@@ -28,11 +29,13 @@ do \
     cp ${dep} ${DESTDIR}/lib
     chmod +x ${DESTDIR}/lib/${dep}
 done
-echo "Remove libc, gcc, and X11 related shared libs"
+
+echo "Remove libc, gcc, and X11 related shared libs, also lib64 folder, if it exists"
+rm -rf ${DESTDIR}/lib64
 rm -f ${DESTDIR}/lib/ld*.so ${DESTDIR}/lib/ld*.so.[0-9]
 rm -f ${DESTDIR}/lib/lib{c,dl,rt,m,pthread}.so.?
 rm -f ${DESTDIR}/lib/lib{c,dl,rt,m,pthread}-[0-9].[0-9]*.so
-rm -f ${DESTDIR}/lib/libX* ${DESTDIR}/lib/libxcb*
+rm -f ${DESTDIR}/lib/libX* ${DESTDIR}/lib/libxcb* ${DESTDIR}/lib/libxkb*
 rm -f ${DESTDIR}/lib/libgcc_s*
 rm -f ${DESTDIR}/lib/libstdc++*
 echo "Remove oversize potential files"
@@ -66,8 +69,16 @@ do \
     chmod +x ${DESTDIR}/lib/${dep}
 done
 
+# get more platform plugin dependencies
+QTDEPS=$(LD_LIBRARY_PATH=${DESTDIR}/lib ldd ${QTDIR}/plugins/platforms/libqxcb.so | grep -v ${DESTDIR} | grep libxcb- | sed -e 's/^.*=> *//' -e 's/\(libxcb-.*.so.*\) .*$/\1/')
+for dep in ${QTDEPS}
+do \
+    cp ${dep} ${DESTDIR}/lib
+    chmod +x ${DESTDIR}/lib/${dep}
+done
+
 echo "Add additional plugins for Qt"
-for dir in styles imageformats
+for dir in styles imageformats tls iconengines
 do \
     cp -r  ${QTDIR}/plugins/${dir} ${DESTDIR}/qtplugins/
     chmod +x ${DESTDIR}/qtplugins/*/*.so
@@ -100,8 +111,9 @@ do \
 done
 
 pushd ..
-tar -czvvf LAMMPS-GUI-Linux-amd64-${VERSION}.tar.gz LAMMPS_GUI
+tar -czvvf LAMMPS-Linux-x86_64-GUI-${VERSION}.tar.gz LAMMPS_GUI
 popd
+mv -v ../LAMMPS-Linux-x86_64-GUI-${VERSION}.tar.gz .
 
 echo "Cleanup dir"
 rm -r ${DESTDIR}

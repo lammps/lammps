@@ -104,3 +104,12 @@ void PairSpin::init_style()
   nlocal_max = atom->nlocal;
   memory->grow(emag,nlocal_max,"pair/spin:emag");
 }
+
+/* ---------------------------------------------------------------------- */
+
+double PairSpin::memory_usage()
+{
+  double bytes = Pair::memory_usage();
+  bytes += (double) nlocal_max * sizeof(double);    // emag[nlocal_max]
+  return bytes;
+}

@@ -38,7 +38,7 @@ using namespace LAMMPS_NS;
 static constexpr double EPSILON = 1.0e-10;
 
 static const char cite_pair_mdpd[] =
-  "pair mdpd command: doi:10.1063/1.4812366\n\n"
+  "pair mdpd command: https://doi.org/10.1063/1.4812366\n\n"
   "@Article{ZLi2013_POF,\n"
   " author = {Li, Z. and Hu, G. H. and Wang, Z. L. and Ma Y. B. and Zhou, Z. W.},\n"
   " title = {Three Dimensional Flow Structures in a Moving Droplet on Substrate: a Dissipative Particle Dynamics Study},\n"
@@ -51,7 +51,9 @@ static const char cite_pair_mdpd[] =
 
 /* ---------------------------------------------------------------------- */
 
-PairMDPD::PairMDPD(LAMMPS *lmp) : Pair(lmp)
+PairMDPD::PairMDPD(LAMMPS *lmp) :
+    Pair(lmp), cut(nullptr), cut_r(nullptr), A_att(nullptr), B_rep(nullptr), gamma(nullptr),
+    sigma(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_pair_mdpd);
 
@@ -74,7 +76,7 @@ PairMDPD::~PairMDPD()
     memory->destroy(gamma);
     memory->destroy(sigma);
   }
-  if (random) delete random;
+  delete random;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -404,7 +406,7 @@ void PairMDPD::read_restart_settings(FILE *fp)
   // initialize Marsaglia RNG with processor-unique seed
   // same seed that pair_style command initially specified
 
-  if (random) delete random;
+  delete random;
   random = new RanMars(lmp,seed + comm->me);
 }
 

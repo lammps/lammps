@@ -112,25 +112,27 @@ message and before the include guards for the class definition:
    // clang-format on
    #else
 
-This block between ``#ifdef COMMAND_CLASS`` and ``#else`` will be
-included by the ``Input`` class in ``input.cpp`` to build a map of
-"factory functions" that will create an instance of a Command class
-and call its ``command()`` method.  The map connects the name of the
-command ``geturl`` with the name of the class ``GetURL``.  During
-compilation, LAMMPS constructs a file ``style_command.h`` that contains
-``#include`` statements for all "installed" command styles.  Before
-including ``style_command.h`` into ``input.cpp``, the ``COMMAND_CLASS``
-define is set and the ``CommandStyle(name,class)`` macro defined.  The
-code of the macro adds the installed command styles to the "factory map"
-which enables the ``Input`` to execute the command.
+This block between ``#ifdef COMMAND_CLASS`` and ``#else`` registers the
+command style with LAMMPS.  During compilation, the build system parses the
+``CommandStyle(geturl,GetURL)`` marker and generates a file
+``style_command.cpp`` that ``#include``\s the header files of all "installed"
+command styles and registers a "factory function" for each of them --- a small
+function that creates an instance of the ``Command`` class so its
+``command()`` method can be called.  These factory functions are kept in a
+process-global registry that connects the command name ``geturl`` with the
+class ``GetURL`` and enables the ``Input`` class to execute the command.  The
+``COMMAND_CLASS`` macro is never actually defined during compilation; the
+``#ifdef COMMAND_CLASS`` block only serves as a marker for the build system's
+parser, so the header always provides the class definition from its ``#else``
+branch.
 
-The list of header files to include in ``style_command.h`` is automatically
-updated by the build system if there are new files, so the presence of the
-new header file in the ``src/EXTRA-COMMAND`` folder and the enabling of the
-EXTRA-COMMAND package will trigger LAMMPS to include the new command style
-when it is (re-)compiled.  The "// clang-format" format comments are needed
-so that running :ref:`clang-format <clang-format>` on the file will not
-insert unwanted blanks which would break the ``CommandStyle`` macro.
+The list of command style files is automatically updated by the build system
+if there are new files, so the presence of the new header file in the
+``src/EXTRA-COMMAND`` folder and the enabling of the EXTRA-COMMAND package will
+trigger LAMMPS to include the new command style when it is (re-)compiled.  The
+"// clang-format" format comments are needed so that running
+:ref:`clang-format <clang-format>` on the file will not insert unwanted blanks
+which would break the ``CommandStyle`` macro.
 
 The third part of the header file is the actual class definition of the
 ``GetURL`` class.  This has the custom constructor and the ``command()``

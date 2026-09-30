@@ -1,0 +1,5 @@
+bond_coeff 1 4 3.0 # < this is v2 and v3
+#bond_coeff 1 2 3.0 < this is v1
+#angle_coeff 1 1 90.0 < This is for v1 amd v2
+angle_coeff 1 10 90 # v3 had 40, now we just multiplied 
+dihedral_coeff 1 1 1 1

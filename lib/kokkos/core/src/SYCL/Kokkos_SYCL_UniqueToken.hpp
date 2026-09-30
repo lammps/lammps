@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_SYCL_UNIQUE_TOKEN_HPP
 #define KOKKOS_SYCL_UNIQUE_TOKEN_HPP
@@ -45,20 +32,7 @@ class UniqueToken<SYCL, UniqueTokenScope::Global> {
   explicit UniqueToken(execution_space const& = execution_space())
       : m_locks(Kokkos::Impl::sycl_global_unique_token_locks()) {}
 
-  KOKKOS_DEFAULTED_FUNCTION
-  UniqueToken(const UniqueToken&) = default;
-
-  KOKKOS_DEFAULTED_FUNCTION
-  UniqueToken(UniqueToken&&) = default;
-
-  KOKKOS_DEFAULTED_FUNCTION
-  UniqueToken& operator=(const UniqueToken&) = default;
-
-  KOKKOS_DEFAULTED_FUNCTION
-  UniqueToken& operator=(UniqueToken&&) = default;
-
   /// \brief upper bound for acquired values, i.e. 0 <= value < size()
-  KOKKOS_INLINE_FUNCTION
   size_type size() const noexcept { return m_locks.extent(0); }
 
  protected:
@@ -74,9 +48,9 @@ class UniqueToken<SYCL, UniqueTokenScope::Global> {
 
  private:
   /// \brief acquire value such that 0 <= value < size()
-  KOKKOS_INLINE_FUNCTION
   size_type impl_acquire() const {
-#if defined(__INTEL_LLVM_COMPILER) && __INTEL_LLVM_COMPILER >= 20250000
+#if defined(KOKKOS_COMPILER_INTEL_LLVM) && \
+    KOKKOS_COMPILER_INTEL_LLVM >= 20250000
     auto item = sycl::ext::oneapi::this_work_item::get_nd_item<3>();
 #else
     auto item = sycl::ext::oneapi::experimental::this_nd_item<3>();
@@ -105,14 +79,12 @@ class UniqueToken<SYCL, UniqueTokenScope::Global> {
 
  public:
   /// \brief acquire value such that 0 <= value < size()
-  KOKKOS_INLINE_FUNCTION
   size_type acquire() const {
     KOKKOS_IF_ON_DEVICE(return impl_acquire();)
     KOKKOS_IF_ON_HOST(return 0;)
   }
 
   /// \brief release an acquired value
-  KOKKOS_INLINE_FUNCTION
   void release(size_type idx) const noexcept {
     // Make sure my writes are visible to the next lock owner
     desul::atomic_thread_fence(desul::MemoryOrderRelease(),
@@ -130,8 +102,7 @@ class UniqueToken<SYCL, UniqueTokenScope::Instance>
             Kokkos::SYCL().concurrency()) {}
 
   explicit UniqueToken(execution_space const& arg)
-      : UniqueToken<SYCL, UniqueTokenScope::Global>(
-            Kokkos::SYCL().concurrency(), arg) {}
+      : UniqueToken<SYCL, UniqueTokenScope::Global>(arg.concurrency(), arg) {}
 
   explicit UniqueToken(size_type max_size)
       : UniqueToken<SYCL, UniqueTokenScope::Global>(max_size) {}

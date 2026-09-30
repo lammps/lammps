@@ -34,20 +34,26 @@ using namespace FixConst;
 FixMomentum::FixMomentum(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg < 4) error->all(FLERR,"Illegal fix momentum command");
+  if (narg < 4) utils::missing_cmd_args(FLERR, "fix momentum", error);
   nevery = utils::inumeric(FLERR,arg[3],false,lmp);
-  if (nevery <= 0) error->all(FLERR,"Illegal fix momentum command");
+  if (nevery <= 0) error->all(FLERR, 3, "Fix momentum nevery value must be > 0");
 
   dynamic = linear = angular = rescale = 0;
 
   int iarg = 4;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"linear") == 0) {
-      if (iarg+4 > narg) error->all(FLERR,"Illegal fix momentum command");
+      if (iarg+4 > narg) utils::missing_cmd_args(FLERR,"fix momentum linear", error);
       linear = 1;
       xflag = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
+      if ((xflag != 0) && (xflag != 1))
+        error->all(FLERR, iarg + 1, "Fix momentum linear flag must be 0 or 1");
       yflag = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
+      if ((yflag != 0) && (yflag != 1))
+        error->all(FLERR, iarg + 2, "Fix momentum linear flag must be 0 or 1");
       zflag = utils::inumeric(FLERR,arg[iarg+3],false,lmp);
+      if ((zflag != 0) && (zflag != 1))
+        error->all(FLERR, iarg + 3, "Fix momentum linear flag must be 0 or 1");
       iarg += 4;
     } else if (strcmp(arg[iarg],"angular") == 0) {
       angular = 1;
@@ -55,16 +61,11 @@ FixMomentum::FixMomentum(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"rescale") == 0) {
       rescale = 1;
       iarg += 1;
-    } else error->all(FLERR,"Illegal fix momentum command");
+    } else error->all(FLERR, iarg, "Unknown fix momentum keyword {}", arg[iarg]);
   }
 
-  if (linear == 0 && angular == 0)
-    error->all(FLERR,"Illegal fix momentum command");
-
-  if (linear)
-    if (xflag < 0 || xflag > 1 || yflag < 0 || yflag > 1 ||
-        zflag < 0 || zflag > 1)
-      error->all(FLERR,"Illegal fix momentum command");
+  if ((linear == 0) && (angular == 0))
+    error->all(FLERR, Error::NOPOINTER, "Fix momentum command requires 'linear' or 'angular' keyword");
 
   dynamic_group_allow = 1;
 }
@@ -86,7 +87,7 @@ void FixMomentum::init()
     dynamic = 1;
   } else {
    if (group->count(igroup) == 0)
-     error->all(FLERR,"Fix momentum group has no atoms");
+     error->all(FLERR, Error::NOLASTLINE, "Fix momentum group {} has no atoms", group->names[igroup]);
   }
 
   masstotal = group->mass(igroup);

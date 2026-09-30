@@ -8,14 +8,26 @@
 
 using json = LAMMPS_NS::json;
 
+static void usage(const char *exe)
+{
+  printf("Usage: %s <indent-width> <json-file-1> [<json-file-2> ...]\n", exe);
+}
+
 int main(int argc, char **argv)
 {
   if (argc < 3) {
-    printf("Usage: %s <indent-width> <json-file-1> [<json-file-2> ...]\n", argv[0]);
+    usage(argv[0]);
     return 1;
   }
 
-  int indent = std::stoi(argv[1]);
+  int indent = 2;
+  try {
+    indent = std::stoi(argv[1]);
+  } catch (std::exception &e) {
+    printf("Error: %s: first argument not an integer\n", e.what());
+    usage(argv[0]);
+    return 1;
+  }
 
   // loop over files
 
@@ -26,6 +38,7 @@ int main(int argc, char **argv)
     FILE *fp = fopen(file.c_str(), "r");
     if (!fp) {
       printf("Cannot open file %s for reading: %s\n", file.c_str(), strerror(errno));
+      usage(argv[0]);
       return 2;
     }
 
@@ -50,7 +63,6 @@ int main(int argc, char **argv)
       printf("%s: %s\nSkipping file...\n", argv[i], e.what());
       fclose(fp);
     }
-
   }
   return 0;
 }

@@ -36,7 +36,9 @@ using namespace MathSpecial;
 
 /* ---------------------------------------------------------------------- */
 
-PairWFCut::PairWFCut(LAMMPS *lmp) : Pair(lmp)
+PairWFCut::PairWFCut(LAMMPS *lmp) :
+    Pair(lmp), nu(nullptr), mu(nullptr), cut(nullptr), epsilon(nullptr), sigma(nullptr),
+    nm(nullptr), e0nm(nullptr), rcmu(nullptr), sigma_mu(nullptr)
 {
   writedata = 1;
 }
@@ -45,6 +47,8 @@ PairWFCut::PairWFCut(LAMMPS *lmp) : Pair(lmp)
 
 PairWFCut::~PairWFCut()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);

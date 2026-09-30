@@ -1,0 +1,29 @@
+The ldd pair style allows users to layer pair, local density, and square
+gradient potentials onto a pair of interacting particle types.
+
+This folder contains examples for
+
+1) Simulating basic analytic (non-tabulated) 1-site LDD potentials with
+the atomic atom style and Lennard-Jones potentials (1_site_just_pair_LD)
+
+2) Simulating tabulated 4-site LDD / Square Gradient potentials with the
+full atom style (4_sites_LD_SG)
+
+The pair style needs no special atom style: the per-atom local densities
+are owned by the pair style and exposed via "fix pair".  Uncommenting the
+fix pair / dump lines will write a trajectory that includes the local
+density information and can be processed directly with BOCS
+(https://github.com/noid-group/BOCS)
+Reference log files in the format log.version.compiler.input are
+provided and we generated from the input file syntax with comments as
+is.
+
+Tabulated interactions for these kinds of simulations can be produced
+using BOCS.  Directions for using BOCS are available under
+https://github.com/noid-group/BOCS/tree/master/tutorials and
+https://github.com/noid-group/BOCS/blob/master/doc/BOCS_user_manual.pdf
+
+For the 4-site case, we constructed the tabulated interactions such
+that, with sufficient data, the spline representation of the forces is
+recoverable with BOCS across the domain of LDs defined.
+

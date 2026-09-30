@@ -28,6 +28,7 @@
 #include "neigh_list.h"
 #include "neighbor.h"
 #include "pair.h"
+#include "potential_file_reader.h"
 #include "respa.h"
 #include "update.h"
 
@@ -38,7 +39,7 @@ using namespace FixConst;
 using namespace MathConst;
 
 static const char cite_fix_orient_eco[] =
-  "fix orient/eco command: doi:j.commatsci.2020.109774\n\n"
+  "fix orient/eco command: https://doi.org/10.1016/j.commatsci.2020.109774\n\n"
   "@Article{Schratt20,\n"
   " author = {A. A. Schratt and V. Mohles},\n"
   " title = {Efficient Calculation of the {ECO} Driving Force for Atomistic Simulations of Grain Boundary Motion},\n"
@@ -46,15 +47,9 @@ static const char cite_fix_orient_eco[] =
   " volume = {182},\n"
   " year = {2020},\n"
   " pages = {109774},\n"
-  " doi = {j.commatsci.2020.109774},\n"
+  " doi = {10.1016/j.commatsci.2020.109774},\n"
   " url = {https://doi.org/10.1016/j.commatsci.2020.109774}\n"
   "}\n\n";
-
-struct FixOrientECO::Nbr {
-  double duchi;            // potential derivative
-  double real_phi[2][3];   // real part of wave function
-  double imag_phi[2][3];   // imaginary part of wave function
-};
 
 /* ---------------------------------------------------------------------- */
 
@@ -88,21 +83,12 @@ FixOrientECO::FixOrientECO(LAMMPS *lmp, int narg, char **arg) :
 
   dir_filename = utils::strdup(arg[6]);
   if (me == 0) {
-    char line[IMGMAX];
-    char *result;
-    int count;
-
-    FILE *infile = utils::open_potential(dir_filename,lmp,nullptr);
-    if (infile == nullptr)
-      error->one(FLERR,"Cannot open fix orient/eco file {}: {}",
-                                   dir_filename, utils::getsyserror());
-    for (int i = 0; i < 6; ++i) {
-      result = fgets(line, IMGMAX, infile);
-      if (!result) error->one(FLERR, "Fix orient/eco file read failed");
-      count = sscanf(line, "%lg %lg %lg", &dir_vec[i][0], &dir_vec[i][1], &dir_vec[i][2]);
-      if (count != 3) error->one(FLERR, "Fix orient/eco file read failed");
+    try {
+      PotentialFileReader reader(lmp, dir_filename, "fix orient/eco");
+      reader.next_dvector(&dir_vec[0][0], 6*3);
+    } catch (std::exception &e) {
+      error->one(FLERR, "Fix orient/eco file read failed: {}", e.what());
     }
-    fclose(infile);
 
     // calculate reciprocal lattice vectors
     get_reciprocal();

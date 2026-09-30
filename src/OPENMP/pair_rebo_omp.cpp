@@ -30,7 +30,8 @@ PairREBOOMP::PairREBOOMP(LAMMPS *lmp) : PairAIREBOOMP(lmp)
 
 void PairREBOOMP::settings(int narg, char ** /* arg */)
 {
-  if (narg != 0) error->all(FLERR, "Illegal pair_style command");
+  if (narg != 0) error->all(FLERR, Error::NOPOINTER,
+                            "Pair style rebo/omp command does not use any keywords");
 
   cutlj = 0.0;
   ljflag = torflag = 0;

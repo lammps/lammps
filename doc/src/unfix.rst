@@ -29,7 +29,7 @@ via the :doc:`fix_modify <fix_modify>` command.
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""

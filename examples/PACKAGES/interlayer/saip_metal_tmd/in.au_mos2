@@ -1,0 +1,42 @@
+# Initialization
+units		metal
+boundary	p p p
+atom_style	full
+processors	* * 1     # domain decomposition over x and y
+read_data	./3Lgold_1Lmos2.data
+mass		1 196.96657  # gold          mass (g/mole)
+mass		2 32.065     # sulfur        mass (g/mole)
+mass		3 95.95      # molybdenum    mass (g/mole)
+mass		4 32.065     # sulfur        mass (g/mole)
+# Separate atom groups
+group		gold type 1
+group		mos2 type 2 3 4
+######################## Potential defition ##############################
+# Interlayer potential
+pair_style	hybrid/overlay eam  sw/mod saip/metal/tmd 16.0 1
+####################################################################
+pair_coeff	1 1 eam  ./Au_u3.eam
+pair_coeff	* * sw/mod tmd.sw.mod NULL S Mo S
+pair_coeff	* * saip/metal/tmd ./TMDAu.SAIP Au S Mo S 
+####################################################################
+# Calculate pair energy
+compute		0 all pair eam
+compute		1 all pair sw/mod
+compute		2 all pair saip/metal/tmd
+variable	EAM   equal c_0
+variable	SWMOD equal c_1
+variable	SAIP  equal c_2
+############# Output ##############
+thermo_style	custom step etotal pe ke v_EAM v_SWMOD v_SAIP temp
+thermo		100
+thermo_modify	lost error
+
+velocity	all set 0.0 0.0 0.0
+velocity	mos2 create 300.0 4928459 mom yes rot yes dist gaussian
+velocity	gold create 300.0 4928459 mom yes rot yes dist gaussian
+
+fix		intsub gold nve
+fix		intrib mos2 nve
+
+timestep	1e-3
+run		1000

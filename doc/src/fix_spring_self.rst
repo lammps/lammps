@@ -4,6 +4,8 @@
 fix spring/self command
 =======================
 
+Accelerator Variant: *spring/self/kk*
+
 Syntax
 """"""
 

@@ -1,0 +1,210 @@
+runner_mode predict
+nnp_generation 2
+verbosity 0
+elements                       H O
+scale_feature_maps
+center_feature_maps
+num_committee_members 1
+
+remove_atom_energies
+atom_energy H                  -0.5052583648142086
+atom_energy O                  -75.16774963320022
+
+fc_hypertangent 1 0.0 11.33835676
+
+default_nodes 15 15
+default_activation_nn t t l
+
+batchsize_structures 1
+batchsize_elements H 1
+batchsize_elements O 1
+batchsize_forces 1
+
+initialization_method read
+use_old_scaling
+calculate_forces
+calculate_stress
+
+feature_map_default
+
+# radial H H
+symfunction H 2 H 0.001 0.0 1
+symfunction H 2 H 0.01  0.0 1
+symfunction H 2 H 0.03  0.0 1
+symfunction H 2 H 0.06  0.0 1
+symfunction H 2 H 0.15  1.9 1
+symfunction H 2 H 0.30  1.9 1
+symfunction H 2 H 0.60  1.9 1
+symfunction H 2 H 1.50  1.9 1
+
+# radial H O / O H
+symfunction H 2 O 0.001 0.0 1
+symfunction H 2 O 0.01  0.0 1
+symfunction H 2 O 0.03  0.0 1
+symfunction H 2 O 0.06  0.0 1
+symfunction H 2 O 0.15  0.9 1
+symfunction H 2 O 0.30  0.9 1
+symfunction H 2 O 0.60  0.9 1
+symfunction H 2 O 1.50  0.9 1
+
+symfunction O 2 H 0.001 0.0 1
+symfunction O 2 H 0.01  0.0 1
+symfunction O 2 H 0.03  0.0 1
+symfunction O 2 H 0.06  0.0 1
+symfunction O 2 H 0.15  0.9 1
+symfunction O 2 H 0.30  0.9 1
+symfunction O 2 H 0.60  0.9 1
+symfunction O 2 H 1.50  0.9 1
+
+# radial O O
+symfunction O 2 O 0.001 0.0 1
+symfunction O 2 O 0.01  0.0 1
+symfunction O 2 O 0.03  0.0 1
+symfunction O 2 O 0.06  0.0 1
+symfunction O 2 O 0.15  4.0 1
+symfunction O 2 O 0.30  4.0 1
+symfunction O 2 O 0.60  4.0 1
+symfunction O 2 O 1.50  4.0 1
+
+symfunction              H 3 H H      0.00000000      -1.00000000       1.00000000      1
+symfunction              H 3 H H      0.00000000      -1.00000000       2.00000000      1
+symfunction              H 3 H H      0.00000000      -1.00000000       4.00000000      1
+symfunction              H 3 H H      0.00000000      -1.00000000       8.00000000      1
+symfunction              H 3 H H      0.00000000      -1.00000000      16.00000000      1
+symfunction              H 3 H H      0.00000000      -1.00000000      32.00000000      1
+symfunction              H 3 H H      0.04718483      -1.00000000       1.00000000      1
+symfunction              H 3 H H      0.04718483      -1.00000000       2.00000000      1
+symfunction              H 3 H H      0.04718483      -1.00000000       4.00000000      1
+symfunction              H 3 H H      0.04718483      -1.00000000       8.00000000      1
+symfunction              H 3 H H      0.04718483      -1.00000000      16.00000000      1
+symfunction              H 3 H H      0.04718483      -1.00000000      32.00000000      1
+symfunction              H 3 H H      0.00000000       1.00000000       1.00000000      1
+symfunction              H 3 H H      0.00000000       1.00000000       2.00000000      1
+symfunction              H 3 H H      0.00000000       1.00000000       4.00000000      1
+symfunction              H 3 H H      0.00000000       1.00000000       8.00000000      1
+symfunction              H 3 H H      0.00000000       1.00000000      16.00000000      1
+symfunction              H 3 H H      0.00000000       1.00000000      32.00000000      1
+symfunction              H 3 H H      0.04718483       1.00000000       1.00000000      1
+symfunction              H 3 H H      0.04718483       1.00000000       2.00000000      1
+symfunction              H 3 H H      0.04718483       1.00000000       4.00000000      1
+symfunction              H 3 H H      0.04718483       1.00000000       8.00000000      1
+symfunction              H 3 H H      0.04718483       1.00000000      16.00000000      1
+symfunction              H 3 H H      0.04718483       1.00000000      32.00000000      1
+symfunction              H 3 H O      0.00000000      -1.00000000       1.00000000      1
+symfunction              H 3 H O      0.00000000      -1.00000000       2.00000000      1
+symfunction              H 3 H O      0.00000000      -1.00000000       4.00000000      1
+symfunction              H 3 H O      0.00000000      -1.00000000       8.00000000      1
+symfunction              H 3 H O      0.00000000      -1.00000000      16.00000000      1
+symfunction              H 3 H O      0.00000000      -1.00000000      32.00000000      1
+symfunction              H 3 H O      0.06057924      -1.00000000       1.00000000      1
+symfunction              H 3 H O      0.06057924      -1.00000000       2.00000000      1
+symfunction              H 3 H O      0.06057924      -1.00000000       4.00000000      1
+symfunction              H 3 H O      0.06057924      -1.00000000       8.00000000      1
+symfunction              H 3 H O      0.06057924      -1.00000000      16.00000000      1
+symfunction              H 3 H O      0.06057924      -1.00000000      32.00000000      1
+symfunction              H 3 H O      0.00000000       1.00000000       1.00000000      1
+symfunction              H 3 H O      0.00000000       1.00000000       2.00000000      1
+symfunction              H 3 H O      0.00000000       1.00000000       4.00000000      1
+symfunction              H 3 H O      0.00000000       1.00000000       8.00000000      1
+symfunction              H 3 H O      0.00000000       1.00000000      16.00000000      1
+symfunction              H 3 H O      0.00000000       1.00000000      32.00000000      1
+symfunction              H 3 H O      0.06057924       1.00000000       1.00000000      1
+symfunction              H 3 H O      0.06057924       1.00000000       2.00000000      1
+symfunction              H 3 H O      0.06057924       1.00000000       4.00000000      1
+symfunction              H 3 H O      0.06057924       1.00000000       8.00000000      1
+symfunction              H 3 H O      0.06057924       1.00000000      16.00000000      1
+symfunction              H 3 H O      0.06057924       1.00000000      32.00000000      1
+symfunction              H 3 O O      0.00000000      -1.00000000       1.00000000      1
+symfunction              H 3 O O      0.00000000      -1.00000000       2.00000000      1
+symfunction              H 3 O O      0.00000000      -1.00000000       4.00000000      1
+symfunction              H 3 O O      0.00000000      -1.00000000       8.00000000      1
+symfunction              H 3 O O      0.00000000      -1.00000000      16.00000000      1
+symfunction              H 3 O O      0.00000000      -1.00000000      32.00000000      1
+symfunction              H 3 O O      0.04724594      -1.00000000       1.00000000      1
+symfunction              H 3 O O      0.04724594      -1.00000000       2.00000000      1
+symfunction              H 3 O O      0.04724594      -1.00000000       4.00000000      1
+symfunction              H 3 O O      0.04724594      -1.00000000       8.00000000      1
+symfunction              H 3 O O      0.04724594      -1.00000000      16.00000000      1
+symfunction              H 3 O O      0.04724594      -1.00000000      32.00000000      1
+symfunction              H 3 O O      0.00000000       1.00000000       1.00000000      1
+symfunction              H 3 O O      0.00000000       1.00000000       2.00000000      1
+symfunction              H 3 O O      0.00000000       1.00000000       4.00000000      1
+symfunction              H 3 O O      0.00000000       1.00000000       8.00000000      1
+symfunction              H 3 O O      0.00000000       1.00000000      16.00000000      1
+symfunction              H 3 O O      0.00000000       1.00000000      32.00000000      1
+symfunction              H 3 O O      0.04724594       1.00000000       1.00000000      1
+symfunction              H 3 O O      0.04724594       1.00000000       2.00000000      1
+symfunction              H 3 O O      0.04724594       1.00000000       4.00000000      1
+symfunction              H 3 O O      0.04724594       1.00000000       8.00000000      1
+symfunction              H 3 O O      0.04724594       1.00000000      16.00000000      1
+symfunction              H 3 O O      0.04724594       1.00000000      32.00000000      1
+symfunction              O 3 H H      0.00000000      -1.00000000       1.00000000      1
+symfunction              O 3 H H      0.00000000      -1.00000000       2.00000000      1
+symfunction              O 3 H H      0.00000000      -1.00000000       4.00000000      1
+symfunction              O 3 H H      0.00000000      -1.00000000       8.00000000      1
+symfunction              O 3 H H      0.00000000      -1.00000000      16.00000000      1
+symfunction              O 3 H H      0.00000000      -1.00000000      32.00000000      1
+symfunction              O 3 H H      0.06057924      -1.00000000       1.00000000      1
+symfunction              O 3 H H      0.06057924      -1.00000000       2.00000000      1
+symfunction              O 3 H H      0.06057924      -1.00000000       4.00000000      1
+symfunction              O 3 H H      0.06057924      -1.00000000       8.00000000      1
+symfunction              O 3 H H      0.06057924      -1.00000000      16.00000000      1
+symfunction              O 3 H H      0.06057924      -1.00000000      32.00000000      1
+symfunction              O 3 H H      0.00000000       1.00000000       1.00000000      1
+symfunction              O 3 H H      0.00000000       1.00000000       2.00000000      1
+symfunction              O 3 H H      0.00000000       1.00000000       4.00000000      1
+symfunction              O 3 H H      0.00000000       1.00000000       8.00000000      1
+symfunction              O 3 H H      0.00000000       1.00000000      16.00000000      1
+symfunction              O 3 H H      0.00000000       1.00000000      32.00000000      1
+symfunction              O 3 H H      0.06057924       1.00000000       1.00000000      1
+symfunction              O 3 H H      0.06057924       1.00000000       2.00000000      1
+symfunction              O 3 H H      0.06057924       1.00000000       4.00000000      1
+symfunction              O 3 H H      0.06057924       1.00000000       8.00000000      1
+symfunction              O 3 H H      0.06057924       1.00000000      16.00000000      1
+symfunction              O 3 H H      0.06057924       1.00000000      32.00000000      1
+symfunction              O 3 H O      0.00000000      -1.00000000       1.00000000      1
+symfunction              O 3 H O      0.00000000      -1.00000000       2.00000000      1
+symfunction              O 3 H O      0.00000000      -1.00000000       4.00000000      1
+symfunction              O 3 H O      0.00000000      -1.00000000       8.00000000      1
+symfunction              O 3 H O      0.00000000      -1.00000000      16.00000000      1
+symfunction              O 3 H O      0.00000000      -1.00000000      32.00000000      1
+symfunction              O 3 H O      0.04724594      -1.00000000       1.00000000      1
+symfunction              O 3 H O      0.04724594      -1.00000000       2.00000000      1
+symfunction              O 3 H O      0.04724594      -1.00000000       4.00000000      1
+symfunction              O 3 H O      0.04724594      -1.00000000       8.00000000      1
+symfunction              O 3 H O      0.04724594      -1.00000000      16.00000000      1
+symfunction              O 3 H O      0.04724594      -1.00000000      32.00000000      1
+symfunction              O 3 H O      0.00000000       1.00000000       1.00000000      1
+symfunction              O 3 H O      0.00000000       1.00000000       2.00000000      1
+symfunction              O 3 H O      0.00000000       1.00000000       4.00000000      1
+symfunction              O 3 H O      0.00000000       1.00000000       8.00000000      1
+symfunction              O 3 H O      0.00000000       1.00000000      16.00000000      1
+symfunction              O 3 H O      0.00000000       1.00000000      32.00000000      1
+symfunction              O 3 H O      0.04724594       1.00000000       1.00000000      1
+symfunction              O 3 H O      0.04724594       1.00000000       2.00000000      1
+symfunction              O 3 H O      0.04724594       1.00000000       4.00000000      1
+symfunction              O 3 H O      0.04724594       1.00000000       8.00000000      1
+symfunction              O 3 H O      0.04724594       1.00000000      16.00000000      1
+symfunction              O 3 H O      0.04724594       1.00000000      32.00000000      1
+symfunction              O 3 O O      0.00000000      -1.00000000       1.00000000      1
+symfunction              O 3 O O      0.00000000      -1.00000000       2.00000000      1
+symfunction              O 3 O O      0.00000000      -1.00000000       4.00000000      1
+symfunction              O 3 O O      0.00000000      -1.00000000       8.00000000      1
+symfunction              O 3 O O      0.00000000      -1.00000000      16.00000000      1
+symfunction              O 3 O O      0.00000000      -1.00000000      32.00000000      1
+symfunction              O 3 O O      0.00718491      -1.00000000       1.00000000      1
+symfunction              O 3 O O      0.00718491      -1.00000000       2.00000000      1
+symfunction              O 3 O O      0.00718491      -1.00000000       4.00000000      1
+symfunction              O 3 O O      0.00718491      -1.00000000       8.00000000      1
+symfunction              O 3 O O      0.00000000       1.00000000       1.00000000      1
+symfunction              O 3 O O      0.00000000       1.00000000       2.00000000      1
+symfunction              O 3 O O      0.00000000       1.00000000       4.00000000      1
+symfunction              O 3 O O      0.00000000       1.00000000       8.00000000      1
+symfunction              O 3 O O      0.00000000       1.00000000      16.00000000      1
+symfunction              O 3 O O      0.00000000       1.00000000      32.00000000      1
+symfunction              O 3 O O      0.00718491       1.00000000       1.00000000      1
+symfunction              O 3 O O      0.00718491       1.00000000       2.00000000      1
+symfunction              O 3 O O      0.00718491       1.00000000       4.00000000      1
+symfunction              O 3 O O      0.00718491       1.00000000       8.00000000      1
+symfunction              O 3 O O      0.00718491       1.00000000      16.00000000      1
+symfunction              O 3 O O      0.00718491       1.00000000      32.00000000      1

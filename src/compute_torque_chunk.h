@@ -37,6 +37,7 @@ class ComputeTorqueChunk : public ComputeChunk {
   double **com, **comall;
   double **torque, **torqueall;
 
+ protected:
   void allocate() override;
 };
 

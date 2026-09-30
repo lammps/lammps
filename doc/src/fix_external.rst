@@ -1,7 +1,10 @@
 .. index:: fix external
+.. index:: fix external/kk
 
 fix external command
 ====================
+
+Accelerator Variants: *external/kk*
 
 Syntax
 """"""
@@ -71,14 +74,8 @@ which is typically a 32-bit integer unless LAMMPS is compiled with
 <size>` section of the manual.  Finally, *fexternal* are the forces
 returned by the driver program.
 
-The fix has a set_callback() method which the external driver can call
-to pass a pointer to its foo() function.  See the
-couple/lammps_quest/lmpqst.cpp file in the LAMMPS distribution for an
-example of how this is done.  This sample application performs
-classical MD using quantum forces computed by a density functional
-code `Quest <quest_>`_.
-
-.. _quest: https://www.sandia.gov/quest/
+The best way to set up the callback function is to use the C-language
+library interface function :cpp:func:`lammps_set_fix_external_callback`.
 
 ----------
 
@@ -148,6 +145,10 @@ the caller code may want to communicate  to LAMMPS
 
 ----------
 
+.. include:: accel_styles.rst
+
+----------
+
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
@@ -202,7 +203,7 @@ invoked by the :doc:`minimize <minimize>` command.
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""

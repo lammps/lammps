@@ -307,10 +307,8 @@ FixAdapt::~FixAdapt()
   }
   delete[] adapt;
 
-  // check nfix in case all fixes have already been deleted
-
-  if (id_fix_diam && modify->nfix) modify->delete_fix(id_fix_diam);
-  if (id_fix_chg && modify->nfix) modify->delete_fix(id_fix_chg);
+  if (id_fix_diam) modify->delete_fix(id_fix_diam);
+  if (id_fix_chg) modify->delete_fix(id_fix_chg);
   delete[] id_fix_diam;
   delete[] id_fix_chg;
 }
@@ -834,9 +832,9 @@ void FixAdapt::change_settings()
         }
 
         // mass must not become zero and radius must not be negative
-        if (massflag && (scale == 0.0) || (value == 0.0))
+        if (massflag && ((scale == 0.0) || (value == 0.0)))
           error->all(FLERR, Error::NOLASTLINE, "Fix adapt particle mass has become 0.0");
-        if (!massflag && (scale < 0.0) || (value < 0.0))
+        if (!massflag && ((scale < 0.0) || (value < 0.0)))
           error->all(FLERR, Error::NOLASTLINE, "Fix adapt particle diameter has become negative");
 
         for (i = 0; i < nall; i++) {

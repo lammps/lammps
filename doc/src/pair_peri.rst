@@ -55,6 +55,16 @@ at the mesoscopic and macroscopic scales.  See `this document
 <PDF/PDLammps_overview.pdf>`_ for an overview of LAMMPS commands for
 Peridynamics modeling.
 
+.. note::
+
+   The :doc:`BPM package <Howto_bpm>` provides an alternative implementation of
+   these peridynamics models as :doc:`bond_style bpm/peri <bond_bpm_peri>`, with
+   the companion contact :doc:`pair_style bpm/peri <pair_bpm_peri>`.  It covers
+   the same PMB, LPS, VES, and EPS material models recast in the package's bond-based
+   framework. It is significantly faster than the *peri* pair styles documented here.
+   See the :doc:`Peridynamics Howto <Howto_peri>` for a side-by-side comparison,
+   per-model timings, and guidance on choosing between the two implementations.
+
 Style *peri/pmb* implements the Peridynamic bond-based prototype
 microelastic brittle (PMB) model.
 
@@ -103,25 +113,6 @@ such that c/distance = stiffness/volume\^2, where stiffness is
 energy/distance\^2 and volume is distance\^3.  See the users guide for
 more details.
 
-A bond between particles i and j is broken when its stretch :math:`s_{ij}`
-exceeds the per-bond critical stretch
-:math:`s_{ij}^{crit} = s00 - \alpha \cdot \max(s_i, s_j)`,
-where :math:`s_i` is the minimum stretch over all surviving bonds of
-particle i from the previous timestep.  Using :math:`\max(s_i, s_j)` and
-evaluating the criterion per bond (rather than collapsing to a single
-per-particle scalar) correctly handles simulations with multiple atom types
-that have different s00 and :math:`\alpha` values.  The per-atom quantity
-accessible as ``s0`` via :doc:`compute property/atom <compute_property_atom>`
-stores this minimum stretch (not the critical stretch threshold).
-
-.. note::
-
-   Previously the bond breaking criterion used a single per-particle critical
-   stretch value shared across all bond-type pairs.  This was incorrect when
-   atom types had different s00 or alpha parameters.  The ``s0`` per-atom
-   property now stores the minimum bond stretch rather than the old (incorrect)
-   critical-stretch scalar.
-
 For the *peri/lps* style:
 
 * K (force/area units)
@@ -132,9 +123,8 @@ For the *peri/lps* style:
 
 K is the bulk modulus and G is the shear modulus.  The horizon is a
 cutoff distance for truncating interactions, and s00 and :math:`\alpha`
-are used as a bond breaking criteria.  See the peri/pmb description above
-for details of the per-bond critical stretch criterion.  See the users
-guide for more details.
+are used as a bond breaking criteria. See the users guide for more
+details.
 
 For the *peri/ves* style:
 
@@ -148,8 +138,7 @@ For the *peri/ves* style:
 
 K is the bulk modulus and G is the shear modulus. The horizon is a
 cutoff distance for truncating interactions, and s00 and :math:`\alpha`
-are used as a bond breaking criteria.  See the peri/pmb description above
-for details of the per-bond critical stretch criterion.  m_lambdai and m_taubi are the
+are used as a bond breaking criteria. m_lambdai and m_taubi are the
 viscoelastic relaxation parameter and time constant,
 respectively. m_lambdai varies within zero to one. For very small values
 of m_lambdai the viscoelastic model responds very similar to a linear
@@ -167,9 +156,57 @@ For the *peri/eps* style:
 
 K is the bulk modulus and G is the shear modulus. The horizon is a
 cutoff distance and s00 and :math:`\alpha` are used as a bond breaking
-criteria.  See the peri/pmb description above for details of the
-per-bond critical stretch criterion.  m_yield_stress is the yield stress
-of the material. For details please see the description in "(Mitchell2011a)".
+criteria.  m_yield_stress is the yield stress of the material. For
+details please see the description in "(Mitchell2011a)".
+
+.. versionchanged:: 4Jul2026
+
+.. note::
+
+   Prior versions of LAMMPS, had an incorrect the plasticity model in style
+   *peri/eps* relative to the source report :ref:`(Mitchell2) <Mitchell2011a>`.
+   These affected the evolution of the plastic deviatoric extension and caused
+   significant overshooting of the yield surface. These have since been corrected,
+   however, there is still no radial return rule to ensure the plastic deviatoric
+   extension does not leave the yield surface. This may cause some drift off the
+   surface during long simulations. This possibility for future improvement is
+   tracked as `issue #5064 <https://github.com/lammps/lammps/issues/5064>`_.
+
+----------
+
+Bond breaking criterion
+"""""""""""""""""""""""
+
+For all of these styles a peridynamic bond between particles *i* and *j*
+breaks irreversibly once its stretch :math:`s = (r - r_0)/r_0` exceeds a
+critical stretch.  Following :ref:`(Parks) <Parks>` (eq. 9), the critical
+stretch of a particle is :math:`s_0 = s_{00} - \alpha\, s_{min}`, where
+:math:`s_{min}` is the minimum (most compressive) stretch over all of the
+particle's bonds, and a bond breaks when :math:`s > \min(s_{0,i},
+s_{0,j})`, i.e. symmetrically from the point of view of both particles.
+
+The s00 and :math:`\alpha` coefficients may be chosen differently for each
+pair of atom types.  This makes it possible, for example, to assign a
+smaller s00 to the bonds across an interface between two materials so that
+a crack preferentially initiates there.  The critical stretch is evaluated
+*per bond* using that bond's own s00 and :math:`\alpha` together with the
+geometric :math:`s_{min}` of each endpoint.
+
+.. versionchanged:: 4Jul2026
+
+In previous versions the critical stretch was stored as a single
+per-particle value computed as the maximum of :math:`s_{00} - \alpha s`
+over a particle's bonds.  That is only equivalent to the criterion above
+when s00 and :math:`\alpha` are identical for all type pairs; with
+type-dependent coefficients a bond would incorrectly inherit the critical
+stretch of the surrounding bulk bonds and a weakened interface would not
+fracture.  The criterion is now evaluated per bond so that type-dependent
+s00 and :math:`\alpha` behave as intended.
+
+The :doc:`compute property/atom <compute_property_atom>` *s0* per-atom
+property reports this per-particle critical stretch.  Earlier versions of
+this documentation incorrectly described *s0* as the maximum stretch of
+any bond a particle is part of.
 
 ----------
 
@@ -234,12 +271,12 @@ none
 
 .. _Mitchell2011:
 
-**(Mitchell2011)** Mitchell. A non-local, ordinary-state-based
+**(Mitchell)** Mitchell. A non-local, ordinary-state-based
 viscoelasticity model for peridynamics. Sandia National Lab Report,
 8064:1-28 (2011).
 
 .. _Mitchell2011a:
 
-**(Mitchell2011a)** Mitchell. A Nonlocal, Ordinary, State-Based
+**(Mitchell2)** Mitchell. A Nonlocal, Ordinary, State-Based
 Plasticity Model for Peridynamics. Sandia National Lab Report,
 3166:1-34 (2011).

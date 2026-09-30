@@ -106,7 +106,7 @@ void FixSRP::init()
   if (!force->pair_match("^hybrid",0))
     error->all(FLERR,"Cannot use pair {} without pair_style hybrid", pair_name);
 
-  if (modify->get_fix_by_style("^rigid").size() > 0)
+  if (!modify->get_fix_by_style("^rigid").empty())
     error->all(FLERR,"Pair {} is not compatible with rigid fixes.", pair_name);
 
   if ((bptype < 1) || (bptype > atom->ntypes))

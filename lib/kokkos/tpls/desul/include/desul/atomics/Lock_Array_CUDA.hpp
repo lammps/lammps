@@ -19,8 +19,8 @@ namespace Impl {
 
 /// \brief This global variable in Host space is the central definition
 ///        of these arrays.
-extern int32_t* CUDA_SPACE_ATOMIC_LOCKS_DEVICE_h;
-extern int32_t* CUDA_SPACE_ATOMIC_LOCKS_NODE_h;
+DESUL_IMPL_EXPORT extern int32_t* CUDA_SPACE_ATOMIC_LOCKS_DEVICE_h;
+DESUL_IMPL_EXPORT extern int32_t* CUDA_SPACE_ATOMIC_LOCKS_NODE_h;
 
 /// \brief After this call, the g_host_cuda_lock_arrays variable has
 ///        valid, initialized arrays.

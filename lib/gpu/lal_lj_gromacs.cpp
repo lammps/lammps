@@ -49,12 +49,12 @@ int LJGROMACST::init(const int ntypes, double **host_cutsq,
                      double **host_lj4, double *host_special_lj,
                      const int nlocal, const int nall, const int max_nbors,
                      const int maxspecial, const double cell_size,
-                     const double gpu_split, FILE *_screen,
+                           FILE *_screen,
                      double **host_ljsw1, double **host_ljsw2, double **host_ljsw3,
                      double **host_ljsw4, double **host_ljsw5,
                      double **cut_inner, double **cut_inner_sq) {
   int success;
-  success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,gpu_split,
+  success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,
                             _screen,lj_gromacs,"k_lj_gromacs");
   if (success!=0)
     return success;

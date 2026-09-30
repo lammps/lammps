@@ -25,13 +25,13 @@ FFT3d::FFT3d(LAMMPS *lmp, MPI_Comm comm, int nfast, int nmid, int nslow,
              int in_klo, int in_khi,
              int out_ilo, int out_ihi, int out_jlo, int out_jhi,
              int out_klo, int out_khi,
-             int scaled, int permute, int *nbuf, int usecollective) : Pointers(lmp)
+             int scaled, int permute, int *nbuf, int usecollective, int usenonblocking) : Pointers(lmp)
 {
   #ifndef FFT_HEFFTE
   plan = fft_3d_create_plan(comm,nfast,nmid,nslow,
                             in_ilo,in_ihi,in_jlo,in_jhi,in_klo,in_khi,
                             out_ilo,out_ihi,out_jlo,out_jhi,out_klo,out_khi,
-                            scaled,permute,nbuf,usecollective);
+                            scaled,permute,nbuf,usecollective,usenonblocking);
   if (plan == nullptr) error->one(FLERR,"Could not create 3d FFT plan");
   #else
   heffte::plan_options options = heffte::default_options<heffte_backend>();

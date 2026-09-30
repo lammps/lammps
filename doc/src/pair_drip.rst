@@ -1,7 +1,10 @@
 .. index:: pair_style drip
+.. index:: pair_style drip/omp
 
 pair_style drip command
 =======================
+
+Accelerator Variants: *drip/omp*
 
 Syntax
 """"""
@@ -10,7 +13,7 @@ Syntax
 
    pair_style hybrid/overlay drip [styles ...]
 
-* styles = other styles to be overlayed with drip (optional)
+* styles = other pair styles to be added to drip (optional)
 
 Examples
 """"""""
@@ -101,6 +104,10 @@ model H atoms:
    LAMMPS (see the "potentials" directory). Besides those in :ref:`Wen <Wen2018>`, an
    additional parameter "normal_cutoff", specific to the LAMMPS implementation, is
    used to find the three nearest neighbors of an atom to construct the normal.
+
+----------
+
+.. include:: accel_styles.rst
 
 ----------
 

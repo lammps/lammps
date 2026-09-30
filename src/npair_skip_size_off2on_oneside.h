@@ -17,14 +17,14 @@ using NPairSkipSizeOff2onOneside = NPairSkipSizeOff2onOnesideTemp<0>;
 NPairStyle(skip/size/off2on/oneside,
            NPairSkipSizeOff2onOneside,
            NP_SKIP | NP_SIZE | NP_OFF2ON | NP_ONESIDE | NP_HALF |
-           NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD | NP_NEWTON | NP_NEWTOFF |
+           NP_NSQ | NP_BIN | NP_MULTI | NP_NEWTON | NP_NEWTOFF |
            NP_ORTHO | NP_TRI);
 
 using NPairSkipTrimSizeOff2onOneside = NPairSkipSizeOff2onOnesideTemp<1>;
 NPairStyle(skip/trim/size/off2on/oneside,
            NPairSkipTrimSizeOff2onOneside,
            NP_SKIP | NP_SIZE | NP_OFF2ON | NP_ONESIDE | NP_HALF |
-           NP_NSQ | NP_BIN | NP_MULTI | NP_MULTI_OLD | NP_NEWTON | NP_NEWTOFF |
+           NP_NSQ | NP_BIN | NP_MULTI | NP_NEWTON | NP_NEWTOFF |
            NP_ORTHO | NP_TRI | NP_TRIM);
 // clang-format on
 #else

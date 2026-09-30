@@ -1,7 +1,9 @@
 # -*- Makefile -*- for coupling LAMMPS to PWscf for QM/MM molecular dynamics
-
-# this file will be copied to Makefile.lammps
-EXTRAMAKE = Makefile.lammps.empty
+# adapted for the case of compiling LAMMPS with CMake. This assumes that
+# LAMMPS was configured to build a shared library and installed with "make install"
+# as it used the PKG config configuration file. You may need to extend
+# the PKG_CONFIG_PATH environment variable to have pkgconf find the liblammps.pc file.
+# This is set up for using GNU Fortran and OpenMPI to compile both LAMMPS and QE
 
 # top level directory of Quantum ESPRESSO 6.4 or later
 QETOPDIR=$(HOME)/compile/espresso
@@ -37,11 +39,10 @@ $(QETOPDIR)/clib/clib.a   \
 $(QETOPDIR)/iotk/src/libiotk.a
 # foxlibs
 
-LIBS += -L${QETOPDIR}/FoX/lib -lFoX_dom -lFoX_sax -lFoX_wxml -lFoX_common -lFoX_utils -lFoX_fsys  -mkl  -ltbbmalloc
-# part 3: add-on libraries and main library for LAMMPS
-sinclude ../../src/Makefile.package
-LAMMPSCFG =intel_cpu
-LAMMPSLIB = ../../src/liblammps_$(LAMMPSCFG).a
+QELIBS += -L${QETOPDIR}/FoX/lib -lFoX_dom -lFoX_sax -lFoX_wxml -lFoX_common -lFoX_utils -lFoX_fsys  -mkl  -ltbbmalloc
+
+LAMMPSFLAGS = $(shell pkg-config --cflags liblammps)
+LAMMPSLIB   = $(shell pkg-config --libs liblammps)
 
 # part 4: local QM/MM library and progams
 SRC=pwqmmm.c libqmmm.c
@@ -52,12 +53,11 @@ default: libqmmm.a
 
 all : tldeps libqmmm.a pwqmmm.x
 
-pwqmmm.x : pwqmmm.o $(OBJ) $(PWOBJS) $(LIBOBJS) $(LAMMPSLIB)
-	$(MPICXX) $(LDFLAGS) -o $@ $^ $(PKG_PATH) $(PKG_LIB) $(MPILIBS) $(LIBS)
+pwqmmm.x : pwqmmm.o $(PWOBJS) $(LIBOBJS)
+	$(MPICXX) $(LDFLAGS) -o $@ $^ $(LAMMPSLIB) $(QELIBS) $(MPILIBS)
 
 libqmmm.a: libqmmm.o
 	$(AR) $(ARFLAGS) $@ $^
-	@cp $(EXTRAMAKE) Makefile.lammps
 
 %.o: %.c
 	$(MPICXX) -c $(LAMMPSFLAGS) $(MPICXXFLAGS) $< -o $@

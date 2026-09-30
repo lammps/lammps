@@ -39,7 +39,12 @@ static constexpr double SMALL = 0.001;
 
 /* ---------------------------------------------------------------------- */
 
-AngleCosineBuck6d::AngleCosineBuck6d(LAMMPS *lmp) : Angle(lmp) {}
+AngleCosineBuck6d::AngleCosineBuck6d(LAMMPS *lmp) :
+    Angle(lmp), k(nullptr), th0(nullptr), eps(nullptr), d0(nullptr), buck6d1(nullptr),
+    buck6d2(nullptr), buck6d3(nullptr), buck6d4(nullptr), cut_ljsq(nullptr), c0(nullptr),
+    c1(nullptr), c2(nullptr), c3(nullptr), c4(nullptr), c5(nullptr), rsmooth_sq(nullptr),
+    offset(nullptr), multiplicity(nullptr)
+{}
 
 /* ---------------------------------------------------------------------- */
 

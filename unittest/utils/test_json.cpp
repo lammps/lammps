@@ -45,11 +45,11 @@ TEST(JSON, serialize_deserialize)
     j1["name"]    = "Niels";
     j1["nothing"] = nullptr;
 
-    std::string expected = "{\"happy\":true,\"name\":\"Niels\",\"nothing\":null,\"pi\":3.141}";
+    std::string expected = R"({"pi":3.141,"happy":true,"name":"Niels","nothing":null})";
     std::string dumped   = j1.dump(-1);
     ASSERT_THAT(expected, Eq(dumped));
 
-    expected = "{\n  \"happy\": true,\n  \"name\": \"Niels\",\n  \"nothing\": null,\n  \"pi\": 3.141\n}";
+    expected = "{\n  \"pi\": 3.141,\n  \"happy\": true,\n  \"name\": \"Niels\",\n  \"nothing\": null\n}";
     dumped   = j1.dump(2, ' ');
     ASSERT_THAT(expected, Eq(dumped));
 

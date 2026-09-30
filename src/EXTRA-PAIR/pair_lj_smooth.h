@@ -39,6 +39,7 @@ class PairLJSmooth : public Pair {
   void write_data(FILE *) override;
   void write_data_all(FILE *) override;
   double single(int, int, int, int, double, double, double, double &) override;
+  void *extract(const char *, int &dim) override;
 
  protected:
   double cut_inner_global, cut_global;
@@ -48,7 +49,7 @@ class PairLJSmooth : public Pair {
   double **ljsw0, **ljsw1, **ljsw2, **ljsw3, **ljsw4;
   double **offset;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }    // namespace LAMMPS_NS

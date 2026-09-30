@@ -1,0 +1,82 @@
+# -----------------------------
+# Example script for self-propelled and self-aligning particles performing 2D collective motion using sphere + dipole
+# -----------------------------
+variable NParticles equal 10000
+variable Seed equal 12345
+variable BoxSize equal 200
+
+variable Mass equal 1.0
+variable ActiveForce equal 2.0
+variable SelfAlignment equal 0.6
+variable RelaxTime equal 0.2            # Relaxation time to terminal velocity for mass 1
+variable Temperature equal 0.01
+
+variable WCA_cut equal 1.122
+
+# -----------------------------
+# Generic Simulation parameters
+# -----------------------------
+units       lj
+dimension   2
+boundary    p p p
+atom_style  hybrid sphere dipole
+
+# -----------------------------
+# Simulation box and atoms
+# -----------------------------
+region       box block 0 ${BoxSize} 0 ${BoxSize} -0.5 0.5
+create_box   1 box
+create_atoms 1 random ${NParticles} ${Seed} box
+
+# -----------------------------
+# Equilibration run to remove overlaps
+# -----------------------------
+pair_style      soft 1.122
+pair_coeff      * * 0.0
+variable        prefactor equal ramp(0,100) # strength of soft potential is increase slowly over time
+
+fix             1 all brownian 0.0001 ${Seed} gamma_t 1.0
+fix             2 all adapt 1 pair soft a * * v_prefactor
+thermo          1000
+run             5000
+unfix           1
+unfix           2
+
+# -----------------------------
+# Mass, dipole, velocities
+# -----------------------------
+mass        * ${Mass}
+set         type * dipole/random ${Seed} 1.0    # dipole orientation
+velocity    all create 0.0 ${Seed} mom yes rot yes
+
+# -----------------------------
+# Interactions (WCA)
+# -----------------------------
+pair_style      lj/cut ${WCA_cut}
+pair_coeff      * * 1.0 1.0
+
+# -----------------------------
+# Individual dynamics
+# -----------------------------
+fix rotLangevin all langevin ${Temperature} ${Temperature} ${RelaxTime} ${Seed} omega yes
+fix active all propel/self dipole ${ActiveForce}
+fix align all align/self dipole ${SelfAlignment}
+
+# -----------------------------
+# Integrators
+# -----------------------------
+fix nve_rot all nve/sphere update dipole
+fix dipole2D all enforce2d # force z-components to zero every timestep
+
+# -----------------------------
+# Output
+# -----------------------------
+thermo      100
+#dump        1 all custom 100 collective_motion_dipole.lammpstrj id type x y vx vy mux muy omegax omegay omegaz tqx tqy tqz
+
+# -----------------------------
+# Run
+# -----------------------------
+timestep    0.01
+run         2000
+

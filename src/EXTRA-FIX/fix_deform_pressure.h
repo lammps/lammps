@@ -30,14 +30,13 @@ class FixDeformPressure : public FixDeform {
   ~FixDeformPressure() override;
   void init() override;
   void setup(int) override;
-  void end_of_step() override;
   void write_restart(FILE *) override;
   void restart(char *buf) override;
   int modify_param(int, char **) override;
 
  protected:
   int pcouple;
-  double max_h_rate;
+  double max_strain_rate;        // cap on |engineering strain rate| (1/time), 0 = no cap
   int strain_flag;               // 1 if strain-based option is used, 0 if not
   int pressure_flag;             // 1 if pressure tensor used, 0 if not
   int volume_flag;               // 1 if VOLUME option is used, 0 if not
@@ -51,9 +50,7 @@ class FixDeformPressure : public FixDeform {
   struct SetExtra {
     double ptarget, pgain;
     double prior_pressure, prior_rate;
-    double cumulative_shift;
     double cumulative_vshift[3];
-    double cumulative_remap;
     int saved;
     char *pstr;
     int pvar, pvar_flag;
@@ -66,6 +63,7 @@ class FixDeformPressure : public FixDeform {
   void apply_volume() override;
   void apply_pressure();
   void apply_box();
+  void update_box() override;
   void couple();
   void adjust_linked_rates(double&, double&, double, double, double);
 };

@@ -236,7 +236,7 @@ void BondLepton::coeff(int narg, char **arg)
   }
 
   // if not found, add to list
-  if ((expressions.size() == 0) || (idx == expressions.size())) expressions.push_back(std::move(exp_one));
+  if ((expressions.empty()) || (idx == expressions.size())) expressions.push_back(std::move(exp_one));
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {
@@ -309,7 +309,7 @@ void BondLepton::read_restart(FILE *fp)
   }
   MPI_Bcast(&num, 1, MPI_INT, 0, world);
   MPI_Bcast(&maxlen, 1, MPI_INT, 0, world);
-  if ((num < 0) || (maxlen < 0) || (maxlen > 65536))
+  if ((num < 0) || (num > 65536) || (maxlen < 0) || (maxlen > 65536))
     error->all(FLERR, "Invalid expression data in restart file");
 
   char *buf = new char[maxlen];

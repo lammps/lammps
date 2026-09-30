@@ -28,7 +28,8 @@ static constexpr int EXTRA = 1000;
 
 /* ---------------------------------------------------------------------- */
 
-DihedralHybrid::DihedralHybrid(LAMMPS *lmp) : Dihedral(lmp)
+DihedralHybrid::DihedralHybrid(LAMMPS *lmp) :
+    Dihedral(lmp), styles(nullptr), keywords(nullptr), map(nullptr)
 {
   writedata = 0;
   nstyles = 0;
@@ -230,7 +231,7 @@ void DihedralHybrid::settings(int narg, char **arg)
     // by looking for the next known dihedral style name.
 
     int jarg = i + 1;
-    while ((jarg < narg) && !force->dihedral_map->count(arg[jarg]) &&
+    while ((jarg < narg) && !Force::dihedral_styles().contains(arg[jarg]) &&
            !lmp->match_style("dihedral", arg[jarg]))
       jarg++;
 

@@ -41,7 +41,7 @@ class EwaldDipoleSpin : public EwaldDipole {
 
   void spsum_musq();
   void eik_dot_r() override;
-  void slabcorr();
+  void slabcorr() override;
 };
 
 }    // namespace LAMMPS_NS

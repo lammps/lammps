@@ -23,10 +23,14 @@
 #include "memory.h"
 #include "pair.h"
 #include "respa.h"
+#include "safe_pointers.h"
+#include "text_file_reader.h"
+#include "tokenizer.h"
 #include "update.h"
 
 #include <cmath>
 #include <cstring>
+#include <memory>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -35,7 +39,6 @@ using namespace MathConst;
 static constexpr int BITORSIONMAX = 6;   // max # of BiTorsion terms stored by one atom
 static constexpr int LISTDELTA = 10000;
 static constexpr double LB_FACTOR = 1.5;
-static constexpr int MAXLINE = 1024;
 
 // spline weighting factors
 
@@ -61,11 +64,13 @@ static constexpr double WT[16][16] = {
 /* ---------------------------------------------------------------------- */
 
 FixAmoebaBiTorsion::FixAmoebaBiTorsion(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), num_bitorsion(nullptr), bitorsion_type(nullptr), bitorsion_atom1(nullptr),
-  bitorsion_atom2(nullptr), bitorsion_atom3(nullptr), bitorsion_atom4(nullptr),
-  bitorsion_atom5(nullptr), bitorsion_list(nullptr)
+    Fix(lmp, narg, arg), num_bitorsion(nullptr), bitorsion_type(nullptr), bitorsion_atom1(nullptr),
+    bitorsion_atom2(nullptr), bitorsion_atom3(nullptr), bitorsion_atom4(nullptr),
+    bitorsion_atom5(nullptr), bitorsion_list(nullptr), nxgrid(nullptr), nygrid(nullptr),
+    ttx(nullptr), tty(nullptr), tbf(nullptr), tbx(nullptr), tby(nullptr), tbxy(nullptr),
+    pair(nullptr), amtype(nullptr), atomic_num(nullptr)
 {
-  if (narg != 4) error->all(FLERR,"Illegal fix amoeba/bitorsion command");
+  if (narg != 4) error->all(FLERR, 2, "Illegal fix amoeba/bitorsion command");
 
   restart_global = 1;
   restart_peratom = 1;
@@ -199,7 +204,7 @@ void FixAmoebaBiTorsion::init()
   if (!pair) pair = force->pair_match("^hippo",0,0);
 
   if (!pair)
-    error->all(FLERR,"Cannot use fix amoeba/bitorsion w/out pair amoeba/hippo");
+    error->all(FLERR, Error::NOLASTLINE, "Cannot use fix amoeba/bitorsion w/out pair amoeba/hippo");
 
   // check if PairAmoeba or PairHippo disabled bitorsion terms
 
@@ -284,7 +289,7 @@ void FixAmoebaBiTorsion::pre_neighbor()
 
       if (atom1 == -1 || atom2 == -1 || atom3 == -1 ||
           atom4 == -1 || atom5 == -1)
-        error->one(FLERR,"BiTorsion atoms {} {} {} {} {} {} missing on "
+        error->one(FLERR, Error::NOLASTLINE, "BiTorsion atoms {} {} {} {} {} {} missing on "
                    "proc {} at step {}",
                    bitorsion_atom1[i][m],bitorsion_atom2[i][m],
                    bitorsion_atom3[i][m],bitorsion_atom4[i][m],
@@ -725,23 +730,25 @@ double FixAmoebaBiTorsion::compute_scalar()
 
 void FixAmoebaBiTorsion::read_grid_data(char *bitorsion_file)
 {
-  char line[MAXLINE] = {'\0'};
-  char *eof;
+  SafeFilePtr fp;
+  std::unique_ptr<TextFileReader> reader;
 
-  FILE *fp = nullptr;
   if (me == 0) {
     fp = utils::open_potential(bitorsion_file, lmp, nullptr);
     if (fp == nullptr)
       error->one(FLERR, Error::NOLASTLINE, "Cannot open fix amoeba/bitorsion file {}: {}",
                  bitorsion_file, utils::getsyserror());
 
-    (void) fgets(line,MAXLINE,fp);
-    (void) fgets(line,MAXLINE,fp);
-    eof = fgets(line,MAXLINE,fp);
-    if (eof == nullptr)
-      error->one(FLERR, Error::NOLASTLINE, "Unexpected end of fix amoeba/bitorsion file");
+    // skip title line, then read number of types from "N bitorsion types" line
 
-    sscanf(line,"%d",&nbitypes);
+    reader = std::make_unique<TextFileReader>(fp, "fix amoeba/bitorsion");
+    try {
+      reader->skip_line();
+      nbitypes = reader->next_values(1).next_int();
+    } catch (std::exception &e) {
+      error->one(FLERR, Error::NOLASTLINE, "Error reading fix amoeba/bitorsion file: {}",
+                 e.what());
+    }
   }
 
   MPI_Bcast(&nbitypes,1,MPI_INT,0,world);
@@ -758,39 +765,54 @@ void FixAmoebaBiTorsion::read_grid_data(char *bitorsion_file)
 
   // read one array for each BiTorsion type from file
 
-  int tmp,nx,ny;
-  double xgrid,ygrid,value;
+  int nx,ny;
 
   for (int itype = 1; itype <= nbitypes; itype++) {
     if (me == 0) {
-      (void) fgets(line,MAXLINE,fp);
-      eof = fgets(line,MAXLINE,fp);
-      if (eof == nullptr)
-        error->one(FLERR, Error::NOLASTLINE, "Unexpected end of fix amoeba/bitorsion file");
-      sscanf(line,"%d %d %d",&tmp,&nx,&ny);
+      try {
+        auto values = reader->next_values(3);
+        values.skip(1);
+        nx = values.next_int();
+        ny = values.next_int();
+      } catch (std::exception &e) {
+        error->one(FLERR, Error::NOLASTLINE, "Error reading fix amoeba/bitorsion file: {}",
+                   e.what());
+      }
     }
 
     MPI_Bcast(&nx,1,MPI_INT,0,world);
     MPI_Bcast(&ny,1,MPI_INT,0,world);
+
+    // sanity check of the grid dimensions from the file
+
+    if ((nx < 2) || (ny < 2))
+      error->all(FLERR, Error::NOLASTLINE,
+                 "Invalid {} by {} grid for type {} in fix amoeba/bitorsion file", nx, ny, itype);
+
     nxgrid[itype] = nx;
     nygrid[itype] = ny;
+    const bigint npoints = static_cast<bigint>(nx)*static_cast<bigint>(ny);
 
     memory->create(ttx[itype],nx,"bitorsion:ttx");
     memory->create(tty[itype],ny,"bitorsion:tty");
-    memory->create(tbf[itype],nx*ny,"bitorsion:tbf");
+    memory->create(tbf[itype],npoints,"bitorsion:tbf");
 
-    // NOTE: could read this chunk of lines with utils in single read?
+    // read the whole nx by ny grid of (x, y, value) lines in one call
 
     if (me == 0) {
+      std::vector<double> grid(3*npoints);
+      try {
+        reader->next_dvector(grid.data(), 3*npoints);
+      } catch (std::exception &e) {
+        error->one(FLERR, Error::NOLASTLINE, "Error reading fix amoeba/bitorsion file: {}",
+                   e.what());
+      }
       for (int iy = 0; iy < ny; iy++) {
         for (int ix = 0; ix < nx; ix++) {
-          eof = fgets(line,MAXLINE,fp);
-          if (eof == nullptr)
-            error->one(FLERR,"Unexpected end of fix amoeba/bitorsion file");
-          sscanf(line,"%lg %lg %lg",&xgrid,&ygrid,&value);
-          if (iy == 0) ttx[itype][ix] = xgrid;
-          if (ix == 0) tty[itype][iy] = ygrid;
-          tbf[itype][iy*nx+ix] = value;
+          const double *entry = &grid[3*(iy*nx+ix)];
+          if (iy == 0) ttx[itype][ix] = entry[0];
+          if (ix == 0) tty[itype][iy] = entry[1];
+          tbf[itype][iy*nx+ix] = entry[2];
         }
       }
     }
@@ -799,8 +821,6 @@ void FixAmoebaBiTorsion::read_grid_data(char *bitorsion_file)
     MPI_Bcast(tty[itype],ny,MPI_DOUBLE,0,world);
     MPI_Bcast(tbf[itype],nx*ny,MPI_DOUBLE,0,world);
   }
-
-  if (me == 0) fclose(fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -1400,10 +1420,17 @@ void FixAmoebaBiTorsion::bcucof(double *y, double *y1, double *y2, double *y12,
 
 void FixAmoebaBiTorsion::read_data_header(char *line)
 {
-  if (strstr(line,"bitorsions")) {
-    sscanf(line,BIGINT_FORMAT,&nbitorsions);
-  } else error->all(FLERR,
-                    "Invalid read data header line for fix amoeba/bitorsion");
+  try {
+    if (strstr(line,"bitorsions")) {
+      nbitorsions = ValueTokenizer(line).next_bigint();
+    } else {
+      error->all(FLERR, Error::NOLASTLINE,
+                 "Invalid read data header line for fix amoeba/bitorsion");
+    }
+  } catch (TokenizerException &e) {
+    error->all(FLERR, Error::NOLASTLINE,
+               "Invalid read data header line for fix amoeba/bitorsion: {}", e.what());
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -1414,7 +1441,7 @@ void FixAmoebaBiTorsion::read_data_header(char *line)
 void FixAmoebaBiTorsion::read_data_section(char *keyword, int n, char *buf,
                                      tagint id_offset)
 {
-  int m,tmp,itype;
+  int m,itype;
   tagint atom1,atom2,atom3,atom4,atom5;
   char *next;
 
@@ -1424,7 +1451,7 @@ void FixAmoebaBiTorsion::read_data_section(char *keyword, int n, char *buf,
   *next = '\n';
 
   if (nwords != 7)
-    error->all(FLERR,"Incorrect {} format in data file",keyword);
+    error->all(FLERR, Error::NOLASTLINE, "Incorrect {} format in data file",keyword);
 
   // loop over lines of BiTorsions
   // tokenize the line into values
@@ -1433,9 +1460,19 @@ void FixAmoebaBiTorsion::read_data_section(char *keyword, int n, char *buf,
   for (int i = 0; i < n; i++) {
     next = strchr(buf,'\n');
     *next = '\0';
-    sscanf(buf,"%d %d " TAGINT_FORMAT " " TAGINT_FORMAT " " TAGINT_FORMAT
-           " " TAGINT_FORMAT " " TAGINT_FORMAT,
-           &tmp,&itype,&atom1,&atom2,&atom3,&atom4,&atom5);
+    try {
+      ValueTokenizer values(buf);
+      values.skip(1);
+      itype = values.next_int();
+      atom1 = values.next_tagint();
+      atom2 = values.next_tagint();
+      atom3 = values.next_tagint();
+      atom4 = values.next_tagint();
+      atom5 = values.next_tagint();
+    } catch (TokenizerException &e) {
+      error->all(FLERR, Error::NOLASTLINE,
+                 "Incorrect {} format in data file: {}", keyword, e.what());
+    }
 
     atom1 += id_offset;
     atom2 += id_offset;
@@ -1445,7 +1482,7 @@ void FixAmoebaBiTorsion::read_data_section(char *keyword, int n, char *buf,
 
     if ((m = atom->map(atom1)) >= 0) {
       if (num_bitorsion[m] == BITORSIONMAX)
-        error->one(FLERR,"Too many BIORSIONS for one atom");
+        error->one(FLERR, Error::NOLASTLINE, "Too many BiTorsions for one atom");
       bitorsion_type[m][num_bitorsion[m]] = itype;
       bitorsion_atom1[m][num_bitorsion[m]] = atom1;
       bitorsion_atom2[m][num_bitorsion[m]] = atom2;
@@ -1457,7 +1494,7 @@ void FixAmoebaBiTorsion::read_data_section(char *keyword, int n, char *buf,
 
     if ((m = atom->map(atom2)) >= 0) {
       if (num_bitorsion[m] == BITORSIONMAX)
-        error->one(FLERR,"Too many BIORSIONS for one atom");
+        error->one(FLERR, Error::NOLASTLINE, "Too many BiTorsions for one atom");
       bitorsion_type[m][num_bitorsion[m]] = itype;
       bitorsion_atom1[m][num_bitorsion[m]] = atom1;
       bitorsion_atom2[m][num_bitorsion[m]] = atom2;
@@ -1469,7 +1506,7 @@ void FixAmoebaBiTorsion::read_data_section(char *keyword, int n, char *buf,
 
     if ((m = atom->map(atom3)) >= 0) {
       if (num_bitorsion[m] == BITORSIONMAX)
-        error->one(FLERR,"Too many BIORSIONS for one atom");
+        error->one(FLERR, Error::NOLASTLINE, "Too many BiTorsions for one atom");
       bitorsion_type[m][num_bitorsion[m]] = itype;
       bitorsion_atom1[m][num_bitorsion[m]] = atom1;
       bitorsion_atom2[m][num_bitorsion[m]] = atom2;
@@ -1481,7 +1518,7 @@ void FixAmoebaBiTorsion::read_data_section(char *keyword, int n, char *buf,
 
     if ((m = atom->map(atom4)) >= 0) {
       if (num_bitorsion[m] == BITORSIONMAX)
-        error->one(FLERR,"Too many BIORSIONS for one atom");
+        error->one(FLERR, Error::NOLASTLINE, "Too many BiTorsions for one atom");
       bitorsion_type[m][num_bitorsion[m]] = itype;
       bitorsion_atom1[m][num_bitorsion[m]] = atom1;
       bitorsion_atom2[m][num_bitorsion[m]] = atom2;
@@ -1493,7 +1530,7 @@ void FixAmoebaBiTorsion::read_data_section(char *keyword, int n, char *buf,
 
     if ((m = atom->map(atom5)) >= 0) {
       if (num_bitorsion[m] == BITORSIONMAX)
-        error->one(FLERR,"Too many BIORSIONS for one atom");
+        error->one(FLERR, Error::NOLASTLINE, "Too many BiTorsions for one atom");
       bitorsion_type[m][num_bitorsion[m]] = itype;
       bitorsion_atom1[m][num_bitorsion[m]] = atom1;
       bitorsion_atom2[m][num_bitorsion[m]] = atom2;

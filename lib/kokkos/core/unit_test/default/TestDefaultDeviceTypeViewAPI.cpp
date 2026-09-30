@@ -1,22 +1,14 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #include <gtest/gtest.h>
 
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+#else
 #include <Kokkos_Core.hpp>
+#endif
 
 #include <TestDefaultDeviceType_Category.hpp>
 
@@ -32,7 +24,7 @@ struct TestViewAPI<
   using layout_type = Layout;
   using space_type  = Kokkos::DefaultExecutionSpace;
   using traits_type =
-      Kokkos::MemoryTraits<0>;  // maybe we want to add that later to the matrix
+      Kokkos::MemoryTraits<>;  // maybe we want to add that later to the matrix
   using view_type =
       Kokkos::View<data_type, layout_type, space_type, traits_type>;
   using alloc_layout_type =
@@ -40,7 +32,7 @@ struct TestViewAPI<
                          Kokkos::LayoutLeft, layout_type>;
   using d_alloc_type = Kokkos::View<data_type, alloc_layout_type, space_type>;
   using h_alloc_type = typename Kokkos::View<data_type, alloc_layout_type,
-                                             space_type>::HostMirror;
+                                             space_type>::host_mirror_type;
 
   // add a +1 to avoid zero length static array
   size_t dyn_sizes[sizeof...(DynamicSizes) + 1] = {DynamicSizes..., 1};

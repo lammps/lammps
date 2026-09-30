@@ -1,0 +1,10 @@
+LAMMPS data file for tri plane
+
+4 triangles
+
+Triangles
+
+1 1 2 -6 -6 0 6 -6 0 0 0 0
+2 1 2 6 -6 0 6 6 0 0 0 0
+3 1 2 6 6 0 -6 6 0 0 0 0
+4 1 2 -6 -6 0 0 0 0 -6 6 0

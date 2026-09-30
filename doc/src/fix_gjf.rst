@@ -1,7 +1,10 @@
 .. index:: fix gjf
+.. index:: fix gjf/kk
 
 fix gjf command
 ========================
+
+Accelerator Variants: *gjf/kk*
 
 Syntax
 """"""
@@ -140,6 +143,15 @@ The keyword *method* selects one of the eight GJ-methods implemented in LAMMPS.
 
 ----------
 
+Example input scripts using this fix can be found in the
+``examples/PACKAGES/gjf`` folder.
+
+----------
+
+.. include:: accel_styles.rst
+
+----------
+
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
@@ -168,8 +180,12 @@ This fix is not invoked during :doc:`energy minimization <minimize>`.
 Restrictions
 """"""""""""
 
-This fix is not compatible with run_style respa. It is not compatible with
-accelerated packages such as KOKKOS.
+This fix is not compatible with run_style respa.
+
+The *gjf/kk* accelerator variant does not support removing the velocity bias
+of a temperature compute (set via the *temp* option of
+:doc:`fix_modify <fix_modify>`) and does not support a per-atom temperature
+from an atom-style variable.  It stops with an error in either case.
 
 Related commands
 """"""""""""""""
@@ -197,7 +213,7 @@ The option defaults are vel = vhalf, method = 1.
 
 .. _Finkelstein:
 
-**(Finkelstein)** Finkelstein, Cheng, Florin, Seibold, Gronbech-Jensen, J. Chem. Phys., 155, 18 (2021)
+**(Finkelstein)** Finkelstein, Cheng, Fiorin, Seibold, Gronbech-Jensen, J. Chem. Phys., 155, 18 (2021)
 
 .. _Gronbech-Jensen-2024:
 

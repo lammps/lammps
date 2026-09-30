@@ -41,8 +41,7 @@ using namespace MathConst;
 
 ComputeEntropyAtom::
 ComputeEntropyAtom(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg),
-  pair_entropy(nullptr), pair_entropy_avg(nullptr)
+    Compute(lmp, narg, arg), list(nullptr), pair_entropy(nullptr), pair_entropy_avg(nullptr)
 {
   if (narg < 5 || narg > 10)
     error->all(FLERR,"Illegal compute entropy/atom command; wrong number of arguments");
@@ -100,6 +99,8 @@ ComputeEntropyAtom(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeEntropyAtom::~ComputeEntropyAtom()
 {
+  if (copymode) return;
+
   memory->destroy(pair_entropy);
   if (avg_flag) memory->destroy(pair_entropy_avg);
 }
@@ -118,11 +119,8 @@ void ComputeEntropyAtom::init()
                    " distance.");
     }
 
-  int count = 0;
-  for (int i = 0; i < modify->ncompute; i++)
-    if (strcmp(modify->compute[i]->style,"entropy/atom") == 0) count++;
-  if (count > 1 && comm->me == 0)
-    error->warning(FLERR,"More than one compute entropy/atom");
+  if ((comm->me == 0) && (modify->get_compute_by_style("^entropy/atom").size() > 1))
+    error->warning(FLERR, "More than one compute {}", style);
 
   // Request a full neighbor list
   int list_flags = NeighConst::REQ_FULL;
@@ -195,6 +193,9 @@ void ComputeEntropyAtom::compute_peratom()
   double density = atom->natoms / volume;
 
   // compute pair entropy for each atom in group
+  // with averaging it is needed for all atoms, since atoms in the group
+  //   may have neighbors outside the group
+  // atoms not in the group report only zeros
   // use full neighbor list
 
   double **x = atom->x;
@@ -204,7 +205,7 @@ void ComputeEntropyAtom::compute_peratom()
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
-    if (mask[i] & groupbit) {
+    if (avg_flag || (mask[i] & groupbit)) {
       xtmp = x[i][0];
       ytmp = x[i][1];
       ztmp = x[i][2];
@@ -276,7 +277,7 @@ void ComputeEntropyAtom::compute_peratom()
       value *= deltar;
 
       pair_entropy[i] = -2*MY_PI*density*value;
-    }
+    } else pair_entropy[i] = 0.0;
   }
   delete [] gofr;
   delete [] integrand;
@@ -309,7 +310,7 @@ void ComputeEntropyAtom::compute_peratom()
           }
         }
         pair_entropy_avg[i] /= counter;
-      }
+      } else pair_entropy_avg[i] = 0.0;
     }
   }
   delete [] rbin;

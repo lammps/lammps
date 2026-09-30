@@ -37,7 +37,9 @@ using namespace PairZBLConstants;
 
 /* ---------------------------------------------------------------------- */
 
-PairZBL::PairZBL(LAMMPS *lmp) : Pair(lmp)
+PairZBL::PairZBL(LAMMPS *lmp) :
+    Pair(lmp), z(nullptr), d1a(nullptr), d2a(nullptr), d3a(nullptr), d4a(nullptr), zze(nullptr),
+    sw1(nullptr), sw2(nullptr), sw3(nullptr), sw4(nullptr), sw5(nullptr)
 {
   writedata = 1;
 }

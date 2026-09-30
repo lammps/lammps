@@ -1,7 +1,10 @@
 .. index:: compute gyration
+.. index:: compute gyration/kk
 
 compute gyration command
 ========================
+
+Accelerator Variants: *gyration/kk*
 
 Syntax
 """"""
@@ -72,9 +75,11 @@ The scalar and vector values calculated by this compute are
 "intensive".  The scalar and vector values will be in distance and
 distance\ :math:`^2` :doc:`units <units>`, respectively.
 
+.. include:: accel_styles.rst
+
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""

@@ -41,7 +41,7 @@ class BondHarmonicShiftCut : public Bond {
  protected:
   double *k, *r0, *r1;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }    // namespace LAMMPS_NS

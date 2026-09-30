@@ -47,6 +47,7 @@ class FixLbFluid : public Fix {
   void copy_arrays(int, int, int) override;
   int pack_exchange(int, double *) override;
   int unpack_exchange(int, double *) override;
+  double memory_usage() override;
 
   double compute_scalar() override;
   double compute_vector(int) override;

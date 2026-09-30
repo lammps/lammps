@@ -16,7 +16,9 @@
 
 #include "atom.h"
 #include "atom_vec_body.h"
+#include "domain.h"
 #include "error.h"
+#include "graphics.h"
 #include "math_extra.h"
 #include "math_eigen.h"
 #include "memory.h"
@@ -27,7 +29,6 @@
 using namespace LAMMPS_NS;
 
 static constexpr double EPSILON = 1.0e-7;
-enum{SPHERE,LINE,TRI};           // also in DumpImage
 
 /* ---------------------------------------------------------------------- */
 
@@ -124,6 +125,10 @@ void BodyNparticle::data_body(int ibonus, int ninteger, int ndouble,
   bonus->dvalue = dcp->get(bonus->ndouble,bonus->dindex);
 
   // diagonalize inertia tensor
+  // do not sort the eigenvalues in 2d: for a planar body only the xy-block is rotated,
+  //   so the z-axis remains the 3rd principal axis and the orientation is a pure
+  //   rotation around z.  sorting would make z the 1st axis (largest moment) and
+  //   the quaternion a 90 degree tilt that leaks roundoff out of the xy-plane.
 
   double tensor[3][3];
   tensor[0][0] = dfile[0];
@@ -135,7 +140,7 @@ void BodyNparticle::data_body(int ibonus, int ninteger, int ndouble,
 
   double *inertia = bonus->inertia;
   double evectors[3][3];
-  int ierror = MathEigen::jacobi3(tensor,inertia,evectors);
+  int ierror = MathEigen::jacobi3(tensor,inertia,evectors,(domain->dimension == 2) ? 0 : -1);
   if (ierror)
     error->one(FLERR, Error::NOLASTLINE, "Insufficient Jacobi rotations for body nparticle");
 
@@ -355,7 +360,7 @@ int BodyNparticle::image(int ibonus, double flag1, double /*flag2*/,
   int n = bonus->ivalue[0];
 
   for (int i = 0; i < n; i++) {
-    imflag[i] = SPHERE;
+    imflag[i] = Graphics::SPHERE;
     MathExtra::quat_to_mat(bonus->quat,p);
     MathExtra::matvec(p,&bonus->dvalue[3*i],imdata[i]);
 

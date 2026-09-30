@@ -113,7 +113,7 @@ void CompiledExpression::compileExpression(const ExpressionTreeNode& node, vecto
         arguments.push_back(vector<int>());
         target.push_back((int) workspace.size());
         operation.push_back(node.getOperation().clone());
-        if (args.size() == 0)
+        if (args.empty())
             arguments[stepIndex].push_back(0); // The value won't actually be used.  We just need something there.
         else {
             // If the arguments are sequential, we can just pass a pointer to the first one.
@@ -158,7 +158,7 @@ void CompiledExpression::setVariableLocations(map<string, double*>& variableLoca
 #ifdef LEPTON_USE_JIT
     // Rebuild the JIT code.
 
-    if (workspace.size() > 0)
+    if (!workspace.empty())
         generateJitCode();
 #endif
     // Make a list of all variables we will need to copy before evaluating the expression.
@@ -603,7 +603,7 @@ void CompiledExpression::generateJitCode() {
     // Load constants into variables.
 
     vector<x86::Xmm> constantVar(constants.size());
-    if (constants.size() > 0) {
+    if (!constants.empty()) {
         x86::Gp constantsPointer = c.newIntPtr();
         c.mov(constantsPointer, imm(&constants[0]));
         for (int i = 0; i < (int) constants.size(); i++) {

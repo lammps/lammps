@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #include <TestStdAlgorithmsCommon.hpp>
 #include <utility>
@@ -102,6 +89,7 @@ void fill_view(ViewType dest_view, const std::string& name) {
 
 template <class ViewType>
 auto compute_gold(ViewType view, const std::string& name) {
+  // NOLINTBEGIN(bugprone-branch-clone)
   if (name == "empty") {
     return KE::end(view);
   } else if (name == "one-element") {
@@ -120,6 +108,7 @@ auto compute_gold(ViewType view, const std::string& name) {
     return KE::begin(view) + 4;
   } else if (name == "large-a") {
     return KE::end(view);
+    // NOLINTEND(bugprone-branch-clone)
   } else if (name == "large-b") {
     return KE::begin(view) + 156;
   } else {
@@ -151,7 +140,6 @@ void run_single_scenario(const InfoType& scenario_info) {
   ASSERT_EQ(r3, gold) << name << ", " << view_tag_to_string(Tag{});
   ASSERT_EQ(r4, gold) << name << ", " << view_tag_to_string(Tag{});
 
-#if !defined KOKKOS_ENABLE_OPENMPTARGET
   CustomLessThanComparator<ValueType, ValueType> comp;
   [[maybe_unused]] auto r5 =
       KE::is_sorted_until(exespace(), KE::cbegin(view), KE::cend(view), comp);
@@ -160,7 +148,6 @@ void run_single_scenario(const InfoType& scenario_info) {
   [[maybe_unused]] auto r7 = KE::is_sorted_until(exespace(), view, comp);
   [[maybe_unused]] auto r8 =
       KE::is_sorted_until("label", exespace(), view, comp);
-#endif
 
   ASSERT_EQ(r1, gold) << name << ", " << view_tag_to_string(Tag{});
   ASSERT_EQ(r2, gold) << name << ", " << view_tag_to_string(Tag{});

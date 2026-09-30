@@ -745,3 +745,23 @@ double MathSpecial::fm_exp(double x)
 #endif
 }
 
+void MathSpecial::mdftaper(double r, double rmin, double rmax, double &f, double &df)
+{
+  double x, dx, t1, t2, cube_t1;
+
+  if (r <= rmin) {
+    f = 1.0;
+    df = 0.0;
+  } else if (r >= rmax) {
+    f = 0.0;
+    df = 0.0;
+  } else {
+    x = (r-rmin)/(rmax-rmin);
+    dx = 1.0/(rmax-rmin);
+    t1 = 1.0 - x;
+    t2 = 1.0 + 3.0*x + 6.0*square(x);
+    cube_t1 = cube(t1);
+    f = cube_t1*t2;
+    df = (-3.0*square(t1)*t2 + cube_t1*(3.0+12.0*x))*dx;
+  }
+}

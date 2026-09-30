@@ -138,21 +138,26 @@ class PairSMTBQ : public Pair {
   void Init_charge(int *, int *, int *);
   void CheckEnergyVSForce();
 
+ public:
   // ===========================================
   // Communication pack
   int pack_forward_comm(int, int *, double *, int, int *) override;
   void unpack_forward_comm(int, int, double *) override;
   int pack_reverse_comm(int, int, double *) override;
   void unpack_reverse_comm(int, int *, double *) override;
+
+ protected:
   void forward(double *);
   void reverse(double *);
   void forward_int(int *);
   void reverse_int(int *);
 
+  // NOLINTBEGIN
   template <class T> const T &min(const T &a, const T &b)
   {
     return !(b < a) ? a : b;    // or: return !comp(b,a)?a:b; for the comp version
   }
+  // NOLINTEND
 
   // =============================================
   // Gammas function

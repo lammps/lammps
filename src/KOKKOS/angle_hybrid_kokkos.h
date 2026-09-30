@@ -39,14 +39,14 @@ class AngleHybridKokkos : public AngleHybrid {
   void init_style() override;
   double memory_usage() override;
 
- private:
+ protected:
   int maxangle_all;
 
   class NeighborKokkos *neighborKK;
 
   DAT::tdual_int_1d k_map;       // which style each angle type points to
   DAT::tdual_int_1d k_nanglelist; // # of angles in sub-style anglelists
-  DAT::tdual_int_3d k_anglelist;  // anglelist for each sub-style
+  DAT::tdual_int_3d_lr k_anglelist;  // anglelist for each sub-style
 
   void allocate() override;
   void deallocate() override;

@@ -40,7 +40,7 @@ class ComputeTempCOM : public Compute {
   void restore_bias_all() override;
   void restore_bias_thr(int, double *, double *) override;
 
- private:
+ protected:
   double tfactor, masstotal;
 
   void dof_compute();

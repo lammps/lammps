@@ -439,7 +439,7 @@ void KimInit::write_log_cite(class LAMMPS *lmp, KimInit::model_type_enum model_t
   if (!lmp->citeme) return;
 
   std::string model_name_str(model_name);
-  std::string re = "[MS][OM]_\\d\\d\\d\\d\\d\\d\\d\\d\\d\\d\\d\\d_\\d\\d\\d";
+  std::string re = R"([MS][OM]_\d\d\d\d\d\d\d\d\d\d\d\d_\d\d\d)";
   std::string kim_id = utils::strfind(model_name_str, re);
 
   std::string cite_id;

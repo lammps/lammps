@@ -36,14 +36,22 @@ fix                integrate_water_fix water sph
 
 # time-integrate only internal energy and density of boundary particles
 fix                integrate_bc_fix bc sph/stationary
-dump               dump_id all custom 100 dump.lammpstrj id type xs ys zs c_rho_peratom c_e_peratom fx fy
-dump_modify        dump_id first yes
-thermo             10
+# dump               dump_id all custom 100 dump.lammpstrj id type xs ys zs c_rho_peratom c_e_peratom fx fy
+#dump_modify        dump_id first yes
+thermo             100
 thermo_style       custom step ke c_esph v_etot f_gfix press time f_dtfix
 thermo_modify      norm no
 
 neigh_modify       every 5 delay 0 check no
 variable           skin equal 0.3*${h}
 neighbor           ${skin} bin # set Verlet list skin distance
+
+#dump               viz all image 100 water_collapse-*.ppm c_e_peratom type &
+#                   size 800 600 zoom 5.0 shiny 0.6  fsaa yes box yes 0.02 center s 0.5 0.15 0
+#dump_modify        viz pad 6 boxcolor gray backcolor silver adiam * 0.0625 &
+#                   color map1 0.001 0.000 0.014 color map2 0.342 0.062 0.429 &
+#                   color map3 0.736 0.216 0.330 color map4 0.978 0.558 0.035 &
+#                   color map5 0.988 0.998 0.645 &
+#                   amap 0.0 5.0 cf 0.0 5 min map1 0.25 map2 0.5 map3 0.75 map4 max map5
 
 run                ${nrun}

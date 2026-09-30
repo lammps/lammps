@@ -40,6 +40,7 @@ class PairLJSmoothLinear : public Pair {
   double single(int, int, int, int, double, double, double, double &) override;
   double single_hessian(int, int, int, int, double, double[3], double, double, double &,
                         double[6]) override;
+  void *extract(const char *, int &dim) override;
 
  protected:
   double cut_global;
@@ -48,7 +49,7 @@ class PairLJSmoothLinear : public Pair {
   double **ljcut, **dljcut;
   double **lj1, **lj2, **lj3, **lj4;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }    // namespace LAMMPS_NS

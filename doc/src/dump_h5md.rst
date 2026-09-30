@@ -24,7 +24,7 @@ Syntax
      *velocity* options
      *force* options
      *species* options
-     *file_from* ID = do not open a new file, re-use the already opened file from dump ID
+     *file_from* ID = do not open a new file, reuse the already opened file from dump ID
      *box* value = *yes* or *no*
      *create_group* value = *yes* or *no*
      *author* value = quoted string

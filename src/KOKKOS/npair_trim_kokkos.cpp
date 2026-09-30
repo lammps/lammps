@@ -16,6 +16,7 @@
 #include "atom_kokkos.h"
 #include "atom_masks.h"
 #include "neigh_list_kokkos.h"
+#include "neighbor_kokkos.h"
 #include "my_page.h"
 #include "error.h"
 
@@ -24,7 +25,10 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-NPairTrimKokkos<DeviceType>::NPairTrimKokkos(LAMMPS *lmp) : NPair(lmp) {}
+NPairTrimKokkos<DeviceType>::NPairTrimKokkos(LAMMPS *lmp) : NPair(lmp) {
+  atomKK = (AtomKokkos *) atom;
+  execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
+}
 
 /* ----------------------------------------------------------------------
    create list which is simply a copy of parent list
@@ -54,7 +58,12 @@ template<class DeviceType>
 void NPairTrimKokkos<DeviceType>::trim_to_kokkos(NeighList *list)
 {
   x = atomKK->k_x.view<DeviceType>();
-  atomKK->sync(execution_space,X_MASK);
+  type = atomKK->k_type.view<DeviceType>();
+  atomKK->sync(execution_space,X_MASK|TYPE_MASK);
+
+  NeighborKokkos* neighborKK = (NeighborKokkos*) neighbor;
+  neighborKK->k_cutneighsq.template sync<DeviceType>();
+  d_cutneighsq = neighborKK->k_cutneighsq.template view<DeviceType>();
 
   cutsq_custom = cutoff_custom*cutoff_custom;
 
@@ -85,14 +94,15 @@ void NPairTrimKokkos<DeviceType>::trim_to_kokkos(NeighList *list)
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void NPairTrimKokkos<DeviceType>::operator()(TagNPairTrim, const int &ii) const {
   int n = 0;
 
   const int i = d_ilist_copy(ii);
-  const double xtmp = x(i,0);
-  const double ytmp = x(i,1);
-  const double ztmp = x(i,2);
+  const double xtmp = static_cast<double>(x(i,0));
+  const double ytmp = static_cast<double>(x(i,1));
+  const double ztmp = static_cast<double>(x(i,2));
 
   // loop over copy neighbor list
 
@@ -104,12 +114,16 @@ void NPairTrimKokkos<DeviceType>::operator()(TagNPairTrim, const int &ii) const 
     const int joriginal = d_neighbors_copy(i,jj);
     const int j = joriginal & NEIGHMASK;
 
-    const double delx = xtmp - x(j,0);
-    const double dely = ytmp - x(j,1);
-    const double delz = ztmp - x(j,2);
+    const double delx = xtmp - static_cast<double>(x(j,0));
+    const double dely = ytmp - static_cast<double>(x(j,1));
+    const double delz = ztmp - static_cast<double>(x(j,2));
     const double rsq = delx*delx + dely*dely + delz*delz;
 
-    if (rsq > cutsq_custom) continue;
+    // a trim list whose own request carries no custom cutoff must fall back to
+    // the pairwise neighbour cutoff, as NPairTrim::build() does
+    const double cutsq_trim = (cutsq_custom > 0.0) ? cutsq_custom :
+      static_cast<double>(d_cutneighsq(type(i),type(j)));
+    if (rsq > cutsq_trim) continue;
 
     neighbors_i(n++) = joriginal;
   }
@@ -126,7 +140,7 @@ void NPairTrimKokkos<DeviceType>::trim_to_cpu(NeighList *list)
   NeighList *listcopy = list->listcopy;
   NeighListKokkos<DeviceType>* listcopy_kk = (NeighListKokkos<DeviceType>*) listcopy;
 
-  listcopy_kk->k_ilist.template sync<LMPHostType>();
+  listcopy_kk->k_ilist.sync_host();
 
   double** x = atom->x;
 
@@ -134,7 +148,7 @@ void NPairTrimKokkos<DeviceType>::trim_to_cpu(NeighList *list)
   int gnum = listcopy->gnum;
   int inum_trim = inum;
   if (list->ghost) inum_trim += gnum;
-  auto h_ilist = listcopy_kk->k_ilist.h_view;
+  auto h_ilist = listcopy_kk->k_ilist.view_host();
   auto h_numneigh = Kokkos::create_mirror_view_and_copy(LMPHostType(),listcopy_kk->d_numneigh);
   auto h_neighbors = Kokkos::create_mirror_view_and_copy(LMPHostType(),listcopy_kk->d_neighbors);
 

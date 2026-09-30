@@ -61,7 +61,7 @@ group           Oxy type 1
 mass            2 47.867
 group           Ti type 2
 
-velocity        all create ${T_depart} 277387
+velocity        all create ${T_depart} 277387 loop geom
 
 pair_style      meam/spline
 pair_coeff      * * TiO.meam.spline O Ti

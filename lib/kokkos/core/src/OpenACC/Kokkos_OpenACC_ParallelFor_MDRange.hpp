@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_OPENACC_PARALLEL_FOR_MDRANGE_HPP
 #define KOKKOS_OPENACC_PARALLEL_FOR_MDRANGE_HPP
@@ -23,6 +10,24 @@
 #include <Kokkos_Parallel.hpp>
 
 namespace Kokkos::Experimental::Impl {
+
+template <class Direction, class Functor>
+void OpenACCParallelForMDRangePolicy(OpenACCCollapse, Direction,
+                                     Functor const& functor,
+                                     OpenACCMDRangeBegin<1> const& begin,
+                                     OpenACCMDRangeEnd<1> const& end,
+                                     int async_arg) {
+  static_assert(Direction::value == Iterate::Left ||
+                Direction::value == Iterate::Right);
+  auto begin0 = begin[0];
+  auto end0   = end[0];
+// clang-format off
+#pragma acc parallel loop gang vector copyin(functor) async(async_arg)
+  // clang-format on
+  for (auto i0 = begin0; i0 < end0; ++i0) {
+    functor(i0);
+  }
+}
 
 template <class Functor>
 void OpenACCParallelForMDRangePolicy(OpenACCCollapse, OpenACCIterateLeft,
@@ -869,8 +874,12 @@ class Kokkos::Impl::ParallelFor<Functor, Kokkos::MDRangePolicy<Traits...>,
   ParallelFor(Functor const& functor, Policy const& policy)
       : m_functor(functor), m_policy(policy) {}
 
+  static int max_tile_size_product(const Policy&, const Functor&) {
+    return 512;
+  }
+
   void execute() const {
-    static_assert(1 < Policy::rank && Policy::rank < 7);
+    static_assert(0 < Policy::rank && Policy::rank < 7);
     static_assert(Policy::inner_direction == Iterate::Left ||
                   Policy::inner_direction == Iterate::Right);
     constexpr int rank = Policy::rank;

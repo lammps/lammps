@@ -1,0 +1,43 @@
+###############################################################################
+# Magnetically actuated rod-based mechanical metamaterial
+# Gabriel Alkuino (SyracuseU) - 2026/03/31
+###############################################################################
+
+units           lj
+dimension       3
+boundary        m m m
+atom_style      hybrid bpm/sphere dipole
+atom_modify     map yes
+newton          on off
+comm_modify     vel yes cutoff 3.0
+special_bonds   lj 0.0 1.0 1.0 coul 1.0 1.0 1.0
+
+read_data       metamaterial.data
+group           magnets type 2
+set             group all density 1.0
+set             group magnets density 10.
+
+bond_style      bpm/rotational smooth no break no
+bond_coeff      1 1.0 1.0 0.1 0.5  -1 -1 -1 -1  1e-3 1e-3 1e-3 1e-3
+
+timestep        1e-4
+thermo          1000
+thermo_style    custom step ke pe ebond
+
+compute         q all property/atom quatw quati quatj quatk
+#dump            1 all custom 1000 atomDump id type x y z c_q[*] mux muy muz
+
+fix             1 all nve/bpm/sphere update dipole
+
+variable        bz equal 0.25*ramp(0,1)
+fix             2 magnets efield 0.0 0.0 v_bz
+
+run             100000
+
+variable        bz equal 0.25
+fix             2 magnets efield 0.0 0.0 v_bz
+
+fix             3 all viscous 1e-3
+fix             4 all viscous/sphere 1e-3
+
+run             50000

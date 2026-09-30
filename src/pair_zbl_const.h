@@ -14,8 +14,8 @@
 #ifndef LMP_PAIR_ZBL_CONST_H
 #define LMP_PAIR_ZBL_CONST_H
 
-namespace LAMMPS_NS {
-namespace PairZBLConstants {
+
+namespace LAMMPS_NS::PairZBLConstants {
 
   // ZBL constants
 
@@ -29,6 +29,6 @@ namespace PairZBLConstants {
   static constexpr double d2 = 0.40290;
   static constexpr double d3 = 0.94229;
   static constexpr double d4 = 3.19980;
-}    // namespace PairZBLConstants
-}    // namespace LAMMPS_NS
+} // namespace LAMMPS_NS::PairZBLConstants
+
 #endif

@@ -38,7 +38,7 @@ class ComputeTempSphere : public Compute {
   void restore_bias(int, double *) override;
   void restore_bias_thr(int, double *, double *) override;
 
- private:
+ protected:
   int mode;
   double tfactor;
   char *id_bias;

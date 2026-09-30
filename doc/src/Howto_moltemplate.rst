@@ -134,7 +134,7 @@ master file (``solv_01.lt``) follows:
     timestep       \$\{ts\}
     fix             NPT all npt temp \$\{temp\} \$\{temp\} \$\{tcouple\} iso \$p \$p \$\{pcouple\}
     velocity all create \$\{temp\} 858096 dist gaussian
-    # Short runs to update the PPPM settings as the box shinks.
+    # Short runs to update the PPPM settings as the box shrinks.
     run    \$\{equi\} post no
     run    \$\{equi\} post no
     run    \$\{equi\} post no

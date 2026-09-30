@@ -44,9 +44,9 @@ class Tokenizer {
 
   void reset();
   void skip(int n = 1);
-  bool has_next() const;
-  bool contains(const std::string &str) const;
-  bool matches(const std::string &str) const;
+  [[nodiscard]] bool has_next() const;
+  [[nodiscard]] bool contains(const std::string &str) const;
+  [[nodiscard]] bool matches(const std::string &str) const;
   std::string next();
 
   size_t count();
@@ -74,7 +74,7 @@ class TokenizerException : public std::exception {
    * exception is caught.
    *
    * \return  String with error message */
-  const char *what() const noexcept override { return message.c_str(); }
+  [[nodiscard]] const char *what() const noexcept override { return message.c_str(); }
 };
 
 /** Exception thrown by ValueTokenizer when trying to convert an invalid integer string */
@@ -122,9 +122,9 @@ class ValueTokenizer {
   int next_int();
   double next_double();
 
-  bool has_next() const;
-  bool contains(const std::string &value) const;
-  bool matches(const std::string &str) const;
+  [[nodiscard]] bool has_next() const;
+  [[nodiscard]] bool contains(const std::string &value) const;
+  [[nodiscard]] bool matches(const std::string &str) const;
   void skip(int ntokens = 1);
 
   size_t count();

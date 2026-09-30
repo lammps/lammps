@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_DECLARE_HIP_HPP
 #define KOKKOS_DECLARE_HIP_HPP
@@ -21,8 +8,6 @@
 #include <HIP/Kokkos_HIP.hpp>
 #include <HIP/Kokkos_HIP_Space.hpp>
 #include <HIP/Kokkos_HIP_DeepCopy.hpp>
-#include <HIP/Kokkos_HIP_Half_Impl_Type.hpp>
-#include <HIP/Kokkos_HIP_Half_Conversion.hpp>
 #include <HIP/Kokkos_HIP_Instance.hpp>
 #include <HIP/Kokkos_HIP_MDRangePolicy.hpp>
 #include <HIP/Kokkos_HIP_ParallelFor_Range.hpp>
@@ -36,14 +21,20 @@
 #include <HIP/Kokkos_HIP_UniqueToken.hpp>
 #include <HIP/Kokkos_HIP_ZeroMemset.hpp>
 
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_5
 namespace Kokkos {
 namespace Experimental {
-using HIPSpace           = ::Kokkos::HIPSpace;
-using HIPHostPinnedSpace = ::Kokkos::HIPHostPinnedSpace;
-using HIPManagedSpace    = ::Kokkos::HIPManagedSpace;
-using HIP                = ::Kokkos::HIP;
+using HIPSpace KOKKOS_DEPRECATED_WITH_COMMENT("Use Kokkos::HIPSpace instead!") =
+    ::Kokkos::HIPSpace;
+using HIPHostPinnedSpace KOKKOS_DEPRECATED_WITH_COMMENT(
+    "Use Kokkos::HIPHostPinnedSpace instead!") = ::Kokkos::HIPHostPinnedSpace;
+using HIPManagedSpace KOKKOS_DEPRECATED_WITH_COMMENT(
+    "Use Kokkos::HIPManagedSpace instead!") = ::Kokkos::HIPManagedSpace;
+using HIP KOKKOS_DEPRECATED_WITH_COMMENT("Use Kokkos::HIP instead!") =
+    ::Kokkos::HIP;
 }  // namespace Experimental
 }  // namespace Kokkos
+#endif
 #endif
 
 #endif

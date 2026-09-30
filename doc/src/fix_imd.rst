@@ -146,15 +146,17 @@ VMD are the following:
 
 In the Mouse menu of the VMD Main window, select "Mouse -> Force ->
 Atom".  You may alternately select "Residue", or "Fragment" to apply
-forces to whole residues or fragments. Your mouse can now be used to
-apply forces to your simulation. Click on an atom, residue, or fragment
-and drag to apply a force. Click quickly without moving the mouse to
-turn the force off. You can also use a variety of 3D position trackers
-to apply forces to your simulation. Game controllers or haptic devices
-with force-feedback such as the Novint Falcon or Sensable PHANTOM allow
-you to feel the resistance due to inertia or interactions with neighbors
-that the atoms experience you are trying to move, as if they were real
-objects. See the `VMD IMD Homepage <imdvmd_>`_ for more details.
+forces to whole residues or fragments.  Your mouse can now be used to
+apply forces to your simulation.  Click on an atom, residue, or fragment
+and drag to apply a force.  Click quickly without moving the mouse to
+turn the force off.  You can also use a variety of 3D position trackers
+to apply forces to your simulation.  Game controllers or haptic devices
+with force-feedback such as the `Novint Falcon
+<https://en.wikipedia.org/wiki/Novint_Technologies>`_ or `3d Systems
+PHANTOM <https://www.3dsystems.com/haptics>`_ allow you to feel the
+resistance due to inertia or interactions with neighbors that the atoms
+experience you are trying to move, as if they were real objects.  See
+the `VMD IMD Homepage <imdvmd_>`_ for more details.
 
 If IMD control messages are received, a line of text describing the
 message and its effect will be printed to the LAMMPS output screen, if

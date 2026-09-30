@@ -38,7 +38,8 @@ static constexpr double EPSILON = 1.0e-6;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJCutCoulLongDielectric::PairLJCutCoulLongDielectric(LAMMPS *_lmp) : PairLJCutCoulLong(_lmp)
+PairLJCutCoulLongDielectric::PairLJCutCoulLongDielectric(LAMMPS *_lmp) :
+    PairLJCutCoulLong(_lmp), avec(nullptr)
 {
   respa_enable = 0;
   cut_respa = nullptr;

@@ -21,6 +21,8 @@
 #include "Lepton.h"
 #endif
 
+class colvarmodule; // Forward declaration
+
 namespace neuralnetworkCV {
 /// mapping from a string to the activation function and its derivative
 extern std::map<std::string, std::pair<std::function<double(double)>, std::function<double(double)>>> activation_function_map;
@@ -32,7 +34,7 @@ public:
     /// empty constructor
     customActivationFunction();
     /// construct by an mathematical expression
-    customActivationFunction(const std::string& expression_string);
+    customActivationFunction(const std::string& expression_string, colvarmodule *cvmodule);
     /// copy constructor
     customActivationFunction(const customActivationFunction& source);
     /// overload assignment operator
@@ -51,6 +53,7 @@ private:
     std::unique_ptr<Lepton::CompiledExpression> gradient_evaluator;
     double* input_reference;
     double* derivative_reference;
+    colvarmodule *cvmodule;
 };
 #endif
 
@@ -60,6 +63,7 @@ private:
     size_t m_output_size;
     std::function<double(double)> m_activation_function;
     std::function<double(double)> m_activation_function_derivative;
+    colvarmodule *cvmodule;
 #ifdef LEPTON
     bool m_use_custom_activation;
     customActivationFunction m_custom_activation_function;
@@ -78,13 +82,20 @@ public:
      *  @param[in]  f               activation function
      *  @param[in]  df              derivative of the activation function
      */
-    denseLayer(const std::string& weights_file, const std::string& biases_file, const std::function<double(double)>& f, const std::function<double(double)>& df);
+    denseLayer(const std::string& weights_file,
+               const std::string& biases_file,
+               const std::function<double(double)>& f,
+               const std::function<double(double)>& df,
+               colvarmodule *cvmodule);
 #ifdef LEPTON
     /*! @param[in]  weights_file                 filename of the weights file
      *  @param[in]  biases_file                  filename of the biases file
      *  @param[in]  custom_activation_expression the expression of the custom activation function
      */
-    denseLayer(const std::string& weights_file, const std::string& biases_file, const std::string& custom_activation_expression);
+    denseLayer(const std::string& weights_file,
+               const std::string& biases_file,
+               const std::string& custom_activation_expression,
+               colvarmodule *cvmodule);
 #endif
     /// read data from file
     void readFromFile(const std::string& weights_file, const std::string& biases_file);

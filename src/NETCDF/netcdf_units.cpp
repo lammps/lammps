@@ -21,6 +21,8 @@
 
 #include "error.h"
 
+#include <cstring>
+
 using namespace LAMMPS_NS;
 
 std::string NetCDFUnits::get_unit_for(const char *unit_style, int quantity, Error *error)

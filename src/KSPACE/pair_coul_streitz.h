@@ -56,6 +56,10 @@ class PairCoulStreitz : public Pair {
   // Wolf
   double g_wolf, woself, dwoself;
 
+  // Fennell-Gezelter
+  double drtap;
+  int dsfflag;
+
   // Ewald
   double g_ewald;
 
@@ -68,6 +72,7 @@ class PairCoulStreitz : public Pair {
   double self(Param *, double);
   void coulomb_integral_wolf(double, double, double, double &, double &, double &, double &);
   void wolf_sum(double, double, double, double, double, double, double, double, double &, double &);
+  void fennell_sum(double, double, double, double, double, double, double, double, double &, double &);
   void coulomb_integral_ewald(double, double, double, double &, double &, double &, double &);
   void ewald_sum(double, double, double, double, double, double, double, double, double &, double &,
                  double);

@@ -68,8 +68,6 @@ class FixPeriNeigh : public Fix {
   double **deviatorPlasticextension;    // Deviatoric plastic extension
   double *lambdaValue;
   double **r0;                       // initial distance to partners
-  double **r1;                       // instanteneous distance to partners
-  double *thetaValue;                // dilatation
   double *vinter;                    // sum of vfrac for bonded neighbors
   double *wvolume;                   // weighted volume of particle
   int isPMB, isLPS, isVES, isEPS;    // which flavor of PD

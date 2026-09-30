@@ -39,7 +39,8 @@ static constexpr double SMALLER =   0.00001;
 
 /* ---------------------------------------------------------------------- */
 
-DihedralQuadratic::DihedralQuadratic(LAMMPS *lmp) : Dihedral(lmp)
+DihedralQuadratic::DihedralQuadratic(LAMMPS *lmp) :
+    Dihedral(lmp), k(nullptr), phi0(nullptr), sign(nullptr), multiplicity(nullptr)
 {
   writedata = 1;
   born_matrix_enable = 1;
@@ -49,6 +50,7 @@ DihedralQuadratic::DihedralQuadratic(LAMMPS *lmp) : Dihedral(lmp)
 
 DihedralQuadratic::~DihedralQuadratic()
 {
+  if (copymode) return;
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(k);

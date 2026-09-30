@@ -29,29 +29,18 @@
 // implementations.
 
 // Vector classes provided with the intel compiler
-#if defined(__MIC__) && !defined(__AVX512F__)
-#include <mic/micvec.h>
-#else
-#include <dvec.h> // icc-mmic hates generating movq
+#include <dvec.h>
 #include <fvec.h>
-#endif
 
 namespace lmp_intel {
 
-// Self explanatory mostly, KNC=IMCI and AVX-512, NONE=Scalar.
-enum CalculationMode {KNC, AVX, AVX2, SSE, NONE};
-#ifdef __MIC__
-  #ifdef LMP_INTEL_VECTOR_MIC
-  static const CalculationMode mode = LMP_INTEL_VECTOR_MIC;
-  #else
-  static const CalculationMode mode = KNC;
-  #endif
-#else
+// Self explanatory mostly, AVX512=AVX-512, NONE=Scalar.
+enum CalculationMode {AVX512, AVX, AVX2, SSE, NONE};
   #ifdef LMP_INTEL_VECTOR_HOST
   static const CalculationMode mode = LMP_INTEL_VECTOR_HOST;
   #else
     #ifdef __AVX512F__
-    static const CalculationMode mode = KNC;
+    static const CalculationMode mode = AVX512;
     #else
       #ifdef __AVX2__
       static const CalculationMode mode = AVX2;
@@ -64,7 +53,6 @@ enum CalculationMode {KNC, AVX, AVX2, SSE, NONE};
       #endif
     #endif
   #endif
-#endif
 
 // This is used in the selection logic
 template<CalculationMode mode>
@@ -82,8 +70,8 @@ struct vector_traits<AVX> {
 template<class flt_t, CalculationMode mode>
 struct vector_ops {};
 
-// Intrinsic routines for IMCI and AVX-512
-#if defined(__MIC__) || defined(__AVX512F__)
+// Intrinsic routines for AVX-512
+#if defined(__AVX512F__)
 // Integer vector class
 #ifdef __INTEL_LLVM_COMPILER
 #pragma pack(push,16)
@@ -112,7 +100,7 @@ struct ivec32x16 {
 #pragma pack(pop)
 // Double precision routines
 template<>
-struct vector_ops<double, KNC> {
+struct vector_ops<double, AVX512> {
     static const int VL = 8;
     typedef double fscal;
     typedef F64vec8 fvec;
@@ -251,7 +239,7 @@ struct vector_ops<double, KNC> {
 };
 
 template<>
-struct vector_ops<float, KNC> {
+struct vector_ops<float, AVX512> {
     static const int VL = 16;
     static const int ALIGN = 64;
     typedef float fscal;
@@ -389,20 +377,20 @@ struct vector_ops<float, KNC> {
       *r3 = gather<4>(*r3, mask, idxs, reinterpret_cast<const char *>(base) + 12);
     }
     // Additional routines needed for the implementation of mixed precision
-    static fvec cvtdown(const vector_ops<double,KNC>::fvec &lo,
-                        const vector_ops<double,KNC>::fvec &hi) {
+    static fvec cvtdown(const vector_ops<double,AVX512>::fvec &lo,
+                        const vector_ops<double,AVX512>::fvec &hi) {
       __m512 t1 = _mm512_cvtpd_pslo(lo);
       __m512 t2 = _mm512_cvtpd_pslo(hi);
       return _mm512_mask_shuffle_f32x4(_mm512_undefined_ps(), 0xFF00, t2, t2,
                                        0x4E);
     }
-    static vector_ops<double,KNC>::fvec cvtup_lo(const fvec &a) {
+    static vector_ops<double,AVX512>::fvec cvtup_lo(const fvec &a) {
       return _mm512_cvtpslo_pd(a);
     }
-    static vector_ops<double,KNC>::fvec cvtup_hi(const fvec &a) {
+    static vector_ops<double,AVX512>::fvec cvtup_hi(const fvec &a) {
       return _mm512_cvtpslo_pd(_mm512_shuffle_f32x4(a, a, 0x4E));
     }
-    static void mask_cvtup(const bvec &a, vector_ops<double,KNC>::bvec *blo, vector_ops<double,KNC>::bvec *bhi) {
+    static void mask_cvtup(const bvec &a, vector_ops<double,AVX512>::bvec *blo, vector_ops<double,AVX512>::bvec *bhi) {
       *blo = a & 0xFF;
       *bhi = a >> 8;
     }
@@ -413,7 +401,6 @@ struct vector_ops<float, KNC> {
 // AVX/SSE
 //////////////////////////////////////////////////////////////////////////////
 
-#ifndef __MIC__
 // class definitions for integer and masks for AVX
 // Note that we have to lower a number of operations to SSE, notably comparison
 // and integer operations.
@@ -1693,7 +1680,6 @@ struct vector_ops<float, SSE> {
 };
 
 
-#endif
 
 // Scalar implementation
 template<class flt_t>

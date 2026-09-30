@@ -20,6 +20,7 @@
 #include "atom_vec_tri.h"
 #include "body.h"
 #include "info.h"
+#include "library.h"
 #include "math_const.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
@@ -83,10 +84,39 @@ static void create_molecule_files(const std::string &h2o_filename, const std::st
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
 bool verbose = false;
 
-static const double EPSILON = 5.0e-14;
+// the KOKKOS package keeps the per-atom data in single precision in mixed and
+// single precision builds, so coordinates and other per-atom values reproduce
+// the double precision reference values only to about 7 decimal digits
+static double atom_epsilon()
+{
+    if (!kokkos_reduced_precision()) return 5.0e-14;
+    return (kokkos_precision() == "single") ? 1.0e-5 : 1.0e-6;
+}
+
+static const double EPSILON = atom_epsilon();
 
 namespace LAMMPS_NS {
 using ::testing::Eq;
+
+// with an accelerator suffix enabled (see LAMMPS_ACCELERATOR_ARGS in
+// unittest/testing/core.h) Atom::create_avec() stores the suffixed style name,
+// e.g. "atomic/kk", whenever an accelerated variant of the style exists.  the
+// helper below adapts the expected name accordingly, so the same expectations
+// apply in either configuration and the test still confirms that the
+// accelerated variant is the one in use.
+
+static LAMMPS *current_lmp = nullptr;
+
+static void ASSERT_ATOM_STYLE_EQ(const char *actual, const std::string &expected)
+{
+    std::string wanted = expected;
+    if (current_lmp && current_lmp->suffix_enable && current_lmp->suffix) {
+        std::string suffixed = expected + "/" + current_lmp->suffix;
+        Info info(current_lmp);
+        if (info.has_style("atom", suffixed)) wanted = suffixed;
+    }
+    ASSERT_THAT(std::string(actual), Eq(wanted));
+}
 
 class AtomStyleTest : public LAMMPSTest {
 protected:
@@ -103,6 +133,7 @@ protected:
         testbinary = "AtomStyleTest";
         LAMMPSTest::SetUp();
         ASSERT_NE(lmp, nullptr);
+        current_lmp = lmp;
         BEGIN_HIDE_OUTPUT();
         command("units real");
         command("dimension 3");
@@ -114,6 +145,7 @@ protected:
     void TearDown() override
     {
         LAMMPSTest::TearDown();
+        current_lmp = nullptr;
         remove("test_atom_styles.data");
         remove("input_atom_styles.data");
         remove("test_atom_styles.restart");
@@ -157,7 +189,6 @@ struct AtomState {
     int body_flag                    = 0;
     int peri_flag                    = 0;
     int electron_flag                = 0;
-    int wavepacket_flag              = 0;
     int sph_flag                     = 0;
     int molecule_flag                = 0;
     int molindex_flag                = 0;
@@ -174,11 +205,6 @@ struct AtomState {
     int eradius_flag                 = 0;
     int ervel_flag                   = 0;
     int erforce_flag                 = 0;
-    int cs_flag                      = 0;
-    int csforce_flag                 = 0;
-    int vforce_flag                  = 0;
-    int ervelforce_flag              = 0;
-    int etag_flag                    = 0;
     int rho_flag                     = 0;
     int esph_flag                    = 0;
     int cv_flag                      = 0;
@@ -256,7 +282,7 @@ struct AtomState {
 
 void ASSERT_ATOM_STATE_EQ(Atom *atom, const AtomState &expected)
 {
-    ASSERT_THAT(std::string(atom->atom_style), Eq(expected.atom_style));
+    ASSERT_ATOM_STYLE_EQ(atom->atom_style, expected.atom_style);
 
     ASSERT_NE(atom->avec, nullptr);
     ASSERT_EQ(atom->natoms, expected.natoms);
@@ -293,7 +319,6 @@ void ASSERT_ATOM_STATE_EQ(Atom *atom, const AtomState &expected)
     ASSERT_EQ(atom->body_flag, expected.body_flag);
     ASSERT_EQ(atom->peri_flag, expected.peri_flag);
     ASSERT_EQ(atom->electron_flag, expected.electron_flag);
-    ASSERT_EQ(atom->wavepacket_flag, expected.wavepacket_flag);
     ASSERT_EQ(atom->sph_flag, expected.sph_flag);
     ASSERT_EQ(atom->molecule_flag, expected.molecule_flag);
     ASSERT_EQ(atom->molindex_flag, expected.molindex_flag);
@@ -310,11 +335,6 @@ void ASSERT_ATOM_STATE_EQ(Atom *atom, const AtomState &expected)
     ASSERT_EQ(atom->eradius_flag, expected.eradius_flag);
     ASSERT_EQ(atom->ervel_flag, expected.ervel_flag);
     ASSERT_EQ(atom->erforce_flag, expected.erforce_flag);
-    ASSERT_EQ(atom->cs_flag, expected.cs_flag);
-    ASSERT_EQ(atom->csforce_flag, expected.csforce_flag);
-    ASSERT_EQ(atom->vforce_flag, expected.vforce_flag);
-    ASSERT_EQ(atom->ervelforce_flag, expected.ervelforce_flag);
-    ASSERT_EQ(atom->etag_flag, expected.etag_flag);
     ASSERT_EQ(atom->rho_flag, expected.rho_flag);
     ASSERT_EQ(atom->esph_flag, expected.esph_flag);
     ASSERT_EQ(atom->cv_flag, expected.cv_flag);
@@ -398,11 +418,6 @@ void ASSERT_ATOM_STATE_EQ(Atom *atom, const AtomState &expected)
     ASSERT_ARRAY_ALLOCATED(atom->eradius, false);
     ASSERT_ARRAY_ALLOCATED(atom->ervel, false);
     ASSERT_ARRAY_ALLOCATED(atom->erforce, false);
-    ASSERT_ARRAY_ALLOCATED(atom->ervelforce, false);
-    ASSERT_ARRAY_ALLOCATED(atom->cs, false);
-    ASSERT_ARRAY_ALLOCATED(atom->csforce, false);
-    ASSERT_ARRAY_ALLOCATED(atom->vforce, false);
-    ASSERT_ARRAY_ALLOCATED(atom->etag, false);
     ASSERT_ARRAY_ALLOCATED(atom->uCond, false);
     ASSERT_ARRAY_ALLOCATED(atom->uMech, false);
     ASSERT_ARRAY_ALLOCATED(atom->uChem, false);
@@ -479,6 +494,10 @@ TEST_F(AtomStyleTest, atomic_is_default)
 
 TEST_F(AtomStyleTest, atomic_after_charge)
 {
+    // the KOKKOS package keeps the per-atom arrays of its dual views
+    // allocated when the atom style is replaced, so the pointer of a field
+    // that is no longer part of the atom style is not reset to null
+    if (lmp->suffix_enable) GTEST_SKIP() << "arrays stay allocated with an accelerator suffix";
     AtomState expected;
     expected.atom_style = "atomic";
     expected.molecular  = Atom::ATOMIC;
@@ -512,7 +531,7 @@ TEST_F(AtomStyleTest, atomic)
     command("pair_coeff * *");
     END_HIDE_OUTPUT();
 
-    ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("atomic"));
+    ASSERT_ATOM_STYLE_EQ(lmp->atom->atom_style, "atomic");
     ASSERT_NE(lmp->atom->avec, nullptr);
     ASSERT_EQ(lmp->atom->natoms, 4);
     ASSERT_EQ(lmp->atom->nlocal, 4);
@@ -538,7 +557,7 @@ TEST_F(AtomStyleTest, atomic)
     command("units real");
     command("read_data test_atom_styles.data");
     END_HIDE_OUTPUT();
-    ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("atomic"));
+    ASSERT_ATOM_STYLE_EQ(lmp->atom->atom_style, "atomic");
     ASSERT_NE(lmp->atom->avec, nullptr);
     ASSERT_EQ(lmp->atom->natoms, 4);
     ASSERT_EQ(lmp->atom->nlocal, 4);
@@ -593,7 +612,7 @@ TEST_F(AtomStyleTest, atomic)
     command("atom_modify map hash");
     command("read_restart test_atom_styles.restart");
     END_HIDE_OUTPUT();
-    ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("atomic"));
+    ASSERT_ATOM_STYLE_EQ(lmp->atom->atom_style, "atomic");
     ASSERT_NE(lmp->atom->avec, nullptr);
     ASSERT_EQ(lmp->atom->natoms, 2);
     ASSERT_EQ(lmp->atom->nlocal, 2);
@@ -690,6 +709,11 @@ TEST_F(AtomStyleTest, atomic)
 
 TEST_F(AtomStyleTest, no_tags)
 {
+    // a reduced precision KOKKOS build cannot create neighbor lists without
+    // atom IDs when newton is on, which this test needs for the data file
+    if (kokkos_reduced_precision())
+        GTEST_SKIP() << "KOKKOS FP32 neighbor lists require atom IDs with newton on";
+
     BEGIN_HIDE_OUTPUT();
     command("atom_modify id no");
     command("create_box 2 box");
@@ -702,7 +726,7 @@ TEST_F(AtomStyleTest, no_tags)
     command("pair_coeff * *");
     END_HIDE_OUTPUT();
 
-    ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("atomic"));
+    ASSERT_ATOM_STYLE_EQ(lmp->atom->atom_style, "atomic");
     ASSERT_NE(lmp->atom->avec, nullptr);
     ASSERT_EQ(lmp->atom->natoms, 4);
     ASSERT_EQ(lmp->atom->nlocal, 4);
@@ -730,7 +754,7 @@ TEST_F(AtomStyleTest, no_tags)
     command("units real");
     command("read_data test_atom_styles.data");
     END_HIDE_OUTPUT();
-    ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("atomic"));
+    ASSERT_ATOM_STYLE_EQ(lmp->atom->atom_style, "atomic");
     ASSERT_NE(lmp->atom->avec, nullptr);
     ASSERT_EQ(lmp->atom->natoms, 4);
     ASSERT_EQ(lmp->atom->nlocal, 4);
@@ -755,7 +779,7 @@ TEST_F(AtomStyleTest, no_tags)
     command("clear");
     command("read_restart test_atom_styles.restart");
     END_HIDE_OUTPUT();
-    ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("atomic"));
+    ASSERT_ATOM_STYLE_EQ(lmp->atom->atom_style, "atomic");
     ASSERT_NE(lmp->atom->avec, nullptr);
     ASSERT_EQ(lmp->atom->natoms, 4);
     ASSERT_EQ(lmp->atom->nlocal, 4);
@@ -827,7 +851,7 @@ TEST_F(AtomStyleTest, charge)
     command("set atom 4 charge  1.0");
     command("pair_coeff * *");
     END_HIDE_OUTPUT();
-    ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("charge"));
+    ASSERT_ATOM_STYLE_EQ(lmp->atom->atom_style, "charge");
     ASSERT_NE(lmp->atom->avec, nullptr);
     ASSERT_EQ(lmp->atom->natoms, 4);
     ASSERT_EQ(lmp->atom->nlocal, 4);
@@ -849,7 +873,7 @@ TEST_F(AtomStyleTest, charge)
     command("atom_modify map array");
     command("read_data test_atom_styles.data");
     END_HIDE_OUTPUT();
-    ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("charge"));
+    ASSERT_ATOM_STYLE_EQ(lmp->atom->atom_style, "charge");
     ASSERT_NE(lmp->atom->avec, nullptr);
     ASSERT_EQ(lmp->atom->natoms, 4);
     ASSERT_EQ(lmp->atom->nlocal, 4);
@@ -908,10 +932,10 @@ TEST_F(AtomStyleTest, charge)
     command("delete_atoms group two compress no");
     command("write_restart test_atom_styles.restart");
     command("clear");
-    ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("atomic"));
+    ASSERT_ATOM_STYLE_EQ(lmp->atom->atom_style, "atomic");
     command("read_restart test_atom_styles.restart");
     END_HIDE_OUTPUT();
-    ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("charge"));
+    ASSERT_ATOM_STYLE_EQ(lmp->atom->atom_style, "charge");
     ASSERT_NE(lmp->atom->avec, nullptr);
     ASSERT_EQ(lmp->atom->natoms, 2);
     ASSERT_EQ(lmp->atom->nlocal, 2);
@@ -1010,7 +1034,7 @@ TEST_F(AtomStyleTest, sphere)
     command("set atom 4 omega  0.0  1.0  0.0");
     command("pair_coeff * *");
     END_HIDE_OUTPUT();
-    ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("sphere"));
+    ASSERT_ATOM_STYLE_EQ(lmp->atom->atom_style, "sphere");
     ASSERT_NE(lmp->atom->avec, nullptr);
     ASSERT_EQ(lmp->atom->natoms, 4);
     ASSERT_EQ(lmp->atom->nlocal, 4);
@@ -1033,7 +1057,7 @@ TEST_F(AtomStyleTest, sphere)
     command("atom_modify map array");
     command("read_data test_atom_styles.data");
     END_HIDE_OUTPUT();
-    ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("sphere"));
+    ASSERT_ATOM_STYLE_EQ(lmp->atom->atom_style, "sphere");
     ASSERT_NE(lmp->atom->avec, nullptr);
     ASSERT_EQ(lmp->atom->natoms, 4);
     ASSERT_EQ(lmp->atom->nlocal, 4);
@@ -1102,12 +1126,12 @@ TEST_F(AtomStyleTest, sphere)
     command("delete_atoms group two compress no");
     command("write_restart test_atom_styles.restart");
     command("clear");
-    ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("atomic"));
+    ASSERT_ATOM_STYLE_EQ(lmp->atom->atom_style, "atomic");
     command("read_restart test_atom_styles.restart");
     command("replicate 1 1 2");
     command("reset_atoms id");
     END_HIDE_OUTPUT();
-    ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("sphere"));
+    ASSERT_ATOM_STYLE_EQ(lmp->atom->atom_style, "sphere");
     ASSERT_NE(lmp->atom->avec, nullptr);
     ASSERT_EQ(lmp->atom->natoms, 4);
     ASSERT_EQ(lmp->atom->nlocal, 4);
@@ -1183,7 +1207,7 @@ TEST_F(AtomStyleTest, ellipsoid)
     command("set atom 4 quat 1.0 1.0 1.0 60.0");
     command("pair_coeff * *");
     END_HIDE_OUTPUT();
-    ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("ellipsoid"));
+    ASSERT_ATOM_STYLE_EQ(lmp->atom->atom_style, "ellipsoid");
     ASSERT_NE(lmp->atom->avec, nullptr);
     ASSERT_EQ(lmp->atom->natoms, 6);
     ASSERT_EQ(lmp->atom->nellipsoids, 4);
@@ -1220,7 +1244,7 @@ TEST_F(AtomStyleTest, ellipsoid)
     command("read_data test_atom_styles.data");
     command("pair_coeff * *");
     END_HIDE_OUTPUT();
-    ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("ellipsoid"));
+    ASSERT_ATOM_STYLE_EQ(lmp->atom->atom_style, "ellipsoid");
     ASSERT_NE(lmp->atom->avec, nullptr);
     ASSERT_EQ(lmp->atom->natoms, 6);
     ASSERT_EQ(lmp->atom->nlocal, 6);
@@ -1338,7 +1362,7 @@ TEST_F(AtomStyleTest, ellipsoid)
     command("comm_style tiled");
     command("replicate 1 1 2 bbox");
     END_HIDE_OUTPUT();
-    ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("ellipsoid"));
+    ASSERT_ATOM_STYLE_EQ(lmp->atom->atom_style, "ellipsoid");
     ASSERT_NE(lmp->atom->avec, nullptr);
     ASSERT_EQ(lmp->atom->natoms, 8);
     ASSERT_EQ(lmp->atom->nlocal, 8);
@@ -1476,8 +1500,200 @@ TEST_F(AtomStyleTest, ellipsoid)
     EXPECT_NEAR(bonus[3].quat[3], 0.25056280708573159, EPSILON);
 }
 
+TEST_F(AtomStyleTest, superellipsoid)
+{
+    // this atom style has no KOKKOS variant, and the KOKKOS package
+    // requires a Kokkos-enabled atom style
+    if (lmp->suffix_enable) GTEST_SKIP() << "no KOKKOS version of this atom style";
+    if (!Info::has_package("ASPHERE")) GTEST_SKIP();
+
+    BEGIN_HIDE_OUTPUT();
+    command("atom_style ellipsoid superellipsoid");
+    END_HIDE_OUTPUT();
+
+    AtomState expected;
+    expected.atom_style     = "ellipsoid";
+    expected.molecular      = Atom::ATOMIC;
+    expected.tag_enable     = 1;
+    expected.ellipsoid_flag = 1;
+    expected.rmass_flag     = 1;
+    expected.radius_flag    = 1;
+    expected.angmom_flag    = 1;
+    expected.torque_flag    = 1;
+    expected.has_type       = true;
+    expected.has_mask       = true;
+    expected.has_image      = true;
+    expected.has_x          = true;
+    expected.has_v          = true;
+    expected.has_f          = true;
+
+    ASSERT_ATOM_STATE_EQ(lmp->atom, expected);
+    ASSERT_EQ(lmp->atom->superellipsoid_flag, 1);
+
+    BEGIN_HIDE_OUTPUT();
+    command("create_box 4 box");
+    command("create_atoms 1 single -2.0  2.0  0.1"); // Point
+    command("create_atoms 2 single  2.0  2.0 -0.1"); // ELLIPSOID (n1=2, n2=2)
+    command("create_atoms 3 single  2.0  2.0 -2.1"); // GENERAL (n1!=n2)
+    command("create_atoms 4 single -2.0 -2.0  0.1"); // N1_EQUAL_N2
+    command("set type 1 mass 4.0");
+    command("set type 2 mass 2.4");
+    command("set type 3 mass 4.4");
+    command("set type 4 mass 5.0");
+    command("set type 2 shape 1.0 1.0 1.0");
+    command("set type 3 shape 3.0 0.8 1.1");
+    command("set type 4 shape 2.0 2.0 2.0");
+    command("set type 3 block 4.0 3.0");
+    command("set type 4 block 3.5 3.5");
+    command("pair_coeff * *");
+    END_HIDE_OUTPUT();
+    ASSERT_ATOM_STYLE_EQ(lmp->atom->atom_style, "ellipsoid");
+    ASSERT_NE(lmp->atom->avec, nullptr);
+    ASSERT_EQ(lmp->atom->natoms, 4);
+    ASSERT_EQ(lmp->atom->nellipsoids, 3);
+    ASSERT_EQ(lmp->atom->nlocal, 4);
+    ASSERT_EQ(lmp->atom->nghost, 0);
+    ASSERT_NE(lmp->atom->nmax, -1);
+    ASSERT_EQ(lmp->atom->tag_enable, 1);
+    ASSERT_EQ(lmp->atom->molecular, Atom::ATOMIC);
+    ASSERT_EQ(lmp->atom->ntypes, 4);
+    ASSERT_EQ(lmp->atom->nextra_grow, 0);
+    ASSERT_EQ(lmp->atom->nextra_restart, 0);
+    ASSERT_EQ(lmp->atom->nextra_border, 0);
+    ASSERT_EQ(lmp->atom->nextra_grow_max, 0);
+    ASSERT_EQ(lmp->atom->nextra_restart_max, 0);
+    ASSERT_EQ(lmp->atom->nextra_border_max, 0);
+    ASSERT_EQ(lmp->atom->nextra_store, 0);
+    ASSERT_EQ(lmp->atom->extra_grow, nullptr);
+    ASSERT_EQ(lmp->atom->extra_restart, nullptr);
+    ASSERT_EQ(lmp->atom->extra_border, nullptr);
+    ASSERT_EQ(lmp->atom->extra, nullptr);
+
+    ASSERT_EQ(lmp->atom->mass, nullptr);
+    ASSERT_NE(lmp->atom->rmass, nullptr);
+    ASSERT_NE(lmp->atom->radius, nullptr);
+    ASSERT_NE(lmp->atom->ellipsoid, nullptr);
+    ASSERT_EQ(lmp->atom->mass_setflag, nullptr);
+
+    BEGIN_HIDE_OUTPUT();
+    command("write_data test_atom_styles.data nocoeff");
+    command("clear");
+    command("atom_style ellipsoid superellipsoid");
+    command("pair_style zero 4.0");
+    command("units real");
+    command("atom_modify map array");
+    command("read_data test_atom_styles.data");
+    command("pair_coeff * *");
+    END_HIDE_OUTPUT();
+    ASSERT_ATOM_STYLE_EQ(lmp->atom->atom_style, "ellipsoid");
+    ASSERT_NE(lmp->atom->avec, nullptr);
+    ASSERT_EQ(lmp->atom->natoms, 4);
+    ASSERT_EQ(lmp->atom->nlocal, 4);
+    ASSERT_EQ(lmp->atom->nellipsoids, 3);
+    ASSERT_EQ(lmp->atom->nghost, 0);
+    ASSERT_NE(lmp->atom->nmax, -1);
+    ASSERT_EQ(lmp->atom->tag_enable, 1);
+    ASSERT_EQ(lmp->atom->molecular, Atom::ATOMIC);
+    ASSERT_EQ(lmp->atom->ntypes, 4);
+    ASSERT_EQ(lmp->atom->ellipsoid_flag, 1);
+    ASSERT_NE(lmp->atom->ellipsoid, nullptr);
+    ASSERT_NE(lmp->atom->sametag, nullptr);
+    ASSERT_EQ(lmp->atom->tag_consecutive(), 1);
+    ASSERT_EQ(lmp->atom->map_style, Atom::MAP_ARRAY);
+    ASSERT_EQ(lmp->atom->map_user, 1);
+    ASSERT_EQ(lmp->atom->map_tag_max, 4);
+
+    auto *type      = lmp->atom->type;
+    auto *ellipsoid = lmp->atom->ellipsoid;
+    auto *rmass     = lmp->atom->rmass;
+    auto *avec      = dynamic_cast<AtomVecEllipsoid *>(lmp->atom->avec);
+    auto *bonus     = avec->bonus_super;
+
+    ASSERT_EQ(type[GETIDX(1)], 1);
+    ASSERT_EQ(ellipsoid[GETIDX(1)], -1);
+    EXPECT_NEAR(rmass[GETIDX(1)], 4.0, EPSILON);
+    ASSERT_EQ(type[GETIDX(2)], 2);
+    ASSERT_EQ(ellipsoid[GETIDX(2)], 0);
+    EXPECT_NEAR(rmass[GETIDX(2)], 2.4, EPSILON);
+    EXPECT_NEAR(bonus[0].shape[0], 0.5, EPSILON);
+    EXPECT_NEAR(bonus[0].shape[1], 0.5, EPSILON);
+    EXPECT_NEAR(bonus[0].shape[2], 0.5, EPSILON);
+    EXPECT_NEAR(bonus[0].block[0], 2.0, EPSILON); // set by default
+    EXPECT_NEAR(bonus[0].block[1], 2.0, EPSILON); // set by default
+    EXPECT_NEAR(bonus[0].type, 0, EPSILON); // BlockType::ELLIPSOID
+    ASSERT_EQ(type[GETIDX(3)], 3);
+    ASSERT_EQ(ellipsoid[GETIDX(3)], 1);
+    EXPECT_NEAR(rmass[GETIDX(3)], 4.4, EPSILON);
+    EXPECT_NEAR(bonus[1].shape[0], 1.5, EPSILON);
+    EXPECT_NEAR(bonus[1].shape[1], 0.4, EPSILON);
+    EXPECT_NEAR(bonus[1].shape[2], 0.55, EPSILON);
+    EXPECT_NEAR(bonus[1].block[0], 4.0, EPSILON);
+    EXPECT_NEAR(bonus[1].block[1], 3.0, EPSILON);
+    EXPECT_NEAR(bonus[1].type, 2, EPSILON); // BlockType::GENERAL
+    ASSERT_EQ(type[GETIDX(4)], 4);
+    ASSERT_EQ(ellipsoid[GETIDX(4)], 2);
+    EXPECT_NEAR(rmass[GETIDX(4)], 5.0, EPSILON);
+    EXPECT_NEAR(bonus[2].shape[0], 1.0, EPSILON);
+    EXPECT_NEAR(bonus[2].shape[1], 1.0, EPSILON);
+    EXPECT_NEAR(bonus[2].shape[2], 1.0, EPSILON);
+    EXPECT_NEAR(bonus[2].block[0], 3.5, EPSILON);
+    EXPECT_NEAR(bonus[2].block[1], 3.5, EPSILON);
+    EXPECT_NEAR(bonus[2].type, 1, EPSILON); // BlockType::N1_EQUAL_N2
+
+    BEGIN_HIDE_OUTPUT();
+    command("write_restart test_atom_styles.restart");
+    command("clear");
+    command("read_restart test_atom_styles.restart");
+    command("comm_style tiled");
+    command("replicate 1 1 2 bbox");
+    END_HIDE_OUTPUT();
+
+    ASSERT_ATOM_STYLE_EQ(lmp->atom->atom_style, "ellipsoid");
+    ASSERT_NE(lmp->atom->avec, nullptr);
+    ASSERT_EQ(lmp->atom->natoms, 8);
+    ASSERT_EQ(lmp->atom->nlocal, 8);
+    ASSERT_EQ(lmp->atom->nellipsoids, 6);
+    ASSERT_EQ(lmp->atom->superellipsoid_flag, 1);
+
+    type      = lmp->atom->type;
+    ellipsoid = lmp->atom->ellipsoid;
+    rmass     = lmp->atom->rmass;
+    avec      = dynamic_cast<AtomVecEllipsoid *>(lmp->atom->avec);
+    bonus     = avec->bonus_super;
+
+    ASSERT_EQ(type[GETIDX(1)], 1);
+    ASSERT_EQ(type[GETIDX(2)], 2);
+    ASSERT_EQ(type[GETIDX(3)], 3);
+    ASSERT_EQ(type[GETIDX(4)], 4);
+    ASSERT_EQ(type[GETIDX(5)], 1);
+    ASSERT_EQ(type[GETIDX(6)], 2);
+    ASSERT_EQ(type[GETIDX(7)], 3);
+    ASSERT_EQ(type[GETIDX(8)], 4);
+    ASSERT_EQ(ellipsoid[GETIDX(1)], -1);
+    ASSERT_EQ(ellipsoid[GETIDX(2)], 0);
+    ASSERT_EQ(ellipsoid[GETIDX(3)], 1);
+    ASSERT_EQ(ellipsoid[GETIDX(4)], 2);
+    ASSERT_EQ(ellipsoid[GETIDX(5)], -1);
+    ASSERT_EQ(ellipsoid[GETIDX(6)], 3);
+    ASSERT_EQ(ellipsoid[GETIDX(7)], 4);
+    ASSERT_EQ(ellipsoid[GETIDX(8)], 5);
+    EXPECT_NEAR(bonus[3].shape[0], 0.5, EPSILON);
+    EXPECT_NEAR(bonus[3].block[0], 2.0, EPSILON);
+    EXPECT_NEAR(bonus[3].block[1], 2.0, EPSILON);
+    EXPECT_NEAR(bonus[4].shape[0], 1.5, EPSILON);
+    EXPECT_NEAR(bonus[4].block[0], 4.0, EPSILON);
+    EXPECT_NEAR(bonus[4].block[1], 3.0, EPSILON);
+    EXPECT_NEAR(bonus[5].shape[0], 1.0, EPSILON);
+    EXPECT_NEAR(bonus[5].block[0], 3.5, EPSILON);
+    EXPECT_NEAR(bonus[5].block[1], 3.5, EPSILON);
+    EXPECT_NEAR(bonus[5].type, 1, EPSILON);
+}
+
 TEST_F(AtomStyleTest, line)
 {
+    // this atom style has no KOKKOS variant, and the KOKKOS package
+    // requires a Kokkos-enabled atom style
+    if (lmp->suffix_enable) GTEST_SKIP() << "no KOKKOS version of this atom style";
     if (!Info::has_package("ASPHERE")) GTEST_SKIP();
 
     BEGIN_HIDE_OUTPUT();
@@ -1523,7 +1739,7 @@ TEST_F(AtomStyleTest, line)
     command("set atom 4 theta 60.0");
     command("pair_coeff * *");
     END_HIDE_OUTPUT();
-    ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("line"));
+    ASSERT_ATOM_STYLE_EQ(lmp->atom->atom_style, "line");
     ASSERT_NE(lmp->atom->avec, nullptr);
     ASSERT_EQ(lmp->atom->natoms, 6);
     ASSERT_EQ(lmp->atom->nlines, 4);
@@ -1548,7 +1764,7 @@ TEST_F(AtomStyleTest, line)
     command("atom_modify map array");
     command("read_data test_atom_styles.data");
     END_HIDE_OUTPUT();
-    ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("line"));
+    ASSERT_ATOM_STYLE_EQ(lmp->atom->atom_style, "line");
     ASSERT_NE(lmp->atom->avec, nullptr);
     ASSERT_EQ(lmp->atom->natoms, 6);
     ASSERT_EQ(lmp->atom->nlocal, 6);
@@ -1648,7 +1864,7 @@ TEST_F(AtomStyleTest, line)
     command("change_box all triclinic");
     command("replicate 1 2 1 bbox");
     END_HIDE_OUTPUT();
-    ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("line"));
+    ASSERT_ATOM_STYLE_EQ(lmp->atom->atom_style, "line");
     ASSERT_NE(lmp->atom->avec, nullptr);
     ASSERT_EQ(lmp->atom->natoms, 8);
     ASSERT_EQ(lmp->atom->nlocal, 8);
@@ -1748,6 +1964,9 @@ TEST_F(AtomStyleTest, line)
 
 TEST_F(AtomStyleTest, tri)
 {
+    // this atom style has no KOKKOS variant, and the KOKKOS package
+    // requires a Kokkos-enabled atom style
+    if (lmp->suffix_enable) GTEST_SKIP() << "no KOKKOS version of this atom style";
     if (!Info::has_package("ASPHERE")) GTEST_SKIP();
 
     BEGIN_HIDE_OUTPUT();
@@ -1793,7 +2012,7 @@ TEST_F(AtomStyleTest, tri)
     command("set atom 4 quat 1.0 1.0 1.0 60.0");
     command("pair_coeff * *");
     END_HIDE_OUTPUT();
-    ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("tri"));
+    ASSERT_ATOM_STYLE_EQ(lmp->atom->atom_style, "tri");
     ASSERT_NE(lmp->atom->avec, nullptr);
     ASSERT_EQ(lmp->atom->natoms, 6);
     ASSERT_EQ(lmp->atom->ntris, 4);
@@ -1830,7 +2049,7 @@ TEST_F(AtomStyleTest, tri)
     command("read_data test_atom_styles.data");
     command("pair_coeff * *");
     END_HIDE_OUTPUT();
-    ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("tri"));
+    ASSERT_ATOM_STYLE_EQ(lmp->atom->atom_style, "tri");
     ASSERT_NE(lmp->atom->avec, nullptr);
     ASSERT_EQ(lmp->atom->natoms, 6);
     ASSERT_EQ(lmp->atom->nlocal, 6);
@@ -1914,8 +2133,8 @@ TEST_F(AtomStyleTest, tri)
     EXPECT_NEAR(radius[GETIDX(2)], 0.5773502691896258, EPSILON);
     EXPECT_NEAR(radius[GETIDX(3)], 0.8660254037844390, EPSILON);
     EXPECT_NEAR(radius[GETIDX(4)], 0.8660254037844390, EPSILON);
-    EXPECT_NEAR(radius[GETIDX(5)], 0.5, EPSILON);
-    EXPECT_NEAR(radius[GETIDX(6)], 0.5, EPSILON);
+    EXPECT_NEAR(radius[GETIDX(5)], 0.0, EPSILON);
+    EXPECT_NEAR(radius[GETIDX(6)], 0.0, EPSILON);
 
     EXPECT_NEAR(bonus[0].inertia[0], 14.017974903242481, EPSILON);
     EXPECT_NEAR(bonus[0].inertia[1], 13.94589575227541, EPSILON);
@@ -1991,7 +2210,7 @@ TEST_F(AtomStyleTest, tri)
     command("change_box all triclinic");
     command("replicate 1 1 2");
     END_HIDE_OUTPUT();
-    ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("tri"));
+    ASSERT_ATOM_STYLE_EQ(lmp->atom->atom_style, "tri");
     ASSERT_NE(lmp->atom->avec, nullptr);
     ASSERT_EQ(lmp->atom->natoms, 8);
     ASSERT_EQ(lmp->atom->nlocal, 8);
@@ -2036,12 +2255,12 @@ TEST_F(AtomStyleTest, tri)
     EXPECT_NEAR(rmass[GETIDX(12)], 4.4, EPSILON);
     EXPECT_NEAR(radius[GETIDX(1)], 0.5773502691896258, EPSILON);
     EXPECT_NEAR(radius[GETIDX(3)], 0.8660254037844390, EPSILON);
-    EXPECT_NEAR(radius[GETIDX(5)], 0.5, EPSILON);
-    EXPECT_NEAR(radius[GETIDX(6)], 0.5, EPSILON);
+    EXPECT_NEAR(radius[GETIDX(5)], 0.0, EPSILON);
+    EXPECT_NEAR(radius[GETIDX(6)], 0.0, EPSILON);
     EXPECT_NEAR(radius[GETIDX(7)], 0.5773502691896258, EPSILON);
     EXPECT_NEAR(radius[GETIDX(9)], 0.8660254037844390, EPSILON);
-    EXPECT_NEAR(radius[GETIDX(11)], 0.5, EPSILON);
-    EXPECT_NEAR(radius[GETIDX(12)], 0.5, EPSILON);
+    EXPECT_NEAR(radius[GETIDX(11)], 0.0, EPSILON);
+    EXPECT_NEAR(radius[GETIDX(12)], 0.0, EPSILON);
 
     EXPECT_NEAR(bonus[0].inertia[0], 14.017974903242481, EPSILON);
     EXPECT_NEAR(bonus[0].inertia[1], 13.94589575227541, EPSILON);
@@ -2153,6 +2372,11 @@ TEST_F(AtomStyleTest, body_nparticle)
 {
     if (!Info::has_package("BODY")) GTEST_SKIP();
 
+    // the KOKKOS package requires a Kokkos-enabled atom style, and there is
+    // no accelerated version of atom style body
+    if (lmp->kokkos && !info->has_style("atom", "body/kk"))
+        GTEST_SKIP() << "atom style body has no KOKKOS version";
+
     BEGIN_HIDE_OUTPUT();
     command("atom_style body nparticle 2 4");
     END_HIDE_OUTPUT();
@@ -2230,7 +2454,7 @@ TEST_F(AtomStyleTest, body_nparticle)
     command("set atom 4 quat 1.0 1.0 1.0 60.0");
     command("pair_coeff * *");
     END_HIDE_OUTPUT();
-    ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("body"));
+    ASSERT_ATOM_STYLE_EQ(lmp->atom->atom_style, "body");
     ASSERT_NE(lmp->atom->avec, nullptr);
     ASSERT_EQ(lmp->atom->natoms, 6);
     ASSERT_EQ(lmp->atom->nbodies, 4);
@@ -2405,7 +2629,7 @@ TEST_F(AtomStyleTest, body_nparticle)
     command("read_data test_atom_styles.data");
     command("pair_coeff * *");
     END_HIDE_OUTPUT();
-    ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("body"));
+    ASSERT_ATOM_STYLE_EQ(lmp->atom->atom_style, "body");
     ASSERT_NE(lmp->atom->avec, nullptr);
     ASSERT_EQ(lmp->atom->natoms, 6);
     ASSERT_EQ(lmp->atom->nlocal, 6);
@@ -2577,7 +2801,7 @@ TEST_F(AtomStyleTest, body_nparticle)
     command("comm_style tiled");
     command("replicate 1 1 2");
     END_HIDE_OUTPUT();
-    ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("body"));
+    ASSERT_ATOM_STYLE_EQ(lmp->atom->atom_style, "body");
     avec = dynamic_cast<AtomVecBody *>(lmp->atom->avec);
     ASSERT_THAT(std::string(avec->bptr->style), Eq("nparticle"));
     ASSERT_NE(lmp->atom->avec, nullptr);
@@ -2719,6 +2943,9 @@ TEST_F(AtomStyleTest, body_nparticle)
 
 TEST_F(AtomStyleTest, template)
 {
+    // this atom style has no KOKKOS variant, and the KOKKOS package
+    // requires a Kokkos-enabled atom style
+    if (lmp->suffix_enable) GTEST_SKIP() << "no KOKKOS version of this atom style";
     if (!Info::has_package("MOLECULE")) GTEST_SKIP();
     BEGIN_HIDE_OUTPUT();
     command("molecule twomols h2o.mol co2.mol offset 2 1 1 0 0");
@@ -2765,7 +2992,7 @@ TEST_F(AtomStyleTest, template)
     command("angle_coeff * 109.0");
     command("pair_coeff * *");
     END_HIDE_OUTPUT();
-    ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("template"));
+    ASSERT_ATOM_STYLE_EQ(lmp->atom->atom_style, "template");
     ASSERT_NE(lmp->atom->avec, nullptr);
     ASSERT_EQ(lmp->atom->natoms, 12);
     ASSERT_EQ(lmp->atom->nbonds, 6);
@@ -2807,7 +3034,7 @@ TEST_F(AtomStyleTest, template)
     command("atom_modify map array");
     command("read_data test_atom_styles.data");
     END_HIDE_OUTPUT();
-    ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("template"));
+    ASSERT_ATOM_STYLE_EQ(lmp->atom->atom_style, "template");
     ASSERT_NE(lmp->atom->avec, nullptr);
 
     ASSERT_EQ(lmp->atom->natoms, 12);
@@ -2879,7 +3106,7 @@ TEST_F(AtomStyleTest, template)
     command("atom_modify map array");
     command("read_data test_atom_styles.data");
     END_HIDE_OUTPUT();
-    ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("template"));
+    ASSERT_ATOM_STYLE_EQ(lmp->atom->atom_style, "template");
     ASSERT_NE(lmp->atom->avec, nullptr);
 
     ASSERT_EQ(lmp->atom->natoms, 12);
@@ -2999,7 +3226,7 @@ TEST_F(AtomStyleTest, template)
     command("read_restart test_atom_styles.restart");
     command("replicate 1 1 2 bbox");
     END_HIDE_OUTPUT();
-    ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("template"));
+    ASSERT_ATOM_STYLE_EQ(lmp->atom->atom_style, "template");
     ASSERT_NE(lmp->atom->avec, nullptr);
     ASSERT_EQ(lmp->atom->natoms, 16);
     ASSERT_EQ(lmp->atom->nbonds, 8);
@@ -3114,6 +3341,9 @@ TEST_F(AtomStyleTest, template)
 
 TEST_F(AtomStyleTest, template_charge)
 {
+    // this atom style has no KOKKOS variant, and the KOKKOS package
+    // requires a Kokkos-enabled atom style
+    if (lmp->suffix_enable) GTEST_SKIP() << "no KOKKOS version of this atom style";
     if (!Info::has_package("MOLECULE")) GTEST_SKIP();
     BEGIN_HIDE_OUTPUT();
     command("molecule twomols h2o.mol co2.mol offset 2 1 1 0 0");
@@ -3143,7 +3373,7 @@ TEST_F(AtomStyleTest, template_charge)
     ASSERT_ATOM_STATE_EQ(lmp->atom, expected);
 
     auto *hybrid = dynamic_cast<AtomVecHybrid *>(lmp->atom->avec);
-    ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("hybrid"));
+    ASSERT_ATOM_STYLE_EQ(lmp->atom->atom_style, "hybrid");
     ASSERT_EQ(hybrid->nstyles, 2);
     ASSERT_THAT(std::string(hybrid->keywords[0]), Eq("template"));
     ASSERT_THAT(std::string(hybrid->keywords[1]), Eq("charge"));
@@ -3174,7 +3404,7 @@ TEST_F(AtomStyleTest, template_charge)
     END_HIDE_OUTPUT();
     ASSERT_NE(lmp->atom->avec, nullptr);
     hybrid = dynamic_cast<AtomVecHybrid *>(lmp->atom->avec);
-    ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("hybrid"));
+    ASSERT_ATOM_STYLE_EQ(lmp->atom->atom_style, "hybrid");
     ASSERT_EQ(hybrid->nstyles, 2);
     ASSERT_THAT(std::string(hybrid->keywords[0]), Eq("template"));
     ASSERT_THAT(std::string(hybrid->keywords[1]), Eq("charge"));
@@ -3222,7 +3452,7 @@ TEST_F(AtomStyleTest, template_charge)
     command("atom_modify map array");
     command("read_data test_atom_styles.data");
     END_HIDE_OUTPUT();
-    ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("hybrid"));
+    ASSERT_ATOM_STYLE_EQ(lmp->atom->atom_style, "hybrid");
     ASSERT_NE(lmp->atom->avec, nullptr);
 
     ASSERT_EQ(lmp->atom->natoms, 12);
@@ -3294,7 +3524,7 @@ TEST_F(AtomStyleTest, template_charge)
     command("atom_modify map array");
     command("read_data test_atom_styles.data");
     END_HIDE_OUTPUT();
-    ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("hybrid"));
+    ASSERT_ATOM_STYLE_EQ(lmp->atom->atom_style, "hybrid");
     ASSERT_NE(lmp->atom->avec, nullptr);
 
     ASSERT_EQ(lmp->atom->natoms, 12);
@@ -3427,7 +3657,7 @@ TEST_F(AtomStyleTest, template_charge)
     command("read_restart test_atom_styles.restart");
     command("replicate 1 1 2 bbox");
     END_HIDE_OUTPUT();
-    ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("hybrid"));
+    ASSERT_ATOM_STYLE_EQ(lmp->atom->atom_style, "hybrid");
     ASSERT_NE(lmp->atom->avec, nullptr);
     ASSERT_EQ(lmp->atom->natoms, 16);
 
@@ -3588,7 +3818,7 @@ TEST_F(AtomStyleTest, bond)
     command("create_bonds single/bond 2 3 6");
     command("create_bonds single/bond 2 5 6");
     END_HIDE_OUTPUT();
-    ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("bond"));
+    ASSERT_ATOM_STYLE_EQ(lmp->atom->atom_style, "bond");
     ASSERT_NE(lmp->atom->avec, nullptr);
     ASSERT_EQ(lmp->atom->natoms, 6);
     ASSERT_EQ(lmp->atom->nbonds, 5);
@@ -3633,7 +3863,7 @@ TEST_F(AtomStyleTest, bond)
     command("pair_coeff * *");
     command("bond_coeff * 4.0");
     END_HIDE_OUTPUT();
-    ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("bond"));
+    ASSERT_ATOM_STYLE_EQ(lmp->atom->atom_style, "bond");
     ASSERT_NE(lmp->atom->avec, nullptr);
 
     ASSERT_EQ(lmp->atom->natoms, 6);
@@ -3692,7 +3922,7 @@ TEST_F(AtomStyleTest, bond)
     command("pair_coeff * *");
     command("bond_coeff * 4.0");
     END_HIDE_OUTPUT();
-    ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("bond"));
+    ASSERT_ATOM_STYLE_EQ(lmp->atom->atom_style, "bond");
     ASSERT_NE(lmp->atom->avec, nullptr);
 
     ASSERT_EQ(lmp->atom->natoms, 6);
@@ -3788,7 +4018,7 @@ TEST_F(AtomStyleTest, bond)
     command("read_restart test_atom_styles.restart");
     command("replicate 1 1 2 bbox");
     END_HIDE_OUTPUT();
-    ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("bond"));
+    ASSERT_ATOM_STYLE_EQ(lmp->atom->atom_style, "bond");
     ASSERT_NE(lmp->atom->avec, nullptr);
     ASSERT_EQ(lmp->atom->natoms, 8);
     ASSERT_EQ(lmp->atom->nlocal, 8);
@@ -3942,7 +4172,7 @@ TEST_F(AtomStyleTest, angle)
     command("create_bonds single/angle 1 1 3 5");
     command("create_bonds single/angle 2 3 5 6");
     END_HIDE_OUTPUT();
-    ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("angle"));
+    ASSERT_ATOM_STYLE_EQ(lmp->atom->atom_style, "angle");
     ASSERT_NE(lmp->atom->avec, nullptr);
     ASSERT_EQ(lmp->atom->natoms, 6);
     ASSERT_EQ(lmp->atom->nbonds, 5);
@@ -3991,7 +4221,7 @@ TEST_F(AtomStyleTest, angle)
     command("bond_coeff * 4.0");
     command("angle_coeff * 90.0");
     END_HIDE_OUTPUT();
-    ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("angle"));
+    ASSERT_ATOM_STYLE_EQ(lmp->atom->atom_style, "angle");
     ASSERT_NE(lmp->atom->avec, nullptr);
 
     ASSERT_EQ(lmp->atom->natoms, 6);
@@ -4085,7 +4315,7 @@ TEST_F(AtomStyleTest, angle)
     command("pair_coeff * *");
     command("bond_coeff * 4.0");
     END_HIDE_OUTPUT();
-    ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("angle"));
+    ASSERT_ATOM_STYLE_EQ(lmp->atom->atom_style, "angle");
     ASSERT_NE(lmp->atom->avec, nullptr);
 
     ASSERT_EQ(lmp->atom->natoms, 6);
@@ -4182,7 +4412,7 @@ TEST_F(AtomStyleTest, angle)
     command("read_restart test_atom_styles.restart");
     command("replicate 1 1 2");
     END_HIDE_OUTPUT();
-    ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("angle"));
+    ASSERT_ATOM_STYLE_EQ(lmp->atom->atom_style, "angle");
     ASSERT_NE(lmp->atom->avec, nullptr);
     ASSERT_EQ(lmp->atom->natoms, 8);
     ASSERT_EQ(lmp->atom->nlocal, 8);
@@ -4284,7 +4514,7 @@ TEST_F(AtomStyleTest, full_ellipsoid)
     ASSERT_ATOM_STATE_EQ(lmp->atom, expected);
 
     auto *hybrid = dynamic_cast<AtomVecHybrid *>(lmp->atom->avec);
-    ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("hybrid"));
+    ASSERT_ATOM_STYLE_EQ(lmp->atom->atom_style, "hybrid");
     ASSERT_EQ(hybrid->nstyles, 2);
     ASSERT_THAT(std::string(hybrid->keywords[0]), Eq("full"));
     ASSERT_THAT(std::string(hybrid->keywords[1]), Eq("ellipsoid"));
@@ -4327,7 +4557,7 @@ TEST_F(AtomStyleTest, full_ellipsoid)
     command("create_bonds single/bond 2 3 6");
     command("create_bonds single/bond 2 5 6");
     END_HIDE_OUTPUT();
-    ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("hybrid"));
+    ASSERT_ATOM_STYLE_EQ(lmp->atom->atom_style, "hybrid");
     ASSERT_NE(lmp->atom->avec, nullptr);
     ASSERT_EQ(lmp->atom->natoms, 6);
     ASSERT_EQ(lmp->atom->nbonds, 5);
@@ -4368,7 +4598,7 @@ TEST_F(AtomStyleTest, full_ellipsoid)
     command("pair_coeff * *");
     command("bond_coeff * 4.0");
     END_HIDE_OUTPUT();
-    ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("hybrid"));
+    ASSERT_ATOM_STYLE_EQ(lmp->atom->atom_style, "hybrid");
     ASSERT_NE(lmp->atom->avec, nullptr);
     hybrid = dynamic_cast<AtomVecHybrid *>(lmp->atom->avec);
     ASSERT_EQ(hybrid->nstyles, 2);
@@ -4501,7 +4731,7 @@ TEST_F(AtomStyleTest, full_ellipsoid)
     command("read_restart test_atom_styles.restart");
     command("replicate 1 1 2 bbox");
     END_HIDE_OUTPUT();
-    ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("hybrid"));
+    ASSERT_ATOM_STYLE_EQ(lmp->atom->atom_style, "hybrid");
     hybrid = dynamic_cast<AtomVecHybrid *>(lmp->atom->avec);
     ASSERT_EQ(hybrid->nstyles, 2);
     ASSERT_THAT(std::string(hybrid->keywords[0]), Eq("full"));
@@ -4745,7 +4975,7 @@ TEST_F(AtomStyleTest, property_atom)
     command("read_data test_atom_styles.data fix props NULL Properties");
     command("pair_coeff * *");
     END_HIDE_OUTPUT();
-    ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("atomic"));
+    ASSERT_ATOM_STYLE_EQ(lmp->atom->atom_style, "atomic");
     ASSERT_NE(lmp->atom->avec, nullptr);
     ASSERT_EQ(lmp->atom->natoms, 4);
     ASSERT_EQ(lmp->atom->nlocal, 4);
@@ -4828,7 +5058,7 @@ TEST_F(AtomStyleTest, property_atom)
     command("delete_atoms group two compress no");
     command("write_restart test_atom_styles.restart");
     command("clear");
-    ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("atomic"));
+    ASSERT_ATOM_STYLE_EQ(lmp->atom->atom_style, "atomic");
     command("read_restart test_atom_styles.restart");
     command("fix props all property/atom i_one d_two mol d_three q rmass "
             "i2_four 2 d2_five 3 ghost yes");
@@ -4908,6 +5138,11 @@ TEST_F(AtomStyleTest, oxdna)
     if (!Info::has_package("ASPHERE")) GTEST_SKIP();
     if (!Info::has_package("CG-DNA")) GTEST_SKIP();
 
+    // the KOKKOS package requires a Kokkos-enabled atom style, and there is
+    // no accelerated version of atom style oxdna
+    if (lmp->kokkos && !info->has_style("atom", "oxdna/kk"))
+        GTEST_SKIP() << "atom style oxdna has no KOKKOS version";
+
     BEGIN_HIDE_OUTPUT();
     command("atom_style hybrid bond ellipsoid oxdna");
     END_HIDE_OUTPUT();
@@ -4935,7 +5170,7 @@ TEST_F(AtomStyleTest, oxdna)
     ASSERT_ATOM_STATE_EQ(lmp->atom, expected);
 
     auto *hybrid = dynamic_cast<AtomVecHybrid *>(lmp->atom->avec);
-    ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("hybrid"));
+    ASSERT_ATOM_STYLE_EQ(lmp->atom->atom_style, "hybrid");
     ASSERT_EQ(hybrid->nstyles, 3);
     ASSERT_THAT(std::string(hybrid->keywords[0]), Eq("bond"));
     ASSERT_THAT(std::string(hybrid->keywords[1]), Eq("ellipsoid"));
@@ -5034,7 +5269,7 @@ TEST_F(AtomStyleTest, oxdna)
     command("pair_coeff * * oxdna2/dh 0.1 0.2 0.815");
     END_HIDE_OUTPUT();
 
-    ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("hybrid"));
+    ASSERT_ATOM_STYLE_EQ(lmp->atom->atom_style, "hybrid");
     ASSERT_NE(lmp->atom->avec, nullptr);
     ASSERT_EQ(lmp->atom->natoms, 10);
     ASSERT_EQ(lmp->atom->nbonds, 8);
@@ -5062,6 +5297,7 @@ TEST_F(AtomStyleTest, oxdna)
     ASSERT_EQ(lmp->atom->ellipsoid_flag, 1);
     ASSERT_NE(lmp->atom->ellipsoid, nullptr);
     ASSERT_NE(lmp->atom->mass_setflag, nullptr);
+    ASSERT_NE(lmp->atom->id3p, nullptr);
     ASSERT_NE(lmp->atom->id5p, nullptr);
 
     BEGIN_HIDE_OUTPUT();
@@ -5107,7 +5343,7 @@ TEST_F(AtomStyleTest, oxdna)
             "0.8 0.9 0 0.95 0.9 0 0.95 40.0 3.116592653589793");
     command("pair_coeff * * oxdna2/dh 0.1 0.2 0.815");
 
-    ASSERT_THAT(std::string(lmp->atom->atom_style), Eq("hybrid"));
+    ASSERT_ATOM_STYLE_EQ(lmp->atom->atom_style, "hybrid");
     ASSERT_NE(lmp->atom->avec, nullptr);
     hybrid = dynamic_cast<AtomVecHybrid *>(lmp->atom->avec);
 
@@ -5145,6 +5381,7 @@ TEST_F(AtomStyleTest, oxdna)
     ASSERT_EQ(lmp->atom->ellipsoid_flag, 1);
     ASSERT_NE(lmp->atom->ellipsoid, nullptr);
     ASSERT_NE(lmp->atom->mass_setflag, nullptr);
+    ASSERT_NE(lmp->atom->id3p, nullptr);
     ASSERT_NE(lmp->atom->id5p, nullptr);
 
     auto *x         = lmp->atom->x;
@@ -5326,6 +5563,7 @@ TEST_F(AtomStyleTest, oxdna)
     auto *num_bond  = lmp->atom->num_bond;
     auto *bond_type = lmp->atom->bond_type;
     auto *bond_atom = lmp->atom->bond_atom;
+    auto *id3p      = lmp->atom->id3p;
     auto *id5p      = lmp->atom->id5p;
 
     ASSERT_EQ(num_bond[GETIDX(1)], 1);
@@ -5356,6 +5594,17 @@ TEST_F(AtomStyleTest, oxdna)
     ASSERT_EQ(bond_atom[GETIDX(7)][0], 8);
     ASSERT_EQ(bond_atom[GETIDX(8)][0], 9);
     ASSERT_EQ(bond_atom[GETIDX(9)][0], 10);
+
+    ASSERT_EQ(id3p[GETIDX(1)], -1);
+    ASSERT_EQ(id3p[GETIDX(2)], 1);
+    ASSERT_EQ(id3p[GETIDX(3)], 2);
+    ASSERT_EQ(id3p[GETIDX(4)], 3);
+    ASSERT_EQ(id3p[GETIDX(5)], 4);
+    ASSERT_EQ(id3p[GETIDX(6)], -1);
+    ASSERT_EQ(id3p[GETIDX(7)], 6);
+    ASSERT_EQ(id3p[GETIDX(8)], 7);
+    ASSERT_EQ(id3p[GETIDX(9)], 8);
+    ASSERT_EQ(id3p[GETIDX(10)], 9);
 
     ASSERT_EQ(id5p[GETIDX(1)], 2);
     ASSERT_EQ(id5p[GETIDX(2)], 3);
@@ -5390,6 +5639,13 @@ int main(int argc, char **argv)
     if ((argc > 1) && (strcmp(argv[1], "-v") == 0)) verbose = true;
 
     int rv = RUN_ALL_TESTS();
+
+    // finalize the KOKKOS package explicitly: otherwise Kokkos is torn down by
+    // static destructors at program exit, leading to segfaults in some cases
+    // same workaround as the force-style and FFT3d test drivers
+
+    lammps_kokkos_finalize();
+
     MPI_Finalize();
     return rv;
 }

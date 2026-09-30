@@ -122,6 +122,7 @@ void PairHbondDreidingMorseOMP::eval(int iifrom, int iito, ThrData * const thr)
   double xtmp,ytmp,ztmp,delx,dely,delz,rsq,rsq1,rsq2,r1,r2;
   double factor_hb,force_angle,force_kernel,force_switch,evdwl,ehbond;
   double c,s,a,b,d,ac,a11,a12,a22,vx1,vx2,vy1,vy2,vz1,vz2;
+  double cgeom,sgeom;
   double fi[3],fj[3],delr1[3],delr2[3];
   double r,dr,dexp,eng_morse,switch1,switch2;
   int *ilist,*jlist,*numneigh,**firstneigh;
@@ -221,6 +222,13 @@ void PairHbondDreidingMorseOMP::eval(int iifrom, int iito, ThrData * const thr)
           if (c < -1.0) c = -1.0;
           ac = acos(c);
 
+          // cgeom is the cosine of the actual H-donor-acceptor angle.  With an
+          // angle offset the potential is evaluated at the shifted angle, so c
+          // and cgeom differ and the chain rule d(c)/d(cgeom) = s/sgeom has to
+          // be carried into the angular force below
+
+          cgeom = c;
+
           if (angle_offset_flag){
             ac = ac + pm.angle_offset;
             c = cos(ac);
@@ -231,6 +239,13 @@ void PairHbondDreidingMorseOMP::eval(int iifrom, int iito, ThrData * const thr)
           if (ac > pm.cut_angle && ac < (2.0*MY_PI - pm.cut_angle)) {
             s = sqrt(1.0 - c*c);
             if (s < SMALL) s = SMALL;
+
+            // an angle offset can push the shifted angle past 180 degrees,
+            // where the sine is negative and the square root above is not
+
+            if (ac > MY_PI) s = -s;
+            sgeom = sqrt(1.0 - cgeom*cgeom);
+            if (sgeom < SMALL) sgeom = SMALL;
 
             // Morse-specific kernel
 
@@ -252,7 +267,7 @@ void PairHbondDreidingMorseOMP::eval(int iifrom, int iito, ThrData * const thr)
 
               force_kernel *= switch1;
               force_angle  *= switch1;
-              force_switch  = eng_morse*switch2/rsq;
+              force_switch  = eng_morse*switch2/rsq * powint(c,pm.ap);
               eng_morse    *= switch1;
             }
 
@@ -262,13 +277,13 @@ void PairHbondDreidingMorseOMP::eval(int iifrom, int iito, ThrData * const thr)
               ehbond += evdwl;
             }
 
-            a = factor_hb*force_angle/s;
+            a = factor_hb*force_angle/sgeom;
             b = factor_hb*force_kernel;
             d = factor_hb*force_switch;
 
-            a11 = a*c / rsq1;
+            a11 = a*cgeom / rsq1;
             a12 = -a / (r1*r2);
-            a22 = a*c / rsq2;
+            a22 = a*cgeom / rsq2;
 
             vx1 = a11*delr1[0] + a12*delr2[0];
             vx2 = a22*delr2[0] + a12*delr1[0];

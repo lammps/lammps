@@ -417,7 +417,7 @@ void PairBOP::init_style()
   if (utils::strmatch(force->pair_style,"^hybrid"))
     error->all(FLERR,"Pair style BOP is not compatible with hybrid pair styles");
 
-  if ((neighbor->style == Neighbor::MULTI) || (neighbor->style == Neighbor::MULTI_OLD))
+  if (neighbor->style == Neighbor::MULTI)
     error->all(FLERR,"Pair style BOP is not compatible with multi-cutoff neighbor lists");
 
   if (comm->mode != Comm::SINGLE)
@@ -756,7 +756,7 @@ double PairBOP::SigmaBo(int itmp, int jtmp)
   // FF is the Beta_sigma^2 term
 
   FF = betaS_ij * betaS_ij;
-  if (FF <= 0.000001) return(sigB);
+  if (FF <= 0.000001) return sigB;
 
   // agpdpr1 is derivative of FF w.r.t. r_ij
 
@@ -1172,7 +1172,7 @@ double PairBOP::SigmaBo(int itmp, int jtmp)
                                -ftmp[0],-ftmp[1],-ftmp[2],xtmp[0],xtmp[1],xtmp[2]);
     }
   }
-  return(sigB);
+  return sigB;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1277,8 +1277,6 @@ double PairBOP::PiBo(int itmp, int jtmp)
 
   AA = 0.0;
   BB = 0.0;
-
-  // if (betaP_ij * betaP_ij <= 0.000001) return(piB);
 
   for (ktmp = 0; ktmp < nlisti; ktmp++) {
     if (ktmp == jtmp) continue;
@@ -1855,7 +1853,7 @@ double PairBOP::PiBo(int itmp, int jtmp)
     if (evflag) ev_tally_xyz(bt_i,bt_j,nlocal,newton_pair,0.0,0.0,
                              -ftmp[0],-ftmp[1],-ftmp[2],xtmp[0],xtmp[1],xtmp[2]);
   }
-  return(piB);
+  return piB;
 }
 
 /* ----------------------------------------------------------------------
@@ -2160,7 +2158,7 @@ void PairBOP::read_table(char *filename)
 
 double PairBOP::memory_usage()
 {
-  return(bytes);
+  return bytes;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -48,12 +48,12 @@ static constexpr double MASSDELTA = 0.1;
 
 FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
     Fix(lmp, narg, arg), bond_flag(nullptr), angle_flag(nullptr), type_flag(nullptr),
-    mass_list(nullptr), bond_distance(nullptr), angle_distance(nullptr), loop_respa(nullptr),
-    step_respa(nullptr), x(nullptr), v(nullptr), f(nullptr), ftmp(nullptr), vtmp(nullptr),
-    mass(nullptr), rmass(nullptr), type(nullptr), shake_flag(nullptr), shake_atom(nullptr),
-    shake_type(nullptr), xshake(nullptr), nshake(nullptr), list(nullptr), closest_list(nullptr),
-    b_count(nullptr), b_count_all(nullptr), b_ave(nullptr), b_max(nullptr), b_min(nullptr),
-    b_ave_all(nullptr), b_max_all(nullptr), b_min_all(nullptr), a_count(nullptr),
+    mass_list(nullptr), bond_distance(nullptr), angle_distance(nullptr), fstore(nullptr),
+    loop_respa(nullptr), step_respa(nullptr), x(nullptr), v(nullptr), f(nullptr), ftmp(nullptr),
+    vtmp(nullptr), mass(nullptr), rmass(nullptr), type(nullptr), shake_flag(nullptr),
+    shake_atom(nullptr), shake_type(nullptr), xshake(nullptr), nshake(nullptr), list(nullptr),
+    closest_list(nullptr), b_count(nullptr), b_count_all(nullptr), b_ave(nullptr), b_max(nullptr),
+    b_min(nullptr), b_ave_all(nullptr), b_max_all(nullptr), b_min_all(nullptr), a_count(nullptr),
     a_count_all(nullptr), a_ave(nullptr), a_max(nullptr), a_min(nullptr), a_ave_all(nullptr),
     a_max_all(nullptr), a_min_all(nullptr), atommols(nullptr), onemols(nullptr)
 {
@@ -77,18 +77,15 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
 
   molecular = atom->molecular;
   if (molecular == Atom::ATOMIC)
-    error->all(FLERR, "Cannot use fix {} with non-molecular system", style);
+    error->all(FLERR, Error::COMMAND, "Cannot use fix {} with non-molecular system", style);
+
+  // do not store constraint forces by default
+
+  store_flag = peratom_flag = 0;
+  maxstore = -1;
 
   // perform initial allocation of atom-based arrays
   // register with Atom class
-
-  shake_flag = nullptr;
-  shake_atom = nullptr;
-  shake_type = nullptr;
-  xshake = nullptr;
-
-  ftmp = nullptr;
-  vtmp = nullptr;
 
   FixShake::grow_arrays(atom->nmax);
   atom->add_callback(Atom::GROW);
@@ -112,10 +109,10 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
   bool allow_typelabels = (atom->labelmapflag != 0);
   if (allow_typelabels) {
     for (int i = Atom::ATOM; i < Atom::DIHEDRAL; ++i) {
-      if ((atom->lmap->find("b", i) >= 0) ||
-          (atom->lmap->find("a", i) >= 0) ||
-          (atom->lmap->find("t", i) >= 0) ||
-          (atom->lmap->find("m", i) >= 0)) allow_typelabels = false;
+      if ((atom->lmap->find_type("b", i) >= 0) ||
+          (atom->lmap->find_type("a", i) >= 0) ||
+          (atom->lmap->find_type("t", i) >= 0) ||
+          (atom->lmap->find_type("m", i) >= 0)) allow_typelabels = false;
     }
     if (!allow_typelabels && (comm->me == 0))
       error->warning(FLERR, "At least one typelabel conflicts with a fix shake option: "
@@ -150,7 +147,8 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
 
     // break if known optional keyword
 
-    } else if ((strcmp(arg[next], "mol") == 0) || (strcmp(arg[next], "kbond") == 0)) {
+    } else if ((strcmp(arg[next], "mol") == 0) || (strcmp(arg[next], "kbond") == 0) ||
+               (strcmp(arg[next], "store") == 0)) {
       break;
 
     // get numeric types for b, a, t, or m keywords.
@@ -160,7 +158,7 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
       else i = utils::inumeric(FLERR, arg[next], false, lmp);
 
       if (i < 1 || i > atom->nbondtypes)
-        error->all(FLERR,"Invalid bond type {} index for {}", arg[next], mystyle);
+        error->all(FLERR, next, "Invalid bond type {} index for {}", arg[next], mystyle);
       bond_flag[i] = 1;
 
     } else if (mode == 'a') {
@@ -168,7 +166,7 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
       else i = utils::inumeric(FLERR, arg[next], false, lmp);
 
       if (i < 1 || i > atom->nangletypes)
-        error->all(FLERR,"Invalid angle type {} for {}", arg[next], mystyle);
+        error->all(FLERR, next, "Invalid angle type {} for {}", arg[next], mystyle);
       angle_flag[i] = 1;
 
     } else if (mode == 't') {
@@ -176,17 +174,18 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
       else i = utils::inumeric(FLERR, arg[next], false, lmp);
 
       if (i < 1 || i > atom->ntypes)
-        error->all(FLERR,"Invalid atom type {} for {}", arg[next], mystyle);
+        error->all(FLERR, next, "Invalid atom type {} for {}", arg[next], mystyle);
       type_flag[i] = 1;
 
     } else if (mode == 'm') {
       double massone = utils::numeric(FLERR, arg[next], false, lmp);
-      if (massone == 0.0) error->all(FLERR,"Invalid atom mass {} for {}", arg[next], mystyle);
+      if (massone == 0.0)
+        error->all(FLERR, next, "Invalid atom mass {} for {}", arg[next], mystyle);
       if (nmass == atom->ntypes)
-        error->all(FLERR,"Too many masses for {}", mystyle);
+        error->all(FLERR, "Too many masses for {}", mystyle);
       mass_list[nmass++] = massone;
 
-    } else error->all(FLERR,"Unknown {} command option: {}", mystyle, arg[next]);
+    } else error->all(FLERR, next, "Unknown {} command option: {}", mystyle, arg[next]);
     next++;
   }
 
@@ -201,7 +200,7 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR,mystyle+" mol",error);
       int imol = atom->find_molecule(arg[iarg+1]);
       if (imol == -1)
-        error->all(FLERR,"Molecule template ID {} for {} does not exist", mystyle, arg[iarg+1]);
+        error->all(FLERR, iarg+1, "Molecule template ID {} for {} does not exist", mystyle, arg[iarg+1]);
       if ((atom->molecules[imol]->nset > 1) && (comm->me == 0))
         error->warning(FLERR,"Molecule template for {} has multiple molecules", mystyle);
       onemols = &atom->molecules[imol];
@@ -210,9 +209,23 @@ FixShake::FixShake(LAMMPS *lmp, int narg, char **arg) :
     } else if (strcmp(arg[iarg],"kbond") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR,mystyle+" kbond",error);
       kbond = utils::numeric(FLERR, arg[iarg+1], false, lmp);
-      if (kbond < 0) error->all(FLERR,"Illegal {} kbond value {}. Must be >= 0.0", mystyle, kbond);
+      if (kbond < 0)
+        error->all(FLERR, iarg+1, "Illegal {} kbond value {}. Must be >= 0.0", mystyle, kbond);
       iarg += 2;
-    } else error->all(FLERR,"Unknown {} command option: {}", mystyle, arg[iarg]);
+    } else if (strcmp(arg[iarg],"store") == 0) {
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR,mystyle+" store",error);
+      store_flag = utils::logical(FLERR, arg[iarg+1], false, lmp);
+      if (store_flag) {
+        peratom_flag = 1;
+        size_peratom_cols = 3;
+        peratom_freq = 1;
+      } else {
+        peratom_flag = 0;
+        size_peratom_cols = 0;
+        peratom_freq = 0;
+      }
+      iarg += 2;
+    } else error->all(FLERR, iarg, "Unknown {} command option: {}", mystyle, arg[iarg]);
   }
 
   // error check for Molecule template
@@ -315,6 +328,7 @@ FixShake::~FixShake()
   memory->destroy(ftmp);
   memory->destroy(vtmp);
 
+  memory->destroy(fstore);
 
   delete[] bond_flag;
   delete[] angle_flag;
@@ -403,7 +417,7 @@ void FixShake::init()
   if (utils::strmatch(update->integrate_style,"^respa")) {
     if (update->whichflag > 0) {
       auto fixes = modify->get_fix_by_style("^RESPA");
-      if (fixes.size() > 0) fix_respa = dynamic_cast<FixRespa *>(fixes.front());
+      if (!fixes.empty()) fix_respa = dynamic_cast<FixRespa *>(fixes.front());
       else error->all(FLERR,"Run style respa did not create fix RESPA");
     }
     auto *respa_ptr = dynamic_cast<Respa *>(update->integrate);
@@ -511,7 +525,7 @@ void FixShake::setup(int vflag)
     if (!respa_ptr) error->all(FLERR, "Failure to access Respa style {}", update->integrate_style);
     if (update->whichflag > 0) {
       auto fixes = modify->get_fix_by_style("^RESPA");
-      if (fixes.size() > 0) fix_respa = dynamic_cast<FixRespa *>(fixes.front());
+      if (!fixes.empty()) fix_respa = dynamic_cast<FixRespa *>(fixes.front());
       else error->all(FLERR,"Run style respa did not create fix RESPA");
     }
     respa = 1;
@@ -779,9 +793,22 @@ void FixShake::min_post_force(int vflag)
     }
   }
 
+  // allocate storage for restraint forces if requested
+
+  if (store_flag) {
+    if (maxstore < atom->nmax) {
+      maxstore = MAX(atom->nmax, 1);
+      memory->destroy(fstore);
+      memory->create(fstore, maxstore, 3, "shake/fstore");
+      for (int i = 0; i < maxstore; ++i) fstore[i][0] = fstore[i][1] = fstore[i][2] = 0.0;
+    }
+    array_atom = fstore;
+  }
+
   // loop over local shake clusters to add restraint forces
 
   for (int i = 0; i < nlocal; i++) {
+    if (store_flag) fstore[i][0] = fstore[i][1] = fstore[i][2] = 0.0;
     if (shake_flag[i]) {
       if (shake_flag[i] == 2) {
         atom1 = atom->map(shake_atom[i][0]);
@@ -1475,8 +1502,9 @@ void FixShake::partner_info(int *npartner, tagint **partner_tag,
           partner_massflag[i][j] = masscheck(massone);
         }
         n = bondtype_findset(i,tag[i],partner_tag[i][j],0);
-        if (n) partner_bondtype[i][j] = n;
-        else {
+        if (n) {
+          partner_bondtype[i][j] = n;
+        } else {
           n = bondtype_findset(m,tag[i],partner_tag[i][j],0);
           if (n) partner_bondtype[i][j] = n;
         }
@@ -2064,11 +2092,11 @@ void FixShake::shake(int ilist)
   // a,b,c = coeffs in quadratic equation for lamda
 
   if (rmass) {
-    invmass0 = 1.0/rmass[i0];
-    invmass1 = 1.0/rmass[i1];
+    invmass0 = 1.0 / rmass[i0];
+    invmass1 = 1.0 / rmass[i1];
   } else {
-    invmass0 = 1.0/mass[type[i0]];
-    invmass1 = 1.0/mass[type[i1]];
+    invmass0 = 1.0 / mass[type[i0]];
+    invmass1 = 1.0 / mass[type[i1]];
   }
 
   double a = (invmass0+invmass1)*(invmass0+invmass1) * r01sq;
@@ -2181,13 +2209,13 @@ void FixShake::shake3(int ilist)
   // matrix coeffs and rhs for lamda equations
 
   if (rmass) {
-    invmass0 = 1.0/rmass[i0];
-    invmass1 = 1.0/rmass[i1];
-    invmass2 = 1.0/rmass[i2];
+    invmass0 = 1.0 / rmass[i0];
+    invmass1 = 1.0 / rmass[i1];
+    invmass2 = 1.0 / rmass[i2];
   } else {
-    invmass0 = 1.0/mass[type[i0]];
-    invmass1 = 1.0/mass[type[i1]];
-    invmass2 = 1.0/mass[type[i2]];
+    invmass0 = 1.0 / mass[type[i0]];
+    invmass1 = 1.0 / mass[type[i1]];
+    invmass2 = 1.0 / mass[type[i2]];
   }
 
   double a11 = 2.0 * (invmass0+invmass1) *
@@ -2369,15 +2397,15 @@ void FixShake::shake4(int ilist)
   // matrix coeffs and rhs for lamda equations
 
   if (rmass) {
-    invmass0 = 1.0/rmass[i0];
-    invmass1 = 1.0/rmass[i1];
-    invmass2 = 1.0/rmass[i2];
-    invmass3 = 1.0/rmass[i3];
+    invmass0 = 1.0 / rmass[i0];
+    invmass1 = 1.0 / rmass[i1];
+    invmass2 = 1.0 / rmass[i2];
+    invmass3 = 1.0 / rmass[i3];
   } else {
-    invmass0 = 1.0/mass[type[i0]];
-    invmass1 = 1.0/mass[type[i1]];
-    invmass2 = 1.0/mass[type[i2]];
-    invmass3 = 1.0/mass[type[i3]];
+    invmass0 = 1.0 / mass[type[i0]];
+    invmass1 = 1.0 / mass[type[i1]];
+    invmass2 = 1.0 / mass[type[i2]];
+    invmass3 = 1.0 / mass[type[i3]];
   }
 
   double a11 = 2.0 * (invmass0+invmass1) *
@@ -2620,13 +2648,13 @@ void FixShake::shake3angle(int ilist)
   // matrix coeffs and rhs for lamda equations
 
   if (rmass) {
-    invmass0 = 1.0/rmass[i0];
-    invmass1 = 1.0/rmass[i1];
-    invmass2 = 1.0/rmass[i2];
+    invmass0 = 1.0 / rmass[i0];
+    invmass1 = 1.0 / rmass[i1];
+    invmass2 = 1.0 / rmass[i2];
   } else {
-    invmass0 = 1.0/mass[type[i0]];
-    invmass1 = 1.0/mass[type[i1]];
-    invmass2 = 1.0/mass[type[i2]];
+    invmass0 = 1.0 / mass[type[i0]];
+    invmass1 = 1.0 / mass[type[i1]];
+    invmass2 = 1.0 / mass[type[i2]];
   }
 
   double a11 = 2.0 * (invmass0+invmass1) *
@@ -2829,6 +2857,11 @@ double FixShake::bond_force(int i1, int i2, double length)
     f[i1][0] += delx * fbond;
     f[i1][1] += dely * fbond;
     f[i1][2] += delz * fbond;
+    if (store_flag) {
+      fstore[i1][0] += delx * fbond;
+      fstore[i1][1] += dely * fbond;
+      fstore[i1][2] += delz * fbond;
+    }
     atomlist[count++] = i1;
     ebond += 0.5*eb;
   }
@@ -2836,6 +2869,11 @@ double FixShake::bond_force(int i1, int i2, double length)
     f[i2][0] -= delx * fbond;
     f[i2][1] -= dely * fbond;
     f[i2][2] -= delz * fbond;
+    if (store_flag) {
+      fstore[i2][0] -= delx * fbond;
+      fstore[i2][1] -= dely * fbond;
+      fstore[i2][2] -= delz * fbond;
+    }
     atomlist[count++] = i2;
     ebond += 0.5*eb;
   }
@@ -2958,20 +2996,62 @@ void FixShake::stats()
   // print stats only for non-zero counts
 
   if (comm->me == 0) {
-    const int width = (int) log10((double)(MAX(MAX(1,nb),na))) + 2;
+    // when a labelmap is present, report each type by its symbolic label
+    // (matching label-based input), with a numeric fallback for unlabeled types
+    const bool uselabel = (atom->labelmapflag != 0);
+    auto blabel = [&](int i) -> std::string {
+      if (uselabel) {
+        const std::string &s = atom->lmap->find_label(i, Atom::BOND);
+        if (!s.empty()) return s;
+      }
+      return std::to_string(i);
+    };
+    auto alabel = [&](int i) -> std::string {
+      if (uselabel) {
+        const std::string &s = atom->lmap->find_label(i, Atom::ANGLE);
+        if (!s.empty()) return s;
+      }
+      return std::to_string(i);
+    };
+
+    // type-column width: longest label (or type number) actually printed,
+    // shared by the Bond: and Angle: rows so the columns stay aligned
+    int width;
+    if (uselabel) {
+      width = 1;
+      for (int i = 1; i < nb; i++)
+        if (b_count_all[i]) { const int w = (int) blabel(i).size(); if (w > width) width = w; }
+      for (int i = 1; i < na; i++)
+        if (a_count_all[i]) { const int w = (int) alabel(i).size(); if (w > width) width = w; }
+    } else {
+      width = (int) log10((double)(MAX(MAX(1,nb),na))) + 2;
+    }
+
     auto mesg = fmt::format("{} stats (type/ave/delta/count) on step {}\n",
                             utils::uppercase(style), update->ntimestep);
     for (int i = 1; i < nb; i++) {
       const auto bcnt = b_count_all[i];
-      if (bcnt)
-        mesg += fmt::format("Bond:  {:>{}d}   {:<9.6} {:<11.6} {:>8d}\n",i,width,
-                            b_ave_all[i]/bcnt,b_max_all[i]-b_min_all[i],bcnt);
+      if (bcnt) {
+        if (uselabel) {
+          mesg += fmt::format("Bond:  {:<{}}   {:<9.6} {:<11.6} {:>8d}\n", blabel(i), width,
+                              b_ave_all[i]/bcnt,b_max_all[i]-b_min_all[i],bcnt);
+        } else {
+          mesg += fmt::format("Bond:  {:>{}}   {:<9.6} {:<11.6} {:>8d}\n", i, width,
+                              b_ave_all[i]/bcnt,b_max_all[i]-b_min_all[i],bcnt);
+        }
+      }
     }
     for (int i = 1; i < na; i++) {
       const auto acnt = a_count_all[i];
-      if (acnt)
-        mesg += fmt::format("Angle: {:>{}d}   {:<9.6} {:<11.6} {:>8d}\n",i,width,
-                            a_ave_all[i]/acnt,a_max_all[i]-a_min_all[i],acnt/3);
+      if (acnt) {
+        if (uselabel) {
+          mesg += fmt::format("Angle: {:<{}}   {:<9.6} {:<11.6} {:>8d}\n",alabel(i),width,
+                              a_ave_all[i]/acnt,a_max_all[i]-a_min_all[i],acnt/3);
+        } else {
+          mesg += fmt::format("Angle: {:>{}}   {:<9.6} {:<11.6} {:>8d}\n",i,width,
+                              a_ave_all[i]/acnt,a_max_all[i]-a_min_all[i],acnt/3);
+        }
+      }
     }
     utils::logmesg(lmp,mesg);
   }
@@ -3465,11 +3545,23 @@ void FixShake::correct_velocities() {}
 
 void FixShake::correct_coordinates(int vflag) {
 
+  // allocate storage for constraint forces if requested
+
+  if (store_flag) {
+    if (maxstore < atom->nmax) {
+      maxstore = MAX(atom->nmax,1);
+      memory->destroy(fstore);
+      memory->create(fstore, maxstore, 3, "shake/fstore");
+      for (int i = 0; i < maxstore; ++i) fstore[i][0] = fstore[i][1] = fstore[i][2] = 0.0;
+    }
+    array_atom = fstore;
+  }
+
   // save current forces and velocities so that you
   // initialize them to zero such that FixShake::unconstrained_coordinate_update has no effect
 
-  for (int j=0; j<nlocal; j++) {
-    for (int k=0; k<3; k++) {
+  for (int j = 0; j < nlocal; ++j) {
+    for (int k = 0; k < 3; ++k) {
 
       // store current value of forces and velocities
 
@@ -3478,8 +3570,8 @@ void FixShake::correct_coordinates(int vflag) {
 
       // set f and v to zero for SHAKE
 
-      v[j][k] = 0;
-      f[j][k] = 0;
+      v[j][k] = 0.0;
+      f[j][k] = 0.0;
     }
   }
 
@@ -3495,13 +3587,12 @@ void FixShake::correct_coordinates(int vflag) {
   double dtfmsq;
   if (rmass) {
     for (int i = 0; i < nlocal; i++) {
-      dtfmsq = dtfsq/ rmass[i];
+      dtfmsq = dtfsq / rmass[i];
       x[i][0] = x[i][0] + dtfmsq*f[i][0];
       x[i][1] = x[i][1] + dtfmsq*f[i][1];
       x[i][2] = x[i][2] + dtfmsq*f[i][2];
     }
-  }
-  else {
+  } else {
     for (int i = 0; i < nlocal; i++) {
       dtfmsq = dtfsq / mass[type[i]];
       x[i][0] = x[i][0] + dtfmsq*f[i][0];
@@ -3510,10 +3601,20 @@ void FixShake::correct_coordinates(int vflag) {
     }
   }
 
+  // store constraint forces if requested
+
+  if (store_flag) {
+    for (int j = 0; j < nlocal; ++j) {
+      for (int k = 0; k < 3; ++k) {
+        fstore[j][k] = f[j][k];
+      }
+    }
+  }
+
   // copy forces and velocities back
 
-  for (int j=0; j<nlocal; j++) {
-    for (int k=0; k<3; k++) {
+  for (int j = 0; j < nlocal; ++j) {
+    for (int k = 0; k < 3; ++k) {
       f[j][k] = ftmp[j][k];
       v[j][k] = vtmp[j][k];
     }

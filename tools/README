@@ -25,6 +25,7 @@ eam_generate           2nd tool to generate EAM alloy potential files
 eff                    scripts for working with the eFF (electron force field)
 emacs                  add-ons to EMACS editor for editing LAMMPS input scripts
 fep                    scripts for free-energy perturbation with FEP pkg
+granular_surfaces      scripts for working with surfaces of tris/lines (3d/2d)
 i-pi                   Python wrapper for performing path-integral MD (PIMD)
 ipp                    input pre-processor Perl tool for creating input scripts
 json                   tools and files for using JSON files in LAMMPS

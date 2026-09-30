@@ -1,17 +1,40 @@
-Available optional packages
-***************************
+Optional packages
+*****************
 
-This section gives an overview of the optional packages that extend
-LAMMPS' functionality.  Packages are groups of files that enable a
-specific set of features.  For example, force fields for molecular
-systems or rigid-body constraints are in packages.  You can see the list
-of all packages and "make" commands to manage them by typing "make
-package" from within the src directory of the LAMMPS distribution.  The
-list of packages that are included in a specific LAMMPS executable can
-be displayed by :doc:`running LAMMPS with the "-h" flag. <Run_options>`
+This section gives an overview of the optional packages included in the
+LAMMPS distribution that extend LAMMPS' functionality.  Packages are
+groups of files that enable a specific set of features.  For example,
+force fields for molecular systems or rigid-body constraints are in
+packages.  You can see the list of all packages and "make" commands to
+manage them by typing "make package" from within the src directory of
+the LAMMPS distribution.  The list of packages that are included in a
+specific LAMMPS executable can be displayed by :doc:`running LAMMPS with
+the "-h" flag. <Run_options>`
 
 The :doc:`Build package <Build_package>` page gives general info on how
 to install and uninstall packages as part of the LAMMPS build process.
+
+.. admonition:: External packages
+   :class: note
+
+   In addition to packages included with LAMMPS there also are packages
+   that are distributed independently and separate from LAMMPS.  Some of
+   them are part of a modified fork of the LAMMPS repository, others are
+   add-on files that have to be integrated into the LAMMPS distribution
+   first.  The LAMMPS developers have in most cases no direct knowledge
+   of those packages and which new commands and modifications to LAMMPS
+   they contain.  Since LAMMPS is :doc:`open source under the GPL-v2
+   license <Intro_opensource>`, there is no requirement to tell us about
+   it or integrated them back into LAMMPS.  Thus you have to contact the
+   developers of those individual packages in case of questions or
+   problems.
+
+   As the LAMMPS internal code structure is sometimes changing, those
+   external packages may need to be updated to remain compatible with
+   the latest LAMMPS versions.  The LAMMPS Programmer's Guide part
+   contains a section with :doc:`notes for updating code written for
+   older LAMMPS versions <Developer_updating>` which explains
+   significant changes and how to update the corresponding code.
 
 Below is the list of packages that are included in the LAMMPS
 distribution.  The link for each package name gives more details.
@@ -22,8 +45,8 @@ consistent with the rest of LAMMPS.
 
 The "Examples" column is a subdirectory in the examples directory of the
 distribution which has one or more input scripts that use the package.
-E.g. ``peptide`` refers to the ``examples/peptide`` directory; ``PACKAGES/atc`` refers
-to the ``examples/PACKAGES/atc`` directory.  The "Lib" column indicates``
+E.g. ``peptide`` refers to the ``examples/peptide`` directory; ``PACKAGES/fep`` refers
+to the ``examples/PACKAGES/fep`` directory.  The "Lib" column indicates``
 whether an extra library is needed to build and use the package:
 
 * no  = no library
@@ -60,19 +83,9 @@ whether an extra library is needed to build and use the package:
      - :doc:`Howto spherical <Howto_spherical>`
      - ellipse
      - no
-   * - :ref:`ATC <PKG-ATC>`
-     - Atom-to-Continuum coupling
-     - :doc:`fix atc <fix_atc>`
-     - ``PACKAGES/atc``
-     - int
-   * - :ref:`AWPMD <PKG-AWPMD>`
-     - wave packet MD
-     - :doc:`pair_style awpmd/cut <pair_awpmd>`
-     - ``PACKAGES/awpmd``
-     - int
    * - :ref:`BOCS <PKG-BOCS>`
-     - BOCS bottom up coarse graining
-     - :doc:`fix bocs <fix_bocs>`
+     - BOCS bottom up coarse graining and Local Density Dependent potentials
+     - :doc:`fix bocs <fix_bocs>`, :doc:`pair_ldd <pair_ldd>`, :doc:`LDD Howto <Howto_ldd>`
      - ``PACKAGES/bocs``
      - no
    * - :ref:`BODY <PKG-BODY>`
@@ -186,9 +199,9 @@ whether an extra library is needed to build and use the package:
      - n/a
      - no
    * - :ref:`EXTRA-DUMP <PKG-EXTRA-DUMP>`
-     - additional dump styles
+     - additional dump styles, including VTK output
      - :doc:`dump <dump>`
-     - n/a
+     - ``PACKAGES/vtk``
      - no
    * - :ref:`EXTRA-FIX <PKG-EXTRA-FIX>`
      - additional fix styles
@@ -205,6 +218,11 @@ whether an extra library is needed to build and use the package:
      - :doc:`pair_style <pair_style>`
      - n/a
      - no
+   * - :ref:`FENIX <PKG-FENIX>`
+     - online process recovery with Fenix
+     - :doc:`Howto Fenix <Howto_fenix>`
+     - ``PACKAGES/fenix``
+     - ext
    * - :ref:`FEP <PKG-FEP>`
      - free energy perturbation
      - :doc:`compute fep <compute_fep>`
@@ -213,12 +231,22 @@ whether an extra library is needed to build and use the package:
    * - :ref:`GPU <PKG-GPU>`
      - GPU-enabled styles
      - :doc:`Section gpu <Speed_gpu>`
-     - `Benchmarks <https://www.lammps.org/bench.html>`_
+     - n/a
      - int
    * - :ref:`GRANULAR <PKG-GRANULAR>`
      - granular systems
      - :doc:`Howto granular <Howto_granular>`
      - pour
+     - no
+   * - :ref:`GRANSURF <PKG-GRANSURF>`
+     - surfaces for granular systems
+     - :doc:`Howto granular surfaces <Howto_granular_surfaces>`
+     - gransurf
+     - no
+   * - :ref:`GRAPHICS <PKG-GRAPHICS>`
+     - generate graphics output
+     - :doc:`Howto_viz`
+     - n/a
      - no
    * - :ref:`H5MD <PKG-H5MD>`
      - dump output via HDF5
@@ -226,9 +254,9 @@ whether an extra library is needed to build and use the package:
      - n/a
      - ext
    * - :ref:`INTEL <PKG-INTEL>`
-     - optimized Intel CPU and KNL styles
+     - optimized Intel CPU styles
      - :doc:`Speed intel <Speed_intel>`
-     - `Benchmarks <https://www.lammps.org/bench.html>`_
+     - n/a
      - no
    * - :ref:`INTERLAYER <PKG-INTERLAYER>`
      - Inter-layer pair potentials
@@ -243,7 +271,7 @@ whether an extra library is needed to build and use the package:
    * - :ref:`KOKKOS <PKG-KOKKOS>`
      - Kokkos-enabled styles
      - :doc:`Speed kokkos <Speed_kokkos>`
-     - `Benchmarks <https://www.lammps.org/bench.html>`_
+     - n/a
      - no
    * - :ref:`KSPACE <PKG-KSPACE>`
      - long-range Coulombic solvers
@@ -274,6 +302,11 @@ whether an extra library is needed to build and use the package:
      - many-body potentials
      - :doc:`pair_style tersoff <pair_tersoff>`
      - shear
+     - no
+   * - :ref:`MBX <PKG-MBX>`
+     - `MBX MB-nrg potential library <https://mbxsimulations.com/>`_
+     - :doc:`pair_mbx <pair_mbx>`
+     - ``PACKAGES/mbx``
      - no
    * - :ref:`MC <PKG-MC>`
      - Monte Carlo options
@@ -330,11 +363,11 @@ whether an extra library is needed to build and use the package:
      - :doc:`pair_style quip <pair_quip>`
      - ``PACKAGES/quip``
      - ext
-   * - :ref:`ML-RANN <PKG-ML-RANN>`
-     - Pair style for RANN potentials
-     - :doc:`pair rann <pair_rann>`
-     - ``PACKAGES/rann``
-     - no
+   * - :ref:`ML-RUNNER <PKG-ML-RUNNER>`
+     - Second-, third-, and fourth-generation high-dimensional neural network potentials
+     - :doc:`pair_style runner <pair_runner>`
+     - ``PACKAGES/runner``
+     - ext
    * - :ref:`ML-SNAP <PKG-ML-SNAP>`
      - quantum-fitted potential
      - :doc:`pair_style snap <pair_snap>`
@@ -368,12 +401,12 @@ whether an extra library is needed to build and use the package:
    * - :ref:`OPENMP <PKG-OPENMP>`
      - OpenMP-enabled styles
      - :doc:`Speed omp <Speed_omp>`
-     - `Benchmarks <https://www.lammps.org/bench.html>`_
+     - n/a
      - no
    * - :ref:`OPT <PKG-OPT>`
      - optimized pair styles
      - :doc:`Speed opt <Speed_opt>`
-     - `Benchmarks <https://www.lammps.org/bench.html>`_
+     - n/a
      - no
    * - :ref:`ORIENT <PKG-ORIENT>`
      - fixes for orientation depended forces
@@ -400,11 +433,6 @@ whether an extra library is needed to build and use the package:
      - :doc:`fix plumed <fix_plumed>`
      - ``PACKAGES/plumed``
      - ext
-   * - :ref:`POEMS <PKG-POEMS>`
-     - coupled rigid body motion
-     - :doc:`fix poems <fix_poems>`
-     - rigid
-     - int
    * - :ref:`PTM <PKG-PTM>`
      - Polyhedral Template Matching
      - :doc:`compute ptm/atom <compute_ptm_atom>`
@@ -424,6 +452,11 @@ whether an extra library is needed to build and use the package:
      - QM/MM coupling
      - :doc:`fix qmmm <fix_qmmm>`
      - ``PACKAGES/qmmm``
+     - ext
+   * - :ref:`QMMM-XTB <PKG-QMMM-XTB>`
+     - GFN1/GFN2-xTB QM/MM coupling with PPPM
+     - :doc:`fix qmmm/xtb <fix_qmmm_xtb>`
+     - ``PACKAGES/qmmm-xtb``
      - ext
    * - :ref:`QTB <PKG-QTB>`
      - quantum nuclear effects
@@ -496,13 +529,8 @@ whether an extra library is needed to build and use the package:
      - ``PACKAGES/uef``
      - no
    * - :ref:`VORONOI <PKG-VORONOI>`
-     - Voronoi tesselation
+     - Voronoi tessellation
      - :doc:`compute voronoi/atom <compute_voronoi_atom>`
-     - n/a
-     - ext
-   * - :ref:`VTK <PKG-VTK>`
-     - dump output via VTK
-     - :doc:`compute vtk <dump_vtk>`
      - n/a
      - ext
    * - :ref:`YAFF <PKG-YAFF>`

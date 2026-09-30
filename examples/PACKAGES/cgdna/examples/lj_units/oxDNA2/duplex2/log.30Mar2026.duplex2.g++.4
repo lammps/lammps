@@ -1,0 +1,197 @@
+LAMMPS (30 Mar 2026)
+variable number	equal 2
+variable ofreq	equal 1000
+variable efreq	equal 1000
+variable T      equal 0.1
+variable rhos   equal 0.2
+
+units lj
+
+dimension 3
+
+newton on
+
+boundary  p p p
+
+atom_style hybrid bond ellipsoid oxdna
+WARNING: Atom style hybrid defines both, per-type and per-atom masses; both must be set, but only per-atom masses will be used (../atom_vec_hybrid.cpp:132)
+atom_modify sort 0 1.0
+
+# Pair interactions require lists of neighbours to be calculated
+neighbor 2.0 bin
+neigh_modify every 1 delay 0 check yes
+
+read_data data.duplex2
+Reading data file ...
+  orthogonal box = (-20 -20 -20) to (20 20 20)
+  1 by 2 by 2 MPI processor grid
+  reading atoms ...
+  16 atoms
+  reading velocities ...
+  16 velocities
+  scanning bonds ...
+  1 = max bonds/atom
+  16 ellipsoids
+  orthogonal box = (-20 -20 -20) to (20 20 20)
+  1 by 2 by 2 MPI processor grid
+  reading bonds ...
+  13 bonds
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     2 = max # of 1-2 neighbors
+     2 = max # of 1-3 neighbors
+     4 = max # of 1-4 neighbors
+     6 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+  read_data CPU = 0.001 seconds
+
+set atom * mass 3.1575
+Setting atom values ...
+  16 settings made for mass
+
+group all type 1 4
+16 atoms in group all
+
+# oxDNA2 bond interactions - FENE backbone
+bond_style oxdna2/fene
+bond_coeff * 2.0 0.25 0.7564
+special_bonds lj 0 1 1
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        1        1       
+  special bond factors coul:  0        0        0       
+     2 = max # of 1-2 neighbors
+     2 = max # of 1-3 neighbors
+     4 = max # of 1-4 neighbors
+     6 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+
+# oxDNA2 pair interactions
+pair_style hybrid/overlay oxdna2/excv oxdna2/stk oxdna2/hbond oxdna2/xstk oxdna2/coaxstk oxdna2/dh
+pair_coeff * * oxdna2/excv    2.0 0.7 0.675 2.0 0.515 0.5 2.0 0.33 0.32
+pair_coeff * * oxdna2/stk     seqav ${T} 1.3523 2.6717 6.0 0.4 0.9 0.32 0.75 1.3 0 0.8 0.9 0 0.95 0.9 0 0.95 2.0 0.65 2.0 0.65
+pair_coeff * * oxdna2/stk     seqav 0.1 1.3523 2.6717 6.0 0.4 0.9 0.32 0.75 1.3 0 0.8 0.9 0 0.95 0.9 0 0.95 2.0 0.65 2.0 0.65
+pair_coeff * * oxdna2/hbond   seqav 0.0 8.0 0.4 0.75 0.34 0.7 1.5 0 0.7 1.5 0 0.7 1.5 0 0.7 0.46 3.141592653589793 0.7 4.0 1.5707963267948966 0.45 4.0 1.5707963267948966 0.45
+pair_coeff 1 4 oxdna2/hbond   seqav 1.0678 8.0 0.4 0.75 0.34 0.7 1.5 0 0.7 1.5 0 0.7 1.5 0 0.7 0.46 3.141592653589793 0.7 4.0 1.5707963267948966 0.45 4.0 1.5707963267948966 0.45
+pair_coeff 2 3 oxdna2/hbond   seqav 1.0678 8.0 0.4 0.75 0.34 0.7 1.5 0 0.7 1.5 0 0.7 1.5 0 0.7 0.46 3.141592653589793 0.7 4.0 1.5707963267948966 0.45 4.0 1.5707963267948966 0.45
+pair_coeff * * oxdna2/xstk    47.5 0.575 0.675 0.495 0.655 2.25 0.791592653589793 0.58 1.7 1.0 0.68 1.7 1.0 0.68 1.5 0 0.65 1.7 0.875 0.68 1.7 0.875 0.68
+pair_coeff * * oxdna2/coaxstk 58.5 0.4 0.6 0.22 0.58 2.0 2.891592653589793 0.65 1.3 0 0.8 0.9 0 0.95 0.9 0 0.95 40.0 3.116592653589793
+pair_coeff * * oxdna2/dh      ${T} ${rhos} 0.815
+pair_coeff * * oxdna2/dh      0.1 ${rhos} 0.815
+pair_coeff * * oxdna2/dh      0.1 0.2 0.815
+
+# NVE ensemble
+fix 1 all nve/asphere
+#fix 2 all langevin ${T} ${T} 2.5 457145 angmom 10
+
+timestep 1e-5
+
+#comm_style tiled
+fix 3 all balance 1000 1.03 shift xyz 10 1.03
+comm_modify cutoff 3.8
+
+compute quat all property/atom quatw quati quatj quatk
+
+compute erot all erotate/asphere
+compute ekin all ke
+compute epot all pe
+variable erot equal c_erot
+variable ekin equal c_ekin
+variable epot equal c_epot
+variable etot equal c_erot+c_ekin+c_epot
+fix 5 all print ${efreq} "$(step)  ekin = ${ekin} |  erot = ${erot} | epot = ${epot} | etot = ${etot}" screen yes
+fix 5 all print 1000 "$(step)  ekin = ${ekin} |  erot = ${erot} | epot = ${epot} | etot = ${etot}" screen yes
+
+dump out all custom ${ofreq} out.${number}.lammpstrj id mol type x y z ix iy iz vx vy vz c_quat[1] c_quat[2] c_quat[3] c_quat[4] angmomx angmomy angmomz
+dump out all custom 1000 out.${number}.lammpstrj id mol type x y z ix iy iz vx vy vz c_quat[1] c_quat[2] c_quat[3] c_quat[4] angmomx angmomy angmomz
+dump out all custom 1000 out.2.lammpstrj id mol type x y z ix iy iz vx vy vz c_quat[1] c_quat[2] c_quat[3] c_quat[4] angmomx angmomy angmomz
+dump_modify out sort id
+dump_modify out format line "%d %d %d  %22.15le %22.15le %22.15le  %d %d %d  %22.15le %22.15le %22.15le  %22.15le %22.15le %22.15le %22.15le  %22.15le %22.15le %22.15le"
+
+run 10000
+Parsing normal base pairing
+Generated 0 of 6 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 5.6389877
+  ghost atom cutoff = 5.6389877
+  binsize = 2.8194939, bins = 15 15 15
+  5 neighbor lists, perpetual/occasional/extra = 5 0 0
+  (1) pair oxdna2/excv, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+  (2) pair oxdna2/hbond, perpetual, copy from (1)
+      attributes: half, newton on
+      pair build: copy
+      stencil: none
+      bin: none
+  (3) pair oxdna2/xstk, perpetual, copy from (1)
+      attributes: half, newton on
+      pair build: copy
+      stencil: none
+      bin: none
+  (4) pair oxdna2/coaxstk, perpetual, copy from (1)
+      attributes: half, newton on
+      pair build: copy
+      stencil: none
+      bin: none
+  (5) pair oxdna2/dh, perpetual, copy from (1)
+      attributes: half, newton on
+      pair build: copy
+      stencil: none
+      bin: none
+WARNING: Communication cutoff adjusted to 5.638987723814633 (../comm.cpp:703)
+0  ekin = 2.70475393009871 |  erot = 2.80172072918779 | epot = -21.0482852787267 | etot = -15.5418106194402
+Per MPI rank memory allocation (min/avg/max) = 8.819 | 8.848 | 8.932 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press          Volume    
+         0   0.12021129    -1.3610384      0.045520537   -1.1464707      5.9660461e-05  64000        
+1000  ekin = 2.66713605869952 |  erot = 2.6896899824905 | epot = -20.8986366598975 | etot = -15.5418106187075
+2000  ekin = 2.6280810398224 |  erot = 2.59287749059016 | epot = -20.7627691484237 | etot = -15.5418106180111
+3000  ekin = 2.58958516731628 |  erot = 2.51877931678469 | epot = -20.6501751016102 | etot = -15.5418106175093
+4000  ekin = 2.55347158279476 |  erot = 2.47254864019071 | epot = -20.5678308402211 | etot = -15.5418106172356
+5000  ekin = 2.4737645293454 |  erot = 2.45873622130447 | epot = -20.4743113642062 | etot = -15.5418106135563
+6000  ekin = 2.4228644887003 |  erot = 2.57538928897553 | epot = -20.5400644203117 | etot = -15.5418106426359
+7000  ekin = 2.4350823112039 |  erot = 2.65084204834389 | epot = -20.6277349928611 | etot = -15.5418106333133
+8000  ekin = 2.45396552858857 |  erot = 2.73642049864418 | epot = -20.7321966615236 | etot = -15.5418106342908
+9000  ekin = 2.47589419239083 |  erot = 2.82927277156805 | epot = -20.8469775992549 | etot = -15.541810635296
+10000  ekin = 2.49637662305077 |  erot = 2.91921120753078 | epot = -20.9573984667622 | etot = -15.5418106361806
+     10000   0.11095007    -1.3335467      0.023709339   -1.1538139     -1.2685311e-05  64000        
+Loop time of 0.071455 on 4 procs for 10000 steps with 16 atoms
+
+Performance: 120915.261 tau/day, 139948.219 timesteps/s, 2.239 Matom-step/s
+99.8% CPU use with 4 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.015112   | 0.025289   | 0.032445   |   4.0 | 35.39
+Bond    | 0.000666   | 0.0012985  | 0.001707   |   1.1 |  1.82
+Neigh   | 2.3e-05    | 2.4e-05    | 2.5e-05    |   0.0 |  0.03
+Comm    | 0.019102   | 0.025549   | 0.03654    |   4.2 | 35.75
+Output  | 0.0003     | 0.00031425 | 0.000345   |   0.0 |  0.44
+Modify  | 0.013557   | 0.014081   | 0.014682   |   0.4 | 19.71
+Other   |            | 0.0049     |            |       |  6.86
+
+Nlocal:              4 ave           5 max           3 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Nghost:             12 ave          13 max          11 min
+Histogram: 2 0 0 0 0 0 0 0 0 2
+Neighs:             30 ave          48 max          13 min
+Histogram: 1 0 0 0 1 1 0 0 0 1
+
+Total # of neighbors = 120
+Ave neighs/atom = 7.5
+Ave special neighs/atom = 3.75
+Neighbor list builds = 10
+Dangerous builds = 0
+
+write_data last_config.${number}.* nocoeff
+write_data last_config.2.* nocoeff
+System init for write_data ...
+Parsing normal base pairing
+Generated 0 of 6 mixed pair_coeff terms from geometric mixing rule
+#write_restart last_config.${number}.*
+Total wall time: 0:00:00

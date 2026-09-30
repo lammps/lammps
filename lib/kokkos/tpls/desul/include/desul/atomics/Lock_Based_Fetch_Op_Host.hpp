@@ -10,7 +10,17 @@ SPDX-License-Identifier: (BSD-3-Clause)
 #define DESUL_ATOMICS_LOCK_BASED_FETCH_OP_HOST_HPP_
 
 #include <desul/atomics/Common.hpp>
+#ifdef DESUL_HAVE_GCC_ATOMICS
+#include <desul/atomics/Compare_Exchange_GCC.hpp>
+#endif
+#ifdef DESUL_HAVE_MSVC_ATOMICS
+#include <desul/atomics/Compare_Exchange_MSVC.hpp>
+#endif
+#ifdef DESUL_HAVE_OPENMP_ATOMICS
+#include <desul/atomics/Compare_Exchange_OpenMP.hpp>
+#endif
 #include <desul/atomics/Lock_Array.hpp>
+#include <desul/atomics/Operator_Function_Objects.hpp>
 #include <desul/atomics/Thread_Fence.hpp>
 #include <type_traits>
 
@@ -21,9 +31,7 @@ template <class Oper,
           class T,
           class MemoryOrder,
           class MemoryScope,
-          // equivalent to:
-          //   requires !atomic_always_lock_free(sizeof(T))
-          std::enable_if_t<!atomic_always_lock_free(sizeof(T)), int> = 0>
+          std::enable_if_t<!host_atomic_always_lock_free<T>, int> = 0>
 inline T host_atomic_fetch_oper(const Oper& op,
                                 T* const dest,
                                 dont_deduce_this_parameter_t<const T> val,
@@ -34,32 +42,10 @@ inline T host_atomic_fetch_oper(const Oper& op,
   }
 
   host_atomic_thread_fence(MemoryOrderAcquire(), scope);
-  T return_val = *dest;
+  T return_val{};
+  if constexpr (!std::is_same_v<Oper, _store_fetch_operator<T, const T>>)
+    return_val = *dest;
   *dest = op.apply(return_val, val);
-  host_atomic_thread_fence(MemoryOrderRelease(), scope);
-  unlock_address((void*)dest, scope);
-  return return_val;
-}
-
-template <class Oper,
-          class T,
-          class MemoryOrder,
-          class MemoryScope,
-          // equivalent to:
-          //   requires !atomic_always_lock_free(sizeof(T))
-          std::enable_if_t<!atomic_always_lock_free(sizeof(T)), int> = 0>
-inline T host_atomic_oper_fetch(const Oper& op,
-                                T* const dest,
-                                dont_deduce_this_parameter_t<const T> val,
-                                MemoryOrder /*order*/,
-                                MemoryScope scope) {
-  // Acquire a lock for the address
-  while (!lock_address((void*)dest, scope)) {
-  }
-
-  host_atomic_thread_fence(MemoryOrderAcquire(), scope);
-  T return_val = op.apply(*dest, val);
-  *dest = return_val;
   host_atomic_thread_fence(MemoryOrderRelease(), scope);
   unlock_address((void*)dest, scope);
   return return_val;

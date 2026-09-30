@@ -41,13 +41,6 @@ FixOxdnaLRFKokkos<DeviceType>::FixOxdnaLRFKokkos(LAMMPS *lmp, int narg, char **a
   datamask_read = MASK_MASK | ELLIPSOID_MASK | BONUS_MASK |
                   X_MASK | TYPE_MASK | TAG_MASK | CG_DNA_MASK;
   datamask_modify = EMPTY_MASK;
-
-  MemKK::realloc_kokkos(k_nx, "FixOxdnaLRF:nx", atom->nmax);
-  MemKK::realloc_kokkos(k_ny, "FixOxdnaLRF:ny", atom->nmax);
-  MemKK::realloc_kokkos(k_nz, "FixOxdnaLRF:nz", atom->nmax);
-  d_nx = k_nx.template view<DeviceType>();
-  d_ny = k_ny.template view<DeviceType>();
-  d_nz = k_nz.template view<DeviceType>();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -132,14 +125,6 @@ void FixOxdnaLRFKokkos<DeviceType>::compute_lrf_kokkos(int zero_forces_flag)
     torque = atomKK->k_torque.template view<DeviceType>();
   }
 
-  if (atom->nmax > static_cast<int>(k_nx.extent(0))) {
-    MemKK::realloc_kokkos(k_nx, "FixOxdnaLRFKokkos:nx", atom->nmax);
-    MemKK::realloc_kokkos(k_ny, "FixOxdnaLRFKokkos:ny", atom->nmax);
-    MemKK::realloc_kokkos(k_nz, "FixOxdnaLRFKokkos:nz", atom->nmax);
-    d_nx = k_nx.template view<DeviceType>();
-    d_ny = k_ny.template view<DeviceType>();
-    d_nz = k_nz.template view<DeviceType>();
-  }
   if (atom->nmax > static_cast<int>(d_xn.extent(0)))
     d_xn = decltype(d_xn)(Kokkos::view_alloc(Kokkos::WithoutInitializing, "FixOxdnaLRFKokkos:xn"),
                           atom->nmax);
@@ -158,10 +143,6 @@ void FixOxdnaLRFKokkos<DeviceType>::compute_lrf_kokkos(int zero_forces_flag)
   const int nall = atom->nlocal + atom->nghost;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixOxdnaLRFComputeQuatToXYZ>(0, nall), *this);
   copymode = 0;
-
-  k_nx.template modify<DeviceType>();
-  k_ny.template modify<DeviceType>();
-  k_nz.template modify<DeviceType>();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -194,16 +175,6 @@ void FixOxdnaLRFKokkos<DeviceType>::operator()(TagFixOxdnaLRFComputeQuatToXYZ, c
     n[7] = two * Kokkos::fma(q2, q3, -q0 * q1);
     n[8] = Kokkos::fma(q0, q0, q3 * q3 - Kokkos::fma(q1, q1, q2 * q2));
   }
-
-  d_nx(i, 0) = n[0];
-  d_nx(i, 1) = n[1];
-  d_nx(i, 2) = n[2];
-  d_ny(i, 0) = n[3];
-  d_ny(i, 1) = n[4];
-  d_ny(i, 2) = n[5];
-  d_nz(i, 0) = n[6];
-  d_nz(i, 1) = n[7];
-  d_nz(i, 2) = n[8];
 
   // packed record: position and frame vectors in one row
   d_xn(i, 0) = x(i, 0);

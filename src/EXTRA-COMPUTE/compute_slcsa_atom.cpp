@@ -376,16 +376,10 @@ void ComputeSLCSAAtom::compute_peratom()
 
 int ComputeSLCSAAtom::compute_ncomps(int twojmax)
 {
-  int ncount;
-
-  ncount = 0;
-
-  for (int j1 = 0; j1 <= twojmax; j1++)
-    for (int j2 = 0; j2 <= j1; j2++)
-      for (int j = j1 - j2; j <= MIN(twojmax, j1 + j2); j += 2)
-        if (j >= j1) ncount++;
-
-  return ncount;
+  // OEIS A006918
+  int m = twojmax / 2;
+  if (twojmax % 2 == 0) { return (m + 1) * (m + 2) * (2 * m + 3) / 6; }
+  return (m + 1) * (m + 2) * (m + 3) / 3;
 }
 
 int ComputeSLCSAAtom::argmax(double arr[], int size)

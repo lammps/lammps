@@ -4,7 +4,8 @@ Guide for benchmarking the commits on `oxdna3KK-kk-perf`, which sits on top of
 `oxdna3KK-kk-fixes`.  The item ids (P0, A1-A5, B1-B4, C1-C4, D1-D6, E1-E5,
 F1) refer to the master list in section 7 of
 `oxdna3-kokkos-gpu-performance.md` on branch
-`claude/kokkos-oxdna3-perf-analysis-osblax`.  Target: the oligomer benchmark
+`claude/kokkos-oxdna3-perf-analysis-osblax`; ids S1-S13 refer to the second
+search, listed at the end of this file.  Target: the oligomer benchmark
 (dilute octamer duplexes), where KOKKOS CUDA is about 2.7x slower than the
 standalone oxDNA CUDA code, while polybrick is within about 5%.
 
@@ -69,6 +70,18 @@ order (on GPUs the atomics are nondeterministic anyway).
 | 20 | b953e6ae59 | new | Fix OXDNA/NPAIR/kk requests its list at the screen cutoff (trimmed from the dh-sized list) | exact (pair order may change with trim) | npair count/fill kernels |
 | 21 | 5a981de703 | new | hbond/xstk/coaxstk request neighbor lists only for their host kernels; oxdna3/xstk never | exact | Neigh time (with trim: 3 lists instead of 6) |
 | 22 | 3be1b25134 | A2 | Fused hbond + oxdna3/xstk kernel (default on, `-DOXDNA_KK_FUSE_HBXSTK=0` disables) | rounding | A/B the macro |
+| 23 | 76f97742c0 | S11 | LRF no longer writes the unused separate nx/ny/nz arrays (36 B per atom and step) | exact | LRF kernel |
+| 24 | 6224c554f4 | S11 | LRF record carries type (column 3) and qeff (column 13); excv and dh read the neighbor's type/qeff there, next to its position | exact | excv, dh kernels |
+| 25 | d30e13a600 | S9 | excv: skip neighbors beyond the center-of-mass cutoff before building site vectors; topology loads only for 1-2 special neighbors; uniform coefficients read from the functor | exact (see note) | excv kernel |
+| 26 | 12c0baf73f | S10 | dh coefficients packed into one struct per type pair (was 7 views) | exact | dh kernel |
+| 27 | 2be0006b6e | S13 | npair fix: one count/scan/readback/fill for the screened and coax lists (4 launches + 1 readback per rebuild instead of 6 + 2) | exact | rebuild steps, small skin |
+| 28 | 18672e3efe | S12 | stk angles from the cross-product norm and atan2 instead of acos and sin | rounding | stk kernel (no stack left) |
+| 29 | fe3e5ebcc7 | S12 | fene force with one division instead of three | rounding | fene kernel |
+
+Note on #25: the bonded base-base terms are now evaluated only for 1-2 special
+neighbors.  atom style oxdna sets the 3'/5' neighbors from the Bonds section, so
+they always are 1-2 neighbors; results could only differ if bonds were deleted
+while stale 3'/5' neighbors were kept.
 
 ## Compile-time switches (all in `src/KOKKOS/mf_oxdna_kokkos.h`)
 
@@ -109,7 +122,8 @@ kernel carries copies of both styles, hence its larger parameter block.
 1. Baseline: `oxdna3KK-kk-fixes`, then HEAD of `oxdna3KK-kk-perf`, oligomer
    and polybrick, with `nsys`/`ncu` or the Kokkos simple kernel timer.
 2. If HEAD is faster, bisect by groups: after #10 (exact cleanups + stack
-   removal), after #18 (layout, launch count, packed coefficients), then #19-22.
+   removal), after #18 (layout, launch count, packed coefficients), after #22
+   (two-phase, neighbor lists, fused kernel), then #23-29 (second search).
 3. A/B the macros at HEAD: `OXDNA_KK_FUSE_HBXSTK=0`,
    `OXDNA_KK_TWO_PHASE=1` (implies no fusion), `OXDNA_KK_SCREENED_PER_ATOM=1`,
    and a sweep of `OXDNA_KK_PAIR_MAXT` in {64, 128, 256} with `MINB` in {1, 2, 4}
@@ -154,6 +168,37 @@ kernel carries copies of both styles, hence its larger parameter block.
 | D6 | Scatter-view duplication | OpenMP backend only; on GPUs the scatter views are atomic without duplication |
 | F1 | Compile time of unused template instantiations | no runtime effect |
 | - | Double precision constants in the kernels | handled separately |
+
+## Second search: further candidates (not implemented yet)
+
+From an audit of the per-step path outside the force kernels and of the
+remaining kernels at #22.  Items S9-S13 are #23-29 above.
+
+Input settings (no code change; check the benchmark inputs):
+- `fix nve/dotc/langevin` has no KOKKOS version: two full host round trips of
+  all atom data per step.  Use `fix nve/asphere` + `fix langevin ... angmom`.
+- Atom sorting falls back to the host for this atom style (every 1000 steps by
+  default): use `atom_modify sort 0 0.0`.
+- `fix balance` on one GPU forces full host round trips on each rebuild;
+  `fix print` disables the fused integrator every step; `neigh_modify every 1
+  check yes` adds a host wait every step; `bond_style hybrid` with one
+  sub-style adds a device-to-host copy every step (see S1).
+
+Code:
+
+| Id | Item | Expected effect | Risk |
+|----|------|-----------------|------|
+| S1 | `BondHybridKokkos::compute()` copies the bond counts to the host every step (`bond_hybrid_kokkos.cpp:140-141`); they are current from the rebuild | 1 blocking D2H per step | low |
+| S2 | `Kokkos::fence()` before every reverse comm (`verlet_kokkos.cpp:609`), not needed on one rank | 1 fence per step | low |
+| S3 | any END_OF_STEP fix disables the fused integrator on every step (`verlet_kokkos.cpp:838`); test only the steps where it fires | 1 launch per step | low |
+| S4 | merge the two `fix langevin/kk` kernels (force and angmom), one RNG state per atom | 1 launch per step | medium |
+| S5 | fold the quaternion forward-comm kernel into the position kernel | 1 launch per step | medium |
+| S6 | fuse stk and fene over the bond list (same 3'/5' table; fall back with bond hybrid) | 1 launch, about half the bond atomics | medium |
+| S7 | fuse excv into the dh neighbor loop (same backbone site distance, dh list covers excv) | 1 launch and one list pass | medium |
+| S8 | fold coaxstk into the fused hbond+xstk launch | 1 launch | medium |
+| - | intermediate force/torque math declared `KK_ACC_FLOAT` runs in double with `KOKKOS_PREC=mixed` (1/64 rate on consumer GPUs) | check the FP64 pipe with ncu first | precision decision |
+| - | CUDA graph of the fixed per-step kernel sequence; fast-math flags for the oxDNA sources | only if nsys shows launch gaps / after measuring | high |
+| - | oxrna2/stk has the same acos/sin pattern as stk before #28 | oxRNA2 only | low |
 
 ## Tooling used for verification
 

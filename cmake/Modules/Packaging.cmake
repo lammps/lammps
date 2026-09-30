@@ -4,6 +4,10 @@
 ###############################################################################
 add_custom_target(tarball
   COMMAND ${LAMMPS_DIR}/cmake/packaging/build_tarball.sh ${LAMMPS_DIR}/doc
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LAMMPS_DIR}/doc/Manual.pdf ${CMAKE_BINARY_DIR}/Manual-${LAMMPS_VERSION}.pdf
+  WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
+  BYPRODUCTS lammps-src-${LAMMPS_VERSION}.tar.gz Manual-${LAMMPS_VERSION}.pdf
+  COMMENT "Building a LAMMPS source tarball with manual included"
 )
 
 ###############################################################################

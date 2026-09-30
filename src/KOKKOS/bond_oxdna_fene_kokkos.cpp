@@ -348,7 +348,7 @@ void BondOxdnaFENEKokkos<DeviceType>::operator()(TagBondOxdnaFENECompute<OXDNAFL
     }
   }
 
-  KK_ACC_FLOAT fbond = static_cast<KK_ACC_FLOAT>(-d_k[type] * rr0 / rlogarg / Deltasq / r_bkbk);
+  KK_ACC_FLOAT fbond = static_cast<KK_ACC_FLOAT>(-d_k[type] * rr0 / (rlogarg * Deltasq * r_bkbk));    // one division
   delf[0] = static_cast<KK_ACC_FLOAT>(delr_bkbk[0]) * fbond;
   delf[1] = static_cast<KK_ACC_FLOAT>(delr_bkbk[1]) * fbond;
   delf[2] = static_cast<KK_ACC_FLOAT>(delr_bkbk[2]) * fbond;

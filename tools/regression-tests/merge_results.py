@@ -93,6 +93,11 @@ def parse_junit_xml(filename):
                     if elem.text:
                         entry['details'] = elem.text.strip()
                     break
+            # runs that completed but where nothing could be checked are written as
+            # skipped for JUnit compatibility, with a status attribute to tell them
+            # apart: they are "runtest" results, not passed and not really skipped
+            if case.get('status') == 'runtest':
+                entry['status'] = 'runtest'
             # how far into the run the output starts to deviate from the reference
             if case.get('diverged'):
                 entry['diverged'] = int(case.get('diverged'))
@@ -114,7 +119,8 @@ def write_merged_xml(filename, title, properties, tests, counts):
     testsuite.set('tests', str(counts['tests']))
     testsuite.set('failures', str(counts['failed']))
     testsuite.set('errors', str(counts['error']))
-    testsuite.set('skipped', str(counts['skipped']))
+    # "runtest" results are written as skipped for JUnit compatibility
+    testsuite.set('skipped', str(counts['skipped'] + counts['runtest']))
     testsuite.set('time', f"{counts['time']:.3f}")
 
     if properties:
@@ -139,7 +145,13 @@ def write_merged_xml(filename, title, properties, tests, counts):
         if 'attention' in entry:
             case.set('attention', entry['attention'])
         if entry['status'] != 'passed':
-            tag = 'failure' if entry['status'] == 'failed' else entry['status']
+            if entry['status'] == 'failed':
+                tag = 'failure'
+            elif entry['status'] == 'runtest':
+                tag = 'skipped'
+                case.set('status', 'runtest')
+            else:
+                tag = entry['status']
             elem = ET.SubElement(case, tag)
             elem.set('message', entry['message'])
             if entry.get('details'):
@@ -240,7 +252,8 @@ if __name__ == "__main__":
                 del shard_tests[key]
         tests.update(shard_tests)
 
-    counts = {'tests': len(tests), 'passed': 0, 'failed': 0, 'error': 0, 'skipped': 0, 'time': 0.0}
+    counts = {'tests': len(tests), 'passed': 0, 'failed': 0, 'error': 0, 'runtest': 0,
+              'skipped': 0, 'time': 0.0}
     for entry in tests.values():
         counts[entry['status']] += 1
         counts['time'] += entry['time']
@@ -279,10 +292,14 @@ if __name__ == "__main__":
     # generate the Markdown summary
     if args.summary:
         md = f"## {args.title}\n\n"
-        md += "| Tests | Passed | Failed | Errors | Skipped | Walltime |\n"
-        md += "|------:|-------:|-------:|-------:|--------:|---------:|\n"
+        md += "| Tests | Passed | Failed | Errors | Runtest | Skipped | Walltime |\n"
+        md += "|------:|-------:|-------:|-------:|--------:|--------:|---------:|\n"
         md += (f"| {counts['tests']} | {counts['passed']} | {counts['failed']} | {counts['error']} |"
-               f" {counts['skipped']} | {counts['time']:.0f} s |\n\n")
+               f" {counts['runtest']} | {counts['skipped']} | {counts['time']:.0f} s |\n\n")
+        if counts['runtest']:
+            md += ("\"Runtest\" counts the runs that completed but where nothing could be"
+                   " checked (e.g. no reference log file): only the run itself was tested,"
+                   " so they are not counted as passed.\n\n")
 
         slowest = sorted(tests, key=lambda key: -tests[key]['time'])[:10]
         if slowest and tests[slowest[0]]['time'] > 0.0:
@@ -344,7 +361,8 @@ if __name__ == "__main__":
             new_failures = [k for k in tests if k in tests_prev
                             and (tests[k]['status'] in BAD) and (tests_prev[k]['status'] not in BAD)]
             fixed = [k for k in tests if k in tests_prev
-                     and (tests[k]['status'] == 'passed') and (tests_prev[k]['status'] in BAD)]
+                     and (tests[k]['status'] in ('passed', 'runtest'))
+                     and (tests_prev[k]['status'] in BAD)]
             new_tests = [k for k in tests if k not in tests_prev]
             removed = [k for k in tests_prev if k not in tests]
 

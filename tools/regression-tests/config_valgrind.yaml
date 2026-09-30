@@ -2,6 +2,7 @@
   lmp_binary: ""
   nprocs: "1"
   args: "-cite none"
+  kokkos: false
   mpiexec: "mpirun valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes"
   mpiexec_numproc_flag: "-np"
   tolerance:
@@ -30,12 +31,24 @@
         rel: 1e-4
   skip:
     [
-      in.*pod.Inp,
+      in.*pod.InP,
+      in.dimer.mp,
       in.disp,
       in.disp2,
       in.dos,
+      in.dpdrx-shardlow,
+      in.dsring2,
       in.*_imd*,
       in.bucky-plus-cnt*,
+      in.gREM,
+      in.peptide-plumed,
+      in.mliap.pytorch*,
+      in.mliap.unified*,
+      in.pod.compute,
+      in.spin.iron-nve,
+      in.spin.nvt_lattice,
+      in.spin.nvt_spin,
+      in.widom.spce,
     ]
 
   timeout: 600

@@ -1018,7 +1018,7 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
    Fix setforce cannot be used in this manner.  Use fix addforce
    instead.
 
-*Cannot use non-periodic boundares with fix ttm*
+*Cannot use non-periodic boundaries with fix ttm*
    This fix requires a fully periodic simulation box.
 
 *Cannot use non-periodic boundaries with Ewald*
@@ -1115,7 +1115,7 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
    Internal error check in comm_style tiled which should not occur.
    Contact the developers.
 
-*Comm tiled mis-match in box drop brick*
+*Comm tiled mismatch in box drop brick*
    Internal error check in comm_style tiled which should not occur.
    Contact the developers.
 
@@ -2279,10 +2279,6 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
 *Found no restart file matching pattern*
    When using a "\*" in the restart file name, no matching file was found.
 
-*GPU particle split must be set to 1 for this pair style.*
-   For this pair style, you cannot run part of the force calculation on
-   the host.  See the package command.
-
 *GPUs are requested but Kokkos has not been compiled for CUDA*
    Re-compile Kokkos with CUDA support to use GPUs.
 
@@ -2500,11 +2496,6 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
    Must have periodic x,y dimensions and non-periodic z dimension to use
    2d slab option with pppm/disp.
 
-*Incorrect conversion in format string*
-   A format style variable was not using either a %f, a %g, or a %e conversion.
-   Or an immediate variable with format suffix was not using either
-   a %f, a %g or a %e conversion in the format suffix.
-
 *Incorrect element names in ADP potential file*
    The element names in the ADP file do not match those requested.
 
@@ -2594,7 +2585,7 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
    Molecule ID must be a non-zero positive integer.
 
 *Invalid REAX atom type*
-   There is a mis-match between LAMMPS atom types and the elements
+   There is a mismatch between LAMMPS atom types and the elements
    listed in the ReaxFF force field file.
 
 *Invalid angle table length*
@@ -4211,7 +4202,7 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
 *Replacing a fix, but new style != old style*
    A fix ID can be used a second time, but only if the style matches the
    previous fix.  In this case it is assumed you want to reset a fix's
-   parameters.  This error may mean you are mistakenly re-using a fix ID
+   parameters.  This error may mean you are mistakenly reusing a fix ID
    when you do not intend to.
 
 *Replicate command before simulation box is defined*

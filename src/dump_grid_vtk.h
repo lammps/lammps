@@ -23,8 +23,6 @@ DumpStyle(grid/vtk,DumpGridVTK);
 #include "dump_grid.h"
 #include "vtk_writer.h"
 
-#include <vector>
-
 namespace LAMMPS_NS {
 
 class DumpGridVTK : public DumpGrid {

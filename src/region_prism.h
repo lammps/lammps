@@ -39,7 +39,7 @@ class RegPrism : public Region {
   void shape_update() override;
   void bbox_update() override;
 
- private:
+ protected:
   double xlo, xhi, ylo, yhi, zlo, zhi;
   double xy, xz, yz;
   double h[3][3], hinv[3][3];

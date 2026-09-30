@@ -1,11 +1,17 @@
 .. index:: fix temp/csvr
+.. index:: fix temp/csvr/kk
 .. index:: fix temp/csld
+.. index:: fix temp/csld/kk
 
 fix temp/csvr command
 =====================
 
+Accelerator Variants: *temp/csvr/kk*
+
 fix temp/csld command
 =====================
+
+Accelerator Variants: *temp/csld/kk*
 
 Syntax
 """"""
@@ -174,10 +180,18 @@ See the :doc:`run <run>` command for details of how to do this.
 
 These fixes are not invoked during :doc:`energy minimization <minimize>`.
 
+----------
+
+.. include:: accel_styles.rst
+
 Restrictions
 """"""""""""
 
 Fix *temp/csld* is not compatible with :doc:`fix shake <fix_shake>`.
+
+The *temp/csld/kk* accelerator variant cannot be used with a temperature
+compute that removes a velocity bias (e.g. one set with the *temp* option
+of :doc:`fix_modify <fix_modify>`) and stops with an error in that case.
 
 These fixes are part of the EXTRA-FIX package.  They are only enabled if LAMMPS
 was built with that package.  See the :doc:`Build package <Build_package>` page for more info.

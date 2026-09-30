@@ -16,6 +16,7 @@
 
 #include "pointers.h"
 
+#include "creator_registry.h"
 #include "json_fwd.h"
 
 #include <map>
@@ -310,8 +311,9 @@ class Atom : protected Pointers {
   // AtomVec factory types and map
 
   using AtomVecCreator = AtomVec *(*)(LAMMPS *);
-  using AtomVecCreatorMap = std::map<std::string, AtomVecCreator>;
-  AtomVecCreatorMap *avec_map;
+
+  // global registry of atom (AtomVec) style factory functions
+  static CreatorRegistry<AtomVecCreator> &avec_styles();
 
   // --------------------------------------------------------------------
   // functions
@@ -354,10 +356,20 @@ class Atom : protected Pointers {
   void data_fix_compute_variable(int, int);
 
   virtual void allocate_type_arrays();
-  void set_mass(const char *, int, const char *, int, int, int *);
-  void set_mass(const char *, int, int, double);
-  void set_mass(const char *, int, int, char **);
-  void set_mass(double *);
+
+  // A style that reads or writes the plain per-atom arrays on the host says so
+  // with these, so that the KOKKOS package can bring that side up to date
+  // first and can carry the write over to the device afterwards.  They do
+  // nothing without the package.  Use them where a style touches the arrays
+  // directly and then calls something -- a force computation, the
+  // communication -- that works from the KOKKOS copies.
+
+  virtual void sync_host_arrays(uint64_t) {}
+  virtual void modified_host_arrays(uint64_t) {}
+  virtual void set_mass(const char *, int, const char *, int, int, int *);
+  virtual void set_mass(const char *, int, int, double);
+  virtual void set_mass(const char *, int, int, char **);
+  virtual void set_mass(double *);
   void check_mass(const char *, int);
 
   int radius_consistency(int, double &);

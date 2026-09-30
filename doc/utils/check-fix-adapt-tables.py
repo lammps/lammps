@@ -304,7 +304,7 @@ def suggest(word, candidates):
 
 def main():
     argp = argparse.ArgumentParser(description=__doc__)
-    argp.add_argument('--root', help='LAMMPS repository root (default: script location)')
+    argp.add_argument('--root', help='LAMMPS repository root (default: script location)', required=True)
     argp.add_argument('--no-missing', action='store_true',
                       help='skip the code -> doc missing-entry report')
     argp.add_argument('--skip', action='append', default=[], metavar='PATTERN',

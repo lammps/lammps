@@ -24,7 +24,12 @@ protected:
             command("atom_style      atomic");
             command("atom_modify     map yes");
 
-            command("lattice         fcc 0.8442");
+            // the lattice origin is shifted by a quarter spacing so that no
+            // atom sits exactly on a lattice plane.  with the default origin,
+            // binning atoms into cells aligned with the lattice would depend
+            // on round-off, e.g. on the single precision coordinates of a
+            // mixed or single precision KOKKOS build
+            command("lattice         fcc 0.8442 origin 0.25 0.25 0.25");
             command("region          box block 0 2 0 2 0 2");
             command("create_box      1 box");
             command("create_atoms    1 box");

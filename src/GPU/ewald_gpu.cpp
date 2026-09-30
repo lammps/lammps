@@ -22,6 +22,7 @@
 #include "error.h"
 #include "fix.h"
 #include "gpu_extra.h"
+#include "lammps_gpu.h"
 #include "math_const.h"
 #include "modify.h"
 #include "neighbor.h"
@@ -30,26 +31,8 @@
 #include <cstring>
 
 using namespace LAMMPS_NS;
+using namespace LAMMPS_GPU;
 using namespace MathConst;
-
-// external functions from gpu library
-
-void ewald_gpu_init(const int nlocal, const int nall, FILE *screen,
-                         int &success);
-void ewald_gpu_setup(const int kmax, const int kcount, int *kxvecs,
-                          int *kyvecs, int *kzvecs, double *ug, double **eg,
-                          double **vg, double *unitk, int &success);
-int ewald_gpu_structure(const int ago, const int nlocal, const int nall,
-                             double **host_x, int *host_type, double *host_q,
-                             double *host_sfacrl, double *host_sfacim,
-                             bool &success);
-void ewald_gpu_compute(double *host_sfacrl_all, double *host_sfacim_all,
-                            const double qscale, const int slabflag,
-                            const int eflag_atom, const int vflag_atom,
-                            double *host_eatom, double **host_vatom,
-                            bool &success);
-void ewald_gpu_clear(const double cpu_time);
-double ewald_gpu_bytes();
 
 /* ---------------------------------------------------------------------- */
 

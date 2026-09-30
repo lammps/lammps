@@ -22,8 +22,6 @@ FixStyle(saed/vtk,FixSAEDVTK);
 
 #include "fix.h"
 
-#include <string>
-
 namespace LAMMPS_NS {
 
 class FixSAEDVTK : public Fix {

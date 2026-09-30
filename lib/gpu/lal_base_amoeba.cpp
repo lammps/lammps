@@ -60,7 +60,7 @@ template <class numtyp, class acctyp>
 int BaseAmoebaT::init_atomic(const int nlocal, const int nall,
                              const int max_nbors, const int maxspecial,
                              const int maxspecial15,
-                             const double cell_size, const double gpu_split,
+                             const double cell_size,
                              FILE *_screen, const void *pair_program,
                              const char *k_name_multipole,
                              const char *k_name_udirect2b,
@@ -78,10 +78,6 @@ int BaseAmoebaT::init_atomic(const int nlocal, const int nall,
   else if (device->gpu_mode()==Device<numtyp,acctyp>::GPU_HYB_NEIGH)
     gpu_nbor=2;
 
-  int _gpu_host=0;
-  int host_nlocal=hd_balancer.first_host_count(nlocal,gpu_split,gpu_nbor);
-  if (host_nlocal>0)
-    _gpu_host=1;
 
   _threads_per_atom=device->threads_per_charge();
 
@@ -114,18 +110,17 @@ int BaseAmoebaT::init_atomic(const int nlocal, const int nall,
   }
 
   bool alloc_packed=false;
-  success = device->init_nbor(nbor,nlocal,host_nlocal,nall,maxspecial,
-                              _gpu_host,max_nbors,cell_size,alloc_packed,
+  success = device->init_nbor(nbor,nlocal,0,nall,maxspecial,
+                              0,max_nbors,cell_size,alloc_packed,
                               _threads_per_atom);
   if (success!=0)
     return success;
 
-  // Initialize host-device load balancer
-  hd_balancer.init(device,gpu_nbor,gpu_split);
 
   // Initialize timers for the selected GPU
   time_pair.init(*ucl_device);
   time_pair.zero();
+  _timestep=0;
 
   pos_tex.bind_float(atom->x,4);
   q_tex.bind_float(atom->q,1);
@@ -176,14 +171,12 @@ template <class numtyp, class acctyp>
 void BaseAmoebaT::clear_atomic() {
   // Output any timing information
   acc_timers();
-  double avg_split=hd_balancer.all_avg_split();
-  _gpu_overhead*=hd_balancer.timestep();
-  _driver_overhead*=hd_balancer.timestep();
-  device->output_times(time_pair,*ans,*nbor,avg_split,_max_bytes+_max_an_bytes,
+  _gpu_overhead*=_timestep;
+  _driver_overhead*=_timestep;
+  device->output_times(time_pair,*ans,*nbor,_max_bytes+_max_an_bytes,
                        _gpu_overhead,_driver_overhead,_threads_per_atom,screen);
 
   time_pair.clear();
-  hd_balancer.clear();
 
   dev_short_nbor.clear();
   nbor->clear();
@@ -278,17 +271,15 @@ inline int BaseAmoebaT::build_nbor_list(const int inum, const int host_inum,
 // ---------------------------------------------------------------------------
 
 template <class numtyp, class acctyp>
-int** BaseAmoebaT::precompute(const int ago, const int inum_full, const int nall,
-                              double **host_x, int *host_type, int *host_amtype,
-                              int *host_amgroup, double **host_rpole,
-                              double **host_uind, double **host_uinp, double *host_pval,
-                              double *sublo, double *subhi, tagint *tag,
-                              int **nspecial, tagint **special,
-                              int *nspecial15, tagint **special15,
-                              const bool eflag_in, const bool vflag_in,
-                              const bool eatom, const bool vatom, int &host_start,
-                              int **&ilist, int **&jnum, const double cpu_time,
-                              bool &success, double *host_q, double * /*boxlo*/, double * /*prd*/) {
+int **BaseAmoebaT::precompute(const int ago, const int inum_full, const int nall, double **host_x,
+                              int *host_type, int *host_amtype, int *host_amgroup,
+                              double **host_rpole, double **host_uind, double **host_uinp,
+                              double *host_pval, double *sublo, double *subhi, tagint *tag,
+                              int **nspecial, tagint **special, int *nspecial15, tagint **special15,
+                              const bool eflag_in, const bool vflag_in, const bool eatom,
+                              const bool vatom, int **&ilist, int **&jnum, bool &success,
+                              double *host_q, double * /*boxlo*/, double * /*prd*/)
+{
   acc_timers();
   if (eatom) _eflag=2;
   else if (eflag_in) _eflag=1;
@@ -317,17 +308,15 @@ int** BaseAmoebaT::precompute(const int ago, const int inum_full, const int nall
   }
 
   if (inum_full==0) {
-    host_start=0;
     // Make sure textures are correct if realloc by a different hybrid style
     resize_atom(0,nall,success);
     zero_timers();
     return nullptr;
   }
 
-  hd_balancer.balance(cpu_time);
-  int inum=hd_balancer.get_gpu_count(ago,inum_full);
+  int inum=inum_full;
+  _timestep++;
   ans->inum(inum);
-  host_start=inum;
 
   // Build neighbor list on GPU if necessary
   if (ago==0) {
@@ -337,11 +326,9 @@ int** BaseAmoebaT::precompute(const int ago, const int inum_full, const int nall
     if (!success)
       return nullptr;
     atom->cast_q_data(host_q);
-    hd_balancer.start_timer();
   } else {
     atom->cast_x_data(host_x,host_type);
     atom->cast_q_data(host_q);
-    hd_balancer.start_timer();
     atom->add_x_data(host_x,host_type);
   }
   atom->add_q_data();
@@ -357,9 +344,8 @@ int** BaseAmoebaT::precompute(const int ago, const int inum_full, const int nall
     dev_short_nbor.resize((2+_max_nbors)*_nmax);
   }
 
-  hd_balancer.stop_timer();
 
-  return nbor->host_jlist.begin()-host_start;
+  return nbor->host_jlist.begin()-inum;
 }
 
 // ---------------------------------------------------------------------------
@@ -378,8 +364,8 @@ void BaseAmoebaT::compute_multipole_real(const int /*ago*/, const int inum_full,
                                          int * /*nspecial15*/, tagint ** /*special15*/,
                                          const bool /*eflag_in*/, const bool /*vflag_in*/,
                                          const bool /*eatom*/, const bool /*vatom*/,
-                                         int & /*host_start*/, int ** /*ilist*/, int ** /*jnum*/,
-                                         const double /*cpu_time*/, bool & /*success*/,
+                                         int ** /*ilist*/, int ** /*jnum*/,
+                                         bool & /*success*/,
                                          const double aewald, const double felec,
                                          const double off2_mpole, double * /*host_q*/,
                                          double * /*boxlo*/, double * /*prd*/, void **tep_ptr) {

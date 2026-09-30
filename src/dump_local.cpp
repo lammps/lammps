@@ -194,15 +194,20 @@ void DumpLocal::init_style()
     if (i >= size_one) break;
     delete[] vformat[i];
 
+    std::string colformat;
     if (format_column_user[i])
-      vformat[i] = utils::strdup(std::string(format_column_user[i]) + " ");
+      colformat = format_column_user[i];
     else if (vtype[i] == Dump::INT && format_int_user)
-      vformat[i] = utils::strdup(std::string(format_int_user) + " ");
+      colformat = format_int_user;
     else if (vtype[i] == Dump::DOUBLE && format_float_user)
-      vformat[i] = utils::strdup(std::string(format_float_user) + " ");
+      colformat = format_float_user;
     else if (vtype[i] == Dump::BIGINT && format_bigint_user)
-      vformat[i] = utils::strdup(std::string(format_bigint_user) + " ");
-    else vformat[i] = utils::strdup(word + " ");
+      colformat = format_bigint_user;
+    else colformat = word;
+
+    // the format may come from the user, so check it against the column type
+    check_column_format(colformat, vtype[i], i);
+    vformat[i] = utils::strdup(colformat + " ");
     ++i;
   }
 
@@ -262,19 +267,20 @@ int DumpLocal::modify_param(int narg, char **arg)
       }
       return 2;
     } else if (strcmp(arg[1],"int") == 0) {
+      auto errmsg = utils::check_format(arg[2], utils::FmtArg::INTEGER);
+      if (!errmsg.empty())
+        error->all(FLERR, argoff + 2, "Invalid dump_modify int format: {}", errmsg);
       delete[] format_int_user;
       format_int_user = utils::strdup(arg[2]);
-      // replace "d" in format_int_user with bigint format specifier
-      // which is BIGINT_FORMAT without the leading '%'
-      std::string ifmt = format_int_user;
-      auto found = ifmt.find('d');
-      if (found == std::string::npos)
-        error->all(FLERR, argoff + 2, "Dump_modify int format does not contain d character");
-      ifmt.replace(found, 1, std::string(BIGINT_FORMAT).substr(1));
+      // derive the format for large integers from the one given by the user
       delete[] format_bigint_user;
-      format_bigint_user = utils::strdup(ifmt);
+      format_bigint_user =
+        utils::strdup(utils::adjust_format(arg[2], utils::FmtArg::BIGINT));
 
     } else if (strcmp(arg[1],"float") == 0) {
+      auto errmsg = utils::check_format(arg[2], utils::FmtArg::FLOAT);
+      if (!errmsg.empty())
+        error->all(FLERR, argoff + 2, "Invalid dump_modify float format: {}", errmsg);
       delete[] format_float_user;
       format_float_user = utils::strdup(arg[2]);
 
@@ -282,6 +288,9 @@ int DumpLocal::modify_param(int narg, char **arg)
       int i = utils::inumeric(FLERR,arg[1],false,lmp) - 1;
       if (i < 0 || i >= nfield)
         error->all(FLERR, 1, "Illegal dump_modify format column number {}", i);
+      auto errmsg = utils::check_format(arg[2], fmtarg_type(vtype[i]));
+      if (!errmsg.empty())
+        error->all(FLERR, argoff + 2, "Invalid dump_modify format for column {}: {}", i + 1, errmsg);
       delete[] format_column_user[i];
       format_column_user[i] = utils::strdup(arg[2]);
     }

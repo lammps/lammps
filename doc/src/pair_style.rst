@@ -112,6 +112,7 @@ accelerated styles exist.
 * :doc:`hybrid/overlay <pair_hybrid>` - multiple styles of superposed pairwise interactions
 * :doc:`hybrid/scaled <pair_hybrid>` - multiple styles of scaled superposed pairwise interactions
 * :doc:`zero <pair_zero>` - neighbor list but no interactions
+* :doc:`zero/coul <pair_zero>` - like *zero*, but presents itself as a Coulombic pair style
 
 * :doc:`adp <pair_adp>` - angular dependent potential (ADP) of Mishin
 * :doc:`aip/water/2dm <pair_aip_water_2dm>` - anisotropic interfacial potential for water in 2d geometries

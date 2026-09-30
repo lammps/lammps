@@ -145,10 +145,8 @@ void PairZBLKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   nlocal = atom->nlocal;
   nall = atom->nlocal + atom->nghost;
   newton_pair = force->newton_pair;
-  special_lj[0] = static_cast<KK_FLOAT>(force->special_lj[0]);
-  special_lj[1] = static_cast<KK_FLOAT>(force->special_lj[1]);
-  special_lj[2] = static_cast<KK_FLOAT>(force->special_lj[2]);
-  special_lj[3] = static_cast<KK_FLOAT>(force->special_lj[3]);
+  // pair zbl ignores special_bonds, but the generic kernels apply them
+  special_lj[0] = special_lj[1] = special_lj[2] = special_lj[3] = 1.0;
 
   c1_kk = static_cast<KK_FLOAT>(c1);
   c2_kk = static_cast<KK_FLOAT>(c2);
@@ -212,7 +210,7 @@ template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
 KK_FLOAT PairZBLKokkos<DeviceType>::
 compute_fpair(const KK_FLOAT& rsq, const int &, const int &, const int &itype, const int &jtype) const {
-  const KK_FLOAT r = sqrt(rsq);
+  const KK_FLOAT r = Kokkos::sqrt(rsq);
   KK_FLOAT fpair = dzbldr(r, itype, jtype);
 
   if (rsq > cut_innersq_kk) {
@@ -232,7 +230,7 @@ template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
 KK_FLOAT PairZBLKokkos<DeviceType>::
 compute_evdwl(const KK_FLOAT &rsq, const int &, const int &, const int &itype, const int &jtype) const {
-  const KK_FLOAT r = sqrt(rsq);
+  const KK_FLOAT r = Kokkos::sqrt(rsq);
   KK_FLOAT evdwl = e_zbl(r, itype, jtype);
   evdwl += d_sw5(itype,jtype);
   if (rsq > cut_innersq_kk) {
@@ -339,10 +337,10 @@ KK_FLOAT PairZBLKokkos<DeviceType>::e_zbl(KK_FLOAT r, int i, int j) const {
   const KK_FLOAT zzeij = d_zze(i,j);
   const KK_FLOAT rinv = static_cast<KK_FLOAT>(1.0) / r;
 
-  KK_FLOAT sum = c1_kk*exp(-d1aij*r);
-  sum += c2_kk*exp(-d2aij*r);
-  sum += c3_kk*exp(-d3aij*r);
-  sum += c4_kk*exp(-d4aij*r);
+  KK_FLOAT sum = c1_kk*Kokkos::exp(-d1aij*r);
+  sum += c2_kk*Kokkos::exp(-d2aij*r);
+  sum += c3_kk*Kokkos::exp(-d3aij*r);
+  sum += c4_kk*Kokkos::exp(-d4aij*r);
 
   KK_FLOAT result = zzeij*sum*rinv;
 
@@ -365,10 +363,10 @@ KK_FLOAT PairZBLKokkos<DeviceType>::dzbldr(KK_FLOAT r, int i, int j) const {
   const KK_FLOAT zzeij = d_zze(i,j);
   const KK_FLOAT rinv = static_cast<KK_FLOAT>(1.0) / r;
 
-  const KK_FLOAT e1 = exp(-d1aij*r);
-  const KK_FLOAT e2 = exp(-d2aij*r);
-  const KK_FLOAT e3 = exp(-d3aij*r);
-  const KK_FLOAT e4 = exp(-d4aij*r);
+  const KK_FLOAT e1 = Kokkos::exp(-d1aij*r);
+  const KK_FLOAT e2 = Kokkos::exp(-d2aij*r);
+  const KK_FLOAT e3 = Kokkos::exp(-d3aij*r);
+  const KK_FLOAT e4 = Kokkos::exp(-d4aij*r);
 
   KK_FLOAT sum = c1_kk*e1;
   sum += c2_kk*e2;
@@ -401,10 +399,10 @@ KK_FLOAT PairZBLKokkos<DeviceType>::d2zbldr2(KK_FLOAT r, int i, int j) const {
   const KK_FLOAT zzeij = d_zze(i,j);
   const KK_FLOAT rinv = static_cast<KK_FLOAT>(1.0) / r;
 
-  const KK_FLOAT e1 = exp(-d1aij*r);
-  const KK_FLOAT e2 = exp(-d2aij*r);
-  const KK_FLOAT e3 = exp(-d3aij*r);
-  const KK_FLOAT e4 = exp(-d4aij*r);
+  const KK_FLOAT e1 = Kokkos::exp(-d1aij*r);
+  const KK_FLOAT e2 = Kokkos::exp(-d2aij*r);
+  const KK_FLOAT e3 = Kokkos::exp(-d3aij*r);
+  const KK_FLOAT e4 = Kokkos::exp(-d4aij*r);
 
   KK_FLOAT sum = c1_kk*e1;
   sum += c2_kk*e2;

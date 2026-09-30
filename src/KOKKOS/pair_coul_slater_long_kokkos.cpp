@@ -158,13 +158,13 @@ KK_FLOAT PairCoulSlaterLongKokkos<DeviceType>::
 compute_fcoul(const KK_FLOAT &rsq, const int & /*i*/, const int &j,
               const int &itype, const int &jtype,
               const KK_FLOAT &factor_coul, const KK_FLOAT &qtmp) const {
-  const KK_FLOAT r      = sqrt(rsq);
+  const KK_FLOAT r      = Kokkos::sqrt(rsq);
   const KK_FLOAT r2inv  = static_cast<KK_FLOAT>(1.0) / rsq;
   const KK_FLOAT grij   = g_ewald_kk * r;
-  const KK_FLOAT expm2  = exp(-grij*grij);
+  const KK_FLOAT expm2  = Kokkos::exp(-grij*grij);
   const KK_FLOAT t      = static_cast<KK_FLOAT>(1.0) / (static_cast<KK_FLOAT>(1.0) + static_cast<KK_FLOAT>(EWALD_P)*grij);
   const KK_FLOAT erfc   = t * (static_cast<KK_FLOAT>(A1)+t*(static_cast<KK_FLOAT>(A2)+t*(static_cast<KK_FLOAT>(A3)+t*(static_cast<KK_FLOAT>(A4)+t*static_cast<KK_FLOAT>(A5))))) * expm2;
-  const KK_FLOAT slater_term = exp(-static_cast<KK_FLOAT>(2.0)*r/lamda_kk)
+  const KK_FLOAT slater_term = Kokkos::exp(-static_cast<KK_FLOAT>(2.0)*r/lamda_kk)
     * (static_cast<KK_FLOAT>(1.0) + (static_cast<KK_FLOAT>(2.0)*r/lamda_kk*(static_cast<KK_FLOAT>(1.0)+r/lamda_kk)));
   const KK_FLOAT scale = STACKPARAMS ? m_params[itype][jtype].scale : params(itype,jtype).scale;
   const KK_FLOAT prefactor = qqrd2e * scale * qtmp * q[j] / r;
@@ -185,17 +185,17 @@ KK_FLOAT PairCoulSlaterLongKokkos<DeviceType>::
 compute_ecoul(const KK_FLOAT &rsq, const int & /*i*/, const int &j,
               const int &itype, const int &jtype,
               const KK_FLOAT &factor_coul, const KK_FLOAT &qtmp) const {
-  const KK_FLOAT r      = sqrt(rsq);
+  const KK_FLOAT r      = Kokkos::sqrt(rsq);
   const KK_FLOAT grij   = g_ewald_kk * r;
-  const KK_FLOAT expm2  = exp(-grij*grij);
+  const KK_FLOAT expm2  = Kokkos::exp(-grij*grij);
   const KK_FLOAT t      = static_cast<KK_FLOAT>(1.0) / (static_cast<KK_FLOAT>(1.0) + static_cast<KK_FLOAT>(EWALD_P)*grij);
   const KK_FLOAT erfc   = t * (static_cast<KK_FLOAT>(A1)+t*(static_cast<KK_FLOAT>(A2)+t*(static_cast<KK_FLOAT>(A3)+t*(static_cast<KK_FLOAT>(A4)+t*static_cast<KK_FLOAT>(A5))))) * expm2;
   const KK_FLOAT scale = STACKPARAMS ? m_params[itype][jtype].scale : params(itype,jtype).scale;
   const KK_FLOAT prefactor = qqrd2e * scale * qtmp * q[j] / r;
-  KK_FLOAT ecoul = prefactor * (erfc - (static_cast<KK_FLOAT>(1.0) + r/lamda_kk) * exp(-static_cast<KK_FLOAT>(2.0)*r/lamda_kk));
+  KK_FLOAT ecoul = prefactor * (erfc - (static_cast<KK_FLOAT>(1.0) + r/lamda_kk) * Kokkos::exp(-static_cast<KK_FLOAT>(2.0)*r/lamda_kk));
   if (factor_coul < static_cast<KK_FLOAT>(1.0))
     ecoul -= (static_cast<KK_FLOAT>(1.0) - factor_coul) * prefactor
-             * (static_cast<KK_FLOAT>(1.0) - (static_cast<KK_FLOAT>(1.0) + r/lamda_kk) * exp(-static_cast<KK_FLOAT>(2.0)*r/lamda_kk));
+             * (static_cast<KK_FLOAT>(1.0) - (static_cast<KK_FLOAT>(1.0) + r/lamda_kk) * Kokkos::exp(-static_cast<KK_FLOAT>(2.0)*r/lamda_kk));
   return ecoul;
 }
 

@@ -139,7 +139,7 @@ class PPPM : public KSpace {
   void procs2grid2d(int, int, int, int &, int &);
   void compute_rho1d(const FFT_SCALAR &, const FFT_SCALAR &, const FFT_SCALAR &);
   void compute_drho1d(const FFT_SCALAR &, const FFT_SCALAR &, const FFT_SCALAR &);
-  void compute_rho_coeff();
+  virtual void compute_rho_coeff();
   virtual void slabcorr();
 
  public:
@@ -154,9 +154,9 @@ class PPPM : public KSpace {
   // triclinic
 
   int triclinic;    // domain settings, orthog or triclinic
-  void setup_triclinic();
-  void compute_gf_ik_triclinic();
-  void poisson_ik_triclinic();
+  virtual void setup_triclinic();
+  virtual void compute_gf_ik_triclinic();
+  virtual void poisson_ik_triclinic();
   void poisson_groups_triclinic();
 
   // group-group interactions

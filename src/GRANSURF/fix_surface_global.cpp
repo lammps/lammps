@@ -445,6 +445,9 @@ FixSurfaceGlobal::~FixSurfaceGlobal()
   memory->destroy(fflag_c1);
   memory->destroy(fflag_c2);
   memory->destroy(fflag_c3);
+  memory->destroy(nside_c1);
+  memory->destroy(nside_c2);
+  memory->destroy(nside_c3);
 
   memory->sfree(connect2d);
   memory->sfree(connect3d);
@@ -1180,6 +1183,7 @@ void FixSurfaceGlobal::post_force(int /*vflag*/)
     model = models[n];
     model->history_update = 1;
     model->radj = 0.0;
+    model->dt = update->dt;
     if (update->setupflag) model->history_update = 0;
     if (heat_flag) {
       if (tstr)
@@ -1415,6 +1419,8 @@ void FixSurfaceGlobal::post_force(int /*vflag*/)
 
       jtype = contact_surfs[n].type;
       model = types2model[itype][jtype];
+      model->i = i;
+      model->j = j;
       model->xi = x[i];
       model->radi = radi;
       model->vi = v[i];

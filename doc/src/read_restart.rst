@@ -231,7 +231,7 @@ Some pair styles, like the :doc:`granular pair styles <pair_gran>`, also
 use a fix to store "state" information that persists from timestep to
 timestep.  In the case of granular potentials, it is contact
 information between pairs of touching particles.  This info will also
-be re-enabled in the restart script, assuming you re-use the same
+be re-enabled in the restart script, assuming you reuse the same
 granular pair style.
 
 LAMMPS allows bond interactions (angle, etc) to be turned off or

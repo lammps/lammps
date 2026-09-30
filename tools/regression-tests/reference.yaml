@@ -83,10 +83,10 @@ in.indent.min: { folder: examples/indent, status: "completed", failed_checks: { 
 in.qeq.buck: { folder: examples/qeq, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 21.0, walltime_norm: 3.5 }
 in.qeq.reaxff: { folder: examples/qeq, status: "completed, numerical checks skipped due to missing the reference log file", walltime: 0.0, walltime_norm: 0.0 }
 in.dreiding: { folder: examples/dreiding, status: "completed, error parsing log.lammps into YAML", walltime: 0.0, walltime_norm: 0.0 }
-in.22DMH.real: { folder: examples/relres, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 57.0, walltime_norm: 9.5 }
-in.22DMH.relres: { folder: examples/relres, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 8.0, walltime_norm: 1.3333333333333333 }
-in.22DMH.respa: { folder: examples/relres, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 6.0, walltime_norm: 1.0 }
-in.track: { folder: examples/tracker, status: "failed, ERROR: Illegal pair_style command (src/MISC/pair_tracker.cpp:221).", walltime: -1 }
+in.22DMH.real: { folder: examples/PACKAGES/relres, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 57.0, walltime_norm: 9.5 }
+in.22DMH.relres: { folder: examples/PACKAGES/relres, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 8.0, walltime_norm: 1.3333333333333333 }
+in.22DMH.respa: { folder: examples/PACKAGES/relres, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 6.0, walltime_norm: 1.0 }
+in.track: { folder: examples/PACKAGES/tracker, status: "failed, ERROR: Illegal pair_style command (src/MISC/pair_tracker.cpp:221).", walltime: -1 }
 in.pour.drum: { folder: examples/granular, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 10.0, walltime_norm: 1.6666666666666667 }
 in.pour.flatwall: { folder: examples/granular, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 10.0, walltime_norm: 1.6666666666666667 }
 in.pour.heat: { folder: examples/granular, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 83.0, walltime_norm: 13.833333333333334 }
@@ -107,8 +107,8 @@ in.colloid: { folder: examples/multi, status: "completed", failed_checks: { abs_
 in.granular: { folder: examples/multi, status: "completed", failed_checks: { abs_diff_failed: 3, rel_diff_failed: 3 }, walltime: 1.0, walltime_norm: 0.16666666666666666 }
 in.powerlaw: { folder: examples/multi, status: "completed", failed_checks: { abs_diff_failed: 3, rel_diff_failed: 3 }, walltime: 2.0, walltime_norm: 0.3333333333333333 }
 in.msst: { folder: examples/msst, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 6.0, walltime_norm: 1.0 }
-in.gjf.vfull: { folder: examples/gjf, status: "completed", failed_checks: { abs_diff_failed: 3, rel_diff_failed: 3 }, walltime: 1.0, walltime_norm: 0.16666666666666666 }
-in.gjf.vhalf: { folder: examples/gjf, status: "completed", failed_checks: { abs_diff_failed: 3, rel_diff_failed: 3 }, walltime: 1.0, walltime_norm: 0.16666666666666666 }
+in.gjf.vfull: { folder: examples/PACKAGES/gjf, status: "completed", failed_checks: { abs_diff_failed: 3, rel_diff_failed: 3 }, walltime: 1.0, walltime_norm: 0.16666666666666666 }
+in.gjf.vhalf: { folder: examples/PACKAGES/gjf, status: "completed", failed_checks: { abs_diff_failed: 3, rel_diff_failed: 3 }, walltime: 1.0, walltime_norm: 0.16666666666666666 }
 in.spin.cobalt_fcc: { folder: examples/SPIN/cobalt_fcc, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 2.0, walltime_norm: 0.3333333333333333 }
 in.spin.nickel: { folder: examples/SPIN/nickel, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 1.0, walltime_norm: 0.16666666666666666 }
 in.spin.nickel_cubic: { folder: examples/SPIN/nickel, status: "completed", failed_checks: { abs_diff_failed: 0, rel_diff_failed: 0 }, walltime: 1.0, walltime_norm: 0.16666666666666666 }

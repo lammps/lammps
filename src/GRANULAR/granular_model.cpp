@@ -26,9 +26,13 @@
 #include "error.h"
 #include "force.h"
 #include "gran_sub_mod.h"
+#include "gran_sub_mod_damping.h"
+#include "gran_sub_mod_heat.h"
+#include "gran_sub_mod_normal.h"
+#include "gran_sub_mod_rolling.h"
+#include "gran_sub_mod_tangential.h"
+#include "gran_sub_mod_twisting.h"
 #include "math_extra.h"
-
-#include "style_gran_sub_mod.h"    // IWYU pragma: keep
 
 #include <cmath>
 #include <cstring>
@@ -37,15 +41,6 @@
 using namespace LAMMPS_NS;
 using namespace Granular_NS;
 using namespace MathExtra;
-
-/* ----------------------------------------------------------------------
-   one instance per GranSubMod style in style_gran_sub_mod.h
-------------------------------------------------------------------------- */
-
-template <typename T> static GranSubMod *gran_sub_mod_creator(GranularModel *gm, LAMMPS *lmp)
-{
-  return new T(gm, lmp);
-}
 
 /* ---------------------------------------------------------------------- */
 
@@ -74,29 +69,8 @@ GranularModel::GranularModel(LAMMPS *lmp) :
   for (int i = 0; i < NSUBMODELS; i++) sub_models[i] = nullptr;
   transfer_history_factor = nullptr;
 
-  // extract info from GranSubMod classes listed in style_gran_sub_mod.h
-
-  nclass = 0;
-
-#define GRAN_SUB_MOD_CLASS
-#define GranSubModStyle(key, Class, type) nclass++;
-#include "style_gran_sub_mod.h"    // IWYU pragma: keep
-#undef GranSubModStyle
-#undef GRAN_SUB_MOD_CLASS
-
-  gran_sub_mod_class = new GranSubModCreator[nclass];
-  gran_sub_mod_names = new char *[nclass];
-  gran_sub_mod_types = new int[nclass];
-  nclass = 0;
-
-#define GRAN_SUB_MOD_CLASS
-#define GranSubModStyle(key, Class, type)                    \
-  gran_sub_mod_class[nclass] = &gran_sub_mod_creator<Class>; \
-  gran_sub_mod_names[nclass] = (char *) #key;                \
-  gran_sub_mod_types[nclass++] = type;
-#include "style_gran_sub_mod.h"    // IWYU pragma: keep
-#undef GranSubModStyle
-#undef GRAN_SUB_MOD_CLASS
+  // the list of available sub-models is the gran_sub_mod_table[] defined in
+  // gran_sub_mod_register.cpp (see that file to add a new sub-model)
 }
 
 /* ---------------------------------------------------------------------- */
@@ -104,9 +78,6 @@ GranularModel::GranularModel(LAMMPS *lmp) :
 GranularModel::~GranularModel()
 {
   delete[] transfer_history_factor;
-  delete[] gran_sub_mod_class;
-  delete[] gran_sub_mod_names;
-  delete[] gran_sub_mod_types;
   delete[] svector;
 
   for (int i = 0; i < NSUBMODELS; i++) delete sub_models[i];
@@ -146,18 +117,17 @@ int GranularModel::add_sub_model(char **arg, int iarg, int narg, SubModelType mo
 void GranularModel::construct_sub_model(std::string model_name, SubModelType model_type)
 {
   int i;
-  for (i = 0; i < nclass; i++) {
-    if (gran_sub_mod_types[i] == model_type) {
-      if (strcmp(gran_sub_mod_names[i], model_name.c_str()) == 0) {
-        GranSubModCreator &gran_sub_mod_creator = gran_sub_mod_class[i];
+  for (i = 0; i < num_gran_sub_mod; i++) {
+    if (gran_sub_mod_table[i].type == model_type) {
+      if (strcmp(gran_sub_mod_table[i].name, model_name.c_str()) == 0) {
         delete sub_models[model_type];
-        sub_models[model_type] = gran_sub_mod_creator(this, lmp);
+        sub_models[model_type] = gran_sub_mod_table[i].creator(this, lmp);
         break;
       }
     }
   }
 
-  if (i == nclass)
+  if (i == num_gran_sub_mod)
     error->all(FLERR, "Illegal model type {}", model_name);
 
   sub_models[model_type]->name.assign(model_name);

@@ -23,6 +23,7 @@
 #include "error.h"
 #include "force.h"
 #include "gpu_extra.h"
+#include "lammps_gpu.h"
 #include "math_extra.h"
 #include "neigh_list.h"
 #include "neighbor.h"
@@ -31,34 +32,8 @@
 #include <cmath>
 
 using namespace LAMMPS_NS;
+using namespace LAMMPS_GPU;
 
-// External functions from cuda library for atom decomposition
-
-int re_gpu_init(const int ntypes, double **shape, double **well, double **cutsq,
-                double **sigma, double **epsilon, int **form,
-                double **host_lj1, double **host_lj2, double **host_lj3,
-                double **host_lj4, double **offset, double *special_lj,
-                const int nlocal, const int nall, const int max_nbors,
-                const int maxspecial, const double cell_size, int &gpu_mode,
-                FILE *screen);
-void re_gpu_clear();
-int **re_gpu_compute_n(const int ago, const int inum, const int nall,
-                       double **host_x, int *host_type, double *sublo,
-                       double *subhi, tagint *tag, int **nspecial,
-                       tagint **special, const bool eflag, const bool vflag,
-                       const bool eatom, const bool vatom, int &host_start,
-                       int **ilist, int **jnum, const double cpu_time,
-                       bool &success, const int *ellipsoid,
-                       const void *bonus);
-int *re_gpu_compute(const int ago, const int inum, const int nall,
-                    double **host_x, int *host_type, int *ilist, int *numj,
-                    int **firstneigh, const bool eflag, const bool vflag,
-                    const bool eatom, const bool vatom, int &host_start,
-                    const double cpu_time, bool &success, const int *ellipsoid,
-                    const void *bonus);
-double re_gpu_bytes();
-
-enum { SPHERE_SPHERE, SPHERE_ELLIPSE, ELLIPSE_SPHERE, ELLIPSE_ELLIPSE };
 
 /* ---------------------------------------------------------------------- */
 
@@ -78,7 +53,6 @@ PairRESquaredGPU::PairRESquaredGPU(LAMMPS *lmp) : PairRESquared(lmp), gpu_mode(G
 PairRESquaredGPU::~PairRESquaredGPU()
 {
   re_gpu_clear();
-  cpu_time = 0.0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -88,7 +62,7 @@ void PairRESquaredGPU::compute(int eflag, int vflag)
   ev_init(eflag, vflag);
 
   int nall = atom->nlocal + atom->nghost;
-  int inum, host_start;
+  int inum;
 
   bool success = true;
   int *ilist, *numneigh, **firstneigh;
@@ -110,29 +84,21 @@ void PairRESquaredGPU::compute(int eflag, int vflag)
     }
     inum = atom->nlocal;
     firstneigh =
-        re_gpu_compute_n(neighbor->ago, inum, nall, atom->x, atom->type, sublo,
-                         subhi, atom->tag, atom->nspecial, atom->special,
-                         eflag, vflag, eflag_atom, vflag_atom, host_start,
-                         &ilist, &numneigh, cpu_time, success, ellipsoid,
-                         bonus);
+        re_gpu_compute_n(neighbor->ago, inum, nall, atom->x, atom->type, sublo, subhi, atom->tag,
+                         atom->nspecial, atom->special, eflag, vflag, eflag_atom, vflag_atom,
+                         &ilist, &numneigh, success, ellipsoid, bonus);
   } else {
     inum = list->inum;
     numneigh = list->numneigh;
     firstneigh = list->firstneigh;
     ilist = re_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type,
                            list->ilist, numneigh, firstneigh, eflag, vflag,
-                           eflag_atom, vflag_atom, host_start, cpu_time,
-                           success, ellipsoid, bonus);
+                           eflag_atom, vflag_atom, success, ellipsoid, bonus);
   }
   if (!success) error->one(FLERR, "Insufficient memory on accelerator");
 
   if (atom->molecular != Atom::ATOMIC && neighbor->ago == 0)
     neighbor->build_topology();
-  if (host_start < inum) {
-    cpu_time = platform::walltime();
-    cpu_compute(host_start, inum, eflag, vflag, ilist, numneigh, firstneigh);
-    cpu_time = platform::walltime() - cpu_time;
-  }
 }
 
 /* ----------------------------------------------------------------------
@@ -194,104 +160,4 @@ double PairRESquaredGPU::memory_usage()
 {
   double bytes = Pair::memory_usage();
   return bytes + re_gpu_bytes();
-}
-
-/* ---------------------------------------------------------------------- */
-
-void PairRESquaredGPU::cpu_compute(int start, int inum, int eflag, int /* vflag */, int *ilist,
-                                   int *numneigh, int **firstneigh)
-{
-  int i, j, ii, jj, jnum, itype, jtype;
-  double evdwl, one_eng, rsq, r2inv, r6inv, forcelj, factor_lj;
-  double fforce[3], ttor[3], rtor[3], r12[3];
-  int *jlist;
-  RE2Vars wi, wj;
-
-  double **x = atom->x;
-  double **f = atom->f;
-  double **tor = atom->torque;
-  int *type = atom->type;
-  double *special_lj = force->special_lj;
-
-  // loop over neighbors of my atoms
-
-  for (ii = start; ii < inum; ii++) {
-    i = ilist[ii];
-    itype = type[i];
-
-    // not a LJ sphere
-
-    if (lshape[itype] != 0.0) precompute_i(i, wi);
-
-    jlist = firstneigh[i];
-    jnum = numneigh[i];
-
-    for (jj = 0; jj < jnum; jj++) {
-      j = jlist[jj];
-      factor_lj = special_lj[sbmask(j)];
-      j &= NEIGHMASK;
-
-      // r12 = center to center vector
-
-      r12[0] = x[j][0] - x[i][0];
-      r12[1] = x[j][1] - x[i][1];
-      r12[2] = x[j][2] - x[i][2];
-      rsq = MathExtra::dot3(r12, r12);
-      jtype = type[j];
-
-      // compute if less than cutoff
-
-      if (rsq < cutsq[itype][jtype]) {
-        switch (form[itype][jtype]) {
-
-          case SPHERE_SPHERE:
-            r2inv = 1.0 / rsq;
-            r6inv = r2inv * r2inv * r2inv;
-            forcelj = r6inv * (lj1[itype][jtype] * r6inv - lj2[itype][jtype]);
-            forcelj *= -r2inv;
-            if (eflag)
-              one_eng =
-                  r6inv * (r6inv * lj3[itype][jtype] - lj4[itype][jtype]) - offset[itype][jtype];
-            fforce[0] = r12[0] * forcelj;
-            fforce[1] = r12[1] * forcelj;
-            fforce[2] = r12[2] * forcelj;
-            break;
-
-          case SPHERE_ELLIPSE:
-            precompute_i(j, wj);
-            one_eng = resquared_lj(j, i, wj, r12, rsq, fforce, rtor, false);
-            break;
-
-          case ELLIPSE_SPHERE:
-            one_eng = resquared_lj(i, j, wi, r12, rsq, fforce, ttor, true);
-            tor[i][0] += ttor[0] * factor_lj;
-            tor[i][1] += ttor[1] * factor_lj;
-            tor[i][2] += ttor[2] * factor_lj;
-            break;
-
-          default:
-            precompute_i(j, wj);
-            one_eng = resquared_analytic(i, j, wi, wj, r12, rsq, fforce, ttor, rtor);
-            tor[i][0] += ttor[0] * factor_lj;
-            tor[i][1] += ttor[1] * factor_lj;
-            tor[i][2] += ttor[2] * factor_lj;
-
-            break;
-        }
-
-        fforce[0] *= factor_lj;
-        fforce[1] *= factor_lj;
-        fforce[2] *= factor_lj;
-        f[i][0] += fforce[0];
-        f[i][1] += fforce[1];
-        f[i][2] += fforce[2];
-
-        if (eflag) evdwl = factor_lj * one_eng;
-
-        if (evflag)
-          ev_tally_xyz_full(i, evdwl, 0.0, fforce[0], fforce[1], fforce[2], -r12[0], -r12[1],
-                            -r12[2]);
-      }
-    }
-  }
 }

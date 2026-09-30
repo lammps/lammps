@@ -48,9 +48,12 @@ void PairLJCutTIP4PCutKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     auto h_cut_ljsq = Kokkos::create_mirror_view(d_cut_ljsq);
     for (int i = 1; i < ntp1; i++)
       for (int j = 1; j < ntp1; j++) {
-        h_lj1(i,j) = this->lj1[i][j]; h_lj2(i,j) = this->lj2[i][j];
-        h_lj3(i,j) = this->lj3[i][j]; h_lj4(i,j) = this->lj4[i][j];
-        h_offset(i,j) = this->offset[i][j]; h_cut_ljsq(i,j) = this->cut_ljsq[i][j];
+        h_lj1(i,j) = static_cast<KK_FLOAT>(this->lj1[i][j]);
+        h_lj2(i,j) = static_cast<KK_FLOAT>(this->lj2[i][j]);
+        h_lj3(i,j) = static_cast<KK_FLOAT>(this->lj3[i][j]);
+        h_lj4(i,j) = static_cast<KK_FLOAT>(this->lj4[i][j]);
+        h_offset(i,j) = static_cast<KK_FLOAT>(this->offset[i][j]);
+        h_cut_ljsq(i,j) = static_cast<KK_FLOAT>(this->cut_ljsq[i][j]);
       }
     Kokkos::deep_copy(d_lj1,h_lj1); Kokkos::deep_copy(d_lj2,h_lj2);
     Kokkos::deep_copy(d_lj3,h_lj3); Kokkos::deep_copy(d_lj4,h_lj4);
@@ -71,7 +74,7 @@ void PairLJCutTIP4PCutKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   this->copymode = 0;
 
-  if (this->eflag_global) this->eng_vdwl += ev.evdwl;
+  if (this->eflag_global) this->eng_vdwl += static_cast<double>(ev.evdwl);
   this->finalize(ev);
 }
 

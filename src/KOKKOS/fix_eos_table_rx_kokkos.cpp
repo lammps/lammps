@@ -60,10 +60,10 @@ FixEOStableRXKokkos<DeviceType>::FixEOStableRXKokkos(LAMMPS *lmp, int narg, char
   k_tempCorrCoeff = DAT::tdual_kkfloat_1d("fix:tempCorrCoeff",nspecies);
   k_moleculeCorrCoeff = DAT::tdual_kkfloat_1d("fix:moleculeCorrCoeff",nspecies);
   for (int n = 0; n < nspecies; n++) {
-    k_dHf.view_host()(n) = dHf[n];
-    k_energyCorr.view_host()(n) = energyCorr[n];
-    k_tempCorrCoeff.view_host()(n) = tempCorrCoeff[n];
-    k_moleculeCorrCoeff.view_host()(n) = moleculeCorrCoeff[n];
+    k_dHf.view_host()(n) = static_cast<KK_FLOAT>(dHf[n]);
+    k_energyCorr.view_host()(n) = static_cast<KK_FLOAT>(energyCorr[n]);
+    k_tempCorrCoeff.view_host()(n) = static_cast<KK_FLOAT>(tempCorrCoeff[n]);
+    k_moleculeCorrCoeff.view_host()(n) = static_cast<KK_FLOAT>(moleculeCorrCoeff[n]);
   }
 
   k_dHf.modify_host();
@@ -207,7 +207,7 @@ KOKKOS_INLINE_FUNCTION
 void FixEOStableRXKokkos<DeviceType>::operator()(TagFixEOStableRXInit, const int &i) const {
   KK_FLOAT tmp;
   if (mask[i] & groupbit) {
-    if (dpdTheta[i] <= 0.0)
+    if (dpdTheta[i] <= static_cast<KK_FLOAT>(0.0))
       k_error_flag.template view<DeviceType>()() = 1;
     energy_lookup(i,dpdTheta[i],tmp);
     uCond[i] = 0.0;
@@ -255,7 +255,7 @@ KOKKOS_INLINE_FUNCTION
 void FixEOStableRXKokkos<DeviceType>::operator()(TagFixEOStableRXTemperatureLookup2, const int &i) const {
   if (mask[i] & groupbit) {
     temperature_lookup(i,uCond[i]+uMech[i]+uChem[i],dpdTheta[i]);
-    if (dpdTheta[i] <= 0.0)
+    if (dpdTheta[i] <= static_cast<KK_FLOAT>(0.0))
       k_error_flag.template view<DeviceType>()() = 1;
   }
 }
@@ -320,7 +320,8 @@ void FixEOStableRXKokkos<DeviceType>::energy_lookup(int id, KK_FLOAT thetai, KK_
 {
   int itable, nPG;
   KK_FLOAT fraction, uTmp, nMolecules, nTotal, nTotalPG;
-  KK_FLOAT tolerance = 1.0e-10;
+  KK_FLOAT tolerance = static_cast<KK_FLOAT>(1.0e-10);
+  const KK_FLOAT boltz_kk = static_cast<KK_FLOAT>(boltz);
 
   ui = 0.0;
   nTotal = 0.0;
@@ -332,7 +333,7 @@ void FixEOStableRXKokkos<DeviceType>::energy_lookup(int id, KK_FLOAT thetai, KK_
       const auto atom_ind = species_ind_to_atom_prop_ind(ispecies);
 
       nTotal += dvector(atom_ind,id);
-      if (fabs(d_moleculeCorrCoeff[ispecies]) > tolerance) {
+      if (Kokkos::fabs(d_moleculeCorrCoeff[ispecies]) > tolerance) {
         nPG++;
         nTotalPG += dvector(atom_ind,id);
       }
@@ -370,7 +371,7 @@ void FixEOStableRXKokkos<DeviceType>::energy_lookup(int id, KK_FLOAT thetai, KK_
       ui += nMolecules*uTmp;
     }
   }
-  ui = ui - KK_FLOAT(nTotal+1.5)*boltz*thetai;
+  ui = ui - KK_FLOAT(nTotal+static_cast<KK_FLOAT>(1.5))*boltz_kk*thetai;
 }
 
 /* ----------------------------------------------------------------------
@@ -388,8 +389,8 @@ void FixEOStableRXKokkos<DeviceType>::temperature_lookup(int id, KK_FLOAT ui, KK
   KK_FLOAT t1,t2,u1,u2,f1,f2;
   KK_FLOAT maxit = 100;
   KK_FLOAT temp;
-  KK_FLOAT delta = 0.001;
-  KK_FLOAT tolerance = 1.0e-10;
+  KK_FLOAT delta = static_cast<KK_FLOAT>(0.001);
+  KK_FLOAT tolerance = static_cast<KK_FLOAT>(1.0e-10);
   int lo = d_table_const.lo(0);
   int hi = d_table_const.hi(0);
 
@@ -405,7 +406,7 @@ void FixEOStableRXKokkos<DeviceType>::temperature_lookup(int id, KK_FLOAT ui, KK
   f1 = u1 - ui;
 
   // Compute guess of t2
-  t2 = (1.0 + delta)*t1;
+  t2 = (static_cast<KK_FLOAT>(1.0) + delta)*t1;
 
   // Compute u2 at t2
   energy_lookup(id,t2,u2);
@@ -415,7 +416,7 @@ void FixEOStableRXKokkos<DeviceType>::temperature_lookup(int id, KK_FLOAT ui, KK
 
   // Apply the Secant Method
   for (it=0; it<maxit; it++) {
-    if (fabs(f2-f1) < MY_EPSILON) {
+    if (Kokkos::fabs(f2-f1) < static_cast<KK_FLOAT>(MY_EPSILON)) {
       if (std::isnan(f1) || std::isnan(f2)) k_error_flag.template view<DeviceType>()() = 2;
       temp = t1;
       temp = MAX(temp,lo);
@@ -424,7 +425,7 @@ void FixEOStableRXKokkos<DeviceType>::temperature_lookup(int id, KK_FLOAT ui, KK
       break;
     }
     temp = t2 - f2*(t2-t1)/(f2-f1);
-    if (fabs(temp-t2) < tolerance) break;
+    if (Kokkos::fabs(temp-t2) < tolerance) break;
     f1 = f2;
     t1 = t2;
     t2 = temp;
@@ -561,14 +562,14 @@ void FixEOStableRXKokkos<DeviceType>::create_kokkos_tables()
 
     h_table->lo[i] = tb->lo;
     h_table->hi[i] = tb->hi;
-    h_table->invdelta[i] = tb->invdelta;
+    h_table->invdelta[i] = static_cast<KK_FLOAT>(tb->invdelta);
 
     for (int j = 0; j < (int)h_table->r.extent(1); j++)
-      h_table->r(i,j) = tb->r[j];
+      h_table->r(i,j) = static_cast<KK_FLOAT>(tb->r[j]);
     for (int j = 0; j < (int)h_table->e.extent(1); j++)
-      h_table->e(i,j) = tb->e[j];
+      h_table->e(i,j) = static_cast<KK_FLOAT>(tb->e[j]);
     for (int j = 0; j < (int)h_table->de.extent(1); j++)
-      h_table->de(i,j) = tb->de[j];
+      h_table->de(i,j) = static_cast<KK_FLOAT>(tb->de[j]);
   }
 
   Kokkos::deep_copy(d_table->lo,h_table->lo);

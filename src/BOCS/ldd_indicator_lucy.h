@@ -16,12 +16,6 @@
     and Maria C. Lesniewski, mjl6766@psu.edu
     The Pennsylvania State University
    ------------------------------------------------------ */
-#ifdef LDD_INDICATOR_CLASS
-// clang-format off
-LddIndicatorStyle(lucy,LddIndicatorLucy)
-// clang-format on
-#else
-
 #ifndef LMP_LDD_INDICATOR_LUCY_H
 #define LMP_LDD_INDICATOR_LUCY_H
 
@@ -45,5 +39,4 @@ class LddIndicatorLucy : public LddIndicator {
 
 }    // namespace LAMMPS_NS
 
-#endif
 #endif

@@ -21,13 +21,24 @@ endif()
 if(POLICY CMP0109)
   cmake_policy(SET CMP0109 OLD)
 endif()
-# set policy to silence warnings about timestamps of downloaded files. review occasionally if it may be set to NEW
+# set policy so set(CACHE) command does not remove any normal variable of the same name from the current scope
+if(POLICY CMP0126)
+  cmake_policy(SET CMP0126 NEW)
+endif()
+# set policy to use the time of extraction as timestamps of files unpacked from downloaded
+# archives, so that updating an archive version triggers rebuilding all dependent objects
 if(POLICY CMP0135)
-  cmake_policy(SET CMP0135 OLD)
+  cmake_policy(SET CMP0135 NEW)
+endif()
+
+# set policy to ignore CMAKE_WARN_DEPRECATED and CMAKE_ERROR_DEPRECATED if available.
+# we are not using those AFAIK anyway.
+if(POLICY CMP0218)
+  cmake_policy(SET CMP0218 NEW)
 endif()
 
 ########################################
-
+# General project settings
 project(lammps
         DESCRIPTION "The LAMMPS Molecular Dynamics Simulator"
         HOMEPAGE_URL "https://www.lammps.org"
@@ -46,16 +57,15 @@ set(LAMMPS_SOURCE_DIR     ${LAMMPS_DIR}/src)
 set(LAMMPS_LIB_SOURCE_DIR ${LAMMPS_DIR}/lib)
 set(LAMMPS_DOC_DIR        ${LAMMPS_DIR}/doc)
 set(LAMMPS_TOOLS_DIR      ${LAMMPS_DIR}/tools)
-set(LAMMPS_PYTHON_DIR     ${LAMMPS_DIR}/python)
+set(LAMMPS_PACKAGING_DIR  ${LAMMPS_DIR}/cmake/packaging)
 set(LAMMPS_POTENTIALS_DIR ${LAMMPS_DIR}/potentials)
+set(LAMMPS_PYTHON_DIR     ${LAMMPS_DIR}/python)
 set(LAMMPS_THIRDPARTY_DIR ${LAMMPS_DIR}/third_party)
 
 set(LAMMPS_DOWNLOADS_URL "https://download.lammps.org" CACHE STRING "Base URL for LAMMPS downloads")
 set(LAMMPS_POTENTIALS_URL "${LAMMPS_DOWNLOADS_URL}/potentials")
 set(LAMMPS_THIRDPARTY_URL "${LAMMPS_DOWNLOADS_URL}/thirdparty")
 mark_as_advanced(LAMMPS_DOWNLOADS_URL)
-
-find_package(Git)
 
 # by default, install into $HOME/.local (not /usr/local), so that no root access (and sudo!!) is needed
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
@@ -304,6 +314,7 @@ set(STANDARD_PACKAGES
   EXTRA-FIX
   EXTRA-MOLECULE
   EXTRA-PAIR
+  FENIX
   FEP
   GRAPHICS
   GRANULAR
@@ -606,7 +617,7 @@ else()
 endif()
 
 foreach(PKG_WITH_INCL GRAPHICS KSPACE PYTHON ML-IAP VORONOI COLVARS ML-HDNNP MDI MOLFILE NETCDF
-        PLUMED QMMM QMMM-XTB ML-QUIP ML-RUNNER SCAFACOS MACHDYN KIM COMPRESS ML-PACE LEPTON EXTRA-COMMAND MBX)
+        PLUMED QMMM QMMM-XTB ML-QUIP ML-RUNNER SCAFACOS MACHDYN KIM COMPRESS ML-PACE LEPTON FENIX EXTRA-COMMAND MBX)
   if(PKG_${PKG_WITH_INCL})
     include(Packages/${PKG_WITH_INCL})
   endif()
@@ -753,9 +764,14 @@ endif()
 set(LAMMPS_STYLE_HEADERS_DIR ${CMAKE_CURRENT_BINARY_DIR}/styles)
 
 GenerateStyleHeaders(${LAMMPS_STYLE_HEADERS_DIR})
-GeneratePackagesHeaders(${LAMMPS_STYLE_HEADERS_DIR})
+GenerateStyleSources(${LAMMPS_STYLE_HEADERS_DIR})
+GeneratePackageRegistry(${LAMMPS_STYLE_HEADERS_DIR})
 
 target_include_directories(lammps PRIVATE ${LAMMPS_STYLE_HEADERS_DIR})
+
+# add the generated style_*.cpp registration translation units to the library
+get_property(LAMMPS_STYLE_SOURCES GLOBAL PROPERTY LAMMPS_STYLE_SOURCES)
+target_sources(lammps PRIVATE ${LAMMPS_STYLE_SOURCES})
 
 ######################################
 # Generate lmpinstalledpkgs.h
@@ -777,11 +793,12 @@ execute_process(COMMAND ${CMAKE_COMMAND} -E copy_if_different "${LAMMPS_STYLE_HE
 ######################################
 # Generate lmpgitversion.h
 ######################################
+find_package(Git)
 add_custom_target(gitversion COMMAND ${CMAKE_COMMAND}
-  -DLAMMPS_DIR="${LAMMPS_DIR}"
-  -DGIT_EXECUTABLE="${GIT_EXECUTABLE}"
-  -DGIT_FOUND="${GIT_FOUND}"
-  -DLAMMPS_STYLE_HEADERS_DIR="${LAMMPS_STYLE_HEADERS_DIR}"
+  -D LAMMPS_DIR="${LAMMPS_DIR}"
+  -D GIT_EXECUTABLE="${GIT_EXECUTABLE}"
+  -D GIT_FOUND="${GIT_FOUND}"
+  -D LAMMPS_STYLE_HEADERS_DIR="${LAMMPS_STYLE_HEADERS_DIR}"
   -P ${CMAKE_CURRENT_SOURCE_DIR}/Modules/generate_lmpgitversion.cmake)
 set_property(DIRECTORY APPEND PROPERTY ADDITIONAL_MAKE_CLEAN_FILES ${LAMMPS_STYLE_HEADERS_DIR}/gitversion.h)
 add_dependencies(lammps gitversion)
@@ -873,6 +890,7 @@ endif()
 install(FILES ${LAMMPS_DOC_DIR}/lammps.1 DESTINATION ${CMAKE_INSTALL_MANDIR}/man1 RENAME ${LAMMPS_BINARY}.1)
 
 include(Tools)
+include(Packaging)
 include(Documentation)
 
 ###############################################################################
@@ -893,6 +911,13 @@ install(
         ${CMAKE_BINARY_DIR}/etc/profile.d/lammps.csh
   DESTINATION ${CMAKE_INSTALL_SYSCONFDIR}/profile.d
 )
+
+###############################################################################
+# On Linux systems (any others, too?) we may need to update the shared linker cache
+###############################################################################
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  install(CODE "execute_process(COMMAND ldconfig || exit 0)")
+endif()
 
 ###############################################################################
 # Install LAMMPS lib and python module into site-packages folder with
@@ -924,14 +949,6 @@ else()
     install-python
     ${CMAKE_COMMAND} -E echo "Must build LAMMPS as a shared library to use the Python module")
 endif()
-
-###############################################################################
-# Create tarball for download with html and PDF version of manual included
-###############################################################################
-add_custom_target(tarball
-  COMMAND ${LAMMPS_DIR}/cmake/packaging/build_tarball.sh ${LAMMPS_DIR}/doc
-)
-
 
 include(Testing)
 include(CodeCoverage)

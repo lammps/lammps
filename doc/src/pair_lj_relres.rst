@@ -1,10 +1,11 @@
 .. index:: pair_style lj/relres
+.. index:: pair_style lj/relres/kk
 .. index:: pair_style lj/relres/omp
 
 pair_style lj/relres command
 ============================
 
-Accelerator Variants: *lj/relres/omp*
+Accelerator Variants: *lj/relres/kk*, *lj/relres/omp*
 
 Syntax
 """"""
@@ -219,7 +220,7 @@ Notice that the CG parameters are mixed only for interactions between atom
 types associated with hybrid sites, and that the cutoffs are
 mixed on the cluster basis.
 
-More examples can be found in the *examples/relres* folder.
+More examples can be found in the *examples/PACKAGES/relres* folder.
 
 ----------
 

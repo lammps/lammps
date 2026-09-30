@@ -48,7 +48,7 @@ different machines and configurations line up.
 
 | field | type | meaning |
 |---|---|---|
-| `status` | string | `passed`, `failed`, `error`, `skipped` |
+| `status` | string | `passed`, `failed`, `error`, `runtest`, `skipped` |
 | `time` | float | measured wall-clock time of the run in seconds, including a run that crashed or timed out |
 | `message` | string | one-line status, e.g. `completed, 6 abs diff and 6 rel diff checks failed` |
 | `diverged` | int | number of thermo quantities that leave their tolerance somewhere in the run |
@@ -61,6 +61,13 @@ The same values appear as attributes on the JUnit `<testcase>` element (`diverge
 `diverged-at`, `diverged-row`, `attention`) and in the `failed_checks` mapping of
 `progress.yaml` (`diverged`, `diverged_at`, `diverged_row`), with `attention` as a
 top-level key of the progress entry.
+
+The `runtest` status marks runs that completed but where nothing could be checked
+(e.g. no reference log file exists, numerical checks were skipped, or the run was a
+`--preflight-only` check with `-skiprun`): only the run itself was tested, so they
+must not be counted as passed.  JUnit XML has no element for this outcome, so in the
+XML files these test cases are written as `<skipped>` with a `status="runtest"`
+attribute on the `<testcase>` element, which `merge_results.py` reads back apart.
 
 ## Classifying a failure
 

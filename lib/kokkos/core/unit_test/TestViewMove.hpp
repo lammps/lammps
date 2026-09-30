@@ -163,7 +163,8 @@ TEST(TEST_CATEGORY, view_moved_from) {
 }
 
 #if !(defined(KOKKOS_COMPILER_NVCC) || defined(KOKKOS_COMPILER_NVHPC) || \
-      (defined(KOKKOS_COMPILER_CLANG) && defined(KOKKOS_ENABLE_CUDA)))
+      (defined(KOKKOS_COMPILER_CLANG) && KOKKOS_COMPILER_CLANG < 1600 && \
+       defined(KOKKOS_ENABLE_CUDA)))
 constexpr bool test_view_is_nothrow_move_constructible() {
   static_assert(
       std::is_nothrow_move_constructible_v<Kokkos::View<int*, TEST_EXECSPACE>>);

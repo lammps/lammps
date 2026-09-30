@@ -242,7 +242,7 @@ void omega_thermostat_kokkos();
 // NOLINTNEXTLINE
       KOKKOS_INLINE_FUNCTION
       void operator()(const int i, value_type &energy) const {
-        energy += c.compute_energy_item(i);
+        energy += static_cast<double>(c.compute_energy_item(i));
       }
 // NOLINTNEXTLINE
       KOKKOS_INLINE_FUNCTION

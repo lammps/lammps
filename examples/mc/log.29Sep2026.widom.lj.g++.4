@@ -1,0 +1,92 @@
+LAMMPS (2 Sep 2026)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
+  using 1 OpenMP thread(s) per MPI task
+# Kob and Andersen model Phys. Rev. E 51, 4626 (1995)
+
+units           lj
+atom_style      atomic
+
+pair_style      lj/cut 2.5
+pair_modify     shift yes
+
+read_data       data.widom.lj
+Reading data file ...
+  orthogonal box = (0 0 0) to (9.4 9.4 9.4)
+  1 by 2 by 2 MPI processor grid
+  reading atoms ...
+  1000 atoms
+  reading velocities ...
+  1000 velocities
+  read_data CPU = 0.003 seconds
+
+pair_coeff      1 1 1.0 1.0 2.5
+pair_coeff      1 2 1.5 0.8 2.0
+pair_coeff      2 2 0.5 0.88 2.2
+
+neighbor        0.3 bin
+neigh_modify    delay 0 every 5 check yes
+
+fix             mywidom all widom 10 100000 2 29494 0.75
+
+fix             1 all langevin 0.75 0.75 0.1 48279 zero yes
+fix             2 all nve
+
+timestep        0.002
+
+thermo_style    custom step temp pe etotal press vol density f_mywidom[1] f_mywidom[2] f_mywidom[3]
+thermo          10
+
+run             100
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 5 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 2.8
+  ghost atom cutoff = 2.8
+  binsize = 1.4, bins = 7 7 7
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 3.13 | 3.13 | 3.131 Mbytes
+   Step          Temp          PotEng         TotEng         Press          Volume        Density      f_mywidom[1]   f_mywidom[2]   f_mywidom[3] 
+         0   0.75021245    -6.4204308     -5.2962374      7.2962696      830.584        1.2039721      0              0              830.584      
+        10   0.74279259    -6.4332442     -5.3201696      7.2071344      830.584        1.2039721     -3.8561476      170.97719      830.584      
+        20   0.73016272    -6.4222911     -5.3281423      7.2714238      830.584        1.2039721     -4.1058852      238.53442      830.584      
+        30   0.74416342    -6.429139      -5.3140101      7.2713375      830.584        1.2039721     -4.6385618      485.29114      830.584      
+        40   0.73295457    -6.4370942     -5.3387618      7.227091       830.584        1.2039721     -4.9698767      754.83728      830.584      
+        50   0.76914235    -6.4473959     -5.2948361      7.2179148      830.584        1.2039721     -3.7222872      143.02931      830.584      
+        60   0.74099083    -6.4433012     -5.3329265      7.204973       830.584        1.2039721     -4.0195614      212.60057      830.584      
+        70   0.74514671    -6.4288463     -5.312244       7.2771269      830.584        1.2039721     -3.3204066      83.697472      830.584      
+        80   0.72787097    -6.4457574     -5.3550427      7.1130709      830.584        1.2039721     -3.6660681      132.69999      830.584      
+        90   0.78452846    -6.5034376     -5.3278217      6.8238659      830.584        1.2039721     -3.5015978      106.56947      830.584      
+       100   0.77188499    -6.487313      -5.3306433      6.9133194      830.584        1.2039721     -3.8121667      161.23919      830.584      
+Loop time of 3.17817 on 4 procs for 100 steps with 1000 atoms
+
+Performance: 5437.098 tau/day, 31.465 timesteps/s, 31.465 katom-step/s
+98.8% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.005865   | 0.0060043  | 0.0062303  |   0.2 |  0.19
+Neigh   | 0.0032696  | 0.0034364  | 0.0037709  |   0.3 |  0.11
+Comm    | 0.0042581  | 0.0048739  | 0.005182   |   0.5 |  0.15
+Output  | 0.00020856 | 0.00023556 | 0.00029171 |   0.0 |  0.01
+Modify  | 3.1632     | 3.1633     | 3.1634     |   0.0 | 99.53
+Other   |            | 0.0002879  |            |       |  0.01
+
+Nlocal:            250 ave         256 max         242 min
+Histogram: 1 0 0 0 1 0 0 0 1 1
+Nghost:           1666 ave        1670 max        1659 min
+Histogram: 1 0 0 0 0 0 1 0 0 2
+Neighs:          11538 ave       11832 max       11091 min
+Histogram: 1 0 0 0 0 0 1 1 0 1
+
+Total # of neighbors = 46152
+Ave neighs/atom = 46.152
+Neighbor list builds = 10
+Dangerous builds = 0
+Total wall time: 0:00:03

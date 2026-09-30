@@ -51,13 +51,21 @@ only shows up once a body is rotated -- test with a non-identity quaternion.
   pointer is null in a superellipsoid system, so dereferencing it crashes.  Branch on
   the flag.
 - **2d rigid-body frames must keep `ez = +z`.**  For 2d bodies the in-plane inertia
-  moments are near-degenerate, so `MathExtra::jacobi3` eigenvector signs are
+  moments are near-degenerate, so `MathEigen::jacobi3` eigenvector signs are
   solver/build dependent, and the right-handedness enforcement afterwards can leave
   `ez = -z`.  The scalar-theta orientation math for LINE particles assumes a pure +z
   rotation (a flipped frame turns the in-plane map into a reflection, giving wrong
   per-rod orientations); TRIANGLE quaternion math is immune.  After the handedness
   fix-up, if `ez[2] < 0` in 2d, negate BOTH `ey` and `ez` (still a right-handed
   eigenbasis) -- see `setup_bodies_static` in `fix rigid`/`fix rigid/small`.
+- **2d frames of planar bodies: do not let an eigenvalue sort pick the axes.**  For a
+  planar body the out-of-plane moment is the LARGEST (sum of the in-plane ones), so a
+  decreasing sort makes z principal axis 0, and a 1-ulp difference (FMA on ARM64) in
+  a near-degenerate case changes the ordering -> quaternions tilted by 90 degrees and
+  roundoff-level out-of-plane forces.  The BODY styles `rounded/polygon` and 2d
+  `nparticle` therefore call `jacobi3(..., 0)` (unsorted), which yields a pure z
+  rotation; `fix rigid` handles 2d with an ascending sort plus the explicit `ey`/`ez`
+  fix-up above (a plain ascending sort still fails for 2d dimer ties).
 - **Angular momentum: OMEGA-type vs ANGMOM-type.** Sphere and line particles carry an
   angular velocity (`atom->omega`); their spin angular momentum is `I_spin * omega`
   (sphere: all 3 components; line: z only).  Ellipsoid, superellipsoid, triangle, and

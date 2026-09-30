@@ -53,9 +53,6 @@ struct GraphImpl<Kokkos::Cuda> {
     KOKKOS_ENSURES(m_graph_exec);
   }
 
-  using root_node_impl_t =
-      GraphNodeImpl<Kokkos::Cuda, Kokkos::Experimental::TypeErasedTag,
-                    Kokkos::Experimental::TypeErasedTag>;
   using aggregate_impl_t = CudaGraphNodeAggregate;
   using aggregate_node_impl_t =
       GraphNodeImpl<Kokkos::Cuda, aggregate_impl_t,
@@ -203,7 +200,7 @@ struct GraphImpl<Kokkos::Cuda> {
   auto create_root_node_ptr() {
     KOKKOS_EXPECTS(bool(m_graph))
     KOKKOS_EXPECTS(!bool(m_graph_exec))
-    auto rv = std::make_shared<root_node_impl_t>(
+    auto rv = std::make_shared<root_impl_t<Kokkos::Cuda>>(
         m_device_handle, _graph_node_is_root_ctor_tag{});
     KOKKOS_IMPL_CUDA_SAFE_CALL(
         (m_device_handle.m_exec.impl_internal_space_instance()

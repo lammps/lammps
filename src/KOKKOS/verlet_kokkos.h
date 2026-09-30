@@ -50,6 +50,8 @@ class VerletKokkos : public Verlet {
   int fuse_force_clear,fuse_integrate;
 
   void fuse_check(int, int);
+  int overlap_possible();
+  int host_force_styles(uint64_t * = nullptr);
 };
 }
 

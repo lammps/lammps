@@ -41,10 +41,9 @@ static constexpr int DELTA = 1048576;
 /* ---------------------------------------------------------------------- */
 
 DumpGrid::DumpGrid(LAMMPS *lmp, int narg, char **arg) :
-  Dump(lmp, narg, arg), idregion(nullptr), earg(nullptr), vtype(nullptr),
+  Dump(lmp, narg, arg), idregion(nullptr), earg(nullptr),
   vformat(nullptr), columns(nullptr), columns_default(nullptr),
-  field2index(nullptr), field2grid(nullptr), field2data(nullptr),
-  argindex(nullptr), id_compute(nullptr), id_fix(nullptr), pack_choice(nullptr)
+  id_compute(nullptr), id_fix(nullptr)
 {
   if (narg == 5) error->all(FLERR,"No dump grid arguments specified");
 
@@ -64,13 +63,13 @@ DumpGrid::DumpGrid(LAMMPS *lmp, int narg, char **arg) :
 
   // allocate field vectors
 
-  pack_choice = new FnPtrPack[nfield];
-  vtype = new int[nfield];
-  field2source = new int[nfield];
-  field2index = new int[nfield];
-  field2grid = new int[nfield];
-  field2data = new int[nfield];
-  argindex = new int[nfield];
+  pack_choice.resize(nfield);
+  vtype.resize(nfield);
+  field2source.resize(nfield);
+  field2index.resize(nfield);
+  field2grid.resize(nfield);
+  field2data.resize(nfield);
+  argindex.resize(nfield);
 
   buffer_allow = 1;
   buffer_flag = 1;
@@ -150,14 +149,6 @@ DumpGrid::~DumpGrid()
     memory->sfree(earg);
   }
 
-  delete[] pack_choice;
-  delete[] vtype;
-  delete[] field2source;
-  delete[] field2index;
-  delete[] field2grid;
-  delete[] field2data;
-  delete[] argindex;
-
   delete[] idregion;
 
   for (int i = 0; i < ncompute; i++) delete[] id_compute[i];
@@ -216,18 +207,23 @@ void DumpGrid::init_style()
   for (const auto &word : words) {
     delete[] vformat[i];
 
+    std::string colformat;
     if (format_column_user[i])
-      vformat[i] = utils::strdup(std::string(format_column_user[i]) + " ");
+      colformat = format_column_user[i];
     else if (vtype[i] == Dump::INT && format_int_user)
-      vformat[i] = utils::strdup(std::string(format_int_user) + " ");
+      colformat = format_int_user;
     else if (vtype[i] == Dump::DOUBLE && format_float_user)
-      vformat[i] = utils::strdup(std::string(format_float_user) + " ");
+      colformat = format_float_user;
     else if (vtype[i] == Dump::BIGINT && format_bigint_user)
-      vformat[i] = utils::strdup(std::string(format_bigint_user) + " ");
-    else vformat[i] = utils::strdup(word + " ");
+      colformat = format_bigint_user;
+    else colformat = word;
 
-    // remove trailing blank on last column's format
-    if (i == nfield-1) vformat[i][strlen(vformat[i])-1] = '\0';
+    // the format may come from the user, so check it against the column type
+    check_column_format(colformat, vtype[i], i);
+
+    // add trailing blank, but not on the last column's format
+    if (i < nfield-1) colformat += " ";
+    vformat[i] = utils::strdup(colformat);
 
     ++i;
   }
@@ -767,19 +763,20 @@ int DumpGrid::modify_param(int narg, char **arg)
     if (narg < 3) error->all(FLERR,"Illegal dump_modify command");
 
     if (strcmp(arg[1],"int") == 0) {
+      auto errmsg = utils::check_format(arg[2], utils::FmtArg::INTEGER);
+      if (!errmsg.empty())
+        error->all(FLERR, "Invalid dump_modify int format: {}", errmsg);
       delete[] format_int_user;
       format_int_user = utils::strdup(arg[2]);
-      // replace "d" in format_int_user with bigint format specifier
-      // which is BIGINT_FORMAT without the leading '%'
-      std::string ifmt = format_int_user;
-      auto found = ifmt.find('d');
-      if (found == std::string::npos)
-        error->all(FLERR,"Dump_modify int format does not contain d character");
-      ifmt.replace(found, 1, std::string(BIGINT_FORMAT).substr(1));
+      // derive the format for large integers from the one given by the user
       delete[] format_bigint_user;
-      format_bigint_user = utils::strdup(ifmt);
+      format_bigint_user =
+        utils::strdup(utils::adjust_format(arg[2], utils::FmtArg::BIGINT));
 
     } else if (strcmp(arg[1],"float") == 0) {
+      auto errmsg = utils::check_format(arg[2], utils::FmtArg::FLOAT);
+      if (!errmsg.empty())
+        error->all(FLERR, "Invalid dump_modify float format: {}", errmsg);
       delete[] format_float_user;
       format_float_user = utils::strdup(arg[2]);
 
@@ -787,6 +784,9 @@ int DumpGrid::modify_param(int narg, char **arg)
       int i = utils::inumeric(FLERR,arg[1],false,lmp) - 1;
       if (i < 0 || i >= nfield)
         error->all(FLERR,"Illegal dump_modify command");
+      auto errmsg = utils::check_format(arg[2], fmtarg_type(vtype[i]));
+      if (!errmsg.empty())
+        error->all(FLERR, "Invalid dump_modify format for column {}: {}", i + 1, errmsg);
       delete[] format_column_user[i];
       format_column_user[i] = utils::strdup(arg[2]);
     }

@@ -22,6 +22,7 @@
 #include "domain.h"
 #include "error.h"
 #include "gpu_extra.h"
+#include "lammps_gpu.h"
 #include "neigh_list.h"
 #include "neighbor.h"
 #include "suffix.h"
@@ -29,31 +30,8 @@
 #include <cmath>
 
 using namespace LAMMPS_NS;
+using namespace LAMMPS_GPU;
 
-// External functions from cuda library for atom decomposition
-
-int eam_gpu_init(const int ntypes, double host_cutforcesq, int **host_type2rhor,
-                 int **host_type2z2r, int *host_type2frho, double ***host_rhor_spline,
-                 double ***host_z2r_spline, double ***host_frho_spline, double **host_cutsq,
-                 double rdr, double rdrho, double rhomax, double rhomin, const int he_flag,
-                 int nrhor, int nrho, int nz2r, int nfrho,
-                 int nr, const int nlocal, const int nall, const int max_nbors,
-                 const int maxspecial, const double cell_size, int &gpu_mode, FILE *screen,
-                 int &fp_size);
-void eam_gpu_clear();
-int **eam_gpu_compute_n(const int ago, const int inum_full, const int nall, double **host_x,
-                        int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
-                        tagint **special, const bool eflag, const bool vflag, const bool eatom,
-                        const bool vatom, int &host_start, int **ilist, int **jnum,
-                        const double cpu_time, bool &success, int &inum, void **fp_ptr,
-                        double *prd, int *periodicity);
-void eam_gpu_compute(const int ago, const int inum_full, const int nlocal, const int nall,
-                     double **host_x, int *host_type, int *ilist, int *numj, int **firstneigh,
-                     const bool eflag, const bool vflag, const bool eatom, const bool vatom,
-                     int &host_start, const double cpu_time, bool &success, void **fp_ptr);
-void eam_gpu_compute_force(int *ilist, const bool eflag, const bool vflag, const bool eatom,
-                           const bool vatom);
-double eam_gpu_bytes();
 
 /* ---------------------------------------------------------------------- */
 
@@ -61,7 +39,6 @@ PairEAMGPU::PairEAMGPU(LAMMPS *lmp) : PairEAM(lmp), gpu_mode(GPU_FORCE)
 {
   respa_enable = 0;
   reinitflag = 0;
-  cpu_time = 0.0;
   suffix_flag |= Suffix::GPU;
 
   gpu_init_fn = eam_gpu_init;
@@ -101,7 +78,7 @@ void PairEAMGPU::compute(int eflag, int vflag)
 
   int nlocal = atom->nlocal;
   int nall = nlocal + atom->nghost;
-  int inum, host_start, inum_dev;
+  int inum, inum_dev;
 
   bool success = true;
   int *ilist, *numneigh, **firstneigh;
@@ -121,16 +98,15 @@ void PairEAMGPU::compute(int eflag, int vflag)
     firstneigh =
         gpu_compute_n_fn(neighbor->ago, inum, nall, atom->x, atom->type, sublo, subhi, atom->tag,
                          atom->nspecial, atom->special, eflag, vflag, eflag_atom, vflag_atom,
-                         host_start, &ilist, &numneigh, cpu_time, success, inum_dev, &fp_pinned,
-                         domain->prd, domain->periodicity);
+                         &ilist, &numneigh, success, inum_dev, &fp_pinned, domain->prd,
+                         domain->periodicity);
   } else {    // gpu_mode == GPU_FORCE
     inum = list->inum;
     ilist = list->ilist;
     numneigh = list->numneigh;
     firstneigh = list->firstneigh;
     gpu_compute_fn(neighbor->ago, inum, nlocal, nall, atom->x, atom->type, ilist, numneigh,
-                   firstneigh, eflag, vflag, eflag_atom, vflag_atom, host_start, cpu_time, success,
-                   &fp_pinned);
+                   firstneigh, eflag, vflag, eflag_atom, vflag_atom, success, &fp_pinned);
   }
 
   if (!success) error->one(FLERR, "Insufficient memory on accelerator");

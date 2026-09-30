@@ -20,7 +20,6 @@ FixStyle(qmmm/xtb,FixQMMMXTB);
 #include <array>
 #include <memory>
 #include <unordered_map>
-#include <vector>
 
 namespace LAMMPS_NS {
 

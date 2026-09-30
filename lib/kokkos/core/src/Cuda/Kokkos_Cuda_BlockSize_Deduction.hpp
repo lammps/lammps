@@ -31,6 +31,14 @@ inline int cuda_warp_per_sm_allocation_granularity(
   }
 }
 
+// sharedMemPerBlockOptin is the maximum available after opting in via
+// cudaFuncAttributeMaxDynamicSharedMemorySize; the driver reserves
+// reservedSharedMemPerBlock bytes, leaving this as the usable ceiling.
+inline size_t get_max_shared_mem_per_block(
+    cudaDeviceProp const& props) noexcept {
+  return props.sharedMemPerBlockOptin - props.reservedSharedMemPerBlock;
+}
+
 inline int cuda_max_warps_per_sm_registers(
     cudaDeviceProp const& properties, cudaFuncAttributes const& attributes) {
   // Maximum number of warps per sm as a function of register counts,
@@ -77,10 +85,10 @@ inline int cuda_max_active_blocks_per_sm(cudaDeviceProp const& properties,
     max_blocks_regs--;
 
   // Limits due to shared memory/SM
-  size_t const shmem_per_sm            = properties.sharedMemPerMultiprocessor;
-  size_t const shmem_per_block         = properties.sharedMemPerBlock;
-  size_t const static_shmem            = attributes.sharedSizeBytes;
-  size_t const dynamic_shmem_per_block = attributes.maxDynamicSharedSizeBytes;
+  size_t const shmem_per_sm    = properties.sharedMemPerMultiprocessor;
+  size_t const shmem_per_block = get_max_shared_mem_per_block(properties);
+  size_t const static_shmem    = attributes.sharedSizeBytes;
+  size_t const dynamic_shmem_per_block = shmem_per_block - static_shmem;
   size_t const total_shmem             = static_shmem + dynamic_shmem;
 
   int const max_blocks_shmem =

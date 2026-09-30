@@ -73,10 +73,21 @@ void DumpXYZ::init_style()
 
   delete [] format;
 
+  std::string lineformat;
   if (format_line_user)
-    format = utils::strdup(fmt::format("{}\n", format_line_user));
+    lineformat = fmt::format("{}\n", format_line_user);
   else
-    format = utils::strdup(fmt::format("{}\n", format_default));
+    lineformat = fmt::format("{}\n", format_default);
+
+  // the line format may come from the user and is used with the element name
+  // and the three coordinates, so it has to be checked before it is used
+
+  const std::vector<utils::FmtArg> expect = {utils::FmtArg::STRING, utils::FmtArg::FLOAT,
+                                             utils::FmtArg::FLOAT, utils::FmtArg::FLOAT};
+  auto errmsg = utils::check_format(lineformat, expect);
+  if (!errmsg.empty())
+    error->all(FLERR, Error::NOLASTLINE, "Invalid dump {} format line: {}", id, errmsg);
+  format = utils::strdup(lineformat);
 
   // initialize typenames array to be backward compatible by default
   if (typenames == nullptr) {

@@ -29,8 +29,6 @@ DumpStyle(vtk,DumpVTK);
 
 #include <map>
 #include <set>
-#include <string>
-#include <vector>
 
 namespace LAMMPS_NS {
 

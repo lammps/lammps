@@ -363,6 +363,14 @@ int FixMolSwap::attempt_swap()
     if (domain->triclinic) domain->lamda2x(atom->nlocal+atom->nghost);
     if (modify->n_pre_neighbor) modify->pre_neighbor();
     neighbor->build(1);
+
+    // comm->borders() may have reallocated the per-atom arrays
+
+    mask = atom->mask;
+    v = atom->v;
+    q = atom->q;
+    type = atom->type;
+    molecule = atom->molecule;
   } else {
     comm->forward_comm(this);
   }

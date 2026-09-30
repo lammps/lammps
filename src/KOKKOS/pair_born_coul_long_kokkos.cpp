@@ -167,13 +167,13 @@ compute_fpair(const KK_FLOAT &rsq, const int & /*i*/, const int & /*j*/,
   if (rsq >= cut_ljsq) return static_cast<KK_FLOAT>(0.0);
   const KK_FLOAT r2inv  = static_cast<KK_FLOAT>(1.0) / rsq;
   const KK_FLOAT r6inv  = r2inv*r2inv*r2inv;
-  const KK_FLOAT r      = sqrt(rsq);
+  const KK_FLOAT r      = Kokkos::sqrt(rsq);
   const KK_FLOAT rhoinv = STACKPARAMS ? m_params[itype][jtype].rhoinv : params(itype,jtype).rhoinv;
   const KK_FLOAT sigma  = STACKPARAMS ? m_params[itype][jtype].sigma  : params(itype,jtype).sigma;
   const KK_FLOAT born1  = STACKPARAMS ? m_params[itype][jtype].born1  : params(itype,jtype).born1;
   const KK_FLOAT born2  = STACKPARAMS ? m_params[itype][jtype].born2  : params(itype,jtype).born2;
   const KK_FLOAT born3  = STACKPARAMS ? m_params[itype][jtype].born3  : params(itype,jtype).born3;
-  const KK_FLOAT rexp   = exp((sigma - r) * rhoinv);
+  const KK_FLOAT rexp   = Kokkos::exp((sigma - r) * rhoinv);
   const KK_FLOAT forceborn = born1*r*rexp - born2*r6inv + born3*r2inv*r6inv;
   return forceborn*r2inv;
 }
@@ -203,9 +203,9 @@ compute_fcoul(const KK_FLOAT &rsq, const int & /*i*/, const int &j,
     }
     return forcecoul/rsq;
   } else {
-    const KK_FLOAT r      = sqrt(rsq);
+    const KK_FLOAT r      = Kokkos::sqrt(rsq);
     const KK_FLOAT grij   = g_ewald_kk * r;
-    const KK_FLOAT expm2  = exp(-grij*grij);
+    const KK_FLOAT expm2  = Kokkos::exp(-grij*grij);
     const KK_FLOAT t      = static_cast<KK_FLOAT>(1.0) / (static_cast<KK_FLOAT>(1.0) + static_cast<KK_FLOAT>(EWALD_P)*grij);
     const KK_FLOAT erfc   = t * (static_cast<KK_FLOAT>(A1)+t*(static_cast<KK_FLOAT>(A2)+t*(static_cast<KK_FLOAT>(A3)+t*(static_cast<KK_FLOAT>(A4)+t*static_cast<KK_FLOAT>(A5))))) * expm2;
     const KK_FLOAT prefactor = qqrd2e * qtmp*q[j]/r;
@@ -229,14 +229,14 @@ compute_evdwl(const KK_FLOAT &rsq, const int & /*i*/, const int & /*j*/,
   if (rsq >= cut_ljsq) return static_cast<KK_FLOAT>(0.0);
   const KK_FLOAT r2inv  = static_cast<KK_FLOAT>(1.0) / rsq;
   const KK_FLOAT r6inv  = r2inv*r2inv*r2inv;
-  const KK_FLOAT r      = sqrt(rsq);
+  const KK_FLOAT r      = Kokkos::sqrt(rsq);
   const KK_FLOAT rhoinv = STACKPARAMS ? m_params[itype][jtype].rhoinv : params(itype,jtype).rhoinv;
   const KK_FLOAT sigma  = STACKPARAMS ? m_params[itype][jtype].sigma  : params(itype,jtype).sigma;
   const KK_FLOAT a      = STACKPARAMS ? m_params[itype][jtype].a      : params(itype,jtype).a;
   const KK_FLOAT born2  = STACKPARAMS ? m_params[itype][jtype].born2  : params(itype,jtype).born2;
   const KK_FLOAT born3  = STACKPARAMS ? m_params[itype][jtype].born3  : params(itype,jtype).born3;
   const KK_FLOAT offset = STACKPARAMS ? m_params[itype][jtype].offset : params(itype,jtype).offset;
-  const KK_FLOAT rexp   = exp((sigma - r) * rhoinv);
+  const KK_FLOAT rexp   = Kokkos::exp((sigma - r) * rhoinv);
   // born2 = 6*c, born3 = 8*d
   return a*rexp - (born2/static_cast<KK_FLOAT>(6.0))*r6inv
          + (born3/static_cast<KK_FLOAT>(8.0))*r6inv*r2inv - offset;
@@ -267,9 +267,9 @@ compute_ecoul(const KK_FLOAT &rsq, const int & /*i*/, const int &j,
     }
     return ecoul;
   } else {
-    const KK_FLOAT r      = sqrt(rsq);
+    const KK_FLOAT r      = Kokkos::sqrt(rsq);
     const KK_FLOAT grij   = g_ewald_kk * r;
-    const KK_FLOAT expm2  = exp(-grij*grij);
+    const KK_FLOAT expm2  = Kokkos::exp(-grij*grij);
     const KK_FLOAT t      = static_cast<KK_FLOAT>(1.0) / (static_cast<KK_FLOAT>(1.0) + static_cast<KK_FLOAT>(EWALD_P)*grij);
     const KK_FLOAT erfc   = t * (static_cast<KK_FLOAT>(A1)+t*(static_cast<KK_FLOAT>(A2)+t*(static_cast<KK_FLOAT>(A3)+t*(static_cast<KK_FLOAT>(A4)+t*static_cast<KK_FLOAT>(A5))))) * expm2;
     const KK_FLOAT prefactor = qqrd2e * qtmp*q[j]/r;

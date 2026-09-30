@@ -251,7 +251,7 @@ void FixLambdaLACSPAPIP::init()
 {
   // full neighbour list for thermostating
   auto *req = neighbor->add_request(this, NeighConst::REQ_FULL);
-  req->set_cutoff(sqrt(cutsq_combined));
+  req->set_cutoff_fixed(sqrt(cutsq_combined));
 
   if (atom->tag_enable == 0) error->all(FLERR, "fix lambda/la/csp/apip requires atom IDs");
 

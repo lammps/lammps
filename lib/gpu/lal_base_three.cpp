@@ -68,7 +68,7 @@ int BaseThreeT::bytes_per_atom_atomic(const int max_nbors) const {
 template <class numtyp, class acctyp>
 int BaseThreeT::init_three(const int nlocal, const int nall,
                            const int max_nbors, const int maxspecial,
-                           const double cell_size, const double gpu_split,
+                           const double cell_size,
                            FILE *_screen, const void *pair_program,
                            const char *two, const char *three_center,
                            const char *three_end, const char *short_nbor,
@@ -83,10 +83,6 @@ int BaseThreeT::init_three(const int nlocal, const int nall,
     gpu_nbor=2;
   _gpu_nbor=gpu_nbor;
 
-  int _gpu_host=0;
-  int host_nlocal=hd_balancer.first_host_count(nlocal,gpu_split,gpu_nbor);
-  if (host_nlocal>0)
-    _gpu_host=1;
 
   // Allow forcing threads per atom to 1 for tersoff due to subg sync issue
   if (tpa_override)
@@ -124,17 +120,16 @@ int BaseThreeT::init_three(const int nlocal, const int nall,
   if (_threads_per_atom*_threads_per_atom>device->simd_size())
     return -10;
 
-  success = device->init_nbor(nbor,nall,host_nlocal,nall,maxspecial,
-                              _gpu_host,max_nbors,cell_size,true,1,true);
+  success = device->init_nbor(nbor,nall,0,nall,maxspecial,
+                              0,max_nbors,cell_size,true,1,true);
   if (success!=0)
     return success;
 
-  // Initialize host-device load balancer
-  hd_balancer.init(device,gpu_nbor,gpu_split);
 
   // Initialize timers for the selected GPU
   time_pair.init(*ucl_device);
   time_pair.zero();
+  _timestep=0;
 
   pos_tex.bind_float(atom->x,4);
 
@@ -159,14 +154,12 @@ template <class numtyp, class acctyp>
 void BaseThreeT::clear_atomic() {
   // Output any timing information
   acc_timers();
-  double avg_split=hd_balancer.all_avg_split();
-  _gpu_overhead*=hd_balancer.timestep();
-  _driver_overhead*=hd_balancer.timestep();
-  device->output_times(time_pair,*ans,*nbor,avg_split,_max_bytes+_max_an_bytes,
+  _gpu_overhead*=_timestep;
+  _driver_overhead*=_timestep;
+  device->output_times(time_pair,*ans,*nbor,_max_bytes+_max_an_bytes,
                        _gpu_overhead,_driver_overhead,_threads_per_atom,screen);
 
   time_pair.clear();
-  hd_balancer.clear();
 
   nbor->clear();
   ans->clear();
@@ -260,8 +253,7 @@ void BaseThreeT::compute(const int f_ago, const int inum_full, const int nall,
                          const int nlist, double **host_x, int *host_type,
                          int *ilist, int *numj, int **firstneigh,
                          const bool eflag_in, const bool vflag_in,
-                         const bool eatom, const bool vatom, int &host_start,
-                         const double cpu_time, bool &success) {
+                         const bool eatom, const bool vatom, bool &success) {
   acc_timers();
   int eflag, vflag;
   if (eatom) eflag=2;
@@ -278,20 +270,19 @@ void BaseThreeT::compute(const int f_ago, const int inum_full, const int nall,
 
   set_kernel(eflag,vflag);
   if (inum_full==0) {
-    host_start=0;
     // Make sure textures are correct if realloc by a different hybrid style
     resize_atom(0,nall,success);
     zero_timers();
     return;
   }
 
-  int ago=hd_balancer.ago_first(f_ago);
-  int inum=hd_balancer.balance(ago,inum_full,cpu_time);
+  int ago=f_ago;
+  int inum=inum_full;
+  _timestep++;
   ans->inum(inum);
   #ifdef THREE_CONCURRENT
   ans2->inum(inum);
   #endif
-  host_start=inum;
 
   if (ago==0) {
     reset_nbors(nall, inum, nlist, ilist, numj, firstneigh, success);
@@ -300,7 +291,6 @@ void BaseThreeT::compute(const int f_ago, const int inum_full, const int nall,
   }
 
   atom->cast_x_data(host_x,host_type);
-  hd_balancer.start_timer();
   atom->add_x_data(host_x,host_type);
 
   // _ainum to be used in loop() for short neighbor list build
@@ -319,7 +309,6 @@ void BaseThreeT::compute(const int f_ago, const int inum_full, const int nall,
   ans2->copy_answers(eflag_in,vflag_in,eatom,vatom,ilist,red_blocks);
   device->add_ans_object(ans2);
   #endif
-  hd_balancer.stop_timer();
 }
 
 // ---------------------------------------------------------------------------
@@ -331,9 +320,8 @@ int ** BaseThreeT::compute(const int ago, const int inum_full, const int nall,
                            double *subhi, tagint *tag, int **nspecial,
                            tagint **special, const bool eflag_in,
                            const bool vflag_in, const bool eatom,
-                           const bool vatom, int &host_start,
-                           int **ilist, int **jnum,
-                           const double cpu_time, bool &success) {
+                           const bool vatom, int **ilist, int **jnum,
+                           bool &success) {
   acc_timers();
   int eflag, vflag;
   if (eatom) eflag=2;
@@ -350,20 +338,18 @@ int ** BaseThreeT::compute(const int ago, const int inum_full, const int nall,
 
   set_kernel(eflag,vflag);
   if (inum_full==0) {
-    host_start=0;
     // Make sure textures are correct if realloc by a different hybrid style
     resize_atom(0,nall,success);
     zero_timers();
     return nullptr;
   }
 
-  hd_balancer.balance(cpu_time);
-  int inum=hd_balancer.get_gpu_count(ago,inum_full);
+  int inum=inum_full;
+  _timestep++;
   ans->inum(inum);
   #ifdef THREE_CONCURRENT
   ans2->inum(inum);
   #endif
-  host_start=inum;
 
   // Build neighbor list on GPU if necessary
   if (ago==0) {
@@ -371,10 +357,8 @@ int ** BaseThreeT::compute(const int ago, const int inum_full, const int nall,
                     sublo, subhi, tag, nspecial, special, success);
     if (!success)
       return nullptr;
-    hd_balancer.start_timer();
   } else {
     atom->cast_x_data(host_x,host_type);
-    hd_balancer.start_timer();
     atom->add_x_data(host_x,host_type);
   }
   *ilist=nbor->host_ilist.begin();
@@ -396,9 +380,8 @@ int ** BaseThreeT::compute(const int ago, const int inum_full, const int nall,
   ans2->copy_answers(eflag_in,vflag_in,eatom,vatom,red_blocks);
   device->add_ans_object(ans2);
   #endif
-  hd_balancer.stop_timer();
 
-  return nbor->host_jlist.begin()-host_start;
+  return nbor->host_jlist.begin()-inum;
 }
 
 template <class numtyp, class acctyp>

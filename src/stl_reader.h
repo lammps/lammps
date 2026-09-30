@@ -17,9 +17,7 @@
 #include "pointers.h"
 
 #include <exception>
-#include <string>
 #include <utility>
-#include <vector>
 
 namespace LAMMPS_NS {
 

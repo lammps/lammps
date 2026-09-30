@@ -64,10 +64,14 @@ class Group : protected Pointers {
   double gyration(int, double, double *, Region *);
   void angmom(int, double *, double *);    // angular momentum of group
   void angmom(int, double *, double *, Region *);
+  void angmom_extended(int, double *);    // += spin angular momentum of finite-size particles
+  void angmom_extended(int, double *, Region *);
   void torque(int, double *, double *);    // torque on group
   void torque(int, double *, double *, Region *);
   void inertia(int, double *, double[3][3]);    // inertia tensor
   void inertia(int, double *, double[3][3], Region *);
+  void inertia_extended(int, double[3][3]);    // += spin inertia of finite-size particles
+  void inertia_extended(int, double[3][3], Region *);
   void omega(double *, double[3][3], double *);    // angular velocity
 
  protected:

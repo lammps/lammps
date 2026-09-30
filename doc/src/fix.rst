@@ -439,6 +439,7 @@ accelerated styles exist.
 * :doc:`store/state <fix_store_state>` - store attributes for each atom
 * :doc:`surface/global <fix_surface_global>` - global granular surface model, each proc has copy
 * :doc:`surface/local <fix_surface_local>` - local granular surface model, distributed across procs
+* :doc:`symmetry <fix_symmetry>` - constrain MD to obey a chosen crystallographic space-group symmetry
 * :doc:`tdpd/source <fix_dpd_source>` - add external concentration source
 * :doc:`temp/berendsen <fix_temp_berendsen>` - temperature control by Berendsen thermostat
 * :doc:`temp/csld <fix_temp_csvr>` - canonical sampling thermostat with Langevin dynamics

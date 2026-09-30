@@ -1,0 +1,51 @@
+# fix symmetry example: 8-atom LJ cluster constrained to P-1 inversion symmetry.
+#
+# Four asymmetric atoms (tags 1..4) sit in one half of the box; their
+# inversion images (tags 5..8) sit in the other half. With fix symmetry
+# the lattice relation  s_image = -s_asym (mod 1)  is preserved exactly
+# over the entire run -- to FP precision rather than to integrator order.
+#
+# The companion file pinv.json declares the two-operator space group and
+# the four (asym, image) orbits.
+
+units           lj
+atom_style      atomic
+boundary        p p p
+atom_modify     map array
+
+region          box block 0 8 0 8 0 8
+create_box      1 box
+
+# Asymmetric quarter at low-Cartesian positions, spaced > LJ sigma apart.
+create_atoms    1 single 1.2 1.5 1.8
+create_atoms    1 single 3.0 1.2 0.9
+create_atoms    1 single 1.5 3.0 1.1
+create_atoms    1 single 0.9 1.1 3.2
+# Inversion images at L - asym (component-wise) for L = 8.
+create_atoms    1 single 6.8 6.5 6.2
+create_atoms    1 single 5.0 6.8 7.1
+create_atoms    1 single 6.5 5.0 6.9
+create_atoms    1 single 7.1 6.9 4.8
+
+mass            1 1.0
+pair_style      lj/cut 2.5
+pair_coeff      * * 1.0 1.0
+
+velocity        all create 0.7 12345 mom yes rot yes
+
+fix             1 all nve
+fix             sym all symmetry pinv.json
+
+thermo          50
+thermo_style    custom step temp pe etotal press
+
+# Variables for the symmetry sanity check: with lattice-inversion through
+# the cell corner, s_asym + s_image == integer (here, the user placed
+# them so the integer is 1, meaning x1 + x5 == L = 8 for every component).
+variable        sumx equal x[1]+x[5]
+variable        sumy equal y[1]+y[5]
+variable        sumz equal z[1]+z[5]
+
+print           "pre-run  atom1+atom5 = (${sumx}, ${sumy}, ${sumz})  must be (8, 8, 8)"
+run             500
+print           "post-run atom1+atom5 = (${sumx}, ${sumy}, ${sumz})  must be (8, 8, 8)"

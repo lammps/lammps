@@ -43,7 +43,7 @@ Syntax
          N = integer size of loop
          pad = all values will be same length, e.g. 001, 002, ..., 100
        *universe* args = one or more strings
-       *world* args = one string for each partition of processors
+       *world* args = one string for each partition of MPI processes
 
        *equal* or *vector* or *atom* args = one formula containing numbers, thermo keywords,
            math operations, built-in functions, atom values and vectors, compute/fix/variable references
@@ -65,7 +65,7 @@ Syntax
                            inertia(group,dimdim), omega(group,dim)
          region functions = count(group,region), mass(group,region), charge(group,region),
                            xcm(group,dim,region), vcm(group,dim,region), fcm(group,dim,region),
-                           bound(group,dir,region), gyration(group,region), ke(group,reigon),
+                           bound(group,dir,region), gyration(group,region), ke(group,region),
                            angmom(group,dim,region), torque(group,dim,region),
                            inertia(group,dimdim,region), omega(group,dim,region)
          special functions = sum(x), min(x), max(x), ave(x), trap(x), slope(x), sort(x), rsort(x),
@@ -227,6 +227,24 @@ from the list of active variables, and is thus available to be
 re-defined in a subsequent variable command.  The *delete* style does
 the same thing.
 
+.. versionchanged:: 4Jul2026
+
+.. admonition:: Auto-deleted variables can lead to problems
+   :class: warning
+
+   Special care must be taken when iterated variables, e.g. file style
+   variables are exhausted and thus get deleted **during** a run.  For
+   performance reasons, many features in LAMMPS cache how variables are
+   looked up during a run or minimization for the duration of that run
+   or minimization and this can lead to unexpected behavior when
+   variables get auto-deleted.  Evaluating a deleted variable returns
+   0.0 instead of creating an error for practical reasons.  But LAMMPS
+   prints a warning when a file or atomfile style variable is exhausted
+   and auto-deleted.  This can be avoided by making certain that those
+   variables have additional elements.  This condition is rare, but hard
+   to debug, so make certain that when you see the warning about an
+   auto-deleted variable, that this is the intended behavior.
+
 Variables are **not** deleted by the :doc:`clear <clear>` command with
 the exception of atomfile-style variables.
 
@@ -246,7 +264,7 @@ causes the next :doc:`jump <jump>` command encountered in the input
 script to be skipped.  This enables the construction of simple loops
 in the input script that are iterated over and then exited from.
 
-As explained above, an exhausted variable can be re-used in an input
+As explained above, an exhausted variable can be reused in an input
 script.  The *delete* style also removes the variable, the same as if
 it were exhausted, allowing it to be redefined later in the input
 script or when the input script is looped over.  This can be useful
@@ -358,9 +376,16 @@ to the variable.
 For the *format* style, an equal-style or compatible variable is
 specified along with a C-style format string, e.g. "%f" or "%.10g",
 which must be appropriate for formatting a double-precision
-floating-point value and may not have extra characters.  The default
-format is "%.15g".  This variable style allows an equal-style variable
-to be formatted precisely when it is evaluated.
+floating-point value.  The default format is "%.15g".  This variable
+style allows an equal-style variable to be formatted precisely when it
+is evaluated.
+
+.. versionchanged:: 2Sep2026
+
+A conversion in the format string must match a floating-point value.  The
+string may now also contain additional text and use all flags and
+modifiers supported by the C library, e.g. "%+12.6e" or "<%.4f>", which
+were previously rejected.
 
 Note that if you simply wish to print a variable value with desired
 precision to the screen or logfile via the :doc:`print <print>` or
@@ -388,7 +413,7 @@ by the :doc:`shell <shell>` command.
 For the *index* style, one or more strings are specified.  Initially,
 the first string is assigned to the variable.  Each time a
 :doc:`next <next>` command is used with the variable name, the next
-string is assigned.  All processors assign the same string to the
+string is assigned.  All MPI processes assign the same string to the
 variable.
 
 Index-style variables with a single string value can also be set by
@@ -425,7 +450,7 @@ is specified.  This allows generation of a long list of runs
 (e.g. 1000) without having to list N strings in the input script.
 Initially, the string "1" is assigned to the variable.  Each time a
 :doc:`next <next>` command is used with the variable name, the next
-string ("2", "3", etc) is assigned.  All processors assign the same
+string ("2", "3", etc) is assigned.  All MPI processes assign the same
 string to the variable.  The *loop* style can also be specified with
 two arguments N1 and N2.  In this case the loop runs from N1 to N2
 inclusive, and the string N1 is initially assigned to the variable.
@@ -449,7 +474,7 @@ specified before the Python function is invoked for the first time.
 Each time the variable is evaluated, the associated Python function is
 invoked, and the value it returns is also returned by the variable.
 Since the Python function can use other LAMMPS variables as input, or
-query interal LAMMPS quantities to perform its computation, this means
+query internal LAMMPS quantities to perform its computation, this means
 the variable can return a different value each time it is evaluated.
 
 The type of value stored in the variable is determined by the *format*
@@ -508,7 +533,7 @@ For the *world* style, one or more strings are specified.  There must
 be one string for each processor partition or "world".  LAMMPS can be
 run with multiple partitions via the :doc:`-partition command-line
 switch <Run_options>`.  This variable command assigns one string to
-each world.  All processors in the world are assigned the same string.
+each world.  All MPI processes in the world are assigned the same string.
 The next command cannot be used with equal-style variables, since
 there is only one value per world.  This style of variable is useful
 when you wish to run different simulations on different partitions, or
@@ -949,6 +974,16 @@ around its center of mass, ordered as Ixx,Iyy,Izz,Ixy,Iyz,Ixz.
 Omega() returns components of the angular velocity of the group of
 atoms around its center of mass.
 
+.. versionchanged:: 2Sep2026
+
+The inertia() and angmom() functions now include the contributions of
+:doc:`finite-size particles <Howto_spherical>`; previously all atoms
+were treated as point masses.  This is independent of (and does not
+change) the angular-momentum removal performed by :doc:`fix momentum
+<fix_momentum>`, :doc:`velocity zero <velocity>`, and :doc:`compute
+temp/rotate <compute_temp_rotate>`, which continue to act on the
+point-mass (translational) angular momentum only.
+
 Region functions are specified exactly the same way as group functions
 except they take an extra final argument *IDR* which is the region ID.
 The function is computed for all atoms that are in both the group and
@@ -1074,7 +1109,7 @@ the LAMMPS executable and the running simulation via calling the
 :cpp:func:`lammps_extract_setting` library function.  For example, the
 number of processors (MPI ranks) being used by the simulation or the MPI
 process ID (for this processor) can be queried, or the number of atom
-types, bond types and so on. For the full list of available keywords
+types, bond types and so on.  For the full list of available keywords
 *name* and their meaning, see the documentation for extract_setting()
 via the link in this paragraph.
 

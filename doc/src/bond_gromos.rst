@@ -1,10 +1,11 @@
 .. index:: bond_style gromos
+.. index:: bond_style gromos/kk
 .. index:: bond_style gromos/omp
 
 bond_style gromos command
 =========================
 
-Accelerator Variants: *gromos/omp*
+Accelerator Variants: *gromos/kk*, *gromos/omp*
 
 Syntax
 """"""

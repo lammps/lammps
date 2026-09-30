@@ -16,6 +16,7 @@ post_commands: ! |
   pair_coeff * * 0.0 3.0
   fix test solute npt/sphere temp 50.0 ${t_target} 1.0 tri 1.0 1.0 100.0 nreset 2
 input_file: in.dipole
+input_coeffs: coeffs.fourmol
 natoms: 29
 global_scalar: 12.427074202242943
 global_vector: ! |-

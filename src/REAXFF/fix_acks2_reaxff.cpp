@@ -39,7 +39,7 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 
 static const char cite_fix_acks2_reax[] =
-  "fix acks2/reaxff command: doi:10.1137/18M1224684\n\n"
+  "fix acks2/reaxff command: https://doi.org/10.1137/18M1224684\n\n"
   "@Article{O'Hearn2020,\n"
   " author = {K. A. {O'Hearn} and A. Alperen and H. M. Aktulga},\n"
   " title = {Fast Solvers for Charge Distribution Models on Shared Memory Platforms},\n"
@@ -53,7 +53,7 @@ static const char cite_fix_acks2_reax[] =
 /* ---------------------------------------------------------------------- */
 
 FixACKS2ReaxFF::FixACKS2ReaxFF(LAMMPS *lmp, int narg, char **arg) :
-  FixQEqReaxFF(lmp, narg, arg)
+    FixQEqReaxFF(lmp, narg, arg), bcut_acks2(nullptr)
 {
   bcut = nullptr;
 

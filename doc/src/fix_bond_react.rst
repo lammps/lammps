@@ -18,7 +18,7 @@ Syntax
 * bond/react = style name of this fix command
 * the common keyword/values may be appended directly after 'bond/react'
 * common keywords apply to all reaction specifications
-* common_keyword = *stabilization* or *reset_mol_ids*
+* common_keyword = *stabilization* or *reset_mol_ids* or *rate_limit* or *max_rxn* or *shuffle_seed* or *file*
 
   .. parsed-literal::
 
@@ -32,6 +32,17 @@ Syntax
          *yes* = update molecule IDs based on new global topology (default)
          *no* = do not update molecule IDs
          *molmap* = customize how molecule IDs are updated
+       *rate_limit* values = react-ID_1 react-ID_2 ... react-ID_N Nlimit Nsteps
+         react-IDs = one or more names of the reactions to include in rate limit
+         Nlimit = maximum number of reactions allowed to occur within interval
+         Nsteps = the interval (number of timesteps) over which to count reactions
+       *max_rxn* values = react-ID_1 react-ID_2 ... react-ID_N Nlimit
+         react-IDs = one or more names of the reactions to include in rate limit
+         Nlimit = maximum total number of reactions allowed to occur
+       *shuffle_seed* value = seed
+         seed = random # seed (positive integer) for choosing between eligible reactions
+       *file* value = filename
+         filename = name of the JSON file that records reaction occurrences
 
 * react = mandatory argument indicating new reaction specification
 * react-ID = user-assigned name for the reaction
@@ -43,18 +54,13 @@ Syntax
 * template-ID(post-reacted) = ID of a molecule template containing post-reaction topology
 * map_file = name of file specifying corresponding atom-IDs in the pre- and post-reacted templates
 * zero or more individual keyword/value pairs may be appended to each react argument
-* individual_keyword = *prob* or *rate_limit* or *max_rxn* or *stabilize_steps* or *custom_charges* or *rescale_charges* or *molecule* or *modify_create*
+* individual_keyword = *prob* or *stabilize_steps* or *custom_charges* or *rescale_charges* or *molecule* or *modify_create*
 
   .. parsed-literal::
 
          *prob* values = fraction seed
            fraction = initiate reaction with this probability if otherwise eligible
            seed = random number seed (positive integer)
-         *rate_limit* = Nlimit Nsteps
-           Nlimit = maximum number of reactions allowed to occur within interval
-           Nsteps = the interval (number of timesteps) over which to count reactions
-         *max_rxn* value = N
-           N = maximum number of reactions allowed to occur
          *stabilize_steps* value = timesteps
            timesteps = number of time steps to apply the internally-created :doc:`nve/limit <fix_nve_limit>` fix to reacting atoms
          *custom_charges* value = *no* or fragment-ID
@@ -83,7 +89,7 @@ For unabridged example scripts and files, see examples/PACKAGES/reaction.
 
    molecule mol1 pre_reacted_topology.txt
    molecule mol2 post_reacted_topology.txt
-   fix 5 all bond/react react myrxn1 all 1 0 3.25 mol1 mol2 map_file.txt
+   fix rxns all bond/react react diels_alder all 1 0 3.25 mol1 mol2 map_file.txt
 
    molecule mol1 pre_reacted_rxn1.txt
    molecule mol2 post_reacted_rxn1.txt
@@ -214,6 +220,80 @@ For post-reaction atoms that have a template molecule ID that does not
 exist in pre-reaction template, they are assigned a new molecule ID that
 does not currently exist in the simulation.
 
+The *rate_limit* keyword can enforce an upper limit on the overall rate of
+one or more reactions. The number of reaction occurrences is limited to
+Nlimit within an interval of Nsteps timesteps. No reactions are permitted
+to occur within the first Nsteps timesteps of the first run after reading a
+data file. The reactions to sum over are listed by reaction name
+(react-ID). The number of reaction occurrences is calculated by summing
+over the listed reactions. This sum is limited to Nlimit, which can be
+specified with an equal-style :doc:`variable <variable>`. Reaction
+occurrences are chosen randomly from all eligible reaction sites of all
+listed reactions. By default, a hardware-based random number source is used
+if available; reactions are chosen deterministically if a positive integer
+is specified for the 'shuffle_seed' keyword. Multiple *rate_limit* keywords
+can be specified. This keyword is useful when multiple *react* arguments
+define similar types of reactions, and the relative rates between two or
+more types of reactions must be enforced.
+
+The *max_rxn* keyword can enforce an upper limit on the overall number of
+one or more reactions. The reactions to sum over are listed by reaction
+name (react-ID). The number of reaction occurrences is calculated by
+summing over the listed reactions. This sum is limited to Nlimit. Reaction
+occurrences are chosen randomly from all eligible reaction sites of all
+listed reactions. By default, a hardware-based random number source is used
+if available; reactions are chosen deterministically if a positive integer
+is specified for the 'shuffle_seed' keyword. Multiple *max_rxn* keywords
+can be specified.
+
+.. versionadded:: 10Dec2025
+
+The *file* keyword can be used to dump information about each reaction that
+occurs during the simulation. The atom IDs, types, and coordinates of all
+atoms in the reaction site are printed out on the timestep that the
+reaction is initiated. The output file follows the :ref:`JSON dump
+molecules format <json-dump-files>`, with one extra key added to each
+molecule object to identify the reaction. The added key is "reaction" and
+its value is the reaction name (react-ID). Here is an example output for a
+hypothetical reaction involving one water molecule:
+
+.. code-block:: json
+
+   {
+       "application": "LAMMPS",
+       "units": "real",
+       "format": "dump",
+       "style": "molecules",
+       "revision": 1,
+       "title": "fix bond/react",
+       "timesteps": [
+           {
+               "timestep": 1,
+               "molecules": [
+                   {
+                       "reaction": "water_dissociation",
+                       "types": {
+                           "format": ["atom-id", "type"],
+                           "data": [
+                               [1368, "H"],
+                               [1366, "O"],
+                               [1367, "H"]
+                           ]
+                       },
+                       "coords": {
+                           "format": ["atom-id", "x", "y", "z"],
+                           "data": [
+                               [1368, 26.787767440427466, 29.785528640296768, 25.85197353660144],
+                               [1366, 26.641801222582824, 29.868106247702887, 24.91285138212243],
+                               [1367, 25.69611192416744, 30.093425787807448, 24.914380215672846]
+                           ]
+                       }
+                   }
+               ]
+           }
+       ]
+   }
+
 The following comments pertain to each *react* argument (in other
 words, they can be customized for each reaction, or reaction step):
 
@@ -285,19 +365,19 @@ contain any atom within three bonds of reacting atoms.
 Some atoms in the pre-reacted template that are not reacting may have
 missing topology with respect to the simulation. For example, the
 pre-reacted template may contain an atom that, in the simulation, is
-currently connected to the rest of a long polymer chain. These are
-referred to as edge atoms, and are also specified in the map file. All
-pre-reaction template atoms should be linked to an initiator atom, via
-at least one path that does not involve edge atoms. When the
-pre-reaction template contains edge atoms, not all atoms, bonds, etc.
-specified in the reaction templates will be updated. Specifically, topology
-that involves only atoms that are "too near" to template edges will not be
-updated. The definition of "too near the edge" depends on which
-interactions are defined in the simulation. If the simulation has defined
-dihedrals, atoms within two bonds of edge atoms are considered "too near
-the edge." If the simulation defines angles, but not dihedrals, atoms
-within one bond of edge atoms are considered "too near the edge." If just
-bonds are defined, only edge atoms are considered "too near the edge."
+currently connected to the rest of a long polymer chain. These are referred
+to as edge atoms, and are specified in the map file in the EdgeIDs section.
+All pre-reaction template atoms should be linked to an initiator atom, via
+at least one path that does not involve edge atoms. When the pre-reaction
+template contains edge atoms, not all atoms, bonds, etc. specified in the
+reaction templates will be updated. Specifically, topology that involves
+only atoms that are "too near" to template edges will not be updated. The
+definition of "too near the edge" depends on which interactions are defined
+in the simulation. If the simulation has defined dihedrals, atoms within
+two bonds of edge atoms are considered "too near the edge." If the
+simulation defines angles, but not dihedrals, atoms within one bond of edge
+atoms are considered "too near the edge." If just bonds are defined, only
+edge atoms are considered "too near the edge."
 
 .. note::
 
@@ -313,6 +393,26 @@ command page. It is highly recommended to use :doc:`Type labels <Howto_type_labe
 (added in version 15Sep2022) in both molecule templates and data
 files, which automates the process of syncing atom types between
 different input files.
+
+Wildcard atoms match to any atom type in the simulation.  Wildcard atoms
+can be used to reduce the number of reaction templates needed to model a
+set of similar reactions.  Wildcard atoms are specified in the Wildcards
+section of the map file.  The atom types of wildcard atoms in the
+simulation are not updated.  Any bond, angle, dihedral, or improper,
+that is defined in the reaction templates and contains a wildcard atom,
+will be updated by inferring its type from its constituent atom types.
+To use wildcard atoms, a specific :doc:`type label <Howto_type_labels>`
+format is necessary to infer the types of higher-order interactions.
+Bond, angle, dihedral, and improper type labels must contain their
+constituent atom types delimited by hyphens, e.g., 'c2-c2-c2-n' for a
+dihedral that contains three atoms of type 'c2' and one atom of 'n'.
+Certain symmetries are considered to account for equivalent ways of
+writing higher-order interactions.  Type labels for bonds, angles, and
+dihedrals are assumed to be equivalent to those written in reverse
+order.  For example, an angle with type label 'c1-c2-n' is equivalent to
+'n-c2-c1'.  Symmetries for impropers are more complex and are described
+on the doc page for each improper style in the 'Symmetry convention'
+section.
 
 The post-reacted molecule template contains a sample of the reaction
 site and its surrounding topology after the reaction has occurred. It
@@ -336,26 +436,27 @@ provided on the :doc:`molecule <molecule>` command page.
 
 The map file is a text document with the following format:
 
-A map file has a header and a body. The header of map file the
-contains one mandatory keyword and five optional keywords. The
+A map file has a header and a body. The header of the map file
+contains one mandatory keyword and six optional keywords. The
 mandatory keyword is *equivalences*\ :
 
 .. parsed-literal::
 
    N *equivalences* = # of atoms N in the reaction molecule templates
 
-The optional keywords are *edgeIDs*\ , *deleteIDs*\ , *chiralIDs*\ , and
-*constraints*\ :
+The optional keywords are *edgeIDs*\ , *wildcards*\ , *deleteIDs*\ ,
+*createIDs*\ , *chiralIDs*\ , and *constraints*\ :
 
 .. parsed-literal::
 
    N *edgeIDs* = # of edge atoms N in the pre-reacted molecule template
+   N *wildcards* = # of atoms with wildcard atom types N
    N *deleteIDs* = # of atoms N that are deleted
    N *createIDs* = # of atoms N that are created
    N *chiralIDs* = # of chiral centers N
    N *constraints* = # of reaction constraints N
 
-The body of the map file contains two mandatory sections and five
+The body of the map file contains two mandatory sections and six
 optional sections. The first mandatory section begins with the keyword
 "InitiatorIDs" and lists the two atom IDs of the initiator atom pair
 in the pre-reacted molecule template. The second mandatory section
@@ -365,16 +466,17 @@ templates. The first column is an atom ID of the pre-reacted molecule
 template, and the second column is the corresponding atom ID of the
 post-reacted molecule template. The first optional section begins with
 the keyword "EdgeIDs" and lists the atom IDs of edge atoms in the
-pre-reacted molecule template. The second optional section begins with
-the keyword "DeleteIDs" and lists the atom IDs of pre-reaction
-template atoms to delete. The third optional section begins with the
-keyword "CreateIDs" and lists the atom IDs of the post-reaction
-template atoms to create. The fourth optional section begins with the
-keyword "ChiralIDs" lists the atom IDs of chiral atoms whose
-handedness should be enforced. The fifth optional section begins with
-the keyword "Constraints" and lists additional criteria that must be
-satisfied in order for the reaction to occur. Currently, there are
-six types of constraints available, as discussed below: "distance",
+pre-reacted molecule template.  The second optional section begins with
+the keyword "Wildcards" and lists the pre-reaction atom IDs of atoms that
+have wildcard atom types.  The third optional section begins with the
+keyword "DeleteIDs" and lists the atom IDs of pre-reaction template atoms
+to delete. The fourth optional section begins with the keyword "CreateIDs"
+and lists the atom IDs of the post-reaction template atoms to create. The
+fifth optional section begins with the keyword "ChiralIDs" lists the atom
+IDs of chiral atoms whose handedness should be enforced. The sixth optional
+section begins with the keyword "Constraints" and lists additional criteria
+that must be satisfied in order for the reaction to occur. Currently, there
+are six types of constraints available, as discussed below: "distance",
 "angle", "dihedral", "arrhenius", "rmsd", and "custom".
 
 A sample map file is given below:
@@ -668,17 +770,7 @@ actually occurs. The fraction setting must be a value between 0.0 and
 1.0, and can be specified with an equal-style :doc:`variable <variable>`.
 A uniform random number between 0.0 and 1.0 is generated and the
 eligible reaction only occurs if the random number is less than the
-fraction. Up to :math:`N` reactions are permitted to occur, as optionally
-specified by the *max_rxn* keyword.
-
-.. versionadded:: 22Dec2022
-
-The *rate_limit* keyword can enforce an upper limit on the overall
-rate of the reaction. The number of reaction occurrences is limited to
-Nlimit within an interval of Nsteps timesteps. No reactions are
-permitted to occur within the first Nsteps timesteps of the first run
-after reading a data file. Nlimit can be specified with an equal-style
-:doc:`variable <variable>`.
+fraction.
 
 The *stabilize_steps* keyword allows for the specification of how many
 time steps a reaction site is stabilized before being returned to the
@@ -750,14 +842,80 @@ You can dump out snapshots of the current bond topology via the
 
 ----------
 
+Dump image info
+"""""""""""""""
+
+.. versionadded:: 11Feb2026
+
+Fix *bond/react* supports the *fix* keyword of :doc:`dump image
+<dump_image>`.  The fix will pass geometry information about atoms
+involved in a reaction to *dump image* so that these atoms can be
+highlighted in the visualization through additional spheres.  For how
+long those additional spheres will be shown depends on the value of the
+*vizsteps* setting (default is 1000) which can be changed by using the
+:doc:`fix_modify command <fix_modify>`.  If an atom is involved in
+multiple reactions, the check on showing the additional graphics depends
+on the timestep of its last reaction.
+
+The color of the additional spheres is by default that of the atom type
+when using color styles "type" or "element".  With color style "const"
+the default value of "white" can be changed using :doc:`dump_modify
+fcolor <dump_image>`.  The transparency is by default fully opaque and
+can be changed with *dump\_modify ftrans*\ .
+
+The *fflag1* setting of *dump image fix* has no effect.
+
+The *fflag2* setting allows you to set the radius of the added
+spheres, since the radius is set to zero internally.
+
+The following commands can be added to the
+``examples/PACKAGES/reaction/tiny_nylon/in.tiny_nylon.stabilized`` input
+to highlight the reacting atoms with transparent yellow spheres and will
+create images like those shown below:
+
+.. code-block:: LAMMPS
+
+   variable ndump index 10
+   # display simulation step and reaction counts
+   fix labels all graphics/labels ${ndump} text &
+        "Step: $(step:%03.0f)  Reaction 1: $(f_myrxns[1]:%02.0f)   Reaction 2: $(f_myrxns[2]:%02.0f)" &
+        300 24 0 transcolor none backcolor silver fontcolor black framecolor black
+   # output highlighted atoms for 10 dumps
+   fix_modify myrxns vizsteps $(10*v_ndump)
+   dump viz all image ${ndump} nylon-*.png element element size 600 600 center s 0.6 0.55 0.6 &
+              shiny 0.1 fsaa yes ssao yes 231541 0.6 zoom 6.0 view 70 -10 box no 0.1 &
+              fix myrxns const 0.0 1.0 fix labels const 1 0
+   dump_modify viz pad 4 element C C O H H O N H N H O &
+              backcolor darkgray ftrans myrxns 0.5 fcolor myrxns yellow
+   run 200
+
+
+.. |react1| image:: img/react-before.png
+   :width: 19%
+.. |react2| image:: img/react-step1.png
+   :width: 19%
+.. |react3| image:: img/react-step2.png
+   :width: 19%
+.. |react4| image:: img/react-after.png
+   :width: 19%
+.. |react5| image:: img/react-clear.png
+   :width: 19%
+
+|react1|  |react2|  |react3|  |react4|  |react5|
+
+----------
+
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-Cumulative reaction counts for each reaction are written to :doc:`binary restart files <restart>`.
-These values are associated with the reaction name (react-ID).
-Additionally, internally-created per-atom properties are stored to
-allow for smooth restarts. None of the :doc:`fix_modify <fix_modify>`
-options are relevant to this fix.
+Cumulative reaction counts for each reaction are written to :doc:`binary
+restart files <restart>`.  These values are associated with the reaction
+name (react-ID).  Additionally, internally-created per-atom properties
+are stored to allow for smooth restarts.
+
+The *vizsteps* option of the :doc:`fix_modify <fix_modify>` command is
+supported by this fix to control on which timesteps reacted atoms are
+highlighted in :doc:`dump image <dump_image>` output.
 
 This fix computes one statistic for each *react* argument that it
 stores in a global vector, of length (number of react arguments), that
@@ -767,6 +925,15 @@ vector values calculated by this fix are "intensive".
 There is one quantity in the global vector for each *react* argument:
 
   (1) cumulative number of reactions that occurred
+
+.. versionadded:: 10Dec2025
+
+This fix supports automatically generated thermo column names when using
+:doc:`thermo_modify colname auto <thermo_modify>`.  The thermo column names
+are "f\_", followed by the fix ID, followed by a colon, followed by the
+react-ID.  E.g., the first example in the Examples section above would
+print a thermo column name of "f\_rxns:diels_alder", compared to the default column
+output name of "f\_rxns[1]".
 
 No parameter of this fix can be used with the *start/stop* keywords
 of the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minimization <minimize>`.
@@ -788,13 +955,15 @@ Related commands
 :doc:`fix bond/create <fix_bond_create>`,
 :doc:`fix bond/break <fix_bond_break>`,
 :doc:`fix bond/swap <fix_bond_swap>`,
-:doc:`dump local <dump>`, :doc:`special_bonds <special_bonds>`
+:doc:`dump local <dump>`, :doc:`special_bonds <special_bonds>`,
+:doc:`fix_modify <fix_modify>`
 
 Default
 """""""
 
-The option defaults are stabilization = no, prob = 1.0, stabilize_steps = 60,
-reset_mol_ids = yes, custom_charges = no, molecule = off, modify_create = *fit all*
+The option defaults are *stabilization* = no, *prob* = 1.0, *stabilize_steps* = 60,
+*reset_mol_ids* = yes, *custom_charges* = no, *molecule* = off, *modify_create* = *fit all*,
+*vizsteps* = 1000
 
 ----------
 

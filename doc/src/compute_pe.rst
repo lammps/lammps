@@ -78,7 +78,7 @@ scalar value will be in energy :doc:`units <units>`.
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""

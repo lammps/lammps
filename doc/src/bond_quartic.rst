@@ -1,10 +1,11 @@
 .. index:: bond_style quartic
+.. index:: bond_style quartic/kk
 .. index:: bond_style quartic/omp
 
 bond_style quartic command
 ==========================
 
-Accelerator Variants: *quartic/omp*
+Accelerator Variants: *quartic/kk*, *quartic/omp*
 
 Syntax
 """"""

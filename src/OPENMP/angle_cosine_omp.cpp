@@ -18,18 +18,20 @@
 
 #include "omp_compat.h"
 #include "angle_cosine_omp.h"
-#include <cmath>
+
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
 #include "neighbor.h"
+
+#include <cmath>
 
 #include "suffix.h"
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-AngleCosineOMP::AngleCosineOMP(class LAMMPS *lmp)
+AngleCosineOMP::AngleCosineOMP(LAMMPS *lmp)
   : AngleCosine(lmp), ThrOMP(lmp,THR_ANGLE)
 {
   suffix_flag |= Suffix::OMP;
@@ -39,7 +41,7 @@ AngleCosineOMP::AngleCosineOMP(class LAMMPS *lmp)
 
 void AngleCosineOMP::compute(int eflag, int vflag)
 {
-  ev_init(eflag,vflag);
+  ev_init(eflag, vflag);
 
   const int nall = atom->nlocal + atom->nghost;
   const int nthreads = comm->nthreads;

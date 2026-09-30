@@ -116,7 +116,6 @@ void NBinStandard::setup_bins(int style)
 
   // optimal bin size is roughly 1/2 the cutoff
   // for BIN style, binsize = 1/2 of max neighbor cutoff
-  // for MULTI_OLD style, binsize = 1/2 of min neighbor cutoff
   // special case of all cutoffs = 0.0, binsize = box size
 
   double binsize_optimal;
@@ -166,7 +165,7 @@ void NBinStandard::setup_bins(int style)
 
   // mbinlo/hi = lowest and highest global bins my ghost atoms could be in
   // coord = lowest and highest values of coords for my ghost atoms
-  // static_cast(-1.5) = -1, so subract additional -1
+  // static_cast(-1.5) = -1, so subtract additional -1
   // add in SMALL for round-off safety
 
   int mbinxhi,mbinyhi,mbinzhi;

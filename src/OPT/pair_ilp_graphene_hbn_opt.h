@@ -31,6 +31,7 @@ class PairILPGrapheneHBNOpt : virtual public PairILPGrapheneHBN {
 
   void compute(int, int) override;
   void init_style() override;
+  void coeff(int narg, char **args) override;
 
  protected:
   void update_internal_list();
@@ -48,7 +49,7 @@ class PairILPGrapheneHBNOpt : virtual public PairILPGrapheneHBN {
   enum special_type_const {
     NOT_SPECIAL = 0,
     TMD_METAL,
-    SAIP_BNCH,
+    SAIP_METAL,
     WATER,
   };
 };

@@ -1,0 +1,40 @@
+{
+  "@context": "https://doi.org/10.5063/schema/codemeta-2.0",
+  "@type": "SoftwareSourceCode",
+  "author": [
+    {
+      "@type": "Person",
+      "familyName": "Developers",
+      "givenName": "The LAMMPS"
+    }
+  ],
+  "codeRepository": "https://github.com/lammps/lammps/",
+  "dateCreated": "2006-09-21",
+  "datePublished": "2026-09-30",
+  "developmentStatus": "active",
+  "identifier": "https://doi.org/10.5281/zenodo.3726416",
+  "issueTracker": "https://github.com/lammps/lammps-gui/issues",
+  "keywords": [
+    "Molecular Dynamics",
+    "Materials Modeling",
+    "Discrete Element Modeling",
+    "Particle Simulation"
+  ],
+  "license": "https://spdx.org/licenses/GPL-2.0-only",
+  "name": "LAMMPS: Large-scale Atomic/Molecular Massively Parallel Simulator",
+  "operatingSystem": [
+    "Linux",
+    "macOS",
+    "Windows",
+    "FreeBSD"
+  ],
+  "programmingLanguage": [
+    "C++",
+    "Python",
+    "CUDA",
+    "Fortran",
+    "C"
+  ],
+  "url": "https://www.lammps.org",
+  "version": "30Sep2026"
+}

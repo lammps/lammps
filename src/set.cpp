@@ -16,6 +16,7 @@
 
 #include "arg_info.h"
 #include "atom.h"
+#include "atom_masks.h"
 #include "atom_vec.h"
 #include "atom_vec_body.h"
 #include "atom_vec_ellipsoid.h"
@@ -44,7 +45,7 @@ using namespace MathConst;
 
 enum{ATOM_SELECT,MOL_SELECT,TYPE_SELECT,GROUP_SELECT,REGION_SELECT};
 
-enum{ANGLE,ANGMOM,APIP_LAMBDA,BOND,CC,CHARGE,DENSITY,DIAMETER,DIHEDRAL,DIPOLE,
+enum{ANGLE,ANGMOM,APIP_LAMBDA,BLOCK,BOND,CC,CHARGE,DENSITY,DIAMETER,DIHEDRAL,DIPOLE,
   DIPOLE_RANDOM,DPD_THETA,EDPD_CV,EDPD_TEMP,EPSILON,IMAGE,IMPROPER,LENGTH,
   MASS,MOLECULE,OMEGA,QUAT,QUAT_RANDOM,RADIUS_ELECTRON,RHEO_STATUS,SHAPE,
   SMD_CONTACT_RADIUS,SMD_MASS_DENSITY,SPH_CV,SPH_E,SPH_RHO,
@@ -52,7 +53,7 @@ enum{ANGLE,ANGMOM,APIP_LAMBDA,BOND,CC,CHARGE,DENSITY,DIAMETER,DIHEDRAL,DIPOLE,
   TRI,TYPE,TYPE_FRACTION,TYPE_RATIO,TYPE_SUBSET,VOLUME,VX,VY,VZ,X,Y,Z,
   IVEC,DVEC,IARRAY,DARRAY};
 
-#define DELTA 4
+static constexpr int DELTA = 4;
 
 /* ---------------------------------------------------------------------- */
 
@@ -67,6 +68,10 @@ Set::Set(class LAMMPS *lmp) :
 
 Set::~Set()
 {
+  // command() releases this on the way out, but an error raised before that
+  // leaves through here instead
+  delete[] id;
+
   memory->sfree(actions);
   memory->sfree(invoke_choice);
 
@@ -175,6 +180,7 @@ void Set::process_args(int caller_flag, int narg, char **arg)
     error->all(FLERR, "Unknown set or fix set command style: {}", arg[0]);
 
   delete[] id;
+  id = nullptr;
 
   // loop over remaining keyword/value pairs to create list of actions
   // one action = keyword/value pair
@@ -212,6 +218,10 @@ void Set::process_args(int caller_flag, int narg, char **arg)
       action->keyword = APIP_LAMBDA;
       process_apip_lambda(iarg,narg,arg,action);
       invoke_choice[naction++] = &Set::invoke_apip_lambda;
+    } else if (strcmp(arg[iarg],"block") == 0) {
+      action->keyword = BLOCK;
+      process_block(iarg, narg, arg, action);
+      invoke_choice[naction++] = &Set::invoke_block;
     } else if (strcmp(arg[iarg],"bond") == 0) {
       action->keyword = BOND;
       process_bond(iarg,narg,arg,action);
@@ -425,7 +435,7 @@ void Set::process_args(int caller_flag, int narg, char **arg)
   }
 
   // error if any action of fix set command does not use a per-atom variable
-  // b/c fix set is then effectivly a no-op
+  // b/c fix set is then effectively a no-op
 
   if (caller == FIXSET) {
     for (int i = 0; i < naction; i++) {
@@ -530,6 +540,12 @@ void Set::selection(int n)
 
 void Set::invoke_actions()
 {
+  // every action below reads and writes the per-atom arrays through the plain
+  // pointers, so bring the host side up to date first and hand the writes over
+  // afterwards; without the KOKKOS package these do nothing
+
+  atom->sync_host_arrays(ALL_MASK);
+
   // reallocate per-atom variable storage if needed
 
   if (varflag && atom->nlocal > maxvariable) {
@@ -589,6 +605,8 @@ void Set::invoke_actions()
     action->count_select = count_select;
     action->count_action = count_action;
   }
+
+  atom->modified_host_arrays(ALL_MASK);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -801,8 +819,10 @@ void Set::setrandom(int keyword, Action *action)
     if (domain->dimension == 3) {
       for (i = 0; i < nlocal; i++)
         if (select[i]) {
-          if (avec_ellipsoid && ellipsoid[i] >= 0)
-            quat_one = avec_ellipsoid->bonus[ellipsoid[i]].quat;
+          if (avec_ellipsoid && ellipsoid[i] >= 0){
+            if (atom->superellipsoid_flag) quat_one = avec_ellipsoid->bonus_super[ellipsoid[i]].quat;
+            else quat_one = avec_ellipsoid->bonus[ellipsoid[i]].quat;
+          }
           else if (avec_tri && tri[i] >= 0)
             quat_one = avec_tri->bonus[tri[i]].quat;
           else if (avec_body && body[i] >= 0)
@@ -828,8 +848,10 @@ void Set::setrandom(int keyword, Action *action)
       double theta2;
       for (i = 0; i < nlocal; i++)
         if (select[i]) {
-          if (avec_ellipsoid && ellipsoid[i] >= 0)
-            quat_one = avec_ellipsoid->bonus[ellipsoid[i]].quat;
+          if (avec_ellipsoid && ellipsoid[i] >= 0){
+              if (atom->superellipsoid_flag) quat_one = avec_ellipsoid->bonus_super[ellipsoid[i]].quat;
+              else quat_one = avec_ellipsoid->bonus[ellipsoid[i]].quat;
+          }
           else if (avec_body && body[i] >= 0)
             quat_one = avec_body->bonus[body[i]].quat;
           else if (quat_flag)
@@ -1114,6 +1136,58 @@ void Set::invoke_apip_lambda(Action *action)
 
 /* ---------------------------------------------------------------------- */
 
+void Set::process_block(int &iarg, int narg, char **arg, Action *action)
+{
+  if (!atom->superellipsoid_flag)
+    error->all(FLERR,"Cannot set attribute {} for atom style {} (only available for ellipsoid "
+               "with superellipsoid flag)", arg[iarg], atom->get_style());
+  if (iarg+3 > narg) utils::missing_cmd_args(FLERR, "set block", error);
+  if (utils::strmatch(arg[iarg+1],"^v_")) varparse(arg[iarg+1],1,action);
+  else {
+    action->dvalue1 = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+    if (action->dvalue1 < 2.0) error->one(FLERR,"Invalid block in set command");
+  }
+  if (utils::strmatch(arg[iarg+2],"^v_")) varparse(arg[iarg+2],2,action);
+  else {
+    action->dvalue2 = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+    if (action->dvalue2 < 2.0) error->one(FLERR,"Invalid block in set command");
+  }
+  iarg += 3;
+}
+
+void Set::invoke_block(Action *action)
+{
+  int nlocal = atom->nlocal;
+  auto *avec_ellipsoid = dynamic_cast<AtomVecEllipsoid *>(atom->style_match("ellipsoid"));
+  if (!avec_ellipsoid) return;
+
+  int varflag = action->varflag;
+  double block1 = 0.0, block2 = 0.0;
+  if (!action->varflag1) block1 = action->dvalue1;
+  if (!action->varflag2) block2 = action->dvalue2;
+
+  for (int i = 0; i < nlocal; i++) {
+    if (!select[i]) continue;
+
+    if (varflag) {
+      if (action->varflag1) block1 = vec1[i];
+      if (action->varflag2) block2 = vec2[i];
+      if (block1 < 2.0 || block2 < 2.0)
+        error->one(FLERR, Error::NOLASTLINE, "Invalid block in set command");
+    }
+
+    avec_ellipsoid->set_block(i, block1, block2);
+  }
+
+  // update global ellipsoid count
+  // TODO: Not sure if block should update the ellipsoid count
+  //       what happens if you call this twice in invike_shape and invoke_block ?
+  //   bigint nlocal_bonus = avec_ellipsoid->nlocal_bonus;
+  //   MPI_Allreduce(&nlocal_bonus,&atom->nellipsoids,1,MPI_LMP_BIGINT,MPI_SUM,world);
+}
+
+/* ---------------------------------------------------------------------- */
+
 void Set::process_bond(int &iarg, int narg, char **arg, Action *action)
 {
   if (atom->avec->bonds_allow == 0)
@@ -1285,7 +1359,9 @@ void Set::invoke_density(Action *action)
       else rmass[i] = 4.0*MY_PI/3.0 * radius[i]*radius[i]*radius[i] * density;
 
     else if (ellipsoid_flag && ellipsoid[i] >= 0) {
-      double *shape = avec_ellipsoid->bonus[ellipsoid[i]].shape;
+      double *shape;
+      if (atom->superellipsoid_flag) shape = avec_ellipsoid->bonus_super[ellipsoid[i]].shape;
+      else shape = avec_ellipsoid->bonus[ellipsoid[i]].shape;
       // could enable 2d ellipse (versus 3d ellipsoid) when time integration
       //   options (fix nve/asphere, fix nh/asphere) are also implemented
       // if (discflag)
@@ -1953,8 +2029,10 @@ void Set::invoke_quat(Action *action)
   for (int i = 0; i < nlocal; i++) {
     if (!select[i]) continue;
 
-    if (avec_ellipsoid && ellipsoid[i] >= 0)
-      quat_one = avec_ellipsoid->bonus[ellipsoid[i]].quat;
+    if (avec_ellipsoid && ellipsoid[i] >= 0){
+      if (atom->superellipsoid_flag) quat_one = avec_ellipsoid->bonus_super[ellipsoid[i]].quat;
+      else quat_one = avec_ellipsoid->bonus[ellipsoid[i]].quat;
+    }
     else if (avec_tri && tri[i] >= 0)
       quat_one = avec_tri->bonus[tri[i]].quat;
     else if (avec_body && body[i] >= 0)
@@ -2415,7 +2493,7 @@ void Set::process_spin_electron(int &iarg, int narg, char **arg, Action *action)
   else {
     action->ivalue1 = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
     if (action->ivalue1 < -1 || action->ivalue1 > 3)
-      error->one(FLERR,"Invalid electron spin {} in set command", action->ivalue1);
+      error->all(FLERR,"Invalid electron spin {} in set command", action->ivalue1);
   }
 
   iarg += 2;
@@ -2447,12 +2525,13 @@ void Set::process_temperature(int &iarg, int narg, char **arg, Action *action)
 {
   if (!atom->temperature_flag)
     error->all(FLERR,"Cannot set this attribute for this atom style");
-  if (iarg+2 > narg) error->all(FLERR,"Illegal set command");
+  if (iarg+2 > narg) utils::missing_cmd_args(FLERR,"set temperature", error);
 
   if (utils::strmatch(arg[iarg+1],"^v_")) varparse(arg[iarg+1],1,action);
   else {
     action->dvalue1 = utils::numeric(FLERR,arg[iarg+1],false,lmp);
-    if (action->dvalue1 < 0.0) error->one(FLERR,"Invalid temperature in set command");
+    if (action->dvalue1 < 0.0)
+      error->all(FLERR,"Invalid temperature {} in set command", action->dvalue1);
   }
 
   iarg += 2;
@@ -2943,7 +3022,7 @@ void Set::process_custom(int &iarg, int narg, char **arg, Action *action)
                    "out-of-range",pname);
       action->ivalue3 = icol_custom;
       action->keyword = IARRAY;
-    } else error->all(FLERR,"Illegal set command");
+    } else error->all(FLERR,"Illegal set command for custom integer property");
     break;
 
   case ArgInfo::DNAME:
@@ -2964,11 +3043,11 @@ void Set::process_custom(int &iarg, int narg, char **arg, Action *action)
                    "accessed out-of-range",pname);
       action->ivalue3 = icol_custom;
       action->keyword = DARRAY;
-    } else error->all(FLERR,"Illegal set command");
+    } else error->all(FLERR,"Illegal set command for custom double property");
     break;
 
   default:
-    error->all(FLERR,"Illegal set command");
+    error->all(FLERR,"Illegal set command for custom property");
     break;
   }
 

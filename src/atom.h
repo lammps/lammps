@@ -16,6 +16,7 @@
 
 #include "pointers.h"
 
+#include "creator_registry.h"
 #include "json_fwd.h"
 
 #include <map>
@@ -114,31 +115,28 @@ class Atom : protected Pointers {
 
   // PERI package
 
-  double *vfrac, *s0;
+  double *vfrac, *s0, *smin;
   double **x0;
 
   // SPIN package
 
   double **sp, **fm, **fm_long;
 
-  // EFF and AWPMD packages
+  // EFF package
 
   int *spin;
   double *eradius, *ervel, *erforce;
-  double *ervelforce;
-  double **cs, **csforce, **vforce;
-  int *etag;
 
   // CG-DNA package
 
-  tagint *id5p;
+  tagint *id3p, *id5p;
+  double *qeff;
 
   // DPD-REACT package
 
   double *uCond, *uMech, *uChem, *uCGnew, *uCG;
   double *duChem;
   double *dpdTheta;
-  int nspecies_dpd;
 
   // MESO package
 
@@ -194,16 +192,14 @@ class Atom : protected Pointers {
   // 1 if variable is used, 0 if not
 
   int labelmapflag, types_style;
-  int ellipsoid_flag, line_flag, tri_flag, body_flag;
-  int peri_flag, electron_flag;
-  int wavepacket_flag, sph_flag;
+  int ellipsoid_flag, line_flag, tri_flag, body_flag, superellipsoid_flag;
+  int peri_flag, electron_flag, sph_flag;
 
   int molecule_flag, molindex_flag, molatom_flag;
   int q_flag, mu_flag;
   int rmass_flag, radius_flag, omega_flag, torque_flag, angmom_flag, quat_flag;
   int temperature_flag, heatflow_flag;
   int vfrac_flag, spin_flag, eradius_flag, ervel_flag, erforce_flag;
-  int cs_flag, csforce_flag, vforce_flag, ervelforce_flag, etag_flag;
   int rheo_status_flag, conductivity_flag, pressure_flag, viscosity_flag;
   int rho_flag, esph_flag, cv_flag, vest_flag;
   int dpd_flag, edpd_flag, tdpd_flag;
@@ -315,8 +311,9 @@ class Atom : protected Pointers {
   // AtomVec factory types and map
 
   using AtomVecCreator = AtomVec *(*)(LAMMPS *);
-  using AtomVecCreatorMap = std::map<std::string, AtomVecCreator>;
-  AtomVecCreatorMap *avec_map;
+
+  // global registry of atom (AtomVec) style factory functions
+  static CreatorRegistry<AtomVecCreator> &avec_styles();
 
   // --------------------------------------------------------------------
   // functions
@@ -336,7 +333,7 @@ class Atom : protected Pointers {
   void setup();
 
   std::string get_style();
-  AtomVec *style_match(const char *);
+  AtomVec *style_match(const std::string &);
   void modify_params(int, char **);
   void tag_check();
   void tag_extend();
@@ -359,10 +356,20 @@ class Atom : protected Pointers {
   void data_fix_compute_variable(int, int);
 
   virtual void allocate_type_arrays();
-  void set_mass(const char *, int, const char *, int, int, int *);
-  void set_mass(const char *, int, int, double);
-  void set_mass(const char *, int, int, char **);
-  void set_mass(double *);
+
+  // A style that reads or writes the plain per-atom arrays on the host says so
+  // with these, so that the KOKKOS package can bring that side up to date
+  // first and can carry the write over to the device afterwards.  They do
+  // nothing without the package.  Use them where a style touches the arrays
+  // directly and then calls something -- a force computation, the
+  // communication -- that works from the KOKKOS copies.
+
+  virtual void sync_host_arrays(uint64_t) {}
+  virtual void modified_host_arrays(uint64_t) {}
+  virtual void set_mass(const char *, int, const char *, int, int, int *);
+  virtual void set_mass(const char *, int, int, double);
+  virtual void set_mass(const char *, int, int, char **);
+  virtual void set_mass(double *);
   void check_mass(const char *, int);
 
   int radius_consistency(int, double &);
@@ -388,7 +395,7 @@ class Atom : protected Pointers {
   virtual int add_custom(const char *, int, int, int ghost = 0);
   virtual void remove_custom(int, int, int);
 
-  void *extract(const char *);
+  virtual void *extract(const char *);
   int extract_datatype(const char *);
   int extract_size(const char *, int);
 

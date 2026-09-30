@@ -17,8 +17,8 @@ FixStyle(setforce,FixSetForce);
 // clang-format on
 #else
 
-#ifndef LMP_FIX_SET_FORCE_H
-#define LMP_FIX_SET_FORCE_H
+#ifndef LMP_FIX_SETFORCE_H
+#define LMP_FIX_SETFORCE_H
 
 #include "fix.h"
 
@@ -38,6 +38,8 @@ class FixSetForce : public Fix {
   double compute_vector(int) override;
 
   double memory_usage() override;
+
+  enum { NONE, CONSTANT, EQUAL, ATOM };
 
  protected:
   double xvalue, yvalue, zvalue;

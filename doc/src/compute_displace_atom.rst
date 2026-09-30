@@ -139,7 +139,7 @@ incremental dump files.
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""

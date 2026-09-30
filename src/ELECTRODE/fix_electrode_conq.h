@@ -33,6 +33,8 @@ namespace LAMMPS_NS {
 class FixElectrodeConq : public FixElectrodeConp {
  public:
   FixElectrodeConq(class LAMMPS *, int, char **);
+
+ protected:
   void update_psi() override;
   void recompute_potential(const std::vector<double> &, const std::vector<double> &) override;
   std::vector<double> constraint_projection(std::vector<double>) override;

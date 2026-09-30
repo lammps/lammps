@@ -28,7 +28,7 @@ static constexpr int EXTRA = 1000;
 
 /* ---------------------------------------------------------------------- */
 
-BondHybrid::BondHybrid(LAMMPS *lmp) : Bond(lmp)
+BondHybrid::BondHybrid(LAMMPS *lmp) : Bond(lmp), styles(nullptr), keywords(nullptr), map(nullptr)
 {
   writedata = 0;
   nstyles = 0;
@@ -257,7 +257,7 @@ void BondHybrid::settings(int narg, char **arg)
     // by looking for the next known bond style name.
 
     int jarg = i + 1;
-    while ((jarg < narg) && !force->bond_map->count(arg[jarg]) &&
+    while ((jarg < narg) && !Force::bond_styles().contains(arg[jarg]) &&
            !lmp->match_style("bond", arg[jarg]))
       jarg++;
 

@@ -151,6 +151,7 @@ class FixGCMC : public Fix {
   void update_gas_atoms_list();
 
   void grow_molecule_arrays(int);
+  int local_index(tagint);
 };
 
 }    // namespace LAMMPS_NS

@@ -16,6 +16,8 @@ Data structures for LAMMPS Python module
 Written by Richard Berger <richard.berger@outlook.com>
 """
 
+__all__ = ['NeighList']  # symbols to import with import *
+
 class NeighList:
   """This is a wrapper class that exposes the contents of a neighbor list.
 

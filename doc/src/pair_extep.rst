@@ -1,7 +1,10 @@
 .. index:: pair_style extep
+.. index:: pair_style extep/omp
 
 pair_style extep command
 ========================
+
+Accelerator Variants: *extep/omp*
 
 Syntax
 """"""
@@ -23,6 +26,10 @@ Description
 
 Style *extep* computes the Extended Tersoff Potential (ExTeP)
 interactions as described in :ref:`(Los2017) <Los2017>`.
+
+----------
+
+.. include:: accel_styles.rst
 
 ----------
 

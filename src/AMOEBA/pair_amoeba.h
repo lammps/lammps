@@ -494,7 +494,7 @@ class PairAmoeba : public Pair {
 
   // inline function for neighbor list unmasking
 
-  inline int sbmask15(int j) const { return j >> SBBITS15 & 7; }
+  [[nodiscard]] int sbmask15(int j) const { return j >> SBBITS15 & 7; }
 };
 }    // namespace LAMMPS_NS
 #endif

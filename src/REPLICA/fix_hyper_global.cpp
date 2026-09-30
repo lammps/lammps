@@ -42,7 +42,7 @@ static constexpr int VECLEN = 5;
 /* ---------------------------------------------------------------------- */
 
 FixHyperGlobal::FixHyperGlobal(LAMMPS *lmp, int narg, char **arg) :
-  FixHyper(lmp, narg, arg), blist(nullptr), xold(nullptr), tagold(nullptr)
+    FixHyper(lmp, narg, arg), list(nullptr), blist(nullptr), xold(nullptr), tagold(nullptr)
 {
   if (atom->map_style == Atom::MAP_NONE)
     error->all(FLERR,"Fix hyper/global command requires atom map");

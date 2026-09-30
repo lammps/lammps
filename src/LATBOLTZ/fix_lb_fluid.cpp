@@ -44,7 +44,7 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 
 static const char cite_fix_lbfluid[] =
-    "fix lb/fluid command: doi:10.1016/j.cpc.2022.108318\n\n"
+    "fix lb/fluid command: https://doi.org/10.1016/j.cpc.2022.108318\n\n"
     "@Article{Denniston et al.,\n"
     "  author = {C. Denniston and N. Afrasiabian and M. G. Cole-Andre,"
     "    F. E. Mackay and S. T. T. Ollila and T. Whitehead},\n"
@@ -782,7 +782,7 @@ void FixLbFluid::init()
   //--------------------------------------------------------------------------
   groupbit_viscouslb = 0;
   auto fixlbv = modify->get_fix_by_style("lb/viscous");
-  if (fixlbv.size() > 0) {
+  if (!fixlbv.empty()) {
     if (fixlbv.size() > 1)
       error->all(FLERR, "More than one fix lb/viscous at a time is not supported");
     fixviscouslb = 1;
@@ -4536,4 +4536,11 @@ double FixLbFluid::compute_vector(int n)
       error->all(FLERR, "No fix lb/fluid variable available for that index.");
       return -1;
   }
+}
+
+//==========================================================================
+
+double FixLbFluid::memory_usage()
+{
+  return (double) atom->nmax * (3 + 1) * sizeof(double);    // hydroF[nmax][3] + massp[nmax]
 }

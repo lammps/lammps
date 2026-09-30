@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_THREADS_UNIQUETOKEN_HPP
 #define KOKKOS_THREADS_UNIQUETOKEN_HPP
@@ -78,6 +65,7 @@ class UniqueToken<Threads, UniqueTokenScope::Instance> {
         }))
 
     KOKKOS_IF_ON_DEVICE((return 0;))
+    KOKKOS_IMPL_UNREACHABLE();
   }
 
   /// \brief release a value acquired by generate
@@ -108,6 +96,8 @@ class UniqueToken<Threads, UniqueTokenScope::Global> {
     KOKKOS_IF_ON_HOST((return Threads::impl_thread_pool_size();))
 
     KOKKOS_IF_ON_DEVICE((return 0;))
+
+    KOKKOS_IMPL_UNREACHABLE();
   }
 
   /// \brief acquire value such that 0 <= value < size()
@@ -116,6 +106,8 @@ class UniqueToken<Threads, UniqueTokenScope::Global> {
     KOKKOS_IF_ON_HOST((return Threads::impl_thread_pool_rank();))
 
     KOKKOS_IF_ON_DEVICE((return 0;))
+
+    KOKKOS_IMPL_UNREACHABLE();
   }
 
   /// \brief release a value acquired by generate

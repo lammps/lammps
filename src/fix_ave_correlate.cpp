@@ -41,7 +41,7 @@ enum { AUTO, UPPER, LOWER, AUTOUPPER, AUTOLOWER, FULL, FIRST };
 /* ---------------------------------------------------------------------- */
 
 FixAveCorrelate::FixAveCorrelate(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg), fp(nullptr), count(nullptr), cvalues(nullptr), corr(nullptr),
+    Fix(lmp, narg, arg), count(nullptr), cvalues(nullptr), corr(nullptr),
     save_count(nullptr), save_corr(nullptr)
 {
   if (narg < 7) utils::missing_cmd_args(FLERR, "fix ave/correlate", error);
@@ -326,8 +326,6 @@ FixAveCorrelate::~FixAveCorrelate()
   memory->destroy(save_count);
   memory->destroy(corr);
   memory->destroy(save_corr);
-
-  if (fp && comm->me == 0) fclose(fp);
 }
 
 /* ---------------------------------------------------------------------- */

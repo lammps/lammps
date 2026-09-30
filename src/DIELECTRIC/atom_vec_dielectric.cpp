@@ -28,7 +28,7 @@
 using namespace LAMMPS_NS;
 
 static const char cite_user_dielectric_package[] =
-    "DIELECTRIC package: doi:10.1016/j.cpc.2019.03.006\n\n"
+    "DIELECTRIC package: https://doi.org/10.1016/j.cpc.2019.03.006\n\n"
     "@Article{TrungCPC19,\n"
     " author = {Trung Dac Nguyen and Honghao Li and Debarshee Bagchi and"
     "   Francisco J. Solis and Olvera de la Cruz, Monica}\n"
@@ -278,7 +278,6 @@ int AtomVecDielectric::property_atom(const std::string &name)
 
 void AtomVecDielectric::pack_property_atom(int index, double *buf, int nvalues, int groupbit)
 {
-  int *mask = atom->mask;
   int nlocal = atom->nlocal;
   int n = 0;
 

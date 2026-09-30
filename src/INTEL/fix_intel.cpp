@@ -31,22 +31,10 @@
 
 #include <cstring>
 
-#ifdef _LMP_INTEL_OFFLOAD
-#ifndef INTEL_OFFLOAD_NOAFFINITY
-#include <unistd.h>
-#endif
-#endif
-
 #include "suffix.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
-
-#ifdef __INTEL_OFFLOAD
-#ifndef _LMP_INTEL_OFFLOAD
-#warning "Not building INTEL package with Xeon Phi offload support."
-#endif
-#endif
 
 /* ---------------------------------------------------------------------- */
 
@@ -54,7 +42,10 @@ FixIntel::FixIntel(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg)
 {
   if (narg < 4) error->all(FLERR,"Illegal package intel command");
 
-  int ncops = utils::inumeric(FLERR,arg[3],false,lmp);
+  // the first argument (formerly the number of coprocessors) is accepted for
+  // backward compatibility but ignored: offload to Intel(R) Xeon Phi(TM)
+  // coprocessors is no longer supported.
+  utils::inumeric(FLERR,arg[3],false,lmp);
 
   _nbor_pack_width = 1;
   _three_body_neighbor = 0;
@@ -65,13 +56,7 @@ FixIntel::FixIntel(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg)
   _torque_flag = 0;
 
   _precision_mode = PREC_MODE_MIXED;
-  _offload_balance = -1.0;
   _overflow_flag[LMP_OVERFLOW] = 0;
-  _off_overflow_flag[LMP_OVERFLOW] = 0;
-
-  _offload_affinity_balanced = 0;
-  _offload_threads = 0;
-  _offload_tpc = 4;
 
   _force_array_s = nullptr;
   _force_array_m = nullptr;
@@ -79,23 +64,10 @@ FixIntel::FixIntel(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg)
   _ev_array_s = nullptr;
   _ev_array_d = nullptr;
 
-  #ifdef _LMP_INTEL_OFFLOAD
-  if (ncops < 0) error->all(FLERR,"Illegal package intel command");
-  _offload_affinity_set = 0;
-  _off_force_array_s = 0;
-  _off_force_array_m = 0;
-  _off_force_array_d = 0;
-  _off_ev_array_s = 0;
-  _off_ev_array_d = 0;
-  _balance_fixed = 0.0;
-  _cop = 0;
-  #endif
-
   // optional keywords
 
-  int nomp = 0, no_affinity = 0;
-  _allow_separate_buffers = 1;
-  _offload_ghost = -1;
+  int nomp = 0;
+  int offload_deprecated = 0;
   _lrt = 0;
   _p3m_table = 1;
 
@@ -115,25 +87,6 @@ FixIntel::FixIntel(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg)
         _precision_mode = PREC_MODE_DOUBLE;
       else error->all(FLERR,"Illegal package intel command");
       iarg += 2;
-    } else if (strcmp(arg[iarg],"balance") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal package intel command");
-      _offload_balance = utils::numeric(FLERR,arg[iarg+1],false,lmp);
-      iarg += 2;
-    } else if (strcmp(arg[iarg], "ghost") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal package intel command");
-      _offload_ghost = utils::logical(FLERR,arg[iarg+1],false,lmp);
-      iarg += 2;
-    } else if (strcmp(arg[iarg], "tpc") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal package intel command");
-      _offload_tpc = std::stoi(arg[iarg+1]);
-      iarg += 2;
-    } else if (strcmp(arg[iarg],"tptask") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal package intel command");
-      _offload_threads = std::stoi(arg[iarg+1]);
-      iarg += 2;
-    } else if (strcmp(arg[iarg],"no_affinity") == 0) {
-      no_affinity = 1;
-      iarg++;
     } else if (strcmp(arg[iarg], "lrt") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package intel command");
       _lrt = utils::logical(FLERR,arg[iarg+1],false,lmp);
@@ -143,23 +96,45 @@ FixIntel::FixIntel(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg)
       _p3m_table = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
 
-    // undocumented options
+    // offload-related keywords are deprecated and ignored: offload to
+    // Intel(R) Xeon Phi(TM) coprocessors is no longer supported
+
+    } else if (strcmp(arg[iarg],"balance") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package intel command");
+      offload_deprecated = 1;
+      iarg += 2;
+    } else if (strcmp(arg[iarg], "ghost") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package intel command");
+      offload_deprecated = 1;
+      iarg += 2;
+    } else if (strcmp(arg[iarg], "tpc") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package intel command");
+      offload_deprecated = 1;
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"tptask") == 0) {
+      if (iarg+2 > narg) error->all(FLERR,"Illegal package intel command");
+      offload_deprecated = 1;
+      iarg += 2;
+    } else if (strcmp(arg[iarg],"no_affinity") == 0) {
+      offload_deprecated = 1;
+      iarg++;
+
+    // undocumented offload keywords (also deprecated and ignored)
 
     } else if (strcmp(arg[iarg],"offload_affinity_balanced") == 0) {
-      _offload_affinity_balanced = 1;
+      offload_deprecated = 1;
       iarg++;
     } else if (strcmp(arg[iarg],"buffers") == 0) {
       if (iarg+2 > narg) error->all(FLERR,"Illegal package intel command");
-      _allow_separate_buffers = std::stoi(arg[iarg+1]);
+      offload_deprecated = 1;
       iarg += 2;
     } else error->all(FLERR,"Illegal package intel command");
   }
 
-  // if ncops is zero, just run on the cpu
-  if (ncops < 1) {
-    ncops = -1;
-    _offload_balance = 0.0;
-  }
+  if (offload_deprecated && comm->me == 0)
+    error->warning(FLERR,"Offload to Intel(R) Xeon Phi(TM) coprocessors is no "
+                   "longer supported; ignoring offload-related 'package intel' "
+                   "keyword(s)");
 
   // if using LRT mode, create the integrate style
   if (_lrt) {
@@ -170,41 +145,7 @@ FixIntel::FixIntel(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg)
 
   // error check
 
-  if (_offload_balance > 1.0 || _offload_threads < 0 ||
-      _offload_tpc <= 0 || _offload_tpc > 4 || nomp < 0)
-    error->all(FLERR,"Illegal package intel command");
-
-  #ifdef _LMP_INTEL_OFFLOAD
-  _ncops = ncops;
-  if (_offload_balance != 0.0) {
-    _real_space_comm = MPI_COMM_WORLD;
-    if (no_affinity == 0)
-      if (set_host_affinity(nomp) != 0)
-        error->all(FLERR,"Could not set host affinity for offload tasks");
-  }
-
-  int max_offload_threads = 0, offload_cores = 0;
-  if (_offload_balance != 0.0) {
-    #pragma offload target(mic:_cop) mandatory \
-      out(max_offload_threads,offload_cores)
-    {
-      offload_cores = omp_get_num_procs();
-      omp_set_num_threads(offload_cores);
-      max_offload_threads = omp_get_max_threads();
-      #ifdef __AVX512F__
-      if ( (offload_cores / 4) % 2 == 1) {
-        offload_cores += 4;
-        max_offload_threads += 4;
-      }
-      #endif
-    }
-    _max_offload_threads = max_offload_threads;
-    _offload_cores = offload_cores;
-    if (_offload_threads == 0) _offload_threads = offload_cores;
-    if (_offload_cores > 244 && _offload_tpc > 2)
-      _offload_tpc = 2;
-  }
-  #endif
+  if (nomp < 0) error->all(FLERR,"Illegal package intel command");
 
   // set OpenMP threads
   // nomp is user setting, default = 0
@@ -217,26 +158,6 @@ FixIntel::FixIntel(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg)
     omp_set_num_threads(nomp);
     _nthreads = comm->nthreads = nomp;
   }
-  #endif
-
-  // set offload params
-
-  #ifdef _LMP_INTEL_OFFLOAD
-  if (_offload_balance < 0.0) {
-    _balance_neighbor = 0.9;
-    _balance_pair = 0.9;
-  } else {
-    _balance_neighbor = _offload_balance;
-    _balance_pair = _offload_balance;
-  }
-
-  _tscreen = screen;
-  zero_timers();
-  _setup_time_cleared = false;
-  _timers_allocated = false;
-
-  #else
-  _offload_balance = 0.0;
   #endif
 
   // set precision
@@ -253,19 +174,6 @@ FixIntel::FixIntel(LAMMPS *lmp, int narg, char **arg) :  Fix(lmp, narg, arg)
 
 FixIntel::~FixIntel()
 {
-  #ifdef _LMP_INTEL_OFFLOAD
-  output_timing_data();
-  if (_timers_allocated) {
-    double *time1 = off_watch_pair();
-    double *time2 = off_watch_neighbor();
-    int *overflow = get_off_overflow_flag();
-    if (_offload_balance != 0.0) {
-      #pragma offload_transfer target(mic:_cop) \
-        nocopy(time1,time2,overflow:alloc_if(0) free_if(1))
-    }
-  }
-  #endif
-
   if (_precision_mode == PREC_MODE_SINGLE)
     delete _single_buffers;
   else if (_precision_mode == PREC_MODE_MIXED)
@@ -291,18 +199,6 @@ int FixIntel::setmask()
 
 void FixIntel::init()
 {
-  #ifdef _LMP_INTEL_OFFLOAD
-  output_timing_data();
-  _sync_mode = 0;
-  if (offload_balance() != 0.0) {
-    if (offload_noghost() || force->newton_pair == 0)
-      _sync_mode = 2;
-    else
-      _sync_mode = 1;
-    if (update->whichflag == 2) _sync_mode = 1;
-  }
-  #endif
-
   _torque_flag = 0;
   if (force->pair_match("gayberne/intel$", 0)) _torque_flag = 1;
 
@@ -339,19 +235,7 @@ void FixIntel::init()
 
   _pair_intel_count = 0;
 
-  #ifdef _LMP_INTEL_OFFLOAD
-  if (offload_balance() != 0.0) {
-    _pair_hybrid_zero = 0;
-    if (force->newton_pair == 0) _pair_hybrid_flag = 0;
-    if (nstyles > 1)
-      error->all(FLERR,"Currently, cannot offload more than one intel style with hybrid.");
-  }
-  #endif
-
-  check_neighbor_intel();
-
-  int off_mode = 0;
-  if (_offload_balance != 0.0) off_mode = 1;
+  const int off_mode = 0;
   if (_precision_mode == PREC_MODE_SINGLE) {
     _single_buffers->set_torque_flag(_torque_flag);
     _single_buffers->zero_ev();
@@ -380,11 +264,6 @@ void FixIntel::setup(int vflag)
     error->all(FLERR,"Currently, neighbor style BIN must be used with INTEL package.");
   if (vflag > 3)
    error->all(FLERR,"Cannot currently get per-atom virials with INTEL package.");
-  #ifdef _LMP_INTEL_OFFLOAD
-  if (neighbor->exclude_setting() != 0)
-    error->all(FLERR,"Currently, cannot use neigh_modify exclude with INTEL package offload.");
-  post_force(vflag);
-  #endif
 }
 
 /* ---------------------------------------------------------------------- */
@@ -418,41 +297,7 @@ void FixIntel::pair_init_check(const bool cdmessage)
 
   _nbor_pack_width = 1;
 
-  #ifdef _LMP_INTEL_OFFLOAD
-  if (_offload_balance != 0.0) atom->sortfreq = 1;
-
-  _offload_noghost = 0;
-  if (force->newton_pair && _offload_ghost == 0)
-    _offload_noghost = 1;
-
-  set_offload_affinity();
-
-  if (!_timers_allocated) {
-    double *time1 = off_watch_pair();
-    double *time2 = off_watch_neighbor();
-    int *overflow = get_off_overflow_flag();
-    if (_offload_balance != 0.0) {
-      #pragma offload_transfer target(mic:_cop)  \
-        nocopy(time1,time2:length(1) alloc_if(1) free_if(0)) \
-        in(overflow:length(5) alloc_if(1) free_if(0))
-    }
-    _timers_allocated = true;
-  }
-  #endif
   _nthreads = comm->nthreads;
-
-  if (_offload_balance != 0.0 && comm->me == 0) {
-    #ifndef __INTEL_COMPILER_BUILD_DATE
-    error->warning(FLERR,"Unknown Intel Compiler Version\n");
-    #else
-    if (__INTEL_COMPILER_BUILD_DATE != 20131008 &&
-        __INTEL_COMPILER_BUILD_DATE < 20141023)
-      error->warning(FLERR,"Unsupported Intel Compiler.");
-    #endif
-    #if !defined(__INTEL_COMPILER) && !defined(__INTEL_LLVM_COMPILER)
-      error->warning(FLERR,"Unsupported Intel Compiler.");
-    #endif
-  }
 
   #ifndef LMP_INTEL_NBOR_COMPAT
   if (force->pair->manybody_flag && (atom->molecular != Atom::ATOMIC)) {
@@ -488,18 +333,9 @@ void FixIntel::pair_init_check(const bool cdmessage)
 
   _pair_intel_count++;
 
-  #ifdef _LMP_INTEL_OFFLOAD
-  set_offload_affinity();
-  #endif
-
   if (_print_pkg_info && comm->me == 0) {
     utils::logmesg(lmp, "----------------------------------------------------------\n");
-    if (_offload_balance != 0.0) {
-      utils::logmesg(lmp,"Using Intel Coprocessor with {} threads per core, "
-                     "{} threads per task\n",_offload_tpc, _offload_threads);
-    } else {
-      utils::logmesg(lmp,"Using INTEL Package without Coprocessor.\n");
-    }
+    utils::logmesg(lmp,"Using INTEL Package.\n");
     utils::logmesg(lmp,"Compiler: {}\n",platform::compiler_info());
     #ifdef LMP_SIMD_COMPILER
     utils::logmesg(lmp,"SIMD compiler directives: Enabled\n");
@@ -523,10 +359,6 @@ void FixIntel::pair_init_check(const bool cdmessage)
 
 void FixIntel::bond_init_check()
 {
-  if ((_offload_balance != 0.0) && (atom->molecular != Atom::ATOMIC)
-      && (force->newton_pair != force->newton_bond))
-    error->all(FLERR,"INTEL package requires same setting for newton bond and non-bond.");
-
   int intel_pair = 0;
   if (force->pair_match("/intel$", 0) != nullptr)
     intel_pair = 1;
@@ -560,25 +392,6 @@ void FixIntel::kspace_init_check()
 
 /* ---------------------------------------------------------------------- */
 
-void FixIntel::check_neighbor_intel()
-{
-  #ifdef _LMP_INTEL_OFFLOAD
-  _full_host_list = 0;
-
-  const int nrequest = neighbor->nrequest;
-  for (int i = 0; i < nrequest; ++i) {
-    if (_offload_balance != 0.0 && neighbor->requests[i]->intel == 0) {
-      _full_host_list = 1;
-      _offload_noghost = 0;
-    }
-    if (neighbor->requests[i]->skip && _offload_balance != 0.0)
-      error->all(FLERR,"Cannot yet use hybrid styles with Intel offload.");
-  }
-  #endif
-}
-
-/* ---------------------------------------------------------------------- */
-
 void FixIntel::_sync_main_arrays(const int prereverse)
 {
   if (!prereverse) _zero_master = 1;
@@ -589,7 +402,7 @@ void FixIntel::_sync_main_arrays(const int prereverse)
       reduce_results(&_force_array_m[0].x);
       _need_reduce = 0;
     }
-    add_results(_force_array_m, _ev_array_d, _results_eatom, _results_vatom,0);
+    add_results(_force_array_m, _ev_array_d, _results_eatom);
     if (done_this_step) _force_array_m = nullptr;
     else _ev_array_d = nullptr;
   } else if (_force_array_d != nullptr) {
@@ -597,7 +410,7 @@ void FixIntel::_sync_main_arrays(const int prereverse)
       reduce_results(&_force_array_d[0].x);
       _need_reduce = 0;
     }
-    add_results(_force_array_d, _ev_array_d, _results_eatom, _results_vatom,0);
+    add_results(_force_array_d, _ev_array_d, _results_eatom);
     if (done_this_step) _force_array_d = nullptr;
     else _ev_array_d = nullptr;
   } else if (_force_array_s != nullptr) {
@@ -605,14 +418,10 @@ void FixIntel::_sync_main_arrays(const int prereverse)
       reduce_results(&_force_array_s[0].x);
       _need_reduce = 0;
     }
-    add_results(_force_array_s, _ev_array_s, _results_eatom, _results_vatom,0);
+    add_results(_force_array_s, _ev_array_s, _results_eatom);
     if (done_this_step) _force_array_s = nullptr;
     else _ev_array_s = nullptr;
   }
-
-  #ifdef _LMP_INTEL_OFFLOAD
-  if (_sync_mode == 1) sync_coprocessor();
-  #endif
 }
 
 /* ---------------------------------------------------------------------- */
@@ -624,15 +433,11 @@ void FixIntel::pre_reverse(int /*eflag*/, int /*vflag*/)
 
 /* ---------------------------------------------------------------------- */
 
-void FixIntel::post_force(int vflag)
+void FixIntel::post_force(int /*vflag*/)
 {
   // Redundant call to sync Intel data structs with native for methods that
   // call force compute but do not call prereverse
   _sync_main_arrays(1);
-
-  #ifdef LMP_INTEL_OFFLOAD
-  if (_sync_mode == 2) sync_coprocessor();
-  #endif
 }
 
 /* ---------------------------------------------------------------------- */
@@ -710,89 +515,17 @@ void FixIntel::reduce_results(acc_t * _noalias const f_scalar)
 
 /* ---------------------------------------------------------------------- */
 
-void FixIntel::sync_coprocessor()
-{
-  #ifdef _LMP_INTEL_OFFLOAD
-  if (_offload_balance != 0.0) {
-    if (_off_force_array_m != 0) {
-      add_off_results(_off_force_array_m, _off_ev_array_d);
-      _off_force_array_m = 0;
-    } else if (_off_force_array_d != 0) {
-      add_off_results(_off_force_array_d, _off_ev_array_d);
-      _off_force_array_d = 0;
-    } else if (_off_force_array_s != 0) {
-      add_off_results(_off_force_array_s, _off_ev_array_s);
-      _off_force_array_s = 0;
-    }
-  }
-  #endif
-}
-
-/* ---------------------------------------------------------------------- */
-
 template <class ft, class acc_t>
 void FixIntel::add_results(const ft * _noalias const f_in,
                            const acc_t * _noalias const ev_global,
-                           const int eatom, const int vatom,
-                           const int offload) {
+                           const int eatom) {
   start_watch(TIME_PACK);
   int f_length;
-  #ifdef _LMP_INTEL_OFFLOAD
-  if (_separate_buffers) {
-    if (offload) {
-      if (force->newton_pair) {
-        add_oresults(f_in, ev_global, eatom, vatom, 0, _offload_nlocal);
-        const acc_t * _noalias const enull = 0;
-        int offset = _offload_nlocal;
-        if (_torque_flag) offset *= 2;
-        add_oresults(f_in + offset, enull, eatom, vatom,
-                     _offload_min_ghost, _offload_nghost);
-      } else
-        add_oresults(f_in, ev_global, eatom, vatom, 0, offload_end_pair());
-    } else {
-      if (force->newton_pair) {
-        add_oresults(f_in, ev_global, eatom, vatom,
-                     _host_min_local, _host_used_local);
-        const acc_t * _noalias const enull = 0;
-        int offset = _host_used_local;
-        if (_torque_flag) offset *= 2;
-        add_oresults(f_in + offset, enull, eatom,
-                     vatom, _host_min_ghost, _host_used_ghost);
-      } else {
-        int start = host_start_pair();
-        add_oresults(f_in, ev_global, eatom, vatom, start, atom->nlocal-start);
-      }
-    }
-    stop_watch(TIME_PACK);
-    return;
-  }
-  int start;
-  if (offload) {
-    start = 0;
-    if (force->newton_pair) {
-      if (_offload_noghost == 0)
-        f_length = atom->nlocal + atom->nghost;
-      else
-        f_length = atom->nlocal;
-    } else
-      f_length = offload_end_pair();
-  } else {
-    if (force->newton_pair) {
-      start = 0;
-      f_length = atom->nlocal + atom->nghost;
-    } else {
-      start = host_start_pair();
-      f_length = atom->nlocal - start;
-    }
-  }
-  add_oresults(f_in, ev_global, eatom, vatom, start, f_length);
-  #else
   if (force->newton_pair)
     f_length = atom->nlocal + atom->nghost;
   else
     f_length = atom->nlocal;
-  add_oresults(f_in, ev_global, eatom, vatom, 0, f_length);
-  #endif
+  add_oresults(f_in, ev_global, eatom, 0, f_length);
   stop_watch(TIME_PACK);
 }
 
@@ -801,12 +534,11 @@ void FixIntel::add_results(const ft * _noalias const f_in,
 template <class ft, class acc_t>
 void FixIntel::add_oresults(const ft * _noalias const f_in,
                             const acc_t * _noalias const ev_global,
-                            const int eatom, const int /*vatom*/,
+                            const int eatom,
                             const int out_offset, const int nall) {
   lmp_ft * _noalias const f = (lmp_ft *) lmp->atom->f[0] + out_offset;
   if (_torque_flag) {
-    if (f_in[1].w)
-    {
+    if (f_in[1].w) {
       if (f_in[1].w == 1)
         error->all(FLERR,"Bad matrix inversion in mldivide3");
       else
@@ -916,415 +648,3 @@ double FixIntel::memory_usage()
 
   return bytes;
 }
-
-/* ---------------------------------------------------------------------- */
-
-#ifdef _LMP_INTEL_OFFLOAD
-
-/* ---------------------------------------------------------------------- */
-
-template <class ft, class acc_t>
-void FixIntel::add_off_results(const ft * _noalias const f_in,
-                               const acc_t * _noalias const ev_global) {
-  if (_offload_balance < 0.0)
-    _balance_other_time = platform::walltime() - _balance_other_time;
-
-  start_watch(TIME_OFFLOAD_WAIT);
-  #ifdef _LMP_INTEL_OFFLOAD
-  if (neighbor->ago == 0) {
-    #pragma offload_wait target(mic:_cop) wait(atom->tag,f_in)
-  } else {
-    #pragma offload_wait target(mic:_cop) wait(f_in)
-  }
-  #endif
-  double wait_time = stop_watch(TIME_OFFLOAD_WAIT);
-
-  int nlocal = atom->nlocal;
-  if (neighbor->ago == 0) {
-    if (_off_overflow_flag[LMP_OVERFLOW])
-      error->one(FLERR, Error::NOLASTLINE, "Neighbor list overflow, boost neigh_modify one" + utils::errorurl(36));
-    _offload_nlocal = _off_overflow_flag[LMP_LOCAL_MAX] + 1;
-    _offload_min_ghost = _off_overflow_flag[LMP_GHOST_MIN];
-    _offload_nghost = _off_overflow_flag[LMP_GHOST_MAX] + 1 -
-      _offload_min_ghost;
-    if (_offload_nghost < 0) _offload_nghost = 0;
-    _offload_nall = _offload_nlocal + _offload_nghost;
-      _offload_nlocal;
-  }
-
-  if (_torque_flag)
-    if (f_in[1].w < 0.0)
-      error->all(FLERR,"Bad matrix inversion in mldivide3");
-  add_results(f_in, ev_global, _off_results_eatom, _off_results_vatom, 1);
-
-  // Load balance?
-  if (_offload_balance < 0.0) {
-    if (neighbor->ago == 0)
-      _balance_pair = _balance_neighbor;
-    double mic_time;
-    mic_time = *_stopwatch_offload_pair;
-    if (_balance_pair_time + _balance_other_time < mic_time) {
-      double ft = _balance_pair_time + _balance_other_time + wait_time -
-          mic_time;
-      _balance_fixed = (1.0 - INTEL_LB_MEAN_WEIGHT) * _balance_fixed +
-          INTEL_LB_MEAN_WEIGHT * ft;
-    }
-
-    double ctps = _balance_pair_time / (1.0-_balance_pair);
-    double otps = mic_time / _balance_pair;
-    double new_balance = (ctps + _balance_other_time - _balance_fixed) /
-        (otps + ctps);
-    _balance_neighbor = (1.0 - INTEL_LB_MEAN_WEIGHT) *_balance_neighbor +
-        INTEL_LB_MEAN_WEIGHT * new_balance;
-  }
-
-  #ifdef TIME_BALANCE
-  start_watch(TIME_IMBALANCE);
-  MPI_Barrier(_real_space_comm);
-  stop_watch(TIME_IMBALANCE);
-  #endif
-  acc_timers();
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixIntel::output_timing_data() {
-  if (_im_real_space_task == 0 || _offload_affinity_set == 0) return;
-
-  double timer_total = 0.0;
-  int size, rank;
-  double timers[NUM_ITIMERS];
-  MPI_Comm_size(_real_space_comm, &size);
-  MPI_Comm_rank(_real_space_comm, &rank);
-  MPI_Allreduce(&_timers, &timers, NUM_ITIMERS, MPI_DOUBLE, MPI_SUM,
-                _real_space_comm);
-  for (int i=0; i < NUM_ITIMERS; i++) {
-    timers[i] /= size;
-    timer_total += timers[i];
-  }
-  #ifdef TIME_BALANCE
-  double timers_min[NUM_ITIMERS], timers_max[NUM_ITIMERS];
-  MPI_Allreduce(&_timers, &timers_max, NUM_ITIMERS, MPI_DOUBLE, MPI_MAX,
-                _real_space_comm);
-  MPI_Allreduce(&_timers, &timers_min, NUM_ITIMERS, MPI_DOUBLE, MPI_MIN,
-                _real_space_comm);
-  #endif
-
-  if (timer_total > 0.0) {
-    double balance_out[2], balance_in[2];
-    balance_out[0] = _balance_pair;
-    balance_out[1] = _balance_neighbor;
-    MPI_Reduce(balance_out, balance_in, 2, MPI_DOUBLE, MPI_SUM,
-               0, _real_space_comm);
-    balance_in[0] /= size;
-    balance_in[1] /= size;
-
-    if (rank == 0 && _tscreen) {
-      fprintf(_tscreen, "\n------------------------------------------------\n");
-      fprintf(_tscreen, "               Offload Timing Data\n");
-      fprintf(_tscreen, "------------------------------------------------\n");
-      fprintf(_tscreen, "  Data Pack/Cast Seconds    %f\n",
-              timers[TIME_PACK]);
-      if (_offload_balance != 0.0) {
-        fprintf(_tscreen, "  Host Neighbor Seconds     %f\n",
-                timers[TIME_HOST_NEIGHBOR]);
-        fprintf(_tscreen, "  Host Pair Seconds         %f\n",
-                timers[TIME_HOST_PAIR]);
-        fprintf(_tscreen, "  Offload Neighbor Seconds  %f\n",
-                timers[TIME_OFFLOAD_NEIGHBOR]);
-        fprintf(_tscreen, "  Offload Pair Seconds      %f\n",
-                timers[TIME_OFFLOAD_PAIR]);
-        fprintf(_tscreen, "  Offload Wait Seconds      %f\n",
-                timers[TIME_OFFLOAD_WAIT]);
-        fprintf(_tscreen, "  Offload Latency Seconds   %f\n",
-                timers[TIME_OFFLOAD_LATENCY]);
-        fprintf(_tscreen, "  Offload Neighbor Balance  %f\n",
-                balance_in[1]);
-        fprintf(_tscreen, "  Offload Pair Balance      %f\n",
-                balance_in[0]);
-        fprintf(_tscreen, "  Offload Ghost Atoms       ");
-        if (_offload_noghost) fprintf(_tscreen,"No\n");
-        else fprintf(_tscreen,"Yes\n");
-        #ifdef TIME_BALANCE
-        fprintf(_tscreen, "  Offload Imbalance Seconds %f\n",
-                timers[TIME_IMBALANCE]);
-        fprintf(_tscreen, "  Offload Min/Max Seconds   ");
-        for (int i = 0; i < NUM_ITIMERS; i++)
-          fprintf(_tscreen, "[%f, %f] ",timers_min[i],timers_max[i]);
-        fprintf(_tscreen, "\n");
-        #endif
-        double ht = timers[TIME_HOST_NEIGHBOR] + timers[TIME_HOST_PAIR] +
-          timers[TIME_OFFLOAD_WAIT];
-        double ct = timers[TIME_OFFLOAD_NEIGHBOR] +
-          timers[TIME_OFFLOAD_PAIR];
-        double tt = MAX(ht,ct);
-        if (timers[TIME_OFFLOAD_LATENCY] / tt > 0.07 && _separate_coi == 0)
-          error->warning(FLERR,"Leaving a core free can improve performance for offload");
-      }
-      fprintf(_tscreen, "------------------------------------------------\n");
-    }
-    zero_timers();
-    _setup_time_cleared = false;
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-int FixIntel::get_ppn(int &node_rank) {
-  int nprocs;
-  int rank;
-  MPI_Comm_size(_real_space_comm, &nprocs);
-  MPI_Comm_rank(_real_space_comm, &rank);
-
-  int name_length;
-  char node_name[MPI_MAX_PROCESSOR_NAME];
-  MPI_Get_processor_name(node_name,&name_length);
-  node_name[name_length] = '\0';
-  char *node_names = new char[MPI_MAX_PROCESSOR_NAME*nprocs];
-  MPI_Allgather(node_name, MPI_MAX_PROCESSOR_NAME, MPI_CHAR, node_names,
-                MPI_MAX_PROCESSOR_NAME, MPI_CHAR, _real_space_comm);
-  int ppn = 0;
-  node_rank = 0;
-  for (int i = 0; i < nprocs; i++) {
-    if (strcmp(node_name, node_names + i * MPI_MAX_PROCESSOR_NAME) == 0) {
-      ppn++;
-      if (i < rank)
-        node_rank++;
-    }
-  }
-
-  return ppn;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixIntel::set_offload_affinity()
-{
-  _separate_buffers = 0;
-  if (_allow_separate_buffers)
-    if (_offload_balance != 0.0 && _offload_balance < 1.0)
-      _separate_buffers = 1;
-
-  _im_real_space_task = 1;
-  if (strncmp(update->integrate_style,"verlet/split",12) == 0) {
-    _real_space_comm = world;
-    if (universe->iworld != 0) {
-      _im_real_space_task = 0;
-      return;
-    }
-  } else
-    _real_space_comm = universe->uworld;
-
-  if (_offload_balance == 0.0) _cop = -1;
-  if (_offload_balance == 0.0 || _offload_affinity_set == 1)
-    return;
-
-  _offload_affinity_set = 1;
-  int node_rank;
-  int ppn = get_ppn(node_rank);
-
-  if (ppn % _ncops != 0)
-    error->all(FLERR,"MPI tasks per node must be multiple of offload_cards");
-  ppn = ppn / _ncops;
-  _cop = node_rank / ppn;
-  node_rank = node_rank % ppn;
-
-  int max_threads_per_task = _offload_cores / 4 * _offload_tpc / ppn;
-  if (_offload_threads > max_threads_per_task)
-    _offload_threads = max_threads_per_task;
-  if (_offload_threads > _max_offload_threads)
-    _offload_threads = _max_offload_threads;
-
-  int offload_threads = _offload_threads;
-  int offload_tpc = _offload_tpc;
-  int offload_affinity_balanced = _offload_affinity_balanced;
-  int offload_cores = _offload_cores;
-  #pragma offload target(mic:_cop) mandatory \
-    in(node_rank,offload_threads,offload_tpc,offload_affinity_balanced, \
-       offload_cores)
-  {
-    omp_set_num_threads(offload_threads);
-    #pragma omp parallel
-    {
-      int tnum = omp_get_thread_num();
-      kmp_affinity_mask_t mask;
-      kmp_create_affinity_mask(&mask);
-      int proc = offload_threads * node_rank + tnum;
-      #ifdef __AVX512F__
-      proc = (proc / offload_tpc) + (proc % offload_tpc) *
-             ((offload_cores) / 4);
-      proc += 68;
-      #else
-      if (offload_affinity_balanced)
-        proc = proc * 4 - (proc / 60) * 240 + proc / 60 + 1;
-      else
-        proc += (proc / 4) * (4 - offload_tpc) + 1;
-      #endif
-      kmp_set_affinity_mask_proc(proc, &mask);
-      if (kmp_set_affinity(&mask) != 0)
-        printf("Could not set affinity on rank %d thread %d to %d\n",
-               node_rank, tnum, proc);
-    }
-  }
-
-  if (_precision_mode == PREC_MODE_SINGLE)
-    _single_buffers->set_off_params(offload_threads, _cop, _separate_buffers);
-  else if (_precision_mode == PREC_MODE_MIXED)
-    _mixed_buffers->set_off_params(offload_threads, _cop, _separate_buffers);
-  else
-    _double_buffers->set_off_params(offload_threads, _cop, _separate_buffers);
-}
-
-/* ---------------------------------------------------------------------- */
-
-int FixIntel::set_host_affinity(const int nomp)
-{
-  #ifndef INTEL_OFFLOAD_NOAFFINITY
-  _separate_coi = 1;
-  int rank = comm->me;
-  int node_rank;
-  int ppn = get_ppn(node_rank);
-  int cop = node_rank / (ppn / _ncops);
-
-  // Get a sorted list of logical cores
-  int proc_list[INTEL_MAX_HOST_CORE_COUNT];
-  int ncores;
-  FILE *p;
-  char cmd[512];
-  char readbuf[INTEL_MAX_HOST_CORE_COUNT*5];
-  sprintf(cmd, "lscpu -p | grep -v '#' |"
-          "sort -t, -k 3,3n -k 2,2n | awk -F, '{print $1}'");
-  p = popen(cmd, "r");
-  if (p == nullptr) return -1;
-  ncores = 0;
-  while (fgets(readbuf, 512, p)) {
-    proc_list[ncores] = std::stoi(readbuf);
-    ncores++;
-  }
-  pclose(p);
-
-  // Sanity checks for core list
-  if (ncores < 2) return -1;
-  int nzero = 0;
-  for (int i = 0; i < ncores; i++) {
-    if (proc_list[i] == 0) nzero++;
-    if (proc_list[i] < 0 || proc_list[i] >= ncores) return -1;
-  }
-  if (nzero > 1) return -1;
-
-  // Determine the OpenMP/MPI configuration
-  char *estring;
-  int nthreads = nomp;
-  if (nthreads == 0) {
-    estring = getenv("OMP_NUM_THREADS");
-    if (estring != nullptr) {
-      nthreads = std::stoi(estring);
-      if (nthreads < 2) nthreads = 1;
-    } else
-      nthreads = 1;
-  }
-
-  // Determine how many logical cores for COI and MPI tasks
-  int coi_cores = 0, mpi_cores;
-  int subscription = nthreads * ppn;
-  if (subscription > ncores) {
-    if (rank == 0)
-      error->warning(FLERR,"More MPI tasks/OpenMP threads than available cores");
-    return 0;
-  }
-  if (subscription == ncores)
-    _separate_coi = 0;
-
-  if (subscription > ncores / 2) {
-    coi_cores = ncores - subscription;
-    if (coi_cores > INTEL_MAX_COI_CORES) coi_cores = INTEL_MAX_COI_CORES;
-  }
-  mpi_cores = (ncores - coi_cores) / ppn;
-
-  // Get ids of all LWPs that COI spawned and affinitize
-  int lwp = 0, plwp = 0, nlwp = 0, mlwp = 0, fail = 0;
-  cpu_set_t cpuset;
-  pid_t pid = getpid();
-  if (coi_cores) {
-    sprintf(cmd, "ps -Lp %d -o lwp | awk ' (NR > 2) {print}'", pid);
-    p = popen(cmd, "r");
-    if (p == nullptr) return -1;
-
-    while (fgets(readbuf, 512, p)) {
-      lwp = std::stoi(readbuf);
-      int first = coi_cores + node_rank * mpi_cores;
-      CPU_ZERO(&cpuset);
-      for (int i = first; i < first + mpi_cores; i++)
-        CPU_SET(proc_list[i], &cpuset);
-      if (sched_setaffinity(lwp, sizeof(cpu_set_t), &cpuset)) {
-        fail = 1;
-        break;
-      }
-      plwp++;
-    }
-    pclose(p);
-
-    // Do async offload to create COI threads
-    int sig1, sig2;
-    float *buf1;
-    int pragma_size = 1024;
-    buf1 = (float*) malloc(sizeof(float)*pragma_size);
-
-    #pragma offload target (mic:0) mandatory \
-      in(buf1:length(pragma_size) alloc_if(1) free_if(0))       \
-      signal(&sig1)
-    { buf1[0] = 0.0; }
-    #pragma offload_wait target(mic:0) wait(&sig1)
-
-    #pragma offload target (mic:0) mandatory \
-      out(buf1:length(pragma_size) alloc_if(0) free_if(1))      \
-      signal(&sig2)
-    { buf1[0] = 1.0; }
-    #pragma offload_wait target(mic:0) wait(&sig2)
-    free(buf1);
-
-    p = popen(cmd, "r");
-    if (p == nullptr) return -1;
-
-    while (fgets(readbuf, 512, p)) {
-      lwp = std::stoi(readbuf);
-      nlwp++;
-      if (nlwp <= plwp) continue;
-
-      CPU_ZERO(&cpuset);
-      for (int i=0; i<coi_cores; i++)
-        CPU_SET(proc_list[i], &cpuset);
-
-      if (sched_setaffinity(lwp, sizeof(cpu_set_t), &cpuset)) {
-        fail = 1;
-        break;
-      }
-    }
-    pclose(p);
-    nlwp -= plwp;
-
-    // Get stats on the number of LWPs per process
-    MPI_Reduce(&nlwp, &mlwp, 1, MPI_INT, MPI_MAX, 0, MPI_COMM_WORLD);
-  }
-
-  if (screen && rank == 0) {
-    if (coi_cores)
-      fprintf(screen,"Intel Package: Affinitizing %d Offload Threads to %d Cores\n",
-              mlwp, coi_cores);
-    fprintf(screen,"Intel Package: Affinitizing MPI Tasks to %d Cores Each\n",mpi_cores);
-  }
-  if (fail) return -1;
-
-  // Affinitize MPI Ranks
-  CPU_ZERO(&cpuset);
-  int first = coi_cores + node_rank * mpi_cores;
-  for (int i = first; i < first+mpi_cores; i++)
-    CPU_SET(proc_list[i], &cpuset);
-  if (sched_setaffinity(pid, sizeof(cpu_set_t), &cpuset))
-    return -1;
-
-  #endif
-  return 0;
-}
-
-#endif

@@ -39,7 +39,9 @@ using namespace EwaldConst;
 
 /* ---------------------------------------------------------------------- */
 
-PairNMCutCoulLong::PairNMCutCoulLong(LAMMPS *lmp) : Pair(lmp)
+PairNMCutCoulLong::PairNMCutCoulLong(LAMMPS *lmp) :
+    Pair(lmp), cut_lj(nullptr), cut_ljsq(nullptr), e0(nullptr), r0(nullptr), nn(nullptr),
+    mm(nullptr), nm(nullptr), e0nm(nullptr), r0n(nullptr), r0m(nullptr), offset(nullptr)
 {
   ewaldflag = pppmflag = 1;
   ftable = nullptr;
@@ -49,6 +51,8 @@ PairNMCutCoulLong::PairNMCutCoulLong(LAMMPS *lmp) : Pair(lmp)
 
 PairNMCutCoulLong::~PairNMCutCoulLong()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);

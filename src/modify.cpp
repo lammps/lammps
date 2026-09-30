@@ -12,9 +12,8 @@
 ------------------------------------------------------------------------- */
 
 #include "modify.h"
-#include "style_compute.h"    // IWYU pragma: keep
-#include "style_fix.h"        // IWYU pragma: keep
 
+#include "accelerator_kokkos.h"
 #include "atom.h"
 #include "comm.h"
 #include "compute.h"    // IWYU pragma: keep
@@ -24,6 +23,7 @@
 #include "group.h"
 #include "input.h"
 #include "memory.h"
+#include "label_map.h"
 #include "region.h"
 #include "update.h"
 #include "variable.h"
@@ -36,12 +36,23 @@ using namespace FixConst;
 static constexpr int DELTA = 4;
 static constexpr double BIG = 1.0e20;
 
-// template for factory function:
-// there will be one instance for each style keyword in the respective style_xxx.h files
+/* ----------------------------------------------------------------------
+   process-global registries of fix and compute style factory functions.
+   Shared by all LAMMPS instances and persistent across the "clear" command.
+   Built-in styles are registered once by the generated register_*_styles()
+   functions; plugins add/override entries at runtime.
+------------------------------------------------------------------------- */
 
-template <typename S, typename T> static S *style_creator(LAMMPS *lmp, int narg, char **arg)
+CreatorRegistry<Modify::FixCreator> &Modify::fix_styles()
 {
-  return new T(lmp, narg, arg);
+  static CreatorRegistry<Modify::FixCreator> registry;
+  return registry;
+}
+
+CreatorRegistry<Modify::ComputeCreator> &Modify::compute_styles()
+{
+  static CreatorRegistry<Modify::ComputeCreator> registry;
+  return registry;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -91,31 +102,6 @@ Modify::Modify(LAMMPS *lmp) : Pointers(lmp)
 
   ncompute = maxcompute = 0;
   compute = nullptr;
-
-  create_factories();
-}
-
-void _noopt Modify::create_factories()
-{
-  // fill map with fixes listed in style_fix.h
-
-  fix_map = new FixCreatorMap();
-
-#define FIX_CLASS
-#define FixStyle(key, Class) (*fix_map)[#key] = &style_creator<Fix, Class>;
-#include "style_fix.h"    // IWYU pragma: keep
-#undef FixStyle
-#undef FIX_CLASS
-
-  // fill map with computes listed in style_compute.h
-
-  compute_map = new ComputeCreatorMap();
-
-#define COMPUTE_CLASS
-#define ComputeStyle(key, Class) (*compute_map)[#key] = &style_creator<Compute, Class>;
-#include "style_compute.h"    // IWYU pragma: keep
-#undef ComputeStyle
-#undef COMPUTE_CLASS
 }
 
 /* ---------------------------------------------------------------------- */
@@ -166,9 +152,6 @@ Modify::~Modify()
   delete[] list_timeflag;
 
   restart_deallocate(0);
-
-  delete compute_map;
-  delete fix_map;
 }
 
 /* ----------------------------------------------------------------------
@@ -321,6 +304,10 @@ void Modify::setup(int vflag)
     for (int i = 0; i < nfix; i++) fix[i]->setup(vflag);
   else if (update->whichflag == 2)
     for (int i = 0; i < nfix; i++) fix[i]->min_setup(vflag);
+
+  // runtime check for type label self-consistency
+
+  if (atom->labelmapflag && atom->lmap->checkflag) atom->lmap->check_labels();
 }
 
 /* ----------------------------------------------------------------------
@@ -902,8 +889,8 @@ Fix *Modify::add_fix(int narg, char **arg, int trysuffix)
   if (trysuffix && lmp->suffix_enable) {
     if (lmp->non_pair_suffix()) {
       std::string estyle = arg[2] + std::string("/") + lmp->non_pair_suffix();
-      if (fix_map->find(estyle) != fix_map->end()) {
-        FixCreator &fix_creator = (*fix_map)[estyle];
+      FixCreator fix_creator = fix_styles().find(estyle);
+      if (fix_creator) {
         fix[ifix] = fix_creator(lmp, narg, arg);
         delete[] fix[ifix]->style;
         fix[ifix]->style = utils::strdup(estyle);
@@ -911,8 +898,8 @@ Fix *Modify::add_fix(int narg, char **arg, int trysuffix)
     }
     if ((fix[ifix] == nullptr) && lmp->suffix2) {
       std::string estyle = arg[2] + std::string("/") + lmp->suffix2;
-      if (fix_map->find(estyle) != fix_map->end()) {
-        FixCreator &fix_creator = (*fix_map)[estyle];
+      FixCreator fix_creator = fix_styles().find(estyle);
+      if (fix_creator) {
         fix[ifix] = fix_creator(lmp, narg, arg);
         delete[] fix[ifix]->style;
         fix[ifix]->style = utils::strdup(estyle);
@@ -920,9 +907,23 @@ Fix *Modify::add_fix(int narg, char **arg, int trysuffix)
     }
   }
 
-  if ((fix[ifix] == nullptr) && (fix_map->find(arg[2]) != fix_map->end())) {
-    FixCreator &fix_creator = (*fix_map)[arg[2]];
-    fix[ifix] = fix_creator(lmp, narg, arg);
+  // fix property/atom keeps its per-atom data in arrays that AtomKokkos owns and
+  // grows as Kokkos views.  The plain style would hand those pointers to
+  // memory->grow(), i.e. srealloc() on a Kokkos allocation, which corrupts the
+  // heap.  Use the KOKKOS version whenever the package is active, even where the
+  // suffix machinery above did not apply because suffixes are disabled.
+
+  if ((fix[ifix] == nullptr) && lmp->kokkos && (strcmp(arg[2], "property/atom") == 0)) {
+    if (FixCreator fix_creator = fix_styles().find("property/atom/kk")) {
+      fix[ifix] = fix_creator(lmp, narg, arg);
+      delete[] fix[ifix]->style;
+      fix[ifix]->style = utils::strdup("property/atom/kk");
+    }
+  }
+
+  if (fix[ifix] == nullptr) {
+    if (FixCreator fix_creator = fix_styles().find(arg[2]))
+      fix[ifix] = fix_creator(lmp, narg, arg);
   }
 
   if (fix[ifix] == nullptr)
@@ -934,6 +935,9 @@ Fix *Modify::add_fix(int narg, char **arg, int trysuffix)
     nfix++;
     fix_list = std::vector<Fix *>(fix, fix + nfix);
   }
+
+  if (fix[ifix]->kokkosable && (!lmp->kokkos || !lmp->kokkos->kokkos_exists))
+    error->all(FLERR, Error::NOLASTLINE, "Cannot use KOKKOS styles without enabling KOKKOS");
 
   // post_constructor() can call virtual methods in parent or child
   //   which would otherwise not yet be visible in child class
@@ -1067,6 +1071,9 @@ void Modify::modify_fix(int narg, char **arg)
 
 void Modify::delete_fix(const std::string &id)
 {
+  // no more fixes, nothing to do
+  if (!nfix) return;
+
   int ifix = find_fix(id);
   if (ifix < 0) error->all(FLERR, Error::NOLASTLINE, "Could not find fix ID {} to delete", id);
   delete_fix(ifix);
@@ -1074,7 +1081,8 @@ void Modify::delete_fix(const std::string &id)
 
 void Modify::delete_fix(int ifix)
 {
-  if ((ifix < 0) || (ifix >= nfix)) return;
+  // don't do anything if out of range or no fixes left
+  if (!nfix || (ifix < 0) || (ifix >= nfix)) return;
 
   // delete instance and move other Fixes and fmask down in list one slot
 
@@ -1118,7 +1126,7 @@ Fix *Modify::get_fix_by_id(const std::string &id) const
    return vector of matching pointers
 ------------------------------------------------------------------------- */
 
-const std::vector<Fix *> Modify::get_fix_by_style(const std::string &style) const
+std::vector<Fix *> Modify::get_fix_by_style(const std::string &style) const
 {
   std::vector<Fix *> matches;
   if (style.empty()) return matches;
@@ -1148,7 +1156,7 @@ const std::vector<Fix *> &Modify::get_fix_list()
 
 int Modify::check_package(const char *package_fix_name)
 {
-  if (fix_map->find(package_fix_name) == fix_map->end()) return 0;
+  if (!fix_styles().contains(package_fix_name)) return 0;
   return 1;
 }
 
@@ -1271,8 +1279,8 @@ Compute *Modify::add_compute(int narg, char **arg, int trysuffix)
   if (trysuffix && lmp->suffix_enable) {
     if (lmp->non_pair_suffix()) {
       std::string estyle = arg[2] + std::string("/") + lmp->non_pair_suffix();
-      if (compute_map->find(estyle) != compute_map->end()) {
-        ComputeCreator &compute_creator = (*compute_map)[estyle];
+      ComputeCreator compute_creator = compute_styles().find(estyle);
+      if (compute_creator) {
         compute[ncompute] = compute_creator(lmp, narg, arg);
         delete[] compute[ncompute]->style;
         compute[ncompute]->style = utils::strdup(estyle);
@@ -1280,8 +1288,8 @@ Compute *Modify::add_compute(int narg, char **arg, int trysuffix)
     }
     if (compute[ncompute] == nullptr && lmp->suffix2) {
       std::string estyle = arg[2] + std::string("/") + lmp->suffix2;
-      if (compute_map->find(estyle) != compute_map->end()) {
-        ComputeCreator &compute_creator = (*compute_map)[estyle];
+      ComputeCreator compute_creator = compute_styles().find(estyle);
+      if (compute_creator) {
         compute[ncompute] = compute_creator(lmp, narg, arg);
         delete[] compute[ncompute]->style;
         compute[ncompute]->style = utils::strdup(estyle);
@@ -1289,15 +1297,18 @@ Compute *Modify::add_compute(int narg, char **arg, int trysuffix)
     }
   }
 
-  if (compute[ncompute] == nullptr && compute_map->find(arg[2]) != compute_map->end()) {
-    ComputeCreator &compute_creator = (*compute_map)[arg[2]];
-    compute[ncompute] = compute_creator(lmp, narg, arg);
+  if (compute[ncompute] == nullptr) {
+    if (ComputeCreator compute_creator = compute_styles().find(arg[2]))
+      compute[ncompute] = compute_creator(lmp, narg, arg);
   }
 
   if (compute[ncompute] == nullptr)
     error->all(FLERR, Error::NOLASTLINE, utils::check_packages_for_style("compute", arg[2], lmp));
 
   compute_list = std::vector<Compute *>(compute, compute + ncompute + 1);
+
+  if (compute[ncompute]->kokkosable && (!lmp->kokkos || !lmp->kokkos->kokkos_exists))
+    error->all(FLERR, Error::NOLASTLINE, "Cannot use KOKKOS styles without enabling KOKKOS");
 
   // post_constructor() can call virtual methods in parent or child
   //   which would otherwise not yet be visible in child class
@@ -1347,6 +1358,9 @@ void Modify::modify_compute(int narg, char **arg)
 
 void Modify::delete_compute(const std::string &id)
 {
+  // no more computes, nothing to do
+  if (!ncompute) return;
+
   int icompute = find_compute(id);
   if (icompute < 0)
     error->all(FLERR, Error::NOLASTLINE, "Could not find compute ID {} to delete", id);
@@ -1355,7 +1369,8 @@ void Modify::delete_compute(const std::string &id)
 
 void Modify::delete_compute(int icompute)
 {
-  if ((icompute < 0) || (icompute >= ncompute)) return;
+  // don't do anything if out of range or no computes left
+  if (!ncompute || (icompute < 0) || (icompute >= ncompute)) return;
 
   // delete and move other Computes down in list one slot
 
@@ -1396,7 +1411,7 @@ Compute *Modify::get_compute_by_id(const std::string &id) const
    return vector with matching pointers
 ------------------------------------------------------------------------- */
 
-const std::vector<Compute *> Modify::get_compute_by_style(const std::string &style) const
+std::vector<Compute *> Modify::get_compute_by_style(const std::string &style) const
 {
   std::vector<Compute *> matches;
   if (style.empty()) return matches;
@@ -1550,12 +1565,14 @@ int Modify::read_restart(FILE *fp)
   for (int i = 0; i < nfix_restart_global; i++) {
     if (me == 0) utils::sfread(FLERR, &n, sizeof(int), 1, fp, nullptr, error);
     MPI_Bcast(&n, 1, MPI_INT, 0, world);
+    if ((n < 1) || (n > 65536)) error->all(FLERR, "Invalid fix info size in restart file");
     id_restart_global[i] = new char[n];
     if (me == 0) utils::sfread(FLERR, id_restart_global[i], sizeof(char), n, fp, nullptr, error);
     MPI_Bcast(id_restart_global[i], n, MPI_CHAR, 0, world);
 
     if (me == 0) utils::sfread(FLERR, &n, sizeof(int), 1, fp, nullptr, error);
     MPI_Bcast(&n, 1, MPI_INT, 0, world);
+    if ((n < 1) || (n > 65536)) error->all(FLERR, "Invalid fix info size in restart file");
     style_restart_global[i] = new char[n];
     if (me == 0) utils::sfread(FLERR, style_restart_global[i], sizeof(char), n, fp, nullptr, error);
     MPI_Bcast(style_restart_global[i], n, MPI_CHAR, 0, world);
@@ -1595,12 +1612,14 @@ int Modify::read_restart(FILE *fp)
   for (int i = 0; i < nfix_restart_peratom; i++) {
     if (me == 0) utils::sfread(FLERR, &n, sizeof(int), 1, fp, nullptr, error);
     MPI_Bcast(&n, 1, MPI_INT, 0, world);
+    if ((n < 1) || (n > 65536)) error->all(FLERR, "Invalid fix info size in restart file");
     id_restart_peratom[i] = new char[n];
     if (me == 0) utils::sfread(FLERR, id_restart_peratom[i], sizeof(char), n, fp, nullptr, error);
     MPI_Bcast(id_restart_peratom[i], n, MPI_CHAR, 0, world);
 
     if (me == 0) utils::sfread(FLERR, &n, sizeof(int), 1, fp, nullptr, error);
     MPI_Bcast(&n, 1, MPI_INT, 0, world);
+    if ((n < 1) || (n > 65536)) error->all(FLERR, "Invalid fix info size in restart file");
     style_restart_peratom[i] = new char[n];
     if (me == 0)
       utils::sfread(FLERR, style_restart_peratom[i], sizeof(char), n, fp, nullptr, error);

@@ -7,8 +7,6 @@ foreach(Tag Threads;OpenMP;Cuda;HPX;HIP)
   string(TOLOWER ${Tag} dir)
 
   if(Kokkos_ENABLE_${DEVICE})
-    message(STATUS "Sources Test${Tag}.cpp")
-
     set(SOURCES TestMain.cpp Test${Tag}.cpp)
 
     kokkos_add_executable_and_test(ContainersPerformanceTest_${Tag} SOURCES ${SOURCES})

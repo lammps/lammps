@@ -37,7 +37,8 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), vptr(nullptr), id_temp(nullptr), pstyle(nullptr)
+    Compute(lmp, narg, arg), vptr(nullptr), kspace_virial(nullptr), temperature(nullptr),
+    id_temp(nullptr), pstyle(nullptr)
 {
   if (narg < 4) utils::missing_cmd_args(FLERR,"compute pressure", error);
   if (igroup) error->all(FLERR, 1, "Compute pressure must use group all");
@@ -55,12 +56,15 @@ ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
   if (strcmp(arg[3],"NULL") == 0) {
     id_temp = nullptr;
   } else {
-    id_temp = utils::strdup(arg[3]);
-    auto *icompute = modify->get_compute_by_id(id_temp);
+    // look the compute up first: an error raised here leaves the constructor,
+    // and the destructor that would release the copy is never called
+    auto *icompute = modify->get_compute_by_id(arg[3]);
     if (!icompute)
-      error->all(FLERR, 3, "Could not find compute pressure temperature ID {}", id_temp);
+      error->all(FLERR, 3, "Could not find compute pressure temperature ID {}", arg[3]);
     if (!icompute->tempflag)
-      error->all(FLERR, 3, "Compute pressure temperature ID {} does not compute temperature", id_temp);
+      error->all(FLERR, 3, "Compute pressure temperature ID {} does not compute temperature",
+                 arg[3]);
+    id_temp = utils::strdup(arg[3]);
   }
 
   // process optional args
@@ -80,6 +84,7 @@ ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
     while (iarg < narg) {
       if (strcmp(arg[iarg],"ke") == 0) keflag = 1;
       else if (strcmp(arg[iarg],"pair/hybrid") == 0) {
+        delete[] pstyle;
         if (lmp->suffix)
           pstyle = utils::strdup(fmt::format("{}/{}",arg[++iarg],lmp->suffix));
         else

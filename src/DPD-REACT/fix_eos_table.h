@@ -58,7 +58,6 @@ class FixEOStable : public Fix {
   void spline_table(Table *);
   void compute_table(Table *);
 
-  void param_extract(Table *, Table *, char *);
   void spline(double *, double *, int, double, double, double *);
   double splint(double *, double *, double *, int, double);
 };

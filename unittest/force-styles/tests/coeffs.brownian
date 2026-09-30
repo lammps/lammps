@@ -1,0 +1,3 @@
+pair_style       zero 8.0
+pair_coeff       1 1
+group            solute type 1

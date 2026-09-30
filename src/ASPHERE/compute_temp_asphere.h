@@ -46,6 +46,9 @@ class ComputeTempAsphere : public Compute {
   class AtomVecEllipsoid *avec;
 
   void dof_compute();
+
+  template <bool is_super> void compute_scalar_templated(double &t);
+  template <bool is_super> void compute_vector_templated(double *t);
 };
 
 }    // namespace LAMMPS_NS

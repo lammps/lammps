@@ -1,24 +1,19 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef TEST_FUNCTOR_ANALYSIS_HPP
 #define TEST_FUNCTOR_ANALYSIS_HPP
 
 #include <gtest/gtest.h>
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+import kokkos.core_impl;
+#else
 #include <Kokkos_Core.hpp>
+#endif
+
+#include <impl/Kokkos_FunctorAnalysis.hpp>
 
 /*--------------------------------------------------------------------------*/
 
@@ -48,10 +43,10 @@ struct TestFunctorAnalysis_04 {
   KOKKOS_INLINE_FUNCTION static void init(float&) {}
 };
 
-template <class ExecSpace>
 void test_functor_analysis() {
   //------------------------------
-  auto c01 = KOKKOS_LAMBDA(int){};
+  using ExecSpace = TEST_EXECSPACE;
+  auto c01        = KOKKOS_LAMBDA(int){};
   using A01 =
       Kokkos::Impl::FunctorAnalysis<Kokkos::Impl::FunctorPatternInterface::FOR,
                                     Kokkos::RangePolicy<ExecSpace>,
@@ -135,9 +130,7 @@ void test_functor_analysis() {
   ASSERT_EQ(R04(c04).length(), 1);
 }
 
-TEST(TEST_CATEGORY, functor_analysis) {
-  test_functor_analysis<TEST_EXECSPACE>();
-}
+TEST(TEST_CATEGORY, functor_analysis) { test_functor_analysis(); }
 
 }  // namespace Test
 

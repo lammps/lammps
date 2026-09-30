@@ -29,7 +29,6 @@ class TersoffZBL : public BaseThree<numtyp, acctyp> {
   /// Clear any previous data and set up for a new LAMMPS run for generic systems
   /** \param max_nbors initial number of rows in the neighbor matrix
     * \param cell_size cutoff + skin
-    * \param gpu_split fraction of particles handled by device
     *
     * Returns:
     * -  0 if successful
@@ -38,7 +37,7 @@ class TersoffZBL : public BaseThree<numtyp, acctyp> {
     * - -4 if the GPU library was not compiled for GPU
     * - -5 Double precision is not supported on card **/
   int init(const int ntypes, const int nlocal, const int nall, const int max_nbors,
-           const double cell_size, const double gpu_split, FILE *screen,
+           const double cell_size, FILE *screen,
            int* host_map, const int nelements, int*** host_elem2param, const int nparams,
            const double* lam1, const double* lam2, const double* lam3,
            const double* powermint, const double* biga, const double* bigb,

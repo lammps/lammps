@@ -92,13 +92,15 @@ void ComputeEfieldWolfAtom::init()
   if (atom->mu_flag && (comm->me == 0))
     error->warning(FLERR, "Compute efield/wolf/atom does not support per-atom dipoles");
 
-  if ((neighbor->style == Neighbor::MULTI) || (neighbor->style == Neighbor::MULTI_OLD))
+  if (neighbor->style == Neighbor::MULTI)
     error->all(FLERR, "Compute efield/wolf/atom requires neighbor style 'bin' or 'nsq'");
 
   // request an occasional full neighbor list
 
   auto *req = neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
-  if (cutoff_flag) req->set_cutoff(cutoff);
+  if (cutoff_flag) {
+    req->set_cutoff_fixed(cutoff);
+  }
 
   jgroup = group->find(group2);
   if (jgroup < 0) error->all(FLERR, "Compute efield/atom/wolf group {} does not exist", group2);

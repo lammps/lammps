@@ -1,0 +1,73 @@
+variable a0 equal 3.0  # trial values
+variable c0 equal 5.0
+variable u0 equal 0.38
+variable Efu_inf equal -0.9183986628325442  # energy of a pair of isolated Ga and N ions
+
+units metal
+dimension 3
+boundary p p p
+atom_style charge
+atom_modify map yes
+
+lattice custom ${a0} &
+   a1  1.0 0.0               0.0 &
+   a2 -0.5 0.866025403784439 0.0 &
+   a3  0.0 0.0               $(v_c0/v_a0) &
+   spacing 1 0.866025403784439 $(v_c0/v_a0) &
+   basis 0.33333333 0.66666667 0 &
+   basis 0.66666667 0.33333333 0.5 &
+   basis 0.33333333 0.66666667 ${u0} &
+   basis 0.66666667 0.33333333 $(v_u0+0.5)
+region box prism 0 1 0 1 0 1 -0.5 0 0 units lattice
+create_box 2 box
+create_atoms 2 box basis 1 1 basis 2 1 basis 3 2 basis 4 2
+mass * 1.0
+
+set type 1 charge 1.0
+set type 2 charge -1.0
+group g1 type 1
+group g2 type 2
+
+compute eat all pe/atom
+compute q1all g1 property/atom q
+compute q1 g1 reduce ave c_q1all
+
+pair_style hybrid/overlay tersoff/mod coul/streitz 12.0 dsf 0.3 2.0
+pair_coeff * * tersoff/mod GaN.streitz+tersoff.mod Ga N
+pair_coeff * * coul/streitz GaN.streitz Ga N
+
+fix fq all qeq/slater 1 12.0 1e-6 1000 coul/streitz alpha 0.3 dsf 2.0
+
+fix 1 all box/relax aniso 0.0
+
+#dump 1 all cfg 100 dump_*.cfg mass type xs ys zs c_eat q
+#dump_modify 1 element Ga N
+
+thermo 100
+thermo_style custom step pe fmax press vol lx ly lz
+include scmin.mod  # self-consistent minimization & charge equilibration
+
+variable Efu_nocorr equal 2*pe/count(all)
+variable Efu equal ${Efu_nocorr}-${Efu_inf}
+variable a equal (lx+ly*2/sqrt(3))/2
+variable c equal lz
+variable p equal press/1e4
+variable q1 equal c_q1
+
+print '--------------------------------------------------------------------------------------------'
+print 'Energy (no correction): E = ${Efu_nocorr} eV/fu'
+print 'Energy: E-Einf = ${Efu} eV/fu'
+print 'Pressure: p = $p GPa'
+print 'Energy of a pair of isolated ions: Einf = ${Efu_inf} eV/fu'
+print 'Lattice parameters: a = $a A'
+print '                    c = $c A'
+print 'Cationic charge: q = ${q1}*e'
+print '--------------------------------------------------------------------------------------------'
+
+#include polariz.mod
+#include polariz_diff.mod
+#include polariz_wz.mod  # no relaxation, fixed cell shape
+#include polariz_wz_relax.mod  # with relaxation - transforms into different structures?
+
+
+

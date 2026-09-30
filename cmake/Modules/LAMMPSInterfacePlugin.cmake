@@ -34,26 +34,26 @@ if(MSVC)
   add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
 endif()
 
+# We *require* C++17 without extensions
+# Kokkos also requires at least C++17 (currently)
 if(NOT CMAKE_CXX_STANDARD)
-  if(cxx_std_17 IN_LIST CMAKE_CXX_COMPILE_FEATURES)
+# uncomment in case we plan to switch to C++20 as minimum standard
+#  if(cxx_std_20 IN_LIST CMAKE_CXX_COMPILE_FEATURES)
+#    set(CMAKE_CXX_STANDARD 20)
+#  else()
     set(CMAKE_CXX_STANDARD 17)
-  else()
-    set(CMAKE_CXX_STANDARD 11)
-  endif()
-endif()
-if(CMAKE_CXX_STANDARD LESS 11)
-  message(FATAL_ERROR "C++ standard must be set to at least 11")
+#  endif()
 endif()
 if(CMAKE_CXX_STANDARD LESS 17)
-  message(WARNING "Selecting C++17 standard is preferred over C++${CMAKE_CXX_STANDARD}")
+  message(FATAL_ERROR "C++ standard must be set to at least 17")
 endif()
 if(PKG_KOKKOS AND (CMAKE_CXX_STANDARD LESS 17))
   set(CMAKE_CXX_STANDARD 17)
 endif()
-# turn off C++17 check in lmptype.h
-if(LAMMPS_CXX11)
-  add_compile_definitions(LAMMPS_CXX11)
-endif()
+# turn off C++20 check in lmptype.h
+#if(LAMMPS_CXX17)
+#  add_compile_definitions(LAMMPS_CXX17)
+#endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Need -restrict with Intel compilers
@@ -64,6 +64,10 @@ set(CMAKE_POSITION_INDEPENDENT_CODE TRUE)
 
 # skip over obsolete MPI-2 C++ bindings
 set(MPI_CXX_SKIP_MPICXX TRUE)
+
+# compile external libraries for linking to shared objects
+set(CONFIGURE_REQUEST_PIC "--with-pic")
+set(CMAKE_REQUEST_PIC "-DCMAKE_POSITION_INDEPENDENT_CODE=${CMAKE_POSITION_INDEPENDENT_CODE}")
 
 #######
 # helper functions from LAMMPSUtils.cmake
@@ -120,6 +124,42 @@ function(GetFallbackURL input output)
   endif()
 endfunction(GetFallbackURL)
 
+# Register the download URL and SHA256 checksum of an external library or tool as cache variables
+# <prefix>_URL and <prefix>_SHA256.  Caching them allows package developers and users to override
+# permanently for a build folder which archive is downloaded.  But this also means that the cached
+# settings are retained when LAMMPS is updated to a new version of the external library.  Thus the
+# default checksum is recorded and the cached settings are updated to the new defaults when they
+# still match the previous defaults.  Otherwise a warning is printed, i.e. when the settings were
+# customized, or when the build folder was last configured with an older LAMMPS version that did
+# not record the default.  Only the checksums are compared, since a customized URL may point to a
+# local copy of the same archive.
+function(SetDownloadSettings prefix name url sha256)
+  set(_url_var ${prefix}_URL)
+  set(_sha_var ${prefix}_SHA256)
+  set(_ref_var ${prefix}_SHA256_DEFAULT)
+  if((DEFINED CACHE{${_sha_var}}) AND (DEFINED CACHE{${_ref_var}}))
+    if(("${${_sha_var}}" STREQUAL "${${_ref_var}}") AND (NOT ("${${_sha_var}}" STREQUAL "${sha256}")))
+      message(STATUS "Updating cached download settings for ${name} to the current defaults")
+      set(${_url_var} "${url}" CACHE STRING "URL for ${name} tarball" FORCE)
+      set(${_sha_var} "${sha256}" CACHE STRING "SHA256 checksum of ${name} tarball" FORCE)
+    endif()
+  endif()
+  set(${_url_var} "${url}" CACHE STRING "URL for ${name} tarball")
+  set(${_sha_var} "${sha256}" CACHE STRING "SHA256 checksum of ${name} tarball")
+  set(${_ref_var} "${sha256}" CACHE INTERNAL "Default SHA256 checksum of ${name} tarball")
+  mark_as_advanced(${_url_var} ${_sha_var})
+  if(NOT ("${${_sha_var}}" STREQUAL "${sha256}"))
+    message(WARNING "Cached download settings for ${name} differ from the defaults:\n"
+      "  ${_url_var} = ${${_url_var}}\n"
+      "  ${_sha_var} = ${${_sha_var}}\n"
+      "The current default URL is:\n"
+      "  ${url}\n"
+      "If this is not intended, reset the cached settings with:\n"
+      "  cmake -U ${_url_var} -U ${_sha_var} <build folder>\n"
+      "For more information see https://docs.lammps.org/err0039")
+  endif()
+endfunction(SetDownloadSettings)
+
 #################################################################################
 # LAMMPS C++ interface. We only need the header related parts except on windows.
 add_library(lammps INTERFACE)
@@ -144,16 +184,15 @@ if(BUILD_MPI)
   # We use a non-standard procedure to cross-compile with MPI on Windows
   if((CMAKE_SYSTEM_NAME STREQUAL "Windows") AND CMAKE_CROSSCOMPILING)
     message(STATUS "Downloading and configuring MS-MPI 10.1 for Windows cross-compilation")
-    set(MPICH2_WIN64_DEVEL_URL "${LAMMPS_THIRDPARTY_URL}/msmpi-win64-devel.tar.gz" CACHE STRING "URL for MS-MPI (win64) tarball")
-    set(MPICH2_WIN64_DEVEL_MD5 "86314daf1bffb809f1fcbefb8a547490" CACHE STRING "MD5 checksum of MS-MPI (win64) tarball")
-    mark_as_advanced(MPICH2_WIN64_DEVEL_URL)
-    mark_as_advanced(MPICH2_WIN64_DEVEL_MD5)
+    SetDownloadSettings(MPICH2_WIN64_DEVEL "MS-MPI (win64)"
+      "${LAMMPS_THIRDPARTY_URL}/msmpi-win64-devel.tar.gz"
+      "939f5bad74311a84839196ca9140549189ef00785b0ef8e94ad6a180014ccb7f")
 
     include(ExternalProject)
     if(CMAKE_SYSTEM_PROCESSOR STREQUAL "x86_64")
       ExternalProject_Add(mpi4win_build
         URL     ${MPICH2_WIN64_DEVEL_URL}
-        URL_MD5 ${MPICH2_WIN64_DEVEL_MD5}
+        URL_HASH SHA256=${MPICH2_WIN64_DEVEL_SHA256}
         CONFIGURE_COMMAND "" BUILD_COMMAND "" INSTALL_COMMAND ""
         BUILD_BYPRODUCTS <SOURCE_DIR>/lib/libmsmpi.a)
     else()

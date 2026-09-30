@@ -28,6 +28,8 @@
 #include "region_block_kokkos.h"
 #include "region_sphere_kokkos.h"
 
+#include <type_traits>
+
 using namespace LAMMPS_NS;
 using namespace MathSpecialKokkos;
 
@@ -42,7 +44,12 @@ FixWallRegionKokkos<DeviceType>::FixWallRegionKokkos(LAMMPS *lmp, int narg, char
   kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
-  datamask_read = X_MASK | V_MASK | MASK_MASK;
+  datamask_read = X_MASK | V_MASK | F_MASK | MASK_MASK;
+
+  // the colloid wall reads the per-atom radius in the kernel; the style has
+  // been parsed by the base class constructor at this point
+
+  if (style == COLLOID) datamask_read |= RADIUS_MASK;
   datamask_modify = F_MASK;
 }
 
@@ -78,9 +85,12 @@ void FixWallRegionKokkos<DeviceType>::post_force(int vflag)
 
   // virial setup
 
-  v_init(vflag);
+  // the per-atom virial is accumulated into a dual view, so the plain
+  // base-class vatom array must not be allocated here (alloc = 0)
 
-  // reallocate per-atom arrays if necessary
+  v_init(vflag,0);
+
+  // reallocate the per-atom virial dual view if necessary
 
   if (vflag_atom) {
     memoryKK->destroy_kokkos(k_vatom,vatom);
@@ -96,10 +106,6 @@ void FixWallRegionKokkos<DeviceType>::post_force(int vflag)
 
   region->prematch();
 
-  // virial setup
-
-  v_init(vflag);
-
   // region->match() ensures particle is in region or on surface, else error
   // if returned contact dist r = 0, is on surface, also an error
   // in COLLOID case, r <= radius is an error
@@ -110,8 +116,16 @@ void FixWallRegionKokkos<DeviceType>::post_force(int vflag)
   // eflag is used to track whether wall energies have been communicated
 
   eflag = 0;
-  double result[10];
+
+  // result[0-3] = energy and force on the wall, result[4-9] = global virial,
+  // result[10] != 0 if any particle was on the wrong side of the wall
+
+  double result[11];
+
+  // the functor copies this fix and the region; their copies must not free memory
+
   copymode = 1;
+  region->copymode = 1;
 
   if(auto *regionKK = dynamic_cast<RegBlockKokkos<DeviceType>*>(region)) {
     FixWallRegionKokkosFunctor<DeviceType,class RegBlockKokkos<DeviceType>> functor(this,regionKK);
@@ -121,7 +135,12 @@ void FixWallRegionKokkos<DeviceType>::post_force(int vflag)
     Kokkos::parallel_reduce(nlocal,functor,result);
   }
 
+  region->copymode = 0;
   copymode = 0;
+
+  if (result[10] != 0.0)
+    error->one(FLERR,"Particle outside surface of region used in fix wall/region");
+
   for( int i=0 ; i<4 ; i++ ) ewall[i] = result[i];
 
   if (vflag_global) {
@@ -137,7 +156,7 @@ void FixWallRegionKokkos<DeviceType>::post_force(int vflag)
 
   if (vflag_atom) {
     k_vatom.template modify<DeviceType>();
-    k_vatom.template sync<LMPHostType>();
+    k_vatom.sync_host();
   }
 }
 
@@ -150,34 +169,50 @@ void FixWallRegionKokkos<DeviceType>::post_force(int vflag)
 
 template<class DeviceType>
 template<class T>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
-void FixWallRegionKokkos<DeviceType>::wall_particle(T regionKK, const int i, value_type result) const {
+void FixWallRegionKokkos<DeviceType>::wall_particle(const T &regionKK, const int i, value_type result) const {
   if (d_mask(i) & groupbit) {
 
-    if (!regionKK->match_kokkos(d_x(i,0), d_x(i,1), d_x(i,2))) Kokkos::abort("Particle outside surface of region used in fix wall/region");
+    // flag a particle on the wrong side; the host raises the error
 
-    double rinv, tooclose;
+    if (!regionKK.match_kokkos(static_cast<double>(d_x(i,0)),
+                               static_cast<double>(d_x(i,1)),
+                               static_cast<double>(d_x(i,2)))) {
+      result[10] = 1.0;
+      return;
+    }
+
+    KK_FLOAT rinv, tooclose;
 
     if (style == COLLOID)
       tooclose = d_radius(i);
     else
       tooclose = 0.0;
 
-    int n = regionKK->surface_kokkos(d_x(i,0), d_x(i,1), d_x(i,2), cutoff);
+    // the contact list lives on the stack, so that concurrently running
+    // threads do not overwrite each other's contacts
+
+    Region::Contact contact[T::MAXCONTACT];
+
+    int n = regionKK.surface_kokkos(static_cast<double>(d_x(i,0)),
+                                    static_cast<double>(d_x(i,1)),
+                                    static_cast<double>(d_x(i,2)), cutoff, contact);
 
     for ( int m = 0; m < n; m++) {
 
-      double r = regionKK->d_contact[m].r;
-      double delx = regionKK->d_contact[m].delx;
-      double dely = regionKK->d_contact[m].dely;
-      double delz = regionKK->d_contact[m].delz;
+      KK_FLOAT r = static_cast<KK_FLOAT>(contact[m].r);
+      KK_FLOAT delx = static_cast<KK_FLOAT>(contact[m].delx);
+      KK_FLOAT dely = static_cast<KK_FLOAT>(contact[m].dely);
+      KK_FLOAT delz = static_cast<KK_FLOAT>(contact[m].delz);
 
-      if (r <= tooclose)
-        Kokkos::abort("Particle outside surface of region used in fix wall/region");
-      else
-        rinv = 1.0 / r;
+      if (r <= tooclose) {
+        result[10] = 1.0;
+        continue;
+      } else
+        rinv = static_cast<KK_FLOAT>(1.0) / r;
 
-      double fwallKK, engKK;
+      KK_FLOAT fwallKK, engKK;
 
       if (style == LJ93) engKK = lj93(r,fwallKK);
       else if (style == LJ126) engKK = lj126(r,fwallKK);
@@ -186,18 +221,18 @@ void FixWallRegionKokkos<DeviceType>::wall_particle(T regionKK, const int i, val
       else if (style == COLLOID) engKK = colloid(r,d_radius(i),fwallKK);
       else engKK = harmonic(r,fwallKK);
 
-      double fx = fwallKK * delx * rinv;
-      double fy = fwallKK * dely * rinv;
-      double fz = fwallKK * delz * rinv;
-      d_f(i,0) += fx;
-      d_f(i,1) += fy;
-      d_f(i,2) += fz;
-      result[1] -= fx;
-      result[2] -= fy;
-      result[3] -= fz;
-      result[0] += engKK;
+      KK_FLOAT fx = fwallKK * delx * rinv;
+      KK_FLOAT fy = fwallKK * dely * rinv;
+      KK_FLOAT fz = fwallKK * delz * rinv;
+      d_f(i,0) += static_cast<KK_ACC_FLOAT>(fx);
+      d_f(i,1) += static_cast<KK_ACC_FLOAT>(fy);
+      d_f(i,2) += static_cast<KK_ACC_FLOAT>(fz);
+      result[1] -= static_cast<double>(fx);
+      result[2] -= static_cast<double>(fy);
+      result[3] -= static_cast<double>(fz);
+      result[0] += static_cast<double>(engKK);
       if (evflag) {
-        double v[6] = {
+        KK_FLOAT v[6] = {
           fx * delx,
           fy * dely,
           fz * delz,
@@ -217,15 +252,21 @@ void FixWallRegionKokkos<DeviceType>::wall_particle(T regionKK, const int i, val
 ------------------------------------------------------------------------- */
 
 template <class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
-double FixWallRegionKokkos<DeviceType>::lj93(double r, double& fwallKK) const
+KK_FLOAT FixWallRegionKokkos<DeviceType>::lj93(KK_FLOAT r, KK_FLOAT& fwallKK) const
 {
-  double rinv = 1.0 / r;
-  double r2inv = rinv * rinv;
-  double r4inv = r2inv * r2inv;
-  double r10inv = r4inv * r4inv * r2inv;
-  fwallKK = coeff1 * r10inv - coeff2 * r4inv;
-  return coeff3 * r4inv * r4inv * rinv - coeff4 * r2inv * rinv - offset;
+  const KK_FLOAT coeff1_kk = static_cast<KK_FLOAT>(coeff1);
+  const KK_FLOAT coeff2_kk = static_cast<KK_FLOAT>(coeff2);
+  const KK_FLOAT coeff3_kk = static_cast<KK_FLOAT>(coeff3);
+  const KK_FLOAT coeff4_kk = static_cast<KK_FLOAT>(coeff4);
+  const KK_FLOAT offset_kk = static_cast<KK_FLOAT>(offset);
+  KK_FLOAT rinv = static_cast<KK_FLOAT>(1.0) / r;
+  KK_FLOAT r2inv = rinv * rinv;
+  KK_FLOAT r4inv = r2inv * r2inv;
+  KK_FLOAT r10inv = r4inv * r4inv * r2inv;
+  fwallKK = coeff1_kk * r10inv - coeff2_kk * r4inv;
+  return coeff3_kk * r4inv * r4inv * rinv - coeff4_kk * r2inv * rinv - offset_kk;
 }
 
 /* ----------------------------------------------------------------------
@@ -234,14 +275,20 @@ double FixWallRegionKokkos<DeviceType>::lj93(double r, double& fwallKK) const
 ------------------------------------------------------------------------- */
 
 template <class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
-double FixWallRegionKokkos<DeviceType>::lj126(double r, double& fwallKK) const
+KK_FLOAT FixWallRegionKokkos<DeviceType>::lj126(KK_FLOAT r, KK_FLOAT& fwallKK) const
 {
-  double rinv = 1.0 / r;
-  double r2inv = rinv * rinv;
-  double r6inv = r2inv * r2inv * r2inv;
-  fwallKK = r6inv * (coeff1 * r6inv - coeff2) * rinv;
-  return r6inv * (coeff3 * r6inv - coeff4) - offset;
+  const KK_FLOAT coeff1_kk = static_cast<KK_FLOAT>(coeff1);
+  const KK_FLOAT coeff2_kk = static_cast<KK_FLOAT>(coeff2);
+  const KK_FLOAT coeff3_kk = static_cast<KK_FLOAT>(coeff3);
+  const KK_FLOAT coeff4_kk = static_cast<KK_FLOAT>(coeff4);
+  const KK_FLOAT offset_kk = static_cast<KK_FLOAT>(offset);
+  KK_FLOAT rinv = static_cast<KK_FLOAT>(1.0) / r;
+  KK_FLOAT r2inv = rinv * rinv;
+  KK_FLOAT r6inv = r2inv * r2inv * r2inv;
+  fwallKK = r6inv * (coeff1_kk * r6inv - coeff2_kk) * rinv;
+  return r6inv * (coeff3_kk * r6inv - coeff4_kk) - offset_kk;
 }
 
 /* ----------------------------------------------------------------------
@@ -250,15 +297,24 @@ double FixWallRegionKokkos<DeviceType>::lj126(double r, double& fwallKK) const
 ------------------------------------------------------------------------- */
 
 template <class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
-double FixWallRegionKokkos<DeviceType>::lj1043(double r, double& fwallKK) const
+KK_FLOAT FixWallRegionKokkos<DeviceType>::lj1043(KK_FLOAT r, KK_FLOAT& fwallKK) const
 {
-  double rinv = 1.0 / r;
-  double r2inv = rinv * rinv;
-  double r4inv = r2inv * r2inv;
-  double r10inv = r4inv * r4inv * r2inv;
-  fwallKK = coeff5 * r10inv * rinv - coeff6 * r4inv * rinv - coeff7 * powint(r + coeff4, -4);
-  return coeff1 * r10inv - coeff2 * r4inv - coeff3 * powint(r + coeff4, -3) - offset;
+  const KK_FLOAT coeff1_kk = static_cast<KK_FLOAT>(coeff1);
+  const KK_FLOAT coeff2_kk = static_cast<KK_FLOAT>(coeff2);
+  const KK_FLOAT coeff3_kk = static_cast<KK_FLOAT>(coeff3);
+  const KK_FLOAT coeff4_kk = static_cast<KK_FLOAT>(coeff4);
+  const KK_FLOAT coeff5_kk = static_cast<KK_FLOAT>(coeff5);
+  const KK_FLOAT coeff6_kk = static_cast<KK_FLOAT>(coeff6);
+  const KK_FLOAT coeff7_kk = static_cast<KK_FLOAT>(coeff7);
+  const KK_FLOAT offset_kk = static_cast<KK_FLOAT>(offset);
+  KK_FLOAT rinv = static_cast<KK_FLOAT>(1.0) / r;
+  KK_FLOAT r2inv = rinv * rinv;
+  KK_FLOAT r4inv = r2inv * r2inv;
+  KK_FLOAT r10inv = r4inv * r4inv * r2inv;
+  fwallKK = coeff5_kk * r10inv * rinv - coeff6_kk * r4inv * rinv - coeff7_kk * powint(r + coeff4_kk, -4);
+  return coeff1_kk * r10inv - coeff2_kk * r4inv - coeff3_kk * powint(r + coeff4_kk, -3) - offset_kk;
 }
 
 /* ----------------------------------------------------------------------
@@ -267,13 +323,19 @@ double FixWallRegionKokkos<DeviceType>::lj1043(double r, double& fwallKK) const
 ------------------------------------------------------------------------- */
 
 template <class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
-double FixWallRegionKokkos<DeviceType>::morse(double r, double& fwallKK) const
+KK_FLOAT FixWallRegionKokkos<DeviceType>::morse(KK_FLOAT r, KK_FLOAT& fwallKK) const
 {
-  double dr = r - sigma;
-  double dexp = exp(-alpha * dr);
-  fwallKK = coeff1 * (dexp * dexp - dexp);
-  return epsilon * (dexp * dexp - 2.0 * dexp) - offset;
+  const KK_FLOAT sigma_kk = static_cast<KK_FLOAT>(sigma);
+  const KK_FLOAT alpha_kk = static_cast<KK_FLOAT>(alpha);
+  const KK_FLOAT coeff1_kk = static_cast<KK_FLOAT>(coeff1);
+  const KK_FLOAT epsilon_kk = static_cast<KK_FLOAT>(epsilon);
+  const KK_FLOAT offset_kk = static_cast<KK_FLOAT>(offset);
+  KK_FLOAT dr = r - sigma_kk;
+  KK_FLOAT dexp = Kokkos::exp(-alpha_kk * dr);
+  fwallKK = coeff1_kk * (dexp * dexp - dexp);
+  return epsilon_kk * (dexp * dexp - static_cast<KK_FLOAT>(2.0) * dexp) - offset_kk;
 }
 
 /* ----------------------------------------------------------------------
@@ -282,38 +344,44 @@ double FixWallRegionKokkos<DeviceType>::morse(double r, double& fwallKK) const
 ------------------------------------------------------------------------- */
 
 template <class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
-double FixWallRegionKokkos<DeviceType>::colloid(double r, double rad, double& fwallKK) const
+KK_FLOAT FixWallRegionKokkos<DeviceType>::colloid(KK_FLOAT r, KK_FLOAT rad, KK_FLOAT& fwallKK) const
 {
-  double new_coeff2 = coeff2 * rad * rad * rad;
-  double diam = 2.0 * rad;
+  const KK_FLOAT coeff1_kk = static_cast<KK_FLOAT>(coeff1);
+  const KK_FLOAT coeff2_kk = static_cast<KK_FLOAT>(coeff2);
+  const KK_FLOAT coeff3_kk = static_cast<KK_FLOAT>(coeff3);
+  const KK_FLOAT coeff4_kk = static_cast<KK_FLOAT>(coeff4);
+  const KK_FLOAT offset_kk = static_cast<KK_FLOAT>(offset);
+  KK_FLOAT new_coeff2 = coeff2_kk * rad * rad * rad;
+  KK_FLOAT diam = static_cast<KK_FLOAT>(2.0) * rad;
 
-  double rad2 = rad * rad;
-  double rad4 = rad2 * rad2;
-  double rad8 = rad4 * rad4;
-  double delta2 = rad2 - r * r;
-  double rinv = 1.0 / delta2;
-  double r2inv = rinv * rinv;
-  double r4inv = r2inv * r2inv;
-  double r8inv = r4inv * r4inv;
-  fwallKK = coeff1 *
-          (rad8 * rad + 27.0 * rad4 * rad2 * rad * r * r + 63.0 * rad4 * rad * powint(r, 4) +
-           21.0 * rad2 * rad * powint(r, 6)) *
+  KK_FLOAT rad2 = rad * rad;
+  KK_FLOAT rad4 = rad2 * rad2;
+  KK_FLOAT rad8 = rad4 * rad4;
+  KK_FLOAT delta2 = rad2 - r * r;
+  KK_FLOAT rinv = static_cast<KK_FLOAT>(1.0) / delta2;
+  KK_FLOAT r2inv = rinv * rinv;
+  KK_FLOAT r4inv = r2inv * r2inv;
+  KK_FLOAT r8inv = r4inv * r4inv;
+  fwallKK = coeff1_kk *
+          (rad8 * rad + static_cast<KK_FLOAT>(27.0) * rad4 * rad2 * rad * r * r + static_cast<KK_FLOAT>(63.0) * rad4 * rad * powint(r, 4) +
+           static_cast<KK_FLOAT>(21.0) * rad2 * rad * powint(r, 6)) *
           r8inv -
       new_coeff2 * r2inv;
 
-  double r2 = 0.5 * diam - r;
-  double rinv2 = 1.0 / r2;
-  double r2inv2 = rinv2 * rinv2;
-  double r4inv2 = r2inv2 * r2inv2;
-  double r3 = r + 0.5 * diam;
-  double rinv3 = 1.0 / r3;
-  double r2inv3 = rinv3 * rinv3;
-  double r4inv3 = r2inv3 * r2inv3;
-  return coeff3 *
-          ((-3.5 * diam + r) * r4inv2 * r2inv2 * rinv2 +
-           (3.5 * diam + r) * r4inv3 * r2inv3 * rinv3) -
-      coeff4 * ((-diam * r + r2 * r3 * (log(-r2) - log(r3))) * (-rinv2) * rinv3) - offset;
+  KK_FLOAT r2 = static_cast<KK_FLOAT>(0.5) * diam - r;
+  KK_FLOAT rinv2 = static_cast<KK_FLOAT>(1.0) / r2;
+  KK_FLOAT r2inv2 = rinv2 * rinv2;
+  KK_FLOAT r4inv2 = r2inv2 * r2inv2;
+  KK_FLOAT r3 = r + static_cast<KK_FLOAT>(0.5) * diam;
+  KK_FLOAT rinv3 = static_cast<KK_FLOAT>(1.0) / r3;
+  KK_FLOAT r2inv3 = rinv3 * rinv3;
+  KK_FLOAT r4inv3 = r2inv3 * r2inv3;
+  return coeff3_kk *
+          ((static_cast<KK_FLOAT>(-3.5) * diam + r) * r4inv2 * r2inv2 * rinv2 +
+           (static_cast<KK_FLOAT>(3.5) * diam + r) * r4inv3 * r2inv3 * rinv3) -
+      coeff4_kk * ((-diam * r + r2 * r3 * (Kokkos::log(-r2) - Kokkos::log(r3))) * (-rinv2) * rinv3) - offset_kk;
 }
 
 /* ----------------------------------------------------------------------
@@ -322,12 +390,15 @@ double FixWallRegionKokkos<DeviceType>::colloid(double r, double rad, double& fw
 ------------------------------------------------------------------------- */
 
 template <class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
-double FixWallRegionKokkos<DeviceType>::harmonic(double r, double& fwallKK) const
+KK_FLOAT FixWallRegionKokkos<DeviceType>::harmonic(KK_FLOAT r, KK_FLOAT& fwallKK) const
 {
-  double dr = cutoff - r;
-  fwallKK = 2.0 * epsilon * dr;
-  return epsilon * dr * dr;
+  const KK_FLOAT cutoff_kk = static_cast<KK_FLOAT>(cutoff);
+  const KK_FLOAT epsilon_kk = static_cast<KK_FLOAT>(epsilon);
+  KK_FLOAT dr = cutoff_kk - r;
+  fwallKK = static_cast<KK_FLOAT>(2.0) * epsilon_kk * dr;
+  return epsilon_kk * dr * dr;
 }
 
 /* ----------------------------------------------------------------------
@@ -342,25 +413,26 @@ double FixWallRegionKokkos<DeviceType>::harmonic(double r, double& fwallKK) cons
 ------------------------------------------------------------------------- */
 
 template <class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
-void FixWallRegionKokkos<DeviceType>::v_tally(value_type result, int i, double *v) const
+void FixWallRegionKokkos<DeviceType>::v_tally(value_type result, int i, KK_FLOAT *v) const
 {
   if (vflag_global) {
-    result[4] += v[0];
-    result[5] += v[1];
-    result[6] += v[2];
-    result[7] += v[3];
-    result[8] += v[4];
-    result[9] += v[5];
+    result[4] += static_cast<double>(v[0]);
+    result[5] += static_cast<double>(v[1]);
+    result[6] += static_cast<double>(v[2]);
+    result[7] += static_cast<double>(v[3]);
+    result[8] += static_cast<double>(v[4]);
+    result[9] += static_cast<double>(v[5]);
   }
 
   if (vflag_atom) {
-    Kokkos::atomic_add(&(d_vatom(i,0)),v[0]);
-    Kokkos::atomic_add(&(d_vatom(i,1)),v[1]);
-    Kokkos::atomic_add(&(d_vatom(i,2)),v[2]);
-    Kokkos::atomic_add(&(d_vatom(i,3)),v[3]);
-    Kokkos::atomic_add(&(d_vatom(i,4)),v[4]);
-    Kokkos::atomic_add(&(d_vatom(i,5)),v[5]);
+    Kokkos::atomic_add(&(d_vatom(i,0)),static_cast<KK_ACC_FLOAT>(v[0]));
+    Kokkos::atomic_add(&(d_vatom(i,1)),static_cast<KK_ACC_FLOAT>(v[1]));
+    Kokkos::atomic_add(&(d_vatom(i,2)),static_cast<KK_ACC_FLOAT>(v[2]));
+    Kokkos::atomic_add(&(d_vatom(i,3)),static_cast<KK_ACC_FLOAT>(v[3]));
+    Kokkos::atomic_add(&(d_vatom(i,4)),static_cast<KK_ACC_FLOAT>(v[4]));
+    Kokkos::atomic_add(&(d_vatom(i,5)),static_cast<KK_ACC_FLOAT>(v[5]));
   }
 }
 

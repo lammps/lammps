@@ -17,6 +17,7 @@
 #include "atom_kokkos.h"
 #include "atom_masks.h"
 #include "input.h"
+#include "fix_wall.h"
 #include "modify.h"
 #include "update.h"
 #include "variable.h"
@@ -55,16 +56,23 @@ void FixWallReflectKokkos<DeviceType>::post_integrate()
 
   if (varflag) modify->clearstep_compute();
 
+  const KK_FLOAT xscale_kk = static_cast<KK_FLOAT>(xscale);
+  const KK_FLOAT yscale_kk = static_cast<KK_FLOAT>(yscale);
+  const KK_FLOAT zscale_kk = static_cast<KK_FLOAT>(zscale);
+
   for (int m = 0; m < nwall; m++) {
     if (wallstyle[m] == VARIABLE) {
-      coord = input->variable->compute_equal(varindex[m]);
-      if (wallwhich[m] < YLO) coord *= xscale;
-      else if (wallwhich[m] < ZLO) coord *= yscale;
-      else coord *= zscale;
-    } else coord = coord0[m];
+      coord = static_cast<KK_FLOAT>(input->variable->compute_equal(varindex[m]));
+      if (wallwhich[m] < FixWall::YLO) coord *= xscale_kk;
+      else if (wallwhich[m] < FixWall::ZLO) coord *= yscale_kk;
+      else coord *= zscale_kk;
+    } else coord = static_cast<KK_FLOAT>(coord0[m]);
 
     dim = wallwhich[m] / 2;
     side = wallwhich[m] % 2;
+
+    // record wall graphics objects for dump image
+    FixWall::update_image_plane(m, wallwhich[m], static_cast<double>(coord), imgparms, domain);
 
     copymode = 1;
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixWallReflectPostIntegrate>(0,nlocal),*this);
@@ -75,6 +83,7 @@ void FixWallReflectKokkos<DeviceType>::post_integrate()
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixWallReflectKokkos<DeviceType>::operator()(TagFixWallReflectPostIntegrate, const int &i) const {
   if (mask[i] & groupbit) {

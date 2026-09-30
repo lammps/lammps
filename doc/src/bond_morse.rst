@@ -1,10 +1,11 @@
 .. index:: bond_style morse
+.. index:: bond_style morse/kk
 .. index:: bond_style morse/omp
 
 bond_style morse command
 ========================
 
-Accelerator Variants: *morse/omp*
+Accelerator Variants: *morse/kk*, *morse/omp*
 
 Syntax
 """"""

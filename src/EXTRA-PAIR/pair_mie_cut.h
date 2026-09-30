@@ -52,7 +52,7 @@ class PairMIECut : public Pair {
   double **mie1, **mie2, **mie3, **mie4, **offset;
   double *cut_respa;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }    // namespace LAMMPS_NS

@@ -1,7 +1,10 @@
 .. index:: pair_style atm
+.. index:: pair_style atm/omp
 
 pair_style atm command
 ======================
+
+Accelerator Variants: *atm/omp*
 
 Syntax
 """"""
@@ -42,8 +45,9 @@ where :math:`\nu` is the three-body interaction strength.  The distances
 between pairs of atoms :math:`r_{12}`, :math:`r_{23}`, :math:`r_{31}` and the angles :math:`\gamma_1`, :math:`\gamma_2`,
 :math:`\gamma_3` are as shown in this diagram:
 
-.. image:: JPG/pair_atm_dia.jpg
+.. image:: JPG/pair_atm_dia.png
    :align: center
+   :width: 50%
 
 Note that for the interaction between a triplet of atoms :math:`I,J,K`, there
 is no "central" atom.  The interaction is symmetric with respect to
@@ -137,6 +141,10 @@ specified, then there will be no 3-body ATM interactions for that
 combination and all its permutations.  However, as with all pair
 styles, it is required to specify a pair_coeff command for all :math:`I,J`
 combinations, else an error will result.
+
+----------
+
+.. include:: accel_styles.rst
 
 ----------
 

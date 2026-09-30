@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_IMPL_PUBLIC_INCLUDE
 #define KOKKOS_IMPL_PUBLIC_INCLUDE
@@ -21,9 +8,7 @@
 #include <Kokkos_Macros.hpp>
 
 #include <impl/Kokkos_HostBarrier.hpp>
-#include <impl/Kokkos_BitOps.hpp>
-
-#include <impl/Kokkos_HostBarrier.hpp>
+#include <Kokkos_BitManipulation.hpp>  // bit_width
 
 #include <thread>
 #if defined(_WIN32)
@@ -40,7 +25,7 @@ void HostBarrier::impl_backoff_wait_until_equal(
   unsigned count = 0u;
 
   while (!test_equal(ptr, v)) {
-    const int c = int_log2(++count);
+    const int c = bit_width(++count) - 1;
     if (!active_wait || c > log2_iterations_till_sleep) {
       std::this_thread::sleep_for(
           std::chrono::nanoseconds(c < 16 ? 256 * c : 4096));

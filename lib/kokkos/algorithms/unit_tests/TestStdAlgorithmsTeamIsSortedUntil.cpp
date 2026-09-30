@@ -1,20 +1,8 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #include <TestStdAlgorithmsCommon.hpp>
+#include <Kokkos_Assert.hpp>
 
 namespace Test {
 namespace stdalgos {
@@ -72,9 +60,7 @@ struct TestFunctorA {
       Kokkos::single(Kokkos::PerTeam(member), [=, *this]() {
         m_distancesView(myRowIndex) = resultDist;
       });
-    }
-#ifndef KOKKOS_ENABLE_OPENMPTARGET
-    else if (m_apiPick == 2) {
+    } else if (m_apiPick == 2) {
       using value_type = typename ViewType::value_type;
       auto it          = KE::is_sorted_until(member, KE::cbegin(myRowView),
                                              KE::cend(myRowView),
@@ -94,7 +80,6 @@ struct TestFunctorA {
         m_distancesView(myRowIndex) = resultDist;
       });
     }
-#endif
 
     // store result of checking if all members have their local
     // values matching the one stored in m_distancesView
@@ -158,7 +143,7 @@ void test_A(std::size_t numTeams, std::size_t numCols, int apiId,
        this allows us to exercise that the algorithm returns
        the larest sorted interval starting from 0
     */
-    assert(numCols > 10);
+    KOKKOS_ASSERT(numCols > 10);
     const std::size_t midPoint = numCols / 2;
 
     UnifDist<int> randPoolA(0, midPoint, 3432779);
@@ -226,11 +211,7 @@ template <class LayoutTag, class ValueType>
 void run_all_scenarios(const std::string& name, const std::vector<int>& cols) {
   for (int numTeams : teamSizesToTest) {
     for (const auto& numCols : cols) {
-#ifndef KOKKOS_ENABLE_OPENMPTARGET
       for (int apiId : {0, 1, 2, 3}) {
-#else
-      for (int apiId : {0, 1}) {
-#endif
         test_A<LayoutTag, ValueType>(numTeams, numCols, apiId, name);
       }
     }

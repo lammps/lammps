@@ -1,0 +1,1 @@
+kokkos_add_example_directories(01_ErrorReporter)

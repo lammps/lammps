@@ -8,10 +8,9 @@ LAMMPS module global members:
    result of :py:func:`lammps.version`.
 """
 
-from .constants import *                # lgtm [py/polluting-import]
-from .core import *                     # lgtm [py/polluting-import]
-from .data import *                     # lgtm [py/polluting-import]
-from .pylammps import *                 # lgtm [py/polluting-import]
+from .constants import *
+from .core import *
+from .data import *
 
 # convert installed module string version to numeric version
 def get_version_number():

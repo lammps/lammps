@@ -52,19 +52,18 @@ enum { COMM_1, COMM_2 };
 
 /* ---------------------------------------------------------------------- */
 
-FixGranularMDR::FixGranularMDR(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg)
+FixGranularMDR::FixGranularMDR(LAMMPS *lmp, int narg, char **arg) :
+    Fix(lmp, narg, arg), id_fix(nullptr), pair(nullptr), fix_history(nullptr)
 {
   comm_forward = 5;
   create_attribute = 1;
-
-  id_fix = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
 
 FixGranularMDR::~FixGranularMDR()
 {
-  if (id_fix && modify->nfix) modify->delete_fix(id_fix);
+  if (id_fix) modify->delete_fix(id_fix);
   delete[] id_fix;
 }
 
@@ -149,13 +148,12 @@ void FixGranularMDR::setup_pre_force(int /*vflag*/)
                  "MDR model currently only supports fix wall/gran/region, not fix wall/gran");
 
     fix = dynamic_cast<FixWallGranRegion *>(ifix);
-    if (fix && fix->model->normal_model->name != "mdr")
+    norm_model2 = fix ? dynamic_cast<GranSubModNormalMDR *>(fix->model->normal_model) : nullptr;
+    if (!norm_model2)
       error->all(FLERR, Error::NOLASTLINE,
                  "Fix wall/gran/region must use an MDR normal model when using an MDR pair model");
 
-    norm_model2 = fix ? dynamic_cast<GranSubModNormalMDR *>(fix->model->normal_model) : nullptr;
-
-    if (norm_model && norm_model2 && fabs(norm_model->get_emod() - norm_model2->get_emod()) > EPSILON)
+    if (fabs(norm_model->get_emod() - norm_model2->get_emod()) > EPSILON)
       error->all(
           FLERR, Error::NOLASTLINE,
           "Young's modulus in pair style, {}, does not agree with value {} in fix gran/wall/region",

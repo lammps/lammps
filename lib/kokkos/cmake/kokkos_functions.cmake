@@ -37,7 +37,7 @@ function(kokkos_deprecated_list SUFFIX PREFIX)
       string(
         APPEND
         ERROR_MSG
-        "\nRemove CMakeCache.txt and re-run. For a list of valid options, refer to BUILD.md or even look at CMakeCache.txt (before deleting it)."
+        "\nRemove CMakeCache.txt and re-run. For a list of valid options, refer to the configuration guide in the documention or even look at CMakeCache.txt (before deleting it)."
       )
       message(SEND_ERROR ${ERROR_MSG})
     endif()
@@ -141,7 +141,7 @@ macro(kokkos_export_cmake_tpl NAME)
   #X_DIR or X_ROOT variables set prior to calling find_package
 
   #If Kokkos was configured to find the TPL through a _DIR variable
-  #make sure thar DIR variable is available to downstream packages
+  #make sure that DIR variable is available to downstream packages
   if(DEFINED ${NAME}_DIR)
     #The downstream project may override the TPL location that Kokkos used
     #Check if the downstream project chose its own TPL location
@@ -356,7 +356,7 @@ macro(kokkos_create_imported_tpl NAME)
       target_compile_options(${NAME} INTERFACE ${TPL_COMPILE_OPTIONS})
     endif()
     if(TPL_LINK_OPTIONS)
-      target_link_libraries(${NAME} INTERFACE ${TPL_LINK_OPTIONS})
+      target_link_options(${NAME} INTERFACE ${TPL_LINK_OPTIONS})
     endif()
   else()
     add_library(${NAME} UNKNOWN IMPORTED)
@@ -377,7 +377,7 @@ macro(kokkos_create_imported_tpl NAME)
       set_target_properties(${NAME} PROPERTIES INTERFACE_COMPILE_OPTIONS "${TPL_COMPILE_OPTIONS}")
     endif()
     if(TPL_LINK_OPTIONS)
-      set_target_properties(${NAME} PROPERTIES INTERFACE_LINK_LIBRARIES "${TPL_LINK_OPTIONS}")
+      set_target_properties(${NAME} PROPERTIES INTERFACE_LINK_OPTIONS "${TPL_LINK_OPTIONS}")
     endif()
   endif()
 endmacro()
@@ -518,7 +518,8 @@ macro(kokkos_find_library VAR_NAME LIB TPL_NAME)
     set(TPL_SUFFIXES lib lib64)
   endif()
 
-  set(${VAR_NAME} "${VARNAME}-NOTFOUND")
+  # Follow standard CMake <VAR_NAME>-NOTFOUND convention to improve readability.
+  set(${VAR_NAME} "${VAR_NAME}-NOTFOUND")
   set(HAVE_CUSTOM_PATHS FALSE)
 
   if(DEFINED ${TPL_NAME}_ROOT
@@ -954,6 +955,98 @@ int main()
   set(${_VAR} ${_RET} CACHE STRING "CXX compiler supports building CUDA")
 endfunction()
 
+# this function is provided to print messages from CMake's configure log:
+#
+#       START_REGEX     --> Keyword to mark start of output
+#       END_REGEX       --> Keyword to mark end of output
+#
+function(kokkos_print_cmake_configure_log START_REGEX END_REGEX)
+
+  if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.26.0)
+    set(OUTPUT_BLOCK "")
+    set(START_OUTPUT FALSE)
+    file(STRINGS "${CMAKE_BINARY_DIR}/CMakeFiles/CMakeConfigureLog.yaml" LOG_LINES)
+
+    foreach(LINE IN LISTS LOG_LINES)
+      if(LINE MATCHES ${START_REGEX})
+        set(START_OUTPUT TRUE)
+      endif()
+
+      if(START_OUTPUT)
+        string(APPEND OUTPUT_BLOCK "${LINE}\n")
+      endif()
+
+      if(LINE MATCHES ${END_REGEX} AND START_OUTPUT)
+        break()
+      endif()
+    endforeach()
+    if(START_OUTPUT)
+      message(WARNING "ConfigureLog.yaml shows:\n${OUTPUT_BLOCK}")
+    endif()
+  endif()
+
+endfunction()
+
+# this function is provided to easily select which files use nvcc_wrapper:
+#
+#       COMPILER    --> do check for compiler
+#       LINKER      --> do check for linker
+#       LANGUAGE    --> the language for which to check (required)
+#       FLAGS       --> flags to check
+#
+function(kokkos_check_flags)
+  cmake_parse_arguments(INP "COMPILER;LINKER" "LANGUAGE" "FLAGS;LINKER_FLAGS" ${ARGN})
+
+  # do nothing if no flags are given
+  if(NOT INP_FLAGS)
+    return()
+  endif()
+
+  if(NOT INP_LANGUAGE)
+    message(FATAL_ERROR "'kokkos_check_flags' requires LANGUAGE keyword")
+  endif()
+
+  #check_compiler/linker_flag requires a whitespace separated list
+  string(REPLACE ";" " " WHITESPACE_FLAGS "${INP_FLAGS}")
+  # icpx adds "-device ..." options that need quotes (which CMake removes). We need to add them here again.
+  string(REGEX REPLACE "(-device [A-Za-z0-9_\\\\.]*)" "\"\\1\"" QUOTED_FLAGS "${WHITESPACE_FLAGS}")
+
+  if(INP_COMPILER)
+    include(CheckCompilerFlag)
+    #delete cache so we always do the check
+    unset(KOKKOS_COMPILE_OPTIONS_CHECK CACHE)
+    if(INP_LINKER_FLAGS)
+      # icpx adds "-device ..." options that need quotes (which CMake removes). We need to add them here again.
+      string(REGEX REPLACE "(-device [A-Za-z0-9_\\\\.]*)" "\"\\1\"" QUOTED_LINKER_FLAGS "${INP_LINKER_FLAGS}")
+      set(CMAKE_REQUIRED_LINK_OPTIONS "${QUOTED_LINKER_FLAGS}")
+    endif()
+    check_compiler_flag(${INP_LANGUAGE} "${QUOTED_FLAGS}" KOKKOS_COMPILE_OPTIONS_CHECK)
+    if(NOT KOKKOS_COMPILE_OPTIONS_CHECK)
+      message(
+        WARNING
+          "The compiler for ${KOKKOS_COMPILE_LANGUAGE} can not consume flag(s) ${QUOTED_FLAGS} in combination with the CMAKE_${KOKKOS_COMPILE_LANGUAGE}_FLAGS=${CMAKE_${KOKKOS_COMPILE_LANGUAGE}_FLAGS}. Please check the given configuration."
+      )
+      kokkos_print_cmake_configure_log("D ?KOKKOS_COMPILE_OPTIONS_CHECK" "exitCode")
+    endif()
+  endif()
+
+  if(INP_LINKER)
+    include(CheckLinkerFlag)
+    # temporarily set language flags to nothing ... the linker often cannot handle these which leads to false errors
+    set(CMAKE_${INP_LANGUAGE}_FLAGS "")
+    #delete cache so we always do the check
+    unset(KOKKOS_LINK_OPTIONS_CHECK CACHE)
+    check_linker_flag(${INP_LANGUAGE} "${QUOTED_FLAGS}" KOKKOS_LINK_OPTIONS_CHECK)
+    if(NOT KOKKOS_LINK_OPTIONS_CHECK)
+      message(
+        WARNING
+          "The linker for ${KOKKOS_COMPILE_LANGUAGE} can not consume flag(s) ${QUOTED_FLAGS}. Please check the given configuration."
+      )
+      kokkos_print_cmake_configure_log("D ?KOKKOS_LINK_OPTIONS_CHECK" "exitCode")
+    endif()
+  endif()
+endfunction()
+
 # this function is provided to easily select which files use nvcc_wrapper:
 #
 #       GLOBAL      --> all files
@@ -1000,9 +1093,9 @@ function(kokkos_compilation)
     PATH_SUFFIXES bin
   )
 
-  if(NOT Kokkos_COMPILE_LAUNCHER)
+  if(NOT Kokkos_NVCC_WRAPPER)
     message(
-      FATAL_ERROR "Kokkos could not find 'nvcc_wrapper'. Please set '-DKokkos_COMPILE_LAUNCHER=/path/to/nvcc_wrapper'"
+      FATAL_ERROR "Kokkos could not find 'nvcc_wrapper'. Please set '-DKokkos_NVCC_WRAPPER=/path/to/nvcc_wrapper'"
     )
   endif()
 

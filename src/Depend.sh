@@ -45,31 +45,18 @@ depend () {
 # add one if statement per parent package
 # add one depend() call per child package that depends on that parent
 
-if (test $1 = "AMOEBA") then
-  depend GPU
-fi
-
 if (test $1 = "ASPHERE") then
-  depend GPU
   depend OPENMP
   depend CG-DNA
   depend INTEL
 fi
 
 if (test $1 = "CLASS2") then
-  depend GPU
-  depend KOKKOS
   depend OPENMP
 fi
 
 if (test $1 = "COLLOID") then
-  depend GPU
-  depend KOKKOS
   depend OPENMP
-fi
-
-if (test $1 = "COLVARS") then
-  depend KOKKOS
 fi
 
 if (test $1 = "DIELECTRIC") then
@@ -77,13 +64,10 @@ if (test $1 = "DIELECTRIC") then
 fi
 
 if (test $1 = "DIPOLE") then
-  depend KOKKOS
   depend OPENMP
 fi
 
 if (test $1 = "DPD-BASIC") then
-  depend GPU
-  depend KOKKOS
   depend OPENMP
   depend INTEL
 fi
@@ -92,27 +76,15 @@ if (test $1 = "ELECTRODE") then
   depend INTEL
 fi
 
-if (test $1 = "EXTRA-COMPUTE") then
-  depend KOKKOS
-fi
-
-if (test $1 = "EXTRA-FIX") then
-  depend KOKKOS
-fi
-
 if (test $1 = "EXTRA-MOLECULE") then
-  depend GPU
   depend OPENMP
 fi
 
 if (test $1 = "EXTRA-PAIR") then
-  depend GPU
-  depend KOKKOS
   depend OPENMP
 fi
 
 if (test $1 = "GRANULAR") then
-  depend KOKKOS
   depend OPENMP
 fi
 
@@ -125,8 +97,6 @@ if (test $1 = "KSPACE") then
   depend CORESHELL
   depend DIELECTRIC
   depend DPD-BASIC
-  depend GPU
-  depend KOKKOS
   depend OPT
   depend OPENMP
   depend INTEL
@@ -139,10 +109,7 @@ if (test $1 = "LEPTON") then
 fi
 
 if (test $1 = "MANYBODY") then
-  depend ATC
-  depend GPU
   depend INTEL
-  depend KOKKOS
   depend OPT
   depend QEQ
   depend OPENMP
@@ -153,14 +120,8 @@ if (test $1 = "MC") then
   depend VORONOI
 fi
 
-if (test $1 = "MEAM") then
-  depend KOKKOS
-fi
-
 if (test $1 = "MOLECULE") then
   depend EXTRA-MOLECULE
-  depend GPU
-  depend KOKKOS
   depend FEP
   depend MESONT
   depend OPENMP
@@ -173,50 +134,21 @@ fi
 
 if (test $1 = "PYTHON") then
   depend ML-IAP
-  depend KOKKOS
-fi
-
-if (test $1 = "PHONON") then
-  depend KOKKOS
 fi
 
 if (test $1 = "RIGID") then
   depend MC
-  depend KOKKOS
   depend OPENMP
   depend DPD-SMOOTH
 fi
 
-if (test $1 = "ML-IAP") then
-  depend KOKKOS
-fi
-
-if (test $1 = "ML-PACE") then
-  depend KOKKOS
-fi
-
-if (test $1 = "ML-POD") then
-  depend KOKKOS
-fi
-
 if (test $1 = "ML-SNAP") then
   depend ML-IAP
-  depend KOKKOS
   depend INTEL
 fi
 
-if (test $1 = "ML-UF3") then
-  depend KOKKOS
-fi
-
 if (test $1 = "CG-SPICA") then
-  depend GPU
-  depend KOKKOS
   depend OPENMP
-fi
-
-if (test $1 = "DPD-REACT") then
-  depend KOKKOS
 fi
 
 if (test $1 = "DRUDE") then
@@ -228,10 +160,6 @@ if (test $1 = "FEP") then
 fi
 
 if (test $1 = "REAXFF") then
-  depend KOKKOS
   depend OPENMP
 fi
 
-if (test $1 = "SPIN") then
-  depend KOKKOS
-fi

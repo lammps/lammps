@@ -13,6 +13,7 @@ post_commands: ! |
   fix test solute efield 0.1 0.1 0.1 region half
   fix_modify test virial yes
 input_file: in.fourmol
+input_coeffs: coeffs.fourmol
 natoms: 29
 run_stress: ! |2-
    1.1952991612400572e+00  1.9458378941195973e+00 -3.1399685374218067e-01  1.9458378941195973e+00 -3.1399685374218067e-01 -3.1399685374218067e-01

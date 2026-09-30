@@ -138,7 +138,7 @@ void NPairHalffullNewtonIntel::build_t(NeighList *list,
       numneigh[i] = n;
 
       int pad_end = n;
-      IP_PRE_neighbor_pad(pad_end, 0);
+      IP_PRE_neighbor_pad(pad_end);
       #if defined(LMP_SIMD_COMPILER)
       #pragma vector aligned
       #pragma loop_count min=1, max=INTEL_COMPILE_WIDTH-1, \
@@ -212,7 +212,7 @@ void NPairHalffullNewtonIntel::build_t3(NeighList *list, int *numhalf)
       numneigh[i] = n;
 
       int pad_end = n;
-      IP_PRE_neighbor_pad(pad_end, 0);
+      IP_PRE_neighbor_pad(pad_end);
       #if defined(LMP_SIMD_COMPILER)
       #pragma vector aligned
       #pragma loop_count min=1, max=INTEL_COMPILE_WIDTH-1, \
@@ -385,7 +385,7 @@ void NPairHalffullTrimNewtonIntel::build_t(NeighList *list,
       numneigh[i] = n;
 
       int pad_end = n;
-      IP_PRE_neighbor_pad(pad_end, 0);
+      IP_PRE_neighbor_pad(pad_end);
       #if defined(LMP_SIMD_COMPILER)
       #pragma vector aligned
       #pragma loop_count min=1, max=INTEL_COMPILE_WIDTH-1, \
@@ -479,7 +479,7 @@ void NPairHalffullTrimNewtonIntel::build_t3(NeighList *list, int *numhalf,
       numneigh[i] = n;
 
       int pad_end = n;
-      IP_PRE_neighbor_pad(pad_end, 0);
+      IP_PRE_neighbor_pad(pad_end);
       #if defined(LMP_SIMD_COMPILER)
       #pragma vector aligned
       #pragma loop_count min=1, max=INTEL_COMPILE_WIDTH-1, \

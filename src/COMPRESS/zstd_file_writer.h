@@ -22,7 +22,6 @@
 
 #include "file_writer.h"
 
-#include <string>
 #include <zstd.h>
 
 #if ZSTD_VERSION_NUMBER < 10400
@@ -47,7 +46,7 @@ class ZstdFileWriter : public FileWriter {
   void close() override;
   void flush() override;
   size_t write(const void *buffer, size_t length) override;
-  bool isopen() const override;
+  [[nodiscard]] bool isopen() const override;
 
   void setCompressionLevel(int level);
   void setChecksum(bool enabled);

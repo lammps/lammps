@@ -104,6 +104,15 @@ converts them to radians internally; hence the hence the various
 
 ----------
 
+Symmetry convention
+"""""""""""""""""""
+
+For the *class2* improper style, the second atom in the quadruplet is the
+atom of symmetry; all other atoms are considered interchangeable.  This
+convention is relevant for operations that require knowledge of how atoms
+are ordered, such as automatic assignment of new improper types by
+:doc:`fix bond/react <fix_bond_react>`.
+
 Restrictions
 """"""""""""
 

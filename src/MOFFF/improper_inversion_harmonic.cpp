@@ -38,7 +38,8 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-ImproperInversionHarmonic::ImproperInversionHarmonic(LAMMPS *lmp) : Improper(lmp)
+ImproperInversionHarmonic::ImproperInversionHarmonic(LAMMPS *lmp) :
+    Improper(lmp), kw(nullptr), w0(nullptr)
 {
   writedata = 1;
 
@@ -51,6 +52,8 @@ ImproperInversionHarmonic::ImproperInversionHarmonic(LAMMPS *lmp) : Improper(lmp
 
 ImproperInversionHarmonic::~ImproperInversionHarmonic()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(kw);

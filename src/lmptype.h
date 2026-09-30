@@ -28,10 +28,10 @@
 #ifndef LMP_LMPTYPE_H
 #define LMP_LMPTYPE_H
 
-// C++11 check
+// C++17 check
 
-#if __cplusplus < 201103L
-#error LAMMPS requires a C++11 (or later) compliant compiler. Enable C++11 compatibility or upgrade the compiler.
+#if __cplusplus < 201703L
+#error LAMMPS requires a C++17 (or later) compliant compiler. Enable C++17 compatibility or upgrade the compiler.
 #endif
 
 #ifndef __STDC_LIMIT_MACROS
@@ -50,6 +50,26 @@
 
 #ifndef PRId64
 #define PRId64 "ld"
+#endif
+
+// LMP_REGISTRY_CONST: const-qualifier for file-scope style-registration tables
+// (committed *_register.cpp files that hold arrays of host-only factory function
+// pointers).  When a translation unit is also compiled for a GPU device, clang
+// and nvcc implicitly shadow file-scope "const" objects into device memory --
+// which drags the host-only factory functions into device code and fails to
+// link.  These tables are only ever read by host runtime code, so the qualifier
+// is dropped in that case.  This happens (a) in a GPU-enabled Kokkos build,
+// where LMP_KOKKOS_GPU is set as a global compile definition by the build
+// system (cmake KOKKOS package), and (b) whenever the C++ compiler itself is a
+// CUDA or HIP compiler driver (e.g. a GPU package HIP build with hipcc as
+// CMAKE_CXX_COMPILER), which is detected via the compiler's language-mode
+// macros: __HIP__ (clang compiling HIP), __CUDACC__ (nvcc), __CUDA__ (clang
+// compiling CUDA).
+
+#if defined(LMP_KOKKOS_GPU) || defined(__HIP__) || defined(__CUDACC__) || defined(__CUDA__)
+#define LMP_REGISTRY_CONST
+#else
+#define LMP_REGISTRY_CONST const
 #endif
 
 namespace LAMMPS_NS {
@@ -320,7 +340,8 @@ struct multitype {
 
 #if defined(__INTEL_COMPILER) || (defined(__PGI) && !defined(__NVCOMPILER))
 #define _noalias restrict
-#elif defined(__GNUC__) || defined(__INTEL_LLVM_COMPILER) || defined(__NVCOMPILER)
+#elif defined(__GNUC__) || defined(__INTEL_LLVM_COMPILER) || defined(__NVCOMPILER) || \
+    defined(_MSC_VER)
 #define _noalias __restrict
 #else
 #define _noalias

@@ -30,7 +30,7 @@ using MathConst::MY_PI;
 
 /* ---------------------------------------------------------------------- */
 
-AngleCosine::AngleCosine(LAMMPS *_lmp) : Angle(_lmp)
+AngleCosine::AngleCosine(LAMMPS *_lmp) : Angle(_lmp), k(nullptr)
 {
   born_matrix_enable = 1;
 }

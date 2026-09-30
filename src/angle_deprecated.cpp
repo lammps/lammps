@@ -41,5 +41,6 @@ void AngleDeprecated::settings(int, char **)
     if (lmp->comm->me == 0) utils::logmesg(lmp, "\nAngle style 'DEPRECATED' is a dummy style\n\n");
     return;
   }
-  error->all(FLERR, "This angle style is no longer available");
+  error->all(FLERR, Error::ARGZERO, "Angle style {} is no longer available. {}", my_style,
+             utils::errorurl(38));
 }

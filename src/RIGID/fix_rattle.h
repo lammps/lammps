@@ -43,6 +43,7 @@ class FixRattle : public FixShake {
   void correct_coordinates(int vflag) override;
   void correct_velocities() override;
   void shake_end_of_step(int vflag) override;
+  void end_of_step() override;
 
   double memory_usage() override;
   void grow_arrays(int) override;
@@ -68,7 +69,6 @@ class FixRattle : public FixShake {
   bool check3(double **v, int m, bool checkr, bool checkv);
   bool check4(double **v, int m, bool checkr, bool checkv);
   bool check_constraints(double **v, bool checkr, bool checkv);
-  void end_of_step() override;
 };
 
 }    // namespace LAMMPS_NS

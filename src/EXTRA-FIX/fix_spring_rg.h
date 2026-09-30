@@ -36,7 +36,7 @@ class FixSpringRG : public Fix {
   void restart(char *) override;
   double compute_scalar() override;
 
- private:
+ protected:
   int ilevel_respa, rg0_flag;
   double rg0, k, masstotal;
 };

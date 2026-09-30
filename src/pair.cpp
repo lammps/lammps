@@ -30,6 +30,7 @@
 #include "math_special.h"
 #include "memory.h"
 #include "neighbor.h"
+#include "safe_pointers.h"
 #include "suffix.h"
 #include "update.h"
 
@@ -43,9 +44,11 @@ using MathConst::MY_ISPI4;
 using MathConst::THIRD;
 using MathSpecial::powint;
 
+namespace {
 enum { NONE, RLINEAR, RSQ, BMP };
-static const std::string mixing_rule_names[Pair::SIXTHPOWER + 1] = {"geometric", "arithmetic",
-                                                                    "sixthpower"};
+// NOLINTNEXTLINE
+const std::vector<std::string> mixing_rule_names{"geometric", "arithmetic", "sixthpower"};
+}    // namespace
 
 // allocate space for static class instance variable and initialize it
 
@@ -64,6 +67,8 @@ Pair::Pair(LAMMPS *lmp) :
     list_tally_compute(nullptr), elements(nullptr), elem1param(nullptr), elem2param(nullptr),
     elem3param(nullptr), map(nullptr)
 {
+  hybrid_index = -1;
+
   instance_me = instance_total++;
 
   eng_vdwl = eng_coul = 0.0;
@@ -86,7 +91,7 @@ Pair::Pair(LAMMPS *lmp) :
   nextra = 0;
   single_extra = 0;
 
-  ewaldflag = pppmflag = msmflag = dispersionflag = tip4pflag = dipoleflag = spinflag = 0;
+  ewaldflag = pppmflag = espflag = msmflag = dispersionflag = tip4pflag = dipoleflag = spinflag = 0;
   reinitflag = 1;
   centroidstressflag = CENTROID_SAME;
 
@@ -148,6 +153,27 @@ Pair::~Pair()
   memory->destroy(eatom);
   memory->destroy(vatom);
   memory->destroy(cvatom);
+}
+
+/* ----------------------------------------------------------------------
+   index of this pair style within the current simulation
+
+   a pair style that keeps state in an internal fix has to find that fix
+   again when a restart file written by an earlier run is read back, so the
+   fix id must be the same in both runs.  instance_me cannot be used for it:
+   it counts every Pair ever created in the process, so it depends on how
+   many pair styles a run happened to create before it read the restart file.
+   the position in the sub-style list of a hybrid does not depend on that
+   history and is reproduced whenever the same pair style is set up again.
+
+   the numbering is the one a fresh process produces with instance_me -- the
+   hybrid itself is 0 and its sub-styles follow -- so that restart files
+   written before this became deterministic are still read correctly
+------------------------------------------------------------------------- */
+
+int Pair::instance_index()
+{
+  return (hybrid_index >= 0) ? hybrid_index + 1 : 0;
 }
 
 // clang-format off
@@ -373,12 +399,18 @@ void Pair::init_tables(double cut_coul, double *cut_respa)
 {
   int masklo,maskhi;
   double r,grij,expm2,derfc,egamma,fgamma,rsw;
+  double fesp,eesp;
   double qqrd2e = force->qqrd2e;
 
   if (force->kspace == nullptr)
     error->all(FLERR, Error::NOLASTLINE,
                "Pair style {} requires a KSpace style", force->pair_style);
   double g_ewald = force->kspace->g_ewald;
+
+  double *force_poly_coeff = force->kspace->force_poly_coeff;
+  int num_of_force_poly = force->kspace->num_of_force_poly;
+  double *energy_poly_coeff = force->kspace->energy_poly_coeff;
+  int num_of_energy_poly = force->kspace->num_of_energy_poly;
 
   double cut_coulsq = cut_coul * cut_coul;
 
@@ -431,17 +463,35 @@ void Pair::init_tables(double cut_coul, double *cut_respa)
       egamma = 1.0 - (r/cut_coul)*force->kspace->gamma(r/cut_coul);
       fgamma = 1.0 + ((double)rsq_lookup.f/cut_coulsq)*
         force->kspace->dgamma(r/cut_coul);
+    } else if (espflag) {
+      double r_coul = 2.0 * r/cut_coul - 1.0;
+      double poly_r = 1.0;
+      fesp = force_poly_coeff[0];
+      for (int ii = 1; ii < num_of_force_poly; ii++) {
+        poly_r *= r_coul;
+        fesp += force_poly_coeff[ii] * poly_r;
+      }
+      poly_r = 1.0;
+      eesp = energy_poly_coeff[0];
+      for (int ii = 1; ii < num_of_energy_poly; ii++) {
+        poly_r *= r_coul;
+        eesp += energy_poly_coeff[ii] * poly_r;
+      }
     } else {
       grij = g_ewald * r;
       expm2 = exp(-grij*grij);
       derfc = erfc(grij);
     }
+
     if (cut_respa == nullptr) {
       rtable[i] = (double)rsq_lookup.f;
       ctable[i] = qqrd2e/r;
       if (msmflag) {
         ftable[i] = qqrd2e/r * fgamma;
         etable[i] = qqrd2e/r * egamma;
+      } else if (espflag) {
+        ftable[i] = qqrd2e/r * fesp;
+        etable[i] = qqrd2e/r * eesp;
       } else {
         ftable[i] = qqrd2e/r * (derfc + MY_ISPI4*grij*expm2);
         etable[i] = qqrd2e/r * derfc;
@@ -454,6 +504,10 @@ void Pair::init_tables(double cut_coul, double *cut_respa)
         ftable[i] = qqrd2e/r * (fgamma - 1.0);
         etable[i] = qqrd2e/r * egamma;
         vtable[i] = qqrd2e/r * fgamma;
+      } else if (espflag) {
+        ftable[i] = qqrd2e/r * (fesp - 1.0);
+        etable[i] = qqrd2e/r * eesp;
+        vtable[i] = qqrd2e/r * fesp;
       } else {
         ftable[i] = qqrd2e/r * (derfc + MY_ISPI4*grij*expm2 - 1.0);
         etable[i] = qqrd2e/r * derfc;
@@ -466,6 +520,7 @@ void Pair::init_tables(double cut_coul, double *cut_respa)
           ctable[i] = qqrd2e/r * rsw*rsw*(3.0 - 2.0*rsw);
         } else {
           if (msmflag) ftable[i] = qqrd2e/r * fgamma;
+          else if (espflag) ftable[i] = qqrd2e/r * fesp;
           else ftable[i] = qqrd2e/r * (derfc + MY_ISPI4*grij*expm2);
           ctable[i] = qqrd2e/r;
         }
@@ -528,6 +583,20 @@ void Pair::init_tables(double cut_coul, double *cut_respa)
       egamma = 1.0 - (r/cut_coul)*force->kspace->gamma(r/cut_coul);
       fgamma = 1.0 + ((double)rsq_lookup.f/cut_coulsq)*
         force->kspace->dgamma(r/cut_coul);
+    } else if (espflag) {
+      double r_coul = 2.0 * r/cut_coul - 1.0;
+      double poly_r = 1.0;
+      fesp = force_poly_coeff[0];
+      for (int ii = 1; ii < num_of_force_poly; ii++) {
+        poly_r *= r_coul;
+        fesp += force_poly_coeff[ii] * poly_r;
+      }
+      poly_r = 1.0;
+      eesp = energy_poly_coeff[0];
+      for (int ii = 1; ii < num_of_energy_poly; ii++) {
+        poly_r *= r_coul;
+        eesp += energy_poly_coeff[ii] * poly_r;
+      }
     } else {
       grij = g_ewald * r;
       expm2 = exp(-grij*grij);
@@ -538,6 +607,9 @@ void Pair::init_tables(double cut_coul, double *cut_respa)
       if (msmflag) {
         f_tmp = qqrd2e/r * fgamma;
         e_tmp = qqrd2e/r * egamma;
+      } else if (espflag) {
+        f_tmp = qqrd2e/r * fesp;
+        e_tmp = qqrd2e/r * eesp;
       } else {
         f_tmp = qqrd2e/r * (derfc + MY_ISPI4*grij*expm2);
         e_tmp = qqrd2e/r * derfc;
@@ -549,6 +621,10 @@ void Pair::init_tables(double cut_coul, double *cut_respa)
         f_tmp = qqrd2e/r * (fgamma - 1.0);
         e_tmp = qqrd2e/r * egamma;
         v_tmp = qqrd2e/r * fgamma;
+      } else if (espflag) {
+        f_tmp = qqrd2e/r * (fesp - 1.0);
+        e_tmp = qqrd2e/r * eesp;
+        v_tmp = qqrd2e/r * fesp;
       } else {
         f_tmp = qqrd2e/r * (derfc + MY_ISPI4*grij*expm2 - 1.0);
         e_tmp = qqrd2e/r * derfc;
@@ -561,6 +637,7 @@ void Pair::init_tables(double cut_coul, double *cut_respa)
           c_tmp = qqrd2e/r * rsw*rsw*(3.0 - 2.0*rsw);
         } else {
           if (msmflag) f_tmp = qqrd2e/r * fgamma;
+          else if (espflag) f_tmp = qqrd2e/r * fesp;
           else f_tmp = qqrd2e/r * (derfc + MY_ISPI4*grij*expm2);
           c_tmp = qqrd2e/r;
         }
@@ -889,16 +966,17 @@ void Pair::map_element2type(int narg, char **arg, bool update_setflag)
    setup for energy, virial computation
    see integrate::ev_set() for bitwise settings of eflag/vflag
    set the following flags, values are otherwise set to 0:
-     eflag_global != 0 if ENERGY_GLOBAL bit of eflag set
-     eflag_atom   != 0 if ENERGY_ATOM bit of eflag set
+     eflag_global != 0 if ENERGY_GLOBAL bit of eflag is set
+     eflag_atom   != 0 if ENERGY_ATOM bit of eflag is set
      eflag_either != 0 if eflag_global or eflag_atom is set
-     vflag_global != 0 if VIRIAL_PAIR bit of vflag set, OR
+     eflag_only   != 0 if ENERGY_GLOBAL and ENERGY_ONLY bits of eflag are set
+     vflag_global != 0 if VIRIAL_PAIR bit of vflag is set, OR
                        if VIRIAL_FDOTR bit of vflag is set but no_virial_fdotr = 1
-     vflag_fdotr  != 0 if VIRIAL_FDOTR bit of vflag set and no_virial_fdotr = 0
-     vflag_atom   != 0 if VIRIAL_ATOM bit of vflag set, OR
-                       if VIRIAL_CENTROID bit of vflag set
+     vflag_fdotr  != 0 if VIRIAL_FDOTR bit of vflag is set and no_virial_fdotr = 0
+     vflag_atom   != 0 if VIRIAL_ATOM bit of vflag is set, OR
+                       if VIRIAL_CENTROID bit of vflag is set
                        and centroidstressflag != CENTROID_AVAIL
-     cvflag_atom  != 0 if VIRIAL_CENTROID bit of vflag set
+     cvflag_atom  != 0 if VIRIAL_CENTROID bit of vflag is set
                        and centroidstressflag = CENTROID_AVAIL
      vflag_either != 0 if any of vflag_global, vflag_atom, cvflag_atom is set
      evflag       != 0 if eflag_either or vflag_either is set
@@ -912,9 +990,10 @@ void Pair::ev_setup(int eflag, int vflag, int alloc)
 {
   int i,n;
 
-  eflag_either = eflag;
+  eflag_either = eflag & (ENERGY_GLOBAL | ENERGY_ATOM);
   eflag_global = eflag & ENERGY_GLOBAL;
   eflag_atom = eflag & ENERGY_ATOM;
+  eflag_only = eflag_global ? (eflag & ENERGY_ONLY) : 0;
 
   vflag_global = vflag & VIRIAL_PAIR;
   if (vflag & VIRIAL_FDOTR && no_virial_fdotr_compute == 1) vflag_global = 1;
@@ -1014,6 +1093,7 @@ void Pair::ev_unset()
   eflag_either = 0;
   eflag_global = 0;
   eflag_atom = 0;
+  eflag_only = 0;
 
   vflag_either = 0;
   vflag_global = 0;
@@ -1837,7 +1917,7 @@ void Pair::write_file(int narg, char **arg)
   // add line with DATE: and UNITS: tag when creating new file
   // print header in format used by pair_style table
 
-  FILE *fp = nullptr;
+  SafeFilePtr fp;
   if (comm->me == 0) {
     std::string table_file = arg[6];
 
@@ -1890,7 +1970,7 @@ void Pair::write_file(int narg, char **arg)
 
   Pair *epair = force->pair_match("^eam",0);
   if (epair) epair->swap_eam(eamfp, &eamfp_hold);
-  if ((comm->me == 0) && (epair))
+  if ((comm->me == 0) && epair)
     error->warning(FLERR,"EAM pair style. Table will not include embedding term");
 
   // if atom style defines charge, swap in dummy q vec
@@ -1952,8 +2032,6 @@ void Pair::write_file(int narg, char **arg)
   double *tmp;
   if (epair) epair->swap_eam(eamfp_hold, &tmp);
   if (atom->q) atom->q = q_hold;
-
-  if (comm->me == 0) fclose(fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -2003,9 +2081,9 @@ void Pair::init_bitmap(double inner, double outer, int ntablebits,
 
   union_int_float_t rsq_lookup;
   rsq_lookup.f = outer*outer;
-  maskhi = rsq_lookup.i & ~(nmask);
+  maskhi = rsq_lookup.i & ~nmask;
   rsq_lookup.f = inner*inner;
-  masklo = rsq_lookup.i & ~(nmask);
+  masklo = rsq_lookup.i & ~nmask;
 }
 
 /* ---------------------------------------------------------------------- */

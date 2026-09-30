@@ -25,6 +25,14 @@
 #include "pair_mliap_kokkos.h"
 #include "pointers.h"
 
+#ifndef LMP_KOKKOS_DOUBLE_DOUBLE
+#error  Must use -DLMP_KOKKOS_DOUBLE_DOUBLE for ML-IAP Package
+#endif
+
+#ifndef LMP_KOKKOS_LAYOUT_LEGACY
+#error  Must use -DLMP_KOKKOS_LAYOUT_LEGACY for ML-IAP Package
+#endif
+
 namespace LAMMPS_NS {
 // clang-format off
 enum {
@@ -58,9 +66,9 @@ template <class DeviceType> class MLIAPDataKokkos : public MLIAPData {
   void generate_neighdata(class NeighList *, int = 0, int = 0) override;
   void grow_neigharrays() override;
 
-  void modified(ExecutionSpace space, unsigned int mask, bool ignore_auto_sync = false);
+  void modified(ExecutionSpace space, uint64_t mask, bool ignore_auto_sync = false);
 
-  void sync(ExecutionSpace space, unsigned int mask, bool ignore_auto_sync = false);
+  void sync(ExecutionSpace space, uint64_t mask, bool ignore_auto_sync = false);
 
   PairMLIAPKokkos<DeviceType> *k_pairmliap;
 
@@ -71,16 +79,16 @@ template <class DeviceType> class MLIAPDataKokkos : public MLIAPData {
   DAT::tdual_int_1d k_pair_i;           // index of each i atom for each ij pair
   DAT::tdual_int_1d k_jelems;           // element of each neighbor
   DAT::tdual_int_1d k_ij;               // Start location for each particle
-  DAT::tdual_float_2d k_betas;          // betas for all atoms in list
-  DAT::tdual_float_2d k_descriptors;    // descriptors for all atoms in list
-  DAT::tdual_float_1d k_eatoms;         // energies for all atoms in list
-  DAT::tdual_float_2d k_rij;            // distance vector of each neighbor
-  DAT::tdual_float_2d k_gradforce;
-  DAT::tdual_float_3d k_graddesc;         // descriptor gradient w.r.t. each neighbor
+  DAT::tdual_double_2d_lr k_betas;          // betas for all atoms in list
+  DAT::tdual_double_2d_lr k_descriptors;    // descriptors for all atoms in list
+  DAT::tdual_double_1d k_eatoms;         // energies for all atoms in list
+  DAT::tdual_double_2d_lr k_rij;            // distance vector of each neighbor
+  DAT::tdual_double_2d_lr k_gradforce;
+  DAT::tdual_double_3d_lr k_graddesc;         // descriptor gradient w.r.t. each neighbor
   DAT::tdual_int_1d k_numneighs;          // neighbors count for each atom
-  DAT::tdual_float_2d k_gamma;            // gamma element
-  DAT::tdual_int_2d k_gamma_row_index;    // row (parameter) index
-  DAT::tdual_int_2d k_gamma_col_index;    // column (descriptor) index
+  DAT::tdual_double_2d_lr k_gamma;            // gamma element
+  DAT::tdual_int_2d_lr k_gamma_row_index;    // row (parameter) index
+  DAT::tdual_int_2d_lr k_gamma_col_index;    // column (descriptor) index
 
   // Just cached for python interface
   double *f_device;
@@ -103,34 +111,34 @@ public:
     ndims_virial(base.ndims_virial),
     size_gradforce(base.size_gradforce),
     f(base.f_device),
-    gradforce(base.k_gradforce.d_view.data()),
-    betas(base.k_betas.d_view.data()),
-    descriptors(base.k_descriptors.d_view.data()),
-    eatoms(base.k_eatoms.d_view.data()),
+    gradforce(base.k_gradforce.view_device().data()),
+    betas(base.k_betas.view_device().data()),
+    descriptors(base.k_descriptors.view_device().data()),
+    eatoms(base.k_eatoms.view_device().data()),
     energy(&base.energy),
     ndescriptors(base.ndescriptors),
     nparams(base.nparams),
     nelements(base.nelements),
     gamma_nnz(base.gamma_nnz),
-    gamma(base.k_gamma.d_view.data()),
-    gamma_row_index(base.k_gamma_row_index.d_view.data()),
-    gamma_col_index(base.k_gamma_col_index.d_view.data()),
+    gamma(base.k_gamma.view_device().data()),
+    gamma_row_index(base.k_gamma_row_index.view_device().data()),
+    gamma_col_index(base.k_gamma_col_index.view_device().data()),
     egradient(nullptr),
     ntotal(base.ntotal),
     nlistatoms(base.nlistatoms),
     nlocal(base.nlocal),
     natomneigh(base.natomneigh),
     numneighs(base.numneighs),
-    iatoms(base.k_iatoms.d_view.data()),
-    pair_i(base.k_pair_i.d_view.data()),
-    ielems(base.k_ielems.d_view.data()),
+    iatoms(base.k_iatoms.view_device().data()),
+    pair_i(base.k_pair_i.view_device().data()),
+    ielems(base.k_ielems.view_device().data()),
     nneigh_max(base.nneigh_max),
     npairs(base.npairs),
-    jatoms(base.k_jatoms.d_view.data()),
-    jelems(base.k_jelems.d_view.data()),
-    elems(base.k_elems.d_view.data()),
-    rij(base.k_rij.d_view.data()),
-    graddesc(base.k_graddesc.d_view.data()),
+    jatoms(base.k_jatoms.view_device().data()),
+    jelems(base.k_jelems.view_device().data()),
+    elems(base.k_elems.view_device().data()),
+    rij(base.k_rij.view_device().data()),
+    graddesc(base.k_graddesc.view_device().data()),
     eflag(base.eflag),
     vflag(base.vflag),
     pairmliap(dynamic_cast<PairMLIAPKokkos<LMPDeviceType> *>(base.pairmliap)),

@@ -33,8 +33,10 @@ class DomainOMP : public Domain {
   // multi-threaded versions
   void pbc() override;
   void lamda2x(int) override;
+  void lamda2x(int,int) override;
   void lamda2x(double *lamda, double *x) override { Domain::lamda2x(lamda, x); }
   void x2lamda(int) override;
+  void x2lamda(int,int) override;
   void x2lamda(double *x, double *lamda) override { Domain::x2lamda(x, lamda); }
 };
 }    // namespace LAMMPS_NS

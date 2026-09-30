@@ -27,6 +27,7 @@ namespace LAMMPS_NS {
 class RegPrism : public Region {
   friend class CreateBox;
   friend class Region2VMD;
+  friend class DumpImage;
 
  public:
   RegPrism(class LAMMPS *, int, char **);
@@ -36,8 +37,9 @@ class RegPrism : public Region {
   int surface_interior(double *, double) override;
   int surface_exterior(double *, double) override;
   void shape_update() override;
+  void bbox_update() override;
 
- private:
+ protected:
   double xlo, xhi, ylo, yhi, zlo, zhi;
   double xy, xz, yz;
   double h[3][3], hinv[3][3];

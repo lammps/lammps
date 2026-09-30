@@ -489,7 +489,7 @@ void FixElectrodeConp::post_constructor()
   input->variable->set(fmt::format("{} equal f_{}[{}]", var_vtop, fixname, 1 + top_group));
   input->variable->set(fmt::format("{} equal (v_{}-v_{})/lz", var_efield, var_vbot, var_vtop));
   // check for other efields and warn if found
-  if ((modify->get_fix_by_style("^efield").size() > 0) && (comm->me == 0))
+  if ((!modify->get_fix_by_style("^efield").empty()) && (comm->me == 0))
     error->warning(FLERR, "Other efield fixes found -- please make sure this is intended!");
   // call fix command:
   // fix [varstem]_efield all efield 0.0 0.0 [var_vdiff]/lz
@@ -578,7 +578,7 @@ void FixElectrodeConp::setup_post_neighbor()
       read_from_file(input_file_mat, elastance, "elastance");
     else if (!read_inv) {
       if (etypes_neighlists) neighbor->build_one(mat_neighlist);
-      auto array_compute = std::unique_ptr<ElectrodeMatrix>(new ElectrodeMatrix(lmp, igroup, eta));
+      auto array_compute = std::make_unique<ElectrodeMatrix>(lmp, igroup, eta);
       array_compute->setup(tag_to_iele, pair, mat_neighlist);
       if (etaflag) array_compute->setup_eta(eta_index);
       if (tfflag) array_compute->setup_tf(tf_types);
@@ -1470,7 +1470,7 @@ void FixElectrodeConp::request_etypes_neighlists()
   for (int itype = 1; itype <= ntypes; ++itype) {
     for (int jtype = 1; jtype <= ntypes; ++jtype) {
       bool ele_and_sol = (iskip_mat[itype] != iskip_mat[jtype]);
-      ijskip_vec[itype][jtype] = (ele_and_sol) ? 0 : 1;
+      ijskip_vec[itype][jtype] = ele_and_sol ? 0 : 1;
     }
   }
 

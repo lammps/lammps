@@ -22,6 +22,9 @@ FixStyle(neighbor/swap,FixNeighborSwap);
 
 #include "fix.h"
 
+#include <unordered_map>
+#include <utility>
+
 namespace LAMMPS_NS {
 
 class FixNeighborSwap : public Fix {
@@ -38,6 +41,9 @@ class FixNeighborSwap : public Fix {
   double memory_usage() override;
   void write_restart(FILE *) override;
   void restart(char *) override;
+  int modify_param(int, char **) override;
+
+  int image(int *&, double **&) override;
 
  private:
   int nevery, seed;
@@ -84,6 +90,14 @@ class FixNeighborSwap : public Fix {
 
   char *id_voro;
   class Compute *c_voro, *c_pe;
+
+  // arrays for dump image rendering
+
+  int *imgobjs;
+  double **imgparms;
+  // maps atom IDs to number of steps they have been highlighted
+  std::unordered_map<tagint, std::pair<int,int>> vizatoms;
+  int vizsteps;    // number of steps to highlight atoms in reactions
 
   void options(int, char **);
   int attempt_swap();

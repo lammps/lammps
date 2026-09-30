@@ -53,11 +53,11 @@ commands:
 
 * sigma (area units, i.e. distance-squared)
 
-The global DSMC *max_cell_size* determines the maximum cell length
-used in the DSMC calculation.  A structured mesh is overlayed on the
-simulation box such that an integer number of cells are created in
-each direction for each processor's subdomain.  Cell lengths are
-adjusted up to the user-specified maximum cell size.
+The global DSMC *max_cell_size* determines the maximum cell length used
+in the DSMC calculation.  A structured mesh is applied to the simulation
+box such that an integer number of cells are created in each direction
+for each processor's subdomain.  Cell lengths are adjusted up to the
+user-specified maximum cell size.
 
 ----------
 

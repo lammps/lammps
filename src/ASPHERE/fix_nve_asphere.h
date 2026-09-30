@@ -34,6 +34,8 @@ class FixNVEAsphere : public FixNVE {
  private:
   double dtq;
   class AtomVecEllipsoid *avec;
+  template <bool is_super> void initial_integrate_templated();
+
 };
 
 }    // namespace LAMMPS_NS

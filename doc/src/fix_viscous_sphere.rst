@@ -1,7 +1,10 @@
 .. index:: fix viscous/sphere
+.. index:: fix viscous/sphere/kk
 
 fix viscous/sphere command
 ==========================
+
+Accelerator Variant: *viscous/sphere/kk*
 
 Syntax
 """"""
@@ -86,6 +89,12 @@ invoked by the :doc:`minimize <minimize>` command.  This fix should only
 be used with damped dynamics minimizers that allow for
 non-conservative forces.  See the :doc:`min_style <min_style>` command
 for details.
+
+----------
+
+.. include:: accel_styles.rst
+
+----------
 
 Restrictions
 """"""""""""

@@ -42,7 +42,7 @@ using namespace LAMMPS_NS;
 static constexpr double EPSILON = 1.0e-10;
 
 static const char cite_pair_edpd[] =
-  "pair edpd command: doi:10.1016/j.jcp.2014.02.003\n\n"
+  "pair edpd command: https://doi.org/10.1016/j.jcp.2014.02.003\n\n"
   "@Article{ZLi2014_JCP,\n"
   " author = {Li, Z. and Tang, Y.-H. and Lei, H. and Caswell, B. and Karniadakis, G. E.},\n"
   " title = {Energy-Conserving Dissipative Particle Dynamics with Temperature-Dependent Properties},\n"
@@ -62,7 +62,9 @@ static const char cite_pair_edpd[] =
 
 /* ---------------------------------------------------------------------- */
 
-PairEDPD::PairEDPD(LAMMPS *lmp) : Pair(lmp)
+PairEDPD::PairEDPD(LAMMPS *lmp) :
+    Pair(lmp), cut(nullptr), cutT(nullptr), a0(nullptr), gamma(nullptr), power(nullptr),
+    slope(nullptr), kappa(nullptr), powerT(nullptr), sc(nullptr), kc(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_pair_edpd);
   writedata = 1;
@@ -91,8 +93,8 @@ PairEDPD::~PairEDPD()
   if (power_flag) memory->destroy(sc);
   if (kappa_flag) memory->destroy(kc);
 
-  if (random) delete random;
-  if (randomT) delete randomT;
+  delete random;
+  delete randomT;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -533,9 +535,9 @@ void PairEDPD::read_restart_settings(FILE *fp)
   // initialize Marsaglia RNG with processor-unique seed
   // same seed that pair_style command initially specified
 
-  if (random) delete random;
+  delete random;
   random = new RanMars(lmp,seed + comm->me);
-  if (randomT) delete randomT;
+  delete randomT;
   randomT = new RanMars(lmp,seed + comm->me);
 }
 

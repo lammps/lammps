@@ -213,7 +213,7 @@ const refdata_t structure_graphene = {
 extern "C" {
 #endif
 
-typedef struct ptm_local_handle *ptm_local_handle_t;
+typedef struct ptm_local_handle *ptm_local_handle_t;    // NOLINT
 ptm_local_handle_t ptm_initialize_local();
 void ptm_uninitialize_local(ptm_local_handle_t ptr);
 

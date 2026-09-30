@@ -1,10 +1,11 @@
 .. index:: angle_style cosine/squared
+.. index:: angle_style cosine/squared/kk
 .. index:: angle_style cosine/squared/omp
 
 angle_style cosine/squared command
 ==================================
 
-Accelerator Variants: *cosine/squared/omp*
+Accelerator Variants: *cosine/squared/kk*, *cosine/squared/omp*
 
 Syntax
 """"""

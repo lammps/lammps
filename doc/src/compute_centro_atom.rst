@@ -1,7 +1,11 @@
 .. index:: compute centro/atom
+.. index:: compute centro/atom/kk
+.. index:: compute centro/atom/omp
 
 compute centro/atom command
 ===========================
+
+Accelerator Variants: *centro/atom/kk*, *centro/atom/omp*
 
 Syntax
 """"""
@@ -148,9 +152,15 @@ For BCC materials, the values for dislocation cores and free surfaces
 would be somewhat different, due to their being only 8 neighbors instead
 of 12.
 
+----------
+
+.. include:: accel_styles.rst
+
+----------
+
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""

@@ -36,7 +36,8 @@ static constexpr double SMALL =     0.001;
 
 /* ---------------------------------------------------------------------- */
 
-ImproperFourier::ImproperFourier(LAMMPS *lmp) : Improper(lmp)
+ImproperFourier::ImproperFourier(LAMMPS *lmp) :
+    Improper(lmp), k(nullptr), C0(nullptr), C1(nullptr), C2(nullptr), all(nullptr)
 {
   // the first and fourth atoms in the quadruplet are the atoms of symmetry
 
@@ -48,6 +49,8 @@ ImproperFourier::ImproperFourier(LAMMPS *lmp) : Improper(lmp)
 
 ImproperFourier::~ImproperFourier()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(k);

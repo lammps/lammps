@@ -1,23 +1,15 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef TEST_BLOCK_SIZE_DEDUCTION_HPP
 #define TEST_BLOCK_SIZE_DEDUCTION_HPP
 
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+#else
 #include <Kokkos_Core.hpp>
+#endif
 #include <gtest/gtest.h>
 
 // NOTE kokkos/kokkos#3103 introduced a bug that was accidentally fixed in #3124
@@ -33,8 +25,10 @@ template <typename ExecutionSpace>
 void test_bug_pr_3103() {
   using Policy =
       Kokkos::TeamPolicy<ExecutionSpace, Kokkos::LaunchBounds<32, 1>>;
-  int const league_size   = 1;
-  int const team_size     = std::min(32, ExecutionSpace().concurrency());
+  int const league_size = 1;
+  int const team_size   = std::min(
+      32, Policy(league_size, Kokkos::AUTO)
+              .team_size_max(PoorMansLambda{}, Kokkos::ParallelForTag{}));
   int const vector_length = 1;
 
   Kokkos::parallel_for(Policy(league_size, team_size, vector_length),

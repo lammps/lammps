@@ -46,7 +46,8 @@ enum { TOTAL, CONF, KIN, PAIR, BOND, ANGLE, DIHEDRAL };
 
 /* ---------------------------------------------------------------------- */
 
-ComputeStressMop::ComputeStressMop(LAMMPS *lmp, int narg, char **arg) : Compute(lmp, narg, arg)
+ComputeStressMop::ComputeStressMop(LAMMPS *lmp, int narg, char **arg) :
+    Compute(lmp, narg, arg), list(nullptr)
 {
   if (narg < 6) utils::missing_cmd_args(FLERR, "compute stress/mop", error);
 
@@ -503,7 +504,7 @@ void ComputeStressMop::compute_pairs()
           fi[1] = atom->f[i][1];
           fi[2] = atom->f[i][2];
 
-          const double imass = (rmass) ? rmass[i] : mass[itype];
+          const double imass = rmass ? rmass[i] : mass[itype];
           const double iterm = 0.5 / imass * dt * ftm2v;
 
           // coordinates at t-dt (based on Velocity-Verlet alg.)

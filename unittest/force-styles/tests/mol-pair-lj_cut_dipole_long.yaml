@@ -2,7 +2,7 @@
 lammps_version: 30 Jul 2021
 date_generated: Sat Aug 21 20:48:58 2021
 epsilon: 2.5e-09
-skip_tests: gpu
+skip_tests:
 prerequisites: ! |
   atom full
   atom sphere

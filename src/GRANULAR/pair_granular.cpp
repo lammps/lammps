@@ -52,9 +52,11 @@ PairGranular::PairGranular(LAMMPS *lmp) : Pair(lmp)
   finitecutflag = 1;
 
   single_extra = 12;
+  extra_svector = 0;
   svector = new double[single_extra];
 
   neighprev = 0;
+  freeze_group_bit = 0;
   nmax = 0;
   mass_rigid = nullptr;
 
@@ -62,6 +64,9 @@ PairGranular::PairGranular(LAMMPS *lmp) : Pair(lmp)
   onerad_frozen = nullptr;
   maxrad_dynamic = nullptr;
   maxrad_frozen = nullptr;
+
+  types_indices = nullptr;
+  cutoff_type = nullptr;
 
   // set comm size needed by this Pair if used with fix rigid
 
@@ -76,8 +81,20 @@ PairGranular::PairGranular(LAMMPS *lmp) : Pair(lmp)
   // create dummy fix as placeholder for FixNeighHistory
   // this is so final order of Modify:fix will conform to input script
 
+id_dummy = utils::strdup(std::string("NEIGH_HISTORY_GRANULAR_DUMMY") + std::to_string(instance_me));
+
+  // the id of the history fix is built in init_style() and not here: it has to
+  // be the same in the run that writes a restart file and in the run that reads
+  // it back, so it cannot come from instance_me, which counts every Pair ever
+  // created in the process, and the hybrid sub-style list is not populated yet
+
+  id_history = nullptr;
+
+  cutoff_global = -1.0;
   fix_history = nullptr;
-  fix_dummy = dynamic_cast<FixDummy *>(modify->add_fix("NEIGH_HISTORY_GRANULAR_DUMMY all DUMMY"));
+  models_list = nullptr;
+  nmodels = maxmodels = 0;
+  fix_dummy = dynamic_cast<FixDummy *>(modify->add_fix(fmt::format("{} all DUMMY", id_dummy)));
 }
 
 /* ---------------------------------------------------------------------- */
@@ -86,8 +103,10 @@ PairGranular::~PairGranular()
 {
   delete[] svector;
 
-  if (!fix_history) modify->delete_fix("NEIGH_HISTORY_GRANULAR_DUMMY");
-  else modify->delete_fix("NEIGH_HISTORY_GRANULAR");
+  if (!fix_history) modify->delete_fix(id_dummy);
+  else modify->delete_fix(id_history);
+  delete[] id_dummy;
+  delete[] id_history;
 
   if (allocated) {
     memory->destroy(setflag);
@@ -110,13 +129,13 @@ PairGranular::~PairGranular()
 
 void PairGranular::compute(int eflag, int vflag)
 {
-  int i,j,k,ii,jj,inum,jnum,itype,jtype;
-  double factor_lj,mi,mj,meff;
+  int i, j, k, ii, jj, inum, jnum, itype, jtype;
+  double factor_lj, mi, mj, meff;
   double *forces, *torquesi, *torquesj, dq;
 
-  int *ilist,*jlist,*numneigh,**firstneigh;
-  int *touch,**firsttouch;
-  double *history,*allhistory,**firsthistory;
+  int *ilist, *jlist, *numneigh, **firstneigh;
+  int *touch, **firsttouch;
+  double *history, *allhistory, **firsthistory;
 
   bool touchflag = false;
   const bool history_update = update->setupflag == 0;
@@ -132,26 +151,30 @@ void PairGranular::compute(int eflag, int vflag)
   // body[i] = which body atom I is in, -1 if none
   // mass_body = mass of each rigid body
 
-  if (fix_rigid && neighbor->ago == 0) {
-    int tmp;
-    int *body = (int *) fix_rigid->extract("body",tmp);
-    auto *mass_body = (double *) fix_rigid->extract("masstotal",tmp);
-    if (atom->nmax > nmax) {
-      memory->destroy(mass_rigid);
-      nmax = atom->nmax;
-      memory->create(mass_rigid,nmax,"pair:mass_rigid");
-    }
-    int nlocal = atom->nlocal;
-    for (i = 0; i < nlocal; i++)
-      if (body[i] >= 0) mass_rigid[i] = mass_body[body[i]];
-      else mass_rigid[i] = 0.0;
+  if (!fix_rigid.empty() && neighbor->ago == 0) {
+     if (atom->nmax > nmax) {
+       memory->destroy(mass_rigid);
+       nmax = atom->nmax;
+       memory->create(mass_rigid,nmax,"pair:mass_rigid");
+     }
+     int nlocal = atom->nlocal;
+     for (i = 0; i < nlocal; i++) mass_rigid[i] = 0.0;
+
+     for (const auto &ifix : fix_rigid) {
+       int tmp;
+       int *body = (int *) ifix->extract("body",tmp);
+       auto *mass_body = (double *) ifix->extract("masstotal",tmp);
+
+       for (i = 0; i < nlocal; i++)
+         if (body[i] >= 0) mass_rigid[i] = mass_body[body[i]];
+     }
     comm->forward_comm(this);
   }
 
+  int *type = atom->type;
   double **x = atom->x;
   double **v = atom->v;
   double **f = atom->f;
-  int *type = atom->type;
   double **omega = atom->omega;
   double **torque = atom->torque;
   double *radius = atom->radius;
@@ -226,7 +249,7 @@ void PairGranular::compute(int eflag, int vflag)
       // if I or J is frozen, meff is other particle
       mi = rmass[i];
       mj = rmass[j];
-      if (fix_rigid) {
+      if (!fix_rigid.empty()) {
         if (mass_rigid[i] > 0.0) mi = mass_rigid[i];
         if (mass_rigid[j] > 0.0) mj = mass_rigid[j];
       }
@@ -275,10 +298,9 @@ void PairGranular::compute(int eflag, int vflag)
         if (force->newton_pair || j < nlocal) heatflow[j] -= dq;
       }
 
-      if (evflag) {
-        ev_tally_xyz(i,j,nlocal,force->newton_pair,
-          0.0,0.0,forces[0],forces[1],forces[2],model->dx[0],model->dx[1],model->dx[2]);
-      }
+      if (evflag)
+        ev_tally_xyz(i, j, nlocal, force->newton_pair, 0.0, 0.0, forces[0], forces[1], forces[2],
+            model->dx[0], model->dx[1], model->dx[2]);
     }
   }
 }
@@ -479,23 +501,23 @@ void PairGranular::init_style()
   // it replaces FixDummy, created in the constructor
   // this is so its order in the fix list is preserved
 
+  if (use_history) {
+    delete[] id_history;
+    id_history = utils::strdup(fmt::format("NEIGH_HISTORY_GRANULAR{}", instance_index()));
+  }
+
   if (use_history && fix_history == nullptr) {
-    // since pair style granular does not support any form of acceleration
-    // we must not try using an accelerated version of fix NEIGH_HISTORY.
-    fix_history = dynamic_cast<FixNeighHistory *>(modify->replace_fix("NEIGH_HISTORY_GRANULAR_DUMMY",
-                                                          "NEIGH_HISTORY_GRANULAR"
-                                                          " all NEIGH_HISTORY "
-                                                          + std::to_string(size_history),0));
+    fix_history = dynamic_cast<FixNeighHistory *>(modify->replace_fix(id_dummy, fmt::format("{} all NEIGH_HISTORY {}", id_history, size_history),0));
     fix_history->pair = this;
   } else if (use_history) {
-    fix_history = dynamic_cast<FixNeighHistory *>(modify->get_fix_by_id("NEIGH_HISTORY_GRANULAR"));
+    fix_history = dynamic_cast<FixNeighHistory *>(modify->get_fix_by_id(id_history));
     if (!fix_history) error->all(FLERR,"Could not find pair fix neigh history ID");
   }
 
   // check for FixFreeze and set freeze_group_bit
 
   auto fixlist = modify->get_fix_by_style("^freeze");
-  if (fixlist.size() == 0)
+  if (fixlist.empty())
     freeze_group_bit = 0;
   else if (fixlist.size() > 1)
     error->all(FLERR, "Only one fix freeze command at a time allowed");
@@ -504,14 +526,9 @@ void PairGranular::init_style()
 
   // check for FixRigid so can extract rigid body masses
 
-  fix_rigid = nullptr;
-  for (const auto &ifix : modify->get_fix_list()) {
-    if (ifix->rigid_flag) {
-      if (fix_rigid)
-        error->all(FLERR, "Only one fix rigid command at a time allowed");
-      else fix_rigid = ifix;
-    }
-  }
+  fix_rigid.clear();
+  for (const auto &ifix : modify->get_fix_list())
+    if (ifix->rigid_flag) fix_rigid.push_back(ifix);
 
   // check for FixPour and FixDeposit so can extract particle radii
 
@@ -778,7 +795,7 @@ double PairGranular::single(int i, int j, int itype, int jtype,
 
   double mi = rmass[i];
   double mj = rmass[j];
-  if (fix_rigid) {
+  if (!fix_rigid.empty()) {
     if (mass_rigid[i] > 0.0) mi = mass_rigid[i];
     if (mass_rigid[j] > 0.0) mj = mass_rigid[j];
   }

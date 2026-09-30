@@ -11,6 +11,7 @@ SPDX-License-Identifier: (BSD-3-Clause)
 
 #include <desul/atomics/Common.hpp>
 #include <desul/atomics/Lock_Array_CUDA.hpp>
+#include <desul/atomics/Lock_Free_Types_CUDA.hpp>
 #include <desul/atomics/Thread_Fence_CUDA.hpp>
 #include <type_traits>
 
@@ -37,8 +38,8 @@ __device__ std::enable_if_t<sizeof(T) == 4, T> device_atomic_compare_exchange(
   static_assert(sizeof(unsigned int) == 4,
                 "this function assumes an unsigned int is 32-bit");
   unsigned int return_val = atomicCAS(reinterpret_cast<unsigned int*>(dest),
-                                      reinterpret_cast<unsigned int&>(compare),
-                                      reinterpret_cast<unsigned int&>(value));
+                                      *reinterpret_cast<unsigned int*>(&compare),
+                                      *reinterpret_cast<unsigned int*>(&value));
   return reinterpret_cast<T&>(return_val);
 }
 template <class T, class MemoryScope>
@@ -48,8 +49,8 @@ __device__ std::enable_if_t<sizeof(T) == 8, T> device_atomic_compare_exchange(
                 "this function assumes an unsigned long long is 64-bit");
   unsigned long long int return_val =
       atomicCAS(reinterpret_cast<unsigned long long int*>(dest),
-                reinterpret_cast<unsigned long long int&>(compare),
-                reinterpret_cast<unsigned long long int&>(value));
+                *reinterpret_cast<unsigned long long int*>(&compare),
+                *reinterpret_cast<unsigned long long int*>(&value));
   return reinterpret_cast<T&>(return_val);
 }
 
@@ -90,7 +91,7 @@ __device__ std::enable_if_t<sizeof(T) == 4, T> device_atomic_exchange(
   static_assert(sizeof(unsigned int) == 4,
                 "this function assumes an unsigned int is 32-bit");
   unsigned int return_val = atomicExch(reinterpret_cast<unsigned int*>(dest),
-                                       reinterpret_cast<unsigned int&>(value));
+                                       *reinterpret_cast<unsigned int*>(&value));
   return reinterpret_cast<T&>(return_val);
 }
 template <class T, class MemoryScope>
@@ -100,7 +101,7 @@ __device__ std::enable_if_t<sizeof(T) == 8, T> device_atomic_exchange(
                 "this function assumes an unsigned long long is 64-bit");
   unsigned long long int return_val =
       atomicExch(reinterpret_cast<unsigned long long int*>(dest),
-                 reinterpret_cast<unsigned long long int&>(value));
+                 *reinterpret_cast<unsigned long long int*>(&value));
   return reinterpret_cast<T&>(return_val);
 }
 
@@ -140,6 +141,29 @@ __device__ std::enable_if_t<sizeof(T) == 4 || sizeof(T) == 8, T> device_atomic_e
 
 namespace desul {
 namespace Impl {
+
+#ifdef DESUL_HAVE_16BYTE_LOCK_FREE_ATOMICS_DEVICE
+template <class T, class MemoryScope>
+__device__ std::enable_if_t<sizeof(T) == 16, T> device_atomic_exchange(
+    T* const dest, T value, MemoryOrderSeqCst, MemoryScope) {
+  device_atomic_thread_fence(MemoryOrderAcquire(), MemoryScope());
+  T return_val =
+      device_atomic_exchange(dest, value, MemoryOrderRelaxed(), MemoryScope());
+  device_atomic_thread_fence(MemoryOrderRelease(), MemoryScope());
+  return return_val;
+}
+
+template <class T, class MemoryScope>
+__device__ std::enable_if_t<sizeof(T) == 16, T> device_atomic_compare_exchange(
+    T* const dest, T compare, T value, MemoryOrderSeqCst, MemoryScope) {
+  device_atomic_thread_fence(MemoryOrderAcquire(), MemoryScope());
+  T return_val = device_atomic_compare_exchange(
+      dest, compare, value, MemoryOrderRelaxed(), MemoryScope());
+  device_atomic_thread_fence(MemoryOrderRelease(), MemoryScope());
+  return return_val;
+}
+#endif
+
 template <class T, class MemoryScope>
 __device__ std::enable_if_t<sizeof(T) == 4, T> device_atomic_exchange(T* const dest,
                                                                       T value,
@@ -182,7 +206,7 @@ __device__ std::enable_if_t<sizeof(T) == 8, T> device_atomic_compare_exchange(
 }
 
 template <class T, class MemoryOrder, class MemoryScope>
-__device__ std::enable_if_t<(sizeof(T) != 8) && (sizeof(T) != 4), T>
+__device__ std::enable_if_t<!device_atomic_always_lock_free<T>, T>
 device_atomic_compare_exchange(
     T* const dest, T compare, T value, MemoryOrder, MemoryScope scope) {
   // This is a way to avoid deadlock in a warp or wave front
@@ -212,7 +236,7 @@ device_atomic_compare_exchange(
 }
 
 template <class T, class MemoryOrder, class MemoryScope>
-__device__ std::enable_if_t<(sizeof(T) != 8) && (sizeof(T) != 4), T>
+__device__ std::enable_if_t<!device_atomic_always_lock_free<T>, T>
 device_atomic_exchange(T* const dest, T value, MemoryOrder, MemoryScope scope) {
   // This is a way to avoid deadlock in a warp or wave front
   T return_val;

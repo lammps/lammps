@@ -1,0 +1,334 @@
+LAMMPS (10 Sep 2025 - Development - patch_10Sep2025-520-gd2199aa57b-modified)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
+  using 1 OpenMP thread(s) per MPI task
+# Numerical difference calculation
+# of Born matrix
+
+# Note that because of cubic symmetry and central forces, we have:
+# C11, pure axial == positive mean value: 1,2,3
+# C44==C23, pure shear == positive mean value, exactly match in pairs: (4,12),(5,8),(6,7)
+# C14==C56, shear/axial(normal) == zero mean, exactly match in pairs: (9,21),(14,20),(18,19)
+# C15, shear/axial(in-plane) == zero mean: 10,11,13,15,16,17
+
+# adjustable parameters
+
+units           real
+variable        nsteps index 10000    # length of run
+variable        nthermo index  1000    # thermo output interval
+variable        nlat equal 5           # size of box
+variable        T    equal 60.         # Temperature in K
+variable        rho  equal 5.405       # Lattice spacing in A
+
+atom_style      atomic
+
+lattice         fcc ${rho}
+lattice         fcc 5.405
+Lattice spacing in x,y,z = 5.405 5.405 5.405
+region          box block 0 ${nlat} 0 ${nlat} 0 ${nlat}
+region          box block 0 5 0 ${nlat} 0 ${nlat}
+region          box block 0 5 0 5 0 ${nlat}
+region          box block 0 5 0 5 0 5
+create_box      1 box
+Created orthogonal box = (0 0 0) to (27.025 27.025 27.025)
+  1 by 1 by 1 MPI processor grid
+create_atoms    1 box
+Created 500 atoms
+  using lattice units in orthogonal box = (0 0 0) to (27.025 27.025 27.025)
+  create_atoms CPU = 0.000 seconds
+
+mass            * 39.948
+
+velocity        all create ${T} 87287 loop geom
+velocity        all create 60 87287 loop geom
+velocity        all zero linear
+
+pair_style      lj/cut 12.0
+pair_coeff      1 1 0.238067 3.405
+
+neighbor        0.0 bin
+neigh_modify    every 1 delay 0 check no
+
+variable vol equal vol
+thermo 100
+fix aL all ave/time 1 1 1 v_vol ave running
+fix NPT all npt temp $T $T 100 aniso 1. 1. 1000 fixedpoint 0. 0. 0.
+fix NPT all npt temp 60 $T 100 aniso 1. 1. 1000 fixedpoint 0. 0. 0.
+fix NPT all npt temp 60 60 100 aniso 1. 1. 1000 fixedpoint 0. 0. 0.
+
+run 2000
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = no
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 12
+  ghost atom cutoff = 12
+  binsize = 6, bins = 5 5 5
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 2.695 | 2.695 | 2.695 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press          Volume    
+         0   60            -974.97988      0             -885.73443     -1549.5634      19737.726    
+       100   33.504753     -943.70789      0             -893.87211      968.3116       18369.007    
+       200   26.32504      -930.72444      0             -891.56794      314.3869       18935.888    
+       300   41.132299     -931.36826      0             -870.18708     -617.04719      19632.688    
+       400   41.183387     -912.49497      0             -851.2378       485.3659       19105.509    
+       500   57.063649     -914.95616      0             -830.07831      10.213449      19451.639    
+       600   57.720228     -897.82416      0             -811.96969     -122.66415      19794.9      
+       700   55.117494     -878.27174      0             -796.28864      169.40743      19853.365    
+       800   65.753909     -877.79094      0             -779.98698     -140.35502      20145.428    
+       900   61.5708       -870.58334      0             -779.00144     -6.2782272      20132.09     
+      1000   59.71058      -873.44425      0             -784.62929      18.589753      20063.414    
+      1100   59.887921     -878.67927      0             -789.60053     -53.049476      20034.152    
+      1200   59.121142     -881.97593      0             -794.03771      31.110495      19909.638    
+      1300   60.931065     -887.19784      0             -796.5675       6.5972135      19859.309    
+      1400   60.086091     -890.68151      0             -801.308       -26.605388      19827.013    
+      1500   58.240958     -892.81245      0             -806.18344      32.781814      19743.494    
+      1600   59.997061     -896.10853      0             -806.86745      1.8694388      19731.408    
+      1700   62.500416     -900.56177      0             -807.59714     -58.405946      19717.51     
+      1800   60.950957     -905.28688      0             -814.62695      13.287333      19580.499    
+      1900   57.643425     -908.35702      0             -822.61679      80.300088      19476.931    
+      2000   54.860033     -904.52282      0             -822.92268      28.955012      19564.956    
+Loop time of 3.78964 on 1 procs for 2000 steps with 500 atoms
+
+Performance: 45.598 ns/day, 0.526 hours/ns, 527.755 timesteps/s, 263.878 katom-step/s
+99.9% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 1.4816     | 1.4816     | 1.4816     |   0.0 | 39.10
+Neigh   | 2.202      | 2.202      | 2.202      |   0.0 | 58.11
+Comm    | 0.064381   | 0.064381   | 0.064381   |   0.0 |  1.70
+Output  | 0.00039472 | 0.00039472 | 0.00039472 |   0.0 |  0.01
+Modify  | 0.031604   | 0.031604   | 0.031604   |   0.0 |  0.83
+Other   |            | 0.009719   |            |       |  0.26
+
+Nlocal:            500 ave         500 max         500 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           2930 ave        2930 max        2930 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:          46401 ave       46401 max       46401 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 46401
+Ave neighs/atom = 92.802
+Neighbor list builds = 2000
+Dangerous builds not checked
+
+unfix NPT
+
+variable newL equal "f_aL^(1./3.)"
+change_box all x final 0 ${newL} y final 0. ${newL} z final 0. ${newL} remap units box
+change_box all x final 0 26.9850129540338 y final 0. ${newL} z final 0. ${newL} remap units box
+change_box all x final 0 26.9850129540338 y final 0. 26.9850129540338 z final 0. ${newL} remap units box
+change_box all x final 0 26.9850129540338 y final 0. 26.9850129540338 z final 0. 26.9850129540338 remap units box
+Changing box ...
+  orthogonal box = (0 0 0) to (26.985013 26.94049 27.008247)
+  orthogonal box = (0 0 0) to (26.985013 26.985013 27.008247)
+  orthogonal box = (0 0 0) to (26.985013 26.985013 26.985013)
+
+unfix aL
+
+reset_timestep 0
+
+# Conversion variables
+variable kb        equal 1.38065e-23    # J/K
+variable Myvol     equal "vol*10^-30" # Volume in m^3
+variable kbt       equal "v_kb*v_T"
+variable Nat       equal atoms
+variable Rhokbt    equal "v_kbt*v_Nat/v_Myvol"
+variable at2Pa     equal 101325
+variable kcalmol2J equal "4183.9954/(6.022e23)"
+variable C1        equal "v_kcalmol2J/v_Myvol" # Convert Cb from energy to pressure units
+variable C2        equal "v_Myvol/v_kbt"       # Factor for Cfl terms
+variable Pa2GPa    equal 1e-9
+
+# Born compute giving <C^b> terms
+# The six virial stress component to compute <C^fl>
+compute     VIR all pressure NULL virial
+compute     born all born/matrix numdiff 1e-6 VIR
+variable s1 equal "-c_VIR[1]*v_at2Pa"
+variable s2 equal "-c_VIR[2]*v_at2Pa"
+variable s3 equal "-c_VIR[3]*v_at2Pa"
+variable s6 equal "-c_VIR[4]*v_at2Pa"
+variable s5 equal "-c_VIR[5]*v_at2Pa"
+variable s4 equal "-c_VIR[6]*v_at2Pa"
+variable press equal press
+
+
+# Average of Born term and vector to store stress
+# for post processing
+fix CB all ave/time 1 ${nthermo} ${nthermo} c_born[*] ave running file born.out overwrite
+fix CB all ave/time 1 1000 ${nthermo} c_born[*] ave running file born.out overwrite
+fix CB all ave/time 1 1000 1000 c_born[*] ave running file born.out overwrite
+fix CPR all ave/time 1 1 1 c_VIR[*] file vir.out
+fix APR all ave/time 1 1 1 v_press ave running
+fix VEC all vector 1 v_s1 v_s2 v_s3 v_s4 v_s5 v_s6
+
+thermo      ${nthermo}
+thermo      1000
+thermo_style    custom step temp press f_APR c_born[1] f_CB[1] c_born[12] f_CB[12] c_born[4] f_CB[4]
+thermo_modify line multi
+
+fix     1 all nvt temp $T $T 100
+fix     1 all nvt temp 60 $T 100
+fix     1 all nvt temp 60 60 100
+
+run         ${nsteps}
+run         10000
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Per MPI rank memory allocation (min/avg/max) = 3.445 | 3.445 | 3.445 Mbytes
+------------ Step              0 ----- CPU =            0 (sec) -------------
+Step     =              0 Temp     =        54.8600 Press    =       -74.9874 
+f_APR    =       -74.9874 c_born[1] =      9407.2808 f_CB[1]  =         0.0000 
+c_born[12] =      5290.6926 f_CB[12] =         0.0000 c_born[4] =      5290.6926 
+f_CB[4]  =         0.0000
+------------ Step           1000 ----- CPU =     11.04897 (sec) -------------
+Step     =           1000 Temp     =        56.1005 Press    =        93.2723 
+f_APR    =       104.8993 c_born[1] =     10001.7099 f_CB[1]  =      9796.8333 
+c_born[12] =      5478.0633 f_CB[12] =      5453.1318 c_born[4] =      5478.0633 
+f_CB[4]  =      5453.9099
+------------ Step           2000 ----- CPU =     22.18087 (sec) -------------
+Step     =           2000 Temp     =        59.2245 Press    =       164.2019 
+f_APR    =        90.3569 c_born[1] =     10217.4686 f_CB[1]  =      9829.5352 
+c_born[12] =      5541.1651 f_CB[12] =      5465.4227 c_born[4] =      5541.1651 
+f_CB[4]  =      5465.9156
+------------ Step           3000 ----- CPU =     33.32484 (sec) -------------
+Step     =           3000 Temp     =        62.3421 Press    =       138.9920 
+f_APR    =       103.8105 c_born[1] =      9891.8953 f_CB[1]  =      9872.8364 
+c_born[12] =      5518.1109 f_CB[12] =      5467.6789 c_born[4] =      5518.1109 
+f_CB[4]  =      5468.3477
+------------ Step           4000 ----- CPU =     44.31756 (sec) -------------
+Step     =           4000 Temp     =        58.1487 Press    =       136.4624 
+f_APR    =       107.3823 c_born[1] =     10092.1431 f_CB[1]  =      9886.6360 
+c_born[12] =      5406.3974 f_CB[12] =      5470.8460 c_born[4] =      5406.3974 
+f_CB[4]  =      5471.2604
+------------ Step           5000 ----- CPU =     55.42936 (sec) -------------
+Step     =           5000 Temp     =        60.3351 Press    =       -21.9127 
+f_APR    =       101.0136 c_born[1] =      9749.8387 f_CB[1]  =      9866.1222 
+c_born[12] =      5324.9270 f_CB[12] =      5470.8171 c_born[4] =      5324.9270 
+f_CB[4]  =      5471.3358
+------------ Step           6000 ----- CPU =     66.39398 (sec) -------------
+Step     =           6000 Temp     =        57.7282 Press    =       157.6900 
+f_APR    =       100.3234 c_born[1] =     10127.0283 f_CB[1]  =      9868.7751 
+c_born[12] =      5689.6386 f_CB[12] =      5472.6104 c_born[4] =      5689.6386 
+f_CB[4]  =      5472.7877
+------------ Step           7000 ----- CPU =     77.43408 (sec) -------------
+Step     =           7000 Temp     =        59.5948 Press    =       135.9651 
+f_APR    =       101.9810 c_born[1] =     10151.6081 f_CB[1]  =      9885.2115 
+c_born[12] =      5473.6704 f_CB[12] =      5471.9053 c_born[4] =      5473.6704 
+f_CB[4]  =      5472.7481
+------------ Step           8000 ----- CPU =     88.60444 (sec) -------------
+Step     =           8000 Temp     =        61.7547 Press    =        41.1860 
+f_APR    =       105.3152 c_born[1] =      9675.8645 f_CB[1]  =      9897.1502 
+c_born[12] =      5267.1241 f_CB[12] =      5470.6687 c_born[4] =      5267.8799 
+f_CB[4]  =      5471.4666
+------------ Step           9000 ----- CPU =     99.86653 (sec) -------------
+Step     =           9000 Temp     =        59.2478 Press    =       146.6808 
+f_APR    =       104.7030 c_born[1] =      9964.5592 f_CB[1]  =      9889.2649 
+c_born[12] =      5504.1222 f_CB[12] =      5469.1559 c_born[4] =      5504.1222 
+f_CB[4]  =      5469.8494
+------------ Step          10000 ----- CPU =      110.886 (sec) -------------
+Step     =          10000 Temp     =        59.4645 Press    =        96.1963 
+f_APR    =       107.2322 c_born[1] =      9888.8051 f_CB[1]  =      9902.6253 
+c_born[12] =      5573.7788 f_CB[12] =      5475.7021 c_born[4] =      5573.7788 
+f_CB[4]  =      5476.6716
+Loop time of 110.886 on 1 procs for 10000 steps with 500 atoms
+
+Performance: 7.792 ns/day, 3.080 hours/ns, 90.183 timesteps/s, 45.091 katom-step/s
+99.8% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 7.4905     | 7.4905     | 7.4905     |   0.0 |  6.76
+Neigh   | 11.202     | 11.202     | 11.202     |   0.0 | 10.10
+Comm    | 0.3611     | 0.3611     | 0.3611     |   0.0 |  0.33
+Output  | 0.099024   | 0.099024   | 0.099024   |   0.0 |  0.09
+Modify  | 91.688     | 91.688     | 91.688     |   0.0 | 82.69
+Other   |            | 0.0455     |            |       |  0.04
+
+Nlocal:            500 ave         500 max         500 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           2930 ave        2930 max        2930 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:          46195 ave       46195 max       46195 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 46195
+Ave neighs/atom = 92.39
+Neighbor list builds = 10000
+Dangerous builds not checked
+
+# Compute vector averages
+# Note the indice switch.
+# LAMMPS convention is NOT the Voigt notation.
+variable aves1 equal "ave(f_VEC[1])"
+variable aves2 equal "ave(f_VEC[2])"
+variable aves3 equal "ave(f_VEC[3])"
+variable aves4 equal "ave(f_VEC[6])"
+variable aves5 equal "ave(f_VEC[5])"
+variable aves6 equal "ave(f_VEC[4])"
+
+# Computing the covariance through the <s_{i}s_{j}>-<s_i><s_j>
+# is numerically instable. Here we go through the <(s-<s>)^2>
+# definition.
+
+# Computing difference relative to average values
+variable ds1 vector "f_VEC[1]-v_aves1"
+variable ds2 vector "f_VEC[2]-v_aves2"
+variable ds3 vector "f_VEC[3]-v_aves3"
+variable ds4 vector "f_VEC[4]-v_aves4"
+variable ds5 vector "f_VEC[5]-v_aves5"
+variable ds6 vector "f_VEC[6]-v_aves6"
+
+# Squaring and averaging
+variable dds1 vector "v_ds1*v_ds1"
+variable dds2 vector "v_ds2*v_ds2"
+variable dds3 vector "v_ds3*v_ds3"
+variable vars1 equal "ave(v_dds1)"
+variable vars2 equal "ave(v_dds2)"
+variable vars3 equal "ave(v_dds3)"
+variable C11 equal "v_Pa2GPa*(v_C1*f_CB[1] - v_C2*v_vars1 + 2*v_Rhokbt)"
+variable C22 equal "v_Pa2GPa*(v_C1*f_CB[2] - v_C2*v_vars2 + 2*v_Rhokbt)"
+variable C33 equal "v_Pa2GPa*(v_C1*f_CB[3] - v_C2*v_vars3 + 2*v_Rhokbt)"
+
+variable dds12 vector "v_ds1*v_ds2"
+variable dds13 vector "v_ds1*v_ds3"
+variable dds23 vector "v_ds2*v_ds3"
+variable vars12 equal "ave(v_dds12)"
+variable vars13 equal "ave(v_dds13)"
+variable vars23 equal "ave(v_dds23)"
+variable C12 equal "v_Pa2GPa*(v_C1*f_CB[7] - v_C2*v_vars12)"
+variable C13 equal "v_Pa2GPa*(v_C1*f_CB[8] - v_C2*v_vars13)"
+variable C23 equal "v_Pa2GPa*(v_C1*f_CB[12] - v_C2*v_vars23)"
+
+variable dds4 vector "v_ds4*v_ds4"
+variable dds5 vector "v_ds5*v_ds5"
+variable dds6 vector "v_ds6*v_ds6"
+variable vars4 equal "ave(v_dds4)"
+variable vars5 equal "ave(v_dds5)"
+variable vars6 equal "ave(v_dds6)"
+variable C44 equal "v_Pa2GPa*(v_C1*f_CB[4] - v_C2*v_vars4 + v_Rhokbt)"
+variable C55 equal "v_Pa2GPa*(v_C1*f_CB[5] - v_C2*v_vars5 + v_Rhokbt)"
+variable C66 equal "v_Pa2GPa*(v_C1*f_CB[6] - v_C2*v_vars6 + v_Rhokbt)"
+
+variable aC11 equal "(v_C11 + v_C22 + v_C33)/3."
+variable aC12 equal "(v_C12 + v_C13 + v_C23)/3."
+variable aC44 equal "(v_C44 + v_C55 + v_C66)/3."
+
+print """
+C11 = ${aC11}
+C12 = ${aC12}
+C44 = ${aC44}
+"""
+
+C11 = 2.45650717807591
+C12 = 1.29958257095207
+C44 = 1.44306985596035
+
+Total wall time: 0:01:54

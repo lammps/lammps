@@ -29,17 +29,17 @@ class PairOxdnaHbond : public Pair {
  public:
   PairOxdnaHbond(class LAMMPS *);
   ~PairOxdnaHbond() override;
+  virtual void compute_base_site(int, double *, double *, double *, double *) const;
   void compute(int, int) override;
   void settings(int, char **) override;
   void coeff(int, char **) override;
+  void init_style() override;
   void init_list(int, class NeighList *) override;
   double init_one(int, int) override;
   void write_restart(FILE *) override;
   void read_restart(FILE *) override;
   void write_restart_settings(FILE *) override;
   void read_restart_settings(FILE *) override;
-  void write_data(FILE *) override;
-  void write_data_all(FILE *) override;
   void *extract(const char *, int &) override;
 
  protected:
@@ -60,10 +60,13 @@ class PairOxdnaHbond : public Pair {
   double **b_hb7, **dtheta_hb7_c;
   double **a_hb8, **theta_hb8_0, **dtheta_hb8_ast;
   double **b_hb8, **dtheta_hb8_c;
-  double **nx_xtrct, **ny_xtrct, **nz_xtrct;    // per-atom arrays for local unit vectors
+  double **nxyz_xtrct;    // per-atom arrays for local unit vectors
+  int *idc;               // id of complementary nucleotide for unique base pairing
   int seqdepflag;
 
   virtual void allocate();
+
+  class FixOxdnaLRF *fix_lrf;    // ptr to oxdna/lrf fix
 };
 
 }    // namespace LAMMPS_NS

@@ -18,12 +18,13 @@
 
 #include "omp_compat.h"
 #include "angle_class2_omp.h"
-#include <cmath>
+
 #include "atom.h"
 #include "comm.h"
 #include "force.h"
 #include "neighbor.h"
 
+#include <cmath>
 
 #include "suffix.h"
 using namespace LAMMPS_NS;
@@ -77,6 +78,8 @@ void AngleClass2OMP::compute(int eflag, int vflag)
     reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
 }
+
+/* ---------------------------------------------------------------------- */
 
 template <int EVFLAG, int EFLAG, int NEWTON_BOND>
 void AngleClass2OMP::eval(int nfrom, int nto, ThrData * const thr)

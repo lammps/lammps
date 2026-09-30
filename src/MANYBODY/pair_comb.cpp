@@ -49,7 +49,7 @@ static constexpr int MAXNEIGH = 24;
 
 /* ---------------------------------------------------------------------- */
 
-PairComb::PairComb(LAMMPS *lmp) : Pair(lmp)
+PairComb::PairComb(LAMMPS *lmp) : Pair(lmp), qf(nullptr), charge(nullptr), typeno(nullptr)
 {
   single_enable = 0;
   restartinfo = 0;
@@ -473,13 +473,6 @@ void PairComb::init_style()
   if (!atom->q_flag)
     error->all(FLERR, Error::NOLASTLINE, "Pair style COMB requires atom attribute q");
 
-  // ptr to QEQ fix
-
-  //for (i = 0; i < modify->nfix; i++)
-  //  if (strcmp(modify->fix[i]->style,"qeq") == 0) break;
-  //if (i < modify->nfix) fixqeq = (FixQEQ *) modify->fix[i];
-  //else fixqeq = nullptr;
-
   // need a full neighbor list
 
   neighbor->add_request(this, NeighConst::REQ_FULL);
@@ -796,7 +789,7 @@ void PairComb::repulsive(Param *param, double rsq, double &fforce,
     else if (cor_flag) {
       rslp = ((arr1-r)/(arr1-arr2));
       rslp2 = rslp * rslp; rslp4 = rslp2 * rslp2;
-      vrcs = fc2j * fc3j * romi * ((50.0*rslp4-30.0*rslp2+4.50))/8.0;
+      vrcs = fc2j * fc3j * romi * (50.0*rslp4-30.0*rslp2+4.50)/8.0;
       fvrcs = fcp2j*fcp3j*romi*rslp*(-25.0*rslp2+7.50)/(arr1-arr2);
     }
     fforce_tmp = fforce*vrcs - (tmp_fc * bigA * tmp_exp * fvrcs);
@@ -1817,7 +1810,7 @@ void PairComb::qfo_short(Param *param, int i, int j, double rsq,
     else if (cor_flag) {
       rslp = ((arr1-r)/(arr1-arr2));
       rslp2 = rslp * rslp; rslp4 = rslp2 * rslp2;
-      vrcs = fc2j * fc3j * romi * ((50.0*rslp4-30.0*rslp2+4.50))/8.0;
+      vrcs = fc2j * fc3j * romi * (50.0*rslp4-30.0*rslp2+4.50)/8.0;
     }
   }
 

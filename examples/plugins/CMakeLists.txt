@@ -3,7 +3,7 @@
 # distributed independent from the LAMMPS package.
 ##########################################
 
-cmake_minimum_required(VERSION 3.16)
+cmake_minimum_required(VERSION 3.20)
 
 # enforce out-of-source build
 if(${CMAKE_SOURCE_DIR} STREQUAL ${CMAKE_BINARY_DIR})
@@ -42,28 +42,26 @@ else()
   endif()
 endif()
 
-# we *require* C++11 without extensions but prefer C++17.
-# Kokkos requires at least C++17 (currently)
+# We *require* C++17 without extensions
+# Kokkos also requires at least C++17 (currently)
 if(NOT CMAKE_CXX_STANDARD)
-  if(cxx_std_17 IN_LIST CMAKE_CXX_COMPILE_FEATURES)
+# uncomment in case we plan to switch to C++20 as minimum standard
+#  if(cxx_std_20 IN_LIST CMAKE_CXX_COMPILE_FEATURES)
+#    set(CMAKE_CXX_STANDARD 20)
+#  else()
     set(CMAKE_CXX_STANDARD 17)
-  else()
-    set(CMAKE_CXX_STANDARD 11)
-  endif()
-endif()
-if(CMAKE_CXX_STANDARD LESS 11)
-  message(FATAL_ERROR "C++ standard must be set to at least 11")
+#  endif()
 endif()
 if(CMAKE_CXX_STANDARD LESS 17)
-  message(WARNING "Selecting C++17 standard is preferred over C++${CMAKE_CXX_STANDARD}")
+  message(FATAL_ERROR "C++ standard must be set to at least 17")
 endif()
 if(PKG_KOKKOS AND (CMAKE_CXX_STANDARD LESS 17))
   set(CMAKE_CXX_STANDARD 17)
 endif()
-# turn off C++17 check in lmptype.h
-if(LAMMPS_CXX11)
-  add_compile_definitions(LAMMPS_CXX11)
-endif()
+# turn off C++20 check in lmptype.h
+#if(LAMMPS_CXX17)
+#  add_compile_definitions(LAMMPS_CXX17)
+#endif()
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # Need -restrict with Intel compilers
@@ -80,25 +78,50 @@ endif()
 ##########################
 # building the plugins
 
+# When this folder is included in a LAMMPS build with a STATIC LAMMPS library,
+# linking that library into a plugin embeds a complete copy of LAMMPS into the
+# plugin .so file.  On ELF platforms (Linux, BSDs) the dynamic linker then
+# binds the plugin's references to global variables to the copies exported by
+# the loading executable, so the plugin's constructor and destructor passes
+# run a second time on the executable's global objects: their memory is freed
+# twice at program exit and the process aborts.  Linking through the
+# COMPILE_ONLY generator expression (requires CMake 3.27) imports only the
+# compile-time settings of the LAMMPS target and leaves the LAMMPS symbols in
+# the plugin undefined, so they are resolved from the loading binary when the
+# plugin is loaded, exactly as in a standalone plugin build.  This does not
+# apply to Windows: a .dll cannot have undefined symbols and there is no
+# symbol interposition, so the full library must be (and safely can be)
+# linked in.
+if(LAMMPS_DIR AND (NOT BUILD_SHARED_LIBS) AND (NOT (CMAKE_SYSTEM_NAME STREQUAL "Windows")))
+  if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.27)
+    set(LAMMPS_LINK_TARGET "$<COMPILE_ONLY:lammps>")
+  else()
+    message(FATAL_ERROR "Building plugins inside a static LAMMPS library build "
+      "requires CMake 3.27 or later or setting BUILD_SHARED_LIBS=on")
+  endif()
+else()
+  set(LAMMPS_LINK_TARGET lammps)
+endif()
+
 add_library(morse2plugin MODULE morse2plugin.cpp pair_morse2.cpp pair_morse2_omp.cpp)
 target_include_directories(morse2plugin PRIVATE "${LAMMPS_HEADER_DIR}/OPENMP")
-target_link_libraries(morse2plugin PRIVATE lammps)
+target_link_libraries(morse2plugin PRIVATE ${LAMMPS_LINK_TARGET})
 
 add_library(nve2plugin MODULE nve2plugin.cpp fix_nve2.cpp)
-target_link_libraries(nve2plugin PRIVATE lammps)
+target_link_libraries(nve2plugin PRIVATE ${LAMMPS_LINK_TARGET})
 
 add_library(helloplugin MODULE helloplugin.cpp)
-target_link_libraries(helloplugin PRIVATE lammps)
+target_link_libraries(helloplugin PRIVATE ${LAMMPS_LINK_TARGET})
 
 add_library(zero2plugin MODULE zero2plugin.cpp pair_zero2.cpp bond_zero2.cpp
                                angle_zero2.cpp dihedral_zero2.cpp improper_zero2.cpp)
-target_link_libraries(zero2plugin PRIVATE lammps)
+target_link_libraries(zero2plugin PRIVATE ${LAMMPS_LINK_TARGET})
 
 add_library(kspaceplugin MODULE kspaceplugin.cpp kspace_zero2.cpp)
-target_link_libraries(kspaceplugin PRIVATE lammps)
+target_link_libraries(kspaceplugin PRIVATE ${LAMMPS_LINK_TARGET})
 
 add_library(runminplugin MODULE runminplugin.cpp min_cg2.cpp verlet2.cpp)
-target_link_libraries(runminplugin PRIVATE lammps)
+target_link_libraries(runminplugin PRIVATE ${LAMMPS_LINK_TARGET})
 
 set_target_properties(morse2plugin nve2plugin helloplugin zero2plugin kspaceplugin runminplugin PROPERTIES PREFIX "" SUFFIX ".so")
 

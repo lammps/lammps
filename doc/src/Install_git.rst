@@ -30,7 +30,7 @@ You can follow the LAMMPS development on 4 different git branches:
   every "stable release" version and also has selected bug fixes with
   every "update release" when the *maintenance* branch is merged into it
 
-To access the git repositories on your box, use the clone command to
+To access the git repository on your box, use the clone command to
 create a local copy of the LAMMPS repository with a command like:
 
 .. code-block:: bash
@@ -96,11 +96,12 @@ this is as follows.
    git checkout tagID
 
 Stable versions and what tagID to use for a particular stable version
-are discussed on `this page <https://www.lammps.org/bug.html#version>`_.
-Note that this command will print some warnings, because in order to get
-back to the latest revision and to be able to update with ``git pull``
-again, you will need to do ``git checkout release`` (or
-check out any other desired branch) first.
+can be looked up on `GitHub releases pagee
+<https://github.com/lammps/lammps/releases>`_.  Note that this command
+will print some warnings, because in order to get back to the latest
+revision and to be able to update with ``git pull`` again, you will need
+to do ``git checkout release`` (or check out any other desired branch)
+first.
 
 Once you have updated your local files with a ``git pull`` (or ``git
 checkout``), you still need to re-build LAMMPS if any source files have
@@ -161,4 +162,11 @@ changed.  How to do this depends on the build system you are using.
    ``git@github.com:lammps/lammps.git``.
 
 The LAMMPS GitHub project is currently overseen by Axel Kohlmeyer
-(Temple U, akohlmey at gmail.com).
+(Temple U, akohlmey at gmail.com), contact him if you have any
+questions or concerns.
+
+----
+
+You can find additional LAMMPS features for dynamically loading
+with the :doc:`plugin command <plugin>` in the
+`LAMMPS plugins source code repository on GitHub <https://github.com/lammps/lammps-plugins>`_

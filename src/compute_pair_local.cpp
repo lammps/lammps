@@ -36,7 +36,8 @@ enum { TYPE, RADIUS };
 /* ---------------------------------------------------------------------- */
 
 ComputePairLocal::ComputePairLocal(LAMMPS *lmp, int narg, char **arg) :
-    Compute(lmp, narg, arg), pstyle(nullptr), pindex(nullptr), vlocal(nullptr), alocal(nullptr)
+    Compute(lmp, narg, arg), pstyle(nullptr), pindex(nullptr), vlocal(nullptr), alocal(nullptr),
+    list(nullptr)
 {
   if (narg < 4) utils::missing_cmd_args(FLERR, "compute pair/local", error);
 
@@ -66,8 +67,8 @@ ComputePairLocal::ComputePairLocal(LAMMPS *lmp, int narg, char **arg) :
       pstyle[nvalues++] = DY;
     else if (strcmp(arg[iarg], "dz") == 0)
       pstyle[nvalues++] = DZ;
-    else if (utils::strmatch(arg[iarg], "^p\\d+$")) {    // p1, p2, p3, ... pN
-      int n = std::stoi(&arg[iarg][1]);
+    else if (utils::strmatch(arg[iarg], R"(^p\d+$)")) {    // p1, p2, p3, ... pN
+      int n = utils::inumeric(FLERR, &arg[iarg][1], false, lmp);
       if (n <= 0) error->all(FLERR, "Invalid keyword {} in compute pair/local command", arg[iarg]);
       pstyle[nvalues] = PN;
       pindex[nvalues++] = n - 1;

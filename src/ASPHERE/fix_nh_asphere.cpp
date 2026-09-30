@@ -27,7 +27,9 @@ using namespace FixConst;
 
 /* ---------------------------------------------------------------------- */
 
-FixNHAsphere::FixNHAsphere(LAMMPS *lmp, int narg, char **arg) : FixNH(lmp, narg, arg) {}
+FixNHAsphere::FixNHAsphere(LAMMPS *lmp, int narg, char **arg) :
+    FixNH(lmp, narg, arg), avec(nullptr)
+{}
 
 /* ---------------------------------------------------------------------- */
 
@@ -42,6 +44,8 @@ void FixNHAsphere::init()
   int *ellipsoid = atom->ellipsoid;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
+
+  if (atom->superellipsoid_flag) error->all(FLERR, "Fix {} does not support superellipsoids", style);
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit)

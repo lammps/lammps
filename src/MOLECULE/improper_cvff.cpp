@@ -30,7 +30,8 @@ static constexpr double SMALL = 0.001;
 
 /* ---------------------------------------------------------------------- */
 
-ImproperCvff::ImproperCvff(LAMMPS *_lmp) : Improper(_lmp)
+ImproperCvff::ImproperCvff(LAMMPS *_lmp) :
+    Improper(_lmp), k(nullptr), sign(nullptr), multiplicity(nullptr)
 {
   writedata = 1;
 
@@ -43,6 +44,8 @@ ImproperCvff::ImproperCvff(LAMMPS *_lmp) : Improper(_lmp)
 
 ImproperCvff::~ImproperCvff()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(k);

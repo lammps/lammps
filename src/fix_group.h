@@ -29,6 +29,7 @@ class FixGroup : public Fix {
   FixGroup(class LAMMPS *, int, char **);
   ~FixGroup() override;
   int setmask() override;
+  void init_list(int, class NeighList *) override;
   void init() override;
   void setup(int) override;
   void post_force(int) override;
@@ -39,10 +40,13 @@ class FixGroup : public Fix {
 
  private:
   int gbit, gbitinverse;
-  int regionflag, varflag, propflag, proptype;
+  int regionflag, varflag, propflag, proptype, moleculeflag, withinflag, excludeflag;
   int ivar, iprop;
-  char *idregion, *idvar, *idprop;
+  int excludebit;
+  double cutoff;
+  char *idregion, *idvar, *idprop, *idexclude;
   class Region *region;
+  class NeighList *list;
 
   int nlevels_respa;
 

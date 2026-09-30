@@ -44,11 +44,11 @@ NPairRespaNsq<NEWTON, TRI>::NPairRespaNsq(LAMMPS *lmp) : NPair(lmp) {}
      pair added to list if atoms i and j are both owned and i < j
      if j is ghost only me or other proc adds pair
      decision based on itag,jtag tests
-     use itag/jtag comparision to eliminate half the interactions
+     use itag/jtag comparison to eliminate half the interactions
      itag = jtag is possible for long cutoffs that include images of self
   Newton + Triclinic:
      for triclinic, must use delta to eliminate half the I/J interactions
-     cannot use I/J exact coord comparision as for orthog
+     cannot use I/J exact coord comparison as for orthog
      b/c transforming orthog -> lambda -> orthog for ghost atoms
      with an added PBC offset can shift all 3 coords by epsilon
 
@@ -132,10 +132,10 @@ void NPairRespaNsq<NEWTON, TRI>::build(NeighList *list)
     }
 
     // loop over remaining atoms, owned and ghost
-    // use itag/jtap comparision to eliminate half the interactions
+    // use itag/jtap comparison to eliminate half the interactions
     // itag = jtag is possible for long cutoffs that include images of self
     // for triclinic, must use delta to eliminate half the I/J interactions
-    // cannot use I/J exact coord comparision as for orthog
+    // cannot use I/J exact coord comparison as for orthog
     //   b/c transforming orthog -> lambda -> orthog for ghost atoms
     //   with an added PBC offset can shift all 3 coords by epsilon
 

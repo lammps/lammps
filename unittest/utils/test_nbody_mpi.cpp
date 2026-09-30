@@ -1,4 +1,3 @@
-// Unit tests for nbody MPI communication with large values
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -22,28 +21,6 @@
 #include <mpi.h>
 
 using namespace LAMMPS_NS;
-
-// MPI environment setup
-class MPIEnvironment : public ::testing::Environment {
-public:
-    void SetUp() override {
-        int flag;
-        MPI_Initialized(&flag);
-        if (!flag) {
-            int argc = 0;
-            char **argv = nullptr;
-            MPI_Init(&argc, &argv);
-        }
-    }
-
-    void TearDown() override {
-        int flag;
-        MPI_Finalized(&flag);
-        if (!flag) {
-            MPI_Finalize();
-        }
-    }
-};
 
 namespace {
 
@@ -192,8 +169,11 @@ TEST(NbodyMPI, AllreduceAsymmetric)
 
 }  // namespace
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
+    MPI_Init(&argc, &argv);
     ::testing::InitGoogleTest(&argc, argv);
-    ::testing::AddGlobalTestEnvironment(new MPIEnvironment);
-    return RUN_ALL_TESTS();
+    int rv = RUN_ALL_TESTS();
+    MPI_Finalize();
+    return rv;
 }

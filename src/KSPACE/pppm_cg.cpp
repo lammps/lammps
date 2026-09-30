@@ -256,13 +256,14 @@ void PPPMCG::compute(int eflag, int vflag)
     }
   }
 
+  // convert atoms back from lamda to box coords
+  // must precede slabcorr(), which needs Cartesian z-coordinates
+
+  if (triclinic) domain->lamda2x(atom->nlocal);
+
   // 2d slab correction
 
   if (slabflag == 1) slabcorr();
-
-  // convert atoms back from lamda to box coords
-
-  if (triclinic) domain->lamda2x(atom->nlocal);
 }
 
 /* ----------------------------------------------------------------------

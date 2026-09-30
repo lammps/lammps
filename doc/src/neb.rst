@@ -59,8 +59,8 @@ NEB is a method for finding both the atomic configurations and height of
 the energy barrier associated with a transition state, e.g. for an atom
 to perform a diffusive hop from one energy basin to another in a
 coordinated fashion with its neighbors.  The implementation in LAMMPS
-follows the discussion in these 4 papers: :ref:`(HenkelmanA)
-<HenkelmanA>`, :ref:`(HenkelmanB) <HenkelmanB>`, :ref:`(Nakano)
+follows the discussion in these 4 papers: :ref:`(Henkelman1)
+<HenkelmanA>`, :ref:`(Henkelman2) <HenkelmanB>`, :ref:`(Nakano2)
 <Nakano3>` and :ref:`(Maras) <Maras2>`.
 
 Each replica runs on a partition of one or more processors.  Processor
@@ -240,7 +240,7 @@ In the second stage of NEB, the replica with the highest energy is
 selected and the inter-replica forces on it are converted to a force
 that drives its atom coordinates to the top or saddle point of the
 barrier, via the barrier-climbing calculation described in
-:ref:`(HenkelmanB) <HenkelmanB>`.  As before, the other replicas rearrange
+:ref:`(Henkelman2) <HenkelmanB>`.  As before, the other replicas rearrange
 themselves along the MEP so as to be roughly equally spaced.
 
 When both stages are complete, if the NEB calculation was successful,
@@ -278,11 +278,12 @@ larger than you would normally use for dynamics simulations.
 Each file read by the neb command containing atomic coordinates used
 to initialize one or more replicas must be formatted as follows.
 
-The file can be ASCII text or a gzipped text file (detected by a .gz
-suffix).  The file can contain initial blank lines or comment lines
-starting with "#" which are ignored.  The first non-blank, non-comment
-line should list N = the number of lines to follow.  The N successive
-lines contain the following information:
+The file can be ASCII text or a compressed text file (detected by a
+:ref:`supported compression format suffix <gzip>`).  The file can
+contain initial blank lines or comment lines starting with "#" which are
+ignored.  The first non-blank, non-comment line should list N = the
+number of lines to follow.  The N successive lines contain the following
+information:
 
 .. parsed-literal::
 
@@ -361,7 +362,7 @@ between the 3N-length vectors :math:`(R_{i-1} - R_i)` and
 replica *i*). A "path angle" of 180 indicates that replicas *i*\ -1, *i*
 and *i*\ +1 are aligned.  "angletangrad" is the angle between the
 3N-length tangent vector and the 3N-length force vector at image
-*i*. The tangent vector is calculated as in :ref:`(HenkelmanA)
+*i*. The tangent vector is calculated as in :ref:`(Henkelman1)
 <HenkelmanA>` for all intermediate replicas and at R2 - R1 and RM - RM-1
 for the first and last replica, respectively.  "anglegrad" is the angle
 between the 3N-length energy gradient vector of replica *i* and that of
@@ -440,6 +441,10 @@ This command can only be used if LAMMPS was built with the REPLICA
 package.  See the :doc:`Build package <Build_package>` doc
 page for more info.
 
+To read compressed files, you must compile LAMMPS with the
+``-DLAMMPS_GZIP`` option.  See the :doc:`Build settings
+<Build_settings>` doc page for details.
+
 ----------
 
 Related commands
@@ -457,16 +462,16 @@ Default
 
 .. _HenkelmanA:
 
-**(HenkelmanA)** Henkelman and Jonsson, J Chem Phys, 113, 9978-9985 (2000).
+**(Henkelman1)** Henkelman and Jonsson, J Chem Phys, 113, 9978-9985 (2000).
 
 .. _HenkelmanB:
 
-**(HenkelmanB)** Henkelman, Uberuaga, Jonsson, J Chem Phys, 113,
+**(Henkelman2)** Henkelman, Uberuaga, Jonsson, J Chem Phys, 113,
 9901-9904 (2000).
 
 .. _Nakano3:
 
-**(Nakano)** Nakano, Comp Phys Comm, 178, 280-289 (2008).
+**(Nakano2)** Nakano, Comp Phys Comm, 178, 280-289 (2008).
 
 .. _Maras2:
 

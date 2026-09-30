@@ -110,7 +110,7 @@ void DihedralLeptonOMP::eval(int nfrom, int nto, ThrData *const thr)
       if (EFLAG) dihedralpot.emplace_back(parsed.createCompiledExpression());
     }
   } catch (std::exception &e) {
-    error->all(FLERR, e.what());
+    error->all(FLERR, Error::NOLASTLINE, e.what());
   }
 
   const double *const *const x = atom->x;

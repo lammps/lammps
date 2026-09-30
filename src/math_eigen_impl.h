@@ -85,6 +85,7 @@ namespace MathEigen {
   /// Implementation details: "real_t<T>" is defined using C++ template
   /// specializations.
 
+  // NOLINTBEGIN
   template <typename T>
   struct realTypeMap {
     typedef T type;
@@ -95,6 +96,7 @@ namespace MathEigen {
   };
   template <typename T>
   using real_t = typename realTypeMap<T>::type;
+  // NOLINTEND
 
 
   // --- Operations on vectors (of real and complex numbers) ---
@@ -109,7 +111,7 @@ namespace MathEigen {
   template <typename T>
   real_t<T> l1_norm(const std::vector<T>& v);
 
-  //  Calculate the l2_norm (Euclidian length) of vector v.
+  //  Calculate the l2_norm (Euclidean length) of vector v.
   //  returns a real number (of type real_t<T>).
   template <typename T>
   real_t<T> l2_norm(const std::vector<T>& v);
@@ -158,7 +160,7 @@ namespace MathEigen {
     /// @brief  Change the size of the matrices you want to diagonalize.
     /// @param  n  the size (ie. number of rows) of the (square) matrix.
     void SetSize(int n);
-
+    // NOLINTBEGIN
     // @typedef choose the criteria for sorting eigenvalues and eigenvectors
     typedef enum eSortCriteria {
       DO_NOT_SORT,
@@ -167,7 +169,7 @@ namespace MathEigen {
       SORT_DECREASING_ABS_EVALS,
       SORT_INCREASING_ABS_EVALS
     } SortCriteria;
-
+    // NOLINTEND
     /// @brief Calculate the eigenvalues and eigenvectors of a symmetric matrix
     ///        using the Jacobi eigenvalue algorithm.
     /// @returns 0 if the algorithm converged,
@@ -398,7 +400,7 @@ void Alloc2D(size_t nrows,          // size of the array (number of rows)
              Entry ***paaX)         // pointer to a 2D C-style array
 {
   *paaX = new Entry* [nrows];  //conventional 2D C array (pointer-to-pointer)
-  (*paaX)[0] = new Entry [nrows * ncols];  // 1D C array (contiguous memor)
+  (*paaX)[0] = new Entry [nrows * ncols];  // 1D C array (contiguous memory)
   for (size_t iy=0; iy<nrows; iy++)
     (*paaX)[iy] = (*paaX)[0] + iy*ncols;
   // The caller can access the contents using (*paaX)[i][j]
@@ -485,7 +487,7 @@ Jacobi<Scalar, Vector, Matrix, ConstMatrix>::
 
 template<typename Scalar,typename Vector,typename Matrix,typename ConstMatrix>
 Jacobi<Scalar, Vector, Matrix, ConstMatrix>::
-Jacobi(int n, Scalar **M, int *max_idx_row) {
+Jacobi(int n, Scalar **M, int *max_idx_row) : c(std::sqrt(2.0)), s(std::sqrt(2.0)) , t(1.0) {
   _Jacobi(n, M, max_idx_row);
 }
 
@@ -612,7 +614,7 @@ CalcRot(Scalar const *const *M,    //!< matrix
 /// brief   Perform a similarity transformation by multiplying matrix M on both
 ///         sides by a rotation matrix (and its transpose) to eliminate M[i][j].
 /// details This rotation matrix performs a rotation in the i,j plane by
-///         angle θ.  This function assumes that c=cos(θ). s=som(θ), t=tan(θ)
+///         angle θ.  This function assumes that c=cos(θ). s=sin(θ), t=tan(θ)
 ///         have been calculated previously (using the CalcRot() function).
 ///         It also assumes that i<j.  The max_idx_row[] array is also updated.
 ///         To save time, since the matrix is symmetric, the elements
@@ -1251,7 +1253,7 @@ init(std::vector<T>& v)
 {
   std::random_device dev;
   std::mt19937 mt(dev());
-  std::uniform_real_distribution<T> rand((T)(-1.0), (T)(1.0));
+  std::uniform_real_distribution<T> rand((T)-1.0, (T)1.0);
 
   int n = v.size();
   for (int i = 0;i < n;i++) {
@@ -1268,7 +1270,7 @@ init(std::vector<std::complex<T>>& v)
 {
   std::random_device dev;
   std::mt19937 mt(dev());
-  std::uniform_real_distribution<T> rand((T)(-1.0), (T)(1.0));
+  std::uniform_real_distribution<T> rand((T)-1.0, (T)1.0);
 
   int n = v.size();
   for (int i = 0;i < n;i++) {

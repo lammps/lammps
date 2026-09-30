@@ -40,6 +40,7 @@ class PairDPDfdtEnergy : public Pair {
   double single(int, int, int, int, double, double, double, double &) override;
   int pack_reverse_comm(int, int, double *) override;
   void unpack_reverse_comm(int, int *, double *) override;
+  double memory_usage() override;
 
   double **cut;
   double **a0;

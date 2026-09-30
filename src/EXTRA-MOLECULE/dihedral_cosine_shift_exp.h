@@ -41,7 +41,7 @@ class DihedralCosineShiftExp : public Dihedral {
   double *cost;
   double *theta;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }    // namespace LAMMPS_NS

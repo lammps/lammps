@@ -32,6 +32,3 @@ fi
 cd miniFE
 git pull
 cd ..
-
-
-

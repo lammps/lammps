@@ -45,7 +45,7 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 
 static const char cite_fix_nve_spin[] =
-  "fix nve/spin command: doi:10.1016/j.jcp.2018.06.042\n\n"
+  "fix nve/spin command: https://doi.org/10.1016/j.jcp.2018.06.042\n\n"
   "@article{tranchida2018massively,\n"
   "title={Massively Parallel Symplectic Algorithm for Coupled Magnetic Spin "
   "   Dynamics and Molecular Dynamics},\n"
@@ -218,80 +218,40 @@ void FixNVESpin::init()
   }
 
   // set ptrs for fix precession/spin styles
+  // reset flags and cached pointers first, since the fixes
+  // may have been deleted since a previous run
 
-  // loop 1: obtain # of fix precession/spin styles
+  precession_spin_flag = maglangevin_flag = setforce_spin_flag = 0;
+  locksetforcespin = nullptr;
 
-  int iforce;
-  nprecspin = 0;
-  for (iforce = 0; iforce < modify->nfix; iforce++) {
-    if (utils::strmatch(modify->fix[iforce]->style,"^precession/spin")) {
-      nprecspin++;
-    }
-  }
-
-  // init length of vector of ptrs to precession/spin styles
-
+  auto precfixes = modify->get_fix_by_style("^precession/spin");
+  nprecspin = (int) precfixes.size();
   if (nprecspin > 0) {
+    precession_spin_flag = 1;
     delete[] lockprecessionspin;
     lockprecessionspin = new FixPrecessionSpin*[nprecspin];
+    for (int i = 0; i < nprecspin; i++)
+      lockprecessionspin[i] = dynamic_cast<FixPrecessionSpin *>(precfixes[i]);
   }
-
-  // loop 2: fill vector with ptrs to precession/spin styles
-
-  int count2 = 0;
-  if (nprecspin > 0) {
-    for (iforce = 0; iforce < modify->nfix; iforce++) {
-      if (utils::strmatch(modify->fix[iforce]->style,"^precession/spin")) {
-        precession_spin_flag = 1;
-        lockprecessionspin[count2] = dynamic_cast<FixPrecessionSpin *>(modify->fix[iforce]);
-        count2++;
-      }
-    }
-  }
-
-  if (count2 != nprecspin)
-    error->all(FLERR,"Incorrect number of precession/spin fixes");
 
   // set ptrs for fix langevin/spin styles
 
-  // loop 1: obtain # of fix langevin/spin styles
-
-  nlangspin = 0;
-  for (iforce = 0; iforce < modify->nfix; iforce++) {
-    if (utils::strmatch(modify->fix[iforce]->style,"^langevin/spin")) {
-      nlangspin++;
-    }
-  }
-
-  // init length of vector of ptrs to langevin/spin styles
-
+  auto langfixes = modify->get_fix_by_style("^langevin/spin");
+  nlangspin = (int) langfixes.size();
   if (nlangspin > 0) {
+    maglangevin_flag = 1;
+    delete[] locklangevinspin;
     locklangevinspin = new FixLangevinSpin*[nlangspin];
+    for (int i = 0; i < nlangspin; i++)
+      locklangevinspin[i] = dynamic_cast<FixLangevinSpin *>(langfixes[i]);
   }
-
-  // loop 2: fill vector with ptrs to langevin/spin styles
-
-  count2 = 0;
-  if (nlangspin > 0) {
-    for (iforce = 0; iforce < modify->nfix; iforce++) {
-      if (utils::strmatch(modify->fix[iforce]->style,"^langevin/spin")) {
-        maglangevin_flag = 1;
-        locklangevinspin[count2] = dynamic_cast<FixLangevinSpin *>(modify->fix[iforce]);
-        count2++;
-      }
-    }
-  }
-
-  if (count2 != nlangspin)
-    error->all(FLERR,"Incorrect number of langevin/spin fixes");
 
   // ptrs FixSetForceSpin classes
 
-  for (iforce = 0; iforce < modify->nfix; iforce++) {
-    if (utils::strmatch(modify->fix[iforce]->style,"^setforce/spin")) {
-      setforce_spin_flag = 1;
-      locksetforcespin = dynamic_cast<FixSetForceSpin *>(modify->fix[iforce]);
-    }
+  auto setforcefixes = modify->get_fix_by_style("^setforce/spin");
+  if (!setforcefixes.empty()) {
+    setforce_spin_flag = 1;
+    locksetforcespin = dynamic_cast<FixSetForceSpin *>(setforcefixes.back());
   }
 
   // setting the sector variables/lists
@@ -733,4 +693,13 @@ void FixNVESpin::final_integrate()
     }
   }
 
+}
+
+/* ---------------------------------------------------------------------- */
+
+double FixNVESpin::memory_usage()
+{
+  double bytes = (double) nlocal_max * 2 * sizeof(int);     // backward_stacks + forward_stacks
+  bytes += (double) nsectors * 2 * sizeof(int);             // stack_head + stack_foot
+  return bytes;
 }

@@ -21,6 +21,7 @@ PairStyle(multi/lucy,PairMultiLucy);
 #define LMP_PAIR_MULTI_LUCY_H
 
 #include "pair.h"
+#include "rx_table_file_reader.h"
 
 namespace LAMMPS_NS {
 
@@ -65,7 +66,7 @@ class PairMultiLucy : public Pair {
 
   void allocate();
   void read_table(Table *, char *, char *);
-  void param_extract(Table *, char *);
+  void param_extract(RxTableFileReader &, Table *);
   void bcast_table(Table *);
   void spline_table(Table *);
   void compute_table(Table *);

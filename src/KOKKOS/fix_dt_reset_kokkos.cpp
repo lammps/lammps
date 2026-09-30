@@ -108,66 +108,72 @@ void FixDtResetKokkos<DeviceType>::end_of_step()
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixDtResetKokkos<DeviceType>::operator()(TagFixDtResetMass, const int &i, double &dt_min) const {
 
-  double dt, dtv, dtf, dte, dtsq;
-  double vsq, fsq, massinv;
-  double delx, dely, delz, delr;
+  KK_FLOAT dt, dtv, dtf, dte, dtsq;
+  KK_FLOAT vsq, fsq, massinv;
+  KK_FLOAT delx, dely, delz, delr;
 
   if (mask[i] & groupbit) {
 
-    massinv = 1.0 / mass[type[i]];
+    const KK_FLOAT xmax_kk = static_cast<KK_FLOAT>(xmax);
+    const KK_FLOAT ftm2v_kk = static_cast<KK_FLOAT>(ftm2v);
+    massinv = static_cast<KK_FLOAT>(1.0) / mass[type[i]];
     vsq = v(i,0) * v(i,0) + v(i,1) * v(i,1) + v(i,2) * v(i,2);
-    fsq = f(i,0) * f(i,0) + f(i,1) * f(i,1) + f(i,2) * f(i,2);
-    dtv = dtf = dte = BIG;
-    if (vsq > 0.0) dtv = xmax / sqrt(vsq);
-    if (fsq > 0.0) dtf = sqrt(2.0 * xmax / (ftm2v * sqrt(fsq) * massinv));
+    fsq = static_cast<KK_FLOAT>(f(i,0) * f(i,0) + f(i,1) * f(i,1) + f(i,2) * f(i,2));
+    dtv = dtf = dte = static_cast<KK_FLOAT>(BIG);
+    if (vsq > static_cast<KK_FLOAT>(0.0)) dtv = xmax_kk / Kokkos::sqrt(vsq);
+    if (fsq > static_cast<KK_FLOAT>(0.0)) dtf = Kokkos::sqrt(static_cast<KK_FLOAT>(2.0) * xmax_kk / (ftm2v_kk * Kokkos::sqrt(fsq) * massinv));
     dt = MIN(dtv, dtf);
-    if ((emax > 0.0) && (fsq * vsq > 0.0)) {
-      dte = emax / sqrt(fsq * vsq) / sqrt(ftm2v * mvv2e);
+    if ((emax > 0.0) && (fsq * vsq > static_cast<KK_FLOAT>(0.0))) {
+      dte = static_cast<KK_FLOAT>(emax) / Kokkos::sqrt(fsq * vsq) / Kokkos::sqrt(ftm2v_kk * static_cast<KK_FLOAT>(mvv2e));
       dt = MIN(dt, dte);
     }
     dtsq = dt * dt;
-    delx = dt * v(i,0) + 0.5 * dtsq * massinv * f(i,0) * ftm2v;
-    dely = dt * v(i,1) + 0.5 * dtsq * massinv * f(i,1) * ftm2v;
-    delz = dt * v(i,2) + 0.5 * dtsq * massinv * f(i,2) * ftm2v;
-    delr = sqrt(delx * delx + dely * dely + delz * delz);
-    if (delr > xmax) dt *= xmax / delr;
-    dt_min = MIN(dt_min,dt);
+    delx = dt * v(i,0) + static_cast<KK_FLOAT>(0.5) * dtsq * massinv * static_cast<KK_FLOAT>(f(i,0)) * ftm2v_kk;
+    dely = dt * v(i,1) + static_cast<KK_FLOAT>(0.5) * dtsq * massinv * static_cast<KK_FLOAT>(f(i,1)) * ftm2v_kk;
+    delz = dt * v(i,2) + static_cast<KK_FLOAT>(0.5) * dtsq * massinv * static_cast<KK_FLOAT>(f(i,2)) * ftm2v_kk;
+    delr = Kokkos::sqrt(delx * delx + dely * dely + delz * delz);
+    if (delr > xmax_kk) dt *= xmax_kk / delr;
+    dt_min = MIN(dt_min,static_cast<double>(dt));
   }
 }
 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void FixDtResetKokkos<DeviceType>::operator()(TagFixDtResetRMass, const int &i, double &dt_min) const {
 
-  double dt, dtv, dtf, dte, dtsq;
-  double vsq, fsq, massinv;
-  double delx, dely, delz, delr;
+  KK_FLOAT dt, dtv, dtf, dte, dtsq;
+  KK_FLOAT vsq, fsq, massinv;
+  KK_FLOAT delx, dely, delz, delr;
 
   if (mask[i] & groupbit) {
 
-    massinv = 1.0 / rmass[i];
+    const KK_FLOAT xmax_kk = static_cast<KK_FLOAT>(xmax);
+    const KK_FLOAT ftm2v_kk = static_cast<KK_FLOAT>(ftm2v);
+    massinv = static_cast<KK_FLOAT>(1.0) / rmass[i];
     vsq = v(i,0) * v(i,0) + v(i,1) * v(i,1) + v(i,2) * v(i,2);
-    fsq = f(i,0) * f(i,0) + f(i,1) * f(i,1) + f(i,2) * f(i,2);
-    dtv = dtf = dte = BIG;
-    if (vsq > 0.0) dtv = xmax / sqrt(vsq);
-    if (fsq > 0.0) dtf = sqrt(2.0 * xmax / (ftm2v * sqrt(fsq) * massinv));
+    fsq = static_cast<KK_FLOAT>(f(i,0) * f(i,0) + f(i,1) * f(i,1) + f(i,2) * f(i,2));
+    dtv = dtf = dte = static_cast<KK_FLOAT>(BIG);
+    if (vsq > static_cast<KK_FLOAT>(0.0)) dtv = xmax_kk / Kokkos::sqrt(vsq);
+    if (fsq > static_cast<KK_FLOAT>(0.0)) dtf = Kokkos::sqrt(static_cast<KK_FLOAT>(2.0) * xmax_kk / (ftm2v_kk * Kokkos::sqrt(fsq) * massinv));
     dt = MIN(dtv, dtf);
-    if ((emax > 0.0) && (fsq * vsq > 0.0)) {
-      dte = emax / sqrt(fsq * vsq) / sqrt(ftm2v * mvv2e);
+    if ((emax > 0.0) && (fsq * vsq > static_cast<KK_FLOAT>(0.0))) {
+      dte = static_cast<KK_FLOAT>(emax) / Kokkos::sqrt(fsq * vsq) / Kokkos::sqrt(ftm2v_kk * static_cast<KK_FLOAT>(mvv2e));
       dt = MIN(dt, dte);
     }
     dtsq = dt * dt;
-    delx = dt * v(i,0) + 0.5 * dtsq * massinv * f(i,0) * ftm2v;
-    dely = dt * v(i,1) + 0.5 * dtsq * massinv * f(i,1) * ftm2v;
-    delz = dt * v(i,2) + 0.5 * dtsq * massinv * f(i,2) * ftm2v;
-    delr = sqrt(delx * delx + dely * dely + delz * delz);
-    if (delr > xmax) dt *= xmax / delr;
-    dt_min = MIN(dt_min,dt);
+    delx = dt * v(i,0) + static_cast<KK_FLOAT>(0.5) * dtsq * massinv * static_cast<KK_FLOAT>(f(i,0)) * ftm2v_kk;
+    dely = dt * v(i,1) + static_cast<KK_FLOAT>(0.5) * dtsq * massinv * static_cast<KK_FLOAT>(f(i,1)) * ftm2v_kk;
+    delz = dt * v(i,2) + static_cast<KK_FLOAT>(0.5) * dtsq * massinv * static_cast<KK_FLOAT>(f(i,2)) * ftm2v_kk;
+    delr = Kokkos::sqrt(delx * delx + dely * dely + delz * delz);
+    if (delr > xmax_kk) dt *= xmax_kk / delr;
+    dt_min = MIN(dt_min,static_cast<double>(dt));
   }
 }
 

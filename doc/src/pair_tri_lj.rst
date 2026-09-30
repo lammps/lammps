@@ -1,7 +1,10 @@
 .. index:: pair_style tri/lj
+.. index:: pair_style tri/lj/omp
 
 pair_style tri/lj command
 =========================
+
+Accelerator Variants: *tri/lj/omp*
 
 Syntax
 """"""
@@ -78,6 +81,10 @@ commands:
 
 The last coefficient is optional.  If not specified, the global cutoff
 is used.
+
+----------
+
+.. include:: accel_styles.rst
 
 ----------
 

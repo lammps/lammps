@@ -17,17 +17,17 @@
 # Expected Timesteps/second with turbo on and HT enabled, LAMMPS June-2017
 #  - Compiled w/ Intel Parallel Studio 2017u2 and Makefile.intel_cpu_intelmpi
 #
-#                     Xeon E5-2697v4     Xeon Phi 7250    Xeon Gold 6148
+#                     Xeon E5-2697v4     Xeon Gold 6148
 #
-# in.intel.lj -            199.5               282.3            317.3
-# in.intel.rhodo -          12.4                17.5             24.4
-# in.intel.lc -             19.0                25.7             26.8
-# in.intel.eam -            59.4                92.8            105.6
-# in.intel.sw -            132.4               161.9            213.8
-# in.intel.tersoff -        83.3               101.1            109.6
-# in.intel.water -          53.4                90.3            105.5
-# in.intel.airebo -          7.3                11.8             17.6
-# in.intel.dpd -            74.5               100.4            148.1
+# in.intel.lj -            199.5               317.3
+# in.intel.rhodo -          12.4                24.4
+# in.intel.lc -             19.0                26.8
+# in.intel.eam -            59.4               105.6
+# in.intel.sw -            132.4               213.8
+# in.intel.tersoff -        83.3               109.6
+# in.intel.water -          53.4               105.5
+# in.intel.airebo -          7.3                17.6
+# in.intel.dpd -            74.5               148.1
 #
 #############################################################################
 
@@ -71,7 +71,7 @@
 export LMP_CORES=28
 
 #      If hyperthreading is enabled, number of hyperthreads to use per core
-#      (2 for Xeon; 2 or 4 for Xeon Phi)
+#      (2 for Xeon)
 export OMP_NUM_THREADS=2
 
 #      Name of the LAMMPS binary
@@ -85,20 +85,11 @@ export KMP_BLOCKTIME=0
 export I_MPI_PIN_DOMAIN=core
 export I_MPI_FABRICS=shm                # For single node
 
-# ONLY FOR INTEL XEON PHI x200 SERIES PROCESSORS
-export I_MPI_SHM_LMT=shm
-
 #      Generate the restart file for use with liquid crystal benchmark
 mpirun -np $LMP_CORES $LMP_BIN -in in.lc_generate_restart -log none
 
 #      Benchmark to run
 export bench=in.intel.lj
-
-#############################################################################
-# For Intel Xeon Phi x200 series processors best performance is achieved by
-# using MCDRAM. In flat mode, this can be achieved with numactl,
-# MPI environment variables, or other options provided by batch schedulers
-#############################################################################
 
 #############################################################################
 # To run without a optimization package
@@ -111,18 +102,12 @@ mpirun -np $LMP_CORES $LMP_BIN -in $bench -log none -v N on
 mpirun -np $LMP_CORES $LMP_BIN -in $bench -log none -pk omp 0 -sf omp -v N on
 
 #############################################################################
-# To run with INTEL package and no coprocessor
+# To run with INTEL package
 #############################################################################
 mpirun -np $LMP_CORES $LMP_BIN -in $bench -log none -pk intel 0 -sf intel
 
 #############################################################################
-# To run with INTEL and automatic load balancing to 1 coprocessor
-#############################################################################
-mpirun -np $LMP_CORES $LMP_BIN -in $bench -log none -pk intel 1 -sf intel
-
-#############################################################################
-# If using PPPM (e.g. in.intel.rhodo) on Intel Xeon Phi x200 series
-#   or Skylake processors
+# If using PPPM (e.g. in.intel.rhodo) on Skylake processors
 #############################################################################
 export KMP_AFFINITY=none
 rthreads=$((OMP_NUM_THREADS-1))

@@ -109,7 +109,6 @@ void AtomVecSMD::grow_pointers()
   vfrac = atom->vfrac;
   rmass = atom->rmass;
   x0 = atom->x0;
-  x = atom->x;
   radius = atom->radius;
   contact_radius = atom->contact_radius;
   molecule = atom->molecule;

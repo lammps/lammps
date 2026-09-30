@@ -35,7 +35,7 @@ using namespace FixConst;
 // ---------------------------------------------------------------------
 
 static const char cite_fix_electron_stopping_fit_c[] =
-  "fix electron/stopping/fit command: doi:10.1063/1.5022471, doi:10.1103/PhysRevB.102.024107\n\n"
+  "fix electron/stopping/fit command: https://doi.org/10.1063/1.5022471, https://doi.org/10.1103/PhysRevB.102.024107\n\n"
   "@Article{Stewart2018,\n"
   " author  = {J. A. Stewart and G. Brookman and P. Price and M. Franco and W. Ji and K. Hattar and R. Dingreville},\n"
   " title   = {Characterizing Single Isolated Radiation-Damage Events from Molecular Dynamics via Virtual Diffraction Methods},\n"

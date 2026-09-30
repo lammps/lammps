@@ -638,14 +638,61 @@ The per-atom vector values are unitless chunk IDs, ranging from 1 to
 *Nchunk* (inclusive) for atoms assigned to chunks, and 0 for atoms not
 belonging to a chunk.  The scalar contains the value of *Nchunk*.
 
+-----------
+
+Dump image info
+"""""""""""""""
+
+Compute *chunk/atom* can be used with the *compute* keyword of
+:doc:`dump image <dump_image>`.  The compute will add graphics
+to the rendered image to visualize the bin boundaries.  Currently,
+only the *bin/1d*, *bin/2d*, and *bin/3d* modes are supported.
+For *bin/1d* and *bin/2d* in three-dimensional systems, triangles are
+used to form rectangles representing the bin boundaries. For
+two-dimensional systems or when using *bin/3d*, cylinders are used to
+represent the bin boundaries as lines. For *bin/3d*, this results in a
+wireframe visualization of the 3D grid.
+
+The color of the rectangles or lines is by default that of the first
+atom type when using color styles "type" or "element".  With color style
+"const" the default value of "white" can be changed using
+:doc:`dump_modify ccolor <dump_image>`.  The transparency is by default
+fully opaque and can be changed with *dump\_modify ctrans*\ .
+
+For 2d systems or 3d systems with mode *bin/3d*, the *fflag1* setting
+determines whether the cylinders representing the wall are capped with a
+sphere at the ends: 0 means no caps, 1 means the lower end is capped, 2
+means the upper end is capped, and 3 means both ends are capped.  The
+*fflag2* setting allows to adjust the radius of the rendered cylinder.
+It should be set to a value > 0 or the cylinder will not be visible
+since the diameter is set internally to zero due to lack of a suitable
+heuristic for deriving a meaningful diameter for all types of walls and
+unit settings.
+
+For 3d systems with modes *bin/1d* and *bin/2d* the *cflag1* and
+*cflag2* settings are ignored.
+
+.. |chunk1| image:: img/chunk-3d-1d-bin.png
+   :width: 24%
+.. |chunk2| image:: img/chunk-3d-2d-bin.png
+   :width: 24%
+.. |chunk3| image:: img/chunk-3d-3d-bin.png
+   :width: 24%
+.. |chunk4| image:: img/chunk-2d-2d-bin.png
+   :width: 24%
+
+|chunk1|  |chunk2|  |chunk3|  |chunk4|
+
+---------
+
 Restrictions
 """"""""""""
 
-Even if the *nchunk* keyword is set to *once*, the chunk IDs assigned
-to each atom are not stored in a restart files.  This means you cannot
-expect those assignments to persist in a restarted simulation.
-Instead you must re-specify this command and assign atoms to chunks when
-the restarted simulation begins.
+Even if the *nchunk* keyword is set to *once*, the chunk IDs assigned to
+each atom are not stored in restart files.  This means you cannot expect
+those assignments to persist in a restarted simulation.  Instead you
+must re-specify this command and assign atoms to chunks when the
+restarted simulation begins.
 
 Related commands
 """"""""""""""""

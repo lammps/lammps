@@ -27,6 +27,7 @@ namespace LAMMPS_NS {
 class FixDrag : public Fix {
  public:
   FixDrag(class LAMMPS *, int, char **);
+  ~FixDrag() override;
   int setmask() override;
   void init() override;
   void setup(int) override;
@@ -34,7 +35,7 @@ class FixDrag : public Fix {
   void post_force_respa(int, int, int) override;
   double compute_vector(int) override;
 
- private:
+ protected:
   double xc, yc, zc;
   double f_mag;
   int xflag, yflag, zflag;

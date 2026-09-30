@@ -1,11 +1,17 @@
 .. index:: fix orient/fcc
+.. index:: fix orient/fcc/omp
 .. index:: fix orient/bcc
+.. index:: fix orient/bcc/omp
 
 fix orient/fcc command
 ======================
 
+Accelerator Variants: *orient/fcc/omp*
+
 fix orient/bcc command
 ======================
+
+Accelerator Variants: *orient/bcc/omp*
 
 Syntax
 """"""
@@ -173,6 +179,12 @@ No parameter of this fix can be used with the *start/stop* keywords of
 the :doc:`run <run>` command.
 
 This fix is not invoked during :doc:`energy minimization <minimize>`.
+
+----------
+
+.. include:: accel_styles.rst
+
+----------
 
 Restrictions
 """"""""""""

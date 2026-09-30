@@ -41,7 +41,7 @@ class BondMM3 : public Bond {
  protected:
   double *r0, *k2;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }    // namespace LAMMPS_NS

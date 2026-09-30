@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_OPENACC_TEAM_HPP
 #define KOKKOS_OPENACC_TEAM_HPP
@@ -20,6 +7,7 @@
 #include <openacc.h>
 #include <impl/Kokkos_Traits.hpp>
 #include <OpenACC/Kokkos_OpenACC.hpp>
+#include <Kokkos_BitManipulation.hpp>
 #include <Kokkos_ExecPolicy.hpp>
 
 //----------------------------------------------------------------------------
@@ -199,6 +187,7 @@ class TeamPolicyInternal<Kokkos::Experimental::OpenACC, Properties...>
   //----------------------------------------
 
  private:
+  typename traits::execution_space m_space;
   int m_league_size;
   int m_team_size;
   int m_vector_length;
@@ -241,9 +230,7 @@ class TeamPolicyInternal<Kokkos::Experimental::OpenACC, Properties...>
            team_size_ * m_thread_scratch_size[level];
   }
 
-  Kokkos::Experimental::OpenACC space() const {
-    return Kokkos::Experimental::OpenACC();
-  }
+  Kokkos::Experimental::OpenACC space() const { return m_space; }
 
   template <class... OtherProperties>
   TeamPolicyInternal(const TeamPolicyInternal<OtherProperties...>& p)
@@ -256,13 +243,15 @@ class TeamPolicyInternal<Kokkos::Experimental::OpenACC, Properties...>
         m_thread_scratch_size(p.m_thread_scratch_size),
         m_tune_team_size(p.m_tune_team_size),
         m_tune_vector_length(p.m_tune_vector_length),
-        m_chunk_size(p.m_chunk_size) {}
+        m_chunk_size(p.m_chunk_size),
+        m_space(p.m_space) {}
 
   /** \brief  Specify league size, request team size */
-  TeamPolicyInternal(const typename traits::execution_space&,
+  TeamPolicyInternal(const typename traits::execution_space& space,
                      int league_size_request, int team_size_request,
                      int vector_length_request = 1)
-      : m_team_scratch_size{0, 0},
+      : m_space(space),
+        m_team_scratch_size{0, 0},
         m_thread_scratch_size{0, 0},
         m_tune_team_size(false),
         m_tune_vector_length(false),
@@ -270,12 +259,13 @@ class TeamPolicyInternal<Kokkos::Experimental::OpenACC, Properties...>
     init(league_size_request, team_size_request, vector_length_request);
   }
 
-  TeamPolicyInternal(const typename traits::execution_space&,
+  TeamPolicyInternal(const typename traits::execution_space& space,
                      int league_size_request,
                      const Kokkos::AUTO_t& /* team_size_request */
                      ,
                      int vector_length_request = 1)
-      : m_team_scratch_size{0, 0},
+      : m_space(space),
+        m_team_scratch_size{0, 0},
         m_thread_scratch_size{0, 0},
         m_tune_team_size(true),
         m_tune_vector_length(false),
@@ -284,22 +274,24 @@ class TeamPolicyInternal<Kokkos::Experimental::OpenACC, Properties...>
          vector_length_request);
   }
 
-  TeamPolicyInternal(const typename traits::execution_space&,
+  TeamPolicyInternal(const typename traits::execution_space& space,
                      int league_size_request,
                      const Kokkos::AUTO_t& /* team_size_request */
                      ,
                      const Kokkos::AUTO_t& /* vector_length_request */)
-      : m_team_scratch_size{0, 0},
+      : m_space(space),
+        m_team_scratch_size{0, 0},
         m_thread_scratch_size{0, 0},
         m_tune_team_size(true),
         m_tune_vector_length(true),
         m_chunk_size(0) {
     init(league_size_request, default_team_size, 1);
   }
-  TeamPolicyInternal(const typename traits::execution_space&,
+  TeamPolicyInternal(const typename traits::execution_space& space,
                      int league_size_request, int team_size_request,
                      const Kokkos::AUTO_t& /* vector_length_request */)
-      : m_team_scratch_size{0, 0},
+      : m_space(space),
+        m_team_scratch_size{0, 0},
         m_thread_scratch_size{0, 0},
         m_tune_team_size(false),
         m_tune_vector_length(true),
@@ -309,7 +301,8 @@ class TeamPolicyInternal<Kokkos::Experimental::OpenACC, Properties...>
 
   TeamPolicyInternal(int league_size_request, int team_size_request,
                      int vector_length_request = 1)
-      : m_team_scratch_size{0, 0},
+      : m_space(),
+        m_team_scratch_size{0, 0},
         m_thread_scratch_size{0, 0},
         m_tune_team_size(false),
         m_tune_vector_length(false),
@@ -321,7 +314,8 @@ class TeamPolicyInternal<Kokkos::Experimental::OpenACC, Properties...>
                      const Kokkos::AUTO_t& /* team_size_request */
                      ,
                      int vector_length_request = 1)
-      : m_team_scratch_size{0, 0},
+      : m_space(),
+        m_team_scratch_size{0, 0},
         m_thread_scratch_size{0, 0},
         m_tune_team_size(true),
         m_tune_vector_length(false),
@@ -334,7 +328,8 @@ class TeamPolicyInternal<Kokkos::Experimental::OpenACC, Properties...>
                      const Kokkos::AUTO_t& /* team_size_request */
                      ,
                      const Kokkos::AUTO_t& /* vector_length_request */)
-      : m_team_scratch_size{0, 0},
+      : m_space(),
+        m_team_scratch_size{0, 0},
         m_thread_scratch_size{0, 0},
         m_tune_team_size(true),
         m_tune_vector_length(true),
@@ -343,13 +338,21 @@ class TeamPolicyInternal<Kokkos::Experimental::OpenACC, Properties...>
   }
   TeamPolicyInternal(int league_size_request, int team_size_request,
                      const Kokkos::AUTO_t& /* vector_length_request */)
-      : m_team_scratch_size{0, 0},
+      : m_space(),
+        m_team_scratch_size{0, 0},
         m_thread_scratch_size{0, 0},
         m_tune_team_size(false),
         m_tune_vector_length(true),
         m_chunk_size(0) {
     init(league_size_request, team_size_request, 1);
   }
+
+  TeamPolicyInternal(const PolicyUpdate, const TeamPolicyInternal& other,
+                     Kokkos::Experimental::OpenACC space)
+      : TeamPolicyInternal(other) {
+    this->m_space = std::move(space);
+  }
+
   static int vector_length_max() {
     return 32; /* TODO: this is bad. Need logic that is compiler and backend
                   aware */
@@ -396,9 +399,9 @@ class TeamPolicyInternal<Kokkos::Experimental::OpenACC, Properties...>
   void set_auto_chunk_size() {
     int concurrency = 2048 * default_team_size;
 
-    if (m_chunk_size > 0) {
-      if (!Impl::is_integral_power_of_two(m_chunk_size))
-        Kokkos::abort("TeamPolicy blocking granularity must be power of two");
+    if (m_chunk_size > 0 &&
+        !Kokkos::has_single_bit(static_cast<unsigned>(m_chunk_size))) {
+      Kokkos::abort("TeamPolicy blocking granularity must be power of two");
     }
 
     int new_chunk_size = 1;
@@ -427,13 +430,14 @@ struct TeamThreadRangeBoundariesStruct<iType, OpenACCTeamMember> {
   using index_type = iType;
   const iType start;
   const iType end;
-  const OpenACCTeamMember& team;
+  const OpenACCTeamMember& member;
 
-  TeamThreadRangeBoundariesStruct(const OpenACCTeamMember& thread_, iType count)
-      : start(0), end(count), team(thread_) {}
-  TeamThreadRangeBoundariesStruct(const OpenACCTeamMember& thread_,
-                                  iType begin_, iType end_)
-      : start(begin_), end(end_), team(thread_) {}
+  TeamThreadRangeBoundariesStruct(const OpenACCTeamMember& arg_thread,
+                                  iType arg_count)
+      : start(0), end(arg_count), member(arg_thread) {}
+  TeamThreadRangeBoundariesStruct(const OpenACCTeamMember& arg_thread,
+                                  iType arg_begin, iType arg_end)
+      : start(arg_begin), end(arg_end), member(arg_thread) {}
 };
 
 template <typename iType>
@@ -441,14 +445,14 @@ struct ThreadVectorRangeBoundariesStruct<iType, OpenACCTeamMember> {
   using index_type = iType;
   const index_type start;
   const index_type end;
-  const OpenACCTeamMember& team;
+  const OpenACCTeamMember& member;
 
-  ThreadVectorRangeBoundariesStruct(const OpenACCTeamMember& thread_,
-                                    index_type count)
-      : start(0), end(count), team(thread_) {}
-  ThreadVectorRangeBoundariesStruct(const OpenACCTeamMember& thread_,
-                                    index_type begin_, index_type end_)
-      : start(begin_), end(end_), team(thread_) {}
+  ThreadVectorRangeBoundariesStruct(const OpenACCTeamMember& arg_thread,
+                                    index_type arg_count)
+      : start(0), end(arg_count), member(arg_thread) {}
+  ThreadVectorRangeBoundariesStruct(const OpenACCTeamMember& arg_thread,
+                                    index_type arg_begin, index_type arg_end)
+      : start(arg_begin), end(arg_end), member(arg_thread) {}
 };
 
 template <typename iType>
@@ -456,14 +460,14 @@ struct TeamVectorRangeBoundariesStruct<iType, OpenACCTeamMember> {
   using index_type = iType;
   const index_type start;
   const index_type end;
-  const OpenACCTeamMember& team;
+  const OpenACCTeamMember& member;
 
-  TeamVectorRangeBoundariesStruct(const OpenACCTeamMember& thread_,
-                                  index_type count)
-      : start(0), end(count), team(thread_) {}
-  TeamVectorRangeBoundariesStruct(const OpenACCTeamMember& thread_,
-                                  index_type begin_, index_type end_)
-      : start(begin_), end(end_), team(thread_) {}
+  TeamVectorRangeBoundariesStruct(const OpenACCTeamMember& arg_thread,
+                                  index_type arg_count)
+      : start(0), end(arg_count), member(arg_thread) {}
+  TeamVectorRangeBoundariesStruct(const OpenACCTeamMember& arg_thread,
+                                  index_type arg_begin, index_type arg_end)
+      : start(arg_begin), end(arg_end), member(arg_thread) {}
 };
 
 }  // namespace Impl

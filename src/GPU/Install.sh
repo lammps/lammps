@@ -7,22 +7,9 @@ mode=$1
 LC_ALL=C
 export LC_ALL
 
-# arg1 = file, arg2 = file it depends on
-
 action () {
   if (test $mode = 0) then
     rm -f ../$1
-  elif (! cmp -s $1 ../$1) then
-    if (test -z "$2" || test -e ../$2) then
-      cp $1 ..
-      if (test $mode = 2) then
-        echo "  updating src/$1"
-      fi
-    fi
-  elif (test -n "$2") then
-    if (test ! -e ../$2) then
-      rm -f ../$1
-    fi
   fi
 }
 
@@ -87,6 +74,8 @@ action pair_eam_alloy_gpu.cpp pair_eam.cpp
 action pair_eam_alloy_gpu.h pair_eam.cpp
 action pair_eam_fs_gpu.cpp pair_eam.cpp
 action pair_eam_fs_gpu.h pair_eam.cpp
+action pair_eam_he_gpu.cpp pair_eam_he.cpp
+action pair_eam_he_gpu.h pair_eam_he.cpp
 action pair_eam_gpu.cpp pair_eam.cpp
 action pair_eam_gpu.h pair_eam.cpp
 action pair_gauss_gpu.cpp pair_gauss.cpp
@@ -161,6 +150,8 @@ action pair_yukawa_gpu.cpp pair_yukawa.cpp
 action pair_yukawa_gpu.h pair_yukawa.cpp
 action pair_zbl_gpu.cpp
 action pair_zbl_gpu.h
+action ewald_gpu.cpp ewald.cpp
+action ewald_gpu.h ewald.cpp
 action pppm_gpu.cpp pppm.cpp
 action pppm_gpu.h pppm.cpp
 action pair_ufm_gpu.cpp pair_ufm.cpp
@@ -168,26 +159,9 @@ action pair_ufm_gpu.h pair_ufm.h
 
 # edit 2 Makefile.package files to include/exclude package info
 
-if (test $1 = 1) then
-
-  if (test -e ../Makefile.package) then
-    sed -i -e 's/[^ \t]*gpu[^ \t]* //' ../Makefile.package
-    sed -i -e 's/[^ \t]*GPU[^ \t]* //' ../Makefile.package
-    sed -i -e 's|^PKG_INC =[ \t]*|&-DLMP_GPU |' ../Makefile.package
-    sed -i -e 's|^PKG_PATH =[ \t]*|&-L../../lib/gpu |' ../Makefile.package
-    sed -i -e 's|^PKG_LIB =[ \t]*|&-lgpu |' ../Makefile.package
-    sed -i -e 's|^PKG_SYSINC =[ \t]*|&$(gpu_SYSINC) |' ../Makefile.package
-    sed -i -e 's|^PKG_SYSLIB =[ \t]*|&$(gpu_SYSLIB) |' ../Makefile.package
-    sed -i -e 's|^PKG_SYSPATH =[ \t]*|&$(gpu_SYSPATH) |' ../Makefile.package
-  fi
-
-  if (test -e ../Makefile.package.settings) then
-    sed -i -e '/^[ \t]*include.*gpu.*$/d' ../Makefile.package.settings
-    # multiline form needed for BSD sed on Macs
-    sed -i -e '4 i \
-include ..\/..\/lib\/gpu\/Makefile.lammps
-' ../Makefile.package.settings
-  fi
+if (test $1 = 1 || test $1 = 2) then
+  echo "The GPU package no longer supports the legacy build system. Please build LAMMPS with CMake instead."
+  exit 1
 
 elif (test $1 = 0) then
 

@@ -2,7 +2,7 @@
 .. index:: pair_style smatb/single
 
 pair_style smatb command
-=========================
+========================
 
 pair_style smatb/single command
 ===============================
@@ -36,7 +36,7 @@ Description
 
 The *smatb* and *smatb/single* styles compute the Second Moment
 Approximation to the Tight Binding :ref:`(Cyrot) <Cyrot>`,
-:ref:`(Gupta) <Gupta>`, :ref:`(Rosato) <Rosato>`, given by
+:ref:`(Gupta2) <Gupta>`, :ref:`(Rosato) <Rosato>`, given by
 
 .. math::
       E_{i}  = \sum_{j,R_{ij}\leq R_{c}} \alpha(R_{ij}) - \sqrt{\sum_{j,R_{ij}\leq R_{c}}\Xi^2(R_{ij})}
@@ -126,7 +126,7 @@ none
 
 .. _Gupta:
 
-**(Gupta)** Gupta ,Phys Rev. B, 23, 6265-6270 (1981).
+**(Gupta2)** Gupta ,Phys Rev. B, 23, 6265-6270 (1981).
 
 .. _Rosato:
 

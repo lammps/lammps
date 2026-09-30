@@ -25,6 +25,7 @@
 #include "input.h"
 #include "memory.h"
 #include "modify.h"
+#include "safe_pointers.h"
 #include "update.h"
 #include "variable.h"
 
@@ -35,6 +36,7 @@
 #include "adios_common.h"
 
 using namespace LAMMPS_NS;
+using namespace LAMMPS_ADIOS;
 
 namespace LAMMPS_NS {
 class DumpCustomADIOSInternal {
@@ -61,12 +63,11 @@ class DumpCustomADIOSInternal {
 DumpCustomADIOS::DumpCustomADIOS(LAMMPS *lmp, int narg, char **arg) : DumpCustom(lmp, narg, arg)
 {
   // create a default adios2_config.xml if it doesn't exist yet.
-  FILE *cfgfp = fopen("adios2_config.xml", "r");
+  SafeFilePtr cfgfp = fopen("adios2_config.xml", "r");
   if (!cfgfp) {
     cfgfp = fopen("adios2_config.xml", "w");
     if (cfgfp) fputs(default_config, cfgfp);
   }
-  if (cfgfp) fclose(cfgfp);
 
   internal = new DumpCustomADIOSInternal();
   try {
@@ -80,7 +81,7 @@ DumpCustomADIOS::DumpCustomADIOS(LAMMPS *lmp, int narg, char **arg) : DumpCustom
   }
 
   internal->columnNames.reserve(nfield);
-  for (int i = 0; i < nfield; ++i) { internal->columnNames.emplace_back(earg[i]); }
+  for (int i = 0; i < nfield; ++i) internal->columnNames.emplace_back(earg[i]);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -88,7 +89,7 @@ DumpCustomADIOS::DumpCustomADIOS(LAMMPS *lmp, int narg, char **arg) : DumpCustom
 DumpCustomADIOS::~DumpCustomADIOS()
 {
   internal->columnNames.clear();
-  if (internal->fh) { internal->fh.Close(); }
+  if (internal->fh) internal->fh.Close();
   delete internal->ad;
   delete internal;
 }
@@ -216,10 +217,10 @@ void DumpCustomADIOS::write()
   internal->fh.Put<uint64_t>("nme", bnme);
   internal->fh.Put<uint64_t>("offset", atomOffset);
   // now write the atoms
-  internal->fh.Put<double>("atoms", buf);
+  internal->fh.Put<double>(internal->varAtoms, buf);
   internal->fh.EndStep();    // I/O will happen now...
 
-  if (multifile) { internal->fh.Close(); }
+  if (multifile) internal->fh.Close();
 }
 
 /* ---------------------------------------------------------------------- */

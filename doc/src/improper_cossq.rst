@@ -1,10 +1,11 @@
 .. index:: improper_style cossq
+.. index:: improper_style cossq/kk
 .. index:: improper_style cossq/omp
 
 improper_style cossq command
 ============================
 
-Accelerator Variants: *cossq/omp*
+Accelerator Variants: *cossq/kk*, *cossq/omp*
 
 Syntax
 """"""
@@ -59,6 +60,15 @@ commands:
 .. include:: accel_styles.rst
 
 ----------
+
+Symmetry convention
+"""""""""""""""""""
+
+For the *cossq* improper style, the first atom in the quadruplet is the
+atom of symmetry; all other atoms are considered interchangeable.  This
+convention is relevant for operations that require knowledge of how atoms
+are ordered, such as automatic assignment of new improper types by
+:doc:`fix bond/react <fix_bond_react>`.
 
 Restrictions
 """"""""""""

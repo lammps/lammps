@@ -41,7 +41,7 @@ using namespace LAMMPS_NS;
 static constexpr double EPSILON = 1.0e-10;
 
 static const char cite_pair_tdpd[] =
-  "pair tdpd command: doi:10.1063/1.4923254\n\n"
+  "pair tdpd command: https://doi.org/10.1063/1.4923254\n\n"
   "@Article{ZLi2015_JCP,\n"
   " author = {Li, Z. and Yazdani, A. and Tartakovsky, A. and Karniadakis, G. E.},\n"
   " title = {Transport Dissipative Particle Dynamics Model for Mesoscopic Advection-Diffusion-Reaction Problems},\n"
@@ -54,7 +54,9 @@ static const char cite_pair_tdpd[] =
 
 /* ---------------------------------------------------------------------- */
 
-PairTDPD::PairTDPD(LAMMPS *lmp) : Pair(lmp)
+PairTDPD::PairTDPD(LAMMPS *lmp) :
+    Pair(lmp), cut(nullptr), cutcc(nullptr), a0(nullptr), gamma(nullptr), sigma(nullptr),
+    power(nullptr), kappa(nullptr), epsilon(nullptr), powercc(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_pair_tdpd);
   cc_species = atom->cc_species;
@@ -84,7 +86,7 @@ PairTDPD::~PairTDPD()
     memory->destroy(powercc);
   }
 
-  if (random) delete random;
+  delete random;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -461,7 +463,7 @@ void PairTDPD::read_restart_settings(FILE *fp)
   // initialize Marsaglia RNG with processor-unique seed
   // same seed that pair_style command initially specified
 
-  if (random) delete random;
+  delete random;
   random = new RanMars(lmp,seed + comm->me);
 }
 

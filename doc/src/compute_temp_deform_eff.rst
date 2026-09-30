@@ -8,10 +8,16 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   compute ID group-ID temp/deform/eff
+   compute ID group-ID temp/deform/eff keyword value ...
 
 * ID, group-ID are documented in :doc:`compute <compute>` command
 * temp/deform/eff = style name of this compute command
+* zero or more keyword/value pairs may be appended
+* keyword = *temp*
+
+  .. parsed-literal::
+
+     *temp* value = compute ID that calculates a temperature
 
 Examples
 """"""""
@@ -45,6 +51,14 @@ radial electron velocity contributions, as discussed by the
 the translational degrees of freedom for each nuclei or electron are
 affected by the streaming velocity adjustment.  The radial velocity
 component of the electrons is not affected.
+
+.. versionchanged:: 11Feb2026
+
+By default, the internal temperature compute has the style
+:doc:`compute temp/eff <compute_temp_eff>`.  If an internal
+temperature compute is used which does not have the /eff suffix,
+the contribution to the scalar and vector values due to the
+radial electron velocity will be added in by this compute.
 
 Output info
 """""""""""

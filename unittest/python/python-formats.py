@@ -17,7 +17,7 @@ EXAMPLES_DIR=os.path.abspath(os.path.join(__file__, '..', '..', '..', 'examples'
 
 DEFAULT_STYLE_EXAMPLE_LOG="melt/log.8Apr21.melt.g++.1"
 MULTI_STYLE_EXAMPLE_LOG="peptide/log.14Jul25.peptide.g++.1"
-AVG_CHUNK_FILE="VISCOSITY/profile.13Oct16.nemd.2d.g++.1"
+AVG_CHUNK_FILE="VISCOSITY/profile.3Feb26.nemd.2d.g++.1"
 YAML_STYLE_EXAMPLE_LOG="yaml/log.7Apr22.yaml.g++.1"
 
 class Logfiles(unittest.TestCase):

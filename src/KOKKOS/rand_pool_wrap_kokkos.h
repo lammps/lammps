@@ -25,16 +25,19 @@ namespace LAMMPS_NS {
 struct RandWrap {
   class RanMars* rng;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   RandWrap() {
     rng = nullptr;
   }
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   double drand() {
     return rng->uniform();
   }
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   double normal() {
     return rng->gaussian();
@@ -44,11 +47,11 @@ struct RandWrap {
 class RandPoolWrap : protected Pointers {
  public:
   RandPoolWrap(int, class LAMMPS *);
-  ~RandPoolWrap() override;
+
   void destroy();
   void init(RanMars*, int);
 
-  RandWrap get_state() const
+  [[nodiscard]] RandWrap get_state() const
   {
 #ifdef LMP_KOKKOS_GPU
     error->all(FLERR,"Cannot use Marsaglia RNG with GPUs");

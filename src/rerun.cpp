@@ -41,9 +41,9 @@ Rerun::Rerun(LAMMPS *lmp) : Command(lmp) {}
 void Rerun::command(int narg, char **arg)
 {
   if (domain->box_exist == 0)
-    error->all(FLERR,"Rerun command before simulation box is defined" + utils::errorurl(33));
+    error->all(FLERR, "Rerun command before simulation box is defined" + utils::errorurl(33));
 
-  if (narg < 2) error->all(FLERR,"Illegal rerun command");
+  if (narg < 2) utils::missing_cmd_args(FLERR, "rerun", error);
 
   // list of dump files = args until a keyword
 
@@ -60,7 +60,10 @@ void Rerun::command(int narg, char **arg)
     iarg++;
   }
   int nfile = iarg;
-  if (nfile == 0 || nfile == narg) error->all(FLERR,"Illegal rerun command");
+  if (nfile == 0)
+    error->all(FLERR,"Invalid rerun command: missing dump file(s)");
+  if (nfile == narg)
+    error->all(FLERR,"Invalid rerun command: missing keyword(s)");
 
   // parse optional args up until "dump"
   // use MAXBIGINT -1 so Output can add 1 to it and still be a big int
@@ -77,51 +80,51 @@ void Rerun::command(int narg, char **arg)
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"first") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal rerun command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "rerun first", error);
       first = utils::bnumeric(FLERR,arg[iarg+1],false,lmp);
-      if (first < 0) error->all(FLERR,"Illegal rerun command");
+      if (first < 0) error->all(FLERR, iarg+1, "Invalid first step: {} < 0", first);
       iarg += 2;
     } else if (strcmp(arg[iarg],"last") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal rerun command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "rerun last", error);
       last = utils::bnumeric(FLERR,arg[iarg+1],false,lmp);
-      if (last < 0) error->all(FLERR,"Illegal rerun command");
+      if (last < 0) error->all(FLERR, iarg+1, "Invalid last step: {} < 0", last);
       iarg += 2;
     } else if (strcmp(arg[iarg],"every") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal rerun command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "rerun every", error);
       nevery = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
-      if (nevery < 0) error->all(FLERR,"Illegal rerun command");
+      if (nevery < 0) error->all(FLERR, iarg+1, "Invalid every value: {} < 0", nevery);
       iarg += 2;
     } else if (strcmp(arg[iarg],"skip") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal rerun command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "rerun skip", error);
       nskip = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
-      if (nskip <= 0) error->all(FLERR,"Illegal rerun command");
+      if (nskip <= 0) error->all(FLERR, iarg+1, "Invalid skip value: {} <= 0", nskip);
       iarg += 2;
     } else if (strcmp(arg[iarg],"start") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal rerun command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "rerun start", error);
       startflag = 1;
       start = utils::bnumeric(FLERR,arg[iarg+1],false,lmp);
-      if (start < 0) error->all(FLERR,"Illegal rerun command");
+      if (start < 0) error->all(FLERR, iarg+1, "Invalid start value: {} <= 0", start);
       iarg += 2;
     } else if (strcmp(arg[iarg],"stop") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal rerun command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "rerun stop", error);
       stopflag = 1;
       stop = utils::bnumeric(FLERR,arg[iarg+1],false,lmp);
-      if (stop < 0) error->all(FLERR,"Illegal rerun command");
+      if (stop < 0) error->all(FLERR, iarg+1, "Invalid stop value: {} <= 0", stop);
       iarg += 2;
     } else if (strcmp(arg[iarg],"post") == 0) {
-      if (iarg+2 > narg) error->all(FLERR,"Illegal rerun command");
+      if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "rerun post", error);
       postflag = utils::logical(FLERR,arg[iarg+1],false,lmp);
       iarg += 2;
     } else if (strcmp(arg[iarg],"dump") == 0) {
       break;
-    } else error->all(FLERR,"Illegal rerun command");
+    } else error->all(FLERR, iarg, "Unknown rerun keyword {}", arg[iarg]);
   }
 
   int nremain = narg - iarg - 1;
-  if (nremain <= 0) error->all(FLERR,"Illegal rerun command");
-  if (first > last) error->all(FLERR,"Illegal rerun command");
+  if (nremain <= 0) utils::missing_cmd_args(FLERR, "rerun dump", error);
+  if (first > last) error->all(FLERR,"Invalid rerun settings: first must come before last");
   if (startflag && stopflag && start > stop)
-    error->all(FLERR,"Illegal rerun command");
+    error->all(FLERR,"Invalid rerun settings: start must come before stop");
 
   // pass list of filenames to ReadDump
   // along with post-"dump" args and post-"format" args
@@ -158,7 +161,7 @@ void Rerun::command(int narg, char **arg)
 
   bigint ntimestep = rd->seek(first,0);
   if (ntimestep < 0)
-    error->all(FLERR,"Rerun dump file does not contain requested snapshot");
+    error->all(FLERR, Error::NOLASTLINE, "Rerun dump file does not contain requested snapshot");
 
   while (true) {
     ndump++;
@@ -248,7 +251,7 @@ void Rerun::command(int narg, char **arg)
     firstflag = 0;
     ntimestep = rd->next(ntimestep,last,nevery,nskip);
     if (stopflag && ntimestep > stop)
-      error->all(FLERR,"Read rerun dump file timestep {} > specified stop {}", ntimestep, stop);
+      error->all(FLERR, "Read rerun dump file timestep {} > specified stop {}", ntimestep, stop);
     if (ntimestep < 0) break;
   }
 

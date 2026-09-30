@@ -34,10 +34,10 @@ class ImproperSQDistHarm : public Improper {
   void read_restart(FILE *) override;
   void *extract(const char *, int &) override;
 
- private:
+ protected:
   double *k, *chi;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }    // namespace LAMMPS_NS

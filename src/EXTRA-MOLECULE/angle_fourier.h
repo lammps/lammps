@@ -41,7 +41,7 @@ class AngleFourier : public Angle {
  protected:
   double *k, *C0, *C1, *C2;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }    // namespace LAMMPS_NS

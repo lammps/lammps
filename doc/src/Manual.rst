@@ -23,7 +23,7 @@ distributed under the terms of the GNU Public License Version 2 (GPLv2).
 
 The `LAMMPS website <lws_>`_ has a variety of information about the
 code.  It includes links to an online version of this manual, an
-`online forum <https://www.lammps.org/forum.html>`_ where users can post
+`online forum <https://matsci.org/lammps>`_ where users can post
 questions and discuss LAMMPS, and a `GitHub site
 <https://github.com/lammps/lammps>`_ where all LAMMPS development is
 coordinated.
@@ -81,9 +81,9 @@ The manual is organized into three parts:
 
 .. _user_documentation:
 
-************
+**********
 User Guide
-************
+**********
 
 .. toctree::
    :maxdepth: 2
@@ -96,20 +96,19 @@ User Guide
    Install
    Build
    Run_head
+   Errors
    Commands
-   Packages
    Speed
+   Packages
+   Tools
    Howto
    Examples
-   Tools
-   Errors
-
 
 .. _programmer_documentation:
 
-******************
+****************
 Programmer Guide
-******************
+****************
 
 .. toctree::
    :maxdepth: 2
@@ -142,7 +141,6 @@ Command Reference
    dihedrals
    impropers
    dumps
-   fix_modify_atc_commands
    Bibliography
 
 ******************

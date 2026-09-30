@@ -39,7 +39,7 @@ enum { SCALAR, VECTOR };
 /* ---------------------------------------------------------------------- */
 
 FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg), nvalues(0), fp(nullptr), offlist(nullptr), format(nullptr), vector(nullptr),
+    Fix(lmp, narg, arg), nvalues(0), offlist(nullptr), format(nullptr), vector(nullptr),
     vector_total(nullptr), vector_list(nullptr), column(nullptr), array(nullptr),
     array_total(nullptr), array_list(nullptr)
 {
@@ -374,8 +374,8 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
           }
         } else extvector = val.val.f->extarray;
       } else if (val.which == ArgInfo::VARIABLE) {
-        extlist = new int[nrows];
-        for (int i = 0; i < nrows; i++) extlist[i] = 0;
+        // the length of a vector-style variable can change during a run
+        extvector = 0;
       }
 
     } else {
@@ -449,10 +449,8 @@ FixAveTime::~FixAveTime()
   delete[] format;
   delete[] extlist;
 
-  if (fp && comm->me == 0) {
-    if (yaml_flag) fputs("...\n", fp);
-    fclose(fp);
-  }
+  if (fp && (comm->me == 0) && yaml_flag) fputs("...\n", fp);
+
   memory->destroy(column);
 
   delete[] vector;
@@ -720,6 +718,11 @@ void FixAveTime::invoke_vector(bigint ntimestep)
         memory->destroy(column);
         memory->create(column,nrows,"ave/time:column");
         allocate_arrays();
+
+        // the length of the global vector or array output changes with nrows
+
+        if (vector_flag) size_vector = nrows;
+        if (array_flag) size_array_rows = nrows;
       }
 
       int lockforever_flag = 0;
@@ -1013,7 +1016,6 @@ void FixAveTime::options(int iarg, int narg, char **arg)
 {
   // option defaults
 
-  fp = nullptr;
   ave = ONE;
   startstep = 0;
   mode = SCALAR;
@@ -1076,6 +1078,9 @@ void FixAveTime::options(int iarg, int narg, char **arg)
       iarg += 1;
     } else if (strcmp(arg[iarg],"format") == 0) {
       if (iarg+2 > narg) utils::missing_cmd_args(FLERR, "fix ave/time format", error);
+      auto errmsg = utils::check_format(arg[iarg+1], utils::FmtArg::FLOAT);
+      if (!errmsg.empty())
+        error->all(FLERR, iarg+1, "Invalid fix ave/time format argument: {}", errmsg);
       delete[] format;
       format = utils::strdup(arg[iarg+1]);
       iarg += 2;

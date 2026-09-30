@@ -28,7 +28,7 @@ This closes the file associated with the dump.
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""

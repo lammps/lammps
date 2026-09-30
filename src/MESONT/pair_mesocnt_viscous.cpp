@@ -163,7 +163,7 @@ void PairMesoCNTViscous::compute(int eflag, int vflag)
 
           // weighted velocity for friction
 
-          w[k] = weight(r1, r2, q1, q2);
+          w[k] = weight2(r1, r2, q1, q2);
           if (w[k] == 0.0) continue;
           sumw += w[k];
           scaleadd3(w[k], vq1, vp1, vp1);
@@ -797,8 +797,8 @@ void PairMesoCNTViscous::init_style()
    weight for averaged friction from CNT chain
 ------------------------------------------------------------------------- */
 
-inline double PairMesoCNTViscous::weight(const double *r1, const double *r2, const double *p1,
-                                         const double *p2)
+double PairMesoCNTViscous::weight2(const double *r1, const double *r2, const double *p1,
+                                   const double *p2)
 {
   double dr, dp, rhoc, rhomin, rho;
   double r[3], p[3];
@@ -813,59 +813,4 @@ inline double PairMesoCNTViscous::weight(const double *r1, const double *r2, con
   rho = 0.5 * sqrt(distsq3(r, p));
 
   return s((rho - rhomin) / (rhoc - rhomin));
-}
-
-/* ----------------------------------------------------------------------
-   weight for substitute CNT chain
-   computes gradients with respect to positions
-------------------------------------------------------------------------- */
-
-inline void PairMesoCNTViscous::weight(const double *r1, const double *r2, const double *p1,
-                                       const double *p2, double &w, double *dr1_w, double *dr2_w,
-                                       double *dp1_w, double *dp2_w)
-{
-  double dr, dp, rhoc, rhomin, rho, frac, arg, factor;
-  double r[3], p[3];
-  double dr_rho[3], dr_rhoc[3], dp_rhoc[3];
-
-  add3(r1, r2, r);
-  add3(p1, p2, p);
-  scale3(0.5, r);
-  scale3(0.5, p);
-
-  dr = sqrt(0.25 * distsq3(r1, r2) + rsq);
-  dp = sqrt(0.25 * distsq3(p1, p2) + rsq);
-  rhoc = dr + dp + rc;
-  rhomin = RHOMIN * ang;
-  rho = sqrt(distsq3(r, p));
-
-  frac = 1.0 / (rhoc - rhomin);
-  arg = frac * (rho - rhomin);
-  w = s(arg);
-
-  if (w == 0.0 || w == 1.0) {
-    zero3(dr1_w);
-    zero3(dr2_w);
-    zero3(dp1_w);
-    zero3(dp2_w);
-  } else {
-    factor = ds(arg) * frac;
-
-    sub3(r, p, dr_rho);
-    sub3(r1, r2, dr_rhoc);
-    sub3(p1, p2, dp_rhoc);
-    scale3(0.5 / rho, dr_rho);
-    scale3(0.25 / dr, dr_rhoc);
-    scale3(0.25 / dp, dp_rhoc);
-
-    scaleadd3(-arg, dr_rhoc, dr_rho, dr1_w);
-    scaleadd3(arg, dr_rhoc, dr_rho, dr2_w);
-    negate3(dr_rho);
-    scaleadd3(-arg, dp_rhoc, dr_rho, dp1_w);
-    scaleadd3(arg, dp_rhoc, dr_rho, dp2_w);
-    scale3(factor, dr1_w);
-    scale3(factor, dr2_w);
-    scale3(factor, dp1_w);
-    scale3(factor, dp2_w);
-  }
 }

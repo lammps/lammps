@@ -82,13 +82,13 @@ template <class T> class MyPage {
    *
    * \return total storage used in bytes */
 
-  double size() const { return (double) npage * pagesize * sizeof(T); }
+  [[nodiscard]] double size() const { return (double) npage * pagesize * sizeof(T); }
 
   /** Return error status
    *
    * \return 0 if no error, 1 requested chunk size > maxchunk, 2 if malloc failed */
 
-  int status() const { return errorflag; }
+  [[nodiscard]] int status() const { return errorflag; }
 
  private:
   T **pages;    // list of allocated pages

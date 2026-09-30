@@ -4,19 +4,10 @@ cff-version: 1.2.0
 title: "LAMMPS: Large-scale Atomic/Molecular Massively Parallel Simulator"
 type: software
 authors:
-  - family-names: "Plimpton"
-    given-names: "Steven J."
-  - family-names: "Kohlmeyer"
-    given-names: "Axel"
-    orcid: "https://orcid.org/0000-0001-6204-6475"
-  - family-names: "Thompson"
-    given-names: "Aidan P."
-    orcid: "https://orcid.org/0000-0002-0324-9114"
-  - family-names: "Moore"
-    given-names: "Stan G."
-  - family-names: "Berger"
-    given-names: "Richard"
-    orcid: "https://orcid.org/0000-0002-3044-8266"
+  - family-names: "Developers"
+    given-names: "The LAMMPS"
+version: "30Sep2026"
+date-released: "2026-09-30"
 doi: 10.5281/zenodo.3726416
 license: GPL-2.0-only
 url: https://www.lammps.org
@@ -24,6 +15,8 @@ repository-code: https://github.com/lammps/lammps/
 keywords:
   - "Molecular Dynamics"
   - "Materials Modeling"
+  - "Discrete Element Modeling"
+  - "Particle Simulation"
 message: "If you are referencing LAMMPS in a publication, please cite the paper below."
 preferred-citation:
   type: article

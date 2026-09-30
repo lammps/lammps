@@ -21,6 +21,7 @@
 #include "group.h"
 #include "modify.h"
 #include "update.h"
+#include "utils.h"
 
 #include <cstring>
 
@@ -33,7 +34,7 @@ static constexpr double INERTIA = 0.4;    // moment of inertia prefactor for sph
 /* ---------------------------------------------------------------------- */
 
 ComputeTempSphere::ComputeTempSphere(LAMMPS *lmp, int narg, char **arg) :
-    Compute(lmp, narg, arg), id_bias(nullptr)
+    Compute(lmp, narg, arg), id_bias(nullptr), tbias(nullptr)
 {
   if (narg < 3) utils::missing_cmd_args(FLERR, "compute temp/sphere", error);
 
@@ -86,6 +87,8 @@ ComputeTempSphere::ComputeTempSphere(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeTempSphere::~ComputeTempSphere()
 {
+  if (copymode) return;
+
   delete[] id_bias;
   delete[] vector;
 }
@@ -101,7 +104,10 @@ void ComputeTempSphere::init()
     if (tbias->tempbias == 0) error->all(FLERR, "Bias compute does not calculate a velocity bias");
     if (tbias->igroup != igroup)
       error->all(FLERR, "Bias compute group does not match compute group");
-    if (strcmp(tbias->style, "temp/region") == 0)
+    // match the accelerated variants too: with -sf kk the bias compute is
+    // instantiated as temp/region/kk, which an exact strcmp would miss,
+    // leaving tempbias = 1 and sending dof_remove() an index of -1
+    if (utils::strmatch(tbias->style, "^temp/region"))
       tempbias = 2;
     else
       tempbias = 1;

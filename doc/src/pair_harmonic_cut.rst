@@ -1,10 +1,11 @@
 .. index:: pair_style harmonic/cut
+.. index:: pair_style harmonic/cut/kk
 .. index:: pair_style harmonic/cut/omp
 
 pair_style harmonic/cut command
 ===============================
 
-Accelerator Variants: *harmonic/cut/omp*
+Accelerator Variants: *harmonic/cut/kk*, *harmonic/cut/omp*
 
 Syntax
 """"""

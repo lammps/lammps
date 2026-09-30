@@ -42,11 +42,11 @@ jobs:
     - name: Build flatpak
       run: |
         mkdir flatpack-state
-        sed -i -e 's/branch:.*/branch: develop/' tools/lammps-gui/org.lammps.lammps-gui.yml
+        sed -i -e 's/branch:.*/branch: develop/' cmake/packaging/org.lammps.lammps-gui.yml
         flatpak-builder --force-clean --verbose --repo=flatpak-repo \
                                --install-deps-from=flathub --state-dir=flatpak-state \
                                --user --ccache --default-branch=${{ github.ref_name }} \
-                               flatpak-build tools/lammps-gui/org.lammps.lammps-gui.yml
+                               flatpak-build cmake/packaging/org.lammps.lammps-gui.yml
         flatpak build-bundle --runtime-repo=https://flathub.org/repo/flathub.flatpakrepo \
                                --verbose  flatpak-repo LAMMPS-Linux-x86_64-GUI.flatpak \
                                org.lammps.lammps-gui ${{ github.ref_name }}

@@ -1,0 +1,20 @@
+variable        ms index sd
+units           lj
+atom_style      atomic
+atom_modify     map array
+lattice         fcc 0.8442
+region          box block 0 6 0 6 0 6
+create_box      1 box
+create_atoms    1 box
+mass            * 1.0
+displace_atoms  all random 0.12 0.12 0.12 45782 units box
+pair_style      lj/cut 2.5
+pair_coeff      * * 1.0 1.0 2.5
+neighbor        0.3 bin
+neigh_modify    delay 0 every 1 check yes
+min_style       ${ms}
+variable        nrm index yes
+if "${nrm} == no" then "thermo_style custom step temp pe press" &
+else "thermo_style custom step temp pe fnorm fmax press"
+thermo          10
+minimize        1.0e-8 1.0e-10 100 1000

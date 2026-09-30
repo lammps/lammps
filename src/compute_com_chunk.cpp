@@ -19,6 +19,8 @@
 #include "error.h"
 #include "memory.h"
 
+#include <cstring>
+
 using namespace LAMMPS_NS;
 
 enum { ONCE, NFREQ, EVERY };
@@ -29,7 +31,7 @@ ComputeCOMChunk::ComputeCOMChunk(LAMMPS *lmp, int narg, char **arg) :
     ComputeChunk(lmp, narg, arg), masstotal(nullptr), massproc(nullptr), com(nullptr),
     comall(nullptr)
 {
-  if (narg != 4) error->all(FLERR, "Illegal compute com/chunk command");
+  if (narg < 4) utils::missing_cmd_args(FLERR, "compute com/chunk", error);
 
   array_flag = 1;
   size_array_cols = 3;
@@ -39,6 +41,20 @@ ComputeCOMChunk::ComputeCOMChunk(LAMMPS *lmp, int narg, char **arg) :
 
   ComputeCOMChunk::init();
   ComputeCOMChunk::allocate();
+
+  // parse any remaining optional arguments
+
+  wrapflag = false;
+  int iarg = 4;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg], "wrap") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "compute com/chunk wrap", error);
+      wrapflag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
+      iarg += 2;
+    } else {
+      error->all(FLERR, iarg, "Unknown compute com/chunk keyword {}", arg[iarg]);
+    }
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -114,6 +130,7 @@ void ComputeCOMChunk::compute_array()
       comall[i][0] /= masstotal[i];
       comall[i][1] /= masstotal[i];
       comall[i][2] /= masstotal[i];
+      if (wrapflag) domain->remap(comall[i]);
     } else
       comall[i][0] = comall[i][1] = comall[i][2] = 0.0;
   }

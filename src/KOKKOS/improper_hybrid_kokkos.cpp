@@ -34,6 +34,11 @@ ImproperHybridKokkos::ImproperHybridKokkos(LAMMPS *lmp) : ImproperHybrid(lmp)
 {
   kokkosable = 1;
 
+  // every KOKKOS sub-style sets CENTROID_NOTAVAIL, so the hybrid style cannot
+  // offer a centroid virial either - otherwise cvatom is never allocated and the
+  // per-substyle accumulation dereferences a null pointer
+  centroidstressflag = CENTROID_NOTAVAIL;
+
   atomKK = (AtomKokkos *) atom;
   neighborKK = (NeighborKokkos *) neighbor;
 
@@ -60,9 +65,9 @@ void ImproperHybridKokkos::compute(int eflag, int vflag)
   int nimproperlist_orig = neighbor->nimproperlist;
   neighborKK->k_improperlist.sync_device();
   auto k_improperlist_orig = neighborKK->k_improperlist;
-  auto d_improperlist_orig = k_improperlist_orig.d_view;
-  auto d_nimproperlist = k_nimproperlist.d_view;
-  auto h_nimproperlist = k_nimproperlist.h_view;
+  auto d_improperlist_orig = k_improperlist_orig.view_device();
+  auto d_nimproperlist = k_nimproperlist.view_device();
+  auto h_nimproperlist = k_nimproperlist.view_host();
 
   // if this is re-neighbor step, create sub-style improperlists
   // nimproperlist[] = length of each sub-style list
@@ -73,7 +78,7 @@ void ImproperHybridKokkos::compute(int eflag, int vflag)
     Kokkos::deep_copy(d_nimproperlist,0);
 
     k_map.sync_device();
-    auto d_map = k_map.d_view;
+    auto d_map = k_map.view_device();
 
     Kokkos::parallel_for(nimproperlist_orig,LAMMPS_LAMBDA(int i) {
       const int m = d_map[d_improperlist_orig(i,4)];
@@ -88,9 +93,9 @@ void ImproperHybridKokkos::compute(int eflag, int vflag)
       if (h_nimproperlist[m] > maximproper_all)
         maximproper_all = h_nimproperlist[m] + EXTRA;
 
-    if ((int)k_improperlist.d_view.extent(1) < maximproper_all)
+    if ((int)k_improperlist.view_device().extent(1) < maximproper_all)
       MemKK::realloc_kokkos(k_improperlist, "improper_hybrid:improperlist", nstyles, maximproper_all, 5);
-    auto d_improperlist = k_improperlist.d_view;
+    auto d_improperlist = k_improperlist.view_device();
 
     Kokkos::deep_copy(d_nimproperlist,0);
 
@@ -205,7 +210,7 @@ void ImproperHybridKokkos::init_style()
     if (!styles[m]->kokkosable)
       error->all(FLERR,"Must use only Kokkos-enabled improper styles with improper_style hybrid/kk");
 
-    if (styles[m]->execution_space == Host)
+    if (styles[m]->execution_space == HostKK)
       lmp->kokkos->allow_overlap = 0;
   }
 }

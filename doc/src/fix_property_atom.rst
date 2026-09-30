@@ -330,7 +330,7 @@ minimization <minimize>`.
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""

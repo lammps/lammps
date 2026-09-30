@@ -34,7 +34,7 @@ using namespace LAMMPS_NS;
 using namespace InterLayer;
 
 static const char cite_saip[] =
-    "saip/metal potential: doi:10.1021/acs.jctc.1c00622\n\n"
+    "saip/metal potential: https://doi.org/10.1021/acs.jctc.1c00622\n\n"
     "@Article{Ouyang2021\n"
     " author = {W. Ouyang and O. Hod and R. Guerra},\n"
     " title = {Registry-Dependent Potential for Interfaces of Gold with Graphitic Systems},\n"

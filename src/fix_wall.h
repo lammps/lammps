@@ -43,8 +43,19 @@ class FixWall : public Fix {
   double compute_scalar() override;
   double compute_vector(int) override;
 
+  int image(int *&, double **&) override;
+
   virtual void precompute(int) = 0;
   virtual void wall_particle(int, int, double) = 0;
+
+  // set up the per-atom virial storage at the beginning of post_force().
+  // accelerator styles that keep the per-atom virial in their own arrays
+  // override this and pass alloc = 0 to v_init(), so that the plain
+  // base-class vatom array is not allocated behind their back.
+
+  virtual void v_setup_peratom(int vflag) { v_init(vflag); }
+
+  static void update_image_plane(int, int, double, double **, class Domain *);
 
  protected:
   double epsilon[6], sigma[6], alpha[6], cutoff[6];
@@ -57,6 +68,9 @@ class FixWall : public Fix {
   int eflag;      // per-wall flag for energy summation
   int ilevel_respa;
   int fldflag;
+
+  int *imgobjs;
+  double **imgparms;
 };
 
 }    // namespace LAMMPS_NS

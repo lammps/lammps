@@ -24,6 +24,7 @@
 #include "error.h"
 #include "input.h"
 #include "memory.h"
+#include "modify.h"
 #include "neighbor.h"
 #include "math_extra.h"
 #include "region.h"
@@ -186,8 +187,11 @@ void FixWallGranRegion::post_force(int /*vflag*/)
   if (heat_flag) {
     temperature = atom->temperature;
     heatflow = atom->heatflow;
-    if (tstr)
+    if (tstr) {
+      modify->clearstep_compute();
       Twall = input->variable->compute_equal(tvar);
+      modify->addstep_compute(update->ntimestep + 1);
+    }
     model->Tj = Twall;
   }
 

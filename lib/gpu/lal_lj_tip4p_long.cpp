@@ -52,13 +52,13 @@ int LJTIP4PLongT::init(const int ntypes,
     const double a, const double qd,
     const int nall, const int max_nbors,
     const int maxspecial, const double cell_size,
-    const double gpu_split, FILE *_screen,
+                           FILE *_screen,
     double **host_cut_ljsq,
     const double host_cut_coulsq, const double host_cut_coulsqplus,
     double *host_special_coul, const double qqrd2e,
     const double g_ewald, int map_size, int max_same) {
   int success;
-  success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,gpu_split,
+  success=this->init_atomic(nlocal,nall,max_nbors,maxspecial,cell_size,
                             _screen,lj_tip4p_long,"k_lj_tip4p_long");
   if (success!=0)
     return success;
@@ -305,7 +305,6 @@ void LJTIP4PLongT::compute(const int f_ago, const int inum_full,
                            int *ilist, int *numj, int **firstneigh,
                            const bool eflag_in, const bool vflag_in,
                            const bool eatom, const bool vatom,
-                           int &host_start, const double cpu_time,
                            bool &success, double *host_q,
                            const int nlocal, double *boxlo, double *prd) {
   this->acc_timers();
@@ -317,17 +316,15 @@ void LJTIP4PLongT::compute(const int f_ago, const int inum_full,
 
   this->set_kernel(eflag,vflag);
   if (inum_full==0) {
-    host_start=0;
     // Make sure textures are correct if realloc by a different hybrid style
     this->resize_atom(0,nall,success);
     this->zero_timers();
     return;
   }
 
-  int ago=this->hd_balancer.ago_first(f_ago);
-  int inum=this->hd_balancer.balance(ago,inum_full,cpu_time);
+  int ago=f_ago;
+  int inum=inum_full; this->_timestep++;
   this->ans->inum(inum);
-  host_start=inum;
 
   if (ago==0) {
     this->reset_nbors(nall, inum, ilist, numj, firstneigh, success);
@@ -337,7 +334,6 @@ void LJTIP4PLongT::compute(const int f_ago, const int inum_full,
 
   this->atom->cast_x_data(host_x,host_type);
   this->atom->cast_q_data(host_q);
-  this->hd_balancer.start_timer();
   this->atom->add_x_data(host_x,host_type);
   this->atom->add_q_data();
 
@@ -348,7 +344,6 @@ void LJTIP4PLongT::compute(const int f_ago, const int inum_full,
   loop(eflag,vflag);
   this->ans->copy_answers(eflag_in,vflag_in,eatom,vatom,ilist,inum);
   this->device->add_ans_object(this->ans);
-  this->hd_balancer.stop_timer();
 }
 
 // ---------------------------------------------------------------------------
@@ -362,8 +357,8 @@ int** LJTIP4PLongT::compute(const int ago, const int inum_full,
                             int max_same, int **nspecial, tagint **special,
                             const bool eflag_in, const bool vflag_in,
                             const bool eatom, const bool vatom,
-                            int &host_start, int **ilist, int **jnum,
-                            const double cpu_time, bool &success,
+                            int **ilist, int **jnum,
+                            bool &success,
                             double *host_q, double *boxlo, double *prd,
                             int *periodicity) {
   this->acc_timers();
@@ -375,17 +370,14 @@ int** LJTIP4PLongT::compute(const int ago, const int inum_full,
 
   this->set_kernel(eflag,vflag);
   if (inum_full==0) {
-    host_start=0;
     // Make sure textures are correct if realloc by a different hybrid style
     this->resize_atom(0,nall,success);
     this->zero_timers();
     return nullptr;
   }
 
-  this->hd_balancer.balance(cpu_time);
-  int inum=this->hd_balancer.get_gpu_count(ago,inum_full);
+  int inum=inum_full; this->_timestep++;
   this->ans->inum(inum);
-  host_start=inum;
 
   // Build neighbor list on GPU if necessary
   if (ago==0) {
@@ -395,11 +387,9 @@ int** LJTIP4PLongT::compute(const int ago, const int inum_full,
     if (!success)
       return nullptr;
     this->atom->cast_q_data(host_q);
-    this->hd_balancer.start_timer();
   } else {
     this->atom->cast_x_data(host_x,host_type);
     this->atom->cast_q_data(host_q);
-    this->hd_balancer.start_timer();
     this->atom->add_x_data(host_x,host_type);
   }
   this->atom->add_q_data();
@@ -415,9 +405,8 @@ int** LJTIP4PLongT::compute(const int ago, const int inum_full,
   loop(eflag,vflag);
   this->ans->copy_answers(eflag_in,vflag_in,eatom,vatom,inum);
   this->device->add_ans_object(this->ans);
-  this->hd_balancer.stop_timer();
 
-  return this->nbor->host_jlist.begin()-host_start;
+  return this->nbor->host_jlist.begin()-inum;
 }
 
 

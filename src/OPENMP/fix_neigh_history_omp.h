@@ -28,10 +28,12 @@ class FixNeighHistoryOMP : public FixNeighHistory {
 
  public:
   FixNeighHistoryOMP(class LAMMPS *lmp, int narg, char **argv);
+  void post_neighbor() override;
+
+ protected:
   void pre_exchange_onesided() override;
   void pre_exchange_newton() override;
   void pre_exchange_no_newton() override;
-  void post_neighbor() override;
 };
 
 }    // namespace LAMMPS_NS

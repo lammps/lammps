@@ -173,7 +173,10 @@ void FixNVEAsphereGPU::init()
 {
   avec = dynamic_cast<AtomVecEllipsoid *>(atom->style_match("ellipsoid"));
   if (!avec)
-    error->all(FLERR,"Compute nve/asphere requires atom style ellipsoid");
+    error->all(FLERR, Error::NOLASTLINE, "Compute nve/asphere requires atom style ellipsoid");
+
+  if (atom->superellipsoid_flag)
+    error->all(FLERR, Error::NOLASTLINE, "Fix nve/asphere_gpu does not support superellipsoids");
 
   // check that all particles are finite-size ellipsoids
   // no point particles allowed, spherical is OK
@@ -185,7 +188,7 @@ void FixNVEAsphereGPU::init()
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit)
       if (ellipsoid[i] < 0)
-        error->one(FLERR, "Fix nve/asphere requires extended particles");
+        error->one(FLERR, Error::NOLASTLINE, "Fix nve/asphere requires extended particles");
 
   FixNVE::init();
 }
@@ -231,7 +234,6 @@ void FixNVEAsphereGPU::initial_integrate(int /*vflag*/)
     const int ifrom3 = ifrom * 3;
     const int ito3 = ito * 3;
     #else
-    const int tid = 0;
     const int ifrom = 0;
     const int ifrom3 = 0;
     const int ito = nlocal;

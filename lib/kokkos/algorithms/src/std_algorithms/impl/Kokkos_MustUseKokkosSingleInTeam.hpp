@@ -1,23 +1,15 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_STD_ALGORITHMS_MUSTUSEKOKKOSSINGLEINTEAM_HPP
 #define KOKKOS_STD_ALGORITHMS_MUSTUSEKOKKOSSINGLEINTEAM_HPP
 
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+#else
 #include <Kokkos_Core.hpp>
+#endif
 
 namespace Kokkos {
 namespace Experimental {
@@ -34,6 +26,30 @@ struct stdalgo_must_use_kokkos_single_for_team_scan : std::false_type {};
 template <>
 struct stdalgo_must_use_kokkos_single_for_team_scan<
     Kokkos::Experimental::OpenACC> : std::true_type {};
+#endif
+
+// FIXME_CUDA team parallel_scan with a compound scan value (e.g.
+// StdPartitionCopyScalar in partition_copy) can provoke illegal memory
+// accesses
+#if defined(KOKKOS_ENABLE_CUDA)
+template <>
+struct stdalgo_must_use_kokkos_single_for_team_scan<Kokkos::Cuda>
+    : std::true_type {};
+#endif
+
+// HIP uses the same team parallel_scan implementation as CUDA; compound scan
+// values (partition_copy) can return wrong totals or touch memory incorrectly.
+#if defined(KOKKOS_ENABLE_HIP)
+template <>
+struct stdalgo_must_use_kokkos_single_for_team_scan<Kokkos::HIP>
+    : std::true_type {};
+#endif
+
+// SYCL team parallel_scan matches the CUDA-style chunked algorithm.
+#if defined(KOKKOS_ENABLE_SYCL)
+template <>
+struct stdalgo_must_use_kokkos_single_for_team_scan<Kokkos::SYCL>
+    : std::true_type {};
 #endif
 
 template <typename T>

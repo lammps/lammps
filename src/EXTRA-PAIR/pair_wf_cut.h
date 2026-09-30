@@ -49,7 +49,7 @@ class PairWFCut : public Pair {
   double **epsilon, **sigma;
   double **nm, **e0nm, **rcmu, **sigma_mu;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }    // namespace LAMMPS_NS

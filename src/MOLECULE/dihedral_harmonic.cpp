@@ -32,7 +32,9 @@ static constexpr double TOLERANCE = 0.05;
 
 /* ---------------------------------------------------------------------- */
 
-DihedralHarmonic::DihedralHarmonic(LAMMPS *_lmp) : Dihedral(_lmp)
+DihedralHarmonic::DihedralHarmonic(LAMMPS *_lmp) :
+    Dihedral(_lmp), k(nullptr), cos_shift(nullptr), sin_shift(nullptr), sign(nullptr),
+    multiplicity(nullptr)
 {
   writedata = 1;
 }
@@ -248,7 +250,8 @@ void DihedralHarmonic::allocate()
 
 void DihedralHarmonic::coeff(int narg, char **arg)
 {
-  if (narg != 4) error->all(FLERR, "Incorrect args for dihedral coefficients" + utils::errorurl(21));
+  if (narg != 4)
+    error->all(FLERR, "Incorrect args for dihedral coefficients" + utils::errorurl(21));
   if (!allocated) allocate();
 
   int ilo, ihi;
@@ -283,7 +286,8 @@ void DihedralHarmonic::coeff(int narg, char **arg)
     count++;
   }
 
-  if (count == 0) error->all(FLERR, "Incorrect args for dihedral coefficients" + utils::errorurl(21));
+  if (count == 0)
+    error->all(FLERR, "Incorrect args for dihedral coefficients" + utils::errorurl(21));
 }
 
 /* ----------------------------------------------------------------------

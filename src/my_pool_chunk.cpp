@@ -63,6 +63,7 @@ MyPoolChunk<T>::MyPoolChunk(int user_minchunk, int user_maxchunk, int user_nbin,
   pages = nullptr;
   whichbin = nullptr;
   npage = 0;
+  binsize = 0;
 
   errorflag = 0;
   if (minchunk <= 0 || minchunk > maxchunk) errorflag = 1;
@@ -86,6 +87,7 @@ MyPoolChunk<T>::MyPoolChunk(int user_minchunk, int user_maxchunk, int user_nbin,
 }
 
 /** Destroy class instance and free all allocated memory */
+
 template <class T> MyPoolChunk<T>::~MyPoolChunk()
 {
   delete[] freehead;
@@ -213,7 +215,7 @@ template <class T> double MyPoolChunk<T>::size() const
   double bytes = (double) npage * chunkperpage * sizeof(int);
   bytes += (double) npage * sizeof(T *);
   bytes += (double) npage * sizeof(int);
-  for (int i = 0; i < npage; ++i) bytes += (double) chunkperpage * chunksize[i] * sizeof(T);
+  for (int i = 0; i < npage; ++i) bytes += (double) chunkperpage * chunksize[whichbin[i]] * sizeof(T);
 
   return bytes;
 }

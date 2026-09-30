@@ -255,9 +255,11 @@ void FixPolarizeBEMICC::compute_induced_charges()
   double *epsilon = atom->epsilon;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
-  int eflag = 1;
-  int vflag = 0;
   int itr;
+
+  // flag that we only need to compute the global energy
+  int eflag = ENERGY_GLOBAL | ENERGY_ONLY;
+  int vflag = VIRIAL_NONE;
 
   // use Eq. (64) in Barros et al. to initialize the induced charges
   // Note: area[i] is included here to ensure correct charge unit

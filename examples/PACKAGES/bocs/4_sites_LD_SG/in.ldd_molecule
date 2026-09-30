@@ -1,0 +1,64 @@
+units           real
+dimension       3
+boundary        p p p
+atom_style      full
+
+read_data data.ldd_molecule
+
+# Use pair_style hybrid to incorporate the LDD interactions with other forces
+pair_style hybrid/overlay ldd table spline 3000
+
+bond_style harmonic
+angle_style harmonic
+dihedral_style harmonic
+improper_style none
+
+include ff_bonded_params.lammps
+
+pair_coeff      * * table nb_interaction_tables/lammps_nb_ACA_ACA.table nb_ACA_ACA 15.0
+
+# map atom types 1-4 to local-density species A,B,C,D (defined in the file)
+pair_coeff      * * ldd ABCD_mol.ldd A B C D
+
+# In this example, for simplicity, we set interactions by central site, so every
+# ordered species pair X Y reuses the X-centered table.  Up to 4x4 distinct
+# settings are possible (one line per ordered species pair).
+
+timestep        0.5
+
+neighbor        2.0 bin
+neigh_modify    delay 0 every 1 check yes
+thermo          500
+thermo_style    custom step temp ke pe evdwl etotal press vol
+fix             1  all      nvt        temp       300.0  300.0 100.0
+
+# converting real lammps units to gromacs/bocs units for easy reporting
+# variable STEP equal step
+# variable TEMP equal temp
+# variable VOL equal vol/1000.0
+# variable PRESS equal press*1.01325
+
+# The per-atom local-density quantities computed by pair style ldd are made
+# available through "fix pair".  Each field has one column per species (in the
+# A,B,C,D order of the type map); grad_density has 3 columns (x,y,z) per species.
+# The example below collects them all into the per-atom array f_lddout:
+#   f_lddout[1..4]    local_density of A,B,C,D
+#   f_lddout[5]       total_energy
+#   f_lddout[6..17]   grad_density (x,y,z) of A,B,C,D
+#   f_lddout[18..21]  grad_energy of A,B,C,D
+# fix lddout all pair 1 ldd local_density 0 total_energy 0 grad_density 0 grad_energy 0
+
+
+run_style       verlet
+# Print statements for the above variables, uncomment both if want sim stats
+#fix             print_temp all print 500 "${STEP} ${TEMP}" file temp.dat screen no
+#fix             print_vol all print 500 "${STEP} ${VOL}" file vol.dat screen no
+#fix             print_press all print 500 "${STEP} ${PRESS}" file press.dat screen no
+
+## Dump a trajectory with the per-atom LD quantities (needs "fix lddout" above).
+## f_lddout[*] expands to all 21 columns described next to the fix pair command.
+# dump         4 all custom 500 bocs_traj.lmp id x y z vx vy vz fx fy fz f_lddout[*]
+# dump_modify  4 sort id
+
+## Run for this many steps
+run 10000 # production run for 4 ns.

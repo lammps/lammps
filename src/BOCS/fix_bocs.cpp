@@ -31,6 +31,8 @@
 #include "modify.h"
 #include "neighbor.h"
 #include "respa.h"
+#include "safe_pointers.h"
+#include "tokenizer.h"
 #include "update.h"
 
 #include <cmath>
@@ -40,7 +42,7 @@ using namespace LAMMPS_NS;
 using namespace FixConst;
 
 static const char cite_user_bocs_package[] =
-    "BOCS package: doi:10.1021/acs.jpcb.7b09993\n\n"
+    "BOCS package: https://doi.org/10.1021/acs.jpcb.7b09993\n\n"
     "@Article{Dunn2018,\n"
     " author = {N. J. H. Dunn and K. M. Lebold and M. R. {DeLyser} and\n"
     "    J. F. Rudzinski and W. G. Noid},\n"
@@ -568,7 +570,7 @@ int FixBocs::read_F_table(char *filename, int p_basis_type)
   double **data;
   bool badInput = false;
   int numEntries = 0;
-  FILE *fpi = fopen(filename,"r");
+  SafeFilePtr fpi = fopen(filename,"r");
   if (fpi) {
     // Old code read the input file twice. Now we simply
     // read all the lines from the input file into a string vector,
@@ -585,7 +587,6 @@ int FixBocs::read_F_table(char *filename, int p_basis_type)
     char line[MAX_F_TABLE_LINE_LENGTH] = {'\0'};
     std::vector<std::string> inputLines;
     while (fgets(line, MAX_F_TABLE_LINE_LENGTH, fpi)) inputLines.emplace_back(line);
-    fclose(fpi);
 
     numEntries = inputLines.size();
     if (comm->me == 0) utils::logmesg(lmp, "INFO: Read {} lines from file\n", numEntries);
@@ -604,14 +605,20 @@ int FixBocs::read_F_table(char *filename, int p_basis_type)
     const double volumeIntervalTolerance = 0.001;
     int lineNum = 0;  // this value is only for  message
     int numBadVolumeIntervals = 0; // count these for message
-    float f1, f2;
-    int test_sscanf;
     for (int i = 0; i < (int)inputLines.size(); ++i) {
       lineNum++;  // count each line processed now so lineNum messages can be 1-based
-      test_sscanf = sscanf(inputLines.at(i).c_str()," %f , %f ",&f1, &f2);
-      if (test_sscanf == 2) {
-        data[VOLUME][i] = (double)f1;
-        data[PRESSURE_CORRECTION][i] = (double)f2;
+      double v1 = 0.0, v2 = 0.0;
+      bool goodline = true;
+      try {
+        ValueTokenizer values(inputLines.at(i), " ,\t\n\r\f");
+        v1 = values.next_double();
+        v2 = values.next_double();
+      } catch (TokenizerException &) {
+        goodline = false;
+      }
+      if (goodline) {
+        data[VOLUME][i] = v1;
+        data[PRESSURE_CORRECTION][i] = v2;
         if (i == 1) {
           // second entry is used to compute the validation interval used below
           stdVolumeInterval = data[VOLUME][i] - data[VOLUME][i-1];

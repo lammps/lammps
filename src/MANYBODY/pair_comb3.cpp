@@ -49,7 +49,7 @@ static constexpr int MAXNEIGH = 24;
 
 /* ---------------------------------------------------------------------- */
 
-PairComb3::PairComb3(LAMMPS *lmp) : Pair(lmp)
+PairComb3::PairComb3(LAMMPS *lmp) : Pair(lmp), qf(nullptr), charge(nullptr)
 {
   single_enable = 0;
   restartinfo = 0;
@@ -3540,7 +3540,7 @@ void PairComb3::dipole_init(Param *parami, Param *paramj, double fac11,
 
   r = sqrt(rsq);
   r3 = r * rsq;
-  rcd = 1.0/(r3);
+  rcd = 1.0/r3;
   rct = 3.0*rcd/rsq;
   alfdpi = 0.4/MY_PIS;
   esucon = force->qqr2e;

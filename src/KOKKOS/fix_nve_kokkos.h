@@ -40,6 +40,8 @@ struct FixNVEKokkosFinalIntegrateFunctor;
 template<class DeviceType>
 class FixNVEKokkos : public FixNVE {
  public:
+  typedef ArrayTypes<DeviceType> AT;
+
   FixNVEKokkos(class LAMMPS *, int, char **);
 
   void cleanup_copy();
@@ -48,29 +50,34 @@ class FixNVEKokkos : public FixNVE {
   void final_integrate() override;
   void fused_integrate(int) override;
 
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void initial_integrate_item(int) const;
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void initial_integrate_rmass_item(int) const;
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void final_integrate_item(int) const;
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void final_integrate_rmass_item(int) const;
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void fused_integrate_item(int) const;
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void fused_integrate_rmass_item(int) const;
 
  private:
 
-
-  typename ArrayTypes<DeviceType>::t_x_array x;
-  typename ArrayTypes<DeviceType>::t_v_array v;
-  typename ArrayTypes<DeviceType>::t_f_array_const f;
-  typename ArrayTypes<DeviceType>::t_float_1d rmass;
-  typename ArrayTypes<DeviceType>::t_float_1d mass;
-  typename ArrayTypes<DeviceType>::t_int_1d type;
-  typename ArrayTypes<DeviceType>::t_int_1d mask;
+  typename AT::t_kkfloat_1d_3_lr x;
+  typename AT::t_kkfloat_1d_3 v;
+  typename AT::t_kkacc_1d_3_const f;
+  typename AT::t_kkfloat_1d rmass;
+  typename AT::t_kkfloat_1d mass;
+  typename AT::t_int_1d type;
+  typename AT::t_int_1d mask;
 };
 
 template <class DeviceType, int RMass>
@@ -80,6 +87,7 @@ struct FixNVEKokkosInitialIntegrateFunctor  {
 
   FixNVEKokkosInitialIntegrateFunctor(FixNVEKokkos<DeviceType>* c_ptr):
   c(*c_ptr) {c.cleanup_copy();};
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(const int i) const {
     if (RMass) c.initial_integrate_rmass_item(i);
@@ -94,6 +102,7 @@ struct FixNVEKokkosFinalIntegrateFunctor  {
 
   FixNVEKokkosFinalIntegrateFunctor(FixNVEKokkos<DeviceType>* c_ptr):
   c(*c_ptr) {c.cleanup_copy();};
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(const int i) const {
     if (RMass) c.final_integrate_rmass_item(i);
@@ -108,6 +117,7 @@ struct FixNVEKokkosFusedIntegrateFunctor  {
 
   FixNVEKokkosFusedIntegrateFunctor(FixNVEKokkos<DeviceType>* c_ptr):
   c(*c_ptr) {c.cleanup_copy();};
+// NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(const int i) const {
     if (RMass)

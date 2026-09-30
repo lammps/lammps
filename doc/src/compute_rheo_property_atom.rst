@@ -124,7 +124,9 @@ corresponding attribute is in (e.g., density units for *rho*).
 
 Restrictions
 """"""""""""
- none
+This compute style is part of the RHEO package.  It is only enabled if
+LAMMPS was built with that package.  See the :doc:`Build package
+<Build_package>` page for more info.
 
 Related commands
 """"""""""""""""
@@ -134,7 +136,7 @@ Related commands
 :doc:`fix rheo/viscosity <fix_rheo_viscosity>`,
 :doc:`fix rheo/pressure <fix_rheo_pressure>`,
 :doc:`fix rheo/thermal <fix_rheo_thermal>`,
-:doc:`fix rheo/oxdiation <fix_rheo_oxidation>`,
+:doc:`fix rheo/oxdation <fix_rheo_oxidation>`,
 :doc:`fix rheo <fix_rheo>`
 
 Default

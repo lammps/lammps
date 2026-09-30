@@ -1,25 +1,17 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #include <filesystem>
 #include <fstream>
 #include <regex>
 
 #include <TestHIP_Category.hpp>
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+#else
 #include <Kokkos_Core.hpp>
+#endif
 #include <Kokkos_Graph.hpp>
 
 #include <gtest/gtest.h>
@@ -35,79 +27,57 @@ struct Increment {
 };
 
 // This test checks the promises of Kokkos::Graph against its
-// underlying HIP native objects.
-TEST(TEST_CATEGORY, graph_promises_on_native_objects) {
-#if !defined(KOKKOS_IMPL_HIP_NATIVE_GRAPH)
-  GTEST_SKIP() << "This test will not work without native graph support";
-#else
-  auto graph = Kokkos::Experimental::create_graph<Kokkos::HIP>();
-
-  auto root = Kokkos::Impl::GraphAccess::create_root_ref(graph);
-
+// underlying HIP graph objects.
+TEST(TEST_CATEGORY, graph_promises_on_hip_objects) {
+  Kokkos::Experimental::Graph<Kokkos::HIP> graph{};
   // Before instantiation, the HIP graph is valid, but the HIP executable
   // graph is still null.
-  hipGraph_t hip_graph = graph.native_graph();
+  hipGraph_t hip_graph = graph.hip_graph();
 
   ASSERT_NE(hip_graph, nullptr);
-  ASSERT_EQ(graph.native_graph_exec(), nullptr);
+  ASSERT_EQ(graph.hip_graph_exec(), nullptr);
 
-  // After instantiation, both native objects are valid.
+  // After instantiation, both HIP objects are valid.
   graph.instantiate();
 
-  hipGraphExec_t hip_graph_exec = graph.native_graph_exec();
+  hipGraphExec_t hip_graph_exec = graph.hip_graph_exec();
 
-  ASSERT_EQ(graph.native_graph(), hip_graph);
+  ASSERT_EQ(graph.hip_graph(), hip_graph);
   ASSERT_NE(hip_graph_exec, nullptr);
 
   // Submission should not affect the underlying objects.
   graph.submit();
 
-  ASSERT_EQ(graph.native_graph(), hip_graph);
-  ASSERT_EQ(graph.native_graph_exec(), hip_graph_exec);
-#endif
+  ASSERT_EQ(graph.hip_graph(), hip_graph);
+  ASSERT_EQ(graph.hip_graph_exec(), hip_graph_exec);
 }
 
-// Use native HIP graph to generate a DOT representation.
+// Use HIP graph to generate a DOT representation.
 TEST(TEST_CATEGORY, graph_instantiate_and_debug_dot_print) {
-#if !defined(KOKKOS_IMPL_HIP_NATIVE_GRAPH)
-  GTEST_SKIP() << "This test will not work without native graph support";
-#elif defined(_GLIBCXX_RELEASE) && _GLIBCXX_RELEASE < 9
-  GTEST_SKIP()
-      << "The GNU C++ Library (libstdc++) versions less than 9.1 "
-         "require linking with `-lstdc++fs` when using std::filesystem";
-#elif defined(_LIBCPP_VERSION) && _LIBCPP_VERSION < 110000
-  GTEST_SKIP()
-      << "The LLVM C++ Standard Library (libc++) versions less than "
-         "11 require linking with `-lc++fs` when using std::filesystem";
-#else
   using view_t = Kokkos::View<int, Kokkos::HIP>;
 
   const Kokkos::HIP exec{};
 
   view_t data(Kokkos::view_alloc(exec, "witness"));
 
-  auto graph = Kokkos::Experimental::create_graph(exec);
+  Kokkos::Experimental::Graph graph{
+      Kokkos::Experimental::get_device_handle(exec)};
 
-  auto root = Kokkos::Impl::GraphAccess::create_root_ref(graph);
-
-  root.then_parallel_for(1, Increment<view_t>{data});
+  graph.root_node().then_parallel_for(1, Increment<view_t>{data});
 
   graph.instantiate();
 
   size_t num_nodes;
 
   KOKKOS_IMPL_HIP_SAFE_CALL(
-      hipGraphGetNodes(graph.native_graph(), nullptr, &num_nodes));
+      hipGraphGetNodes(graph.hip_graph(), nullptr, &num_nodes));
 
   ASSERT_EQ(num_nodes, 2u);
 
-  // hipGraphDebugDotPrint was introduced in ROCm 5.5
-#if (HIP_VERSION_MAJOR > 5) || \
-    ((HIP_VERSION_MAJOR > 5) && (HIP_VERSION_MINOR >= 5))
   const auto dot = std::filesystem::temp_directory_path() / "hip_graph.dot";
 
   KOKKOS_IMPL_HIP_SAFE_CALL(hipGraphDebugDotPrint(
-      graph.native_graph(), dot.c_str(), hipGraphDebugDotFlagsVerbose));
+      graph.hip_graph(), dot.c_str(), hipGraphDebugDotFlagsVerbose));
 
   ASSERT_TRUE(std::filesystem::exists(dot));
   ASSERT_GT(std::filesystem::file_size(dot), 0u);
@@ -124,39 +94,74 @@ TEST(TEST_CATEGORY, graph_instantiate_and_debug_dot_print) {
   ASSERT_TRUE(std::regex_search(buffer.str(), std::regex(expected)))
       << "Could not find expected signature regex " << std::quoted(expected)
       << " in " << dot;
-#endif
-#endif
 }
 
 // Build a Kokkos::Graph from an existing hipGraph_t.
-TEST(TEST_CATEGORY, graph_construct_from_native) {
-#if !defined(KOKKOS_IMPL_HIP_NATIVE_GRAPH)
-  GTEST_SKIP() << "This test will not work without native graph support";
-#else
+TEST(TEST_CATEGORY, graph_construct_from_hip_graph) {
   using view_t = Kokkos::View<int, Kokkos::HIPManagedSpace>;
 
-  hipGraph_t native_graph = nullptr;
-  KOKKOS_IMPL_HIP_SAFE_CALL(hipGraphCreate(&native_graph, 0));
+  hipGraph_t hip_graph = nullptr;
+  KOKKOS_IMPL_HIP_SAFE_CALL(hipGraphCreate(&hip_graph, 0));
 
   const Kokkos::HIP exec{};
 
-  auto graph_from_native =
-      Kokkos::Experimental::create_graph_from_native(exec, native_graph);
+  Kokkos::Experimental::Graph graph_from_hip_graph(
+      Kokkos::Experimental::get_device_handle(exec), hip_graph);
 
-  ASSERT_EQ(native_graph, graph_from_native.native_graph());
-
-  auto root = Kokkos::Impl::GraphAccess::create_root_ref(graph_from_native);
+  ASSERT_EQ(hip_graph, graph_from_hip_graph.hip_graph());
 
   const view_t data(Kokkos::view_alloc(exec, "witness"));
 
-  root.then_parallel_for(1, Increment<view_t>{data});
+  graph_from_hip_graph.root_node().then_parallel_for(1,
+                                                     Increment<view_t>{data});
 
-  graph_from_native.submit(exec);
+  graph_from_hip_graph.submit(exec);
 
   exec.fence();
 
   ASSERT_EQ(data(), 1);
-#endif
+}
+
+// Retrieve the underlying HIP node.
+TEST(TEST_CATEGORY, interact_with_hip_node) {
+  using view_t = Kokkos::View<int, Kokkos::HIPManagedSpace>;
+
+  const Kokkos::HIP exec{};
+
+  view_t data(Kokkos::view_alloc(exec, "witness"));
+
+  Kokkos::Experimental::Graph graph{
+      Kokkos::Experimental::get_device_handle(exec)};
+
+  auto node = graph.root_node().then_parallel_for(1, Increment<view_t>{data});
+
+  static_assert(std::same_as<decltype(node.hip_node()), hipGraphNode_t>);
+
+  hipGraphNode_t hip_node = node.hip_node();
+
+  hipGraphNodeType node_type;
+  KOKKOS_IMPL_HIP_SAFE_CALL(hipGraphNodeGetType(hip_node, &node_type));
+
+  ASSERT_EQ(node_type, hipGraphNodeTypeKernel);
+
+  ASSERT_EQ(data(), 0);
+  graph.submit(exec);
+  exec.fence();
+  ASSERT_EQ(data(), 1);
+
+  KOKKOS_IMPL_HIP_SAFE_CALL(
+      hipGraphNodeSetEnabled(graph.hip_graph_exec(), hip_node, false));
+
+  graph.submit(exec);
+  exec.fence();
+  ASSERT_EQ(data(), 1);
+
+  KOKKOS_IMPL_HIP_SAFE_CALL(
+      hipGraphNodeSetEnabled(graph.hip_graph_exec(), hip_node, true));
+
+  graph.submit(exec);
+  exec.fence();
+  ASSERT_EQ(data(), 2);
 }
 
 }  // namespace

@@ -2,9 +2,9 @@
 .. index:: pair_style aip/water/2dm/opt
 
 pair_style aip/water/2dm command
-===================================
+================================
 
-Accelerator Variant: *aip/water/2dm/opt*
+Accelerator Variants: *aip/water/2dm/opt*
 
 Syntax
 """"""

@@ -59,7 +59,7 @@ class PotentialFileReader : protected Pointers {
   std::string next_string();
 
   // unit conversion info
-  int get_unit_convert() const { return unit_convert; }
+  [[nodiscard]] int get_unit_convert() const { return unit_convert; }
 };
 
 }    // namespace LAMMPS_NS

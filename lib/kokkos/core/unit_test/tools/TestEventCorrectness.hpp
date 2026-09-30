@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 #include <iostream>
 #include <gtest/gtest.h>
 #include "Kokkos_Core.hpp"
@@ -30,7 +17,6 @@ class Threads;
 class HIP;
 class SYCL;
 namespace Experimental {
-class OpenMPTarget;
 class HPX;
 }  // namespace Experimental
 }  // namespace Kokkos
@@ -280,14 +266,6 @@ TEST(kokkosp, test_streams) {
 
 #endif
 TEST(kokkosp, async_deep_copy) {
-// FIXME_OPENMPTARGET
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-  if (std::is_same_v<Kokkos::DefaultExecutionSpace,
-                     Kokkos::Experimental::OpenMPTarget>)
-    GTEST_SKIP()
-        << "skipping since the OpenMPTarget backend has unexpected fences";
-#endif
-
   using namespace Kokkos::Test::Tools;
   listen_tool_events(Config::DisableAll(), Config::EnableFences());
   Kokkos::View<float*> left("left", 5), right("right", 5);
@@ -361,14 +339,6 @@ TEST(kokkosp, parallel_reduce) {
 #ifndef KOKKOS_ENABLE_OPENACC
 // FIXME_OPENACC: parallel_scan not implemented yet
 TEST(kokkosp, parallel_scan) {
-  // FIXME_OPENMPTARGET
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-  if (std::is_same_v<Kokkos::DefaultExecutionSpace,
-                     Kokkos::Experimental::OpenMPTarget>)
-    GTEST_SKIP()
-        << "skipping since the OpenMPTarget backend reports unexpected events";
-#endif
-
   using namespace Kokkos::Test::Tools;
   listen_tool_events(Config::DisableAll(), Config::EnableKernels());
   auto success = validate_event_set(
@@ -399,13 +369,6 @@ TEST(kokkosp, parallel_scan_no_fence) {
   if (std::is_same_v<Kokkos::DefaultExecutionSpace, Kokkos::Experimental::HPX>)
     GTEST_SKIP() << "skipping since the HPX backend always fences with async "
                     "dispatch disabled";
-#endif
-    // FIXME_OPENMPTARGET
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-  if (std::is_same_v<Kokkos::DefaultExecutionSpace,
-                     Kokkos::Experimental::OpenMPTarget>)
-    GTEST_SKIP()
-        << "skipping since the OpenMPTarget backend has unexpected fences";
 #endif
 
   // Execute the parallel_scan first without looking for fence events.
@@ -444,13 +407,6 @@ TEST(kokkosp, parallel_scan_no_fence_view) {
   if (std::is_same_v<Kokkos::DefaultExecutionSpace, Kokkos::Experimental::HPX>)
     GTEST_SKIP() << "skipping since the HPX backend always fences with async "
                     "dispatch disabled";
-#endif
-    // FIXME_OPENMPTARGET
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-  if (std::is_same_v<Kokkos::DefaultExecutionSpace,
-                     Kokkos::Experimental::OpenMPTarget>)
-    GTEST_SKIP()
-        << "skipping since the OpenMPTarget backend has unexpected fences";
 #endif
 
   // Execute the parallel_scan first without looking for fence events.
@@ -518,14 +474,6 @@ TEST(kokkosp, fences) {
 }
 
 TEST(kokkosp, raw_allocation) {
-  // FIXME_OPENMPTARGET
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-  if (std::is_same_v<Kokkos::DefaultExecutionSpace,
-                     Kokkos::Experimental::OpenMPTarget>)
-    GTEST_SKIP()
-        << "skipping since the OpenMPTarget backend reports unexpected events";
-#endif
-
   using namespace Kokkos::Test::Tools;
   listen_tool_events(Config::DisableAll(), Config::EnableAllocs());
   auto success = validate_event_set(
@@ -557,14 +505,6 @@ TEST(kokkosp, raw_allocation) {
 }
 
 TEST(kokkosp, view) {
-// FIXME_OPENMPTARGET
-#ifdef KOKKOS_ENABLE_OPENMPTARGET
-  if (std::is_same_v<Kokkos::DefaultExecutionSpace,
-                     Kokkos::Experimental::OpenMPTarget>)
-    GTEST_SKIP()
-        << "skipping since the OpenMPTarget backend reports unexpected events";
-#endif
-
   using namespace Kokkos::Test::Tools;
   listen_tool_events(Config::DisableAll(), Config::EnableAllocs());
   auto success = validate_event_set(

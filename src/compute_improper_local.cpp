@@ -37,10 +37,11 @@ static constexpr double SMALL = 0.001;
 ComputeImproperLocal::ComputeImproperLocal(LAMMPS *lmp, int narg, char **arg) :
     Compute(lmp, narg, arg), vlocal(nullptr), alocal(nullptr)
 {
-  if (narg < 4) error->all(FLERR, "Illegal compute improper/local command");
+  if (narg < 4) utils::missing_cmd_args(FLERR, "compute improper/local", error);
 
   if (atom->avec->impropers_allow == 0)
-    error->all(FLERR, "Compute improper/local used when impropers are not allowed");
+    error->all(FLERR, Error::NOPOINTER,
+               "Compute improper/local used when impropers are not allowed");
 
   local_flag = 1;
   nvalues = narg - 3;
@@ -51,7 +52,7 @@ ComputeImproperLocal::ComputeImproperLocal(LAMMPS *lmp, int narg, char **arg) :
     if (strcmp(arg[iarg], "chi") == 0)
       cflag = nvalues++;
     else
-      error->all(FLERR, "Invalid keyword in compute improper/local command");
+      error->all(FLERR, iarg, "Unknown compute improper/local keyword {}", arg[iarg]);
   }
 
   if (nvalues == 1)
@@ -77,7 +78,7 @@ ComputeImproperLocal::~ComputeImproperLocal()
 void ComputeImproperLocal::init()
 {
   if (force->improper == nullptr)
-    error->all(FLERR, "No improper style is defined for compute improper/local");
+    error->all(FLERR, Error::NOLASTLINE, "No improper style is defined for compute improper/local");
 
   // do initial memory allocation so that memory_usage() is correct
 

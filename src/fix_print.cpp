@@ -29,8 +29,7 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixPrint::FixPrint(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg), fp(nullptr), text(nullptr), copy(nullptr), work(nullptr),
-    var_print(nullptr)
+    Fix(lmp, narg, arg), text(nullptr), copy(nullptr), work(nullptr), var_print(nullptr)
 {
   if (narg < 5) utils::missing_cmd_args(FLERR, "fix print", error);
   if (utils::strmatch(arg[3], "^v_")) {
@@ -49,7 +48,6 @@ FixPrint::FixPrint(LAMMPS *lmp, int narg, char **arg) :
 
   // parse optional args
 
-  fp = nullptr;
   screenflag = 1;
   char *title = nullptr;
 
@@ -101,8 +99,6 @@ FixPrint::~FixPrint()
   delete[] var_print;
   memory->sfree(copy);
   memory->sfree(work);
-
-  if (fp && (comm->me == 0)) fclose(fp);
 }
 
 /* ---------------------------------------------------------------------- */

@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #include <TestStdAlgorithmsCommon.hpp>
 
@@ -85,8 +72,6 @@ struct TestFunctorA {
         break;
       }
 
-#ifndef KOKKOS_ENABLE_OPENMPTARGET
-
       case 2: {
         auto it = KE::exclusive_scan(
             member, KE::cbegin(rowViewSrc), KE::cend(rowViewSrc),
@@ -107,7 +92,6 @@ struct TestFunctorA {
 
         break;
       }
-#endif
     }
 
     // store result of checking if all members have their local
@@ -196,38 +180,27 @@ void test_A(std::size_t numTeams, std::size_t numCols, int apiId) {
 
     ASSERT_TRUE(intraTeamSentinelView_h(i));
 
-// libstdc++ as provided by GCC 8 does not have exclusive_scan and
-// for GCC 9.1, 9.2 fails to compile for missing overload not accepting policy
-#if defined(_GLIBCXX_RELEASE) && (_GLIBCXX_RELEASE <= 9)
-#define exclusive_scan testing_exclusive_scan
-#else
-#define exclusive_scan std::exclusive_scan
-#endif
     switch (apiId) {
       case 0:
       case 1: {
-        auto it = exclusive_scan(KE::cbegin(rowFrom), KE::cend(rowFrom),
-                                 KE::begin(rowDest), initValue);
+        auto it = std::exclusive_scan(KE::cbegin(rowFrom), KE::cend(rowFrom),
+                                      KE::begin(rowDest), initValue);
         const std::size_t stdDistance = KE::distance(KE::begin(rowDest), it);
         ASSERT_EQ(stdDistance, distancesView_h(i));
         break;
       }
 
-#ifndef KOKKOS_ENABLE_OPENMPTARGET
       case 2:
       case 3: {
-        auto it = exclusive_scan(KE::cbegin(rowFrom), KE::cend(rowFrom),
-                                 KE::begin(rowDest), initValue, binaryOp);
+        auto it = std::exclusive_scan(KE::cbegin(rowFrom), KE::cend(rowFrom),
+                                      KE::begin(rowDest), initValue, binaryOp);
         const std::size_t stdDistance = KE::distance(KE::begin(rowDest), it);
         ASSERT_EQ(stdDistance, distancesView_h(i));
 
         break;
       }
-#endif
       default: Kokkos::abort("unreachable");
     }
-
-#undef exclusive_scan
   }
 
   if constexpr (std::is_same_v<InPlaceOrVoid, InPlace>) {
@@ -243,11 +216,7 @@ template <class LayoutTag, class ValueType, class InPlaceOrVoid = void>
 void run_all_scenarios() {
   for (int numTeams : teamSizesToTest) {
     for (const auto& numCols : {0, 1, 2, 13, 101, 1444, 8153}) {
-#ifndef KOKKOS_ENABLE_OPENMPTARGET
       for (int apiId : {0, 1, 2, 3}) {
-#else
-      for (int apiId : {0, 1}) {
-#endif
         test_A<LayoutTag, ValueType, InPlaceOrVoid>(numTeams, numCols, apiId);
       }
     }
@@ -255,10 +224,6 @@ void run_all_scenarios() {
 }
 
 TEST(std_algorithms_exclusive_scan_team_test, test) {
-// FIXME_OPENMPTARGET
-#if defined(KOKKOS_ENABLE_OPENMPTARGET) && defined(KOKKOS_ARCH_INTEL_GPU)
-  GTEST_SKIP() << "the test is known to fail with OpenMPTarget on Intel GPUs";
-#endif
   run_all_scenarios<DynamicTag, double>();
   run_all_scenarios<StridedTwoRowsTag, int>();
   run_all_scenarios<StridedThreeRowsTag, unsigned>();

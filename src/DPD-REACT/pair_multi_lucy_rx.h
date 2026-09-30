@@ -21,6 +21,7 @@ PairStyle(multi/lucy/rx,PairMultiLucyRX);
 #define LMP_PAIR_MULTI_LUCY_RX_H
 
 #include "pair.h"
+#include "rx_table_file_reader.h"
 
 namespace LAMMPS_NS {
 
@@ -41,11 +42,12 @@ class PairMultiLucyRX : public Pair {
   void unpack_forward_comm(int, int, double *) override;
   int pack_reverse_comm(int, int, double *) override;
   void unpack_reverse_comm(int, int *, double *) override;
-  void computeLocalDensity();
+  virtual void computeLocalDensity();
   double rho_0;
   double memory_usage() override;
 
  protected:
+  class FixRX *rx_fix;
   enum { LOOKUP, LINEAR };
 
   int nmax;
@@ -67,7 +69,7 @@ class PairMultiLucyRX : public Pair {
 
   virtual void allocate();
   void read_table(Table *, char *, char *);
-  void param_extract(Table *, char *);
+  void param_extract(RxTableFileReader &, Table *);
   void bcast_table(Table *);
   void spline_table(Table *);
   void compute_table(Table *);

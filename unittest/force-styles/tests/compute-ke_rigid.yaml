@@ -1,0 +1,20 @@
+---
+lammps_version: 4 Jul 2026
+tags:
+date_generated: Thu Jul  9 16:37:06 2026
+epsilon: 1e-08
+timestep: 0.25
+skip_tests:
+prerequisites: |
+  atom full
+  compute ke/rigid
+  fix rigid/small
+pre_commands: ""
+post_commands: |
+  fix rig all rigid/small molecule
+  compute test all ke/rigid rig
+input_file: in.fourmol
+input_coeffs: coeffs.fourmol
+natoms: 29
+global_scalar: 31.815257426485214
+...

@@ -22,6 +22,7 @@
 #include "atom_masks.h"
 #include "atom_vec.h"
 #include "domain_kokkos.h"
+#include "bond.h"
 #include "error.h"
 #include "fix.h"
 #include "force.h"
@@ -66,6 +67,25 @@ NeighBondKokkos<DeviceType>::NeighBondKokkos(LAMMPS *lmp) : Pointers(lmp)
   maxangle = 0;
   maxdihedral = 0;
   maximproper = 0;
+
+  copymode = 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+NeighBondKokkos<DeviceType>::~NeighBondKokkos()
+{
+  // Kokkos hands the loop bodies below a copy of this class as the functor and
+  // destroys that copy when the loop is done.  The topology lists belong to
+  // Neighbor, not to the copy, so only the original may release them.
+
+  if (copymode) return;
+
+  memoryKK->destroy_kokkos(k_bondlist,neighbor->bondlist);
+  memoryKK->destroy_kokkos(k_anglelist,neighbor->anglelist);
+  memoryKK->destroy_kokkos(k_dihedrallist,neighbor->dihedrallist);
+  memoryKK->destroy_kokkos(k_improperlist,neighbor->improperlist);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -107,16 +127,23 @@ void NeighBondKokkos<DeviceType>::init_topology_kk() {
   // bonds,etc can only be broken for atom->molecular = Atom::MOLECULAR, not Atom::TEMPLATE
   // SHAKE sets bonds and angles negative
   // gcmc sets all bonds, angles, etc negative
-  // bond_quartic sets bonds to 0
+  // a bond style that turns bonds off sets partial_flag
   // delete_bonds sets all interactions negative
 
   int i,m;
   int bond_off = 0;
   int angle_off = 0;
+  // keep this list the same as the one in Neighbor::init_topology(): a fix
+  // that turns bonds off by making their type negative has to be named here,
+  // because it does so after this decision is taken and the scan below cannot
+  // see it yet.  Without the name the all variant is chosen, and that one
+  // copies the type into the list without looking at its sign.
+
   for (const auto &ifix : modify->get_fix_list())
-    if (utils::strmatch(ifix->style,"^shake") || utils::strmatch(ifix->style,"^rattle"))
+    if (utils::strmatch(ifix->style,"^shake") || utils::strmatch(ifix->style,"^rattle") ||
+        utils::strmatch(ifix->style,"^ilves"))
       bond_off = angle_off = 1;
-  if (force->bond && force->bond_match("quartic")) bond_off = 1;
+  if (force->bond && force->bond->partial_flag) bond_off = 1;
 
   if (atom->avec->bonds_allow && atom->molecular == Atom::MOLECULAR) {
     for (i = 0; i < atom->nlocal; i++) {
@@ -152,9 +179,8 @@ void NeighBondKokkos<DeviceType>::init_topology_kk() {
     }
   }
 
-  for (i = 0; i < modify->nfix; i++)
-    if ((strcmp(modify->fix[i]->style,"gcmc") == 0))
-      bond_off = angle_off = dihedral_off = improper_off = 1;
+  if (!modify->get_fix_by_style("^gcmc").empty())
+    bond_off = angle_off = dihedral_off = improper_off = 1;
 
   // sync on/off settings across all procs
 
@@ -214,6 +240,17 @@ void NeighBondKokkos<DeviceType>::build_topology_kk()
   if (force->angle) (this->*angle_build_kk)();
   if (force->dihedral) (this->*dihedral_build_kk)();
   if (force->improper) (this->*improper_build_kk)();
+
+  // the topology lists are built on the device, but they are also exposed
+  // through the legacy neighbor->bondlist/anglelist/... host pointers that
+  // non-KOKKOS styles and computes (e.g. compute stress/cartesian) read
+  // directly.  sync the host side so those consumers do not see a stale list;
+  // the device views the KOKKOS bond/angle/... styles use stay valid, as this
+  // leaves both sides of each dual view in sync
+  if (force->bond) k_bondlist.sync_host();
+  if (force->angle) k_anglelist.sync_host();
+  if (force->dihedral) k_dihedrallist.sync_host();
+  if (force->improper) k_improperlist.sync_host();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -230,6 +267,11 @@ template<class DeviceType>
 void NeighBondKokkos<DeviceType>::bond_all()
 {
   atomKK->sync(execution_space, BOND_MASK);
+  // the loop below rebuilds the whole list from the atom topology, so retire any
+  // outstanding claim first: a host style that edits the list in place (bond
+  // quartic breaks bonds there) leaves one behind, and the claim taken at the
+  // end of this function would then collide with it
+  k_bondlist.clear_sync_state();
   v_bondlist = k_bondlist.view<DeviceType>();
   num_bond = atomKK->k_num_bond.view<DeviceType>();
   bond_atom = atomKK->k_bond_atom.view<DeviceType>();
@@ -245,7 +287,9 @@ void NeighBondKokkos<DeviceType>::bond_all()
 
     Kokkos::deep_copy(d_scalars,0);
 
+    copymode = 1;
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagNeighBondBondAll>(0,nlocal),*this,nmissing);
+    copymode = 0;
 
     Kokkos::deep_copy(h_scalars,d_scalars);
 
@@ -258,6 +302,9 @@ void NeighBondKokkos<DeviceType>::bond_all()
     }
   } while (h_fail_flag());
 
+  // claim here: "lost/bond ignore" returns before the end
+  k_bondlist.modify<DeviceType>();
+
   if (nmissing && lostbond == Thermo::ERROR)
     error->one(FLERR, Error::NOLASTLINE, "Bond atoms missing at step {}" + utils::errorurl(5),
                update->ntimestep);
@@ -269,11 +316,10 @@ void NeighBondKokkos<DeviceType>::bond_all()
   MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
   if (all && me == 0)
     error->warning(FLERR,"Bond atoms missing at step {}" + utils::errorurl(5), update->ntimestep);
-
-  k_bondlist.modify<DeviceType>();
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void NeighBondKokkos<DeviceType>::operator()(TagNeighBondBondAll, const int &i, int &nmissing) const {
   for (int m = 0; m < num_bond[i]; m++) {
@@ -310,6 +356,11 @@ template<class DeviceType>
 void NeighBondKokkos<DeviceType>::bond_partial()
 {
   atomKK->sync(execution_space, BOND_MASK);
+  // the loop below rebuilds the whole list from the atom topology, so retire any
+  // outstanding claim first: a host style that edits the list in place (bond
+  // quartic breaks bonds there) leaves one behind, and the claim taken at the
+  // end of this function would then collide with it
+  k_bondlist.clear_sync_state();
   v_bondlist = k_bondlist.view<DeviceType>();
   num_bond = atomKK->k_num_bond.view<DeviceType>();
   bond_atom = atomKK->k_bond_atom.view<DeviceType>();
@@ -325,7 +376,9 @@ void NeighBondKokkos<DeviceType>::bond_partial()
 
     Kokkos::deep_copy(d_scalars,0);
 
+    copymode = 1;
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagNeighBondBondPartial>(0,nlocal),*this,nmissing);
+    copymode = 0;
 
     Kokkos::deep_copy(h_scalars,d_scalars);
 
@@ -338,6 +391,9 @@ void NeighBondKokkos<DeviceType>::bond_partial()
     }
   } while (h_fail_flag());
 
+  // claim here: "lost/bond ignore" returns before the end
+  k_bondlist.modify<DeviceType>();
+
   if (nmissing && lostbond == Thermo::ERROR)
     error->one(FLERR, Error::NOLASTLINE, "Bond atoms missing at step {}" + utils::errorurl(5), update->ntimestep);
 
@@ -348,11 +404,10 @@ void NeighBondKokkos<DeviceType>::bond_partial()
   MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
   if (all && me == 0)
     error->warning(FLERR, "Bond atoms missing at step {}" + utils::errorurl(5), update->ntimestep);
-
-  k_bondlist.modify<DeviceType>();
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void NeighBondKokkos<DeviceType>::operator()(TagNeighBondBondPartial, const int &i, int &nmissing) const {
   for (int m = 0; m < num_bond[i]; m++) {
@@ -386,7 +441,9 @@ void NeighBondKokkos<DeviceType>::bond_check()
   atomKK->sync(execution_space, X_MASK);
   k_bondlist.sync<DeviceType>();
 
+  copymode = 1;
   Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagNeighBondBondCheck>(0,neighbor->nbondlist),*this,flag);
+  copymode = 0;
 
   int flag_all;
   MPI_Allreduce(&flag,&flag_all,1,MPI_INT,MPI_SUM,world);
@@ -394,15 +451,16 @@ void NeighBondKokkos<DeviceType>::bond_check()
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void NeighBondKokkos<DeviceType>::operator()(TagNeighBondBondCheck, const int &m, int &flag) const {
   const int i = v_bondlist(m,0);
   const int j = v_bondlist(m,1);
-  X_FLOAT dxstart,dystart,dzstart;
-  X_FLOAT dx,dy,dz;
-  dxstart = dx = x(i,0) - x(j,0);
-  dystart = dy = x(i,1) - x(j,1);
-  dzstart = dz = x(i,2) - x(j,2);
+  double dxstart,dystart,dzstart;
+  double dx,dy,dz;
+  dxstart = dx = static_cast<double>(x(i,0) - x(j,0));
+  dystart = dy = static_cast<double>(x(i,1) - x(j,1));
+  dzstart = dz = static_cast<double>(x(i,2) - x(j,2));
   minimum_image(dx,dy,dz);
   if (dx != dxstart || dy != dystart || dz != dzstart) flag = 1;
 }
@@ -413,6 +471,11 @@ template<class DeviceType>
 void NeighBondKokkos<DeviceType>::angle_all()
 {
   atomKK->sync(execution_space, ANGLE_MASK);
+  // the loop below rebuilds the whole list from the atom topology, so retire any
+  // outstanding claim first: a host style that edits the list in place (bond
+  // quartic breaks bonds there) leaves one behind, and the claim taken at the
+  // end of this function would then collide with it
+  k_anglelist.clear_sync_state();
   v_anglelist = k_anglelist.view<DeviceType>();
   num_angle = atomKK->k_num_angle.view<DeviceType>();
   angle_atom1 = atomKK->k_angle_atom1.view<DeviceType>();
@@ -430,7 +493,9 @@ void NeighBondKokkos<DeviceType>::angle_all()
 
     Kokkos::deep_copy(d_scalars,0);
 
+    copymode = 1;
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagNeighBondAngleAll>(0,nlocal),*this,nmissing);
+    copymode = 0;
 
     Kokkos::deep_copy(h_scalars,d_scalars);
 
@@ -443,6 +508,9 @@ void NeighBondKokkos<DeviceType>::angle_all()
     }
   } while (h_fail_flag());
 
+  // claim here: "lost/bond ignore" returns before the end
+  k_anglelist.modify<DeviceType>();
+
   if (nmissing && lostbond == Thermo::ERROR)
     error->one(FLERR, Error::NOLASTLINE, "Angle atoms missing at step {}" + utils::errorurl(5), update->ntimestep);
 
@@ -453,11 +521,10 @@ void NeighBondKokkos<DeviceType>::angle_all()
   MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
   if (all && (me == 0))
     error->warning(FLERR, "Angle atoms missing at step {}" + utils::errorurl(5), update->ntimestep);
-
-  k_anglelist.modify<DeviceType>();
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void NeighBondKokkos<DeviceType>::operator()(TagNeighBondAngleAll, const int &i, int &nmissing) const {
   for (int m = 0; m < num_angle[i]; m++) {
@@ -499,6 +566,11 @@ template<class DeviceType>
 void NeighBondKokkos<DeviceType>::angle_partial()
 {
   atomKK->sync(execution_space, ANGLE_MASK);
+  // the loop below rebuilds the whole list from the atom topology, so retire any
+  // outstanding claim first: a host style that edits the list in place (bond
+  // quartic breaks bonds there) leaves one behind, and the claim taken at the
+  // end of this function would then collide with it
+  k_anglelist.clear_sync_state();
   v_anglelist = k_anglelist.view<DeviceType>();
   num_angle = atomKK->k_num_angle.view<DeviceType>();
   angle_atom1 = atomKK->k_angle_atom1.view<DeviceType>();
@@ -516,7 +588,9 @@ void NeighBondKokkos<DeviceType>::angle_partial()
 
     Kokkos::deep_copy(d_scalars,0);
 
+    copymode = 1;
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagNeighBondAnglePartial>(0,nlocal),*this,nmissing);
+    copymode = 0;
 
     Kokkos::deep_copy(h_scalars,d_scalars);
 
@@ -529,6 +603,9 @@ void NeighBondKokkos<DeviceType>::angle_partial()
     }
   } while (h_fail_flag());
 
+  // claim here: "lost/bond ignore" returns before the end
+  k_anglelist.modify<DeviceType>();
+
   if (nmissing && lostbond == Thermo::ERROR)
     error->one(FLERR, Error::NOLASTLINE, "Angle atoms missing at step {}" + utils::errorurl(5), update->ntimestep);
 
@@ -539,11 +616,10 @@ void NeighBondKokkos<DeviceType>::angle_partial()
   MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
   if (all && (me == 0))
     error->warning(FLERR, "Angle atoms missing at step {}" + utils::errorurl(5), update->ntimestep);
-
-  k_anglelist.modify<DeviceType>();
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void NeighBondKokkos<DeviceType>::operator()(TagNeighBondAnglePartial, const int &i, int &nmissing) const {
   for (int m = 0; m < num_angle[i]; m++) {
@@ -585,7 +661,9 @@ void NeighBondKokkos<DeviceType>::angle_check()
   atomKK->sync(execution_space, X_MASK);
   k_anglelist.sync<DeviceType>();
 
+  copymode = 1;
   Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagNeighBondAngleCheck>(0,neighbor->nanglelist),*this,flag);
+  copymode = 0;
 
   int flag_all;
   MPI_Allreduce(&flag,&flag_all,1,MPI_INT,MPI_SUM,world);
@@ -593,26 +671,27 @@ void NeighBondKokkos<DeviceType>::angle_check()
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void NeighBondKokkos<DeviceType>::operator()(TagNeighBondAngleCheck, const int &m, int &flag) const {
   const int i = v_anglelist(m,0);
   const int j = v_anglelist(m,1);
   const int k = v_anglelist(m,2);
-  X_FLOAT dxstart,dystart,dzstart;
-  X_FLOAT dx,dy,dz;
-  dxstart = dx = x(i,0) - x(j,0);
-  dystart = dy = x(i,1) - x(j,1);
-  dzstart = dz = x(i,2) - x(j,2);
+  double dxstart,dystart,dzstart;
+  double dx,dy,dz;
+  dxstart = dx = static_cast<double>(x(i,0) - x(j,0));
+  dystart = dy = static_cast<double>(x(i,1) - x(j,1));
+  dzstart = dz = static_cast<double>(x(i,2) - x(j,2));
   minimum_image(dx,dy,dz);
   if (dx != dxstart || dy != dystart || dz != dzstart) flag = 1;
-  dxstart = dx = x(i,0) - x(k,0);
-  dystart = dy = x(i,1) - x(k,1);
-  dzstart = dz = x(i,2) - x(k,2);
+  dxstart = dx = static_cast<double>(x(i,0) - x(k,0));
+  dystart = dy = static_cast<double>(x(i,1) - x(k,1));
+  dzstart = dz = static_cast<double>(x(i,2) - x(k,2));
   minimum_image(dx,dy,dz);
   if (dx != dxstart || dy != dystart || dz != dzstart) flag = 1;
-  dxstart = dx = x(j,0) - x(k,0);
-  dystart = dy = x(j,1) - x(k,1);
-  dzstart = dz = x(j,2) - x(k,2);
+  dxstart = dx = static_cast<double>(x(j,0) - x(k,0));
+  dystart = dy = static_cast<double>(x(j,1) - x(k,1));
+  dzstart = dz = static_cast<double>(x(j,2) - x(k,2));
   minimum_image(dx,dy,dz);
   if (dx != dxstart || dy != dystart || dz != dzstart) flag = 1;
 }
@@ -623,6 +702,11 @@ template<class DeviceType>
 void NeighBondKokkos<DeviceType>::dihedral_all()
 {
   atomKK->sync(execution_space, DIHEDRAL_MASK);
+  // the loop below rebuilds the whole list from the atom topology, so retire any
+  // outstanding claim first: a host style that edits the list in place (bond
+  // quartic breaks bonds there) leaves one behind, and the claim taken at the
+  // end of this function would then collide with it
+  k_dihedrallist.clear_sync_state();
   v_dihedrallist = k_dihedrallist.view<DeviceType>();
   num_dihedral = atomKK->k_num_dihedral.view<DeviceType>();
   dihedral_atom1 = atomKK->k_dihedral_atom1.view<DeviceType>();
@@ -641,7 +725,9 @@ void NeighBondKokkos<DeviceType>::dihedral_all()
 
     Kokkos::deep_copy(d_scalars,0);
 
+    copymode = 1;
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagNeighBondDihedralAll>(0,nlocal),*this,nmissing);
+    copymode = 0;
 
     Kokkos::deep_copy(h_scalars,d_scalars);
 
@@ -654,6 +740,9 @@ void NeighBondKokkos<DeviceType>::dihedral_all()
     }
   } while (h_fail_flag());
 
+  // claim here: "lost/bond ignore" returns before the end
+  k_dihedrallist.modify<DeviceType>();
+
   if (nmissing && lostbond == Thermo::ERROR)
     error->one(FLERR, Error::NOLASTLINE, "Dihedral atoms missing at step {}" + utils::errorurl(5), update->ntimestep);
 
@@ -664,11 +753,10 @@ void NeighBondKokkos<DeviceType>::dihedral_all()
   MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
   if (all && (me == 0))
     error->warning(FLERR, "Dihedral atoms missing at step {}" + utils::errorurl(5), update->ntimestep);
-
-  k_dihedrallist.modify<DeviceType>();
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void NeighBondKokkos<DeviceType>::operator()(TagNeighBondDihedralAll, const int &i, int &nmissing) const {
   for (int m = 0; m < num_dihedral[i]; m++) {
@@ -714,6 +802,11 @@ template<class DeviceType>
 void NeighBondKokkos<DeviceType>::dihedral_partial()
 {
   atomKK->sync(execution_space, DIHEDRAL_MASK);
+  // the loop below rebuilds the whole list from the atom topology, so retire any
+  // outstanding claim first: a host style that edits the list in place (bond
+  // quartic breaks bonds there) leaves one behind, and the claim taken at the
+  // end of this function would then collide with it
+  k_dihedrallist.clear_sync_state();
   v_dihedrallist = k_dihedrallist.view<DeviceType>();
   num_dihedral = atomKK->k_num_dihedral.view<DeviceType>();
   dihedral_atom1 = atomKK->k_dihedral_atom1.view<DeviceType>();
@@ -732,7 +825,9 @@ void NeighBondKokkos<DeviceType>::dihedral_partial()
 
     Kokkos::deep_copy(d_scalars,0);
 
+    copymode = 1;
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagNeighBondDihedralPartial>(0,nlocal),*this,nmissing);
+    copymode = 0;
 
     Kokkos::deep_copy(h_scalars,d_scalars);
 
@@ -745,6 +840,9 @@ void NeighBondKokkos<DeviceType>::dihedral_partial()
     }
   } while (h_fail_flag());
 
+  // claim here: "lost/bond ignore" returns before the end
+  k_dihedrallist.modify<DeviceType>();
+
   if (nmissing && lostbond == Thermo::ERROR)
     error->one(FLERR, Error::NOLASTLINE, "Dihedral atoms missing at step {}" + utils::errorurl(5), update->ntimestep);
 
@@ -755,11 +853,10 @@ void NeighBondKokkos<DeviceType>::dihedral_partial()
   MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
   if (all && (me == 0))
     error->warning(FLERR, "Dihedral atoms missing at step {}" + utils::errorurl(5), update->ntimestep);
-
-  k_dihedrallist.modify<DeviceType>();
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void NeighBondKokkos<DeviceType>::operator()(TagNeighBondDihedralPartial, const int &i, int &nmissing) const {
   for (int m = 0; m < num_dihedral[i]; m++) {
@@ -795,7 +892,7 @@ void NeighBondKokkos<DeviceType>::operator()(TagNeighBondDihedralPartial, const 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void NeighBondKokkos<DeviceType>::dihedral_check(int nlist, typename AT::t_int_2d list_in)
+void NeighBondKokkos<DeviceType>::dihedral_check(int nlist, typename AT::t_int_2d_lr list_in)
 {
   list = list_in;
   int flag = 0;
@@ -806,7 +903,9 @@ void NeighBondKokkos<DeviceType>::dihedral_check(int nlist, typename AT::t_int_2
   atomKK->sync(execution_space, X_MASK);
   k_dihedrallist.sync<DeviceType>();
 
+  copymode = 1;
   Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagNeighBondDihedralCheck>(0,nlist),*this,flag);
+  copymode = 0;
 
   int flag_all;
   MPI_Allreduce(&flag,&flag_all,1,MPI_INT,MPI_SUM,world);
@@ -815,42 +914,43 @@ void NeighBondKokkos<DeviceType>::dihedral_check(int nlist, typename AT::t_int_2
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void NeighBondKokkos<DeviceType>::operator()(TagNeighBondDihedralCheck, const int &m, int &flag) const {
   const int i = list(m,0);
   const int j = list(m,1);
   const int k = list(m,2);
   const int l = list(m,3);
-  X_FLOAT dxstart,dystart,dzstart;
-  X_FLOAT dx,dy,dz;
-  dxstart = dx = x(i,0) - x(j,0);
-  dystart = dy = x(i,1) - x(j,1);
-  dzstart = dz = x(i,2) - x(j,2);
+  double dxstart,dystart,dzstart;
+  double dx,dy,dz;
+  dxstart = dx = static_cast<double>(x(i,0) - x(j,0));
+  dystart = dy = static_cast<double>(x(i,1) - x(j,1));
+  dzstart = dz = static_cast<double>(x(i,2) - x(j,2));
   minimum_image(dx,dy,dz);
   if (dx != dxstart || dy != dystart || dz != dzstart) flag = 1;
-  dxstart = dx = x(i,0) - x(k,0);
-  dystart = dy = x(i,1) - x(k,1);
-  dzstart = dz = x(i,2) - x(k,2);
+  dxstart = dx = static_cast<double>(x(i,0) - x(k,0));
+  dystart = dy = static_cast<double>(x(i,1) - x(k,1));
+  dzstart = dz = static_cast<double>(x(i,2) - x(k,2));
   minimum_image(dx,dy,dz);
   if (dx != dxstart || dy != dystart || dz != dzstart) flag = 1;
-  dxstart = dx = x(i,0) - x(l,0);
-  dystart = dy = x(i,1) - x(l,1);
-  dzstart = dz = x(i,2) - x(l,2);
+  dxstart = dx = static_cast<double>(x(i,0) - x(l,0));
+  dystart = dy = static_cast<double>(x(i,1) - x(l,1));
+  dzstart = dz = static_cast<double>(x(i,2) - x(l,2));
   minimum_image(dx,dy,dz);
   if (dx != dxstart || dy != dystart || dz != dzstart) flag = 1;
-  dxstart = dx = x(j,0) - x(k,0);
-  dystart = dy = x(j,1) - x(k,1);
-  dzstart = dz = x(j,2) - x(k,2);
+  dxstart = dx = static_cast<double>(x(j,0) - x(k,0));
+  dystart = dy = static_cast<double>(x(j,1) - x(k,1));
+  dzstart = dz = static_cast<double>(x(j,2) - x(k,2));
   minimum_image(dx,dy,dz);
   if (dx != dxstart || dy != dystart || dz != dzstart) flag = 1;
-  dxstart = dx = x(j,0) - x(l,0);
-  dystart = dy = x(j,1) - x(l,1);
-  dzstart = dz = x(j,2) - x(l,2);
+  dxstart = dx = static_cast<double>(x(j,0) - x(l,0));
+  dystart = dy = static_cast<double>(x(j,1) - x(l,1));
+  dzstart = dz = static_cast<double>(x(j,2) - x(l,2));
   minimum_image(dx,dy,dz);
   if (dx != dxstart || dy != dystart || dz != dzstart) flag = 1;
-  dxstart = dx = x(k,0) - x(l,0);
-  dystart = dy = x(k,1) - x(l,1);
-  dzstart = dz = x(k,2) - x(l,2);
+  dxstart = dx = static_cast<double>(x(k,0) - x(l,0));
+  dystart = dy = static_cast<double>(x(k,1) - x(l,1));
+  dzstart = dz = static_cast<double>(x(k,2) - x(l,2));
   minimum_image(dx,dy,dz);
   if (dx != dxstart || dy != dystart || dz != dzstart) flag = 1;
 }
@@ -861,6 +961,11 @@ template<class DeviceType>
 void NeighBondKokkos<DeviceType>::improper_all()
 {
   atomKK->sync(execution_space, IMPROPER_MASK);
+  // the loop below rebuilds the whole list from the atom topology, so retire any
+  // outstanding claim first: a host style that edits the list in place (bond
+  // quartic breaks bonds there) leaves one behind, and the claim taken at the
+  // end of this function would then collide with it
+  k_improperlist.clear_sync_state();
   v_improperlist = k_improperlist.view<DeviceType>();
   num_improper = atomKK->k_num_improper.view<DeviceType>();
   improper_atom1 = atomKK->k_improper_atom1.view<DeviceType>();
@@ -879,7 +984,9 @@ void NeighBondKokkos<DeviceType>::improper_all()
 
     Kokkos::deep_copy(d_scalars,0);
 
+    copymode = 1;
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagNeighBondImproperAll>(0,nlocal),*this,nmissing);
+    copymode = 0;
 
     Kokkos::deep_copy(h_scalars,d_scalars);
 
@@ -892,6 +999,9 @@ void NeighBondKokkos<DeviceType>::improper_all()
     }
   } while (h_fail_flag());
 
+  // claim here: "lost/bond ignore" returns before the end
+  k_improperlist.modify<DeviceType>();
+
   if (nmissing && lostbond == Thermo::ERROR)
     error->one(FLERR, Error::NOLASTLINE, "Improper atoms missing at step {}" + utils::errorurl(5), update->ntimestep);
 
@@ -902,11 +1012,10 @@ void NeighBondKokkos<DeviceType>::improper_all()
   MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
   if (all && (me == 0))
     error->warning(FLERR, "Improper atoms missing at step {}" + utils::errorurl(5), update->ntimestep);
-
-  k_improperlist.modify<DeviceType>();
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void NeighBondKokkos<DeviceType>::operator()(TagNeighBondImproperAll, const int &i, int &nmissing) const {
   for (int m = 0; m < num_improper[i]; m++) {
@@ -952,6 +1061,11 @@ template<class DeviceType>
 void NeighBondKokkos<DeviceType>::improper_partial()
 {
   atomKK->sync(execution_space, IMPROPER_MASK);
+  // the loop below rebuilds the whole list from the atom topology, so retire any
+  // outstanding claim first: a host style that edits the list in place (bond
+  // quartic breaks bonds there) leaves one behind, and the claim taken at the
+  // end of this function would then collide with it
+  k_improperlist.clear_sync_state();
   v_improperlist = k_improperlist.view<DeviceType>();
   num_improper = atomKK->k_num_improper.view<DeviceType>();
   improper_atom1 = atomKK->k_improper_atom1.view<DeviceType>();
@@ -970,7 +1084,9 @@ void NeighBondKokkos<DeviceType>::improper_partial()
 
     Kokkos::deep_copy(d_scalars,0);
 
+    copymode = 1;
     Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagNeighBondImproperPartial>(0,nlocal),*this,nmissing);
+    copymode = 0;
 
     Kokkos::deep_copy(h_scalars,d_scalars);
 
@@ -983,6 +1099,9 @@ void NeighBondKokkos<DeviceType>::improper_partial()
     }
   } while (h_fail_flag());
 
+  // claim here: "lost/bond ignore" returns before the end
+  k_improperlist.modify<DeviceType>();
+
   if (nmissing && lostbond == Thermo::ERROR)
     error->one(FLERR, Error::NOLASTLINE, "Improper atoms missing at step {}" + utils::errorurl(5), update->ntimestep);
 
@@ -993,11 +1112,10 @@ void NeighBondKokkos<DeviceType>::improper_partial()
   MPI_Allreduce(&nmissing,&all,1,MPI_INT,MPI_SUM,world);
   if (all && (me == 0))
     error->warning(FLERR, "Improper atoms missing at step {}" + utils::errorurl(5), update->ntimestep);
-
-  k_improperlist.modify<DeviceType>();
 }
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 void NeighBondKokkos<DeviceType>::operator()(TagNeighBondImproperPartial, const int &i, int &nmissing) const {
   for (int m = 0; m < num_improper[i]; m++) {
@@ -1033,27 +1151,28 @@ void NeighBondKokkos<DeviceType>::operator()(TagNeighBondImproperPartial, const 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
 int NeighBondKokkos<DeviceType>::closest_image(const int i, int j) const
 {
   if (j < 0) return j;
 
-  const X_FLOAT xi0 = x(i,0);
-  const X_FLOAT xi1 = x(i,1);
-  const X_FLOAT xi2 = x(i,2);
+  const double xi0 = static_cast<double>(x(i,0));
+  const double xi1 = static_cast<double>(x(i,1));
+  const double xi2 = static_cast<double>(x(i,2));
 
   int closest = j;
-  X_FLOAT delx = xi0 - x(j,0);
-  X_FLOAT dely = xi1 - x(j,1);
-  X_FLOAT delz = xi2 - x(j,2);
-  X_FLOAT rsqmin = delx*delx + dely*dely + delz*delz;
-  X_FLOAT rsq;
+  double delx = xi0 - static_cast<double>(x(j,0));
+  double dely = xi1 - static_cast<double>(x(j,1));
+  double delz = xi2 - static_cast<double>(x(j,2));
+  double rsqmin = delx*delx + dely*dely + delz*delz;
+  double rsq;
 
   while (d_sametag[j] >= 0) {
     j = d_sametag[j];
-    delx = xi0 - x(j,0);
-    dely = xi1 - x(j,1);
-    delz = xi2 - x(j,2);
+    delx = xi0 - static_cast<double>(x(j,0));
+    dely = xi1 - static_cast<double>(x(j,1));
+    delz = xi2 - static_cast<double>(x(j,2));
     rsq = delx*delx + dely*dely + delz*delz;
     if (rsq < rsqmin) {
       rsqmin = rsq;
@@ -1070,8 +1189,9 @@ int NeighBondKokkos<DeviceType>::closest_image(const int i, int j) const
 ------------------------------------------------------------------------- */
 
 template<class DeviceType>
+// NOLINTNEXTLINE
 KOKKOS_INLINE_FUNCTION
-void NeighBondKokkos<DeviceType>::minimum_image(X_FLOAT &dx, X_FLOAT &dy, X_FLOAT &dz) const
+void NeighBondKokkos<DeviceType>::minimum_image(double &dx, double &dy, double &dz) const
 {
   if (triclinic == 0) {
     if (xperiodic) {

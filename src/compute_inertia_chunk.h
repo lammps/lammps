@@ -37,6 +37,7 @@ class ComputeInertiaChunk : public ComputeChunk {
   double **com, **comall;
   double **inertia, **inertiaall;
 
+ protected:
   void allocate() override;
 };
 }    // namespace LAMMPS_NS

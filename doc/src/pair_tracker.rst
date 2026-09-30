@@ -119,7 +119,7 @@ should be used.
 
 The *time/min* keyword sets a minimum amount of time that an
 interaction must persist to be included.  This setting can be used to
-censor short-lived interactions.
+exclude short-lived interactions.
 
 The *type/include* keyword filters interactions based on the types of
 the two atoms.  Data is only saved for interactions between atoms
@@ -136,6 +136,9 @@ means all types from 1 to M.  A leading asterisk means all types from
 (inclusive).  A middle asterisk means all types from m to n
 (inclusive).  Note that the *type/include* keyword can be specified
 multiple times.
+
+An example input script using this pair style can be found in the
+``examples/PACKAGES/tracker`` folder.
 
 Mixing, shift, table, tail correction, restart, rRESPA info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""

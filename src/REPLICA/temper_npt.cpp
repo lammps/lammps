@@ -42,14 +42,18 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-TemperNPT::TemperNPT(LAMMPS *lmp) : Command(lmp) {}
+TemperNPT::TemperNPT(LAMMPS *lmp) :
+    Command(lmp), roots(MPI_COMM_NULL), ranswap(nullptr), ranboltz(nullptr), whichfix(nullptr),
+    set_temp(nullptr),
+    temp2world(nullptr), world2temp(nullptr), world2root(nullptr)
+{}
 
 /* ---------------------------------------------------------------------- */
 
 TemperNPT::~TemperNPT()
 {
-  MPI_Comm_free(&roots);
-  if (ranswap) delete ranswap;
+  if (roots != MPI_COMM_NULL) MPI_Comm_free(&roots);
+  delete ranswap;
   delete ranboltz;
   delete[] set_temp;
   delete[] temp2world;

@@ -1,11 +1,12 @@
 .. index:: pair_style colloid
 .. index:: pair_style colloid/gpu
+.. index:: pair_style colloid/kk
 .. index:: pair_style colloid/omp
 
 pair_style colloid command
 ==========================
 
-Accelerator Variants: *colloid/gpu*, *colloid/omp*
+Accelerator Variants: *colloid/gpu*, *colloid/kk*, *colloid/omp*
 
 Syntax
 """"""

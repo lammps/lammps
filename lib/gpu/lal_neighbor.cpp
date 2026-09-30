@@ -502,6 +502,23 @@ void Neighbor::build_nbor_list(double **x, const int inum, const int host_inum,
                                double *sublo, double *subhi, tagint *tag,
                                int **nspecial, tagint **special, bool &success,
                                int &mn, UCL_Vector<int,int> &error_flag) {
+  // Legacy interface without box information. The special neighbor kernel
+  // requires the box lengths and periodicity for its minimum image check.
+  // Passing zeros disables that check, which is equivalent to the behavior
+  // of the special neighbor kernel before the check was added.
+  double prd[3] = {0.0, 0.0, 0.0};
+  int periodicity[3] = {0, 0, 0};
+  build_nbor_list(x, inum, host_inum, nall, atom, sublo, subhi, tag, nspecial,
+                  special, success, mn, prd, periodicity, error_flag);
+}
+
+template <class numtyp, class acctyp>
+void Neighbor::build_nbor_list(double **x, const int inum, const int host_inum,
+                               const int nall, Atom<numtyp,acctyp> &atom,
+                               double *sublo, double *subhi, tagint *tag,
+                               int **nspecial, tagint **special, bool &success,
+                               int &mn, double* prd, int* periodicity,
+                               UCL_Vector<int,int> &error_flag) {
   _nbor_time_avail=true;
   const int nt=inum+host_inum;
 
@@ -833,7 +850,8 @@ void Neighbor::build_nbor_list(double **x, const int inum, const int host_inum,
       if (_time_device)
         time_kernel.add_to_total();
       build_nbor_list(x, inum, host_inum, nall, atom, sublo, subhi, tag,
-                      nspecial, special, success, mn, error_flag);
+                       nspecial, special, success, mn, prd, periodicity,
+                       error_flag);
       return;
     }
   }
@@ -841,10 +859,19 @@ void Neighbor::build_nbor_list(double **x, const int inum, const int host_inum,
   if (_maxspecial>0) {
     const int GX2=static_cast<int>(ceil(static_cast<double>
                                           (nt*_threads_per_atom)/cell_block));
+    const auto _xprd_half=static_cast<numtyp>(0.5*prd[0]);
+    const auto _yprd_half=static_cast<numtyp>(0.5*prd[1]);
+    const auto _zprd_half=static_cast<numtyp>(0.5*prd[2]);
+    const int xperiodic=periodicity[0];
+    const int yperiodic=periodicity[1];
+    const int zperiodic=periodicity[2];
     _shared->k_special.set_size(GX2,cell_block);
-    _shared->k_special.run(&dev_nbor, &nbor_host, &dev_numj_host,
+    _shared->k_special.run(&atom.x, &dev_nbor, &nbor_host, &dev_numj_host,
                            &atom.dev_tag, &dev_nspecial, &dev_special,
-                           &inum, &nt, &_max_nbors, &_threads_per_atom);
+                           &inum, &nt, &_max_nbors, &_threads_per_atom,
+                           &_xprd_half, &_yprd_half, &_zprd_half,
+                           &xperiodic, &yperiodic, &zperiodic);
+
   }
   time_kernel.stop();
 

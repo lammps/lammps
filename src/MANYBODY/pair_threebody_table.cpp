@@ -703,6 +703,7 @@ void PairThreebodyTable::uf_lookup(Param *pm, double r12, double r13, double the
 
   //lookup scheme
 
+  // NOLINTBEGIN
   // if it is a symmetric threebody interaction, less table entries are required
   if (pm->symmetric) {
     nr12 = (r12 - pm->mltable->rmin + 0.5 * dr - 0.00000001) / dr;
@@ -730,6 +731,7 @@ void PairThreebodyTable::uf_lookup(Param *pm, double r12, double r13, double the
     itable *= (pm->mltable->ninput * 2);
     itable += ntheta;
   }
+  // NOLINTEND
 
   f11 = pm->mltable->f11file[itable];
   f12 = pm->mltable->f12file[itable];

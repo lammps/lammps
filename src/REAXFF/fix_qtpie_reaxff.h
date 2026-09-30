@@ -117,6 +117,7 @@ class FixQtpieReaxFF : public Fix {
   int CG(double *, double *);
   void sparse_matvec(sparse_matrix *, double *, double *);
 
+ public:
   int pack_forward_comm(int, int *, double *, int, int *) override;
   void unpack_forward_comm(int, int, double *) override;
   int pack_reverse_comm(int, int, double *) override;
@@ -127,6 +128,7 @@ class FixQtpieReaxFF : public Fix {
   int pack_exchange(int, double *) override;
   int unpack_exchange(int, double *) override;
 
+ protected:
   double parallel_norm(double *, int);
   double parallel_dot(double *, double *, int);
   double parallel_vector_acc(double *, int);
@@ -135,7 +137,7 @@ class FixQtpieReaxFF : public Fix {
   void vector_add(double *, double, double *, int);
 
   virtual void calc_chi_eff();
-  double find_min_exp(const double*, const int);
+  double find_min_exp(const double *, const int);
 
   int matvecs_s, matvecs_t;    // Iteration count for each system
 };

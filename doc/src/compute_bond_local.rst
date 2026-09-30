@@ -223,7 +223,7 @@ energy :doc:`units <units>`. The output for *force* will be in force
 
 Restrictions
 """"""""""""
- none
+none
 
 Related commands
 """"""""""""""""

@@ -60,7 +60,7 @@ such enhancements or derivative works thereof, in binary and source code form.
 
 namespace ptm_voro {
 
-inline void voro_fatal_error(const char *p,int status) {
+static inline void voro_fatal_error(const char *p,int status) {
         fprintf(stderr,"voro++: %s\n",p);
         exit(status);
         //return -1;//status;
@@ -1370,6 +1370,8 @@ void voronoicell_neighbor::check_facets() {
 /** The class constructor allocates memory for storing neighbor information. */
 voronoicell_neighbor::voronoicell_neighbor() {
         int i;
+        paux1=nullptr;
+        paux2=nullptr;
         mne=new int*[current_vertex_order];
         ne=new int*[current_vertices];
         for (i=0;i<3;i++) mne[i]=new int[init_n_vertices*i];

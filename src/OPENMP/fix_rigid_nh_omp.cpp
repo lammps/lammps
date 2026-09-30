@@ -46,7 +46,11 @@ using namespace FixConst;
 using namespace MathConst;
 using namespace RigidConst;
 
-using dbl3_t = struct { double x,y,z; };
+namespace {
+using dbl3_t = struct {
+  double x,y,z;
+};
+}
 
 /* ----------------------------------------------------------------------
    perform preforce velocity Verlet integration

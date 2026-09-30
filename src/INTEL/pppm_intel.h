@@ -44,9 +44,6 @@ class PPPMIntel : public PPPM {
   void compute_second(int, int);
   void pack_buffers();
 
-#ifdef _LMP_INTEL_OFFLOAD
-  int use_base();
-#endif
 
  protected:
   FixIntel *fix;
@@ -63,9 +60,6 @@ class PPPMIntel : public PPPM {
   FFT_SCALAR **drho_lookup;
   FFT_SCALAR half_rho_scale, half_rho_scale_plus;
 
-#ifdef _LMP_INTEL_OFFLOAD
-  int _use_base;
-#endif
 
   void allocate() override;
 

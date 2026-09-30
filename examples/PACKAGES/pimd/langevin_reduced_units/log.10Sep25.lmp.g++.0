@@ -1,0 +1,97 @@
+LAMMPS (10 Sep 2025 - Development - patch_10Sep2025-285-g0b912432e9-modified)
+Processor partition = 0
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
+  using 1 OpenMP thread(s) per MPI task
+variable ibead uloop 32 pad
+
+units lj
+atom_style atomic
+atom_modify map yes
+boundary p p p
+pair_style lj/cut 2.8015
+read_data data.lj${ibead}
+read_data data.lj01
+Reading data file ...
+  orthogonal box = (-3.4945131 -3.4945131 -3.4945131) to (3.4945131 3.4945131 3.4945131)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  200 atoms
+  read_data CPU = 0.001 seconds
+
+pair_coeff    * * 1.0 1.0
+pair_modify shift yes
+
+mass 1 1.0
+
+timestep 0.00044905847
+
+fix 1 all pimd/langevin ensemble nvt integrator obabo temp 1.00888 sp 0.1924 thermostat PILE_L ${ibead}
+fix 1 all pimd/langevin ensemble nvt integrator obabo temp 1.00888 sp 0.1924 thermostat PILE_L 01
+
+thermo_style custom step temp f_1[*] vol press
+thermo 100
+thermo_modify norm no
+
+#dump dcd all custom 1 ${ibead}.lammpstrj id type x y z vx vy vz ix iy iz fx fy fz
+#dump_modify dcd sort id format line "%d %d %.16f %.16f %.16f %.16f %.16f %.16f %d %d %d %.16f %.16f %.16f"
+
+run 1000
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Initializing PI Langevin equation thermostat...
+  Bead ID    |    omega    |    tau    |    c1    |    c2
+      0     0.00000000e+00 1.00000000e+00 9.99775496e-01 2.11886210e-02
+      1     1.31787526e+02 3.79398579e-03 9.42536810e-01 3.34102322e-01
+  PILE_L thermostat successfully initialized!
+
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 3.1015
+  ghost atom cutoff = 3.1015
+  binsize = 1.55075, bins = 5 5 5
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 3.117 | 3.117 | 3.117 Mbytes
+   Step          Temp          f_1[1]         f_1[2]         f_1[3]         f_1[4]         f_1[5]         f_1[6]         f_1[7]         f_1[8]         f_1[9]        f_1[10]         Volume         Press     
+         0   0              0              0             -875.67022      841988.51     -421279.13      253.30998      382.47517     -1646.5336     -1.9663356     -0.82731217     341.38937     -1.3810467    
+       100   14.817371      4422.9853      0             -534.92328      5337.0116      98.252811      7794.4231      306.80873     -0.79835015     13.250964      8.3267012      341.38937      12.562252    
+       200   13.762897      4108.2246      0             -534.95517      4177.5291      334.44025     -8232.4092      308.68322      0.1241056      12.726742      8.0817572      341.38937      12.177521    
+       300   12.567041      3751.2617      0             -493.05357      3999.6771      286.94793      8675.7287      309.21515     -0.061380815    14.107894      8.6065735      341.38937      12.246489    
+       400   11.844955      3535.7192      0             -515.1282       3784.41        290.67609     -85.218746      309.0205      -0.046820083    13.638883      8.2475712      341.38937      11.616699    
+       500   11.101108      3313.6808      0             -521.46928      3556           274.62448      650.39076      309.45886     -0.1095114      12.806143      7.7267347      341.38937      10.99195     
+       600   9.9620798      2973.6808      0             -462.66349      3219.3472      323.6578       3169.1089      309.48769      0.081993582    13.761585      8.0387709      341.38937      11.072758    
+       700   9.3387158      2787.6067      0             -501.1952       2901.7138      343.18094      2002.8977      309.02634      0.15824332     12.74807       7.4599969      341.38937      10.131828    
+       800   8.9074976      2658.888       0             -523.14785      2864.9389      287.94911      2331.5161      308.67674     -0.057470593    11.606039      6.8145291      341.38937      9.3523989    
+       900   8.5049897      2538.7394      0             -543.6833       2597.7781      328.04213      599.92997      308.62574      0.099117065    10.499473      6.2153451      341.38937      8.6401113    
+      1000   8.0728921      2409.7583      0             -571.68303      2533.6673      290.94669     -1268.3145      308.58653     -0.045763228    9.4221992      5.5934009      341.38937      7.8382485    
+Loop time of 0.188222 on 1 procs for 1000 steps with 200 atoms
+
+Performance: 206132.768 tau/day, 5312.885 timesteps/s, 1.063 Matom-step/s
+99.4% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 0.091306   | 0.091306   | 0.091306   |   0.0 | 48.51
+Neigh   | 0.01581    | 0.01581    | 0.01581    |   0.0 |  8.40
+Comm    | 0.0038515  | 0.0038515  | 0.0038515  |   0.0 |  2.05
+Output  | 9.6502e-05 | 9.6502e-05 | 9.6502e-05 |   0.0 |  0.05
+Modify  | 0.076181   | 0.076181   | 0.076181   |   0.0 | 40.47
+Other   |            | 0.0009761  |            |       |  0.52
+
+Nlocal:            200 ave         200 max         200 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:           1117 ave        1117 max        1117 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:           7491 ave        7491 max        7491 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 7491
+Ave neighs/atom = 37.455
+Neighbor list builds = 55
+Dangerous builds = 0
+Total wall time: 0:00:00

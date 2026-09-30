@@ -28,7 +28,8 @@ static constexpr int EXTRA = 1000;
 
 /* ---------------------------------------------------------------------- */
 
-ImproperHybrid::ImproperHybrid(LAMMPS *lmp) : Improper(lmp)
+ImproperHybrid::ImproperHybrid(LAMMPS *lmp) :
+    Improper(lmp), styles(nullptr), keywords(nullptr), map(nullptr)
 {
   writedata = 0;
   nstyles = 0;
@@ -232,7 +233,7 @@ void ImproperHybrid::settings(int narg, char **arg)
     // by looking for the next known improper style name.
 
     int jarg = i + 1;
-    while ((jarg < narg) && !force->improper_map->count(arg[jarg]) &&
+    while ((jarg < narg) && !Force::improper_styles().contains(arg[jarg]) &&
            !lmp->match_style("improper", arg[jarg]))
       jarg++;
 

@@ -1,7 +1,10 @@
 .. index:: compute erotate/asphere
+.. index:: compute erotate/asphere/kk
 
 compute erotate/asphere command
 ===============================
+
+Accelerator Variants: *erotate/asphere/kk*
 
 Syntax
 """"""
@@ -39,6 +42,12 @@ is computed from its angular momentum if needed.
    For :doc:`2d models <dimension>`, ellipsoidal particles are
    treated as ellipsoids, not ellipses, meaning their moments of inertia
    will be the same as in 3d.
+
+----------
+
+.. include:: accel_styles.rst
+
+----------
 
 Output info
 """""""""""

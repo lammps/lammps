@@ -29,7 +29,6 @@ class DPDCoulSlaterLong : public BaseDPD<numtyp, acctyp> {
   /// Clear any previous data and set up for a new LAMMPS run
   /** \param max_nbors initial number of rows in the neighbor matrix
     * \param cell_size cutoff + skin
-    * \param gpu_split fraction of particles handled by device
     *
     * Returns:
     * -  0 if successful
@@ -41,7 +40,7 @@ class DPDCoulSlaterLong : public BaseDPD<numtyp, acctyp> {
            double **host_sigma, double **host_cut_dpd, double **host_cut_dpdsq,
            double **host_cut_slatersq, double *host_special_lj, bool tstat_only, const int nlocal,
            const int nall, const int max_nbors, const int maxspecial, const double cell_size,
-           const double gpu_split, FILE *screen, double *host_special_coul, const double qqrd2e,
+           FILE *screen, double *host_special_coul, const double qqrd2e,
            const double g_ewald, const double lamda);
 
   /// Clear all host and device data
@@ -53,10 +52,6 @@ class DPDCoulSlaterLong : public BaseDPD<numtyp, acctyp> {
 
   /// Total host memory used by library for pair style
   double host_memory_usage() const;
-
-  /// Update coeff if needed (tstat only)
-  void update_coeff(int ntypes, double **host_a0, double **host_gamma,
-                    double **host_sigma, double **host_cut_dpd );
 
   void get_extra_data(double *host_q);
 

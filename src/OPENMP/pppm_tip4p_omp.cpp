@@ -350,7 +350,8 @@ void PPPMTIP4POMP::particle_map()
   const int nlocal = atom->nlocal;
 
   if (!std::isfinite(boxlox) || !std::isfinite(boxloy) || !std::isfinite(boxloz))
-    error->one(FLERR,"Non-numeric box dimensions - simulation unstable" + utils::errorurl(6));
+    error->one(FLERR, Error::NOLASTLINE,
+               "Non-numeric box dimensions - simulation unstable" + utils::errorurl(6));
 
   int flag = 0;
 #if defined(_OPENMP)
@@ -388,7 +389,8 @@ void PPPMTIP4POMP::particle_map()
 
   int flag_all;
   MPI_Allreduce(&flag,&flag_all,1,MPI_INT,MPI_SUM,world);
-  if (flag_all) error->all(FLERR, Error::NOLASTLINE, "Out of range atoms - cannot compute PPPM" + utils::errorurl(4));
+  if (flag_all) error->all(FLERR, Error::NOLASTLINE,
+                           "Out of range atoms - cannot compute PPPM" + utils::errorurl(4));
 }
 
 /* ----------------------------------------------------------------------

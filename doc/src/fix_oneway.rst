@@ -1,7 +1,10 @@
 .. index:: fix oneway
+.. index:: fix oneway/kk
 
 fix oneway command
 ==================
+
+Accelerator Variant: *oneway/kk*
 
 Syntax
 """"""
@@ -47,6 +50,12 @@ are relevant to this fix.  No global or per-atom quantities are stored
 by this fix for access by various :doc:`output commands <Howto_output>`.
 No parameter of this fix can be used with the *start/stop* keywords of
 the :doc:`run <run>` command.  This fix is not invoked during :doc:`energy minimization <minimize>`.
+
+----------
+
+.. include:: accel_styles.rst
+
+----------
 
 Restrictions
 """"""""""""

@@ -1,18 +1,5 @@
-//@HEADER
-// ************************************************************************
-//
-//                        Kokkos v. 4.0
-//       Copyright (2022) National Technology & Engineering
-//               Solutions of Sandia, LLC (NTESS).
-//
-// Under the terms of Contract DE-NA0003525 with NTESS,
-// the U.S. Government retains certain rights in this software.
-//
-// Part of Kokkos, under the Apache License v2.0 with LLVM Exceptions.
-// See https://kokkos.org/LICENSE for license information.
 // SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
-//
-//@HEADER
+// SPDX-FileCopyrightText: Copyright Contributors to the Kokkos project
 
 #ifndef KOKKOS_EXPERIMENTAL_ERROR_REPORTER_HPP
 #define KOKKOS_EXPERIMENTAL_ERROR_REPORTER_HPP
@@ -21,58 +8,94 @@
 #define KOKKOS_IMPL_PUBLIC_INCLUDE_NOTDEFINED_ERRORREPORTER
 #endif
 
-#include <vector>
+#include <Kokkos_Macros.hpp>
+#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
+import kokkos.core;
+#else
 #include <Kokkos_Core.hpp>
-#include <Kokkos_View.hpp>
-#include <Kokkos_DualView.hpp>
+#endif
+
+#include <cstddef>
+#include <vector>
+#include <string>
+#include <algorithm>
 
 namespace Kokkos {
 namespace Experimental {
-
-template <typename ReportType, typename DeviceType>
+template <typename ReportType,
+          typename DeviceType = typename DefaultExecutionSpace::device_type>
 class ErrorReporter {
  public:
   using report_type     = ReportType;
   using device_type     = DeviceType;
   using execution_space = typename device_type::execution_space;
 
-  ErrorReporter(int max_results)
-      : m_numReportsAttempted(""),
-        m_reports("", max_results),
-        m_reporters("", max_results) {
+  ErrorReporter(const std::string &label, int max_results)
+      : m_numReportsAttempted(label + "::m_numReportsAttempted"),
+        m_reports(label + "::m_reports", max_results),
+        m_reporters(label + "::m_reporters", max_results) {
     clear();
   }
 
-  int getCapacity() const { return m_reports.view_host().extent(0); }
+  ErrorReporter(int max_results)
+      : ErrorReporter("ErrorReporter", max_results) {}
 
-  int getNumReports();
+  int capacity() const { return m_reports.extent(0); }
 
-  int getNumReportAttempts();
+  int num_reports() const {
+    return std::clamp(num_report_attempts(), 0, capacity());
+  }
 
-  void getReports(std::vector<int> &reporters_out,
-                  std::vector<report_type> &reports_out);
-  void getReports(
-      typename Kokkos::View<int *,
-                            typename DeviceType::execution_space>::HostMirror
-          &reporters_out,
-      typename Kokkos::View<report_type *,
-                            typename DeviceType::execution_space>::HostMirror
-          &reports_out);
+  int num_report_attempts() const {
+    int value;
+    Kokkos::deep_copy(value, m_numReportsAttempted);
+    return value;
+  }
 
-  void clear();
+  auto get_reports() const {
+    int num_reps = num_reports();
+    std::vector<int> reporters_out(num_reps);
+    std::vector<report_type> reports_out(num_reps);
 
-  void resize(const size_t new_size);
+    if (num_reps > 0) {
+      Kokkos::View<int *, Kokkos::HostSpace> h_reporters(reporters_out.data(),
+                                                         num_reps);
+      Kokkos::View<report_type *, Kokkos::HostSpace> h_reports(
+          reports_out.data(), num_reps);
 
-  bool full() { return (getNumReportAttempts() >= getCapacity()); }
+      Kokkos::deep_copy(
+          h_reporters, Kokkos::subview(m_reporters, Kokkos::pair{0, num_reps}));
+      Kokkos::deep_copy(h_reports,
+                        Kokkos::subview(m_reports, Kokkos::pair{0, num_reps}));
+    }
+    return std::pair{std::move(reporters_out), std::move(reports_out)};
+  }
+
+  bool full() const { return (num_report_attempts() >= capacity()); }
+
+  void clear() const { Kokkos::deep_copy(m_numReportsAttempted, 0); }
+
+  // This function keeps reports up to new_size alive
+  // It may lose the information on attempted reports
+  void resize(const size_t new_size) {
+    // We have to reset the attempts so we don't accidently
+    // report more stored reports than there actually are
+    // after growing capacity.
+    int num_reps = num_report_attempts();
+    if (new_size > static_cast<size_t>(capacity()) && num_reps > capacity())
+      Kokkos::deep_copy(m_numReportsAttempted, num_reports());
+
+    Kokkos::resize(m_reports, new_size);
+    Kokkos::resize(m_reporters, new_size);
+  }
 
   KOKKOS_INLINE_FUNCTION
   bool add_report(int reporter_id, report_type report) const {
-    int idx = Kokkos::atomic_fetch_add(&m_numReportsAttempted(), 1);
+    int idx = Kokkos::atomic_fetch_inc(&m_numReportsAttempted());
 
-    if (idx >= 0 &&
-        (idx < static_cast<int>(m_reports.view_device().extent(0)))) {
-      m_reporters.view_device()(idx) = reporter_id;
-      m_reports.view_device()(idx)   = report;
+    if (idx >= 0 && (idx < m_reports.extent_int(0))) {
+      m_reporters(idx) = reporter_id;
+      m_reports(idx)   = report;
       return true;
     } else {
       return false;
@@ -80,91 +103,10 @@ class ErrorReporter {
   }
 
  private:
-  using reports_view_t     = Kokkos::View<report_type *, device_type>;
-  using reports_dualview_t = Kokkos::DualView<report_type *, device_type>;
-
-  using host_mirror_space = typename reports_dualview_t::host_mirror_space;
   Kokkos::View<int, device_type> m_numReportsAttempted;
-  reports_dualview_t m_reports;
-  Kokkos::DualView<int *, device_type> m_reporters;
+  Kokkos::View<report_type *, device_type> m_reports;
+  Kokkos::View<int *, device_type> m_reporters;
 };
-
-template <typename ReportType, typename DeviceType>
-inline int ErrorReporter<ReportType, DeviceType>::getNumReports() {
-  int num_reports = 0;
-  Kokkos::deep_copy(num_reports, m_numReportsAttempted);
-  if (num_reports > static_cast<int>(m_reports.view_host().extent(0))) {
-    num_reports = m_reports.view_host().extent(0);
-  }
-  return num_reports;
-}
-
-template <typename ReportType, typename DeviceType>
-inline int ErrorReporter<ReportType, DeviceType>::getNumReportAttempts() {
-  int num_reports = 0;
-  Kokkos::deep_copy(num_reports, m_numReportsAttempted);
-  return num_reports;
-}
-
-template <typename ReportType, typename DeviceType>
-void ErrorReporter<ReportType, DeviceType>::getReports(
-    std::vector<int> &reporters_out, std::vector<report_type> &reports_out) {
-  int num_reports = getNumReports();
-  reporters_out.clear();
-  reporters_out.reserve(num_reports);
-  reports_out.clear();
-  reports_out.reserve(num_reports);
-
-  if (num_reports > 0) {
-    m_reports.template sync<host_mirror_space>();
-    m_reporters.template sync<host_mirror_space>();
-
-    for (int i = 0; i < num_reports; ++i) {
-      reporters_out.push_back(m_reporters.view_host()(i));
-      reports_out.push_back(m_reports.view_host()(i));
-    }
-  }
-}
-
-template <typename ReportType, typename DeviceType>
-void ErrorReporter<ReportType, DeviceType>::getReports(
-    typename Kokkos::View<
-        int *, typename DeviceType::execution_space>::HostMirror &reporters_out,
-    typename Kokkos::View<report_type *,
-                          typename DeviceType::execution_space>::HostMirror
-        &reports_out) {
-  int num_reports = getNumReports();
-  reporters_out   = typename Kokkos::View<int *, DeviceType>::HostMirror(
-      "ErrorReport::reporters_out", num_reports);
-  reports_out = typename Kokkos::View<report_type *, DeviceType>::HostMirror(
-      "ErrorReport::reports_out", num_reports);
-
-  if (num_reports > 0) {
-    m_reports.template sync<host_mirror_space>();
-    m_reporters.template sync<host_mirror_space>();
-
-    for (int i = 0; i < num_reports; ++i) {
-      reporters_out(i) = m_reporters.view_host()(i);
-      reports_out(i)   = m_reports.view_host()(i);
-    }
-  }
-}
-
-template <typename ReportType, typename DeviceType>
-void ErrorReporter<ReportType, DeviceType>::clear() {
-  int num_reports = 0;
-  Kokkos::deep_copy(m_numReportsAttempted, num_reports);
-  m_reports.template modify<execution_space>();
-  m_reporters.template modify<execution_space>();
-}
-
-template <typename ReportType, typename DeviceType>
-void ErrorReporter<ReportType, DeviceType>::resize(const size_t new_size) {
-  m_reports.resize(new_size);
-  m_reporters.resize(new_size);
-  typename DeviceType::execution_space().fence(
-      "Kokkos::Experimental::ErrorReporter::resize: fence after resizing");
-}
 
 }  // namespace Experimental
 }  // namespace Kokkos

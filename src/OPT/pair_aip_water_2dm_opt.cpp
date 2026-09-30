@@ -42,12 +42,12 @@ using namespace LAMMPS_NS;
 PairAIPWATER2DMOpt::PairAIPWATER2DMOpt(LAMMPS *lmp) :
   PairILPGrapheneHBN(lmp), PairILPTMD(lmp), PairAIPWATER2DM(lmp), PairILPGrapheneHBNOpt(lmp)
 {
+  variant = AIP_WATER_2DM;
 }
 
 void PairAIPWATER2DMOpt::coeff(int narg, char **args)
 {
-  PairILPTMD::coeff(narg, args);
-  memory->create(special_type, atom->ntypes + 1, "PairAIPWATER2DMOpt:check_sublayer");
+  PairILPGrapheneHBNOpt::coeff(narg, args);
   for (int i = 1; i <= atom->ntypes; i++) {
     int itype = map[i];
     if (strcmp(elements[itype], "Mo") == 0 || strcmp(elements[itype], "W") == 0 ||
@@ -56,8 +56,6 @@ void PairAIPWATER2DMOpt::coeff(int narg, char **args)
       special_type[i] = TMD_METAL;
     } else if (strcmp(elements[itype], "Hw") == 0 || strcmp(elements[itype], "Ow") == 0) {
       special_type[i] = WATER;
-    } else {
-      special_type[i] = NOT_SPECIAL;
     }
   }
 }

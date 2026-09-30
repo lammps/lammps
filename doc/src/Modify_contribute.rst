@@ -37,7 +37,7 @@ an e-mail to ``slack@lammps.org`` explaining what part of LAMMPS you
 are working on.  Only discussions related to LAMMPS development are
 tolerated in that work space, so this is **NOT** for people looking
 for help with compiling, installing, or using LAMMPS.  Please post a
-message to the `LAMMPS forum <https://www.lammps.org/forum.html>`_ for
+message to the `LAMMPS forum <https://matsci.org/lammps>`_ for
 those purposes.
 
 
@@ -73,7 +73,7 @@ Tutorial <Howto_github>` page for instructions on how to submit your
 changes or new files through a GitHub pull request.  If you are unable
 or unwilling to submit via GitHub yourself, you may also send patch
 files or full files to the `LAMMPS developers
-<https://www.lammps.org/authors.html>`_ and ask them to submit a pull
+<https://www.lammps.org/about/developers/>`_ and ask them to submit a pull
 request on GitHub on your behalf.  If this is the case, create a
 gzipped tar file of all new or changed files or a corresponding patch
 file using 'diff -u' or 'diff -c' format and compress it with gzip.
@@ -88,10 +88,10 @@ External contributions
 If you prefer to do so, you can also develop and support your add-on
 feature **without** having it included in the LAMMPS distribution, for
 example as a download from a website of your own.  See the `External
-LAMMPS packages and tools <https://www.lammps.org/external.html>`_
+LAMMPS packages and tools <https://www.lammps.org/ecosystem/external/>`_
 page of the LAMMPS website for examples of groups that do this.  We
 are happy to advertise your package and website from that page.
-Simply email the `developers <https://www.lammps.org/authors.html>`_
+Simply email the `developers <https://www.lammps.org/about/developers/>`_
 with info about your package, and we will post it there.  We recommend
 naming external packages USER-\<name\> so they can be easily
 distinguished from packages in the LAMMPS distribution which do not

@@ -30,16 +30,10 @@ using namespace LAMMPS_NS;
 // Currently the Intel compiler is required for this pair style.
 #if defined(__INTEL_COMPILER) || defined(__INTEL_LLVM_COMPILER)
 
-#ifdef _LMP_INTEL_OFFLOAD
-#pragma offload_attribute(push,target(mic))
-#endif
 
 #include "intel_intrinsics.h"
 #include "math_const.h"
 
-#ifdef _LMP_INTEL_OFFLOAD
-#pragma offload_attribute(pop)
-#endif
 
 #include "group.h"
 #include "kspace.h"
@@ -92,8 +86,6 @@ void PairTersoffIntel::compute(int eflag, int vflag,
 
   const int inum = list->inum;
   const int nthreads = comm->nthreads;
-  const int host_start = fix->host_start_pair();
-  const int offload_end = fix->offload_end_pair();
   const int ago = neighbor->ago;
 
   if (ago != 0 && fix->separate_buffers() == 0) {
@@ -117,17 +109,12 @@ void PairTersoffIntel::compute(int eflag, int vflag,
   if (vflag_fdotr) ovflag = 2;
   else if (vflag) ovflag = 1;
   if (eflag) {
-    eval<1>(1, ovflag, buffers, fc, 0, offload_end);
-    eval<1>(0, ovflag, buffers, fc, host_start, inum);
+    eval<1>(ovflag, buffers, fc, 0, inum);
   } else {
-    eval<0>(1, ovflag, buffers, fc, 0, offload_end);
-    eval<0>(0, ovflag, buffers, fc, host_start, inum);
+    eval<0>(ovflag, buffers, fc, 0, inum);
   }
 }
 
-#ifdef _LMP_INTEL_OFFLOAD
-#pragma offload_attribute(push, target(mic))
-#endif
 
 // The complete Tersoff computation kernel is encapsulated here
 //  everything is static, the class just serves as a unit of organization
@@ -225,17 +212,13 @@ struct IntelKernelTersoff : public lmp_intel::vector_routines<flt_t, acc_t, mic>
   );
 };
 
-#ifdef _LMP_INTEL_OFFLOAD
-#pragma offload_attribute(pop)
-#endif
 
 /* ---------------------------------------------------------------------- */
 
-// Dispatch to correct kernel instatiation and perform all the work neccesary
-//  for offloading. In this routine we enter the Phi.
+// Dispatch to correct kernel instantiation and perform all the work.
 // This method is nearly identical to what happens in the other /intel styles
 template <int EFLAG, class flt_t, class acc_t>
-void PairTersoffIntel::eval(const int offload, const int vflag,
+void PairTersoffIntel::eval(const int vflag,
                                      IntelBuffers<flt_t,acc_t> *buffers,
                                      const ForceConst<flt_t> &fc,
                                      const int astart, const int aend)
@@ -243,14 +226,11 @@ void PairTersoffIntel::eval(const int offload, const int vflag,
   const int inum = aend - astart;
   if (inum == 0) return;
   int nlocal, nall, minlocal;
-  fix->get_buffern(offload, nlocal, nall, minlocal);
+  fix->get_buffern(nlocal, nall, minlocal);
 
-  const int ago = neighbor->ago;
-  IP_PRE_pack_separate_buffers(fix, buffers, ago, offload, nlocal, nall);
-
-  ATOM_T * _noalias const x = buffers->get_x(offload);
+  ATOM_T * _noalias const x = buffers->get_x();
   tagint * _noalias tag = this->atom->tag;
-  flt_t * _noalias const q = buffers->get_q(offload);
+  flt_t * _noalias const q = buffers->get_q();
 
   const int * _noalias const ilist = list->ilist;
   const int * _noalias const numneigh = list->numneigh;
@@ -272,48 +252,18 @@ void PairTersoffIntel::eval(const int offload, const int vflag,
   const int eatom = this->eflag_atom;
 
   // Determine how much data to transfer
-  int x_size, q_size, f_stride, ev_size, separate_flag;
-  IP_PRE_get_transfern(ago, 1, EFLAG, vflag,
-                       buffers, offload, fix, separate_flag,
-                       x_size, q_size, ev_size, f_stride);
+  int f_stride;
+  IP_PRE_get_transfern(1, buffers, f_stride);
 
   int tc;
   FORCE_T * _noalias f_start;
   acc_t * _noalias ev_global;
-  IP_PRE_get_buffers(offload, buffers, fix, tc, f_start, ev_global);
+  IP_PRE_get_buffers(buffers, fix, tc, f_start, ev_global);
 
   const int nthreads = tc;
 
-  #ifdef _LMP_INTEL_OFFLOAD
-  int *overflow = fix->get_off_overflow_flag();
-  double *timer_compute = fix->off_watch_pair();
-  if (offload) fix->start_watch(TIME_OFFLOAD_LATENCY);
-  #pragma offload target(mic:_cop) if (offload) \
-    in(c_inner, c_outer :length(0) alloc_if(0) free_if(0)) \
-    in(c_inner_cutoff :length(0) alloc_if(0) free_if(0)) \
-    in(firstneigh:length(0) alloc_if(0) free_if(0)) \
-    in(cnumneigh:length(0) alloc_if(0) free_if(0)) \
-    in(numneigh:length(0) alloc_if(0) free_if(0)) \
-    in(numneighhalf:length(0) alloc_if(0) free_if(0)) \
-    in(x:length(x_size) alloc_if(0) free_if(0)) \
-    in(ilist:length(0) alloc_if(0) free_if(0)) \
-    in(overflow:length(0) alloc_if(0) free_if(0)) \
-    in(astart,nthreads,inum,nall,ntypes,vflag,eatom) \
-    in(f_stride,nlocal,minlocal,separate_flag,offload) \
-    out(f_start:length(f_stride) alloc_if(0) free_if(0)) \
-    out(ev_global:length(ev_size) alloc_if(0) free_if(0)) \
-    out(timer_compute:length(1) alloc_if(0) free_if(0)) \
-    signal(f_start)
-  #endif
   {
-    #ifdef _LMP_INTEL_OFFLOAD
-    #ifdef __MIC__
-    *timer_compute = MIC_Wtime();
-    #endif
-    #endif
 
-    IP_PRE_repack_for_offload(1, separate_flag, nlocal, nall,
-                              f_stride, x, 0);
 
     acc_t oevdwl, ov0, ov1, ov2, ov3, ov4, ov5;
     if (EFLAG || vflag)
@@ -355,7 +305,7 @@ void PairTersoffIntel::eval(const int offload, const int vflag,
       }
 
       IP_PRE_fdotr_reduce_omp(1, nall, minlocal, nthreads, f_start,
-                              f_stride, x, offload, vflag, ov0, ov1, ov2, ov3,
+                              f_stride, x, vflag, ov0, ov1, ov2, ov3,
                               ov4, ov5);
     } // end of omp parallel region
 
@@ -373,22 +323,14 @@ void PairTersoffIntel::eval(const int offload, const int vflag,
       ev_global[7] = ov5;
     }
 
-    #ifdef _LMP_INTEL_OFFLOAD
-    #ifdef __MIC__
-    *timer_compute = MIC_Wtime() - *timer_compute;
-    #endif
-    #endif
-  } // end of offload region
+  }
 
-  if (offload)
-    fix->stop_watch(TIME_OFFLOAD_LATENCY);
-  else
-    fix->stop_watch(TIME_HOST_PAIR);
+  fix->stop_watch(TIME_HOST_PAIR);
 
   if (EFLAG || vflag)
-    fix->add_result_array(f_start, ev_global, offload, eatom, 0, vflag);
+    fix->add_result_array(f_start, ev_global, eatom, vflag);
   else
-    fix->add_result_array(f_start, 0, offload);
+    fix->add_result_array(f_start, 0);
 
 }
 
@@ -413,9 +355,6 @@ void PairTersoffIntel::init_style()
 
   fix->pair_init_check();
   fix->three_body_neighbor(1);
-  #ifdef _LMP_INTEL_OFFLOAD
-  _cop = fix->coprocessor_number();
-  #endif
   if (fix->precision() == FixIntel::PREC_MODE_MIXED) {
     pack_force_const(force_const_single, fix->get_mixed_buffers());
     fix->get_mixed_buffers()->need_tag(1);
@@ -435,7 +374,7 @@ void PairTersoffIntel::pack_force_const(ForceConst<flt_t> &fc,
 {
   int tp1 = atom->ntypes + 1;
 
-  fc.set_ntypes(tp1, memory, _cop);
+  fc.set_ntypes(tp1, memory);
 
   // Repeat cutsq calculation because done after call to init_style
   for (int i = 1; i <= atom->ntypes; i++) {
@@ -510,26 +449,6 @@ void PairTersoffIntel::pack_force_const(ForceConst<flt_t> &fc,
     fc.c_outer[i][0].cutsq = 0.;
   }
 
-  #ifdef _LMP_INTEL_OFFLOAD
-  if (_cop < 0) return;
-  typename ForceConst<flt_t>::c_first_loop_t * c_first_loop = fc.c_first_loop[0];
-  typename ForceConst<flt_t>::c_cutoff_t * c_cutoff_outer = fc.c_cutoff_outer[0];
-  typename ForceConst<flt_t>::c_outer_t * c_outer = fc.c_outer[0];
-  typename ForceConst<flt_t>::c_second_loop_t * c_second_loop = fc.c_second_loop[0];
-  typename ForceConst<flt_t>::c_inner_loop_t * c_inner_loop = fc.c_inner_loop[0][0];
-  typename ForceConst<flt_t>::c_cutoff_t * c_cutoff_inner = fc.c_cutoff_inner[0][0];
-  typename ForceConst<flt_t>::c_inner_t * c_inner = fc.c_inner[0][0];
-  size_t VL = 512 / 8 / sizeof(flt_t);
-  int ntypes = tp1;
-  int ntypes_pad = ntypes + VL - ntypes % VL;
-  int tp1sq = tp1 * tp1;
-  int tp1cb = tp1 * tp1 * tp1;
-  int tp1cb_pad = tp1 * tp1 * ntypes_pad;
-  #pragma offload_transfer target(mic:_cop) \
-    in(c_first_loop, c_second_loop, c_cutoff_outer, c_outer : length(tp1sq) alloc_if(0) free_if(0)) \
-    in(c_inner : length(tp1cb) alloc_if(0) free_if(0)) \
-    in(c_cutoff_inner : length(tp1cb_pad) alloc_if(0) free_if(0))
-  #endif
 }
 
 /* ---------------------------------------------------------------------- */
@@ -537,28 +456,10 @@ void PairTersoffIntel::pack_force_const(ForceConst<flt_t> &fc,
 // As in any other /intel pair style
 template <class flt_t>
 void PairTersoffIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
-                                                           Memory *memory,
-                                                           const int cop) {
+                                                           Memory *memory) {
   if (memory != nullptr) _memory = memory;
   if ((ntypes != _ntypes)) {
     if (_ntypes > 0) {
-      #ifdef _LMP_INTEL_OFFLOAD
-      c_first_loop_t * oc_first_loop = c_first_loop[0];
-      c_second_loop_t * oc_second_loop = c_second_loop[0];
-      c_inner_loop_t * oc_inner_loop = c_inner_loop[0][0];
-      c_cutoff_t * oc_cutoff_inner = c_cutoff_inner[0][0];
-      c_cutoff_t * oc_cutoff_outer = c_cutoff_outer[0];
-      c_inner_t * oc_inner = c_inner[0][0];
-      c_outer_t * oc_outer = c_outer[0];
-      if (c_first_loop != nullptr && c_second_loop != nullptr &&
-          c_inner_loop != nullptr &&  _cop >= 0) {
-
-        #pragma offload_transfer target(mic:cop) \
-          nocopy(oc_first_loop, oc_second_loop, oc_inner_loop: alloc_if(0) free_if(1)) \
-          nocopy(oc_cutoff_outer, oc_cutoff_inner: alloc_if(0) free_if(1)) \
-          nocopy(oc_inner, oc_outer: alloc_if(0) free_if(0))
-      }
-      #endif
       _memory->destroy(c_first_loop);
       _memory->destroy(c_second_loop);
       _memory->destroy(c_inner_loop);
@@ -568,7 +469,6 @@ void PairTersoffIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
       _memory->destroy(c_outer);
     }
     if (ntypes > 0) {
-      _cop = cop;
       size_t VL = 512 / 8 / sizeof(flt_t);
       int ntypes_pad = ntypes + VL - ntypes % VL;
       _memory->create(c_first_loop,ntypes,ntypes,"fc.c_first_loop");
@@ -578,37 +478,11 @@ void PairTersoffIntel::ForceConst<flt_t>::set_ntypes(const int ntypes,
       _memory->create(c_cutoff_inner,ntypes,ntypes,ntypes_pad,"fc.c_cutoff_inner");
       _memory->create(c_inner,ntypes,ntypes,ntypes,"fc.c_inner");
       _memory->create(c_outer,ntypes,ntypes,"fc.c_outer");
-      #ifdef _LMP_INTEL_OFFLOAD
-      c_first_loop_t * oc_first_loop = c_first_loop[0];
-      c_second_loop_t * oc_second_loop = c_second_loop[0];
-      c_cutoff_t * oc_cutoff_outer = c_cutoff_outer[0];
-      c_inner_loop_t * oc_inner_loop = c_inner_loop[0][0];
-      c_cutoff_t * oc_cutoff_inner = c_cutoff_inner[0][0];
-      c_inner_t * oc_inner = c_inner[0][0];
-      c_outer_t * oc_outer = c_outer[0];
-      int tp1sq = ntypes * ntypes;
-      int tp1cb = ntypes * ntypes * ntypes;
-      int tp1cb_pad = ntypes * ntypes * ntypes_pad;
-      if (oc_first_loop != nullptr && oc_second_loop != nullptr &&
-          oc_inner_loop != nullptr && cop >= 0) {
-        #pragma offload_transfer target(mic:cop) \
-          nocopy(oc_first_loop: length(tp1sq) alloc_if(1) free_if(0)) \
-          nocopy(oc_second_loop: length(tp1sq) alloc_if(1) free_if(0)) \
-          nocopy(oc_cutoff_outer: length(tp1sq) alloc_if(1) free_if(0)) \
-          nocopy(oc_outer: length(tp1sq) alloc_if(1) free_if(0)) \
-          nocopy(oc_inner_loop: length(tp1cb) alloc_if(1) free_if(0)) \
-          nocopy(oc_inner: length(tp1cb) alloc_if(1) free_if(0)) \
-          nocopy(oc_cutoff_inner: length(tp1cb_pad) alloc_if(1) free_if(0))
-      }
-      #endif
     }
   }
   _ntypes=ntypes;
 }
 
-#ifdef _LMP_INTEL_OFFLOAD
-#pragma offload_attribute(push,target(mic))
-#endif
 
 // The factor up to which we do caching
 static const int N_CACHE = 8;
@@ -1416,8 +1290,5 @@ void IntelKernelTersoff<flt_t,acc_t,mic, pack_i>::attractive_vector(
 }
 
 
-#ifdef _LMP_INTEL_OFFLOAD
-#pragma offload_attribute(pop)
-#endif
 
 #endif // __INTEL_COMPILER

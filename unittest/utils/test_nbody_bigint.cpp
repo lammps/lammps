@@ -48,7 +48,7 @@ TEST(NbodyBigint, ArithmeticOperations)
     // Test the actual expression from the code
     double result = 6.0 * nbody - nlinear;
 
-    // Expected: 6 * 2147484647 - 5 = 12,884,907,877
+    // Expected: 6 * 2,147,484,647 - 5 = 12,884,907,877
     double expected = 6.0 * (static_cast<bigint>(INT_MAX) + 1000) - 5.0;
     EXPECT_DOUBLE_EQ(result, expected);
     EXPECT_GT(result, 6.0 * INT_MAX);  // Verify it exceeds int range

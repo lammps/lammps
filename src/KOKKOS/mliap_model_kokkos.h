@@ -27,7 +27,7 @@ namespace LAMMPS_NS {
 template <class DeviceType> class MLIAPModelKokkos : protected Pointers {
  public:
   MLIAPModelKokkos(LAMMPS *lmp, MLIAPModel *model_in) : Pointers(lmp), model(model_in) {}
-  virtual ~MLIAPModelKokkos()
+  ~MLIAPModelKokkos() override
   {
     memoryKK->destroy_kokkos(k_coeffelem,model->coeffelem);
     model->coeffelem = nullptr;
@@ -44,12 +44,12 @@ template <class DeviceType> class MLIAPModelKokkos : protected Pointers {
       for (int j = 0; j < model->nparams; ++j) tmp[i][j] = model->coeffelem[i][j];
     memory->destroy(model->coeffelem);
     model->coeffelem = tmp;
-    k_coeffelem.modify<LMPHostType>();
-    k_coeffelem.sync<LMPDeviceType>();
+    k_coeffelem.modify_host();
+    k_coeffelem.sync_device();
   }
 
   MLIAPModel *model;
-  DAT::tdual_float_2d k_coeffelem;
+  DAT::tdual_double_2d_lr k_coeffelem;
 };
 }    // namespace LAMMPS_NS
 #endif

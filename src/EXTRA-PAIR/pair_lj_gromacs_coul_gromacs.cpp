@@ -26,12 +26,15 @@
 #include "neighbor.h"
 
 #include <cmath>
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJGromacsCoulGromacs::PairLJGromacsCoulGromacs(LAMMPS *lmp) : Pair(lmp)
+PairLJGromacsCoulGromacs::PairLJGromacsCoulGromacs(LAMMPS *lmp) :
+    Pair(lmp), epsilon(nullptr), sigma(nullptr), lj1(nullptr), lj2(nullptr), lj3(nullptr),
+    lj4(nullptr), ljsw1(nullptr), ljsw2(nullptr), ljsw3(nullptr), ljsw4(nullptr), ljsw5(nullptr)
 {
   writedata = 1;
 }
@@ -500,4 +503,14 @@ double PairLJGromacsCoulGromacs::single(int i, int j, int itype, int jtype, doub
   }
 
   return eng;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void *PairLJGromacsCoulGromacs::extract(const char *str, int &dim)
+{
+  dim = 2;
+  if (strcmp(str, "epsilon") == 0) return (void *) epsilon;
+  if (strcmp(str, "sigma") == 0) return (void *) sigma;
+  return nullptr;
 }

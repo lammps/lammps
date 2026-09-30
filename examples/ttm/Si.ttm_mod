@@ -24,10 +24,10 @@ v_0, length/time units
 79.76
 I_0, energy/(time*length^2) units
 0
-lsurface, electron grid units (positive integer)
+lsurface, lower x grid index of coupled (electron) region (positive integer)
 0
-rsurface, electron grid units (positive integer)
-1
+rsurface, upper x grid index of coupled (electron) region (positive integer)
+10
 l_skin, length units
 1
 tau, time units

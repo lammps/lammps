@@ -307,7 +307,12 @@ void PairOxdnaStkKokkos<DeviceType>::operator()(TagPairOxdnaStkCompute<OXDNAFLAG
           d_nz_xtrct(b,2) * d_nz_xtrct(a,2);
   if (cost4 > static_cast<KK_FLOAT>(1.0)) cost4 = static_cast<KK_FLOAT>(1.0);
   if (cost4 < static_cast<KK_FLOAT>(-1.0)) cost4 = static_cast<KK_FLOAT>(-1.0);
-  theta4 = Kokkos::acos(cost4);
+  // sin(theta) from the cross product and theta from atan2 stay accurate
+  // near 0 and pi, and avoid the slow path of sin(acos(x))
+  const KK_FLOAT nz_a[3] = {d_nz_xtrct(a,0), d_nz_xtrct(a,1), d_nz_xtrct(a,2)};
+  const KK_FLOAT nz_b[3] = {d_nz_xtrct(b,0), d_nz_xtrct(b,1), d_nz_xtrct(b,2)};
+  const KK_FLOAT sin4 = cross_norm(nz_b, nz_a);
+  theta4 = Kokkos::atan2(sin4, cost4);
   // f4t4 = f4 modulation factor
   f4t4 = F4_KK(theta4, d_params4_st(a3ptype,atype,btype,b5ptype).a_st4, d_params2_st(atype, btype).theta_st4_0,
                d_params4_st(a3ptype,atype,btype,b5ptype).dtheta_st4_ast, d_params4_st(a3ptype,atype,btype,b5ptype).b_st4,
@@ -322,7 +327,8 @@ void PairOxdnaStkKokkos<DeviceType>::operator()(TagPairOxdnaStkCompute<OXDNAFLAG
            d_nz_xtrct(b,2) * delr_stkstk_norm[2];
   if (cost5p > static_cast<KK_FLOAT>(1.0)) cost5p = static_cast<KK_FLOAT>(1.0);
   if (cost5p < static_cast<KK_FLOAT>(-1.0)) cost5p = static_cast<KK_FLOAT>(-1.0);
-  theta5p = Kokkos::acos(cost5p);
+  const KK_FLOAT sin5p = cross_norm(nz_b, delr_stkstk_norm);
+  theta5p = Kokkos::atan2(sin5p, cost5p);
   // f4t5 = f4 modulation factor
   f4t5 = F4_KK(theta5p, d_params2_st(atype, btype).a_st5, d_params2_st(atype, btype).theta_st5_0,
                d_params2_st(atype, btype).dtheta_st5_ast, d_params2_st(atype, btype).b_st5, d_params2_st(atype, btype).dtheta_st5_c);
@@ -336,7 +342,8 @@ void PairOxdnaStkKokkos<DeviceType>::operator()(TagPairOxdnaStkCompute<OXDNAFLAG
            delr_stkstk_norm[2] * d_nz_xtrct(a,2);
   if (cost6p > static_cast<KK_FLOAT>(1.0)) cost6p = static_cast<KK_FLOAT>(1.0);
   if (cost6p < static_cast<KK_FLOAT>(-1.0)) cost6p = static_cast<KK_FLOAT>(-1.0);
-  theta6p = Kokkos::acos(cost6p);
+  const KK_FLOAT sin6p = cross_norm(delr_stkstk_norm, nz_a);
+  theta6p = Kokkos::atan2(sin6p, cost6p);
   // cosphi1 and cosphi2 angles
   cosphi1 = delr_bkbk_norm[0] * d_ny_xtrct(b,0) +
             delr_bkbk_norm[1] * d_ny_xtrct(b,1) +
@@ -372,13 +379,13 @@ void PairOxdnaStkKokkos<DeviceType>::operator()(TagPairOxdnaStkCompute<OXDNAFLAG
   // df4t4 = derivative of f4 modulation factor
   df4t4 = DF4_KK(theta4, d_params4_st(a3ptype,atype,btype,b5ptype).a_st4, d_params2_st(atype, btype).theta_st4_0,
       d_params4_st(a3ptype,atype,btype,b5ptype).dtheta_st4_ast, d_params4_st(a3ptype,atype,btype,b5ptype).b_st4,
-      d_params4_st(a3ptype,atype,btype,b5ptype).dtheta_st4_c)/Kokkos::sin(theta4);
+      d_params4_st(a3ptype,atype,btype,b5ptype).dtheta_st4_c)/sin4;
   // df4t5 = derivative of f4 modulation factor
   df4t5 = DF4_KK(theta5p, d_params2_st(atype, btype).a_st5, d_params2_st(atype, btype).theta_st5_0, d_params2_st(atype, btype).dtheta_st5_ast,
-      d_params2_st(atype, btype).b_st5, d_params2_st(atype, btype).dtheta_st5_c)/Kokkos::sin(theta5p);
+      d_params2_st(atype, btype).b_st5, d_params2_st(atype, btype).dtheta_st5_c)/sin5p;
   // df4t6 = derivative of f4 modulation factor
   df4t6 = DF4_KK(theta6p, d_params2_st(atype, btype).a_st6, d_params2_st(atype, btype).theta_st6_0, d_params2_st(atype, btype).dtheta_st6_ast,
-      d_params2_st(atype, btype).b_st6, d_params2_st(atype, btype).dtheta_st6_c)/Kokkos::sin(theta6p);
+      d_params2_st(atype, btype).b_st6, d_params2_st(atype, btype).dtheta_st6_c)/sin6p;
   // df5c1 = derivative of f5 modulation factor
   df5c1 = DF5_KK(-cosphi1, d_params2_st(atype, btype).a_st1, -d_params2_st(atype, btype).cosphi_st1_ast,
       d_params2_st(atype, btype).b_st1, -d_params2_st(atype, btype).cosphi_st1_c);

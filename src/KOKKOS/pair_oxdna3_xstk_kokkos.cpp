@@ -381,19 +381,6 @@ bool PairOxdna3XstkKokkos<DeviceType>::xstk_radial_terms(const int &atype, const
   return true;
 }
 
-/* ----------------------------------------------------------------------
-   length of the cross product of two vectors
-------------------------------------------------------------------------- */
-
-KOKKOS_INLINE_FUNCTION
-static KK_FLOAT cross_norm(const KK_FLOAT (&u)[3], const KK_FLOAT (&v)[3])
-{
-  const KK_FLOAT c0 = u[1] * v[2] - u[2] * v[1];
-  const KK_FLOAT c1 = u[2] * v[0] - u[0] * v[2];
-  const KK_FLOAT c2 = u[0] * v[1] - u[1] * v[0];
-  return Kokkos::sqrt(c0 * c0 + c1 * c1 + c2 * c2);
-}
-
 template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 bool PairOxdna3XstkKokkos<DeviceType>::xstk_theta1_terms(const int &atype, const int &btype,

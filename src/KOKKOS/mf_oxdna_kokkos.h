@@ -390,6 +390,21 @@ static KK_FLOAT DF6_KK(KK_FLOAT theta, KK_FLOAT a, KK_FLOAT b)
   }
 }
 
+/* ----------------------------------------------------------------------
+   length of the cross product of two vectors; for two unit vectors this is
+   the sine of the angle between them, which together with atan2() stays
+   accurate near 0 and pi, unlike acos() of the dot product
+------------------------------------------------------------------------- */
+
+KOKKOS_INLINE_FUNCTION
+KK_FLOAT cross_norm(const KK_FLOAT (&u)[3], const KK_FLOAT (&v)[3])
+{
+  const KK_FLOAT c0 = u[1] * v[2] - u[2] * v[1];
+  const KK_FLOAT c1 = u[2] * v[0] - u[0] * v[2];
+  const KK_FLOAT c2 = u[0] * v[1] - u[1] * v[0];
+  return Kokkos::sqrt(c0 * c0 + c1 * c1 + c2 * c2);
+}
+
 }    // namespace MFOxdnaKokkos
 
 #endif

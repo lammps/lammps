@@ -40,6 +40,11 @@ class FixOxdnaLRFKokkos;  // forward declaration
 template<int OXDNAFLAG, int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
 struct TagPairOxdna2DhCompute{};
 
+// packed per-type-pair coefficients of PairOxdna2DhKokkos
+struct ParamsOxdnaDh {
+  KK_FLOAT qeff_dh_pf, kappa_dh, b_dh, cut_dh_ast, cutsq_dh_ast, cut_dh_c, cutsq_dh_c;
+};
+
 template<class DeviceType>
 class PairOxdna2DhKokkos : public PairOxdna2Dh, public KokkosBase {
  public:
@@ -124,14 +129,10 @@ class PairOxdna2DhKokkos : public PairOxdna2Dh, public KokkosBase {
   typename AT::t_int_1d_randomread d_numneigh;
 
   // debye huckel interaction parameters
-  typename AT::tdual_kkfloat_2d k_qeff_dh_pf, k_kappa_dh;
-  typename AT::tdual_kkfloat_2d k_b_dh, k_cut_dh_ast, k_cutsq_dh_ast;
-  typename AT::tdual_kkfloat_2d k_cut_dh_c, k_cutsq_dh_c;
-  typename AT::t_kkfloat_2d_randomread d_qeff_dh_pf, d_kappa_dh;
-  typename AT::t_kkfloat_2d_randomread d_b_dh, d_cut_dh_ast, d_cutsq_dh_ast;
-  typename AT::t_kkfloat_2d_randomread d_cut_dh_c, d_cutsq_dh_c;
+  // all coefficients of a type pair packed in one struct
+  Kokkos::DualView<ParamsOxdnaDh **, Kokkos::LayoutRight, DeviceType> k_params_dh;
+  typename Kokkos::DualView<ParamsOxdnaDh **, Kokkos::LayoutRight, DeviceType>::t_dev_const_randomread d_params_dh;
   // per-atom arrays for local unit vectors
-  DAT::tdual_kkfloat_1d_3 k_nx_xtrct, k_ny_xtrct, k_nz_xtrct;
   t_oxdna_packed_sub<DeviceType> d_nx_xtrct, d_ny_xtrct, d_nz_xtrct;
 
   int first;

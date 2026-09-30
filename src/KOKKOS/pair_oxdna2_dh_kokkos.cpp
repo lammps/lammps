@@ -364,14 +364,15 @@ void PairOxdna2DhKokkos<DeviceType>::operator()(TagPairOxdna2DhCompute<OXDNAFLAG
     const KK_FLOAT delz = rtmp_s2 - x(b,2) - rb_cs2;
     const KK_FLOAT rsq = Kokkos::fma(delz, delz, Kokkos::fma(dely, dely, delx * delx));
 
-    if (rsq > d_cutsq_dh_c(atype, btype)) continue; // Note the switch of sign, > vs <=, due to using continue
+    const ParamsOxdnaDh p = d_params_dh(atype, btype);
+    if (rsq > p.cutsq_dh_c) continue; // Note the switch of sign, > vs <=, due to using continue
 
     const KK_FLOAT qeff_b = xn_qeff(b);
-    const KK_FLOAT qeff_dh_pf = d_qeff_dh_pf(atype, btype);
-    const KK_FLOAT kappa = d_kappa_dh(atype, btype);
-    const KK_FLOAT b_dh = d_b_dh(atype, btype);
-    const KK_FLOAT cut_dh_ast = d_cut_dh_ast(atype, btype);
-    const KK_FLOAT cut_dh_c = d_cut_dh_c(atype, btype);
+    const KK_FLOAT qeff_dh_pf = p.qeff_dh_pf;
+    const KK_FLOAT kappa = p.kappa_dh;
+    const KK_FLOAT b_dh = p.b_dh;
+    const KK_FLOAT cut_dh_ast = p.cut_dh_ast;
+    const KK_FLOAT cut_dh_c = p.cut_dh_c;
 
     const KK_FLOAT rinv = static_cast<KK_FLOAT>(Kokkos::rsqrt(rsq));
     const KK_FLOAT r = rsq * rinv;
@@ -467,21 +468,8 @@ void PairOxdna2DhKokkos<DeviceType>::allocate()
 
   int n = atom->ntypes;
 
-  memoryKK->create_kokkos(k_qeff_dh_pf,n+1,n+1,"PairOxdna2Dh:qeff_dh_pf");
-  memoryKK->create_kokkos(k_kappa_dh,n+1,n+1,"PairOxdna2Dh:kappa_dh");
-  memoryKK->create_kokkos(k_b_dh,n+1,n+1,"PairOxdna2Dh:b_dh");
-  memoryKK->create_kokkos(k_cut_dh_ast,n+1,n+1,"PairOxdna2Dh:cut_dh_ast");
-  memoryKK->create_kokkos(k_cutsq_dh_ast,n+1,n+1,"PairOxdna2Dh:cutsq_dh_ast");
-  memoryKK->create_kokkos(k_cut_dh_c,n+1,n+1,"PairOxdna2Dh:cut_dh_c");
-  memoryKK->create_kokkos(k_cutsq_dh_c,n+1,n+1,"PairOxdna2Dh:cutsq_dh_c");
-
-  d_qeff_dh_pf = k_qeff_dh_pf.template view<DeviceType>();
-  d_kappa_dh = k_kappa_dh.template view<DeviceType>();
-  d_b_dh = k_b_dh.template view<DeviceType>();
-  d_cut_dh_ast = k_cut_dh_ast.template view<DeviceType>();
-  d_cutsq_dh_ast = k_cutsq_dh_ast.template view<DeviceType>();
-  d_cut_dh_c = k_cut_dh_c.template view<DeviceType>();
-  d_cutsq_dh_c = k_cutsq_dh_c.template view<DeviceType>();
+  k_params_dh = decltype(k_params_dh)("PairOxdna2DhKokkos:params_dh", n+1, n+1);
+  d_params_dh = k_params_dh.template view<DeviceType>();
 
 }
 
@@ -542,30 +530,24 @@ double PairOxdna2DhKokkos<DeviceType>::init_one(int i, int j)
   double cutone = PairOxdna2Dh::init_one(i,j);
 
   // Assign directionally: [i][j] gets [i][j], [j][i] gets [j][i]
-  k_qeff_dh_pf.view_host()(i,j) = static_cast<KK_FLOAT>(qeff_dh_pf[i][j]); k_qeff_dh_pf.view_host()(j,i) = static_cast<KK_FLOAT>(qeff_dh_pf[j][i]);
-  k_kappa_dh.view_host()(i,j) = static_cast<KK_FLOAT>(kappa_dh[i][j]); k_kappa_dh.view_host()(j,i) = static_cast<KK_FLOAT>(kappa_dh[j][i]);
-  k_b_dh.view_host()(i,j) = static_cast<KK_FLOAT>(b_dh[i][j]); k_b_dh.view_host()(j,i) = static_cast<KK_FLOAT>(b_dh[j][i]);
-  k_cut_dh_ast.view_host()(i,j) = static_cast<KK_FLOAT>(cut_dh_ast[i][j]); k_cut_dh_ast.view_host()(j,i) = static_cast<KK_FLOAT>(cut_dh_ast[j][i]);
-  k_cutsq_dh_ast.view_host()(i,j) = static_cast<KK_FLOAT>(cutsq_dh_ast[i][j]); k_cutsq_dh_ast.view_host()(j,i) = static_cast<KK_FLOAT>(cutsq_dh_ast[j][i]);
-  k_cut_dh_c.view_host()(i,j) = static_cast<KK_FLOAT>(cut_dh_c[i][j]); k_cut_dh_c.view_host()(j,i) = static_cast<KK_FLOAT>(cut_dh_c[j][i]);
-  k_cutsq_dh_c.view_host()(i,j) = static_cast<KK_FLOAT>(cutsq_dh_c[i][j]); k_cutsq_dh_c.view_host()(j,i) = static_cast<KK_FLOAT>(cutsq_dh_c[j][i]);
-
-  k_qeff_dh_pf.modify_host();
-  k_kappa_dh.modify_host();
-  k_b_dh.modify_host();
-  k_cut_dh_ast.modify_host();
-  k_cutsq_dh_ast.modify_host();
-  k_cut_dh_c.modify_host();
-  k_cutsq_dh_c.modify_host();
+  k_params_dh.view_host()(i,j).qeff_dh_pf = static_cast<KK_FLOAT>(qeff_dh_pf[i][j]);
+  k_params_dh.view_host()(j,i).qeff_dh_pf = static_cast<KK_FLOAT>(qeff_dh_pf[j][i]);
+  k_params_dh.view_host()(i,j).kappa_dh = static_cast<KK_FLOAT>(kappa_dh[i][j]);
+  k_params_dh.view_host()(j,i).kappa_dh = static_cast<KK_FLOAT>(kappa_dh[j][i]);
+  k_params_dh.view_host()(i,j).b_dh = static_cast<KK_FLOAT>(b_dh[i][j]);
+  k_params_dh.view_host()(j,i).b_dh = static_cast<KK_FLOAT>(b_dh[j][i]);
+  k_params_dh.view_host()(i,j).cut_dh_ast = static_cast<KK_FLOAT>(cut_dh_ast[i][j]);
+  k_params_dh.view_host()(j,i).cut_dh_ast = static_cast<KK_FLOAT>(cut_dh_ast[j][i]);
+  k_params_dh.view_host()(i,j).cutsq_dh_ast = static_cast<KK_FLOAT>(cutsq_dh_ast[i][j]);
+  k_params_dh.view_host()(j,i).cutsq_dh_ast = static_cast<KK_FLOAT>(cutsq_dh_ast[j][i]);
+  k_params_dh.view_host()(i,j).cut_dh_c = static_cast<KK_FLOAT>(cut_dh_c[i][j]);
+  k_params_dh.view_host()(j,i).cut_dh_c = static_cast<KK_FLOAT>(cut_dh_c[j][i]);
+  k_params_dh.view_host()(i,j).cutsq_dh_c = static_cast<KK_FLOAT>(cutsq_dh_c[i][j]);
+  k_params_dh.view_host()(j,i).cutsq_dh_c = static_cast<KK_FLOAT>(cutsq_dh_c[j][i]);
+  k_params_dh.modify_host();
 
   // Sync to device
-  k_qeff_dh_pf.template sync<DeviceType>();
-  k_kappa_dh.template sync<DeviceType>();
-  k_b_dh.template sync<DeviceType>();
-  k_cut_dh_ast.template sync<DeviceType>();
-  k_cutsq_dh_ast.template sync<DeviceType>();
-  k_cut_dh_c.template sync<DeviceType>();
-  k_cutsq_dh_c.template sync<DeviceType>();
+  k_params_dh.template sync<DeviceType>();
 
   // "cutone" is "cut_dh_c[i][j]", sets the master list distance cutoff
   return cutone;

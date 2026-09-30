@@ -256,8 +256,8 @@ bool FixOxdnaNpairKokkos<DeviceType>::screen_pair_fast(const int &braw,
   delr_com[2] = a_com2 - b_com2;
 
   // fma is fused-multipy-add op
-  const KK_FLOAT rsq_com = fma(delr_com[2], delr_com[2],
-                           fma(delr_com[1], delr_com[1], delr_com[0] * delr_com[0]));
+  const KK_FLOAT rsq_com = Kokkos::fma(delr_com[2], delr_com[2],
+                           Kokkos::fma(delr_com[1], delr_com[1], delr_com[0] * delr_com[0]));
 
   // Boolean screen against the derived COM cutoff (set in
   // compute_neigh_screen_to_npair from the consuming styles' registered cutoffs).

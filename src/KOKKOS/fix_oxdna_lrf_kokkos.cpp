@@ -184,17 +184,17 @@ void FixOxdnaLRFKokkos<DeviceType>::operator()(TagFixOxdnaLRFComputeQuatToXYZ, c
 
   const KK_FLOAT two = 2.0;
 
-  d_nx(i, 0) = fma(q0, q0, fma(q1, q1, -fma(q2, q2, q3 * q3)));
-  d_nx(i, 1) = two * fma(q1, q2, q0 * q3);
-  d_nx(i, 2) = two * fma(q1, q3, -q0 * q2);
+  d_nx(i, 0) = Kokkos::fma(q0, q0, Kokkos::fma(q1, q1, -Kokkos::fma(q2, q2, q3 * q3)));
+  d_nx(i, 1) = two * Kokkos::fma(q1, q2, q0 * q3);
+  d_nx(i, 2) = two * Kokkos::fma(q1, q3, -q0 * q2);
 
-  d_ny(i, 0) = two * fma(q1, q2, -q0 * q3);
-  d_ny(i, 1) = fma(q0, q0, fma(q2, q2, -fma(q1, q1, q3 * q3)));
-  d_ny(i, 2) = two * fma(q2, q3, q0 * q1);
+  d_ny(i, 0) = two * Kokkos::fma(q1, q2, -q0 * q3);
+  d_ny(i, 1) = Kokkos::fma(q0, q0, Kokkos::fma(q2, q2, -Kokkos::fma(q1, q1, q3 * q3)));
+  d_ny(i, 2) = two * Kokkos::fma(q2, q3, q0 * q1);
 
-  d_nz(i, 0) = two * fma(q1, q3, q0 * q2);
-  d_nz(i, 1) = two * fma(q2, q3, -q0 * q1);
-  d_nz(i, 2) = fma(q0, q0, q3 * q3 - fma(q1, q1, q2 * q2));
+  d_nz(i, 0) = two * Kokkos::fma(q1, q3, q0 * q2);
+  d_nz(i, 1) = two * Kokkos::fma(q2, q3, -q0 * q1);
+  d_nz(i, 2) = Kokkos::fma(q0, q0, q3 * q3 - Kokkos::fma(q1, q1, q2 * q2));
 }
 
 /* ---------------------------------------------------------------------- */

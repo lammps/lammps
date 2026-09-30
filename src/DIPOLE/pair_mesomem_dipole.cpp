@@ -219,10 +219,14 @@ void PairMesomemDipole::compute(int eflag, int vflag)
     jlist = firstneigh[i];
     jnum = numneigh[i];
 
-    inv_mag_i = 1.0 / mu[i][3];
-    ni[0] = mu[i][0] * inv_mag_i;
-    ni[1] = mu[i][1] * inv_mag_i;
-    ni[2] = mu[i][2] * inv_mag_i;
+    if (mu[i][3] > 0.0) {
+      inv_mag_i = 1.0 / mu[i][3];
+      ni[0] = mu[i][0] * inv_mag_i;
+      ni[1] = mu[i][1] * inv_mag_i;
+      ni[2] = mu[i][2] * inv_mag_i;
+    } else {
+      ni[0] = ni[1] = ni[2] = 0.0;
+    }
 
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];

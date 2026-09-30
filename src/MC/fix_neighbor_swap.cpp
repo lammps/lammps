@@ -538,8 +538,8 @@ int FixNeighborSwap::attempt_swap()
   if (itype == jtype) {
     // record atoms for which the type was swapped and store the old types
     if (vizsteps > 0) {
-      vizatoms[atom->tag[i]] = std::make_pair(vizsteps, jtype);
-      vizatoms[atom->tag[j]] = std::make_pair(vizsteps, itype);
+      if (i >= 0) vizatoms[atom->tag[i]] = std::make_pair(vizsteps, jtype);
+      if (j >= 0) vizatoms[atom->tag[j]] = std::make_pair(vizsteps, itype);
     }
     return 1;
   }
@@ -604,8 +604,8 @@ int FixNeighborSwap::attempt_swap()
     energy_stored = energy_after;
     // record atoms for which the type was swapped and store the old types
     if (vizsteps > 0) {
-      vizatoms[atom->tag[i]] = std::make_pair(vizsteps, itype);
-      vizatoms[atom->tag[j]] = std::make_pair(vizsteps, jtype);
+      if (i >= 0) vizatoms[atom->tag[i]] = std::make_pair(vizsteps, itype);
+      if (j >= 0) vizatoms[atom->tag[j]] = std::make_pair(vizsteps, jtype);
     }
     return 1;
   }

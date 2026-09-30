@@ -176,6 +176,19 @@ class PairOxdnaExcvKokkos : public PairOxdnaExcv, public KokkosBase {
   // all per-type-pair coefficients of a pair packed in one struct
   Kokkos::DualView<ParamsOxdnaExcv2 **, Kokkos::LayoutRight, DeviceType> k_params2_excv;
   typename Kokkos::DualView<ParamsOxdnaExcv2 **, Kokkos::LayoutRight, DeviceType>::t_dev_const_randomread d_params2_excv;
+  // non-tetramer coefficients if they are the same for all type pairs
+  // (the usual "pair_coeff * *"); then read from the functor, not from memory
+  int params2_uniform, params2_dirty;
+  ParamsOxdnaExcv2 params2_uni;
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  ParamsOxdnaExcv2 params2(const int &i, const int &j) const
+    { return params2_uniform ? params2_uni : d_params2_excv(i,j); }
+  // squared center-of-mass distance beyond which no sites of a type pair
+  // interact: the cutoff from init_one() (which includes the distances of
+  // the sites from the center of mass) plus a margin for rounding
+  Kokkos::DualView<KK_FLOAT **, Kokkos::LayoutRight, DeviceType> k_cutsq_com;
+  typename Kokkos::DualView<KK_FLOAT **, Kokkos::LayoutRight, DeviceType>::t_dev_const_randomread d_cutsq_com;
   // tetramer-dependent coefficients
   // all per-tetramer coefficients of a pair packed in one struct
   Kokkos::DualView<ParamsOxdnaExcv4 ****, Kokkos::LayoutRight, DeviceType> k_params4_excv;

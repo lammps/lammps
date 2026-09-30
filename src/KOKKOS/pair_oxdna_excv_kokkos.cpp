@@ -29,6 +29,8 @@
 #include "fix_oxdna_prime_neighs_kokkos.h"
 #include "mf_oxdna_kokkos.h"
 
+#include <cstring>
+
 using namespace LAMMPS_NS;
 using namespace MFOxdnaKokkos;
 
@@ -49,6 +51,8 @@ PairOxdnaExcvKokkos<DeviceType>::PairOxdnaExcvKokkos(LAMMPS *lmp) : PairOxdnaExc
   fix_oxdna_lrfKK = nullptr;
   fix_oxdna_npairKK = nullptr;
   fix_oxdna_prime_neighsKK = nullptr;
+  params2_uniform = 0;
+  params2_dirty = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -170,6 +174,20 @@ void PairOxdnaExcvKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   d_nx_xtrct = fix_oxdna_lrfKK->packed_nx();
   d_ny_xtrct = fix_oxdna_lrfKK->packed_ny();
   d_nz_xtrct = fix_oxdna_lrfKK->packed_nz();
+
+  // check whether the non-tetramer coefficients are the same for all type pairs
+
+  if (params2_dirty) {
+    const auto h_params2 = k_params2_excv.view_host();
+    const int n = atom->ntypes;
+    params2_uniform = 1;
+    for (int i = 1; i <= n; i++)
+      for (int j = 1; j <= n; j++)
+        if (std::memcmp(&h_params2(i,j), &h_params2(1,1), sizeof(ParamsOxdnaExcv2)) != 0)
+          params2_uniform = 0;
+    params2_uni = h_params2(1,1);
+    params2_dirty = 0;
+  }
 
   // loop over neighbors of my atoms for compute functors
 
@@ -398,8 +416,19 @@ void PairOxdnaExcvKokkos<DeviceType>::operator()(TagPairOxdnaExcvCompute<OXDNAFL
 
     int b = d_neighbors(a,ib);
     const KK_FLOAT factor_lj = static_cast<KK_FLOAT>(special_lj[sbmask(b)]);
+    // the 3'/5' neighbors of a are 1-2 special neighbors, whose special bits
+    // this list keeps; only those need the topology loads below
+    const bool bonded12 = (sbmask(b) == 1);
     b &= NEIGHMASK;
     const int btype = static_cast<int>(xn_type(b));    // from the packed record, next to x(b)
+
+    // no sites interact beyond this center-of-mass distance
+    const KK_FLOAT dx_com = x(a,0) - x(b,0);
+    const KK_FLOAT dy_com = x(a,1) - x(b,1);
+    const KK_FLOAT dz_com = x(a,2) - x(b,2);
+    if (dx_com*dx_com + dy_com*dy_com + dz_com*dz_com > d_cutsq_com(atype,btype)) continue;
+
+    const ParamsOxdnaExcv2 p2 = params2(atype,btype);
 
     // vector COM - backbone and base sites b
     if constexpr (OXDNAFLAG==OXDNA) {
@@ -477,10 +506,10 @@ void PairOxdnaExcvKokkos<DeviceType>::operator()(TagPairOxdnaExcvCompute<OXDNAFL
     // excluded volume interactions:
 
     // backbone-backbone
-    if (rsq_bkbk < d_params2_excv(atype,btype).cutsq_bkbk_c) {
+    if (rsq_bkbk < p2.cutsq_bkbk_c) {
       // F3 modulation factor, force and energy calculation
-      evdwl = static_cast<KK_ACC_FLOAT>(F3_KK(rsq_bkbk,d_params2_excv(atype,btype).cutsq_bkbk_ast,d_params2_excv(atype,btype).cut_bkbk_c,d_params2_excv(atype,btype).lj1_bkbk,
-                        d_params2_excv(atype,btype).lj2_bkbk,d_params2_excv(atype,btype).epsilon_bkbk,d_params2_excv(atype,btype).b_bkbk,fpair));
+      evdwl = static_cast<KK_ACC_FLOAT>(F3_KK(rsq_bkbk,p2.cutsq_bkbk_ast,p2.cut_bkbk_c,p2.lj1_bkbk,
+                        p2.lj2_bkbk,p2.epsilon_bkbk,p2.b_bkbk,fpair));
       // knock out nearest-neighbor interaction between ss
       fpair *= static_cast<KK_ACC_FLOAT>(factor_lj);
       evdwl *= static_cast<KK_ACC_FLOAT>(factor_lj);
@@ -521,10 +550,10 @@ void PairOxdnaExcvKokkos<DeviceType>::operator()(TagPairOxdnaExcvCompute<OXDNAFL
     }
 
     // backbone-base
-    if (rsq_bkbs < d_params2_excv(atype,btype).cutsq_bkbs_c) {
+    if (rsq_bkbs < p2.cutsq_bkbs_c) {
       // F3 modulation factor, force and energy calculation
-      evdwl = static_cast<KK_ACC_FLOAT>(F3_KK(rsq_bkbs,d_params2_excv(atype,btype).cutsq_bkbs_ast,d_params2_excv(atype,btype).cut_bkbs_c,d_params2_excv(atype,btype).lj1_bkbs,
-                        d_params2_excv(atype,btype).lj2_bkbs,d_params2_excv(atype,btype).epsilon_bkbs,d_params2_excv(atype,btype).b_bkbs,fpair));
+      evdwl = static_cast<KK_ACC_FLOAT>(F3_KK(rsq_bkbs,p2.cutsq_bkbs_ast,p2.cut_bkbs_c,p2.lj1_bkbs,
+                        p2.lj2_bkbs,p2.epsilon_bkbs,p2.b_bkbs,fpair));
       // force and torque increment calculation
       delf[0] = fpair * static_cast<KK_ACC_FLOAT>(delr_bkbs[0]);
       delf[1] = fpair * static_cast<KK_ACC_FLOAT>(delr_bkbs[1]);
@@ -562,10 +591,10 @@ void PairOxdnaExcvKokkos<DeviceType>::operator()(TagPairOxdnaExcvCompute<OXDNAFL
     }
 
     // base-backbone
-    if (rsq_bs < d_params2_excv(atype,btype).cutsq_bkbs_c) {
+    if (rsq_bs < p2.cutsq_bkbs_c) {
       // F3 modulation factor, force and energy calculation
-      evdwl = static_cast<KK_ACC_FLOAT>(F3_KK(rsq_bs,d_params2_excv(atype,btype).cutsq_bkbs_ast,d_params2_excv(atype,btype).cut_bkbs_c,d_params2_excv(atype,btype).lj1_bkbs,
-                        d_params2_excv(atype,btype).lj2_bkbs,d_params2_excv(atype,btype).epsilon_bkbs,d_params2_excv(atype,btype).b_bkbs,fpair));
+      evdwl = static_cast<KK_ACC_FLOAT>(F3_KK(rsq_bs,p2.cutsq_bkbs_ast,p2.cut_bkbs_c,p2.lj1_bkbs,
+                        p2.lj2_bkbs,p2.epsilon_bkbs,p2.b_bkbs,fpair));
       // force and torque increment calculation
       delf[0] = fpair * static_cast<KK_ACC_FLOAT>(delr_bs[0]);
       delf[1] = fpair * static_cast<KK_ACC_FLOAT>(delr_bs[1]);
@@ -603,7 +632,7 @@ void PairOxdnaExcvKokkos<DeviceType>::operator()(TagPairOxdnaExcvCompute<OXDNAFL
     }
 
     // base-base
-    if (tag_a == id3p(b) && tag(b) == id5p_a) {
+    if (bonded12 && (tag_a == id3p(b)) && (tag(b) == id5p_a)) {
       // types of the 3' neighbor of a and the 5' neighbor of b (0 for a strand end)
       const int a3p = map_tag(id3p_a);
       const int b5p = map_tag(id5p(b));
@@ -613,7 +642,7 @@ void PairOxdnaExcvKokkos<DeviceType>::operator()(TagPairOxdnaExcvCompute<OXDNAFL
         // F3 modulation factor, force and energy calculation
         evdwl = static_cast<KK_ACC_FLOAT>(F3_KK(rsq_bsbs,d_params4_excv(_3ptype,atype,btype,_5ptype).cut4sq_bsbs_ast,d_params4_excv(_3ptype,atype,btype,_5ptype).cut4_bsbs_c,
                           d_params4_excv(_3ptype,atype,btype,_5ptype).lj14_bsbs,d_params4_excv(_3ptype,atype,btype,_5ptype).lj24_bsbs,
-                          d_params2_excv(atype,btype).epsilon_bsbs,d_params4_excv(_3ptype,atype,btype,_5ptype).b4_bsbs,fpair));
+                          p2.epsilon_bsbs,d_params4_excv(_3ptype,atype,btype,_5ptype).b4_bsbs,fpair));
         // force and torque increment calculation
         delf[0] = fpair * static_cast<KK_ACC_FLOAT>(delr_bsbs[0]);
         delf[1] = fpair * static_cast<KK_ACC_FLOAT>(delr_bsbs[1]);
@@ -649,7 +678,7 @@ void PairOxdnaExcvKokkos<DeviceType>::operator()(TagPairOxdnaExcvCompute<OXDNAFL
           }
         }
       }
-    } else if (tag_a == id5p(b) && tag(b) == id3p_a) {
+    } else if (bonded12 && (tag_a == id5p(b)) && (tag(b) == id3p_a)) {
       // types of the 3' neighbor of b and the 5' neighbor of a (0 for a strand end)
       const int b3p = map_tag(id3p(b));
       const int a5p = map_tag(id5p_a);
@@ -659,7 +688,7 @@ void PairOxdnaExcvKokkos<DeviceType>::operator()(TagPairOxdnaExcvCompute<OXDNAFL
         // F3 modulation factor, force and energy calculation
         evdwl = static_cast<KK_ACC_FLOAT>(F3_KK(rsq_bsbs,d_params4_excv(_3ptype,btype,atype,_5ptype).cut4sq_bsbs_ast,d_params4_excv(_3ptype,btype,atype,_5ptype).cut4_bsbs_c,
                           d_params4_excv(_3ptype,btype,atype,_5ptype).lj14_bsbs,d_params4_excv(_3ptype,btype,atype,_5ptype).lj24_bsbs,
-                          d_params2_excv(btype,atype).epsilon_bsbs,d_params4_excv(_3ptype,btype,atype,_5ptype).b4_bsbs,fpair));
+                          params2(btype,atype).epsilon_bsbs,d_params4_excv(_3ptype,btype,atype,_5ptype).b4_bsbs,fpair));
         // force and torque increment calculation
         delf[0] = fpair * static_cast<KK_ACC_FLOAT>(delr_bsbs[0]);
         delf[1] = fpair * static_cast<KK_ACC_FLOAT>(delr_bsbs[1]);
@@ -696,10 +725,10 @@ void PairOxdnaExcvKokkos<DeviceType>::operator()(TagPairOxdnaExcvCompute<OXDNAFL
         }
       }
     } else {
-      if (rsq_bsbs < d_params2_excv(atype,btype).cutsq_bsbs_c) {
+      if (rsq_bsbs < p2.cutsq_bsbs_c) {
         // F3 modulation factor, force and energy calculation
-        evdwl = static_cast<KK_ACC_FLOAT>(F3_KK(rsq_bsbs,d_params2_excv(atype,btype).cutsq_bsbs_ast,d_params2_excv(atype,btype).cut_bsbs_c,d_params2_excv(atype,btype).lj1_bsbs,
-                          d_params2_excv(atype,btype).lj2_bsbs,d_params2_excv(atype,btype).epsilon_bsbs,d_params2_excv(atype,btype).b_bsbs,fpair));
+        evdwl = static_cast<KK_ACC_FLOAT>(F3_KK(rsq_bsbs,p2.cutsq_bsbs_ast,p2.cut_bsbs_c,p2.lj1_bsbs,
+                          p2.lj2_bsbs,p2.epsilon_bsbs,p2.b_bsbs,fpair));
         // force and torque increment calculation
         delf[0] = fpair * static_cast<KK_ACC_FLOAT>(delr_bsbs[0]);
         delf[1] = fpair * static_cast<KK_ACC_FLOAT>(delr_bsbs[1]);
@@ -767,16 +796,12 @@ void PairOxdnaExcvKokkos<DeviceType>::allocate()
   int n = atom->ntypes;
 
   k_params2_excv = decltype(k_params2_excv)("PairOxdnaExcvKokkos:params2_excv", n+1, n+1);
-
-
-
   k_params4_excv = decltype(k_params4_excv)("PairOxdnaExcvKokkos:params4_excv", n+1, n+1, n+1, n+1);
-
+  k_cutsq_com = decltype(k_cutsq_com)("PairOxdnaExcvKokkos:cutsq_com", n+1, n+1);
   d_params2_excv = k_params2_excv.template view<DeviceType>();
-
-
-
   d_params4_excv = k_params4_excv.template view<DeviceType>();
+  d_cutsq_com = k_cutsq_com.template view<DeviceType>();
+  params2_dirty = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -901,13 +926,18 @@ double PairOxdnaExcvKokkos<DeviceType>::init_one(int i, int j)
   k_params2_excv.view_host()(j,i).cutsq_bsbs_c = static_cast<KK_FLOAT>(cutsq_bsbs_c[j][i]);
 
   k_params2_excv.modify_host();
+  params2_dirty = 1;
 
-
+  // the margin of 0.01 (in units of the cutoff) keeps rounding of the site
+  // positions from ever skipping an interacting pair
+  const double cutsq_com = (cutone + 0.01) * (cutone + 0.01);
+  k_cutsq_com.view_host()(i,j) = static_cast<KK_FLOAT>(cutsq_com);
+  k_cutsq_com.view_host()(j,i) = static_cast<KK_FLOAT>(cutsq_com);
+  k_cutsq_com.modify_host();
 
   // Sync to device
   k_params2_excv.template sync<DeviceType>();
-
-
+  k_cutsq_com.template sync<DeviceType>();
 
   // "cutone" is "cut_bkbk_c[i][j]", sets the master list distance cutoff
   return cutone;

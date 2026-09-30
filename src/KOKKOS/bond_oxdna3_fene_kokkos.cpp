@@ -188,13 +188,13 @@ void BondOxdna3FENEKokkos<DeviceType>::coeff(int narg, char **arg)
 
   int m = atom->nbondtypes;
   for (int i = 1; i <= m; i++) {
-    k_k.view_host()[i] = k[i];
+    k_k.view_host()[i] = static_cast<KK_FLOAT>(k[i]);
     for (int n1 = 0; n1 <= n; n1++) {
       for (int n2 = 0; n2 <= n; n2++) {
         for (int n3 = 0; n3 <= n; n3++) {
           for (int n4 = 0; n4 <= n; n4++) {
-            k_r0.view_host()(i,n1,n2,n3,n4) = r0[i][n1][n2][n3][n4];
-            k_Delta.view_host()(i,n1,n2,n3,n4) = Delta[i][n1][n2][n3][n4];
+            k_r0.view_host()(i,n1,n2,n3,n4) = static_cast<KK_FLOAT>(r0[i][n1][n2][n3][n4]);
+            k_Delta.view_host()(i,n1,n2,n3,n4) = static_cast<KK_FLOAT>(Delta[i][n1][n2][n3][n4]);
           }
         }
       }

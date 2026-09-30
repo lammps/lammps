@@ -177,10 +177,10 @@ void FixOxdnaLRFKokkos<DeviceType>::operator()(TagFixOxdnaLRFComputeQuatToXYZ, c
     return;
   }
 
-  const KK_FLOAT q0 = bonus(n).quat[0];
-  const KK_FLOAT q1 = bonus(n).quat[1];
-  const KK_FLOAT q2 = bonus(n).quat[2];
-  const KK_FLOAT q3 = bonus(n).quat[3];
+  const KK_FLOAT q0 = static_cast<KK_FLOAT>(bonus(n).quat[0]);
+  const KK_FLOAT q1 = static_cast<KK_FLOAT>(bonus(n).quat[1]);
+  const KK_FLOAT q2 = static_cast<KK_FLOAT>(bonus(n).quat[2]);
+  const KK_FLOAT q3 = static_cast<KK_FLOAT>(bonus(n).quat[3]);
 
   const KK_FLOAT two = 2.0;
 

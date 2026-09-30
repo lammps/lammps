@@ -238,14 +238,14 @@ void PairOxdna2CoaxstkKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     Kokkos::Experimental::contribute(torque, dup_torque);
   }
 
-  if (eflag_global) eng_vdwl += ev.evdwl;
+  if (eflag_global) eng_vdwl += static_cast<double>(ev.evdwl);
   if (vflag_global) {
-    virial[0] += ev.v[0];
-    virial[1] += ev.v[1];
-    virial[2] += ev.v[2];
-    virial[3] += ev.v[3];
-    virial[4] += ev.v[4];
-    virial[5] += ev.v[5];
+    virial[0] += static_cast<double>(ev.v[0]);
+    virial[1] += static_cast<double>(ev.v[1]);
+    virial[2] += static_cast<double>(ev.v[2]);
+    virial[3] += static_cast<double>(ev.v[3]);
+    virial[4] += static_cast<double>(ev.v[4]);
+    virial[5] += static_cast<double>(ev.v[5]);
   }
 
   if (vflag_fdotr) pair_virial_fdotr_compute(this);
@@ -320,24 +320,24 @@ void PairOxdna2CoaxstkKokkos<DeviceType>::operator()(TagPairOxdna2CoaxstkCompute
 
   // vector COM-backbone site a, COM-stacking site a
   if constexpr (OXDNAFLAG==OXDNA2) {
-    constexpr KK_FLOAT dx_cbk_oxdna2 = -0.34;
-    constexpr KK_FLOAT dy_cbk_oxdna2 = +0.3408;
+    constexpr KK_FLOAT dx_cbk_oxdna2 = static_cast<KK_FLOAT>(-0.34);
+    constexpr KK_FLOAT dy_cbk_oxdna2 = static_cast<KK_FLOAT>(+0.3408);
     ra_cbk[0] = dx_cbk_oxdna2*d_nx_xtrct(a,0) + dy_cbk_oxdna2*d_ny_xtrct(a,0);
     ra_cbk[1] = dx_cbk_oxdna2*d_nx_xtrct(a,1) + dy_cbk_oxdna2*d_ny_xtrct(a,1);
     ra_cbk[2] = dx_cbk_oxdna2*d_nx_xtrct(a,2) + dy_cbk_oxdna2*d_ny_xtrct(a,2);
-    constexpr KK_FLOAT dx_cstk_oxdna1 = +0.34;  // oxDNA2 uses same stacking site as oxDNA1
+    constexpr KK_FLOAT dx_cstk_oxdna1 = static_cast<KK_FLOAT>(+0.34);  // oxDNA2 uses same stacking site as oxDNA1
     ra_cstk[0] = dx_cstk_oxdna1*d_nx_xtrct(a,0);
     ra_cstk[1] = dx_cstk_oxdna1*d_nx_xtrct(a,1);
     ra_cstk[2] = dx_cstk_oxdna1*d_nx_xtrct(a,2);
   } else if constexpr (OXDNAFLAG==OXDNA3) {
     // oxDNA3 uses same backbone site as oxDNA2...
-    constexpr KK_FLOAT dx_cbk_oxdna2 = -0.34;
-    constexpr KK_FLOAT dy_cbk_oxdna2 = +0.3408;
+    constexpr KK_FLOAT dx_cbk_oxdna2 = static_cast<KK_FLOAT>(-0.34);
+    constexpr KK_FLOAT dy_cbk_oxdna2 = static_cast<KK_FLOAT>(+0.3408);
     ra_cbk[0] = dx_cbk_oxdna2*d_nx_xtrct(a,0) + dy_cbk_oxdna2*d_ny_xtrct(a,0);
     ra_cbk[1] = dx_cbk_oxdna2*d_nx_xtrct(a,1) + dy_cbk_oxdna2*d_ny_xtrct(a,1);
     ra_cbk[2] = dx_cbk_oxdna2*d_nx_xtrct(a,2) + dy_cbk_oxdna2*d_ny_xtrct(a,2);
     // ...But the stacking site is different for oxDNA3.
-    constexpr KK_FLOAT dx_cstk_oxdna3 = +0.37;
+    constexpr KK_FLOAT dx_cstk_oxdna3 = static_cast<KK_FLOAT>(+0.37);
     ra_cstk[0] = dx_cstk_oxdna3*d_nx_xtrct(a,0);
     ra_cstk[1] = dx_cstk_oxdna3*d_nx_xtrct(a,1);
     ra_cstk[2] = dx_cstk_oxdna3*d_nx_xtrct(a,2);
@@ -348,7 +348,7 @@ void PairOxdna2CoaxstkKokkos<DeviceType>::operator()(TagPairOxdna2CoaxstkCompute
   for (int ib = 0; ib < bnum; ib++) {
 
     int b = d_neighbors(a,ib);
-    const KK_FLOAT factor_lj = special_lj[sbmask(b)];
+    const KK_FLOAT factor_lj = static_cast<KK_FLOAT>(special_lj[sbmask(b)]);
     b &= NEIGHMASK;
     const int btype = type(b);
 
@@ -357,24 +357,24 @@ void PairOxdna2CoaxstkKokkos<DeviceType>::operator()(TagPairOxdna2CoaxstkCompute
 
     // vector COM-backbone site b, COM-stacking site b
     if constexpr (OXDNAFLAG==OXDNA2) {
-      constexpr KK_FLOAT dx_cbk_oxdna2 = -0.34;
-      constexpr KK_FLOAT dy_cbk_oxdna2 = +0.3408;
+      constexpr KK_FLOAT dx_cbk_oxdna2 = static_cast<KK_FLOAT>(-0.34);
+      constexpr KK_FLOAT dy_cbk_oxdna2 = static_cast<KK_FLOAT>(+0.3408);
       rb_cbk[0] = dx_cbk_oxdna2*d_nx_xtrct(b,0) + dy_cbk_oxdna2*d_ny_xtrct(b,0);
       rb_cbk[1] = dx_cbk_oxdna2*d_nx_xtrct(b,1) + dy_cbk_oxdna2*d_ny_xtrct(b,1);
       rb_cbk[2] = dx_cbk_oxdna2*d_nx_xtrct(b,2) + dy_cbk_oxdna2*d_ny_xtrct(b,2);
-      constexpr KK_FLOAT dx_cstk_oxdna1 = +0.34;  // oxDNA2 uses same stacking site as oxDNA1
+      constexpr KK_FLOAT dx_cstk_oxdna1 = static_cast<KK_FLOAT>(+0.34);  // oxDNA2 uses same stacking site as oxDNA1
       rb_cstk[0] = dx_cstk_oxdna1*d_nx_xtrct(b,0);
       rb_cstk[1] = dx_cstk_oxdna1*d_nx_xtrct(b,1);
       rb_cstk[2] = dx_cstk_oxdna1*d_nx_xtrct(b,2);
     } else if constexpr (OXDNAFLAG==OXDNA3) {
       // oxDNA3 uses same backbone site as oxDNA2...
-      constexpr KK_FLOAT dx_cbk_oxdna2 = -0.34;
-      constexpr KK_FLOAT dy_cbk_oxdna2 = +0.3408;
+      constexpr KK_FLOAT dx_cbk_oxdna2 = static_cast<KK_FLOAT>(-0.34);
+      constexpr KK_FLOAT dy_cbk_oxdna2 = static_cast<KK_FLOAT>(+0.3408);
       rb_cbk[0] = dx_cbk_oxdna2*d_nx_xtrct(b,0) + dy_cbk_oxdna2*d_ny_xtrct(b,0);
       rb_cbk[1] = dx_cbk_oxdna2*d_nx_xtrct(b,1) + dy_cbk_oxdna2*d_ny_xtrct(b,1);
       rb_cbk[2] = dx_cbk_oxdna2*d_nx_xtrct(b,2) + dy_cbk_oxdna2*d_ny_xtrct(b,2);
       // ...But the stacking site is different for oxDNA3.
-      constexpr KK_FLOAT dx_cstk_oxdna3 = +0.37;
+      constexpr KK_FLOAT dx_cstk_oxdna3 = static_cast<KK_FLOAT>(+0.37);
       rb_cstk[0] = dx_cstk_oxdna3*d_nx_xtrct(b,0);
       rb_cstk[1] = dx_cstk_oxdna3*d_nx_xtrct(b,1);
       rb_cstk[2] = dx_cstk_oxdna3*d_nx_xtrct(b,2);
@@ -387,7 +387,7 @@ void PairOxdna2CoaxstkKokkos<DeviceType>::operator()(TagPairOxdna2CoaxstkCompute
 
     rsq_stkstk = delr_stkstk[0]*delr_stkstk[0] + delr_stkstk[1]*delr_stkstk[1] + delr_stkstk[2]*delr_stkstk[2];
     r_stkstk = Kokkos::sqrt(rsq_stkstk);
-    rinv_stkstk = 1.0 / r_stkstk;
+    rinv_stkstk = static_cast<KK_FLOAT>(1.0) / r_stkstk;
 
     delr_stkstk_norm[0] = delr_stkstk[0] * rinv_stkstk;
     delr_stkstk_norm[1] = delr_stkstk[1] * rinv_stkstk;
@@ -400,17 +400,17 @@ void PairOxdna2CoaxstkKokkos<DeviceType>::operator()(TagPairOxdna2CoaxstkCompute
 
     rsq_bkbk = delr_bkbk[0]*delr_bkbk[0] + delr_bkbk[1]*delr_bkbk[1] + delr_bkbk[2]*delr_bkbk[2];
     r_bkbk = Kokkos::sqrt(rsq_bkbk);
-    rinv_bkbk = 1.0 / r_bkbk;
+    rinv_bkbk = static_cast<KK_FLOAT>(1.0) / r_bkbk;
 
     delr_bkbk_norm[0] = delr_bkbk[0] * rinv_bkbk;
     delr_bkbk_norm[1] = delr_bkbk[1] * rinv_bkbk;
     delr_bkbk_norm[2] = delr_bkbk[2] * rinv_bkbk;
 
     cost1 = -(d_nx_xtrct(a,0) * d_nx_xtrct(b,0) + d_nx_xtrct(a,1) * d_nx_xtrct(b,1) + d_nx_xtrct(a,2) * d_nx_xtrct(b,2));
-    if (cost1 >  1.0) cost1 =  1.0;
-    if (cost1 < -1.0) cost1 = -1.0;
-    theta1 = acos(cost1);
-    theta1p = 2 * MY_PI - theta1;
+    if (cost1 > static_cast<KK_FLOAT>(1.0)) cost1 = static_cast<KK_FLOAT>(1.0);
+    if (cost1 < static_cast<KK_FLOAT>(-1.0)) cost1 = static_cast<KK_FLOAT>(-1.0);
+    theta1 = Kokkos::acos(cost1);
+    theta1p = 2 * MY_PI_KK - theta1;
 
     // beginning of modulation factors
 
@@ -423,23 +423,23 @@ void PairOxdna2CoaxstkKokkos<DeviceType>::operator()(TagPairOxdna2CoaxstkCompute
     if (f4f6t1 != static_cast<KK_FLOAT>(0.0)) {
       // theta4 calculation
       cost4 = d_nz_xtrct(a,0)*d_nz_xtrct(b,0) + d_nz_xtrct(a,1)*d_nz_xtrct(b,1) + d_nz_xtrct(a,2)*d_nz_xtrct(b,2);
-      if (cost4 > 1.0) cost4 = 1.0;
-      if (cost4 < -1.0) cost4 = -1.0;
-      theta4 = acos(cost4);
+      if (cost4 > static_cast<KK_FLOAT>(1.0)) cost4 = static_cast<KK_FLOAT>(1.0);
+      if (cost4 < static_cast<KK_FLOAT>(-1.0)) cost4 = static_cast<KK_FLOAT>(-1.0);
+      theta4 = Kokkos::acos(cost4);
       // f4t4 = f4 modulation factor
       f4t4 = F4_KK(theta4, d_a_cxst4(atype,btype), d_theta_cxst4_0(atype, btype), d_dtheta_cxst4_ast(atype, btype),
               d_b_cxst4(atype, btype), d_dtheta_cxst4_c(atype, btype)) +
-             F4_KK(theta4, d_a_cxst4(atype,btype), MY_PI - d_theta_cxst4_0(atype, btype), d_dtheta_cxst4_ast(atype, btype),
+             F4_KK(theta4, d_a_cxst4(atype,btype), MY_PI_KK - d_theta_cxst4_0(atype, btype), d_dtheta_cxst4_ast(atype, btype),
               d_b_cxst4(atype, btype), d_dtheta_cxst4_c(atype, btype));
     // end of f4f6t1
 
     // f4t4 early rejection criterium
     if (f4t4 != static_cast<KK_FLOAT>(0.0)) {
       cost5 = (d_nz_xtrct(a,0)*delr_stkstk_norm[0] + d_nz_xtrct(a,1)*delr_stkstk_norm[1] + d_nz_xtrct(a,2)*delr_stkstk_norm[2]);
-      if (cost5 > 1.0) cost5 = 1.0;
-      if (cost5 < -1.0) cost5 = -1.0;
-      theta5 = acos(cost5);
-      theta5p = MY_PI - theta5;
+      if (cost5 > static_cast<KK_FLOAT>(1.0)) cost5 = static_cast<KK_FLOAT>(1.0);
+      if (cost5 < static_cast<KK_FLOAT>(-1.0)) cost5 = static_cast<KK_FLOAT>(-1.0);
+      theta5 = Kokkos::acos(cost5);
+      theta5p = MY_PI_KK - theta5;
       // f4t5 = f4(theta5,..) + f4(theta5p,..) modulation factors
       f4t5 = F4_KK(theta5, d_a_cxst5(atype,btype), d_theta_cxst5_0(atype,btype), d_dtheta_cxst5_ast(atype,btype),
               d_b_cxst5(atype,btype), d_dtheta_cxst5_c(atype,btype)) + \
@@ -450,10 +450,10 @@ void PairOxdna2CoaxstkKokkos<DeviceType>::operator()(TagPairOxdna2CoaxstkCompute
     // f4t5 early rejection criterium
     if (f4t5 != static_cast<KK_FLOAT>(0.0)) {
       cost6 = d_nz_xtrct(b,0)*delr_stkstk_norm[0] + d_nz_xtrct(b,1)*delr_stkstk_norm[1] + d_nz_xtrct(b,2)*delr_stkstk_norm[2];
-      if (cost6 > 1.0) cost6 = 1.0;
-      if (cost6 < -1.0) cost6 = -1.0;
-      theta6 = acos(cost6);
-      theta6p = MY_PI - theta6;
+      if (cost6 > static_cast<KK_FLOAT>(1.0)) cost6 = static_cast<KK_FLOAT>(1.0);
+      if (cost6 < static_cast<KK_FLOAT>(-1.0)) cost6 = static_cast<KK_FLOAT>(-1.0);
+      theta6 = Kokkos::acos(cost6);
+      theta6p = MY_PI_KK - theta6;
       // f4t6 = f4(theta6,..) + f4(theta6p,..) modulation factors
       f4t6 = F4_KK(theta6, d_a_cxst6(atype,btype), d_theta_cxst6_0(atype,btype), d_dtheta_cxst6_ast(atype,btype),
               d_b_cxst6(atype,btype), d_dtheta_cxst6_c(atype,btype)) + \
@@ -464,8 +464,8 @@ void PairOxdna2CoaxstkKokkos<DeviceType>::operator()(TagPairOxdna2CoaxstkCompute
       v1tmp[1] = delr_bkbk_norm[2] * d_nx_xtrct(a,0) - delr_bkbk_norm[0] * d_nx_xtrct(a,2);
       v1tmp[2] = delr_bkbk_norm[0] * d_nx_xtrct(a,1) - delr_bkbk_norm[1] * d_nx_xtrct(a,0);
       cosphi3 = v1tmp[0] * delr_stkstk_norm[0] + v1tmp[1] * delr_stkstk_norm[1] + v1tmp[2] * delr_stkstk_norm[2];
-      if (cosphi3 > 1.0) cosphi3 = 1.0;
-      if (cosphi3 < -1.0) cosphi3 = -1.0;
+      if (cosphi3 > static_cast<KK_FLOAT>(1.0)) cosphi3 = static_cast<KK_FLOAT>(1.0);
+      if (cosphi3 < static_cast<KK_FLOAT>(-1.0)) cosphi3 = static_cast<KK_FLOAT>(-1.0);
 
       // Direction-dependent coaxial stacking strength.
       if (id5p(a) == -1 && id3p(b) == -1) {
@@ -473,7 +473,7 @@ void PairOxdna2CoaxstkKokkos<DeviceType>::operator()(TagPairOxdna2CoaxstkCompute
       } else if (id3p(a) == -1 && id5p(b) == -1) {
         prime_cxst_ab = d_k_cxst(btype,atype);
       } else {
-        prime_cxst_ab = 0.5 * (d_k_cxst(atype,btype) + d_k_cxst(btype,atype));
+        prime_cxst_ab = static_cast<KK_FLOAT>(0.5) * (d_k_cxst(atype,btype) + d_k_cxst(btype,atype));
       }
 
       // f2 = f2 modulation factor
@@ -482,11 +482,11 @@ void PairOxdna2CoaxstkKokkos<DeviceType>::operator()(TagPairOxdna2CoaxstkCompute
               d_b_cxst_lo(atype,btype), d_b_cxst_hi(atype,btype),
               d_cut_cxst_c(atype,btype));
 
-      evdwl = f2 * f4f6t1 * f4t4 * f4t5 * f4t6 * factor_lj;
+      evdwl = static_cast<KK_ACC_FLOAT>(f2 * f4f6t1 * f4t4 * f4t5 * f4t6 * factor_lj);
     // end of f4t5
 
     // evdwl early rejection criterium
-    if (evdwl != static_cast<KK_FLOAT>(0.0)) {
+    if (evdwl != static_cast<KK_ACC_FLOAT>(0.0)) {
       // df2 = DF2 modulation factor
       df2 = DF2_KK(r_stkstk, prime_cxst_ab, d_cut_cxst_0(atype,btype), d_cut_cxst_lc(atype,btype),
               d_cut_cxst_hc(atype,btype), d_cut_cxst_lo(atype,btype), d_cut_cxst_hi(atype,btype),
@@ -494,22 +494,22 @@ void PairOxdna2CoaxstkKokkos<DeviceType>::operator()(TagPairOxdna2CoaxstkCompute
       // df4f6t1 = DF4(theta1,..)/sin(theta1) + DF6(theta1,..)/sin(theta1) modulation factors
       df4f6t1 = ( DF4_KK(theta1, d_a_cxst1(atype,btype), d_theta_cxst1_0(atype,btype), d_dtheta_cxst1_ast(atype,btype),
                      d_b_cxst1(atype,btype), d_dtheta_cxst1_c(atype,btype)) + \
-              DF6_KK(theta1, d_AA_cxst1(atype,btype), d_BB_cxst1(atype,btype)) ) / sin(theta1);
+              DF6_KK(theta1, d_AA_cxst1(atype,btype), d_BB_cxst1(atype,btype)) ) / Kokkos::sin(theta1);
       // df4t4 = DF4(theta4,..)/sin(theta4) + DF4(theta4, mirrored theta0)/sin(theta4)
       df4t4 = ( DF4_KK(theta4, d_a_cxst4(atype,btype), d_theta_cxst4_0(atype, btype), d_dtheta_cxst4_ast(atype, btype),
               d_b_cxst4(atype, btype), d_dtheta_cxst4_c(atype, btype)) +
-            DF4_KK(theta4, d_a_cxst4(atype,btype), MY_PI - d_theta_cxst4_0(atype, btype), d_dtheta_cxst4_ast(atype, btype),
-              d_b_cxst4(atype, btype), d_dtheta_cxst4_c(atype, btype)) ) / sin(theta4);
+            DF4_KK(theta4, d_a_cxst4(atype,btype), MY_PI_KK - d_theta_cxst4_0(atype, btype), d_dtheta_cxst4_ast(atype, btype),
+              d_b_cxst4(atype, btype), d_dtheta_cxst4_c(atype, btype)) ) / Kokkos::sin(theta4);
       // df4t5 = DF4(theta5,..)/sin(theta5) - DF4(theta5p,..)/sin(theta5) modulation factors
       df4t5 = ( DF4_KK(theta5, d_a_cxst5(atype,btype), d_theta_cxst5_0(atype,btype), d_dtheta_cxst5_ast(atype,btype),
                      d_b_cxst5(atype,btype), d_dtheta_cxst5_c(atype,btype)) - \
               DF4_KK(theta5p, d_a_cxst5(atype,btype), d_theta_cxst5_0(atype,btype), d_dtheta_cxst5_ast(atype,btype),
-                     d_b_cxst5(atype,btype), d_dtheta_cxst5_c(atype,btype)) ) / sin(theta5);
+                     d_b_cxst5(atype,btype), d_dtheta_cxst5_c(atype,btype)) ) / Kokkos::sin(theta5);
       // df4t6 = DF4(theta6,..)/sin(theta6) - DF4(theta6p,..)/sin(theta6) modulation factors
       df4t6 = ( DF4_KK(theta6, d_a_cxst6(atype,btype), d_theta_cxst6_0(atype,btype), d_dtheta_cxst6_ast(atype,btype),
                      d_b_cxst6(atype,btype), d_dtheta_cxst6_c(atype,btype)) - \
               DF4_KK(theta6p, d_a_cxst6(atype,btype), d_theta_cxst6_0(atype,btype), d_dtheta_cxst6_ast(atype,btype),
-                     d_b_cxst6(atype,btype), d_dtheta_cxst6_c(atype,btype)) ) / sin(theta6);
+                     d_b_cxst6(atype,btype), d_dtheta_cxst6_c(atype,btype)) ) / Kokkos::sin(theta6);
 
       // force, torque, and viral contributions for forces between h-bonding sites
 
@@ -526,30 +526,30 @@ void PairOxdna2CoaxstkKokkos<DeviceType>::operator()(TagPairOxdna2CoaxstkCompute
       deltb[2] = 0.0;
 
       // radial force
-      finc  = -df2 * f4f6t1 * f4t4 * f4t5 * f4t6 * rinv_stkstk * factor_lj;
+      finc  = static_cast<KK_ACC_FLOAT>(-df2 * f4f6t1 * f4t4 * f4t5 * f4t6 * rinv_stkstk * factor_lj);
 
-      delf[0] += delr_stkstk[0] * finc;
-      delf[1] += delr_stkstk[1] * finc;
-      delf[2] += delr_stkstk[2] * finc;
+      delf[0] += static_cast<KK_ACC_FLOAT>(delr_stkstk[0]) * finc;
+      delf[1] += static_cast<KK_ACC_FLOAT>(delr_stkstk[1]) * finc;
+      delf[2] += static_cast<KK_ACC_FLOAT>(delr_stkstk[2]) * finc;
 
       // theta5 force
       if (theta5 != static_cast<KK_FLOAT>(0.0) && theta5p != static_cast<KK_FLOAT>(0.0)) {
 
-        finc  = -f2 * f4f6t1 * f4t4 * df4t5 * f4t6 * rinv_stkstk * factor_lj;
+        finc  = static_cast<KK_ACC_FLOAT>(-f2 * f4f6t1 * f4t4 * df4t5 * f4t6 * rinv_stkstk * factor_lj);
 
-        delf[0] += (delr_stkstk_norm[0]*cost5 - d_nz_xtrct(a,0)) * finc;
-        delf[1] += (delr_stkstk_norm[1]*cost5 - d_nz_xtrct(a,1)) * finc;
-        delf[2] += (delr_stkstk_norm[2]*cost5 - d_nz_xtrct(a,2)) * finc;
+        delf[0] += static_cast<KK_ACC_FLOAT>(delr_stkstk_norm[0]*cost5 - d_nz_xtrct(a,0)) * finc;
+        delf[1] += static_cast<KK_ACC_FLOAT>(delr_stkstk_norm[1]*cost5 - d_nz_xtrct(a,1)) * finc;
+        delf[2] += static_cast<KK_ACC_FLOAT>(delr_stkstk_norm[2]*cost5 - d_nz_xtrct(a,2)) * finc;
       }
 
       // theta6 force
       if (theta6 != static_cast<KK_FLOAT>(0.0) && theta6p != static_cast<KK_FLOAT>(0.0)) {
 
-        finc  = -f2 * f4f6t1* f4t4 * f4t5 * df4t6 * rinv_stkstk * factor_lj;
+        finc  = static_cast<KK_ACC_FLOAT>(-f2 * f4f6t1* f4t4 * f4t5 * df4t6 * rinv_stkstk * factor_lj);
 
-        delf[0] += (delr_stkstk_norm[0]*cost6 - d_nz_xtrct(b,0)) * finc;
-        delf[1] += (delr_stkstk_norm[1]*cost6 - d_nz_xtrct(b,1)) * finc;
-        delf[2] += (delr_stkstk_norm[2]*cost6 - d_nz_xtrct(b,2)) * finc;
+        delf[0] += static_cast<KK_ACC_FLOAT>(delr_stkstk_norm[0]*cost6 - d_nz_xtrct(b,0)) * finc;
+        delf[1] += static_cast<KK_ACC_FLOAT>(delr_stkstk_norm[1]*cost6 - d_nz_xtrct(b,1)) * finc;
+        delf[2] += static_cast<KK_ACC_FLOAT>(delr_stkstk_norm[2]*cost6 - d_nz_xtrct(b,2)) * finc;
       }
 
       // increment forces and torques
@@ -557,9 +557,9 @@ void PairOxdna2CoaxstkKokkos<DeviceType>::operator()(TagPairOxdna2CoaxstkCompute
       a_f(a,0) += delf[0];
       a_f(a,1) += delf[1];
       a_f(a,2) += delf[2];
-      delta[0] = ra_cstk[1]*delf[2] - ra_cstk[2]*delf[1];
-      delta[1] = ra_cstk[2]*delf[0] - ra_cstk[0]*delf[2];
-      delta[2] = ra_cstk[0]*delf[1] - ra_cstk[1]*delf[0];
+      delta[0] = static_cast<KK_ACC_FLOAT>(ra_cstk[1])*delf[2] - static_cast<KK_ACC_FLOAT>(ra_cstk[2])*delf[1];
+      delta[1] = static_cast<KK_ACC_FLOAT>(ra_cstk[2])*delf[0] - static_cast<KK_ACC_FLOAT>(ra_cstk[0])*delf[2];
+      delta[2] = static_cast<KK_ACC_FLOAT>(ra_cstk[0])*delf[1] - static_cast<KK_ACC_FLOAT>(ra_cstk[1])*delf[0];
       a_torque(a,0) += delta[0];
       a_torque(a,1) += delta[1];
       a_torque(a,2) += delta[2];
@@ -568,9 +568,9 @@ void PairOxdna2CoaxstkKokkos<DeviceType>::operator()(TagPairOxdna2CoaxstkCompute
         a_f(b,0) -= delf[0];
         a_f(b,1) -= delf[1];
         a_f(b,2) -= delf[2];
-        deltb[0] = rb_cstk[1]*delf[2] - rb_cstk[2]*delf[1];
-        deltb[1] = rb_cstk[2]*delf[0] - rb_cstk[0]*delf[2];
-        deltb[2] = rb_cstk[0]*delf[1] - rb_cstk[1]*delf[0];
+        deltb[0] = static_cast<KK_ACC_FLOAT>(rb_cstk[1])*delf[2] - static_cast<KK_ACC_FLOAT>(rb_cstk[2])*delf[1];
+        deltb[1] = static_cast<KK_ACC_FLOAT>(rb_cstk[2])*delf[0] - static_cast<KK_ACC_FLOAT>(rb_cstk[0])*delf[2];
+        deltb[2] = static_cast<KK_ACC_FLOAT>(rb_cstk[0])*delf[1] - static_cast<KK_ACC_FLOAT>(rb_cstk[1])*delf[0];
         a_torque(b,0) -= deltb[0];
         a_torque(b,1) -= deltb[1];
         a_torque(b,2) -= deltb[2];
@@ -581,10 +581,10 @@ void PairOxdna2CoaxstkKokkos<DeviceType>::operator()(TagPairOxdna2CoaxstkCompute
       // (see G. Ciccotti and J.P. Ryckaert, Comp. Phys. Rep. 4, 345-392 (1986))
 
       if (EVFLAG) {
-        ev.evdwl += (((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD)&&(NEWTON_PAIR||(b<nlocal)))?1.0:0.5)*evdwl;
+        ev.evdwl += (((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD)&&(NEWTON_PAIR||(b<nlocal)))?static_cast<KK_ACC_FLOAT>(1.0):static_cast<KK_ACC_FLOAT>(0.5))*evdwl;
 
         if (vflag_either || eflag_atom) {
-          this->template ev_tally_xyz<NEIGHFLAG,NEWTON_PAIR>(ev,a,b,evdwl,\
+          this->template ev_tally_xyz<NEIGHFLAG,NEWTON_PAIR>(ev,a,b,static_cast<KK_FLOAT>(evdwl),\
           delf[0],delf[1],delf[2],x(a,0)-x(b,0), x(a,1)-x(b,1), x(a,2)-x(b,2));
         }
       }
@@ -601,56 +601,56 @@ void PairOxdna2CoaxstkKokkos<DeviceType>::operator()(TagPairOxdna2CoaxstkCompute
       // theta1 torque
       if (theta1 != static_cast<KK_FLOAT>(0.0) && theta1p != static_cast<KK_FLOAT>(0.0)) {
 
-        tpair = -f2 * df4f6t1 * f4t4 * f4t5 * f4t6 * factor_lj;
+        tpair = static_cast<KK_ACC_FLOAT>(-f2 * df4f6t1 * f4t4 * f4t5 * f4t6 * factor_lj);
 
         t1dir[0] = d_nx_xtrct(a,1) * d_nx_xtrct(b,2) - d_nx_xtrct(a,2) * d_nx_xtrct(b,1);
         t1dir[1] = d_nx_xtrct(a,2) * d_nx_xtrct(b,0) - d_nx_xtrct(a,0) * d_nx_xtrct(b,2);
         t1dir[2] = d_nx_xtrct(a,0) * d_nx_xtrct(b,1) - d_nx_xtrct(a,1) * d_nx_xtrct(b,0);
-        delta[0] += t1dir[0] * tpair;
-        delta[1] += t1dir[1] * tpair;
-        delta[2] += t1dir[2] * tpair;
-        deltb[0] += t1dir[0] * tpair;
-        deltb[1] += t1dir[1] * tpair;
-        deltb[2] += t1dir[2] * tpair;
+        delta[0] += static_cast<KK_ACC_FLOAT>(t1dir[0]) * tpair;
+        delta[1] += static_cast<KK_ACC_FLOAT>(t1dir[1]) * tpair;
+        delta[2] += static_cast<KK_ACC_FLOAT>(t1dir[2]) * tpair;
+        deltb[0] += static_cast<KK_ACC_FLOAT>(t1dir[0]) * tpair;
+        deltb[1] += static_cast<KK_ACC_FLOAT>(t1dir[1]) * tpair;
+        deltb[2] += static_cast<KK_ACC_FLOAT>(t1dir[2]) * tpair;
       }
       //theta4 torque
       if (theta4 != static_cast<KK_FLOAT>(0.0)) {
 
-        tpair = -f2 * f4f6t1 * df4t4 * f4t5 * f4t6 * factor_lj;
+        tpair = static_cast<KK_ACC_FLOAT>(-f2 * f4f6t1 * df4t4 * f4t5 * f4t6 * factor_lj);
 
         t4dir[0] = d_nz_xtrct(b,1) * d_nz_xtrct(a,2) - d_nz_xtrct(b,2) * d_nz_xtrct(a,1);
         t4dir[1] = d_nz_xtrct(b,2) * d_nz_xtrct(a,0) - d_nz_xtrct(b,0) * d_nz_xtrct(a,2);
         t4dir[2] = d_nz_xtrct(b,0) * d_nz_xtrct(a,1) - d_nz_xtrct(b,1) * d_nz_xtrct(a,0);
-        delta[0] += t4dir[0] * tpair;
-        delta[1] += t4dir[1] * tpair;
-        delta[2] += t4dir[2] * tpair;
-        deltb[0] += t4dir[0] * tpair;
-        deltb[1] += t4dir[1] * tpair;
-        deltb[2] += t4dir[2] * tpair;
+        delta[0] += static_cast<KK_ACC_FLOAT>(t4dir[0]) * tpair;
+        delta[1] += static_cast<KK_ACC_FLOAT>(t4dir[1]) * tpair;
+        delta[2] += static_cast<KK_ACC_FLOAT>(t4dir[2]) * tpair;
+        deltb[0] += static_cast<KK_ACC_FLOAT>(t4dir[0]) * tpair;
+        deltb[1] += static_cast<KK_ACC_FLOAT>(t4dir[1]) * tpair;
+        deltb[2] += static_cast<KK_ACC_FLOAT>(t4dir[2]) * tpair;
       }
       //theta5 torque
       if (theta5 != static_cast<KK_FLOAT>(0.0) && theta5p != static_cast<KK_FLOAT>(0.0)) {
 
-        tpair = -f2 * f4f6t1 * f4t4 * df4t5 * f4t6 * factor_lj;
+        tpair = static_cast<KK_ACC_FLOAT>(-f2 * f4f6t1 * f4t4 * df4t5 * f4t6 * factor_lj);
 
         t5dir[0] = delr_stkstk_norm[1] * d_nz_xtrct(a,2) - delr_stkstk_norm[2] * d_nz_xtrct(a,1);
         t5dir[1] = delr_stkstk_norm[2] * d_nz_xtrct(a,0) - delr_stkstk_norm[0] * d_nz_xtrct(a,2);
         t5dir[2] = delr_stkstk_norm[0] * d_nz_xtrct(a,1) - delr_stkstk_norm[1] * d_nz_xtrct(a,0);
-        delta[0] += t5dir[0] * tpair;
-        delta[1] += t5dir[1] * tpair;
-        delta[2] += t5dir[2] * tpair;
+        delta[0] += static_cast<KK_ACC_FLOAT>(t5dir[0]) * tpair;
+        delta[1] += static_cast<KK_ACC_FLOAT>(t5dir[1]) * tpair;
+        delta[2] += static_cast<KK_ACC_FLOAT>(t5dir[2]) * tpair;
       }
       // theta6 torque
       if (theta6 != static_cast<KK_FLOAT>(0.0) && theta6p != static_cast<KK_FLOAT>(0.0)) {
 
-        tpair = -f2 * f4f6t1 * f4t4 * f4t5 * df4t6 * factor_lj;
+        tpair = static_cast<KK_ACC_FLOAT>(-f2 * f4f6t1 * f4t4 * f4t5 * df4t6 * factor_lj);
 
         t6dir[0] = delr_stkstk_norm[1] * d_nz_xtrct(b,2) - delr_stkstk_norm[2] * d_nz_xtrct(b,1);
         t6dir[1] = delr_stkstk_norm[2] * d_nz_xtrct(b,0) - delr_stkstk_norm[0] * d_nz_xtrct(b,2);
         t6dir[2] = delr_stkstk_norm[0] * d_nz_xtrct(b,1) - delr_stkstk_norm[1] * d_nz_xtrct(b,0);
-        deltb[0] -= t6dir[0] * tpair;
-        deltb[1] -= t6dir[1] * tpair;
-        deltb[2] -= t6dir[2] * tpair;
+        deltb[0] -= static_cast<KK_ACC_FLOAT>(t6dir[0]) * tpair;
+        deltb[1] -= static_cast<KK_ACC_FLOAT>(t6dir[1]) * tpair;
+        deltb[2] -= static_cast<KK_ACC_FLOAT>(t6dir[2]) * tpair;
       }
 
       // increment torques
@@ -702,9 +702,9 @@ bool PairOxdna2CoaxstkKokkos<DeviceType>::coaxstk_theta1_terms(const int &atype,
   const KK_FLOAT bb1 = d_BB_cxst1(atype,btype);
 
   KK_FLOAT cost1 = -Kokkos::fma(a_nx[2], b_nx[2], Kokkos::fma(a_nx[1], b_nx[1], a_nx[0] * b_nx[0]));
-  if (cost1 >  1.0) cost1 =  1.0;
-  if (cost1 < -1.0) cost1 = -1.0;
-  theta1 = acos(cost1);
+  if (cost1 > static_cast<KK_FLOAT>(1.0)) cost1 = static_cast<KK_FLOAT>(1.0);
+  if (cost1 < static_cast<KK_FLOAT>(-1.0)) cost1 = static_cast<KK_FLOAT>(-1.0);
+  theta1 = Kokkos::acos(cost1);
   theta1p = 2 * MY_PI_KK - theta1;
 
   f4f6t1 = F4_KK(theta1, a1, t10, dt1a, b1, dt1c) + F6_KK(theta1, aa1, bb1);
@@ -735,11 +735,11 @@ bool PairOxdna2CoaxstkKokkos<DeviceType>::coaxstk_theta4_terms(const int &atype,
   const KK_FLOAT dt4c = d_dtheta_cxst4_c(atype,btype);
 
   KK_FLOAT cost4 = Kokkos::fma(a_nz[2], b_nz[2], Kokkos::fma(a_nz[1], b_nz[1], a_nz[0] * b_nz[0]));
-  if (cost4 > 1.0) cost4 = 1.0;
-  if (cost4 < -1.0) cost4 = -1.0;
-  theta4 = acos(cost4);
+  if (cost4 > static_cast<KK_FLOAT>(1.0)) cost4 = static_cast<KK_FLOAT>(1.0);
+  if (cost4 < static_cast<KK_FLOAT>(-1.0)) cost4 = static_cast<KK_FLOAT>(-1.0);
+  theta4 = Kokkos::acos(cost4);
   f4t4 = F4_KK(theta4, a4, t40, dt4a, b4, dt4c) +
-         F4_KK(theta4, a4, MY_PI - t40, dt4a, b4, dt4c);
+         F4_KK(theta4, a4, MY_PI_KK - t40, dt4a, b4, dt4c);
   if (f4t4 == static_cast<KK_FLOAT>(0.0)) return false;
 
   KK_FLOAT sin4_sq = Kokkos::fma(-cost4, cost4, static_cast<KK_FLOAT>(1.0));
@@ -749,7 +749,7 @@ bool PairOxdna2CoaxstkKokkos<DeviceType>::coaxstk_theta4_terms(const int &atype,
   const KK_FLOAT rsin4 = (sin4_sq > static_cast<KK_FLOAT>(0.0)) ?
     static_cast<KK_FLOAT>(1.0) / Kokkos::sqrt(sin4_sq) : static_cast<KK_FLOAT>(0.0);
   df4t4 = ( DF4_KK(theta4, a4, t40, dt4a, b4, dt4c) +
-            DF4_KK(theta4, a4, MY_PI - t40, dt4a, b4, dt4c) ) * rsin4;
+            DF4_KK(theta4, a4, MY_PI_KK - t40, dt4a, b4, dt4c) ) * rsin4;
   return true;
 }
 
@@ -765,9 +765,9 @@ bool PairOxdna2CoaxstkKokkos<DeviceType>::coaxstk_theta5_terms(const int &atype,
   const KK_FLOAT dt5c = d_dtheta_cxst5_c(atype,btype);
 
   cost5 = Kokkos::fma(a_nz[2], delr_stkstk_norm[2], Kokkos::fma(a_nz[1], delr_stkstk_norm[1], a_nz[0] * delr_stkstk_norm[0]));
-  if (cost5 > 1.0) cost5 = 1.0;
-  if (cost5 < -1.0) cost5 = -1.0;
-  theta5 = acos(cost5);
+  if (cost5 > static_cast<KK_FLOAT>(1.0)) cost5 = static_cast<KK_FLOAT>(1.0);
+  if (cost5 < static_cast<KK_FLOAT>(-1.0)) cost5 = static_cast<KK_FLOAT>(-1.0);
+  theta5 = Kokkos::acos(cost5);
   theta5p = MY_PI_KK - theta5;
   f4t5 = F4_KK(theta5, a5, t50, dt5a, b5, dt5c) +
          F4_KK(theta5p, a5, t50, dt5a, b5, dt5c);
@@ -796,9 +796,9 @@ bool PairOxdna2CoaxstkKokkos<DeviceType>::coaxstk_theta6_terms(const int &atype,
   const KK_FLOAT dt6c = d_dtheta_cxst6_c(atype,btype);
 
   cost6 = Kokkos::fma(b_nz[2], delr_stkstk_norm[2], Kokkos::fma(b_nz[1], delr_stkstk_norm[1], b_nz[0] * delr_stkstk_norm[0]));
-  if (cost6 > 1.0) cost6 = 1.0;
-  if (cost6 < -1.0) cost6 = -1.0;
-  theta6 = acos(cost6);
+  if (cost6 > static_cast<KK_FLOAT>(1.0)) cost6 = static_cast<KK_FLOAT>(1.0);
+  if (cost6 < static_cast<KK_FLOAT>(-1.0)) cost6 = static_cast<KK_FLOAT>(-1.0);
+  theta6 = Kokkos::acos(cost6);
   theta6p = MY_PI_KK - theta6;
   f4t6 = F4_KK(theta6, a6, t60, dt6a, b6, dt6c) +
          F4_KK(theta6p, a6, t60, dt6a, b6, dt6c);
@@ -828,7 +828,7 @@ void PairOxdna2CoaxstkKokkos<DeviceType>::coaxstk_cosphi3_terms(const int &a, co
 
   KK_FLOAT rsq_bkbk = Kokkos::fma(delr_bkbk[0], delr_bkbk[0],
                     Kokkos::fma(delr_bkbk[1], delr_bkbk[1], delr_bkbk[2] * delr_bkbk[2]));
-  KK_FLOAT rinv_bkbk = 1.0 / Kokkos::sqrt(rsq_bkbk);
+  KK_FLOAT rinv_bkbk = static_cast<KK_FLOAT>(1.0) / Kokkos::sqrt(rsq_bkbk);
   delr_bkbk_norm[0] = delr_bkbk[0] * rinv_bkbk;
   delr_bkbk_norm[1] = delr_bkbk[1] * rinv_bkbk;
   delr_bkbk_norm[2] = delr_bkbk[2] * rinv_bkbk;
@@ -837,8 +837,8 @@ void PairOxdna2CoaxstkKokkos<DeviceType>::coaxstk_cosphi3_terms(const int &a, co
   KK_FLOAT v1tmp1 = delr_bkbk_norm[2] * a_nx[0] - delr_bkbk_norm[0] * a_nx[2];
   KK_FLOAT v1tmp2 = delr_bkbk_norm[0] * a_nx[1] - delr_bkbk_norm[1] * a_nx[0];
   cosphi3 = Kokkos::fma(v1tmp2, delr_stkstk_norm[2], Kokkos::fma(v1tmp1, delr_stkstk_norm[1], v1tmp0 * delr_stkstk_norm[0]));
-  if (cosphi3 > 1.0) cosphi3 = 1.0;
-  if (cosphi3 < -1.0) cosphi3 = -1.0;
+  if (cosphi3 > static_cast<KK_FLOAT>(1.0)) cosphi3 = static_cast<KK_FLOAT>(1.0);
+  if (cosphi3 < static_cast<KK_FLOAT>(-1.0)) cosphi3 = static_cast<KK_FLOAT>(-1.0);
 }
 
 template<class DeviceType>
@@ -898,12 +898,12 @@ void PairOxdna2CoaxstkKokkos<DeviceType>::coaxstk_force_contrib(const KK_FLOAT &
   }
 
   // r x f torques
-  delta[0] = Kokkos::fma(ra_cstk[1], delf[2], - ra_cstk[2] * delf[1]);
-  delta[1] = Kokkos::fma(ra_cstk[2], delf[0], - ra_cstk[0] * delf[2]);
-  delta[2] = Kokkos::fma(ra_cstk[0], delf[1], - ra_cstk[1] * delf[0]);
-  deltb[0] = Kokkos::fma(rb_cstk[1], delf[2], - rb_cstk[2] * delf[1]);
-  deltb[1] = Kokkos::fma(rb_cstk[2], delf[0], - rb_cstk[0] * delf[2]);
-  deltb[2] = Kokkos::fma(rb_cstk[0], delf[1], - rb_cstk[1] * delf[0]);
+  delta[0] = Kokkos::fma(ra_cstk[1], delf[2], - static_cast<KK_ACC_FLOAT>(ra_cstk[2]) * delf[1]);
+  delta[1] = Kokkos::fma(ra_cstk[2], delf[0], - static_cast<KK_ACC_FLOAT>(ra_cstk[0]) * delf[2]);
+  delta[2] = Kokkos::fma(ra_cstk[0], delf[1], - static_cast<KK_ACC_FLOAT>(ra_cstk[1]) * delf[0]);
+  deltb[0] = Kokkos::fma(rb_cstk[1], delf[2], - static_cast<KK_ACC_FLOAT>(rb_cstk[2]) * delf[1]);
+  deltb[1] = Kokkos::fma(rb_cstk[2], delf[0], - static_cast<KK_ACC_FLOAT>(rb_cstk[0]) * delf[2]);
+  deltb[2] = Kokkos::fma(rb_cstk[0], delf[1], - static_cast<KK_ACC_FLOAT>(rb_cstk[1]) * delf[0]);
 }
 
 template<class DeviceType>
@@ -992,7 +992,7 @@ void PairOxdna2CoaxstkKokkos<DeviceType>::operator()(TagPairOxdna2CoaxstkCompute
   const int a = static_cast<int>(pair >> 32);
   // "pair & 0xffffffffu" keeps only the lower 32 bits to recover the atom-b index.
   int b = static_cast<int>(pair & 0xffffffffu);
-  const KK_FLOAT factor_lj = special_lj[sbmask(b)];
+  const KK_FLOAT factor_lj = static_cast<KK_FLOAT>(special_lj[sbmask(b)]);
   if (factor_lj == static_cast<KK_FLOAT>(0.0)) return;
   b &= NEIGHMASK;
 
@@ -1029,15 +1029,15 @@ void PairOxdna2CoaxstkKokkos<DeviceType>::operator()(TagPairOxdna2CoaxstkCompute
 
   // vector COM-backbone site [a/b], COM-stacking site [a/b]
   if constexpr (OXDNAFLAG==OXDNA2) {
-    constexpr KK_FLOAT dx_cbk_oxdna2 = -0.34;
-    constexpr KK_FLOAT dy_cbk_oxdna2 = +0.3408;
+    constexpr KK_FLOAT dx_cbk_oxdna2 = static_cast<KK_FLOAT>(-0.34);
+    constexpr KK_FLOAT dy_cbk_oxdna2 = static_cast<KK_FLOAT>(+0.3408);
     ra_cbk[0] = dx_cbk_oxdna2*a_nx_loc[0] + dy_cbk_oxdna2*a_ny_loc[0];
     ra_cbk[1] = dx_cbk_oxdna2*a_nx_loc[1] + dy_cbk_oxdna2*a_ny_loc[1];
     ra_cbk[2] = dx_cbk_oxdna2*a_nx_loc[2] + dy_cbk_oxdna2*a_ny_loc[2];
     rb_cbk[0] = dx_cbk_oxdna2*b_nx_loc[0] + dy_cbk_oxdna2*b_ny_loc[0];
     rb_cbk[1] = dx_cbk_oxdna2*b_nx_loc[1] + dy_cbk_oxdna2*b_ny_loc[1];
     rb_cbk[2] = dx_cbk_oxdna2*b_nx_loc[2] + dy_cbk_oxdna2*b_ny_loc[2];
-    constexpr KK_FLOAT dx_cstk_oxdna1 = +0.34;  // oxDNA2 uses same stacking site as oxDNA1
+    constexpr KK_FLOAT dx_cstk_oxdna1 = static_cast<KK_FLOAT>(+0.34);  // oxDNA2 uses same stacking site as oxDNA1
     ra_cstk[0] = dx_cstk_oxdna1*a_nx_loc[0];
     ra_cstk[1] = dx_cstk_oxdna1*a_nx_loc[1];
     ra_cstk[2] = dx_cstk_oxdna1*a_nx_loc[2];
@@ -1046,8 +1046,8 @@ void PairOxdna2CoaxstkKokkos<DeviceType>::operator()(TagPairOxdna2CoaxstkCompute
     rb_cstk[2] = dx_cstk_oxdna1*b_nx_loc[2];
   } else if constexpr (OXDNAFLAG==OXDNA3) {
     // oxDNA3 uses same backbone site as oxDNA2...
-    constexpr KK_FLOAT dx_cbk_oxdna2 = -0.34;
-    constexpr KK_FLOAT dy_cbk_oxdna2 = +0.3408;
+    constexpr KK_FLOAT dx_cbk_oxdna2 = static_cast<KK_FLOAT>(-0.34);
+    constexpr KK_FLOAT dy_cbk_oxdna2 = static_cast<KK_FLOAT>(+0.3408);
     ra_cbk[0] = dx_cbk_oxdna2*a_nx_loc[0] + dy_cbk_oxdna2*a_ny_loc[0];
     ra_cbk[1] = dx_cbk_oxdna2*a_nx_loc[1] + dy_cbk_oxdna2*a_ny_loc[1];
     ra_cbk[2] = dx_cbk_oxdna2*a_nx_loc[2] + dy_cbk_oxdna2*a_ny_loc[2];
@@ -1055,7 +1055,7 @@ void PairOxdna2CoaxstkKokkos<DeviceType>::operator()(TagPairOxdna2CoaxstkCompute
     rb_cbk[1] = dx_cbk_oxdna2*b_nx_loc[1] + dy_cbk_oxdna2*b_ny_loc[1];
     rb_cbk[2] = dx_cbk_oxdna2*b_nx_loc[2] + dy_cbk_oxdna2*b_ny_loc[2];
     // ...But the stacking site is different for oxDNA3.
-    constexpr KK_FLOAT dx_cstk_oxdna3 = +0.37;
+    constexpr KK_FLOAT dx_cstk_oxdna3 = static_cast<KK_FLOAT>(+0.37);
     ra_cstk[0] = dx_cstk_oxdna3*a_nx_loc[0];
     ra_cstk[1] = dx_cstk_oxdna3*a_nx_loc[1];
     ra_cstk[2] = dx_cstk_oxdna3*a_nx_loc[2];
@@ -1071,7 +1071,7 @@ void PairOxdna2CoaxstkKokkos<DeviceType>::operator()(TagPairOxdna2CoaxstkCompute
   delr_stkstk[2] = x(a,2) + ra_cstk[2] - x(b,2) - rb_cstk[2];
   rsq_stkstk = Kokkos::fma(delr_stkstk[0], delr_stkstk[0], Kokkos::fma(delr_stkstk[1], delr_stkstk[1], delr_stkstk[2]*delr_stkstk[2]));
   r_stkstk = Kokkos::sqrt(rsq_stkstk);
-  rinv_stkstk = 1.0 / r_stkstk;
+  rinv_stkstk = static_cast<KK_FLOAT>(1.0) / r_stkstk;
   delr_stkstk_norm[0] = delr_stkstk[0] * rinv_stkstk;
   delr_stkstk_norm[1] = delr_stkstk[1] * rinv_stkstk;
   delr_stkstk_norm[2] = delr_stkstk[2] * rinv_stkstk;
@@ -1094,12 +1094,12 @@ void PairOxdna2CoaxstkKokkos<DeviceType>::operator()(TagPairOxdna2CoaxstkCompute
   } else if (id3p(a) == -1 && id5p(b) == -1) {
     prime_cxst_ab = d_k_cxst(btype,atype);
   } else {
-    prime_cxst_ab = 0.5 * (d_k_cxst(atype,btype) + d_k_cxst(btype,atype));
+    prime_cxst_ab = static_cast<KK_FLOAT>(0.5) * (d_k_cxst(atype,btype) + d_k_cxst(btype,atype));
   }
 
   if (!coaxstk_radial_terms(atype,btype,r_stkstk,prime_cxst_ab,f2,df2)) return;
 
-  evdwl = f2 * f4f6t1 * f4t4 * f4t5 * f4t6 * factor_lj;
+  evdwl = static_cast<KK_ACC_FLOAT>(f2 * f4f6t1 * f4t4 * f4t5 * f4t6 * factor_lj);
 
   // force, torque, and viral contributions for forces between h-bonding sites
 
@@ -1133,10 +1133,10 @@ void PairOxdna2CoaxstkKokkos<DeviceType>::operator()(TagPairOxdna2CoaxstkCompute
   // (see G. Ciccotti and J.P. Ryckaert, Comp. Phys. Rep. 4, 345-392 (1986))
 
   if (EVFLAG) {
-    ev.evdwl += (((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD)&&(NEWTON_PAIR||(b<nlocal)))?1.0:0.5)*evdwl;
+    ev.evdwl += (((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD)&&(NEWTON_PAIR||(b<nlocal)))?static_cast<KK_ACC_FLOAT>(1.0):static_cast<KK_ACC_FLOAT>(0.5))*evdwl;
 
     if (vflag_either || eflag_atom) {
-      this->template ev_tally_xyz<NEIGHFLAG,NEWTON_PAIR,1>(ev,a,b,evdwl,\
+      this->template ev_tally_xyz<NEIGHFLAG,NEWTON_PAIR,1>(ev,a,b,static_cast<KK_FLOAT>(evdwl),\
       delf[0],delf[1],delf[2],x(a,0)-x(b,0), x(a,1)-x(b,1), x(a,2)-x(b,2));
     }
   }
@@ -1315,43 +1315,43 @@ double PairOxdna2CoaxstkKokkos<DeviceType>::init_one(int i, int j)
   double cutone = PairOxdna2Coaxstk::init_one(i,j);
 
   // Assign directionally: [i][j] gets [i][j], [j][i] gets [j][i]
-  k_k_cxst.view_host()(i,j) = k_cxst[i][j]; k_k_cxst.view_host()(j,i) = k_cxst[j][i];
-  k_cut_cxst_0.view_host()(i,j) = cut_cxst_0[i][j]; k_cut_cxst_0.view_host()(j,i) = cut_cxst_0[j][i];
-  k_cut_cxst_c.view_host()(i,j) = cut_cxst_c[i][j]; k_cut_cxst_c.view_host()(j,i) = cut_cxst_c[j][i];
-  k_cut_cxst_lo.view_host()(i,j) = cut_cxst_lo[i][j]; k_cut_cxst_lo.view_host()(j,i) = cut_cxst_lo[j][i];
-  k_cut_cxst_hi.view_host()(i,j) = cut_cxst_hi[i][j]; k_cut_cxst_hi.view_host()(j,i) = cut_cxst_hi[j][i];
-  k_cut_cxst_lc.view_host()(i,j) = cut_cxst_lc[i][j]; k_cut_cxst_lc.view_host()(j,i) = cut_cxst_lc[j][i];
-  k_cut_cxst_hc.view_host()(i,j) = cut_cxst_hc[i][j]; k_cut_cxst_hc.view_host()(j,i) = cut_cxst_hc[j][i];
-  k_b_cxst_lo.view_host()(i,j) = b_cxst_lo[i][j]; k_b_cxst_lo.view_host()(j,i) = b_cxst_lo[j][i];
-  k_b_cxst_hi.view_host()(i,j) = b_cxst_hi[i][j]; k_b_cxst_hi.view_host()(j,i) = b_cxst_hi[j][i];
-  k_cutsq_cxst_hc.view_host()(i,j) = cutsq_cxst_hc[i][j]; k_cutsq_cxst_hc.view_host()(j,i) = cutsq_cxst_hc[j][i];
+  k_k_cxst.view_host()(i,j) = static_cast<KK_FLOAT>(k_cxst[i][j]); k_k_cxst.view_host()(j,i) = static_cast<KK_FLOAT>(k_cxst[j][i]);
+  k_cut_cxst_0.view_host()(i,j) = static_cast<KK_FLOAT>(cut_cxst_0[i][j]); k_cut_cxst_0.view_host()(j,i) = static_cast<KK_FLOAT>(cut_cxst_0[j][i]);
+  k_cut_cxst_c.view_host()(i,j) = static_cast<KK_FLOAT>(cut_cxst_c[i][j]); k_cut_cxst_c.view_host()(j,i) = static_cast<KK_FLOAT>(cut_cxst_c[j][i]);
+  k_cut_cxst_lo.view_host()(i,j) = static_cast<KK_FLOAT>(cut_cxst_lo[i][j]); k_cut_cxst_lo.view_host()(j,i) = static_cast<KK_FLOAT>(cut_cxst_lo[j][i]);
+  k_cut_cxst_hi.view_host()(i,j) = static_cast<KK_FLOAT>(cut_cxst_hi[i][j]); k_cut_cxst_hi.view_host()(j,i) = static_cast<KK_FLOAT>(cut_cxst_hi[j][i]);
+  k_cut_cxst_lc.view_host()(i,j) = static_cast<KK_FLOAT>(cut_cxst_lc[i][j]); k_cut_cxst_lc.view_host()(j,i) = static_cast<KK_FLOAT>(cut_cxst_lc[j][i]);
+  k_cut_cxst_hc.view_host()(i,j) = static_cast<KK_FLOAT>(cut_cxst_hc[i][j]); k_cut_cxst_hc.view_host()(j,i) = static_cast<KK_FLOAT>(cut_cxst_hc[j][i]);
+  k_b_cxst_lo.view_host()(i,j) = static_cast<KK_FLOAT>(b_cxst_lo[i][j]); k_b_cxst_lo.view_host()(j,i) = static_cast<KK_FLOAT>(b_cxst_lo[j][i]);
+  k_b_cxst_hi.view_host()(i,j) = static_cast<KK_FLOAT>(b_cxst_hi[i][j]); k_b_cxst_hi.view_host()(j,i) = static_cast<KK_FLOAT>(b_cxst_hi[j][i]);
+  k_cutsq_cxst_hc.view_host()(i,j) = static_cast<KK_FLOAT>(cutsq_cxst_hc[i][j]); k_cutsq_cxst_hc.view_host()(j,i) = static_cast<KK_FLOAT>(cutsq_cxst_hc[j][i]);
 
-  k_a_cxst1.view_host()(i,j) = a_cxst1[i][j]; k_a_cxst1.view_host()(j,i) = a_cxst1[j][i];
-  k_theta_cxst1_0.view_host()(i,j) = theta_cxst1_0[i][j]; k_theta_cxst1_0.view_host()(j,i) = theta_cxst1_0[j][i];
-  k_dtheta_cxst1_ast.view_host()(i,j) = dtheta_cxst1_ast[i][j]; k_dtheta_cxst1_ast.view_host()(j,i) = dtheta_cxst1_ast[j][i];
-  k_b_cxst1.view_host()(i,j) = b_cxst1[i][j]; k_b_cxst1.view_host()(j,i) = b_cxst1[j][i];
-  k_dtheta_cxst1_c.view_host()(i,j) = dtheta_cxst1_c[i][j]; k_dtheta_cxst1_c.view_host()(j,i) = dtheta_cxst1_c[j][i];
+  k_a_cxst1.view_host()(i,j) = static_cast<KK_FLOAT>(a_cxst1[i][j]); k_a_cxst1.view_host()(j,i) = static_cast<KK_FLOAT>(a_cxst1[j][i]);
+  k_theta_cxst1_0.view_host()(i,j) = static_cast<KK_FLOAT>(theta_cxst1_0[i][j]); k_theta_cxst1_0.view_host()(j,i) = static_cast<KK_FLOAT>(theta_cxst1_0[j][i]);
+  k_dtheta_cxst1_ast.view_host()(i,j) = static_cast<KK_FLOAT>(dtheta_cxst1_ast[i][j]); k_dtheta_cxst1_ast.view_host()(j,i) = static_cast<KK_FLOAT>(dtheta_cxst1_ast[j][i]);
+  k_b_cxst1.view_host()(i,j) = static_cast<KK_FLOAT>(b_cxst1[i][j]); k_b_cxst1.view_host()(j,i) = static_cast<KK_FLOAT>(b_cxst1[j][i]);
+  k_dtheta_cxst1_c.view_host()(i,j) = static_cast<KK_FLOAT>(dtheta_cxst1_c[i][j]); k_dtheta_cxst1_c.view_host()(j,i) = static_cast<KK_FLOAT>(dtheta_cxst1_c[j][i]);
 
-  k_a_cxst4.view_host()(i,j) = a_cxst4[i][j]; k_a_cxst4.view_host()(j,i) = a_cxst4[j][i];
-  k_theta_cxst4_0.view_host()(i,j) = theta_cxst4_0[i][j]; k_theta_cxst4_0.view_host()(j,i) = theta_cxst4_0[j][i];
-  k_dtheta_cxst4_ast.view_host()(i,j) = dtheta_cxst4_ast[i][j]; k_dtheta_cxst4_ast.view_host()(j,i) = dtheta_cxst4_ast[j][i];
-  k_b_cxst4.view_host()(i,j) = b_cxst4[i][j]; k_b_cxst4.view_host()(j,i) = b_cxst4[j][i];
-  k_dtheta_cxst4_c.view_host()(i,j) = dtheta_cxst4_c[i][j]; k_dtheta_cxst4_c.view_host()(j,i) = dtheta_cxst4_c[j][i];
+  k_a_cxst4.view_host()(i,j) = static_cast<KK_FLOAT>(a_cxst4[i][j]); k_a_cxst4.view_host()(j,i) = static_cast<KK_FLOAT>(a_cxst4[j][i]);
+  k_theta_cxst4_0.view_host()(i,j) = static_cast<KK_FLOAT>(theta_cxst4_0[i][j]); k_theta_cxst4_0.view_host()(j,i) = static_cast<KK_FLOAT>(theta_cxst4_0[j][i]);
+  k_dtheta_cxst4_ast.view_host()(i,j) = static_cast<KK_FLOAT>(dtheta_cxst4_ast[i][j]); k_dtheta_cxst4_ast.view_host()(j,i) = static_cast<KK_FLOAT>(dtheta_cxst4_ast[j][i]);
+  k_b_cxst4.view_host()(i,j) = static_cast<KK_FLOAT>(b_cxst4[i][j]); k_b_cxst4.view_host()(j,i) = static_cast<KK_FLOAT>(b_cxst4[j][i]);
+  k_dtheta_cxst4_c.view_host()(i,j) = static_cast<KK_FLOAT>(dtheta_cxst4_c[i][j]); k_dtheta_cxst4_c.view_host()(j,i) = static_cast<KK_FLOAT>(dtheta_cxst4_c[j][i]);
 
-  k_a_cxst5.view_host()(i,j) = a_cxst5[i][j]; k_a_cxst5.view_host()(j,i) = a_cxst5[j][i];
-  k_theta_cxst5_0.view_host()(i,j) = theta_cxst5_0[i][j]; k_theta_cxst5_0.view_host()(j,i) = theta_cxst5_0[j][i];
-  k_dtheta_cxst5_ast.view_host()(i,j) = dtheta_cxst5_ast[i][j]; k_dtheta_cxst5_ast.view_host()(j,i) = dtheta_cxst5_ast[j][i];
-  k_b_cxst5.view_host()(i,j) = b_cxst5[i][j]; k_b_cxst5.view_host()(j,i) = b_cxst5[j][i];
-  k_dtheta_cxst5_c.view_host()(i,j) = dtheta_cxst5_c[i][j]; k_dtheta_cxst5_c.view_host()(j,i) = dtheta_cxst5_c[j][i];
+  k_a_cxst5.view_host()(i,j) = static_cast<KK_FLOAT>(a_cxst5[i][j]); k_a_cxst5.view_host()(j,i) = static_cast<KK_FLOAT>(a_cxst5[j][i]);
+  k_theta_cxst5_0.view_host()(i,j) = static_cast<KK_FLOAT>(theta_cxst5_0[i][j]); k_theta_cxst5_0.view_host()(j,i) = static_cast<KK_FLOAT>(theta_cxst5_0[j][i]);
+  k_dtheta_cxst5_ast.view_host()(i,j) = static_cast<KK_FLOAT>(dtheta_cxst5_ast[i][j]); k_dtheta_cxst5_ast.view_host()(j,i) = static_cast<KK_FLOAT>(dtheta_cxst5_ast[j][i]);
+  k_b_cxst5.view_host()(i,j) = static_cast<KK_FLOAT>(b_cxst5[i][j]); k_b_cxst5.view_host()(j,i) = static_cast<KK_FLOAT>(b_cxst5[j][i]);
+  k_dtheta_cxst5_c.view_host()(i,j) = static_cast<KK_FLOAT>(dtheta_cxst5_c[i][j]); k_dtheta_cxst5_c.view_host()(j,i) = static_cast<KK_FLOAT>(dtheta_cxst5_c[j][i]);
 
-  k_a_cxst6.view_host()(i,j) = a_cxst6[i][j]; k_a_cxst6.view_host()(j,i) = a_cxst6[j][i];
-  k_theta_cxst6_0.view_host()(i,j) = theta_cxst6_0[i][j]; k_theta_cxst6_0.view_host()(j,i) = theta_cxst6_0[j][i];
-  k_dtheta_cxst6_ast.view_host()(i,j) = dtheta_cxst6_ast[i][j]; k_dtheta_cxst6_ast.view_host()(j,i) = dtheta_cxst6_ast[j][i];
-  k_b_cxst6.view_host()(i,j) = b_cxst6[i][j]; k_b_cxst6.view_host()(j,i) = b_cxst6[j][i];
-  k_dtheta_cxst6_c.view_host()(i,j) = dtheta_cxst6_c[i][j]; k_dtheta_cxst6_c.view_host()(j,i) = dtheta_cxst6_c[j][i];
+  k_a_cxst6.view_host()(i,j) = static_cast<KK_FLOAT>(a_cxst6[i][j]); k_a_cxst6.view_host()(j,i) = static_cast<KK_FLOAT>(a_cxst6[j][i]);
+  k_theta_cxst6_0.view_host()(i,j) = static_cast<KK_FLOAT>(theta_cxst6_0[i][j]); k_theta_cxst6_0.view_host()(j,i) = static_cast<KK_FLOAT>(theta_cxst6_0[j][i]);
+  k_dtheta_cxst6_ast.view_host()(i,j) = static_cast<KK_FLOAT>(dtheta_cxst6_ast[i][j]); k_dtheta_cxst6_ast.view_host()(j,i) = static_cast<KK_FLOAT>(dtheta_cxst6_ast[j][i]);
+  k_b_cxst6.view_host()(i,j) = static_cast<KK_FLOAT>(b_cxst6[i][j]); k_b_cxst6.view_host()(j,i) = static_cast<KK_FLOAT>(b_cxst6[j][i]);
+  k_dtheta_cxst6_c.view_host()(i,j) = static_cast<KK_FLOAT>(dtheta_cxst6_c[i][j]); k_dtheta_cxst6_c.view_host()(j,i) = static_cast<KK_FLOAT>(dtheta_cxst6_c[j][i]);
 
-  k_AA_cxst1.view_host()(i,j) = AA_cxst1[i][j]; k_AA_cxst1.view_host()(j,i) = AA_cxst1[j][i];
-  k_BB_cxst1.view_host()(i,j) = BB_cxst1[i][j]; k_BB_cxst1.view_host()(j,i) = BB_cxst1[j][i];
+  k_AA_cxst1.view_host()(i,j) = static_cast<KK_FLOAT>(AA_cxst1[i][j]); k_AA_cxst1.view_host()(j,i) = static_cast<KK_FLOAT>(AA_cxst1[j][i]);
+  k_BB_cxst1.view_host()(i,j) = static_cast<KK_FLOAT>(BB_cxst1[i][j]); k_BB_cxst1.view_host()(j,i) = static_cast<KK_FLOAT>(BB_cxst1[j][i]);
 
   k_k_cxst.modify_host();
   k_cut_cxst_0.modify_host();
@@ -1474,66 +1474,66 @@ void PairOxdna2CoaxstkKokkos<DeviceType>::ev_tally_xyz(EV_FLOAT &ev, const int &
   }
 
   if (VFLAG) {
-    const KK_ACC_FLOAT v0 = static_cast<KK_ACC_FLOAT>(delx*fx);
-    const KK_ACC_FLOAT v1 = static_cast<KK_ACC_FLOAT>(dely*fy);
-    const KK_ACC_FLOAT v2 = static_cast<KK_ACC_FLOAT>(delz*fz);
-    const KK_ACC_FLOAT v3 = static_cast<KK_ACC_FLOAT>(delx*fy);
-    const KK_ACC_FLOAT v4 = static_cast<KK_ACC_FLOAT>(delx*fz);
-    const KK_ACC_FLOAT v5 = static_cast<KK_ACC_FLOAT>(dely*fz);
+    const KK_ACC_FLOAT v0 = static_cast<KK_ACC_FLOAT>(delx)*fx;
+    const KK_ACC_FLOAT v1 = static_cast<KK_ACC_FLOAT>(dely)*fy;
+    const KK_ACC_FLOAT v2 = static_cast<KK_ACC_FLOAT>(delz)*fz;
+    const KK_ACC_FLOAT v3 = static_cast<KK_ACC_FLOAT>(delx)*fy;
+    const KK_ACC_FLOAT v4 = static_cast<KK_ACC_FLOAT>(delx)*fz;
+    const KK_ACC_FLOAT v5 = static_cast<KK_ACC_FLOAT>(dely)*fz;
 
     if (vflag_global) {
       if (NEIGHFLAG!=FULL) {
         if (NEWTON_PAIR || i < nlocal) {
-          ev.v[0] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v0);
-          ev.v[1] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v1);
-          ev.v[2] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v2);
-          ev.v[3] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v3);
-          ev.v[4] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v4);
-          ev.v[5] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v5);
+          ev.v[0] += static_cast<KK_ACC_FLOAT>(0.5) * v0;
+          ev.v[1] += static_cast<KK_ACC_FLOAT>(0.5) * v1;
+          ev.v[2] += static_cast<KK_ACC_FLOAT>(0.5) * v2;
+          ev.v[3] += static_cast<KK_ACC_FLOAT>(0.5) * v3;
+          ev.v[4] += static_cast<KK_ACC_FLOAT>(0.5) * v4;
+          ev.v[5] += static_cast<KK_ACC_FLOAT>(0.5) * v5;
         }
         if (NEWTON_PAIR || j < nlocal) {
-        ev.v[0] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v0);
-        ev.v[1] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v1);
-        ev.v[2] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v2);
-        ev.v[3] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v3);
-        ev.v[4] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v4);
-        ev.v[5] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v5);
+        ev.v[0] += static_cast<KK_ACC_FLOAT>(0.5) * v0;
+        ev.v[1] += static_cast<KK_ACC_FLOAT>(0.5) * v1;
+        ev.v[2] += static_cast<KK_ACC_FLOAT>(0.5) * v2;
+        ev.v[3] += static_cast<KK_ACC_FLOAT>(0.5) * v3;
+        ev.v[4] += static_cast<KK_ACC_FLOAT>(0.5) * v4;
+        ev.v[5] += static_cast<KK_ACC_FLOAT>(0.5) * v5;
         }
       } else {
-        ev.v[0] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v0);
-        ev.v[1] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v1);
-        ev.v[2] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v2);
-        ev.v[3] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v3);
-        ev.v[4] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v4);
-        ev.v[5] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v5);
+        ev.v[0] += static_cast<KK_ACC_FLOAT>(0.5) * v0;
+        ev.v[1] += static_cast<KK_ACC_FLOAT>(0.5) * v1;
+        ev.v[2] += static_cast<KK_ACC_FLOAT>(0.5) * v2;
+        ev.v[3] += static_cast<KK_ACC_FLOAT>(0.5) * v3;
+        ev.v[4] += static_cast<KK_ACC_FLOAT>(0.5) * v4;
+        ev.v[5] += static_cast<KK_ACC_FLOAT>(0.5) * v5;
       }
     }
 
     if (vflag_atom) {
       if (NEIGHFLAG!=FULL) {
         if (NEWTON_PAIR || i < nlocal) {
-          a_vatom(i,0) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v0);
-          a_vatom(i,1) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v1);
-          a_vatom(i,2) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v2);
-          a_vatom(i,3) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v3);
-          a_vatom(i,4) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v4);
-          a_vatom(i,5) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v5);
+          a_vatom(i,0) += static_cast<KK_ACC_FLOAT>(0.5) * v0;
+          a_vatom(i,1) += static_cast<KK_ACC_FLOAT>(0.5) * v1;
+          a_vatom(i,2) += static_cast<KK_ACC_FLOAT>(0.5) * v2;
+          a_vatom(i,3) += static_cast<KK_ACC_FLOAT>(0.5) * v3;
+          a_vatom(i,4) += static_cast<KK_ACC_FLOAT>(0.5) * v4;
+          a_vatom(i,5) += static_cast<KK_ACC_FLOAT>(0.5) * v5;
         }
         if (NEWTON_PAIR || j < nlocal) {
-        a_vatom(j,0) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v0);
-        a_vatom(j,1) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v1);
-        a_vatom(j,2) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v2);
-        a_vatom(j,3) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v3);
-        a_vatom(j,4) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v4);
-        a_vatom(j,5) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v5);
+        a_vatom(j,0) += static_cast<KK_ACC_FLOAT>(0.5) * v0;
+        a_vatom(j,1) += static_cast<KK_ACC_FLOAT>(0.5) * v1;
+        a_vatom(j,2) += static_cast<KK_ACC_FLOAT>(0.5) * v2;
+        a_vatom(j,3) += static_cast<KK_ACC_FLOAT>(0.5) * v3;
+        a_vatom(j,4) += static_cast<KK_ACC_FLOAT>(0.5) * v4;
+        a_vatom(j,5) += static_cast<KK_ACC_FLOAT>(0.5) * v5;
         }
       } else {
-        a_vatom(i,0) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v0);
-        a_vatom(i,1) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v1);
-        a_vatom(i,2) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v2);
-        a_vatom(i,3) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v3);
-        a_vatom(i,4) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v4);
-        a_vatom(i,5) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v5);
+        a_vatom(i,0) += static_cast<KK_ACC_FLOAT>(0.5) * v0;
+        a_vatom(i,1) += static_cast<KK_ACC_FLOAT>(0.5) * v1;
+        a_vatom(i,2) += static_cast<KK_ACC_FLOAT>(0.5) * v2;
+        a_vatom(i,3) += static_cast<KK_ACC_FLOAT>(0.5) * v3;
+        a_vatom(i,4) += static_cast<KK_ACC_FLOAT>(0.5) * v4;
+        a_vatom(i,5) += static_cast<KK_ACC_FLOAT>(0.5) * v5;
       }
     }
   }

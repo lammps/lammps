@@ -141,8 +141,8 @@ void FixOxdnaNpairKokkos<DeviceType>::update_screen_cutsq()
   // valid between rebuilds: two atoms can approach each other by up to one
   // skin distance before the next rebuild (same Verlet-list principle as the
   // base neighbor list itself).
-  const KK_FLOAT base_screen_cut = (screen_cut_max > 0.0) ? screen_cut_max : 2.0;
-  const KK_FLOAT screen_cut_with_skin = base_screen_cut + neighbor->skin;
+  const KK_FLOAT base_screen_cut = static_cast<KK_FLOAT>((screen_cut_max > 0.0) ? screen_cut_max : 2.0);
+  const KK_FLOAT screen_cut_with_skin = base_screen_cut + static_cast<KK_FLOAT>(neighbor->skin);
   screen_cutsq = screen_cut_with_skin * screen_cut_with_skin;
 }
 

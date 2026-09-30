@@ -123,9 +123,9 @@ void FixNVEAsphereKokkos<DeviceType>::initial_integrate_item(const int i) const
     KK_FLOAT s0 = (KK_FLOAT) shape[0];
     KK_FLOAT s1 = (KK_FLOAT) shape[1];
     KK_FLOAT s2 = (KK_FLOAT) shape[2];
-    inertia[0] = INERTIA*rm * (s1*s1 + s2*s2);
-    inertia[1] = INERTIA*rm * (s0*s0 + s2*s2);
-    inertia[2] = INERTIA*rm * (s0*s0 + s1*s1);
+    inertia[0] = static_cast<KK_FLOAT>(INERTIA)*rm * (s1*s1 + s2*s2);
+    inertia[1] = static_cast<KK_FLOAT>(INERTIA)*rm * (s0*s0 + s2*s2);
+    inertia[2] = static_cast<KK_FLOAT>(INERTIA)*rm * (s0*s0 + s1*s1);
 
     // compute omega at 1/2 step from angmom at 1/2 step and current q
     // update quaternion a full step via Richardson iteration
@@ -258,9 +258,9 @@ void FixNVEAsphereKokkos<DeviceType>::fused_integrate_item(const int i) const
     KK_FLOAT s0 = (KK_FLOAT) shape[0];
     KK_FLOAT s1 = (KK_FLOAT) shape[1];
     KK_FLOAT s2 = (KK_FLOAT) shape[2];
-    inertia[0] = INERTIA*rm * (s1*s1 + s2*s2);
-    inertia[1] = INERTIA*rm * (s0*s0 + s2*s2);
-    inertia[2] = INERTIA*rm * (s0*s0 + s1*s1);
+    inertia[0] = static_cast<KK_FLOAT>(INERTIA)*rm * (s1*s1 + s2*s2);
+    inertia[1] = static_cast<KK_FLOAT>(INERTIA)*rm * (s0*s0 + s2*s2);
+    inertia[2] = static_cast<KK_FLOAT>(INERTIA)*rm * (s0*s0 + s1*s1);
 
     // compute omega at 1/2 step from angmom at 1/2 step and current q
     // update quaternion a full step via Richardson iteration

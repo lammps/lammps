@@ -23,6 +23,12 @@ applyTo: "doc/**"
   talking down the old one.  Legacy status belongs only in developer-facing notes and
   test nomenclature (e.g. a `legacy` filename token or tag).
 
+- Do not describe internal build machinery (patches applied to downloaded library
+  sources, timestamp or cache workarounds) in the user manual: the build integration
+  should be transparent, and such notes only create concerns.  Keep these details in
+  CMake comments, commit messages, and pull request notes; document only what users
+  must act on (settings, variables, warnings they may see).
+
 ## versionadded / versionchanged policy
 
 - New publicly visible commands, styles, and added keywords require
@@ -41,6 +47,8 @@ applyTo: "doc/**"
   commas (`ko`, not `o,k`) -- and add the `/suffix` index entry plus an
   `Accelerator Variants:` line to the per-style `.rst` page.
 - Restrictions and accelerator-variant notes belong in the per-style `.rst` file.
+- When commands or keywords are added or changed, check whether example inputs use
+  them and need updating.
 
 ## Building and validating
 

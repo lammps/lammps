@@ -21,6 +21,10 @@ endif()
 if(POLICY CMP0109)
   cmake_policy(SET CMP0109 OLD)
 endif()
+# set policy so set(CACHE) command does not remove any normal variable of the same name from the current scope
+if(POLICY CMP0126)
+  cmake_policy(SET CMP0126 NEW)
+endif()
 # set policy to use the time of extraction as timestamps of files unpacked from downloaded
 # archives, so that updating an archive version triggers rebuilding all dependent objects
 if(POLICY CMP0135)

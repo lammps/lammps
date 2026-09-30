@@ -777,8 +777,6 @@ void PairBodyRoundedPolyhedron::init_style()
   MPI_Allreduce(&mrad[1],&maxrad[1],ntypes,MPI_DOUBLE,MPI_MAX,world);
 
   memory->destroy(mrad);
-
-  sanity_check();
 }
 
 /* ----------------------------------------------------------------------
@@ -1642,7 +1640,7 @@ void PairBodyRoundedPolyhedron::face_face_patches(int ibody, int jbody, int ityp
       sp *= smoothstep(width / contact_dist);
       if (sp <= 0.0) continue;
       if (!s.patch_any) {
-        s.patch.assign(facnum[ibody]*nfj, 0.0);
+        s.patch.assign(static_cast<std::size_t>(facnum[ibody])*nfj, 0.0);
         s.patch_any = 1;
       }
       s.patch[fi*nfj+fj] = sp;
@@ -1824,7 +1822,7 @@ double PairBodyRoundedPolyhedron::edge_edge_weight(const Scratch &s, int ibody, 
 
 int PairBodyRoundedPolyhedron::edge_edge_nearest(int ibody, int ei, int jbody, int ej,
                                                  double *hi, double *hj, double &r,
-                                                 int &crossed)
+                                                 int &crossed) const
 {
   double **x = atom->x;
   double xi1[3], xi2[3], xj1[3], xj2[3], ti, tj;
@@ -1902,7 +1900,7 @@ int PairBodyRoundedPolyhedron::edge_edge_nearest(int ibody, int ei, int jbody, i
    as edges, see edge_edge_nearest() and interaction_edge_to_edge()
 ------------------------------------------------------------------------- */
 
-int PairBodyRoundedPolyhedron::edges_interact(int ibody, int ei, int jbody, int ej)
+int PairBodyRoundedPolyhedron::edges_interact(int ibody, int ei, int jbody, int ej) const
 {
   double hi[3], hj[3], r;
   int crossed;
@@ -1920,7 +1918,7 @@ int PairBodyRoundedPolyhedron::edges_interact(int ibody, int ei, int jbody, int 
 ------------------------------------------------------------------------- */
 
 double PairBodyRoundedPolyhedron::vertex_edges_weight(const Scratch &s, int ibody, int ni,
-                                                      int jbody, int ej, int nj)
+                                                      int jbody, int ej, int nj) const
 {
   int iefirst = edfirst[ibody];
   int jefirst = edfirst[jbody];
@@ -2567,8 +2565,8 @@ void PairBodyRoundedPolyhedron::vertex_against_core(int ibody, int jbody,
 void PairBodyRoundedPolyhedron::pair_force_and_torque(int ibody, int jbody,
                  double* pi, double* pj, double r, double contact_dist,
                  int itype, int jtype, double** x,
-                 double** v, double** f, double** torque, double** angmom,
-                 double** fnc, int jflag, double& energy, double* facc, double w)
+                 double** /*v*/, double** f, double** torque, double** /*angmom*/,
+                 double** /*fnc*/, int jflag, double& energy, double* facc, double w)
 {
   double delx,dely,delz,R,fx,fy,fz,fpair;
 
@@ -3101,7 +3099,7 @@ void PairBodyRoundedPolyhedron::sum_torque(double* xm, double *x, double fx,
 ------------------------------------------------------------------------- */
 
 double PairBodyRoundedPolyhedron::nearest_face(int ibody, double * /*xmi*/,
-                                               const double *q, double *n, int *nf)
+                                               const double *q, double *n, int *nf) const
 {
   int iffirst = facfirst[ibody];
   double smax = 0.0;
@@ -3148,7 +3146,7 @@ int PairBodyRoundedPolyhedron::opposite_sides(double* n, double* x0,
 
 void PairBodyRoundedPolyhedron::project_pt_plane(const double* q,
                                         const double* p, const double* n,
-                                        double* q_proj, double &d)
+                                        double* q_proj, double &d) const
 {
   double dot, ans[3], n_p[3];
   n_p[0] = n[0]; n_p[1] = n[1]; n_p[2] = n[2];
@@ -3175,7 +3173,7 @@ void PairBodyRoundedPolyhedron::project_pt_plane(const double* q,
 
 void PairBodyRoundedPolyhedron::inside_polygon(int ibody, int face_index,
                             double* xmi, const double* q1, const double* q2,
-                            int& inside1, int& inside2)
+                            int& inside1, int& inside2) const
 
 {
   int i,n,ifirst,iffirst,npi1,npi2;
@@ -3251,7 +3249,7 @@ void PairBodyRoundedPolyhedron::inside_polygon(int ibody, int face_index,
 
 void PairBodyRoundedPolyhedron::project_pt_plane(const double* q,
       const double* x1, const double* x2, const double* x3, double* q_proj,
-      double &d, int& inside)
+      double &d, int& inside) const
 {
   double u[3],v[3],n[3];
 
@@ -3304,7 +3302,7 @@ void PairBodyRoundedPolyhedron::project_pt_plane(const double* q,
 /* ---------------------------------------------------------------------- */
 
 void PairBodyRoundedPolyhedron::project_pt_line(const double* q,
-     const double* xi1, const double* xi2, double* h, double& d, double& t)
+     const double* xi1, const double* xi2, double* h, double& d, double& t) const
 {
   double u[3],v[3],r[3],s;
 
@@ -3339,7 +3337,7 @@ void PairBodyRoundedPolyhedron::project_pt_line(const double* q,
 
 void PairBodyRoundedPolyhedron::distance_bt_edges(const double* x1,
                   const double* x2, const double* x3, const double* x4,
-                  double* h1, double* h2, double& t1, double& t2, double& r)
+                  double* h1, double* h2, double& t1, double& t2, double& r) const
 {
   double u[3],v[3],n[3],dot;
 
@@ -3489,24 +3487,6 @@ void PairBodyRoundedPolyhedron::find_unique_contacts(std::vector<Contact> &conta
       if (d < EPSILON*EPSILON*rmin*rmin) contacts[j].unique = 0;
     }
   }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void PairBodyRoundedPolyhedron::sanity_check()
-{
-
-  double x1[3],x2[3],h_a[3],h_b[3],d_a,d_b;
-  double a[3],b[3],t_a,t_b;
-
-  x1[0] = 0; x1[1] = 3; x1[2] = 0;
-  x2[0] = 3; x2[1] = 0; x2[2] = 0;
-
-  a[0] = 0; a[1] = 0; a[2] = 0;
-  b[0] = 4; b[1] = 0; b[2] = 0;
-
-  project_pt_line(a, x1, x2, h_a, d_a, t_a);
-  project_pt_line(b, x1, x2, h_b, d_b, t_b);
 }
 
 /* ---------------------------------------------------------------------- */

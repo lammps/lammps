@@ -588,6 +588,9 @@ void FixWidom::attempt_atomic_insertion()
           lamda[2] >= sublo[2] && lamda[2] < subhi[2]) proc_flag = 1;
     }
 
+    // only the processor that owns the insertion point computes its energy
+
+    double insertion_energy = 0.0;
     if (proc_flag) {
       int ii = -1;
       if (charge_flag) {
@@ -595,11 +598,15 @@ void FixWidom::attempt_atomic_insertion()
         if (ii >= atom->nmax) atom->avec->grow(0);
         atom->q[ii] = charge;
       }
-      double insertion_energy = energy(ii,nwidom_type,-1,coord);
-      double inst_chem_pot = exp(-insertion_energy*beta);
-      double incr_chem_pot = (inst_chem_pot - ave_widom_chemical_potential);
-      ave_widom_chemical_potential += incr_chem_pot / (imove + 1);
+      insertion_energy = energy(ii,nwidom_type,-1,coord);
     }
+
+    double insertion_energy_sum = 0.0;
+    MPI_Allreduce(&insertion_energy,&insertion_energy_sum,1,MPI_DOUBLE,MPI_SUM,world);
+
+    double inst_chem_pot = exp(-insertion_energy_sum*beta);
+    double incr_chem_pot = (inst_chem_pot - ave_widom_chemical_potential);
+    ave_widom_chemical_potential += incr_chem_pot / (imove + 1);
   }
 }
 
@@ -800,9 +807,12 @@ void FixWidom::attempt_atomic_insertion_full()
     }
 
     atom->natoms++;
+    tagint newtag = 0;
     if (atom->tag_enable) {
       atom->tag_extend();
       if (atom->map_style != Atom::MAP_NONE) atom->map_init();
+      tagint mytag = proc_flag ? atom->tag[atom->nlocal-1] : 0;
+      MPI_Allreduce(&mytag,&newtag,1,MPI_LMP_TAGINT,MPI_MAX,world);
     }
     atom->nghost = 0;
     if (triclinic) domain->x2lamda(atom->nlocal);
@@ -817,7 +827,17 @@ void FixWidom::attempt_atomic_insertion_full()
     ave_widom_chemical_potential += incr_chem_pot / (imove + 1);
 
     atom->natoms--;
-    if (proc_flag) atom->nlocal--;
+
+    // energy_full() may have reordered the local atoms, so the
+    // inserted atom must be located by its atom ID, if available
+
+    if (newtag) {
+      int k = local_index(newtag);
+      if (k >= 0) {
+        atom->avec->copy(atom->nlocal-1,k,1);
+        atom->nlocal--;
+      }
+    } else if (proc_flag) atom->nlocal--;
     if (force->kspace) force->kspace->qsum_qsq();
     if (force->pair->tail_flag) force->pair->reinit();
   }
@@ -1125,7 +1145,8 @@ void FixWidom::write_restart(FILE *fp)
   int n = 0;
   double list[3];
   list[n++] = random_equal->state();
-  list[n++] = next_reneighbor;
+  list[n++] = ubuf(next_reneighbor).d;
+  list[n++] = ubuf(update->ntimestep).d;
 
   if (comm->me == 0) {
     int size = n * sizeof(double);
@@ -1146,9 +1167,26 @@ void FixWidom::restart(char *buf)
   seed = static_cast<int> (list[n++]);
   random_equal->reset(seed);
 
-  seed = static_cast<int> (list[n++]);
+  next_reneighbor = (bigint) ubuf(list[n++]).i;
 
-  next_reneighbor = static_cast<int> (list[n++]);
+  bigint ntimestep_restart = (bigint) ubuf(list[n++]).i;
+  if (ntimestep_restart != update->ntimestep)
+    error->all(FLERR,"Must not reset timestep when restarting fix widom");
+}
+
+/* ----------------------------------------------------------------------
+   return local index of the owned atom with atom ID itag or -1 if not owned
+------------------------------------------------------------------------- */
+
+int FixWidom::local_index(tagint itag)
+{
+  if (atom->map_style != Atom::MAP_NONE) {
+    int i = atom->map(itag);
+    return (i < atom->nlocal) ? i : -1;
+  }
+  for (int i = 0; i < atom->nlocal; i++)
+    if (atom->tag[i] == itag) return i;
+  return -1;
 }
 
 void FixWidom::grow_molecule_arrays(int nmolatoms) {

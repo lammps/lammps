@@ -303,7 +303,6 @@ void Info::command(int narg, char **arg)
     if (has_gzip_support()) fputs("-DLAMMPS_GZIP\n",out);
     if (has_png_support()) fputs("-DLAMMPS_PNG\n",out);
     if (has_jpeg_support()) fputs("-DLAMMPS_JPEG\n",out);
-    if (has_ffmpeg_support()) fputs("-DLAMMPS_FFMPEG\n",out);
     if (has_curl_support()) fputs("-DLAMMPS_CURL\n",out);
     if (has_fft_single_support()) fputs("-DFFT_SINGLE\n",out);
 
@@ -313,6 +312,7 @@ void Info::command(int narg, char **arg)
     fputs("-DLAMMPS_SMALLBIG\n",out);
 #endif
     if (has_gzip_support()) utils::print(out,"\n{}\n",platform::compress_info());
+    if (has_ffmpeg_support()) fputs("FFmpeg is installed\n", out);
 
     int ncword, ncline = 0;
     fputs("\nInstalled packages:\n\n",out);
@@ -999,11 +999,7 @@ bool Info::has_jpeg_support() {
 }
 
 bool Info::has_ffmpeg_support() {
-#ifdef LAMMPS_FFMPEG
-  return true;
-#else
-  return false;
-#endif
+  return !platform::find_exe_path("ffmpeg").empty();
 }
 
 bool Info::has_curl_support() {

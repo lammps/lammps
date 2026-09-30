@@ -1275,7 +1275,6 @@ void LAMMPS::print_config(FILE *fp, int width)
   if (Info::has_gzip_support()) fputs("-DLAMMPS_GZIP\n",fp);
   if (Info::has_png_support()) fputs("-DLAMMPS_PNG\n",fp);
   if (Info::has_jpeg_support()) fputs("-DLAMMPS_JPEG\n",fp);
-  if (Info::has_ffmpeg_support()) fputs("-DLAMMPS_FFMPEG\n",fp);
   if (Info::has_curl_support()) fputs("-DLAMMPS_CURL\n",fp);
   if (Info::has_fft_single_support()) fputs("-DFFT_SINGLE\n",fp);
 #if defined(LAMMPS_BIGBIG)
@@ -1292,6 +1291,7 @@ void LAMMPS::print_config(FILE *fp, int width)
              sizeof(tagint)*8, sizeof(bigint)*8);
 
   if (Info::has_gzip_support()) utils::print(fp,"\n{}\n",platform::compress_info());
+  if (Info::has_ffmpeg_support()) fputs("FFmpeg is installed\n", fp);
 
   fputs("\nInstalled packages:\n\n",fp);
   for (int i = 0; nullptr != (pkg = installed_packages[i]); ++i) {

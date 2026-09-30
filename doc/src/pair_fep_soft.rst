@@ -523,9 +523,9 @@ For distances shorter than :math:`r_{inner}`, the energy is computed by
 .. math::
 
    E = 12 \epsilon c_1 r^2 - 96 \epsilon c_2 r + 28 \epsilon c_3 \qquad r < r_{inner} < r_c
-   c_1 = 26 \sigma^12 / r_{inner}^14 - 7 \sigma^6 / r_{inner}^8
-   c_2 = 7 \sigma^12 / r_{inner}^13 - 2 \sigma^6 / r_{inner}^7
-   c_3 = 13 \sigma^12 / r_{inner}^12 - 4 \sigma^6 / r_{inner}^6
+   c_1 = 26 \sigma^{12} / r_{inner}^{14} - 7 \sigma^6 / r_{inner}^8
+   c_2 = 7 \sigma^{12} / r_{inner}^{13} - 2 \sigma^6 / r_{inner}^7
+   c_3 = 13 \sigma^{12} / r_{inner}^{12} - 4 \sigma^6 / r_{inner}^6
 
 This pair style requires the following pair coefficients:
 

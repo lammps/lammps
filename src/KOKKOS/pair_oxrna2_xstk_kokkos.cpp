@@ -107,26 +107,6 @@ void PairOxrna2XstkKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   d_alist = k_list->d_ilist;
   d_numneigh = k_list->d_numneigh;
 
-  int need_dup = lmp->kokkos->need_dup<DeviceType>();
-  if (eflag_atom) {
-    if (need_dup) {
-      dup_eatom = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum,
-        Kokkos::Experimental::ScatterDuplicated>(d_eatom);
-    } else {
-      ndup_eatom = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum,
-        Kokkos::Experimental::ScatterNonDuplicated>(d_eatom);
-    }
-  }
-  if (vflag_atom) {
-    if (need_dup) {
-      dup_vatom = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum,
-        Kokkos::Experimental::ScatterDuplicated>(d_vatom);
-    } else {
-      ndup_vatom = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum,
-        Kokkos::Experimental::ScatterNonDuplicated>(d_vatom);
-    }
-  }
-
   copymode = 1;
 
   // d_n(x/y/z)_xtrct = extracted local unit vectors in lab frame from fix_oxdna_lrf_kokkos.
@@ -202,25 +182,13 @@ void PairOxrna2XstkKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   if (vflag_fdotr) pair_virial_fdotr_compute(this);
 
   if (eflag_atom) {
-    if (need_dup)
-      Kokkos::Experimental::contribute(d_eatom,dup_eatom);
     k_eatom.template modify<DeviceType>();
     k_eatom.sync_host();
   }
 
   if (vflag_atom) {
-    if (need_dup)
-      Kokkos::Experimental::contribute(d_vatom,dup_vatom);
     k_vatom.template modify<DeviceType>();
     k_vatom.sync_host();
-  }
-
-  if (need_dup) {
-    if (eflag_atom) dup_eatom = decltype(dup_eatom)();
-    if (vflag_atom) dup_vatom = decltype(dup_vatom)();
-  } else {
-    if (eflag_atom) ndup_eatom = decltype(ndup_eatom)();
-    if (vflag_atom) ndup_vatom = decltype(ndup_vatom)();
   }
 
   copymode = 0;
@@ -886,10 +854,7 @@ void PairOxrna2XstkKokkos<DeviceType>::ev_tally_xyz(EV_FLOAT &ev, const int &i, 
 
   if (EFLAG) {
     if (eflag_atom) {
-      // The eatom array is duplicated for OpenMP, atomic for GPU, and neither for Serial.
-      auto v_eatom = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,
-        decltype(dup_eatom),decltype(ndup_eatom)>::get(dup_eatom,ndup_eatom);
-      auto a_eatom = v_eatom.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
+      const t_atomic_kkacc_1d a_eatom = d_eatom;
 
       const KK_ACC_FLOAT epairhalf = static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * epair);
       if (NEIGHFLAG != FULL) {
@@ -938,10 +903,7 @@ void PairOxrna2XstkKokkos<DeviceType>::ev_tally_xyz(EV_FLOAT &ev, const int &i, 
     }
 
     if (vflag_atom) {
-      // The vatom array is duplicated for OpenMP, atomic for GPU, and neither for Serial.
-      auto v_vatom = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,
-        decltype(dup_vatom),decltype(ndup_vatom)>::get(dup_vatom,ndup_vatom);
-      auto a_vatom = v_vatom.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
+      const t_atomic_kkacc_1d_6 a_vatom = d_vatom;
 
       if (NEIGHFLAG != FULL) {
         if (NEWTON_PAIR || i < nlocal) {

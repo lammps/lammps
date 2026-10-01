@@ -129,19 +129,13 @@ class PairOxrna2XstkKokkos : public PairOxrna2Xstk, public KokkosBase {
   typename AT::t_kkfloat_1d_3_randomread d_nx_xtrct, d_ny_xtrct, d_nz_xtrct;
 
   using KKDeviceType = typename KKDevice<DeviceType>::value;
+  using AtomicTraits = Kokkos::MemoryTraits<Kokkos::Atomic | Kokkos::Unmanaged>;
 
-  template<typename DataType, typename Layout>
-  using DupScatterView = KKScatterView<DataType, Layout, KKDeviceType, \
-  KKScatterSum, KKScatterDuplicated>;
-
-  template<typename DataType, typename Layout>
-  using NonDupScatterView = KKScatterView<DataType, Layout, KKDeviceType, \
-  KKScatterSum, KKScatterNonDuplicated>;
-
-  DupScatterView<KK_ACC_FLOAT*, typename AT::t_kkacc_1d::array_layout> dup_eatom;
-  DupScatterView<KK_ACC_FLOAT*[6], typename AT::t_kkacc_1d_6::array_layout> dup_vatom;
-  NonDupScatterView<KK_ACC_FLOAT*, typename AT::t_kkacc_1d::array_layout> ndup_eatom;
-  NonDupScatterView<KK_ACC_FLOAT*[6], typename AT::t_kkacc_1d_6::array_layout> ndup_vatom;
+  // forces are already accumulated atomically, so per-atom tallies are too
+  using t_atomic_kkacc_1d = Kokkos::View<KK_ACC_FLOAT*,
+    typename AT::t_kkacc_1d::array_layout, KKDeviceType, AtomicTraits>;
+  using t_atomic_kkacc_1d_6 = Kokkos::View<KK_ACC_FLOAT*[6],
+    typename AT::t_kkacc_1d_6::array_layout, KKDeviceType, AtomicTraits>;
 
   void allocate() override;
 

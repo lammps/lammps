@@ -40,7 +40,6 @@ PairOxdna3Hbond::PairOxdna3Hbond(LAMMPS *lmp) : PairOxdnaHbond(lmp)
 {
   single_enable = 0;
   writedata = 0;
-  trim_flag = 0;
 
   // sequence-specific base-pairing strength
   // A:0 C:1 G:2 T:3, 5'- [i][j] -3'
@@ -80,7 +79,8 @@ void PairOxdna3Hbond::coeff(int narg, char **arg)
   utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
   utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
-  if (ihi>4 || jhi>4) error->all(FLERR, "pair oxdna3/hbond does not support more than 4 atom types for A, C, G and T");
+  if (atom->ntypes != 4)
+    error->all(FLERR, "pair oxdna3/hbond requires exactly 4 atom types for A, C, G and T, even if not all are used");
 
   // h-bonding interaction
   count = 0;

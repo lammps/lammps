@@ -26,6 +26,7 @@ PairStyle(oxdna2/coaxstk/kk/host,PairOxdna2CoaxstkKokkos<LMPHostType>);
 #include "kokkos_base.h"
 #include "pair_kokkos.h"
 #include "pair_oxdna2_coaxstk.h"
+#include "nucleotide_oxdna.h"
 
 namespace LAMMPS_NS {
 
@@ -56,6 +57,20 @@ class PairOxdna2CoaxstkKokkos : public PairOxdna2Coaxstk, public KokkosBase {
   void init_style() override;
   double init_one(int, int) override;
 
+  // interaction sites of the model, used by init_one() of the CPU base class
+  // for the cutoffs; the kernels compute the sites themselves
+  void compute_stacking_site(double e1[3], double /*e2*/[3], double /*e3*/[3],
+                             double rstk[3]) const override
+  {
+    if (oxdnaflag == OXDNA3) {
+      NucleotideOxdna3 oxdna3;
+      oxdna3.stacking_site(e1, nullptr, nullptr, rstk);
+    } else {
+      NucleotideOxdna1 oxdna1;
+      oxdna1.stacking_site(e1, nullptr, nullptr, rstk);
+    }
+  }
+
   // Standard non-GPU Compute Functor(s). 1 with EV_FLOAT, 1 without.
 
   template<int OXDNAFLAG, int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
@@ -78,7 +93,7 @@ class PairOxdna2CoaxstkKokkos : public PairOxdna2Coaxstk, public KokkosBase {
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairOxdna2CoaxstkComputeGPUPair<OXDNAFLAG,NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int&) const;
 
-  template<int NEIGHFLAG, int NEWTON_PAIR>
+  template<int NEIGHFLAG, int NEWTON_PAIR, int PAIRWISE = 0>
   KOKKOS_INLINE_FUNCTION
   void ev_tally_xyz(EV_FLOAT &ev, const int &i, const int &j,
       const KK_FLOAT &epair, const KK_ACC_FLOAT &fx, const KK_ACC_FLOAT &fy, const KK_ACC_FLOAT &fz,

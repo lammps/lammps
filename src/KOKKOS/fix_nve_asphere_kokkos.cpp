@@ -35,7 +35,7 @@ FixNVEAsphereKokkos<DeviceType>::FixNVEAsphereKokkos(LAMMPS *lmp, int narg, char
   datamask_read = EMPTY_MASK;
   datamask_modify = EMPTY_MASK;
 
-  avecEllipKK = dynamic_cast<AtomVecEllipsoidKokkos *>(atom->style_match("ellipsoid"));
+  avecEllipKK = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -53,6 +53,11 @@ template<class DeviceType>
 void FixNVEAsphereKokkos<DeviceType>::init()
 {
   FixNVEAsphere::init();
+
+  // look up the atom style here, as the CPU style does, since it is
+  // re-created by commands like replicate after this fix was defined
+
+  avecEllipKK = dynamic_cast<AtomVecEllipsoidKokkos *>(atom->style_match("ellipsoid"));
 }
 
 /* ---------------------------------------------------------------------- */
@@ -80,8 +85,7 @@ void FixNVEAsphereKokkos<DeviceType>::initial_integrate(int /*vflag*/)
   FixNVEAsphereKokkosInitialIntegrateFunctor<DeviceType> f(this);
   Kokkos::parallel_for(nlocal,f);
 
-  atomKK->modified(execution_space, X_MASK | V_MASK | ANGMOM_MASK |
-                                    ELLIPSOID_MASK | BONUS_MASK);
+  atomKK->modified(execution_space, X_MASK | V_MASK | ANGMOM_MASK | BONUS_MASK);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -119,9 +123,9 @@ void FixNVEAsphereKokkos<DeviceType>::initial_integrate_item(const int i) const
     KK_FLOAT s0 = (KK_FLOAT) shape[0];
     KK_FLOAT s1 = (KK_FLOAT) shape[1];
     KK_FLOAT s2 = (KK_FLOAT) shape[2];
-    inertia[0] = INERTIA*rm * (s1*s1 + s2*s2);
-    inertia[1] = INERTIA*rm * (s0*s0 + s2*s2);
-    inertia[2] = INERTIA*rm * (s0*s0 + s1*s1);
+    inertia[0] = static_cast<KK_FLOAT>(INERTIA)*rm * (s1*s1 + s2*s2);
+    inertia[1] = static_cast<KK_FLOAT>(INERTIA)*rm * (s0*s0 + s2*s2);
+    inertia[2] = static_cast<KK_FLOAT>(INERTIA)*rm * (s0*s0 + s1*s1);
 
     // compute omega at 1/2 step from angmom at 1/2 step and current q
     // update quaternion a full step via Richardson iteration
@@ -214,8 +218,7 @@ void FixNVEAsphereKokkos<DeviceType>::fused_integrate(int /*vflag*/)
   FixNVEAsphereKokkosFusedIntegrateFunctor<DeviceType> f(this);
   Kokkos::parallel_for(nlocal,f);
 
-  atomKK->modified(execution_space, X_MASK | V_MASK | ANGMOM_MASK |
-                                    ELLIPSOID_MASK | BONUS_MASK);
+  atomKK->modified(execution_space, X_MASK | V_MASK | ANGMOM_MASK | BONUS_MASK);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -255,9 +258,9 @@ void FixNVEAsphereKokkos<DeviceType>::fused_integrate_item(const int i) const
     KK_FLOAT s0 = (KK_FLOAT) shape[0];
     KK_FLOAT s1 = (KK_FLOAT) shape[1];
     KK_FLOAT s2 = (KK_FLOAT) shape[2];
-    inertia[0] = INERTIA*rm * (s1*s1 + s2*s2);
-    inertia[1] = INERTIA*rm * (s0*s0 + s2*s2);
-    inertia[2] = INERTIA*rm * (s0*s0 + s1*s1);
+    inertia[0] = static_cast<KK_FLOAT>(INERTIA)*rm * (s1*s1 + s2*s2);
+    inertia[1] = static_cast<KK_FLOAT>(INERTIA)*rm * (s0*s0 + s2*s2);
+    inertia[2] = static_cast<KK_FLOAT>(INERTIA)*rm * (s0*s0 + s1*s1);
 
     // compute omega at 1/2 step from angmom at 1/2 step and current q
     // update quaternion a full step via Richardson iteration

@@ -276,12 +276,12 @@ action fix_nvk_kokkos.cpp fix_nvk.cpp
 action fix_nvk_kokkos.h fix_nvk.h
 action fix_oneway_kokkos.cpp fix_oneway.cpp
 action fix_oneway_kokkos.h fix_oneway.h
-action fix_oxdna_lrf_kokkos.cpp
-action fix_oxdna_lrf_kokkos.h
-action fix_oxdna_npair_kokkos.cpp
-action fix_oxdna_npair_kokkos.h
-action fix_oxdna_prime_neighs_kokkos.cpp
-action fix_oxdna_prime_neighs_kokkos.h
+action fix_oxdna_lrf_kokkos.cpp fix_oxdna_lrf.cpp
+action fix_oxdna_lrf_kokkos.h fix_oxdna_lrf.h
+action fix_oxdna_npair_kokkos.cpp fix_oxdna_lrf.cpp
+action fix_oxdna_npair_kokkos.h fix_oxdna_lrf.h
+action fix_oxdna_prime_neighs_kokkos.cpp fix_oxdna_lrf.cpp
+action fix_oxdna_prime_neighs_kokkos.h fix_oxdna_lrf.h
 action fix_planeforce_kokkos.cpp
 action fix_planeforce_kokkos.h
 action fix_press_berendsen_kokkos.cpp
@@ -706,7 +706,7 @@ action pair_oxdna3_stk_kokkos.cpp pair_oxdna_stk_kokkos.cpp
 action pair_oxdna3_stk_kokkos.h pair_oxdna_stk_kokkos.h
 action pair_oxdna3_xstk_kokkos.cpp pair_oxdna3_xstk.cpp
 action pair_oxdna3_xstk_kokkos.h pair_oxdna3_xstk.h
-action pair_oxrna2_dh_kokkos.h pair_oxdna_dh_kokkos.h
+action pair_oxrna2_dh_kokkos.h pair_oxrna2_dh.h
 action pair_pace_extrapolation_kokkos.cpp pair_pace_extrapolation.cpp
 action pair_pace_extrapolation_kokkos.h pair_pace_extrapolation.h
 action pair_pedone_kokkos.cpp pair_pedone.cpp

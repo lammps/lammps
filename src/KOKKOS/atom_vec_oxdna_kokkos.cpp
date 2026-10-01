@@ -42,6 +42,11 @@ void AtomVecOxdnaKokkos::init()
   if (strcmp(update->unit_style, "lj") != 0)
     error->all(FLERR, "Atom style oxdna/kk requires lj units");
 
+  // this style only manages the oxDNA specific per-atom arrays
+
+  if (!utils::strmatch(atom->atom_style, "^hybrid"))
+    error->all(FLERR, "Atom style oxdna/kk can only be used as sub-style of atom style hybrid");
+
   set_atom_masks();
 }
 

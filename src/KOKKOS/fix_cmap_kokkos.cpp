@@ -52,6 +52,23 @@ FixCMAPKokkos<DeviceType>::FixCMAPKokkos(LAMMPS *lmp, int narg, char **arg) :
   datamask_read = EMPTY_MASK;
   datamask_modify = EMPTY_MASK;
 
+  // free what the FixCMAP constructor allocated before reallocating below
+
+  memory->destroy(g_axis); g_axis = nullptr;
+  memory->destroy(cmapgrid); cmapgrid = nullptr;
+  memory->destroy(d1cmapgrid); d1cmapgrid = nullptr;
+  memory->destroy(d2cmapgrid); d2cmapgrid = nullptr;
+  memory->destroy(d12cmapgrid); d12cmapgrid = nullptr;
+
+  memory->destroy(num_crossterm); num_crossterm = nullptr;
+  memory->destroy(crossterm_type); crossterm_type = nullptr;
+  memory->destroy(crossterm_atom1); crossterm_atom1 = nullptr;
+  memory->destroy(crossterm_atom2); crossterm_atom2 = nullptr;
+  memory->destroy(crossterm_atom3); crossterm_atom3 = nullptr;
+  memory->destroy(crossterm_atom4); crossterm_atom4 = nullptr;
+  memory->destroy(crossterm_atom5); crossterm_atom5 = nullptr;
+  nmax_previous = 0;
+
   // allocate memory for CMAP data
 
   memoryKK->create_kokkos(k_g_axis,g_axis,CMAPDIM,"cmap:g_axis");
@@ -229,7 +246,7 @@ void FixCMAPKokkos<DeviceType>::operator()(TagFixCmapPreNeighbor, const int i, i
     atom5 = closest_image(i,atom5);
 
     if( i <= atom1 && i <= atom2 && i <= atom3 && i <= atom4 && i <= atom5) {
-      if (l_ncrosstermlist > maxcrossterm) Kokkos::abort("l_ncrosstermlist > maxcrossterm");
+      if (l_ncrosstermlist >= maxcrossterm) Kokkos::abort("l_ncrosstermlist >= maxcrossterm");
       if(is_final) {
         d_crosstermlist(l_ncrosstermlist,0) = atom1;
         d_crosstermlist(l_ncrosstermlist,1) = atom2;

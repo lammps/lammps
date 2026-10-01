@@ -71,9 +71,9 @@ void BondOxdna3FENEKokkos<DeviceType>::coeff(int narg, char **arg)
   int ilo, ihi;
   utils::bounds(FLERR, arg[0], 1, atom->nbondtypes, ilo, ihi, error);
 
+  if (atom->ntypes != 4)
+    error->all(FLERR, "bond oxdna3/fene requires exactly 4 atom types for A, C, G and T, even if not all are used");
   int n = atom->ntypes;
-  if (n > 4)
-    error->all(FLERR, "bond oxdna3/fene does not support more than 4 atom types for A, C, G and T");
 
   for (int i = 0; i <= n; i++) {
     for (int j = 0; j <= n; j++) {
@@ -188,22 +188,22 @@ void BondOxdna3FENEKokkos<DeviceType>::coeff(int narg, char **arg)
 
   int m = atom->nbondtypes;
   for (int i = 1; i <= m; i++) {
-    k_k.view_host()[i] = k[i];
+    k_k.view_host()[i] = static_cast<KK_FLOAT>(k[i]);
     for (int n1 = 0; n1 <= n; n1++) {
       for (int n2 = 0; n2 <= n; n2++) {
         for (int n3 = 0; n3 <= n; n3++) {
           for (int n4 = 0; n4 <= n; n4++) {
-            k_r0.view_host()(i,n1,n2,n3,n4) = r0[i][n1][n2][n3][n4];
-            k_Delta.view_host()(i,n1,n2,n3,n4) = Delta[i][n1][n2][n3][n4];
+            k_r0.view_host()(i,n1,n2,n3,n4) = static_cast<KK_FLOAT>(r0[i][n1][n2][n3][n4]);
+            k_Delta.view_host()(i,n1,n2,n3,n4) = static_cast<KK_FLOAT>(Delta[i][n1][n2][n3][n4]);
           }
         }
       }
     }
   }
 
-  k_k.template modify<LMPHostType>();
-  k_r0.template modify<LMPHostType>();
-  k_Delta.template modify<LMPHostType>();
+  k_k.modify_host();
+  k_r0.modify_host();
+  k_Delta.modify_host();
 
   // sync to device
   k_k.template sync<DeviceType>();

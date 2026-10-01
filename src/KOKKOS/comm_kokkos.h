@@ -77,6 +77,7 @@ class CommKokkos : public CommBrick {
   DAT::tdual_double_2d_lr k_buf_send,k_buf_recv;
   DAT::tdual_int_1d k_exchange_sendlist,k_exchange_copylist,k_indices;
   DAT::tdual_int_1d k_exchange_sendlist_bonus,k_exchange_copylist_bonus;
+  HAT::t_int_1d h_exchange_i2recv;
   DAT::tdual_int_1d k_count;
 
   DAT::tdual_int_2d_lr k_swap;

@@ -26,6 +26,7 @@ PairStyle(oxdna/excv/kk/host,PairOxdnaExcvKokkos<LMPHostType>);
 #include "kokkos_base.h"
 #include "pair_kokkos.h"
 #include "pair_oxdna_excv.h"
+#include "nucleotide_oxdna.h"
 
 namespace LAMMPS_NS {
 
@@ -58,6 +59,47 @@ class PairOxdnaExcvKokkos : public PairOxdnaExcv, public KokkosBase {
   void settings(int, char **) override;
   void init_style() override;
   double init_one(int, int) override;
+
+  // interaction sites of the model, used by init_one() of the CPU base class
+  // for the cutoffs; the kernels compute the sites themselves
+  void compute_backbone_site(double e1[3], double e2[3], double e3[3],
+                             double rbk[3]) const override
+  {
+    if ((oxdnaflag == OXDNA2) || (oxdnaflag == OXDNA3)) {
+      NucleotideOxdna2 oxdna2;
+      oxdna2.backbone_site(e1, e2, nullptr, rbk);
+    } else if (oxdnaflag == OXRNA2) {
+      NucleotideOxrna2 oxrna2;
+      oxrna2.backbone_site(e1, nullptr, e3, rbk);
+    } else {
+      NucleotideOxdna1 oxdna1;
+      oxdna1.backbone_site(e1, nullptr, nullptr, rbk);
+    }
+  }
+  void compute_base_site(int type, double e1[3], double /*e2*/[3], double /*e3*/[3],
+                         double rbs[3]) const override
+  {
+    if (oxdnaflag == OXDNA3) {
+      NucleotideOxdna3 oxdna3;
+      switch (type) {
+        case 0:
+          oxdna3.base_site<0>(e1, nullptr, nullptr, rbs);
+          break;
+        case 1:
+          oxdna3.base_site<1>(e1, nullptr, nullptr, rbs);
+          break;
+        case 2:
+          oxdna3.base_site<2>(e1, nullptr, nullptr, rbs);
+          break;
+        case 3:
+          oxdna3.base_site<3>(e1, nullptr, nullptr, rbs);
+          break;
+      }
+    } else {
+      NucleotideOxdna1 oxdna1;
+      oxdna1.base_site<0>(e1, nullptr, nullptr, rbs);
+    }
+  }
   void coeff(int, char **) override;
 
   template<int OXDNAFLAG, int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
@@ -107,7 +149,7 @@ class PairOxdnaExcvKokkos : public PairOxdnaExcv, public KokkosBase {
   int neighflag;
   int nlocal, eflag, vflag;
   int anum;
-  bigint last_prime_neighs_pair_lastcall;
+  bigint last_prime_neighs_pair_ncalls;
 
   typename AT::t_neighbors_2d_randomread d_neighbors;
   typename AT::t_int_1d_randomread d_alist;

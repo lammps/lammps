@@ -324,6 +324,9 @@ and :ref:`ASPHERE <PKG-ASPHERE>` package. For KOKKOS acceleration also
 the :ref:`KOKKOS <PKG-KOKKOS>` package has to be included. See the
 :doc:`Build package <Build_package>` page for more info.
 
+The KOKKOS variants of these styles currently only support
+:doc:`units lj <units>`.
+
 Related commands
 """"""""""""""""
 

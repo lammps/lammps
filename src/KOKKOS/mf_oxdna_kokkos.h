@@ -43,7 +43,7 @@ static KK_FLOAT F1_KK(KK_FLOAT r, KK_FLOAT eps, KK_FLOAT a, KK_FLOAT cut_0,
   } else if (r > cut_hi) {
     return eps * b_hi * (r - cut_hc) * (r - cut_hc);
   } else if (r > cut_lo) {
-    KK_FLOAT tmp = 1 - Kokkos::expf(-(r - cut_0) * a);
+    KK_FLOAT tmp = 1 - Kokkos::exp(-(r - cut_0) * a);
     return eps * tmp * tmp - shift;
   } else if (r > cut_lc) {
     return eps * b_lo * (r - cut_lc) * (r - cut_lc);
@@ -65,7 +65,7 @@ static KK_FLOAT F1_KK(KK_FLOAT r, KK_FLOAT eps, KK_FLOAT a, KK_FLOAT cut_0,
     df1 = 2 * eps * b_hi * (1 - cut_hc / r);
     return eps * b_hi * (r - cut_hc) * (r - cut_hc);
   } else if (r > cut_lo) {
-    KK_FLOAT tmp = Kokkos::expf(-(r - cut_0) * a);
+    KK_FLOAT tmp = Kokkos::exp(-(r - cut_0) * a);
     df1 = 2 * eps * (1 - tmp) * tmp * a / r;
     tmp = 1 - tmp;
     return eps * tmp * tmp - shift;
@@ -91,7 +91,7 @@ static KK_FLOAT DF1_KK(KK_FLOAT r, KK_FLOAT eps, KK_FLOAT a, KK_FLOAT cut_0,
   } else if (r > cut_hi) {
     return 2 * eps * b_hi * (1 - cut_hc / r);
   } else if (r > cut_lo) {
-    KK_FLOAT tmp = Kokkos::expf(-(r - cut_0) * a);
+    KK_FLOAT tmp = Kokkos::exp(-(r - cut_0) * a);
     return 2 * eps * (1 - tmp) * tmp * a / r;
   } else if (r > cut_lc) {
     return 2 * eps * b_lo * (1 - cut_lc / r);
@@ -113,7 +113,7 @@ static KK_FLOAT F2_KK(KK_FLOAT r, KK_FLOAT k, KK_FLOAT cut_0, KK_FLOAT cut_lc,
   } else if (r < cut_lo) {
     return k * b_lo * (cut_lc - r) * (cut_lc - r);
   } else if (r < cut_hi) {
-    return k * 0.5 * ((r - cut_0) * (r - cut_0) - (cut_0 - cut_c) * (cut_0 - cut_c));
+    return k * static_cast<KK_FLOAT>(0.5) * ((r - cut_0) * (r - cut_0) - (cut_0 - cut_c) * (cut_0 - cut_c));
   } else {
     return k * b_hi * (cut_hc - r) * (cut_hc - r);
   }
@@ -132,7 +132,7 @@ static KK_FLOAT F2_KK(KK_FLOAT r, KK_FLOAT k, KK_FLOAT cut_0, KK_FLOAT cut_lc,
     return k * b_lo * (cut_lc - r) * (cut_lc - r);
   } else if (r < cut_hi) {
     df2 = k * (r - cut_0);
-    return k * 0.5 * Kokkos::fma((r - cut_0), (r - cut_0), -(cut_0 - cut_c) * (cut_0 - cut_c));
+    return k * static_cast<KK_FLOAT>(0.5) * Kokkos::fma((r - cut_0), (r - cut_0), -(cut_0 - cut_c) * (cut_0 - cut_c));
   } else {
     df2 = 2 * k * b_hi * (r - cut_hc);
     return k * b_hi * (cut_hc - r) * (cut_hc - r);
@@ -169,14 +169,14 @@ static KK_FLOAT F3_KK(KK_FLOAT rsq, KK_FLOAT cutsq_ast, KK_FLOAT cut_c,
   KK_FLOAT evdwl = 0.0;
 
   if (rsq < cutsq_ast) {
-    KK_FLOAT r2inv = 1.0 / rsq;
+    KK_FLOAT r2inv = static_cast<KK_FLOAT>(1.0) / rsq;
     KK_FLOAT r6inv = r2inv * r2inv * r2inv;
-    fpair = r2inv * r6inv * (12 * lj1 * r6inv - 6 * lj2);
+    fpair = static_cast<KK_ACC_FLOAT>(r2inv * r6inv * (12 * lj1 * r6inv - 6 * lj2));
     evdwl = r6inv * (lj1 * r6inv - lj2);
   } else {
-    KK_FLOAT r = Kokkos::sqrtf(rsq);
-    KK_FLOAT rinv = 1.0 / r;
-    fpair = 2 * eps * b * (cut_c * rinv - 1);
+    KK_FLOAT r = Kokkos::sqrt(rsq);
+    KK_FLOAT rinv = static_cast<KK_FLOAT>(1.0) / r;
+    fpair = static_cast<KK_ACC_FLOAT>(2 * eps * b * (cut_c * rinv - 1));
     evdwl = eps * b * (cut_c - r) * (cut_c - r);
   }
   return evdwl;
@@ -293,7 +293,7 @@ static KK_FLOAT F6_KK(KK_FLOAT theta, KK_FLOAT a, KK_FLOAT b)
   if (theta < b) {
     return 0.0;
   } else {
-    return 0.5 * a * (theta - b) * (theta - b);
+    return static_cast<KK_FLOAT>(0.5) * a * (theta - b) * (theta - b);
   }
 }
 
@@ -305,7 +305,7 @@ static KK_FLOAT F6_KK(KK_FLOAT theta, KK_FLOAT a, KK_FLOAT b, KK_FLOAT &df6)
     return 0.0;
   } else {
     df6 = a * (theta - b);
-    return 0.5 * a * (theta - b) * (theta - b);
+    return static_cast<KK_FLOAT>(0.5) * a * (theta - b) * (theta - b);
   }
 }
 

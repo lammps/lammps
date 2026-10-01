@@ -47,6 +47,7 @@
 #include <cmath>
 #include <cstring>
 #include <exception>
+#include <vector>
 #include <algorithm>
 
 using namespace LAMMPS_NS;
@@ -447,9 +448,10 @@ FixGCMC::~FixGCMC()
     }
   }
 
-  if (full_flag && group && neighbor) {
+  if (exclusion_group_bit && group && neighbor) {
     int igroupall = group->find("all");
     neighbor->exclusion_group_group_delete(exclusion_group,igroupall);
+    neighbor->exclusion_group_group_delete(exclusion_group,exclusion_group);
   }
 }
 
@@ -635,8 +637,10 @@ void FixGCMC::init()
 
     // neighbor list exclusion setup
     // turn off interactions between group all and the exclusion group
+    // and between atoms in the exclusion group, since those are not in group all
 
     neighbor->modify_params(fmt::format("exclude group {} all",group_id));
+    neighbor->modify_params(fmt::format("exclude group {} {}",group_id,group_id));
   }
 
   // create a new group for temporary use with selected molecules
@@ -1567,6 +1571,7 @@ void FixGCMC::attempt_atomic_translation_full()
   xtmp[0] = xtmp[1] = xtmp[2] = 0.0;
 
   tagint tmptag = -1;
+  imageint tmpimage = 0;
 
   bool region_ok = true;
   if (i >= 0) {
@@ -1613,6 +1618,7 @@ void FixGCMC::attempt_atomic_translation_full()
       x[i][2] = coord[2];
 
       tmptag = atom->tag[i];
+      tmpimage = atom->image[i];
     }
   }
 
@@ -1645,11 +1651,21 @@ void FixGCMC::attempt_atomic_translation_full()
     double xtmp_all[3];
     MPI_Allreduce(&xtmp,&xtmp_all,3,MPI_DOUBLE,MPI_SUM,world);
 
+    // the atom may have been wrapped around a periodic boundary,
+    // so its image flags must be restored as well
+
+    imageint tmpimage_all;
+    MPI_Allreduce(&tmpimage,&tmpimage_all,1,MPI_LMP_IMAGEINT,MPI_SUM,world);
+
+    // energy_full() may have reallocated the per-atom arrays
+
+    x = atom->x;
     for (int i = 0; i < atom->nlocal; i++) {
       if (tmptag_all == atom->tag[i]) {
         x[i][0] = xtmp_all[0];
         x[i][1] = xtmp_all[1];
         x[i][2] = xtmp_all[2];
+        atom->image[i] = tmpimage_all;
       }
     }
     energy_stored = energy_before;
@@ -1671,11 +1687,13 @@ void FixGCMC::attempt_atomic_deletion_full()
 
   double energy_before = energy_stored;
 
-  const int i = pick_random_gas_atom();
+  int i = pick_random_gas_atom();
 
-  int tmpmask;
+  int tmpmask = 0;
+  tagint tmptag = 0;
   if (i >= 0) {
     tmpmask = atom->mask[i];
+    tmptag = atom->tag[i];
     atom->mask[i] = exclusion_group_bit;
     if (q_flag) {
       q_tmp = atom->q[i];
@@ -1683,8 +1701,34 @@ void FixGCMC::attempt_atomic_deletion_full()
     }
   }
   if (force->kspace) force->kspace->qsum_qsq();
-  if (force->pair->tail_flag) force->pair->reinit();
+
+  // the tail correction must not count the atom to be deleted,
+  // so its type is negated while the tail correction is updated
+
+  if (force->pair->tail_flag) {
+    if (i >= 0) atom->type[i] = -atom->type[i];
+    force->pair->reinit();
+    if (i >= 0) atom->type[i] = -atom->type[i];
+  }
   double energy_after = energy_full();
+
+  // energy_full() may have moved or reordered atoms,
+  // so the atom must be located again by its atom ID
+
+  if (atom->tag_enable) {
+    tagint tmptag_all;
+    MPI_Allreduce(&tmptag,&tmptag_all,1,MPI_LMP_TAGINT,MPI_MAX,world);
+    int tmpmask_all;
+    MPI_Allreduce(&tmpmask,&tmpmask_all,1,MPI_INT,MPI_BOR,world);
+    double q_all = 0.0;
+    if (q_flag) {
+      double q_mine = (i >= 0) ? q_tmp : 0.0;
+      MPI_Allreduce(&q_mine,&q_all,1,MPI_DOUBLE,MPI_SUM,world);
+    }
+    i = local_index(tmptag_all);
+    tmpmask = tmpmask_all;
+    q_tmp = q_all;
+  }
 
   if (random_equal->uniform() <
       ngas*exp(beta*(energy_before - energy_after))/(zz*volume)) {
@@ -1790,9 +1834,12 @@ void FixGCMC::attempt_atomic_insertion_full()
   }
 
   atom->natoms++;
+  tagint newtag = 0;
   if (atom->tag_enable) {
     atom->tag_extend();
     if (atom->map_style != Atom::MAP_NONE) atom->map_init();
+    tagint mytag = proc_flag ? atom->tag[atom->nlocal-1] : 0;
+    MPI_Allreduce(&mytag,&newtag,1,MPI_LMP_TAGINT,MPI_MAX,world);
   }
   atom->nghost = 0;
   if (triclinic) domain->x2lamda(atom->nlocal);
@@ -1810,7 +1857,17 @@ void FixGCMC::attempt_atomic_insertion_full()
     energy_stored = energy_after;
   } else {
     atom->natoms--;
-    if (proc_flag) atom->nlocal--;
+
+    // energy_full() may have reordered the local atoms, so the
+    // inserted atom must be located by its atom ID, if available
+
+    if (newtag) {
+      int k = local_index(newtag);
+      if (k >= 0) {
+        atom->avec->copy(atom->nlocal-1,k,1);
+        atom->nlocal--;
+      }
+    } else if (proc_flag) atom->nlocal--;
     if (force->kspace) force->kspace->qsum_qsq();
     if (force->pair->tail_flag) force->pair->reinit();
     energy_stored = energy_before;
@@ -1909,6 +1966,7 @@ void FixGCMC::attempt_molecule_translation_full()
     energy_stored = energy_after;
   } else {
     energy_stored = energy_before;
+    x = atom->x;
     for (int i = 0; i < atom->nlocal; i++) {
       if (atom->molecule[i] == translation_molecule) {
         x[i][0] -= com_displace[0];
@@ -2005,6 +2063,9 @@ void FixGCMC::attempt_molecule_rotation_full()
     energy_stored = energy_after;
   } else {
     energy_stored = energy_before;
+    x = atom->x;
+    image = atom->image;
+    mask = atom->mask;
     int n = 0;
     for (int i = 0; i < atom->nlocal; i++) {
       if (mask[i] & molecule_group_bit) {
@@ -2037,32 +2098,33 @@ void FixGCMC::attempt_molecule_deletion_full()
 
   double energy_before = energy_stored;
 
-  // check nmolq, grow arrays if necessary
+  // save atom ID, mask, and charge of the molecule atoms
 
-  int nmolq = 0;
-  for (int i = 0; i < atom->nlocal; i++)
-    if (atom->molecule[i] == deletion_molecule)
-      if (atom->q_flag) nmolq++;
-
-  if (nmolq > nmaxmolatoms)
-    grow_molecule_arrays(nmolq);
-
-  int m = 0;
-  int *tmpmask = new int[atom->nlocal];
+  std::vector<tagint> savedtag;
+  std::vector<int> savedmask;
+  std::vector<double> savedq;
   for (int i = 0; i < atom->nlocal; i++) {
     if (atom->molecule[i] == deletion_molecule) {
-      tmpmask[i] = atom->mask[i];
+      savedtag.push_back(atom->tag[i]);
+      savedmask.push_back(atom->mask[i]);
+      savedq.push_back(atom->q_flag ? atom->q[i] : 0.0);
       atom->mask[i] = exclusion_group_bit;
       toggle_intramolecular(i);
-      if (atom->q_flag) {
-        molq[m] = atom->q[i];
-        m++;
-        atom->q[i] = 0.0;
-      }
+      if (atom->q_flag) atom->q[i] = 0.0;
     }
   }
   if (force->kspace) force->kspace->qsum_qsq();
-  if (force->pair->tail_flag) force->pair->reinit();
+
+  // the tail correction must not count the atoms to be deleted,
+  // so their types are negated while the tail correction is updated
+
+  if (force->pair->tail_flag) {
+    for (int i = 0; i < atom->nlocal; i++)
+      if (atom->molecule[i] == deletion_molecule) atom->type[i] = -atom->type[i];
+    force->pair->reinit();
+    for (int i = 0; i < atom->nlocal; i++)
+      if (atom->molecule[i] == deletion_molecule) atom->type[i] = -atom->type[i];
+  }
   double energy_after = energy_full();
 
   // energy_before corrected by energy_intra
@@ -2083,22 +2145,41 @@ void FixGCMC::attempt_molecule_deletion_full()
     energy_stored = energy_after;
   } else {
     energy_stored = energy_before;
-    int m = 0;
-    for (int i = 0; i < atom->nlocal; i++) {
-      if (atom->molecule[i] == deletion_molecule) {
-        atom->mask[i] = tmpmask[i];
-        toggle_intramolecular(i);
-        if (atom->q_flag) {
-          atom->q[i] = molq[m];
-          m++;
-        }
+
+    // energy_full() may have moved or reordered atoms, so the saved
+    // masks and charges are shared by all processors and restored by atom ID.
+    // each processor places its values at an offset from a prefix sum,
+    // so a single allreduce of the size of one molecule is sufficient.
+
+    int nsend = savedtag.size();
+    int offset = 0, ntotal = 0;
+    MPI_Scan(&nsend,&offset,1,MPI_INT,MPI_SUM,world);
+    offset -= nsend;
+    MPI_Allreduce(&nsend,&ntotal,1,MPI_INT,MPI_SUM,world);
+    std::vector<tagint> tagmine(ntotal,0), tagall(ntotal,0);
+    std::vector<int> maskmine(ntotal,0), maskall(ntotal,0);
+    std::vector<double> qmine(ntotal,0.0), qall(ntotal,0.0);
+    for (int k = 0; k < nsend; k++) {
+      tagmine[offset+k] = savedtag[k];
+      maskmine[offset+k] = savedmask[k];
+      qmine[offset+k] = savedq[k];
+    }
+    MPI_Allreduce(tagmine.data(),tagall.data(),ntotal,MPI_LMP_TAGINT,MPI_SUM,world);
+    MPI_Allreduce(maskmine.data(),maskall.data(),ntotal,MPI_INT,MPI_BOR,world);
+    MPI_Allreduce(qmine.data(),qall.data(),ntotal,MPI_DOUBLE,MPI_SUM,world);
+    for (int k = 0; k < ntotal; k++) {
+      int i = local_index(tagall[k]);
+      if (i >= 0) {
+        atom->mask[i] = maskall[k];
+        if (atom->q_flag) atom->q[i] = qall[k];
       }
     }
+    for (int i = 0; i < atom->nlocal; i++)
+      if (atom->molecule[i] == deletion_molecule) toggle_intramolecular(i);
     if (force->kspace) force->kspace->qsum_qsq();
     if (force->pair->tail_flag) force->pair->reinit();
   }
   update_gas_atoms_list();
-  delete[] tmpmask;
 }
 
 /* ----------------------------------------------------------------------
@@ -2657,6 +2738,21 @@ double FixGCMC::memory_usage()
 {
   double bytes = (double)gcmc_nmax * sizeof(int);
   return bytes;
+}
+
+/* ----------------------------------------------------------------------
+   return local index of the owned atom with atom ID itag or -1 if not owned
+------------------------------------------------------------------------- */
+
+int FixGCMC::local_index(tagint itag)
+{
+  if (atom->map_style != Atom::MAP_NONE) {
+    int i = atom->map(itag);
+    return (i < atom->nlocal) ? i : -1;
+  }
+  for (int i = 0; i < atom->nlocal; i++)
+    if (atom->tag[i] == itag) return i;
+  return -1;
 }
 
 /* ----------------------------------------------------------------------

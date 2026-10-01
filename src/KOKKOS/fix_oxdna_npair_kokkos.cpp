@@ -102,9 +102,9 @@ template<class DeviceType>
 void FixOxdnaNpairKokkos<DeviceType>::min_pre_force(int /*vflag*/)
 {
   if ((force_screening_all_backends || execution_space != HostKK) &&
-      last_allocate != neighbor->lastcall) {
+      last_allocate != neighbor->ncalls) {
      compute_neigh_screen_to_npair();
-     last_allocate = neighbor->lastcall;
+     last_allocate = neighbor->ncalls;
   }
 }
 
@@ -123,9 +123,9 @@ template<class DeviceType>
 void FixOxdnaNpairKokkos<DeviceType>::pre_force(int /*vflag*/)
 {
   if ((force_screening_all_backends || execution_space != HostKK) &&
-      last_allocate != neighbor->lastcall) {
+      last_allocate != neighbor->ncalls) {
      compute_neigh_screen_to_npair();
-     last_allocate = neighbor->lastcall;
+     last_allocate = neighbor->ncalls;
   }
 }
 
@@ -137,14 +137,12 @@ void FixOxdnaNpairKokkos<DeviceType>::update_screen_cutsq()
   // Derive the COM screen cutoff from the cutoffs registered by the consuming
   // pair styles (hbond / xstk / coaxstk) in their init_one, then add the
   // neighbor skin. Since this screened list is rebuilt only when the neighbor
-  // list rebuilds, a skin margin is required to keep the filtered pair list
-  // valid between rebuilds (same Verlet-list principle as the base neighbor
-  // list itself).
-  // However, the pair_styles already add in an extra 0.4*nx margin
-  // to their cutoffs to account for the base-site offset, so we can be
-  // a little cheeky and half the neighbor skin margin too.
-  const KK_FLOAT base_screen_cut = (screen_cut_max > 0.0) ? screen_cut_max : 2.0;
-  const KK_FLOAT screen_cut_with_skin = base_screen_cut + (0.5 * neighbor->skin);
+  // list rebuilds, the full skin is required to keep the filtered pair list
+  // valid between rebuilds: two atoms can approach each other by up to one
+  // skin distance before the next rebuild (same Verlet-list principle as the
+  // base neighbor list itself).
+  const KK_FLOAT base_screen_cut = static_cast<KK_FLOAT>((screen_cut_max > 0.0) ? screen_cut_max : 2.0);
+  const KK_FLOAT screen_cut_with_skin = base_screen_cut + static_cast<KK_FLOAT>(neighbor->skin);
   screen_cutsq = screen_cut_with_skin * screen_cut_with_skin;
 }
 
@@ -171,11 +169,8 @@ void FixOxdnaNpairKokkos<DeviceType>::compute_neigh_screen_to_npair()
                           screened_max_atoms);
     MemKK::realloc_kokkos(k_screened_offsets, "FixOxdnaNpair:screened_offsets",
                           screened_max_atoms + 1);
-    MemKK::realloc_kokkos(k_pairs_screened, "FixOxdnaNpair:pairs_screened",
-              screened_max_atoms * screened_max_neigh);
     d_numneigh_screened = k_numneigh_screened.template view<DeviceType>();
     d_screened_offsets = k_screened_offsets.template view<DeviceType>();
-    d_pairs_screened = k_pairs_screened.template view<DeviceType>();
   }
 
   atomKK->sync(execution_space, datamask_read);
@@ -221,6 +216,15 @@ void FixOxdnaNpairKokkos<DeviceType>::compute_neigh_screen_to_npair()
     k_screened_pair_count.view_host(), Kokkos::subview(d_screened_offsets_local, anum_local));
   screened_pair_count = k_screened_pair_count.view_host()();
 
+  // size the packed pair list by the number of pairs that survived screening,
+  // with some headroom to avoid reallocating at every rebuild
+
+  if ((bigint) screened_pair_count > (bigint) k_pairs_screened.extent(0)) {
+    const bigint newsize = (bigint) screened_pair_count + screened_pair_count / 5 + 1;
+    MemKK::realloc_kokkos(k_pairs_screened, "FixOxdnaNpair:pairs_screened", (size_t) newsize);
+  }
+  d_pairs_screened = k_pairs_screened.template view<DeviceType>();
+
   // Pass 3 (fill): re-screen each atom's neighbours and write its survivors as
   // packed (a,b) uint64 keys directly at d_screened_offsets(i)..+count. The
   // ComputeGPUPair functors then run one thread per flat pair index, unpacking
@@ -252,8 +256,8 @@ bool FixOxdnaNpairKokkos<DeviceType>::screen_pair_fast(const int &braw,
   delr_com[2] = a_com2 - b_com2;
 
   // fma is fused-multipy-add op
-  const KK_FLOAT rsq_com = fma(delr_com[2], delr_com[2],
-                           fma(delr_com[1], delr_com[1], delr_com[0] * delr_com[0]));
+  const KK_FLOAT rsq_com = Kokkos::fma(delr_com[2], delr_com[2],
+                           Kokkos::fma(delr_com[1], delr_com[1], delr_com[0] * delr_com[0]));
 
   // Boolean screen against the derived COM cutoff (set in
   // compute_neigh_screen_to_npair from the consuming styles' registered cutoffs).

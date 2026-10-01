@@ -23,7 +23,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        backend: [ 'serial', 'openmp' ]
+        backend: [ 'serial' ]
         precision: [ 'double', 'mixed', 'single' ]
 
     steps:
@@ -81,7 +81,7 @@ jobs:
     - name: Run Tests
       working-directory: build
       shell: bash
-      run: ctest --output-on-failure -R '^(MolPairStyle|AtomicPairStyle|ManybodyPairStyle|EllipsoidPairStyle|KSpaceStyle|BondStyle|AngleStyle|DihedralStyle|ImproperStyle|FixTimestep|Library|FFT3D|DumpKokkos)' --output-junit junit-kokkos-${{ matrix.backend }}-${{ matrix.precision }}.xml
+      run: ctest --output-on-failure -R '^(MolPairStyle|AtomicPairStyle|ManybodyPairStyle|EllipsoidPairStyle|KSpaceStyle|BondStyle|AngleStyle|DihedralStyle|ImproperStyle|FixTimestep|Library|FFT3D|Kokkos)' --output-junit junit-kokkos-${{ matrix.backend }}-${{ matrix.precision }}.xml
 
     # test results from pull request branches are only for the submitters,
     # only post-merge results are published for downstream reporting

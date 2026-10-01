@@ -53,5 +53,4 @@ PairOxdna3Coaxstk::PairOxdna3Coaxstk(LAMMPS *lmp) : PairOxdna2Coaxstk(lmp)
 
   single_enable = 0;
   writedata = 0;
-  trim_flag = 0;
 }

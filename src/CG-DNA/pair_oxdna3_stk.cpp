@@ -66,7 +66,6 @@ PairOxdna3Stk::PairOxdna3Stk(LAMMPS *lmp) : PairOxdnaStk(lmp)
 
   single_enable = 0;
   writedata = 0;
-  trim_flag = 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -87,7 +86,8 @@ void PairOxdna3Stk::coeff(int narg, char **arg)
   nlo = ilo;
   nhi = ihi;
 
-  if (nhi > 4) error->all(FLERR, "pair oxdna3/stk does not support more than 4 atom types for A, C, G and T");
+  if (atom->ntypes != 4)
+    error->all(FLERR, "pair oxdna3/stk requires exactly 4 atom types for A, C, G and T, even if not all are used");
 
   // stacking interaction
   count = 0;

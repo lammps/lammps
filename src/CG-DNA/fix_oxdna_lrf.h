@@ -29,6 +29,7 @@ class FixOxdnaLRF : public Fix {
   FixOxdnaLRF(class LAMMPS *, int, char **);
   ~FixOxdnaLRF() override;
   int setmask() override;
+  void init() override;
   void min_setup_pre_force(int);
   void min_pre_force(int) override;
   void setup_pre_force(int) override;

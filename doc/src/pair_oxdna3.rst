@@ -248,6 +248,14 @@ and :ref:`ASPHERE <PKG-ASPHERE>` package. For KOKKOS acceleration also
 the :ref:`KOKKOS <PKG-KOKKOS>` package has to be included. See the
 :doc:`Build package <Build_package>` page for more info.
 
+The KOKKOS variants of these styles currently only support
+:doc:`units lj <units>`.
+
+These oxDNA3 pair styles require exactly 4 atom types, one for each
+of the nucleotides A, C, G, and T, since the sequence-dependent
+parameters in the potential file are ordered by these 4 types.  All 4
+types must be defined even if a simulation does not use all of them.
+
 Related commands
 """"""""""""""""
 

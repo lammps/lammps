@@ -47,16 +47,12 @@ class FixOxdnaPrimeNeighsKokkos : public Fix {
 
   void init() override;
   int setmask() override;
-  void min_setup_pre_force(int);
-  void min_pre_force(int) override;
-  void setup_pre_force(int) override;
-  void pre_force(int) override;
 
   // ------ For PrimeNeighBond (fene and stk)
-  // 0-3 : atom a, atom b, id3p[a], id5p[b] for each bond.
+  // 0-3 : atom a, atom b, id3p[a], id5p[b] for each bond of the current bond list.
   // As per their order of being called in fene and stk compute.
-  typename AT::t_int_1d_4 d_prime_neighs_bond;
-  void compute_prime_neighs_bond();
+  // The caller owns the output View (grown as needed).
+  void compute_prime_neighs_bond(typename AT::t_int_1d_4 &d_prime_neighs);
   // ------ For PrimeNeighPair (excv)
   // 0-3 : id3p[a], id5p[b], id3p[b], id5p[a] for each pair.
   // As per their order of being called in excv compute.
@@ -67,7 +63,7 @@ class FixOxdnaPrimeNeighsKokkos : public Fix {
   typename AT::t_int_3d d_prime_neighs_pair;
   void compute_prime_neighs_pair(class NeighList *neigh_list);
   // ------ For PrimeNeighOxdna3Xstk (oxdna3/xstk/kk)
-  // 0-3 : id3p[a], id5p[b], id3p[b], id5p[a] for each pair.
+  // 0-3 : id3p[a], id5p[a], id3p[b], id5p[b] for each pair.
   // As per their order of being called in oxdna3/xstk compute.
   // Layout is per screened pair index from fix_oxdna_npair_kokkos:
   // d_prime_neighs_oxdna3_xstk(ipair,0-3), where ipair maps to the packed
@@ -99,6 +95,7 @@ class FixOxdnaPrimeNeighsKokkos : public Fix {
   // For PrimeNeighBond
   int nbondlist;
   typename AT::t_int_2d_lr bondlist;
+  typename AT::t_int_1d_4 d_prime_neighs_bond;
   // For PrimeNeighPair (set in compute_prime_neighs_pair)
   int anum;
   typename AT::t_neighbors_2d_randomread d_neighbors;
@@ -112,7 +109,6 @@ class FixOxdnaPrimeNeighsKokkos : public Fix {
   DAT::tdual_int_1d k_map_array;
   dual_hash_type k_map_hash;
 
-  bigint last_precompute_lastcall;
 
   FixOxdnaNpairKokkos<DeviceType> *fix_oxdna_npairKK;    // ptr to OXDNA/NPAIR/kk fix
 };

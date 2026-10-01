@@ -76,6 +76,8 @@ class PairOxdnaCoaxstkKokkos : public PairOxdnaCoaxstk, public KokkosBase {
   typename AT::t_kkacc_1d_3 f;
   typename AT::t_kkacc_1d_3 torque;
   typename AT::t_int_1d_randomread type;
+  typename AT::t_tagint_1d_randomread id5p;
+  typename AT::t_tagint_1d_randomread id3p;
 
   DAT::ttransform_kkacc_1d k_eatom;
   DAT::ttransform_kkacc_1d_6 k_vatom;

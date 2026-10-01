@@ -451,8 +451,9 @@ For KOKKOS acceleration also the :ref:`KOKKOS <PKG-KOKKOS>` has to be installed.
    For performance reasons we strongly advise to always run with *half* neighbor lists and
    setting the Newton flag to *on* when using the CG-DNA package in combination with KOKKOS.
    This can be achieved through the :doc:`package <package>` command or appropriate command-line flag.
-   The skin size can also significantly affect the performance. Using a small skin size
-   of around 0.2-0.4 (in LJ units) set via :doc:`neighbor <neighbor>` is recommended as a starting point.
+   The skin size can also significantly affect the performance.
+
+   The KOKKOS variants of the CG-DNA styles currently only support :doc:`units lj <units>`.
 
 Further details can be found on the :doc:`Speed_kokkos <Speed_kokkos>` page.
 

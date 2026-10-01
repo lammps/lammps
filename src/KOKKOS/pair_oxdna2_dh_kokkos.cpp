@@ -124,6 +124,22 @@ void PairOxdna2DhKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     ndup_torque = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, \
     Kokkos::Experimental::ScatterNonDuplicated>(torque);
   }
+  if (eflag_atom) {
+    if (need_dup)
+      dup_eatom = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum,
+        Kokkos::Experimental::ScatterDuplicated>(d_eatom);
+    else
+      ndup_eatom = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum,
+        Kokkos::Experimental::ScatterNonDuplicated>(d_eatom);
+  }
+  if (vflag_atom) {
+    if (need_dup)
+      dup_vatom = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum,
+        Kokkos::Experimental::ScatterDuplicated>(d_vatom);
+    else
+      ndup_vatom = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum,
+        Kokkos::Experimental::ScatterNonDuplicated>(d_vatom);
+  }
 
   copymode = 1;
 
@@ -231,14 +247,14 @@ void PairOxdna2DhKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     Kokkos::Experimental::contribute(torque, dup_torque);
   }
 
-  if (eflag_global) eng_vdwl += ev.evdwl;
+  if (eflag_global) eng_vdwl += static_cast<double>(ev.evdwl);
   if (vflag_global) {
-    virial[0] += ev.v[0];
-    virial[1] += ev.v[1];
-    virial[2] += ev.v[2];
-    virial[3] += ev.v[3];
-    virial[4] += ev.v[4];
-    virial[5] += ev.v[5];
+    virial[0] += static_cast<double>(ev.v[0]);
+    virial[1] += static_cast<double>(ev.v[1]);
+    virial[2] += static_cast<double>(ev.v[2]);
+    virial[3] += static_cast<double>(ev.v[3]);
+    virial[4] += static_cast<double>(ev.v[4]);
+    virial[5] += static_cast<double>(ev.v[5]);
   }
 
   if (vflag_fdotr) pair_virial_fdotr_compute(this);
@@ -247,14 +263,14 @@ void PairOxdna2DhKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     if (need_dup)
       Kokkos::Experimental::contribute(d_eatom, dup_eatom);
     k_eatom.template modify<DeviceType>();
-    k_eatom.template sync<LMPHostType>();
+    k_eatom.sync_host();
   }
 
   if (vflag_atom) {
     if (need_dup)
       Kokkos::Experimental::contribute(d_vatom, dup_vatom);
     k_vatom.template modify<DeviceType>();
-    k_vatom.template sync<LMPHostType>();
+    k_vatom.sync_host();
   }
 
   copymode = 0;
@@ -289,15 +305,15 @@ void PairOxdna2DhKokkos<DeviceType>::operator()(TagPairOxdna2DhCompute<OXDNAFLAG
 
   // vector COM-backbone site a
   if constexpr (OXDNAFLAG==OXDNA2) {
-    constexpr KK_FLOAT d_cs_x = -0.34;
-    constexpr KK_FLOAT d_cs_y = +0.3408;
+    constexpr KK_FLOAT d_cs_x = static_cast<KK_FLOAT>(-0.34);
+    constexpr KK_FLOAT d_cs_y = static_cast<KK_FLOAT>(+0.3408);
     ra_cs0 = Kokkos::fma(d_cs_x, d_nx_xtrct(a,0), d_cs_y*d_ny_xtrct(a,0));
     ra_cs1 = Kokkos::fma(d_cs_x, d_nx_xtrct(a,1), d_cs_y*d_ny_xtrct(a,1));
     ra_cs2 = Kokkos::fma(d_cs_x, d_nx_xtrct(a,2), d_cs_y*d_ny_xtrct(a,2));
   } else {
     // OXRNA2
-    constexpr KK_FLOAT d_cs_x = -0.4;
-    constexpr KK_FLOAT d_cs_z = +0.2;
+    constexpr KK_FLOAT d_cs_x = static_cast<KK_FLOAT>(-0.4);
+    constexpr KK_FLOAT d_cs_z = static_cast<KK_FLOAT>(+0.2);
     ra_cs0 = Kokkos::fma(d_cs_x, d_nx_xtrct(a,0), d_cs_z*d_nz_xtrct(a,0));
     ra_cs1 = Kokkos::fma(d_cs_x, d_nx_xtrct(a,1), d_cs_z*d_nz_xtrct(a,1));
     ra_cs2 = Kokkos::fma(d_cs_x, d_nx_xtrct(a,2), d_cs_z*d_nz_xtrct(a,2));
@@ -321,21 +337,21 @@ void PairOxdna2DhKokkos<DeviceType>::operator()(TagPairOxdna2DhCompute<OXDNAFLAG
   for (int ib = 0; ib < bnum; ib++) {
 
     int b = d_neighbors(a,ib);
-    const KK_FLOAT factor_lj = special_lj[sbmask(b)];
+    const KK_FLOAT factor_lj = static_cast<KK_FLOAT>(special_lj[sbmask(b)]);
     if (factor_lj == static_cast<KK_FLOAT>(0.0)) continue;
     b &= NEIGHMASK;
     const int btype = type(b);
 
     KK_FLOAT rb_cs0, rb_cs1, rb_cs2;
     if constexpr (OXDNAFLAG==OXDNA2) {
-      constexpr KK_FLOAT d_cs_x = -0.34;
-      constexpr KK_FLOAT d_cs_y = +0.3408;
+      constexpr KK_FLOAT d_cs_x = static_cast<KK_FLOAT>(-0.34);
+      constexpr KK_FLOAT d_cs_y = static_cast<KK_FLOAT>(+0.3408);
       rb_cs0 = Kokkos::fma(d_cs_x, d_nx_xtrct(b,0), d_cs_y*d_ny_xtrct(b,0));
       rb_cs1 = Kokkos::fma(d_cs_x, d_nx_xtrct(b,1), d_cs_y*d_ny_xtrct(b,1));
       rb_cs2 = Kokkos::fma(d_cs_x, d_nx_xtrct(b,2), d_cs_y*d_ny_xtrct(b,2));
     } else {
-      constexpr KK_FLOAT d_cs_x = -0.4;
-      constexpr KK_FLOAT d_cs_z = +0.2;
+      constexpr KK_FLOAT d_cs_x = static_cast<KK_FLOAT>(-0.4);
+      constexpr KK_FLOAT d_cs_z = static_cast<KK_FLOAT>(+0.2);
       rb_cs0 = Kokkos::fma(d_cs_x, d_nx_xtrct(b,0), d_cs_z*d_nz_xtrct(b,0));
       rb_cs1 = Kokkos::fma(d_cs_x, d_nx_xtrct(b,1), d_cs_z*d_nz_xtrct(b,1));
       rb_cs2 = Kokkos::fma(d_cs_x, d_nx_xtrct(b,2), d_cs_z*d_nz_xtrct(b,2));
@@ -361,7 +377,7 @@ void PairOxdna2DhKokkos<DeviceType>::operator()(TagPairOxdna2DhCompute<OXDNAFLAG
     KK_FLOAT evdwl_loc = 0.0;
 
     if (r <= cut_dh_ast) {
-      const KK_FLOAT expterm = expf(-kappa * r);
+      const KK_FLOAT expterm = Kokkos::exp(-kappa * r);
       fpair = qeff_a * qeff_b * qeff_dh_pf * expterm * (kappa + rinv) * rinv * rinv;
 
       if constexpr (EVFLAG) {
@@ -370,7 +386,7 @@ void PairOxdna2DhKokkos<DeviceType>::operator()(TagPairOxdna2DhCompute<OXDNAFLAG
 
     } else {
       const KK_FLOAT delrcut = cut_dh_c - r;
-      fpair = 2.0 * qeff_a * qeff_b * b_dh * delrcut * rinv;
+      fpair = static_cast<KK_FLOAT>(2.0) * qeff_a * qeff_b * b_dh * delrcut * rinv;
 
       if constexpr (EVFLAG) {
         evdwl_loc = qeff_a * qeff_b * b_dh * delrcut * delrcut; // double negative, so safe to keep delrcut as is
@@ -390,9 +406,9 @@ void PairOxdna2DhKokkos<DeviceType>::operator()(TagPairOxdna2DhCompute<OXDNAFLAG
     ftmp_a0 += delf0;
     ftmp_a1 += delf1;
     ftmp_a2 += delf2;
-    const KK_ACC_FLOAT delta0 = static_cast<KK_ACC_FLOAT>(Kokkos::fma(ra_cs1, delf2, -ra_cs2*delf1));
-    const KK_ACC_FLOAT delta1 = static_cast<KK_ACC_FLOAT>(Kokkos::fma(ra_cs2, delf0, -ra_cs0*delf2));
-    const KK_ACC_FLOAT delta2 = static_cast<KK_ACC_FLOAT>(Kokkos::fma(ra_cs0, delf1, -ra_cs1*delf0));
+    const KK_ACC_FLOAT delta0 = static_cast<KK_ACC_FLOAT>(Kokkos::fma(static_cast<KK_ACC_FLOAT>(ra_cs1), delf2, -static_cast<KK_ACC_FLOAT>(ra_cs2)*delf1));
+    const KK_ACC_FLOAT delta1 = static_cast<KK_ACC_FLOAT>(Kokkos::fma(static_cast<KK_ACC_FLOAT>(ra_cs2), delf0, -static_cast<KK_ACC_FLOAT>(ra_cs0)*delf2));
+    const KK_ACC_FLOAT delta2 = static_cast<KK_ACC_FLOAT>(Kokkos::fma(static_cast<KK_ACC_FLOAT>(ra_cs0), delf1, -static_cast<KK_ACC_FLOAT>(ra_cs1)*delf0));
     ttmp_a0 += delta0;
     ttmp_a1 += delta1;
     ttmp_a2 += delta2;
@@ -400,9 +416,9 @@ void PairOxdna2DhKokkos<DeviceType>::operator()(TagPairOxdna2DhCompute<OXDNAFLAG
       a_f(b,0) -= delf0;
       a_f(b,1) -= delf1;
       a_f(b,2) -= delf2;
-      const KK_ACC_FLOAT deltb0 = static_cast<KK_ACC_FLOAT>(Kokkos::fma(rb_cs1, delf2, -rb_cs2*delf1));
-      const KK_ACC_FLOAT deltb1 = static_cast<KK_ACC_FLOAT>(Kokkos::fma(rb_cs2, delf0, -rb_cs0*delf2));
-      const KK_ACC_FLOAT deltb2 = static_cast<KK_ACC_FLOAT>(Kokkos::fma(rb_cs0, delf1, -rb_cs1*delf0));
+      const KK_ACC_FLOAT deltb0 = static_cast<KK_ACC_FLOAT>(Kokkos::fma(static_cast<KK_ACC_FLOAT>(rb_cs1), delf2, -static_cast<KK_ACC_FLOAT>(rb_cs2)*delf1));
+      const KK_ACC_FLOAT deltb1 = static_cast<KK_ACC_FLOAT>(Kokkos::fma(static_cast<KK_ACC_FLOAT>(rb_cs2), delf0, -static_cast<KK_ACC_FLOAT>(rb_cs0)*delf2));
+      const KK_ACC_FLOAT deltb2 = static_cast<KK_ACC_FLOAT>(Kokkos::fma(static_cast<KK_ACC_FLOAT>(rb_cs0), delf1, -static_cast<KK_ACC_FLOAT>(rb_cs1)*delf0));
       a_torque(b,0) -= deltb0;
       a_torque(b,1) -= deltb1;
       a_torque(b,2) -= deltb2;
@@ -413,7 +429,7 @@ void PairOxdna2DhKokkos<DeviceType>::operator()(TagPairOxdna2DhCompute<OXDNAFLAG
     // (see G. Ciccotti and J.P. Ryckaert, Comp. Phys. Rep. 4, 345-392 (1986))
 
     if constexpr (EVFLAG) {
-      ev.evdwl += (((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD)&&(NEWTON_PAIR||(b<nlocal)))?1.0:0.5)*evdwl_loc;
+      ev.evdwl += static_cast<KK_ACC_FLOAT>((((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD)&&(NEWTON_PAIR||(b<nlocal)))?static_cast<KK_FLOAT>(1.0):static_cast<KK_FLOAT>(0.5))*evdwl_loc);
 
       if (vflag_either || eflag_atom) {
         this->template ev_tally_xyz<NEIGHFLAG,NEWTON_PAIR>(ev,a,b,evdwl_loc,\
@@ -472,8 +488,20 @@ void PairOxdna2DhKokkos<DeviceType>::allocate()
 template<class DeviceType>
 void PairOxdna2DhKokkos<DeviceType>::settings(int narg, char **/*arg*/)
 {
-  if (narg != 0) error->all(FLERR,"Illegal pair_style command");
+  if (narg != 0) error->all(FLERR, "The oxDNA and oxRNA pair styles do not take any arguments");
 
+}
+
+/* ----------------------------------------------------------------------
+   the parent coeff() sets the effective charges of the local atoms on the host
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void PairOxdna2DhKokkos<DeviceType>::coeff(int narg, char **arg)
+{
+  atomKK->sync(Host, CG_DNA_MASK);
+  PairOxdna2Dh::coeff(narg, arg);
+  atomKK->modified(Host, CG_DNA_MASK);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -481,6 +509,13 @@ void PairOxdna2DhKokkos<DeviceType>::settings(int narg, char **/*arg*/)
 template<class DeviceType>
 void PairOxdna2DhKokkos<DeviceType>::init_style()
 {
+  // the internal helper fixes are always created for the default KOKKOS variant,
+  // so /kk/host styles cannot work with them when LAMMPS is compiled for a GPU
+
+  if (std::is_same_v<DeviceType, LMPHostType> && !std::is_same_v<DeviceType, LMPDeviceType>)
+    error->all(FLERR, "The /kk/host variants of the CG-DNA styles are not supported "
+               "when LAMMPS is compiled for a GPU");
+
   neighbor->add_request(this);
   neighflag = lmp->kokkos->neighflag;
   auto request = neighbor->find_request(this);
@@ -494,6 +529,7 @@ void PairOxdna2DhKokkos<DeviceType>::init_style()
   auto fixes = modify->get_fix_by_style("^OXDNA/LRF/kk");
   if (fixes.size() == 0) error->all(FLERR, "Fix OXDNA/LRF/kk not found. Ensure pair ox*na*/excv/kk is present");
   else fix_oxdna_lrfKK = dynamic_cast<FixOxdnaLRFKokkos<DeviceType> *>(fixes[0]);
+
 }
 
 /* ---------------------------------------------------------------------- */
@@ -504,21 +540,21 @@ double PairOxdna2DhKokkos<DeviceType>::init_one(int i, int j)
   double cutone = PairOxdna2Dh::init_one(i,j);
 
   // Assign directionally: [i][j] gets [i][j], [j][i] gets [j][i]
-  k_qeff_dh_pf.view_host()(i,j) = qeff_dh_pf[i][j]; k_qeff_dh_pf.view_host()(j,i) = qeff_dh_pf[j][i];
-  k_kappa_dh.view_host()(i,j) = kappa_dh[i][j]; k_kappa_dh.view_host()(j,i) = kappa_dh[j][i];
-  k_b_dh.view_host()(i,j) = b_dh[i][j]; k_b_dh.view_host()(j,i) = b_dh[j][i];
-  k_cut_dh_ast.view_host()(i,j) = cut_dh_ast[i][j]; k_cut_dh_ast.view_host()(j,i) = cut_dh_ast[j][i];
-  k_cutsq_dh_ast.view_host()(i,j) = cutsq_dh_ast[i][j]; k_cutsq_dh_ast.view_host()(j,i) = cutsq_dh_ast[j][i];
-  k_cut_dh_c.view_host()(i,j) = cut_dh_c[i][j]; k_cut_dh_c.view_host()(j,i) = cut_dh_c[j][i];
-  k_cutsq_dh_c.view_host()(i,j) = cutsq_dh_c[i][j]; k_cutsq_dh_c.view_host()(j,i) = cutsq_dh_c[j][i];
+  k_qeff_dh_pf.view_host()(i,j) = static_cast<KK_FLOAT>(qeff_dh_pf[i][j]); k_qeff_dh_pf.view_host()(j,i) = static_cast<KK_FLOAT>(qeff_dh_pf[j][i]);
+  k_kappa_dh.view_host()(i,j) = static_cast<KK_FLOAT>(kappa_dh[i][j]); k_kappa_dh.view_host()(j,i) = static_cast<KK_FLOAT>(kappa_dh[j][i]);
+  k_b_dh.view_host()(i,j) = static_cast<KK_FLOAT>(b_dh[i][j]); k_b_dh.view_host()(j,i) = static_cast<KK_FLOAT>(b_dh[j][i]);
+  k_cut_dh_ast.view_host()(i,j) = static_cast<KK_FLOAT>(cut_dh_ast[i][j]); k_cut_dh_ast.view_host()(j,i) = static_cast<KK_FLOAT>(cut_dh_ast[j][i]);
+  k_cutsq_dh_ast.view_host()(i,j) = static_cast<KK_FLOAT>(cutsq_dh_ast[i][j]); k_cutsq_dh_ast.view_host()(j,i) = static_cast<KK_FLOAT>(cutsq_dh_ast[j][i]);
+  k_cut_dh_c.view_host()(i,j) = static_cast<KK_FLOAT>(cut_dh_c[i][j]); k_cut_dh_c.view_host()(j,i) = static_cast<KK_FLOAT>(cut_dh_c[j][i]);
+  k_cutsq_dh_c.view_host()(i,j) = static_cast<KK_FLOAT>(cutsq_dh_c[i][j]); k_cutsq_dh_c.view_host()(j,i) = static_cast<KK_FLOAT>(cutsq_dh_c[j][i]);
 
-  k_qeff_dh_pf.template modify<LMPHostType>();
-  k_kappa_dh.template modify<LMPHostType>();
-  k_b_dh.template modify<LMPHostType>();
-  k_cut_dh_ast.template modify<LMPHostType>();
-  k_cutsq_dh_ast.template modify<LMPHostType>();
-  k_cut_dh_c.template modify<LMPHostType>();
-  k_cutsq_dh_c.template modify<LMPHostType>();
+  k_qeff_dh_pf.modify_host();
+  k_kappa_dh.modify_host();
+  k_b_dh.modify_host();
+  k_cut_dh_ast.modify_host();
+  k_cutsq_dh_ast.modify_host();
+  k_cut_dh_c.modify_host();
+  k_cutsq_dh_c.modify_host();
 
   // Sync to device
   k_qeff_dh_pf.template sync<DeviceType>();
@@ -568,66 +604,66 @@ void PairOxdna2DhKokkos<DeviceType>::ev_tally_xyz(EV_FLOAT &ev, const int &i, co
   }
 
   if (VFLAG) {
-    const KK_ACC_FLOAT v0 = static_cast<KK_ACC_FLOAT>(delx*fx);
-    const KK_ACC_FLOAT v1 = static_cast<KK_ACC_FLOAT>(dely*fy);
-    const KK_ACC_FLOAT v2 = static_cast<KK_ACC_FLOAT>(delz*fz);
-    const KK_ACC_FLOAT v3 = static_cast<KK_ACC_FLOAT>(delx*fy);
-    const KK_ACC_FLOAT v4 = static_cast<KK_ACC_FLOAT>(delx*fz);
-    const KK_ACC_FLOAT v5 = static_cast<KK_ACC_FLOAT>(dely*fz);
+    const KK_ACC_FLOAT v0 = static_cast<KK_ACC_FLOAT>(delx)*fx;
+    const KK_ACC_FLOAT v1 = static_cast<KK_ACC_FLOAT>(dely)*fy;
+    const KK_ACC_FLOAT v2 = static_cast<KK_ACC_FLOAT>(delz)*fz;
+    const KK_ACC_FLOAT v3 = static_cast<KK_ACC_FLOAT>(delx)*fy;
+    const KK_ACC_FLOAT v4 = static_cast<KK_ACC_FLOAT>(delx)*fz;
+    const KK_ACC_FLOAT v5 = static_cast<KK_ACC_FLOAT>(dely)*fz;
 
     if (vflag_global) {
       if (NEIGHFLAG!=FULL) {
         if (NEWTON_PAIR || i < nlocal) {
-          ev.v[0] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v0);
-          ev.v[1] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v1);
-          ev.v[2] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v2);
-          ev.v[3] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v3);
-          ev.v[4] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v4);
-          ev.v[5] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v5);
+          ev.v[0] += static_cast<KK_ACC_FLOAT>(0.5) * v0;
+          ev.v[1] += static_cast<KK_ACC_FLOAT>(0.5) * v1;
+          ev.v[2] += static_cast<KK_ACC_FLOAT>(0.5) * v2;
+          ev.v[3] += static_cast<KK_ACC_FLOAT>(0.5) * v3;
+          ev.v[4] += static_cast<KK_ACC_FLOAT>(0.5) * v4;
+          ev.v[5] += static_cast<KK_ACC_FLOAT>(0.5) * v5;
         }
         if (NEWTON_PAIR || j < nlocal) {
-        ev.v[0] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v0);
-        ev.v[1] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v1);
-        ev.v[2] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v2);
-        ev.v[3] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v3);
-        ev.v[4] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v4);
-        ev.v[5] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v5);
+        ev.v[0] += static_cast<KK_ACC_FLOAT>(0.5) * v0;
+        ev.v[1] += static_cast<KK_ACC_FLOAT>(0.5) * v1;
+        ev.v[2] += static_cast<KK_ACC_FLOAT>(0.5) * v2;
+        ev.v[3] += static_cast<KK_ACC_FLOAT>(0.5) * v3;
+        ev.v[4] += static_cast<KK_ACC_FLOAT>(0.5) * v4;
+        ev.v[5] += static_cast<KK_ACC_FLOAT>(0.5) * v5;
         }
       } else {
-        ev.v[0] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v0);
-        ev.v[1] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v1);
-        ev.v[2] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v2);
-        ev.v[3] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v3);
-        ev.v[4] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v4);
-        ev.v[5] += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v5);
+        ev.v[0] += static_cast<KK_ACC_FLOAT>(0.5) * v0;
+        ev.v[1] += static_cast<KK_ACC_FLOAT>(0.5) * v1;
+        ev.v[2] += static_cast<KK_ACC_FLOAT>(0.5) * v2;
+        ev.v[3] += static_cast<KK_ACC_FLOAT>(0.5) * v3;
+        ev.v[4] += static_cast<KK_ACC_FLOAT>(0.5) * v4;
+        ev.v[5] += static_cast<KK_ACC_FLOAT>(0.5) * v5;
       }
     }
 
     if (vflag_atom) {
       if (NEIGHFLAG!=FULL) {
         if (NEWTON_PAIR || i < nlocal) {
-          a_vatom(i,0) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v0);
-          a_vatom(i,1) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v1);
-          a_vatom(i,2) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v2);
-          a_vatom(i,3) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v3);
-          a_vatom(i,4) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v4);
-          a_vatom(i,5) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v5);
+          a_vatom(i,0) += static_cast<KK_ACC_FLOAT>(0.5) * v0;
+          a_vatom(i,1) += static_cast<KK_ACC_FLOAT>(0.5) * v1;
+          a_vatom(i,2) += static_cast<KK_ACC_FLOAT>(0.5) * v2;
+          a_vatom(i,3) += static_cast<KK_ACC_FLOAT>(0.5) * v3;
+          a_vatom(i,4) += static_cast<KK_ACC_FLOAT>(0.5) * v4;
+          a_vatom(i,5) += static_cast<KK_ACC_FLOAT>(0.5) * v5;
         }
         if (NEWTON_PAIR || j < nlocal) {
-        a_vatom(j,0) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v0);
-        a_vatom(j,1) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v1);
-        a_vatom(j,2) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v2);
-        a_vatom(j,3) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v3);
-        a_vatom(j,4) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v4);
-        a_vatom(j,5) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v5);
+        a_vatom(j,0) += static_cast<KK_ACC_FLOAT>(0.5) * v0;
+        a_vatom(j,1) += static_cast<KK_ACC_FLOAT>(0.5) * v1;
+        a_vatom(j,2) += static_cast<KK_ACC_FLOAT>(0.5) * v2;
+        a_vatom(j,3) += static_cast<KK_ACC_FLOAT>(0.5) * v3;
+        a_vatom(j,4) += static_cast<KK_ACC_FLOAT>(0.5) * v4;
+        a_vatom(j,5) += static_cast<KK_ACC_FLOAT>(0.5) * v5;
         }
       } else {
-        a_vatom(i,0) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v0);
-        a_vatom(i,1) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v1);
-        a_vatom(i,2) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v2);
-        a_vatom(i,3) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v3);
-        a_vatom(i,4) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v4);
-        a_vatom(i,5) += static_cast<KK_ACC_FLOAT>(static_cast<KK_FLOAT>(0.5) * v5);
+        a_vatom(i,0) += static_cast<KK_ACC_FLOAT>(0.5) * v0;
+        a_vatom(i,1) += static_cast<KK_ACC_FLOAT>(0.5) * v1;
+        a_vatom(i,2) += static_cast<KK_ACC_FLOAT>(0.5) * v2;
+        a_vatom(i,3) += static_cast<KK_ACC_FLOAT>(0.5) * v3;
+        a_vatom(i,4) += static_cast<KK_ACC_FLOAT>(0.5) * v4;
+        a_vatom(i,5) += static_cast<KK_ACC_FLOAT>(0.5) * v5;
       }
     }
   }

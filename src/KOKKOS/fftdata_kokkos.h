@@ -264,10 +264,4 @@ typedef tdual_int_64::t_host_um t_int_64_um;
 typedef struct FFTArrayTypes<LMPDeviceType> FFT_DAT;
 typedef struct FFTArrayTypes<LMPHostType> FFT_HAT;
 
-
-#if defined(FFT_KOKKOS_KISS)
-#include "kissfft_kokkos.h" // uses t_FFT_DATA_1d, needs to come last
-#endif
-
-
 #endif

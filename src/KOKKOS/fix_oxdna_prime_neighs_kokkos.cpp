@@ -43,7 +43,6 @@ FixOxdnaPrimeNeighsKokkos<DeviceType>::FixOxdnaPrimeNeighsKokkos(LAMMPS *lmp, in
   anum = 0;
   npairlist = 0;
   fix_oxdna_npairKK = nullptr;
-  last_precompute_lastcall = -1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -57,7 +56,7 @@ template<class DeviceType>
 void FixOxdnaPrimeNeighsKokkos<DeviceType>::init()
 {
   // No neighbor list requested: the pair style supplies its own list to
-  // compute_prime_neighs_pair().  Bond precompute uses the global bondlist.
+  // compute_prime_neighs_pair(); the bond and stk styles supply theirs.
   // NOTE: We do not hard-require OXDNA/NPAIR/kk at init time.  Some style
   // combinations initialize PRIME_NEIGHS before NPAIR.  We resolve NPAIR
   // lazily in compute_prime_neighs_oxdna3_xstk(), which is the only path
@@ -69,64 +68,30 @@ void FixOxdnaPrimeNeighsKokkos<DeviceType>::init()
 template<class DeviceType>
 int FixOxdnaPrimeNeighsKokkos<DeviceType>::setmask()
 {
-  int mask = 0;
-  mask |= MIN_PRE_FORCE;
-  mask |= PRE_FORCE;
-  return mask;
+  // all lookups are computed on demand by the styles that use them
+
+  return 0;
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   Called by the bond (fene) and pair (stk) styles to precompute the
+   prime-neighbor lookups for the bond list that is current at the time
+   of the call.  Each caller passes its own output View, since under
+   bond style hybrid the bond style is handed a sub-style bond list
+   while the stk pair styles loop over the full bond list.
+------------------------------------------------------------------------- */
 
 template<class DeviceType>
-void FixOxdnaPrimeNeighsKokkos<DeviceType>::min_setup_pre_force(int vflag)
+void FixOxdnaPrimeNeighsKokkos<DeviceType>::compute_prime_neighs_bond(
+  typename AT::t_int_1d_4 &d_prime_neighs)
 {
-  min_pre_force(vflag);
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-void FixOxdnaPrimeNeighsKokkos<DeviceType>::min_pre_force(int /*vflag*/)
-{
-  if (neighbor->lastcall != last_precompute_lastcall) {
-    compute_prime_neighs_bond();
-    last_precompute_lastcall = neighbor->lastcall;
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-void FixOxdnaPrimeNeighsKokkos<DeviceType>::setup_pre_force(int vflag)
-{
-  pre_force(vflag);
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-void FixOxdnaPrimeNeighsKokkos<DeviceType>::pre_force(int /*vflag*/)
-{
-  if (neighbor->lastcall != last_precompute_lastcall) {
-    compute_prime_neighs_bond();
-    last_precompute_lastcall = neighbor->lastcall;
-  }
-}
-
-/* ---------------------------------------------------------------------- */
-
-template<class DeviceType>
-void FixOxdnaPrimeNeighsKokkos<DeviceType>::compute_prime_neighs_bond()
-{
-  // Bond precompute only. Pair precompute is driven by the pair style via
-  // compute_prime_neighs_pair() so that it always uses the pair's own list.
   neighborKK->k_bondlist.template sync<DeviceType>();
   bondlist = neighborKK->k_bondlist.view<DeviceType>();
   nbondlist = neighborKK->nbondlist;
 
-  if (nbondlist > d_prime_neighs_bond.extent_int(0)) {
-    MemKK::realloc_kokkos(d_prime_neighs_bond, "prime_neighs:prime_neighs_bond", nbondlist);
-  }
+  if (nbondlist > d_prime_neighs.extent_int(0))
+    MemKK::realloc_kokkos(d_prime_neighs, "prime_neighs:prime_neighs_bond", nbondlist);
+  d_prime_neighs_bond = d_prime_neighs;
 
   atomKK->sync(execution_space, datamask_read);
   tag = atomKK->k_tag.view<DeviceType>();
@@ -166,8 +131,13 @@ void FixOxdnaPrimeNeighsKokkos<DeviceType>::compute_prime_neighs_pair(NeighList 
   d_numneigh = k_list->d_numneigh;
   const int maxneigh = d_neighbors.extent(1);
 
-  if (anum > d_prime_neighs_pair.extent_int(0) || maxneigh > d_prime_neighs_pair.extent_int(1)) {
-    MemKK::realloc_kokkos(k_prime_neighs_pair, "prime_neighs:prime_neighs_pair", anum, maxneigh, 4);
+  // the table is indexed by atom index like d_neighbors, not by list position,
+  // so it needs as many rows as d_neighbors (inum can be smaller than nlocal)
+
+  const int nrows = d_neighbors.extent(0);
+
+  if (nrows > d_prime_neighs_pair.extent_int(0) || maxneigh > d_prime_neighs_pair.extent_int(1)) {
+    MemKK::realloc_kokkos(k_prime_neighs_pair, "prime_neighs:prime_neighs_pair", nrows, maxneigh, 4);
     d_prime_neighs_pair = k_prime_neighs_pair.template view<DeviceType>();
   }
 
@@ -203,21 +173,19 @@ void FixOxdnaPrimeNeighsKokkos<DeviceType>::compute_prime_neighs_oxdna3_xstk(Nei
 {
   (void) neigh_list;
 
-  if (!fix_oxdna_npairKK) {
-    auto npair_fixes = modify->get_fix_by_style("^OXDNA/NPAIR/kk");
-    for (auto *fixptr : npair_fixes) {
-      auto *typed = dynamic_cast<FixOxdnaNpairKokkos<DeviceType> *>(fixptr);
-      if (typed) {
-        fix_oxdna_npairKK = typed;
-        break;
-      }
+  // look up the fix every time, since it may have been replaced since the last call
+
+  fix_oxdna_npairKK = nullptr;
+  auto npair_fixes = modify->get_fix_by_style("^OXDNA/NPAIR/kk");
+  for (auto *fixptr : npair_fixes) {
+    auto *typed = dynamic_cast<FixOxdnaNpairKokkos<DeviceType> *>(fixptr);
+    if (typed) {
+      fix_oxdna_npairKK = typed;
+      break;
     }
   }
 
-  if (!fix_oxdna_npairKK) {
-    error->all(FLERR, "FixOxdnaPrimeNeighsKokkos::compute_prime_neighs_oxdna3_xstk() "
-               "called but no matching OXDNA/NPAIR/kk fix is available");
-  }
+  if (!fix_oxdna_npairKK) error->all(FLERR, "Fix OXDNA/NPAIR/kk not found");
 
   npairlist = fix_oxdna_npairKK->screened_pair_count;
   pairlist = fix_oxdna_npairKK->k_pairs_screened.template view<DeviceType>();

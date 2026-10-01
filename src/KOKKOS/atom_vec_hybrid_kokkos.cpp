@@ -46,6 +46,11 @@ void AtomVecHybridKokkos::init()
 {
   AtomVecHybrid::init();
 
+  // the bonus data of the sub-styles must be part of the communication masks
+
+  datamask_bonus = EMPTY_MASK;
+  for (int k = 0; k < nstyles; k++) datamask_bonus |= stylesKK[k]->datamask_bonus;
+
   set_atom_masks();
 }
 
@@ -87,6 +92,26 @@ void AtomVecHybridKokkos::sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorte
 {
   for (int k = 0; k < nstyles; k++)
     stylesKK[k]->sort_kokkos(Sorter);
+}
+
+/* ----------------------------------------------------------------------
+   the number of local bonus data entries is kept by the sub-style with
+   bonus data, CommKokkos::exchange_device() needs to access it
+------------------------------------------------------------------------- */
+
+int AtomVecHybridKokkos::get_status_nlocal_bonus()
+{
+  for (int k = 0; k < nstyles; k++)
+    if (styles[k]->bonus_flag) return stylesKK[k]->get_status_nlocal_bonus();
+  return 0;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void AtomVecHybridKokkos::set_status_nlocal_bonus(int n)
+{
+  for (int k = 0; k < nstyles; k++)
+    if (styles[k]->bonus_flag) stylesKK[k]->set_status_nlocal_bonus(n);
 }
 
 /* ---------------------------------------------------------------------- */

@@ -50,10 +50,9 @@ class FixOxdnaNpairKokkos : public Fix {
   void compute_neigh_screen_to_npair();
 
   // Derived COM screen cutoff. Each consuming pair style (hbond / xstk /
-  // coaxstk) registers its max interaction-site cutoff plus the site-offset
-  // margin (so a center-of-mass test never drops an interacting pair) in its
-  // init_one; the screen uses the largest request. Falls back to the historical
-  // r < 2.0 if nothing registers.
+  // coaxstk) registers its cutoff from init_one, which already includes the
+  // displacement of the interaction sites from the COM; the screen uses the
+  // largest request. Falls back to the historical r < 2.0 if nothing registers.
   void request_screen_cutoff(double cut_com) {
     if (cut_com > screen_cut_max) screen_cut_max = cut_com;
   }
@@ -88,7 +87,8 @@ class FixOxdnaNpairKokkos : public Fix {
   typename AT::t_int_1d_randomread type;
 
   int anum;
-  int neighflag, last_allocate;
+  int neighflag;
+  bigint last_allocate;
   typename AT::t_neighbors_2d_randomread d_neighbors;
   typename AT::t_int_1d_randomread d_alist;
   typename AT::t_int_1d_randomread d_numneigh;

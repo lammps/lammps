@@ -55,8 +55,6 @@ PairOxdnaExcv::PairOxdnaExcv(LAMMPS *lmp) :
 {
   single_enable = 0;
   writedata = 0;
-
-  trim_flag = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -807,8 +805,61 @@ double PairOxdnaExcv::init_one(int i, int j)
     error->all(FLERR,"Offset not supported in oxdna");
   }
 
+  // mirror the coefficients and recompute the derived ones, which are
+  // not stored in restart files
+
+  epsilon_bkbk[j][i] = epsilon_bkbk[i][j];
+  sigma_bkbk[j][i] = sigma_bkbk[i][j];
+  cut_bkbk_ast[j][i] = cut_bkbk_ast[i][j];
+  b_bkbk[j][i] = b_bkbk[i][j];
+  cut_bkbk_c[j][i] = cut_bkbk_c[i][j];
+  lj1_bkbk[i][j] = lj1_bkbk[j][i] = 4.0 * epsilon_bkbk[i][j] * pow(sigma_bkbk[i][j],12.0);
+  lj2_bkbk[i][j] = lj2_bkbk[j][i] = 4.0 * epsilon_bkbk[i][j] * pow(sigma_bkbk[i][j],6.0);
+  cutsq_bkbk_ast[i][j] = cutsq_bkbk_ast[j][i] = cut_bkbk_ast[i][j]*cut_bkbk_ast[i][j];
+  cutsq_bkbk_c[i][j] = cutsq_bkbk_c[j][i] = cut_bkbk_c[i][j]*cut_bkbk_c[i][j];
+
+  epsilon_bkbs[j][i] = epsilon_bkbs[i][j];
+  sigma_bkbs[j][i] = sigma_bkbs[i][j];
+  cut_bkbs_ast[j][i] = cut_bkbs_ast[i][j];
+  b_bkbs[j][i] = b_bkbs[i][j];
+  cut_bkbs_c[j][i] = cut_bkbs_c[i][j];
+  lj1_bkbs[i][j] = lj1_bkbs[j][i] = 4.0 * epsilon_bkbs[i][j] * pow(sigma_bkbs[i][j],12.0);
+  lj2_bkbs[i][j] = lj2_bkbs[j][i] = 4.0 * epsilon_bkbs[i][j] * pow(sigma_bkbs[i][j],6.0);
+  cutsq_bkbs_ast[i][j] = cutsq_bkbs_ast[j][i] = cut_bkbs_ast[i][j]*cut_bkbs_ast[i][j];
+  cutsq_bkbs_c[i][j] = cutsq_bkbs_c[j][i] = cut_bkbs_c[i][j]*cut_bkbs_c[i][j];
+
+  epsilon_bsbs[j][i] = epsilon_bsbs[i][j];
+  sigma_bsbs[j][i] = sigma_bsbs[i][j];
+  cut_bsbs_ast[j][i] = cut_bsbs_ast[i][j];
+  b_bsbs[j][i] = b_bsbs[i][j];
+  cut_bsbs_c[j][i] = cut_bsbs_c[i][j];
+  lj1_bsbs[i][j] = lj1_bsbs[j][i] = 4.0 * epsilon_bsbs[i][j] * pow(sigma_bsbs[i][j],12.0);
+  lj2_bsbs[i][j] = lj2_bsbs[j][i] = 4.0 * epsilon_bsbs[i][j] * pow(sigma_bsbs[i][j],6.0);
+  cutsq_bsbs_ast[i][j] = cutsq_bsbs_ast[j][i] = cut_bsbs_ast[i][j]*cut_bsbs_ast[i][j];
+  cutsq_bsbs_c[i][j] = cutsq_bsbs_c[j][i] = cut_bsbs_c[i][j]*cut_bsbs_c[i][j];
+
   // set the master list distance cutoff
-  return cut_bkbk_c[i][j];
+  // the cutoffs are distances between interaction sites, but the neighbor
+  // lists hold pairs by the distance of the nucleotide centers of mass, so
+  // add the distances of the sites from the centers of mass
+  const double bk = site_offset([this](double *e1, double *e2, double *e3, double *r) {
+    compute_backbone_site(e1, e2, e3, r);
+  });
+  const double bs_i = site_offset([this, i](double *e1, double *e2, double *e3, double *r) {
+    compute_base_site(i % 4, e1, e2, e3, r);
+  });
+  const double bs_j = site_offset([this, j](double *e1, double *e2, double *e3, double *r) {
+    compute_base_site(j % 4, e1, e2, e3, r);
+  });
+  double cut_max = MAX(cut_bkbk_c[i][j] + 2.0 * bk, cut_bkbs_c[i][j] + bk + MAX(bs_i, bs_j));
+  cut_max = MAX(cut_max, cut_bsbs_c[i][j] + bs_i + bs_j);
+  for (int a = 0; a <= atom->ntypes; a++) {
+    for (int b = 0; b <= atom->ntypes; b++) {
+      cut_max = MAX(cut_max, cut4_bsbs_c[a][i][j][b] + bs_i + bs_j);
+      cut_max = MAX(cut_max, cut4_bsbs_c[a][j][i][b] + bs_i + bs_j);
+    }
+  }
+  return cut_max;
 
 }
 
@@ -844,6 +895,19 @@ void PairOxdnaExcv::write_restart(FILE *fp)
 
     }
   }
+
+  // tetramer-dependent coefficients are stored as whole tables
+
+  const int n1 = atom->ntypes + 1;
+  const int ntetra = n1 * n1 * n1 * n1;
+  fwrite(&sigma4_bsbs[0][0][0][0],sizeof(double),ntetra,fp);
+  fwrite(&cut4_bsbs_ast[0][0][0][0],sizeof(double),ntetra,fp);
+  fwrite(&cut4sq_bsbs_ast[0][0][0][0],sizeof(double),ntetra,fp);
+  fwrite(&lj14_bsbs[0][0][0][0],sizeof(double),ntetra,fp);
+  fwrite(&lj24_bsbs[0][0][0][0],sizeof(double),ntetra,fp);
+  fwrite(&b4_bsbs[0][0][0][0],sizeof(double),ntetra,fp);
+  fwrite(&cut4_bsbs_c[0][0][0][0],sizeof(double),ntetra,fp);
+  fwrite(&cut4sq_bsbs_c[0][0][0][0],sizeof(double),ntetra,fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -900,6 +964,29 @@ void PairOxdnaExcv::read_restart(FILE *fp)
 
       }
     }
+
+  // tetramer-dependent coefficients are stored as whole tables
+
+  const int n1 = atom->ntypes + 1;
+  const int ntetra = n1 * n1 * n1 * n1;
+  if (me == 0) {
+    utils::sfread(FLERR,&sigma4_bsbs[0][0][0][0],sizeof(double),ntetra,fp,nullptr,error);
+    utils::sfread(FLERR,&cut4_bsbs_ast[0][0][0][0],sizeof(double),ntetra,fp,nullptr,error);
+    utils::sfread(FLERR,&cut4sq_bsbs_ast[0][0][0][0],sizeof(double),ntetra,fp,nullptr,error);
+    utils::sfread(FLERR,&lj14_bsbs[0][0][0][0],sizeof(double),ntetra,fp,nullptr,error);
+    utils::sfread(FLERR,&lj24_bsbs[0][0][0][0],sizeof(double),ntetra,fp,nullptr,error);
+    utils::sfread(FLERR,&b4_bsbs[0][0][0][0],sizeof(double),ntetra,fp,nullptr,error);
+    utils::sfread(FLERR,&cut4_bsbs_c[0][0][0][0],sizeof(double),ntetra,fp,nullptr,error);
+    utils::sfread(FLERR,&cut4sq_bsbs_c[0][0][0][0],sizeof(double),ntetra,fp,nullptr,error);
+  }
+  MPI_Bcast(&sigma4_bsbs[0][0][0][0],ntetra,MPI_DOUBLE,0,world);
+  MPI_Bcast(&cut4_bsbs_ast[0][0][0][0],ntetra,MPI_DOUBLE,0,world);
+  MPI_Bcast(&cut4sq_bsbs_ast[0][0][0][0],ntetra,MPI_DOUBLE,0,world);
+  MPI_Bcast(&lj14_bsbs[0][0][0][0],ntetra,MPI_DOUBLE,0,world);
+  MPI_Bcast(&lj24_bsbs[0][0][0][0],ntetra,MPI_DOUBLE,0,world);
+  MPI_Bcast(&b4_bsbs[0][0][0][0],ntetra,MPI_DOUBLE,0,world);
+  MPI_Bcast(&cut4_bsbs_c[0][0][0][0],ntetra,MPI_DOUBLE,0,world);
+  MPI_Bcast(&cut4sq_bsbs_c[0][0][0][0],ntetra,MPI_DOUBLE,0,world);
 }
 
 /* ----------------------------------------------------------------------

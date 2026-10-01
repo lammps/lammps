@@ -29,6 +29,7 @@ PairStyle(oxdna2/hbond/kk/host,PairOxdnaHbondKokkos<LMPHostType>);
 #include "kokkos_base.h"
 #include "pair_kokkos.h"
 #include "pair_oxdna_hbond.h"
+#include "nucleotide_oxdna.h"
 
 namespace LAMMPS_NS {
 
@@ -59,6 +60,33 @@ class PairOxdnaHbondKokkos : public PairOxdnaHbond, public KokkosBase {
   void init_style() override;
   double init_one(int, int) override;
 
+  // interaction sites of the model, used by init_one() of the CPU base class
+  // for the cutoffs; the kernels compute the sites themselves
+  void compute_base_site(int type, double e1[3], double /*e2*/[3], double /*e3*/[3],
+                         double rbs[3]) const override
+  {
+    if (oxdnaflag == OXDNA3) {
+      NucleotideOxdna3 oxdna3;
+      switch (type) {
+        case 0:
+          oxdna3.base_site<0>(e1, nullptr, nullptr, rbs);
+          break;
+        case 1:
+          oxdna3.base_site<1>(e1, nullptr, nullptr, rbs);
+          break;
+        case 2:
+          oxdna3.base_site<2>(e1, nullptr, nullptr, rbs);
+          break;
+        case 3:
+          oxdna3.base_site<3>(e1, nullptr, nullptr, rbs);
+          break;
+      }
+    } else {
+      NucleotideOxdna1 oxdna1;
+      oxdna1.base_site<0>(e1, nullptr, nullptr, rbs);
+    }
+  }
+
   // Standard non-GPU Compute Functor(s). 1 with EV_FLOAT, 1 without.
 
   template<int OXDNAFLAG, int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
@@ -83,7 +111,7 @@ class PairOxdnaHbondKokkos : public PairOxdnaHbond, public KokkosBase {
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairOxdnaHbondComputeGPUPair<OXDNAFLAG,NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int&) const;
 
-  template<int NEIGHFLAG, int NEWTON_PAIR>
+  template<int NEIGHFLAG, int NEWTON_PAIR, int PAIRWISE = 0>
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void ev_tally_xyz(EV_FLOAT &ev, const int &i, const int &j,
@@ -131,6 +159,8 @@ class PairOxdnaHbondKokkos : public PairOxdnaHbond, public KokkosBase {
   DAT::tdual_int_1d k_idc;
   typename AT::t_int_1d_randomread d_idc;
   int unique_basepair_enabled;
+  bigint last_idc_ncalls;
+  int last_idc_nall;
 
   // hydrogen-bonding interaction parameters
   typename AT::tdual_kkfloat_2d k_epsilon_hb, k_a_hb, k_cut_hb_0, k_cut_hb_c;

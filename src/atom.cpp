@@ -1407,6 +1407,12 @@ void Atom::data_bonds(int n, char *buf, int *count, tagint id_offset,
             avec->data_bonds_post(m, num_bond[m], atom1, atom2, id_offset);
           }
         }
+      } else if (!count && (map(atom1) < 0) && ((m = map(atom2)) >= 0)) {
+
+        // with newton_bond on the bond is only stored with atom1, but the
+        // atom style may also need to process it for atom2 on its own processor
+
+        avec->data_bonds_post(m, num_bond[m], atom1, atom2, id_offset);
       }
     }
     buf = next + 1;
@@ -2672,6 +2678,13 @@ void Atom::delete_callback(const char *id, int flag)
   if (id == nullptr) return;
 
   int ifix = modify->find_fix(id);
+
+  // a fix whose constructor fails is not in Modify's list yet,
+  // so look it up by the slot that add_callback() recorded
+
+  if (ifix < 0)
+    for (ifix = 0; ifix < modify->nfix; ifix++)
+      if (modify->fix[ifix] == nullptr) break;
 
   // compact the list of callbacks
 

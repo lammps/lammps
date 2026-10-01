@@ -55,18 +55,6 @@ namespace LAMMPS_NS {
 // NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION d_ubuf(int arg) : i(arg) {}
   };
-
-  // Route unqualified fma(...) in KOKKOS device code through Kokkos::fma.
-  // Note that "fma" is fine for pure FP32 or FP64 builds, but not for mixed precision
-  // builds as these can encounter floats and doubles in the same expression.
-  // This gave: warning #20013-D and tried to call a host-only promotion.
-  template<typename T1, typename T2, typename T3>
-// NOLINTNEXTLINE
-  KOKKOS_INLINE_FUNCTION auto fma(T1 a, T2 b, T3 c)
-      -> decltype(Kokkos::fma(a, b, c))
-  {
-    return Kokkos::fma(a, b, c);
-  }
 }
 
 namespace Kokkos {

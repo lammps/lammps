@@ -210,6 +210,7 @@ void AtomVecEllipsoidKokkos::sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &So
 
 /* ------------------------------------------------------------------------- */
 
+namespace {
 template<class DeviceType>
 struct AtomVecEllipsoidKokkos_PackCommBonus {
   typedef DeviceType device_type;
@@ -252,6 +253,7 @@ struct AtomVecEllipsoidKokkos_PackCommBonus {
     }
   }
 };
+}    // namespace
 
 /* ------------------------------------------------------------------------- */
 
@@ -260,7 +262,7 @@ void AtomVecEllipsoidKokkos::pack_comm_bonus_kokkos(const int &n, const DAT::tdu
 {
   // See pack_border_bonus_kokkos for explanation of atomKK->avecKK usage
   int offset = atomKK->avecKK->size_forward - size_forward_bonus;
-  if (vel_flag) offset += size_velocity;
+  if (vel_flag) offset += atomKK->avecKK->size_velocity;
 
   if (lmp->kokkos->forward_comm_on_host) {
     atomKK->sync(HostKK,datamask_bonus);
@@ -275,6 +277,7 @@ void AtomVecEllipsoidKokkos::pack_comm_bonus_kokkos(const int &n, const DAT::tdu
 
 /* ---------------------------------------------------------------------- */
 
+namespace {
 template<class DeviceType>
 struct AtomVecEllipsoidKokkos_UnpackCommBonus {
   typedef DeviceType device_type;
@@ -316,33 +319,38 @@ struct AtomVecEllipsoidKokkos_UnpackCommBonus {
     }
   }
 };
+}    // namespace
 
 /* ---------------------------------------------------------------------- */
+
+// forward communication of the bonus data only updates the quaternions of the
+// ghost atoms, so only BONUS_MASK is marked as modified, not ELLIPSOID_MASK
 
 void AtomVecEllipsoidKokkos::unpack_comm_bonus_kokkos(const int &n, const int &first,
                                                       const DAT::tdual_double_2d_lr &buf, int vel_flag)
 {
   // See pack_border_bonus_kokkos for explanation of atomKK->avecKK usage
   int offset = atomKK->avecKK->size_forward - size_forward_bonus;
-  if (vel_flag) offset += size_velocity;
+  if (vel_flag) offset += atomKK->avecKK->size_velocity;
 
   if (lmp->kokkos->forward_comm_on_host) {
     atomKK->sync(HostKK,datamask_bonus);
     struct AtomVecEllipsoidKokkos_UnpackCommBonus<LMPHostType> f(
       atomKK,buf,k_bonus,first,offset,vel_flag);
     Kokkos::parallel_for(n,f);
-    atomKK->modified(HostKK,datamask_bonus);
+    atomKK->modified(HostKK,BONUS_MASK);
   } else {
     atomKK->sync(Device,datamask_bonus);
     struct AtomVecEllipsoidKokkos_UnpackCommBonus<LMPDeviceType> f(
       atomKK,buf,k_bonus,first,offset,vel_flag);
     Kokkos::parallel_for(n,f);
-    atomKK->modified(Device,datamask_bonus);
+    atomKK->modified(Device,BONUS_MASK);
   }
 }
 
 /* ---------------------------------------------------------------------- */
 
+namespace {
 template<class DeviceType>
 struct AtomVecEllipsoidKokkos_PackCommSelfBonus {
   typedef DeviceType device_type;
@@ -374,6 +382,7 @@ struct AtomVecEllipsoidKokkos_PackCommSelfBonus {
     }
   }
 };
+}    // namespace
 
 /* ---------------------------------------------------------------------- */
 
@@ -388,18 +397,19 @@ void AtomVecEllipsoidKokkos::pack_comm_self_bonus_kokkos(const int &n,
     struct AtomVecEllipsoidKokkos_PackCommSelfBonus<LMPHostType> f(
       atomKK,k_bonus,nfirst,list);
     Kokkos::parallel_for(n,f);
-    atomKK->modified(HostKK,datamask_bonus);
+    atomKK->modified(HostKK,BONUS_MASK);
   } else {
     atomKK->sync(Device,datamask_bonus);
     struct AtomVecEllipsoidKokkos_PackCommSelfBonus<LMPDeviceType> f(
       atomKK,k_bonus,nfirst,list);
     Kokkos::parallel_for(n,f);
-    atomKK->modified(Device,datamask_bonus);
+    atomKK->modified(Device,BONUS_MASK);
   }
 }
 
 /* ---------------------------------------------------------------------- */
 
+namespace {
 template<class DeviceType>
 struct AtomVecEllipsoidKokkos_PackCommSelfFusedBonus {
   typedef DeviceType device_type;
@@ -451,6 +461,7 @@ struct AtomVecEllipsoidKokkos_PackCommSelfFusedBonus {
     }
   }
 };
+}    // namespace
 
 /* ---------------------------------------------------------------------- */
 
@@ -464,18 +475,19 @@ void AtomVecEllipsoidKokkos::pack_comm_self_fused_bonus_kokkos(const int &n,
     struct AtomVecEllipsoidKokkos_PackCommSelfFusedBonus<LMPHostType> f(
       atomKK,k_bonus,list,firstrecv,sendnum_scan,g2l);
     Kokkos::parallel_for(n,f);
-    atomKK->modified(HostKK,datamask_bonus);
+    atomKK->modified(HostKK,BONUS_MASK);
   } else {
     atomKK->sync(Device,datamask_bonus);
     struct AtomVecEllipsoidKokkos_PackCommSelfFusedBonus<LMPDeviceType> f(
       atomKK,k_bonus,list,firstrecv,sendnum_scan,g2l);
     Kokkos::parallel_for(n,f);
-    atomKK->modified(Device,datamask_bonus);
+    atomKK->modified(Device,BONUS_MASK);
   }
 }
 
 /* ---------------------------------------------------------------------- */
 
+namespace {
 template<class DeviceType>
 struct AtomVecEllipsoidKokkos_PackBorderBonus {
   typedef DeviceType device_type;
@@ -526,6 +538,7 @@ struct AtomVecEllipsoidKokkos_PackBorderBonus {
     }
   }
 };
+}    // namespace
 
 /* ---------------------------------------------------------------------- */
 
@@ -543,7 +556,7 @@ void AtomVecEllipsoidKokkos::pack_border_bonus_kokkos(int n, DAT::tdual_int_1d k
   // Using atomKK->avecKK->size_border gives the correct combined size in hybrid mode and
   // equals this->size_border in standalone mode, so the fix is (should be) safe in both cases.
   int offset = atomKK->avecKK->size_border - size_border_bonus;
-  if (vel_flag) offset += size_velocity;
+  if (vel_flag) offset += atomKK->avecKK->size_velocity;
 
   atomKK->sync(space,datamask_bonus);
 
@@ -560,6 +573,7 @@ void AtomVecEllipsoidKokkos::pack_border_bonus_kokkos(int n, DAT::tdual_int_1d k
 
 /* ------------------------------------------------------------------------- */
 
+namespace {
 template<class DeviceType>
 struct AtomVecEllipsoidKokkos_UnpackBorderBonus {
   typedef DeviceType device_type;
@@ -620,6 +634,7 @@ struct AtomVecEllipsoidKokkos_UnpackBorderBonus {
     }
   }
 };
+}    // namespace
 
 /* ------------------------------------------------------------------------- */
 
@@ -633,7 +648,7 @@ void AtomVecEllipsoidKokkos::unpack_border_bonus_kokkos(const int &n, const int 
 
   // See pack_border_bonus_kokkos for explanation of atomKK->avecKK usage
   int offset = atomKK->avecKK->size_border - size_border_bonus;
-  if (vel_flag) offset += size_velocity;
+  if (vel_flag) offset += atomKK->avecKK->size_velocity;
 
   if (space == HostKK) {
     k_nghost_bonus.view_host()() = nghost_bonus;
@@ -660,6 +675,7 @@ void AtomVecEllipsoidKokkos::unpack_border_bonus_kokkos(const int &n, const int 
 
 /* ---------------------------------------------------------------------- */
 
+namespace {
 template<class DeviceType>
 struct AtomVecEllipsoidKokkos_PackExchangeBonus {
   typedef DeviceType device_type;
@@ -734,9 +750,11 @@ struct AtomVecEllipsoidKokkos_PackExchangeBonus {
     }
   }
 };
+}    // namespace
 
 /* ---------------------------------------------------------------------- */
 
+namespace {
 template<class DeviceType>
 struct AtomVecEllipsoidKokkos_BackfillEllipsoid {
   typedef DeviceType device_type;
@@ -787,6 +805,7 @@ struct AtomVecEllipsoidKokkos_BackfillEllipsoid {
     }
   }
 };
+}    // namespace
 
 /* ---------------------------------------------------------------------- */
 
@@ -839,6 +858,7 @@ void AtomVecEllipsoidKokkos::pack_exchange_bonus_kokkos(const int &nsend,
 
 /* ---------------------------------------------------------------------- */
 
+namespace {
 template<class DeviceType>
 struct AtomVecEllipsoidKokkos_UnpackExchangeBonus {
   typedef DeviceType device_type;
@@ -894,6 +914,7 @@ struct AtomVecEllipsoidKokkos_UnpackExchangeBonus {
     }
   }
 };
+}    // namespace
 
 /* ---------------------------------------------------------------------- */
 

@@ -99,8 +99,8 @@ void BondOxdnaFene::compute(int eflag, int vflag)
 
   for (in = 0; in < nbondlist; in++) {
 
-    a = bondlist[in][1];
-    b = bondlist[in][0];
+    a = bondlist[in][0];
+    b = bondlist[in][1];
     type = bondlist[in][2];
 
     // directionality test: a -> b is 3' -> 5'
@@ -364,22 +364,16 @@ double BondOxdnaFene::equilibrium_distance(int i)
 
 void BondOxdnaFene::write_restart(FILE *fp)
 {
-  int ii, jj, kk, ll;
+  // the parameters depend on the types of the 3' and 5' neighbors, including
+  // the terminal type 0, so the complete contiguous arrays are written
 
-  fwrite(&k[0], sizeof(double), 1, fp);
-  fwrite(&k[1], sizeof(double), atom->nbondtypes, fp);
-  for (ii = 1; ii <= atom->ntypes; ii++) {
-    for (jj = 1; jj <= atom->ntypes; jj++) {
-      for (kk = 1; kk <= atom->ntypes; kk++) {
-        for (ll = 1; ll <= atom->ntypes; ll++) {
-          fwrite(&Delta[0][ii][jj][kk][ll], sizeof(double), 1, fp);
-          fwrite(&Delta[1][ii][jj][kk][ll], sizeof(double), atom->nbondtypes, fp);
-          fwrite(&r0[0][ii][jj][kk][ll], sizeof(double), 1, fp);
-          fwrite(&r0[1][ii][jj][kk][ll], sizeof(double), atom->nbondtypes, fp);
-        }
-      }
-    }
-  }
+  const int n = atom->nbondtypes;
+  const bigint nper = (bigint) (atom->ntypes + 1) * (atom->ntypes + 1) *
+      (atom->ntypes + 1) * (atom->ntypes + 1);
+
+  fwrite(&k[1], sizeof(double), n, fp);
+  fwrite(&Delta[1][0][0][0][0], sizeof(double), n * nper, fp);
+  fwrite(&r0[1][0][0][0][0], sizeof(double), n * nper, fp);
 }
 
 /* ----------------------------------------------------------------------
@@ -388,45 +382,22 @@ void BondOxdnaFene::write_restart(FILE *fp)
 
 void BondOxdnaFene::read_restart(FILE *fp)
 {
-  int ii, jj, kk, ll;
-
   allocate();
 
+  const int n = atom->nbondtypes;
+  const bigint nper = (bigint) (atom->ntypes + 1) * (atom->ntypes + 1) *
+      (atom->ntypes + 1) * (atom->ntypes + 1);
+
   if (comm->me == 0) {
-    utils::sfread(FLERR, &k[0], sizeof(double), 1, fp, nullptr, error);
-    utils::sfread(FLERR, &k[1], sizeof(double), atom->nbondtypes, fp, nullptr, error);
-    for (ii = 1; ii <= atom->ntypes; ii++) {
-      for (jj = 1; jj <= atom->ntypes; jj++) {
-        for (kk = 1; kk <= atom->ntypes; kk++) {
-          for (ll = 1; ll <= atom->ntypes; ll++) {
-            utils::sfread(FLERR, &Delta[0][ii][jj][kk][ll], sizeof(double), 1, fp, nullptr, error);
-            utils::sfread(FLERR, &Delta[1][ii][jj][kk][ll], sizeof(double), atom->nbondtypes, fp,
-                          nullptr, error);
-            utils::sfread(FLERR, &r0[0][ii][jj][kk][ll], sizeof(double), 1, fp, nullptr, error);
-            utils::sfread(FLERR, &r0[1][ii][jj][kk][ll], sizeof(double), atom->nbondtypes, fp,
-                          nullptr, error);
-          }
-        }
-      }
-    }
+    utils::sfread(FLERR, &k[1], sizeof(double), n, fp, nullptr, error);
+    utils::sfread(FLERR, &Delta[1][0][0][0][0], sizeof(double), n * nper, fp, nullptr, error);
+    utils::sfread(FLERR, &r0[1][0][0][0][0], sizeof(double), n * nper, fp, nullptr, error);
   }
+  MPI_Bcast(&k[1], n, MPI_DOUBLE, 0, world);
+  MPI_Bcast(&Delta[1][0][0][0][0], (int) (n * nper), MPI_DOUBLE, 0, world);
+  MPI_Bcast(&r0[1][0][0][0][0], (int) (n * nper), MPI_DOUBLE, 0, world);
 
-  MPI_Bcast(&k[0], 1, MPI_DOUBLE, 0, world);
-  MPI_Bcast(&k[1], atom->nbondtypes, MPI_DOUBLE, 0, world);
-  for (ii = 1; ii <= atom->ntypes; ii++) {
-    for (jj = 1; jj <= atom->ntypes; jj++) {
-      for (kk = 1; kk <= atom->ntypes; kk++) {
-        for (ll = 1; ll <= atom->ntypes; ll++) {
-          MPI_Bcast(&Delta[0][ii][jj][kk][ll], 1, MPI_DOUBLE, 0, world);
-          MPI_Bcast(&Delta[1][ii][jj][kk][ll], atom->nbondtypes, MPI_DOUBLE, 0, world);
-          MPI_Bcast(&r0[0][ii][jj][kk][ll], 1, MPI_DOUBLE, 0, world);
-          MPI_Bcast(&r0[1][ii][jj][kk][ll], atom->nbondtypes, MPI_DOUBLE, 0, world);
-        }
-      }
-    }
-  }
-
-  for (ii = 1; ii <= atom->nbondtypes; ii++) setflag[ii] = 1;
+  for (int i = 1; i <= n; i++) setflag[i] = 1;
 }
 
 /* ---------------------------------------------------------------------- */

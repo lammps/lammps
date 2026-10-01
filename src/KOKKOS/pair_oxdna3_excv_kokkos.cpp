@@ -109,7 +109,8 @@ void PairOxdna3ExcvKokkos<DeviceType>::coeff(int narg, char **arg)
   nlo = ilo;
   nhi = ihi;
 
-  if (nhi > 4) error->all(FLERR, "pair oxdna3/excv does not support more than 4 atom types for A, C, G and T");
+  if (atom->ntypes != 4)
+    error->all(FLERR, "pair oxdna3/excv requires exactly 4 atom types for A, C, G and T, even if not all are used");
 
   double epsilon_bkbk_one, sigma_bkbk_one;
   double cut_bkbk_ast_one, cut_bkbk_c_one, b_bkbk_one;

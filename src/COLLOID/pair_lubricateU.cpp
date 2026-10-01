@@ -1778,6 +1778,7 @@ void PairLubricateU::init_style()
       error->all(FLERR,"Pair lubricateU requires monodisperse particles");
     if (i > 1 && radtype != rad)
       error->all(FLERR,"Pair lubricateU requires monodisperse particles");
+    rad = radtype;
   }
 
   // check for fix deform, if exists it must use "remap v"

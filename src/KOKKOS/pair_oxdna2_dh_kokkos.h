@@ -29,6 +29,7 @@ PairStyle(oxdna3/dh/kk/host,PairOxdna2DhKokkos<LMPHostType>);
 #include "kokkos_base.h"
 #include "pair_kokkos.h"
 #include "pair_oxdna2_dh.h"
+#include "nucleotide_oxdna.h"
 
 namespace LAMMPS_NS {
 
@@ -50,8 +51,27 @@ class PairOxdna2DhKokkos : public PairOxdna2Dh, public KokkosBase {
   void compute(int, int) override;
 
   void settings(int, char **) override;
+  void coeff(int, char **) override;
   void init_style() override;
   double init_one(int, int) override;
+
+  // interaction sites of the model, used by init_one() of the CPU base class
+  // for the cutoffs; the kernels compute the sites themselves
+  void compute_backbone_site(double e1[3], double e2[3], double e3[3],
+                             double rbk[3]) const override
+  {
+    if (oxdnaflag == OXRNA2) {
+      // same as PairOxrna2Dh::compute_backbone_site()
+      const double dx_cbk = ConstantsOxdna::get_dx_cbk_oxdna1();
+      const double dz_cbk = ConstantsOxdna::get_dz_cbk_oxrna2();
+      rbk[0] = dx_cbk * e1[0] + dz_cbk * e3[0];
+      rbk[1] = dx_cbk * e1[1] + dz_cbk * e3[1];
+      rbk[2] = dx_cbk * e1[2] + dz_cbk * e3[2];
+    } else {
+      NucleotideOxdna2 oxdna2;
+      oxdna2.backbone_site(e1, e2, nullptr, rbk);
+    }
+  }
 
   template<int OXDNAFLAG, int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
   KOKKOS_INLINE_FUNCTION

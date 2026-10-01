@@ -343,34 +343,18 @@ Bond *Force::new_bond(const std::string &style, int trysuffix, int &sflag)
 }
 
 /* ----------------------------------------------------------------------
-   return ptr to Bond class if matches word or matches hybrid sub-style
-   if exact, then style name must be exact match to word
-   if not exact, style name must contain word
-   if nsub > 0, match Nth hybrid sub-style
-   return nullptr if no match or if nsub=0 and multiple sub-styles match
+   return ptr to current bond class or hybrid sub-class if matches style
 ------------------------------------------------------------------------- */
 
-Bond *Force::bond_match(const std::string &word, int exact, int nsub)
+Bond *Force::bond_match(const std::string &style)
 {
-  int iwhich, count;
-
-  if (exact && (word == bond_style))
-    return bond;
-  else if (!exact && utils::strmatch(bond_style, word))
+  if (style == utils::strip_style_suffix(bond_style, lmp))
     return bond;
   else if (utils::strmatch(bond_style, "^hybrid")) {
     auto *hybrid = dynamic_cast<BondHybrid *>(bond);
-    count = 0;
     for (int i = 0; i < hybrid->nstyles; i++)
-      if ((exact && (word == hybrid->keywords[i])) ||
-          (!exact && utils::strmatch(hybrid->keywords[i], word))) {
-        iwhich = i;
-        count++;
-        if (nsub == count) return hybrid->styles[iwhich];
-      }
-    if (count == 1) return hybrid->styles[iwhich];
+      if (style == hybrid->keywords[i]) return hybrid->styles[i];
   }
-
   return nullptr;
 }
 
@@ -430,7 +414,7 @@ Angle *Force::new_angle(const std::string &style, int trysuffix, int &sflag)
 
 Angle *Force::angle_match(const std::string &style)
 {
-  if (style == angle_style)
+  if (style == utils::strip_style_suffix(angle_style, lmp))
     return angle;
   else if (utils::strmatch(angle_style, "^hybrid")) {
     auto *hybrid = dynamic_cast<AngleHybrid *>(angle);
@@ -496,7 +480,7 @@ Dihedral *Force::new_dihedral(const std::string &style, int trysuffix, int &sfla
 
 Dihedral *Force::dihedral_match(const std::string &style)
 {
-  if (style == dihedral_style)
+  if (style == utils::strip_style_suffix(dihedral_style, lmp))
     return dihedral;
   else if (utils::strmatch(dihedral_style, "^hybrid")) {
     auto *hybrid = dynamic_cast<DihedralHybrid *>(dihedral);
@@ -562,7 +546,7 @@ Improper *Force::new_improper(const std::string &style, int trysuffix, int &sfla
 
 Improper *Force::improper_match(const std::string &style)
 {
-  if (style == improper_style)
+  if (style == utils::strip_style_suffix(improper_style, lmp))
     return improper;
   else if (utils::strmatch(improper_style, "^hybrid")) {
     auto *hybrid = dynamic_cast<ImproperHybrid *>(improper);

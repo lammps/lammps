@@ -49,7 +49,7 @@ PairOxdnaExcvKokkos<DeviceType>::PairOxdnaExcvKokkos(LAMMPS *lmp) : PairOxdnaExc
   fix_oxdna_lrfKK = nullptr;
   fix_oxdna_npairKK = nullptr;
   fix_oxdna_prime_neighsKK = nullptr;
-  last_prime_neighs_pair_ncalls = -1;
+  last_prime_neighs_atom_ncalls = -1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -137,13 +137,11 @@ void PairOxdnaExcvKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   d_alist = k_list->d_ilist;
   d_numneigh = k_list->d_numneigh;
 
-  // Precompute 3'/5' neighbor map lookups for the pair neighbor list.
-  // Done here (not in pre_force) so the pair's own list is always used,
-  // ensuring ib-index correspondence between precompute and kernel.
-  if (neighbor->ncalls != last_prime_neighs_pair_ncalls) {
-    fix_oxdna_prime_neighsKK->compute_prime_neighs_pair(list);
-    last_prime_neighs_pair_ncalls = neighbor->ncalls;
-    d_prime_neighs_pair = fix_oxdna_prime_neighsKK->d_prime_neighs_pair;
+  // precompute 3'/5' neighbor map lookups after every reneighbor
+  if (neighbor->ncalls != last_prime_neighs_atom_ncalls) {
+    fix_oxdna_prime_neighsKK->compute_prime_neighs_atom();
+    last_prime_neighs_atom_ncalls = neighbor->ncalls;
+    d_prime_neighs_atom = fix_oxdna_prime_neighsKK->d_prime_neighs_atom;
   }
 
   int need_dup = lmp->kokkos->need_dup<DeviceType>();
@@ -591,8 +589,10 @@ void PairOxdnaExcvKokkos<DeviceType>::operator()(TagPairOxdnaExcvCompute<OXDNAFL
 
     // base-base
     if (tag(a) == id3p(b) && tag(b) == id5p(a)) {
-      const int _3ptype = (d_prime_neighs_pair(a,ib,0) >= 0) ? type(d_prime_neighs_pair(a,ib,0)) : 0;
-      const int _5ptype = (d_prime_neighs_pair(a,ib,1) >= 0) ? type(d_prime_neighs_pair(a,ib,1)) : 0;
+      const int a3p = d_prime_neighs_atom(a,0);
+      const int b5p = d_prime_neighs_atom(b,1);
+      const int _3ptype = (a3p >= 0) ? type(a3p) : 0;
+      const int _5ptype = (b5p >= 0) ? type(b5p) : 0;
       if (rsq_bsbs < d_cut4sq_bsbs_c(_3ptype,atype,btype,_5ptype)) {
         // F3 modulation factor, force and energy calculation
         evdwl = static_cast<KK_ACC_FLOAT>(F3_KK(rsq_bsbs,d_cut4sq_bsbs_ast(_3ptype,atype,btype,_5ptype),d_cut4_bsbs_c(_3ptype,atype,btype,_5ptype),
@@ -634,8 +634,10 @@ void PairOxdnaExcvKokkos<DeviceType>::operator()(TagPairOxdnaExcvCompute<OXDNAFL
         }
       }
     } else if (tag(a) == id5p(b) && tag(b) == id3p(a)) {
-      const int _3ptype = (d_prime_neighs_pair(a,ib,2) >= 0) ? type(d_prime_neighs_pair(a,ib,2)) : 0;
-      const int _5ptype = (d_prime_neighs_pair(a,ib,3) >= 0) ? type(d_prime_neighs_pair(a,ib,3)) : 0;
+      const int b3p = d_prime_neighs_atom(b,0);
+      const int a5p = d_prime_neighs_atom(a,1);
+      const int _3ptype = (b3p >= 0) ? type(b3p) : 0;
+      const int _5ptype = (a5p >= 0) ? type(a5p) : 0;
       if (rsq_bsbs < d_cut4sq_bsbs_c(_3ptype,btype,atype,_5ptype)) {
         // F3 modulation factor, force and energy calculation
         evdwl = static_cast<KK_ACC_FLOAT>(F3_KK(rsq_bsbs,d_cut4sq_bsbs_ast(_3ptype,btype,atype,_5ptype),d_cut4_bsbs_c(_3ptype,btype,atype,_5ptype),
@@ -850,7 +852,7 @@ void PairOxdnaExcvKokkos<DeviceType>::init_style()
   // atoms may have been reordered since the last run, so force a rebuild
   // of the cached prime neighbor table in the next compute()
 
-  last_prime_neighs_pair_ncalls = -1;
+  last_prime_neighs_atom_ncalls = -1;
 
   neighbor->add_request(this);
   neighflag = lmp->kokkos->neighflag;

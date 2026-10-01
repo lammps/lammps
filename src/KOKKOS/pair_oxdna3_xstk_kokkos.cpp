@@ -162,13 +162,11 @@ void PairOxdna3XstkKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   screened_pair_count = fix_oxdna_npairKK->screened_pair_count;
   d_pairs_screened = fix_oxdna_npairKK->k_pairs_screened.template view<DeviceType>();
 
-  // Then get the precomputed 3'/5' neighbor map lookups for the screened npair list.
-  // Done here (not in pre_force) so the pair's own list is always used,
-  // ensuring ib-index correspondence between precompute and kernel.
+  // 3'/5' neighbor map lookups, refreshed once per reneighbor
   if (last_prime_neighs_xstk3_ncalls != neighbor->ncalls) {
-    fix_oxdna_prime_neighsKK->compute_prime_neighs_oxdna3_xstk(list);
+    fix_oxdna_prime_neighsKK->compute_prime_neighs_atom();
     last_prime_neighs_xstk3_ncalls = neighbor->ncalls;
-    d_prime_neighs_oxdna3_xstk = fix_oxdna_prime_neighsKK->d_prime_neighs_oxdna3_xstk;
+    d_prime_neighs_atom = fix_oxdna_prime_neighsKK->d_prime_neighs_atom;
   }
 
   // loop over neighbors of my atoms for compute functors
@@ -790,10 +788,10 @@ void PairOxdna3XstkKokkos<DeviceType>::operator()(TagPairOxdna3XstkComputeNpair<
   const int b = braw & NEIGHMASK;
   const int btype = type(b);
 
-  const int a3idx = d_prime_neighs_oxdna3_xstk(ipair,0);
-  const int a5idx = d_prime_neighs_oxdna3_xstk(ipair,1);
-  const int b3idx = d_prime_neighs_oxdna3_xstk(ipair,2);
-  const int b5idx = d_prime_neighs_oxdna3_xstk(ipair,3);
+  const int a3idx = d_prime_neighs_atom(a,0);
+  const int a5idx = d_prime_neighs_atom(a,1);
+  const int b3idx = d_prime_neighs_atom(b,0);
+  const int b5idx = d_prime_neighs_atom(b,1);
 
   const int a3ptype = (a3idx >= 0) ? type(a3idx) : 0;
   const int a5ptype = (a5idx >= 0) ? type(a5idx) : 0;

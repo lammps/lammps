@@ -1260,12 +1260,10 @@ typedef TransformView<int**, int**, LMPDeviceLayout> ttransform_int_2d;
 typedef TransformView<LAMMPS_NS::tagint**, LAMMPS_NS::tagint**, LMPDeviceLayout> ttransform_tagint_2d;
 typedef TransformView<KK_FLOAT**, double**, LMPDeviceLayout> ttransform_kkfloat_2d;
 typedef TransformView<KK_FLOAT**, double**, Kokkos::LayoutRight> ttransform_kkfloat_2d_lr;
-typedef TransformView<KK_FLOAT*[2], double*[2], LMPDeviceLayout> ttransform_kkfloat_1d_2;
 typedef TransformView<KK_FLOAT*[3], double*[3], LMPDeviceLayout> ttransform_kkfloat_1d_3;
 typedef TransformView<KK_FLOAT*[3], double*[3], Kokkos::LayoutRight> ttransform_kkfloat_1d_3_lr;
 typedef TransformView<KK_ACC_FLOAT*[3], double*[3], LMPDeviceLayout> ttransform_kkacc_1d_3;
 typedef TransformView<KK_FLOAT*[4], double*[4], LMPDeviceLayout> ttransform_kkfloat_1d_4;
-typedef TransformView<KK_FLOAT*[6], double*[6], LMPDeviceLayout> ttransform_kkfloat_1d_6;
 typedef TransformView<KK_ACC_FLOAT*[6], double*[6], LMPDeviceLayout> ttransform_kkacc_1d_6;
 typedef TransformView<KK_ACC_FLOAT*[9], double*[9], LMPDeviceLayout> ttransform_kkacc_1d_9;
 
@@ -1288,15 +1286,6 @@ typedef TransformView<KK_FLOAT****, double****, LMPDeviceLayout> ttransform_kkfl
 // 5D view types
 
 KOKKOS_DEVICE_DUALVIEW(KK_FLOAT*****, LMPDeviceLayout, kkfloat_5d)
-
-typedef TransformView<KK_FLOAT*****, double*****, LMPDeviceLayout> ttransform_kkfloat_5d;
-
-
-// 1 runtime + 4 compile-time dims each with size 4
-
-KOKKOS_DEVICE_DUALVIEW(KK_FLOAT*[4][4][4][4], LMPDeviceLayout, kkfloat_1d_4x4)
-
-typedef TransformView<KK_FLOAT*[4][4][4][4], double*[4][4][4][4], LMPDeviceLayout> ttransform_kkfloat_1d_4x4;
 
 // Neighbor Types
 
@@ -1381,11 +1370,6 @@ KOKKOS_HOST_DUALVIEW(KK_FLOAT****, LMPDeviceLayout, kkfloat_4d)
 // 5D view types
 
 KOKKOS_HOST_DUALVIEW(KK_FLOAT*****, LMPDeviceLayout, kkfloat_5d)
-
-
-// 1 runtime + 4 compile-time dims each with size 4
-
-KOKKOS_HOST_DUALVIEW(KK_FLOAT*[4][4][4][4], LMPDeviceLayout, kkfloat_1d_4x4)
 
 // Neighbor Types
 

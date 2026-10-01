@@ -30,7 +30,7 @@ Syntax
          *hybrid* args = list of one or more sub-styles, each with their args
          *ellipsoid* arg = superellipsoid (optional) for superellipsoids instead of ellipsoids
 
-* accelerated styles (with same args) = *angle/kk* or *atomic/kk* or *bond/kk* or *charge/kk* or *full/kk* or *molecular/kk* or *spin/kk*
+* accelerated styles (with same args) = *angle/kk* or *atomic/kk* or *bond/kk* or *charge/kk* or *full/kk* or *molecular/kk* or *oxdna/kk* or *spin/kk*
 
 Examples
 """"""""
@@ -497,6 +497,9 @@ Many of the styles listed above are only enabled if LAMMPS was built
 with a specific package, as listed below.  See the :doc:`Build package
 <Build_package>` page for more info.  The table above lists which package
 is required for individual atom styles.
+
+Atom style *oxdna/kk* can only be used as a sub-style of atom style
+*hybrid* and currently only supports :doc:`units lj <units>`.
 
 Related commands
 """"""""""""""""

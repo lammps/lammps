@@ -7,19 +7,25 @@
 .. index:: bond_style oxdna3/fene/kk
 .. index:: bond_style oxrna2/fene/kk
 
-Accelerator Variants: *oxdna/fene/kk*, *oxdna2/fene/kk*, *oxdna3/fene/kk*, *oxrna2/fene/kk*
-
 bond_style oxdna/fene command
 =============================
+
+Accelerator Variants: *oxdna/fene/kk*
 
 bond_style oxdna2/fene command
 ==============================
 
+Accelerator Variants: *oxdna2/fene/kk*
+
 bond_style oxdna3/fene command
 ==============================
 
+Accelerator Variants: *oxdna3/fene/kk*
+
 bond_style oxrna2/fene command
 ==============================
+
+Accelerator Variants: *oxrna2/fene/kk*
 
 Syntax
 """"""
@@ -197,8 +203,8 @@ and :ref:`ASPHERE <PKG-ASPHERE>` package. For KOKKOS acceleration also
 the :ref:`KOKKOS <PKG-KOKKOS>` package has to be included. See the
 :doc:`Build package <Build_package>` page for more info.
 
-The KOKKOS variants of these styles currently only support
-:doc:`units lj <units>`.
+Bond styles *oxdna/fene/kk*, *oxdna2/fene/kk*, *oxdna3/fene/kk*, and
+*oxrna2/fene/kk* currently only support :doc:`units lj <units>`.
 
 Bond style *oxdna3/fene* requires exactly 4 atom types, one for each
 of the nucleotides A, C, G, and T, since the sequence-dependent

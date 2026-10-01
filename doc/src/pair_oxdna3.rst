@@ -11,25 +11,35 @@
 .. index:: pair_style oxdna3/coaxstk/kk
 .. index:: pair_style oxdna3/dh/kk
 
-Accelerator Variants: *oxdna3/excv/kk*, *oxdna3/stk/kk*, *oxdna3/hbond/kk*, *oxdna3/xstk/kk*, *oxdna3/coaxstk/kk*, *oxdna3/dh/kk*
-
 pair_style oxdna3/excv command
 ==============================
+
+Accelerator Variants: *oxdna3/excv/kk*
 
 pair_style oxdna3/stk command
 =============================
 
+Accelerator Variants: *oxdna3/stk/kk*
+
 pair_style oxdna3/hbond command
 ===============================
+
+Accelerator Variants: *oxdna3/hbond/kk*
 
 pair_style oxdna3/xstk command
 ==============================
 
+Accelerator Variants: *oxdna3/xstk/kk*
+
 pair_style oxdna3/coaxstk command
 =================================
 
+Accelerator Variants: *oxdna3/coaxstk/kk*
+
 pair_style oxdna3/dh command
 ============================
+
+Accelerator Variants: *oxdna3/dh/kk*
 
 Syntax
 """"""
@@ -248,8 +258,9 @@ and :ref:`ASPHERE <PKG-ASPHERE>` package. For KOKKOS acceleration also
 the :ref:`KOKKOS <PKG-KOKKOS>` package has to be included. See the
 :doc:`Build package <Build_package>` page for more info.
 
-The KOKKOS variants of these styles currently only support
-:doc:`units lj <units>`.
+Pair styles *oxdna3/excv/kk*, *oxdna3/stk/kk*, *oxdna3/hbond/kk*,
+*oxdna3/xstk/kk*, *oxdna3/coaxstk/kk*, and *oxdna3/dh/kk* currently
+only support :doc:`units lj <units>`.
 
 These oxDNA3 pair styles require exactly 4 atom types, one for each
 of the nucleotides A, C, G, and T, since the sequence-dependent

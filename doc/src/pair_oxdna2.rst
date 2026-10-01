@@ -11,25 +11,35 @@
 .. index:: pair_style oxdna2/coaxstk/kk
 .. index:: pair_style oxdna2/dh/kk
 
-Accelerator Variants: *oxdna2/excv/kk*, *oxdna2/stk/kk*, *oxdna2/hbond/kk*, *oxdna2/xstk/kk*, *oxdna2/coaxstk/kk*, *oxdna2/dh/kk*
-
 pair_style oxdna2/excv command
 ==============================
+
+Accelerator Variants: *oxdna2/excv/kk*
 
 pair_style oxdna2/stk command
 =============================
 
+Accelerator Variants: *oxdna2/stk/kk*
+
 pair_style oxdna2/hbond command
 ===============================
+
+Accelerator Variants: *oxdna2/hbond/kk*
 
 pair_style oxdna2/xstk command
 ==============================
 
+Accelerator Variants: *oxdna2/xstk/kk*
+
 pair_style oxdna2/coaxstk command
 =================================
 
+Accelerator Variants: *oxdna2/coaxstk/kk*
+
 pair_style oxdna2/dh command
 ============================
+
+Accelerator Variants: *oxdna2/dh/kk*
 
 Syntax
 """"""
@@ -324,8 +334,9 @@ and :ref:`ASPHERE <PKG-ASPHERE>` package. For KOKKOS acceleration also
 the :ref:`KOKKOS <PKG-KOKKOS>` package has to be included. See the
 :doc:`Build package <Build_package>` page for more info.
 
-The KOKKOS variants of these styles currently only support
-:doc:`units lj <units>`.
+Pair styles *oxdna2/excv/kk*, *oxdna2/stk/kk*, *oxdna2/hbond/kk*,
+*oxdna2/xstk/kk*, *oxdna2/coaxstk/kk*, and *oxdna2/dh/kk* currently
+only support :doc:`units lj <units>`.
 
 Related commands
 """"""""""""""""

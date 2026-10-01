@@ -114,10 +114,9 @@ void PairOxdna2DhKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   int need_dup = lmp->kokkos->need_dup<DeviceType>();
   if (need_dup) {
-    dup_f = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, \
-    Kokkos::Experimental::ScatterDuplicated>(f);
-    dup_torque = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, \
-    Kokkos::Experimental::ScatterDuplicated>(torque);
+    fix_oxdna_lrfKK->prepare_dup_f_torque(f, torque);
+    dup_f = fix_oxdna_lrfKK->dup_f;
+    dup_torque = fix_oxdna_lrfKK->dup_torque;
   } else {
     ndup_f = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, \
     Kokkos::Experimental::ScatterNonDuplicated>(f);

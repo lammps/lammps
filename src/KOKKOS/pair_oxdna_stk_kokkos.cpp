@@ -104,8 +104,6 @@ void PairOxdnaStkKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   d_prime_neighs_bond = d_prime_neighs_bond_own;
 
-  int need_dup = lmp->kokkos->need_dup<DeviceType>();
-
   copymode = 1;
 
   // d_n(x/y/z)_xtrct = extracted local unit vectors in lab frame from fix_oxdna_lrf_kokkos.
@@ -160,26 +158,16 @@ void PairOxdnaStkKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   if (vflag_fdotr) pair_virial_fdotr_compute(this);
 
   if (eflag_atom) {
-    if (need_dup)
-      Kokkos::Experimental::contribute(d_eatom, dup_eatom);
     k_eatom.template modify<DeviceType>();
     k_eatom.sync_host();
   }
 
   if (vflag_atom) {
-    if (need_dup)
-      Kokkos::Experimental::contribute(d_vatom, dup_vatom);
     k_vatom.template modify<DeviceType>();
     k_vatom.sync_host();
   }
 
   copymode = 0;
-
-  // free duplicated memory
-  if (need_dup) {
-    dup_eatom    = decltype(dup_eatom)();
-    dup_vatom    = decltype(dup_vatom)();
-  }
 }
 
 template<class DeviceType>

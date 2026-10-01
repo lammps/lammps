@@ -101,7 +101,7 @@ class PairOxdna3XstkKokkos : public PairOxdna3Xstk, public KokkosBase {
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairOxdna3XstkComputeNpair<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int&) const;
 
-  template<int NEIGHFLAG, int NEWTON_PAIR, int PAIRWISE = 0>
+  template<int NEIGHFLAG, int NEWTON_PAIR>
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void ev_tally_xyz(EV_FLOAT &ev, const int &i, const int &j,
@@ -164,23 +164,15 @@ class PairOxdna3XstkKokkos : public PairOxdna3Xstk, public KokkosBase {
   typename AT::t_kkfloat_1d_3_randomread d_nx_xtrct, d_ny_xtrct, d_nz_xtrct;
 
   using KKDeviceType = typename KKDevice<DeviceType>::value;
+  using AtomicTraits = Kokkos::MemoryTraits<Kokkos::Atomic | Kokkos::Unmanaged>;
 
-  template<typename DataType, typename Layout>
-  using DupScatterView = KKScatterView<DataType, Layout, KKDeviceType, \
-  KKScatterSum, KKScatterDuplicated>;
-
-  template<typename DataType, typename Layout>
-  using NonDupScatterView = KKScatterView<DataType, Layout, KKDeviceType, \
-  KKScatterSum, KKScatterNonDuplicated>;
-
-  DupScatterView<KK_ACC_FLOAT*[3], typename AT::t_kkacc_1d_3::array_layout> dup_f;
-  DupScatterView<KK_ACC_FLOAT*[3], typename AT::t_kkacc_1d_3::array_layout> dup_torque;
-  DupScatterView<KK_ACC_FLOAT*, typename DAT::t_kkacc_1d::array_layout> dup_eatom;
-  DupScatterView<KK_ACC_FLOAT*[6], typename DAT::t_kkacc_1d_6::array_layout> dup_vatom;
-  NonDupScatterView<KK_ACC_FLOAT*[3], typename AT::t_kkacc_1d_3::array_layout> ndup_f;
-  NonDupScatterView<KK_ACC_FLOAT*[3], typename AT::t_kkacc_1d_3::array_layout> ndup_torque;
-  NonDupScatterView<KK_ACC_FLOAT*, typename DAT::t_kkacc_1d::array_layout> ndup_eatom;
-  NonDupScatterView<KK_ACC_FLOAT*[6], typename DAT::t_kkacc_1d_6::array_layout> ndup_vatom;
+  // one thread per screened pair, so all accumulations are atomic on every backend
+  using t_atomic_kkacc_1d = Kokkos::View<KK_ACC_FLOAT*,
+    typename AT::t_kkacc_1d::array_layout, KKDeviceType, AtomicTraits>;
+  using t_atomic_kkacc_1d_3 = Kokkos::View<KK_ACC_FLOAT*[3],
+    typename AT::t_kkacc_1d_3::array_layout, KKDeviceType, AtomicTraits>;
+  using t_atomic_kkacc_1d_6 = Kokkos::View<KK_ACC_FLOAT*[6],
+    typename AT::t_kkacc_1d_6::array_layout, KKDeviceType, AtomicTraits>;
 
   void allocate() override;
 

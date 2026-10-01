@@ -49,6 +49,7 @@ void DumpMovie::openfile()
       fp.set_pclose();
       fp = platform::popen(moviecmd, "w");
     }
+    if (fp == nullptr) error->one(FLERR, "Failed to open FFmpeg pipeline to file {}", filename);
   }
 }
 /* ---------------------------------------------------------------------- */

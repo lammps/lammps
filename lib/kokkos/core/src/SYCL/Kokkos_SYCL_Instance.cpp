@@ -6,12 +6,8 @@
 #endif
 
 #include <Kokkos_Macros.hpp>
-#ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
-import kokkos.core; // kokkos_malloc
-#else
-#include <Kokkos_Core.hpp>  // kokkos_malloc
-#endif
-
+#include <impl/Kokkos_CStyleMemoryManagement.hpp>
+#include <Kokkos_CopyViews.hpp>  // ZeroMemset
 #include <impl/Kokkos_CheckedIntegerOps.hpp>
 #include <impl/Kokkos_Error.hpp>
 

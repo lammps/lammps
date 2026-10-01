@@ -1027,7 +1027,7 @@ void PairRuNNer::init_style()
   // Error checking for output by compute pair command
   if (nextra == num_committee_members) {
     // array for storing committee energies for output by compute pair command
-    if (pvector) delete[] pvector;
+    delete[] pvector;
     pvector = new double[nextra];
   } else {
     error->all(FLERR,

@@ -1,0 +1,203 @@
+LAMMPS (4 Jul 2026 - Development - patch_4Jul2026-197-g34022a802c)
+OMP_NUM_THREADS environment is not set. Defaulting to 1 thread.
+  using 1 OpenMP thread(s) per MPI task
+units           lj
+atom_style      hybrid tri sphere 1
+WARNING: Per-atom field radius is used in multiple sub-styles; must be used consistently (src/atom_vec_hybrid.cpp:190)
+WARNING: Per-atom field rmass is used in multiple sub-styles; must be used consistently (src/atom_vec_hybrid.cpp:190)
+atom_modify     map array
+boundary        f f f
+dimension       3
+comm_modify     vel yes cutoff 1.0
+
+region          box block -2 2 -2 16 -2 7 units box
+create_box      3 box
+Created orthogonal box = (-2 -2 -2) to (2 16 7)
+  1 by 2 by 2 MPI processor grid
+
+pair_style      hybrid granular surf/granular
+pair_coeff      1 * surf/granular hertz 1.0 1.0 tangential linear_history 1.0 1.0 0.1
+pair_coeff      1 1 granular hertz 1.0 1.0 tangential linear_history 1.0 1.0 0.1
+pair_coeff      2*3 2*3 none
+
+region          insert_region cylinder z 0 12 1.6 3 5 side in units box
+
+group           sphere type 1
+0 atoms in group sphere
+
+fix             1 all surface/local input stl 2 1 surf.container.stl                                     input stl 3 2 surf.helix.stl flat 10.0
+Reading STL file for triangle particles ...
+Reading STL object (unnamed) with 13589 triangles from file surf.container.stl
+Reading STL file for triangle particles ...
+Reading STL object (unnamed) with 3642 triangles from file surf.helix.stl
+Fix surface/local triangle creation:
+  17231 tris
+  26161 tri edges
+  8924 tri corner points
+  25532 edge connections
+  75948 corner point connections
+  629 free edges
+  2 free corner points
+  0.12617810134351526 min edge length
+  0.28884815620675597 max edge length
+  0.010216563026334849 min tri area
+  0.02626556938563712 max tri area
+fix             2 sphere nve/sphere
+fix             3 sphere gravity 1e-5 vector 0 0 -1
+fix             4 sphere pour 400 1 7892374 region insert_region diam range 0.5 1.0
+
+group           case molecule 1
+13589 atoms in group case
+group           corkscrew molecule 2
+3642 atoms in group corkscrew
+
+compute         1 all ke
+
+timestep        0.05
+thermo          1000
+thermo_style    custom step ke atoms c_1
+thermo_modify   lost ignore
+
+#dump            1 all custom 1000 atomDump id type radius mol x y z
+
+#dump             viz all image 500 myimage-*.ppm diameter diameter tri type 1 0.1 #                 size 800 600 zoom 2.5 shiny 0.3 fsaa yes view 80 220 box yes 0.025
+#dump_modify      viz pad 6 color screw 0.25 0.25 0.5 acolor 2 silver acolor 3 screw #                    boxcolor forestgreen backcolor black backcolor2 white atrans 2 0.5 #                 amap 0.5 1.0 cf 0.0 5 min white 0.25 yellow 0.5 orange 0.75 firebrick max purple
+
+fix             5 corkscrew move rotate 0 0 0 0 1 0 1000 units box
+
+run             80000
+Generated 0 of 3 mixed pair_coeff terms from geometric mixing rule
+Particle insertion: 7 every 12649 steps, 400 by step 720994
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 1.3
+  ghost atom cutoff = 1.3
+  binsize = 0.65, bins = 7 28 14
+  3 neighbor lists, perpetual/occasional/extra = 3 0 0
+  (1) pair granular, perpetual, skip from (3)
+      attributes: half, newton on, size, history, off2on
+      pair build: skip/size/off2on
+      stencil: none
+      bin: none
+  (2) pair surf/granular, perpetual, skip from (3)
+      attributes: half, newton on, size, history, onesided, off2on
+      pair build: skip/size/off2on/oneside
+      stencil: none
+      bin: none
+  (3) neighbor class addition, perpetual
+      attributes: half, newton off, size, history
+      pair build: half/size/bin/atomonly/newtoff
+      stencil: full/bin/3d
+      bin: standard
+WARNING: Communication cutoff adjusted to 1.3 (src/comm.cpp:703)
+Per MPI rank memory allocation (min/avg/max) = 22.63 | 27.06 | 31.47 Mbytes
+   Step         KinEng        Atoms         c_1      
+         0   0                  17231   0            
+      1000   1.0076193e-07      17238   1.0076193e-07
+      2000   1.0095969e-07      17238   1.0095969e-07
+      3000   1.0118378e-07      17238   1.0118378e-07
+      4000   1.0143421e-07      17238   1.0143421e-07
+      5000   1.0171098e-07      17238   1.0171098e-07
+      6000   1.0201408e-07      17238   1.0201408e-07
+      7000   1.0234353e-07      17238   1.0234353e-07
+      8000   1.026993e-07       17238   1.026993e-07 
+      9000   1.0308142e-07      17238   1.0308142e-07
+     10000   1.0349033e-07      17238   1.0349033e-07
+     11000   1.043809e-07       17238   1.043809e-07 
+     12000   1.0478601e-07      17238   1.0478601e-07
+     13000   1.0583639e-07      17245   1.0583639e-07
+     14000   1.0480091e-07      17245   1.0480091e-07
+     15000   1.0487041e-07      17245   1.0487041e-07
+     16000   1.0536215e-07      17245   1.0536215e-07
+     17000   1.0552424e-07      17245   1.0552424e-07
+     18000   1.0516034e-07      17245   1.0516034e-07
+     19000   1.057325e-07       17245   1.057325e-07 
+     20000   1.0558161e-07      17245   1.0558161e-07
+     21000   1.0573173e-07      17245   1.0573173e-07
+     22000   1.0592617e-07      17245   1.0592617e-07
+     23000   1.0563522e-07      17245   1.0563522e-07
+     24000   1.0567771e-07      17245   1.0567771e-07
+     25000   1.0607183e-07      17245   1.0607183e-07
+     26000   1.0645389e-07      17252   1.0645389e-07
+     27000   1.0677365e-07      17252   1.0677365e-07
+     28000   1.0667242e-07      17252   1.0667242e-07
+     29000   1.0709602e-07      17252   1.0709602e-07
+     30000   1.0746646e-07      17252   1.0746646e-07
+     31000   1.0799668e-07      17252   1.0799668e-07
+     32000   1.0773047e-07      17252   1.0773047e-07
+     33000   1.0846808e-07      17252   1.0846808e-07
+     34000   1.0827241e-07      17251   1.0827241e-07
+     35000   1.0848274e-07      17251   1.0848274e-07
+     36000   1.0905871e-07      17251   1.0905871e-07
+     37000   1.0863221e-07      17251   1.0863221e-07
+     38000   1.0870825e-07      17258   1.0870825e-07
+     39000   1.0869538e-07      17258   1.0869538e-07
+     40000   1.0756374e-07      17258   1.0756374e-07
+     41000   1.075129e-07       17258   1.075129e-07 
+     42000   1.0768658e-07      17258   1.0768658e-07
+     43000   1.0797483e-07      17258   1.0797483e-07
+     44000   1.0807246e-07      17258   1.0807246e-07
+     45000   1.0756426e-07      17258   1.0756426e-07
+     46000   1.0766845e-07      17258   1.0766845e-07
+     47000   1.074901e-07       17258   1.074901e-07 
+     48000   1.0773447e-07      17258   1.0773447e-07
+     49000   1.0876839e-07      17258   1.0876839e-07
+     50000   1.0846057e-07      17258   1.0846057e-07
+     51000   1.0948367e-07      17265   1.0948367e-07
+     52000   1.0947493e-07      17265   1.0947493e-07
+     53000   1.0930895e-07      17265   1.0930895e-07
+     54000   1.0969997e-07      17265   1.0969997e-07
+     55000   1.0999987e-07      17265   1.0999987e-07
+     56000   1.0984115e-07      17265   1.0984115e-07
+     57000   1.1079706e-07      17265   1.1079706e-07
+     58000   1.1028456e-07      17265   1.1028456e-07
+     59000   1.1074567e-07      17265   1.1074567e-07
+     60000   1.1028567e-07      17265   1.1028567e-07
+     61000   1.1039843e-07      17265   1.1039843e-07
+     62000   1.1065957e-07      17265   1.1065957e-07
+     63000   1.1074194e-07      17265   1.1074194e-07
+     64000   1.1166463e-07      17272   1.1166463e-07
+     65000   1.1067337e-07      17272   1.1067337e-07
+     66000   1.1070044e-07      17272   1.1070044e-07
+     67000   1.0987894e-07      17272   1.0987894e-07
+     68000   1.0980895e-07      17272   1.0980895e-07
+     69000   1.0961621e-07      17272   1.0961621e-07
+     70000   1.088211e-07       17272   1.088211e-07 
+     71000   1.0871055e-07      17272   1.0871055e-07
+     72000   1.0882088e-07      17272   1.0882088e-07
+     73000   1.0896925e-07      17272   1.0896925e-07
+     74000   1.0789702e-07      17272   1.0789702e-07
+     75000   1.0804033e-07      17272   1.0804033e-07
+     76000   1.0931182e-07      17279   1.0931182e-07
+     77000   1.1049229e-07      17279   1.1049229e-07
+     78000   1.1034988e-07      17279   1.1034988e-07
+     79000   1.108003e-07       17279   1.108003e-07 
+     80000   1.1164589e-07      17279   1.1164589e-07
+Loop time of 59.6568 on 4 procs for 80000 steps with 17279 atoms
+
+Performance: 5793138.689 tau/day, 1341.004 timesteps/s, 23.171 Matom-step/s
+96.5% CPU use with 4 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 3.9208     | 18.437     | 32.162     | 261.5 | 30.90
+Neigh   | 0.0081002  | 2.7687     | 5.7725     | 140.7 |  4.64
+Comm    | 12.938     | 26.271     | 37.306     | 197.9 | 44.04
+Output  | 0.0045631  | 0.0084714  | 0.016751   |   5.3 |  0.01
+Modify  | 0.3384     | 3.5163     | 7.08       | 165.8 |  5.89
+Other   |            | 8.655      |            |       | 14.51
+
+Nlocal:        4319.75 ave        8426 max           0 min
+Histogram: 1 0 1 0 0 0 0 0 1 1
+Nghost:        1917.25 ave        2269 max        1260 min
+Histogram: 1 0 0 0 0 0 1 0 0 2
+Neighs:              0 ave           0 max           0 min
+Histogram: 4 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 0
+Ave neighs/atom = 0
+Neighbor list builds = 341
+Dangerous builds = 0
+Total wall time: 0:00:59

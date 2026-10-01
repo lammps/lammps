@@ -125,11 +125,9 @@ in the data file or restart files read by the :doc:`read_data
    binary restart files produced with :doc:`write_restart <write_restart>`.
 
 Example input and data files for DNA and RNA duplexes can be found in
-``examples/PACKAGES/cgdna/examples/lj_units/oxDNA/`, `.../oxDNA2/`, `.../oxDNA3/``
-and ``.../oxRNA2/`` or in the corresponding folder for real units.
-A simple python setup tool which creates single
-straight or helical DNA strands, DNA/RNA duplexes or arrays of DNA/RNA
-duplexes can be found in ``examples/PACKAGES/cgdna/util/``.
+``examples/PACKAGES/cgdna/examples``.  A simple python setup tool which creates
+single straight or helical DNA strands, DNA/RNA duplexes or arrays of
+DNA/RNA duplexes can be found in ``examples/PACKAGES/cgdna/util/``.
 
 Please cite :ref:`(Henrich) <Henrich0>` in any publication that uses
 this implementation. An updated documentation that contains general information
@@ -143,7 +141,7 @@ Please cite also the relevant oxDNA/oxRNA publications. These are
 :ref:`(Bonato) <Bonato>` for oxDNA3,
 :ref:`(Sulc1) <Sulc01>` for oxRNA2
 and for sequence-specific hydrogen-bonding and stacking interactions
-:ref:`(Sulc2) <Sulc02>`.
+:ref:`(Sulc) <Sulc02>`.
 
 ----------
 
@@ -228,4 +226,4 @@ none
 
 .. _Sulc02:
 
-**(Sulc2)** P. Sulc, F. Romano, T.E. Ouldridge, L. Rovigatti, J.P.K. Doye, A.A. Louis, J. Chem. Phys. 137, 135101 (2012).
+**(Sulc)** P. Sulc, F. Romano, T.E. Ouldridge, L. Rovigatti, J.P.K. Doye, A.A. Louis, J. Chem. Phys. 137, 135101 (2012).

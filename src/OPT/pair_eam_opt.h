@@ -31,7 +31,7 @@ class PairEAMOpt : public PairEAM {
   void compute(int, int) override;
 
  private:
-  template <int EVFLAG, int EFLAG, int NEWTON_PAIR> void eval();
+  template <int EVFLAG, int EFLAG, int NEWTON_PAIR, int HE> void eval();
 };
 
 }    // namespace LAMMPS_NS

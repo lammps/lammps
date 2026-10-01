@@ -7,8 +7,10 @@
 #include <Kokkos_Macros.hpp>
 #ifdef KOKKOS_ENABLE_EXPERIMENTAL_CXX20_MODULES
 import kokkos.core;
+import kokkos.core_impl;
 #else
 #include <Kokkos_Core.hpp>
+#include <Kokkos_Iterator.hpp>
 #endif
 #include <Kokkos_Assert.hpp>
 
@@ -44,74 +46,6 @@ static_assert_is_admissible_to_kokkos_std_algorithms(
   static_assert(is_admissible_to_kokkos_std_algorithms<ViewType>::value,
                 "Currently, Kokkos standard algorithms only accept 1D Views.");
 }
-
-//
-// is_iterator
-//
-template <class T>
-using iterator_category_t = typename T::iterator_category;
-
-template <class T>
-using is_iterator = Kokkos::is_detected<iterator_category_t, T>;
-
-template <class T>
-inline constexpr bool is_iterator_v = is_iterator<T>::value;
-
-template <typename ViewType>
-struct is_kokkos_iterator : std::false_type {};
-
-template <typename ViewType>
-struct is_kokkos_iterator<RandomAccessIterator<ViewType>> {
-  static constexpr bool value =
-      is_admissible_to_kokkos_std_algorithms<ViewType>::value;
-};
-
-template <class T>
-inline constexpr bool is_kokkos_iterator_v = is_kokkos_iterator<T>::value;
-
-//
-// are_iterators
-//
-template <class... Args>
-struct are_iterators;
-
-template <class T>
-struct are_iterators<T> {
-  static constexpr bool value = is_iterator_v<T>;
-};
-
-template <class Head, class... Tail>
-struct are_iterators<Head, Tail...> {
-  static constexpr bool value =
-      are_iterators<Head>::value && (are_iterators<Tail>::value && ... && true);
-};
-
-template <class... Ts>
-inline constexpr bool are_iterators_v = are_iterators<Ts...>::value;
-
-//
-// are_random_access_iterators
-//
-template <class... Args>
-struct are_random_access_iterators;
-
-template <class T>
-struct are_random_access_iterators<T> {
-  static constexpr bool value =
-      is_iterator_v<T> && std::is_base_of_v<std::random_access_iterator_tag,
-                                            typename T::iterator_category>;
-};
-
-template <class Head, class... Tail>
-struct are_random_access_iterators<Head, Tail...> {
-  static constexpr bool value =
-      are_random_access_iterators<Head>::value &&
-      (are_random_access_iterators<Tail>::value && ... && true);
-};
-
-template <class... Ts>
-inline constexpr bool are_random_access_iterators_v =
-    are_random_access_iterators<Ts...>::value;
 
 //
 // iterators_are_accessible_from
@@ -210,8 +144,7 @@ template <typename IteratorType1, typename IteratorType2>
 KOKKOS_INLINE_FUNCTION void expect_no_overlap(
     [[maybe_unused]] IteratorType1 first, [[maybe_unused]] IteratorType1 last,
     [[maybe_unused]] IteratorType2 s_first) {
-  if constexpr (is_kokkos_iterator_v<IteratorType1> &&
-                is_kokkos_iterator_v<IteratorType2>) {
+  if constexpr (is_iterator_v<IteratorType1> && is_iterator_v<IteratorType2>) {
     std::size_t stride1  = first.stride();
     std::size_t stride2  = s_first.stride();
     ptrdiff_t first_diff = first.data() - s_first.data();
@@ -230,6 +163,51 @@ KOKKOS_INLINE_FUNCTION void expect_no_overlap(
                      last_pointer1 <= first_pointer2 || is_no_overlap);
     }
   }
+}
+
+template <typename DataType1, typename... Properties1, typename DataType2,
+          typename... Properties2>
+KOKKOS_INLINE_FUNCTION void expect_equal_extents(
+    [[maybe_unused]] const ::Kokkos::View<DataType1, Properties1...>& a,
+    [[maybe_unused]] const ::Kokkos::View<DataType2, Properties2...>& b) {
+  KOKKOS_EXPECTS(a.extent(0) == b.extent(0));
+}
+
+// Returns whether two views have the same extent (rank-1).
+// Use this when the caller needs a boolean (e.g. to early-return),
+// rather than asserting via KOKKOS_EXPECTS.
+template <typename DataType1, typename... Properties1, typename DataType2,
+          typename... Properties2>
+KOKKOS_INLINE_FUNCTION bool have_equal_extents(
+    const ::Kokkos::View<DataType1, Properties1...>& a,
+    const ::Kokkos::View<DataType2, Properties2...>& b) {
+  return a.extent(0) == b.extent(0);
+}
+
+//
+// Check if the destination view is large enough to hold the data from the
+// source (i.e. a.extent(0) <= b.extent(0)).
+//
+template <typename DataType1, typename... Properties1, typename DataType2,
+          typename... Properties2>
+KOKKOS_INLINE_FUNCTION void expect_less_or_equal_extents(
+    [[maybe_unused]] const ::Kokkos::View<DataType1, Properties1...>& a,
+    [[maybe_unused]] const ::Kokkos::View<DataType2, Properties2...>& b) {
+  KOKKOS_EXPECTS(a.extent(0) <= b.extent(0));
+}
+
+//
+// Check that both views have at least `count` elements in their first
+// extent (used by count-based algorithms such as copy_n).
+//
+template <typename DataType1, typename... Properties1, typename DataType2,
+          typename... Properties2, typename Size>
+KOKKOS_INLINE_FUNCTION void expect_extents_of_at_least(
+    [[maybe_unused]] const ::Kokkos::View<DataType1, Properties1...>& a,
+    [[maybe_unused]] const ::Kokkos::View<DataType2, Properties2...>& b,
+    [[maybe_unused]] Size count) {
+  KOKKOS_EXPECTS(a.extent(0) >= count);
+  KOKKOS_EXPECTS(b.extent(0) >= count);
 }
 
 }  // namespace Impl

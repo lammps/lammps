@@ -16,6 +16,8 @@
 
 #include "pointers.h"
 
+#include "creator_registry.h"
+
 #include <map>
 
 namespace LAMMPS_NS {
@@ -68,8 +70,9 @@ class Output : protected Pointers {
   class WriteRestart *restart;    // class for writing restart files
 
   using DumpCreator = Dump *(*) (LAMMPS *, int, char **);
-  using DumpCreatorMap = std::map<std::string, DumpCreator>;
-  DumpCreatorMap *dump_map;
+
+  // global registry of dump style factory functions
+  static CreatorRegistry<DumpCreator> &dump_styles();
 
   MPI_Datatype createParticleStructType();
 

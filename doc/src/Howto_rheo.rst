@@ -17,7 +17,7 @@ into distinct classes to simplify the development of new integration schemes
 which can call these calculations. Additional numerical details can be found in
 :ref:`(Palermo) <howto_rheo_palermo>` and :ref:`(Clemmer) <howto_rheo_clemmer>`.
 Example movies illustrating some of these capabilities are found at
-https://www.lammps.org/movies.html#rheopackage.
+https://www.lammps.org/gallery/rheopackage/.
 
 Note, if you simply want to run a traditional SPH simulation, the :ref:`SPH package
 <PKG-SPH>` package is likely better suited for your application. It has fewer advanced

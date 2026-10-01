@@ -15,8 +15,8 @@ CVSCRIPT(colvar_addforce,
          "force : float or array - Applied force; must match colvar dimensionality",
          std::string const f_str(script->obj_to_str(script->get_colvar_cmd_arg(0, objc, objv)));
          std::istringstream is(f_str);
-         is.width(cvm::cv_width);
-         is.precision(cvm::cv_prec);
+         is.width(script->module()->cv_width);
+         is.precision(script->module()->cv_prec);
          colvarvalue force(this_colvar->value());
          force.is_derivative();
          if (force.from_simple_string(is.str()) != COLVARS_OK) {
@@ -169,7 +169,7 @@ CVSCRIPT(colvar_help,
            if (cmdstr.size()) {
              script->set_result_str(script->get_command_cmdline_help(colvarscript::use_colvar,
                                                                      cmdstr));
-             return cvm::get_error();
+             return script->module()->get_error();
            } else {
              return COLVARSCRIPT_ERROR;
            }
@@ -184,9 +184,9 @@ CVSCRIPT(colvar_modifycvcs,
          1, 1,
          "confs : sequence of strings - New configurations; empty strings are skipped",
          std::vector<std::string> const confs(script->obj_to_str_vector(script->get_colvar_cmd_arg(0, objc, objv)));
-         cvm::increase_depth();
+         script->module()->increase_depth();
          int res = this_colvar->update_cvc_config(confs);
-         cvm::decrease_depth();
+         script->module()->decrease_depth();
          if (res != COLVARS_OK) {
            script->add_error_msg("Error setting CVC flags");
            return COLVARSCRIPT_ERROR;
@@ -256,6 +256,6 @@ CVSCRIPT(colvar_width,
          0, 0,
          "",
          script->set_result_str(cvm::to_str(this_colvar->width, 0,
-                                            cvm::cv_prec));
+                                            script->module()->cv_prec));
          return COLVARS_OK;
          )

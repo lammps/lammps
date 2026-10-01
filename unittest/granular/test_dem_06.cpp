@@ -11,11 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-// DEM verification test 06: a single particle settling to its terminal
-// velocity under gravity and fluid drag.  Mirrors MFiX-DEM VVUQ case DEM-06.
-// Exercises both fix viscous (linear/Stokes drag) and the new
-// fix viscous/nonlinear (Schiller-Naumann drag).  All test logic is shared
-// via test_dem_common; the reference systems live in tests/dem06-*.yaml.
+// DEM verification test 06: spinning sphere impacting a heavy partner / wall (rebound + friction).
+// All test logic is shared via test_dem_common; the reference systems
+// live in tests/dem06-*.yaml.
 
 #include "test_dem_common.h"
 #include "test_main.h"

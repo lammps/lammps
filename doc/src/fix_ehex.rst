@@ -33,7 +33,7 @@ Examples
 
 .. code-block:: LAMMPS
 
-   # Lennard-Jones, from examples/in.ehex.lj
+   # Lennard-Jones, examples/HEAT/in.lj.ehex
 
    fix fnve all nve
    # specify regions rhot and rcold
@@ -41,7 +41,7 @@ Examples
    fix fhot all ehex 1 0.15 region rhot
    fix fcold all ehex 1 -0.15 region rcold
 
-   # SPC/E water, from examples/in.ehex.spce
+   # SPC/E water, from examples/HEAT/in.spce.ehex
    fix fnve all nve
    # specify regions rhot and rcold
    ...
@@ -54,7 +54,7 @@ Description
 
 This fix implements the asymmetric version of the enhanced heat
 exchange algorithm :ref:`(Wirnsberger) <Wirnsberger>`. The eHEX algorithm is
-an extension of the heat exchange algorithm :ref:`(Ikeshoji) <Ikeshoji>` and
+an extension of the heat exchange algorithm :ref:`(Ikeshoji2) <Ikeshoji>` and
 adds an additional coordinate integration to account for higher-order
 truncation terms in the operator splitting.  The original HEX
 algorithm (implemented as :doc:`fix heat <fix_heat>`) is known to
@@ -198,7 +198,7 @@ none
 
 .. _Ikeshoji:
 
-**(Ikeshoji)** Ikeshoji and Hafskjold, Molecular Physics, 81, 251-261 (1994).
+**(Ikeshoji2)** Ikeshoji and Hafskjold, Molecular Physics, 81, 251-261 (1994).
 
 .. _Wirnsberger:
 

@@ -75,7 +75,7 @@ void const *colvarparams::get_param_ptr(std::string const &param_name)
   if (param_map.count(param_name) > 0) {
     return param_map[param_name];
   }
-  cvm::error("Error: parameter \""+param_name+"\" not found.\n", COLVARS_INPUT_ERROR);
+  cvm::error_static("Error: parameter \""+param_name+"\" not found.\n", COLVARS_INPUT_ERROR);
   return NULL;
 }
 
@@ -85,7 +85,7 @@ void const *colvarparams::get_param_grad_ptr(std::string const &param_name)
   if (param_grad_map.count(param_name) > 0) {
     return param_grad_map[param_name];
   }
-  cvm::error("Error: gradient of parameter \""+param_name+"\" not found.\n",
+  cvm::error_static("Error: gradient of parameter \""+param_name+"\" not found.\n",
              COLVARS_INPUT_ERROR);
   return NULL;
 }
@@ -103,9 +103,9 @@ int colvarparams::set_param(std::string const &param_name,
                             void const * /* new_value */)
 {
   if (param_map.count(param_name) > 0) {
-    return cvm::error("Error: parameter \""+param_name+"\" cannot be "
+    return cvm::error_static("Error: parameter \""+param_name+"\" cannot be "
                       "modified.\n", COLVARS_NOT_IMPLEMENTED);
   }
-  return cvm::error("Error: parameter \""+param_name+"\" not found.\n",
+  return cvm::error_static("Error: parameter \""+param_name+"\" not found.\n",
                     COLVARS_INPUT_ERROR);
 }

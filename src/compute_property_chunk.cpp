@@ -148,7 +148,7 @@ void ComputePropertyChunk::allocate()
 double ComputePropertyChunk::memory_usage()
 {
   double bytes = ComputeChunk::memory_usage();
-  bytes += (bigint) nchunk * nvalues * sizeof(double);
+  bytes += (double) nchunk * nvalues * sizeof(double);
   if (countflag) bytes += (double) nchunk * 2 * sizeof(int);
   return bytes;
 }

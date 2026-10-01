@@ -52,7 +52,6 @@ if(BUILD_DOC)
       DEPENDS docenv ${DOCENV_REQUIREMENTS_FILE}
       COMMAND ${CMAKE_COMMAND} -E copy ${DOCENV_REQUIREMENTS_FILE} ${DOC_BUILD_DIR}/requirements.txt
       COMMAND ${DOCENV_BINARY_DIR}/pip $ENV{PIP_OPTIONS} install --upgrade pip
-      COMMAND ${DOCENV_BINARY_DIR}/pip $ENV{PIP_OPTIONS} install --upgrade ${LAMMPS_DOC_DIR}/utils/converters
       COMMAND ${DOCENV_BINARY_DIR}/pip $ENV{PIP_OPTIONS} install -r ${DOC_BUILD_DIR}/requirements.txt --upgrade
     )
 
@@ -65,9 +64,9 @@ if(BUILD_DOC)
     find_package(Sphinx)
   endif()
 
-  set(MATHJAX_URL "https://github.com/mathjax/MathJax/archive/3.2.2.tar.gz" CACHE STRING "URL for MathJax tarball")
-  set(MATHJAX_SHA256 "4206b9645a97f431018d0b6c4021c98607d49ba4dc129f4f2ecce675e2fcba11" CACHE STRING "SHA256 checksum of MathJax tarball")
-  mark_as_advanced(MATHJAX_URL)
+  SetDownloadSettings(MATHJAX "MathJax"
+    "https://github.com/mathjax/MathJax/archive/3.2.2.tar.gz"
+    "4206b9645a97f431018d0b6c4021c98607d49ba4dc129f4f2ecce675e2fcba11")
   GetFallbackURL(MATHJAX_URL MATHJAX_FALLBACK)
 
   # download mathjax distribution and unpack to folder "mathjax"

@@ -18,6 +18,7 @@
 #include <cmath>
 
 #include "lal_lj_cubic.h"
+#include "lammps_gpu.h"
 
 using namespace std;
 using namespace LAMMPS_AL;
@@ -27,6 +28,8 @@ static LJCubic<PRECISION,ACC_PRECISION> LJCubicLMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
+
+namespace LAMMPS_GPU {
 int ljcb_gpu_init(const int ntypes, double **cutsq, double **cut_inner_sq,
                   double **cut_inner, double **sigma, double **epsilon,
                   double **host_lj1, double **host_lj2, double **host_lj3,
@@ -36,7 +39,6 @@ int ljcb_gpu_init(const int ntypes, double **cutsq, double **cut_inner_sq,
                   int &gpu_mode, FILE *screen) {
   LJCubicLMF.clear();
   gpu_mode=LJCubicLMF.device->gpu_mode();
-  double gpu_split=LJCubicLMF.device->particle_split();
   int first_gpu=LJCubicLMF.device->first_device();
   int last_gpu=LJCubicLMF.device->last_device();
   int world_me=LJCubicLMF.device->world_me();
@@ -59,7 +61,7 @@ int ljcb_gpu_init(const int ntypes, double **cutsq, double **cut_inner_sq,
     init_ok=LJCubicLMF.init(ntypes, cutsq, cut_inner_sq, cut_inner, sigma,
                             epsilon, host_lj1, host_lj2, host_lj3, host_lj4,
                             special_lj, inum, nall, max_nbors, maxspecial,
-                            cell_size, gpu_split, screen);
+                            cell_size, screen);
 
   LJCubicLMF.device->world_barrier();
   if (message)
@@ -78,7 +80,7 @@ int ljcb_gpu_init(const int ntypes, double **cutsq, double **cut_inner_sq,
       init_ok=LJCubicLMF.init(ntypes, cutsq, cut_inner_sq, cut_inner, sigma,
                               epsilon, host_lj1, host_lj2, host_lj3, host_lj4,
                               special_lj, inum, nall, max_nbors, maxspecial,
-                              cell_size, gpu_split, screen);
+                              cell_size, screen);
 
     LJCubicLMF.device->serialize_init();
     if (message)
@@ -96,29 +98,27 @@ void ljcb_gpu_clear() {
   LJCubicLMF.clear();
 }
 
-int ** ljcb_gpu_compute_n(const int ago, const int inum_full,
-                         const int nall, double **host_x, int *host_type,
-                         double *sublo, double *subhi, tagint *tag, int **nspecial,
-                         tagint **special, const bool eflag, const bool vflag,
-                         const bool eatom, const bool vatom, int &host_start,
-                         int **ilist, int **jnum, const double cpu_time,
-                         bool &success, double *prd, int *periodicity) {
+int **ljcb_gpu_compute_n(const int ago, const int inum_full, const int nall, double **host_x,
+                         int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
+                         tagint **special, const bool eflag, const bool vflag, const bool eatom,
+                         const bool vatom, int **ilist, int **jnum, bool &success, double *prd,
+                         int *periodicity)
+{
   return LJCubicLMF.compute(ago, inum_full, nall, host_x, host_type, sublo,
                        subhi, tag, nspecial, special, eflag, vflag, eatom,
-                       vatom, host_start, ilist, jnum, cpu_time, success, prd, periodicity);
+                       vatom, ilist, jnum, success, prd, periodicity);
 }
 
 void ljcb_gpu_compute(const int ago, const int inum_full, const int nall,
                       double **host_x, int *host_type, int *ilist, int *numj,
                       int **firstneigh, const bool eflag, const bool vflag,
-                      const bool eatom, const bool vatom, int &host_start,
-                      const double cpu_time, bool &success) {
+                      const bool eatom, const bool vatom, bool &success) {
   LJCubicLMF.compute(ago,inum_full,nall,host_x,host_type,ilist,numj,
-                firstneigh,eflag,vflag,eatom,vatom,host_start,cpu_time,success);
+                firstneigh,eflag,vflag,eatom,vatom,success);
 }
 
 double ljcb_gpu_bytes() {
   return LJCubicLMF.host_memory_usage();
 }
 
-
+} // namespace LAMMPS_GPU

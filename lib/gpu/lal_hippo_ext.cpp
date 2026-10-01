@@ -18,6 +18,7 @@
 #include <cmath>
 
 #include "lal_hippo.h"
+#include "lammps_gpu.h"
 
 using namespace std;
 using namespace LAMMPS_AL;
@@ -27,6 +28,8 @@ static Hippo<PRECISION,ACC_PRECISION> HIPPOMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
+
+namespace LAMMPS_GPU {
 int hippo_gpu_init(const int ntypes, const int max_amtype, const int max_amclass,
                     const double *host_pdamp, const double *host_thole,
                     const double *host_dirdamp, const int *host_amtype2class,
@@ -45,7 +48,6 @@ int hippo_gpu_init(const int ntypes, const int max_amtype, const int max_amclass
                    const double polar_dscale, const double polar_uscale) {
   HIPPOMF.clear();
   gpu_mode=HIPPOMF.device->gpu_mode();
-  double gpu_split=HIPPOMF.device->particle_split();
   int first_gpu=HIPPOMF.device->first_device();
   int last_gpu=HIPPOMF.device->last_device();
   int world_me=HIPPOMF.device->world_me();
@@ -73,8 +75,7 @@ int hippo_gpu_init(const int ntypes, const int max_amtype, const int max_amclass
                          host_sizpr, host_dmppr, host_elepr,
                          host_csix, host_adisp, host_pcore, host_palpha,
                          nlocal, nall, max_nbors,
-                         maxspecial, maxspecial15, cell_size, gpu_split,
-                         screen, polar_dscale, polar_uscale);
+                         maxspecial, maxspecial15, cell_size, screen, polar_dscale, polar_uscale);
 
   HIPPOMF.device->world_barrier();
   if (message)
@@ -98,8 +99,7 @@ int hippo_gpu_init(const int ntypes, const int max_amtype, const int max_amclass
                            host_sizpr, host_dmppr, host_elepr,
                            host_csix, host_adisp, host_pcore, host_palpha,
                            nlocal, nall, max_nbors,
-                           maxspecial, maxspecial15, cell_size, gpu_split,
-                           screen, polar_dscale, polar_uscale);
+                           maxspecial, maxspecial15, cell_size, screen, polar_dscale, polar_uscale);
 
     HIPPOMF.device->gpu_barrier();
     if (message)
@@ -117,43 +117,39 @@ void hippo_gpu_clear() {
   HIPPOMF.clear();
 }
 
-int** hippo_gpu_precompute(const int ago, const int inum_full, const int nall,
-                           double **host_x, int *host_type, int *host_amtype,
-                           int *host_amgroup, double **host_rpole,
+int **hippo_gpu_precompute(const int ago, const int inum_full, const int nall, double **host_x,
+                           int *host_type, int *host_amtype, int *host_amgroup, double **host_rpole,
                            double ** /*host_uind*/, double ** /*host_uinp*/, double * /*host_pval*/,
-                           double *sublo, double *subhi, tagint *tag,
-                           int **nspecial, tagint **special,
-                           int *nspecial15, tagint **special15,
-                           const bool eflag_in, const bool vflag_in,
-                           const bool eatom, const bool vatom, int &host_start,
-                           int **ilist, int **jnum, const double cpu_time,
-                           bool &success, double *host_q, double *boxlo, double *prd) {
+                           double *sublo, double *subhi, tagint *tag, int **nspecial,
+                           tagint **special, int *nspecial15, tagint **special15,
+                           const bool eflag_in, const bool vflag_in, const bool eatom,
+                           const bool vatom, int **ilist, int **jnum, bool &success, double *host_q,
+                           double *boxlo, double *prd)
+{
   return HIPPOMF.precompute(ago, inum_full, nall, host_x, host_type,
                             host_amtype, host_amgroup, host_rpole,
                             nullptr, nullptr, nullptr, sublo, subhi, tag,
                             nspecial, special, nspecial15, special15,
                             eflag_in, vflag_in, eatom, vatom,
-                            host_start, ilist, jnum, cpu_time,
-                            success, host_q, boxlo, prd);
+                            ilist, jnum, success, host_q, boxlo, prd);
 }
 
-void hippo_gpu_compute_repulsion(const int ago, const int inum_full,
-                                 const int nall, double **host_x, int *host_type,
-                                 int *host_amtype, int *host_amgroup, double **host_rpole,
-                                 double *sublo, double *subhi, tagint *tag, int **nspecial,
-                                 tagint **special, int *nspecial15, tagint** special15,
-                                 const bool eflag, const bool vflag, const bool eatom,
-                                 const bool vatom, int &host_start,
-                                 int **ilist, int **jnum, const double cpu_time,
-                                 bool &success, const double aewald, const double off2,
-                                 double *host_q, double *boxlo, double *prd,
-                                 double cut2, double c0, double c1, double c2,
-                                 double c3, double c4, double c5, void **tep_ptr) {
+void hippo_gpu_compute_repulsion(const int ago, const int inum_full, const int nall,
+                                 double **host_x, int *host_type, int *host_amtype,
+                                 int *host_amgroup, double **host_rpole, double *sublo,
+                                 double *subhi, tagint *tag, int **nspecial, tagint **special,
+                                 int *nspecial15, tagint **special15, const bool eflag,
+                                 const bool vflag, const bool eatom, const bool vatom, int **ilist,
+                                 int **jnum, bool &success, const double aewald, const double off2,
+                                 double *host_q, double *boxlo, double *prd, double cut2, double c0,
+                                 double c1, double c2, double c3, double c4, double c5,
+                                 void **tep_ptr)
+{
   HIPPOMF.compute_repulsion(ago, inum_full, nall, host_x, host_type,
                           host_amtype, host_amgroup, host_rpole, sublo, subhi,
                           tag, nspecial, special, nspecial15, special15,
-                          eflag, vflag, eatom, vatom, host_start, ilist, jnum,
-                          cpu_time, success, aewald, off2, host_q, boxlo, prd,
+                          eflag, vflag, eatom, vatom, ilist, jnum,
+                          success, aewald, off2, host_q, boxlo, prd,
                           cut2, c0, c1, c2, c3, c4, c5, tep_ptr);
 }
 
@@ -164,21 +160,21 @@ void hippo_gpu_compute_dispersion_real(int *host_amtype, int *host_amgroup,
                                          aewald, off2);
 }
 
-void hippo_gpu_compute_multipole_real(const int ago, const int inum_full,
-                           const int nall, double **host_x, int *host_type,
-                           int *host_amtype, int *host_amgroup, double **host_rpole,
-                           double *host_pval, double *sublo, double *subhi, tagint *tag, int **nspecial,
-                           tagint **special, int *nspecial15, tagint** special15,
-                           const bool eflag, const bool vflag, const bool eatom,
-                           const bool vatom, int &host_start,
-                           int **ilist, int **jnum, const double cpu_time,
-                           bool &success, const double aewald, const double felec, const double off2,
-                           double *host_q, double *boxlo, double *prd, void **tep_ptr) {
+void hippo_gpu_compute_multipole_real(const int ago, const int inum_full, const int nall,
+                                      double **host_x, int *host_type, int *host_amtype,
+                                      int *host_amgroup, double **host_rpole, double *host_pval,
+                                      double *sublo, double *subhi, tagint *tag, int **nspecial,
+                                      tagint **special, int *nspecial15, tagint **special15,
+                                      const bool eflag, const bool vflag, const bool eatom,
+                                      const bool vatom, int **ilist, int **jnum, bool &success,
+                                      const double aewald, const double felec, const double off2,
+                                      double *host_q, double *boxlo, double *prd, void **tep_ptr)
+{
   HIPPOMF.compute_multipole_real(ago, inum_full, nall, host_x, host_type,
                           host_amtype, host_amgroup, host_rpole, host_pval, sublo, subhi,
                           tag, nspecial, special, nspecial15, special15,
-                          eflag, vflag, eatom, vatom, host_start, ilist, jnum,
-                          cpu_time, success, aewald, felec, off2, host_q, boxlo, prd, tep_ptr);
+                          eflag, vflag, eatom, vatom, ilist, jnum,
+                          success, aewald, felec, off2, host_q, boxlo, prd, tep_ptr);
 }
 
 void hippo_gpu_compute_udirect2b(int *host_amtype, int *host_amgroup, double **host_rpole,
@@ -229,3 +225,5 @@ void hippo_gpu_fphi_uind(double ****host_grid_brick, void **host_fdip_phi1,
 double hippo_gpu_bytes() {
   return HIPPOMF.host_memory_usage();
 }
+
+} // namespace LAMMPS_GPU

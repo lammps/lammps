@@ -22,9 +22,11 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    *
    *
    *
+   * :doc:`bpm/peri <bond_bpm_peri>`
    * :doc:`bpm/rotational <bond_bpm_rotational>`
    * :doc:`bpm/spring <bond_bpm_spring>`
    * :doc:`bpm/spring/plastic <bond_bpm_spring_plastic>`
+   * :doc:`bpm/zero <bond_bpm_zero>`
    * :doc:`class2 (ko) <bond_class2>`
    * :doc:`fene (iko) <bond_fene>`
    * :doc:`fene/expand (ko) <bond_fene_expand>`
@@ -48,7 +50,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`quartic/exp (k) <bond_quartic_exp>`
    * :doc:`rheo/shell <bond_rheo_shell>`
    * :doc:`special <bond_special>`
-   * :doc:`table (o) <bond_table>`
+   * :doc:`table (ko) <bond_table>`
 
 .. _angle:
 
@@ -98,7 +100,7 @@ OPT.
    * :doc:`mwlc (ko) <angle_mwlc>`
    * :doc:`quartic (ko) <angle_quartic>`
    * :doc:`spica (ko) <angle_spica>`
-   * :doc:`table (o) <angle_table>`
+   * :doc:`table (ko) <angle_table>`
 
 .. _dihedral:
 
@@ -138,8 +140,8 @@ OPT.
    * :doc:`opls (iko) <dihedral_opls>`
    * :doc:`quadratic (ko) <dihedral_quadratic>`
    * :doc:`spherical (ko) <dihedral_spherical>`
-   * :doc:`table (o) <dihedral_table>`
-   * :doc:`table/cut (o) <dihedral_table>`
+   * :doc:`table (ko) <dihedral_table>`
+   * :doc:`table/cut (ko) <dihedral_table>`
 
 .. _improper:
 

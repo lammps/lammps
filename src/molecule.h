@@ -40,7 +40,7 @@ class Molecule : protected Pointers {
   int ntypes, nmolecules, nfragments;
   int nbondtypes, nangletypes, ndihedraltypes, nimpropertypes;
   int nibody, ndbody;
-  int nlines,ntris;
+  int nlines, ntris;
 
   // max bond,angle,etc per atom
 
@@ -79,12 +79,12 @@ class Molecule : protected Pointers {
   double *rmass;       // mass of each atom
   double **mu;         // dipole vector of each atom
 
-  int *molline;        // molecule-ID of each line
-  int *typeline;       // type of each line
-  double **lines;      // line end points
-  int *moltri;         // molecule-ID of each triangles
-  int *typetri;        // type of each triangle
-  double **tris;       // triangle corner points
+  int *molline;      // molecule-ID of each line
+  int *typeline;     // type of each line
+  double **lines;    // line end points
+  int *moltri;       // molecule-ID of each triangles
+  int *typetri;      // type of each triangle
+  double **tris;     // triangle corner points
 
   int *num_bond;    // bonds, angles, dihedrals, impropers for each atom
   int **bond_type;
@@ -137,8 +137,8 @@ class Molecule : protected Pointers {
   double **dxbody;    // displacement of each atom relative to COM
                       // in body frame (diagonalized interia tensor)
 
-  double *quat_external;    // orientation imposed by external class
-                            // e.g. FixPour or CreateAtoms
+  double quat_external[4];    // orientation imposed by external class
+                              // e.g. FixPour or CreateAtoms
 
   Molecule(class LAMMPS *);
   ~Molecule() override;
@@ -155,7 +155,7 @@ class Molecule : protected Pointers {
   void check_attributes();
 
   double memory_usage();
-  void print(FILE *fp=stdout);
+  void print(FILE *fp = stdout);
 
  private:
   SafeFilePtr fp;

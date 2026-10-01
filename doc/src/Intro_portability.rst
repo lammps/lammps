@@ -22,7 +22,7 @@ C++ standard.
 Most of the Python code in LAMMPS is written to be compatible with Python
 3.6 and later.
 
-.. deprecated:: 2Apr2025
+.. versionremoved:: 2Apr2025
 
 Python 2.x is no longer supported and trying to use it, e.g. for the
 LAMMPS Python module should result in an error.  If you come across

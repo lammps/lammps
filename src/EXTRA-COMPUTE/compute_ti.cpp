@@ -42,8 +42,8 @@ ComputeTI::ComputeTI(LAMMPS *lmp, int narg, char **arg) :
 {
   if (narg < 4) error->all(FLERR,"Illegal compute ti command");
 
+  // this compute consumes per-atom energies (peatomflag) but only produces a global scalar
   peflag = 1;
-  peratom_flag = 1;
   peatomflag = 1;
   scalar_flag = 1;
   extscalar = 1;
@@ -130,7 +130,10 @@ void ComputeTI::init()
       error->all(FLERR,"Variable for compute ti is invalid style");
 
     if (which[m] == PAIR) {
+      // check for pair style with and without suffix
       pptr[m] = force->pair_match(pstyle[m],1);
+      if ((pptr[m] == nullptr) && lmp->suffix)
+        pptr[m] = force->pair_match(fmt::format("{}/{}",pstyle[m],lmp->suffix),1);
       if (pptr[m] == nullptr)
         error->all(FLERR,"Compute ti pair style does not exist");
 

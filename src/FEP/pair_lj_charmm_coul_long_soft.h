@@ -61,7 +61,7 @@ class PairLJCharmmCoulLongSoft : public Pair {
   double *cut_respa;
   double g_ewald;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }    // namespace LAMMPS_NS

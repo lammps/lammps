@@ -127,32 +127,52 @@ ucl_inline void compute_newsite(int iO, int  iH1, int  iH2,
 }
 
 /* ----------------------------------------------------------------------
+   Build the map from atom index to neighbor list row.
+   When this pair style is used as a sub-style of pair style hybrid, it is
+   given a skip list: the atom handled by row ii is ilist[ii] (the first
+   nbor_pitch entries of dev_nbor) and in general ilist[ii] != ii.
+   The map is stored with an offset of one into a zero initialized array,
+   so that a value of zero marks an atom that is not in the list.
+---------------------------------------------------------------------- */
+__kernel void k_lj_tip4p_rowmap(const __global int *dev_nbor,
+    const int inum, __global int *restrict nbor_row) {
+
+  int ii = BLOCK_ID_X*(BLOCK_SIZE_X)+THREAD_ID_X;
+  if (ii<inum) nbor_row[dev_nbor[ii]] = ii + 1;
+}
+
+/* ----------------------------------------------------------------------
    Compute resulting forces (ans), energies and virial (engv).
    An additional term is calculated based on the previously
    calculated values on the virlual sites (ansO),
    which should be distributed over the real atoms.
    For some hydrogens, the corresponding oxygens are
-   not local atoms and the ansO value is not calculated.
+   not handled by this pair style and the ansO value is not calculated.
    The required increase is calculated directly in the main function.
+   Note that ans and engv are indexed by neighbor list row ii, while x_,
+   hneigh, m and ansO are indexed by atom index i = ilist[ii].
 ---------------------------------------------------------------------- */
 __kernel void k_lj_tip4p_long_distrib(
     const __global numtyp4 *restrict x_,
+    const __global int *dev_nbor,
     __global acctyp3 *restrict ans,
     __global acctyp *restrict engv,
-    const int eflag, const int vflag, const int inum,
+    const int eflag, const int vflag, const int inum, const int nall,
     const int nbor_pitch, const int t_per_atom,
     const __global int *restrict hneigh,
+    const __global int *restrict nbor_row,
     const __global numtyp4 *restrict m,
     const int typeO, const int typeH,
     const numtyp alpha,
     const __global numtyp *restrict q_,
     const __global acctyp4 *restrict ansO) {
 
-  int i = BLOCK_ID_X*(BLOCK_SIZE_X)+THREAD_ID_X;
+  int ii = BLOCK_ID_X*(BLOCK_SIZE_X)+THREAD_ID_X;
   acctyp3 f;
   f.x=(acctyp)0; f.y=(acctyp)0; f.z=(acctyp)0;
 
-  if (i<inum) {
+  if (ii<inum) {
+    int i = dev_nbor[ii];
     numtyp4 ix; fetch4(ix,i,pos_tex);
     int itype = ix.w;
     acctyp4 fM, vM;
@@ -161,20 +181,20 @@ __kernel void k_lj_tip4p_long_distrib(
     int engv_iter = eflag ? 2 : 0;
     if (itype == typeH) {
       int iO = hneigh[i*4];
-      if (iO < inum) {
+      if (iO >= 0 && nbor_row[iO] > 0) {
         fM = ansO[iO];
         f.x += fM.x * (acctyp)0.5 * alpha;
         f.y += fM.y * (acctyp)0.5 * alpha;
         f.z += fM.z * (acctyp)0.5 * alpha;
         if (EVFLAG && vflag) {
-          vM = ansO[inum  +iO];
-          engv[inum*engv_iter + i] += vM.x * (acctyp)0.5 * alpha; engv_iter++;
-          engv[inum*engv_iter + i] += vM.y * (acctyp)0.5 * alpha; engv_iter++;
-          engv[inum*engv_iter + i] += vM.z * (acctyp)0.5 * alpha; engv_iter++;
-          vM = ansO[inum*2+iO];
-          engv[inum*engv_iter + i] += vM.x * (acctyp)0.5 * alpha; engv_iter++;
-          engv[inum*engv_iter + i] += vM.y * (acctyp)0.5 * alpha; engv_iter++;
-          engv[inum*engv_iter + i] += vM.z * (acctyp)0.5 * alpha;
+          vM = ansO[nall  +iO];
+          engv[inum*engv_iter + ii] += vM.x * (acctyp)0.5 * alpha; engv_iter++;
+          engv[inum*engv_iter + ii] += vM.y * (acctyp)0.5 * alpha; engv_iter++;
+          engv[inum*engv_iter + ii] += vM.z * (acctyp)0.5 * alpha; engv_iter++;
+          vM = ansO[nall*2+iO];
+          engv[inum*engv_iter + ii] += vM.x * (acctyp)0.5 * alpha; engv_iter++;
+          engv[inum*engv_iter + ii] += vM.y * (acctyp)0.5 * alpha; engv_iter++;
+          engv[inum*engv_iter + ii] += vM.z * (acctyp)0.5 * alpha;
         }
       }
     }
@@ -186,34 +206,36 @@ __kernel void k_lj_tip4p_long_distrib(
       f.y += fM.y * (acctyp)(1 - alpha);
       f.z += fM.z * (acctyp)(1 - alpha);
       if (EVFLAG && eflag) {
-        eM = engv[i+inum];
-        engv[inum+i] = eM*(acctyp)(1 - alpha);
-        if (iH1 < inum) engv[inum+iH1] += eM * (acctyp)0.5 * alpha;
-        if (iH2 < inum) engv[inum+iH2] += eM * (acctyp)0.5 * alpha;
+        int rH1 = (iH1 >= 0) ? nbor_row[iH1] - 1 : -1;
+        int rH2 = (iH2 >= 0) ? nbor_row[iH2] - 1 : -1;
+        eM = engv[ii+inum];
+        engv[inum+ii] = eM*(acctyp)(1 - alpha);
+        if (rH1 >= 0) engv[inum+rH1] += eM * (acctyp)0.5 * alpha;
+        if (rH2 >= 0) engv[inum+rH2] += eM * (acctyp)0.5 * alpha;
       }
       if (EVFLAG && vflag) {
-        vM = ansO[inum   + i];
-        engv[inum*engv_iter + i] += vM.x * (acctyp)(1 - alpha); engv_iter++;
-        engv[inum*engv_iter + i] += vM.y * (acctyp)(1 - alpha); engv_iter++;
-        engv[inum*engv_iter + i] += vM.z * (acctyp)(1 - alpha); engv_iter++;
-        vM = ansO[inum*2 + i];
-        engv[inum*engv_iter + i] += vM.x * (acctyp)(1 - alpha); engv_iter++;
-        engv[inum*engv_iter + i] += vM.y * (acctyp)(1 - alpha); engv_iter++;
-        engv[inum*engv_iter + i] += vM.z * (acctyp)(1 - alpha);
+        vM = ansO[nall   + i];
+        engv[inum*engv_iter + ii] += vM.x * (acctyp)(1 - alpha); engv_iter++;
+        engv[inum*engv_iter + ii] += vM.y * (acctyp)(1 - alpha); engv_iter++;
+        engv[inum*engv_iter + ii] += vM.z * (acctyp)(1 - alpha); engv_iter++;
+        vM = ansO[nall*2 + i];
+        engv[inum*engv_iter + ii] += vM.x * (acctyp)(1 - alpha); engv_iter++;
+        engv[inum*engv_iter + ii] += vM.y * (acctyp)(1 - alpha); engv_iter++;
+        engv[inum*engv_iter + ii] += vM.z * (acctyp)(1 - alpha);
       }
     }
-    acctyp3 old=ans[i];
+    acctyp3 old=ans[ii];
     old.x+=f.x;
     old.y+=f.y;
     old.z+=f.z;
-    ans[i]=old;
+    ans[ii]=old;
   } // if ii
 }
 
 /* ----------------------------------------------------------------------
    Rebuild hneigh after the neighbor build.
    hneight stores local IDs of H1 and H2 for each local and ghost O
-   and local ID of O for each local H.
+   and local ID of O for each H handled by this pair style.
 ---------------------------------------------------------------------- */
 __kernel void k_lj_tip4p_reneigh(
     const __global numtyp4 *restrict x_,
@@ -222,6 +244,7 @@ __kernel void k_lj_tip4p_reneigh(
     const int nall, const int inum,
     const int nbor_pitch, const int t_per_atom,
     __global int *restrict hneigh,
+    const __global int *restrict nbor_row,
     __global numtyp4 *restrict m,
     const int typeO, const int typeH,
     const __global tagint *restrict tag,
@@ -249,7 +272,7 @@ __kernel void k_lj_tip4p_reneigh(
         hneigh[i*4+2] = -1;
       }
     }
-    if (i<inum && itype == typeH) {
+    if (nbor_row[i] > 0 && itype == typeH) {
       if (hneigh[i*4+2] != -1) {
         int iI;
         iI = atom_mapping(map,tag[i] - 1);
@@ -305,12 +328,15 @@ __kernel void k_lj_tip4p_newsite(const __global numtyp4 *restrict x_,
 
 
 /* ----------------------------------------------------------------------
-   Compute initial value of force, energy and virial for each local particle.
-   The values calculated on oxygens use the virtual charge position (m) and
-   they are stored in a separate  array (ansO) for further distribution
-   in a separate kernel. For some hydrogens located on the boundary
-   of the local region, oxygens are non-local and the contribution
-   of oxygen is calculated separately in this kernel for them .
+   Compute initial value of force, energy and virial for each particle
+   handled by this pair style.  The values calculated on oxygens use the
+   virtual charge position (m) and they are stored in a separate array
+   (ansO) for further distribution in a separate kernel.  ansO is indexed
+   by atom index and has a stride of nall, since with a skip list the atom
+   index of a neighbor list row is not bounded by the number of rows.
+   For some hydrogens the corresponding oxygen is not handled by this pair
+   style (e.g. it is a ghost atom) and the contribution of that oxygen is
+   calculated separately in this kernel for them.
 ---------------------------------------------------------------------- */
 __kernel void k_lj_tip4p_long(const __global numtyp4 *restrict x_,
     const __global numtyp4 *restrict lj1,
@@ -321,9 +347,10 @@ __kernel void k_lj_tip4p_long(const __global numtyp4 *restrict x_,
     const __global int * dev_packed,
     __global acctyp3 *restrict ans,
     __global acctyp *restrict engv,
-    const int eflag, const int vflag, const int inum,
+    const int eflag, const int vflag, const int inum, const int nall,
     const int nbor_pitch, const int t_per_atom,
     __global int *restrict hneigh,
+    const __global int *restrict nbor_row,
     __global numtyp4 *restrict m,
     const int typeO, const int typeH,
     const numtyp alpha,
@@ -373,10 +400,12 @@ __kernel void k_lj_tip4p_long(const __global numtyp4 *restrict x_,
       x1 = m[iO];
     } else if (itype == typeH) {
       iO  = hneigh[i *4  ];
-      iH1 = hneigh[iO*4  ];
-      iH2 = hneigh[iO*4+1];
-      if (iO >= inum) {
-        non_local_oxy = 1;
+      if (iO >= 0) {
+        iH1 = hneigh[iO*4  ];
+        iH2 = hneigh[iO*4+1];
+        // the oxygen is not handled by this pair style (e.g. it is a ghost
+        // atom), so no ansO value will be computed and distributed for it
+        if (nbor_row[iO] == 0) non_local_oxy = 1;
       }
     }
 
@@ -622,12 +651,12 @@ __kernel void k_lj_tip4p_long(const __global numtyp4 *restrict x_,
   if(offset == 0 && ii<inum) {
     ansO[i] = fO;
     if (EVFLAG && vflag) {
-      ansO[inum   + i].x = vO[0];
-      ansO[inum   + i].y = vO[1];
-      ansO[inum   + i].z = vO[2];
-      ansO[inum*2 + i].x = vO[3];
-      ansO[inum*2 + i].y = vO[4];
-      ansO[inum*2 + i].z = vO[5];
+      ansO[nall   + i].x = vO[0];
+      ansO[nall   + i].y = vO[1];
+      ansO[nall   + i].z = vO[2];
+      ansO[nall*2 + i].x = vO[3];
+      ansO[nall*2 + i].y = vO[4];
+      ansO[nall*2 + i].z = vO[5];
     }
   }
   store_answers_q(f,energy,e_coul,virial,ii,inum,tid,t_per_atom,offset,eflag,
@@ -643,9 +672,10 @@ __kernel void k_lj_tip4p_long_fast(const __global numtyp4 *restrict x_,
     const __global int * dev_packed,
     __global acctyp3 *restrict ans,
     __global acctyp *restrict engv,
-    const int eflag, const int vflag, const int inum,
+    const int eflag, const int vflag, const int inum, const int nall,
     const int nbor_pitch, const int t_per_atom,
     __global int *restrict hneigh,
+    const __global int *restrict nbor_row,
     __global numtyp4 *restrict m,
     const int typeO, const int typeH,
     const numtyp alpha,
@@ -706,10 +736,12 @@ __kernel void k_lj_tip4p_long_fast(const __global numtyp4 *restrict x_,
     }
     if (itype == typeH) {
       iO  = hneigh[i *4  ];
-      iH1 = hneigh[iO*4  ];
-      iH2 = hneigh[iO*4+1];
-      if (iO >= inum) {
-        non_local_oxy = 1;
+      if (iO >= 0) {
+        iH1 = hneigh[iO*4  ];
+        iH2 = hneigh[iO*4+1];
+        // the oxygen is not handled by this pair style (e.g. it is a ghost
+        // atom), so no ansO value will be computed and distributed for it
+        if (nbor_row[iO] == 0) non_local_oxy = 1;
       }
     }
 
@@ -953,12 +985,12 @@ __kernel void k_lj_tip4p_long_fast(const __global numtyp4 *restrict x_,
     if(offset == 0) {
       ansO[i] = fO;
       if (EVFLAG && vflag) {
-        ansO[inum   + i].x = vO[0];
-        ansO[inum   + i].y = vO[1];
-        ansO[inum   + i].z = vO[2];
-        ansO[inum*2 + i].x = vO[3];
-        ansO[inum*2 + i].y = vO[4];
-        ansO[inum*2 + i].z = vO[5];
+        ansO[nall   + i].x = vO[0];
+        ansO[nall   + i].y = vO[1];
+        ansO[nall   + i].z = vO[2];
+        ansO[nall*2 + i].x = vO[3];
+        ansO[nall*2 + i].y = vO[4];
+        ansO[nall*2 + i].z = vO[5];
       }
     }
   } // if ii

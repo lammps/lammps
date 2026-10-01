@@ -143,6 +143,8 @@ RegEllipsoid::RegEllipsoid(LAMMPS *lmp, int narg, char **arg) :
 
 RegEllipsoid::~RegEllipsoid()
 {
+  if (copymode) return;
+
   delete[] xstr;
   delete[] ystr;
   delete[] zstr;

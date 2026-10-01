@@ -23,6 +23,8 @@ static_assert(false,
 #define KOKKOS_DEDUCTION_GUIDE __host__ __device__
 
 #define KOKKOS_IMPL_FORCEINLINE_FUNCTION __device__ __host__ __forceinline__
+#define KOKKOS_IMPL_FORCEINLINE_ATTRIBUTE __forceinline__
+#define KOKKOS_IMPL_HOST_FORCEINLINE_FUNCTION __forceinline__
 #define KOKKOS_IMPL_INLINE_FUNCTION __device__ __host__ inline
 #define KOKKOS_IMPL_FUNCTION __device__ __host__
 #define KOKKOS_IMPL_HOST_FUNCTION __host__
@@ -38,6 +40,15 @@ static_assert(false,
 
 #ifdef KOKKOS_ARCH_AMD_GFX942_APU
 #define KOKKOS_IMPL_HIP_UNIFIED_MEMORY
+#endif
+
+#define KOKKOS_IMPL_HALF_TYPE_DEFINED
+#define KOKKOS_IMPL_BHALF_TYPE_DEFINED
+
+#if (HIP_VERSION_MAJOR > 6 ||                               \
+     (HIP_VERSION_MAJOR == 6 && HIP_VERSION_MINOR >= 4)) || \
+    defined(__HIP_DEVICE_COMPILE__)
+#define KOKKOS_HALF_IS_FULL_TYPE_ON_ARCH
 #endif
 
 #endif  // #if defined( KOKKOS_ENABLE_HIP )

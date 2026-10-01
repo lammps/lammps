@@ -1,0 +1,25 @@
+---
+lammps_version: 4 Jul 2026
+tags:
+date_generated: Wed Aug  5 09:52:24 2026
+epsilon: 1e-08
+timestep: 0.001
+skip_tests:
+prerequisites: |
+  atom sphere
+  compute erotate/sphere
+pre_commands: |
+  variable atom_style delete
+  variable atom_style index sphere
+  variable pair_style delete
+  variable pair_style index 'zero 4.0'
+post_commands: |
+  pair_coeff * *
+  set group all diameter 1.0 density 2.0
+  set group all omega 0.4 -0.3 0.7
+  set atom 1*8 omega -0.2 0.5 -0.9
+  compute test all erotate/sphere
+input_file: in.colloid
+natoms: 27
+global_scalar: 1.1969468010177116
+...

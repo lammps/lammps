@@ -47,7 +47,7 @@ struct IndexTypePolicyMixin<Kokkos::IndexType<IntegralIndexType>,
   static constexpr auto show_index_type_error_in_compilation_message =
       show_extra_index_type_erroneously_given_to_execution_policy<
           std::conditional_t<base_t::index_type_is_defaulted, void,
-                             typename base_t::schedule_type>>{};
+                             typename base_t::index_type>>{};
   static_assert(base_t::index_type_is_defaulted,
                 "Kokkos Error: More than one index type given. Search "
                 "compiler output for 'show_extra_index_type' to see the "
@@ -65,7 +65,7 @@ struct IndexTypePolicyMixin : AnalyzeNextTrait {
   static constexpr auto show_index_type_error_in_compilation_message =
       show_extra_index_type_erroneously_given_to_execution_policy<
           std::conditional_t<base_t::index_type_is_defaulted, void,
-                             typename base_t::schedule_type>>{};
+                             typename base_t::index_type>>{};
   static_assert(base_t::index_type_is_defaulted,
                 "Kokkos Error: More than one index type given. Search "
                 "compiler output for 'show_extra_index_type' to see the "

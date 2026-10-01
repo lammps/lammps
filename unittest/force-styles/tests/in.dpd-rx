@@ -1,0 +1,28 @@
+variable  newton_pair     index  on
+variable  newton_bond     index  on
+variable  units           index  metal
+variable  input_dir       index  .
+variable  data_file       index ${input_dir}/data.dpd-react
+variable  pair_style      index 'zero 8.0'
+# id of the "fix rx" instance; the fix-timestep test for fix rx itself
+# overrides this with "test" so the driver finds the fix under test
+variable  rx_fix_id       index  rxfix
+
+units            ${units}
+atom_style       dpd
+atom_modify      map array
+boundary         p p p
+newton           ${newton_pair} ${newton_bond}
+comm_modify      mode single vel yes
+neigh_modify     delay 2 every 2 check no
+timestep         0.001
+
+# the DPD-REACT pair styles need the per-atom species concentrations that
+# "fix rx" creates through two internal fix property/atom instances.  the fix
+# must therefore exist before the pair coefficients are read.  the two extra
+# data file sections are only present in the data file written by the test.
+
+fix              ${rx_fix_id} all rx ${input_dir}/dpd_rx_kinetics.txt none dense lammps_rk4 1
+
+pair_style       ${pair_style}
+read_data        ${data_file} fix ${rx_fix_id}_SPECIES NULL NULL fix ${rx_fix_id}_SPECIES_OLD NULL NULL

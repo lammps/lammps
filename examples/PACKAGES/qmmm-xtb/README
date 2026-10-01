@@ -1,0 +1,64 @@
+GFN-xTB QM/MM with PPPM
+=======================
+
+`in.qmmm-xtb` is a four-atom non-covalent smoke test for `fix qmmm/xtb`.
+Two hydrogen atoms form the QM region; Na and Cl are MM point charges.  The
+example is deliberately minimal and omits an MM short-range potential.
+The input selects GFN2-xTB explicitly; change `method gfn2` to `method gfn1`
+to run the same system with GFN1-xTB.
+
+`in.qmmm-xtb-triclinic` runs the same model in a fixed primitive triclinic
+lattice whose Wigner-Seitz cell is a truncated octahedron.
+
+`in.qmmm-xtb-minimize` keeps the two MM point charges fixed and minimizes the
+H2 QM geometry with tighter SCC, PPPM, and direct-Ewald settings.  The force
+constraint is defined after `fix qmmm/xtb` so it is applied after the QM/MM
+force correction.
+
+Build LAMMPS with the QMMM-XTB and KSPACE packages as described in
+`src/QMMM-XTB/README`.  A typical run is:
+
+```
+export LD_LIBRARY_PATH=/path/to/xtb/lib:/path/to/mctc-and-blas/lib:$LD_LIBRARY_PATH
+export XTBPATH=/path/to/xtb/share/xtb
+export OPENBLAS_NUM_THREADS=1
+/path/to/lmp -in in.qmmm-xtb
+```
+
+With libxtb 6.7.0 and the default direct-Ewald parameters, the reference
+single-rank result is approximately:
+
+```
+PotEng  = -662.57123 kcal/mol
+f_qmmm  = -614.24518 kcal/mol
+q1      = -0.061584036
+q2      =  0.061584036
+Fx1     = 11.365132 kcal/mol/Angstrom
+Fx2     = -11.365132 kcal/mol/Angstrom
+```
+
+The same values should be obtained with multiple MPI ranks.  Quantitative
+force finite differences should use a tighter `pppm/xtb` accuracy such as 1.0e-7;
+the requested PPPM force accuracy also controls the mesh potential supplied
+to the SCC Hamiltonian.
+
+For `in.qmmm-xtb-triclinic`, the corresponding default GFN2-xTB reference is:
+
+```
+PotEng  = -666.11749 kcal/mol
+f_qmmm  = -615.55912 kcal/mol
+q1      = -0.039929003
+q2      =  0.039929003
+Fx1     = 12.334963 kcal/mol/Angstrom
+Fx2     = -12.334963 kcal/mol/Angstrom
+```
+
+These triclinic values are likewise independent of the MPI rank count.
+
+The minimization example converges in eight CG iterations to approximately:
+
+```
+PotEng  = -662.66955 kcal/mol
+H-H     = 0.77939451 Angstrom
+max |F| = 9.7e-8 kcal/mol/Angstrom
+```

@@ -69,11 +69,11 @@ void FixAveForceKokkos<DeviceType>::post_force(int /*vflag*/)
   // update region if necessary
 
   if (region) {
-    if (!(utils::strmatch(region->style, "^block") || utils::strmatch(region->style, "^sphere")))
-      error->all(FLERR, "Cannot (yet) use {}-style region with fix aveforce/kk", region->style);
+    KokkosBase *regionKKBase = dynamic_cast<KokkosBase *>(region);
+    if (!regionKKBase)
+      error->all(FLERR, "Cannot use fix aveforce/kk with region style {} that has no KOKKOS support", region->style);
     region->prematch();
     DAT::tdual_int_1d k_match = DAT::tdual_int_1d("aveforce:k_match", atom->nlocal);
-    KokkosBase *regionKKBase = dynamic_cast<KokkosBase *>(region);
     regionKKBase->match_all_kokkos(groupbit, k_match);
     k_match.template sync<DeviceType>();
     d_match = k_match.template view<DeviceType>();
@@ -138,9 +138,9 @@ void FixAveForceKokkos<DeviceType>::operator()(TagFixAveForceReduce, const int &
 {
   if (mask[i] & groupbit) {
     if (region && !d_match[i]) return;
-    result[0] += f(i,0);
-    result[1] += f(i,1);
-    result[2] += f(i,2);
+    result[0] += static_cast<double>(f(i,0));
+    result[1] += static_cast<double>(f(i,1));
+    result[2] += static_cast<double>(f(i,2));
     result[3] += 1.0;
   }
 }
@@ -154,9 +154,9 @@ void FixAveForceKokkos<DeviceType>::operator()(TagFixAveForceApply, const int &i
 {
   if (mask[i] & groupbit) {
     if (region && !d_match[i]) return;
-    if (xstyle) f(i,0) = m_fave[0];
-    if (ystyle) f(i,1) = m_fave[1];
-    if (zstyle) f(i,2) = m_fave[2];
+    if (xstyle) f(i,0) = static_cast<KK_ACC_FLOAT>(m_fave[0]);
+    if (ystyle) f(i,1) = static_cast<KK_ACC_FLOAT>(m_fave[1]);
+    if (zstyle) f(i,2) = static_cast<KK_ACC_FLOAT>(m_fave[2]);
   }
 }
 

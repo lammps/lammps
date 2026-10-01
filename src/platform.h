@@ -218,6 +218,18 @@ const char *guesspath(FILE *fp, char *buf, int len);
 
 bool is_console(FILE *fp);
 
+/*! Determine the width (number of columns) of the terminal connected to a file pointer
+ *
+ * This queries the terminal connected to the given file pointer for its current
+ * width in characters.  It returns 0 when the file pointer is not connected to a
+ * terminal (e.g. when output is redirected to a file or a pipe), so callers can
+ * fall back to a fixed default width for reproducible non-interactive output.
+ *
+ * \param  fp file pointer
+ * \return number of terminal columns, or 0 if *fp* is not a terminal */
+
+int terminal_width(FILE *fp);
+
 /*! Get list of entries in a directory
  *
  * This provides a list of strings of the entries in the directory

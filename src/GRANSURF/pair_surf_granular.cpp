@@ -74,6 +74,7 @@ PairSurfGranular::PairSurfGranular(LAMMPS *lmp) :
 
   emax = 0;
   cmax = 0;
+  missing_surf_warn = 1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -124,21 +125,23 @@ void PairSurfGranular::compute(int eflag, int vflag)
   // also grab current line connectivity info from FixSurfaceLocal
 
   if (neighbor->ago == 0) {
-    if (fix_rigid) {
-      int tmp;
-      int *body = (int *) fix_rigid->extract("body", tmp);
-      auto *mass_body = (double *) fix_rigid->extract("masstotal", tmp);
+    if (!fix_rigid.empty()) {
       if (atom->nmax > nmax) {
         memory->destroy(mass_rigid);
         nmax = atom->nmax;
         memory->create(mass_rigid, nmax, "surf/granular:mass_rigid");
       }
       int nlocal = atom->nlocal;
-      for (int i = 0; i < nlocal; i++)
-        if (body[i] >= 0)
-          mass_rigid[i] = mass_body[body[i]];
-        else
-          mass_rigid[i] = 0.0;
+      for (int i = 0; i < nlocal; i++) mass_rigid[i] = 0.0;
+
+      for (const auto &ifix : fix_rigid) {
+        int tmp;
+        int *body = (int *) ifix->extract("body",tmp);
+        auto *mass_body = (double *) ifix->extract("masstotal",tmp);
+
+        for (int i = 0; i < nlocal; i++)
+          if (body[i] >= 0) mass_rigid[i] = mass_body[body[i]];
+      }
       comm->forward_comm(this);
     }
 
@@ -325,7 +328,7 @@ void PairSurfGranular::compute(int eflag, int vflag)
       contact_surfs.push_back(mycontact);
     }
 
-    if (contact_surfs.size() == 0) continue;
+    if (contact_surfs.empty()) continue;
 
     // Sort contacts by overlap and create a map
     std::sort(contact_surfs.begin(), contact_surfs.end(), FixSurface::contact_presort);
@@ -389,6 +392,8 @@ void PairSurfGranular::compute(int eflag, int vflag)
 
       jtype = type[j];
       model = models_list[types_indices[itype][jtype]];
+      model->i = i;
+      model->j = j;
       model->xi = x[i];
       model->radi = radi;
       model->vi = v[i];
@@ -403,7 +408,7 @@ void PairSurfGranular::compute(int eflag, int vflag)
       // if line/tri is not part of rigidbody assume infinite mass
 
       meff = rmass[i];
-      if (fix_rigid) {
+      if (!fix_rigid.empty()) {
         if (mass_rigid[i] > 0.0) meff = mass_rigid[i];
         if (mass_rigid[j] > 0.0) {
           mj = mass_rigid[j];
@@ -585,6 +590,11 @@ void PairSurfGranular::init_style()
   // it replaces FixDummy, created in the constructor
   // this is so its order in the fix list is preserved
 
+  if (use_history) {
+    delete[] id_history;
+    id_history = utils::strdup(fmt::format("NEIGH_HISTORY_GRANULAR{}", instance_index()));
+  }
+
   if (use_history && (fix_history == nullptr)) {
     auto fixcmd = fmt::format("{} all NEIGH_HISTORY {} onesided", id_history, size_history);
     fix_history = dynamic_cast<FixNeighHistory *>(modify->replace_fix(id_dummy, fixcmd, 1));
@@ -643,7 +653,7 @@ void PairSurfGranular::init_style()
   // check for FixFreeze and set freeze_group_bit
 
   fixlist = modify->get_fix_by_style("^freeze");
-  if (fixlist.size() == 0)
+  if (fixlist.empty())
     freeze_group_bit = 0;
   else if (fixlist.size() > 1)
     error->all(FLERR, Error::NOLASTLINE,
@@ -653,16 +663,9 @@ void PairSurfGranular::init_style()
 
   // check for FixRigid so can extract rigid body masses
 
-  fix_rigid = nullptr;
-  for (const auto &ifix : modify->get_fix_list()) {
-    if (ifix->rigid_flag) {
-      if (fix_rigid)
-        error->all(FLERR, Error::NOLASTLINE,
-                   "Only one fix rigid command at a time is allowed with pair style surf/granular");
-      else
-        fix_rigid = ifix;
-    }
-  }
+  fix_rigid.clear();
+  for (const auto &ifix : modify->get_fix_list())
+    if (ifix->rigid_flag) fix_rigid.push_back(ifix);
 
   // check for FixPour and FixDeposit so can extract particle radii
 
@@ -875,10 +878,21 @@ void PairSurfGranular::prewalk_connections2d()
         ktag = connect2d[jconnect].neigh_p2[nconnect - connect2d[jconnect].np1];
         nsidek = connect2d[jconnect].nside_p2[nconnect - connect2d[jconnect].np1];
       }
+      // skip surfs not stored on this proc: they cannot be in contact with atom i,
+      // since all surfs within the contact distance of an owned atom are ghosted.
+      // this can happen when a connected surf was deleted (e.g. lost) or when the
+      // walk over connected surfs reaches beyond the ghost atom cutoff
+
       k = atom->map(ktag);
-      if (k == -1)
-        error->one(FLERR, Error::NOLASTLINE, "Surface mesh atom {} missing at step {}", ktag,
-                   update->ntimestep);
+      if (k == -1) {
+        if (missing_surf_warn) {
+          error->warning(FLERR,
+                         "Skipping connected surface atom {} not found on this processor "
+                         "at step {}", ktag, update->ntimestep);
+          missing_surf_warn = 0;
+        }
+        continue;
+      }
 
       // Skip if not in contact
       if (contacts_map.find(k) == contacts_map.end()) continue;
@@ -945,10 +959,21 @@ void PairSurfGranular::prewalk_connections3d()
         ktag = connect3d[jconnect].neigh_e3[nc];
         nsidek = connect3d[jconnect].nside_e3[nc];
       }
+      // skip surfs not stored on this proc: they cannot be in contact with atom i,
+      // since all surfs within the contact distance of an owned atom are ghosted.
+      // this can happen when a connected surf was deleted (e.g. lost) or when the
+      // walk over connected surfs reaches beyond the ghost atom cutoff
+
       k = atom->map(ktag);
-      if (k == -1)
-        error->one(FLERR, Error::NOLASTLINE, "Surface mesh atom {} missing at step {}", ktag,
-                   update->ntimestep);
+      if (k == -1) {
+        if (missing_surf_warn) {
+          error->warning(FLERR,
+                         "Skipping connected surface atom {} not found on this processor "
+                         "at step {}", ktag, update->ntimestep);
+          missing_surf_warn = 0;
+        }
+        continue;
+      }
 
       // Skip if not in contact
       if (contacts_map.find(k) == contacts_map.end()) continue;
@@ -979,10 +1004,21 @@ void PairSurfGranular::prewalk_connections3d()
         nsidek = connect3d[jconnect].nside_c3[nc];
       }
 
+      // skip surfs not stored on this proc: they cannot be in contact with atom i,
+      // since all surfs within the contact distance of an owned atom are ghosted.
+      // this can happen when a connected surf was deleted (e.g. lost) or when the
+      // walk over connected surfs reaches beyond the ghost atom cutoff
+
       k = atom->map(ktag);
-      if (k == -1)
-        error->one(FLERR, Error::NOLASTLINE, "Surface mesh atom {} missing at step {}", ktag,
-                   update->ntimestep);
+      if (k == -1) {
+        if (missing_surf_warn) {
+          error->warning(FLERR,
+                         "Skipping connected surface atom {} not found on this processor "
+                         "at step {}", ktag, update->ntimestep);
+          missing_surf_warn = 0;
+        }
+        continue;
+      }
 
       // Skip if not in contact
       if (contacts_map.find(k) == contacts_map.end()) continue;

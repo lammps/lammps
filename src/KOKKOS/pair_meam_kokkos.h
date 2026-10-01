@@ -54,6 +54,8 @@ class PairMEAMKokkos : public PairMEAM, public KokkosBase {
   void compute(int, int) override;
   void coeff(int, char **) override;
   void init_style() override;
+  double init_one(int, int) override;
+  void reinit() override;
 
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
@@ -105,7 +107,7 @@ class PairMEAMKokkos : public PairMEAM, public KokkosBase {
 
   DAT::tdual_int_1d k_map;
   typename AT::t_int_1d d_map;
-  typename AT::t_int_2d d_scale;
+  typename AT::t_kkfloat_2d d_scale;
   typename AT::t_int_1d d_ilist_half;
   typename AT::t_int_1d d_numneigh_half;
   typename AT::t_neighbors_2d d_neighbors_half;

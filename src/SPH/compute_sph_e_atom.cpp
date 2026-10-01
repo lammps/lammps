@@ -53,11 +53,8 @@ ComputeSPHEAtom::~ComputeSPHEAtom()
 
 void ComputeSPHEAtom::init()
 {
-  int count = 0;
-  for (int i = 0; i < modify->ncompute; i++)
-    if (strcmp(modify->compute[i]->style,"sph/e/atom") == 0) count++;
-  if (count > 1 && comm->me == 0)
-    error->warning(FLERR,"More than one compute sph/e/atom");
+  if ((comm->me == 0) && (modify->get_compute_by_style("^sph/e/atom").size() > 1))
+    error->warning(FLERR, "More than one compute {}", style);
 }
 
 /* ---------------------------------------------------------------------- */

@@ -1,0 +1,24 @@
+units           lj
+atom_style      hybrid ellipsoid dipole
+atom_modify     map array
+lattice         sc 0.4
+region          box block 0 6 0 6 0 6
+create_box      1 box
+create_atoms    1 box
+set             group all mass 1.0
+set             group all shape 1.0 0.7 0.5
+set             group all quat/random 18238
+set             group all dipole/random 98347 1.0
+velocity        all create 1.0 87287 loop geom
+pair_style      lj/cut 2.5
+pair_coeff      * * 1.0 1.0 2.5
+neighbor        0.3 bin
+neigh_modify    delay 0 every 1 check yes
+compute         q all property/atom quatw quati quatj quatk
+fix             1 all nve/asphere/noforce
+fix             at all addtorque/atom 0.01 0.02 0.03
+fix             st all settorque/atom 0.0 0.0 0.05
+fix             ps all propel/self dipole 0.05
+thermo_style    custom step temp pe ke etotal press
+thermo          5
+run             20 post no

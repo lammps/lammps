@@ -98,7 +98,9 @@ void ComputeEfieldWolfAtom::init()
   // request an occasional full neighbor list
 
   auto *req = neighbor->add_request(this, NeighConst::REQ_FULL | NeighConst::REQ_OCCASIONAL);
-  if (cutoff_flag) req->set_cutoff(cutoff);
+  if (cutoff_flag) {
+    req->set_cutoff_fixed(cutoff);
+  }
 
   jgroup = group->find(group2);
   if (jgroup < 0) error->all(FLERR, "Compute efield/atom/wolf group {} does not exist", group2);

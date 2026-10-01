@@ -174,8 +174,10 @@ void FixNeighHistoryOMP::pre_exchange_onesided()
 
     // set maxpartner = max # of partners of any owned atom
     // maxexchange = max # of values for any Comm::exchange() atom
+    // maxpartner is zeroed before the parallel region; do not reset it
+    // here since another thread may already have merged its result
 
-    maxpartner = m = 0;
+    m = 0;
     for (i = lfrom; i < lto; i++) m = MAX(m, npartner[i]);
 
 #if defined(_OPENMP)
@@ -197,8 +199,13 @@ void FixNeighHistoryOMP::pre_exchange_newton()
 {
   const int nthreads = comm->nthreads;
 
+  // ensure npartner is zeroed for all current atoms: nall can be larger than
+  // nall_neigh when restart files are written that involve communication calls
+  // but modify->post_neighbor() isn't called
+
   maxpartner = 0;
-  for (int i = 0; i < nall_neigh; i++) npartner[i] = 0;
+  const int nall = atom->nlocal + atom->nghost;
+  for (int i = 0; i < MAX(nall_neigh, nall); i++) npartner[i] = 0;
 
 #if defined(_OPENMP)
 #pragma omp parallel LMP_DEFAULT_NONE
@@ -234,8 +241,6 @@ void FixNeighHistoryOMP::pre_exchange_newton()
     firstneigh = list->firstneigh;
 
     // each thread works on a fixed chunk of local and ghost atoms.
-    // Ensure npartner is zeroed across all atoms, nall_neigh can be less than nall
-    // when restart files are written that involve communication calls but modify->post_neighbor() isn't called
     const int ldelta = 1 + nall_neigh / nthreads;
     const int lfrom = tid * ldelta;
     const int lmax = lfrom + ldelta;
@@ -259,9 +264,6 @@ void FixNeighHistoryOMP::pre_exchange_newton()
     }
 #if defined(_OPENMP)
 #pragma omp barrier
-    {
-      ;
-    }
 
     // perform reverse comm to augment owned npartner counts with ghost counts
 
@@ -272,31 +274,22 @@ void FixNeighHistoryOMP::pre_exchange_newton()
       comm->reverse_comm(this, 0);
     }
 
-    // get page chunks to store atom IDs and shear history for my atoms
-
-    for (ii = 0; ii < inum; ii++) {
-      i = ilist[ii];
-      if ((i >= lfrom) && (i < lto)) {
-        n = npartner[i];
-        partner[i] = ipg.get(n);
-        valuepartner[i] = dpg.get(dnum * n);
-        if (partner[i] == nullptr || valuepartner[i] == nullptr)
-          error->one(FLERR, Error::NOLASTLINE, "Neighbor history overflow, boost neigh_modify one" + utils::errorurl(36));
-      }
-    }
+    // wait for the reverse comm to complete: the augmented npartner counts
+    // of owned atoms determine the sizes of the page chunks allocated below
 
 #if defined(_OPENMP)
-#pragma omp master
+#pragma omp barrier
 #endif
-    {
-      for (i = lfrom; i < lto; i++) {
-        n = npartner[i];
-        partner[i] = ipg.get(n);
-        valuepartner[i] = dpg.get(dnum * n);
-        if (partner[i] == nullptr || valuepartner[i] == nullptr) {
-          error->one(FLERR, Error::NOLASTLINE, "Neighbor history overflow, boost neigh_modify one" + utils::errorurl(36));
-        }
-      }
+
+    // get page chunks to store atom IDs and shear history for
+    // this thread's chunk of owned and ghost atoms
+
+    for (i = lfrom; i < lto; i++) {
+      n = npartner[i];
+      partner[i] = ipg.get(n);
+      valuepartner[i] = dpg.get(dnum * n);
+      if (partner[i] == nullptr || valuepartner[i] == nullptr)
+        error->one(FLERR, Error::NOLASTLINE, "Neighbor history overflow, boost neigh_modify one" + utils::errorurl(36));
     }
 
     // 2nd loop over neighbor list
@@ -338,9 +331,6 @@ void FixNeighHistoryOMP::pre_exchange_newton()
     }
 #if defined(_OPENMP)
 #pragma omp barrier
-    {
-      ;
-    }
 
 #pragma omp master
 #endif
@@ -353,6 +343,13 @@ void FixNeighHistoryOMP::pre_exchange_newton()
       commflag = PERPARTNER;
       comm->reverse_comm_variable(this);
     }
+
+    // wait for the reverse comm to complete: it appends the ghost atom
+    // contributions to partner, valuepartner, and npartner of owned atoms
+
+#if defined(_OPENMP)
+#pragma omp barrier
+#endif
 
     // set maxpartner = max # of partners of any owned atom
     // maxexchange = max # of values for any Comm::exchange() atom

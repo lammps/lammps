@@ -1537,7 +1537,7 @@ struct HostIterateTile<RP, Functor, Tag, ValueType,
       : m_rp(rp), m_func(func) {}
 
   inline bool check_iteration_bounds(point_type& partial_tile,
-                                     point_type& offset) const {
+                                     const point_type& offset) const {
     bool is_full_tile = true;
 
     for (int i = 0; i < RP::rank; ++i) {
@@ -1546,11 +1546,7 @@ struct HostIterateTile<RP, Functor, Tag, ValueType,
       } else {
         is_full_tile = false;
         partial_tile[i] =
-            (m_rp.m_upper[i] - 1 - offset[i]) == 0 ? 1
-            : (m_rp.m_upper[i] - m_rp.m_tile[i]) > 0
-                ? (m_rp.m_upper[i] - offset[i])
-                : (m_rp.m_upper[i] -
-                   m_rp.m_lower[i]);  // when single tile encloses range
+            m_rp.m_upper[i] - offset[i];  // remaining elements in dimension i
       }
     }
 
@@ -1568,7 +1564,7 @@ struct HostIterateTile<RP, Functor, Tag, ValueType,
     point_type m_offset;
     point_type m_tiledims;
 
-    if (RP::outer_direction == Iterate::Left) {
+    if constexpr (RP::outer_direction == Iterate::Left) {
       for (int i = 0; i < RP::rank; ++i) {
         m_offset[i] =
             (tile_idx % m_rp.m_tile_end[i]) * m_rp.m_tile[i] + m_rp.m_lower[i];
@@ -1631,7 +1627,7 @@ struct HostIterateTile<RP, Functor, Tag, ValueType,
   }
 
   inline bool check_iteration_bounds(point_type& partial_tile,
-                                     point_type& offset) const {
+                                     const point_type& offset) const {
     bool is_full_tile = true;
 
     for (int i = 0; i < RP::rank; ++i) {
@@ -1640,11 +1636,7 @@ struct HostIterateTile<RP, Functor, Tag, ValueType,
       } else {
         is_full_tile = false;
         partial_tile[i] =
-            (m_rp.m_upper[i] - 1 - offset[i]) == 0 ? 1
-            : (m_rp.m_upper[i] - m_rp.m_tile[i]) > 0
-                ? (m_rp.m_upper[i] - offset[i])
-                : (m_rp.m_upper[i] -
-                   m_rp.m_lower[i]);  // when single tile encloses range
+            m_rp.m_upper[i] - offset[i];  // remaining elements in dimension i
       }
     }
 
@@ -1662,7 +1654,7 @@ struct HostIterateTile<RP, Functor, Tag, ValueType,
     point_type m_offset;
     point_type m_tiledims;
 
-    if (RP::outer_direction == Iterate::Left) {
+    if constexpr (RP::outer_direction == Iterate::Left) {
       for (int i = 0; i < RP::rank; ++i) {
         m_offset[i] =
             (tile_idx % m_rp.m_tile_end[i]) * m_rp.m_tile[i] + m_rp.m_lower[i];
@@ -1711,7 +1703,7 @@ struct HostIterateTile<RP, Functor, Tag, ValueType,
         m_func(func) {}
 
   inline bool check_iteration_bounds(point_type& partial_tile,
-                                     point_type& offset) const {
+                                     const point_type& offset) const {
     bool is_full_tile = true;
 
     for (int i = 0; i < RP::rank; ++i) {
@@ -1720,11 +1712,7 @@ struct HostIterateTile<RP, Functor, Tag, ValueType,
       } else {
         is_full_tile = false;
         partial_tile[i] =
-            (m_rp.m_upper[i] - 1 - offset[i]) == 0 ? 1
-            : (m_rp.m_upper[i] - m_rp.m_tile[i]) > 0
-                ? (m_rp.m_upper[i] - offset[i])
-                : (m_rp.m_upper[i] -
-                   m_rp.m_lower[i]);  // when single tile encloses range
+            m_rp.m_upper[i] - offset[i];  // remaining elements in dimension i
       }
     }
 
@@ -1742,7 +1730,7 @@ struct HostIterateTile<RP, Functor, Tag, ValueType,
     point_type m_offset;
     point_type m_tiledims;
 
-    if (RP::outer_direction == Iterate::Left) {
+    if constexpr (RP::outer_direction == Iterate::Left) {
       for (int i = 0; i < RP::rank; ++i) {
         m_offset[i] =
             (tile_idx % m_rp.m_tile_end[i]) * m_rp.m_tile[i] + m_rp.m_lower[i];

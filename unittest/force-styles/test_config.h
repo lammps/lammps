@@ -125,13 +125,14 @@ public:
 
     [[nodiscard]] std::string tags_line() const
     {
-        if (tags.size() > 0) {
-            std::string line = tags[0];
-            for (std::size_t i = 1; i < tags.size(); i++)
-                line += " " + tags[i];
-            return line;
-        }
-        return "generated";
+        // the "generated" tag is ALWAYS added when reference data is
+        // (re-)generated: it marks data that has not been reviewed and
+        // validated yet and is removed manually as the last step after
+        // validation.  all other tags are passed through.
+        std::string line;
+        for (const auto &tag : tags)
+            if (tag != "generated") line += tag + " ";
+        return line + "generated";
     }
 
     // check whether a given keyword is present in the "tags:" list. used by the

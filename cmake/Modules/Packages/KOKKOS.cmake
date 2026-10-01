@@ -226,9 +226,8 @@ if(PKG_RIGID)
   list(APPEND KOKKOS_PKG_SOURCES ${KOKKOS_PKG_SOURCES_DIR}/fix_rigid_nh_small_kokkos.cpp)
 endif()
 # fix_oxdna_*_kokkos are all internal fixes exclusively for the CG-DNA KOKKOS - ie, they
-# are separate from vanilla CG-DNA.
+# are separate from vanilla CG-DNA (Kokkos-only CG-DNA helper fixes without corresponding base styles).
 if(PKG_CG-DNA)
-  list(APPEND KOKKOS_PKG_SOURCES ${KOKKOS_PKG_SOURCES_DIR}/fix_oxdna_lrf_kokkos.cpp)
   list(APPEND KOKKOS_PKG_SOURCES ${KOKKOS_PKG_SOURCES_DIR}/fix_oxdna_npair_kokkos.cpp)
   list(APPEND KOKKOS_PKG_SOURCES ${KOKKOS_PKG_SOURCES_DIR}/fix_oxdna_prime_neighs_kokkos.cpp)
 endif()
@@ -330,7 +329,6 @@ RegisterNBinStyle(${KOKKOS_PKG_SOURCES_DIR}/nbin_kokkos.h)
 RegisterNPairStyle(${KOKKOS_PKG_SOURCES_DIR}/npair_kokkos.h)
 RegisterNPairStyle(${KOKKOS_PKG_SOURCES_DIR}/npair_halffull_kokkos.h)
 if(PKG_CG-DNA)
-  RegisterFixStyle(${KOKKOS_PKG_SOURCES_DIR}/fix_oxdna_lrf_kokkos.h)
   RegisterFixStyle(${KOKKOS_PKG_SOURCES_DIR}/fix_oxdna_npair_kokkos.h)
   RegisterFixStyle(${KOKKOS_PKG_SOURCES_DIR}/fix_oxdna_prime_neighs_kokkos.h)
 endif()

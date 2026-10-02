@@ -114,10 +114,9 @@ class FixGCMC : public Fix {
 
   class Molecule **onemols;
   int imol, nmol;
-  int imol_base;          // first molecule in the selected template set
-  int molindex;           // selected member of template set, 0-based internally
-  int molindex_flag;      // 1 if user supplied molindex
-
+  int imol_base;        // index of first molecule of the template in Atom::molecules
+  int molindex;         // index of the inserted molecule within the template, 0-based
+  int molindex_flag;    // 1 if molindex keyword was used
   class Fix *fixrigid, *fixshake;
   int rigidflag, shakeflag;
   char *idrigid, *idshake;

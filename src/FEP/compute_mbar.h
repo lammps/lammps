@@ -34,6 +34,7 @@ class ComputeMBAR : public Compute {
   ~ComputeMBAR() override;
   void init() override;
   void compute_vector() override;
+  double memory_usage() override;
 
  private:
   int npert;
@@ -43,7 +44,7 @@ class ComputeMBAR : public Compute {
   int mbarinitflag;
   double temp_mbar;
 
-  int nlambda;            // number of states to evaluate (length of each grid)
+  int nlambda;    // number of states to evaluate (length of each grid)
 
   int nmax;
   double *q_orig;
@@ -64,8 +65,8 @@ class ComputeMBAR : public Compute {
     int pdim;
     double **array, **array_orig;
     int aparam;
-    char *gridname;       // vector-style variable holding this parameter's grid
-    double *grid;         // copied grid of absolute values, length nlambda
+    char *gridname;    // vector-style variable holding this parameter's grid
+    double *grid;      // copied grid of absolute values, length nlambda
   };
 
   Perturb *perturb;

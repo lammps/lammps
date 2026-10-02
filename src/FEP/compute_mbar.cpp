@@ -18,6 +18,7 @@
 #include "compute_mbar.h"
 
 #include "atom.h"
+#include "atom_masks.h"
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
@@ -160,6 +161,7 @@ ComputeMBAR::ComputeMBAR(LAMMPS *lmp, int narg, char **arg) : Compute(lmp, narg,
 
   // charge, force, energy, virial per-atom arrays are allocated in init()
 
+  nmax = 0;
   f_orig = nullptr;
   q_orig = nullptr;
   peatom_orig = keatom_orig = nullptr;
@@ -283,8 +285,7 @@ void ComputeMBAR::init()
 
       // if pair hybrid, test that ilo,ihi,jlo,jhi are valid for sub-style
 
-      if ((strcmp(force->pair_style, "hybrid") == 0 ||
-           strcmp(force->pair_style, "hybrid/overlay") == 0)) {
+      if (utils::strmatch(force->pair_style, "^hybrid")) {
         auto *pair = dynamic_cast<PairHybrid *>(force->pair);
         for (i = pert->ilo; i <= pert->ihi; i++)
           for (j = MAX(pert->jlo, i); j <= pert->jhi; j++)
@@ -427,12 +428,16 @@ void ComputeMBAR::perturb_params(int k)
       // a soft-core activation (lambda) parameter, or any other pair parameter
       // such as epsilon or sigma; the user supplies the appropriate grid.
       for (i = pert->ilo; i <= pert->ihi; i++)
-        for (j = MAX(pert->jlo, i); j <= pert->jhi; j++)
-          pert->array[i][j] = value;
+        for (j = MAX(pert->jlo, i); j <= pert->jhi; j++) pert->array[i][j] = value;
 
     } else if (pert->which == ATOM) {
 
       if (pert->aparam == CHARGE) {    // set charges to their state value
+
+        // written through the host pointers ahead of a KOKKOS force evaluation
+
+        atom->sync_host_arrays(Q_MASK | TYPE_MASK | MASK_MASK);
+
         int *atype = atom->type;
         double *q = atom->q;
         int *mask = atom->mask;
@@ -441,6 +446,8 @@ void ComputeMBAR::perturb_params(int k)
         for (i = 0; i < natom; i++)
           if (atype[i] >= pert->ilo && atype[i] <= pert->ihi)
             if (mask[i] & groupbit) q[i] = value;
+
+        atom->modified_host_arrays(Q_MASK);
       }
     }
   }
@@ -540,6 +547,10 @@ void ComputeMBAR::backup_qfev()
 {
   int i;
 
+  // sync the host copies, the arrays are read below through the host pointers
+
+  atom->sync_host_arrays(F_MASK | (chgflag ? Q_MASK : EMPTY_MASK));
+
   int nall = atom->nlocal + atom->nghost;
   int natom = atom->nlocal;
   if (force->newton || (force->kspace && force->kspace->tip4pflag)) natom += atom->nghost;
@@ -615,6 +626,11 @@ void ComputeMBAR::restore_qfev()
 {
   int i;
 
+  // written back through the host pointers, then handed to the device
+
+  const uint64_t qfev_mask = F_MASK | (chgflag ? Q_MASK : EMPTY_MASK);
+  atom->sync_host_arrays(qfev_mask);
+
   int nall = atom->nlocal + atom->nghost;
   int natom = atom->nlocal;
   if (force->newton || (force->kspace && force->kspace->tip4pflag)) natom += atom->nghost;
@@ -682,4 +698,21 @@ void ComputeMBAR::restore_qfev()
       }
     }
   }
+
+  atom->modified_host_arrays(qfev_mask);
+}
+
+/* ---------------------------------------------------------------------- */
+
+double ComputeMBAR::memory_usage()
+{
+  double bytes = (double) nmax * 3 * sizeof(double);      // f_orig[nmax][3]
+  bytes += (double) nmax * sizeof(double);                // peatom_orig[nmax]
+  bytes += (double) nmax * 6 * sizeof(double);            // pvatom_orig[nmax][6]
+  if (q_orig) bytes += (double) nmax * sizeof(double);    // q_orig[nmax] (when chgflag)
+  if (keatom_orig) {
+    bytes += (double) nmax * sizeof(double);        // keatom_orig[nmax]
+    bytes += (double) nmax * 6 * sizeof(double);    // kvatom_orig[nmax][6]
+  }
+  return bytes;
 }

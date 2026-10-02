@@ -2418,6 +2418,7 @@ Maxwellian
 maxX
 Mayergoyz
 Mayoral
+mbar
 mbt
 MBytes
 mbx
@@ -2663,6 +2664,7 @@ multinomial
 multiphysics
 Multipole
 multiscale
+multistate
 multisectioning
 multithreading
 Multithreading

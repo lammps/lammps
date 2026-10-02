@@ -43,7 +43,9 @@ if(EXISTS /usr/musl/share/cmake/linux-musl.cmake)
     BYPRODUCTS lammps-linux-x86_64-${PROJECT_VERSION}.tar.gz)
 else()
   add_custom_target(musl
-    COMMAND ${CMAKE_COMMAND} -E echo "Could not find the musl Linux-2-Linux compiler in /usr/musl. Skipping.")
+    COMMAND ${CMAKE_COMMAND} -E echo "Could not find the musl Linux-2-Linux compiler in /usr/musl."
+    COMMAND ${CMAKE_COMMAND} -E false
+    VERBATIM)
 endif()
 
 #########################################################################
@@ -66,7 +68,9 @@ if(MINGW_CMAKE AND MINGW_CXX AND Python_EXECUTABLE)
   )
 else()
   add_custom_target(nsis
-    ${CMAKE_COMMAND} -E echo "The Mingw64 cross-compiler build environment required to build Windows installer packages is not available. Skipping.")
+    COMMAND ${CMAKE_COMMAND} -E echo "The Mingw64 cross-compiler build environment required to build Windows installer packages is not available."
+    COMMAND ${CMAKE_COMMAND} -E false
+    VERBATIM)
 endif()
 
 ###############################################################################
@@ -92,7 +96,9 @@ if(FLATPAK_COMMAND AND FLATPAK_BUILDER)
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 else()
   add_custom_target(flatpak
-    COMMAND ${CMAKE_COMMAND} -E echo "The flatpak and flatpak-builder commands required to build a LAMMPS-GUI flatpak bundle were not found. Skipping.")
+    COMMAND ${CMAKE_COMMAND} -E echo "The flatpak and flatpak-builder commands required to build a LAMMPS-GUI flatpak bundle were not found."
+    COMMAND ${CMAKE_COMMAND} -E false
+    VERBATIM)
 endif()
 
 # build LAMMPS-GUI itself as external project
@@ -308,15 +314,18 @@ if(BUILD_LAMMPS_GUI)
         DEPENDS lmp tools lammps-gui_build ${WHAM_EXE}
         COMMENT "Create compressed tar file of LAMMPS-GUI with dependent libraries and wrapper"
         BYPRODUCT LAMMPS-Linux-x86_64-GUI-${LAMMPS_RELEASE}.tar.gz
-        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-      )
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
     else()
       if(DOWNLOAD_POTENTIALS)
         add_custom_target(tgz
-              COMMAND ${CMAKE_COMMAND} -E echo "Must use -D DOWLOAD_POTENTIALS=OFF for building Linux tgz package")
+              COMMAND ${CMAKE_COMMAND} -E echo "Must use -D DOWLOAD_POTENTIALS=OFF for building Linux tgz package"
+              COMMAND ${CMAKE_COMMAND} -E false
+              VERBATIM)
       else()
         add_custom_target(tgz
-              COMMAND ${CMAKE_COMMAND} -E echo "Must use -D USE_INTERNAL_LINALG=ON for building Linux tgz package")
+              COMMAND ${CMAKE_COMMAND} -E echo "Must use -D USE_INTERNAL_LINALG=ON for building Linux tgz package"
+              COMMAND ${CMAKE_COMMAND} -E false
+              VERBATIM)
       endif()
     endif()
   endif()

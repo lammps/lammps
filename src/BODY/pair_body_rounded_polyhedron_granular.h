@@ -40,7 +40,7 @@ class PairBodyRoundedPolyhedronGranular : public PairBodyRoundedPolyhedron {
   double init_one(int, int) override;
   void transfer_history(double *, double *, int, int) override;
 
-  double normal_force(int ibody, int jbody, double R, int itype, int jtype, double &fe,
+  double normal_force(int ibody, int jbody, int kind, double R, int itype, int jtype, double &fe,
                       double &fc) override;
 
  protected:
@@ -54,10 +54,12 @@ class PairBodyRoundedPolyhedronGranular : public PairBodyRoundedPolyhedron {
   }
   Granular_NS::GranularModel *add_model();
   void check_model(int m);
-  void contact_geometry(Granular_NS::GranularModel *, int ibody, int jbody, double R);
+  static double effective_radius(int kind, double radi, double radj);
+  void contact_geometry(Granular_NS::GranularModel *, int ibody, int jbody, int kind, double R);
 
-  void contact_damping(int ibody, int jbody, double R, double w, double vnnr, const double *n,
-                       const double *vn, const double *vt, double *fdiss) override;
+  void contact_damping(int ibody, int jbody, int kind, double R, double w, double vnnr,
+                       const double *n, const double *vn, const double *vt,
+                       double *fdiss) override;
   void tangential_spring(int ibody, int jbody, const double *n, const double *vt, double fne,
                          Scratch &s, double *fs) override;
 };

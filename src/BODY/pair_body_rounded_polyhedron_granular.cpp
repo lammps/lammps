@@ -301,17 +301,52 @@ void PairBodyRoundedPolyhedronGranular::transfer_history(double *source, double 
 }
 
 /* ----------------------------------------------------------------------
-   geometry of a contact at the surface separation R between the rounded
-   surfaces of ibody and jbody for the sub-models of the GRANULAR package:
-   the overlap delta = -R, and the effective radius of two spheres with the
-   rounded radii of the bodies
+   effective radius of curvature of a contact of the given kind, see
+   ContactKind, between the rounded surfaces of ibody with the rounded
+   radius radi and jbody with radj, for the Hertzian normal models:
+   1/Reff is the geometric mean of the principal relative curvatures, so
+   that the area of the elliptic contact is that of the circular one of
+   radius sqrt(Reff delta), see Johnson, Contact Mechanics (1985), Ch. 4
+     a rounded vertex is a sphere, so that 1/Reff = 1/radi + 1/radj
+     a rounded face is flat, so that Reff is the radius of the vertex
+     a rounded edge is a cylinder: on a vertex, the relative curvatures are
+       1/r_v and 1/r_v + 1/r_e
+     two edges are taken as crossing at a right angle, with the relative
+       curvatures 1/radi and 1/radj, since a contact of nearly parallel edges
+       is that of their vertices with the faces instead, see
+       PairBodyRoundedPolyhedron::vertex_face_weight()
+------------------------------------------------------------------------- */
 
-   NOTE: this is exact for vertex-vertex contacts only, for a vertex and
-   a face the curvature of the face is zero, which is open for discussion
+double PairBodyRoundedPolyhedronGranular::effective_radius(int kind, double radi, double radj)
+{
+  if ((radi <= 0.0) || (radj <= 0.0)) return 0.0;
+
+  switch (kind) {
+    case VERTEX_FACE:
+      return radi;
+    case FACE_VERTEX:
+      return radj;
+    case VERTEX_EDGE:
+      return radi * sqrt(radj / (radi + radj));
+    case EDGE_VERTEX:
+      return radj * sqrt(radi / (radi + radj));
+    case EDGE_EDGE:
+      return sqrt(radi * radj);
+    case VERTEX_VERTEX:
+    default:
+      return radi * radj / (radi + radj);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   geometry of a contact of the given kind at the surface separation R
+   between the rounded surfaces of ibody and jbody for the sub-models of
+   the GRANULAR package: the overlap delta = -R, and the effective radius
+   of curvature, see effective_radius()
 ------------------------------------------------------------------------- */
 
 void PairBodyRoundedPolyhedronGranular::contact_geometry(GranularModel *model, int ibody,
-                                                         int jbody, double R)
+                                                         int jbody, int kind, double R)
 {
   double *rmass = atom->rmass;
 
@@ -322,7 +357,7 @@ void PairBodyRoundedPolyhedronGranular::contact_geometry(GranularModel *model, i
   model->radi = rounded_radius[ibody];
   model->radj = rounded_radius[jbody];
   model->radsum = model->radi + model->radj;
-  model->Reff = (model->radsum > 0.0) ? model->radi * model->radj / model->radsum : 0.0;
+  model->Reff = effective_radius(kind, model->radi, model->radj);
   model->delta = -R;
   model->dR = MAX(model->delta, 0.0) * model->Reff;
   model->meff = rmass[ibody] * rmass[jbody] / (rmass[ibody] + rmass[jbody]);
@@ -333,14 +368,15 @@ void PairBodyRoundedPolyhedronGranular::contact_geometry(GranularModel *model, i
 }
 
 /* ----------------------------------------------------------------------
-   elastic force of the normal sub-model of a contact at the surface
-   separation R < 0, and the cohesion of Wang et al. with the strength k_na,
-   see PairBodyRoundedPolyhedron::normal_force()
+   elastic force of the normal sub-model of a contact of the given kind at
+   the surface separation R < 0, and the cohesion of Wang et al. with the
+   strength k_na, see PairBodyRoundedPolyhedron::normal_force()
    return the energy
 ------------------------------------------------------------------------- */
 
-double PairBodyRoundedPolyhedronGranular::normal_force(int ibody, int jbody, double R, int itype,
-                                                       int jtype, double &fe, double &fc)
+double PairBodyRoundedPolyhedronGranular::normal_force(int ibody, int jbody, int kind, double R,
+                                                       int itype, int jtype, double &fe,
+                                                       double &fc)
 {
   fe = fc = 0.0;
   if (R > cut_inner) return 0.0;
@@ -356,7 +392,7 @@ double PairBodyRoundedPolyhedronGranular::normal_force(int ibody, int jbody, dou
   if (R < 0.0) {
     int m = model_index[itype][jtype];
     GranularModel *model = models[m];
-    contact_geometry(model, ibody, jbody, R);
+    contact_geometry(model, ibody, jbody, kind, R);
     fe = model->normal_model->calculate_forces();
     energy += energy_factor[m] * fe * model->delta;
   }
@@ -364,18 +400,18 @@ double PairBodyRoundedPolyhedronGranular::normal_force(int ibody, int jbody, dou
 }
 
 /* ----------------------------------------------------------------------
-   normal damping of the damping sub-model of a contact at the surface
-   separation R with the weight w, the tangential damping is part of the
-   tangential sub-model of the pair of bodies, see tangential_spring()
+   normal damping of the damping sub-model of a contact of the given kind at
+   the surface separation R with the weight w, the tangential damping is part
+   of the tangential sub-model of the pair of bodies, see tangential_spring()
 ------------------------------------------------------------------------- */
 
-void PairBodyRoundedPolyhedronGranular::contact_damping(int ibody, int jbody, double R, double w,
-                                                        double vnnr, const double *n,
+void PairBodyRoundedPolyhedronGranular::contact_damping(int ibody, int jbody, int kind, double R,
+                                                        double w, double vnnr, const double *n,
                                                         const double * /*vn*/,
                                                         const double * /*vt*/, double *fdiss)
 {
   GranularModel *model = type_model(atom->type[ibody], atom->type[jbody]);
-  contact_geometry(model, ibody, jbody, R);
+  contact_geometry(model, ibody, jbody, kind, R);
   model->vnnr = vnnr;
   double fdamp = w * model->damping_model->calculate_forces();
   for (int k = 0; k < 3; k++) fdiss[k] = fdamp * n[k];
@@ -397,7 +433,10 @@ void PairBodyRoundedPolyhedronGranular::tangential_spring(int ibody, int jbody, 
   GranularModel *model = type_model(atom->type[ibody], atom->type[jbody]);
   double sign = (ibody == s.shear_i) ? 1.0 : -1.0;
 
-  contact_geometry(model, ibody, jbody, 0.0);
+  // the force is that of all contacts of the pair, so there is no single kind
+  // of contact, but the supported tangential models do not depend on it
+
+  contact_geometry(model, ibody, jbody, VERTEX_VERTEX, 0.0);
   for (int k = 0; k < 3; k++) {
     model->nx[k] = model->nx_unrotated[k] = sign * n[k];
     model->vtr[k] = sign * vt[k];

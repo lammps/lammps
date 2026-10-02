@@ -40,17 +40,24 @@ class PairBodyRoundedPolyhedron : public Pair {
   void unpack_reverse_comm(int, int *, double *) override;
   void reset_dt() override;
 
-  // normal force and energy of a contact between the surfaces of ibody and jbody
-  // at the separation R, which can be overridden for other contact models
-  virtual void kernel_force(int ibody, int jbody, double R, int itype, int jtype, double &energy,
-                            double &fpair);
+  // features of the two bodies in a contact, the first one named belongs to ibody
+  // of the contact model, e.g. VERTEX_FACE is a vertex of ibody on a face of jbody,
+  // so that the contact model can use the curvatures of the surfaces at the contact:
+  // a rounded vertex is a sphere, a rounded edge a cylinder, a rounded face is flat
+  enum ContactKind { VERTEX_VERTEX, VERTEX_EDGE, EDGE_VERTEX, VERTEX_FACE, FACE_VERTEX, EDGE_EDGE };
+
+  // normal force and energy of a contact of the given kind between the surfaces
+  // of ibody and jbody at the separation R, which can be overridden for other
+  // contact models
+  virtual void kernel_force(int ibody, int jbody, int kind, double R, int itype, int jtype,
+                            double &energy, double &fpair);
   // elastic and cohesive parts of the normal force, returns the energy
-  virtual double normal_force(int ibody, int jbody, double R, int itype, int jtype, double &fe,
-                              double &fc);
+  virtual double normal_force(int ibody, int jbody, int kind, double R, int itype, int jtype,
+                              double &fe, double &fc);
 
   struct Contact {
     int ibody, jbody;     // body (i.e. atom) indices (not tags)
-    int type;             // 0 = VERTEX-FACE; 1 = EDGE-EDGE; 2 = FACE-FACE
+    int kind;             // features in contact, see ContactKind
     double fx, fy, fz;    // unscaled cohesive forces at contact
     double xi[3];         // coordinates of the contact point on ibody
     double xj[3];         // coordinates of the contact point on jbody
@@ -154,10 +161,12 @@ class PairBodyRoundedPolyhedron : public Pair {
   void sphere_against_polyhedron(int ibody, int jbody, int itype, int jtype, double **x,
                                  double **v, double **f, double **torque, double **angmom,
                                  double **fnc, Scratch &s, double &evdwl, double *facc);
-  void sphere_point_contact(int ibody, int jbody, int itype, int jtype, double *h, double **x,
-                            double **v, double **f, double **torque, double **angmom,
-                            double **fnc, Scratch &s, double &evdwl, double *facc,
-                            int inside = 0);
+  // the point h is on a feature of polyhedron ibody, kind = VERTEX_VERTEX,
+  // EDGE_VERTEX, or FACE_VERTEX
+  void sphere_point_contact(int ibody, int jbody, int kind, int itype, int jtype, double *h,
+                            double **x, double **v, double **f, double **torque,
+                            double **angmom, double **fnc, Scratch &s, double &evdwl,
+                            double *facc, int inside = 0);
   // whether two edges, or the edges at two vertices, interact as edges
   int vertex_near(const Scratch &s, int ibody, int ni) const;
   int edge_near(const Scratch &s, int ibody, int ne) const;
@@ -223,13 +232,14 @@ class PairBodyRoundedPolyhedron : public Pair {
   // contact point between the rounded surfaces of two bodies
   void contact_point(const double *pi, const double *pj, const double *n, double rradi,
                      double rradj, double *pc);
-  // damping and friction forces at a contact point at the surface separation R
-  void damping_friction(int ibody, int jbody, const double *pc, const double *n, double fne,
-                        double R, int damping, int friction, double **x, double **v,
+  // damping and friction forces at a contact point of a contact of the given kind
+  // at the surface separation R
+  void damping_friction(int ibody, int jbody, int kind, const double *pc, const double *n,
+                        double fne, double R, int damping, int friction, double **x, double **v,
                         double **angmom, double **f, double **torque, double **fnc, int iref,
                         double *facc, Scratch *hs = nullptr, double w = 1.0);
   // damping force of a contact from the normal and tangential relative velocities
-  virtual void contact_damping(int ibody, int jbody, double R, double w, double vnnr,
+  virtual void contact_damping(int ibody, int jbody, int kind, double R, double w, double vnnr,
                                const double *n, const double *vn, const double *vt,
                                double *fdiss);
   // friction force at the contact with the largest overlap
@@ -250,7 +260,8 @@ class PairBodyRoundedPolyhedron : public Pair {
   void history_dummy_fix(int flag);
 
   // compute force and torque between two bodies given a pair of interacting points
-  void pair_force_and_torque(int ibody, int jbody, double *pi, double *pj, double r,
+  // on features of the given kind
+  void pair_force_and_torque(int ibody, int jbody, int kind, double *pi, double *pj, double r,
                              double contact_dist, int itype, int jtype, double **x, double **v,
                              double **f, double **torque, double **angmom, double **fnc,
                              int jflag, double &energy, double *facc, double w);

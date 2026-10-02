@@ -952,7 +952,7 @@ void PairBodyRoundedPolyhedron::sphere_against_sphere(int ibody, int jbody,
   R = rij - contact_dist;
 
   energy = 0;
-  kernel_force(ibody, jbody, R, itype, jtype, energy, fpair);
+  kernel_force(ibody, jbody, VERTEX_VERTEX, R, itype, jtype, energy, fpair);
 
   fx = delx*fpair/rij;
   fy = dely*fpair/rij;
@@ -978,9 +978,9 @@ void PairBodyRoundedPolyhedron::sphere_against_sphere(int ibody, int jbody,
     double pc[3];
     contact_point(x[ibody], x[jbody], n, rradi, rradj, pc);
     double fne, fc;
-    normal_force(ibody, jbody, R, itype, jtype, fne, fc);
-    damping_friction(ibody, jbody, pc, n, fne, R, 1, 1, x, v, angmom, f, torque, fnc, ibody, facc,
-                     &s);
+    normal_force(ibody, jbody, VERTEX_VERTEX, R, itype, jtype, fne, fc);
+    damping_friction(ibody, jbody, VERTEX_VERTEX, pc, n, fne, R, 1, 1, x, v, angmom, f, torque,
+                     fnc, ibody, facc, &s);
   }
 }
 
@@ -1004,7 +1004,7 @@ void PairBodyRoundedPolyhedron::sphere_against_polyhedron(int ibody, int jbody,
   double contact_dist = rounded_radius[ibody] + rounded_radius[jbody];
   double xi1[3], xi2[3], xi3[3], ui[3], vi[3], n[3], h[3], hmin[3], d, t;
   double dmin = -1.0;
-  int inside, tmp;
+  int inside, tmp, kind = FACE_VERTEX;
 
   // the center of the sphere is inside the core of the polyhedron, for large
   // overlaps: push it out through the nearest face
@@ -1014,8 +1014,8 @@ void PairBodyRoundedPolyhedron::sphere_against_polyhedron(int ibody, int jbody,
     if (sd <= 0.0) {
       sd = MIN(sd, -EPSILON*EPSILON*contact_dist);
       for (int k = 0; k < 3; k++) h[k] = x[jbody][k] - sd*n[k];
-      sphere_point_contact(ibody, jbody, itype, jtype, h, x, v, f, torque, angmom, fnc, s,
-                           evdwl, facc, 1);
+      sphere_point_contact(ibody, jbody, FACE_VERTEX, itype, jtype, h, x, v, f, torque, angmom,
+                           fnc, s, evdwl, facc, 1);
       return;
     }
   }
@@ -1036,6 +1036,7 @@ void PairBodyRoundedPolyhedron::sphere_against_polyhedron(int ibody, int jbody,
     if (!inside) continue;
     if ((dmin < 0.0) || (d < dmin)) {
       dmin = d;
+      kind = FACE_VERTEX;
       MathExtra::copy3(h, hmin);
     }
   }
@@ -1046,31 +1047,36 @@ void PairBodyRoundedPolyhedron::sphere_against_polyhedron(int ibody, int jbody,
     MathExtra::add3(x[ibody], discrete[ifirst+static_cast<int>(edge[iefirst+ne][0])], xi1);
     MathExtra::add3(x[ibody], discrete[ifirst+static_cast<int>(edge[iefirst+ne][1])], xi2);
     project_pt_line(x[jbody], xi1, xi2, h, d, t);
+    int hkind = EDGE_VERTEX;
     if (t < 0.0) {
       MathExtra::copy3(xi1, h);
       d = sqrt(MathExtra::distsq3(x[jbody], xi1));
+      hkind = VERTEX_VERTEX;
     } else if (t > 1.0) {
       MathExtra::copy3(xi2, h);
       d = sqrt(MathExtra::distsq3(x[jbody], xi2));
+      hkind = VERTEX_VERTEX;
     }
     if ((dmin < 0.0) || (d < dmin)) {
       dmin = d;
+      kind = hkind;
       MathExtra::copy3(h, hmin);
     }
   }
 
   if ((dmin < 0.0) || (dmin > contact_dist + cut_inner)) return;
-  sphere_point_contact(ibody, jbody, itype, jtype, hmin, x, v, f, torque, angmom, fnc, s, evdwl,
-                       facc);
+  sphere_point_contact(ibody, jbody, kind, itype, jtype, hmin, x, v, f, torque, angmom, fnc, s,
+                       evdwl, facc);
 }
 
 /* ----------------------------------------------------------------------
    Force between the point h of a polyhedron (ibody) and a sphere (jbody)
+   kind = the feature of the polyhedron with h and the sphere, see ContactKind
    inside = 1 if the center of the sphere is inside the core of the
    polyhedron, then the distance to h is negative
 ---------------------------------------------------------------------- */
 
-void PairBodyRoundedPolyhedron::sphere_point_contact(int ibody, int jbody,
+void PairBodyRoundedPolyhedron::sphere_point_contact(int ibody, int jbody, int kind,
   int itype, int jtype, double *h, double** x, double** v, double** f, double** torque,
   double** angmom, double** fnc, Scratch &s, double &evdwl, double* facc, int inside)
 {
@@ -1090,7 +1096,7 @@ void PairBodyRoundedPolyhedron::sphere_point_contact(int ibody, int jbody,
   R = rij - contact_dist;
 
   energy = 0;
-  kernel_force(ibody, jbody, R, itype, jtype, energy, fpair);
+  kernel_force(ibody, jbody, kind, R, itype, jtype, energy, fpair);
 
   fx = delx*fpair/rij;
   fy = dely*fpair/rij;
@@ -1104,15 +1110,15 @@ void PairBodyRoundedPolyhedron::sphere_point_contact(int ibody, int jbody,
     double nrm[3] = {delx/rij, dely/rij, delz/rij};
     double pc[3];
     contact_point(h, x[jbody], nrm, rradi, rradj, pc);
-    damping_friction(ibody, jbody, pc, nrm, 0.0, R, 1, 0, x, v, angmom, f, torque, fnc, ibody,
-                     facc);
+    damping_friction(ibody, jbody, kind, pc, nrm, 0.0, R, 1, 0, x, v, angmom, f, torque, fnc,
+                     ibody, facc);
 
     Contact c;
     c.ibody = ibody;
     c.jbody = jbody;
     MathExtra::copy3(h, c.xi);
     MathExtra::copy3(x[jbody], c.xj);
-    c.type = 0;
+    c.kind = kind;
     c.separation = R;
     c.r = rij;
     c.unique = 1;
@@ -1704,7 +1710,8 @@ void PairBodyRoundedPolyhedron::face_face_patches(int ibody, int jbody, int ityp
           }
         }
 
-        pair_force_and_torque(ibody, jbody, pa, pb, r, contact_dist, itype, jtype,
+        int kind = (pc.type == 0) ? FACE_VERTEX : ((pc.type == 1) ? VERTEX_FACE : EDGE_EDGE);
+        pair_force_and_torque(ibody, jbody, kind, pa, pb, r, contact_dist, itype, jtype,
                               x, v, f, torque, angmom, fnc, 1, energy, facc, w);
 
         if (r <= contact_dist) {
@@ -1713,7 +1720,7 @@ void PairBodyRoundedPolyhedron::face_face_patches(int ibody, int jbody, int ityp
           c.jbody = jbody;
           MathExtra::copy3(pa, c.xi);
           MathExtra::copy3(pb, c.xj);
-          c.type = 2;
+          c.kind = kind;
           c.separation = r - contact_dist;
           c.r = r;
           c.unique = 1;
@@ -2031,7 +2038,7 @@ void PairBodyRoundedPolyhedron::vertex_against_edge(int ibody, int jbody,
 
     if (nearest_face(jbody, x[jbody], xpi, n) < 0.0) continue;
 
-    pair_force_and_torque(ibody, jbody, xpi, hmin, dmin, contact_dist, itype, jtype,
+    pair_force_and_torque(ibody, jbody, VERTEX_EDGE, xpi, hmin, dmin, contact_dist, itype, jtype,
                           x, v, f, torque, angmom, fnc, 1, energy, facc, wmin);
 
     if (dmin <= contact_dist) {
@@ -2040,7 +2047,7 @@ void PairBodyRoundedPolyhedron::vertex_against_edge(int ibody, int jbody,
       c.jbody = jbody;
       MathExtra::copy3(xpi, c.xi);
       MathExtra::copy3(hmin, c.xj);
-      c.type = 0;
+      c.kind = VERTEX_EDGE;
       c.separation = dmin - contact_dist;
       c.r = dmin;
       c.unique = 1;
@@ -2115,7 +2122,8 @@ void PairBodyRoundedPolyhedron::vertex_against_vertex(int ibody, int jbody,
 
     if ((nmin < 0) || (dmin <= 0.0)) continue;
 
-    pair_force_and_torque(ibody, jbody, xpi, xmin, dmin, contact_dist, itype, jtype,
+    pair_force_and_torque(ibody, jbody, VERTEX_VERTEX, xpi, xmin, dmin, contact_dist, itype,
+                          jtype,
                           x, v, f, torque, angmom, fnc, 1, energy, facc, wmin);
 
     if (dmin <= contact_dist) {
@@ -2124,7 +2132,7 @@ void PairBodyRoundedPolyhedron::vertex_against_vertex(int ibody, int jbody,
       c.jbody = jbody;
       MathExtra::copy3(xpi, c.xi);
       MathExtra::copy3(xmin, c.xj);
-      c.type = 0;
+      c.kind = VERTEX_VERTEX;
       c.separation = dmin - contact_dist;
       c.r = dmin;
       c.unique = 1;
@@ -2311,7 +2319,7 @@ int PairBodyRoundedPolyhedron::interaction_edge_to_edge(int ibody,
 
   double contact_dist = rounded_radius_i + rounded_radius_j;
   int jflag = 1;
-  pair_force_and_torque(jbody, ibody, hj, hi, r, contact_dist,
+  pair_force_and_torque(jbody, ibody, EDGE_EDGE, hj, hi, r, contact_dist,
                         jtype, itype, x, v, f, torque, angmom,
                         fnc, jflag, energy, facc, w);
 
@@ -2322,7 +2330,7 @@ int PairBodyRoundedPolyhedron::interaction_edge_to_edge(int ibody,
     c.jbody = jbody;
     MathExtra::copy3(hi, c.xi);
     MathExtra::copy3(hj, c.xj);
-    c.type = 1;
+    c.kind = EDGE_EDGE;
     c.separation = r - contact_dist;
     c.r = r;
     c.unique = 1;
@@ -2471,7 +2479,7 @@ int PairBodyRoundedPolyhedron::interaction_face_to_edge(int ibody,
     double d = k ? d2 : d1;
 
     double w = vertex_face_weight(s, jbody, npj, ibody, face_index);
-    pair_force_and_torque(jbody, ibody, xpj, hi, d, contact_dist,
+    pair_force_and_torque(jbody, ibody, VERTEX_FACE, xpj, hi, d, contact_dist,
                           jtype, itype, x, v, f, torque, angmom,
                           fnc, jflag, energy, facc, w);
 
@@ -2486,7 +2494,7 @@ int PairBodyRoundedPolyhedron::interaction_face_to_edge(int ibody,
       c.xj[0] = xpj[0];
       c.xj[1] = xpj[1];
       c.xj[2] = xpj[2];
-      c.type = 0;
+      c.kind = FACE_VERTEX;
       c.separation = d - contact_dist;
       c.r = d;
       c.unique = 1;
@@ -2536,8 +2544,8 @@ void PairBodyRoundedPolyhedron::vertex_against_core(int ibody, int jbody,
     for (int k = 0; k < 3; k++) hp[k] = xp[k] - sd*nc[k];
 
     double w = vertex_face_weight(s, ibody, ni, jbody, nf);
-    pair_force_and_torque(ibody, jbody, xp, hp, sd, contact_dist, itype, jtype, x, v, f,
-                          torque, angmom, fnc, 1, energy, facc, w);
+    pair_force_and_torque(ibody, jbody, VERTEX_FACE, xp, hp, sd, contact_dist, itype, jtype, x,
+                          v, f, torque, angmom, fnc, 1, energy, facc, w);
 
     Contact c;
     c.ibody = jbody;
@@ -2548,7 +2556,7 @@ void PairBodyRoundedPolyhedron::vertex_against_core(int ibody, int jbody,
     c.xj[0] = xp[0];
     c.xj[1] = xp[1];
     c.xj[2] = xp[2];
-    c.type = 0;
+    c.kind = FACE_VERTEX;
     c.separation = sd - contact_dist;
     c.r = sd;
     c.unique = 1;
@@ -2567,7 +2575,7 @@ void PairBodyRoundedPolyhedron::vertex_against_core(int ibody, int jbody,
   between a pair of points on either bodies (similar to sphere-sphere)
 ------------------------------------------------------------------------- */
 
-void PairBodyRoundedPolyhedron::pair_force_and_torque(int ibody, int jbody,
+void PairBodyRoundedPolyhedron::pair_force_and_torque(int ibody, int jbody, int kind,
                  double* pi, double* pj, double r, double contact_dist,
                  int itype, int jtype, double** x,
                  double** v, double** f, double** torque, double** angmom,
@@ -2584,7 +2592,7 @@ void PairBodyRoundedPolyhedron::pair_force_and_torque(int ibody, int jbody,
   // see vertex_face_weight()
 
   double e = 0.0;
-  kernel_force(ibody, jbody, R, itype, jtype, e, fpair);
+  kernel_force(ibody, jbody, kind, R, itype, jtype, e, fpair);
 
   fx = w*delx*fpair/r;
   fy = w*dely*fpair/r;
@@ -2623,14 +2631,15 @@ void PairBodyRoundedPolyhedron::pair_force_and_torque(int ibody, int jbody,
 
 /* ----------------------------------------------------------------------
   Kernel force is model-dependent and can be derived for other styles
-    here is the harmonic potential (linear piece-wise forces) in Wang et al.
+    here is the harmonic potential (linear piece-wise forces) in Wang et al.,
+    which does not depend on the kind of the contact, see ContactKind
 ------------------------------------------------------------------------- */
 
-void PairBodyRoundedPolyhedron::kernel_force(int ibody, int jbody, double R, int itype,
+void PairBodyRoundedPolyhedron::kernel_force(int ibody, int jbody, int kind, double R, int itype,
                                              int jtype, double &energy, double &fpair)
 {
   double fe, fc;
-  energy += normal_force(ibody, jbody, R, itype, jtype, fe, fc);
+  energy += normal_force(ibody, jbody, kind, R, itype, jtype, fe, fc);
   fpair = fe + fc;
 }
 
@@ -2643,8 +2652,9 @@ void PairBodyRoundedPolyhedron::kernel_force(int ibody, int jbody, double R, int
    return the energy, which is zero at R = cut_inner
 ------------------------------------------------------------------------- */
 
-double PairBodyRoundedPolyhedron::normal_force(int /*ibody*/, int /*jbody*/, double R, int itype,
-                                               int jtype, double &fe, double &fc)
+double PairBodyRoundedPolyhedron::normal_force(int /*ibody*/, int /*jbody*/, int /*kind*/,
+                                               double R, int itype, int jtype, double &fe,
+                                               double &fc)
 {
   fe = fc = 0.0;
   if (R > cut_inner) return 0.0;
@@ -2721,7 +2731,7 @@ void PairBodyRoundedPolyhedron::rescale_cohesive_forces(double** x,
     // only the cohesive force is scaled by j_a, see Eq. 6, Wang et al.
 
     double fe, fc;
-    evdwl += w * normal_force(ibody, jbody, R, itype, jtype, fe, fc);
+    evdwl += w * normal_force(ibody, jbody, contacts[m].kind, R, itype, jtype, fe, fc);
     fpair = w * (fe + j_a * fc);
     fx = delx*fpair/r;
     fy = dely*fpair/r;
@@ -2767,8 +2777,8 @@ void PairBodyRoundedPolyhedron::rescale_cohesive_forces(double** x,
       double pc[3];
       contact_point(contacts[m].xi, contacts[m].xj, n, rounded_radius[ibody],
                     rounded_radius[jbody], pc);
-      damping_friction(ibody, jbody, pc, n, 0.0, R, 1, 0, x, v, angmom, f, torque, fnc, iref,
-                       facc, nullptr, w);
+      damping_friction(ibody, jbody, contacts[m].kind, pc, n, 0.0, R, 1, 0, x, v, angmom, f,
+                       torque, fnc, iref, facc, nullptr, w);
     }
   }
 }
@@ -2801,8 +2811,8 @@ void PairBodyRoundedPolyhedron::contact_point(const double *pi, const double *pj
   the total force on body iref is accumulated to facc
 ------------------------------------------------------------------------- */
 
-void PairBodyRoundedPolyhedron::damping_friction(int ibody, int jbody, const double *pc,
-  const double *n, double fne, double R, int damping, int friction, double** x, double** v,
+void PairBodyRoundedPolyhedron::damping_friction(int ibody, int jbody, int kind,
+  const double *pc, const double *n, double fne, double R, int damping, int friction, double** x, double** v,
   double** angmom, double** f, double** torque, double** fnc, int iref, double* facc,
   Scratch *hs, double w)
 {
@@ -2827,7 +2837,7 @@ void PairBodyRoundedPolyhedron::damping_friction(int ibody, int jbody, const dou
   // the damping is scaled by the weight w of the contact, see vertex_face_weight(),
   // the elastic normal force fne of the friction includes it
 
-  if (damping) contact_damping(ibody, jbody, R, w, vnnr, n, vn, vt, fdiss);
+  if (damping) contact_damping(ibody, jbody, kind, R, w, vnnr, n, vn, vt, fdiss);
 
   double vtmag = MathExtra::len3(vt);
   if (friction && hs && hs->shear) {
@@ -2878,16 +2888,17 @@ void PairBodyRoundedPolyhedron::damping_friction(int ibody, int jbody, const dou
 }
 
 /* ----------------------------------------------------------------------
-  Damping force of a contact at the surface separation R with the weight w,
-  see vertex_face_weight(), from the normal and tangential relative
-  velocities vn and vt, with vnnr = vn . n, see Eq. 4, Wang et al.:
+  Damping force of a contact of the given kind, see ContactKind, at the
+  surface separation R with the weight w, see vertex_face_weight(), from
+  the normal and tangential relative velocities vn and vt, with
+  vnnr = vn . n, see Eq. 4, Wang et al.:
     -w (c_n v_n + c_t v_t)
 ------------------------------------------------------------------------- */
 
-void PairBodyRoundedPolyhedron::contact_damping(int /*ibody*/, int /*jbody*/, double /*R*/,
-                                                double w, double /*vnnr*/, const double * /*n*/,
-                                                const double *vn, const double *vt,
-                                                double *fdiss)
+void PairBodyRoundedPolyhedron::contact_damping(int /*ibody*/, int /*jbody*/, int /*kind*/,
+                                                double /*R*/, double w, double /*vnnr*/,
+                                                const double * /*n*/, const double *vn,
+                                                const double *vt, double *fdiss)
 {
   for (int k = 0; k < 3; k++) fdiss[k] = -w * (c_n * vn[k] + c_t * vt[k]);
 }
@@ -3080,10 +3091,11 @@ void PairBodyRoundedPolyhedron::friction_force(Contact &contact, int itype, int 
                 rounded_radius[contact.jbody], pc);
 
   double fne, fc;
-  normal_force(contact.ibody, contact.jbody, contact.separation, itype, jtype, fne, fc);
+  normal_force(contact.ibody, contact.jbody, contact.kind, contact.separation, itype, jtype, fne,
+               fc);
   fne *= contact.w;
-  damping_friction(contact.ibody, contact.jbody, pc, n, fne, contact.separation, 0, 1, x, v,
-                   angmom, f, torque, fnc, iref, facc, &s);
+  damping_friction(contact.ibody, contact.jbody, contact.kind, pc, n, fne, contact.separation, 0,
+                   1, x, v, angmom, f, torque, fnc, iref, facc, &s);
 }
 
 /* ----------------------------------------------------------------------

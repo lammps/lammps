@@ -715,7 +715,7 @@ short-range or long-range interactions.
 * :doc:`pair_style mesomem/dipole <pair_mesomem_dipole>`
 * :doc:`angle_style dipole <angle_dipole>`
 * ``examples/dipole``
-* ``examples/mesomem``
+* ``examples/PACKAGES/mesomem``
 
 ----------
 

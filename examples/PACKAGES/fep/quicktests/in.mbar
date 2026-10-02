@@ -33,7 +33,7 @@ kspace_style pppm 1.0e-5
 
 timestep 2.0
 
-velocity all create 300.0 12345
+velocity all create 300.0 12345 loop geom
 
 fix INTEG all nvt temp 300.0 300.0 $(100.0*dt)
 

@@ -55,7 +55,7 @@ ComputeFEP::ComputeFEP(LAMMPS *lmp, int narg, char **arg) : Compute(lmp, narg, a
 
   const int ntypes = atom->ntypes;
   vector = new double[size_vector];
-  fepinitflag = 0;    // avoid init to run entirely when called by write_data
+  fepinitflag = 0;    // print settings only at the first init()
 
   temp_fep = utils::numeric(FLERR, arg[3], false, lmp);
 
@@ -143,6 +143,7 @@ ComputeFEP::ComputeFEP(LAMMPS *lmp, int narg, char **arg) : Compute(lmp, narg, a
 
   // charge, force, energy, virial per-atom arrays are allocated in init()
 
+  nmax = 0;
   f_orig = nullptr;
   q_orig = nullptr;
   peatom_orig = keatom_orig = nullptr;
@@ -176,12 +177,8 @@ void ComputeFEP::init()
 {
   int i, j;
 
-  if (!fepinitflag)    // avoid init to run entirely when called by write_data
-    fepinitflag = 1;
-  else
-    return;
-
-  // setup and error checks
+  // setup and error checks, repeated at every init() since the pair style
+  // or kspace style may have been changed or added since the previous run
 
   pairflag = 0;
 
@@ -241,15 +238,18 @@ void ComputeFEP::init()
                  "compute tail corrections");
   }
 
-  // allocate per-atom storage now that force->kspace is non-null
+  // (re-)allocate per-atom storage, the kspace arrays depend on force->kspace
 
+  deallocate_storage();
   allocate_storage();
 
   // detect if package gpu is present
 
   fixgpu = modify->get_fix_by_id("package_gpu");
 
-  if (comm->me == 0) {
+  // print settings only once and not again when called by write_data or later runs
+
+  if ((comm->me == 0) && !fepinitflag) {
     auto mesg = fmt::format("FEP settings ...\n  temperature = {:f}\n", temp_fep);
     mesg += fmt::format("  tail {}\n", (tailflag ? "yes" : "no"));
     for (int m = 0; m < npert; m++) {
@@ -262,6 +262,7 @@ void ComputeFEP::init()
     }
     utils::logmesg(lmp, mesg);
   }
+  fepinitflag = 1;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -62,7 +62,7 @@ ComputeMBAR::ComputeMBAR(LAMMPS *lmp, int narg, char **arg) : Compute(lmp, narg,
   extvector = 0;
 
   const int ntypes = atom->ntypes;
-  mbarinitflag = 0;    // avoid init to run entirely when called by write_data
+  mbarinitflag = 0;    // print settings only at the first init()
 
   temp_mbar = utils::numeric(FLERR, arg[3], false, lmp);
 
@@ -249,12 +249,8 @@ void ComputeMBAR::init()
 {
   int i, j;
 
-  if (!mbarinitflag)    // avoid init to run entirely when called by write_data
-    mbarinitflag = 1;
-  else
-    return;
-
-  // setup and error checks
+  // setup and error checks, repeated at every init() since the pair style
+  // or kspace style may have been changed or added since the previous run
 
   pairflag = 0;
 
@@ -309,15 +305,18 @@ void ComputeMBAR::init()
                  "compute tail corrections");
   }
 
-  // allocate per-atom storage now that force->kspace is non-null
+  // (re-)allocate per-atom storage, the kspace arrays depend on force->kspace
 
+  deallocate_storage();
   allocate_storage();
 
   // detect if package gpu is present
 
   fixgpu = modify->get_fix_by_id("package_gpu");
 
-  if (comm->me == 0) {
+  // print settings only once and not again when called by write_data or later runs
+
+  if ((comm->me == 0) && !mbarinitflag) {
     auto mesg = fmt::format("MBAR settings ...\n  temperature = {:f}\n", temp_mbar);
     mesg += fmt::format("  tail {}\n", (tailflag ? "yes" : "no"));
     mesg += fmt::format("  states = {}\n", nlambda);
@@ -333,6 +332,7 @@ void ComputeMBAR::init()
     }
     utils::logmesg(lmp, mesg);
   }
+  mbarinitflag = 1;
 }
 
 /* ----------------------------------------------------------------------

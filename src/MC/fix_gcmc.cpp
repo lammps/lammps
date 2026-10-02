@@ -1541,12 +1541,14 @@ void FixGCMC::attempt_molecule_insertion()
     MathExtra::matvec(rotmat,onemols[imol]->center,xgeom);
     MathExtra::add3(xgeom,com_coord,xgeom);
 
-    for (int submol = 0; submol < nmol; ++submol) {
-      if (rigidflag)
-        fixrigid->set_molecule(nlocalprev,maxtag_all,submol,xgeom,vnew,quat);
-      else if (shakeflag)
-        fixshake->set_molecule(nlocalprev,maxtag_all,submol,xgeom,vnew,quat);
-    }
+    // only the first molecule of the template is inserted, which has
+    // index 0 in the molecule template list of fix rigid/small or fix shake
+
+    if (rigidflag)
+      fixrigid->set_molecule(nlocalprev,maxtag_all,0,xgeom,vnew,quat);
+    else if (shakeflag)
+      fixshake->set_molecule(nlocalprev,maxtag_all,0,xgeom,vnew,quat);
+
     atom->natoms += natoms_per_molecule;
     if (atom->natoms < 0)
       error->all(FLERR,"Too many total atoms");
@@ -2349,12 +2351,14 @@ void FixGCMC::attempt_molecule_insertion_full()
   MathExtra::matvec(rotmat,onemols[imol]->center,xgeom);
   MathExtra::add3(xgeom,com_coord,xgeom);
 
-  for (int submol = 0; submol < nmol; ++submol) {
-    if (rigidflag)
-      fixrigid->set_molecule(nlocalprev,maxtag_all,submol,xgeom,vnew,quat);
-    else if (shakeflag)
-      fixshake->set_molecule(nlocalprev,maxtag_all,submol,xgeom,vnew,quat);
-  }
+  // only the first molecule of the template is inserted, which has
+  // index 0 in the molecule template list of fix rigid/small or fix shake
+
+  if (rigidflag)
+    fixrigid->set_molecule(nlocalprev,maxtag_all,0,xgeom,vnew,quat);
+  else if (shakeflag)
+    fixshake->set_molecule(nlocalprev,maxtag_all,0,xgeom,vnew,quat);
+
   atom->natoms += natoms_per_molecule;
   if (atom->natoms < 0)
     error->all(FLERR,"Too many total atoms");

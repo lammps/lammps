@@ -2,7 +2,7 @@
 ########################################
 # CMake build system
 # This file is part of LAMMPS
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.27)
 ########################################
 # initialize version variables with project command
 if(POLICY CMP0048)
@@ -30,7 +30,6 @@ endif()
 if(POLICY CMP0135)
   cmake_policy(SET CMP0135 NEW)
 endif()
-
 # set policy to ignore CMAKE_WARN_DEPRECATED and CMAKE_ERROR_DEPRECATED if available.
 # we are not using those AFAIK anyway.
 if(POLICY CMP0218)

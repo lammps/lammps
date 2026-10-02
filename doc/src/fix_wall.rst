@@ -8,6 +8,7 @@
 .. index:: fix wall/harmonic
 .. index:: fix wall/harmonic/kk
 .. index:: fix wall/harmonic/outside
+.. index:: fix wall/harmonic/outside/kk
 .. index:: fix wall/lepton
 .. index:: fix wall/morse
 .. index:: fix wall/morse/kk
@@ -38,6 +39,8 @@ Accelerator Variants: *wall/harmonic/kk*
 
 fix wall/harmonic/outside command
 =================================
+
+Accelerator Variants: *wall/harmonic/outside/kk*
 
 fix wall/lepton command
 =========================

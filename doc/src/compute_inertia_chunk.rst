@@ -41,7 +41,7 @@ tensor for each chunk, ordered
 :math:`I_{xx},I_{yy},I_{zz},I_{xy},I_{yz},I_{xz}`.  The calculation
 includes all effects due to atoms passing through periodic boundaries.
 
-.. versionchanged:: TBD
+.. versionchanged:: 2Sep2026
 
 For :doc:`finite-size particles <Howto_spherical>` (finite-size spheres,
 ellipsoids, superellipsoids, line segments, triangles, and body

@@ -48,11 +48,11 @@ class PairCoulLongKokkos : public PairCoulLong {
   struct params_coul{
 // NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
-    params_coul() {cut_coulsq=0;};
+    params_coul() {cut_coulsq=0;scale=0;};
 // NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
-    params_coul(int /*i*/) {cut_coulsq=0;};
-    KK_FLOAT cut_coulsq;
+    params_coul(int /*i*/) {cut_coulsq=0;scale=0;};
+    KK_FLOAT cut_coulsq,scale;
   };
 
  protected:

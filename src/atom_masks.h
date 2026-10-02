@@ -80,4 +80,8 @@
 #define IARRAY_MASK    0x0000010000000000
 #define DARRAY_MASK    0x0000020000000000
 
+// per-type masses (atom->mass); not MASK_MASK or RMASS_MASK
+
+#define MASS_MASK      0x0000040000000000
+
 #endif

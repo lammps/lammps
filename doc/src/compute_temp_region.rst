@@ -1,7 +1,10 @@
 .. index:: compute temp/region
+.. index:: compute temp/region/kk
 
 compute temp/region command
 ===========================
+
+Accelerator Variant: *temp/region/kk*
 
 Syntax
 """"""
@@ -111,9 +114,15 @@ vector values are "extensive".
 The scalar value is in temperature :doc:`units <units>`.  The vector
 values are in energy :doc:`units <units>`.
 
+----------
+
+.. include:: accel_styles.rst
+
 Restrictions
 """"""""""""
-none
+
+The *temp/region/kk* accelerator variant requires a KOKKOS-enabled
+region style (see the :doc:`region <region>` command).
 
 Related commands
 """"""""""""""""

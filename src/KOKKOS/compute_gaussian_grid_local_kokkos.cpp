@@ -60,20 +60,19 @@ ComputeGaussianGridLocalKokkos<DeviceType>::ComputeGaussianGridLocalKokkos(LAMMP
       k_cutsq.modify_host();
     }
   }
-  // Set up element lists
+  // Set up per-type lists.  ComputeGaussianGridLocal has no type-to-element map,
+  // so there is nothing to copy into d_map.
   int n = atom->ntypes;
-  MemKK::realloc_kokkos(d_radelem,"ComputeSNAGridKokkos::radelem",n);
-  MemKK::realloc_kokkos(d_sigmaelem,"ComputeSNAGridKokkos::sigmaelem",n+1);
-  MemKK::realloc_kokkos(d_prefacelem,"ComputeSNAGridKokkos::prefacelem",n+1);
-  MemKK::realloc_kokkos(d_argfacelem,"ComputeSNAGridKokkos::argfacelem",n+1);
-  MemKK::realloc_kokkos(d_map,"ComputeSNAGridKokkos::map",n+1);
+  MemKK::realloc_kokkos(d_radelem,"ComputeGaussianGridLocalKokkos::radelem",n);
+  MemKK::realloc_kokkos(d_sigmaelem,"ComputeGaussianGridLocalKokkos::sigmaelem",n);
+  MemKK::realloc_kokkos(d_prefacelem,"ComputeGaussianGridLocalKokkos::prefacelem",n);
+  MemKK::realloc_kokkos(d_argfacelem,"ComputeGaussianGridLocalKokkos::argfacelem",n);
   auto h_radelem = Kokkos::create_mirror_view(d_radelem);
   auto h_sigmaelem = Kokkos::create_mirror_view(d_sigmaelem);
   auto h_prefacelem = Kokkos::create_mirror_view(d_prefacelem);
   auto h_argfacelem = Kokkos::create_mirror_view(d_argfacelem);
-  auto h_map = Kokkos::create_mirror_view(d_map);
-  // start from index 1 because of how compute sna/grid is
-  for (int i = 1; i <= atom->ntypes; i++) {
+  // the CPU arrays are indexed by atom type (1 to ntypes), the views by type-1
+  for (int i = 1; i <= n; i++) {
     h_radelem(i-1) = radelem[i];
     h_sigmaelem(i-1) = sigmaelem[i];
     h_prefacelem(i-1) = prefacelem[i];
@@ -83,8 +82,6 @@ ComputeGaussianGridLocalKokkos<DeviceType>::ComputeGaussianGridLocalKokkos(LAMMP
   Kokkos::deep_copy(d_sigmaelem,h_sigmaelem);
   Kokkos::deep_copy(d_prefacelem, h_prefacelem);
   Kokkos::deep_copy(d_argfacelem, h_argfacelem);
-  Kokkos::deep_copy(d_map,h_map);
-
 }
 
 /* ---------------------------------------------------------------------- */
@@ -104,14 +101,28 @@ ComputeGaussianGridLocalKokkos<DeviceType>::~ComputeGaussianGridLocalKokkos()
 template<class DeviceType>
 void ComputeGaussianGridLocalKokkos<DeviceType>::setup()
 {
+  // Do not call ComputeGridLocal::setup(), it allocates alocal with memory->create()
+  // and sets gridlocal_allocated, so the next setup() (and the base destructor) would
+  // call free() on the Kokkos-owned storage installed below.  Only the grid indices
+  // are taken from the base class.
 
-  ComputeGridLocal::setup();
+  memoryKK->destroy_kokkos(k_alocal, alocal);
+  array_local = nullptr;
+
+  ComputeGridLocal::set_grid_global();
+  ComputeGridLocal::set_grid_local();
 
   // allocate arrays
   memoryKK->create_kokkos(k_alocal, alocal, size_local_rows, size_local_cols, "grid:alocal");
   array_local = alocal;
   d_alocal = k_alocal.template view<DeviceType>();
 
+  // fill the coordinate columns and run the subdomain check ComputeGridLocal::setup()
+  // would have done; the device kernel overwrites them, the host fallback does not
+
+  ComputeGridLocal::assign_coords();
+  k_alocal.modify_host();
+  k_alocal.template sync<DeviceType>();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -128,6 +139,9 @@ template<class DeviceType>
 void ComputeGaussianGridLocalKokkos<DeviceType>::compute_local()
 {
   if (host_flag) {
+    atomKK->sync(Host,X_MASK|TYPE_MASK|MASK_MASK);
+    ComputeGaussianGridLocal::compute_local();
+    k_alocal.modify_host();
     return;
   }
 
@@ -140,23 +154,16 @@ void ComputeGaussianGridLocalKokkos<DeviceType>::compute_local()
   xlen = nxhi-nxlo+1;
   total_range = (nzhi-nzlo+1)*(nyhi-nylo+1)*(nxhi-nxlo+1);
 
-  atomKK->sync(execution_space,X_MASK|F_MASK|TYPE_MASK);
+  atomKK->sync(execution_space,X_MASK|F_MASK|TYPE_MASK|MASK_MASK);
   x = atomKK->k_x.view<DeviceType>();
   type = atomKK->k_type.view<DeviceType>();
+  mask = atomKK->k_mask.view<DeviceType>();
   k_cutsq.template sync<DeviceType>();
 
-  // max_neighs is defined here - think of more elaborate methods.
-  max_neighs = 100;
-
-  // Pair snap/kk uses grow_ij with some max number of neighs but compute sna/grid uses total
-  // number of atoms.
   ntotal = atomKK->nlocal + atomKK->nghost;
-  // Allocate view for number of neighbors per grid point
-  MemKK::realloc_kokkos(d_ninside,"ComputeSNAGridKokkos:ninside",total_range);
 
   // "chunksize" variable is default 32768 in compute_sna_grid.cpp, and set by user
   // `total_range` is the number of grid points which may be larger than chunk size.
-  // printf(">>> total_range: %d\n", total_range);
   chunksize = 32768; // 100*32768
   chunk_size = MIN(chunksize, total_range);
   chunk_offset = 0;
@@ -272,6 +279,11 @@ void ComputeGaussianGridLocalKokkos<DeviceType>::operator() (TagComputeGaussianG
 
   // Looping over ntotal for now.
   for (int j = 0; j < ntotal; j++){
+
+    // check that j is in compute group
+
+    if (!(mask(j) & groupbit)) continue;
+
     const double dx = static_cast<double>(x(j,0)) - xtmp;
     const double dy = static_cast<double>(x(j,1)) - ytmp;
     const double dz = static_cast<double>(x(j,2)) - ztmp;
@@ -280,7 +292,7 @@ void ComputeGaussianGridLocalKokkos<DeviceType>::operator() (TagComputeGaussianG
 
     if (rsq < rnd_cutsq(jtype, jtype) ) {
       int icol = size_local_cols_base + jtype - 1;
-      d_alocal(igrid, icol) += static_cast<KK_FLOAT>(d_prefacelem(jtype-1) * exp(-rsq * d_argfacelem(jtype-1)));
+      d_alocal(igrid, icol) += static_cast<KK_FLOAT>(d_prefacelem(jtype-1) * Kokkos::exp(-rsq * d_argfacelem(jtype-1)));
     }
   }
 }

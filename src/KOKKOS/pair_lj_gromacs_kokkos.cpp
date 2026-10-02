@@ -60,8 +60,6 @@ PairLJGromacsKokkos<DeviceType>::~PairLJGromacsKokkos()
     memoryKK->destroy_kokkos(k_eatom,eatom);
     memoryKK->destroy_kokkos(k_vatom,vatom);
     memoryKK->destroy_kokkos(k_cutsq,cutsq);
-    memoryKK->destroy_kokkos(k_cut_inner,cut_inner);
-    memoryKK->destroy_kokkos(k_cut_inner_sq,cut_inner_sq);
   }
 }
 
@@ -92,8 +90,6 @@ void PairLJGromacsKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   atomKK->sync(execution_space,datamask_read);
   k_cutsq.template sync<DeviceType>();
-  k_cut_inner.template sync<DeviceType>();
-  k_cut_inner_sq.template sync<DeviceType>();
   k_params.template sync<DeviceType>();
   if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
   else atomKK->modified(execution_space,F_MASK);
@@ -219,14 +215,6 @@ void PairLJGromacsKokkos<DeviceType>::allocate()
   memoryKK->create_kokkos(k_cutsq,cutsq,n+1,n+1,"pair:cutsq");
   d_cutsq = k_cutsq.template view<DeviceType>();
 
-  memory->destroy(cut_inner);
-  memoryKK->create_kokkos(k_cut_inner,cut_inner,n+1,n+1,"pair:cut_inner");
-  d_cut_inner = k_cut_inner.template view<DeviceType>();
-
-  memory->destroy(cut_inner_sq);
-  memoryKK->create_kokkos(k_cut_inner_sq,cut_inner_sq,n+1,n+1,"pair:cut_inner_sq");
-  d_cut_inner_sq = k_cut_inner_sq.template view<DeviceType>();
-
   k_params = Kokkos::DualView<params_lj**,Kokkos::LayoutRight,DeviceType>("PairLJGromacs::params",n+1,n+1);
   params = k_params.template view<DeviceType>();
 }
@@ -291,8 +279,6 @@ double PairLJGromacsKokkos<DeviceType>::init_one(int i, int j)
 
   k_cutsq.view_host()(i,j) = k_cutsq.view_host()(j,i) = cutone*cutone;
   k_cutsq.modify_host();
-  k_cut_inner_sq.view_host()(i,j) = k_cut_inner_sq.view_host()(j,i) = cut_inner_sqm;
-  k_cut_inner_sq.modify_host();
   k_params.modify_host();
 
   return cutone;

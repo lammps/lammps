@@ -48,6 +48,10 @@ PairLubricate::PairLubricate(LAMMPS *lmp) :
 {
   single_enable = 0;
 
+  // the FLD drag acts on single particles, so the virial is not F dot r
+
+  no_virial_fdotr_compute = 1;
+
   // set comm size needed by this Pair
 
   comm_forward = 6;

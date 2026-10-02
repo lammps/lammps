@@ -35,7 +35,7 @@ class FixTempRescaleKokkos : public FixTempRescale {
   typedef ArrayTypes<DeviceType> AT;
 
   FixTempRescaleKokkos(class LAMMPS *, int, char **);
-  ~FixTempRescaleKokkos() override {}
+  void init() override;
   void end_of_step() override;
 };
 

@@ -41,10 +41,9 @@ static constexpr int DELTA = 1048576;
 /* ---------------------------------------------------------------------- */
 
 DumpGrid::DumpGrid(LAMMPS *lmp, int narg, char **arg) :
-  Dump(lmp, narg, arg), idregion(nullptr), earg(nullptr), vtype(nullptr),
+  Dump(lmp, narg, arg), idregion(nullptr), earg(nullptr),
   vformat(nullptr), columns(nullptr), columns_default(nullptr),
-  field2index(nullptr), field2grid(nullptr), field2data(nullptr),
-  argindex(nullptr), id_compute(nullptr), id_fix(nullptr), pack_choice(nullptr)
+  id_compute(nullptr), id_fix(nullptr)
 {
   if (narg == 5) error->all(FLERR,"No dump grid arguments specified");
 
@@ -64,13 +63,13 @@ DumpGrid::DumpGrid(LAMMPS *lmp, int narg, char **arg) :
 
   // allocate field vectors
 
-  pack_choice = new FnPtrPack[nfield];
-  vtype = new int[nfield];
-  field2source = new int[nfield];
-  field2index = new int[nfield];
-  field2grid = new int[nfield];
-  field2data = new int[nfield];
-  argindex = new int[nfield];
+  pack_choice.resize(nfield);
+  vtype.resize(nfield);
+  field2source.resize(nfield);
+  field2index.resize(nfield);
+  field2grid.resize(nfield);
+  field2data.resize(nfield);
+  argindex.resize(nfield);
 
   buffer_allow = 1;
   buffer_flag = 1;
@@ -149,14 +148,6 @@ DumpGrid::~DumpGrid()
     for (int i = 0; i < nargnew; i++) delete[] earg[i];
     memory->sfree(earg);
   }
-
-  delete[] pack_choice;
-  delete[] vtype;
-  delete[] field2source;
-  delete[] field2index;
-  delete[] field2grid;
-  delete[] field2data;
-  delete[] argindex;
 
   delete[] idregion;
 

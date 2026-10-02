@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -31,11 +30,10 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-ComputeDilatationAtom::
-ComputeDilatationAtom(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+ComputeDilatationAtom::ComputeDilatationAtom(LAMMPS *lmp, int narg, char **arg) :
+    Compute(lmp, narg, arg)
 {
-  if (narg != 3) error->all(FLERR,"Illegal compute dilatation/atom command");
+  if (narg != 3) error->all(FLERR, "Illegal compute dilatation/atom command");
 
   peratom_flag = 1;
   size_peratom_cols = 0;
@@ -56,12 +54,12 @@ ComputeDilatationAtom::~ComputeDilatationAtom()
 void ComputeDilatationAtom::init()
 {
   if ((comm->me == 0) && (modify->get_compute_by_style("dilatation/atom").size() > 1))
-    error->warning(FLERR,"More than one compute dilatation/atom");
+    error->warning(FLERR, "More than one compute dilatation/atom");
 
   // check for compatible pair style
 
-  if ((force->pair_match("^peri",0) == nullptr) || force->pair_match("^peri/pmb",0))
-    error->all(FLERR,"Compute dilatation/atom cannot be used with this pair style");
+  if ((force->pair_match("^peri", 0) == nullptr) || force->pair_match("^peri/pmb", 0))
+    error->all(FLERR, "Compute dilatation/atom cannot be used with this pair style");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -75,21 +73,24 @@ void ComputeDilatationAtom::compute_peratom()
   if (atom->nmax > nmax) {
     memory->destroy(dilatation);
     nmax = atom->nmax;
-    memory->create(dilatation,nmax,"dilatation/atom:dilatation");
+    memory->create(dilatation, nmax, "dilatation/atom:dilatation");
     vector_atom = dilatation;
   }
 
   // extract dilatation for each atom in group
 
   int tmp;
-  auto *anypair = force->pair_match("^peri",0);
-  auto *theta = (double *)anypair->extract("theta",tmp);
+  auto *anypair = force->pair_match("^peri", 0);
+  auto *theta = (double *) anypair->extract("theta", tmp);
 
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) dilatation[i] = theta[i];
+    if (mask[i] & groupbit)
+      dilatation[i] = theta[i];
+    else
+      dilatation[i] = 0.0;
 }
 
 /* ----------------------------------------------------------------------
@@ -98,6 +99,6 @@ void ComputeDilatationAtom::compute_peratom()
 
 double ComputeDilatationAtom::memory_usage()
 {
-  double bytes = (double)nmax * sizeof(double);
+  double bytes = (double) nmax * sizeof(double);
   return bytes;
 }

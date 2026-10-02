@@ -64,6 +64,8 @@ PairLJCharmmfswCoulCharmmfsh::PairLJCharmmfswCoulCharmmfsh(LAMMPS *lmp) :
 
 PairLJCharmmfswCoulCharmmfsh::~PairLJCharmmfswCoulCharmmfsh()
 {
+  if (copymode) return;
+
   // switch qqr2e back from CHARMM value to LAMMPS value
 
   if (update && strcmp(update->unit_style,"real") == 0) {
@@ -71,8 +73,6 @@ PairLJCharmmfswCoulCharmmfsh::~PairLJCharmmfswCoulCharmmfsh()
       utils::logmesg(lmp,"Restoring original LAMMPS coulomb energy conversion constant\n");
     force->qqr2e = force->qqr2e_lammps_real;
   }
-
-  if (copymode) return;
 
   if (allocated) {
     memory->destroy(setflag);

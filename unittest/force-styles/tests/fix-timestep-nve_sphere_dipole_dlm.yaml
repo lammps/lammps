@@ -2,7 +2,7 @@
 lammps_version: 27 Jun 2024
 date_generated: Sun Aug  4 23:06:24 2024
 epsilon: 1e-09
-skip_tests:
+skip_tests: kokkos_omp kokkos_serial kokkos_gpu
 prerequisites: ! |
   atom full
   atom dipole

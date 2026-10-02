@@ -3,7 +3,7 @@
 region command
 ==============
 
-Accelerator Variants: *block/kk*, *sphere/kk*
+Accelerator Variants: *block/kk*, *cone/kk*, *cylinder/kk*, *ellipsoid/kk*, *plane/kk*, *prism/kk*, *sphere/kk*
 
 Syntax
 """"""
@@ -77,7 +77,7 @@ Syntax
          Rx,Ry,Rz = axis of rotation vector
        *open* value = integer from 1-6 corresponding to face index (see below)
 
-* accelerated styles (with same args) = *block/kk, sphere/kk*
+* accelerated styles (with same args) = *block/kk, cone/kk, cylinder/kk, ellipsoid/kk, plane/kk, prism/kk, sphere/kk*
 
 Examples
 """"""""

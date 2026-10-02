@@ -159,12 +159,8 @@ class Bitset {
   KOKKOS_FORCEINLINE_FUNCTION
   bool test(unsigned i) const {
     if (i < m_size) {
-#ifdef KOKKOS_ENABLE_SYCL
-      const unsigned block = Kokkos::atomic_load(&m_blocks[i >> block_shift]);
-#else
       const unsigned block = volatile_load(&m_blocks[i >> block_shift]);
-#endif
-      const unsigned mask = 1u << static_cast<int>(i & block_mask);
+      const unsigned mask  = 1u << static_cast<int>(i & block_mask);
       return block & mask;
     }
     return false;
@@ -187,11 +183,8 @@ class Bitset {
     const unsigned block_idx =
         (hint >> block_shift) < m_blocks.extent(0) ? (hint >> block_shift) : 0;
     const unsigned offset = hint & block_mask;
-#ifdef KOKKOS_ENABLE_SYCL
-    unsigned block = Kokkos::atomic_load(&m_blocks[block_idx]);
-#else
-    unsigned block = volatile_load(&m_blocks[block_idx]);
-#endif
+    unsigned block        = volatile_load(&m_blocks[block_idx]);
+
     block = !m_last_block_mask || (block_idx < (m_blocks.extent(0) - 1))
                 ? block
                 : block & m_last_block_mask;
@@ -209,11 +202,8 @@ class Bitset {
       unsigned scan_direction = BIT_SCAN_FORWARD_MOVE_HINT_FORWARD) const {
     const unsigned block_idx = hint >> block_shift;
     const unsigned offset    = hint & block_mask;
-#ifdef KOKKOS_ENABLE_SYCL
-    unsigned block = Kokkos::atomic_load(&m_blocks[block_idx]);
-#else
-    unsigned block = volatile_load(&m_blocks[block_idx]);
-#endif
+    unsigned block           = Kokkos::atomic_load(&m_blocks[block_idx]);
+
     block = !m_last_block_mask || (block_idx < (m_blocks.extent(0) - 1))
                 ? ~block
                 : ~block & m_last_block_mask;

@@ -117,7 +117,7 @@ class Kokkos::Impl::TeamPolicyInternal<Kokkos::SYCL, Properties...>
         (max_possible_team_size + 2) * sizeof(double);
     // arbitrarily setting level 1 scratch limit to 20MB
     constexpr size_t max_l1_scratch_size =
-        static_cast<size_t>(20) * 1024 * 1024;
+        static_cast<size_t>(80) * 1024 * 1024;
 
     size_t max_shmem = sycl_instance.m_maxShmemPerBlock;
     return (level == 0 ? max_shmem - max_reserved_shared_mem_per_team

@@ -6,7 +6,7 @@
 
 #include <Kokkos_ReductionIdentity.hpp>
 
-#if defined(KOKKOS_HALF_T_IS_FLOAT) && !KOKKOS_HALF_T_IS_FLOAT
+#if !KOKKOS_HALF_T_IS_FLOAT
 template <>
 struct Kokkos::reduction_identity<Kokkos::Experimental::half_t> {
   KOKKOS_FUNCTION static Experimental::half_t sum() noexcept { return 0; }
@@ -30,7 +30,7 @@ struct Kokkos::reduction_identity<Kokkos::Experimental::half_t> {
 };
 #endif
 
-#if defined(KOKKOS_BHALF_T_IS_FLOAT) && !KOKKOS_BHALF_T_IS_FLOAT
+#if !KOKKOS_BHALF_T_IS_FLOAT
 template <>
 struct Kokkos::reduction_identity<Kokkos::Experimental::bhalf_t> {
   KOKKOS_FUNCTION static Experimental::bhalf_t sum() noexcept { return 0; }

@@ -124,12 +124,15 @@ void PairLJCutCoulDSFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   copymode = 1;
 
-  int inum = list->inum;
+  // self energy of every local atom, tallied in a device kernel so that the
+  // charges and the per-atom energy stay resident on the device
 
-  for (int ii = 0; ii < inum; ii ++) {
-    //int i = list->ilist[ii];
-    double qtmp = atom->q[ii];
-    eng_coul += -(e_shift/2.0 + alpha/MY_PIS) * qtmp*qtmp*static_cast<double>(qqrd2e);
+  if (eflag) {
+    d_ilist = ((NeighListKokkos<DeviceType>*) list)->d_ilist;
+    KK_ACC_FLOAT e_self_sum = 0.0;
+    Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType,TagPairLJCutCoulDSFSelfEnergy>(0,list->inum),
+                            *this,e_self_sum);
+    if (eflag_global) eng_coul += static_cast<double>(e_self_sum);
   }
 
   ev = pair_compute<PairLJCutCoulDSFKokkos<DeviceType>,void >
@@ -220,13 +223,17 @@ compute_fcoul(const KK_FLOAT& rsq, const int& /*i*/, const int&j,
   const KK_FLOAT f_shift_kk = static_cast<KK_FLOAT>(f_shift);
   const KK_FLOAT r2inv = static_cast<KK_FLOAT>(1.0)/rsq;
   const KK_FLOAT r = Kokkos::sqrt(rsq);
-  const KK_FLOAT prefactor = factor_coul * qqrd2e * qtmp * q(j);
+  const KK_FLOAT prefactor = qqrd2e * qtmp * q(j) / r;
   const KK_FLOAT erfcd = Kokkos::exp(-alpha_kk*alpha_kk*rsq);
   const KK_FLOAT t = static_cast<KK_FLOAT>(1.0) / (static_cast<KK_FLOAT>(1.0) + static_cast<KK_FLOAT>(EWALD_P)*alpha_kk*r);
   const KK_FLOAT erfcc = t * (static_cast<KK_FLOAT>(A1)+t*(static_cast<KK_FLOAT>(A2)+t*(static_cast<KK_FLOAT>(A3)+t*(static_cast<KK_FLOAT>(A4)+t*static_cast<KK_FLOAT>(A5))))) * erfcd;
 
-  return prefactor * (erfcc/r + static_cast<KK_FLOAT>(2.0)*alpha_kk/static_cast<KK_FLOAT>(MY_PIS) * erfcd + r*f_shift_kk) *
-          r2inv;
+  KK_FLOAT forcecoul = prefactor *
+    (erfcc/r + static_cast<KK_FLOAT>(2.0)*alpha_kk/static_cast<KK_FLOAT>(MY_PIS) * erfcd + r*f_shift_kk) * r;
+  if (factor_coul < static_cast<KK_FLOAT>(1.0))
+    forcecoul -= (static_cast<KK_FLOAT>(1.0)-factor_coul)*prefactor;
+
+  return forcecoul * r2inv;
 }
 
 /* ----------------------------------------------------------------------
@@ -245,13 +252,41 @@ compute_ecoul(const KK_FLOAT& rsq, const int& /*i*/, const int&j,
   const KK_FLOAT e_shift_kk = static_cast<KK_FLOAT>(e_shift);
   const KK_FLOAT f_shift_kk = static_cast<KK_FLOAT>(f_shift);
   const KK_FLOAT r = Kokkos::sqrt(rsq);
-  const KK_FLOAT prefactor = factor_coul * qqrd2e * qtmp * q(j);
+  const KK_FLOAT prefactor = qqrd2e * qtmp * q(j) / r;
   const KK_FLOAT erfcd = Kokkos::exp(-alpha_kk*alpha_kk*rsq);
   const KK_FLOAT t = static_cast<KK_FLOAT>(1.0) / (static_cast<KK_FLOAT>(1.0) + static_cast<KK_FLOAT>(EWALD_P)*alpha_kk*r);
   const KK_FLOAT erfcc = t * (static_cast<KK_FLOAT>(A1)+t*(static_cast<KK_FLOAT>(A2)+t*(static_cast<KK_FLOAT>(A3)+t*(static_cast<KK_FLOAT>(A4)+t*static_cast<KK_FLOAT>(A5))))) * erfcd;
 
-  return prefactor * (erfcc - r*e_shift_kk - rsq*f_shift_kk) / r;
+  KK_FLOAT ecoul = prefactor * (erfcc - r*e_shift_kk - rsq*f_shift_kk);
+  if (factor_coul < static_cast<KK_FLOAT>(1.0))
+    ecoul -= (static_cast<KK_FLOAT>(1.0)-factor_coul)*prefactor;
 
+  return ecoul;
+
+}
+
+/* ----------------------------------------------------------------------
+   self energy contribution of atom i (damped shifted force, see Fennell and
+   Gezelter, JCP 124, 234104 (2006)); mirrors the ev_tally(i,i,...) call in
+   PairLJCutCoulDSF::compute()
+   ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+// NOLINTNEXTLINE
+KOKKOS_INLINE_FUNCTION
+void PairLJCutCoulDSFKokkos<DeviceType>::operator()(TagPairLJCutCoulDSFSelfEnergy,
+                                                    const int &ii, KK_ACC_FLOAT &e_self_sum) const
+{
+  const KK_FLOAT alpha_kk = static_cast<KK_FLOAT>(alpha);
+  const KK_FLOAT e_shift_kk = static_cast<KK_FLOAT>(e_shift);
+
+  const int i = d_ilist[ii];
+  const KK_FLOAT qtmp = q(i);
+  const KK_FLOAT e_self = -(e_shift_kk/static_cast<KK_FLOAT>(2.0) +
+                            alpha_kk/static_cast<KK_FLOAT>(MY_PIS)) * qtmp*qtmp*qqrd2e;
+
+  if (eflag_global) e_self_sum += static_cast<KK_ACC_FLOAT>(e_self);
+  if (eflag_atom) d_eatom[i] += static_cast<KK_ACC_FLOAT>(e_self);
 }
 
 /* ----------------------------------------------------------------------

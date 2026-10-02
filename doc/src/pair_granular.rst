@@ -416,7 +416,7 @@ The dimensionless coefficient of restitution :math:`e` specified as part
 of the normal contact model parameters should be between 0 and 1, but no
 error check is performed on this.
 
-.. versionchanged:: TBD
+.. versionchanged:: 2Sep2026
 
 This numerical solution is from :ref:`(Marshall, 2009) <Marshall2009_1>`
 where the factor of :math:`\sqrt{2}` arises from a difference in convention
@@ -557,7 +557,7 @@ the normal damping :math:`\eta_n` (see above):
 
 .. math::
 
-   \eta_t = -x_{\gamma,t} \eta_n
+   \eta_t = x_{\gamma,t} \eta_n
 
 The normal damping prefactor :math:`\eta_n` is determined by the choice
 of the *damping* keyword, as discussed above.  Thus, the *damping*

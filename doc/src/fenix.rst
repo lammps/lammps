@@ -37,7 +37,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 2Sep2026
 
 This command initializes `Fenix <https://github.com/sandialabs/fenix>`_
 for online process recovery.  From this point on, Fenix claims a number

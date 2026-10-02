@@ -48,6 +48,8 @@ FixStoreForce::FixStoreForce(LAMMPS *lmp, int narg, char **arg) :
 
 FixStoreForce::~FixStoreForce()
 {
+  if (copymode) return;
+
   memory->destroy(foriginal);
 }
 

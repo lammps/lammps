@@ -1,0 +1,71 @@
+---
+  # Run the examples through the KOKKOS package on the Serial backend and
+  # compare with reference log files produced by the plain styles.  The Serial
+  # backend does the same arithmetic in the same order as the plain CPU code
+  # in most styles, so the tolerances are much tighter than the ones of the
+  # GPU and OpenMP KOKKOS configurations: a difference beyond roundoff points
+  # at a real difference between a style and its KOKKOS variant.
+  lmp_binary: ""
+  nprocs: "1"
+  args: "-cite none -k on t 1 -sf kk"
+  kokkos: true
+  mpiexec: ""
+  mpiexec_numproc_flag: ""
+  tolerance:
+    PotEng:
+      abs: 1e-8
+      rel: 1e-10
+    TotEng:
+      abs: 1e-8
+      rel: 1e-10
+    Press:
+      abs: 1e-6
+      rel: 1e-10
+    Temp:
+      abs: 1e-8
+      rel: 1e-10
+    E_vdwl:
+      abs: 1e-8
+      rel: 1e-10
+  skip:
+    [
+      in.*pod.InP,
+      in.dimer.mp,
+      in.disp,
+      in.disp2,
+      in.dos,
+      in.dsring2,
+      in.*_imd*,
+      in.bucky-plus-cnt*,
+      in.gREM,
+      in.peptide-plumed,
+      in.mliap.pytorch*,
+      in.mliap.unified*,
+      in.pod.compute,
+      in.widom.spce,
+      # the KOKKOS variants of these styles draw their random numbers from the
+      # device generator, so their trajectories cannot match the plain styles
+      in.dpdrx-shardlow,
+      in.spin.iron-nve,
+      in.spin.nvt_lattice,
+      in.spin.nvt_spin,
+    ]
+
+  timeout: 240
+  # input scripts in these folders must be run by the same worker in the listed
+  # order, since they read files written by another input script in the folder
+  # or would overwrite each other's output files
+  keep_together:
+    [
+      PACKAGES/bocs/4_sites_LD_SG,
+      PACKAGES/rhok,
+      SPIN/read_restart,
+    ]
+
+  # input scripts without a reference log file cannot be checked against anything, so
+  # they are only tested for not crashing, with their run commands shortened to this
+  # many steps (0 or empty: run them unchanged)
+  smoke_steps: 100
+
+  nugget: 1.0
+  epsilon: 1e-16

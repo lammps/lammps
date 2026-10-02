@@ -34,20 +34,19 @@ class DomainKokkos : public Domain {
   ~DomainKokkos() override = default;
   void reset_box() override;
   void pbc() override;
-  void remap_all();
-  void image_flip(int, int, int);
+  void remap_all() override;
+  void image_flip(int, int, int) override;
   void x2lamda(int) override;
   void x2lamda(int,int) override;
   void lamda2x(int) override;
   void lamda2x(int,int) override;
-  // forward remaining x2lamda() and lambda2x() variants to parent class
-  void x2lamda(double *a, double *b) override { Domain::x2lamda(a,b); }
-  void lamda2x(double *a, double *b) override { Domain::lamda2x(a,b); }
-  void x2lamda(double *a, double *b, double *c, double *d) {
-    Domain::x2lamda(a,b,c,d);
-  }
+  // keep the base class x2lamda()/lamda2x() overloads visible
+  using Domain::x2lamda;
+  using Domain::lamda2x;
 
   int closest_image(const int, int) const;
+
+  int detached_atom_x() const;
 
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION

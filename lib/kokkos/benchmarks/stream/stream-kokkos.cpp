@@ -6,8 +6,6 @@
 #include <cstdlib>
 #include <cmath>
 
-#include <sys/time.h>
-
 #define STREAM_ARRAY_SIZE 100000000
 #define STREAM_NTIMES 20
 

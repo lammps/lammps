@@ -247,7 +247,7 @@ is left unchanged, that is it keeps the value selected by the
 *off* causes more computation but less communication.  Note that the
 newton setting for bonded interactions is not affected by this keyword.
 
-.. versionchanged:: TBD
+.. versionchanged:: 2Sep2026
 
 A pairwise Newton setting of *on* is no longer restricted.  Previously,
 combining it with a *split* value of less than 1.0 was an error, because
@@ -279,7 +279,7 @@ computations (:doc:`bond <bond_style>`, :doc:`angle <angle_style>`,
 the GPU pair force calculation, which is the primary source of GPU/CPU
 overlap performance.
 
-.. versionchanged:: TBD
+.. versionchanged:: 2Sep2026
 
    The *split* keyword is deprecated; its value is ignored.
 

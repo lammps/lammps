@@ -219,6 +219,8 @@ void PairTersoffZBLKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     ndup_vatom = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, Kokkos::Experimental::ScatterNonDuplicated>(d_vatom);
   }
 
+  shift_kk = shift_flag ? static_cast<KK_FLOAT>(shift) : static_cast<KK_FLOAT>(0.0);
+
   copymode = 1;
 
   EV_FLOAT ev;
@@ -324,7 +326,12 @@ void PairTersoffZBLKokkos<DeviceType>::operator()(TagPairTersoffZBLComputeShortN
       const KK_FLOAT delx = xtmp - x(j,0);
       const KK_FLOAT dely = ytmp - x(j,1);
       const KK_FLOAT delz = ztmp - x(j,2);
-      const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
+      KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
+
+      // shift rsq, as in PairTersoff::eval()
+
+      if (shift_flag)
+        rsq += shift_kk*shift_kk + static_cast<KK_FLOAT>(2.0)*Kokkos::sqrt(rsq)*shift_kk;
 
       if (rsq < cutmax_sq) {
         d_neighbors_short(ii,inside) = j;
@@ -384,9 +391,18 @@ void PairTersoffZBLKokkos<DeviceType>::tersoff_zbl_compute(const int &ii, EV_FLO
     const KK_FLOAT delx = xtmp - x(j,0);
     const KK_FLOAT dely = ytmp - x(j,1);
     const KK_FLOAT delz = ztmp - x(j,2);
-    const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
+    const KK_FLOAT rsq_orig = delx*delx + dely*dely + delz*delz;
     const int iparam_ij = d_elem3param(itype,jtype,jtype);
     const KK_FLOAT cutsq = static_cast<KK_FLOAT>(d_params(iparam_ij).cutsq);
+
+    // shift rsq and store correction for the force, as in PairTersoff::eval()
+
+    KK_FLOAT rsq = rsq_orig;
+    KK_FLOAT forceshiftfac = static_cast<KK_FLOAT>(1.0);
+    if (shift_flag) {
+      rsq += shift_kk*shift_kk + static_cast<KK_FLOAT>(2.0)*Kokkos::sqrt(rsq_orig)*shift_kk;
+      forceshiftfac = Kokkos::sqrt(rsq/rsq_orig);
+    }
 
     if (rsq > cutsq) continue;
 
@@ -428,6 +444,10 @@ void PairTersoffZBLKokkos<DeviceType>::tersoff_zbl_compute(const int &ii, EV_FLO
       eng = (static_cast<KK_FLOAT>(1.0) - fermi_k(d_params(iparam_ij),r)) * eng_z +
               fermi_k(d_params(iparam_ij),r) * eng_t;
 
+    // correct force for shift in rsq
+
+    if (shift_flag) frep *= forceshiftfac;
+
     f_x += static_cast<KK_ACC_FLOAT>(delx*frep);
     f_y += static_cast<KK_ACC_FLOAT>(dely*frep);
     f_z += static_cast<KK_ACC_FLOAT>(delz*frep);
@@ -450,13 +470,23 @@ void PairTersoffZBLKokkos<DeviceType>::tersoff_zbl_compute(const int &ii, EV_FLO
     const KK_FLOAT delx1 = xtmp - x(j,0);
     const KK_FLOAT dely1 = ytmp - x(j,1);
     const KK_FLOAT delz1 = ztmp - x(j,2);
-    const KK_FLOAT rsq1 = delx1*delx1 + dely1*dely1 + delz1*delz1;
+    const KK_FLOAT rsq1_orig = delx1*delx1 + dely1*dely1 + delz1*delz1;
     const int iparam_ij = d_elem3param(itype,jtype,jtype);
     const KK_FLOAT cutsq1 = static_cast<KK_FLOAT>(d_params(iparam_ij).cutsq);
+
+    // shift rsq, as in PairTersoff::eval()
+
+    KK_FLOAT rsq1 = rsq1_orig;
+    if (shift_flag)
+      rsq1 += shift_kk*shift_kk + static_cast<KK_FLOAT>(2.0)*Kokkos::sqrt(rsq1_orig)*shift_kk;
 
     KK_FLOAT bo_ij = 0.0;
     if (rsq1 > cutsq1) continue;
     const KK_FLOAT rij = Kokkos::sqrt(rsq1);
+
+    // distance without the shift, used for the 1/r factors and unit vectors
+
+    const KK_FLOAT rij_orig = shift_flag ? rij - shift_kk : rij;
 
     for (int kk = 0; kk < jnum; kk++) {
       if (jj == kk) continue;
@@ -466,9 +496,14 @@ void PairTersoffZBLKokkos<DeviceType>::tersoff_zbl_compute(const int &ii, EV_FLO
       const KK_FLOAT delx2 = xtmp - x(k,0);
       const KK_FLOAT dely2 = ytmp - x(k,1);
       const KK_FLOAT delz2 = ztmp - x(k,2);
-      const KK_FLOAT rsq2 = delx2*delx2 + dely2*dely2 + delz2*delz2;
+      KK_FLOAT rsq2 = delx2*delx2 + dely2*dely2 + delz2*delz2;
       const int iparam_ijk = d_elem3param(itype,jtype,ktype);
       const KK_FLOAT cutsq2 = static_cast<KK_FLOAT>(d_params(iparam_ijk).cutsq);
+
+      // shift rsq, as in PairTersoff::eval()
+
+      if (shift_flag)
+        rsq2 += shift_kk*shift_kk + static_cast<KK_FLOAT>(2.0)*Kokkos::sqrt(rsq2)*shift_kk;
 
       if (rsq2 > cutsq2) continue;
       const KK_FLOAT rik = Kokkos::sqrt(rsq2);
@@ -480,7 +515,7 @@ void PairTersoffZBLKokkos<DeviceType>::tersoff_zbl_compute(const int &ii, EV_FLO
     const KK_FLOAT fa = ters_fa_k(d_params(iparam_ij),rij);
     const KK_FLOAT dfa = ters_dfa(d_params(iparam_ij),rij);
     const KK_FLOAT bij = ters_bij_k(d_params(iparam_ij),bo_ij);
-    const KK_FLOAT fatt = -static_cast<KK_FLOAT>(0.5)*bij * dfa / rij;
+    const KK_FLOAT fatt = -static_cast<KK_FLOAT>(0.5)*bij * dfa / rij_orig;
     const KK_FLOAT prefactor = static_cast<KK_FLOAT>(0.5)*fa * ters_dbij(d_params(iparam_ij),bo_ij);
 
     f_x += static_cast<KK_ACC_FLOAT>(delx1*fatt);
@@ -507,9 +542,14 @@ void PairTersoffZBLKokkos<DeviceType>::tersoff_zbl_compute(const int &ii, EV_FLO
       const KK_FLOAT delx2 = xtmp - x(k,0);
       const KK_FLOAT dely2 = ytmp - x(k,1);
       const KK_FLOAT delz2 = ztmp - x(k,2);
-      const KK_FLOAT rsq2 = delx2*delx2 + dely2*dely2 + delz2*delz2;
+      KK_FLOAT rsq2 = delx2*delx2 + dely2*dely2 + delz2*delz2;
       const int iparam_ijk = d_elem3param(itype,jtype,ktype);
       const KK_FLOAT cutsq2 = static_cast<KK_FLOAT>(d_params(iparam_ijk).cutsq);
+
+      // shift rsq, as in PairTersoff::eval()
+
+      if (shift_flag)
+        rsq2 += shift_kk*shift_kk + static_cast<KK_FLOAT>(2.0)*Kokkos::sqrt(rsq2)*shift_kk;
 
       if (rsq2 > cutsq2) continue;
       const KK_FLOAT rik = Kokkos::sqrt(rsq2);
@@ -645,7 +685,12 @@ KK_FLOAT PairTersoffZBLKokkos<DeviceType>::bondorder(const Param& param,
 {
   KK_FLOAT arg, ex_delr;
 
-  const KK_FLOAT costheta = (dx1*dx2 + dy1*dy2 + dz1*dz2)/(rij*rik);
+  // the unit vectors are built from the unshifted distances, as in PairTersoff::eval()
+
+  const KK_FLOAT rij_orig = shift_flag ? rij - shift_kk : rij;
+  const KK_FLOAT rik_orig = shift_flag ? rik - shift_kk : rik;
+
+  const KK_FLOAT costheta = (dx1*dx2 + dy1*dy2 + dz1*dz2)/(rij_orig*rik_orig);
 
   const KK_FLOAT paramtmp = static_cast<KK_FLOAT>(param.lam3) * (rij-rik);
   if (int(param.powerm) == 3) arg = paramtmp*paramtmp*paramtmp;//pow(param.lam3 * (rij-rik),3.0);
@@ -778,11 +823,11 @@ void PairTersoffZBLKokkos<DeviceType>::ters_dthb(
   delrik[0] = dx2; delrik[1] = dy2; delrik[2] = dz2;
 
   //rij = sqrt(rsq1);
-  rijinv = static_cast<KK_FLOAT>(1.0)/rij;
+  rijinv = static_cast<KK_FLOAT>(1.0)/(shift_flag ? rij - shift_kk : rij);
   vec3_scale(rijinv,delrij,rij_hat);
 
   //rik = sqrt(rsq2);
-  rikinv = static_cast<KK_FLOAT>(1.0)/rik;
+  rikinv = static_cast<KK_FLOAT>(1.0)/(shift_flag ? rik - shift_kk : rik);
   vec3_scale(rikinv,delrik,rik_hat);
 
   // from PairTersoffZBL::ters_zetaterm_d
@@ -851,10 +896,10 @@ void PairTersoffZBLKokkos<DeviceType>::ters_dthbj(
   delrij[0] = dx1; delrij[1] = dy1; delrij[2] = dz1;
   delrik[0] = dx2; delrik[1] = dy2; delrik[2] = dz2;
 
-  rijinv = static_cast<KK_FLOAT>(1.0)/rij;
+  rijinv = static_cast<KK_FLOAT>(1.0)/(shift_flag ? rij - shift_kk : rij);
   vec3_scale(rijinv,delrij,rij_hat);
 
-  rikinv = static_cast<KK_FLOAT>(1.0)/rik;
+  rikinv = static_cast<KK_FLOAT>(1.0)/(shift_flag ? rik - shift_kk : rik);
   vec3_scale(rikinv,delrik,rik_hat);
 
   KK_FLOAT gijk,dgijk,ex_delr,dex_delr,fc,dfc,cos,tmp;
@@ -914,10 +959,10 @@ void PairTersoffZBLKokkos<DeviceType>::ters_dthbk(
   delrij[0] = dx1; delrij[1] = dy1; delrij[2] = dz1;
   delrik[0] = dx2; delrik[1] = dy2; delrik[2] = dz2;
 
-  rijinv = static_cast<KK_FLOAT>(1.0)/rij;
+  rijinv = static_cast<KK_FLOAT>(1.0)/(shift_flag ? rij - shift_kk : rij);
   vec3_scale(rijinv,delrij,rij_hat);
 
-  rikinv = static_cast<KK_FLOAT>(1.0)/rik;
+  rikinv = static_cast<KK_FLOAT>(1.0)/(shift_flag ? rik - shift_kk : rik);
   vec3_scale(rikinv,delrik,rik_hat);
 
   KK_FLOAT gijk,dgijk,ex_delr,dex_delr,fc,dfc,cos,tmp;

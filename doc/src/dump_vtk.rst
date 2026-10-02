@@ -35,7 +35,7 @@ as `ParaView <https://www.paraview.org>`_.  The time steps on which dump
 output is written can also be controlled by a variable; see the
 :doc:`dump_modify every <dump_modify>` command for details.
 
-.. versionchanged:: TBD
+.. versionchanged:: 2Sep2026
 
 This dump style no longer uses the VTK library.  The files are written
 by a built-in VTK file writer that is shared with the :doc:`dump

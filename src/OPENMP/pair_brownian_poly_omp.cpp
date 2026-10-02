@@ -373,8 +373,8 @@ void PairBrownianPolyOMP::eval(int iifrom, int iito, ThrData * const thr)
 
         // set j = nlocal so that only I gets tallied
 
-        if (EVFLAG) ev_tally_xyz(i,nlocal,nlocal,/* newton_pair */ 0,
-                                 0.0,0.0,-fx,-fy,-fz,delx,dely,delz);
+        if (EVFLAG) ev_tally_xyz_thr(this,i,nlocal,nlocal,/* newton_pair */ 0,
+                                     0.0,0.0,-fx,-fy,-fz,delx,dely,delz,thr);
       }
     }
   }

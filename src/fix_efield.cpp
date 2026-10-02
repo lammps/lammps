@@ -305,7 +305,7 @@ void FixEfield::post_force(int vflag)
 
   // reallocate efield array if necessary
 
-  if ((varflag == ATOM) && (atom->nmax > maxatom)) {
+  if (((varflag == ATOM) || (estyle == ATOM) || (pstyle == ATOM)) && (atom->nmax > maxatom)) {
     maxatom = atom->nmax;
     memory->destroy(efield);
     memory->create(efield, maxatom, 4, "efield:efield");

@@ -44,7 +44,7 @@ struct Hierarchical_Red_B {
         });
 
     Kokkos::fence();
-    auto v_H = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), v);
+    auto v_H = Kokkos::create_mirror_view_and_copy(v);
 
     SCALAR_TYPE check = 0;
     SCALAR_TYPE ref   = 0;

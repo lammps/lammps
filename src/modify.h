@@ -104,6 +104,7 @@ class Modify : protected Pointers {
   virtual int min_reset_ref();
 
   void reset_grid();
+  void image_flip(int, int, int);
 
   Fix *add_fix(int, char **, int trysuffix = 1);
   Fix *add_fix(const std::string &, int trysuffix = 1);

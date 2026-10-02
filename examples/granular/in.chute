@@ -1,0 +1,56 @@
+
+units               lj
+dimension           2
+boundary            p m p
+atom_style          sphere
+comm_modify         vel yes
+
+region              box block -5 5 0 25 -0.5 0.5
+create_box          1 box
+
+lattice             sq 2.0
+region              box_trimmed block $(xlo+0.5) $(xhi-0.5) $(ylo+0.5) $(yhi-0.5) EDGE EDGE units box
+create_atoms        1 region box_trimmed
+
+variable            diameters atom normal(0.5,0.1,54321846)
+set                 group all diameter v_diameters
+velocity            all create 1e-5 325435
+
+pair_style          granular
+pair_coeff          * * hertz 1 0.5 tangential linear_history 1.0 0.5 0.1
+
+fix                 integrator all nve/sphere
+fix                 grav all gravity 1e-5 chute 0
+fix                 wall all wall/gran granular hooke 10.0 0.5 &
+                             tangential linear_history 1.0 0.5 0.1 &
+                             yplane 0.0 NULL contacts
+
+#run                 0
+
+timestep            0.05
+thermo_style        custom step ke press vol pxx pyy pxy
+thermo              1000
+
+#dump                1 all custom 10000 atomDump id type radius x y z vx vy
+
+run                 100000
+
+variable            wall_contact atom f_wall[1]>0
+group               newwall variable wall_contact
+group               notwall subtract all newwall
+
+run                 0
+
+unfix               grav
+unfix               integrator
+
+fix                 integrator notwall nve/sphere
+fix                 grav notwall gravity 1e-5 chute 20
+fix                 wallc newwall freeze
+
+compute             mybins notwall chunk/atom  bin/1d y center 0.5 units box
+compute             ccont all continuum/chunk mybins 4.0 2.0 natoms velocity/x velocity/y
+compute             cprop all property/chunk mybins count coord1
+fix                 ave all ave/time 1000 100 100000 c_cprop[*] c_ccont[*] mode vector #file cg_fields.txt
+
+run                 100000

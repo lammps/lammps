@@ -99,7 +99,7 @@ No information about this fix is written to :doc:`binary restart files
 <restart>`.  No global or per-atom quantities are stored by this fix for
 access by various :doc:`output commands <Howto_output>`.
 
-.. versionchanged:: TBD
+.. versionchanged:: 30Sep2026
 
 The :doc:`fix_modify <fix_modify>` *respa* option is supported by this
 fix.  This allows to set at which level of the :doc:`r-RESPA

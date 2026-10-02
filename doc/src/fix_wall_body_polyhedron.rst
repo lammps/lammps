@@ -60,7 +60,7 @@ body particles.
 The parameters *k_n*, *c_n*, *c_t* have the same meaning and units as
 those specified with the :doc:`pair_style body/rounded/polyhedron <pair_body_rounded_polyhedron>` command.
 
-.. versionchanged:: TBD
+.. versionchanged:: 30Sep2026
 
 Each vertex of a particle, or the center of a sphere, is repelled
 by the wall with the force :math:`k_n (r_v - d)`, when its signed distance
@@ -105,7 +105,7 @@ the *amplitude*, *omega* is 2 PI / *period*, and *delta* is the time
 elapsed since the fix was specified.  The velocity of the wall is set
 to the derivative of this expression.
 
-.. versionadded:: TBD
+.. versionadded:: 30Sep2026
 
 With the *history* keyword, the wall also exerts a friction force from a
 tangential spring on the particles, similar to the *history* keyword of

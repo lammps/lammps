@@ -405,6 +405,16 @@ is built with ``-D BUILD_OMP=on`` this will also be enabled.
    directory containing it yourself, for example with
    ``-D CMAKE_CXX_FLAGS=-idirafter/usr/lib/clang/<version>/include``.
 
+The ``hip_amd.cmake`` preset in the ``cmake/presets`` folder selects
+``hipcc`` as the C and C++ compiler with support for MPI and for OpenMP
+using the LLVM OpenMP runtime.  It can be combined with the GPU package
+settings, for example:
+
+.. code-block:: bash
+
+   cmake -S cmake -B build -C cmake/presets/hip_amd.cmake \
+         -D PKG_GPU=on -D GPU_API=hip -D GPU_ARCH=gfx90a
+
 For a debug build, set ``GPU_DEBUG`` to be ``yes``.
 
 .. versionadded:: 3Aug2022

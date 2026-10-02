@@ -318,38 +318,49 @@ GUI version
 
 For the graphical CMake program the steps are similar to the TUI
 version.  You can type the command ``cmake-gui -S cmake -B build`` in
-the top-level folder.  The source and build folders can also be
-selected from within the GUI.
+the top-level folder.  The program will then start with an empty
+configuration cache:
 
-.. list-table::
+.. figure:: JPG/cmake-gui-initial.png
+   :scale: 75%
+   :align: center
 
-   * - .. figure:: JPG/cmake-gui-initial.png
-          :scale: 40%
-          :align: center
+   Initial ``cmake-gui`` screen
 
-          Initial ``cmake-gui`` screen
+On this initial screen, the source folder (1) and the build folder (2)
+are already set from the command line; they can also be changed by typing in the path or with the
+"Browse Source..." and "Browse Build..." buttons.  Now click on the
+"Configure" button (3) to start the configuration step.  For the very
+first configuration in a folder, a dialog will appear:
 
-     - .. figure:: JPG/cmake-gui-popup.png
-          :scale: 60%
-          :align: center
+.. figure:: JPG/cmake-gui-popup.png
+   :scale: 75%
+   :align: center
 
-          Generator selection in ``cmake-gui``
+   Generator selection in ``cmake-gui``
 
-     - .. figure:: JPG/cmake-gui-options.png
-          :scale: 40%
-          :align: center
+In this generator selection dialog, you can select the desired build
+tool from a drop-down list (1),
+e.g. "Unix Makefiles" for using ``make`` or "Ninja" for using the
+:ref:`Ninja build tool <ninja_ccache>`, and how the compilers are
+selected (2).  Stick with the default "Use default native compilers" and
+click on "Finish" (3).  When the configuration is complete, you will see
+the options screen with all new settings highlighted in red:
 
-          Options screen of ``cmake-gui``
+.. figure:: JPG/cmake-gui-options.png
+   :scale: 75%
+   :align: center
 
-Again, you start with an empty configuration cache (left image) and need
-to start the configuration step.  For the very first configuration in a
-folder, you will have a pop-up dialog (center image) asking to select
-the desired build tool and some configuration settings (stick with the
-default) and then you get the option screen with all new settings
-highlighted in red.  You can modify them (or not) and click on the
-"Configure" button again until satisfied and click on the "Generate"
-button to write out the build files. You can exit the GUI from the
-"File" menu or hit "ctrl-q".
+   Options screen of ``cmake-gui``
+
+On the options screen, you can type part of a name into the "Search"
+field (1) to show only matching settings, e.g. ``PKG_`` to list the settings for all optional
+packages.  Settings are changed by clicking on a check box (2) for
+on/off settings, or by double-clicking on a value to edit it.  Click on
+"Configure" (3) again after making changes, until no more settings are
+highlighted in red, and then click on "Generate" (4) to write out the
+build files.  You can exit the GUI from the "File" menu or hit
+"ctrl-q".
 
 
 Setting options

@@ -702,8 +702,10 @@ DIPOLE package
 
 **Contents:**
 
-An atom style and several pair styles for point dipole models with
-short-range or long-range interactions.
+An atom style for particles carrying a point dipole and pair styles for
+short-range or long-range interactions of point dipoles.  It also
+contains a pair style for a coarse-grained membrane model that uses the
+dipole vector only to store the orientation of the particles.
 
 **Supporting info:**
 

@@ -33,16 +33,12 @@ Description
 The *mesomem/dipole* style computes the MesoMem interaction
 :ref:`(Sillano) <Sillano>` for a solvent-free, one-particle-thick,
 coarse-grained model of fluid membranes.  Each particle represents a
-patch of a lipid bilayer, and the direction of its dipole vector
-represents the local membrane normal.  This pair style does *not*
-compute any electrostatic interactions; there are no charge-dipole or
-dipole-dipole terms.  The dipole vector of :doc:`atom_style dipole
-<atom_style>` only serves to store the orientation of each particle, and
-its magnitude has no effect on this pair style.  Unlike for
-:doc:`pair_style ylz <pair_ylz>`, where the orientation dependence
-multiplies the isotropic potential, this pair style adds tilt and splay
-energies, weighted by a smooth, short-ranged function of the distance, to
-a purely radial isotropic potential:
+patch of a lipid bilayer, and the *direction* of its dipole vector
+represents the local membrane normal.  Unlike for :doc:`pair_style ylz
+<pair_ylz>`, where the orientation dependence multiplies the isotropic
+potential, this pair style adds tilt and splay energies, weighted by a
+smooth, short-ranged function of the distance, to a purely radial
+isotropic potential:
 
 .. math::
 
@@ -127,24 +123,33 @@ from it.
    (left) and :math:`C_0 > 0` (right).  The angle :math:`\alpha` is
    exaggerated for clarity.
 
-Particles with a dipole moment of zero interact with all other particles
-only through :math:`U_{iso}`.
+Particles with a zero length dipole moment vector interact with all
+other particles only through :math:`U_{iso}`.
 
-Other commands treat the dipole vector as an electric dipole moment, for
-example :doc:`fix efield <fix_efield>` or :doc:`compute dipole
-<compute_dipole>`.  Their results are therefore only meaningful if the
-dipole vector is also meant to represent one.  Electrostatic
-interactions between the dipoles can be added to the MesoMem interaction
-with :doc:`pair_style hybrid/overlay <pair_hybrid>` and a point dipole
-pair style, for example :doc:`pair_style lj/cut/dipole/cut <pair_dipole>`
-with :math:`\epsilon = 0`.  Then the magnitude of the dipole moments
-matters for the electrostatic part, but still not for the MesoMem part:
+.. note::
 
-.. code-block:: LAMMPS
+   This pair style does *not* compute any electrostatic interactions;
+   there are no charge-dipole or dipole-dipole terms.  The dipole vector
+   of :doc:`atom_style dipole <atom_style>` only serves to store the
+   orientation of each particle, and its magnitude has no effect on this
+   pair style.
 
-   pair_style hybrid/overlay mesomem/dipole lj/cut/dipole/cut 2.5 5.0
-   pair_coeff * * mesomem/dipole 1.0 1.0 15.0 1.0 2.5 2.0 5.0 0.0
-   pair_coeff * * lj/cut/dipole/cut 0.0 1.0
+   Other commands treat the dipole vector as an electric dipole moment,
+   for example :doc:`fix efield <fix_efield>` or :doc:`compute dipole
+   <compute_dipole>`.  Their results are therefore only meaningful if
+   the dipole vector is also meant to represent one.  Electrostatic
+   interactions between the dipoles can be added to the MesoMem
+   interaction with :doc:`pair_style hybrid/overlay <pair_hybrid>` and a
+   point dipole pair style, for example :doc:`pair_style
+   lj/cut/dipole/cut <pair_dipole>` with :math:`\epsilon = 0`.  Then the
+   magnitude of the dipole moments matters for the electrostatic part,
+   but still not for the MesoMem part:
+
+   .. code-block:: LAMMPS
+
+      pair_style hybrid/overlay mesomem/dipole lj/cut/dipole/cut 2.5 5.0
+      pair_coeff * * mesomem/dipole 1.0 1.0 15.0 1.0 2.5 2.0 5.0 0.0
+      pair_coeff * * lj/cut/dipole/cut 0.0 1.0
 
 The following coefficients must be defined for each pair of atom types
 via the :doc:`pair_coeff <pair_coeff>` command as in the examples above,

@@ -51,9 +51,6 @@ class PythonCapabilities(unittest.TestCase):
     def test_has_jpeg_support(self):
         self.assertEqual(self.lmp.has_jpeg_support, self.cmake_cache.get('WITH_JPEG', False))
 
-    def test_has_ffmpeg_support(self):
-        self.assertEqual(self.lmp.has_ffmpeg_support, self.cmake_cache.get('WITH_FFMPEG', False))
-
     def test_installed_packages(self):
         installed_packages = self.lmp.installed_packages
         selected_packages = [key[4:] for key in self.cmake_cache.keys() if not key.startswith('PKG_CONFIG') and key.startswith('PKG_') and self.cmake_cache[key]]

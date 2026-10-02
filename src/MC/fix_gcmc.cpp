@@ -699,6 +699,7 @@ void FixGCMC::init()
 
   if (exchmode == EXCHMOL || movemode == MOVEMOL) {
 
+    onemols[imol]->compute_center();
     onemols[imol]->compute_mass();
     onemols[imol]->compute_com();
     gas_mass = onemols[imol]->masstotal;
@@ -707,6 +708,12 @@ void FixGCMC::init()
       onemols[imol]->x[i][1] -= onemols[imol]->com[1];
       onemols[imol]->x[i][2] -= onemols[imol]->com[2];
     }
+
+    // keep the geometric center consistent with the shifted coordinates
+
+    onemols[imol]->center[0] -= onemols[imol]->com[0];
+    onemols[imol]->center[1] -= onemols[imol]->com[1];
+    onemols[imol]->center[2] -= onemols[imol]->com[2];
     onemols[imol]->com[0] = 0;
     onemols[imol]->com[1] = 0;
     onemols[imol]->com[2] = 0;
@@ -1563,11 +1570,17 @@ void FixGCMC::attempt_molecule_insertion()
 
     // FixRigidSmall::set_molecule stores rigid body attributes
     // FixShake::set_molecule stores shake info for molecule
+    // set_molecule() expects the position of the geometric center of the
+    // inserted molecule, but the molecule was placed by its center of mass
+
+    double xgeom[3];
+    MathExtra::matvec(rotmat,onemols[imol]->center,xgeom);
+    MathExtra::add3(xgeom,com_coord,xgeom);
 
     if (rigidflag)
-      fixrigid->set_molecule(nlocalprev,maxtag_all,molindex,com_coord,vnew,quat);
+      fixrigid->set_molecule(nlocalprev,maxtag_all,molindex,xgeom,vnew,quat);
     else if (shakeflag)
-      fixshake->set_molecule(nlocalprev,maxtag_all,molindex,com_coord,vnew,quat);
+      fixshake->set_molecule(nlocalprev,maxtag_all,molindex,xgeom,vnew,quat);
 
     atom->natoms += natoms_per_molecule;
     if (atom->natoms < 0)
@@ -2364,11 +2377,17 @@ void FixGCMC::attempt_molecule_insertion_full()
 
   // FixRigidSmall::set_molecule stores rigid body attributes
   // FixShake::set_molecule stores shake info for molecule
+  // set_molecule() expects the position of the geometric center of the
+  // inserted molecule, but the molecule was placed by its center of mass
+
+  double xgeom[3];
+  MathExtra::matvec(rotmat,onemols[imol]->center,xgeom);
+  MathExtra::add3(xgeom,com_coord,xgeom);
 
   if (rigidflag)
-    fixrigid->set_molecule(nlocalprev,maxtag_all,molindex,com_coord,vnew,quat);
+    fixrigid->set_molecule(nlocalprev,maxtag_all,molindex,xgeom,vnew,quat);
   else if (shakeflag)
-    fixshake->set_molecule(nlocalprev,maxtag_all,molindex,com_coord,vnew,quat);
+    fixshake->set_molecule(nlocalprev,maxtag_all,molindex,xgeom,vnew,quat);
 
   atom->natoms += natoms_per_molecule;
   if (atom->natoms < 0)

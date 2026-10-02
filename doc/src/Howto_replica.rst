@@ -38,8 +38,8 @@ context are the same as replicas.  E.g.  these commands:
 
 .. code-block:: bash
 
-   mpirun -np 16 lmp_linux -partition 8x2 -in in.temper
-   mpirun -np 8 lmp_linux -partition 8x1 -in in.neb
+   mpirun -np 16 lmp -partition 8x2 -in in.temper
+   mpirun -np 8 lmp -partition 8x1 -in in.neb
 
 would each run 8 replicas, on either 16 or 8 processors.  Note the use
 of the :doc:`-in command-line switch <Run_options>` to specify the input

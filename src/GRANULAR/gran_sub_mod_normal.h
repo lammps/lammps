@@ -33,6 +33,7 @@ namespace LAMMPS_NS::Granular_NS {
     [[nodiscard]] double get_fncrit() const { return Fncrit; }
     [[nodiscard]] int get_material_properties() const { return material_properties; }
     [[nodiscard]] double get_poiss() const { return poiss; }
+    [[nodiscard]] virtual double get_k() const { return 0.0; }
 
     virtual void set_fncrit();
 
@@ -59,6 +60,7 @@ namespace LAMMPS_NS::Granular_NS {
     GranSubModNormalHooke(class GranularModel *, class LAMMPS *);
     void coeffs_to_local() override;
     double calculate_forces() override;
+    [[nodiscard]] double get_k() const override { return k; }
 
    protected:
     double k;
@@ -71,6 +73,7 @@ namespace LAMMPS_NS::Granular_NS {
     GranSubModNormalHertz(class GranularModel *, class LAMMPS *);
     void coeffs_to_local() override;
     double calculate_forces() override;
+    [[nodiscard]] double get_k() const override { return k; }
 
    protected:
     double k;

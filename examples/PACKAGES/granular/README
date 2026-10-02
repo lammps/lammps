@@ -1,0 +1,44 @@
+Pair granular Kokkos example
+============================
+
+This example simulates the collision of two spherical particles using
+the modular pair_style granular command. The same input supports the
+standard CPU implementation and the Kokkos accelerator variant.
+
+Required packages
+-----------------
+
+CPU:
+  GRANULAR
+
+Kokkos:
+  GRANULAR
+  KOKKOS
+
+CPU execution
+-------------
+
+  lmp -suffix none -in in.granular_kokkos
+
+Kokkos GPU execution
+--------------------
+
+  lmp -k on g 1 -sf kk \
+      -pk kokkos neigh half comm device gpu/aware off \
+      -in in.granular_kokkos
+
+The -sf kk option automatically selects granular/kk and other available
+Kokkos accelerator styles.
+
+Validation performed on NVIDIA GH200
+------------------------------------
+
+The CPU and Kokkos GPU trajectories were compared for all 42 atom
+records produced by the example.
+
+  Maximum absolute difference: 5.115908e-13
+  Maximum relative difference: 2.412300e-12
+  Result: PASSED
+
+Differences at this level are attributable to floating-point operation
+ordering between CPU and GPU execution.

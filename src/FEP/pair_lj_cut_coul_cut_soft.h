@@ -50,7 +50,7 @@ class PairLJCutCoulCutSoft : public Pair {
   double nlambda, alphalj, alphac;
   double **lj1, **lj2, **lj3, **lj4, **offset;
 
-  void allocate();
+  virtual void allocate();
 };
 
 }    // namespace LAMMPS_NS

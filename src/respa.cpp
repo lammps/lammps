@@ -17,6 +17,7 @@
 
 #include "respa.h"
 
+#include "accelerator_kokkos.h"
 #include "angle.h"
 #include "atom.h"
 #include "atom_vec.h"
@@ -287,6 +288,12 @@ Respa::~Respa()
 void Respa::init()
 {
   Integrate::init();
+
+  // rRESPA works from the plain LAMMPS arrays without the host/device
+  // transfers that run_style verlet/kk performs; the KOKKOS package refuses
+  // the configurations where that gives wrong forces
+
+  if (lmp->kokkos) lmp->kokkos->respa_check();
 
   // warn if no fixes
 

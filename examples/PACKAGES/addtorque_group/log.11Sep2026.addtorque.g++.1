@@ -1,0 +1,202 @@
+LAMMPS (2 Sep 2026)
+  using 1 OpenMP thread(s) per MPI task
+
+units           lj
+lattice         fcc 0.8442
+Lattice spacing in x,y,z = 1.6795962 1.6795962 1.6795962
+boundary        f f f
+
+region          ball   sphere   0.0 0.0 0.0 5.0
+region          box    block  -10 10 -10 10 -10 10
+region          half   block  -10  0 -10 10 -10 10
+
+# add molecule ids so we can use chunk/atom
+fix             0   all property/atom mol ghost yes
+
+create_box      2  box
+Created orthogonal box = (-16.795962 -16.795962 -16.795962) to (16.795962 16.795962 16.795962)
+  1 by 1 by 1 MPI processor grid
+create_atoms    1  region ball
+Created 2123 atoms
+  using lattice units in orthogonal box = (-16.795962 -16.795962 -16.795962) to (16.795962 16.795962 16.795962)
+  create_atoms CPU = 0.000 seconds
+
+pair_style      lj/cut 4.0
+pair_coeff      * *  1.0 1.0
+mass            *    1.0
+set             group all mol 1
+Setting atom values ...
+  2123 settings made for mol
+
+# label half the sphere with a different type for better visualization
+set             region half   type 2
+Setting atom values ...
+  1142 settings made for type
+
+# use a dynamic group (may require a patch to fix addtorque with older versions of LAMMPS)
+group           ball   dynamic all   region ball
+dynamic group ball defined
+
+neigh_modify    delay 2  every 1  check yes
+
+minimize        0.0  0.0    1000  10000
+Switching to 'neigh_modify every 1 delay 0 check yes' setting during minimization
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 4.3
+  ghost atom cutoff = 4.3
+  binsize = 2.15, bins = 16 16 16
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair lj/cut, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 5.035 | 5.035 | 5.035 Mbytes
+   Step          Temp          E_pair         E_mol          TotEng         Press     
+         0   0             -6.2285099      0             -6.2285099     -0.38871568   
+      1000   0             -7.3616908      0             -7.3616908     -9.0533714e-16
+Loop time of 3.92975 on 1 procs for 1000 steps with 2123 atoms
+
+99.7% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+Minimization stats:
+  Stopping criterion = max iterations
+  Energy initial, next-to-last, final = 
+     -6.22850993032182  -7.36169083402272  -7.36169083402273
+  Force two-norm initial, final = 197.76248 3.410242e-12
+  Force max component initial, final = 7.8870448 1.5416141e-13
+  Final line search alpha, max atom move = 1 1.5416141e-13
+  Iterations, force evaluations = 1000 1994
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 3.8679     | 3.8679     | 3.8679     |   0.0 | 98.43
+Neigh   | 0.028507   | 0.028507   | 0.028507   |   0.0 |  0.73
+Comm    | 0.00024681 | 0.00024681 | 0.00024681 |   0.0 |  0.01
+Output  | 3.3434e-05 | 3.3434e-05 | 3.3434e-05 |   0.0 |  0.00
+Modify  | 0          | 0          | 0          |   0.0 |  0.00
+Other   |            | 0.03305    |            |       |  0.84
+
+Nlocal:           2123 ave        2123 max        2123 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:              0 ave           0 max           0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:         270799 ave      270799 max      270799 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 270799
+Ave neighs/atom = 127.55488
+Neighbor list builds = 11
+Dangerous builds = 0
+reset_timestep  0
+
+velocity        all create 1.2 12351235 loop geom
+
+fix             1   all  nve
+fix             2   all  wall/reflect  xlo EDGE xhi EDGE ylo EDGE yhi EDGE zlo EDGE zhi EDGE
+
+compute 1 all chunk/atom molecule
+compute 2 ball omega/chunk 1
+compute 3 ball inertia/chunk 1
+
+# compute rotational kinetic energy: 1/2 * I * omega**2
+variable r_ke_x equal c_2[1][1]*c_2[1][1]*c_3[1][1]*0.5
+variable r_ke_y equal c_2[1][2]*c_2[1][2]*c_3[1][2]*0.5
+variable r_ke_z equal c_2[1][3]*c_2[1][3]*c_3[1][3]*0.5
+
+# output moments of inertia for x,y,z and angular velocity as well as rotational kinertic energy
+
+thermo_style custom step ke pe c_3[1][1] c_3[1][2] c_3[1][3] c_2[1][1] c_2[1][2] c_2[1][3] v_r_ke_x v_r_ke_y v_r_ke_z
+thermo 500
+
+# dump 1 all atom 100 dump.lammpstrj
+
+# dump 2 all movie 10 ball.mp4 type mass
+
+# equilibration w/o torque added
+run 1000 post no
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Per MPI rank memory allocation (min/avg/max) = 4.039 | 4.039 | 4.039 Mbytes
+   Step         KinEng         PotEng       c_3[1][1]      c_3[1][2]      c_3[1][3]      c_2[1][1]      c_2[1][2]      c_2[1][3]       v_r_ke_x       v_r_ke_y       v_r_ke_z   
+         0   1.7991521     -7.3616908      51125.265      51125.265      51125.265      0.00045379386 -0.0097700318   0.00039809034  0.0052640839   2.4400433      0.0040510617 
+       500   0.89422643    -6.4451931      52246.856      52193.713      52535.846      0.00029694329 -0.0096810939   0.00028781862  0.0023034416   2.4458908      0.0021760231 
+      1000   0.81297109    -6.3567866      54615.848      53921.528      53993.074      0.000227156   -0.0090103122   0.00057130565  0.0014090847   2.1888292      0.0088114036 
+Loop time of 1.65591 on 1 procs for 1000 steps with 2123 atoms
+
+
+# start spinning the ball. rotation around z should increase and Erot_z should grow
+fix 4 ball addtorque/group 0.0 0.0 200.0
+run 10000 upto  post no
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Per MPI rank memory allocation (min/avg/max) = 4.039 | 4.039 | 4.039 Mbytes
+   Step         KinEng         PotEng       c_3[1][1]      c_3[1][2]      c_3[1][3]      c_2[1][1]      c_2[1][2]      c_2[1][3]       v_r_ke_x       v_r_ke_y       v_r_ke_z   
+      1000   0.81297109    -6.3567866      54615.848      53921.528      53993.074      0.000227156   -0.0090103122   0.00057130565  0.0014090847   2.1888292      0.0088114036 
+      1500   0.68254985    -6.2203594      54355.422      55032.325      54747.593      0.00085318884 -0.0087120732   0.0093819574   0.019783504    2.0884827      2.4094723    
+      2000   0.65594555    -6.1893726      54095.149      54346.625      54401.312     -0.0002540832  -0.0084118532   0.018455314    0.0017461447   1.9227639      9.264506     
+      2500   0.70720259    -6.2367579      53892.849      54561.559      54470.388     -7.8377169e-05 -0.00932201     0.026020451    0.00016553136  2.3706962      18.439966    
+      3000   0.77868605    -6.3036728      53359.185      53696.921      53695.24       0.00044147675 -0.0088636165   0.03698856     0.0051998985   2.1093143      36.731667    
+      3500   0.80464962    -6.3218808      53336.427      53430.637      53541.615      0.00078805889 -0.0088352067   0.045836949    0.016561942    2.0854212      56.24616     
+      4000   0.79262445    -6.2980967      53018.867      53281.091      53554.272      0.00068640735 -0.0098497768   0.054924158    0.012490054    2.5846152      80.777599    
+      4500   0.80373643    -6.2936586      53064.276      53747.559      53740.78      -0.00027205826 -0.0084624407   0.064866167    0.0019637947   1.9245094      113.06038    
+      5000   0.79742123    -6.2703949      53118.234      54057.363      54004.199     -4.8832311e-05 -0.0077223537   0.072751657    6.3332728e-05  1.6118486      142.91681    
+      5500   0.80628333    -6.2606398      53313.824      54015.862      53814.866      0.00037411441 -0.0081070951   0.081989934    0.0037309438   1.775096       180.88116    
+      6000   0.82913061    -6.2633032      53326.879      53458.001      53610.676     -0.00099010173 -0.0081655697   0.090406043    0.026138208    1.782197       219.0868     
+      6500   0.86505258    -6.2773091      52831.114      53423.767      53629.665     -0.00083429101 -0.0089377182   0.099531021    0.018386324    2.1338202      265.6391     
+      7000   0.89010176    -6.2776563      52972.623      53293.197      53532.806     -0.00073001373 -0.0092012693   0.10857893     0.014115086    2.2559905      315.55941    
+      7500   0.91066624    -6.2712302      54132.303      53060.686      53881.409     -0.0010634056  -0.0098867539   0.1187511      0.030607259    2.5932854      379.91307    
+      8000   0.94723755    -6.2793118      53741.966      52766.211      53853.697     -0.00074733827 -0.008659673    0.12726297     0.015007834    1.9784674      436.10357    
+      8500   0.94924635    -6.2500826      53651.395      52975.16       53442.374     -0.00074437782 -0.0099130621   0.13701715     0.014864074    2.6029027      501.6555     
+      9000   0.99458286    -6.2631049      53854.373      53457.422      54356.816      0.00071308322 -0.0089976354   0.144395       0.013692143    2.1638881      566.66751    
+      9500   1.0439925     -6.2757636      52397.482      53895.663      53285.462      0.00070136008 -0.010089468    0.15503666     0.012887317    2.7432185      640.39447    
+     10000   1.079447      -6.2725514      52716.212      54369.772      53703.85       0.0015973826  -0.0098429932   0.16485869     0.067256161    2.6337945      729.79201    
+Loop time of 16.0679 on 1 procs for 9000 steps with 2123 atoms
+
+
+# continue without adding more torque. rotation continues at fixed speed
+unfix 4
+run 5000
+Generated 0 of 1 mixed pair_coeff terms from geometric mixing rule
+Per MPI rank memory allocation (min/avg/max) = 4.039 | 4.039 | 4.039 Mbytes
+   Step         KinEng         PotEng       c_3[1][1]      c_3[1][2]      c_3[1][3]      c_2[1][1]      c_2[1][2]      c_2[1][3]       v_r_ke_x       v_r_ke_y       v_r_ke_z   
+     10000   1.079447      -6.2725514      52716.212      54369.772      53703.85       0.0015973826  -0.0098429932   0.16485869     0.067256161    2.6337945      729.79201    
+     10500   1.0703622     -6.2631116      51901.246      52630.317      54508.695      0.00038625262 -0.0095676749   0.15822499     0.0038716016   2.4089002      682.31657    
+     11000   1.0645268     -6.2565118      52209.973      51791.364      54761.574      0.0010447963  -0.0096659551   0.15651112     0.028496184    2.4194514      670.71237    
+     11500   1.0490201     -6.2402775      53486.934      52714.6        54916.102      0.0011960964  -0.0083663549   0.15761662     0.038260452    1.8449028      682.14033    
+     12000   1.0260835     -6.217364       52947.638      51682.071      54972.799      0.00088109963 -0.0079695786   0.15615959     0.020552594    1.6412722      670.27832    
+     12500   1.0550463     -6.2467094      52948.359      52061.78       55236.786      0.0014519202  -0.0078398317   0.15651373     0.055809486    1.5999356      676.5553     
+     13000   1.0737404     -6.2655466      52847.058      52751.605      54867.718      0.00085507123 -0.0073901059   0.15684291     0.019319479    1.4404792      674.86469    
+     13500   1.0416208     -6.2332725      51485.671      52810.66       55117.923      0.00031722257 -0.0066019478   0.15738621     0.0025905056   1.1508952      682.64702    
+     14000   1.035168      -6.2269122      51909.464      52714.649      55180.729      0.0021369064  -0.0082184863   0.15611442     0.11851888     1.7802664      672.42444    
+     14500   1.0567882     -6.2485227      52034.898      52587.8        54181.01       2.4827935e-05 -0.0084129536   0.1557024      1.6037841e-05  1.8610241      656.76155    
+     15000   1.0342439     -6.2258224      52160.525      51846.57       54760.054      0.0003317987  -0.0076580868   0.15522667     0.0028711859   1.5203046      659.73049    
+Loop time of 8.58869 on 1 procs for 5000 steps with 2123 atoms
+
+Performance: 251493.479 tau/day, 582.161 timesteps/s, 1.236 Matom-step/s
+99.7% CPU use with 1 MPI tasks x 1 OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 6.8792     | 6.8792     | 6.8792     |   0.0 | 80.10
+Neigh   | 1.5688     | 1.5688     | 1.5688     |   0.0 | 18.27
+Comm    | 0.0021321  | 0.0021321  | 0.0021321  |   0.0 |  0.02
+Output  | 0.0010826  | 0.0010826  | 0.0010826  |   0.0 |  0.01
+Modify  | 0.1244     | 0.1244     | 0.1244     |   0.0 |  1.45
+Other   |            | 0.01303    |            |       |  0.15
+
+Nlocal:           2123 ave        2123 max        2123 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Nghost:              0 ave           0 max           0 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+Neighs:         240887 ave      240887 max      240887 min
+Histogram: 1 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 240887
+Ave neighs/atom = 113.46538
+Neighbor list builds = 557
+Dangerous builds = 0
+Total wall time: 0:00:30

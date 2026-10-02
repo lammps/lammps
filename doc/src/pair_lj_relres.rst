@@ -1,10 +1,11 @@
 .. index:: pair_style lj/relres
+.. index:: pair_style lj/relres/kk
 .. index:: pair_style lj/relres/omp
 
 pair_style lj/relres command
 ============================
 
-Accelerator Variants: *lj/relres/omp*
+Accelerator Variants: *lj/relres/kk*, *lj/relres/omp*
 
 Syntax
 """"""

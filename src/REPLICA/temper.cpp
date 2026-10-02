@@ -41,7 +41,8 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 Temper::Temper(LAMMPS *lmp) :
-    Command(lmp), ranswap(nullptr), ranboltz(nullptr), whichfix(nullptr), set_temp(nullptr),
+    Command(lmp), roots(MPI_COMM_NULL), ranswap(nullptr), ranboltz(nullptr), whichfix(nullptr),
+    set_temp(nullptr),
     temp2world(nullptr), world2temp(nullptr), world2root(nullptr)
 {}
 
@@ -49,7 +50,7 @@ Temper::Temper(LAMMPS *lmp) :
 
 Temper::~Temper()
 {
-  MPI_Comm_free(&roots);
+  if (roots != MPI_COMM_NULL) MPI_Comm_free(&roots);
   delete ranswap;
   delete ranboltz;
   delete[] set_temp;

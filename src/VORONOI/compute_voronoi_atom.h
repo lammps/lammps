@@ -56,7 +56,7 @@ class ComputeVoronoi : public Compute {
   char *radstr;
   double fthresh, ethresh;
   double **voro;
-  double *edge, *sendvector, *rfield;
+  double *edge, *rfield;
   enum { VOROSURF_NONE, VOROSURF_ALL, VOROSURF_GROUP } surface;
   bool onlyGroup, occupation;
 

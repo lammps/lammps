@@ -42,6 +42,7 @@ class PairNMCutCoulLongKokkos : public PairNMCutCoulLong {
   void compute(int, int) override;
   void init_style() override;
   double init_one(int, int) override;
+  void init_tables(double cut_coul, double *cut_respa) override;
 
   struct params_nm_coul {
 // NOLINTNEXTLINE
@@ -107,6 +108,10 @@ class PairNMCutCoulLongKokkos : public PairNMCutCoulLong {
   typename AT::t_kkfloat_2d d_cut_ljsq;
   typename AT::t_kkfloat_2d d_cut_coulsq;
 
+  typename AT::t_kkfloat_1d_randomread
+    d_rtable, d_drtable, d_ftable, d_dftable,
+    d_ctable, d_dctable, d_etable, d_detable;
+
   int neighflag;
   int nlocal,nall,eflag,vflag;
 
@@ -114,21 +119,36 @@ class PairNMCutCoulLongKokkos : public PairNMCutCoulLong {
   KK_FLOAT special_lj[4];
   KK_FLOAT qqrd2e;
   KK_FLOAT g_ewald_kk;
+  KK_FLOAT tabinnersq_kk;
 
   void allocate() override;
-  friend struct PairComputeFunctor<PairNMCutCoulLongKokkos,FULL,true,0>;
-  friend struct PairComputeFunctor<PairNMCutCoulLongKokkos,FULL,true,1>;
-  friend struct PairComputeFunctor<PairNMCutCoulLongKokkos,HALF,true>;
-  friend struct PairComputeFunctor<PairNMCutCoulLongKokkos,HALFTHREAD,true>;
-  friend struct PairComputeFunctor<PairNMCutCoulLongKokkos,FULL,false,0>;
-  friend struct PairComputeFunctor<PairNMCutCoulLongKokkos,FULL,false,1>;
-  friend struct PairComputeFunctor<PairNMCutCoulLongKokkos,HALF,false>;
-  friend struct PairComputeFunctor<PairNMCutCoulLongKokkos,HALFTHREAD,false>;
-  friend EV_FLOAT pair_compute_neighlist<PairNMCutCoulLongKokkos,FULL,0>(PairNMCutCoulLongKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute_neighlist<PairNMCutCoulLongKokkos,FULL,1>(PairNMCutCoulLongKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute_neighlist<PairNMCutCoulLongKokkos,HALF>(PairNMCutCoulLongKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute_neighlist<PairNMCutCoulLongKokkos,HALFTHREAD>(PairNMCutCoulLongKokkos*,NeighListKokkos<DeviceType>*);
-  friend EV_FLOAT pair_compute<PairNMCutCoulLongKokkos,void>(PairNMCutCoulLongKokkos*,
+  friend struct PairComputeFunctor<PairNMCutCoulLongKokkos,FULL,true,0,CoulLongTable<1>>;
+  friend struct PairComputeFunctor<PairNMCutCoulLongKokkos,FULL,true,1,CoulLongTable<1>>;
+  friend struct PairComputeFunctor<PairNMCutCoulLongKokkos,HALF,true,0,CoulLongTable<1>>;
+  friend struct PairComputeFunctor<PairNMCutCoulLongKokkos,HALFTHREAD,true,0,CoulLongTable<1>>;
+  friend struct PairComputeFunctor<PairNMCutCoulLongKokkos,FULL,false,0,CoulLongTable<1>>;
+  friend struct PairComputeFunctor<PairNMCutCoulLongKokkos,FULL,false,1,CoulLongTable<1>>;
+  friend struct PairComputeFunctor<PairNMCutCoulLongKokkos,HALF,false,0,CoulLongTable<1>>;
+  friend struct PairComputeFunctor<PairNMCutCoulLongKokkos,HALFTHREAD,false,0,CoulLongTable<1>>;
+  friend EV_FLOAT pair_compute_neighlist<PairNMCutCoulLongKokkos,FULL,0,CoulLongTable<1>>(PairNMCutCoulLongKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute_neighlist<PairNMCutCoulLongKokkos,FULL,1,CoulLongTable<1>>(PairNMCutCoulLongKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute_neighlist<PairNMCutCoulLongKokkos,HALF,0,CoulLongTable<1>>(PairNMCutCoulLongKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute_neighlist<PairNMCutCoulLongKokkos,HALFTHREAD,0,CoulLongTable<1>>(PairNMCutCoulLongKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute<PairNMCutCoulLongKokkos,CoulLongTable<1>>(PairNMCutCoulLongKokkos*,
+                                                              NeighListKokkos<DeviceType>*);
+  friend struct PairComputeFunctor<PairNMCutCoulLongKokkos,FULL,true,0,CoulLongTable<0>>;
+  friend struct PairComputeFunctor<PairNMCutCoulLongKokkos,FULL,true,1,CoulLongTable<0>>;
+  friend struct PairComputeFunctor<PairNMCutCoulLongKokkos,HALF,true,0,CoulLongTable<0>>;
+  friend struct PairComputeFunctor<PairNMCutCoulLongKokkos,HALFTHREAD,true,0,CoulLongTable<0>>;
+  friend struct PairComputeFunctor<PairNMCutCoulLongKokkos,FULL,false,0,CoulLongTable<0>>;
+  friend struct PairComputeFunctor<PairNMCutCoulLongKokkos,FULL,false,1,CoulLongTable<0>>;
+  friend struct PairComputeFunctor<PairNMCutCoulLongKokkos,HALF,false,0,CoulLongTable<0>>;
+  friend struct PairComputeFunctor<PairNMCutCoulLongKokkos,HALFTHREAD,false,0,CoulLongTable<0>>;
+  friend EV_FLOAT pair_compute_neighlist<PairNMCutCoulLongKokkos,FULL,0,CoulLongTable<0>>(PairNMCutCoulLongKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute_neighlist<PairNMCutCoulLongKokkos,FULL,1,CoulLongTable<0>>(PairNMCutCoulLongKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute_neighlist<PairNMCutCoulLongKokkos,HALF,0,CoulLongTable<0>>(PairNMCutCoulLongKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute_neighlist<PairNMCutCoulLongKokkos,HALFTHREAD,0,CoulLongTable<0>>(PairNMCutCoulLongKokkos*,NeighListKokkos<DeviceType>*);
+  friend EV_FLOAT pair_compute<PairNMCutCoulLongKokkos,CoulLongTable<0>>(PairNMCutCoulLongKokkos*,
                                                               NeighListKokkos<DeviceType>*);
   friend void pair_virial_fdotr_compute<PairNMCutCoulLongKokkos>(PairNMCutCoulLongKokkos*);
 };

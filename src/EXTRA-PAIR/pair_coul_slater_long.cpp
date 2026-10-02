@@ -305,7 +305,7 @@ void PairCoulSlaterLong::read_restart_settings(FILE *fp)
 
 /* ---------------------------------------------------------------------- */
 
-double PairCoulSlaterLong::single(int i, int j, int /*itype*/, int /*jtype*/, double rsq,
+double PairCoulSlaterLong::single(int i, int j, int itype, int jtype, double rsq,
                                   double factor_coul, double /*factor_lj*/, double &fforce)
 {
   double r2inv,r,grij,expm2,t,erfc,prefactor;
@@ -319,13 +319,14 @@ double PairCoulSlaterLong::single(int i, int j, int /*itype*/, int /*jtype*/, do
   t = 1.0 / (1.0 + EWALD_P*grij);
   erfc = t * (A1+t*(A2+t*(A3+t*(A4+t*A5)))) * expm2;
   slater_term = exp(-2*r/lamda)*(1 + (2*r/lamda*(1+r/lamda)));
-  prefactor = force->qqrd2e * atom->q[i]*atom->q[j]/r;
+  prefactor = force->qqrd2e * scale[itype][jtype] * atom->q[i]*atom->q[j]/r;
   forcecoul = prefactor * (erfc + EWALD_F*grij*expm2 - slater_term);
-  if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor;
+  if (factor_coul < 1.0) forcecoul -= (1.0-factor_coul)*prefactor*(1.0-slater_term);
   fforce = forcecoul * r2inv;
 
   phicoul = prefactor*(erfc - (1 + r/lamda)*exp(-2*r/lamda));
-  if (factor_coul < 1.0) phicoul -= (1.0-factor_coul)*prefactor;
+  if (factor_coul < 1.0)
+    phicoul -= (1.0-factor_coul)*prefactor*(1.0-(1 + r/lamda)*exp(-2*r/lamda));
 
   return phicoul;
 }

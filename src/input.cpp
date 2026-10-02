@@ -2067,9 +2067,9 @@ int Input::meta(const std::string &prefix)
 {
   auto mycmd = fmt::format("{}_{}", utils::uppercase(prefix), utils::uppercase(arg[0]));
   if (CommandCreator command_creator = command_styles().find(mycmd)) {
-    Command *cmd = command_creator(lmp);
+    // command() raises errors, which would step over a delete of a raw pointer
+    std::unique_ptr<Command> cmd(command_creator(lmp));
     cmd->command(narg-1,arg+1);
-    delete cmd;
     return 1;
   } else return 0;
 }

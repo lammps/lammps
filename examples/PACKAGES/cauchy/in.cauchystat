@@ -54,7 +54,7 @@ variable yz equal yz
 
 fix box all ave/time 1 100 100 v_lx v_ly v_lz v_xy v_xz v_yz file box.txt
 
-velocity all create 1200 4928459 rot yes dist gaussian
+velocity all create 1200 4928459 rot yes dist gaussian loop geom
 
 run 1000
 

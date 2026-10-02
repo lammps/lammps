@@ -1150,9 +1150,14 @@ EXCLUDED_FOLDERS = {
         ('COUPLE', 'mdi', 'QUANTUM', 'GRAPHICS', 'PACKAGES/ipi'),
     # the bare 'rerun' entry deliberately also matches examples/PACKAGES/adios/rerun,
     # the ADIOS clone of examples/rerun with the same input interdependencies
-    "demonstrates a complex property calculation workflow with production-like settings"
-    " that is covered by abbreviated unit tests instead":
-        ('DIFFUSE', 'ELASTIC', 'ELASTIC_T', 'HEAT', 'KAPPA', 'MC-LOOP', 'VISCOSITY', 'rerun'),
+    "demonstrates a complex property calculation workflow with production-like settings":
+        ('DIFFUSE', 'ELASTIC', 'ELASTIC_T', 'HEAT', 'KAPPA', 'MC-LOOP', 'VISCOSITY', 'rerun',
+         'PACKAGES/basal', 'PACKAGES/electrode/au-aq', 'PACKAGES/electrode/piston',
+         'PACKAGES/latboltz/confined_colloid', 'PACKAGES/latboltz/dragforce',
+         'PACKAGES/latboltz/toycar', 'PACKAGES/smtbq', 'PACKAGES/apip',
+         'PACKAGES/cgspica/peg-verlet'),
+    "inputs that may abort for a missing feature but for which there is no test to cleanly skip":
+        ('mliap/jax', 'PACKAGES/colvars', 'PACKAGES/plumed'),
 }
 
 '''

@@ -147,6 +147,8 @@ ComputeTempProfile::ComputeTempProfile(LAMMPS *lmp, int narg, char **arg) :
 
 ComputeTempProfile::~ComputeTempProfile()
 {
+  if (copymode) return;
+
   memory->destroy(vbin);
   memory->destroy(binave);
   memory->destroy(bin);

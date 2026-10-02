@@ -1,7 +1,10 @@
 .. index:: fix wall/piston
+.. index:: fix wall/piston/kk
 
 fix wall/piston command
 =======================
+
+Accelerator Variants: *wall/piston/kk*
 
 Syntax
 """"""
@@ -91,6 +94,10 @@ A *box* value selects standard distance units as defined by the
 A *lattice* value means the distance units are in lattice spacings.
 The :doc:`lattice <lattice>` command must have been previously used to
 define the lattice spacings.
+
+----------
+
+.. include:: accel_styles.rst
 
 ----------
 

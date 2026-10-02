@@ -358,7 +358,7 @@ void PairTersoff::settings(int narg, char **arg)
 
   while (iarg < narg) {
     if (strcmp(arg[iarg],"shift") == 0) {
-      if (suffix_flag & (Suffix::INTEL|Suffix::GPU|Suffix::KOKKOS))
+      if (suffix_flag & (Suffix::INTEL|Suffix::GPU))
         error->all(FLERR,"Keyword 'shift' not supported for this style");
       if (iarg+2 > narg) error->all(FLERR,"Illegal pair_style command");
       shift = utils::numeric(FLERR,arg[iarg+1],false,lmp);

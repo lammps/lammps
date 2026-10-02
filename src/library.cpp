@@ -21,6 +21,7 @@
 
 #include "accelerator_kokkos.h"
 #include "atom.h"
+#include "atom_masks.h"
 #include "atom_vec.h"
 #include "comm.h"
 #include "command.h"
@@ -593,24 +594,35 @@ char *lammps_expand(void *handle, const char *line)
     STORE_ERROR_MESSAGE(lmp, mesg);
     return nullptr;
   }
-  char *copy, *work;
+  char *copy = nullptr, *work = nullptr, *result = nullptr;
   int n, maxcopy, maxwork;
 
   if (!line) return nullptr;
 
+  // Input::substitute() may grow the buffers with Memory::srealloc(),
+  // so they must be allocated with Memory::smalloc() and not malloc()
+
   BEGIN_CAPTURE
   {
     n = strlen(line) + 1;
-    copy = (char *) malloc(n * sizeof(char));
-    work = (char *) malloc(n * sizeof(char));
+    copy = (char *) lmp->memory->smalloc(n * sizeof(char), "lammps_expand:copy");
+    work = (char *) lmp->memory->smalloc(n * sizeof(char), "lammps_expand:work");
     maxwork = maxcopy = n;
     memcpy(copy, line, maxcopy);
     lmp->input->substitute(copy, work, maxcopy, maxwork, 0);
-    free(work);
   }
   END_CAPTURE
 
-  return copy;
+  // return the expanded string in a buffer that can be freed with lammps_free()
+
+  if (copy) {
+    n = strlen(copy) + 1;
+    result = (char *) malloc(n * sizeof(char));
+    if (result) memcpy(result, copy, n);
+  }
+  lmp->memory->sfree(copy);
+  lmp->memory->sfree(work);
+  return result;
 }
 
 // ----------------------------------------------------------------------
@@ -6213,6 +6225,15 @@ int lammps_create_atoms(void *handle, int n, const tagint *id, const int *type,
 
     Atom *atom = lmp->atom;
     Domain *domain = lmp->domain;
+
+    // the loop below creates atoms and writes their per-atom data through the
+    // plain pointers, so bring the host side up to date first and hand the
+    // writes over afterwards; without the KOKKOS package these do nothing.
+    // both are needed here: this function is typically called between runs,
+    // when the device holds the newer copy of the per-atom arrays
+
+    atom->sync_host_arrays(ALL_MASK);
+
     int nlocal = atom->nlocal;
 
     int nlocal_prev = nlocal;
@@ -6262,6 +6283,8 @@ int lammps_create_atoms(void *handle, int n, const tagint *id, const int *type,
     // init per-atom fix/compute/variable values for created atoms
 
     atom->data_fix_compute_variable(nlocal_prev,nlocal);
+
+    atom->modified_host_arrays(ALL_MASK);
 
     // if global map exists, reset it
     // invoke map_init() b/c atom count has grown

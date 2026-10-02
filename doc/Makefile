@@ -68,12 +68,13 @@ help:
 	@echo "  upgrade       upgrade sphinx, extensions, and dependencies to latest supported versions"
 	@echo "  clean         remove all intermediate files"
 	@echo "  clean-all     reset the entire build environment"
-	@echo "  check         run 'anchor_check', 'style_check', 'package_check', 'char_check', and 'role_check'"
+	@echo "  check         run 'anchor_check', 'style_check', 'package_check', 'char_check', 'role_check', and 'example_check'"
 	@echo "  anchor_check  scan for duplicate anchor labels"
 	@echo "  style_check   check for complete and consistent style lists"
 	@echo "  package_check check for complete and consistent package lists"
 	@echo "  char_check    check for non-ASCII characters"
 	@echo "  role_check    check for misformatted role keywords"
+	@echo "  example_check check for broken or missing links to examples"
 	@echo "  link_check    check external links in the manual"
 	@echo "  extract_check check extract() function consistency with tables in the manual"
 	@echo "  spelling      spell-check the manual"
@@ -127,6 +128,7 @@ html: xmlgen globbed-tocs $(VENV) $(SPHINXCONFIG)/conf.py $(MATHJAX)
 		$(PYTHON) $(BUILDDIR)/utils/check-styles.py -s ../src -d src ;\
 		env LC_ALL=C grep -n -E '^ *\.\. [a-z0-9]+:(\s+.*|)$$' \
                          $(RSTDIR)/*.rst ../src/*.{cpp,h} ../src/*/*.{cpp,h} ;\
+		$(PYTHON) utils/find_example_refs.py --check ;\
 		echo "############################################" ;\
 		deactivate ;\
 	)
@@ -226,6 +228,7 @@ pdf: xmlgen globbed-tocs $(VENV) $(SPHINXCONFIG)/conf.py
 		$(PYTHON) utils/check-styles.py -s ../src -d src ;\
 		env LC_ALL=C grep -n -E '^ *\.\. [a-z0-9]+:(\s+.*|)$$' \
                          $(RSTDIR)/*.rst ../src/*.{cpp,h} ../src/*/*.{cpp,h} ;\
+		$(PYTHON) utils/find_example_refs.py --check ;\
 		echo "############################################" ;\
 		deactivate ;\
 	)
@@ -246,7 +249,7 @@ pdf: xmlgen globbed-tocs $(VENV) $(SPHINXCONFIG)/conf.py
 	@rm -rf latex/PDF/.[sg]*
 	@echo "Build finished. Manual.pdf is in this directory."
 
-check : anchor_check style_check package_check char_check role_check
+check : anchor_check style_check package_check char_check role_check example_check
 
 anchor_check :
 	@( env PYTHONWARNINGS= PYTHONDONTWRITEBYTECODE=1 \
@@ -281,6 +284,13 @@ extract_check : $(VENV)
 	@(\
 		. $(VENV)/bin/activate ; env PYTHONWARNINGS= PYTHONDONTWRITEBYTECODE=1 \
 		$(PYTHON) utils/check-fix-adapt-tables.py --root .. ;\
+		deactivate ;\
+	)
+
+example_check : $(VENV)
+	@(\
+		. $(VENV)/bin/activate ; env PYTHONWARNINGS= PYTHONDONTWRITEBYTECODE=1 \
+		$(PYTHON) utils/find_example_refs.py --check ;\
 		deactivate ;\
 	)
 

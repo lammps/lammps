@@ -37,13 +37,6 @@ template <class DeviceType>
 MLIAPDummyDescriptorKokkos<DeviceType>::MLIAPDummyDescriptorKokkos(LAMMPS *_lmp) :
   Pointers(_lmp), MLIAPDummyDescriptor(_lmp), MLIAPDescriptorKokkos<DeviceType>(lmp, this) {}
 
-template <class DeviceType>
-MLIAPDummyDescriptorKokkos<DeviceType>::~MLIAPDummyDescriptorKokkos()
-{
-  // done in base class
-  // Py_DECREF(unified_interface);
-}
-
 /* ----------------------------------------------------------------------
    invoke compute_descriptors from Cython interface
    ---------------------------------------------------------------------- */

@@ -174,11 +174,11 @@ void PairReaxFFKokkos<DeviceType>::init_style()
     if (!ifix->kokkosable)
       error->all(FLERR,"Must use Kokkos version of acks2/reaxff with pair reaxff/kk");
     if (ifix->execution_space == HostKK) {
-      auto k_s = ((FixACKS2ReaxFFKokkos<LMPHostType>*) ifix)->get_s();
+      auto k_s = ((FixACKS2ReaxFFKokkos<LMPHostType>*) ifix)->get_k_s();
       k_s.sync<DeviceType>();
       d_s = k_s.view<DeviceType>();
     } else {
-      auto k_s = ((FixACKS2ReaxFFKokkos<LMPDeviceType>*) ifix)->get_s();
+      auto k_s = ((FixACKS2ReaxFFKokkos<LMPDeviceType>*) ifix)->get_k_s();
       k_s.sync<DeviceType>();
       d_s = k_s.view<DeviceType>();
     }
@@ -746,11 +746,11 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   if (acks2_flag) {
     auto ifix = modify->get_fix_by_style("^acks2/reax").front();
     if (ifix->execution_space == HostKK) {
-      auto k_s = ((FixACKS2ReaxFFKokkos<LMPHostType>*) ifix)->get_s();
+      auto k_s = ((FixACKS2ReaxFFKokkos<LMPHostType>*) ifix)->get_k_s();
       k_s.sync<DeviceType>();
       d_s = k_s.view<DeviceType>();
     } else {
-      auto k_s = ((FixACKS2ReaxFFKokkos<LMPDeviceType>*) ifix)->get_s();
+      auto k_s = ((FixACKS2ReaxFFKokkos<LMPDeviceType>*) ifix)->get_k_s();
       k_s.sync<DeviceType>();
       d_s = k_s.view<DeviceType>();
     }
@@ -1257,7 +1257,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeLJCoulomb<NEIGHF
       exp1 = exp2*exp2;
       etmp = epsilon*(exp1-static_cast<KK_FLOAT>(2.0)*exp2);
       evdwl = Tap*etmp;
-      fvdwl = dTap*etmp-Tap*epsilon*(alpha/r_vdw)*(exp1-exp2)*rij;
+      fvdwl = dTap*etmp-Tap*epsilon*(alpha/r_vdw)*(exp1-exp2)/rij;
     }
     // inner wall
     if (vdwflag == 2 || vdwflag == 3) {
@@ -1593,7 +1593,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxZero, const int &n) con
   d_total_bo(n) = 0;
   d_CdDelta(n) = 0;
   d_bo_num(n) = 0;
-  d_hb_num(n) = 0;
+  if (cut_hbsq > 0.0) d_hb_num(n) = 0;
   for (int j = 0; j < 3; j++)
     d_dDeltap_self(n,j) = 0;
 }

@@ -8,9 +8,6 @@
 #include <HIP/Kokkos_HIP.hpp>
 #include <HIP/Kokkos_HIP_Space.hpp>
 #include <HIP/Kokkos_HIP_DeepCopy.hpp>
-#include <HIP/Kokkos_HIP_Half_Impl_Type.hpp>
-#include <HIP/Kokkos_HIP_Half_Conversion.hpp>
-#include <HIP/Kokkos_HIP_Half_MathematicalFunctions.hpp>
 #include <HIP/Kokkos_HIP_Instance.hpp>
 #include <HIP/Kokkos_HIP_MDRangePolicy.hpp>
 #include <HIP/Kokkos_HIP_ParallelFor_Range.hpp>
@@ -24,14 +21,20 @@
 #include <HIP/Kokkos_HIP_UniqueToken.hpp>
 #include <HIP/Kokkos_HIP_ZeroMemset.hpp>
 
+#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_5
 namespace Kokkos {
 namespace Experimental {
-using HIPSpace           = ::Kokkos::HIPSpace;
-using HIPHostPinnedSpace = ::Kokkos::HIPHostPinnedSpace;
-using HIPManagedSpace    = ::Kokkos::HIPManagedSpace;
-using HIP                = ::Kokkos::HIP;
+using HIPSpace KOKKOS_DEPRECATED_WITH_COMMENT("Use Kokkos::HIPSpace instead!") =
+    ::Kokkos::HIPSpace;
+using HIPHostPinnedSpace KOKKOS_DEPRECATED_WITH_COMMENT(
+    "Use Kokkos::HIPHostPinnedSpace instead!") = ::Kokkos::HIPHostPinnedSpace;
+using HIPManagedSpace KOKKOS_DEPRECATED_WITH_COMMENT(
+    "Use Kokkos::HIPManagedSpace instead!") = ::Kokkos::HIPManagedSpace;
+using HIP KOKKOS_DEPRECATED_WITH_COMMENT("Use Kokkos::HIP instead!") =
+    ::Kokkos::HIP;
 }  // namespace Experimental
 }  // namespace Kokkos
+#endif
 #endif
 
 #endif

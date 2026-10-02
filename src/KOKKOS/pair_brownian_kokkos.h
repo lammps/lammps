@@ -27,7 +27,11 @@ PairStyle(brownian/kk/host,PairBrownianKokkos<LMPHostType>);
 #include "pair_kokkos.h"
 #include "kokkos_type.h"
 #include "kokkos_base.h"
+#ifdef LMP_KOKKOS_DEBUG_RNG
+#include "rand_pool_wrap_kokkos.h"
+#else
 #include "Kokkos_Random.hpp"
+#endif
 #include "comm_kokkos.h"
 
 namespace LAMMPS_NS {
@@ -152,8 +156,13 @@ class PairBrownianKokkos : public PairBrownian, public KokkosBase {
 
   friend void pair_virial_fdotr_compute<PairBrownianKokkos>(PairBrownianKokkos*);
 
+#ifdef LMP_KOKKOS_DEBUG_RNG
+  RandPoolWrap rand_pool;
+  typedef RandWrap rand_type;
+#else
   Kokkos::Random_XorShift64_Pool<DeviceType> rand_pool;
   typedef typename Kokkos::Random_XorShift64_Pool<DeviceType>::generator_type rand_type;
+#endif
 };
 
 }

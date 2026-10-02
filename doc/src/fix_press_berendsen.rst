@@ -1,7 +1,10 @@
 .. index:: fix press/berendsen
+.. index:: fix press/berendsen/kk
 
 fix press/berendsen command
 ===========================
+
+Accelerator Variants: *press/berendsen/kk*
 
 Syntax
 """"""
@@ -212,6 +215,10 @@ This fix can ramp its target pressure over multiple runs, using the
 :doc:`run <run>` command for details of how to do this.
 
 This fix is not invoked during :doc:`energy minimization <minimize>`.
+
+----------
+
+.. include:: accel_styles.rst
 
 Restrictions
 """"""""""""

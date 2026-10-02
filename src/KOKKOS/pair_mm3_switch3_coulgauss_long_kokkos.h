@@ -107,6 +107,11 @@ class PairMM3Switch3CoulGaussLongKokkos : public PairMM3Switch3CoulGaussLong {
   typename AT::t_kkfloat_2d d_cutsq;
   DAT::ttransform_kkfloat_2d k_cut_ljsq;
   typename AT::t_kkfloat_2d d_cut_ljsq;
+  // the Coulomb hooks of pair_kokkos are gated by this bound, which is
+  // widened to the LJ cutoff so the Gaussian charge correction reaches as
+  // far as it does in the CPU style; cut_coulsq_kk still cuts the Ewald part
+
+  DAT::tdual_kkfloat_2d k_cut_coulsq;
   typename AT::t_kkfloat_2d d_cut_coulsq;
 
   int neighflag;
@@ -116,6 +121,7 @@ class PairMM3Switch3CoulGaussLongKokkos : public PairMM3Switch3CoulGaussLong {
   KK_FLOAT special_lj[4];
   KK_FLOAT qqrd2e;
   KK_FLOAT g_ewald_kk;
+  KK_FLOAT cut_coulsq_kk;
   KK_FLOAT truncw_kk;
   KK_FLOAT truncwi_kk;
 

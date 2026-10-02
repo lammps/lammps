@@ -149,6 +149,22 @@ void FixStoreAtom::copy_arrays(int i, int j, int /*delflag*/)
 }
 
 /* ----------------------------------------------------------------------
+   zero the values of an atom added during a run
+   only called if the owner of this fix sets create_attribute
+------------------------------------------------------------------------- */
+
+void FixStoreAtom::set_arrays(int i)
+{
+  if (vecflag) {
+    vstore[i] = 0.0;
+  } else if (arrayflag) {
+    for (int m = 0; m < nvalues; m++) astore[i][m] = 0.0;
+  } else if (tensorflag) {
+    memset(&tstore[i][0][0], 0, nbytes);
+  }
+}
+
+/* ----------------------------------------------------------------------
    pack values for border communication at re-neighboring
 ------------------------------------------------------------------------- */
 

@@ -151,11 +151,10 @@ description of the oxDNA force field.
    binary restart files produced with :doc:`write_restart <write_restart>`.
 
 Example input and data files for DNA duplexes can be found in
-``examples/PACKAGES/cgdna/examples/lj_units/oxDNA/``
-or in the corresponding folder for real units.
-A simple python setup tool which creates single straight or helical DNA
-strands, DNA duplexes or arrays of DNA duplexes can be found in
-``examples/PACKAGES/cgdna/util/``.
+``examples/PACKAGES/cgdna/examples/`` or in the corresponding folder for
+real units.  A simple python setup tool which creates single straight or
+helical DNA strands, DNA duplexes or arrays of DNA duplexes can be found
+in ``examples/PACKAGES/cgdna/util/``.
 
 ----------
 
@@ -268,7 +267,8 @@ The input file requires an instance of the :doc:`fix property/atom <fix_property
 where *file* is the name of the data file and the only modifiable argument.
 An example input and data file for a dsDNA ring can be found in
 ``examples/PACKAGES/cgdna/examples/lj_units/oxDNA3/unique_bp``
-or in the corresponding folder for real units.
+and in
+``examples/PACKAGES/cgdna/examples/real_units/oxDNA3/unique_bp``
 
 Please cite :ref:`(Henrich) <Henrich1>` in any publication that uses
 this implementation. An updated documentation that contains general

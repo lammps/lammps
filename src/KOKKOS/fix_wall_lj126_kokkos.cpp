@@ -30,7 +30,7 @@ FixWallLJ126Kokkos<DeviceType>::FixWallLJ126Kokkos(LAMMPS *lmp, int narg, char *
   kokkosable = 1;
   atomKK = (AtomKokkos *) atom;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
-  datamask_read = X_MASK | V_MASK | F_MASK | MASK_MASK;
+  datamask_read = X_MASK | F_MASK | MASK_MASK;
   datamask_modify = F_MASK;
 
   memoryKK->create_kokkos(k_cutoff, 6, "wall_lj126:cutoff");
@@ -98,14 +98,27 @@ void FixWallLJ126Kokkos<DeviceType>::precompute(int m_in)
 /* ---------------------------------------------------------------------- */
 
 template <class DeviceType>
-void FixWallLJ126Kokkos<DeviceType>::post_force(int vflag)
+void FixWallLJ126Kokkos<DeviceType>::v_setup_peratom(int vflag)
 {
+  // the per-atom virial is accumulated into a dual view, so the plain
+  // base-class vatom array must not be allocated here (alloc = 0)
+
+  v_init(vflag,0);
+
+  // reallocate the per-atom virial dual view if necessary
+
   if (vflag_atom) {
     memoryKK->destroy_kokkos(k_vatom, vatom);
     memoryKK->create_kokkos(k_vatom, vatom, maxvatom, "wall_lj126:vatom");
     d_vatom = k_vatom.template view<DeviceType>();
   }
+}
 
+/* ---------------------------------------------------------------------- */
+
+template <class DeviceType>
+void FixWallLJ126Kokkos<DeviceType>::post_force(int vflag)
+{
   FixWallLJ126::post_force(vflag);
 
   if (vflag_atom) {

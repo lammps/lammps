@@ -18,22 +18,6 @@ static_assert(false,
 
 namespace Kokkos {
 
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-#if defined(KOKKOS_COMPILER_GNU) && !defined(__PGIC__) && \
-    !defined(__CUDA_ARCH__)
-
-#define KOKKOS_NONTEMPORAL_PREFETCH_LOAD(addr) __builtin_prefetch(addr, 0, 0)
-#define KOKKOS_NONTEMPORAL_PREFETCH_STORE(addr) __builtin_prefetch(addr, 1, 0)
-
-#else
-
-#define KOKKOS_NONTEMPORAL_PREFETCH_LOAD(addr) ((void)0)
-#define KOKKOS_NONTEMPORAL_PREFETCH_STORE(addr) ((void)0)
-
-#endif
-#endif
-// ============================================================
-
 #ifdef KOKKOS_ENABLE_ATOMICS_BYPASS
 #define KOKKOS_DESUL_MEM_SCOPE desul::MemoryScopeCaller()
 #else

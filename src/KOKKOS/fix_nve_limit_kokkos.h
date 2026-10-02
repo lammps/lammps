@@ -32,6 +32,7 @@ template<class DeviceType>
 class FixNVELimitKokkos : public FixNVELimit {
  public:
   FixNVELimitKokkos(class LAMMPS *, int, char **);
+  void init() override;
   void initial_integrate(int) override;
   void final_integrate() override;
 

@@ -52,6 +52,8 @@ PairLJCutSoft::PairLJCutSoft(LAMMPS *lmp) :
 
 PairLJCutSoft::~PairLJCutSoft()
 {
+  if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);

@@ -43,7 +43,8 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 TemperGrem::TemperGrem(LAMMPS *lmp) :
-    Command(lmp), ranswap(nullptr), ranboltz(nullptr), whichfix(nullptr), set_lambda(nullptr),
+    Command(lmp), roots(MPI_COMM_NULL), ranswap(nullptr), ranboltz(nullptr), whichfix(nullptr),
+    set_lambda(nullptr),
     lambda2world(nullptr), world2lambda(nullptr), world2root(nullptr), fix_grem(nullptr)
 {}
 
@@ -51,7 +52,7 @@ TemperGrem::TemperGrem(LAMMPS *lmp) :
 
 TemperGrem::~TemperGrem()
 {
-  MPI_Comm_free(&roots);
+  if (roots != MPI_COMM_NULL) MPI_Comm_free(&roots);
   delete ranswap;
   delete ranboltz;
   delete[] set_lambda;

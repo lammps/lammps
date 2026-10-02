@@ -455,7 +455,7 @@ else the *line* setting (if specified) for that value is used, else
 the default setting is used.  A setting of *none* clears all previous
 settings, reverting all values to their default format.
 
-.. versionchanged:: TBD
+.. versionchanged:: 2Sep2026
 
 Format strings are checked when they are set and LAMMPS will stop with an
 error if a format string does not match the kind of value it is applied
@@ -472,7 +472,7 @@ text, and may leave trailing values unformatted.
    keyword and LAMMPS will convert it to the corresponding 8-byte form
    where needed.
 
-   .. versionchanged:: TBD
+   .. versionchanged:: 2Sep2026
 
    This conversion is now also applied to the *line* option and the
    *format M string* option.  Previously those required a format string
@@ -972,7 +972,7 @@ default and it can be disabled with the :code:`checksum` keyword.
 
 ----------
 
-.. versionadded:: TBD
+.. versionadded:: 2Sep2026
 
 The :ref:`EXTRA-DUMP package <PKG-EXTRA-DUMP>` offers writing dump files
 in `VTK file formats <https://vtk.org/>`_ that can be read by a variety

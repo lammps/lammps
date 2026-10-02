@@ -63,6 +63,7 @@ class PairMultiLucyRXKokkos : public PairMultiLucyRX, public KokkosBase {
   void compute_style(int, int);
 
   void init_style() override;
+  double init_one(int, int) override;
   int pack_forward_comm_kokkos(int, DAT::tdual_int_1d, DAT::tdual_double_1d&,
                                int, int *) override;
   void unpack_forward_comm_kokkos(int, int, DAT::tdual_double_1d&) override;
@@ -70,7 +71,7 @@ class PairMultiLucyRXKokkos : public PairMultiLucyRX, public KokkosBase {
   void unpack_forward_comm(int, int, double *) override;
   int pack_reverse_comm(int, int, double *) override;
   void unpack_reverse_comm(int, int *, double *) override;
-  void computeLocalDensity();
+  void computeLocalDensity() override;
 
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
@@ -110,7 +111,7 @@ class PairMultiLucyRXKokkos : public PairMultiLucyRX, public KokkosBase {
       const KK_FLOAT &epair, const KK_FLOAT &fpair, const KK_FLOAT &delx,
                   const KK_FLOAT &dely, const KK_FLOAT &delz) const;
 
- private:
+ protected:
   int nlocal;
   int neighflag;
   int eflag,vflag;

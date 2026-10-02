@@ -217,8 +217,12 @@ void MinKokkos::setup(int flag)
 
   lmp->kokkos->auto_sync = 0;
   modify->setup(vflag);
-  output->setup(flag);
   lmp->kokkos->auto_sync = 1;
+
+  // VerletKokkos::setup() runs the setup output with auto_sync on
+
+  atomKK->sync(Host,ALL_MASK);
+  output->setup(flag);
   update->setupflag = 0;
 
   // stats for initial thermo output
@@ -386,8 +390,11 @@ void MinKokkos::run(int n)
     modify->addstep_compute_all(update->ntimestep);
     ecurrent = energy_force(0);
 
+    int prev_auto_sync = lmp->kokkos->auto_sync;
+    lmp->kokkos->auto_sync = 1;
     atomKK->sync(Host,ALL_MASK);
     output->write(update->ntimestep);
+    lmp->kokkos->auto_sync = prev_auto_sync;
   }
 
   atomKK->sync(Host,ALL_MASK);
@@ -697,8 +704,9 @@ double MinKokkos::fnorm_max()
 
     if constexpr (F_LAYOUTRIGHT) {
       auto l_fvec = fvec;
-      Kokkos::parallel_reduce(nvec, LAMMPS_LAMBDA(int i, double& local_norm_max) {
-        double fdotf = static_cast<double>(l_fvec[i]*l_fvec[i]+l_fvec[i+1]*l_fvec[i+1]+l_fvec[i+2]*l_fvec[i+2]);
+      Kokkos::parallel_reduce(nvec/3, LAMMPS_LAMBDA(int i, double& local_norm_max) {
+        const int n = 3*i;
+        double fdotf = static_cast<double>(l_fvec[n]*l_fvec[n]+l_fvec[n+1]*l_fvec[n+1]+l_fvec[n+2]*l_fvec[n+2]);
         local_norm_max = MAX(fdotf,local_norm_max);
       },Kokkos::Max<double>(local_norm_max));
     } else {

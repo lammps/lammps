@@ -85,6 +85,8 @@ class Serial {
   using execution_space = Serial;
   //! This device's preferred memory space.
   using memory_space = Kokkos::HostSpace;
+  //! The index_type alias best suited for this device.
+  using index_type = memory_space::index_type;
   //! The size_type alias best suited for this device.
   using size_type = memory_space::size_type;
   //! This execution space preferred device_type
@@ -215,7 +217,6 @@ struct MemorySpaceAccess<Kokkos::Serial::memory_space,
                          Kokkos::Serial::scratch_memory_space> {
   enum : bool { assignable = false };
   enum : bool { accessible = true };
-  enum : bool { deepcopy = false };
 };
 
 }  // namespace Impl

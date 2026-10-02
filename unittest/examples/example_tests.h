@@ -116,7 +116,7 @@ protected:
 // per-block header line: timestep and number-of-rows) or of a fix
 // ave/chunk file (3 words: timestep, number-of-chunks, total-count),
 // as rows of columns
-static std::vector<std::vector<double>> last_vector_block(const std::string &filename,
+static inline std::vector<std::vector<double>> last_vector_block(const std::string &filename,
                                                           std::size_t header_words = 2)
 {
     std::vector<std::vector<double>> block;

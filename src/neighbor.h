@@ -137,6 +137,10 @@ class Neighbor : protected Pointers {
   NeighRequest *add_request(class Compute *, int flags = 0);
   NeighRequest *add_request(class Command *, const char *, int flags = 0);
 
+  // discard neighbor list requests made after the first nkeep ones
+
+  void discard_requests(int nkeep);
+
   // set neighbor list request OpenMP flag
 
   void set_omp_neighbor(int);

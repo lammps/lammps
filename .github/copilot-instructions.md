@@ -56,8 +56,8 @@ Further named targets: `make check-homepage` (verifies https://www.lammps.org UR
 
 **Unit tests (CTest; requires `-D ENABLE_TESTING=on` and a completed build):**
 ```bash
-cd build && ctest -V                # all tests
-cd build && ctest -V -R <pattern>   # subset by regex
+ctest --test-dir build -V                # all tests
+ctest --test-dir build -V -R <pattern>   # subset by regex
 ```
 
 Regression tests (the `examples/` inputs) and the documentation build have their own

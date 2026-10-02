@@ -25,6 +25,8 @@ Examples
    pair_coeff * * 1.0 1.0 15.0 1.0 2.5 2.0 5.0 0.0
    pair_coeff 1 2 1.0 1.0 15.0 1.0 2.5 2.0 5.0 0.05
 
+Example input scripts available: examples/PACKAGES/mesomem, https://gitlab.tudelft.nl/idema-group/mesomem 
+
 Description
 """""""""""
 

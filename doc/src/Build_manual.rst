@@ -107,17 +107,17 @@ It is also possible to create the HTML version (and **only** the HTML
 version) of the manual within the :doc:`CMake build directory
 <Build_cmake>`.  The reason for this option is to include the
 installation of the HTML manual pages into the "install" step when
-installing LAMMPS after the CMake build via ``cmake --build . --target
-install``.  The documentation build is included in the default build
-target, but can also be requested independently with
-``cmake --build . --target doc``.  If you need to pass additional options
+installing LAMMPS after the CMake build via ``cmake --install build``.
+The documentation build is included in the default build target, but can
+also be requested independently with ``cmake --build build --target
+doc``.  If you need to pass additional options
 to the pip commands to work (e.g. to use a web proxy or to point to
 additional SSL certificates) you can set them via the ``PIP_OPTIONS``
 environment variable.
 
 .. code-block:: bash
 
-   -D BUILD_DOC=value       # yes or no (default)
+   -D BUILD_DOC=value       # on or off (default)
 
 ----------
 

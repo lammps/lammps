@@ -1,5 +1,5 @@
 # Use the OPLS-AA force field for all species.
-import /usr/local/moltemplate/moltemplate/force_fields/oplsaa2024.lt
+import "oplsaa2024.lt"
 import PolyNIPAM.lt
 
 # Define the SPC water and ions as in the OPLS-AA

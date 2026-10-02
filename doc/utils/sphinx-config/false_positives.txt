@@ -582,6 +582,7 @@ Cleary
 Clebsch
 clemson
 Clermont
+CLion
 clo
 Clovertown
 cmake
@@ -2487,6 +2488,7 @@ metadynamics
 Metadynamics
 metalfinish
 metallicity
+metamaterials
 Methfessel
 methine
 Metin
@@ -4338,6 +4340,7 @@ uncomment
 uncommented
 uncompress
 uncompute
+undamped
 underdamped
 underprediction
 undump

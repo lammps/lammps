@@ -2,7 +2,7 @@
 ########################################
 # CMake build system
 # This file is part of LAMMPS
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.27)
 ########################################
 # initialize version variables with project command
 if(POLICY CMP0048)
@@ -30,7 +30,6 @@ endif()
 if(POLICY CMP0135)
   cmake_policy(SET CMP0135 NEW)
 endif()
-
 # set policy to ignore CMAKE_WARN_DEPRECATED and CMAKE_ERROR_DEPRECATED if available.
 # we are not using those AFAIK anyway.
 if(POLICY CMP0218)
@@ -942,12 +941,16 @@ if(BUILD_SHARED_LIBS)
   else()
     add_custom_target(
       install-python
-      ${CMAKE_COMMAND} -E echo "Must have Python installed to install the LAMMPS Python module")
+      COMMAND ${CMAKE_COMMAND} -E echo "Must have Python installed to install the LAMMPS Python module"
+      COMMAND ${CMAKE_COMMAND} -E false
+      VERBATIM)
   endif()
 else()
   add_custom_target(
     install-python
-    ${CMAKE_COMMAND} -E echo "Must build LAMMPS as a shared library to use the Python module")
+    COMMAND ${CMAKE_COMMAND} -E echo "Must build LAMMPS as a shared library to use the Python module"
+    COMMAND ${CMAKE_COMMAND} -E false
+    VERBATIM)
 endif()
 
 include(Testing)

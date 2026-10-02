@@ -1,0 +1,59 @@
+import "oplsaa2024.lt"  # defines OPLSAA
+
+CH3 inherits OPLSAA {
+
+  # atomID    molID   atomType  charge   coordX   coordY    coordZ
+  write("Data Atoms") {
+    $atom:c  $mol:... @atom:54   0.0   0.000000  0.4431163  0.000000
+    $atom:h1 $mol:... @atom:60   0.0   0.000000  1.0741603  0.892431
+    $atom:h2 $mol:... @atom:60   0.0   0.000000  1.0741603 -0.892431
+    $atom:h3 $mol:... @atom:60   0.0  -0.892431 -0.1879277  0.000000
+  }
+  # (Using "$mol:..." indicates this object ("CH3") is part of a larger
+  #  molecule. Moltemplate will share the molecule-ID with that molecule.)
+
+  # A list of the bonds within the "CH3" molecular sub-unit:
+  # BondID   AtomID1   AtomID2
+  write('Data Bond List') {
+    $bond:ch1 $atom:c $atom:h1
+    $bond:ch2 $atom:c $atom:h2
+    $bond:ch3 $atom:c $atom:h3
+  }
+}
+
+CH2 inherits OPLSAA {
+
+  # atomID    molID   atomType  charge   coordX   coordY    coordZ
+  write("Data Atoms") {
+    $atom:c  $mol:... @atom:57   0.0   0.000000  0.4431163  0.000000
+    $atom:h1 $mol:... @atom:60   0.0   0.000000  1.0741603  0.892431
+    $atom:h2 $mol:... @atom:60   0.0   0.000000  1.0741603 -0.892431
+  }
+
+  # A list of the bonds within the "CH2" molecular sub-unit:
+  # BondID   AtomID1   AtomID2
+  write('Data Bond List') {
+    $bond:ch1 $atom:c $atom:h1
+    $bond:ch2 $atom:c $atom:h2
+  }
+}
+
+Butane inherits OPLSAA {
+
+  create_var {$mol}  # optional:force all monomers to share the same molecule-ID
+
+  # - Create 4 monomers
+  # - Move them along the X axis using ".move()",
+  # - Rotate them 180 degrees with respect to the previous monomer
+  monomer1 = new CH3
+  monomer2 = new CH2.rot(180,1,0,0).move(1.2533223,0,0)
+  monomer3 = new CH2.move(2.5066446,0,0)
+  monomer4 = new CH3.rot(180,0,0,1).move(3.7599669,0,0)
+
+  # A list of the bonds connecting different monomers together:
+  write('Data Bond List') {
+    $bond:b1  $atom:monomer1/c $atom:monomer2/c
+    $bond:b2  $atom:monomer2/c $atom:monomer3/c
+    $bond:b3  $atom:monomer3/c $atom:monomer4/c
+  }
+}

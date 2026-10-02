@@ -87,7 +87,7 @@ switched off smoothly at the cutoff :math:`w_c` by the weight function
    \end{matrix}\right.
 
 .. figure:: JPG/mesomem-potential.png
-   :figwidth: 70%
+   :scale: 33 %
    :align: center
 
    Isotropic potential :math:`U_{iso}(r)` for two values of
@@ -120,7 +120,7 @@ toward the side the dipoles point to; for :math:`C_0 < 0` they point away
 from it.
 
 .. figure:: JPG/mesomem-geometry.png
-   :figwidth: 80%
+   :scale: 33 %
    :align: center
 
    Pair geometries with zero tilt and splay energy for :math:`C_0 = 0`

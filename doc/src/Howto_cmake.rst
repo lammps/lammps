@@ -326,7 +326,7 @@ Some common CMake variables
      - C++ compiler to be used for compilation (default: system specific, ``g++`` on Linux)
    * - ``CMAKE_Fortran_COMPILER``
      - Fortran compiler to be used for compilation (default: system specific, ``gfortran`` on Linux)
-   * - ``CXX_COMPILER_LAUNCHER``
+   * - ``CMAKE_CXX_COMPILER_LAUNCHER``
      - tool to launch the C++ compiler, e.g. ``ccache`` or ``distcc`` for faster compilation (default: empty)
 
 Some common LAMMPS specific variables
@@ -403,7 +403,7 @@ the preset file and the sixth from the explicit variable definition.
 The second command will first switch the compiler tool chain to use the
 Clang compilers and install a large number of packages that are not
 depending on any special external libraries or tools and are not very
-unusual.  The third command will enable the first four packages like
+unusual.  The third command will enable the first five packages like
 above and then enforce compiling LAMMPS as a serial program (using the
 MPI STUBS library).
 
@@ -502,7 +502,7 @@ after running CMake as follows:
 
 .. code-block:: bash
 
-   cmake -G 'CodeBlocks - Ninja' ../cmake/presets/most.cmake ../cmake/
+   cmake -G 'CodeBlocks - Ninja' -C ../cmake/presets/most.cmake ../cmake/
 
 .. image:: JPG/cmake-codeblocks.png
    :align: center

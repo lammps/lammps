@@ -44,7 +44,7 @@ The resulting file (``formamide.lt``) follows:
 
 .. code-block:: bash
 
-   import /usr/local/moltemplate/moltemplate/force_fields/oplsaa2024.lt  # defines OPLSAA
+   import "oplsaa2024.lt"  # defines OPLSAA
 
    _FAM inherits OPLSAA {
 
@@ -210,7 +210,7 @@ The ``butane.lt`` file below defines Butane as a polymer containing
 
 .. code-block:: bash
 
-   import /usr/local/moltemplate/moltemplate/force_fields/oplsaa2024.lt  # defines OPLSAA
+   import "oplsaa2024.lt"  # defines OPLSAA
 
    CH3 inherits OPLSAA {
 
@@ -364,7 +364,7 @@ The resulting master LT file defining short annealing at a fixed volume
 .. code-block:: bash
 
    # Use the OPLS-AA force field for all species.
-   import /usr/local/moltemplate/moltemplate/force_fields/oplsaa2024.lt
+   import "oplsaa2024.lt"
    import PolyNIPAM.lt
 
    # Define the SPC water and ions as in the OPLS-AA

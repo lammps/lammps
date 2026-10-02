@@ -1764,7 +1764,7 @@ pre-compiled version already present on your system.
      - ``libRuNNer_mpi``
    * - ``RUNNER_SHARED_LIB``
      - Link against a shared RuNNer library
-     - ``yes``
+     - ``no``
    * - ``FFT``
      - FFT library to use (FFTW3 or MKL)
      - ``auto-detected``

@@ -283,9 +283,7 @@ Setting options
 Options that enable, disable or modify settings are modified by setting
 the value of CMake variables. This is done on the command-line with the
 *-D* flag in the format ``-D VARIABLE=value``, e.g. ``-D
-CMAKE_BUILD_TYPE=Release`` or ``-D BUILD_MPI=on``.  There is one quirk:
-when used before the CMake directory, there may be a space between the
-*-D* flag and the variable, after it must not be. Such CMake variables
+CMAKE_BUILD_TYPE=Release`` or ``-D BUILD_MPI=on``.  Such CMake variables
 can have boolean values (on/off, yes/no, or 1/0 are all valid) or are
 strings representing a choice, or a path, or are free format. If the
 string would contain whitespace, it must be put in quotes, for example

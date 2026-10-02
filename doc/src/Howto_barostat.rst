@@ -10,20 +10,27 @@ and/or pressure (P) is specified by the user, and the thermostat or
 barostat attempts to equilibrate the system to the requested T and/or
 P.
 
-Barostatting in LAMMPS is performed by :doc:`fixes <fix>`.  Three
+Barostatting in LAMMPS is performed by :doc:`fixes <fix>`.  Several
 barostatting methods are currently available: Nose-Hoover (npt and
-nph), Berendsen, and various linear controllers in deform/pressure:
+nph), Berendsen, Langevin, Nose-Hoover with a pressure correction for
+coarse-grained models (bocs), and various linear controllers in
+deform/pressure:
 
 * :doc:`fix npt <fix_nh>`
 * :doc:`fix npt/sphere <fix_npt_sphere>`
 * :doc:`fix npt/asphere <fix_npt_asphere>`
 * :doc:`fix nph <fix_nh>`
 * :doc:`fix press/berendsen <fix_press_berendsen>`
+* :doc:`fix press/langevin <fix_press_langevin>`
+* :doc:`fix bocs <fix_bocs>`
 * :doc:`fix deform/pressure <fix_deform_pressure>`
 
 The :doc:`fix npt <fix_nh>` commands include a Nose-Hoover thermostat
 and barostat.  :doc:`Fix nph <fix_nh>` is just a Nose/Hoover barostat;
-it does no thermostatting.  The fixes :doc:`nph <fix_nh>`, :doc:`press/berendsen <fix_press_berendsen>`, and :doc:`deform/pressure <fix_deform_pressure>`
+it does no thermostatting.  :doc:`Fix bocs <fix_bocs>` also combines a
+thermostat and a barostat.  The fixes :doc:`nph <fix_nh>`,
+:doc:`press/berendsen <fix_press_berendsen>`, :doc:`press/langevin
+<fix_press_langevin>`, and :doc:`deform/pressure <fix_deform_pressure>`
 can be used in conjunction with any of the thermostatting fixes.
 
 As with the :doc:`thermostats <Howto_thermostat>`, :doc:`fix npt <fix_nh>`

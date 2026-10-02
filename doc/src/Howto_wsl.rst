@@ -176,9 +176,9 @@ Option 1: Download a LAMMPS tarball using wget
 
 .. code-block:: bash
 
-   wget https://github.com/lammps/lammps/archive/stable_3Mar2020.tar.gz
-   tar xvzf stable_3Mar2020.tar.gz
-   cd lammps
+   wget https://github.com/lammps/lammps/archive/refs/heads/stable.tar.gz
+   tar xvzf stable.tar.gz
+   cd lammps-stable
 
 Option 2: Download a LAMMPS development version from GitHub
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

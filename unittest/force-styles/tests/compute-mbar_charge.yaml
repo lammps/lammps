@@ -1,0 +1,25 @@
+---
+lammps_version: 30 Sep 2026
+tags: generated
+date_generated: Fri Oct  2 17:44:52 2026
+epsilon: 5e-11
+timestep: 0.25
+skip_tests:
+prerequisites: |
+  atom full
+  pair lj/cut/coul/long
+  kspace ewald
+  compute mbar
+pre_commands: ""
+post_commands: |
+  pair_style lj/cut/coul/long 8.0
+  pair_coeff * * 0.01 3.0
+  kspace_style ewald 1.0e-6
+  variable eps vector [0.01,0.015,0.02,0.03]
+  compute test all mbar 300.0 pair lj/cut/coul/long epsilon 1 2 v_eps atom charge 3 -0.47 -0.17 4 atom charge 5 -0.8472 -1.0472 4
+input_file: in.fourmol
+input_coeffs: coeffs.fourmol
+natoms: 29
+global_vector: |-
+  4  7.5866219203546007e+02  7.5935532736695143e+02  7.5549695766389675e+02  7.5240530902501393e+02
+...

@@ -186,6 +186,19 @@ is written to a file with :doc:`fix ave/time <fix_ave_time>` (using the
 potentials are dumped without time averaging) for later post-processing with
 an MBAR solver.
 
+The reduced potential energies include the interactions of the whole
+system and are therefore large numbers, while the free energy differences
+depend on their much smaller differences between states.  They must be
+written with more significant digits than the 6 digits of the default
+output format of :doc:`fix ave/time <fix_ave_time>`, for example with its
+*format* keyword as shown below.  Otherwise, the accuracy of the results
+degrades with increasing system size.
+
+.. code-block:: LAMMPS
+
+   compute MBAR all mbar 300.0 pair lj/cut/soft lambda 1 * 0.0 1.0 21
+   fix MBAR all ave/time 20 1 20 c_MBAR mode vector format %20.15g file mbar.lmp
+
 The utility scripts ``lmp2ukln.py`` and ``mbar.py`` in the ``tools/fep``
 directory carry out this post-processing: ``lmp2ukln.py`` reshapes the
 :doc:`fix ave/time <fix_ave_time>` *mode vector* file written from this

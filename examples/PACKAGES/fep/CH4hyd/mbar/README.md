@@ -31,7 +31,8 @@ Run the legs in order:
 
 Each leg writes, every 20 steps, a `fix ave/time ... mode vector` file holding
 the instantaneous reduced potentials at every state (no time averaging, so the
-raw samples are available for decorrelation). Post-process them with the
+raw samples are available for decorrelation), with 15 significant digits
+(`format %20.15g`) since the default format of 6 digits loses accuracy. Post-process them with the
 scripts in the `tools/fep` directory: `lmp2ukln.py` reshapes the LAMMPS output
 into a u_kln array (grouping samples by held state using the window length),
 and `mbar.py` runs pymbar (per-state equilibration detection and decorrelation

@@ -14,7 +14,7 @@ post_commands: |
   set atom 8 dipole 0.0 0.0 0.0
   set atom 20 dipole 0.0 0.0 0.0
 input_file: in.dipole
-pair_style: mesomem/dipole 4.0
+pair_style: mesomem/dipole
 pair_coeff: |
   * * 1.5 0.02 0.30 0.10 3.5 3.0 3.0  0.05
   1 1 2.0 0.03 0.40 0.15 4.0 3.5 2.5  0.10

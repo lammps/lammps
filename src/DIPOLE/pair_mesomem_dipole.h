@@ -41,7 +41,6 @@ class PairMesomemDipole : public Pair {
   void write_data_all(FILE *) override;
 
  protected:
-  double cut_global;
   double **cut, **sigma, **eps;
   double **ktilt, **ksplay;
   double **weight_rcut;

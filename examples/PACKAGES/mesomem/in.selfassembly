@@ -32,7 +32,7 @@ atom_style      hybrid sphere dipole
 # "write_data ... pair ij"), so the pair style must be defined before
 # reading it.  The pair_coeff command below sets the same values.
 
-pair_style      mesomem/dipole ${rcut}
+pair_style      mesomem/dipole
 read_data       data.selfassembly
 
 #               i j sigma eps    ktilt    ksplay    r_c     w_c   zeta    C0

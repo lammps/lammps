@@ -11,16 +11,17 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   pair_style mesomem/dipole cutoff
+   pair_style mesomem/dipole
 
-* cutoff = global cutoff (distance units), see note below
+This pair style has no arguments.  The cutoffs are set for each pair of
+atom types with the :doc:`pair_coeff <pair_coeff>` command.
 
 Examples
 """"""""
 
 .. code-block:: LAMMPS
 
-   pair_style mesomem/dipole 2.5
+   pair_style mesomem/dipole
    pair_coeff * * 1.0 1.0 15.0 1.0 2.5 2.0 5.0 0.0
    pair_coeff 1 2 1.0 1.0 15.0 1.0 2.5 2.0 5.0 0.05
 
@@ -141,7 +142,7 @@ matters for the electrostatic part, but still not for the MesoMem part:
 
 .. code-block:: LAMMPS
 
-   pair_style hybrid/overlay mesomem/dipole 2.5 lj/cut/dipole/cut 2.5 5.0
+   pair_style hybrid/overlay mesomem/dipole lj/cut/dipole/cut 2.5 5.0
    pair_coeff * * mesomem/dipole 1.0 1.0 15.0 1.0 2.5 2.0 5.0 0.0
    pair_coeff * * lj/cut/dipole/cut 0.0 1.0
 
@@ -161,12 +162,6 @@ commands:
 * :math:`C_0` (inverse distance units)
 
 All eight coefficients must always be specified.
-
-.. note::
-
-   Since the cutoff :math:`r_c` must be specified for each pair of atom
-   types with the :doc:`pair_coeff <pair_coeff>` command, the global
-   cutoff of the pair_style command is currently not used.
 
 To integrate the rotational motion of the particles, use a time
 integration fix that updates the dipole orientation, for example

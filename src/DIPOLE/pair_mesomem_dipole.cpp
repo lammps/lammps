@@ -50,9 +50,9 @@ static const char cite_pair_mesomem_dipole[] =
 /* ---------------------------------------------------------------------- */
 
 PairMesomemDipole::PairMesomemDipole(LAMMPS *lmp) :
-    Pair(lmp), cut_global(0.0), cut(nullptr), sigma(nullptr), eps(nullptr), ktilt(nullptr),
-    ksplay(nullptr), weight_rcut(nullptr), zeta(nullptr), c0(nullptr), gscale(nullptr),
-    wc_inv(nullptr), wc_half2inv(nullptr), zpow(nullptr)
+    Pair(lmp), cut(nullptr), sigma(nullptr), eps(nullptr), ktilt(nullptr), ksplay(nullptr),
+    weight_rcut(nullptr), zeta(nullptr), c0(nullptr), gscale(nullptr), wc_inv(nullptr),
+    wc_half2inv(nullptr), zpow(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_pair_mesomem_dipole);
 
@@ -329,12 +329,11 @@ void PairMesomemDipole::allocate()
 
 void PairMesomemDipole::settings(int narg, char **arg)
 {
-  if (narg < 1) utils::missing_cmd_args(FLERR, "pair_style mesomem/dipole", error);
-  if (narg > 1)
-    error->all(FLERR, 2, "Illegal pair_style mesomem/dipole command: unexpected argument {}",
-               arg[1]);
+  // the cutoff is set for each pair of atom types with pair_coeff
 
-  cut_global = utils::numeric(FLERR, arg[0], false, lmp);
+  if (narg > 0)
+    error->all(FLERR, 1, "Illegal pair_style mesomem/dipole command: unexpected argument {}",
+               arg[0]);
 }
 
 /* ----------------------------------------------------------------------
@@ -511,7 +510,6 @@ void PairMesomemDipole::read_restart(FILE *fp)
 
 void PairMesomemDipole::write_restart_settings(FILE *fp)
 {
-  fwrite(&cut_global, sizeof(double), 1, fp);
   fwrite(&offset_flag, sizeof(int), 1, fp);
   fwrite(&mix_flag, sizeof(int), 1, fp);
 }
@@ -523,11 +521,9 @@ void PairMesomemDipole::write_restart_settings(FILE *fp)
 void PairMesomemDipole::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-    utils::sfread(FLERR, &cut_global, sizeof(double), 1, fp, nullptr, error);
     utils::sfread(FLERR, &offset_flag, sizeof(int), 1, fp, nullptr, error);
     utils::sfread(FLERR, &mix_flag, sizeof(int), 1, fp, nullptr, error);
   }
-  MPI_Bcast(&cut_global, 1, MPI_DOUBLE, 0, world);
   MPI_Bcast(&offset_flag, 1, MPI_INT, 0, world);
   MPI_Bcast(&mix_flag, 1, MPI_INT, 0, world);
 }

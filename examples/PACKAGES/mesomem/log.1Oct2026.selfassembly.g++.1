@@ -35,8 +35,7 @@ WARNING: Atom style hybrid defines both, per-type and per-atom masses; both must
 # "write_data ... pair ij"), so the pair style must be defined before
 # reading it.  The pair_coeff command below sets the same values.
 
-pair_style      mesomem/dipole ${rcut}
-pair_style      mesomem/dipole 2.5
+pair_style      mesomem/dipole
 read_data       data.selfassembly
 Reading data file ...
   orthogonal box = (-14 -14 -14) to (14 14 14)
@@ -129,20 +128,20 @@ Per MPI rank memory allocation (min/avg/max) = 5.844 | 5.844 | 5.844 Mbytes
       9000   0.19743697     0.19448195    -1.9607661      0.0011961579   150            169            105          
       9500   0.20347112     0.20472285    -1.9527771      0.0012049485   155            143            114          
      10000   0.2009217      0.20137288    -1.9622614      0.0017732702   153            142            109          
-Loop time of 7.54846 on 1 procs for 10000 steps with 1500 atoms
+Loop time of 7.59031 on 1 procs for 10000 steps with 1500 atoms
 
-Performance: 1144603.891 tau/day, 1324.773 timesteps/s, 1.987 Matom-step/s
+Performance: 1138293.765 tau/day, 1317.470 timesteps/s, 1.976 Matom-step/s
 99.6% CPU use with 1 MPI tasks x 1 OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 5.9435     | 5.9435     | 5.9435     |   0.0 | 78.74
-Neigh   | 0.13451    | 0.13451    | 0.13451    |   0.0 |  1.78
-Comm    | 0.11216    | 0.11216    | 0.11216    |   0.0 |  1.49
-Output  | 0.036421   | 0.036421   | 0.036421   |   0.0 |  0.48
-Modify  | 1.2944     | 1.2944     | 1.2944     |   0.0 | 17.15
-Other   |            | 0.02739    |            |       |  0.36
+Pair    | 5.9878     | 5.9878     | 5.9878     |   0.0 | 78.89
+Neigh   | 0.13316    | 0.13316    | 0.13316    |   0.0 |  1.75
+Comm    | 0.11104    | 0.11104    | 0.11104    |   0.0 |  1.46
+Output  | 0.036419   | 0.036419   | 0.036419   |   0.0 |  0.48
+Modify  | 1.2944     | 1.2944     | 1.2944     |   0.0 | 17.05
+Other   |            | 0.02751    |            |       |  0.36
 
 Nlocal:           1500 ave        1500 max        1500 min
 Histogram: 1 0 0 0 0 0 0 0 0 0

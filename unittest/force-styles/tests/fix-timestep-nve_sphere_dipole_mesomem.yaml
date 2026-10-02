@@ -11,7 +11,7 @@ prerequisites: |
   pair mesomem/dipole
 pre_commands: ""
 post_commands: |
-  pair_style mesomem/dipole 4.0
+  pair_style mesomem/dipole
   pair_coeff * * 1.5 0.02 0.30 0.10 3.5 3.0 3.0  0.05
   pair_coeff 1 1 2.0 0.03 0.40 0.15 4.0 3.5 2.5  0.10
   pair_coeff 2 4 1.2 0.01 0.20 0.05 3.0 2.6 3.75 -0.08

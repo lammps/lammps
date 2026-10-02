@@ -582,6 +582,7 @@ Cleary
 Clebsch
 clemson
 Clermont
+CLion
 clo
 Clovertown
 cmake

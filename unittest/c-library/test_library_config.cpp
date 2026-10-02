@@ -1,5 +1,6 @@
 // unit tests for checking LAMMPS configuration settings  through the library interface
 
+#include "info.h"
 #include "lammps.h"
 #include "library.h"
 #include "timer.h"
@@ -232,5 +233,5 @@ TEST(LAMMPSConfig, gzip_support)
 
 TEST(LAMMPSConfig, ffmpeg_support)
 {
-    EXPECT_EQ(lammps_config_has_ffmpeg_support(), LAMMPS_HAS_FFMPEG);
+    EXPECT_EQ(lammps_config_has_ffmpeg_support(), LAMMPS_NS::Info::has_ffmpeg_support() ? 1 : 0);
 };

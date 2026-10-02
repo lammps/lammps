@@ -12,13 +12,13 @@ version discussed in :ref:`(Ponder) <amoeba-Ponder>`, :ref:`(Ren)
 implementation of HIPPO in LAMMPS matches the version discussed in
 :ref:`(Rackers) <amoeba-Rackers>`.
 
-These force fields can be used when polarization effects are desired
-in simulations of water, organic molecules, and biomolecules including
-proteins, provided that parameterizations (Tinker PRM force field
-files) are available for the systems you are interested in.  Files in
-the LAMMPS potentials directory with a "amoeba" or "hippo" suffix can
-be used.  The Tinker distribution and website have additional force
-field files as well:
+These force fields can be used when polarization effects are desired in
+simulations of water, organic molecules, and biomolecules including
+proteins, provided that parameterizations (Tinker PRM force field files)
+are available for the systems you are interested in.  Example PRM and
+KEY files for water and ubiquitin are included in the
+``examples/amoeba`` folder of the LAMMPS distribution.  The Tinker
+distribution and website have additional force field files as well:
 `https://github.com/TinkerTools/tinker/tree/release/params
 <https://github.com/TinkerTools/tinker/tree/release/params>`_.
 
@@ -48,7 +48,7 @@ For intermolecular terms, the AMOEBA force field includes only the
 :math:`U_{hal}`, :math:`U_{multipole}`, :math:`U_{polar}` terms.  The
 HIPPO force field includes all but the :math:`U_{hal}` term.  In
 LAMMPS, these are all computed by the :doc:`pair_style amoeba or hippo
-<pair_style>` command.  Note that the :math:`U_{multipole}` and
+<pair_amoeba>` command.  Note that the :math:`U_{multipole}` and
 :math:`U_{polar}` terms in this formula are not the same for the
 AMOEBA and HIPPO force fields.
 
@@ -221,7 +221,7 @@ value for the keyword if it is not specified, or if the keyfile in the
 * dewald-alpha (0.4)
 * dewald-cutoff (7.0)
 * dispersion-cutoff (9.0)
-* dispersion-taper (9.0 * dispersion-cutoff)
+* dispersion-taper (0.9 * dispersion-cutoff)
 * dpme-grid
 * dpme-order (4)
 * ewald (no long-range electrostatics unless specified)

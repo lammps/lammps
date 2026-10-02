@@ -283,9 +283,7 @@ Setting options
 Options that enable, disable or modify settings are modified by setting
 the value of CMake variables. This is done on the command-line with the
 *-D* flag in the format ``-D VARIABLE=value``, e.g. ``-D
-CMAKE_BUILD_TYPE=Release`` or ``-D BUILD_MPI=on``.  There is one quirk:
-when used before the CMake directory, there may be a space between the
-*-D* flag and the variable, after it must not be. Such CMake variables
+CMAKE_BUILD_TYPE=Release`` or ``-D BUILD_MPI=on``.  Such CMake variables
 can have boolean values (on/off, yes/no, or 1/0 are all valid) or are
 strings representing a choice, or a path, or are free format. If the
 string would contain whitespace, it must be put in quotes, for example
@@ -326,7 +324,7 @@ Some common CMake variables
      - C++ compiler to be used for compilation (default: system specific, ``g++`` on Linux)
    * - ``CMAKE_Fortran_COMPILER``
      - Fortran compiler to be used for compilation (default: system specific, ``gfortran`` on Linux)
-   * - ``CXX_COMPILER_LAUNCHER``
+   * - ``CMAKE_CXX_COMPILER_LAUNCHER``
      - tool to launch the C++ compiler, e.g. ``ccache`` or ``distcc`` for faster compilation (default: empty)
 
 Some common LAMMPS specific variables
@@ -403,7 +401,7 @@ the preset file and the sixth from the explicit variable definition.
 The second command will first switch the compiler tool chain to use the
 Clang compilers and install a large number of packages that are not
 depending on any special external libraries or tools and are not very
-unusual.  The third command will enable the first four packages like
+unusual.  The third command will enable the first five packages like
 above and then enforce compiling LAMMPS as a serial program (using the
 MPI STUBS library).
 
@@ -502,7 +500,7 @@ after running CMake as follows:
 
 .. code-block:: bash
 
-   cmake -G 'CodeBlocks - Ninja' ../cmake/presets/most.cmake ../cmake/
+   cmake -G 'CodeBlocks - Ninja' -C ../cmake/presets/most.cmake ../cmake/
 
 .. image:: JPG/cmake-codeblocks.png
    :align: center

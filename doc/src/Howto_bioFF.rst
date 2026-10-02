@@ -52,7 +52,7 @@ command's documentation for the formula it computes.
 
 * :doc:`bond_style harmonic <bond_harmonic>`
 * :doc:`angle_style charmm <angle_charmm>`
-* :doc:`dihedral_style charmmfsh <dihedral_charmm>`
+* :doc:`dihedral_style charmmfsw <dihedral_charmm>`
 * :doc:`dihedral_style charmm <dihedral_charmm>`
 * :doc:`pair_style lj/charmmfsw/coul/charmmfsh <pair_charmm>`
 * :doc:`pair_style lj/charmmfsw/coul/long <pair_charmm>`

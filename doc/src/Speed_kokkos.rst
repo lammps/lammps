@@ -166,8 +166,8 @@ below.
 .. note::
 
    When using ONLY a single OpenMP thread, the Kokkos Serial back end
-   (i.e. ``-D Kokkos_ENABLE_SERIAL=yes``) will give better performance
-   than the OpenMP back end (i.e.  ``-D Kokkos_ENABLE_OPENMP=yes``)
+   (i.e. ``-D Kokkos_ENABLE_SERIAL=on``) will give better performance
+   than the OpenMP back end (i.e.  ``-D Kokkos_ENABLE_OPENMP=on``)
    because some of the overhead to make the code thread-safe is removed.
 
 .. note::
@@ -478,7 +478,7 @@ file.
 
 .. code-block:: bash
 
-   cmake -DKokkos_ENABLE_CUDA=yes -DKokkos_ENABLE_OPENMP=yes ../cmake
+   cmake -S cmake -B build -D Kokkos_ENABLE_CUDA=on -D Kokkos_ENABLE_OPENMP=on
 
 The suffix "/kk" is equivalent to "/kk/device", and for Kokkos CUDA,
 using the ``-sf kk`` in the command-line gives the default CUDA version

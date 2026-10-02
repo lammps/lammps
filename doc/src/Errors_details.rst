@@ -1144,7 +1144,7 @@ Cached download settings differ from the current defaults
 
 Several optional packages and tools in LAMMPS depend on external
 libraries that CMake can download and compile automatically, for example
-when configuring with ``-D PKG_MBX=yes`` or ``-D DOWNLOAD_KOKKOS=yes``.
+when configuring with ``-D PKG_MBX=on`` or ``-D DOWNLOAD_KOKKOS=on``.
 The URL of the archive to download and its SHA-256 checksum are stored
 in the CMake cache of the build folder as variables ``<NAME>_URL`` and
 ``<NAME>_SHA256`` (e.g. ``KOKKOS_URL`` and ``KOKKOS_SHA256``).  This

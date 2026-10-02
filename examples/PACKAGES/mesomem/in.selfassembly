@@ -1,0 +1,71 @@
+# Self-assembly of a one-particle-thick fluid membrane with pair style
+# mesomem/dipole.  The dipole vector of each particle represents the
+# local membrane normal.  See: P. Sillano, S. J. Marrink, T. Idema,
+# Phys. Rev. E 114, 034412 (2026).
+#
+# The initial configuration in data.selfassembly was obtained by placing
+# 1500 particles with random positions and random dipole orientations in
+# a cubic box of edge length 28 (create_atoms random, set dipole/random)
+# and running for 20000 steps with the settings below.  At this point the
+# particles have condensed into small aggregates.  During the following
+# run they grow into flat membrane patches.  This is monitored with the
+# number of clusters (including single particles), the size of the largest
+# cluster, and the number of free particles in the thermo output.
+# Merging of the patches continues over several 100000 steps.
+
+variable eps    index 1.0
+variable rcut   index 2.5
+variable ktilt  index 15.0
+variable ksplay index 1.0
+variable wc     index 2.0
+variable zeta   index 5.0
+variable c0     index 0.0
+variable T      index 0.2
+
+units           lj
+atom_style      hybrid sphere dipole
+
+# the particles have diameter 4.0 and mass 1.0 (set via diameter and density
+# in the data file). This increases their moment of inertia and stabilizes the
+# rotational dynamics.  The diameter does not enter the pair interaction.
+# The data file also contains the pair coefficients (written with
+# "write_data ... pair ij"), so the pair style must be defined before
+# reading it.  The pair_coeff command below sets the same values.
+
+pair_style      mesomem/dipole
+read_data       data.selfassembly
+
+#               i j sigma eps    ktilt    ksplay    r_c     w_c   zeta    C0
+pair_coeff      1 1 1.0   ${eps} ${ktilt} ${ksplay} ${rcut} ${wc} ${zeta} ${c0}
+
+neighbor        1.0 bin
+neigh_modify    delay 0 every 1 check yes
+
+# temperature including the rotational degrees of freedom
+compute         Tall all temp/sphere dof all
+
+# cluster analysis: two particles closer than 1.5 belong to the same cluster
+compute         clus all cluster/atom 1.5
+compute         cnum all chunk/atom c_clus nchunk every compress yes
+compute         csize all property/chunk cnum count
+variable        maxclus equal max(c_csize)
+variable        isfree vector c_csize==1
+variable        nfree equal sum(v_isfree)
+
+timestep        0.01
+fix             integrate all nve/sphere update dipole
+fix             thermostat all langevin ${T} ${T} 1.0 48279 zero yes omega yes
+fix_modify      thermostat temp Tall
+
+thermo_style    custom step temp c_Tall pe press c_cnum v_maxclus v_nfree
+thermo_modify   colname c_Tall T_sphere colname c_cnum Nclusters &
+                colname v_maxclus MaxCluster colname v_nfree Nfree
+thermo          500
+
+# uncomment to write snapshot images and/or a trajectory for visualization
+#dump            img all image 1000 image.*.png type type adiam 1.0 &
+#                view 60 30 zoom 1.4 ssao yes 4539 0.6 box yes 0.01
+#dump_modify     img pad 6
+#dump            traj all custom 1000 selfassembly.lammpstrj id type x y z mux muy muz
+
+run             10000

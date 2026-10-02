@@ -11,29 +11,51 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-// Contributing author: Pietro Sillano, 2026
+/* ----------------------------------------------------------------------
+   Contributing author: Pietro Sillano (TU Delft)
+------------------------------------------------------------------------- */
 
 #include "pair_mesomem_dipole.h"
+
 #include "atom.h"
+#include "citeme.h"
 #include "comm.h"
 #include "error.h"
 #include "force.h"
+#include "info.h"
 #include "math_const.h"
 #include "math_extra.h"
+#include "math_special.h"
 #include "memory.h"
 #include "neigh_list.h"
 #include "neighbor.h"
+
 #include <cmath>
-#include <cstring>
 
 using namespace LAMMPS_NS;
+using MathConst::MY_PI2;
+
+static const char cite_pair_mesomem_dipole[] =
+    "pair mesomem/dipole command: doi:10.1103/4dhv-8xd7\n\n"
+    "@Article{Sillano26,\n"
+    " author =  {P. Sillano and S. J. Marrink and T. Idema},\n"
+    " title =   {{MesoMem}: A Mesoscale Membrane Model Based on an Additive Potential},\n"
+    " journal = {Phys.\\ Rev.\\ E},\n"
+    " year =    2026,\n"
+    " volume =  114,\n"
+    " number =  3,\n"
+    " pages =   {034412}\n"
+    "}\n\n";
 
 /* ---------------------------------------------------------------------- */
 
 PairMesomemDipole::PairMesomemDipole(LAMMPS *lmp) :
-    Pair(lmp), eps(nullptr), sigma(nullptr), cut(nullptr)
-
+    Pair(lmp), cut_global(0.0), cut(nullptr), sigma(nullptr), eps(nullptr), ktilt(nullptr),
+    ksplay(nullptr), weight_rcut(nullptr), zeta(nullptr), c0(nullptr), gscale(nullptr),
+    wc_inv(nullptr), wc_half2inv(nullptr), zpow(nullptr)
 {
+  if (lmp->citeme) lmp->citeme->add(cite_pair_mesomem_dipole);
+
   writedata = 1;
   single_enable = 0;
 }
@@ -43,6 +65,7 @@ PairMesomemDipole::PairMesomemDipole(LAMMPS *lmp) :
 PairMesomemDipole::~PairMesomemDipole()
 {
   if (copymode) return;
+
   if (allocated) {
     memory->destroy(setflag);
     memory->destroy(cutsq);
@@ -55,128 +78,11 @@ PairMesomemDipole::~PairMesomemDipole()
     memory->destroy(weight_rcut);
     memory->destroy(zeta);
     memory->destroy(c0);
+    memory->destroy(gscale);
+    memory->destroy(wc_inv);
+    memory->destroy(wc_half2inv);
+    memory->destroy(zpow);
   }
-}
-
-/* ---------------------------------------------------------------------- */
-
-void PairMesomemDipole::allocate()
-{
-  allocated = 1;
-  int np1 = atom->ntypes + 1;
-
-  memory->create(setflag, np1, np1, "pair:setflag");
-  for (int i = 1; i < np1; i++)
-    for (int j = i; j < np1; j++) setflag[i][j] = 0;
-
-  memory->create(cutsq, np1, np1, "pair:cutsq");
-  memory->create(cut, np1, np1, "pair:cut");
-  memory->create(sigma, np1, np1, "pair:sigma");
-  memory->create(eps, np1, np1, "pair:eps");
-  memory->create(ktilt, np1, np1, "pair:ktilt");
-  memory->create(ksplay, np1, np1, "pair:ksplay");
-  memory->create(weight_rcut, np1, np1, "pair:weight_rcut");
-  memory->create(zeta, np1, np1, "pair:zeta");
-  memory->create(c0, np1, np1, "pair:c0");    // Allocate c0 array
-}
-
-/* ---------------------------------------------------------------------- */
-
-void PairMesomemDipole::settings(int narg, char **arg)
-{
-  if (narg != 1) utils::missing_cmd_args(FLERR, "pair_style mesomem/dipole", error);
-  cut_global = utils::numeric(FLERR, arg[0], false, lmp);
-
-  // Reset cutoffs that have been explicitly set
-  if (allocated) {
-    int i, j;
-    for (i = 1; i <= atom->ntypes; i++)
-      for (j = i; j <= atom->ntypes; j++)
-        if (setflag[i][j]) cut[i][j] = cut_global;
-  }
-}
-
-/* ----------------------------------------------------------------------
-   Set coefficients for one or more type pairs
-   Args: sigma, eps, ktilt, ksplay, cut, weight_rcut, zeta
-------------------------------------------------------------------------- */
-
-void PairMesomemDipole::coeff(int narg, char **arg)
-{
-  if (narg != 10) error->all(FLERR, "Incorrect args for pair coefficients");
-  if (!allocated) allocate();
-
-  int ilo, ihi, jlo, jhi;
-  utils::bounds(FLERR, arg[0], 1, atom->ntypes, ilo, ihi, error);
-  utils::bounds(FLERR, arg[1], 1, atom->ntypes, jlo, jhi, error);
-
-  double sigma_one = utils::numeric(FLERR, arg[2], false, lmp);
-  double eps_one = utils::numeric(FLERR, arg[3], false, lmp);
-  double ktilt_one = utils::numeric(FLERR, arg[4], false, lmp);
-  double ksplay_one = utils::numeric(FLERR, arg[5], false, lmp);
-  double cut_one = utils::numeric(FLERR, arg[6], false, lmp);
-  double weight_rcut_one = utils::numeric(FLERR, arg[7], false, lmp);
-  double zeta_one = utils::numeric(FLERR, arg[8], false, lmp);
-  double c0_one = utils::numeric(FLERR, arg[9], false, lmp);
-
-  if (weight_rcut_one > cut_one || weight_rcut_one > cut_global) {
-    error->all(FLERR, "Orientation cutoff w_c > isotropic distance cutoff r_c");
-  }
-
-  if (weight_rcut_one <= 0.0) {
-    error->all(FLERR, "Orientation cutoff w_c needs to greater than 0.0");
-  }
-
-  int count = 0;
-  for (int i = ilo; i <= ihi; i++) {
-    for (int j = MAX(jlo, i); j <= jhi; j++) {
-      sigma[i][j] = sigma_one;
-      eps[i][j] = eps_one;
-      ktilt[i][j] = ktilt_one;
-      ksplay[i][j] = ksplay_one;
-      cut[i][j] = cut_one;
-      weight_rcut[i][j] = weight_rcut_one;
-      zeta[i][j] = zeta_one;
-      c0[i][j] = c0_one;    // Store c0
-
-      setflag[i][j] = 1;
-      count++;
-    }
-  }
-
-  if (count == 0) error->all(FLERR, "Incorrect args for pair coefficients");
-}
-
-/* ---------------------------------------------------------------------- */
-
-void PairMesomemDipole::init_style()
-{
-  // Requirement: atoms must have orientation (mu) and torque
-  if (!atom->q_flag || !atom->mu_flag || !atom->torque_flag)
-    error->all(FLERR, "Pair mesomem/dipole requires atom attributes q, mu, torque");
-
-  neighbor->request(this, instance_me);
-}
-
-/* ---------------------------------------------------------------------- */
-
-double PairMesomemDipole::init_one(int i, int j)
-{
-  // Strict Manual Mixing:
-
-  if (setflag[i][j] == 0) {
-    error->all(FLERR, "All pair coeffs must be set manually for pair_style mesomem/dipole");
-  }
-  eps[j][i] = eps[i][j];
-  sigma[j][i] = sigma[i][j];
-  ktilt[j][i] = ktilt[i][j];
-  ksplay[j][i] = ksplay[i][j];
-  weight_rcut[j][i] = weight_rcut[i][j];
-  zeta[j][i] = zeta[i][j];
-  cut[j][i] = cut[i][j];
-  c0[j][i] = c0[i][j];
-
-  return cut[i][j];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -184,7 +90,8 @@ double PairMesomemDipole::init_one(int i, int j)
 void PairMesomemDipole::compute(int eflag, int vflag)
 {
   int i, j, ii, jj, inum, jnum, itype, jtype;
-  double xtmp, ytmp, ztmp, delx, dely, delz, evdwl, rsq, r, inv_r;
+  double xtmp, ytmp, ztmp, rsq, evdwl, factor_lj, inv_mag;
+  double del[3], ni[3], fi[3], ti[3], tj[3];
   int *ilist, *jlist, *numneigh, **firstneigh;
 
   evdwl = 0.0;
@@ -204,11 +111,7 @@ void PairMesomemDipole::compute(int eflag, int vflag)
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
-  double ni[3], nj[3], rhat[3];
-  double fx, fy, fz, tx, ty, tz, tx_j, ty_j, tz_j;
-
-  double inv_mag_i, inv_mag_j;
-  double factor_lj;
+  // loop over neighbors of my atoms
 
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
@@ -219,13 +122,15 @@ void PairMesomemDipole::compute(int eflag, int vflag)
     jlist = firstneigh[i];
     jnum = numneigh[i];
 
+    // particles with a zero dipole moment only have the isotropic interaction
+
+    const double *nip = nullptr;
     if (mu[i][3] > 0.0) {
-      inv_mag_i = 1.0 / mu[i][3];
-      ni[0] = mu[i][0] * inv_mag_i;
-      ni[1] = mu[i][1] * inv_mag_i;
-      ni[2] = mu[i][2] * inv_mag_i;
-    } else {
-      ni[0] = ni[1] = ni[2] = 0.0;
+      inv_mag = 1.0 / mu[i][3];
+      ni[0] = mu[i][0] * inv_mag;
+      ni[1] = mu[i][1] * inv_mag;
+      ni[2] = mu[i][2] * inv_mag;
+      nip = ni;
     }
 
     for (jj = 0; jj < jnum; jj++) {
@@ -234,247 +139,308 @@ void PairMesomemDipole::compute(int eflag, int vflag)
       j &= NEIGHMASK;
       jtype = type[j];
 
-      delx = xtmp - x[j][0];
-      dely = ytmp - x[j][1];
-      delz = ztmp - x[j][2];
-      rsq = delx * delx + dely * dely + delz * delz;
+      del[0] = xtmp - x[j][0];
+      del[1] = ytmp - x[j][1];
+      del[2] = ztmp - x[j][2];
+      rsq = del[0] * del[0] + del[1] * del[1] + del[2] * del[2];
 
       if (rsq < cutsq[itype][jtype]) {
-        evdwl = 0.0;
-        r = sqrt(rsq);
-        inv_r = 1.0 / r;
+        evdwl = mesomem_analytic(itype, jtype, rsq, del, nip, mu[j], fi, ti, tj);
 
-        rhat[0] = delx * inv_r;
-        rhat[1] = dely * inv_r;
-        rhat[2] = delz * inv_r;
-
-        // --- 1. Isotropic (LJ/Cos) Force ---
-        // Calculated for all pairs within r_cut
-        double eps_val = eps[itype][jtype];
-        double sigma_val = sigma[itype][jtype];
-        double rmin = sigma_val;
-        double eps_lj = 0.0;
-        double Ulj = 0.0;
-
-        if (r < rmin) {
-          double t = sigma_val * inv_r;
-          double t2 = t * t;
-          double t4 = t2 * t2;
-          Ulj = eps_val * (t4 - 2.0 * t2);
-          eps_lj = 4.0 * eps_val * inv_r * (t4 - t2);
-        } else {
-          double rcut = cut[itype][jtype];
-          double zt = zeta[itype][jtype];
-
-          // Precompute constant factors to avoid division in calc
-          double denom = 1.0 / (rcut - rmin);
-          double g = MathConst::MY_PI2 * (r - rmin) * denom;
-
-          double cos_t = cos(g);
-          double sin_t = sin(g);
-
-          // Fast power calculation
-          double cos_pow = pow(cos_t, 2.0 * zt - 1.0);
-          // Alternatively, if zt is always integer, use loop for speed,
-          // but pow is safer for general zeta.
-
-          double cos_2zt = cos_pow * cos_t;
-
-          Ulj = -eps_val * cos_2zt;
-
-          // dU/dg * dg/dr
-          double dU_dg = eps_val * (2.0 * zt) * cos_pow * sin_t;
-          double dg_dr = MathConst::MY_PI2 * denom;
-          eps_lj = -dU_dg * dg_dr;
+        if (factor_lj != 1.0) {
+          evdwl *= factor_lj;
+          MathExtra::scale3(factor_lj, fi);
+          MathExtra::scale3(factor_lj, ti);
+          MathExtra::scale3(factor_lj, tj);
         }
 
-        // Initialize total forces/torques with just LJ part
-        fx = eps_lj * rhat[0];
-        fy = eps_lj * rhat[1];
-        fz = eps_lj * rhat[2];
-        tx = ty = tz = 0.0;
-        tx_j = ty_j = tz_j = 0.0;
-
-        // --- 2. Anisotropic (Tilt/Splay) Force ---
-        double wr = weight_rcut[itype][jtype];
-
-        if (r < wr && mu[i][3] > 0.0 && mu[j][3] > 0.0) {
-          // --- A. Weight Calculation ---
-          double rga = 0.5 * wr;
-          double r_wr = r / wr;
-
-          // D = (r/wc)^4
-          double r_wr_2 = r_wr * r_wr;
-          double r_wr_4 = r_wr_2 * r_wr_2;
-          double denom_w = r_wr_4 - 1.0;    // This is always negative for r < wr
-
-          double w = 0.0;
-
-          // REPLACEMENT LOGIC:
-          // Only calculate if we are safely away from the singularity (denom_w < -1e-14).
-          // If denom_w is closer to 0 than that, the exp() result is mathematically 0.0 anyway.
-          double rga_sq = rga * rga;
-          if (denom_w < -1e-14) {
-            double val_exp = (r * r) / (rga_sq * denom_w);
-            w = exp(val_exp);
-          }
-          // Else: w remains 0.0, avoiding division by tiny denom_w
-
-          // --- B. Vector Normalization ---
-          inv_mag_j = 1.0 / mu[j][3];
-          nj[0] = mu[j][0] * inv_mag_j;
-          nj[1] = mu[j][1] * inv_mag_j;
-          nj[2] = mu[j][2] * inv_mag_j;
-
-          // --- C. Dot Products ---
-          double nirhat = ni[0] * rhat[0] + ni[1] * rhat[1] + ni[2] * rhat[2];
-          double njrhat = nj[0] * rhat[0] + nj[1] * rhat[1] + nj[2] * rhat[2];
-          double ninj = ni[0] * nj[0] + ni[1] * nj[1] + ni[2] * nj[2];
-
-          // --- D. Tilt Calculation (Extended with C0) ---
-          double rh_x_ni[3], rh_x_nj[3];
-          // Cross product rhat x ni
-          rh_x_ni[0] = rhat[1] * ni[2] - rhat[2] * ni[1];
-          rh_x_ni[1] = rhat[2] * ni[0] - rhat[0] * ni[2];
-          rh_x_ni[2] = rhat[0] * ni[1] - rhat[1] * ni[0];
-          // Cross product rhat x nj
-          rh_x_nj[0] = rhat[1] * nj[2] - rhat[2] * nj[1];
-          rh_x_nj[1] = rhat[2] * nj[0] - rhat[0] * nj[2];
-          rh_x_nj[2] = rhat[0] * nj[1] - rhat[1] * nj[0];
-
-          // sin_a2 = 0.5 * r * c0
-          double sin_a2 = 0.5 * r * c0[itype][jtype];
-
-          double kt = ktilt[itype][jtype];
-
-          // Diff terms: ni.r + sin(alpha/2)
-          double diff_i = nirhat + sin_a2;
-          double diff_j = njrhat - sin_a2;    // check if sign needs to be the same
-
-          double Utilt = 0.5 * kt * (diff_i * diff_i + diff_j * diff_j);
-
-          // Vector u = n - (n.r)r
-          double ui[3], uj[3];
-          ui[0] = ni[0] - nirhat * rhat[0];
-          ui[1] = ni[1] - nirhat * rhat[1];
-          ui[2] = ni[2] - nirhat * rhat[2];
-
-          uj[0] = nj[0] - njrhat * rhat[0];
-          uj[1] = nj[1] - njrhat * rhat[1];
-          uj[2] = nj[2] - njrhat * rhat[2];
-
-          // Tilt Force term (angular part only)
-          double ft_pref = -kt * inv_r;
-
-          double tilt_fx = ft_pref * (diff_i * ui[0] + diff_j * uj[0]);
-          double tilt_fy = ft_pref * (diff_i * ui[1] + diff_j * uj[1]);
-          double tilt_fz = ft_pref * (diff_i * ui[2] + diff_j * uj[2]);
-
-          // Accumulate Tilt Force scaled by weight
-          fx += tilt_fx * w;
-          fy += tilt_fy * w;
-          fz += tilt_fz * w;
-
-          // --- E. Splay Calculation ---
-          double ks = ksplay[itype][jtype];
-
-          double ni_x_nj[3];
-          ni_x_nj[0] = ni[1] * nj[2] - ni[2] * nj[1];
-          ni_x_nj[1] = ni[2] * nj[0] - ni[0] * nj[2];
-          ni_x_nj[2] = ni[0] * nj[1] - ni[1] * nj[0];
-
-          double Usplay = 0.5 * ks * (ninj - 1.0 + 2.0 * (sin_a2 * sin_a2)) *
-              (ninj - 1.0 + 2.0 * (sin_a2 * sin_a2));
-
-          // --- F. Radial Contribution deriving from:
-          // - (Utilt + Usplay) * (dw/dr)
-
-          double U_ang_sum = Utilt + Usplay;
-
-          // Apply radial correction
-          if (w > 0) {
-            // Factor = w * [ 2 * (D+1) ] / [ rga^2 * (D-1)^2 ]
-
-            double rad_numerator = 2.0 * w * (r_wr_4 + 1.0) * r;
-            double rad_denominator = rga_sq * denom_w * denom_w;
-
-            double f_rad_mag = U_ang_sum * (rad_numerator / rad_denominator);
-
-            fx += f_rad_mag * rhat[0];
-            fy += f_rad_mag * rhat[1];
-            fz += f_rad_mag * rhat[2];
-
-            // --- Radial part coming from tilt term ---
-            double f_rad_tilt = 0.5 * kt * c0[itype][jtype] * (diff_j - diff_i);
-            fx += w * f_rad_tilt * rhat[0];
-            fy += w * f_rad_tilt * rhat[1];
-            fz += w * f_rad_tilt * rhat[2];
-
-            // --- Radial part coming from splay term ---
-            double f_rad_splay = -ks * (ninj - 1.0 + 2 * sin_a2 * sin_a2) *
-                (c0[itype][jtype] * c0[itype][jtype] * r);
-            fx += w * f_rad_splay * rhat[0];
-            fy += w * f_rad_splay * rhat[1];
-            fz += w * f_rad_splay * rhat[2];
-          }
-
-          // --- G. Torques ---
-          // Torque on I
-          double splay_pref = ks * (ninj - 1.0 + 2 * sin_a2 * sin_a2);
-
-          tx += w * (kt * diff_i * rh_x_ni[0] - splay_pref * ni_x_nj[0]);
-          ty += w * (kt * diff_i * rh_x_ni[1] - splay_pref * ni_x_nj[1]);
-          tz += w * (kt * diff_i * rh_x_ni[2] - splay_pref * ni_x_nj[2]);
-
-          // Torque on J
-          tx_j += w * (kt * diff_j * rh_x_nj[0] + splay_pref * ni_x_nj[0]);
-          ty_j += w * (kt * diff_j * rh_x_nj[1] + splay_pref * ni_x_nj[1]);
-          tz_j += w * (kt * diff_j * rh_x_nj[2] + splay_pref * ni_x_nj[2]);
-
-          // Accumulate Energy
-          if (eflag) evdwl = Ulj + w * U_ang_sum;
-        } else {
-          if (eflag) evdwl = Ulj;
-        }
-
-        // --- FINAL APPLY ---
-        if (eflag) evdwl *= factor_lj;
-
-        // Apply Factor LJ to forces/torques
-        fx *= factor_lj;
-        fy *= factor_lj;
-        fz *= factor_lj;
-        tx *= factor_lj;
-        ty *= factor_lj;
-        tz *= factor_lj;
-        tx_j *= factor_lj;
-        ty_j *= factor_lj;
-        tz_j *= factor_lj;
-
-        f[i][0] += fx;
-        f[i][1] += fy;
-        f[i][2] += fz;
-        torque[i][0] += tx;
-        torque[i][1] += ty;
-        torque[i][2] += tz;
+        f[i][0] += fi[0];
+        f[i][1] += fi[1];
+        f[i][2] += fi[2];
+        torque[i][0] += ti[0];
+        torque[i][1] += ti[1];
+        torque[i][2] += ti[2];
 
         if (newton_pair || j < nlocal) {
-          f[j][0] -= fx;
-          f[j][1] -= fy;
-          f[j][2] -= fz;
-          torque[j][0] += tx_j;
-          torque[j][1] += ty_j;
-          torque[j][2] += tz_j;
+          f[j][0] -= fi[0];
+          f[j][1] -= fi[1];
+          f[j][2] -= fi[2];
+          torque[j][0] += tj[0];
+          torque[j][1] += tj[1];
+          torque[j][2] += tj[2];
         }
 
-        // Use ev_tally_xyz for non-central forces (virial correction)
+        // forces are not central, so the virial needs the force vector
         if (evflag)
-          ev_tally_xyz(i, j, nlocal, newton_pair, evdwl, 0.0, fx, fy, fz, delx, dely, delz);
+          ev_tally_xyz(i, j, nlocal, newton_pair, evdwl, 0.0, fi[0], fi[1], fi[2], del[0], del[1],
+                       del[2]);
       }
     }
   }
 
   if (vflag_fdotr) virial_fdotr_compute();
+}
+
+/* ----------------------------------------------------------------------
+   compute energy, force on i, and torques on i and j for one pair
+   rsq, del  = squared distance and distance vector x_i - x_j
+   ni        = unit vector along the dipole of i or nullptr if mu_i = 0
+   muj       = dipole of j with its magnitude in muj[3]
+   fi        = force on i, the force on j is -fi
+   ti, tj    = torques on i and j
+   returns the pair energy
+------------------------------------------------------------------------- */
+
+double PairMesomemDipole::mesomem_analytic(int itype, int jtype, double rsq, const double *del,
+                                           const double *ni, const double *muj, double *fi,
+                                           double *ti, double *tj) const
+{
+  const double r = sqrt(rsq);
+  const double rinv = 1.0 / r;
+  const double rhat[3] = {del[0] * rinv, del[1] * rinv, del[2] * rinv};
+
+  // isotropic part:
+  // r < sigma: eps * [(sigma/r)^4 - 2 (sigma/r)^2]
+  // r >= sigma: -eps * cos^(2 zeta)[pi/2 (r - sigma) / (r_c - sigma)]
+
+  const double epsilon = eps[itype][jtype];
+  const double sig = sigma[itype][jtype];
+  double energy, fpair;
+
+  if (r < sig) {
+    const double sr2 = sig * sig / rsq;
+    const double sr4 = sr2 * sr2;
+    energy = epsilon * (sr4 - 2.0 * sr2);
+    fpair = 4.0 * epsilon * rinv * (sr4 - sr2);
+  } else {
+    const double zt = zeta[itype][jtype];
+    const double dgdr = gscale[itype][jtype];
+    const double g = dgdr * (r - sig);
+    const double cosg = cos(g);
+    const double sing = sin(g);
+    const int n = zpow[itype][jtype];
+    const double cospow = (n < 0) ? pow(cosg, 2.0 * zt - 1.0) : MathSpecial::powint(cosg, n);
+    energy = -epsilon * cospow * cosg;
+    fpair = -2.0 * zt * epsilon * cospow * sing * dgdr;
+  }
+
+  fi[0] = fpair * rhat[0];
+  fi[1] = fpair * rhat[1];
+  fi[2] = fpair * rhat[2];
+  ti[0] = ti[1] = ti[2] = 0.0;
+  tj[0] = tj[1] = tj[2] = 0.0;
+
+  // orientation dependent part, requires a dipole on both particles and r < w_c
+
+  if (!ni || (muj[3] <= 0.0) || (r >= weight_rcut[itype][jtype])) return energy;
+
+  // weight function w = exp[-r^2 / ((w_c/2)^2 (1 - (r/w_c)^4))]
+  // it underflows to zero close to w_c, which also avoids a division by zero
+
+  const double rw = r * wc_inv[itype][jtype];
+  const double rw4 = rw * rw * rw * rw;
+  const double dw = rw4 - 1.0;
+  if (dw >= 0.0) return energy;
+  const double wfac = rsq * wc_half2inv[itype][jtype];
+  const double w = exp(wfac / dw);
+  if (w <= 0.0) return energy;
+
+  const double inv_mag = 1.0 / muj[3];
+  const double nj[3] = {muj[0] * inv_mag, muj[1] * inv_mag, muj[2] * inv_mag};
+
+  const double nirhat = MathExtra::dot3(ni, rhat);
+  const double njrhat = MathExtra::dot3(nj, rhat);
+  const double ninj = MathExtra::dot3(ni, nj);
+
+  // tilt: 1/2 k_tilt (d_i^2 + d_j^2) with d_i = n_i.rhat + s, d_j = n_j.rhat - s
+  // splay: 1/2 k_splay (n_i.n_j - 1 + 2 s^2)^2
+  // with the spontaneous curvature shift s = r C_0 / 2
+
+  const double kt = ktilt[itype][jtype];
+  const double ks = ksplay[itype][jtype];
+  const double curv = c0[itype][jtype];
+  const double s = 0.5 * r * curv;
+  const double di = nirhat + s;
+  const double dj = njrhat - s;
+  const double splay = ninj - 1.0 + 2.0 * s * s;
+  const double uang = 0.5 * kt * (di * di + dj * dj) + 0.5 * ks * splay * splay;
+
+  // force from the angular dependence of the tilt term, with
+  // d(n.rhat)/dr = (n - (n.rhat) rhat) / r
+
+  const double ftilt = -kt * rinv;
+  for (int k = 0; k < 3; ++k)
+    fi[k] += w * ftilt * (di * (ni[k] - nirhat * rhat[k]) + dj * (nj[k] - njrhat * rhat[k]));
+
+  // radial forces from the weight function and from the r dependence of s
+
+  const double fradial = uang * 2.0 * wfac * (rw4 + 1.0) * rinv / (dw * dw) +
+      0.5 * kt * curv * (dj - di) - ks * splay * curv * curv * r;
+  fi[0] += w * fradial * rhat[0];
+  fi[1] += w * fradial * rhat[1];
+  fi[2] += w * fradial * rhat[2];
+
+  // torques: t = n x (-dU/dn)
+
+  double rh_x_ni[3], rh_x_nj[3], ni_x_nj[3];
+  MathExtra::cross3(rhat, ni, rh_x_ni);
+  MathExtra::cross3(rhat, nj, rh_x_nj);
+  MathExtra::cross3(ni, nj, ni_x_nj);
+
+  for (int k = 0; k < 3; ++k) {
+    ti[k] = w * (kt * di * rh_x_ni[k] - ks * splay * ni_x_nj[k]);
+    tj[k] = w * (kt * dj * rh_x_nj[k] + ks * splay * ni_x_nj[k]);
+  }
+
+  return energy + w * uang;
+}
+
+/* ----------------------------------------------------------------------
+   allocate all arrays
+------------------------------------------------------------------------- */
+
+void PairMesomemDipole::allocate()
+{
+  allocated = 1;
+  int np1 = atom->ntypes + 1;
+
+  memory->create(setflag, np1, np1, "pair:setflag");
+  for (int i = 1; i < np1; i++)
+    for (int j = i; j < np1; j++) setflag[i][j] = 0;
+
+  memory->create(cutsq, np1, np1, "pair:cutsq");
+  memory->create(cut, np1, np1, "pair:cut");
+  memory->create(sigma, np1, np1, "pair:sigma");
+  memory->create(eps, np1, np1, "pair:eps");
+  memory->create(ktilt, np1, np1, "pair:ktilt");
+  memory->create(ksplay, np1, np1, "pair:ksplay");
+  memory->create(weight_rcut, np1, np1, "pair:weight_rcut");
+  memory->create(zeta, np1, np1, "pair:zeta");
+  memory->create(c0, np1, np1, "pair:c0");
+  memory->create(gscale, np1, np1, "pair:gscale");
+  memory->create(wc_inv, np1, np1, "pair:wc_inv");
+  memory->create(wc_half2inv, np1, np1, "pair:wc_half2inv");
+  memory->create(zpow, np1, np1, "pair:zpow");
+}
+
+/* ----------------------------------------------------------------------
+   global settings
+------------------------------------------------------------------------- */
+
+void PairMesomemDipole::settings(int narg, char **arg)
+{
+  if (narg < 1) utils::missing_cmd_args(FLERR, "pair_style mesomem/dipole", error);
+  if (narg > 1)
+    error->all(FLERR, 2, "Illegal pair_style mesomem/dipole command: unexpected argument {}",
+               arg[1]);
+
+  cut_global = utils::numeric(FLERR, arg[0], false, lmp);
+}
+
+/* ----------------------------------------------------------------------
+   set coeffs for one or more type pairs
+   args: sigma, eps, ktilt, ksplay, cut, weight_rcut, zeta, c0
+------------------------------------------------------------------------- */
+
+void PairMesomemDipole::coeff(int narg, char **arg)
+{
+  if (narg != 10) error->all(FLERR, "Incorrect args for pair coefficients" + utils::errorurl(21));
+  if (!allocated) allocate();
+
+  int ilo, ihi, jlo, jhi;
+  utils::bounds(FLERR, arg[0], 1, atom->ntypes, ilo, ihi, error);
+  utils::bounds(FLERR, arg[1], 1, atom->ntypes, jlo, jhi, error);
+
+  double sigma_one = utils::numeric(FLERR, arg[2], false, lmp);
+  double eps_one = utils::numeric(FLERR, arg[3], false, lmp);
+  double ktilt_one = utils::numeric(FLERR, arg[4], false, lmp);
+  double ksplay_one = utils::numeric(FLERR, arg[5], false, lmp);
+  double cut_one = utils::numeric(FLERR, arg[6], false, lmp);
+  double weight_rcut_one = utils::numeric(FLERR, arg[7], false, lmp);
+  double zeta_one = utils::numeric(FLERR, arg[8], false, lmp);
+  double c0_one = utils::numeric(FLERR, arg[9], false, lmp);
+
+  if (sigma_one <= 0.0)
+    error->all(FLERR, 2, "Pair style mesomem/dipole requires sigma > 0.0, but sigma = {}",
+               sigma_one);
+  if (cut_one <= sigma_one)
+    error->all(FLERR, 6, "Pair style mesomem/dipole requires r_c > sigma, but r_c = {}", cut_one);
+  if ((weight_rcut_one <= 0.0) || (weight_rcut_one > cut_one))
+    error->all(FLERR, 7, "Pair style mesomem/dipole requires 0.0 < w_c <= r_c, but w_c = {}",
+               weight_rcut_one);
+  if (zeta_one < 0.5)
+    error->all(FLERR, 8, "Pair style mesomem/dipole requires zeta >= 0.5, but zeta = {}", zeta_one);
+
+  int count = 0;
+  for (int i = ilo; i <= ihi; i++) {
+    for (int j = MAX(jlo, i); j <= jhi; j++) {
+      sigma[i][j] = sigma_one;
+      eps[i][j] = eps_one;
+      ktilt[i][j] = ktilt_one;
+      ksplay[i][j] = ksplay_one;
+      cut[i][j] = cut_one;
+      weight_rcut[i][j] = weight_rcut_one;
+      zeta[i][j] = zeta_one;
+      c0[i][j] = c0_one;
+      setflag[i][j] = 1;
+      count++;
+    }
+  }
+
+  if (count == 0) error->all(FLERR, "Incorrect args for pair coefficients" + utils::errorurl(21));
+}
+
+/* ----------------------------------------------------------------------
+   init specific to this pair style
+------------------------------------------------------------------------- */
+
+void PairMesomemDipole::init_style()
+{
+  if (!atom->mu_flag || !atom->torque_flag)
+    error->all(FLERR, Error::NOLASTLINE,
+               "Pair style mesomem/dipole requires atom attributes mu and torque");
+
+  neighbor->add_request(this);
+}
+
+/* ----------------------------------------------------------------------
+   init for one type pair i,j and corresponding j,i
+------------------------------------------------------------------------- */
+
+double PairMesomemDipole::init_one(int i, int j)
+{
+  if (setflag[i][j] == 0)
+    error->all(FLERR, Error::NOLASTLINE,
+               "Pair style mesomem/dipole does not support mixing. Coefficients for all pairs of "
+               "atom types must be set explicitly. Status:\n" +
+                   Info::get_pair_coeff_status(lmp));
+
+  gscale[i][j] = MY_PI2 / (cut[i][j] - sigma[i][j]);
+  wc_inv[i][j] = 1.0 / weight_rcut[i][j];
+  wc_half2inv[i][j] = 4.0 / (weight_rcut[i][j] * weight_rcut[i][j]);
+
+  // use the faster integer power function when possible
+
+  const double zexp = 2.0 * zeta[i][j] - 1.0;
+  if ((zexp == floor(zexp)) && (zexp < 100.0))
+    zpow[i][j] = static_cast<int>(zexp);
+  else
+    zpow[i][j] = -1;
+
+  eps[j][i] = eps[i][j];
+  sigma[j][i] = sigma[i][j];
+  ktilt[j][i] = ktilt[i][j];
+  ksplay[j][i] = ksplay[i][j];
+  weight_rcut[j][i] = weight_rcut[i][j];
+  zeta[j][i] = zeta[i][j];
+  cut[j][i] = cut[i][j];
+  c0[j][i] = c0[i][j];
+  gscale[j][i] = gscale[i][j];
+  wc_inv[j][i] = wc_inv[i][j];
+  wc_half2inv[j][i] = wc_half2inv[i][j];
+  zpow[j][i] = zpow[i][j];
+
+  return cut[i][j];
 }
 
 /* ----------------------------------------------------------------------
@@ -496,7 +462,7 @@ void PairMesomemDipole::write_restart(FILE *fp)
         fwrite(&cut[i][j], sizeof(double), 1, fp);
         fwrite(&weight_rcut[i][j], sizeof(double), 1, fp);
         fwrite(&zeta[i][j], sizeof(double), 1, fp);
-        fwrite(&c0[i][j], sizeof(double), 1, fp);    // Write c0
+        fwrite(&c0[i][j], sizeof(double), 1, fp);
       }
     }
   }
@@ -517,7 +483,6 @@ void PairMesomemDipole::read_restart(FILE *fp)
       MPI_Bcast(&setflag[i][j], 1, MPI_INT, 0, world);
       if (setflag[i][j]) {
         if (comm->me == 0) {
-
           utils::sfread(FLERR, &sigma[i][j], sizeof(double), 1, fp, nullptr, error);
           utils::sfread(FLERR, &eps[i][j], sizeof(double), 1, fp, nullptr, error);
           utils::sfread(FLERR, &ktilt[i][j], sizeof(double), 1, fp, nullptr, error);
@@ -525,9 +490,8 @@ void PairMesomemDipole::read_restart(FILE *fp)
           utils::sfread(FLERR, &cut[i][j], sizeof(double), 1, fp, nullptr, error);
           utils::sfread(FLERR, &weight_rcut[i][j], sizeof(double), 1, fp, nullptr, error);
           utils::sfread(FLERR, &zeta[i][j], sizeof(double), 1, fp, nullptr, error);
-          utils::sfread(FLERR, &c0[i][j], sizeof(double), 1, fp, nullptr, error);    // Read c0
+          utils::sfread(FLERR, &c0[i][j], sizeof(double), 1, fp, nullptr, error);
         }
-
         MPI_Bcast(&sigma[i][j], 1, MPI_DOUBLE, 0, world);
         MPI_Bcast(&eps[i][j], 1, MPI_DOUBLE, 0, world);
         MPI_Bcast(&ktilt[i][j], 1, MPI_DOUBLE, 0, world);
@@ -559,12 +523,10 @@ void PairMesomemDipole::write_restart_settings(FILE *fp)
 void PairMesomemDipole::read_restart_settings(FILE *fp)
 {
   if (comm->me == 0) {
-
     utils::sfread(FLERR, &cut_global, sizeof(double), 1, fp, nullptr, error);
     utils::sfread(FLERR, &offset_flag, sizeof(int), 1, fp, nullptr, error);
     utils::sfread(FLERR, &mix_flag, sizeof(int), 1, fp, nullptr, error);
   }
-
   MPI_Bcast(&cut_global, 1, MPI_DOUBLE, 0, world);
   MPI_Bcast(&offset_flag, 1, MPI_INT, 0, world);
   MPI_Bcast(&mix_flag, 1, MPI_INT, 0, world);

@@ -1,0 +1,107 @@
+# Aspherical shear demo - 3d triangle boxes, solvated by SRD particles
+
+units		lj
+atom_style	tri
+atom_modify	first big
+
+read_data	data.tri.srd
+
+# add small particles as hi density lattice
+
+lattice		sc 0.4
+region		box block INF INF INF INF INF INF
+lattice		sc 20.0
+create_atoms	2 region box
+
+group		big type 1
+group		small type 2
+set		group small mass 0.01
+
+# delete overlaps
+# must set 1-2 cutoff to non-zero value
+
+pair_style	lj/cut 1.5
+pair_coeff	1 1 1.0 1.0
+pair_coeff	2 2 0.0 1.0 0.0
+pair_coeff	1 2 0.0 1.0
+
+delete_atoms	overlap 1.5 small big
+
+# SRD run
+
+reset_timestep	0
+
+velocity	small create 1.44 87287 loop geom
+
+neighbor	0.3 multi
+neigh_modify	delay 0 every 1 check yes
+neigh_modify	exclude molecule/intra big include big
+
+comm_modify	mode multi group big vel yes
+neigh_modify	include big
+
+# no pairwise interactions with small particles
+
+pair_style	tri/lj 3.5
+pair_coeff	1 1 0.1 1.0
+pair_coeff	2 2 0.0 1.0 0.0
+pair_coeff	1 2 0.0 1.0 0.0
+
+# use fix SRD to push small particles out from inside big ones
+# if comment out, big particles won't see SRD particles
+
+timestep	0.001
+
+fix		1 big rigid molecule #langevin 1.0 1.0 0.1 12398 
+fix	        2 small srd 20 big 1.0 0.25 49894 &
+		search 0.2 cubic warn 0.0001 shift yes 49829 &
+		overlap yes collision noslip
+
+fix		3 all deform 1 x scale 0.6 y scale 0.6 z scale 0.6
+
+# diagnostics
+
+compute		tsmall small temp/deform
+compute		tbig big temp
+variable	pebig equal pe*atoms/count(big)
+variable	ebig equal etotal*atoms/count(big)
+
+compute_modify  tbig extra/dof -4500
+
+compute		1 big erotate/asphere
+compute		2 all ke
+compute		3 all pe
+variable	toteng equal (c_1+c_2+c_3)/atoms
+
+thermo		1000
+thermo_style	custom step f_1 c_tsmall f_2[9] temp press
+thermo_modify	temp tbig
+
+compute		10 all property/atom corner1x corner1y corner1z &
+		corner2x corner2y corner2z corner3x corner3y corner3z
+
+#dump		1 all custom 500 dump1.atom.srd id type x y z ix iy iz
+#dump		2 all custom 500 dump1.tri.srd id type &
+#		c_10[1] c_10[2] c_10[3] c_10[4] c_10[5] c_10[6] &
+#		c_10[7] c_10[8] c_10[9]
+
+run		10000
+
+#undump          1
+#undump          2
+unfix		3
+
+change_box      all triclinic
+
+fix	        2 small srd 20 big 1.0 0.25 49894 &
+		search 0.2 cubic warn 0.0001 shift yes 49829 &
+		overlap yes collision noslip tstat yes
+
+#dump		1 all custom 500 dump2.atom.srd id type x y z ix iy iz
+#dump		2 all custom 500 dump2.tri.srd id type &
+#		c_10[1] c_10[2] c_10[3] c_10[4] c_10[5] c_10[6] &
+#		c_10[7] c_10[8] c_10[9]
+
+fix		3 all deform 1 xy erate 0.05 units box remap v
+
+run		40000

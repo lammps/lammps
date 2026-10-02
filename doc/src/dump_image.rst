@@ -1545,7 +1545,7 @@ graphics libraries must have been compiled and linked into LAMMPS.
 Please see the :ref:`instructions for building LAMMPS with the
 GRAPHICS package <graphics>` for more information on how to do that.
 
-To write *movie* dumps an FFmpeg executable must be available on the
+To write *movie* dumps, an FFmpeg executable must be available on the
 machine where LAMMPS is being run.  Typically its name is lowercase
 (i.e., "ffmpeg").
 

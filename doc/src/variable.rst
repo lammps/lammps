@@ -1167,9 +1167,10 @@ to built-in commands.  For all of these styles except *command*,
 appending of active suffixes is also tried before reporting failure.
 
 The *feature* category checks the availability of the following
-compile-time enabled features: GZIP support, PNG support, JPEG support.
-FFmpeg support checks for availability of a usable FFmpeg executable.
-Corresponding names are *gzip*, *png*, *jpeg*, *ffmpeg*\ .
+compile-time enabled features: GZIP support, PNG support, JPEG support,
+and C++ exceptions for error handling.  FFmpeg support checks for
+availability of a usable FFmpeg executable.  Corresponding names are
+*gzip*, *png*, *jpeg*, *ffmpeg*, and *exceptions*\ .
 
 Example: Only dump in a given format if the compiled binary supports it.
 

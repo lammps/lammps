@@ -344,9 +344,10 @@ Interactive Python Examples
 
 Examples of IPython notebooks can be found in the
 ``python/examples/ipython`` subdirectory. To open these notebooks launch
-``jupyter notebook`` inside this directory and navigate to one of
-them.  If you compiled and installed a LAMMPS shared library with PNG,
-and JPEG support, you should be able to rerun all of these notebooks.
+``jupyter notebook`` inside this directory and navigate to one of them.
+If you compiled and installed a LAMMPS shared library with PNG and JPEG
+support and have FFmpeg installed, you should be able to rerun all of
+these notebooks.
 
 Validating a dihedral potential
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

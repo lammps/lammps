@@ -394,9 +394,9 @@ Read or write compressed files
 
 .. versionchanged:: TBD
 
-   Support for compressed files no longer needs to be enabled at compile
-   time; the CMake option ``WITH_GZIP`` and the define ``-DLAMMPS_GZIP``
-   were removed.
+Support for compressed files no longer needs to be enabled at compile
+time; the CMake option ``WITH_GZIP`` and the define ``-DLAMMPS_GZIP``
+were removed.
 
 Large files can be read or written with compression by ``gzip`` or
 similar tools by several LAMMPS commands, including :doc:`read_data

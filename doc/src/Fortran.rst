@@ -2340,9 +2340,9 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    .. versionchanged:: TBD
 
-      This function now checks whether the ``gzip`` program is installed
-      and executable instead of whether support for compressed files was
-      enabled at compile time.
+   This function now checks whether the ``gzip`` program is installed and
+   executable instead of whether support for compressed files was enabled
+   at compile time.
 
    Several LAMMPS commands (e.g., :doc:`read_data`, :doc:`write_data`,
    :doc:`dump styles atom, custom, and xyz <dump>`) support reading and writing
@@ -2402,9 +2402,8 @@ Procedures Bound to the :f:type:`lammps` Derived Type
 
    .. versionchanged:: TBD
 
-      This function now checks whether the ``ffmpeg`` program is installed
-      and executable instead of whether support for it was enabled at
-      compile time.
+   This function now checks whether the ``ffmpeg`` program is installed and
+   executable instead of whether support for it was enabled at compile time.
 
    The LAMMPS :doc:`dump style movie <dump_image>` supports generating movies
    from images on-the-fly via creating a pipe to the

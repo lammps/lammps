@@ -64,8 +64,14 @@ git checkout release
 git pull
 git merge --ff-only develop
 git tag -s -m "LAMMPS feature release 4 February 2025" patch_4Feb2025
+git verify-tag patch_4Feb2025
 git push git@github.com:lammps/lammps.git --tags develop release
 ```
+
+The `git verify-tag` command must report a good signature.  If it does
+not, the tag was created without a signature and must be deleted and
+created again *before* pushing, since a pushed release tag must not be
+changed anymore.
 
 After applying this tag two steps will need to be executed manually
 (they used to be run automatically, but this is currently not available).
@@ -86,7 +92,9 @@ Go to https://github.com/lammps/lammps/releases and create a new (draft)
 release page with a summary of all the changes included and references
 to the pull requests they were merged from or check the existing draft
 for any necessary changes from pull requests that were merged but are
-not listed.  Then select the applied tag for the release in the "Choose
+not listed.  The list of changes should follow a `## Changelog` headline,
+since automated assessments of the project search the release notes for
+this word.  Then select the applied tag for the release in the "Choose
 a tag" drop-down list. Go to the bottom of the list and select the "Set
 as pre-release" checkbox.  The "Set as the latest release" button is
 reserved for stable releases and updates to them.
@@ -97,8 +105,9 @@ release notes text may be changed, e.g. to document issues with the
 uploaded assets.
 
 Thus only when *everything* is in order *and* all required assets (source,
-binary packages for different platforms, manual PDF) are uploaded in
-a suitable version, you can click on the "Publish release" button.
+binary packages for different platforms, manual PDF, signed list of
+checksums) are uploaded in a suitable version, you can click on the
+"Publish release" button.
 Otherwise, click on "Save draft" and finish pending tasks until you can
 return to edit the release page, update assets, and publish it when
 it is ready.
@@ -271,6 +280,25 @@ ln -sf LAMMPS_GUI-Linux-amd64-4Feb2025.tar.gz LAMMPS-Linux-x86_64-GUI-4Feb2025.t
 gh release upload patch_4Feb2025 LAMMPS-Linux-x86_64-GUI-4Feb2025.tar.gz
 ```
 
+#### Create and upload signed list of checksums
+
+This is the last step before publishing the release and requires that
+*all* other files have been uploaded to the GitHub release page.  The
+script `.github/release_checksums.sh` downloads all files from the
+release page, records their SHA-256 checksums in a file `SHA256SUMS`,
+and signs this file with the same GPG key that is used for signing the
+release tag, which creates the file `SHA256SUMS.asc`.  Users can then
+confirm with these two files that their downloads are complete and
+unmodified (see the `SECURITY.md` file for the commands).
+
+``` sh
+bash .github/release_checksums.sh patch_4Feb2025
+gh release upload patch_4Feb2025 --clobber SHA256SUMS SHA256SUMS.asc
+```
+
+If a file of the draft release is replaced later, these two commands
+must be repeated.
+
 ### Update download page on LAMMPS website
 
 Check out the LAMMPS website repo
@@ -355,6 +383,7 @@ git checkout stable
 git pull
 git merge --ff-only maintenance
 git tag -s -m 'Update 2 for Stable LAMMPS version 29 August 2024' stable_29Aug2024_update2
+git verify-tag stable_29Aug2024_update2
 git push git@github.com:lammps/lammps.git --tags maintenance stable
 ```
 
@@ -366,4 +395,5 @@ they are published since we are creating "immutable" releases now.
 ### Build and upload binary packages and source tarball to GitHub
 
 The build procedure is the same as for the feature releases, only
-that packages are built from the 'stable' branch.
+that packages are built from the 'stable' branch.  This includes
+creating and uploading the signed list of checksums as the last step.

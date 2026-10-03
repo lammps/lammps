@@ -305,6 +305,12 @@ A LAMMPS stable release process starts like a feature release (see
 above), only that this feature release is called a "Stable Release
 Candidate" and no assets are uploaded to GitHub.
 
+The pull request for the release candidate is also the time to review
+the file `.github/security-insights.yml`, which describes the project
+to automated tools (contacts, documentation links, list of project
+repositories, checking tools in use).  Correct what has changed and set
+the `last-reviewed` date (and `last-updated`, if there were changes).
+
 ### Synchronize 'maintenance' branch with 'release'
 
 The state of the 'release' branch is then transferred to the

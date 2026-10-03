@@ -209,6 +209,33 @@ if (NOT PKG_SCAFACOS)
 endif()
 
 ########################################################################
+# Obsolete settings                                                    #
+########################################################################
+# report settings that no longer have any effect and remove them from
+# the cache.  entries may be removed after a few stable releases.
+function(obsolete_setting name reason)
+  if(DEFINED ${name})
+    # referencing the value avoids a CMake warning about an unused variable
+    message(WARNING "Ignoring obsolete setting ${name}=${${name}}: ${reason}")
+    unset(${name} CACHE)
+  endif()
+endfunction()
+
+obsolete_setting(LAMMPS_EXCEPTIONS "C++ exceptions are always used for error handling")
+obsolete_setting(BUILD_LAMMPS_SHELL "The LAMMPS shell was replaced by LAMMPS-GUI")
+obsolete_setting(WITH_GZIP "Support for compressed files is detected at runtime")
+obsolete_setting(WITH_FFMPEG "Support for dump movie is detected at runtime")
+obsolete_setting(PKG_ATC "The ATC package was removed. Last stable version with it: 22Jul2025")
+obsolete_setting(PKG_AWPMD "The AWPMD package was removed. Last stable version with it: 22Jul2025")
+obsolete_setting(PKG_ML-RANN "The ML-RANN package was removed. Last stable version with it: 22Jul2025")
+obsolete_setting(PKG_POEMS "The POEMS package was removed. Last stable version with it: 22Jul2025")
+obsolete_setting(PKG_VTK "Dump style vtk is now part of the EXTRA-DUMP package")
+obsolete_setting(PKG_MPIIO "The MPIIO package was removed. Last stable version with it: 2Aug2023")
+obsolete_setting(PKG_MSCG "The MSCG package was removed. Last stable version with it: 2Aug2023")
+obsolete_setting(PKG_LATTE "The LATTE package was removed. Last stable version with it: 23Jun2022")
+obsolete_setting(PKG_MESSAGE "The MESSAGE package was replaced by the MDI package")
+
+########################################################################
 # User input options                                                   #
 ########################################################################
 # backward compatibility with older LAMMPS documentation

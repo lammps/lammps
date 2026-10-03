@@ -85,6 +85,7 @@ if (test $1 = "EXTRA-PAIR") then
 fi
 
 if (test $1 = "GRANULAR") then
+  depend BODY
   depend OPENMP
 fi
 

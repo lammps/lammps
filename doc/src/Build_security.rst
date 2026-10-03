@@ -88,8 +88,10 @@ In addition, not all external sources can be checked with a checksum:
 - Some sources are obtained from a git repository instead of an archive.
   When a specific commit is requested, git itself ensures that the
   content is exactly that of the requested commit.  When a tag or a
-  branch is requested instead, the owners of the repository can change
-  at any time what will be downloaded.
+  branch is requested instead, the owners of the repository can usually
+  change at any time what will be downloaded.  An exception are tags of
+  releases that GitHub protects against changes after the release was
+  published ("immutable releases"), as used for LAMMPS and LAMMPS-GUI.
 - Python packages that are installed with ``pip`` are downloaded from
   the Python Package Index (PyPI) in their most recent compatible
   version.  Neither the versions nor the content of those packages are
@@ -217,10 +219,10 @@ sources when they are enabled or built.
      - SHA-256 checksum
    * - :ref:`LAMMPS-GUI <lammps_gui>` (``-D BUILD_LAMMPS_GUI=on``)
      - LAMMPS-GUI source code
-     - branch of the `LAMMPS-GUI repository
+     - release tag from the `LAMMPS-GUI repository
        <https://github.com/lammps/lammps-gui>`_ of the LAMMPS project on
        GitHub
-     - not checked
+     - tag of an immutable release (cannot be changed)
    * - LAMMPS-GUI
      - WHAM (unless ``-D BUILD_WHAM=off`` is used)
      - copy on the LAMMPS download server

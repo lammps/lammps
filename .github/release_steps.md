@@ -27,6 +27,15 @@ Create a 'next\_release' branch off 'develop' and make the following changes:
 - check release notes for merged new features and check if
   ..versionadded:: or ..versionchanged:: are missing and need to be
   added
+- check at https://github.com/lammps/lammps-gui/releases whether there
+  is a newer release of LAMMPS-GUI.  If there is, update the `GIT_TAG`
+  setting for LAMMPS-GUI in `cmake/Modules/Packaging.cmake` to the tag
+  of that release, since the pre-compiled packages with LAMMPS-GUI
+  included are built from that tag.  Only the tag of a published
+  LAMMPS-GUI release may be used and never the name of a branch: the
+  releases of LAMMPS-GUI are immutable, so that the tag cannot be
+  changed later.  This can be confirmed with
+  `gh release verify --repo lammps/lammps-gui <tag>`
 
 Submit this pull request.  This is the last pull request merged for the
 release and should not contain any other changes. (Exceptions: this

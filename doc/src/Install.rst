@@ -40,8 +40,6 @@ These are the files and subdirectories in the LAMMPS distribution:
 +-----------------+---------------------------------------------+
 | ``LICENSE``     | GNU General Public License (GPL)            |
 +-----------------+---------------------------------------------+
-| ``SECURITY.md`` | Security policy for the LAMMPS package      |
-+-----------------+---------------------------------------------+
 | ``bench``       | benchmark inputs                            |
 +-----------------+---------------------------------------------+
 | ``cmake``       | CMake build files                           |

@@ -24,7 +24,6 @@ The LAMMPS distribution includes the following files and directories:
 
 README                     this file
 LICENSE                    the GNU General Public License (GPLv2)
-CITATION.cff               Citation information for LAMMPS in CFF format
 bench                      benchmark inputs
 cmake                      CMake build files
 doc                        documentation
@@ -37,7 +36,6 @@ src                        source files
 third_party                Copies of thirdparty software bundled with LAMMPS
 tools                      pre- and post-processing tools
 unittest                   test programs for use with CTest
-.github                    Git and GitHub related files and tools
 
 Point your browser at any of these files to get started:
 

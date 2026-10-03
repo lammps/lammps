@@ -24,6 +24,8 @@ programs through shell commands, load plugins, run Python code, and
 access the network.  And because of that LAMMPS should
 **NEVER** be compiled or **run** as superuser, either from a "root" or
 "administrator" account directly or indirectly via "sudo" or "su".
+The LAMMPS executable prints a warning when it is started that way, and
+so does CMake when configuring LAMMPS.
 
 Therefore what could be seen as a security vulnerability is usually
 either a user mistake or a bug in the code.  Bugs can be reported in the

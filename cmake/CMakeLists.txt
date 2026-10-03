@@ -67,6 +67,16 @@ set(LAMMPS_POTENTIALS_URL "${LAMMPS_DOWNLOADS_URL}/potentials")
 set(LAMMPS_THIRDPARTY_URL "${LAMMPS_DOWNLOADS_URL}/thirdparty")
 mark_as_advanced(LAMMPS_DOWNLOADS_URL)
 
+# compiling, installing, or running LAMMPS as superuser (root) is strongly discouraged. warn about it.
+if(CMAKE_HOST_UNIX)
+  execute_process(COMMAND id -u OUTPUT_VARIABLE _LAMMPS_USER_ID OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET)
+  if(_LAMMPS_USER_ID STREQUAL "0")
+    message(WARNING "LAMMPS is being configured as superuser (root).  Compiling, installing, "
+      "or running LAMMPS as superuser is strongly discouraged.\n"
+      "For more information see https://docs.lammps.org/err0040")
+  endif()
+endif()
+
 # by default, install into $HOME/.local (not /usr/local), so that no root access (and sudo!!) is needed
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
   if((CMAKE_SYSTEM_NAME STREQUAL "Windows") AND (NOT CMAKE_CROSSCOMPILING))

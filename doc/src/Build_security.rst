@@ -59,7 +59,10 @@ This has the following consequences:
 - Only run input files, Python code, plugins, and model files from
   sources that you trust, and look at input files from other people
   before running them.
-- Never run LAMMPS as superuser or administrator.
+- Never run LAMMPS as superuser or administrator.  The LAMMPS executable
+  prints a :ref:`warning <err0040>` when it is started that way, and
+  CMake prints a warning when it is used to configure LAMMPS as
+  superuser.
 - Most of the features mentioned above belong to optional packages
   (EXTRA-COMMAND, GRAPHICS, KIM, MDI, MISC, ML-IAP, MOLFILE, PLUGIN,
   PYTHON) and are not available when those packages are not included

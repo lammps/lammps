@@ -309,58 +309,68 @@ void CommKokkos::reverse_comm_device()
   constexpr auto space = ExecutionSpaceFromDevice<DeviceType>::space;
   atomKK->sync(space,atomKK->avecKK->datamask_reverse);
 
-  for (int iswap = nswap-1; iswap >= 0; iswap--) {
-    if (sendproc[iswap] != me) {
-      if (comm_f_only && !decltype(atomKK->k_f)::NEED_TRANSFORM) {
+  // the fused kernel relies on the swap info set up by copy_swap_info(),
+  // which borders() only calls when forward communication is not legacy
 
-        // one fence covers both MPI calls: no Kokkos work is launched between
-        // them, so a second fence would have nothing left to wait on
+  if (comm->nprocs == 1 && !ghost_velocity && !forward_comm_legacy) {
+    k_swap.sync<DeviceType>();
+    k_swap2.sync<DeviceType>();
+    n = atomKK->avecKK->pack_reverse_self_fused_kokkos(totalsend,k_sendlist,k_sendnum_scan,
+                      k_firstrecv,k_g2l);
+  } else {
+    for (int iswap = nswap-1; iswap >= 0; iswap--) {
+      if (sendproc[iswap] != me) {
+        if (comm_f_only && !decltype(atomKK->k_f)::NEED_TRANSFORM) {
 
-        if ((size_reverse_recv[iswap]) || (size_reverse_send[iswap]))
-          DeviceType().fence();
+          // one fence covers both MPI calls: no Kokkos work is launched between
+          // them, so a second fence would have nothing left to wait on
 
-        if (size_reverse_recv[iswap]) {
-          MPI_Irecv(k_buf_recv.view<DeviceType>().data(),size_reverse_recv[iswap],MPI_DOUBLE,
-                    sendproc[iswap],0,world,&request);
-        }
-        if (size_reverse_send[iswap]) {
-          buf = (double *)atomKK->k_f.view<DeviceType>().data() +
-            firstrecv[iswap]*atomKK->k_f.view<DeviceType>().extent(1);
+          if ((size_reverse_recv[iswap]) || (size_reverse_send[iswap]))
+            DeviceType().fence();
 
-          MPI_Send(buf,size_reverse_send[iswap],MPI_DOUBLE,
-                   recvproc[iswap],0,world);
-        }
-        if (size_reverse_recv[iswap]) {
-          MPI_Wait(&request,MPI_STATUS_IGNORE);
-          DeviceType().fence();
-        }
+          if (size_reverse_recv[iswap]) {
+            MPI_Irecv(k_buf_recv.view<DeviceType>().data(),size_reverse_recv[iswap],MPI_DOUBLE,
+                      sendproc[iswap],0,world,&request);
+          }
+          if (size_reverse_send[iswap]) {
+            buf = (double *)atomKK->k_f.view<DeviceType>().data() +
+              firstrecv[iswap]*atomKK->k_f.view<DeviceType>().extent(1);
 
-      } else {
-        if (size_reverse_recv[iswap]) {
-          DeviceType().fence();
-          MPI_Irecv(k_buf_recv.view<DeviceType>().data(),
-                    size_reverse_recv[iswap],MPI_DOUBLE,
-                    sendproc[iswap],0,world,&request);
+            MPI_Send(buf,size_reverse_send[iswap],MPI_DOUBLE,
+                     recvproc[iswap],0,world);
+          }
+          if (size_reverse_recv[iswap]) {
+            MPI_Wait(&request,MPI_STATUS_IGNORE);
+            DeviceType().fence();
+          }
+
+        } else {
+          if (size_reverse_recv[iswap]) {
+            DeviceType().fence();
+            MPI_Irecv(k_buf_recv.view<DeviceType>().data(),
+                      size_reverse_recv[iswap],MPI_DOUBLE,
+                      sendproc[iswap],0,world,&request);
+          }
+          n = atomKK->avecKK->pack_reverse_kokkos(recvnum[iswap],firstrecv[iswap],k_buf_send);
+          if (n) {
+            DeviceType().fence();
+            MPI_Send(k_buf_send.view<DeviceType>().data(),n,
+                     MPI_DOUBLE,recvproc[iswap],0,world);
+          }
+          if (size_reverse_recv[iswap]) {
+            MPI_Wait(&request,MPI_STATUS_IGNORE);
+            DeviceType().fence();
+          }
         }
-        n = atomKK->avecKK->pack_reverse_kokkos(recvnum[iswap],firstrecv[iswap],k_buf_send);
-        if (n) {
-          DeviceType().fence();
-          MPI_Send(k_buf_send.view<DeviceType>().data(),n,
-                   MPI_DOUBLE,recvproc[iswap],0,world);
-        }
-        if (size_reverse_recv[iswap]) {
-          MPI_Wait(&request,MPI_STATUS_IGNORE);
-          DeviceType().fence();
-        }
-      }
-      auto k_sendlist_iswap = Kokkos::subview(k_sendlist,iswap,Kokkos::ALL);
-      atomKK->avecKK->unpack_reverse_kokkos(sendnum[iswap],k_sendlist_iswap,
-                                k_buf_recv);
-    } else {
-      if (sendnum[iswap]) {
         auto k_sendlist_iswap = Kokkos::subview(k_sendlist,iswap,Kokkos::ALL);
-        n = atomKK->avecKK->pack_reverse_self_kokkos(sendnum[iswap],k_sendlist_iswap,
-                                 firstrecv[iswap]);
+        atomKK->avecKK->unpack_reverse_kokkos(sendnum[iswap],k_sendlist_iswap,
+                                              k_buf_recv);
+      } else {
+        if (sendnum[iswap]) {
+          auto k_sendlist_iswap = Kokkos::subview(k_sendlist,iswap,Kokkos::ALL);
+          n = atomKK->avecKK->pack_reverse_self_kokkos(sendnum[iswap],k_sendlist_iswap,
+                                                       firstrecv[iswap]);
+        }
       }
     }
   }
@@ -1259,55 +1269,69 @@ void CommKokkos::exchange_device()
 
       if (bonus_flag) {
 
-        atomKK->sync(Host,BONUS_MASK);
-
         int count_bonus = k_count.view_host()(1);
 
-        // sort exchange_sendlist_bonus
+        if (count_bonus == 0) {
 
-        auto d_exchange_sendlist_bonus_sorted = Kokkos::subview(k_exchange_sendlist_bonus.view<DeviceType>(),std::make_pair(0,count_bonus));
-        Kokkos::sort(DeviceType(), d_exchange_sendlist_bonus_sorted);
-        k_exchange_sendlist_bonus.sync_host();
+          // no atom with bonus data leaves, so no bonus data needs to be
+          // backfilled and the bonus data need not be copied to the host
 
-        // must match the bonus irecv below to the one above when
-        //  backfilling to prevent bonus data being overrwritten before
-        //  it is packed
+          k_exchange_copylist_bonus.clear_sync_state();
+          Kokkos::deep_copy(k_exchange_copylist_bonus.view<DeviceType>(),-1);
+          k_exchange_copylist_bonus.modify<DeviceType>();
 
-        HAT::t_int_1d i2recv;
-        MemKK::realloc_kokkos(i2recv,"comm:i2recv",atom->nmax);
+        } else {
 
-        for (int recvpos_all = 0; recvpos_all < count; recvpos_all++) {
-          int i = k_exchange_sendlist.view_host()(recvpos_all);
-          i2recv[i] = recvpos_all;
-        }
+          atomKK->sync(Host,BONUS_MASK);
 
-        Kokkos::deep_copy(k_exchange_copylist_bonus.view_host(),-1);
+          // sort exchange_sendlist_bonus
 
-        AtomVecEllipsoid* avec_ellipsoid = dynamic_cast<AtomVecEllipsoid *>(atom->style_match("ellipsoid"));
-        AtomVecEllipsoid::Bonus *ebonus = nullptr;
-        if (avec_ellipsoid) ebonus = avec_ellipsoid->bonus;
+          auto d_exchange_sendlist_bonus_sorted = Kokkos::subview(k_exchange_sendlist_bonus.view<DeviceType>(),std::make_pair(0,count_bonus));
+          Kokkos::sort(DeviceType(), d_exchange_sendlist_bonus_sorted);
+          k_exchange_sendlist_bonus.sync_host();
 
-        // when atom is deleted, fill it in with last atom
+          // must match the bonus irecv below to the one above when
+          //  backfilling to prevent bonus data being overrwritten before
+          //  it is packed
 
-        sendpos = count_bonus-1;
-        icopy = nlocal_bonus-1;
-        nlocal_bonus -= count_bonus;
-        for (int recvpos = 0; recvpos < count_bonus; recvpos++) {
-          int irecv = k_exchange_sendlist_bonus.view_host()(recvpos);
-          if (irecv < nlocal_bonus) {
-            if (icopy == k_exchange_sendlist_bonus.view_host()(sendpos)) icopy--;
-            while (sendpos > 0 && icopy <= k_exchange_sendlist_bonus.view_host()(sendpos-1)) {
-              sendpos--;
-              icopy = k_exchange_sendlist_bonus.view_host()(sendpos) - 1;
-            }
-            int irecv_all = i2recv[ebonus[irecv].ilocal];
-            k_exchange_copylist_bonus.view_host()(irecv_all) = icopy;
-            icopy--;
+          if ((int)h_exchange_i2recv.extent(0) < atom->nmax)
+            MemKK::realloc_kokkos(h_exchange_i2recv,"comm:i2recv",atom->nmax);
+          auto i2recv = h_exchange_i2recv;
+
+          for (int recvpos_all = 0; recvpos_all < count; recvpos_all++) {
+            int i = k_exchange_sendlist.view_host()(recvpos_all);
+            i2recv[i] = recvpos_all;
           }
-        }
 
-        k_exchange_copylist_bonus.modify_host();
-        k_exchange_copylist_bonus.sync<DeviceType>();
+          k_exchange_copylist_bonus.clear_sync_state();
+          Kokkos::deep_copy(k_exchange_copylist_bonus.view_host(),-1);
+
+          AtomVecEllipsoid* avec_ellipsoid = dynamic_cast<AtomVecEllipsoid *>(atom->style_match("ellipsoid"));
+          AtomVecEllipsoid::Bonus *ebonus = nullptr;
+          if (avec_ellipsoid) ebonus = avec_ellipsoid->bonus;
+
+          // when atom is deleted, fill it in with last atom
+
+          sendpos = count_bonus-1;
+          icopy = nlocal_bonus-1;
+          nlocal_bonus -= count_bonus;
+          for (int recvpos = 0; recvpos < count_bonus; recvpos++) {
+            int irecv = k_exchange_sendlist_bonus.view_host()(recvpos);
+            if (irecv < nlocal_bonus) {
+              if (icopy == k_exchange_sendlist_bonus.view_host()(sendpos)) icopy--;
+              while (sendpos > 0 && icopy <= k_exchange_sendlist_bonus.view_host()(sendpos-1)) {
+                sendpos--;
+                icopy = k_exchange_sendlist_bonus.view_host()(sendpos) - 1;
+              }
+              int irecv_all = i2recv[ebonus[irecv].ilocal];
+              k_exchange_copylist_bonus.view_host()(irecv_all) = icopy;
+              icopy--;
+            }
+          }
+
+          k_exchange_copylist_bonus.modify_host();
+          k_exchange_copylist_bonus.sync<DeviceType>();
+        }
       }
 
       if (nsend > maxsend) grow_send_kokkos(nsend,0);

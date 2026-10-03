@@ -18,13 +18,17 @@
 
 using namespace LAMMPS_NS;
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   IMPORTANT NOTE ! We entirely code duplicate the sequence-specific alpha_hb
+   setup between PairOxrna2Hbond and PairOxrna2HbondKokkos. So any edits made
+   in one need to manually be made to the other !
+   The KOKKOS version is in: src/KOKKOS/pair_oxrna2_hbond_kokkos.h
+------------------------------------------------------------------------- */
 
 PairOxrna2Hbond::PairOxrna2Hbond(LAMMPS *lmp) : PairOxdnaHbond(lmp)
 {
   single_enable = 0;
   writedata = 0;
-  trim_flag = 0;
 
   // sequence-specific base-pairing strength
   // A:0 C:1 G:2 U:3, 5'- [i][j] -3'

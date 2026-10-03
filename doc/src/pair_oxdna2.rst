@@ -4,24 +4,42 @@
 .. index:: pair_style oxdna2/xstk
 .. index:: pair_style oxdna2/coaxstk
 .. index:: pair_style oxdna2/dh
+.. index:: pair_style oxdna2/excv/kk
+.. index:: pair_style oxdna2/stk/kk
+.. index:: pair_style oxdna2/hbond/kk
+.. index:: pair_style oxdna2/xstk/kk
+.. index:: pair_style oxdna2/coaxstk/kk
+.. index:: pair_style oxdna2/dh/kk
 
 pair_style oxdna2/excv command
 ==============================
 
+Accelerator Variants: *oxdna2/excv/kk*
+
 pair_style oxdna2/stk command
 =============================
+
+Accelerator Variants: *oxdna2/stk/kk*
 
 pair_style oxdna2/hbond command
 ===============================
 
+Accelerator Variants: *oxdna2/hbond/kk*
+
 pair_style oxdna2/xstk command
 ==============================
+
+Accelerator Variants: *oxdna2/xstk/kk*
 
 pair_style oxdna2/coaxstk command
 =================================
 
+Accelerator Variants: *oxdna2/coaxstk/kk*
+
 pair_style oxdna2/dh command
 ============================
+
+Accelerator Variants: *oxdna2/dh/kk*
 
 Syntax
 """"""
@@ -187,6 +205,10 @@ Please cite also the relevant oxDNA2 publications
 
 ----------
 
+.. include:: accel_styles.rst
+
+----------
+
 Potential file reading
 """"""""""""""""""""""
 
@@ -307,14 +329,21 @@ Restrictions
 """"""""""""
 
 These pair styles can only be used if LAMMPS was built with the
-CG-DNA package and the MOLECULE and ASPHERE package.  See the
+:ref:`CG-DNA <PKG-CG-DNA>` package and the :ref:`MOLECULE <PKG-MOLECULE>`
+and :ref:`ASPHERE <PKG-ASPHERE>` package. For KOKKOS acceleration also
+the :ref:`KOKKOS <PKG-KOKKOS>` package has to be included. See the
 :doc:`Build package <Build_package>` page for more info.
+
+Pair styles *oxdna2/excv/kk*, *oxdna2/stk/kk*, *oxdna2/hbond/kk*,
+*oxdna2/xstk/kk*, *oxdna2/coaxstk/kk*, and *oxdna2/dh/kk* currently
+only support :doc:`units lj <units>`.
 
 Related commands
 """"""""""""""""
 
 :doc:`bond_style oxdna2/fene <bond_oxdna>`, :doc:`pair_coeff <pair_coeff>`,
 :doc:`bond_style oxdna/fene <bond_oxdna>`, :doc:`pair_style oxdna/excv <pair_oxdna>`,
+:doc:`bond_style oxdna3/fene <bond_oxdna>`, :doc:`pair_style oxdna3/excv <pair_oxdna3>`,
 :doc:`bond_style oxrna2/fene <bond_oxdna>`, :doc:`pair_style oxrna2/excv <pair_oxrna2>`,
 :doc:`atom_style oxdna <atom_style>`, :doc:`fix nve/dotc/langevin <fix_nve_dotc_langevin>`
 

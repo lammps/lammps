@@ -68,7 +68,10 @@ void BondHybridKokkos::compute(int eflag, int vflag)
   // realloc sub-style bondlist if necessary
   // load sub-style bondlist with 3 values from original bondlist
 
-  if (neighbor->ago == 0) {
+  // also build them if they were never built, e.g. when the first compute
+  // happens without a preceding neighbor list build (run N pre no)
+
+  if (neighbor->ago == 0 || (int)k_bondlist.view_device().extent(0) == 0) {
     Kokkos::deep_copy(d_nbondlist,0);
 
     k_map.sync_device();

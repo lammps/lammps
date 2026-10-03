@@ -57,14 +57,13 @@ PairOxdnaCoaxstk::PairOxdnaCoaxstk(LAMMPS *lmp) :
 {
   single_enable = 0;
   writedata = 0;
-  trim_flag = 0;
 }
 
 /* ---------------------------------------------------------------------- */
 
 PairOxdnaCoaxstk::~PairOxdnaCoaxstk()
 {
-  if (allocated) {
+  if (allocated && !copymode) {
 
     memory->destroy(setflag);
     memory->destroy(cutsq);
@@ -581,27 +580,6 @@ void PairOxdnaCoaxstk::compute(int eflag, int vflag)
       // Full cosphi3 and cosphi4 (=cosphi3) contribution to the torque
       if (cosphi3 != 0.0) {
 
-        gamma = dx_cbk_oxdna1 - dx_cstk_oxdna1;
-        gammacub = gamma * gamma * gamma;
-        rinv_bkbk_cub = rinv_bkbk * rinv_bkbk * rinv_bkbk;
-        aybx = MathExtra::dot3(ay,bx);
-        azbx = MathExtra::dot3(az,bx);
-        rax = MathExtra::dot3(delr_stkstk_norm,ax);
-        ray = MathExtra::dot3(delr_stkstk_norm,ay);
-        raz = MathExtra::dot3(delr_stkstk_norm,az);
-        rbx = MathExtra::dot3(delr_stkstk_norm,bx);
-
-        fac = (raz * aybx - ray * azbx);
-
-        dcdr    = -gamma * fac * (gamma * (rax - rbx) + r_stkstk) * rinv_bkbk_cub;
-        dcdaxbx =  gammacub * fac * rinv_bkbk_cub;
-        dcdaybx =  gamma * raz * rinv_bkbk;
-        dcdazbx = -gamma * ray * rinv_bkbk;
-        dcdrax  = -gamma*gamma * fac * r_stkstk * rinv_bkbk_cub;
-        dcdray  = -gamma * azbx * rinv_bkbk;
-        dcdraz  =  gamma * aybx * rinv_bkbk;
-        dcdrbx  =  gamma*gamma * fac * r_stkstk * rinv_bkbk_cub;
-
         tpair   = -f2 * f4t1 * f4t4 * f4t5 * f4t6 * 2.0 * f5c3 * df5c3 * factor_lj;
 
         MathExtra::cross3(ax,bx,v1tmp);
@@ -1048,7 +1026,13 @@ double PairOxdnaCoaxstk::init_one(int i, int j)
   cutsq_cxst_hc[j][i] = cutsq_cxst_hc[i][j];
 
   // set the master list distance cutoff
-  return cut_cxst_hc[i][j];
+  // the cutoffs are distances between interaction sites, but the neighbor
+  // lists hold pairs by the distance of the nucleotide centers of mass, so
+  // add the distances of the sites from the centers of mass
+  const double stk = site_offset([this](double *e1, double *e2, double *e3, double *r) {
+    compute_stacking_site(e1, e2, e3, r);
+  });
+  return cut_cxst_hc[i][j] + 2.0 * stk;
 
 }
 

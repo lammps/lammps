@@ -152,7 +152,13 @@ the faces penetrate each other by more than the contact distance, the
 region fades out, and the individual contacts of the vertices and edges
 take over.  Similarly, the crossing of two edges within 5 degrees of
 parallel has a reduced weight, which vanishes for parallel edges, while
-the contacts at the ends of their overlap keep the remaining weight.
+the contacts at the ends of their overlap keep the remaining weight.  The
+cohesive force of a crossing also grows from zero at the ends of the
+edges to its full value at a fifth of the contact distance from them, so
+that a crossing does not start to attract the particles with a finite
+force when its nearest points reach the end of an edge.  The repulsive
+force, the damping, and the friction of a crossing keep its weight, since
+the crossing may be the only contact that keeps the particles apart.
 These weights also apply to the damping, the friction, the energy, and
 the contact area of the scaling factor :math:`j_a`.  This deviates from
 :ref:`Wang <pair-Wang>`, e.g. two faces of a tetrahedron and a cube in

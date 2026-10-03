@@ -56,6 +56,7 @@ static constexpr double PARALLEL_TOL = 1.0e-12;   // 1 - |cos| below which two e
 static constexpr double CONE_TOL = 1.0e-10;       // tolerance of the normal cone tests
 static constexpr double PATCH_ANGLE = 5.0 * DEG2RAD;   // see patch_factor()
 static constexpr double LINE_ANGLE = 5.0 * DEG2RAD;    // see edge_edge_weight()
+static constexpr double END_FADE = 0.2;   // fraction of the contact distance, see edge_end_factor()
 static const double COS_PATCH_ANGLE = cos(PATCH_ANGLE);
 static const double COS_HALF_PATCH_ANGLE = cos(0.5 * PATCH_ANGLE);
 static const double COS_LINE_ANGLE = cos(LINE_ANGLE);
@@ -1124,6 +1125,7 @@ void PairBodyRoundedPolyhedron::sphere_point_contact(int ibody, int jbody, int k
     c.unique = 1;
     c.patch = 0;
     c.w = 1.0;
+    c.wcoh = 1.0;
     s.contacts.push_back(c);
   }
 
@@ -1291,6 +1293,12 @@ int PairBodyRoundedPolyhedron::edge_cone(int ibody, int ne, const double *d) con
    a crossing grows from zero for parallel edges to one at an angle of
    LINE_ANGLE, see edge_edge_weight(), and the contacts of the vertices of
    the crossing edges keep the remaining weight, see vertex_edges_weight().
+   The cohesive force of a crossing also grows from zero at the ends of the
+   edges, see edge_end_factor(), since the nearest points of two edges enter
+   the edges at a finite distance, also if the vertex at that end has no
+   contact with the other edge because a face is closer, see vertex_cone().
+   The repulsive force of a crossing keeps its weight: near the end of an
+   edge, the crossing may be the only contact that keeps the bodies apart.
 ------------------------------------------------------------------------- */
 
 static double smoothstep(double x)
@@ -1298,6 +1306,20 @@ static double smoothstep(double x)
   if (x <= 0.0) return 0.0;
   if (x >= 1.0) return 1.0;
   return x * x * (3.0 - 2.0 * x);
+}
+
+/* ----------------------------------------------------------------------
+   factor of the cohesive force of the crossing of two edges, whose nearest
+   point is at the fraction t along an edge of length len: it grows from zero
+   at the ends of the edge to one at the distance fade from them, at most
+   half the edge, see above
+------------------------------------------------------------------------- */
+
+static double edge_end_factor(double t, double len, double fade)
+{
+  fade = MIN(fade, 0.5 * len);
+  if (fade <= 0.0) return 1.0;
+  return smoothstep(MIN(t, 1.0 - t) * len / fade);
 }
 
 /* ----------------------------------------------------------------------
@@ -1725,6 +1747,7 @@ void PairBodyRoundedPolyhedron::face_face_patches(int ibody, int jbody, int ityp
           c.r = r;
           c.unique = 1;
           c.w = w;
+          c.wcoh = 1.0;
           c.patch = 1;
           s.contacts.push_back(c);
         }
@@ -1826,6 +1849,8 @@ double PairBodyRoundedPolyhedron::edge_edge_weight(const Scratch &s, int ibody, 
    nearest points are inside the edges and within the interaction range.
    crossed = 1 if the edges have crossed each other, when the nearest point
    of the edge of body j is inside body i.
+   wend = factor of the cohesive force of the crossing from the positions of
+   the nearest points along the edges, see edge_end_factor(), if not null
    the normal cones are not tested, see edge_cone(): two crossing edges of
    faces in contact are a corner of the contact region, also when the faces
    are inclined to each other, and a face is then closer than the edge on
@@ -1834,7 +1859,7 @@ double PairBodyRoundedPolyhedron::edge_edge_weight(const Scratch &s, int ibody, 
 
 int PairBodyRoundedPolyhedron::edge_edge_nearest(int ibody, int ei, int jbody, int ej,
                                                  double *hi, double *hj, double &r,
-                                                 int &crossed)
+                                                 int &crossed, double *wend)
 {
   double **x = atom->x;
   double xi1[3], xi2[3], xj1[3], xj2[3], ti, tj;
@@ -1852,6 +1877,18 @@ int PairBodyRoundedPolyhedron::edge_edge_nearest(int ibody, int ei, int jbody, i
   double contact_dist = rounded_radius[ibody] + rounded_radius[jbody];
   double rmin = MIN(rounded_radius[ibody], rounded_radius[jbody]);
   if ((ti < 0) || (ti > 1) || (tj < 0) || (tj > 1) || (r >= contact_dist + cut_inner)) return 0;
+
+  // the cohesion fades in over END_FADE times the contact distance from the
+  // ends of the edges, or times cut_inner for bodies without rounded radii.
+  // A longer distance would remove much of the cohesion of edges that
+  // cross near a vertex, e.g. 18% of the cohesive energy of the cubes in
+  // examples/body with the full contact distance, 2% with END_FADE = 0.2
+
+  if (wend) {
+    double fade = END_FADE * ((contact_dist > 0.0) ? contact_dist : cut_inner);
+    *wend = edge_end_factor(ti, sqrt(MathExtra::distsq3(xi1, xi2)), fade) *
+        edge_end_factor(tj, sqrt(MathExtra::distsq3(xj1, xj2)), fade);
+  }
 
   // unit common normal n of the two edges, pointing from body i to body j:
   // outward of the faces of body i at its edge and inward of those of body j,
@@ -2065,6 +2102,7 @@ void PairBodyRoundedPolyhedron::vertex_against_edge(int ibody, int jbody,
       c.unique = 1;
       c.patch = 0;
       c.w = wmin;
+      c.wcoh = 1.0;
       contacts.push_back(c);
     }
     vertex_done[ifirst+ni] = 1;
@@ -2150,6 +2188,7 @@ void PairBodyRoundedPolyhedron::vertex_against_vertex(int ibody, int jbody,
       c.unique = 1;
       c.patch = 0;
       c.w = wmin;
+      c.wcoh = 1.0;
       contacts.push_back(c);
     }
     vertex_done[ifirst+ni] = 1;
@@ -2315,9 +2354,9 @@ int PairBodyRoundedPolyhedron::interaction_edge_to_edge(int ibody,
 
   // nearest points hi on the edge of body i and hj on the edge of body j
 
-  double hi[3], hj[3], r;
+  double hi[3], hj[3], r, wend;
   int crossed;
-  if (!edge_edge_nearest(ibody, edge_index_i, jbody, edge_index_j, hi, hj, r, crossed))
+  if (!edge_edge_nearest(ibody, edge_index_i, jbody, edge_index_j, hi, hj, r, crossed, &wend))
     return EE_NONE;
 
   // the edges have crossed each other if the closest point on the edge
@@ -2329,11 +2368,13 @@ int PairBodyRoundedPolyhedron::interaction_edge_to_edge(int ibody,
   double w = edge_edge_weight(s, ibody, edge_index_i, jbody, edge_index_j);
   if (w <= 0.0) return EE_NONE;
 
+  // without contact, pair_force_and_torque() applies the cohesive force only
+
   double contact_dist = rounded_radius_i + rounded_radius_j;
   int jflag = 1;
   pair_force_and_torque(jbody, ibody, EDGE_EDGE, hj, hi, r, contact_dist,
                         jtype, itype, x, v, f, torque, angmom,
-                        fnc, jflag, energy, facc, w);
+                        fnc, jflag, energy, facc, w * wend);
 
   if (r <= contact_dist) {
     // store the contact info
@@ -2348,6 +2389,7 @@ int PairBodyRoundedPolyhedron::interaction_edge_to_edge(int ibody,
     c.unique = 1;
     c.patch = 0;
     c.w = w;
+    c.wcoh = wend;
     contacts.push_back(c);
   }
   return EE_INTERACT;
@@ -2512,6 +2554,7 @@ int PairBodyRoundedPolyhedron::interaction_face_to_edge(int ibody,
       c.unique = 1;
       c.patch = 0;
       c.w = w;
+      c.wcoh = 1.0;
       contacts.push_back(c);
     }
     vertex_done[jfirst+npj] = 1;
@@ -2574,6 +2617,7 @@ void PairBodyRoundedPolyhedron::vertex_against_core(int ibody, int jbody,
     c.unique = 1;
     c.patch = 0;
     c.w = w;
+    c.wcoh = 1.0;
     contacts.push_back(c);
 
     vertex_done[ifirst+ni] = 1;
@@ -2668,19 +2712,30 @@ double PairBodyRoundedPolyhedron::normal_force(int /*ibody*/, int /*jbody*/, int
                                                double R, int itype, int jtype, double &fe,
                                                double &fc)
 {
-  fe = fc = 0.0;
-  if (R > cut_inner) return 0.0;
-
-  double kn = k_n[itype][jtype];
-  double kna = k_na[itype][jtype];
-  double dna = cut_inner - R;
-  fc = -kna * dna;
-  double energy = -0.5 * kna * dna * dna;
+  fe = 0.0;
+  double energy = cohesive_force(R, itype, jtype, fc);
   if (R < 0.0) {
+    double kn = k_n[itype][jtype];
     fe = -kn * R;
     energy += 0.5 * kn * R * R;
   }
   return energy;
+}
+
+/* ----------------------------------------------------------------------
+   Cohesive force fc at the surface separation R, see normal_force()
+   return its energy
+------------------------------------------------------------------------- */
+
+double PairBodyRoundedPolyhedron::cohesive_force(double R, int itype, int jtype, double &fc) const
+{
+  fc = 0.0;
+  if (R > cut_inner) return 0.0;
+
+  double kna = k_na[itype][jtype];
+  double dna = cut_inner - R;
+  fc = -kna * dna;
+  return -0.5 * kna * dna * dna;
 }
 
 /* ----------------------------------------------------------------------
@@ -2740,11 +2795,18 @@ void PairBodyRoundedPolyhedron::rescale_cohesive_forces(double** x,
     r = contacts[m].r;
     R = contacts[m].separation;
 
-    // only the cohesive force is scaled by j_a, see Eq. 6, Wang et al.
+    // only the cohesive force is scaled by j_a, see Eq. 6, Wang et al.,
+    // and by wcoh, see edge_end_factor()
 
     double fe, fc;
-    evdwl += w * normal_force(ibody, jbody, contacts[m].kind, R, itype, jtype, fe, fc);
-    fpair = w * (fe + j_a * fc);
+    double wcoh = contacts[m].wcoh;
+    double e = normal_force(ibody, jbody, contacts[m].kind, R, itype, jtype, fe, fc);
+    if (wcoh != 1.0) {
+      double fcoh;
+      e -= (1.0 - wcoh) * cohesive_force(R, itype, jtype, fcoh);
+    }
+    evdwl += w * e;
+    fpair = w * (fe + j_a * wcoh * fc);
     fx = delx*fpair/r;
     fy = dely*fpair/r;
     fz = delz*fpair/r;
@@ -2770,7 +2832,7 @@ void PairBodyRoundedPolyhedron::rescale_cohesive_forces(double** x,
     // the part of the force added by the j_a scaling does not derive
     // from the energy
 
-    double s = w * (j_a - 1.0) * fc / r;
+    double s = w * (j_a - 1.0) * wcoh * fc / r;
     double fja[3] = {s*delx, s*dely, s*delz};
     fnc[ibody][0] += fja[0];
     fnc[ibody][1] += fja[1];

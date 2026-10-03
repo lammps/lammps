@@ -54,6 +54,8 @@ class PairBodyRoundedPolyhedron : public Pair {
   // elastic and cohesive parts of the normal force, returns the energy
   virtual double normal_force(int ibody, int jbody, int kind, double R, int itype, int jtype,
                               double &fe, double &fc);
+  // cohesive part of the normal force, returns its energy
+  double cohesive_force(double R, int itype, int jtype, double &fc) const;
 
   struct Contact {
     int ibody, jbody;     // body (i.e. atom) indices (not tags)
@@ -66,6 +68,7 @@ class PairBodyRoundedPolyhedron : public Pair {
                           // negative when jbody has crossed a face or an edge of ibody
     int unique;
     double w;             // weight of the contact, see vertex_face_weight()
+    double wcoh;          // factor of the cohesive force, see edge_end_factor()
     int patch;            // 1 for a corner of a region of overlap, see face_face_patches()
   };
 
@@ -173,7 +176,7 @@ class PairBodyRoundedPolyhedron : public Pair {
   int face_near(const Scratch &s, int ibody, int nf) const;
   int edges_interact(int ibody, int ei, int jbody, int ej);
   int edge_edge_nearest(int ibody, int ei, int jbody, int ej, double *hi, double *hj, double &r,
-                        int &crossed);
+                        int &crossed, double *wend = nullptr);
   // normal cones of the vertices and edges, to validate the direction of a contact
   int vertex_cone(int ibody, int nv, const double *d, const double *ul = nullptr) const;
   int edge_cone(int ibody, int ne, const double *d) const;

@@ -378,16 +378,8 @@ double PairBodyRoundedPolyhedronGranular::normal_force(int ibody, int jbody, int
                                                        int itype, int jtype, double &fe,
                                                        double &fc)
 {
-  fe = fc = 0.0;
-  if (R > cut_inner) return 0.0;
-
-  double energy = 0.0;
-  double kna = k_na[itype][jtype];
-  if (kna > 0.0) {
-    double dna = cut_inner - R;
-    fc = -kna * dna;
-    energy = -0.5 * kna * dna * dna;
-  }
+  fe = 0.0;
+  double energy = cohesive_force(R, itype, jtype, fc);
 
   if (R < 0.0) {
     int m = model_index[itype][jtype];

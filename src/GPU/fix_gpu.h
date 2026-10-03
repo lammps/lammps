@@ -44,6 +44,7 @@ class FixGPU : public Fix {
   int _gpu_mode;
   int _nlevels_respa;
   double _binsize;
+  class TuneGPU *_tuner;
 };
 
 }    // namespace LAMMPS_NS

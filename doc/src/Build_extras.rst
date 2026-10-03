@@ -332,6 +332,16 @@ CUDA driver in use.  When compiling for OpenCL, OpenCL version 1.2 or
 later is required and the GPU must be supported by the GPU driver and
 OpenCL runtime bundled with the driver.
 
+.. versionchanged:: TBD
+
+Building with ``GPU_API=cuda`` requires CMake version 3.27 or later,
+since the CUDA kernels are compiled through the CUDA language support of
+CMake rather than through the obsolete ``FindCUDA`` module.  The other
+back ends are not affected and can still be built with CMake 3.20.  As a
+consequence of this change, the host compiler used by ``nvcc`` is now
+selected with ``-D CMAKE_CUDA_HOST_COMPILER=/path/to/compiler``, the same
+way as for the other packages using CUDA.
+
 Please note that the GPU library accesses the CUDA driver library
 directly, so it needs to be linked with the CUDA driver library
 (``libcuda.so``) that ships with the Nvidia driver.  If you are

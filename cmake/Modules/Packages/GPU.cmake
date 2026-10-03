@@ -5,12 +5,6 @@
   cmake_policy(SET CMP0135 NEW)
 endif()
 
-# Silence CMake warnings about FindCUDA being obsolete.
-# We may need to eventually rewrite this section to use enable_language(CUDA)
-if(POLICY CMP0146)
-  cmake_policy(SET CMP0146 OLD)
-endif()
-
 set(GPU_SOURCES_DIR ${LAMMPS_SOURCE_DIR}/GPU)
 set(GPU_SOURCES ${GPU_SOURCES_DIR}/gpu_extra.h
                 ${GPU_SOURCES_DIR}/fix_gpu.h
@@ -56,16 +50,29 @@ file(GLOB GPU_LIB_SOURCES CONFIGURE_DEPENDS ${LAMMPS_LIB_SOURCE_DIR}/gpu/[^.]*.c
 file(MAKE_DIRECTORY ${LAMMPS_LIB_BINARY_DIR}/gpu)
 
 if(GPU_API STREQUAL "CUDA")
-  find_package(CUDA QUIET)
-  # augment search path for CUDA toolkit libraries to include the stub versions. Needed to find libcuda.so on machines without a CUDA driver installation
-  if(CUDA_FOUND)
-    set(CMAKE_LIBRARY_PATH "${CUDA_TOOLKIT_ROOT_DIR}/lib64/stubs;${CUDA_TOOLKIT_ROOT_DIR}/lib/stubs;${CUDA_TOOLKIT_ROOT_DIR}/lib64;${CUDA_TOOLKIT_ROOT_DIR}/lib;${CMAKE_LIBRARY_PATH}")
-    find_package(CUDA REQUIRED)
-  else()
-    message(FATAL_ERROR "CUDA Toolkit not found")
+  # The CUDA_FATBIN_COMPILATION target property, which replaces the fatbinary
+  # support of the obsolete FindCUDA module, requires CMake 3.27 or later.
+  if(CMAKE_VERSION VERSION_LESS 3.27)
+    message(FATAL_ERROR "Building the GPU package with GPU_API=cuda requires CMake version 3.27 or later")
   endif()
 
-  find_program(BIN2C bin2c)
+  # nvcc refuses to work with host compilers that it does not know about and
+  # LAMMPS has always overridden that check.  The flag has to be added before
+  # the CUDA language is enabled, so that the compiler identification and the
+  # compiler ABI check done by enable_language() use it as well.  Enabling the
+  # CUDA language also makes CMAKE_CUDA_HOST_COMPILER take effect, so selecting
+  # a host compiler now works the same way as for the other packages using CUDA.
+  string(APPEND CMAKE_CUDA_FLAGS " -allow-unsupported-compiler")
+  enable_language(CUDA)
+  find_package(CUDAToolkit REQUIRED)
+
+  if(CUDAToolkit_VERSION VERSION_LESS 8.0)
+    message(FATAL_ERROR "CUDA Toolkit version 8.0 or later is required")
+  elseif(CUDAToolkit_VERSION VERSION_GREATER_EQUAL 13.0)
+    message(WARNING "Untested CUDA Toolkit version ${CUDAToolkit_VERSION}. Use at your own risk")
+  endif()
+
+  find_program(BIN2C bin2c HINTS ${CUDAToolkit_BIN_DIR})
   if(NOT BIN2C)
     message(FATAL_ERROR "Could not find bin2c, use -DBIN2C=/path/to/bin2c to help cmake finding it.")
   endif()
@@ -78,10 +85,21 @@ if(GPU_API STREQUAL "CUDA")
     set(GPU_CUDA_MPS_FLAGS "-DCUDA_MPS_SUPPORT")
   endif()
   option(CUDA_BUILD_MULTIARCH "Enable building CUDA kernels for all supported GPU architectures" ON)
-  mark_as_advanced(GPU_BUILD_MULTIARCH)
+  mark_as_advanced(CUDA_BUILD_MULTIARCH)
 
   # GPU_ARCH is the canonical architecture setting for all GPU_API backends.
   set(GPU_ARCH "sm_75" CACHE STRING "LAMMPS GPU architecture (e.g. sm_80 for CUDA)")
+
+  # Translate GPU_ARCH into the form expected by the CUDA language support of
+  # CMake, which knows which architectures the CUDA toolkit in use supports.
+  # The "all" setting produces the same device code as the "-arch=all" flag of
+  # nvcc: machine code for every supported architecture plus PTX code for the
+  # most recent one, so that future GPUs are covered through JIT compilation.
+  if(CUDA_BUILD_MULTIARCH)
+    set(GPU_CUDA_ARCH "all")
+  else()
+    string(REGEX REPLACE "^sm_" "" GPU_CUDA_ARCH "${GPU_ARCH}")
+  endif()
 
   # ensure that no *cubin.h files exist from a compile in the lib/gpu folder
   file(GLOB GPU_LIB_OLD_CUBIN_HEADERS CONFIGURE_DEPENDS ${LAMMPS_LIB_SOURCE_DIR}/gpu/*_cubin.h)
@@ -97,100 +115,57 @@ if(GPU_API STREQUAL "CUDA")
   file(GLOB GPU_LIB_CU CONFIGURE_DEPENDS ${LAMMPS_LIB_SOURCE_DIR}/gpu/[^.]*.cu ${CMAKE_CURRENT_SOURCE_DIR}/gpu/[^.]*.cu)
   list(REMOVE_ITEM GPU_LIB_CU ${LAMMPS_LIB_SOURCE_DIR}/gpu/lal_pppm.cu)
 
-  cuda_include_directories(${LAMMPS_LIB_SOURCE_DIR}/gpu ${LAMMPS_LIB_BINARY_DIR}/gpu)
-
+  # The kernel sources are not compiled into objects that are linked into the
+  # executable, but into fatbinary files that are embedded into header files
+  # and loaded at run time through the CUDA driver API.  Using an object library
+  # with the CUDA_FATBIN_COMPILATION property set makes nvcc emit a .fatbin file
+  # instead of an object file for each source.
+  add_library(gpu_fatbin OBJECT ${GPU_LIB_CU})
+  set_target_properties(gpu_fatbin PROPERTIES CUDA_FATBIN_COMPILATION ON
+                        CUDA_ARCHITECTURES "${GPU_CUDA_ARCH}")
+  target_compile_options(gpu_fatbin PRIVATE --use_fast_math -Wno-deprecated-gpu-targets)
+  target_compile_definitions(gpu_fatbin PRIVATE -DUNIX -DNV_KERNEL -DUCL_CUDADR
+                             -D_${GPU_PREC_SETTING} -DLAMMPS_${LAMMPS_SIZES})
+  target_include_directories(gpu_fatbin PRIVATE ${LAMMPS_LIB_SOURCE_DIR}/gpu ${LAMMPS_LIB_BINARY_DIR}/gpu)
   if(CUDPP_OPT)
-    cuda_include_directories(${LAMMPS_LIB_SOURCE_DIR}/gpu/cudpp_mini)
-    file(GLOB GPU_LIB_CUDPP_SOURCES CONFIGURE_DEPENDS ${LAMMPS_LIB_SOURCE_DIR}/gpu/cudpp_mini/[^.]*.cpp)
-    file(GLOB GPU_LIB_CUDPP_CU CONFIGURE_DEPENDS ${LAMMPS_LIB_SOURCE_DIR}/gpu/cudpp_mini/[^.]*.cu)
+    target_compile_definitions(gpu_fatbin PRIVATE -DUSE_CUDPP)
+    target_include_directories(gpu_fatbin PRIVATE ${LAMMPS_LIB_SOURCE_DIR}/gpu/cudpp_mini)
   endif()
 
-  # build arch/gencode commands for nvcc based on CUDA toolkit version and use choice
-  # --arch translates directly instead of JIT, so this should be for the preferred or most common architecture
-  set(GPU_CUDA_GENCODE "-arch=${GPU_ARCH}")
-
-  if(CUDA_BUILD_MULTIARCH)
-    # apply the following to build "fat" CUDA binaries only for known CUDA toolkits since version 8.0
-    # only the Kepler achitecture and beyond is supported
-    # comparison chart according to: https://en.wikipedia.org/wiki/CUDA#GPUs_supported
-    if(CUDA_VERSION VERSION_LESS 8.0)
-      message(FATAL_ERROR "CUDA Toolkit version 8.0 or later is required")
-    elseif(CUDA_VERSION VERSION_GREATER_EQUAL "13.0")
-      message(WARNING "Untested CUDA Toolkit version ${CUDA_VERSION}. Use at your own risk")
-      set(GPU_CUDA_GENCODE "-arch=all")
-    elseif(CUDA_VERSION VERSION_GREATER_EQUAL "12.0")
-      set(GPU_CUDA_GENCODE "-arch=all")
-    else()
-      # Kepler (GPU Arch 3.0) is supported by CUDA 5 to CUDA 10.2
-      if((CUDA_VERSION VERSION_GREATER_EQUAL "5.0") AND (CUDA_VERSION VERSION_LESS "11.0"))
-        string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_30,code=[sm_30,compute_30] ")
-      endif()
-      # Kepler (GPU Arch 3.5) is supported by CUDA 5 to CUDA 11
-      if((CUDA_VERSION VERSION_GREATER_EQUAL "5.0") AND (CUDA_VERSION VERSION_LESS "12.0"))
-        string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_35,code=[sm_35,compute_35]")
-      endif()
-      # Maxwell (GPU Arch 5.x) is supported by CUDA 6 and later
-      if(CUDA_VERSION VERSION_GREATER_EQUAL "6.0")
-        string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_50,code=[sm_50,compute_50] -gencode arch=compute_52,code=[sm_52,compute_52]")
-      endif()
-      # Pascal (GPU Arch 6.x) is supported by CUDA 8 and later
-      if(CUDA_VERSION VERSION_GREATER_EQUAL "8.0")
-        string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_60,code=[sm_60,compute_60] -gencode arch=compute_61,code=[sm_61,compute_61]")
-      endif()
-      # Volta (GPU Arch 7.0) is supported by CUDA 9 and later
-      if(CUDA_VERSION VERSION_GREATER_EQUAL "9.0")
-        string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_70,code=[sm_70,compute_70]")
-      endif()
-      # Turing (GPU Arch 7.5) is supported by CUDA 10 and later
-      if(CUDA_VERSION VERSION_GREATER_EQUAL "10.0")
-        string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_75,code=[sm_75,compute_75]")
-      endif()
-      # Ampere (GPU Arch 8.0) is supported by CUDA 11 and later
-      if(CUDA_VERSION VERSION_GREATER_EQUAL "11.0")
-        string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_80,code=[sm_80,compute_80]")
-      endif()
-      # Ampere (GPU Arch 8.6) is supported by CUDA 11.1 and later
-      if(CUDA_VERSION VERSION_GREATER_EQUAL "11.1")
-        string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_86,code=[sm_86,compute_86]")
-      endif()
-      # Ada Lovelace (GPU Arch 8.9) and Hopper (GPU Arch 9.0) are supported by CUDA 11.8 and later
-      if(CUDA_VERSION VERSION_GREATER_EQUAL "11.8")
-        string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_90,code=[sm_90,compute_90]")
-      endif()
-      # Backwell (GPU Arch 100) is supported by CUDA 12.4 and later
-      if(CUDA_VERSION VERSION_GREATER_EQUAL "12.4")
-        string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_100,code=[sm_100,compute_100]")
-      endif()
-      # Rubin (GPU Arch 120) require CUDA 12.8 and later
-      if(CUDA_VERSION VERSION_GREATER_EQUAL "12.8")
-        string(APPEND GPU_CUDA_GENCODE " -gencode arch=compute_120,code=[sm_120,compute_120]")
-      endif()
-    endif()
-  endif()
-
-  set(NVCC_FLAGS -DUNIX -O3 --use_fast_math -Wno-deprecated-gpu-targets -allow-unsupported-compiler -DNV_KERNEL -DUCL_CUDADR ${GPU_CUDA_GENCODE} -D_${GPU_PREC_SETTING} -DLAMMPS_${LAMMPS_SIZES})
-  if(CUDPP_OPT)
-    string(APPEND NVCC_FLAGS " -DUSE_CUDPP")
-  endif()
-  cuda_compile_fatbin(GPU_GEN_OBJS ${GPU_LIB_CU} OPTIONS ${CUDA_REQUEST_PIC} ${NVCC_FLAGS})
-
-  cuda_compile(GPU_OBJS ${GPU_LIB_CUDPP_CU} OPTIONS ${CUDA_REQUEST_PIC}
-          -DUNIX -O3 --use_fast_math -Wno-deprecated-gpu-targets -allow-unsupported-compiler -DUCL_CUDADR ${GPU_CUDA_GENCODE} -D_${GPU_PREC_SETTING} -DLAMMPS_${LAMMPS_SIZES})
-
-  foreach(CU_OBJ ${GPU_GEN_OBJS})
-    get_filename_component(CU_NAME ${CU_OBJ} NAME_WE)
-    string(REGEX REPLACE "^.*_lal_" "" CU_NAME "${CU_NAME}")
+  # $<TARGET_OBJECTS:gpu_fatbin> expands to the list of all generated fatbinary
+  # files, so pick out the one belonging to the current source with a filter.
+  foreach(CU_FILE ${GPU_LIB_CU})
+    get_filename_component(CU_NAME ${CU_FILE} NAME_WE)
+    set(CU_FATBIN "$<FILTER:$<TARGET_OBJECTS:gpu_fatbin>,INCLUDE,/${CU_NAME}\\.fatbin$>")
+    string(REGEX REPLACE "^lal_" "" CU_NAME "${CU_NAME}")
     add_custom_command(OUTPUT ${LAMMPS_LIB_BINARY_DIR}/gpu/${CU_NAME}_cubin.h
-      COMMAND ${BIN2C} -c -n ${CU_NAME} ${CU_OBJ} > ${LAMMPS_LIB_BINARY_DIR}/gpu/${CU_NAME}_cubin.h
-      DEPENDS ${CU_OBJ}
+      COMMAND ${BIN2C} -c -n ${CU_NAME} "${CU_FATBIN}" > ${LAMMPS_LIB_BINARY_DIR}/gpu/${CU_NAME}_cubin.h
+      DEPENDS "${CU_FATBIN}"
+      COMMAND_EXPAND_LISTS
       COMMENT "Generating ${CU_NAME}_cubin.h")
     list(APPEND GPU_LIB_SOURCES ${LAMMPS_LIB_BINARY_DIR}/gpu/${CU_NAME}_cubin.h)
   endforeach()
   set_directory_properties(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${LAMMPS_LIB_BINARY_DIR}/gpu/*_cubin.h")
 
-  add_library(gpu STATIC ${GPU_LIB_SOURCES} ${GPU_LIB_CUDPP_SOURCES} ${GPU_OBJS})
-  target_link_libraries(gpu PRIVATE ${CUDA_LIBRARIES} ${CUDA_CUDA_LIBRARY})
-  target_include_directories(gpu PRIVATE ${LAMMPS_LIB_BINARY_DIR}/gpu ${CUDA_INCLUDE_DIRS})
+  # The CUDPP sources, in contrast, are compiled and linked in the regular way.
+  set(GPU_LIB_CUDPP_OBJECTS)
+  if(CUDPP_OPT)
+    file(GLOB GPU_LIB_CUDPP_SOURCES CONFIGURE_DEPENDS ${LAMMPS_LIB_SOURCE_DIR}/gpu/cudpp_mini/[^.]*.cpp)
+    file(GLOB GPU_LIB_CUDPP_CU CONFIGURE_DEPENDS ${LAMMPS_LIB_SOURCE_DIR}/gpu/cudpp_mini/[^.]*.cu)
+    add_library(gpu_cudpp OBJECT ${GPU_LIB_CUDPP_CU})
+    set_target_properties(gpu_cudpp PROPERTIES CUDA_ARCHITECTURES "${GPU_CUDA_ARCH}"
+                          POSITION_INDEPENDENT_CODE ${CMAKE_POSITION_INDEPENDENT_CODE})
+    target_compile_options(gpu_cudpp PRIVATE --use_fast_math -Wno-deprecated-gpu-targets)
+    target_compile_definitions(gpu_cudpp PRIVATE -DUNIX -DUCL_CUDADR -DUSE_CUDPP
+                               -D_${GPU_PREC_SETTING} -DLAMMPS_${LAMMPS_SIZES})
+    target_include_directories(gpu_cudpp PRIVATE ${LAMMPS_LIB_SOURCE_DIR}/gpu
+                               ${LAMMPS_LIB_BINARY_DIR}/gpu ${LAMMPS_LIB_SOURCE_DIR}/gpu/cudpp_mini)
+    set(GPU_LIB_CUDPP_OBJECTS $<TARGET_OBJECTS:gpu_cudpp>)
+  endif()
+
+  add_library(gpu STATIC ${GPU_LIB_SOURCES} ${GPU_LIB_CUDPP_SOURCES} ${GPU_LIB_CUDPP_OBJECTS})
+  target_link_libraries(gpu PRIVATE CUDA::cudart_static CUDA::cuda_driver)
+  target_include_directories(gpu PRIVATE ${LAMMPS_LIB_BINARY_DIR}/gpu)
   target_compile_definitions(gpu PRIVATE -DUSE_CUDA -D_${GPU_PREC_SETTING} ${GPU_CUDA_MPS_FLAGS})
   if(GPU_DEBUG)
     target_compile_definitions(gpu PRIVATE -DUCL_DEBUG -DGERYON_KERNEL_DUMP)
@@ -204,8 +179,7 @@ if(GPU_API STREQUAL "CUDA")
 
   add_executable(nvc_get_devices ${LAMMPS_LIB_SOURCE_DIR}/gpu/geryon/ucl_get_devices.cpp)
   target_compile_definitions(nvc_get_devices PRIVATE -DUCL_CUDADR -DLAMMPS_${LAMMPS_SIZES})
-  target_link_libraries(nvc_get_devices PRIVATE ${CUDA_LIBRARIES} ${CUDA_CUDA_LIBRARY})
-  target_include_directories(nvc_get_devices PRIVATE ${CUDA_INCLUDE_DIRS})
+  target_link_libraries(nvc_get_devices PRIVATE CUDA::cudart_static CUDA::cuda_driver)
 
 elseif(GPU_API STREQUAL "OPENCL")
   # the static OpenCL loader doesn't seem to work on macOS. use the system provided
@@ -312,14 +286,14 @@ elseif(GPU_API STREQUAL "HIP")
     set(GPU_ARCH "spirv" CACHE STRING "LAMMPS GPU architecture")
     set(HIP_ARCH "${GPU_ARCH}")
   elseif(HIP_PLATFORM STREQUAL "nvcc")
-    find_package(CUDA REQUIRED)
+    find_package(CUDAToolkit REQUIRED)
     set(GPU_ARCH "sm_75" CACHE STRING "LAMMPS GPU architecture (e.g. sm_75 for HIP/NVCC)")
     set(HIP_ARCH "${GPU_ARCH}")
 
-    if(CUDA_VERSION VERSION_LESS 8.0)
+    if(CUDAToolkit_VERSION VERSION_LESS 8.0)
       message(FATAL_ERROR "CUDA Toolkit version 8.0 or later is required")
-    elseif(CUDA_VERSION VERSION_GREATER_EQUAL "12.0")
-      message(WARNING "Untested CUDA Toolkit version ${CUDA_VERSION}. Use at your own risk")
+    elseif(CUDAToolkit_VERSION VERSION_GREATER_EQUAL "12.0")
+      message(WARNING "Untested CUDA Toolkit version ${CUDAToolkit_VERSION}. Use at your own risk")
       set(HIP_CUDA_GENCODE "-arch=all")
     else()
       # build arch/gencode commands for nvcc based on CUDA toolkit version and use choice
@@ -327,47 +301,47 @@ elseif(GPU_API STREQUAL "HIP")
       # comparison chart according to: https://en.wikipedia.org/wiki/CUDA#GPUs_supported
       set(HIP_CUDA_GENCODE "-arch=${HIP_ARCH}")
       # Kepler (GPU Arch 3.0) is supported by CUDA 5 to CUDA 10.2
-      if((CUDA_VERSION VERSION_GREATER_EQUAL "5.0") AND (CUDA_VERSION VERSION_LESS "11.0"))
+      if((CUDAToolkit_VERSION VERSION_GREATER_EQUAL "5.0") AND (CUDAToolkit_VERSION VERSION_LESS "11.0"))
         string(APPEND HIP_CUDA_GENCODE " -gencode arch=compute_30,code=[sm_30,compute_30]")
       endif()
       # Kepler (GPU Arch 3.5) is supported by CUDA 5 to CUDA 11.0
-      if((CUDA_VERSION VERSION_GREATER_EQUAL "5.0") AND (CUDA_VERSION VERSION_LESS "12.0"))
+      if((CUDAToolkit_VERSION VERSION_GREATER_EQUAL "5.0") AND (CUDAToolkit_VERSION VERSION_LESS "12.0"))
         string(APPEND HIP_CUDA_GENCODE " -gencode arch=compute_35,code=[sm_35,compute_35]")
       endif()
       # Maxwell (GPU Arch 5.x) is supported by CUDA 6 and later
-      if(CUDA_VERSION VERSION_GREATER_EQUAL "6.0")
+      if(CUDAToolkit_VERSION VERSION_GREATER_EQUAL "6.0")
         string(APPEND HIP_CUDA_GENCODE " -gencode arch=compute_50,code=[sm_50,compute_50] -gencode arch=compute_52,code=[sm_52,compute_52]")
       endif()
       # Pascal (GPU Arch 6.x) is supported by CUDA 8 and later
-      if(CUDA_VERSION VERSION_GREATER_EQUAL "8.0")
+      if(CUDAToolkit_VERSION VERSION_GREATER_EQUAL "8.0")
         string(APPEND HIP_CUDA_GENCODE " -gencode arch=compute_60,code=[sm_60,compute_60] -gencode arch=compute_61,code=[sm_61,compute_61]")
       endif()
       # Volta (GPU Arch 7.0) is supported by CUDA 9 and later
-      if(CUDA_VERSION VERSION_GREATER_EQUAL "9.0")
+      if(CUDAToolkit_VERSION VERSION_GREATER_EQUAL "9.0")
         string(APPEND HIP_CUDA_GENCODE " -gencode arch=compute_70,code=[sm_70,compute_70]")
       endif()
       # Turing (GPU Arch 7.5) is supported by CUDA 10 and later
-      if(CUDA_VERSION VERSION_GREATER_EQUAL "10.0")
+      if(CUDAToolkit_VERSION VERSION_GREATER_EQUAL "10.0")
         string(APPEND HIP_CUDA_GENCODE " -gencode arch=compute_75,code=[sm_75,compute_75]")
       endif()
       # Ampere (GPU Arch 8.0) is supported by CUDA 11 and later
-      if(CUDA_VERSION VERSION_GREATER_EQUAL "11.0")
+      if(CUDAToolkit_VERSION VERSION_GREATER_EQUAL "11.0")
         string(APPEND HIP_CUDA_GENCODE " -gencode arch=compute_80,code=[sm_80,compute_80]")
       endif()
       # Ampere (GPU Arch 8.6) is supported by CUDA 11.1 and later
-      if(CUDA_VERSION VERSION_GREATER_EQUAL "11.1")
+      if(CUDAToolkit_VERSION VERSION_GREATER_EQUAL "11.1")
         string(APPEND HIP_CUDA_GENCODE " -gencode arch=compute_86,code=[sm_86,compute_86]")
       endif()
       # Ada Lovelace (GPU Arch 8.9) and Hopper (GPU Arch 9.0) are supported by CUDA 11.8 and later
-      if(CUDA_VERSION VERSION_GREATER_EQUAL "11.8")
+      if(CUDAToolkit_VERSION VERSION_GREATER_EQUAL "11.8")
         string(APPEND HIP_CUDA_GENCODE " -gencode arch=compute_90,code=[sm_90,compute_90]")
       endif()
       # Backwell (GPU Arch 100) is supported by CUDA 12.4 and later
-      if(CUDA_VERSION VERSION_GREATER_EQUAL "12.4")
+      if(CUDAToolkit_VERSION VERSION_GREATER_EQUAL "12.4")
         string(APPEND HIP_CUDA_GENCODE " -gencode arch=compute_100,code=[sm_100,compute_100]")
       endif()
       # Rubin (GPU Arch 120) require CUDA 12.8 and later
-      if(CUDA_VERSION VERSION_GREATER_EQUAL "12.8")
+      if(CUDAToolkit_VERSION VERSION_GREATER_EQUAL "12.8")
         string(APPEND HIP_CUDA_GENCODE " -gencode arch=compute_120,code=[sm_120,compute_120]")
       endif()
     endif()
@@ -497,12 +471,10 @@ elseif(GPU_API STREQUAL "HIP")
 
   if(HIP_PLATFORM STREQUAL "nvcc")
     target_compile_definitions(gpu PRIVATE -D__HIP_PLATFORM_NVCC__)
-    target_include_directories(gpu PRIVATE ${CUDA_INCLUDE_DIRS})
-    target_link_libraries(gpu PRIVATE ${CUDA_LIBRARIES} ${CUDA_CUDA_LIBRARY})
+    target_link_libraries(gpu PRIVATE CUDA::cudart_static CUDA::cuda_driver)
 
     target_compile_definitions(hip_get_devices PRIVATE -D__HIP_PLATFORM_NVCC__)
-    target_include_directories(hip_get_devices PRIVATE ${CUDA_INCLUDE_DIRS})
-    target_link_libraries(hip_get_devices PRIVATE ${CUDA_LIBRARIES} ${CUDA_CUDA_LIBRARY})
+    target_link_libraries(hip_get_devices PRIVATE CUDA::cudart_static CUDA::cuda_driver)
   endif()
 endif()
 

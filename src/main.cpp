@@ -71,8 +71,9 @@ int main(int argc, char **argv)
   if ((me == 0) && platform::is_superuser())
     utils::print(stderr,
                  "\nWARNING: LAMMPS is run with superuser or administrator privileges.\n"
-                 "WARNING: This is strongly discouraged, because mistakes in an input or\n"
-                 "WARNING: errors in LAMMPS can then damage the entire system.{}\n\n",
+                 "WARNING: This is STRONGLY discouraged, because typos or mistakes in an\n"
+                 "WARNING: input file or errors in LAMMPS itself can damage the entire\n"
+                 "WARNING: system to the point of requiring a re-installation.{}\n\n",
                  utils::errorurl(40));
 
   // the outer try block catches exceptions thrown while reporting an error

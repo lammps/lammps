@@ -22,6 +22,10 @@ au-aq/
   in.ffield  -- finite field method with fully periodic cell
   in.tf      -- Thomas-Fermi metallicity model with more delocalized charges
 
+tip4p/
+  data.tip4p_electrode_graphene -- graphene electrodes with TIP4P water
+  in.tip4p_electrode            -- TIP4P water with constant-potential graphene electrodes
+
 madelung/
   data.au-elyt -- tiny electrodes with two electrolyte atoms in between
   settings.mod -- common settings

@@ -124,6 +124,7 @@ class FixElectrodeConp : public Fix {
   double potential_energy();
   double self_energy(int);
   void v_tally(int, int, int, int, double, double, double, double);
+  void v_tally_tip4p(int, int *, double *, double);
   void write_to_file(FILE *, const std::vector<tagint> &, const std::vector<std::vector<double>> &);
   void read_from_file(const std::string &input_file, double **, const std::string &);
   void compute_sd_vectors();

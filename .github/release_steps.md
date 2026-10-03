@@ -176,26 +176,20 @@ gh release upload patch_4Feb2025 lammps-src-4Feb2025.tar.gz
 #### Build Windows Installer Packages with MinGW Linux-to-Windows Cross-compiler
 
 The various Windows installer packages can also be built with
-apptainer container image.
+apptainer container image.  You need to configure a build folder
+and that can use the "nsis" build target.
 
 ``` sh
 cd release-packages
 apptainer shell fedora41_musl_mingw.sif
-git clone --depth 10 https://github.com/lammps/lammps-packages.git lammps-packages
-cd lammps-packages/mingw-cross
-ln -sf ../../lammps-release lammps
-./buildall.sh release >& mk.log & less +F mk.log
+cmake --build build-release --target nsis
 ```
 
 The installer with the GUI included can be uploaded to the GitHub release page with:
 
 ``` sh
-ln -sf LAMMPS-64bit-GUI-4Feb2025.exe LAMMPS-Win10-64bit-GUI-4Feb2025.exe
-gh release upload patch_4Feb2025 LAMMPS-Win10-64bit-GUI-4Feb2025.exe
+gh release upload patch_4Feb2025 build-release/LAMMPS-Win10-64bit-GUI-4Feb2025.exe
 ```
-
-The symbolic link is used to have a consistent naming scheme for the packages
-attached to the GitHub release page.
 
 #### LAMMPS Online Manual
 
@@ -301,15 +295,20 @@ must be repeated.
 
 ### Update download page on LAMMPS website
 
-Check out the LAMMPS website repo
-https://github.com/lammps/lammps-website.git and edit the file
-`src/download.txt` for the new release.  Test translation with `make
-html` and review `html/download.html` Then add and commit to git and
-push the changes to GitHub.  A cron job will automatically update
-https://www.lammps.org/ accordingly if there are changes.
+Check out the LAMMPS website repo at https://github.com/lammps/website.git
+and edit the file `src/content/download/_index.md` for the new release.
+Test translation with `make check`, `make lint` and `make spell`.
+You can check the page locally with `make serve` and opening the
+presented localhost URL; any edits will be tracked live.
 
-Also notify Steve of the release so he can update `src/bug.txt` on the
-website from the available release notes.
+Also add a release announcement to `src/content/news/` using one of the
+existing announcements as a template.  Check and review as before.
+
+Then add and commit to git and push the changes to GitHub.
+A cron job will automatically update https://www.lammps.org/ accordingly.
+
+Also notify Steve of the release so he can update
+`src/content/about/contributors.md` from the available release notes.
 
 ## LAMMPS Stable Release
 

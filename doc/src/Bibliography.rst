@@ -1582,6 +1582,9 @@ Bibliography
 **(Silbert, 2001)**
    Silbert, L. E., Ertas, D., Grest, G. S., Halsey, T. C., Levine, D., & Plimpton, S. J. (2001).  Granular flow down an inclined plane: Bagnold scaling and rheology. Physical Review E, 64(5), 051302.
 
+**(Sillano)**
+   Sillano, Marrink, Idema, Phys. Rev. E, 114, 034412 (2026).
+
 **(Silling 2000)**
    Silling, J Mech Phys Solids, 48, 175-209 (2000).
 

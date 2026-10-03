@@ -11,34 +11,34 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef FIX_CLASS
+#ifdef PAIR_CLASS
 // clang-format off
-FixStyle(qeq/shielded,FixQEqShielded);
-FixStyle(qeq/shielded/xlmd,FixQEqShielded);
+PairStyle(mesomem/dipole/omp,PairMesomemDipoleOMP);
 // clang-format on
 #else
 
-#ifndef LMP_FIX_QEQ_SHIELDED_H
-#define LMP_FIX_QEQ_SHIELDED_H
+#ifndef LMP_PAIR_MESOMEM_DIPOLE_OMP_H
+#define LMP_PAIR_MESOMEM_DIPOLE_OMP_H
 
-#include "fix_qeq.h"
+#include "pair_mesomem_dipole.h"
+#include "thr_omp.h"
 
 namespace LAMMPS_NS {
 
-class FixQEqShielded : public FixQEq {
+class PairMesomemDipoleOMP : public PairMesomemDipole, public ThrOMP {
+
  public:
-  FixQEqShielded(class LAMMPS *, int, char **);
+  PairMesomemDipoleOMP(class LAMMPS *);
 
-  void init() override;
-  void pre_force(int) override;
+  void compute(int, int) override;
+  double memory_usage() override;
 
- protected:
-  void extract_reax();
-  void init_shielding();
-  void init_matvec();
-  void compute_H();
-  double calculate_H(double, double);
+ private:
+  template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
+  void eval(int ifrom, int ito, ThrData *const thr);
 };
+
 }    // namespace LAMMPS_NS
+
 #endif
 #endif

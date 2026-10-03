@@ -55,8 +55,6 @@ protected:
 
 TEST_F(LabelMapTest, Atoms)
 {
-    // label maps are currently not supported with the KOKKOS package
-    if (lmp->suffix_enable) GTEST_SKIP() << "label maps are not supported with an accelerator suffix";
     EXPECT_EQ(atom->natoms, 0);
     EXPECT_EQ(domain->box_exist, 0);
     EXPECT_EQ(atom->labelmapflag, 0);
@@ -191,8 +189,6 @@ TEST_F(LabelMapTest, Atoms)
 
 TEST_F(LabelMapTest, Topology)
 {
-    // label maps are currently not supported with the KOKKOS package
-    if (lmp->suffix_enable) GTEST_SKIP() << "label maps are not supported with an accelerator suffix";
     if (!info->has_style("atom", "full")) GTEST_SKIP();
 
     EXPECT_EQ(atom->natoms, 0);
@@ -374,6 +370,89 @@ TEST_F(LabelMapTest, Topology)
     EXPECT_EQ(atom->lmap->infer_impropertype({"N2", "C1", "N2", "C1"}), -1);
     EXPECT_EQ(atom->lmap->infer_impropertype({"C1", "N2", "N2", "C1"}), -1);
     EXPECT_EQ(atom->lmap->infer_impropertype({"N3", "C1", "N2", "C1"}), 0);
+}
+
+TEST_F(LabelMapTest, CheckLabelsWriteData)
+{
+    if (!info->has_style("atom", "full")) GTEST_SKIP();
+    if (!info->has_style("bond", "harmonic")) GTEST_SKIP();
+    if (!info->has_style("angle", "harmonic")) GTEST_SKIP();
+
+    BEGIN_HIDE_OUTPUT();
+    command("atom_style full");
+    command("region box block -5 5 -5 5 -5 5");
+    command("create_box 2 box bond/types 1 angle/types 1 extra/bond/per/atom 2 "
+            "extra/angle/per/atom 2 extra/special/per/atom 4");
+    command("labelmap atom 1 C 2 N");
+    command("labelmap bond 1 C-N");
+    command("labelmap angle 1 C-N-C");
+    command("mass * 1.0");
+    command("pair_style lj/cut 2.5");
+    command("pair_coeff * * 0.0 1.0");
+    command("bond_style harmonic");
+    command("bond_coeff * 0.0 1.0");
+    command("angle_style harmonic");
+    command("angle_coeff * 0.0 180.0");
+    command("create_atoms C single 0.0 0.0 0.0");
+    command("create_atoms N single 1.0 0.0 0.0");
+    command("create_atoms C single 2.0 0.0 0.0");
+    command("create_atoms N single 3.0 0.0 0.0");
+    command("create_bonds single/bond 1 1 2");
+    command("create_bonds single/bond 1 2 3");
+    command("create_bonds single/bond 1 3 4");
+    command("create_bonds single/angle 1 1 2 3");
+    command("velocity all set 1.0 0.0 0.0");
+    command("fix 1 all nve");
+    command("labelmap check_labels a");
+    END_HIDE_OUTPUT();
+
+    BEGIN_CAPTURE_OUTPUT();
+    command("run 10 post no");
+    auto text = END_CAPTURE_OUTPUT();
+    EXPECT_THAT(text, ContainsRegex(".*All angles in the simulation have self-consistent type "
+                                    "labels.*"));
+
+    // atoms 2-3-4 are N-C-N, which does not match the C-N-C label of angle type 1
+
+    BEGIN_HIDE_OUTPUT();
+    command("create_bonds single/angle 1 2 3 4");
+    command("labelmap check_labels a");
+    END_HIDE_OUTPUT();
+
+    BEGIN_CAPTURE_OUTPUT();
+    command("run 0 post no");
+    text = END_CAPTURE_OUTPUT();
+    EXPECT_THAT(text, ContainsRegex(".*WARNING: Angle between atoms 2, 3, 4 has constituent atom "
+                                    "types \\(N, C, N\\) that do not match its type label "
+                                    "\\(C-N-C\\).*"));
+
+    BEGIN_HIDE_OUTPUT();
+    command("write_data labelmap_write.data nocoeff");
+    command("clear");
+    command("atom_style full");
+    command("read_data labelmap_write.data");
+    END_HIDE_OUTPUT();
+    platform::unlink("labelmap_write.data");
+
+    atom = lmp->atom;
+    ASSERT_NE(atom->lmap, nullptr);
+    EXPECT_EQ(atom->natoms, 4);
+    EXPECT_EQ(atom->nbonds, 3);
+    EXPECT_EQ(atom->nangles, 2);
+    EXPECT_THAT(atom->lmap->find_label(1, Atom::ATOM), StrEq("C"));
+    EXPECT_THAT(atom->lmap->find_label(2, Atom::ATOM), StrEq("N"));
+    EXPECT_THAT(atom->lmap->find_label(1, Atom::BOND), StrEq("C-N"));
+    EXPECT_THAT(atom->lmap->find_label(1, Atom::ANGLE), StrEq("C-N-C"));
+
+    // 10 steps of 0.005 at unit velocity along x without any forces
+
+    for (int i = 1; i <= 4; ++i) {
+        int j = atom->map(i);
+        ASSERT_GE(j, 0);
+        EXPECT_EQ(atom->type[j], (i % 2) ? 1 : 2);
+        EXPECT_NEAR(atom->x[j][0], i - 1.0 + 0.05, 1.0e-10);
+        EXPECT_NEAR(atom->v[j][0], 1.0, 1.0e-10);
+    }
 }
 } // namespace LAMMPS_NS
 

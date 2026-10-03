@@ -1735,7 +1735,9 @@ To read compressed data files, you must compile LAMMPS with the
 ``-DLAMMPS_GZIP`` option.  See the :doc:`Build settings <Build_settings>`
 doc page for details.
 
-Label maps are currently not supported when using the KOKKOS package.
+.. versionchanged:: TBD
+
+Type label sections are supported when using the KOKKOS package.
 
 Related commands
 """"""""""""""""

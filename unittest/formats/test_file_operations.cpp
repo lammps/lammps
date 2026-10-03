@@ -711,8 +711,18 @@ TEST_F(FileOperationsTest, missing_programs)
         ReplacePath newpath(emptydir);
         EXPECT_EQ(get_variable_value("gzip"), 0.0);
         EXPECT_EQ(get_variable_value("ffmpeg"), 0.0);
-        TEST_FAILURE(".*ERROR on proc 0: Cannot open data file test.data.gz.*",
+        TEST_FAILURE(".*ERROR on proc 0: Cannot open data file test.data.gz: Program 'gzip' "
+                     "required for '.gz' files was not found.*",
                      command("write_data test.data.gz"););
+        // read_data checks first whether the file exists
+        FILE *fp = fopen("test.data.gz", "w");
+        ASSERT_NE(fp, nullptr);
+        fputs("not a compressed file\n", fp);
+        fclose(fp);
+        TEST_FAILURE(".*ERROR on proc 0: Cannot open compressed file test.data.gz: Program 'gzip' "
+                     "required for '.gz' files was not found.*",
+                     command("read_data test.data.gz add append"););
+        delete_file("test.data.gz");
         if (Info::has_package("GRAPHICS")) {
             TEST_FAILURE(".*ERROR: Dump movie requires the 'ffmpeg' program, but it was not found.*",
                          command("dump 1 all movie 1 test.mp4 type type"););

@@ -117,19 +117,22 @@ repository:
           their own input.  The resulting limitations are described in
           the security policy.
     tools:
-      # The following entry may only be enabled after "Secret scanning"
-      # and "Push protection" have been switched on in the settings of the
-      # repository on GitHub.  The type must be "secret-scanning" because
-      # that is the value the LFX Insights scanner looks for.
-      # - name: GitHub secret scanning with push protection
-      #   type: secret-scanning
-      #   rulesets:
-      #     - default
-      #   integration:
-      #     adhoc: false
-      #     ci: true
-      #     release: false
-      #   results: {}
+      # The type of the following entry must be "secret-scanning" because
+      # that is the value the LFX Insights scanner looks for.  The entry may
+      # only be listed while "Secret Protection" and "Push protection" are
+      # switched on in the settings of the repository on GitHub.
+      - name: GitHub secret scanning with push protection
+        type: secret-scanning
+        rulesets:
+          - default
+        integration:
+          adhoc: false
+          ci: true
+          release: false
+        results: {}
+        comment: |
+          Searches the repository for known kinds of passwords and access
+          keys and refuses pushes that contain them.
       - name: CodeQL
         type: SAST
         rulesets:

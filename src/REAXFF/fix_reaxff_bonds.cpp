@@ -272,8 +272,8 @@ void FixReaxFFBonds::RecvBuffer(double *buf, int nbuf, int nbuf_local,
         fp = fopen(myfile.c_str(), "w");
       }
       if (!fp)
-        error->one(FLERR, Error::NOLASTLINE,
-                   "Cannot open fix reaxff/bonds file {}: {}", myfile, utils::getsyserror());
+        error->one(FLERR, Error::NOLASTLINE, "Cannot open fix reaxff/bonds file {}: {}", myfile,
+                   compressed ? platform::compressed_open_error(myfile) : utils::getsyserror());
     }
 
     utils::print(fp,"# Timestep {}\n#\n",ntimestep);

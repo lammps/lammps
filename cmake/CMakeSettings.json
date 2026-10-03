@@ -22,11 +22,6 @@
           "type": "BOOL"
         },
         {
-          "name": "LAMMPS_EXCEPTIONS",
-          "value": "True",
-          "type": "BOOL"
-        },
-        {
           "name": "ENABLE_TESTING",
           "value": "True",
           "type": "BOOL"
@@ -51,11 +46,6 @@
         },
         {
           "name": "BUILD_TOOLS",
-          "value": "True",
-          "type": "BOOL"
-        },
-        {
-          "name": "LAMMPS_EXCEPTIONS",
           "value": "True",
           "type": "BOOL"
         },
@@ -93,11 +83,6 @@
           "type": "BOOL"
         },
         {
-          "name": "LAMMPS_EXCEPTIONS",
-          "value": "True",
-          "type": "BOOL"
-        },
-        {
           "name": "ENABLE_TESTING",
           "value": "True",
           "type": "BOOL"
@@ -122,11 +107,6 @@
         },
         {
           "name": "BUILD_TOOLS",
-          "value": "True",
-          "type": "BOOL"
-        },
-        {
-          "name": "LAMMPS_EXCEPTIONS",
           "value": "True",
           "type": "BOOL"
         },
@@ -160,11 +140,6 @@
         },
         {
           "name": "BUILD_TOOLS",
-          "value": "True",
-          "type": "BOOL"
-        },
-        {
-          "name": "LAMMPS_EXCEPTIONS",
           "value": "True",
           "type": "BOOL"
         },
@@ -207,11 +182,6 @@
           "type": "BOOL"
         },
         {
-          "name": "LAMMPS_EXCEPTIONS",
-          "value": "True",
-          "type": "BOOL"
-        },
-        {
           "name": "ENABLE_TESTING",
           "value": "True",
           "type": "BOOL"
@@ -246,11 +216,6 @@
         },
         {
           "name": "BUILD_TOOLS",
-          "value": "True",
-          "type": "BOOL"
-        },
-        {
-          "name": "LAMMPS_EXCEPTIONS",
           "value": "True",
           "type": "BOOL"
         },
@@ -293,11 +258,6 @@
           "type": "BOOL"
         },
         {
-          "name": "LAMMPS_EXCEPTIONS",
-          "value": "True",
-          "type": "BOOL"
-        },
-        {
           "name": "ENABLE_TESTING",
           "value": "False",
           "type": "BOOL"
@@ -327,11 +287,6 @@
         },
         {
           "name": "BUILD_TOOLS",
-          "value": "True",
-          "type": "BOOL"
-        },
-        {
-          "name": "LAMMPS_EXCEPTIONS",
           "value": "True",
           "type": "BOOL"
         },

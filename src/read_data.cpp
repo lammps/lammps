@@ -2462,7 +2462,9 @@ void ReadData::open(const std::string &file)
   if (platform::has_compress_extension(path)) {
     fp.set_pclose();
     fp = platform::compressed_read(path);
-    if (!fp) error->one(FLERR, "Cannot open compressed file {}", file);
+    if (!fp)
+      error->one(FLERR, "Cannot open compressed file {}: {}", file,
+                 platform::compressed_open_error(path));
   } else {
     fp = fopen(path.c_str(), "r");
     if (!fp) error->one(FLERR, "Cannot open file {}: {}", file, utils::getsyserror());

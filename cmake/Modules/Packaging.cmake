@@ -233,10 +233,11 @@ if(BUILD_LAMMPS_GUI)
       )
       set(WHAM_TARGET copy-wham)
     endif()
+    find_program(FFMPEG_EXECUTABLE ffmpeg)
     if(FFMPEG_EXECUTABLE)
       add_custom_target(copy-ffmpeg
         COMMAND ${CMAKE_COMMAND} -E copy_if_different ${FFMPEG_EXECUTABLE} ${APP_CONTENTS}/bin/
-        COMMENT "Copying FFMpeg into macOS app bundle tree"
+        COMMENT "Copying FFmpeg into macOS app bundle tree"
         DEPENDS complete-bundle
       )
       set(FFMPEG_TARGET copy-ffmpeg)

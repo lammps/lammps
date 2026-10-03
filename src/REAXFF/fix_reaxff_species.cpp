@@ -137,7 +137,9 @@ FixReaxFFSpecies::FixReaxFFSpecies(LAMMPS *lmp, int narg, char **arg) :
     if (platform::has_compress_extension(arg[6])) {
       fp = platform::compressed_write(arg[6]);
       compressed = 1;
-      if (!fp) error->one(FLERR, 6, "Cannot open compressed file");
+      if (!fp)
+        error->one(FLERR, 6, "Cannot open compressed file {}: {}", arg[6],
+                   platform::compressed_open_error(arg[6]));
     } else
       fp = fopen(arg[6], "w");
 

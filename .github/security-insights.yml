@@ -166,4 +166,5 @@ repository:
           release: false
         results: {}
         comment: |
-          Weekly check for updates of the GitHub Actions used by the workflows.
+          Reports known vulnerabilities in the Python packages and GitHub
+          Actions that are used by the project.

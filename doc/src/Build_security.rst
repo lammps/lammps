@@ -1,14 +1,15 @@
 Security considerations
 =======================
 
-This page describes which files from outside of the LAMMPS distribution
-may be used when building LAMMPS, how the LAMMPS build process checks
-those files, and where these checks end.  It also explains what
-applies to LAMMPS when it is provided by other projects and to add-on
-packages for LAMMPS that are maintained elsewhere.  It is meant for
-users that have to follow security rules of their institution or
-computing facility, or that want to know what exactly they are
-compiling.
+This page first describes what a LAMMPS input file may do on the
+machine where LAMMPS is run.  It then describes which files from outside
+of the LAMMPS distribution may be used when building LAMMPS, how the
+LAMMPS build process checks those files, and where these checks end.  It
+also explains what applies to LAMMPS when it is provided by other
+projects and to add-on packages for LAMMPS that are maintained
+elsewhere.  It is meant for users that have to follow security rules of
+their institution or computing facility, or that want to know what
+exactly they are compiling and running.
 
 General information about the security of LAMMPS, including how to
 report problems, is in the file `SECURITY.md
@@ -17,6 +18,61 @@ LAMMPS repository on GitHub.  How to check that the LAMMPS source code
 itself was downloaded completely and without modifications is explained
 in the sections about :ref:`downloading tarballs <verify_download>` and
 about :doc:`downloading with git <Install_git>`.
+
+What a LAMMPS input file can do
+-------------------------------
+
+LAMMPS is controlled by the commands in its input.  An input file should
+therefore be regarded as a program and not as data: running an input
+file that you have received from somebody else is the same as running a
+program or a script from that person.  LAMMPS has no means to limit what
+the commands in an input may do, so an input can do everything that you
+are allowed to do on the machine where LAMMPS is run.  In particular:
+
+- **Files:** An input can read, create, overwrite, and delete any files
+  and folders that you have access to, for example with the :doc:`shell
+  <shell>`, :doc:`print <print>`, :doc:`write_data <write_data>`, or
+  :doc:`dump <dump>` commands.
+- **Other programs:** The :doc:`shell <shell>` command hands its
+  arguments to the command-line interpreter of the operating system and
+  can thus run any program.  LAMMPS also runs other programs on its own:
+  ``gzip`` and similar programs for :ref:`reading and writing compressed
+  files <gzip>`, and ``ffmpeg`` for creating movies with the :doc:`dump
+  movie <dump_image>` command.
+- **Program code:** The :doc:`python <python>` command and other
+  features of the PYTHON package run Python code.  This includes machine
+  learning models that the ML-IAP package loads through Python, because
+  loading such a file can run Python code that is stored in it.  The
+  :doc:`plugin <plugin>` command, the :doc:`dump molfile <dump_molfile>`
+  command, and the KIM package load compiled code from files at run
+  time.
+- **Network:** The :doc:`geturl <geturl>` command downloads files from
+  the internet, and the :doc:`kim query <kim_commands>` command sends
+  requests to a server of the OpenKIM project.  The :doc:`fix imd
+  <fix_imd>` command waits for other programs to connect to LAMMPS over
+  the network, and the :doc:`fix ipi <fix_ipi>` command and the commands
+  of the :doc:`MDI package <mdi>` exchange data with other programs,
+  which may run on other machines.
+
+This has the following consequences:
+
+- Only run input files, Python code, plugins, and model files from
+  sources that you trust, and look at input files from other people
+  before running them.
+- Never run LAMMPS as superuser or administrator.
+- Most of the features mentioned above belong to optional packages
+  (EXTRA-COMMAND, GRAPHICS, KIM, MDI, MISC, ML-IAP, MOLFILE, PLUGIN,
+  PYTHON) and are not available when those packages are not included
+  when compiling LAMMPS.  The use of ``gzip`` and ``ffmpeg`` and the
+  support for downloads with the :doc:`geturl <geturl>` command can be
+  turned off with the CMake settings ``-D WITH_GZIP=off``, ``-D
+  WITH_FFMPEG=off``, and ``-D WITH_CURL=off``.  The :doc:`shell <shell>`
+  command is always available.  Running LAMMPS with the :doc:`"-h" flag
+  <Run_options>` shows which packages are included in an executable.
+- If you need to restrict what LAMMPS can do beyond that, this has to be
+  done with the means of the operating system, for example by running
+  LAMMPS from a separate account with limited permissions or inside of a
+  container.
 
 What is included in the LAMMPS distribution
 -------------------------------------------

@@ -19,7 +19,9 @@ build are checked, and what applies to LAMMPS provided by other projects
 and to add-on packages for LAMMPS that are maintained elsewhere.
 
 Thus it is quite easy to crash LAMMPS through malicious input and do all
-kinds of file system manipulations.  And because of that LAMMPS should
+kinds of file system manipulations.  A LAMMPS input can also run other
+programs through shell commands, load plugins, run Python code, and
+access the network.  And because of that LAMMPS should
 **NEVER** be compiled or **run** as superuser, either from a "root" or
 "administrator" account directly or indirectly via "sudo" or "su".
 

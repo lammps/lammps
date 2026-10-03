@@ -1749,6 +1749,10 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
    Your LAMMPS simulation has run out of memory.  You need to run a
    smaller simulation or on more processors.
 
+*Failed to open FFmpeg pipeline to file %s*
+   The specified file cannot be opened.  Check that the path and name are
+   correct and writable and that the FFmpeg executable can be found and run.
+
 *Failed to reallocate %ld bytes for array %s*
    Your LAMMPS simulation has run out of memory.  You need to run a
    smaller simulation or on more processors.

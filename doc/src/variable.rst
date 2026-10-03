@@ -1166,12 +1166,14 @@ actually instances of a command style which LAMMPS defines, as opposed
 to built-in commands.  For all of these styles except *command*,
 appending of active suffixes is also tried before reporting failure.
 
+.. versionchanged:: TBD
+
 The *feature* category checks the availability of the following
 compile-time enabled features: PNG support, JPEG support, and C++
 exceptions for error handling.  GZIP and FFmpeg support check for the
 availability of a usable ``gzip`` or ``ffmpeg`` executable,
-respectively.  Corresponding names are *gzip*, *png*, *jpeg*, *ffmpeg*,
-and *exceptions*\ .
+respectively, on MPI rank 0.  Corresponding names are *gzip*, *png*,
+*jpeg*, *ffmpeg*, and *exceptions*\ .
 
 Example: Only dump in a given format if the compiled binary supports it.
 

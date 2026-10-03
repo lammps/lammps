@@ -332,7 +332,8 @@ described below.
 
 To write out JPEG and PNG format files, you must build LAMMPS with
 support for the corresponding JPEG or PNG library.  To convert images
-into movies, a suitable FFmpeg executable must be installed and usable.
+into movies, the ``ffmpeg`` program must be installed in a folder listed
+in the ``PATH`` environment variable.
 
 .. note::
 
@@ -1544,9 +1545,14 @@ graphics libraries must have been compiled and linked into LAMMPS.
 Please see the :ref:`instructions for building LAMMPS with the
 GRAPHICS package <graphics>` for more information on how to do that.
 
+.. versionchanged:: TBD
+
 To write *movie* dumps, an FFmpeg executable must be available on the
-machine where LAMMPS is being run.  Typically its name is lowercase
-(i.e., "ffmpeg").
+machine where LAMMPS is being run.  It must be called ``ffmpeg`` (or
+``ffmpeg.exe`` on Windows) and must be in a folder listed in the
+``PATH`` environment variable of the process with MPI rank 0.  LAMMPS
+checks for it when the dump command is issued and stops with an error,
+if it cannot be found.
 
 Note that since FFmpeg is run as an external program via a pipe, LAMMPS
 has limited control over its execution and no knowledge about errors and

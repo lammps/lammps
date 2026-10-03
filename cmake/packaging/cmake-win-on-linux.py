@@ -176,7 +176,7 @@ os.chdir(builddir)
 # download what is not automatically downloaded by CMake
 print("Downloading third party tools")
 url='http://download.lammps.org/thirdparty'
-print("FFMpeg")
+print("FFmpeg")
 getexe("%s/ffmpeg-win64.exe.gz" % url,"ffmpeg.exe")
 print("gzip")
 getexe("%s/gzip.exe.gz" % url,"gzip.exe")

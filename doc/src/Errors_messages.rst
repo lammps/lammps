@@ -661,10 +661,6 @@ Please also see the page with :doc:`Warning messages <Errors_warnings>`.
    The output file for the fix ttm command cannot be opened.  Check that
    the path and name are correct.
 
-*Cannot open gzipped file*
-   LAMMPS was compiled without support for reading and writing gzipped
-   files through a pipeline to the gzip program with -DLAMMPS_GZIP.
-
 *Cannot open log.cite file*
    This file is created when you use some LAMMPS features, to indicate
    what paper you should cite on behalf of those who implemented

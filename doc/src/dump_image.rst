@@ -314,9 +314,8 @@ file is created, else a `PPM (aka NETPBM) format <ppm_format_>`_ file is
 created.  The JPEG, PNG, and TGA files are binary; PPM has a text mode
 header followed by binary data. JPEG images have lossy compression, PNG
 and TGA have lossless compression, and PPM files are uncompressed but can
-be compressed with a supported compression program, if LAMMPS has been
-compiled with :ref:`compression support <gzip>` and a supported suffix
-is used.
+be compressed with a :ref:`supported compression program <gzip>`, if
+that program is installed and a supported suffix is used.
 
 .. _jpeg_format: https://jpeg.org/jpeg/
 .. _png_format: https://en.wikipedia.org/wiki/Portable_Network_Graphics

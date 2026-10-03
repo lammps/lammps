@@ -1104,7 +1104,6 @@ FILE *platform::compressed_read(const std::string &file)
 {
   FILE *fp = nullptr;
 
-#if defined(LAMMPS_GZIP)
   const auto &compress = find_compress_type(file);
   if (compress.style == ::compress_info::NONE) return nullptr;
 
@@ -1123,7 +1122,6 @@ FILE *platform::compressed_read(const std::string &file)
   if (!find_exe_path(compress.command).empty())
     // put quotes around file name so that they may contain blanks
     fp = popen((compress.command + compress.uncompressflags + "\"" + file + "\""), "r");
-#endif
   return fp;
 }
 
@@ -1135,7 +1133,6 @@ FILE *platform::compressed_write(const std::string &file)
 {
   FILE *fp = nullptr;
 
-#if defined(LAMMPS_GZIP)
   const auto &compress = find_compress_type(file);
   if (compress.style == ::compress_info::NONE) return nullptr;
   if (!file_is_writable(file)) return nullptr;
@@ -1148,7 +1145,6 @@ FILE *platform::compressed_write(const std::string &file)
     // put quotes around file name for shell command so that they may contain blanks
     fp = popen((compress.command + compress.compressflags + "\"" + file + "\""), "w");
   }
-#endif
   return fp;
 }
 

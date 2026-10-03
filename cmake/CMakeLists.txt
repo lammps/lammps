@@ -595,17 +595,6 @@ if(PKG_ML-QUIP OR PKG_ML-POD OR PKG_ELECTRODE OR PKG_RHEO OR BUILD_TOOLS OR PKG_
   endif()
 endif()
 
-find_program(GZIP_EXECUTABLE gzip)
-find_package_handle_standard_args(GZIP REQUIRED_VARS GZIP_EXECUTABLE)
-option(WITH_GZIP "Enable GZIP support" ${GZIP_FOUND})
-if(WITH_GZIP)
-  if(GZIP_FOUND OR ((CMAKE_SYSTEM_NAME STREQUAL "Windows") AND CMAKE_CROSSCOMPILING))
-    target_compile_definitions(lammps PRIVATE -DLAMMPS_GZIP)
-  else()
-    message(FATAL_ERROR "gzip executable not found")
-  endif()
-endif()
-
 if(BUILD_SHARED_LIBS)
   set(CONFIGURE_REQUEST_PIC "--with-pic")
   set(CMAKE_REQUEST_PIC "-DCMAKE_POSITION_INDEPENDENT_CODE=${CMAKE_POSITION_INDEPENDENT_CODE}")

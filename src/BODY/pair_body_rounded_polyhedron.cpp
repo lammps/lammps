@@ -1901,9 +1901,21 @@ int PairBodyRoundedPolyhedron::edge_edge_nearest(int ibody, int ei, int jbody, i
 
   double sep = MathExtra::dot3(d, n);
   if (sep == 0.0) sep = EPSILON*EPSILON*rmin;
+
+  // a negative separation is a crossing only if a nearest point is inside
+  // the other body: when n is outside the normal cones of both edges, e.g.
+  // for nearly parallel edges with the nearest points near their ends, the
+  // sign of the score is arbitrary, and the edges are apart by |sep|.
+  // hj is the same with the reversed n and sep, so only the flag changes
+
+  if (sep < 0.0) {
+    double nc[3];
+    if ((nearest_face(ibody, x[ibody], hj, nc) < 0.0) ||
+        (nearest_face(jbody, x[jbody], hi, nc) < 0.0))
+      crossed = 1;
+  }
   for (int k = 0; k < 3; k++) hj[k] = hi[k] + sep*n[k];
   r = fabs(sep);
-  if (sep < 0.0) crossed = 1;
   return 1;
 }
 

@@ -260,6 +260,7 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`ke/atom/eff <compute_ke_atom_eff>` - per-atom translational and radial kinetic energy in the electron force field model
 * :doc:`ke/eff <compute_ke_eff>` - kinetic energy of a group of nuclei and electrons in the electron force field model
 * :doc:`ke/rigid <compute_ke_rigid>` - translational kinetic energy of rigid bodies
+* :doc:`ke/tspin <compute_ke_tspin>` - kinetic energy of the spin degrees of freedom in inertial spin dynamics
 * :doc:`mliap <compute_mliap>` - gradients of energy and forces with respect to model parameters and related quantities for training machine learning interatomic potentials
 * :doc:`momentum <compute_momentum>` - translational momentum
 * :doc:`msd <compute_msd>` - mean-squared displacement of group of atoms

@@ -1,0 +1,57 @@
+# bcc iron in an inertial spin dynamics simulation (NVE)
+#
+# The spin modulus is a dynamical degree of freedom here, so every spin needs a
+# potential of its own.  fix spring/tspin provides the simplest one, a harmonic
+# longitudinal potential, and it is enough to make this deck self-contained.  A
+# production run would add a TSPIN-compatible magnetic potential.  It keeps fm
+# in rad.THz and encodes the full force as fm = |S|/hbar * (-dU/dS).
+#
+# The conserved quantity is econserve plus the spin kinetic energy, which the
+# thermo keyword ke does not include.
+
+units           metal
+dimension       3
+boundary        p p p
+atom_style      spin
+
+lattice         bcc 2.8665
+region          box block 0.0 4.0 0.0 4.0 0.0 4.0
+create_box      1 box
+create_atoms    1 box
+
+# setting mass, mag. moments, and interactions for bcc iron
+
+mass            1 55.845
+set             group all spin/atom/random 31 2.2
+
+pair_style      eam/fs
+pair_coeff      * * Fe_mm.eam.fs Fe
+
+neighbor        0.1 bin
+neigh_modify    every 10 check yes delay 20
+
+# longitudinal potential on the spin modulus, k in eV/muB^2
+
+fix             pin all spring/tspin 1.0 2.2
+fix_modify      pin energy yes
+
+# inertial spin dynamics, spin mass = 0.0075 * atomic mass, then 300 K
+
+fix             1 all nve/tspin lattice moving spinmass 0.0075
+
+velocity        all create 300.0 4928 mom yes
+velocity/tspin  all create 300.0 4929
+
+timestep        0.0001
+
+compute         out_mag all spin
+compute         ske all ke/tspin
+variable        etot equal econserve+c_ske
+
+variable        magnorm equal c_out_mag[4]
+
+thermo          200
+thermo_style    custom step time temp v_magnorm pe c_ske v_etot
+thermo_modify   format float %20.15g
+
+run             2000

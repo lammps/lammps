@@ -3930,6 +3930,7 @@ spica
 SPICA
 Spickermann
 spinflag
+spinmass
 splined
 spparks
 Sprik
@@ -4268,6 +4269,7 @@ Tstart
 tstat
 Tstop
 Tsuji
+tspin
 Tsuzuki
 tt
 Tt

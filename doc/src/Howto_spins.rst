@@ -50,6 +50,92 @@ and atomic motions.
 The minimization style :doc:`min/spin <min_spin>` can be applied
 to the spins to perform a minimization of the spin configuration.
 
+Inertial spin dynamics
+======================
+
+.. versionadded:: TBD
+
+All of the above describes fixed-modulus spin dynamics, in which the
+magnitude of each spin is a constant of the motion and only its
+direction evolves.  The SPIN package also supports inertial spin
+dynamics, in which the spin modulus itself is a dynamical degree of
+freedom.  Each spin then carries a spin velocity and a spin mass, and
+obeys a Newtonian second-order equation of motion instead of the
+first-order Landau-Lifshitz precession equation.
+
+It runs on the same :doc:`atom_style spin <atom_style>` and reuses the
+per-atom *sp* and *fm* arrays, so existing SPIN data and restart files do not
+need a new atom style.  It does not, however, accept every fixed-modulus SPIN
+potential.  An inertial integrator needs all three components of the derivative
+with respect to the unconstrained spin vector, including the component that
+changes its modulus.
+
+* :doc:`fix nve/tspin <fix_nve_tspin>` integrates the equations of
+  motion.
+* :doc:`fix nvt/tspin, fix npt/tspin and fix nph/tspin <fix_nvt_tspin>`
+  do the same and add a Nose-Hoover chain on the spin velocities on top of
+  the usual lattice thermostat and barostat, while
+  :doc:`fix langevin/tspin <fix_langevin_tspin>` provides a Langevin
+  bath for the spin degrees of freedom alone.
+* :doc:`fix spring/tspin <fix_spring_tspin>` supplies a longitudinal
+  potential on the spin modulus.  The modulus is a free coordinate, so
+  unless the magnetic potential itself restores it, this fix or an
+  equivalent one is required.
+* :doc:`velocity/tspin <velocity_tspin>` initializes the spin velocities
+  at a given spin temperature.
+* :doc:`compute ke/tspin <compute_ke_tspin>` reports the kinetic energy
+  of the spin degrees of freedom, which is not part of the
+  thermodynamic keyword *ke*.
+
+A minimal thermostatted example on a fixed lattice is:
+
+.. code-block:: LAMMPS
+
+   atom_style      spin
+   pair_style      zero 4.0
+   pair_coeff      * *
+
+   fix             pin  all spring/tspin 1.0 2.2
+   fix             1    all nve/tspin lattice frozen spinmass 0.0075
+   velocity/tspin  all create 300.0 12345
+   fix             bath all langevin/tspin 300.0 300.0 0.05 48279
+
+   compute         ske all ke/tspin
+   thermo_style    custom step pe f_pin c_ske
+
+The per-atom array *fm* keeps the rad.THz units used by the SPIN package.  A
+TSPIN-compatible interaction must encode the full magnetic force
+
+.. math::
+
+   \vec{F}^{m}_i = -\frac{\partial U}{\partial \vec{S}_i}
+
+in that array as
+
+.. math::
+
+   \vec{fm}_i = \frac{|\vec{S}_i|}{\hbar}\vec{F}^{m}_i.
+
+The inertial integrator multiplies *fm* by
+:math:`\hbar/|\vec{S}_i|` to recover the force.  This is a stronger contract
+than the one needed by fixed-modulus Landau-Lifshitz dynamics, where any
+component of *fm* parallel to the spin disappears from the cross product.
+:doc:`pair_style spin/dipole/cut <pair_spin_dipole>` uses the spin moduli in
+its energy and explicitly provides this full-gradient encoding, so it can be
+used with the TSPIN integrators.  The other SPIN pair styles only guarantee the
+resulting torque and are rejected.  A variable-moment potential that explicitly
+uses the same encoding, such as *pair_style deepspin* of the DeePMD-kit package,
+can also be used without changing its force output.
+
+The inertial and the fixed-modulus styles describe different physics
+and must not be combined on the same group of atoms.  Because the
+resulting spin dynamics is second order in time, its characteristic
+frequencies scale as the inverse square root of the spin mass and are
+not the Landau-Lifshitz precession frequencies.  Static thermodynamic
+averages should be verified to be independent of the spin mass.
+
+----------
+
 All the computed magnetic properties can be output by two main
 commands. The first one is :doc:`compute spin <compute_spin>`, that
 enables to evaluate magnetic averaged quantities, such as the total

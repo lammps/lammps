@@ -38,13 +38,20 @@
 #include "pair.h"
 #include "pppm_intel.h"
 #include "remap_wrap.h"
-#include "slab_dipole.h"
+#include "slab_dipole_intel.h"
 #include "update.h"
-#include "wire_dipole.h"
+#include "wire_dipole_intel.h"
 
 #include <algorithm>
 #include <cmath>
 #include <cstring>
+#if defined(_OPENMP)
+#include <omp.h>
+#endif
+#if defined(FFT_MKL) || defined(FFT_MKL_THREADS)
+extern "C" void MKL_Set_Num_Threads(int nth);
+extern "C" int MKL_Get_Max_Threads(void);
+#endif
 
 using namespace LAMMPS_NS;
 using namespace std;
@@ -116,6 +123,18 @@ void PPPMElectrodeIntel::init()
       error->all(FLERR, "Incorrect boundaries with wire PPPM/electrode");
   }
   compute_step = -1;
+
+  // must put here to get initialized intelFix
+  if (slabflag == 1) {
+    // EW3Dc dipole correction
+    boundcorr = new SlabDipoleIntel(lmp, fix);
+  } else if (wireflag == 1) {
+    // EW3Dc wire correction
+    boundcorr = new WireDipoleIntel(lmp, fix);
+  } else {
+    // dummy BoundaryCorrection for ffield
+    boundcorr = new BoundaryCorrection(lmp);
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -187,30 +206,11 @@ void PPPMElectrodeIntel::compute(int eflag, int vflag)
   // map my particle charge onto my local 3d density grid
   // optimized versions can only be used for orthogonal boxes
 
-  if (compute_vector_called) {
-    // electrolyte_density_brick is filled, so we can
-    // grab only electrode atoms
-    switch (fix->precision()) {
-      case FixIntel::PREC_MODE_MIXED:
-        make_rho_in_brick<float, double>(fix->get_mixed_buffers(), last_source_grpbit,
-                                         density_brick, !last_invert_source);
-        break;
-      case FixIntel::PREC_MODE_DOUBLE:
-        make_rho_in_brick<double, double>(fix->get_double_buffers(), last_source_grpbit,
-                                          density_brick, !last_invert_source);
-        break;
-      default:
-        make_rho_in_brick<float, float>(fix->get_single_buffers(), last_source_grpbit,
-                                        density_brick, !last_invert_source);
-    }
-    gc->reverse_comm(Grid3d::KSPACE, this, REVERSE_RHO, 1, sizeof(FFT_SCALAR), gc_buf1, gc_buf2,
-                     MPI_FFT_SCALAR);
-    for (int nz = nzlo_out; nz <= nzhi_out; nz++)
-      for (int ny = nylo_out; ny <= nyhi_out; ny++)
-        for (int nx = nxlo_out; nx <= nxhi_out; nx++) {
-          density_brick[nz][ny][nx] += electrolyte_density_brick[nz][ny][nx];
-        }
-  } else {
+  // disable compute_vector_called optimization: same bug as base code
+  // (electrode charges change after compute_vector, making saved
+  // electrolyte_density_brick stale for direct cg algorithm)
+  // if (compute_vector_called) { ... }
+  {
     switch (fix->precision()) {
       case FixIntel::PREC_MODE_MIXED:
         PPPMIntel::make_rho<float, double>(fix->get_mixed_buffers());
@@ -221,15 +221,17 @@ void PPPMElectrodeIntel::compute(int eflag, int vflag)
       default:
         PPPMIntel::make_rho<float, float>(fix->get_single_buffers());
     }
-    // all procs communicate density values from their ghost cells
-    //   to fully sum contribution in their 3d bricks
-    // remap from 3d decomposition to FFT decomposition
-
     gc->reverse_comm(Grid3d::KSPACE, this, REVERSE_RHO, 1, sizeof(FFT_SCALAR), gc_buf1, gc_buf2,
                      MPI_FFT_SCALAR);
   }
 
   brick2fft();
+
+  // force MKL FFT to single-thread to avoid data races with INTEL OpenMP
+#if defined(FFT_MKL)
+  int mkl_threads_compute = MKL_Get_Max_Threads();
+  MKL_Set_Num_Threads(1);
+#endif
 
   // compute potential gradient on my FFT grid and
   //   portion of e_long on this proc's FFT grid
@@ -241,7 +243,9 @@ void PPPMElectrodeIntel::compute(int eflag, int vflag)
   else
     poisson_ik();
 
-  // all procs communicate E-field values
+#if defined(FFT_MKL)
+  MKL_Set_Num_Threads(mkl_threads_compute);
+#endif
   // to fill ghost cells surrounding their 3d bricks
 
   if (differentiation_flag == 1)
@@ -309,16 +313,16 @@ void PPPMElectrodeIntel::start_compute()
 void PPPMElectrodeIntel::compute_vector(double *vec, int sensor_grpbit, int source_grpbit,
                                         bool invert_source)
 {
+  // always pack buffers here since electrode code calls compute_vector()
+  // from pre_force(), before pair->compute() has packed the buffers
+  // must pack BEFORE start_compute() so particle_map() uses current positions
+  pack_buffers();
   start_compute();
 
   last_source_grpbit = source_grpbit;
   last_invert_source = invert_source;
 
-  // temporarily store and switch pointers so we can use brick2fft() for
-  // electrolyte density (without writing an additional function)
-  FFT_SCALAR ***density_brick_real = density_brick;
-  FFT_SCALAR *density_fft_real = density_fft;
-  if (neighbor->ago != 0) pack_buffers();    // since midstep positions may be outdated
+  // deposit electrolyte charge density
   switch (fix->precision()) {
     case FixIntel::PREC_MODE_MIXED:
       make_rho_in_brick<float, double>(fix->get_mixed_buffers(), source_grpbit,
@@ -332,14 +336,22 @@ void PPPMElectrodeIntel::compute_vector(double *vec, int sensor_grpbit, int sour
       make_rho_in_brick<float, float>(fix->get_single_buffers(), source_grpbit,
                                       electrolyte_density_brick, invert_source);
   }
+
+  // switch density pointers so brick2fft() operates on electrolyte density
+  FFT_SCALAR ***density_brick_real = density_brick;
+  FFT_SCALAR *density_fft_real = density_fft;
   density_brick = electrolyte_density_brick;
   density_fft = electrolyte_density_fft;
+
+  // force MKL FFT to single-thread to avoid data races with INTEL OpenMP
+#if defined(FFT_MKL)
+  int mkl_threads_vec = MKL_Get_Max_Threads();
+  MKL_Set_Num_Threads(1);
+#endif
+
   gc->reverse_comm(Grid3d::KSPACE, this, REVERSE_RHO, 1, sizeof(FFT_SCALAR), gc_buf1, gc_buf2,
                    MPI_FFT_SCALAR);
   brick2fft();
-  // switch back pointers
-  density_brick = density_brick_real;
-  density_fft = density_fft_real;
 
   // transform electrolyte charge density (r -> k) (complex conjugate)
   for (int i = 0, n = 0; i < nfft; i++) {
@@ -356,6 +368,12 @@ void PPPMElectrodeIntel::compute_vector(double *vec, int sensor_grpbit, int sour
     n++;
   }
   fft2->compute(work2, work2, 1);
+
+#if defined(FFT_MKL)
+  MKL_Set_Num_Threads(mkl_threads_vec);
+#endif
+  density_brick = density_brick_real;
+  density_fft = density_fft_real;
 
   for (int k = nzlo_in, n = 0; k <= nzhi_in; k++)
     for (int j = nylo_in; j <= nyhi_in; j++)
@@ -497,8 +515,7 @@ void PPPMElectrodeIntel::project_psi(IntelBuffers<flt_t, acc_t> *buffers, double
   ---------------------------------------------------------------------  */
 void PPPMElectrodeIntel::compute_matrix(bigint *imat, double **matrix, bool timer_flag)
 {
-  // TODO replace compute with required setup
-  compute(1, 0);
+  compute(1, 0); // could be further optimized some day
 
   // fft green's function k -> r
   double *greens_real;
@@ -1053,19 +1070,12 @@ void PPPMElectrodeIntel::compute_vector_corr(double *vec, int sensor_grpbit, int
   boundcorr->vector_corr(vec, sensor_grpbit, source_grpbit, invert_source);
 }
 
+/* ----------------------------------------------------------------------
+   allocate memory that depends on # of K-vectors and order
+------------------------------------------------------------------------- */
+
 void PPPMElectrodeIntel::allocate()
 {
-  if (slabflag == 1) {
-    // EW3Dc dipole correction
-    boundcorr = new SlabDipole(lmp);
-  } else if (wireflag == 1) {
-    // EW3Dc wire correction
-    boundcorr = new WireDipole(lmp);
-  } else {
-    // base BoundaryCorrection -- used for ffield
-    boundcorr = new BoundaryCorrection(lmp);
-  }
-
   PPPM::allocate();
   /* ----------------------------------------------------------------------
      Allocate density_brick with extra padding for vector writes
@@ -1185,25 +1195,32 @@ void PPPMElectrodeIntel::deallocate()
 
 void PPPMElectrodeIntel::pack_buffers_q()
 {
-  fix->start_watch(TIME_PACK);
-  int packthreads;
-  if (comm->nthreads > INTEL_HTHREADS)
-    packthreads = comm->nthreads;
+  if (fix->precision() == FixIntel::PREC_MODE_MIXED)
+    pack_buffers_q<float, double>(fix->get_mixed_buffers());
+  else if (fix->precision() == FixIntel::PREC_MODE_DOUBLE)
+    pack_buffers_q<double, double>(fix->get_double_buffers());
   else
-    packthreads = 1;
+    pack_buffers_q<float, float>(fix->get_single_buffers());
+}
+
+template <class flt_t, class acc_t>
+void PPPMElectrodeIntel::pack_buffers_q(IntelBuffers<flt_t, acc_t> *buffers)
+{
+  fix->start_watch(TIME_PACK);
+  int nthr;
+  if (_use_lrt)
+    nthr = 1;
+  else
+    nthr = comm->nthreads;
+  int const ntotal = atom->nlocal + atom->nghost;
 #if defined(_OPENMP)
-#pragma omp parallel if (packthreads > 1)
+#pragma omp parallel \
+  shared (nthr) if (!_use_lrt)
 #endif
   {
     int ifrom, ito, tid;
-    IP_PRE_omp_range_id_align(ifrom, ito, tid, atom->nlocal + atom->nghost, packthreads,
-                              sizeof(IntelBuffers<float, double>::atom_t));
-    if (fix->precision() == FixIntel::PREC_MODE_MIXED)
-      fix->get_mixed_buffers()->thr_pack_q(ifrom, ito);
-    else if (fix->precision() == FixIntel::PREC_MODE_DOUBLE)
-      fix->get_double_buffers()->thr_pack_q(ifrom, ito);
-    else
-      fix->get_single_buffers()->thr_pack_q(ifrom, ito);
+    IP_PRE_omp_range_id_align(ifrom, ito, tid, ntotal, nthr, sizeof(flt_t));
+    buffers->thr_pack_q(ifrom, ito);
   }
   fix->stop_watch(TIME_PACK);
 }

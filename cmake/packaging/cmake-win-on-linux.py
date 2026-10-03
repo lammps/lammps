@@ -195,7 +195,7 @@ if parflag == 'ms':
   cmd += " -DUSE_MSMPI=on"
 if guiflag:
   cmd += " -DBUILD_LAMMPS_GUI=on -DDOWNLOAD_POTENTIALS=off -DQt6_DIR=/usr/x86_64-w64-mingw32/sys-root/mingw/lib/cmake/Qt6"
-cmd += " -DPKG_INTEL=no -DBUILD_LAMMPS_SHELL=on"
+cmd += " -DPKG_INTEL=no"
 cmd += " -DCMAKE_CXX_COMPILER_LAUNCHER=ccache"
 cmd += " -DPKG_PLUGIN=yes"
 cmd += " -DCMAKE_CXX_STANDARD=20"

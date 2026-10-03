@@ -1290,7 +1290,8 @@ void LAMMPS::print_config(FILE *fp, int width)
              sizeof(tagint)*8, sizeof(bigint)*8);
 
   utils::print(fp,"\n{}",platform::compress_info());
-  if (Info::has_ffmpeg_support()) fputs("\nFFmpeg is installed\n", fp);
+  auto ffmpeg = platform::find_exe_path("ffmpeg");
+  utils::print(fp, "\nFFmpeg executable: {}\n", ffmpeg.empty() ? "not found" : ffmpeg);
 
   fputs("\nInstalled packages:\n\n",fp);
   for (int i = 0; nullptr != (pkg = installed_packages[i]); ++i) {

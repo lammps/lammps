@@ -311,7 +311,8 @@ void Info::command(int narg, char **arg)
     fputs("-DLAMMPS_SMALLBIG\n",out);
 #endif
     utils::print(out,"\n{}",platform::compress_info());
-    if (has_ffmpeg_support()) fputs("\nFFmpeg is installed\n", out);
+    auto ffmpeg = platform::find_exe_path("ffmpeg");
+    utils::print(out, "\nFFmpeg executable: {}\n", ffmpeg.empty() ? "not found" : ffmpeg);
 
     int ncword, ncline = 0;
     fputs("\nInstalled packages:\n\n",out);

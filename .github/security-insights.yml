@@ -88,6 +88,7 @@ repository:
     review-policy: https://docs.lammps.org/Modify_contribute.html
     security-policy: https://github.com/lammps/lammps/blob/develop/SECURITY.md
     governance: https://github.com/lammps/lammps/blob/develop/.github/GOVERNANCE.md
+    dependency-management-policy: https://docs.lammps.org/latest/Build_security.html
   license:
     url: https://github.com/lammps/lammps/blob/develop/LICENSE
     expression: GPL-2.0-only

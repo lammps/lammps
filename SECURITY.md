@@ -11,7 +11,12 @@ data.
 LAMMPS also is interfaced to a number of external libraries, including
 libraries with experimental research software, that are not validated
 and tested by the LAMMPS developers, so it is easy to import bad
-behavior from calling functions in one of those libraries.
+behavior from calling functions in one of those libraries.  The section
+[Security considerations](https://docs.lammps.org/latest/Build_security.html)
+of the LAMMPS manual lists the external projects that may be used when
+compiling LAMMPS, explains how files that are downloaded during the
+build are checked, and what applies to LAMMPS provided by other projects
+and to add-on packages for LAMMPS that are maintained elsewhere.
 
 Thus it is quite easy to crash LAMMPS through malicious input and do all
 kinds of file system manipulations.  And because of that LAMMPS should

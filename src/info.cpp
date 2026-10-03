@@ -798,17 +798,25 @@ bool Info::is_available(const char *category, const char *name)
 {
   if ((category == nullptr) || (name == nullptr)) return false;
 
+  // external programs are searched for at runtime, so use the result
+  // from MPI rank 0 to make certain that all MPI ranks agree
+  auto check_on_rank0 = [&](bool (*has_support)()) {
+    int flag = (comm->me == 0) ? has_support() : 0;
+    MPI_Bcast(&flag, 1, MPI_INT, 0, world);
+    return flag != 0;
+  };
+
   if (has_style(category, name)) {
     return true;
   } else if (strcmp(category,"feature") == 0) {
     if (strcmp(name,"gzip") == 0) {
-      return has_gzip_support();
+      return check_on_rank0(has_gzip_support);
     } else if (strcmp(name,"png") == 0) {
       return has_png_support();
     } else if (strcmp(name,"jpeg") == 0) {
       return has_jpeg_support();
     } else if (strcmp(name,"ffmpeg") == 0) {
-      return has_ffmpeg_support();
+      return check_on_rank0(has_ffmpeg_support);
     } else if (strcmp(name,"curl") == 0) {
       return has_curl_support();
     } else if (strcmp(name,"fft_single") == 0) {

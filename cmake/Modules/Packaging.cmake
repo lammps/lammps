@@ -118,7 +118,7 @@ if(BUILD_LAMMPS_GUI)
 
   # When building LAMMPS-GUI with LAMMPS we don't support plugin mode and don't include docs.
   ExternalProject_Add(lammps-gui_build
-    GIT_REPOSITORY https://github.com/akohlmey/lammps-gui.git
+    GIT_REPOSITORY https://github.com/lammps/lammps-gui.git
     GIT_TAG main
     GIT_SHALLOW TRUE
     GIT_PROGRESS TRUE
@@ -162,7 +162,7 @@ if(BUILD_LAMMPS_GUI)
       file(DOWNLOAD ${WHAM_URL} ${CMAKE_BINARY_DIR}/_deps/${archive} STATUS DL_STATUS SHOW_PROGRESS)
       file(SHA256 ${CMAKE_BINARY_DIR}/_deps/${archive} DL_SHA256)
       if((NOT DL_STATUS EQUAL 0) OR (NOT "${DL_SHA256}" STREQUAL "${WHAM_SHA256}"))
-        message(ERROR ": Download of WHAM sources from ${WHAM_URL} failed")
+        message(FATAL_ERROR "Download of WHAM sources from ${WHAM_URL} failed")
       endif()
     else()
       message(STATUS "Using already downloaded archive ${CMAKE_BINARY_DIR}/_deps/${archive}")

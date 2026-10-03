@@ -176,9 +176,3 @@ changed.  How to do this depends on the build system you are using.
 The LAMMPS GitHub project is currently overseen by Axel Kohlmeyer
 (Temple U, akohlmey at gmail.com), contact him if you have any
 questions or concerns.
-
-----
-
-You can find additional LAMMPS features for dynamically loading
-with the :doc:`plugin command <plugin>` in the
-`LAMMPS plugins source code repository on GitHub <https://github.com/lammps/lammps-plugins>`_

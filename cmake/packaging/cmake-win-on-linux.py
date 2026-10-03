@@ -288,33 +288,6 @@ if not pythonflag and not guiflag:
     shutil.move(exe,os.path.join('..',os.path.basename(exe)))
   print("Done")
 
-  print("Cloning lammps-plugin package")
-  if revflag == 'stable' or revflag == 'release' or rev2.match(revflag):
-      txt = system("git clone -b %s --depth 1 git@github.com:lammps/lammps-plugins.git" % revflag)
-  else:
-      txt = system("git clone -b develop --depth 1 git@github.com:lammps/lammps-plugins.git")
-  if verbose: print(txt)
-  print("Configuring LAMMPS plugin collection build with CMake")
-  cmd = "mingw64-cmake -D CMAKE_BUILD_TYPE=Release"
-  cmd += " -S lammps-plugins -B build_plugins"
-  cmd += " -DBUILD_SHARED_LIBS=on -DBUILD_MPI=%s -DBUILD_OMP=ON" % mpiflag
-  cmd += " -DCMAKE_CXX_COMPILER_LAUNCHER=ccache -DLAMMPS_SOURCE_DIR=%s/src" % gitdir
-  cmd += " -DLAMMPS_VERSION=%s" % version
-  if parflag == 'ms': cmd += " -DUSE_MSMPI=on"
-  cmd += " -DCMAKE_CXX_STANDARD=20"
-
-  print("Running: ",cmd)
-  txt = system(cmd)
-  if verbose: print(txt)
-  print("Done")
-
-  print("Compiling and building installer")
-  txt = system("cmake --build build_plugins --target package")
-  if verbose: print(txt)
-  for exe in glob.glob('build_plugins/LAMMPS*plugin*.exe'):
-    shutil.move(exe,os.path.join('..',os.path.basename(exe)))
-  print("Done")
-
 print("Building PDF manual")
 os.chdir(os.path.join(gitdir,"doc"))
 txt = system("make upgrade")

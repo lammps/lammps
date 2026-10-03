@@ -129,27 +129,6 @@ void AtomVecSphereKokkos::grow_pointers()
   h_torque = atomKK->k_torque.view_hostkk();
 }
 
-/* ----------------------------------------------------------------------
-   sort atom arrays on device
-------------------------------------------------------------------------- */
-
-void AtomVecSphereKokkos::sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorter)
-{
-  atomKK->sync(Device, ALL_MASK & ~F_MASK & ~TORQUE_MASK);
-
-  Sorter.sort(LMPDeviceType(), d_tag);
-  Sorter.sort(LMPDeviceType(), d_type);
-  Sorter.sort(LMPDeviceType(), d_mask);
-  Sorter.sort(LMPDeviceType(), d_image);
-  Sorter.sort(LMPDeviceType(), d_x);
-  Sorter.sort(LMPDeviceType(), d_v);
-  Sorter.sort(LMPDeviceType(), d_radius);
-  Sorter.sort(LMPDeviceType(), d_rmass);
-  Sorter.sort(LMPDeviceType(), d_omega);
-
-  atomKK->modified(Device, ALL_MASK & ~F_MASK & ~TORQUE_MASK);
-}
-
 /* ---------------------------------------------------------------------- */
 
 void AtomVecSphereKokkos::sync(ExecutionSpace space, uint64_t mask)

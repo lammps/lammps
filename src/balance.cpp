@@ -61,6 +61,7 @@ Balance::Balance(LAMMPS *lmp) :
   proccost(nullptr), allproccost(nullptr), imbalances(nullptr), weight(nullptr)
 {
   shift_allocate = 0;
+  shift_max = 0;
   nimbalance = 0;
   firststep = 1;
 }
@@ -721,17 +722,7 @@ void Balance::shift_setup_static(const char *str)
     if (str[i] == 'z') bdim[i] = Z;
   }
 
-  int max = MAX(comm->procgrid[0],comm->procgrid[1]);
-  max = MAX(max,comm->procgrid[2]);
-
-  onecost = new double[max];
-  allcost = new double[max];
-  sum = new double[max+1];
-  target = new double[max+1];
-  lo = new double[max+1];
-  hi = new double[max+1];
-  losum = new double[max+1];
-  hisum = new double[max+1];
+  shift_grow();
 
   // if current layout is TILED, set initial uniform splits in Comm
   // this gives starting point to subsequent shift balancing
@@ -766,6 +757,37 @@ void Balance::shift_setup(const char *str, int nitermax_in, double thresh_in)
 }
 
 /* ----------------------------------------------------------------------
+   (re)allocate SHIFT work vectors to the current max procgrid dimension
+   needed b/c the proc grid can change after setup, e.g. read_data add
+   calls Comm::set_proc_grid() for a box of different shape
+------------------------------------------------------------------------- */
+
+void Balance::shift_grow()
+{
+  int max = MAX(comm->procgrid[0],comm->procgrid[1]);
+  max = MAX(max,comm->procgrid[2]);
+  if (max <= shift_max) return;
+  shift_max = max;
+
+  delete[] onecost;
+  delete[] allcost;
+  delete[] sum;
+  delete[] target;
+  delete[] lo;
+  delete[] hi;
+  delete[] losum;
+  delete[] hisum;
+  onecost = new double[max];
+  allcost = new double[max];
+  sum = new double[max+1];
+  target = new double[max+1];
+  lo = new double[max+1];
+  hi = new double[max+1];
+  losum = new double[max+1];
+  hisum = new double[max+1];
+}
+
+/* ----------------------------------------------------------------------
    load balance by changing xyz split proc boundaries in Comm
    called one time from input script command or many times from fix balance
    return niter = iteration count
@@ -781,6 +803,10 @@ int Balance::shift()
 
   bigint natoms = atom->natoms;
   if (natoms == 0) return 0;
+
+  // proc grid may have changed since shift_setup_static()
+
+  shift_grow();
 
   // set delta for 1d balancing = root of threshold
   // root = # of dimensions being balanced on

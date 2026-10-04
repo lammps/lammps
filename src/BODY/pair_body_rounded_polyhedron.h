@@ -301,7 +301,6 @@ class PairBodyRoundedPolyhedron : public Pair {
                          double *h1, double *h2, double &t1, double &t2, double &r);
   void total_velocity(double *p, double *xcm, double *vcm, double *angmom, double *inertia,
                       double *quat, double *vi);
-  void sanity_check();
 };
 
 }    // namespace LAMMPS_NS

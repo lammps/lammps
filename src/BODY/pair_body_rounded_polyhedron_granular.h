@@ -66,6 +66,7 @@ class PairBodyRoundedPolyhedronGranular : public PairBodyRoundedPolyhedron {
   Granular_NS::GranularModel *add_model();
   double parse_model(Granular_NS::GranularModel *, int narg, char **arg);
   Granular_NS::GranularModel *clone_model(int m);
+  void prune_models();
   void check_model(int m);
   static double effective_radius(int kind, double radi, double radj);
   void contact_geometry(Granular_NS::GranularModel *, int ibody, int jbody, int kind, double R);

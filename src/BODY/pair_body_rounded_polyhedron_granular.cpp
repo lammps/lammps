@@ -124,6 +124,55 @@ void PairBodyRoundedPolyhedronGranular::coeff(int narg, char **arg)
   }
 
   if (count == 0) error->all(FLERR, "Incorrect args for pair coefficients" + utils::errorurl(21));
+
+  // the models of pairs of types that are set again are no longer used
+
+  prune_models();
+}
+
+/* ----------------------------------------------------------------------
+   delete the models that no pair of types I,J with I <= J uses, and renumber
+   the others in the same order, the model of J,I is that of I,J, as set in
+   init_one()
+------------------------------------------------------------------------- */
+
+void PairBodyRoundedPolyhedronGranular::prune_models()
+{
+  int ntypes = atom->ntypes;
+  int nmodels = models.size();
+  std::vector<int> renumber(nmodels, -1);
+  for (int i = 1; i <= ntypes; i++)
+    for (int j = i; j <= ntypes; j++)
+      if (model_index[i][j] >= 0) renumber[model_index[i][j]] = 0;
+
+  int n = 0;
+  for (int m = 0; m < nmodels; m++) {
+    if (renumber[m] < 0) {
+      delete models[m];
+      continue;
+    }
+    renumber[m] = n;
+    if (n != m) {
+      models[n] = models[m];
+      energy_factor[n] = energy_factor[m];
+      model_args[n] = std::move(model_args[m]);
+      mix_itype[n] = mix_itype[m];
+      mix_jtype[n] = mix_jtype[m];
+    }
+    n++;
+  }
+  models.resize(n);
+  energy_factor.resize(n);
+  model_args.resize(n);
+  mix_itype.resize(n);
+  mix_jtype.resize(n);
+
+  for (int i = 1; i <= ntypes; i++) {
+    for (int j = i; j <= ntypes; j++) {
+      if (model_index[i][j] >= 0) model_index[i][j] = renumber[model_index[i][j]];
+      model_index[j][i] = model_index[i][j];
+    }
+  }
 }
 
 /* ---------------------------------------------------------------------- */

@@ -210,7 +210,8 @@ template <typename TYPE> inline const TYPE &sprintf_arg(const TYPE &arg)
 }
 // NOLINTEND
 
-/*! \overload converts a std::string argument to a C-style string */
+/*! converts a std::string argument to a C-style string
+ * \overload */
 
 inline const char *sprintf_arg(const std::string &arg)
 {

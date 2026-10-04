@@ -22,9 +22,11 @@
    weights, the cohesion of Wang et al., and the work done by the forces that
    do not derive from the energy are those of body/rounded/polyhedron.
 
-   PROTOTYPE: the sub-models are called one by one, in the same order as in
-   GranularModel::calculate_forces(), and the layout of the history is the
-   same as in PairGranular::init_style().  Keep both in sync.
+   Note: the sub-models are called one by one, since the normal force and
+   damping act per contact and the tangential force once per pair of
+   bodies, in the same order as in GranularModel::calculate_forces(), and
+   the layout of the history is the same as in PairGranular::init_style().
+   Changes there must be followed here.
 ------------------------------------------------------------------------- */
 
 #include "pair_body_rounded_polyhedron_granular.h"

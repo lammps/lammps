@@ -51,6 +51,10 @@ if (test $1 = "ASPHERE") then
   depend INTEL
 fi
 
+if (test $1 = "BODY") then
+  depend OPENMP
+fi
+
 if (test $1 = "CLASS2") then
   depend OPENMP
 fi

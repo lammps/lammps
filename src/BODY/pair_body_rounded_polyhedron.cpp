@@ -59,7 +59,6 @@ static const double COS_PATCH_ANGLE = cos(PATCH_ANGLE);
 static const double COS_HALF_PATCH_ANGLE = cos(0.5 * PATCH_ANGLE);
 static const double COS_LINE_ANGLE = cos(LINE_ANGLE);
 static constexpr int MAX_FACE_SIZE = 4;   // maximum number of vertices per face (same as BodyRoundedPolyhedron)
-static constexpr int NFNC = 12;           // per-body force and torque of the j_a scaling, and of damping
 static constexpr char id_fix_store_prefix[] = "BODY_ROUNDED_POLYHEDRON_WORK_";
 
 //#define _POLYHEDRON_DEBUG

@@ -1,7 +1,10 @@
 .. index:: pair_style body/rounded/polyhedron/granular
+.. index:: pair_style body/rounded/polyhedron/granular/omp
 
 pair_style body/rounded/polyhedron/granular command
 ===================================================
+
+Accelerator Variants: *body/rounded/polyhedron/granular/omp*
 
 Syntax
 """"""
@@ -142,6 +145,10 @@ The input script *in.heap3d_granular* in the *examples/body* directory
 pours cubes and tetrahedra onto a floor with Hertzian contacts from the
 elastic properties of either particle type, and tilts gravity once they
 have come to rest in a heap.
+
+----------
+
+.. include:: accel_styles.rst
 
 ----------
 

@@ -22,6 +22,7 @@ PairStyle(body/rounded/polyhedron/granular,PairBodyRoundedPolyhedronGranular);
 
 #include "pair_body_rounded_polyhedron.h"
 
+#include <string>
 #include <vector>
 
 namespace LAMMPS_NS {
@@ -47,12 +48,24 @@ class PairBodyRoundedPolyhedronGranular : public PairBodyRoundedPolyhedron {
   std::vector<Granular_NS::GranularModel *> models;    // all models, owned
   std::vector<double> energy_factor;    // elastic energy = energy_factor * Fne * delta
   int **model_index;                    // index of the model of each pair of types
+  // how each model was made, so that it can be made again, see clone_model():
+  // the pair_coeff arguments of its sub-models, or else the two types it is mixed from
+  std::vector<std::vector<std::string>> model_args;
+  std::vector<int> mix_itype, mix_jtype;
 
   Granular_NS::GranularModel *type_model(int itype, int jtype) const
   {
     return models[model_index[itype][jtype]];
   }
+  // the model used for the forces of a contact, which holds the state of that
+  // contact, so that a threaded variant can return a copy per thread
+  virtual Granular_NS::GranularModel *contact_model(int itype, int jtype)
+  {
+    return type_model(itype, jtype);
+  }
   Granular_NS::GranularModel *add_model();
+  double parse_model(Granular_NS::GranularModel *, int narg, char **arg);
+  Granular_NS::GranularModel *clone_model(int m);
   void check_model(int m);
   static double effective_radius(int kind, double radi, double radj);
   void contact_geometry(Granular_NS::GranularModel *, int ibody, int jbody, int kind, double R);

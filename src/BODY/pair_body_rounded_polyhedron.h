@@ -72,6 +72,10 @@ class PairBodyRoundedPolyhedron : public Pair {
     int patch;            // 1 for a corner of a region of overlap, see face_face_patches()
   };
 
+  // number of per-body values in fnc: force and torque of the j_a scaling,
+  // and of damping and friction
+  static constexpr int NFNC = 12;
+
   // scratch space for the interaction of a pair of bodies, one per thread
 
   struct Scratch {

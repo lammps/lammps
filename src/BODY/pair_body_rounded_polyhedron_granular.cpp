@@ -108,29 +108,8 @@ void PairBodyRoundedPolyhedronGranular::coeff(int narg, char **arg)
 
   GranularModel *model = add_model();
   int m = models.size() - 1;
-  double k_na_one = 0.0;
-
-  int iarg = model->add_sub_model(arg, 2, narg, NORMAL);
-  while (iarg < narg) {
-    if (strcmp(arg[iarg], "damping") == 0) {
-      iarg = model->add_sub_model(arg, iarg + 1, narg, DAMPING);
-    } else if (strcmp(arg[iarg], "tangential") == 0) {
-      iarg = model->add_sub_model(arg, iarg + 1, narg, TANGENTIAL);
-    } else if (strcmp(arg[iarg], "cohesion") == 0) {
-      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "pair_coeff cohesion", error);
-      k_na_one = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
-      if (k_na_one < 0.0) error->all(FLERR, iarg + 1, "Cohesion strength must not be negative");
-      iarg += 2;
-    } else {
-      error->all(FLERR, iarg, "Unknown pair_coeff keyword {} for pair style "
-                 "body/rounded/polyhedron/granular", arg[iarg]);
-    }
-  }
-
-  // the damping of Wang et al. is proportional to the normal relative velocity
-
-  if (!model->damping_model) model->construct_sub_model("velocity", DAMPING);
-  model->init();
+  double k_na_one = parse_model(model, narg, arg);
+  model_args[m].assign(arg, arg + narg);
   check_model(m);
 
   int count = 0;
@@ -155,6 +134,70 @@ GranularModel *PairBodyRoundedPolyhedronGranular::add_model()
   model->contact_type = PAIR;
   models.push_back(model);
   energy_factor.push_back(0.0);
+  model_args.emplace_back();
+  mix_itype.push_back(0);
+  mix_jtype.push_back(0);
+  return model;
+}
+
+/* ----------------------------------------------------------------------
+   sub-models of a model from the pair_coeff arguments arg[2] to arg[narg-1],
+   return the strength of the cohesion
+------------------------------------------------------------------------- */
+
+double PairBodyRoundedPolyhedronGranular::parse_model(GranularModel *model, int narg, char **arg)
+{
+  double k_na_one = 0.0;
+
+  int iarg = model->add_sub_model(arg, 2, narg, NORMAL);
+  while (iarg < narg) {
+    if (strcmp(arg[iarg], "damping") == 0) {
+      iarg = model->add_sub_model(arg, iarg + 1, narg, DAMPING);
+    } else if (strcmp(arg[iarg], "tangential") == 0) {
+      iarg = model->add_sub_model(arg, iarg + 1, narg, TANGENTIAL);
+    } else if (strcmp(arg[iarg], "cohesion") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "pair_coeff cohesion", error);
+      k_na_one = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
+      if (k_na_one < 0.0) error->all(FLERR, iarg + 1, "Cohesion strength must not be negative");
+      iarg += 2;
+    } else {
+      error->all(FLERR, iarg, "Unknown pair_coeff keyword {} for pair style "
+                 "body/rounded/polyhedron/granular", arg[iarg]);
+    }
+  }
+
+  // the damping of Wang et al. is proportional to the normal relative velocity
+
+  if (!model->damping_model) model->construct_sub_model("velocity", DAMPING);
+  model->init();
+  return k_na_one;
+}
+
+/* ----------------------------------------------------------------------
+   a new copy of model m, made the same way as model m, from its pair_coeff
+   arguments or by mixing the models of two types, with the same layout of
+   the history, see init_style()
+   the coefficients are not copied, since some sub-models also keep whether
+   their coefficients were mixed
+------------------------------------------------------------------------- */
+
+GranularModel *PairBodyRoundedPolyhedronGranular::clone_model(int m)
+{
+  auto *model = new GranularModel(lmp);
+  model->contact_type = PAIR;
+
+  if (!model_args[m].empty()) {
+    std::vector<char *> args;
+    for (auto &a : model_args[m]) args.push_back(const_cast<char *>(a.c_str()));
+    parse_model(model, (int) args.size(), args.data());
+  } else {
+    model->mix_coeffs(type_model(mix_itype[m], mix_itype[m]),
+                      type_model(mix_jtype[m], mix_jtype[m]));
+    model->init();
+  }
+
+  for (int k = 0; k < NSUBMODELS; k++)
+    model->sub_models[k]->history_index = models[m]->sub_models[k]->history_index;
   return model;
 }
 
@@ -270,6 +313,9 @@ double PairBodyRoundedPolyhedronGranular::init_one(int i, int j)
     check_model(m);
     for (int k = 0; k < NSUBMODELS; k++)
       model->sub_models[k]->history_index = model1->sub_models[k]->history_index;
+    model_args[m].clear();
+    mix_itype[m] = i;
+    mix_jtype[m] = j;
 
     model_index[i][j] = m;
     k_n[i][j] = k_t[i][j] = 0.0;
@@ -382,11 +428,10 @@ double PairBodyRoundedPolyhedronGranular::normal_force(int ibody, int jbody, int
   double energy = cohesive_force(R, itype, jtype, fc);
 
   if (R < 0.0) {
-    int m = model_index[itype][jtype];
-    GranularModel *model = models[m];
+    GranularModel *model = contact_model(itype, jtype);
     contact_geometry(model, ibody, jbody, kind, R);
     fe = model->normal_model->calculate_forces();
-    energy += energy_factor[m] * fe * model->delta;
+    energy += energy_factor[model_index[itype][jtype]] * fe * model->delta;
   }
   return energy;
 }
@@ -402,7 +447,7 @@ void PairBodyRoundedPolyhedronGranular::contact_damping(int ibody, int jbody, in
                                                         const double * /*vn*/,
                                                         const double * /*vt*/, double *fdiss)
 {
-  GranularModel *model = type_model(atom->type[ibody], atom->type[jbody]);
+  GranularModel *model = contact_model(atom->type[ibody], atom->type[jbody]);
   contact_geometry(model, ibody, jbody, kind, R);
   model->vnnr = vnnr;
   double fdamp = w * model->damping_model->calculate_forces();
@@ -422,7 +467,7 @@ void PairBodyRoundedPolyhedronGranular::tangential_spring(int ibody, int jbody, 
                                                           const double *vt, double fne,
                                                           Scratch &s, double *fs)
 {
-  GranularModel *model = type_model(atom->type[ibody], atom->type[jbody]);
+  GranularModel *model = contact_model(atom->type[ibody], atom->type[jbody]);
   double sign = (ibody == s.shear_i) ? 1.0 : -1.0;
 
   // the force is that of all contacts of the pair, so there is no single kind

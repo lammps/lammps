@@ -25,21 +25,20 @@
 #include "variable.h"
 
 #include <cstring>
-#include <unordered_map>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
 namespace {
 enum { ONE, RUNNING, WINDOW };
-const char * const ave_string[] = {"one", "running", "window"};
+const char *const ave_string[] = {"one", "running", "window"};
 enum { SCALAR, VECTOR };
-const char * const mode_string[] = {"scalar", "vector"};
+const char *const mode_string[] = {"scalar", "vector"};
 enum { DEFAULT, GLOBAL, PERATOM, LOCAL };
 enum { IGNORE, END, EXTRA };
 
 constexpr double BIG = 1.0e20;
-};    // namespace
+}    // namespace
 
 // clang-format off
 /* ---------------------------------------------------------------------- */

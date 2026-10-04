@@ -230,7 +230,7 @@ FixAveCorrelate::FixAveCorrelate(LAMMPS *lmp, int narg, char **arg) :
   if (fp && comm->me == 0) {
     clearerr(fp);
     if (title1) fprintf(fp,"%s\n",title1);
-    else fprintf(fp,"# Time-correlated data for fix %s mode %s version %d\n",
+    else fprintf(fp,"# Time-correlated data for fix %s ave %s version %d\n",
                  id,ave_string[ave],lmp->num_ver);
     if (title2) fprintf(fp,"%s\n",title2);
     else fprintf(fp,"# Timestep Number-of-time-windows\n");

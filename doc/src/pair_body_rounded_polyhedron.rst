@@ -369,7 +369,8 @@ for pair interactions.
 Related commands
 """"""""""""""""
 
-:doc:`pair_coeff <pair_coeff>`
+:doc:`pair_coeff <pair_coeff>`, :doc:`pair_style
+body/rounded/polyhedron/granular <pair_body_rounded_polyhedron_granular>`
 
 Default
 """""""

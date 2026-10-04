@@ -363,6 +363,7 @@ overview.
 * :doc:`atom_style body <atom_style>`
 * :doc:`fix nve/body <fix_nve_body>`
 * :doc:`pair_style body/nparticle <pair_body_nparticle>`
+* :doc:`pair_style body/rounded/polyhedron/granular <pair_body_rounded_polyhedron_granular>` (requires the GRANULAR package)
 * ``examples/body``
 
 ----------

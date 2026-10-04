@@ -374,8 +374,8 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
           }
         } else extvector = val.val.f->extarray;
       } else if (val.which == ArgInfo::VARIABLE) {
-        extlist = new int[nrows];
-        for (int i = 0; i < nrows; i++) extlist[i] = 0;
+        // the length of a vector-style variable can change during a run
+        extvector = 0;
       }
 
     } else {
@@ -718,6 +718,11 @@ void FixAveTime::invoke_vector(bigint ntimestep)
         memory->destroy(column);
         memory->create(column,nrows,"ave/time:column");
         allocate_arrays();
+
+        // the length of the global vector or array output changes with nrows
+
+        if (vector_flag) size_vector = nrows;
+        if (array_flag) size_array_rows = nrows;
       }
 
       int lockforever_flag = 0;

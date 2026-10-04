@@ -52,6 +52,18 @@ with the :doc:`COMB potential <pair_comb>`.  For more technical details
 about the charge equilibration performed by fix qeq/reaxff, see the
 :ref:`(Aktulga) <qeq-Aktulga>` paper.
 
+.. versionadded:: TBD
+
+The :doc:`fix qeq/shielded <fix_qeq>` command from the QEQ package
+performs the same charge equilibration as this fix and also supports an
+extended-Lagrangian variant, :doc:`fix qeq/shielded/xlmd <fix_qeq>`,
+which reduces the cost of the charge equilibration several-fold by
+replacing the iteration to self-consistency with time-reversibly
+propagated auxiliary charge variables and a fixed small number of
+solver iterations.  Note that, unlike fix qeq/reaxff, the QEQ package
+fixes ignore :doc:`fix efield <fix_efield>`, so simulations with an
+external electric field must continue to use fix qeq/reaxff.
+
 The QEq method minimizes the electrostatic energy of the system by
 adjusting the partial charge on individual atoms based on interactions
 with their neighbors.  It requires some parameters for each atom type.

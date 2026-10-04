@@ -401,11 +401,15 @@ void PPPMDisp::init()
   if (!gewaldflag) g_ewald = 1;
   if (!gewaldflag_6) g_ewald_6 = 1;
 
-  // initialize the pair style to get the coefficients
+  // init the pair style for its coefficients, without keeping its neighbor
+  // requests; Force::init() calls it again
 
   neighrequest_flag = 0;
+  int nrequest_hold = neighbor->nrequest;
   pair->init();
+  neighbor->discard_requests(nrequest_hold);
   neighrequest_flag = 1;
+
   init_coeffs();
 
   // set accuracy (force units) from accuracy_relative or accuracy_absolute

@@ -383,8 +383,8 @@ void PairBrownianOMP::eval(int iifrom, int iito, ThrData * const thr)
           }
         }
 
-        if (EVFLAG) ev_tally_xyz(i,j,nlocal,NEWTON_PAIR,
-                                 0.0,0.0,-fx,-fy,-fz,delx,dely,delz);
+        if (EVFLAG) ev_tally_xyz_thr(this,i,j,nlocal,NEWTON_PAIR,
+                                     0.0,0.0,-fx,-fy,-fz,delx,dely,delz,thr);
       }
     }
   }

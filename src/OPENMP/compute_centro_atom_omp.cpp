@@ -243,6 +243,6 @@ void ComputeCentroAtomOMP::compute_peratom()
   if (axes_flag)
     for (int ii = 0; ii < inum; ii++) {
       const int i = ilist[ii];
-      if (mask[i] & groupbit) array_atom[i][0] = centro[i];
+      array_atom[i][0] = centro[i];
     }
 }

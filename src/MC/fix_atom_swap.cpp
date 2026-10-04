@@ -534,16 +534,14 @@ int FixAtomSwap::attempt_semi_grand()
   if (success_all) {
     update_semi_grand_atoms_list();
     energy_stored = energy_after;
-    if (ke_flag) {
-      if (i >= 0) {
+    if (i >= 0) {
+      if (ke_flag) {
         atom->v[i][0] *= sqrt_mass_ratio[itype][jtype];
         atom->v[i][1] *= sqrt_mass_ratio[itype][jtype];
         atom->v[i][2] *= sqrt_mass_ratio[itype][jtype];
-        // record atom for which the type was swapped and store the old type
-        if (vizsteps > 0) {
-          vizatoms[atom->tag[i]] = std::make_pair(vizsteps,itype);
-        }
       }
+      // record atom for which the type was swapped and store the old type
+      if (vizsteps > 0) vizatoms[atom->tag[i]] = std::make_pair(vizsteps, itype);
     }
     return 1;
   }
@@ -627,11 +625,11 @@ int FixAtomSwap::attempt_swap()
         atom->v[j][1] *= sqrt_mass_ratio[jtype][itype];
         atom->v[j][2] *= sqrt_mass_ratio[jtype][itype];
       }
-      // record atoms for which the type was swapped and store the old types
-      if (vizsteps > 0) {
-        vizatoms[atom->tag[i]] = std::make_pair(vizsteps, jtype);
-        vizatoms[atom->tag[j]] = std::make_pair(vizsteps, itype);
-      }
+    }
+    // record atoms for which the type was swapped and store the old types
+    if (vizsteps > 0) {
+      if (i >= 0) vizatoms[atom->tag[i]] = std::make_pair(vizsteps, itype);
+      if (j >= 0) vizatoms[atom->tag[j]] = std::make_pair(vizsteps, jtype);
     }
     energy_stored = energy_after;
     return 1;

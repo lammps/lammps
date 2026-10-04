@@ -107,7 +107,7 @@ void MLIAPModelPython::read_coeffs(char *fname)
   PyGILState_Release(gstate);
 
   if (model_loaded) {
-    this->connect_param_counts();
+    MLIAPModelPython::connect_param_counts();
   } else {
     if (comm->me == 0) utils::logmesg(lmp, "Loading python model deferred.\n");
   }

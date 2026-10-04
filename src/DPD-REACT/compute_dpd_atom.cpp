@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -17,29 +16,33 @@
 ------------------------------------------------------------------------- */
 
 #include "compute_dpd_atom.h"
-#include <cstring>
+
 #include "atom.h"
-#include "update.h"
-#include "modify.h"
-#include "memory.h"
-#include "error.h"
 #include "comm.h"
+#include "error.h"
+#include "memory.h"
+#include "modify.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
 ComputeDpdAtom::ComputeDpdAtom(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg), dpdAtom(nullptr)
+    Compute(lmp, narg, arg), dpdAtom(nullptr)
 {
-  if (narg != 3) error->all(FLERR,"Illegal compute dpd/atom command");
+  if (narg != 3) error->all(FLERR, "Illegal compute dpd/atom command");
 
   peratom_flag = 1;
   size_peratom_cols = 4;
 
   nmax = 0;
 
-  if (atom->dpd_flag != 1) error->all(FLERR,"compute dpd requires atom_style with internal temperature and energies (e.g. dpd)");
+  if (atom->dpd_flag != 1)
+    error->all(FLERR,
+               "compute dpd requires atom_style with internal temperature and energies (e.g. dpd)");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -75,16 +78,18 @@ void ComputeDpdAtom::compute_peratom()
   if (nlocal > nmax) {
     memory->destroy(dpdAtom);
     nmax = atom->nmax;
-    memory->create(dpdAtom,nmax,size_peratom_cols,"dpd/atom:dpdAtom");
+    memory->create(dpdAtom, nmax, size_peratom_cols, "dpd/atom:dpdAtom");
     array_atom = dpdAtom;
   }
 
   for (int i = 0; i < nlocal; i++) {
     if (mask[i] & groupbit) {
-      dpdAtom[i][0] =  uCond[i];
-      dpdAtom[i][1] =  uMech[i];
-      dpdAtom[i][2] =  uChem[i];
-      dpdAtom[i][3] =  dpdTheta[i];
+      dpdAtom[i][0] = uCond[i];
+      dpdAtom[i][1] = uMech[i];
+      dpdAtom[i][2] = uChem[i];
+      dpdAtom[i][3] = dpdTheta[i];
+    } else {
+      dpdAtom[i][0] = dpdAtom[i][1] = dpdAtom[i][2] = dpdAtom[i][3] = 0.0;
     }
   }
 }
@@ -95,6 +100,6 @@ void ComputeDpdAtom::compute_peratom()
 
 double ComputeDpdAtom::memory_usage()
 {
-  double bytes = (double)size_peratom_cols * nmax * sizeof(double);
+  double bytes = (double) size_peratom_cols * nmax * sizeof(double);
   return bytes;
 }

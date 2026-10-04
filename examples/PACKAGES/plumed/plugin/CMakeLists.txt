@@ -31,7 +31,9 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
     set_target_properties(plumedplugin  PROPERTIES LINK_FLAGS "-Wl,--export-all-symbols")
   endif()
 
-  get_lammps_version(${LAMMPS_SOURCE_DIR}/version.h LAMMPS_VERSION)
+  if(NOT LAMMPS_VERSION)
+    get_lammps_version(${LAMMPS_SOURCE_DIR}/version.h LAMMPS_VERSION)
+  endif()
   find_program(MAKENSIS_PATH makensis)
   if(MAKENSIS_PATH)
     execute_process(COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_SOURCE_DIR}/lammps.ico

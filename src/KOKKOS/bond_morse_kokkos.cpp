@@ -85,6 +85,12 @@ void BondMorseKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   k_alpha.template sync<DeviceType>();
   k_r0.template sync<DeviceType>();
 
+  // sync and claim here too: the MC fixes call this outside run_style verlet/kk
+
+  atomKK->sync(execution_space,datamask_read);
+  if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
+  else atomKK->modified(execution_space,F_MASK);
+
   x = atomKK->k_x.template view<DeviceType>();
   f = atomKK->k_f.template view<DeviceType>();
   neighborKK->k_bondlist.template sync<DeviceType>();

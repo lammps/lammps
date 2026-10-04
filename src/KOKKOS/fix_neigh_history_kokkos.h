@@ -85,7 +85,7 @@ class FixNeighHistoryKokkos : public FixNeighHistory, public KokkosBase {
   typename DAT::tdual_int_2d k_firstflag;
   typename DAT::tdual_kkfloat_2d k_firstvalue;
 
- private:
+ protected:
   int nrecv1,nextrarecv1;
   int nlocal,nsend,beyond_contact;
 

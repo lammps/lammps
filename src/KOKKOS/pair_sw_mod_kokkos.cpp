@@ -479,6 +479,15 @@ void PairSWMODKokkos<DeviceType>::twobody(const Param& param, const KK_FLOAT& rs
   KK_FLOAT r,rinvsq,rp,rq,rainv,rainvsq,expsrainv;
 
   r = Kokkos::sqrt(rsq);
+
+  // r can round up to the cutoff in KK_FLOAT; the limit there is zero
+
+  if (r >= static_cast<KK_FLOAT>(param.cut)) {
+    fforce = 0.0;
+    if (eflag) eng = 0.0;
+    return;
+  }
+
   rinvsq = static_cast<KK_FLOAT>(1.0)/rsq;
   rp = Kokkos::pow(r,static_cast<KK_FLOAT>(-param.powerp));
   rq = Kokkos::pow(r,static_cast<KK_FLOAT>(-param.powerq));
@@ -506,13 +515,23 @@ void PairSWMODKokkos<DeviceType>::threebody_kk(const Param& paramij, const Param
   KK_FLOAT facang,facang12,csfacang,csfac1,csfac2;
 
   r1 = Kokkos::sqrt(rsq1);
+  r2 = Kokkos::sqrt(rsq2);
+
+  // either separation can round up to the cutoff, see the note in twobody()
+
+  if ((r1 >= static_cast<KK_FLOAT>(paramij.cut)) || (r2 >= static_cast<KK_FLOAT>(paramik.cut))) {
+    fj[0] = fj[1] = fj[2] = 0.0;
+    fk[0] = fk[1] = fk[2] = 0.0;
+    if (eflag) eng = 0.0;
+    return;
+  }
+
   rinvsq1 = static_cast<KK_FLOAT>(1.0)/rsq1;
   rainv1 = static_cast<KK_FLOAT>(1.0)/(r1 - static_cast<KK_FLOAT>(paramij.cut));
   gsrainv1 = static_cast<KK_FLOAT>(paramij.sigma_gamma) * rainv1;
   gsrainvsq1 = gsrainv1*rainv1/r1;
   expgsrainv1 = Kokkos::exp(gsrainv1);
 
-  r2 = Kokkos::sqrt(rsq2);
   rinvsq2 = static_cast<KK_FLOAT>(1.0)/rsq2;
   rainv2 = static_cast<KK_FLOAT>(1.0)/(r2 - static_cast<KK_FLOAT>(paramik.cut));
   gsrainv2 = static_cast<KK_FLOAT>(paramik.sigma_gamma) * rainv2;

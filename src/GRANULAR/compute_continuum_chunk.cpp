@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -35,7 +34,6 @@
 #include "neigh_request.h"
 #include "neighbor.h"
 #include "pair.h"
-#include "update.h"
 
 #include <cmath>
 #include <cstring>
@@ -61,7 +59,10 @@ enum {
   FABRIC,
   TEMPERATURE
 };
+
 enum { BOUNDARY_NONE, BOUNDARY_FIX, BOUNDARY_ATOM, BOUNDARY_BOTH };
+
+static constexpr double EPSILON = 1.0e-8;
 
 static const char cite_continuum[] =
     "Coarse-graining procedure: doi:10.1007/s10035-010-0181-z\n\n"
@@ -101,6 +102,9 @@ inline double ComputeContinuumChunk::calc_w_int(double *dr, double *rij) const
   double dr_sq = MathExtra::lensq3(dr);
   double dr_dot_rij = MathExtra::dot3(dr, rij);
   double rij_sq = MathExtra::lensq3(rij);
+
+  // In case atoms are only separated along a dimension which is not being binned
+  if (rij_sq < EPSILON * w_sd_sq) return calc_w(sqrt(dr_sq));
 
   double tmp = dr_dot_rij * dr_dot_rij - dr_sq * rij_sq + rij_sq * w_cut_sq;
   if (tmp < 0.0) return 0.0;
@@ -142,6 +146,7 @@ ComputeContinuumChunk::ComputeContinuumChunk(LAMMPS *lmp, int narg, char **arg) 
   boundary_groupbit = 0;
   radius_required = 0;
   index_density = -1;
+  pstyle = OTHER;
   for (int a = 0; a < 3; a++) {
     index_momentum[a] = -1;
     index_velocity[a] = -1;
@@ -316,6 +321,11 @@ ComputeContinuumChunk::ComputeContinuumChunk(LAMMPS *lmp, int narg, char **arg) 
     error->all(FLERR, "Can only use bin chunk/atom styles with compute continuum/chunk");
   }
 
+  if (cchunk->compress)
+    error->all(FLERR, "The compress option of the chunk/atom compute is not supported by compute continuum/chunk");
+  if (cchunk->get_limit())
+    error->all(FLERR, "The limit option of the chunk/atom compute is not supported by compute continuum/chunk");
+
   w_cut_sq = w_cut * w_cut;
   w_sd_sq = w_sd * w_sd;
 
@@ -390,7 +400,6 @@ void ComputeContinuumChunk::init()
       error->all(FLERR, "Pair style does not support compute continuum/chunk stress calculation");
 
     // Find if granular or gran, need to include tangential forces
-    pstyle = OTHER;
     if (force->pair_match("^granular", 0) || force->pair_match("^gran/", 0)) pstyle = GRANULAR;
 
     auto *pairrequest = neighbor->find_request(force->pair);
@@ -399,6 +408,23 @@ void ComputeContinuumChunk::init()
     else
       neighbor->add_request(this, REQ_OCCASIONAL | REQ_FULL);
   }
+
+  if (domain->triclinic)
+    error->all(FLERR, "Compute continuum/chunk does not support triclinic simulation boxes");
+
+  // compute chunk does not wrap bins across periodic boundaries
+  double *chunk_delta = cchunk->get_delta();
+  double **coord = cchunk->coord;
+  int chunk_ncoord = cchunk->ncoord;
+  int chunk_reducedflag = cchunk->get_reducedflag();
+  if (chunk_reducedflag)
+    for (int a = 0; a < chunk_ncoord; a++)
+      if (std::fmod(1.0, chunk_delta[a]) < EPSILON)
+        error->warning(FLERR, "Bins do not evently divide the simulation box, results on the boundary may be incorrect");
+  else
+    for (int a = 0; a < chunk_ncoord; a++)
+      if (std::fmod(domain->prd[chunk_dim[a]], chunk_delta[a]) < EPSILON)
+        error->warning(FLERR, "Bins do not evently divide the simulation box, results on the boundary may be incorrect");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -431,9 +457,9 @@ void ComputeContinuumChunk::compute_array()
 
   int a, b, itype, style, component, field_index, jboundary;
   double w, wc, mi, voli, rsq_atom_bin, rsq_cont_bin, rsq_pair, r_pair;
-  double f_norm, w_int_tmp;
-  double coordx[3], xbin0[3], xbin[3], xbin2[3], xcont[3], f_pair[3], f_wall[3];
-  double dx_pair[3], dx_pair_filtered[3], dx_atom_bin[3], dx_bin_cont[3], dx_atom_cont[3];
+  double f_norm, w_int_tmp, factor_lj;
+  double coordx[3], xbin0[3], xbin[3], xbin2[3], xcont[3], f_pair[3], f_wall[3], dx_pair[3];
+  double dx_pair_filtered[3], dx_atom_bin[3], dx_bin_cont[3], dx_atom_cont[3], dx_atom_cont_filtered[3];
 
   double **x = atom->x;
   double **v = atom->v;
@@ -443,6 +469,10 @@ void ComputeContinuumChunk::compute_array()
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
+
+  Pair *pair = force->pair;
+  double **cutsq = force->pair->cutsq;
+  double *special_lj = force->special_lj;
 
   int jj, jnum;
   int *jlist, *numneigh, **firstneigh;
@@ -454,7 +484,6 @@ void ComputeContinuumChunk::compute_array()
     firstneigh = list->firstneigh;
   }
 
-  Pair *pair = force->pair;
   auto wall_fixes = modify->get_fix_by_style("wall/gran");
 
   for (i = 0; i < nlocal; i++) {
@@ -463,14 +492,16 @@ void ComputeContinuumChunk::compute_array()
 
       if (boundary_group_flag && (mask[i] & boundary_groupbit)) continue;
 
-      MathExtra::copy3(x[i], xbin0);
-      for (a = 0; a < chunk_ncoord; a++) {
-        if (chunk_reducedflag) {
-          domain->lamda2x(coord[m], coordx);
-          xbin0[cdim[a]] = coordx[a];
-        } else {
+      if (chunk_reducedflag) {
+        double lamda[3];
+        domain->x2lamda(x[i], lamda);
+        for (a = 0; a < chunk_ncoord; a++)
+          lamda[cdim[a]] = coord[m][a];
+        domain->lamda2x(lamda, xbin0);
+      } else {
+        MathExtra::copy3(x[i], xbin0);
+        for (a = 0; a < chunk_ncoord; a++)
           xbin0[cdim[a]] = coord[m][a];
-        }
       }
 
       itype = type[i];
@@ -501,11 +532,12 @@ void ComputeContinuumChunk::compute_array()
           style = val.first;
           component = val.second;
 
-          a = component % 3;
-          b = (component - a) / 3;
+          a = component / 3;
+          b = component % 3;
 
           if (style == NATOMS) {
-            values_local[mtmp][field_index] += 1.0;
+            if (rsq_atom_bin < w_cut_sq)
+              values_local[mtmp][field_index] += 1.0;
           } else if (style == DENSITY) {
             values_local[mtmp][field_index] += mi * w;
           } else if (style == VOLFRAC) {
@@ -514,7 +546,7 @@ void ComputeContinuumChunk::compute_array()
             values_local[mtmp][field_index] += mi * v[i][component] * w;
           }
 
-          if (boundaryflag && ((style == STRESS) || (style == STRESSCON))) {
+          if ((boundaryflag  == BOUNDARY_FIX || boundaryflag == BOUNDARY_BOTH) && ((style == STRESS) || (style == STRESSCON))) {
             for (auto wall_fix : wall_fixes) {
               array_atom_fix = wall_fix->array_atom;
 
@@ -527,7 +559,10 @@ void ComputeContinuumChunk::compute_array()
               xcont[2] = array_atom_fix[i][6];
 
               MathExtra::sub3(x[i], xcont, dx_atom_cont);
-              w_int_tmp = calc_w_int(dx_atom_bin, dx_atom_cont);
+              MathExtra::zero3(dx_atom_cont_filtered);
+              for (int coord_index = 0; coord_index < chunk_ncoord; coord_index++)
+                dx_atom_cont_filtered[cdim[coord_index]] = dx_atom_cont[cdim[coord_index]];
+              w_int_tmp = calc_w_int(dx_atom_bin, dx_atom_cont_filtered);
 
               values_local[mtmp][field_index] -= f_wall[a] * dx_atom_cont[b] * w_int_tmp;
             }
@@ -536,11 +571,14 @@ void ComputeContinuumChunk::compute_array()
           field_index++;
         }
 
+        // Note that in the future the performance of this loop could be improved by only performing one
+        //   single() calculation if the loops were reordered. Ditto for lambda2x() calculations.
         if (calculate_pair) {
           jlist = firstneigh[i];
           jnum = numneigh[i];
           for (jj = 0; jj < jnum; jj++) {
             j = jlist[jj];
+            factor_lj = special_lj[sbmask(j)];
             j &= NEIGHMASK;
 
             if (!(mask[j] & groupbit)) continue;
@@ -552,16 +590,20 @@ void ComputeContinuumChunk::compute_array()
 
             MathExtra::sub3(x[i], x[j], dx_pair);
             rsq_pair = MathExtra::lensq3(dx_pair);
+            if (rsq_pair >= cutsq[itype][type[j]]) continue;
+
             r_pair = sqrt(rsq_pair);
+
             pair->single(i, j, itype, type[j], rsq_pair, 1.0, 1.0, f_norm);
 
-            MathExtra::scale3(f_norm / r_pair, dx_pair, f_pair);
+            MathExtra::scale3(f_norm, dx_pair, f_pair);
             if (pstyle == GRANULAR) {
               f_pair[0] += force->pair->svector[0];
               f_pair[1] += force->pair->svector[1];
               f_pair[2] += force->pair->svector[2];
             }
 
+            MathExtra::scale3(factor_lj, f_pair, f_pair);
             if (MathExtra::lensq3(f_pair) == 0.0) continue;
 
             if (jboundary) {
@@ -577,7 +619,10 @@ void ComputeContinuumChunk::compute_array()
               wc = calc_w(sqrt(rsq_cont_bin));
 
               MathExtra::sub3(x[i], xcont, dx_atom_cont);
-              w_int_tmp = calc_w_int(dx_atom_bin, dx_atom_cont);
+              MathExtra::zero3(dx_atom_cont_filtered);
+              for (int coord_index = 0; coord_index < chunk_ncoord; coord_index++)
+                dx_atom_cont_filtered[cdim[coord_index]] = dx_atom_cont[cdim[coord_index]];
+              w_int_tmp = calc_w_int(dx_atom_bin, dx_atom_cont_filtered);
             } else {
               MathExtra::zero3(dx_pair_filtered);
               for (int coord_index = 0; coord_index < chunk_ncoord; coord_index++)
@@ -590,22 +635,21 @@ void ComputeContinuumChunk::compute_array()
               style = val.first;
               component = val.second;
 
-              a = component % 3;
-              b = (component - a) / 3;
+              a = component / 3;
+              b = component % 3;
 
-              // Factors of 1/2 b/c this is a full nlist EXCEPT for boundary which filters if one atom is a boundary
               if ((style == STRESS) || (style == STRESSCON)) {
                 if (jboundary) {
-                  values_local[mtmp][field_index] -= 0.5 * f_pair[a] * dx_atom_cont[b] * w_int_tmp;
+                  values_local[mtmp][field_index] -= f_pair[a] * dx_atom_cont[b] * w_int_tmp;
                 } else {
-                  values_local[mtmp][field_index] -= 0.5 * f_pair[a] * dx_pair[b] * w_int_tmp;
+                  values_local[mtmp][field_index] -= f_pair[a] * dx_pair[b] * w_int_tmp;
                 }
               } else if (style == IFD) {
-                if (!jboundary) continue;
-                values_local[mtmp][field_index] -= f_pair[a] * wc;
+                if (jboundary)
+                  values_local[mtmp][field_index] -= f_pair[a] * wc;
               } else if (style == FABRIC) {
-                if (jboundary) continue;
-                values_local[mtmp][field_index] +=
+                if (jboundary)
+                  values_local[mtmp][field_index] +=
                     0.5 * voli * dx_pair[a] * dx_pair[b] * w_int_tmp / rsq_pair;
               }
 
@@ -634,17 +678,23 @@ void ComputeContinuumChunk::compute_array()
 
     double dtemp, vtemp[3];
     for (i = 0; i < nlocal; i++) {
+
+      if (boundary_group_flag && (mask[i] & boundary_groupbit))
+        continue;
+
       if ((mask[i] & groupbit) && (ichunk[i] > 0)) {
         m = ichunk[i] - 1;
 
-        MathExtra::copy3(x[i], xbin0);
-        for (a = 0; a < chunk_ncoord; a++) {
-          if (chunk_reducedflag) {
-            domain->lamda2x(coord[m], coordx);
-            xbin0[cdim[a]] = coordx[a];
-          } else {
+        if (chunk_reducedflag) {
+          double lamda[3];
+          domain->x2lamda(x[i], lamda);
+          for (a = 0; a < chunk_ncoord; a++)
+            lamda[cdim[a]] = coord[m][a];
+          domain->lamda2x(lamda, xbin0);
+        } else {
+          MathExtra::copy3(x[i], xbin0);
+          for (a = 0; a < chunk_ncoord; a++)
             xbin0[cdim[a]] = coord[m][a];
-          }
         }
 
         for (auto &stencil_offset : stencil) {
@@ -675,8 +725,8 @@ void ComputeContinuumChunk::compute_array()
             style = val.first;
             component = val.second;
 
-            a = component % 3;
-            b = (component - a) / 3;
+            a = component / 3;
+            b = component % 3;
 
             if (style == TEMPERATURE) {
               values_local[mtmp][field_index] += 0.5 * mi * MathExtra::lensq3(vtemp) * w;
@@ -691,10 +741,22 @@ void ComputeContinuumChunk::compute_array()
     }
   }
 
-  MPI_Allreduce(&values_local[0][0], &values_global[0][0], nchunk * nvalues, MPI_DOUBLE, MPI_SUM,
-                world);
+  MPI_Allreduce(&values_local[0][0], &values_global[0][0], nchunk * nvalues, MPI_DOUBLE, MPI_SUM, world);
+
+  // Normalize by any unused dimensions
+  if (bin_dim != dim) {
+    int unused_dim[3] = {1, 1, 1};
+    for (a = 0; a < ncoord; a++) unused_dim[cdim[a]] = 0;
+
+    for (a = 0; a < dim; a++)
+      if (unused_dim[a])
+        for (m = 0; m < nchunk; m++)
+          for (int n = 0; n < nvalues; n++)
+            values_global[m][n] /= domain->prd[a];
+  }
 
   // Calculate trivially derived values, in the order used
+
   // velocity
   double dtemp;
   for (m = 0; m < nchunk; m++) {
@@ -713,6 +775,13 @@ void ComputeContinuumChunk::compute_array()
   }
 
   // gradients
+
+  double width[3] = {0.0, 0.0, 0.0};
+  for (int a = 0; a < chunk_ncoord; a++) {
+    width[a] = chunk_delta[a];
+    if (chunk_reducedflag) width[a] *= domain->prd[chunk_dim[a]];
+  }
+
   int shift[3], mp, mm, ac;
   for (m = 0; m < nchunk; m++) {
     field_index = 0;
@@ -725,8 +794,8 @@ void ComputeContinuumChunk::compute_array()
         continue;
       }
 
-      a = component % 3;
-      b = (component - a) / 3;
+      a = component / 3;
+      b = component % 3;
 
       ac = -1;
       for (int c = 0; c < ncoord; c++)
@@ -744,20 +813,42 @@ void ComputeContinuumChunk::compute_array()
       shift[ac] = -1;
       mm = shifted_bin(m, shift);
 
-      if ((mp == -1) || (mm == -1)) {
+      if ((mp == -1) && (mm == -1)) {
         values_global[m][field_index] = 0.0;
         field_index++;
         continue;
       }
 
-      if (style == MGRAD) {
-        values_global[m][field_index] =
+      if (mp == -1) {
+        if (style == MGRAD) {
+          values_global[m][field_index] =
+              (values_global[m][index_momentum[b]] - values_global[mm][index_momentum[b]]) /
+              (width[ac]);
+        } else if (style == VGRAD) {
+          values_global[m][field_index] =
+              (values_global[m][index_velocity[b]] - values_global[mm][index_velocity[b]]) /
+              (width[ac]);
+        }
+      } else if (mm == -1) {
+        if (style == MGRAD) {
+          values_global[m][field_index] =
+              (values_global[mp][index_momentum[b]] - values_global[m][index_momentum[b]]) /
+              (width[ac]);
+        } else if (style == VGRAD) {
+          values_global[m][field_index] =
+              (values_global[mp][index_velocity[b]] - values_global[m][index_velocity[b]]) /
+              (width[ac]);
+        }
+      } else {
+        if (style == MGRAD) {
+          values_global[m][field_index] =
             (values_global[mp][index_momentum[b]] - values_global[mm][index_momentum[b]]) /
-            (2.0 * chunk_delta[a]);
-      } else if (style == VGRAD) {
-        values_global[m][field_index] =
+            (2.0 * width[ac]);
+        } else if (style == VGRAD) {
+          values_global[m][field_index] =
             (values_global[mp][index_velocity[b]] - values_global[mm][index_velocity[b]]) /
-            (2.0 * chunk_delta[a]);
+            (2.0 * width[ac]);
+        }
       }
 
       field_index++;
@@ -770,8 +861,9 @@ void ComputeContinuumChunk::compute_array()
     for (auto &val : values) {
       style = val.first;
       component = val.second;
-      a = component % 3;
-      b = (component - a) / 3;
+
+      a = component / 3;
+      b = component % 3;
 
       if (style == STRAINRATE)
         values_global[m][field_index] =
@@ -779,18 +871,6 @@ void ComputeContinuumChunk::compute_array()
 
       field_index++;
     }
-  }
-
-  // Normalize by any unused dimensions
-  if (bin_dim != dim) {
-    int unused_dim[3] = {1, 1, 1};
-    for (a = 0; a < ncoord; a++) unused_dim[cdim[a]] = 0;
-
-    for (a = 0; a < dim; a++)
-      if (unused_dim[a])
-        for (m = 0; m < nchunk; m++)
-          for (int n = 0; n < nvalues; n++)
-            values_global[m][n] /= domain->prd[a];
   }
 
   for (m = 0; m < nchunk; m++)
@@ -896,8 +976,8 @@ void ComputeContinuumChunk::add_tensor_component(char *option, int variable)
     values.push_back(std::make_pair(variable, index));
     labels.push_back(option);
     if (variable == VGRAD) {
-      int a = index % 3;
-      int b = (index - a) / 3;
+      int a = index / 3;
+      int b = index % 3;
       index_vgrad[a][b] = static_cast<int>(values.size()) - 1;
     }
   }
@@ -993,11 +1073,19 @@ void ComputeContinuumChunk::build_stencil()
   ncoord = cchunk->ncoord;
   reducedflag = cchunk->get_reducedflag();
 
+  // The distance here is center-to-center between bins, so add diagonal distance to kernel cutoff
+  double diagonal = 0.0;
   for (int a = 0; a < ncoord; a++) {
     width[a] = delta[a];
     if (reducedflag) width[a] *= domain->prd[chunk_dim[a]];
-    stencil_size[a] = static_cast<int>(ceil(w_cut / width[a]));
+    diagonal += width[a] * width[a];
   }
+
+  diagonal = sqrt(diagonal);
+  double cut = w_cut + diagonal;
+  double cut_sq = cut * cut;
+  for (int a = 0; a < ncoord; a++)
+    stencil_size[a] = static_cast<int>(ceil(cut / width[a]));
 
   for (int dn0 = -stencil_size[0]; dn0 <= stencil_size[0]; dn0++) {
     for (int dn1 = -stencil_size[1]; dn1 <= stencil_size[1]; dn1++) {
@@ -1011,7 +1099,7 @@ void ComputeContinuumChunk::build_stencil()
         if (ncoord >= 3) offset.dx[chunk_dim[2]] = dn2 * width[2];
 
         double r_sq = MathExtra::lensq3(offset.dx);
-        if (r_sq <= w_cut_sq) {
+        if (r_sq <= cut_sq) {
           offset.dn[0] = dn0;
           offset.dn[1] = dn1;
           offset.dn[2] = dn2;

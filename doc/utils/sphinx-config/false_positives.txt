@@ -377,6 +377,7 @@ Bogaerts
 Bogoliubov
 Bogusz
 Bohrs
+Bokhove
 boltz
 Bomont
 Bonato
@@ -1506,6 +1507,7 @@ Goedecker
 Goerigk
 Goga
 Goldfarb
+Goldhirsch
 Gompper
 Gonzalez-Melchor
 Goodsell
@@ -4536,6 +4538,7 @@ wca
 webpage
 Weckner
 WeinanE
+Weinhart
 Wennberg
 Westmere
 Westview

@@ -49,8 +49,9 @@ class ComputeChunkAtom : public Compute {
   int setup_chunks();
   void compute_ichunk();
 
+  int get_limit() const { return limit; }
   int get_which() const { return which; }
-  int get_reducedflag() const {return reducedflag; }
+  int get_reducedflag() const { return reducedflag; }
   int *get_dim() { return dim; }
   double *get_delta() { return delta; }
   int *get_nlayers() { return nlayers; }
@@ -69,7 +70,7 @@ class ComputeChunkAtom : public Compute {
   int ndim;
   int dim[3], originflag[3], nlayers[3];
   int minflag[3], maxflag[3];
-  double origin[3], delta[3], widths[3];
+  double origin[3], delta[3];
   double offset[3], invdelta[3];
   double minvalue[3], maxvalue[3];
 

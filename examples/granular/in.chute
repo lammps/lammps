@@ -1,3 +1,4 @@
+# Create a 2D chute flow and coarse-grain the resulting velocity field
 
 units               lj
 dimension           2
@@ -25,13 +26,11 @@ fix                 wall all wall/gran granular hooke 10.0 0.5 &
                              tangential linear_history 1.0 0.5 0.1 &
                              yplane 0.0 NULL contacts
 
-#run                 0
-
 timestep            0.05
 thermo_style        custom step ke press vol pxx pyy pxy
 thermo              1000
 
-#dump                1 all custom 10000 atomDump id type radius x y z vx vy
+# dump                1 all custom 10000 atomDump id type radius x y z vx vy
 
 run                 100000
 
@@ -51,6 +50,6 @@ fix                 wallc newwall freeze
 compute             mybins notwall chunk/atom  bin/1d y center 0.5 units box
 compute             ccont all continuum/chunk mybins 4.0 2.0 natoms velocity/x velocity/y
 compute             cprop all property/chunk mybins count coord1
-fix                 ave all ave/time 1000 100 100000 c_cprop[*] c_ccont[*] mode vector #file cg_fields.txt
+fix                 ave all ave/time 1000 10 10000 c_cprop[*] c_ccont[*] mode vector file cg_fields.txt
 
-run                 100000
+run                 10000

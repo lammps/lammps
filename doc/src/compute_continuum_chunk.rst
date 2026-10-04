@@ -14,9 +14,9 @@ Syntax
 * continuum/chunk = style name of this compute command
 * chunkID = ID of :doc:`compute chunk/atom <compute_chunk_atom>` command
 * cutoff = cutoff for the truncated Gaussian kernel
-* width = standard deviation of the corresponding untruncated Gaussian kernel
+* width = standard deviation of the corresponding Gaussian kernel without truncation
 * one or more input fields can be listed
-* field = *density*, *volume/fraction*, *momentum/a*, *velocity/a*, *momentum/grad/ab*, *velocity/grad/ab*, *strain/rate/ab*, *stress/ab*, *stress/ke/ab*, *stress/contacts/ab*, *boundary/force/a*, *fabric/ab*, *temperature*
+* field = *natoms*, *density*, *volume/fraction*, *momentum/a*, *velocity/a*, *momentum/grad/ab*, *velocity/grad/ab*, *strain/rate/ab*, *stress/ab*, *stress/ke/ab*, *stress/contacts/ab*, *boundary/force/a*, *fabric/ab*, *temperature*
 
   .. parsed-literal::
 
@@ -83,9 +83,10 @@ chunkID.  For example, a chunk may be a molecule or a spatial bin.  See
 This compute is only compatible with the binning styles of
 :doc:`compute chunk/atom <compute_chunk_atom>` (*bin/1d*, *bin/2d*, or
 *bin/3d*).  If binning is not performed along one of the box dimensions,
-all outputs are normalized by the box length in that dimension.  For
-example, if a 3d system is binned only along *z*, the reported fields are
-normalized by *Lx* and *Ly*.
+outputs are normalized by the box length in that dimension when appropriate.
+For example, if a 3d system is binned only along *z*, the reported fields are
+normalized by *Lx* and *Ly*. Normalization is not performed on velocities,
+gradients, strain rates, and the number of atoms.
 
 The available fields, include scalar, vector, and tensor quantities.
 A vector field such as the velocity may be requested as an individual
@@ -113,6 +114,8 @@ and data output.
 The kernel used in the coarse-graining is a truncated Gaussian function.
 The standard deviation of the function is defined by the *width* parameter.
 The maximum cutoff of the Gaussian function is defined by the *cutoff* parameter.
+These values are not restricted to the size of a chunk and can extend beyond its
+boundaries.
 
 ----------
 
@@ -128,9 +131,10 @@ The *density* field is
 
    \sum_i m_i W(\vec{r}_\mathrm{chunk} - \vec{r}_i)
 
-where the summation is across all atoms :math:`i` in the chunk. :math:`m_i`
-is the atom mass, :math:`\vec{r}_\mathrm{chunk}` is the chunk center,
-:math:`\vec{r}_i` is the atom position, and :math:`W` is the kernel.
+where the summation is across all atoms :math:`i` in the group and within the
+cutoff of the kernel from the center of the chunk. :math:`m_i` is the atom mass,
+:math:`\vec{r}_\mathrm{chunk}` is the chunk center, :math:`\vec{r}_i` is the atom
+position, and :math:`W` is the kernel.
 
 The *volume/fraction* field is
 
@@ -148,22 +152,22 @@ The *momentum* field is
 
 where :math:`v_{i,a}` is the :math:`a` component of the atom velocity.
 The *momentum/grad* field is then obtained with centered finite
-differences between neighboring chunks.  Gradient values are zero for
-chunks adjacent to a nonperiodic boundary in the corresponding
-direction.
+differences between neighboring chunks.  Gradient values are calculated
+using a one sided finite difference for chunks adjacent to a non-periodic
+boundary.
 
 The *velocity* field is the ratio of the *momentum* and *density*
 fields.  The *velocity/grad* field is then obtained with centered finite
 differences.  Thus, if a box dimension is represented by a single chunk,
 gradients along that dimension are zero. Gradient values are also zero on
-bins that are adjacent to a nonperiodic boundary.
+bins that are adjacent to a non-periodic boundary.
 
-The *boundary/force* field is the interaction force density of
-boundaries as defined in :ref:`(Weinhart) <_compute_continuum_chunk_weinhart>`:
+The *boundary/force* field is the interaction force density of the particles on
+the boundaries as defined in :ref:`(Weinhart) <_compute_continuum_chunk_weinhart>`:
 
 .. math::
 
-   \sum_i \sum_k f_{ik,a} W(\vec{r}_\mathrm{chunk} - \vec{r}_{\mathrm{contact},ik})
+   - \sum_i \sum_k f_{ik,a} W(\vec{r}_\mathrm{chunk} - \vec{r}_{\mathrm{contact},ik})
 
 where the sum over :math:`k` is over boundary elements and
 :math:`\vec{r}_{\mathrm{contact},ik}` is the contact point between atom
@@ -180,7 +184,8 @@ The *stress/ke* field is the kinetic contribution to the stress:
 
 where :math:`v_{i,a}` is the :math:`a`-th component of the velocity of atom :math:`i` and
 :math:`v_{\mathrm{chunk},a}` is the :math:`a`-th component of the average velocity
-of the chunk defined by the *velocity* option above.
+of the chunk defined by the *velocity* option above. Note that this average velocity
+is is evaluated at the center of the bin corresponding to the chunk.
 
 The *stress/contacts* field is the contact contribution to the stress:
 
@@ -191,7 +196,8 @@ The *stress/contacts* field is the contact contribution to the stress:
 
 where :math:`f_{ij,a}` is the force on atom :math:`i` from atom
 :math:`j` and :math:`\vec{r}_{ij}` is the displacement between the two
-atoms.
+atoms. Here, the double summation is over all pairs of atoms :math:`i` and
+:math:`j` where each pair is counted only once.
 
 The *stress* field is the sum of the kinetic and contact contributions.
 
@@ -208,17 +214,21 @@ The *strain/rate* field is
 
 .. math::
 
-   \frac{1}{2} \left( \grad_{ab} v + \grad_{ba} v \right)
+   \frac{1}{2} \left( \nabla_{ab} v + \nabla_{ba} v \right)
 
-where :math:`\grad_{ab} v` is the :math:`ab` component of the
+where :math:`\nabla_{ab} v` is the :math:`ab` component of the
 *velocity/grad* field.
 
-The *temperature* field is a local granular temperature:
+The *temperature* field is a local granular temperature defined as:
 
 .. math::
 
    \frac{1}{2} \sum_i m_i (v_i - v_\mathrm{chunk})^2
    W(\vec{r}_\mathrm{chunk} - \vec{r}_i)
+
+This is the kinetic energy density and does not include any factors
+of density or dimension which may be included in a statistical mechanical
+temperature calculation.
 
 ----------
 
@@ -232,7 +242,7 @@ analogous correction for boundaries created by
 :doc:`fix wall/gran <fix_wall_gran>`.
 
 Output info
-""""""""""
+"""""""""""
 
 This compute calculates a global array where the number of rows is the
 number of chunks :math:`N_\text{chunk}` defined by the referenced
@@ -249,28 +259,34 @@ overview of output options.  The array values are intensive.  Units
 depend on the requested fields.
 
 Restrictions
-"""""""""""
+""""""""""""
 
 This compute is part of the GRANULAR package.  It is only enabled if
 LAMMPS was built with that package.  See the :doc:`Build package
 <Build_package>` page for more information.
 
 Only *bin/1d*, *bin/2d*, and *bin/3d* styles of
-:doc:`compute chunk/atom <compute_chunk_atom>` are supported.
+:doc:`compute chunk/atom <compute_chunk_atom>` are supported. Furthermore,
+the *compress* and *limit* options of the chunk/atom compute are not supported.
+If a boundary is periodic, results from bins on the boundary will be incorrect
+unless the simulation box in that dimension is evenly divisible by the bin width
+such that no bin extends beyond the simulation boundaries. A warning will be
+issued if this condition is not met.
+
+Triclinic boxes are not supported.
 
 The *volume/fraction*, *stress*, *stress/contacts*, *boundary/force*,
 and *fabric* values require particles with a radius attribute.
 
-Pair-dependent quantities require a pair style that supports
-``pair->single()``.  The *boundary/fix* keyword requires at least one
-:doc:`fix wall/gran <fix_wall_gran>` instance with the *contacts*
-keyword enabled.
+Pair-dependent quantities require a pair style that that can compute
+the force for a single pair of atoms.  The *boundary/fix* keyword requires at
+least one :doc:`fix wall/gran <fix_wall_gran>` instance. All such instances
+must have the *contacts* keyword enabled.
 
 Related commands
-""""""""""""""
+""""""""""""""""
 
 :doc:`compute property/chunk <compute_property_chunk>`,
-:doc:`compute msd/chunk <compute_msd_chunk>`,
 :doc:`fix ave/time <fix_ave_time>`,
 :doc:`fix wall/gran <fix_wall_gran>`
 

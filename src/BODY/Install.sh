@@ -31,7 +31,7 @@ action () {
 }
 
 # all package files, the GRANULAR sub-models for body/rounded/polyhedron
-# require the GRANULAR package
+# and wall/body/polyhedron require the GRANULAR package
 
 action body_nparticle.cpp
 action body_nparticle.h
@@ -57,6 +57,8 @@ action fix_wall_body_polygon.cpp
 action fix_wall_body_polygon.h
 action fix_wall_body_polyhedron.cpp
 action fix_wall_body_polyhedron.h
+action fix_wall_body_polyhedron_granular.cpp granular_model.cpp
+action fix_wall_body_polyhedron_granular.h   granular_model.h
 action pair_body_nparticle.cpp
 action pair_body_nparticle.h
 action pair_body_rounded_polygon.cpp

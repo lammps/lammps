@@ -7,3 +7,13 @@ if(NOT PKG_GRANULAR)
   list(REMOVE_ITEM LAMMPS_SOURCES ${LAMMPS_SOURCE_DIR}/BODY/pair_body_rounded_polyhedron_granular.cpp)
   set_property(TARGET lammps PROPERTY SOURCES "${LAMMPS_SOURCES}")
 endif()
+
+# fix wall/body/polyhedron/granular may only be installed if also the GRANULAR package is installed
+if(NOT PKG_GRANULAR)
+  get_property(LAMMPS_FIX_HEADERS GLOBAL PROPERTY FIX)
+  list(REMOVE_ITEM LAMMPS_FIX_HEADERS ${LAMMPS_SOURCE_DIR}/BODY/fix_wall_body_polyhedron_granular.h)
+  set_property(GLOBAL PROPERTY FIX "${LAMMPS_FIX_HEADERS}")
+  get_target_property(LAMMPS_SOURCES lammps SOURCES)
+  list(REMOVE_ITEM LAMMPS_SOURCES ${LAMMPS_SOURCE_DIR}/BODY/fix_wall_body_polyhedron_granular.cpp)
+  set_property(TARGET lammps PROPERTY SOURCES "${LAMMPS_SOURCES}")
+endif()

@@ -8,7 +8,8 @@
 # mixed for contacts between cubes and tetrahedra, a damping proportional to
 # the effective mass, and a tangential spring with the contact history,
 # whose static friction keeps the tilted heap at rest (tan 20 degrees < mu),
-# as the x coordinate of its center of mass (v_xcm) shows.
+# as the x coordinate of its center of mass (v_xcm) shows.  The floor uses
+# the same contact models with fix wall/body/polyhedron/granular.
 # The stiffness E is chosen so that the normal force at an overlap of 0.05
 # at a vertex is about that of k_n = 100 in in.heap3d.
 
@@ -56,7 +57,12 @@ region       slab block 2 18 2 18 4 20 units box
 
 fix          ins all pour 50 0 4767548 vol 0.25 10 region slab mol object &
              molfrac 0.5 0.5
-fix          4 all wall/body/polyhedron 2000 50 50 zplane 0.0 NULL history ${mu} NULL
+
+# the floor has the elastic properties and friction of the cubes
+
+fix          4 all wall/body/polyhedron/granular hertz/material 1200 ${damp} 0.3 &
+             damping mass_velocity tangential linear_history ${k_t} ${xt} ${mu} &
+             zplane 0.0 NULL
 
 compute      tb all temp/body
 compute_modify thermo_temp dynamic/dof yes

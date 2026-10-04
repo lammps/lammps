@@ -1223,6 +1223,8 @@
 /fix_wall_body_polygon.h
 /fix_wall_body_polyhedron.cpp
 /fix_wall_body_polyhedron.h
+/fix_wall_body_polyhedron_granular.cpp
+/fix_wall_body_polyhedron_granular.h
 /fix_wall_colloid.cpp
 /fix_wall_colloid.h
 /fix_wall_ees.cpp

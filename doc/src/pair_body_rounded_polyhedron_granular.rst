@@ -144,7 +144,8 @@ of particles.
 The input script *in.heap3d_granular* in the *examples/body* directory
 pours cubes and tetrahedra onto a floor with Hertzian contacts from the
 elastic properties of either particle type, and tilts gravity once they
-have come to rest in a heap.
+have come to rest in a heap.  The floor uses the same contact models with
+:doc:`fix wall/body/polyhedron/granular <fix_wall_body_polyhedron_granular>`.
 
 ----------
 
@@ -194,7 +195,8 @@ Related commands
 :doc:`pair_coeff <pair_coeff>`, :doc:`pair_style body/rounded/polyhedron
 <pair_body_rounded_polyhedron>`, :doc:`pair_style granular
 <pair_granular>`, :doc:`fix wall/body/polyhedron
-<fix_wall_body_polyhedron>`
+<fix_wall_body_polyhedron>`, :doc:`fix wall/body/polyhedron/granular
+<fix_wall_body_polyhedron_granular>`
 
 Default
 """""""

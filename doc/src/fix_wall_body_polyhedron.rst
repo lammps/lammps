@@ -187,7 +187,8 @@ Any dimension (xyz) that has a wall must be non-periodic.
 Related commands
 """"""""""""""""
 
-:doc:`atom_style body <atom_style>`, :doc:`pair_style body/rounded/polyhedron <pair_body_rounded_polyhedron>`
+:doc:`atom_style body <atom_style>`, :doc:`pair_style body/rounded/polyhedron <pair_body_rounded_polyhedron>`,
+:doc:`fix wall/body/polyhedron/granular <fix_wall_body_polyhedron_granular>`
 
 Default
 """""""

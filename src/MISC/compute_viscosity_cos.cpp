@@ -25,6 +25,7 @@
 #include "group.h"
 #include "error.h"
 #include "math_const.h"
+#include "memory.h"
 
 #include <cmath>
 
@@ -57,6 +58,7 @@ ComputeViscosityCos::~ComputeViscosityCos() {
   if (!copymode) {
     delete[] vector;
     delete[] extlist;
+    memory->destroy(vbiasall);
   }
 }
 
@@ -243,6 +245,12 @@ void ComputeViscosityCos::remove_bias_all() {
   double **v = atom->v;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
+
+  if (atom->nmax > maxbias) {
+    memory->destroy(vbiasall);
+    maxbias = atom->nmax;
+    memory->create(vbiasall,maxbias,3,"viscosity/cos:vbiasall");
+  }
 
   for (int i = 0; i < nlocal; i++)
     if (mask[i] & groupbit) {

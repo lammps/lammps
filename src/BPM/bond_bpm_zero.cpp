@@ -51,6 +51,7 @@ BondBPMZero::BondBPMZero(LAMMPS *_lmp) :
   // Whether a manybody term is needed, depends on specific model
   //   Here toggled by a placeholder setting to demonstrate an arbitrary calculation
   manybody_flag = 0;
+  index_manybody = -1;
 
   update_flag = 0;    // Whether stored values can evolve
   nhistory = 1;       // Number of values stored per bond
@@ -70,7 +71,7 @@ BondBPMZero::BondBPMZero(LAMMPS *_lmp) :
 BondBPMZero::~BondBPMZero()
 {
   delete[] svector;
-  if (id_fix_property_bond && modify->nfix) {
+  if (id_fix_property_bond) {
     modify->delete_fix(id_fix_property_bond);
     delete[] id_fix_property_bond;
   }
@@ -407,9 +408,11 @@ double BondBPMZero::single(int type, double /*rsq*/, int i, int j, double &fforc
 int BondBPMZero::pack_reverse_comm(int n, int first, double *buf)
 {
   int m = 0;
-  double *manybody = atom->dvector[index_manybody];
-  int last = first + n;
-  for (int i = first; i < last; i++) buf[m++] = manybody[i];
+  if (manybody_flag) {
+    double *manybody = atom->dvector[index_manybody];
+    int last = first + n;
+    for (int i = first; i < last; i++) buf[m++] = manybody[i];
+  }
   return m;
 }
 
@@ -418,10 +421,12 @@ int BondBPMZero::pack_reverse_comm(int n, int first, double *buf)
 void BondBPMZero::unpack_reverse_comm(int n, int *list, double *buf)
 {
   int m = 0;
-  double *manybody = atom->dvector[index_manybody];
-  for (int i = 0; i < n; i++) {
-    int j = list[i];
-    manybody[j] += buf[m++];
+  if (manybody_flag) {
+    double *manybody = atom->dvector[index_manybody];
+    for (int i = 0; i < n; i++) {
+      int j = list[i];
+      manybody[j] += buf[m++];
+    }
   }
 }
 
@@ -430,10 +435,12 @@ void BondBPMZero::unpack_reverse_comm(int n, int *list, double *buf)
 int BondBPMZero::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/, int * /*pbc*/)
 {
   int m = 0;
-  double *manybody = atom->dvector[index_manybody];
-  for (int i = 0; i < n; i++) {
-    int j = list[i];
-    buf[m++] = manybody[j];
+  if (manybody_flag) {
+    double *manybody = atom->dvector[index_manybody];
+    for (int i = 0; i < n; i++) {
+      int j = list[i];
+      buf[m++] = manybody[j];
+    }
   }
   return m;
 }
@@ -443,7 +450,9 @@ int BondBPMZero::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag
 void BondBPMZero::unpack_forward_comm(int n, int first, double *buf)
 {
   int m = 0;
-  double *manybody = atom->dvector[index_manybody];
-  int last = first + n;
-  for (int i = first; i < last; i++) manybody[i] = buf[m++];
+  if (manybody_flag) {
+    double *manybody = atom->dvector[index_manybody];
+    int last = first + n;
+    for (int i = first; i < last; i++) manybody[i] = buf[m++];
+  }
 }

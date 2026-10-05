@@ -1,62 +1,70 @@
 .. index:: pair_style born/coul/dsf/cs
+.. index:: pair_style born/coul/dsf/cs/kk
 .. index:: pair_style born/coul/dsf/cs/omp
 .. index:: pair_style born/coul/long/cs
+.. index:: pair_style born/coul/long/cs/kk
 .. index:: pair_style born/coul/long/cs/gpu
 .. index:: pair_style born/coul/long/cs/omp
 .. index:: pair_style born/coul/wolf/cs
+.. index:: pair_style born/coul/wolf/cs/kk
 .. index:: pair_style born/coul/wolf/cs/gpu
 .. index:: pair_style born/coul/wolf/cs/omp
 .. index:: pair_style buck/coul/long/cs
+.. index:: pair_style buck/coul/long/cs/kk
 .. index:: pair_style buck/coul/long/cs/omp
 .. index:: pair_style coul/long/cs
+.. index:: pair_style coul/long/cs/kk
 .. index:: pair_style coul/long/cs/gpu
 .. index:: pair_style coul/long/cs/omp
 .. index:: pair_style coul/wolf/cs
+.. index:: pair_style coul/wolf/cs/kk
 .. index:: pair_style coul/wolf/cs/omp
 .. index:: pair_style lj/cut/coul/long/cs
+.. index:: pair_style lj/cut/coul/long/cs/kk
 .. index:: pair_style lj/cut/coul/long/cs/omp
 .. index:: pair_style lj/class2/coul/long/cs
+.. index:: pair_style lj/class2/coul/long/cs/kk
 .. index:: pair_style lj/class2/coul/long/cs/omp
 
 pair_style born/coul/dsf/cs command
 ===================================
 
-Accelerator Variants: *born/coul/dsf/cs/omp*
+Accelerator Variants: *born/coul/dsf/cs/kk*, *born/coul/dsf/cs/omp*
 
 pair_style born/coul/long/cs command
 ====================================
 
-Accelerator Variants: *born/coul/long/cs/gpu*, *born/coul/long/cs/omp*
+Accelerator Variants: *born/coul/long/cs/gpu*, *born/coul/long/cs/kk*, *born/coul/long/cs/omp*
 
 pair_style born/coul/wolf/cs command
 ====================================
 
-Accelerator Variants: *born/coul/wolf/cs/gpu*, *born/coul/wolf/cs/omp*
+Accelerator Variants: *born/coul/wolf/cs/gpu*, *born/coul/wolf/cs/kk*, *born/coul/wolf/cs/omp*
 
 pair_style buck/coul/long/cs command
 ====================================
 
-Accelerator Variants: *buck/coul/long/cs/omp*
+Accelerator Variants: *buck/coul/long/cs/kk*, *buck/coul/long/cs/omp*
 
 pair_style coul/long/cs command
 ===============================
 
-Accelerator Variants: *coul/long/cs/gpu*, *coul/long/cs/omp*
+Accelerator Variants: *coul/long/cs/gpu*, *coul/long/cs/kk*, *coul/long/cs/omp*
 
 pair_style coul/wolf/cs command
 ===============================
 
-Accelerator Variants: *coul/wolf/cs/omp*
+Accelerator Variants: *coul/wolf/cs/kk*, *coul/wolf/cs/omp*
 
 pair_style lj/cut/coul/long/cs command
 ======================================
 
-Accelerator Variants: *lj/cut/coul/long/cs/omp*
+Accelerator Variants: *lj/cut/coul/long/cs/kk*, *lj/cut/coul/long/cs/omp*
 
 pair_style lj/class2/coul/long/cs command
 =========================================
 
-Accelerator Variants: *lj/class2/coul/long/cs/omp*
+Accelerator Variants: *lj/class2/coul/long/cs/kk*, *lj/class2/coul/long/cs/omp*
 
 Syntax
 """"""
@@ -161,19 +169,26 @@ Specifically, the short-range Coulomb interaction between a core and
 its shell should be turned off using the
 :doc:`special_bonds <special_bonds>` command by setting the 1-2 weight
 to 0.0, which works because the core and shell atoms are bonded to
-each other.  This induces a long-range correction approximation which
-fails at small distances (~< 10e-8). Therefore, the Coulomb term which
-is used to calculate the correction factor is extended by a minimal
-distance (r_min = 1.0-6) when the interaction between a core/shell
-pair is treated, as follows
+each other.  The long-range solver still includes the interaction of
+the core/shell pair, so the pair style computes a correction for it:
 
 .. math::
 
-   E = \frac{C q_i q_j}{\epsilon (r + r_{min})} \qquad r \rightarrow 0
+   E = \frac{C q_i q_j}{\epsilon r} \left[ w - \mathrm{erf}(g_{ewald}\,r) \right]
 
 where C is an energy-conversion constant, :math:`q_i` and :math:`q_j`
 are the charges on the core and shell, epsilon is the dielectric
-constant and :math:`r_{min}` is the minimal distance.
+constant, *w* is the special bond weight, and :math:`g_{ewald}` is the
+Ewald parameter of the long-range solver.  This expression remains
+finite for :math:`r \rightarrow 0` when *w* is 0.0.
+
+.. versionchanged:: 30Sep2026
+
+For such excluded or scaled pairs, the correction and its derivative
+are computed with the exact error function instead of the polynomial
+approximation used for all other pairs, since the two terms of the
+correction nearly cancel at the small distances between a core and its
+shell.
 
 For styles that are not used with a long-range solver, i.e. those with
 "/dsf" or "/wolf" in the name, the only correction is the addition of
@@ -191,7 +206,7 @@ Mixing, shift, table, tail correction, restart, rRESPA info
 
 See the corresponding doc pages for pair styles without the "cs"
 suffix to see how mixing, shifting, tabulation, tail correction,
-restarting, and rRESPA are handled by theses pair styles.
+restarting, and rRESPA are handled by these pair styles.
 
 ----------
 

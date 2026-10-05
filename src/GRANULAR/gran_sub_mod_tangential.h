@@ -11,20 +11,6 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#ifdef GRAN_SUB_MOD_CLASS
-// clang-format off
-GranSubModStyle(none,GranSubModTangentialNone,TANGENTIAL);
-GranSubModStyle(linear_nohistory,GranSubModTangentialLinearNoHistory,TANGENTIAL);
-GranSubModStyle(linear_history,GranSubModTangentialLinearHistory,TANGENTIAL);
-GranSubModStyle(linear_history_classic,GranSubModTangentialLinearHistoryClassic,TANGENTIAL);
-GranSubModStyle(mindlin_classic,GranSubModTangentialMindlinClassic,TANGENTIAL);
-GranSubModStyle(mindlin,GranSubModTangentialMindlin,TANGENTIAL);
-GranSubModStyle(mindlin/force,GranSubModTangentialMindlinForce,TANGENTIAL);
-GranSubModStyle(mindlin_rescale,GranSubModTangentialMindlinRescale,TANGENTIAL);
-GranSubModStyle(mindlin_rescale/force,GranSubModTangentialMindlinRescaleForce,TANGENTIAL);
-// clang-format on
-#else
-
 #ifndef GRAN_SUB_MOD_TANGENTIAL_H
 #define GRAN_SUB_MOD_TANGENTIAL_H
 
@@ -132,4 +118,3 @@ namespace LAMMPS_NS::Granular_NS {
 
 
 #endif /*GRAN_SUB_MOD_TANGENTIAL_H */
-#endif /*GRAN_SUB_MOD_CLASS_H */

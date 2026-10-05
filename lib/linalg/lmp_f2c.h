@@ -4,8 +4,8 @@
 
         - From The Shogakukan DICTIONARY OF NEW ENGLISH (Second edition) */
 
-#ifndef F2C_INCLUDE
-#define F2C_INCLUDE
+#ifndef LMP_F2C_INCLUDE
+#define LMP_F2C_INCLUDE
 
 typedef int integer;
 typedef unsigned int uinteger;

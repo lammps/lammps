@@ -92,35 +92,37 @@ void FixNVEAsphereKokkos<DeviceType>::initial_integrate_item(const int i) const
 {
   // set timestep here since dt may have changed or come via rRESPA
 
-  const KK_FLOAT dtq = 0.5 * dtv;
+  const KK_FLOAT dtf_kk = static_cast<KK_FLOAT>(dtf);
+  const KK_FLOAT dtv_kk = static_cast<KK_FLOAT>(dtv);
+  const KK_FLOAT dtq = static_cast<KK_FLOAT>(0.5) * dtv_kk;
   KK_FLOAT inertia[3], omega[3];
   double *shape, *quat;
   KK_FLOAT angm[3];
 
   if (mask(i) & groupbit) {
-    const KK_FLOAT dtfm = dtf / rmass(i);
-    v(i,0) += dtfm * f(i,0);
-    v(i,1) += dtfm * f(i,1);
-    v(i,2) += dtfm * f(i,2);
-    x(i,0) += dtv * v(i,0);
-    x(i,1) += dtv * v(i,1);
-    x(i,2) += dtv * v(i,2);
+    const KK_FLOAT dtfm = dtf_kk / rmass(i);
+    v(i,0) += dtfm * static_cast<KK_FLOAT>(f(i,0));
+    v(i,1) += dtfm * static_cast<KK_FLOAT>(f(i,1));
+    v(i,2) += dtfm * static_cast<KK_FLOAT>(f(i,2));
+    x(i,0) += dtv_kk * v(i,0);
+    x(i,1) += dtv_kk * v(i,1);
+    x(i,2) += dtv_kk * v(i,2);
 
     // update angular momentum by 1/2 step into a local array
-    angm[0] = angmom(i,0) + dtf * torque(i,0);
-    angm[1] = angmom(i,1) + dtf * torque(i,1);
-    angm[2] = angmom(i,2) + dtf * torque(i,2);
+    angm[0] = angmom(i,0) + dtf_kk * static_cast<KK_FLOAT>(torque(i,0));
+    angm[1] = angmom(i,1) + dtf_kk * static_cast<KK_FLOAT>(torque(i,1));
+    angm[2] = angmom(i,2) + dtf_kk * static_cast<KK_FLOAT>(torque(i,2));
 
     // principal moments of inertia
     quat = bonus(ellipsoid(i)).quat;
     shape = bonus(ellipsoid(i)).shape;
 
-    inertia[0] = INERTIA*rmass(i) *
-                 (shape[1]*shape[1] + shape[2]*shape[2]);
-    inertia[1] = INERTIA*rmass(i) *
-                 (shape[0]*shape[0] + shape[2]*shape[2]);
-    inertia[2] = INERTIA*rmass(i) *
-                 (shape[0]*shape[0] + shape[1]*shape[1]);
+    inertia[0] = static_cast<KK_FLOAT>(INERTIA*static_cast<double>(rmass(i)) *
+                 (shape[1]*shape[1] + shape[2]*shape[2]));
+    inertia[1] = static_cast<KK_FLOAT>(INERTIA*static_cast<double>(rmass(i)) *
+                 (shape[0]*shape[0] + shape[2]*shape[2]));
+    inertia[2] = static_cast<KK_FLOAT>(INERTIA*static_cast<double>(rmass(i)) *
+                 (shape[0]*shape[0] + shape[1]*shape[1]));
 
     // compute omega at 1/2 step from angmom at 1/2 step and current q
     // update quaternion a full step via Richardson iteration
@@ -165,15 +167,16 @@ template <class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void FixNVEAsphereKokkos<DeviceType>::final_integrate_item(const int i) const
 {
+  const KK_FLOAT dtf_kk = static_cast<KK_FLOAT>(dtf);
   if (mask(i) & groupbit) {
-    const KK_FLOAT dtfm = dtf / rmass(i);
-    v(i,0) += dtfm * f(i,0);
-    v(i,1) += dtfm * f(i,1);
-    v(i,2) += dtfm * f(i,2);
+    const KK_FLOAT dtfm = dtf_kk / rmass(i);
+    v(i,0) += dtfm * static_cast<KK_FLOAT>(f(i,0));
+    v(i,1) += dtfm * static_cast<KK_FLOAT>(f(i,1));
+    v(i,2) += dtfm * static_cast<KK_FLOAT>(f(i,2));
 
-    angmom(i,0) += dtf * torque(i,0);
-    angmom(i,1) += dtf * torque(i,1);
-    angmom(i,2) += dtf * torque(i,2);
+    angmom(i,0) += dtf_kk * static_cast<KK_FLOAT>(torque(i,0));
+    angmom(i,1) += dtf_kk * static_cast<KK_FLOAT>(torque(i,1));
+    angmom(i,2) += dtf_kk * static_cast<KK_FLOAT>(torque(i,2));
   }
 }
 
@@ -212,39 +215,41 @@ template <class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void FixNVEAsphereKokkos<DeviceType>::fused_integrate_item(const int i) const
 {
-  const KK_FLOAT dtq = 0.5 * dtv;
+  const KK_FLOAT dtf_kk = static_cast<KK_FLOAT>(dtf);
+  const KK_FLOAT dtv_kk = static_cast<KK_FLOAT>(dtv);
+  const KK_FLOAT dtq = static_cast<KK_FLOAT>(0.5) * dtv_kk;
   KK_FLOAT inertia[3], omega[3];
   double *shape, *quat;
   KK_FLOAT angm[3];
 
   if (mask(i) & groupbit) {
-    const KK_FLOAT dtfm = 2.0 * dtf / rmass(i);
-    v(i,0) += dtfm * f(i,0);
-    v(i,1) += dtfm * f(i,1);
-    v(i,2) += dtfm * f(i,2);
-    angmom(i,0) += dtf * torque(i,0);
-    angmom(i,1) += dtf * torque(i,1);
-    angmom(i,2) += dtf * torque(i,2);
-    x(i,0) += dtv * v(i,0);
-    x(i,1) += dtv * v(i,1);
-    x(i,2) += dtv * v(i,2);
+    const KK_FLOAT dtfm = static_cast<KK_FLOAT>(2.0) * dtf_kk / rmass(i);
+    v(i,0) += dtfm * static_cast<KK_FLOAT>(f(i,0));
+    v(i,1) += dtfm * static_cast<KK_FLOAT>(f(i,1));
+    v(i,2) += dtfm * static_cast<KK_FLOAT>(f(i,2));
+    angmom(i,0) += dtf_kk * static_cast<KK_FLOAT>(torque(i,0));
+    angmom(i,1) += dtf_kk * static_cast<KK_FLOAT>(torque(i,1));
+    angmom(i,2) += dtf_kk * static_cast<KK_FLOAT>(torque(i,2));
+    x(i,0) += dtv_kk * v(i,0);
+    x(i,1) += dtv_kk * v(i,1);
+    x(i,2) += dtv_kk * v(i,2);
 
     // update angular momentum by 1/2 step into a local array
-    angm[0] = angmom(i,0) + dtf * torque(i,0);
-    angm[1] = angmom(i,1) + dtf * torque(i,1);
-    angm[2] = angmom(i,2) + dtf * torque(i,2);
+    angm[0] = angmom(i,0) + dtf_kk * static_cast<KK_FLOAT>(torque(i,0));
+    angm[1] = angmom(i,1) + dtf_kk * static_cast<KK_FLOAT>(torque(i,1));
+    angm[2] = angmom(i,2) + dtf_kk * static_cast<KK_FLOAT>(torque(i,2));
 
     // principal moments of inertia
 
     quat = bonus(ellipsoid(i)).quat;
     shape = bonus(ellipsoid(i)).shape;
 
-    inertia[0] = INERTIA*rmass(i) *
-                 (shape[1]*shape[1] + shape[2]*shape[2]);
-    inertia[1] = INERTIA*rmass(i) *
-                 (shape[0]*shape[0] + shape[2]*shape[2]);
-    inertia[2] = INERTIA*rmass(i) *
-                 (shape[0]*shape[0] + shape[1]*shape[1]);
+    inertia[0] = static_cast<KK_FLOAT>(INERTIA*static_cast<double>(rmass(i)) *
+                 (shape[1]*shape[1] + shape[2]*shape[2]));
+    inertia[1] = static_cast<KK_FLOAT>(INERTIA*static_cast<double>(rmass(i)) *
+                 (shape[0]*shape[0] + shape[2]*shape[2]));
+    inertia[2] = static_cast<KK_FLOAT>(INERTIA*static_cast<double>(rmass(i)) *
+                 (shape[0]*shape[0] + shape[1]*shape[1]));
 
     // compute omega at 1/2 step from angmom at 1/2 step and current q
     // update quaternion a full step via Richardson iteration

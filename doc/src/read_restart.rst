@@ -36,7 +36,7 @@ processors in the current simulation and the settings of the
 changed by the :doc:`balance <balance>` or :doc:`fix balance
 <fix_balance>` commands.
 
-.. deprecated:: 23Jun2022
+.. versionremoved:: 23Jun2022
 
 Atom coordinates that are found to be outside the simulation box when
 reading the restart will be remapped back into the box and their image
@@ -231,7 +231,7 @@ Some pair styles, like the :doc:`granular pair styles <pair_gran>`, also
 use a fix to store "state" information that persists from timestep to
 timestep.  In the case of granular potentials, it is contact
 information between pairs of touching particles.  This info will also
-be re-enabled in the restart script, assuming you re-use the same
+be re-enabled in the restart script, assuming you reuse the same
 granular pair style.
 
 LAMMPS allows bond interactions (angle, etc) to be turned off or

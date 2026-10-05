@@ -261,7 +261,7 @@ void PairLepton::coeff(int narg, char **arg)
   }
 
   // not found, add to list
-  if ((expressions.size() == 0) || (idx == expressions.size())) expressions.push_back(std::move(exp_one));
+  if ((expressions.empty()) || (idx == expressions.size())) expressions.push_back(std::move(exp_one));
 
   int count = 0;
   for (int i = ilo; i <= ihi; i++) {

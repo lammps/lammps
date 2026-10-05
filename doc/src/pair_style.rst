@@ -112,6 +112,7 @@ accelerated styles exist.
 * :doc:`hybrid/overlay <pair_hybrid>` - multiple styles of superposed pairwise interactions
 * :doc:`hybrid/scaled <pair_hybrid>` - multiple styles of scaled superposed pairwise interactions
 * :doc:`zero <pair_zero>` - neighbor list but no interactions
+* :doc:`zero/coul <pair_zero>` - like *zero*, but presents itself as a Coulombic pair style
 
 * :doc:`adp <pair_adp>` - angular dependent potential (ADP) of Mishin
 * :doc:`aip/water/2dm <pair_aip_water_2dm>` - anisotropic interfacial potential for water in 2d geometries
@@ -309,6 +310,7 @@ accelerated styles exist.
 * :doc:`meam/sw/spline <pair_meam_sw_spline>` - Splined version of MEAM with a Stillinger-Weber term
 * :doc:`mesocnt <pair_mesocnt>` - Mesoscopic vdW potential for (carbon) nanotubes
 * :doc:`mesocnt/viscous <pair_mesocnt>` - Mesoscopic vdW potential for (carbon) nanotubes with friction
+* :doc:`mesomem/dipole <pair_mesomem_dipole>` - MesoMem model for one-particle-thick fluid membranes
 * :doc:`mgpt <pair_mgpt>` - Simplified model generalized pseudopotential theory (MGPT) potential
 * :doc:`mie/cut <pair_mie>` - Mie potential
 * :doc:`mliap <pair_mliap>` - Multiple styles of machine-learning potential

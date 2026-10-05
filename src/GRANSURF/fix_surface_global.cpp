@@ -445,6 +445,9 @@ FixSurfaceGlobal::~FixSurfaceGlobal()
   memory->destroy(fflag_c1);
   memory->destroy(fflag_c2);
   memory->destroy(fflag_c3);
+  memory->destroy(nside_c1);
+  memory->destroy(nside_c2);
+  memory->destroy(nside_c3);
 
   memory->sfree(connect2d);
   memory->sfree(connect3d);
@@ -1180,6 +1183,7 @@ void FixSurfaceGlobal::post_force(int /*vflag*/)
     model = models[n];
     model->history_update = 1;
     model->radj = 0.0;
+    model->dt = update->dt;
     if (update->setupflag) model->history_update = 0;
     if (heat_flag) {
       if (tstr)
@@ -1351,7 +1355,7 @@ void FixSurfaceGlobal::post_force(int /*vflag*/)
     }
 
 
-    if (contact_surfs.size() == 0)
+    if (contact_surfs.empty())
       continue;
 
     // Sort contacts by overlap and create a map
@@ -1415,6 +1419,8 @@ void FixSurfaceGlobal::post_force(int /*vflag*/)
 
       jtype = contact_surfs[n].type;
       model = types2model[itype][jtype];
+      model->i = i;
+      model->j = j;
       model->xi = x[i];
       model->radi = radi;
       model->vi = v[i];
@@ -1580,8 +1586,7 @@ int FixSurfaceGlobal::modify_param(int narg, char **arg)
         xsurf_original = nullptr;
         pointmove = nullptr;
 
-        int ifix = modify->find_fix(id);
-        modify->fmask[ifix] &= ~INITIAL_INTEGRATE;
+        modify->clear_fix_mask(this, INITIAL_INTEGRATE);
         force_reneighbor = 0;
         next_reneighbor = -1;
       }
@@ -1631,8 +1636,7 @@ int FixSurfaceGlobal::modify_param(int narg, char **arg)
     if (mstyle == VARIABLE) anymove_variable = 1;
     motions[imotion].time_origin = update->ntimestep;
 
-    int ifix = modify->find_fix(id);
-    modify->fmask[ifix] |= INITIAL_INTEGRATE;
+    modify->set_fix_mask(this, INITIAL_INTEGRATE);
 
     force_reneighbor = 1;
     next_reneighbor = -1;

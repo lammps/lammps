@@ -49,6 +49,7 @@ class OpenMP {
   using device_type          = Kokkos::Device<execution_space, memory_space>;
   using array_layout         = LayoutRight;
   using size_type            = memory_space::size_type;
+  using index_type           = memory_space::index_type;
   using scratch_memory_space = ScratchMemorySpace<OpenMP>;
 
   KOKKOS_DEFAULTED_FUNCTION OpenMP(const OpenMP&) = default;
@@ -119,6 +120,7 @@ inline int OpenMP::impl_thread_pool_rank() noexcept {
   KOKKOS_IF_ON_HOST((return omp_get_thread_num();))
 
   KOKKOS_IF_ON_DEVICE((return -1;))
+  KOKKOS_IMPL_UNREACHABLE();
 }
 
 inline int OpenMP::impl_thread_pool_size(int depth) const {
@@ -130,6 +132,7 @@ int OpenMP::impl_hardware_thread_id() noexcept {
   KOKKOS_IF_ON_HOST((return omp_get_thread_num();))
 
   KOKKOS_IF_ON_DEVICE((return -1;))
+  KOKKOS_IMPL_UNREACHABLE();
 }
 
 namespace Tools {
@@ -154,7 +157,6 @@ struct MemorySpaceAccess<Kokkos::OpenMP::memory_space,
                          Kokkos::OpenMP::scratch_memory_space> {
   enum : bool { assignable = false };
   enum : bool { accessible = true };
-  enum : bool { deepcopy = false };
 };
 
 }  // namespace Impl

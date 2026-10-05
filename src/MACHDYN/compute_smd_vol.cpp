@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
  *
  *                    *** Smooth Mach Dynamics ***
@@ -38,95 +37,91 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-ComputeSMDVol::ComputeSMDVol(LAMMPS *lmp, int narg, char **arg) :
-                Compute(lmp, narg, arg) {
-        if (narg != 3) error->all(FLERR, "Illegal compute smd/volume command");
-        if (atom->vfrac_flag != 1)
-          error->all(FLERR, "compute smd/volume command requires atom_style with density (e.g. smd)");
+ComputeSMDVol::ComputeSMDVol(LAMMPS *lmp, int narg, char **arg) : Compute(lmp, narg, arg)
+{
+  if (narg != 3) error->all(FLERR, "Illegal compute smd/volume command");
+  if (atom->vfrac_flag != 1)
+    error->all(FLERR, "compute smd/volume command requires atom_style with density (e.g. smd)");
 
-        scalar_flag = 1;
-        extscalar = 1;
-        peratom_flag = 1;
-        size_peratom_cols = 0;
+  scalar_flag = 1;
+  extscalar = 1;
+  peratom_flag = 1;
+  size_peratom_cols = 0;
 
-        nmax = 0;
-        volVector = nullptr;
+  nmax = 0;
+  volVector = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
 
-ComputeSMDVol::~ComputeSMDVol() {
-        memory->sfree(volVector);
+ComputeSMDVol::~ComputeSMDVol()
+{
+  memory->sfree(volVector);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeSMDVol::init() {
+void ComputeSMDVol::init()
+{
 
-        int count = 0;
-        for (int i = 0; i < modify->ncompute; i++)
-                if (strcmp(modify->compute[i]->style, "smd/volume") == 0)
-                        count++;
-        if (count > 1 && comm->me == 0)
-                error->warning(FLERR, "More than one compute smd/volume");
+  if ((comm->me == 0) && (modify->get_compute_by_style("^smd/vol").size() > 1))
+    error->warning(FLERR, "More than one compute {}", style);
 }
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeSMDVol::compute_peratom() {
-        invoked_peratom = update->ntimestep;
+void ComputeSMDVol::compute_peratom()
+{
+  invoked_peratom = update->ntimestep;
 
-        // grow volVector array if necessary
+  // grow volVector array if necessary
 
-        if (atom->nmax > nmax) {
-                memory->sfree(volVector);
-                nmax = atom->nmax;
-                volVector = (double *) memory->smalloc(nmax * sizeof(double), "atom:volVector");
-                vector_atom = volVector;
-        }
+  if (atom->nmax > nmax) {
+    memory->sfree(volVector);
+    nmax = atom->nmax;
+    volVector = (double *) memory->smalloc(nmax * sizeof(double), "atom:volVector");
+    vector_atom = volVector;
+  }
 
-        double *vfrac = atom->vfrac;
-        int *mask = atom->mask;
-        int nlocal = atom->nlocal;
+  double *vfrac = atom->vfrac;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
 
-        for (int i = 0; i < nlocal; i++) {
-                if (mask[i] & groupbit) {
-                        volVector[i] = vfrac[i];
-                } else {
-                        volVector[i] = 0.0;
-                }
-        }
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) {
+      volVector[i] = vfrac[i];
+    } else {
+      volVector[i] = 0.0;
+    }
+  }
 }
 
 /* ---------------------------------------------------------------------- */
 
-double ComputeSMDVol::compute_scalar() {
+double ComputeSMDVol::compute_scalar()
+{
 
-        invoked_scalar = update->ntimestep;
-        double *vfrac = atom->vfrac;
-        int *mask = atom->mask;
-        int nlocal = atom->nlocal;
+  invoked_scalar = update->ntimestep;
+  double *vfrac = atom->vfrac;
+  int *mask = atom->mask;
+  int nlocal = atom->nlocal;
 
-        double this_proc_sum_volumes = 0.0;
-        for (int i = 0; i < nlocal; i++) {
-                if (mask[i] & groupbit) {
-                        this_proc_sum_volumes += vfrac[i];
-                }
-        }
+  double this_proc_sum_volumes = 0.0;
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) { this_proc_sum_volumes += vfrac[i]; }
+  }
 
-        //printf("this_proc_sum_volumes = %g\n", this_proc_sum_volumes);
-        MPI_Allreduce(&this_proc_sum_volumes, &scalar, 1, MPI_DOUBLE, MPI_SUM, world);
-        //if (comm->me == 0) printf("global sum_volumes = %g\n", scalar);
+  MPI_Allreduce(&this_proc_sum_volumes, &scalar, 1, MPI_DOUBLE, MPI_SUM, world);
 
-        return scalar;
-
+  return scalar;
 }
 
 /* ----------------------------------------------------------------------
  memory usage of local atom-based array
  ------------------------------------------------------------------------- */
 
-double ComputeSMDVol::memory_usage() {
-        double bytes = (double)nmax * sizeof(double);
-        return bytes;
+double ComputeSMDVol::memory_usage()
+{
+  double bytes = (double) nmax * sizeof(double);
+  return bytes;
 }

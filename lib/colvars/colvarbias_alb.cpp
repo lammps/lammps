@@ -30,21 +30,21 @@ double fmin(double A, double B) { return ( A < B ? A : B ); }
  *
  */
 
-colvarbias_alb::colvarbias_alb(char const *key)
-  : colvarbias(key), update_calls(0), b_equilibration(true)
+colvarbias_alb::colvarbias_alb(colvarmodule *cvmodule_in, char const *key)
+  : colvarbias(cvmodule_in, key), update_calls(0), b_equilibration(true)
 {
 }
 
 
 int colvarbias_alb::init(std::string const &conf)
 {
-  colvarproxy *proxy = cvm::main()->proxy;
+  colvarproxy *proxy = cvmodule->proxy;
   int error_code = colvarbias::init(conf);
   if (error_code != COLVARS_OK) {
     return error_code;
   }
 
-  cvm::main()->cite_feature("ALB colvar bias implementation");
+  cvmodule->cite_feature("ALB colvar bias implementation");
 
   enable(f_cvb_scalar_variables);
 
@@ -81,22 +81,22 @@ int colvarbias_alb::init(std::string const &conf)
     }
   } else {
     colvar_centers.clear();
-    error_code |= cvm::error("Error: must define the initial centers of adaptive linear bias.\n",
+    error_code |= cvmodule->error("Error: must define the initial centers of adaptive linear bias.\n",
                              COLVARS_INPUT_ERROR);
   }
 
   if (colvar_centers.size() != num_variables()) {
     error_code |=
-        cvm::error("Error: number of centers does not match that of collective variables.\n");
+        cvmodule->error("Error: number of centers does not match that of collective variables.\n");
   }
 
   if (!get_keyval(conf, "updateFrequency", update_freq, 0)) {
-    error_code |= cvm::error("Error: must set updateFrequency for adaptive linear bias.\n",
+    error_code |= cvmodule->error("Error: must set updateFrequency for adaptive linear bias.\n",
                              COLVARS_INPUT_ERROR);
   }
 
   if (update_freq % time_step_factor != 0) {
-    error_code |= cvm::error("updateFrequency (currently " + cvm::to_str(update_freq) +
+    error_code |= cvmodule->error("updateFrequency (currently " + cvm::to_str(update_freq) +
                                  ") must be a multiple of timeStepFactor (" +
                                  cvm::to_str(time_step_factor) + ").\n",
                              COLVARS_INPUT_ERROR);
@@ -107,7 +107,7 @@ int colvarbias_alb::init(std::string const &conf)
 
   if (update_freq <= 1) {
     error_code |=
-        cvm::error("Error: must set updateFrequency to greater than 2.\n", COLVARS_INPUT_ERROR);
+        cvmodule->error("Error: must set updateFrequency to greater than 2.\n", COLVARS_INPUT_ERROR);
   }
 
   enable(f_cvb_history_dependent);
@@ -148,7 +148,7 @@ int colvarbias_alb::init(std::string const &conf)
 
 
   if (cvm::debug())
-    cvm::log(" bias.\n");
+    cvmodule->log(" bias.\n");
 
   return error_code;
 }
@@ -161,13 +161,13 @@ colvarbias_alb::~colvarbias_alb()
 
 int colvarbias_alb::update()
 {
-  colvarproxy *proxy = cvm::main()->proxy;
+  colvarproxy *proxy = cvmodule->proxy;
 
   bias_energy = 0.0;
   update_calls += time_step_factor;
 
   if (cvm::debug())
-    cvm::log("Updating the adaptive linear bias \""+this->name+"\".\n");
+    cvmodule->log("Updating the adaptive linear bias \""+this->name+"\".\n");
 
   //log the moments of the CVs
   // Force and energy calculation
@@ -212,7 +212,7 @@ int colvarbias_alb::update()
 
         max_coupling_range[i] *= 1.25;
         logStream << "Expanding coupling range to "  << max_coupling_range[i] << ".\n";
-        cvm::log(logStream.str());
+        cvmodule->log(logStream.str());
       }
 
 
@@ -278,31 +278,31 @@ int colvarbias_alb::set_state_params(std::string const &conf)
   }
 
   if (!get_keyval(conf, "setCoupling", set_coupling))
-    cvm::error("Error: current setCoupling  is missing from the restart.\n");
+    cvmodule->error("Error: current setCoupling  is missing from the restart.\n");
 
   if (!get_keyval(conf, "currentCoupling", current_coupling))
-    cvm::error("Error: current setCoupling  is missing from the restart.\n");
+    cvmodule->error("Error: current setCoupling  is missing from the restart.\n");
 
   if (!get_keyval(conf, "maxCouplingRange", max_coupling_range))
-    cvm::error("Error: maxCouplingRange  is missing from the restart.\n");
+    cvmodule->error("Error: maxCouplingRange  is missing from the restart.\n");
 
   if (!get_keyval(conf, "couplingRate", coupling_rate))
-    cvm::error("Error: current setCoupling  is missing from the restart.\n");
+    cvmodule->error("Error: current setCoupling  is missing from the restart.\n");
 
   if (!get_keyval(conf, "couplingAccum", coupling_accum))
-    cvm::error("Error: couplingAccum is missing from the restart.\n");
+    cvmodule->error("Error: couplingAccum is missing from the restart.\n");
 
   if (!get_keyval(conf, "mean", means))
-    cvm::error("Error: current mean is missing from the restart.\n");
+    cvmodule->error("Error: current mean is missing from the restart.\n");
 
   if (!get_keyval(conf, "ssd", ssd))
-    cvm::error("Error: current ssd is missing from the restart.\n");
+    cvmodule->error("Error: current ssd is missing from the restart.\n");
 
   if (!get_keyval(conf, "updateCalls", update_calls))
-    cvm::error("Error: current updateCalls is missing from the restart.\n");
+    cvmodule->error("Error: current updateCalls is missing from the restart.\n");
 
   if (!get_keyval(conf, "b_equilibration", b_equilibration))
-    cvm::error("Error: current updateCalls is missing from the restart.\n");
+    cvmodule->error("Error: current updateCalls is missing from the restart.\n");
 
   return COLVARS_OK;
 }
@@ -314,38 +314,38 @@ std::string const colvarbias_alb::get_state_params() const
   os << "    setCoupling ";
   size_t i;
   for (i = 0; i < num_variables(); i++) {
-    os << std::setprecision(cvm::en_prec)
-       << std::setw(cvm::en_width) << set_coupling[i] << "\n";
+    os << std::setprecision(cvmodule->en_prec)
+       << std::setw(cvmodule->en_width) << set_coupling[i] << "\n";
   }
   os << "    currentCoupling ";
   for (i = 0; i < num_variables(); i++) {
-    os << std::setprecision(cvm::en_prec)
-       << std::setw(cvm::en_width) << current_coupling[i] << "\n";
+    os << std::setprecision(cvmodule->en_prec)
+       << std::setw(cvmodule->en_width) << current_coupling[i] << "\n";
   }
   os << "    maxCouplingRange ";
   for (i = 0; i < num_variables(); i++) {
-    os << std::setprecision(cvm::en_prec)
-       << std::setw(cvm::en_width) << max_coupling_range[i] << "\n";
+    os << std::setprecision(cvmodule->en_prec)
+       << std::setw(cvmodule->en_width) << max_coupling_range[i] << "\n";
   }
   os << "    couplingRate ";
   for (i = 0; i < num_variables(); i++) {
-    os << std::setprecision(cvm::en_prec)
-       << std::setw(cvm::en_width) << coupling_rate[i] << "\n";
+    os << std::setprecision(cvmodule->en_prec)
+       << std::setw(cvmodule->en_width) << coupling_rate[i] << "\n";
   }
   os << "    couplingAccum ";
   for (i = 0; i < num_variables(); i++) {
-    os << std::setprecision(cvm::en_prec)
-       << std::setw(cvm::en_width) << coupling_accum[i] << "\n";
+    os << std::setprecision(cvmodule->en_prec)
+       << std::setw(cvmodule->en_width) << coupling_accum[i] << "\n";
   }
   os << "    mean ";
   for (i = 0; i < num_variables(); i++) {
-    os << std::setprecision(cvm::en_prec)
-       << std::setw(cvm::en_width) << means[i] << "\n";
+    os << std::setprecision(cvmodule->en_prec)
+       << std::setw(cvmodule->en_width) << means[i] << "\n";
   }
   os << "    ssd ";
   for (i = 0; i < num_variables(); i++) {
-    os << std::setprecision(cvm::en_prec)
-       << std::setw(cvm::en_width) << ssd[i] << "\n";
+    os << std::setprecision(cvmodule->en_prec)
+       << std::setw(cvmodule->en_width) << ssd[i] << "\n";
   }
   os << "    updateCalls " << update_calls << "\n";
   if (b_equilibration)
@@ -363,26 +363,26 @@ std::ostream & colvarbias_alb::write_traj_label(std::ostream &os)
 
   if (b_output_energy)
     os << " E_"
-       << cvm::wrap_string(this->name, cvm::en_width-2);
+       << cvmodule->wrap_string(this->name, cvmodule->en_width-2);
 
   if (b_output_coupling)
     for (size_t i = 0; i < current_coupling.size(); i++) {
       os << " ForceConst_" << i
-         <<std::setw(cvm::en_width - 6 - (i / 10 + 1))
+         <<std::setw(cvmodule->en_width - 6 - (i / 10 + 1))
          << "";
     }
 
   if (b_output_grad)
     for (size_t i = 0; i < means.size(); i++) {
       os << "Grad_"
-         << cvm::wrap_string(colvars[i]->name, cvm::cv_width - 4);
+         << cvmodule->wrap_string(colvars[i]->name, cvmodule->cv_width - 4);
     }
 
   if (b_output_centers)
     for (size_t i = 0; i < num_variables(); i++) {
-      size_t const this_cv_width = (colvars[i]->value()).output_width(cvm::cv_width);
+      size_t const this_cv_width = (colvars[i]->value()).output_width(cvmodule->cv_width);
       os << " x0_"
-         << cvm::wrap_string(colvars[i]->name, this_cv_width-3);
+         << cvmodule->wrap_string(colvars[i]->name, this_cv_width-3);
     }
 
   return os;
@@ -395,13 +395,13 @@ std::ostream & colvarbias_alb::write_traj(std::ostream &os)
 
   if (b_output_energy)
     os << " "
-       << std::setprecision(cvm::en_prec) << std::setw(cvm::en_width)
+       << std::setprecision(cvmodule->en_prec) << std::setw(cvmodule->en_width)
        << bias_energy;
 
   if (b_output_coupling)
     for (size_t i = 0; i < current_coupling.size(); i++) {
       os << " "
-         << std::setprecision(cvm::en_prec) << std::setw(cvm::en_width)
+         << std::setprecision(cvmodule->en_prec) << std::setw(cvmodule->en_width)
          << current_coupling[i];
     }
 
@@ -409,14 +409,14 @@ std::ostream & colvarbias_alb::write_traj(std::ostream &os)
   if (b_output_centers)
     for (size_t i = 0; i < num_variables(); i++) {
       os << " "
-         << std::setprecision(cvm::cv_prec) << std::setw(cvm::cv_width)
+         << std::setprecision(cvmodule->cv_prec) << std::setw(cvmodule->cv_width)
          << colvar_centers[i];
     }
 
   if (b_output_grad)
     for (size_t i = 0; i < means.size(); i++) {
       os << " "
-         << std::setprecision(cvm::cv_prec) << std::setw(cvm::cv_width)
+         << std::setprecision(cvmodule->cv_prec) << std::setw(cvmodule->cv_width)
          << -2.0 * (means[i] / (static_cast<cvm::real>(colvar_centers[i])) - 1) * ssd[i] / (fmax(update_calls, 2.0) - 1);
 
     }

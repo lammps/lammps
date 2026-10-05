@@ -79,6 +79,9 @@ struct GraphNodeImpl<ExecutionSpace, Kokkos::Experimental::TypeErasedTag,
   device_handle_t get_device_handle() const {
     return this->device_handle_storage_base_t::instance();
   }
+
+  virtual constexpr Experimental::GraphNodeKind get_node_kind()
+      const noexcept = 0;
 };
 
 // </editor-fold> end Fully type-erased GraphNodeImpl }}}1
@@ -151,7 +154,7 @@ struct GraphNodeImpl<ExecutionSpace, Kernel,
   GraphNodeImpl(GraphNodeImpl&&)                 = delete;
   GraphNodeImpl& operator=(GraphNodeImpl const&) = delete;
   GraphNodeImpl& operator=(GraphNodeImpl&&)      = delete;
-  ~GraphNodeImpl() override                      = default;
+  ~GraphNodeImpl() noexcept override             = default;
 
   // </editor-fold> end Rule of 6 for not copyable or movable }}}3
   //- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -166,6 +169,24 @@ struct GraphNodeImpl<ExecutionSpace, Kernel,
   Kernel& get_kernel() & { return m_kernel; }
   Kernel const& get_kernel() const& { return m_kernel; }
   Kernel&& get_kernel() && = delete;
+
+  static constexpr Experimental::GraphNodeKind node_kind = []() {
+    if constexpr (is_graph_kernel_v<kernel_type>) {
+      return Experimental::GraphNodeKind::Kernel;
+    } else if constexpr (is_graph_root_v<kernel_type>) {
+      return Experimental::GraphNodeKind::Root;
+    } else if constexpr (is_graph_capture_v<kernel_type>) {
+      return Experimental::GraphNodeKind::Capture;
+    } else if constexpr (is_graph_then_host_v<kernel_type>) {
+      return Experimental::GraphNodeKind::Host;
+    } else {
+      return Experimental::GraphNodeKind::Aggregate;
+    }
+  }();
+
+  constexpr Experimental::GraphNodeKind get_node_kind() const noexcept final {
+    return node_kind;
+  }
 
   // </editor-fold> end member accessors }}}2
   //----------------------------------------------------------------------------
@@ -190,11 +211,6 @@ struct GraphNodeImpl
   using backend_details_base_t =
       GraphNodeBackendDetailsBeforeTypeErasure<ExecutionSpace, Kernel,
                                                PredecessorRef>;
-  // The fully type-erased base type, for the destroy function
-  using type_erased_base_t =
-      GraphNodeImpl<ExecutionSpace, Kokkos::Experimental::TypeErasedTag,
-                    Kokkos::Experimental::TypeErasedTag>;
-
   using typename base_t::device_handle_t;
 
  public:
@@ -226,7 +242,7 @@ struct GraphNodeImpl
   GraphNodeImpl(GraphNodeImpl&&)                 = delete;
   GraphNodeImpl& operator=(GraphNodeImpl const&) = delete;
   GraphNodeImpl& operator=(GraphNodeImpl&&)      = delete;
-  ~GraphNodeImpl() override                      = default;
+  ~GraphNodeImpl() noexcept override             = default;
 
   // Normal kernel-and-predecessor or capture-and-predecessor constructor.
   template <class KernelDeduced, class PredecessorPtrDeduced, class Tag,

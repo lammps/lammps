@@ -223,6 +223,29 @@ void FixWallReflect::init()
     error->warning(FLERR,"Should not use reflecting walls with rigid bodies");
 }
 
+/* ----------------------------------------------------------------------
+   record the wall graphics objects for dump image, so they are complete
+   for the first rendered frame of a run; post_integrate() has not run yet
+   at that point and would leave the walls as zero-size triangles.
+   only update the graphics data here; atoms must not be reflected.
+------------------------------------------------------------------------- */
+
+void FixWallReflect::setup(int /*vflag*/)
+{
+  double coord;
+
+  for (int m = 0; m < nwall; m++) {
+    if (wallstyle[m] == VARIABLE) {
+      coord = input->variable->compute_equal(varindex[m]);
+      if (wallwhich[m] < FixWall::YLO) coord *= xscale;
+      else if (wallwhich[m] < FixWall::ZLO) coord *= yscale;
+      else coord *= zscale;
+    } else coord = coord0[m];
+
+    FixWall::update_image_plane(m, wallwhich[m], coord, imgparms, domain);
+  }
+}
+
 /* ---------------------------------------------------------------------- */
 
 void FixWallReflect::post_integrate()

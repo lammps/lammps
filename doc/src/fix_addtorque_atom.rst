@@ -1,7 +1,10 @@
 .. index:: fix addtorque/atom
+.. index:: fix addtorque/atom/kk
 
 fix addtorque/atom command
 ==========================
+
+Accelerator Variants: *addtorque/atom/kk*
 
 Syntax
 """"""
@@ -71,6 +74,10 @@ time step.
 If the *region* keyword is used, the atom must also be in the
 specified geometric :doc:`region <region>` in order to have torque added
 to it.
+
+----------
+
+.. include:: accel_styles.rst
 
 ----------
 

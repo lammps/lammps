@@ -71,9 +71,10 @@ void FixNVELimit::init()
 
   // warn if using fix shake, which will lead to invalid constraint forces
 
-  if ((comm->me == 0) && ((modify->get_fix_by_style("^shake").size() > 0) ||
-                          (modify->get_fix_by_style("^rattle").size() > 0)))
-        error->warning(FLERR,"Should not use fix nve/limit with fix shake or fix rattle");
+  if ((comm->me == 0) && ((!modify->get_fix_by_style("^shake").empty()) ||
+                          (!modify->get_fix_by_style("^rattle").empty()) ||
+                          (!modify->get_fix_by_style("^ilves").empty())))
+        error->warning(FLERR,"Should not use fix nve/limit with fix shake, rattle or ilves");
 }
 
 /* ----------------------------------------------------------------------

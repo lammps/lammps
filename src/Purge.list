@@ -23,6 +23,24 @@ style_nbin.h
 style_npair.h
 style_nstencil.h
 style_ntopo.h
+# auto-generated style source files
+style_pair.cpp
+style_bond.cpp
+style_angle.cpp
+style_dihedral.cpp
+style_improper.cpp
+style_kspace.cpp
+style_fix.cpp
+style_compute.cpp
+style_integrate.cpp
+style_minimize.cpp
+style_region.cpp
+style_dump.cpp
+style_command.cpp
+style_atom.cpp
+style_body.cpp
+style_reader.cpp
+package_registry.cpp
 # auto-generated packages files
 packages_angle.h
 packages_atom.h
@@ -1793,8 +1811,6 @@ scafacos.h
 scafacos.cpp
 compute_voronoi_atom.h
 compute_voronoi_atom.cpp
-dump_vtk.h
-dump_vtk.cpp
 bond_oxdna2_fene.cpp
 bond_oxrna2_fene.cpp
 pair_oxdna2_excv.cpp

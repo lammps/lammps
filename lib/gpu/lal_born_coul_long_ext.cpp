@@ -18,6 +18,7 @@
 #include <cmath>
 
 #include "lal_born_coul_long.h"
+#include "lammps_gpu.h"
 
 using namespace std;
 using namespace LAMMPS_AL;
@@ -27,6 +28,8 @@ static BornCoulLong<PRECISION,ACC_PRECISION> BORNCLMF;
 // ---------------------------------------------------------------------------
 // Allocate memory on host and device and copy constants to device
 // ---------------------------------------------------------------------------
+
+namespace LAMMPS_GPU {
 int borncl_gpu_init(const int ntypes, double **cutsq, double **host_rhoinv,
                     double **host_born1, double **host_born2, double **host_born3,
                     double **host_a, double **host_c, double **host_d,
@@ -38,7 +41,6 @@ int borncl_gpu_init(const int ntypes, double **cutsq, double **host_rhoinv,
                     const double g_ewald) {
   BORNCLMF.clear();
   gpu_mode=BORNCLMF.device->gpu_mode();
-  double gpu_split=BORNCLMF.device->particle_split();
   int first_gpu=BORNCLMF.device->first_device();
   int last_gpu=BORNCLMF.device->last_device();
   int world_me=BORNCLMF.device->world_me();
@@ -58,11 +60,10 @@ int borncl_gpu_init(const int ntypes, double **cutsq, double **host_rhoinv,
 
   int init_ok=0;
   if (world_me==0)
-    init_ok=BORNCLMF.init(ntypes, cutsq, host_rhoinv, host_born1, host_born2,
-                          host_born3, host_a, host_c, host_d, sigma, offset,
-                          special_lj, inum, nall, max_nbors, maxspecial, cell_size,
-                          gpu_split, screen, host_cut_ljsq, host_cut_coulsq,
-                          host_special_coul, qqrd2e, g_ewald);
+    init_ok = BORNCLMF.init(ntypes, cutsq, host_rhoinv, host_born1, host_born2, host_born3, host_a,
+                            host_c, host_d, sigma, offset, special_lj, inum, nall, max_nbors,
+                            maxspecial, cell_size, screen, host_cut_ljsq, host_cut_coulsq,
+                            host_special_coul, qqrd2e, g_ewald);
 
   BORNCLMF.device->world_barrier();
   if (message)
@@ -78,11 +79,10 @@ int borncl_gpu_init(const int ntypes, double **cutsq, double **host_rhoinv,
       fflush(screen);
     }
     if (gpu_rank==i && world_me!=0)
-      init_ok=BORNCLMF.init(ntypes, cutsq, host_rhoinv, host_born1, host_born2,
-                            host_born3, host_a, host_c, host_d, sigma, offset,
-                            special_lj, inum, nall, max_nbors, maxspecial, cell_size,
-                            gpu_split, screen, host_cut_ljsq, host_cut_coulsq,
-                            host_special_coul, qqrd2e, g_ewald);
+      init_ok = BORNCLMF.init(ntypes, cutsq, host_rhoinv, host_born1, host_born2, host_born3,
+                              host_a, host_c, host_d, sigma, offset, special_lj, inum, nall,
+                              max_nbors, maxspecial, cell_size, screen, host_cut_ljsq,
+                              host_cut_coulsq, host_special_coul, qqrd2e, g_ewald);
 
     BORNCLMF.device->serialize_init();
     if (message)
@@ -100,28 +100,26 @@ void borncl_gpu_clear() {
   BORNCLMF.clear();
 }
 
-int** borncl_gpu_compute_n(const int ago, const int inum_full,
-                           const int nall, double **host_x, int *host_type,
-                           double *sublo, double *subhi, tagint *tag, int **nspecial,
-                           tagint **special, const bool eflag, const bool vflag,
-                           const bool eatom, const bool vatom, int &host_start,
-                           int **ilist, int **jnum,  const double cpu_time,
-                           bool &success, double *host_q, double *boxlo,
-                           double *prd, int *periodicity) {
+int **borncl_gpu_compute_n(const int ago, const int inum_full, const int nall, double **host_x,
+                           int *host_type, double *sublo, double *subhi, tagint *tag,
+                           int **nspecial, tagint **special, const bool eflag, const bool vflag,
+                           const bool eatom, const bool vatom, int **ilist, int **jnum,
+                           bool &success, double *host_q, double *boxlo, double *prd,
+                           int *periodicity)
+{
   return BORNCLMF.compute(ago, inum_full, nall, host_x, host_type, sublo,
                           subhi, tag, nspecial, special, eflag, vflag, eatom,
-                          vatom, host_start, ilist, jnum, cpu_time, success,
+                          vatom, ilist, jnum, success,
                           host_q, boxlo, prd, periodicity);
 }
 
 void borncl_gpu_compute(const int ago, const int inum_full, const int nall,
                         double **host_x, int *host_type, int *ilist, int *numj,
                         int **firstneigh, const bool eflag, const bool vflag,
-                        const bool eatom, const bool vatom, int &host_start,
-                        const double cpu_time, bool &success, double *host_q,
+                        const bool eatom, const bool vatom, bool &success, double *host_q,
                         const int nlocal, double *boxlo, double *prd) {
   BORNCLMF.compute(ago,inum_full,nall,host_x,host_type,ilist,numj,
-                   firstneigh,eflag,vflag,eatom,vatom,host_start,cpu_time,success,
+                   firstneigh,eflag,vflag,eatom,vatom,success,
                    host_q,nlocal,boxlo,prd);
 }
 
@@ -129,4 +127,4 @@ double borncl_gpu_bytes() {
   return BORNCLMF.host_memory_usage();
 }
 
-
+} // namespace LAMMPS_GPU

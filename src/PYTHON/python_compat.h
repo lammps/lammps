@@ -24,11 +24,9 @@
 #if defined(_MSC_VER) || defined(__MINGW32__)
 #define PY_INT_FROM_LONG(X) PyLong_FromLongLong(X)
 #define PY_INT_AS_LONG(X) PyLong_AsLongLong(X)
-#define PY_LONG_FROM_STRING(X) std::stoll(X)
 #else
 #define PY_INT_FROM_LONG(X) PyLong_FromLong(X)
 #define PY_INT_AS_LONG(X) PyLong_AsLong(X)
-#define PY_LONG_FROM_STRING(X) std::stol(X)
 #endif
 
 #endif

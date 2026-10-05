@@ -22,12 +22,8 @@ KSpaceStyle(esp,ESP);
 
 #include "kspace.h"
 #include "lmpfftsettings.h"    // IWYU pragma: export
-#include "math_const.h"
 
 #include <cmath>
-
-using namespace LAMMPS_NS;
-using MathConst::MY_PI;
 
 namespace LAMMPS_NS {
 
@@ -162,78 +158,9 @@ class ESP : public KSpace {
   virtual void poisson_groups(int);
   virtual void slabcorr_groups(int, int, int);
 
-  double poly_horner(const double x, const double *coeff, const int n) const
-  {
-    // coeff[0] + coeff[1] x + ... + coeff[n-1] x^(n-1)
-    double p = coeff[n - 1];
-    for (int i = n - 2; i >= 0; --i) p = p * x + coeff[i];
-    return p;
-  }
-
-  void poly_and_deriv_horner(const double x, const double *coeff, const int n, double &p,
-                             double &dp) const
-  {
-    // p(x) and dp/dx, Horner form
-    p = coeff[n - 1];
-    dp = 0.0;
-    for (int i = n - 2; i >= 0; --i) {
-      dp = dp * x + p;
-      p = p * x + coeff[i];
-    }
-  }
-
-  [[nodiscard]] double spreading_weight2_from_t(const double t) const
-  {
-    // t = (order * h / 2) * |q| / spreading_select_c
-    // returns ( (order/2 * poly(2t-1))^2 ), or 0 if t>1
-    if (t > 1.0) return 0.0;
-    const double x = 2.0 * t - 1.0;
-    // apply Horner rule for polynomial evaluation
-    const double appx = poly_horner(x, fourier_spread_poly_coeff, fourier_spreading_order);
-    const double w = 0.5 * order * appx;
-    return w * w;
-  }
-
-  [[nodiscard]] double spreading_weight2_from_abs_index(const int abs_index,
-                                                        const double scale) const
-  {
-    // integer-form helper: t = scale * abs_index
-    return spreading_weight2_from_t(scale * (double) abs_index);
-  }
-
+  [[nodiscard]] double spreading_weight2_from_t(const double t) const;
   [[nodiscard]] double gf_denom_psw(const double &kx, const double &ky, const double &kz,
-                                    const double &hx, const double &hy, const double &hz) const
-  {
-    int Nmax = (differentiation_flag == 0) ? 2 : 0;
-
-    const double stepx = 2.0 * MY_PI / hx;
-    const double stepy = 2.0 * MY_PI / hy;
-    const double stepz = 2.0 * MY_PI / hz;
-
-    // sum_{nx,ny,nz} wx*wy*wz = (sum wx)*(sum wy)*(sum wz)
-    double sumx = 0.0, sumy = 0.0, sumz = 0.0;
-
-    for (int nx = -Nmax; nx <= Nmax; ++nx) {
-      const double qx = kx + stepx * (double) nx;
-      const double t = (0.5 * order * hx * fabs(qx)) / spreading_select_c;
-      sumx += spreading_weight2_from_t(t);
-    }
-
-    for (int ny = -Nmax; ny <= Nmax; ++ny) {
-      const double qy = ky + stepy * (double) ny;
-      const double t = (0.5 * order * hy * fabs(qy)) / spreading_select_c;
-      sumy += spreading_weight2_from_t(t);
-    }
-
-    for (int nz = -Nmax; nz <= Nmax; ++nz) {
-      const double qz = kz + stepz * (double) nz;
-      const double t = (0.5 * order * hz * fabs(qz)) / spreading_select_c;
-      sumz += spreading_weight2_from_t(t);
-    }
-
-    const double denom = sumx * sumy * sumz;
-    return denom * denom;
-  };
+                                    const double &hx, const double &hy, const double &hz) const;
 };
 
 }    // namespace LAMMPS_NS

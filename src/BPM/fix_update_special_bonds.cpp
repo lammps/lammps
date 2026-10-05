@@ -165,6 +165,9 @@ void FixUpdateSpecialBonds::pre_exchange()
 
 void FixUpdateSpecialBonds::pre_force(int /*vflag*/)
 {
+  // nothing to do if neighbor lists have not been initialized yet
+  if (neighbor->ago < 0) return;
+
   int i1, i2, j, jj, jnum;
   int *jlist, *numneigh, **firstneigh;
   tagint tag1, tag2;

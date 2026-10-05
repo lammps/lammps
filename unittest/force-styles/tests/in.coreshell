@@ -1,0 +1,29 @@
+variable  newton_pair     index  on
+variable  newton_bond     index  on
+variable  units           index  metal
+variable  input_dir       index  .
+variable  data_file       index ${input_dir}/data.coreshell
+
+units            ${units}
+dimension        3
+boundary         p p p
+atom_style       full
+atom_modify      map array
+neighbor         2.0 bin
+neigh_modify     delay 2 every 2 check no
+comm_modify      vel yes
+timestep         0.0005
+newton           ${newton_pair} ${newton_bond}
+
+fix csinfo all property/atom i_CSID
+read_data        ${data_file} fix csinfo NULL CS-Info
+
+pair_style   born/coul/dsf/cs 0.1 20.0 20.0
+pair_coeff   * *      0.0 1.000   0.00  0.00   0.00
+pair_coeff   3 3    487.0 0.23768 0.00  1.05   0.50
+pair_coeff   3 4 145134.0 0.23768 0.00  6.99   8.70
+pair_coeff   4 4 405774.0 0.23768 0.00 72.40 145.40
+
+bond_style harmonic
+bond_coeff 1 63.014 0.0
+bond_coeff 2 25.724 0.0

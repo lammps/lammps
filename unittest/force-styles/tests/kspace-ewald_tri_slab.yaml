@@ -1,6 +1,6 @@
 ---
 lammps_version: 30 Mar 2026
-tags: slow
+tags:
 date_generated: Thu May 28 16:26:47 2026
 epsilon: 1.0e-12
 skip_tests: gpu

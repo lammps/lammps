@@ -87,6 +87,12 @@ void AngleDipoleKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   k_k.template sync<DeviceType>();
   k_gamma0.template sync<DeviceType>();
 
+  // sync and claim here too: the MC fixes call this outside run_style verlet/kk
+
+  atomKK->sync(execution_space,datamask_read);
+  if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
+  else atomKK->modified(execution_space,F_MASK);
+
   x = atomKK->k_x.template view<DeviceType>();
   f = atomKK->k_f.template view<DeviceType>();
   d_mu     = atomKK->k_mu.template view<DeviceType>();
@@ -153,11 +159,11 @@ void AngleDipoleKokkos<DeviceType>::operator()(TagAngleDipoleCompute<EVFLAG>, co
 
   const KK_FLOAT r2 = delx*delx + dely*dely + delz*delz;
   if (r2 < static_cast<KK_FLOAT>(SMALL)*static_cast<KK_FLOAT>(SMALL)) return;
-  const KK_FLOAT r = sqrt(r2);
+  const KK_FLOAT r = Kokkos::sqrt(r2);
 
   const KK_FLOAT rmu = r * d_mu(iDip,3);
   const KK_FLOAT cosGamma = (d_mu(iDip,0)*delx + d_mu(iDip,1)*dely + d_mu(iDip,2)*delz) / rmu;
-  const KK_FLOAT deltaGamma = cosGamma - cos(d_gamma0[type]);
+  const KK_FLOAT deltaGamma = cosGamma - Kokkos::cos(d_gamma0[type]);
   const KK_FLOAT kdg = d_k[type] * deltaGamma;
 
   KK_FLOAT eangle = static_cast<KK_FLOAT>(0.0);
@@ -182,7 +188,7 @@ void AngleDipoleKokkos<DeviceType>::operator()(TagAngleDipoleCompute<EVFLAG>, co
   const KK_FLOAT len2  = fx*fx + fy*fy + fz*fz;
   if (len2 < static_cast<KK_FLOAT>(SMALL)*static_cast<KK_FLOAT>(SMALL)) return;
 
-  const KK_FLOAT fmod_len = sqrt(fmod2) / (r * sqrt(len2));
+  const KK_FLOAT fmod_len = Kokkos::sqrt(fmod2) / (r * Kokkos::sqrt(len2));
 
   KK_FLOAT fi[3], fj[3];
   fi[0] = fx * fmod_len;

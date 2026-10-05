@@ -294,9 +294,9 @@ static inline void gaussian_quadrature(int n, double *nodes, double *weights)
   static std::vector<std::vector<double>> precomp_weights(1000);
 
   {    // Precompute
-    if (precomp_nodes[n].size() == 0 && precomp_weights[n].size() == 0) {
+    if (precomp_nodes[n].empty() && precomp_weights[n].empty()) {
 #pragma omp critical(GAUSS_QUAD)
-      if (precomp_nodes[n].size() == 0 && precomp_weights[n].size() == 0) {
+      if (precomp_nodes[n].empty() && precomp_weights[n].empty()) {
         std::vector<double> nodes1(n);
         std::vector<double> weights1(n);
 
@@ -411,9 +411,9 @@ static void cheb_interp_1d(int order, std::vector<double> &fn_v, std::vector<dou
 {
   static std::vector<std::vector<double>> precomp(1000);
   {    // Precompute
-    if (precomp[order].size() == 0) {
+    if (precomp[order].empty()) {
 #pragma omp critical(CHEB_BASIS_APPROX)
-      if (precomp[order].size() == 0) {
+      if (precomp[order].empty()) {
         std::vector<double> x, p;
         cheb_nodes_1d(order, x, -1, 1);
         cheb_basis_1d(order, x, p, -1, 1);

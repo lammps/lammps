@@ -31,6 +31,7 @@ namespace LAMMPS_NS {
 class FixNVEAsphereGPU : public FixNVE {
  public:
   FixNVEAsphereGPU(class LAMMPS *, int, char **);
+  ~FixNVEAsphereGPU() override;
   void init() override;
   void setup(int vflag) override;
   void initial_integrate(int) override;

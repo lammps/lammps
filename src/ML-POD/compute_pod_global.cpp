@@ -57,14 +57,16 @@ ComputePODGlobal::ComputePODGlobal(LAMMPS *lmp, int narg, char **arg) :
   cutmax = podptr->rcut;
 
   nijmax = 0;
-  pod = nullptr;
-  elements = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
 
 ComputePODGlobal::~ComputePODGlobal()
 {
+  if (elements) {
+    for (int i = 0; i < atom->ntypes; i++) delete[] elements[i];
+    delete[] elements;
+  }
   memory->destroy(map);
   memory->destroy(pod);
   delete podptr;
@@ -126,37 +128,44 @@ void ComputePODGlobal::compute_array()
   int nClusters = podptr->nClusters;
   int Mdesc = podptr->Mdesc;
   int nCoeffPerElement = podptr->nCoeffPerElement;
+  int nl1 = podptr->nl1;
 
   double rcutsq = podptr->rcut*podptr->rcut;
 
+  // determine the maximum number of neighbor list candidates for all local atoms
+  // and allocate temporary memory accordingly.  a minimum of one guarantees that
+  // the buffers always exist, even if no atom has any neighbors at all.
+
+  int jnummax = 1;
+  for (int ii = 0; ii < inum; ii++) jnummax = MAX(jnummax, numneigh[ilist[ii]]);
+
+  if (nijmax < jnummax) {
+    nijmax = jnummax;
+    podptr->free_temp_memory();
+    podptr->allocate_temp_memory(nijmax);
+  }
+
+  rij = &podptr->tmpmem[0];
+  tmpmem = &podptr->tmpmem[3*nijmax];
+  ai = &podptr->tmpint[0];
+  aj = &podptr->tmpint[nijmax];
+  ti = &podptr->tmpint[2*nijmax];
+  tj = &podptr->tmpint[3*nijmax];
+
   for (int ii = 0; ii < inum; ii++) {
     int i = ilist[ii];
-    int jnum = numneigh[i];
-
-    // allocate temporary memory
-    if (nijmax < jnum) {
-      nijmax = MAX(nijmax, jnum);
-      podptr->free_temp_memory();
-      podptr->allocate_temp_memory(nijmax);
-    }
-
-    rij = &podptr->tmpmem[0];
-    tmpmem = &podptr->tmpmem[3*nijmax];
-    ai = &podptr->tmpint[0];
-    aj = &podptr->tmpint[nijmax];
-    ti = &podptr->tmpint[2*nijmax];
-    tj = &podptr->tmpint[3*nijmax];
 
     // get neighbor list for atom i
     lammpsNeighborList(x, firstneigh, atom->tag, type, numneigh, rcutsq, i);
+
+    // one-body descriptor. count all atoms, including those without any neighbors
+    if (nl1 > 0) pod[0][nCoeffPerElement*(ti[0]-1)] += 1.0;
 
     if (nij > 0) {
       // peratom base descriptors
       double *bd = &podptr->bd[0];
       double *bdd = &podptr->bdd[0];
       podptr->peratombase_descriptors(bd, bdd, rij, tmpmem, tj, nij);
-
-      pod[0][nCoeffPerElement*(ti[0]-1)] += 1.0; // one-body descriptor
 
       if (nClusters>1) {
         // peratom env descriptors
@@ -166,7 +175,7 @@ void ComputePODGlobal::compute_array()
 
         for (int j = 0; j < nClusters; j++) {
           for (int m=0; m<Mdesc; m++) {
-            int k = nCoeffPerElement*(ti[0]-1) + 1 + m + j*Mdesc; // increment by 1 because of the one-body descriptor
+            int k = nCoeffPerElement*(ti[0]-1) + nl1 + m + j*Mdesc; // increment by nl1 because of the one-body descriptor
             pod[0][k] += pd[j]*bd[m];
             for (int n=0; n<nij; n++) {
               int ain = 3*ai[n];
@@ -185,7 +194,7 @@ void ComputePODGlobal::compute_array()
       }
       else {
         for (int m=0; m<Mdesc; m++) {
-          int k = nCoeffPerElement*(ti[0]-1) + 1 + m; // increment by 1 because of the one-body descriptor
+          int k = nCoeffPerElement*(ti[0]-1) + nl1 + m; // increment by nl1 because of the one-body descriptor
           pod[0][k] += bd[m];
           for (int n=0; n<nij; n++) {
             int ain = 3*ai[n];

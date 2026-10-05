@@ -190,42 +190,19 @@ class basic_simd<T, simd_abi::scalar> {
   // NOLINTNEXTLINE(bugprone-forwarding-reference-overload)
   KOKKOS_FORCEINLINE_FUNCTION constexpr explicit basic_simd(G&& gen) noexcept
       : m_value(gen(0)) {}
-  template <typename FlagType>
-  KOKKOS_FORCEINLINE_FUNCTION constexpr explicit basic_simd(T const* ptr,
-                                                            FlagType) noexcept
-      : m_value(*ptr) {}
-  template <typename FlagType>
+  template <typename... Flags>
   KOKKOS_FORCEINLINE_FUNCTION constexpr explicit basic_simd(
-      T const* ptr, mask_type const& mask, FlagType) noexcept {
+      T const* ptr, simd_flags<Flags...> = {}) noexcept
+      : m_value(*ptr) {}
+  template <typename... Flags>
+  KOKKOS_FORCEINLINE_FUNCTION constexpr explicit basic_simd(
+      T const* ptr, mask_type const& mask, simd_flags<Flags...> = {}) noexcept {
     m_value = (mask) ? *ptr : T();
   }
 
   KOKKOS_FORCEINLINE_FUNCTION constexpr explicit operator T() const {
     return m_value;
   }
-
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-  KOKKOS_DEPRECATED_WITH_COMMENT("Use simd_unchecked_load() instead")
-  KOKKOS_FORCEINLINE_FUNCTION constexpr void copy_from(T const* ptr,
-                                                       element_aligned_tag) {
-    m_value = *ptr;
-  }
-  KOKKOS_DEPRECATED_WITH_COMMENT("Use simd_unchecked_load() instead")
-  KOKKOS_FORCEINLINE_FUNCTION constexpr void copy_from(T const* ptr,
-                                                       vector_aligned_tag) {
-    m_value = *ptr;
-  }
-  KOKKOS_DEPRECATED_WITH_COMMENT("Use simd_unchecked_store() instead")
-  KOKKOS_FORCEINLINE_FUNCTION constexpr void copy_to(
-      T* ptr, element_aligned_tag) const {
-    *ptr = m_value;
-  }
-  KOKKOS_DEPRECATED_WITH_COMMENT("Use simd_unchecked_store() instead")
-  KOKKOS_FORCEINLINE_FUNCTION constexpr void copy_to(T* ptr,
-                                                     vector_aligned_tag) const {
-    *ptr = m_value;
-  }
-#endif
 
   KOKKOS_FORCEINLINE_FUNCTION constexpr value_type operator[](
       Impl::simd_size_t) const {
@@ -244,37 +221,17 @@ class basic_simd<T, simd_abi::scalar> {
       basic_simd const& lhs, basic_simd const& rhs) noexcept {
     return basic_simd(lhs.m_value + rhs.m_value);
   }
-  template <Impl::Arithmetic U>
-  KOKKOS_FORCEINLINE_FUNCTION friend constexpr basic_simd operator+(
-      basic_simd const& lhs, U rhs) {
-    return lhs.m_value + basic_simd(rhs);
-  }
   KOKKOS_FORCEINLINE_FUNCTION friend constexpr basic_simd operator-(
       basic_simd const& lhs, basic_simd const& rhs) noexcept {
     return basic_simd(lhs.m_value - rhs.m_value);
-  }
-  template <Impl::Arithmetic U>
-  KOKKOS_FORCEINLINE_FUNCTION friend constexpr basic_simd operator-(
-      basic_simd const& lhs, U rhs) {
-    return lhs.m_value - basic_simd(rhs);
   }
   KOKKOS_FORCEINLINE_FUNCTION friend constexpr basic_simd operator*(
       basic_simd const& lhs, basic_simd const& rhs) noexcept {
     return basic_simd(lhs.m_value * rhs.m_value);
   }
-  template <Impl::Arithmetic U>
-  KOKKOS_FORCEINLINE_FUNCTION friend constexpr basic_simd operator*(
-      basic_simd const& lhs, U rhs) {
-    return lhs.m_value * basic_simd(rhs);
-  }
   KOKKOS_FORCEINLINE_FUNCTION friend constexpr basic_simd operator/(
       basic_simd const& lhs, basic_simd const& rhs) noexcept {
     return basic_simd(lhs.m_value / rhs.m_value);
-  }
-  template <Impl::Arithmetic U>
-  KOKKOS_FORCEINLINE_FUNCTION friend constexpr basic_simd operator/(
-      basic_simd const& lhs, U rhs) {
-    return lhs.m_value / basic_simd(rhs);
   }
   KOKKOS_FORCEINLINE_FUNCTION friend constexpr basic_simd operator&(
       basic_simd const& lhs, basic_simd const& rhs) noexcept {
@@ -518,9 +475,9 @@ KOKKOS_FORCEINLINE_FUNCTION constexpr void simd_partial_store(
   }
 }
 
-template <Impl::SimdVecType V, std::ranges::contiguous_range R,
+template <Impl::SimdVecType V, Impl::Ranges::contiguous_range R,
           Impl::SimdIntegral I, typename... Flags>
-  requires std::ranges::sized_range<R> &&
+  requires Impl::Ranges::sized_range<R> &&
            std::same_as<typename V::abi_type, simd_abi::scalar>
 KOKKOS_FORCEINLINE_FUNCTION constexpr V unchecked_gather_from(
     R&& in, const I& indices, simd_flags<Flags...> = simd_flag_default) {
@@ -528,9 +485,9 @@ KOKKOS_FORCEINLINE_FUNCTION constexpr V unchecked_gather_from(
   return basic_simd<T, simd_abi::scalar>(in[indices[0]]);
 }
 
-template <Impl::SimdVecType V, std::ranges::contiguous_range R,
+template <Impl::SimdVecType V, Impl::Ranges::contiguous_range R,
           Impl::SimdIntegral I, typename... Flags>
-  requires std::ranges::sized_range<R> &&
+  requires Impl::Ranges::sized_range<R> &&
            std::same_as<typename V::abi_type, simd_abi::scalar>
 KOKKOS_FORCEINLINE_FUNCTION constexpr V unchecked_gather_from(
     R&& in, const typename I::mask_type& mask, const I& indices,
@@ -540,18 +497,18 @@ KOKKOS_FORCEINLINE_FUNCTION constexpr V unchecked_gather_from(
   return basic_simd<T, simd_abi::scalar>(val);
 }
 
-template <Impl::SimdVecType V, std::ranges::contiguous_range R,
+template <Impl::SimdVecType V, Impl::Ranges::contiguous_range R,
           Impl::SimdIntegral I, typename... Flags>
-  requires std::ranges::sized_range<R> &&
+  requires Impl::Ranges::sized_range<R> &&
            std::same_as<typename V::abi_type, simd_abi::scalar>
 KOKKOS_FORCEINLINE_FUNCTION constexpr V partial_gather_from(
     R&& in, const I& indices, simd_flags<Flags...> = simd_flag_default) {
   return unchecked_gather_from<V>(in, indices);
 }
 
-template <Impl::SimdVecType V, std::ranges::contiguous_range R,
+template <Impl::SimdVecType V, Impl::Ranges::contiguous_range R,
           Impl::SimdIntegral I, typename... Flags>
-  requires std::ranges::sized_range<R> &&
+  requires Impl::Ranges::sized_range<R> &&
            std::same_as<typename V::abi_type, simd_abi::scalar>
 KOKKOS_FORCEINLINE_FUNCTION constexpr V partial_gather_from(
     R&& in, const typename I::mask_type& mask, const I& indices,
@@ -559,9 +516,9 @@ KOKKOS_FORCEINLINE_FUNCTION constexpr V partial_gather_from(
   return unchecked_gather_from<V>(in, mask, indices);
 }
 
-template <Impl::SimdVecType V, std::ranges::contiguous_range R,
+template <Impl::SimdVecType V, Impl::Ranges::contiguous_range R,
           Impl::SimdIntegral I, typename... Flags>
-  requires std::ranges::sized_range<R> &&
+  requires Impl::Ranges::sized_range<R> &&
            std::same_as<typename V::abi_type, simd_abi::scalar>
 KOKKOS_FORCEINLINE_FUNCTION constexpr void unchecked_scatter_to(
     const V& v, R&& out, const I& indices,
@@ -569,9 +526,9 @@ KOKKOS_FORCEINLINE_FUNCTION constexpr void unchecked_scatter_to(
   out[indices[0]] = v[0];
 }
 
-template <Impl::SimdVecType V, std::ranges::contiguous_range R,
+template <Impl::SimdVecType V, Impl::Ranges::contiguous_range R,
           Impl::SimdIntegral I, typename... Flags>
-  requires std::ranges::sized_range<R> &&
+  requires Impl::Ranges::sized_range<R> &&
            std::same_as<typename V::abi_type, simd_abi::scalar>
 KOKKOS_FORCEINLINE_FUNCTION constexpr void unchecked_scatter_to(
     const V& v, R&& out, const typename I::mask_type& mask, const I& indices,
@@ -579,9 +536,9 @@ KOKKOS_FORCEINLINE_FUNCTION constexpr void unchecked_scatter_to(
   out[indices[0]] = (mask[0]) ? v[0] : typename V::value_type{};
 }
 
-template <Impl::SimdVecType V, std::ranges::contiguous_range R,
+template <Impl::SimdVecType V, Impl::Ranges::contiguous_range R,
           Impl::SimdIntegral I, typename... Flags>
-  requires std::ranges::sized_range<R> &&
+  requires Impl::Ranges::sized_range<R> &&
            std::same_as<typename V::abi_type, simd_abi::scalar>
 KOKKOS_FORCEINLINE_FUNCTION constexpr void partial_scatter_to(
     const V& v, R&& out, const I& indices,
@@ -589,9 +546,9 @@ KOKKOS_FORCEINLINE_FUNCTION constexpr void partial_scatter_to(
   unchecked_scatter_to<V>(v, out, indices);
 }
 
-template <Impl::SimdVecType V, std::ranges::contiguous_range R,
+template <Impl::SimdVecType V, Impl::Ranges::contiguous_range R,
           Impl::SimdIntegral I, typename... Flags>
-  requires std::ranges::sized_range<R> &&
+  requires Impl::Ranges::sized_range<R> &&
            std::same_as<typename V::abi_type, simd_abi::scalar>
 KOKKOS_FORCEINLINE_FUNCTION constexpr void partial_scatter_to(
     const V& v, R&& out, const typename I::mask_type& mask, const I& indices,
@@ -609,6 +566,7 @@ KOKKOS_FORCEINLINE_FUNCTION constexpr basic_simd<T, simd_abi::scalar> condition(
 }
 
 template <class T, class BinaryOperation = std::plus<>>
+  requires requires(T x, BinaryOperation op) { op(x, x); }
 KOKKOS_FORCEINLINE_FUNCTION constexpr T reduce(
     Experimental::basic_simd<T, Experimental::simd_abi::scalar> const& x,
     BinaryOperation = {}) noexcept {
@@ -625,19 +583,6 @@ KOKKOS_FORCEINLINE_FUNCTION constexpr T reduce(
   if (!mask) return identity;
   return x[0];
 }
-
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-template <class T, class BinaryOperation = std::plus<>>
-KOKKOS_DEPRECATED_WITH_COMMENT(
-    "Use reduce(basic_simd, basic_simd_mask, op, identity) instead")
-KOKKOS_FORCEINLINE_FUNCTION constexpr T reduce(
-    Experimental::basic_simd<T, Experimental::simd_abi::scalar> const& x,
-    Experimental::basic_simd_mask<T, Experimental::simd_abi::scalar> const&
-        mask,
-    T, BinaryOperation = {}) noexcept {
-  return reduce(x, mask);
-}
-#endif
 
 template <class T>
 KOKKOS_FORCEINLINE_FUNCTION constexpr T reduce_min(
@@ -688,160 +633,6 @@ max(Experimental::basic_simd<T, Experimental::simd_abi::scalar> const& a,
   return Experimental::basic_simd<T, Experimental::simd_abi::scalar>(
       Kokkos::max(a[0], b[0]));
 }
-
-#ifdef KOKKOS_ENABLE_DEPRECATED_CODE_4
-KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_PUSH()
-template <class T>
-class KOKKOS_DEPRECATED const_where_expression<
-    basic_simd_mask<T, simd_abi::scalar>, basic_simd<T, simd_abi::scalar>> {
- public:
-  using abi_type   = simd_abi::scalar;
-  using value_type = basic_simd<T, abi_type>;
-  using mask_type  = basic_simd_mask<T, abi_type>;
-
- protected:
-  value_type& m_value;
-  mask_type const& m_mask;
-
- public:
-  KOKKOS_FORCEINLINE_FUNCTION
-  const_where_expression(mask_type const& mask_arg, value_type const& value_arg)
-      : m_value(const_cast<value_type&>(value_arg)), m_mask(mask_arg) {}
-
-  KOKKOS_DEPRECATED_WITH_COMMENT("Use simd_partial_store() instead")
-  KOKKOS_FORCEINLINE_FUNCTION void copy_to(T* mem, element_aligned_tag) const {
-    if (static_cast<bool>(m_mask)) *mem = static_cast<T>(m_value);
-  }
-  KOKKOS_DEPRECATED_WITH_COMMENT("Use simd_partial_store() instead")
-  KOKKOS_FORCEINLINE_FUNCTION void copy_to(T* mem, vector_aligned_tag) const {
-    if (static_cast<bool>(m_mask)) *mem = static_cast<T>(m_value);
-  }
-  template <class Integral>
-  KOKKOS_FORCEINLINE_FUNCTION std::enable_if_t<std::is_integral_v<Integral>>
-  scatter_to(T* mem,
-             basic_simd<Integral, simd_abi::scalar> const& index) const {
-    if (static_cast<bool>(m_mask))
-      mem[static_cast<Integral>(index)] = static_cast<T>(m_value);
-  }
-
-  KOKKOS_FORCEINLINE_FUNCTION value_type const& impl_get_value() const {
-    return m_value;
-  }
-
-  KOKKOS_FORCEINLINE_FUNCTION mask_type const& impl_get_mask() const {
-    return m_mask;
-  }
-};
-
-template <class T>
-class KOKKOS_DEPRECATED where_expression<basic_simd_mask<T, simd_abi::scalar>,
-                                         basic_simd<T, simd_abi::scalar>>
-    : public const_where_expression<basic_simd_mask<T, simd_abi::scalar>,
-                                    basic_simd<T, simd_abi::scalar>> {
-  using base_type = const_where_expression<basic_simd_mask<T, simd_abi::scalar>,
-                                           basic_simd<T, simd_abi::scalar>>;
-
- public:
-  using typename base_type::value_type;
-  KOKKOS_FORCEINLINE_FUNCTION
-  where_expression(basic_simd_mask<T, simd_abi::scalar> const& mask_arg,
-                   basic_simd<T, simd_abi::scalar>& value_arg)
-      : base_type(mask_arg, value_arg) {}
-  KOKKOS_DEPRECATED_WITH_COMMENT("Use simd_partial_load() instead")
-  KOKKOS_FORCEINLINE_FUNCTION
-  void copy_from(T const* mem, element_aligned_tag) {
-    if (static_cast<bool>(this->m_mask)) this->m_value = *mem;
-  }
-  KOKKOS_DEPRECATED_WITH_COMMENT("Use simd_partial_load() instead")
-  KOKKOS_FORCEINLINE_FUNCTION void copy_from(T const* mem, vector_aligned_tag) {
-    if (static_cast<bool>(this->m_mask)) this->m_value = *mem;
-  }
-  template <class Integral>
-  KOKKOS_FORCEINLINE_FUNCTION std::enable_if_t<std::is_integral_v<Integral>>
-  gather_from(T const* mem,
-              basic_simd<Integral, simd_abi::scalar> const& index) {
-    if (static_cast<bool>(this->m_mask))
-      this->m_value = mem[static_cast<Integral>(index)];
-  }
-  template <class U, std::enable_if_t<std::is_convertible_v<
-                                          U, basic_simd<T, simd_abi::scalar>>,
-                                      bool> = false>
-  KOKKOS_FORCEINLINE_FUNCTION void operator=(U&& x) {
-    if (static_cast<bool>(this->m_mask))
-      this->m_value =
-          static_cast<basic_simd<T, simd_abi::scalar>>(std::forward<U>(x));
-  }
-};
-
-template <class T>
-KOKKOS_DEPRECATED KOKKOS_FORCEINLINE_FUNCTION
-    where_expression<basic_simd_mask<T, Kokkos::Experimental::simd_abi::scalar>,
-                     basic_simd<T, Kokkos::Experimental::simd_abi::scalar>>
-    where(typename basic_simd<
-              T, Kokkos::Experimental::simd_abi::scalar>::mask_type const& mask,
-          basic_simd<T, Kokkos::Experimental::simd_abi::scalar>& value) {
-  return where_expression(mask, value);
-}
-
-template <class T>
-KOKKOS_DEPRECATED KOKKOS_FORCEINLINE_FUNCTION const_where_expression<
-    basic_simd_mask<T, Kokkos::Experimental::simd_abi::scalar>,
-    basic_simd<T, Kokkos::Experimental::simd_abi::scalar>>
-where(typename basic_simd<
-          T, Kokkos::Experimental::simd_abi::scalar>::mask_type const& mask,
-      basic_simd<T, Kokkos::Experimental::simd_abi::scalar> const& value) {
-  return const_where_expression(mask, value);
-}
-
-template <class T>
-KOKKOS_DEPRECATED_WITH_COMMENT("Use reduce_max() instead")
-KOKKOS_FORCEINLINE_FUNCTION T
-    hmax(const_where_expression<basic_simd_mask<T, simd_abi::scalar>,
-                                basic_simd<T, simd_abi::scalar>> const& x) {
-  return static_cast<bool>(x.impl_get_mask())
-             ? static_cast<T>(x.impl_get_value())
-             : Kokkos::reduction_identity<T>::max();
-}
-
-template <class T>
-KOKKOS_DEPRECATED KOKKOS_FORCEINLINE_FUNCTION constexpr T reduce(
-    const_where_expression<basic_simd_mask<T, simd_abi::scalar>,
-                           basic_simd<T, simd_abi::scalar>> const& x,
-    T identity_element, std::plus<>) {
-  return static_cast<bool>(x.impl_get_mask())
-             ? static_cast<T>(x.impl_get_value())
-             : identity_element;
-}
-
-template <class T>
-KOKKOS_DEPRECATED KOKKOS_FORCEINLINE_FUNCTION constexpr T reduce_max(
-    const_where_expression<basic_simd_mask<T, simd_abi::scalar>,
-                           basic_simd<T, simd_abi::scalar>> const& x) noexcept {
-  return static_cast<bool>(x.impl_get_mask())
-             ? static_cast<T>(x.impl_get_value())
-             : Kokkos::reduction_identity<T>::max();
-}
-
-template <class T>
-KOKKOS_DEPRECATED_WITH_COMMENT("Use reduce_min() instead")
-KOKKOS_FORCEINLINE_FUNCTION T
-    hmin(const_where_expression<basic_simd_mask<T, simd_abi::scalar>,
-                                basic_simd<T, simd_abi::scalar>> const& x) {
-  return static_cast<bool>(x.impl_get_mask())
-             ? static_cast<T>(x.impl_get_value())
-             : Kokkos::reduction_identity<T>::min();
-}
-
-template <class T>
-KOKKOS_DEPRECATED KOKKOS_FORCEINLINE_FUNCTION constexpr T reduce_min(
-    const_where_expression<basic_simd_mask<T, simd_abi::scalar>,
-                           basic_simd<T, simd_abi::scalar>> const& x) noexcept {
-  return static_cast<bool>(x.impl_get_mask())
-             ? static_cast<T>(x.impl_get_value())
-             : Kokkos::reduction_identity<T>::min();
-}
-KOKKOS_IMPL_DISABLE_DEPRECATED_WARNINGS_POP()
-#endif
 
 }  // namespace Experimental
 }  // namespace Kokkos

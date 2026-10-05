@@ -11,10 +11,9 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-// DEM verification test 03: two particles stacked in a narrow channel between
-// two walls, held in continuous (enduring) compression under gravity.  Mirrors
-// MFiX-DEM VVUQ case DEM-03.  All test logic is shared via test_dem_common;
-// the reference systems live in tests/dem03-*.yaml.
+// DEM verification test 03: elastic Hertzian normal impact of a sphere on a wall (peak contact force).
+// All test logic is shared via test_dem_common; the reference systems
+// live in tests/dem03-*.yaml.
 
 #include "test_dem_common.h"
 #include "test_main.h"

@@ -784,31 +784,31 @@ void LabelMap::write_map(const std::string &filename)
   if (comm->me == 0) {
     SafeFilePtr fp = fopen(filename.c_str(), "w");
     if (!fp) error->one(FLERR, "Cannot open label map file {}: {}", filename, utils::getsyserror());
-    if (typelabel_map.size() > 0) {
+    if (!typelabel_map.empty()) {
       fputs("labelmap atom", fp);
       for (int i = 0; i < natomtypes; ++i)
         if (!typelabel[i].empty()) utils::print(fp, R"( {} """ {} """)", i + 1, typelabel[i]);
       fputc('\n', fp);
     }
-    if (btypelabel_map.size() > 0) {
+    if (!btypelabel_map.empty()) {
       fputs("labelmap bond", fp);
       for (int i = 0; i < nbondtypes; ++i)
         if (!btypelabel[i].empty()) utils::print(fp, R"( {} """ {} """)", i + 1, btypelabel[i]);
       fputc('\n', fp);
     }
-    if (atypelabel_map.size() > 0) {
+    if (!atypelabel_map.empty()) {
       fputs("labelmap angle", fp);
       for (int i = 0; i < nangletypes; ++i)
         if (!atypelabel[i].empty()) utils::print(fp, R"( {} """ {} """)", i + 1, atypelabel[i]);
       fputc('\n', fp);
     }
-    if (dtypelabel_map.size() > 0) {
+    if (!dtypelabel_map.empty()) {
       fputs("labelmap dihedral", fp);
       for (int i = 0; i < ndihedraltypes; ++i)
         if (!dtypelabel[i].empty()) utils::print(fp, R"( {} """ {} """)", i + 1, dtypelabel[i]);
       fputc('\n', fp);
     }
-    if (itypelabel_map.size() > 0) {
+    if (!itypelabel_map.empty()) {
       fputs("labelmap improper", fp);
       for (int i = 0; i < nimpropertypes; ++i)
         if (!itypelabel[i].empty()) utils::print(fp, R"( {} """ {} """)", i + 1, itypelabel[i]);

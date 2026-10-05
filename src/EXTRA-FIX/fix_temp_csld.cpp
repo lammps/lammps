@@ -40,7 +40,6 @@ using namespace FixConst;
 enum{NOBIAS,BIAS};
 enum{CONSTANT,EQUAL};
 
-static constexpr int PRNGSIZE = 98+2+3;
 /* ---------------------------------------------------------------------- */
 
 FixTempCSLD::FixTempCSLD(LAMMPS *lmp, int narg, char **arg) :
@@ -96,6 +95,8 @@ FixTempCSLD::FixTempCSLD(LAMMPS *lmp, int narg, char **arg) :
 
 FixTempCSLD::~FixTempCSLD()
 {
+  if (copymode) return;
+
   delete[] tstr;
 
   // delete temperature if fix created it
@@ -125,13 +126,9 @@ void FixTempCSLD::init()
 
   // we cannot handle constraints via rattle or shake correctly.
 
-  int has_shake = 0;
-  for (int i = 0; i < modify->nfix; i++)
-    if ((strcmp(modify->fix[i]->style,"shake") == 0)
-        || (strcmp(modify->fix[i]->style,"rattle") == 0)) ++has_shake;
-
-  if (has_shake > 0)
-    error->all(FLERR,"Fix temp/csld is not compatible with fix rattle or fix shake");
+  if (!modify->get_fix_by_style("^shake").empty() || !modify->get_fix_by_style("^rattle").empty()
+      || !modify->get_fix_by_style("^ilves").empty())
+    error->all(FLERR,"Fix temp/csld is not compatible with fix shake, rattle, or ilves");
 
   // check variable
 
@@ -295,16 +292,16 @@ double FixTempCSLD::compute_scalar()
 
 void FixTempCSLD::write_restart(FILE *fp)
 {
-  int nsize = PRNGSIZE*comm->nprocs + 2; // pRNG state per proc + nprocs + energy
+  int nsize = RanMars::STATE_SIZE*comm->nprocs + 2; // pRNG state per proc + nprocs + energy
   auto *list = new double[nsize];
 
   if (comm->me == 0) {
     list[0] = energy;
     list[1] = comm->nprocs;
   }
-  double state[PRNGSIZE];
+  double state[RanMars::STATE_SIZE];
   random->get_state(state);
-  MPI_Gather(state,PRNGSIZE,MPI_DOUBLE,list+2,PRNGSIZE,MPI_DOUBLE,0,world);
+  MPI_Gather(state,RanMars::STATE_SIZE,MPI_DOUBLE,list+2,RanMars::STATE_SIZE,MPI_DOUBLE,0,world);
 
   if (comm->me == 0) {
     int size = nsize * sizeof(double);
@@ -327,7 +324,11 @@ void FixTempCSLD::restart(char *buf)
   if (nprocs != comm->nprocs) {
     if (comm->me == 0)
       error->warning(FLERR,"Different number of procs. Cannot restore RNG state.");
-  } else random->set_state(list+2+comm->me*103);
+  } else {
+    // the size of the stored states depends on the version that wrote the restart file
+    const int stride = RanMars::state_size(list+2);
+    random->set_state(list+2+comm->me*stride);
+  }
 }
 
 /* ----------------------------------------------------------------------

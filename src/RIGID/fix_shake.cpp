@@ -417,7 +417,7 @@ void FixShake::init()
   if (utils::strmatch(update->integrate_style,"^respa")) {
     if (update->whichflag > 0) {
       auto fixes = modify->get_fix_by_style("^RESPA");
-      if (fixes.size() > 0) fix_respa = dynamic_cast<FixRespa *>(fixes.front());
+      if (!fixes.empty()) fix_respa = dynamic_cast<FixRespa *>(fixes.front());
       else error->all(FLERR,"Run style respa did not create fix RESPA");
     }
     auto *respa_ptr = dynamic_cast<Respa *>(update->integrate);
@@ -525,7 +525,7 @@ void FixShake::setup(int vflag)
     if (!respa_ptr) error->all(FLERR, "Failure to access Respa style {}", update->integrate_style);
     if (update->whichflag > 0) {
       auto fixes = modify->get_fix_by_style("^RESPA");
-      if (fixes.size() > 0) fix_respa = dynamic_cast<FixRespa *>(fixes.front());
+      if (!fixes.empty()) fix_respa = dynamic_cast<FixRespa *>(fixes.front());
       else error->all(FLERR,"Run style respa did not create fix RESPA");
     }
     respa = 1;

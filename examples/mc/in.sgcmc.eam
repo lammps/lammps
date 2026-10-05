@@ -29,7 +29,7 @@ pair_coeff      * * FeCu.pasianot.eamfs Fe Cu
 
 # initialize velocities
 variable        double_temp equal ${temperature}*2
-velocity        all create ${double_temp} 428459 dist gaussian
+velocity        all create ${double_temp} 428459 dist gaussian loop geom
 
 # what and how to run
 fix             integrate all npt &

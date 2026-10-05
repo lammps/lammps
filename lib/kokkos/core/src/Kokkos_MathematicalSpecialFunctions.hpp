@@ -25,12 +25,12 @@ template <class RealType>
 KOKKOS_INLINE_FUNCTION RealType expint1(RealType x) {
   // This function is a conversion of the corresponding Fortran program in
   // S. Zhang & J. Jin "Computation of Special Functions" (Wiley, 1996).
+  using Kokkos::epsilon;
   using Kokkos::exp;
   using Kokkos::fabs;
+  using Kokkos::infinity;
   using Kokkos::log;
   using Kokkos::pow;
-  using Kokkos::Experimental::epsilon;
-  using Kokkos::Experimental::infinity;
 
   RealType e1;
 
@@ -80,11 +80,11 @@ KOKKOS_INLINE_FUNCTION Kokkos::complex<RealType> erf(
   //      (4)  abs(z)>2 and 0<=x<=1 and abs(y)>=6 - asymptotic expansion
   //  Error condition: abs(z^2) > 670 is a fatal overflow error
   using Kokkos::cos;
+  using Kokkos::epsilon_v;
   using Kokkos::exp;
   using Kokkos::fabs;
+  using Kokkos::infinity_v;
   using Kokkos::sin;
-  using Kokkos::Experimental::epsilon_v;
-  using Kokkos::Experimental::infinity_v;
   using Kokkos::numbers::pi_v;
 
   using CmplxType = Kokkos::complex<RealType>;
@@ -258,12 +258,12 @@ KOKKOS_INLINE_FUNCTION Kokkos::complex<RealType> erfcx(
   //      (4)  abs(z)>2 and 0<=x<=1 and abs(y)>=6 - asymptotic expansion
   // Error condition: abs(z^2) > 670 is a fatal overflow error when x<0
   using Kokkos::cos;
+  using Kokkos::epsilon_v;
   using Kokkos::exp;
   using Kokkos::fabs;
+  using Kokkos::infinity_v;
   using Kokkos::isinf;
   using Kokkos::sin;
-  using Kokkos::Experimental::epsilon_v;
-  using Kokkos::Experimental::infinity_v;
   using Kokkos::numbers::inv_sqrtpi_v;
   using Kokkos::numbers::pi_v;
 
@@ -542,8 +542,8 @@ KOKKOS_INLINE_FUNCTION CmplxType cyl_bessel_y0(const CmplxType& z,
   //             bw_start  --- Starting point for backward recurrence
   //    Output:  cby0      --- Y0(z)
   using Kokkos::fabs;
+  using Kokkos::infinity_v;
   using Kokkos::pow;
-  using Kokkos::Experimental::infinity_v;
   using Kokkos::numbers::egamma_v;
   using Kokkos::numbers::pi_v;
 
@@ -738,8 +738,8 @@ KOKKOS_INLINE_FUNCTION CmplxType cyl_bessel_y1(const CmplxType& z,
   //             bw_start  --- Starting point for backward recurrence
   //    Output:  cby1      --- Y1(z)
   using Kokkos::fabs;
+  using Kokkos::infinity_v;
   using Kokkos::pow;
-  using Kokkos::Experimental::infinity_v;
   using Kokkos::numbers::egamma_v;
   using Kokkos::numbers::pi_v;
 
@@ -900,8 +900,8 @@ KOKKOS_INLINE_FUNCTION CmplxType cyl_bessel_k0(const CmplxType& z,
   //                           argument regions
   //             bw_start  --- Starting point for backward recurrence
   //    Output:  cbk0      --- K0(z)
+  using Kokkos::infinity_v;
   using Kokkos::pow;
-  using Kokkos::Experimental::infinity_v;
   using Kokkos::numbers::egamma_v;
   using Kokkos::numbers::pi_v;
 
@@ -1050,8 +1050,8 @@ KOKKOS_INLINE_FUNCTION CmplxType cyl_bessel_k1(const CmplxType& z,
   //                           argument regions
   //             bw_start  --- Starting point for backward recurrence
   //    Output:  cbk1      --- K1(z)
+  using Kokkos::infinity_v;
   using Kokkos::pow;
-  using Kokkos::Experimental::infinity_v;
   using Kokkos::numbers::egamma_v;
   using Kokkos::numbers::pi_v;
 
@@ -1122,7 +1122,7 @@ KOKKOS_INLINE_FUNCTION CmplxType cyl_bessel_h10(const CmplxType& z) {
   // programs CH12N in S. Zhang & J. Jin "Computation of Special Functions"
   //(Wiley, 1996).
   using RealType = typename CmplxType::value_type;
-  using Kokkos::Experimental::infinity_v;
+  using Kokkos::infinity_v;
   using Kokkos::numbers::pi_v;
 
   constexpr auto inf = infinity_v<RealType>;
@@ -1153,7 +1153,7 @@ KOKKOS_INLINE_FUNCTION CmplxType cyl_bessel_h11(const CmplxType& z) {
   // programs CH12N in S. Zhang & J. Jin "Computation of Special Functions"
   //(Wiley, 1996).
   using RealType = typename CmplxType::value_type;
-  using Kokkos::Experimental::infinity_v;
+  using Kokkos::infinity_v;
   using Kokkos::numbers::pi_v;
 
   constexpr auto inf = infinity_v<RealType>;
@@ -1184,7 +1184,7 @@ KOKKOS_INLINE_FUNCTION CmplxType cyl_bessel_h20(const CmplxType& z) {
   // programs CH12N in S. Zhang & J. Jin "Computation of Special Functions"
   //(Wiley, 1996).
   using RealType = typename CmplxType::value_type;
-  using Kokkos::Experimental::infinity_v;
+  using Kokkos::infinity_v;
   using Kokkos::numbers::pi_v;
 
   constexpr auto inf = infinity_v<RealType>;
@@ -1215,7 +1215,7 @@ KOKKOS_INLINE_FUNCTION CmplxType cyl_bessel_h21(const CmplxType& z) {
   // programs CH12N in S. Zhang & J. Jin "Computation of Special Functions"
   //(Wiley, 1996).
   using RealType = typename CmplxType::value_type;
-  using Kokkos::Experimental::infinity_v;
+  using Kokkos::infinity_v;
   using Kokkos::numbers::pi_v;
 
   constexpr auto inf = infinity_v<RealType>;

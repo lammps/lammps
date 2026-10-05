@@ -1,10 +1,11 @@
 .. index:: angle_style table
+.. index:: angle_style table/kk
 .. index:: angle_style table/omp
 
 angle_style table command
 =========================
 
-Accelerator Variants: *table/omp*
+Accelerator Variants: *table/kk*, *table/omp*
 
 Syntax
 """"""

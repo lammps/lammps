@@ -28,13 +28,13 @@
 #include "my_page.h"
 #include "neigh_list.h"
 #include "neighbor.h"
+#include "potential_file_reader.h"
 
 #include <cmath>
 #include <cstring>
 
 using namespace LAMMPS_NS;
 
-static constexpr int MAXLINE = 1024;
 static constexpr double TOL = 1.0e-9;
 static constexpr int PGDELTA = 1;
 
@@ -921,90 +921,47 @@ double PairLCBOP::F_conj( double N_ij, double N_ji, double N_conj_ij, double *dF
 void PairLCBOP::read_file(char *filename)
 {
   int i,k,l;
-  char s[MAXLINE];
 
   // read file on proc 0
 
   if (comm->me == 0) {
-    FILE *fp = utils::open_potential(filename,lmp,nullptr);
-    if (fp == nullptr)
-      error->one(FLERR,"Cannot open LCBOP potential file {}: {}",filename,utils::getsyserror());
+    try {
+      PotentialFileReader reader(lmp, filename, "LCBOP");
 
-    // skip initial comment lines
+      // read parameters, one value per line, in the order of the list below.
+      // the reader skips over comment and empty lines, and any descriptive
+      // text after the leading number is ignored.
 
-    while (true) {
-      utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-      if (s[0] != '#') break;
-    }
+      double *params[] = {&r_1, &r_2, &gamma_1, &A, &B_1, &B_2, &alpha, &beta_1, &beta_2,
+                          &d, &C_1, &C_4, &C_6, &L, &kappa, &R_0, &R_1, &r_0, &r_1_LR,
+                          &r_2_LR, &v_1, &v_2, &eps_1, &eps_2, &lambda_1, &lambda_2,
+                          &eps, &delta};
+      for (auto *param : params) *param = reader.next_values(1).next_double();
 
-    // read parameters
+      // F_conj spline
 
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);    sscanf(s,"%lg",&r_1);
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);    sscanf(s,"%lg",&r_2);
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);    sscanf(s,"%lg",&gamma_1);
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);    sscanf(s,"%lg",&A);
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);    sscanf(s,"%lg",&B_1);
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);    sscanf(s,"%lg",&B_2);
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);    sscanf(s,"%lg",&alpha);
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);    sscanf(s,"%lg",&beta_1);
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);    sscanf(s,"%lg",&beta_2);
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);    sscanf(s,"%lg",&d);
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);    sscanf(s,"%lg",&C_1);
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);    sscanf(s,"%lg",&C_4);
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);    sscanf(s,"%lg",&C_6);
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);    sscanf(s,"%lg",&L);
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);    sscanf(s,"%lg",&kappa);
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);    sscanf(s,"%lg",&R_0);
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);    sscanf(s,"%lg",&R_1);
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);    sscanf(s,"%lg",&r_0);
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);    sscanf(s,"%lg",&r_1_LR);
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);    sscanf(s,"%lg",&r_2_LR);
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);    sscanf(s,"%lg",&v_1);
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);    sscanf(s,"%lg",&v_2);
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);    sscanf(s,"%lg",&eps_1);
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);    sscanf(s,"%lg",&eps_2);
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);    sscanf(s,"%lg",&lambda_1);
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);    sscanf(s,"%lg",&lambda_2);
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);    sscanf(s,"%lg",&eps);
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);    sscanf(s,"%lg",&delta);
-
-    while (true) {
-      utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-      if (s[0] != '#') break;
-    }
-
-    // F_conj spline
-
-    for (k = 0; k < 2; k++) { // 2 values of N_ij_conj
-      for (l = 0; l < 3; l++) { // 3 types of data: f, dfdx, dfdy
-        for (i = 0; i < 4; i++) { // 4x4 matrix
-          utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-          sscanf(s,"%lg %lg %lg %lg",
-            &F_conj_data[i][0][k][l],
-            &F_conj_data[i][1][k][l],
-            &F_conj_data[i][2][k][l],
-            &F_conj_data[i][3][k][l]);
+      for (k = 0; k < 2; k++) { // 2 values of N_ij_conj
+        for (l = 0; l < 3; l++) { // 3 types of data: f, dfdx, dfdy
+          for (i = 0; i < 4; i++) { // 4x4 matrix
+            auto values = reader.next_values(4);
+            for (int j = 0; j < 4; j++) F_conj_data[i][j][k][l] = values.next_double();
+          }
         }
-        while (true) { utils::sfgets(FLERR,s,MAXLINE,fp,filename,error); if (s[0] != '#') break; }
       }
+
+      // G spline
+
+      // x coordinates of mesh points
+      auto gx_values = reader.next_values(6);
+      for (i = 0; i < 6; i++) gX[i] = gx_values.next_double();
+
+      for (i = 0; i < 6; i++) { // for each power in polynomial
+        auto values = reader.next_values(5);
+        for (int j = 0; j < 5; j++) gC[i][j] = values.next_double();
+      }
+    } catch (std::exception &e) {
+      error->one(FLERR, "Error reading LCBOP potential file {}: {}", filename, e.what());
     }
-
-    // G spline
-
-    // x coordinates of mesh points
-    utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-    sscanf( s,"%lg %lg %lg %lg %lg %lg",
-      &gX[0], &gX[1], &gX[2],
-      &gX[3], &gX[4], &gX[5] );
-
-    for (i = 0; i < 6; i++) { // for each power in polynomial
-      utils::sfgets(FLERR,s,MAXLINE,fp,filename,error);
-      sscanf( s,"%lg %lg %lg %lg %lg",
-        &gC[i][0], &gC[i][1], &gC[i][2],
-        &gC[i][3], &gC[i][4] );
-    }
-
-    fclose(fp);
   }
 
   // broadcast read-in and setup values

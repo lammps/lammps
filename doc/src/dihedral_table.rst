@@ -1,17 +1,19 @@
 .. index:: dihedral_style table
+.. index:: dihedral_style table/kk
 .. index:: dihedral_style table/omp
 .. index:: dihedral_style table/cut
+.. index:: dihedral_style table/cut/kk
 .. index:: dihedral_style table/cut/omp
 
 dihedral_style table command
 ============================
 
-Accelerator Variants: *table/omp*
+Accelerator Variants: *table/kk*, *table/omp*
 
 dihedral_style table/cut command
 ================================
 
-Accelerator Variants: *table/cut/omp*
+Accelerator Variants: *table/cut/kk*, *table/cut/omp*
 
 Syntax
 """"""

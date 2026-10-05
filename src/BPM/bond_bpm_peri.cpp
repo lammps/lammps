@@ -130,7 +130,7 @@ BondBPMPeri::~BondBPMPeri()
   memory->destroy(tdnorm);
 
   if (id_fix_property_peri) {
-    if (modify->nfix) modify->delete_fix(id_fix_property_peri);
+    modify->delete_fix(id_fix_property_peri);
     delete[] id_fix_property_peri;
   }
 

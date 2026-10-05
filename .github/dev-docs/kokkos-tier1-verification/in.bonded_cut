@@ -1,0 +1,25 @@
+variable        tdir index ../../../unittest/force-styles/tests
+units           real
+atom_style      full
+atom_modify     map array
+pair_style      zero 10.0
+bond_style      zero
+angle_style     zero
+dihedral_style  zero
+improper_style  zero
+read_data       ${tdir}/data.fourmol
+pair_style      lj/cut 8.0
+pair_coeff      * * 0.02 3.0
+variable        ts index linear
+dihedral_style  table/cut ${ts} 3600
+dihedral_coeff  1 aat 1.00 170 180 ${tdir}/harmonic_dihedral.txt HARMONIC_1
+dihedral_coeff  2 aat 1.00 170 180 ${tdir}/harmonic_dihedral.txt HARMONIC_2
+dihedral_coeff  3 aat 0.50 175 180 ${tdir}/harmonic_dihedral.txt HARMONIC_3
+dihedral_coeff  4 aat 1.00 170 180 ${tdir}/harmonic_dihedral.txt HARMONIC_4
+dihedral_coeff  5 aat 0.25 170 175 ${tdir}/harmonic_dihedral.txt HARMONIC_5
+neighbor        2.0 bin
+neigh_modify    delay 0 every 1 check yes
+fix             1 all nve
+thermo_style    custom step temp pe edihed press
+thermo          5
+run             20 post no

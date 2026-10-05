@@ -45,31 +45,15 @@ using MathSpecial::powint;
 
 /* ---------------------------------------------------------------------- */
 
-FixPIMDNVT::FixPIMDNVT(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg), comm_ptr(nullptr)
+FixPIMDNVT::FixPIMDNVT(LAMMPS *lmp, int narg, char **arg) :
+    Fix(lmp, narg, arg), mass(nullptr), tag_send(nullptr), buf_send(nullptr), buf_recv(nullptr),
+    buf_beads(nullptr), plan_send(nullptr), plan_recv(nullptr), comm_ptr(nullptr), lam(nullptr),
+    M_x2xp(nullptr), M_xp2x(nullptr), M_f2fp(nullptr), M_fp2f(nullptr), mode_index(nullptr),
+    nhc_eta(nullptr), nhc_eta_dot(nullptr), nhc_eta_dotdot(nullptr), nhc_eta_mass(nullptr)
 {
   max_nsend = 0;
-  tag_send = nullptr;
-  buf_send = nullptr;
-
   max_nlocal = 0;
-  buf_recv = nullptr;
-  buf_beads = nullptr;
-
   size_plan = 0;
-  plan_send = plan_recv = nullptr;
-
-  M_x2xp = M_xp2x = M_f2fp = M_fp2f = nullptr;
-  lam = nullptr;
-  mode_index = nullptr;
-
-  mass = nullptr;
-
-  array_atom = nullptr;
-  nhc_eta = nullptr;
-  nhc_eta_dot = nullptr;
-  nhc_eta_dotdot = nullptr;
-  nhc_eta_mass = nullptr;
-
   spring_energy = t_sys = virial = 0.0;
 
   method = PIMD;
@@ -111,6 +95,13 @@ FixPIMDNVT::FixPIMDNVT(LAMMPS *lmp, int narg, char **arg) : Fix(lmp, narg, arg),
 
   if (strcmp(update->unit_style, "lj") == 0)
     error->all(FLERR, fmt::format("Fix {} does not support lj units", style));
+
+  // spring_force() needs a previous and a next bead
+
+  if (np < 2)
+    error->universe_all(FLERR,
+                        fmt::format("Fix {} requires at least 2 beads, i.e. running with the "
+                                    "-partition command line option", style));
 
   /* Initiation */
 
@@ -234,6 +225,9 @@ void FixPIMDNVT::init()
 
   comm_init();
 
+  // init() runs once per run command, so release the array of the previous one
+
+  delete[] mass;
   mass = new double[atom->ntypes + 1];
 
   if (method == CMD || method == NMPIMD)
@@ -462,6 +456,15 @@ void FixPIMDNVT::nhc_update_v()
 
 void FixPIMDNVT::nmpimd_init()
 {
+  // init() calls this once per run, so release what an earlier run allocated
+
+  memory->destroy(M_x2xp);
+  memory->destroy(M_xp2x);
+  memory->destroy(M_f2fp);
+  memory->destroy(M_fp2f);
+  memory->sfree(lam);
+  lam = nullptr;
+
   memory->create(M_x2xp, np, np, "fix_feynman:M_x2xp");
   memory->create(M_xp2x, np, np, "fix_feynman:M_xp2x");
   memory->create(M_f2fp, np, np, "fix_feynman:M_f2fp");
@@ -593,9 +596,9 @@ void FixPIMDNVT::spring_force()
     double dy = dely1 + dely2;
     double dz = delz1 + delz2;
 
-    f[i][0] -= dx*ff;
-    f[i][1] -= dy*ff;
-    f[i][2] -= dz*ff;
+    f[i][0] -= dx * ff;
+    f[i][1] -= dy * ff;
+    f[i][2] -= dz * ff;
 
     spring_energy += -0.5 * ff * (delx2 * delx2 + dely2 * dely2 + delz2 * delz2);
   }
@@ -610,6 +613,7 @@ void FixPIMDNVT::comm_init()
   if (size_plan) {
     delete[] plan_send;
     delete[] plan_recv;
+    delete[] mode_index;
   }
 
   if (method == PIMD) {
@@ -659,6 +663,7 @@ void FixPIMDNVT::comm_init()
 
   buf_beads = new double *[np];
   for (int i = 0; i < np; i++) buf_beads[i] = nullptr;
+  max_nlocal = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -687,8 +692,8 @@ void FixPIMDNVT::comm_exec(double **ptr)
 
     int nsend;
 
-    MPI_Sendrecv(&nlocal, 1, MPI_INT, plan_send[iplan], 0, &nsend, 1, MPI_INT, plan_recv[iplan],
-                 0, universe->uworld, MPI_STATUS_IGNORE);
+    MPI_Sendrecv(&nlocal, 1, MPI_INT, plan_send[iplan], 0, &nsend, 1, MPI_INT, plan_recv[iplan], 0,
+                 universe->uworld, MPI_STATUS_IGNORE);
 
     // allocate arrays
 

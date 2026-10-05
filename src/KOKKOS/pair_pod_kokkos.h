@@ -72,10 +72,10 @@ class PairPODKokkos : public PairPOD {
 
   void grow(int, int);
   void copy_from_pod_class(EAPOD *podptr);
-  void divideInterval(int *intervals, int N, int M);
-  int calculateNumberOfIntervals(int N, int intervalSize);
-  void grow_atoms(int Ni);
-  void grow_pairs(int Nij);
+  void divideInterval(int *intervals, int N, int M) override;
+  int calculateNumberOfIntervals(int N, int intervalSize) override;
+  void grow_atoms(int Ni) override;
+  void grow_pairs(int Nij) override;
 
   void allocate() override;
   double memory_usage() override;
@@ -216,9 +216,6 @@ class PairPODKokkos : public PairPOD {
   void tallyforce(t_pod_1d l_fij, t_pod_1i l_ai, t_pod_1i l_aj, int Nij);
   void tallystress(t_pod_1d l_fij, t_pod_1d l_rij, t_pod_1i l_ai, t_pod_1i l_aj, int Nij);
 
-  void savematrix2binfile(std::string filename, t_pod_1d d_A, int nrows, int ncols);
-  void saveintmatrix2binfile(std::string filename, t_pod_1i d_A, int nrows, int ncols);
-  void savedatafordebugging();
 };
 }    // namespace LAMMPS_NS
 

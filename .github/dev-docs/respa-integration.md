@@ -4,6 +4,22 @@ Constraint fixes (`shake`, `rattle`, `ilves`) and forcing fixes that participate
 the inner-force update must support `run_style respa`.  The pattern is the same in all
 of them; `fix_shake.cpp` is the canonical reference.  Steps to add respa support:
 
+## If respa support is not feasible: refuse, never run silently wrong
+
+Respa invokes only the `*_RESPA` fix hooks; masks without a respa variant
+(`PRE_FORCE`, `PRE_REVERSE`, ...) are silently skipped, so a fix relying on them
+does NOTHING under `run_style respa` (the ELECTRODE fixes silently froze their
+electrode charges this way).  When implementing the hooks is out of scope, error
+out in `init()`:
+
+```cpp
+if (utils::strmatch(update->integrate_style, "^respa"))
+  error->all(FLERR, Error::NOLASTLINE, "Fix {} is not compatible with run_style respa", style);
+```
+
+Document the restriction in the fix's doc page, and if the fix has force-style YAML
+tests, add it to the respa exclusion regex in `test_fix_timestep.cpp`.
+
 ## Header changes
 
 - Forward-declare `class FixRespa;`.

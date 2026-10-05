@@ -72,7 +72,8 @@ static constexpr int ATTRIBUTE_PERLINE = 8;
 /* ---------------------------------------------------------------------- */
 
 NEBSpin::NEBSpin(LAMMPS *lmp) :
-    Command(lmp), fp(nullptr), inpfile(nullptr), fneb(nullptr), all(nullptr), rdist(nullptr),
+    Command(lmp), roots(MPI_COMM_NULL), fp(nullptr), inpfile(nullptr), fneb(nullptr),
+    all(nullptr), rdist(nullptr),
     freplica(nullptr), fmaxatomInRepl(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_neb_spin);
@@ -400,8 +401,11 @@ void NEBSpin::readfile(char *file, int flag)
         start = &line[strspn(line," \t\n\v\f\r")];
         if (*start != '\0' && *start != '#') break;
       }
-      int rv = sscanf(line,"%d",&nlines);
-      if (rv != 1) nlines = -1;
+      try {
+        nlines = ValueTokenizer(line).next_int();
+      } catch (TokenizerException &) {
+        nlines = -1;
+      }
     }
     MPI_Bcast(&nlines,1,MPI_INT,0,uworld);
     if (nlines < 0)
@@ -416,8 +420,11 @@ void NEBSpin::readfile(char *file, int flag)
           start = &line[strspn(line," \t\n\v\f\r")];
           if (*start != '\0' && *start != '#') break;
         }
-        int rv = sscanf(line,"%d",&nlines);
-        if (rv != 1) nlines = -1;
+        try {
+          nlines = ValueTokenizer(line).next_int();
+        } catch (TokenizerException &) {
+          nlines = -1;
+        }
       } else nlines = 0;
     }
     MPI_Bcast(&nlines,1,MPI_INT,0,world);

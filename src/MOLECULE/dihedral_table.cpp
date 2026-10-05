@@ -422,6 +422,8 @@ DihedralTable::DihedralTable(LAMMPS *lmp) : Dihedral(lmp), tabindex(nullptr)
 
 DihedralTable::~DihedralTable()
 {
+  if (copymode) return;
+
   for (int m = 0; m < ntables; m++) free_table(&tables[m]);
   memory->sfree(tables);
 

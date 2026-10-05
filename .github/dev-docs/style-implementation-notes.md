@@ -32,6 +32,21 @@ divergence almost always means decomposition-dependent random numbers in the set
 NOT a force/communication bug.  Reproduce from an identical start (data/restart file,
 or `velocity create ... loop geom`) before suspecting the style's forward/reverse comm.
 
+**Buffers passed to MPI must not be null, even for a count of zero.**  Some MPI
+libraries validate buffer pointers regardless of the count.  `memory->create(p, 0,
+...)` and `std::vector::data()` of an empty vector return NULL (`new T[0]` and
+`std::string::data()` do not).  Size per-rank buffers with `MAX(1, n)`, initialize
+lazy-grow maxima to -1 so the first grow also fires at n == 0, and use `MPI_IN_PLACE`
+rather than `nullptr` where the root's own send or receive buffer is meant.  Null
+arguments that the MPI standard declares ignored (receive arguments on non-root ranks
+of gather/reduce, send arguments on non-root ranks of scatter) are fine.
+
+**Never reduce in place into a compute's published output.**  A `compute_vector()` or
+`compute_array()` can run twice on the same step (`fix ave/time` plus `thermo`); an
+`MPI_Allreduce(MPI_IN_PLACE, vector, ...)` then sums already reduced data and reports
+nprocs times the value.  Accumulate into a separate local buffer and reduce into
+`vector`.
+
 **Warnings print on all ranks.** `error->warning()` writes to `lmp->screen`, which
 defaults to stdout on EVERY rank; only the `log.lammps` file is rank-0-only.  Do not
 "fix" per-rank warnings on the assumption they are suppressed -- guard with
@@ -55,6 +70,66 @@ overflows the heap once a fix packs more than ~1024 doubles/atom.  Fixed upper b
 -> set `maxexchange` in the constructor; runtime-growing size -> set
 `maxexchange_dynamic = 1` and update `maxexchange` as it grows (canonical example:
 `fix_neigh_history` with `maxpartner`).
+
+**Fixes that draw random numbers must write the generator state to restart files.**
+Use `RanMars::get_state()`/`set_state()` with `RanMars::STATE_SIZE` values when writing
+and `RanMars::state_size()` when reading (the state includes the cached second
+Gaussian; `state_size()` also accepts older, shorter states); otherwise a restarted
+run differs from a continuous one and the
+style cannot pass the restart leg of the fix-timestep tests.  Per-atom random streams
+are additionally tied to the atom order, so bit-identical continuation also needs
+`atom_modify sort 0 0.0` (inherent, as for `fix langevin`).
+
+## Array sizing and zeroing
+
+**Size copies of `tagint`/`bigint` arrays by the element type.** These types change
+width with `LAMMPS_SIZES`: under `bigbig` a `memcpy(dst, src, n*sizeof(int))` on a
+`tagint` array copies only HALF the data and leaves the rest zero -- silently wrong
+special-bond exclusions/forces that only the bigbig CI job catches (a bug of this
+shape hid in `rebuild_special_one()` for 12 years).  Always `n*sizeof(tagint)` (or
+`sizeof(*dst)`).
+
+**`memory->create(double**&, n, m)` arrays: the variable IS the row-pointer table.**
+The contiguous data block is `&array[0][0]`; `memset(array, 0, n*m*sizeof(double))`
+nulls the row pointers and overruns the heap past the table.  Also mind lifecycle:
+`init()` runs before EVERY `run`, so blanket zeroing there wipes values accumulated
+across consecutive runs -- when growing in an init path, zero only the newly grown
+region `[oldmax, newmax)`.
+
+**Per-atom output must be set for EVERY local atom.**  Atoms outside the compute or
+fix group get explicit zeros, and averaging over neighbors must not read values of
+non-group neighbors that were never computed.  Leaving them unset exposes stale or
+uninitialized memory in dumps and reductions (a 2026-09 audit fixed this in several
+per-atom computes, including accelerator variants).  A test that swaps the group
+between two runs detects it independently of the memory allocator.
+
+## Fix lifecycle ordering
+
+**A fix that reads dynamic-group membership must take its first snapshot in
+`setup(int)`, not `init()`.**  `FixGroup` populates dynamic groups in
+`modify->setup()`, which runs after `modify->init()` but before `output->setup()`;
+a group referenced by a fix always precedes that fix in the fix list, so the
+membership is current by the time the fix's own `setup()` runs.  Reading it in
+`init()` sees stale membership.
+
+**Any data a fix publishes for step-0 output must be primed in `setup()`.**  Data
+filled only in `init()` or lazily in `post_integrate()`/`end_of_step()` is stale or
+absent on the very first frame -- dumps, graphics, and `run 0` output silently show
+zeros (three graphics fixes shipped with invisible first frames from exactly this).
+Prime in `setup(int)`, keep the per-step update where it is.
+
+**A fix whose hooks all lack `_RESPA` variants never runs under `run_style respa`.**
+Masks like `PRE_FORCE` and `PRE_REVERSE` are only invoked by verlet-family
+integrators; under respa such a fix is silently skipped entirely (the ELECTRODE fixes
+left charges frozen this way).  Either implement the respa hooks (see
+`.github/dev-docs/respa-integration.md`) or refuse in `init()`:
+`if (utils::strmatch(update->integrate_style, "^respa")) error->all(...)`.
+
+**A fix that creates its own group must guard the destructor's cleanup.**
+`LAMMPS::destroy()` deletes the `Group` class BEFORE `Modify`, so a fix destructor
+calling `group->assign("<name> delete")` must check `if (group)` and catch
+exceptions (established pattern: `fix_gcmc`); otherwise normal program teardown
+crashes.
 
 ## Argument parsing and validity guards
 
@@ -88,6 +163,9 @@ dependent checks and sizing in `settings()`/`coeff()`.
   `<vector>`; virtually every class derives from `Pointers`, so do not add redundant
   includes for these -- only for headers it does not export (`<cmath>`, `<map>`,
   `<algorithm>`, ...).
+- When changing a function signature, buffer size, or other shared contract, find ALL
+  users in both `src/` and `unittest/` and never truncate the search with `head`
+  (a missed caller in the tests caused a buffer overflow that only CI caught).
 - The `Memory` class does NO usage accounting; per-style `memory_usage()` is a rough
   estimate covering large (per-atom) allocations only.  Using `new[]` instead of
   `memory->create()` for small arrays does not "lose accounting" -- there is none.

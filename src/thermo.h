@@ -107,7 +107,6 @@ class Thermo : protected Pointers {
   // Compute * = ptrs to the Compute objects
 
   int index_temp, index_press_scalar, index_press_vector, index_pe;
-  double press_tensor[3][3];
 
   int ncompute;                // # of Compute objects called by thermo
   char **id_compute;           // their IDs
@@ -230,12 +229,7 @@ class Thermo : protected Pointers {
   void compute_pyz();
   void compute_pxz();
 
-  void compute_pxx_triclinic_general();
-  void compute_pyy_triclinic_general();
-  void compute_pzz_triclinic_general();
-  void compute_pxy_triclinic_general();
-  void compute_pxz_triclinic_general();
-  void compute_pyz_triclinic_general();
+  double press_tensor_general(int, int);
 
   void compute_bonds();
   void compute_angles();

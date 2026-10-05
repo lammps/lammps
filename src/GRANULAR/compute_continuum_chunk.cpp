@@ -535,7 +535,7 @@ void ComputeContinuumChunk::compute_array()
             values_local[mtmp][field_index] += massi * v[i][component] * w;
           }
 
-          if ((boundaryflag  == BOUNDARY_FIX || boundaryflag == BOUNDARY_BOTH) && ((style == STRESS) || (style == STRESSCON))) {
+          if (boundaryflag  == BOUNDARY_FIX || boundaryflag == BOUNDARY_BOTH) {
             for (auto wall_fix : wall_fixes) {
               array_atom_fix = wall_fix->array_atom;
 
@@ -551,9 +551,18 @@ void ComputeContinuumChunk::compute_array()
               MathExtra::zero3(dx_atom_cont_filtered);
               for (int coord_index = 0; coord_index < chunk_ncoord; coord_index++)
                 dx_atom_cont_filtered[cdim[coord_index]] = dx_atom_cont[cdim[coord_index]];
-              w_int_tmp = calc_w_int(dx_atom_bin, dx_atom_cont_filtered);
 
-              values_local[mtmp][field_index] -= f_wall[a] * dx_atom_cont[b] * w_int_tmp;
+              if ((style == STRESS) || (style == STRESSCON)) {
+                w_int_tmp = calc_w_int(dx_atom_bin, dx_atom_cont_filtered);
+                values_local[mtmp][field_index] -= f_wall[a] * dx_atom_cont[b] * w_int_tmp;
+              } else if (style == IFD) {
+                MathExtra::copy3(xcont, xbin2);
+                for (a = 0; a < chunk_ncoord; a++) xbin2[cdim[a]] = xbin[cdim[a]];
+                MathExtra::sub3(xbin2, xcont, dx_bin_cont);
+                rsq_cont_bin = MathExtra::lensq3(dx_bin_cont);
+                wc = calc_w(sqrt(rsq_cont_bin));
+                values_local[mtmp][field_index] -= f_wall[a] * wc;
+              }
             }
           }
 
@@ -604,17 +613,18 @@ void ComputeContinuumChunk::compute_array()
       jlist = firstneigh[i];
       jnum = numneigh[i];
       itag = tag[i];
+      itype = type[i];
 
       if (chunk_reducedflag) {
         double lamda[3];
         domain->x2lamda(x[i], lamda);
         for (a = 0; a < chunk_ncoord; a++)
-          lamda[cdim[a]] = coord[m][a];
+          lamda[cdim[a]] = coord[mi][a];
         domain->lamda2x(lamda, xbin0i);
       } else {
         MathExtra::copy3(x[i], xbin0i);
         for (a = 0; a < chunk_ncoord; a++)
-          xbin0i[cdim[a]] = coord[m][a];
+          xbin0i[cdim[a]] = coord[mi][a];
       }
 
       for (jj = 0; jj < jnum; jj++) {
@@ -658,12 +668,12 @@ void ComputeContinuumChunk::compute_array()
           double lamda[3];
           domain->x2lamda(x[j], lamda);
           for (a = 0; a < chunk_ncoord; a++)
-            lamda[cdim[a]] = coord[m][a];
+            lamda[cdim[a]] = coord[mj][a];
           domain->lamda2x(lamda, xbin0j);
         } else {
           MathExtra::copy3(x[j], xbin0j);
           for (a = 0; a < chunk_ncoord; a++)
-            xbin0j[cdim[a]] = coord[m][a];
+            xbin0j[cdim[a]] = coord[mj][a];
         }
 
         MathExtra::sub3(x[i], x[j], dx_pair);
@@ -684,32 +694,6 @@ void ComputeContinuumChunk::compute_array()
         MathExtra::scale3(factor_lj, f_pair, f_pair);
         if (MathExtra::lensq3(f_pair) == 0.0) continue;
 
-        if (iboundary || jboundary) {
-          MathExtra::add3(x[i], x[j], xcont);
-          MathExtra::scaleadd3((radius[j] - radius[i]) / r_pair, dx_pair, xcont, xcont);
-          MathExtra::scale3(0.5, xcont);
-
-          MathExtra::copy3(xcont, xbin2);
-          for (a = 0; a < chunk_ncoord; a++) xbin2[cdim[a]] = xbin[cdim[a]];
-          MathExtra::sub3(xbin2, xcont, dx_bin_cont);
-
-          rsq_cont_bin = MathExtra::lensq3(dx_bin_cont);
-          wc = calc_w(sqrt(rsq_cont_bin));
-
-          MathExtra::sub3(x[i], xcont, dx_atom_cont);
-          MathExtra::zero3(dx_atom_cont_filtered);
-          for (int coord_index = 0; coord_index < chunk_ncoord; coord_index++)
-            dx_atom_cont_filtered[cdim[coord_index]] = dx_atom_cont[cdim[coord_index]];
-          w_int_tmp = calc_w_int(dx_atom_bin, dx_atom_cont_filtered);
-        }
-
-        if ((!iboundary) || (!jboundary)) {
-          MathExtra::zero3(dx_pair_filtered);
-          for (int coord_index = 0; coord_index < chunk_ncoord; coord_index++)
-            dx_pair_filtered[cdim[coord_index]] = dx_pair[cdim[coord_index]];
-          w_int_tmp = calc_w_int(dx_atom_bin, dx_pair_filtered);
-        }
-
         // loop over stencil for i
 
         for (auto &stencil_offset : stencil) {
@@ -723,6 +707,30 @@ void ComputeContinuumChunk::compute_array()
           MathExtra::sub3(x[i], xbin, dx_atom_bin);
           rsq_atom_bin = MathExtra::lensq3(dx_atom_bin);
           w = calc_w(sqrt(rsq_atom_bin));
+
+          if (jboundary) {
+            MathExtra::add3(x[i], x[j], xcont);
+            MathExtra::scaleadd3((radius[j] - radius[i]) / r_pair, dx_pair, xcont, xcont);
+            MathExtra::scale3(0.5, xcont);
+
+            MathExtra::copy3(xcont, xbin2);
+            for (a = 0; a < chunk_ncoord; a++) xbin2[cdim[a]] = xbin[cdim[a]];
+            MathExtra::sub3(xbin2, xcont, dx_bin_cont);
+
+            rsq_cont_bin = MathExtra::lensq3(dx_bin_cont);
+            wc = calc_w(sqrt(rsq_cont_bin));
+
+            MathExtra::sub3(x[i], xcont, dx_atom_cont);
+            MathExtra::zero3(dx_atom_cont_filtered);
+            for (int coord_index = 0; coord_index < chunk_ncoord; coord_index++)
+              dx_atom_cont_filtered[cdim[coord_index]] = dx_atom_cont[cdim[coord_index]];
+            w_int_tmp = calc_w_int(dx_atom_bin, dx_atom_cont_filtered);
+          } else {
+            MathExtra::zero3(dx_pair_filtered);
+            for (int coord_index = 0; coord_index < chunk_ncoord; coord_index++)
+              dx_pair_filtered[cdim[coord_index]] = dx_pair[cdim[coord_index]];
+            w_int_tmp = calc_w_int(dx_atom_bin, dx_pair_filtered);
+          }
 
           field_index = 0;
           for (auto &val : values) {
@@ -751,7 +759,7 @@ void ComputeContinuumChunk::compute_array()
           }
         }
 
-        // loop over stencil for j, IFD changes sign, FABRIC remains the same
+        // loop over stencil for j, IFD changes sign, FABRIC/STRESS remains the same
 
         for (auto &stencil_offset : stencil) {
           xbin[0] = xbin0j[0] + stencil_offset.dx[0];
@@ -764,6 +772,30 @@ void ComputeContinuumChunk::compute_array()
           MathExtra::sub3(x[j], xbin, dx_atom_bin);
           rsq_atom_bin = MathExtra::lensq3(dx_atom_bin);
           w = calc_w(sqrt(rsq_atom_bin));
+
+          if (iboundary) {
+            MathExtra::add3(x[i], x[j], xcont);
+            MathExtra::scaleadd3((radius[j] - radius[i]) / r_pair, dx_pair, xcont, xcont);
+            MathExtra::scale3(0.5, xcont);
+
+            MathExtra::copy3(xcont, xbin2);
+            for (a = 0; a < chunk_ncoord; a++) xbin2[cdim[a]] = xbin[cdim[a]];
+            MathExtra::sub3(xbin2, xcont, dx_bin_cont);
+
+            rsq_cont_bin = MathExtra::lensq3(dx_bin_cont);
+            wc = calc_w(sqrt(rsq_cont_bin));
+
+            MathExtra::sub3(x[i], xcont, dx_atom_cont);
+            MathExtra::zero3(dx_atom_cont_filtered);
+            for (int coord_index = 0; coord_index < chunk_ncoord; coord_index++)
+              dx_atom_cont_filtered[cdim[coord_index]] = dx_atom_cont[cdim[coord_index]];
+            w_int_tmp = calc_w_int(dx_atom_bin, dx_atom_cont_filtered);
+          } else {
+            MathExtra::zero3(dx_pair_filtered);
+            for (int coord_index = 0; coord_index < chunk_ncoord; coord_index++)
+              dx_pair_filtered[cdim[coord_index]] = dx_pair[cdim[coord_index]];
+            w_int_tmp = calc_w_int(dx_atom_bin, dx_pair_filtered);
+          }
 
           field_index = 0;
           for (auto &val : values) {
@@ -785,7 +817,7 @@ void ComputeContinuumChunk::compute_array()
             } else if (style == FABRIC) {
               if (jboundary)
                 values_local[mtmp][field_index] +=
-                  voli * dx_pair[a] * dx_pair[b] * w_int_tmp / rsq_pair;
+                  volj * dx_pair[a] * dx_pair[b] * w_int_tmp / rsq_pair;
             }
 
             field_index++;
@@ -1216,7 +1248,7 @@ void ComputeContinuumChunk::build_stencil()
   }
 
   diagonal = sqrt(diagonal);
-  double cut = w_cut + diagonal;
+  double cut = w_cut + 0.5 * diagonal;
   double cut_sq = cut * cut;
   for (int a = 0; a < ncoord; a++)
     stencil_size[a] = static_cast<int>(ceil(cut / width[a]));

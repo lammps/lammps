@@ -9,8 +9,16 @@
 # vectors yields u_kln[k, l, n] = (sample n drawn from state k) evaluated at l,
 # which is what mbar.py expects.
 
+import sys
 from argparse import ArgumentParser
 import numpy as np
+
+
+def sigdigits(text):
+    """number of significant digits in the text of a floating-point number"""
+    mantissa = text.lower().split('e')[0].lstrip('+-').replace('.', '')
+    return len(mantissa.lstrip('0'))
+
 
 parser = ArgumentParser(description='Reshape LAMMPS compute mbar output into u_kln for pymbar.')
 parser.add_argument('infile', help='LAMMPS fix ave/time vector file (e.g. mbar.lmp)')
@@ -22,6 +30,7 @@ args = parser.parse_args()
 # nrows lines "row value"; comment lines (#) appear only in the file header
 samples = {}        # state index k -> list of per-step reduced-potential vectors
 nstates = None
+ndigits = 0         # largest number of significant digits found in the values
 with open(args.infile) as f:
     for line in f:
         if line.startswith('#') or not line.strip():
@@ -32,8 +41,13 @@ with open(args.infile) as f:
             nstates = nrows
         vec = np.empty(nrows)
         for _ in range(nrows):
-            idx, val = next(f).split()
+            row = next(f).split()
+            if len(row) != 2:
+                raise SystemExit(f'malformed line "{" ".join(row)}" at step {step}: the format '
+                                 'of fix ave/time must start with a space, e.g. " %.15g"')
+            idx, val = row
             vec[int(idx) - 1] = float(val)
+            ndigits = max(ndigits, sigdigits(val))
         # state held during step t (fix adapt/fep updates after each window);
         # step 0 is the initial equilibrated config, which belongs to state 0
         k = max(0, (step - 1) // args.window)
@@ -48,6 +62,13 @@ nsamp = min(len(samples[k]) for k in ks)       # truncate to equal counts
 u_kln = np.zeros((nstates, nstates, nsamp))
 for k in ks:
     u_kln[k, :, :] = np.array(samples[k][:nsamp]).T   # (nstates, nsamp)
+
+# the reduced potentials are large numbers and MBAR depends on their small
+# differences, so the 6 digits of the default format of fix ave/time are not enough
+if ndigits <= 6:
+    print(f'WARNING: the reduced potentials in {args.infile} have at most {ndigits} '
+          'significant digits, which degrades the accuracy of MBAR. Write them with '
+          'more digits, e.g. with format " %.15g" in fix ave/time.', file=sys.stderr)
 
 np.save(args.outfile, u_kln)
 print(f'states = {nstates}, samples/state = {nsamp} (min), saved {args.outfile}')

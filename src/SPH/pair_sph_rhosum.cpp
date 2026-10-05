@@ -28,7 +28,7 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairSPHRhoSum::PairSPHRhoSum(LAMMPS *lmp) : Pair(lmp)
+PairSPHRhoSum::PairSPHRhoSum(LAMMPS *lmp) : Pair(lmp), cut(nullptr)
 {
   if (atom->rho_flag != 1)
     error->all(FLERR, Error::NOLASTLINE,

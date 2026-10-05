@@ -1061,7 +1061,7 @@ void PairDispersionD3::set_funcpar(std::string &functional_name)
           {"hf/mixed", 41}, {"hf/sv", 42},       {"hf/minis", 43}, {"b3-lyp/6-31gd", 44},
           {"hcth120", 45},  {"pw1pw", 46},       {"pwgga", 47},    {"hsesol", 48},
           {"hf3c", 49},     {"hf3cv", 50},       {"pbeh3c", 51},   {"pbeh-3c", 52},
-          {"mn15", 53}};
+          {"mn15", 53},     {"r2scan", 54}};
 
       int functionalCode = functionalMap[functional_name];
       switch (functionalCode) {
@@ -1345,6 +1345,11 @@ void PairDispersionD3::set_funcpar(std::string &functional_name)
           s8 = 0.7862;
           a2 = 7.5923;
           break;
+        case 54:
+          a1 = 0.4948;
+          s8 = 0.7898;
+          a2 = 5.7308;
+          break;
         default:
           error->all(FLERR, Error::NOLASTLINE,
                      "Functional {} not supported with bj damping function", functional_name);
@@ -1518,4 +1523,17 @@ void PairDispersionD3::unpack_reverse_comm(int n, int *list, double *buf)
       dc6[j] += buf[m++];
     }
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+double PairDispersionD3::memory_usage()
+{
+  double bytes = Pair::memory_usage();
+  int n = atom->ntypes;
+  // c6ab[n+1][n+1][5][5][3] coefficient table
+  bytes += (double)(n+1)*(n+1)*5*5*3 * sizeof(double);
+  // per-atom coordination number and C6 derivative arrays
+  bytes += (double) nmax * 2 * sizeof(double);    // cn[nmax] + dc6[nmax]
+  return bytes;
 }

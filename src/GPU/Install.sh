@@ -74,6 +74,8 @@ action pair_eam_alloy_gpu.cpp pair_eam.cpp
 action pair_eam_alloy_gpu.h pair_eam.cpp
 action pair_eam_fs_gpu.cpp pair_eam.cpp
 action pair_eam_fs_gpu.h pair_eam.cpp
+action pair_eam_he_gpu.cpp pair_eam_he.cpp
+action pair_eam_he_gpu.h pair_eam_he.cpp
 action pair_eam_gpu.cpp pair_eam.cpp
 action pair_eam_gpu.h pair_eam.cpp
 action pair_gauss_gpu.cpp pair_gauss.cpp
@@ -148,6 +150,8 @@ action pair_yukawa_gpu.cpp pair_yukawa.cpp
 action pair_yukawa_gpu.h pair_yukawa.cpp
 action pair_zbl_gpu.cpp
 action pair_zbl_gpu.h
+action ewald_gpu.cpp ewald.cpp
+action ewald_gpu.h ewald.cpp
 action pppm_gpu.cpp pppm.cpp
 action pppm_gpu.h pppm.cpp
 action pair_ufm_gpu.cpp pair_ufm.cpp

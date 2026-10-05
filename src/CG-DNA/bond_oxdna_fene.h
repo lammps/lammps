@@ -26,7 +26,10 @@ namespace LAMMPS_NS {
 
 class BondOxdnaFene : public Bond {
  public:
-  BondOxdnaFene(class LAMMPS *lmp) : Bond(lmp) {}
+  BondOxdnaFene(class LAMMPS *lmp) :
+      Bond(lmp), k(nullptr), Delta(nullptr), r0(nullptr), nxyz_xtrct(nullptr), fix_lrf(nullptr)
+  {
+  }
   ~BondOxdnaFene() override;
   virtual void compute_backbone_site(double *, double *, double *, double *) const;
   void compute(int, int) override;

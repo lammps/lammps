@@ -11,6 +11,7 @@ post_commands: ! |
   fix move all nve
   fix test solute gravity 1.0 chute 24.0
 input_file: in.fourmol
+input_coeffs: coeffs.fourmol
 natoms: 29
 global_scalar: -186.21588194703688
 run_pos: ! |2

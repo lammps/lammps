@@ -10,6 +10,7 @@ pre_commands: ! ""
 post_commands: ! |
   fix test solute nve
 input_file: in.fourmol
+input_coeffs: coeffs.fourmol
 natoms: 29
 run_pos: ! |2
     1 -2.7045559764772636e-01  2.4912159908661540e+00 -1.6695851750890134e-01

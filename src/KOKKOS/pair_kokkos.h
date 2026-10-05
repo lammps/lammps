@@ -161,7 +161,7 @@ struct PairComputeFunctor  {
       const int jtype = c.type(j);
       const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
 
-      if (rsq < (STACKPARAMS?c.m_cutsq[itype][jtype]:c.d_cutsq(itype,jtype))) {
+      if (rsq < static_cast<KK_FLOAT>(STACKPARAMS?c.m_cutsq[itype][jtype]:c.d_cutsq(itype,jtype))) {
 
         const KK_FLOAT fpair = factor_lj*c.template compute_fpair<STACKPARAMS,Specialisation>(rsq,i,j,itype,jtype);
 
@@ -238,7 +238,7 @@ struct PairComputeFunctor  {
       const int jtype = c.type(j);
       const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
 
-      if (rsq < (STACKPARAMS?c.m_cutsq[itype][jtype]:c.d_cutsq(itype,jtype))) {
+      if (rsq < static_cast<KK_FLOAT>(STACKPARAMS?c.m_cutsq[itype][jtype]:c.d_cutsq(itype,jtype))) {
 
         KK_FLOAT fpair = KK_FLOAT();
 
@@ -331,7 +331,7 @@ struct PairComputeFunctor  {
         const int jtype = c.type(j);
         const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
 
-        if (rsq < (STACKPARAMS?c.m_cutsq[itype][jtype]:c.d_cutsq(itype,jtype))) {
+        if (rsq < static_cast<KK_FLOAT>(STACKPARAMS?c.m_cutsq[itype][jtype]:c.d_cutsq(itype,jtype))) {
 
           const KK_FLOAT fpair = factor_lj*c.template compute_fpair<STACKPARAMS,Specialisation>(rsq,i,j,itype,jtype);
 
@@ -409,7 +409,7 @@ struct PairComputeFunctor  {
         const int jtype = c.type(j);
         const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
 
-        if (rsq < (STACKPARAMS?c.m_cutsq[itype][jtype]:c.d_cutsq(itype,jtype))) {
+        if (rsq < static_cast<KK_FLOAT>(STACKPARAMS?c.m_cutsq[itype][jtype]:c.d_cutsq(itype,jtype))) {
 
           KK_FLOAT fpair = KK_FLOAT();
 
@@ -494,7 +494,7 @@ struct PairComputeFunctor  {
         const int jtype = c.type(j);
         const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
 
-        if (rsq < (STACKPARAMS?c.m_cutsq[itype][jtype]:c.d_cutsq(itype,jtype))) {
+        if (rsq < static_cast<KK_FLOAT>(STACKPARAMS?c.m_cutsq[itype][jtype]:c.d_cutsq(itype,jtype))) {
 
           const KK_FLOAT fpair = factor_lj*c.template compute_fpair<STACKPARAMS,Specialisation>(rsq,i,j,itype,jtype);
 
@@ -638,7 +638,7 @@ struct PairComputeFunctor  {
         const int jtype = c.type(j);
         const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
 
-        if (rsq < (STACKPARAMS?c.m_cutsq[itype][jtype]:c.d_cutsq(itype,jtype))) {
+        if (rsq < static_cast<KK_FLOAT>(STACKPARAMS?c.m_cutsq[itype][jtype]:c.d_cutsq(itype,jtype))) {
 
           KK_FLOAT fpair = KK_FLOAT();
 

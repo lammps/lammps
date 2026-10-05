@@ -83,13 +83,6 @@ void VerletLRTIntel::setup(int flag)
     return;
   }
 
-  #ifdef _LMP_INTEL_OFFLOAD
-  if (_intel_kspace->use_base()) {
-    _intel_kspace = 0;
-    Verlet::setup(flag);
-    return;
-  }
-  #endif
 
   if (comm->me == 0 && screen) {
     fputs("Setting up VerletLRTIntel run ...\n",screen);
@@ -161,11 +154,9 @@ void VerletLRTIntel::setup(int flag)
   #elif defined(_LMP_INTEL_LRT_17)
   std::thread _kspace_thread;
   if (kspace_compute_flag)
-    _kspace_thread=std::thread([=]{ _intel_kspace->compute_first(eflag,
-                                                                 vflag); });
+    _kspace_thread=std::thread([this]{ _intel_kspace->compute_first(eflag, vflag); });
   else
-    _kspace_thread=std::thread([=]{ _intel_kspace->compute_dummy(eflag,
-                                                                 vflag); });
+    _kspace_thread=std::thread([this]{ _intel_kspace->compute_dummy(eflag, vflag); });
   #endif
 
   if (pair_compute_flag) force->pair->compute(eflag,vflag);
@@ -226,14 +217,15 @@ void VerletLRTIntel::run(int n)
 
   #if defined(_LMP_INTEL_LRT_PTHREAD)
   _krun_n = n;
-  #endif
-
   int run_cancelled = 0;
+  #endif
 
   for (int i = 0; i < n; i++) {
     if (timer->check_timeout(i)) {
       update->nsteps = i;
+  #if defined(_LMP_INTEL_LRT_PTHREAD)
       run_cancelled = 1;
+  #endif
       break;
     }
 
@@ -305,7 +297,7 @@ void VerletLRTIntel::run(int n)
     #elif defined(_LMP_INTEL_LRT_17)
     std::thread _kspace_thread;
     if (kspace_compute_flag)
-      _kspace_thread=std::thread([=] {
+      _kspace_thread=std::thread([this] {
         _intel_kspace->compute_first(eflag, vflag);
         timer->stamp(Timer::KSPACE);
       } );

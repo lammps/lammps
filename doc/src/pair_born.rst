@@ -13,6 +13,8 @@
 .. index:: pair_style born/coul/wolf/kk
 .. index:: pair_style born/coul/wolf/omp
 .. index:: pair_style born/coul/dsf
+.. index:: pair_style born/coul/dsf/kk
+.. index:: pair_style born/coul/dsf/omp
 
 pair_style born command
 =======================
@@ -36,6 +38,8 @@ Accelerator Variants: *born/coul/wolf/gpu*, *born/coul/wolf/kk*, *born/coul/wolf
 
 pair_style born/coul/dsf command
 ================================
+
+Accelerator Variants: *born/coul/dsf/kk*, *born/coul/dsf/omp*
 
 Syntax
 """"""
@@ -213,5 +217,5 @@ none
 
 .. _FumiTosi:
 
-Fumi and Tosi, J Phys Chem Solids, 25, 31 (1964),
+**(FumiTosi)** Fumi and Tosi, J Phys Chem Solids, 25, 31 (1964),
 Fumi and Tosi, J Phys Chem Solids, 25, 45 (1964).

@@ -22,6 +22,7 @@
 #include <mpi.h>
 
 #include <string>
+#include <type_traits>
 #include <vector>    // IWYU pragma: export
 
 namespace LAMMPS_NS {
@@ -191,6 +192,194 @@ void print(FILE *fp, const std::string &mesg);
  *  \param mesg   string with message to be printed */
 
 void print(const std::string &mesg);
+
+/*! Internal function handling the variable argument list for sprintf(). */
+
+std::string varargs_sprintf(const char *format, ...);
+
+/*! Internal helper function passing individual arguments for sprintf() to the
+ *  C-style variable argument list of varargs_sprintf().  Arithmetic types,
+ *  pointers, and arrays (e.g. string literals) are passed through unchanged;
+ *  all other types are rejected at compile time. */
+// NOLINTBEGIN
+template <typename TYPE> inline const TYPE &sprintf_arg(const TYPE &arg)
+{
+  static_assert(std::is_arithmetic_v<TYPE> || std::is_pointer_v<TYPE> || std::is_array_v<TYPE>,
+                "Argument type not supported by utils::sprintf()");
+  return arg;
+}
+// NOLINTEND
+
+/*! \overload converts a std::string argument to a C-style string */
+
+inline const char *sprintf_arg(const std::string &arg)
+{
+  return arg.c_str();
+}
+
+/*! Format data into a string with printf() style formatting and return it
+
+\verbatim embed:rst
+
+.. versionadded:: 2Sep2026
+
+This function formats its arguments according to a printf() style format
+string and returns the result as a ``std::string``, similar to the
+(non-standard) ``asprintf()`` C library function.  It is a convenient
+replacement for formatting into a fixed size buffer with ``snprintf()``
+without the risk of truncation.  The actual conversion is done by the
+``vsnprintf()`` C library function, first into a fixed size internal buffer
+and - should that buffer be too small - a second time into a temporary
+buffer of exactly the required size.  Thus the accepted format specifiers
+and modifiers and the resulting output are those of the C library.  In case
+of an output error an empty string is returned.
+
+Unlike its C library counterparts, this function also accepts
+``std::string`` instances as arguments for ``%s`` conversions in addition
+to C-style strings, and arguments with class types that cannot be passed
+through a C-style variable argument list are rejected at compile time.
+It cannot detect, however, when an argument does not match its format
+specifier, so the same care as with ``snprintf()`` must be taken.
+
+.. note::
+
+   The main application of this function is the output of numerical data
+   with user provided format strings that are only known at runtime, as
+   is the case for dump styles or thermo output.  For all other string
+   formatting tasks the functions using {fmt} style format strings, i.e.
+   ``fmt::format()``, :cpp:func:`utils::print() <LAMMPS_NS::utils::print>`,
+   or :cpp:func:`utils::logmesg() <LAMMPS_NS::utils::logmesg>`, are
+   preferred since they detect format errors at runtime.
+
+\endverbatim
+ *
+ *  \param format printf() style format string
+ *  \param args   arguments to format string
+ *  \return       string with formatted output */
+
+template <typename... Args> std::string sprintf(const std::string &format, Args &&...args)
+{
+  return varargs_sprintf(format.c_str(), sprintf_arg(args)...);
+}
+
+/*! Type of value consumed by a printf() style conversion
+
+\verbatim embed:rst
+
+.. versionadded:: 2Sep2026
+
+Conversions are grouped by the kind of value they consume: the d, i, o, u,
+x, X, and c conversions consume integers, the e, E, f, F, g, G, a, and A
+conversions consume floating-point numbers, the s conversion consumes a
+string, and the p conversion consumes a pointer.  For checking a format
+string with :cpp:func:`utils::check_format()
+<LAMMPS_NS::utils::check_format>` the two integer types are equivalent,
+since a mismatch in the *width* of an integer argument is corrected by
+:cpp:func:`utils::adjust_format() <LAMMPS_NS::utils::adjust_format>`.
+
+\endverbatim */
+
+enum class FmtArg {
+  NONE,       /*!< no value, i.e. an invalid or literal conversion */
+  INTEGER,    /*!< value of type int */
+  BIGINT,     /*!< value of type bigint, i.e. a 64-bit integer */
+  FLOAT,      /*!< value of type double */
+  STRING,     /*!< string value, i.e. a char pointer */
+  POINTER     /*!< pointer value */
+};
+
+/*! Check a printf() style format string against the expected argument types
+
+\verbatim embed:rst
+
+.. versionadded:: 2Sep2026
+
+LAMMPS accepts printf() style format strings from users in multiple
+places, for example with :doc:`dump_modify format <dump_modify>` or
+:doc:`thermo_modify format <thermo_modify>`.  Passing an argument that
+does not match its conversion to a printf() style function has undefined
+behavior; in practice it silently produces incorrect output.  Since the
+format strings are only known at runtime, they must be checked before
+they are used.
+
+This function compares the conversions in *format* against the list of
+value types in *expect* and returns an empty string if they agree.  If
+they do not, or if the format string is malformed, the returned string
+describes the problem and is meant to be included in an error message.
+
+A format string may have *fewer* conversions than there are values, down
+to none at all: printf() simply ignores the surplus values, so literal
+text without any conversion is valid and may be used to label or decorate
+the output.  Having *more* conversions than values is an error, since
+those would consume arguments that were never passed.  For the same
+reason the ``n`` conversion, variable field widths or precisions given as
+``*``, length modifiers on ``s`` and ``p`` conversions, unknown conversion
+characters, and incomplete conversions at the end of the string are
+rejected.  A ``%%`` sequence is a literal percent sign and consumes no
+value.
+
+.. code-block:: c++
+
+   auto errmsg = utils::check_format(arg[2], {utils::FmtArg::FLOAT});
+   if (!errmsg.empty())
+     error->all(FLERR, 2, "Invalid dump_modify format float argument: {}", errmsg);
+
+\endverbatim
+ *
+ *  \param  format  printf() style format string
+ *  \param  expect  list of value types the format string must consume
+ *  \return         empty string if the format string is valid, otherwise a
+ *                  description of the problem */
+
+std::string check_format(const std::string &format, const std::vector<FmtArg> &expect);
+
+/*! \overload
+ *
+ *  \param  format  printf() style format string
+ *  \param  expect  single value type the format string must consume */
+
+std::string check_format(const std::string &format, FmtArg expect);
+
+/*! Adjust the length modifiers of a format string to the expected arguments
+
+\verbatim embed:rst
+
+.. versionadded:: 2Sep2026
+
+The C library derives the size of the value consumed by an integer
+conversion from its length modifier, so ``%d`` and ``%ld`` must be used
+with an ``int`` and a ``long`` argument, respectively.  Requiring users to
+get this right would make format strings depend on how LAMMPS was
+compiled, since types like ``bigint`` and ``tagint`` change size with the
+:ref:`size settings <size>`.  Worse, the correct modifier for a 64-bit
+integer is platform dependent: ``int64_t`` is ``long int`` on LP64
+platforms like Linux and macOS, but ``long long int`` on LLP64 platforms
+like Windows.  The modifier applied here is therefore taken from
+``BIGINT_FORMAT``, which is built from the ``PRId64`` macro of
+``<cinttypes>`` and thus spelled correctly on every platform.
+
+This function therefore replaces the length modifier of every conversion
+in *format* with the one matching the corresponding entry of *expect*, so
+that a user may write ``%d`` regardless of the integer size in use.  Any
+flags, field width, precision, and surrounding text are preserved.  The
+format string should be validated with :cpp:func:`utils::check_format()
+<LAMMPS_NS::utils::check_format>` first; a format string that does not
+match *expect* is returned unchanged.
+
+\endverbatim
+ *
+ *  \param  format  printf() style format string
+ *  \param  expect  list of value types the format string is used with
+ *  \return         format string with length modifiers adjusted */
+
+std::string adjust_format(const std::string &format, const std::vector<FmtArg> &expect);
+
+/*! \overload
+ *
+ *  \param  format  printf() style format string
+ *  \param  expect  single value type the format string is used with */
+
+std::string adjust_format(const std::string &format, FmtArg expect);
 
 /*! Return text redirecting the user to a specific paragraph in the manual
  *
@@ -590,6 +779,24 @@ std::string lowercase(const std::string &line);
  * \return new string with all uppercase characters */
 
 std::string uppercase(const std::string &line);
+
+/*! Arrange a list of words into aligned columns for terminal output
+ *
+ * The words are placed column-major (filled top to bottom) into as many
+ * columns as fit within the given line width, with each column sized
+ * independently to its widest entry plus a gap.  This produces a compact,
+ * left-aligned grid similar to the output of the "ls" command and is used,
+ * e.g., for the style listings of the :doc:`info` command and the ``-help``
+ * output.  The words are printed in the order given, so sort them first for
+ * an alphabetical listing.
+ *
+ * \param words  list of words to format
+ * \param width  maximum line width in characters
+ * \param gap    minimum number of blank spaces between columns
+ * \return multi-line string (each line terminated by a newline); the string
+ *         "(none)\n" is returned for an empty list */
+
+std::string columnize(const std::vector<std::string> &words, int width = 80, int gap = 2);
 
 /*! Trim leading and trailing whitespace. Like TRIM() in Fortran.
  *

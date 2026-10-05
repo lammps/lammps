@@ -28,6 +28,7 @@ template <class DeviceType> class MLIAP_SO3Kokkos : protected Pointers {
   MLIAP_SO3Kokkos(LAMMPS *, double vrcut, int vlmax, int vnmax, double valpha);
   MLIAP_SO3Kokkos(LAMMPS *_lmp) : Pointers(_lmp){};
   ~MLIAP_SO3Kokkos() override;
+  int copymode = 0;    // 1 while a copy of this object lives in a device functor
 
   void init();
   double memory_usage();

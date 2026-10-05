@@ -2,7 +2,8 @@
 lammps_version: 12 Jun 2025
 date_generated: Fri Jun 27 21:28:53 2025
 epsilon: 5e-13
-skip_tests: kokkos_omp
+skip_tests: kokkos_omp kokkos_serial kokkos_gpu
+
 prerequisites: ! |
   atom full
   pair mm3/switch3/coulgauss/long

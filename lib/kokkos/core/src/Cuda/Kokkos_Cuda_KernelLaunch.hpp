@@ -29,7 +29,6 @@
 // strictly better than global launch - which means the light weight/heavy
 // weight property can be ignored - the only thing that matters is the size of
 // the functor.
-#ifndef KOKKOS_IMPL_CUDA_USE_GRID_CONSTANT
 /** \brief  Access to constant memory on the device */
 #ifdef KOKKOS_ENABLE_CUDA_RELOCATABLE_DEVICE_CODE
 
@@ -42,7 +41,6 @@ __device__ __constant__ unsigned long kokkos_impl_cuda_constant_memory_buffer
     [Kokkos::Impl::CudaTraits::ConstantMemoryUsage / sizeof(unsigned long)];
 
 #endif
-#endif  // !KOKKOS_IMPL_CUDA_USE_GRID_CONSTANT
 
 template <typename T>
 inline __device__ T* kokkos_impl_cuda_shared_memory() {
@@ -60,7 +58,6 @@ namespace Impl {
 // function qualifier which could be used to improve performance.
 //----------------------------------------------------------------------------
 
-#ifndef KOKKOS_IMPL_CUDA_USE_GRID_CONSTANT
 template <class DriverType>
 __global__ static void cuda_parallel_launch_constant_memory() {
   const DriverType& driver =
@@ -78,6 +75,7 @@ __global__ __launch_bounds__(
   driver();
 }
 
+#ifndef KOKKOS_IMPL_CUDA_USE_GRID_CONSTANT
 template <class DriverType>
 __global__ static void cuda_parallel_launch_local_memory(
     const DriverType driver) {
@@ -130,7 +128,8 @@ inline bool is_empty_launch(dim3 const& grid, dim3 const& block) {
 }
 
 inline void check_shmem_request(CudaInternal const* cuda_instance, int shmem) {
-  int const maxShmemPerBlock = cuda_instance->m_deviceProp.sharedMemPerBlock;
+  int const maxShmemPerBlock = static_cast<int>(
+      get_max_shared_mem_per_block(cuda_instance->m_deviceProp));
   if (maxShmemPerBlock < shmem) {
     Kokkos::Impl::throw_runtime_exception(
         "CudaParallelLaunch (or graph node creation) FAILED: shared memory "
@@ -244,6 +243,27 @@ inline void configure_shmem_preference(const CudaInternal* cuda_instance,
   }
 }
 
+// Opt in to the maximum dynamic shared memory size when the request
+// exceeds the default limit.
+template <class DriverType, class LaunchBounds, class KernelFuncPtr>
+inline void configure_max_dynamic_shmem(const CudaInternal* cuda_instance,
+                                        const KernelFuncPtr& func, int shmem) {
+  const auto& func_attr =
+      get_cuda_kernel_func_attributes<DriverType, LaunchBounds>(cuda_instance,
+                                                                func);
+  const auto cuda_device = cuda_instance->m_cudaDev;
+  static std::map<int, int> cached_max_per_device;
+  if (cached_max_per_device.find(cuda_device) == cached_max_per_device.end()) {
+    cached_max_per_device.emplace(cuda_device,
+                                  func_attr.maxDynamicSharedSizeBytes);
+  }
+  int& cached_max = cached_max_per_device[cuda_device];
+  if (shmem <= cached_max) return;
+  KOKKOS_IMPL_CUDA_SAFE_CALL((cuda_instance->cuda_func_set_attribute_wrapper(
+      func, cudaFuncAttributeMaxDynamicSharedMemorySize, shmem)));
+  cached_max = shmem;
+}
+
 // </editor-fold> end Some helper functions for launch code readability }}}1
 //==============================================================================
 
@@ -260,28 +280,29 @@ struct DeduceCudaLaunchMechanism {
       Kokkos::Experimental::WorkItemProperty::HintLightWeight;
   constexpr static auto heavy_weight =
       Kokkos::Experimental::WorkItemProperty::HintHeavyWeight;
-  constexpr static typename DriverType::Policy::work_item_property property{};
+  constexpr static typename DriverType::Policy::work_item_property property =
+      typename DriverType::Policy::work_item_property();
 
   static constexpr CudaLaunchMechanism valid_launch_mechanism =
       // BuildValidMask
       (sizeof(DriverType) < CudaTraits::KernelArgumentLimit
            ? CudaLaunchMechanism::LocalMemory
            : CudaLaunchMechanism::Default) |
-#ifndef KOKKOS_IMPL_CUDA_USE_GRID_CONSTANT
       (sizeof(DriverType) < CudaTraits::ConstantMemoryUsage
            ? CudaLaunchMechanism::ConstantMemory
            : CudaLaunchMechanism::Default) |
-#endif
       CudaLaunchMechanism::GlobalMemory;
 
   static constexpr CudaLaunchMechanism requested_launch_mechanism =
 #ifdef KOKKOS_IMPL_CUDA_USE_GRID_CONSTANT
-      CudaLaunchMechanism::LocalMemory |
+      (((property & heavy_weight) == heavy_weight)
+           ? CudaLaunchMechanism::ConstantMemory
+           : CudaLaunchMechanism::LocalMemory) |
 #else
       (((property & light_weight) == light_weight)
            ? CudaLaunchMechanism::LocalMemory
            : CudaLaunchMechanism::ConstantMemory) |
-#endif
+#endif  // KOKKOS_IMPL_CUDA_USE_GRID_CONSTANT
       CudaLaunchMechanism::GlobalMemory;
 
   static constexpr CudaLaunchMechanism default_launch_mechanism =
@@ -296,11 +317,14 @@ struct DeduceCudaLaunchMechanism {
           : ((sizeof(DriverType) < CudaTraits::ConstantMemoryUsage)
                  ? CudaLaunchMechanism::ConstantMemory
                  : CudaLaunchMechanism::GlobalMemory);
-#endif
+#endif  // KOKKOS_IMPL_CUDA_USE_GRID_CONSTANT
 
   static constexpr CudaLaunchMechanism launch_mechanism =
 #ifdef KOKKOS_IMPL_CUDA_USE_GRID_CONSTANT
-      default_launch_mechanism;
+      (((property & heavy_weight) == heavy_weight) and
+       (sizeof(DriverType) < CudaTraits::ConstantMemoryUsage))
+          ? CudaLaunchMechanism::ConstantMemory
+          : default_launch_mechanism;
 #else
       // Logic mask for choosing launch mechanism by functor size (F) and
       // Kernel Property. First column is restriction by size (local L,
@@ -384,6 +408,8 @@ struct CudaParallelLaunchKernelInvoker<DriverType, LaunchBounds,
                             CudaInternal const* cuda_instance) {
     // Set cuda device before launching kernel
     cuda_instance->set_cuda_device();
+    Impl::configure_max_dynamic_shmem<DriverType, LaunchBounds>(
+        cuda_instance, base_t::get_kernel_func(), shmem);
 
     (base_t::
          get_kernel_func())<<<grid, block, shmem, cuda_instance->m_stream>>>(
@@ -401,7 +427,6 @@ struct CudaParallelLaunchKernelInvoker<DriverType, LaunchBounds,
     KOKKOS_EXPECTS(!bool(graph_node));
 
     if (!Impl::is_empty_launch(grid, block)) {
-      Impl::check_shmem_request(cuda_instance, shmem);
       if constexpr (DriverType::Policy::
                         experimental_contains_desired_occupancy) {
         int desired_occupancy =
@@ -411,6 +436,9 @@ struct CudaParallelLaunchKernelInvoker<DriverType, LaunchBounds,
             cuda_instance->m_cudaDev, base_t::get_kernel_func(),
             cuda_instance->m_deviceProp, block_size, shmem, desired_occupancy);
       }
+      Impl::check_shmem_request(cuda_instance, shmem);
+      Impl::configure_max_dynamic_shmem<DriverType, LaunchBounds>(
+          cuda_instance, base_t::get_kernel_func(), shmem);
 
       void const* args[] = {&driver};
 
@@ -451,7 +479,9 @@ template <class DriverType, unsigned int MaxThreadsPerBlock,
 struct CudaParallelLaunchKernelFunc<
     DriverType, Kokkos::LaunchBounds<MaxThreadsPerBlock, MinBlocksPerSM>,
     CudaLaunchMechanism::GlobalMemory> {
-  static void* get_kernel_func() {
+  static std::decay_t<decltype(cuda_parallel_launch_global_memory<
+                               DriverType, MaxThreadsPerBlock, MinBlocksPerSM>)>
+  get_kernel_func() {
     return cuda_parallel_launch_global_memory<DriverType, MaxThreadsPerBlock,
                                               MinBlocksPerSM>;
   }
@@ -488,6 +518,8 @@ struct CudaParallelLaunchKernelInvoker<DriverType, LaunchBounds,
 
     // Set cuda device before launching kernel
     cuda_instance->set_cuda_device();
+    Impl::configure_max_dynamic_shmem<DriverType, LaunchBounds>(
+        cuda_instance, base_t::get_kernel_func(), shmem);
 
     (base_t::
          get_kernel_func())<<<grid, block, shmem, cuda_instance->m_stream>>>(
@@ -505,7 +537,6 @@ struct CudaParallelLaunchKernelInvoker<DriverType, LaunchBounds,
     KOKKOS_EXPECTS(!bool(graph_node));
 
     if (!Impl::is_empty_launch(grid, block)) {
-      Impl::check_shmem_request(cuda_instance, shmem);
       if constexpr (DriverType::Policy::
                         experimental_contains_desired_occupancy) {
         int desired_occupancy =
@@ -515,11 +546,12 @@ struct CudaParallelLaunchKernelInvoker<DriverType, LaunchBounds,
             cuda_instance, base_t::get_kernel_func(), block_size, shmem,
             desired_occupancy);
       }
+      Impl::check_shmem_request(cuda_instance, shmem);
+      Impl::configure_max_dynamic_shmem<DriverType, LaunchBounds>(
+          cuda_instance, base_t::get_kernel_func(), shmem);
 
-      auto* driver_ptr = Impl::allocate_driver_storage_for_kernel(
-          CudaSpace::impl_create(cuda_instance->m_cudaDev,
-                                 cuda_instance->m_stream),
-          driver);
+      auto* driver_ptr =
+          get_graph_node_kernel(driver).allocate_driver_memory_buffer();
 
       // Unlike in the non-graph case, we can get away with doing an async copy
       // here because the `DriverType` instance is held in the GraphNodeImpl
@@ -563,7 +595,6 @@ struct CudaParallelLaunchKernelInvoker<DriverType, LaunchBounds,
 
 //------------------------------------------------------------------------------
 // <editor-fold desc="Constant Memory"> {{{2
-#ifndef KOKKOS_IMPL_CUDA_USE_GRID_CONSTANT
 template <class DriverType, unsigned int MaxThreadsPerBlock,
           unsigned int MinBlocksPerSM>
 struct CudaParallelLaunchKernelFunc<
@@ -625,6 +656,8 @@ struct CudaParallelLaunchKernelInvoker<DriverType, LaunchBounds,
 
     // Set cuda device before launching kernel
     cuda_instance->set_cuda_device();
+    Impl::configure_max_dynamic_shmem<DriverType, LaunchBounds>(
+        cuda_instance, base_t::get_kernel_func(), shmem);
 
     // Invoke the driver function on the device
     (base_t::
@@ -654,7 +687,6 @@ struct CudaParallelLaunchKernelInvoker<DriverType, LaunchBounds,
         driver, grid, block, shmem, cuda_instance);
   }
 };
-#endif  // !KOKKOS_IMPL_CUDA_USE_GRID_CONSTANT
 
 // </editor-fold> end Constant Memory }}}2
 //------------------------------------------------------------------------------

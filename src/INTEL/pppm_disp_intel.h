@@ -37,9 +37,6 @@ class PPPMDispIntel : public PPPMDisp {
   void init() override;
   void compute(int, int) override;
 
-#ifdef _LMP_INTEL_OFFLOAD
-  int use_base();
-#endif
 
  protected:
   FixIntel *fix;
@@ -81,9 +78,6 @@ class PPPMDispIntel : public PPPMDisp {
 
   int _use_packing;
 
-#ifdef _LMP_INTEL_OFFLOAD
-  int _use_base;
-#endif
 
   template <class flt_t, class acc_t>
   void particle_map_intel(double, double, double, double, int **, int, int, int, int, int, int, int, int,

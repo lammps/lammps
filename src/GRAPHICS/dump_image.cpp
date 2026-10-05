@@ -78,7 +78,7 @@ constexpr double BIG = 1.0e20;
 constexpr int POINT_CLOUD_SEED = 19660405;
 constexpr int DEFAULT_HULL_POINTS = 100000;
 
-enum { NUMERIC, ATOM, TYPE, ELEMENT, ATTRIBUTE, CONSTANT, INDEX };
+enum { NUMERIC, ATOM, TYPE, ELEMENT, ATTRIBUTE, CONSTANT, INDEX, LOCALVALUE };
 enum { STATIC, DYNAMIC };
 enum { NO = 0, YES = 1, AUTO = 2 };
 enum { FILLED, FRAME, POINTS, TRANSPARENT };
@@ -115,13 +115,13 @@ savedLights reset_lighting(Image *image, double ambient, double key, double fill
 void restore_lighting(const savedLights &saved, Image *image)
 {
   image->ambientColor[0] = image->ambientColor[1] = image->ambientColor[2] =
-      std::clamp(0.0, 1.0, saved.ambient);
+      std::clamp(saved.ambient, 0.0, 1.0);
   image->keyLightColor[0] = image->keyLightColor[1] = image->keyLightColor[2] =
-      std::clamp(0.0, 1.0, saved.key);
+      std::clamp(saved.key, 0.0, 1.0);
   image->fillLightColor[0] = image->fillLightColor[1] = image->fillLightColor[2] =
-      std::clamp(0.0, 1.0, saved.fill);
+      std::clamp(saved.fill, 0.0, 1.0);
   image->backLightColor[0] = image->backLightColor[1] = image->backLightColor[2] =
-      std::clamp(0.0, 1.0, saved.back);
+      std::clamp(saved.back, 0.0, 1.0);
 }
 
 }    // namespace
@@ -130,7 +130,8 @@ void restore_lighting(const savedLights &saved, Image *image)
 /* ---------------------------------------------------------------------- */
 
 DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
-    DumpCustom(lmp, narg, arg), thetastr(nullptr), phistr(nullptr), cxstr(nullptr), cystr(nullptr),
+    DumpCustom(lmp, narg, arg), id_bond_compute(nullptr), bond_compute(nullptr),
+    thetastr(nullptr), phistr(nullptr), cxstr(nullptr), cystr(nullptr),
     czstr(nullptr), upxstr(nullptr), upystr(nullptr), upzstr(nullptr), zoomstr(nullptr),
     diamtype(nullptr), diamelement(nullptr), bdiamtype(nullptr), colortype(nullptr),
     colorelement(nullptr), bcolortype(nullptr), aopacity(nullptr), bopacity(nullptr),
@@ -195,10 +196,10 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
   if (strcmp(arg[6],"type") == 0) adiam = TYPE;
   else if (strcmp(arg[6],"element") == 0) adiam = ELEMENT;
 
-  // create Image class with two colormaps for atoms and grid cells
+  // create Image class with three colormaps for atoms, grid cells, and bonds
   // change defaults for 2d
 
-  image = new Image(lmp,2);
+  image = new Image(lmp,3);
 
   if (domain->dimension == 2) {
     image->theta = 0.0;
@@ -210,11 +211,13 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
 
   atomflag = YES;
   gridflag = NO;
+  grid_opacity = 1.0;
   lineflag = triflag = bodyflag = ellipsoidflag = NO;
 
   bcolor = ATOM;
   bdiam = NUMERIC;
   bdiamvalue = 0.5;
+  bond_argindex = 0;
   if (atom->nbondtypes == 0) {
     bondflag = NO;
   } else {
@@ -270,7 +273,17 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
       if (strcmp(arg[iarg+1],"none") == 0) bondflag = NO;
       else if (strcmp(arg[iarg+1],"atom") == 0) bcolor = ATOM;
       else if (strcmp(arg[iarg+1],"type") == 0) bcolor = TYPE;
-      else error->all(FLERR, iarg + 1, "Unknown dump image bond color setting {}", arg[iarg + 1]);
+      else if (utils::strmatch(arg[iarg+1],"^c_")) {
+        // color each bond by a per-bond value from a /local compute, mapped via bmap
+        ArgInfo argi(arg[iarg+1], ArgInfo::COMPUTE);
+        if ((argi.get_type() != ArgInfo::COMPUTE) || (argi.get_dim() > 1))
+          error->all(FLERR, iarg+1, "Invalid dump image bond color compute reference {}",
+                     arg[iarg+1]);
+        bcolor = LOCALVALUE;
+        delete[] id_bond_compute;
+        id_bond_compute = argi.copy_name();
+        bond_argindex = argi.get_index1();
+      } else error->all(FLERR, iarg + 1, "Unknown dump image bond color setting {}", arg[iarg + 1]);
       if (!islower(arg[iarg+2][0])) {
           bdiam = NUMERIC;
           bdiamvalue = utils::numeric(FLERR,arg[iarg+2],false,lmp);
@@ -609,6 +622,55 @@ DumpImage::DumpImage(LAMMPS *lmp, int narg, char **arg) :
       image->ssaoint = ssaoint;
       iarg += 4;
 
+    } else if (strcmp(arg[iarg],"depthcue") == 0) {
+      if (iarg+5 > narg) utils::missing_cmd_args(FLERR,"dump image depthcue", error);
+      image->depthcue = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      double cfactor = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      if (cfactor < 0.0 || cfactor > 1.0)
+        error->all(FLERR, iarg+2, "Invalid dump image depthcue strength value {}", cfactor);
+      image->depthcueint = cfactor;
+      if (strcmp(arg[iarg+3],"auto") == 0) {
+        image->depthcuecolor = nullptr;
+      } else {
+        image->depthcuecolor = image->color2rgb(arg[iarg+3]);
+        if (image->depthcuecolor == nullptr)
+          error->all(FLERR, iarg+3, "Invalid dump image depthcue color {}", arg[iarg+3]);
+      }
+      if (strcmp(arg[iarg+4],"auto") == 0) {
+        image->depthcuestartflag = 0;
+      } else {
+        image->depthcuestart = utils::numeric(FLERR,arg[iarg+4],false,lmp);
+        image->depthcuestartflag = 1;
+      }
+      iarg += 5;
+
+    } else if (strcmp(arg[iarg],"defocus") == 0) {
+      if (iarg+4 > narg) utils::missing_cmd_args(FLERR,"dump image defocus", error);
+      image->defocus = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      double bfactor = utils::numeric(FLERR,arg[iarg+2],false,lmp);
+      if (bfactor < 0.0 || bfactor > 1.0)
+        error->all(FLERR, iarg+2, "Invalid dump image defocus strength value {}", bfactor);
+      image->defocusint = bfactor;
+      if (strcmp(arg[iarg+3],"auto") == 0) {
+        image->defocusstartflag = 0;
+      } else {
+        image->defocusstart = utils::numeric(FLERR,arg[iarg+3],false,lmp);
+        image->defocusstartflag = 1;
+      }
+      iarg += 4;
+
+    } else if (strcmp(arg[iarg],"outline") == 0) {
+      if (iarg+4 > narg) utils::missing_cmd_args(FLERR,"dump image outline", error);
+      image->outline = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      int owidth = utils::inumeric(FLERR,arg[iarg+2],false,lmp);
+      if (owidth < 1 || owidth > 16)
+        error->all(FLERR, iarg+2, "Invalid dump image outline width {}", owidth);
+      image->outlinewidth = owidth;
+      image->outlinecolor = image->color2rgb(arg[iarg+3]);
+      if (image->outlinecolor == nullptr)
+        error->all(FLERR, iarg+3, "Invalid dump image outline color {}", arg[iarg+3]);
+      iarg += 4;
+
     } else error->all(FLERR, iarg, "Unknown dump image keyword {}", arg[iarg]);
   }
 
@@ -723,6 +785,7 @@ DumpImage::~DumpImage()
 
   delete[] id_grid_compute;
   delete[] id_grid_fix;
+  delete[] id_bond_compute;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -873,6 +936,31 @@ void DumpImage::init_style()
                    style, fixptr->style, utils::errorurl(7));
     }
   }
+
+  // resolve and validate the per-bond /local compute used to color bonds
+
+  if ((bondflag == YES) && (bcolor == LOCALVALUE)) {
+    bond_compute = modify->get_compute_by_id(id_bond_compute);
+    if (!bond_compute)
+      error->all(FLERR, Error::NOLASTLINE,
+                 "Could not find dump image bond compute ID {}", id_bond_compute);
+    if (bond_compute->local_flag == 0)
+      error->all(FLERR, Error::NOLASTLINE,
+                 "Dump image bond compute {} does not compute local info", id_bond_compute);
+    if (bond_argindex == 0) {
+      if (bond_compute->size_local_cols != 0)
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Dump image bond compute {} does not compute a local vector", id_bond_compute);
+    } else {
+      if (bond_compute->size_local_cols == 0)
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Dump image bond compute {} does not compute a local array", id_bond_compute);
+      if (bond_argindex > bond_compute->size_local_cols)
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Dump image bond compute {} local array has no column {}",
+                   id_bond_compute, bond_argindex);
+    }
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -905,7 +993,7 @@ void DumpImage::write()
 
   // set minmax color range if using dynamic atom color map
 
-  if (acolor == ATTRIBUTE && image->map_dynamic(0)) {
+  if (acolor == ATTRIBUTE && image->map_dynamic(Image::ATOM_MAP)) {
     double two[2],twoall[2];
     double lo = BIG;
     double hi = -BIG;
@@ -918,7 +1006,7 @@ void DumpImage::write()
     two[0] = -lo;
     two[1] = hi;
     MPI_Allreduce(two,twoall,2,MPI_DOUBLE,MPI_MAX,world);
-    int flag = image->map_minmax(0,-twoall[0],twoall[1]);
+    int flag = image->map_minmax(Image::ATOM_MAP,-twoall[0],twoall[1]);
     if (flag) error->all(FLERR,"Invalid atom color map min/max values");
   }
 
@@ -1030,7 +1118,7 @@ void DumpImage::write()
 
   // set minmax color range if using dynamic grid color map
 
-  if (gridflag && image->map_dynamic(1)) {
+  if (gridflag && image->map_dynamic(Image::GRID_MAP)) {
     double two[2],twoall[2];
     double lo = BIG;
     double hi = -BIG;
@@ -1041,8 +1129,41 @@ void DumpImage::write()
     two[0] = -lo;
     two[1] = hi;
     MPI_Allreduce(two,twoall,2,MPI_DOUBLE,MPI_MAX,world);
-    int flag = image->map_minmax(1,-twoall[0],twoall[1]);
+    int flag = image->map_minmax(Image::GRID_MAP,-twoall[0],twoall[1]);
     if (flag) error->all(FLERR,"Invalid grid color map min/max values");
+  }
+
+  // invoke per-bond compute and (if dynamic) set the bond color map range
+  // the per-bond values are local to each proc, so no communication is needed
+
+  if ((bondflag == YES) && (bcolor == LOCALVALUE)) {
+    if (!bond_compute->is_initialized())
+      error->all(FLERR, "Bond compute ID {} used in dump image cannot be invoked "
+                 "before initialization by a run", bond_compute->id);
+    if (!(bond_compute->invoked_flag & Compute::INVOKED_LOCAL)) {
+      bond_compute->compute_local();
+      bond_compute->invoked_flag |= Compute::INVOKED_LOCAL;
+    }
+
+    if (image->map_dynamic(Image::BOND_MAP)) {
+      double *vec = bond_compute->vector_local;
+      double **arr = bond_compute->array_local;
+      int nrows = bond_compute->size_local_rows;
+      int col = bond_argindex - 1;
+      double two[2],twoall[2];
+      double lo = BIG;
+      double hi = -BIG;
+      for (int i = 0; i < nrows; i++) {
+        double val = (bond_argindex == 0) ? vec[i] : arr[i][col];
+        lo = MIN(lo,val);
+        hi = MAX(hi,val);
+      }
+      two[0] = -lo;
+      two[1] = hi;
+      MPI_Allreduce(two,twoall,2,MPI_DOUBLE,MPI_MAX,world);
+      int flag = image->map_minmax(Image::BOND_MAP,-twoall[0],twoall[1]);
+      if (flag) error->all(FLERR,"Invalid bond color map min/max values");
+    }
   }
 
   // create image on each proc, then merge them
@@ -1191,7 +1312,7 @@ void DumpImage::create_image()
       } else if (acolor == ELEMENT) {
         color = colorelement[itype];
       } else if (acolor == ATTRIBUTE) {
-        color = image->map_value2color(0,buf[m]);
+        color = image->map_value2color(Image::ATOM_MAP,buf[m]);
       } else color = image->color2rgb("white");
 
       if (adiam == NUMERIC) {
@@ -1236,34 +1357,34 @@ void DumpImage::create_image()
       for (int iy = nylo_in; iy <= nyhi_in; iy++)
         for (int ix = nxlo_in; ix <= nxhi_in; ix++) {
           grid_cell_corners_2d(ix,iy);
-          color = image->map_value2color(1,gbuf[n++]);
-          image->draw_triangle(gcorners[0],gcorners[1],gcorners[3],color);
-          image->draw_triangle(gcorners[0],gcorners[3],gcorners[2],color);
+          color = image->map_value2color(Image::GRID_MAP,gbuf[n++]);
+          image->draw_triangle(gcorners[0],gcorners[1],gcorners[3],color,grid_opacity);
+          image->draw_triangle(gcorners[0],gcorners[3],gcorners[2],color,grid_opacity);
         }
     } else {
       for (int iz = nzlo_in; iz <= nzhi_in; iz++)
         for (int iy = nylo_in; iy <= nyhi_in; iy++)
           for (int ix = nxlo_in; ix <= nxhi_in; ix++) {
             grid_cell_corners_3d(ix,iy,iz);
-            color = image->map_value2color(1,gbuf[n++]);
+            color = image->map_value2color(Image::GRID_MAP,gbuf[n++]);
             // lower x face
-            image->draw_triangle(gcorners[0],gcorners[4],gcorners[6],color);
-            image->draw_triangle(gcorners[0],gcorners[6],gcorners[2],color);
+            image->draw_triangle(gcorners[0],gcorners[4],gcorners[6],color,grid_opacity);
+            image->draw_triangle(gcorners[0],gcorners[6],gcorners[2],color,grid_opacity);
             // upper x face
-            image->draw_triangle(gcorners[1],gcorners[5],gcorners[7],color);
-            image->draw_triangle(gcorners[1],gcorners[7],gcorners[3],color);
+            image->draw_triangle(gcorners[1],gcorners[5],gcorners[7],color,grid_opacity);
+            image->draw_triangle(gcorners[1],gcorners[7],gcorners[3],color,grid_opacity);
             // lower y face
-            image->draw_triangle(gcorners[0],gcorners[1],gcorners[5],color);
-            image->draw_triangle(gcorners[0],gcorners[5],gcorners[4],color);
+            image->draw_triangle(gcorners[0],gcorners[1],gcorners[5],color,grid_opacity);
+            image->draw_triangle(gcorners[0],gcorners[5],gcorners[4],color,grid_opacity);
             // upper y face
-            image->draw_triangle(gcorners[2],gcorners[6],gcorners[7],color);
-            image->draw_triangle(gcorners[2],gcorners[7],gcorners[3],color);
+            image->draw_triangle(gcorners[2],gcorners[6],gcorners[7],color,grid_opacity);
+            image->draw_triangle(gcorners[2],gcorners[7],gcorners[3],color,grid_opacity);
             // lower z face
-            image->draw_triangle(gcorners[0],gcorners[2],gcorners[3],color);
-            image->draw_triangle(gcorners[0],gcorners[3],gcorners[1],color);
+            image->draw_triangle(gcorners[0],gcorners[2],gcorners[3],color,grid_opacity);
+            image->draw_triangle(gcorners[0],gcorners[3],gcorners[1],color,grid_opacity);
             // upper z face
-            image->draw_triangle(gcorners[4],gcorners[5],gcorners[7],color);
-            image->draw_triangle(gcorners[4],gcorners[7],gcorners[6],color);
+            image->draw_triangle(gcorners[4],gcorners[5],gcorners[7],color,grid_opacity);
+            image->draw_triangle(gcorners[4],gcorners[7],gcorners[6],color,grid_opacity);
           }
     }
 
@@ -1298,7 +1419,7 @@ void DumpImage::create_image()
         } else if (acolor == ELEMENT) {
           color = colorelement[itype];
         } else if (acolor == ATTRIBUTE) {
-          color = image->map_value2color(0,buf[m]);
+          color = image->map_value2color(Image::ATOM_MAP,buf[m]);
         } else {
           color = image->color2rgb("white");
         }
@@ -1359,7 +1480,7 @@ void DumpImage::create_image()
         } else if (acolor == ELEMENT) {
           color = colorelement[itype];
         } else if (acolor == ATTRIBUTE) {
-          color = image->map_value2color(0,buf[m]);
+          color = image->map_value2color(Image::ATOM_MAP,buf[m]);
         } else {
           color = image->color2rgb("white");
         }
@@ -1419,7 +1540,7 @@ void DumpImage::create_image()
         } else if (acolor == ELEMENT) {
           color = colorelement[itype];
         } else if (acolor == ATTRIBUTE) {
-          color = image->map_value2color(0,buf[m]);
+          color = image->map_value2color(Image::ATOM_MAP,buf[m]);
         } else {
           color = image->color2rgb("white");
         }
@@ -1465,7 +1586,7 @@ void DumpImage::create_image()
         } else if (acolor == ELEMENT) {
           color = colorelement[itype];
         } else if (acolor == ATTRIBUTE) {
-          color = image->map_value2color(0,buf[m]);
+          color = image->map_value2color(Image::ATOM_MAP,buf[m]);
         } else {
           color = image->color2rgb("white");
         }
@@ -1542,6 +1663,23 @@ void DumpImage::create_image()
 
     comm->forward_comm(this);
 
+    // per-bond coloring from a /local compute: set up data pointers and a row
+    // counter that advances in lockstep with the compute's bond iteration.
+    // both loop over local atoms then bond slots with identical skip rules, so
+    // the n-th rendered bond is the n-th compute row when the compute's group
+    // selects the same bonds as the dump (checked after the loop)
+
+    double *bond_localvec = nullptr;
+    double **bond_localarr = nullptr;
+    int bond_localrows = 0;
+    int bond_localcol = bond_argindex - 1;
+    int ibond = 0;
+    if (bcolor == LOCALVALUE) {
+      bond_localvec = bond_compute->vector_local;
+      bond_localarr = bond_compute->array_local;
+      bond_localrows = bond_compute->size_local_rows;
+    }
+
     for (i = 0; i < nchoose; i++) {
       atom1 = clist[i];
       if (molecular == Atom::MOLECULAR) n = num_bond[atom1];
@@ -1575,14 +1713,21 @@ void DumpImage::create_image()
             color1 = colorelement[type[atom1]];
             color2 = colorelement[type[atom2]];
           } else if (acolor == ATTRIBUTE) {
-            color1 = image->map_value2color(0,bufcopy[atom1][0]);
-            color2 = image->map_value2color(0,bufcopy[atom2][0]);
+            color1 = image->map_value2color(Image::ATOM_MAP,bufcopy[atom1][0]);
+            color2 = image->map_value2color(Image::ATOM_MAP,bufcopy[atom2][0]);
           } else {
             color1 = image->color2rgb("white");
             color2 = image->color2rgb("white");
           }
         } else if (bcolor == TYPE) {
           color = bcolortype[btype];
+        } else if (bcolor == LOCALVALUE) {
+          if (ibond >= bond_localrows)
+            error->one(FLERR, "Dump image bond compute {} produced fewer values than rendered "
+                       "bonds; its group must select the same bonds as the dump", id_bond_compute);
+          double val = (bond_argindex == 0) ? bond_localvec[ibond] : bond_localarr[ibond][bond_localcol];
+          ++ibond;
+          color = image->map_value2color(Image::BOND_MAP,val);
         }
 
         if (bdiam == NUMERIC) {
@@ -1621,12 +1766,20 @@ void DumpImage::create_image()
           xmid[1] = x[atom2][1] - 0.5*dely;
           xmid[2] = x[atom2][2] - 0.5*delz;
           if (bcolor == ATOM)
-            image->draw_cylinder(xmid,x[atom2],color2,diameter,3,aopacity[type[atom1]]);
+            image->draw_cylinder(xmid,x[atom2],color2,diameter,3,aopacity[type[atom2]]);
           else image->draw_cylinder(xmid,x[atom2],color,diameter,3,bopacity[btype]);
 
         } else image->draw_cylinder(x[atom1],x[atom2],color,diameter,3,bopacity[btype]);
       }
     }
+
+    // the per-bond compute must yield exactly one value per rendered bond, in the
+    // same order; a count mismatch means its group did not select the same bonds
+
+    if ((bcolor == LOCALVALUE) && (ibond != bond_localrows))
+      error->one(FLERR, "Dump image bond compute {} produced {} values but {} bonds were "
+                 "rendered; its group must select the same bonds as the dump",
+                 id_bond_compute, bond_localrows, ibond);
   }
 
   // render dynamic bonds for my atoms
@@ -1721,8 +1874,8 @@ void DumpImage::create_image()
               color1 = colorelement[type[atom1]];
               color2 = colorelement[type[atom2]];
             } else if (acolor == ATTRIBUTE) {
-              color1 = image->map_value2color(0,bufcopy[atom1][0]);
-              color2 = image->map_value2color(0,bufcopy[atom2][0]);
+              color1 = image->map_value2color(Image::ATOM_MAP,bufcopy[atom1][0]);
+              color2 = image->map_value2color(Image::ATOM_MAP,bufcopy[atom2][0]);
             } else {
               color1 = image->color2rgb("white");
               color2 = image->color2rgb("white");
@@ -2579,6 +2732,26 @@ void *DumpImage::extract(const char *str, int &dim)
   return nullptr;
 }
 
+/* ----------------------------------------------------------------------
+   return 1 if the colormap with the given index is actually used to color
+   something in this dump image, otherwise return 0.  Used by callers such
+   as fix graphics/labels to warn about color scale labels for unused maps.
+------------------------------------------------------------------------- */
+
+int DumpImage::colormap_active(int mapidx)
+{
+  switch (mapidx) {
+    case Image::ATOM_MAP:    // atoms (and bonds colored by atom) mapped by value
+      return (acolor == ATTRIBUTE) ? 1 : 0;
+    case Image::GRID_MAP:    // grid cells colored by value
+      return gridflag ? 1 : 0;
+    case Image::BOND_MAP:    // bonds colored by a per-bond /local compute value
+      return ((bondflag == YES) && (bcolor == LOCALVALUE)) ? 1 : 0;
+    default:
+      return 0;
+  }
+}
+
 /* ---------------------------------------------------------------------- */
 
 int DumpImage::modify_param(int narg, char **arg)
@@ -2637,25 +2810,27 @@ int DumpImage::modify_param(int narg, char **arg)
     return 3;
   }
 
-  if ((strcmp(arg[0],"amap") == 0) || (strcmp(arg[0],"gmap") == 0)) {
-    if (narg < 6) utils::missing_cmd_args(FLERR, "dump_modify amap/gmap", error);
+  if ((strcmp(arg[0],"amap") == 0) || (strcmp(arg[0],"gmap") == 0) ||
+      (strcmp(arg[0],"bmap") == 0)) {
+    if (narg < 6) utils::missing_cmd_args(FLERR, "dump_modify amap/gmap/bmap", error);
     if (strlen(arg[3]) != 2)
-      error->all(FLERR,argoff+3, "Incorrect dump_modify amap/gmap colormap style {}", arg[3]);
+      error->all(FLERR,argoff+3, "Incorrect dump_modify amap/gmap/bmap colormap style {}", arg[3]);
     int factor = 0;
     if (arg[3][0] == 's') factor = 1;
     else if (arg[3][0] == 'c') factor = 2;
     else if (arg[3][0] == 'd') factor = 3;
-    else error->all(FLERR,argoff+3, "Unknown dump_modify amap/gmap color map type {}", arg[3][0]);
+    else error->all(FLERR,argoff+3, "Unknown dump_modify amap/gmap/bmap color map type {}", arg[3][0]);
     int nentry = utils::inumeric(FLERR,arg[5],false,lmp);
     if (nentry < 1)
-      error->all(FLERR, argoff+5, "Must have at least 1 color map entry for dump_modify amap/gmap");
+      error->all(FLERR, argoff+5, "Must have at least 1 color map entry for dump_modify amap/gmap/bmap");
     n = 6 + factor*nentry;
-    if (narg < n)  utils::missing_cmd_args(FLERR, "dump_modify amap/gmap", error);
+    if (narg < n)  utils::missing_cmd_args(FLERR, "dump_modify amap/gmap/bmap", error);
     int flag = 0;
-    if (strcmp(arg[0], "amap") == 0) flag = image->map_reset(0, n-1, &arg[1]);
-    if (strcmp(arg[0], "gmap") == 0) flag = image->map_reset(1, n-1, &arg[1]);
+    if (strcmp(arg[0], "amap") == 0) flag = image->map_reset(Image::ATOM_MAP, n-1, &arg[1]);
+    if (strcmp(arg[0], "gmap") == 0) flag = image->map_reset(Image::GRID_MAP, n-1, &arg[1]);
+    if (strcmp(arg[0], "bmap") == 0) flag = image->map_reset(Image::BOND_MAP, n-1, &arg[1]);
     if (flag)
-      error->all(FLERR, argoff+flag, "Invalid map settings in dump_modify amap/gmap command");
+      error->all(FLERR, argoff+flag, "Invalid map settings in dump_modify amap/gmap/bmap command");
 
     return n;
   }
@@ -2857,6 +3032,16 @@ int DumpImage::modify_param(int narg, char **arg)
     return 3;
   }
 
+  if (strcmp(arg[0],"gtrans") == 0) {
+    if (narg < 2) utils::missing_cmd_args(FLERR, "dump_modify gtrans", error);
+    // ignore if grids are not displayed
+    if (gridflag == NO) return 2;
+    grid_opacity = utils::numeric(FLERR,arg[1],false,lmp);
+    if ((grid_opacity < 0.0) || (grid_opacity > 1.0))
+      error->all(FLERR, argoff + 1, "Invalid gtrans opacity in dump_modify command");
+    return 2;
+  }
+
   // clang-format on
   if (strcmp(arg[0], "lights") == 0) {
     if (narg < 5) utils::missing_cmd_args(FLERR, "dump_modify lights", error);
@@ -2876,6 +3061,74 @@ int DumpImage::modify_param(int narg, char **arg)
     restore_lighting({ambient, key, fill, back}, image);
 
     return 5;
+  }
+
+  if (strcmp(arg[0], "gamma") == 0) {
+    if (narg < 2) utils::missing_cmd_args(FLERR, "dump_modify gamma", error);
+    double gval = utils::numeric(FLERR, arg[1], false, lmp);
+    if ((gval < 0.1) || (gval > 10.0))
+      error->all(FLERR, argoff + 1, "Illegal gamma value {}", gval);
+    image->gamma = gval;
+    return 2;
+  }
+
+  if (strcmp(arg[0], "ssaosamples") == 0) {
+    if (narg < 2) utils::missing_cmd_args(FLERR, "dump_modify ssaosamples", error);
+    int nsamples = utils::inumeric(FLERR, arg[1], false, lmp);
+    if ((nsamples < 4) || (nsamples > 64))
+      error->all(FLERR, argoff + 1, "Illegal ssaosamples value {}", nsamples);
+    image->ssaosamples = nsamples;
+    return 2;
+  }
+
+  if (strcmp(arg[0], "specular") == 0) {
+    if (narg < 2) utils::missing_cmd_args(FLERR, "dump_modify specular", error);
+    if (strcmp(arg[1], "none") == 0) {
+      image->nospecular = 1;
+      image->specularIntensity = 0.0;
+      return 2;
+    }
+    if (strcmp(arg[1], "wide") == 0)
+      image->specularHardness = 10.0;
+    else if (strcmp(arg[1], "narrow") == 0)
+      image->specularHardness = 50.0;
+    else if (strcmp(arg[1], "tight") == 0)
+      image->specularHardness = 250.0;
+    else
+      error->all(FLERR, argoff + 1, "Unknown specular setting {}", arg[1]);
+    image->specularflag = 1;
+    image->nospecular = 0;
+    image->specularIntensity = image->shiny;
+    return 2;
+  }
+
+  if (strcmp(arg[0], "metal") == 0) {
+    if (narg < 2) utils::missing_cmd_args(FLERR, "dump_modify metal", error);
+    double mval = utils::numeric(FLERR, arg[1], false, lmp);
+    if ((mval < 0.0) || (mval > 1.0))
+      error->all(FLERR, argoff + 1, "Illegal metal value {}", mval);
+    image->metallic = mval;
+    return 2;
+  }
+
+  if (strcmp(arg[0], "metalfinish") == 0) {
+    if (narg < 2) utils::missing_cmd_args(FLERR, "dump_modify metalfinish", error);
+    if (strcmp(arg[1], "satin") == 0) {
+      image->finishMirror = 0;
+      image->finishBand = 0.6;
+      image->finishWidth = 2.0;
+    } else if (strcmp(arg[1], "polished") == 0) {
+      image->finishMirror = 0;
+      image->finishBand = 0.6;
+      image->finishWidth = 4.0;
+    } else if (strcmp(arg[1], "mirror") == 0) {
+      image->finishMirror = 1;
+      image->finishBand = 0.4;
+      image->finishWidth = 3.0;
+    } else {
+      error->all(FLERR, argoff + 1, "Unknown metalfinish setting {}", arg[1]);
+    }
+    return 2;
   }
 
   if (strcmp(arg[0], "savecolors") == 0) {

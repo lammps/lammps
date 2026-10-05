@@ -1,7 +1,11 @@
 .. index:: compute ke/atom
+.. index:: compute ke/atom/kk
+.. index:: compute ke/atom/omp
 
 compute ke/atom command
 =======================
+
+Accelerator Variants: *ke/atom/kk*, *ke/atom/omp*
 
 Syntax
 """"""
@@ -41,6 +45,12 @@ the :doc:`Howto output <Howto_output>` page for an overview of
 LAMMPS output options.
 
 The per-atom vector values will be in energy :doc:`units <units>`.
+
+----------
+
+.. include:: accel_styles.rst
+
+----------
 
 Restrictions
 """"""""""""

@@ -25,7 +25,8 @@ using namespace LAMMPS_NS;
 /* ---------------------------------------------------------------------- */
 
 ComputeGrid::ComputeGrid(LAMMPS *lmp, int narg, char **arg) :
-    Compute(lmp, narg, arg), grid(nullptr), gridall(nullptr), gridlocal(nullptr)
+    Compute(lmp, narg, arg), grid(nullptr), gridall(nullptr), gridlocal(nullptr), boxlo(nullptr),
+    prd(nullptr), sublo(nullptr), subhi(nullptr)
 {
   if (narg < 6) error->all(FLERR, "Illegal compute grid command");
 

@@ -27,6 +27,7 @@
 #include "neighbor_kokkos.h"
 
 #include <cmath>
+#include <limits>
 
 using namespace LAMMPS_NS;
 using namespace MathConst;
@@ -90,6 +91,12 @@ void BondGaussianKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   k_width.template sync<DeviceType>();
   k_r0.template sync<DeviceType>();
 
+  // sync and claim here too: the MC fixes call this outside run_style verlet/kk
+
+  atomKK->sync(execution_space,datamask_read);
+  if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
+  else atomKK->modified(execution_space,F_MASK);
+
   x = atomKK->k_x.template view<DeviceType>();
   f = atomKK->k_f.template view<DeviceType>();
   neighborKK->k_bondlist.template sync<DeviceType>();
@@ -147,7 +154,10 @@ template<int NEWTON_BOND, int EVFLAG>
 KOKKOS_INLINE_FUNCTION
 void BondGaussianKokkos<DeviceType>::operator()(TagBondGaussianCompute<NEWTON_BOND,EVFLAG>, const int &n, EV_FLOAT& ev) const {
 
-  static constexpr KK_FLOAT SMALL_KK = static_cast<KK_FLOAT>(2.3e-308);
+  // smallest normalized value of the accumulation type so the underflow guard
+  // below works at any precision (casting the 2.3e-308 of the base class to
+  // float gives 0.0)
+  static constexpr KK_ACC_FLOAT SMALL_KK = std::numeric_limits<KK_ACC_FLOAT>::min();
 
   const int i1 = bondlist(n,0);
   const int i2 = bondlist(n,1);
@@ -158,20 +168,25 @@ void BondGaussianKokkos<DeviceType>::operator()(TagBondGaussianCompute<NEWTON_BO
   const KK_FLOAT delz = x(i1,2) - x(i2,2);
 
   const KK_FLOAT rsq = delx*delx + dely*dely + delz*delz;
-  const KK_FLOAT r = sqrt(rsq);
+  const KK_FLOAT r = Kokkos::sqrt(rsq);
 
   const int nt = d_nterms[type];
   const KK_FLOAT kbT = d_bond_temperature[type];
 
-  KK_FLOAT sum_g_i = static_cast<KK_FLOAT>(0.0);
-  KK_FLOAT sum_numerator = static_cast<KK_FLOAT>(0.0);
+  // the sums of the Gaussian terms must use the accumulation precision:
+  // far out in the tails the individual terms underflow to zero in single
+  // precision and log(sum_g_i) below would give -inf
+
+  KK_ACC_FLOAT sum_g_i = static_cast<KK_ACC_FLOAT>(0.0);
+  KK_ACC_FLOAT sum_numerator = static_cast<KK_ACC_FLOAT>(0.0);
   for (int i = 0; i < nt; i++) {
-    const KK_FLOAT dr = r - d_r0(type,i);
-    const KK_FLOAT prefactor = d_alpha(type,i) / (d_width(type,i) * static_cast<KK_FLOAT>(sqrt(MY_PI2)));
-    const KK_FLOAT exponent = -static_cast<KK_FLOAT>(2.0) * dr * dr / (d_width(type,i) * d_width(type,i));
-    const KK_FLOAT g_i = prefactor * exp(exponent);
+    const KK_ACC_FLOAT dr = static_cast<KK_ACC_FLOAT>(r) - static_cast<KK_ACC_FLOAT>(d_r0(type,i));
+    const KK_ACC_FLOAT wsq = static_cast<KK_ACC_FLOAT>(d_width(type,i)) * static_cast<KK_ACC_FLOAT>(d_width(type,i));
+    const KK_ACC_FLOAT prefactor = static_cast<KK_ACC_FLOAT>(d_alpha(type,i)) / (static_cast<KK_ACC_FLOAT>(d_width(type,i)) * Kokkos::sqrt(static_cast<KK_ACC_FLOAT>(MY_PI2)));
+    const KK_ACC_FLOAT exponent = -static_cast<KK_ACC_FLOAT>(2.0) * dr * dr / wsq;
+    const KK_ACC_FLOAT g_i = prefactor * Kokkos::exp(exponent);
     sum_g_i += g_i;
-    sum_numerator += g_i * dr / (d_width(type,i) * d_width(type,i));
+    sum_numerator += g_i * dr / wsq;
   }
 
   // avoid overflow
@@ -181,10 +196,10 @@ void BondGaussianKokkos<DeviceType>::operator()(TagBondGaussianCompute<NEWTON_BO
 
   KK_FLOAT fbond = static_cast<KK_FLOAT>(0.0);
   if (r > static_cast<KK_FLOAT>(0.0))
-    fbond = -static_cast<KK_FLOAT>(4.0) * kbT * (sum_numerator / sum_g_i) / r;
+    fbond = static_cast<KK_FLOAT>(-static_cast<KK_ACC_FLOAT>(4.0) * static_cast<KK_ACC_FLOAT>(kbT) * (sum_numerator / sum_g_i) / static_cast<KK_ACC_FLOAT>(r));
 
   KK_FLOAT ebond = static_cast<KK_FLOAT>(0.0);
-  if (eflag) ebond = -kbT * log(sum_g_i);
+  if (eflag) ebond = static_cast<KK_FLOAT>(-static_cast<KK_ACC_FLOAT>(kbT) * Kokkos::log(sum_g_i));
 
   // apply force to each of 2 atoms
 

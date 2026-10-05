@@ -19,6 +19,7 @@
 
 #include "angle.h"
 #include "atom.h"
+#include "atom_masks.h"
 #include "bond.h"
 #include "comm.h"
 #include "dihedral.h"
@@ -262,6 +263,11 @@ double ComputeFEPTA::compute_pe()
 void ComputeFEPTA::change_box()
 {
   int i;
+
+  // rescaled through the host pointers ahead of a KOKKOS force evaluation
+
+  atom->sync_host_arrays(X_MASK);
+
   double **x = atom->x;
   int natom = atom->nlocal + atom->nghost;
 
@@ -279,6 +285,8 @@ void ComputeFEPTA::change_box()
 
   // remap atom position
   for (i = 0; i < natom; i++) domain->lamda2x(x[i], x[i]);
+
+  atom->modified_host_arrays(X_MASK);
 
   if (force->kspace) force->kspace->setup();
 }
@@ -355,6 +363,10 @@ void ComputeFEPTA::deallocate_storage()
 void ComputeFEPTA::backup_xfev()
 {
   int i;
+
+  // sync the host copies, the arrays are read below through the host pointers
+
+  atom->sync_host_arrays(X_MASK | F_MASK);
 
   int natom = atom->nlocal + atom->nghost;
 
@@ -438,6 +450,10 @@ void ComputeFEPTA::restore_xfev()
 {
   int i;
 
+  // written back through the host pointers, then handed to the device
+
+  atom->sync_host_arrays(X_MASK | F_MASK);
+
   int natom = atom->nlocal + atom->nghost;
 
   double **x = atom->x;
@@ -512,4 +528,20 @@ void ComputeFEPTA::restore_xfev()
       }
     }
   }
+
+  atom->modified_host_arrays(X_MASK | F_MASK);
+}
+
+/* ---------------------------------------------------------------------- */
+
+double ComputeFEPTA::memory_usage()
+{
+  double bytes = (double) nmax * 3 * 2 * sizeof(double);    // x_orig + f_orig [nmax][3]
+  bytes += (double) nmax * sizeof(double);                  // peatom_orig[nmax]
+  bytes += (double) nmax * 6 * sizeof(double);              // pvatom_orig[nmax][6]
+  if (keatom_orig) {
+    bytes += (double) nmax * sizeof(double);                // keatom_orig[nmax]
+    bytes += (double) nmax * 6 * sizeof(double);            // kvatom_orig[nmax][6]
+  }
+  return bytes;
 }

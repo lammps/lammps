@@ -512,6 +512,9 @@ void PairTersoffTableOMP::deallocatePreLoops()
 
 void PairTersoffTableOMP::allocatePreLoops()
 {
+  // free any arrays from a previous setup before re-allocating, matching the
+  // base PairTersoffTable::allocatePreLoops() (a repeated setup leaked them)
+  deallocatePreLoops();
   const int nthreads = comm->nthreads;
   memory->create(thrGtetaFunction,nthreads,leadingDimensionInteractionList,leadingDimensionInteractionList,"tersofftable:thrGtetaFunction");
 

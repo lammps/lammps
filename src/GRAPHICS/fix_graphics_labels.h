@@ -88,6 +88,7 @@ class FixGraphicsLabels : public Fix {
     double scale;
     int length;
     int tics;
+    int mapidx;    // colormap to render: Image::ATOM_MAP, GRID_MAP, or BOND_MAP
     int xvar, yvar, zvar, svar;
     char *xstr, *ystr, *zstr, *sstr;
   };

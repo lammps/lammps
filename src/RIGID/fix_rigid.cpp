@@ -162,6 +162,7 @@ FixRigid::FixRigid(LAMMPS *lmp, int narg, char **arg) :
         molecule = new tagint[nlocal];
         for (i = 0; i < nlocal; i++)
           if (mask[i] & groupbit) molecule[i] = (tagint) ((tagint) value[i] - minval + 1);
+          else molecule[i] = 0;
         delete[] value;
 
       } else
@@ -731,7 +732,7 @@ void FixRigid::init()
   //   and gravity is not applied correctly
 
   if (inpfile && !id_gravity) {
-    if (modify->get_fix_by_style("^gravity").size() > 0)
+    if (!modify->get_fix_by_style("^gravity").empty())
       if (comm->me == 0)
         error->warning(FLERR,"Gravity may not be correctly applied to rigid "
                        "bodies if they consist of overlapped particles");
@@ -1219,7 +1220,7 @@ bigint FixRigid::dof(int tgroup)
     if (body[i] >= 0 && mask[i] & tgroupbit) {
       // do not count point particles or point dipoles as extended particles
       // a spheroid dipole will be counted as extended
-      if (extended && (eflags[i] & ~(POINT | DIPOLE))) mcount[body[i]]++;
+      if (extended && (eflags[i] & ~(POINT | DIPOLE | TORQUE))) mcount[body[i]]++;
       else ncount[body[i]]++;
     }
 
@@ -1575,9 +1576,9 @@ void FixRigid::set_v()
   if (extended) {
     double *shape,*quatatom,*inertiaatom;
 
-    AtomVecEllipsoid::Bonus *ebonus;
+    AtomVecEllipsoid::Bonus *ebonus = nullptr;
     if (avec_ellipsoid) ebonus = avec_ellipsoid->bonus;
-    AtomVecTri::Bonus *tbonus;
+    AtomVecTri::Bonus *tbonus = nullptr;
     if (avec_tri) tbonus = avec_tri->bonus;
     double **omega_one = atom->omega;
     double **angmom_one = atom->angmom;
@@ -1680,13 +1681,11 @@ void FixRigid::setup_bodies_static()
       eflags[i] = 0;
       if (body[i] < 0) continue;
 
-      // set to POINT or SPHERE or ELLIPSOID or LINE
+      // set to POINT or SPHERE or ELLIPSOID or LINE or TRIANGLE
+      // check for bonus data before radius: line and tri particles
+      // also store a bounding-sphere radius for neighboring purposes
 
-      if (radius && radius[i] > 0.0) {
-        eflags[i] |= SPHERE;
-        eflags[i] |= OMEGA;
-        eflags[i] |= TORQUE;
-      } else if (ellipsoid && ellipsoid[i] >= 0) {
+      if (ellipsoid && ellipsoid[i] >= 0) {
         eflags[i] |= ELLIPSOID;
         eflags[i] |= ANGMOM;
         eflags[i] |= TORQUE;
@@ -1698,12 +1697,20 @@ void FixRigid::setup_bodies_static()
         eflags[i] |= TRIANGLE;
         eflags[i] |= ANGMOM;
         eflags[i] |= TORQUE;
+      } else if (radius && radius[i] > 0.0) {
+        eflags[i] |= SPHERE;
+        eflags[i] |= OMEGA;
+        eflags[i] |= TORQUE;
       } else eflags[i] |= POINT;
 
       // set DIPOLE if atom->mu and mu[3] > 0.0
+      // point dipoles also need TORQUE so the torque
+      // from dipole interactions acts on the body
 
-      if (atom->mu_flag && mu[i][3] > 0.0)
+      if (atom->mu_flag && mu[i][3] > 0.0) {
         eflags[i] |= DIPOLE;
+        if (atom->torque_flag) eflags[i] |= TORQUE;
+      }
     }
   }
 
@@ -1970,6 +1977,18 @@ void FixRigid::setup_bodies_static()
     if (MathExtra::dot3(cross,ez_space[ibody]) < 0.0)
       MathExtra::negate3(ez_space[ibody]);
 
+    // for 2d, ensure ez points in the +z direction
+    // negate both ey and ez to keep the eigenbasis right-handed
+    // the theta-based orientation bookkeeping for line particles requires
+    //   the body frame to be a pure rotation around the +z axis
+
+    if (domain->dimension == 2) {
+      if (ez_space[ibody][2] < 0.0) {
+        MathExtra::negate3(ey_space[ibody]);
+        MathExtra::negate3(ez_space[ibody]);
+      }
+    }
+
     // create initial quaternion
 
     MathExtra::exyz_to_q(ex_space[ibody],ey_space[ibody],ez_space[ibody],
@@ -2211,7 +2230,7 @@ void FixRigid::setup_bodies_dynamic()
   // extended particles add their rotation to angmom of body
 
   if (extended) {
-    AtomVecLine::Bonus *lbonus;
+    AtomVecLine::Bonus *lbonus = nullptr;
     if (avec_line) lbonus = avec_line->bonus;
     double **omega_one = atom->omega;
     double **angmom_one = atom->angmom;
@@ -2270,7 +2289,7 @@ void FixRigid::readfile(int which, double *vec, double **array1, double **array2
 {
   int nchunk,id,eofflag,xbox,ybox,zbox;
   int nlines;
-  FILE *fp;
+  SafeFilePtr fp;
   char *eof,*start,*next,*buf;
   char line[MAXLINE] = {'\0'};
 
@@ -2288,7 +2307,6 @@ void FixRigid::readfile(int which, double *vec, double **array1, double **array2
     nlines = utils::inumeric(FLERR, utils::trim(line), true, lmp);
     if (which == 0)
       utils::logmesg(lmp, "Reading rigid body data for {} bodies from file {}\n", nlines, inpfile);
-    if (nlines == 0) fclose(fp);
   }
   MPI_Bcast(&nlines,1,MPI_INT,0,world);
 
@@ -2375,7 +2393,6 @@ void FixRigid::readfile(int which, double *vec, double **array1, double **array2
     nread += nchunk;
   }
 
-  if (comm->me == 0) fclose(fp);
   delete[] buffer;
 }
 
@@ -2439,8 +2456,8 @@ double FixRigid::memory_usage()
   bytes += (double)maxvatom*6 * sizeof(double);    // vatom
   if (extended) {
     bytes += (double)nmax * sizeof(int);
-    if (orientflag) bytes = (double)nmax*orientflag * sizeof(double);
-    if (dorientflag) bytes = (double)nmax*3 * sizeof(double);
+    if (orientflag) bytes += (double)nmax*orientflag * sizeof(double);
+    if (dorientflag) bytes += (double)nmax*3 * sizeof(double);
   }
   return bytes;
 }
@@ -2606,6 +2623,8 @@ void FixRigid::reset_dt()
 
 void FixRigid::zero_momentum()
 {
+  setup_bodies_early();
+
   for (int ibody = 0; ibody < nbody; ibody++)
     vcm[ibody][0] = vcm[ibody][1] = vcm[ibody][2] = 0.0;
 
@@ -2620,6 +2639,8 @@ void FixRigid::zero_momentum()
 
 void FixRigid::zero_rotation()
 {
+  setup_bodies_early();
+
   for (int ibody = 0; ibody < nbody; ibody++) {
     angmom[ibody][0] = angmom[ibody][1] = angmom[ibody][2] = 0.0;
     omega[ibody][0] = omega[ibody][1] = omega[ibody][2] = 0.0;
@@ -2627,6 +2648,30 @@ void FixRigid::zero_rotation()
 
   evflag = 0;
   set_v();
+}
+
+/* ----------------------------------------------------------------------
+   initialize rigid bodies from current atom info, if not yet done by a run
+   needed when body properties are used before the first run,
+     e.g. by the velocity command with the rigid keyword
+------------------------------------------------------------------------- */
+
+void FixRigid::setup_bodies_early()
+{
+  if (setupflag) return;
+
+  triclinic = domain->triclinic;
+  avec_ellipsoid = dynamic_cast<AtomVecEllipsoid *>(atom->style_match("ellipsoid"));
+  avec_line = dynamic_cast<AtomVecLine *>(atom->style_match("line"));
+  avec_tri = dynamic_cast<AtomVecTri *>(atom->style_match("tri"));
+
+  setup_bodies_static();
+  if (!inpfile) setup_bodies_dynamic();
+  setupflag = 1;
+
+  for (int ibody = 0; ibody < nbody; ibody++)
+    MathExtra::angmom_to_omega(angmom[ibody],ex_space[ibody],ey_space[ibody],
+                               ez_space[ibody],inertia[ibody],omega[ibody]);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -2643,12 +2688,8 @@ int FixRigid::modify_param(int narg, char **arg)
     // must do here and not in init,
     // since modify.cpp::init() uses fix masks before calling fix::init()
 
-    for (int i = 0; i < modify->nfix; i++)
-      if (strcmp(modify->fix[i]->id,id) == 0) {
-        if (earlyflag) modify->fmask[i] |= POST_FORCE;
-        else if (!langflag) modify->fmask[i] &= ~POST_FORCE;
-        break;
-      }
+    if (earlyflag) modify->set_fix_mask(this, POST_FORCE);
+    else if (!langflag) modify->clear_fix_mask(this, POST_FORCE);
     return 2;
   }
 

@@ -24,6 +24,7 @@
 #include "force.h"
 #include "gpu_extra.h"
 #include "kspace.h"
+#include "lammps_gpu.h"
 #include "math_const.h"
 #include "neigh_list.h"
 #include "neighbor.h"
@@ -34,30 +35,10 @@
 #include <cstring>
 
 using namespace LAMMPS_NS;
+using namespace LAMMPS_GPU;
 using namespace MathConst;
 using namespace EwaldConst;
 
-// External functions from cuda library for atom decomposition
-
-int dplj_gpu_init(const int ntypes, double **cutsq, double **host_lj1, double **host_lj2,
-                  double **host_lj3, double **host_lj4, double **offset, double *special_lj,
-                  const int nlocal, const int nall, const int max_nbors, const int maxspecial,
-                  const double cell_size, int &gpu_mode, FILE *screen, double **host_cut_ljsq,
-                  const double host_cut_coulsq, double *host_special_coul, const double qqrd2e,
-                  const double g_ewald);
-void dplj_gpu_clear();
-int **dplj_gpu_compute_n(const int ago, const int inum, const int nall, double **host_x,
-                         int *host_type, double *sublo, double *subhi, tagint *tag, int **nspecial,
-                         tagint **special, const bool eflag, const bool vflag, const bool eatom,
-                         const bool vatom, int &host_start, int **ilist, int **jnum,
-                         const double cpu_time, bool &success, double *host_q, double **host_mu,
-                         double *boxlo, double *prd);
-void dplj_gpu_compute(const int ago, const int inum, const int nall, double **host_x,
-                      int *host_type, int *ilist, int *numj, int **firstneigh, const bool eflag,
-                      const bool vflag, const bool eatom, const bool vatom, int &host_start,
-                      const double cpu_time, bool &success, double *host_q, double **host_mu,
-                      const int nlocal, double *boxlo, double *prd);
-double dplj_gpu_bytes();
 
 /* ---------------------------------------------------------------------- */
 
@@ -66,7 +47,6 @@ PairLJCutDipoleLongGPU::PairLJCutDipoleLongGPU(LAMMPS *lmp) :
 {
   respa_enable = 0;
   reinitflag = 0;
-  cpu_time = 0.0;
   suffix_flag |= Suffix::GPU;
   GPU_EXTRA::gpu_ready(lmp->modify, lmp->error);
 }
@@ -87,7 +67,7 @@ void PairLJCutDipoleLongGPU::compute(int eflag, int vflag)
   ev_init(eflag, vflag);
 
   int nall = atom->nlocal + atom->nghost;
-  int inum, host_start;
+  int inum;
 
   bool success = true;
   int *ilist, *numneigh, **firstneigh;
@@ -106,26 +86,21 @@ void PairLJCutDipoleLongGPU::compute(int eflag, int vflag)
     inum = atom->nlocal;
     firstneigh = dplj_gpu_compute_n(neighbor->ago, inum, nall, atom->x, atom->type, sublo, subhi,
                                     atom->tag, atom->nspecial, atom->special, eflag, vflag,
-                                    eflag_atom, vflag_atom, host_start, &ilist, &numneigh, cpu_time,
-                                    success, atom->q, atom->mu, domain->boxlo, domain->prd);
+                                    eflag_atom, vflag_atom, &ilist, &numneigh, success, atom->q,
+                                    atom->mu, domain->boxlo, domain->prd);
   } else {
     inum = list->inum;
     ilist = list->ilist;
     numneigh = list->numneigh;
     firstneigh = list->firstneigh;
     dplj_gpu_compute(neighbor->ago, inum, nall, atom->x, atom->type, ilist, numneigh, firstneigh,
-                     eflag, vflag, eflag_atom, vflag_atom, host_start, cpu_time, success, atom->q,
+                     eflag, vflag, eflag_atom, vflag_atom, success, atom->q,
                      atom->mu, atom->nlocal, domain->boxlo, domain->prd);
   }
   if (!success) error->one(FLERR, "Insufficient memory on accelerator");
 
   if (atom->molecular != Atom::ATOMIC && neighbor->ago == 0)
     neighbor->build_topology();
-  if (host_start < inum) {
-    cpu_time = platform::walltime();
-    cpu_compute(host_start, inum, eflag, vflag, ilist, numneigh, firstneigh);
-    cpu_time = platform::walltime() - cpu_time;
-  }
 }
 
 /* ----------------------------------------------------------------------
@@ -185,206 +160,4 @@ double PairLJCutDipoleLongGPU::memory_usage()
 {
   double bytes = Pair::memory_usage();
   return bytes + dplj_gpu_bytes();
-}
-
-/* ---------------------------------------------------------------------- */
-
-void PairLJCutDipoleLongGPU::cpu_compute(int start, int inum, int eflag, int vflag, int *ilist,
-                                         int *numneigh, int **firstneigh)
-{
-  int i, j, ii, jj, jnum, itype, jtype;
-  double qtmp, xtmp, ytmp, ztmp, delx, dely, delz;
-  double rsq, r, rinv, r2inv, r6inv;
-  double forcecoulx, forcecouly, forcecoulz, fforce;
-  double tixcoul, tiycoul, tizcoul;
-  double fx, fy, fz, fdx, fdy, fdz, fax, fay, faz;
-  double pdotp, pidotr, pjdotr, pre1, pre2, pre3;
-  double grij, expm2, t, erfc;
-  double g0, g1, g2, b0, b1, b2, b3, d0, d1, d2, d3;
-  double zdix, zdiy, zdiz, zaix, zaiy, zaiz;
-  double g0b1_g1b2_g2b3, g0d1_g1d2_g2d3;
-  double forcelj, factor_coul, factor_lj, facm1;
-  double evdwl, ecoul;
-  int *jlist;
-
-  evdwl = ecoul = 0.0;
-  ev_init(eflag, vflag);
-
-  double **x = atom->x;
-  double **f = atom->f;
-  double *q = atom->q;
-  double **mu = atom->mu;
-  double **torque = atom->torque;
-  int *type = atom->type;
-  double *special_coul = force->special_coul;
-  double *special_lj = force->special_lj;
-  double qqrd2e = force->qqrd2e;
-
-  pre1 = 2.0 * g_ewald / MY_PIS;
-  pre2 = 4.0 * pow(g_ewald, 3.0) / MY_PIS;
-  pre3 = 8.0 * pow(g_ewald, 5.0) / MY_PIS;
-
-  // loop over neighbors of my atoms
-
-  for (ii = start; ii < inum; ii++) {
-    i = ilist[ii];
-    qtmp = q[i];
-    xtmp = x[i][0];
-    ytmp = x[i][1];
-    ztmp = x[i][2];
-    itype = type[i];
-    jlist = firstneigh[i];
-    jnum = numneigh[i];
-
-    for (jj = 0; jj < jnum; jj++) {
-      j = jlist[jj];
-      factor_lj = special_lj[sbmask(j)];
-      factor_coul = special_coul[sbmask(j)];
-      j &= NEIGHMASK;
-
-      delx = xtmp - x[j][0];
-      dely = ytmp - x[j][1];
-      delz = ztmp - x[j][2];
-      rsq = delx * delx + dely * dely + delz * delz;
-      jtype = type[j];
-
-      if (rsq < cutsq[itype][jtype]) {
-        r2inv = 1.0 / rsq;
-        rinv = sqrt(r2inv);
-
-        if (rsq < cut_coulsq) {
-          r = sqrt(rsq);
-          grij = g_ewald * r;
-          expm2 = exp(-grij * grij);
-          t = 1.0 / (1.0 + EWALD_P * grij);
-          erfc = t * (A1 + t * (A2 + t * (A3 + t * (A4 + t * A5)))) * expm2;
-
-          pdotp = mu[i][0] * mu[j][0] + mu[i][1] * mu[j][1] + mu[i][2] * mu[j][2];
-          pidotr = mu[i][0] * delx + mu[i][1] * dely + mu[i][2] * delz;
-          pjdotr = mu[j][0] * delx + mu[j][1] * dely + mu[j][2] * delz;
-
-          g0 = qtmp * q[j];
-          g1 = qtmp * pjdotr - q[j] * pidotr + pdotp;
-          g2 = -pidotr * pjdotr;
-
-          if (factor_coul > 0.0) {
-            b0 = erfc * rinv;
-            b1 = (b0 + pre1 * expm2) * r2inv;
-            b2 = (3.0 * b1 + pre2 * expm2) * r2inv;
-            b3 = (5.0 * b2 + pre3 * expm2) * r2inv;
-
-            g0b1_g1b2_g2b3 = g0 * b1 + g1 * b2 + g2 * b3;
-            fdx = delx * g0b1_g1b2_g2b3 - b1 * (qtmp * mu[j][0] - q[j] * mu[i][0]) +
-                b2 * (pjdotr * mu[i][0] + pidotr * mu[j][0]);
-            fdy = dely * g0b1_g1b2_g2b3 - b1 * (qtmp * mu[j][1] - q[j] * mu[i][1]) +
-                b2 * (pjdotr * mu[i][1] + pidotr * mu[j][1]);
-            fdz = delz * g0b1_g1b2_g2b3 - b1 * (qtmp * mu[j][2] - q[j] * mu[i][2]) +
-                b2 * (pjdotr * mu[i][2] + pidotr * mu[j][2]);
-
-            zdix = delx * (q[j] * b1 + b2 * pjdotr) - b1 * mu[j][0];
-            zdiy = dely * (q[j] * b1 + b2 * pjdotr) - b1 * mu[j][1];
-            zdiz = delz * (q[j] * b1 + b2 * pjdotr) - b1 * mu[j][2];
-
-            if (factor_coul < 1.0) {
-              fdx *= factor_coul;
-              fdy *= factor_coul;
-              fdz *= factor_coul;
-              zdix *= factor_coul;
-              zdiy *= factor_coul;
-              zdiz *= factor_coul;
-            }
-          } else {
-            fdx = fdy = fdz = 0.0;
-            zdix = zdiy = zdiz = 0.0;
-          }
-
-          if (factor_coul < 1.0) {
-            d0 = (erfc - 1.0) * rinv;
-            d1 = (d0 + pre1 * expm2) * r2inv;
-            d2 = (3.0 * d1 + pre2 * expm2) * r2inv;
-            d3 = (5.0 * d2 + pre3 * expm2) * r2inv;
-
-            g0d1_g1d2_g2d3 = g0 * d1 + g1 * d2 + g2 * d3;
-            fax = delx * g0d1_g1d2_g2d3 - d1 * (qtmp * mu[j][0] - q[j] * mu[i][0]) +
-                d2 * (pjdotr * mu[i][0] + pidotr * mu[j][0]);
-            fay = dely * g0d1_g1d2_g2d3 - d1 * (qtmp * mu[j][1] - q[j] * mu[i][1]) +
-                d2 * (pjdotr * mu[i][1] + pidotr * mu[j][1]);
-            faz = delz * g0d1_g1d2_g2d3 - d1 * (qtmp * mu[j][2] - q[j] * mu[i][2]) +
-                d2 * (pjdotr * mu[i][2] + pidotr * mu[j][2]);
-
-            zaix = delx * (q[j] * d1 + d2 * pjdotr) - d1 * mu[j][0];
-            zaiy = dely * (q[j] * d1 + d2 * pjdotr) - d1 * mu[j][1];
-            zaiz = delz * (q[j] * d1 + d2 * pjdotr) - d1 * mu[j][2];
-
-            if (factor_coul > 0.0) {
-              facm1 = 1.0 - factor_coul;
-              fax *= facm1;
-              fay *= facm1;
-              faz *= facm1;
-              zaix *= facm1;
-              zaiy *= facm1;
-              zaiz *= facm1;
-            }
-          } else {
-            fax = fay = faz = 0.0;
-            zaix = zaiy = zaiz = 0.0;
-          }
-
-          forcecoulx = fdx + fax;
-          forcecouly = fdy + fay;
-          forcecoulz = fdz + faz;
-
-          tixcoul = mu[i][1] * (zdiz + zaiz) - mu[i][2] * (zdiy + zaiy);
-          tiycoul = mu[i][2] * (zdix + zaix) - mu[i][0] * (zdiz + zaiz);
-          tizcoul = mu[i][0] * (zdiy + zaiy) - mu[i][1] * (zdix + zaix);
-        } else {
-          forcecoulx = forcecouly = forcecoulz = 0.0;
-          tixcoul = tiycoul = tizcoul = 0.0;
-        }
-
-        // LJ interaction
-
-        if (rsq < cut_ljsq[itype][jtype]) {
-          r6inv = r2inv * r2inv * r2inv;
-          forcelj = r6inv * (lj1[itype][jtype] * r6inv - lj2[itype][jtype]);
-          fforce = factor_lj * forcelj * r2inv;
-        } else
-          fforce = 0.0;
-
-        // total force
-
-        fx = qqrd2e * forcecoulx + delx * fforce;
-        fy = qqrd2e * forcecouly + dely * fforce;
-        fz = qqrd2e * forcecoulz + delz * fforce;
-
-        // force & torque accumulation
-
-        f[i][0] += fx;
-        f[i][1] += fy;
-        f[i][2] += fz;
-        torque[i][0] += qqrd2e * tixcoul;
-        torque[i][1] += qqrd2e * tiycoul;
-        torque[i][2] += qqrd2e * tizcoul;
-
-        if (eflag) {
-          if (rsq < cut_coulsq && factor_coul > 0.0) {
-            ecoul = qqrd2e * (b0 * g0 + b1 * g1 + b2 * g2);
-            if (factor_coul < 1.0) {
-              ecoul *= factor_coul;
-              ecoul += (1 - factor_coul) * qqrd2e * (d0 * g0 + d1 * g1 + d2 * g2);
-            }
-          } else
-            ecoul = 0.0;
-
-          if (rsq < cut_ljsq[itype][jtype]) {
-            evdwl = r6inv * (lj3[itype][jtype] * r6inv - lj4[itype][jtype]) - offset[itype][jtype];
-            evdwl *= factor_lj;
-          } else
-            evdwl = 0.0;
-        }
-
-        if (evflag) ev_tally_xyz_full(i, evdwl, ecoul, fx, fy, fz, delx, dely, delz);
-      }
-    }
-  }
 }

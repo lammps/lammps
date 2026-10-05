@@ -132,7 +132,7 @@ void FitPOD::command(int narg, char **arg)
   estimate_memory_fastpod(testdata);
   allocate_memory_descriptorstruct(fastpodptr->nCoeffAll);
 
-  if (coeff_file != "") podArrayCopy(desc.c, fastpodptr->coeff, fastpodptr->nCoeffAll);
+  if (!coeff_file.empty()) podArrayCopy(desc.c, fastpodptr->coeff, fastpodptr->nCoeffAll);
 
   if (((int) envdata.data_path.size() > 1) && (desc.nClusters > 1)) {
     environment_cluster_calculation(envdata);
@@ -149,7 +149,7 @@ void FitPOD::command(int narg, char **arg)
   if (compute_descriptors == 0) {
 
     // compute POD coefficients using least-squares method
-    if (coeff_file == "") {
+    if (coeff_file.empty()) {
       least_squares_fit(traindata);
 
       if (comm->me == 0) {    // save coefficients into a text file
@@ -313,7 +313,7 @@ int FitPOD::read_data_file(double *fitting_weights, std::string &file_format,
       // ignore
     }
 
-    if (words.size() == 0) continue;
+    if (words.empty()) continue;
 
     auto keywd = words[0];
 
@@ -487,7 +487,7 @@ int FitPOD::get_number_atom_exyz(std::vector<int> &num_atom, int &num_atom_sum, 
       // ignore
     }
 
-    if (words.size() == 0) continue;
+    if (words.empty()) continue;
 
     int natom;
     if (words.size() == 1) {
@@ -560,7 +560,7 @@ void FitPOD::read_exyz_file(double *lattice, double *stress, double *energy, dou
       // ignore
     }
 
-    if (words.size() == 0) continue;
+    if (words.empty()) continue;
 
     ValueTokenizer text(utils::trim_comment(line), "\"' \t\n\r\f");
     if (text.contains("attice")) {
@@ -704,7 +704,7 @@ void FitPOD::get_data(datastruct &data, const std::vector<std::string> &species)
     utils::logmesg(lmp, "number of atoms in all files: {}\n", data.num_atom_sum);
   }
 
-  if (data.data_files.size() < 1)
+  if (data.data_files.empty())
     error->all(FLERR,
                "Cannot fit potential without data files. The data paths may not be valid. Please "
                "check the data paths in the POD data file.");

@@ -46,9 +46,6 @@ class NBinIntel : public NBinStandard {
 
   template <class flt_t, class acc_t> void bin_atoms(IntelBuffers<flt_t, acc_t> *);
 
-#ifdef _LMP_INTEL_OFFLOAD
-  int _cop, _offload_alloc;
-#endif
 };
 
 }    // namespace LAMMPS_NS

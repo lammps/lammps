@@ -29,14 +29,55 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-NPair::NPair(LAMMPS *lmp) : Pointers(lmp), nb(nullptr), ns(nullptr), bins(nullptr), stencil(nullptr)
+NPair::NPair(LAMMPS *lmp) :
+    Pointers(lmp), nb(nullptr), ns(nullptr), atom2bin(nullptr), bins(nullptr),
+    binatoms_hash_multi(nullptr), stencil(nullptr), nstencil_multi(nullptr),
+    stencil_multi(nullptr)
 {
   last_build = -1;
+  flag_same_multi = nullptr;
+  flag_half_multi = nullptr;
   mycutneighsq = nullptr;
   molecular = atom->molecular;
   copymode = 0;
   cutoff_custom = 0.0;
   execution_space = Host;
+
+  // the members below hold copies of neighbor/bin/stencil settings that
+  // copy_neighbor_info(), copy_bin_info(), and copy_stencil_info() fill in
+  // before each build; zero them so instances never carry indeterminate values
+
+  istyle = 0;
+  includegroup = exclude = 0;
+  skin = 0.0;
+  cutneighsq = cutneighghostsq = nullptr;
+  cut_inner_sq = cut_middle_sq = cut_middle_inside_sq = 0.0;
+  bboxlo = bboxhi = nullptr;
+  ncollections = 0;
+  cutcollectionsq = nullptr;
+  nex_type = nex_group = nex_mol = 0;
+  ex1_type = ex2_type = nullptr;
+  ex_type = nullptr;
+  ex1_group = ex2_group = nullptr;
+  ex1_bit = ex2_bit = nullptr;
+  ex_mol_bit = ex_mol_group = ex_mol_intra = nullptr;
+  special_flag = nullptr;
+
+  nbinx = nbiny = nbinz = 0;
+  mbins = mbinx = mbiny = mbinz = 0;
+  mbinxlo = mbinylo = mbinzlo = 0;
+  bininvx = bininvy = bininvz = 0.0;
+  binhead = nullptr;
+  bin_hash = 0;
+  nbinx_multi = nbiny_multi = nbinz_multi = nullptr;
+  mbins_multi = nullptr;
+  mbinx_multi = mbiny_multi = mbinz_multi = nullptr;
+  mbinxlo_multi = mbinylo_multi = mbinzlo_multi = nullptr;
+  bininvx_multi = bininvy_multi = bininvz_multi = nullptr;
+  binhead_multi = nullptr;
+
+  nstencil = 0;
+  stencilxyz = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -99,6 +140,7 @@ void NPair::copy_neighbor_info()
 
   // multi info
 
+  bin_hash = neighbor->bin_hash;
   ncollections = neighbor->ncollections;
   cutcollectionsq = neighbor->cutcollectionsq;
 
@@ -158,6 +200,8 @@ void NPair::copy_bin_info()
   bininvz_multi = nb->bininvz_multi;
 
   binhead_multi = nb->binhead_multi;
+
+  binatoms_hash_multi = &nb->binatoms_hash_multi;
 }
 
 /* ----------------------------------------------------------------------
@@ -268,7 +312,6 @@ int NPair::coord2bin(double *x, int &ix, int &iy, int &iz)
   return iz*mbiny*mbinx + iy*mbinx + ix;
 }
 
-
 /* ----------------------------------------------------------------------
    multi version of coord2bin for a given collection
 ------------------------------------------------------------------------- */
@@ -309,5 +352,50 @@ int NPair::coord2bin(double *x, int ic)
   iy -= mbinylo_multi[ic];
   iz -= mbinzlo_multi[ic];
   ibin = iz*mbiny_multi[ic]*mbinx_multi[ic] + iy*mbinx_multi[ic] + ix;
+  return ibin;
+}
+
+/* ----------------------------------------------------------------------
+   bigint version for hash bins
+   NOTE: the bin index must be computed in 64-bit: this variant exists
+   for bin counts that overflow 32-bit integers
+------------------------------------------------------------------------- */
+
+bigint NPair::coord2bin_big(double *x, int ic)
+{
+  int ix,iy,iz;
+  bigint ibin;
+
+  if (!std::isfinite(x[0]) || !std::isfinite(x[1]) || !std::isfinite(x[2]))
+    error->one(FLERR,"Non-numeric positions - simulation unstable" + utils::errorurl(6));
+
+  if (x[0] >= bboxhi[0])
+    ix = static_cast<int> ((x[0]-bboxhi[0])*bininvx_multi[ic]) + nbinx_multi[ic];
+  else if (x[0] >= bboxlo[0]) {
+    ix = static_cast<int> ((x[0]-bboxlo[0])*bininvx_multi[ic]);
+    ix = MIN(ix,nbinx_multi[ic]-1);
+  } else
+    ix = static_cast<int> ((x[0]-bboxlo[0])*bininvx_multi[ic]) - 1;
+
+  if (x[1] >= bboxhi[1])
+    iy = static_cast<int> ((x[1]-bboxhi[1])*bininvy_multi[ic]) + nbiny_multi[ic];
+  else if (x[1] >= bboxlo[1]) {
+    iy = static_cast<int> ((x[1]-bboxlo[1])*bininvy_multi[ic]);
+    iy = MIN(iy,nbiny_multi[ic]-1);
+  } else
+    iy = static_cast<int> ((x[1]-bboxlo[1])*bininvy_multi[ic]) - 1;
+
+  if (x[2] >= bboxhi[2])
+    iz = static_cast<int> ((x[2]-bboxhi[2])*bininvz_multi[ic]) + nbinz_multi[ic];
+  else if (x[2] >= bboxlo[2]) {
+    iz = static_cast<int> ((x[2]-bboxlo[2])*bininvz_multi[ic]);
+    iz = MIN(iz,nbinz_multi[ic]-1);
+  } else
+    iz = static_cast<int> ((x[2]-bboxlo[2])*bininvz_multi[ic]) - 1;
+
+  ix -= mbinxlo_multi[ic];
+  iy -= mbinylo_multi[ic];
+  iz -= mbinzlo_multi[ic];
+  ibin = (bigint) iz*mbiny_multi[ic]*mbinx_multi[ic] + (bigint) iy*mbinx_multi[ic] + ix;
   return ibin;
 }

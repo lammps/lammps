@@ -55,6 +55,7 @@ FixPressLangevin::FixPressLangevin(LAMMPS *lmp, int narg, char **arg) :
   // Gronbech-Jensen & Farago J. Chem. Phys. 141 194108 (2014)
 
   nevery = 1;
+  restart_global = 1;
 
   // default values
 
@@ -380,6 +381,8 @@ FixPressLangevin::FixPressLangevin(LAMMPS *lmp, int narg, char **arg) :
 
 FixPressLangevin::~FixPressLangevin()
 {
+  if (copymode) return;
+
   delete random;
   delete irregular;
 
@@ -456,6 +459,13 @@ void FixPressLangevin::init()
 
 void FixPressLangevin::setup(int /*vflag*/)
 {
+  // recompute the dt-dependent GJF piston coefficients here, not in init():
+  // a "timestep" command issued before a run only updates update->dt during
+  // run setup, which happens after Fix::init(), so coefficients computed in
+  // init() can be based on a stale dt.  setup() sees the final dt.
+
+  reset_dt();
+
   // trigger virial computation on next timestep
 
   pressure->addstep(update->ntimestep + 1);
@@ -823,5 +833,66 @@ void FixPressLangevin::reset_dt()
     gjfa[i] = (1.0 - p_alpha[i] * update->dt / 2.0 / p_mass[i]) /
         (1.0 + p_alpha[i] * update->dt / 2.0 / p_mass[i]);
     gjfb[i] = 1. / (1.0 + p_alpha[i] * update->dt / 2.0 / p_mass[i]);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   pack the barostat state into the restart file so that a run continued from
+   a restart reproduces the original stochastic barostat trajectory.  Besides
+   the RNG, the current piston force f_piston carries over between steps (it
+   seeds f_old_piston on the next step) and is not recovered from the restored
+   box alone.  The piston momentum p_deriv is deliberately reset to zero at the
+   start of every run (see init()), so it is not checkpointed.  The piston
+   state is global (replicated on every rank); the RNG is replicated too (same
+   seed) but gathered per-rank to stay robust if that changes.
+
+   layout: [0]=nprocs, [1..6]=f_piston, then per-rank RNG state
+------------------------------------------------------------------------- */
+
+void FixPressLangevin::write_restart(FILE *fp)
+{
+  constexpr int NPISTON = 6;    // f_piston[6]
+  int nsize =
+      RanMars::STATE_SIZE * comm->nprocs + 1 + NPISTON;    // piston + pRNG per proc + nprocs
+
+  auto *list = new double[nsize];
+
+  if (comm->me == 0) {
+    list[0] = comm->nprocs;
+    for (int i = 0; i < 6; i++) list[1 + i] = f_piston[i];
+  }
+
+  double state[RanMars::STATE_SIZE];
+  random->get_state(state);
+  MPI_Gather(state, RanMars::STATE_SIZE, MPI_DOUBLE, list + 1 + NPISTON, RanMars::STATE_SIZE,
+             MPI_DOUBLE, 0, world);
+
+  if (comm->me == 0) {
+    int size = nsize * sizeof(double);
+    fwrite(&size, sizeof(int), 1, fp);
+    fwrite(list, sizeof(double), nsize, fp);
+  }
+  delete[] list;
+}
+
+/* ----------------------------------------------------------------------
+   use state info from restart file to restore the barostat and RNG state
+------------------------------------------------------------------------- */
+
+void FixPressLangevin::restart(char *buf)
+{
+  constexpr int NPISTON = 6;
+  auto *list = (double *) buf;
+
+  for (int i = 0; i < 6; i++) f_piston[i] = list[1 + i];
+
+  int nprocs = (int) list[0];
+  if (nprocs != comm->nprocs) {
+    if (comm->me == 0)
+      error->warning(FLERR, "Different number of procs. Cannot restore RNG state.");
+  } else {
+    // the size of the stored states depends on the version that wrote the restart file
+    const int stride = RanMars::state_size(list + 1 + NPISTON);
+    random->set_state(list + 1 + NPISTON + comm->me * stride);
   }
 }

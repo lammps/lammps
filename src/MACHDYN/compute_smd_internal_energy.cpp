@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
  *
  *                    *** Smooth Mach Dynamics ***
@@ -9,7 +8,6 @@
  * Eckerstrasse 4, D-79104 Freiburg i.Br, Germany.
  *
  * ----------------------------------------------------------------------- */
-
 
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
@@ -24,24 +22,28 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
-#include <cstring>
 #include "compute_smd_internal_energy.h"
+
 #include "atom.h"
-#include "update.h"
-#include "modify.h"
 #include "comm.h"
-#include "memory.h"
 #include "error.h"
+#include "memory.h"
+#include "modify.h"
+#include "update.h"
+
+#include <cstring>
 
 using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
 ComputeSMDInternalEnergy::ComputeSMDInternalEnergy(LAMMPS *lmp, int narg, char **arg) :
-  Compute(lmp, narg, arg)
+    Compute(lmp, narg, arg)
 {
-  if (narg != 3) error->all(FLERR,"Illegal compute smd/internal_energy command");
-  if (atom->esph_flag != 1) error->all(FLERR,"compute smd/internal_energy command requires atom_style with internal_energy (e.g. smd)");
+  if (narg != 3) error->all(FLERR, 2, "Illegal compute smd/internal/energy command");
+  if (atom->esph_flag != 1)
+    error->all(FLERR, 2,
+               "compute smd/internal/energy command requires atom_style with internal_energy");
 
   peratom_flag = 1;
   size_peratom_cols = 0;
@@ -62,11 +64,8 @@ ComputeSMDInternalEnergy::~ComputeSMDInternalEnergy()
 void ComputeSMDInternalEnergy::init()
 {
 
-  int count = 0;
-  for (int i = 0; i < modify->ncompute; i++)
-    if (strcmp(modify->compute[i]->style,"smd/internal_energy") == 0) count++;
-  if (count > 1 && comm->me == 0)
-    error->warning(FLERR,"More than one compute smd/internal_energy");
+  if ((comm->me == 0) && (modify->get_compute_by_style("^smd/internal/energy").size() > 1))
+    error->warning(FLERR, "More than one compute {}", style);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -80,7 +79,8 @@ void ComputeSMDInternalEnergy::compute_peratom()
   if (atom->nmax > nmax) {
     memory->sfree(internal_energy_vector);
     nmax = atom->nmax;
-    internal_energy_vector = (double *) memory->smalloc(nmax*sizeof(double),"atom:internal_energy_vector");
+    internal_energy_vector =
+        (double *) memory->smalloc(nmax * sizeof(double), "atom:internal_energy_vector");
     vector_atom = internal_energy_vector;
   }
 
@@ -88,14 +88,13 @@ void ComputeSMDInternalEnergy::compute_peratom()
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
 
-    for (int i = 0; i < nlocal; i++) {
-      if (mask[i] & groupbit) {
-              internal_energy_vector[i] = esph[i];
-      }
-      else {
-              internal_energy_vector[i] = 0.0;
-      }
+  for (int i = 0; i < nlocal; i++) {
+    if (mask[i] & groupbit) {
+      internal_energy_vector[i] = esph[i];
+    } else {
+      internal_energy_vector[i] = 0.0;
     }
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -104,6 +103,6 @@ void ComputeSMDInternalEnergy::compute_peratom()
 
 double ComputeSMDInternalEnergy::memory_usage()
 {
-  double bytes = (double)nmax * sizeof(double);
+  double bytes = (double) nmax * sizeof(double);
   return bytes;
 }

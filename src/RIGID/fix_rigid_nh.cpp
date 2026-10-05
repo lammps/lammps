@@ -1304,3 +1304,19 @@ void FixRigidNH::deallocate_order()
   delete[] wdti2;
   delete[] wdti4;
 }
+
+/* ---------------------------------------------------------------------- */
+
+double FixRigidNH::memory_usage()
+{
+  double bytes = FixRigid::memory_usage();
+  bytes += (double) nbody * 4 * sizeof(double);    // conjqm[nbody][4]
+  if (tstat_flag) {
+    bytes += (double) t_chain * 8 * sizeof(double);    // q/eta/eta_dot/f_eta * t/r
+  }
+  if (pstat_flag) {
+    bytes += (double) p_chain * 4 * sizeof(double);    // q_b/eta_b/eta_dot_b/f_eta_b
+  }
+  bytes += (double) t_order * 4 * sizeof(double);    // w/wdti1/wdti2/wdti4
+  return bytes;
+}

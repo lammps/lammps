@@ -117,6 +117,8 @@ static void open_socket(int &sockfd, int inet, int port, char *host, Error *erro
     // fills up details of the socket address
     memset(&serv_addr, 0, sizeof(serv_addr));
     serv_addr.sun_family = AF_UNIX;
+    if (strlen(host) + 10 > sizeof(serv_addr.sun_path))
+      error->one(FLERR, "Fix ipi host name is too long for a UNIX socket name");
     strcpy(serv_addr.sun_path, "/tmp/ipi_");
     strcpy(serv_addr.sun_path + 9, host);
 
@@ -163,10 +165,10 @@ static void readbuffer(int sockfd, char *data, int len, Error *error)
 
   while (nr > 0 && n < len) {
     nr = read(sockfd, &data[n], len - n);
-    n += nr;
+    if (nr > 0) n += nr;
   }
 
-  if (n == 0) error->one(FLERR, "Error reading from socket: broken connection");
+  if ((nr < 0) || (n <= 0)) error->one(FLERR, "Error reading from socket: broken connection");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -311,6 +313,8 @@ void FixIPI::initial_integrate(int /*vflag*/)
       readbuffer(ipisock, (char*) cellh, 9*8, error);
       readbuffer(ipisock, (char*) cellih, 9*8, error);
       readbuffer(ipisock, (char*) &nat, 4, error);
+      if ((nat <= 0) || ((bigint) nat > 10*atom->natoms))
+        error->one(FLERR, "Fix ipi received an invalid number of atoms from the server");
 
       // allocate buffer, but only do this once.
       if (bsize==0) {
@@ -425,7 +429,7 @@ void FixIPI::initial_integrate(int /*vflag*/)
   }
 
   // compute PE. makes sure that it will be evaluated at next step
-  modify->compute[modify->find_compute("thermo_pe")]->invoked_scalar = -1;
+  modify->get_compute_by_id("thermo_pe")->invoked_scalar = -1;
   modify->addstep_compute_all(update->ntimestep+1);
 
   hasdata=1;

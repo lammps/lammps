@@ -57,7 +57,7 @@ static const char cite_kc[] =
 
 /* ---------------------------------------------------------------------- */
 
-PairKolmogorovCrespiFull::PairKolmogorovCrespiFull(LAMMPS *lmp) : Pair(lmp)
+PairKolmogorovCrespiFull::PairKolmogorovCrespiFull(LAMMPS *lmp) : Pair(lmp), offset(nullptr)
 {
   restartinfo = 0;
   one_coeff = 1;
@@ -1035,4 +1035,16 @@ double PairKolmogorovCrespiFull::single(int /*i*/, int /*j*/, int itype, int jty
   else
     philj = Vkc - offset[itype][jtype];
   return factor_lj * philj;
+}
+
+/* ---------------------------------------------------------------------- */
+
+double PairKolmogorovCrespiFull::memory_usage()
+{
+  double bytes = Pair::memory_usage();
+  bytes += (double) maxlocal * (sizeof(int) + sizeof(int *));    // KC_numneigh + KC_firstneigh
+  bytes += (double) nmax * 3 * sizeof(double);                   // normal[nmax][3]
+  bytes += (double) nmax * 9 * sizeof(double);                   // dnormdri[3][3][nmax]
+  bytes += (double) nmax * 27 * sizeof(double);                  // dnormal[3][3][3][nmax]
+  return bytes;
 }

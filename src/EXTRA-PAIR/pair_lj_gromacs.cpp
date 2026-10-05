@@ -31,7 +31,10 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-PairLJGromacs::PairLJGromacs(LAMMPS *lmp) : Pair(lmp)
+PairLJGromacs::PairLJGromacs(LAMMPS *lmp) :
+    Pair(lmp), cut(nullptr), cut_inner(nullptr), cut_inner_sq(nullptr), epsilon(nullptr),
+    sigma(nullptr), lj1(nullptr), lj2(nullptr), lj3(nullptr), lj4(nullptr), ljsw1(nullptr),
+    ljsw2(nullptr), ljsw3(nullptr), ljsw4(nullptr), ljsw5(nullptr)
 {
   writedata = 1;
 }

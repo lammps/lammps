@@ -195,7 +195,8 @@ GranSubModTangentialLinearHistoryClassic::GranSubModTangentialLinearHistoryClass
     GranularModel *gm, LAMMPS *lmp) :
     GranSubModTangentialLinearHistory(gm, lmp)
 {
-  contact_radius_flag = 1;    // Sets gran/hooke/history behavior
+  // Whether contact radius scales normal force (as in Hertz)
+  contact_radius_flag = 0;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -1,0 +1,20 @@
+---
+lammps_version: 4 Jul 2026
+tags:
+date_generated: Thu Jul  9 16:33:55 2026
+epsilon: 1e-08
+timestep: 0.25
+skip_tests:
+prerequisites: |
+  atom full
+  compute gyration/chunk
+pre_commands: ""
+post_commands: |
+  compute molchunk all chunk/atom molecule
+  compute test all gyration/chunk molchunk
+input_file: in.fourmol
+input_coeffs: coeffs.fourmol
+natoms: 29
+global_vector: |-
+  6  1.5031158781631093e+00  1.5783761601471256e+00  5.5321548077981764e-01  5.4986345854117358e-01  5.4815749271635805e-01  5.5107690055903058e-01
+...

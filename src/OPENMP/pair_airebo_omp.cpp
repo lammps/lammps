@@ -1096,9 +1096,10 @@ double PairAIREBOOMP::bondorder_thr(int i, int j, double rij[3], double rijmag,
   PijS = 0.0;
   dN2[0] = 0.0;
   dN2[1] = 0.0;
-  PijS = PijSpline(NijC,NijH,itype,jtype,dN2);
+  PijS = Pij_eval(NijC,NijH,NjiC,NjiH,itype,jtype,dN2);
   pij = 1.0/sqrt(1.0+Etmp+PijS);
   tmp = -0.5*pij*pij*pij;
+  const double dN2PIJ_bc[2] = {dN2[0], dN2[1]};   // saved for bond-centric cross force
 
   const double invrijm = 1.0/rijmag;
   const double invrijm2 = invrijm*invrijm;
@@ -1239,9 +1240,10 @@ double PairAIREBOOMP::bondorder_thr(int i, int j, double rij[3], double rijmag,
   PjiS = 0.0;
   dN2[0] = 0.0;
   dN2[1] = 0.0;
-  PjiS = PijSpline(NjiC,NjiH,jtype,itype,dN2);
+  PjiS = Pij_eval(NjiC,NjiH,NijC,NijH,jtype,itype,dN2);
   pji = 1.0/sqrt(1.0+Etmp+PjiS);
   tmp = -0.5*pji*pji*pji;
+  const double dN2PJI_bc[2] = {dN2[0], dN2[1]};   // saved for bond-centric cross force
 
   REBO_neighs = REBO_firstneigh[j];
   for (l = 0; l < REBO_numneigh[j]; l++) {
@@ -1346,6 +1348,10 @@ double PairAIREBOOMP::bondorder_thr(int i, int j, double rij[3], double rijmag,
       }
     }
   }
+
+  // bond-centric P cross forces (no-op for atom-centric P; see base class)
+  bondorder_Pij_cross_thr(i,j,itype,jtype,VA,-0.5*pij*pij*pij,-0.5*pji*pji*pji,
+                          dN2PIJ_bc,dN2PJI_bc,f,thr);
 
   // evaluate Nij conj
 
@@ -1843,6 +1849,63 @@ double PairAIREBOOMP::bondorder_thr(int i, int j, double rij[3], double rijmag,
 }
 
 /* ----------------------------------------------------------------------
+   threaded mirror of PairAIREBO::bondorder_Pij_cross: bond-centric P cross
+   force.  Identical to the serial version except forces go to the per-thread
+   array f and the virial is tallied with v_tally2_thr.  A no-op for
+   atom-centric P (Pij_bond_averaged() == false), so airebo/omp is unchanged.
+------------------------------------------------------------------------- */
+
+void PairAIREBOOMP::bondorder_Pij_cross_thr(int i, int j, int itype, int jtype, double VA,
+                                            double tmppij, double tmppji, const double dN2PIJ[2],
+                                            const double dN2PJI[2], double *const *const f,
+                                            ThrData *const thr)
+{
+  if (!Pij_bond_averaged(itype,jtype)) return;
+
+  double **x = atom->x;
+  int *type = atom->type;
+  int *REBO_neighs;
+  int k,l,atomk,atoml,ktype,ltype;
+  double rik[3],rjl[3],rikmag,rjlmag,dwik,dwjl,tmp2;
+
+  // pji term: P-force on i's neighbors k (cutoff derivative on the i-k bond)
+
+  REBO_neighs = REBO_firstneigh[i];
+  for (k = 0; k < REBO_numneigh[i]; k++) {
+    atomk = REBO_neighs[k];
+    if (atomk == j) continue;
+    ktype = map[type[atomk]];
+    rik[0] = x[i][0]-x[atomk][0];
+    rik[1] = x[i][1]-x[atomk][1];
+    rik[2] = x[i][2]-x[atomk][2];
+    rikmag = sqrt((rik[0]*rik[0])+(rik[1]*rik[1])+(rik[2]*rik[2]));
+    Sp(rikmag,rcmin[itype][ktype],rcmax[itype][ktype],dwik);
+    tmp2 = VA*0.5*(tmppji*dN2PJI[ktype]*dwik)/rikmag;
+    f[i][0] -= tmp2*rik[0];     f[i][1] -= tmp2*rik[1];     f[i][2] -= tmp2*rik[2];
+    f[atomk][0] += tmp2*rik[0]; f[atomk][1] += tmp2*rik[1]; f[atomk][2] += tmp2*rik[2];
+    if (vflag_either) v_tally2_thr(this,i,atomk,-tmp2,rik,thr);
+  }
+
+  // pij term: P-force on j's neighbors l (cutoff derivative on the j-l bond)
+
+  REBO_neighs = REBO_firstneigh[j];
+  for (l = 0; l < REBO_numneigh[j]; l++) {
+    atoml = REBO_neighs[l];
+    if (atoml == i) continue;
+    ltype = map[type[atoml]];
+    rjl[0] = x[j][0]-x[atoml][0];
+    rjl[1] = x[j][1]-x[atoml][1];
+    rjl[2] = x[j][2]-x[atoml][2];
+    rjlmag = sqrt((rjl[0]*rjl[0])+(rjl[1]*rjl[1])+(rjl[2]*rjl[2]));
+    Sp(rjlmag,rcmin[jtype][ltype],rcmax[jtype][ltype],dwjl);
+    tmp2 = VA*0.5*(tmppij*dN2PIJ[ltype]*dwjl)/rjlmag;
+    f[j][0] -= tmp2*rjl[0];     f[j][1] -= tmp2*rjl[1];     f[j][2] -= tmp2*rjl[2];
+    f[atoml][0] += tmp2*rjl[0]; f[atoml][1] += tmp2*rjl[1]; f[atoml][2] += tmp2*rjl[2];
+    if (vflag_either) v_tally2_thr(this,j,atoml,-tmp2,rjl,thr);
+  }
+}
+
+/* ----------------------------------------------------------------------
    Bij* function
 -------------------------------------------------------------------------
 
@@ -1956,7 +2019,7 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double /* rij_mod */[3], dou
   PijS = 0.0;
   dN2PIJ[0] = 0.0;
   dN2PIJ[1] = 0.0;
-  PijS = PijSpline(NijC,NijH,itype,jtype,dN2PIJ);
+  PijS = Pij_eval(NijC,NijH,NjiC,NjiH,itype,jtype,dN2PIJ);
   pij = 1.0/sqrt(1.0+Etmp+PijS);
   tmppij = -.5*pij*pij*pij;
   tmp3pij = tmp3;
@@ -1997,7 +2060,7 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double /* rij_mod */[3], dou
   PjiS = 0.0;
   dN2PJI[0] = 0.0;
   dN2PJI[1] = 0.0;
-  PjiS = PijSpline(NjiC,NjiH,jtype,itype,dN2PJI);
+  PjiS = Pij_eval(NjiC,NjiH,NijC,NijH,jtype,itype,dN2PJI);
   pji = 1.0/sqrt(1.0+Etmp+PjiS);
   tmppji = -.5*pji*pji*pji;
   tmp3pji = tmp3;
@@ -2303,6 +2366,9 @@ double PairAIREBOOMP::bondorderLJ_thr(int i, int j, double /* rij_mod */[3], dou
         }
       }
     }
+
+    // bond-centric P cross forces (no-op for atom-centric P; see base class)
+    bondorder_Pij_cross_thr(i,j,itype,jtype,VA,tmppij,tmppji,dN2PIJ,dN2PJI,f,thr);
 
     // piRC forces
 

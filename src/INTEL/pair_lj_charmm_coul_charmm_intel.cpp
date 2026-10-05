@@ -73,8 +73,6 @@ void PairLJCharmmCoulCharmmIntel::compute(int eflag, int vflag,
 
   const int inum = list->inum;
   const int nthreads = comm->nthreads;
-  const int host_start = fix->host_start_pair();
-  const int offload_end = fix->offload_end_pair();
   const int ago = neighbor->ago;
 
   if (ago != 0 && fix->separate_buffers() == 0) {
@@ -101,19 +99,15 @@ void PairLJCharmmCoulCharmmIntel::compute(int eflag, int vflag,
   else if (vflag) ovflag = 1;
   if (eflag) {
     if (force->newton_pair) {
-      eval<1,1>(1, ovflag, buffers, fc, 0, offload_end);
-      eval<1,1>(0, ovflag, buffers, fc, host_start, inum);
+      eval<1,1>(ovflag, buffers, fc, 0, inum);
     } else {
-      eval<1,0>(1, ovflag, buffers, fc, 0, offload_end);
-      eval<1,0>(0, ovflag, buffers, fc, host_start, inum);
+      eval<1,0>(ovflag, buffers, fc, 0, inum);
     }
   } else {
     if (force->newton_pair) {
-      eval<0,1>(1, ovflag, buffers, fc, 0, offload_end);
-      eval<0,1>(0, ovflag, buffers, fc, host_start, inum);
+      eval<0,1>(ovflag, buffers, fc, 0, inum);
     } else {
-      eval<0,0>(1, ovflag, buffers, fc, 0, offload_end);
-      eval<0,0>(0, ovflag, buffers, fc, host_start, inum);
+      eval<0,0>(ovflag, buffers, fc, 0, inum);
     }
   }
 }
@@ -121,7 +115,7 @@ void PairLJCharmmCoulCharmmIntel::compute(int eflag, int vflag,
 /* ---------------------------------------------------------------------- */
 
 template <int EFLAG, int NEWTON_PAIR, class flt_t, class acc_t>
-void PairLJCharmmCoulCharmmIntel::eval(const int offload, const int vflag,
+void PairLJCharmmCoulCharmmIntel::eval(const int vflag,
                                      IntelBuffers<flt_t,acc_t> *buffers,
                                      const ForceConst<flt_t> &fc,
                                      const int astart, const int aend)
@@ -129,12 +123,11 @@ void PairLJCharmmCoulCharmmIntel::eval(const int offload, const int vflag,
   const int inum = aend - astart;
   if (inum == 0) return;
   int nlocal, nall, minlocal;
-  fix->get_buffern(offload, nlocal, nall, minlocal);
+  fix->get_buffern(nlocal, nall, minlocal);
 
-  IP_PRE_pack_separate_buffers(fix, buffers, neighbor->ago, offload, nlocal, nall);
 
-  ATOM_T * _noalias const x = buffers->get_x(offload);
-  flt_t * _noalias const q = buffers->get_q(offload);
+  ATOM_T * _noalias const x = buffers->get_x();
+  flt_t * _noalias const q = buffers->get_q();
 
   const int * _noalias const ilist = list->ilist;
   const int * _noalias const numneigh = list->numneigh;
@@ -165,49 +158,17 @@ void PairLJCharmmCoulCharmmIntel::eval(const int offload, const int vflag,
   const int ccache_stride = _ccache_stride;
 
   // Determine how much data to transfer
-  int x_size, q_size, f_stride, ev_size, separate_flag;
-  IP_PRE_get_transfern(ago, NEWTON_PAIR, EFLAG, vflag,
-                       buffers, offload, fix, separate_flag,
-                       x_size, q_size, ev_size, f_stride);
+  int f_stride;
+  IP_PRE_get_transfern(NEWTON_PAIR, buffers, f_stride);
 
   int tc;
   FORCE_T * _noalias f_start;
   acc_t * _noalias ev_global;
-  IP_PRE_get_buffers(offload, buffers, fix, tc, f_start, ev_global);
+  IP_PRE_get_buffers(buffers, fix, tc, f_start, ev_global);
 
   const int nthreads = tc;
-  #ifdef _LMP_INTEL_OFFLOAD
-  int *overflow = fix->get_off_overflow_flag();
-  double *timer_compute = fix->off_watch_pair();
-
-  if (offload) fix->start_watch(TIME_OFFLOAD_LATENCY);
-  #pragma offload target(mic:_cop) if (offload) \
-    in(special_lj,special_coul:length(0) alloc_if(0) free_if(0)) \
-    in(cutsq,lj:length(0) alloc_if(0) free_if(0)) \
-    in(firstneigh:length(0) alloc_if(0) free_if(0)) \
-    in(numneigh:length(0) alloc_if(0) free_if(0)) \
-    in(x:length(x_size) alloc_if(0) free_if(0)) \
-    in(q:length(q_size) alloc_if(0) free_if(0)) \
-    in(ilist:length(0) alloc_if(0) free_if(0)) \
-    in(overflow:length(0) alloc_if(0) free_if(0)) \
-    in(ccachex,ccachey,ccachez,ccachew:length(0) alloc_if(0) free_if(0)) \
-    in(ccachei,ccachej:length(0) alloc_if(0) free_if(0)) \
-    in(ccache_stride,nthreads,qqrd2e,inum,nall,ntypes,cut_coulsq) \
-    in(vflag,eatom,f_stride,separate_flag,offload) \
-    in(astart,cut_ljsq,cut_lj_innersq,nlocal,inv_denom_lj,minlocal) \
-    in(inv_denom_coul,cut_coul_innersq) \
-    out(f_start:length(f_stride) alloc_if(0) free_if(0)) \
-    out(ev_global:length(ev_size) alloc_if(0) free_if(0)) \
-    out(timer_compute:length(1) alloc_if(0) free_if(0)) \
-    signal(f_start)
-  #endif
   {
-    #if defined(__MIC__) && defined(_LMP_INTEL_OFFLOAD)
-    *timer_compute = MIC_Wtime();
-    #endif
 
-    IP_PRE_repack_for_offload(NEWTON_PAIR, separate_flag, nlocal, nall,
-                              f_stride, x, q);
 
     acc_t oevdwl, oecoul, ov0, ov1, ov2, ov3, ov4, ov5;
     if (EFLAG || vflag)
@@ -248,7 +209,7 @@ void PairLJCharmmCoulCharmmIntel::eval(const int offload, const int vflag,
 
         const int   * _noalias const jlist = firstneigh[i];
         int jnum = numneigh[i];
-        IP_PRE_neighbor_pad(jnum, offload);
+        IP_PRE_neighbor_pad(jnum);
 
         acc_t fxtmp,fytmp,fztmp,fwtmp;
         acc_t sevdwl, secoul, sv0, sv1, sv2, sv3, sv4, sv5;
@@ -399,7 +360,7 @@ void PairLJCharmmCoulCharmmIntel::eval(const int offload, const int vflag,
       } // for ii
 
       IP_PRE_fdotr_reduce_omp(NEWTON_PAIR, nall, minlocal, nthreads, f_start,
-                              f_stride, x, offload, vflag, ov0, ov1, ov2, ov3,
+                              f_stride, x, vflag, ov0, ov1, ov2, ov3,
                               ov4, ov5);
     } // end of omp parallel region
 
@@ -426,20 +387,14 @@ void PairLJCharmmCoulCharmmIntel::eval(const int offload, const int vflag,
       ev_global[6] = ov4;
       ev_global[7] = ov5;
     }
-    #if defined(__MIC__) && defined(_LMP_INTEL_OFFLOAD)
-    *timer_compute = MIC_Wtime() - *timer_compute;
-    #endif
-  } // end of offload region
+  }
 
-  if (offload)
-    fix->stop_watch(TIME_OFFLOAD_LATENCY);
-  else
-    fix->stop_watch(TIME_HOST_PAIR);
+  fix->stop_watch(TIME_HOST_PAIR);
 
   if (EFLAG || vflag)
-    fix->add_result_array(f_start, ev_global, offload, eatom, 0, vflag);
+    fix->add_result_array(f_start, ev_global, eatom, vflag);
   else
-    fix->add_result_array(f_start, nullptr, offload);
+    fix->add_result_array(f_start, nullptr);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -454,9 +409,6 @@ void PairLJCharmmCoulCharmmIntel::init_style()
   if (!fix) error->all(FLERR, "The 'package intel' command is required for /intel styles");
 
   fix->pair_init_check();
-  #ifdef _LMP_INTEL_OFFLOAD
-  _cop = fix->coprocessor_number();
-  #endif
 
   if (fix->precision() == FixIntel::PREC_MODE_MIXED)
     pack_force_const(force_const_single, fix->get_mixed_buffers());
@@ -471,15 +423,12 @@ void PairLJCharmmCoulCharmmIntel::pack_force_const(ForceConst<flt_t> &fc,
                                           IntelBuffers<flt_t,acc_t> *buffers)
 {
   int off_ccache = 0;
-  #ifdef _LMP_INTEL_OFFLOAD
-  if (_cop >= 0) off_ccache = 1;
-  #endif
   buffers->grow_ccache(off_ccache, comm->nthreads, 1);
   _ccache_stride = buffers->ccache_stride();
 
   int tp1 = atom->ntypes + 1;
 
-  fc.set_ntypes(tp1, memory, _cop);
+  fc.set_ntypes(tp1, memory);
 
   // Repeat cutsq calculation because done after call to init_style
   if (cut_lj > cut_coul)
@@ -524,62 +473,24 @@ void PairLJCharmmCoulCharmmIntel::pack_force_const(ForceConst<flt_t> &fc,
     }
   }
 
-  #ifdef _LMP_INTEL_OFFLOAD
-  if (_cop < 0) return;
-  flt_t * special_lj = fc.special_lj;
-  flt_t * special_coul = fc.special_coul;
-  flt_t * cutsq = fc.cutsq[0];
-  LJ_T * lj = fc.lj[0];
-  int tp1sq = tp1 * tp1;
-  #pragma offload_transfer target(mic:_cop) \
-    in(special_lj, special_coul: length(4) alloc_if(0) free_if(0)) \
-    in(cutsq,lj: length(tp1sq) alloc_if(0) free_if(0))
-  #endif
 }
 
 /* ---------------------------------------------------------------------- */
 
 template <class flt_t>
 void PairLJCharmmCoulCharmmIntel::ForceConst<flt_t>::set_ntypes(
-  const int ntypes, Memory *memory, const int cop) {
+  const int ntypes, Memory *memory) {
   if (memory != nullptr) _memory = memory;
   if (ntypes != _ntypes) {
     if (_ntypes > 0) {
-      #ifdef _LMP_INTEL_OFFLOAD
-      flt_t * ospecial_lj = special_lj;
-      flt_t * ospecial_coul = special_coul;
-      flt_t * ocutsq = cutsq[0];
-      typename IntelBuffers<flt_t,flt_t>::vec4_t * olj = lj[0];
-      if (ospecial_lj != nullptr && ocutsq != nullptr && olj != nullptr &&
-          ospecial_coul != nullptr && cop >= 0) {
-        #pragma offload_transfer target(mic:cop) \
-          nocopy(ospecial_lj, ospecial_coul: alloc_if(0) free_if(1)) \
-          nocopy(ocutsq, olj: alloc_if(0) free_if(1))
-      }
-      #endif
 
       _memory->destroy(cutsq);
       _memory->destroy(lj);
     }
     if (ntypes > 0) {
-      _cop = cop;
       _memory->create(cutsq,ntypes,ntypes,"fc.cutsq");
       _memory->create(lj,ntypes,ntypes,"fc.lj");
 
-      #ifdef _LMP_INTEL_OFFLOAD
-      flt_t * ospecial_lj = special_lj;
-      flt_t * ospecial_coul = special_coul;
-      flt_t * ocutsq = cutsq[0];
-      typename IntelBuffers<flt_t,flt_t>::vec4_t * olj = lj[0];
-      int tp1sq = ntypes*ntypes;
-      if (ospecial_lj != nullptr && ocutsq != nullptr && olj != nullptr &&
-          ospecial_coul != nullptr && cop >= 0) {
-        #pragma offload_transfer target(mic:cop) \
-          nocopy(ospecial_lj: length(4) alloc_if(1) free_if(0)) \
-          nocopy(ospecial_coul: length(4) alloc_if(1) free_if(0)) \
-          nocopy(ocutsq,olj: length(tp1sq) alloc_if(1) free_if(0))
-      }
-      #endif
     }
   }
   _ntypes=ntypes;

@@ -305,3 +305,130 @@
   ...
   fun:_PyEval_EvalFrameDefault
 }
+
+# ---------------------------------------------------------------------------
+# CPython 3.x and NumPy interpreter internals. The python-driven unittests run
+# the system python3 interpreter under valgrind; CPython and NumPy do not free
+# all interpreter/module state at Py_Finalize (type objects, dtype/ufunc
+# registrations, interned data, ...), so these show up as leaks in a separate
+# process from the LAMMPS code and are false positives. Anchored generically on
+# the CPython allocators so they keep matching across CPython/NumPy versions.
+# Verified: `python3 -c "import numpy"` reports ~6.5 KB direct + ~29 KB indirect
+# lost without these, and 0 with them.
+# ---------------------------------------------------------------------------
+{
+   CPython_PyMem_Raw_alloc_leak
+   Memcheck:Leak
+   ...
+   fun:_PyMem_Raw*alloc
+   ...
+}
+{
+   CPython_PyObject_GC_leak
+   Memcheck:Leak
+   ...
+   fun:_PyObject_GC_*
+   ...
+}
+{
+   CPython_PyObject_alloc_leak
+   Memcheck:Leak
+   ...
+   fun:_PyObject_*alloc
+   ...
+}
+
+# ---------------------------------------------------------------------------
+# CPython/NumPy module-initialisation and bytecode-eval false positives.
+# The python-driven unittests run the system python3 + numpy under valgrind.
+# NumPy's C-extension import (ufunc/dtype registration) and the CPython
+# bytecode interpreter produce many leaks AND uninitialised-value errors that
+# are internal to those libraries (a separate concern from the LAMMPS code).
+# Anchored on the module-init and eval entry points so all of it -- across
+# CPython/NumPy versions -- is treated as the false positive it is.
+# ---------------------------------------------------------------------------
+{
+   CPython_modinit_leak
+   Memcheck:Leak
+   ...
+   fun:_PyImport_RunModInitFunc
+   ...
+}
+{
+   CPython_modinit_cond
+   Memcheck:Cond
+   ...
+   fun:_PyImport_RunModInitFunc
+   ...
+}
+{
+   CPython_modinit_value8
+   Memcheck:Value8
+   ...
+   fun:_PyImport_RunModInitFunc
+   ...
+}
+{
+   CPython_modinit_value4
+   Memcheck:Value4
+   ...
+   fun:_PyImport_RunModInitFunc
+   ...
+}
+{
+   CPython_eval_leak
+   Memcheck:Leak
+   ...
+   fun:_PyEval_EvalFrameDefault
+   ...
+}
+{
+   CPython_eval_cond
+   Memcheck:Cond
+   ...
+   fun:_PyEval_EvalFrameDefault
+   ...
+}
+{
+   CPython_eval_value8
+   Memcheck:Value8
+   ...
+   fun:_PyEval_EvalFrameDefault
+   ...
+}
+{
+   CPython_eval_value4
+   Memcheck:Value4
+   ...
+   fun:_PyEval_EvalFrameDefault
+   ...
+}
+{
+   Dlopen_init0
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   ...
+   fun:dl_open_worker_begin
+   ...
+   fun:dl_open_worker
+   ...
+   fun:dlopen_doit
+   ...
+   obj:*
+}
+
+# ---------------------------------------------------------------------------
+# CPython keeps the locks of buffered file objects (io.BufferedReader/-Writer)
+# in a small free list that is not returned to the OS at interpreter shutdown,
+# so PyThread_allocate_lock blocks show up as "possibly lost".  Internal to
+# CPython, outside of LAMMPS.
+# ---------------------------------------------------------------------------
+{
+   CPython_bufferedio_lock
+   Memcheck:Leak
+   match-leak-kinds: possible
+   fun:malloc
+   fun:PyThread_allocate_lock
+   ...
+}

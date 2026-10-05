@@ -145,7 +145,7 @@ void FixLangevinDrude::init()
   }
 
   auto fdrude = modify->get_fix_by_style("^drude$");
-  if (fdrude.size() < 1) error->all(FLERR, "Fix {} requires fix drude", style);
+  if (fdrude.empty()) error->all(FLERR, "Fix {} requires fix drude", style);
   if (fdrude.size() > 1) error->all(FLERR, "There must be only one fix drude");
   fix_drude = dynamic_cast<FixDrude *>(fdrude[0]);
   if (!fix_drude) error->all(FLERR, "Fix {} requires fix drude", style);
@@ -182,10 +182,9 @@ int FixLangevinDrude::modify_param(int narg, char **arg)
     delete [] id_temp;
     id_temp = utils::strdup(arg[1]);
 
-    int icompute = modify->find_compute(id_temp);
-    if (icompute < 0)
+    temperature = modify->get_compute_by_id(id_temp);
+    if (!temperature)
       error->all(FLERR,"Could not find fix_modify temperature ID");
-    temperature = modify->compute[icompute];
 
     if (temperature->tempflag == 0)
       error->all(FLERR,

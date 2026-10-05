@@ -85,8 +85,8 @@ static const char cite_fix_shardlow[] =
 /* ---------------------------------------------------------------------- */
 
 FixShardlow::FixShardlow(LAMMPS *lmp, int narg, char **arg) :
-  Fix(lmp, narg, arg), pairDPD(nullptr), pairDPDE(nullptr), v_t0(nullptr),
-  rand_state(nullptr)
+    Fix(lmp, narg, arg), list(nullptr), pairDPD(nullptr), pairDPDE(nullptr), v_t0(nullptr),
+    rand_state(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_fix_shardlow);
 
@@ -151,10 +151,9 @@ void FixShardlow::setup(int /*vflag*/)
 {
   bool fixShardlow = false;
 
-  for (int i = 0; i < modify->nfix; i++)
-    if (strstr(modify->fix[i]->style,"nvt") || strstr(modify->fix[i]->style,"npt") ||
-        strstr(modify->fix[i]->style,"gle") || strstr(modify->fix[i]->style,"gld"))
-      error->all(FLERR,"Cannot use constant temperature integration routines with DPD-REACT.");
+  if ((!modify->get_fix_by_style("nvt").empty()) || (!modify->get_fix_by_style("npt").empty()) ||
+      (!modify->get_fix_by_style("gle").empty()) || (!modify->get_fix_by_style("gld").empty()))
+    error->all(FLERR,"Cannot use constant temperature integration routines with DPD-REACT.");
 
   for (int i = 0; i < modify->nfix; i++) {
     if (utils::strmatch(modify->fix[i]->style,"^shardlow")) fixShardlow = true;
@@ -221,10 +220,6 @@ while (ct-- > 0) {
   const double mass_i = rmass ? rmass[i] : mass[itype];
   const double massinv_i = 1.0 / mass_i;
 
-#ifdef DEBUG_SSA_PAIR_CT
-  const int nlocal = atom->nlocal;
-#endif
-
   // Loop over Directional Neighbors only
   for (int jj = 0; jj < jlen; jj++) {
     int j = jlist[jj] & NEIGHMASK;
@@ -234,23 +229,9 @@ while (ct-- > 0) {
     double dely = ytmp - x[j][1];
     double delz = ztmp - x[j][2];
     double rsq = delx*delx + dely*dely + delz*delz;
-#ifdef DEBUG_SSA_PAIR_CT
-    if ((i < nlocal) && (j < nlocal)) ++(counters[0][0]);
-    else ++(counters[0][1]);
-    ++(counters[0][2]);
-    int rsqi = rsq / 8;
-    if (rsqi < 0) rsqi = 0;
-    else if (rsqi > 31) rsqi = 31;
-    ++(hist[rsqi]);
-#endif
 
     // NOTE: r can be 0.0 in DPD systems, so do EPSILON_SQUARED test
     if ((rsq < cut2_i[jtype]) && (rsq >= EPSILON_SQUARED)) {
-#ifdef DEBUG_SSA_PAIR_CT
-      if ((i < nlocal) && (j < nlocal)) ++(counters[1][0]);
-      else ++(counters[1][1]);
-      ++(counters[1][2]);
-#endif
       double r = sqrt(rsq);
       double rinv = 1.0/r;
       double delx_rinv = delx*rinv;
@@ -390,10 +371,6 @@ while (ct-- > 0) {
   const double massinv_i = 1.0 / mass_i;
   const double mass_i_div_neg4_ftm2v = mass_i*(-0.25)/ftm2v;
 
-#ifdef DEBUG_SSA_PAIR_CT
-  const int nlocal = atom->nlocal;
-#endif
-
   // Loop over Directional Neighbors only
   for (int jj = 0; jj < jlen; jj++) {
     int j = jlist[jj] & NEIGHMASK;
@@ -403,23 +380,9 @@ while (ct-- > 0) {
     double dely = ytmp - x[j][1];
     double delz = ztmp - x[j][2];
     double rsq = delx*delx + dely*dely + delz*delz;
-#ifdef DEBUG_SSA_PAIR_CT
-    if ((i < nlocal) && (j < nlocal)) ++(counters[0][0]);
-    else ++(counters[0][1]);
-    ++(counters[0][2]);
-    int rsqi = rsq / 8;
-    if (rsqi < 0) rsqi = 0;
-    else if (rsqi > 31) rsqi = 31;
-    ++(hist[rsqi]);
-#endif
 
     // NOTE: r can be 0.0 in DPD systems, so do EPSILON_SQUARED test
     if ((rsq < cut2_i[jtype]) && (rsq >= EPSILON_SQUARED)) {
-#ifdef DEBUG_SSA_PAIR_CT
-      if ((i < nlocal) && (j < nlocal)) ++(counters[1][0]);
-      else ++(counters[1][1]);
-      ++(counters[1][2]);
-#endif
       double r = sqrt(rsq);
       double rinv = 1.0/r;
       double delx_rinv = delx*rinv;
@@ -574,13 +537,6 @@ void FixShardlow::initial_integrate(int /*vflag*/)
     maxRNG = maxWorkItemCt;
   }
 
-#ifdef DEBUG_SSA_PAIR_CT
-  for (int i = 0; i < 2; ++i)
-    for (int j = 0; j < 3; ++j)
-      counters[i][j] = 0;
-  for (int i = 0; i < 32; ++i) hist[i] = 0;
-#endif
-
   // Allocate memory for v_t0 to hold the initial velocities for the ghosts
   v_t0 = (double (*)[3]) memory->smalloc(sizeof(double)*3*nghost, "FixShardlow:v_t0");
 
@@ -622,16 +578,6 @@ void FixShardlow::initial_integrate(int /*vflag*/)
     comm->reverse_comm(this);
 
   }  //End Loop over all directions For airnum = Top, Top-Right, Right, Bottom-Right, Back
-
-#ifdef DEBUG_SSA_PAIR_CT
-for (int i = 0; i < 32; ++i) fprintf(stdout, "%8d", hist[i]);
-fprintf(stdout, "\n%6d %6d,%6d %6d: "
-  ,counters[0][2]
-  ,counters[1][2]
-  ,counters[0][1]
-  ,counters[1][1]
-);
-#endif
 
   memory->sfree(v_t0);
   v_t0 = nullptr;

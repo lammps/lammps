@@ -16,8 +16,8 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`adapt/fep <fix_adapt_fep>`
    * :doc:`addforce (k) <fix_addforce>`
    * :doc:`add/heat <fix_add_heat>`
-   * :doc:`addtorque/atom <fix_addtorque_atom>`
-   * :doc:`addtorque/group <fix_addtorque_group>`
+   * :doc:`addtorque/atom (k) <fix_addtorque_atom>`
+   * :doc:`addtorque/group (k) <fix_addtorque_group>`
    * :doc:`alchemy <fix_alchemy>`
    * :doc:`align/self <fix_align_self>`
    * :doc:`amoeba/bitorsion <fix_amoeba_bitorsion>`
@@ -36,7 +36,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`ave/time <fix_ave_time>`
    * :doc:`aveforce (k) <fix_aveforce>`
    * :doc:`balance <fix_balance>`
-   * :doc:`baoab <fix_baoab>`
+   * :doc:`baoab (k) <fix_baoab>`
    * :doc:`bocs <fix_bocs>`
    * :doc:`bond/break <fix_bond_break>`
    * :doc:`bond/create <fix_bond_create>`
@@ -44,14 +44,14 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`bond/react <fix_bond_react>`
    * :doc:`bond/swap <fix_bond_swap>`
    * :doc:`box/relax <fix_box_relax>`
-   * :doc:`brownian <fix_brownian>`
+   * :doc:`brownian (k) <fix_brownian>`
    * :doc:`brownian/asphere <fix_brownian>`
    * :doc:`brownian/sphere <fix_brownian>`
    * :doc:`charge/regulation <fix_charge_regulation>`
    * :doc:`cmap (k) <fix_cmap>`
    * :doc:`colvars <fix_colvars>`
    * :doc:`controller <fix_controller>`
-   * :doc:`damping/cundall <fix_damping_cundall>`
+   * :doc:`damping/cundall (k) <fix_damping_cundall>`
    * :doc:`deform (k) <fix_deform>`
    * :doc:`deform/pressure <fix_deform_pressure>`
    * :doc:`deposit <fix_deposit>`
@@ -79,10 +79,11 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`external (k) <fix_external>`
    * :doc:`ffl <fix_ffl>`
    * :doc:`filter/corotate <fix_filter_corotate>`
-   * :doc:`flow/gauss <fix_flow_gauss>`
+   * :doc:`flow/gauss (k) <fix_flow_gauss>`
    * :doc:`freeze (k) <fix_freeze>`
    * :doc:`gcmc <fix_gcmc>`
-   * :doc:`gjf <fix_gjf>`
+   * :doc:`gemc <fix_gemc>`
+   * :doc:`gjf (k) <fix_gjf>`
    * :doc:`gld <fix_gld>`
    * :doc:`gle <fix_gle>`
    * :doc:`graphics/arrows <fix_graphics_arrows>`
@@ -95,12 +96,13 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`graphics/replica <fix_graphics_replica>`
    * :doc:`gravity (ko) <fix_gravity>`
    * :doc:`grem <fix_grem>`
-   * :doc:`halt <fix_halt>`
-   * :doc:`heat <fix_heat>`
+   * :doc:`halt (k) <fix_halt>`
+   * :doc:`heat (k) <fix_heat>`
    * :doc:`heat/flow <fix_heat_flow>`
    * :doc:`hmc <fix_hmc>`
    * :doc:`hyper/global <fix_hyper_global>`
    * :doc:`hyper/local <fix_hyper_local>`
+   * :doc:`ilves <fix_ilves>`
    * :doc:`imd <fix_imd>`
    * :doc:`indent <fix_indent>`
    * :doc:`ipi <fix_ipi>`
@@ -148,7 +150,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`numdiff/virial <fix_numdiff_virial>`
    * :doc:`nve (giko) <fix_nve>`
    * :doc:`nve/asphere (gik) <fix_nve_asphere>`
-   * :doc:`nve/asphere/noforce <fix_nve_asphere_noforce>`
+   * :doc:`nve/asphere/noforce (k) <fix_nve_asphere_noforce>`
    * :doc:`nve/body <fix_nve_body>`
    * :doc:`nve/dot <fix_nve_dot>`
    * :doc:`nve/dotc/langevin <fix_nve_dotc_langevin>`
@@ -161,7 +163,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`nve/bpm/sphere <fix_nve_bpm_sphere>`
    * :doc:`nve/spin <fix_nve_spin>`
    * :doc:`nve/tri <fix_nve_tri>`
-   * :doc:`nvk <fix_nvk>`
+   * :doc:`nvk (k) <fix_nvk>`
    * :doc:`nvt (giko) <fix_nh>`
    * :doc:`nvt/asphere (o) <fix_nvt_asphere>`
    * :doc:`nvt/body <fix_nvt_body>`
@@ -172,9 +174,9 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`nvt/sphere (ko) <fix_nvt_sphere>`
    * :doc:`nvt/uef <fix_nh_uef>`
    * :doc:`oneway (k) <fix_oneway>`
-   * :doc:`orient/bcc <fix_orient>`
-   * :doc:`orient/fcc <fix_orient>`
-   * :doc:`orient/eco <fix_orient_eco>`
+   * :doc:`orient/bcc (o) <fix_orient>`
+   * :doc:`orient/fcc (o) <fix_orient>`
+   * :doc:`orient/eco (o) <fix_orient_eco>`
    * :doc:`pafi <fix_pafi>`
    * :doc:`pair <fix_pair>`
    * :doc:`phonon <fix_phonon>`
@@ -189,24 +191,28 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`polarize/functional <fix_polarize>`
    * :doc:`pour <fix_pour>`
    * :doc:`precession/spin <fix_precession_spin>`
-   * :doc:`press/berendsen <fix_press_berendsen>`
-   * :doc:`press/langevin <fix_press_langevin>`
+   * :doc:`press/berendsen (k) <fix_press_berendsen>`
+   * :doc:`press/langevin (k) <fix_press_langevin>`
    * :doc:`print <fix_print>`
-   * :doc:`propel/self <fix_propel_self>`
+   * :doc:`propel/self (k) <fix_propel_self>`
    * :doc:`property/atom (k) <fix_property_atom>`
    * :doc:`python/invoke <fix_python_invoke>`
    * :doc:`python/move <fix_python_move>`
    * :doc:`qbmsst <fix_qbmsst>`
    * :doc:`qeq/comb (o) <fix_qeq_comb>`
-   * :doc:`qeq/ctip <fix_qeq>`
-   * :doc:`qeq/dynamic <fix_qeq>`
-   * :doc:`qeq/fire <fix_qeq>`
-   * :doc:`qeq/point <fix_qeq>`
+   * :doc:`qeq/ctip (o) <fix_qeq>`
+   * :doc:`qeq/dynamic (o) <fix_qeq>`
+   * :doc:`qeq/fire (o) <fix_qeq>`
+   * :doc:`qeq/point (o) <fix_qeq>`
+   * :doc:`qeq/point/xlmd (o) <fix_qeq>`
    * :doc:`qeq/reaxff (ko) <fix_qeq_reaxff>`
    * :doc:`qeq/rel/reaxff <fix_qeq_rel_reaxff>`
-   * :doc:`qeq/shielded <fix_qeq>`
-   * :doc:`qeq/slater <fix_qeq>`
+   * :doc:`qeq/shielded (o) <fix_qeq>`
+   * :doc:`qeq/shielded/xlmd (o) <fix_qeq>`
+   * :doc:`qeq/slater (o) <fix_qeq>`
+   * :doc:`qeq/slater/xlmd (o) <fix_qeq>`
    * :doc:`qmmm <fix_qmmm>`
+   * :doc:`qmmm/xtb <fix_qmmm_xtb>`
    * :doc:`qtb <fix_qtb>`
    * :doc:`qtpie/reaxff <fix_qtpie_reaxff>`
    * :doc:`rattle <fix_shake>`
@@ -223,19 +229,19 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`rigid (o) <fix_rigid>`
    * :doc:`rigid/meso <fix_rigid_meso>`
    * :doc:`rigid/nph (o) <fix_rigid>`
-   * :doc:`rigid/nph/small <fix_rigid>`
+   * :doc:`rigid/nph/small (k) <fix_rigid>`
    * :doc:`rigid/npt (o) <fix_rigid>`
-   * :doc:`rigid/npt/small <fix_rigid>`
+   * :doc:`rigid/npt/small (k) <fix_rigid>`
    * :doc:`rigid/nve (o) <fix_rigid>`
-   * :doc:`rigid/nve/small <fix_rigid>`
+   * :doc:`rigid/nve/small (k) <fix_rigid>`
    * :doc:`rigid/nvt (o) <fix_rigid>`
-   * :doc:`rigid/nvt/small <fix_rigid>`
-   * :doc:`rigid/small (o) <fix_rigid>`
+   * :doc:`rigid/nvt/small (k) <fix_rigid>`
+   * :doc:`rigid/small (ko) <fix_rigid>`
    * :doc:`rx (k) <fix_rx>`
    * :doc:`saed/vtk <fix_saed_vtk>`
    * :doc:`set <fix_set>`
    * :doc:`setforce (k) <fix_setforce>`
-   * :doc:`settorque/atom <fix_settorque_atom>`
+   * :doc:`settorque/atom (k) <fix_settorque_atom>`
    * :doc:`setforce/spin <fix_setforce>`
    * :doc:`sgcmc <fix_sgcmc>`
    * :doc:`shake (k) <fix_shake>`
@@ -251,24 +257,27 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`sph/stationary <fix_sph_stationary>`
    * :doc:`spring (k) <fix_spring>`
    * :doc:`spring/chunk <fix_spring_chunk>`
-   * :doc:`spring/rg <fix_spring_rg>`
+   * :doc:`spring/rg (k) <fix_spring_rg>`
    * :doc:`spring/self (k) <fix_spring_self>`
    * :doc:`srd <fix_srd>`
-   * :doc:`store/force <fix_store_force>`
+   * :doc:`store/force (k) <fix_store_force>`
    * :doc:`store/state <fix_store_state>`
+   * :doc:`surface/global <fix_surface_global>`
+   * :doc:`surface/local <fix_surface_local>`
    * :doc:`tdpd/source <fix_dpd_source>`
    * :doc:`temp/berendsen (k) <fix_temp_berendsen>`
-   * :doc:`temp/csld <fix_temp_csvr>`
-   * :doc:`temp/csvr <fix_temp_csvr>`
+   * :doc:`temp/csld (k) <fix_temp_csvr>`
+   * :doc:`temp/csvr (k) <fix_temp_csvr>`
    * :doc:`temp/rescale (k) <fix_temp_rescale>`
    * :doc:`temp/rescale/eff <fix_temp_rescale_eff>`
    * :doc:`tfmc <fix_tfmc>`
    * :doc:`tgnpt/drude <fix_tgnh_drude>`
    * :doc:`tgnvt/drude <fix_tgnh_drude>`
    * :doc:`thermal/conductivity <fix_thermal_conductivity>`
-   * :doc:`ti/spring <fix_ti_spring>`
+   * :doc:`ti/spring (k) <fix_ti_spring>`
    * :doc:`tmd <fix_tmd>`
    * :doc:`ttm <fix_ttm>`
+   * :doc:`ttm/cascade <fix_ttm>`
    * :doc:`ttm/grid <fix_ttm>`
    * :doc:`ttm/mod <fix_ttm>`
    * :doc:`ttm/thermal <fix_ttm>`
@@ -276,6 +285,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`vector <fix_vector>`
    * :doc:`viscosity <fix_viscosity>`
    * :doc:`viscous (k) <fix_viscous>`
+   * :doc:`viscous/nonlinear (k) <fix_viscous_nonlinear>`
    * :doc:`viscous/sphere (k) <fix_viscous_sphere>`
    * :doc:`wall/body/polygon <fix_wall_body_polygon>`
    * :doc:`wall/body/polyhedron <fix_wall_body_polyhedron>`
@@ -285,13 +295,13 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`wall/gran (k) <fix_wall_gran>`
    * :doc:`wall/gran/region <fix_wall_gran_region>`
    * :doc:`wall/harmonic (k) <fix_wall>`
-   * :doc:`wall/harmonic/outside <fix_wall>`
+   * :doc:`wall/harmonic/outside (k) <fix_wall>`
    * :doc:`wall/lj1043 (k) <fix_wall>`
    * :doc:`wall/lj126 (k) <fix_wall>`
    * :doc:`wall/lj93 (k) <fix_wall>`
    * :doc:`wall/lepton <fix_wall>`
    * :doc:`wall/morse (k) <fix_wall>`
-   * :doc:`wall/piston <fix_wall_piston>`
+   * :doc:`wall/piston (k) <fix_wall_piston>`
    * :doc:`wall/reflect (k) <fix_wall_reflect>`
    * :doc:`wall/reflect/stochastic <fix_wall_reflect_stochastic>`
    * :doc:`wall/region (k) <fix_wall_region>`

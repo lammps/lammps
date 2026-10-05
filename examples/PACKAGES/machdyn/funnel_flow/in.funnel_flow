@@ -119,6 +119,17 @@ variable        etot equal pe+ke+c_alleint+f_gfix # total energy of the system
 thermo          100
 thermo_style    custom step dt f_dtfix pe ke v_etot
 
+#variable size atom 0.5*radius
+#dump viz water image 100 funnel_flow-*.png diameter v_size size 800 800 zoom 2.0 &
+#               shiny 0.6  fsaa yes view 80 10 up 0 1 0 box no 0.025 &
+#               fix stl_surface_fix const 1 0
+#dump_modify viz pad 6 backcolor black backcolor2 white acolor 1 firebrick &
+#               fcolor stl_surface_fix lavender ftrans stl_surface_fix 0.5 &
+#               color map1 0.001 0.000 0.014 color map2 0.342 0.062 0.429 &
+#               color map3 0.736 0.216 0.330 color map4 0.978 0.558 0.035 &
+#               color map5 0.988 0.998 0.645 &
+#               amap 5 20 cf 0.0 5 min map1 0.25 map2 0.5 map3 0.75 map4 max map5
+
 ####################################################################################################
 # RUN SIMULATION
 ####################################################################################################

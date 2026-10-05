@@ -27,8 +27,9 @@ using namespace LAMMPS_NS;
 
 /* ---------------------------------------------------------------------- */
 
-AtomVecAngleKokkos::AtomVecAngleKokkos(LAMMPS *lmp) : AtomVec(lmp),
-AtomVecKokkos(lmp), AtomVecAngle(lmp)
+AtomVecAngleKokkos::AtomVecAngleKokkos(LAMMPS *lmp) :
+    AtomVec(lmp), AtomVecKokkos(lmp), AtomVecAngle(lmp), molecule(nullptr), special(nullptr),
+    bond_atom(nullptr), angle_atom1(nullptr), angle_atom2(nullptr), angle_atom3(nullptr)
 {
 
 }

@@ -33,65 +33,18 @@ class PairBodyRoundedPolyhedronOMP : public PairBodyRoundedPolyhedron, public Th
 
  public:
   PairBodyRoundedPolyhedronOMP(class LAMMPS *);
+  ~PairBodyRoundedPolyhedronOMP() override;
 
   void compute(int, int) override;
   double memory_usage() override;
 
  private:
-  template <int EVFLAG, int EFLAG>
-  void eval(int ifrom, int ito, ThrData *const thr);
+  double **fnc_thr;                     // per-thread fnc, see PairBodyRoundedPolyhedron
+  int nmax_thr;                         // allocated number of atoms per thread in fnc_thr
+  std::vector<Scratch> scratch_thr;    // per-thread scratch space
 
-  void sphere_against_sphere_thr(int ibody, int jbody, int itype, int jtype,
-                                 double delx, double dely, double delz, double rsq,
-                                 double **v, dbl3_t *f, int evflag, ThrData *thr);
-
-  void sphere_against_edge_thr(int ibody, int jbody, int itype, int jtype, double **x,
-                               double **v, dbl3_t *f, dbl3_t *torque, double **angmom,
-                               double *vflag_thr, int evflag, ThrData *thr);
-
-  void sphere_against_face_thr(int ibody, int jbody, int itype, int jtype, double **x,
-                               double **v, dbl3_t *f, dbl3_t *torque, double **angmom,
-                               int evflag, ThrData *thr);
-
-  int edge_against_edge_thr(int ibody, int jbody, int itype, int jtype, double **x,
-                            Contact *contact_list, int &num_contacts, double &evdwl,
-                            double *facc, dbl3_t *f, dbl3_t *torque, double **v,
-                            double **angmom);
-
-  int edge_against_face_thr(int ibody, int jbody, int itype, int jtype, double **x,
-                            Contact *contact_list, int &num_contacts, double &evdwl,
-                            double *facc, dbl3_t *f, dbl3_t *torque, double **v,
-                            double **angmom, double *vflag_thr);
-
-  int interaction_face_to_edge_thr(int ibody, int face_index, double *xmi,
-                                   double rounded_radius_i, int jbody, int edge_index,
-                                   double *xmj, double rounded_radius_j, int itype,
-                                   int jtype, double cut_inner, Contact *contact_list,
-                                   int &num_contacts, double &energy, double *facc,
-                                   dbl3_t *f, dbl3_t *torque, double **x, double **v,
-                                   double **angmom, double *vflag_thr);
-
-  int interaction_edge_to_edge_thr(int ibody, int edge_index_i, double *xmi,
-                                   double rounded_radius_i, int jbody, int edge_index_j,
-                                   double *xmj, double rounded_radius_j, int itype,
-                                   int jtype, double cut_inner, Contact *contact_list,
-                                   int &num_contacts, double &energy, double *facc,
-                                   dbl3_t *f, dbl3_t *torque, double **x, double **v,
-                                   double **angmom);
-
-  void pair_force_and_torque_thr(int ibody, int jbody, double *pi, double *pj, double r,
-                                 double contact_dist, int itype, int jtype, double **x,
-                                 double **v, dbl3_t *f, dbl3_t *torque, double **angmom,
-                                 int jflag, double &energy, double *facc);
-
-  void contact_forces_thr(int ibody, int jbody, double *xi, double *xj, double delx,
-                          double dely, double delz, double fx, double fy, double fz,
-                          double **x, double **v, double **angmom, dbl3_t *f,
-                          dbl3_t *torque, double *facc);
-
-  void rescale_cohesive_forces_thr(double **x, dbl3_t *f, dbl3_t *torque,
-                                   Contact *contact_list, int &num_contacts, int itype,
-                                   int jtype, double *facc);
+  template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
+  void eval(int ifrom, int ito, ThrData *const thr, double **fnc_t, Scratch &s);
 };
 
 }    // namespace LAMMPS_NS

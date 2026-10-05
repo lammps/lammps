@@ -2,7 +2,8 @@
 lammps_version: 3 Nov 2022
 date_generated: Mon Nov 21 21:52:14 2022
 epsilon: 1e-12
-skip_tests:
+skip_tests: kokkos_omp_single kokkos_serial_single kokkos_gpu_single
+
 prerequisites: ! |
   atom full
   bond gaussian

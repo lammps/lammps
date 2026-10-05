@@ -98,7 +98,7 @@ PPPM::PPPM(LAMMPS *lmp) : KSpace(lmp),
   MPI_Comm_rank(world,&me);
   MPI_Comm_size(world,&nprocs);
 
-  nfft_both = 0;
+  ngrid = nfft_both = 0;
   nxhi_in = nxlo_in = nxhi_out = nxlo_out = 0;
   nyhi_in = nylo_in = nyhi_out = nylo_out = 0;
   nzhi_in = nzlo_in = nzhi_out = nzlo_out = 0;
@@ -199,7 +199,10 @@ PPPM::~PPPM()
 
 void PPPM::init()
 {
-  if (me == 0) utils::logmesg(lmp,"PPPM initialization ...\n");
+  // don't print initialization message twice when we get called by PPPM_RK::init()
+  if (!rk_flag) {
+    if (me == 0) utils::logmesg(lmp,"PPPM initialization ...\n");
+  }
 
   // error check
 
@@ -210,8 +213,12 @@ void PPPM::init()
 
   if (domain->triclinic && differentiation_flag == 1)
     error->all(FLERR,"Cannot (yet) use PPPM with triclinic box and kspace_modify diff ad");
-  if (domain->triclinic && slabflag)
-    error->all(FLERR,"Cannot (yet) use PPPM with triclinic box and slab correction");
+  if (domain->triclinic && (slabflag == 2 || slabflag == 3))
+    error->all(FLERR,"Triclinic boxes only support the 'kspace_modify slab "
+               "<volfactor>' correction, not 'slab nozforce' or 'slab ew2d'");
+  if (domain->triclinic && slabflag == 1 && (domain->yz != 0.0 || domain->xz != 0.0))
+    error->all(FLERR,"Triclinic slab (EW3DC) correction requires xz = yz = 0 "
+               "(the slab normal must be the z axis); xy tilt is allowed");
   if (domain->dimension == 2)
     error->all(FLERR,"Cannot use PPPM with 2d simulation");
 
@@ -245,39 +252,9 @@ void PPPM::init()
   cutoff = *p_cutoff;
 
   // if kspace is TIP4P, extract TIP4P params from pair style
-  // bond/angle are not yet init(), so ensure equilibrium request is valid
 
   qdist = 0.0;
-
-  if (tip4pflag) {
-    if (me == 0) utils::logmesg(lmp,"  extracting TIP4P info from pair style\n");
-
-    auto *p_qdist = (double *) force->pair->extract("qdist",itmp);
-    int *p_typeO = (int *) force->pair->extract("typeO",itmp);
-    int *p_typeH = (int *) force->pair->extract("typeH",itmp);
-    int *p_typeA = (int *) force->pair->extract("typeA",itmp);
-    int *p_typeB = (int *) force->pair->extract("typeB",itmp);
-    if (!p_qdist || !p_typeO || !p_typeH || !p_typeA || !p_typeB)
-      error->all(FLERR,"Pair style is incompatible with TIP4P KSpace style");
-    qdist = *p_qdist;
-    typeO = *p_typeO;
-    typeH = *p_typeH;
-    int typeA = *p_typeA;
-    int typeB = *p_typeB;
-
-    if (force->angle == nullptr || force->bond == nullptr ||
-        force->angle->setflag == nullptr || force->bond->setflag == nullptr)
-      error->all(FLERR,"Bond and angle potentials must be defined for TIP4P");
-    if (typeA < 1 || typeA > atom->nangletypes ||
-        force->angle->setflag[typeA] == 0)
-      error->all(FLERR,"Bad TIP4P angle type for PPPM/TIP4P");
-    if (typeB < 1 || typeB > atom->nbondtypes ||
-        force->bond->setflag[typeB] == 0)
-      error->all(FLERR,"Bad TIP4P bond type for PPPM/TIP4P");
-    double theta = force->angle->equilibrium_angle(typeA);
-    double blen = force->bond->equilibrium_distance(typeB);
-    alpha = qdist / (cos(0.5*theta) * blen);
-  }
+  if (tip4pflag) init_tip4p();
 
   // compute qsum & qsqsum and warn if not charge-neutral
 
@@ -430,6 +407,43 @@ void PPPM::init()
 }
 
 /* ----------------------------------------------------------------------
+   extract TIP4P settings (qdist, O/H atom types, alpha) from pair style.
+   bond/angle are not yet init(), so ensure equilibrium request is valid
+------------------------------------------------------------------------- */
+
+void PPPM::init_tip4p()
+{
+  int itmp = 0;
+  if (me == 0) utils::logmesg(lmp,"  extracting TIP4P info from pair style\n");
+
+  auto *p_qdist = (double *) force->pair->extract("qdist",itmp);
+  int *p_typeO = (int *) force->pair->extract("typeO",itmp);
+  int *p_typeH = (int *) force->pair->extract("typeH",itmp);
+  int *p_typeA = (int *) force->pair->extract("typeA",itmp);
+  int *p_typeB = (int *) force->pair->extract("typeB",itmp);
+  if (!p_qdist || !p_typeO || !p_typeH || !p_typeA || !p_typeB)
+    error->all(FLERR,"Pair style is incompatible with TIP4P KSpace style");
+  qdist = *p_qdist;
+  typeO = *p_typeO;
+  typeH = *p_typeH;
+  int typeA = *p_typeA;
+  int typeB = *p_typeB;
+
+  if (force->angle == nullptr || force->bond == nullptr ||
+      force->angle->setflag == nullptr || force->bond->setflag == nullptr)
+    error->all(FLERR,"Bond and angle potentials must be defined for TIP4P");
+  if (typeA < 1 || typeA > atom->nangletypes ||
+      force->angle->setflag[typeA] == 0)
+    error->all(FLERR,"Bad TIP4P angle type for PPPM/TIP4P");
+  if (typeB < 1 || typeB > atom->nbondtypes ||
+      force->bond->setflag[typeB] == 0)
+    error->all(FLERR,"Bad TIP4P bond type for PPPM/TIP4P");
+  double theta = force->angle->equilibrium_angle(typeA);
+  double blen = force->bond->equilibrium_distance(typeB);
+  alpha = qdist / (cos(0.5*theta) * blen);
+}
+
+/* ----------------------------------------------------------------------
    adjust PPPM coeffs, called initially and whenever volume has changed
 ------------------------------------------------------------------------- */
 
@@ -552,11 +566,16 @@ void PPPM::setup_triclinic()
   volume = xprd * yprd * zprd_slab;
 
   // use lamda (0-1) coordinates
+  // for the EW3DC slab correction the lamda z grid is extended by
+  // slab_volfactor (vacuum insertion), matching Grid3d::set_zfactor() used in
+  // the grid decomposition.  delzinv maps lamda z in [0,1] onto grid indices
+  // [0,nz_pppm/slab_volfactor]; delvolinv uses the full nz_pppm so the grid
+  // cell volume stays volume/(nx*ny*nz).  slab_volfactor == 1.0 for non-slab.
 
   delxinv = nx_pppm;
   delyinv = ny_pppm;
-  delzinv = nz_pppm;
-  delvolinv = delxinv*delyinv*delzinv/volume;
+  delzinv = nz_pppm/slab_volfactor;
+  delvolinv = delxinv*delyinv*nz_pppm/volume;
 
   // fkx,fky,fkz for my FFT grid pts
 
@@ -789,13 +808,14 @@ void PPPM::compute(int eflag, int vflag)
     }
   }
 
+  // convert atoms back from lamda to box coords
+  // must precede slabcorr(), which needs Cartesian z-coordinates
+
+  if (triclinic) domain->lamda2x(atom->nlocal);
+
   // 2d slab correction
 
   if (slabflag == 1) slabcorr();
-
-  // convert atoms back from lamda to box coords
-
-  if (triclinic) domain->lamda2x(atom->nlocal);
 }
 
 /* ----------------------------------------------------------------------
@@ -1333,7 +1353,10 @@ void PPPM::adjust_gewald()
   double dx;
 
   for (int i = 0; i < LARGE; i++) {
-    dx = newton_raphson_f() / derivf();
+    double dfx = derivf();
+    if (dfx == 0.0 || dfx != dfx) break;    // flat/invalid derivative
+    dx = newton_raphson_f() / dfx;
+    while (g_ewald - dx <= 0.0) dx *= 0.5;   // damp the step so g_ewald stays > 0
     g_ewald -= dx;
     if (fabs(newton_raphson_f()) < SMALL) return;
   }
@@ -1594,6 +1617,11 @@ void PPPM::compute_gf_ik_triclinic()
   tmp[1] = (g_ewald/(MY_PI*ny_pppm)) * pow(-log(EPS_HOC),0.25);
   tmp[2] = (g_ewald/(MY_PI*nz_pppm)) * pow(-log(EPS_HOC),0.25);
   lamda2xT(&tmp[0],&tmp[0]);
+  // EW3DC slab correction: the z grid is extended by slab_volfactor, so the
+  // alias-sum bound in z must use the extended length (lamda2xT only supplies
+  // zprd).  z is non-periodic for slab geometries (xz == yz == 0), so the z
+  // bound decouples.  slab_volfactor == 1.0 for non-slab calculations.
+  if (slabflag == 1) tmp[2] *= slab_volfactor;
   const int nbx = static_cast<int> (tmp[0]);
   const int nby = static_cast<int> (tmp[1]);
   const int nbz = static_cast<int> (tmp[2]);
@@ -3079,9 +3107,9 @@ double PPPM::memory_usage()
 
 void PPPM::compute_group_group(int groupbit_A, int groupbit_B, int AA_flag)
 {
-  if (slabflag && triclinic)
-    error->all(FLERR,"Cannot (yet) use K-space slab "
-               "correction with compute group/group for triclinic systems");
+  if (triclinic && (slabflag == 2 || slabflag == 3))
+    error->all(FLERR,"Triclinic boxes only support the 'kspace_modify slab "
+               "<volfactor>' correction, not 'slab nozforce' or 'slab ew2d'");
 
   if (differentiation_flag)
     error->all(FLERR,"Cannot (yet) use kspace_modify "

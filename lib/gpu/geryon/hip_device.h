@@ -157,6 +157,11 @@ class UCL_Device {
   /// Returns true if host memory is efficiently addressable from device
   inline bool shared_memory(const int i) { return device_type(i)==UCL_CPU; }
 
+  /// Returns true if the device is an integrated GPU sharing host memory (APU)
+  inline bool integrated() { return integrated(_device); }
+  /// Returns true if the device is an integrated GPU sharing host memory (APU)
+  inline bool integrated(const int i) { return _properties[i].integrated != 0; }
+
   /// Returns preferred vector width
   inline int preferred_fp32_width() { return preferred_fp32_width(_device); }
   /// Returns preferred vector width

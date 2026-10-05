@@ -64,7 +64,8 @@ modules:
       - -D PKG_FEP=yes
       - -D PKG_GRAPHICS=yes
       - -D PKG_GRANULAR=yes
-      - -D PKG_GPU=no
+      - -D PKG_GRANSURF=yes
+      - -D PKG_GPU=NO
       - -D GPU_API=opencl
       - -D PKG_INTERLAYER=yes
       - -D PKG_KOKKOS=yes
@@ -83,7 +84,6 @@ modules:
       - -D PKG_ML-IAP=yes
       - -D PKG_ML-PACE=yes
       - -D PKG_ML-POD=yes
-      - -D PKG_ML-RANN=yes
       - -D PKG_ML-SNAP=yes
       - -D PKG_ML-UF3=yes
       - -D PKG_MOFFF=yes

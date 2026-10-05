@@ -49,7 +49,6 @@ class Device {
     * - -5 Double precision is not supported on card
     * - -6 if GPU could not be initialized for use
     * - -7 if accelerator sharing is not currently allowed on system
-    * - -8 GPU particle split must be set to 1 for this pair style
     * - -9 CPU neighbor lists must be used for ellipsoid/sphere mix
     * - -10 Invalid threads_per_atom specified
     * - -11 if config_string has the wrong number of parameters
@@ -62,7 +61,7 @@ class Device {
 
   int init_device(MPI_Comm world, MPI_Comm replica, const int ngpu,
                   const int first_gpu_id, const int gpu_mode,
-                  const double particle_split, const int t_per_atom,
+                  const int t_per_atom,
                   const double user_cell_size, char *config_string,
                   const int ocl_platform, char *device_type_flags,
                   const int block_pair);
@@ -141,7 +140,7 @@ class Device {
 
   /// Output a message with timing information
   void output_times(UCL_Timer &time_pair, Answer<numtyp,acctyp> &ans,
-                    Neighbor &nbor, const double avg_split,
+                  Neighbor &nbor,
                     const double max_bytes, const double gpu_overhead,
                     const double driver_overhead,
                     const int threads_per_atom, FILE *screen);
@@ -170,7 +169,6 @@ class Device {
     error_flag=0;
     atom.data_unavail();
     if (ans_queue.empty()==false) {
-      stop_host_timer();
       double evdw=0.0;
       while (ans_queue.empty()==false) {
         evdw += ans_queue.front()->get_answers(f,tor,eatom,vatom,virial,ecoul,error_flag);
@@ -180,21 +178,6 @@ class Device {
     }
     return 0.0;
   }
-
-  /// Start timer on host
-  inline void start_host_timer()
-    { _cpu_full=MPI_Wtime(); _host_timer_started=true; }
-
-  /// Stop timer on host
-  inline void stop_host_timer() {
-    if (_host_timer_started) {
-      _cpu_full=MPI_Wtime()-_cpu_full;
-      _host_timer_started=false;
-    }
-  }
-
-  /// Return host time
-  inline double host_time() { return _cpu_full; }
 
   /// Return host memory usage in bytes
   double host_memory_usage() const;
@@ -231,8 +214,6 @@ class Device {
   inline int first_device() const { return _first_device; }
   /// Index of last device used by a node
   inline int last_device() const { return _last_device; }
-  /// Particle split defined in fix
-  inline double particle_split() const { return _particle_split; }
   /// Return the initialization count for the device
   inline int init_count() const { return _init_count; }
   /// True if device is being timed
@@ -334,13 +315,11 @@ class Device {
  private:
   std::queue<Answer<numtyp,acctyp> *> ans_queue;
   int _init_count;
-  bool _device_init, _host_timer_started, _time_device;
+  bool _device_init, _comm_gpu_allocated, _host_timer_started, _time_device;
   MPI_Comm _comm_world, _comm_replica, _comm_gpu;
   int _procs_per_gpu, _gpu_rank, _world_me, _world_size, _replica_me,
       _replica_size;
   int _gpu_mode, _first_device, _last_device, _platform_id;
-  double _particle_split;
-  double _cpu_full;
   double _ptx_arch;
   double _user_cell_size; // -1 if the cutoff is used
 

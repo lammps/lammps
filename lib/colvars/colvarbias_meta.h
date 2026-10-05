@@ -41,7 +41,7 @@ public:
   /// Communication between different replicas
   Communication comm;
 
-  colvarbias_meta(char const *key);
+  colvarbias_meta(colvarmodule *cvmodule_in, char const *key);
   ~colvarbias_meta();
 
   int init(std::string const &conf) override;
@@ -138,7 +138,7 @@ protected:
   /// Write a hill to an unformatted stream
   cvm::memory_stream &write_hill(cvm::memory_stream &os, hill const &h);
 
-  template <typename IST> IST &read_hill_template_(IST &is);
+  template <typename IST> IST &read_hill_template_(IST &is, colvarmodule *cvmodule_in);
 
   /// Read a new hill from a formatted stream
   std::istream & read_hill(std::istream &is);
@@ -326,17 +326,20 @@ protected:
   /// Identity of the replica who added this hill
   std::string replica;
 
+  colvarmodule *cvmodule;
 public:
 
   friend class colvarbias_meta;
 
   /// Constructor of a hill object
+  /// \param cvmodule Pointer to the colvarmodule object
   /// \param it Step number at which the hill was added
   /// \param W Weight of the hill (energy units)
   /// \param cv_values Array of collective variable values
   /// \param cv_sigmas Array of collective variable values
   /// \param replica ID of the replica that creates the hill (optional)
-  hill(cvm::step_number it, cvm::real W,
+  hill(colvarmodule *cvmodule,
+       cvm::step_number it, cvm::real W,
        std::vector<colvarvalue> const &cv_values,
        std::vector<cvm::real> const &cv_sigmas,
        std::string const &replica = "");

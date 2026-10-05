@@ -36,8 +36,8 @@ class FixQEqDynamic : public FixQEq {
   int pack_reverse_comm(int, int, double *) override;
   void unpack_reverse_comm(int, int *, double *) override;
 
- private:
-  double compute_eneg();
+ protected:
+  virtual double compute_eneg();
 };
 
 }    // namespace LAMMPS_NS

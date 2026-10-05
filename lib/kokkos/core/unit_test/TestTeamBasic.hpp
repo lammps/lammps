@@ -69,6 +69,9 @@ TEST(TEST_CATEGORY, team_reduce_large) {
   }
 }
 
+#if !defined(KOKKOS_ENABLE_OPENACC)
+// FIXME_OPENACC: Kokkos::single(..., value&) uses team_broadcast; scratch query
+// APIs and team_broadcast are not implemented for OpenACC.
 /*! \brief Test passing an aggregate to Kokkos::single in a parallel_for with
            team policy
 */
@@ -200,14 +203,23 @@ void test_exceed_max_team_scratch_size_0() {
   policy = Kokkos::TeamPolicy<TEST_EXECSPACE>(1, max_team_size_with_scratch);
   auto new_max_scratch_size = policy.scratch_size_max(level);
 
+#ifdef KOKKOS_ENABLE_CUDA
+  // due to the 16KiB "fudge factor" (see #9012) we need a large
+  // rescale factor so this test still behaves as expected on, for ex,
+  // Pascal w/64KiB shared. We do need a better way to handle this.
+  auto oversize_factor = 2.0;
+#else
+  // FIXME test a tighter bound for HIP
+  auto oversize_factor = 1.1;
+#endif
+
   ASSERT_THROW(
       {
         try {
-          // FIXME test a tighter bound for Cuda and HIP
-          Kokkos::parallel_for(
-              policy.set_scratch_size(
-                  level, Kokkos::PerTeam(new_max_scratch_size * 1.1)),
-              dummy_functor);
+          Kokkos::parallel_for(policy.set_scratch_size(
+                                   level, Kokkos::PerTeam(new_max_scratch_size *
+                                                          oversize_factor)),
+                               dummy_functor);
         } catch (const std::runtime_error& e) {
           std::cmatch base_match;
           const char* regex_string =
@@ -260,6 +272,7 @@ TEST(TEST_CATEGORY_DEATH, exceed_max_team_scratch_size_1) {
   ::testing::FLAGS_gtest_death_test_style = "threadsafe";
   test_exceed_max_team_scratch_size_1();
 }
+#endif
 
 void test_exceed_max_team_size() {
   Kokkos::TeamPolicy<TEST_EXECSPACE> policy(1, 1);
@@ -293,6 +306,7 @@ TEST(TEST_CATEGORY_DEATH, exceed_max_team_size) {
   test_exceed_max_team_size();
 }
 
+#if !defined(KOKKOS_ENABLE_OPENACC)
 TEST(TEST_CATEGORY, team_broadcast_long) {
   TestTeamBroadcast<TEST_EXECSPACE, Kokkos::Schedule<Kokkos::Static>,
                     long>::test_teambroadcast(0, 1);
@@ -458,7 +472,9 @@ TEST(TEST_CATEGORY, team_broadcast_double) {
       }
   }
 }
+#endif
 
+#if !defined(KOKKOS_ENABLE_OPENACC)
 struct TeamBroadcastIntPtrFunctor {
   using TeamMember = typename Kokkos::TeamPolicy<TEST_EXECSPACE>::member_type;
 
@@ -487,6 +503,7 @@ TEST(TEST_CATEGORY, team_broadcast_int_ptr) {
   TeamBroadcastIntPtrFunctor team_broadcast_functor;
   team_broadcast_functor.run();
 }
+#endif
 
 struct TeamSingleThreadIntPtrFunctor {
   using TeamMember = typename Kokkos::TeamPolicy<TEST_EXECSPACE>::member_type;
@@ -519,6 +536,7 @@ TEST(TEST_CATEGORY, team_single_thread_int_ptr) {
   team_single_thread_functor.run();
 }
 
+#if !defined(KOKKOS_ENABLE_OPENACC)
 struct TeamSingleTeamIntPtrFunctor {
   using TeamMember = typename Kokkos::TeamPolicy<TEST_EXECSPACE>::member_type;
 
@@ -549,6 +567,7 @@ TEST(TEST_CATEGORY, team_single_team_int_ptr) {
   TeamSingleTeamIntPtrFunctor team_single_team_functor;
   team_single_team_functor.run();
 }
+#endif
 
 TEST(TEST_CATEGORY, team_handle_by_value) {
   { TestTeamPolicyHandleByValue<TEST_EXECSPACE>(); }

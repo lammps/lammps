@@ -33,6 +33,7 @@ class MinSpinLBFGS : public Min {
   int modify_param(int, char **) override;
   void reset_vectors() override;
   int iterate(int) override;
+  double memory_usage() override;
 
  private:
   int local_iter;            // for neb

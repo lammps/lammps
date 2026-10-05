@@ -157,6 +157,20 @@ FixTTMMod::FixTTMMod(LAMMPS *lmp, int narg, char **arg) :
   if (surface_l >= surface_r)
     error->all(FLERR, "Left surface coordinate must be less than right surface coordinate");
 
+  // warn if the electron-ion coupling region does not span the whole box.
+  // when surface tracking is disabled (movsur == 0), only atoms in grid
+  // cells with surface_l <= ix < surface_r are coupled to the electrons.
+  // a too-small rsurface (or non-zero lsurface) silently restricts the
+  // coupling to a sub-slab.  for a fully periodic bulk run (equivalent to
+  // fix ttm) lsurface = 0 and rsurface = Nx must be used.
+
+  if (comm->me == 0 && movsur == 0 && (surface_l > 0 || surface_r < nxgrid))
+    error->warning(FLERR, "Fix ttm/mod electron-ion coupling is restricted to grid cells "
+                   "{} <= ix < {} in the x-direction (set by lsurface/rsurface); atoms in "
+                   "other cells are not coupled to the electronic subsystem. For a fully "
+                   "periodic bulk simulation set lsurface = 0 and rsurface = {} (= Nx).",
+                   surface_l, surface_r, nxgrid);
+
   // initialize Marsaglia RNG with processor-unique seed
 
   random = new RanMars(lmp,seed + comm->me);

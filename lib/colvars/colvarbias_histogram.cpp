@@ -16,8 +16,8 @@
 #include "colvars_memstream.h"
 
 
-colvarbias_histogram::colvarbias_histogram(char const *key)
-  : colvarbias(key),
+colvarbias_histogram::colvarbias_histogram(colvarmodule *cvmodule_in, char const *key)
+  : colvarbias(cvmodule_in, key),
     grid(NULL), out_name("")
 {
   provide(f_cvb_bypass_ext_lagrangian); // Allow histograms of actual cv for extended-Lagrangian
@@ -30,7 +30,7 @@ int colvarbias_histogram::init(std::string const &conf)
   if (err != COLVARS_OK) {
     return err;
   }
-  cvm::main()->cite_feature("Histogram colvar bias implementation");
+  cvmodule->cite_feature("Histogram colvar bias implementation");
 
   enable(f_cvb_scalar_variables);
   enable(f_cvb_history_dependent);
@@ -44,7 +44,7 @@ int colvarbias_histogram::init(std::string const &conf)
 
   /// with VMD, this may not be an error
   // if ( output_freq == 0 ) {
-  //   cvm::error("User required histogram with zero output frequency");
+  //   cvmodule->error("User required histogram with zero output frequency");
   // }
 
   colvar_array_size = 0;
@@ -55,18 +55,18 @@ int colvarbias_histogram::init(std::string const &conf)
     if (colvar_array) {
       for (i = 0; i < num_variables(); i++) { // should be all vector
         if (colvars[i]->value().type() != colvarvalue::type_vector) {
-          cvm::error("Error: used gatherVectorColvars with non-vector colvar.\n", COLVARS_INPUT_ERROR);
+          cvmodule->error("Error: used gatherVectorColvars with non-vector colvar.\n", COLVARS_INPUT_ERROR);
           return COLVARS_INPUT_ERROR;
         }
         if (i == 0) {
           colvar_array_size = colvars[i]->value().size();
           if (colvar_array_size < 1) {
-            cvm::error("Error: vector variable has dimension less than one.\n", COLVARS_INPUT_ERROR);
+            cvmodule->error("Error: vector variable has dimension less than one.\n", COLVARS_INPUT_ERROR);
             return COLVARS_INPUT_ERROR;
           }
         } else {
           if (colvar_array_size != colvars[i]->value().size()) {
-            cvm::error("Error: trying to combine vector colvars of different lengths.\n", COLVARS_INPUT_ERROR);
+            cvmodule->error("Error: trying to combine vector colvars of different lengths.\n", COLVARS_INPUT_ERROR);
             return COLVARS_INPUT_ERROR;
           }
         }
@@ -74,7 +74,7 @@ int colvarbias_histogram::init(std::string const &conf)
     } else {
       for (i = 0; i < num_variables(); i++) { // should be all scalar
         if (colvars[i]->value().type() != colvarvalue::type_scalar) {
-          cvm::error("Error: only scalar colvars are supported when gatherVectorColvars is off.\n", COLVARS_INPUT_ERROR);
+          cvmodule->error("Error: only scalar colvars are supported when gatherVectorColvars is off.\n", COLVARS_INPUT_ERROR);
           return COLVARS_INPUT_ERROR;
         }
       }
@@ -125,7 +125,7 @@ int colvarbias_histogram::update()
   error_code |= colvarbias::update();
 
   if (cvm::debug()) {
-    cvm::log("Updating histogram bias " + this->name);
+    cvmodule->log("Updating histogram bias " + this->name);
   }
 
   // assign a valid bin size
@@ -157,7 +157,7 @@ int colvarbias_histogram::update()
     }
   }
 
-  error_code |= cvm::get_error();
+  error_code |= cvmodule->get_error();
   return error_code;
 }
 
@@ -172,22 +172,22 @@ int colvarbias_histogram::write_output_files()
   int error_code = COLVARS_OK;
 
   // Set default filenames, if none have been provided
-  if (!cvm::output_prefix().empty()) {
+  if (!cvmodule->output_prefix().empty()) {
     if (out_name.empty()) {
-      out_name = cvm::output_prefix() + "." + this->name + ".dat";
+      out_name = cvmodule->output_prefix() + "." + this->name + ".dat";
     }
     if (out_name_dx.empty()) {
-      out_name_dx = cvm::output_prefix() + "." + this->name + ".dx";
+      out_name_dx = cvmodule->output_prefix() + "." + this->name + ".dx";
     }
   }
 
   if (out_name.size() && out_name != "none") {
-    cvm::log("Writing the histogram file \""+out_name+"\".\n");
+    cvmodule->log("Writing the histogram file \""+out_name+"\".\n");
     error_code |= grid->write_multicol(out_name, "histogram output file");
   }
 
   if (out_name_dx.size() && out_name_dx != "none") {
-    cvm::log("Writing the histogram file \""+out_name_dx+"\".\n");
+    cvmodule->log("Writing the histogram file \""+out_name_dx+"\".\n");
     error_code |= grid->write_opendx(out_name_dx, "histogram DX output file");
   }
 

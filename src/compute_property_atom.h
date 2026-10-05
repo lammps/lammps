@@ -35,15 +35,30 @@ class ComputePropertyAtom : public Compute {
  private:
   int nvalues;
   int nmax;
-  int *index, *colindex;
   double *buf;
+
+  struct value_t {
+    int index, colindex;
+    void (ComputePropertyAtom::*pack_choice)(int);    // ptr to pack function
+  };
+  std::vector<value_t> values;
+
   class AtomVecEllipsoid *avec_ellipsoid;
   class AtomVecLine *avec_line;
   class AtomVecTri *avec_tri;
   class AtomVecBody *avec_body;
 
-  using FnPtrPack = void (ComputePropertyAtom::*)(int);
-  FnPtrPack *pack_choice;    // ptrs to pack functions
+  // per-atom history accessed from fix store/state
+
+  char *fixID;
+  class Fix *fixhistory;
+
+  int historyflag;
+  int nattribute_history, nevery_history, nrepeat_history, nfreq_history;
+  int *count_history_ptr,*most_recent_index_ptr;
+  double ***history;
+
+  void setup_history();    // (re)resolve fix store/state and cache its extract() pointers
 
   void pack_id(int);
   void pack_molecule(int);
@@ -141,12 +156,9 @@ class ComputePropertyAtom : public Compute {
   void pack_i2name(int);
   void pack_d2name(int);
 
-  void pack_atom_style(int);
+  void pack_history(int);
 
-  void pack_apip_lambda(int);
-  void pack_apip_lambda_input(int);
-  void pack_apip_e_fast(int);
-  void pack_apip_e_precise(int);
+  void pack_atom_style(int);
 };
 
 }    // namespace LAMMPS_NS

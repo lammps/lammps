@@ -77,7 +77,8 @@ static const double  MIN_ETOL_MAG = 1.0e-8;
    Constructor
 ------------------------------------------------------------------------- */
 
-MinHFTN::MinHFTN(LAMMPS *lmp) : Min(lmp)
+MinHFTN::MinHFTN(LAMMPS *lmp) :
+    Min(lmp), _daAVectors{}, _daExtraAtom{}, _daExtraGlobal{}
 {
   searchflag = 1;
 

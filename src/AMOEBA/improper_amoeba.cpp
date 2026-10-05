@@ -31,7 +31,7 @@ using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
-ImproperAmoeba::ImproperAmoeba(LAMMPS *lmp) : Improper(lmp)
+ImproperAmoeba::ImproperAmoeba(LAMMPS *lmp) : Improper(lmp), k(nullptr)
 {
   writedata = 1;
 

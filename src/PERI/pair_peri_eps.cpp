@@ -32,6 +32,7 @@
 #include "neigh_list.h"
 #include "neighbor.h"
 
+#include <cfloat>
 #include <cmath>
 #include <cstring>
 
@@ -72,6 +73,7 @@ void PairPeriEPS::compute(int eflag, int vflag)
 
   double *vfrac = atom->vfrac;
   double *s0 = atom->s0;
+  double *smin = atom->smin;
   double **x0 = atom->x0;
   double **r0 = fix_peri_neigh->r0;
   double **deviatorPlasticextension = fix_peri_neigh->deviatorPlasticextension;
@@ -146,7 +148,7 @@ void PairPeriEPS::compute(int eflag, int vflag)
         // of the bond-based theory used in PMB model
 
         double kshort = (15.0 * 18.0 * bulkmodulus[itype][itype]) /
-          (3.141592653589793 * cutsq[itype][jtype] * cutsq[itype][jtype]);
+          (MY_PI * cutsq[itype][jtype] * cutsq[itype][jtype]);
         rk = (kshort * vfrac[j]) * (dr / cut[itype][jtype]);
 
         if (r > 0.0) fpair = -(rk/r);
@@ -170,14 +172,16 @@ void PairPeriEPS::compute(int eflag, int vflag)
 
   // grow bond forces array if necessary
 
-  int  maxpartner = 0;
+  maxpartner = 0;
   for (i = 0; i < nlocal; i++) maxpartner = MAX(maxpartner,npartner[i]);
 
-  if (nlocal > nmax) {
+  if (atom->nmax > nmax) {
     memory->destroy(s0_new);
+    memory->destroy(smin_new);
     memory->destroy(theta);
     nmax = atom->nmax;
     memory->create(s0_new,nmax,"pair:s0_new");
+    memory->create(smin_new,nmax,"pair:smin_new");
     memory->create(theta,nmax,"pair:theta");
   }
 
@@ -230,6 +234,7 @@ void PairPeriEPS::compute(int eflag, int vflag)
     ztmp0 = x0[i][2];
     itype = type[i];
     jnum = npartner[i];
+    smin_new[i] = DBL_MAX;
     first = true;
 
     const double yieldStress = m_yieldstress[itype][itype];
@@ -305,8 +310,21 @@ void PairPeriEPS::compute(int eflag, int vflag)
       if (elastic) {
         rkNew = tdtrialValue;
       } else {
+        // Plastic step. The deviatoric force state used for the force is the
+        // trial state projected back onto the yield surface (the closest-point
+        // or "radial" return), rkNew = (sqrt(2*psi0)/||t_d||) * t_d_trial, as in:
+        //    Mitchell 2011 (SAND2011-3166) Eq. 45.
+        // but need to multiply by 0.5 * r0 to account for definition of influence
+        // function omega (here has units of 1/length but report assumes dimensionless).
         rkNew = (sqrt(2.0*pointwiseYieldvalue) * tdtrialValue) / tdnorm;
-        deviatorPlasticExtTemp[i][jj] = edpNp1 + rkNew * deltalambda;
+        deviatorPlasticExtTemp[i][jj] = edpNp1 + rkNew * deltalambda * (0.5 * r0[i][jj]);
+
+        // NOTE: a better solution might be to use radial return to ensure the
+        //  solution does not leave the yield surface, such as
+        //
+        //     edpNp1 + (deviatoric_extension - edpNp1) * (1.0 - sqrt(2*psi0)/||t_d||);
+        //
+        // See the discussion in pull request #5046 and issue #5064
       }
 
       if (r > 0.0) fbondElastoPlastic = -((rkNew/r) * vfrac[j] * vfrac_scale);
@@ -329,13 +347,20 @@ void PairPeriEPS::compute(int eflag, int vflag)
                            0.5*fbond*vfrac[i],delx,dely,delz);
 
       // find stretch in bond I-J and break if necessary
-      // use s0 from previous timestep
+      // use the minimum stretch (smin) from the previous timestep to form the
+      // per-bond critical stretch s0 = s00 - alpha*smin (Parks 2008, eq. 9).
+      // Evaluating s00/alpha per bond (instead of collapsing s0 into one
+      // per-particle scalar) is required when these coeffs depend on the type
+      // pair; min(s0_i,s0_j) = s00 - alpha*max(smin_i,smin_j).
 
       stretch = dr / r0[i][jj];
-      if (stretch > MIN(s0[i],s0[j])) partner[i][jj] = 0;
+      if (stretch > s00[itype][jtype] - alpha[itype][jtype]*MAX(smin[i],smin[j]))
+        partner[i][jj] = 0;
 
-      // update s0 for next timestep
+      // update minimum stretch smin (for breaking) and s0 (for diagnostic
+      // output) for the next timestep
 
+      smin_new[i] = MIN(smin_new[i],stretch);
       if (first)
          s0_new[i] = s00[itype][jtype] - (alpha[itype][jtype] * stretch);
       else
@@ -344,9 +369,12 @@ void PairPeriEPS::compute(int eflag, int vflag)
     }
   }
 
-  // store new s0
+  // store new s0 (diagnostic) and smin (used for bond breaking)
+  // an atom with no surviving bonds keeps the no-breaking sentinel (-DBL_MAX)
 
   memcpy(s0,s0_new,sizeof(double)*nlocal);
+  for (i = 0; i < nlocal; i++)
+    smin[i] = (smin_new[i] == DBL_MAX) ? -DBL_MAX : smin_new[i];
 
   if (nlocal*maxpartner > 0) {
     memcpy(&(deviatorPlasticextension[0][0]),&(deviatorPlasticExtTemp[0][0]),
@@ -546,11 +574,22 @@ double PairPeriEPS::compute_DeviatoricForceStateNorm(int i)
       double omega_plus  = influence_function(-1.0*delx0,-1.0*dely0,-1.0*delz0);
       double omega_minus = influence_function(delx0,dely0,delz0);
 
+      // the yield-norm trial force state must match the deviatoric force state
+      // prior to 6/26, (omega*theta/wvolume) form carried a spurious extra theta
       tdtrial = ( 15 * shearmodulus[itype][itype]) *
-           ((omega_plus * theta[i] / wvolume[i]) +
-             ( omega_minus * theta[j] / wvolume[j] ) ) * (ed - edPNP1);
+           ((omega_plus / wvolume[i]) +
+             ( omega_minus / wvolume[j] ) ) * (ed - edPNP1);
 
       norm += tdtrial * tdtrial * vfrac[j] * vfrac_scale;
     }
   return sqrt(norm);
+}
+
+/* ---------------------------------------------------------------------- */
+
+double PairPeriEPS::memory_usage()
+{
+  double bytes = PairPeri::memory_usage();
+  bytes += (double) sizeof(double) * maxpartner * atom->nlocal;
+  return bytes;
 }

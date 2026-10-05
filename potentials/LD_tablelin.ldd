@@ -1,0 +1,5 @@
+# DATE:2026-02-24 UNITS: real CONTRIBUTOR: Maria Lesniewski, mjl6766@psu.edu, CITATION:M. C. Lesniewski, M. R. DeLyser, and W. G. Noid "Progress toward a better BOCS: systematic coarse-graining with local density potentials" Manuscript in Preparation (2026).  
+A A  indicator lucy 0.0 1.65 self yes potential table/lin LD_SG_table.ldd
+A B  indicator dpd 0.0 1.65 self no potential table/lin LD_SG_table.ldd
+B A  indicator sphere 0.0 1.55 self no potential table/lin LD_SG_table.ldd
+B B  indicator lucy 0.0 1.65 self no potential table/lin LD_SG_table.ldd

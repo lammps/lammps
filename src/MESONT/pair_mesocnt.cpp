@@ -57,7 +57,14 @@ static constexpr double BISECTION_EPS = 1.0e-15;
 
 /* ---------------------------------------------------------------------- */
 
-PairMesoCNT::PairMesoCNT(LAMMPS *lmp) : Pair(lmp)
+PairMesoCNT::PairMesoCNT(LAMMPS *lmp) :
+    Pair(lmp), end_types(nullptr), reduced_nlist(nullptr), numchainlist(nullptr), selfid(nullptr),
+    reduced_neighlist(nullptr), nchainlist(nullptr), endlist(nullptr), selfpos(nullptr),
+    chainlist(nullptr), param(nullptr), w(nullptr), wnode(nullptr), dq_w(nullptr), q1_dq_w(nullptr),
+    q2_dq_w(nullptr), gl_nodes_finf(nullptr), gl_nodes_fsemi(nullptr), gl_weights_finf(nullptr),
+    gl_weights_fsemi(nullptr), uinf_data(nullptr), gamma_data(nullptr), phi_data(nullptr),
+    usemi_data(nullptr), uinf_coeff(nullptr), gamma_coeff(nullptr), phi_coeff(nullptr),
+    usemi_coeff(nullptr), flocal(nullptr), fglobal(nullptr), basis(nullptr)
 {
   single_enable = 0;
   restartinfo = 0;
@@ -70,6 +77,8 @@ PairMesoCNT::PairMesoCNT(LAMMPS *lmp) : Pair(lmp)
   ghostneigh = 0;
 
   comm_forward = 3;
+  special_local_topo = nullptr;
+  nmax_mesocnt = 0;
 }
 
 /* ----------------------------------------------------------------------
@@ -114,6 +123,8 @@ PairMesoCNT::~PairMesoCNT()
     memory->destroy(gl_weights_finf);
     memory->destroy(gl_weights_fsemi);
   }
+
+  memory->destroy(special_local_topo);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1016,8 +1027,11 @@ void PairMesoCNT::bond_neigh_topo()
   // create version of atom->special with local ids and correct images
 
   int atom1, atom2;
-  int **special_local;
-  memory->create(special_local, nlocal + nghost, 2, "pair:special_local");
+  if (atom->nmax > nmax_mesocnt) {
+    memory->grow(special_local_topo, atom->nmax, 2, "pair:special_local_topo");
+    nmax_mesocnt = atom->nmax;
+  }
+  int **special_local = special_local_topo;
 
   for (int i = 0; i < nlocal + nghost; i++) {
     atom1 = atom->map(special[i][0]);
@@ -1161,7 +1175,7 @@ void PairMesoCNT::bond_neigh_topo()
     if (numchainlist[i]) empty_neigh = false;
   }
 
-  memory->destroy(special_local);
+
 
   // count neighbor chain lengths per bond
 
@@ -2583,4 +2597,13 @@ void PairMesoCNT::gl_init_weights(int quad, double *gl_nodes, double *gl_weights
 
     gl_weights[i] = 2.0 / ((1.0 - x * x) * dlegendre * dlegendre);
   }
+}
+
+/* ---------------------------------------------------------------------- */
+
+double PairMesoCNT::memory_usage()
+{
+  double bytes = Pair::memory_usage();
+  if (special_local_topo) bytes += (double) nmax_mesocnt * 2 * sizeof(int);    // special_local_topo[nmax][2]
+  return bytes;
 }

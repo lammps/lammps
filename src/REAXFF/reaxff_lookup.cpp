@@ -185,8 +185,10 @@ namespace ReaxFF {
 
     for (i = 0; i < num_atom_types; ++i)
       existing_types[i] = 0;
-    for (i = 0; i < system->n; ++i)
-      existing_types[system->my_atoms[i].type] = 1;
+    for (i = 0; i < system->n; ++i) {
+      if (system->my_atoms[i].type >= 0)
+        existing_types[system->my_atoms[i].type] = 1;
+    }
 
     MPI_Allreduce(existing_types, aggregated, num_atom_types, MPI_INT, MPI_SUM, world);
 

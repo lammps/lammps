@@ -226,14 +226,14 @@ class PairEAMCD : public PairEAMAlloy {
 class PairEAMCD_OneSite : public PairEAMCD {
  public:
   /// Constructor.
-  PairEAMCD_OneSite(class LAMMPS *lmp) : PairEAM(lmp), PairEAMCD(lmp, 1) {}
+  PairEAMCD_OneSite(class LAMMPS *lmp) : PairEAMCD(lmp, 1) {}
 };
 
 /// The two-site concentration formulation of CD-EAM.
 class PairEAMCD_TwoSite : public PairEAMCD {
  public:
   /// Constructor.
-  PairEAMCD_TwoSite(class LAMMPS *lmp) : PairEAM(lmp), PairEAMCD(lmp, 2) {}
+  PairEAMCD_TwoSite(class LAMMPS *lmp) : PairEAMCD(lmp, 2) {}
 };
 
 }    // namespace LAMMPS_NS

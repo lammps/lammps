@@ -128,7 +128,17 @@ inline int _host_view(mat_type &mat, copy_type &cm, const size_t o,
     mat.cbegin()=clCreateSubBuffer(cm.cbegin(), 0,
                                    CL_BUFFER_CREATE_TYPE_REGION, &subbuffer,
                                    &error_flag);
-    CL_CHECK_ERR(error_flag);
+    // OpenCL requires a sub-buffer origin to be a multiple of the device's
+    // CL_DEVICE_MEM_BASE_ADDR_ALIGN. A data-dependent, unaligned origin (e.g. an
+    // atom/neighbor count offset used by the manybody and ellipsoid styles) is
+    // rejected with CL_MISALIGNED_SUB_BUFFER_OFFSET. In that case fall back to the
+    // same code path used for discrete device memory below (no aliasing sub-buffer):
+    // host<->device copies then route through the mapped host pointer instead of a
+    // device-side buffer alias, which is correct, just not zero-copy.
+    if (error_flag==CL_MISALIGNED_SUB_BUFFER_OFFSET)
+      mat.cbegin()=(cl_mem)0;
+    else
+      CL_CHECK_ERR(error_flag);
   } else
     mat.cbegin()=(cl_mem)0;
   CL_SAFE_CALL(clRetainCommandQueue(mat.cq()));

@@ -1,0 +1,65 @@
+---
+lammps_version: 4 Jul 2026
+tags: granular unvetted
+date_generated: Tue Jul 28 19:01:12 2026
+epsilon: 1e-10
+skip_tests:
+prerequisites: |
+  atom sphere
+  pair granular
+pre_commands: |
+  units si
+  dimension 3
+  boundary p p f
+  atom_style sphere
+  region box block -0.05 0.5 -0.05 0.05 -0.01 0.05 units box
+  create_box 1 box
+  create_atoms 1 single 0.0 0.0 ${z0} units box
+  set group all diameter ${diam} density ${dens}
+  comm_modify vel yes
+  neighbor 0.001 bin
+  neigh_modify delay 0
+  timestep ${dt}
+post_commands: |
+  fix grav all gravity ${grav} vector ${sin_t} 0.0 -${cos_t}
+  fix integr all nve/sphere
+  fix zwall all wall/gran granular hertz/material ${emod} ${en} ${poisson} damping coeff_restitution tangential mindlin NULL 0.5 ${xmu} rolling sds ${kr} 0.0 ${mur} zplane 0.0 NULL
+input_file:
+natoms: 1
+variables: |
+  diam 0.005
+  dens 2700.0
+  emod 1.0e7
+  poisson 0.33
+  en 1.0
+  xmu 0.5
+  kr 10000
+  mur 0.3
+  grav 1.0
+  sin_t 0.17365
+  cos_t 0.98481
+  radius 0.0025
+  dt 1.0e-5
+  z0 0.0024993995
+pair_style: granular
+pair_coeff: |
+  * * hertz/material ${emod} ${en} ${poisson} damping coeff_restitution tangential mindlin NULL 0.5 ${xmu} rolling sds ${kr} 0.0 ${mur}
+run_segments: |-
+  10000 10000
+analytic_enable: yes
+analytic_model: incline_rolling
+analytic_tol: 0.0001
+analytic_segment: -1
+run_pos: |2
+    0   1  8.2278362156040350e-08  0.0000000000000000e+00  2.4993995022452001e-03
+    1   1  8.2643627416025598e-08  0.0000000000000000e+00  2.4993995088692807e-03
+run_vel: |2
+    0   1  1.6781883991027564e-06  0.0000000000000000e+00 -3.1404209870285906e-08
+    1   1 -8.6359100149036079e-06  0.0000000000000000e+00 -6.1248286518745157e-08
+run_torque: |2
+    0   1  0.0000000000000000e+00  3.0925082659080360e-09  0.0000000000000000e+00
+    1   1  0.0000000000000000e+00  9.5341154973817285e-09  0.0000000000000000e+00
+run_omega: |2
+    0   1  0.0000000000000000e+00  1.7348568158217917e-03  0.0000000000000000e+00
+    1   1  0.0000000000000000e+00 -7.1875263633236757e-04  0.0000000000000000e+00
+...

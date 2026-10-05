@@ -26,12 +26,13 @@ namespace LAMMPS_NS {
 
 class FixNeighHistory : public Fix {
  public:
-  int nlocal_neigh;       // nlocal at last time neigh list was built
-  int nall_neigh;         // ditto for nlocal+nghost
-  int use_bit_flag;       // flag whether this fix uses the extra bit in the nlist
-  int **firstflag;        // ptr to each atom's neighbor flsg
-  double **firstvalue;    // ptr to each atom's values
-  class Pair *pair;       // ptr to pair style that uses neighbor history
+  int nlocal_neigh;            // nlocal at last time neigh list was built
+  int nall_neigh;              // ditto for nlocal+nghost
+  int use_bit_flag;            // flag whether this fix uses the extra bit in the nlist
+  int **firstflag;             // ptr to each atom's neighbor flag
+  double **firstvalue;         // ptr to each atom's values
+  class Pair *pair;            // ptr to pair style that uses neighbor history
+  class NeighList *otherlist;  // ptr to list if not using a pair style
 
   FixNeighHistory(class LAMMPS *, int, char **);
   ~FixNeighHistory() override;
@@ -62,11 +63,17 @@ class FixNeighHistory : public Fix {
 
   [[nodiscard]] int get_dnum() const { return dnum; }
   [[nodiscard]] int get_maxpartner() const { return maxpartner; }
+  [[nodiscard]] int *get_npartner() const { return npartner; }
+  [[nodiscard]] tagint **get_partner() const { return partner; }
+  [[nodiscard]] double **get_valuepartner() const { return valuepartner; }
+  [[nodiscard]] MyPage<tagint> *get_ipage_atom() const { return ipage_atom; }
+  [[nodiscard]] MyPage<double> *get_dpage_atom() const { return dpage_atom; }
 
  protected:
   int newton_pair;        // same as force setting
   int dnum, dnumbytes;    // dnum = # of values per neighbor
   int onesided;           // 1 for line/tri history, else 0
+  int surface_global;     // 1 for surface/global, else 0
 
   int maxatom;     // max size of firstflag and firstvalue
   int commflag;    // mode of reverse comm to get ghost info

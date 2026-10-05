@@ -37,7 +37,8 @@ static constexpr double SMALL = 0.001;
 
 /* ---------------------------------------------------------------------- */
 
-ImproperUmbrella::ImproperUmbrella(LAMMPS *_lmp) : Improper(_lmp)
+ImproperUmbrella::ImproperUmbrella(LAMMPS *_lmp) :
+    Improper(_lmp), kw(nullptr), w0(nullptr), C(nullptr)
 {
   writedata = 1;
 

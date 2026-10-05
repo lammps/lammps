@@ -62,28 +62,30 @@ FixLambdaThermostatAPIP::FixLambdaThermostatAPIP(LAMMPS *lmp, int narg, char **a
 
     if (strcmp(arg[iarg], "seed") == 0) {
       if (iarg + 1 >= narg)
-        error->all(FLERR, "fix lambda_thermostat/apip: seed requires one argument");
+        error->all(FLERR, iarg, "fix lambda_thermostat/apip: seed requires one argument");
       seed = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       if (seed <= 0) { error->all(FLERR, "fix lambda_thermostat/apip seed <= 0"); }
       iarg++;
 
     } else if (strcmp(arg[iarg], "store_atomic_forces") == 0) {
       if (iarg + 1 >= narg)
-        error->all(FLERR, "fix lambda_thermostat/apip: store_atomic_forces requires one argument");
+        error->all(FLERR, iarg,
+                   "fix lambda_thermostat/apip: store_atomic_forces requires one argument");
       peratom_flag = 1;
       peratom_freq = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       if (peratom_freq < 1)
-        error->all(FLERR, "fix lambda_thermostat/apip: frequency of store_atomic_forces < 1");
+        error->all(FLERR, iarg + 1,
+                   "fix lambda_thermostat/apip: frequency of store_atomic_forces < 1");
       iarg++;
 
     } else if (strcmp(arg[iarg], "N_rescaling") == 0) {
       if (iarg + 1 >= narg)
-        error->all(FLERR, "fix lambda_thermostat/apip: mode number requires one argument");
+        error->all(FLERR, iarg, "fix lambda_thermostat/apip: mode number requires one argument");
       rescaling_N_neighbours = utils::inumeric(FLERR, arg[iarg + 1], false, lmp);
       iarg += 1;
 
     } else
-      error->all(FLERR, "fix lambda_thermostat/apip: unknown argument {}", arg[iarg]);
+      error->all(FLERR, iarg, "fix lambda_thermostat/apip: unknown argument {}", arg[iarg]);
   }
 
   // error checks
@@ -110,7 +112,7 @@ FixLambdaThermostatAPIP::FixLambdaThermostatAPIP(LAMMPS *lmp, int narg, char **a
     error->all(FLERR, "fix lambda_thermostat/apip: rescaling_N_neighbours <= 1");
 
   // rng for shuffle
-  random_mt = std::mt19937(seed);
+  random_mt = std::mt19937(seed); // NOLINT
 
   // init output values
   energy_change_kin = energy_change_pot = 0;
@@ -173,10 +175,7 @@ void FixLambdaThermostatAPIP::init()
   // full neighbour list for thermostating
   neighbor->add_request(this, NeighConst::REQ_FULL);
 
-  int counter = 0;
-  for (int i = 0; i < modify->nfix; i++)
-    if (strcmp(modify->fix[i]->style, "lambda_thermostat/apip") == 0) counter++;
-  if (counter > 1)
+  if (modify->get_fix_by_style("^lambda_thermostat/apip").size() > 1)
     error->all(FLERR, "fix lambda_thermostat/apip: more than one fix lambda_thermostat/apip");
 
   // local neighbor list

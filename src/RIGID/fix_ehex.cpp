@@ -48,7 +48,7 @@ enum { CONSTANT, EQUAL, ATOM };
 
 FixEHEX::FixEHEX(LAMMPS *lmp, int narg, char **arg) :
     Fix(lmp, narg, arg), region(nullptr), idregion(nullptr), x(nullptr), f(nullptr), v(nullptr),
-    mass(nullptr), rmass(nullptr), type(nullptr), scalingmask(nullptr)
+    mass(nullptr), rmass(nullptr), type(nullptr), fshake(nullptr), scalingmask(nullptr)
 {
   MPI_Comm_rank(world, &me);
 
@@ -171,28 +171,27 @@ void FixEHEX::init()
   if (group->count(igroup) == 0) error->all(FLERR, "Fix ehex group has no atoms");
 
   fshake = nullptr;
+
   if (constraints) {
+
+    // check for fix ilves:
+    if (!modify->get_fix_by_style("^ilves").empty())
+      error->all(FLERR, Error::NOLASTLINE, "Fix ehex is not compatible with fix ilves");
 
     // check if constraining algorithm is used (FixRattle inherits from FixShake)
 
-    int cnt_shake = 0;
-    int id_shake;
-    for (int i = 0; i < modify->nfix; i++) {
-      if (strcmp("rattle", modify->fix[i]->style) == 0 ||
-          strcmp("shake", modify->fix[i]->style) == 0) {
-        cnt_shake++;
-        id_shake = i;
-      }
-    }
+    auto shakefixes = modify->get_fix_by_style("^shake");
+    const auto &rattlefixes = modify->get_fix_by_style("^rattle");
+    shakefixes.insert(shakefixes.end(), rattlefixes.begin(), rattlefixes.end());
 
-    if (cnt_shake > 1)
-      error->all(FLERR, "Multiple instances of fix shake/rattle detected (not supported yet)");
-    else if (cnt_shake == 1) {
-      fshake = (dynamic_cast<FixShake *>(modify->fix[id_shake]));
-    } else if (cnt_shake == 0)
+    if (shakefixes.size() > 1)
+      error->all(FLERR, Error::NOLASTLINE,
+                 "Multiple instances of fix shake/rattle detected (not supported yet)");
+    else if (shakefixes.empty())
       error->all(
           FLERR,
           "Fix ehex was configured with keyword constrain, but shake/rattle was not defined");
+    fshake = dynamic_cast<FixShake *>(shakefixes.front());
   }
 }
 

@@ -84,6 +84,12 @@ int main(int narg, char **arg)
     strcpy(filetxt, arg[iarg]);
     strcat(filetxt, ".txt");
     FILE *fptxt = fopen(filetxt, "w");
+    if (!fptxt) {
+      printf("ERROR: Could not open %s for writing\n", filetxt);
+      delete[] filetxt;
+      fclose(fp);
+      return 1;
+    }
     delete[] filetxt;
 
     // detect newer format
@@ -249,10 +255,10 @@ int main(int narg, char **arg)
 
         // extend buffer to fit chunk size
 
-        if (n > maxbuf) {
+        if ((n > maxbuf) || !buf) {
           delete[] buf;
-          buf = new double[n];
-          maxbuf = n;
+          maxbuf = (n > 0) ? n : 1;
+          buf = new double[maxbuf];
         }
 
         // read chunk and write as size_one values per line

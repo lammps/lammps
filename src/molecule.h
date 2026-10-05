@@ -33,12 +33,14 @@ class Molecule : protected Pointers {
 
   // number of atoms,bonds,etc in molecule
   // nibody,ndbody = # of integer/double fields in body
+  // number of lines or triangles
 
   int natoms;
   int nbonds, nangles, ndihedrals, nimpropers;
   int ntypes, nmolecules, nfragments;
   int nbondtypes, nangletypes, ndihedraltypes, nimpropertypes;
   int nibody, ndbody;
+  int nlines, ntris;
 
   // max bond,angle,etc per atom
 
@@ -53,6 +55,7 @@ class Molecule : protected Pointers {
   int nspecialflag, specialflag;
   int shakeflag, shakeflagflag, shakeatomflag, shaketypeflag;
   int bodyflag, ibodyflag, dbodyflag;
+  int lineflag, triflag;
 
   // 1 if attribute defined or computed, 0 if not
 
@@ -70,11 +73,18 @@ class Molecule : protected Pointers {
 
   double **x;          // displacement of each atom from origin
   int *type;           // type of each atom
-  tagint *molecule;    // molecule of each atom
+  tagint *molecule;    // molecule-ID of each atom
   double *q;           // charge on each atom
   double *radius;      // radius of each atom
   double *rmass;       // mass of each atom
   double **mu;         // dipole vector of each atom
+
+  int *molline;      // molecule-ID of each line
+  int *typeline;     // type of each line
+  double **lines;    // line end points
+  int *moltri;       // molecule-ID of each triangles
+  int *typetri;      // type of each triangle
+  double **tris;     // triangle corner points
 
   int *num_bond;    // bonds, angles, dihedrals, impropers for each atom
   int **bond_type;
@@ -127,8 +137,8 @@ class Molecule : protected Pointers {
   double **dxbody;    // displacement of each atom relative to COM
                       // in body frame (diagonalized interia tensor)
 
-  double *quat_external;    // orientation imposed by external class
-                            // e.g. FixPour or CreateAtoms
+  double quat_external[4];    // orientation imposed by external class
+                              // e.g. FixPour or CreateAtoms
 
   Molecule(class LAMMPS *);
   ~Molecule() override;
@@ -144,7 +154,8 @@ class Molecule : protected Pointers {
   int findfragment(const char *);
   void check_attributes();
 
-  void print(FILE *fp=stdout);
+  double memory_usage();
+  void print(FILE *fp = stdout);
 
  private:
   SafeFilePtr fp;
@@ -163,6 +174,8 @@ class Molecule : protected Pointers {
   void diameters(char *);
   void dipoles(char *);
   void masses(char *);
+  void line_segments(char *);
+  void triangles(char *);
   void bonds(int, char *);
   void angles(int, char *);
   void dihedrals(int, char *);

@@ -37,7 +37,7 @@ static constexpr double SMALL = 0.001;
 
 /* ---------------------------------------------------------------------- */
 
-AngleMM3::AngleMM3(LAMMPS *lmp) : Angle(lmp)
+AngleMM3::AngleMM3(LAMMPS *lmp) : Angle(lmp), theta0(nullptr), k2(nullptr)
 {
   born_matrix_enable = 1;
 }

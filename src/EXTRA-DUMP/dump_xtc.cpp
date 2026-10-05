@@ -866,7 +866,7 @@ int xdr3dfcoord(XDR *xdrs, float *fp, int *size, float *precision)
         lf = *lfp * *precision + 0.5;
       else
         lf = *lfp * *precision - 0.5;
-      if (fabs(lf) > MAXABS) {
+      if (fabsf(lf) > MAXABS) {
         /* scaling would cause overflow */
         errval = 0;
       }
@@ -879,7 +879,7 @@ int xdr3dfcoord(XDR *xdrs, float *fp, int *size, float *precision)
         lf = *lfp * *precision + 0.5;
       else
         lf = *lfp * *precision - 0.5;
-      if (fabs(lf) > MAXABS) {
+      if (fabsf(lf) > MAXABS) {
         /* scaling would cause overflow */
         errval = 0;
       }
@@ -892,7 +892,7 @@ int xdr3dfcoord(XDR *xdrs, float *fp, int *size, float *precision)
         lf = *lfp * *precision + 0.5;
       else
         lf = *lfp * *precision - 0.5;
-      if (fabs(lf) > MAXABS) {
+      if (fabsf(lf) > MAXABS) {
         /* scaling would cause overflow */
         errval = 0;
       }

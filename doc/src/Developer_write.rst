@@ -17,3 +17,4 @@ details are provided for writing code for LAMMPS.
    Developer_write_compute
    Developer_write_command
    Developer_write_openmp
+   Developer_write_docs

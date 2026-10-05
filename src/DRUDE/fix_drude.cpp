@@ -528,3 +528,11 @@ void FixDrude::set_arrays(int i) {
     }
 }
 
+/* ---------------------------------------------------------------------- */
+
+double FixDrude::memory_usage()
+{
+  double bytes = (double) atom->nmax * sizeof(tagint);    // drudeid[nmax]
+  return bytes;
+}
+

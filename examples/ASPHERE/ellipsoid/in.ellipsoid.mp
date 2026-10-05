@@ -114,7 +114,8 @@ thermo          1000
 #dump_modify    1 colname c_0[1] quatw colname c_0[2] quati colname c_0[3] quatj colname c_0[4] quatk &
 #                 colname c_0[5] shapex colname c_0[6] shapey colname c_0[7] shapez
 
-#dump           1 all image 500 image.*.jpg type type zoom 1.6
-#dump_modify    1 pad 6 adiam 1 1 adiam 2 0.2
+#dump           viz all image 500 ellipsoid.mp-*.ppm type type ellipsoid atom 1 5 0.2 &
+#                    size 800 800 zoom 1.8 shiny 0.2 fsaa yes ssao yes 453983 0.6 box yes 0.015
+#dump_modify    viz pad 5 adiam 1 1.33631 adiam 2 0.2
 
 run             10000

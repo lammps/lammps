@@ -40,7 +40,6 @@ class FixSpringKokkos : public FixSpring {
   typedef ArrayTypes<DeviceType> AT;
 
   FixSpringKokkos(class LAMMPS *, int, char **);
-  ~FixSpringKokkos() override {}
   void init() override;
   void post_force(int) override;
 
@@ -61,8 +60,6 @@ class FixSpringKokkos : public FixSpring {
   void operator()(TagFixSpringCoupleRmass, const int &) const;
 
  private:
-  class AtomKokkos *atomKK;
-  ExecutionSpace execution_space;
 
   typename AT::t_kkfloat_1d_3_lr_randomread x;
   typename AT::t_kkacc_1d_3 f;

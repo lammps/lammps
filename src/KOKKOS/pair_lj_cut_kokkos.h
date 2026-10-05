@@ -39,6 +39,8 @@ class PairLJCutKokkos : public PairLJCut {
   PairLJCutKokkos(class LAMMPS *);
   ~PairLJCutKokkos() override;
 
+  class TuneKokkos* tuner;
+
   void compute(int, int) override;
 
   void init_style() override;

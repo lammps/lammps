@@ -84,12 +84,12 @@ class Region : protected Pointers {
 
   // called by other classes to check point versus region
 
-  void prematch();
-  int match(double, double, double);
-  int surface(double, double, double, double);
+  virtual void prematch();
+  virtual int surface(double, double, double, double);
 
+  virtual int match(double, double, double);
   virtual void set_velocity();
-  void velocity_contact(double *, double *, int);
+  virtual void velocity_contact(double *, double *, int);
   virtual void write_restart(FILE *);
   virtual int restart(char *, int &);
   virtual void length_restart_string(int &);
@@ -110,6 +110,8 @@ class Region : protected Pointers {
   virtual void set_velocity_shape() {}
   virtual void velocity_contact_shape(double *, double *) {}
 
+  void inverse_transform(double &, double &, double &);
+
  protected:
   void add_contact(int, double *, double, double, double);
   void options(int, char **);
@@ -121,7 +123,6 @@ class Region : protected Pointers {
   int xvar, yvar, zvar, tvar;
   double axis[3];
 
-  void inverse_transform(double &, double &, double &);
   void rotate(double &, double &, double &, double);
 };
 

@@ -56,7 +56,7 @@ class FixOrientBCC : public Fix {
   void unpack_forward_comm(int, int, double *) override;
   double memory_usage() override;
 
- private:
+ protected:
   int me;
   int ilevel_respa;
 

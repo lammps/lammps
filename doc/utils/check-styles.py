@@ -93,6 +93,7 @@ def require_accel_include(path):
                 if intel.match(line): needs = True
                 if opt.match(line): needs = True
                 if path == "src/fix_colvars.rst": needs = False
+                if path == "src/Commands_removed.rst": needs = False
             m = cmd_pattern.match(line)
             if m:
                 if gpu.match(line): needs = True
@@ -270,6 +271,10 @@ for header in headers:
                     register_style(region,style,info)
                 elif m[0] == 'GranSubMod':
                     pass  # ignore GranSubMod styles for now
+                elif m[0] == 'LddIndicator':
+                    pass  # ignore LddIndicator styles for now
+                elif m[0] == 'LddPotential':
+                    pass  # ignore LddPotential styles for now
                 else:
                     print("Skipping over: ",m)
 

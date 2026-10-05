@@ -66,10 +66,10 @@ void ComputeEventDisplace::init()
   // check if it is correct style
 
   if (id_event != nullptr) {
-    int ifix = modify->find_fix(id_event);
-    if (ifix < 0) error->all(FLERR,
-                             "Could not find compute event/displace fix ID");
-    fix_event = dynamic_cast<FixEvent*>(modify->fix[ifix]);
+    auto *ifix = modify->get_fix_by_id(id_event);
+    if (!ifix) error->all(FLERR,
+                          "Could not find compute event/displace fix ID");
+    fix_event = dynamic_cast<FixEvent*>(ifix);
 
     if (strcmp(fix_event->style,"EVENT/PRD") != 0 &&
         strcmp(fix_event->style,"EVENT/TAD") != 0 &&

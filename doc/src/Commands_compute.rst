@@ -11,30 +11,30 @@ OPT.
 .. table_from_list::
    :columns: 4
 
-   * :doc:`ackland/atom <compute_ackland_atom>`
+   * :doc:`ackland/atom (o) <compute_ackland_atom>`
    * :doc:`adf <compute_adf>`
    * :doc:`aggregate/atom <compute_cluster_atom>`
    * :doc:`angle <compute_angle>`
    * :doc:`angle/local <compute_angle_local>`
    * :doc:`angmom/chunk <compute_angmom_chunk>`
-   * :doc:`ave/sphere/atom (k) <compute_ave_sphere_atom>`
+   * :doc:`ave/sphere/atom (ko) <compute_ave_sphere_atom>`
    * :doc:`basal/atom <compute_basal_atom>`
    * :doc:`body/local <compute_body_local>`
    * :doc:`bond <compute_bond>`
    * :doc:`bond/local <compute_bond_local>`
    * :doc:`born/matrix <compute_born_matrix>`
-   * :doc:`centro/atom <compute_centro_atom>`
+   * :doc:`centro/atom (ko) <compute_centro_atom>`
    * :doc:`centroid/stress/atom <compute_stress_atom>`
    * :doc:`chunk/atom <compute_chunk_atom>`
    * :doc:`chunk/spread/atom <compute_chunk_spread_atom>`
    * :doc:`cluster/atom <compute_cluster_atom>`
-   * :doc:`cna/atom <compute_cna_atom>`
-   * :doc:`cnp/atom <compute_cnp_atom>`
-   * :doc:`com <compute_com>`
+   * :doc:`cna/atom (o) <compute_cna_atom>`
+   * :doc:`cnp/atom (o) <compute_cnp_atom>`
+   * :doc:`com (k) <compute_com>`
    * :doc:`com/chunk <compute_com_chunk>`
-   * :doc:`composition/atom (k) <compute_composition_atom>`
-   * :doc:`contact/atom <compute_contact_atom>`
-   * :doc:`coord/atom (k) <compute_coord_atom>`
+   * :doc:`composition/atom (ko) <compute_composition_atom>`
+   * :doc:`contact/atom (o) <compute_contact_atom>`
+   * :doc:`coord/atom (ko) <compute_coord_atom>`
    * :doc:`count/type <compute_count_type>`
    * :doc:`damage/atom <compute_damage_atom>`
    * :doc:`dihedral <compute_dihedral>`
@@ -50,21 +50,22 @@ OPT.
    * :doc:`edpd/temp/atom <compute_edpd_temp_atom>`
    * :doc:`efield/atom <compute_efield_atom>`
    * :doc:`efield/wolf/atom <compute_efield_wolf_atom>`
-   * :doc:`entropy/atom <compute_entropy_atom>`
+   * :doc:`entropy/atom (ko) <compute_entropy_atom>`
    * :doc:`erotate/asphere (k) <compute_erotate_asphere>`
    * :doc:`erotate/rigid <compute_erotate_rigid>`
    * :doc:`erotate/sphere (k) <compute_erotate_sphere>`
-   * :doc:`erotate/sphere/atom <compute_erotate_sphere_atom>`
+   * :doc:`erotate/sphere/atom (ko) <compute_erotate_sphere_atom>`
    * :doc:`event/displace <compute_event_displace>`
    * :doc:`fabric <compute_fabric>`
    * :doc:`fep <compute_fep>`
    * :doc:`fep/ta <compute_fep_ta>`
    * :doc:`force/tally <compute_tally>`
    * :doc:`fragment/atom <compute_cluster_atom>`
+   * :doc:`frenkel <compute_frenkel>`
    * :doc:`gaussian/grid/local (k) <compute_gaussian_grid_local>`
    * :doc:`global/atom <compute_global_atom>`
    * :doc:`group/group <compute_group_group>`
-   * :doc:`gyration <compute_gyration>`
+   * :doc:`gyration (k) <compute_gyration>`
    * :doc:`gyration/chunk <compute_gyration_chunk>`
    * :doc:`gyration/shape <compute_gyration_shape>`
    * :doc:`gyration/shape/chunk <compute_gyration_shape_chunk>`
@@ -72,13 +73,14 @@ OPT.
    * :doc:`heat/flux <compute_heat_flux>`
    * :doc:`heat/flux/tally <compute_tally>`
    * :doc:`heat/flux/virial/tally <compute_tally>`
-   * :doc:`hexorder/atom <compute_hexorder_atom>`
+   * :doc:`hexorder/atom (ko) <compute_hexorder_atom>`
    * :doc:`hma <compute_hma>`
    * :doc:`improper <compute_improper>`
    * :doc:`improper/local <compute_improper_local>`
+   * :doc:`inertia (k) <compute_inertia>`
    * :doc:`inertia/chunk <compute_inertia_chunk>`
-   * :doc:`ke <compute_ke>`
-   * :doc:`ke/atom <compute_ke_atom>`
+   * :doc:`ke (k) <compute_ke>`
+   * :doc:`ke/atom (ko) <compute_ke_atom>`
    * :doc:`ke/atom/eff <compute_ke_atom_eff>`
    * :doc:`ke/eff <compute_ke_eff>`
    * :doc:`ke/rigid <compute_ke_rigid>`
@@ -89,7 +91,7 @@ OPT.
    * :doc:`msd/nongauss <compute_msd_nongauss>`
    * :doc:`nbond/atom <compute_nbond_atom>`
    * :doc:`omega/chunk <compute_omega_chunk>`
-   * :doc:`orientorder/atom (k) <compute_orientorder_atom>`
+   * :doc:`orientorder/atom (ko) <compute_orientorder_atom>`
    * :doc:`pace <compute_pace>`
    * :doc:`pair <compute_pair>`
    * :doc:`pair/local <compute_pair_local>`
@@ -111,7 +113,7 @@ OPT.
    * :doc:`property/local <compute_property_local>`
    * :doc:`ptm/atom <compute_ptm_atom>`
    * :doc:`rattlers/atom <compute_rattlers_atom>`
-   * :doc:`rdf <compute_rdf>`
+   * :doc:`rdf (o) <compute_rdf>`
    * :doc:`reaxff/atom (k) <compute_reaxff_atom>`
    * :doc:`reduce <compute_reduce>`
    * :doc:`reduce/chunk <compute_reduce_chunk>`
@@ -170,10 +172,10 @@ OPT.
    * :doc:`temp/deform/eff <compute_temp_deform_eff>`
    * :doc:`temp/drude <compute_temp_drude>`
    * :doc:`temp/eff <compute_temp_eff>`
-   * :doc:`temp/partial <compute_temp_partial>`
-   * :doc:`temp/profile <compute_temp_profile>`
-   * :doc:`temp/ramp <compute_temp_ramp>`
-   * :doc:`temp/region <compute_temp_region>`
+   * :doc:`temp/partial (k) <compute_temp_partial>`
+   * :doc:`temp/profile (k) <compute_temp_profile>`
+   * :doc:`temp/ramp (k) <compute_temp_ramp>`
+   * :doc:`temp/region (k) <compute_temp_region>`
    * :doc:`temp/region/eff <compute_temp_region_eff>`
    * :doc:`temp/rotate <compute_temp_rotate>`
    * :doc:`temp/sphere (k) <compute_temp_sphere>`

@@ -2,8 +2,8 @@
 lammps_version: 12 Jun 2025
 date_generated: Sun Jul 20 14:16:44 2025
 epsilon: 2.5e-13
-skip_tests:
-tags: unstable
+skip_tests: kokkos_gpu
+tags:
 prerequisites: ! |
   atom full
   bond quartic

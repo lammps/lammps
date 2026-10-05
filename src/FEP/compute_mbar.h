@@ -71,7 +71,7 @@ class ComputeMBAR : public Compute {
 
   Perturb *perturb;
 
-  void set_grid(char **, int, int);
+  void set_grid(char **, int, int, int);
   double compute_epair();
   void perturb_params(int);
   void backup_params();

@@ -55,7 +55,7 @@ static int grid_nargs(const char *arg)
 
 ComputeMBAR::ComputeMBAR(LAMMPS *lmp, int narg, char **arg) : Compute(lmp, narg, arg)
 {
-  if (narg < 8) error->all(FLERR, "Illegal number of arguments in compute mbar");
+  if (narg < 8) utils::missing_cmd_args(FLERR, "compute mbar", error);
 
   scalar_flag = 0;
   vector_flag = 1;
@@ -66,9 +66,9 @@ ComputeMBAR::ComputeMBAR(LAMMPS *lmp, int narg, char **arg) : Compute(lmp, narg,
 
   temp_mbar = utils::numeric(FLERR, arg[3], false, lmp);
 
-  // each perturbation supplies its own grid (a vector-style variable) holding
-  // the absolute values that the perturbed parameter takes at each state. The
-  // number of states is the common length of these grids.
+  // each perturbation supplies its own grid holding the absolute values that
+  // the perturbed parameter takes at each state. The number of states is the
+  // common length of these grids.
 
   int iarg = 4;
   const int pertstart = iarg;
@@ -76,29 +76,29 @@ ComputeMBAR::ComputeMBAR(LAMMPS *lmp, int narg, char **arg) : Compute(lmp, narg,
   npert = 0;
   while (iarg < narg) {
     if (strcmp(arg[iarg], "pair") == 0) {
-      if (iarg + 6 > narg) error->all(FLERR, "Illegal pair attribute in compute mbar");
+      if (iarg + 6 > narg) utils::missing_cmd_args(FLERR, "compute mbar pair", error);
       int g = grid_nargs(arg[iarg + 5]);
-      if (iarg + 5 + g > narg) error->all(FLERR, "Illegal pair attribute in compute mbar");
+      if (iarg + 5 + g > narg) utils::missing_cmd_args(FLERR, "compute mbar pair", error);
       npert++;
       iarg += 5 + g;
     } else if (strcmp(arg[iarg], "atom") == 0) {
-      if (iarg + 4 > narg) error->all(FLERR, "Illegal atom attribute in compute mbar");
+      if (iarg + 4 > narg) utils::missing_cmd_args(FLERR, "compute mbar atom", error);
       int g = grid_nargs(arg[iarg + 3]);
-      if (iarg + 3 + g > narg) error->all(FLERR, "Illegal atom attribute in compute mbar");
+      if (iarg + 3 + g > narg) utils::missing_cmd_args(FLERR, "compute mbar atom", error);
       npert++;
       iarg += 3 + g;
     } else
       break;
   }
 
-  if (npert == 0) error->all(FLERR, "Illegal syntax in compute mbar");
+  if (npert == 0) error->all(FLERR, iarg, "Unknown compute mbar attribute: {}", arg[iarg]);
   perturb = new Perturb[npert];
   for (int m = 0; m < npert; m++) {
     perturb[m].gridname = nullptr;
     perturb[m].grid = nullptr;
   }
 
-  // parse perturbation keywords and resolve each grid variable
+  // parse perturbation keywords and resolve each grid
 
   npert = 0;
   nlambda = 0;
@@ -114,7 +114,7 @@ ComputeMBAR::ComputeMBAR(LAMMPS *lmp, int narg, char **arg) : Compute(lmp, narg,
       utils::bounds(FLERR, arg[iarg + 4], 1, ntypes, perturb[npert].jlo, perturb[npert].jhi, error);
       {
         int g = grid_nargs(arg[iarg + 5]);
-        set_grid(&arg[iarg + 5], g, npert);
+        set_grid(arg, iarg + 5, g, npert);
         iarg += 5 + g;
       }
       npert++;
@@ -124,11 +124,12 @@ ComputeMBAR::ComputeMBAR(LAMMPS *lmp, int narg, char **arg) : Compute(lmp, narg,
         perturb[npert].aparam = CHARGE;
         chgflag = 1;
       } else
-        error->all(FLERR, "Illegal atom argument in compute mbar");
+        error->all(FLERR, iarg + 1, "Unsupported per-atom property {} for compute mbar",
+                   arg[iarg + 1]);
       utils::bounds(FLERR, arg[iarg + 2], 1, ntypes, perturb[npert].ilo, perturb[npert].ihi, error);
       {
         int g = grid_nargs(arg[iarg + 3]);
-        set_grid(&arg[iarg + 3], g, npert);
+        set_grid(arg, iarg + 3, g, npert);
         iarg += 3 + g;
       }
       npert++;
@@ -145,11 +146,11 @@ ComputeMBAR::ComputeMBAR(LAMMPS *lmp, int narg, char **arg) : Compute(lmp, narg,
 
   while (iarg < narg) {
     if (strcmp(arg[iarg], "tail") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal optional keyword in compute mbar");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "compute mbar tail", error);
       tailflag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
     } else
-      error->all(FLERR, "Illegal optional keyword in compute mbar");
+      error->all(FLERR, iarg, "Unknown compute mbar keyword: {}", arg[iarg]);
   }
 
   // allocate pair style arrays
@@ -173,54 +174,51 @@ ComputeMBAR::ComputeMBAR(LAMMPS *lmp, int narg, char **arg) : Compute(lmp, narg,
 /* ----------------------------------------------------------------------
    resolve the grid spec for perturbation m into perturb[m].grid, the
    absolute values that the perturbed parameter takes at each state. The grid
-   is given either as a single vector-style variable (nargs == 1, arg[0] is
-   v_name) or as the bare numeric form "lo hi n" (nargs == 3) producing n
-   equally spaced values from lo to hi. All grids must share the same length,
-   which is the number of states to sample, nlambda.
+   starts at arg[iarg] and is given either as a single vector-style variable
+   (nargs == 1, v_name) or as the bare numeric form "lo hi n" (nargs == 3)
+   producing n equally spaced values from lo to hi. All grids must share the
+   same length, which is the number of states to sample, nlambda.
 ------------------------------------------------------------------------- */
 
-void ComputeMBAR::set_grid(char **arg, int nargs, int m)
+void ComputeMBAR::set_grid(char **arg, int iarg, int nargs, int m)
 {
-  double *grid;
-  double *linear = nullptr;
+  double *values = nullptr;
+  double lo = 0.0, hi = 0.0;
   int n;
 
   if (nargs == 1) {    // single vector-style variable v_name
 
-    if (!utils::strmatch(arg[0], "^v_"))
-      error->all(FLERR, "Grid for compute mbar perturbation must be a vector-style variable");
-
-    perturb[m].gridname = utils::strdup(arg[0] + 2);
+    delete[] perturb[m].gridname;
+    perturb[m].gridname = utils::strdup(arg[iarg] + 2);
     int gridvar = input->variable->find(perturb[m].gridname);
     if (gridvar < 0)
-      error->all(FLERR, "Variable name {} for compute mbar does not exist", perturb[m].gridname);
+      error->all(FLERR, iarg, "Variable name {} for compute mbar does not exist",
+                 perturb[m].gridname);
     if (!input->variable->vectorstyle(gridvar))
-      error->all(FLERR, "Variable {} for compute mbar must be vector style", perturb[m].gridname);
+      error->all(FLERR, iarg, "Variable {} for compute mbar is not a vector-style variable",
+                 perturb[m].gridname);
 
-    n = input->variable->compute_vector(gridvar, &grid);
-    if (n == 0) error->all(FLERR, "No grid values in compute mbar");
+    n = input->variable->compute_vector(gridvar, &values);
 
   } else {    // bare numeric form: lo hi n
 
-    double lo = utils::numeric(FLERR, arg[0], false, lmp);
-    double hi = utils::numeric(FLERR, arg[1], false, lmp);
-    n = utils::inumeric(FLERR, arg[2], false, lmp);
-    if (n < 2) error->all(FLERR, "Number of states in compute mbar grid must be >= 2");
-
-    linear = new double[n];
-    for (int k = 0; k < n; k++) linear[k] = lo + (hi - lo) * k / (n - 1);
-    grid = linear;
+    lo = utils::numeric(FLERR, arg[iarg], false, lmp);
+    hi = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
+    n = utils::inumeric(FLERR, arg[iarg + 2], false, lmp);
   }
+
+  if (n < 2)
+    error->all(FLERR, iarg + nargs - 1, "Compute mbar grid must have at least 2 states, not {}", n);
 
   if (nlambda == 0)
     nlambda = n;
   else if (n != nlambda)
-    error->all(FLERR, "All perturbation grids in compute mbar must have the same length");
+    error->all(FLERR, iarg, "Compute mbar grid has {} states, but the previous grids have {}", n,
+               nlambda);
 
   perturb[m].grid = new double[n];
-  for (int k = 0; k < n; k++) perturb[m].grid[k] = grid[k];
-
-  delete[] linear;
+  for (int k = 0; k < n; k++)
+    perturb[m].grid[k] = values ? values[k] : lo + (hi - lo) * k / (n - 1);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -252,12 +250,13 @@ void ComputeMBAR::init()
   // setup and error checks, repeated at every init() since the pair style
   // or kspace style may have been changed or added since the previous run
 
+  if (force->pair == nullptr)
+    error->all(FLERR, Error::NOLASTLINE, "Compute mbar requires a pair style to be defined");
+
   pairflag = 0;
 
   for (int m = 0; m < npert; m++) {
     Perturb *pert = &perturb[m];
-
-    if (force->pair == nullptr) error->all(FLERR, "compute mbar pair requires pair interactions");
 
     if (pert->which == PAIR) {
       pairflag = 1;
@@ -270,12 +269,13 @@ void ComputeMBAR::init()
       }
 
       if (pair == nullptr) pair = force->pair_match(pert->pstyle, 1);
-      if (pair == nullptr) error->all(FLERR, "Compute mbar pair style {} not found", pert->pstyle);
+      if (pair == nullptr)
+        error->all(FLERR, Error::NOLASTLINE, "Compute mbar pair style {} not found", pert->pstyle);
 
       void *ptr = pair->extract(pert->pparam, pert->pdim);
       if (ptr == nullptr)
-        error->all(FLERR, "Compute mbar pair style {} param {} not supported", pert->pstyle,
-                   pert->pparam);
+        error->all(FLERR, Error::NOLASTLINE, "Compute mbar pair style {} param {} not supported",
+                   pert->pstyle, pert->pparam);
 
       pert->array = (double **) ptr;
 
@@ -286,23 +286,24 @@ void ComputeMBAR::init()
         for (i = pert->ilo; i <= pert->ihi; i++)
           for (j = MAX(pert->jlo, i); j <= pert->jhi; j++)
             if (!pair->check_ijtype(i, j, pert->pstyle))
-              error->all(FLERR,
-                         "compute mbar type pair range is not valid for "
-                         "pair hybrid sub-style");
+              error->all(FLERR, Error::NOLASTLINE,
+                         "Compute mbar type pair range {}-{} {}-{} is not valid for pair hybrid "
+                         "sub-style {}",
+                         pert->ilo, pert->ihi, pert->jlo, pert->jhi, pert->pstyle);
       }
 
     } else if (pert->which == ATOM) {
       if (pert->aparam == CHARGE) {
-        if (!atom->q_flag) error->all(FLERR, "compute mbar requires atom attribute charge");
+        if (!atom->q_flag)
+          error->all(FLERR, Error::NOLASTLINE, "Compute mbar requires atom attribute charge");
       }
     }
   }
 
   if (tailflag) {
     if (force->pair->tail_flag == 0)
-      error->all(FLERR,
-                 "Compute mbar tail when pair style does not "
-                 "compute tail corrections");
+      error->all(FLERR, Error::NOLASTLINE,
+                 "Compute mbar tail keyword requires a pair style that computes tail corrections");
   }
 
   // (re-)allocate per-atom storage, the kspace arrays depend on force->kspace
@@ -361,7 +362,8 @@ void ComputeMBAR::compute_vector()
 
   for (int k = 0; k < nlambda; k++) {
 
-    // compute with perturbation parameters at each lambda state k
+    // compute with the parameters of state k. Every state sets absolute values,
+    // so the original values need to be restored only once, after the last state
 
     perturb_params(k);
 
@@ -381,10 +383,10 @@ void ComputeMBAR::compute_vector()
     if (fixgpu) fixgpu->post_force(vflag);
 
     vector[k] = compute_epair() / kT;
-
-    restore_qfev();      // restore charge, force, energy, virial array values
-    restore_params();    // restore pair parameters
   }
+
+  restore_qfev();      // restore charge, force, energy, virial array values
+  restore_params();    // restore pair parameters
 }
 
 /* ----------------------------------------------------------------------
@@ -458,9 +460,10 @@ void ComputeMBAR::perturb_params(int k)
 
   if (pairflag) force->pair->reinit();
 
-  // reset KSpace charges if charges have changed
+  // reset KSpace charges if charges have changed. No warning about a system
+  // without charges, since all charges may be zero in a decoupled state
 
-  if (chgflag && force->kspace) force->kspace->qsum_qsq();
+  if (chgflag && force->kspace) force->kspace->qsum_qsq(0);
 }
 
 /* ----------------------------------------------------------------------

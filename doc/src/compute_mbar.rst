@@ -34,7 +34,7 @@ Syntax
 
        grid = lo hi n or v_name
          lo hi n = n equally spaced values from *lo* to *hi* (inclusive), n >= 2
-         v_name = :doc:`vector-style variable <variable>` listing the value at each state explicitly
+         v_name = :doc:`vector-style variable <variable>` listing the value at each state explicitly (at least 2 values)
 
 * zero or more keyword/value pairs may be appended
 * keyword = *tail*
@@ -118,11 +118,12 @@ state. It is given in one of two forms:
 
 All perturbation grids must have the same length, which defines the number
 of states; this length sets the length of the global vector produced by the
-compute.
+compute.  A grid must hold at least 2 values, in either of its two forms.
 
 At each sampling state of the MBAR method, the perturbed parameter is *set*
-to the corresponding grid value (its original value is saved and restored
-after the compute).
+to the corresponding grid value.  The original values of all perturbed
+parameters are saved before the first state and restored after the last
+one, so the compute does not affect the trajectory.
 
 For the *pair* attribute the user decides which parameter to couple: it can
 be the explicit activation (:math:`\lambda`) parameter of a soft-core pair
@@ -192,12 +193,15 @@ depend on their much smaller differences between states.  They must be
 written with more significant digits than the 6 digits of the default
 output format of :doc:`fix ave/time <fix_ave_time>`, for example with its
 *format* keyword as shown below.  Otherwise, the accuracy of the results
-degrades with increasing system size.
+degrades with increasing system size.  The format string must start with
+a space (and thus be quoted), since it is written right after the row
+index and a value that fills its field width would otherwise be merged
+with that index.
 
 .. code-block:: LAMMPS
 
    compute MBAR all mbar 300.0 pair lj/cut/soft lambda 1 * 0.0 1.0 21
-   fix MBAR all ave/time 20 1 20 c_MBAR mode vector format %20.15g file mbar.lmp
+   fix MBAR all ave/time 20 1 20 c_MBAR mode vector format " %.15g" file mbar.lmp
 
 The utility scripts ``lmp2ukln.py`` and ``mbar.py`` in the ``tools/fep``
 directory carry out this post-processing: ``lmp2ukln.py`` reshapes the
@@ -209,7 +213,7 @@ per-state equilibration detection and decorrelation) to obtain the free
 energy differences and their uncertainties. An end-to-end example is provided
 in the ``examples/PACKAGES/fep/CH4hyd/mbar`` directory.
 
-The values calculated by this compute are "extensive".
+The vector values calculated by this compute are "intensive".
 
 Restrictions
 """"""""""""

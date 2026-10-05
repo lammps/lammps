@@ -557,7 +557,7 @@ void ComputeContinuumChunk::compute_array()
                 values_local[mtmp][field_index] -= f_wall[a] * dx_atom_cont[b] * w_int_tmp;
               } else if (style == IFD) {
                 MathExtra::copy3(xcont, xbin2);
-                for (a = 0; a < chunk_ncoord; a++) xbin2[cdim[a]] = xbin[cdim[a]];
+                for (int c = 0; c < chunk_ncoord; c++) xbin2[cdim[c]] = xbin[cdim[c]];
                 MathExtra::sub3(xbin2, xcont, dx_bin_cont);
                 rsq_cont_bin = MathExtra::lensq3(dx_bin_cont);
                 wc = calc_w(sqrt(rsq_cont_bin));

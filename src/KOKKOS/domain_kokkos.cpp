@@ -19,6 +19,7 @@
 #include "force.h"
 #include "kspace.h"
 #include "kokkos.h"
+#include "modify.h"
 
 #include <cmath>
 #include <limits>
@@ -611,6 +612,8 @@ void DomainKokkos::image_flip(int m_in, int n_in, int p_in)
   copymode = 0;
 
   atomKK->modified(Device,IMAGE_MASK);
+
+  modify->image_flip(m_in, n_in, p_in);
 }
 
 // NOLINTNEXTLINE

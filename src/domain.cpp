@@ -2009,6 +2009,8 @@ void Domain::unmap(const double *x, const double *v, imageint image, int mask, d
      simulation box an unwrapped point maps to
    image_flip_one() does this for a single image flag
       called directly by rigid fixes for image flag of each rigid body
+   modify->image_flip() lets fixes with their own image flags (rigid bodies)
+     do the same, for every fix that flips the box
 ------------------------------------------------------------------------- */
 
 void Domain::image_flip(int m, int n, int p)
@@ -2018,6 +2020,8 @@ void Domain::image_flip(int m, int n, int p)
 
   for (int i = 0; i < nlocal; i++)
     image_flip_one(image[i], m, n, p);
+
+  modify->image_flip(m, n, p);
 }
 
 void Domain::image_flip_one(imageint &image, int m, int n, int p)

@@ -779,10 +779,11 @@ void FixRigidSmall::initial_integrate(int vflag)
 }
 
 /* ----------------------------------------------------------------------
-   adjustment of body image flags due to a box flip by FixDeform
-   invoked via call by FixDeform to modify->image_flip() in pre_exchange()
-   performs same operation FixDeform does for all per-atom image flags
-   FixDeform also does a remap_all() for x,v,image of all atoms
+   adjustment of body image flags due to a box flip
+   invoked via Domain::image_flip() -> Modify::image_flip() by every fix
+     that flips the box (fix deform, fix npt/nph, fix press/langevin, ...)
+   performs same operation Domain::image_flip() does for all per-atom image flags
+   the flipping fix then remaps x,image (and v for fix deform remap v) of all atoms
      this fix does it in pre_neighbor() for x,v,image of each rigid body
 ------------------------------------------------------------------------- */
 
@@ -799,7 +800,8 @@ void FixRigidSmall::image_flip(int flipxy, int flipxz, int flipyz)
    performs 3 operations
    (1) reset body xcm, vcm, image via remap() due to 2 effects
          incremental movement of body xcm across a periodic boundary
-         box flip in FixDeform, which invoked image_flip() before atom exchange
+         box flip by FixDeform or another fix, which invoked image_flip()
+           before atom exchange
        (a) assign rigid body xcm back into periodic simulation box
            can be far away, due to box flip or
              due to first-time definition of rigid body in setup_bodies_static()

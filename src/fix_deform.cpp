@@ -778,8 +778,8 @@ void FixDeform::init()
     adjusts their image flags further, adjusts velocity due to "remap v"
   important that image_flip comes before remap, since remap may change
     image flags to new values, making eqs in doc of Domain:image_flip incorrect
-  modify->image_flip triggers rigid fixes to do same 2 operations
-    for body xcm,vcm,imagebody
+  Domain::image_flip() also calls modify->image_flip() so rigid fixes flip
+    their body image flags; they remap body xcm,vcm,imagebody in pre_neighbor()
   finally irregular comm of atoms in lamda coords to migrate atoms to new procs
 ------------------------------------------------------------------------- */
 
@@ -824,7 +824,6 @@ void FixDeform::pre_exchange()
 
   domain->image_flip(flipxy, flipxz, flipyz);
   domain->remap_all();
-  modify->image_flip(flipxy, flipxz, flipyz);
 
   domain->x2lamda(atom->nlocal);
   migrate_atoms();

@@ -402,11 +402,13 @@ void ComputeContinuumChunk::init()
     // Find if granular or gran, need to include tangential forces
     if (force->pair_match("^granular", 0) || force->pair_match("^gran/", 0)) pstyle = GRANULAR;
 
+    // As in pair/local, create occasional list instead of using actual pair list (could be half/full)
+    //   Note, if any new granular pair styles use history with a full list this will need to be updated
     auto *pairrequest = neighbor->find_request(force->pair);
     if (pairrequest && pairrequest->get_size())
-      neighbor->add_request(this, REQ_SIZE | REQ_OCCASIONAL | REQ_FULL);
+      neighbor->add_request(this, REQ_SIZE | REQ_OCCASIONAL);
     else
-      neighbor->add_request(this, REQ_OCCASIONAL | REQ_FULL);
+      neighbor->add_request(this, REQ_OCCASIONAL);
   }
 
   if (domain->triclinic)
@@ -455,11 +457,12 @@ void ComputeContinuumChunk::compute_array()
     for (i = 0; i < size_array_cols; i++) array[m][i] = 0.0;
   }
 
-  int a, b, itype, style, component, field_index, jboundary;
-  double w, wc, mi, voli, rsq_atom_bin, rsq_cont_bin, rsq_pair, r_pair;
+  int a, b, itype, style, component, field_index, iboundary, jboundary;
+  double w, wc, massi, voli, volj, rsq_atom_bin, rsq_cont_bin, rsq_pair, r_pair;
   double f_norm, w_int_tmp, factor_lj;
   double coordx[3], xbin0[3], xbin[3], xbin2[3], xcont[3], f_pair[3], f_wall[3], dx_pair[3];
   double dx_pair_filtered[3], dx_atom_bin[3], dx_bin_cont[3], dx_atom_cont[3], dx_atom_cont_filtered[3];
+  double **array_atom_fix;
 
   double **x = atom->x;
   double **v = atom->v;
@@ -469,20 +472,6 @@ void ComputeContinuumChunk::compute_array()
   int *type = atom->type;
   int *mask = atom->mask;
   int nlocal = atom->nlocal;
-
-  Pair *pair = force->pair;
-  double **cutsq = force->pair->cutsq;
-  double *special_lj = force->special_lj;
-
-  int jj, jnum;
-  int *jlist, *numneigh, **firstneigh;
-  double **array_atom_fix;
-
-  if (calculate_pair) {
-    neighbor->build_one(list);
-    numneigh = list->numneigh;
-    firstneigh = list->firstneigh;
-  }
 
   auto wall_fixes = modify->get_fix_by_style("wall/gran");
 
@@ -506,9 +495,9 @@ void ComputeContinuumChunk::compute_array()
 
       itype = type[i];
       if (rmass)
-        mi = rmass[i];
+        massi = rmass[i];
       else
-        mi = mass[itype];
+        massi = mass[itype];
       voli = 0.0;
       if (radius_required) {
         voli = MY_PI * radius[i] * radius[i];
@@ -539,11 +528,11 @@ void ComputeContinuumChunk::compute_array()
             if (rsq_atom_bin < w_cut_sq)
               values_local[mtmp][field_index] += 1.0;
           } else if (style == DENSITY) {
-            values_local[mtmp][field_index] += mi * w;
+            values_local[mtmp][field_index] += massi * w;
           } else if (style == VOLFRAC) {
             values_local[mtmp][field_index] += voli * w;
           } else if (style == MOMENTUM) {
-            values_local[mtmp][field_index] += mi * v[i][component] * w;
+            values_local[mtmp][field_index] += massi * v[i][component] * w;
           }
 
           if ((boundaryflag  == BOUNDARY_FIX || boundaryflag == BOUNDARY_BOTH) && ((style == STRESS) || (style == STRESSCON))) {
@@ -570,91 +559,236 @@ void ComputeContinuumChunk::compute_array()
 
           field_index++;
         }
+      }
+    }
+  }
 
-        // Note that in the future the performance of this loop could be improved by only performing one
-        //   single() calculation if the loops were reordered. Ditto for lambda2x() calculations.
-        if (calculate_pair) {
-          jlist = firstneigh[i];
-          jnum = numneigh[i];
-          for (jj = 0; jj < jnum; jj++) {
-            j = jlist[jj];
-            factor_lj = special_lj[sbmask(j)];
-            j &= NEIGHMASK;
+  if (calculate_pair) {
+    Pair *pair = force->pair;
+    double **cutsq = force->pair->cutsq;
+    double *special_lj = force->special_lj;
+    int newton_pair = force->newton_pair;
+    double xbin0i[3], xbin0j[3];
 
-            if (!(mask[j] & groupbit)) continue;
+    tagint itag, jtag;
+    tagint *tag = atom->tag;
 
-            if (boundary_group_flag && (mask[j] & boundary_groupbit))
-              jboundary = 1;
-            else
-              jboundary = 0;
+    int ii, jj, jnum, *jlist;
+    int mi, mj;
 
-            MathExtra::sub3(x[i], x[j], dx_pair);
-            rsq_pair = MathExtra::lensq3(dx_pair);
-            if (rsq_pair >= cutsq[itype][type[j]]) continue;
+    neighbor->build_one(list);
 
-            r_pair = sqrt(rsq_pair);
+    int inum = list->inum;
+    int *ilist = list->ilist;
+    int *numneigh = list->numneigh;
+    int **firstneigh = list->firstneigh;
 
-            pair->single(i, j, itype, type[j], rsq_pair, 1.0, 1.0, f_norm);
+    for (ii = 0; ii < inum; ii++) {
+      i = ilist[ii];
 
-            MathExtra::scale3(f_norm, dx_pair, f_pair);
-            if (pstyle == GRANULAR) {
-              f_pair[0] += force->pair->svector[0];
-              f_pair[1] += force->pair->svector[1];
-              f_pair[2] += force->pair->svector[2];
+      if (!(mask[i] & groupbit)) continue;
+
+      mi = ichunk[i] - 1;
+
+      voli = 0.0;
+      if (radius_required) {
+        voli = MY_PI * radius[i] * radius[i];
+        if (dim == 3) voli *= 4.0 * THIRD * radius[i];
+      }
+
+      if (boundary_group_flag && (mask[i] & boundary_groupbit))
+        iboundary = 1;
+      else
+        iboundary = 0;
+
+      jlist = firstneigh[i];
+      jnum = numneigh[i];
+      itag = tag[i];
+
+      if (chunk_reducedflag) {
+        double lamda[3];
+        domain->x2lamda(x[i], lamda);
+        for (a = 0; a < chunk_ncoord; a++)
+          lamda[cdim[a]] = coord[m][a];
+        domain->lamda2x(lamda, xbin0i);
+      } else {
+        MathExtra::copy3(x[i], xbin0i);
+        for (a = 0; a < chunk_ncoord; a++)
+          xbin0i[cdim[a]] = coord[m][a];
+      }
+
+      for (jj = 0; jj < jnum; jj++) {
+        j = jlist[jj];
+        factor_lj = special_lj[sbmask(j)];
+        j &= NEIGHMASK;
+
+        if (!(mask[j] & groupbit)) continue;
+
+        // itag = jtag is possible for long cutoffs that include images of self
+
+        if (newton_pair == 0 && j >= nlocal) {
+          jtag = tag[j];
+          if (itag > jtag) {
+            if ((itag + jtag) % 2 == 0) continue;
+          } else if (itag < jtag) {
+            if ((itag + jtag) % 2 == 1) continue;
+          } else {
+            if (x[j][2] < x[i][2]) continue;
+            if (x[j][2] == x[i][2]) {
+              if (x[j][1] < x[i][1]) continue;
+              if (x[j][1] == x[i][1] && x[j][0] < x[i][0]) continue;
             }
+          }
+        }
 
-            MathExtra::scale3(factor_lj, f_pair, f_pair);
-            if (MathExtra::lensq3(f_pair) == 0.0) continue;
+        mj = ichunk[j] - 1;
 
-            if (jboundary) {
-              MathExtra::add3(x[i], x[j], xcont);
-              MathExtra::scaleadd3((radius[j] - radius[i]) / r_pair, dx_pair, xcont, xcont);
-              MathExtra::scale3(0.5, xcont);
+        volj = 0.0;
+        if (radius_required) {
+          volj = MY_PI * radius[j] * radius[j];
+          if (dim == 3) volj *= 4.0 * THIRD * radius[j];
+        }
 
-              MathExtra::copy3(xcont, xbin2);
-              for (a = 0; a < chunk_ncoord; a++) xbin2[cdim[a]] = xbin[cdim[a]];
-              MathExtra::sub3(xbin2, xcont, dx_bin_cont);
+        if (boundary_group_flag && (mask[j] & boundary_groupbit))
+          jboundary = 1;
+        else
+          jboundary = 0;
 
-              rsq_cont_bin = MathExtra::lensq3(dx_bin_cont);
-              wc = calc_w(sqrt(rsq_cont_bin));
+        if (chunk_reducedflag) {
+          double lamda[3];
+          domain->x2lamda(x[j], lamda);
+          for (a = 0; a < chunk_ncoord; a++)
+            lamda[cdim[a]] = coord[m][a];
+          domain->lamda2x(lamda, xbin0j);
+        } else {
+          MathExtra::copy3(x[j], xbin0j);
+          for (a = 0; a < chunk_ncoord; a++)
+            xbin0j[cdim[a]] = coord[m][a];
+        }
 
-              MathExtra::sub3(x[i], xcont, dx_atom_cont);
-              MathExtra::zero3(dx_atom_cont_filtered);
-              for (int coord_index = 0; coord_index < chunk_ncoord; coord_index++)
-                dx_atom_cont_filtered[cdim[coord_index]] = dx_atom_cont[cdim[coord_index]];
-              w_int_tmp = calc_w_int(dx_atom_bin, dx_atom_cont_filtered);
-            } else {
-              MathExtra::zero3(dx_pair_filtered);
-              for (int coord_index = 0; coord_index < chunk_ncoord; coord_index++)
-                dx_pair_filtered[cdim[coord_index]] = dx_pair[cdim[coord_index]];
-              w_int_tmp = calc_w_int(dx_atom_bin, dx_pair_filtered);
-            }
+        MathExtra::sub3(x[i], x[j], dx_pair);
+        rsq_pair = MathExtra::lensq3(dx_pair);
+        if (rsq_pair >= cutsq[itype][type[j]]) continue;
 
-            field_index = 0;
-            for (auto &val : values) {
-              style = val.first;
-              component = val.second;
+        r_pair = sqrt(rsq_pair);
 
-              a = component / 3;
-              b = component % 3;
+        pair->single(i, j, itype, type[j], rsq_pair, 1.0, 1.0, f_norm);
 
-              if ((style == STRESS) || (style == STRESSCON)) {
-                if (jboundary) {
-                  values_local[mtmp][field_index] -= f_pair[a] * dx_atom_cont[b] * w_int_tmp;
-                } else {
-                  values_local[mtmp][field_index] -= f_pair[a] * dx_pair[b] * w_int_tmp;
-                }
-              } else if (style == IFD) {
-                if (jboundary)
-                  values_local[mtmp][field_index] -= f_pair[a] * wc;
-              } else if (style == FABRIC) {
-                if (jboundary)
-                  values_local[mtmp][field_index] +=
-                    0.5 * voli * dx_pair[a] * dx_pair[b] * w_int_tmp / rsq_pair;
+        MathExtra::scale3(f_norm, dx_pair, f_pair);
+        if (pstyle == GRANULAR) {
+          f_pair[0] += force->pair->svector[0];
+          f_pair[1] += force->pair->svector[1];
+          f_pair[2] += force->pair->svector[2];
+        }
+
+        MathExtra::scale3(factor_lj, f_pair, f_pair);
+        if (MathExtra::lensq3(f_pair) == 0.0) continue;
+
+        if (iboundary || jboundary) {
+          MathExtra::add3(x[i], x[j], xcont);
+          MathExtra::scaleadd3((radius[j] - radius[i]) / r_pair, dx_pair, xcont, xcont);
+          MathExtra::scale3(0.5, xcont);
+
+          MathExtra::copy3(xcont, xbin2);
+          for (a = 0; a < chunk_ncoord; a++) xbin2[cdim[a]] = xbin[cdim[a]];
+          MathExtra::sub3(xbin2, xcont, dx_bin_cont);
+
+          rsq_cont_bin = MathExtra::lensq3(dx_bin_cont);
+          wc = calc_w(sqrt(rsq_cont_bin));
+
+          MathExtra::sub3(x[i], xcont, dx_atom_cont);
+          MathExtra::zero3(dx_atom_cont_filtered);
+          for (int coord_index = 0; coord_index < chunk_ncoord; coord_index++)
+            dx_atom_cont_filtered[cdim[coord_index]] = dx_atom_cont[cdim[coord_index]];
+          w_int_tmp = calc_w_int(dx_atom_bin, dx_atom_cont_filtered);
+        }
+
+        if ((!iboundary) || (!jboundary)) {
+          MathExtra::zero3(dx_pair_filtered);
+          for (int coord_index = 0; coord_index < chunk_ncoord; coord_index++)
+            dx_pair_filtered[cdim[coord_index]] = dx_pair[cdim[coord_index]];
+          w_int_tmp = calc_w_int(dx_atom_bin, dx_pair_filtered);
+        }
+
+        // loop over stencil for i
+
+        for (auto &stencil_offset : stencil) {
+          xbin[0] = xbin0i[0] + stencil_offset.dx[0];
+          xbin[1] = xbin0i[1] + stencil_offset.dx[1];
+          xbin[2] = xbin0i[2] + stencil_offset.dx[2];
+
+          mtmp = shifted_bin(mi, stencil_offset.dn);
+          if (mtmp == -1) continue;
+
+          MathExtra::sub3(x[i], xbin, dx_atom_bin);
+          rsq_atom_bin = MathExtra::lensq3(dx_atom_bin);
+          w = calc_w(sqrt(rsq_atom_bin));
+
+          field_index = 0;
+          for (auto &val : values) {
+            style = val.first;
+            component = val.second;
+
+            a = component / 3;
+            b = component % 3;
+
+            if ((style == STRESS) || (style == STRESSCON)) {
+              if (jboundary) {
+                values_local[mtmp][field_index] -= f_pair[a] * dx_atom_cont[b] * w_int_tmp;
+              } else {
+                values_local[mtmp][field_index] -= f_pair[a] * dx_pair[b] * w_int_tmp;
               }
-
-              field_index++;
+            } else if (style == IFD) {
+              if (jboundary)
+                values_local[mtmp][field_index] -= f_pair[a] * wc;
+            } else if (style == FABRIC) {
+              if (jboundary)
+                values_local[mtmp][field_index] +=
+                  voli * dx_pair[a] * dx_pair[b] * w_int_tmp / rsq_pair;
             }
+
+            field_index++;
+          }
+        }
+
+        // loop over stencil for j, IFD changes sign, FABRIC remains the same
+
+        for (auto &stencil_offset : stencil) {
+          xbin[0] = xbin0j[0] + stencil_offset.dx[0];
+          xbin[1] = xbin0j[1] + stencil_offset.dx[1];
+          xbin[2] = xbin0j[2] + stencil_offset.dx[2];
+
+          mtmp = shifted_bin(mj, stencil_offset.dn);
+          if (mtmp == -1) continue;
+
+          MathExtra::sub3(x[j], xbin, dx_atom_bin);
+          rsq_atom_bin = MathExtra::lensq3(dx_atom_bin);
+          w = calc_w(sqrt(rsq_atom_bin));
+
+          field_index = 0;
+          for (auto &val : values) {
+            style = val.first;
+            component = val.second;
+
+            a = component / 3;
+            b = component % 3;
+
+            if ((style == STRESS) || (style == STRESSCON)) {
+              if (jboundary) {
+                values_local[mtmp][field_index] -= f_pair[a] * dx_atom_cont[b] * w_int_tmp;
+              } else {
+                values_local[mtmp][field_index] -= f_pair[a] * dx_pair[b] * w_int_tmp;
+              }
+            } else if (style == IFD) {
+              if (jboundary)
+                values_local[mtmp][field_index] += f_pair[a] * wc;
+            } else if (style == FABRIC) {
+              if (jboundary)
+                values_local[mtmp][field_index] +=
+                  voli * dx_pair[a] * dx_pair[b] * w_int_tmp / rsq_pair;
+            }
+
+            field_index++;
           }
         }
       }
@@ -716,9 +850,9 @@ void ComputeContinuumChunk::compute_array()
           MathExtra::sub3(vtemp, v[i], vtemp);
           itype = type[i];
           if (rmass)
-            mi = rmass[i];
+            massi = rmass[i];
           else
-            mi = mass[itype];
+            massi = mass[itype];
 
           field_index = 0;
           for (auto &val : values) {
@@ -729,9 +863,9 @@ void ComputeContinuumChunk::compute_array()
             b = component % 3;
 
             if (style == TEMPERATURE) {
-              values_local[mtmp][field_index] += 0.5 * mi * MathExtra::lensq3(vtemp) * w;
+              values_local[mtmp][field_index] += 0.5 * massi * MathExtra::lensq3(vtemp) * w;
             } else if ((style == STRESS) || (style == STRESSKE)) {
-              values_local[mtmp][field_index] -= mi * vtemp[a] * vtemp[b] * w;
+              values_local[mtmp][field_index] -= massi * vtemp[a] * vtemp[b] * w;
             }
 
             field_index++;

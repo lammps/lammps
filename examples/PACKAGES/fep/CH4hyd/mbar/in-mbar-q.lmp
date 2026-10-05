@@ -71,9 +71,10 @@ compute MBAR all mbar ${TK} &
 # (Nrepeat = 1, no time averaging) so pymbar gets the raw samples; equilibration
 # and decorrelation are detected per state during post-processing.
 # The values are large (energy of the whole system), so they are written with
-# 15 significant digits instead of the 6 digits of the default format.
+# 15 significant digits instead of the 6 digits of the default format. The
+# format starts with a space to separate the values from the row index.
 # Samples are grouped into states by timestep: state k = (step-1)/20000
-fix MBAR all ave/time 20 1 20 c_MBAR mode vector format %20.15g &
+fix MBAR all ave/time 20 1 20 c_MBAR mode vector format " %.15g" &
   file mbar01-q.lmp
 
 dump TRAJ all custom 20000 dump-mbar-q.lammpstrj id mol type element x y z ix iy iz

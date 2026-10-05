@@ -32,21 +32,36 @@ Run the legs in order:
 Each leg writes, every 20 steps, a `fix ave/time ... mode vector` file holding
 the instantaneous reduced potentials at every state (no time averaging, so the
 raw samples are available for decorrelation), with 15 significant digits
-(`format %20.15g`) since the default format of 6 digits loses accuracy. Post-process them with the
-scripts in the `tools/fep` directory: `lmp2ukln.py` reshapes the LAMMPS output
+(`format " %.15g"`) since the default format of 6 digits loses accuracy.
+Post-process them with the scripts in the `tools/fep` directory:
+`lmp2ukln.py` reshapes the LAMMPS output
 into a u_kln array (grouping samples by held state using the window length),
 and `mbar.py` runs pymbar (per-state equilibration detection and decorrelation
-included) to obtain the free energy difference and a profile along lambda:
+included) to obtain the free energy difference, here in kcal/mol (`real`
+units), and a profile along the states:
 
     lmp2ukln.py mbar01-lj.lmp 50000 u_kln-lj.npy
-    mbar.py 300 u_kln-lj.npy
+    mbar.py real 300 u_kln-lj.npy -g 0.0 1.0
 
     lmp2ukln.py mbar01-q.lmp 20000 u_kln-q.npy
-    mbar.py 300 u_kln-q.npy
+    mbar.py real 300 u_kln-q.npy
+
+The log files of the two legs, `log.mbar-lj` and `log.mbar-q` (run on 8 MPI
+processes), are provided for comparison. The output files with the reduced
+potentials are too large to be included; post-processing them as above gave:
+
+    LJ leg:      3.93 +/- 0.22 kT  =  2.34  +/- 0.13  kcal/mol
+    charge leg:  0.02 +/- 0.01 kT  =  0.010 +/- 0.007 kcal/mol
+
+The numbers of a different run will differ from these within the statistical
+uncertainty, since the trajectories depend on the number of processes and on
+the platform.
 
 The two contributions (LJ and charge) add up to the free energy of hydration,
-dominated by the LJ/cavity term, and can be compared with the FEP result in the
-parent directory and with the experimental value of 2.0 kcal/mol.
+2.35 kcal/mol, dominated by the LJ/cavity term. This can be compared with the
+FEP result in the parent directory (2.12 kcal/mol from `fep01`), with the
+literature value for these force field models, 2.27 kcal/mol, and with the
+experimental value of 2.0 kcal/mol.
 
 These example calculations are for tutorial purposes only. The results may not
 be of research quality (sampling, lambda spacing, ideal-gas contributions,

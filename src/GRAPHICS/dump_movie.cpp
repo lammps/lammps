@@ -44,10 +44,12 @@ void DumpMovie::openfile()
 #ifdef LAMMPS_FFMPEG
     auto ffmpeg = platform::find_exe_path("ffmpeg");
     if (ffmpeg.empty()) {
-      error->one(FLERR, Error::NOLASTLINE, "Dump movie requires 'ffmpeg' but it could not be found");
+      error->one(FLERR, Error::NOLASTLINE,
+                 "Dump movie requires 'ffmpeg' but it could not be found");
     } else {
-      auto moviecmd = fmt::format("\"{}\" -v error -y -r {:.2f} -f image2pipe -c:v ppm -i - -r 24.0 -b:v {}k {}",
-                      ffmpeg, framerate, bitrate, filename);
+      auto moviecmd = fmt::format(
+          "ffmpeg -v error -y -r {:.2f} -f image2pipe -c:v ppm -i - -r 24.0 -b:v {}k \"{}\"",
+          framerate, bitrate, filename);
 
       fp.set_pclose();
       fp = platform::popen(moviecmd, "w");

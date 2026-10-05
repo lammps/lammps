@@ -191,7 +191,7 @@ FixPressLangevin::FixPressLangevin(LAMMPS *lmp, int narg, char **arg) :
       p_flag[4] = 1;
       iarg += 4;
       if (dimension == 2)
-        error->all(FLERR, iarg, "Fix press/langevin zz option not allowed for a 2d simulation");
+        error->all(FLERR, iarg, "Fix press/langevin xz option not allowed for a 2d simulation");
 
     } else if (strcmp(arg[iarg], "xy") == 0) {
       if (iarg + 4 > narg) utils::missing_cmd_args(FLERR, "fix press/langevin xy", error);
@@ -593,9 +593,13 @@ void FixPressLangevin::couple_pressure()
     p_current[1] = tensor[1];
     p_current[2] = tensor[2];
   }
-  p_current[3] = tensor[3];
+
+  // the pressure tensor is ordered xx,yy,zz,xy,xz,yz
+  // the off-diagonal pistons are ordered yz,xz,xy like in fix nh
+
+  p_current[3] = tensor[5];
   p_current[4] = tensor[4];
-  p_current[5] = tensor[5];
+  p_current[5] = tensor[3];
 }
 /* ---------------------------------------------------------------------- */
 
@@ -694,9 +698,9 @@ void FixPressLangevin::remap()
     }
   }
 
-  if (p_flag[3]) domain->xy += dilation[3];
+  if (p_flag[3]) domain->yz += dilation[3];
   if (p_flag[4]) domain->xz += dilation[4];
-  if (p_flag[5]) domain->yz += dilation[5];
+  if (p_flag[5]) domain->xy += dilation[5];
 
   if (domain->yz < -TILTMAX * domain->yprd || domain->yz > TILTMAX * domain->yprd ||
       domain->xz < -TILTMAX * domain->xprd || domain->xz > TILTMAX * domain->xprd ||

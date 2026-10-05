@@ -1431,7 +1431,8 @@ void FixRigid::set_v()
 {
   double x0, x1, x2, massone;
   double ione[3],exone[3],eyone[3],ezone[3],delta[3],vr[6];
-  double fc[3], v_rot[3], acc_centr[3], *langone ;
+  double fc[3], omegadot[3], omegadot_body[3], wbody[3], tbody[3], tspace[3], acc_rot[3], v_rot[3], acc_centr[3] ;
+  double *ex, *ey, *ez, *langone ;
 
   double **v = atom->v;
   double **f = atom->f;
@@ -1466,19 +1467,50 @@ void FixRigid::set_v()
     if (evflag) {
       if (rmass) massone = rmass[i];
       else massone = mass[type[i]];
-      MathExtra::cross3( omega[ibody], delta, v_rot) ;
-      MathExtra::cross3( omega[ibody], v_rot, acc_centr) ;
+      ex = ex_space[ibody], ey = ey_space[ibody], ez = ez_space[ibody];
+      wbody[0] = omega[ibody][0]*ex[0] + omega[ibody][1]*ex[1] + omega[ibody][2]*ex[2];
+      wbody[1] = omega[ibody][0]*ey[0] + omega[ibody][1]*ey[1] + omega[ibody][2]*ey[2];
+      wbody[2] = omega[ibody][0]*ez[0] + omega[ibody][1]*ez[1] + omega[ibody][2]*ez[2];
       if(langflag) {
         langone = langextra[ibody];
-        fc[0] = massone*((fcm[ibody][0]-langone[0])/masstotal[ibody] /*+ acc_rot[0]*/ + acc_centr[0]) - f[i][0];
-        fc[1] = massone*((fcm[ibody][1]-langone[1])/masstotal[ibody] /*+ acc_rot[1]*/ + acc_centr[1]) - f[i][1];
-        if (domain->dimension == 2) fc[2] = 0.0;
-        else fc[2] = massone*((fcm[ibody][2]-langone[2])/masstotal[ibody] /*+ acc_rot[2]*/ + acc_centr[2]) - f[i][2];
+        tspace[0] = torque[ibody][0] - langone[3];
+        tspace[1] = torque[ibody][1] - langone[4];
+        tspace[2] = torque[ibody][2] - langone[5];
+        tbody[0] = tspace[0]*ex[0] + tspace[1]*ex[1] + tspace[2]*ex[2];
+        tbody[1] = tspace[0]*ey[0] + tspace[1]*ey[1] + tspace[2]*ey[2];
+        tbody[2] = tspace[0]*ez[0] + tspace[1]*ez[1] + tspace[2]*ez[2];
       } else {
-        fc[0] = massone*(fcm[ibody][0]/masstotal[ibody] /*+ acc_rot[0]*/ + acc_centr[0]) - f[i][0];
-        fc[1] = massone*(fcm[ibody][1]/masstotal[ibody] /*+ acc_rot[1]*/ + acc_centr[1]) - f[i][1];
+        tbody[0] = torque[ibody][0]*ex[0] + torque[ibody][1]*ex[1] + torque[ibody][2]*ex[2];
+        tbody[1] = torque[ibody][0]*ey[0] + torque[ibody][1]*ey[1] + torque[ibody][2]*ey[2];
+        tbody[2] = torque[ibody][0]*ez[0] + torque[ibody][1]*ez[1] + torque[ibody][2]*ez[2];
+      }
+      if (inertia[ibody][0] == 0.0) omegadot_body[0] = 0.0;
+      else omegadot_body[0] = (force->ftm2v*tbody[0] + (inertia[ibody][1] - inertia[ibody][2]) * wbody[1] * wbody[2]) / inertia[ibody][0];
+      if (inertia[ibody][1] == 0.0) omegadot_body[1] = 0.0;
+      else omegadot_body[1] = (force->ftm2v*tbody[1] + (inertia[ibody][2] - inertia[ibody][0]) * wbody[2] * wbody[0]) / inertia[ibody][1];
+      if (inertia[ibody][2] == 0.0) omegadot_body[2] = 0.0;
+      else omegadot_body[2] = (force->ftm2v*tbody[2] + (inertia[ibody][0] - inertia[ibody][1]) * wbody[0] * wbody[1]) / inertia[ibody][2];
+      if (domain->dimension == 2) {
+        omegadot[0] = 0.0;
+        omegadot[1] = 0.0;
+      } else {
+        omegadot[0] = omegadot_body[0]*ex[0] + omegadot_body[1]*ey[0] + omegadot_body[2]*ez[0];
+        omegadot[1] = omegadot_body[0]*ex[1] + omegadot_body[1]*ey[1] + omegadot_body[2]*ez[1];
+      }
+      omegadot[2] = omegadot_body[0]*ex[2] + omegadot_body[1]*ey[2] + omegadot_body[2]*ez[2];
+      MathExtra::cross3(omegadot, delta, acc_rot);
+      MathExtra::cross3(omega[ibody], delta, v_rot) ;
+      MathExtra::cross3(omega[ibody], v_rot, acc_centr) ;
+      if(langflag) {
+        fc[0] = massone*((fcm[ibody][0]-langone[0])/masstotal[ibody] + (acc_rot[0] + acc_centr[0])/force->ftm2v) - f[i][0];
+        fc[1] = massone*((fcm[ibody][1]-langone[1])/masstotal[ibody] + (acc_rot[1] + acc_centr[1])/force->ftm2v) - f[i][1];
         if (domain->dimension == 2) fc[2] = 0.0;
-        else fc[2] = massone*(fcm[ibody][2]/masstotal[ibody] /*+ acc_rot[2]*/ + acc_centr[2]) - f[i][2];
+        else fc[2] = massone*((fcm[ibody][2]-langone[2])/masstotal[ibody] + (acc_rot[2] + acc_centr[2])/force->ftm2v) - f[i][2];
+      } else {
+        fc[0] = massone*(fcm[ibody][0]/masstotal[ibody] + (acc_rot[0] + acc_centr[0])/force->ftm2v) - f[i][0];
+        fc[1] = massone*(fcm[ibody][1]/masstotal[ibody] + (acc_rot[1] + acc_centr[1])/force->ftm2v) - f[i][1];
+        if (domain->dimension == 2) fc[2] = 0.0;
+        else fc[2] = massone*(fcm[ibody][2]/masstotal[ibody] + (acc_rot[2] + acc_centr[2])/force->ftm2v) - f[i][2];
       }
 
       if (id_gravity) {

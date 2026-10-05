@@ -1349,6 +1349,7 @@ void FixRigidSmall::set_v()
   double x0, x1, x2, massone;
   double ione[3],exone[3],eyone[3],ezone[3],delta[3],vr[6];
   double fc[3], v_rot[3], acc_centr[3], *langone ;
+  double wbody[3], tspace[3], tbody[3], omegadot_body[3], omegadot[3], acc_rot[3], *ex, *ey, *ez, *inertia, *torque, *omega;
 
   double **v = atom->v;
   double **f = atom->f;
@@ -1381,20 +1382,51 @@ void FixRigidSmall::set_v()
     if (evflag) {
       if (rmass) massone = rmass[i];
       else massone = mass[type[i]];
+      ex = b->ex_space, ey = b->ey_space, ez = b->ez_space, inertia = b->inertia, torque = b->torque, omega = b->omega ;
+      wbody[0] = omega[0]*ex[0] + omega[1]*ex[1] + omega[2]*ex[2];
+      wbody[1] = omega[0]*ey[0] + omega[1]*ey[1] + omega[2]*ey[2];
+      wbody[2] = omega[0]*ez[0] + omega[1]*ez[1] + omega[2]*ez[2];
+      if(langflag && atom2body[i] < nlocal_body) {
+        langone = langextra[atom2body[i]];
+        tspace[0] = torque[0] - langone[3];
+        tspace[1] = torque[1] - langone[4];
+        tspace[2] = torque[2] - langone[5];
+        tbody[0] = tspace[0]*ex[0] + tspace[1]*ex[1] + tspace[2]*ex[2];
+        tbody[1] = tspace[0]*ey[0] + tspace[1]*ey[1] + tspace[2]*ey[2];
+        tbody[2] = tspace[0]*ez[0] + tspace[1]*ez[1] + tspace[2]*ez[2];
+      } else {
+        tbody[0] = torque[0]*ex[0] + torque[1]*ex[1] + torque[2]*ex[2];
+        tbody[1] = torque[0]*ey[0] + torque[1]*ey[1] + torque[2]*ey[2];
+        tbody[2] = torque[0]*ez[0] + torque[1]*ez[1] + torque[2]*ez[2];
+      }
+      if (inertia[0] == 0.0) omegadot_body[0] = 0.0;
+      else omegadot_body[0] = (force->ftm2v*tbody[0] + (inertia[1] - inertia[2]) * wbody[1] * wbody[2]) / inertia[0];
+      if (inertia[1] == 0.0) omegadot_body[1] = 0.0;
+      else omegadot_body[1] = (force->ftm2v*tbody[1] + (inertia[2] - inertia[0]) * wbody[2] * wbody[0]) / inertia[1];
+      if (inertia[2] == 0.0) omegadot_body[2] = 0.0;
+      else omegadot_body[2] = (force->ftm2v*tbody[2] + (inertia[0] - inertia[1]) * wbody[0] * wbody[1]) / inertia[2];
+      if (domain->dimension == 2) {
+        omegadot[0] = 0.0;
+        omegadot[1] = 0.0;
+      } else {
+        omegadot[0] = omegadot_body[0]*ex[0] + omegadot_body[1]*ey[0] + omegadot_body[2]*ez[0];
+        omegadot[1] = omegadot_body[0]*ex[1] + omegadot_body[1]*ey[1] + omegadot_body[2]*ez[1];
+      }
+      omegadot[2] = omegadot_body[0]*ex[2] + omegadot_body[1]*ey[2] + omegadot_body[2]*ez[2];
+      MathExtra::cross3(omegadot, delta, acc_rot);
       MathExtra::cross3( b->omega, delta, v_rot) ;
       MathExtra::cross3( b->omega, v_rot, acc_centr) ;
       if(langflag && atom2body[i] < nlocal_body) {
         // communicated forces/torques for ghost bodies do not contain langevin and gravity contributions
-        langone = langextra[atom2body[i]];
-        fc[0] = massone * ((b->fcm[0]-langone[0])/b->mass /*+ acc_rot[0]*/ + acc_centr[0]) - f[i][0];
-        fc[1] = massone * ((b->fcm[1]-langone[1])/b->mass /*+ acc_rot[1]*/ + acc_centr[1]) - f[i][1];
+        fc[0] = massone * ((b->fcm[0]-langone[0])/b->mass + (acc_rot[0] + acc_centr[0])/force->ftm2v) - f[i][0];
+        fc[1] = massone * ((b->fcm[1]-langone[1])/b->mass + (acc_rot[1] + acc_centr[1])/force->ftm2v) - f[i][1];
         if (domain->dimension == 2) fc[2] = 0.0;
-        else fc[2] = massone * ((b->fcm[2]-langone[2])/b->mass /*+ acc_rot[2]*/ + acc_centr[2]) - f[i][2];
+        else fc[2] = massone * ((b->fcm[2]-langone[2])/b->mass + (acc_rot[2] + acc_centr[2])/force->ftm2v) - f[i][2];
       } else {
-        fc[0] = massone * (b->fcm[0]/b->mass /*+ acc_rot[0]*/ + acc_centr[0]) - f[i][0];
-        fc[1] = massone * (b->fcm[1]/b->mass /*+ acc_rot[1]*/ + acc_centr[1]) - f[i][1];
+        fc[0] = massone * (b->fcm[0]/b->mass + (acc_rot[0] + acc_centr[0])/force->ftm2v) - f[i][0];
+        fc[1] = massone * (b->fcm[1]/b->mass + (acc_rot[1] + acc_centr[1])/force->ftm2v) - f[i][1];
         if (domain->dimension == 2) fc[2] = 0.0;
-        else fc[2] = massone * (b->fcm[2]/b->mass /*+ acc_rot[2]*/ + acc_centr[2]) - f[i][2];
+        else fc[2] = massone * (b->fcm[2]/b->mass + (acc_rot[2] + acc_centr[2])/force->ftm2v) - f[i][2];
       }
 
       if (id_gravity && atom2body[i] < nlocal_body) {

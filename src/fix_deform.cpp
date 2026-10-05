@@ -582,9 +582,11 @@ void FixDeform::init()
     int flag = 0;
     double lo,hi;
     if (flipflag && set[3].style == VARIABLE)
-      error->all(FLERR, "Fix {} cannot use yz variable with xy unless xz is erate/rescale", style);
+      error->all(FLERR, "Fix {} cannot use yz variable with box flips and a defined xy unless xz is erate/rescale",
+                 style);
     if (flipflag && set[3].style == ERATERS)
-      error->all(FLERR, "Fix {} cannot use yz erate/rescale with xy if xz is not erate/rescale", style);
+      error->all(FLERR, "Fix {} cannot use yz erate/rescale with box flips and a defined xy unless xz is erate/rescale",
+                 style);
     if (set[3].style == WIGGLE) {
       lo = set[3].tilt_min;
       hi = set[3].tilt_max;

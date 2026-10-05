@@ -309,6 +309,7 @@ class PairTIP4PKokkos : public PairCPUBase {
   // ----- long-range (Ewald) Coulomb machinery, used by the *long styles only
 
   // copy the coulomb interpolation tables to the device
+  // NOLINTNEXTLINE(misc-override-with-different-visibility)
   void init_tables(double cut_coul, double *cut_respa) override
   {
     Pair::init_tables(cut_coul,cut_respa);

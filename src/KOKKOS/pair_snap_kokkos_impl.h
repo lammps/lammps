@@ -16,6 +16,7 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_snap_kokkos.h"
+#include "sna_kokkos_impl.h"
 
 #include "atom_kokkos.h"
 #include "atom_masks.h"
@@ -1545,6 +1546,8 @@ void PairSNAPKokkos<DeviceType, real_type, accum_type, vector_length>::v_tally_x
 template<class DeviceType, typename real_type, typename accum_type, int vector_length>
 double PairSNAPKokkos<DeviceType, real_type, accum_type, vector_length>::memory_usage()
 {
+  // skip PairSNAP::memory_usage(): snaptr is null here
+  // NOLINTNEXTLINE(bugprone-parent-virtual-call)
   double bytes = Pair::memory_usage();
   bytes += MemKK::memory_usage(d_beta);
   bytes += MemKK::memory_usage(d_ninside);

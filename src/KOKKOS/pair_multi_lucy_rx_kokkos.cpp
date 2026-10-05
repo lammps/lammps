@@ -85,10 +85,10 @@ PairMultiLucyRXKokkos<DeviceType>::~PairMultiLucyRXKokkos()
   memoryKK->destroy_kokkos(k_vatom,vatom);
 
   memoryKK->destroy_kokkos(k_cutsq,cutsq);
+  memoryKK->destroy_kokkos(d_table->tabindex,tabindex);
 
   delete h_table;
   delete d_table;
-  tabindex = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

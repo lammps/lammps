@@ -106,6 +106,8 @@ class PairPACEExtrapolationKokkos : public PairPACEExtrapolation {
   KOKKOS_INLINE_FUNCTION
   void operator() (TagPairPACEComputeForce<NEIGHFLAG,EVFLAG>,const int& ii, EV_FLOAT&) const;
 
+  double memory_usage() override;
+
  protected:
   int inum, maxneigh, chunk_size, chunk_offset, idx_ms_combs_max, total_num_functions_max, idx_sph_max;
   int host_flag;
@@ -168,7 +170,6 @@ class PairPACEExtrapolationKokkos : public PairPACEExtrapolation {
   void copy_tilde();
   void allocate() override;
   void precompute_harmonics();
-  double memory_usage() override;
 
   template<int NEIGHFLAG>
 // NOLINTNEXTLINE

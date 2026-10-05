@@ -2722,6 +2722,8 @@ ColorMap::ColorMap(LAMMPS *lmp, Image *caller) : Pointers(lmp)
   mstyle = CONTINUOUS;
   mrange = FRACTIONAL;
 
+  rounddown_flag = 0;
+
   nentry = 2;
   mentry = new MapEntry[nentry];
   mentry[0].single = MINVALUE;

@@ -155,6 +155,7 @@ class FixRigid : public Fix {
   virtual void set_v();
   void setup_bodies_static();
   void setup_bodies_dynamic();
+  void setup_bodies_early();
   void apply_langevin_thermostat();
   void remove_bias(int, double *, double *);
   void restore_bias(double *, double *);

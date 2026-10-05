@@ -376,6 +376,7 @@ FixPIMDLangevin::~FixPIMDLangevin()
     memory->destroy(displacements);
   }
 
+  memory->sfree(lam);
   memory->destroy(M_x2xp);
   memory->destroy(M_xp2x);
   memory->destroy(xc);
@@ -445,6 +446,9 @@ void FixPIMDLangevin::init()
 
   comm_init();
 
+  // init() runs once per run command, so release the array of the previous one
+
+  delete[] mass;
   mass = new double[atom->ntypes + 1];
 
   nmpimd_init();
@@ -1134,6 +1138,13 @@ void FixPIMDLangevin::o_step()
 
 void FixPIMDLangevin::nmpimd_init()
 {
+  // init() calls this once per run, so release what an earlier run allocated
+
+  memory->destroy(M_x2xp);
+  memory->destroy(M_xp2x);
+  memory->sfree(lam);
+  lam = nullptr;
+
   memory->create(M_x2xp, np, np, "fix_feynman:M_x2xp");
   memory->create(M_xp2x, np, np, "fix_feynman:M_xp2x");
 
@@ -1264,6 +1275,9 @@ void FixPIMDLangevin::comm_init()
 
   int nlocal = atom->nlocal;
   if (cmode == SINGLE_PROC) {
+    // init() calls this once per run, so release what an earlier run allocated
+    memory->destroy(counts);
+    memory->destroy(displacements);
     memory->create(counts, nreplica, "FixPIMDLangevin:counts");
     memory->create(displacements, nreplica, "FixPIMDLangevin:displacements");
     for (int i = 0; i < nreplica; i++) counts[i] = 3*nlocal;
@@ -1273,6 +1287,7 @@ void FixPIMDLangevin::comm_init()
   if (sizeplan) {
     delete[] plansend;
     delete[] planrecv;
+    delete[] modeindex;
   }
 
   sizeplan = np - 1;

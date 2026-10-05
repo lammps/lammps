@@ -437,6 +437,8 @@
 /pair_mesocnt.h
 /pair_mesocnt_viscous.cpp
 /pair_mesocnt_viscous.h
+/pair_mesomem_dipole.cpp
+/pair_mesomem_dipole.h
 
 /ldd_indicator.cpp
 /ldd_indicator_dpd.cpp

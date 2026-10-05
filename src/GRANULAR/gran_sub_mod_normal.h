@@ -104,7 +104,7 @@ namespace LAMMPS_NS::Granular_NS {
   };
 
   /* ---------------------------------------------------------------------- */
-  
+
   class GranSubModNormalJKR : public GranSubModNormal {
    public:
     GranSubModNormalJKR(class GranularModel *, class LAMMPS *);
@@ -119,7 +119,7 @@ namespace LAMMPS_NS::Granular_NS {
    protected:
     double k, cohesion;
     double Emix, F_pulloff, Fne;
-    int mixed_coefficients;   
+    int mixed_coefficients;
   };
 
 /* ---------------------------------------------------------------------- */
@@ -182,7 +182,7 @@ namespace LAMMPS_NS::Granular_NS {
  protected:
   double k1, Emod, poiss, damp, lambda_p, f0, kadh, mexp, nexp, Fne;
   double k2fac, delta_p, minv, lp_minv, ka_dn;
-  int mixed_coefficients;   
+  int mixed_coefficients;
 };
 
 }    // namespace LAMMPS_NS::Granular_NS

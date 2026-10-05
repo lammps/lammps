@@ -99,7 +99,7 @@ LMP_REGISTRY_CONST GranSubModInfo gran_sub_mod_table[] = {
   { "mindlin_rescale/force",  &creator<GranSubModTangentialMindlinRescaleForce>, TANGENTIAL },
   { "mindlin_rescale/force",  &creator<GranSubModTangentialMindlinRescaleForce>, TANGENTIAL },
   { "mindlin/static",         &creator<GranSubModTangentialMindlinStatic>,       TANGENTIAL },
-  
+
   // rolling models
   { "none",                   &creator<GranSubModRollingNone>,                  ROLLING },
   { "sds",                    &creator<GranSubModRollingSDS>,                   ROLLING },

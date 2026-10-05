@@ -1,19 +1,19 @@
 Models for twisting friction in granular interactions
 ======================================================
 
-A history-dependent spring-dashpot-slider is used to compute the 
-twisting torque. Because twisting displacement is a scalar, there 
-is no need to adjust for changes in the frame of reference due to 
-rotations of the particle pair. The formulation in :ref:`Marshall <Marshall2009>` 
+A history-dependent spring-dashpot-slider is used to compute the
+twisting torque. Because twisting displacement is a scalar, there
+is no need to adjust for changes in the frame of reference due to
+rotations of the particle pair. The formulation in :ref:`Marshall <Marshall2009>`
 therefore provides the most straightforward treatment:
 
 .. math::
 
    \tau_{twist,0} = -k_{twist}\xi_{twist} - \gamma_{twist}\Omega_{twist}
 
-Here :math:`\xi_{twist} = \int_{t_0}^t \Omega_{twist} (\tau) \mathrm{d}\tau` 
-is the twisting angular displacement, and 
-:math:`\Omega_{twist} = (\mathbf{\Omega}_i - \mathbf{\Omega}_j) \cdot \mathbf{n}` 
+Here :math:`\xi_{twist} = \int_{t_0}^t \Omega_{twist} (\tau) \mathrm{d}\tau`
+is the twisting angular displacement, and
+:math:`\Omega_{twist} = (\mathbf{\Omega}_i - \mathbf{\Omega}_j) \cdot \mathbf{n}`
 is the relative twisting angular velocity. The torque is then truncated according to:
 
 .. math::
@@ -89,7 +89,7 @@ the doc page for :doc:`granular_tangential_models`):
    \mu_{twist} = \frac{2}{3}a\mu_t
 
 Here, :math:`k_t`, :math:`mu_t` and :math:`\gamma_t` are the tangential
-stiffness, tangential friction coefficient, and tangential 
+stiffness, tangential friction coefficient, and tangential
 damping coefficient, respectively.
 
 References

@@ -616,7 +616,7 @@ void FixWallGran::post_force(int /*vflag*/)
     add3(f[i], forces, f[i]);
 
     add3(torque[i], torquesi, torque[i]);
-    
+
     double dq = 0;
     if (heat_flag) {
       heatflow[i] += model->dq;

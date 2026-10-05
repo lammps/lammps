@@ -193,7 +193,7 @@ void GranSubModTangentialLinearHistory::calculate_forces()
 //**********************************************
 
 GranSubModTangentialLinearHistoryStatic::GranSubModTangentialLinearHistoryStatic(GranularModel *gm, LAMMPS *lmp) :
-		GranSubModTangentialLinearHistory(gm, lmp)
+                GranSubModTangentialLinearHistory(gm, lmp)
 {
   num_coeffs = 4;
   size_history = 4;
@@ -244,9 +244,9 @@ void GranSubModTangentialLinearHistoryStatic::calculate_forces()
   dynamic = (history[3] > EPSILON);
 
   if (dynamic) {
-	  Fscrit = gm->normal_model->get_fncrit() * mu_dynamic;
+          Fscrit = gm->normal_model->get_fncrit() * mu_dynamic;
   } else {
-	  Fscrit = gm->normal_model->get_fncrit() * mu_static;
+          Fscrit = gm->normal_model->get_fncrit() * mu_static;
   }
 
   // rotate and update displacements / force.
@@ -286,9 +286,9 @@ void GranSubModTangentialLinearHistoryStatic::calculate_forces()
   magfs = len3(fs);
   if (magfs > Fscrit && history_update) {
     if (!dynamic) { //Exceeded static critical force, switch to dynamic
-      history[3] = 1.0;      
+      history[3] = 1.0;
       Fscrit = gm->normal_model->get_fncrit() * mu_dynamic;
-      if (mu_dynamic >= mu_static) { 
+      if (mu_dynamic >= mu_static) {
         //User probably should not input mu_dynamic >= mu_static,
         //but if they do, don't rescale shear to dynamic Fscrit.
            if (magfs <= Fscrit) skip_rescaling = 1;
@@ -305,12 +305,12 @@ void GranSubModTangentialLinearHistoryStatic::calculate_forces()
         scale3(Fscrit * magfs_inv, fs);
       } else {
         zero3(fs);
-      }    
+      }
     }
   }
-  else if (magfs <= Fscrit && dynamic && history_update) { 
-    //fs dropped below dynamic critical force    
-    history[3] = 0.0;          
+  else if (magfs <= Fscrit && dynamic && history_update) {
+    //fs dropped below dynamic critical force
+    history[3] = 0.0;
   }
 }
 
@@ -648,26 +648,26 @@ void GranSubModTangentialMindlinStatic::calculate_forces()
   dynamic = history[3];
 
   if (dynamic) {
-	  Fscrit = gm->normal_model->get_fncrit() * mu_dynamic;
+          Fscrit = gm->normal_model->get_fncrit() * mu_dynamic;
   } else {
-	  Fscrit = gm->normal_model->get_fncrit() * mu_static;
+          Fscrit = gm->normal_model->get_fncrit() * mu_static;
   }
 
   // rotate and update displacements / force.
   // see e.g. eq. 17 of Luding, Gran. Matter 2008, v10,p235
   if (history_update) {
-    rsht = dot3(history, nx);    
+    rsht = dot3(history, nx);
     frame_update = (fabs(rsht) * k_scaled) > (EPSILON * Fscrit);
-    
+
     if (frame_update) rotate_rescale_vec(history, nx);
-    
+
     scale3(dt, vtr, temp_array);
     add3(history, temp_array, history);
 
     if (gm->synchronized_verlet == 1) {
       // second projection to full step normal
       rsht = dot3(history, nx_unrotated);
-      frame_update = (fabs(rsht) * k_scaled) > (EPSILON * Fscrit);      
+      frame_update = (fabs(rsht) * k_scaled) > (EPSILON * Fscrit);
       if (frame_update) rotate_rescale_vec(history, nx_unrotated);
     }
   }
@@ -689,9 +689,9 @@ void GranSubModTangentialMindlinStatic::calculate_forces()
   magfs = len3(fs);
   if (magfs > Fscrit && history_update) {
     if (!dynamic) { //Exceeded static critical force, switch to dynamic
-      history[3] = 1.0;      
+      history[3] = 1.0;
       Fscrit = gm->normal_model->get_fncrit() * mu_dynamic;
-      if (mu_dynamic >= mu_static) { 
+      if (mu_dynamic >= mu_static) {
         //User probably should not input mu_dynamic >= mu_static,
         //but if they do, don't rescale shear to dynamic Fscrit.
         if (magfs <= Fscrit) skip_rescaling = 1;
@@ -710,12 +710,12 @@ void GranSubModTangentialMindlinStatic::calculate_forces()
         zero3(fs);
       }
     }
-    if (!dynamic) { 
+    if (!dynamic) {
       history[3] = 1; // If force exceeded Fcrit_static, switch to dynamic case
     }
-  } else if (magfs <= Fscrit && dynamic && history_update) { 
-    //fs dropped below dynamic critical force    
-    history[3] = 0.0;  
+  } else if (magfs <= Fscrit && dynamic && history_update) {
+    //fs dropped below dynamic critical force
+    history[3] = 0.0;
   }
 }
 

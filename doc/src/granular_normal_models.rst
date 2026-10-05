@@ -5,11 +5,11 @@ Models for normal contact in granular interactions
 
 The normal force acts along the vector connecting the center of two particles,
 i.e. normal to the plane of contact between particles.
-In all cases, the normal force is modeled as a function of overlap :math:`\delta_{ij}`. 
+In all cases, the normal force is modeled as a function of overlap :math:`\delta_{ij}`.
 The following quantities are common to normal models:
 
-* :math:`\delta_{ij} = R_i + R_j - \|\mathbf{r}_{ij}\|` is the particle overlap, 
-* :math:`R_i, R_j` are the particle radii, 
+* :math:`\delta_{ij} = R_i + R_j - \|\mathbf{r}_{ij}\|` is the particle overlap,
+* :math:`R_i, R_j` are the particle radii,
 * :math:`\mathbf{r}_{ij} = \mathbf{r}_i - \mathbf{r}_j` is the vector separating the two particle centers (note the i-j ordering so that the force is positive for repulsion), and
 * :math:`\mathbf{n} = \frac{\mathbf{r}_{ij}}{\|\mathbf{r}_{ij}\|}` is the unit vector along the direction connecting the two particle centers.
 * :math:`R_\text{eff} = \frac{R_iR_j}{R_i+R_j}` is the effective radius for particles *i* and *j*, or set to the radius of the particle in a wall-particle contact.
@@ -323,7 +323,7 @@ Example:
 
 
 The *epa_linear* model is the linear elastic-plastic-adhesive model proposed
-by :ref:`(Luding) <Luding2008>`, where the force is computed according to: 
+by :ref:`(Luding) <Luding2008>`, where the force is computed according to:
 
 .. math::
 
@@ -349,7 +349,7 @@ and
    \delta_\text{max}^* = \frac{\hat{k_2}}{\hat{k_2}-k_1}\phi_f \frac{2R_1R_2}{R_1+R_2}
 
 Initial loading proceeds along the elastic branch with stiffness :math:`k_1`. The maximum overlap
-:math:`\delta_\text{max}` is stored and updated throughout the duration of 
+:math:`\delta_\text{max}` is stored and updated throughout the duration of
 the contact. Unloading takes place with stiffness :math:`k_2`, which increases with
 the maximum overlap :math:`\delta_\text{max}`, up to a maximum value of :math:`\hat{k_2}`.
 Re-loading proceeds along the same line of slope :math:`k_2`, until the overlap :math:`\delta_\text{max}`
@@ -359,7 +359,7 @@ unloading proceeds with stiffness :math:`k_c`. A constant cohesive force :math:`
 be specified. The overlap at which :math:`k_2` reaches its maximum value :math:`\hat{k_2}` is determined
 by a plastic overlap range, specified as a user input :math:`\phi_f`, with typical values :math:`0<\phi_f<1`.
 
-The critical force for purposes of computing friction is given by 
+The critical force for purposes of computing friction is given by
 :math:`F_\text{ne} + f_0` if not on the adhesive branch, or
 :math:`F_\text{ne} + f_0 + k_c\delta` if on the adhesive branch.
 
@@ -378,7 +378,7 @@ Example:
    pair_style granular
    pair_coeff * * epa_nonlinear 1.0e8 50.0 0.3 0.5 0.0 1000.0 1.5 1.0 tangential mindlin NULL 1.0 0.4 damping viscoelastic
 
-   
+
 *Parameters*: :math:`E`, :math:`\eta_{n0}` (or :math:`e`), :math:`\nu`,
    :math:`\lambda_p`, :math:`f_0`, :math:`k_{c}`, :math:`m`, :math:`n`
 
@@ -402,38 +402,38 @@ where the stiffness can be related to the elastic modulus according to:
    k_1 = \frac{4E_\text{eff}}{3}R_\text{eff}^{2-m}
    k_2 = \frac{k_1}{(1-\lambda_p)}
 
-Here, :math:`E_{eff} = E = \left(\frac{1-\nu_i^2}{E_i} + \frac{1-\nu_j^2}{E_j}\right)^{-1}` is 
+Here, :math:`E_{eff} = E = \left(\frac{1-\nu_i^2}{E_i} + \frac{1-\nu_j^2}{E_j}\right)^{-1}` is
 the effective Young's modulus, with :math:`\nu_i, \nu_j` the Poisson ratios of the particles of
 types *i* and *j*, and :math:`R_\text{eff}` is the effective radius.
-The inclusion of the :math:`R_\text{eff}` term in the definitions of :math:`k_1` and :math:`k_c` 
-is not found in the original  :ref:`(Thakur et al) <Thakur2014>` paper, but appears 
+The inclusion of the :math:`R_\text{eff}` term in the definitions of :math:`k_1` and :math:`k_c`
+is not found in the original  :ref:`(Thakur et al) <Thakur2014>` paper, but appears
 in other formulations of the EEPA model (e.g. :ref:`(Morrisey thesis) <Morrisey2013>`).
 The exponent :math:`2-m` ensures dimensional consistency for varying :math:`m`
 values, while retaining particle radius dependence. For :math:`m=3/2`, the model recovers the
-Hertzian limit; for other values of :math:`m`, the modulus should be treated as a calibrated 
+Hertzian limit; for other values of :math:`m`, the modulus should be treated as a calibrated
 parameter, since such models do not have a direct connection to material properties.
 
 Initial loading proceeds along the :math:`k_1\delta^m` branch. The maximum overlap
-:math:`\delta_\text{max}` is stored and updated throughout the duration of 
-the contact. The overlap reference plastic deformation :math:`\delta_p` is then 
+:math:`\delta_\text{max}` is stored and updated throughout the duration of
+the contact. The overlap reference plastic deformation :math:`\delta_p` is then
 given by:
 
 .. math::
 
    \delta_p = \lambda_p^{1/m}\delta_\text{max}
 
-Unloading proceeds along :math:`k_2(\delta^m-\delta_p^m)`, and 
-re-loading proceeds along the same branch, until :math:`\delta_\text{max}` is 
+Unloading proceeds along :math:`k_2(\delta^m-\delta_p^m)`, and
+re-loading proceeds along the same branch, until :math:`\delta_\text{max}` is
 reached, at which point further loading resumes along :math:`k_1\delta^m`. If unloading
 continues such that :math:`-k_c\delta^n \ge k_2(\delta^m-\delta_p)`, the adhesive branch
-is activated, where unloading proceeds along :math:`-k_c\delta^n`.  A constant cohesive 
+is activated, where unloading proceeds along :math:`-k_c\delta^n`.  A constant cohesive
 contact force :math:`f_0` can optionally also
-be specified. 
+be specified.
 
 The contact radius is given by :math:`\sqrt{(\delta_pR_\text{eff})}` for purposes
 of tangential friction or heat conduction calculations.
 
-The critical force for purposes of computing friction is given by 
+The critical force for purposes of computing friction is given by
 :math:`F_\text{ne} + f_0` if not on the adhesive branch, or
 :math:`F_\text{ne} + f_0 + k_c\delta^n` if on the adhesive branch.
 
@@ -464,14 +464,14 @@ contact models for tension. Granular matter, 10(4), 235.
 
 .. _Thakur2014:
 
-**(Thakur et al, 2014)** Thakur, Subhash C., et al. (2014). 
-Micromechanical analysis of cohesive granular materials using 
-the discrete element method with an adhesive  elasto-plastic contact 
+**(Thakur et al, 2014)** Thakur, Subhash C., et al. (2014).
+Micromechanical analysis of cohesive granular materials using
+the discrete element method with an adhesive  elasto-plastic contact
 model. Granular Matter 16, 383-400.
 
 .. _Morrisey2013:
 
-**(Morrisey thesis)** Morrissey, J. P. (2013). Discrete Element Modelling of 
+**(Morrisey thesis)** Morrissey, J. P. (2013). Discrete Element Modelling of
 Iron Ore Pellets to Include the Effects of Moisture and Fines.
 PhD thesis, Edinburgh, Scotland: University of Edinburgh.
 

@@ -1,16 +1,16 @@
 Models for normal damping in granular interactions
 ==================================================
 
-The normal force is augmented by a damping term of the following 
+The normal force is augmented by a damping term of the following
 general form:
 
 .. math::
 
    \mathbf{F}_{n,damp} = -\eta_n \mathbf{v}_{n,rel}
 
-Here, :math:`\mathbf{v}_{n,rel} = (\mathbf{v}_j - \mathbf{v}_i) \cdot \mathbf{n}\ \mathbf{n}` 
+Here, :math:`\mathbf{v}_{n,rel} = (\mathbf{v}_j - \mathbf{v}_i) \cdot \mathbf{n}\ \mathbf{n}`
 is the component of relative velocity along :math:`\mathbf{n}`, where
-:math:`\mathbf{n}` is the unit vector along the direction connecting 
+:math:`\mathbf{n}` is the unit vector along the direction connecting
 the two particle centers, discussed :ref:`here <normal_models_preamble>`.
 
 Different damping models result in different expressions for :math:`\eta_n`:

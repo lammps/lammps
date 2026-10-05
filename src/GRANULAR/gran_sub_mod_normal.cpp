@@ -1062,7 +1062,7 @@ double GranSubModNormalEPALinear::calculate_forces()
     k2 = k1+(k2_hat-k1)*dmax/dmax_star;
   }
   d0 = (1-k1/k2)*dmax;
-  k1delta = k1*delta;  
+  k1delta = k1*delta;
   kc_delta = kc*delta;
   k2_dd0 = k2*(delta-d0);
   if (k2_dd0 >= k1delta){
@@ -1071,10 +1071,10 @@ double GranSubModNormalEPALinear::calculate_forces()
   }
   else if ((k1delta > k2_dd0) && (k2_dd0 > -kc_delta)){
     Fne = k2_dd0;
-    kc_delta = 0; //Set to 0 if not adhesive branch, so that kc_delta doesn't contribute to critical force   
+    kc_delta = 0; //Set to 0 if not adhesive branch, so that kc_delta doesn't contribute to critical force
   }
   else if (-kc_delta >= k2_dd0){
-    Fne = -kc_delta;    
+    Fne = -kc_delta;
   }
   Fne -= f0;
   return Fne;
@@ -1084,7 +1084,7 @@ double GranSubModNormalEPALinear::calculate_forces()
 
 void GranSubModNormalEPALinear::set_fncrit()
 {
-  Fncrit = Fne + kc_delta + f0;  
+  Fncrit = Fne + kc_delta + f0;
 }
 
 
@@ -1112,26 +1112,26 @@ void GranSubModNormalEPANonlinear::coeffs_to_local()
 {
   Emod = coeffs[0];
   damp = coeffs[1];
-  poiss = coeffs[2];  
+  poiss = coeffs[2];
   lambda_p = coeffs[3];
   f0 = coeffs[4];
   kadh = coeffs[5];
-  mexp = coeffs[6]; 
+  mexp = coeffs[6];
   nexp = coeffs[7];
-   
+
   if (!mixed_coefficients) {
     if (gm->contact_type == PAIR) {
       k1 = FOURTHIRDS * mix_stiffnessE(Emod, Emod, poiss, poiss);
     } else {
       k1 = FOURTHIRDS * mix_stiffnessE_wall(Emod, poiss);
-    }   
+    }
   }
-  
-  if (Emod < 0.0 || damp < 0.0 || lambda_p < 0.0 || 
-      lambda_p >= 1.0 || f0 < 0.0 || kadh < 0.0 || 
+
+  if (Emod < 0.0 || damp < 0.0 || lambda_p < 0.0 ||
+      lambda_p >= 1.0 || f0 < 0.0 || kadh < 0.0 ||
       mexp < 1 || nexp < 1)
-        error->all(FLERR, "Illegal EPA nonlinear normal model");  
-  
+        error->all(FLERR, "Illegal EPA nonlinear normal model");
+
   minv = 1.0/mexp;
   lp_minv = pow(lambda_p, minv);
   k2fac = k1/(1-lambda_p);
@@ -1175,7 +1175,7 @@ double GranSubModNormalEPANonlinear::calculate_contact_radius()
 double GranSubModNormalEPANonlinear::calculate_forces()
 {
   double k1r, k2, delta_max;
-  double dm, dn, dpm, dchi, k2_dmdpm, k1_dm, Reff_2m, Reff_2n;  
+  double dm, dn, dpm, dchi, k2_dmdpm, k1_dm, Reff_2m, Reff_2n;
   double *history = & gm->history[history_index];
   double delta = gm->delta;
   double Fmin, Fmin_lim, Fne;
@@ -1187,27 +1187,27 @@ double GranSubModNormalEPANonlinear::calculate_forces()
 
   k1r = k1*Reff_2m;
   k2 = k2fac*Reff_2m;
-  
-  dm = pow(delta, mexp);  
+
+  dm = pow(delta, mexp);
   dpm = pow(delta_p, mexp);
 
   k1_dm = k1r*dm;
-  k2_dmdpm = k2*(dm-dpm);  
+  k2_dmdpm = k2*(dm-dpm);
 
-  if (k2_dmdpm >= k1_dm){ 
+  if (k2_dmdpm >= k1_dm){
     Fne = k1_dm;
   }
   else{ //Could be on adhesive branch
     dn = pow(delta, nexp);
     ka_dn = kadh*Reff_2n*dn;
     if ((k1_dm > k2_dmdpm) && (k2_dmdpm > -ka_dn)){
-      Fne = k2_dmdpm;   
+      Fne = k2_dmdpm;
       ka_dn = 0; //Set to 0 so that critical force is not affected if not on adhesive branch
-    }    
-    else if (-ka_dn >= k2_dmdpm){
-      Fne = -ka_dn;      
     }
-  }  
+    else if (-ka_dn >= k2_dmdpm){
+      Fne = -ka_dn;
+    }
+  }
   Fne -= f0;
   return Fne;
 }
@@ -1216,7 +1216,7 @@ double GranSubModNormalEPANonlinear::calculate_forces()
 
 void GranSubModNormalEPANonlinear::set_fncrit()
 {
-  Fncrit = Fne + ka_dn + f0;  
+  Fncrit = Fne + ka_dn + f0;
 }
 
 /* ---------------------------------------------------------------------- */

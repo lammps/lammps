@@ -53,11 +53,11 @@ The *granular* styles support a variety of options for the normal,
 tangential, rolling and twisting forces resulting from contact between
 two granular particles. This expands on the options offered by the
 :doc:`pair gran/\* <pair_gran>` pair styles. The total computed forces
-and torques are the sum of various models selected for the 
+and torques are the sum of various models selected for the
 :doc:`normal <granular_normal_models>`, :doc:`damping <granular_damping_models>`,
-:doc:`tangential <granular_tangential_models>`, 
-:doc:`rolling <granular_rolling_models>`, and 
-:doc:`twisting <granular_twisting_models>` interactions. Optionally, 
+:doc:`tangential <granular_tangential_models>`,
+:doc:`rolling <granular_rolling_models>`, and
+:doc:`twisting <granular_twisting_models>` interactions. Optionally,
 :doc:`heat transport <granular_heat_models>` between particles can also
 be modeled.
 
@@ -99,7 +99,7 @@ command, otherwise an error would result.
 
 The first required keyword for the *pair_coeff* command is the normal
 contact model, i.e. the force-displacement relation associated with
-motion of particles along the normal direction of the contact plane. 
+motion of particles along the normal direction of the contact plane.
 Currently supported options for normal contact models
 and their required arguments are:
 
@@ -302,8 +302,8 @@ interactions is set to :math:`\mu_2`, the friction coefficient for
 type1-type2 interactions is computed as :math:`\sqrt{\mu_1\mu_2}`
 (unless explicitly specified to a different value by a *pair_coeff 1 2
 ...* command).  The exception to this is elastic modulus, only
-applicable to *hertz/material*, *dmt*, *jkr* and *epa_linear* 
-normal contact models. In that case, the effective elastic modulus is 
+applicable to *hertz/material*, *dmt*, *jkr* and *epa_linear*
+normal contact models. In that case, the effective elastic modulus is
 computed as:
 
 .. math::

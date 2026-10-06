@@ -119,6 +119,24 @@ With the default values of the parameters, this corresponds to about 10 KB.
 For the meaning of the additional optional keywords, see the
 :doc:`fix ave/correlate <fix_ave_correlate>` doc page.
 
+.. versionchanged:: TBD
+
+By default, the header lines of the output file are as follows:
+
+.. parsed-literal::
+
+   # Time-correlated data for fix ID version VERSION
+   # Time valueI\*valueJ valueI\*valueJ ...
+
+In the first line, ID is replaced with the fix-ID and VERSION with the
+LAMMPS version as a number (e.g., 20260930 for the 30 September 2026
+version).  Previously, the first line ended after the fix-ID.  In the
+second line the value pairs are replaced with the appropriate fields
+from the fix ave/correlate/long command.  Previously, the second line
+was missing some of the value pairs for *type* = lower and *type* =
+auto/lower.  Each section of output then starts with a line
+"# Timestep: N", where N is the current timestep.
+
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 

@@ -16,7 +16,7 @@ environments is on a :doc:`separate page <Howto_cmake>`.
 
 .. note::
 
-   LAMMPS currently requires CMake version 3.20 or later.
+   LAMMPS currently requires CMake version 3.27 or later.
 
 .. warning::
 
@@ -145,7 +145,7 @@ defaults to ``${HOME}/.local``.
 
    .. code-block:: cmake
 
-      cmake_minimum_required(VERSION 3.20)
+      cmake_minimum_required(VERSION 3.27)
       project(simpleCC CXX)
       # set this to the LAMMPS installation location
       if(NOT CMAKE_PREFIX_PATH)

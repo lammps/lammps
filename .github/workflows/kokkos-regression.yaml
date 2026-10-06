@@ -161,7 +161,7 @@ jobs:
         ccache -s
 
     - name: Download input lists
-      uses: actions/download-artifact@v7
+      uses: actions/download-artifact@v8
       with:
         name: kokkos-regression-input-lists
 
@@ -208,13 +208,13 @@ jobs:
         show-progress: false
 
     - name: Download test results
-      uses: actions/download-artifact@v7
+      uses: actions/download-artifact@v8
       with:
         pattern: kokkos-regression-shard-*
         merge-multiple: true
 
     - name: Download input lists
-      uses: actions/download-artifact@v7
+      uses: actions/download-artifact@v8
       with:
         name: kokkos-regression-input-lists
 

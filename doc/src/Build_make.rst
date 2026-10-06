@@ -7,7 +7,7 @@ Build LAMMPS with make
    switch to :doc:`using CMake <Build_cmake>` instead.  There is also a
    detailed discussion of :doc:`how to use CMake with LAMMPS
    <Howto_cmake>` and the `CMake online documentation
-   <https://cmake.org/cmake/help/v3.20/>`_.  For the impatient, there is
+   <https://cmake.org/cmake/help/v3.27/>`_.  For the impatient, there is
    also a quick transition guide below.  Contact the the LAMMPS
    developers at developers@lammps.org if you have any concerns or
    questions about this.

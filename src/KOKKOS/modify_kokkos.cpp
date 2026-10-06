@@ -957,3 +957,14 @@ int ModifyKokkos::check_fuse_integrate()
 
   return fuse_integrate_flag;
 }
+
+/* ----------------------------------------------------------------------
+   return 1 if any end-of-step fix is invoked on this timestep
+------------------------------------------------------------------------- */
+
+int ModifyKokkos::end_of_step_fires(bigint ntimestep)
+{
+  for (int i = 0; i < n_end_of_step; i++)
+    if (ntimestep % end_of_step_every[i] == 0) return 1;
+  return 0;
+}

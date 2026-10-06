@@ -836,8 +836,11 @@ void VerletKokkos::fuse_check(int i, int n)
   else if (!force->pair->fuse_force_clear_flag) fuse_force_clear = 0;
 
   fuse_integrate = 1;
-  if (modify->n_end_of_step) fuse_integrate = 0;
-  else if (i == n-1) fuse_integrate = 0;
+  // fusing moves the next initial integrate before end_of_step(), so it is
+  // only possible on steps on which no end-of-step fix is invoked
+  if (modify->n_end_of_step && ((ModifyKokkos*)modify)->end_of_step_fires(update->ntimestep))
+    fuse_integrate = 0;
+  if (i == n-1) fuse_integrate = 0;
   else if (update->ntimestep == output->next) fuse_integrate = 0;
   else if (timer->has_timeout()) fuse_integrate = 0;
   else if (!((ModifyKokkos*)modify)->check_fuse_integrate()) fuse_integrate = 0;

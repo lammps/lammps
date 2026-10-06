@@ -14,6 +14,8 @@
 
 #include "neighbor_kokkos.h"
 
+#include <climits>
+
 #include "angle.h"
 #include "atom_kokkos.h"
 #include "atom_masks.h"
@@ -241,7 +243,27 @@ int NeighborKokkos::check_distance_kokkos()
 
   int flag = 0;
   copymode = 1;
-  Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagNeighborCheckDistance<DeviceType> >(0,nlocal),*this,flag);
+  if constexpr (std::is_same_v<DeviceType,LMPDeviceType> && !std::is_same_v<LMPDeviceType,LMPHostType>) {
+    // a plain kernel that writes a flag is cheaper than a reduction
+    if (h_moved.data() == nullptr) {
+      // pinned host memory written directly by the kernel: only a fence is
+      // needed before reading the flag, no copy
+      h_moved = Kokkos::View<int,LMPPinnedHostType>("neighbor:moved_host");
+      moved_stamp = 0;
+    }
+    if (++moved_stamp == INT_MAX) {
+      Kokkos::fence();
+      h_moved() = 0;
+      moved_stamp = 1;
+    }
+    NeighborCheckDistanceFlag<DeviceType> f{h_moved, x.view<DeviceType>(), xhold.view<DeviceType>(),
+                                            deltasq, moved_stamp};
+    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType>(0,nlocal), f);
+    Kokkos::fence("NeighborKokkos::check_distance");
+    flag = (h_moved() == moved_stamp) ? 1 : 0;
+  } else {
+    Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagNeighborCheckDistance<DeviceType> >(0,nlocal),*this,flag);
+  }
   copymode = 0;
 
   int flagall;

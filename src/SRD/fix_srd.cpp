@@ -1072,9 +1072,9 @@ void FixSRD::reset_velocities()
       }
   }
 
-  // undo velocity remap (only if using PUT or tstat no)
-  if (deformflag && (unbiasflag || !tstat)) {
-    domain->x2lamda(nlocal);
+  // undo velocity shift of particles in the last bins
+  if (deformflag) {
+    if (triclinic) domain->x2lamda(nlocal);
     for (i = 0; i < nlocal; i++) {
       if (mask[i] & groupbit) {
         ix = static_cast<int>((x[i][0] - corner[0]) * bininv1x);
@@ -1086,6 +1086,9 @@ void FixSRD::reset_velocities()
         iz = static_cast<int>((x[i][2] - corner[2]) * bininv1z);
         iz = MAX(iz, binlo[2]);
         iz = MIN(iz, binhi[2]);
+
+        ibin = (iz - binlo[2]) * nbiny * nbinx + (iy - binlo[1]) * nbinx + (ix - binlo[0]);
+        if (tstat && !unbiasflag && vbin[ibin].n > 1) continue;
 
         if (domain->xperiodic && ix == nbin1x) {
           v[i][0] += h_rate[0];
@@ -1101,7 +1104,7 @@ void FixSRD::reset_velocities()
         }
       }
     }
-    domain->lamda2x(nlocal);
+    if (triclinic) domain->lamda2x(nlocal);
   }
 }
 

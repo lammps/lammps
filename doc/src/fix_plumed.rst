@@ -171,7 +171,7 @@ LAMMPS stops with an error if a post-force fix is defined after ``fix
 plumed``; fixes without a post-force callback may still follow it.
 
 The same mode can construct the instantaneous path spread without another
-LAMMPS communication backend.  For a bead-local scalar :math:`s_b`, define
+LAMMPS communication routines.  For a bead-local scalar :math:`s_b`, define
 
 .. math::
 
@@ -255,7 +255,7 @@ deposition normalization.  The native regressions cover fixed biases, a
 matched five-step centroid/bead-density linear-bias dynamics limit,
 ``METAD WALKERS_MPI`` with single- and multi-rank bead partitions, and a
 four-bead ``OPES_METAD WALKERS_MPI`` restart.  They validate one shared HILLS
-stream with :math:`1/P` MetaD hill heights, shared OPES KERNELS and STATE files,
+stream with :math:`1/P` metadynamics hill heights, shared OPES KERNELS and STATE files,
 partition-zero bias ownership, zero-local-atom ranks, and PLUMED file-restart
 continuity.  This is an interface contract, not production admission for OPES
 reweighting, binary-restart dynamics, performance, or sampling efficiency.
@@ -300,7 +300,7 @@ Note that other quantities of interest can be output by commands that
 are native to PLUMED.
 
 Fixed conditional path functions
--------------------------------
+--------------------------------
 
 A fixed complete-path function combining a Cartesian-centroid CV and a
 bead-averaged score can use the same *bead_mean* adapter when both inputs
@@ -346,7 +346,7 @@ number of spatial MPI ranks. The native normalization tests include pure,
 centroid-only and mixed frozen graphs using ordinary PLUMED functions.
 
 For a frozen active OPES action, apply :math:`U_A-v(s_b)` as a correction
-so that the original local bias force and energy are cancelled. Applying
+so that the original local bias force and energy are canceled. Applying
 both the full :math:`U_A` and the local OPES bias would double count the
 field. Verify immutable state identity and native update suppression;
 current shared-density OPES deposition weights do not implement adaptive

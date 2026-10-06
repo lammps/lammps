@@ -32,8 +32,8 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-enum { ONE, RUNNING };
-enum { SCALAR, VECTOR, WINDOW };
+enum { ONE, RUNNING, WINDOW };
+enum { SCALAR, VECTOR };
 enum { DEFAULT, GLOBAL, PERATOM, LOCAL };
 enum { IGNORE, END, EXTRA };
 enum { SINGLE, VALUE };

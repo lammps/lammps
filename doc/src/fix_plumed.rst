@@ -12,7 +12,7 @@ Syntax
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * plumed = style name of this fix command
-* keyword = *plumedfile* or *outfile* or *path_integral* or *pimd_fix*
+* keyword = *plumedfile* or *outfile* or *path_integral* or *pimd_fix* or *path_contraction*
 
   .. parsed-literal::
 
@@ -20,6 +20,7 @@ Syntax
        *outfile* arg = name of file on which to write the PLUMED log (default: NULL)
        *path_integral* arg = *off*, *centroid*, *bead_mean*, or *bead_density* (default: off)
        *pimd_fix* arg = ID of the coupled fix pimd/langevin
+       *path_contraction* arg = fixed coordinate contraction in [0,1] for bead_mean (optional)
 
 Examples
 """"""""
@@ -171,7 +172,7 @@ LAMMPS stops with an error if a post-force fix is defined after ``fix
 plumed``; fixes without a post-force callback may still follow it.
 
 The same mode can construct the instantaneous path spread without another
-LAMMPS communication backend.  For a bead-local scalar :math:`s_b`, define
+LAMMPS communication routines.  For a bead-local scalar :math:`s_b`, define
 
 .. math::
 
@@ -219,6 +220,74 @@ centroid with their own correct periodic-coordinate convention.  A literal
 requires an explicit regularization; this example does not enable automatic
 switching between bias modes.
 
+.. versionadded:: TBD
+
+The optional *path_contraction* keyword changes only the coordinates supplied
+to PLUMED in *path_integral bead_mean* mode.  For a fixed parameter
+:math:`0 \leq \lambda \leq 1`, define a consistent lifted Cartesian path and
+
+.. math::
+
+   \widetilde{\mathbf R}_b = \mathbf R_c + \lambda(\mathbf R_b-\mathbf R_c),
+   \qquad \mathbf S_\lambda = \frac{1}{P}\sum_b s(\widetilde{\mathbf R}_b),
+   \qquad U_B = B(\mathbf S_\lambda).
+
+For example, use the same nonlinear CV and ``ENSEMBLE`` graph as for bead mean:
+
+.. code-block:: LAMMPS
+
+   fix pl all plumed plumedfile plumed.dat outfile p.log path_integral bead_mean pimd_fix fpimd path_contraction 0.5
+
+.. code-block:: text
+
+   d: DISTANCE ATOMS=1,2
+   s: CUSTOM ARG=d FUNC=x+x*x*x PERIODIC=NO
+   mean: ENSEMBLE ARG=s
+   bias: RESTRAINT ARG=mean.s AT=0.5 KAPPA=10
+
+This construction changes the input geometry before the nonlinear CV, rather
+than interpolating endpoint CVs or forces.  The real bead positions, springs,
+physical forces and physical neighbor lists remain unchanged.  The derivative
+of the single scalar potential is pulled back to each real bead:
+
+.. math::
+
+   \mathbf f_b = \lambda\widetilde{\mathbf f}_b +
+      (1-\lambda)\frac{1}{P}\sum_j\widetilde{\mathbf f}_j.
+
+Here :math:`\widetilde{\mathbf f}_b` is PLUMED's bias increment on the virtual
+coordinates, including the ``ENSEMBLE`` derivative.  LAMMPS then applies its
+existing dynamical factor :math:`P` exactly once.  Physical forces are never
+included in this pullback.  The reported scalar retains the single physical
+path energy convention.  At fixed cell the global bias virial follows the
+homogeneous-strain derivative of this potential, including explicit box terms.
+
+The parameter must be identical on every partition.  This option currently
+requires fixed-cell NVT and the usual PIMD post-force ordering.  It uses the
+integrator's image-based Cartesian lift, not a nearest-image reconstruction
+chosen independently for each CV.  Supply coherent image flags and retain them
+on restart.  It does not infer winding sectors or molecular identity.  A
+periodic geometry CV must use the appropriate periodic convention; a ``NOPBC``
+or absolute-position CV evaluated on lifted coordinates need not match a
+historical calculation on wrapped positions.  On the same lift,
+:math:`\lambda=0` and :math:`\lambda=1` recover centroid and bead-mean,
+respectively.  Omitting the keyword preserves the original coordinate path.
+
+All CVs printed by this PLUMED instance describe virtual coordinates.  Obtain
+real-bead target observables from the original bead trajectories or a separate
+qualified diagnostic.  For a stationary frozen bias, every real bead of a
+complete frame shares the same weight :math:`\exp(\beta U_B)`; no coordinate
+Jacobian or extra contraction weight is required.  Do not regard virtual bead
+coordinates as a lower-cost physical PIMD trajectory or as a change in finite
+bead-number accuracy.
+
+For history-dependent biasing, keep one logical field on the averaged CV:
+each PLUMED instance sees the same mean and evolves in lockstep.  Do not enable
+independent bead walkers.  An old adaptive history is not automatically a
+valid continuation after changing the contraction parameter.  The feature
+itself provides no claim of faster decorrelation, stable adaptive reweighting,
+or improved free-energy accuracy.
+
 The *path_integral bead_density* setting implements a symmetric bias of the
 instantaneous bead density,
 
@@ -255,7 +324,7 @@ deposition normalization.  The native regressions cover fixed biases, a
 matched five-step centroid/bead-density linear-bias dynamics limit,
 ``METAD WALKERS_MPI`` with single- and multi-rank bead partitions, and a
 four-bead ``OPES_METAD WALKERS_MPI`` restart.  They validate one shared HILLS
-stream with :math:`1/P` MetaD hill heights, shared OPES KERNELS and STATE files,
+stream with :math:`1/P` metadynamics hill heights, shared OPES KERNELS and STATE files,
 partition-zero bias ownership, zero-local-atom ranks, and PLUMED file-restart
 continuity.  This is an interface contract, not production admission for OPES
 reweighting, binary-restart dynamics, performance, or sampling efficiency.
@@ -300,7 +369,7 @@ Note that other quantities of interest can be output by commands that
 are native to PLUMED.
 
 Fixed conditional path functions
--------------------------------
+--------------------------------
 
 A fixed complete-path function combining a Cartesian-centroid CV and a
 bead-averaged score can use the same *bead_mean* adapter when both inputs
@@ -346,7 +415,7 @@ number of spatial MPI ranks. The native normalization tests include pure,
 centroid-only and mixed frozen graphs using ordinary PLUMED functions.
 
 For a frozen active OPES action, apply :math:`U_A-v(s_b)` as a correction
-so that the original local bias force and energy are cancelled. Applying
+so that the original local bias force and energy are canceled. Applying
 both the full :math:`U_A` and the local OPES bias would double count the
 field. Verify immutable state identity and native update suppression;
 current shared-density OPES deposition weights do not implement adaptive

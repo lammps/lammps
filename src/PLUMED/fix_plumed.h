@@ -22,6 +22,8 @@ FixStyle(plumed,FixPlumed);
 
 #include "fix.h"
 
+#include <vector>
+
 // forward declaration
 namespace PLMD {
 class Plumed;
@@ -53,6 +55,10 @@ class FixPlumed : public Fix {
     PATH_INTEGRAL_BEAD_MEAN,
     PATH_INTEGRAL_BEAD_DENSITY
   };
+
+  int path_contraction_flag;
+  double path_contraction;
+  std::vector<double> contracted_positions, contracted_forces, contraction_mean;
 
   PLMD::Plumed *p;                    // pointer to plumed object
   class Fix *pimd_fix;                // fix providing the Cartesian PIMD centroid
@@ -86,6 +92,8 @@ class FixPlumed : public Fix {
   void check_normal_mode_post_force_order();
   void update_atom_data();
   void post_force_centroid();
+  void prepare_contracted_coordinates();
+  void pullback_contracted_forces();
   void trace_nonfinite_state(const char *, const double *, bool);
   void trace_centroid_nonfinite(const char *);
 };

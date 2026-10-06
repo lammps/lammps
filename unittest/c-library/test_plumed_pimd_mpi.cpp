@@ -394,9 +394,11 @@ CentroidNVTContinuationState run_nmpimd_bead_mode_segments(
         if (!nonfinite_trace_prefix.empty())
             pimd_command += " nonfinite_trace " + nonfinite_trace_prefix;
         lammps_command(lmp_instance, pimd_command.c_str());
+        const char *adapter = std::string(mode) == "contracted_bead_mean" ? "bead_mean" : mode;
         std::string plumed_command = "fix bias all plumed plumedfile " + std::string(plumed_file) +
-                                     " outfile " + plumed_log + " path_integral " + mode +
+                                     " outfile " + plumed_log + " path_integral " + adapter +
                                      " pimd_fix fpimd";
+        if (std::string(mode) == "contracted_bead_mean") plumed_command += " path_contraction 0.5";
         if (!nonfinite_trace_prefix.empty())
             plumed_command += " nonfinite_trace " + nonfinite_trace_prefix;
         lammps_command(lmp_instance, plumed_command.c_str());
@@ -1645,20 +1647,25 @@ TEST(MPI, plumed_nmpimd_opes_langevin_restart_continuity)
         }
         return -1;
     };
-    for (const char *mode : {"centroid", "bead_mean", "bead_density"}) {
+    for (const char *mode : {"centroid", "bead_mean", "bead_density", "contracted_bead_mean"}) {
         SCOPED_TRACE(mode);
         for (int seam : {3, 4}) {
             SCOPED_TRACE(seam);
             const std::string prefix =
                 "test_nmpimd_opes_rng_" + std::string(mode) + "_" + std::to_string(seam);
-            const bool mean          = std::string(mode) == "bead_mean";
+            const bool contracted    = std::string(mode) == "contracted_bead_mean";
+            const bool mean          = std::string(mode) == "bead_mean" || contracted;
             const bool density       = std::string(mode) == "bead_density";
             const std::string binary = prefix + "_binary";
             auto write_input         = [&](const std::string &leg, bool restart) {
                 const std::string stem = prefix + "_" + leg;
                 std::ofstream input(stem + ".dat");
                 if (restart) input << "RESTART\n";
-                input << "d: DISTANCE ATOMS=1,2 NOPBC\n";
+                if (contracted)
+                    input << "r: DISTANCE ATOMS=1,2 NOPBC\n"
+                          << "d: CUSTOM ARG=r FUNC=x+0.01*x*x*x PERIODIC=NO\n";
+                else
+                    input << "d: DISTANCE ATOMS=1,2 NOPBC\n";
                 if (mean) input << "mean: ENSEMBLE ARG=d\n";
                 input << "bias: OPES_METAD ARG=" << (mean ? "mean.d" : "d")
                       << " PACE=2 BARRIER=4 TEMP=1 SIGMA=0.5 FIXED_SIGMA FILE=" << stem

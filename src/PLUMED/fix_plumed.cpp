@@ -31,6 +31,7 @@
 #include "universe.h"
 #include "update.h"
 
+#include <algorithm>
 #include <cmath>
 #include <cstdio>
 #include <cstring>
@@ -96,11 +97,11 @@ const char *plumed_trace_field_name(int field)
 }    // namespace
 
 FixPlumed::FixPlumed(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg), p(nullptr), pimd_fix(nullptr), nlocal(-1), natoms(0),
-    path_integral_mode(PATH_INTEGRAL_OFF), plumed_active(1), centroid_force_scale(0.0),
-    bead_density_force_scale(0.0), gatindex(nullptr), masses(nullptr), charges(nullptr),
-    centroid_coordinates(nullptr), centroid_positions(nullptr), centroid_forces(nullptr),
-    centroid_forces_all(nullptr), centroid_virial_pending(nullptr),
+    Fix(lmp, narg, arg), path_contraction_flag(0), path_contraction(1.0), p(nullptr),
+    pimd_fix(nullptr), nlocal(-1), natoms(0), path_integral_mode(PATH_INTEGRAL_OFF),
+    plumed_active(1), centroid_force_scale(0.0), bead_density_force_scale(0.0), gatindex(nullptr),
+    masses(nullptr), charges(nullptr), centroid_coordinates(nullptr), centroid_positions(nullptr),
+    centroid_forces(nullptr), centroid_forces_all(nullptr), centroid_virial_pending(nullptr),
     bead_bias_virial_pending(nullptr), forces_before_plumed(nullptr), nlevels_respa(0), bias(0.0),
     c_pe(nullptr), c_press(nullptr), plumedNeedsEnergy(0), id_pe(nullptr), id_press(nullptr),
     nonfinite_trace_prefix(nullptr), id_pimd(nullptr)
@@ -132,6 +133,13 @@ FixPlumed::FixPlumed(LAMMPS *lmp, int narg, char **arg) :
         path_integral_mode = PATH_INTEGRAL_BEAD_DENSITY;
       else
         error->all(FLERR, "Unknown fix plumed path_integral value: {}", arg[i + 1]);
+    } else if (strcmp(arg[i], "path_contraction") == 0) {
+      if (path_contraction_flag)
+        error->all(FLERR, "Fix plumed path_contraction may be specified only once");
+      path_contraction = utils::numeric(FLERR, arg[i + 1], false, lmp);
+      if (!std::isfinite(path_contraction) || path_contraction < 0.0 || path_contraction > 1.0)
+        error->all(FLERR, "Fix plumed path_contraction must be finite and in [0,1]");
+      path_contraction_flag = 1;
     } else if (strcmp(arg[i], "pimd_fix") == 0) {
       delete[] id_pimd;
       id_pimd = utils::strdup(arg[i + 1]);
@@ -146,6 +154,9 @@ FixPlumed::FixPlumed(LAMMPS *lmp, int narg, char **arg) :
     error->all(FLERR, "Fix plumed path_integral mode requires the pimd_fix keyword");
   if (path_integral_mode == PATH_INTEGRAL_OFF && id_pimd != nullptr)
     error->all(FLERR, "Fix plumed pimd_fix requires a path_integral mode");
+
+  if (path_contraction_flag && path_integral_mode != PATH_INTEGRAL_BEAD_MEAN)
+    error->all(FLERR, "Fix plumed path_contraction requires path_integral bead_mean");
 
   plumed_active = (path_integral_mode != PATH_INTEGRAL_CENTROID) || (universe->iworld == 0);
 
@@ -413,6 +424,25 @@ int FixPlumed::setmask()
 void FixPlumed::init()
 {
   check_path_integral_compatibility();
+
+  if (path_integral_mode != PATH_INTEGRAL_OFF) {
+    // All partitions must enter the same coordinate and force collectives.
+    double settings[2] = {double(path_contraction_flag), path_contraction};
+    double settings_min[2], settings_max[2];
+    MPI_Allreduce(settings, settings_min, 2, MPI_DOUBLE, MPI_MIN, universe->uworld);
+    MPI_Allreduce(settings, settings_max, 2, MPI_DOUBLE, MPI_MAX, universe->uworld);
+    if (settings_min[0] != settings_max[0] || settings_min[1] != settings_max[1])
+      error->all(FLERR, "Fix plumed path_contraction must match in all partitions");
+  }
+  if (path_contraction_flag) {
+    int dim = -1;
+    int unsupported = !pimd_fix->extract("nvt_unwrapped_coordinates", dim) || dim != 2 ||
+        domain->box_change;
+    MPI_Allreduce(MPI_IN_PLACE, &unsupported, 1, MPI_INT, MPI_MAX, universe->uworld);
+    if (unsupported) error->all(FLERR, "Fix plumed path_contraction requires fixed-cell NVT PIMD");
+    if (natoms > MAXSMALLINT / 3)
+      error->all(FLERR, "Too many atoms for fix plumed path_contraction");
+  }
 
   if (path_integral_mode != PATH_INTEGRAL_OFF) {
     if (utils::strmatch(update->integrate_style, "^respa"))
@@ -862,6 +892,8 @@ void FixPlumed::post_force(int /* vflag */)
     for (int i = 0; i < nlocal; i++)
       for (int d = 0; d < 3; d++) forces_before_plumed[3 * i + d] = atom->f[i][d];
 
+  if (path_contraction_flag) prepare_contracted_coordinates();
+
   // set up local virial/box. plumed uses full 3x3 matrices
   double plmd_virial[3][3];
   for (int i = 0; i < 3; i++)
@@ -890,9 +922,9 @@ void FixPlumed::post_force(int /* vflag */)
   p->cmd("setStep", &step);
   int plumedStopCondition = 0;
   p->cmd("setStopFlag", &plumedStopCondition);
-  p->cmd("setPositions", &atom->x[0][0]);
+  p->cmd("setPositions", path_contraction_flag ? contracted_positions.data() : &atom->x[0][0]);
   p->cmd("setBox", &box[0][0]);
-  p->cmd("setForces", &atom->f[0][0]);
+  p->cmd("setForces", path_contraction_flag ? contracted_forces.data() : &atom->f[0][0]);
   p->cmd("setMasses", &masses[0]);
   p->cmd("setCharges", &charges[0]);
   p->cmd("getBias", &bias);
@@ -968,6 +1000,7 @@ void FixPlumed::post_force(int /* vflag */)
   }
   // do the real calculation:
   p->cmd("performCalc");
+  if (path_contraction_flag) pullback_contracted_forces();
   trace_nonfinite_state("post-perform-pre-scale", forces_before_plumed, false);
 
   if (path_integral_mode == PATH_INTEGRAL_BEAD_MEAN ||
@@ -1024,6 +1057,69 @@ void FixPlumed::post_force(int /* vflag */)
   // calculation only if plumed needs it.
   c_pe->addstep(update->ntimestep + 1);
   c_press->addstep(update->ntimestep + 1);
+}
+
+/* ---------------------------------------------------------------------- */
+
+// The PIMD integrator refreshes this lift during post_force before PLUMED.
+// Match atoms by global tag, not by their possibly different local ownership.
+void FixPlumed::prepare_contracted_coordinates()
+{
+  int dim = -1;
+  auto **real = static_cast<double **>(pimd_fix->extract("nvt_unwrapped_coordinates", dim));
+  if (!real || dim != 2) error->all(FLERR, "Fix plumed cannot access the lifted PIMD coordinates");
+  contraction_mean.assign(3 * natoms, 0.0);
+  const int capacity = nlocal > 0 ? 3 * nlocal : 1;
+  contracted_positions.resize(capacity);
+  contracted_forces.assign(capacity, 0.0);
+  int invalid = 0;
+  for (int i = 0; i < nlocal; ++i) {
+    const int index = atom->tag[i] - 1;
+    for (int d = 0; d < 3; ++d) {
+      if (!std::isfinite(real[i][d])) invalid = 1;
+      contraction_mean[3 * index + d] = real[i][d] / universe->nworlds;
+    }
+  }
+  MPI_Allreduce(MPI_IN_PLACE, &invalid, 1, MPI_INT, MPI_MAX, universe->uworld);
+  if (invalid) error->all(FLERR, "Non-finite PIMD coordinates for fix plumed path_contraction");
+  MPI_Allreduce(MPI_IN_PLACE, contraction_mean.data(), 3 * natoms, MPI_DOUBLE, MPI_SUM,
+                universe->uworld);
+  for (int i = 0; i < nlocal; ++i) {
+    const int index = atom->tag[i] - 1;
+    for (int d = 0; d < 3; ++d) {
+      const double centroid = contraction_mean[3 * index + d];
+      contracted_positions[3 * i + d] = centroid + path_contraction * (real[i][d] - centroid);
+    }
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+void FixPlumed::pullback_contracted_forces()
+{
+  std::fill(contraction_mean.begin(), contraction_mean.end(), 0.0);
+  int invalid = 0;
+  for (int i = 0; i < nlocal; ++i) {
+    const int index = atom->tag[i] - 1;
+    for (int d = 0; d < 3; ++d) {
+      const double value = contracted_forces[3 * i + d];
+      if (!std::isfinite(value)) invalid = 1;
+      contraction_mean[3 * index + d] = value / universe->nworlds;
+    }
+  }
+  MPI_Allreduce(MPI_IN_PLACE, &invalid, 1, MPI_INT, MPI_MAX, universe->uworld);
+  if (invalid) error->all(FLERR, "Non-finite bias forces for fix plumed path_contraction");
+  MPI_Allreduce(MPI_IN_PLACE, contraction_mean.data(), 3 * natoms, MPI_DOUBLE, MPI_SUM,
+                universe->uworld);
+  for (int i = 0; i < nlocal; ++i) {
+    const int index = atom->tag[i] - 1;
+    for (int d = 0; d < 3; ++d) {
+      const double increment = path_contraction * contracted_forces[3 * i + d] +
+          (1.0 - path_contraction) * contraction_mean[3 * index + d];
+      // The existing bead-mean code applies the engine factor P afterward.
+      atom->f[i][d] = forces_before_plumed[3 * i + d] + increment;
+    }
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1197,5 +1293,8 @@ double FixPlumed::memory_usage()
     bytes += double(3 * sizeof(double) * natoms);
     if (plumed_active) bytes += double(6 * sizeof(double) * natoms);
   }
+  bytes += sizeof(double) *
+      (contracted_positions.capacity() + contracted_forces.capacity() +
+       contraction_mean.capacity());
   return bytes;
 }

@@ -110,6 +110,11 @@ if(HAS_PLUMED_PIMD)
   target_link_libraries(test_plumed_pimd_normalization_mpi PRIVATE lammps GTest::GMock)
   target_compile_definitions(test_plumed_pimd_normalization_mpi PRIVATE "MPICH_SKIP_MPICXX=1;OMPI_SKIP_MPICXX=1")
   add_mpi_test(NAME PlumedPIMDNormalizationMPI NUM_PROCS 4 COMMAND $<TARGET_FILE:test_plumed_pimd_normalization_mpi>)
+  add_executable(test_plumed_path_contraction_mpi test_plumed_path_contraction_mpi.cpp)
+  target_link_libraries(test_plumed_path_contraction_mpi PRIVATE lammps GTest::GMock)
+  target_compile_definitions(test_plumed_path_contraction_mpi PRIVATE "MPICH_SKIP_MPICXX=1;OMPI_SKIP_MPICXX=1")
+  add_mpi_test(NAME PlumedPathContractionMPI NUM_PROCS 4 COMMAND $<TARGET_FILE:test_plumed_path_contraction_mpi>)
+  add_mpi_test(NAME PlumedPathContractionOddMPI NUM_PROCS 6 COMMAND $<TARGET_FILE:test_plumed_path_contraction_mpi>)
 endif()
 
 # simple run tests for coupling to the LAMMPS library

@@ -1395,9 +1395,28 @@ struct PairOxdna3HbXstkFused {
   typedef PairOxdnaHbondKokkos<DeviceType> HbondType;
   HbondType hb;
   PairOxdna3XstkKokkos<DeviceType> xs;
+  int compact;    // 1 = phase 2 runs over the pairs compacted by phase 1
 
   PairOxdna3HbXstkFused(const HbondType &hb_in, const PairOxdna3XstkKokkos<DeviceType> &xs_in) :
-    hb(hb_in), xs(xs_in) {}
+    hb(hb_in), xs(xs_in), compact(0) {}
+
+  // phase 1 of the compacted evaluation: append the screened pairs that pass
+  // the radial test of either style.  Only a small fraction does, so in
+  // phase 2 the threads of a warp all evaluate the angular terms instead of
+  // most of them idling while a few do.
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagPairOxdna3HbXstkFusedRadial, const int &ipair) const
+  {
+    KK_ACC_FLOAT fa[3], ta[3];
+    EV_FLOAT ev;
+    bool pass = hb.template screened_pair_body<HbondType::OXDNA3,NEIGHFLAG,NEWTON_PAIR,EVFLAG,1>(
+      TagPairOxdnaHbondComputeGPUPair<HbondType::OXDNA3,NEIGHFLAG,NEWTON_PAIR,EVFLAG>(), ipair, fa, ta, ev);
+    if (!pass)
+      pass = xs.template screened_pair_body<NEIGHFLAG,NEWTON_PAIR,EVFLAG,1>(
+        TagPairOxdna3XstkComputeNpair<NEIGHFLAG,NEWTON_PAIR,EVFLAG>(), ipair, fa, ta, ev);
+    if (pass) xs.d_radial_pairs(Kokkos::atomic_fetch_add(&xs.d_radial_count(), 1)) = ipair;
+  }
 
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
@@ -1410,15 +1429,20 @@ struct PairOxdna3HbXstkFused {
       decltype(xs.ndup_torque)>::get(xs.dup_torque,xs.ndup_torque);
     auto a_torque = v_torque.template access<Kokkos::Experimental::ScatterAtomic>();
 
+    int jpair = ipair;
+    if (compact) {
+      if (ipair >= xs.d_radial_count()) return;
+      jpair = xs.d_radial_pairs(ipair);
+    }
     KK_ACC_FLOAT fa[3] = {0.0, 0.0, 0.0}, ta[3] = {0.0, 0.0, 0.0};
     bool any = hb.screened_pair_body(
       TagPairOxdnaHbondComputeGPUPair<HbondType::OXDNA3,NEIGHFLAG,NEWTON_PAIR,EVFLAG>(),
-      ipair, fa, ta, ev.hb);
+      jpair, fa, ta, ev.hb);
     if (xs.screened_pair_body(TagPairOxdna3XstkComputeNpair<NEIGHFLAG,NEWTON_PAIR,EVFLAG>(),
-                              ipair, fa, ta, ev.xs))
+                              jpair, fa, ta, ev.xs))
       any = true;
     if (any) {
-      const int a = static_cast<int>(xs.d_pairs_screened(ipair) >> 32);
+      const int a = static_cast<int>(xs.d_pairs_screened(jpair) >> 32);
       a_f(a,0) += fa[0];
       a_f(a,1) += fa[1];
       a_f(a,2) += fa[2];
@@ -1460,6 +1484,22 @@ void PairOxdna3XstkKokkos<DeviceType>::compute_fused(PairOxdnaHbondKokkos<Device
     constexpr int NEWTON_PAIR = decltype(newtonpair_tag)::value;
     constexpr int EVFLAG = decltype(evflag_tag)::value;
     PairOxdna3HbXstkFused<DeviceType,NEIGHFLAG,NEWTON_PAIR,EVFLAG> functor(*hb, *this);
+#if OXDNA_KK_FUSED_COMPACT
+    // compaction pays off only when there are enough pairs to fill the device
+    // more than once, otherwise the extra launch costs more than it saves
+    if ((execution_space != HostKK) && (screened_pair_count > 2 * DeviceType().concurrency())) {
+      if (static_cast<int>(d_radial_pairs.extent(0)) < screened_pair_count)
+        d_radial_pairs = typename AT::t_int_1d(Kokkos::view_alloc(Kokkos::WithoutInitializing, "pair:radial_pairs"),
+                                               screened_pair_count + screened_pair_count/10);
+      if (d_radial_count.data() == nullptr) d_radial_count = typename AT::t_int_scalar("pair:radial_count");
+      Kokkos::deep_copy(d_radial_count, 0);
+      functor.xs.d_radial_pairs = d_radial_pairs;
+      functor.xs.d_radial_count = d_radial_count;
+      functor.compact = 1;
+      Kokkos::parallel_for(OxdnaPairRangePolicy<DeviceType, TagPairOxdna3HbXstkFusedRadial>(0,screened_pair_count),
+                           functor);
+    }
+#endif
     if constexpr (EVFLAG) {
       Kokkos::parallel_reduce(OxdnaPairRangePolicy<DeviceType, TagPairOxdna3HbXstkFused>(0,screened_pair_count),
                               functor, ev);

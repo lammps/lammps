@@ -76,6 +76,7 @@ template<class DeviceType, int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
 struct PairOxdna3HbXstkFused;    // fused hbond + oxdna3/xstk kernel
 
 struct TagPairOxdna3HbXstkFused{};
+struct TagPairOxdna3HbXstkFusedRadial{};    // phase 1 of the compacted fused kernel
 
 template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
 struct TagPairOxdna3XstkComputeNpair{};

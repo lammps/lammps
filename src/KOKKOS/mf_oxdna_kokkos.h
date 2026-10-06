@@ -84,6 +84,12 @@ namespace MFOxdnaKokkos {
 #ifndef OXDNA_KK_FUSE_HBXSTK
 #define OXDNA_KK_FUSE_HBXSTK 1
 #endif
+// Compacted evaluation of the fused kernel: 1 = a first kernel collects the
+// screened pairs that pass the radial test of hbond or oxdna3/xstk, and the
+// fused kernel evaluates only those (default), 0 = all screened pairs.
+#ifndef OXDNA_KK_FUSED_COMPACT
+#define OXDNA_KK_FUSED_COMPACT 1
+#endif
 #define OXDNA_KK_FUSE_HBXSTK_ACTIVE \
   (OXDNA_KK_FUSE_HBXSTK && !OXDNA_KK_TWO_PHASE && !OXDNA_KK_SCREENED_PER_ATOM)
 

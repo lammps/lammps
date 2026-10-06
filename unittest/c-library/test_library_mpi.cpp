@@ -3,14 +3,24 @@
 #define LAMMPS_LIB_MPI 1
 #include "lammps.h"
 #include "library.h"
+#include "lmptype.h"
 #include "timer.h"
+
+#include <algorithm>
+#include <array>
+#include <cmath>
+#include <cstdio>
+#include <fstream>
+#include <sstream>
 #include <string>
+#include <vector>
 
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
 #include "../testing/test_mpi_main.h"
 
+using ::LAMMPS_NS::tagint;
 using ::testing::ExitedWithCode;
 using ::testing::HasSubstr;
 using ::testing::StartsWith;
@@ -194,6 +204,81 @@ TEST(MPI, multi_partition)
 
     lammps_close(lmp);
 };
+
+#if LAMMPS_HAS_PIMD
+
+namespace {
+
+void *open_multirank_partition()
+{
+    const char *args[] = {"LAMMPS_test", "-screen", "none", "-log",    "none", "-partition",
+                          "2x2",         "-in",     "none", "-nocite", nullptr};
+    char **argv        = (char **)args;
+    int argc           = (sizeof(args) / sizeof(char *)) - 1;
+    return lammps_open(argc, argv, MPI_COMM_WORLD, nullptr);
+}
+
+void create_multirank_two_atom_system(void *lmp)
+{
+    lammps_command(lmp, "variable x2 world 19.0 10.0");
+    lammps_command(lmp, "variable y2 world 10.0 17.0");
+    lammps_command(lmp, "units lj");
+    lammps_command(lmp, "atom_style atomic");
+    lammps_command(lmp, "atom_modify map array");
+    lammps_command(lmp, "boundary p p p");
+    lammps_command(lmp, "region box block 0.0 20.0 0.0 20.0 0.0 20.0");
+    lammps_command(lmp, "create_box 1 box");
+    lammps_command(lmp, "create_atoms 1 single 10.0 10.0 2.0");
+    lammps_command(lmp, "create_atoms 1 single ${x2} ${y2} 2.0");
+    lammps_command(lmp, "mass 1 1.0");
+    lammps_command(lmp, "pair_style lj/cut 2.5");
+    lammps_command(lmp, "pair_coeff * * 0.0 1.0");
+    lammps_command(lmp, "timestep 0.001");
+    lammps_command(lmp, "velocity all set 0.0 0.0 0.0");
+}
+
+} // namespace
+
+TEST(MPI, pimd_multirank_spring_force)
+{
+    int nprocs, me;
+    MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
+    MPI_Comm_rank(MPI_COMM_WORLD, &me);
+    ASSERT_EQ(nprocs, 4);
+
+    void *lmp = open_multirank_partition();
+    ASSERT_NE(lmp, nullptr);
+    EXPECT_EQ(lammps_extract_setting(lmp, "world_size"), 2);
+    create_multirank_two_atom_system(lmp);
+    lammps_command(lmp, "group first id 1");
+    lammps_command(lmp, "group second id 2");
+    lammps_command(lmp, "compute first_force first reduce sum fx fy fz");
+    lammps_command(lmp, "compute second_force second reduce sum fx fy fz");
+    lammps_command(lmp, "fix fpimd all pimd/langevin method pimd ensemble nvt "
+                        "integrator obabo thermostat PILE_L 1234 tau 1.0 temp 1.0 fixcom no");
+    lammps_command(lmp, "run 0");
+
+    auto *first =
+        (double *)lammps_extract_compute(lmp, "first_force", LMP_STYLE_GLOBAL, LMP_TYPE_VECTOR);
+    auto *second =
+        (double *)lammps_extract_compute(lmp, "second_force", LMP_STYLE_GLOBAL, LMP_TYPE_VECTOR);
+    ASSERT_NE(first, nullptr);
+    ASSERT_NE(second, nullptr);
+    for (int dimension = 0; dimension < 3; ++dimension)
+        EXPECT_NEAR(first[dimension], 0.0, 1.0e-12);
+    if (me / 2 == 0) {
+        EXPECT_LT(second[0], 0.0);
+        EXPECT_GT(second[1], 0.0);
+    } else {
+        EXPECT_GT(second[0], 0.0);
+        EXPECT_LT(second[1], 0.0);
+    }
+    EXPECT_NEAR(7.0 * second[0] + 9.0 * second[1], 0.0, 1.0e-10);
+    EXPECT_NEAR(second[2], 0.0, 1.0e-12);
+    lammps_close(lmp);
+}
+
+#endif
 
 class MPITest : public ::testing::Test {
 public:

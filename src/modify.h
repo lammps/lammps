@@ -19,6 +19,7 @@
 #include "creator_registry.h"
 
 #include <map>
+#include <vector>
 
 namespace LAMMPS_NS {
 
@@ -117,7 +118,8 @@ class Modify : protected Pointers {
   int find_fix(const std::string &);
   // new API
   [[nodiscard]] Fix *get_fix_by_id(const std::string &) const;
-  [[nodiscard]] Fix *get_fix_by_index(int idx) const { return ((idx >= 0) && (idx < nfix)) ? fix[idx] : nullptr; }
+  [[nodiscard]] Fix *get_fix_by_index(int idx) const
+  { return ((idx >= 0) && (idx < nfix)) ? fix[idx] : nullptr; }
   [[nodiscard]] std::vector<Fix *> get_fix_by_style(const std::string &) const;
   const std::vector<Fix *> &get_fix_list();
   int get_fix_mask(Fix *ifix) const
@@ -151,9 +153,7 @@ class Modify : protected Pointers {
   // new API
   [[nodiscard]] Compute *get_compute_by_id(const std::string &) const;
   [[nodiscard]] Compute *get_compute_by_index(int idx) const
-  {
-    return ((idx >= 0) && (idx < ncompute)) ? compute[idx] : nullptr;
-  }
+  { return ((idx >= 0) && (idx < ncompute)) ? compute[idx] : nullptr; }
   [[nodiscard]] std::vector<Compute *> get_compute_by_style(const std::string &) const;
   const std::vector<Compute *> &get_compute_list();
 
@@ -200,6 +200,7 @@ class Modify : protected Pointers {
   char **id_restart_global;       // stored fix global info
   char **style_restart_global;    // from read-in restart file
   char **state_restart_global;
+  std::vector<int> size_restart_global;
   int *used_restart_global;
 
   char **id_restart_peratom;       // stored fix peratom info

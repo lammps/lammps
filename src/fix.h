@@ -171,6 +171,7 @@ class Fix : protected Pointers {
   virtual void write_restart(FILE *) {}
   virtual void write_restart_file(const char *) {}
   virtual void restart(char *) {}
+  virtual void restart(char *buf, int /* nbytes */) { restart(buf); }
 
   virtual void grow_arrays(int) {}
   virtual void copy_arrays(int, int, int) {}

@@ -198,3 +198,9 @@ quantities and/or to be summed to the potential energy of the system.
 The corresponding flags (``scalar_flag``, ``vector_flag``, etc.) must be
 set in the constructor to tell LAMMPS which of these methods are
 implemented.
+
+A fix that needs to distinguish variable-size global restart records can
+override ``restart(char *buf, int nbytes)``. The byte count is the stored
+payload size. By default, this overload calls ``restart(char *buf)``, so
+existing fixes need no changes. Validate the byte count before reading fields
+that were absent in older restart formats.

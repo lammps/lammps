@@ -47,19 +47,23 @@ class FixPIMDLangevin : public Fix {
   void final_integrate() override;
   void end_of_step() override;
   void write_restart(FILE *fp) override;
-  void restart(char *buf) override;
+  void restart(char *, int) override;
 
   double compute_vector(int) override;
+  void *extract(const char *, int &) override;
 
  protected:
+  FixPIMDLangevin(class LAMMPS *, int, char **, bool);
+
   // System setting variables
-  int method;                              // PIMD or NMPIMD or CMD
-  int fmmode;                              // physical or normal
-  int np;                                  // number of beads
-  double inverse_np;                       // 1.0/np
-  double temp;                             // temperature
-  double hbar;                             // Planck's constant
-  double lj_epsilon, lj_sigma, lj_mass;    // LJ unit energy, length, and mass scales
+  int method;                                 // PIMD or NMPIMD or CMD
+  int fmmode;                                 // physical or normal
+  int np;                                     // number of beads
+  double inverse_np;                          // 1.0/np
+  double normal_mode_centroid_force_scale;    // F_q0/F_centroid on this normal mode
+  double temp;                                // temperature
+  double hbar;                                // Planck's constant
+  double lj_epsilon, lj_sigma, lj_mass;       // LJ unit energy, length, and mass scales
   double other_planck;
   double other_mvv2e;
   double kt;               // k_B * temp
@@ -104,20 +108,32 @@ class FixPIMDLangevin : public Fix {
   void comm_init();
   virtual void prepare_coordinates();
   void inter_replica_comm(double **ptr);
-  void ring_collect(const std::vector<tagint> &miss_tag,
-                                            double **ptr,
-                                            std::vector<tagint> &rep_tag,
-                                            std::vector<double> &rep_val);
   void virtual spring_force();
 
   /* normal-mode operations */
 
   double *lam, **M_x2xp, **M_xp2x, **M_f2fp, **M_fp2f;
   int *modeindex;
+  int defer_normal_mode_force;      // transform forces after all post-force fixes
+  int normal_mode_force_pending;    // Cartesian force still needs transformation
+  int bead_bias_virial_pending;     // bead-mode bias needs current-step estimators
 
   void reallocate();
   void nmpimd_init();
+
+  /* opt-in non-finite stage tracing */
+
+  char *nonfinite_trace_prefix;
+  int nonfinite_trace_nmax;
+  double **nonfinite_trace_last_x;
+  double **nonfinite_trace_last_v;
+  double **nonfinite_trace_last_f;
+  tagint *nonfinite_trace_last_tag;
+  char nonfinite_trace_last_stage[96];
+  void trace_nonfinite_state(const char *, const char *);
+
   void nmpimd_transform(double **, double **, double *);
+  void prepare_normal_mode_forces();
 
   /* Langevin integration */
 
@@ -141,8 +157,9 @@ class FixPIMDLangevin : public Fix {
 
   /* Bussi-Zykova-Parrinello barostat */
 
-  int pstat_flag;    // pstat_flag = 1 if barostat is used
-  int pstyle;        // pstyle = ISO or ANISO (will support TRICLINIC in the future)
+  int pstat_flag;                      // pstat_flag = 1 if barostat is used
+  int centroid_bias_virial_pending;    // current PLUMED centroid virial needs collecting
+  int pstyle;    // pstyle = ISO or ANISO (will support TRICLINIC in the future)
   double W, tau_p, Pext, p_hydro, totenthalpy, Vcoeff;
   int pdim;
   int p_flag[6];

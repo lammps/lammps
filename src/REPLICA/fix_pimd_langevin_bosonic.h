@@ -31,9 +31,6 @@ class FixPIMDBLangevin : public FixPIMDLangevin {
 
   double compute_vector(int) override;
 
-  char **filtered_args;
-  int filtered_narg;
-
  protected:
   void compute_spring_energy() override;
   void compute_t_prim() override;
@@ -45,8 +42,6 @@ class FixPIMDBLangevin : public FixPIMDLangevin {
   bool synch_energies;
   class BosonicExchange *bosonic_exchange;
   double **f_tag_order;
-  char **filter_args(
-      int, char **);    // for hold memory of filtered arguments when calling the parent constructor
 };
 
 }    // namespace LAMMPS_NS

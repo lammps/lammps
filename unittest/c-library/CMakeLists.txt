@@ -55,6 +55,13 @@ else()
 endif()
 list(APPEND TEST_CONFIG_DEFS LAMMPS_HAS_MPI=${HAS_MPI})
 
+if(BUILD_MPI AND PKG_REPLICA)
+  set(HAS_PIMD 1)
+else()
+  set(HAS_PIMD 0)
+endif()
+list(APPEND TEST_CONFIG_DEFS LAMMPS_HAS_PIMD=${HAS_PIMD})
+
 if(BUILD_OMP)
   set(HAS_OMP 1)
 else()
@@ -80,6 +87,13 @@ add_executable(test_library_mpi test_library_mpi.cpp)
 target_link_libraries(test_library_mpi PRIVATE lammps GTest::GMock)
 target_compile_definitions(test_library_mpi PRIVATE "${TEST_CONFIG_DEFS};MPICH_SKIP_MPICXX=1;OMPI_SKIP_MPICXX=1")
 add_mpi_test(NAME LibraryMPI NUM_PROCS 4 COMMAND $<TARGET_FILE:test_library_mpi>)
+
+if(HAS_PIMD)
+  add_executable(test_pimd_mpi test_pimd_mpi.cpp)
+  target_link_libraries(test_pimd_mpi PRIVATE lammps GTest::GMock)
+  target_compile_definitions(test_pimd_mpi PRIVATE "MPICH_SKIP_MPICXX=1;OMPI_SKIP_MPICXX=1")
+  add_mpi_test(NAME PIMDMPI NUM_PROCS 4 COMMAND $<TARGET_FILE:test_pimd_mpi>)
+endif()
 
 # simple run tests for coupling to the LAMMPS library
 if(BUILD_MPI)

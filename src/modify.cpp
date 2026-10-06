@@ -22,8 +22,8 @@
 #include "fix.h"    // IWYU pragma: keep
 #include "group.h"
 #include "input.h"
-#include "memory.h"
 #include "label_map.h"
+#include "memory.h"
 #include "region.h"
 #include "update.h"
 #include "variable.h"
@@ -279,8 +279,8 @@ void Modify::init()
   int checkall;
   MPI_Allreduce(&check, &checkall, 1, MPI_INT, MPI_SUM, world);
   if (comm->me == 0 && checkall)
-    error->warning(FLERR, "One or more atoms are time integrated more than once"
-                   + utils::errorurl(32));
+    error->warning(FLERR,
+                   "One or more atoms are time integrated more than once" + utils::errorurl(32));
 }
 
 /* ----------------------------------------------------------------------
@@ -922,8 +922,7 @@ Fix *Modify::add_fix(int narg, char **arg, int trysuffix)
   }
 
   if (fix[ifix] == nullptr) {
-    if (FixCreator fix_creator = fix_styles().find(arg[2]))
-      fix[ifix] = fix_creator(lmp, narg, arg);
+    if (FixCreator fix_creator = fix_styles().find(arg[2])) fix[ifix] = fix_creator(lmp, narg, arg);
   }
 
   if (fix[ifix] == nullptr)
@@ -953,7 +952,7 @@ Fix *Modify::add_fix(int narg, char **arg, int trysuffix)
   for (int i = 0; i < nfix_restart_global; i++)
     if ((strcmp(id_restart_global[i], fix[ifix]->id) == 0) &&
         (utils::strip_style_suffix(fix[ifix]->style, lmp) == style_restart_global[i])) {
-      fix[ifix]->restart(state_restart_global[i]);
+      fix[ifix]->restart(state_restart_global[i], size_restart_global[i]);
       used_restart_global[i] = 1;
       fix[ifix]->restart_reset = 1;
       if (comm->me == 0)
@@ -1011,8 +1010,8 @@ Fix *Modify::add_fix(const std::string &fixcmd, int trysuffix)
 Fix *Modify::replace_fix(const std::string &replaceID, int narg, char **arg, int trysuffix)
 {
   auto *oldfix = get_fix_by_id(replaceID);
-  if (!oldfix) error->all(FLERR, Error::NOLASTLINE,
-                          "Modify replace_fix ID {} could not be found", replaceID);
+  if (!oldfix)
+    error->all(FLERR, Error::NOLASTLINE, "Modify replace_fix ID {} could not be found", replaceID);
 
   // change ID, igroup, style of fix being replaced to match new fix
   // requires some error checking on arguments for new fix
@@ -1025,8 +1024,8 @@ Fix *Modify::replace_fix(const std::string &replaceID, int narg, char **arg, int
   oldfix->id = utils::strdup(arg[0]);
 
   int jgroup = group->find(arg[1]);
-  if (jgroup == -1) error->all(FLERR, Error::NOLASTLINE,
-                               "Could not find replace_fix group ID {}", arg[1]);
+  if (jgroup == -1)
+    error->all(FLERR, Error::NOLASTLINE, "Could not find replace_fix group ID {}", arg[1]);
   oldfix->igroup = jgroup;
 
   delete[] oldfix->style;
@@ -1463,7 +1462,7 @@ void Modify::addstep_compute(bigint newstep)
   }
 
   for (int icompute = 0; icompute < n_timeflag; icompute++)
-    if (compute[list_timeflag[icompute]]->invoked_flag >=0)
+    if (compute[list_timeflag[icompute]]->invoked_flag >= 0)
       compute[list_timeflag[icompute]]->addstep(newstep);
 }
 
@@ -1556,6 +1555,7 @@ int Modify::read_restart(FILE *fp)
     style_restart_global = new char *[nfix_restart_global];
     state_restart_global = new char *[nfix_restart_global];
     used_restart_global = new int[nfix_restart_global];
+    size_restart_global.resize(nfix_restart_global);
   }
 
   // read each entry and Bcast to all procs
@@ -1580,6 +1580,7 @@ int Modify::read_restart(FILE *fp)
     if (me == 0) utils::sfread(FLERR, &n, sizeof(int), 1, fp, nullptr, error);
     MPI_Bcast(&n, 1, MPI_INT, 0, world);
     if ((n < 0) || (n > (1 << 30))) error->all(FLERR, "Invalid fix data size in restart file");
+    size_restart_global[i] = n;
     state_restart_global[i] = new char[n];
     if (me == 0) utils::sfread(FLERR, state_restart_global[i], sizeof(char), n, fp, nullptr, error);
     MPI_Bcast(state_restart_global[i], n, MPI_CHAR, 0, world);
@@ -1672,6 +1673,7 @@ void Modify::restart_deallocate(int flag)
     delete[] style_restart_global;
     delete[] state_restart_global;
     delete[] used_restart_global;
+    size_restart_global.clear();
   }
 
   if (nfix_restart_peratom) {

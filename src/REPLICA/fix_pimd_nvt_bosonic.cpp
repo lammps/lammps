@@ -42,6 +42,8 @@ FixPIMDBNVT::FixPIMDBNVT(LAMMPS *lmp, int narg, char **arg) : FixPIMDNVT(lmp, na
   prim = 0.0;
   spring_energy = 0.0;
   size_vector = 4;
+  delete[] extlist;
+  extlist = new int[4]{1, 0, 1, 1};
   if (method != PIMD && method != NMPIMD) {
     error->universe_all(FLERR,
                         "Method not supported in fix pimdb/nvt; only methods PIMD and NMPIMD");
@@ -54,9 +56,7 @@ FixPIMDBNVT::FixPIMDBNVT(LAMMPS *lmp, int narg, char **arg) : FixPIMDNVT(lmp, na
 /* ---------------------------------------------------------------------- */
 
 FixPIMDBNVT::~FixPIMDBNVT()
-{
-  delete bosonic_exchange;
-}
+{ delete bosonic_exchange; }
 
 /* ---------------------------------------------------------------------- */
 

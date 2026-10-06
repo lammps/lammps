@@ -40,7 +40,7 @@ Syntax
 
   .. parsed-literal::
 
-     *keywords* = *method* or *integrator* or *ensemble* or *fmmode* or *fmass* or *scale* or *sp* or *temp* or *thermostat* or *tau* or *iso* or *aniso* or *barostat* or *taup* or *fixcom* or *esynch*
+     *keywords* = *method* or *integrator* or *ensemble* or *fmmode* or *fmass* or *scale* or *sp* or *temp* or *thermostat* or *tau* or *iso* or *aniso* or *x* or *y* or *z* or *barostat* or *taup* or *fixcom* or *esynch*
      *method* value = *nmpimd* (default) or *pimd*
      *integrator* value = *obabo* or *baoab*
      *ensemble* value = *nvt* or *nve* or *nph* or *npt*
@@ -53,10 +53,12 @@ Syntax
           style value = *PILE_L*
           seed = random number generator seed
      *tau* value = thermostat damping parameter (time unit)
-     *scale* value = scaling factor of the damping times of non-centroid modes of PILE_L thermostat
+     *scale* value = scaling factor of the damping rates of non-centroid modes of PILE_L thermostat
      *iso* or *aniso* values = pressure (pressure unit)
          pressure = scalar external pressure of the barostat
-     *barostat* value = *BZP* or *MTTK*
+     *x* or *y* or *z* values = pressure (pressure unit)
+         pressure = external pressure for the selected diagonal component
+     *barostat* value = *BZP*
      *taup* value = barostat damping parameter (time unit)
      *fixcom* value = *yes* or *no*
      *esynch* value = *yes* or *no* (only in *pimd/langevin/bosonic*)
@@ -197,7 +199,9 @@ solution of harmonic oscillator is used to propagate the free ring
 polymer part of the Hamiltonian.  If *method* is *pimd*, the Cartesian
 representation is used to integrate the equations of motion.  The
 harmonic force is added to the total force of the system, and the
-numerical integrator is used to propagate the Hamiltonian.
+numerical integrator is used to propagate the Hamiltonian. The *scale*
+keyword is not available with *method*=*pimd*, regardless of keyword
+ordering.
 
 Fix *pimd/nvt/bosonic* only supports the *pimd* and *nmpimd*
 methods. Fix *pimd/langevin/bosonic* only supports the *pimd* method,
@@ -211,7 +215,8 @@ splitting schemes. Typically either of the two should work fine.
 The keyword *fmass* sets a further scaling factor for the fictitious
 masses of beads, which can be used for the Partial Adiabatic CMD
 :ref:`(Hone) <Hone>`, or to be set as P, which results in the fictitious
-masses to be equal to the real particle masses.
+masses to be equal to the real particle masses. For all listed fix styles,
+*fmass* must be greater than zero and no larger than the number of beads P.
 
 The keyword *fmmode* of *fix pimd/langevin* determines the mode of fictitious
 mass preconditioning. There are two options: *physical* and *normal*. If *fmmode* is
@@ -251,9 +256,13 @@ support for bosonic normal modes.
 The keyword *sp* is a scaling factor on Planck's constant. Scaling the
 Planck's constant means modifying the "quantumness" of the PIMD
 simulation. Using the physical value of Planck's constant corresponds to
-a fully quantum simulation, and 0 corresponds to the classical limit.
-For unit styles other than *lj*, the default value of 1.0 is appropriate
-for most situations.  For *lj* units, a fully quantum simulation
+a fully quantum simulation, while the classical limit is approached as
+*sp* tends to zero. The exact value zero is not supported because the
+ring-polymer spring frequency contains the inverse of Planck's constant;
+*sp* must be positive. An exactly classical simulation should use a
+non-PIMD integration fix instead. For unit styles other than *lj*, the
+default value of 1.0 is appropriate for most situations.  For *lj* units,
+a fully quantum simulation
 translates into setting *sp* to the de Boer quantumness parameter
 :math:`\Lambda^{\ast}` (see :ref:`de Boer <de Boer>`):
 
@@ -282,8 +291,8 @@ ensemble is it going to sample. The value can be *nve* (microcanonical),
 support *ensemble* other than *nve*, *nvt*.
 
 The keyword *temp* specifies temperature parameter for fix styles
-*pimd/nvt* and *pimd/langevin*. It should read a positive floating-point
-number.
+*pimd/nvt* and *pimd/langevin*. It must be a positive floating-point
+number; zero is rejected before initialization.
 
 .. note::
 
@@ -295,8 +304,9 @@ number.
 The keyword *thermostat* reads *style* and *seed* of thermostat for fix
 style *pimd/langevin*.  *style* can only be *PILE_L* (path integral
 Langevin equation local thermostat, as described in :ref:`Ceriotti3
-<Ceriotti3>`), and *seed* should a positive integer number, which serves
-as the seed of the pseudo random number generator.
+<Ceriotti3>`), and *seed* should be a positive integer, which serves
+as the seed of the pseudo random number generator. A positive seed must be
+provided for the thermostatted *nvt* and *npt* ensembles.
 
 .. note::
 
@@ -304,35 +314,62 @@ as the seed of the pseudo random number generator.
    of the ring polymer. The *tau* parameter controls the centroid mode, and the *scale* parameter controls the non-centroid modes.
 
 The keyword *tau* specifies the thermostat damping time parameter for
-fix style *pimd/langevin*. It is in time unit. It only works on the
-centroid mode.
+fix style *pimd/langevin*. It is in time units and only controls the
+centroid mode. For a positive value, the centroid damping rate is
+:math:`\gamma_0=1/\mathrm{tau}`. For a non-positive value, the default
+:math:`\gamma_0=P/(\beta\hbar)` is used, corresponding to the effective
+damping time :math:`\beta\hbar/P`.
 
-The keyword *scale* specifies a scaling parameter for the damping times
-of the non-centroid modes for fix style *pimd/langevin*. The default
-damping time of the non-centroid mode :math:`i` is
-:math:`\frac{P}{\beta\hbar}\sqrt{\lambda_i\times\mathrm{fmass}}`
-(*fmmode* is *physical*) or
-:math:`\frac{P}{\beta\hbar}\sqrt{\mathrm{fmass}}` (*fmmode* is
-*normal*). The damping times of all non-centroid modes are the default
-values divided by *scale*. This keyword should be used only with
-*method*=*nmpimd*.
+The keyword *scale* specifies a scaling parameter for the damping rates
+of the non-centroid modes for fix style *pimd/langevin*. For a
+non-centroid mode :math:`i`, the damping rate is
+:math:`\gamma_i=2\,\mathrm{scale}\,\omega_i`. Therefore, its damping
+time is
 
-The barostat parameters for fix style *pimd/langevin* with *npt* or
-*nph* ensemble is specified using one of *iso* and *aniso* keywords. A
-*pressure* value should be given with pressure unit. The keyword *iso*
-means couple all 3 diagonal components together when pressure is
-computed (hydrostatic pressure), and dilate/contract the dimensions
-together. The keyword *aniso* means x, y, and z dimensions are
-controlled independently using the Pxx, Pyy, and Pzz components of the
-stress tensor as the driving forces, and the specified scalar external
-pressure.  These parameters are not supported in
+.. math::
+
+   \tau_i = \frac{\beta\hbar\sqrt{\mathrm{fmass}}}
+   {2\,\mathrm{scale}\,P\sqrt{\lambda_i}}
+
+when *fmmode* is *physical*, and
+
+.. math::
+
+   \tau_i = \frac{\beta\hbar\sqrt{\mathrm{fmass}}}
+   {2\,\mathrm{scale}\,P}
+
+when *fmmode* is *normal*. A value of zero sets :math:`\gamma_i=0`,
+:math:`\tau_i=\infty`, :math:`c_{1,i}=1`, and :math:`c_{2,i}=0` for all
+non-centroid modes. Thus it disables their stochastic damping while the
+centroid thermostat remains active. Negative values are not allowed.
+This keyword should be used only with *method*=*nmpimd*.
+
+.. versionchanged:: TBD
+
+The pressure-control parameters for fix style *pimd/langevin* with the
+*npt* or *nph* ensemble are specified using *iso*, *aniso*, or any
+combination of the *x*, *y*, and *z* keywords. A *pressure* value should
+be given in pressure units. The keyword *iso* couples all three diagonal
+components when pressure is computed (hydrostatic pressure) and
+dilates/contracts the dimensions together. The keyword *aniso* controls
+the x, y, and z dimensions independently using the Pxx, Pyy, and Pzz
+components of the stress tensor as the driving forces and one common
+external pressure. For the BZP barostat, the *x*, *y*, and *z* keywords
+select dimensions independently and assign a separate external pressure
+to each selected diagonal component. Dimensions without a target are
+not dilated or contracted. If a pressure keyword is repeated, its last
+specified pressure is used and the selected dimension is counted once.
+These parameters are not supported in
 *pimd/langevin/bosonic*.
 
 The keyword *barostat* reads *style* of barostat for fix style
-*pimd/langevin*. *style* can be *BZP* (Bussi-Zykova-Parrinello, as
-described in :ref:`Bussi <Bussi>`) or *MTTK*
-(Martyna-Tuckerman-Tobias-Klein, as described in :ref:`Martyna
-<Martyna3>` and :ref:`Martyna2 <Martyna4>`).
+*pimd/langevin*. Currently, only *BZP* (Bussi-Zykova-Parrinello, as
+described in :ref:`Bussi <Bussi>`) is supported. The *MTTK*
+(Martyna-Tuckerman-Tobias-Klein) style is rejected because this fix does
+not implement the required state and simulation-box propagation.
+The BZP coordinate propagator evaluates its zero barostat-velocity limit
+analytically, so an instantaneous zero barostat velocity remains a valid,
+finite state.
 
 The keyword *taup* specifies the barostat damping time parameter for fix
 style *pimd/langevin*. It is in time unit. It is not supported in
@@ -341,7 +378,8 @@ style *pimd/langevin*. It is in time unit. It is not supported in
 The keyword *fixcom* specifies whether the center-of-mass of the
 extended ring-polymer system is fixed during the pimd simulation.  Once
 *fixcom* is set to be *yes*, the center-of-mass velocity will be
-distracted from the centroid-mode velocities in each step.
+subtracted from the centroid-mode velocities in each step. The value must
+be either *yes* or *no*.
 
 Fix *pimd/langevin/bosonic* also has a keyword not available in fix
 *pimd/langevin*: *esynch*, with default *yes*. If set to *no*, some time
@@ -415,17 +453,27 @@ of *fix pimd/nvt*, but are significantly revised.
 Restart, fix_modify, output, run start/stop, minimize info
 """""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
+.. versionchanged:: TBD
+
+Restart files from versions that stored only the six barostat variables can
+be read, but do not contain the thermostat random-number state. A warning is
+printed when such a file is used with a thermostat; stochastic trajectory
+continuity is not available in that case. Restoring the random-number state
+from newer files requires the same number of MPI processes per partition.
+
 Fix *pimd/nvt* writes the state of the Nose/Hoover thermostat over all
 quasi-beads to :doc:`binary restart files <restart>`.  See the
 :doc:`read_restart <read_restart>` command for info on how to re-specify
 a fix in an input script that reads a restart file, so that the
 operation of the fix continues in an uninterrupted fashion.
 
-Fix *pimd/langevin* writes the state of the barostat overall beads to
-:doc:`binary restart files <restart>`. Since it uses a stochastic
-thermostat, the state of the thermostat is not written. However, the
-state of the system can be restored by reading the restart file, except
-that it will re-initialize the random number generator.
+Fix *pimd/langevin* writes the state of the barostat over all beads and
+the complete per-process PILE_L random-number state to :doc:`binary
+restart files <restart>`.  This includes a cached Gaussian variate, so
+the PILE_L random-number sequence is continued exactly when the restart
+uses the same LAMMPS executable and the same number of MPI processes per bead.
+If the process count changes, the barostat is restored but LAMMPS emits
+a warning and retains the newly initialized random-number state.
 
 None of the :doc:`fix_modify <fix_modify>` options are relevant to fix
 pimd/nvt.
@@ -441,6 +489,8 @@ the global vector are:
 
 The vector values calculated by fix *pimd/nvt* are "extensive", except for the
 temperature, which is "intensive".
+The three values are reduced across all bead partitions and their MPI tasks,
+so they do not depend on how atoms are assigned to processors.
 
 Fix *pimd/nvt/bosonic* computes a global 4-vector. The first three are
 the same as in *pimd/nvt* (the justification for the correctness of the
@@ -468,6 +518,8 @@ about different beads or modes (see detailed explanations below). If
 
 The first 3 are different for different log files, and the others are
 the same for different log files.
+The first 7 values are "extensive", while the three pressure estimators
+are "intensive".
 
 If *ensemble* is *nph* or *npt*, the vector stores internal variables of
 the barostat. If *iso* is used, the vector has 15 values:
@@ -508,6 +560,10 @@ If *aniso* or *x* or *y* or *z* is used for the barostat, the vector has
    #. barostat potential energy
    #. barostat cell Jacobian
    #. enthalpy of the extended system (sum of 4, 14, 15, and 16; conserved if *ensemble* is *nph*)
+
+The barostat velocity components are "intensive".  The barostat kinetic
+and potential energies, cell Jacobian, and extended-system enthalpy are
+"extensive".
 
 Fix *pimd/langevin/bosonic* computes a global 6-vector. The quantities
 in the global vector are:
@@ -559,9 +615,24 @@ i.e. running with the :doc:`-partition <Run_options>` command-line
 switch, and stop with an error otherwise.  A ring polymer of a single
 bead has no neighboring beads to couple to.
 
+Fix *pimd/nvt*, *pimd/nvt/bosonic*, and *pimd/langevin/bosonic* require
+the group-ID to be *all*.  The non-bosonic *pimd/langevin* style supports
+a static group other than *all*, but every bead partition must assign the
+same group membership to each atom ID.  Dynamic groups are not supported.
+
+All four fix styles documented on this page require a three-dimensional
+system.  All bead partitions must contain the same number of MPI
+processes and atoms. They must also assign the same atom type to every
+atom ID and use the same per-type atom masses, simulation cell geometry,
+and boundary settings.  Atom styles with per-atom masses, such as
+:doc:`sphere <atom_style>`, are not supported.
+
 Only some combinations of fix styles and their options support
 partitions with multiple processors.  LAMMPS will stop with an error if
 multi-processor partitions are not supported.
+Supported multi-processor partitions may assign the same atom ID to
+different MPI ranks in different beads, and that ownership may change
+during a run.
 
 A PIMD simulation can be initialized with a single data file read via
 the :doc:`read_data <read_data>` command.  However, this means all
@@ -590,6 +661,9 @@ The keyword defaults for fix *pimd/langevin* are integrator = obabo,
 method = nmpimd, ensemble = nvt, fmmode = physical, fmass = 1.0, scale =
 1, temp = 298.15, thermostat = PILE_L, tau = 1.0, iso = 1.0, taup = 1.0,
 barostat = BZP, fixcom = yes, and sp = 1.0 for all its arguments.
+The PILE_L thermostat style is the default, but its random seed has no
+default.  The *thermostat* keyword with a positive seed is required when
+*ensemble* is *nvt* or *npt*.
 
 ----------
 

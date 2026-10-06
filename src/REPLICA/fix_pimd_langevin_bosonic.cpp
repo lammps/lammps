@@ -39,9 +39,9 @@ using namespace FixConst;
 /* ---------------------------------------------------------------------- */
 
 FixPIMDBLangevin::FixPIMDBLangevin(LAMMPS *lmp, int narg, char **arg) :
-    FixPIMDLangevin(lmp, narg, filtered_args = filter_args(narg, arg)), filtered_narg(narg),
-    nbosons(atom->nlocal)
+    FixPIMDLangevin(lmp, narg, arg, true), nbosons(atom->nlocal)
 {
+  if (igroup != 0) error->all(FLERR, "Fix {} only supports group all", style);
   bosonic_exchange = new BosonicExchange(lmp, atom->nlocal, np, universe->me, true, false);
   synch_energies = true;
 
@@ -93,25 +93,7 @@ FixPIMDBLangevin::FixPIMDBLangevin(LAMMPS *lmp, int narg, char **arg) :
 FixPIMDBLangevin::~FixPIMDBLangevin()
 {
   memory->destroy(f_tag_order);
-  for (int i = 0; i < filtered_narg; ++i) delete[] filtered_args[i];
-  delete[] filtered_args;
   delete bosonic_exchange;
-}
-
-/* ---------------------------------------------------------------------- */
-
-char **FixPIMDBLangevin::filter_args(int narg, char **arg)
-{
-  filtered_narg = narg;
-  char **filtered_args = new char *[narg];
-  for (int i = 0; i < narg; i++) {
-    if (strcmp(arg[i], "esynch") == 0) {
-      filtered_args[i] = utils::strdup("");
-    } else {
-      filtered_args[i] = utils::strdup(arg[i]);
-    }
-  }
-  return filtered_args;
 }
 
 /* ---------------------------------------------------------------------- */

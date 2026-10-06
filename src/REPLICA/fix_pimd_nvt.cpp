@@ -31,11 +31,13 @@
 #include "math_const.h"
 #include "math_special.h"
 #include "memory.h"
+#include "pimd_partition.h"
 #include "universe.h"
 #include "update.h"
 
 #include <cmath>
 #include <cstring>
+#include <vector>
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -63,8 +65,20 @@ FixPIMDNVT::FixPIMDNVT(LAMMPS *lmp, int narg, char **arg) :
   sp = 1.0;
   np = universe->nworlds;
 
-  for (int i = 3; i < narg - 1; i += 2) {
+  if (igroup != 0) error->all(FLERR, "Fix {} only supports group all", style);
+  if (domain->dimension != 3) error->all(FLERR, fmt::format("Fix {} requires a 3d system", style));
+  if (!atom->mass || atom->rmass_flag)
+    error->all(FLERR, fmt::format("Fix {} requires per-type atom masses", style));
+
+  for (int i = 1; i < universe->nworlds; i++)
+    if (universe->procs_per_world[i] != universe->procs_per_world[0])
+      error->all(
+          FLERR,
+          fmt::format("Fix {} requires the same number of processors in every partition", style));
+
+  for (int i = 3; i < narg; i += 2) {
     if (strcmp(arg[i], "method") == 0) {
+      if (i + 2 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} method", style), error);
       if (strcmp(arg[i + 1], "pimd") == 0)
         method = PIMD;
       else if (strcmp(arg[i + 1], "nmpimd") == 0)
@@ -75,17 +89,20 @@ FixPIMDNVT::FixPIMDNVT(LAMMPS *lmp, int narg, char **arg) :
         error->universe_all(
             FLERR, fmt::format("Unknown method parameter {} for fix {}", arg[i + 1], style));
     } else if (strcmp(arg[i], "fmass") == 0) {
+      if (i + 2 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} fmass", style), error);
       fmass = utils::numeric(FLERR, arg[i + 1], false, lmp);
-      if ((fmass < 0.0) || (fmass > np))
-        error->universe_all(FLERR, fmt::format("Invalid fmass value {} for fix {}", fmass, style));
+      if ((fmass <= 0.0) || (fmass > np))
+        error->all(FLERR, fmt::format("Invalid fmass value {} for fix {}", fmass, style));
     } else if (strcmp(arg[i], "sp") == 0) {
+      if (i + 2 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} sp", style), error);
       sp = utils::numeric(FLERR, arg[i + 1], false, lmp);
-      if (sp < 0.0) error->universe_all(FLERR, fmt::format("Invalid sp value for fix {}", style));
+      if (sp <= 0.0) error->all(FLERR, fmt::format("Invalid sp value for fix {}", style));
     } else if (strcmp(arg[i], "temp") == 0) {
+      if (i + 2 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} temp", style), error);
       nhc_temp = utils::numeric(FLERR, arg[i + 1], false, lmp);
-      if (nhc_temp < 0.0)
-        error->universe_all(FLERR, fmt::format("Invalid temp value for fix {}", style));
+      if (nhc_temp <= 0.0) error->all(FLERR, fmt::format("Invalid temp value for fix {}", style));
     } else if (strcmp(arg[i], "nhc") == 0) {
+      if (i + 2 > narg) utils::missing_cmd_args(FLERR, fmt::format("fix {} nhc", style), error);
       nhc_nchain = utils::inumeric(FLERR, arg[i + 1], false, lmp);
       if (nhc_nchain < 2)
         error->universe_all(FLERR, fmt::format("Invalid nhc value for fix {}", style));
@@ -101,7 +118,8 @@ FixPIMDNVT::FixPIMDNVT(LAMMPS *lmp, int narg, char **arg) :
   if (np < 2)
     error->universe_all(FLERR,
                         fmt::format("Fix {} requires at least 2 beads, i.e. running with the "
-                                    "-partition command line option", style));
+                                    "-partition command line option",
+                                    style));
 
   /* Initiation */
 
@@ -119,7 +137,8 @@ FixPIMDNVT::FixPIMDNVT(LAMMPS *lmp, int narg, char **arg) :
   global_freq = 1;
   vector_flag = 1;
   size_vector = 3;
-  extvector = 1;
+  extvector = -1;
+  extlist = new int[3]{1, 0, 1};
   comm_forward = 3;
 
   atom->add_callback(Atom::GROW);       // Call LAMMPS to allocate memory for per-atom array
@@ -137,6 +156,7 @@ FixPIMDNVT::FixPIMDNVT(LAMMPS *lmp, int narg, char **arg) :
 FixPIMDNVT::~FixPIMDNVT()
 {
   delete[] mass;
+  delete[] extlist;
   atom->delete_callback(id, Atom::GROW);
   atom->delete_callback(id, Atom::RESTART);
 
@@ -179,8 +199,55 @@ int FixPIMDNVT::setmask()
 
 void FixPIMDNVT::init()
 {
+  bigint min_natoms, max_natoms;
+  MPI_Allreduce(&atom->natoms, &min_natoms, 1, MPI_LMP_BIGINT, MPI_MIN, universe->uworld);
+  MPI_Allreduce(&atom->natoms, &max_natoms, 1, MPI_LMP_BIGINT, MPI_MAX, universe->uworld);
+  if (min_natoms != max_natoms)
+    error->all(FLERR,
+               fmt::format("Fix {} requires the same number of atoms in every partition", style));
+
+  double cell[9] = {domain->boxlo[0], domain->boxlo[1], domain->boxlo[2],
+                    domain->boxhi[0], domain->boxhi[1], domain->boxhi[2],
+                    domain->xy,       domain->xz,       domain->yz};
+  double min_cell[9], max_cell[9];
+  MPI_Allreduce(cell, min_cell, 9, MPI_DOUBLE, MPI_MIN, universe->uworld);
+  MPI_Allreduce(cell, max_cell, 9, MPI_DOUBLE, MPI_MAX, universe->uworld);
+  int cell_mismatch = 0;
+  for (int i = 0; i < 9; i++)
+    if (min_cell[i] != max_cell[i]) cell_mismatch = 1;
+
+  int cell_flags[8] = {domain->triclinic,      domain->triclinic_general, domain->boundary[0][0],
+                       domain->boundary[0][1], domain->boundary[1][0],    domain->boundary[1][1],
+                       domain->boundary[2][0], domain->boundary[2][1]};
+  int min_flags[8], max_flags[8];
+  MPI_Allreduce(cell_flags, min_flags, 8, MPI_INT, MPI_MIN, universe->uworld);
+  MPI_Allreduce(cell_flags, max_flags, 8, MPI_INT, MPI_MAX, universe->uworld);
+  for (int i = 0; i < 8; i++)
+    if (min_flags[i] != max_flags[i]) cell_mismatch = 1;
+  if (cell_mismatch)
+    error->all(FLERR,
+               fmt::format("Fix {} requires the same simulation cell in every partition", style));
+
+  int min_ntypes, max_ntypes;
+  MPI_Allreduce(&atom->ntypes, &min_ntypes, 1, MPI_INT, MPI_MIN, universe->uworld);
+  MPI_Allreduce(&atom->ntypes, &max_ntypes, 1, MPI_INT, MPI_MAX, universe->uworld);
+  if (min_ntypes != max_ntypes)
+    error->all(FLERR,
+               fmt::format("Fix {} requires the same atom masses in every partition", style));
+
+  std::vector<double> min_mass(atom->ntypes), max_mass(atom->ntypes);
+  MPI_Allreduce(atom->mass + 1, min_mass.data(), atom->ntypes, MPI_DOUBLE, MPI_MIN,
+                universe->uworld);
+  MPI_Allreduce(atom->mass + 1, max_mass.data(), atom->ntypes, MPI_DOUBLE, MPI_MAX,
+                universe->uworld);
+  for (int i = 0; i < atom->ntypes; i++)
+    if (min_mass[i] != max_mass[i])
+      error->all(FLERR,
+                 fmt::format("Fix {} requires the same atom masses in every partition", style));
+
   if (atom->map_style == Atom::MAP_NONE)
     error->universe_all(FLERR, fmt::format("Fix {} requires an atom map, see atom_modify", style));
+  PIMDUtils::check_atom_consistency(lmp, style, groupbit);
 
   if (universe->me == 0 && universe->uscreen)
     utils::print(universe->uscreen, "Fix {} initializing Path-Integral ...\n", style);
@@ -259,16 +326,12 @@ void FixPIMDNVT::initial_integrate(int /*vflag*/)
 /* ---------------------------------------------------------------------- */
 
 void FixPIMDNVT::final_integrate()
-{
-  nhc_update_v();
-}
+{ nhc_update_v(); }
 
 /* ---------------------------------------------------------------------- */
 
 void FixPIMDNVT::prepare_coordinates()
-{
-  comm_exec(atom->x);
-}
+{ comm_exec(atom->x); }
 
 /* ---------------------------------------------------------------------- */
 
@@ -280,6 +343,11 @@ void FixPIMDNVT::post_force(int /*flag*/)
   prepare_coordinates();
   pre_spring_force_estimators();
   spring_force();
+
+  double output_values[2] = {spring_energy, virial};
+  MPI_Allreduce(MPI_IN_PLACE, output_values, 2, MPI_DOUBLE, MPI_SUM, universe->uworld);
+  spring_energy = output_values[0];
+  virial = output_values[1];
 
   if (method == CMD || method == NMPIMD) {
     /* forward comm for the force on ghost atoms */
@@ -381,10 +449,9 @@ void FixPIMDNVT::nhc_update_v()
   }
 
   t_sys = 0.0;
-  if (method == CMD && universe->iworld == 0) return;
 
   double expfac;
-  int nmax = 3 * atom->nlocal;
+  int nmax = (method == CMD && universe->iworld == 0) ? 0 : 3 * atom->nlocal;
   double KT = force->boltz * nhc_temp;
   double kecurrent, t_current;
 
@@ -447,7 +514,9 @@ void FixPIMDNVT::nhc_update_v()
     t_sys += t_current;
   }
 
-  t_sys /= nmax;
+  double temperature_data[2] = {t_sys, static_cast<double>(nmax)};
+  MPI_Allreduce(MPI_IN_PLACE, temperature_data, 2, MPI_DOUBLE, MPI_SUM, universe->uworld);
+  t_sys = temperature_data[1] ? temperature_data[0] / temperature_data[1] : 0.0;
 }
 
 /* ----------------------------------------------------------------------
@@ -545,9 +614,7 @@ void FixPIMDNVT::nmpimd_transform(double **src, double **des, double *vector)
 /* ---------------------------------------------------------------------- */
 
 void FixPIMDNVT::pre_spring_force_estimators()
-{
-  vir_estimator();
-}
+{ vir_estimator(); }
 
 /* ---------------------------------------------------------------------- */
 
@@ -683,7 +750,7 @@ void FixPIMDNVT::comm_exec(double **ptr)
 
   // copy local positions
 
-  memcpy(buf_beads[universe->iworld], &(ptr[0][0]), sizeof(double) * nlocal * 3);
+  if (nlocal) memcpy(buf_beads[universe->iworld], &(ptr[0][0]), sizeof(double) * nlocal * 3);
 
   // go over comm plans
 
@@ -712,22 +779,35 @@ void FixPIMDNVT::comm_exec(double **ptr)
 
     // wrap positions
 
-    double *wrap_ptr = buf_send;
-    int ncpy = sizeof(double) * 3;
+    std::vector<int> missing_indices;
+    std::vector<tagint> missing_tags;
+    missing_indices.reserve(nsend);
+    missing_tags.reserve(nsend);
 
     for (int i = 0; i < nsend; i++) {
-      int index = atom->map(tag_send[i]);
-
-      if (index < 0) {
-        auto mesg = fmt::format("Atom {} is missing at world [{}] rank [{}] "
-                                "required by rank [{}] ({}, {}, {}).\n",
-                                tag_send[i], universe->iworld, comm->me, plan_recv[iplan],
-                                atom->tag[0], atom->tag[1], atom->tag[2]);
-        error->universe_one(FLERR, mesg);
+      const int index = atom->map(tag_send[i]);
+      if (index >= 0 && index < nlocal) {
+        buf_send[3 * i] = ptr[index][0];
+        buf_send[3 * i + 1] = ptr[index][1];
+        buf_send[3 * i + 2] = ptr[index][2];
+      } else {
+        missing_indices.push_back(i);
+        missing_tags.push_back(tag_send[i]);
       }
+    }
 
-      memcpy(wrap_ptr, ptr[index], ncpy);
-      wrap_ptr += 3;
+    int has_missing_tags = missing_tags.empty() ? 0 : 1;
+    MPI_Allreduce(MPI_IN_PLACE, &has_missing_tags, 1, MPI_INT, MPI_MAX, world);
+
+    std::vector<double> collected_values;
+    if (has_missing_tags)
+      PIMDUtils::collect_atom_vectors(lmp, style, missing_tags, ptr, collected_values);
+
+    for (std::size_t i = 0; i < missing_indices.size(); i++) {
+      const int index = missing_indices[i];
+      buf_send[3 * index] = collected_values[3 * i];
+      buf_send[3 * index + 1] = collected_values[3 * i + 1];
+      buf_send[3 * index + 2] = collected_values[3 * i + 2];
     }
 
     // sendrecv x
@@ -737,7 +817,7 @@ void FixPIMDNVT::comm_exec(double **ptr)
 
     // copy x
 
-    memcpy(buf_beads[mode_index[iplan]], buf_recv, sizeof(double) * nlocal * 3);
+    if (nlocal) memcpy(buf_beads[mode_index[iplan]], buf_recv, sizeof(double) * nlocal * 3);
   }
 }
 
@@ -779,9 +859,7 @@ void FixPIMDNVT::unpack_forward_comm(int n, int first, double *buf)
 ------------------------------------------------------------------------- */
 
 double FixPIMDNVT::memory_usage()
-{
-  return (double) atom->nmax * size_peratom_cols * sizeof(double);
-}
+{ return (double) atom->nmax * size_peratom_cols * sizeof(double); }
 
 /* ---------------------------------------------------------------------- */
 
@@ -895,16 +973,12 @@ void FixPIMDNVT::unpack_restart(int nlocal, int nth)
 /* ---------------------------------------------------------------------- */
 
 int FixPIMDNVT::maxsize_restart()
-{
-  return size_peratom_cols + 1;
-}
+{ return size_peratom_cols + 1; }
 
 /* ---------------------------------------------------------------------- */
 
 int FixPIMDNVT::size_restart(int /*nlocal*/)
-{
-  return size_peratom_cols + 1;
-}
+{ return size_peratom_cols + 1; }
 
 /* ---------------------------------------------------------------------- */
 

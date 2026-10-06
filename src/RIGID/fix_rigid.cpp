@@ -1473,17 +1473,17 @@ void FixRigid::set_v()
       wbody[2] = omega[ibody][0]*ez[0] + omega[ibody][1]*ez[1] + omega[ibody][2]*ez[2];
       if(langflag) {
         langone = langextra[ibody];
-        tspace[0] = torque[ibody][0] - langone[3];
-        tspace[1] = torque[ibody][1] - langone[4];
-        tspace[2] = torque[ibody][2] - langone[5];
-        tbody[0] = tspace[0]*ex[0] + tspace[1]*ex[1] + tspace[2]*ex[2];
-        tbody[1] = tspace[0]*ey[0] + tspace[1]*ey[1] + tspace[2]*ey[2];
-        tbody[2] = tspace[0]*ez[0] + tspace[1]*ez[1] + tspace[2]*ez[2];
+        tspace[0] = tflag[ibody][0] * (torque[ibody][0] - langone[3]);
+        tspace[1] = tflag[ibody][1] * (torque[ibody][1] - langone[4]);
+        tspace[2] = tflag[ibody][2] * (torque[ibody][2] - langone[5]);
       } else {
-        tbody[0] = torque[ibody][0]*ex[0] + torque[ibody][1]*ex[1] + torque[ibody][2]*ex[2];
-        tbody[1] = torque[ibody][0]*ey[0] + torque[ibody][1]*ey[1] + torque[ibody][2]*ey[2];
-        tbody[2] = torque[ibody][0]*ez[0] + torque[ibody][1]*ez[1] + torque[ibody][2]*ez[2];
+        tspace[0] = tflag[ibody][0] * torque[ibody][0];
+        tspace[1] = tflag[ibody][1] * torque[ibody][1];
+        tspace[2] = tflag[ibody][2] * torque[ibody][2];
       }
+      tbody[0] = tspace[0]*ex[0] + tspace[1]*ex[1] + tspace[2]*ex[2];
+      tbody[1] = tspace[0]*ey[0] + tspace[1]*ey[1] + tspace[2]*ey[2];
+      tbody[2] = tspace[0]*ez[0] + tspace[1]*ez[1] + tspace[2]*ez[2];
       if (inertia[ibody][0] == 0.0) omegadot_body[0] = 0.0;
       else omegadot_body[0] = (force->ftm2v*tbody[0] + (inertia[ibody][1] - inertia[ibody][2]) * wbody[1] * wbody[2]) / inertia[ibody][0];
       if (inertia[ibody][1] == 0.0) omegadot_body[1] = 0.0;
@@ -1502,15 +1502,15 @@ void FixRigid::set_v()
       MathExtra::cross3(omega[ibody], delta, v_rot) ;
       MathExtra::cross3(omega[ibody], v_rot, acc_centr) ;
       if(langflag) {
-        fc[0] = massone*((fcm[ibody][0]-langone[0])/masstotal[ibody] + (acc_rot[0] + acc_centr[0])/force->ftm2v) - f[i][0];
-        fc[1] = massone*((fcm[ibody][1]-langone[1])/masstotal[ibody] + (acc_rot[1] + acc_centr[1])/force->ftm2v) - f[i][1];
+        fc[0] = massone*(fflag[ibody][0]*(fcm[ibody][0]-langone[0])/masstotal[ibody] + (acc_rot[0] + acc_centr[0])/force->ftm2v) - f[i][0];
+        fc[1] = massone*(fflag[ibody][1]*(fcm[ibody][1]-langone[1])/masstotal[ibody] + (acc_rot[1] + acc_centr[1])/force->ftm2v) - f[i][1];
         if (domain->dimension == 2) fc[2] = 0.0;
-        else fc[2] = massone*((fcm[ibody][2]-langone[2])/masstotal[ibody] + (acc_rot[2] + acc_centr[2])/force->ftm2v) - f[i][2];
+        else fc[2] = massone*(fflag[ibody][2]*(fcm[ibody][2]-langone[2])/masstotal[ibody] + (acc_rot[2] + acc_centr[2])/force->ftm2v) - f[i][2];
       } else {
-        fc[0] = massone*(fcm[ibody][0]/masstotal[ibody] + (acc_rot[0] + acc_centr[0])/force->ftm2v) - f[i][0];
-        fc[1] = massone*(fcm[ibody][1]/masstotal[ibody] + (acc_rot[1] + acc_centr[1])/force->ftm2v) - f[i][1];
+        fc[0] = massone*(fflag[ibody][0]*fcm[ibody][0]/masstotal[ibody] + (acc_rot[0] + acc_centr[0])/force->ftm2v) - f[i][0];
+        fc[1] = massone*(fflag[ibody][1]*fcm[ibody][1]/masstotal[ibody] + (acc_rot[1] + acc_centr[1])/force->ftm2v) - f[i][1];
         if (domain->dimension == 2) fc[2] = 0.0;
-        else fc[2] = massone*(fcm[ibody][2]/masstotal[ibody] + (acc_rot[2] + acc_centr[2])/force->ftm2v) - f[i][2];
+        else fc[2] = massone*(fflag[ibody][2]*fcm[ibody][2]/masstotal[ibody] + (acc_rot[2] + acc_centr[2])/force->ftm2v) - f[i][2];
       }
 
       if (id_gravity) {
@@ -1519,19 +1519,19 @@ void FixRigid::set_v()
         fc[2] -= gvec[2]*massone;
       }
 
-      vr[0] = delta[0]*fc[0];
-      vr[1] = delta[1]*fc[1];
-      vr[2] = delta[2]*fc[2];
-      vr[3] = delta[0]*fc[1];
-      vr[4] = delta[0]*fc[2];
-      vr[5] = delta[1]*fc[2];
+      x0 = delta[0] + xcm[ibody][0];
+      x1 = delta[1] + xcm[ibody][1];
+      x2 = delta[2] + xcm[ibody][2];
+      vr[0] = x0*fc[0];
+      vr[1] = x1*fc[1];
+      vr[2] = x2*fc[2];
+      vr[3] = x0*fc[1];
+      vr[4] = x0*fc[2];
+      vr[5] = x1*fc[2];
 
       v_tally(1,&i,1.0,vr);
 
       if (id_gravity) {
-        x0 = delta[0] + xcm[ibody][0];
-        x1 = delta[1] + xcm[ibody][1];
-        x2 = delta[2] + xcm[ibody][2];
         vr[0] = x0*gvec[0]*massone;
         vr[1] = x1*gvec[1]*massone;
         vr[2] = x2*gvec[2]*massone;

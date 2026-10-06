@@ -15,7 +15,7 @@
    Contributing author: Agilio Padua (ENS de Lyon & CNRS)
 ------------------------------------------------------------------------- */
 
-#include "compute_fep.h"
+#include "compute_mbar.h"
 
 #include "atom.h"
 #include "atom_masks.h"
@@ -34,7 +34,6 @@
 #include "update.h"
 #include "variable.h"
 
-#include <cmath>
 #include <cstring>
 
 using namespace LAMMPS_NS;
@@ -42,49 +41,70 @@ using namespace LAMMPS_NS;
 enum { PAIR, ATOM };
 enum { CHARGE };
 
+/* ----------------------------------------------------------------------
+   number of args consumed by a grid spec: 1 for a vector-style variable
+   (v_name), 3 for the bare numeric form "lo hi n"
+------------------------------------------------------------------------- */
+
+static int grid_nargs(const char *arg)
+{
+  return utils::strmatch(arg, "^v_") ? 1 : 3;
+}
+
 /* ---------------------------------------------------------------------- */
 
-ComputeFEP::ComputeFEP(LAMMPS *lmp, int narg, char **arg) : Compute(lmp, narg, arg)
+ComputeMBAR::ComputeMBAR(LAMMPS *lmp, int narg, char **arg) : Compute(lmp, narg, arg)
 {
-  if (narg < 5) error->all(FLERR, "Illegal number of arguments in compute fep");
+  if (narg < 8) utils::missing_cmd_args(FLERR, "compute mbar", error);
 
   scalar_flag = 0;
   vector_flag = 1;
-  size_vector = 3;
   extvector = 0;
 
   const int ntypes = atom->ntypes;
-  vector = new double[size_vector];
-  fepinitflag = 0;    // print settings only at the first init()
+  mbarinitflag = 0;    // print settings only at the first init()
 
-  temp_fep = utils::numeric(FLERR, arg[3], false, lmp);
+  temp_mbar = utils::numeric(FLERR, arg[3], false, lmp);
 
-  // count # of perturbations
+  // each perturbation supplies its own grid holding the absolute values that
+  // the perturbed parameter takes at each state. The number of states is the
+  // common length of these grids.
+
+  int iarg = 4;
+  const int pertstart = iarg;
 
   npert = 0;
-  int iarg = 4;
   while (iarg < narg) {
     if (strcmp(arg[iarg], "pair") == 0) {
-      if (iarg + 6 > narg) error->all(FLERR, "Illegal pair attribute in compute fep");
+      if (iarg + 6 > narg) utils::missing_cmd_args(FLERR, "compute mbar pair", error);
+      int g = grid_nargs(arg[iarg + 5]);
+      if (iarg + 5 + g > narg) utils::missing_cmd_args(FLERR, "compute mbar pair", error);
       npert++;
-      iarg += 6;
+      iarg += 5 + g;
     } else if (strcmp(arg[iarg], "atom") == 0) {
-      if (iarg + 4 > narg) error->all(FLERR, "Illegal atom attribute in compute fep");
+      if (iarg + 4 > narg) utils::missing_cmd_args(FLERR, "compute mbar atom", error);
+      int g = grid_nargs(arg[iarg + 3]);
+      if (iarg + 3 + g > narg) utils::missing_cmd_args(FLERR, "compute mbar atom", error);
       npert++;
-      iarg += 4;
+      iarg += 3 + g;
     } else
       break;
   }
 
-  if (npert == 0) error->all(FLERR, "Illegal syntax in compute fep");
+  if (npert == 0) error->all(FLERR, iarg, "Unknown compute mbar attribute: {}", arg[iarg]);
   perturb = new Perturb[npert];
+  for (int m = 0; m < npert; m++) {
+    perturb[m].gridname = nullptr;
+    perturb[m].grid = nullptr;
+  }
 
-  // parse keywords
+  // parse perturbation keywords and resolve each grid
 
   npert = 0;
+  nlambda = 0;
   chgflag = 0;
 
-  iarg = 4;
+  iarg = pertstart;
   while (iarg < narg) {
     if (strcmp(arg[iarg], "pair") == 0) {
       perturb[npert].which = PAIR;
@@ -92,53 +112,52 @@ ComputeFEP::ComputeFEP(LAMMPS *lmp, int narg, char **arg) : Compute(lmp, narg, a
       perturb[npert].pparam = utils::strdup(arg[iarg + 2]);
       utils::bounds(FLERR, arg[iarg + 3], 1, ntypes, perturb[npert].ilo, perturb[npert].ihi, error);
       utils::bounds(FLERR, arg[iarg + 4], 1, ntypes, perturb[npert].jlo, perturb[npert].jhi, error);
-      if (utils::strmatch(arg[iarg + 5], "^v_")) {
-        perturb[npert].var = utils::strdup(arg[iarg + 5] + 2);
-      } else
-        error->all(FLERR, "Illegal variable in compute fep");
+      {
+        int g = grid_nargs(arg[iarg + 5]);
+        set_grid(arg, iarg + 5, g, npert);
+        iarg += 5 + g;
+      }
       npert++;
-      iarg += 6;
     } else if (strcmp(arg[iarg], "atom") == 0) {
       perturb[npert].which = ATOM;
       if (strcmp(arg[iarg + 1], "charge") == 0) {
         perturb[npert].aparam = CHARGE;
         chgflag = 1;
       } else
-        error->all(FLERR, "Illegal atom argument in compute fep");
+        error->all(FLERR, iarg + 1, "Unsupported per-atom property {} for compute mbar",
+                   arg[iarg + 1]);
       utils::bounds(FLERR, arg[iarg + 2], 1, ntypes, perturb[npert].ilo, perturb[npert].ihi, error);
-      if (utils::strmatch(arg[iarg + 3], "^v_")) {
-        perturb[npert].var = utils::strdup(arg[iarg + 3] + 2);
-      } else
-        error->all(FLERR, "Illegal variable in compute fep");
+      {
+        int g = grid_nargs(arg[iarg + 3]);
+        set_grid(arg, iarg + 3, g, npert);
+        iarg += 3 + g;
+      }
       npert++;
-      iarg += 4;
     } else
       break;
   }
 
+  size_vector = nlambda;
+  vector = new double[size_vector];
+
   // optional keywords
 
   tailflag = 0;
-  volumeflag = 0;
 
   while (iarg < narg) {
     if (strcmp(arg[iarg], "tail") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal optional keyword in compute fep");
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "compute mbar tail", error);
       tailflag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
       iarg += 2;
-    } else if (strcmp(arg[iarg], "volume") == 0) {
-      if (iarg + 2 > narg) error->all(FLERR, "Illegal optional keyword in compute fep");
-      volumeflag = utils::logical(FLERR, arg[iarg + 1], false, lmp);
-      iarg += 2;
     } else
-      error->all(FLERR, "Illegal optional keyword in compute fep");
+      error->all(FLERR, iarg, "Unknown compute mbar keyword: {}", arg[iarg]);
   }
 
   // allocate pair style arrays
 
   for (int m = 0; m < npert; m++) {
     if (perturb[m].which == PAIR)
-      memory->create(perturb[m].array_orig, ntypes + 1, ntypes + 1, "fep:array_orig");
+      memory->create(perturb[m].array_orig, ntypes + 1, ntypes + 1, "mbar:array_orig");
   }
 
   // charge, force, energy, virial per-atom arrays are allocated in init()
@@ -152,19 +171,70 @@ ComputeFEP::ComputeFEP(LAMMPS *lmp, int narg, char **arg) : Compute(lmp, narg, a
   fixgpu = nullptr;
 }
 
+/* ----------------------------------------------------------------------
+   resolve the grid spec for perturbation m into perturb[m].grid, the
+   absolute values that the perturbed parameter takes at each state. The grid
+   starts at arg[iarg] and is given either as a single vector-style variable
+   (nargs == 1, v_name) or as the bare numeric form "lo hi n" (nargs == 3)
+   producing n equally spaced values from lo to hi. All grids must share the
+   same length, which is the number of states to sample, nlambda.
+------------------------------------------------------------------------- */
+
+void ComputeMBAR::set_grid(char **arg, int iarg, int nargs, int m)
+{
+  double *values = nullptr;
+  double lo = 0.0, hi = 0.0;
+  int n;
+
+  if (nargs == 1) {    // single vector-style variable v_name
+
+    delete[] perturb[m].gridname;
+    perturb[m].gridname = utils::strdup(arg[iarg] + 2);
+    int gridvar = input->variable->find(perturb[m].gridname);
+    if (gridvar < 0)
+      error->all(FLERR, iarg, "Variable name {} for compute mbar does not exist",
+                 perturb[m].gridname);
+    if (!input->variable->vectorstyle(gridvar))
+      error->all(FLERR, iarg, "Variable {} for compute mbar is not a vector-style variable",
+                 perturb[m].gridname);
+
+    n = input->variable->compute_vector(gridvar, &values);
+
+  } else {    // bare numeric form: lo hi n
+
+    lo = utils::numeric(FLERR, arg[iarg], false, lmp);
+    hi = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
+    n = utils::inumeric(FLERR, arg[iarg + 2], false, lmp);
+  }
+
+  if (n < 2)
+    error->all(FLERR, iarg + nargs - 1, "Compute mbar grid must have at least 2 states, not {}", n);
+
+  if (nlambda == 0)
+    nlambda = n;
+  else if (n != nlambda)
+    error->all(FLERR, iarg, "Compute mbar grid has {} states, but the previous grids have {}", n,
+               nlambda);
+
+  perturb[m].grid = new double[n];
+  for (int k = 0; k < n; k++)
+    perturb[m].grid[k] = values ? values[k] : lo + (hi - lo) * k / (n - 1);
+}
+
 /* ---------------------------------------------------------------------- */
 
-ComputeFEP::~ComputeFEP()
+ComputeMBAR::~ComputeMBAR()
 {
   delete[] vector;
 
   for (int m = 0; m < npert; m++) {
-    delete[] perturb[m].var;
     if (perturb[m].which == PAIR) {
       delete[] perturb[m].pstyle;
       delete[] perturb[m].pparam;
       memory->destroy(perturb[m].array_orig);
     }
+    delete[] perturb[m].gridname;
+    delete[] perturb[m].grid;
   }
   delete[] perturb;
 
@@ -173,25 +243,20 @@ ComputeFEP::~ComputeFEP()
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeFEP::init()
+void ComputeMBAR::init()
 {
   int i, j;
 
   // setup and error checks, repeated at every init() since the pair style
   // or kspace style may have been changed or added since the previous run
 
+  if (force->pair == nullptr)
+    error->all(FLERR, Error::NOLASTLINE, "Compute mbar requires a pair style to be defined");
+
   pairflag = 0;
 
   for (int m = 0; m < npert; m++) {
     Perturb *pert = &perturb[m];
-
-    pert->ivar = input->variable->find(pert->var);
-    if (pert->ivar < 0)
-      error->all(FLERR, "Variable name {} for compute fep does not exist", pert->var);
-    if (!input->variable->equalstyle(pert->ivar))
-      error->all(FLERR, "Variable {} for compute fep is of invalid style", pert->var);
-
-    if (force->pair == nullptr) error->all(FLERR, "compute fep pair requires pair interactions");
 
     if (pert->which == PAIR) {
       pairflag = 1;
@@ -204,11 +269,13 @@ void ComputeFEP::init()
       }
 
       if (pair == nullptr) pair = force->pair_match(pert->pstyle, 1);
-      if (pair == nullptr) error->all(FLERR, "Compute fep pair style {} not found", pert->pstyle);
+      if (pair == nullptr)
+        error->all(FLERR, Error::NOLASTLINE, "Compute mbar pair style {} not found", pert->pstyle);
 
       void *ptr = pair->extract(pert->pparam, pert->pdim);
       if (ptr == nullptr)
-        error->all(FLERR, "Compute fep pair style {} param {} not supported", pert->pstyle, pert->pparam);
+        error->all(FLERR, Error::NOLASTLINE, "Compute mbar pair style {} param {} not supported",
+                   pert->pstyle, pert->pparam);
 
       pert->array = (double **) ptr;
 
@@ -219,23 +286,24 @@ void ComputeFEP::init()
         for (i = pert->ilo; i <= pert->ihi; i++)
           for (j = MAX(pert->jlo, i); j <= pert->jhi; j++)
             if (!pair->check_ijtype(i, j, pert->pstyle))
-              error->all(FLERR,
-                         "compute fep type pair range is not valid for "
-                         "pair hybrid sub-style");
+              error->all(FLERR, Error::NOLASTLINE,
+                         "Compute mbar type pair range {}-{} {}-{} is not valid for pair hybrid "
+                         "sub-style {}",
+                         pert->ilo, pert->ihi, pert->jlo, pert->jhi, pert->pstyle);
       }
 
     } else if (pert->which == ATOM) {
       if (pert->aparam == CHARGE) {
-        if (!atom->q_flag) error->all(FLERR, "compute fep requires atom attribute charge");
+        if (!atom->q_flag)
+          error->all(FLERR, Error::NOLASTLINE, "Compute mbar requires atom attribute charge");
       }
     }
   }
 
   if (tailflag) {
     if (force->pair->tail_flag == 0)
-      error->all(FLERR,
-                 "Compute fep tail when pair style does not "
-                 "compute tail corrections");
+      error->all(FLERR, Error::NOLASTLINE,
+                 "Compute mbar tail keyword requires a pair style that computes tail corrections");
   }
 
   // (re-)allocate per-atom storage, the kspace arrays depend on force->kspace
@@ -249,28 +317,33 @@ void ComputeFEP::init()
 
   // print settings only once and not again when called by write_data or later runs
 
-  if ((comm->me == 0) && !fepinitflag) {
-    auto mesg = fmt::format("FEP settings ...\n  temperature = {:f}\n", temp_fep);
+  if ((comm->me == 0) && !mbarinitflag) {
+    auto mesg = fmt::format("MBAR settings ...\n  temperature = {:f}\n", temp_mbar);
     mesg += fmt::format("  tail {}\n", (tailflag ? "yes" : "no"));
+    mesg += fmt::format("  states = {}\n", nlambda);
     for (int m = 0; m < npert; m++) {
       Perturb *pert = &perturb[m];
       if (pert->which == PAIR)
-        mesg += fmt::format("  pair {} {} {}-{} {}-{}\n", pert->pstyle, pert->pparam, pert->ilo,
+        mesg += fmt::format("  pair {} {} {}-{} {}-{} grid:", pert->pstyle, pert->pparam, pert->ilo,
                             pert->ihi, pert->jlo, pert->jhi);
       else if (pert->which == ATOM)
-        mesg += fmt::format("  atom charge {}-{}\n", pert->ilo, pert->ihi);
+        mesg += fmt::format("  atom charge {}-{} grid:", pert->ilo, pert->ihi);
+      for (int k = 0; k < nlambda; k++) mesg += fmt::format(" {:g}", pert->grid[k]);
+      mesg += "\n";
     }
     utils::logmesg(lmp, mesg);
   }
-  fepinitflag = 1;
+  mbarinitflag = 1;
 }
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   for the current configuration, evaluate the reduced potential energy
+   U(lambda_k)/kT at each lambda state, producing one row of the u_kn
+   matrix to be used by an external MBAR solver such as pymbar
+------------------------------------------------------------------------- */
 
-void ComputeFEP::compute_vector()
+void ComputeMBAR::compute_vector()
 {
-  double pe0, pe1;
-
   // flag that we only need to compute the global energy
   int eflag = ENERGY_GLOBAL | ENERGY_ONLY;
   int vflag = VIRIAL_NONE;
@@ -285,54 +358,42 @@ void ComputeFEP::compute_vector()
   backup_qfev();      // backup charge, force, energy, virial array values
   backup_params();    // backup pair parameters
 
-  timer->stamp();
-  if (force->pair && force->pair->compute_flag) {
-    force->pair->compute(eflag, vflag);
-    timer->stamp(Timer::PAIR);
+  const double kT = force->boltz * temp_mbar;
+
+  for (int k = 0; k < nlambda; k++) {
+
+    // compute with the parameters of state k. Every state sets absolute values,
+    // so the original values need to be restored only once, after the last state
+
+    perturb_params(k);
+
+    timer->stamp();
+    if (force->pair && force->pair->compute_flag) {
+      force->pair->compute(eflag, vflag);
+      timer->stamp(Timer::PAIR);
+    }
+    if (chgflag && force->kspace && force->kspace->compute_flag) {
+      force->kspace->compute(eflag, vflag);
+      timer->stamp(Timer::KSPACE);
+    }
+
+    // accumulate force/energy/virial from /gpu pair styles
+    // this is required as to empty the answer queue,
+    // otherwise the force compute on the GPU in the next step would be incorrect
+    if (fixgpu) fixgpu->post_force(vflag);
+
+    vector[k] = compute_epair() / kT;
   }
-  if (chgflag && force->kspace && force->kspace->compute_flag) {
-    force->kspace->compute(eflag, vflag);
-    timer->stamp(Timer::KSPACE);
-  }
-
-  // accumulate force/energy/virial from /gpu pair styles
-  if (fixgpu) fixgpu->post_force(vflag);
-
-  pe0 = compute_epair();
-
-  perturb_params();
-
-  timer->stamp();
-  if (force->pair && force->pair->compute_flag) {
-    force->pair->compute(eflag, vflag);
-    timer->stamp(Timer::PAIR);
-  }
-  if (chgflag && force->kspace && force->kspace->compute_flag) {
-    force->kspace->compute(eflag, vflag);
-    timer->stamp(Timer::KSPACE);
-  }
-
-  // accumulate force/energy/virial from /gpu pair styles
-  // this is required as to empty the answer queue,
-  // otherwise the force compute on the GPU in the next step would be incorrect
-  if (fixgpu) fixgpu->post_force(vflag);
-
-  pe1 = compute_epair();
 
   restore_qfev();      // restore charge, force, energy, virial array values
   restore_params();    // restore pair parameters
-
-  vector[0] = pe1 - pe0;
-  vector[1] = exp(-(pe1 - pe0) / (force->boltz * temp_fep));
-  vector[2] = domain->xprd * domain->yprd * domain->zprd;
-  if (volumeflag) vector[1] *= vector[2];
 }
 
 /* ----------------------------------------------------------------------
    obtain pair energy from lammps accumulators
 ------------------------------------------------------------------------- */
 
-double ComputeFEP::compute_epair()
+double ComputeMBAR::compute_epair()
 {
   double eng, eng_pair;
 
@@ -351,26 +412,29 @@ double ComputeFEP::compute_epair()
 }
 
 /* ----------------------------------------------------------------------
-   apply perturbation to pair, atom parameters based on variable evaluation
+   set pair and atom parameters to their absolute values for state k,
+   taken from each perturbation's own grid
 ------------------------------------------------------------------------- */
 
-void ComputeFEP::perturb_params()
+void ComputeMBAR::perturb_params(int k)
 {
   int i, j;
 
   for (int m = 0; m < npert; m++) {
     Perturb *pert = &perturb[m];
+    const double value = pert->grid[k];
 
-    double delta = input->variable->compute_equal(pert->ivar);
-
-    if (pert->which == PAIR) {    // modify pair parameters
+    if (pert->which == PAIR) {    // set the perturbed parameter to its state value
+      // Each grid holds the absolute value the parameter takes at every state,
+      // independent of the configuration's sampling state. The parameter may be
+      // a soft-core activation (lambda) parameter, or any other pair parameter
+      // such as epsilon or sigma; the user supplies the appropriate grid.
       for (i = pert->ilo; i <= pert->ihi; i++)
-        for (j = MAX(pert->jlo, i); j <= pert->jhi; j++)
-          pert->array[i][j] = pert->array_orig[i][j] + delta;
+        for (j = MAX(pert->jlo, i); j <= pert->jhi; j++) pert->array[i][j] = value;
 
     } else if (pert->which == ATOM) {
 
-      if (pert->aparam == CHARGE) {    // modify charges
+      if (pert->aparam == CHARGE) {    // set charges to their state value
 
         // written through the host pointers ahead of a KOKKOS force evaluation
 
@@ -383,7 +447,7 @@ void ComputeFEP::perturb_params()
 
         for (i = 0; i < natom; i++)
           if (atype[i] >= pert->ilo && atype[i] <= pert->ihi)
-            if (mask[i] & groupbit) q[i] += delta;
+            if (mask[i] & groupbit) q[i] = value;
 
         atom->modified_host_arrays(Q_MASK);
       }
@@ -396,16 +460,17 @@ void ComputeFEP::perturb_params()
 
   if (pairflag) force->pair->reinit();
 
-  // reset KSpace charges if charges have changed
+  // reset KSpace charges if charges have changed. No warning about a system
+  // without charges, since all charges may be zero in a decoupled state
 
-  if (chgflag && force->kspace) force->kspace->qsum_qsq();
+  if (chgflag && force->kspace) force->kspace->qsum_qsq(0);
 }
 
 /* ----------------------------------------------------------------------
    backup pair parameters
 ------------------------------------------------------------------------- */
 
-void ComputeFEP::backup_params()
+void ComputeMBAR::backup_params()
 {
   int i, j;
 
@@ -422,7 +487,7 @@ void ComputeFEP::backup_params()
    restore pair parameters to original values
 ------------------------------------------------------------------------- */
 
-void ComputeFEP::restore_params()
+void ComputeMBAR::restore_params()
 {
   int i, j;
 
@@ -445,24 +510,24 @@ void ComputeFEP::restore_params()
    manage storage for charge, force, energy, virial arrays
 ------------------------------------------------------------------------- */
 
-void ComputeFEP::allocate_storage()
+void ComputeMBAR::allocate_storage()
 {
   nmax = atom->nmax;
-  memory->create(f_orig, nmax, 3, "fep:f_orig");
-  memory->create(peatom_orig, nmax, "fep:peatom_orig");
-  memory->create(pvatom_orig, nmax, 6, "fep:pvatom_orig");
+  memory->create(f_orig, nmax, 3, "mbar:f_orig");
+  memory->create(peatom_orig, nmax, "mbar:peatom_orig");
+  memory->create(pvatom_orig, nmax, 6, "mbar:pvatom_orig");
   if (chgflag) {
-    memory->create(q_orig, nmax, "fep:q_orig");
+    memory->create(q_orig, nmax, "mbar:q_orig");
     if (force->kspace) {
-      memory->create(keatom_orig, nmax, "fep:keatom_orig");
-      memory->create(kvatom_orig, nmax, 6, "fep:kvatom_orig");
+      memory->create(keatom_orig, nmax, "mbar:keatom_orig");
+      memory->create(kvatom_orig, nmax, 6, "mbar:kvatom_orig");
     }
   }
 }
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeFEP::deallocate_storage()
+void ComputeMBAR::deallocate_storage()
 {
   memory->destroy(f_orig);
   memory->destroy(peatom_orig);
@@ -481,7 +546,7 @@ void ComputeFEP::deallocate_storage()
    backup and restore arrays with charge, force, energy, virial
 ------------------------------------------------------------------------- */
 
-void ComputeFEP::backup_qfev()
+void ComputeMBAR::backup_qfev()
 {
   int i;
 
@@ -560,7 +625,7 @@ void ComputeFEP::backup_qfev()
 
 /* ---------------------------------------------------------------------- */
 
-void ComputeFEP::restore_qfev()
+void ComputeMBAR::restore_qfev()
 {
   int i;
 
@@ -642,15 +707,15 @@ void ComputeFEP::restore_qfev()
 
 /* ---------------------------------------------------------------------- */
 
-double ComputeFEP::memory_usage()
+double ComputeMBAR::memory_usage()
 {
-  double bytes = (double) nmax * 3 * sizeof(double);    // f_orig[nmax][3]
-  bytes += (double) nmax * sizeof(double);              // peatom_orig[nmax]
-  bytes += (double) nmax * 6 * sizeof(double);          // pvatom_orig[nmax][6]
-  if (q_orig) bytes += (double) nmax * sizeof(double);  // q_orig[nmax] (when chgflag)
+  double bytes = (double) nmax * 3 * sizeof(double);      // f_orig[nmax][3]
+  bytes += (double) nmax * sizeof(double);                // peatom_orig[nmax]
+  bytes += (double) nmax * 6 * sizeof(double);            // pvatom_orig[nmax][6]
+  if (q_orig) bytes += (double) nmax * sizeof(double);    // q_orig[nmax] (when chgflag)
   if (keatom_orig) {
-    bytes += (double) nmax * sizeof(double);            // keatom_orig[nmax]
-    bytes += (double) nmax * 6 * sizeof(double);        // kvatom_orig[nmax][6]
+    bytes += (double) nmax * sizeof(double);        // keatom_orig[nmax]
+    bytes += (double) nmax * 6 * sizeof(double);    // kvatom_orig[nmax][6]
   }
   return bytes;
 }

@@ -1571,7 +1571,7 @@ void Neighbor::morph_copy_trim()
 
       // cannot copy or trim if some pair-wise cutoffs are too small
 
-      if (irq->cut && !jrq->cut && (irq->cutoff > cutneighmin)) continue;
+      if (irq->cut && irq->cut_fixed && !jrq->cut && (irq->cutoff > cutneighmin)) continue;
 
       // trim a list with longer cutoff
 

@@ -1860,8 +1860,11 @@ void CommKokkos::copy_swap_info()
   k_sendlist.sync_host();
 
   if (totalsend > (int)k_pbc.extent(0)) {
-    k_pbc = DAT::tdual_int_2d("comm:pbc",totalsend,6);
-    k_swap2 = DAT::tdual_int_2d_lr("comm:swap2",2,totalsend);
+    // with some headroom, so that small changes of totalsend do not
+    // reallocate on every reneighboring
+    const int nalloc = totalsend + totalsend/10;
+    k_pbc = DAT::tdual_int_2d("comm:pbc",nalloc,6);
+    k_swap2 = DAT::tdual_int_2d_lr("comm:swap2",2,nalloc);
     k_pbc_flag = Kokkos::subview(k_swap2,0,Kokkos::ALL);
     k_g2l = Kokkos::subview(k_swap2,1,Kokkos::ALL);
   }

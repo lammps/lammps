@@ -141,7 +141,7 @@ void FixOxdnaPrimeNeighsKokkos<DeviceType>::compute_prime_neighs_oxdna3_xstk()
 
   if (npairlist > d_prime_neighs_oxdna3_xstk.extent_int(0)) {
     MemKK::realloc_kokkos(k_prime_neighs_oxdna3_xstk,
-                          "prime_neighs:prime_neighs_oxdna3_xstk", npairlist, 4);
+                          "prime_neighs:prime_neighs_oxdna3_xstk", npairlist + npairlist/10, 4);
     d_prime_neighs_oxdna3_xstk = k_prime_neighs_oxdna3_xstk.template view<DeviceType>();
   }
 

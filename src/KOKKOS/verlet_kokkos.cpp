@@ -606,7 +606,8 @@ void VerletKokkos::run(int n)
     // reverse communication of forces
 
     if (force->newton) {
-      Kokkos::fence();
+      // the device reverse comm fences itself before any MPI call and the host
+      // path syncs the forces to the host, so no global fence is needed here
       comm->reverse_comm();
       timer->stamp(Timer::COMM);
     }

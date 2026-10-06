@@ -179,14 +179,16 @@ void FixOxdnaLRFKokkos<DeviceType>::operator()(TagFixOxdnaLRFComputeQuatToXYZ, c
   }
 
   // packed record: position and frame vectors in one row
-  d_xn(i, 0) = x(i, 0);
-  d_xn(i, 1) = x(i, 1);
-  d_xn(i, 2) = x(i, 2);
-  d_xn(i, 3) = static_cast<KK_FLOAT>(type(i));
-  for (int k = 0; k < 9; k++) d_xn(i, 4 + k) = n[k];
-  d_xn(i, 13) = qeff(i);
-  d_xn(i, 14) = 0.0;
-  d_xn(i, 15) = 0.0;
+  KK_FLOAT row[16];
+  row[0] = x(i, 0);
+  row[1] = x(i, 1);
+  row[2] = x(i, 2);
+  row[3] = static_cast<KK_FLOAT>(type(i));
+  for (int k = 0; k < 9; k++) row[4 + k] = n[k];
+  row[13] = qeff(i);
+  row[14] = 0.0;
+  row[15] = 0.0;
+  store_row(i, row);
 
   // in place of VerletKokkos::force_clear()
   if (zero_forces) {

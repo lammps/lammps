@@ -45,6 +45,32 @@ using t_oxdna_packed_col = Kokkos::View<const KK_FLOAT*, Kokkos::LayoutStride,
   typename ArrayTypes<DeviceType>::t_kkfloat_1d_3_lr::device_type,
   Kokkos::MemoryTraits<Kokkos::RandomAccess>>;
 
+// the whole packed record, for kernels that load complete rows
+template<class DeviceType>
+using t_oxdna_packed = Kokkos::View<const KK_FLOAT*[16], Kokkos::LayoutRight,
+  typename ArrayTypes<DeviceType>::t_kkfloat_1d_3_lr::device_type,
+  Kokkos::MemoryTraits<Kokkos::RandomAccess>>;
+
+// one row of the packed record: x (0-2), type (3), nx (4-6), ny (7-9), nz (10-12), qeff (13)
+struct OxdnaRow {
+  KK_FLOAT v[16];
+};
+
+// load the first ncol (a multiple of 16 bytes) values of row i with 16-byte vector loads
+template<int NCOL, class ViewType>
+KOKKOS_INLINE_FUNCTION
+void oxdna_load_row(const ViewType &xn, const int i, OxdnaRow &r)
+{
+  struct alignas(16) Chunk16 { KK_FLOAT v[16 / sizeof(KK_FLOAT)]; };
+  constexpr int nper = 16 / sizeof(KK_FLOAT);
+  static_assert(NCOL % nper == 0, "oxdna_load_row: NCOL must fill whole 16-byte chunks");
+  const Chunk16 *src = reinterpret_cast<const Chunk16 *>(&xn(i, 0));
+  for (int k = 0; k < NCOL / nper; k++) {
+    const Chunk16 c = src[k];
+    for (int m = 0; m < nper; m++) r.v[nper * k + m] = c.v[m];
+  }
+}
+
 template<class DeviceType>
 class FixOxdnaLRFKokkos : public Fix {
  public:
@@ -84,6 +110,7 @@ class FixOxdnaLRFKokkos : public Fix {
     { return Kokkos::subview(d_xn, Kokkos::ALL, 3); }
   t_oxdna_packed_col<DeviceType> packed_qeff() const
     { return Kokkos::subview(d_xn, Kokkos::ALL, 13); }
+  t_oxdna_packed<DeviceType> packed() const { return d_xn; }
 
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
@@ -102,6 +129,22 @@ class FixOxdnaLRFKokkos : public Fix {
   typename AtomVecEllipsoidKokkosBonusArray<DeviceType>::t_bonus_1d bonus;
 
   void compute_lrf_kokkos(int zero_forces_flag);
+
+  // write one 16-value row of d_xn; rows are 64 B (single and mixed precision)
+  // or 128 B (double) and aligned, so they are written as 16-byte chunks
+  struct alignas(16) Chunk16 { KK_FLOAT v[16 / sizeof(KK_FLOAT)]; };
+
+  KOKKOS_INLINE_FUNCTION
+  void store_row(const int i, const KK_FLOAT *row) const
+  {
+    constexpr int nper = 16 / sizeof(KK_FLOAT);
+    Chunk16 *dst = reinterpret_cast<Chunk16 *>(&d_xn(i, 0));
+    for (int k = 0; k < 16 / nper; k++) {
+      Chunk16 c;
+      for (int m = 0; m < nper; m++) c.v[m] = row[nper * k + m];
+      dst[k] = c;
+    }
+  }
 };
 
 }    // namespace LAMMPS_NS

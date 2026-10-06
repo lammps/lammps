@@ -123,6 +123,7 @@ class PairOxdna2DhKokkos : public PairOxdna2Dh, public KokkosBase {
   int neighflag;
   int nlocal, eflag, vflag;
   int anum;
+  int nsplit;    // threads per atom of the compute kernel
 
   typename AT::t_neighbors_2d_randomread d_neighbors;
   typename AT::t_int_1d_randomread d_alist;

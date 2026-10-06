@@ -141,6 +141,15 @@ void PairOxdnaExcvKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   d_alist = k_list->d_ilist;
   d_numneigh = k_list->d_numneigh;
 
+  // split the neighbors of an atom over several threads on GPUs when there
+  // are too few atoms to fill a quarter of the device
+  // (only with atomic updates of atom a, i.e. a half list with HALFTHREAD)
+  nsplit = 1;
+  if ((execution_space != HostKK) && (neighflag == HALFTHREAD)) {
+    const int target = DeviceType().concurrency() / 4;
+    while ((nsplit < 4) && (anum * nsplit < target)) nsplit *= 2;
+  }
+
   int need_dup = lmp->kokkos->need_dup<DeviceType>();
   if (need_dup) {
     dup_f = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, \
@@ -204,11 +213,11 @@ void PairOxdnaExcvKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
       constexpr int MODEL = decltype(model_tag)::value;
       if constexpr (EVFLAG) {
         Kokkos::parallel_reduce(
-          OxdnaRangePolicy<DeviceType, TagPairOxdnaExcvCompute<MODEL,NEIGHFLAG,NEWTON_PAIR,EVFLAG> >(0,anum),
+          OxdnaRangePolicy<DeviceType, TagPairOxdnaExcvCompute<MODEL,NEIGHFLAG,NEWTON_PAIR,EVFLAG> >(0,anum*nsplit),
           *this,ev);
       } else {
         Kokkos::parallel_for(
-          OxdnaRangePolicy<DeviceType, TagPairOxdnaExcvCompute<MODEL,NEIGHFLAG,NEWTON_PAIR,EVFLAG> >(0,anum),
+          OxdnaRangePolicy<DeviceType, TagPairOxdnaExcvCompute<MODEL,NEIGHFLAG,NEWTON_PAIR,EVFLAG> >(0,anum*nsplit),
           *this);
       }
     };
@@ -325,7 +334,11 @@ void PairOxdnaExcvKokkos<DeviceType>::operator()(TagPairOxdnaExcvCompute<OXDNAFL
     decltype(dup_torque),decltype(ndup_torque)>::get(dup_torque,ndup_torque);
   auto a_torque = v_torque.template access<AtomicDup_v<NEIGHFLAG,DeviceType>>();
 
-  const int a = d_alist(ia);
+  // with nsplit > 1, each atom's neighbors are shared by nsplit consecutive
+  // work items (more threads for small systems); a-side updates are atomic
+  // anyway, so this only changes the summation order
+  const int a = d_alist(ia / nsplit);
+  const int ib0 = ia % nsplit;
   const int atype = type(a);
   // vectors COM-backbone site in lab frame
   KK_FLOAT ra_cbk[3], rb_cbk[3];
@@ -412,7 +425,7 @@ void PairOxdnaExcvKokkos<DeviceType>::operator()(TagPairOxdnaExcvCompute<OXDNAFL
   ttmp[1] = 0.0;
   ttmp[2] = 0.0;
 
-  for (int ib = 0; ib < bnum; ib++) {
+  for (int ib = ib0; ib < bnum; ib += nsplit) {
 
     int b = d_neighbors(a,ib);
     const KK_FLOAT factor_lj = static_cast<KK_FLOAT>(special_lj[sbmask(b)]);
@@ -429,6 +442,11 @@ void PairOxdnaExcvKokkos<DeviceType>::operator()(TagPairOxdnaExcvCompute<OXDNAFL
     if (dx_com*dx_com + dy_com*dy_com + dz_com*dz_com > d_cutsq_com(atype,btype)) continue;
 
     const ParamsOxdnaExcv2 p2 = params2(atype,btype);
+
+    // b-side force and torque, summed over the site pairs of this neighbor
+    // and applied with one atomic update per component
+    KK_ACC_FLOAT fb[3] = {0.0, 0.0, 0.0};
+    KK_ACC_FLOAT tb[3] = {0.0, 0.0, 0.0};
 
     // vector COM - backbone and base sites b
     if constexpr (OXDNAFLAG==OXDNA) {
@@ -527,15 +545,15 @@ void PairOxdnaExcvKokkos<DeviceType>::operator()(TagPairOxdnaExcvCompute<OXDNAFL
       ttmp[1] += delta[1];
       ttmp[2] += delta[2];
       if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || b < nlocal)) {
-        a_f(b,0) -= delf[0];
-        a_f(b,1) -= delf[1];
-        a_f(b,2) -= delf[2];
+        fb[0] -= delf[0];
+        fb[1] -= delf[1];
+        fb[2] -= delf[2];
         deltb[0] = static_cast<KK_ACC_FLOAT>(rb_cbk[1])*delf[2] - static_cast<KK_ACC_FLOAT>(rb_cbk[2])*delf[1];
         deltb[1] = static_cast<KK_ACC_FLOAT>(rb_cbk[2])*delf[0] - static_cast<KK_ACC_FLOAT>(rb_cbk[0])*delf[2];
         deltb[2] = static_cast<KK_ACC_FLOAT>(rb_cbk[0])*delf[1] - static_cast<KK_ACC_FLOAT>(rb_cbk[1])*delf[0];
-        a_torque(b,0) -= deltb[0];
-        a_torque(b,1) -= deltb[1];
-        a_torque(b,2) -= deltb[2];
+        tb[0] -= deltb[0];
+        tb[1] -= deltb[1];
+        tb[2] -= deltb[2];
       }
       if (EVFLAG) {
         if (eflag) {
@@ -568,15 +586,15 @@ void PairOxdnaExcvKokkos<DeviceType>::operator()(TagPairOxdnaExcvCompute<OXDNAFL
       ttmp[1] += delta[1];
       ttmp[2] += delta[2];
       if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || b < nlocal)) {
-        a_f(b,0) -= delf[0];
-        a_f(b,1) -= delf[1];
-        a_f(b,2) -= delf[2];
+        fb[0] -= delf[0];
+        fb[1] -= delf[1];
+        fb[2] -= delf[2];
         deltb[0] = static_cast<KK_ACC_FLOAT>(rb_cbs[1])*delf[2] - static_cast<KK_ACC_FLOAT>(rb_cbs[2])*delf[1];
         deltb[1] = static_cast<KK_ACC_FLOAT>(rb_cbs[2])*delf[0] - static_cast<KK_ACC_FLOAT>(rb_cbs[0])*delf[2];
         deltb[2] = static_cast<KK_ACC_FLOAT>(rb_cbs[0])*delf[1] - static_cast<KK_ACC_FLOAT>(rb_cbs[1])*delf[0];
-        a_torque(b,0) -= deltb[0];
-        a_torque(b,1) -= deltb[1];
-        a_torque(b,2) -= deltb[2];
+        tb[0] -= deltb[0];
+        tb[1] -= deltb[1];
+        tb[2] -= deltb[2];
       }
       if (EVFLAG) {
         if (eflag) {
@@ -609,15 +627,15 @@ void PairOxdnaExcvKokkos<DeviceType>::operator()(TagPairOxdnaExcvCompute<OXDNAFL
       ttmp[1] += delta[1];
       ttmp[2] += delta[2];
       if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || b < nlocal)) {
-        a_f(b,0) -= delf[0];
-        a_f(b,1) -= delf[1];
-        a_f(b,2) -= delf[2];
+        fb[0] -= delf[0];
+        fb[1] -= delf[1];
+        fb[2] -= delf[2];
         deltb[0] = static_cast<KK_ACC_FLOAT>(rb_cbk[1])*delf[2] - static_cast<KK_ACC_FLOAT>(rb_cbk[2])*delf[1];
         deltb[1] = static_cast<KK_ACC_FLOAT>(rb_cbk[2])*delf[0] - static_cast<KK_ACC_FLOAT>(rb_cbk[0])*delf[2];
         deltb[2] = static_cast<KK_ACC_FLOAT>(rb_cbk[0])*delf[1] - static_cast<KK_ACC_FLOAT>(rb_cbk[1])*delf[0];
-        a_torque(b,0) -= deltb[0];
-        a_torque(b,1) -= deltb[1];
-        a_torque(b,2) -= deltb[2];
+        tb[0] -= deltb[0];
+        tb[1] -= deltb[1];
+        tb[2] -= deltb[2];
       }
       if (EVFLAG) {
         if (eflag) {
@@ -657,15 +675,15 @@ void PairOxdnaExcvKokkos<DeviceType>::operator()(TagPairOxdnaExcvCompute<OXDNAFL
         ttmp[1] += delta[1];
         ttmp[2] += delta[2];
         if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || b < nlocal)) {
-          a_f(b,0) -= delf[0];
-          a_f(b,1) -= delf[1];
-          a_f(b,2) -= delf[2];
+          fb[0] -= delf[0];
+          fb[1] -= delf[1];
+          fb[2] -= delf[2];
           deltb[0] = static_cast<KK_ACC_FLOAT>(rb_cbs[1])*delf[2] - static_cast<KK_ACC_FLOAT>(rb_cbs[2])*delf[1];
           deltb[1] = static_cast<KK_ACC_FLOAT>(rb_cbs[2])*delf[0] - static_cast<KK_ACC_FLOAT>(rb_cbs[0])*delf[2];
           deltb[2] = static_cast<KK_ACC_FLOAT>(rb_cbs[0])*delf[1] - static_cast<KK_ACC_FLOAT>(rb_cbs[1])*delf[0];
-          a_torque(b,0) -= deltb[0];
-          a_torque(b,1) -= deltb[1];
-          a_torque(b,2) -= deltb[2];
+          tb[0] -= deltb[0];
+          tb[1] -= deltb[1];
+          tb[2] -= deltb[2];
         }
         if (EVFLAG) {
           if (eflag) {
@@ -703,15 +721,15 @@ void PairOxdnaExcvKokkos<DeviceType>::operator()(TagPairOxdnaExcvCompute<OXDNAFL
         ttmp[1] += delta[1];
         ttmp[2] += delta[2];
         if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || b < nlocal)) {
-          a_f(b,0) -= delf[0];
-          a_f(b,1) -= delf[1];
-          a_f(b,2) -= delf[2];
+          fb[0] -= delf[0];
+          fb[1] -= delf[1];
+          fb[2] -= delf[2];
           deltb[0] = static_cast<KK_ACC_FLOAT>(rb_cbs[1])*delf[2] - static_cast<KK_ACC_FLOAT>(rb_cbs[2])*delf[1];
           deltb[1] = static_cast<KK_ACC_FLOAT>(rb_cbs[2])*delf[0] - static_cast<KK_ACC_FLOAT>(rb_cbs[0])*delf[2];
           deltb[2] = static_cast<KK_ACC_FLOAT>(rb_cbs[0])*delf[1] - static_cast<KK_ACC_FLOAT>(rb_cbs[1])*delf[0];
-          a_torque(b,0) -= deltb[0];
-          a_torque(b,1) -= deltb[1];
-          a_torque(b,2) -= deltb[2];
+          tb[0] -= deltb[0];
+          tb[1] -= deltb[1];
+          tb[2] -= deltb[2];
         }
         if (EVFLAG) {
           if (eflag) {
@@ -743,15 +761,15 @@ void PairOxdnaExcvKokkos<DeviceType>::operator()(TagPairOxdnaExcvCompute<OXDNAFL
         ttmp[1] += delta[1];
         ttmp[2] += delta[2];
         if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || b < nlocal)) {
-          a_f(b,0) -= delf[0];
-          a_f(b,1) -= delf[1];
-          a_f(b,2) -= delf[2];
+          fb[0] -= delf[0];
+          fb[1] -= delf[1];
+          fb[2] -= delf[2];
           deltb[0] = static_cast<KK_ACC_FLOAT>(rb_cbs[1])*delf[2] - static_cast<KK_ACC_FLOAT>(rb_cbs[2])*delf[1];
           deltb[1] = static_cast<KK_ACC_FLOAT>(rb_cbs[2])*delf[0] - static_cast<KK_ACC_FLOAT>(rb_cbs[0])*delf[2];
           deltb[2] = static_cast<KK_ACC_FLOAT>(rb_cbs[0])*delf[1] - static_cast<KK_ACC_FLOAT>(rb_cbs[1])*delf[0];
-          a_torque(b,0) -= deltb[0];
-          a_torque(b,1) -= deltb[1];
-          a_torque(b,2) -= deltb[2];
+          tb[0] -= deltb[0];
+          tb[1] -= deltb[1];
+          tb[2] -= deltb[2];
         }
         if (EVFLAG) {
           if (eflag) {
@@ -766,6 +784,17 @@ void PairOxdnaExcvKokkos<DeviceType>::operator()(TagPairOxdnaExcvCompute<OXDNAFL
       }
     }
     // end excluded volume interaction
+    if ((NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || b < nlocal)) {
+      if ((fb[0] != 0.0) || (fb[1] != 0.0) || (fb[2] != 0.0) ||
+          (tb[0] != 0.0) || (tb[1] != 0.0) || (tb[2] != 0.0)) {
+        a_f(b,0) += fb[0];
+        a_f(b,1) += fb[1];
+        a_f(b,2) += fb[2];
+        a_torque(b,0) += tb[0];
+        a_torque(b,1) += tb[1];
+        a_torque(b,2) += tb[2];
+      }
+    }
   }
   a_f(a,0) += ftmp[0];
   a_f(a,1) += ftmp[1];

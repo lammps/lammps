@@ -145,6 +145,10 @@ class PairOxdna3XstkKokkos : public PairOxdna3Xstk, public KokkosBase {
  protected:
 
   t_oxdna_packed_sub<DeviceType> x;    // positions in the packed record of fix OXDNA/LRF/kk
+  t_oxdna_packed<DeviceType> xn;    // the whole packed record, for row loads
+  // (type a, type b, 0/1): lower/upper bound of the radial range over all contexts
+  Kokkos::DualView<KK_FLOAT***, Kokkos::LayoutRight, DeviceType> k_xst_rbound;
+  typename Kokkos::DualView<KK_FLOAT***, Kokkos::LayoutRight, DeviceType>::t_dev_const_randomread d_xst_rbound;
   typename AT::t_kkacc_1d_3 f;
   typename AT::t_kkacc_1d_3 torque;
   typename AT::t_int_1d_randomread type;

@@ -25,6 +25,8 @@
 
 #include "fix_oxdna_lrf_kokkos.h"
 #include "fix_oxdna_npair_kokkos.h"
+
+#include <algorithm>
 #include "fix_oxdna_prime_neighs_kokkos.h"
 #include "mf_oxdna_kokkos.h"
 #include "pair_oxdna_hbond_kokkos_impl.h"
@@ -114,6 +116,7 @@ void PairOxdna3XstkKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   else atomKK->modified(execution_space,F_MASK | TORQUE_MASK);
 
   x = fix_oxdna_lrfKK->packed_x();
+  xn = fix_oxdna_lrfKK->packed();
   f = atomKK->k_f.template view<DeviceType>();
   torque = atomKK->k_torque.template view<DeviceType>();
   type = atomKK->k_type.template view<DeviceType>();
@@ -1248,6 +1251,26 @@ void PairOxdna3XstkKokkos<DeviceType>::coeff(int narg, char **arg)
     }
   }
 
+  // bounds of the radial range over all 3'/5' context types (and both the
+  // 33 and 55 terms), used by the radial pre-test of the fused kernel
+  k_xst_rbound = Kokkos::DualView<KK_FLOAT***, Kokkos::LayoutRight, DeviceType>("pair:xst_rbound", n+1, n+1, 2);
+  auto h_rb = k_xst_rbound.view_host();
+  for (int j = 0; j <= n; j++)
+    for (int k = 0; k <= n; k++) {
+      double lo = 1.0e30, hi = -1.0e30;
+      for (int i = 0; i <= n; i++)
+        for (int l = 0; l <= n; l++) {
+          lo = std::min(lo, std::min(cut_xst_lc_33[i][j][k][l], cut_xst_lc_55[i][j][k][l]));
+          hi = std::max(hi, std::max(cut_xst_hc_33[i][j][k][l], cut_xst_hc_55[i][j][k][l]));
+        }
+      // round outwards so that the single precision bounds stay a superset
+      h_rb(j,k,0) = static_cast<KK_FLOAT>(lo * (1.0 - 1.0e-6));
+      h_rb(j,k,1) = static_cast<KK_FLOAT>(hi * (1.0 + 1.0e-6));
+    }
+  k_xst_rbound.modify_host();
+  k_xst_rbound.template sync<DeviceType>();
+  d_xst_rbound = k_xst_rbound.template view<DeviceType>();
+
   k_params_xstk.modify_host();
   k_params_33.modify_host();
   k_params_55.modify_host();
@@ -1408,13 +1431,45 @@ struct PairOxdna3HbXstkFused {
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairOxdna3HbXstkFusedRadial, const int &ipair) const
   {
-    KK_ACC_FLOAT fa[3], ta[3];
-    EV_FLOAT ev;
-    bool pass = hb.template screened_pair_body<HbondType::OXDNA3,NEIGHFLAG,NEWTON_PAIR,EVFLAG,1>(
-      TagPairOxdnaHbondComputeGPUPair<HbondType::OXDNA3,NEIGHFLAG,NEWTON_PAIR,EVFLAG>(), ipair, fa, ta, ev);
-    if (!pass)
-      pass = xs.template screened_pair_body<NEIGHFLAG,NEWTON_PAIR,EVFLAG,1>(
-        TagPairOxdna3XstkComputeNpair<NEIGHFLAG,NEWTON_PAIR,EVFLAG>(), ipair, fa, ta, ev);
+    // the hbond and oxdna3/xstk sites are the same base site, so one
+    // distance decides both radial tests.  The tests here keep every pair
+    // that can pass the exact tests in the screened_pair_body()s of phase 2.
+    const uint64_t pair = xs.d_pairs_screened(ipair);
+    const int a = static_cast<int>(pair >> 32);
+    const int braw = static_cast<int>(pair & 0xffffffffu);
+    if (xs.special_lj[xs.sbmask(braw)] == 0.0) return;
+    const int b = braw & NEIGHMASK;
+
+    OxdnaRow rowa, rowb;
+    oxdna_load_row<8>(xs.xn, a, rowa);
+    oxdna_load_row<8>(xs.xn, b, rowb);
+    const int atype = static_cast<int>(rowa.v[3]);
+    const int btype = static_cast<int>(rowb.v[3]);
+
+    constexpr KK_FLOAT dx_pur = static_cast<KK_FLOAT>(0.43);
+    constexpr KK_FLOAT dx_pyr = static_cast<KK_FLOAT>(0.37);
+    const int anuc = atype % 4;
+    const int bnuc = btype % 4;
+    const KK_FLOAT sa = (anuc == 0 || anuc == 2) ? dx_pyr : dx_pur;
+    const KK_FLOAT sb = (bnuc == 0 || bnuc == 2) ? dx_pyr : dx_pur;
+    KK_FLOAT ra_cbs[3], rb_cbs[3], d[3];
+    // nx is in columns 4-6 of the packed record
+    for (int k = 0; k < 3; k++) {
+      ra_cbs[k] = sa * rowa.v[4+k];
+      rb_cbs[k] = sb * rowb.v[4+k];
+      d[k] = rowa.v[k] + ra_cbs[k] - rowb.v[k] - rb_cbs[k];
+    }
+    const KK_FLOAT rsq = Kokkos::fma(d[2], d[2], Kokkos::fma(d[1], d[1], d[0] * d[0]));
+    if (rsq <= static_cast<KK_FLOAT>(0.0)) return;
+    const KK_FLOAT r = rsq * (static_cast<KK_FLOAT>(1.0) / Kokkos::sqrt(rsq));
+
+    bool pass = false;
+    const auto &phb = hb.d_params_hb(atype,btype);
+    if ((phb.epsilon_hb != static_cast<KK_FLOAT>(0.0)) && (r <= phb.cut_hb_hc) && (r >= phb.cut_hb_lc))
+      pass = true;
+    // the bounds of the oxdna3/xstk radial range over all 3'/5' contexts,
+    // so that the context types need not be loaded here
+    if (!pass) pass = (r >= xs.d_xst_rbound(atype,btype,0)) && (r <= xs.d_xst_rbound(atype,btype,1));
     if (pass) xs.d_radial_pairs(Kokkos::atomic_fetch_add(&xs.d_radial_count(), 1)) = ipair;
   }
 

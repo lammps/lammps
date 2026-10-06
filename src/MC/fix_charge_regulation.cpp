@@ -161,7 +161,7 @@ FixChargeRegulation::~FixChargeRegulation() {
   //   when LAMMPS exits
 
   if (exclusion_group_bit && group) {
-    auto group_id = std::string("FixChargeRegulation:gcmc_exclusion_group:") + id;
+    auto group_id = std::string("FixChargeRegulation:exclusion_group:") + id;
     try {
       group->assign(group_id + " delete");
     } catch (std::exception &e) {
@@ -170,9 +170,10 @@ FixChargeRegulation::~FixChargeRegulation() {
     }
   }
 
-  if (group) {
+  if (exclusion_group_bit && group && neighbor) {
     int igroupall = group->find("all");
     neighbor->exclusion_group_group_delete(exclusion_group, igroupall);
+    neighbor->exclusion_group_group_delete(exclusion_group, exclusion_group);
   }
 
   if (ngroups > 0) {
@@ -202,6 +203,8 @@ void FixChargeRegulation::init() {
     error->all(FLERR, Error::NOLASTLINE, "Fix {} is not compatible with /intel pair styles", style);
 
   triclinic = domain->triclinic;
+  if (triclinic)
+    error->all(FLERR, Error::NOLASTLINE, "Fix charge/regulation does not support triclinic boxes");
   c_pe = modify->get_compute_by_id("thermo_pe");
 
   if (pHstr) {
@@ -246,8 +249,10 @@ void FixChargeRegulation::init() {
 
     // neighbor list exclusion setup
     // turn off interactions between group all and the exclusion group
+    // and between atoms in the exclusion group, since those are not in group all
 
     neighbor->modify_params(fmt::format("exclude group {} all",group_id));
+    neighbor->modify_params(fmt::format("exclude group {} {}",group_id,group_id));
   }
 
   // check that no deletable atoms are in atom->firstgroup
@@ -510,7 +515,7 @@ void FixChargeRegulation::backward_acid() {
               (c10pH * nacid_charged * npart_xrd);
 
       if (force->kspace) force->kspace->qsum_qsq();
-      if (force->pair->tail_flag) force->pair->reinit();
+      tail_reinit(&m2, 1);
       double energy_after = energy_full();
 
       if (energy_after < MAXENERGYTEST &&
@@ -645,7 +650,7 @@ void FixChargeRegulation::backward_base() {
               (c10pOH * nbase_charged * npart_xrd);
 
       if (force->kspace) force->kspace->qsum_qsq();
-      if (force->pair->tail_flag) force->pair->reinit();
+      tail_reinit(&m2, 1);
       double energy_after = energy_full();
 
       if (energy_after < MAXENERGYTEST &&
@@ -751,7 +756,8 @@ void FixChargeRegulation::backward_ions() {
       factor = volume_rx * volume_rx * c10pI_plus * c10pI_minus / (ncation * nanion);
 
       if (force->kspace) force->kspace->qsum_qsq();
-      if (force->pair->tail_flag) force->pair->reinit();
+      const int mdel[2] = {m1, m2};
+      tail_reinit(mdel, 2);
       double energy_after = energy_full();
       if (energy_after < MAXENERGYTEST &&
           random_equal->uniform() < (1.0 / factor) * exp(beta * (energy_before - energy_after))) {
@@ -931,7 +937,7 @@ void FixChargeRegulation::backward_ions_multival() {
   // attempt deletion
 
   if (force->kspace) force->kspace->qsum_qsq();
-  if (force->pair->tail_flag) force->pair->reinit();
+  tail_reinit(mm.get(), salt_charge_ratio + 1);
   double energy_after = energy_full();
   if (energy_after < MAXENERGYTEST &&
       random_equal->uniform() < (1.0 / factor) * exp(beta * (energy_before - energy_after))) {
@@ -1184,6 +1190,23 @@ double FixChargeRegulation::energy_full() {
   update->eflag_global = update->ntimestep;
   double total_energy = c_pe->compute_scalar();
   return total_energy;
+}
+
+/* ----------------------------------------------------------------------
+   update the tail correction without the local atoms in mlist, which are
+   to be deleted.  the atoms are not removed until the deletion is accepted,
+   so their types are negated to exclude them from the per-type atom counts.
+------------------------------------------------------------------------- */
+
+void FixChargeRegulation::tail_reinit(const int *mlist, int n) {
+  if (!force->pair->tail_flag) return;
+
+  int *type = atom->type;
+  for (int k = 0; k < n; k++)
+    if (mlist[k] >= 0) type[mlist[k]] = -type[mlist[k]];
+  force->pair->reinit();
+  for (int k = 0; k < n; k++)
+    if (mlist[k] >= 0) type[mlist[k]] = -type[mlist[k]];
 }
 
 /* ---------------------------------------------------------------------- */

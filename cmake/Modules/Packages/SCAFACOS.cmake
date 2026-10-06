@@ -24,8 +24,8 @@ if(DOWNLOAD_SCAFACOS)
     "https://github.com/scafacos/scafacos/releases/download/v1.0.4/scafacos-1.0.4.tar.gz"
     "6634c4202e825e771d1dd75bbe9cac5cee41136c87653fde98fbd634681c1be6")
   GetFallbackURL(SCAFACOS_URL SCAFACOS_FALLBACK)
-  set(SCAFACOS_CXX_FLAGS "${CMAKE_CXX_FLAGS_${CMAKE_BUILD_TYPE}} ${CMAKE_CXX_FLAGS}")
-  set(SCAFACOS_C_FLAGS "${CMAKE_C_FLAGS_${CMAKE_BUILD_TYPE}} ${CMAKE_C_FLAGS}")
+  set(SCAFACOS_CXX_FLAGS "${CMAKE_CXX_FLAGS_${BTYPE}} ${CMAKE_CXX_FLAGS}")
+  set(SCAFACOS_C_FLAGS "${CMAKE_C_FLAGS_${BTYPE}} ${CMAKE_C_FLAGS}")
 
   include(ExternalProject)
   ExternalProject_Add(scafacos_build
@@ -37,9 +37,9 @@ if(DOWNLOAD_SCAFACOS)
                                              --enable-fcs-solvers=fmm,p2nfft,direct,ewald,p3m
                                              --with-internal-fftw --with-internal-pfft
                                              --with-internal-pnfft ${CONFIGURE_REQUEST_PIC}
-                                             FC=${CMAKE_MPI_Fortran_COMPILER}
-                                             CXX=${CMAKE_MPI_CXX_COMPILER}
-                                             CC=${CMAKE_MPI_C_COMPILER}
+                                             FC=${MPI_Fortran_COMPILER}
+                                             CXX=${MPI_CXX_COMPILER}
+                                             CC=${MPI_C_COMPILER}
                                              F77=
                                              CFLAGS=${SCAFACOS_C_FLAGS}
                                              CXXFLAGS=${SCAFACOS_CXX_FLAGS}

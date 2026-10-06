@@ -523,5 +523,4 @@ class SNAKokkos {
 
 }
 
-#include "sna_kokkos_impl.h"
 #endif

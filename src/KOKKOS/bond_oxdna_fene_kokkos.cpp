@@ -130,6 +130,7 @@ void BondOxdnaFENEKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   else atomKK->modified(execution_space,F_MASK | TORQUE_MASK);
 
   x = fix_oxdna_lrfKK->packed_x();
+  xn = fix_oxdna_lrfKK->packed();
   f = atomKK->k_f.view<DeviceType>();
   torque = atomKK->k_torque.template view<DeviceType>();
   atomtype = atomKK->k_type.template view<DeviceType>();
@@ -248,6 +249,12 @@ void BondOxdnaFENEKokkos<DeviceType>::operator()(TagBondOxdnaFENECompute<OXDNAFL
   // NOTE: already in correct order from precompute, so directionality test: a -> b is 3' -> 5' is already satisfied
   int a = d_prime_neighs_bond(in,0);
   int b = d_prime_neighs_bond(in,1);
+  // packed records of the atoms with 16-byte loads
+  OxdnaRow rowa;
+  oxdna_load_row<16>(xn, a, rowa);
+  OxdnaRow rowb;
+  oxdna_load_row<16>(xn, b, rowb);
+
   const int type = bondlist(in,2);
   int a3ptype, atype, btype, b5ptype;    // tetramer types
 
@@ -273,37 +280,37 @@ void BondOxdnaFENEKokkos<DeviceType>::operator()(TagBondOxdnaFENECompute<OXDNAFL
   // vector COM-backbone site a and b - "compute_interaction_sites" vector COM-sugar-phosphate backbone in oxDNA
   if constexpr (OXDNAFLAG==OXDNA) {
     constexpr KK_FLOAT d_cs = static_cast<KK_FLOAT>(-0.4);
-    ra_cbk[0] = d_cs * d_nx_xtrct(a,0);
-    ra_cbk[1] = d_cs * d_nx_xtrct(a,1);
-    ra_cbk[2] = d_cs * d_nx_xtrct(a,2);
-    rb_cbk[0] = d_cs * d_nx_xtrct(b,0);
-    rb_cbk[1] = d_cs * d_nx_xtrct(b,1);
-    rb_cbk[2] = d_cs * d_nx_xtrct(b,2);
+    ra_cbk[0] = d_cs * rowa.v[4];
+    ra_cbk[1] = d_cs * rowa.v[5];
+    ra_cbk[2] = d_cs * rowa.v[6];
+    rb_cbk[0] = d_cs * rowb.v[4];
+    rb_cbk[1] = d_cs * rowb.v[5];
+    rb_cbk[2] = d_cs * rowb.v[6];
   } else if constexpr (OXDNAFLAG==OXDNA2) {
     constexpr KK_FLOAT d_cs_x = static_cast<KK_FLOAT>(-0.34);
     constexpr KK_FLOAT d_cs_y = static_cast<KK_FLOAT>(+0.3408);
-    ra_cbk[0] = d_cs_x * d_nx_xtrct(a,0) + d_cs_y * d_ny_xtrct(a,0);
-    ra_cbk[1] = d_cs_x * d_nx_xtrct(a,1) + d_cs_y * d_ny_xtrct(a,1);
-    ra_cbk[2] = d_cs_x * d_nx_xtrct(a,2) + d_cs_y * d_ny_xtrct(a,2);
-    rb_cbk[0] = d_cs_x * d_nx_xtrct(b,0) + d_cs_y * d_ny_xtrct(b,0);
-    rb_cbk[1] = d_cs_x * d_nx_xtrct(b,1) + d_cs_y * d_ny_xtrct(b,1);
-    rb_cbk[2] = d_cs_x * d_nx_xtrct(b,2) + d_cs_y * d_ny_xtrct(b,2);
+    ra_cbk[0] = d_cs_x * rowa.v[4] + d_cs_y * rowa.v[7];
+    ra_cbk[1] = d_cs_x * rowa.v[5] + d_cs_y * rowa.v[8];
+    ra_cbk[2] = d_cs_x * rowa.v[6] + d_cs_y * rowa.v[9];
+    rb_cbk[0] = d_cs_x * rowb.v[4] + d_cs_y * rowb.v[7];
+    rb_cbk[1] = d_cs_x * rowb.v[5] + d_cs_y * rowb.v[8];
+    rb_cbk[2] = d_cs_x * rowb.v[6] + d_cs_y * rowb.v[9];
   } else {
     // OXRNA2
     constexpr KK_FLOAT d_cs_x = static_cast<KK_FLOAT>(-0.4);
     constexpr KK_FLOAT d_cs_z = static_cast<KK_FLOAT>(+0.2);
-    ra_cbk[0] = d_cs_x * d_nx_xtrct(a,0) + d_cs_z * d_nz_xtrct(a,0);
-    ra_cbk[1] = d_cs_x * d_nx_xtrct(a,1) + d_cs_z * d_nz_xtrct(a,1);
-    ra_cbk[2] = d_cs_x * d_nx_xtrct(a,2) + d_cs_z * d_nz_xtrct(a,2);
-    rb_cbk[0] = d_cs_x * d_nx_xtrct(b,0) + d_cs_z * d_nz_xtrct(b,0);
-    rb_cbk[1] = d_cs_x * d_nx_xtrct(b,1) + d_cs_z * d_nz_xtrct(b,1);
-    rb_cbk[2] = d_cs_x * d_nx_xtrct(b,2) + d_cs_z * d_nz_xtrct(b,2);
+    ra_cbk[0] = d_cs_x * rowa.v[4] + d_cs_z * rowa.v[10];
+    ra_cbk[1] = d_cs_x * rowa.v[5] + d_cs_z * rowa.v[11];
+    ra_cbk[2] = d_cs_x * rowa.v[6] + d_cs_z * rowa.v[12];
+    rb_cbk[0] = d_cs_x * rowb.v[4] + d_cs_z * rowb.v[10];
+    rb_cbk[1] = d_cs_x * rowb.v[5] + d_cs_z * rowb.v[11];
+    rb_cbk[2] = d_cs_x * rowb.v[6] + d_cs_z * rowb.v[12];
   }
 
   // vector backbone site b to a
-  delr_bkbk[0] = x(a,0) + ra_cbk[0] - x(b,0) - rb_cbk[0];
-  delr_bkbk[1] = x(a,1) + ra_cbk[1] - x(b,1) - rb_cbk[1];
-  delr_bkbk[2] = x(a,2) + ra_cbk[2] - x(b,2) - rb_cbk[2];
+  delr_bkbk[0] = rowa.v[0] + ra_cbk[0] - rowb.v[0] - rb_cbk[0];
+  delr_bkbk[1] = rowa.v[1] + ra_cbk[1] - rowb.v[1] - rb_cbk[1];
+  delr_bkbk[2] = rowa.v[2] + ra_cbk[2] - rowb.v[2] - rb_cbk[2];
   const KK_FLOAT rsq = delr_bkbk[0]*delr_bkbk[0] + delr_bkbk[1]*delr_bkbk[1] + delr_bkbk[2]*delr_bkbk[2];
   const KK_FLOAT r_bkbk = Kokkos::sqrt(rsq);
 
@@ -380,7 +387,7 @@ void BondOxdnaFENEKokkos<DeviceType>::operator()(TagBondOxdnaFENECompute<OXDNAFL
   }
 
   if (EVFLAG) { ev_tally_xyz(ev, a, b, nlocal, NEWTON_BOND, ebond, delf[0], delf[1], delf[2], \
-    x(a,0)-x(b,0), x(a,1)-x(b,1), x(a,2)-x(b,2)); }
+    rowa.v[0]-rowb.v[0], rowa.v[1]-rowb.v[1], rowa.v[2]-rowb.v[2]); }
 
 }
 

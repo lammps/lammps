@@ -77,6 +77,7 @@ class BondOxdnaFENEKokkos : public BondOxdnaFene {
   class NeighborKokkos *neighborKK;
 
   t_oxdna_packed_sub<DeviceType> x;    // positions in the packed record of fix OXDNA/LRF/kk
+  t_oxdna_packed<DeviceType> xn;    // the whole packed record, for row loads
   typename AT::t_kkacc_1d_3 f;
   typename AT::t_kkacc_1d_3 torque;
   typename AT::t_int_2d_lr bondlist;

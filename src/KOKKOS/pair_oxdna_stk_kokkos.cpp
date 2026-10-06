@@ -90,6 +90,7 @@ void PairOxdnaStkKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   else atomKK->modified(execution_space,F_MASK | TORQUE_MASK);
 
   x = fix_oxdna_lrfKK->packed_x();
+  xn = fix_oxdna_lrfKK->packed();
   f = atomKK->k_f.view<DeviceType>();
   torque = atomKK->k_torque.view<DeviceType>();
   type = atomKK->k_type.view<DeviceType>();
@@ -196,6 +197,12 @@ void PairOxdnaStkKokkos<DeviceType>::operator()(TagPairOxdnaStkCompute<OXDNAFLAG
   // NOTE: already in correct order from precompute, so directionality test: a -> b is 3' -> 5' is already satisfied
   int a = d_prime_neighs_bond(in,0);
   int b = d_prime_neighs_bond(in,1);
+  // packed records of the atoms with 16-byte loads
+  OxdnaRow rowa;
+  oxdna_load_row<16>(xn, a, rowa);
+  OxdnaRow rowb;
+  oxdna_load_row<16>(xn, b, rowb);
+
   int a3ptype,atype,btype,b5ptype;
 
   KK_FLOAT ra_cstk[3], rb_cstk[3];           // vectors COM-stacking sites in lab frame
@@ -218,26 +225,26 @@ void PairOxdnaStkKokkos<DeviceType>::operator()(TagPairOxdnaStkCompute<OXDNAFLAG
   if constexpr (OXDNAFLAG==OXDNA) {
     // Used for oxDNA[1] and oxDNA2, but not oxDNA3
     constexpr KK_FLOAT dx_cstk_oxdna1 = static_cast<KK_FLOAT>(+0.34);
-    ra_cstk[0] = dx_cstk_oxdna1 * d_nx_xtrct(a,0);
-    ra_cstk[1] = dx_cstk_oxdna1 * d_nx_xtrct(a,1);
-    ra_cstk[2] = dx_cstk_oxdna1 * d_nx_xtrct(a,2);
-    rb_cstk[0] = dx_cstk_oxdna1 * d_nx_xtrct(b,0);
-    rb_cstk[1] = dx_cstk_oxdna1 * d_nx_xtrct(b,1);
-    rb_cstk[2] = dx_cstk_oxdna1 * d_nx_xtrct(b,2);
+    ra_cstk[0] = dx_cstk_oxdna1 * rowa.v[4];
+    ra_cstk[1] = dx_cstk_oxdna1 * rowa.v[5];
+    ra_cstk[2] = dx_cstk_oxdna1 * rowa.v[6];
+    rb_cstk[0] = dx_cstk_oxdna1 * rowb.v[4];
+    rb_cstk[1] = dx_cstk_oxdna1 * rowb.v[5];
+    rb_cstk[2] = dx_cstk_oxdna1 * rowb.v[6];
   } else if constexpr (OXDNAFLAG==OXDNA3) {
     constexpr KK_FLOAT dx_cstk_oxdna3 = static_cast<KK_FLOAT>(+0.37);
-    ra_cstk[0] = dx_cstk_oxdna3 * d_nx_xtrct(a,0);
-    ra_cstk[1] = dx_cstk_oxdna3 * d_nx_xtrct(a,1);
-    ra_cstk[2] = dx_cstk_oxdna3 * d_nx_xtrct(a,2);
-    rb_cstk[0] = dx_cstk_oxdna3 * d_nx_xtrct(b,0);
-    rb_cstk[1] = dx_cstk_oxdna3 * d_nx_xtrct(b,1);
-    rb_cstk[2] = dx_cstk_oxdna3 * d_nx_xtrct(b,2);
+    ra_cstk[0] = dx_cstk_oxdna3 * rowa.v[4];
+    ra_cstk[1] = dx_cstk_oxdna3 * rowa.v[5];
+    ra_cstk[2] = dx_cstk_oxdna3 * rowa.v[6];
+    rb_cstk[0] = dx_cstk_oxdna3 * rowb.v[4];
+    rb_cstk[1] = dx_cstk_oxdna3 * rowb.v[5];
+    rb_cstk[2] = dx_cstk_oxdna3 * rowb.v[6];
   }
 
   // vector stacking site a to b
-  delr_stkstk[0] = x(b,0) + rb_cstk[0] - x(a,0) - ra_cstk[0];
-  delr_stkstk[1] = x(b,1) + rb_cstk[1] - x(a,1) - ra_cstk[1];
-  delr_stkstk[2] = x(b,2) + rb_cstk[2] - x(a,2) - ra_cstk[2];
+  delr_stkstk[0] = rowb.v[0] + rb_cstk[0] - rowa.v[0] - ra_cstk[0];
+  delr_stkstk[1] = rowb.v[1] + rb_cstk[1] - rowa.v[1] - ra_cstk[1];
+  delr_stkstk[2] = rowb.v[2] + rb_cstk[2] - rowa.v[2] - ra_cstk[2];
 
   // determine tetramer types
   // Our prime_neighs_bond ordering (a,b,id3p[a],id5p[b]) from precompute
@@ -270,17 +277,17 @@ void PairOxdnaStkKokkos<DeviceType>::operator()(TagPairOxdnaStkCompute<OXDNAFLAG
   // vector COM [a/b] - backbone site [a/b]
   // All oxDNA variants use the same COM-backbone site offset, so we can use a single constexpr here.
   constexpr KK_FLOAT dx_cbk_oxdna = static_cast<KK_FLOAT>(-0.4);
-  ra_cbk[0] = dx_cbk_oxdna * d_nx_xtrct(a,0);
-  ra_cbk[1] = dx_cbk_oxdna * d_nx_xtrct(a,1);
-  ra_cbk[2] = dx_cbk_oxdna * d_nx_xtrct(a,2);
-  rb_cbk[0] = dx_cbk_oxdna * d_nx_xtrct(b,0);
-  rb_cbk[1] = dx_cbk_oxdna * d_nx_xtrct(b,1);
-  rb_cbk[2] = dx_cbk_oxdna * d_nx_xtrct(b,2);
+  ra_cbk[0] = dx_cbk_oxdna * rowa.v[4];
+  ra_cbk[1] = dx_cbk_oxdna * rowa.v[5];
+  ra_cbk[2] = dx_cbk_oxdna * rowa.v[6];
+  rb_cbk[0] = dx_cbk_oxdna * rowb.v[4];
+  rb_cbk[1] = dx_cbk_oxdna * rowb.v[5];
+  rb_cbk[2] = dx_cbk_oxdna * rowb.v[6];
 
   // vector backbone site a to b
-  delr_bkbk[0] = x(b,0) + rb_cbk[0] - x(a,0) - ra_cbk[0];
-  delr_bkbk[1] = x(b,1) + rb_cbk[1] - x(a,1) - ra_cbk[1];
-  delr_bkbk[2] = x(b,2) + rb_cbk[2] - x(a,2) - ra_cbk[2];
+  delr_bkbk[0] = rowb.v[0] + rb_cbk[0] - rowa.v[0] - ra_cbk[0];
+  delr_bkbk[1] = rowb.v[1] + rb_cbk[1] - rowa.v[1] - ra_cbk[1];
+  delr_bkbk[2] = rowb.v[2] + rb_cbk[2] - rowa.v[2] - ra_cbk[2];
 
   rsq_bkbk = Kokkos::fma(delr_bkbk[0], delr_bkbk[0], Kokkos::fma(delr_bkbk[1], delr_bkbk[1], delr_bkbk[2]*delr_bkbk[2]));
   r_bkbk = Kokkos::sqrt(rsq_bkbk);
@@ -302,15 +309,15 @@ void PairOxdnaStkKokkos<DeviceType>::operator()(TagPairOxdnaStkCompute<OXDNAFLAG
   if (f1 == static_cast<KK_FLOAT>(0.0)) return;
 
   // theta4 angle and correction
-  cost4 = d_nz_xtrct(b,0) * d_nz_xtrct(a,0) +
-          d_nz_xtrct(b,1) * d_nz_xtrct(a,1) +
-          d_nz_xtrct(b,2) * d_nz_xtrct(a,2);
+  cost4 = rowb.v[10] * rowa.v[10] +
+          rowb.v[11] * rowa.v[11] +
+          rowb.v[12] * rowa.v[12];
   if (cost4 > static_cast<KK_FLOAT>(1.0)) cost4 = static_cast<KK_FLOAT>(1.0);
   if (cost4 < static_cast<KK_FLOAT>(-1.0)) cost4 = static_cast<KK_FLOAT>(-1.0);
   // sin(theta) from the cross product and theta from atan2 stay accurate
   // near 0 and pi, and avoid the slow path of sin(acos(x))
-  const KK_FLOAT nz_a[3] = {d_nz_xtrct(a,0), d_nz_xtrct(a,1), d_nz_xtrct(a,2)};
-  const KK_FLOAT nz_b[3] = {d_nz_xtrct(b,0), d_nz_xtrct(b,1), d_nz_xtrct(b,2)};
+  const KK_FLOAT nz_a[3] = {rowa.v[10], rowa.v[11], rowa.v[12]};
+  const KK_FLOAT nz_b[3] = {rowb.v[10], rowb.v[11], rowb.v[12]};
   const KK_FLOAT sin4 = cross_norm(nz_b, nz_a);
   theta4 = Kokkos::atan2(sin4, cost4);
   // f4t4 = f4 modulation factor
@@ -322,9 +329,9 @@ void PairOxdnaStkKokkos<DeviceType>::operator()(TagPairOxdnaStkCompute<OXDNAFLAG
   if (f4t4 == static_cast<KK_FLOAT>(0.0)) return;
 
   // theta5 angle and correction
-  cost5p = d_nz_xtrct(b,0) * delr_stkstk_norm[0] +
-           d_nz_xtrct(b,1) * delr_stkstk_norm[1] +
-           d_nz_xtrct(b,2) * delr_stkstk_norm[2];
+  cost5p = rowb.v[10] * delr_stkstk_norm[0] +
+           rowb.v[11] * delr_stkstk_norm[1] +
+           rowb.v[12] * delr_stkstk_norm[2];
   if (cost5p > static_cast<KK_FLOAT>(1.0)) cost5p = static_cast<KK_FLOAT>(1.0);
   if (cost5p < static_cast<KK_FLOAT>(-1.0)) cost5p = static_cast<KK_FLOAT>(-1.0);
   const KK_FLOAT sin5p = cross_norm(nz_b, delr_stkstk_norm);
@@ -337,20 +344,20 @@ void PairOxdnaStkKokkos<DeviceType>::operator()(TagPairOxdnaStkCompute<OXDNAFLAG
   if (f4t5 == static_cast<KK_FLOAT>(0.0)) return;
 
   // theta6 angle and correction
-  cost6p = delr_stkstk_norm[0] * d_nz_xtrct(a,0) +
-           delr_stkstk_norm[1] * d_nz_xtrct(a,1) +
-           delr_stkstk_norm[2] * d_nz_xtrct(a,2);
+  cost6p = delr_stkstk_norm[0] * rowa.v[10] +
+           delr_stkstk_norm[1] * rowa.v[11] +
+           delr_stkstk_norm[2] * rowa.v[12];
   if (cost6p > static_cast<KK_FLOAT>(1.0)) cost6p = static_cast<KK_FLOAT>(1.0);
   if (cost6p < static_cast<KK_FLOAT>(-1.0)) cost6p = static_cast<KK_FLOAT>(-1.0);
   const KK_FLOAT sin6p = cross_norm(delr_stkstk_norm, nz_a);
   theta6p = Kokkos::atan2(sin6p, cost6p);
   // cosphi1 and cosphi2 angles
-  cosphi1 = delr_bkbk_norm[0] * d_ny_xtrct(b,0) +
-            delr_bkbk_norm[1] * d_ny_xtrct(b,1) +
-            delr_bkbk_norm[2] * d_ny_xtrct(b,2);
-  cosphi2 = delr_bkbk_norm[0] * d_ny_xtrct(a,0) +
-            delr_bkbk_norm[1] * d_ny_xtrct(a,1) +
-            delr_bkbk_norm[2] * d_ny_xtrct(a,2);
+  cosphi1 = delr_bkbk_norm[0] * rowb.v[7] +
+            delr_bkbk_norm[1] * rowb.v[8] +
+            delr_bkbk_norm[2] * rowb.v[9];
+  cosphi2 = delr_bkbk_norm[0] * rowa.v[7] +
+            delr_bkbk_norm[1] * rowa.v[8] +
+            delr_bkbk_norm[2] * rowa.v[9];
   if (cosphi1 > static_cast<KK_FLOAT>(1.0)) cosphi1 = static_cast<KK_FLOAT>(1.0);
   if (cosphi1 < static_cast<KK_FLOAT>(-1.0)) cosphi1 = static_cast<KK_FLOAT>(-1.0);
   if (cosphi2 > static_cast<KK_FLOAT>(1.0)) cosphi2 = static_cast<KK_FLOAT>(1.0);
@@ -415,18 +422,18 @@ void PairOxdnaStkKokkos<DeviceType>::operator()(TagPairOxdnaStkCompute<OXDNAFLAG
   if (theta5p != static_cast<KK_FLOAT>(0.0)) {
     finc = static_cast<KK_ACC_FLOAT>(-f1 * f4t4 * df4t5 * f4t6 * f5c1 * f5c2 * rinv_stkstk);
 
-    delf[0] += static_cast<KK_ACC_FLOAT>(delr_stkstk_norm[0]*cost5p - d_nz_xtrct(b,0)) * finc;
-    delf[1] += static_cast<KK_ACC_FLOAT>(delr_stkstk_norm[1]*cost5p - d_nz_xtrct(b,1)) * finc;
-    delf[2] += static_cast<KK_ACC_FLOAT>(delr_stkstk_norm[2]*cost5p - d_nz_xtrct(b,2)) * finc;
+    delf[0] += static_cast<KK_ACC_FLOAT>(delr_stkstk_norm[0]*cost5p - rowb.v[10]) * finc;
+    delf[1] += static_cast<KK_ACC_FLOAT>(delr_stkstk_norm[1]*cost5p - rowb.v[11]) * finc;
+    delf[2] += static_cast<KK_ACC_FLOAT>(delr_stkstk_norm[2]*cost5p - rowb.v[12]) * finc;
   }
 
   // theta6p force
   if (theta6p != static_cast<KK_FLOAT>(0.0)) {
     finc = static_cast<KK_ACC_FLOAT>(-f1 * f4t4 * f4t5 * df4t6 * f5c1 * f5c2 * rinv_stkstk);
 
-    delf[0] += static_cast<KK_ACC_FLOAT>(delr_stkstk_norm[0]*cost6p - d_nz_xtrct(a,0)) * finc;
-    delf[1] += static_cast<KK_ACC_FLOAT>(delr_stkstk_norm[1]*cost6p - d_nz_xtrct(a,1)) * finc;
-    delf[2] += static_cast<KK_ACC_FLOAT>(delr_stkstk_norm[2]*cost6p - d_nz_xtrct(a,2)) * finc;
+    delf[0] += static_cast<KK_ACC_FLOAT>(delr_stkstk_norm[0]*cost6p - rowa.v[10]) * finc;
+    delf[1] += static_cast<KK_ACC_FLOAT>(delr_stkstk_norm[1]*cost6p - rowa.v[11]) * finc;
+    delf[2] += static_cast<KK_ACC_FLOAT>(delr_stkstk_norm[2]*cost6p - rowa.v[12]) * finc;
   }
 
   // accumulate the force and torques of this bond; they are applied with a
@@ -442,7 +449,7 @@ void PairOxdnaStkKokkos<DeviceType>::operator()(TagPairOxdnaStkCompute<OXDNAFLAG
   tsumb[2] = static_cast<KK_ACC_FLOAT>(rb_cstk[0])*delf[1] - static_cast<KK_ACC_FLOAT>(rb_cstk[1])*delf[0];
 
   if (EVFLAG) { ev_tally_xyz(ev, a, b, nlocal, NEWTON_BOND, static_cast<KK_FLOAT>(evdwl), delf[0], delf[1], delf[2], \
-    x(b,0)-x(a,0), x(b,1)-x(a,1), x(b,2)-x(a,2)); }
+    rowb.v[0]-rowa.v[0], rowb.v[1]-rowa.v[1], rowb.v[2]-rowa.v[2]); }
 
   // force, torque and virial contribution for forces between backbone sites
   delf[0] = 0.0;
@@ -459,18 +466,18 @@ void PairOxdnaStkKokkos<DeviceType>::operator()(TagPairOxdnaStkCompute<OXDNAFLAG
   if (cosphi1 != static_cast<KK_FLOAT>(0.0)) {
     finc = static_cast<KK_ACC_FLOAT>(-f1 * f4t4 * f4t5 * f4t6 * df5c1 * f5c2 * rinv_bkbk);
 
-    delf[0] += static_cast<KK_ACC_FLOAT>(delr_bkbk_norm[0]*cosphi1 - d_ny_xtrct(b,0)) * finc;
-    delf[1] += static_cast<KK_ACC_FLOAT>(delr_bkbk_norm[1]*cosphi1 - d_ny_xtrct(b,1)) * finc;
-    delf[2] += static_cast<KK_ACC_FLOAT>(delr_bkbk_norm[2]*cosphi1 - d_ny_xtrct(b,2)) * finc;
+    delf[0] += static_cast<KK_ACC_FLOAT>(delr_bkbk_norm[0]*cosphi1 - rowb.v[7]) * finc;
+    delf[1] += static_cast<KK_ACC_FLOAT>(delr_bkbk_norm[1]*cosphi1 - rowb.v[8]) * finc;
+    delf[2] += static_cast<KK_ACC_FLOAT>(delr_bkbk_norm[2]*cosphi1 - rowb.v[9]) * finc;
   }
 
   // cosphi2 force
   if (cosphi2 != static_cast<KK_FLOAT>(0.0)) {
     finc = static_cast<KK_ACC_FLOAT>(-f1 * f4t4 * f4t5 * f4t6 * f5c1 * df5c2 * rinv_bkbk);
 
-    delf[0] += static_cast<KK_ACC_FLOAT>(delr_bkbk_norm[0]*cosphi2 - d_ny_xtrct(a,0)) * finc;
-    delf[1] += static_cast<KK_ACC_FLOAT>(delr_bkbk_norm[1]*cosphi2 - d_ny_xtrct(a,1)) * finc;
-    delf[2] += static_cast<KK_ACC_FLOAT>(delr_bkbk_norm[2]*cosphi2 - d_ny_xtrct(a,2)) * finc;
+    delf[0] += static_cast<KK_ACC_FLOAT>(delr_bkbk_norm[0]*cosphi2 - rowa.v[7]) * finc;
+    delf[1] += static_cast<KK_ACC_FLOAT>(delr_bkbk_norm[1]*cosphi2 - rowa.v[8]) * finc;
+    delf[2] += static_cast<KK_ACC_FLOAT>(delr_bkbk_norm[2]*cosphi2 - rowa.v[9]) * finc;
   }
 
   // accumulate the force and torques of this bond
@@ -486,7 +493,7 @@ void PairOxdnaStkKokkos<DeviceType>::operator()(TagPairOxdnaStkCompute<OXDNAFLAG
 
   // increment viral only
   if (EVFLAG) { ev_tally_xyz(ev, a, b, nlocal, NEWTON_BOND, 0.0, delf[0], delf[1], delf[2], \
-    x(b,0)-x(a,0), x(b,1)-x(a,1), x(b,2)-x(a,2)); }
+    rowb.v[0]-rowa.v[0], rowb.v[1]-rowa.v[1], rowb.v[2]-rowa.v[2]); }
 
   // pure torques not expressible as r x f
 
@@ -500,9 +507,9 @@ void PairOxdnaStkKokkos<DeviceType>::operator()(TagPairOxdnaStkCompute<OXDNAFLAG
   // theta4 torque
   if (theta4 != static_cast<KK_FLOAT>(0.0)) {
     tpair = static_cast<KK_ACC_FLOAT>(-f1 * df4t4 * f4t5 * f4t6 * f5c1 * f5c2);
-    t4dir[0] = d_nz_xtrct(a,1) * d_nz_xtrct(b,2) - d_nz_xtrct(a,2) * d_nz_xtrct(b,1);
-    t4dir[1] = d_nz_xtrct(a,2) * d_nz_xtrct(b,0) - d_nz_xtrct(a,0) * d_nz_xtrct(b,2);
-    t4dir[2] = d_nz_xtrct(a,0) * d_nz_xtrct(b,1) - d_nz_xtrct(a,1) * d_nz_xtrct(b,0);
+    t4dir[0] = rowa.v[11] * rowb.v[12] - rowa.v[12] * rowb.v[11];
+    t4dir[1] = rowa.v[12] * rowb.v[10] - rowa.v[10] * rowb.v[12];
+    t4dir[2] = rowa.v[10] * rowb.v[11] - rowa.v[11] * rowb.v[10];
     delta[0] += static_cast<KK_ACC_FLOAT>(t4dir[0]) * tpair;
     delta[1] += static_cast<KK_ACC_FLOAT>(t4dir[1]) * tpair;
     delta[2] += static_cast<KK_ACC_FLOAT>(t4dir[2]) * tpair;
@@ -514,9 +521,9 @@ void PairOxdnaStkKokkos<DeviceType>::operator()(TagPairOxdnaStkCompute<OXDNAFLAG
   // theta5p torque
   if (theta5p != static_cast<KK_FLOAT>(0.0)) {
     tpair = static_cast<KK_ACC_FLOAT>(-f1 * f4t4 * df4t5 * f4t6 * f5c1 * f5c2);
-    t5pdir[0] = delr_stkstk_norm[1] * d_nz_xtrct(b,2) - delr_stkstk_norm[2] * d_nz_xtrct(b,1);
-    t5pdir[1] = delr_stkstk_norm[2] * d_nz_xtrct(b,0) - delr_stkstk_norm[0] * d_nz_xtrct(b,2);
-    t5pdir[2] = delr_stkstk_norm[0] * d_nz_xtrct(b,1) - delr_stkstk_norm[1] * d_nz_xtrct(b,0);
+    t5pdir[0] = delr_stkstk_norm[1] * rowb.v[12] - delr_stkstk_norm[2] * rowb.v[11];
+    t5pdir[1] = delr_stkstk_norm[2] * rowb.v[10] - delr_stkstk_norm[0] * rowb.v[12];
+    t5pdir[2] = delr_stkstk_norm[0] * rowb.v[11] - delr_stkstk_norm[1] * rowb.v[10];
     deltb[0] += static_cast<KK_ACC_FLOAT>(t5pdir[0]) * tpair;
     deltb[1] += static_cast<KK_ACC_FLOAT>(t5pdir[1]) * tpair;
     deltb[2] += static_cast<KK_ACC_FLOAT>(t5pdir[2]) * tpair;
@@ -525,9 +532,9 @@ void PairOxdnaStkKokkos<DeviceType>::operator()(TagPairOxdnaStkCompute<OXDNAFLAG
   // theta6p torque
   if (theta6p != static_cast<KK_FLOAT>(0.0)) {
     tpair = static_cast<KK_ACC_FLOAT>(-f1 * f4t4 * f4t5 * df4t6 * f5c1 * f5c2);
-    t6pdir[0] = delr_stkstk_norm[1] * d_nz_xtrct(a,2) - delr_stkstk_norm[2] * d_nz_xtrct(a,1);
-    t6pdir[1] = delr_stkstk_norm[2] * d_nz_xtrct(a,0) - delr_stkstk_norm[0] * d_nz_xtrct(a,2);
-    t6pdir[2] = delr_stkstk_norm[0] * d_nz_xtrct(a,1) - delr_stkstk_norm[1] * d_nz_xtrct(a,0);
+    t6pdir[0] = delr_stkstk_norm[1] * rowa.v[12] - delr_stkstk_norm[2] * rowa.v[11];
+    t6pdir[1] = delr_stkstk_norm[2] * rowa.v[10] - delr_stkstk_norm[0] * rowa.v[12];
+    t6pdir[2] = delr_stkstk_norm[0] * rowa.v[11] - delr_stkstk_norm[1] * rowa.v[10];
     delta[0] -= static_cast<KK_ACC_FLOAT>(t6pdir[0]) * tpair;
     delta[1] -= static_cast<KK_ACC_FLOAT>(t6pdir[1]) * tpair;
     delta[2] -= static_cast<KK_ACC_FLOAT>(t6pdir[2]) * tpair;
@@ -536,9 +543,9 @@ void PairOxdnaStkKokkos<DeviceType>::operator()(TagPairOxdnaStkCompute<OXDNAFLAG
   // cosphi1 torque
   if (cosphi1 != static_cast<KK_FLOAT>(0.0)) {
     tpair = static_cast<KK_ACC_FLOAT>(-f1 * f4t4 * f4t5 * f4t6 * df5c1 * f5c2);
-    cosphi1dir[0] = delr_bkbk_norm[1] * d_ny_xtrct(b,2) - delr_bkbk_norm[2] * d_ny_xtrct(b,1);
-    cosphi1dir[1] = delr_bkbk_norm[2] * d_ny_xtrct(b,0) - delr_bkbk_norm[0] * d_ny_xtrct(b,2);
-    cosphi1dir[2] = delr_bkbk_norm[0] * d_ny_xtrct(b,1) - delr_bkbk_norm[1] * d_ny_xtrct(b,0);
+    cosphi1dir[0] = delr_bkbk_norm[1] * rowb.v[9] - delr_bkbk_norm[2] * rowb.v[8];
+    cosphi1dir[1] = delr_bkbk_norm[2] * rowb.v[7] - delr_bkbk_norm[0] * rowb.v[9];
+    cosphi1dir[2] = delr_bkbk_norm[0] * rowb.v[8] - delr_bkbk_norm[1] * rowb.v[7];
     deltb[0] += static_cast<KK_ACC_FLOAT>(cosphi1dir[0]) * tpair;
     deltb[1] += static_cast<KK_ACC_FLOAT>(cosphi1dir[1]) * tpair;
     deltb[2] += static_cast<KK_ACC_FLOAT>(cosphi1dir[2]) * tpair;
@@ -547,9 +554,9 @@ void PairOxdnaStkKokkos<DeviceType>::operator()(TagPairOxdnaStkCompute<OXDNAFLAG
   // cosphi2 torque
   if (cosphi2 != static_cast<KK_FLOAT>(0.0)) {
     tpair = static_cast<KK_ACC_FLOAT>(-f1 * f4t4 * f4t5 * f4t6 * f5c1 * df5c2);
-    cosphi2dir[0] = delr_bkbk_norm[1] * d_ny_xtrct(a,2) - delr_bkbk_norm[2] * d_ny_xtrct(a,1);
-    cosphi2dir[1] = delr_bkbk_norm[2] * d_ny_xtrct(a,0) - delr_bkbk_norm[0] * d_ny_xtrct(a,2);
-    cosphi2dir[2] = delr_bkbk_norm[0] * d_ny_xtrct(a,1) - delr_bkbk_norm[1] * d_ny_xtrct(a,0);
+    cosphi2dir[0] = delr_bkbk_norm[1] * rowa.v[9] - delr_bkbk_norm[2] * rowa.v[8];
+    cosphi2dir[1] = delr_bkbk_norm[2] * rowa.v[7] - delr_bkbk_norm[0] * rowa.v[9];
+    cosphi2dir[2] = delr_bkbk_norm[0] * rowa.v[8] - delr_bkbk_norm[1] * rowa.v[7];
     delta[0] -= static_cast<KK_ACC_FLOAT>(cosphi2dir[0]) * tpair;
     delta[1] -= static_cast<KK_ACC_FLOAT>(cosphi2dir[1]) * tpair;
     delta[2] -= static_cast<KK_ACC_FLOAT>(cosphi2dir[2]) * tpair;

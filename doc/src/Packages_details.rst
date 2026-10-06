@@ -1117,6 +1117,7 @@ package in ``tools/fep``; see its ``README`` file.
 * ``src/FEP/README``
 * :doc:`fix adapt/fep <fix_adapt_fep>`
 * :doc:`compute fep <compute_fep>`
+* :doc:`compute mbar <compute_mbar>`
 * :doc:`pair_style \*/soft <pair_fep_soft>`
 * :doc:`pair_style coul/cut/soft/gapsys <pair_fep_soft>`
 * :doc:`pair_style lj/cut/soft/gapsys <pair_fep_soft>`

@@ -596,13 +596,13 @@ void FixRigidOMP::set_v_thr()
 
     MathExtra::matvec(ex_space[ibody],ey_space[ibody],
                       ez_space[ibody],displace[i],delta);
- 
+
     v[i].x = omegai[1]*delta[2] - omegai[2]*delta[1] + vcmi.x;
     v[i].y = omegai[2]*delta[0] - omegai[0]*delta[2] + vcmi.y;
     v[i].z = omegai[0]*delta[1] - omegai[1]*delta[0] + vcmi.z;
- 
+
     if (DIMENSION == 2) v[i].z = 0.0;
- 
+
 
     // virial = unwrapped coords dotted into body constraint force
     // body constraint force = implied force from acceleration minus f external

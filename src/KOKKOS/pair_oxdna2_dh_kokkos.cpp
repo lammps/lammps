@@ -94,6 +94,7 @@ void PairOxdna2DhKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   x = fix_oxdna_lrfKK->packed_x();
   xn_type = fix_oxdna_lrfKK->packed_type();
   xn_qeff = fix_oxdna_lrfKK->packed_qeff();
+  xn = fix_oxdna_lrfKK->packed();
   f = atomKK->k_f.template view<DeviceType>();
   torque = atomKK->k_torque.template view<DeviceType>();
   type = atomKK->k_type.template view<DeviceType>();
@@ -354,32 +355,35 @@ void PairOxdna2DhKokkos<DeviceType>::operator()(TagPairOxdna2DhCompute<OXDNAFLAG
     const KK_FLOAT factor_lj = static_cast<KK_FLOAT>(special_lj[sbmask(b)]);
     if (factor_lj == static_cast<KK_FLOAT>(0.0)) continue;
     b &= NEIGHMASK;
-    const int btype = static_cast<int>(xn_type(b));    // from the packed record, next to x(b)
+    // all data of b from its packed record, with 16-byte vector loads
+    OxdnaRow rowb;
+    oxdna_load_row<16>(xn, b, rowb);
+    const int btype = static_cast<int>(rowb.v[3]);
 
     KK_FLOAT rb_cs0, rb_cs1, rb_cs2;
     if constexpr (OXDNAFLAG==OXDNA2) {
       constexpr KK_FLOAT d_cs_x = static_cast<KK_FLOAT>(-0.34);
       constexpr KK_FLOAT d_cs_y = static_cast<KK_FLOAT>(+0.3408);
-      rb_cs0 = Kokkos::fma(d_cs_x, d_nx_xtrct(b,0), d_cs_y*d_ny_xtrct(b,0));
-      rb_cs1 = Kokkos::fma(d_cs_x, d_nx_xtrct(b,1), d_cs_y*d_ny_xtrct(b,1));
-      rb_cs2 = Kokkos::fma(d_cs_x, d_nx_xtrct(b,2), d_cs_y*d_ny_xtrct(b,2));
+      rb_cs0 = Kokkos::fma(d_cs_x, rowb.v[4], d_cs_y*rowb.v[7]);
+      rb_cs1 = Kokkos::fma(d_cs_x, rowb.v[5], d_cs_y*rowb.v[8]);
+      rb_cs2 = Kokkos::fma(d_cs_x, rowb.v[6], d_cs_y*rowb.v[9]);
     } else {
       constexpr KK_FLOAT d_cs_x = static_cast<KK_FLOAT>(-0.4);
       constexpr KK_FLOAT d_cs_z = static_cast<KK_FLOAT>(+0.2);
-      rb_cs0 = Kokkos::fma(d_cs_x, d_nx_xtrct(b,0), d_cs_z*d_nz_xtrct(b,0));
-      rb_cs1 = Kokkos::fma(d_cs_x, d_nx_xtrct(b,1), d_cs_z*d_nz_xtrct(b,1));
-      rb_cs2 = Kokkos::fma(d_cs_x, d_nx_xtrct(b,2), d_cs_z*d_nz_xtrct(b,2));
+      rb_cs0 = Kokkos::fma(d_cs_x, rowb.v[4], d_cs_z*rowb.v[10]);
+      rb_cs1 = Kokkos::fma(d_cs_x, rowb.v[5], d_cs_z*rowb.v[11]);
+      rb_cs2 = Kokkos::fma(d_cs_x, rowb.v[6], d_cs_z*rowb.v[12]);
     }
 
-    const KK_FLOAT delx = rtmp_s0 - x(b,0) - rb_cs0;
-    const KK_FLOAT dely = rtmp_s1 - x(b,1) - rb_cs1;
-    const KK_FLOAT delz = rtmp_s2 - x(b,2) - rb_cs2;
+    const KK_FLOAT delx = rtmp_s0 - rowb.v[0] - rb_cs0;
+    const KK_FLOAT dely = rtmp_s1 - rowb.v[1] - rb_cs1;
+    const KK_FLOAT delz = rtmp_s2 - rowb.v[2] - rb_cs2;
     const KK_FLOAT rsq = Kokkos::fma(delz, delz, Kokkos::fma(dely, dely, delx * delx));
 
     const ParamsOxdnaDh p = d_params_dh(atype, btype);
     if (rsq > p.cutsq_dh_c) continue; // Note the switch of sign, > vs <=, due to using continue
 
-    const KK_FLOAT qeff_b = xn_qeff(b);
+    const KK_FLOAT qeff_b = rowb.v[13];
     const KK_FLOAT qeff_dh_pf = p.qeff_dh_pf;
     const KK_FLOAT kappa = p.kappa_dh;
     const KK_FLOAT b_dh = p.b_dh;

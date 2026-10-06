@@ -64,7 +64,7 @@ void oxdna_load_row(const ViewType &xn, const int i, OxdnaRow &r)
   struct alignas(16) Chunk16 { KK_FLOAT v[16 / sizeof(KK_FLOAT)]; };
   constexpr int nper = 16 / sizeof(KK_FLOAT);
   static_assert(NCOL % nper == 0, "oxdna_load_row: NCOL must fill whole 16-byte chunks");
-  const Chunk16 *src = reinterpret_cast<const Chunk16 *>(&xn(i, 0));
+  const Chunk16 *src = reinterpret_cast<const Chunk16 *>(xn.data() + (size_t) i * 16);
   for (int k = 0; k < NCOL / nper; k++) {
     const Chunk16 c = src[k];
     for (int m = 0; m < nper; m++) r.v[nper * k + m] = c.v[m];

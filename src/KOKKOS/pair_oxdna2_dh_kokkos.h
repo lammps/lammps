@@ -104,6 +104,7 @@ class PairOxdna2DhKokkos : public PairOxdna2Dh, public KokkosBase {
   t_oxdna_packed_sub<DeviceType> x;    // positions in the packed record of fix OXDNA/LRF/kk
   t_oxdna_packed_col<DeviceType> xn_type;    // atom types in the packed record
   t_oxdna_packed_col<DeviceType> xn_qeff;    // effective charges in the packed record
+  t_oxdna_packed<DeviceType> xn;    // the whole packed record, for row loads
   typename AT::t_kkacc_1d_3 f;
   typename AT::t_kkacc_1d_3 torque;
   typename AT::t_int_1d_randomread type;

@@ -137,8 +137,9 @@ void BondHybridKokkos::compute(int eflag, int vflag)
 
   ev_init(eflag, vflag);
 
-  k_nbondlist.modify_device();
-  k_nbondlist.sync_host();
+  // the sub-style counts in h_nbondlist were copied to the host when the
+  // sub-style lists were last built above and do not change in between, so
+  // there is no need to read them back from the device on every step
 
   for (int m = 0; m < nstyles; m++) {
     neighbor->nbondlist = h_nbondlist[m];

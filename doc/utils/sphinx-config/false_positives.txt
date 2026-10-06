@@ -4340,6 +4340,7 @@ uncomment
 uncommented
 uncompress
 uncompute
+undamped
 underdamped
 underprediction
 undump

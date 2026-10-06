@@ -271,6 +271,21 @@ CMake build
                                       # no local OpenCL headers/libs needed
                                       # value = yes (default) or no
 
+Two preset files in the ``cmake/presets`` folder can simplify the
+configuration.  The ``gpu-cuda.cmake`` preset enables the GPU package
+with the CUDA back end and mixed precision.  The ``gpu-packages.cmake``
+preset enables all packages that contain styles with GPU package
+support.  It does not enable the GPU package itself, so it needs to be
+combined with ``gpu-cuda.cmake`` or explicit settings, for example:
+
+.. code-block:: bash
+
+   cmake -S cmake -B build -C cmake/presets/gcc.cmake \
+         -C cmake/presets/gpu-cuda.cmake -C cmake/presets/gpu-packages.cmake
+
+   cmake -S cmake -B build -C cmake/presets/gcc.cmake \
+         -D PKG_GPU=on -D GPU_API=opencl -C cmake/presets/gpu-packages.cmake
+
 The GPU package supports 3 precision modes: single, double, and mixed, with
 the latter being the default.  In the double precision mode, atom positions,
 forces and energies are stored, computed and accumulated in double precision.
@@ -389,6 +404,16 @@ is built with ``-D BUILD_OMP=on`` this will also be enabled.
    matching ``omp.h`` can be found automatically, you may need to add the
    directory containing it yourself, for example with
    ``-D CMAKE_CXX_FLAGS=-idirafter/usr/lib/clang/<version>/include``.
+
+The ``hip_amd.cmake`` preset in the ``cmake/presets`` folder selects
+``hipcc`` as the C and C++ compiler with support for MPI and for OpenMP
+using the LLVM OpenMP runtime.  It can be combined with the GPU package
+settings, for example:
+
+.. code-block:: bash
+
+   cmake -S cmake -B build -C cmake/presets/hip_amd.cmake \
+         -D PKG_GPU=on -D GPU_API=hip -D GPU_ARCH=gfx90a
 
 For a debug build, set ``GPU_DEBUG`` to be ``yes``.
 
@@ -900,6 +925,22 @@ This list was last updated for version 5.2.1 of the Kokkos library.
       The ``kokkos-openmp.cmake`` preset can be combined with any of the
       others, but it is not possible to combine multiple GPU
       acceleration settings (CUDA, HIP, SYCL) into a single executable.
+
+      The ``kokkos-packages.cmake`` preset enables all packages that
+      contain styles with KOKKOS support.  It does not enable the KOKKOS
+      package itself or select a back end, so it needs to be combined
+      with one of the presets listed above, for example:
+
+      .. code-block:: bash
+
+         cmake -S cmake -B build-kokkos -C cmake/presets/gcc.cmake \
+               -C cmake/presets/kokkos-openmp.cmake \
+               -C cmake/presets/kokkos-packages.cmake
+
+      The ML-IAP package also contains styles with KOKKOS support, but
+      those require ``KOKKOS_PREC=double`` (the default), so the package
+      is not included in the preset.  You can add ``-D PKG_ML-IAP=on``
+      for double precision builds.
 
    .. tab:: Basic traditional make settings:
 

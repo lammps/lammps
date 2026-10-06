@@ -109,6 +109,7 @@ void PairOxdnaExcvKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   x = fix_oxdna_lrfKK->packed_x();
   xn_type = fix_oxdna_lrfKK->packed_type();
+  xn = fix_oxdna_lrfKK->packed();
   f = atomKK->k_f.template view<DeviceType>();
   torque = atomKK->k_torque.template view<DeviceType>();
   type = atomKK->k_type.template view<DeviceType>();
@@ -433,13 +434,18 @@ void PairOxdnaExcvKokkos<DeviceType>::operator()(TagPairOxdnaExcvCompute<OXDNAFL
     // this list keeps; only those need the topology loads below
     const bool bonded12 = (sbmask(b) == 1);
     b &= NEIGHMASK;
-    const int btype = static_cast<int>(xn_type(b));    // from the packed record, next to x(b)
+    // the packed record of b with 16-byte loads: position and type first,
+    // the frame vectors only for neighbors within the center-of-mass cutoff
+    OxdnaRow rowb;
+    oxdna_load_row<4>(xn, b, rowb);
+    const int btype = static_cast<int>(rowb.v[3]);
 
     // no sites interact beyond this center-of-mass distance
-    const KK_FLOAT dx_com = x(a,0) - x(b,0);
-    const KK_FLOAT dy_com = x(a,1) - x(b,1);
-    const KK_FLOAT dz_com = x(a,2) - x(b,2);
+    const KK_FLOAT dx_com = x(a,0) - rowb.v[0];
+    const KK_FLOAT dy_com = x(a,1) - rowb.v[1];
+    const KK_FLOAT dz_com = x(a,2) - rowb.v[2];
     if (dx_com*dx_com + dy_com*dy_com + dz_com*dz_com > d_cutsq_com(atype,btype)) continue;
+    oxdna_load_row_rest<4,16>(xn, b, rowb);
 
     const ParamsOxdnaExcv2 p2 = params2(atype,btype);
 
@@ -451,74 +457,74 @@ void PairOxdnaExcvKokkos<DeviceType>::operator()(TagPairOxdnaExcvCompute<OXDNAFL
     // vector COM - backbone and base sites b
     if constexpr (OXDNAFLAG==OXDNA) {
       constexpr KK_FLOAT dx_cbk_oxdna1=static_cast<KK_FLOAT>(-0.4);
-      rb_cbk[0] = dx_cbk_oxdna1*d_nx_xtrct(b,0);
-      rb_cbk[1] = dx_cbk_oxdna1*d_nx_xtrct(b,1);
-      rb_cbk[2] = dx_cbk_oxdna1*d_nx_xtrct(b,2);
+      rb_cbk[0] = dx_cbk_oxdna1*rowb.v[4];
+      rb_cbk[1] = dx_cbk_oxdna1*rowb.v[5];
+      rb_cbk[2] = dx_cbk_oxdna1*rowb.v[6];
       constexpr KK_FLOAT dx_cbs_oxdna1=static_cast<KK_FLOAT>(+0.4);
-      rb_cbs[0] = dx_cbs_oxdna1*d_nx_xtrct(b,0);
-      rb_cbs[1] = dx_cbs_oxdna1*d_nx_xtrct(b,1);
-      rb_cbs[2] = dx_cbs_oxdna1*d_nx_xtrct(b,2);
+      rb_cbs[0] = dx_cbs_oxdna1*rowb.v[4];
+      rb_cbs[1] = dx_cbs_oxdna1*rowb.v[5];
+      rb_cbs[2] = dx_cbs_oxdna1*rowb.v[6];
     } else if constexpr (OXDNAFLAG==OXDNA2) {
       constexpr KK_FLOAT dx_cbk_oxdna2 = static_cast<KK_FLOAT>(-0.34);
       constexpr KK_FLOAT dy_cbk_oxdna2 = static_cast<KK_FLOAT>(+0.3408);
-      rb_cbk[0] = dx_cbk_oxdna2*d_nx_xtrct(b,0) + dy_cbk_oxdna2*d_ny_xtrct(b,0);
-      rb_cbk[1] = dx_cbk_oxdna2*d_nx_xtrct(b,1) + dy_cbk_oxdna2*d_ny_xtrct(b,1);
-      rb_cbk[2] = dx_cbk_oxdna2*d_nx_xtrct(b,2) + dy_cbk_oxdna2*d_ny_xtrct(b,2);
+      rb_cbk[0] = dx_cbk_oxdna2*rowb.v[4] + dy_cbk_oxdna2*rowb.v[7];
+      rb_cbk[1] = dx_cbk_oxdna2*rowb.v[5] + dy_cbk_oxdna2*rowb.v[8];
+      rb_cbk[2] = dx_cbk_oxdna2*rowb.v[6] + dy_cbk_oxdna2*rowb.v[9];
       constexpr KK_FLOAT dx_cbs_oxdna1 = static_cast<KK_FLOAT>(+0.4);  // same base sites as OXDNA1
-      rb_cbs[0] = dx_cbs_oxdna1*d_nx_xtrct(b,0);
-      rb_cbs[1] = dx_cbs_oxdna1*d_nx_xtrct(b,1);
-      rb_cbs[2] = dx_cbs_oxdna1*d_nx_xtrct(b,2);
+      rb_cbs[0] = dx_cbs_oxdna1*rowb.v[4];
+      rb_cbs[1] = dx_cbs_oxdna1*rowb.v[5];
+      rb_cbs[2] = dx_cbs_oxdna1*rowb.v[6];
     } else if constexpr (OXDNAFLAG==OXRNA2) {
       constexpr KK_FLOAT dx_cbk_oxrna2 = static_cast<KK_FLOAT>(-0.4);
       constexpr KK_FLOAT dz_cbk_oxrna2 = static_cast<KK_FLOAT>(+0.2);
-      rb_cbk[0] = dx_cbk_oxrna2*d_nx_xtrct(b,0) + dz_cbk_oxrna2*d_nz_xtrct(b,0);
-      rb_cbk[1] = dx_cbk_oxrna2*d_nx_xtrct(b,1) + dz_cbk_oxrna2*d_nz_xtrct(b,1);
-      rb_cbk[2] = dx_cbk_oxrna2*d_nx_xtrct(b,2) + dz_cbk_oxrna2*d_nz_xtrct(b,2);
+      rb_cbk[0] = dx_cbk_oxrna2*rowb.v[4] + dz_cbk_oxrna2*rowb.v[10];
+      rb_cbk[1] = dx_cbk_oxrna2*rowb.v[5] + dz_cbk_oxrna2*rowb.v[11];
+      rb_cbk[2] = dx_cbk_oxrna2*rowb.v[6] + dz_cbk_oxrna2*rowb.v[12];
       constexpr KK_FLOAT dx_cbs_oxdna1 = static_cast<KK_FLOAT>(+0.4);  // same base sites as OXDNA1
-      rb_cbs[0] = dx_cbs_oxdna1*d_nx_xtrct(b,0);
-      rb_cbs[1] = dx_cbs_oxdna1*d_nx_xtrct(b,1);
-      rb_cbs[2] = dx_cbs_oxdna1*d_nx_xtrct(b,2);
+      rb_cbs[0] = dx_cbs_oxdna1*rowb.v[4];
+      rb_cbs[1] = dx_cbs_oxdna1*rowb.v[5];
+      rb_cbs[2] = dx_cbs_oxdna1*rowb.v[6];
     } else if constexpr (OXDNAFLAG==OXDNA3) {
       // Uses the same backbone sites as OXDNA2...
       constexpr KK_FLOAT dx_cbk_oxdna2 = static_cast<KK_FLOAT>(-0.34);
       constexpr KK_FLOAT dy_cbk_oxdna2 = static_cast<KK_FLOAT>(+0.3408);
-      rb_cbk[0] = dx_cbk_oxdna2*d_nx_xtrct(b,0) + dy_cbk_oxdna2*d_ny_xtrct(b,0);
-      rb_cbk[1] = dx_cbk_oxdna2*d_nx_xtrct(b,1) + dy_cbk_oxdna2*d_ny_xtrct(b,1);
-      rb_cbk[2] = dx_cbk_oxdna2*d_nx_xtrct(b,2) + dy_cbk_oxdna2*d_ny_xtrct(b,2);
+      rb_cbk[0] = dx_cbk_oxdna2*rowb.v[4] + dy_cbk_oxdna2*rowb.v[7];
+      rb_cbk[1] = dx_cbk_oxdna2*rowb.v[5] + dy_cbk_oxdna2*rowb.v[8];
+      rb_cbk[2] = dx_cbk_oxdna2*rowb.v[6] + dy_cbk_oxdna2*rowb.v[9];
       // ...but different base sites than OXDNA2.
       constexpr KK_FLOAT dx_cbs_pur_oxdna3 = static_cast<KK_FLOAT>(+0.43);
       constexpr KK_FLOAT dx_cbs_pyr_oxdna3 = static_cast<KK_FLOAT>(+0.37);
       int nucl_acid = (btype%4);
       if (nucl_acid==0 || nucl_acid==2) {  // pyrimdine (C or T)
-        rb_cbs[0] = dx_cbs_pyr_oxdna3*d_nx_xtrct(b,0);
-        rb_cbs[1] = dx_cbs_pyr_oxdna3*d_nx_xtrct(b,1);
-        rb_cbs[2] = dx_cbs_pyr_oxdna3*d_nx_xtrct(b,2);
+        rb_cbs[0] = dx_cbs_pyr_oxdna3*rowb.v[4];
+        rb_cbs[1] = dx_cbs_pyr_oxdna3*rowb.v[5];
+        rb_cbs[2] = dx_cbs_pyr_oxdna3*rowb.v[6];
       } else {  // purine (A or G)
-        rb_cbs[0] = dx_cbs_pur_oxdna3*d_nx_xtrct(b,0);
-        rb_cbs[1] = dx_cbs_pur_oxdna3*d_nx_xtrct(b,1);
-        rb_cbs[2] = dx_cbs_pur_oxdna3*d_nx_xtrct(b,2);
+        rb_cbs[0] = dx_cbs_pur_oxdna3*rowb.v[4];
+        rb_cbs[1] = dx_cbs_pur_oxdna3*rowb.v[5];
+        rb_cbs[2] = dx_cbs_pur_oxdna3*rowb.v[6];
       }
     }
 
     // vector backbone site b to a
-    delr_bkbk[0] = rtmp_bk[0] - (x(b,0)+rb_cbk[0]);
-    delr_bkbk[1] = rtmp_bk[1] - (x(b,1)+rb_cbk[1]);
-    delr_bkbk[2] = rtmp_bk[2] - (x(b,2)+rb_cbk[2]);
+    delr_bkbk[0] = rtmp_bk[0] - (rowb.v[0]+rb_cbk[0]);
+    delr_bkbk[1] = rtmp_bk[1] - (rowb.v[1]+rb_cbk[1]);
+    delr_bkbk[2] = rtmp_bk[2] - (rowb.v[2]+rb_cbk[2]);
     rsq_bkbk = delr_bkbk[0]*delr_bkbk[0] + delr_bkbk[1]*delr_bkbk[1] + delr_bkbk[2]*delr_bkbk[2];
     // vector base site b to backbone site a
-    delr_bkbs[0] = rtmp_bk[0] - (x(b,0)+rb_cbs[0]);
-    delr_bkbs[1] = rtmp_bk[1] - (x(b,1)+rb_cbs[1]);
-    delr_bkbs[2] = rtmp_bk[2] - (x(b,2)+rb_cbs[2]);
+    delr_bkbs[0] = rtmp_bk[0] - (rowb.v[0]+rb_cbs[0]);
+    delr_bkbs[1] = rtmp_bk[1] - (rowb.v[1]+rb_cbs[1]);
+    delr_bkbs[2] = rtmp_bk[2] - (rowb.v[2]+rb_cbs[2]);
     rsq_bkbs = delr_bkbs[0]*delr_bkbs[0] + delr_bkbs[1]*delr_bkbs[1] + delr_bkbs[2]*delr_bkbs[2];
     // vector backbone site b to base site a
-    delr_bs[0] = rtmp_bs[0] - (x(b,0)+rb_cbk[0]);
-    delr_bs[1] = rtmp_bs[1] - (x(b,1)+rb_cbk[1]);
-    delr_bs[2] = rtmp_bs[2] - (x(b,2)+rb_cbk[2]);
+    delr_bs[0] = rtmp_bs[0] - (rowb.v[0]+rb_cbk[0]);
+    delr_bs[1] = rtmp_bs[1] - (rowb.v[1]+rb_cbk[1]);
+    delr_bs[2] = rtmp_bs[2] - (rowb.v[2]+rb_cbk[2]);
     rsq_bs = delr_bs[0]*delr_bs[0] + delr_bs[1]*delr_bs[1] + delr_bs[2]*delr_bs[2];
     // vector base site b to a
-    delr_bsbs[0] = rtmp_bs[0] - (x(b,0)+rb_cbs[0]);
-    delr_bsbs[1] = rtmp_bs[1] - (x(b,1)+rb_cbs[1]);
-    delr_bsbs[2] = rtmp_bs[2] - (x(b,2)+rb_cbs[2]);
+    delr_bsbs[0] = rtmp_bs[0] - (rowb.v[0]+rb_cbs[0]);
+    delr_bsbs[1] = rtmp_bs[1] - (rowb.v[1]+rb_cbs[1]);
+    delr_bsbs[2] = rtmp_bs[2] - (rowb.v[2]+rb_cbs[2]);
     rsq_bsbs = delr_bsbs[0]*delr_bsbs[0] + delr_bsbs[1]*delr_bsbs[1] + delr_bsbs[2]*delr_bsbs[2];
 
     // excluded volume interactions:
@@ -562,7 +568,7 @@ void PairOxdnaExcvKokkos<DeviceType>::operator()(TagPairOxdnaExcvCompute<OXDNAFL
 
         if (vflag_either || eflag_atom) {
           this->template ev_tally_xyz<NEIGHFLAG,NEWTON_PAIR>(ev,a,b,static_cast<KK_FLOAT>(evdwl),\
-          delf[0],delf[1],delf[2],x(a,0)-x(b,0), x(a,1)-x(b,1), x(a,2)-x(b,2));
+          delf[0],delf[1],delf[2],x(a,0)-rowb.v[0], x(a,1)-rowb.v[1], x(a,2)-rowb.v[2]);
         }
       }
     }
@@ -603,7 +609,7 @@ void PairOxdnaExcvKokkos<DeviceType>::operator()(TagPairOxdnaExcvCompute<OXDNAFL
 
         if (vflag_either || eflag_atom) {
           this->template ev_tally_xyz<NEIGHFLAG,NEWTON_PAIR>(ev,a,b,static_cast<KK_FLOAT>(evdwl),\
-          delf[0],delf[1],delf[2],x(a,0)-x(b,0), x(a,1)-x(b,1), x(a,2)-x(b,2));
+          delf[0],delf[1],delf[2],x(a,0)-rowb.v[0], x(a,1)-rowb.v[1], x(a,2)-rowb.v[2]);
         }
       }
     }
@@ -644,7 +650,7 @@ void PairOxdnaExcvKokkos<DeviceType>::operator()(TagPairOxdnaExcvCompute<OXDNAFL
 
         if (vflag_either || eflag_atom) {
           this->template ev_tally_xyz<NEIGHFLAG,NEWTON_PAIR>(ev,a,b,static_cast<KK_FLOAT>(evdwl),\
-          delf[0],delf[1],delf[2],x(a,0)-x(b,0), x(a,1)-x(b,1), x(a,2)-x(b,2));
+          delf[0],delf[1],delf[2],x(a,0)-rowb.v[0], x(a,1)-rowb.v[1], x(a,2)-rowb.v[2]);
         }
       }
     }
@@ -692,7 +698,7 @@ void PairOxdnaExcvKokkos<DeviceType>::operator()(TagPairOxdnaExcvCompute<OXDNAFL
 
           if (vflag_either || eflag_atom) {
             this->template ev_tally_xyz<NEIGHFLAG,NEWTON_PAIR>(ev,a,b,static_cast<KK_FLOAT>(evdwl),\
-            delf[0],delf[1],delf[2],x(a,0)-x(b,0), x(a,1)-x(b,1), x(a,2)-x(b,2));
+            delf[0],delf[1],delf[2],x(a,0)-rowb.v[0], x(a,1)-rowb.v[1], x(a,2)-rowb.v[2]);
           }
         }
       }
@@ -738,7 +744,7 @@ void PairOxdnaExcvKokkos<DeviceType>::operator()(TagPairOxdnaExcvCompute<OXDNAFL
 
           if (vflag_either || eflag_atom) {
             this->template ev_tally_xyz<NEIGHFLAG,NEWTON_PAIR>(ev,a,b,static_cast<KK_FLOAT>(evdwl),\
-            delf[0],delf[1],delf[2],x(a,0)-x(b,0), x(a,1)-x(b,1), x(a,2)-x(b,2));
+            delf[0],delf[1],delf[2],x(a,0)-rowb.v[0], x(a,1)-rowb.v[1], x(a,2)-rowb.v[2]);
           }
         }
       }
@@ -778,7 +784,7 @@ void PairOxdnaExcvKokkos<DeviceType>::operator()(TagPairOxdnaExcvCompute<OXDNAFL
 
           if (vflag_either || eflag_atom) {
             this->template ev_tally_xyz<NEIGHFLAG,NEWTON_PAIR>(ev,a,b,static_cast<KK_FLOAT>(evdwl),\
-            delf[0],delf[1],delf[2],x(a,0)-x(b,0), x(a,1)-x(b,1), x(a,2)-x(b,2));
+            delf[0],delf[1],delf[2],x(a,0)-rowb.v[0], x(a,1)-rowb.v[1], x(a,2)-rowb.v[2]);
           }
         }
       }

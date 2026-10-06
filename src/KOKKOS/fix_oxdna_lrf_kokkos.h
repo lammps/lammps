@@ -71,6 +71,22 @@ void oxdna_load_row(const ViewType &xn, const int i, OxdnaRow &r)
   }
 }
 
+// load columns NBEG..NEND-1 (whole 16-byte chunks) of row i
+template<int NBEG, int NEND, class ViewType>
+KOKKOS_INLINE_FUNCTION
+void oxdna_load_row_rest(const ViewType &xn, const int i, OxdnaRow &r)
+{
+  struct alignas(16) Chunk16 { KK_FLOAT v[16 / sizeof(KK_FLOAT)]; };
+  constexpr int nper = 16 / sizeof(KK_FLOAT);
+  static_assert((NBEG % nper == 0) && (NEND % nper == 0),
+                "oxdna_load_row_rest: columns must fill whole 16-byte chunks");
+  const Chunk16 *src = reinterpret_cast<const Chunk16 *>(xn.data() + (size_t) i * 16);
+  for (int k = NBEG / nper; k < NEND / nper; k++) {
+    const Chunk16 c = src[k];
+    for (int m = 0; m < nper; m++) r.v[nper * k + m] = c.v[m];
+  }
+}
+
 template<class DeviceType>
 class FixOxdnaLRFKokkos : public Fix {
  public:

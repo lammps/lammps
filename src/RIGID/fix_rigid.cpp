@@ -1513,11 +1513,7 @@ void FixRigid::set_v()
         else fc[2] = massone*(fflag[ibody][2]*fcm[ibody][2]/masstotal[ibody] + (acc_rot[2] + acc_centr[2])/force->ftm2v) - f[i][2];
       }
 
-      if (id_gravity) {
-        fc[0] -= gvec[0]*massone;
-        fc[1] -= gvec[1]*massone;
-        fc[2] -= gvec[2]*massone;
-      }
+      // if id_gravity=1 fc will also contain the gravitational field contribution
 
       x0 = delta[0] + xcm[ibody][0];
       x1 = delta[1] + xcm[ibody][1];
@@ -1530,17 +1526,6 @@ void FixRigid::set_v()
       vr[5] = x1*fc[2];
 
       v_tally(1,&i,1.0,vr);
-
-      if (id_gravity) {
-        vr[0] = x0*gvec[0]*massone;
-        vr[1] = x1*gvec[1]*massone;
-        vr[2] = x2*gvec[2]*massone;
-        vr[3] = x0*gvec[1]*massone;
-        vr[4] = x0*gvec[2]*massone;
-        vr[5] = x1*gvec[2]*massone;
-
-        v_tally(1,&i,1.0,vr);
-      }
     }
   }
 

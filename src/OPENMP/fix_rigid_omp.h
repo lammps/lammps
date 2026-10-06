@@ -33,6 +33,7 @@ class FixRigidOMP : public FixRigid {
 
  protected:
   void compute_forces_and_torques() override;
+  void compute_accelerations() override;
 
  private:
   template <int, int, int> void set_xv_thr();

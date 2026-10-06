@@ -25,6 +25,7 @@
 #include "comm.h"
 #include "domain.h"
 #include "error.h"
+#include "force.h"
 #include "math_const.h"
 #include "math_extra.h"
 #include "rigid_const.h"
@@ -366,6 +367,63 @@ void FixRigidOMP::final_integrate()
 #endif
 }
 
+/* ---------------------------------------------------------------------- */
+
+void FixRigidOMP::compute_accelerations()
+{
+#if defined(_OPENMP)
+#pragma omp parallel for LMP_DEFAULT_NONE schedule(static)
+#endif
+  for (int ibody = 0; ibody < nbody; ibody++) {
+    double omegadot_body[3], wbody[3], tbody[3], tspace[3];
+    double *ex, *ey, *ez, *langone;
+
+    if(langflag) {
+      langone = langextra[ibody];
+      acc_vir[ibody][0] = fflag[ibody][0] * (fcm[ibody][0] - langone[0]) / masstotal[ibody];
+      acc_vir[ibody][1] = fflag[ibody][1] * (fcm[ibody][1] - langone[1]) / masstotal[ibody];
+      if (domain->dimension == 2) acc_vir[ibody][2] = 0.0;
+      else acc_vir[ibody][2] = fflag[ibody][2] * (fcm[ibody][2] - langone[2]) / masstotal[ibody];
+    } else {
+      acc_vir[ibody][0] = fflag[ibody][0] * fcm[ibody][0] / masstotal[ibody];
+      acc_vir[ibody][1] = fflag[ibody][1] * fcm[ibody][1] / masstotal[ibody];
+      if (domain->dimension == 2) acc_vir[ibody][2] = 0.0;
+      else acc_vir[ibody][2] = fflag[ibody][2] * fcm[ibody][2] / masstotal[ibody];
+    }
+
+    ex = ex_space[ibody], ey = ey_space[ibody], ez = ez_space[ibody];
+    wbody[0] = omega[ibody][0]*ex[0] + omega[ibody][1]*ex[1] + omega[ibody][2]*ex[2];
+    wbody[1] = omega[ibody][0]*ey[0] + omega[ibody][1]*ey[1] + omega[ibody][2]*ey[2];
+    wbody[2] = omega[ibody][0]*ez[0] + omega[ibody][1]*ez[1] + omega[ibody][2]*ez[2];
+    if(langflag) {
+      tspace[0] = tflag[ibody][0] * (torque[ibody][0] - langone[3]);
+      tspace[1] = tflag[ibody][1] * (torque[ibody][1] - langone[4]);
+      tspace[2] = tflag[ibody][2] * (torque[ibody][2] - langone[5]);
+    } else {
+      tspace[0] = tflag[ibody][0] * torque[ibody][0];
+      tspace[1] = tflag[ibody][1] * torque[ibody][1];
+      tspace[2] = tflag[ibody][2] * torque[ibody][2];
+    }
+    tbody[0] = tspace[0]*ex[0] + tspace[1]*ex[1] + tspace[2]*ex[2];
+    tbody[1] = tspace[0]*ey[0] + tspace[1]*ey[1] + tspace[2]*ey[2];
+    tbody[2] = tspace[0]*ez[0] + tspace[1]*ez[1] + tspace[2]*ez[2];
+    if (inertia[ibody][0] == 0.0) omegadot_body[0] = 0.0;
+    else omegadot_body[0] = (force->ftm2v*tbody[0] + (inertia[ibody][1] - inertia[ibody][2]) * wbody[1] * wbody[2]) / inertia[ibody][0];
+    if (inertia[ibody][1] == 0.0) omegadot_body[1] = 0.0;
+    else omegadot_body[1] = (force->ftm2v*tbody[1] + (inertia[ibody][2] - inertia[ibody][0]) * wbody[2] * wbody[0]) / inertia[ibody][1];
+    if (inertia[ibody][2] == 0.0) omegadot_body[2] = 0.0;
+    else omegadot_body[2] = (force->ftm2v*tbody[2] + (inertia[ibody][0] - inertia[ibody][1]) * wbody[0] * wbody[1]) / inertia[ibody][2];
+    if (domain->dimension == 2) {
+      acc_vir[ibody][3] = 0.0;
+      acc_vir[ibody][4] = 0.0;
+    } else {
+      acc_vir[ibody][3] = omegadot_body[0]*ex[0] + omegadot_body[1]*ey[0] + omegadot_body[2]*ez[0];
+      acc_vir[ibody][4] = omegadot_body[0]*ex[1] + omegadot_body[1]*ey[1] + omegadot_body[2]*ez[1];
+    }
+    acc_vir[ibody][5] = omegadot_body[0]*ex[2] + omegadot_body[1]*ey[2] + omegadot_body[2]*ez[2];
+  }    // end of omp parallel for
+}
+
 /* ----------------------------------------------------------------------
    set space-frame coords and velocity of each atom in each rigid body
    set orientation and rotation of extended particles
@@ -379,12 +437,7 @@ void FixRigidOMP::set_xv_thr()
 {
   auto * _noalias const x = (dbl3_t *) atom->x[0];
   auto * _noalias const v = (dbl3_t *) atom->v[0];
-  const auto * _noalias const f = (dbl3_t *) atom->f[0];
   const double * _noalias const rmass = atom->rmass;
-  const double * _noalias const mass = atom->mass;
-  const int * _noalias const type = atom->type;
-
-  double v0=0.0,v1=0.0,v2=0.0,v3=0.0,v4=0.0,v5=0.0;
 
   const double xprd = domain->xprd;
   const double yprd = domain->yprd;
@@ -398,7 +451,7 @@ void FixRigidOMP::set_xv_thr()
   const int nlocal = atom->nlocal;
 
 #if defined(_OPENMP)
-#pragma omp parallel for LMP_DEFAULT_NONE reduction(+:v0,v1,v2,v3,v4,v5)
+#pragma omp parallel for LMP_DEFAULT_NONE schedule(static)
 #endif
   for (int i = 0; i < nlocal; i++) {
     const int ibody = body[i];
@@ -414,17 +467,6 @@ void FixRigidOMP::set_xv_thr()
     const double deltax = xbox*xprd + (TRICLINIC ? ybox*xy + zbox*xz : 0.0);
     const double deltay = ybox*yprd + (TRICLINIC ? zbox*yz : 0.0);
     const double deltaz = zbox*zprd;
-
-    // save old positions and velocities for virial
-    double x0,x1,x2,vx,vy,vz;
-    if (EVFLAG) {
-      x0 = x[i].x + deltax;
-      x1 = x[i].y + deltay;
-      x2 = x[i].z + deltaz;
-      vx = v[i].x;
-      vy = v[i].y;
-      vz = v[i].z;
-    }
 
     // x = displacement from center-of-mass, based on body orientation
     // v = vcm + omega around center-of-mass
@@ -445,60 +487,6 @@ void FixRigidOMP::set_xv_thr()
     x[i].x += xcmi.x - deltax;
     x[i].y += xcmi.y - deltay;
     x[i].z += xcmi.z - deltaz;
-
-    // virial = unwrapped coords dotted into body constraint force
-    // body constraint force = implied force due to v change minus f external
-    // assume f does not include forces internal to body
-    // 1/2 factor b/c final_integrate contributes other half
-    // assume per-atom contribution is due to constraint force on that atom
-
-    if (EVFLAG) {
-      double massone,vr[6];
-
-      if (rmass) massone = rmass[i];
-      else massone = mass[type[i]];
-
-      const double fc0 = 0.5*(massone*(v[i].x - vx)/dtf - f[i].x);
-      const double fc1 = 0.5*(massone*(v[i].y - vy)/dtf - f[i].y);
-      const double fc2 = 0.5*(massone*(v[i].z - vz)/dtf - f[i].z);
-
-      vr[0] = x0*fc0; vr[1] = x1*fc1; vr[2] = x2*fc2;
-      vr[3] = x0*fc1; vr[4] = x0*fc2; vr[5] = x1*fc2;
-
-      // Fix::v_tally() is not thread safe, so we do this manually here
-      // accumulate global virial into thread-local variables for reduction
-      if (vflag_global) {
-        v0 += vr[0];
-        v1 += vr[1];
-        v2 += vr[2];
-        v3 += vr[3];
-        v4 += vr[4];
-        v5 += vr[5];
-      }
-
-      // accumulate per atom virial directly since we parallelize over atoms.
-      if (vflag_atom) {
-        vatom[i][0] += vr[0];
-        vatom[i][1] += vr[1];
-        vatom[i][2] += vr[2];
-        vatom[i][3] += vr[3];
-        vatom[i][4] += vr[4];
-        vatom[i][5] += vr[5];
-      }
-    }
-  }
-
-  // second part of thread safe virial accumulation
-  // add global virial component after it was reduced across all threads
-  if (EVFLAG) {
-    if (vflag_global) {
-      virial[0] += v0;
-      virial[1] += v1;
-      virial[2] += v2;
-      virial[3] += v3;
-      virial[4] += v4;
-      virial[5] += v5;
-    }
   }
 
   // set orientation, omega, angmom of each extended particle
@@ -579,21 +567,17 @@ void FixRigidOMP::set_xv_thr()
 template <int TRICLINIC, int EVFLAG, int DIMENSION>
 void FixRigidOMP::set_v_thr()
 {
-  auto * _noalias const x = (dbl3_t *) atom->x[0];
   auto * _noalias const v = (dbl3_t *) atom->v[0];
   const auto * _noalias const f = (dbl3_t *) atom->f[0];
   const double * _noalias const rmass = atom->rmass;
   const double * _noalias const mass = atom->mass;
   const int * _noalias const type = atom->type;
 
-  const double xprd = domain->xprd;
-  const double yprd = domain->yprd;
-  const double zprd = domain->zprd;
-  const double xy = domain->xy;
-  const double xz = domain->xz;
-  const double yz = domain->yz;
-
   double v0=0.0,v1=0.0,v2=0.0,v3=0.0,v4=0.0,v5=0.0;
+
+  // set acm and omegadot to compute constraints virial
+
+  if (EVFLAG) compute_accelerations();
 
   // set v of each atom
 
@@ -607,54 +591,49 @@ void FixRigidOMP::set_v_thr()
     if (ibody < 0) continue;
 
     const auto &vcmi = * ((dbl3_t *) vcm[ibody]);
-    const auto &omegai = * ((dbl3_t *) omega[ibody]);
-    double delta[3],vx,vy,vz;
+    const double *omegai = omega[ibody];
+    double delta[3];
 
     MathExtra::matvec(ex_space[ibody],ey_space[ibody],
                       ez_space[ibody],displace[i],delta);
-
-    // save old velocities for virial
-
-    if (EVFLAG) {
-      vx = v[i].x;
-      vy = v[i].y;
-      vz = v[i].z;
-    }
-
-    v[i].x = omegai.y*delta[2] - omegai.z*delta[1] + vcmi.x;
-    v[i].y = omegai.z*delta[0] - omegai.x*delta[2] + vcmi.y;
-    v[i].z = omegai.x*delta[1] - omegai.y*delta[0] + vcmi.z;
-
+ 
+    v[i].x = omegai[1]*delta[2] - omegai[2]*delta[1] + vcmi.x;
+    v[i].y = omegai[2]*delta[0] - omegai[0]*delta[2] + vcmi.y;
+    v[i].z = omegai[0]*delta[1] - omegai[1]*delta[0] + vcmi.z;
+ 
     if (DIMENSION == 2) v[i].z = 0.0;
+ 
 
     // virial = unwrapped coords dotted into body constraint force
-    // body constraint force = implied force due to v change minus f external
+    // body constraint force = implied force from acceleration minus f external
     // assume f does not include forces internal to body
-    // 1/2 factor b/c initial_integrate contributes other half
+    // total acceleration does not include eventual langevin contributions
     // assume per-atom contribution is due to constraint force on that atom
 
     if (EVFLAG) {
-      double massone, vr[6];
+      const double *acmi = acc_vir[ibody];
+      const double *omegadoti = acc_vir[ibody] + 3;
+      double massone, acc_rot[3], v_rot[3], acc_centr[3], fc[3], vr[6];
+
       if (rmass) massone = rmass[i];
       else massone = mass[type[i]];
 
-      const int xbox = (xcmimage[i] & IMGMASK) - IMGMAX;
-      const int ybox = (xcmimage[i] >> IMGBITS & IMGMASK) - IMGMAX;
-      const int zbox = (xcmimage[i] >> IMG2BITS) - IMGMAX;
-      const double deltax = xbox*xprd + (TRICLINIC ? ybox*xy + zbox*xz : 0.0);
-      const double deltay = ybox*yprd + (TRICLINIC ? zbox*yz : 0.0);
-      const double deltaz = zbox*zprd;
+      MathExtra::cross3(omegadoti, delta, acc_rot);
+      MathExtra::cross3(omegai, delta, v_rot) ;
+      MathExtra::cross3(omegai, v_rot, acc_centr) ;
+      fc[0] = massone*(acmi[0] + (acc_rot[0] + acc_centr[0])/force->ftm2v) - f[i].x;
+      fc[1] = massone*(acmi[1] + (acc_rot[1] + acc_centr[1])/force->ftm2v) - f[i].y;
+      if (DIMENSION == 2) fc[2] = 0.0;
+      else fc[2] = massone*(acmi[2] + (acc_rot[2] + acc_centr[2])/force->ftm2v) - f[i].z;
 
-      const double fc0 = 0.5*(massone*(v[i].x - vx)/dtf - f[i].x);
-      const double fc1 = 0.5*(massone*(v[i].y - vy)/dtf - f[i].y);
-      const double fc2 = 0.5*(massone*(v[i].z - vz)/dtf - f[i].z);
+      // if id_gravity=1 fc will also contain the gravitational field contribution
 
-      const double x0 = x[i].x + deltax;
-      const double x1 = x[i].y + deltay;
-      const double x2 = x[i].z + deltaz;
+      const double x0 = delta[0] + xcm[ibody][0];
+      const double x1 = delta[1] + xcm[ibody][1];
+      const double x2 = delta[2] + xcm[ibody][2];
 
-      vr[0] = x0*fc0; vr[1] = x1*fc1; vr[2] = x2*fc2;
-      vr[3] = x0*fc1; vr[4] = x0*fc2; vr[5] = x1*fc2;
+      vr[0] = x0*fc[0]; vr[1] = x1*fc[1]; vr[2] = x2*fc[2];
+      vr[3] = x0*fc[1]; vr[4] = x0*fc[2]; vr[5] = x1*fc[2];
 
       // Fix::v_tally() is not thread safe, so we do this manually here
       // accumulate global virial into thread-local variables and reduce them later

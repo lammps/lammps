@@ -33,21 +33,19 @@ kspace_style pppm 1.0e-5
 
 timestep 2.0
 
-velocity all create 300.0 12345
+velocity all create 300.0 12345 loop geom
 
 fix INTEG all nvt temp 300.0 300.0 $(100.0*dt)
 
-variable dlam equal -0.1
-variable dq equal -0.01
-variable mdq equal -v_dq
+variable lam equal ramp(1.0,0.0)
+variable q1 equal  0.1*v_lam
+variable q2 equal -0.1*v_lam
 
-compute FEP all fep 300.0 &
-  pair lj/cut/coul/long/soft lambda * * v_dlam &
-  atom charge 1 v_dq atom charge 2 v_mdq
+fix ADAPT all adapt/fep 200 &
+  pair lj/cut/coul/long/soft lambda * * v_lam &
+  atom charge 1 v_q1 atom charge 2 v_q2
 
-variable diff equal "0.1*evdwl + (1.0-0.9^3)*ecoul + (1.0-0.9^2)*elong + c_FEP[1]"
-
-thermo_style custom step etotal epair evdwl ecoul elong temp press c_FEP[1] v_diff
+thermo_style custom step etotal ke pe epair evdwl ecoul elong temp press v_lam v_q1 v_q2
 thermo 200
 
 #dump TRAJ all custom 20 dump.lammpstrj id type element xu yu zu

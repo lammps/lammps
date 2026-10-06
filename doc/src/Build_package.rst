@@ -193,11 +193,12 @@ make a copy of one of them and modify it to suit your needs.
     # change settings to use the GNU compilers by default
     cmake -S cmake -B build -C cmake/presets/gcc.cmake      [OPTIONS]
 
-    # change settings to use the classic Intel compilers by default
-    cmake -S cmake -B build -C cmake/presets/intel.cmake    [OPTIONS]
+    # like gcc.cmake but with additional compiler warnings enabled
+    # (useful during development)
+    cmake -S cmake -B build -C cmake/presets/pedantic.cmake [OPTIONS]
 
-    # change settings to use the LLVM based Intel oneAPI compilers by default
-    cmake -S cmake -B build -C cmake/presets/oneapi.cmake   [OPTIONS]
+    # change settings to use the Intel compilers by default
+    cmake -C ../cmake/presets/intel.cmake    [OPTIONS] ../cmake
 
     # change settings to use the PGI compilers by default
     cmake -S cmake -B build -C cmake/presets/pgi.cmake      [OPTIONS]
@@ -211,6 +212,12 @@ make a copy of one of them and modify it to suit your needs.
     # disable all packages
     cmake -S cmake -B build -C cmake/presets/all_off.cmake  [OPTIONS]
 
+    # enable all packages that contain styles with KOKKOS support
+    cmake -S cmake -B build -C cmake/presets/kokkos-packages.cmake [OPTIONS]
+
+    # enable all packages that contain styles with GPU package support
+    cmake -S cmake -B build -C cmake/presets/gpu-packages.cmake [OPTIONS]
+
     #  compile with MinGW cross-compilers
     mingw64-cmake -S cmake -B build -C cmake/presets/mingw-cross.cmake [OPTIONS]
 
@@ -218,9 +225,14 @@ make a copy of one of them and modify it to suit your needs.
     cmake -S cmake -B build -C cmake/presets/macos-multiarch.cmake [OPTIONS]
 
 Presets that have names starting with "windows" are specifically for
-compiling LAMMPS :doc:`natively on Windows <Build_windows>` and
-presets that have names starting with "kokkos" are specifically for
-selecting configurations for compiling LAMMPS with :ref:`KOKKOS <kokkos>`.
+compiling LAMMPS :doc:`natively on Windows <Build_windows>`, presets
+that have names starting with "kokkos" are specifically for selecting
+configurations for compiling LAMMPS with :ref:`KOKKOS <kokkos>`, and
+presets that have names starting with "gpu" are specifically for
+compiling LAMMPS with the :ref:`GPU package <gpu>`.  The
+``kokkos-packages.cmake`` and ``gpu-packages.cmake`` presets only
+select packages; they do *not* enable the KOKKOS or GPU package itself
+and are meant to be combined with other presets or settings that do.
 
 .. note::
 

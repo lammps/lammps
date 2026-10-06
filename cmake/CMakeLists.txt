@@ -17,9 +17,9 @@ if(POLICY CMP0075)
   cmake_policy(SET CMP0075 NEW)
 endif()
 # set policy to silence warnings about requiring execute permission for find_program
-# we use OLD because the python-config script for the Fedora MinGW cross-compiler requires it currently
+# as of Oct 2nd 2026 changed to NEW since Fedora 43 and 44 have an executable python-config script
 if(POLICY CMP0109)
-  cmake_policy(SET CMP0109 OLD)
+  cmake_policy(SET CMP0109 NEW)
 endif()
 # set policy so set(CACHE) command does not remove any normal variable of the same name from the current scope
 if(POLICY CMP0126)

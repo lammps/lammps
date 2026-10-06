@@ -474,18 +474,24 @@ the strings that will be printed as the first three lines of the output
 file, assuming the *file* keyword was used.  LAMMPS uses default
 values for each of these, so they do not need to be specified.
 
+.. versionchanged:: TBD
+
 By default, these header lines are as follows:
 
 .. parsed-literal::
 
-   # Chunk-averaged data for fix ID and group name
-   # Timestep Number-of-chunks
+   # Chunk-averaged data for fix ID and group name ave AVE version VERSION
+   # Timestep Number-of-chunks Total-count
    # Chunk (OrigID) (Coord1) (Coord2) (Coord3) Ncount value1 value2 ...
 
 In the first line, ID and name are replaced with the fix-ID and group
-name.  The second line describes the two values that are printed at
-the first of each section of output.  In the third line the values are
-replaced with the appropriate value names (e.g., *fx* or c_myCompute[2]).
+name, AVE with the *ave* setting (one, running, or window), and
+VERSION with the LAMMPS version as a number (e.g., 20260930 for the 30
+September 2026 version).  Previously, the first line ended after the
+group name.  The second line describes the three values that are
+printed at the first of each section of output.  In the third line the
+values are replaced with the appropriate value names (e.g., *fx* or
+c_myCompute[2]).
 
 The words in parenthesis only appear with corresponding columns if the
 chunk style specified for the :doc:`compute chunk/atom

@@ -1,4 +1,4 @@
-# preset that will enable Intel compilers with support for MPI and OpenMP (on Linux boxes)
+# preset that will enable Intel compilers with support for MPI and OpenMP (on Linux and Windows boxes)
 
 set(CMAKE_CXX_COMPILER "icx" CACHE STRING "" FORCE)
 set(CMAKE_C_COMPILER "icx" CACHE STRING "" FORCE)

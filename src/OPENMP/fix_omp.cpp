@@ -66,6 +66,8 @@ FixOMP::FixOMP(LAMMPS *lmp, int narg, char **arg)
      _nthr(-1), _neighbor(true), _mixed(false), _reduced(true),
      _pair_compute_flag(false), _kspace_compute_flag(false)
 {
+  if (strcmp(id, "package_omp") != 0)
+    error->all(FLERR, "Fix OMP is for internal use only. Use the package omp command instead");
   if (narg < 4) utils::missing_cmd_args(FLERR, "package omp", error);
 
   int nthreads = 1;
@@ -178,6 +180,7 @@ void FixOMP::init()
 
     for (int i=0; i < _nthr; ++i)
       delete thr[i];
+    delete[] thr;
 
     thr = new ThrData *[nthreads];
     _nthr = nthreads;

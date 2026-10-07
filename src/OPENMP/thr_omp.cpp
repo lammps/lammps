@@ -205,7 +205,7 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
           // pair_style hybrid will compute fdotr for us
           // but we first need to reduce the forces
           data_reduce_thr(&(f[0][0]), nall, nthreads, 3, tid);
-          fix->did_reduce();
+          if (tid == 0) fix->did_reduce();
           need_force_reduce = 0;
         }
       }
@@ -499,7 +499,7 @@ void ThrOMP::reduce_thr(void *style, const int eflag, const int vflag,
   if (style == fix->last_omp_style) {
     if (need_force_reduce) {
       data_reduce_thr(&(f[0][0]), nall, nthreads, 3, tid);
-      fix->did_reduce();
+      if (tid == 0) fix->did_reduce();
     }
 
     if (lmp->atom->torque)

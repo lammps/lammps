@@ -213,6 +213,95 @@ Code:
 | - | CUDA graph of the fixed per-step kernel sequence; fast-math flags for the oxDNA sources | only if nsys shows launch gaps / after measuring | high |
 | - | oxrna2/stk has the same acos/sin pattern as stk before #28 | oxRNA2 only | low |
 
+## H100 results and the follow-up commits (branch `oxdna3KK-kk-perf-h100`)
+
+Measured on one node with 4x H100 (CUDA 12.8, `Kokkos_ARCH_HOPPER90`,
+`KOKKOS_PREC=mixed`), run with `-k on g 1 -sf kk -pk kokkos neigh half`,
+benchmark inputs unchanged.  Each commit was profiled before and after with
+nsys (per-step kernel table, GPU idle time, memcpys, host syncs) and ncu
+(occupancy, active threads per warp, sectors per request), checked against
+the CPU build (step-0 energy of every sub-style for oligomer 512 and
+polybrick 136K; duplex2 NVE trajectory; rerun of a duplex2 dump), and kept
+only if no benchmark case got slower.
+
+### Time per step (ms, 1 GPU)
+
+| System | kk-fixes | kk-perf | this branch | standalone oxDNA | branch / standalone |
+|--------|---------:|--------:|------------:|-----------------:|--------------------:|
+| oligomer 128 nt   | 0.122 | 0.110 | 0.072 | 0.065 | 1.11 |
+| oligomer 1k nt    | 0.128 | 0.122 | 0.077 | 0.066 | 1.17 |
+| oligomer 8k nt    | 0.141 | 0.132 | 0.085 | 0.079 | 1.08 |
+| oligomer 65k nt   | 0.279 | 0.255 | 0.191 | 0.163 | 1.17 |
+| oligomer 524k nt  | 1.443 | 1.375 | 0.97  | 1.003 | 0.97 |
+| oligomer 4.2M nt  | 11.44 | 11.44 | 6.71  | 10.10 | 0.66 |
+| polybrick 136K nt | 0.722 | 0.715 | 0.485 | 0.787 | 0.62 |
+| polybrick 272K nt | 1.168 | 1.163 | 0.777 | 1.621 | 0.48 |
+| polybrick 543K nt | 2.103 | 2.107 | 1.377 | 3.234 | 0.43 |
+| polybrick 1087K nt| 4.093 | 4.333 | 2.570 | 7.175 | 0.36 |
+| polybrick 2174K nt| 8.17  | 8.450 | 5.000 | 14.53 | 0.34 |
+
+Polybrick runs are sensitive to other jobs on the node (host work and small
+copies in the reneighboring steps): the numbers above are from one job at a
+time.  The oligomer input applies the Langevin thermostat every step, the
+standalone input its thermostat every 103 steps (about 5-9 percent of the
+LAMMPS time).
+
+### Commits on top of `oxdna3KK-kk-perf` (oldest first)
+
+| Commit | Change | Effect on H100 |
+|--------|--------|----------------|
+| cb44d93ba1, f7009fa385 | from `lewis/oxdna3KK`: oxRNA2 scatter-view simplification, review cleanups | neutral |
+| 6879c18d96 | `Neighbor::morph_copy_trim()`: trim a per-type (`cut_fixed`) list from a list with a longer default cutoff, so pair excv is trimmed from the dh list instead of binned separately | polybrick ~6% |
+| 50cbaa778e | VerletKokkos: drop the global fence before `reverse_comm()` | ~15 us/step |
+| 05e8f60075 | excv and dh: share the neighbors of an atom between up to 4 threads when there are too few atoms to fill the GPU; excv sums the b-side force over the site pairs of a neighbor before one atomic update | 8k nt: excv 18->8.5 us, dh 16->9.3 us |
+| 0c56256472 | fix OXDNA/LRF/kk: write the packed record with 16-byte stores | LRF 38->14 us at 136K |
+| f0a244ac61 | bond hybrid/kk: no per-step copy of the sub-style bond counts to the host | ~25 us/step polybrick |
+| de0f6a7ea9 | NPairKokkos: flat build kernel when most bins are empty (the team kernel sizes every team by the fullest bin) | polybrick 4-8% |
+| 829165c694, c30ca8e620, 00fe7a5442 | dh, excv, stk, fene: load the neighbor's packed record with 16-byte loads (excv: position/type chunk first, frames only inside the COM cutoff) | dh -26%, stk -33%, excv -10% |
+| caf73136a5 | VerletKokkos: fuse the integration also with end-of-step fixes on the steps on which none of them is invoked (`fix print`) | small oligomers ~3% |
+| 61d13d0227 | NeighborKokkos::check_distance(): kernel writes a stamped flag to pinned host memory instead of a reduction plus copy | 8k nt ~6% |
+| 0918675bd3 | fix langevin/kk: angmom thermostat in the force kernel, sharing the RNG state | 1 launch; small oligomers ~8% |
+| 8738e5955c | fused hbond+xstk: first kernel compacts the screened pairs that pass a radial test (~15%), second kernel evaluates only those, so warps no longer idle in the angular terms (used when the list fills the GPU more than twice) | 524k nt+ and polybrick 10-15% |
+| a4d040459a | lighter radial pre-test (one base-site distance, per-type-pair xstk range over all 3'/5' contexts) | 1-2% |
+| 7e1feaa7fb | comm pbc/swap2, atom2bin, xstk 3'/5' table: grow with headroom instead of reallocating on every rebuild | removes cudaMalloc/Free from rebuilds |
+| 689679a61f | dh: full neighbor list on GPUs when there is less than one neighbor per atom at the mean density (dilute solutions); dense systems keep the half list | oligomer 65k+ 8-13% |
+| 7f05d92c0b | excv: 3'/5' context types from a per-atom table built per reneighboring, not tag->index map lookups in the kernel | 4.2M nt 15%, 2.2M nt polybrick 14% (hash atom map) |
+
+### Tried on H100 and not kept
+
+- full neighbor list for dh in dense systems (polybrick, ~40 neighbors/atom): +20%;
+- more threads per atom (nsplit) at large N: excv 154/172/216 us for 1/2/4 threads;
+- sizing the second fused kernel from the radial count read back to the host: the sync costs more than it saves;
+- two-pass excv: 82-84% of the list pairs pass the COM cutoff, nothing to compact;
+- bin sizes other than the cutoff (0.5x, 1.5x, 2x): 1-20% slower;
+- the `OXDNA_KK_TWO_PHASE` and `OXDNA_KK_SCREENED_PER_ATOM` switches: equal or slower than the compacted fused kernel; launch-bound variants (64/128/256 threads) neutral.
+
+### Remaining cost
+
+- 8k-65k nt oligomer: launch bound.  14 kernel launches per step at ~4 us of
+  host time each and one host sync for the reneighbor decision; the GPU is
+  idle ~25-30 us of an 85 us step.  Fewer launches need fusions of kernels
+  owned by different styles (stk+fene, coaxstk into hbond+xstk, langevin into
+  the integrator, the two forward-comm pack kernels), or a reneighbor check
+  that does not block every step.
+- large systems: the fused hbond+xstk kernel (~25%), excv and dh (~15% each);
+  the integration, frame and thermostat kernels run at ~60% of the memory
+  bandwidth, partly because the quaternions are stored in double.
+- polybrick reneighboring steps (~10-13% of the time): blocking small copies in
+  exchange/borders, the host copy of the bond list (needed by non-KOKKOS
+  readers of `neighbor->bondlist`), and a thrust temporary allocation in the
+  atom map sort.
+
+### Lewis' regression report (polybrick 136K, kk-fixes vs old `oxdna3KK`)
+
+The slowdown comes from e1a8c85f05 (site offsets in the pair cutoffs): the dh
+master list cutoff grows from 1.78 to 2.74 and the neighbor build cost about
+doubles.  The larger cutoff is needed: the old code dropped interactions (step
+0 dh energy at 136K: CPU 0.0031256, old branch 0.0028437, fixed 0.0031256).
+The screened list of the old code also used half the skin, which can miss
+pairs between rebuilds.  H100 polybrick 136K: old 0.60, kk-fixes 0.71, this
+branch 0.485 ms/step.
+
 ## Tooling used for verification
 
 Not part of the branch; described so it can be recreated:

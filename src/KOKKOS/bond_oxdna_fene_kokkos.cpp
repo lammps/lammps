@@ -164,37 +164,37 @@ void BondOxdnaFENEKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   if (evflag) {
     if (newton_bond) {
       if (oxdnaflag == OXDNA) {
-        Kokkos::parallel_reduce(OxdnaBondRangePolicy<DeviceType, TagBondOxdnaFENECompute<OXDNA,1,1> >(0,nbondlist),*this,ev);
+        Kokkos::parallel_reduce(OxdnaLightPolicy<DeviceType, TagBondOxdnaFENECompute<OXDNA,1,1>, OXDNA_KK_BOND_MAXT, OXDNA_KK_BOND_MINB>(0,nbondlist),*this,ev);
       } else if (oxdnaflag == OXDNA2) {
-        Kokkos::parallel_reduce(OxdnaBondRangePolicy<DeviceType, TagBondOxdnaFENECompute<OXDNA2,1,1> >(0,nbondlist),*this,ev);
+        Kokkos::parallel_reduce(OxdnaLightPolicy<DeviceType, TagBondOxdnaFENECompute<OXDNA2,1,1>, OXDNA_KK_BOND_MAXT, OXDNA_KK_BOND_MINB>(0,nbondlist),*this,ev);
       } else if (oxdnaflag == OXRNA2) {
-        Kokkos::parallel_reduce(OxdnaBondRangePolicy<DeviceType, TagBondOxdnaFENECompute<OXRNA2,1,1> >(0,nbondlist),*this,ev);
+        Kokkos::parallel_reduce(OxdnaLightPolicy<DeviceType, TagBondOxdnaFENECompute<OXRNA2,1,1>, OXDNA_KK_BOND_MAXT, OXDNA_KK_BOND_MINB>(0,nbondlist),*this,ev);
       }
     } else {
       if (oxdnaflag == OXDNA) {
-        Kokkos::parallel_reduce(OxdnaBondRangePolicy<DeviceType, TagBondOxdnaFENECompute<OXDNA,0,1> >(0,nbondlist),*this,ev);
+        Kokkos::parallel_reduce(OxdnaLightPolicy<DeviceType, TagBondOxdnaFENECompute<OXDNA,0,1>, OXDNA_KK_BOND_MAXT, OXDNA_KK_BOND_MINB>(0,nbondlist),*this,ev);
       } else if (oxdnaflag == OXDNA2) {
-        Kokkos::parallel_reduce(OxdnaBondRangePolicy<DeviceType, TagBondOxdnaFENECompute<OXDNA2,0,1> >(0,nbondlist),*this,ev);
+        Kokkos::parallel_reduce(OxdnaLightPolicy<DeviceType, TagBondOxdnaFENECompute<OXDNA2,0,1>, OXDNA_KK_BOND_MAXT, OXDNA_KK_BOND_MINB>(0,nbondlist),*this,ev);
       } else if (oxdnaflag == OXRNA2) {
-        Kokkos::parallel_reduce(OxdnaBondRangePolicy<DeviceType, TagBondOxdnaFENECompute<OXRNA2,0,1> >(0,nbondlist),*this,ev);
+        Kokkos::parallel_reduce(OxdnaLightPolicy<DeviceType, TagBondOxdnaFENECompute<OXRNA2,0,1>, OXDNA_KK_BOND_MAXT, OXDNA_KK_BOND_MINB>(0,nbondlist),*this,ev);
       }
     }
   } else {
     if (newton_bond) {
       if (oxdnaflag == OXDNA) {
-        Kokkos::parallel_for(OxdnaBondRangePolicy<DeviceType, TagBondOxdnaFENECompute<OXDNA,1,0> >(0,nbondlist),*this);
+        Kokkos::parallel_for(OxdnaLightPolicy<DeviceType, TagBondOxdnaFENECompute<OXDNA,1,0>, OXDNA_KK_BOND_MAXT, OXDNA_KK_BOND_MINB>(0,nbondlist),*this);
       } else if (oxdnaflag == OXDNA2) {
-        Kokkos::parallel_for(OxdnaBondRangePolicy<DeviceType, TagBondOxdnaFENECompute<OXDNA2,1,0> >(0,nbondlist),*this);
+        Kokkos::parallel_for(OxdnaLightPolicy<DeviceType, TagBondOxdnaFENECompute<OXDNA2,1,0>, OXDNA_KK_BOND_MAXT, OXDNA_KK_BOND_MINB>(0,nbondlist),*this);
       } else if (oxdnaflag == OXRNA2) {
-        Kokkos::parallel_for(OxdnaBondRangePolicy<DeviceType, TagBondOxdnaFENECompute<OXRNA2,1,0> >(0,nbondlist),*this);
+        Kokkos::parallel_for(OxdnaLightPolicy<DeviceType, TagBondOxdnaFENECompute<OXRNA2,1,0>, OXDNA_KK_BOND_MAXT, OXDNA_KK_BOND_MINB>(0,nbondlist),*this);
       }
     } else {
       if (oxdnaflag == OXDNA) {
-        Kokkos::parallel_for(OxdnaBondRangePolicy<DeviceType, TagBondOxdnaFENECompute<OXDNA,0,0> >(0,nbondlist),*this);
+        Kokkos::parallel_for(OxdnaLightPolicy<DeviceType, TagBondOxdnaFENECompute<OXDNA,0,0>, OXDNA_KK_BOND_MAXT, OXDNA_KK_BOND_MINB>(0,nbondlist),*this);
       } else if (oxdnaflag == OXDNA2) {
-        Kokkos::parallel_for(OxdnaBondRangePolicy<DeviceType, TagBondOxdnaFENECompute<OXDNA2,0,0> >(0,nbondlist),*this);
+        Kokkos::parallel_for(OxdnaLightPolicy<DeviceType, TagBondOxdnaFENECompute<OXDNA2,0,0>, OXDNA_KK_BOND_MAXT, OXDNA_KK_BOND_MINB>(0,nbondlist),*this);
       } else if (oxdnaflag == OXRNA2) {
-        Kokkos::parallel_for(OxdnaBondRangePolicy<DeviceType, TagBondOxdnaFENECompute<OXRNA2,0,0> >(0,nbondlist),*this);
+        Kokkos::parallel_for(OxdnaLightPolicy<DeviceType, TagBondOxdnaFENECompute<OXRNA2,0,0>, OXDNA_KK_BOND_MAXT, OXDNA_KK_BOND_MINB>(0,nbondlist),*this);
       }
     }
   }

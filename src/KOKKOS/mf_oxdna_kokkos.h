@@ -103,6 +103,17 @@ template<class DeviceType, class Tag>
 using OxdnaBondRangePolicy =
   Kokkos::RangePolicy<DeviceType, Tag, Kokkos::LaunchBounds<OXDNA_KK_BOND_MAXT, OXDNA_KK_BOND_MINB>>;
 
+// Kernels launched with the light-weight hint: on HIP a functor larger than
+// 512 bytes is otherwise copied to constant memory before each launch, with a
+// host-blocking event synchronization.  With the hint it is passed as a kernel
+// argument (up to 4 kB).  Only for kernels that keep the functor in registers
+// that way: for the large excv and fused hbond+xstk kernels the compiler then
+// copies the whole functor to the stack, which costs more than the copy
+template<class DeviceType, class Tag, int MAXT, int MINB>
+using OxdnaLightPolicy =
+  Kokkos::RangePolicy<DeviceType, Tag, Kokkos::LaunchBounds<MAXT, MINB>,
+                      Kokkos::Experimental::WorkItemProperty::HintLightWeight_t>;
+
 /* ----------------------------------------------------------------------
    f1 modulation factor
    ---------------------------------------------------------------------- */

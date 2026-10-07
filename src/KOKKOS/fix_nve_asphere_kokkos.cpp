@@ -83,7 +83,7 @@ void FixNVEAsphereKokkos<DeviceType>::initial_integrate(int /*vflag*/)
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
   FixNVEAsphereKokkosInitialIntegrateFunctor<DeviceType> f(this);
-  Kokkos::parallel_for(nlocal,f);
+  Kokkos::parallel_for(Kokkos::Experimental::require(Kokkos::RangePolicy<DeviceType>(0,nlocal),Kokkos::Experimental::WorkItemProperty::HintLightWeight),f);
 
   atomKK->modified(execution_space, X_MASK | V_MASK | ANGMOM_MASK | BONUS_MASK);
 }
@@ -169,7 +169,7 @@ void FixNVEAsphereKokkos<DeviceType>::final_integrate()
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
   FixNVEAsphereKokkosFinalIntegrateFunctor<DeviceType> f(this);
-  Kokkos::parallel_for(nlocal,f);
+  Kokkos::parallel_for(Kokkos::Experimental::require(Kokkos::RangePolicy<DeviceType>(0,nlocal),Kokkos::Experimental::WorkItemProperty::HintLightWeight),f);
 
   atomKK->modified(execution_space, V_MASK | ANGMOM_MASK);
 }
@@ -216,7 +216,7 @@ void FixNVEAsphereKokkos<DeviceType>::fused_integrate(int /*vflag*/)
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
   FixNVEAsphereKokkosFusedIntegrateFunctor<DeviceType> f(this);
-  Kokkos::parallel_for(nlocal,f);
+  Kokkos::parallel_for(Kokkos::Experimental::require(Kokkos::RangePolicy<DeviceType>(0,nlocal),Kokkos::Experimental::WorkItemProperty::HintLightWeight),f);
 
   atomKK->modified(execution_space, X_MASK | V_MASK | ANGMOM_MASK | BONUS_MASK);
 }

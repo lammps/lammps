@@ -143,7 +143,8 @@ void FixOxdnaLRFKokkos<DeviceType>::compute_lrf_kokkos(int zero_forces_flag)
   // list or bond list can reference); the slots in [nlocal+nghost, nmax) are
   // never read, so iterate nall rather than the full allocated nmax.
   const int nall = atom->nlocal + atom->nghost;
-  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixOxdnaLRFComputeQuatToXYZ>(0, nall), *this);
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixOxdnaLRFComputeQuatToXYZ,
+                       Kokkos::Experimental::WorkItemProperty::HintLightWeight_t>(0, nall), *this);
   copymode = 0;
 }
 

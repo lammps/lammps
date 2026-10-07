@@ -53,7 +53,7 @@ class ComputeContinuumChunk : public ComputeChunk {
   int dim, bin_dim, pstyle, calculate_pair, calculate_2_loops;
   int boundary_group_flag, boundary_groupbit;
   int index_density, index_momentum[3], index_velocity[3], index_vgrad[3][3];
-  double w_cut, w_cut_sq, w_sd, w_sd_sq, w_scale, w_offset;
+  double w_cut, w_cut_sq, w_sd, w_sd_sq, w_scale, w_offset, bin_diagonal, bin_width[3];
 
   int nvalues, nskip, radius_required;
   int boundaryflag;
@@ -75,6 +75,7 @@ class ComputeContinuumChunk : public ComputeChunk {
   void add_tensor_component(char *, int);
   void add_vector_component(char *, int);
   int shifted_bin(int, int *) const;
+  int position_to_bin(double *);
   void build_stencil();
   std::string get_thermo_colname(int) override;
 };

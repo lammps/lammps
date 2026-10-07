@@ -101,6 +101,31 @@ reported scalar remains :math:`U_B`.  The PIMD energy estimator accounts
 for this distinction whether or not ``fix_modify energy yes`` includes
 the scalar in the potential energy.
 
+Use the averaging operation to distinguish the path bias choices:
+
+.. list-table:: Path bias terminology
+   :header-rows: 1
+   :widths: 22 25 53
+
+   * - Input setting
+     - Descriptive name
+     - Physical path bias
+   * - *centroid*
+     - Coordinate-centroid bias
+     - :math:`B(s(P^{-1}\sum_b\mathbf R_b))`
+   * - *bead_mean*
+     - Bead-averaged CV bias
+     - :math:`B(P^{-1}\sum_b s(\mathbf R_b))`, using ``ENSEMBLE``
+   * - *bead_density*
+     - Bead-averaged bias energy
+     - :math:`P^{-1}\sum_b B(s(\mathbf R_b))`, using one shared field
+
+The input names are retained for compatibility.  In particular,
+*bead_density* refers to the bias acting on the empirical bead density;
+it averages bias energies.  Averaging a probability ratio before taking its
+logarithm is a separate complete-path construction described below.
+The averaging operations generally do not commute.
+
 The *path_integral centroid* setting couples PLUMED to the Cartesian coordinate
 centroid provided by the :doc:`fix pimd/langevin <fix_pimd>` command selected
 with *pimd_fix*.  The PIMD fix must be defined before fix plumed.  One PLUMED

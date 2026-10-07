@@ -332,7 +332,7 @@ ComputeContinuumChunk::ComputeContinuumChunk(LAMMPS *lmp, int narg, char **arg) 
   if (cchunk->compress)
     error->all(FLERR, "The compute chunk/atom compress option is not supported");
   if (cchunk->get_limit())
-    error->all(FLERR, "The comptue chunk/atom limit option is not supported");
+    error->all(FLERR, "The compute chunk/atom limit option is not supported");
 
   w_cut_sq = w_cut * w_cut;
   w_sd_sq = w_sd * w_sd;
@@ -436,13 +436,18 @@ void ComputeContinuumChunk::init()
   int *periodicity = domain->periodicity;
   if (chunk_reducedflag) {
     for (int a = 0; a < chunk_ncoord; a++)
-      if (periodicity[a] && (std::fmod(1.0, chunk_delta[a]) > EPSILON))
-        error->warning(FLERR, "Bins do not evenly divide the simulation box,"
+      if (periodicity[chunk_dim[a]]) {
+        double nbins = 1.0 / chunk_delta[a];
+        if (std::fabs(nbins - std::round(nbins)) < = EPSILON)
+          error->warning(FLERR, "Bins do not evenly divide the simulation box,"
                               " results on the boundary may be incorrect");
+        }
   } else {
     for (int a = 0; a < chunk_ncoord; a++)
-      if (periodicity[a] && (std::fmod(prd[chunk_dim[a]], chunk_delta[a]) > EPSILON))
-        error->warning(FLERR, "Bins do not evenly divide the simulation box,"
+      if (periodicity[chunk_dim[a]]) {
+        double nbins = prd[chunk_dim[a]] / chunk_delta[a];
+        if (std::fabs(nbins - std::round(nbins)) < = EPSILON)
+          error->warning(FLERR, "Bins do not evenly divide the simulation box,"
                               " results on the boundary may be incorrect");
   }
 }
@@ -469,6 +474,9 @@ void ComputeContinuumChunk::compute_array()
       nmax_ichunk = atom->nmax;
       memory->grow(ichunk, nmax_ichunk, "continuum/chunk:ichunk");
     }
+
+    for (i = 0; i < nlocal; i++)
+      ichunk[i] = ichunk_to_copy[i];
 
     comm->forward_comm(this);
   } else {
@@ -507,6 +515,7 @@ void ComputeContinuumChunk::compute_array()
   for (i = 0; i < nlocal; i++) {
     if ((mask[i] & groupbit) && (ichunk[i] > 0)) {
       m = ichunk[i] - 1;
+      if (m < 0) continue;
 
       if (boundary_group_flag && (mask[i] & boundary_groupbit)) continue;
 
@@ -632,6 +641,7 @@ void ComputeContinuumChunk::compute_array()
       if (!(mask[i] & groupbit)) continue;
 
       mi = ichunk[i] - 1;
+      if (mi < 0) continue;
 
       voli = 0.0;
       if (radius_required) {
@@ -686,6 +696,7 @@ void ComputeContinuumChunk::compute_array()
         }
 
         mj = ichunk[j] - 1;
+        if (mj < 0) continue;
 
         volj = 0.0;
         if (radius_required) {
@@ -798,7 +809,7 @@ void ComputeContinuumChunk::compute_array()
           }
         }
 
-        // loop over stencil for j, IFD changes sign, FABRIC/STRESS remains the same)
+        // loop over stencil for j, IFD changes sign, FABRIC/STRESS remains the same
 
         for (auto &stencil_offset : stencil) {
           xbin[0] = xbin0j[0] + stencil_offset.dx[0];
@@ -851,13 +862,13 @@ void ComputeContinuumChunk::compute_array()
 
             if ((style == STRESS) || (style == STRESSCON)) {
               if (iboundary) {
-                values_local[mtmp][field_index] -= f_pair[a] * dx_atom_cont[b] * w_int_tmp;
+                values_local[mtmp][field_index] -= (-f_pair[a]) * dx_atom_cont[b] * w_int_tmp;
               } else {
-                values_local[mtmp][field_index] -= f_pair[a] * dx_pair[b] * w_int_tmp;
+                values_local[mtmp][field_index] -= (-f_pair[a]) * (-dx_pair[b]) * w_int_tmp;
               }
             } else if (style == IFD) {
               if (iboundary)
-                values_local[mtmp][field_index] += f_pair[a] * wc;
+                values_local[mtmp][field_index] -= (-f_pair[a]) * wc;
             } else if (style == FABRIC) {
               if (!iboundary)
                 values_local[mtmp][field_index] +=
@@ -1186,7 +1197,7 @@ std::string ComputeContinuumChunk::get_thermo_colname(int m)
 
 void ComputeContinuumChunk::add_tensor_component(char *option, int variable)
 {
-  if (((std::string) option).back() == '*') {
+  if (std::string(option).back() == '*') {
     std::vector<std::string> suffices = {"xx", "xy", "xz", "yx", "yy", "yz", "zx", "zy", "zz"};
     std::string trimmed_option = std::string(option);
     trimmed_option = trimmed_option.substr(0, trimmed_option.length() - 1);
@@ -1245,7 +1256,7 @@ void ComputeContinuumChunk::add_tensor_component(char *option, int variable)
 
 void ComputeContinuumChunk::add_vector_component(char *option, int variable)
 {
-  if (((std::string) option).back() == '*') {
+  if (std::string(option).back() == '*') {
     std::vector<std::string> suffices = {"x", "y", "z"};
     std::string trimmed_option = std::string(option);
     trimmed_option = trimmed_option.substr(0, trimmed_option.length() - 1);

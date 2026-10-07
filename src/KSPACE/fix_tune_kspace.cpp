@@ -232,7 +232,8 @@ void FixTuneKspace::update_pair_style(const std::string &new_pair_style,
   *p_cutoff = pair_cut_coul;
 
   // check to see if we need to change pair styles
-  if (new_pair_style == force->pair_style) return;
+  // the current style name may include an accelerator suffix, the new one does not
+  if (new_pair_style == utils::strip_style_suffix(force->pair_style, lmp)) return;
 
   // create a temporary file to store current pair settings
   FILE *p_pair_settings_file;
@@ -280,6 +281,11 @@ void FixTuneKspace::update_kspace_style(const std::string &new_kspace_style,
   // set up grid
 
   force->kspace->reset_grid();
+
+  // the force styles have been replaced, so fix omp must update
+  // its pointer to the style that does the force reduction
+
+  for (auto &ifix : modify->get_fix_by_style("^OMP$")) ifix->init();
 
   // re-init neighbor list
   // probably only needed when redefining the pair style

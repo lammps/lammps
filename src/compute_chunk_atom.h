@@ -50,6 +50,7 @@ class ComputeChunkAtom : public Compute {
   void compute_ichunk();
 
   int get_limit() const { return limit; }
+  int get_discard() const { return discard; }
   int get_which() const { return which; }
   int get_reducedflag() const { return reducedflag; }
   int *get_dim() { return dim; }

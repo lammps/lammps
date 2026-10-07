@@ -65,7 +65,7 @@ Description
 
 Define a computation that calculates coarse-grained continuum fields for
 chunks of atoms on demand using the construction in
-:ref:`(Goldhirsch) <_compute_continuum_chunk_goldhirsch>`.  This formulation
+:ref:`(Goldhirsch) <compute_continuum_chunk_goldhirsch>`.  This formulation
 is designed to construct rigorous macroscopic continuum fields from discrete
 particle data, commonly used in discrete element method simulations. The fields
 are evaluated at the chunk centers with a truncated Gaussian kernel. This compute
@@ -88,7 +88,7 @@ For example, if a 3d system is binned only along *z*, the reported fields are
 normalized by *Lx* and *Ly*. Normalization is not performed on velocities,
 gradients, strain rates, and the number of atoms.
 
-The available fields, include scalar, vector, and tensor quantities.
+The available fields include scalar, vector, and tensor quantities.
 A vector field such as the velocity may be requested as an individual
 component such as *velocity/x* or with a wildcard such as *velocity/\**.
 This expands to all components (two in 2d, three in 3d).  Tensor fields
@@ -152,18 +152,24 @@ The *momentum* field is
 
 where :math:`v_{i,a}` is the :math:`a` component of the atom velocity.
 The *momentum/grad* field is then obtained with centered finite
-differences between neighboring chunks.  Gradient values are calculated
-using a one sided finite difference for chunks adjacent to a non-periodic
-boundary.
+differences between neighboring chunks.  Thus, if a box dimension is represented
+by a single chunk, gradients along that dimension are zero. Gradient values
+are calculated using a one sided finite difference for chunks adjacent to a
+non-periodic boundary. The first index is the direction of the momentum while
+the second index is the direction of the derivative, such that *xy* is calculating
+the derivatives of :math:`v_x` in the :math:`y` direction.
 
 The *velocity* field is the ratio of the *momentum* and *density*
 fields.  The *velocity/grad* field is then obtained with centered finite
 differences.  Thus, if a box dimension is represented by a single chunk,
-gradients along that dimension are zero. Gradient values are also zero on
-bins that are adjacent to a non-periodic boundary.
+gradients along that dimension are zero. Gradient values are calculated using
+a one sided finite difference for chunks adjacent to a non-periodic boundary. The
+first index is the direction of the momentum while the second index is the direction
+of the derivative, such that *xy* is calculating the derivatives of :math:`v_x` in
+the :math:`y` direction.
 
 The *boundary/force* field is the interaction force density of the particles on
-the boundaries as defined in :ref:`(Weinhart) <_compute_continuum_chunk_weinhart>`:
+the boundaries as defined in :ref:`(Weinhart) <compute_continuum_chunk_weinhart>`:
 
 .. math::
 
@@ -185,7 +191,7 @@ The *stress/ke* field is the kinetic contribution to the stress:
 where :math:`v_{i,a}` is the :math:`a`-th component of the velocity of atom :math:`i` and
 :math:`v_{\mathrm{chunk},a}` is the :math:`a`-th component of the average velocity
 of the chunk defined by the *velocity* option above. Note that this average velocity
-is is evaluated at the center of the bin corresponding to the chunk.
+is evaluated at the center of the binned chunk which contains the atom.
 
 The *stress/contacts* field is the contact contribution to the stress:
 
@@ -208,7 +214,9 @@ The *fabric* field is
    \sum_{i,j} V_i r_{ij,a} r_{ij,b} \int_0^1 ds\, W(\vec{r}_\mathrm{chunk} -
    \vec{r}_i + s \vec{r}_{ij})
 
-where :math:`V_i` is the volume of the atom in 3D and area in 2D.
+where :math:`V_i` is the volume of the atom in 3D and area in 2D. See
+:doc:`compute fabric <compute_fabric>` for more general discussion on fabric
+tensors.
 
 The *strain/rate* field is
 
@@ -226,15 +234,15 @@ The *temperature* field is a local granular temperature defined as:
    \frac{1}{2} \sum_i m_i (v_i - v_\mathrm{chunk})^2
    W(\vec{r}_\mathrm{chunk} - \vec{r}_i)
 
-This is the kinetic energy density and does not include any factors
-of density or dimension which may be included in a statistical mechanical
-temperature calculation.
+This is the kinetic energy density (energy per volume or area) and does not
+include any factors of density or dimension which may be included in a
+statistical mechanical temperature calculation.
 
 ----------
 
 The optional *boundary/atom* and *boundary/fix* keywords turn on the
 boundary corrections for *stress* and *stress/contacts* described in
-:ref:`(Weinhart) <_compute_continuum_chunk_weinhart>`.  The
+:ref:`(Weinhart) <compute_continuum_chunk_weinhart>`.  The
 *boundary/atom* keyword designates a group of atoms as a boundary.
 Those atoms are removed from the atom and pair sums above, except for the
 *boundary/force* contribution.  The *boundary/fix* keyword applies the
@@ -267,7 +275,7 @@ LAMMPS was built with that package.  See the :doc:`Build package
 
 Only *bin/1d*, *bin/2d*, and *bin/3d* styles of
 :doc:`compute chunk/atom <compute_chunk_atom>` are supported. Furthermore,
-the *compress* and *limit* options of the chunk/atom compute are not supported.
+the *compress*, *limit*, and *discard no* options of the chunk/atom compute are not supported
 If a boundary is periodic, results from bins on the boundary will be incorrect
 unless the simulation box in that dimension is evenly divisible by the bin width
 such that no bin extends beyond the simulation boundaries. A warning will be
@@ -278,7 +286,7 @@ Triclinic boxes are not supported.
 The *volume/fraction*, *stress*, *stress/contacts*, *boundary/force*,
 and *fabric* values require particles with a radius attribute.
 
-Pair-dependent quantities require a pair style that that can compute
+Pair-dependent quantities require a pair style that can compute
 the force for a single pair of atoms.  The *boundary/fix* keyword requires at
 least one :doc:`fix wall/gran <fix_wall_gran>` instance. All such instances
 must have the *contacts* keyword enabled.

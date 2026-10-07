@@ -23,6 +23,7 @@ ComputeStyle(continuum/chunk,ComputeContinuumChunk);
 #include "compute_chunk.h"
 
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 namespace LAMMPS_NS {
@@ -35,10 +36,13 @@ class ComputeContinuumChunk : public ComputeChunk {
   void init_list(int, class NeighList *) override;
   void compute_array() override;
   double memory_usage() override;
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
 
  private:
-  std::vector<std::pair<int, int>> values;
+  std::vector<std::tuple<int, int, int>> values;
   std::vector<std::string> labels;
+  std::unordered_set<int> no_norm;
 
   struct StencilOffset {
     int dn[3];     // index shifts along chunk axes 0, 1, 2
@@ -56,9 +60,10 @@ class ComputeContinuumChunk : public ComputeChunk {
 
   class NeighList *list;
 
+  // Variables copied from compute atom/chunk
+  int *ichunk, *nlayers, *chunk_dim;
   double *delta;
-  int ncoord, reducedflag;
-  int *nlayers, *chunk_dim;
+  int ncoord, reducedflag, nmax_ichunk;
 
   double **values_local, **values_global;
   double *density_local, *density_global;

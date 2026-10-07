@@ -1,2 +1,0 @@
-[console_scripts]
-rst_anchor_check = lammpsdoc.rst_anchor_check:main

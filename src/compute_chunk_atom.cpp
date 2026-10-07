@@ -43,7 +43,7 @@ using namespace MathConst;
 
 enum { LOWER, CENTER, UPPER, COORD };
 enum { BOX, LATTICE, REDUCED };
-enum { NODISCARD, MIXED, YESDISCARD };
+enum { NODISCARD = 0, MIXED, YESDISCARD };   // NODISCARD = 0 assumed by continuum/chunk
 enum { ONCE, NFREQ, EVERY };    // used in several files
 enum { LIMITMAX, LIMITEXACT };
 

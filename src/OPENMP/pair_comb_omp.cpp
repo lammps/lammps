@@ -103,6 +103,9 @@ void PairCombOMP::eval(int iifrom, int iito, ThrData * const thr)
   double vionij,fvionij,sr1,sr2,sr3,Eov,Fov;
   int sht_jnum, *sht_jlist, nj;
 
+  // thread-local Cu-O correction flags, they are class members in the base class
+  int cuo_flag = 0, cuo_flag1 = 0, cuo_flag2 = 0;
+
   evdwl = 0.0;
 
   const double * const * const x = atom->x;
@@ -375,9 +378,13 @@ void PairCombOMP::eval(int iifrom, int iito, ThrData * const thr)
     f[i][1] += fytmp;
     f[i][2] += fztmp;
 
-    if (cuo_flag) params[iparam_i].cutsq *= 0.65;
+    if (cuo_flag) {
+#if defined(_OPENMP)
+#pragma omp atomic
+#endif
+      params[iparam_i].cutsq *= 0.65;
+    }
   }
-  cuo_flag = 0;
 }
 
 /* ---------------------------------------------------------------------- */

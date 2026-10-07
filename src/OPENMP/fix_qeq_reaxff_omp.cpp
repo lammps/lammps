@@ -168,6 +168,13 @@ void FixQEqReaxFFOMP::compute_H()
   }
   m_fill = num_nbrs;
 
+  // check before filling the matrix to avoid writing past its end
+
+  if (m_fill >= H.m)
+    error->one(FLERR,  Error::NOLASTLINE,
+               "Fix qeq/reaxff: H matrix size has been exceeded: m_fill={} H.m={}\n",
+               m_fill, H.m);
+
   // fill in the H matrix
 
 #if defined(_OPENMP)
@@ -223,11 +230,6 @@ void FixQEqReaxFFOMP::compute_H()
       }
     }
   } // omp
-
-  if (m_fill >= H.m)
-    error->all(FLERR,  Error::NOLASTLINE,
-               "Fix qeq/reaxff: H matrix size has been exceeded: m_fill={} H.m={}\n",
-               m_fill, H.m);
 }
 
 /* ---------------------------------------------------------------------- */

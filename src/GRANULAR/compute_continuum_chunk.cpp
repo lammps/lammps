@@ -438,7 +438,7 @@ void ComputeContinuumChunk::init()
     for (int a = 0; a < chunk_ncoord; a++)
       if (periodicity[chunk_dim[a]]) {
         double nbins = 1.0 / chunk_delta[a];
-        if (std::fabs(nbins - std::round(nbins)) < = EPSILON)
+        if (std::fabs(nbins - std::round(nbins)) > EPSILON)
           error->warning(FLERR, "Bins do not evenly divide the simulation box,"
                               " results on the boundary may be incorrect");
         }
@@ -446,7 +446,7 @@ void ComputeContinuumChunk::init()
     for (int a = 0; a < chunk_ncoord; a++)
       if (periodicity[chunk_dim[a]]) {
         double nbins = prd[chunk_dim[a]] / chunk_delta[a];
-        if (std::fabs(nbins - std::round(nbins)) < = EPSILON)
+        if (std::fabs(nbins - std::round(nbins)) > EPSILON)
           error->warning(FLERR, "Bins do not evenly divide the simulation box,"
                               " results on the boundary may be incorrect");
   }
@@ -722,6 +722,7 @@ void ComputeContinuumChunk::compute_array()
         }
 
         MathExtra::sub3(x[i], x[j], dx_pair);
+        domain->minimum_image(FLERR, dx_pair[0], dx_pair[1], dx_pair[2]);
         rsq_pair = MathExtra::lensq3(dx_pair);
         if (rsq_pair >= cutsq[itype][type[j]]) continue;
 
@@ -739,7 +740,11 @@ void ComputeContinuumChunk::compute_array()
         MathExtra::scale3(factor_lj, f_pair, f_pair);
         if (MathExtra::lensq3(f_pair) == 0.0) continue;
 
-        // loop over stencil for i
+        MathExtra::add3(x[i], x[j], xcont);
+        MathExtra::scaleadd3((radius[j] - radius[i]) / r_pair, dx_pair, xcont, xcont);
+        MathExtra::scale3(0.5, xcont);
+
+        // loop over stencil around contact
 
         for (auto &stencil_offset : stencil) {
           xbin[0] = xbin0i[0] + stencil_offset.dx[0];
@@ -754,10 +759,6 @@ void ComputeContinuumChunk::compute_array()
           w = calc_w(sqrt(rsq_atom_bin));
 
           if (jboundary) {
-            MathExtra::add3(x[i], x[j], xcont);
-            MathExtra::scaleadd3((radius[j] - radius[i]) / r_pair, dx_pair, xcont, xcont);
-            MathExtra::scale3(0.5, xcont);
-
             MathExtra::copy3(xcont, xbin2);
             for (a = 0; a < chunk_ncoord; a++) xbin2[cdim[a]] = xbin[cdim[a]];
             MathExtra::sub3(xbin2, xcont, dx_bin_cont);
@@ -792,9 +793,9 @@ void ComputeContinuumChunk::compute_array()
 
             if ((style == STRESS) || (style == STRESSCON)) {
               if (jboundary) {
-                values_local[mtmp][field_index] -= f_pair[a] * dx_atom_cont[b] * w_int_tmp;
+                values_local[mtmp][field_index] -= 0.5 * f_pair[a] * dx_atom_cont[b] * w_int_tmp;
               } else {
-                values_local[mtmp][field_index] -= f_pair[a] * dx_pair[b] * w_int_tmp;
+                values_local[mtmp][field_index] -= 0.5 * f_pair[a] * dx_pair[b] * w_int_tmp;
               }
             } else if (style == IFD) {
               if (jboundary)
@@ -802,7 +803,7 @@ void ComputeContinuumChunk::compute_array()
             } else if (style == FABRIC) {
               if (!jboundary)
                 values_local[mtmp][field_index] +=
-                  voli * dx_pair[a] * dx_pair[b] * w_int_tmp / rsq_pair;
+                  0.5 * voli * dx_pair[a] * dx_pair[b] * w_int_tmp / rsq_pair;
             }
 
             field_index++;
@@ -820,14 +821,11 @@ void ComputeContinuumChunk::compute_array()
           if (mtmp == -1) continue;
 
           MathExtra::sub3(x[j], xbin, dx_atom_bin);
+          domain->minimum_image(FLERR, dx_atom_bin[0], dx_atom_bin[1], dx_atom_bin[2]);
           rsq_atom_bin = MathExtra::lensq3(dx_atom_bin);
           w = calc_w(sqrt(rsq_atom_bin));
 
           if (iboundary) {
-            MathExtra::add3(x[i], x[j], xcont);
-            MathExtra::scaleadd3((radius[j] - radius[i]) / r_pair, dx_pair, xcont, xcont);
-            MathExtra::scale3(0.5, xcont);
-
             MathExtra::copy3(xcont, xbin2);
             for (a = 0; a < chunk_ncoord; a++) xbin2[cdim[a]] = xbin[cdim[a]];
             MathExtra::sub3(xbin2, xcont, dx_bin_cont);
@@ -862,16 +860,16 @@ void ComputeContinuumChunk::compute_array()
 
             if ((style == STRESS) || (style == STRESSCON)) {
               if (iboundary) {
-                values_local[mtmp][field_index] -= (-f_pair[a]) * dx_atom_cont[b] * w_int_tmp;
+                values_local[mtmp][field_index] -= 0.5 * (-f_pair[a]) * dx_atom_cont[b] * w_int_tmp;
               } else {
-                values_local[mtmp][field_index] -= (-f_pair[a]) * (-dx_pair[b]) * w_int_tmp;
+                values_local[mtmp][field_index] -= 0.5 * (-f_pair[a]) * (-dx_pair[b]) * w_int_tmp;
               }
             } else if (style == IFD) {
               if (iboundary)
                 values_local[mtmp][field_index] -= (-f_pair[a]) * wc;
             } else if (style == FABRIC) {
               if (!iboundary)
-                values_local[mtmp][field_index] +=
+                0.5 * values_local[mtmp][field_index] +=
                   volj * dx_pair[a] * dx_pair[b] * w_int_tmp / rsq_pair;
             }
 

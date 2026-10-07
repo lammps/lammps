@@ -115,7 +115,9 @@ The kernel used in the coarse-graining is a truncated Gaussian function.
 The standard deviation of the function is defined by the *width* parameter.
 The maximum cutoff of the Gaussian function is defined by the *cutoff* parameter.
 These values are not restricted to the size of a chunk and can extend beyond its
-boundaries.
+boundaries. The *width* has effectively no impact on performance, but a larger
+*cutoff* does increase the number of atoms that add contributions to each
+coarse-graining site.
 
 ----------
 
@@ -197,13 +199,14 @@ The *stress/contacts* field is the contact contribution to the stress:
 
 .. math::
 
-   -\sum_{i,j} f_{ij,a} r_{ij,b} \int_0^1 ds\, W(\vec{r}_\mathrm{chunk} -
+   -\frac{1}{2}\sum_{i,j} f_{ij,a} r_{ij,b} \int_0^1 ds\, W(\vec{r}_\mathrm{chunk} -
    \vec{r}_i + s \vec{r}_{ij})
 
 where :math:`f_{ij,a}` is the force on atom :math:`i` from atom
 :math:`j` and :math:`\vec{r}_{ij}` is the displacement between the two
 atoms. Here, the double summation is over all pairs of atoms :math:`i` and
-:math:`j` where each pair is counted only once.
+:math:`j` where each pair can be counted twice if both atoms are in the
+kernel's cutoff.
 
 The *stress* field is the sum of the kinetic and contact contributions.
 
@@ -211,7 +214,7 @@ The *fabric* field is
 
 .. math::
 
-   \sum_{i,j} V_i r_{ij,a} r_{ij,b} \int_0^1 ds\, W(\vec{r}_\mathrm{chunk} -
+   \frac{1}{2}\sum_{i,j} V_i r_{ij,a} r_{ij,b} \int_0^1 ds\, W(\vec{r}_\mathrm{chunk} -
    \vec{r}_i + s \vec{r}_{ij})
 
 where :math:`V_i` is the volume of the atom in 3D and area in 2D. See

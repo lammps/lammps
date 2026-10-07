@@ -258,12 +258,16 @@ void FixOMP::init()
     }                                                         \
   }
 
-  if (_pair_compute_flag && (kspace_split <= 0)) {
-    CheckStyleForOMP(pair);
-    CheckHybridForOMP(pair,Pair);
-    if (check_hybrid) {
-      last_pair_hybrid = last_omp_style;
-      last_hybrid_name = last_omp_name;
+  // bonded interactions are computed even if pair_modify compute no is set
+
+  if (kspace_split <= 0) {
+    if (_pair_compute_flag) {
+      CheckStyleForOMP(pair);
+      CheckHybridForOMP(pair,Pair);
+      if (check_hybrid) {
+        last_pair_hybrid = last_omp_style;
+        last_hybrid_name = last_omp_name;
+      }
     }
 
     CheckStyleForOMP(bond);

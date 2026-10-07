@@ -26,6 +26,8 @@
 #include "pointers.h"
 #include "thr_data.h"    // IWYU pragma: export
 
+#include <atomic>
+
 namespace LAMMPS_NS {
 
 // forward declarations
@@ -42,7 +44,8 @@ class ThrOMP {
   FixOMP *fix;    // pointer to fix_omp;
 
   int thr_style;
-  int thr_error;
+  // use a C++11 atomic, since OpenMP 3.1 atomic reads are not available with all compilers
+  std::atomic<int> thr_error;
   int thr_errline;
   const char *thr_errfile;
   const char *thr_errmsg;
@@ -100,33 +103,17 @@ void reduce_thr(void *const style, const int eflag, const int vflag, ThrData *co
 bool check_error_thr(const bool cond, const int /*tid*/, const char *fname, const int line,
                      const char *errmsg)
 {
-  int nerror;
   if (cond) {
-#if defined(_OPENMP)
-#pragma omp critical(lmp_thr_error)
-#endif
-    {
-#if defined(_OPENMP)
-#pragma omp atomic read
-#endif
-      nerror = thr_error;
-      if (nerror == 0) {
-        thr_errfile = fname;
-        thr_errline = line;
-        thr_errmsg = errmsg;
-      }
-#if defined(_OPENMP)
-#pragma omp atomic update
-#endif
-      ++thr_error;
+    // only the first thread to signal an error records its location and message.
+    // they are read by error_thr() after the threaded region has ended.
+    if (thr_error.fetch_add(1, std::memory_order_relaxed) == 0) {
+      thr_errfile = fname;
+      thr_errline = line;
+      thr_errmsg = errmsg;
     }
     return true;
   }
-#if defined(_OPENMP)
-#pragma omp atomic read
-#endif
-  nerror = thr_error;
-  return nerror > 0;
+  return thr_error.load(std::memory_order_relaxed) > 0;
 }
 
 // stop with the first error that was signaled by check_error_thr().
@@ -134,7 +121,7 @@ bool check_error_thr(const bool cond, const int /*tid*/, const char *fname, cons
 
 void error_thr()
 {
-  if (thr_error > 0) {
+  if (thr_error.load() > 0) {
     thr_error = 0;
     lmp->error->one(thr_errfile, thr_errline, thr_errmsg);
   }

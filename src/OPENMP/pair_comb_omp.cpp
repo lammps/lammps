@@ -382,9 +382,9 @@ void PairCombOMP::eval(int iifrom, int iito, ThrData * const thr)
 
     if (cuo_flag) {
 #if defined(_OPENMP)
-#pragma omp atomic write
+#pragma omp atomic
 #endif
-      params[iparam_i].cuo_pending = 1;
+      params[iparam_i].cuo_pending |= 1;
     }
   }
 }

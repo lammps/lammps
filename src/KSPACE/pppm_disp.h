@@ -57,6 +57,7 @@ class PPPMDisp : public KSpace {
 
   int nsplit;
   int nsplit_alloc;
+  int order_6_allocated;    // order_6 used to allocate the dispersion stencil arrays
   int termflag[EwaldConst::EWALD_NTERMS];
 
   double delxinv, delyinv, delzinv, delvolinv;

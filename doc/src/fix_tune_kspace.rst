@@ -89,6 +89,11 @@ called.  Reneighboring is required.
 This fix is not compatible with a hybrid pair style, long-range dispersion,
 TIP4P water support, or long-range point dipole support.
 
+.. versionchanged:: 30Sep2026-backport
+
+This fix is not supported with styles from the OPENMP package, e.g. when
+using the "-sf omp" :doc:`command-line switch <Run_options>`.
+
 Related commands
 """"""""""""""""
 

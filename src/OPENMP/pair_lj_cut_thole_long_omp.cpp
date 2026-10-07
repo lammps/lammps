@@ -147,7 +147,7 @@ void PairLJCutTholeLongOMP::eval(int iifrom, int iito, ThrData * const thr)
 
     if (drudetype[type[i]] != NOPOL_TYPE) {
       di = atom->map(drudeid[i]);
-      if (di < 0) error->all(FLERR, "Drude partner not found");
+      if (di < 0) error->one(FLERR, "Drude partner not found");
       di_closest = domain->closest_image(i, di);
       if (drudetype[type[i]] == CORE_TYPE)
         dqi = -q[di];

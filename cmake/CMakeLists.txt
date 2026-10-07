@@ -720,7 +720,7 @@ foreach(PKG_LIB H5MD)
   endif()
 endforeach()
 
-if(PKG_ELECTRODE OR PKG_ML-POD)
+if(PKG_ELECTRODE OR PKG_ML-POD OR PKG_RHEO)
   target_link_libraries(lammps PRIVATE ${LAPACK_LIBRARIES})
 endif()
 

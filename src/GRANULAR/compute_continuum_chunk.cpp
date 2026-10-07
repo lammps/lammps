@@ -449,6 +449,7 @@ void ComputeContinuumChunk::init()
         if (std::fabs(nbins - std::round(nbins)) > EPSILON)
           error->warning(FLERR, "Bins do not evenly divide the simulation box,"
                               " results on the boundary may be incorrect");
+          }
   }
 }
 
@@ -810,7 +811,10 @@ void ComputeContinuumChunk::compute_array()
           }
         }
 
-        // loop over stencil for j, IFD changes sign, FABRIC/STRESS remains the same
+        // loop over stencil for j
+
+        MathExtra::negate3(fpair);
+        MathExtra::negate3(dx_pair);
 
         for (auto &stencil_offset : stencil) {
           xbin[0] = xbin0j[0] + stencil_offset.dx[0];
@@ -860,17 +864,17 @@ void ComputeContinuumChunk::compute_array()
 
             if ((style == STRESS) || (style == STRESSCON)) {
               if (iboundary) {
-                values_local[mtmp][field_index] -= 0.5 * (-f_pair[a]) * dx_atom_cont[b] * w_int_tmp;
+                values_local[mtmp][field_index] -= 0.5 * f_pair[a] * dx_atom_cont[b] * w_int_tmp;
               } else {
-                values_local[mtmp][field_index] -= 0.5 * (-f_pair[a]) * (-dx_pair[b]) * w_int_tmp;
+                values_local[mtmp][field_index] -= 0.5 * f_pair[a] * dx_pair[b] * w_int_tmp;
               }
             } else if (style == IFD) {
               if (iboundary)
-                values_local[mtmp][field_index] -= (-f_pair[a]) * wc;
+                values_local[mtmp][field_index] -= f_pair[a] * wc;
             } else if (style == FABRIC) {
               if (!iboundary)
-                0.5 * values_local[mtmp][field_index] +=
-                  volj * dx_pair[a] * dx_pair[b] * w_int_tmp / rsq_pair;
+                values_local[mtmp][field_index] +=
+                  0.5 * volj * dx_pair[a] * dx_pair[b] * w_int_tmp / rsq_pair;
             }
 
             field_index++;

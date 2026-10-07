@@ -43,6 +43,9 @@ class ThrOMP {
 
   int thr_style;
   int thr_error;
+  int thr_errline;
+  const char *thr_errfile;
+  const char *thr_errmsg;
 
  public:
   ThrOMP(LAMMPS *, int);
@@ -87,34 +90,54 @@ void reduce_thr(void *const style, const int eflag, const int vflag, ThrData *co
 
 // thread safe variant error abort support.
 // signals an error condition in any thread by making
-// thr_error > 0, if condition "cond" is true.
-// will abort from thread 0 if thr_error is > 0
-// otherwise return true.
-// returns false if no error found on any thread.
-// use return value to jump/return to end of threaded region.
+// thr_error > 0, if condition "cond" is true, and records
+// the location and message of the first error.
+// returns true if an error was signaled by any thread,
+// otherwise false. use return value to jump/return to the
+// end of the threaded region and call error_thr() after
+// the threaded region to stop with the recorded error.
 
-bool check_error_thr(const bool cond, const int tid, const char *fname, const int line,
+bool check_error_thr(const bool cond, const int /*tid*/, const char *fname, const int line,
                      const char *errmsg)
 {
+  int nerror;
   if (cond) {
 #if defined(_OPENMP)
-#pragma omp atomic
-    ++thr_error;
+#pragma omp critical(lmp_thr_error)
 #endif
-    if (tid > 0)
-      return true;
-    else
-      lmp->error->one(fname, line, errmsg);
-  } else {
-    if (thr_error > 0) {
-      if (tid == 0)
-        lmp->error->one(fname, line, errmsg);
-      else
-        return true;
-    } else
-      return false;
+    {
+#if defined(_OPENMP)
+#pragma omp atomic read
+#endif
+      nerror = thr_error;
+      if (nerror == 0) {
+        thr_errfile = fname;
+        thr_errline = line;
+        thr_errmsg = errmsg;
+      }
+#if defined(_OPENMP)
+#pragma omp atomic update
+#endif
+      ++thr_error;
+    }
+    return true;
   }
-  return false;
+#if defined(_OPENMP)
+#pragma omp atomic read
+#endif
+  nerror = thr_error;
+  return nerror > 0;
+}
+
+// stop with the first error that was signaled by check_error_thr().
+// must be called outside of threaded regions.
+
+void error_thr()
+{
+  if (thr_error > 0) {
+    thr_error = 0;
+    lmp->error->one(thr_errfile, thr_errline, thr_errmsg);
+  }
 }
 
 protected:

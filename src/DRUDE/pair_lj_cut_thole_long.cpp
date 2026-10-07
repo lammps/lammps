@@ -60,6 +60,7 @@ PairLJCutTholeLong::PairLJCutTholeLong(LAMMPS *lmp) :
   writedata = 1;
   ftable = nullptr;
   qdist = 0.0;
+  cut_global = 0.0;
   fix_drude = nullptr;
 }
 

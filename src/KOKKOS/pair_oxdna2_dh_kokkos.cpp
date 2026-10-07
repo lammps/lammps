@@ -15,6 +15,7 @@
 
 #include "atom_kokkos.h"
 #include "atom_masks.h"
+#include "domain.h"
 #include "error.h"
 #include "force.h"
 #include "kokkos.h"
@@ -119,7 +120,7 @@ void PairOxdna2DhKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   // are too few atoms to fill a quarter of the device
   // (only with atomic updates of atom a, i.e. a half list with HALFTHREAD)
   nsplit = 1;
-  if ((execution_space != HostKK) && (neighflag == HALFTHREAD)) {
+  if ((execution_space != HostKK) && (neighflag == HALFTHREAD || neighflag == FULL)) {
     const int target = DeviceType().concurrency() / 4;
     while ((nsplit < 4) && (anum * nsplit < target)) nsplit *= 2;
   }
@@ -456,12 +457,22 @@ void PairOxdna2DhKokkos<DeviceType>::operator()(TagPairOxdna2DhCompute<OXDNAFLAG
       }
     }
   }
-  a_f(a,0) += ftmp_a0;
-  a_f(a,1) += ftmp_a1;
-  a_f(a,2) += ftmp_a2;
-  a_torque(a,0) += ttmp_a0;
-  a_torque(a,1) += ttmp_a1;
-  a_torque(a,2) += ttmp_a2;
+  if ((NEIGHFLAG == FULL) && (nsplit > 1)) {
+    // the nsplit work items of atom a all update it
+    Kokkos::atomic_add(&f(a,0), ftmp_a0);
+    Kokkos::atomic_add(&f(a,1), ftmp_a1);
+    Kokkos::atomic_add(&f(a,2), ftmp_a2);
+    Kokkos::atomic_add(&torque(a,0), ttmp_a0);
+    Kokkos::atomic_add(&torque(a,1), ttmp_a1);
+    Kokkos::atomic_add(&torque(a,2), ttmp_a2);
+  } else {
+    a_f(a,0) += ftmp_a0;
+    a_f(a,1) += ftmp_a1;
+    a_f(a,2) += ftmp_a2;
+    a_torque(a,0) += ttmp_a0;
+    a_torque(a,1) += ttmp_a1;
+    a_torque(a,2) += ttmp_a2;
+  }
 }
 
 template<class DeviceType>
@@ -524,6 +535,28 @@ void PairOxdna2DhKokkos<DeviceType>::init_style()
 
   neighbor->add_request(this);
   neighflag = lmp->kokkos->neighflag;
+
+  // in dilute systems the neighbors of a nucleotide are mostly in its own
+  // strand, and on GPUs a full neighbor list, which needs no atomic updates of
+  // the neighbors, is faster than a half list with them.  in dense systems the
+  // full list doubles a long list and is slower.  use the full list when there
+  // would be less than one neighbor at the mean number density (H100: dilute
+  // oligomer solution 0.18, DNA origami brick 1.6).  this choice only affects
+  // the performance, not the results.
+
+  if ((execution_space != HostKK) && (neighflag == HALFTHREAD) && (domain->dimension == 3)) {
+    double cut = 0.0;
+    for (int i = 1; i <= atom->ntypes; i++)
+      for (int j = i; j <= atom->ntypes; j++)
+        if (setflag[i][j]) cut = MAX(cut, MAX(cut_dh_c[i][j], cut_dh_c[j][i]));
+    cut += neighbor->skin;
+    const double volume = domain->xprd * domain->yprd * domain->zprd;
+    if ((cut > 0.0) && (volume > 0.0)) {
+      const double nuniform = (double) atom->natoms / volume * 4.0 / 3.0 * MY_PI * cut * cut * cut;
+      if (nuniform < 1.0) neighflag = FULL;
+    }
+  }
+
   auto request = neighbor->find_request(this);
   request->set_kokkos_host(std::is_same_v<DeviceType,LMPHostType> &&
                            !std::is_same_v<DeviceType,LMPDeviceType>);

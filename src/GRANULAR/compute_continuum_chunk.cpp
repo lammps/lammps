@@ -621,7 +621,7 @@ void ComputeContinuumChunk::compute_array()
     double **cutsq = force->pair->cutsq;
     double *special_lj = force->special_lj;
     int newton_pair = force->newton_pair;
-    double pair_stencil_reach;
+    double pair_stencil_reach, xmid[3];
 
     tagint itag, jtag;
     tagint *tag = atom->tag;
@@ -700,6 +700,9 @@ void ComputeContinuumChunk::compute_array()
         else
           jboundary = 0;
 
+        // ensure no boundary-boundary interactions (ideally should be pruned from neighbor list)
+        if (iboundary && jboundary) continue;
+
         MathExtra::sub3(x[i], x[j], dx_pair);
         domain->minimum_image(FLERR, dx_pair[0], dx_pair[1], dx_pair[2]);
 
@@ -725,7 +728,7 @@ void ComputeContinuumChunk::compute_array()
         MathExtra::scaleadd3((radius[j] - radius[i]) / r_pair, dx_pair, xcont, xcont);
         MathExtra::scale3(0.5, xcont);
 
-        mc = position_to_bin(xbin);
+        mc = position_to_bin(xcont);
         if (mc < 0) continue;
 
         if (chunk_reducedflag) {
@@ -742,10 +745,10 @@ void ComputeContinuumChunk::compute_array()
 
         // create custom stencil and loop over for this pair style
         //  cannot loop i and j's stencil in case some bin contains midpoint (say) but not i or j
-        //  could use a bounding box/save stencils based on a discretized binning of pair distances
-        //    to improve performance in future
+        //  in future, could use a bounding box or save stencils based on discretely binned pair
+        //    distances to improve performance
 
-        pair_stencil_reach = w_cut + 0.5 * r_pair + 0.5 * bin_diagonal;
+        pair_stencil_reach = w_cut + MAX(radius[i], radius[j]) + 0.5 * bin_diagonal;
 
         stencil_size[0] = stencil_size[1] = stencil_size[2] = 0;
         for (a = 0; a < ncoord; a++)
@@ -774,6 +777,7 @@ void ComputeContinuumChunk::compute_array()
               visited_bins.insert(mtmp);
 
               MathExtra::sub3(x[i], xbin, dx_atom_bin);
+              domain->minimum_image(FLERR, dx_atom_bin[0], dx_atom_bin[1], dx_atom_bin[2]);
               rsq_atom_bin = MathExtra::lensq3(dx_atom_bin);
               w = calc_w(sqrt(rsq_atom_bin));
 

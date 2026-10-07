@@ -167,6 +167,64 @@ void FixOxdnaPrimeNeighsKokkos<DeviceType>::compute_prime_neighs_oxdna3_xstk()
 }
 
 /* ----------------------------------------------------------------------
+   per-atom local indices and types of the 3' and 5' neighbors of all
+   owned and ghost atoms
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixOxdnaPrimeNeighsKokkos<DeviceType>::compute_prime_neighs_atom()
+{
+  const int nall = atom->nlocal + atom->nghost;
+  if (nall > d_prime_neighs_atom.extent_int(0))
+    MemKK::realloc_kokkos(d_prime_neighs_atom, "prime_neighs:prime_neighs_atom", nall + nall/10);
+
+  atomKK->sync(execution_space, datamask_read | TYPE_MASK);
+  tag = atomKK->k_tag.view<DeviceType>();
+  id5p = atomKK->k_id5p.view<DeviceType>();
+  id3p = atomKK->k_id3p.view<DeviceType>();
+  type = atomKK->k_type.view<DeviceType>();
+
+  map_style = atom->map_style;
+  if (map_style == Atom::MAP_ARRAY) {
+    k_map_array = atomKK->k_map_array;
+    k_map_array.template sync<DeviceType>();
+  } else if (map_style == Atom::MAP_HASH) {
+    k_map_hash = atomKK->k_map_hash;
+    k_map_hash.template sync<DeviceType>();
+  }
+
+  copymode = 1;
+  Kokkos::parallel_for(
+    Kokkos::RangePolicy<DeviceType, TagFixOxdnaPrimeNeighsPrecomputePrimeNeighsAtom>(0, nall), *this);
+  copymode = 0;
+}
+
+template<class DeviceType>
+// NOLINTNEXTLINE
+KOKKOS_INLINE_FUNCTION
+void FixOxdnaPrimeNeighsKokkos<DeviceType>::operator()(TagFixOxdnaPrimeNeighsPrecomputePrimeNeighsAtom,
+                                                       const int &i) const
+{
+  int local[2] = {-1, -1};
+  const tagint ids[2] = {id3p(i), id5p(i)};
+  for (int k = 0; k < 2; k++) {
+    if (ids[k] == -1) continue;
+    int mapped = -1;
+    if (map_style == Atom::MAP_ARRAY) {
+      const auto map_array = k_map_array.view<DeviceType>();
+      if ((ids[k] >= 0) && (ids[k] < static_cast<tagint>(map_array.extent(0)))) mapped = map_array(ids[k]);
+    } else if (map_style == Atom::MAP_HASH) {
+      mapped = AtomKokkos::map_find_hash_kokkos<DeviceType>(ids[k], k_map_hash);
+    }
+    local[k] = mapped;
+  }
+  d_prime_neighs_atom(i,0) = local[0];
+  d_prime_neighs_atom(i,1) = local[1];
+  d_prime_neighs_atom(i,2) = (local[0] >= 0) ? type(local[0]) : 0;
+  d_prime_neighs_atom(i,3) = (local[1] >= 0) ? type(local[1]) : 0;
+}
+
+/* ----------------------------------------------------------------------
    Loop through the bondlist and precompute the atom mapping for
    the 3' and 5' neighbors of each bonded pair. This is the KOKKOS
    equivalent of "atom->map(id{3/5}p[{a/b}])" in the CPU code.

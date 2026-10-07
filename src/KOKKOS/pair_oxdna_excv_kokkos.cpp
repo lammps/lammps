@@ -51,6 +51,7 @@ PairOxdnaExcvKokkos<DeviceType>::PairOxdnaExcvKokkos(LAMMPS *lmp) : PairOxdnaExc
   fix_oxdna_lrfKK = nullptr;
   fix_oxdna_npairKK = nullptr;
   fix_oxdna_prime_neighsKK = nullptr;
+  last_prime_neighs_atom_nbuild = -1;
   params2_uniform = 0;
   params2_dirty = 1;
 }
@@ -133,6 +134,15 @@ void PairOxdnaExcvKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     k_map_hash = atomKK->k_map_hash;
     k_map_hash.template sync<DeviceType>();
   }
+
+  // types of the 3'/5' neighbors of all atoms, for the base-base terms of
+  // bonded pairs; recomputed after every reneighboring
+
+  if (neighbor->nbuild != last_prime_neighs_atom_nbuild) {
+    fix_oxdna_prime_neighsKK->compute_prime_neighs_atom();
+    last_prime_neighs_atom_nbuild = neighbor->nbuild;
+  }
+  d_prime_neighs_atom = fix_oxdna_prime_neighsKK->d_prime_neighs_atom;
 
   // get the neighbor list and neighbors used in operator()
 
@@ -658,10 +668,8 @@ void PairOxdnaExcvKokkos<DeviceType>::operator()(TagPairOxdnaExcvCompute<OXDNAFL
     // base-base
     if (bonded12 && (tag_a == id3p(b)) && (tag(b) == id5p_a)) {
       // types of the 3' neighbor of a and the 5' neighbor of b (0 for a strand end)
-      const int a3p = map_tag(id3p_a);
-      const int b5p = map_tag(id5p(b));
-      const int _3ptype = (a3p >= 0) ? type(a3p) : 0;
-      const int _5ptype = (b5p >= 0) ? type(b5p) : 0;
+      const int _3ptype = d_prime_neighs_atom(a,2);
+      const int _5ptype = d_prime_neighs_atom(b,3);
       if (rsq_bsbs < d_params4_excv(_3ptype,atype,btype,_5ptype).cut4sq_bsbs_c) {
         // F3 modulation factor, force and energy calculation
         evdwl = static_cast<KK_ACC_FLOAT>(F3_KK(rsq_bsbs,d_params4_excv(_3ptype,atype,btype,_5ptype).cut4sq_bsbs_ast,d_params4_excv(_3ptype,atype,btype,_5ptype).cut4_bsbs_c,
@@ -704,10 +712,8 @@ void PairOxdnaExcvKokkos<DeviceType>::operator()(TagPairOxdnaExcvCompute<OXDNAFL
       }
     } else if (bonded12 && (tag_a == id5p(b)) && (tag(b) == id3p_a)) {
       // types of the 3' neighbor of b and the 5' neighbor of a (0 for a strand end)
-      const int b3p = map_tag(id3p(b));
-      const int a5p = map_tag(id5p_a);
-      const int _3ptype = (b3p >= 0) ? type(b3p) : 0;
-      const int _5ptype = (a5p >= 0) ? type(a5p) : 0;
+      const int _3ptype = d_prime_neighs_atom(b,2);
+      const int _5ptype = d_prime_neighs_atom(a,3);
       if (rsq_bsbs < d_params4_excv(_3ptype,btype,atype,_5ptype).cut4sq_bsbs_c) {
         // F3 modulation factor, force and energy calculation
         evdwl = static_cast<KK_ACC_FLOAT>(F3_KK(rsq_bsbs,d_params4_excv(_3ptype,btype,atype,_5ptype).cut4sq_bsbs_ast,d_params4_excv(_3ptype,btype,atype,_5ptype).cut4_bsbs_c,

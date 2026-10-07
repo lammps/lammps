@@ -237,6 +237,8 @@ class PairOxdnaExcvKokkos : public PairOxdnaExcv, public KokkosBase {
   FixOxdnaLRFKokkos<DeviceType> *fix_oxdna_lrfKK;    // ptr to OXDNA/LRF/kk fix
   FixOxdnaNpairKokkos<DeviceType> *fix_oxdna_npairKK;    // ptr to OXDNA/NPAIR/kk fix
   FixOxdnaPrimeNeighsKokkos<DeviceType> *fix_oxdna_prime_neighsKK;    // ptr to OXDNA/PRIME_NEIGHS/kk fix
+  typename AT::t_int_1d_4 d_prime_neighs_atom;    // 3'/5' neighbors of all atoms and their types
+  bigint last_prime_neighs_atom_nbuild;
 };
 
 }

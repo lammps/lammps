@@ -35,6 +35,8 @@ struct TagFixOxdnaPrimeNeighsPrecomputePrimeNeighsBond {}; // fene and stk
 
 struct TagFixOxdnaPrimeNeighsPrecomputePrimeNeighsOxdna3Xstk {}; // oxdna3/xstk
 
+struct TagFixOxdnaPrimeNeighsPrecomputePrimeNeighsAtom {}; // excv
+
 template<class DeviceType>
 class FixOxdnaPrimeNeighsKokkos : public Fix {
  public:
@@ -63,6 +65,11 @@ class FixOxdnaPrimeNeighsKokkos : public Fix {
   DAT::tdual_int_2d k_prime_neighs_oxdna3_xstk;
   typename AT::t_int_2d d_prime_neighs_oxdna3_xstk;
   void compute_prime_neighs_oxdna3_xstk();
+  // ------ For PrimeNeighAtom (excv)
+  // 0-3 : local index of id3p[i] and id5p[i] (-1 if none), and their atom
+  // types (0 if none), for each owned and ghost atom i
+  typename AT::t_int_1d_4 d_prime_neighs_atom;
+  void compute_prime_neighs_atom();
 
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
@@ -71,6 +78,10 @@ class FixOxdnaPrimeNeighsKokkos : public Fix {
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagFixOxdnaPrimeNeighsPrecomputePrimeNeighsOxdna3Xstk, const int&) const;
+
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagFixOxdnaPrimeNeighsPrecomputePrimeNeighsAtom, const int&) const;
 
  private:
   class NeighborKokkos *neighborKK;
@@ -85,6 +96,8 @@ class FixOxdnaPrimeNeighsKokkos : public Fix {
   // For PrimeNeighOxdna3Xstk (set in compute_prime_neighs_oxdna3_xstk)
   int npairlist;
   typename AT::t_uint64_1d pairlist;
+
+  typename AT::t_int_1d type;
 
   int map_style;
   DAT::tdual_int_1d k_map_array;

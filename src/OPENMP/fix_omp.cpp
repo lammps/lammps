@@ -21,6 +21,7 @@
 #include "thr_data.h"
 
 #include "atom.h"
+#include "atom_vec.h"
 #include "comm.h"
 #include "error.h"
 #include "force.h"
@@ -328,6 +329,13 @@ void FixOMP::pre_force(int)
     thr[tid]->check_tid(tid);
     thr[tid]->init_force(nall,f,torque,erforce,desph,drho);
   } // end of omp parallel region
+
+  // the integrators skip their force_clear() when this fix is active,
+  // so we must also clear additional per-atom force-like properties
+  // of the atom style that have no per-thread copies (e.g. magnetic
+  // forces, heat flow, or concentration fluxes)
+
+  if (atom->avec->forceclearflag) atom->avec->force_clear(0, sizeof(double) * nall);
 
   _reduced = false;
 }

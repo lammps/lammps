@@ -621,7 +621,7 @@ void ComputeContinuumChunk::compute_array()
     double **cutsq = force->pair->cutsq;
     double *special_lj = force->special_lj;
     int newton_pair = force->newton_pair;
-    double pair_stencil_reach, xmid[3];
+    double pair_stencil_reach;
 
     tagint itag, jtag;
     tagint *tag = atom->tag;
@@ -748,7 +748,7 @@ void ComputeContinuumChunk::compute_array()
         //  in future, could use a bounding box or save stencils based on discretely binned pair
         //    distances to improve performance
 
-        pair_stencil_reach = w_cut + MAX(radius[i], radius[j]) + 0.5 * bin_diagonal;
+        pair_stencil_reach = w_cut + r_pair + 0.5 * bin_diagonal;
 
         stencil_size[0] = stencil_size[1] = stencil_size[2] = 0;
         for (a = 0; a < ncoord; a++)
@@ -758,7 +758,10 @@ void ComputeContinuumChunk::compute_array()
         for (int dn0 = -stencil_size[0]; dn0 <= stencil_size[0]; dn0++) {
           for (int dn1 = -stencil_size[1]; dn1 <= stencil_size[1]; dn1++) {
             for (int dn2 = -stencil_size[2]; dn2 <= stencil_size[2]; dn2++) {
-              MathExtra::copy3(xbin0, xbin);
+
+              MathExtra::copy3(xcont, xbin0);
+              for (a = 0; a < chunk_ncoord; a++)
+                xbin0[cdim[a]] = coord[mc][a];
 
               if (ncoord >= 1) xbin[chunk_dim[0]] += dn0 * bin_width[0];
               if (ncoord >= 2) xbin[chunk_dim[1]] += dn1 * bin_width[1];
@@ -776,7 +779,9 @@ void ComputeContinuumChunk::compute_array()
                 continue;
               visited_bins.insert(mtmp);
 
-              MathExtra::sub3(x[i], xbin, dx_atom_bin);
+              MathExtra::copy3(x[i], xbin2);
+              for (a = 0; a < chunk_ncoord; a++) xbin2[cdim[a]] = xbin[cdim[a]];
+              MathExtra::sub3(x[i], xbin2, dx_atom_bin);
               domain->minimum_image(FLERR, dx_atom_bin[0], dx_atom_bin[1], dx_atom_bin[2]);
               rsq_atom_bin = MathExtra::lensq3(dx_atom_bin);
               w = calc_w(sqrt(rsq_atom_bin));
@@ -836,7 +841,9 @@ void ComputeContinuumChunk::compute_array()
 
               // contributions from j
 
-              MathExtra::sub3(x[j], xbin, dx_atom_bin);
+              MathExtra::copy3(x[j], xbin2);
+              for (a = 0; a < chunk_ncoord; a++) xbin2[cdim[a]] = xbin[cdim[a]];
+              MathExtra::sub3(x[j], xbin2, dx_atom_bin);
               domain->minimum_image(FLERR, dx_atom_bin[0], dx_atom_bin[1], dx_atom_bin[2]);
               rsq_atom_bin = MathExtra::lensq3(dx_atom_bin);
               w = calc_w(sqrt(rsq_atom_bin));

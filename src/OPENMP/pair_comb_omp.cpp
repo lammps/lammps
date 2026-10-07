@@ -81,6 +81,8 @@ void PairCombOMP::compute(int eflag, int vflag)
     thr->timer(Timer::PAIR);
     reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
+
+  reduce_cuo_cutoff();
 }
 
 template <int EVFLAG, int EFLAG, int VFLAG_EITHER>
@@ -380,9 +382,9 @@ void PairCombOMP::eval(int iifrom, int iito, ThrData * const thr)
 
     if (cuo_flag) {
 #if defined(_OPENMP)
-#pragma omp atomic
+#pragma omp atomic write
 #endif
-      params[iparam_i].cutsq *= 0.65;
+      params[iparam_i].cuo_pending = 1;
     }
   }
 }

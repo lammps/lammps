@@ -428,7 +428,11 @@ int FixQEqReaxFFOMP::CG(double *b, double *x)
 
 #if defined(_OPENMP)
 #pragma omp barrier
+#if _OPENMP >= 202011
+#pragma omp masked
+#else
 #pragma omp master
+#endif
 #endif
       {
         MPI_Allreduce(&tmp1, &tmp2, 1, MPI_DOUBLE, MPI_SUM, world);
@@ -709,7 +713,11 @@ int FixQEqReaxFFOMP::dual_CG(double *b1, double *b2, double *x1, double *x2)
 
 #if defined(_OPENMP)
 #pragma omp barrier
+#if _OPENMP >= 202011
+#pragma omp masked
+#else
 #pragma omp master
+#endif
 #endif
       {
         my_buf[0] = tmp1;

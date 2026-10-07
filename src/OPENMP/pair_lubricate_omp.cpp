@@ -211,7 +211,11 @@ void PairLubricateOMP::eval(int iifrom, int iito, ThrData * const thr)
 
     // MPI communication only on master thread
 #if defined(_OPENMP)
+#if _OPENMP >= 202011
+#pragma omp masked
+#else
 #pragma omp master
+#endif
 #endif
     { comm->forward_comm(this); }
 

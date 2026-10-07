@@ -266,7 +266,11 @@ void PairMEAMSplineOMP::eval(int iifrom, int iito, ThrData * const thr)
   sync_threads();
 
 #if defined(_OPENMP)
+#if _OPENMP >= 202011
+#pragma omp masked
+#else
 #pragma omp master
+#endif
 #endif
   { comm->forward_comm(this); }
 

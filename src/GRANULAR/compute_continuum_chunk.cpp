@@ -627,9 +627,11 @@ void ComputeContinuumChunk::compute_array()
     tagint *tag = atom->tag;
 
     int ii, jj, jnum, *jlist;
-    int mi, mj, stencil_size[3], dn[3];
+    int mi, mj, mc, stencil_size[3], dn[3];
 
     neighbor->build_one(list);
+
+    std::unordered_set<int> visited_bins;
 
     int inum = list->inum;
     int *ilist = list->ilist;
@@ -723,16 +725,19 @@ void ComputeContinuumChunk::compute_array()
         MathExtra::scaleadd3((radius[j] - radius[i]) / r_pair, dx_pair, xcont, xcont);
         MathExtra::scale3(0.5, xcont);
 
+        mc = position_to_bin(xbin);
+        if (mc < 0) continue;
+
         if (chunk_reducedflag) {
           double lamda[3];
           domain->x2lamda(xcont, lamda);
           for (a = 0; a < chunk_ncoord; a++)
-            lamda[cdim[a]] = coord[mj][a];
+            lamda[cdim[a]] = coord[mc][a];
           domain->lamda2x(lamda, xbin0);
         } else {
           MathExtra::copy3(xcont, xbin0);
           for (a = 0; a < chunk_ncoord; a++)
-            xbin0[cdim[a]] = coord[mj][a];
+            xbin0[cdim[a]] = coord[mc][a];
         }
 
         // create custom stencil and loop over for this pair style
@@ -740,12 +745,13 @@ void ComputeContinuumChunk::compute_array()
         //  could use a bounding box/save stencils based on a discretized binning of pair distances
         //    to improve performance in future
 
-        pair_stencil_reach = w_cut + r_pair + 0.5 * bin_diagonal;
+        pair_stencil_reach = w_cut + 0.5 * r_pair + 0.5 * bin_diagonal;
 
         stencil_size[0] = stencil_size[1] = stencil_size[2] = 0;
         for (a = 0; a < ncoord; a++)
           stencil_size[a] = static_cast<int>(std::ceil(pair_stencil_reach / bin_width[a]));
 
+        visited_bins.clear();
         for (int dn0 = -stencil_size[0]; dn0 <= stencil_size[0]; dn0++) {
           for (int dn1 = -stencil_size[1]; dn1 <= stencil_size[1]; dn1++) {
             for (int dn2 = -stencil_size[2]; dn2 <= stencil_size[2]; dn2++) {
@@ -761,6 +767,11 @@ void ComputeContinuumChunk::compute_array()
 
               mtmp = position_to_bin(xbin);
               if (mtmp == -1) continue;
+
+              // depending on value of r_pair, can loop around so ensure bins only visited once
+              if (visited_bins.find(mtmp) != visited_bins.end())
+                continue;
+              visited_bins.insert(mtmp);
 
               MathExtra::sub3(x[i], xbin, dx_atom_bin);
               rsq_atom_bin = MathExtra::lensq3(dx_atom_bin);
@@ -804,16 +815,14 @@ void ComputeContinuumChunk::compute_array()
                 if ((style == STRESS) || (style == STRESSCON)) {
                   if (jboundary) {
                     values_local[mtmp][field_index] -= f_pair[a] * dx_atom_cont[b] * w_int_tmp;
-                  } else if (iboundary) {
-                    values_local[mtmp][field_index] -= f_pair[a] * dx_pair[b] * w_int_tmp;
-                  } else {
+                  } else if (!iboundary) {
                     values_local[mtmp][field_index] -= 0.5 * f_pair[a] * dx_pair[b] * w_int_tmp; // half from each
                   }
                 } else if (style == IFD) {
                   if (jboundary)
                     values_local[mtmp][field_index] -= f_pair[a] * wc;
                 } else if (style == FABRIC) {
-                  if (!jboundary)
+                  if (!iboundary && !jboundary)
                     values_local[mtmp][field_index] +=
                       0.5 * voli * dx_pair[a] * dx_pair[b] * w_int_tmp / rsq_pair;
                 }
@@ -866,16 +875,14 @@ void ComputeContinuumChunk::compute_array()
                 if ((style == STRESS) || (style == STRESSCON)) {
                   if (iboundary) {
                     values_local[mtmp][field_index] -= (-f_pair[a]) * dx_atom_cont[b] * w_int_tmp;
-                  } else if (jboundary) {
-                    values_local[mtmp][field_index] -= (-f_pair[a]) * (-dx_pair[b]) * w_int_tmp;
-                  } else {
+                  } else if (!jboundary) {
                     values_local[mtmp][field_index] -= 0.5 * (-f_pair[a]) * (-dx_pair[b]) * w_int_tmp;  // half from each
                   }
                 } else if (style == IFD) {
                   if (iboundary)
                     values_local[mtmp][field_index] -= (-f_pair[a]) * wc;
                 } else if (style == FABRIC) {
-                  if (!iboundary)
+                  if (!iboundary && !jboundary)
                     values_local[mtmp][field_index] +=
                       0.5 * volj * dx_pair[a] * dx_pair[b] * w_int_tmp / rsq_pair;
                 }

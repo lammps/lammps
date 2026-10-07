@@ -135,8 +135,6 @@ summary screen will look like this:
    -- Found JPEG: /usr/lib64/libjpeg.so (found version "62")
    -- Found PNG: /usr/lib64/libpng.so (found version "1.6.37")
    -- Found ZLIB: /usr/lib64/libz.so (found version "1.2.11")
-   -- Found GZIP: /usr/bin/gzip
-   -- Found FFMPEG: /usr/bin/ffmpeg
    -- Performing Test COMPILER_SUPPORTS-ffast-math
    -- Performing Test COMPILER_SUPPORTS-ffast-math - Success
    -- Performing Test COMPILER_SUPPORTS-march=native
@@ -165,7 +163,7 @@ summary screen will look like this:
          Type:          GNU
          Version:       8.2.0
          C++ Flags:     -O2 -g -DNDEBUG
-         Defines:       LAMMPS_SMALLBIG;LAMMPS_MEMALIGN=64;LAMMPS_JPEG;LAMMPS_PNG;LAMMPS_GZIP;LAMMPS_FFMPEG
+         Defines:       LAMMPS_SMALLBIG;LAMMPS_MEMALIGN=64;LAMMPS_JPEG;LAMMPS_PNG
          Options:       -ffast-math;-march=native
    -- <<< Linker flags: >>>
    -- Executable name:  lmp
@@ -358,10 +356,6 @@ Some common LAMMPS specific variables
      - whether to support PNG format in  :doc:`dump image <dump_image>` (default: ``on`` if found)
    * - ``WITH_ZLIB``
      - whether to use the zlib library for compression (default: ``on`` if found)
-   * - ``WITH_GZIP``
-     - whether to support reading and writing compressed files (default: ``on`` if found)
-   * - ``WITH_FFMPEG``
-     - whether to support generating movies with :doc:`dump movie <dump_image>` (default: ``on`` if found)
 
 Enabling or disabling LAMMPS packages
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

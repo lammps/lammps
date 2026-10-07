@@ -221,7 +221,9 @@ void WriteData::write(const std::string &file)
       fp = fopen(file.c_str(), "w");
     }
     if (fp == nullptr)
-      error->one(FLERR,"Cannot open data file {}: {}", file, utils::getsyserror());
+      error->one(FLERR, "Cannot open data file {}: {}", file,
+                 platform::has_compress_extension(file) ? platform::compressed_open_error(file)
+                                                        : utils::getsyserror());
   }
 
   // proc 0 writes header, ntype-length arrays, force fields

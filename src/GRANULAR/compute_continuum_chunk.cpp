@@ -763,6 +763,7 @@ void ComputeContinuumChunk::compute_array()
               for (a = 0; a < chunk_ncoord; a++)
                 xbin0[cdim[a]] = coord[mc][a];
 
+              MathExtra::copy3(xbin0, xbin);
               if (ncoord >= 1) xbin[chunk_dim[0]] += dn0 * bin_width[0];
               if (ncoord >= 2) xbin[chunk_dim[1]] += dn1 * bin_width[1];
               if (ncoord >= 3) xbin[chunk_dim[2]] += dn2 * bin_width[2];

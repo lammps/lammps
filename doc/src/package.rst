@@ -829,6 +829,16 @@ The *omp* style of this command can only be invoked if LAMMPS was built
 with the OPENMP package.  See the :doc:`Build package <Build_package>`
 doc page for more info.
 
+.. versionchanged:: TBD
+
+The *omp* style of this command cannot be used again while styles with
+OpenMP support (e.g. a pair style with the */omp* suffix) are defined,
+since those styles depend on the settings of the previous *package omp*
+command.  Such styles have to be reset first (e.g. with "pair_style
+none"), or the *package omp* command must be used before defining them.
+This also applies to styles that were defined with the */omp* suffix
+added by the "-sf omp" :doc:`command-line switch <Run_options>`.
+
 Related commands
 """"""""""""""""
 

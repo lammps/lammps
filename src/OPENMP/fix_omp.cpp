@@ -356,3 +356,66 @@ double FixOMP::memory_usage()
 
   return bytes;
 }
+
+/* ----------------------------------------------------------------------
+   provide a list of currently defined styles that store a pointer to this
+   fix.  used by the package command to refuse replacing this fix.
+------------------------------------------------------------------------- */
+
+void *FixOMP::extract(const char *name, int &dim)
+{
+  dim = 0;
+  if (strcmp(name, "styles_in_use") != 0) return nullptr;
+
+  styles_in_use.clear();
+  auto add = [&](int flag, const std::string &style) {
+    if (flag & Suffix::OMP) styles_in_use += (styles_in_use.empty() ? "" : ", ") + style;
+  };
+
+  if (force->pair) {
+    add(force->pair->suffix_flag, fmt::format("pair_style {}", force->pair_style));
+    auto *hybrid = dynamic_cast<PairHybrid *>(force->pair);
+    if (hybrid)
+      for (int i = 0; i < hybrid->nstyles; ++i)
+        add(hybrid->styles[i]->suffix_flag,
+            fmt::format("pair_style {} sub-style {}", force->pair_style, hybrid->keywords[i]));
+  }
+  if (force->bond) {
+    add(force->bond->suffix_flag, fmt::format("bond_style {}", force->bond_style));
+    auto *hybrid = dynamic_cast<BondHybrid *>(force->bond);
+    if (hybrid)
+      for (int i = 0; i < hybrid->nstyles; ++i)
+        add(hybrid->styles[i]->suffix_flag,
+            fmt::format("bond_style {} sub-style {}", force->bond_style, hybrid->keywords[i]));
+  }
+  if (force->angle) {
+    add(force->angle->suffix_flag, fmt::format("angle_style {}", force->angle_style));
+    auto *hybrid = dynamic_cast<AngleHybrid *>(force->angle);
+    if (hybrid)
+      for (int i = 0; i < hybrid->nstyles; ++i)
+        add(hybrid->styles[i]->suffix_flag,
+            fmt::format("angle_style {} sub-style {}", force->angle_style, hybrid->keywords[i]));
+  }
+  if (force->dihedral) {
+    add(force->dihedral->suffix_flag, fmt::format("dihedral_style {}", force->dihedral_style));
+    auto *hybrid = dynamic_cast<DihedralHybrid *>(force->dihedral);
+    if (hybrid)
+      for (int i = 0; i < hybrid->nstyles; ++i)
+        add(hybrid->styles[i]->suffix_flag, fmt::format("dihedral_style {} sub-style {}",
+                                                        force->dihedral_style, hybrid->keywords[i]));
+  }
+  if (force->improper) {
+    add(force->improper->suffix_flag, fmt::format("improper_style {}", force->improper_style));
+    auto *hybrid = dynamic_cast<ImproperHybrid *>(force->improper);
+    if (hybrid)
+      for (int i = 0; i < hybrid->nstyles; ++i)
+        add(hybrid->styles[i]->suffix_flag, fmt::format("improper_style {} sub-style {}",
+                                                        force->improper_style, hybrid->keywords[i]));
+  }
+  if (force->kspace)
+    add(force->kspace->suffix_flag, fmt::format("kspace_style {}", force->kspace_style));
+  if (utils::strmatch(update->integrate_style, "/omp$"))
+    add(Suffix::OMP, fmt::format("run_style {}", update->integrate_style));
+
+  return (void *) styles_in_use.c_str();
+}

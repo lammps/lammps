@@ -161,8 +161,8 @@ void PairNMCutCoulLong::compute(int eflag, int vflag)
           rminv = pow(r2inv,mm[itype][jtype]/2.0);
           rninv = pow(r2inv,nn[itype][jtype]/2.0);
           forcenm = e0nm[itype][jtype]*nm[itype][jtype] *
-            (r0n[itype][jtype]/pow(r,nn[itype][jtype]) -
-             r0m[itype][jtype]/pow(r,mm[itype][jtype]));
+            (r0n[itype][jtype]*rninv -
+             r0m[itype][jtype]*rminv);
         } else forcenm = 0.0;
 
         fpair = (forcecoul + factor_lj*forcenm) * r2inv;
@@ -503,6 +503,7 @@ double PairNMCutCoulLong::single(int i, int j, int itype, int jtype,
 {
   double r2inv,r,grij,expm2,t,erfc,prefactor;
   double fraction,table,forcecoul,forcenm,phicoul,phinm;
+  double rminv = 0.0, rninv = 0.0;
   int itable;
 
   r2inv = 1.0/rsq;
@@ -533,10 +534,11 @@ double PairNMCutCoulLong::single(int i, int j, int itype, int jtype,
   } else forcecoul = 0.0;
 
   if (rsq < cut_ljsq[itype][jtype]) {
-    r = sqrt(rsq);
+    rminv = pow(r2inv,mm[itype][jtype]/2.0);
+    rninv = pow(r2inv,nn[itype][jtype]/2.0);
     forcenm = e0nm[itype][jtype]*nm[itype][jtype] *
-      (r0n[itype][jtype]/pow(r,nn[itype][jtype]) -
-       r0m[itype][jtype]/pow(r,mm[itype][jtype]));
+      (r0n[itype][jtype]*rninv -
+       r0m[itype][jtype]*rminv);
   } else forcenm = 0.0;
 
   fforce = (forcecoul + factor_lj*forcenm) * r2inv;
@@ -555,8 +557,8 @@ double PairNMCutCoulLong::single(int i, int j, int itype, int jtype,
 
   if (rsq < cut_ljsq[itype][jtype]) {
     phinm = e0nm[itype][jtype] *
-      (mm[itype][jtype]*r0n[itype][jtype]/pow(r,nn[itype][jtype]) -
-       nn[itype][jtype]*r0m[itype][jtype]/pow(r,mm[itype][jtype])) -
+      (mm[itype][jtype]*r0n[itype][jtype]*rninv -
+       nn[itype][jtype]*r0m[itype][jtype]*rminv) -
       offset[itype][jtype];
     eng += factor_lj*phinm;
   }

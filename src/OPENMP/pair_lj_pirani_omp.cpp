@@ -168,8 +168,8 @@ void PairLJPiraniOMP::eval(int iifrom, int iito, ThrData *const thr)
         }
 
         if (EFLAG) {
-          double ilj1 = epsiloni[jtype] * gammai[jtype] * pow(1 / rx, n_x) / (n_x - gammai[jtype]);
-          double ilj2 = -epsiloni[jtype] * n_x * pow(1 / rx, gammai[jtype]) / (n_x - gammai[jtype]);
+          double ilj1 = epsiloni[jtype] * gammai[jtype] * pow_rx_n_x / (n_x - gammai[jtype]);
+          double ilj2 = -epsiloni[jtype] * n_x * pow_rx_gamma / (n_x - gammai[jtype]);
 
           evdwl = ilj1 + ilj2 - offseti[jtype];
           evdwl *= factor_lj;

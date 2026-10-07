@@ -377,10 +377,15 @@ void PairMIECut::compute_outer(int eflag, int vflag)
           }
         }
 
-        if (eflag) {
+        // the powers are already available from the force computation
+        // above unless the pair is in the inner region
+        if (rsq <= cut_in_off_sq && (eflag || vflag)) {
           r2inv = 1.0/rsq;
-        rgamA = pow(r2inv,(gamA[itype][jtype]/2.0));
-        rgamR = pow(r2inv,(gamR[itype][jtype]/2.0));
+          rgamA = pow(r2inv,(gamA[itype][jtype]/2.0));
+          rgamR = pow(r2inv,(gamR[itype][jtype]/2.0));
+        }
+
+        if (eflag) {
           evdwl = (mie3[itype][jtype]*rgamR - mie4[itype][jtype]*rgamA) -
             offset[itype][jtype];
           evdwl *= factor_mie;
@@ -388,10 +393,7 @@ void PairMIECut::compute_outer(int eflag, int vflag)
 
         if (vflag) {
           if (rsq <= cut_in_off_sq) {
-        r2inv = 1.0/rsq;
-        rgamA = pow(r2inv,(gamA[itype][jtype]/2.0));
-        rgamR = pow(r2inv,(gamR[itype][jtype]/2.0));
-        forcemie =  (mie1[itype][jtype]*rgamR - mie2[itype][jtype]*rgamA);
+            forcemie =  (mie1[itype][jtype]*rgamR - mie2[itype][jtype]*rgamA);
             fpair = factor_mie*forcemie*r2inv;
           } else if (rsq < cut_in_on_sq)
             fpair = factor_mie*forcemie*r2inv;

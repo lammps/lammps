@@ -72,7 +72,7 @@ void PairNMCut::compute(int eflag, int vflag)
   int i,j,ii,jj,inum,jnum,itype,jtype;
   double xtmp,ytmp,ztmp,delx,dely,delz,evdwl,fpair;
   double rsq,r2inv,factor_lj;
-  double r,forcenm,rminv,rninv;
+  double forcenm,rminv,rninv;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = 0.0;
@@ -114,14 +114,13 @@ void PairNMCut::compute(int eflag, int vflag)
 
       if (rsq < cutsq[itype][jtype]) {
         r2inv = 1.0/rsq;
-        r = sqrt(rsq);
 
         rminv = pow(r2inv,mm[itype][jtype]/2.0);
         rninv = pow(r2inv,nn[itype][jtype]/2.0);
 
         forcenm = e0nm[itype][jtype]*nm[itype][jtype] *
-          (r0n[itype][jtype]/pow(r,nn[itype][jtype]) -
-           r0m[itype][jtype]/pow(r,mm[itype][jtype]));
+          (r0n[itype][jtype]*rninv -
+           r0m[itype][jtype]*rminv);
         fpair = factor_lj*forcenm*r2inv;
 
         f[i][0] += delx*fpair;
@@ -404,19 +403,20 @@ double PairNMCut::single(int /*i*/, int /*j*/, int itype, int jtype,
                       double rsq, double /*factor_coul*/, double factor_lj,
                       double &fforce)
 {
-  double r2inv,r,forcenm,phinm;
+  double r2inv,forcenm,phinm;
 
   r2inv = 1.0/rsq;
-  r = sqrt(rsq);
+  const double rminv = pow(r2inv,mm[itype][jtype]/2.0);
+  const double rninv = pow(r2inv,nn[itype][jtype]/2.0);
 
   forcenm = e0nm[itype][jtype]*nm[itype][jtype] *
-    (r0n[itype][jtype]/pow(r,nn[itype][jtype]) -
-     r0m[itype][jtype]/pow(r,mm[itype][jtype]));
+    (r0n[itype][jtype]*rninv -
+     r0m[itype][jtype]*rminv);
   fforce = factor_lj*forcenm*r2inv;
 
   phinm = e0nm[itype][jtype] *
-    (mm[itype][jtype] * r0n[itype][jtype]/pow(r,nn[itype][jtype]) -
-     nn[itype][jtype]*r0m[itype][jtype] /pow(r,mm[itype][jtype])) -
+    (mm[itype][jtype] * r0n[itype][jtype]*rninv -
+     nn[itype][jtype]*r0m[itype][jtype]*rminv) -
     offset[itype][jtype];
   return factor_lj*phinm;
 }

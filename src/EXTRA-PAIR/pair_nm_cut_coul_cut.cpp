@@ -78,7 +78,7 @@ void PairNMCutCoulCut::compute(int eflag, int vflag)
   int i,j,ii,jj,inum,jnum,itype,jtype;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
   double rsq,r2inv,factor_coul,factor_lj;
-  double r,forcecoul,forcenm,rminv,rninv;
+  double forcecoul,forcenm,rminv,rninv;
   int *ilist,*jlist,*numneigh,**firstneigh;
 
   evdwl = ecoul = 0.0;
@@ -130,12 +130,11 @@ void PairNMCutCoulCut::compute(int eflag, int vflag)
         else forcecoul = 0.0;
 
         if (rsq < cut_ljsq[itype][jtype]) {
-          r = sqrt(rsq);
           rminv = pow(r2inv,mm[itype][jtype]/2.0);
           rninv = pow(r2inv,nn[itype][jtype]/2.0);
           forcenm = e0nm[itype][jtype]*nm[itype][jtype] *
-            (r0n[itype][jtype]/pow(r,nn[itype][jtype]) -
-             r0m[itype][jtype]/pow(r,mm[itype][jtype]));
+            (r0n[itype][jtype]*rninv -
+             r0m[itype][jtype]*rminv);
         } else forcenm = 0.0;
 
         fpair = (factor_coul*forcecoul + factor_lj*forcenm) * r2inv;
@@ -458,17 +457,19 @@ double PairNMCutCoulCut::single(int i, int j, int itype, int jtype,
                                 double factor_coul, double factor_lj,
                                 double &fforce)
 {
-  double r2inv,r,forcecoul,forcenm,phicoul,phinm;
+  double r2inv,forcecoul,forcenm,phicoul,phinm;
+  double rminv = 0.0, rninv = 0.0;
 
   r2inv = 1.0/rsq;
   if (rsq < cut_coulsq[itype][jtype])
     forcecoul = force->qqrd2e * atom->q[i]*atom->q[j]*sqrt(r2inv);
   else forcecoul = 0.0;
   if (rsq < cut_ljsq[itype][jtype]) {
-    r = sqrt(rsq);
+    rminv = pow(r2inv,mm[itype][jtype]/2.0);
+    rninv = pow(r2inv,nn[itype][jtype]/2.0);
     forcenm = e0nm[itype][jtype]*nm[itype][jtype] *
-      (r0n[itype][jtype]/pow(r,nn[itype][jtype]) -
-       r0m[itype][jtype]/pow(r,mm[itype][jtype]));
+      (r0n[itype][jtype]*rninv -
+       r0m[itype][jtype]*rminv);
   } else forcenm = 0.0;
   fforce = (factor_coul*forcecoul + factor_lj*forcenm) * r2inv;
 
@@ -479,8 +480,8 @@ double PairNMCutCoulCut::single(int i, int j, int itype, int jtype,
   }
   if (rsq < cut_ljsq[itype][jtype]) {
     phinm = e0nm[itype][jtype] *
-      (mm[itype][jtype]*r0n[itype][jtype]/pow(r,nn[itype][jtype]) -
-       nn[itype][jtype]*r0m[itype][jtype]/pow(r,mm[itype][jtype])) -
+      (mm[itype][jtype]*r0n[itype][jtype]*rninv -
+       nn[itype][jtype]*r0m[itype][jtype]*rminv) -
       offset[itype][jtype];
     eng += factor_lj*phinm;
   }

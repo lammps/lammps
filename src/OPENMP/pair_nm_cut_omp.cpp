@@ -85,7 +85,7 @@ void PairNMCutOMP::eval(int iifrom, int iito, ThrData * const thr)
   const int * const * const firstneigh = list->firstneigh;
 
   double xtmp,ytmp,ztmp,delx,dely,delz,fxtmp,fytmp,fztmp;
-  double r,rsq,r2inv,rminv,rninv,forcenm,factor_lj,evdwl,fpair;
+  double rsq,r2inv,rminv,rninv,forcenm,factor_lj,evdwl,fpair;
 
   const int nlocal = atom->nlocal;
   int j,jj,jnum,jtype;
@@ -126,14 +126,13 @@ void PairNMCutOMP::eval(int iifrom, int iito, ThrData * const thr)
 
       if (rsq < cutsqi[jtype]) {
         r2inv = 1.0/rsq;
-        r = sqrt(rsq);
 
         rminv = pow(r2inv,mmi[jtype]*0.5);
         rninv = pow(r2inv,nni[jtype]*0.5);
 
         forcenm = e0nmi[jtype]*nmi[jtype] *
-          (r0ni[jtype]/pow(r,nni[jtype]) -
-           r0mi[jtype]/pow(r,mmi[jtype]));
+          (r0ni[jtype]*rninv -
+           r0mi[jtype]*rminv);
         fpair = factor_lj*forcenm*r2inv;
 
         fxtmp += delx*fpair;

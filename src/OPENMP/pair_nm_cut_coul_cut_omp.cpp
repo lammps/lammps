@@ -81,7 +81,7 @@ void PairNMCutCoulCutOMP::eval(int iifrom, int iito, ThrData * const thr)
 {
   int j,ii,jj,jnum,jtype;
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul,fpair;
-  double r,rsq,r2inv,rminv,rninv,forcecoul,forcenm,factor_coul,factor_lj;
+  double rsq,r2inv,rminv,rninv,forcecoul,forcenm,factor_coul,factor_lj;
   int *ilist,*numneigh,**firstneigh;
 
   evdwl = ecoul = 0.0;
@@ -151,12 +151,11 @@ void PairNMCutCoulCutOMP::eval(int iifrom, int iito, ThrData * const thr)
         }
 
         if (rsq < cut_ljsqi[jtype]) {
-          r = sqrt(rsq);
           rminv = pow(r2inv,mmi[jtype]/2.0);
           rninv = pow(r2inv,nni[jtype]/2.0);
           forcenm = e0nmi[jtype]*nmi[jtype] *
-            (r0ni[jtype]/pow(r,nni[jtype]) -
-             r0mi[jtype]/pow(r,mmi[jtype]));
+            (r0ni[jtype]*rninv -
+             r0mi[jtype]*rminv);
           forcenm *= factor_lj;
           if (EFLAG)
             evdwl = (e0nmi[jtype]*(mmi[jtype] *

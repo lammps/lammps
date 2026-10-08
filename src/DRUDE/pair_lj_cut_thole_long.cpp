@@ -199,6 +199,7 @@ void PairLJCutTholeLong::compute(int eflag, int vflag)
             if (j != di_closest) {
               if (drudetype[type[j]] == CORE_TYPE) {
                 dj = atom->map(drudeid[j]);
+                if (dj < 0) error->one(FLERR, "Drude partner not found");
                 dqj = -q[dj];
               } else dqj = qj;
               asr = ascreen[type[i]][type[j]] * r;

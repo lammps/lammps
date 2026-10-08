@@ -155,6 +155,8 @@ void FixPolarizeBEMICC::setup(int /*vflag*/)
     efield_pair = (dynamic_cast<PairLJCutCoulLongDielectric *>(force->pair))->efield;
   else if (strcmp(force->pair_style, "lj/cut/coul/msm/dielectric") == 0)
     efield_pair = (dynamic_cast<PairLJCutCoulMSMDielectric *>(force->pair))->efield;
+  else if (strcmp(force->pair_style, "lj/cut/coul/msm/dielectric/omp") == 0)
+    efield_pair = (dynamic_cast<PairLJCutCoulMSMDielectric *>(force->pair))->efield;
   else if (strcmp(force->pair_style, "lj/cut/coul/cut/dielectric") == 0)
     efield_pair = (dynamic_cast<PairLJCutCoulCutDielectric *>(force->pair))->efield;
   else if (strcmp(force->pair_style, "lj/cut/coul/cut/dielectric/omp") == 0)
@@ -165,7 +167,11 @@ void FixPolarizeBEMICC::setup(int /*vflag*/)
     efield_pair = (dynamic_cast<PairLJCutCoulDebyeDielectric *>(force->pair))->efield;
   else if (strcmp(force->pair_style, "coul/long/dielectric") == 0)
     efield_pair = (dynamic_cast<PairCoulLongDielectric *>(force->pair))->efield;
+  else if (strcmp(force->pair_style, "coul/long/dielectric/omp") == 0)
+    efield_pair = (dynamic_cast<PairCoulLongDielectric *>(force->pair))->efield;
   else if (strcmp(force->pair_style, "coul/cut/dielectric") == 0)
+    efield_pair = (dynamic_cast<PairCoulCutDielectric *>(force->pair))->efield;
+  else if (strcmp(force->pair_style, "coul/cut/dielectric/omp") == 0)
     efield_pair = (dynamic_cast<PairCoulCutDielectric *>(force->pair))->efield;
   else
     error->all(FLERR, "Pair style not compatible with fix polarize/bem/icc");

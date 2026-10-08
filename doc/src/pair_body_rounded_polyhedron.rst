@@ -172,7 +172,7 @@ in contact nor calculate the tangential deformation.  Instead, we assume
 that gross sliding takes place as soon as two particles are in
 contact.
 
-.. versionchanged:: TBD
+.. versionchanged:: 30Sep2026
 
 The friction term in :math:`F_t` acts in the tangential direction,
 opposite to the tangential relative velocity :math:`v_t` at the contact
@@ -210,7 +210,7 @@ force.  A vertex or a sphere that has penetrated the other particle, and
 two edges that have crossed each other, are now pushed out instead of
 further in, and a rod lying on a face no longer falls through it.
 
-.. versionadded:: TBD
+.. versionadded:: 30Sep2026
 
 With the *history* keyword, the friction force is instead that of a
 tangential spring, which also acts prior to gross sliding.  The
@@ -306,7 +306,7 @@ mix, shift, table, and tail options.
    quantities described next can be used to check the energy balance of
    a simulation.
 
-.. versionadded:: TBD
+.. versionadded:: 30Sep2026
 
 This pair style computes two extra quantities that can be accessed by
 the :doc:`compute pair <compute_pair>` command, as elements 1 and 2 of

@@ -5,13 +5,17 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
+#include <cerrno>
 #include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <filesystem>
 #include <string>
 
 using namespace LAMMPS_NS;
 using testing::EndsWith;
 using testing::Eq;
+using testing::HasSubstr;
 using testing::IsEmpty;
 using testing::StartsWith;
 using testing::StrEq;
@@ -95,6 +99,58 @@ TEST(Platform, find_cmd_path)
     ASSERT_THAT(platform::find_exe_path("sh"), EndsWith("bin/sh"));
     ASSERT_THAT(platform::find_exe_path("some_bogus_command"), IsEmpty());
 #endif
+}
+
+// temporarily replace the PATH environment variable
+class ReplacePath {
+public:
+    explicit ReplacePath(const std::string &newpath)
+    {
+        const char *ptr = getenv("PATH");
+        had_path        = (ptr != nullptr);
+        if (had_path) oldpath = ptr;
+        platform::putenv("PATH=" + newpath);
+    }
+    ~ReplacePath()
+    {
+        if (had_path)
+            platform::putenv("PATH=" + oldpath);
+        else
+            platform::unsetenv("PATH");
+    }
+
+private:
+    std::string oldpath;
+    bool had_path;
+};
+
+TEST(Platform, find_cmd_path_skip_dir)
+{
+    // a directory with the name of the command in the first folder must be skipped
+    const std::string dir1 = platform::path_join("find_cmd_path_test", "dir1");
+    const std::string dir2 = platform::path_join("find_cmd_path_test", "dir2");
+#if defined(_WIN32)
+    const std::string cmd     = "some_test_cmd.bat";
+    const std::string pathvar = dir1 + ";" + dir2;
+#else
+    const std::string cmd     = "some_test_cmd";
+    const std::string pathvar = dir1 + ":" + dir2;
+#endif
+    platform::mkdir(platform::path_join(dir1, cmd));
+    platform::mkdir(dir2);
+    const std::string exe = platform::path_join(dir2, cmd);
+    FILE *fp              = fopen(exe.c_str(), "w");
+    ASSERT_NE(fp, nullptr);
+    fputs("exit 0\n", fp);
+    fclose(fp);
+#if !defined(_WIN32)
+    chmod(exe.c_str(), 0755);
+#endif
+    {
+        ReplacePath newpath(pathvar);
+        EXPECT_THAT(platform::find_exe_path("some_test_cmd"), StrEq(exe));
+    }
+    platform::rmdir("find_cmd_path_test");
 }
 
 #if defined(TEST_SHARED_LOAD)
@@ -376,6 +432,34 @@ TEST(Platform, file_is_readable)
 #endif
 }
 
+TEST(Platform, file_is_executable)
+{
+    platform::unlink("file_is_executable.txt");
+    FILE *fp = fopen("file_is_executable.txt", "w");
+    fputs("some text\n", fp);
+    fclose(fp);
+    platform::mkdir("dir_is_not_executable");
+
+    ASSERT_FALSE(platform::file_is_executable("file_does_not_exist.txt"));
+    ASSERT_FALSE(platform::file_is_executable("dir_is_not_executable"));
+    ASSERT_FALSE(platform::file_is_executable("file_is_executable.txt"));
+
+    // windows does not have permission flags and uses the file name extension instead
+#if defined(_WIN32)
+    platform::unlink("file_is_executable.bat");
+    fp = fopen("file_is_executable.bat", "w");
+    fputs("exit\n", fp);
+    fclose(fp);
+    ASSERT_TRUE(platform::file_is_executable("file_is_executable.bat"));
+    platform::unlink("file_is_executable.bat");
+#else
+    chmod("file_is_executable.txt", 0755);
+    ASSERT_TRUE(platform::file_is_executable("file_is_executable.txt"));
+#endif
+    platform::unlink("file_is_executable.txt");
+    platform::rmdir("dir_is_not_executable");
+}
+
 TEST(Platform, file_write_time)
 {
     platform::unlink("file_is_not_modified.txt");
@@ -444,5 +528,26 @@ TEST(Platform, compress_read_write)
         ASSERT_EQ(ferror(fp), 0);
         platform::pclose(fp);
         platform::unlink(file);
+    }
+}
+
+TEST(Platform, compressed_open_error)
+{
+    // a missing compression program is reported by name
+    platform::mkdir("compressed_open_error_test");
+    {
+        ReplacePath newpath("compressed_open_error_test");
+        EXPECT_THAT(platform::compressed_open_error("some_file.gz"), HasSubstr("'gzip'"));
+        EXPECT_THAT(platform::compressed_open_error("some_file.bz2"), HasSubstr("'bzip2'"));
+        EXPECT_THAT(platform::compressed_open_error("some_file.lzma"), HasSubstr("'xz'"));
+    }
+    platform::rmdir("compressed_open_error_test");
+
+    // otherwise the system error is reported
+    errno = EACCES;
+    EXPECT_THAT(platform::compressed_open_error("some_file.txt"), StrEq(strerror(EACCES)));
+    if (!platform::find_exe_path("gzip").empty()) {
+        errno = ENOENT;
+        EXPECT_THAT(platform::compressed_open_error("some_file.gz"), StrEq(strerror(ENOENT)));
     }
 }

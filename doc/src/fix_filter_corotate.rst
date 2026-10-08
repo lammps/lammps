@@ -77,7 +77,7 @@ LAMMPS was built with that package. See the :doc:`Build package <Build_package>`
 
 Currently, it does not support :doc:`molecule templates <molecule>`.
 
-.. versionchanged:: TBD
+.. versionchanged:: 30Sep2026
 
 This fix cannot be used with the KOKKOS versions of pair, bond, angle,
 dihedral, improper, or kspace styles, as selected for example with the

@@ -434,6 +434,12 @@ void VerletKokkos::run(int n)
 
     if (execute_on_host) datamask_exclude = (F_MASK | ENERGY_MASK | VIRIAL_MASK);
 
+    // sync what the pre_force fixes claimed on the forces before excluding them,
+    // to where the pair accumulates, as the pair's own sync below would
+
+    if (execute_on_host)
+      atomKK->sync(pair_compute_flag ? force->pair->execution_space : Device, datamask_exclude);
+
     // keep the forces out of sync() and modified() until they are merged
 
     AtomKokkos::ExcludeMask exclude_guard(atomKK,datamask_exclude);

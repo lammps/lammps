@@ -610,8 +610,6 @@ std::string platform::find_exe_path(const std::string &cmd)
 #ifdef _WIN32
   // windows always looks in "." and does it first
   pathdirs.insert(pathdirs.begin(), ".");
-#else
-  struct stat info;
 #endif
   for (const auto &dir : pathdirs) {
     std::string exe = path_join(dir, cmd);
@@ -619,12 +617,10 @@ std::string platform::find_exe_path(const std::string &cmd)
     const char *extensions[] = {".exe", ".com", ".bat", nullptr};
     for (auto ext = extensions; *ext != nullptr; ++ext) {
       auto exe_path = exe + *ext;
-      if (file_is_readable(exe_path)) return exe_path;
+      if (file_is_executable(exe_path)) return exe_path;
     }
 #else
-    memset(&info, 0, sizeof(info));
-    if (stat(exe.c_str(), &info) != 0) continue;
-    if ((info.st_mode & (S_IXOTH | S_IXGRP | S_IXUSR)) != 0) return exe;
+    if (file_is_executable(exe)) return exe;
 #endif
   }
   return "";
@@ -1027,6 +1023,23 @@ bool platform::file_is_writable(const std::string &path)
 }
 
 /* ----------------------------------------------------------------------
+   check if path is a regular file that can be executed
+------------------------------------------------------------------------- */
+
+bool platform::file_is_executable(const std::string &path)
+{
+  std::error_code ec;
+  if (!std::filesystem::is_regular_file(path, ec)) return false;
+#if defined(_WIN32)
+  // Windows has no execute permission, so check for known file name extensions
+  const auto ext = utils::lowercase(std::filesystem::path(path).extension().string());
+  return (ext == ".exe") || (ext == ".com") || (ext == ".bat") || (ext == ".cmd");
+#else
+  return access(path.c_str(), X_OK) == 0;
+#endif
+}
+
+/* ----------------------------------------------------------------------
    read first line of file to see if it is a redirect file of a git checkout
    on a file system without symlinks
 ------------------------------------------------------------------------- */
@@ -1104,7 +1117,6 @@ FILE *platform::compressed_read(const std::string &file)
 {
   FILE *fp = nullptr;
 
-#if defined(LAMMPS_GZIP)
   const auto &compress = find_compress_type(file);
   if (compress.style == ::compress_info::NONE) return nullptr;
 
@@ -1123,7 +1135,6 @@ FILE *platform::compressed_read(const std::string &file)
   if (!find_exe_path(compress.command).empty())
     // put quotes around file name so that they may contain blanks
     fp = popen((compress.command + compress.uncompressflags + "\"" + file + "\""), "r");
-#endif
   return fp;
 }
 
@@ -1135,7 +1146,6 @@ FILE *platform::compressed_write(const std::string &file)
 {
   FILE *fp = nullptr;
 
-#if defined(LAMMPS_GZIP)
   const auto &compress = find_compress_type(file);
   if (compress.style == ::compress_info::NONE) return nullptr;
   if (!file_is_writable(file)) return nullptr;
@@ -1148,8 +1158,23 @@ FILE *platform::compressed_write(const std::string &file)
     // put quotes around file name for shell command so that they may contain blanks
     fp = popen((compress.command + compress.compressflags + "\"" + file + "\""), "w");
   }
-#endif
   return fp;
+}
+
+/* ----------------------------------------------------------------------
+   explain why opening a pipe to a compressed file failed
+------------------------------------------------------------------------- */
+
+std::string platform::compressed_open_error(const std::string &file)
+{
+  // get system error first, since searching for the program may change errno
+  auto syserror = utils::getsyserror();
+  const auto &compress = find_compress_type(file);
+  if ((compress.style != ::compress_info::NONE) && find_exe_path(compress.command).empty())
+    return fmt::format("Program '{}' required for '.{}' files was not found in any folder listed "
+                       "in the PATH environment variable",
+                       compress.command, compress.extension);
+  return syserror;
 }
 
 /* ---------------------------------------------------------------------- */

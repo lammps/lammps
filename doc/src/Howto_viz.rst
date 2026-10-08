@@ -469,13 +469,13 @@ Creating and viewing animated GIFs and movie files
 A series of JPEG, PNG, or PPM images can be converted into a movie file
 and then played as a movie using commonly available tools.  Using dump
 style *movie* automates this step *and* avoids the intermediate step of
-writing (many) image snapshot file.  But LAMMPS has to be compiled with
-``-DLAMMPS_FFMPEG`` and a compatible FFmpeg executable has to be
-installed.  When using `LAMMPS-GUI <https://lammps-gui.lammps.org/>`_ to
-run LAMMPS, you can run the simulation and LAMMPS-GUI will automatically
-show the created images in its ``Slideshow Viewer`` dialog.  From there
-you can animate or single step through them and also export them to a
-movie file via FFMpeg.
+writing (many) image snapshot file.  But a compatible `FFmpeg
+<https://ffmpeg.org/>`_ executable has to be installed.  When using
+`LAMMPS-GUI <https://lammps-gui.lammps.org/>`_ to run LAMMPS, you can
+run the simulation and LAMMPS-GUI will automatically show the created
+images in its ``Slideshow Viewer`` dialog.  From there you can animate
+or single step through them and also export them to a movie file via
+FFmpeg.
 
 To manually convert JPEG, PNG or PPM files into an animated GIF or
 MPEG or other movie file you can use:
@@ -505,7 +505,7 @@ MPEG or other movie file you can use:
 
 #. Use FFmpeg
 
-   `FFMpeg <https://ffmpeg.org/>`_ is a command-line tool that is
+   `FFmpeg <https://ffmpeg.org/>`_ is a command-line tool that is
    available on many platforms and allows extremely flexible encoding
    and decoding of movies.
 
@@ -527,7 +527,7 @@ Play the movie:
    Load the animated GIF or MP4 movie file
 
 #. Use the freely available `VideoLAN media player (vlc)
-   <https://www.videolan.org>`_ or `FFMpeg player tool (ffplay)
+   <https://www.videolan.org>`_ or `FFmpeg player tool (ffplay)
    <https://ffmpeg.org/>`_ to view a movie.
 
    Both are available for multiple operating systems and support a large

@@ -64,7 +64,7 @@ set_tests_properties(DumpAtom PROPERTIES ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS
 add_kokkos_test(NAME DumpAtom COMMAND test_dump_atom ENVIRONMENT "LAMMPS_POTENTIALS=${LAMMPS_POTENTIALS_DIR}")
 
 find_program(GZIP_EXECUTABLE NAMES gzip)
-if(PKG_COMPRESS AND GZIP_FOUND)
+if(PKG_COMPRESS AND GZIP_EXECUTABLE)
     add_executable(test_dump_atom_compressed test_dump_atom_compressed.cpp compressed_dump_test_main.cpp)
     target_link_libraries(test_dump_atom_compressed PRIVATE lammps GTest::GMock)
 

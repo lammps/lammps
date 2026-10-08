@@ -565,7 +565,7 @@ void GranSubModTangentialMindlin::calculate_forces()
 
 /*-----------------------------------------------------------------------
  * Mindlin with static friction coefficient
- */
+------------------------------------------------------------------------- */
 
 GranSubModTangentialMindlinStatic::GranSubModTangentialMindlinStatic(GranularModel *gm, LAMMPS *lmp) : GranSubModTangentialMindlin(gm, lmp)
 {

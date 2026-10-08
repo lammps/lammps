@@ -441,7 +441,7 @@ void FixNeighborSwap::init()
 
     int flag = 0;
     for (int i = 0; i < atom->nlocal; i++)
-      if ((mask[i] == groupbit) && (mask[i] && firstgroupbit)) flag = 1;
+      if ((mask[i] == groupbit) && (mask[i] & firstgroupbit)) flag = 1;
 
     int flagall;
     MPI_Allreduce(&flag, &flagall, 1, MPI_INT, MPI_SUM, world);

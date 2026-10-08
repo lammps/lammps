@@ -17,6 +17,8 @@
 #include "pointers.h"
 #include "constants_oxdna.h"
 
+#include <cmath>
+
 namespace LAMMPS_NS {
 // NOLINTBEGIN
 template <class Derived>
@@ -141,6 +143,20 @@ class NucleotideOxrna2 : public NucleotideOxdna<NucleotideOxrna2> {
     rbk[2] = dx_cbk_oxrna2 * e1[2] + dz_cbk_oxrna2 * e3[2];
   }
 };
+
+// distance of an interaction site from the nucleotide center of mass for a
+// function computing the site from the unit vectors of the local frame; it
+// does not depend on the orientation, so the lab frame is used
+
+template <class SiteFunc> inline double site_offset(SiteFunc site)
+{
+  double e1[3] = {1.0, 0.0, 0.0};
+  double e2[3] = {0.0, 1.0, 0.0};
+  double e3[3] = {0.0, 0.0, 1.0};
+  double r[3];
+  site(e1, e2, e3, r);
+  return sqrt(r[0] * r[0] + r[1] * r[1] + r[2] * r[2]);
+}
 
 }
 #endif

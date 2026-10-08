@@ -69,17 +69,23 @@ namespace MathExtraKokkos {
   KOKKOS_INLINE_FUNCTION void vecmat(const KK_FLOAT *v, const KK_FLOAT m[3][3], KK_FLOAT *ans);
   KOKKOS_INLINE_FUNCTION void scalar_times3(const KK_FLOAT f, KK_FLOAT m[3][3]);
 
-  KOKKOS_INLINE_FUNCTION void richardson(double *q, KK_FLOAT *m, KK_FLOAT *w, KK_FLOAT *moments, KK_FLOAT dtq);
-
   // quaternion operations
+  // NOTE: we have float & double versions for some of these since quat in bonus struct is still double (i,e, - not just KK_FLOAT)
+  KOKKOS_INLINE_FUNCTION void richardson(double *q, KK_FLOAT *m, KK_FLOAT *w, KK_FLOAT *moments, KK_FLOAT dtq);
+  KOKKOS_INLINE_FUNCTION void richardson(float *q, KK_FLOAT *m, KK_FLOAT *w, KK_FLOAT *moments, KK_FLOAT dtq);
+
   KOKKOS_INLINE_FUNCTION void qnormalize(double *q);
+  KOKKOS_INLINE_FUNCTION void qnormalize(float *q);
   KOKKOS_INLINE_FUNCTION void qconjugate(KK_FLOAT *q, KK_FLOAT *qc);
   KOKKOS_INLINE_FUNCTION void vecquat(KK_FLOAT *a, double *b, KK_FLOAT *c);
+  KOKKOS_INLINE_FUNCTION void vecquat(KK_FLOAT *a, float *b, KK_FLOAT *c);
   KOKKOS_INLINE_FUNCTION void axisangle_to_quat(const KK_FLOAT *v, const KK_FLOAT angle,
                                 KK_FLOAT *quat);
 
   KOKKOS_INLINE_FUNCTION void mq_to_omega(KK_FLOAT *m, double *q, KK_FLOAT *moments, KK_FLOAT *w);
+  KOKKOS_INLINE_FUNCTION void mq_to_omega(KK_FLOAT *m, float *q, KK_FLOAT *moments, KK_FLOAT *w);
   KOKKOS_INLINE_FUNCTION void quat_to_mat(const double *quat, KK_FLOAT mat[3][3]);
+  KOKKOS_INLINE_FUNCTION void quat_to_mat(const float *quat, KK_FLOAT mat[3][3]);
   KOKKOS_INLINE_FUNCTION void angmom_to_omega(KK_FLOAT *m, KK_FLOAT *ex, KK_FLOAT *ey, KK_FLOAT *ez,
                                               KK_FLOAT *idiag, KK_FLOAT *w);
   KOKKOS_INLINE_FUNCTION void omega_to_angmom(KK_FLOAT *w, KK_FLOAT *ex, KK_FLOAT *ey, KK_FLOAT *ez,
@@ -377,9 +383,9 @@ void MathExtraKokkos::invert3(const KK_FLOAT m[3][3], KK_FLOAT ans[3][3])
 KOKKOS_INLINE_FUNCTION
 void MathExtraKokkos::matvec(const KK_FLOAT m[3][3], const KK_FLOAT *v, KK_FLOAT *ans)
 {
-  ans[0] = m[0][0]*v[0] + m[0][1]*v[1] + m[0][2]*v[2];
-  ans[1] = m[1][0]*v[0] + m[1][1]*v[1] + m[1][2]*v[2];
-  ans[2] = m[2][0]*v[0] + m[2][1]*v[1] + m[2][2]*v[2];
+  ans[0] = Kokkos::fma(m[0][1], v[1], Kokkos::fma(m[0][0], v[0], m[0][2]*v[2]));
+  ans[1] = Kokkos::fma(m[1][1], v[1], Kokkos::fma(m[1][0], v[0], m[1][2]*v[2]));
+  ans[2] = Kokkos::fma(m[2][1], v[1], Kokkos::fma(m[2][0], v[0], m[2][2]*v[2]));
 }
 
 /* ----------------------------------------------------------------------
@@ -390,9 +396,9 @@ KOKKOS_INLINE_FUNCTION
 void MathExtraKokkos::matvec(const KK_FLOAT *ex, const KK_FLOAT *ey, const KK_FLOAT *ez,
                        const KK_FLOAT *v, KK_FLOAT *ans)
 {
-  ans[0] = ex[0]*v[0] + ey[0]*v[1] + ez[0]*v[2];
-  ans[1] = ex[1]*v[0] + ey[1]*v[1] + ez[1]*v[2];
-  ans[2] = ex[2]*v[0] + ey[2]*v[1] + ez[2]*v[2];
+  ans[0] = Kokkos::fma(ey[0], v[1], Kokkos::fma(ex[0], v[0], ez[0]*v[2]));
+  ans[1] = Kokkos::fma(ey[1], v[1], Kokkos::fma(ex[1], v[0], ez[1]*v[2]));
+  ans[2] = Kokkos::fma(ey[2], v[1], Kokkos::fma(ex[2], v[0], ez[2]*v[2]));
 }
 
 /* ----------------------------------------------------------------------
@@ -403,9 +409,9 @@ KOKKOS_INLINE_FUNCTION
 void MathExtraKokkos::transpose_matvec(const KK_FLOAT m[3][3], const KK_FLOAT *v,
                                  KK_FLOAT *ans)
 {
-  ans[0] = m[0][0]*v[0] + m[1][0]*v[1] + m[2][0]*v[2];
-  ans[1] = m[0][1]*v[0] + m[1][1]*v[1] + m[2][1]*v[2];
-  ans[2] = m[0][2]*v[0] + m[1][2]*v[1] + m[2][2]*v[2];
+  ans[0] = Kokkos::fma(m[1][0], v[1], Kokkos::fma(m[0][0], v[0], m[2][0]*v[2]));
+  ans[1] = Kokkos::fma(m[1][1], v[1], Kokkos::fma(m[0][1], v[0], m[2][1]*v[2]));
+  ans[2] = Kokkos::fma(m[1][2], v[1], Kokkos::fma(m[0][2], v[0], m[2][2]*v[2]));
 }
 
 /* ----------------------------------------------------------------------
@@ -417,9 +423,9 @@ void MathExtraKokkos::transpose_matvec(const KK_FLOAT *ex, const KK_FLOAT *ey,
                                  const KK_FLOAT *ez, const KK_FLOAT *v,
                                  KK_FLOAT *ans)
 {
-  ans[0] = ex[0]*v[0] + ex[1]*v[1] + ex[2]*v[2];
-  ans[1] = ey[0]*v[0] + ey[1]*v[1] + ey[2]*v[2];
-  ans[2] = ez[0]*v[0] + ez[1]*v[1] + ez[2]*v[2];
+  ans[0] = Kokkos::fma(ex[1], v[1], Kokkos::fma(ex[0], v[0], ex[2]*v[2]));
+  ans[1] = Kokkos::fma(ey[1], v[1], Kokkos::fma(ey[0], v[0], ey[2]*v[2]));
+  ans[2] = Kokkos::fma(ez[1], v[1], Kokkos::fma(ez[0], v[0], ez[2]*v[2]));
 }
 
 /* ----------------------------------------------------------------------
@@ -448,9 +454,9 @@ void MathExtraKokkos::transpose_diag3(const KK_FLOAT m[3][3], const KK_FLOAT *d,
 KOKKOS_INLINE_FUNCTION
 void MathExtraKokkos::vecmat(const KK_FLOAT *v, const KK_FLOAT m[3][3], KK_FLOAT *ans)
 {
-  ans[0] = v[0]*m[0][0] + v[1]*m[1][0] + v[2]*m[2][0];
-  ans[1] = v[0]*m[0][1] + v[1]*m[1][1] + v[2]*m[2][1];
-  ans[2] = v[0]*m[0][2] + v[1]*m[1][2] + v[2]*m[2][2];
+  ans[0] = Kokkos::fma(v[1], m[1][0], Kokkos::fma(v[0], m[0][0], v[2]*m[2][0]));
+  ans[1] = Kokkos::fma(v[1], m[1][1], Kokkos::fma(v[0], m[0][1], v[2]*m[2][1]));
+  ans[2] = Kokkos::fma(v[1], m[1][2], Kokkos::fma(v[0], m[0][2], v[2]*m[2][2]));
 }
 
 /* ----------------------------------------------------------------------
@@ -470,6 +476,7 @@ void MathExtraKokkos::scalar_times3(const KK_FLOAT f, KK_FLOAT m[3][3])
    return new normalized quaternion q
    also returns updated omega at 1/2 step
 ------------------------------------------------------------------------- */
+
 KOKKOS_INLINE_FUNCTION
 void MathExtraKokkos::richardson(double *q, KK_FLOAT *m, KK_FLOAT *w, KK_FLOAT *moments, KK_FLOAT dtq)
 {
@@ -517,13 +524,78 @@ void MathExtraKokkos::richardson(double *q, KK_FLOAT *m, KK_FLOAT *w, KK_FLOAT *
   MathExtraKokkos::qnormalize(q);
 }
 
+KOKKOS_INLINE_FUNCTION
+void MathExtraKokkos::richardson(float *q, KK_FLOAT *m, KK_FLOAT *w, KK_FLOAT *moments, KK_FLOAT dtq)
+{
+  // full update from dq/dt = 1/2 w q
+
+  KK_FLOAT wq[4];
+  MathExtraKokkos::vecquat(w,q,wq);
+
+  KK_FLOAT qfull[4];
+  qfull[0] = Kokkos::fma(dtq, wq[0], q[0]);
+  qfull[1] = Kokkos::fma(dtq, wq[1], q[1]);
+  qfull[2] = Kokkos::fma(dtq, wq[2], q[2]);
+  qfull[3] = Kokkos::fma(dtq, wq[3], q[3]);
+  MathExtraKokkos::qnormalize(qfull);
+
+  // 1st half update from dq/dt = 1/2 w q
+
+  KK_FLOAT qhalf[4];
+  qhalf[0] = Kokkos::fma(static_cast<KK_FLOAT>(0.5)*dtq, wq[0], q[0]);
+  qhalf[1] = Kokkos::fma(static_cast<KK_FLOAT>(0.5)*dtq, wq[1], q[1]);
+  qhalf[2] = Kokkos::fma(static_cast<KK_FLOAT>(0.5)*dtq, wq[2], q[2]);
+  qhalf[3] = Kokkos::fma(static_cast<KK_FLOAT>(0.5)*dtq, wq[3], q[3]);
+  MathExtraKokkos::qnormalize(qhalf);
+
+  // re-compute omega at 1/2 step from m at 1/2 step and q at 1/2 step
+  // recompute wq
+
+  MathExtraKokkos::mq_to_omega(m,qhalf,moments,w);
+  MathExtraKokkos::vecquat(w,qhalf,wq);
+
+  // 2nd half update from dq/dt = 1/2 w q
+
+  qhalf[0] = Kokkos::fma(static_cast<KK_FLOAT>(0.5)*dtq, wq[0], qhalf[0]);
+  qhalf[1] = Kokkos::fma(static_cast<KK_FLOAT>(0.5)*dtq, wq[1], qhalf[1]);
+  qhalf[2] = Kokkos::fma(static_cast<KK_FLOAT>(0.5)*dtq, wq[2], qhalf[2]);
+  qhalf[3] = Kokkos::fma(static_cast<KK_FLOAT>(0.5)*dtq, wq[3], qhalf[3]);
+  MathExtraKokkos::qnormalize(qhalf);
+
+  // corrected Richardson update
+
+  q[0] = Kokkos::fma(static_cast<KK_FLOAT>(2.0), qhalf[0], -qfull[0]);
+  q[1] = Kokkos::fma(static_cast<KK_FLOAT>(2.0), qhalf[1], -qfull[1]);
+  q[2] = Kokkos::fma(static_cast<KK_FLOAT>(2.0), qhalf[2], -qfull[2]);
+  q[3] = Kokkos::fma(static_cast<KK_FLOAT>(2.0), qhalf[3], -qfull[3]);
+  MathExtraKokkos::qnormalize(q);
+}
+
 /* ----------------------------------------------------------------------
    normalize a quaternion
 ------------------------------------------------------------------------- */
 KOKKOS_INLINE_FUNCTION
 void MathExtraKokkos::qnormalize(double *q)
 {
-  double norm = 1.0 / sqrt(q[0] * q[0] + q[1] * q[1] + q[2] * q[2] + q[3] * q[3]);
+  KK_FLOAT sum = static_cast<KK_FLOAT>(q[3]) * static_cast<KK_FLOAT>(q[3]);
+  sum = Kokkos::fma(static_cast<KK_FLOAT>(q[2]), static_cast<KK_FLOAT>(q[2]), sum);
+  sum = Kokkos::fma(static_cast<KK_FLOAT>(q[1]), static_cast<KK_FLOAT>(q[1]), sum);
+  sum = Kokkos::fma(static_cast<KK_FLOAT>(q[0]), static_cast<KK_FLOAT>(q[0]), sum);
+  double norm = static_cast<double>(Kokkos::rsqrt(sum));
+  q[0] *= norm;
+  q[1] *= norm;
+  q[2] *= norm;
+  q[3] *= norm;
+}
+
+KOKKOS_INLINE_FUNCTION
+void MathExtraKokkos::qnormalize(float *q)
+{
+  KK_FLOAT sum = q[3] * q[3];
+  sum = Kokkos::fma(q[2], q[2], sum);
+  sum = Kokkos::fma(q[1], q[1], sum);
+  sum = Kokkos::fma(q[0], q[0], sum);
+  KK_FLOAT norm = Kokkos::rsqrt(sum);
   q[0] *= norm;
   q[1] *= norm;
   q[2] *= norm;
@@ -553,10 +625,19 @@ void MathExtraKokkos::vecquat(KK_FLOAT *a, double *b, KK_FLOAT *c)
   const KK_FLOAT b1 = static_cast<KK_FLOAT>(b[1]);
   const KK_FLOAT b2 = static_cast<KK_FLOAT>(b[2]);
   const KK_FLOAT b3 = static_cast<KK_FLOAT>(b[3]);
-  c[0] = -a[0] * b1 - a[1] * b2 - a[2] * b3;
-  c[1] = b0 * a[0] + a[1] * b3 - a[2] * b2;
-  c[2] = b0 * a[1] + a[2] * b1 - a[0] * b3;
-  c[3] = b0 * a[2] + a[0] * b2 - a[1] * b1;
+  c[0] = -Kokkos::fma(a[0], b1, Kokkos::fma(a[1], b2, a[2] * b3));
+  c[1] = Kokkos::fma(b0, a[0], Kokkos::fma(a[1], b3, -a[2] * b2));
+  c[2] = Kokkos::fma(b0, a[1], Kokkos::fma(a[2], b1, -a[0] * b3));
+  c[3] = Kokkos::fma(b0, a[2], Kokkos::fma(a[0], b2, -a[1] * b1));
+}
+
+KOKKOS_INLINE_FUNCTION
+void MathExtraKokkos::vecquat(KK_FLOAT *a, float *b, KK_FLOAT *c)
+{
+  c[0] = -Kokkos::fma(a[0], b[1], Kokkos::fma(a[1], b[2], a[2] * b[3]));
+  c[1] = Kokkos::fma(b[0], a[0], Kokkos::fma(a[1], b[3], -a[2] * b[2]));
+  c[2] = Kokkos::fma(b[0], a[1], Kokkos::fma(a[2], b[1], -a[0] * b[3]));
+  c[3] = Kokkos::fma(b[0], a[2], Kokkos::fma(a[0], b[2], -a[1] * b[1]));
 }
 
 /* ----------------------------------------------------------------------
@@ -599,6 +680,23 @@ void MathExtraKokkos::mq_to_omega(KK_FLOAT *m, double *q, KK_FLOAT *moments, KK_
   MathExtraKokkos::matvec(rot,wbody,w);
 }
 
+KOKKOS_INLINE_FUNCTION
+void MathExtraKokkos::mq_to_omega(KK_FLOAT *m, float *q, KK_FLOAT *moments, KK_FLOAT *w)
+{
+  KK_FLOAT wbody[3];
+  KK_FLOAT rot[3][3];
+
+  MathExtraKokkos::quat_to_mat(q,rot);
+  MathExtraKokkos::transpose_matvec(rot,m,wbody);
+  if (moments[0] == static_cast<KK_FLOAT>(0.0)) wbody[0] = 0.0;
+  else wbody[0] /= moments[0];
+  if (moments[1] == static_cast<KK_FLOAT>(0.0)) wbody[1] = 0.0;
+  else wbody[1] /= moments[1];
+  if (moments[2] == static_cast<KK_FLOAT>(0.0)) wbody[2] = 0.0;
+  else wbody[2] /= moments[2];
+  MathExtraKokkos::matvec(rot,wbody,w);
+}
+
 /* ----------------------------------------------------------------------
    compute rotation matrix from quaternion
    quat = [w i j k]
@@ -616,6 +714,33 @@ void MathExtraKokkos::quat_to_mat(const double *quat, KK_FLOAT mat[3][3])
   KK_FLOAT twoiw = static_cast<KK_FLOAT>(2.0*quat[1]*quat[0]);
   KK_FLOAT twojw = static_cast<KK_FLOAT>(2.0*quat[2]*quat[0]);
   KK_FLOAT twokw = static_cast<KK_FLOAT>(2.0*quat[3]*quat[0]);
+
+  mat[0][0] = w2+i2-j2-k2;
+  mat[0][1] = twoij-twokw;
+  mat[0][2] = twojw+twoik;
+
+  mat[1][0] = twoij+twokw;
+  mat[1][1] = w2-i2+j2-k2;
+  mat[1][2] = twojk-twoiw;
+
+  mat[2][0] = twoik-twojw;
+  mat[2][1] = twojk+twoiw;
+  mat[2][2] = w2-i2-j2+k2;
+}
+
+KOKKOS_INLINE_FUNCTION
+void MathExtraKokkos::quat_to_mat(const float *quat, KK_FLOAT mat[3][3])
+{
+  KK_FLOAT w2 = quat[0]*quat[0];
+  KK_FLOAT i2 = quat[1]*quat[1];
+  KK_FLOAT j2 = quat[2]*quat[2];
+  KK_FLOAT k2 = quat[3]*quat[3];
+  KK_FLOAT twoij = static_cast<KK_FLOAT>(2.0)*quat[1]*quat[2];
+  KK_FLOAT twoik = static_cast<KK_FLOAT>(2.0)*quat[1]*quat[3];
+  KK_FLOAT twojk = static_cast<KK_FLOAT>(2.0)*quat[2]*quat[3];
+  KK_FLOAT twoiw = static_cast<KK_FLOAT>(2.0)*quat[1]*quat[0];
+  KK_FLOAT twojw = static_cast<KK_FLOAT>(2.0)*quat[2]*quat[0];
+  KK_FLOAT twokw = static_cast<KK_FLOAT>(2.0)*quat[3]*quat[0];
 
   mat[0][0] = w2+i2-j2-k2;
   mat[0][1] = twoij-twokw;

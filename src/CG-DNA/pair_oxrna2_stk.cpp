@@ -55,7 +55,6 @@ PairOxrna2Stk::PairOxrna2Stk(LAMMPS *lmp) :
 {
   single_enable = 0;
   writedata = 0;
-  trim_flag = 0;
 
   // sequence-specific stacking strength
   // A:0 C:1 G:2 U:3, 3'- [i][j] -5'
@@ -86,7 +85,7 @@ PairOxrna2Stk::PairOxrna2Stk(LAMMPS *lmp) :
 
 PairOxrna2Stk::~PairOxrna2Stk()
 {
-  if (allocated) {
+  if (allocated && !copymode) {
 
     memory->destroy(setflag);
     memory->destroy(cutsq);

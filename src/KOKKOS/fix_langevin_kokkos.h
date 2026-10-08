@@ -111,6 +111,9 @@ void omega_thermostat_kokkos();
 // NOLINTNEXTLINE
     KOKKOS_INLINE_FUNCTION
       void angmom_thermostat_item(int i) const;
+      template<class RandGen>
+      KOKKOS_INLINE_FUNCTION
+      void angmom_thermostat_rand(int i, RandGen &rand_gen) const;
 
   private:
     typename AT::t_kkfloat_1d rmass;
@@ -160,7 +163,11 @@ void omega_thermostat_kokkos();
     typename ArrayTypes<DeviceType>::t_kkacc_1d_3 torque;
     typename ArrayTypes<DeviceType>::t_kkfloat_1d_3 angmom;
     typename ArrayTypes<DeviceType>::t_int_1d ellipsoid;
+    KK_FLOAT rot_gamma1;
+    KK_FLOAT rot_gamma2;
     void angmom_thermostat();
+    void angmom_thermostat_setup();
+    int fuse_angmom;    // 1 if the angmom thermostat runs in the post_force kernel
 
 #ifndef LMP_KOKKOS_DEBUG_RNG
     Kokkos::Random_XorShift64_Pool<DeviceType> rand_pool;

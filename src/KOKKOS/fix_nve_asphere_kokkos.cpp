@@ -35,7 +35,7 @@ FixNVEAsphereKokkos<DeviceType>::FixNVEAsphereKokkos(LAMMPS *lmp, int narg, char
   datamask_read = EMPTY_MASK;
   datamask_modify = EMPTY_MASK;
 
-  avecEllipKK = dynamic_cast<AtomVecEllipsoidKokkos *>(atom->style_match("ellipsoid"));
+  avecEllipKK = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -53,6 +53,11 @@ template<class DeviceType>
 void FixNVEAsphereKokkos<DeviceType>::init()
 {
   FixNVEAsphere::init();
+
+  // look up the atom style here, as the CPU style does, since it is
+  // re-created by commands like replicate after this fix was defined
+
+  avecEllipKK = dynamic_cast<AtomVecEllipsoidKokkos *>(atom->style_match("ellipsoid"));
 }
 
 /* ---------------------------------------------------------------------- */
@@ -78,10 +83,9 @@ void FixNVEAsphereKokkos<DeviceType>::initial_integrate(int /*vflag*/)
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
   FixNVEAsphereKokkosInitialIntegrateFunctor<DeviceType> f(this);
-  Kokkos::parallel_for(nlocal,f);
+  Kokkos::parallel_for(Kokkos::Experimental::require(Kokkos::RangePolicy<DeviceType>(0,nlocal),Kokkos::Experimental::WorkItemProperty::HintLightWeight),f);
 
-  atomKK->modified(execution_space, X_MASK | V_MASK | ANGMOM_MASK |
-                                    ELLIPSOID_MASK | BONUS_MASK);
+  atomKK->modified(execution_space, X_MASK | V_MASK | ANGMOM_MASK | BONUS_MASK);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -91,16 +95,17 @@ KOKKOS_INLINE_FUNCTION
 void FixNVEAsphereKokkos<DeviceType>::initial_integrate_item(const int i) const
 {
   // set timestep here since dt may have changed or come via rRESPA
-
   const KK_FLOAT dtf_kk = static_cast<KK_FLOAT>(dtf);
   const KK_FLOAT dtv_kk = static_cast<KK_FLOAT>(dtv);
   const KK_FLOAT dtq = static_cast<KK_FLOAT>(0.5) * dtv_kk;
   KK_FLOAT inertia[3], omega[3];
   double *shape, *quat;
   KK_FLOAT angm[3];
+  KK_FLOAT qlocal[4];
 
   if (mask(i) & groupbit) {
-    const KK_FLOAT dtfm = dtf_kk / rmass(i);
+    const KK_FLOAT rm = rmass(i);
+    const KK_FLOAT dtfm = dtf_kk / rm;
     v(i,0) += dtfm * static_cast<KK_FLOAT>(f(i,0));
     v(i,1) += dtfm * static_cast<KK_FLOAT>(f(i,1));
     v(i,2) += dtfm * static_cast<KK_FLOAT>(f(i,2));
@@ -109,26 +114,34 @@ void FixNVEAsphereKokkos<DeviceType>::initial_integrate_item(const int i) const
     x(i,2) += dtv_kk * v(i,2);
 
     // update angular momentum by 1/2 step into a local array
-    angm[0] = angmom(i,0) + dtf_kk * static_cast<KK_FLOAT>(torque(i,0));
-    angm[1] = angmom(i,1) + dtf_kk * static_cast<KK_FLOAT>(torque(i,1));
-    angm[2] = angmom(i,2) + dtf_kk * static_cast<KK_FLOAT>(torque(i,2));
+    angm[0] = Kokkos::fma(dtf_kk, static_cast<KK_FLOAT>(torque(i,0)), angmom(i,0));
+    angm[1] = Kokkos::fma(dtf_kk, static_cast<KK_FLOAT>(torque(i,1)), angmom(i,1));
+    angm[2] = Kokkos::fma(dtf_kk, static_cast<KK_FLOAT>(torque(i,2)), angmom(i,2));
 
     // principal moments of inertia
-    quat = bonus(ellipsoid(i)).quat;
     shape = bonus(ellipsoid(i)).shape;
-
-    inertia[0] = static_cast<KK_FLOAT>(INERTIA*static_cast<double>(rmass(i)) *
-                 (shape[1]*shape[1] + shape[2]*shape[2]));
-    inertia[1] = static_cast<KK_FLOAT>(INERTIA*static_cast<double>(rmass(i)) *
-                 (shape[0]*shape[0] + shape[2]*shape[2]));
-    inertia[2] = static_cast<KK_FLOAT>(INERTIA*static_cast<double>(rmass(i)) *
-                 (shape[0]*shape[0] + shape[1]*shape[1]));
+    KK_FLOAT s0 = (KK_FLOAT) shape[0];
+    KK_FLOAT s1 = (KK_FLOAT) shape[1];
+    KK_FLOAT s2 = (KK_FLOAT) shape[2];
+    inertia[0] = static_cast<KK_FLOAT>(INERTIA)*rm * (s1*s1 + s2*s2);
+    inertia[1] = static_cast<KK_FLOAT>(INERTIA)*rm * (s0*s0 + s2*s2);
+    inertia[2] = static_cast<KK_FLOAT>(INERTIA)*rm * (s0*s0 + s1*s1);
 
     // compute omega at 1/2 step from angmom at 1/2 step and current q
     // update quaternion a full step via Richardson iteration
     // returns new normalized quaternion
-    MathExtraKokkos::mq_to_omega(angm, quat, inertia, omega);
-    MathExtraKokkos::richardson(quat, angm, omega, inertia, dtq);
+    quat = bonus(ellipsoid(i)).quat;
+    qlocal[0] = static_cast<KK_FLOAT>(quat[0]);
+    qlocal[1] = static_cast<KK_FLOAT>(quat[1]);
+    qlocal[2] = static_cast<KK_FLOAT>(quat[2]);
+    qlocal[3] = static_cast<KK_FLOAT>(quat[3]);
+    MathExtraKokkos::mq_to_omega(angm, qlocal, inertia, omega);
+    MathExtraKokkos::richardson(qlocal, angm, omega, inertia, dtq);
+    // write back updated quaternion into the double bonus storage
+    quat[0] = static_cast<double>(qlocal[0]);
+    quat[1] = static_cast<double>(qlocal[1]);
+    quat[2] = static_cast<double>(qlocal[2]);
+    quat[3] = static_cast<double>(qlocal[3]);
 
     // write back updated angular momentum
     angmom(i,0) = angm[0];
@@ -156,7 +169,7 @@ void FixNVEAsphereKokkos<DeviceType>::final_integrate()
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
   FixNVEAsphereKokkosFinalIntegrateFunctor<DeviceType> f(this);
-  Kokkos::parallel_for(nlocal,f);
+  Kokkos::parallel_for(Kokkos::Experimental::require(Kokkos::RangePolicy<DeviceType>(0,nlocal),Kokkos::Experimental::WorkItemProperty::HintLightWeight),f);
 
   atomKK->modified(execution_space, V_MASK | ANGMOM_MASK);
 }
@@ -203,10 +216,9 @@ void FixNVEAsphereKokkos<DeviceType>::fused_integrate(int /*vflag*/)
   if (igroup == atom->firstgroup) nlocal = atom->nfirst;
 
   FixNVEAsphereKokkosFusedIntegrateFunctor<DeviceType> f(this);
-  Kokkos::parallel_for(nlocal,f);
+  Kokkos::parallel_for(Kokkos::Experimental::require(Kokkos::RangePolicy<DeviceType>(0,nlocal),Kokkos::Experimental::WorkItemProperty::HintLightWeight),f);
 
-  atomKK->modified(execution_space, X_MASK | V_MASK | ANGMOM_MASK |
-                                    ELLIPSOID_MASK | BONUS_MASK);
+  atomKK->modified(execution_space, X_MASK | V_MASK | ANGMOM_MASK | BONUS_MASK);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -221,9 +233,11 @@ void FixNVEAsphereKokkos<DeviceType>::fused_integrate_item(const int i) const
   KK_FLOAT inertia[3], omega[3];
   double *shape, *quat;
   KK_FLOAT angm[3];
+  KK_FLOAT qlocal[4];
 
   if (mask(i) & groupbit) {
-    const KK_FLOAT dtfm = static_cast<KK_FLOAT>(2.0) * dtf_kk / rmass(i);
+    const KK_FLOAT rm = rmass(i);
+    const KK_FLOAT dtfm = static_cast<KK_FLOAT>(2.0) * dtf_kk / rm;
     v(i,0) += dtfm * static_cast<KK_FLOAT>(f(i,0));
     v(i,1) += dtfm * static_cast<KK_FLOAT>(f(i,1));
     v(i,2) += dtfm * static_cast<KK_FLOAT>(f(i,2));
@@ -235,28 +249,34 @@ void FixNVEAsphereKokkos<DeviceType>::fused_integrate_item(const int i) const
     x(i,2) += dtv_kk * v(i,2);
 
     // update angular momentum by 1/2 step into a local array
-    angm[0] = angmom(i,0) + dtf_kk * static_cast<KK_FLOAT>(torque(i,0));
-    angm[1] = angmom(i,1) + dtf_kk * static_cast<KK_FLOAT>(torque(i,1));
-    angm[2] = angmom(i,2) + dtf_kk * static_cast<KK_FLOAT>(torque(i,2));
+    angm[0] = Kokkos::fma(dtf_kk, static_cast<KK_FLOAT>(torque(i,0)), angmom(i,0));
+    angm[1] = Kokkos::fma(dtf_kk, static_cast<KK_FLOAT>(torque(i,1)), angmom(i,1));
+    angm[2] = Kokkos::fma(dtf_kk, static_cast<KK_FLOAT>(torque(i,2)), angmom(i,2));
 
     // principal moments of inertia
-
-    quat = bonus(ellipsoid(i)).quat;
     shape = bonus(ellipsoid(i)).shape;
-
-    inertia[0] = static_cast<KK_FLOAT>(INERTIA*static_cast<double>(rmass(i)) *
-                 (shape[1]*shape[1] + shape[2]*shape[2]));
-    inertia[1] = static_cast<KK_FLOAT>(INERTIA*static_cast<double>(rmass(i)) *
-                 (shape[0]*shape[0] + shape[2]*shape[2]));
-    inertia[2] = static_cast<KK_FLOAT>(INERTIA*static_cast<double>(rmass(i)) *
-                 (shape[0]*shape[0] + shape[1]*shape[1]));
+    KK_FLOAT s0 = (KK_FLOAT) shape[0];
+    KK_FLOAT s1 = (KK_FLOAT) shape[1];
+    KK_FLOAT s2 = (KK_FLOAT) shape[2];
+    inertia[0] = static_cast<KK_FLOAT>(INERTIA)*rm * (s1*s1 + s2*s2);
+    inertia[1] = static_cast<KK_FLOAT>(INERTIA)*rm * (s0*s0 + s2*s2);
+    inertia[2] = static_cast<KK_FLOAT>(INERTIA)*rm * (s0*s0 + s1*s1);
 
     // compute omega at 1/2 step from angmom at 1/2 step and current q
     // update quaternion a full step via Richardson iteration
     // returns new normalized quaternion
-
-    MathExtraKokkos::mq_to_omega(angm, quat, inertia, omega);
-    MathExtraKokkos::richardson(quat, angm, omega, inertia, dtq);
+    quat = bonus(ellipsoid(i)).quat;
+    qlocal[0] = static_cast<KK_FLOAT>(quat[0]);
+    qlocal[1] = static_cast<KK_FLOAT>(quat[1]);
+    qlocal[2] = static_cast<KK_FLOAT>(quat[2]);
+    qlocal[3] = static_cast<KK_FLOAT>(quat[3]);
+    MathExtraKokkos::mq_to_omega(angm, qlocal, inertia, omega);
+    MathExtraKokkos::richardson(qlocal, angm, omega, inertia, dtq);
+    // write back updated quaternion into the double bonus storage
+    quat[0] = static_cast<double>(qlocal[0]);
+    quat[1] = static_cast<double>(qlocal[1]);
+    quat[2] = static_cast<double>(qlocal[2]);
+    quat[3] = static_cast<double>(qlocal[3]);
 
     // write back updated angular momentum
     angmom(i,0) = angm[0];

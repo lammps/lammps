@@ -51,6 +51,7 @@ class Neighbor : protected Pointers {
   double binsize_user;    // set externally by some accelerator pkgs
 
   bigint ncalls;      // # of times build has been called
+  bigint nbuild;      // # of builds since this class was created, never reset
   bigint ndanger;     // # of dangerous builds
   bigint lastcall;    // timestep of last neighbor::build() call
 

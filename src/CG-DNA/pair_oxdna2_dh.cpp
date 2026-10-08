@@ -16,7 +16,6 @@
 ------------------------------------------------------------------------- */
 
 #include "pair_oxdna2_dh.h"
-#include "atom_vec_oxdna.h"
 #include "nucleotide_oxdna.h"
 
 #include "atom.h"
@@ -47,14 +46,13 @@ PairOxdna2Dh::PairOxdna2Dh(LAMMPS *lmp) :
 {
   single_enable = 0;
   writedata = 0;
-  trim_flag = 0;
 }
 
 /* ---------------------------------------------------------------------- */
 
 PairOxdna2Dh::~PairOxdna2Dh()
 {
-  if (allocated) {
+  if (allocated && !copymode) {
 
     memory->destroy(setflag);
     memory->destroy(cutsq);
@@ -317,7 +315,7 @@ void PairOxdna2Dh::coeff(int narg, char **arg)
   T = utils::numeric(FLERR,arg[2],false,lmp);
   rhos_dh_one = utils::numeric(FLERR,arg[3],false,lmp);
 
-  if (utils::strmatch(arg[4], "^[a-zA-Z0-9_]*\\.cgdna$")) { // if last arg is a potential file
+  if (!utils::is_double(arg[4])) { // if last arg is not a number, it is a potential file
     if (comm->me == 0) { // read value from potential file
       PotentialFileReader reader(lmp, arg[4], "oxdna potential", " (dh)");
       reader.set_bufsize(65336);
@@ -344,8 +342,11 @@ void PairOxdna2Dh::coeff(int narg, char **arg)
     MPI_Bcast(&qeff_dh_one, 1, MPI_DOUBLE, 0, world);
   } else qeff_dh_one = utils::numeric(FLERR,arg[4],false,lmp); // else, it is effective charge
 
-  if (narg == 7 && strcmp(arg[5],"half_charged_ends")  == 0) {
-    half_charged_ends_flag = utils::logical(FLERR, arg[6], false, lmp);
+  if (narg == 7) {
+    if (strcmp(arg[5],"half_charged_ends") == 0)
+      half_charged_ends_flag = utils::logical(FLERR, arg[6], false, lmp);
+    else
+      error->all(FLERR, "Unknown pair_coeff oxdna2/dh keyword: {}", arg[5]);
   }
 
   double lambda_dh_one, kappa_dh_one, qeff_dh_pf_one;
@@ -479,7 +480,13 @@ double PairOxdna2Dh::init_one(int i, int j)
   cutsq_dh_c[j][i] = cutsq_dh_c[i][j];
 
   // set the master list distance cutoff
-  return cut_dh_c[i][j];
+  // the cutoffs are distances between interaction sites, but the neighbor
+  // lists hold pairs by the distance of the nucleotide centers of mass, so
+  // add the distances of the sites from the centers of mass
+  const double bk = site_offset([this](double *e1, double *e2, double *e3, double *r) {
+    compute_backbone_site(e1, e2, e3, r);
+  });
+  return cut_dh_c[i][j] + 2.0 * bk;
 }
 
 /* ----------------------------------------------------------------------

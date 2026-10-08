@@ -28,6 +28,8 @@
 #include "output.h"
 #include "update.h"
 #include "modify_kokkos.h"
+#include "fix.h"
+#include "utils.h"
 #include "timer.h"
 #include "kokkos.h"
 
@@ -104,6 +106,44 @@ VerletKokkos::VerletKokkos(LAMMPS *lmp, int narg, char **arg) :
   Verlet(lmp, narg, arg)
 {
   atomKK = (AtomKokkos *) atom;
+  force_clear_fix = nullptr;
+  force_clear_fused = 0;
+}
+
+/* ----------------------------------------------------------------------
+   initialization before run; fixes may request to clear the forces after this
+------------------------------------------------------------------------- */
+
+void VerletKokkos::init()
+{
+  Verlet::init();
+  force_clear_fix = nullptr;
+  force_clear_fused = 0;
+}
+
+/* ----------------------------------------------------------------------
+   check whether the fix that requested it can zero the forces and torques
+   in its pre_force() instead of force_clear(): only forces and torques must
+   be cleared (no SPIN arrays, no include group, no host force styles) and no
+   pre_force() fix that runs before it may use them
+------------------------------------------------------------------------- */
+
+void VerletKokkos::check_force_clear_fix()
+{
+  force_clear_fused = 0;
+  if (!force_clear_fix) return;
+  if (!torqueflag || extraflag || external_force_clear || (neighbor->includegroup != 0)) return;
+  if (host_force_styles()) return;
+
+  for (int i = 0; i < modify->nfix; i++) {
+    if (!(modify->fmask[i] & FixConst::PRE_FORCE)) continue;
+    if (modify->fix[i] == force_clear_fix) {
+      force_clear_fused = 1;
+      return;
+    }
+    // the internal oxDNA helper fixes do not touch forces
+    if (!utils::strmatch(modify->fix[i]->style, "^OXDNA/")) return;
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -124,6 +164,7 @@ void VerletKokkos::setup(int flag)
   }
 
   update->setupflag = 1;
+  check_force_clear_fix();
 
   // setup domain, communication and neighboring
   // acquire ghosts
@@ -224,6 +265,7 @@ void VerletKokkos::setup(int flag)
 void VerletKokkos::setup_minimal(int flag)
 {
   update->setupflag = 1;
+  check_force_clear_fix();
 
   // setup domain, communication and neighboring
   // acquire ghosts
@@ -570,7 +612,8 @@ void VerletKokkos::run(int n)
     // reverse communication of forces
 
     if (force->newton) {
-      Kokkos::fence();
+      // the device reverse comm fences itself before any MPI call and the host
+      // path syncs the forces to the host, so no global fence is needed here
       comm->reverse_comm();
       timer->stamp(Timer::COMM);
     }
@@ -615,6 +658,16 @@ void VerletKokkos::run(int n)
 void VerletKokkos::force_clear()
 {
   if (external_force_clear) return;
+
+  // forces and torques are zeroed on the device by force_clear_fix in its
+  // pre_force(), which runs next and before any force computation
+
+  if (force_clear_fused) {
+    atomKK->k_f.clear_sync_state();
+    atomKK->k_torque.clear_sync_state();
+    atomKK->modified(Device,F_MASK | TORQUE_MASK);
+    return;
+  }
 
   atomKK->k_f.clear_sync_state(); // ignore host forces/torques since device views
   atomKK->k_torque.clear_sync_state(); //   will be cleared below
@@ -789,8 +842,11 @@ void VerletKokkos::fuse_check(int i, int n)
   else if (!force->pair->fuse_force_clear_flag) fuse_force_clear = 0;
 
   fuse_integrate = 1;
-  if (modify->n_end_of_step) fuse_integrate = 0;
-  else if (i == n-1) fuse_integrate = 0;
+  // fusing moves the next initial integrate before end_of_step(), so it is
+  // only possible on steps on which no end-of-step fix is invoked
+  if (modify->n_end_of_step && ((ModifyKokkos*)modify)->end_of_step_fires(update->ntimestep))
+    fuse_integrate = 0;
+  if (i == n-1) fuse_integrate = 0;
   else if (update->ntimestep == output->next) fuse_integrate = 0;
   else if (timer->has_timeout()) fuse_integrate = 0;
   else if (!((ModifyKokkos*)modify)->check_fuse_integrate()) fuse_integrate = 0;

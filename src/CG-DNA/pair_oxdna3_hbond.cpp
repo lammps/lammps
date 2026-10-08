@@ -19,29 +19,27 @@
 
 #include "atom.h"
 #include "comm.h"
-#include "constants_oxdna.h"
 #include "error.h"
-#include "force.h"
-#include "math_extra.h"
-#include "memory.h"
 #include "mf_oxdna.h"
-#include "neigh_list.h"
 #include "potential_file_reader.h"
 
 #include <cmath>
-#include <cstring>
-#include <cassert>
 
 using namespace LAMMPS_NS;
 using namespace MFOxdna;
 
-/* ---------------------------------------------------------------------- */
+/* ----------------------------------------------------------------------
+   IMPORTANT NOTE ! We entirely code duplicate the sequence-specific alpha_hb
+   setup between PairOxdna3Hbond and PairOxdna3HbondKokkos. So any edits made
+   in one need to manually be made to the other !
+   The KOKKOS version is in: src/KOKKOS/pair_oxdna3_hbond_kokkos.cpp
+   Same goes for the coeff routine.
+------------------------------------------------------------------------- */
 
 PairOxdna3Hbond::PairOxdna3Hbond(LAMMPS *lmp) : PairOxdnaHbond(lmp)
 {
   single_enable = 0;
   writedata = 0;
-  trim_flag = 0;
 
   // sequence-specific base-pairing strength
   // A:0 C:1 G:2 T:3, 5'- [i][j] -3'
@@ -65,7 +63,6 @@ PairOxdna3Hbond::PairOxdna3Hbond(LAMMPS *lmp) : PairOxdnaHbond(lmp)
   alpha_hb[3][1] = 1.00000;
   alpha_hb[3][2] = 1.00000;
   alpha_hb[3][3] = 1.00000;
-
 }
 
 /* ----------------------------------------------------------------------
@@ -82,7 +79,8 @@ void PairOxdna3Hbond::coeff(int narg, char **arg)
   utils::bounds(FLERR,arg[0],1,atom->ntypes,ilo,ihi,error);
   utils::bounds(FLERR,arg[1],1,atom->ntypes,jlo,jhi,error);
 
-  if (ihi>4 || jhi>4) error->all(FLERR, "pair oxdna3/hbond does not support more than 4 atom types for A, C, G and T");
+  if (atom->ntypes != 4)
+    error->all(FLERR, "pair oxdna3/hbond requires exactly 4 atom types for A, C, G and T, even if not all are used");
 
   // h-bonding interaction
   count = 0;

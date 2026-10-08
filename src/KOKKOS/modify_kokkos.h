@@ -70,6 +70,7 @@ class ModifyKokkos : public Modify {
   int min_reset_ref() override;
 
   int check_fuse_integrate();
+  int end_of_step_fires(bigint);
 
  protected:
 

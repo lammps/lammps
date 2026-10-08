@@ -32,10 +32,19 @@ class VerletKokkos : public Verlet {
  public:
   VerletKokkos(class LAMMPS *, int, char **);
 
+  void init() override;
   void setup(int) override;
   void setup_minimal(int) override;
   void run(int) override;
   void force_clear() override;
+
+  // A fix with a pre_force() kernel over all owned and ghost atoms (fix
+  // OXDNA/LRF/kk) can take over zeroing the forces and torques, which saves
+  // the two kernel launches of force_clear() on every step.  The fix requests
+  // this in its init(); setup() checks whether it is safe for this run.
+  void request_force_clear_by_fix(class Fix *fix) { force_clear_fix = fix; }
+  int force_clear_by_fix(const class Fix *fix) const
+    { return force_clear_fused && (fix == force_clear_fix); }
 
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
@@ -48,6 +57,10 @@ class VerletKokkos : public Verlet {
  protected:
   DAT::t_kkacc_1d_3 f_merge_copy,f;
   int fuse_force_clear,fuse_integrate;
+  class Fix *force_clear_fix;
+  int force_clear_fused;
+
+  void check_force_clear_fix();
 
   void fuse_check(int, int);
   int overlap_possible();

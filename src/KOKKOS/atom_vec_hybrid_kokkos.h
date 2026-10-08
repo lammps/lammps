@@ -39,6 +39,9 @@ class AtomVecHybridKokkos : public AtomVecKokkos, public AtomVecHybrid {
   void grow(int) override;
   void sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorter) override;
 
+  int get_status_nlocal_bonus() override;
+  void set_status_nlocal_bonus(int) override;
+
   void pack_comm_bonus_kokkos(const int &n, const DAT::tdual_int_1d &list,
                               const DAT::tdual_double_2d_lr &buf, int vel_flag = 0) override;
 

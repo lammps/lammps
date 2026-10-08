@@ -458,9 +458,11 @@ FILE *compressed_write(const std::string &file);
 
 /*! Return text explaining why a compressed file could not be opened
  *
- * If the program required for the compression format of the file
- * cannot be found, the text names the missing program.  Otherwise,
- * the text describes the last system error like ``utils::getsyserror()``.
+\verbatim embed:rst
+If the program required for the compression format of the file
+cannot be found, the text names the missing program.  Otherwise,
+the text describes the last system error like :cpp:func:`utils::getsyserror()`.
+\endverbatim
  *
  *  \param  file  name of the file that could not be opened
  *  \return  text explaining the failure */

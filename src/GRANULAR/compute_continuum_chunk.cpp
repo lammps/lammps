@@ -313,8 +313,8 @@ ComputeContinuumChunk::ComputeContinuumChunk(LAMMPS *lmp, int narg, char **arg) 
     for (auto &val : values)
       if (std::get<0>(val) == IFD)
         error->all(FLERR,
-                   "Must specify how boundary/force is calculated:"
-                   "using boundary/atom and or boundary/fix");
+                   "Must specify how boundary/force is calculated: "
+                   "using boundary/atom and/or boundary/fix");
   }
 
   int which = cchunk->get_which();

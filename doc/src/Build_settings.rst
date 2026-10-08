@@ -73,9 +73,9 @@ libraries and better pipelining for packing and communication.
                                    # default is FFTW3 if found, else KISS
          -D FFT_KOKKOS=value       # FFTW3 or MKL or NVPL or KISS or CUFFT
                                    # or HIPFFT or MKL_GPU, default is KISS
-         -D FFT_SINGLE=value       # yes or no (default), no = double precision
+         -D FFT_SINGLE=value       # on or off (default), off = double precision
          -D FFT_PACK=value         # array (default) or pointer or memcpy
-         -D FFT_USE_HEFFTE=value   # yes or no (default), yes links to heFFTe
+         -D FFT_USE_HEFFTE=value   # on or off (default), on links to heFFTe
 
       .. note::
 
@@ -442,7 +442,7 @@ LAMMPS is compiled accordingly which needs the following settings:
 
       .. code-block:: bash
 
-         -D WITH_CURL=value      # yes or no
+         -D WITH_CURL=value      # on or off
                                  # default = yes if CMake finds CURL development files, else no
 
       Usually these settings are all that is needed.  If CMake cannot
@@ -548,7 +548,7 @@ those systems:
 
       .. code-block:: bash
 
-         -D LAMMPS_LONGLONG_TO_LONG=value     # yes or no (default)
+         -D LAMMPS_LONGLONG_TO_LONG=value     # on or off (default)
 
    .. tab:: Traditional make
 

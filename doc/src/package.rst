@@ -757,9 +757,9 @@ launching LAMMPS:
 
 .. code-block:: bash
 
-   env OMP_NUM_THREADS=4 lmp_machine -sf omp -in in.script
-   env OMP_NUM_THREADS=2 mpirun -np 2 lmp_machine -sf omp -in in.script
-   mpirun -x OMP_NUM_THREADS=2 -np 2 lmp_machine -sf omp -in in.script
+   env OMP_NUM_THREADS=4 lmp -sf omp -in in.script
+   env OMP_NUM_THREADS=2 mpirun -np 2 lmp -sf omp -in in.script
+   mpirun -x OMP_NUM_THREADS=2 -np 2 lmp -sf omp -in in.script
 
 or you can set it permanently in your shell's start-up script.
 All three of these examples use a total of 4 CPU cores.

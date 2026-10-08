@@ -103,6 +103,7 @@ void PairTholeOMP::eval(int iifrom, int iito, ThrData * const thr)
     if (drudetype[type[i]] == NOPOL_TYPE) continue;
 
     const int di = domain->closest_image(i, atom->map(drudeid[i]));
+    if (di < 0) error->one(FLERR, "Drude partner of atom {} not found", atom->tag[i]);
     double qi;
     if (drudetype[type[i]] == DRUDE_TYPE)
       qi = q[i];
@@ -128,14 +129,6 @@ void PairTholeOMP::eval(int iifrom, int iito, ThrData * const thr)
       // only on core-drude pair, but not into the same pair
       if (drudetype[type[j]] == NOPOL_TYPE || j == di) continue;
 
-      double qj;
-      if (drudetype[type[j]] == DRUDE_TYPE)
-        qj = q[j];
-      else {
-        const int dj = domain->closest_image(j, atom->map(drudeid[j]));
-        qj = -q[dj];
-      }
-
       const double delx = xtmp - x[j].x;
       const double dely = ytmp - x[j].y;
       const double delz = ztmp - x[j].z;
@@ -143,6 +136,20 @@ void PairTholeOMP::eval(int iifrom, int iito, ThrData * const thr)
       const int jtype   = type[j];
 
       if (rsq < cutsqi[jtype]) {
+
+        // get dq of the core via the drude charge
+        // look up the drude partner only within the cutoff, since it may
+        // not be present as a ghost atom for more distant neighbors
+
+        double qj;
+        if (drudetype[type[j]] == DRUDE_TYPE)
+          qj = q[j];
+        else {
+          const int dj = domain->closest_image(j, atom->map(drudeid[j]));
+          if (dj < 0) error->one(FLERR, "Drude partner of atom {} not found", atom->tag[j]);
+          qj = -q[dj];
+        }
+
         const double r2inv  = 1.0/rsq;
         const double rinv   = sqrt(r2inv);
         const double r      = sqrt(rsq);

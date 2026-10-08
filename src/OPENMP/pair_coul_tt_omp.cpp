@@ -114,6 +114,12 @@ void PairCoulTTOMP::eval(int iifrom, int iito, ThrData * const thr)
     const int jnum = numneigh[i];
     double fxtmp = 0.0, fytmp = 0.0, fztmp = 0.0;
 
+    int di = -1;
+    if (drudetype[type[i]] == CORE_TYPE) {
+      di = domain->closest_image(i, atom->map(drudeid[i]));
+      if (di < 0) error->one(FLERR, "Drude partner of atom {} not found", atom->tag[i]);
+    }
+
     for (int jj = 0; jj < jnum; jj++) {
       int j = jlist[jj];
       const double factor_coul = special_coul[sbmask(j)];
@@ -122,11 +128,21 @@ void PairCoulTTOMP::eval(int iifrom, int iito, ThrData * const thr)
       if (drudetype[type[i]] == drudetype[type[j]] && drudetype[type[j]] != CORE_TYPE)
         continue;
 
+      const double delx = xtmp - x[j].x;
+      const double dely = ytmp - x[j].y;
+      const double delz = ztmp - x[j].z;
+      const double rsq  = delx*delx + dely*dely + delz*delz;
+      const int jtype   = type[j];
+
+      // look up the drude partner of j only within the cutoff, since it
+      // may not be present as a ghost atom for more distant neighbors
+
+      if (rsq >= cutsqi[jtype]) continue;
+
       double qj = q[j];
       qi = q[i];  // reset for each j (CORE_TYPE modifies qi per-pair)
 
       if (drudetype[type[i]] == CORE_TYPE) {
-        const int di = domain->closest_image(i, atom->map(drudeid[i]));
         if (di == j) continue;
         switch (drudetype[type[j]]) {
           case DRUDE_TYPE: qi = q[i]+q[di]; break;
@@ -134,8 +150,10 @@ void PairCoulTTOMP::eval(int iifrom, int iito, ThrData * const thr)
         }
       }
 
+      int dj = -1;
       if (drudetype[type[j]] == CORE_TYPE) {
-        const int dj = domain->closest_image(j, atom->map(drudeid[j]));
+        dj = domain->closest_image(j, atom->map(drudeid[j]));
+        if (dj < 0) error->one(FLERR, "Drude partner of atom {} not found", atom->tag[j]);
         if (dj == i) continue;
         switch (drudetype[type[i]]) {
           case DRUDE_TYPE: qj = q[j]+q[dj]; break;
@@ -143,57 +161,47 @@ void PairCoulTTOMP::eval(int iifrom, int iito, ThrData * const thr)
         }
       }
 
-      const double delx = xtmp - x[j].x;
-      const double dely = ytmp - x[j].y;
-      const double delz = ztmp - x[j].z;
-      const double rsq  = delx*delx + dely*dely + delz*delz;
-      const int jtype   = type[j];
+      const double r2inv = 1.0/rsq;
+      const double rinv  = sqrt(r2inv);
+      const double r     = sqrt(rsq);
 
-      if (rsq < cutsqi[jtype]) {
-        const double r2inv = 1.0/rsq;
-        const double rinv  = sqrt(r2inv);
-        const double r     = sqrt(rsq);
-
-        double beta = ci[jtype] * exp(-bi[jtype] * r);
-        const double betaprime = -bi[jtype] * beta;
-        double gamma = 1.0 + bi[jtype] * r;
-        double gammaprime = bi[jtype];
-        double gammatmp = 1.0;
-        for (int k = 2; k <= ntti[jtype]; k++) {
-          gammatmp *= bi[jtype] * r / k;
-          gamma    += gammatmp * bi[jtype] * r;
-          gammaprime += gammatmp * bi[jtype] * k;
-        }
-
-        double dcoul;
-        if (drudetype[type[i]] == CORE_TYPE && drudetype[type[j]] == CORE_TYPE) {
-          const int di = domain->closest_image(i, atom->map(drudeid[i]));
-          const int dj = domain->closest_image(j, atom->map(drudeid[j]));
-          dcoul = qqrd2e * ( -(q[i]+q[di])*q[dj] - q[di]*(q[j]+q[dj]) ) * scalei[jtype] * rinv;
-        } else {
-          dcoul = qqrd2e * qi * qj * scalei[jtype] * rinv;
-        }
-
-        const double factor_f = (-beta*gamma + r*betaprime*gamma + r*beta*gammaprime)*factor_coul;
-        double factor_e = 0.0;
-        if (EFLAG) factor_e = -beta*gamma*factor_coul;
-        const double fpair = factor_f * dcoul * r2inv;
-
-        fxtmp += delx*fpair;
-        fytmp += dely*fpair;
-        fztmp += delz*fpair;
-        if (NEWTON_PAIR || j < nlocal) {
-          f[j].x -= delx*fpair;
-          f[j].y -= dely*fpair;
-          f[j].z -= delz*fpair;
-        }
-
-        double ecoul = 0.0;
-        if (EFLAG) ecoul = factor_e * dcoul;
-
-        if (EVFLAG) ev_tally_thr(this, i, j, nlocal, NEWTON_PAIR,
-                                  0.0, ecoul, fpair, delx, dely, delz, thr);
+      double beta = ci[jtype] * exp(-bi[jtype] * r);
+      const double betaprime = -bi[jtype] * beta;
+      double gamma = 1.0 + bi[jtype] * r;
+      double gammaprime = bi[jtype];
+      double gammatmp = 1.0;
+      for (int k = 2; k <= ntti[jtype]; k++) {
+        gammatmp *= bi[jtype] * r / k;
+        gamma    += gammatmp * bi[jtype] * r;
+        gammaprime += gammatmp * bi[jtype] * k;
       }
+
+      double dcoul;
+      if (drudetype[type[i]] == CORE_TYPE && drudetype[type[j]] == CORE_TYPE) {
+        dcoul = qqrd2e * ( -(q[i]+q[di])*q[dj] - q[di]*(q[j]+q[dj]) ) * scalei[jtype] * rinv;
+      } else {
+        dcoul = qqrd2e * qi * qj * scalei[jtype] * rinv;
+      }
+
+      const double factor_f = (-beta*gamma + r*betaprime*gamma + r*beta*gammaprime)*factor_coul;
+      double factor_e = 0.0;
+      if (EFLAG) factor_e = -beta*gamma*factor_coul;
+      const double fpair = factor_f * dcoul * r2inv;
+
+      fxtmp += delx*fpair;
+      fytmp += dely*fpair;
+      fztmp += delz*fpair;
+      if (NEWTON_PAIR || j < nlocal) {
+        f[j].x -= delx*fpair;
+        f[j].y -= dely*fpair;
+        f[j].z -= delz*fpair;
+      }
+
+      double ecoul = 0.0;
+      if (EFLAG) ecoul = factor_e * dcoul;
+
+      if (EVFLAG) ev_tally_thr(this, i, j, nlocal, NEWTON_PAIR,
+                                0.0, ecoul, fpair, delx, dely, delz, thr);
     }
     f[i].x += fxtmp;
     f[i].y += fytmp;

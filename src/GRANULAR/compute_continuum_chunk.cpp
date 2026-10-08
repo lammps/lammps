@@ -498,7 +498,9 @@ void ComputeContinuumChunk::compute_array()
     for (i = 0; i < size_array_cols; i++) array[m][i] = 0.0;
   }
 
-  int a, b, itype, style, vtype, component, field_index, iboundary, jboundary;
+  int a = 0;
+  int b = 0;
+  int itype, style, vtype, component, field_index, iboundary, jboundary;
   double w, wc, massi, voli, volj, rsq_atom_bin, rsq_cont_bin, rsq_pair, r_pair;
   double f_norm, w_int_tmp, factor_lj;
   double xbin0[3], xbin[3], xbin2[3], xcont[3], f_pair[3], f_wall[3], dx_pair[3], xj_near[3];

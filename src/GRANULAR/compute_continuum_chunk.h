@@ -36,8 +36,6 @@ class ComputeContinuumChunk : public ComputeChunk {
   void init_list(int, class NeighList *) override;
   void compute_array() override;
   double memory_usage() override;
-  int pack_forward_comm(int, int *, double *, int, int *) override;
-  void unpack_forward_comm(int, int, double *) override;
 
  private:
   std::vector<std::tuple<int, int, int>> values;
@@ -61,9 +59,9 @@ class ComputeContinuumChunk : public ComputeChunk {
   class NeighList *list;
 
   // Variables copied from compute atom/chunk
-  int *ichunk, *nlayers, *chunk_dim;
+  int *nlayers, *chunk_dim;
   double *delta;
-  int ncoord, reducedflag, nmax_ichunk;
+  int ncoord, reducedflag;
 
   double **values_local, **values_global;
   double *density_local, *density_global;

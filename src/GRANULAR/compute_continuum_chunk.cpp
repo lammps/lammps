@@ -20,7 +20,6 @@
 #include "arg_info.h"
 #include "atom.h"
 #include "citeme.h"
-#include "comm.h"
 #include "compute_chunk_atom.h"
 #include "domain.h"
 #include "error.h"
@@ -127,7 +126,7 @@ inline double ComputeContinuumChunk::calc_w_int(double *dr, double *rij) const
 /* ---------------------------------------------------------------------- */
 
 ComputeContinuumChunk::ComputeContinuumChunk(LAMMPS *lmp, int narg, char **arg) :
-    ComputeChunk(lmp, narg, arg), list(nullptr), ichunk(nullptr), nlayers(nullptr),
+    ComputeChunk(lmp, narg, arg), list(nullptr), nlayers(nullptr),
     chunk_dim(nullptr), delta(nullptr), values_local(nullptr), values_global(nullptr),
     density_local(nullptr), density_global(nullptr), momentum_local(nullptr),
     momentum_global(nullptr)
@@ -149,7 +148,6 @@ ComputeContinuumChunk::ComputeContinuumChunk(LAMMPS *lmp, int narg, char **arg) 
   boundary_groupbit = 0;
   radius_required = 0;
   index_density = -1;
-  nmax_ichunk = -1;
   pstyle = OTHER;
   for (int a = 0; a < 3; a++) {
     index_momentum[a] = -1;
@@ -365,7 +363,6 @@ ComputeContinuumChunk::ComputeContinuumChunk(LAMMPS *lmp, int narg, char **arg) 
   size_array_rows_variable = 1;
   extarray = 0;
   thermo_modify_colname = 1;
-  comm_forward = 1;
 
   allocate();
 
@@ -386,8 +383,6 @@ ComputeContinuumChunk::~ComputeContinuumChunk()
   memory->destroy(density_global);
   memory->destroy(momentum_local);
   memory->destroy(momentum_global);
-
-  if (nmax_ichunk != -1) memory->destroy(ichunk);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -472,19 +467,23 @@ void ComputeContinuumChunk::compute_array()
 
   ComputeChunk::compute_array();
 
-  if (calculate_pair) {
-    int *ichunk_to_copy = cchunk->ichunk;
-    if (nmax_ichunk < atom->nmax) {
-      nmax_ichunk = atom->nmax;
-      memory->grow(ichunk, nmax_ichunk, "continuum/chunk:ichunk");
-    }
+  // Check lower bound of bin aligns with domain in periodic directions
+  const double *boxlo = reducedflag ? domain->boxlo_lamda : domain->boxlo;
 
-    for (i = 0; i < nlocal; i++) ichunk[i] = ichunk_to_copy[i];
+  for (int a = 0; a < ncoord; a++) {
+    const int idim = chunk_dim[a];
 
-    comm->forward_comm(this);
-  } else {
-    ichunk = cchunk->ichunk;
+    if (!domain->periodicity[idim]) continue;
+
+    // coord[0][a] is the center of the first bin along this coordinate.
+    const double offset = cchunk->coord[0][a] - 0.5 * delta[a];
+    if (std::fabs(boxlo[idim] - offset) > EPSILON)
+      error->warning(FLERR,
+                         "Bins do not start at lower edge of simuation box."
+                         " Results on the boundary may be incorrect");
   }
+
+  double *ichunk = cchunk->ichunk;
 
   build_stencil();
   int *cdim = cchunk->get_dim();
@@ -501,12 +500,15 @@ void ComputeContinuumChunk::compute_array()
   int a = 0;
   int b = 0;
   int itype, style, vtype, component, field_index, iboundary, jboundary;
-  double w, wc, massi, voli, volj, rsq_atom_bin, rsq_cont_bin, rsq_pair, r_pair;
+  double w, wc, massi, voli, volj, rsq_atom_bin, rsq_cont_bin, rsq_pair, r_pair, r_cont;
   double f_norm, w_int_tmp, factor_lj;
-  double xbin0[3], xbin[3], xbin2[3], xcont[3], f_pair[3], f_wall[3], dx_pair[3], xj_near[3];
-  double dx_pair_filtered[3], dx_atom_bin[3], dx_bin_cont[3], dx_atom_cont[3],
-      dx_atom_cont_filtered[3];
+  double xbin0[3], xbinc[3], xbin[3], xbin2[3], xcont[3], f_pair[3], f_wall[3], dx_pair[3], xj_near[3];
+  double dx_pair_filtered[3], dx_atom_bin[3], dx_bin_cont[3], dx_atom_cont[3];
+  double dx_atom_cont_filtered[3];
   double **array_atom_fix;
+
+  double pair_stencil_reach;
+  int mc, stencil_size[3];
 
   double **x = atom->x;
   double **v = atom->v;
@@ -519,7 +521,7 @@ void ComputeContinuumChunk::compute_array()
   auto wall_fixes = modify->get_fix_by_style("wall/gran");
 
   for (i = 0; i < nlocal; i++) {
-    if ((mask[i] & groupbit) && (ichunk[i] > 0)) {
+    if (mask[i] & groupbit) {
       m = ichunk[i] - 1;
       if (m < 0) continue;
 
@@ -581,38 +583,103 @@ void ComputeContinuumChunk::compute_array()
             values_local[mtmp][field_index] += massi * v[i][component] * w;
           }
 
-          if (boundaryflag == BOUNDARY_FIX || boundaryflag == BOUNDARY_BOTH) {
-            for (auto wall_fix : wall_fixes) {
-              array_atom_fix = wall_fix->array_atom;
+          field_index++;
+        }
 
-              if (array_atom_fix[i][0] < 0.5) continue;
-              f_wall[0] = array_atom_fix[i][1];
-              f_wall[1] = array_atom_fix[i][2];
-              f_wall[2] = array_atom_fix[i][3];
-              xcont[0] = array_atom_fix[i][4];
-              xcont[1] = array_atom_fix[i][5];
-              xcont[2] = array_atom_fix[i][6];
+        if (boundaryflag == BOUNDARY_FIX || boundaryflag == BOUNDARY_BOTH) {
 
-              MathExtra::sub3(x[i], xcont, dx_atom_cont);
-              MathExtra::zero3(dx_atom_cont_filtered);
-              for (int coord_index = 0; coord_index < chunk_ncoord; coord_index++)
-                dx_atom_cont_filtered[cdim[coord_index]] = dx_atom_cont[cdim[coord_index]];
+          // Use custom stencil because a bin may overlap with contact point but not atom i
+          //   and the line integral needs to add that contribution
 
-              if ((style == STRESS) || (style == STRESSCON)) {
-                w_int_tmp = calc_w_int(dx_atom_bin, dx_atom_cont_filtered);
-                values_local[mtmp][field_index] -= f_wall[a] * dx_atom_cont[b] * w_int_tmp;
-              } else if (style == IFD) {
-                MathExtra::copy3(xcont, xbin2);
-                for (int c = 0; c < chunk_ncoord; c++) xbin2[cdim[c]] = xbin[cdim[c]];
-                MathExtra::sub3(xbin2, xcont, dx_bin_cont);
-                rsq_cont_bin = MathExtra::lensq3(dx_bin_cont);
-                wc = calc_w(sqrt(rsq_cont_bin));
-                values_local[mtmp][field_index] -= f_wall[a] * wc;
+          for (auto wall_fix : wall_fixes) {
+            array_atom_fix = wall_fix->array_atom;
+
+            if (array_atom_fix[i][0] < 0.5) continue;
+            f_wall[0] = array_atom_fix[i][1];
+            f_wall[1] = array_atom_fix[i][2];
+            f_wall[2] = array_atom_fix[i][3];
+            xcont[0] = array_atom_fix[i][4];
+            xcont[1] = array_atom_fix[i][5];
+            xcont[2] = array_atom_fix[i][6];
+
+            mc = position_to_bin(xcont);
+            if (mc < 0) continue;
+
+            MathExtra::sub3(x[i], xcont, dx_atom_cont);
+            r_cont = MathExtra::len3(dx_atom_cont);
+
+            if (chunk_reducedflag) {
+              double lamda[3];
+              domain->x2lamda(xcont, lamda);
+              for (a = 0; a < chunk_ncoord; a++) lamda[cdim[a]] = coord[mc][a];
+              domain->lamda2x(lamda, xbinc);
+            } else {
+              MathExtra::copy3(xcont, xbinc);
+              for (a = 0; a < chunk_ncoord; a++) xbinc[cdim[a]] = coord[mc][a];
+            }
+
+            pair_stencil_reach = w_cut + r_cont + 0.5 * bin_diagonal;
+
+            stencil_size[0] = stencil_size[1] = stencil_size[2] = 0;
+            for (a = 0; a < ncoord; a++)
+              stencil_size[a] = static_cast<int>(std::ceil(pair_stencil_reach / bin_width[a]));
+
+            visited_bins.clear();
+            for (int dn0 = -stencil_size[0]; dn0 <= stencil_size[0]; dn0++) {
+              for (int dn1 = -stencil_size[1]; dn1 <= stencil_size[1]; dn1++) {
+                for (int dn2 = -stencil_size[2]; dn2 <= stencil_size[2]; dn2++) {
+
+                  MathExtra::copy3(xbin0, xbin);
+                  if (ncoord >= 1) xbin[chunk_dim[0]] += dn0 * bin_width[0];
+                  if (ncoord >= 2) xbin[chunk_dim[1]] += dn1 * bin_width[1];
+                  if (ncoord >= 3) xbin[chunk_dim[2]] += dn2 * bin_width[2];
+
+                  mtmp = position_to_bin(xbin);
+                  if (mtmp == -1) continue;
+
+                  // can loop around depending on value of r_cont, so ensure bins only visited once
+                  if (visited_bins.find(mtmp) != visited_bins.end()) continue;
+                  visited_bins.insert(mtmp);
+
+                  MathExtra::sub3(x[i], xbin, dx_atom_bin);
+                  rsq_atom_bin = MathExtra::lensq3(dx_atom_bin);
+                  w = calc_w(sqrt(rsq_atom_bin));
+
+                  field_index = 0;
+                  for (auto &val : values) {
+                    style = std::get<0>(val);
+                    vtype = std::get<1>(val);
+                    component = std::get<2>(val);
+
+                    if (vtype == 1) {
+                      a = component;
+                    } else {
+                      a = component / 3;
+                      b = component % 3;
+                    }
+
+                    MathExtra::zero3(dx_atom_cont_filtered);
+                    for (int coord_index = 0; coord_index < chunk_ncoord; coord_index++)
+                      dx_atom_cont_filtered[cdim[coord_index]] = dx_atom_cont[cdim[coord_index]];
+
+                    if ((style == STRESS) || (style == STRESSCON)) {
+                      w_int_tmp = calc_w_int(dx_atom_bin, dx_atom_cont_filtered);
+                      values_local[mtmp][field_index] -= f_wall[a] * dx_atom_cont[b] * w_int_tmp;
+                    } else if (style == IFD) {
+                      MathExtra::copy3(xcont, xbin2);
+                      for (int c = 0; c < chunk_ncoord; c++) xbin2[cdim[c]] = xbin[cdim[c]];
+                      MathExtra::sub3(xbin2, xcont, dx_bin_cont);
+                      rsq_cont_bin = MathExtra::lensq3(dx_bin_cont);
+                      wc = calc_w(sqrt(rsq_cont_bin));
+                      values_local[mtmp][field_index] -= f_wall[a] * wc;
+                    }
+
+                    field_index++;
+                  }
+                }
               }
             }
           }
-
-          field_index++;
         }
       }
     }
@@ -623,13 +690,11 @@ void ComputeContinuumChunk::compute_array()
     double **cutsq = force->pair->cutsq;
     double *special_lj = force->special_lj;
     int newton_pair = force->newton_pair;
-    double pair_stencil_reach;
 
     tagint itag, jtag;
     tagint *tag = atom->tag;
 
     int ii, jj, jnum, *jlist;
-    int mi, mj, mc, stencil_size[3];
 
     neighbor->build_one(list);
 
@@ -644,9 +709,6 @@ void ComputeContinuumChunk::compute_array()
       i = ilist[ii];
 
       if (!(mask[i] & groupbit)) continue;
-
-      mi = ichunk[i] - 1;
-      if (mi < 0) continue;
 
       voli = 0.0;
       if (radius_required) {
@@ -687,9 +749,6 @@ void ComputeContinuumChunk::compute_array()
             }
           }
         }
-
-        mj = ichunk[j] - 1;
-        if (mj < 0) continue;
 
         volj = 0.0;
         if (radius_required) {
@@ -759,9 +818,6 @@ void ComputeContinuumChunk::compute_array()
           for (int dn1 = -stencil_size[1]; dn1 <= stencil_size[1]; dn1++) {
             for (int dn2 = -stencil_size[2]; dn2 <= stencil_size[2]; dn2++) {
 
-              MathExtra::copy3(xcont, xbin0);
-              for (a = 0; a < chunk_ncoord; a++) xbin0[cdim[a]] = coord[mc][a];
-
               MathExtra::copy3(xbin0, xbin);
               if (ncoord >= 1) xbin[chunk_dim[0]] += dn0 * bin_width[0];
               if (ncoord >= 2) xbin[chunk_dim[1]] += dn1 * bin_width[1];
@@ -770,7 +826,7 @@ void ComputeContinuumChunk::compute_array()
               mtmp = position_to_bin(xbin);
               if (mtmp == -1) continue;
 
-              // depending on value of r_pair, can loop around so ensure bins only visited once
+              // can loop around depending on value of r_pair, so ensure bins only visited once
               if (visited_bins.find(mtmp) != visited_bins.end()) continue;
               visited_bins.insert(mtmp);
 
@@ -922,8 +978,9 @@ void ComputeContinuumChunk::compute_array()
 
       if (boundary_group_flag && (mask[i] & boundary_groupbit)) continue;
 
-      if ((mask[i] & groupbit) && (ichunk[i] > 0)) {
+      if (mask[i] & groupbit) {
         m = ichunk[i] - 1;
+        if (m < 0) continue;
 
         if (chunk_reducedflag) {
           double lamda[3];
@@ -1036,7 +1093,7 @@ void ComputeContinuumChunk::compute_array()
     if (chunk_reducedflag) width[a] *= domain->prd[chunk_dim[a]];
   }
 
-  int shift[3], mp, mm, ac;
+  int shift[3], mp, mm, bc;
   for (m = 0; m < nchunk; m++) {
     field_index = 0;
     for (auto &val : values) {
@@ -1056,20 +1113,20 @@ void ComputeContinuumChunk::compute_array()
         continue;
       }
 
-      ac = -1;
+      bc = -1;
       for (int c = 0; c < ncoord; c++)
-        if (chunk_dim[c] == a) ac = c;
+        if (chunk_dim[c] == b) bc = c;
 
-      if (ac == -1) {
+      if (bc == -1) {
         values_global[m][field_index] = 0.0;
         field_index++;
         continue;
       }
 
       shift[0] = shift[1] = shift[2] = 0;
-      shift[ac] = 1;
+      shift[bc] = 1;
       mp = shifted_bin(m, shift);
-      shift[ac] = -1;
+      shift[bc] = -1;
       mm = shifted_bin(m, shift);
 
       if ((mp == -1) && (mm == -1)) {
@@ -1081,32 +1138,32 @@ void ComputeContinuumChunk::compute_array()
       if (mp == -1) {
         if (style == MGRAD) {
           values_global[m][field_index] =
-              (values_global[m][index_momentum[b]] - values_global[mm][index_momentum[b]]) /
-              (width[ac]);
+              (values_global[m][index_momentum[a]] - values_global[mm][index_momentum[a]]) /
+              (width[bc]);
         } else if (style == VGRAD) {
           values_global[m][field_index] =
-              (values_global[m][index_velocity[b]] - values_global[mm][index_velocity[b]]) /
-              (width[ac]);
+              (values_global[m][index_velocity[a]] - values_global[mm][index_velocity[a]]) /
+              (width[bc]);
         }
       } else if (mm == -1) {
         if (style == MGRAD) {
           values_global[m][field_index] =
-              (values_global[mp][index_momentum[b]] - values_global[m][index_momentum[b]]) /
-              (width[ac]);
+              (values_global[mp][index_momentum[a]] - values_global[m][index_momentum[a]]) /
+              (width[bc]);
         } else if (style == VGRAD) {
           values_global[m][field_index] =
-              (values_global[mp][index_velocity[b]] - values_global[m][index_velocity[b]]) /
-              (width[ac]);
+              (values_global[mp][index_velocity[a]] - values_global[m][index_velocity[a]]) /
+              (width[bc]);
         }
       } else {
         if (style == MGRAD) {
           values_global[m][field_index] =
-              (values_global[mp][index_momentum[b]] - values_global[mm][index_momentum[b]]) /
-              (2.0 * width[ac]);
+              (values_global[mp][index_momentum[a]] - values_global[mm][index_momentum[a]]) /
+              (2.0 * width[bc]);
         } else if (style == VGRAD) {
           values_global[m][field_index] =
-              (values_global[mp][index_velocity[b]] - values_global[mm][index_velocity[b]]) /
-              (2.0 * width[ac]);
+              (values_global[mp][index_velocity[a]] - values_global[mm][index_velocity[a]]) /
+              (2.0 * width[bc]);
         }
       }
 
@@ -1164,28 +1221,6 @@ void ComputeContinuumChunk::allocate()
     memory->create(momentum_local, maxchunk, 3, "continuum/chunk:momentum_local");
     memory->create(momentum_global, maxchunk, 3, "continuum/chunk:momentum_global");
   }
-}
-
-/* ---------------------------------------------------------------------- */
-
-int ComputeContinuumChunk::pack_forward_comm(int n, int *list, double *buf, int /*pbc_flag*/,
-                                             int * /*pbc*/)
-{
-  int m = 0;
-  for (int i = 0; i < n; i++) {
-    int j = list[i];
-    buf[m++] = ubuf(ichunk[j]).d;
-  }
-  return m;
-}
-
-/* ---------------------------------------------------------------------- */
-
-void ComputeContinuumChunk::unpack_forward_comm(int n, int first, double *buf)
-{
-  int m = 0;
-  int last = first + n;
-  for (int i = first; i < last; i++) { ichunk[i] = ubuf(buf[m++]).i; }
 }
 
 /* ---------------------------------------------------------------------- */

@@ -214,10 +214,11 @@ The *fabric* field is
 
 .. math::
 
-   \frac{1}{2}\sum_{i,j} V_i r_{ij,a} r_{ij,b} \int_0^1 ds\, W(\vec{r}_\mathrm{chunk} -
+   \frac{1}{2}\sum_{i,j} V_i n_{ij,a} n_{ij,b} \int_0^1 ds\, W(\vec{r}_\mathrm{chunk} -
    \vec{r}_i + s \vec{r}_{ij})
 
-where :math:`V_i` is the volume of the atom in 3D and area in 2D. See
+where :math:`V_i` is the volume of the atom in 3D and area in 2D and :math:`\vec{n}_ij`
+is the normal vector pointing from :math:`i` to :math:`j`. See
 :doc:`compute fabric <compute_fabric>` for more general discussion on fabric
 tensors.
 
@@ -282,7 +283,9 @@ the *compress*, *limit*, and *discard no* options of the chunk/atom compute are 
 If a boundary is periodic, results from bins on the boundary will be incorrect
 unless the simulation box in that dimension is evenly divisible by the bin width
 such that no bin extends beyond the simulation boundaries. A warning will be
-issued if this condition is not met.
+issued if this condition is not met. It is recommended that the user pick reasonable
+settings for chunks as not all permutations of settings may be covered. Tests
+are recommended.
 
 Triclinic boxes are not supported.
 

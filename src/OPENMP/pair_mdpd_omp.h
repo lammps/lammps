@@ -35,6 +35,7 @@ class PairMDPDOMP : public PairMDPD, public ThrOMP {
   PairMDPDOMP(class LAMMPS *);
   ~PairMDPDOMP() override;
 
+  void settings(int, char **) override;
   void compute(int, int) override;
   double memory_usage() override;
 

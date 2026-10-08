@@ -44,8 +44,7 @@ using MathConst::THIRD;
 /* ---------------------------------------------------------------------- */
 
 ThrOMP::ThrOMP(LAMMPS *ptr, int style) :
-    lmp(ptr), fix(nullptr), thr_style(style), thr_error(0), thr_errline(0), thr_errfile(nullptr),
-    thr_errmsg(nullptr)
+    lmp(ptr), fix(nullptr), thr_style(style), thr_error(0), thr_errline(0), thr_errfile(nullptr)
 {
   // register fix omp with this class
   fix = static_cast<FixOMP *>(lmp->modify->get_fix_by_id("package_omp"));

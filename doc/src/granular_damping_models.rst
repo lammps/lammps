@@ -116,8 +116,8 @@ Example:
 
 The *tsuji* model is based on the work of :ref:`(Tsuji et al)
 <Tsuji1992>`.  Here, the damping coefficient specified as part of the
-normal model is interpreted as a restitution coefficient :math:`e`.  The
-damping constant :math:`\eta_n` is given by:
+normal model is interpreted as a restitution coefficient :math:`e`, assuming the
+normal force is Hertzian.  The damping constant :math:`\eta_n` is given by:
 
 .. math::
 
@@ -139,6 +139,9 @@ restitution coefficient *e* according to:
 The dimensionless coefficient of restitution :math:`e` specified as part
 of the normal contact model parameters should be between 0 and 1, but no
 error check is performed on this.
+Using this damping model with normal contact models other than Hertz is
+possible, but the resulting coefficient of restitution is not likely to
+accurately match the specified value.
 
 .. versionchanged:: 2Sep2026
 
@@ -165,8 +168,8 @@ Example:
 
 The *coeff_restitution* model is useful when a specific normal coefficient of
 restitution :math:`e` is required. It operates much like the *Tsuji* model,
-but the normal coefficient of restitution :math:`e` is specified as an input
-in place of the usual :math:`\eta_{n0}` value in the normal model. Following
+but the normal coefficient of restitution :math:`e` is calculated using a different
+expression (below) and is designed to work with Hooke and Hertz. Following
 the approach of :ref:`(Brilliantov et al) <Brill1996>`, when using the *hooke*
 normal model, *coeff_restitution* then calculates the damping coefficient as:
 

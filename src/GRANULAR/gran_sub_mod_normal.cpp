@@ -524,6 +524,9 @@ void GranSubModNormalMDR::init()
     fix_mdr_flag = 1;
   }
 
+  if (gm->damping_model->name != "mdr")
+    error->all(FLERR, "Only damping mdr may be used with the mdr normal model");
+
   // initialize particle history variables
   int tmp1, tmp2;
   index_Ro = atom->find_custom("Ro", tmp1, tmp2);                       // initial radius

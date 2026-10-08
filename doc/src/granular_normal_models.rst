@@ -166,7 +166,7 @@ Example:
 .. code-block:: LAMMPS
 
    pair_style granular
-   pair_coeff * * epa_linear 1000.0 50.0 5000.0 200.0 0.5 0.0 tangential linear_history 500.0 1.0 0.4 damping mass_velocity
+   pair_coeff * * mdr 5e6 0.4 1.9e5 2.0 0.5 0.5 tangential linear_history 940.0 1.0 0.7 rolling sds 2.7e5 0.0 0.6 damping mdr 1
 
 
 The *mdr* model is a mechanically-derived contact model designed to

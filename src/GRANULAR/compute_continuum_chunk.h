@@ -45,8 +45,8 @@ class ComputeContinuumChunk : public ComputeChunk {
   std::unordered_set<int> no_norm;
 
   struct StencilOffset {
-    int dn[3];     // index shifts along chunk axes 0, 1, 2
-    double dx[3];  // displacement shifts along spatial axes x, y, z
+    int dn[3];       // index shifts along chunk axes 0, 1, 2
+    double dx[3];    // displacement shifts along spatial axes x, y, z
   };
   std::vector<StencilOffset> stencil;
 

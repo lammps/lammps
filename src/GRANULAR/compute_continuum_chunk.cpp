@@ -285,7 +285,7 @@ ComputeContinuumChunk::ComputeContinuumChunk(LAMMPS *lmp, int narg, char **arg) 
   }
 
   nvalues = static_cast<int>(values.size());
-  if (nvalues == 0) error->all(FLERR, "No values in compute continuum/chunk command");
+  if (nvalues == 0) error->all(FLERR, 6, "No values in compute continuum/chunk command");
 
   while (iarg < narg) {
     if (strcmp(arg[iarg], "boundary/fix") == 0) {
@@ -305,7 +305,7 @@ ComputeContinuumChunk::ComputeContinuumChunk(LAMMPS *lmp, int narg, char **arg) 
       boundary_groupbit = group->get_bitmask_by_id(FLERR, arg[iarg + 1], "compute continuum/chunk");
       iarg += 2;
     } else {
-      error->all(FLERR, "Unknown compute continuum/chunk keyword: {}", arg[iarg]);
+      error->all(FLERR, iarg, "Unknown compute continuum/chunk keyword: {}", arg[iarg]);
     }
   }
 
@@ -325,7 +325,7 @@ ComputeContinuumChunk::ComputeContinuumChunk(LAMMPS *lmp, int narg, char **arg) 
   } else if (which == ArgInfo::BIN3D) {
     bin_dim = 3;
   } else {
-    error->all(FLERR, "Can only use bin chunk/atom styles with compute continuum/chunk");
+    error->all(FLERR, 3, "Can only use bin chunk/atom styles with compute continuum/chunk");
   }
 
   // Can't use discard if bound is set, so this is stricter than needed but assumed by position_to_bin()
@@ -356,7 +356,7 @@ ComputeContinuumChunk::ComputeContinuumChunk(LAMMPS *lmp, int narg, char **arg) 
   w_offset = w_scale * exp(-w_cut_sq / (2.0 * w_sd_sq));
 
   if (need_radius && !atom->radius_flag)
-    error->all(FLERR, "Compute continuum/chunk requires atom attribute radius");
+    error->all(FLERR, Error::NOLASTLINE, "Compute continuum/chunk requires atom attribute radius");
   radius_required = need_radius;
 
   array_flag = 1;

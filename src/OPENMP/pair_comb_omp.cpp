@@ -637,8 +637,13 @@ void PairCombOMP::Short_neigh_thr()
       sht_first[i] = neighptrj;
       sht_num[i] = nj;
       ipg.vgot(nj);
-      if (ipg.status())
-        error->one(FLERR, Error::NOLASTLINE, "Neighbor list overflow, boost neigh_modify one" + utils::errorurl(36));
+      if (ipg.status()) {
+        // errors must be deferred until the end of the threaded region
+        check_error_thr(true, tid, FLERR, "Neighbor list overflow, boost neigh_modify one" + utils::errorurl(36));
+        break;
+      }
     }
   }
+
+  error_thr();
 }

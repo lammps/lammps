@@ -27,6 +27,9 @@ FixStyle(OXDNA/PRIME_NEIGHS/kk/host,FixOxdnaPrimeNeighsKokkos<LMPHostType>);
 
 namespace LAMMPS_NS {
 
+template<class DeviceType>
+class FixOxdnaNpairKokkos;
+
 struct TagFixOxdnaPrimeNeighsPrecomputePrimeNeighsBond {}; // fene and stk
 
 
@@ -99,6 +102,9 @@ class FixOxdnaPrimeNeighsKokkos : public Fix {
   int map_style;
   DAT::tdual_int_1d k_map_array;
   dual_hash_type k_map_hash;
+
+
+  FixOxdnaNpairKokkos<DeviceType> *fix_oxdna_npairKK;    // ptr to OXDNA/NPAIR/kk fix
 };
 
 }    // namespace LAMMPS_NS

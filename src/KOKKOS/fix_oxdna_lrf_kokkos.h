@@ -128,24 +128,6 @@ class FixOxdnaLRFKokkos : public Fix {
     { return Kokkos::subview(d_xn, Kokkos::ALL, 13); }
   t_oxdna_packed<DeviceType> packed() const { return d_xn; }
 
-  // per-thread force/torque copies, kept across steps and shared by all oxDNA pair styles
-  using DupScatterView3 = KKScatterView<KK_ACC_FLOAT*[3], typename AT::t_kkacc_1d_3::array_layout,
-    typename KKDevice<DeviceType>::value, KKScatterSum, KKScatterDuplicated>;
-  DupScatterView3 dup_f, dup_torque;
-
-  void prepare_dup_f_torque(const typename AT::t_kkacc_1d_3 &f,
-                            const typename AT::t_kkacc_1d_3 &torque)
-  {
-    if (!dup_f.is_allocated() || dup_f.subview().extent(0) != f.extent(0))
-      dup_f = Kokkos::Experimental::create_scatter_view<KKScatterSum, KKScatterDuplicated>(f);
-    else
-      dup_f.reset();
-    if (!dup_torque.is_allocated() || dup_torque.subview().extent(0) != torque.extent(0))
-      dup_torque = Kokkos::Experimental::create_scatter_view<KKScatterSum, KKScatterDuplicated>(torque);
-    else
-      dup_torque.reset();
-  }
-
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagFixOxdnaLRFComputeQuatToXYZ, const int &) const;

@@ -128,6 +128,35 @@ void PairOxdna3XstkKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   special_lj[2] = force->special_lj[2];
   special_lj[3] = force->special_lj[3];
 
+  int need_dup = lmp->kokkos->need_dup<DeviceType>();
+  if (need_dup) {
+    dup_f = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, \
+    Kokkos::Experimental::ScatterDuplicated>(f);
+    dup_torque = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, \
+    Kokkos::Experimental::ScatterDuplicated>(torque);
+  } else {
+    ndup_f = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, \
+    Kokkos::Experimental::ScatterNonDuplicated>(f);
+    ndup_torque = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum, \
+    Kokkos::Experimental::ScatterNonDuplicated>(torque);
+  }
+  if (eflag_atom) {
+    if (need_dup)
+      dup_eatom = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum,
+        Kokkos::Experimental::ScatterDuplicated>(d_eatom);
+    else
+      ndup_eatom = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum,
+        Kokkos::Experimental::ScatterNonDuplicated>(d_eatom);
+  }
+  if (vflag_atom) {
+    if (need_dup)
+      dup_vatom = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum,
+        Kokkos::Experimental::ScatterDuplicated>(d_vatom);
+    else
+      ndup_vatom = Kokkos::Experimental::create_scatter_view<Kokkos::Experimental::ScatterSum,
+        Kokkos::Experimental::ScatterNonDuplicated>(d_vatom);
+  }
+
   copymode = 1;
 
   // d_n(x/y/z)_xtrct = extracted local unit vectors in lab frame from fix_oxdna_lrf_kokkos.
@@ -243,16 +272,28 @@ void PairOxdna3XstkKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   if (vflag_fdotr) pair_virial_fdotr_compute(this);
 
   if (eflag_atom) {
+    if (need_dup)
+      Kokkos::Experimental::contribute(d_eatom, dup_eatom);
     k_eatom.template modify<DeviceType>();
     k_eatom.sync_host();
   }
 
   if (vflag_atom) {
+    if (need_dup)
+      Kokkos::Experimental::contribute(d_vatom, dup_vatom);
     k_vatom.template modify<DeviceType>();
     k_vatom.sync_host();
   }
 
   copymode = 0;
+
+  // free duplicated memory
+  if (need_dup) {
+    dup_f        = decltype(dup_f)();
+    dup_torque   = decltype(dup_torque)();
+    dup_eatom    = decltype(dup_eatom)();
+    dup_vatom    = decltype(dup_vatom)();
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -758,8 +799,11 @@ bool PairOxdna3XstkKokkos<DeviceType>::screened_pair_body(TagPairOxdna3XstkCompu
   // one thread per neighbor pair: several threads update the same atoms
   // with any neighbor list style, so all updates must be atomic
 
-  const t_atomic_kkacc_1d_3 a_f = f;
-  const t_atomic_kkacc_1d_3 a_torque = torque;
+  auto v_f = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
+  auto a_f = v_f.template access<Kokkos::Experimental::ScatterAtomic>();
+  auto v_torque = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,
+    decltype(dup_torque),decltype(ndup_torque)>::get(dup_torque,ndup_torque);
+  auto a_torque = v_torque.template access<Kokkos::Experimental::ScatterAtomic>();
 
   const uint64_t pair = d_pairs_screened(ipair);
   const int a = static_cast<int>(pair >> 32);
@@ -770,10 +814,10 @@ bool PairOxdna3XstkKokkos<DeviceType>::screened_pair_body(TagPairOxdna3XstkCompu
   const int b = braw & NEIGHMASK;
   const int btype = type(b);
 
-  const int a3idx = d_prime_neighs_atom(a,0);
-  const int a5idx = d_prime_neighs_atom(a,1);
-  const int b3idx = d_prime_neighs_atom(b,0);
-  const int b5idx = d_prime_neighs_atom(b,1);
+  const int a3idx = d_prime_neighs_oxdna3_xstk(ipair,0);
+  const int a5idx = d_prime_neighs_oxdna3_xstk(ipair,1);
+  const int b3idx = d_prime_neighs_oxdna3_xstk(ipair,2);
+  const int b5idx = d_prime_neighs_oxdna3_xstk(ipair,3);
 
   const int a3ptype = (a3idx >= 0) ? type(a3idx) : 0;
   const int a5ptype = (a5idx >= 0) ? type(a5idx) : 0;
@@ -884,7 +928,7 @@ bool PairOxdna3XstkKokkos<DeviceType>::screened_pair_body(TagPairOxdna3XstkCompu
       ev.evdwl += (do_newton_b ? static_cast<KK_ACC_FLOAT>(1.0) : static_cast<KK_ACC_FLOAT>(0.5)) * static_cast<KK_ACC_FLOAT>(evdwl);
     }
     if (vflag_either || eflag_atom) {
-      this->template ev_tally_xyz<NEIGHFLAG,NEWTON_PAIR>(ev,a,b,evdwl,
+      this->template ev_tally_xyz<NEIGHFLAG,NEWTON_PAIR,1>(ev,a,b,evdwl,
         delf[0],delf[1],delf[2],x(a,0)-x(b,0), x(a,1)-x(b,1), x(a,2)-x(b,2));
     }
   }
@@ -1243,7 +1287,7 @@ void PairOxdna3XstkKokkos<DeviceType>::coeff(int narg, char **arg)
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-template<int NEIGHFLAG, int NEWTON_PAIR>
+template<int NEIGHFLAG, int NEWTON_PAIR, int PAIRWISE>
 KOKKOS_INLINE_FUNCTION
 void PairOxdna3XstkKokkos<DeviceType>::ev_tally_xyz(EV_FLOAT &ev, const int &i, const int &j,
       const KK_FLOAT &epair, const KK_ACC_FLOAT &fx, const KK_ACC_FLOAT &fy, const KK_ACC_FLOAT &fz,
@@ -1252,8 +1296,15 @@ void PairOxdna3XstkKokkos<DeviceType>::ev_tally_xyz(EV_FLOAT &ev, const int &i, 
   const int EFLAG = eflag;
   const int VFLAG = vflag_either;
 
-  const t_atomic_kkacc_1d a_eatom = d_eatom;
-  const t_atomic_kkacc_1d_6 a_vatom = d_vatom;
+  // The eatom and vatom arrays are duplicated for OpenMP, atomic for GPU, and neither for Serial
+
+  auto v_eatom = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,\
+    decltype(dup_eatom),decltype(ndup_eatom)>::get(dup_eatom,ndup_eatom);
+  auto a_eatom = v_eatom.template access<std::conditional_t<PAIRWISE,Kokkos::Experimental::ScatterAtomic,AtomicDup_v<NEIGHFLAG,DeviceType>>>();
+
+  auto v_vatom = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,\
+    decltype(dup_vatom),decltype(ndup_vatom)>::get(dup_vatom,ndup_vatom);
+  auto a_vatom = v_vatom.template access<std::conditional_t<PAIRWISE,Kokkos::Experimental::ScatterAtomic,AtomicDup_v<NEIGHFLAG,DeviceType>>>();
 
   if (EFLAG) {
     if (eflag_atom) {

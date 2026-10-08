@@ -16,8 +16,10 @@
 #include "atom_kokkos.h"
 #include "atom_masks.h"
 #include "error.h"
+#include "fix_oxdna_npair_kokkos.h"
 #include "memory_kokkos.h"
 #include "modify.h"
+#include "neigh_list_kokkos.h"
 #include "neighbor_kokkos.h"
 
 using namespace LAMMPS_NS;
@@ -317,28 +319,58 @@ void FixOxdnaPrimeNeighsKokkos<DeviceType>::operator()(TagFixOxdnaPrimeNeighsPre
   b &= NEIGHMASK;
 
   int mapped = -1;
-  const tagint id3p_tag = id3p(i);
-  if (id3p_tag != -1) {
-    if (map_style == Atom::MAP_ARRAY) {
-      const auto map_array = k_map_array.view<DeviceType>();
-      if (id3p_tag >= 0 && id3p_tag < static_cast<tagint>(map_array.extent(0))) mapped = map_array(id3p_tag);
-    } else if (map_style == Atom::MAP_HASH) {
-      mapped = AtomKokkos::map_find_hash_kokkos<DeviceType>(id3p_tag, k_map_hash);
-    }
-  }
-  d_prime_neighs_atom(i,0) = mapped;
 
-  mapped = -1;
-  const tagint id5p_tag = id5p(i);
-  if (id5p_tag != -1) {
+  // id3p[a]
+  const tagint id3p_a_tag = id3p(a);
+  if (id3p_a_tag != -1) {
     if (map_style == Atom::MAP_ARRAY) {
       const auto map_array = k_map_array.view<DeviceType>();
-      if (id5p_tag >= 0 && id5p_tag < static_cast<tagint>(map_array.extent(0))) mapped = map_array(id5p_tag);
+      if (id3p_a_tag >= 0 && id3p_a_tag < static_cast<tagint>(map_array.extent(0))) mapped = map_array(id3p_a_tag);
     } else if (map_style == Atom::MAP_HASH) {
-      mapped = AtomKokkos::map_find_hash_kokkos<DeviceType>(id5p_tag, k_map_hash);
+      mapped = AtomKokkos::map_find_hash_kokkos<DeviceType>(id3p_a_tag, k_map_hash);
     }
   }
-  d_prime_neighs_atom(i,1) = mapped;
+  d_prime_neighs_oxdna3_xstk(ipair,0) = mapped;
+
+  // id5p[a]
+  mapped = -1;
+  const tagint id5p_a_tag = id5p(a);
+  if (id5p_a_tag != -1) {
+    if (map_style == Atom::MAP_ARRAY) {
+      const auto map_array = k_map_array.view<DeviceType>();
+      if (id5p_a_tag >= 0 && id5p_a_tag < static_cast<tagint>(map_array.extent(0))) mapped = map_array(id5p_a_tag);
+    } else if (map_style == Atom::MAP_HASH) {
+      mapped = AtomKokkos::map_find_hash_kokkos<DeviceType>(id5p_a_tag, k_map_hash);
+    }
+  }
+  d_prime_neighs_oxdna3_xstk(ipair,1) = mapped;
+
+  // id3p[b]
+  mapped = -1;
+  const tagint id3p_b_tag = id3p(b);
+  if (id3p_b_tag != -1) {
+    if (map_style == Atom::MAP_ARRAY) {
+      const auto map_array = k_map_array.view<DeviceType>();
+      if (id3p_b_tag >= 0 && id3p_b_tag < static_cast<tagint>(map_array.extent(0))) mapped = map_array(id3p_b_tag);
+    } else if (map_style == Atom::MAP_HASH) {
+      mapped = AtomKokkos::map_find_hash_kokkos<DeviceType>(id3p_b_tag, k_map_hash);
+    }
+  }
+  d_prime_neighs_oxdna3_xstk(ipair,2) = mapped;
+
+  // id5p[b]
+  mapped = -1;
+  const tagint id5p_b_tag = id5p(b);
+  if (id5p_b_tag != -1) {
+    if (map_style == Atom::MAP_ARRAY) {
+      const auto map_array = k_map_array.view<DeviceType>();
+      if (id5p_b_tag >= 0 && id5p_b_tag < static_cast<tagint>(map_array.extent(0))) mapped = map_array(id5p_b_tag);
+    } else if (map_style == Atom::MAP_HASH) {
+      mapped = AtomKokkos::map_find_hash_kokkos<DeviceType>(id5p_b_tag, k_map_hash);
+    }
+  }
+  d_prime_neighs_oxdna3_xstk(ipair,3) = mapped;
+
 }
 
 /* ---------------------------------------------------------------------- */

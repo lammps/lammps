@@ -31,8 +31,6 @@ using MathConst::MY_PIS;
 
 static constexpr double EPSILON = 1.0e-6;
 
-namespace { using dbl3_t = struct { double x,y,z; }; }
-
 /* ---------------------------------------------------------------------- */
 
 PairCoulCutDielectricOMP::PairCoulCutDielectricOMP(LAMMPS *_lmp) :

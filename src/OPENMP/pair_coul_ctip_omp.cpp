@@ -35,8 +35,6 @@ static constexpr double A3 =  1.421413741;
 static constexpr double A4 = -1.453152027;
 static constexpr double A5 =  1.061405429;
 
-namespace { using dbl3_t = struct { double x,y,z; }; }
-
 /* ---------------------------------------------------------------------- */
 
 PairCoulCTIPOMP::PairCoulCTIPOMP(LAMMPS *lmp) :

@@ -29,8 +29,6 @@
 using namespace LAMMPS_NS;
 using namespace RHEO_NS;
 
-namespace { using dbl3_t = struct { double x,y,z; }; }
-
 /* ---------------------------------------------------------------------- */
 
 PairRHEOSolidOMP::PairRHEOSolidOMP(LAMMPS *lmp) :

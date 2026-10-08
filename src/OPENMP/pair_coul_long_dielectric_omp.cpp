@@ -31,8 +31,6 @@ using namespace LAMMPS_NS;
 using namespace EwaldConst;
 using MathConst::MY_PIS;
 
-namespace { using dbl3_t = struct { double x,y,z; }; }
-
 /* ---------------------------------------------------------------------- */
 
 PairCoulLongDielectricOMP::PairCoulLongDielectricOMP(LAMMPS *_lmp) :

@@ -27,8 +27,6 @@
 
 using namespace LAMMPS_NS;
 
-namespace { using dbl3_t = struct { double x,y,z; }; }
-
 /* ---------------------------------------------------------------------- */
 
 PairKolmogorovCrespiZOMP::PairKolmogorovCrespiZOMP(LAMMPS *lmp) :

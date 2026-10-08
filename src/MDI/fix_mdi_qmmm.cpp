@@ -1835,7 +1835,7 @@ void FixMDIQMMM::send_types_mm()
 {
   int ierr = MDI_Send_command(">LATTICE_TYPES", mdicomm);
   if (ierr) error->all(FLERR, "MDI: >LATTICE_TYPES command");
-  ierr = MDI_Send(tqm, nqm, MDI_INT, mdicomm);
+  ierr = MDI_Send(tmm, nmm, MDI_INT, mdicomm);
   if (ierr) error->all(FLERR, "MDI: >LATTICE_TYPES data");
 }
 

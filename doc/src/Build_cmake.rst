@@ -16,7 +16,7 @@ environments is on a :doc:`separate page <Howto_cmake>`.
 
 .. note::
 
-   LAMMPS currently requires CMake version 3.20 or later.
+   LAMMPS currently requires CMake version 3.27 or later.
 
 .. warning::
 
@@ -81,7 +81,7 @@ This will create a folder called ``build``, then run the configuration
 step to generate build files for the default build command and then
 launch that build command to compile LAMMPS.  During the configuration
 step CMake will try to detect whether support for MPI, OpenMP, FFTW,
-gzip, JPEG, PNG, and ffmpeg are available and enable the corresponding
+JPEG, and PNG are available and enable the corresponding
 configuration settings.  The progress of this configuration can be
 followed on the screen and a summary of selected options and settings
 will be printed at the end.  The ``cmake --build build`` command will
@@ -145,7 +145,7 @@ defaults to ``${HOME}/.local``.
 
    .. code-block:: cmake
 
-      cmake_minimum_required(VERSION 3.20)
+      cmake_minimum_required(VERSION 3.27)
       project(simpleCC CXX)
       # set this to the LAMMPS installation location
       if(NOT CMAKE_PREFIX_PATH)

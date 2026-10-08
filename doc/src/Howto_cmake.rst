@@ -27,15 +27,14 @@ selected examples.  Please see the chapter about :doc:`building LAMMPS
 <Build>` for descriptions of specific flags and options for LAMMPS in
 general and for specific packages.
 
-.. versionchanged:: 10Sep2025
+.. versionchanged:: TBD
 
 CMake can be used through either the command-line interface (CLI)
-program ``cmake`` (or ``cmake3``), a text mode interactive user
-interface (TUI) program ``ccmake`` (or ``ccmake3``), or a graphical user
-interface (GUI) program ``cmake-gui``.  All of them are portable
-software available on all supported platforms and can be used
-interchangeably.  Since LAMMPS version 10Sep2025, the minimum
-required CMake version is 3.20.
+program ``cmake``, a text mode interactive user interface (TUI)
+program ``ccmake``, or a graphical user interface (GUI) program
+``cmake-gui``.  All of them are portable software available on
+all supported platforms and can be used interchangeably.
+The minimum required CMake version is currently 3.27.
 
 All details about features and settings for CMake are in the `CMake
 online documentation <https://cmake.org/documentation/>`_. We focus
@@ -136,8 +135,6 @@ summary screen will look like this:
    -- Found JPEG: /usr/lib64/libjpeg.so (found version "62")
    -- Found PNG: /usr/lib64/libpng.so (found version "1.6.37")
    -- Found ZLIB: /usr/lib64/libz.so (found version "1.2.11")
-   -- Found GZIP: /usr/bin/gzip
-   -- Found FFMPEG: /usr/bin/ffmpeg
    -- Performing Test COMPILER_SUPPORTS-ffast-math
    -- Performing Test COMPILER_SUPPORTS-ffast-math - Success
    -- Performing Test COMPILER_SUPPORTS-march=native
@@ -166,7 +163,7 @@ summary screen will look like this:
          Type:          GNU
          Version:       8.2.0
          C++ Flags:     -O2 -g -DNDEBUG
-         Defines:       LAMMPS_SMALLBIG;LAMMPS_MEMALIGN=64;LAMMPS_JPEG;LAMMPS_PNG;LAMMPS_GZIP;LAMMPS_FFMPEG
+         Defines:       LAMMPS_SMALLBIG;LAMMPS_MEMALIGN=64;LAMMPS_JPEG;LAMMPS_PNG
          Options:       -ffast-math;-march=native
    -- <<< Linker flags: >>>
    -- Executable name:  lmp
@@ -359,10 +356,6 @@ Some common LAMMPS specific variables
      - whether to support PNG format in  :doc:`dump image <dump_image>` (default: ``on`` if found)
    * - ``WITH_ZLIB``
      - whether to use the zlib library for compression (default: ``on`` if found)
-   * - ``WITH_GZIP``
-     - whether to support reading and writing compressed files (default: ``on`` if found)
-   * - ``WITH_FFMPEG``
-     - whether to support generating movies with :doc:`dump movie <dump_image>` (default: ``on`` if found)
 
 Enabling or disabling LAMMPS packages
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

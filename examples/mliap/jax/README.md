@@ -22,7 +22,7 @@ Install LAMMPS:
           -D PKG_PYTHON=on \
           -D PKG_ML-SNAP=on \
           -D PKG_ML-IAP=on \
-          -D Python_EXECUTABLE=$(which python)
+          -D Python_EXECUTABLE:FILEPATH=`which python`
     cmake --build build-jax
     cmake --build build-jax --target install-python
 

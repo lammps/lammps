@@ -142,8 +142,16 @@ typical summary screen will look like this:
    -- Looking for C++ include omp.h
    -- Looking for C++ include omp.h - found
    -- Found OpenMP_CXX: -fopenmp (found version "4.5")
-   -- Found OpenMP: TRUE (found version "4.5") found components: CXX
-   -- Found GZIP: /usr/bin/gzip
+   -- Found OpenMP: TRUE (found version "4.5")
+   -- Found JPEG: /usr/lib64/libjpeg.so (found version "62")
+   -- Found PNG: /usr/lib64/libpng.so (found version "1.6.37")
+   -- Found ZLIB: /usr/lib64/libz.so (found version "1.2.11")
+   -- Performing Test COMPILER_SUPPORTS-ffast-math
+   -- Performing Test COMPILER_SUPPORTS-ffast-math - Success
+   -- Performing Test COMPILER_SUPPORTS-march=native
+   -- Performing Test COMPILER_SUPPORTS-march=native - Success
+   -- Looking for C++ include cmath
+   -- Looking for C++ include cmath - found
    -- Generating style headers...
    -- Generating style source files...
    -- Generating package registry...
@@ -171,11 +179,8 @@ typical summary screen will look like this:
          Version:       15.3.1
          C++ Standard:  17
          C++ Flags:     -O2 -g -DNDEBUG
-         Defines:       LAMMPS_ZLIB;LAMMPS_SMALLBIG;LAMMPS_MEMALIGN=64;LAMMPS_OMP_COMPAT=4;LAMMPS_GZIP
-   -- C compiler:       /usr/bin/cc
-         Type:          GNU
-         Version:       15.3.1
-         C Flags:       -O2 -g -DNDEBUG
+         Defines:       LAMMPS_SMALLBIG;LAMMPS_MEMALIGN=64;LAMMPS_JPEG;LAMMPS_PNG
+         Options:       -ffast-math;-march=native
    -- <<< Linker flags: >>>
    -- Executable name:  lmp
    -- Static library flags:
@@ -451,8 +456,6 @@ Some common LAMMPS specific variables
      - whether to support generating movies with :doc:`dump movie <dump_image>` (default: ``on`` if found, requires the GRAPHICS package)
    * - ``WITH_ZLIB``
      - whether to use the zlib library for compression (default: ``on`` if found)
-   * - ``WITH_GZIP``
-     - whether to support reading and writing compressed files (default: ``on`` if found)
 
 Enabling or disabling LAMMPS packages
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

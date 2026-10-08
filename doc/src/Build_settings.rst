@@ -392,34 +392,24 @@ Read or write compressed files
 
    Added support for ``brotli`` and ``7-zip``
 
-If this option is enabled, large files can be read or written with
-compression by ``gzip`` or similar tools by several LAMMPS commands,
-including :doc:`read_data <read_data>`, :doc:`write_data <write_data>`,
-:doc:`rerun <rerun>`, :doc:`dump <dump>`, and :doc:`write_dump
-<write_dump>`.  Supported compression tools and algorithms are currently
-``gzip``, ``bzip2``, ``zstd``, ``xz``, ``lz4``, ``lzma`` (via xz),
-``brotli``, and ``7-zip (via 7z)``.  LAMMPS checks at runtime, which
-compression commands are available and adjusts the check for supported
-suffixes accordingly.  The list of available compression formats and
-suffixes is shown when running LAMMPS with the :doc:`-help or -h
-command_line flag <Run_options>`.
+.. versionchanged:: TBD
 
-.. tabs::
+Support for compressed files no longer needs to be enabled at compile
+time; the CMake option ``WITH_GZIP`` and the define ``-DLAMMPS_GZIP``
+were removed.
 
-   .. tab:: CMake build
+Large files can be read or written with compression by ``gzip`` or
+similar tools by several LAMMPS commands, including :doc:`read_data
+<read_data>`, :doc:`write_data <write_data>`, :doc:`rerun <rerun>`,
+:doc:`dump <dump>`, and :doc:`write_dump <write_dump>`.  Supported
+compression tools and algorithms are currently ``gzip``, ``bzip2``,
+``zstd``, ``xz``, ``lz4``, ``lzma`` (via xz), ``brotli``, and ``7-zip
+(via 7z)``.  LAMMPS checks at runtime, which compression commands are
+available and adjusts the check for supported suffixes accordingly.  The
+list of available compression formats and suffixes is shown when running
+LAMMPS with the :doc:`-help or -h command_line flag <Run_options>`.
 
-      .. code-block:: bash
-
-         -D WITH_GZIP=value  # on or off
-                             # default is yes if CMake can find the gzip program
-
-   .. tab:: Traditional make
-
-      .. code-block:: make
-
-         LMP_INC = -DLAMMPS_GZIP   <other LMP_INC settings>
-
-This option requires that your operating system fully supports the
+This feature requires that your operating system fully supports the
 "popen()" function in the standard runtime library and that a ``gzip``
 or other executable can be found by LAMMPS in the standard search path
 during a run.

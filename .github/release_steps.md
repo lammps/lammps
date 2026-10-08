@@ -125,7 +125,7 @@ cd release-packages
 wget https://download.lammps.org/static/fedora41_musl_mingw.sif
 apptainer shell fedora41_musl_mingw.sif
 git clone -b release --depth 10 https://github.com/lammps/lammps.git lammps-release
-cmake -S lammps-release/cmake -B build-release -G Ninja -D CMAKE_INSTALL_PREFIX=$PWD/lammps-static -D CMAKE_TOOLCHAIN_FILE=/usr/musl/share/cmake/linux-musl.cmake -C lammps-release/cmake/presets/most.cmake -C lammps-release/cmake/presets/kokkos-openmp.cmake -D DOWNLOAD_POTENTIALS=OFF -D BUILD_MPI=OFF -D BUILD_TESTING=OFF -D CMAKE_BUILD_TYPE=Release -D PKG_ATC=ON -D PKG_AWPMD=ON -D PKG_MANIFOLD=ON -D PKG_MESONT=ON -D PKG_MGPT=ON -D PKG_ML-PACE=ON -D PKG_ML-RANN=ON -D PKG_MOLFILE=ON -D PKG_PTM=ON -D PKG_QTB=ON -D PKG_SMTBQ=ON -D PREFER_INTERNAL_LINALG=ON
+cmake -S lammps-release/cmake -B build-release -G Ninja -D CMAKE_INSTALL_PREFIX=$PWD/lammps-static -D CMAKE_TOOLCHAIN_FILE=/usr/musl/share/cmake/linux-musl.cmake -C lammps-release/cmake/presets/most.cmake -C lammps-release/cmake/presets/kokkos-openmp.cmake -D DOWNLOAD_POTENTIALS=OFF -D BUILD_MPI=OFF -D BUILD_TESTING=OFF -D CMAKE_BUILD_TYPE=Release -D PKG_MANIFOLD=ON -D PKG_MESONT=ON -D PKG_MGPT=ON -D PKG_ML-PACE=ON -D PKG_MOLFILE=ON -D PKG_PTM=ON -D PKG_QTB=ON -D PKG_SMTBQ=ON -D PREFER_INTERNAL_LINALG=ON
 cmake --build build-release --target all
 cmake --build build-release --target install
 /usr/musl/bin/x86_64-linux-musl-strip -g lammps-static/bin/*

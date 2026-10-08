@@ -62,7 +62,7 @@ else()
 endif()
 list(APPEND TEST_CONFIG_DEFS LAMMPS_HAS_OMP=${HAS_OMP})
 
-foreach(WITH "JPEG" "PNG" "GZIP" "FFMPEG")
+foreach(WITH "JPEG" "PNG")
   if(WITH_${WITH})
     set(HAS_${WITH} 1)
   else()

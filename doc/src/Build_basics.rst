@@ -299,7 +299,7 @@ LAMMPS.
 
          .. code-block:: output
 
-            g++ -g -O3  -DLAMMPS_GZIP -DLAMMPS_MEMALIGN=64    -I../STUBS     -c ../main.cpp
+            g++ -g -O3  -DLAMMPS_MEMALIGN=64    -I../STUBS     -c ../main.cpp
             In file included from ../pointers.h:24:0,
                        from ../input.h:17,
                        from ../main.cpp:16:

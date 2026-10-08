@@ -162,9 +162,8 @@ GRAPHICS package
 The :doc:`dump image <dump_image>` command has options to output JPEG or
 PNG image files in addition to the default PPM format, and the :doc:`fix
 graphics/labels <fix_graphics_labels>` can read images in JPEG or PNG
-format in addition to PPM format files.  Likewise, the :doc:`dump movie
-<dump_image>` command outputs movie files in a variety of movie formats.
-Using these additional options requires the following settings:
+format in addition to PPM format files.  Using these additional options
+requires the following settings:
 
 .. tabs::
 
@@ -177,12 +176,10 @@ Using these additional options requires the following settings:
          -D WITH_PNG=value     # on or off
                                # default = yes if CMake finds PNG and ZLIB development files,
                                # else no
-         -D WITH_FFMPEG=value  # on or off
-                               # default = yes if CMake can find ffmpeg, else no
 
       Usually these settings are all that is needed.  If CMake cannot
-      find the graphics header, library, executable files, you can set
-      these variables:
+      find the graphics header and library files, you can set these
+      variables:
 
       .. code-block:: bash
 
@@ -192,13 +189,12 @@ Using these additional options requires the following settings:
          -D PNG_LIBRARY=path         # path to libpng.a (.so) file
          -D ZLIB_INCLUDE_DIR=path    # path to zlib.h header file
          -D ZLIB_LIBRARY=path        # path to libz.a (.so) file
-         -D FFMPEG_EXECUTABLE=path   # path to ffmpeg executable
 
    .. tab:: Traditional make
 
       .. code-block:: make
 
-         LMP_INC = -DLAMMPS_JPEG -DLAMMPS_PNG -DLAMMPS_FFMPEG  <other LMP_INC settings>
+         LMP_INC = -DLAMMPS_JPEG -DLAMMPS_PNG <other LMP_INC settings>
 
          JPG_INC = -I/usr/local/include   # path to jpeglib.h, png.h, zlib.h headers
                                           # if make cannot find them
@@ -209,13 +205,20 @@ Using these additional options requires the following settings:
       As with CMake, you do not need to set ``JPG_INC`` or ``JPG_PATH``,
       if make can find the graphics header and library files in their
       default system locations.  You must specify ``JPG_LIB`` with a
-      list of graphics libraries to include in the link.  You must make
-      certain that the ffmpeg executable (or ffmpeg.exe on Windows) is
-      in a directory where LAMMPS can find it at runtime; that is
-      usually a directory list in your ``PATH`` environment variable.
+      list of graphics libraries to include in the link.
 
-Using ``ffmpeg`` to output movie files requires that your machine
-supports the "popen" function in the standard runtime library.
+.. versionchanged:: TBD
+
+The :doc:`dump movie <dump_image>` command outputs movie files in a
+variety of movie formats by sending images through a pipe to the
+``ffmpeg`` program.  This no longer requires any settings when compiling
+LAMMPS, and the CMake option ``WITH_FFMPEG`` and the define
+``-DLAMMPS_FFMPEG`` were removed.  Instead, you must make certain that
+the ffmpeg executable (or ffmpeg.exe on Windows) is in a directory where
+LAMMPS can find it at runtime; that is a directory listed in your
+``PATH`` environment variable.  Using ``ffmpeg`` to output movie files
+also requires that your machine supports the "popen" function in the
+standard runtime library.
 
 .. note::
 

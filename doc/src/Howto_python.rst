@@ -48,10 +48,8 @@ Step 1: Building LAMMPS as a shared library
 
 To use LAMMPS inside of Python it has to be compiled as shared library.
 This library is then loaded by the Python interface.  In this example we
-enable the :ref:`MOLECULE <PKG-MOLECULE>`, :ref:`PYTHON <PKG-PYTHON>`,
-and :ref:`GRAPHICS <PKG-GRAPHICS>` packages and compile LAMMPS with
-:ref:`PNG, JPEG and FFMPEG output support <graphics>`, which is needed
-for the image and movie output in the example notebooks discussed below.
+enable the :ref:`MOLECULE package <PKG-MOLECULE>` and compile LAMMPS
+with :ref:`PNG and JPEG output support <graphics>` enabled.
 
 .. tabs::
 
@@ -78,7 +76,7 @@ for the image and movie output in the example notebooks discussed below.
          make yes-GRAPHICS
 
          # compile shared library using Makefile
-         make mpi mode=shlib LMP_INC="-DLAMMPS_PNG -DLAMMPS_JPEG -DLAMMPS_FFMPEG" JPG_LIB="-lpng -ljpeg"
+         make mpi mode=shlib LMP_INC="-DLAMMPS_PNG -DLAMMPS_JPEG" JPG_LIB="-lpng -ljpeg"
 
 Step 2: Installing the LAMMPS Python module
 """""""""""""""""""""""""""""""""""""""""""
@@ -406,9 +404,9 @@ subdirectory. To open these notebooks launch ``jupyter lab`` inside this
 directory and navigate to one of them.  The ``README.md`` file in this
 directory describes how to set up a suitable virtual environment.  If
 you compiled and installed a LAMMPS shared library with the GRAPHICS
-package and PNG, JPEG and FFMPEG support, you should be able to rerun
-all of these notebooks.  The notebooks run LAMMPS in serial, so the
-per-atom data of the local MPI process contains all atoms.
+package with PNG and JPEG support and have FFmpeg installed, you should be
+able to rerun all of these notebooks.  The notebooks run LAMMPS in serial,
+so the per-atom data of the local MPI process contains all atoms.
 
 Validating a dihedral potential
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

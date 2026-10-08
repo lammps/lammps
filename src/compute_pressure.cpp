@@ -212,8 +212,9 @@ void ComputePressure::init()
     vptr = new double*[nvirial];
     nvirial = 0;
     if (pairhybridflag && force->pair) {
+      // with a non-hybrid pair style, the matched style is the pair style itself
       auto *ph = dynamic_cast<PairHybrid *>(force->pair);
-      ph->no_virial_fdotr_compute = 1;
+      if (ph) ph->no_virial_fdotr_compute = 1;
       vptr[nvirial++] = pairhybrid->virial;
     }
     if (pairflag && force->pair) vptr[nvirial++] = force->pair->virial;

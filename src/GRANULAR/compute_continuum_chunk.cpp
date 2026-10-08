@@ -627,7 +627,7 @@ void ComputeContinuumChunk::compute_array()
     tagint *tag = atom->tag;
 
     int ii, jj, jnum, *jlist;
-    int mi, mj, mc, stencil_size[3], dn[3];
+    int mi, mj, mc, stencil_size[3];
 
     neighbor->build_one(list);
 
@@ -764,10 +764,6 @@ void ComputeContinuumChunk::compute_array()
               if (ncoord >= 1) xbin[chunk_dim[0]] += dn0 * bin_width[0];
               if (ncoord >= 2) xbin[chunk_dim[1]] += dn1 * bin_width[1];
               if (ncoord >= 3) xbin[chunk_dim[2]] += dn2 * bin_width[2];
-
-              dn[0] = dn0;
-              dn[1] = dn1;
-              dn[2] = dn2;
 
               mtmp = position_to_bin(xbin);
               if (mtmp == -1) continue;

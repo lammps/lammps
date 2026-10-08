@@ -16,6 +16,7 @@
 
 #include "atom.h"
 #include "comm.h"
+#include "error.h"
 #include "force.h"
 #include "kspace.h"
 #include "math_const.h"
@@ -50,11 +51,8 @@ PairLJCutCoulMSMDielectricOMP::PairLJCutCoulMSMDielectricOMP(LAMMPS *_lmp) :
 
 void PairLJCutCoulMSMDielectricOMP::compute(int eflag, int vflag)
 {
-  // scalar pressure path is not thread-safe in OMP: fall back to serial
-  if (force->kspace->scalar_pressure_flag && vflag) {
-    PairLJCutCoulMSMDielectric::compute(eflag, vflag);
-    return;
-  }
+  if (force->kspace->scalar_pressure_flag)
+    error->all(FLERR, "Must use 'kspace_modify pressure/scalar no' with OMP MSM Pair styles");
 
   ev_init(eflag, vflag);
 
@@ -110,7 +108,7 @@ void PairLJCutCoulMSMDielectricOMP::eval(int iifrom, int iito, ThrData *const th
   auto *_noalias const f = (dbl3_t *) thr->get_f()[0];
   const double *_noalias const q = atom->q_scaled;
   const double *_noalias const eps = atom->epsilon;
-  const auto *_noalias const norm = (dbl3_t *) atom->mu[0];
+  const auto *_noalias const norm = (dbl4_t *) atom->mu[0];
   const double *_noalias const curvature = atom->curvature;
   const double *_noalias const area = atom->area;
   const int *_noalias const type = atom->type;
@@ -219,7 +217,7 @@ void PairLJCutCoulMSMDielectricOMP::eval(int iifrom, int iito, ThrData *const th
         eztmp += delz * efield_i;
 
         if (EFLAG) {
-          if (rsq < cut_coulsq) {
+          if (rsq < cut_coulsq && rsq > EPSILON) {
             if (!ncoultablebits || rsq <= tabinnersq)
               ecoul = prefactor * 0.5 * (etmp + eps[j]) * egamma;
             else {

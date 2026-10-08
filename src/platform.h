@@ -271,7 +271,7 @@ int chdir(const std::string &path);
 
 /*! Create a directory or directory path
  *
- * Unlike the the ``mkdir()`` or ``_mkdir()`` functions of the C library, this
+ * Unlike the ``mkdir()`` or ``_mkdir()`` functions of the C library, this
  * function will also try to create non-existing sub-directories in case they
  * don't exist, and thus it behaves like the ``mkdir -p`` command rather than
  * plain ``mkdir`` or ``md`` in a Unix or Windows shell, respectively.
@@ -283,7 +283,7 @@ int mkdir(const std::string &path);
 
 /*! Delete a directory
  *
- * Unlike the the ``rmdir()`` or ``_rmdir()`` functions of the
+ * Unlike the ``rmdir()`` or ``_rmdir()`` functions of the
  * C library, this function will check for the contents of the
  * folder and recurse into any sub-folders, if necessary, and
  * delete all contained folders and their contents before
@@ -460,7 +460,7 @@ FILE *compressed_write(const std::string &file);
  *
  * If the program required for the compression format of the file
  * cannot be found, the text names the missing program.  Otherwise,
- * the text describes the last system error like utils::getsyserror().
+ * the text describes the last system error like ``utils::getsyserror()``.
  *
  *  \param  file  name of the file that could not be opened
  *  \return  text explaining the failure */

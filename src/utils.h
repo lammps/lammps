@@ -818,7 +818,7 @@ std::string trim_comment(const std::string &line);
  * If there is no '*' character in the string, return the original string.
  * If the number requires more characters than the value of the *pad*
  * argument, do not add zeros; otherwise add as many zeroes as needed to
- * the left to make the the number representation *pad* characters wide.
+ * the left to make the number representation *pad* characters wide.
  *
  * \param name  string with file containing a '*' (or not)
  * \param step  step number to replace the (first) '*'

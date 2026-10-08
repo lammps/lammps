@@ -127,10 +127,10 @@ inline double ComputeContinuumChunk::calc_w_int(double *dr, double *rij) const
 /* ---------------------------------------------------------------------- */
 
 ComputeContinuumChunk::ComputeContinuumChunk(LAMMPS *lmp, int narg, char **arg) :
-    ComputeChunk(lmp, narg, arg), list(nullptr), delta(nullptr), ncoord(0), reducedflag(0),
-    nlayers(nullptr), chunk_dim(nullptr), ichunk(nullptr), values_local(nullptr),
-    values_global(nullptr), density_local(nullptr), density_global(nullptr),
-    momentum_local(nullptr), momentum_global(nullptr)
+    ComputeChunk(lmp, narg, arg), list(nullptr), ichunk(nullptr), nlayers(nullptr),
+    chunk_dim(nullptr), delta(nullptr), values_local(nullptr), values_global(nullptr),
+    density_local(nullptr), density_global(nullptr), momentum_local(nullptr),
+    momentum_global(nullptr)
 {
   if (narg < 7) utils::missing_cmd_args(FLERR, "compute continuum/chunk", error);
 
@@ -139,6 +139,8 @@ ComputeContinuumChunk::ComputeContinuumChunk(LAMMPS *lmp, int narg, char **arg) 
   if (w_cut <= 0.0) error->all(FLERR, 4, "Illegal compute continuum/chunk cutoff value: {}", w_cut);
   if (w_sd <= 0.0) error->all(FLERR, 5, "Illegal compute continuum/chunk width value: {}", w_sd);
 
+  ncoord = 0;
+  reducedflag = 0;
   dim = domain->dimension;
   calculate_pair = 0;
   calculate_2_loops = 0;

@@ -18,6 +18,7 @@
 #include "citeme.h"
 #include "fix_granular_mdr.h"
 #include "granular_model.h"
+#include "gran_sub_mod_damping.h"
 #include "math_const.h"
 #include "math_special.h"
 #include "modify.h"

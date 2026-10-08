@@ -335,19 +335,6 @@ void FixWidom::init()
                  "Invalid atom type {} in fix widom command", nwidom_type);
   }
 
-  // if molecules are exchanged or moved, check for unset mol IDs
-  if (exchmode == EXCHMOL) {
-    tagint *molecule = atom->molecule;
-    int *mask = atom->mask;
-    int flag = 0;
-    for (int i = 0; i < atom->nlocal; i++)
-      if (mask[i] == groupbit)
-        if (molecule[i] == 0) flag = 1;
-    int flagall;
-    MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
-    if (flagall)
-      error->all(FLERR, Error::NOLASTLINE, "All mol IDs should be set for fix widom group atoms");
-  }
 
   if (exchmode == EXCHMOL)
     if (atom->molecule_flag == 0 || !atom->tag_enable
@@ -392,23 +379,6 @@ void FixWidom::init()
 
   if (gas_mass <= 0.0) error->all(FLERR, Error::NOLASTLINE, "Illegal fix widom gas mass <= 0");
 
-  // check that no deletable atoms are in atom->firstgroup
-  // deleting such an atom would not leave firstgroup atoms first
-
-  if (atom->firstgroup >= 0) {
-    int *mask = atom->mask;
-    int firstgroupbit = group->bitmask[atom->firstgroup];
-
-    int flag = 0;
-    for (int i = 0; i < atom->nlocal; i++)
-      if ((mask[i] == groupbit) && (mask[i] & firstgroupbit)) flag = 1;
-
-    int flagall;
-    MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
-
-    if (flagall)
-      error->all(FLERR, Error::NOLASTLINE, "Cannot use fix widom on atoms in atom_modify first group");
-  }
 
   // compute beta
   beta = 1.0/(force->boltz*insertion_temperature);

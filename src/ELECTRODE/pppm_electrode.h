@@ -31,7 +31,7 @@ namespace LAMMPS_NS {
 
 class PPPMElectrode : public PPPM, public ElectrodeKSpace {
  public:
-  PPPMElectrode(class LAMMPS *);
+  PPPMElectrode(class LAMMPS *, bool register_citation = true);
   ~PPPMElectrode() override;
   void init() override;
   void setup() override;
@@ -45,7 +45,7 @@ class PPPMElectrode : public PPPM, public ElectrodeKSpace {
 
   void compute_group_group(int, int, int) override;
 
- protected:
+ private:
   FFT_SCALAR ***electrolyte_density_brick;
   FFT_SCALAR *electrolyte_density_fft;
   class BoundaryCorrection *boundcorr;
@@ -61,17 +61,21 @@ class PPPMElectrode : public PPPM, public ElectrodeKSpace {
   void compute_gf_ik() override;
   void compute_gf_ad() override;
 
- private:
   int compute_step;
   int last_source_grpbit;
   bool last_invert_source;
   void start_compute();
-  void make_rho_in_brick(int, FFT_SCALAR ***, bool);
-  void project_psi(double *, int);
+  virtual void project_psi(double *, int);
   void one_step_multiplication(bigint *, double *, double **, double **, const int, bool);
   void two_step_multiplication(bigint *, double *, double **, double **, const int, bool);
   void build_amesh(int, int, int, double *, double *);
   bool compute_vector_called;
+
+ protected:
+  virtual void compute_boundary_corr(double, int, int, double &, double *);
+  virtual void compute_vector_boundary_corr(double *, int, int, bool);
+  virtual void make_rho_in_brick(int, FFT_SCALAR ***, bool);
+  virtual void init_tip4p() {}
 };
 
 }    // namespace LAMMPS_NS

@@ -27,11 +27,24 @@ class ElectrodeVector : protected Pointers {
  public:
   ElectrodeVector(class LAMMPS *, int, int, double, bool);
   ~ElectrodeVector() override;
-  void setup(class Pair *, class NeighList *, bool);
+  virtual void setup(class Pair *, class NeighList *, bool);
   void setup_tf(const std::map<int, double> &);
   void setup_eta(int);
   void compute_vector(double *);
+  void get_charge_position(int, double *);
+  void add_charge_force(int, const double *);
+  double get_pair_cutsq(int, int) const;
+  double get_charge_force_alpha() const;
+  int get_charge_force_virial(int, const double *, double *, int *);
   int igroup, source_group;
+
+ protected:
+  virtual void charge_position(int, double *);
+  virtual void charge_force(int, const double *);
+  virtual int charge_force_virial(int, const double *, double *, int *);
+  virtual double charge_force_alpha() const { return 0.0; }
+
+  virtual double pair_cutsq(int, int) const;
 
  private:
   bool invert_source;

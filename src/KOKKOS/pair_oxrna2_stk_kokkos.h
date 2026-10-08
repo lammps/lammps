@@ -23,6 +23,7 @@ PairStyle(oxrna2/stk/kk/host,PairOxrna2StkKokkos<LMPHostType>);
 #define LMP_PAIR_OXRNA2_STK_KOKKOS_H
 
 #include "kokkos_base.h"
+#include "fix_oxdna_lrf_kokkos.h"
 #include "pair_kokkos.h"
 #include "pair_oxrna2_stk.h"
 
@@ -69,7 +70,7 @@ class PairOxrna2StkKokkos : public PairOxrna2Stk, public KokkosBase {
                     const KK_FLOAT &dely, const KK_FLOAT &delz) const;
 
  protected:
-  typename AT::t_kkfloat_1d_3_lr_randomread x;
+  t_oxdna_packed_sub<DeviceType> x;    // positions in the packed record of fix OXDNA/LRF/kk
   typename AT::t_kkacc_1d_3 f;
   typename AT::t_kkacc_1d_3 torque;
   typename AT::t_int_1d_randomread type;
@@ -116,7 +117,7 @@ class PairOxrna2StkKokkos : public PairOxrna2Stk, public KokkosBase {
   typename AT::t_kkfloat_2d_randomread d_a_st2, d_cosphi_st2_ast, d_b_st2, d_cosphi_st2_c;
 
   // per-atom arrays for local unit vectors
-  typename AT::t_kkfloat_1d_3_randomread d_nx_xtrct, d_ny_xtrct, d_nz_xtrct;
+  t_oxdna_packed_sub<DeviceType> d_nx_xtrct, d_ny_xtrct, d_nz_xtrct;
 
   void allocate() override;
 
@@ -126,7 +127,7 @@ class PairOxrna2StkKokkos : public PairOxrna2Stk, public KokkosBase {
   FixOxdnaLRFKokkos<DeviceType> *fix_oxdna_lrfKK;  // ptr to OXDNA/LRF/kk fix
   FixOxdnaPrimeNeighsKokkos<DeviceType>
       *fix_oxdna_prime_neighsKK;  // ptr to OXDNA/PRIME_NEIGHS/kk fix
-  bigint last_prime_neighs_bond_ncalls;
+  bigint last_prime_neighs_bond_nbuild;
 
   // Precomputed atom a/b 3'/5' directionality and atom mapping of their 3' and 5' neighbors.
   // 0-3 : atom a, atom b, id3p[a], id5p[b] for each bond.

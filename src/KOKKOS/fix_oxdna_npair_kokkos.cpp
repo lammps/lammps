@@ -15,6 +15,7 @@
 
 #include "atom_kokkos.h"
 #include "atom_masks.h"
+#include "force.h"
 #include "kokkos.h"
 #include "memory_kokkos.h"
 #include "neighbor.h"
@@ -37,12 +38,17 @@ FixOxdnaNpairKokkos<DeviceType>::FixOxdnaNpairKokkos(LAMMPS *lmp, int narg, char
   datamask_read = X_MASK | TYPE_MASK;
   datamask_modify = EMPTY_MASK;
 
-  k_screened_pair_count = DAT::tdual_int_scalar("FixOxdnaNpair:screened_pair_count");
+  k_pair_counts = DAT::tdual_int_1d("FixOxdnaNpair:pair_counts", 2);
   screened_max_atoms = 0;
   screened_max_neigh = 0;
   screened_pair_count = 0;
   screen_cut_max = 0.0;
   screen_cutsq = static_cast<KK_FLOAT>(4.0);
+  special_skip[0] = special_skip[1] = special_skip[2] = special_skip[3] = 0;
+  coax_list_requested = false;
+  coax_active = 0;
+  coax_pair_count = 0;
+  coax_max_atoms = 0;
   force_screening_all_backends = false;
 }
 
@@ -64,6 +70,13 @@ void FixOxdnaNpairKokkos<DeviceType>::init()
                            !std::is_same_v<DeviceType,LMPDeviceType>);
   request->set_kokkos_device(std::is_same_v<DeviceType,LMPDeviceType>);
   if (neighflag == FULL) request->enable_full();
+
+  // the screen keeps only pairs closer than screen_cut_max + skin, so ask for
+  // a list with that cutoff: it is then trimmed from a longer list (e.g. that
+  // of oxdna*/dh) and the screening passes loop over fewer neighbors.
+  // screen_cut_max was registered by the pair styles in init_one(), which
+  // runs before the fixes are initialized.
+  if (screen_cut_max > 0.0) request->set_cutoff_fixed(screen_cut_max);
 
   last_allocate = -1;
 }
@@ -102,9 +115,9 @@ template<class DeviceType>
 void FixOxdnaNpairKokkos<DeviceType>::min_pre_force(int /*vflag*/)
 {
   if ((force_screening_all_backends || execution_space != HostKK) &&
-      last_allocate != neighbor->ncalls) {
+      last_allocate != neighbor->nbuild) {
      compute_neigh_screen_to_npair();
-     last_allocate = neighbor->ncalls;
+     last_allocate = neighbor->nbuild;
   }
 }
 
@@ -123,9 +136,9 @@ template<class DeviceType>
 void FixOxdnaNpairKokkos<DeviceType>::pre_force(int /*vflag*/)
 {
   if ((force_screening_all_backends || execution_space != HostKK) &&
-      last_allocate != neighbor->ncalls) {
+      last_allocate != neighbor->nbuild) {
      compute_neigh_screen_to_npair();
-     last_allocate = neighbor->ncalls;
+     last_allocate = neighbor->nbuild;
   }
 }
 
@@ -176,11 +189,34 @@ void FixOxdnaNpairKokkos<DeviceType>::compute_neigh_screen_to_npair()
   atomKK->sync(execution_space, datamask_read);
   x = atomKK->k_x.view<DeviceType>();
 
+  // the list of strand-end pairs for coaxial stacking (see request_coax_list())
+  // is built in the same passes as the screened list, in the same pair order
+
+  coax_active = coax_list_requested ? 1 : 0;
+  coax_pair_count = 0;
+  if (coax_active) {
+    if (atom->nmax > coax_max_atoms) {
+      coax_max_atoms = atom->nmax;
+      MemKK::realloc_kokkos(k_numneigh_coax, "FixOxdnaNpair:numneigh_coax", coax_max_atoms);
+      MemKK::realloc_kokkos(k_coax_offsets, "FixOxdnaNpair:coax_offsets", coax_max_atoms + 1);
+      d_numneigh_coax = k_numneigh_coax.template view<DeviceType>();
+      d_coax_offsets = k_coax_offsets.template view<DeviceType>();
+    }
+    atomKK->sync(execution_space, CG_DNA_MASK);
+    id3p = atomKK->k_id3p.template view<DeviceType>();
+    id5p = atomKK->k_id5p.template view<DeviceType>();
+  }
+
+  // Pairs whose special-bond weight is zero (1-2 bonded partners, which stay in
+  // the neighbor list for the bonded excluded volume) are skipped by every
+  // consumer of the screened list, so leave them out of it.
+  for (int m = 0; m < 4; m++) special_skip[m] = (force->special_lj[m] == 0.0) ? 1 : 0;
+
   // Pass 1 (count): "TagFixOxdnaNpairNeighScreen" loops over each atom a and its
   // raw neighbours, runs 'screen_pair_fast' (a cheap CoM distance bool) for each,
-  // and records only the surviving count per atom in d_numneigh_screened. No
-  // per-atom survivor list is stored - the fill pass below re-screens instead,
-  // which avoids an nmax x max_neigh scratch matrix.
+  // and records only the surviving counts per atom in d_numneigh_screened (and
+  // d_numneigh_coax). No per-atom survivor list is stored - the fill pass below
+  // re-screens instead, which avoids an nmax x max_neigh scratch matrix.
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixOxdnaNpairNeighScreen>(0, anum), *this);
   copymode = 0;
@@ -191,32 +227,44 @@ void FixOxdnaNpairKokkos<DeviceType>::compute_neigh_screen_to_npair()
   const auto d_alist_local = d_alist;
   const auto d_numneigh_screened_local = d_numneigh_screened;
   const auto d_screened_offsets_local = d_screened_offsets;
+  const auto d_numneigh_coax_local = d_numneigh_coax;
+  const auto d_coax_offsets_local = d_coax_offsets;
+  const auto d_pair_counts_local = k_pair_counts.template view<DeviceType>();
   const int anum_local = anum;
+  const int coax_local = coax_active;
 
-  // Pass 2 (scan): prefix-sum the per-atom screened counts (in neighbor-list
-  // order) into d_screened_offsets, giving the starting flat index for each atom.
-  // E.g. counts [2,0,3] -> offsets [0,2,2,5]; offsets(anum) is the total. The
-  // Kokkos docs explain parallel_scan / prefix sum / "update" / "final".
+  // Pass 2 (scan): prefix-sum the per-atom counts of both lists (in neighbor-list
+  // order) into their offsets, giving the starting flat index for each atom.
+  // E.g. counts [2,0,3] -> offsets [0,2,2,5]; offsets(anum) is the total, which
+  // is also stored in d_pair_counts for a single readback of both totals.
+  // The Kokkos docs explain parallel_scan / prefix sum / "update" / "final".
   Kokkos::parallel_scan(
     Kokkos::RangePolicy<DeviceType>(0, anum + 1),
-    KOKKOS_LAMBDA(const int i, int &update, const bool final) {
+    KOKKOS_LAMBDA(const int i, FixOxdnaNpairScanCounts &update, const bool final) {
       if (i < anum_local) {
-        if (final) d_screened_offsets_local(i) = update;
-        update += d_numneigh_screened_local(d_alist_local(i));
+        const int a = d_alist_local(i);
+        if (final) {
+          d_screened_offsets_local(i) = update.screened;
+          if (coax_local) d_coax_offsets_local(i) = update.coax;
+        }
+        update.screened += d_numneigh_screened_local(a);
+        if (coax_local) update.coax += d_numneigh_coax_local(a);
       } else if (final) {
-        d_screened_offsets_local(anum_local) = update;
+        d_screened_offsets_local(anum_local) = update.screened;
+        if (coax_local) d_coax_offsets_local(anum_local) = update.coax;
+        d_pair_counts_local(0) = update.screened;
+        d_pair_counts_local(1) = update.coax;
       }
     });
 
-  // After the parallel_scan, the subview just gives us the value at the last offset,
-  // i.e. the total screened pair count.
-  // screened_pair_count is a host-side int, so we can't just directly read the value
-  // from the device-side d_screened_offsets view (would trigger a seg-fault).
-  Kokkos::deep_copy(
-    k_screened_pair_count.view_host(), Kokkos::subview(d_screened_offsets_local, anum_local));
-  screened_pair_count = k_screened_pair_count.view_host()();
+  // one readback of both totals, needed on the host to size the lists and the
+  // kernels that run over them
+  k_pair_counts.template modify<DeviceType>();
+  k_pair_counts.sync_host();
+  screened_pair_count = k_pair_counts.view_host()(0);
+  if (coax_active) coax_pair_count = k_pair_counts.view_host()(1);
 
-  // size the packed pair list by the number of pairs that survived screening,
+  // size the packed pair lists by the number of pairs that survived screening,
   // with some headroom to avoid reallocating at every rebuild
 
   if ((bigint) screened_pair_count > (bigint) k_pairs_screened.extent(0)) {
@@ -224,12 +272,20 @@ void FixOxdnaNpairKokkos<DeviceType>::compute_neigh_screen_to_npair()
     MemKK::realloc_kokkos(k_pairs_screened, "FixOxdnaNpair:pairs_screened", (size_t) newsize);
   }
   d_pairs_screened = k_pairs_screened.template view<DeviceType>();
+  if (coax_active) {
+    if ((bigint) coax_pair_count > (bigint) k_pairs_coax.extent(0)) {
+      const bigint newsize = (bigint) coax_pair_count + coax_pair_count / 5 + 1;
+      MemKK::realloc_kokkos(k_pairs_coax, "FixOxdnaNpair:pairs_coax", (size_t) newsize);
+    }
+    d_pairs_coax = k_pairs_coax.template view<DeviceType>();
+  }
 
   // Pass 3 (fill): re-screen each atom's neighbours and write its survivors as
-  // packed (a,b) uint64 keys directly at d_screened_offsets(i)..+count. The
-  // ComputeGPUPair functors then run one thread per flat pair index, unpacking
-  // a (upper 32 bits) and b (lower 32 bits, special-bond bits preserved) with a
-  // single global load.
+  // packed (a,b) uint64 keys directly at d_screened_offsets(i)..+count (and the
+  // strand-end pairs among them at d_coax_offsets(i)..). The ComputeGPUPair
+  // functors then run one thread per flat pair index, unpacking a (upper 32
+  // bits) and b (lower 32 bits, special-bond bits preserved) with a single
+  // global load.
   copymode = 1;
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixOxdnaNpairFill>(0, anum), *this);
   copymode = 0;
@@ -244,6 +300,7 @@ bool FixOxdnaNpairKokkos<DeviceType>::screen_pair_fast(const int &braw,
                                                        const KK_FLOAT &a_com1,
                                                        const KK_FLOAT &a_com2) const
 {
+  if (special_skip[braw >> SBBITS & 3]) return false;
   const int b = braw & NEIGHMASK;
 
   const KK_FLOAT b_com0 = x(b,0);
@@ -274,12 +331,20 @@ void FixOxdnaNpairKokkos<DeviceType>::operator()(TagFixOxdnaNpairNeighScreen, co
   const KK_FLOAT a_com1 = x(a,1);
   const KK_FLOAT a_com2 = x(a,2);
 
+  // coaxial stacking acts only between two strand ends
+  const bool a_end = coax_active && is_strand_end(a);
+
   int nscreen = 0;
+  int ncoax = 0;
   for (int ib = 0; ib < bnum; ib++) {
     const int braw = d_neighbors(a,ib);
-    if (screen_pair_fast(braw, a_com0, a_com1, a_com2)) nscreen++;
+    if (screen_pair_fast(braw, a_com0, a_com1, a_com2)) {
+      nscreen++;
+      if (a_end && is_strand_end(braw & NEIGHMASK)) ncoax++;
+    }
   }
   d_numneigh_screened(a) = nscreen;
+  if (coax_active) d_numneigh_coax(a) = ncoax;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -297,13 +362,17 @@ void FixOxdnaNpairKokkos<DeviceType>::operator()(TagFixOxdnaNpairFill, const int
   // Re-screen with the same predicate used in pass 1; write survivors as packed
   // (a, braw) keys at the scanned base offset for this atom. braw keeps the
   // special-bond bits so ComputeGPUPair can apply special_lj/sbmask on unpack.
+  const bool a_end = coax_active && is_strand_end(a);
   int nscreen = d_screened_offsets(ia);
+  int ncoax = a_end ? d_coax_offsets(ia) : 0;
   for (int ib = 0; ib < bnum; ib++) {
     const int braw = d_neighbors(a,ib);
     if (screen_pair_fast(braw, a_com0, a_com1, a_com2)) {
-      d_pairs_screened(nscreen++) =
+      const uint64_t key =
         (static_cast<uint64_t>(static_cast<uint32_t>(a)) << 32) |
         static_cast<uint64_t>(static_cast<uint32_t>(braw));
+      d_pairs_screened(nscreen++) = key;
+      if (a_end && is_strand_end(braw & NEIGHMASK)) d_pairs_coax(ncoax++) = key;
     }
   }
 }

@@ -18,16 +18,101 @@
 
 namespace MFOxdnaKokkos {
 
+// Launch bounds (max threads per block, min blocks per SM) of the oxDNA
+// device kernels, tunable at compile time for performance studies, e.g.
+// -DOXDNA_KK_PAIR_MAXT=128 -DOXDNA_KK_PAIR_MINB=4.  A value of 0 leaves the
+// choice to Kokkos (no launch bounds).
+//   ATOM: per-atom neighbor-loop kernels (excv, dh)
+//   PAIR: screened-pair kernels (hbond, xstk, oxdna3/xstk, coaxstk)
+//   BOND: per-bond kernels (stk, fene)
+
 #if defined(KOKKOS_ENABLE_HIP)
-template<class DeviceType, class Tag>
-using OxdnaRangePolicy = Kokkos::RangePolicy<DeviceType, Tag, Kokkos::LaunchBounds<128, 1>>;
+#define OXDNA_KK_ATOM_MAXT_DEFAULT 128
+#define OXDNA_KK_ATOM_MINB_DEFAULT 1
 #elif defined(KOKKOS_ENABLE_CUDA)
-template<class DeviceType, class Tag>
-using OxdnaRangePolicy = Kokkos::RangePolicy<DeviceType, Tag, Kokkos::LaunchBounds<64, 1>>;
+#define OXDNA_KK_ATOM_MAXT_DEFAULT 64
+#define OXDNA_KK_ATOM_MINB_DEFAULT 1
 #else
-template<class DeviceType, class Tag>
-using OxdnaRangePolicy = Kokkos::RangePolicy<DeviceType, Tag>;
+#define OXDNA_KK_ATOM_MAXT_DEFAULT 0
+#define OXDNA_KK_ATOM_MINB_DEFAULT 0
 #endif
+
+#ifndef OXDNA_KK_ATOM_MAXT
+#define OXDNA_KK_ATOM_MAXT OXDNA_KK_ATOM_MAXT_DEFAULT
+#endif
+#ifndef OXDNA_KK_ATOM_MINB
+#define OXDNA_KK_ATOM_MINB OXDNA_KK_ATOM_MINB_DEFAULT
+#endif
+#ifndef OXDNA_KK_PAIR_MAXT
+#define OXDNA_KK_PAIR_MAXT 0
+#endif
+#ifndef OXDNA_KK_PAIR_MINB
+#define OXDNA_KK_PAIR_MINB 0
+#endif
+#ifndef OXDNA_KK_BOND_MAXT
+#define OXDNA_KK_BOND_MAXT 0
+#endif
+#ifndef OXDNA_KK_BOND_MINB
+#define OXDNA_KK_BOND_MINB 0
+#endif
+
+// Thread mapping of the screened-pair kernels (hbond, oxdna3/xstk, coaxstk):
+// 0 = one thread per screened pair (default), 1 = one thread per atom that
+// loops over the screened pairs of that atom and accumulates its force and
+// torque in registers (atomic updates only for the partner atoms).
+#ifndef OXDNA_KK_SCREENED_PER_ATOM
+#define OXDNA_KK_SCREENED_PER_ATOM 0
+#endif
+
+// Two-phase evaluation of the screened-pair kernels of hbond and oxdna3/xstk:
+// 0 = one kernel (default), 1 = a first kernel collects the pairs that pass
+// the radial cutoff test into a compact list and a second kernel evaluates
+// the angular terms only for those pairs, so that the threads of a warp
+// follow the same code path.
+#ifndef OXDNA_KK_TWO_PHASE
+#define OXDNA_KK_TWO_PHASE 0
+#endif
+#if OXDNA_KK_TWO_PHASE && OXDNA_KK_SCREENED_PER_ATOM
+#error "OXDNA_KK_TWO_PHASE and OXDNA_KK_SCREENED_PER_ATOM cannot be combined"
+#endif
+
+// Fused kernel of pair oxdna3/hbond and oxdna3/xstk on the screened-pair
+// path (GPUs): 1 = one kernel evaluates both styles for each screened pair
+// and updates the force and torque of the first atom once (default),
+// 0 = separate kernels.  The fused kernel is not used with the two options
+// above or when per-atom energies or virials are requested.
+#ifndef OXDNA_KK_FUSE_HBXSTK
+#define OXDNA_KK_FUSE_HBXSTK 1
+#endif
+// Compacted evaluation of the fused kernel: 1 = a first kernel collects the
+// screened pairs that pass the radial test of hbond or oxdna3/xstk, and the
+// fused kernel evaluates only those (default), 0 = all screened pairs.
+#ifndef OXDNA_KK_FUSED_COMPACT
+#define OXDNA_KK_FUSED_COMPACT 1
+#endif
+#define OXDNA_KK_FUSE_HBXSTK_ACTIVE \
+  (OXDNA_KK_FUSE_HBXSTK && !OXDNA_KK_TWO_PHASE && !OXDNA_KK_SCREENED_PER_ATOM)
+
+template<class DeviceType, class Tag>
+using OxdnaRangePolicy =
+  Kokkos::RangePolicy<DeviceType, Tag, Kokkos::LaunchBounds<OXDNA_KK_ATOM_MAXT, OXDNA_KK_ATOM_MINB>>;
+template<class DeviceType, class Tag>
+using OxdnaPairRangePolicy =
+  Kokkos::RangePolicy<DeviceType, Tag, Kokkos::LaunchBounds<OXDNA_KK_PAIR_MAXT, OXDNA_KK_PAIR_MINB>>;
+template<class DeviceType, class Tag>
+using OxdnaBondRangePolicy =
+  Kokkos::RangePolicy<DeviceType, Tag, Kokkos::LaunchBounds<OXDNA_KK_BOND_MAXT, OXDNA_KK_BOND_MINB>>;
+
+// Kernels launched with the light-weight hint: on HIP a functor larger than
+// 512 bytes is otherwise copied to constant memory before each launch, with a
+// host-blocking event synchronization.  With the hint it is passed as a kernel
+// argument (up to 4 kB).  Only for kernels that keep the functor in registers
+// that way: for the large excv and fused hbond+xstk kernels the compiler then
+// copies the whole functor to the stack, which costs more than the copy
+template<class DeviceType, class Tag, int MAXT, int MINB>
+using OxdnaLightPolicy =
+  Kokkos::RangePolicy<DeviceType, Tag, Kokkos::LaunchBounds<MAXT, MINB>,
+                      Kokkos::Experimental::WorkItemProperty::HintLightWeight_t>;
 
 /* ----------------------------------------------------------------------
    f1 modulation factor
@@ -320,6 +405,21 @@ static KK_FLOAT DF6_KK(KK_FLOAT theta, KK_FLOAT a, KK_FLOAT b)
   } else {
     return a * (theta - b);
   }
+}
+
+/* ----------------------------------------------------------------------
+   length of the cross product of two vectors; for two unit vectors this is
+   the sine of the angle between them, which together with atan2() stays
+   accurate near 0 and pi, unlike acos() of the dot product
+------------------------------------------------------------------------- */
+
+KOKKOS_INLINE_FUNCTION
+KK_FLOAT cross_norm(const KK_FLOAT (&u)[3], const KK_FLOAT (&v)[3])
+{
+  const KK_FLOAT c0 = u[1] * v[2] - u[2] * v[1];
+  const KK_FLOAT c1 = u[2] * v[0] - u[0] * v[2];
+  const KK_FLOAT c2 = u[0] * v[1] - u[1] * v[0];
+  return Kokkos::sqrt(c0 * c0 + c1 * c1 + c2 * c2);
 }
 
 }    // namespace MFOxdnaKokkos

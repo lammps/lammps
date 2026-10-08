@@ -110,7 +110,7 @@ void PairOxdnaXstkKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
   else atomKK->modified(execution_space,F_MASK | TORQUE_MASK);
 
-  x = atomKK->k_x.template view<DeviceType>();
+  x = fix_oxdna_lrfKK->packed_x();
   f = atomKK->k_f.template view<DeviceType>();
   torque = atomKK->k_torque.template view<DeviceType>();
   type = atomKK->k_type.template view<DeviceType>();
@@ -124,11 +124,13 @@ void PairOxdnaXstkKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
 
   // get the neighbor list and neighbors used in operator()
 
-  NeighListKokkos<DeviceType>* k_list = static_cast<NeighListKokkos<DeviceType>*>(list);
-  d_neighbors = k_list->d_neighbors;
-  anum = list->inum;
-  d_alist = k_list->d_ilist;
-  d_numneigh = k_list->d_numneigh;
+  if (execution_space == HostKK) {
+    NeighListKokkos<DeviceType>* k_list = static_cast<NeighListKokkos<DeviceType>*>(list);
+    d_neighbors = k_list->d_neighbors;
+    anum = list->inum;
+    d_alist = k_list->d_ilist;
+    d_numneigh = k_list->d_numneigh;
+  }
 
   int need_dup = lmp->kokkos->need_dup<DeviceType>();
   if (need_dup) {
@@ -161,9 +163,9 @@ void PairOxdnaXstkKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   copymode = 1;
 
   // d_n(x/y/z)_xtrct = extracted local unit vectors in lab frame from fix_oxdna_lrf_kokkos.
-  d_nx_xtrct = fix_oxdna_lrfKK->k_nx.template view<DeviceType>();
-  d_ny_xtrct = fix_oxdna_lrfKK->k_ny.template view<DeviceType>();
-  d_nz_xtrct = fix_oxdna_lrfKK->k_nz.template view<DeviceType>();
+  d_nx_xtrct = fix_oxdna_lrfKK->packed_nx();
+  d_ny_xtrct = fix_oxdna_lrfKK->packed_ny();
+  d_nz_xtrct = fix_oxdna_lrfKK->packed_nz();
 
   // If we're on a GPU, look up fix_oxdna_npairKK screened pair count and packed pair view.
   if (execution_space != HostKK) {
@@ -187,9 +189,9 @@ void PairOxdnaXstkKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   auto run_compute_gpu = [&](auto gpu_tag, auto evflag_tag) {
     constexpr int EVFLAG = decltype(evflag_tag)::value;
     if constexpr (EVFLAG) {
-      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, decltype(gpu_tag)>(0,screened_pair_count),*this,ev);
+      Kokkos::parallel_reduce(OxdnaPairRangePolicy<DeviceType, decltype(gpu_tag)>(0,screened_pair_count),*this,ev);
     } else {
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, decltype(gpu_tag)>(0,screened_pair_count),*this);
+      Kokkos::parallel_for(OxdnaPairRangePolicy<DeviceType, decltype(gpu_tag)>(0,screened_pair_count),*this);
     }
   };
 
@@ -1105,6 +1107,7 @@ KOKKOS_INLINE_FUNCTION
 void PairOxdnaXstkKokkos<DeviceType>::operator()(TagPairOxdnaXstkComputeGPUPair<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, \
   const int &ipair, EV_FLOAT &ev) const
 {
+  KK_ACC_FLOAT rxf_a[3], rxf_b[3] = {0.0, 0.0, 0.0};    // r x f torques on a and b
   // one thread per neighbor pair: several threads update the same atoms
   // with any neighbor list style, so all updates must be atomic
 
@@ -1225,17 +1228,18 @@ void PairOxdnaXstkKokkos<DeviceType>::operator()(TagPairOxdnaXstkComputeGPUPair<
   a_f(a,0) += delf[0];
   a_f(a,1) += delf[1];
   a_f(a,2) += delf[2];
-  a_torque(a,0) += delta[0];
-  a_torque(a,1) += delta[1];
-  a_torque(a,2) += delta[2];
+  // keep the r x f torques; applied together with the pure torques below
+  rxf_a[0] = delta[0];
+  rxf_a[1] = delta[1];
+  rxf_a[2] = delta[2];
 
   if ( (NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || b < nlocal) ) {
     a_f(b,0) -= delf[0];
     a_f(b,1) -= delf[1];
     a_f(b,2) -= delf[2];
-    a_torque(b,0) -= deltb[0];
-    a_torque(b,1) -= deltb[1];
-    a_torque(b,2) -= deltb[2];
+    rxf_b[0] = deltb[0];
+    rxf_b[1] = deltb[1];
+    rxf_b[2] = deltb[2];
   }
 
   if (EVFLAG) {
@@ -1255,14 +1259,14 @@ void PairOxdnaXstkKokkos<DeviceType>::operator()(TagPairOxdnaXstkComputeGPUPair<
     a_nx, b_nx, a_nz, b_nz, delr_hb_norm,
     delta, deltb);
 
-  a_torque(a,0) += delta[0];
-  a_torque(a,1) += delta[1];
-  a_torque(a,2) += delta[2];
+  a_torque(a,0) += rxf_a[0] + delta[0];
+  a_torque(a,1) += rxf_a[1] + delta[1];
+  a_torque(a,2) += rxf_a[2] + delta[2];
 
   if ( (NEIGHFLAG==HALF || NEIGHFLAG==HALFTHREAD) && (NEWTON_PAIR || b < nlocal) ) {
-    a_torque(b,0) -= deltb[0];
-    a_torque(b,1) -= deltb[1];
-    a_torque(b,2) -= deltb[2];
+    a_torque(b,0) -= rxf_b[0] + deltb[0];
+    a_torque(b,1) -= rxf_b[1] + deltb[1];
+    a_torque(b,2) -= rxf_b[2] + deltb[2];
   }
 }
 
@@ -1402,13 +1406,18 @@ void PairOxdnaXstkKokkos<DeviceType>::init_style()
     error->all(FLERR, "The /kk/host variants of the CG-DNA styles are not supported "
                "when LAMMPS is compiled for a GPU");
 
-  neighbor->add_request(this);
+  // on GPUs the screened-pair kernel runs over the pair list of fix
+  // OXDNA/NPAIR/kk, so only the host kernel needs a neighbor list
+
   neighflag = lmp->kokkos->neighflag;
-  auto request = neighbor->find_request(this);
-  request->set_kokkos_host(std::is_same_v<DeviceType,LMPHostType> &&
-                           !std::is_same_v<DeviceType,LMPDeviceType>);
-  request->set_kokkos_device(std::is_same_v<DeviceType,LMPDeviceType>);
-  if (neighflag == FULL) request->enable_full();
+  if (execution_space == HostKK) {
+    neighbor->add_request(this);
+    auto request = neighbor->find_request(this);
+    request->set_kokkos_host(std::is_same_v<DeviceType,LMPHostType> &&
+                             !std::is_same_v<DeviceType,LMPDeviceType>);
+    request->set_kokkos_device(std::is_same_v<DeviceType,LMPDeviceType>);
+    if (neighflag == FULL) request->enable_full();
+  }
 
   fix_oxdna_lrfKK = nullptr;
   auto fixes = modify->get_fix_by_style("^OXDNA/LRF/kk");

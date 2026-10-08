@@ -30,6 +30,20 @@ namespace LAMMPS_NS {
 struct TagFixOxdnaNpairNeighScreen{};
 struct TagFixOxdnaNpairFill{};
 
+// running sums of the scan over the per-atom pair counts of both lists
+struct FixOxdnaNpairScanCounts {
+  int screened, coax;
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  FixOxdnaNpairScanCounts() : screened(0), coax(0) {}
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  void operator+=(const FixOxdnaNpairScanCounts &rhs) {
+    screened += rhs.screened;
+    coax += rhs.coax;
+  }
+};
+
 template<class DeviceType>
 class FixOxdnaNpairKokkos : public Fix {
  public:
@@ -71,6 +85,19 @@ class FixOxdnaNpairKokkos : public Fix {
   typename AT::t_uint64_1d d_pairs_screened;
   int screened_pair_count; // ComputeGPUPair functors use this in place of the usual anum.
 
+  // Optional second list with only the screened pairs in which both nucleotides are
+  // strand ends (no 3' or no 5' neighbor), the only pairs with coaxial stacking.
+  // It is built in the same passes as the screened list.
+  void request_coax_list() { coax_list_requested = true; }
+
+  // per-atom segments of the pair lists: the pairs of the ia-th atom of the
+  // neighbor list are offsets(ia) .. offsets(ia+1)-1, for ia < get_anum()
+  int get_anum() const { return anum; }
+  typename AT::t_int_1d get_screened_offsets() const { return d_screened_offsets; }
+  typename AT::t_int_1d get_coax_offsets() const { return d_coax_offsets; }
+  DAT::tdual_uint64_1d k_pairs_coax;
+  int coax_pair_count;
+
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagFixOxdnaNpairNeighScreen, const int &) const;
@@ -85,6 +112,7 @@ class FixOxdnaNpairKokkos : public Fix {
 
   typename AT::t_kkfloat_1d_3_lr_randomread x;
   typename AT::t_int_1d_randomread type;
+  typename AT::t_tagint_1d_randomread id3p, id5p;
 
   int anum;
   int neighflag;
@@ -97,15 +125,29 @@ class FixOxdnaNpairKokkos : public Fix {
   typename AT::t_int_1d d_numneigh_screened;
   DAT::tdual_int_1d k_screened_offsets;
   typename AT::t_int_1d d_screened_offsets;
-  DAT::tdual_int_scalar k_screened_pair_count;
-  typename AT::t_int_scalar d_screened_pair_count;
+  DAT::tdual_int_1d k_pair_counts;    // totals of the screened and coax lists
   int screened_max_atoms;
   int screened_max_neigh;
   double screen_cut_max;   // max COM screen cutoff requested by consuming styles (host)
   KK_FLOAT screen_cutsq;   // screen_cut_max^2, read on device by screen_pair_fast
+  int special_skip[4];     // 1 if pairs with this special-bond index have special_lj == 0
   bool force_screening_all_backends;
 
+  // coaxial stacking pair list (see request_coax_list())
+  bool coax_list_requested;
+  int coax_active;    // coax list built in the current rebuild (read on device)
+  DAT::tdual_int_1d k_numneigh_coax;
+  typename AT::t_int_1d d_numneigh_coax;
+  DAT::tdual_int_1d k_coax_offsets;
+  typename AT::t_int_1d d_coax_offsets;
+  typename AT::t_uint64_1d d_pairs_coax;
+  int coax_max_atoms;
+
   void update_screen_cutsq();
+
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  bool is_strand_end(const int &i) const { return (id3p(i) == -1) || (id5p(i) == -1); }
 
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION

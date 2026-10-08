@@ -27,6 +27,7 @@ PairStyle(oxdna3/dh/kk/host,PairOxdna2DhKokkos<LMPHostType>);
 #define LMP_PAIR_OXDNA2_DH_KOKKOS_H
 
 #include "kokkos_base.h"
+#include "fix_oxdna_lrf_kokkos.h"
 #include "pair_kokkos.h"
 #include "pair_oxdna2_dh.h"
 #include "nucleotide_oxdna.h"
@@ -38,6 +39,11 @@ class FixOxdnaLRFKokkos;  // forward declaration
 
 template<int OXDNAFLAG, int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
 struct TagPairOxdna2DhCompute{};
+
+// packed per-type-pair coefficients of PairOxdna2DhKokkos
+struct ParamsOxdnaDh {
+  KK_FLOAT qeff_dh_pf, kappa_dh, b_dh, cut_dh_ast, cutsq_dh_ast, cut_dh_c, cutsq_dh_c;
+};
 
 template<class DeviceType>
 class PairOxdna2DhKokkos : public PairOxdna2Dh, public KokkosBase {
@@ -95,7 +101,10 @@ class PairOxdna2DhKokkos : public PairOxdna2Dh, public KokkosBase {
   int oxdnaflag;
   enum EnabledOXDNAFlag{OXDNA2=1,OXRNA2=2};
 
-  typename AT::t_kkfloat_1d_3_lr_randomread x;
+  t_oxdna_packed_sub<DeviceType> x;    // positions in the packed record of fix OXDNA/LRF/kk
+  t_oxdna_packed_col<DeviceType> xn_type;    // atom types in the packed record
+  t_oxdna_packed_col<DeviceType> xn_qeff;    // effective charges in the packed record
+  t_oxdna_packed<DeviceType> xn;    // the whole packed record, for row loads
   typename AT::t_kkacc_1d_3 f;
   typename AT::t_kkacc_1d_3 torque;
   typename AT::t_int_1d_randomread type;
@@ -115,21 +124,18 @@ class PairOxdna2DhKokkos : public PairOxdna2Dh, public KokkosBase {
   int neighflag;
   int nlocal, eflag, vflag;
   int anum;
+  int nsplit;    // threads per atom of the compute kernel
 
   typename AT::t_neighbors_2d_randomread d_neighbors;
   typename AT::t_int_1d_randomread d_alist;
   typename AT::t_int_1d_randomread d_numneigh;
 
   // debye huckel interaction parameters
-  typename AT::tdual_kkfloat_2d k_qeff_dh_pf, k_kappa_dh;
-  typename AT::tdual_kkfloat_2d k_b_dh, k_cut_dh_ast, k_cutsq_dh_ast;
-  typename AT::tdual_kkfloat_2d k_cut_dh_c, k_cutsq_dh_c;
-  typename AT::t_kkfloat_2d_randomread d_qeff_dh_pf, d_kappa_dh;
-  typename AT::t_kkfloat_2d_randomread d_b_dh, d_cut_dh_ast, d_cutsq_dh_ast;
-  typename AT::t_kkfloat_2d_randomread d_cut_dh_c, d_cutsq_dh_c;
+  // all coefficients of a type pair packed in one struct
+  Kokkos::DualView<ParamsOxdnaDh **, Kokkos::LayoutRight, DeviceType> k_params_dh;
+  typename Kokkos::DualView<ParamsOxdnaDh **, Kokkos::LayoutRight, DeviceType>::t_dev_const_randomread d_params_dh;
   // per-atom arrays for local unit vectors
-  DAT::tdual_kkfloat_1d_3 k_nx_xtrct, k_ny_xtrct, k_nz_xtrct;
-  typename AT::t_kkfloat_1d_3_randomread d_nx_xtrct, d_ny_xtrct, d_nz_xtrct;
+  t_oxdna_packed_sub<DeviceType> d_nx_xtrct, d_ny_xtrct, d_nz_xtrct;
 
   int first;
   typename AT::t_int_1d d_sendlist;

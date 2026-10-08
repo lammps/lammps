@@ -24,6 +24,7 @@ BondStyle(oxdna/fene/kk/host,BondOxdnaFENEKokkos<LMPHostType>);
 
 #include "bond_oxdna_fene.h"
 #include "kokkos_type.h"
+#include "fix_oxdna_lrf_kokkos.h"
 
 namespace LAMMPS_NS {
 
@@ -75,7 +76,8 @@ class BondOxdnaFENEKokkos : public BondOxdnaFene {
 
   class NeighborKokkos *neighborKK;
 
-  typename AT::t_kkfloat_1d_3_lr_randomread x;
+  t_oxdna_packed_sub<DeviceType> x;    // positions in the packed record of fix OXDNA/LRF/kk
+  t_oxdna_packed<DeviceType> xn;    // the whole packed record, for row loads
   typename AT::t_kkacc_1d_3 f;
   typename AT::t_kkacc_1d_3 torque;
   typename AT::t_int_2d_lr bondlist;
@@ -102,7 +104,7 @@ class BondOxdnaFENEKokkos : public BondOxdnaFene {
   typename AT::t_kkfloat_5d_randomread d_Delta;
   // per-atom arrays for local unit vectors
   DAT::tdual_kkfloat_1d_3 k_nx_xtrct, k_ny_xtrct, k_nz_xtrct;
-  typename AT::t_kkfloat_1d_3_randomread d_nx_xtrct, d_ny_xtrct, d_nz_xtrct;
+  t_oxdna_packed_sub<DeviceType> d_nx_xtrct, d_ny_xtrct, d_nz_xtrct;
 
   void allocate() override;
 
@@ -111,7 +113,7 @@ class BondOxdnaFENEKokkos : public BondOxdnaFene {
 
   // Precomputed atom a/b 3'/5' directionality and atom mapping of their 3' and 5' neighbors.
   // 0-3 : atom a, atom b, id3p[a], id5p[b] for each bond.
-  bigint last_prime_neighs_bond_ncalls;
+  bigint last_prime_neighs_bond_nbuild;
   typename AT::t_int_1d_4 d_prime_neighs_bond_own;
   typename AT::t_int_1d_4_randomread d_prime_neighs_bond; // single device-space View suffices
 };

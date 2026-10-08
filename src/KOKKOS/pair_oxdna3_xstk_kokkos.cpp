@@ -21,13 +21,15 @@
 #include "math_const.h"
 #include "memory_kokkos.h"
 #include "modify.h"
-#include "neigh_request.h"
 #include "neighbor.h"
 
 #include "fix_oxdna_lrf_kokkos.h"
 #include "fix_oxdna_npair_kokkos.h"
+
+#include <algorithm>
 #include "fix_oxdna_prime_neighs_kokkos.h"
 #include "mf_oxdna_kokkos.h"
+#include "pair_oxdna_hbond_kokkos_impl.h"
 
 using namespace LAMMPS_NS;
 using namespace MFOxdnaKokkos;
@@ -61,10 +63,13 @@ PairOxdna3XstkKokkos<DeviceType>::PairOxdna3XstkKokkos(LAMMPS *lmp) : PairOxdna3
   datamask_modify = F_MASK | TORQUE_MASK | ENERGY_MASK | VIRIAL_MASK;
 
   screened_pair_count = 0;
+  screened_launch_count = 0;
+  fuse_hb = nullptr;
+  fuse_ncompute = 0;
   fix_oxdna_lrfKK = nullptr;
   fix_oxdna_npairKK = nullptr;
   fix_oxdna_prime_neighsKK = nullptr;
-  last_prime_neighs_xstk3_ncalls = -1;
+  last_prime_neighs_xstk3_nbuild = -1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -110,7 +115,8 @@ void PairOxdna3XstkKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
   else atomKK->modified(execution_space,F_MASK | TORQUE_MASK);
 
-  x = atomKK->k_x.template view<DeviceType>();
+  x = fix_oxdna_lrfKK->packed_x();
+  xn = fix_oxdna_lrfKK->packed();
   f = atomKK->k_f.template view<DeviceType>();
   torque = atomKK->k_torque.template view<DeviceType>();
   type = atomKK->k_type.template view<DeviceType>();
@@ -125,19 +131,34 @@ void PairOxdna3XstkKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   copymode = 1;
 
   // d_n(x/y/z)_xtrct = extracted local unit vectors in lab frame from fix_oxdna_lrf_kokkos.
-  d_nx_xtrct = fix_oxdna_lrfKK->k_nx.template view<DeviceType>();
-  d_ny_xtrct = fix_oxdna_lrfKK->k_ny.template view<DeviceType>();
-  d_nz_xtrct = fix_oxdna_lrfKK->k_nz.template view<DeviceType>();
+  d_nx_xtrct = fix_oxdna_lrfKK->packed_nx();
+  d_ny_xtrct = fix_oxdna_lrfKK->packed_ny();
+  d_nz_xtrct = fix_oxdna_lrfKK->packed_nz();
 
   // Use the oxdna npair screened list on all backends.
   screened_pair_count = fix_oxdna_npairKK->screened_pair_count;
   d_pairs_screened = fix_oxdna_npairKK->k_pairs_screened.template view<DeviceType>();
+  d_screened_offsets = fix_oxdna_npairKK->get_screened_offsets();
+#if OXDNA_KK_SCREENED_PER_ATOM
+  screened_launch_count = fix_oxdna_npairKK->get_anum();
+#else
+  screened_launch_count = screened_pair_count;
+#endif
+#if OXDNA_KK_TWO_PHASE
+  if (static_cast<int>(d_radial_pairs.extent(0)) < screened_pair_count)
+    d_radial_pairs = typename AT::t_int_1d(Kokkos::view_alloc(Kokkos::WithoutInitializing, "pair:radial_pairs"),
+                                           screened_pair_count + screened_pair_count/10);
+  if (d_radial_count.data() == nullptr) d_radial_count = typename AT::t_int_scalar("pair:radial_count");
+  Kokkos::deep_copy(d_radial_count, 0);
+#endif
 
-  // 3'/5' neighbor map lookups, refreshed once per reneighbor
-  if (last_prime_neighs_xstk3_ncalls != neighbor->ncalls) {
-    fix_oxdna_prime_neighsKK->compute_prime_neighs_atom();
-    last_prime_neighs_xstk3_ncalls = neighbor->ncalls;
-    d_prime_neighs_atom = fix_oxdna_prime_neighsKK->d_prime_neighs_atom;
+  // Then get the precomputed 3'/5' neighbor map lookups for the screened npair list.
+  // Done here (not in pre_force) so that they are indexed like the current
+  // screened list.
+  if (last_prime_neighs_xstk3_nbuild != neighbor->nbuild) {
+    fix_oxdna_prime_neighsKK->compute_prime_neighs_oxdna3_xstk();
+    last_prime_neighs_xstk3_nbuild = neighbor->nbuild;
+    d_prime_neighs_oxdna3_xstk = fix_oxdna_prime_neighsKK->d_prime_neighs_oxdna3_xstk;
   }
 
   // loop over neighbors of my atoms for compute functors
@@ -145,12 +166,17 @@ void PairOxdna3XstkKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   EV_FLOAT ev;
 
   // Launch from screened npair pairs regardless of backend.
-  auto run_compute_screened = [&](auto screened_tag, auto evflag_tag) {
+  auto run_compute_screened = [&](auto screened_tag, auto radial_tag, auto evflag_tag) {
     constexpr int EVFLAG = decltype(evflag_tag)::value;
+#if OXDNA_KK_TWO_PHASE
+    Kokkos::parallel_for(OxdnaPairRangePolicy<DeviceType, decltype(radial_tag)>(0,screened_pair_count),*this);
+#else
+    (void) radial_tag;
+#endif
     if constexpr (EVFLAG) {
-      Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, decltype(screened_tag)>(0,screened_pair_count),*this,ev);
+      Kokkos::parallel_reduce(OxdnaPairRangePolicy<DeviceType, decltype(screened_tag)>(0,screened_launch_count),*this,ev);
     } else {
-      Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, decltype(screened_tag)>(0,screened_pair_count),*this);
+      Kokkos::parallel_for(OxdnaPairRangePolicy<DeviceType, decltype(screened_tag)>(0,screened_launch_count),*this);
     }
   };
 
@@ -158,7 +184,8 @@ void PairOxdna3XstkKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     constexpr int NEIGHFLAG = decltype(neighflag_tag)::value;
     constexpr int NEWTON_PAIR = decltype(newtonpair_tag)::value;
     constexpr int EVFLAG = decltype(evflag_tag)::value;
-    run_compute_screened(TagPairOxdna3XstkComputeNpair<NEIGHFLAG,NEWTON_PAIR,EVFLAG>{}, evflag_tag);
+    run_compute_screened(TagPairOxdna3XstkComputeNpair<NEIGHFLAG,NEWTON_PAIR,EVFLAG>{},
+                         TagPairOxdna3XstkComputeRadial<NEIGHFLAG,NEWTON_PAIR,EVFLAG>{}, evflag_tag);
   };
 
   const int dispatch_neigh =
@@ -170,21 +197,37 @@ void PairOxdna3XstkKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
     error->all(FLERR, "Unsupported neighbor flag in pair oxdna3/xstk/kk");
   }
 
-  const int dispatch_key = (evflag ? 8 : 0) | (newton_pair ? 4 : 0) | dispatch_neigh;
-  switch (dispatch_key) {
-    case 0: run_compute_by_flags(std::integral_constant<int,HALF>{},       std::integral_constant<int,0>{}, std::integral_constant<int,0>{}); break;
-    case 1: run_compute_by_flags(std::integral_constant<int,HALFTHREAD>{}, std::integral_constant<int,0>{}, std::integral_constant<int,0>{}); break;
-    case 2: run_compute_by_flags(std::integral_constant<int,FULL>{},       std::integral_constant<int,0>{}, std::integral_constant<int,0>{}); break;
-    case 4: run_compute_by_flags(std::integral_constant<int,HALF>{},       std::integral_constant<int,1>{}, std::integral_constant<int,0>{}); break;
-    case 5: run_compute_by_flags(std::integral_constant<int,HALFTHREAD>{}, std::integral_constant<int,1>{}, std::integral_constant<int,0>{}); break;
-    case 6: run_compute_by_flags(std::integral_constant<int,FULL>{},       std::integral_constant<int,1>{}, std::integral_constant<int,0>{}); break;
-    case 8: run_compute_by_flags(std::integral_constant<int,HALF>{},       std::integral_constant<int,0>{}, std::integral_constant<int,1>{}); break;
-    case 9: run_compute_by_flags(std::integral_constant<int,HALFTHREAD>{}, std::integral_constant<int,0>{}, std::integral_constant<int,1>{}); break;
-    case 10: run_compute_by_flags(std::integral_constant<int,FULL>{},      std::integral_constant<int,0>{}, std::integral_constant<int,1>{}); break;
-    case 12: run_compute_by_flags(std::integral_constant<int,HALF>{},      std::integral_constant<int,1>{}, std::integral_constant<int,1>{}); break;
-    case 13: run_compute_by_flags(std::integral_constant<int,HALFTHREAD>{},std::integral_constant<int,1>{}, std::integral_constant<int,1>{}); break;
-    case 14: run_compute_by_flags(std::integral_constant<int,FULL>{},      std::integral_constant<int,1>{}, std::integral_constant<int,1>{}); break;
-    default: error->all(FLERR, "Internal dispatch error in pair oxdna3/xstk/kk");
+  // with the fused hbond + oxdna3/xstk kernel, the style that is computed
+  // second in this force evaluation launches it for both styles
+  const bool fused = (fuse_hb != nullptr) && !eflag_atom && !vflag_atom && !need_dup;
+  if (fused) {
+    fuse_ncompute++;
+    if (fuse_hb->fuse_ncompute == fuse_ncompute)
+      compute_fused(fuse_hb, fuse_hb);
+    else if (fuse_hb->fuse_ncompute != fuse_ncompute - 1)
+      error->one(FLERR, "Fused kernel of pair oxdna3/hbond/kk and oxdna3/xstk/kk out of step");
+  } else {
+    const int dispatch_key = (evflag ? 8 : 0) | (newton_pair ? 4 : 0) | dispatch_neigh;
+    switch (dispatch_key) {
+      case 0: run_compute_by_flags(std::integral_constant<int,HALF>{},       std::integral_constant<int,0>{}, std::integral_constant<int,0>{}); break;
+      case 1: run_compute_by_flags(std::integral_constant<int,HALFTHREAD>{}, std::integral_constant<int,0>{}, std::integral_constant<int,0>{}); break;
+      case 2: run_compute_by_flags(std::integral_constant<int,FULL>{},       std::integral_constant<int,0>{}, std::integral_constant<int,0>{}); break;
+      case 4: run_compute_by_flags(std::integral_constant<int,HALF>{},       std::integral_constant<int,1>{}, std::integral_constant<int,0>{}); break;
+      case 5: run_compute_by_flags(std::integral_constant<int,HALFTHREAD>{}, std::integral_constant<int,1>{}, std::integral_constant<int,0>{}); break;
+      case 6: run_compute_by_flags(std::integral_constant<int,FULL>{},       std::integral_constant<int,1>{}, std::integral_constant<int,0>{}); break;
+      case 8: run_compute_by_flags(std::integral_constant<int,HALF>{},       std::integral_constant<int,0>{}, std::integral_constant<int,1>{}); break;
+      case 9: run_compute_by_flags(std::integral_constant<int,HALFTHREAD>{}, std::integral_constant<int,0>{}, std::integral_constant<int,1>{}); break;
+      case 10: run_compute_by_flags(std::integral_constant<int,FULL>{},      std::integral_constant<int,0>{}, std::integral_constant<int,1>{}); break;
+      case 12: run_compute_by_flags(std::integral_constant<int,HALF>{},      std::integral_constant<int,1>{}, std::integral_constant<int,1>{}); break;
+      case 13: run_compute_by_flags(std::integral_constant<int,HALFTHREAD>{},std::integral_constant<int,1>{}, std::integral_constant<int,1>{}); break;
+      case 14: run_compute_by_flags(std::integral_constant<int,FULL>{},      std::integral_constant<int,1>{}, std::integral_constant<int,1>{}); break;
+      default: error->all(FLERR, "Internal dispatch error in pair oxdna3/xstk/kk");
+    }
+  }
+
+  if (need_dup) {
+    Kokkos::Experimental::contribute(f, dup_f);
+    Kokkos::Experimental::contribute(torque, dup_torque);
   }
 
   if (eflag_global) eng_vdwl += static_cast<double>(ev.evdwl);
@@ -298,19 +341,6 @@ bool PairOxdna3XstkKokkos<DeviceType>::xstk_radial_terms(const int &atype, const
   //                 p_55.cut_xst_lo, p_55.cut_xst_hi, l_b_xst_lo, l_b_xst_hi);
 
   return true;
-}
-
-/* ----------------------------------------------------------------------
-   length of the cross product of two vectors
-------------------------------------------------------------------------- */
-
-KOKKOS_INLINE_FUNCTION
-static KK_FLOAT cross_norm(const KK_FLOAT (&u)[3], const KK_FLOAT (&v)[3])
-{
-  const KK_FLOAT c0 = u[1] * v[2] - u[2] * v[1];
-  const KK_FLOAT c1 = u[2] * v[0] - u[0] * v[2];
-  const KK_FLOAT c2 = u[0] * v[1] - u[1] * v[0];
-  return Kokkos::sqrt(c0 * c0 + c1 * c1 + c2 * c2);
 }
 
 template<class DeviceType>
@@ -719,11 +749,12 @@ void PairOxdna3XstkKokkos<DeviceType>::xstk_torque_contrib(const KK_FLOAT &f2_33
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG, int RADIAL_ONLY>
 KOKKOS_INLINE_FUNCTION
-void PairOxdna3XstkKokkos<DeviceType>::operator()(TagPairOxdna3XstkComputeNpair<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, \
-  const int &ipair, EV_FLOAT &ev) const
+bool PairOxdna3XstkKokkos<DeviceType>::screened_pair_body(TagPairOxdna3XstkComputeNpair<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int &ipair,
+  KK_ACC_FLOAT (&fa)[3], KK_ACC_FLOAT (&ta)[3], EV_FLOAT &ev) const
 {
+  KK_ACC_FLOAT rxf_a[3], rxf_b[3] = {0.0, 0.0, 0.0};    // r x f torques on a and b
   // one thread per neighbor pair: several threads update the same atoms
   // with any neighbor list style, so all updates must be atomic
 
@@ -735,7 +766,7 @@ void PairOxdna3XstkKokkos<DeviceType>::operator()(TagPairOxdna3XstkComputeNpair<
   const int atype = type(a);
   int braw = static_cast<int>(pair & 0xffffffffu);
   const KK_FLOAT factor_lj = static_cast<KK_FLOAT>(special_lj[sbmask(braw)]);
-  if (factor_lj == static_cast<KK_FLOAT>(0.0)) return;
+  if (factor_lj == static_cast<KK_FLOAT>(0.0)) return false;
   const int b = braw & NEIGHMASK;
   const int btype = type(b);
 
@@ -760,20 +791,21 @@ void PairOxdna3XstkKokkos<DeviceType>::operator()(TagPairOxdna3XstkComputeNpair<
   KK_FLOAT r_bsbs, rinv_bsbs;
   KK_FLOAT ra_cbs[3], rb_cbs[3], delr_bsbs[3],delr_bsbs_norm[3];
   if (!xstk_preradial_terms(r_bsbs, rinv_bsbs, delr_bsbs, delr_bsbs_norm, ra_cbs, rb_cbs,
-      a_nx, b_nx, a, b, atype, btype)) return;
+      a_nx, b_nx, a, b, atype, btype)) return false;
 
   KK_FLOAT f2_33, f2_55, df2_33, df2_55;
   if (!xstk_radial_terms(atype, btype, a3ptype, a5ptype, b3ptype, b5ptype,
-      r_bsbs, f2_33, f2_55, df2_33, df2_55)) return;
+      r_bsbs, f2_33, f2_55, df2_33, df2_55)) return false;
+  if constexpr (RADIAL_ONLY) return true;
 
   KK_FLOAT f4t1, df4t1;
-  if (!xstk_theta1_terms(atype, btype, a_nx, b_nx, f4t1, df4t1)) return;
+  if (!xstk_theta1_terms(atype, btype, a_nx, b_nx, f4t1, df4t1)) return false;
 
   KK_FLOAT cost2, f4t2, df4t2;
-  if (!xstk_theta2_terms(atype, btype, a_nx, delr_bsbs_norm, cost2, f4t2, df4t2)) return;
+  if (!xstk_theta2_terms(atype, btype, a_nx, delr_bsbs_norm, cost2, f4t2, df4t2)) return false;
 
   KK_FLOAT cost3, f4t3, df4t3;
-  if (!xstk_theta3_terms(atype, btype, b_nx, delr_bsbs_norm, cost3, f4t3, df4t3)) return;
+  if (!xstk_theta3_terms(atype, btype, b_nx, delr_bsbs_norm, cost3, f4t3, df4t3)) return false;
 
   KK_FLOAT a_nz[3], b_nz[3];
   a_nz[0] = d_nz_xtrct(a,0);
@@ -785,21 +817,21 @@ void PairOxdna3XstkKokkos<DeviceType>::operator()(TagPairOxdna3XstkComputeNpair<
 
   KK_FLOAT f4t4_33, f4t4_55, df4t4_33, df4t4_55;
   if (!xstk_theta4_terms(atype, btype, a3ptype, a5ptype, b3ptype, b5ptype,
-      a_nz, b_nz, f4t4_33, f4t4_55, df4t4_33, df4t4_55)) return;
+      a_nz, b_nz, f4t4_33, f4t4_55, df4t4_33, df4t4_55)) return false;
 
   KK_FLOAT cost7, f4t7_33, f4t7_55, df4t7_33, df4t7_55;
   if (!xstk_theta7_terms(atype, btype, a_nz, delr_bsbs_norm,
-      cost7, f4t7_33, f4t7_55, df4t7_33, df4t7_55)) return;
+      cost7, f4t7_33, f4t7_55, df4t7_33, df4t7_55)) return false;
 
   KK_FLOAT cost8, f4t8_33, f4t8_55, df4t8_33, df4t8_55;
   if (!xstk_theta8_terms(atype, btype, b_nz, delr_bsbs_norm,
-      cost8, f4t8_33, f4t8_55, df4t8_33, df4t8_55)) return;
+      cost8, f4t8_33, f4t8_55, df4t8_33, df4t8_55)) return false;
 
   const KK_FLOAT sum33 = f2_33 * f4t4_33 * f4t7_33 * f4t8_33;
   const KK_FLOAT sum55 = f2_55 * f4t4_55 * f4t7_55 * f4t8_55;
   const KK_FLOAT mixsum = sum33 + sum55;
   const KK_FLOAT evdwl = f4t1 * f4t2 * f4t3 * mixsum * factor_lj;
-  if (evdwl == static_cast<KK_FLOAT>(0.0)) return;
+  if (evdwl == static_cast<KK_FLOAT>(0.0)) return false;
 
   KK_ACC_FLOAT delf[3], delta[3], deltb[3];
   delf[0] = static_cast<KK_ACC_FLOAT>(0.0);
@@ -829,21 +861,22 @@ void PairOxdna3XstkKokkos<DeviceType>::operator()(TagPairOxdna3XstkComputeNpair<
     ra_cbs, rb_cbs,
     delf, delta, deltb);
 
-  a_f(a,0) += delf[0];
-  a_f(a,1) += delf[1];
-  a_f(a,2) += delf[2];
-  a_torque(a,0) += delta[0];
-  a_torque(a,1) += delta[1];
-  a_torque(a,2) += delta[2];
+  fa[0] += delf[0];
+  fa[1] += delf[1];
+  fa[2] += delf[2];
+  // keep the r x f torques; applied together with the pure torques below
+  rxf_a[0] = delta[0];
+  rxf_a[1] = delta[1];
+  rxf_a[2] = delta[2];
 
   const bool do_newton_b = (NEIGHFLAG == HALF || NEIGHFLAG == HALFTHREAD) && (NEWTON_PAIR || b < nlocal);
   if (do_newton_b) {
     a_f(b,0) -= delf[0];
     a_f(b,1) -= delf[1];
     a_f(b,2) -= delf[2];
-    a_torque(b,0) -= deltb[0];
-    a_torque(b,1) -= deltb[1];
-    a_torque(b,2) -= deltb[2];
+    rxf_b[0] = deltb[0];
+    rxf_b[1] = deltb[1];
+    rxf_b[2] = deltb[2];
   }
 
   if (EVFLAG) {
@@ -871,14 +904,67 @@ void PairOxdna3XstkKokkos<DeviceType>::operator()(TagPairOxdna3XstkComputeNpair<
     delr_bsbs_norm,
     delta, deltb);
 
-  a_torque(a,0) += delta[0];
-  a_torque(a,1) += delta[1];
-  a_torque(a,2) += delta[2];
+  ta[0] += rxf_a[0] + delta[0];
+  ta[1] += rxf_a[1] + delta[1];
+  ta[2] += rxf_a[2] + delta[2];
   if (do_newton_b) {
-    a_torque(b,0) -= deltb[0];
-    a_torque(b,1) -= deltb[1];
-    a_torque(b,2) -= deltb[2];
+    a_torque(b,0) -= rxf_b[0] + deltb[0];
+    a_torque(b,1) -= rxf_b[1] + deltb[1];
+    a_torque(b,2) -= rxf_b[2] + deltb[2];
   }
+  return true;
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+KOKKOS_INLINE_FUNCTION
+void PairOxdna3XstkKokkos<DeviceType>::operator()(TagPairOxdna3XstkComputeNpair<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, \
+  const int &ipair, EV_FLOAT &ev) const
+{
+  auto v_f = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(dup_f),decltype(ndup_f)>::get(dup_f,ndup_f);
+  auto a_f = v_f.template access<Kokkos::Experimental::ScatterAtomic>();
+  auto v_torque = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,
+    decltype(dup_torque),decltype(ndup_torque)>::get(dup_torque,ndup_torque);
+  auto a_torque = v_torque.template access<Kokkos::Experimental::ScatterAtomic>();
+
+  KK_ACC_FLOAT fa[3] = {0.0, 0.0, 0.0}, ta[3] = {0.0, 0.0, 0.0};
+#if OXDNA_KK_SCREENED_PER_ATOM
+  // one thread per atom: loop over its screened pairs, index ipair is the atom
+  const int ibeg = d_screened_offsets(ipair);
+  const int iend = d_screened_offsets(ipair+1);
+  bool any = false;
+  for (int jpair = ibeg; jpair < iend; jpair++)
+    if (screened_pair_body(TagPairOxdna3XstkComputeNpair<NEIGHFLAG,NEWTON_PAIR,EVFLAG>(), jpair, fa, ta, ev)) any = true;
+  if (any) {
+    const int a = static_cast<int>(d_pairs_screened(ibeg) >> 32);
+    a_f(a,0) += fa[0];
+    a_f(a,1) += fa[1];
+    a_f(a,2) += fa[2];
+    a_torque(a,0) += ta[0];
+    a_torque(a,1) += ta[1];
+    a_torque(a,2) += ta[2];
+  }
+#else
+#if OXDNA_KK_TWO_PHASE
+  // one thread per screened pair that passed the radial test
+  if (ipair >= d_radial_count()) return;
+  const int jpair = d_radial_pairs(ipair);
+#else
+  // one thread per screened pair
+  const int jpair = ipair;
+#endif
+  if (screened_pair_body(TagPairOxdna3XstkComputeNpair<NEIGHFLAG,NEWTON_PAIR,EVFLAG>(), jpair, fa, ta, ev)) {
+    const int a = static_cast<int>(d_pairs_screened(jpair) >> 32);
+    a_f(a,0) += fa[0];
+    a_f(a,1) += fa[1];
+    a_f(a,2) += fa[2];
+    a_torque(a,0) += ta[0];
+    a_torque(a,1) += ta[1];
+    a_torque(a,2) += ta[2];
+  }
+#endif
 }
 
 template<class DeviceType>
@@ -890,6 +976,23 @@ void PairOxdna3XstkKokkos<DeviceType>::operator()(TagPairOxdna3XstkComputeNpair<
   EV_FLOAT ev;
   this->template operator()<NEIGHFLAG,NEWTON_PAIR,EVFLAG>
     (TagPairOxdna3XstkComputeNpair<NEIGHFLAG,NEWTON_PAIR,EVFLAG>(),ipair,ev);
+}
+
+/* ----------------------------------------------------------------------
+   first phase of the two-phase evaluation: append the screened pairs that
+   pass the radial test to d_radial_pairs
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+KOKKOS_INLINE_FUNCTION
+void PairOxdna3XstkKokkos<DeviceType>::operator()(TagPairOxdna3XstkComputeRadial<NEIGHFLAG,NEWTON_PAIR,EVFLAG>,
+  const int &ipair) const
+{
+  KK_ACC_FLOAT fa[3], ta[3];
+  EV_FLOAT ev;
+  if (this->template screened_pair_body<NEIGHFLAG,NEWTON_PAIR,EVFLAG,1>(TagPairOxdna3XstkComputeNpair<NEIGHFLAG,NEWTON_PAIR,EVFLAG>(), ipair, fa, ta, ev))
+    d_radial_pairs(Kokkos::atomic_fetch_add(&d_radial_count(), 1)) = ipair;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -939,15 +1042,12 @@ void PairOxdna3XstkKokkos<DeviceType>::init_style()
   // atoms may have been reordered since the last run, so force a rebuild
   // of the cached prime neighbor table in the next compute()
 
-  last_prime_neighs_xstk3_ncalls = -1;
+  last_prime_neighs_xstk3_nbuild = -1;
 
-  neighbor->add_request(this);
+  // the kernel runs over the pair list of fix OXDNA/NPAIR/kk on all
+  // backends, so this style needs no neighbor list of its own
+
   neighflag = lmp->kokkos->neighflag;
-  auto request = neighbor->find_request(this);
-  request->set_kokkos_host(std::is_same_v<DeviceType,LMPHostType> &&
-                           !std::is_same_v<DeviceType,LMPDeviceType>);
-  request->set_kokkos_device(std::is_same_v<DeviceType,LMPDeviceType>);
-  if (neighflag == FULL) request->enable_full();
 
   fix_oxdna_lrfKK = nullptr;
   auto fixes = modify->get_fix_by_style("^OXDNA/LRF/kk");
@@ -974,6 +1074,23 @@ void PairOxdna3XstkKokkos<DeviceType>::init_style()
 
   // oxdna3/xstk always uses the npair screened list; force rebuilds on all backends.
   fix_oxdna_npairKK->set_force_screening_all_backends(true);
+
+  // use the fused hbond + oxdna3/xstk kernel if there is exactly one
+  // oxdna3/hbond/kk sub-style on the screened-pair path
+
+  if (fuse_hb) fuse_hb->fuse_partner = nullptr;
+  fuse_hb = nullptr;
+#if OXDNA_KK_FUSE_HBXSTK_ACTIVE
+  // pair hybrid/scaled scales the sub-style energies, which the fused kernel
+  // cannot hand over to it
+  auto *hb = dynamic_cast<PairOxdnaHbondKokkos<DeviceType> *>(force->pair_match("^oxdna3/hbond", 0));
+  if (hb && hb->fuse_supported() && compute_flag && !utils::strmatch(force->pair_style, "scaled")) {
+    fuse_hb = hb;
+    fuse_hb->fuse_partner = this;
+    fuse_hb->fuse_ncompute = 0;
+  }
+#endif
+  fuse_ncompute = 0;
 
 }
 
@@ -1090,6 +1207,26 @@ void PairOxdna3XstkKokkos<DeviceType>::coeff(int narg, char **arg)
     }
   }
 
+  // bounds of the radial range over all 3'/5' context types (and both the
+  // 33 and 55 terms), used by the radial pre-test of the fused kernel
+  k_xst_rbound = Kokkos::DualView<KK_FLOAT***, Kokkos::LayoutRight, DeviceType>("pair:xst_rbound", n+1, n+1, 2);
+  auto h_rb = k_xst_rbound.view_host();
+  for (int j = 0; j <= n; j++)
+    for (int k = 0; k <= n; k++) {
+      double lo = 1.0e30, hi = -1.0e30;
+      for (int i = 0; i <= n; i++)
+        for (int l = 0; l <= n; l++) {
+          lo = std::min(lo, std::min(cut_xst_lc_33[i][j][k][l], cut_xst_lc_55[i][j][k][l]));
+          hi = std::max(hi, std::max(cut_xst_hc_33[i][j][k][l], cut_xst_hc_55[i][j][k][l]));
+        }
+      // round outwards so that the single precision bounds stay a superset
+      h_rb(j,k,0) = static_cast<KK_FLOAT>(lo * (1.0 - 1.0e-6));
+      h_rb(j,k,1) = static_cast<KK_FLOAT>(hi * (1.0 + 1.0e-6));
+    }
+  k_xst_rbound.modify_host();
+  k_xst_rbound.template sync<DeviceType>();
+  d_xst_rbound = k_xst_rbound.template view<DeviceType>();
+
   k_params_xstk.modify_host();
   k_params_33.modify_host();
   k_params_55.modify_host();
@@ -1202,6 +1339,227 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 int PairOxdna3XstkKokkos<DeviceType>::sbmask(const int& j) const {
   return j >> SBBITS & 3;
+}
+
+/* ---------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------
+   fused kernel of pair oxdna3/hbond/kk and oxdna3/xstk/kk: both styles run
+   over the same screened pair list, so evaluate both for each pair and
+   update the force and torque of the first atom once.  The energies and
+   virials are accumulated separately for each style.
+------------------------------------------------------------------------- */
+
+namespace LAMMPS_NS {
+
+struct EV_FLOAT_HBXSTK {
+  EV_FLOAT hb, xs;
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  void operator+=(const EV_FLOAT_HBXSTK &rhs) {
+    hb += rhs.hb;
+    xs += rhs.xs;
+  }
+};
+
+template<class DeviceType, int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+struct PairOxdna3HbXstkFused {
+  typedef PairOxdnaHbondKokkos<DeviceType> HbondType;
+  HbondType hb;
+  PairOxdna3XstkKokkos<DeviceType> xs;
+  int compact;    // 1 = phase 2 runs over the pairs compacted by phase 1
+
+  PairOxdna3HbXstkFused(const HbondType &hb_in, const PairOxdna3XstkKokkos<DeviceType> &xs_in) :
+    hb(hb_in), xs(xs_in), compact(0) {}
+
+  // phase 1 of the compacted evaluation: append the screened pairs that pass
+  // the radial test of either style.  Only a small fraction does, so in
+  // phase 2 the threads of a warp all evaluate the angular terms instead of
+  // most of them idling while a few do.
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagPairOxdna3HbXstkFusedRadial, const int &ipair) const
+  {
+    // the hbond and oxdna3/xstk sites are the same base site, so one
+    // distance decides both radial tests.  The tests here keep every pair
+    // that can pass the exact tests in the screened_pair_body()s of phase 2.
+    const uint64_t pair = xs.d_pairs_screened(ipair);
+    const int a = static_cast<int>(pair >> 32);
+    const int braw = static_cast<int>(pair & 0xffffffffu);
+    if (xs.special_lj[xs.sbmask(braw)] == 0.0) return;
+    const int b = braw & NEIGHMASK;
+
+    OxdnaRow rowa, rowb;
+    oxdna_load_row<8>(xs.xn, a, rowa);
+    oxdna_load_row<8>(xs.xn, b, rowb);
+    const int atype = static_cast<int>(rowa.v[3]);
+    const int btype = static_cast<int>(rowb.v[3]);
+
+    constexpr KK_FLOAT dx_pur = static_cast<KK_FLOAT>(0.43);
+    constexpr KK_FLOAT dx_pyr = static_cast<KK_FLOAT>(0.37);
+    const int anuc = atype % 4;
+    const int bnuc = btype % 4;
+    const KK_FLOAT sa = (anuc == 0 || anuc == 2) ? dx_pyr : dx_pur;
+    const KK_FLOAT sb = (bnuc == 0 || bnuc == 2) ? dx_pyr : dx_pur;
+    KK_FLOAT ra_cbs[3], rb_cbs[3], d[3];
+    // nx is in columns 4-6 of the packed record
+    for (int k = 0; k < 3; k++) {
+      ra_cbs[k] = sa * rowa.v[4+k];
+      rb_cbs[k] = sb * rowb.v[4+k];
+      d[k] = rowa.v[k] + ra_cbs[k] - rowb.v[k] - rb_cbs[k];
+    }
+    const KK_FLOAT rsq = Kokkos::fma(d[2], d[2], Kokkos::fma(d[1], d[1], d[0] * d[0]));
+    if (rsq <= static_cast<KK_FLOAT>(0.0)) return;
+    const KK_FLOAT r = rsq * (static_cast<KK_FLOAT>(1.0) / Kokkos::sqrt(rsq));
+
+    bool pass = false;
+    const auto &phb = hb.d_params_hb(atype,btype);
+    if ((phb.epsilon_hb != static_cast<KK_FLOAT>(0.0)) && (r <= phb.cut_hb_hc) && (r >= phb.cut_hb_lc))
+      pass = true;
+    // the bounds of the oxdna3/xstk radial range over all 3'/5' contexts,
+    // so that the context types need not be loaded here
+    if (!pass) pass = (r >= xs.d_xst_rbound(atype,btype,0)) && (r <= xs.d_xst_rbound(atype,btype,1));
+    if (pass) xs.d_radial_pairs(Kokkos::atomic_fetch_add(&xs.d_radial_count(), 1)) = ipair;
+  }
+
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagPairOxdna3HbXstkFused, const int &ipair, EV_FLOAT_HBXSTK &ev) const
+  {
+    auto v_f = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(xs.dup_f),
+      decltype(xs.ndup_f)>::get(xs.dup_f,xs.ndup_f);
+    auto a_f = v_f.template access<Kokkos::Experimental::ScatterAtomic>();
+    auto v_torque = ScatterViewHelper<NeedDup_v<NEIGHFLAG,DeviceType>,decltype(xs.dup_torque),
+      decltype(xs.ndup_torque)>::get(xs.dup_torque,xs.ndup_torque);
+    auto a_torque = v_torque.template access<Kokkos::Experimental::ScatterAtomic>();
+
+    int jpair = ipair;
+    if (compact) {
+      if (ipair >= xs.d_radial_count()) return;
+      jpair = xs.d_radial_pairs(ipair);
+    }
+    KK_ACC_FLOAT fa[3] = {0.0, 0.0, 0.0}, ta[3] = {0.0, 0.0, 0.0};
+    bool any = hb.screened_pair_body(
+      TagPairOxdnaHbondComputeGPUPair<HbondType::OXDNA3,NEIGHFLAG,NEWTON_PAIR,EVFLAG>(),
+      jpair, fa, ta, ev.hb);
+    if (xs.screened_pair_body(TagPairOxdna3XstkComputeNpair<NEIGHFLAG,NEWTON_PAIR,EVFLAG>(),
+                              jpair, fa, ta, ev.xs))
+      any = true;
+    if (any) {
+      const int a = static_cast<int>(xs.d_pairs_screened(jpair) >> 32);
+      a_f(a,0) += fa[0];
+      a_f(a,1) += fa[1];
+      a_f(a,2) += fa[2];
+      a_torque(a,0) += ta[0];
+      a_torque(a,1) += ta[1];
+      a_torque(a,2) += ta[2];
+    }
+  }
+
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagPairOxdna3HbXstkFused, const int &ipair) const
+  {
+    EV_FLOAT_HBXSTK ev;
+    this->operator()(TagPairOxdna3HbXstkFused(), ipair, ev);
+  }
+};
+
+}    // namespace LAMMPS_NS
+
+/* ----------------------------------------------------------------------
+   launch the fused kernel; called by the style computed second
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void PairOxdna3XstkKokkos<DeviceType>::compute_fused(PairOxdnaHbondKokkos<DeviceType> *hb, Pair *deferred)
+{
+  EV_FLOAT_HBXSTK ev;
+
+  // the kernel holds copies of both styles, which must not free their data
+
+  const int hb_copymode = hb->copymode;
+  const int xs_copymode = copymode;
+  hb->copymode = 1;
+  copymode = 1;
+
+  auto run_fused = [&](auto neighflag_tag, auto newtonpair_tag, auto evflag_tag) {
+    constexpr int NEIGHFLAG = decltype(neighflag_tag)::value;
+    constexpr int NEWTON_PAIR = decltype(newtonpair_tag)::value;
+    constexpr int EVFLAG = decltype(evflag_tag)::value;
+    PairOxdna3HbXstkFused<DeviceType,NEIGHFLAG,NEWTON_PAIR,EVFLAG> functor(*hb, *this);
+#if OXDNA_KK_FUSED_COMPACT
+    // compaction pays off only when there are enough pairs to fill the device
+    // more than once, otherwise the extra launch costs more than it saves
+    if ((execution_space != HostKK) && (screened_pair_count > 2 * DeviceType().concurrency())) {
+      if (static_cast<int>(d_radial_pairs.extent(0)) < screened_pair_count)
+        d_radial_pairs = typename AT::t_int_1d(Kokkos::view_alloc(Kokkos::WithoutInitializing, "pair:radial_pairs"),
+                                               screened_pair_count + screened_pair_count/10);
+      if (d_radial_count.data() == nullptr) d_radial_count = typename AT::t_int_scalar("pair:radial_count");
+      Kokkos::deep_copy(d_radial_count, 0);
+      functor.xs.d_radial_pairs = d_radial_pairs;
+      functor.xs.d_radial_count = d_radial_count;
+      functor.compact = 1;
+      Kokkos::parallel_for(OxdnaPairRangePolicy<DeviceType, TagPairOxdna3HbXstkFusedRadial>(0,screened_pair_count),
+                           functor);
+    }
+#endif
+    if constexpr (EVFLAG) {
+      Kokkos::parallel_reduce(OxdnaPairRangePolicy<DeviceType, TagPairOxdna3HbXstkFused>(0,screened_pair_count),
+                              functor, ev);
+    } else {
+      Kokkos::parallel_for(OxdnaPairRangePolicy<DeviceType, TagPairOxdna3HbXstkFused>(0,screened_pair_count),
+                           functor);
+    }
+  };
+
+  // compile the fused kernel only when it can be used
+#if OXDNA_KK_FUSE_HBXSTK_ACTIVE
+  const int dispatch_neigh =
+      (neighflag == HALF) ? 0 :
+      (neighflag == HALFTHREAD) ? 1 :
+      (neighflag == FULL) ? 2 : -1;
+  const int dispatch_key = (evflag ? 8 : 0) | (newton_pair ? 4 : 0) | dispatch_neigh;
+  switch (dispatch_key) {
+    case 0: run_fused(std::integral_constant<int,HALF>{},       std::integral_constant<int,0>{}, std::integral_constant<int,0>{}); break;
+    case 1: run_fused(std::integral_constant<int,HALFTHREAD>{}, std::integral_constant<int,0>{}, std::integral_constant<int,0>{}); break;
+    case 2: run_fused(std::integral_constant<int,FULL>{},       std::integral_constant<int,0>{}, std::integral_constant<int,0>{}); break;
+    case 4: run_fused(std::integral_constant<int,HALF>{},       std::integral_constant<int,1>{}, std::integral_constant<int,0>{}); break;
+    case 5: run_fused(std::integral_constant<int,HALFTHREAD>{}, std::integral_constant<int,1>{}, std::integral_constant<int,0>{}); break;
+    case 6: run_fused(std::integral_constant<int,FULL>{},       std::integral_constant<int,1>{}, std::integral_constant<int,0>{}); break;
+    case 8: run_fused(std::integral_constant<int,HALF>{},       std::integral_constant<int,0>{}, std::integral_constant<int,1>{}); break;
+    case 9: run_fused(std::integral_constant<int,HALFTHREAD>{}, std::integral_constant<int,0>{}, std::integral_constant<int,1>{}); break;
+    case 10: run_fused(std::integral_constant<int,FULL>{},      std::integral_constant<int,0>{}, std::integral_constant<int,1>{}); break;
+    case 12: run_fused(std::integral_constant<int,HALF>{},      std::integral_constant<int,1>{}, std::integral_constant<int,1>{}); break;
+    case 13: run_fused(std::integral_constant<int,HALFTHREAD>{},std::integral_constant<int,1>{}, std::integral_constant<int,1>{}); break;
+    case 14: run_fused(std::integral_constant<int,FULL>{},      std::integral_constant<int,1>{}, std::integral_constant<int,1>{}); break;
+    default: error->all(FLERR, "Internal dispatch error in pair oxdna3/xstk/kk");
+  }
+#else
+  (void) run_fused;
+  error->all(FLERR, "Internal error: fused hbond + oxdna3/xstk kernel is not compiled in");
+#endif
+
+  hb->copymode = hb_copymode;
+  copymode = xs_copymode;
+
+  if (hb->eflag_global) hb->eng_vdwl += static_cast<double>(ev.hb.evdwl);
+  if (eflag_global) eng_vdwl += static_cast<double>(ev.xs.evdwl);
+  for (int k = 0; k < 6; k++) {
+    if (hb->vflag_global) hb->virial[k] += static_cast<double>(ev.hb.v[k]);
+    if (vflag_global) virial[k] += static_cast<double>(ev.xs.v[k]);
+  }
+
+  // pair hybrid has already added the energy and virial of the style that
+  // was computed first in this force evaluation to its totals, so add the
+  // share of that style computed here to them, too
+
+  if (force->pair != deferred) {
+    const EV_FLOAT &evd = (deferred == hb) ? ev.hb : ev.xs;
+    if (deferred->eflag_global) force->pair->eng_vdwl += static_cast<double>(evd.evdwl);
+    if (deferred->vflag_global)
+      for (int k = 0; k < 6; k++) force->pair->virial[k] += static_cast<double>(evd.v[k]);
+  }
 }
 
 /* ---------------------------------------------------------------------- */

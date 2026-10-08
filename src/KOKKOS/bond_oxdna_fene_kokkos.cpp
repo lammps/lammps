@@ -27,8 +27,10 @@
 
 #include "fix_oxdna_lrf_kokkos.h"
 #include "fix_oxdna_prime_neighs_kokkos.h"
+#include "mf_oxdna_kokkos.h"
 
 using namespace LAMMPS_NS;
+using namespace MFOxdnaKokkos;
 
 /* ---------------------------------------------------------------------- */
 
@@ -47,7 +49,7 @@ BondOxdnaFENEKokkos<DeviceType>::BondOxdnaFENEKokkos(LAMMPS *lmp) : BondOxdnaFen
 
   oxdnaflag = EnabledOXDNAFlag::OXDNA;
   fix_oxdna_prime_neighsKK = nullptr;
-  last_prime_neighs_bond_ncalls = -1;
+  last_prime_neighs_bond_nbuild = -1;
 
   d_flag = typename AT::t_int_scalar("bond:flag");
   h_flag = HAT::t_int_scalar("bond:flag_mirror");
@@ -95,7 +97,7 @@ void BondOxdnaFENEKokkos<DeviceType>::init_style()
   if (!fix_oxdna_prime_neighsKK)
     error->all(FLERR, "Fix OXDNA/PRIME_NEIGHS/kk not found");
 
-  last_prime_neighs_bond_ncalls = -1;
+  last_prime_neighs_bond_nbuild = -1;
 
 }
 
@@ -127,7 +129,8 @@ void BondOxdnaFENEKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
   else atomKK->modified(execution_space,F_MASK | TORQUE_MASK);
 
-  x = atomKK->k_x.view<DeviceType>();
+  x = fix_oxdna_lrfKK->packed_x();
+  xn = fix_oxdna_lrfKK->packed();
   f = atomKK->k_f.view<DeviceType>();
   torque = atomKK->k_torque.template view<DeviceType>();
   atomtype = atomKK->k_type.template view<DeviceType>();
@@ -139,18 +142,18 @@ void BondOxdnaFENEKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   // the 3'/5' lookups are indexed like the bond list this style is handed,
   // which under bond style hybrid is only the subset of its own bond types
 
-  if (last_prime_neighs_bond_ncalls != neighbor->ncalls) {
+  if (last_prime_neighs_bond_nbuild != neighbor->nbuild) {
     fix_oxdna_prime_neighsKK->compute_prime_neighs_bond(d_prime_neighs_bond_own);
-    last_prime_neighs_bond_ncalls = neighbor->ncalls;
+    last_prime_neighs_bond_nbuild = neighbor->nbuild;
   }
   d_prime_neighs_bond = d_prime_neighs_bond_own;
   nlocal = atom->nlocal;
   newton_bond = force->newton_bond;
 
   // d_n(x/y/z)_xtrct = extracted local unit vectors in lab frame from fix_oxdna_lrf_kokkos.
-  d_nx_xtrct = fix_oxdna_lrfKK->k_nx.template view<DeviceType>();
-  d_ny_xtrct = fix_oxdna_lrfKK->k_ny.template view<DeviceType>();
-  d_nz_xtrct = fix_oxdna_lrfKK->k_nz.template view<DeviceType>();
+  d_nx_xtrct = fix_oxdna_lrfKK->packed_nx();
+  d_ny_xtrct = fix_oxdna_lrfKK->packed_ny();
+  d_nz_xtrct = fix_oxdna_lrfKK->packed_nz();
 
   copymode = 1;
 
@@ -161,37 +164,37 @@ void BondOxdnaFENEKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   if (evflag) {
     if (newton_bond) {
       if (oxdnaflag == OXDNA) {
-        Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagBondOxdnaFENECompute<OXDNA,1,1> >(0,nbondlist),*this,ev);
+        Kokkos::parallel_reduce(OxdnaLightPolicy<DeviceType, TagBondOxdnaFENECompute<OXDNA,1,1>, OXDNA_KK_BOND_MAXT, OXDNA_KK_BOND_MINB>(0,nbondlist),*this,ev);
       } else if (oxdnaflag == OXDNA2) {
-        Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagBondOxdnaFENECompute<OXDNA2,1,1> >(0,nbondlist),*this,ev);
+        Kokkos::parallel_reduce(OxdnaLightPolicy<DeviceType, TagBondOxdnaFENECompute<OXDNA2,1,1>, OXDNA_KK_BOND_MAXT, OXDNA_KK_BOND_MINB>(0,nbondlist),*this,ev);
       } else if (oxdnaflag == OXRNA2) {
-        Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagBondOxdnaFENECompute<OXRNA2,1,1> >(0,nbondlist),*this,ev);
+        Kokkos::parallel_reduce(OxdnaLightPolicy<DeviceType, TagBondOxdnaFENECompute<OXRNA2,1,1>, OXDNA_KK_BOND_MAXT, OXDNA_KK_BOND_MINB>(0,nbondlist),*this,ev);
       }
     } else {
       if (oxdnaflag == OXDNA) {
-        Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagBondOxdnaFENECompute<OXDNA,0,1> >(0,nbondlist),*this,ev);
+        Kokkos::parallel_reduce(OxdnaLightPolicy<DeviceType, TagBondOxdnaFENECompute<OXDNA,0,1>, OXDNA_KK_BOND_MAXT, OXDNA_KK_BOND_MINB>(0,nbondlist),*this,ev);
       } else if (oxdnaflag == OXDNA2) {
-        Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagBondOxdnaFENECompute<OXDNA2,0,1> >(0,nbondlist),*this,ev);
+        Kokkos::parallel_reduce(OxdnaLightPolicy<DeviceType, TagBondOxdnaFENECompute<OXDNA2,0,1>, OXDNA_KK_BOND_MAXT, OXDNA_KK_BOND_MINB>(0,nbondlist),*this,ev);
       } else if (oxdnaflag == OXRNA2) {
-        Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType, TagBondOxdnaFENECompute<OXRNA2,0,1> >(0,nbondlist),*this,ev);
+        Kokkos::parallel_reduce(OxdnaLightPolicy<DeviceType, TagBondOxdnaFENECompute<OXRNA2,0,1>, OXDNA_KK_BOND_MAXT, OXDNA_KK_BOND_MINB>(0,nbondlist),*this,ev);
       }
     }
   } else {
     if (newton_bond) {
       if (oxdnaflag == OXDNA) {
-        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagBondOxdnaFENECompute<OXDNA,1,0> >(0,nbondlist),*this);
+        Kokkos::parallel_for(OxdnaLightPolicy<DeviceType, TagBondOxdnaFENECompute<OXDNA,1,0>, OXDNA_KK_BOND_MAXT, OXDNA_KK_BOND_MINB>(0,nbondlist),*this);
       } else if (oxdnaflag == OXDNA2) {
-        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagBondOxdnaFENECompute<OXDNA2,1,0> >(0,nbondlist),*this);
+        Kokkos::parallel_for(OxdnaLightPolicy<DeviceType, TagBondOxdnaFENECompute<OXDNA2,1,0>, OXDNA_KK_BOND_MAXT, OXDNA_KK_BOND_MINB>(0,nbondlist),*this);
       } else if (oxdnaflag == OXRNA2) {
-        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagBondOxdnaFENECompute<OXRNA2,1,0> >(0,nbondlist),*this);
+        Kokkos::parallel_for(OxdnaLightPolicy<DeviceType, TagBondOxdnaFENECompute<OXRNA2,1,0>, OXDNA_KK_BOND_MAXT, OXDNA_KK_BOND_MINB>(0,nbondlist),*this);
       }
     } else {
       if (oxdnaflag == OXDNA) {
-        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagBondOxdnaFENECompute<OXDNA,0,0> >(0,nbondlist),*this);
+        Kokkos::parallel_for(OxdnaLightPolicy<DeviceType, TagBondOxdnaFENECompute<OXDNA,0,0>, OXDNA_KK_BOND_MAXT, OXDNA_KK_BOND_MINB>(0,nbondlist),*this);
       } else if (oxdnaflag == OXDNA2) {
-        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagBondOxdnaFENECompute<OXDNA2,0,0> >(0,nbondlist),*this);
+        Kokkos::parallel_for(OxdnaLightPolicy<DeviceType, TagBondOxdnaFENECompute<OXDNA2,0,0>, OXDNA_KK_BOND_MAXT, OXDNA_KK_BOND_MINB>(0,nbondlist),*this);
       } else if (oxdnaflag == OXRNA2) {
-        Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagBondOxdnaFENECompute<OXRNA2,0,0> >(0,nbondlist),*this);
+        Kokkos::parallel_for(OxdnaLightPolicy<DeviceType, TagBondOxdnaFENECompute<OXRNA2,0,0>, OXDNA_KK_BOND_MAXT, OXDNA_KK_BOND_MINB>(0,nbondlist),*this);
       }
     }
   }
@@ -239,16 +242,19 @@ KOKKOS_INLINE_FUNCTION
 void BondOxdnaFENEKokkos<DeviceType>::operator()(TagBondOxdnaFENECompute<OXDNAFLAG,NEWTON_BOND,EVFLAG>, \
   const int &in, EV_FLOAT& ev) const
 {
-  // The f and torque arrays are atomic
-  Kokkos::View<KK_ACC_FLOAT*[3], typename DAT::t_kkacc_1d_3::array_layout,\
-    typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > a_f = f;
-  Kokkos::View<KK_ACC_FLOAT*[3], typename DAT::t_kkacc_1d_3::array_layout,\
-    typename KKDevice<DeviceType>::value,Kokkos::MemoryTraits<Kokkos::Atomic|Kokkos::Unmanaged> > a_torque = torque;
+  // The f and torque arrays are updated with Kokkos::atomic_add() on the views
+  // directly (an atomic-trait view copy made here would live in local memory)
 
   // Use precomputed bond and prime neighbors.
   // NOTE: already in correct order from precompute, so directionality test: a -> b is 3' -> 5' is already satisfied
   int a = d_prime_neighs_bond(in,0);
   int b = d_prime_neighs_bond(in,1);
+  // packed records of the atoms with 16-byte loads
+  OxdnaRow rowa;
+  oxdna_load_row<16>(xn, a, rowa);
+  OxdnaRow rowb;
+  oxdna_load_row<16>(xn, b, rowb);
+
   const int type = bondlist(in,2);
   int a3ptype, atype, btype, b5ptype;    // tetramer types
 
@@ -274,37 +280,37 @@ void BondOxdnaFENEKokkos<DeviceType>::operator()(TagBondOxdnaFENECompute<OXDNAFL
   // vector COM-backbone site a and b - "compute_interaction_sites" vector COM-sugar-phosphate backbone in oxDNA
   if constexpr (OXDNAFLAG==OXDNA) {
     constexpr KK_FLOAT d_cs = static_cast<KK_FLOAT>(-0.4);
-    ra_cbk[0] = d_cs * d_nx_xtrct(a,0);
-    ra_cbk[1] = d_cs * d_nx_xtrct(a,1);
-    ra_cbk[2] = d_cs * d_nx_xtrct(a,2);
-    rb_cbk[0] = d_cs * d_nx_xtrct(b,0);
-    rb_cbk[1] = d_cs * d_nx_xtrct(b,1);
-    rb_cbk[2] = d_cs * d_nx_xtrct(b,2);
+    ra_cbk[0] = d_cs * rowa.v[4];
+    ra_cbk[1] = d_cs * rowa.v[5];
+    ra_cbk[2] = d_cs * rowa.v[6];
+    rb_cbk[0] = d_cs * rowb.v[4];
+    rb_cbk[1] = d_cs * rowb.v[5];
+    rb_cbk[2] = d_cs * rowb.v[6];
   } else if constexpr (OXDNAFLAG==OXDNA2) {
     constexpr KK_FLOAT d_cs_x = static_cast<KK_FLOAT>(-0.34);
     constexpr KK_FLOAT d_cs_y = static_cast<KK_FLOAT>(+0.3408);
-    ra_cbk[0] = d_cs_x * d_nx_xtrct(a,0) + d_cs_y * d_ny_xtrct(a,0);
-    ra_cbk[1] = d_cs_x * d_nx_xtrct(a,1) + d_cs_y * d_ny_xtrct(a,1);
-    ra_cbk[2] = d_cs_x * d_nx_xtrct(a,2) + d_cs_y * d_ny_xtrct(a,2);
-    rb_cbk[0] = d_cs_x * d_nx_xtrct(b,0) + d_cs_y * d_ny_xtrct(b,0);
-    rb_cbk[1] = d_cs_x * d_nx_xtrct(b,1) + d_cs_y * d_ny_xtrct(b,1);
-    rb_cbk[2] = d_cs_x * d_nx_xtrct(b,2) + d_cs_y * d_ny_xtrct(b,2);
+    ra_cbk[0] = d_cs_x * rowa.v[4] + d_cs_y * rowa.v[7];
+    ra_cbk[1] = d_cs_x * rowa.v[5] + d_cs_y * rowa.v[8];
+    ra_cbk[2] = d_cs_x * rowa.v[6] + d_cs_y * rowa.v[9];
+    rb_cbk[0] = d_cs_x * rowb.v[4] + d_cs_y * rowb.v[7];
+    rb_cbk[1] = d_cs_x * rowb.v[5] + d_cs_y * rowb.v[8];
+    rb_cbk[2] = d_cs_x * rowb.v[6] + d_cs_y * rowb.v[9];
   } else {
     // OXRNA2
     constexpr KK_FLOAT d_cs_x = static_cast<KK_FLOAT>(-0.4);
     constexpr KK_FLOAT d_cs_z = static_cast<KK_FLOAT>(+0.2);
-    ra_cbk[0] = d_cs_x * d_nx_xtrct(a,0) + d_cs_z * d_nz_xtrct(a,0);
-    ra_cbk[1] = d_cs_x * d_nx_xtrct(a,1) + d_cs_z * d_nz_xtrct(a,1);
-    ra_cbk[2] = d_cs_x * d_nx_xtrct(a,2) + d_cs_z * d_nz_xtrct(a,2);
-    rb_cbk[0] = d_cs_x * d_nx_xtrct(b,0) + d_cs_z * d_nz_xtrct(b,0);
-    rb_cbk[1] = d_cs_x * d_nx_xtrct(b,1) + d_cs_z * d_nz_xtrct(b,1);
-    rb_cbk[2] = d_cs_x * d_nx_xtrct(b,2) + d_cs_z * d_nz_xtrct(b,2);
+    ra_cbk[0] = d_cs_x * rowa.v[4] + d_cs_z * rowa.v[10];
+    ra_cbk[1] = d_cs_x * rowa.v[5] + d_cs_z * rowa.v[11];
+    ra_cbk[2] = d_cs_x * rowa.v[6] + d_cs_z * rowa.v[12];
+    rb_cbk[0] = d_cs_x * rowb.v[4] + d_cs_z * rowb.v[10];
+    rb_cbk[1] = d_cs_x * rowb.v[5] + d_cs_z * rowb.v[11];
+    rb_cbk[2] = d_cs_x * rowb.v[6] + d_cs_z * rowb.v[12];
   }
 
   // vector backbone site b to a
-  delr_bkbk[0] = x(a,0) + ra_cbk[0] - x(b,0) - rb_cbk[0];
-  delr_bkbk[1] = x(a,1) + ra_cbk[1] - x(b,1) - rb_cbk[1];
-  delr_bkbk[2] = x(a,2) + ra_cbk[2] - x(b,2) - rb_cbk[2];
+  delr_bkbk[0] = rowa.v[0] + ra_cbk[0] - rowb.v[0] - rb_cbk[0];
+  delr_bkbk[1] = rowa.v[1] + ra_cbk[1] - rowb.v[1] - rb_cbk[1];
+  delr_bkbk[2] = rowa.v[2] + ra_cbk[2] - rowb.v[2] - rb_cbk[2];
   const KK_FLOAT rsq = delr_bkbk[0]*delr_bkbk[0] + delr_bkbk[1]*delr_bkbk[1] + delr_bkbk[2]*delr_bkbk[2];
   const KK_FLOAT r_bkbk = Kokkos::sqrt(rsq);
 
@@ -349,7 +355,7 @@ void BondOxdnaFENEKokkos<DeviceType>::operator()(TagBondOxdnaFENECompute<OXDNAFL
     }
   }
 
-  KK_ACC_FLOAT fbond = static_cast<KK_ACC_FLOAT>(-d_k[type] * rr0 / rlogarg / Deltasq / r_bkbk);
+  KK_ACC_FLOAT fbond = static_cast<KK_ACC_FLOAT>(-d_k[type] * rr0 / (rlogarg * Deltasq * r_bkbk));    // one division
   delf[0] = static_cast<KK_ACC_FLOAT>(delr_bkbk[0]) * fbond;
   delf[1] = static_cast<KK_ACC_FLOAT>(delr_bkbk[1]) * fbond;
   delf[2] = static_cast<KK_ACC_FLOAT>(delr_bkbk[2]) * fbond;
@@ -357,31 +363,31 @@ void BondOxdnaFENEKokkos<DeviceType>::operator()(TagBondOxdnaFENECompute<OXDNAFL
   // apply force to each of 2 atoms
 
   if (NEWTON_BOND || a < nlocal) {
-    a_f(a,0) += delf[0];
-    a_f(a,1) += delf[1];
-    a_f(a,2) += delf[2];
+    Kokkos::atomic_add(&f(a,0), delf[0]);
+    Kokkos::atomic_add(&f(a,1), delf[1]);
+    Kokkos::atomic_add(&f(a,2), delf[2]);
     delta[0] = static_cast<KK_ACC_FLOAT>(ra_cbk[1])*delf[2] - static_cast<KK_ACC_FLOAT>(ra_cbk[2])*delf[1];
     delta[1] = static_cast<KK_ACC_FLOAT>(ra_cbk[2])*delf[0] - static_cast<KK_ACC_FLOAT>(ra_cbk[0])*delf[2];
     delta[2] = static_cast<KK_ACC_FLOAT>(ra_cbk[0])*delf[1] - static_cast<KK_ACC_FLOAT>(ra_cbk[1])*delf[0];
-    a_torque(a,0) += delta[0];
-    a_torque(a,1) += delta[1];
-    a_torque(a,2) += delta[2];
+    Kokkos::atomic_add(&torque(a,0), delta[0]);
+    Kokkos::atomic_add(&torque(a,1), delta[1]);
+    Kokkos::atomic_add(&torque(a,2), delta[2]);
   }
 
   if (NEWTON_BOND || b < nlocal) {
-    a_f(b,0) -= delf[0];
-    a_f(b,1) -= delf[1];
-    a_f(b,2) -= delf[2];
+    Kokkos::atomic_add(&f(b,0), -delf[0]);
+    Kokkos::atomic_add(&f(b,1), -delf[1]);
+    Kokkos::atomic_add(&f(b,2), -delf[2]);
     deltb[0] = static_cast<KK_ACC_FLOAT>(rb_cbk[1])*delf[2] - static_cast<KK_ACC_FLOAT>(rb_cbk[2])*delf[1];
     deltb[1] = static_cast<KK_ACC_FLOAT>(rb_cbk[2])*delf[0] - static_cast<KK_ACC_FLOAT>(rb_cbk[0])*delf[2];
     deltb[2] = static_cast<KK_ACC_FLOAT>(rb_cbk[0])*delf[1] - static_cast<KK_ACC_FLOAT>(rb_cbk[1])*delf[0];
-    a_torque(b,0) -= deltb[0];
-    a_torque(b,1) -= deltb[1];
-    a_torque(b,2) -= deltb[2];
+    Kokkos::atomic_add(&torque(b,0), -deltb[0]);
+    Kokkos::atomic_add(&torque(b,1), -deltb[1]);
+    Kokkos::atomic_add(&torque(b,2), -deltb[2]);
   }
 
   if (EVFLAG) { ev_tally_xyz(ev, a, b, nlocal, NEWTON_BOND, ebond, delf[0], delf[1], delf[2], \
-    x(a,0)-x(b,0), x(a,1)-x(b,1), x(a,2)-x(b,2)); }
+    rowa.v[0]-rowb.v[0], rowa.v[1]-rowb.v[1], rowa.v[2]-rowb.v[2]); }
 
 }
 

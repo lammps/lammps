@@ -24,6 +24,7 @@ PairStyle(oxdna/excv/kk/host,PairOxdnaExcvKokkos<LMPHostType>);
 #define LMP_PAIR_OXDNA_EXCV_KOKKOS_H
 
 #include "kokkos_base.h"
+#include "fix_oxdna_lrf_kokkos.h"
 #include "pair_kokkos.h"
 #include "pair_oxdna_excv.h"
 #include "nucleotide_oxdna.h"
@@ -44,6 +45,21 @@ struct TagPairOxdnaExcvCompute{};
 
 template<int NEIGHFLAG, int NEWTON_PAIR>
 struct ev_tally_xyz{};
+
+// packed per-type-pair coefficients of PairOxdnaExcvKokkos
+struct ParamsOxdnaExcv2 {
+  KK_FLOAT epsilon_bkbk, sigma_bkbk, cut_bkbk_ast, cutsq_bkbk_ast, lj1_bkbk, lj2_bkbk;
+  KK_FLOAT b_bkbk, cut_bkbk_c, cutsq_bkbk_c, epsilon_bkbs, sigma_bkbs, cut_bkbs_ast;
+  KK_FLOAT cutsq_bkbs_ast, lj1_bkbs, lj2_bkbs, b_bkbs, cut_bkbs_c, cutsq_bkbs_c;
+  KK_FLOAT epsilon_bsbs, sigma_bsbs, cut_bsbs_ast, cutsq_bsbs_ast, lj1_bsbs, lj2_bsbs;
+  KK_FLOAT b_bsbs, cut_bsbs_c, cutsq_bsbs_c;
+};
+
+// packed per-tetramer coefficients of PairOxdnaExcvKokkos
+struct ParamsOxdnaExcv4 {
+  KK_FLOAT sigma4_bsbs, cut4_bsbs_ast, cut4sq_bsbs_ast, lj14_bsbs, lj24_bsbs, b4_bsbs;
+  KK_FLOAT cut4_bsbs_c, cut4sq_bsbs_c;
+};
 
 template<class DeviceType>
 class PairOxdnaExcvKokkos : public PairOxdnaExcv, public KokkosBase {
@@ -130,7 +146,9 @@ class PairOxdnaExcvKokkos : public PairOxdnaExcv, public KokkosBase {
   int oxdnaflag;
   enum EnabledOXDNAFlag{OXDNA=1,OXDNA2=2,OXRNA2=4,OXDNA3=8};
 
-  typename AT::t_kkfloat_1d_3_lr_randomread x;
+  t_oxdna_packed_sub<DeviceType> x;    // positions in the packed record of fix OXDNA/LRF/kk
+  t_oxdna_packed_col<DeviceType> xn_type;    // atom types in the packed record
+  t_oxdna_packed<DeviceType> xn;    // the whole packed record, for row loads
   typename AT::t_kkacc_1d_3 f;
   typename AT::t_kkacc_1d_3 torque;
   typename AT::t_int_1d_randomread type;
@@ -149,35 +167,36 @@ class PairOxdnaExcvKokkos : public PairOxdnaExcv, public KokkosBase {
   int neighflag;
   int nlocal, eflag, vflag;
   int anum;
-  bigint last_prime_neighs_atom_ncalls;
+  int nsplit;    // threads per atom of the compute kernel
 
   typename AT::t_neighbors_2d_randomread d_neighbors;
   typename AT::t_int_1d_randomread d_alist;
   typename AT::t_int_1d_randomread d_numneigh;
-  typename AT::t_int_2d d_prime_neighs_atom;
 
   // s=sugar-phosphate backbone site, b=base site, st=stacking site
   // excluded volume interaction parameters
-  typename AT::tdual_kkfloat_2d k_epsilon_bkbk, k_sigma_bkbk, k_cut_bkbk_ast, k_cutsq_bkbk_ast;
-  typename AT::tdual_kkfloat_2d k_lj1_bkbk, k_lj2_bkbk, k_b_bkbk, k_cut_bkbk_c, k_cutsq_bkbk_c;
-  typename AT::tdual_kkfloat_2d k_epsilon_bkbs, k_sigma_bkbs, k_cut_bkbs_ast, k_cutsq_bkbs_ast;
-  typename AT::tdual_kkfloat_2d k_lj1_bkbs, k_lj2_bkbs, k_b_bkbs, k_cut_bkbs_c, k_cutsq_bkbs_c;
-  typename AT::tdual_kkfloat_2d k_epsilon_bsbs, k_sigma_bsbs, k_cut_bsbs_ast, k_cutsq_bsbs_ast;
-  typename AT::tdual_kkfloat_2d k_lj1_bsbs, k_lj2_bsbs, k_b_bsbs, k_cut_bsbs_c, k_cutsq_bsbs_c;
-  typename AT::t_kkfloat_2d_randomread d_epsilon_bkbk, d_sigma_bkbk, d_cut_bkbk_ast, d_cutsq_bkbk_ast;
-  typename AT::t_kkfloat_2d_randomread d_lj1_bkbk, d_lj2_bkbk, d_b_bkbk, d_cut_bkbk_c, d_cutsq_bkbk_c;
-  typename AT::t_kkfloat_2d_randomread d_epsilon_bkbs, d_sigma_bkbs, d_cut_bkbs_ast, d_cutsq_bkbs_ast;
-  typename AT::t_kkfloat_2d_randomread d_lj1_bkbs, d_lj2_bkbs, d_b_bkbs, d_cut_bkbs_c, d_cutsq_bkbs_c;
-  typename AT::t_kkfloat_2d_randomread d_epsilon_bsbs, d_sigma_bsbs, d_cut_bsbs_ast, d_cutsq_bsbs_ast;
-  typename AT::t_kkfloat_2d_randomread d_lj1_bsbs, d_lj2_bsbs, d_b_bsbs, d_cut_bsbs_c, d_cutsq_bsbs_c;
+  // all per-type-pair coefficients of a pair packed in one struct
+  Kokkos::DualView<ParamsOxdnaExcv2 **, Kokkos::LayoutRight, DeviceType> k_params2_excv;
+  typename Kokkos::DualView<ParamsOxdnaExcv2 **, Kokkos::LayoutRight, DeviceType>::t_dev_const_randomread d_params2_excv;
+  // non-tetramer coefficients if they are the same for all type pairs
+  // (the usual "pair_coeff * *"); then read from the functor, not from memory
+  int params2_uniform, params2_dirty;
+  ParamsOxdnaExcv2 params2_uni;
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  ParamsOxdnaExcv2 params2(const int &i, const int &j) const
+    { return params2_uniform ? params2_uni : d_params2_excv(i,j); }
+  // squared center-of-mass distance beyond which no sites of a type pair
+  // interact: the cutoff from init_one() (which includes the distances of
+  // the sites from the center of mass) plus a margin for rounding
+  Kokkos::DualView<KK_FLOAT **, Kokkos::LayoutRight, DeviceType> k_cutsq_com;
+  typename Kokkos::DualView<KK_FLOAT **, Kokkos::LayoutRight, DeviceType>::t_dev_const_randomread d_cutsq_com;
   // tetramer-dependent coefficients
-  typename AT::tdual_kkfloat_4d k_sigma4_bsbs, k_cut4_bsbs_ast, k_cut4sq_bsbs_ast;
-  typename AT::tdual_kkfloat_4d k_lj14_bsbs, k_lj24_bsbs, k_b4_bsbs, k_cut4_bsbs_c, k_cut4sq_bsbs_c;
-  typename AT::t_kkfloat_4d_randomread d_sigma4_bsbs, d_cut4_bsbs_ast, d_cut4sq_bsbs_ast;
-  typename AT::t_kkfloat_4d_randomread d_lj14_bsbs, d_lj24_bsbs, d_b4_bsbs, d_cut4_bsbs_c, d_cut4sq_bsbs_c;
+  // all per-tetramer coefficients of a pair packed in one struct
+  Kokkos::DualView<ParamsOxdnaExcv4 ****, Kokkos::LayoutRight, DeviceType> k_params4_excv;
+  typename Kokkos::DualView<ParamsOxdnaExcv4 ****, Kokkos::LayoutRight, DeviceType>::t_dev_const_randomread d_params4_excv;
   // per-atom arrays for local unit vectors
-  DAT::tdual_kkfloat_1d_3 k_nx_xtrct, k_ny_xtrct, k_nz_xtrct;
-  typename AT::t_kkfloat_1d_3_randomread d_nx_xtrct, d_ny_xtrct, d_nz_xtrct;
+  t_oxdna_packed_sub<DeviceType> d_nx_xtrct, d_ny_xtrct, d_nz_xtrct;
 
   typename ArrayTypes<DeviceType>::t_tagint_1d_randomread tag;
   typename ArrayTypes<DeviceType>::t_tagint_1d_randomread id5p;
@@ -186,6 +205,11 @@ class PairOxdnaExcvKokkos : public PairOxdnaExcv, public KokkosBase {
   int map_style;
   DAT::tdual_int_1d k_map_array;
   dual_hash_type k_map_hash;
+
+  // local index of the atom with a given tag (atom->map()), -1 if the tag is -1 or not present
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  int map_tag(const tagint &itag) const;
 
   using KKDeviceType = typename KKDevice<DeviceType>::value;
 
@@ -213,6 +237,8 @@ class PairOxdnaExcvKokkos : public PairOxdnaExcv, public KokkosBase {
   FixOxdnaLRFKokkos<DeviceType> *fix_oxdna_lrfKK;    // ptr to OXDNA/LRF/kk fix
   FixOxdnaNpairKokkos<DeviceType> *fix_oxdna_npairKK;    // ptr to OXDNA/NPAIR/kk fix
   FixOxdnaPrimeNeighsKokkos<DeviceType> *fix_oxdna_prime_neighsKK;    // ptr to OXDNA/PRIME_NEIGHS/kk fix
+  typename AT::t_int_1d_4 d_prime_neighs_atom;    // 3'/5' neighbors of all atoms and their types
+  bigint last_prime_neighs_atom_nbuild;
 };
 
 }

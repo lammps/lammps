@@ -27,6 +27,7 @@ PairStyle(oxdna2/hbond/kk/host,PairOxdnaHbondKokkos<LMPHostType>);
 #define LMP_PAIR_OXDNA_HBOND_KOKKOS_H
 
 #include "kokkos_base.h"
+#include "fix_oxdna_lrf_kokkos.h"
 #include "pair_kokkos.h"
 #include "pair_oxdna_hbond.h"
 #include "nucleotide_oxdna.h"
@@ -39,11 +40,31 @@ class FixOxdnaLRFKokkos;  // forward declaration
 template<class DeviceType>
 class FixOxdnaNpairKokkos;  // forward declaration
 
+template<class DeviceType>
+class PairOxdna3XstkKokkos;  // forward declaration
+
+template<class DeviceType, int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+struct PairOxdna3HbXstkFused;    // fused hbond + oxdna3/xstk kernel
+
 template<int OXDNAFLAG, int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
 struct TagPairOxdnaHbondCompute{};
 
 template<int OXDNAFLAG, int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
 struct TagPairOxdnaHbondComputeGPUPair{};
+
+template<int OXDNAFLAG, int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+struct TagPairOxdnaHbondComputeGPURadial{};
+
+// packed per-type-pair coefficients of PairOxdnaHbondKokkos
+struct ParamsHbond {
+  KK_FLOAT epsilon_hb, a_hb, cut_hb_0, cut_hb_c, cut_hb_lo, cut_hb_hi;
+  KK_FLOAT cut_hb_lc, cut_hb_hc, b_hb_lo, b_hb_hi, shift_hb, cutsq_hb_hc;
+  KK_FLOAT a_hb1, theta_hb1_0, dtheta_hb1_ast, b_hb1, dtheta_hb1_c, a_hb2;
+  KK_FLOAT theta_hb2_0, dtheta_hb2_ast, b_hb2, dtheta_hb2_c, a_hb3, theta_hb3_0;
+  KK_FLOAT dtheta_hb3_ast, b_hb3, dtheta_hb3_c, a_hb4, theta_hb4_0, dtheta_hb4_ast;
+  KK_FLOAT b_hb4, dtheta_hb4_c, a_hb7, theta_hb7_0, dtheta_hb7_ast, b_hb7;
+  KK_FLOAT dtheta_hb7_c, a_hb8, theta_hb8_0, dtheta_hb8_ast, b_hb8, dtheta_hb8_c;
+};
 
 template<class DeviceType>
 class PairOxdnaHbondKokkos : public PairOxdnaHbond, public KokkosBase {
@@ -106,10 +127,22 @@ class PairOxdnaHbondKokkos : public PairOxdnaHbond, public KokkosBase {
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairOxdnaHbondComputeGPUPair<OXDNAFLAG,NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int&, EV_FLOAT&) const;
 
+  template<int OXDNAFLAG, int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG, int RADIAL_ONLY = 0>
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  bool screened_pair_body(TagPairOxdnaHbondComputeGPUPair<OXDNAFLAG,NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int &ipair,
+                          KK_ACC_FLOAT (&fa)[3], KK_ACC_FLOAT (&ta)[3], EV_FLOAT &ev) const;
+
   template<int OXDNAFLAG, int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairOxdnaHbondComputeGPUPair<OXDNAFLAG,NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int&) const;
+
+  // first phase of the two-phase evaluation (OXDNA_KK_TWO_PHASE)
+  template<int OXDNAFLAG, int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagPairOxdnaHbondComputeGPURadial<OXDNAFLAG,NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int&) const;
 
   template<int NEIGHFLAG, int NEWTON_PAIR, int PAIRWISE = 0>
 // NOLINTNEXTLINE
@@ -122,12 +155,18 @@ class PairOxdnaHbondKokkos : public PairOxdnaHbond, public KokkosBase {
   KOKKOS_INLINE_FUNCTION
   int sbmask(const int& j) const;
 
+  // fused hbond + oxdna3/xstk kernel (OXDNA_KK_FUSE_HBXSTK), set up by
+  // pair oxdna3/xstk/kk in its init_style()
+  PairOxdna3XstkKokkos<DeviceType> *fuse_partner;
+  bigint fuse_ncompute;    // # of compute() calls that used the fused kernel
+  bool fuse_supported() const;
+
  protected:
 
   int oxdnaflag;
   enum EnabledOXDNAFlag{OXDNA=1,OXDNA3=2};
 
-  typename AT::t_kkfloat_1d_3_lr_randomread x;
+  t_oxdna_packed_sub<DeviceType> x;    // positions in the packed record of fix OXDNA/LRF/kk
   typename AT::t_kkacc_1d_3 f;
   typename AT::t_kkacc_1d_3 torque;
   typename AT::t_int_1d_randomread type;
@@ -154,50 +193,25 @@ class PairOxdnaHbondKokkos : public PairOxdnaHbond, public KokkosBase {
   // GPU-specific: screened neighbor arrays for npair fix
   DAT::tdual_uint64_1d k_pairs_screened;
   typename AT::t_uint64_1d d_pairs_screened;
+  typename AT::t_int_1d d_screened_offsets;  // per-atom segments of d_pairs_screened
+  int screened_launch_count;   // number of threads of the screened-pair kernels
   int screened_pair_count;
+  // compact list of the screened pairs that pass the radial test (OXDNA_KK_TWO_PHASE)
+  typename AT::t_int_1d d_radial_pairs;
+  typename AT::t_int_scalar d_radial_count;
 
   DAT::tdual_int_1d k_idc;
   typename AT::t_int_1d_randomread d_idc;
   int unique_basepair_enabled;
-  bigint last_idc_ncalls;
+  bigint last_idc_nbuild;
   int last_idc_nall;
 
   // hydrogen-bonding interaction parameters
-  typename AT::tdual_kkfloat_2d k_epsilon_hb, k_a_hb, k_cut_hb_0, k_cut_hb_c;
-  typename AT::tdual_kkfloat_2d k_cut_hb_lo, k_cut_hb_hi;
-  typename AT::tdual_kkfloat_2d k_cut_hb_lc, k_cut_hb_hc, k_b_hb_lo, k_b_hb_hi;
-  typename AT::tdual_kkfloat_2d k_shift_hb, k_cutsq_hb_hc;
-  typename AT::tdual_kkfloat_2d k_a_hb1, k_theta_hb1_0, k_dtheta_hb1_ast;
-  typename AT::tdual_kkfloat_2d k_b_hb1, k_dtheta_hb1_c;
-  typename AT::tdual_kkfloat_2d k_a_hb2, k_theta_hb2_0, k_dtheta_hb2_ast;
-  typename AT::tdual_kkfloat_2d k_b_hb2, k_dtheta_hb2_c;
-  typename AT::tdual_kkfloat_2d k_a_hb3, k_theta_hb3_0, k_dtheta_hb3_ast;
-  typename AT::tdual_kkfloat_2d k_b_hb3, k_dtheta_hb3_c;
-  typename AT::tdual_kkfloat_2d k_a_hb4, k_theta_hb4_0, k_dtheta_hb4_ast;
-  typename AT::tdual_kkfloat_2d k_b_hb4, k_dtheta_hb4_c;
-  typename AT::tdual_kkfloat_2d k_a_hb7, k_theta_hb7_0, k_dtheta_hb7_ast;
-  typename AT::tdual_kkfloat_2d k_b_hb7, k_dtheta_hb7_c;
-  typename AT::tdual_kkfloat_2d k_a_hb8, k_theta_hb8_0, k_dtheta_hb8_ast;
-  typename AT::tdual_kkfloat_2d k_b_hb8, k_dtheta_hb8_c;
-  typename AT::t_kkfloat_2d_randomread d_epsilon_hb, d_a_hb, d_cut_hb_0, d_cut_hb_c;
-  typename AT::t_kkfloat_2d_randomread d_cut_hb_lo, d_cut_hb_hi;
-  typename AT::t_kkfloat_2d_randomread d_cut_hb_lc, d_cut_hb_hc, d_b_hb_lo, d_b_hb_hi;
-  typename AT::t_kkfloat_2d_randomread d_shift_hb, d_cutsq_hb_hc;
-  typename AT::t_kkfloat_2d_randomread d_a_hb1, d_theta_hb1_0, d_dtheta_hb1_ast;
-  typename AT::t_kkfloat_2d_randomread d_b_hb1, d_dtheta_hb1_c;
-  typename AT::t_kkfloat_2d_randomread d_a_hb2, d_theta_hb2_0, d_dtheta_hb2_ast;
-  typename AT::t_kkfloat_2d_randomread d_b_hb2, d_dtheta_hb2_c;
-  typename AT::t_kkfloat_2d_randomread d_a_hb3, d_theta_hb3_0, d_dtheta_hb3_ast;
-  typename AT::t_kkfloat_2d_randomread d_b_hb3, d_dtheta_hb3_c;
-  typename AT::t_kkfloat_2d_randomread d_a_hb4, d_theta_hb4_0, d_dtheta_hb4_ast;
-  typename AT::t_kkfloat_2d_randomread d_b_hb4, d_dtheta_hb4_c;
-  typename AT::t_kkfloat_2d_randomread d_a_hb7, d_theta_hb7_0, d_dtheta_hb7_ast;
-  typename AT::t_kkfloat_2d_randomread d_b_hb7, d_dtheta_hb7_c;
-  typename AT::t_kkfloat_2d_randomread d_a_hb8, d_theta_hb8_0, d_dtheta_hb8_ast;
-  typename AT::t_kkfloat_2d_randomread d_b_hb8, d_dtheta_hb8_c;
+  // all per-type-pair coefficients of a pair packed in one struct
+  Kokkos::DualView<ParamsHbond **, Kokkos::LayoutRight, DeviceType> k_params_hb;
+  typename Kokkos::DualView<ParamsHbond **, Kokkos::LayoutRight, DeviceType>::t_dev_const_randomread d_params_hb;
   // per-atom arrays for local unit vectors
-  DAT::tdual_kkfloat_1d_3 k_nx_xtrct, k_ny_xtrct, k_nz_xtrct;
-  typename AT::t_kkfloat_1d_3_randomread d_nx_xtrct, d_ny_xtrct, d_nz_xtrct;
+  t_oxdna_packed_sub<DeviceType> d_nx_xtrct, d_ny_xtrct, d_nz_xtrct;
 
   int first;
   typename AT::t_int_1d d_sendlist;
@@ -225,6 +239,8 @@ class PairOxdnaHbondKokkos : public PairOxdnaHbond, public KokkosBase {
   void allocate() override;
 
   friend void pair_virial_fdotr_compute<PairOxdnaHbondKokkos>(PairOxdnaHbondKokkos*);
+  template<class, int, int, int> friend struct PairOxdna3HbXstkFused;
+  template<class> friend class PairOxdna3XstkKokkos;
 
   FixOxdnaLRFKokkos<DeviceType> *fix_oxdna_lrfKK;    // ptr to OXDNA/LRF/kk fix
   FixOxdnaNpairKokkos<DeviceType> *fix_oxdna_npairKK;    // ptr to OXDNA/NPAIR/kk fix

@@ -18,6 +18,7 @@
 #include "error.h"
 #include "memory_kokkos.h"
 #include "update.h"
+#include "verlet_kokkos.h"
 
 using namespace LAMMPS_NS;
 using namespace FixConst;
@@ -40,13 +41,6 @@ FixOxdnaLRFKokkos<DeviceType>::FixOxdnaLRFKokkos(LAMMPS *lmp, int narg, char **a
   datamask_read = MASK_MASK | ELLIPSOID_MASK | BONUS_MASK |
                   X_MASK | TYPE_MASK | TAG_MASK | CG_DNA_MASK;
   datamask_modify = EMPTY_MASK;
-
-  MemKK::realloc_kokkos(k_nx, "FixOxdnaLRF:nx", atom->nmax);
-  MemKK::realloc_kokkos(k_ny, "FixOxdnaLRF:ny", atom->nmax);
-  MemKK::realloc_kokkos(k_nz, "FixOxdnaLRF:nz", atom->nmax);
-  d_nx = k_nx.template view<DeviceType>();
-  d_ny = k_ny.template view<DeviceType>();
-  d_nz = k_nz.template view<DeviceType>();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -66,6 +60,14 @@ void FixOxdnaLRFKokkos<DeviceType>::init()
 
   if (utils::strmatch(update->integrate_style, "^respa"))
     error->all(FLERR, "The oxDNA styles do not support run style respa");
+
+  // offer to zero the device forces and torques in the frame kernel, which
+  // runs over all owned and ghost atoms anyway; VerletKokkos::setup() decides
+
+  if (std::is_same_v<DeviceType, LMPDeviceType>) {
+    auto verletKK = dynamic_cast<VerletKokkos *>(update->integrate);
+    if (verletKK) verletKK->request_force_clear_by_fix(this);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -92,7 +94,7 @@ void FixOxdnaLRFKokkos<DeviceType>::min_setup_pre_force(int vflag)
 template<class DeviceType>
 void FixOxdnaLRFKokkos<DeviceType>::min_pre_force(int /*vflag*/)
 {
-  compute_lrf_kokkos();
+  compute_lrf_kokkos(0);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -108,27 +110,32 @@ void FixOxdnaLRFKokkos<DeviceType>::setup_pre_force(int vflag)
 template<class DeviceType>
 void FixOxdnaLRFKokkos<DeviceType>::pre_force(int /*vflag*/)
 {
-  compute_lrf_kokkos();
+  auto verletKK = dynamic_cast<VerletKokkos *>(update->integrate);
+  compute_lrf_kokkos((verletKK && (update->whichflag == 1)) ? verletKK->force_clear_by_fix(this) : 0);
 }
 
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
-void FixOxdnaLRFKokkos<DeviceType>::compute_lrf_kokkos()
+void FixOxdnaLRFKokkos<DeviceType>::compute_lrf_kokkos(int zero_forces_flag)
 {
-  if (atom->nmax > static_cast<int>(k_nx.extent(0))) {
-    MemKK::realloc_kokkos(k_nx, "FixOxdnaLRFKokkos:nx", atom->nmax);
-    MemKK::realloc_kokkos(k_ny, "FixOxdnaLRFKokkos:ny", atom->nmax);
-    MemKK::realloc_kokkos(k_nz, "FixOxdnaLRFKokkos:nz", atom->nmax);
-    d_nx = k_nx.template view<DeviceType>();
-    d_ny = k_ny.template view<DeviceType>();
-    d_nz = k_nz.template view<DeviceType>();
+  zero_forces = zero_forces_flag;
+  if (zero_forces) {
+    f = atomKK->k_f.template view<DeviceType>();
+    torque = atomKK->k_torque.template view<DeviceType>();
   }
+
+  if (atom->nmax > static_cast<int>(d_xn.extent(0)))
+    d_xn = decltype(d_xn)(Kokkos::view_alloc(Kokkos::WithoutInitializing, "FixOxdnaLRFKokkos:xn"),
+                          atom->nmax);
 
   atomKK->sync(execution_space, datamask_read);
 
   mask = atomKK->k_mask.template view<DeviceType>();
+  x = atomKK->k_x.template view<DeviceType>();
   ellipsoid = atomKK->k_ellipsoid.template view<DeviceType>();
+  type = atomKK->k_type.template view<DeviceType>();
+  qeff = atomKK->k_qeff.template view<DeviceType>();
   bonus = avecEllipKK->k_bonus.template view<DeviceType>();
 
   copymode = 1;
@@ -136,12 +143,9 @@ void FixOxdnaLRFKokkos<DeviceType>::compute_lrf_kokkos()
   // list or bond list can reference); the slots in [nlocal+nghost, nmax) are
   // never read, so iterate nall rather than the full allocated nmax.
   const int nall = atom->nlocal + atom->nghost;
-  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixOxdnaLRFComputeQuatToXYZ>(0, nall), *this);
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagFixOxdnaLRFComputeQuatToXYZ,
+                       Kokkos::Experimental::WorkItemProperty::HintLightWeight_t>(0, nall), *this);
   copymode = 0;
-
-  k_nx.template modify<DeviceType>();
-  k_ny.template modify<DeviceType>();
-  k_nz.template modify<DeviceType>();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -150,51 +154,52 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void FixOxdnaLRFKokkos<DeviceType>::operator()(TagFixOxdnaLRFComputeQuatToXYZ, const int &i) const
 {
-  if (!(mask(i) & groupbit)) {
-    d_nx(i, 0) = 0.0;
-    d_nx(i, 1) = 0.0;
-    d_nx(i, 2) = 0.0;
-    d_ny(i, 0) = 0.0;
-    d_ny(i, 1) = 0.0;
-    d_ny(i, 2) = 0.0;
-    d_nz(i, 0) = 0.0;
-    d_nz(i, 1) = 0.0;
-    d_nz(i, 2) = 0.0;
-    return;
+  // frame vectors nx, ny, nz (zero for atoms outside the group or without ellipsoid)
+  KK_FLOAT n[9] = {0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+
+  const int ne = ellipsoid(i);
+  if ((mask(i) & groupbit) && (ne >= 0)) {
+    const KK_FLOAT q0 = static_cast<KK_FLOAT>(bonus(ne).quat[0]);
+    const KK_FLOAT q1 = static_cast<KK_FLOAT>(bonus(ne).quat[1]);
+    const KK_FLOAT q2 = static_cast<KK_FLOAT>(bonus(ne).quat[2]);
+    const KK_FLOAT q3 = static_cast<KK_FLOAT>(bonus(ne).quat[3]);
+
+    const KK_FLOAT two = 2.0;
+
+    n[0] = Kokkos::fma(q0, q0, Kokkos::fma(q1, q1, -Kokkos::fma(q2, q2, q3 * q3)));
+    n[1] = two * Kokkos::fma(q1, q2, q0 * q3);
+    n[2] = two * Kokkos::fma(q1, q3, -q0 * q2);
+
+    n[3] = two * Kokkos::fma(q1, q2, -q0 * q3);
+    n[4] = Kokkos::fma(q0, q0, Kokkos::fma(q2, q2, -Kokkos::fma(q1, q1, q3 * q3)));
+    n[5] = two * Kokkos::fma(q2, q3, q0 * q1);
+
+    n[6] = two * Kokkos::fma(q1, q3, q0 * q2);
+    n[7] = two * Kokkos::fma(q2, q3, -q0 * q1);
+    n[8] = Kokkos::fma(q0, q0, q3 * q3 - Kokkos::fma(q1, q1, q2 * q2));
   }
 
-  const int n = ellipsoid(i);
-  if (n < 0) {
-    d_nx(i, 0) = 0.0;
-    d_nx(i, 1) = 0.0;
-    d_nx(i, 2) = 0.0;
-    d_ny(i, 0) = 0.0;
-    d_ny(i, 1) = 0.0;
-    d_ny(i, 2) = 0.0;
-    d_nz(i, 0) = 0.0;
-    d_nz(i, 1) = 0.0;
-    d_nz(i, 2) = 0.0;
-    return;
+  // packed record: position and frame vectors in one row
+  KK_FLOAT row[16];
+  row[0] = x(i, 0);
+  row[1] = x(i, 1);
+  row[2] = x(i, 2);
+  row[3] = static_cast<KK_FLOAT>(type(i));
+  for (int k = 0; k < 9; k++) row[4 + k] = n[k];
+  row[13] = qeff(i);
+  row[14] = 0.0;
+  row[15] = 0.0;
+  store_row(i, row);
+
+  // in place of VerletKokkos::force_clear()
+  if (zero_forces) {
+    f(i, 0) = 0.0;
+    f(i, 1) = 0.0;
+    f(i, 2) = 0.0;
+    torque(i, 0) = 0.0;
+    torque(i, 1) = 0.0;
+    torque(i, 2) = 0.0;
   }
-
-  const KK_FLOAT q0 = static_cast<KK_FLOAT>(bonus(n).quat[0]);
-  const KK_FLOAT q1 = static_cast<KK_FLOAT>(bonus(n).quat[1]);
-  const KK_FLOAT q2 = static_cast<KK_FLOAT>(bonus(n).quat[2]);
-  const KK_FLOAT q3 = static_cast<KK_FLOAT>(bonus(n).quat[3]);
-
-  const KK_FLOAT two = 2.0;
-
-  d_nx(i, 0) = Kokkos::fma(q0, q0, Kokkos::fma(q1, q1, -Kokkos::fma(q2, q2, q3 * q3)));
-  d_nx(i, 1) = two * Kokkos::fma(q1, q2, q0 * q3);
-  d_nx(i, 2) = two * Kokkos::fma(q1, q3, -q0 * q2);
-
-  d_ny(i, 0) = two * Kokkos::fma(q1, q2, -q0 * q3);
-  d_ny(i, 1) = Kokkos::fma(q0, q0, Kokkos::fma(q2, q2, -Kokkos::fma(q1, q1, q3 * q3)));
-  d_ny(i, 2) = two * Kokkos::fma(q2, q3, q0 * q1);
-
-  d_nz(i, 0) = two * Kokkos::fma(q1, q3, q0 * q2);
-  d_nz(i, 1) = two * Kokkos::fma(q2, q3, -q0 * q1);
-  d_nz(i, 2) = Kokkos::fma(q0, q0, q3 * q3 - Kokkos::fma(q1, q1, q2 * q2));
 }
 
 /* ---------------------------------------------------------------------- */

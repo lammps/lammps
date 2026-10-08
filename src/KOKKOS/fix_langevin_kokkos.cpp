@@ -52,6 +52,7 @@ FixLangevinKokkos<DeviceType>::FixLangevinKokkos(LAMMPS *lmp, int narg, char **a
 {
   kokkosable = 1;
   fuse_integrate_flag = 1;
+  fuse_angmom = 0;
   sort_device = 1;
   atomKK = (AtomKokkos *) atom;
   int ntypes = atomKK->ntypes;
@@ -226,6 +227,11 @@ void FixLangevinKokkos<DeviceType>::post_force(int /*vflag*/)
     }
   }
 
+  // the angmom thermostat runs in the same kernel as the force thermostat
+  // when nothing has to happen in between (zeroing of the total force)
+  fuse_angmom = (ascale != 0.0) && !zeroflag && !oflag && (tbiasflag != BIAS);
+  if (fuse_angmom) angmom_thermostat_setup();
+
   // compute langevin force in parallel on the device
   FSUM s_fsum;
   if (tstyle == ATOM)
@@ -234,70 +240,70 @@ void FixLangevinKokkos<DeviceType>::post_force(int /*vflag*/)
         if (rmass.data())
           if (zeroflag) {
             FixLangevinKokkosPostForceFunctor<DeviceType,1,1,1,1,1> post_functor(this);
-            Kokkos::parallel_reduce(nlocal,post_functor,s_fsum);
+            Kokkos::parallel_reduce(Kokkos::Experimental::require(Kokkos::RangePolicy<DeviceType>(0,nlocal),Kokkos::Experimental::WorkItemProperty::HintLightWeight),post_functor,s_fsum);
           } else {
             FixLangevinKokkosPostForceFunctor<DeviceType,1,1,1,1,0> post_functor(this);
-            Kokkos::parallel_for(nlocal,post_functor);
+            Kokkos::parallel_for(Kokkos::Experimental::require(Kokkos::RangePolicy<DeviceType>(0,nlocal),Kokkos::Experimental::WorkItemProperty::HintLightWeight),post_functor);
           }
         else
           if (zeroflag) {
             FixLangevinKokkosPostForceFunctor<DeviceType,1,1,1,0,1> post_functor(this);
-            Kokkos::parallel_reduce(nlocal,post_functor,s_fsum);
+            Kokkos::parallel_reduce(Kokkos::Experimental::require(Kokkos::RangePolicy<DeviceType>(0,nlocal),Kokkos::Experimental::WorkItemProperty::HintLightWeight),post_functor,s_fsum);
           } else {
             FixLangevinKokkosPostForceFunctor<DeviceType,1,1,1,0,0> post_functor(this);
-            Kokkos::parallel_for(nlocal,post_functor);
+            Kokkos::parallel_for(Kokkos::Experimental::require(Kokkos::RangePolicy<DeviceType>(0,nlocal),Kokkos::Experimental::WorkItemProperty::HintLightWeight),post_functor);
           }
       else
         if (rmass.data())
           if (zeroflag) {
             FixLangevinKokkosPostForceFunctor<DeviceType,1,1,0,1,1> post_functor(this);
-            Kokkos::parallel_reduce(nlocal,post_functor,s_fsum);
+            Kokkos::parallel_reduce(Kokkos::Experimental::require(Kokkos::RangePolicy<DeviceType>(0,nlocal),Kokkos::Experimental::WorkItemProperty::HintLightWeight),post_functor,s_fsum);
           } else {
             FixLangevinKokkosPostForceFunctor<DeviceType,1,1,0,1,0> post_functor(this);
-            Kokkos::parallel_for(nlocal,post_functor);
+            Kokkos::parallel_for(Kokkos::Experimental::require(Kokkos::RangePolicy<DeviceType>(0,nlocal),Kokkos::Experimental::WorkItemProperty::HintLightWeight),post_functor);
           }
         else
           if (zeroflag) {
             FixLangevinKokkosPostForceFunctor<DeviceType,1,1,0,0,1> post_functor(this);
-            Kokkos::parallel_reduce(nlocal,post_functor,s_fsum);
+            Kokkos::parallel_reduce(Kokkos::Experimental::require(Kokkos::RangePolicy<DeviceType>(0,nlocal),Kokkos::Experimental::WorkItemProperty::HintLightWeight),post_functor,s_fsum);
           } else {
             FixLangevinKokkosPostForceFunctor<DeviceType,1,1,0,0,0> post_functor(this);
-            Kokkos::parallel_for(nlocal,post_functor);
+            Kokkos::parallel_for(Kokkos::Experimental::require(Kokkos::RangePolicy<DeviceType>(0,nlocal),Kokkos::Experimental::WorkItemProperty::HintLightWeight),post_functor);
           }
     else
       if (tbiasflag == BIAS)
         if (rmass.data())
           if (zeroflag) {
             FixLangevinKokkosPostForceFunctor<DeviceType,1,0,1,1,1> post_functor(this);
-            Kokkos::parallel_reduce(nlocal,post_functor,s_fsum);
+            Kokkos::parallel_reduce(Kokkos::Experimental::require(Kokkos::RangePolicy<DeviceType>(0,nlocal),Kokkos::Experimental::WorkItemProperty::HintLightWeight),post_functor,s_fsum);
           } else {
             FixLangevinKokkosPostForceFunctor<DeviceType,1,0,1,1,0> post_functor(this);
-            Kokkos::parallel_for(nlocal,post_functor);
+            Kokkos::parallel_for(Kokkos::Experimental::require(Kokkos::RangePolicy<DeviceType>(0,nlocal),Kokkos::Experimental::WorkItemProperty::HintLightWeight),post_functor);
           }
         else
           if (zeroflag) {
             FixLangevinKokkosPostForceFunctor<DeviceType,1,0,1,0,1> post_functor(this);
-            Kokkos::parallel_reduce(nlocal,post_functor,s_fsum);
+            Kokkos::parallel_reduce(Kokkos::Experimental::require(Kokkos::RangePolicy<DeviceType>(0,nlocal),Kokkos::Experimental::WorkItemProperty::HintLightWeight),post_functor,s_fsum);
           } else {
             FixLangevinKokkosPostForceFunctor<DeviceType,1,0,1,0,0> post_functor(this);
-            Kokkos::parallel_for(nlocal,post_functor);
+            Kokkos::parallel_for(Kokkos::Experimental::require(Kokkos::RangePolicy<DeviceType>(0,nlocal),Kokkos::Experimental::WorkItemProperty::HintLightWeight),post_functor);
           }
       else
         if (rmass.data())
           if (zeroflag) {
             FixLangevinKokkosPostForceFunctor<DeviceType,1,0,0,1,1> post_functor(this);
-            Kokkos::parallel_reduce(nlocal,post_functor,s_fsum);
+            Kokkos::parallel_reduce(Kokkos::Experimental::require(Kokkos::RangePolicy<DeviceType>(0,nlocal),Kokkos::Experimental::WorkItemProperty::HintLightWeight),post_functor,s_fsum);
           } else {
             FixLangevinKokkosPostForceFunctor<DeviceType,1,0,0,1,0> post_functor(this);
-            Kokkos::parallel_for(nlocal,post_functor);
+            Kokkos::parallel_for(Kokkos::Experimental::require(Kokkos::RangePolicy<DeviceType>(0,nlocal),Kokkos::Experimental::WorkItemProperty::HintLightWeight),post_functor);
           }
         else
           if (zeroflag) {
             FixLangevinKokkosPostForceFunctor<DeviceType,1,0,0,0,1> post_functor(this);
-            Kokkos::parallel_reduce(nlocal,post_functor,s_fsum);
+            Kokkos::parallel_reduce(Kokkos::Experimental::require(Kokkos::RangePolicy<DeviceType>(0,nlocal),Kokkos::Experimental::WorkItemProperty::HintLightWeight),post_functor,s_fsum);
           } else {
             FixLangevinKokkosPostForceFunctor<DeviceType,1,0,0,0,0> post_functor(this);
-            Kokkos::parallel_for(nlocal,post_functor);
+            Kokkos::parallel_for(Kokkos::Experimental::require(Kokkos::RangePolicy<DeviceType>(0,nlocal),Kokkos::Experimental::WorkItemProperty::HintLightWeight),post_functor);
           }
   else
     if (tallyflag || osflag)
@@ -305,70 +311,70 @@ void FixLangevinKokkos<DeviceType>::post_force(int /*vflag*/)
         if (rmass.data())
           if (zeroflag) {
             FixLangevinKokkosPostForceFunctor<DeviceType,0,1,1,1,1> post_functor(this);
-            Kokkos::parallel_reduce(nlocal,post_functor,s_fsum);
+            Kokkos::parallel_reduce(Kokkos::Experimental::require(Kokkos::RangePolicy<DeviceType>(0,nlocal),Kokkos::Experimental::WorkItemProperty::HintLightWeight),post_functor,s_fsum);
           } else {
             FixLangevinKokkosPostForceFunctor<DeviceType,0,1,1,1,0> post_functor(this);
-            Kokkos::parallel_for(nlocal,post_functor);
+            Kokkos::parallel_for(Kokkos::Experimental::require(Kokkos::RangePolicy<DeviceType>(0,nlocal),Kokkos::Experimental::WorkItemProperty::HintLightWeight),post_functor);
           }
         else
           if (zeroflag) {
             FixLangevinKokkosPostForceFunctor<DeviceType,0,1,1,0,1> post_functor(this);
-            Kokkos::parallel_reduce(nlocal,post_functor,s_fsum);
+            Kokkos::parallel_reduce(Kokkos::Experimental::require(Kokkos::RangePolicy<DeviceType>(0,nlocal),Kokkos::Experimental::WorkItemProperty::HintLightWeight),post_functor,s_fsum);
           } else {
             FixLangevinKokkosPostForceFunctor<DeviceType,0,1,1,0,0> post_functor(this);
-            Kokkos::parallel_for(nlocal,post_functor);
+            Kokkos::parallel_for(Kokkos::Experimental::require(Kokkos::RangePolicy<DeviceType>(0,nlocal),Kokkos::Experimental::WorkItemProperty::HintLightWeight),post_functor);
           }
       else
         if (rmass.data())
           if (zeroflag) {
             FixLangevinKokkosPostForceFunctor<DeviceType,0,1,0,1,1> post_functor(this);
-            Kokkos::parallel_reduce(nlocal,post_functor,s_fsum);
+            Kokkos::parallel_reduce(Kokkos::Experimental::require(Kokkos::RangePolicy<DeviceType>(0,nlocal),Kokkos::Experimental::WorkItemProperty::HintLightWeight),post_functor,s_fsum);
           } else {
             FixLangevinKokkosPostForceFunctor<DeviceType,0,1,0,1,0> post_functor(this);
-            Kokkos::parallel_for(nlocal,post_functor);
+            Kokkos::parallel_for(Kokkos::Experimental::require(Kokkos::RangePolicy<DeviceType>(0,nlocal),Kokkos::Experimental::WorkItemProperty::HintLightWeight),post_functor);
           }
         else
           if (zeroflag) {
             FixLangevinKokkosPostForceFunctor<DeviceType,0,1,0,0,1> post_functor(this);
-            Kokkos::parallel_reduce(nlocal,post_functor,s_fsum);
+            Kokkos::parallel_reduce(Kokkos::Experimental::require(Kokkos::RangePolicy<DeviceType>(0,nlocal),Kokkos::Experimental::WorkItemProperty::HintLightWeight),post_functor,s_fsum);
           } else {
             FixLangevinKokkosPostForceFunctor<DeviceType,0,1,0,0,0> post_functor(this);
-            Kokkos::parallel_for(nlocal,post_functor);
+            Kokkos::parallel_for(Kokkos::Experimental::require(Kokkos::RangePolicy<DeviceType>(0,nlocal),Kokkos::Experimental::WorkItemProperty::HintLightWeight),post_functor);
           }
     else
       if (tbiasflag == BIAS)
         if (rmass.data())
           if (zeroflag) {
             FixLangevinKokkosPostForceFunctor<DeviceType,0,0,1,1,1> post_functor(this);
-            Kokkos::parallel_reduce(nlocal,post_functor,s_fsum);
+            Kokkos::parallel_reduce(Kokkos::Experimental::require(Kokkos::RangePolicy<DeviceType>(0,nlocal),Kokkos::Experimental::WorkItemProperty::HintLightWeight),post_functor,s_fsum);
           } else {
             FixLangevinKokkosPostForceFunctor<DeviceType,0,0,1,1,0> post_functor(this);
-            Kokkos::parallel_for(nlocal,post_functor);
+            Kokkos::parallel_for(Kokkos::Experimental::require(Kokkos::RangePolicy<DeviceType>(0,nlocal),Kokkos::Experimental::WorkItemProperty::HintLightWeight),post_functor);
           }
         else
           if (zeroflag) {
             FixLangevinKokkosPostForceFunctor<DeviceType,0,0,1,0,1> post_functor(this);
-            Kokkos::parallel_reduce(nlocal,post_functor,s_fsum);
+            Kokkos::parallel_reduce(Kokkos::Experimental::require(Kokkos::RangePolicy<DeviceType>(0,nlocal),Kokkos::Experimental::WorkItemProperty::HintLightWeight),post_functor,s_fsum);
           } else {
             FixLangevinKokkosPostForceFunctor<DeviceType,0,0,1,0,0> post_functor(this);
-            Kokkos::parallel_for(nlocal,post_functor);
+            Kokkos::parallel_for(Kokkos::Experimental::require(Kokkos::RangePolicy<DeviceType>(0,nlocal),Kokkos::Experimental::WorkItemProperty::HintLightWeight),post_functor);
           }
       else
         if (rmass.data())
           if (zeroflag) {
             FixLangevinKokkosPostForceFunctor<DeviceType,0,0,0,1,1> post_functor(this);
-            Kokkos::parallel_reduce(nlocal,post_functor,s_fsum);
+            Kokkos::parallel_reduce(Kokkos::Experimental::require(Kokkos::RangePolicy<DeviceType>(0,nlocal),Kokkos::Experimental::WorkItemProperty::HintLightWeight),post_functor,s_fsum);
           } else {
             FixLangevinKokkosPostForceFunctor<DeviceType,0,0,0,1,0> post_functor(this);
-            Kokkos::parallel_for(nlocal,post_functor);
+            Kokkos::parallel_for(Kokkos::Experimental::require(Kokkos::RangePolicy<DeviceType>(0,nlocal),Kokkos::Experimental::WorkItemProperty::HintLightWeight),post_functor);
           }
         else
           if (zeroflag) {
             FixLangevinKokkosPostForceFunctor<DeviceType,0,0,0,0,1> post_functor(this);
-            Kokkos::parallel_reduce(nlocal,post_functor,s_fsum);
+            Kokkos::parallel_reduce(Kokkos::Experimental::require(Kokkos::RangePolicy<DeviceType>(0,nlocal),Kokkos::Experimental::WorkItemProperty::HintLightWeight),post_functor,s_fsum);
           } else {
             FixLangevinKokkosPostForceFunctor<DeviceType,0,0,0,0,0> post_functor(this);
-            Kokkos::parallel_for(nlocal,post_functor);
+            Kokkos::parallel_for(Kokkos::Experimental::require(Kokkos::RangePolicy<DeviceType>(0,nlocal),Kokkos::Experimental::WorkItemProperty::HintLightWeight),post_functor);
           }
 
   // f is modified by post_force functor
@@ -405,7 +411,8 @@ void FixLangevinKokkos<DeviceType>::post_force(int /*vflag*/)
 
   // thermostat omega and angmom
   if (oflag) omega_thermostat_kokkos();
-  if (ascale != 0.0) angmom_thermostat();
+  if (fuse_angmom) atomKK->modified(execution_space,TORQUE_MASK);
+  else if (ascale != 0.0) angmom_thermostat();
 
 }
 
@@ -468,6 +475,7 @@ FSUM FixLangevinKokkos<DeviceType>::post_force_item(int i) const
       fsum.fy = static_cast<double>(fran[1]);
       fsum.fz = static_cast<double>(fran[2]);
     }
+    if (fuse_angmom) angmom_thermostat_rand(i, rand_gen);
     rand_pool.free_state(rand_gen);
   }
 
@@ -628,6 +636,20 @@ void FixLangevinKokkos<DeviceType>::omega_thermostat_item(int i) const
 template<class DeviceType>
 void FixLangevinKokkos<DeviceType>::angmom_thermostat()
 {
+  angmom_thermostat_setup();
+  int nlocal = atomKK->nlocal;
+
+  FixLangevinKokkosAngmomThermostatFunctor<DeviceType> angmom_functor(this);
+  Kokkos::parallel_for(nlocal,angmom_functor);
+
+  atomKK->modified(execution_space,TORQUE_MASK);
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixLangevinKokkos<DeviceType>::angmom_thermostat_setup()
+{
   // Only need to sync: bonus, angmom, torque, ellipsoid views.
   // The others where already synced in post_force.
   atomKK->sync(execution_space,BONUS_MASK|TORQUE_MASK|ANGMOM_MASK|ELLIPSOID_MASK);
@@ -639,13 +661,6 @@ void FixLangevinKokkos<DeviceType>::angmom_thermostat()
   // Precompute the rotational friction prefactors
   rot_gamma1 = -static_cast<KK_FLOAT>(ascale) / (static_cast<KK_FLOAT>(t_period) * ftm2v);
   rot_gamma2 = Kokkos::sqrt(static_cast<KK_FLOAT>(ascale)*static_cast<KK_FLOAT>(24.0)*boltz/static_cast<KK_FLOAT>(t_period)/dt/mvv2e) / ftm2v;
-
-  int nlocal = atomKK->nlocal;
-
-  FixLangevinKokkosAngmomThermostatFunctor<DeviceType> angmom_functor(this);
-  Kokkos::parallel_for(nlocal,angmom_functor);
-
-  atomKK->modified(execution_space,TORQUE_MASK);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -654,6 +669,23 @@ template<class DeviceType>
 KOKKOS_INLINE_FUNCTION
 void FixLangevinKokkos<DeviceType>::angmom_thermostat_item(int i) const
 {
+  if (mask[i] & groupbit) {
+    rand_type rand_gen = rand_pool.get_state();
+    angmom_thermostat_rand(i, rand_gen);
+    rand_pool.free_state(rand_gen);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   angmom thermostat of atom i with the random generator of the caller
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+template<class RandGen>
+// NOLINTNEXTLINE
+KOKKOS_INLINE_FUNCTION
+void FixLangevinKokkos<DeviceType>::angmom_thermostat_rand(int i, RandGen &rand_gen) const
+{
   KK_FLOAT gamma1,gamma2;
 
   KK_FLOAT inertia[3],omega[3],tran[3];
@@ -661,10 +693,8 @@ void FixLangevinKokkos<DeviceType>::angmom_thermostat_item(int i) const
 
   KK_FLOAT tsqrt_t = static_cast<KK_FLOAT>(tsqrt);
 
-  if (mask[i] & groupbit) {
+  {
     const KK_FLOAT rm = rmass(i);
-    rand_type rand_gen = rand_pool.get_state();
-
     double *shape, *quat;
     shape = bonus(ellipsoid(i)).shape;
     KK_FLOAT s0 = static_cast<KK_FLOAT>(shape[0]);
@@ -694,7 +724,6 @@ void FixLangevinKokkos<DeviceType>::angmom_thermostat_item(int i) const
     torque(i,1) += static_cast<KK_ACC_FLOAT>(Kokkos::fma(inertia[1] * gamma1, omega[1], tran[1]));
     torque(i,2) += static_cast<KK_ACC_FLOAT>(Kokkos::fma(inertia[2] * gamma1, omega[2], tran[2]));
 
-    rand_pool.free_state(rand_gen);
   }
 }
 

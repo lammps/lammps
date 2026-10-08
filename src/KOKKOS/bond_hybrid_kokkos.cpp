@@ -114,6 +114,14 @@ void BondHybridKokkos::compute(int eflag, int vflag)
       if (partial) d_orig_map(m,n) = i;
     });
 
+    // h_nbondlist is read on the host below.  Where host and device share
+    // the memory (AMD APUs), sync_host() does not copy and does not fence, so
+    // the counts of the kernel above must be waited for explicitly
+
+    k_nbondlist.modify_device();
+    k_nbondlist.sync_host();
+    Kokkos::fence("BondHybridKokkos::compute: sub-style bond counts");
+
     if (partial) {
       k_orig_map.modify_device();
       k_orig_map.sync_host();
@@ -137,8 +145,9 @@ void BondHybridKokkos::compute(int eflag, int vflag)
 
   ev_init(eflag, vflag);
 
-  k_nbondlist.modify_device();
-  k_nbondlist.sync_host();
+  // the sub-style counts in h_nbondlist were copied to the host when the
+  // sub-style lists were last built above and do not change in between, so
+  // there is no need to read them back from the device on every step
 
   for (int m = 0; m < nstyles; m++) {
     neighbor->nbondlist = h_nbondlist[m];

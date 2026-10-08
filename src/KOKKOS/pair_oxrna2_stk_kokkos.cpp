@@ -44,7 +44,7 @@ PairOxrna2StkKokkos<DeviceType>::PairOxrna2StkKokkos(LAMMPS *lmp) : PairOxrna2St
 
   fix_oxdna_lrfKK = nullptr;
   fix_oxdna_prime_neighsKK = nullptr;
-  last_prime_neighs_bond_ncalls = -1;
+  last_prime_neighs_bond_nbuild = -1;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -88,7 +88,7 @@ void PairOxrna2StkKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   else
     atomKK->modified(execution_space, F_MASK | TORQUE_MASK);
 
-  x = atomKK->k_x.view<DeviceType>();
+  x = fix_oxdna_lrfKK->packed_x();
   f = atomKK->k_f.view<DeviceType>();
   torque = atomKK->k_torque.view<DeviceType>();
   type = atomKK->k_type.view<DeviceType>();
@@ -98,9 +98,9 @@ void PairOxrna2StkKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   nbondlist = neighborKK->nbondlist;
 
   // Keep bond-context precompute aligned with the current neighbor-list epoch.
-  if (last_prime_neighs_bond_ncalls != neighbor->ncalls) {
+  if (last_prime_neighs_bond_nbuild != neighbor->nbuild) {
     fix_oxdna_prime_neighsKK->compute_prime_neighs_bond(d_prime_neighs_bond_own);
-    last_prime_neighs_bond_ncalls = neighbor->ncalls;
+    last_prime_neighs_bond_nbuild = neighbor->nbuild;
   }
 
   d_prime_neighs_bond = d_prime_neighs_bond_own;
@@ -108,29 +108,29 @@ void PairOxrna2StkKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   copymode = 1;
 
   // d_n(x/y/z)_xtrct = extracted local unit vectors in lab frame from fix_oxdna_lrf_kokkos.
-  d_nx_xtrct = fix_oxdna_lrfKK->k_nx.template view<DeviceType>();
-  d_ny_xtrct = fix_oxdna_lrfKK->k_ny.template view<DeviceType>();
-  d_nz_xtrct = fix_oxdna_lrfKK->k_nz.template view<DeviceType>();
+  d_nx_xtrct = fix_oxdna_lrfKK->packed_nx();
+  d_ny_xtrct = fix_oxdna_lrfKK->packed_ny();
+  d_nz_xtrct = fix_oxdna_lrfKK->packed_nz();
 
   EV_FLOAT ev;
 
   if (evflag) {
     if (newton_bond) {
       Kokkos::parallel_reduce(
-          Kokkos::RangePolicy<DeviceType, TagPairOxrna2StkCompute<1, 1>>(0, nbondlist), *this,
+          OxdnaBondRangePolicy<DeviceType, TagPairOxrna2StkCompute<1, 1>>(0, nbondlist), *this,
           ev);
     } else {
       Kokkos::parallel_reduce(
-          Kokkos::RangePolicy<DeviceType, TagPairOxrna2StkCompute<0, 1>>(0, nbondlist), *this,
+          OxdnaBondRangePolicy<DeviceType, TagPairOxrna2StkCompute<0, 1>>(0, nbondlist), *this,
           ev);
     }
   } else {
     if (newton_bond) {
       Kokkos::parallel_for(
-          Kokkos::RangePolicy<DeviceType, TagPairOxrna2StkCompute<1, 0>>(0, nbondlist), *this);
+          OxdnaBondRangePolicy<DeviceType, TagPairOxrna2StkCompute<1, 0>>(0, nbondlist), *this);
     } else {
       Kokkos::parallel_for(
-          Kokkos::RangePolicy<DeviceType, TagPairOxrna2StkCompute<0, 0>>(0, nbondlist), *this);
+          OxdnaBondRangePolicy<DeviceType, TagPairOxrna2StkCompute<0, 0>>(0, nbondlist), *this);
     }
   }
 
@@ -735,7 +735,9 @@ void PairOxrna2StkKokkos<DeviceType>::init_style()
   // atoms may have been reordered since the last run, so force a rebuild
   // of the cached prime neighbor table in the next compute()
 
-  last_prime_neighs_bond_ncalls = -1;
+  last_prime_neighs_bond_nbuild = -1;
+
+  // no neighbor list: the stacking interaction loops over the bond list
 
   fix_oxdna_lrfKK = nullptr;
   auto fixes = modify->get_fix_by_style("^OXDNA/LRF/kk");

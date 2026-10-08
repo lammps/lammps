@@ -24,6 +24,7 @@ PairStyle(oxdna3/xstk/kk/host,PairOxdna3XstkKokkos<LMPHostType>);
 #define LMP_PAIR_OXDNA3_XSTK_KOKKOS_H
 
 #include "kokkos_base.h"
+#include "fix_oxdna_lrf_kokkos.h"
 #include "pair_kokkos.h"
 #include "pair_oxdna3_xstk.h"
 
@@ -68,8 +69,20 @@ class FixOxdnaNpairKokkos;  // forward declaration
 template<class DeviceType>
 class FixOxdnaPrimeNeighsKokkos;  // forward declaration
 
+template<class DeviceType>
+class PairOxdnaHbondKokkos;  // forward declaration
+
+template<class DeviceType, int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+struct PairOxdna3HbXstkFused;    // fused hbond + oxdna3/xstk kernel
+
+struct TagPairOxdna3HbXstkFused{};
+struct TagPairOxdna3HbXstkFusedRadial{};    // phase 1 of the compacted fused kernel
+
 template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
 struct TagPairOxdna3XstkComputeNpair{};
+
+template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+struct TagPairOxdna3XstkComputeRadial{};
 
 template<class DeviceType>
 class PairOxdna3XstkKokkos : public PairOxdna3Xstk, public KokkosBase {
@@ -96,12 +109,24 @@ class PairOxdna3XstkKokkos : public PairOxdna3Xstk, public KokkosBase {
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairOxdna3XstkComputeNpair<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int&, EV_FLOAT&) const;
 
+  template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG, int RADIAL_ONLY = 0>
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  bool screened_pair_body(TagPairOxdna3XstkComputeNpair<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int &ipair,
+                          KK_ACC_FLOAT (&fa)[3], KK_ACC_FLOAT (&ta)[3], EV_FLOAT &ev) const;
+
   template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagPairOxdna3XstkComputeNpair<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int&) const;
 
-  template<int NEIGHFLAG, int NEWTON_PAIR>
+  // first phase of the two-phase evaluation (OXDNA_KK_TWO_PHASE)
+  template<int NEIGHFLAG, int NEWTON_PAIR, int EVFLAG>
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagPairOxdna3XstkComputeRadial<NEIGHFLAG,NEWTON_PAIR,EVFLAG>, const int&) const;
+
+  template<int NEIGHFLAG, int NEWTON_PAIR, int PAIRWISE = 0>
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void ev_tally_xyz(EV_FLOAT &ev, const int &i, const int &j,
@@ -112,9 +137,18 @@ class PairOxdna3XstkKokkos : public PairOxdna3Xstk, public KokkosBase {
   KOKKOS_INLINE_FUNCTION
   int sbmask(const int& j) const;
 
+  // fused hbond + oxdna3/xstk kernel (OXDNA_KK_FUSE_HBXSTK)
+  PairOxdnaHbondKokkos<DeviceType> *fuse_hb;
+  bigint fuse_ncompute;    // # of compute() calls that used the fused kernel
+  void compute_fused(PairOxdnaHbondKokkos<DeviceType> *, Pair *);
+
  protected:
 
-  typename AT::t_kkfloat_1d_3_lr_randomread x;
+  t_oxdna_packed_sub<DeviceType> x;    // positions in the packed record of fix OXDNA/LRF/kk
+  t_oxdna_packed<DeviceType> xn;    // the whole packed record, for row loads
+  // (type a, type b, 0/1): lower/upper bound of the radial range over all contexts
+  Kokkos::DualView<KK_FLOAT***, Kokkos::LayoutRight, DeviceType> k_xst_rbound;
+  typename Kokkos::DualView<KK_FLOAT***, Kokkos::LayoutRight, DeviceType>::t_dev_const_randomread d_xst_rbound;
   typename AT::t_kkacc_1d_3 f;
   typename AT::t_kkacc_1d_3 torque;
   typename AT::t_int_1d_randomread type;
@@ -158,10 +192,15 @@ class PairOxdna3XstkKokkos : public PairOxdna3Xstk, public KokkosBase {
   // These are taken from the generic fix_oxdna_npairKK
   DAT::tdual_uint64_1d k_pairs_screened;
   typename AT::t_uint64_1d d_pairs_screened;
+  typename AT::t_int_1d d_screened_offsets;  // per-atom segments of d_pairs_screened
+  int screened_launch_count;   // number of threads of the screened-pair kernels
   int screened_pair_count;
+  // compact list of the screened pairs that pass the radial test (OXDNA_KK_TWO_PHASE)
+  typename AT::t_int_1d d_radial_pairs;
+  typename AT::t_int_scalar d_radial_count;
 
   // per-atom arrays for local unit vectors
-  typename AT::t_kkfloat_1d_3_randomread d_nx_xtrct, d_ny_xtrct, d_nz_xtrct;
+  t_oxdna_packed_sub<DeviceType> d_nx_xtrct, d_ny_xtrct, d_nz_xtrct;
 
   using KKDeviceType = typename KKDevice<DeviceType>::value;
   using AtomicTraits = Kokkos::MemoryTraits<Kokkos::Atomic | Kokkos::Unmanaged>;
@@ -177,12 +216,13 @@ class PairOxdna3XstkKokkos : public PairOxdna3Xstk, public KokkosBase {
   void allocate() override;
 
   friend void pair_virial_fdotr_compute<PairOxdna3XstkKokkos>(PairOxdna3XstkKokkos*);
+  template<class, int, int, int> friend struct PairOxdna3HbXstkFused;
 
   FixOxdnaLRFKokkos<DeviceType> *fix_oxdna_lrfKK;    // ptr to OXDNA/LRF/kk fix
   FixOxdnaNpairKokkos<DeviceType> *fix_oxdna_npairKK;    // ptr to OXDNA/NPAIR/kk fix
   FixOxdnaPrimeNeighsKokkos<DeviceType> *fix_oxdna_prime_neighsKK;    // ptr to OXDNA/PRIME_NEIGHS/kk fix
-  bigint last_prime_neighs_xstk3_ncalls;
-  typename AT::t_int_2d d_prime_neighs_atom;
+  bigint last_prime_neighs_xstk3_nbuild;
+  typename AT::t_int_2d d_prime_neighs_oxdna3_xstk;
 
  private:
 

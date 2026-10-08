@@ -441,9 +441,8 @@ This command can only be used if LAMMPS was built with the REPLICA
 package.  See the :doc:`Build package <Build_package>` doc
 page for more info.
 
-To read compressed files, you must compile LAMMPS with the
-``-DLAMMPS_GZIP`` option.  See the :doc:`Build settings
-<Build_settings>` doc page for details.
+To read compressed files, the corresponding compression program must be
+installed.  See the :ref:`Build settings <gzip>` page for details.
 
 ----------
 

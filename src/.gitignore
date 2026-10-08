@@ -758,6 +758,8 @@
 /compute_fep.h
 /compute_fep_ta.cpp
 /compute_fep_ta.h
+/compute_mbar.cpp
+/compute_mbar.h
 /compute_force_tally.cpp
 /compute_force_tally.h
 /compute_frenkel.cpp

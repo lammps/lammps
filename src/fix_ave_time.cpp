@@ -33,8 +33,12 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
+namespace {
 enum { ONE, RUNNING, WINDOW };
+const char *const ave_string[] = {"one", "running", "window"};
 enum { SCALAR, VECTOR };
+const char *const mode_string[] = {"scalar", "vector"};
+}    // namespace
 
 /* ---------------------------------------------------------------------- */
 
@@ -260,7 +264,8 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
   if (fp && comm->me == 0) {
     clearerr(fp);
     if (title1) fprintf(fp,"%s\n",title1);
-    else fprintf(fp,"# Time-averaged data for fix %s\n",id);
+    else fprintf(fp,"# Time-averaged data for fix %s mode %s ave %s version %d\n",
+                 id,mode_string[mode],ave_string[ave],lmp->num_ver);
     if (title2) fprintf(fp,"%s\n",title2);
     else if (mode == SCALAR) {
       fprintf(fp,"# TimeStep");

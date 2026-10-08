@@ -17,8 +17,7 @@ Install LAMMPS:
 
     cd /path/to/lammps
     mkdir build-jax; cd build-jax
-    cmake ../cmake -DLAMMPS_EXCEPTIONS=yes \
-                   -DBUILD_SHARED_LIBS=yes \
+    cmake ../cmake -DBUILD_SHARED_LIBS=yes \
                    -DMLIAP_ENABLE_PYTHON=yes \
                    -DPKG_PYTHON=yes \
                    -DPKG_ML-SNAP=yes \
@@ -43,8 +42,7 @@ Use same Python dependencies as above, with some extra changes:
 
 Install LAMMPS. Take care to change `Kokkos_ARCH_*` flag:
 
-    cmake ../cmake -DLAMMPS_EXCEPTIONS=yes \
-                  -DBUILD_SHARED_LIBS=yes \
+    cmake ../cmake -DBUILD_SHARED_LIBS=yes \
                   -DPKG_PYTHON=yes \
                   -DPKG_ML-SNAP=yes \
                   -DPKG_ML-IAP=yes \

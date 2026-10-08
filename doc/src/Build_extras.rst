@@ -162,9 +162,8 @@ GRAPHICS package
 The :doc:`dump image <dump_image>` command has options to output JPEG or
 PNG image files in addition to the default PPM format, and the :doc:`fix
 graphics/labels <fix_graphics_labels>` can read images in JPEG or PNG
-format in addition to PPM format files.  Likewise, the :doc:`dump movie
-<dump_image>` command outputs movie files in a variety of movie formats.
-Using these additional options requires the following settings:
+format in addition to PPM format files.  Using these additional options
+requires the following settings:
 
 .. tabs::
 
@@ -177,12 +176,10 @@ Using these additional options requires the following settings:
          -D WITH_PNG=value     # yes or no
                                # default = yes if CMake finds PNG and ZLIB development files,
                                # else no
-         -D WITH_FFMPEG=value  # yes or no
-                               # default = yes if CMake can find ffmpeg, else no
 
       Usually these settings are all that is needed.  If CMake cannot
-      find the graphics header, library, executable files, you can set
-      these variables:
+      find the graphics header and library files, you can set these
+      variables:
 
       .. code-block:: bash
 
@@ -192,13 +189,12 @@ Using these additional options requires the following settings:
          -D PNG_LIBRARY=path         # path to libpng.a (.so) file
          -D ZLIB_INCLUDE_DIR=path    # path to zlib.h header file
          -D ZLIB_LIBRARY=path        # path to libz.a (.so) file
-         -D FFMPEG_EXECUTABLE=path   # path to ffmpeg executable
 
    .. tab:: Traditional make
 
       .. code-block:: make
 
-         LMP_INC = -DLAMMPS_JPEG -DLAMMPS_PNG -DLAMMPS_FFMPEG  <other LMP_INC settings>
+         LMP_INC = -DLAMMPS_JPEG -DLAMMPS_PNG <other LMP_INC settings>
 
          JPG_INC = -I/usr/local/include   # path to jpeglib.h, png.h, zlib.h headers
                                           # if make cannot find them
@@ -209,13 +205,20 @@ Using these additional options requires the following settings:
       As with CMake, you do not need to set ``JPG_INC`` or ``JPG_PATH``,
       if make can find the graphics header and library files in their
       default system locations.  You must specify ``JPG_LIB`` with a
-      list of graphics libraries to include in the link.  You must make
-      certain that the ffmpeg executable (or ffmpeg.exe on Windows) is
-      in a directory where LAMMPS can find it at runtime; that is
-      usually a directory list in your ``PATH`` environment variable.
+      list of graphics libraries to include in the link.
 
-Using ``ffmpeg`` to output movie files requires that your machine
-supports the "popen" function in the standard runtime library.
+.. versionchanged:: TBD
+
+The :doc:`dump movie <dump_image>` command outputs movie files in a
+variety of movie formats by sending images through a pipe to the
+``ffmpeg`` program.  This no longer requires any settings when compiling
+LAMMPS, and the CMake option ``WITH_FFMPEG`` and the define
+``-DLAMMPS_FFMPEG`` were removed.  Instead, you must make certain that
+the ffmpeg executable (or ffmpeg.exe on Windows) is in a directory where
+LAMMPS can find it at runtime; that is a directory listed in your
+``PATH`` environment variable.  Using ``ffmpeg`` to output movie files
+also requires that your machine supports the "popen" function in the
+standard runtime library.
 
 .. note::
 
@@ -270,6 +273,21 @@ CMake build
    -D USE_STATIC_OPENCL_LOADER=value  # downloads/includes OpenCL ICD loader library,
                                       # no local OpenCL headers/libs needed
                                       # value = yes (default) or no
+
+Two preset files in the ``cmake/presets`` folder can simplify the
+configuration.  The ``gpu-cuda.cmake`` preset enables the GPU package
+with the CUDA back end and mixed precision.  The ``gpu-packages.cmake``
+preset enables all packages that contain styles with GPU package
+support.  It does not enable the GPU package itself, so it needs to be
+combined with ``gpu-cuda.cmake`` or explicit settings, for example:
+
+.. code-block:: bash
+
+   cmake -S cmake -B build -C cmake/presets/gcc.cmake \
+         -C cmake/presets/gpu-cuda.cmake -C cmake/presets/gpu-packages.cmake
+
+   cmake -S cmake -B build -C cmake/presets/gcc.cmake \
+         -D PKG_GPU=on -D GPU_API=opencl -C cmake/presets/gpu-packages.cmake
 
 The GPU package supports 3 precision modes: single, double, and mixed, with
 the latter being the default.  In the double precision mode, atom positions,
@@ -389,6 +407,16 @@ is built with ``-D BUILD_OMP=on`` this will also be enabled.
    matching ``omp.h`` can be found automatically, you may need to add the
    directory containing it yourself, for example with
    ``-D CMAKE_CXX_FLAGS=-idirafter/usr/lib/clang/<version>/include``.
+
+The ``hip_amd.cmake`` preset in the ``cmake/presets`` folder selects
+``hipcc`` as the C and C++ compiler with support for MPI and for OpenMP
+using the LLVM OpenMP runtime.  It can be combined with the GPU package
+settings, for example:
+
+.. code-block:: bash
+
+   cmake -S cmake -B build -C cmake/presets/hip_amd.cmake \
+         -D PKG_GPU=on -D GPU_API=hip -D GPU_ARCH=gfx90a
 
 For a debug build, set ``GPU_DEBUG`` to be ``yes``.
 
@@ -900,6 +928,22 @@ This list was last updated for version 5.2.1 of the Kokkos library.
       The ``kokkos-openmp.cmake`` preset can be combined with any of the
       others, but it is not possible to combine multiple GPU
       acceleration settings (CUDA, HIP, SYCL) into a single executable.
+
+      The ``kokkos-packages.cmake`` preset enables all packages that
+      contain styles with KOKKOS support.  It does not enable the KOKKOS
+      package itself or select a back end, so it needs to be combined
+      with one of the presets listed above, for example:
+
+      .. code-block:: bash
+
+         cmake -S cmake -B build-kokkos -C cmake/presets/gcc.cmake \
+               -C cmake/presets/kokkos-openmp.cmake \
+               -C cmake/presets/kokkos-packages.cmake
+
+      The ML-IAP package also contains styles with KOKKOS support, but
+      those require ``KOKKOS_PREC=double`` (the default), so the package
+      is not included in the preset.  You can add ``-D PKG_ML-IAP=on``
+      for double precision builds.
 
    .. tab:: Basic traditional make settings:
 

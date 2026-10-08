@@ -65,7 +65,6 @@ jobs:
               -D MLIAP_ENABLE_PYTHON=off \
               -D PKG_MANIFOLD=on \
               -D PKG_ML-PACE=on \
-              -D PKG_ML-RANN=on \
               -D PKG_RHEO=on \
               -D PKG_PTM=on \
               -D PKG_PYTHON=on \

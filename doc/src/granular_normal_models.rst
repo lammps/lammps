@@ -15,7 +15,7 @@ The following quantities are common to normal models:
 * :math:`R_\text{eff} = \frac{R_iR_j}{R_i+R_j}` is the effective radius for particles *i* and *j*, or set to the radius of the particle in a wall-particle contact.
 
 Unless otherwise specified, the radius of the contact region
-is given by :math:`\sqrt{\deltaR_\text{eff}}` for all models.
+is given by :math:`\sqrt{\delta R_\text{eff}}` for all models.
 Notable exceptions are *jkr* and *epa_nonlinear*.
 
 .. _hooke_normal_model:

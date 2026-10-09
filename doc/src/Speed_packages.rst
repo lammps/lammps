@@ -94,7 +94,7 @@ listed above.
 | :doc:`command-line switch <Run_options>` or               |                                             |
 | :doc:`package <package>` command                          |                                             |
 +-----------------------------------------------------------+---------------------------------------------+
-| use accelerated styles in your input via ``-sf``          | ``lmp_machine -in in.script -sf gpu``       |
+| use accelerated styles in your input via ``-sf``          | ``lmp -in in.script -sf gpu``               |
 | :doc:`command-line switch <Run_options>` or               |                                             |
 | :doc:`suffix <suffix>` command                            |                                             |
 +-----------------------------------------------------------+---------------------------------------------+

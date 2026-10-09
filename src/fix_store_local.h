@@ -32,6 +32,7 @@ class FixStoreLocal : public Fix {
   void post_force(int) override;
   double memory_usage() override;
   void add_data(double *, int, int);
+  void clear_data();
   int nvalues;
 
  private:

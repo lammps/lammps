@@ -367,7 +367,7 @@ MxN processors (cores) and run the simulation as follows:
 
 .. code-block:: bash
 
-   mpirun -np P lmp_mpi -partition MxN -in script
+   mpirun -np P lmp -partition MxN -in script
 
 Note that in the LAMMPS input script for a multi-partition simulation,
 it is often very useful to define a :doc:`uloop-style variable

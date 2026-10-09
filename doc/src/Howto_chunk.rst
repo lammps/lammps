@@ -93,6 +93,7 @@ style name ends in "/chunk" is in this category:
 
 * :doc:`compute angmom/chunk <compute_angmom_chunk>`
 * :doc:`compute com/chunk <compute_com_chunk>`
+* :doc:`compute continuum/chunk <compute_continuum_chunk>`
 * :doc:`compute dipole/chunk <compute_dipole_chunk>`
 * :doc:`compute gyration/chunk <compute_gyration_chunk>`
 * :doc:`compute gyration/shape/chunk <compute_gyration_shape_chunk>`

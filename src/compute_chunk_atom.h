@@ -49,11 +49,19 @@ class ComputeChunkAtom : public Compute {
   int setup_chunks();
   void compute_ichunk();
 
+  int get_limit() const { return limit; }
+  int get_discard() const { return discard; }
+  int get_which() const { return which; }
+  int get_reducedflag() const { return reducedflag; }
+  int *get_dim() { return dim; }
+  double *get_delta() { return delta; }
+  int *get_nlayers() { return nlayers; }
+
  private:
   int which, binflag;
   int regionflag, nchunksetflag, nchunkflag, discard;
   int limit, limitstyle, limitfirst;
-  int scaleflag, pbcflag;
+  int scaleflag, reducedflag, pbcflag;
   double xscale, yscale, zscale;
   int argindex;
   char *cfvid;

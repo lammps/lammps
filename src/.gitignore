@@ -728,6 +728,8 @@
 /compute_born_matrix.h
 /compute_cnp_atom.cpp
 /compute_cnp_atom.h
+/compute_continuum_chunk.cpp
+/compute_continuum_chunk.h
 /compute_damage_atom.cpp
 /compute_damage_atom.h
 /compute_dilatation_atom.cpp

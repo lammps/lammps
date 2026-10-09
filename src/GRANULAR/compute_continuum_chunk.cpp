@@ -467,7 +467,7 @@ void ComputeContinuumChunk::compute_array()
 
   ComputeChunk::compute_array();
 
-  double *ichunk = cchunk->ichunk;
+  int *ichunk = cchunk->ichunk;
 
   build_stencil();
   int *cdim = cchunk->get_dim();

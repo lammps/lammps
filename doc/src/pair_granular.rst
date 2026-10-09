@@ -401,12 +401,6 @@ For the *pair_coeff* settings: *damping viscoelastic*, *rolling none*,
 References
 """"""""""
 
-
-.. _Luding2008:
-
-**(Luding, 2008)** Luding, S. (2008). Cohesive, frictional powders:
-contact models for tension. Granular matter, 10(4), 235.
-
 .. _Marshall2009_1:
 
 **(Marshall, 2009)** Marshall, J. S. (2009). Discrete-element modeling

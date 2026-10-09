@@ -471,7 +471,7 @@ model. Granular Matter 16, 383-400.
 
 .. _Morrisey2013:
 
-**(Morrisey thesis)** Morrissey, J. P. (2013). Discrete Element Modelling of
+**(Morrisey thesis)** Morrisey, J. P. (2013). Discrete Element Modelling of
 Iron Ore Pellets to Include the Effects of Moisture and Fines.
 PhD thesis, Edinburgh, Scotland: University of Edinburgh.
 

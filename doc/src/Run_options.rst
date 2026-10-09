@@ -28,12 +28,13 @@ letter abbreviation can be used:
 * :ref:`-sf or -suffix <suffix>`
 * :ref:`-v or -var <var>`
 
-For example, the lmp_mpi executable might be launched as follows:
+For example, LAMMPS might be launched as follows, first with the
+abbreviated and then with the full names of the command-line flags:
 
 .. code-block:: bash
 
-   mpirun -np 16 lmp_mpi -v f tmp.out -l my.log -sc none -i in.alloy
-   mpirun -np 16 lmp_mpi -var f tmp.out -log my.log -screen none -in in.alloy
+   mpirun -np 16 lmp -v f tmp.out -l my.log -sc none -i in.alloy
+   mpirun -np 16 lmp -var f tmp.out -log my.log -screen none -in in.alloy
 
 ----------
 
@@ -70,7 +71,7 @@ used.
 Specify a file to use as an input script.  This is currently an optional
 but recommended switch when running LAMMPS in the default one-partition
 mode.  If it is not specified, LAMMPS reads its script from standard
-input, typically from a script via I/O redirection; e.g. ``lmp_linux <
+input, typically from a script via I/O redirection; e.g. ``lmp <
 in.run``.  With many MPI implementations (but not all of them), I/O
 redirection also works in parallel, but using the ``-in`` flag will
 *always* work.

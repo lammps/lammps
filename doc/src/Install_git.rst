@@ -96,12 +96,24 @@ this is as follows.
    git checkout tagID
 
 Stable versions and what tagID to use for a particular stable version
-can be looked up on `GitHub releases pagee
+can be looked up on `GitHub releases page
 <https://github.com/lammps/lammps/releases>`_.  Note that this command
 will print some warnings, because in order to get back to the latest
 revision and to be able to update with ``git pull`` again, you will need
 to do ``git checkout release`` (or check out any other desired branch)
 first.
+
+The tags for LAMMPS releases are digitally signed.  You can check the
+signature of a tag with a command like the following:
+
+.. code-block:: bash
+
+   git verify-tag stable_30Sep2026
+
+This requires the public key of the LAMMPS developer who has signed the
+tag.  How to import this key and how to check that it is the correct
+key is explained at the :ref:`end of the section about downloading
+tarballs <verify_download>`.
 
 Once you have updated your local files with a ``git pull`` (or ``git
 checkout``), you still need to re-build LAMMPS if any source files have
@@ -164,9 +176,3 @@ changed.  How to do this depends on the build system you are using.
 The LAMMPS GitHub project is currently overseen by Axel Kohlmeyer
 (Temple U, akohlmey at gmail.com), contact him if you have any
 questions or concerns.
-
-----
-
-You can find additional LAMMPS features for dynamically loading
-with the :doc:`plugin command <plugin>` in the
-`LAMMPS plugins source code repository on GitHub <https://github.com/lammps/lammps-plugins>`_

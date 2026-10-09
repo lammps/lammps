@@ -12,6 +12,9 @@ on:
 
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   build:
     name: Build with -Werror=vla
@@ -25,6 +28,7 @@ jobs:
       uses: actions/checkout@v7
       with:
         fetch-depth: 2
+        persist-credentials: false
 
     - name: Install extra packages
       run: |

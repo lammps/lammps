@@ -118,6 +118,17 @@ std::string mpi_info(int &major, int &minor);
 
 std::string compress_info();
 
+/*! Check if the current process has superuser or administrator privileges
+ *
+ * On Unix-like operating systems this checks whether the effective user ID
+ * of the process is that of the superuser ("root").  On Windows this checks
+ * whether the process is running with elevated privileges, i.e. what one
+ * gets from using "Run as administrator".
+ *
+ *  \return  true if the process has superuser or administrator privileges */
+
+bool is_superuser();
+
 /*! Add variable to the environment
  *
  * \param  vardef  variable name or variable definition (NAME=value)

@@ -32,6 +32,7 @@ section of the manual.
    Build_settings
    Build_package
    Build_extras
+   Build_security
    Build_manual
    Build_windows
    Build_diskspace

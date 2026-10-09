@@ -22,7 +22,8 @@ execute_process(COMMAND cmd.exe /c qtdeploy.bat COMMAND_ECHO STDERR)
 file(REMOVE qtdeploy.bat)
 
 # download and uncompress static FFmpeg and gzip binaries
-file(DOWNLOAD "https://download.lammps.org/thirdparty/ffmpeg-gzip.zip" ffmpeg-gzip.zip)
+file(DOWNLOAD "https://download.lammps.org/thirdparty/ffmpeg-gzip.zip" ffmpeg-gzip.zip
+  EXPECTED_HASH SHA256=2b5f6feca2e8920a677c67ac274660aed63e3f3314d2e897f31b9ae340eb011f)
 file(WRITE unpackzip.ps1 "Expand-Archive -Path ffmpeg-gzip.zip -DestinationPath LAMMPS_GUI")
 execute_process(COMMAND powershell -ExecutionPolicy Bypass -File unpackzip.ps1)
 file(REMOVE unpackzip.ps1)

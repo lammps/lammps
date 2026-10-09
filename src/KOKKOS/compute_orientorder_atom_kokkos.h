@@ -95,7 +95,7 @@ class ComputeOrientOrderAtomKokkos : public ComputeOrientOrderAtom {
   DAT::ttransform_kkfloat_2d k_qnarray;
   typename AT::t_kkfloat_2d d_qnarray;
 
- private:
+ protected:
   int inum,chunk_size,chunk_offset;
   int host_flag;
 

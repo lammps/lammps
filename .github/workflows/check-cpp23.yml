@@ -84,7 +84,6 @@ jobs:
               -D ENABLE_TESTING=off \
               -D MLIAP_ENABLE_ACE=on \
               -D MLIAP_ENABLE_PYTHON=off \
-              -D PKG_AWPMD=on \
               -D PKG_GPU=on \
               -D GPU_API=opencl \
               -D PKG_KOKKOS=on \
@@ -92,7 +91,6 @@ jobs:
               -D PKG_MDI=on \
               -D PKG_MANIFOLD=on \
               -D PKG_ML-PACE=on \
-              -D PKG_ML-RANN=off \
               -D PKG_MOLFILE=on \
               -D PKG_RHEO=on \
               -D PKG_PTM=on \

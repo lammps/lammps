@@ -163,6 +163,9 @@ Bibliography
 **(Bitzek)**
    Bitzek, Koskinen, Gahler, Moseler, Gumbsch, Phys Rev Lett, 97, 170201 (2006).
 
+**(Bland2013)**
+   Bland, Bouteiller, Herault, Bosilca, and Dongarra, International Journal of High Performance Computing Applications, 27, 244-254 (2013). https://doi.org/10.1177/1094342013488238
+
 **(Bogusz)**
    Bogusz et al, J Chem Phys, 108, 7070 (1998)
 
@@ -667,6 +670,9 @@ Bibliography
 **(Gupta2)**
    Gupta ,Phys Rev. B, 23, 6265-6270 (1981).
 
+**(Hammond)**
+   Hammond, "Parallel point defect identification in molecular dynamics simulations without post-processing: A compute and dump style for LAMMPS", Comput. Phys. Commun. 247, 106862 (2020).
+
 **(Hardy)**
    David Hardy thesis: Multilevel Summation for the Fast Evaluation of Forces for the Simulation of Biomolecules, University of Illinois at Urbana-Champaign, (2006).
 
@@ -1005,6 +1011,9 @@ Bibliography
 
 **(Lucy)**
    L. B. Lucy, "A numerical approach to the testing of the fission hypothesis.", Astronomical Journal, 82, 1013-1024 (1977).
+
+**(Luding)**
+   S.\  Luding, Cohesive, frictional powders: contact models for tension, Granular Matter, 10, 235 (2008).
 
 **(Luding, 2008)**
    Luding, S. (2008). Cohesive, frictional powders: contact models for tension. Granular matter, 10(4), 235.
@@ -1572,6 +1581,9 @@ Bibliography
 
 **(Silbert, 2001)**
    Silbert, L. E., Ertas, D., Grest, G. S., Halsey, T. C., Levine, D., & Plimpton, S. J. (2001).  Granular flow down an inclined plane: Bagnold scaling and rheology. Physical Review E, 64(5), 051302.
+
+**(Sillano)**
+   Sillano, Marrink, Idema, Phys. Rev. E, 114, 034412 (2026).
 
 **(Silling 2000)**
    Silling, J Mech Phys Solids, 48, 175-209 (2000).

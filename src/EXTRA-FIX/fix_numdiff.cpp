@@ -192,7 +192,7 @@ void FixNumDiff::calculate_forces()
 
   // store copy of current forces for owned and ghost atoms
 
-  atom->sync_host_arrays(X_MASK | F_MASK);
+  atom->sync_host_arrays(X_MASK | F_MASK | MASK_MASK);
 
   double **x = atom->x;
   double **f = atom->f;

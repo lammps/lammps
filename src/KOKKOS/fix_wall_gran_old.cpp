@@ -487,6 +487,7 @@ FixWallGranOld::~FixWallGranOld()
   delete [] idregion;
   memory->destroy(history_one);
   memory->destroy(mass_rigid);
+  memory->destroy(array_atom);
 }
 
 /* ---------------------------------------------------------------------- */

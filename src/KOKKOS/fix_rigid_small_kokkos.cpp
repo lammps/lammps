@@ -156,6 +156,9 @@ template<class DeviceType>
 void FixRigidSmallKokkos<DeviceType>::init()
 {
   FixRigidSmall::init();
+
+  // one setup() per run; see check_second_setup()
+  setup_pushes = 0;
   if (utils::strmatch(update->integrate_style,"^respa"))
     error->all(FLERR,"Cannot yet use respa with Kokkos");
 
@@ -244,6 +247,9 @@ void FixRigidSmallKokkos<DeviceType>::pre_exchange()
 {
   if (!setupflag) return;
 
+  // the host is about to own the body state until pre_neighbor() takes it back
+  handover_open = true;
+
   // Device exchange path: pack_exchange_kokkos reads from the device DualViews
   // which are always authoritative during the run; no host flush needed.
   // Only skip the flush when CommKokkos is actually using the device exchange
@@ -269,6 +275,91 @@ void FixRigidSmallKokkos<DeviceType>::pre_exchange()
     k_eflags.sync_host();
     if (orientflag) k_orient.sync_host();
     if (dorientflag) k_dorient.sync_host();
+  }
+}
+
+/* ----------------------------------------------------------------------
+   refuse calls that break the pre_exchange()/pre_neighbor() handover of the
+   body state: MC fixes, fix hmc, and atom creation/deletion on a GPU
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixRigidSmallKokkos<DeviceType>::check_handover_open()
+{
+  if (handover_open) return;
+
+  error->all(FLERR, "Fix {} does not yet support another fix rebuilding the "
+             "neighbor lists during a run; run this input without the KOKKOS "
+             "package", style);
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixRigidSmallKokkos<DeviceType>::check_second_setup()
+{
+  if (++setup_pushes == 1) return;
+
+  error->all(FLERR, "Fix {} does not yet support another fix running its setup "
+             "a second time; run this input without the KOKKOS package", style);
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixRigidSmallKokkos<DeviceType>::check_device_owns_bookkeeping(const char *what)
+{
+  if (!(k_bodyown.need_sync_host() || k_bodytag.need_sync_host() ||
+        k_atom2body.need_sync_host() || k_xcmimage.need_sync_host() ||
+        k_displace.need_sync_host())) return;
+
+  error->one(FLERR, "Fix {} does not yet support another fix {} atoms when the "
+             "host and the device have separate memory; run this input on the "
+             "CPU", style, what);
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixRigidSmallKokkos<DeviceType>::set_arrays(int i)
+{
+  if (setupflag) check_device_owns_bookkeeping("creating");
+  FixRigidSmall::set_arrays(i);
+  claim_host_bookkeeping(false);
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixRigidSmallKokkos<DeviceType>::copy_arrays(int i, int j, int delflag)
+{
+  if (setupflag && delflag) check_device_owns_bookkeeping("deleting");
+  FixRigidSmall::copy_arrays(i, j, delflag);
+  claim_host_bookkeeping(true);
+}
+
+/* ----------------------------------------------------------------------
+   the base class set_arrays() and copy_arrays() write through the host
+   pointers, so flag the host side as modified
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixRigidSmallKokkos<DeviceType>::claim_host_bookkeeping(bool copied)
+{
+  k_bodyown.modify_host();
+  k_bodytag.modify_host();
+  k_xcmimage.modify_host();
+  k_displace.modify_host();
+  if (vflag_atom) k_vatom.modify_host();
+
+  if (copied) {
+    if (extended) {
+      k_eflags.modify_host();
+      if (orient) k_orient.modify_host();
+      if (dorient) k_dorient.modify_host();
+    }
+  } else {
+    k_atom2body.modify_host();
   }
 }
 
@@ -491,6 +582,8 @@ void FixRigidSmallKokkos<DeviceType>::setup(int vflag)
 template<class DeviceType>
 void FixRigidSmallKokkos<DeviceType>::setup_device_push()
 {
+  check_second_setup();
+
   // FixRigidSmall::setup() populated the host per-atom arrays, which are the
   // host mirrors of the tied DualViews -> mark host-modified and push to device.
   // setup_pre_neighbor() always runs earlier in the same setup sequence and
@@ -662,6 +755,11 @@ void FixRigidSmallKokkos<DeviceType>::pre_neighbor(){
     FixRigidSmall::pre_neighbor();
     return;
   }
+
+  // one pre_neighbor() per pre_exchange(), no more
+  check_handover_open();
+  handover_open = false;
+
   Kokkos::Profiling::pushRegion("rigid/small pre_neighbor");
 
   nghost_body = 0;
@@ -1211,6 +1309,9 @@ void FixRigidSmallKokkos<DeviceType>::post_run()
   k_bodytag.sync_host();
   k_atom2body.sync_host();
   k_xcmimage.sync_host();
+
+  // displace too is moved on the host by copy_arrays() and set_arrays()
+  k_displace.sync_host();
 }
 
 /* ----------------------------------------------------------------------

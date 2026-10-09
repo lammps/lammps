@@ -33,8 +33,12 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
+namespace {
 enum { ONE, RUNNING, WINDOW };
+const char *const ave_string[] = {"one", "running", "window"};
 enum { SCALAR, VECTOR };
+const char *const mode_string[] = {"scalar", "vector"};
+}    // namespace
 
 /* ---------------------------------------------------------------------- */
 
@@ -260,7 +264,8 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
   if (fp && comm->me == 0) {
     clearerr(fp);
     if (title1) fprintf(fp,"%s\n",title1);
-    else fprintf(fp,"# Time-averaged data for fix %s\n",id);
+    else fprintf(fp,"# Time-averaged data for fix %s mode %s ave %s version %d\n",
+                 id,mode_string[mode],ave_string[ave],lmp->num_ver);
     if (title2) fprintf(fp,"%s\n",title2);
     else if (mode == SCALAR) {
       fprintf(fp,"# TimeStep");
@@ -374,8 +379,8 @@ FixAveTime::FixAveTime(LAMMPS *lmp, int narg, char **arg) :
           }
         } else extvector = val.val.f->extarray;
       } else if (val.which == ArgInfo::VARIABLE) {
-        extlist = new int[nrows];
-        for (int i = 0; i < nrows; i++) extlist[i] = 0;
+        // the length of a vector-style variable can change during a run
+        extvector = 0;
       }
 
     } else {
@@ -718,6 +723,11 @@ void FixAveTime::invoke_vector(bigint ntimestep)
         memory->destroy(column);
         memory->create(column,nrows,"ave/time:column");
         allocate_arrays();
+
+        // the length of the global vector or array output changes with nrows
+
+        if (vector_flag) size_vector = nrows;
+        if (array_flag) size_array_rows = nrows;
       }
 
       int lockforever_flag = 0;

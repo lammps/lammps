@@ -5,7 +5,7 @@ applyTo: "unittest/**"
 # LAMMPS Unit-Test Conventions (force-style YAML tests and friends)
 
 Unit tests are CTest-based; build with `-D ENABLE_TESTING=on`, run with
-`cd build && ctest -V [-R <pattern>]`.  Tests are organized by category under
+`ctest --test-dir build -V [-R <pattern>]`.  Tests are organized by category under
 `unittest/` (`force-styles/`, `commands/`, `formats/`, `c-library/`, `fortran/`,
 `python/`, `utils/`, `granular/` -- the latter has its own instructions file).
 
@@ -25,6 +25,28 @@ Unit tests are CTest-based; build with `-D ENABLE_TESTING=on`, run with
 - A YAML with a missing prerequisite or `input_coeffs` entry SKIPS silently while
   ctest still reports "Passed".  After adding or editing a YAML, confirm from the
   gtest output that its cases actually executed.
+- The restart leg re-applies `post_commands` after `read_restart`, and restart files
+  do not store `neigh_modify` settings -- put those into `post_commands` when a test
+  depends on them.  A fix whose random-number state is not written to restart files
+  cannot pass the restart leg; store the state (`RanMars::get_state()`/`set_state()`)
+  rather than skipping the test.
+
+## Tolerances and portable reference data
+
+- `epsilon` is the relative tolerance of the plain runs; accelerator sub-tests scale
+  it (e.g. in `test_pair_style`: GPU x7.5 double, x5e8 mixed, x1e10 single; KOKKOS
+  x5, with a further x2e9 for mixed and x1e10 for single precision builds).
+- Raising `epsilon` to about 5e-13 is acceptable for analytical kernels once `-s`
+  shows the residual is precision noise (compare with the error profile of a
+  sibling style on the same input).  Beyond 1e-12 for an analytical style needs
+  maintainer approval -- it also loosens the CPU/OPENMP/KOKKOS comparisons and hides
+  real bugs.  Spline- and table-based styles are legitimately noisier.
+- Write references that do not depend on the last bits: define `fix enforce2d` after
+  every fix that adds forces or torques, use `velocity ... loop all` (not
+  `loop geom`), and avoid reference quantities that are pure roundoff.  Before
+  loosening a tolerance or tagging a test `unstable` for an ARM64- or macOS-only
+  failure, follow the platform triage in
+  `.github/dev-docs/testing-and-verification.md`.
 
 ## Torque coverage
 

@@ -2,9 +2,12 @@
 .gitignore export-ignore
 .github export-ignore
 .claude export-ignore
+AGENTS.md export-ignore
 .lgtm.yml export-ignore
 SECURITY.md export-ignore
 CITATION.cff export-ignore
+codemeta.json export-ignore
+update_codemeta.sh export-ignore
 *       text=auto
 *.jpg   -text
 *.pdf   -text

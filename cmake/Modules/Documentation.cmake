@@ -33,7 +33,8 @@ if(BUILD_DOC)
 
   # copy entire configuration folder to doc build directory
   # files in _static are automatically copied during sphinx-build, so no need to copy them individually
-  file(COPY ${SPHINX_CONFIG_DIR}/ DESTINATION ${DOC_BUILD_DIR})
+  # skip a MathJax checkout created by "make html" in the doc folder. it may be a different version
+  file(COPY ${SPHINX_CONFIG_DIR}/ DESTINATION ${DOC_BUILD_DIR} REGEX "/_static/mathjax$" EXCLUDE)
 
   # configure paths in conf.py, since relative paths change when file is copied
   configure_file(${SPHINX_CONFIG_FILE_TEMPLATE} ${DOC_BUILD_CONFIG_FILE})
@@ -64,29 +65,68 @@ if(BUILD_DOC)
     find_package(Sphinx)
   endif()
 
+  # the MathJax version and checksum must be kept in sync with the MATHJAXTAG and MATHJAXSUM settings
+  # in doc/Makefile. the version must be compatible with mathjax_path in doc/utils/sphinx-config/conf.py.in
   SetDownloadSettings(MATHJAX "MathJax"
-    "https://github.com/mathjax/MathJax/archive/3.2.2.tar.gz"
-    "4206b9645a97f431018d0b6c4021c98607d49ba4dc129f4f2ecce675e2fcba11")
+    "https://github.com/mathjax/MathJax/archive/4.1.3.tar.gz"
+    "f487c39d2913f371eb42dab078559a902da69acca38a9ebec7640a6581535ba3")
   GetFallbackURL(MATHJAX_URL MATHJAX_FALLBACK)
 
-  # download mathjax distribution and unpack to folder "mathjax"
-  if(NOT EXISTS ${DOC_BUILD_STATIC_DIR}/mathjax/es5)
-    if(EXISTS ${CMAKE_CURRENT_BINARY_DIR}/mathjax.tar.gz)
-      file(SHA256 ${CMAKE_CURRENT_BINARY_DIR}/mathjax.tar.gz DL_SHA256)
+  # the MathJax fonts are distributed separately and their version must match the MathJax version.
+  # the checksum must be kept in sync with the MATHJAXFONTSUM setting in doc/Makefile.
+  # the archive has a unique name, so the fallback uses the same file name
+  SetDownloadSettings(MATHJAX_FONT "MathJax fonts"
+    "https://registry.npmjs.org/@mathjax/mathjax-newcm-font/-/mathjax-newcm-font-4.1.3.tgz"
+    "87d7b869c6a2a6169d9a53acc4eab6c846a9cbe11752738226461bb5070c8b88")
+  cmake_path(GET MATHJAX_FONT_URL FILENAME MATHJAX_FONT_FILE)
+  set(MATHJAX_FONT_FALLBACK "${LAMMPS_THIRDPARTY_URL}/${MATHJAX_FONT_FILE}")
+
+  # download an archive to the build folder unless it is already there with a matching checksum.
+  # the result variable tells whether there is a new archive, e.g. after a MathJax version change
+  function(FetchDocArchive url fallback sha256 archive result)
+    set(DL_SHA256 "")
+    if(EXISTS ${archive})
+      file(SHA256 ${archive} DL_SHA256)
     endif()
-    if(NOT "${DL_SHA256}" STREQUAL "${MATHJAX_SHA256}")
-      file(DOWNLOAD ${MATHJAX_URL} "${CMAKE_CURRENT_BINARY_DIR}/mathjax.tar.gz" STATUS DL_STATUS SHOW_PROGRESS)
-      file(SHA256 ${CMAKE_CURRENT_BINARY_DIR}/mathjax.tar.gz DL_SHA256)
-      if((NOT DL_STATUS EQUAL 0) OR (NOT "${DL_SHA256}" STREQUAL "${MATHJAX_SHA256}"))
-        message(WARNING "Download from primary URL ${MATHJAX_URL} failed\nTrying fallback URL ${MATHJAX_FALLBACK}")
-        file(DOWNLOAD ${MATHJAX_FALLBACK} ${CMAKE_BINARY_DIR}/mathjax.tar.gz EXPECTED_HASH SHA256=${MATHJAX_SHA256} SHOW_PROGRESS)
-      endif()
+    if("${DL_SHA256}" STREQUAL "${sha256}")
+      set(${result} FALSE PARENT_SCOPE)
     else()
-      message(STATUS "Using already downloaded archive ${CMAKE_BINARY_DIR}/libpace.tar.gz")
+      file(DOWNLOAD ${url} ${archive} STATUS DL_STATUS SHOW_PROGRESS)
+      file(SHA256 ${archive} DL_SHA256)
+      if((NOT DL_STATUS EQUAL 0) OR (NOT "${DL_SHA256}" STREQUAL "${sha256}"))
+        message(WARNING "Download from primary URL ${url} failed\nTrying fallback URL ${fallback}")
+        file(DOWNLOAD ${fallback} ${archive} EXPECTED_HASH SHA256=${sha256} SHOW_PROGRESS)
+      endif()
+      set(${result} TRUE PARENT_SCOPE)
     endif()
-    execute_process(COMMAND ${CMAKE_COMMAND} -E tar xzf mathjax.tar.gz WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-    file(GLOB MATHJAX_VERSION_DIR CONFIGURE_DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/MathJax-*)
-    execute_process(COMMAND ${CMAKE_COMMAND} -E rename ${MATHJAX_VERSION_DIR} ${DOC_BUILD_STATIC_DIR}/mathjax)
+  endfunction()
+
+  # download mathjax distribution and unpack to folder "mathjax"
+  set(MATHJAX_ARCHIVE ${CMAKE_CURRENT_BINARY_DIR}/mathjax.tar.gz)
+  set(MATHJAX_DIR ${DOC_BUILD_STATIC_DIR}/mathjax)
+  FetchDocArchive(${MATHJAX_URL} "${MATHJAX_FALLBACK}" ${MATHJAX_SHA256} ${MATHJAX_ARCHIVE} MATHJAX_NEW)
+  if(MATHJAX_NEW OR (NOT EXISTS ${MATHJAX_DIR}/tex-mml-chtml.js))
+    # remove the previously unpacked version and leftovers from incomplete previous attempts
+    file(GLOB MATHJAX_VERSION_DIR ${CMAKE_CURRENT_BINARY_DIR}/MathJax-*)
+    file(REMOVE_RECURSE ${MATHJAX_DIR} ${MATHJAX_VERSION_DIR})
+    file(ARCHIVE_EXTRACT INPUT ${MATHJAX_ARCHIVE} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
+    file(GLOB MATHJAX_VERSION_DIR ${CMAKE_CURRENT_BINARY_DIR}/MathJax-*)
+    file(RENAME ${MATHJAX_VERSION_DIR} ${MATHJAX_DIR})
+  endif()
+
+  # download the fonts and unpack the files for HTML output to a subfolder of the "mathjax" folder,
+  # so that they are not loaded from the internet. the location is set with mathjax_font_config
+  # in doc/utils/sphinx-config/conf.py.in
+  set(MATHJAX_FONT_ARCHIVE ${CMAKE_CURRENT_BINARY_DIR}/mathjax-font.tar.gz)
+  set(MATHJAX_FONT_DIR ${MATHJAX_DIR}/mathjax-newcm-font)
+  FetchDocArchive(${MATHJAX_FONT_URL} "${MATHJAX_FONT_FALLBACK}" ${MATHJAX_FONT_SHA256} ${MATHJAX_FONT_ARCHIVE} MATHJAX_FONT_NEW)
+  if(MATHJAX_FONT_NEW OR (NOT EXISTS ${MATHJAX_FONT_DIR}/chtml/woff2))
+    set(MATHJAX_FONT_UNPACK_DIR ${CMAKE_CURRENT_BINARY_DIR}/mathjax-font)
+    file(REMOVE_RECURSE ${MATHJAX_FONT_DIR} ${MATHJAX_FONT_UNPACK_DIR})
+    file(ARCHIVE_EXTRACT INPUT ${MATHJAX_FONT_ARCHIVE} DESTINATION ${MATHJAX_FONT_UNPACK_DIR}
+      PATTERNS "package/chtml" "package/package.json")
+    file(RENAME ${MATHJAX_FONT_UNPACK_DIR}/package ${MATHJAX_FONT_DIR})
+    file(REMOVE_RECURSE ${MATHJAX_FONT_UNPACK_DIR})
   endif()
 
   # set up doxygen and add targets to run it
@@ -118,7 +158,7 @@ if(BUILD_DOC)
 
   add_custom_target(
     doc ALL
-    DEPENDS html ${DOC_BUILD_STATIC_DIR}/mathjax/es5
+    DEPENDS html ${MATHJAX_DIR}/tex-mml-chtml.js ${MATHJAX_FONT_DIR}/package.json
     SOURCES ${LAMMPS_DOC_DIR}/utils/requirements.txt ${DOC_SOURCES}
   )
 

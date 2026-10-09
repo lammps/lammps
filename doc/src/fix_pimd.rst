@@ -367,7 +367,7 @@ MxN processors (cores) and run the simulation as follows:
 
 .. code-block:: bash
 
-   mpirun -np P lmp_mpi -partition MxN -in script
+   mpirun -np P lmp -partition MxN -in script
 
 Note that in the LAMMPS input script for a multi-partition simulation,
 it is often very useful to define a :doc:`uloop-style variable
@@ -551,6 +551,13 @@ LAMMPS was built with that package.  See the :doc:`Build package
 Fix *pimd/nvt* cannot be used with :doc:`lj units <units>`.
 Fix *pimd/langevin* can be used with :doc:`lj units <units>`.
 See the documentation above for how to use it.
+
+.. versionchanged:: 30Sep2026
+
+Fixes *pimd/nvt* and *pimd/nvt/bosonic* require at least two beads,
+i.e. running with the :doc:`-partition <Run_options>` command-line
+switch, and stop with an error otherwise.  A ring polymer of a single
+bead has no neighboring beads to couple to.
 
 Only some combinations of fix styles and their options support
 partitions with multiple processors.  LAMMPS will stop with an error if

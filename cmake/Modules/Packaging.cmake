@@ -1,0 +1,337 @@
+
+###############################################################################
+# get LAMMPS_RELEASE version string
+###############################################################################
+file(STRINGS ${LAMMPS_DIR}/src/version.h line REGEX LAMMPS_VERSION)
+string(REGEX REPLACE "#define LAMMPS_VERSION \"([0-9]+) ([A-Za-z][A-Za-z][A-Za-z])[A-Za-z]* ([0-9]+)\""
+                     "\\1\\2\\3" LAMMPS_RELEASE "${line}")
+
+###############################################################################
+# Create tarball for download with html and PDF version of manual included
+###############################################################################
+add_custom_target(tarball
+  COMMAND ${LAMMPS_DIR}/cmake/packaging/build_tarball.sh ${LAMMPS_DIR}/doc
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LAMMPS_DIR}/doc/Manual.pdf ${CMAKE_BINARY_DIR}/Manual-${LAMMPS_RELEASE}.pdf
+  WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
+  BYPRODUCTS lammps-src-${LAMMPS_RELEASE}.tar.gz Manual-${LAMMPS_RELEASE}.pdf
+  COMMENT "Building a LAMMPS source tarball with manual included"
+)
+
+###############################################################################
+# Create tarball with fully static LAMMPS executables
+###############################################################################
+
+if(EXISTS /usr/musl/share/cmake/linux-musl.cmake)
+  add_custom_target(musl
+    ${CMAKE_COMMAND} -E remove_directory ${CMAKE_BINARY_DIR}/lammps-static ${CMAKE_BINARY_DIR}/build-musl
+    COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_BINARY_DIR}/lammps-static
+    COMMAND ${CMAKE_COMMAND} -S ${LAMMPS_DIR}/cmake -B ${CMAKE_BINARY_DIR}/build-musl -G Ninja
+    -D CMAKE_CXX_COMPILER_LAUNCHER=ccache -D CMAKE_C_COMPILER_LAUNCHER=ccache
+    -D CMAKE_INSTALL_PREFIX=${CMAKE_BINARY_DIR}/lammps-static
+    -D CMAKE_TOOLCHAIN_FILE=/usr/musl/share/cmake/linux-musl.cmake
+    -D BUILD_MPI=OFF -D BUILD_TESTING=OFF -D CMAKE_BUILD_TYPE=Release
+    -D PREFER_INTERNAL_LINALG=ON -D USE_INTERNAL_LINALG=ON -D FFT=kiss
+    -C ${LAMMPS_DIR}/cmake/presets/most.cmake -C ${LAMMPS_DIR}/cmake/presets/kokkos-openmp.cmake -D DOWNLOAD_POTENTIALS=OFF
+    -D PKG_MANIFOLD=ON -D PKG_MESONT=ON -D PKG_MGPT=ON -D PKG_ML-PACE=ON -D PKG_APIP=ON
+    -D PKG_ML-RUNNER=ON -D PKG_PTM=ON -D PKG_QTB=ON -D PKG_SMTBQ=ON
+    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_BINARY_DIR}/build-musl --target all
+    COMMAND ${CMAKE_COMMAND} --install ${CMAKE_BINARY_DIR}/build-musl
+    COMMAND /usr/musl/bin/x86_64-linux-musl-strip -g ${CMAKE_BINARY_DIR}/lammps-static/bin/*
+    COMMAND ${CMAKE_COMMAND} -E tar czvf lammps-linux-x86_64-${LAMMPS_RELEASE}.tar.gz lammps-static
+    COMMENT "Building fully static Linux binaries with MUSL"
+    WORKING_DIRECTORY "${CMAKE_BINARY_DIR}"
+    BYPRODUCTS lammps-linux-x86_64-${PROJECT_VERSION}.tar.gz)
+else()
+  add_custom_target(musl
+    COMMAND ${CMAKE_COMMAND} -E echo "Could not find the musl Linux-2-Linux compiler in /usr/musl."
+    COMMAND ${CMAKE_COMMAND} -E false
+    VERBATIM)
+endif()
+
+#########################################################################
+# add custom target nsis to build LAMMPS installer packages for Windows #
+#########################################################################
+
+find_program(MINGW_CMAKE mingw64-cmake)
+find_program(MINGW_CXX x86_64-w64-mingw32-g++)
+find_program(MAKENSIS makensis)
+mark_as_advanced(MINGW_CMAKE MINGW_CXX)
+find_package(Python COMPONENTS Interpreter QUIET)
+# disable signing for now
+set(ENV{SIGN_DISABLE} 1)
+if(MINGW_CMAKE AND MINGW_CXX AND MAKENSIS AND Python_EXECUTABLE)
+  add_custom_target(nsis
+    COMMAND ${Python_EXECUTABLE} "${LAMMPS_PACKAGING_DIR}/cmake-win-on-linux.py" -p no -y no -u no
+    COMMAND ${Python_EXECUTABLE} "${LAMMPS_PACKAGING_DIR}/cmake-win-on-linux.py" -p no -y yes -u no
+    COMMAND ${Python_EXECUTABLE} "${LAMMPS_PACKAGING_DIR}/cmake-win-on-linux.py" -p ms -y no -u no
+    COMMAND ${Python_EXECUTABLE} "${LAMMPS_PACKAGING_DIR}/cmake-win-on-linux.py" -p ms -y yes -u no
+    COMMAND ${Python_EXECUTABLE} "${LAMMPS_PACKAGING_DIR}/cmake-win-on-linux.py" -p no -y no -u yes
+    DEPENDS gitversion
+  )
+else()
+  add_custom_target(nsis
+    COMMAND ${CMAKE_COMMAND} -E echo "The Mingw64 cross-compiler build environment required to build Windows installer packages is not available."
+    COMMAND ${CMAKE_COMMAND} -E echo "Status: MINGW_CMAKE=${MINGW_CMAKE} MINGW_CXX=${MINGW_CXX} MAKENSIS=${MAKENSIS}"
+    COMMAND ${CMAKE_COMMAND} -E false
+    VERBATIM)
+endif()
+
+###############################################################################
+# LAMMPS-GUI related targets
+###############################################################################
+
+# build LAMMPS-GUI and LAMMPS as flatpak, if tools are installed
+find_program(FLATPAK_COMMAND flatpak DOC "Path to flatpak command")
+find_program(FLATPAK_BUILDER flatpak-builder DOC "Path to flatpak-builder command")
+mark_as_advanced(FLATPAK_COMMAND FLATPAK_BUILDER)
+if(FLATPAK_COMMAND AND FLATPAK_BUILDER)
+  set(FLATPAK_BUNDLE "LAMMPS-Linux-x86_64-GUI-${LAMMPS_RELEASE}.flatpak")
+  add_custom_target(flatpak
+    COMMAND ${FLATPAK_COMMAND} --user remote-add --if-not-exists flathub https://dl.flathub.org/repo/flathub.flatpakrepo
+    COMMAND ${FLATPAK_BUILDER} --force-clean --verbose --repo=${CMAKE_CURRENT_BINARY_DIR}/flatpak-repo
+                               --install-deps-from=flathub --state-dir=${CMAKE_CURRENT_BINARY_DIR}
+                              --user --ccache --default-branch=${LAMMPS_RELEASE}
+                              flatpak-build ${LAMMPS_PACKAGING_DIR}/org.lammps.lammps-gui.yml
+    COMMAND ${FLATPAK_COMMAND} build-bundle --runtime-repo=https://flathub.org/repo/flathub.flatpakrepo --verbose
+                               ${CMAKE_CURRENT_BINARY_DIR}/flatpak-repo
+                               ${FLATPAK_BUNDLE} org.lammps.lammps-gui ${LAMMPS_RELEASE}
+    COMMENT "Create Flatpak bundle file of LAMMPS and LAMMPS-GUI"
+    BYPRODUCT ${FLATPAK_BUNDLE}
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+else()
+  add_custom_target(flatpak
+    COMMAND ${CMAKE_COMMAND} -E echo "The flatpak or flatpak-builder commands required to build a LAMMPS-GUI flatpak bundle were not found."
+    COMMAND ${CMAKE_COMMAND} -E false
+    VERBATIM)
+endif()
+
+# build LAMMPS-GUI itself as external project
+if(BUILD_LAMMPS_GUI)
+  include(ExternalProject)
+  if(NOT BUILD_SHARED_LIBS)
+    message(FATAL_ERROR "Building LAMMPS-GUI currently requires setting -D BUILD_SHARED_LIBS=ON")
+  endif()
+  # hack to support multi-arch builds for external project
+  if("${CMAKE_SYSTEM_NAME}" STREQUAL "Darwin")
+    list(JOIN CMAKE_OSX_ARCHITECTURES , MACOSX_ARCHS)
+  endif()
+  # hack to encode the LAMMPS build folder into the binary's rpath
+  if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    set(LAMMPS_GUI_RPATH "@loader_path")
+  elseif(NOT WIN32)
+    set(LAMMPS_GUI_RPATH "\$ORIGIN")
+  endif()
+  if(LAMMPS_INSTALL_RPATH)
+    list(APPEND LAMMPS_GUI_RPATH ${CMAKE_INSTALL_FULL_LIBDIR})
+  endif()
+  list(JOIN LAMMPS_GUI_RPATH , LAMMPS_GUI_RPATH)
+
+  # When building LAMMPS-GUI with LAMMPS we don't support plugin mode and don't include docs.
+  ExternalProject_Add(lammps-gui_build
+    GIT_REPOSITORY https://github.com/akohlmey/lammps-gui.git
+    GIT_TAG main
+    GIT_SHALLOW TRUE
+    GIT_PROGRESS TRUE
+    LIST_SEPARATOR ,
+    CMAKE_ARGS -D BUILD_DOC=OFF
+               -D CODE_SIGNING=OFF
+               -D LAMMPS_GUI_USE_PLUGIN=OFF
+               -D LAMMPS_SOURCE_DIR=${LAMMPS_SOURCE_DIR}
+               -D LAMMPS_LIBRARY=$<TARGET_FILE:lammps>
+               -D CMAKE_C_COMPILER=${CMAKE_C_COMPILER}
+               -D CMAKE_CXX_COMPILER=${CMAKE_CXX_COMPILER}
+               -D CMAKE_INSTALL_PREFIX=<INSTALL_DIR>
+               -D CMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+               -D CMAKE_MAKE_PROGRAM=${CMAKE_MAKE_PROGRAM}
+               -D CMAKE_TOOLCHAIN_FILE=${CMAKE_TOOLCHAIN_FILE}
+               -D CMAKE_OSX_ARCHITECTURES=${MACOSX_ARCHS}
+               -D CMAKE_OSX_DEPLOYMENT_TARGET=${CMAKE_OSX_DEPLOYMENT_TARGET}
+               -D CMAKE_INSTALL_RPATH=${LAMMPS_GUI_RPATH}
+    DEPENDS lammps
+    BUILD_BYPRODUCTS <INSTALL_DIR>/bin/lammps-gui
+  )
+  add_custom_target(lammps-gui ALL
+          ${CMAKE_COMMAND} -E copy_if_different lammps-gui_build-prefix/bin/lammps-gui* ${CMAKE_BINARY_DIR}
+          DEPENDS lammps-gui_build
+  )
+
+  # packaging support for LAMMPS-GUI when compiled with LAMMPS
+  option(BUILD_WHAM "Download and compile WHAM executable from Grossfield Lab" YES)
+  if(BUILD_WHAM)
+    SetDownloadSettings(WHAM "WHAM"
+      "https://download.lammps.org/thirdparty/wham-release-2.1.1.tar.gz"
+      "3c02fb854bf17f6d4bd2aafedcf3e1996cd3384d998e368be03a59b06d39f8d4")
+
+    get_filename_component(archive ${WHAM_URL} NAME)
+    file(MAKE_DIRECTORY ${CMAKE_BINARY_DIR}/_deps/src)
+    if(EXISTS ${CMAKE_BINARY_DIR}/_deps/${archive})
+      file(SHA256 ${CMAKE_BINARY_DIR}/_deps/${archive} DL_SHA256)
+    endif()
+    if(NOT "${DL_SHA256}" STREQUAL "${WHAM_SHA256}")
+      message(STATUS "Downloading ${WHAM_URL}")
+      file(DOWNLOAD ${WHAM_URL} ${CMAKE_BINARY_DIR}/_deps/${archive} STATUS DL_STATUS SHOW_PROGRESS)
+      file(SHA256 ${CMAKE_BINARY_DIR}/_deps/${archive} DL_SHA256)
+      if((NOT DL_STATUS EQUAL 0) OR (NOT "${DL_SHA256}" STREQUAL "${WHAM_SHA256}"))
+        message(ERROR ": Download of WHAM sources from ${WHAM_URL} failed")
+      endif()
+    else()
+      message(STATUS "Using already downloaded archive ${CMAKE_BINARY_DIR}/_deps/${archive}")
+    endif()
+    message(STATUS "Unpacking and configuring ${archive}")
+
+    execute_process(COMMAND ${CMAKE_COMMAND} -E tar xf ${CMAKE_BINARY_DIR}/_deps/${archive}
+      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/_deps/src)
+    find_package(Patch)
+    if(PATCH_FOUND)
+      message(STATUS "Apply patch to customize WHAM using ${Patch_EXECUTABLE}")
+      execute_process(
+        COMMAND ${Patch_EXECUTABLE} -p1 -i ${LAMMPS_PACKAGING_DIR}/update-wham-2.1.0.patch
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/_deps/src/wham/
+      )
+    endif()
+    file(REMOVE_RECURSE ${CMAKE_BINARY_DIR}/_deps/wham-src)
+    file(RENAME "${CMAKE_BINARY_DIR}/_deps/src/wham" ${CMAKE_BINARY_DIR}/_deps/wham-src)
+    file(COPY packaging/CMakeLists.wham DESTINATION ${CMAKE_BINARY_DIR}/_deps/wham-src/)
+    file(RENAME "${CMAKE_BINARY_DIR}/_deps/wham-src/CMakeLists.wham"
+      "${CMAKE_BINARY_DIR}/_deps/wham-src/CMakeLists.txt")
+    add_subdirectory("${CMAKE_BINARY_DIR}/_deps/wham-src" "${CMAKE_BINARY_DIR}/_deps/wham-build")
+    set(WHAM_EXE wham wham-2d)
+  endif()
+
+  if(APPLE)
+    # additional targets to populate the bundle tree and create the .dmg image file
+    set(APP_CONTENTS ${CMAKE_BINARY_DIR}/lammps-gui_build-prefix/bin/lammps-gui.app/Contents)
+    if(BUILD_TOOLS)
+      file(REMOVE_RECURSE ${CMAKE_BINARY_DIR}/lammps-gui_build-prefix/bin/lammps-gui.app)
+      add_custom_target(complete-bundle
+        ${CMAKE_COMMAND} -E make_directory ${APP_CONTENTS}/bin
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${APP_CONTENTS}/Frameworks
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:lammps> ${APP_CONTENTS}/Frameworks/
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:lmp> ${APP_CONTENTS}/bin/
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_BINARY_DIR}/lmp ${APP_CONTENTS}/bin/
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_BINARY_DIR}/msi2lmp ${APP_CONTENTS}/bin/
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_BINARY_DIR}/binary2txt ${APP_CONTENTS}/bin/
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_BINARY_DIR}/stl_bin2txt ${APP_CONTENTS}/bin/
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_BINARY_DIR}/phana ${APP_CONTENTS}/bin/
+        COMMAND ${CMAKE_COMMAND} -E create_symlink ../MacOS/lammps-gui ${APP_CONTENTS}/bin/lammps-gui
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${APP_CONTENTS}/Resources
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LAMMPS_PACKAGING_DIR}/README.macos ${APP_CONTENTS}/Resources/README.txt
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LAMMPS_PACKAGING_DIR}/lammps.icns ${APP_CONTENTS}/Resources
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LAMMPS_PACKAGING_DIR}/lammps-gui.icns ${APP_CONTENTS}/Resources
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LAMMPS_PACKAGING_DIR}/LAMMPS_DMG_Background.png ${APP_CONTENTS}/Resources
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${APP_CONTENTS}/share/lammps
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${APP_CONTENTS}/share/lammps/man/man1
+        COMMAND ${CMAKE_COMMAND} -E copy_directory ${LAMMPS_DIR}/potentials ${APP_CONTENTS}/share/lammps/potentials
+        COMMAND ${CMAKE_COMMAND} -E copy_directory ${LAMMPS_DIR}/bench ${APP_CONTENTS}/share/lammps/bench
+        COMMAND ${CMAKE_COMMAND} -E copy_directory ${LAMMPS_DIR}/tools/msi2lmp/frc_files ${APP_CONTENTS}/share/lammps/frc_files
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LAMMPS_DIR}/doc/lammps.1 ${APP_CONTENTS}/share/lammps/man/man1/
+        COMMAND ${CMAKE_COMMAND} -E create_symlink lammps.1 ${APP_CONTENTS}/share/lammps/man/man1/lmp.1
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${LAMMPS_DIR}/doc/msi2lmp.1 ${APP_CONTENTS}/share/lammps/man/man1
+        DEPENDS lammps lmp tools lammps-gui_build
+        COMMENT "Copying additional files into macOS app bundle tree"
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+      )
+    else()
+      message(FATAL_ERROR "Must use -D BUILD_TOOLS=yes for building app bundle")
+    endif()
+    if(BUILD_WHAM)
+      add_custom_target(copy-wham
+        ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_BINARY_DIR}/wham ${APP_CONTENTS}/bin/
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_BINARY_DIR}/wham-2d ${APP_CONTENTS}/bin/
+        DEPENDS complete-bundle wham wham-2d
+        COMMENT "Copying WHAM executables into macOS app bundle tree"
+      )
+      set(WHAM_TARGET copy-wham)
+    endif()
+    find_program(FFMPEG_EXECUTABLE ffmpeg)
+    if(FFMPEG_EXECUTABLE)
+      add_custom_target(copy-ffmpeg
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different ${FFMPEG_EXECUTABLE} ${APP_CONTENTS}/bin/
+        COMMENT "Copying FFmpeg into macOS app bundle tree"
+        DEPENDS complete-bundle
+      )
+      set(FFMPEG_TARGET copy-ffmpeg)
+    endif()
+    add_custom_target(dmg
+      COMMAND ${LAMMPS_PACKAGING_DIR}/build_macos_dmg.sh ${LAMMPS_RELEASE} ${CMAKE_BINARY_DIR}/lammps-gui_build-prefix/bin/lammps-gui.app
+      DEPENDS complete-bundle ${WHAM_TARGET} ${FFMPEG_TARGET}
+      COMMENT "Create Drag-n-Drop installer disk image from app bundle"
+      BYPRODUCT LAMMPS-macOS-multiarch-GUI-${LAMMPS_RELEASE}.dmg
+      WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+    )
+    # settings or building on Windows with Visual Studio
+  elseif(MSVC)
+    if(BUILD_SHARED_LIBS)
+      install(FILES $<TARGET_RUNTIME_DLLS:lammps> TYPE BIN)
+    endif()
+    install(FILES $<TARGET_RUNTIME_DLLS:lmp> TYPE BIN)
+    # find path to VC++ init batch file
+    get_filename_component(VC_COMPILER_DIR "${CMAKE_CXX_COMPILER}" DIRECTORY)
+    get_filename_component(VC_BASE_DIR "${VC_COMPILER_DIR}/../../../../../.." ABSOLUTE)
+    set(VC_INIT "${VC_BASE_DIR}/Auxiliary/Build/vcvarsall.bat")
+    get_filename_component(QT5_BIN_DIR "${Qt5Core_DIR}/../../../bin" ABSOLUTE)
+    get_filename_component(INSTNAME ${CMAKE_INSTALL_PREFIX} NAME)
+    install(CODE "execute_process(COMMAND \"${CMAKE_COMMAND}\" -D INSTNAME=${INSTNAME} -D VC_INIT=\"${VC_INIT}\" -D QT5_BIN_DIR=\"${QT5_BIN_DIR}\" -P \"${CMAKE_SOURCE_DIR}/packaging/build_windows_vs.cmake\" WORKING_DIRECTORY \"${CMAKE_INSTALL_PREFIX}/..\" COMMAND_ECHO STDOUT)")
+  elseif((CMAKE_SYSTEM_NAME STREQUAL "Windows") AND CMAKE_CROSSCOMPILING)
+    if(BUILD_SHARED_LIBS)
+      install(FILES $<TARGET_RUNTIME_DLLS:lammps> TYPE BIN)
+    endif()
+    install(FILES $<TARGET_RUNTIME_DLLS:lmp> TYPE BIN)
+    add_custom_target(zip
+      COMMAND sh -vx ${LAMMPS_PACKAGING_DIR}/build_windows_cross_zip.sh ${CMAKE_INSTALL_PREFIX} ${LAMMPS_RELEASE}
+      DEPENDS lmp lammps-gui_build ${WHAM_EXE}
+      COMMENT "Create zip file with windows binaries"
+      BYPRODUCT LAMMPS-Win10-amd64-${LAMMPS_VERSION}.zip
+      WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+  elseif((CMAKE_SYSTEM_NAME STREQUAL "Linux") AND NOT LAMMPS_GUI_USE_PLUGIN)
+    set(LAMMPS_GUI_PACKAGING ${CMAKE_BINARY_DIR}/lammps-gui_build-prefix/src/lammps-gui_build/packaging/)
+    set(LAMMPS_GUI_RESOURCES ${CMAKE_BINARY_DIR}/lammps-gui_build-prefix/src/lammps-gui_build/resources/)
+    install(PROGRAMS ${CMAKE_BINARY_DIR}/lammps-gui_build-prefix/bin/lammps-gui DESTINATION ${CMAKE_INSTALL_BINDIR})
+    install(FILES ${LAMMPS_GUI_PACKAGING}/lammps-gui.desktop DESTINATION ${CMAKE_INSTALL_DATADIR}/applications/)
+    install(FILES ${LAMMPS_GUI_PACKAGING}/lammps-gui.appdata.xml DESTINATION ${CMAKE_INSTALL_DATADIR}/appdata/)
+    install(FILES ${LAMMPS_GUI_PACKAGING}/lammps-input.xml DESTINATION ${CMAKE_INSTALL_DATADIR}/mime/packages/)
+    install(FILES ${LAMMPS_GUI_PACKAGING}/lammps-input.xml DESTINATION ${CMAKE_INSTALL_DATADIR}/mime/text/x-application-lammps.xml)
+    install(DIRECTORY ${LAMMPS_GUI_RESOURCES}/icons/hicolor DESTINATION ${CMAKE_INSTALL_DATADIR}/icons/)
+    install(CODE [[
+      file(GET_RUNTIME_DEPENDENCIES
+        LIBRARIES $<TARGET_FILE:lammps>
+        EXECUTABLES $<TARGET_FILE:lmp> ${CMAKE_BINARY_DIR}/lammps-gui_build-prefix/bin/lammps-gui
+        RESOLVED_DEPENDENCIES_VAR _r_deps
+        UNRESOLVED_DEPENDENCIES_VAR _u_deps
+      )
+      foreach(_file ${_r_deps})
+        file(INSTALL
+          DESTINATION "${CMAKE_INSTALL_PREFIX}/lib"
+          TYPE SHARED_LIBRARY
+          FOLLOW_SYMLINK_CHAIN
+          FILES "${_file}"
+        )
+      endforeach()
+      list(LENGTH _u_deps _u_length)
+      if("${_u_length}" GREATER 0)
+        message(WARNING "Unresolved dependencies detected: ${_u_deps}")
+      endif() ]]
+    )
+
+    if(USE_INTERNAL_LINALG AND (NOT DOWNLOAD_POTENTIALS))
+      add_custom_target(tgz
+        COMMAND ${LAMMPS_PACKAGING_DIR}/build_linux_tgz.sh ${LAMMPS_RELEASE}
+        DEPENDS lmp tools lammps-gui_build ${WHAM_EXE}
+        COMMENT "Create compressed tar file of LAMMPS-GUI with dependent libraries and wrapper"
+        BYPRODUCT LAMMPS-Linux-x86_64-GUI-${LAMMPS_RELEASE}.tar.gz
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+    else()
+      if(DOWNLOAD_POTENTIALS)
+        add_custom_target(tgz
+              COMMAND ${CMAKE_COMMAND} -E echo "Must use -D DOWLOAD_POTENTIALS=OFF for building Linux tgz package"
+              COMMAND ${CMAKE_COMMAND} -E false
+              VERBATIM)
+      else()
+        add_custom_target(tgz
+              COMMAND ${CMAKE_COMMAND} -E echo "Must use -D USE_INTERNAL_LINALG=ON for building Linux tgz package"
+              COMMAND ${CMAKE_COMMAND} -E false
+              VERBATIM)
+      endif()
+    endif()
+  endif()
+endif()

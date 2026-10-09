@@ -126,10 +126,9 @@ inline double ComputeContinuumChunk::calc_w_int(double *dr, double *rij) const
 /* ---------------------------------------------------------------------- */
 
 ComputeContinuumChunk::ComputeContinuumChunk(LAMMPS *lmp, int narg, char **arg) :
-    ComputeChunk(lmp, narg, arg), list(nullptr), nlayers(nullptr),
-    chunk_dim(nullptr), delta(nullptr), values_local(nullptr), values_global(nullptr),
-    density_local(nullptr), density_global(nullptr), momentum_local(nullptr),
-    momentum_global(nullptr)
+    ComputeChunk(lmp, narg, arg), list(nullptr), nlayers(nullptr), chunk_dim(nullptr),
+    delta(nullptr), values_local(nullptr), values_global(nullptr), density_local(nullptr),
+    density_global(nullptr), momentum_local(nullptr), momentum_global(nullptr)
 {
   if (narg < 7) utils::missing_cmd_args(FLERR, "compute continuum/chunk", error);
 
@@ -405,7 +404,7 @@ void ComputeContinuumChunk::init()
 
   if (calculate_pair) {
     if (force->pair == nullptr)
-      error->all(FLERR,  Error::NOLASTLINE,
+      error->all(FLERR, Error::NOLASTLINE,
                  "No pair style is defined for compute continuum/chunk stress calculation");
     if (force->pair->single_enable == 0)
       error->all(FLERR, Error::NOLASTLINE,
@@ -492,8 +491,8 @@ void ComputeContinuumChunk::compute_array()
     const double offset = cchunk->coord[0][a] - 0.5 * delta[a];
     if (std::fabs(boxlo[idim] - offset) > EPSILON)
       error->warning(FLERR,
-                         "Bins do not start at lower edge of simulation box."
-                         " Results on the boundary may be incorrect");
+                     "Bins do not start at lower edge of simulation box."
+                     " Results on the boundary may be incorrect");
   }
 
   for (m = 0; m < nchunk; m++) {
@@ -506,7 +505,8 @@ void ComputeContinuumChunk::compute_array()
   int itype, style, vtype, component, field_index, iboundary, jboundary;
   double w, wc, massi, voli, volj, rsq_atom_bin, rsq_cont_bin, rsq_pair, r_pair, r_cont;
   double f_norm, w_int_tmp, factor_lj;
-  double xbin0[3], xbinc[3], xbin[3], xbin2[3], xcont[3], f_pair[3], f_wall[3], dx_pair[3], xj_near[3];
+  double xbin0[3], xbinc[3], xbin[3], xbin2[3], xcont[3], f_pair[3], f_wall[3], dx_pair[3],
+      xj_near[3];
   double dx_pair_filtered[3], dx_atom_bin[3], dx_bin_cont[3], dx_atom_cont[3];
   double dx_atom_cont_filtered[3];
   double **array_atom_fix;
@@ -648,8 +648,7 @@ void ComputeContinuumChunk::compute_array()
               visited_bins.insert(mtmp);
 
               MathExtra::copy3(x[i], xbin2);
-              for (int c = 0; c < chunk_ncoord; ++c)
-                xbin2[cdim[c]] = xbin[cdim[c]];
+              for (int c = 0; c < chunk_ncoord; ++c) xbin2[cdim[c]] = xbin[cdim[c]];
 
               MathExtra::sub3(x[i], xbin2, dx_atom_bin);
               rsq_atom_bin = MathExtra::lensq3(dx_atom_bin);

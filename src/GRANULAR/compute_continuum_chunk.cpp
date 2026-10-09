@@ -483,7 +483,7 @@ void ComputeContinuumChunk::compute_array()
                          " Results on the boundary may be incorrect");
   }
 
-  double *ichunk = cchunk->ichunk;
+  int *ichunk = cchunk->ichunk;
 
   build_stencil();
   int *cdim = cchunk->get_dim();
@@ -587,6 +587,8 @@ void ComputeContinuumChunk::compute_array()
         }
 
         if (boundaryflag == BOUNDARY_FIX || boundaryflag == BOUNDARY_BOTH) {
+
+          std::unordered_set<int> visited_bins;
 
           // Use custom stencil because a bin may overlap with contact point but not atom i
           //   and the line integral needs to add that contribution

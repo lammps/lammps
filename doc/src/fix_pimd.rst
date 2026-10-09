@@ -378,8 +378,13 @@ it is often very useful to define a :doc:`uloop-style variable
    variable ibead uloop M pad
 
 where M is the number of quasi-beads (partitions) used in the
-calculation.  The uloop variable can then be used to manage I/O related
-tasks for each of the partitions, e.g.
+calculation.  Since each partition holds a different set of quasi-beads,
+files written by commands like :doc:`dump <dump>` or :doc:`restart
+<restart>` must have a different name on each partition.  Otherwise all
+partitions write to the same file at the same time and the resulting
+file may contain a garbled mix of data from several partitions.  The
+uloop variable can be used to manage I/O related tasks for each of the
+partitions, e.g.
 
 .. code-block:: LAMMPS
 

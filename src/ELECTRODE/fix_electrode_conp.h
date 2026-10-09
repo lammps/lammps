@@ -130,7 +130,7 @@ class FixElectrodeConp : public Fix {
   void compute_sd_vectors_ffield();
   int groupnum_from_name(char *);
   Pair *pair;
-  NeighList *mat_neighlist, *vec_neighlist;
+  NeighList *mat_neighlist, *vec_neighlist, *force_neighlist;
   std::vector<int> etypes;
   int mat_request, vec_request;
   void request_etypes_neighlists();

@@ -776,10 +776,10 @@ dependencies and redirects the download to the local cache.
    # export LAMMPS_CACHING_DIR=path/to/folder
    source tools/offline/use_caches.sh
 
-   mkdir build
-   cd build
-   cmake -D LAMMPS_DOWNLOADS_URL=${HTTP_CACHE_URL} -C "${LAMMPS_HTTP_CACHE_CONFIG}" -C ../cmake/presets/most.cmake -D DOWNLOAD_POTENTIALS=off ../cmake
-   make -j 8
+   cmake -S cmake -B build -D LAMMPS_DOWNLOADS_URL=${HTTP_CACHE_URL} \
+         -C "${LAMMPS_HTTP_CACHE_CONFIG}" -C cmake/presets/most.cmake \
+         -D DOWNLOAD_POTENTIALS=off
+   cmake --build build
 
    deactivate_caches
 

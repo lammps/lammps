@@ -2,7 +2,7 @@
 ########################################
 # CMake build system
 # This file is part of LAMMPS
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.27)
 ########################################
 # initialize version variables with project command
 if(POLICY CMP0048)
@@ -17,9 +17,9 @@ if(POLICY CMP0075)
   cmake_policy(SET CMP0075 NEW)
 endif()
 # set policy to silence warnings about requiring execute permission for find_program
-# we use OLD because the python-config script for the Fedora MinGW cross-compiler requires it currently
+# as of Oct 2nd 2026 changed to NEW since Fedora 43 and 44 have an executable python-config script
 if(POLICY CMP0109)
-  cmake_policy(SET CMP0109 OLD)
+  cmake_policy(SET CMP0109 NEW)
 endif()
 # set policy so set(CACHE) command does not remove any normal variable of the same name from the current scope
 if(POLICY CMP0126)
@@ -30,7 +30,6 @@ endif()
 if(POLICY CMP0135)
   cmake_policy(SET CMP0135 NEW)
 endif()
-
 # set policy to ignore CMAKE_WARN_DEPRECATED and CMAKE_ERROR_DEPRECATED if available.
 # we are not using those AFAIK anyway.
 if(POLICY CMP0218)
@@ -217,6 +216,33 @@ endif()
 if (NOT PKG_SCAFACOS)
   set(MPI_CXX_SKIP_MPICXX TRUE CACHE BOOL "Skip MPI C++ Bindings" FORCE)
 endif()
+
+########################################################################
+# Obsolete settings                                                    #
+########################################################################
+# report settings that no longer have any effect and remove them from
+# the cache.  entries may be removed after a few stable releases.
+function(obsolete_setting name reason)
+  if(DEFINED ${name})
+    # referencing the value avoids a CMake warning about an unused variable
+    message(WARNING "Ignoring obsolete setting ${name}=${${name}}: ${reason}")
+    unset(${name} CACHE)
+  endif()
+endfunction()
+
+obsolete_setting(LAMMPS_EXCEPTIONS "C++ exceptions are always used for error handling")
+obsolete_setting(BUILD_LAMMPS_SHELL "The LAMMPS shell was replaced by LAMMPS-GUI")
+obsolete_setting(WITH_GZIP "Support for compressed files is detected at runtime")
+obsolete_setting(WITH_FFMPEG "Support for dump movie is detected at runtime")
+obsolete_setting(PKG_ATC "The ATC package was removed. Last stable version with it: 22Jul2025")
+obsolete_setting(PKG_AWPMD "The AWPMD package was removed. Last stable version with it: 22Jul2025")
+obsolete_setting(PKG_ML-RANN "The ML-RANN package was removed. Last stable version with it: 22Jul2025")
+obsolete_setting(PKG_POEMS "The POEMS package was removed. Last stable version with it: 22Jul2025")
+obsolete_setting(PKG_VTK "Dump style vtk is now part of the EXTRA-DUMP package")
+obsolete_setting(PKG_MPIIO "The MPIIO package was removed. Last stable version with it: 2Aug2023")
+obsolete_setting(PKG_MSCG "The MSCG package was removed. Last stable version with it: 2Aug2023")
+obsolete_setting(PKG_LATTE "The LATTE package was removed. Last stable version with it: 23Jun2022")
+obsolete_setting(PKG_MESSAGE "The MESSAGE package was replaced by the MDI package")
 
 ########################################################################
 # User input options                                                   #
@@ -605,17 +631,6 @@ if(PKG_ML-QUIP OR PKG_ML-POD OR PKG_ELECTRODE OR PKG_RHEO OR BUILD_TOOLS OR PKG_
   endif()
 endif()
 
-find_program(GZIP_EXECUTABLE gzip)
-find_package_handle_standard_args(GZIP REQUIRED_VARS GZIP_EXECUTABLE)
-option(WITH_GZIP "Enable GZIP support" ${GZIP_FOUND})
-if(WITH_GZIP)
-  if(GZIP_FOUND OR ((CMAKE_SYSTEM_NAME STREQUAL "Windows") AND CMAKE_CROSSCOMPILING))
-    target_compile_definitions(lammps PRIVATE -DLAMMPS_GZIP)
-  else()
-    message(FATAL_ERROR "gzip executable not found")
-  endif()
-endif()
-
 if(BUILD_SHARED_LIBS)
   set(CONFIGURE_REQUEST_PIC "--with-pic")
   set(CMAKE_REQUEST_PIC "-DCMAKE_POSITION_INDEPENDENT_CODE=${CMAKE_POSITION_INDEPENDENT_CODE}")
@@ -952,12 +967,16 @@ if(BUILD_SHARED_LIBS)
   else()
     add_custom_target(
       install-python
-      ${CMAKE_COMMAND} -E echo "Must have Python installed to install the LAMMPS Python module")
+      COMMAND ${CMAKE_COMMAND} -E echo "Must have Python installed to install the LAMMPS Python module"
+      COMMAND ${CMAKE_COMMAND} -E false
+      VERBATIM)
   endif()
 else()
   add_custom_target(
     install-python
-    ${CMAKE_COMMAND} -E echo "Must build LAMMPS as a shared library to use the Python module")
+    COMMAND ${CMAKE_COMMAND} -E echo "Must build LAMMPS as a shared library to use the Python module"
+    COMMAND ${CMAKE_COMMAND} -E false
+    VERBATIM)
 endif()
 
 include(Testing)

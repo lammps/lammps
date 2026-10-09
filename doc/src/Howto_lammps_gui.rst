@@ -1,3 +1,5 @@
+:orphan:
+
 Using LAMMPS-GUI
 ================
 

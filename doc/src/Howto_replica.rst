@@ -16,7 +16,8 @@ These are the relevant commands:
 * :doc:`temper <temper>` for parallel tempering with fixed volume
 * :doc:`temper/npt <temper_npt>` for parallel tempering extended for NPT
 * :doc:`temper/grem <temper_grem>` for parallel tempering with generalized replica exchange (gREM)
-* :doc:`fix pimd <fix_pimd>` for path-integral molecular dynamics (PIMD)
+* :doc:`fix pimd/langevin and fix pimd/nvt <fix_pimd>` (and their bosonic variants) for path-integral molecular dynamics (PIMD)
+* :doc:`fix alchemy <fix_alchemy>` for alchemical transformations between two systems
 
 NEB is a method for finding transition states and barrier potential energies.
 HD, PRD, and TAD are methods for performing accelerated dynamics to find and
@@ -24,11 +25,13 @@ perform infrequent events.  Parallel tempering or replica exchange runs
 different replicas at a series of temperature to facilitate rare-event
 sampling.  PIMD runs different replicas whose individual particles in different
 replicas are coupled together by springs to model a system of ring-polymers which
-can represent the quantum nature of atom cores.
+can represent the quantum nature of atom cores.  Fix alchemy runs two
+systems as two replicas and gradually transforms one into the other.
 
 These commands can only be used if LAMMPS was built with the REPLICA
-package.  See the :doc:`Build package <Build_package>` page for more
-info.
+package (or the SPIN package in the case of the :doc:`neb/spin
+<neb_spin>` command).  See the :doc:`Build package <Build_package>`
+page for more info.
 
 In all these cases, you must run with one or more processors per
 replica.  The processors assigned to each replica are determined at
@@ -38,8 +41,8 @@ context are the same as replicas.  E.g.  these commands:
 
 .. code-block:: bash
 
-   mpirun -np 16 lmp_linux -partition 8x2 -in in.temper
-   mpirun -np 8 lmp_linux -partition 8x1 -in in.neb
+   mpirun -np 16 lmp -partition 8x2 -in in.temper
+   mpirun -np 8 lmp -partition 8x1 -in in.neb
 
 would each run 8 replicas, on either 16 or 8 processors.  Note the use
 of the :doc:`-in command-line switch <Run_options>` to specify the input

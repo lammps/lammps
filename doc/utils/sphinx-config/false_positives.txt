@@ -582,6 +582,7 @@ Cleary
 Clebsch
 clemson
 Clermont
+CLion
 clo
 Clovertown
 cmake
@@ -2418,6 +2419,7 @@ Maxwellian
 maxX
 Mayergoyz
 Mayoral
+mbar
 mbt
 MBytes
 mbx
@@ -2487,6 +2489,7 @@ metadynamics
 Metadynamics
 metalfinish
 metallicity
+metamaterials
 Methfessel
 methine
 Metin
@@ -2663,6 +2666,7 @@ multinomial
 multiphysics
 Multipole
 multiscale
+multistate
 multisectioning
 multithreading
 Multithreading
@@ -4338,6 +4342,7 @@ uncomment
 uncommented
 uncompress
 uncompute
+undamped
 underdamped
 underprediction
 undump

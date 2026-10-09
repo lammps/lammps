@@ -147,7 +147,6 @@
 /src/write_molecule.*      @akohlmey
 
 # overrides for specific files
-/src/dump_movie.*          @akohlmey
 /src/fix_nh.*              @athomps
 /src/info.*                @akohlmey
 /src/min*                  @sjplimp @stanmoore1

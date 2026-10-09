@@ -123,11 +123,11 @@ changed.  How to do this depends on the build system you are using.
 
    .. tab:: CMake build
 
-      Change to your build folder and type:
+      From the top-level LAMMPS folder (with ``build`` as build folder), type:
 
       .. code-block:: bash
 
-         cmake --build .
+         cmake --build build
 
       CMake should auto-detect whether it needs to re-run the CMake
       configuration step and otherwise redo the build for all files
@@ -137,7 +137,7 @@ changed.  How to do this depends on the build system you are using.
 
       .. code-block:: bash
 
-         cmake .
+         cmake -S cmake -B build
 
       and then rebuild.
 

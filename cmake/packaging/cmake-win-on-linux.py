@@ -188,7 +188,7 @@ os.chdir(builddir)
 print("Downloading third party tools")
 # when updating a file on the server, its SHA256 checksum must be updated here, too
 url='https://download.lammps.org/thirdparty'
-print("FFMpeg")
+print("FFmpeg")
 getexe("%s/ffmpeg-win64.exe.gz" % url,"ffmpeg.exe",
        "fb9def874bc467edba48591a30f7ec7c19ae292b9a00a7e9867e7a26e9f47b00")
 print("gzip")
@@ -209,8 +209,7 @@ if parflag == 'ms':
   cmd += " -DUSE_MSMPI=on"
 if guiflag:
   cmd += " -DBUILD_LAMMPS_GUI=on -DDOWNLOAD_POTENTIALS=off -DQt6_DIR=/usr/x86_64-w64-mingw32/sys-root/mingw/lib/cmake/Qt6"
-cmd += " -DWITH_GZIP=on -DWITH_FFMPEG=on -DLAMMPS_EXCEPTIONS=on"
-cmd += " -DPKG_INTEL=no -DBUILD_LAMMPS_SHELL=on"
+cmd += " -DPKG_INTEL=no"
 cmd += " -DCMAKE_CXX_COMPILER_LAUNCHER=ccache"
 cmd += " -DPKG_PLUGIN=yes"
 cmd += " -DCMAKE_CXX_STANDARD=20"

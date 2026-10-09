@@ -1013,10 +1013,10 @@ simulation.
 Bugs
 ^^^^
 
-The user is cautioned that this code is a beta release. If you are
-confident that you have found a bug in the peridynamic module, please
-report it in a `GitHub Issue <https://github.com/lammps/lammps/issues>`
-or send an email to the LAMMPS developers.  Run it on the smallest
+If you are confident that you have found a bug in the peridynamic
+module, please report it in a `GitHub Issue
+<https://github.com/lammps/lammps/issues>`_ or send an email to the
+LAMMPS developers.  Run it on the smallest
 number of atoms and fewest number of processors and with the simplest
 input script that reproduces the bug. In your message, describe the
 problem and any ideas you have as to what is causing it or where in the
@@ -1139,7 +1139,7 @@ to run for 2000 timesteps.
    :linenos:
    :caption: Peridynamics Example LAMMPS Input Script
 
-   # 3D Peridynamic simulation with projectile"
+   # 3D Peridynamic simulation with projectile
    units           si
    dimension       3
    boundary        s s s
@@ -1179,7 +1179,7 @@ to run for 2000 timesteps.
 .. note::
 
    To use the LPS model, replace line 15 with :doc:`pair_style peri/lps
-   <pair_peri>` and modify line 16 accordingly.
+   <pair_peri>` and modify line 17 accordingly.
 
 Numerical Results and Discussion
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

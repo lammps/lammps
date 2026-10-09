@@ -1,0 +1,260 @@
+LAMMPS (30 Sep 2026 - Development - patch_30Mar2026-4558-g045a0c15ab-modified)
+# created by fftool
+
+print "Methane in TIP4P water"
+Methane in TIP4P water
+
+units real
+boundary p p p
+
+atom_style full
+bond_style harmonic
+angle_style harmonic
+special_bonds lj/coul 0.0 0.0 0.5
+
+read_data data-mbar-lj.lmp
+Reading data file ...
+  orthogonal box = (-11.096164 -11.096164 -11.096164) to (11.096164 11.096164 11.096164)
+  2 by 2 by 2 MPI processor grid
+  reading atoms ...
+  1085 atoms
+  reading velocities ...
+  1085 velocities
+  scanning bonds ...
+  1 = max bonds/atom
+  scanning angles ...
+  6 = max angles/atom
+  orthogonal box = (-11.096164 -11.096164 -11.096164) to (11.096164 11.096164 11.096164)
+  2 by 2 by 2 MPI processor grid
+  reading bonds ...
+  724 bonds
+  reading angles ...
+  366 angles
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0.5     
+  special bond factors coul:  0        0        0.5     
+     4 = max # of 1-2 neighbors
+     3 = max # of 1-3 neighbors
+     3 = max # of 1-4 neighbors
+     4 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+  read_data CPU = 0.010 seconds
+
+pair_style hybrid   lj/cut/coul/long 10.0 10.0   lj/cut/tip4p/long/soft 3 4 2 2 0.125 1 0.5 10.0 10.0 10.0
+WARNING: Using a tip4p sub-style with other sub-styles that include coulomb interactions can result in inconsistent calculation of the coulomb interactions (src/lammps/src/pair_hybrid.cpp:386)
+pair_modify tail no
+kspace_style pppm/tip4p 1.0e-4
+
+pair_coeff    1    1  lj/cut/coul/long    0.0660   3.5000  # C4H C4H
+pair_coeff    1    2  lj/cut/coul/long    0.0445   2.9580  # C4H H
+pair_coeff    2    2  lj/cut/coul/long    0.0300   2.5000  # H H
+pair_coeff    3    3  lj/cut/tip4p/long/soft   0.1628   3.1644  1.0  # Ow Ow
+pair_coeff    3    4  lj/cut/tip4p/long/soft   0.0000   1.0000  1.0  # Ow Hw
+pair_coeff    4    4  lj/cut/tip4p/long/soft   0.0000   1.0000  1.0  # Hw Hw
+
+pair_coeff    1    3  lj/cut/tip4p/long/soft   0.1036   3.3279  1.0  # C4H Ow
+pair_coeff    1    4  lj/cut/tip4p/long/soft   0.0000   1.0000  1.0  # C4H Hw
+pair_coeff    2    3  lj/cut/tip4p/long/soft   0.0699   2.8126  1.0  # H Ow
+pair_coeff    2    4  lj/cut/tip4p/long/soft   0.0000   1.0000  1.0  # H Hw
+
+variable TK equal 300.0
+variable PBAR equal 1.0
+
+fix SHAKE all shake 0.0001 20 0 b 2 a 2
+Finding SHAKE clusters ...
+       0 = # of size 2 clusters
+       0 = # of size 3 clusters
+       0 = # of size 4 clusters
+     360 = # of frozen angles
+  find clusters CPU = 0.001 seconds
+
+neighbor 2.0 bin
+
+timestep 1.0
+
+velocity all create ${TK} 12345
+velocity all create 300 12345
+
+thermo_style custom step cpu etotal ke pe evdwl ecoul elong temp press density
+thermo 5000
+
+fix TPSTAT all npt temp ${TK} ${TK} 100 iso ${PBAR} ${PBAR} 1000
+fix TPSTAT all npt temp 300 ${TK} 100 iso ${PBAR} ${PBAR} 1000
+fix TPSTAT all npt temp 300 300 100 iso ${PBAR} ${PBAR} 1000
+fix TPSTAT all npt temp 300 300 100 iso 1 ${PBAR} 1000
+fix TPSTAT all npt temp 300 300 100 iso 1 1 1000
+
+# Coulomb
+# ramp to 1.1 (not 1.0) so that lambda = 1.0 is held for a full 20000-step
+# sampling window; the final 1.1 value is set only at the last step and is
+# not a sampled state
+variable lambda equal ramp(0.0,1.1)
+variable q1 equal -0.24*v_lambda
+variable q2 equal  0.06*v_lambda
+
+fix ADAPT all adapt/fep 20000   atom charge 1 v_q1   atom charge 2 v_q2   after yes
+
+fix PRINT all print 20000 "adapt  lambda = ${lambda}"
+
+# MBAR grids: absolute charges of each type at every state, 11 values equally
+# spaced from 0 to the fully-coupled charge (-0.24 for type 1, 0.06 for type 2)
+compute MBAR all mbar ${TK}   atom charge 1 0.0 -0.24 11   atom charge 2 0.0 0.06 11
+compute MBAR all mbar 300   atom charge 1 0.0 -0.24 11   atom charge 2 0.0 0.06 11
+
+# instantaneous reduced potentials at every state, written every 20 steps
+# (Nrepeat = 1, no time averaging) so pymbar gets the raw samples; equilibration
+# and decorrelation are detected per state during post-processing.
+# The values are large (energy of the whole system), so they are written with
+# 15 significant digits instead of the 6 digits of the default format. The
+# format starts with a space to separate the values from the row index.
+# Samples are grouped into states by timestep: state k = (step-1)/20000
+fix MBAR all ave/time 20 1 20 c_MBAR mode vector format " %.15g"   file mbar01-q.lmp
+
+dump TRAJ all custom 20000 dump-mbar-q.lammpstrj id mol type element x y z ix iy iz
+dump_modify TRAJ element C H O H
+
+run 220000
+PPPM initialization ...
+  extracting TIP4P info from pair style
+  using 12-bit tables for long-range coulomb
+  G vector (1/distance) = 0.28578327
+  grid = 15 15 15
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.014511103
+  estimated relative force accuracy = 4.3699755e-05
+  using double precision KISS FFT
+  3d grid and FFT values/proc = 2744 512
+WARNING: Communication cutoff 0 is shorter than a bond length based estimate of 3.6350000000000002. This may lead to errors. (src/lammps/src/comm.cpp:701)
+WARNING: Increasing communication cutoff to 13.082 for TIP4P pair style (src/lammps/src/FEP/pair_lj_cut_tip4p_long_soft.cpp:490)
+Generated 0 of 6 mixed pair_coeff terms from geometric mixing rule
+MBAR settings ...
+  temperature = 300.000000
+  tail no
+  states = 11
+  atom charge 1-1 grid: 0 -0.024 -0.048 -0.072 -0.096 -0.12 -0.144 -0.168 -0.192 -0.216 -0.24
+  atom charge 2-2 grid: 0 0.006 0.012 0.018 0.024 0.03 0.036 0.042 0.048 0.054 0.06
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 12.25
+  ghost atom cutoff = 13.082
+  binsize = 6.125, bins = 4 4 4
+  3 neighbor lists, perpetual/occasional/extra = 3 0 0
+  (1) pair lj/cut/coul/long, perpetual, skip from (3)
+      attributes: half, newton on
+      pair build: skip
+      stencil: none
+      bin: none
+  (2) pair lj/cut/tip4p/long/soft, perpetual, skip from (3)
+      attributes: half, newton on
+      pair build: skip
+      stencil: none
+      bin: none
+  (3) neighbor class addition, perpetual
+      attributes: half, newton on
+      pair build: half/bin/newton
+      stencil: half/bin/3d
+      bin: standard
+adapt  lambda = 0
+Per MPI rank memory allocation (min/avg/max) = 13.21 | 13.22 | 13.22 Mbytes
+   Step          CPU           TotEng         KinEng         PotEng         E_vdwl         E_coul         E_long          Temp          Press         Density    
+         0   0             -3304.3988      647.43194     -3951.8308      676.85649      27109.009     -31740.412      300           -6800.4483      0.9895803    
+      5000   12.405602     -3263.4125      648.95359     -3912.3661      725.5951       27094.267     -31737.761      300.70508     -280.01855      0.98690625   
+     10000   24.521338     -3372.9756      612.44442     -3985.42        706.78501      27041.879     -31737.667      283.78786     -1286.9083      0.97637722   
+     15000   36.840251     -3318.4483      650.03414     -3968.4824      680.05647      27089.43      -31741.409      301.20578     -1132.0968      0.98319112   
+adapt  lambda = 0.1
+     20000   49.077549     -3314.451       666.64806     -3981.0991      721.43632      27035.188     -31740.189      308.90415      374.97544      1.0206455    
+     25000   61.30458      -3347.6435      654.28703     -4001.9305      749.47979      26984.935     -31740.35       303.17643     -229.54496      0.98273345   
+     30000   73.811835     -3290.114       680.20768     -3970.3217      722.67251      27046.298     -31740.99       315.18727     -760.49989      0.97166799   
+     35000   86.559973     -3269.3835      651.8555      -3921.239       689.44993      27125.721     -31739.147      302.04974     -446.95423      1.0062969    
+adapt  lambda = 0.2
+     40000   98.994425     -3336.3705      629.8025      -3966.173       802.42716      26964.699     -31736.782      291.83106      1098.6549      0.98355136   
+     45000   112.00383     -3312.0882      674.58348     -3986.6717      764.00546      26985.2       -31739.918      312.58118      497.24113      1.006219     
+     50000   124.52207     -3281.158       656.99302     -3938.151       730.7782       27065.619     -31738.946      304.43031     -503.8472       0.961105     
+     55000   137.14948     -3228.6116      687.66771     -3916.2793      667.6679       27152.582     -31738.434      318.64401     -1416.5293      0.96637547   
+adapt  lambda = 0.3
+     60000   149.4797      -3324.8836      637.2218      -3962.1054      722.03162      27052.474     -31738.415      295.26893     -600.52733      0.97345444   
+     65000   162.00276     -3333.4233      623.80248     -3957.2258      740.98211      27043.012     -31742.096      289.05084     -215.21515      0.97337493   
+     70000   174.50721     -3252.4368      657.59484     -3910.0316      758.03179      27067.381     -31737.686      304.70917      371.32669      0.96944682   
+     75000   186.96446     -3319.4245      618.69046     -3938.115       756.00337      27042.196     -31738.578      286.68208      951.28693      1.0146015    
+adapt  lambda = 0.4
+     80000   199.11552     -3268.7374      640.36216     -3909.0995      815.91266      27012.932     -31739.657      296.72408      2131.4355      1.0002037    
+     85000   211.51928     -3346.1873      639.21099     -3985.3983      741.9424       27011.515     -31740.754      296.19067     -100.18824      0.9895709    
+     90000   223.87021     -3326.0972      620.10739     -3946.2046      685.27683      27109.488     -31742.793      287.33865     -1366.7402      0.96296891   
+     95000   236.17172     -3314.2121      657.82013     -3972.0323      728.08421      27038.29      -31740.038      304.81357     -291.3164       0.98181395   
+adapt  lambda = 0.5
+    100000   248.90689     -3338.7786      640.61752     -3979.3961      714.73514      27041.886     -31737.966      296.84241     -1076.4351      0.97334786   
+    105000   261.51082     -3316.7145      647.23637     -3963.9509      770.45293      27003.875     -31740.523      299.90938      937.37006      0.99358987   
+    110000   274.11213     -3307.5996      629.19759     -3936.7972      734.14796      27069.598     -31742.866      291.55076      132.28545      0.98914901   
+    115000   287.25862     -3305.3603      672.64707     -3978.0074      757.83658      27001.863     -31739.917      311.68391      192.01197      0.99342816   
+adapt  lambda = 0.6
+    120000   299.73543     -3391.3455      599.69227     -3991.0377      712.6566       27033.493     -31741.476      277.87891     -965.96895      0.99301087   
+    125000   311.99656     -3297.1394      662.63817     -3959.7775      720.61369      27058.768     -31741.684      307.04609     -575.88036      0.96777155   
+    130000   325.12011     -3271.9564      669.14611     -3941.1025      808.58946      26985.655     -31738.752      310.06168      1661.83        0.99500602   
+    135000   337.76838     -3320.5967      648.71581     -3969.3125      818.26386      26948.961     -31740.361      300.59491      1551.3385      0.99497437   
+adapt  lambda = 0.7
+    140000   350.78968     -3341.9228      630.5505      -3972.4733      757.12191      27008.076     -31740.766      292.17766      294.90242      0.99163541   
+    145000   365.50725     -3362.8041      606.11135     -3968.9155      702.72032      27068.472     -31743.477      280.85331     -1529.5858      0.95563323   
+    150000   378.49263     -3264.8007      653.39914     -3918.1998      733.18958      27083.519     -31739.798      302.76502      432.87964      0.98312607   
+    155000   391.23166     -3285.1725      638.78695     -3923.9595      703.72498      27110.538     -31742.216      295.99418     -492.43472      0.98515818   
+adapt  lambda = 0.8
+    160000   404.04255     -3339.9926      634.04189     -3974.0345      750.50361      27015.117     -31742.268      293.79546      142.14199      1.0026604    
+    165000   416.65263     -3290.0203      653.78694     -3943.8073      698.49409      27096.26      -31740.351      302.94471     -1058.9143      0.96559731   
+    170000   429.4726      -3286.3831      680.64384     -3967.0269      749.62679      27021.027     -31739.679      315.38937      757.55781      1.013046     
+    175000   441.97825     -3290.4485      638.8989      -3929.3474      747.24911      27064.253     -31743.722      296.04605      186.96583      0.9862023    
+adapt  lambda = 0.9
+    180000   454.16024     -3410.2069      619.28003     -4029.4869      821.82284      26888.081     -31742.283      286.95527      890.82185      0.99171221   
+    185000   466.32071     -3364.5356      632.87392     -3997.4095      719.65356      27024.218     -31744.683      293.25426     -250.36235      1.0063658    
+    190000   478.8933      -3298.5708      610.11052     -3908.6813      691.75017      27135         -31737.936      282.7064      -1183.759       0.9666982    
+    195000   491.75592     -3288.5042      635.2453      -3923.7495      716.15721      27098.358     -31740.329      294.35308     -61.388003      1.0047343    
+adapt  lambda = 1
+    200000   504.05029     -3265.3857      641.77836     -3907.1641      733.83121      27100.586     -31743.109      297.38031      53.007061      0.98531358   
+    205000   516.0767      -3309.7452      649.96026     -3959.7054      769.38836      27011.959     -31744.331      301.17154      624.08622      0.9972156    
+    210000   528.18578     -3288.0146      616.58915     -3904.6037      709.2651       27127.771     -31744.355      285.7084      -389.39147      0.97479112   
+    215000   540.6008      -3295.0534      648.15845     -3943.2119      765.29403      27033.52      -31743.783      300.33664      617.99419      0.97949781   
+adapt  lambda = 1.1
+    220000   552.89987     -3263.0173      647.67472     -3910.692       776.48103      27049.643     -31739.33       300.11249      824.25804      0.98636137   
+Loop time of 552.9 on 8 procs for 220000 steps with 1085 atoms
+
+Performance: 34.379 ns/day, 0.698 hours/ns, 397.902 timesteps/s, 431.723 katom-step/s
+99.8% CPU use with 8 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 336.46     | 380.44     | 430.62     | 156.7 | 68.81
+Bond    | 0.010914   | 0.020188   | 0.035024   |   5.6 |  0.00
+Kspace  | 71.745     | 121.83     | 165.76     | 276.7 | 22.03
+Neigh   | 11.929     | 11.935     | 11.942     |   0.1 |  2.16
+Comm    | 17.95      | 18.072     | 18.143     |   1.4 |  3.27
+Output  | 0.0036705  | 0.0043905  | 0.0053104  |   0.8 |  0.00
+Modify  | 16.251     | 17.548     | 18.369     |  16.9 |  3.17
+Other   |            | 3.048      |            |       |  0.55
+
+Nlocal:        135.625 ave         146 max         129 min
+Histogram: 2 1 0 1 1 1 1 0 0 1
+Nghost:        5007.75 ave        5068 max        4951 min
+Histogram: 1 1 1 1 0 1 0 1 1 1
+Neighs:              0 ave           0 max           0 min
+Histogram: 8 0 0 0 0 0 0 0 0 0
+
+Total # of neighbors = 0
+Ave neighs/atom = 0
+Ave special neighs/atom = 2.0092166
+Neighbor list builds = 8881
+Dangerous builds = 0
+
+write_data data-mbar-q.lmp
+System init for write_data ...
+PPPM initialization ...
+  extracting TIP4P info from pair style
+  using 12-bit tables for long-range coulomb
+  G vector (1/distance) = 0.28569771
+  grid = 15 15 15
+  stencil order = 5
+  estimated absolute RMS force accuracy = 0.014560416
+  estimated relative force accuracy = 4.3848262e-05
+  using double precision KISS FFT
+  3d grid and FFT values/proc = 2744 512
+Generated 0 of 6 mixed pair_coeff terms from geometric mixing rule
+Total wall time: 0:09:12

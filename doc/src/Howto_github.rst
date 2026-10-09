@@ -1,503 +1,447 @@
 LAMMPS GitHub tutorial
 ======================
 
-**written by Stefan Paquay**
+**written by Stefan Paquay, updated in 2026 by Axel Kohlmeyer**
 
 ----------
 
-This document describes the process of how to use GitHub to integrate
-changes or additions you have made to LAMMPS into the official LAMMPS
-distribution.  It uses the process of updating this very tutorial as an
-example to describe the individual steps and options.  You need to be
-familiar with git and you may want to have a look at the `git book
-<https://git-scm.com/book/>`_ to familiarize yourself with some of the
-more advanced git features used below.
+This document describes how to use git and GitHub to contribute changes
+or additions you have made to LAMMPS to the official LAMMPS distribution.
+Contributions to LAMMPS are submitted as *pull requests* on GitHub,
+where they are automatically tested and reviewed by the LAMMPS
+developers before they are included.  For more information on the
+requirements to have your code included into LAMMPS please see
+:doc:`this page <Modify_contribute>`.
 
-As of fall 2016, submitting contributions to LAMMPS via pull requests
-on GitHub is the preferred option for integrating contributed features
-or improvements to LAMMPS, as it significantly reduces the amount of
-work required by the LAMMPS developers. Consequently, creating a pull
-request will increase your chances to have your contribution included
-and will reduce the time until the integration is complete. For more
-information on the requirements to have your code included into LAMMPS
-please see :doc:`this page <Modify_contribute>`.
+This tutorial is meant for people with little or no experience with git
+and GitHub.  It uses the ``git`` command-line program for all steps on
+your local machine and the GitHub web interface for all steps that need
+to be done on the GitHub website.  The `git book
+<https://git-scm.com/book/>`_ is a good resource to learn more about git.
 
 ----------
 
-**Making an account**
+Preparations
+------------
 
-First of all, you need a GitHub account. This is fairly simple, just
-go to `GitHub <https://github.com>`_ and create an account by clicking
-the "Sign up for GitHub" button. Once your account is created, you
-can sign in by clicking the button in the top left and filling in your
-username or e-mail address and password.
+Create a GitHub account
+^^^^^^^^^^^^^^^^^^^^^^^
 
-----------
+First of all, you need a GitHub account.  Go to `GitHub
+<https://github.com>`_ and click on the "Sign up" button to create
+one.
 
-**Forking the repository**
+Install and configure git
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
-To get changes into LAMMPS, you need to first fork the `lammps/lammps`
-repository on GitHub. At the time of writing, *develop* is the preferred
-target branch. Thus go to `LAMMPS on GitHub <https://github.com/lammps/lammps>`_
-and make sure branch is set to "develop", as shown in the figure below.
-
-.. image:: JPG/tutorial_branch.png
-   :align: center
-
-If it is not, use the button to change it to *develop*. Once it is, use
-the fork button to create a fork.
-
-.. image:: JPG/tutorial_fork.png
-   :align: center
-
-This will create a fork (which is essentially a copy, but uses less
-resources) of the LAMMPS repository under your own GitHub account. You
-can make changes in this fork and later file *pull requests* to allow
-the upstream repository to merge changes from your own fork into the one
-we just forked from (or others that were forked from the same repository).
-At the same time, you can set things up, so you can include changes from
-upstream into your repository and thus keep it in sync with the ongoing
-LAMMPS development.
-
-----------
-
-**Adding changes to your own fork**
-
-Additions to the upstream version of LAMMPS are handled using *feature
-branches*.  For every new feature, a so-called feature branch is
-created, which contains only those modification relevant to one specific
-feature. For example, adding a single fix would consist of creating a
-branch with only the fix header and source file and nothing else.  It is
-explained in more detail here: `feature branch workflow
-<https://www.atlassian.com/git/tutorials/comparing-workflows/feature-branch-workflow>`_.
-
-**Feature branches**
-
-First of all, create a clone of your version on GitHub on your local
-machine via HTTPS:
+You need the ``git`` program installed on your local machine.  On
+Linux and macOS it is often already installed, otherwise it can be
+installed with the package manager (e.g. ``sudo apt install git`` on
+Debian and Ubuntu).  On Windows, we recommend to use git from within the
+:doc:`Windows Subsystem for Linux <Howto_wsl>`.  Before using git for
+the first time, set your name and e-mail address, which will be recorded
+with every change (commit) you make:
 
 .. code-block:: bash
 
-     git clone https://github.com/<your user name>/lammps.git <some name>
+   git config --global user.name "Your Name"
+   git config --global user.email "you@example.com"
 
-or, if you have set up your GitHub account for using SSH keys, via SSH:
+Set up access to GitHub with SSH keys
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. code-block:: bash
-
-     git clone git@github.com:<your user name>/lammps.git
-
-You can find the proper URL by clicking the "Clone or download"-button:
-
-.. image:: JPG/tutorial_https_block.png
-   :align: center
-
-The above command copies ("clones") the git repository to your local
-machine to a directory with the name you chose. If none is given, it will
-default to "lammps". Typical names are "mylammps" or something similar.
-
-You can use this local clone to make changes and test them without
-interfering with the repository on GitHub.
-
-To pull changes from upstream into this copy, you can go to the directory
-and use git pull:
+To upload ("push") changes to GitHub, git has to authenticate you.
+GitHub does not accept your account password for that.  The simplest
+way for use with the ``git`` command is an SSH key.  Create one with:
 
 .. code-block:: bash
 
-     cd mylammps
-     git checkout develop
-     git pull https://github.com/lammps/lammps develop
+   ssh-keygen -t ed25519 -C "you@example.com"
 
-You can also add this URL as a remote:
-
-.. code-block:: bash
-
-     git remote add upstream https://www.github.com/lammps/lammps
-
-From then on you can update your upstream branches with:
+and accept the default file location.  Then display the public part of
+the key with:
 
 .. code-block:: bash
 
-     git fetch upstream
+   cat ~/.ssh/id_ed25519.pub
 
-and then refer to the upstream repository branches with
-`upstream/develop` or `upstream/release` and so on.
-
-At this point, you typically make a feature branch from the updated
-branch for the feature you want to work on. This tutorial contains the
-workflow that updated this tutorial, and hence we will call the branch
-"github-tutorial-update":
-
-.. code-block:: bash
-
-    git fetch upstream
-    git checkout -b github-tutorial-update upstream/develop
-
-Now that we have changed branches, we can make our changes to our local
-repository. Just remember that if you want to start working on another,
-unrelated feature, you should switch branches!
+Copy the output and add it to your GitHub account: click on your profile
+picture in the top right corner of the GitHub website, select
+"Settings", then "SSH and GPG keys", then "New SSH key", paste the key,
+and click on "Add SSH key".  Please see the `GitHub documentation on SSH
+keys
+<https://docs.github.com/en/authentication/connecting-to-github-with-ssh>`_
+for more details.
 
 .. note::
 
-   Committing changes to the *develop*, *release*, or *stable* branches
-   is strongly discouraged.  While it may be convenient initially, it
-   will create more work in the long run.  Various texts and tutorials
-   on using git effectively discuss the motivation for using feature
-   branches instead.
+   Alternatively, you can use the `GitHub command-line tool
+   <https://cli.github.com>`_ and run ``gh auth login``, which can also
+   set up git to authenticate to GitHub (see :ref:`below <github_cli>`).
 
-**After changes are made**
+----------
 
-After everything is done, add the files to the branch and commit them:
+Forking the repository
+----------------------
+
+You cannot upload changes directly to the official LAMMPS repository.
+Instead you first create your own copy of it on GitHub, a so-called
+*fork*.  Go to the `LAMMPS repository on GitHub
+<https://github.com/lammps/lammps>`_ and click on the "Fork" button (1):
+
+.. figure:: JPG/github_fork_button.png
+   :align: center
+
+   The "Fork" button on the LAMMPS GitHub page
+
+On the next page, keep the default settings and click on "Create fork"
+(1).  The option "Copy the develop branch only" (2) should remain
+selected, since all contributions to LAMMPS must be based on the
+*develop* branch:
+
+.. figure:: JPG/github_create_fork.png
+   :align: center
+   :width: 62%
+
+   Creating a fork of the LAMMPS repository
+
+This creates a fork of the LAMMPS repository under your GitHub account,
+e.g. ``https://github.com/<your user name>/lammps``.  You can make
+changes in this fork and then submit a pull request asking the LAMMPS
+developers to include them into the official LAMMPS repository.
+
+----------
+
+Working with your fork on your local machine
+--------------------------------------------
+
+Clone your fork
+^^^^^^^^^^^^^^^
+
+Next you create a local copy (a *clone*) of your fork on your machine.
+On the GitHub page of your fork, click on the "Code" button (1), select
+"SSH" (2), and copy the URL (3):
+
+.. figure:: JPG/github_clone_url.png
+   :align: center
+
+   Copying the URL of your fork
+
+Then clone the repository and change into the new folder:
 
 .. code-block:: bash
 
-    git add doc/src/Howto_github.txt
-    git add doc/src/JPG/tutorial*.png
+   git clone git@github.com:<your user name>/lammps.git
+   cd lammps
+
+To be able to get the latest changes from the official LAMMPS
+repository later, add it as an additional *remote* repository named
+"upstream":
+
+.. code-block:: bash
+
+   git remote add upstream https://github.com/lammps/lammps.git
+
+The command ``git remote -v`` should now list "origin" (your fork) and
+"upstream" (the official repository).
+
+Create a feature branch
+^^^^^^^^^^^^^^^^^^^^^^^
+
+All changes for one specific feature or bug fix are made in a separate
+*feature branch*, which contains only the modifications relevant to that
+feature, e.g. for a new fix only its source and header files and its
+documentation.  For every new feature or bug fix, create a new branch
+from the latest version of the *develop* branch of the official
+repository.  In this example the branch is called "my-new-feature":
+
+.. code-block:: bash
+
+   git fetch upstream
+   git switch --no-track -c my-new-feature upstream/develop
+
+The ``--no-track`` flag is important: without it, git remembers the
+*develop* branch of the official repository as the counterpart of your
+new branch, and depending on your git settings, a later ``git push``
+may then try to upload your changes to the *develop* branch of your
+fork instead of a new branch.
+
+.. note::
+
+   Do not make changes in the *develop* branch of your fork, and never
+   use the same branch for unrelated changes.  This will make it much
+   easier to keep your changes separate and to get them included into
+   LAMMPS.
+
+Make and commit your changes
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Now make your changes, compile and test LAMMPS, and check that your
+changes follow the :doc:`requirements for contributions
+<Modify_requirements>` and the :doc:`programming style <Modify_style>`.
+The command ``git status`` shows which files are modified or new, and
+``git diff`` shows the changes in detail.  Then add the modified and new
+files to the next commit and record the commit with a short message that
+explains the change:
+
+.. code-block:: bash
+
+   git add src/EXTRA-FIX/fix_my_new_feature.cpp src/EXTRA-FIX/fix_my_new_feature.h
+   git add doc/src/fix_my_new_feature.rst
+   git commit -m "add fix my/new/feature"
 
 .. warning::
 
-   Do not use *git commit -a* (or *git add -A*\ ).  The -a flag (or -A
-   flag) will automatically include **all** modified **and** new files
-   and that is rarely the behavior you want.  It can easily lead to
-   accidentally adding unrelated and unwanted changes into the
-   repository.  Instead it is preferable to explicitly use *git add*,
-   *git rm*, *git mv* for adding, removing, renaming individual files,
-   respectively, and then *git commit* to finalize the commit.
-   Carefully check all pending changes with *git status* before
+   Do not use ``git commit -a`` (or ``git add -A``).  These will
+   automatically include **all** modified **and** new files and that is
+   rarely the behavior you want.  It can easily lead to accidentally
+   adding unrelated and unwanted changes into the repository.  Instead
+   it is preferable to explicitly use ``git add``, ``git rm``, and ``git
+   mv`` for adding, removing, and renaming individual files,
+   respectively, and then ``git commit`` to finalize the commit.
+   Carefully check all pending changes with ``git status`` before
    committing them.  If you find doing this on the command-line too
-   tedious, consider using a GUI, for example the one included in git
-   distributions written in Tk, i.e. use *git gui* (on some Linux
+   tedious, consider using a GUI, for example ``git gui`` (on some Linux
    distributions it may be required to install an additional package to
    use it).
 
-After adding all files, the change set can be committed with some
-useful message that explains the change.
+You can make as many commits in your branch as you like.
+
+Upload your changes to GitHub
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+To upload ("push") your branch to your fork on GitHub for the first
+time, use:
 
 .. code-block:: bash
 
-   git commit -m 'Finally updated the GitHub tutorial'
+   git push -u origin my-new-feature
 
-After the commit, the changes can be pushed to the same branch on GitHub:
+After that, a plain ``git push`` will upload any additional commits in
+this branch.
+
+----------
+
+Filing a pull request
+---------------------
+
+So far, all changes were made only in *your* copies of LAMMPS.  To ask
+for your changes to be included into the official LAMMPS version, you
+need to file a *pull request*.  After pushing a branch, GitHub shows a
+banner on the page of your fork (and the LAMMPS repository) with a
+"Compare & pull request" button (1):
+
+.. figure:: JPG/github_compare_pr.png
+   :align: center
+
+   Starting a new pull request
+
+This opens the form for a new pull request:
+
+.. figure:: JPG/github_open_pr.png
+   :align: center
+
+   Creating a pull request
+
+Please check and fill in the following:
+
+- The pull request must be from the feature branch in your fork to the
+  *develop* branch of the official LAMMPS repository (1).
+- Give the pull request a short title that describes the change (2).
+- The description field (3) is pre-filled with a template.  Fill in
+  each section and replace the comments with your information.  In
+  particular, please state whether and how you used AI tools to create
+  the changes in the "Artificial Intelligence (AI) Tools Usage" section.
+  Do not change or remove the "Licensing" statement.
+- Leave the check box "Allow edits by maintainers" (4) selected.  This allows the LAMMPS developers to make small changes
+  or corrections directly in your branch, which can speed up the
+  inclusion of your pull request significantly.
+- Click on "Create pull request" (5).  If your changes are not yet
+  complete, but you want to show them to the LAMMPS developers or see
+  the results of the automated tests, select "Create draft pull
+  request" from the drop-down menu instead.  You can later mark a draft
+  pull request as "Ready for review".
+
+----------
+
+After filing a pull request
+---------------------------
+
+Automated checks
+^^^^^^^^^^^^^^^^
+
+After filing the pull request, several automated checks are started.
+They test, for example, whether your changes compile on several
+platforms and with different settings, pass the unit tests, and follow
+some of the LAMMPS formatting conventions.  The status of these checks
+is shown at the bottom of the "Conversation" tab of the pull request (1):
+
+.. figure:: JPG/github_pr_checks.png
+   :align: center
+   :width: 71%
+
+   Automated checks of a pull request
+
+If any of the checks are failing, your pull request will not be merged.
+Click on a failed check (or open the "Checks" tab) to see what went
+wrong.  It is your responsibility to remove the reason(s) for the failed test(s).  If
+you need help with this, please add a comment to the pull request
+explaining your problem.
+
+Updating a pull request
+^^^^^^^^^^^^^^^^^^^^^^^
+
+Any additional commits you push to your feature branch automatically
+become part of the pull request.  After each push, the automated checks
+are run again.  This way you can add changes that you forgot, or that
+were requested by the LAMMPS developers.
+
+LAMMPS developers may also push changes to your branch (if you allowed
+edits from maintainers).  Thus, before continuing to work on your
+branch, always update your local copy first with:
 
 .. code-block:: bash
 
+   git pull
+
+If the *develop* branch has changed in the meantime in a way that
+conflicts with your changes, you need to merge those changes into your
+branch, resolve the conflicts, and push the result:
+
+.. code-block:: bash
+
+   git fetch upstream
+   git merge upstream/develop
    git push
-
-Git will ask you for your user name and password on GitHub if you have
-not configured anything. If your local branch is not present on GitHub yet,
-it will ask you to add it by running
-
-.. code-block:: bash
-
-   git push --set-upstream origin github-tutorial-update
-
-If you correctly type your user name and
-password, the feature branch should be added to your fork on GitHub.
-
-If you want to make really sure you push to the right repository
-(which is good practice), you can provide it explicitly:
-
-.. code-block:: bash
-
-   git push origin
-
-or using an explicit URL:
-
-.. code-block:: bash
-
-   git push git@github.com:Pakketeretet2/lammps.git
-
-----------
-
-**Filing a pull request**
-
-Up to this point in the tutorial, all changes were to *your* clones of
-LAMMPS.  Eventually, however, you want this feature to be included into
-the official LAMMPS version.  To do this, you will want to file a pull
-request by clicking on the "New pull request" button:
-
-.. image:: JPG/tutorial_new_pull_request.png
-   :align: center
-
-Make sure that the current branch is set to the correct one, which, in
-this case, is "github-tutorial-update". If done correctly, the only
-changes you will see are those that were made on this branch.
-
-This will open up a new window that lists changes made to the
-repository. If you are just adding new files, there is not much to do,
-but I suppose merge conflicts are to be resolved here if there are
-changes in existing files. If all changes can automatically be merged,
-green text at the top will say so and you can click the "Create pull
-request" button, see image.
-
-.. image:: JPG/tutorial_create_new_pull_request1.png
-   :align: center
-
-Before creating the pull request, make sure the short title is accurate
-and add a comment with details about your pull request.  Here you write
-what your modifications do and why they should be incorporated upstream.
-
-Note the checkbox that says "Allow edits from maintainers".
-This is checked by default checkbox (although in my version of Firefox, only the checkmark is visible):
-
-.. image:: JPG/tutorial_edits_maintainers.png
-   :align: center
-
-If it is checked, maintainers can immediately add their own edits to the
-pull request.  This helps the inclusion of your branch significantly, as
-simple/trivial changes can be added directly to your pull request branch
-by the LAMMPS maintainers.  The alternative would be that they make
-changes on their own version of the branch and file a reverse pull
-request to you.  Just leave this box checked unless you have a very good
-reason not to.
-
-Now just write some nice comments and click on "Create pull request".
-
-.. image:: JPG/tutorial_create_new_pull_request2.png
-   :align: center
-
-----------
-
-**After filing a pull request**
 
 .. note::
 
-   When you submit a pull request (or ask for a pull request) for the
-   first time, you will receive an invitation to become a LAMMPS project
-   collaborator. Please accept this invite as being a collaborator will
-   simplify certain administrative tasks and will probably speed up the
-   merging of your feature, too.
+   Please do not use ``git rebase`` and ``git push --force`` on a branch
+   for which you have filed a pull request.  This rewrites the history
+   of the branch and can cause problems for others who have already
+   worked with it.
 
-You will notice that after filing the pull request, some checks are
-performed automatically:
+Reviews, labels, and assignments
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. image:: JPG/tutorial_automated_checks.png
+Every pull request is reviewed by LAMMPS developers.  Some reviewers
+are requested automatically, since they are associated with the
+modified files in the `.github/CODEOWNERS
+<https://github.com/lammps/lammps/blob/develop/.github/CODEOWNERS>`_
+file.  Reviewers and other developers may comment on your changes or
+request specific changes from you.  Please respond to these comments; if
+requested changes are not addressed, your pull request cannot be merged.
+Before a pull request can be merged, it has to pass all automated tests
+and has to be approved by at least two LAMMPS developers with write
+access to the repository, where merging the pull request counts as one
+approval.
+
+The reviewers (1), the assigned LAMMPS developer (2), the labels (3),
+and the milestone (4) of the pull request are shown on the right side of
+the page:
+
+.. figure:: JPG/github_pr_sidebar.png
    :align: center
 
-If all is fine, you will see this:
+   Reviewers, assignee, labels, and milestone of a pull request
 
-.. image:: JPG/tutorial_automated_checks_passed.png
-   :align: center
+LAMMPS developers may assign a pull request to a developer who looks
+after it and determines what is needed before it can be merged.  The
+milestone indicates the release in which the pull request is planned to
+be included.  The labels are mostly for bookkeeping purposes, but a few
+of them are important:
+*needs_work* means that the pull request is not complete and changes
+from you are required, *work_in_progress* means that changes are still
+being made (by you or a LAMMPS developer), and *ready_for_merge* means
+that the pull request is considered complete and ready to be merged.
 
-If any of the checks are failing, your pull request will not be
-processed, as your changes may break compilation for certain
-configurations or may not merge cleanly. It is your responsibility
-to remove the reason(s) for the failed test(s). If you need help
-with this, please contact the LAMMPS developers by adding a comment
-explaining your problems with resolving the failed tests.
+Sometimes LAMMPS developers do not push changes to your branch directly,
+but instead file a pull request in **your** fork (a "reverse pull
+request") for you to review.  If you agree with the changes, you can
+merge them on the GitHub page of that pull request, and then update your
+local copy with ``git pull``.
 
-A few further interesting things (can) happen to pull requests before
-they are included.
+.. note::
 
-**Additional changes**
+   Contributors of new packages or other significant contributions are
+   invited to become LAMMPS project collaborators with "Triage"
+   permissions.  This allows them to help with reviewing pull requests
+   and some administrative tasks, but their approvals are informational
+   only.
 
-First of all, any additional changes you push into your branch in your
-repository will automatically become part of the pull request:
-
-.. image:: JPG/tutorial_additional_changes.png
-   :align: center
-
-This means you can add changes that should be part of the feature after
-filing the pull request, which is useful in case you have forgotten
-them, or if a developer has requested that something needs to be changed
-before the feature can be accepted into the official LAMMPS version.
-After each push, the automated checks are run again.
-
-**Labels**
-
-LAMMPS developers may add labels to your pull request to assign it to
-categories (mostly for bookkeeping purposes), but a few of them are
-important: *needs_work*, *work_in_progress*, *run_tests*,
-*test_for_regression*, and *ready_for_merge*.  The first two indicate,
-that your pull request is not considered to be complete. With
-"needs_work" the burden is on exclusively on you; while
-"work_in_progress" can also mean, that a LAMMPS developer may want to
-add changes. Please watch the comments to the pull requests. The two
-"test" labels are used to trigger extended tests before the code is
-merged. This is sometimes done by LAMMPS developers, if they suspect
-that there may be some subtle side effects from your changes. It is not
-done by default, because those tests are very time-consuming.  The
-*ready_for_merge* label is usually attached when the LAMMPS developer
-assigned to the pull request considers this request complete and to
-trigger a final full test evaluation.
-
-**Reviews**
-
-As of Fall 2021, a pull request needs to pass all automatic tests and at
-least 1 approving review from a LAMMPS developer with write access to
-the repository before it is eligible for merging.  In case your changes
-touch code that certain developers are associated with, they are
-auto-requested by the GitHub software.  Those associations are set in
-the file `.github/CODEOWNERS
-<https://github.com/lammps/lammps/blob/develop/.github/CODEOWNERS>`_ Thus
-if you want to be automatically notified to review when anybody changes
-files or packages, that **you** have contributed to LAMMPS, you can add
-suitable patterns to that file, or a LAMMPS developer may add you.
-
-Otherwise, you can also manually request reviews from specific developers,
-or LAMMPS developers - in their assessment of your pull request - may
-determine who else should be reviewing your contribution and add that person.
-Through reviews, LAMMPS developers also may request specific changes from you.
-If those are not addressed, your pull requests cannot be merged.
-
-**Assignees**
-
-There is an assignee property for pull requests. If the request has not
-been reviewed by any developer yet, it is not assigned to anyone. After
-revision, a developer can choose to assign it to either a) you, b) a
-LAMMPS developer (including him/herself) or c) Axel Kohlmeyer (akohlmey).
-
-* Case a) happens if changes are required on your part
-* Case b) means that at the moment, it is being tested and reviewed by a
-  LAMMPS developer with the expectation that some changes would be required.
-  After the review, the developer can choose to implement changes directly
-  or suggest them to you.
-* Case c) means that the pull request has been assigned to the developer
-  overseeing the merging of pull requests into the *develop* branch.
-
-In this case, Axel assigned the tutorial to Steve:
-
-.. image:: JPG/tutorial_steve_assignee.png
-   :align: center
-
-**Edits from LAMMPS maintainers**
-
-If you allowed edits from maintainers (the default), any LAMMPS
-maintainer can add changes to your pull request.  In this case, both
-Axel and Richard made changes to the tutorial:
-
-.. image:: JPG/tutorial_changes_others.png
-   :align: center
-
-**Reverse pull requests**
-
-Sometimes, however, you might not feel comfortable having other people
-push changes into your own branch, or maybe the maintainers are not sure
-their idea was the right one.  In such a case, they can make changes,
-reassign you as the assignee, and file a "reverse pull request", i.e.
-file a pull request in **your** forked GitHub repository to include
-changes in the branch, that you have submitted as a pull request
-yourself.  In that case, you can choose to merge their changes back into
-your branch, possibly make additional changes or corrections and proceed
-from there.  It looks something like this:
-
-.. image:: JPG/tutorial_reverse_pull_request.png
-   :align: center
-
-For some reason, the highlighted button did not work in my case, but I
-can go to my own repository and merge the pull request from there:
-
-.. image:: JPG/tutorial_reverse_pull_request2.png
-   :align: center
-
-Be sure to check the changes to see if you agree with them by clicking
-on the tab button:
-
-.. image:: JPG/tutorial_reverse_pull_request3.png
-   :align: center
-
-In this case, most of it is changes in the markup and a short rewrite of
-Axel's explanation of the "git gui" and "git add" commands.
-
-.. image:: JPG/tutorial_reverse_pull_request4.png
-   :align: center
-
-Because the changes are OK with us, we are going to merge by clicking on
-"Merge pull request".  After a merge it looks like this:
-
-.. image:: JPG/tutorial_reverse_pull_request5.png
-   :align: center
-
-Now, since in the meantime our local text for the tutorial also changed,
-we need to pull Axel's change back into our branch, and merge them:
-
-.. code-block:: bash
-
-    git add Howto_github.txt
-    git add JPG/tutorial_reverse_pull_request*.png
-    git commit -m "Updated text and images on reverse pull requests"
-    git pull
-
-In this case, the merge was painless because git could auto-merge:
-
-.. image:: JPG/tutorial_reverse_pull_request6.png
-   :align: center
-
-With Axel's changes merged in and some final text updates, our feature
-branch is now perfect as far as we are concerned, so we are going to
-commit and push again:
-
-.. code-block:: bash
-
-    git add Howto_github.txt
-    git add JPG/tutorial_reverse_pull_request6.png
-    git commit -m "Merged Axel's suggestions and updated text"
-    git push git@github.com:Pakketeretet2/lammps
-
-This merge also shows up on the lammps GitHub page:
-
-.. image:: JPG/tutorial_reverse_pull_request7.png
-   :align: center
+More details about the processing of pull requests by the LAMMPS
+developers are in the file `doc/github-development-workflow.md
+<https://github.com/lammps/lammps/blob/develop/doc/github-development-workflow.md>`_.
 
 ----------
 
-**After a merge**
+After the pull request is merged
+--------------------------------
 
-When everything is fine, the feature branch is merged into the *develop* branch:
+When everything is fine, a LAMMPS developer will merge your pull
+request into the *develop* branch, and the pull request page shows a
+"Delete branch" button (1).  Use it to delete the feature branch from
+your fork on GitHub, since it is no longer needed:
 
-.. image:: JPG/tutorial_merged.png
+.. figure:: JPG/github_pr_merged.png
    :align: center
+   :width: 74%
 
-Now one question remains: What to do with the feature branch that got
-merged into upstream?
+   A merged pull request
 
-It is in principle safe to delete them from your own fork. This helps
-keep it a bit more tidy. Note that you first have to switch to another
-branch!
-
-.. code-block:: bash
-
-   git checkout develop
-   git pull https://github.com/lammps/lammps develop
-   git branch -d github-tutorial-update
-
-If you do not pull first, it is not really a problem but git will warn
-you at the next statement that you are deleting a local branch that
-was not yet fully merged into HEAD. This is because git does not yet
-know your branch just got merged into LAMMPS upstream. If you
-first delete and then pull, everything should still be fine.
-You can display all branches that are fully merged by:
-
-Finally, if you delete the branch locally, you might want to push this
-to your remote(s) as well:
+Then update the *develop* branch on your local machine and delete the
+local feature branch:
 
 .. code-block:: bash
 
-   git push origin :github-tutorial-update
+   git switch develop
+   git pull upstream develop
+   git branch -d my-new-feature
 
-**Recent changes in the workflow**
+If you want to keep the *develop* branch of your fork on GitHub up to
+date as well, use the "Sync fork" button on the GitHub page of your
+fork, or push the updated local branch with ``git push origin
+develop``.
 
-Some recent changes to the workflow are not captured in this tutorial.
-For example, in addition to the *develop* branch, to which all new
-features should be submitted, there is also a *release*, a *stable*, and
-a *maintenance* branch; the *release* branch is updated from the
-*develop* branch as part of a "feature release", and *stable* (together
-with *release*) are updated from *develop* when a "stable release" is
-made. In between stable releases, selected bug fixes and infrastructure
-updates are back-ported from the *develop* branch to the *maintenance*
-branch and occasionally merged to *stable* as an update release.
+----------
 
-Furthermore, the naming of the release tags now follow the pattern
-"patch\_<Day><Month><Year>" to simplify comparisons between releases.
-For stable releases additional "stable\_<Day><Month><Year>" tags are
-applied and update releases are tagged with
-"stable\_<Day><Month><Year>\_update<Number>", Finally, all releases and
-submissions are subject to automatic testing and code checks to make
-sure they compile with a variety of compilers and popular operating
-systems.  Some unit and regression testing is applied as well.
+.. _github_cli:
 
-A detailed discussion of the LAMMPS developer GitHub workflow can be
-found in the file `doc/github-development-workflow.md
-<https://github.com/lammps/lammps/blob/develop/doc/github-development-workflow.md>`_
+Using the GitHub command-line tool
+----------------------------------
+
+Many of the steps on the GitHub website can also be done with the
+`GitHub command-line tool <https://cli.github.com>`_ ``gh``, after
+logging in to GitHub with ``gh auth login``.  Some examples:
+
+.. code-block:: bash
+
+   gh repo fork lammps/lammps --clone   # create a fork and clone it
+   gh pr create --draft                 # file a (draft) pull request for the current branch
+   gh pr checks                         # show the status of the automated checks
+   gh pr view --web                     # open the pull request in the web browser
+
+Please see the section on the :ref:`GitHub command-line interface
+<gh-cli>` for more examples.
+
+----------
+
+LAMMPS branches and releases
+----------------------------
+
+All new features and bug fixes are submitted to the *develop* branch.
+In addition, there are several other branches in the LAMMPS repository:
+the *release* branch is updated from the *develop* branch as part of a
+"feature release", and *stable* (together with *release*) is updated
+from *develop* when a "stable release" is made.  In between stable
+releases, selected bug fixes and infrastructure updates are back-ported
+from the *develop* branch to the *maintenance* branch and occasionally
+merged into *stable* as an update release.
+
+The release tags follow the pattern "patch\_<Day><Month><Year>", e.g.
+"patch_10Sep2025".  Stable releases have additional
+"stable\_<Day><Month><Year>" tags, and update releases are tagged with
+"stable\_<Day><Month><Year>\_update<Number>".
 
 .. raw:: latex
 

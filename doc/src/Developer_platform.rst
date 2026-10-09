@@ -86,6 +86,9 @@ to the path as a C++ string class instance.
 .. doxygenfunction:: file_is_writable
    :project: progguide
 
+.. doxygenfunction:: file_is_executable
+   :project: progguide
+
 .. doxygenfunction:: file_redirect
    :project: progguide
 
@@ -174,4 +177,7 @@ Compressed file I/O functions
    :project: progguide
 
 .. doxygenfunction:: compressed_write
+   :project: progguide
+
+.. doxygenfunction:: compressed_open_error
    :project: progguide

@@ -329,7 +329,7 @@ by :ref:`(Luding) <Luding2008>`, where the force is computed according to:
 
    F_{ne}(\delta) = \begin{cases}
     k_1\delta & \text{if } k_2(\delta-\delta_0) \ge k_1\delta \\
-    k_2(\delta-\delta_0) & \text{if } k_1\delta \gt k_2(\delta-\delta_0) \gt -k_c\delta \\
+    k_2(\delta-\delta_0) & \text{if } k_1\delta > k_2(\delta-\delta_0) > -k_c\delta \\
     -k_c\delta & \text{if } -k_c\delta \ge k_2(\delta-\delta_0)
    \end{cases}
 
@@ -339,7 +339,7 @@ where
 
    k_2(\delta_{\text{max}}) = \begin{cases}
     \hat{k_2} & \text{if } \delta_\text{max} \ge \delta_\text{max}^* \\
-    k_1 + (\hat{k_2}-k_1)\frac{\delta_\text{max}}{\delta_{\text{max}}^*} & \ \text{if } \delta_\text{max} \lt \delta_\text{max}^*
+    k_1 + (\hat{k_2}-k_1)\frac{\delta_\text{max}}{\delta_{\text{max}}^*} & \ \text{if } \delta_\text{max} < \delta_\text{max}^*
    \end{cases}
 
 and

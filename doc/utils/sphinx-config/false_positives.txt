@@ -1458,6 +1458,7 @@ gerolf
 Gerolf
 Gershgorin
 getrusage
+getsyserror
 getter
 gettimeofday
 geturl

@@ -157,6 +157,46 @@ TEST(MathSpecial, powint_consistency_with_pow)
 }
 
 // -------------------------------------------------------------------------
+// powauto()
+// -------------------------------------------------------------------------
+
+TEST(MathSpecial, powauto_integer_exponent)
+{
+    // must agree exactly with powint() where the exponent has an integer value
+    EXPECT_DOUBLE_EQ(MathSpecial::powauto(2.0, 10.0), MathSpecial::powint(2.0, 10));
+    EXPECT_DOUBLE_EQ(MathSpecial::powauto(1.7, 14.0), MathSpecial::powint(1.7, 14));
+    EXPECT_DOUBLE_EQ(MathSpecial::powauto(1.7, -7.0), MathSpecial::powint(1.7, -7));
+    EXPECT_DOUBLE_EQ(MathSpecial::powauto(-2.0, 3.0), -8.0);
+}
+
+TEST(MathSpecial, powauto_fractional_exponent)
+{
+    EXPECT_DOUBLE_EQ(MathSpecial::powauto(4.0, 0.5), 2.0);
+    EXPECT_DOUBLE_EQ(MathSpecial::powauto(2.0, -6.5), std::pow(2.0, -6.5));
+    EXPECT_DOUBLE_EQ(MathSpecial::powauto(1.7, 3.25), std::pow(1.7, 3.25));
+}
+
+TEST(MathSpecial, powauto_edge_cases)
+{
+    // zero exponent wins over zero base, as in powint() and std::pow()
+    EXPECT_DOUBLE_EQ(MathSpecial::powauto(0.0, 0.0), 1.0);
+    EXPECT_DOUBLE_EQ(MathSpecial::powauto(5.0, 0.0), 1.0);
+    // powint() convention for a zero base, which differs from std::pow()
+    EXPECT_DOUBLE_EQ(MathSpecial::powauto(0.0, 3.0), 0.0);
+    EXPECT_DOUBLE_EQ(MathSpecial::powauto(0.0, -3.0), 0.0);
+}
+
+TEST(MathSpecial, powauto_consistency_with_pow)
+{
+    const double base = 1.7;
+    for (int n = -5; n <= 10; n++) {
+        EXPECT_NEAR(MathSpecial::powauto(base, (double) n), std::pow(base, (double) n),
+                    std::abs(std::pow(base, (double) n)) * 1e-14)
+            << "powauto(" << base << ", " << n << ")";
+    }
+}
+
+// -------------------------------------------------------------------------
 // powsinxx()
 // -------------------------------------------------------------------------
 

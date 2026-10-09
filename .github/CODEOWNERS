@@ -200,3 +200,10 @@
 /.github/copilot-instructions.md   @akohlmey @stanmoore1
 /.github/dev-docs/*                @akohlmey @stanmoore1
 /.github/instructions/*            @akohlmey @stanmoore1
+
+# project policies, automated tests, and release process
+/SECURITY.md                       @akohlmey
+/.github/CODEOWNERS                @akohlmey
+/.github/release_steps.md          @akohlmey
+/.github/security-insights.yml     @akohlmey
+/.github/workflows/                @akohlmey

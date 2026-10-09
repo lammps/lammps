@@ -3,7 +3,7 @@ Polarizable models
 
 In polarizable force fields the charge distributions in molecules and
 materials respond to their electrostatic environments. Polarizable
-systems can be simulated in LAMMPS using three methods:
+systems can be simulated in LAMMPS using three charge-based methods:
 
 * the fluctuating charge method, implemented in the :doc:`QEQ <fix_qeq>`
   package,
@@ -11,6 +11,12 @@ systems can be simulated in LAMMPS using three methods:
   :doc:`CORESHELL <Howto_coreshell>` package,
 * the thermalized Drude dipole method, implemented in the
   :doc:`DRUDE <Howto_drude>` package.
+
+In addition, the :doc:`AMOEBA and HIPPO force fields <Howto_amoeba>` in
+the AMOEBA package use induced point dipoles, and the :ref:`DIELECTRIC
+package <PKG-DIELECTRIC>` computes induced charges at interfaces between
+regions with different dielectric constants.  These are not discussed
+further on this page.
 
 The fluctuating charge method calculates instantaneous charges on
 interacting atoms based on the electronegativity equalization
@@ -51,7 +57,9 @@ trajectories since the additional degrees of freedom representing
 polarization are massless.  An alternative is to attribute a mass to
 the additional degrees of freedom and perform time integration using
 an extended Lagrangian technique. For the fluctuating charge scheme
-this is done by :doc:`fix qeq/dynamic <fix_qeq>`, and for the
+this is done by :doc:`fix qeq/dynamic <fix_qeq>` or the
+:doc:`qeq/point/xlmd, qeq/shielded/xlmd, and qeq/slater/xlmd <fix_qeq>`
+variants of fix qeq, and for the
 charge-on-spring models by the methods outlined in the next two
 sections. The assignment of masses to the additional degrees of
 freedom can lead to unphysical trajectories if care is not exerted in

@@ -18,8 +18,9 @@ between the two particles, but can also include data on the bond
 orientation for rotational models. This produces a stress-free initial
 state. Furthermore, bonds are allowed to break under large strains,
 producing fracture. The examples/bpm directory has sample input scripts
-for simulations of the fragmentation of an impacted plate and the
-pouring of extended, elastic bodies. See :ref:`(Clemmer2) <howto-Clemmer>`
+for simulations of, e.g., the fragmentation of an impacted plate, the
+pouring of extended, elastic bodies, mechanical metamaterials, plastic
+deformation, peridynamic models, and wires. See :ref:`(Clemmer2) <howto-Clemmer>`
 for more general information on the approach and the LAMMPS implementation.
 Example movies illustrating some of these capabilities are found at
 https://www.lammps.org/gallery/bpmpackage/.
@@ -42,7 +43,7 @@ such as those created by pouring grains using :doc:`fix pour
 
 ----------
 
-Currently, there are three types of bonds included in the BPM package. The
+There are five bond styles included in the BPM package. The
 first bond style, :doc:`bond bpm/spring <bond_bpm_spring>`, only applies
 pairwise, central body forces. Point particles must have :doc:`bond atom
 style <atom_style>` and may be thought of as nodes in a spring
@@ -59,12 +60,19 @@ particles and store bonds, and therefore use a :doc:`bpm/sphere atom
 style <atom_style>`.  This also requires a unique integrator :doc:`fix
 nve/bpm/sphere <fix_nve_bpm_sphere>` which numerically integrates
 orientation similar to :doc:`fix nve/asphere <fix_nve_asphere>`.
+The :doc:`bond bpm/peri <bond_bpm_peri>` style implements the
+peridynamic models of the :doc:`PERI package <pair_peri>` as a bond
+style (see the :doc:`Howto peri <Howto_peri>` page), and the
+:doc:`bond bpm/zero <bond_bpm_zero>` style stores the reference state
+and can break bonds, but computes no bond forces.
 
-In addition to bond styles, a new pair style :doc:`pair bpm/spring
-<pair_bpm_spring>` was added to accompany the bpm/spring bond
-style. By default, this pair style is simply a hookean repulsion with
-similar velocity damping as its sister bond style, but optional
-arguments can be used to modify the force.
+In addition to bond styles, the pair style :doc:`pair bpm/spring
+<pair_bpm_spring>` accompanies the bpm/spring bond style.  By default,
+this pair style is simply a hookean repulsion with similar velocity
+damping as its sister bond style, but optional arguments can be used to
+modify the force.  The pair style :doc:`pair bpm/peri <pair_bpm_peri>`
+provides the short-range contact forces between non-bonded nodes for
+the bpm/peri bond style.
 
 ----------
 

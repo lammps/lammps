@@ -623,5 +623,5 @@ cmake -S cmake -B build -C cmake/presets/gcc.cmake -C cmake/presets/most.cmake \
   -D PKG_KOKKOS=on -D Kokkos_ENABLE_OPENMP=on \
   -D DOWNLOAD_POTENTIALS=off -D ENABLE_TESTING=on -G Ninja
 cmake --build build -j 4
-cd build && ctest -V -R pair
+ctest --test-dir build -V -R pair
 ```

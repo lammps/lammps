@@ -12,7 +12,8 @@ CMake build system
 ==================
 
 If you are building with CMake, you need at least CMake version 3.27 and
-a compatible build tool (e.g. GNU make or ninja-build on Linux).  The
+a compatible build tool (e.g. GNU make or :ref:`Ninja <ninja_ccache>`,
+which is available for Linux, macOS, and Windows).  The
 CMake scripting includes tests for required software and will
 auto-detect and auto-enable available tools and libraries for optional
 features (of course those can be disabled, if desired).  If required

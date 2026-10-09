@@ -180,7 +180,7 @@ etc).  Three additional kinds of keywords can also be specified (c_ID,
 f_ID, v_name), where a :doc:`compute <compute>` or :doc:`fix <fix>` or
 :doc:`variable <variable>` provides the value to be output.  In each
 case, the compute, fix, or variable must generate global values for
-input to the :doc:`thermo_style custom <dump>` command.
+input to the :doc:`thermo_style custom <thermo_style>` command.
 
 Note that thermodynamic output values can be "extensive" or
 "intensive".  The former scale with the number of atoms in the system

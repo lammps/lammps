@@ -1,6 +1,10 @@
 Security considerations
 =======================
 
+.. raw:: html
+
+   <a href="https://www.bestpractices.dev/projects/15199"><img src="https://www.bestpractices.dev/projects/15199/badge"></a>
+
 This page first describes what a LAMMPS input file may do on the
 machine where LAMMPS is run.  It then describes which files from outside
 of the LAMMPS distribution may be used when building LAMMPS, how the

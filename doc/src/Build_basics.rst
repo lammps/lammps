@@ -37,16 +37,16 @@ standard. A more detailed discussion of that is below.
 
       .. code-block:: bash
 
-         -D BUILD_MPI=value        # yes or no, default is yes if CMake finds MPI
-         -D BUILD_OMP=value        # yes or no, default is yes if a compatible
+         -D BUILD_MPI=value        # on or off, default is on if CMake finds MPI
+         -D BUILD_OMP=value        # on or off, default is on if a compatible
                                    # compiler is detected
          -D LAMMPS_MACHINE=name    # name = mpi, serial, mybox, titan, laptop, etc
                                    # no default value
 
-      The executable created by CMake (after running make) is named
+      The executable created by CMake (after compilation) is named
       ``lmp`` unless the ``LAMMPS_MACHINE`` option is set.  When setting
       ``LAMMPS_MACHINE=name``, the executable will be called
-      ``lmp_name``.  Using ``BUILD_MPI=no`` will enforce building a
+      ``lmp_name``.  Using ``BUILD_MPI=off`` will enforce building a
       serial executable using the MPI STUBS library.
 
    .. tab:: Traditional make
@@ -120,6 +120,18 @@ installed a version of MPI, which is likely to be faster than a
 self-installed MPICH or OpenMPI, so you should study the provided
 documentation to find out how to build and link with it.
 
+.. note::
+
+   Some Linux distributions (for example Ubuntu) build their MPI
+   packages so that the MPI compiler wrappers add link-time
+   optimization flags (``-flto``).  When building with CMake, these
+   flags are then also used to compile LAMMPS, which can make the build
+   fail at the link step, for example with the KOKKOS package and CUDA
+   (errors mentioning ``fatbinData`` or ``lto-wrapper``).  To remove
+   these flags, run CMake a second time in the same build folder with
+   ``-D MPI_CXX_COMPILE_OPTIONS=""`` and then build again.  This
+   setting has no effect in the first CMake run in a new build folder.
+
 The majority of OpenMP (threading) support in LAMMPS is provided by the
 ``OPENMP`` package; see the :doc:`Speed_omp`
 page for details. The ``INTEL`` package also includes OpenMP
@@ -137,7 +149,7 @@ to: e.g. ``KSPACE``, and ``COLVARS``.  See the :doc:`Packages details
 <Packages_details>` page for more info on these packages, and the pages
 for their respective commands for OpenMP threading info.
 
-For CMake, if you use ``BUILD_OMP=yes``, you can use these packages and
+For CMake, if you use ``BUILD_OMP=on``, you can use these packages and
 turn on their native OpenMP support at run time by setting the
 ``OMP_NUM_THREADS`` environment variable before you launch LAMMPS.
 
@@ -228,32 +240,32 @@ LAMMPS.
       .. code-block:: bash
 
          # Building with GNU Compilers:
-         cmake -DCMAKE_C_COMPILER=gcc -DCMAKE_CXX_COMPILER=g++ \
-               -DCMAKE_Fortran_COMPILER=gfortran ../cmake
+         cmake -S cmake -B build -D CMAKE_C_COMPILER=gcc \
+               -D CMAKE_CXX_COMPILER=g++ -D CMAKE_Fortran_COMPILER=gfortran
          # Building with Intel Classic Compilers:
-         cmake -DCMAKE_C_COMPILER=icc -DCMAKE_CXX_COMPILER=icpc \
-               -DCMAKE_Fortran_COMPILER=ifort ../cmake
+         cmake -S cmake -B build -D CMAKE_C_COMPILER=icc \
+               -D CMAKE_CXX_COMPILER=icpc -D CMAKE_Fortran_COMPILER=ifort
          # Building with Intel oneAPI Compilers:
-         cmake -DCMAKE_C_COMPILER=icx -DCMAKE_CXX_COMPILER=icpx \
-               -DCMAKE_Fortran_COMPILER=ifx ../cmake
+         cmake -S cmake -B build -D CMAKE_C_COMPILER=icx \
+               -D CMAKE_CXX_COMPILER=icpx -D CMAKE_Fortran_COMPILER=ifx
          # Building with LLVM/Clang Compilers:
-         cmake -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ \
-               -DCMAKE_Fortran_COMPILER=flang ../cmake
+         cmake -S cmake -B build -D CMAKE_C_COMPILER=clang \
+               -D CMAKE_CXX_COMPILER=clang++ -D CMAKE_Fortran_COMPILER=flang
          # Building with PGI/Nvidia Compilers:
-         cmake -DCMAKE_C_COMPILER=pgcc -DCMAKE_CXX_COMPILER=pgc++ \
-               -DCMAKE_Fortran_COMPILER=pgfortran ../cmake
+         cmake -S cmake -B build -D CMAKE_C_COMPILER=pgcc \
+               -D CMAKE_CXX_COMPILER=pgc++ -D CMAKE_Fortran_COMPILER=pgfortran
          # Building with the NVHPC Compilers:
-         cmake -DCMAKE_C_COMPILER=nvc -DCMAKE_CXX_COMPILER=nvc++ \
-               -DCMAKE_Fortran_COMPILER=nvfortran ../cmake
+         cmake -S cmake -B build -D CMAKE_C_COMPILER=nvc \
+               -D CMAKE_CXX_COMPILER=nvc++ -D CMAKE_Fortran_COMPILER=nvfortran
 
       For compiling with the Clang/LLVM compilers a CMake preset is
       provided that can be loaded with
-      ``-C ../cmake/presets/clang.cmake``.  Similarly,
-      ``-C ../cmake/presets/intel.cmake`` should switch the compiler
-      tool chain to the legacy Intel compilers, ``-C ../cmake/presets/oneapi.cmake``
+      ``-C cmake/presets/clang.cmake``.  Similarly,
+      ``-C cmake/presets/intel.cmake`` should switch the compiler
+      tool chain to the legacy Intel compilers, ``-C cmake/presets/oneapi.cmake``
       will switch to the LLVM based oneAPI Intel compilers,
-      ``-C ../cmake/presets/pgi.cmake`` will switch the compiler to the PGI compilers,
-      and ``-C ../cmake/presets/nvhpc.cmake`` will switch to the NVHPC compilers.
+      ``-C cmake/presets/pgi.cmake`` will switch the compiler to the PGI compilers,
+      and ``-C cmake/presets/nvhpc.cmake`` will switch to the NVHPC compilers.
 
       .. note::
 
@@ -299,7 +311,7 @@ LAMMPS.
 
          .. code-block:: output
 
-            g++ -g -O3  -DLAMMPS_GZIP -DLAMMPS_MEMALIGN=64    -I../STUBS     -c ../main.cpp
+            g++ -g -O3  -DLAMMPS_MEMALIGN=64    -I../STUBS     -c ../main.cpp
             In file included from ../pointers.h:24:0,
                        from ../input.h:17,
                        from ../main.cpp:16:
@@ -359,14 +371,14 @@ running LAMMPS from Python via its library interface.
 
       .. code-block:: bash
 
-         -D BUILD_SHARED_LIBS=value   # yes or no (default)
+         -D BUILD_SHARED_LIBS=value   # on or off (default)
          -D LAMMPS_MACHINE=name       # name = mpi, serial, mybox, titan, laptop, etc
                                       # no default value
 
       The compilation will always produce a LAMMPS library and an
       executable linked to it.  By default, this will be a static
       library named ``liblammps.a`` and an executable named ``lmp``
-      Setting ``BUILD_SHARED_LIBS=yes`` will instead produce a shared
+      Setting ``BUILD_SHARED_LIBS=on`` will instead produce a shared
       library called ``liblammps.so`` (or ``liblammps.dylib`` or
       ``liblammps.dll`` depending on the platform) If
       ``LAMMPS_MACHINE=name`` is set in addition, the name of the
@@ -485,12 +497,12 @@ using CMake or Make.
 
       .. code-block:: bash
 
-         -D BUILD_TOOLS=value         # yes or no (default). Build binary2txt,
+         -D BUILD_TOOLS=value         # on or off (default). Build binary2txt,
                                       # chain.x, micelle2d.x, msi2lmp, phana,
                                       # stl_bin2txt
-         -D BUILD_LAMMPS_GUI=value    # yes or no (default). Build LAMMPS-GUI
-         -D BUILD_WHAM=value          # yes (default). Download and build WHAM;
-                                      # only available for BUILD_LAMMPS_GUI=yes
+         -D BUILD_LAMMPS_GUI=value    # on or off (default). Build LAMMPS-GUI
+         -D BUILD_WHAM=value          # on (default). Download and build WHAM;
+                                      # only available for BUILD_LAMMPS_GUI=on
 
       The generated binaries will also become part of the LAMMPS installation
       (see below).
@@ -528,9 +540,9 @@ to copy files to is protected.
 
       .. code-block:: bash
 
-         cmake -D CMAKE_INSTALL_PREFIX=path [options ...] ../cmake
-         make                        # perform make after CMake command
-         make install                # perform the installation into prefix
+         cmake -S cmake -B build -D CMAKE_INSTALL_PREFIX=path [options ...]
+         cmake --build build           # compile LAMMPS
+         cmake --install build         # perform the installation into prefix
 
       During the installation process CMake will by default remove any runtime
       path settings for loading shared libraries.  Because of this you may

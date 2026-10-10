@@ -1758,6 +1758,20 @@ void Input::package()
     if (!modify->check_package("OMP"))
       error->all(FLERR, Error::ARGZERO, "Package omp command without OPENMP package installed");
 
+    // styles with OpenMP support keep a pointer to the existing fix package_omp,
+    // so it cannot be replaced while any of them is defined
+
+    auto *fixomp = modify->get_fix_by_id("package_omp");
+    if (fixomp) {
+      int dim = 0;
+      auto *styles = (const char *) fixomp->extract("styles_in_use", dim);
+      if (styles && styles[0])
+        error->all(FLERR, Error::ARGZERO,
+                   "Cannot change OPENMP package settings while styles with OpenMP support are "
+                   "defined: {}. Reset those styles first (e.g. with 'pair_style none') or use "
+                   "the package omp command before defining them", styles);
+    }
+
     std::string fixcmd = "package_omp all OMP";
     for (int i = 1; i < narg; i++) fixcmd += std::string(" ") + arg[i];
     modify->add_fix(fixcmd);

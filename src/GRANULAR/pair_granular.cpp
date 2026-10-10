@@ -822,6 +822,11 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   // Calculate normal component, normalized by r
   fforce = model->Fntot * model->rinv;
 
+  double dq = 0;
+  if (heat_flag) {
+    dq = model->dq;
+  }
+
   // set single_extra quantities
   svector[0] = model->fs[0];
   svector[1] = model->fs[1];
@@ -835,6 +840,7 @@ double PairGranular::single(int i, int j, int itype, int jtype,
   svector[9] = model->dx[0];
   svector[10] = model->dx[1];
   svector[11] = model->dx[2];
+  svector[12] = dq;
 
   // add submodel-specific quantities
   for (int n = 0; n < model->nsvector; n++)

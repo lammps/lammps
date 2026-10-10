@@ -333,7 +333,8 @@ static void append_kokkos_env_args(LAMMPS_NS::LAMMPS::argv &args)
     args.insert(args.end(), words.begin(), words.end());
 }
 
-static void run_output_test(LAMMPS::argv &args, double epsilon, bool kokkos)
+static void run_output_test(LAMMPS::argv &args, double epsilon, bool kokkos,
+                            bool unordered_local = false)
 {
     ::testing::internal::CaptureStdout();
     LAMMPS *lmp = nullptr;
@@ -387,8 +388,10 @@ static void run_output_test(LAMMPS::argv &args, double epsilon, bool kokkos)
     compare_rows("per-atom data", test_config.peratom_data, data.peratom, epsilon, stats);
     // a KOKKOS run emits local data (compute */local) in a different row order
     // than the host reference because its neighbor list is built differently;
-    // the rows themselves match, so compare them as an unordered set
-    if (kokkos)
+    // the rows themselves match, so compare them as an unordered set.  the same
+    // applies to threaded styles that build internal lists in a thread-dependent
+    // order (e.g. the bond lists of pair style reaxff/omp)
+    if (kokkos || unordered_local)
         compare_rows_unordered("local data", test_config.local_data, data.local, epsilon, stats);
     else
         compare_rows("local data", test_config.local_data, data.local, epsilon, stats);
@@ -405,6 +408,24 @@ TEST(OutputStyle, plain)
     LAMMPS::argv args = {"OutputStyle", "-log", "none", "-echo", "screen", "-nocite"};
 
     run_output_test(args, test_config.epsilon, false);
+}
+
+// the OPENMP test uses the same prerequisites as the plain test.  computes and
+// fixes without an /omp variant are still worth running with -sf omp, since the
+// force styles and neighbor lists are then threaded and fix omp is active
+
+TEST(OutputStyle, omp)
+{
+    if (!Info::has_package("OPENMP")) GTEST_SKIP();
+    if (test_config.skip_tests.count(test_info_->name())) GTEST_SKIP();
+
+    LAMMPS::argv args = {"OutputStyle", "-log", "none", "-echo", "screen", "-nocite",
+                         "-pk",         "omp",  "4",    "-sf",   "omp"};
+
+    // styles tagged "single_thread" cannot run with more than one thread
+    if (test_config.has_tag("single_thread")) args[8] = "1";
+
+    run_output_test(args, 5.0 * test_config.epsilon, false, true);
 }
 
 // precision of the KOKKOS package as selected with -D KOKKOS_PREC at compile time

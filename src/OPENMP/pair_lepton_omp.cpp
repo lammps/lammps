@@ -81,6 +81,8 @@ void PairLeptonOMP::compute(int eflag, int vflag)
     thr->timer(Timer::PAIR);
     reduce_thr(this, eflag, vflag, thr);
   }    // end of omp parallel region
+
+  error_thr();
 }
 
 template <int EVFLAG, int EFLAG, int NEWTON_PAIR>
@@ -113,7 +115,9 @@ void PairLeptonOMP::eval(int iifrom, int iito, ThrData *const thr)
       if (EFLAG) pairpot.emplace_back(parsed.createCompiledExpression());
     }
   } catch (std::exception &e) {
-    error->all(FLERR, e.what());
+    // errors must be deferred until the end of the threaded region
+    check_error_thr(true, thr->get_tid(), FLERR, e.what());
+    return;
   }
 
   // loop over neighbors of my atoms

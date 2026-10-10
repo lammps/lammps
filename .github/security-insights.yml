@@ -1,0 +1,171 @@
+# OpenSSF Security Insights file for the LAMMPS project.
+#
+# This is a self-description of the project in a format that automated
+# tools can read: who to contact, where the documentation is, which
+# repositories belong to the project, and which checking tools are in use.
+# It is read, for example, by the "Security" tab of LFX Insights at
+# https://insights.linuxfoundation.org/project/lammps/security
+#
+# Format specification: https://github.com/ossf/security-insights
+# The file name and its location (repository root or .github folder) are
+# fixed by that specification and must not be changed.
+#
+# Please update "last-updated" when changing this file and "last-reviewed"
+# when preparing a stable release (see .github/release_steps.md).
+
+header:
+  schema-version: 2.2.0
+  last-updated: '2026-10-03'
+  last-reviewed: '2026-10-03'
+  url: https://raw.githubusercontent.com/lammps/lammps/develop/.github/security-insights.yml
+  comment: |
+    People are listed by role and not by name.  The members of the LAMMPS
+    Technical Steering Committee and the roles of core developers and
+    maintainers are documented in .github/GOVERNANCE.md.
+
+project:
+  name: LAMMPS
+  homepage: https://www.lammps.org
+  administrators:
+    - name: LAMMPS Technical Steering Committee
+      email: developers@lammps.org
+      primary: true
+  documentation:
+    detailed-guide: https://docs.lammps.org/
+    code-of-conduct: https://github.com/lammps/lammps/blob/develop/.github/CODE_OF_CONDUCT.md
+    release-process: https://docs.lammps.org/Manual_version.html
+    support-policy: https://github.com/lammps/lammps/blob/develop/SECURITY.md
+    signature-verification: https://github.com/lammps/lammps/blob/develop/SECURITY.md
+  repositories:
+    - name: lammps
+      url: https://github.com/lammps/lammps
+      comment: |
+        Main repository with the LAMMPS source code, manual, tests, and examples.
+    - name: lammps-gui
+      url: https://github.com/lammps/lammps-gui
+      comment: |
+        Graphical interface for LAMMPS.  It is included in the pre-compiled
+        LAMMPS packages for Linux, macOS, and Windows.
+    - name: linalg
+      url: https://github.com/lammps/linalg
+      comment: |
+        Subset of BLAS/LAPACK functions converted to C++ and bundled with LAMMPS.
+    - name: setup-msvc-dev
+      url: https://github.com/lammps/setup-msvc-dev
+      comment: |
+        Copy of a GitHub Action from another project that is used by the
+        automated tests on Windows.  It is kept in the LAMMPS organization
+        so that the tests only need permission to run actions from GitHub
+        and from the LAMMPS organization itself.
+    - name: pygments-lammps
+      url: https://github.com/lammps/pygments-lammps
+      comment: |
+        Syntax highlighting of LAMMPS input files for the manual.
+    - name: lammps-test-results
+      url: https://github.com/lammps/lammps-test-results
+      comment: |
+        Source of the website summarizing the results of the automated tests.
+  vulnerability-reporting:
+    reports-accepted: true
+    bug-bounty-available: false
+    contact:
+      name: LAMMPS core developers
+      email: developers@lammps.org
+      primary: true
+    policy: https://github.com/lammps/lammps/blob/develop/SECURITY.md
+
+repository:
+  url: https://github.com/lammps/lammps
+  status: active
+  accepts-change-request: true
+  accepts-automated-change-request: true
+  core-team:
+    - name: LAMMPS core developers
+      email: developers@lammps.org
+      primary: true
+  documentation:
+    contributing-guide: https://github.com/lammps/lammps/blob/develop/.github/CONTRIBUTING.md
+    review-policy: https://docs.lammps.org/Modify_contribute.html
+    security-policy: https://github.com/lammps/lammps/blob/develop/SECURITY.md
+    governance: https://github.com/lammps/lammps/blob/develop/.github/GOVERNANCE.md
+    dependency-management-policy: https://docs.lammps.org/latest/Build_security.html
+  license:
+    url: https://github.com/lammps/lammps/blob/develop/LICENSE
+    expression: GPL-2.0-only
+  release:
+    automated-pipeline: false
+    changelog: https://github.com/lammps/lammps/releases
+    distribution-points:
+      - uri: https://github.com/lammps/lammps/releases
+        comment: Source code and pre-compiled packages for each release
+      - uri: https://download.lammps.org/tars/
+        comment: Source code archives with SHA-256 checksums
+    attestations:
+      - name: GitHub release attestation
+        location: https://github.com/lammps/lammps/attestations
+        predicate-uri: https://in-toto.io/attestation/release/v0.2
+        comment: |
+          Releases are published as immutable releases.  GitHub records the
+          release tag and the checksums of all release files in a signed
+          attestation that can be checked with "gh release verify".
+  security:
+    assessments:
+      self:
+        evidence: https://github.com/lammps/lammps/blob/develop/SECURITY.md
+        comment: |
+          No formal security review has been done.  LAMMPS is a simulation
+          program that is run by its users with their own permissions on
+          their own input.  The resulting limitations are described in
+          the security policy.
+    tools:
+      # The type of the following entry must be "secret-scanning" because
+      # that is the value the LFX Insights scanner looks for.  The entry may
+      # only be listed while "Secret Protection" and "Push protection" are
+      # switched on in the settings of the repository on GitHub.
+      - name: GitHub secret scanning with push protection
+        type: secret-scanning
+        rulesets:
+          - default
+        integration:
+          adhoc: false
+          ci: true
+          release: false
+        results: {}
+        comment: |
+          Searches the repository for known kinds of passwords and access
+          keys and refuses pushes that contain them.
+      - name: CodeQL
+        type: SAST
+        rulesets:
+          - default
+        integration:
+          adhoc: false
+          ci: true
+          release: false
+        results: {}
+        comment: |
+          Runs for C++ and Python after every merge to the develop branch.
+      - name: Coverity Scan
+        type: SAST
+        rulesets:
+          - default
+        integration:
+          adhoc: true
+          ci: false
+          release: true
+        results: {}
+        comment: |
+          Runs periodically outside of GitHub.  The results are checked
+          before a release.
+      - name: Dependabot
+        type: SCA
+        rulesets:
+          - default
+        integration:
+          adhoc: true
+          ci: false
+          release: false
+        results: {}
+        comment: |
+          Reports known vulnerabilities in the Python packages and GitHub
+          Actions that are used by the project.

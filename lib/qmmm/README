@@ -50,15 +50,13 @@ Building with CMake for LAMMPS
 Step 1)
 
 Go to the top-level folder of the LAMMPS source code and create
-a custom build folder (e.g. build-qmmm) and create a suitable
-build configuration with CMake:
+a suitable build configuration with CMake in a custom build folder
+(e.g. build-qmmm), then compile and install LAMMPS:
 
-  mkdir build-qmmm
-  cd build-qmmm
-  cmake -C ../cmake/presets/basic.cmake -D PKG_QMMM=yes \
-           -D BUILD_LIB=yes -DBUILD_SHARED_LIBS=yes ../cmake
-  make
-  make install
+  cmake -S cmake -B build-qmmm -C cmake/presets/basic.cmake \
+        -D PKG_QMMM=on -D BUILD_SHARED_LIBS=on
+  cmake --build build-qmmm
+  cmake --install build-qmmm
 
 This will build a LAMMPS executable "lmp" and a shared library
 "liblammps.so" and install them and additional configuration and

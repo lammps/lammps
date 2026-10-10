@@ -43,7 +43,9 @@ if(EXISTS /usr/musl/share/cmake/linux-musl.cmake)
     BYPRODUCTS lammps-linux-x86_64-${PROJECT_VERSION}.tar.gz)
 else()
   add_custom_target(musl
-    COMMAND ${CMAKE_COMMAND} -E echo "Could not find the musl Linux-2-Linux compiler in /usr/musl. Skipping.")
+    COMMAND ${CMAKE_COMMAND} -E echo "Could not find the musl Linux-2-Linux compiler in /usr/musl."
+    COMMAND ${CMAKE_COMMAND} -E false
+    VERBATIM)
 endif()
 
 #########################################################################
@@ -52,10 +54,12 @@ endif()
 
 find_program(MINGW_CMAKE mingw64-cmake)
 find_program(MINGW_CXX x86_64-w64-mingw32-g++)
+find_program(MAKENSIS makensis)
+mark_as_advanced(MINGW_CMAKE MINGW_CXX)
 find_package(Python COMPONENTS Interpreter QUIET)
 # disable signing for now
 set(ENV{SIGN_DISABLE} 1)
-if(MINGW_CMAKE AND MINGW_CXX AND Python_EXECUTABLE)
+if(MINGW_CMAKE AND MINGW_CXX AND MAKENSIS AND Python_EXECUTABLE)
   add_custom_target(nsis
     COMMAND ${Python_EXECUTABLE} "${LAMMPS_PACKAGING_DIR}/cmake-win-on-linux.py" -p no -y no -u no
     COMMAND ${Python_EXECUTABLE} "${LAMMPS_PACKAGING_DIR}/cmake-win-on-linux.py" -p no -y yes -u no
@@ -66,7 +70,10 @@ if(MINGW_CMAKE AND MINGW_CXX AND Python_EXECUTABLE)
   )
 else()
   add_custom_target(nsis
-    ${CMAKE_COMMAND} -E echo "The Mingw64 cross-compiler build environment required to build Windows installer packages is not available. Skipping.")
+    COMMAND ${CMAKE_COMMAND} -E echo "The Mingw64 cross-compiler build environment required to build Windows installer packages is not available."
+    COMMAND ${CMAKE_COMMAND} -E echo "Status: MINGW_CMAKE=${MINGW_CMAKE} MINGW_CXX=${MINGW_CXX} MAKENSIS=${MAKENSIS}"
+    COMMAND ${CMAKE_COMMAND} -E false
+    VERBATIM)
 endif()
 
 ###############################################################################
@@ -76,6 +83,7 @@ endif()
 # build LAMMPS-GUI and LAMMPS as flatpak, if tools are installed
 find_program(FLATPAK_COMMAND flatpak DOC "Path to flatpak command")
 find_program(FLATPAK_BUILDER flatpak-builder DOC "Path to flatpak-builder command")
+mark_as_advanced(FLATPAK_COMMAND FLATPAK_BUILDER)
 if(FLATPAK_COMMAND AND FLATPAK_BUILDER)
   set(FLATPAK_BUNDLE "LAMMPS-Linux-x86_64-GUI-${LAMMPS_RELEASE}.flatpak")
   add_custom_target(flatpak
@@ -92,7 +100,9 @@ if(FLATPAK_COMMAND AND FLATPAK_BUILDER)
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 else()
   add_custom_target(flatpak
-    COMMAND ${CMAKE_COMMAND} -E echo "The flatpak and flatpak-builder commands required to build a LAMMPS-GUI flatpak bundle were not found. Skipping.")
+    COMMAND ${CMAKE_COMMAND} -E echo "The flatpak or flatpak-builder commands required to build a LAMMPS-GUI flatpak bundle were not found."
+    COMMAND ${CMAKE_COMMAND} -E false
+    VERBATIM)
 endif()
 
 # build LAMMPS-GUI itself as external project
@@ -118,8 +128,8 @@ if(BUILD_LAMMPS_GUI)
 
   # When building LAMMPS-GUI with LAMMPS we don't support plugin mode and don't include docs.
   ExternalProject_Add(lammps-gui_build
-    GIT_REPOSITORY https://github.com/akohlmey/lammps-gui.git
-    GIT_TAG main
+    GIT_REPOSITORY https://github.com/lammps/lammps-gui.git
+    GIT_TAG v3.1.1
     GIT_SHALLOW TRUE
     GIT_PROGRESS TRUE
     LIST_SEPARATOR ,
@@ -162,7 +172,7 @@ if(BUILD_LAMMPS_GUI)
       file(DOWNLOAD ${WHAM_URL} ${CMAKE_BINARY_DIR}/_deps/${archive} STATUS DL_STATUS SHOW_PROGRESS)
       file(SHA256 ${CMAKE_BINARY_DIR}/_deps/${archive} DL_SHA256)
       if((NOT DL_STATUS EQUAL 0) OR (NOT "${DL_SHA256}" STREQUAL "${WHAM_SHA256}"))
-        message(ERROR ": Download of WHAM sources from ${WHAM_URL} failed")
+        message(FATAL_ERROR "Download of WHAM sources from ${WHAM_URL} failed")
       endif()
     else()
       message(STATUS "Using already downloaded archive ${CMAKE_BINARY_DIR}/_deps/${archive}")
@@ -233,10 +243,11 @@ if(BUILD_LAMMPS_GUI)
       )
       set(WHAM_TARGET copy-wham)
     endif()
+    find_program(FFMPEG_EXECUTABLE ffmpeg)
     if(FFMPEG_EXECUTABLE)
       add_custom_target(copy-ffmpeg
         COMMAND ${CMAKE_COMMAND} -E copy_if_different ${FFMPEG_EXECUTABLE} ${APP_CONTENTS}/bin/
-        COMMENT "Copying FFMpeg into macOS app bundle tree"
+        COMMENT "Copying FFmpeg into macOS app bundle tree"
         DEPENDS complete-bundle
       )
       set(FFMPEG_TARGET copy-ffmpeg)
@@ -308,15 +319,18 @@ if(BUILD_LAMMPS_GUI)
         DEPENDS lmp tools lammps-gui_build ${WHAM_EXE}
         COMMENT "Create compressed tar file of LAMMPS-GUI with dependent libraries and wrapper"
         BYPRODUCT LAMMPS-Linux-x86_64-GUI-${LAMMPS_RELEASE}.tar.gz
-        WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-      )
+        WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
     else()
       if(DOWNLOAD_POTENTIALS)
         add_custom_target(tgz
-              COMMAND ${CMAKE_COMMAND} -E echo "Must use -D DOWLOAD_POTENTIALS=OFF for building Linux tgz package")
+              COMMAND ${CMAKE_COMMAND} -E echo "Must use -D DOWLOAD_POTENTIALS=OFF for building Linux tgz package"
+              COMMAND ${CMAKE_COMMAND} -E false
+              VERBATIM)
       else()
         add_custom_target(tgz
-              COMMAND ${CMAKE_COMMAND} -E echo "Must use -D USE_INTERNAL_LINALG=ON for building Linux tgz package")
+              COMMAND ${CMAKE_COMMAND} -E echo "Must use -D USE_INTERNAL_LINALG=ON for building Linux tgz package"
+              COMMAND ${CMAKE_COMMAND} -E false
+              VERBATIM)
       endif()
     endif()
   endif()

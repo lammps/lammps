@@ -170,7 +170,11 @@ void PairEIMOMP::eval(int iifrom, int iito, ThrData * const thr)
     sync_threads();
 
 #if defined(_OPENMP)
+#if _OPENMP >= 202011
+#pragma omp masked
+#else
 #pragma omp master
+#endif
 #endif
     {
       rhofp = 1;
@@ -186,7 +190,11 @@ void PairEIMOMP::eval(int iifrom, int iito, ThrData * const thr)
   }
 
 #if defined(_OPENMP)
+#if _OPENMP >= 202011
+#pragma omp masked
+#else
 #pragma omp master
+#endif
 #endif
   {
     rhofp = 1;
@@ -244,7 +252,11 @@ void PairEIMOMP::eval(int iifrom, int iito, ThrData * const thr)
     sync_threads();
 
 #if defined(_OPENMP)
+#if _OPENMP >= 202011
+#pragma omp masked
+#else
 #pragma omp master
+#endif
 #endif
     {
       rhofp = 2;
@@ -260,7 +272,11 @@ void PairEIMOMP::eval(int iifrom, int iito, ThrData * const thr)
   }
 
 #if defined(_OPENMP)
+#if _OPENMP >= 202011
+#pragma omp masked
+#else
 #pragma omp master
+#endif
 #endif
   {
     rhofp = 2;

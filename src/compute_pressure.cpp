@@ -34,6 +34,19 @@
 #include <cstring>
 using namespace LAMMPS_NS;
 
+/* ----------------------------------------------------------------------
+   look up pair style with first suffix, second suffix, and without suffix
+------------------------------------------------------------------------- */
+
+static Pair *find_pair_style(LAMMPS *lmp, const std::string &name, int nsub)
+{
+  Pair *pair = nullptr;
+  if (lmp->suffix) pair = lmp->force->pair_match(name + "/" + lmp->suffix, 1, nsub);
+  if (!pair && lmp->suffix2) pair = lmp->force->pair_match(name + "/" + lmp->suffix2, 1, nsub);
+  if (!pair) pair = lmp->force->pair_match(name, 1, nsub);
+  return pair;
+}
+
 /* ---------------------------------------------------------------------- */
 
 ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
@@ -85,10 +98,7 @@ ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
       if (strcmp(arg[iarg],"ke") == 0) keflag = 1;
       else if (strcmp(arg[iarg],"pair/hybrid") == 0) {
         delete[] pstyle;
-        if (lmp->suffix)
-          pstyle = utils::strdup(fmt::format("{}/{}",arg[++iarg],lmp->suffix));
-        else
-          pstyle = utils::strdup(arg[++iarg]);
+        pstyle = utils::strdup(arg[++iarg]);
 
         nsub = 0;
 
@@ -101,14 +111,9 @@ ComputePressure::ComputePressure(LAMMPS *lmp, int narg, char **arg) :
           }
         }
 
-        // check if pair style with and without suffix exists
+        // check if pair style with or without suffix exists
 
-        pairhybrid = (Pair *) force->pair_match(pstyle,1,nsub);
-        if (!pairhybrid && lmp->suffix) {
-          pstyle[strlen(pstyle) - strlen(lmp->suffix) - 1] = '\0';
-          pairhybrid = (Pair *) force->pair_match(pstyle,1,nsub);
-        }
-
+        pairhybrid = find_pair_style(lmp, pstyle, nsub);
         if (!pairhybrid)
           error->all(FLERR, iarg - (nsub ? 1 : 0),
                      "Unrecognized pair style {} in compute pressure command", pstyle);
@@ -175,16 +180,10 @@ void ComputePressure::init()
                  "Could not find compute pressure temperature ID {}", id_temp);
   }
 
-  // recheck if pair style with and without suffix exists
+  // recheck if pair style with or without suffix exists
 
   if (pairhybridflag) {
-    pairhybrid = (Pair *) force->pair_match(pstyle,1,nsub);
-    if (!pairhybrid && lmp->suffix) {
-      strcat(pstyle,"/");
-      strcat(pstyle,lmp->suffix);
-      pairhybrid = (Pair *) force->pair_match(pstyle,1,nsub);
-    }
-
+    pairhybrid = find_pair_style(lmp, pstyle, nsub);
     if (!pairhybrid)
       error->all(FLERR, Error::NOLASTLINE,
                  "Unrecognized pair style {} in compute pressure command", pstyle);
@@ -213,8 +212,9 @@ void ComputePressure::init()
     vptr = new double*[nvirial];
     nvirial = 0;
     if (pairhybridflag && force->pair) {
+      // with a non-hybrid pair style, the matched style is the pair style itself
       auto *ph = dynamic_cast<PairHybrid *>(force->pair);
-      ph->no_virial_fdotr_compute = 1;
+      if (ph) ph->no_virial_fdotr_compute = 1;
       vptr[nvirial++] = pairhybrid->virial;
     }
     if (pairflag && force->pair) vptr[nvirial++] = force->pair->virial;

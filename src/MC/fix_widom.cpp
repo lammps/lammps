@@ -185,8 +185,6 @@ void FixWidom::options(int narg, char **arg)
   molecule_group = 0;
   molecule_group_bit = 0;
   molecule_group_inversebit = 0;
-  exclusion_group = 0;
-  exclusion_group_bit = 0;
   charge = 0.0;
   charge_flag = false;
   full_flag = false;
@@ -238,21 +236,8 @@ FixWidom::~FixWidom()
   memory->destroy(molq);
   memory->destroy(molimage);
 
-  // delete exclusion group created in init()
   // delete molecule group created in init()
-  // unset neighbor exclusion settings made in init()
-  // not necessary if group and neighbor classes already destroyed
-  //   when LAMMPS exits
-
-  if (exclusion_group_bit && group) {
-    auto group_id = std::string("FixWidom:widom_exclusion_group:") + id;
-    try {
-      group->assign(group_id + " delete");
-    } catch (std::exception &e) {
-      if (comm->me == 0)
-        fprintf(stderr, "Error deleting group %s: %s\n", group_id.c_str(), e.what());
-    }
-  }
+  // not necessary if group class already destroyed when LAMMPS exits
 
   if (molecule_group_bit && group) {
     auto group_id = std::string("FixWidom:rotation_gas_atoms:") + id;
@@ -264,10 +249,6 @@ FixWidom::~FixWidom()
     }
   }
 
-  if (full_flag && group && neighbor) {
-    int igroupall = group->find("all");
-    neighbor->exclusion_group_group_delete(exclusion_group,igroupall);
-  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -354,19 +335,6 @@ void FixWidom::init()
                  "Invalid atom type {} in fix widom command", nwidom_type);
   }
 
-  // if molecules are exchanged or moved, check for unset mol IDs
-  if (exchmode == EXCHMOL) {
-    tagint *molecule = atom->molecule;
-    int *mask = atom->mask;
-    int flag = 0;
-    for (int i = 0; i < atom->nlocal; i++)
-      if (mask[i] == groupbit)
-        if (molecule[i] == 0) flag = 1;
-    int flagall;
-    MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
-    if (flagall)
-      error->all(FLERR, Error::NOLASTLINE, "All mol IDs should be set for fix widom group atoms");
-  }
 
   if (exchmode == EXCHMOL)
     if (atom->molecule_flag == 0 || !atom->tag_enable
@@ -376,27 +344,6 @@ void FixWidom::init()
 
   if (domain->dimension == 2)
     error->all(FLERR, Error::NOLASTLINE, "Cannot use fix widom in a 2d simulation");
-
-  // create a new group for interaction exclusions
-  // used for attempted atom or molecule deletions
-  // skip if already exists from previous init()
-
-  if (full_flag && !exclusion_group_bit) {
-
-    // create unique group name for atoms to be excluded
-
-    auto group_id = std::string("FixWidom:widom_exclusion_group:") + id;
-    group->assign(group_id + " subtract all all");
-    exclusion_group = group->find(group_id);
-    if (exclusion_group == -1)
-      error->all(FLERR, Error::NOLASTLINE, "Could not find fix widom exclusion group ID {}", group_id);
-    exclusion_group_bit = group->bitmask[exclusion_group];
-
-    // neighbor list exclusion setup
-    // turn off interactions between group all and the exclusion group
-
-    neighbor->modify_params(fmt::format("exclude group {} all",group_id));
-  }
 
   // create a new group for temporary use with selected molecules
 
@@ -432,23 +379,6 @@ void FixWidom::init()
 
   if (gas_mass <= 0.0) error->all(FLERR, Error::NOLASTLINE, "Illegal fix widom gas mass <= 0");
 
-  // check that no deletable atoms are in atom->firstgroup
-  // deleting such an atom would not leave firstgroup atoms first
-
-  if (atom->firstgroup >= 0) {
-    int *mask = atom->mask;
-    int firstgroupbit = group->bitmask[atom->firstgroup];
-
-    int flag = 0;
-    for (int i = 0; i < atom->nlocal; i++)
-      if ((mask[i] == groupbit) && (mask[i] && firstgroupbit)) flag = 1;
-
-    int flagall;
-    MPI_Allreduce(&flag,&flagall,1,MPI_INT,MPI_SUM,world);
-
-    if (flagall)
-      error->all(FLERR, Error::NOLASTLINE, "Cannot use fix widom on atoms in atom_modify first group");
-  }
 
   // compute beta
   beta = 1.0/(force->boltz*insertion_temperature);

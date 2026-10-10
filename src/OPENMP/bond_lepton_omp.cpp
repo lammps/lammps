@@ -82,6 +82,8 @@ void BondLeptonOMP::compute(int eflag, int vflag)
     thr->timer(Timer::BOND);
     reduce_thr(this, eflag, vflag, thr);
   }    // end of omp parallel region
+
+  error_thr();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -105,7 +107,9 @@ void BondLeptonOMP::eval(int nfrom, int nto, ThrData *const thr)
       if (EFLAG) bondpot.emplace_back(parsed.createCompiledExpression());
     }
   } catch (std::exception &e) {
-    error->all(FLERR, Error::NOLASTLINE, e.what());
+    // errors must be deferred until the end of the threaded region
+    check_error_thr(true, thr->get_tid(), FLERR, e.what());
+    return;
   }
 
   const auto *_noalias const x = (dbl3_t *) atom->x[0];

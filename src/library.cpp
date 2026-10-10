@@ -6761,12 +6761,18 @@ int lammps_config_has_omp_support()
  * files via a pipe to gzip or similar compression programs
 
 \verbatim embed:rst
+
+.. versionchanged:: TBD
+
+This function now checks whether the ``gzip`` program is installed and
+executable instead of whether support for compressed files was enabled
+at compile time.
+
 Several LAMMPS commands (e.g., :doc:`read_data`, :doc:`write_data`,
 :doc:`dump styles atom, custom, and xyz <dump>`) support reading and
-writing compressed files via creating a pipe to the ``gzip`` program.
-This function checks whether this feature was :ref:`enabled at compile
-time <gzip>`. It does **not** check whether``gzip`` or any other
-supported compression programs themselves are installed and usable.
+writing compressed files via creating a pipe to the ``gzip`` program or
+:ref:`similar compression programs <gzip>`.  This function checks
+whether the ``gzip`` program can be found in the command search path.
 \endverbatim
  *
  * \return 1 if yes, otherwise 0
@@ -6817,11 +6823,16 @@ int lammps_config_has_jpeg_support() {
 /** Check if the LAMMPS library supports creating movie files via a pipe to ffmpeg
 
 \verbatim embed:rst
+
+.. versionchanged:: TBD
+
+This function now checks whether the ``ffmpeg`` program is installed and
+executable instead of whether support for it was enabled at compile time.
+
 The LAMMPS :doc:`dump style movie <dump_image>` supports generating movies
 from images on-the-fly via creating a pipe to the
-`ffmpeg <https://ffmpeg.org/>`_ program.
-This function checks whether this feature was :ref:`enabled at compile time <graphics>`.
-It does **not** check whether the ``ffmpeg`` itself is installed and usable.
+`ffmpeg <https://ffmpeg.org/>`_ program.  This function checks whether
+the ``ffmpeg`` program can be found in the command search path.
 \endverbatim
  *
  * \return 1 if yes, otherwise 0

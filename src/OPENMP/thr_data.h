@@ -126,9 +126,11 @@ class ThrData {
   // this is for pppm/omp
   void *_rho1d;
   void *_drho1d;
+  int _rho1d_order;    // order used to allocate _rho1d and _drho1d
   // this is for pppm/disp/omp
   void *_rho1d_6;
   void *_drho1d_6;
+  int _rho1d_6_order;    // order used to allocate _rho1d_6 and _drho1d_6
   // my thread id
   int _tid;
   // timer info

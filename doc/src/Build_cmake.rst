@@ -16,7 +16,7 @@ environments is on a :doc:`separate page <Howto_cmake>`.
 
 .. note::
 
-   LAMMPS currently requires CMake version 3.20 or later.
+   LAMMPS currently requires CMake version 3.27 or later.
 
 .. warning::
 
@@ -63,10 +63,9 @@ Getting started
 
 Building LAMMPS with CMake is a two-step process.  In the first step,
 you use CMake to generate a build environment in a new directory.  For
-that purpose you can use either the command-line utility ``cmake`` (or
-``cmake3``), the text-mode UI utility ``ccmake`` (or ``ccmake3``) or the
-graphical utility ``cmake-gui``, or use them interchangeably.  The
-second step is then the compilation and linking of all objects,
+that purpose you can use either the command-line utility ``cmake``, the
+text-mode UI utility ``ccmake``, or the graphical utility ``cmake-gui``,
+or use them interchangeably.  The second step is then the compilation and linking of all objects,
 libraries, and executables using the selected build tool.  Here is a
 minimal example using the command-line version of CMake to build LAMMPS
 with no add-on packages enabled and no customization:
@@ -75,13 +74,13 @@ with no add-on packages enabled and no customization:
 
    cd lammps                # change to the LAMMPS source distribution directory
    cmake -S cmake -B build  # configure the "build" folder with CMake scripts from "cmake"
-   cmake --build build      # compilation (or type "make -C build")
+   cmake --build build      # compile LAMMPS in the "build" folder
 
 This will create a folder called ``build``, then run the configuration
 step to generate build files for the default build command and then
 launch that build command to compile LAMMPS.  During the configuration
 step CMake will try to detect whether support for MPI, OpenMP, FFTW,
-gzip, JPEG, PNG, and ffmpeg are available and enable the corresponding
+JPEG, and PNG are available and enable the corresponding
 configuration settings.  The progress of this configuration can be
 followed on the screen and a summary of selected options and settings
 will be printed at the end.  The ``cmake --build build`` command will
@@ -90,23 +89,27 @@ library ``liblammps.a`` and the LAMMPS executable ``lmp`` inside the
 ``build`` folder.
 
 Compilation can take a long time, since LAMMPS is a large project with
-many features. If your machine has multiple CPU cores (most do these
-days), you can speed this up by compiling sources in parallel with
-adding ``--parallel N`` to the ``cmake`` command line (with *N* being
-the maximum number of concurrently executed tasks).  Installation of the
-`ccache <https://ccache.dev/>`_ (= Compiler Cache) software may speed up
-repeated compilation even more, e.g. during code development, especially
-when repeatedly switching between branches.
+many features.  If your machine has multiple CPU cores (most do these
+days), you can speed this up by compiling multiple source files in
+parallel: add ``-j N`` (or the equivalent ``--parallel N``) to the
+``cmake --build`` command, with *N* being the maximum number of
+concurrently executed compilation tasks, e.g. ``cmake --build build -j
+8``.  When compiling LAMMPS repeatedly, e.g. during code development,
+the Ninja build tool and the ccache compiler cache can reduce the time
+spent waiting for compilation considerably.  With Ninja, the number of
+parallel tasks is chosen automatically to use all available CPU cores.
+How to set up and use both tools is explained in the :ref:`development
+build options <ninja_ccache>` section.
 
 After the initial build, whenever you edit LAMMPS source files, enable
 or disable packages, change compiler flags or build options, you must
-re-compile and relink the LAMMPS executable with ``cmake --build build``
-(or ``make -C build``).  If the compilation fails for some reason, try
-running ``cmake build`` and then compile again. The included dependency
-tracking should make certain that only the necessary subset of files is
-re-compiled.  You can also delete compiled objects, libraries, and
-executables with ``cmake --build build --target clean`` (or ``make -C
-build clean``).
+re-compile and relink the LAMMPS executable with ``cmake --build
+build``.  If the compilation fails for some reason, try re-running the
+configuration with ``cmake -S cmake -B build`` and then compile again.
+The included dependency tracking should make certain that only the
+necessary subset of files is re-compiled.  You can also delete compiled
+objects, libraries, and executables with ``cmake --build build --target
+clean``.
 
 After compilation, you may optionally install the LAMMPS executable into
 your system with:
@@ -145,7 +148,7 @@ defaults to ``${HOME}/.local``.
 
    .. code-block:: cmake
 
-      cmake_minimum_required(VERSION 3.20)
+      cmake_minimum_required(VERSION 3.27)
       project(simpleCC CXX)
       # set this to the LAMMPS installation location
       if(NOT CMAKE_PREFIX_PATH)
@@ -213,7 +216,12 @@ configuration step.  The cache file contains all current CMake settings.
 This is a "legacy mode" of running CMake and thus often found when
 searching the web.  We recommend to use the ``-S`` and ``-B`` folders to
 explicitly set the path to the folder containing the ``CMakeLists.txt``
-file and the build folder, respectively.
+file and the build folder, respectively.  This is also the recommended
+way to change settings of an existing build folder: just repeat the
+command, e.g. ``cmake -S cmake -B build -D PKG_MOLECULE=on``.  Using only
+``-B build`` without ``-S cmake`` will *not* work for LAMMPS, since CMake
+then assumes the current working directory to be the source folder, and
+the top-level LAMMPS folder has no ``CMakeLists.txt`` file.
 
 To modify settings, enable or disable features, you need to set
 *variables* with either the ``-D`` command-line flag (``-D
@@ -223,15 +231,16 @@ user interface.  The ``-D`` flag can be used several times in one command.
 For your convenience, we provide :ref:`CMake presets <cmake_presets>`
 that combine multiple settings to enable optional LAMMPS packages or use
 a different compiler tool chain.  Those are loaded with the ``-C`` flag
-(``-C ../cmake/presets/basic.cmake``).  This step would only be needed
+(``-C cmake/presets/basic.cmake``).  This step would only be needed
 once, as the settings from the preset files are stored in the
 ``CMakeCache.txt`` file. It is also possible to customize the build
 by adding one or more ``-D`` flags to the CMake command.
 
-Generating files for alternate build tools (e.g. Ninja) and project files
-for IDEs like Eclipse, CodeBlocks, or Kate can be selected using the ``-G``
-command-line flag.  A list of available generator settings for your
-specific CMake version is given when running ``cmake --help``.
+Generating files for alternate build tools (e.g. the :ref:`Ninja build
+tool <ninja_ccache>`) or project files for IDEs like Xcode or Visual
+Studio can be selected using the ``-G`` command-line flag.  A list of
+available generator settings for your specific CMake version is given
+when running ``cmake --help``.
 
 .. _cmake_targets:
 
@@ -277,8 +286,8 @@ Multi-configuration build systems
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Throughout this manual, it is mostly assumed that LAMMPS is being built
-on a Unix-like operating system with "make" as the underlying "builder",
-since this is the most common case.  In this case the build
+on a Unix-like operating system with "make" or "ninja" as the underlying
+"builder", since this is the most common case.  In this case the build
 "configuration" is chosen using ``-D CMAKE_BUILD_TYPE=<configuration>``
 with ``<configuration>`` being one of "Release", "Debug",
 "RelWithDebInfo", or "MinSizeRel".  Some build tools, however, can also
@@ -298,7 +307,7 @@ configuration is selected with the ``-C`` flag:
 
 .. code-block:: bash
 
-   ctest -C Debug
+   ctest --test-dir build-multi -C Debug
 
 The CMake scripts in LAMMPS have basic support for being compiled using
 a multi-config build system, but not all of it has been ported.  This is
@@ -317,7 +326,6 @@ Check if your machine already has CMake installed:
 .. code-block:: bash
 
    which cmake             # do you have it?
-   which cmake3            # version 3 may have this name
    cmake --version         # what specific version you have
 
 On clusters or supercomputers which use environment modules to manage
@@ -330,8 +338,11 @@ software packages, do this:
    module load cmake      # load cmake module with appropriate name
 
 Most Linux distributions offer pre-compiled cmake packages through their
-package management system. If you do not have CMake or a recent enough
-version (Note: for CentOS 7.x you need to enable the EPEL repository),
-you can download the latest version from `https://cmake.org/download/
-<https://cmake.org/download/>`_.  Links to more details on CMake can
-be found `on this page <https://cmake.org/resources/>`_.
+package management system.  Some long-term-support distributions,
+however, ship a CMake version that is too old for LAMMPS.  In that case
+you can download pre-compiled binaries of the latest version from
+`https://cmake.org/download/ <https://cmake.org/download/>`_, or install
+CMake into a Python virtual environment with ``pip install cmake`` or
+into a conda environment with ``conda install cmake``.  Links to more
+details on CMake can be found `on this page
+<https://cmake.org/resources/>`_.

@@ -39,11 +39,6 @@ Examples
    pair_coeff 1 1 2.05 2.8
    pair_coeff * *
 
-   pair_style lubricate 1.5 1 1 2.01 2.5
-   pair_coeff * *
-   variable mu equal ramp(1,2)
-   fix 1 all adapt 1 pair lubricate mu * * v_mu
-
 Description
 """""""""""
 
@@ -131,11 +126,6 @@ The drag acts on each particle individually rather than between pairs,
 so it does not contribute to the pressure through the F dot r sum.
 Styles *lubricate/poly*, *lubricateU* and *lubricateU/poly* treat it the
 same way.
-
-The viscosity *mu* can be varied in a time-dependent manner over the
-course of a simulation, in which case in which case the pair_style
-setting for *mu* will be overridden.  See the :doc:`fix adapt <fix_adapt>`
-command for details.
 
 If the suspension is sheared via the :doc:`fix deform <fix_deform>`
 command then the pair style uses the shear rate to adjust the

@@ -63,7 +63,7 @@ for the :doc:`create_box <create_box>` command
    -0.5 0.5 zlo zhi       # this is the default, so no need to specify
    2.0 0.0 0.0 xy xz yz
 
-   # 3d general triclinic box using a primitive cell for a 2d hex lattice
+   # 2d general triclinic box using a primitive cell for a 2d hex lattice
    5 0 0              avec
    2.5 4.3301270189 0 bvec
    0 0 1              cvec           # this is the default, so no need to specify

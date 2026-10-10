@@ -77,6 +77,8 @@ void BondFENENMOMP::compute(int eflag, int vflag)
     thr->timer(Timer::BOND);
     reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
+
+  error_thr();
 }
 
 template <int EVFLAG, int EFLAG, int NEWTON_BOND>

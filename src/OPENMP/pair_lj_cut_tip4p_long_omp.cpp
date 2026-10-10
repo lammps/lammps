@@ -129,6 +129,8 @@ void PairLJCutTIP4PLongOMP::compute(int eflag, int vflag)
     thr->timer(Timer::PAIR);
     reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
+
+  error_thr();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -136,6 +138,7 @@ void PairLJCutTIP4PLongOMP::compute(int eflag, int vflag)
 template <int CTABLE, int EVFLAG, int EFLAG, int VFLAG>
 void PairLJCutTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
 {
+  const int tid = thr->get_tid();
   double qtmp,xtmp,ytmp,ztmp,delx,dely,delz,evdwl,ecoul;
   double fraction,table;
   double r,rsq,r2inv,r6inv,forcecoul,forcelj,cforce;
@@ -183,8 +186,9 @@ void PairLJCutTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
     if (itype == typeO) {
       iH1 = hneigh_thr[i].a;
       iH2 = hneigh_thr[i].b;
-      if (iH1 == -1) error->one(FLERR,"TIP4P hydrogen is missing");
-      if (iH1 == -2) error->one(FLERR,"TIP4P hydrogen has incorrect atom type");
+      if (check_error_thr((iH1 < 0), tid, FLERR, (iH1 == -1) ? "TIP4P hydrogen is missing"
+                          : "TIP4P hydrogen has incorrect atom type"))
+        return;
       x1 = newsite_thr[i];
     } else x1 = x[i];
 
@@ -240,8 +244,9 @@ void PairLJCutTIP4PLongOMP::eval(int iifrom, int iito, ThrData * const thr)
           if (jtype == typeO) {
             jH1 = hneigh_thr[j].a;
             jH2 = hneigh_thr[j].b;
-            if (jH1 == -1) error->one(FLERR,"TIP4P hydrogen is missing");
-            if (jH1 == -2) error->one(FLERR,"TIP4P hydrogen has incorrect atom type");
+            if (check_error_thr((jH1 < 0), tid, FLERR, (jH1 == -1) ? "TIP4P hydrogen is missing"
+                                : "TIP4P hydrogen has incorrect atom type"))
+              return;
             x2 = newsite_thr[j];
           } else x2 = x[j];
 

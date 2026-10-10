@@ -1183,6 +1183,11 @@ Bibliography
 **(Morris)**
    Morris, Fox, Zhu, J Comp Physics, 136, 214-226 (1997).
 
+**(Morrisey thesis)**
+   Morrisey, J. P. (2013). Discrete Element Modelling of
+   Iron Ore Pellets to Include the Effects of Moisture and Fines.
+   PhD thesis, Edinburgh, Scotland: University of Edinburgh.
+
 **(Morse)**
    Morse, Physical review, 34, 57 (1929). https://doi.org/10.1103/PhysRev.34.57
 
@@ -1734,6 +1739,12 @@ Bibliography
 
 **(Tersoff_2)**
    J.\  Tersoff, Phys Rev B, 38, 9902 (1988).
+
+**(Thakur et al, 2014)**
+   Thakur, Subhash C., et al. (2014).
+   Micromechanical analysis of cohesive granular materials using
+   the discrete element method with an adhesive  elasto-plastic contact
+   model. Granular Matter 16, 383-400.
 
 **(Theodorou)**
    Theodorou, Suter, Macromolecules, 18, 1206 (1985).

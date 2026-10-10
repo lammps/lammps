@@ -126,9 +126,9 @@ The fix reaxff/bonds command requires that the :doc:`pair_style reaxff
 is only enabled if LAMMPS was built with that package.  See the
 :doc:`Build package <Build_package>` page for more info.
 
-To write compressed bond files, you must compile LAMMPS with the
-``-DLAMMPS_GZIP`` option.  See the :doc:`Build settings <Build_settings>`
-doc page for details.
+To write compressed bond files, the corresponding compression program
+must be installed.  See the :ref:`Build settings <gzip>` page for
+details.
 
 Related commands
 """"""""""""""""

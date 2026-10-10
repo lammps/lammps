@@ -3,7 +3,6 @@
 .github export-ignore
 .claude export-ignore
 AGENTS.md export-ignore
-.lgtm.yml export-ignore
 SECURITY.md export-ignore
 CITATION.cff export-ignore
 codemeta.json export-ignore

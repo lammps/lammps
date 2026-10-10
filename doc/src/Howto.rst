@@ -101,13 +101,22 @@ Packages howto
 Tutorials howto
 ===============
 
+The following tutorials explain step by step how to compile LAMMPS, how
+to use it from Python or with external tools, and how to contribute to
+its development.  Tutorials on how to perform simulations with LAMMPS
+are available elsewhere, e.g. in the `LAMMPS tutorials
+<https://lammpstutorials.github.io/>`_ collection.  Those and other
+tutorial collections can also be started from the `Tutorials menu
+<https://lammps-gui.lammps.org/menus.html#tutorials>`_ of LAMMPS-GUI,
+which downloads the required files and opens the corresponding online
+instructions.
+
 .. toctree::
    :name: tutorials
    :maxdepth: 1
 
-   Howto_cmake
-   Howto_github
-   Howto_lammps_gui
-   Howto_moltemplate
-   Howto_python
    Howto_wsl
+   Howto_cmake
+   Howto_python
+   Howto_moltemplate
+   Howto_github

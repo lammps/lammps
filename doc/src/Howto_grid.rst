@@ -36,9 +36,9 @@ Post-processing and visualization of grid cell data can be enabled by
 the :doc:`dump grid <dump>`, :doc:`dump grid/vtk <dump>`, and
 :doc:`dump image <dump_image>` commands.  The latter has an optional
 *grid* keyword.  The `OVITO visualization tool
-<https://www.ovito.org>`_ also plans (as of Nov 2022) to add support
-for visualizing grid cell data (along with atoms) using :doc:`dump
-grid <dump>` output files as input.
+<https://www.ovito.org>`_ (version 3.8 or later) can read :doc:`dump
+grid <dump>` output files and visualize grid cell data (along with
+atoms).
 
 .. note::
 

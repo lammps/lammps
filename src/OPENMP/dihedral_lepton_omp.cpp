@@ -62,7 +62,7 @@ void DihedralLeptonOMP::compute(int eflag, int vflag)
     loop_setup_thr(ifrom, ito, tid, inum, nthreads);
     ThrData *thr = fix->get_thr(tid);
     thr->timer(Timer::START);
-    ev_setup_thr(eflag, vflag, nall, eatom, vatom, nullptr, thr);
+    ev_setup_thr(eflag, vflag, nall, eatom, vatom, cvatom, thr);
 
     if (inum > 0) {
       if (evflag) {
@@ -87,6 +87,8 @@ void DihedralLeptonOMP::compute(int eflag, int vflag)
     thr->timer(Timer::BOND);
     reduce_thr(this, eflag, vflag, thr);
   }    // end of omp parallel region
+
+  error_thr();
 }
 
 /* ---------------------------------------------------------------------- */
@@ -110,7 +112,9 @@ void DihedralLeptonOMP::eval(int nfrom, int nto, ThrData *const thr)
       if (EFLAG) dihedralpot.emplace_back(parsed.createCompiledExpression());
     }
   } catch (std::exception &e) {
-    error->all(FLERR, Error::NOLASTLINE, e.what());
+    // errors must be deferred until the end of the threaded region
+    check_error_thr(true, thr->get_tid(), FLERR, e.what());
+    return;
   }
 
   const double *const *const x = atom->x;

@@ -238,7 +238,7 @@ Example
          variable lambda atom ...
          set group all apip/lambda v_lambda
 
-         fix 4 all atom_weight/apip 100 eam ace lambda/input lambda/zone all
+         fix 4 all atom_weight/apip 100 eam ace 0 0 all
 
          variable myweight atom f_4
 

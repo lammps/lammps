@@ -66,6 +66,16 @@ set(LAMMPS_POTENTIALS_URL "${LAMMPS_DOWNLOADS_URL}/potentials")
 set(LAMMPS_THIRDPARTY_URL "${LAMMPS_DOWNLOADS_URL}/thirdparty")
 mark_as_advanced(LAMMPS_DOWNLOADS_URL)
 
+# compiling, installing, or running LAMMPS as superuser (root) is strongly discouraged. warn about it.
+if(CMAKE_HOST_UNIX)
+  execute_process(COMMAND id -u OUTPUT_VARIABLE _LAMMPS_USER_ID OUTPUT_STRIP_TRAILING_WHITESPACE ERROR_QUIET)
+  if(_LAMMPS_USER_ID STREQUAL "0")
+    message(WARNING "LAMMPS is being configured as superuser (root).  Compiling, installing, "
+      "or running LAMMPS as superuser is strongly discouraged.\n"
+      "For more information see https://docs.lammps.org/err0040")
+  endif()
+endif()
+
 # by default, install into $HOME/.local (not /usr/local), so that no root access (and sudo!!) is needed
 if(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
   if((CMAKE_SYSTEM_NAME STREQUAL "Windows") AND (NOT CMAKE_CROSSCOMPILING))
@@ -206,6 +216,33 @@ endif()
 if (NOT PKG_SCAFACOS)
   set(MPI_CXX_SKIP_MPICXX TRUE CACHE BOOL "Skip MPI C++ Bindings" FORCE)
 endif()
+
+########################################################################
+# Obsolete settings                                                    #
+########################################################################
+# report settings that no longer have any effect and remove them from
+# the cache.  entries may be removed after a few stable releases.
+function(obsolete_setting name reason)
+  if(DEFINED ${name})
+    # referencing the value avoids a CMake warning about an unused variable
+    message(WARNING "Ignoring obsolete setting ${name}=${${name}}: ${reason}")
+    unset(${name} CACHE)
+  endif()
+endfunction()
+
+obsolete_setting(LAMMPS_EXCEPTIONS "C++ exceptions are always used for error handling")
+obsolete_setting(BUILD_LAMMPS_SHELL "The LAMMPS shell was replaced by LAMMPS-GUI")
+obsolete_setting(WITH_GZIP "Support for compressed files is detected at runtime")
+obsolete_setting(WITH_FFMPEG "Support for dump movie is detected at runtime")
+obsolete_setting(PKG_ATC "The ATC package was removed. Last stable version with it: 22Jul2025")
+obsolete_setting(PKG_AWPMD "The AWPMD package was removed. Last stable version with it: 22Jul2025")
+obsolete_setting(PKG_ML-RANN "The ML-RANN package was removed. Last stable version with it: 22Jul2025")
+obsolete_setting(PKG_POEMS "The POEMS package was removed. Last stable version with it: 22Jul2025")
+obsolete_setting(PKG_VTK "Dump style vtk is now part of the EXTRA-DUMP package")
+obsolete_setting(PKG_MPIIO "The MPIIO package was removed. Last stable version with it: 2Aug2023")
+obsolete_setting(PKG_MSCG "The MSCG package was removed. Last stable version with it: 2Aug2023")
+obsolete_setting(PKG_LATTE "The LATTE package was removed. Last stable version with it: 23Jun2022")
+obsolete_setting(PKG_MESSAGE "The MESSAGE package was replaced by the MDI package")
 
 ########################################################################
 # User input options                                                   #
@@ -594,17 +631,6 @@ if(PKG_ML-QUIP OR PKG_ML-POD OR PKG_ELECTRODE OR PKG_RHEO OR BUILD_TOOLS OR PKG_
   endif()
 endif()
 
-find_program(GZIP_EXECUTABLE gzip)
-find_package_handle_standard_args(GZIP REQUIRED_VARS GZIP_EXECUTABLE)
-option(WITH_GZIP "Enable GZIP support" ${GZIP_FOUND})
-if(WITH_GZIP)
-  if(GZIP_FOUND OR ((CMAKE_SYSTEM_NAME STREQUAL "Windows") AND CMAKE_CROSSCOMPILING))
-    target_compile_definitions(lammps PRIVATE -DLAMMPS_GZIP)
-  else()
-    message(FATAL_ERROR "gzip executable not found")
-  endif()
-endif()
-
 if(BUILD_SHARED_LIBS)
   set(CONFIGURE_REQUEST_PIC "--with-pic")
   set(CMAKE_REQUEST_PIC "-DCMAKE_POSITION_INDEPENDENT_CODE=${CMAKE_POSITION_INDEPENDENT_CODE}")
@@ -719,7 +745,7 @@ foreach(PKG_LIB H5MD)
   endif()
 endforeach()
 
-if(PKG_ELECTRODE OR PKG_ML-POD)
+if(PKG_ELECTRODE OR PKG_ML-POD OR PKG_RHEO)
   target_link_libraries(lammps PRIVATE ${LAPACK_LIBRARIES})
 endif()
 

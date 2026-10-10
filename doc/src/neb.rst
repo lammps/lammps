@@ -391,11 +391,14 @@ each file will contain the sequence of snapshots that transition the
 system over the energy barrier.  Earlier snapshots will show the
 convergence of the replicas to the MEP.
 
-Likewise, :doc:`restart <restart>` filenames can be specified with a
-*universe* or *uloop* style :doc:`variable <variable>`, to generate
-restart files for each replica.  These may be useful if the NEB
-calculation fails to converge properly to the MEP, and you wish to
-restart the calculation from an intermediate point with altered
+Likewise, :doc:`restart <restart>` and :doc:`write_restart
+<write_restart>` filenames must include a *universe*, *uloop*, or
+*world* style :doc:`variable <variable>` to generate a separate restart
+file for each replica.  Otherwise all replicas write to the same file at
+the same time, and the resulting file may contain a garbled mix of data
+from several replicas.  Restart files for each replica may be useful
+if the NEB calculation fails to converge properly to the MEP, and you
+wish to restart the calculation from an intermediate point with altered
 parameters.
 
 There are 2 Python scripts provided in the tools/python directory,
@@ -441,9 +444,8 @@ This command can only be used if LAMMPS was built with the REPLICA
 package.  See the :doc:`Build package <Build_package>` doc
 page for more info.
 
-To read compressed files, you must compile LAMMPS with the
-``-DLAMMPS_GZIP`` option.  See the :doc:`Build settings
-<Build_settings>` doc page for details.
+To read compressed files, the corresponding compression program must be
+installed.  See the :ref:`Build settings <gzip>` page for details.
 
 ----------
 

@@ -128,7 +128,7 @@ void PairCoulDebyeOMP::eval(int iifrom, int iito, ThrData * const thr)
         r = sqrt(rsq);
         rinv = 1.0/r;
         screening = exp(-kappa*r);
-        forcecoul = qqrd2e * qtmp*q[j] * screening * (kappa + rinv);
+        forcecoul = qqrd2e * scale[itype][jtype] * qtmp*q[j] * screening * (kappa + rinv);
         fpair = factor_coul*forcecoul * r2inv;
 
         fxtmp += delx*fpair;
@@ -141,7 +141,7 @@ void PairCoulDebyeOMP::eval(int iifrom, int iito, ThrData * const thr)
         }
 
         if (EFLAG)
-          ecoul = factor_coul * qqrd2e * qtmp*q[j] * rinv * screening;
+          ecoul = factor_coul * qqrd2e * scale[itype][jtype] * qtmp*q[j] * rinv * screening;
 
         if (EVFLAG) ev_tally_thr(this, i,j,nlocal,NEWTON_PAIR,
                                  0.0,ecoul,fpair,delx,dely,delz,thr);

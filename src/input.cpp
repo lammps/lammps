@@ -1764,7 +1764,7 @@ void Input::package()
     auto *fixomp = modify->get_fix_by_id("package_omp");
     if (fixomp) {
       int dim = 0;
-      auto *styles = (const char *) fixomp->extract("styles_in_use", dim);
+      const auto *styles = (const char *) fixomp->extract("styles_in_use", dim);
       if (styles && styles[0])
         error->all(FLERR, Error::ARGZERO,
                    "Cannot change OPENMP package settings while styles with OpenMP support are "

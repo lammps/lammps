@@ -582,9 +582,11 @@ void FixDeform::init()
     int flag = 0;
     double lo,hi;
     if (flipflag && set[3].style == VARIABLE)
-      error->all(FLERR, "Fix {} cannot use yz variable with xy unless xz is erate/rescale", style);
+      error->all(FLERR, "Fix {} cannot use yz variable with box flips and a defined xy unless xz is erate/rescale",
+                 style);
     if (flipflag && set[3].style == ERATERS)
-      error->all(FLERR, "Fix {} cannot use yz erate/rescale with xy if xz is not erate/rescale", style);
+      error->all(FLERR, "Fix {} cannot use yz erate/rescale with box flips and a defined xy unless xz is erate/rescale",
+                 style);
     if (set[3].style == WIGGLE) {
       lo = set[3].tilt_min;
       hi = set[3].tilt_max;
@@ -1083,7 +1085,8 @@ void FixDeform::apply_volume()
                  (set[fixed].hi_start - set[fixed].lo_start));
     }
 
-    h_rate[i] = (2.0 * shift / (domain->boxhi[i] - domain->boxlo[i]) - 1.0) / update->dt;
+    // (2*shift - L_old)/dt is d(box length)/dt; domain->h_rate is not a strain rate
+    h_rate[i] = (2.0 * shift - (domain->boxhi[i] - domain->boxlo[i])) / update->dt;
     h_ratelo[i] = -0.5 * h_rate[i];
 
     set[i].lo_target = 0.5 * (set[i].lo_start + set[i].hi_start) - shift;
@@ -1363,7 +1366,9 @@ void FixDeform::options(int narg, char **arg)
       auto nskip = child_options[arg[iarg]];
       if (iarg + nskip > narg)
         utils::missing_cmd_args(FLERR, fmt::format("fix {} {}", style, arg[iarg]), error);
-      for (int i = 0; i < nskip; i++) leftover_iarg.push_back(iarg + i);
+      // arg here is shifted, but need to store unshifted indices in leftover => add start location
+      //   (see options(narg - iarg, &arg[iarg]) call in the constructor)
+      for (int i = 0; i < nskip; i++) leftover_iarg.push_back(iarg_options_start + iarg + i);
       iarg += nskip;
     } else error->all(FLERR, "Unknown fix {} keyword: {}", style, arg[iarg]);
   }

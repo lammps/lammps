@@ -35,6 +35,7 @@ class PairDPDExtOMP : public PairDPDExt, public ThrOMP {
   PairDPDExtOMP(class LAMMPS *);
   ~PairDPDExtOMP() override;
 
+  void settings(int, char **) override;
   void compute(int, int) override;
   double memory_usage() override;
 

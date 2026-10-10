@@ -418,9 +418,9 @@ TEST_F(GroupTest, VariableFunctions)
     command("set atom 25 charge $(2.0+2.0*sin(PI/32*25))");
     command("set atom 32 charge $(-2.0+2.0*sin(PI/32*32))");
     command("pair_style lj/cut 5.0");
-    command("pair_coeff * * 0.4 3.0");
-    command("pair_coeff 2 2 0.5 3.3");
-    command("pair_coeff 3 3 0.2 3.5");
+    command("pair_coeff * * 0.4 0.8");
+    command("pair_coeff 2 2 0.5 0.9");
+    command("pair_coeff 3 3 0.2 1.0");
     command("run 0 post no");
     END_HIDE_OUTPUT();
 
@@ -526,12 +526,13 @@ TEST_F(GroupTest, VariableFunctions)
     EXPECT_DOUBLE_EQ(center[1], 0);
     EXPECT_DOUBLE_EQ(center[2], 0);
 
-    // the total force on a group of this equilibrated system is zero up to the
+    // the total force on a group of this symmetric system is zero up to the
     // roundoff of the sum over its atoms.  the individual values depend on the
     // summation order and thus on the accelerator package in use, so only the
-    // magnitude is checked here
+    // magnitude is checked here.  the pair forces are of order 1, which leaves
+    // a remainder of about 1.0e-5 when the forces are summed in single precision
 
-    constexpr double FORCE_EPSILON = 1.0e-06;
+    const double FORCE_EPSILON = prec_tol(0.0, 1.0e-10);
 
     group->fcm(0, center);
     EXPECT_NEAR(center[0], 0, FORCE_EPSILON);

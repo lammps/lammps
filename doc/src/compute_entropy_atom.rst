@@ -79,7 +79,9 @@ averages the parameter over the neighbors  of atom :math:`i` according to
   \left< s_S^i \right>  = \frac{\sum_j s_S^j + s_S^i}{N + 1},
 
 where the sum over :math:`j` goes over the neighbors of atom :math:`i` and
-:math:`N` is the number of neighbors. This procedure provides a sharper
+:math:`N` is the number of neighbors.  The sum includes all neighbors of
+atom :math:`i`, also those that are not in the compute group.  This
+procedure provides a sharper
 distinction between order and disorder environments. In this case the input
 parameter *cutoff2* is the cutoff for the averaging over the neighbors and
 must also be specified.
@@ -124,7 +126,8 @@ options.
 
 The pair entropy values have units of the Boltzmann constant. They are
 always negative, and lower values (lower entropy) correspond to more
-ordered environments.
+ordered environments.  The values will be 0.0 for atoms not in the
+specified compute group.
 
 ----------
 

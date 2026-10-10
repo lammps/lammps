@@ -24,13 +24,8 @@ if(WITH_PNG)
   target_compile_definitions(lammps PRIVATE -DLAMMPS_PNG)
 endif()
 
-find_program(FFMPEG_EXECUTABLE ffmpeg)
-find_package_handle_standard_args(FFMPEG REQUIRED_VARS FFMPEG_EXECUTABLE)
-option(WITH_FFMPEG "Enable FFMPEG support" ${FFMPEG_FOUND})
-if(WITH_FFMPEG)
-  if(FFMPEG_FOUND OR ((CMAKE_SYSTEM_NAME STREQUAL "Windows") AND CMAKE_CROSSCOMPILING))
-    target_compile_definitions(lammps PRIVATE -DLAMMPS_FFMPEG)
-  else()
-    message(FATAL_ERROR "ffmpeg executable not found")
-  endif()
+# hack to stop certain versions of nvcc from crashing
+if(PKG_KOKKOS AND Kokkos_ENABLE_CUDA)
+  set_source_files_properties(${CMAKE_SOURCE_DIR}/../src/GRAPHICS/fix_graphics_isosurface.cpp
+    PROPERTIES COMPILE_OPTIONS "--host-only")
 endif()

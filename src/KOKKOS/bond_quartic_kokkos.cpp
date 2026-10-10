@@ -107,6 +107,12 @@ void BondQuarticKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   // otherwise collide with a pending host modification
   atomKK->sync(execution_space,X_MASK|F_MASK);
 
+  // sync and claim here too: the MC fixes call this outside run_style verlet/kk
+
+  atomKK->sync(execution_space,datamask_read);
+  if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
+  else atomKK->modified(execution_space,F_MASK);
+
   x = atomKK->k_x.template view<DeviceType>();
   f = atomKK->k_f.template view<DeviceType>();
   neighborKK->k_bondlist.template sync<DeviceType>();

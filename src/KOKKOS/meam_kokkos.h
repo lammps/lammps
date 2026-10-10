@@ -273,6 +273,4 @@ static KK_FLOAT fdiv_zero_kk(const KK_FLOAT n, const KK_FLOAT d)
 
 }    // namespace LAMMPS_NS
 
-#include "meam_impl_kokkos.h"
-
 #endif

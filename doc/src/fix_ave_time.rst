@@ -319,14 +319,19 @@ the strings that will be printed as the first 2 or 3 lines of the
 output file, assuming the *file* keyword was used.  LAMMPS uses
 default values for each of these, so they do not need to be specified.
 
+.. versionchanged:: TBD
+
 By default, these header lines are as follows for *mode* = scalar:
 
 .. parsed-literal::
 
-   # Time-averaged data for fix ID
+   # Time-averaged data for fix ID mode scalar ave AVE version VERSION
    # TimeStep value1 value2 ...
 
-In the first line, ID is replaced with the fix-ID.  In the second line
+In the first line, ID is replaced with the fix-ID, AVE with the *ave*
+setting (one, running, or window), and VERSION with the LAMMPS version
+as a number (e.g., 20260930 for the 30 September 2026 version).
+Previously, the first line ended after the fix-ID.  In the second line
 the values are replaced with the appropriate fields from the fix
 ave/time command.  There is no third line in the header of the file,
 so the *title3* setting is ignored when *mode* = scalar.
@@ -335,14 +340,14 @@ By default, these header lines are as follows for *mode* = vector:
 
 .. parsed-literal::
 
-   # Time-averaged data for fix ID
+   # Time-averaged data for fix ID mode vector ave AVE version VERSION
    # TimeStep Number-of-rows
    # Row value1 value2 ...
 
-In the first line, ID is replaced with the fix-ID.  The second line
-describes the two values that are printed at the first of each section
-of output.  In the third line the values are replaced with the
-appropriate fields from the fix ave/time command.
+The first line is filled in the same way as for *mode* = scalar.  The
+second line describes the two values that are printed at the first of
+each section of output.  In the third line the values are replaced
+with the appropriate fields from the fix ave/time command.
 
 ----------
 

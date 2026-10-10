@@ -346,6 +346,20 @@ void ComputeVoronoi::buildCells()
         con_poly->put(i,x[i][0],x[i][1],x[i][2],rfield[i]);
     }
 
+    // Voro++ 0.4.6 ends the search for neighboring particles when the difference
+    // between the squared radius of the current particle and the squared largest
+    // radius is positive, which assumes that this difference is exactly zero for the
+    // largest particles.  When the compiler uses fused multiply-add instructions
+    // (the default on ARM64), the difference is the rounding error of the product
+    // instead, and the cells of largest particles close to the boundary of a Voro++
+    // block are left mostly uncut.  This was fixed in Voro++ after version 0.4.6,
+    // but installed versions of 0.4.6 are still common.  Increasing the largest
+    // radius by a tiny margin makes the difference negative for all particles and
+    // thus avoids the exact comparison.  It only makes the cutoff tests within
+    // Voro++ marginally more conservative.
+
+    con_poly->max_radius *= 1.0 + 1.0e-12;
+
   // monodisperse Voro++ container
 
   } else {

@@ -259,6 +259,16 @@ every 10th executed event.  When an input script reads a restart file
 from a previous TAD run, the new script can be run on a different
 number of replicas or processors.
 
+Unlike the :doc:`restart <restart>` command, the :doc:`write_restart
+<write_restart>` command is executed by all partitions, so that all of
+them write to the same file at the same time.  To write a restart file
+after the TAD run has finished, limit the write_restart command to the
+first partition with the :doc:`partition <partition>` command, e.g.
+
+.. code-block:: LAMMPS
+
+   partition yes 1 write_restart restart.tad
+
 Note that within a single state, the dynamics will typically
 temporarily continue beyond the event that is ultimately chosen, until
 the stopping criterion is satisfied.  When the event is eventually

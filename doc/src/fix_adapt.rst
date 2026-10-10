@@ -143,7 +143,7 @@ The *pstyle* argument is the name of the pair style.  If
 sub-styles using the same pair style, then *pstyle* should be specified
 as "style:N", where *N* is which instance of the pair style you wish to
 adapt (e.g., the first or second).  For example, *pstyle* could be
-specified as "soft" or "lubricate" or "lj/cut:1" or "lj/cut:2".  The
+specified as "soft" or "lj/cut:1" or "lj/cut:2".  The
 *pparam* argument is the name of the parameter to change.  This is the
 current list of pair styles and parameters that can be varied by this
 fix.  See the doc pages for individual pair styles and their energy
@@ -290,7 +290,7 @@ formulas for the meaning of these parameters:
    the pair\_\*.cpp file associated with the potential.
 
 Some parameters are global settings for the pair style (e.g., the
-viscosity setting "mu" for :doc:`pair_style lubricate <pair_lubricate>`).
+Coulomb cutoff "cut_coul" for :doc:`pair_style coul/dsf <pair_coul>`).
 Other parameters apply to atom type pairs within the pair style (e.g., the
 prefactor :math:`a` for :doc:`pair_style soft <pair_soft>`).
 

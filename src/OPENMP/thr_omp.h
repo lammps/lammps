@@ -26,6 +26,9 @@
 #include "pointers.h"
 #include "thr_data.h"    // IWYU pragma: export
 
+#include <atomic>
+#include <string>
+
 namespace LAMMPS_NS {
 
 // forward declarations
@@ -42,7 +45,11 @@ class ThrOMP {
   FixOMP *fix;    // pointer to fix_omp;
 
   int thr_style;
-  int thr_error;
+  // use a C++11 atomic, since OpenMP 3.1 atomic reads are not available with all compilers
+  std::atomic<int> thr_error;
+  int thr_errline;
+  const char *thr_errfile;
+  std::string thr_errmsg;
 
  public:
   ThrOMP(LAMMPS *, int);
@@ -87,34 +94,44 @@ void reduce_thr(void *const style, const int eflag, const int vflag, ThrData *co
 
 // thread safe variant error abort support.
 // signals an error condition in any thread by making
-// thr_error > 0, if condition "cond" is true.
-// will abort from thread 0 if thr_error is > 0
-// otherwise return true.
-// returns false if no error found on any thread.
-// use return value to jump/return to end of threaded region.
+// thr_error > 0, if condition "cond" is true, and records
+// the location and a copy of the message of the first error.
+// returns true if an error was signaled by any thread,
+// otherwise false. use return value to jump/return to the
+// end of the threaded region and call error_thr() after
+// the threaded region to stop with the recorded error.
 
 bool check_error_thr(const bool cond, const int tid, const char *fname, const int line,
+                     const std::string &errmsg)
+{
+  return check_error_thr(cond, tid, fname, line, errmsg.c_str());
+}
+
+bool check_error_thr(const bool cond, const int /*tid*/, const char *fname, const int line,
                      const char *errmsg)
 {
   if (cond) {
-#if defined(_OPENMP)
-#pragma omp atomic
-    ++thr_error;
-#endif
-    if (tid > 0)
-      return true;
-    else
-      lmp->error->one(fname, line, errmsg);
-  } else {
-    if (thr_error > 0) {
-      if (tid == 0)
-        lmp->error->one(fname, line, errmsg);
-      else
-        return true;
-    } else
-      return false;
+    // only the first thread to signal an error records its location and message.
+    // they are read by error_thr() after the threaded region has ended.
+    if (thr_error.fetch_add(1, std::memory_order_relaxed) == 0) {
+      thr_errfile = fname;
+      thr_errline = line;
+      thr_errmsg = errmsg;
+    }
+    return true;
   }
-  return false;
+  return thr_error.load(std::memory_order_relaxed) > 0;
+}
+
+// stop with the first error that was signaled by check_error_thr().
+// must be called outside of threaded regions.
+
+void error_thr()
+{
+  if (thr_error.load() > 0) {
+    thr_error = 0;
+    lmp->error->one(thr_errfile, thr_errline, thr_errmsg);
+  }
 }
 
 protected:

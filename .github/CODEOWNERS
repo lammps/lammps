@@ -167,6 +167,7 @@
 /tools/swig/            @akohlmey
 /tools/valgrind/        @akohlmey
 /tools/vim/             @hammondkd
+/tools/regression-tests/ @ndtrung81
 
 # tests
 /unittest/              @akohlmey

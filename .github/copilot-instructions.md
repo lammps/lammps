@@ -99,8 +99,11 @@ loosening tolerances or tagging the test `unstable`.
   a bug, check the base style, all suffix variants (`/omp`, `/kk`, `/gpu`, `/opt`,
   `/intel`), and sibling styles cloned from the same template for the same code shape,
   and fix all occurrences together.
-- The INTEL package is unmaintained: it receives only bug fixes and adjustments to
-  API changes.  Do not add or propose new `/intel` variants.
+- The core developers no longer develop the INTEL package: their own work on it is
+  limited to bug fixes and adjustments to API changes.  Do not add or propose new
+  `/intel` variants yourself.  New INTEL code from contributors is acceptable, since
+  the contributor takes on its maintenance: review it on its merits, and do not ask
+  for its removal only because of this rule.
 - The PR template contains a mandatory **AI Tools Usage** section whose default text
   states no AI was used; when AI tools generated code, edit that section to disclose it
   honestly.  This section is the ONLY place for AI attribution: do NOT add

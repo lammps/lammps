@@ -15,7 +15,7 @@ The following quantities are common to normal models:
 * :math:`R_\text{eff} = \frac{R_iR_j}{R_i+R_j}` is the effective radius for particles *i* and *j*, or set to the radius of the particle in a wall-particle contact.
 
 Unless otherwise specified, the radius of the contact region
-is given by :math:`\sqrt{\deltaR_\text{eff}}` for all models.
+is given by :math:`\sqrt{\delta R_\text{eff}}` for all models.
 Notable exceptions are *jkr* and *epa_nonlinear*.
 
 .. _hooke_normal_model:
@@ -329,7 +329,7 @@ by :ref:`(Luding) <Luding2008>`, where the force is computed according to:
 
    F_{ne}(\delta) = \begin{cases}
     k_1\delta & \text{if } k_2(\delta-\delta_0) \ge k_1\delta \\
-    k_2(\delta-\delta_0) & \text{if } k_1\delta \gt k_2(\delta-\delta_0) \gt -k_c\delta \\
+    k_2(\delta-\delta_0) & \text{if } k_1\delta > k_2(\delta-\delta_0) > -k_c\delta \\
     -k_c\delta & \text{if } -k_c\delta \ge k_2(\delta-\delta_0)
    \end{cases}
 
@@ -339,7 +339,7 @@ where
 
    k_2(\delta_{\text{max}}) = \begin{cases}
     \hat{k_2} & \text{if } \delta_\text{max} \ge \delta_\text{max}^* \\
-    k_1 + (\hat{k_2}-k_1)\frac{\delta_\text{max}}{\delta_{\text{max}}^*} & \ \text{if } \delta_\text{max} \lt \delta_\text{max}^*
+    k_1 + (\hat{k_2}-k_1)\frac{\delta_\text{max}}{\delta_{\text{max}}^*} & \ \text{if } \delta_\text{max} < \delta_\text{max}^*
    \end{cases}
 
 and
@@ -471,7 +471,7 @@ model. Granular Matter 16, 383-400.
 
 .. _Morrisey2013:
 
-**(Morrisey thesis)** Morrissey, J. P. (2013). Discrete Element Modelling of
+**(Morrisey thesis)** Morrisey, J. P. (2013). Discrete Element Modelling of
 Iron Ore Pellets to Include the Effects of Moisture and Fines.
 PhD thesis, Edinburgh, Scotland: University of Edinburgh.
 

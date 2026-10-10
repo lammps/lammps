@@ -37,6 +37,9 @@ class ComputeContinuumChunk : public ComputeChunk {
   void compute_array() override;
   double memory_usage() override;
 
+  void allocate() override;
+  std::string get_thermo_colname(int) override;
+
  private:
   std::vector<std::tuple<int, int, int>> values;
   std::vector<std::string> labels;
@@ -67,7 +70,6 @@ class ComputeContinuumChunk : public ComputeChunk {
   double *density_local, *density_global;
   double **momentum_local, **momentum_global;
 
-  void allocate() override;
   inline double calc_w(double) const;
   inline double calc_w_int(double *, double *) const;
   void add_tensor_component(char *, int);
@@ -75,7 +77,6 @@ class ComputeContinuumChunk : public ComputeChunk {
   int shifted_bin(int, int *) const;
   int position_to_bin(double *);
   void build_stencil();
-  std::string get_thermo_colname(int) override;
 };
 
 }    // namespace LAMMPS_NS

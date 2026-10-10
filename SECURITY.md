@@ -1,5 +1,7 @@
 # Security Policy
 
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/15199/badge)](https://www.bestpractices.dev/projects/15199)
+
 LAMMPS is designed as a user-level application to conduct computer
 simulations for research using classical mechanics.  As such LAMMPS
 depends to some degrees on users providing correctly formatted input and

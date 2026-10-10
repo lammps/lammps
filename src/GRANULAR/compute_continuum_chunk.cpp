@@ -126,10 +126,9 @@ inline double ComputeContinuumChunk::calc_w_int(double *dr, double *rij) const
 /* ---------------------------------------------------------------------- */
 
 ComputeContinuumChunk::ComputeContinuumChunk(LAMMPS *lmp, int narg, char **arg) :
-    ComputeChunk(lmp, narg, arg), list(nullptr), nlayers(nullptr),
-    chunk_dim(nullptr), delta(nullptr), values_local(nullptr), values_global(nullptr),
-    density_local(nullptr), density_global(nullptr), momentum_local(nullptr),
-    momentum_global(nullptr)
+    ComputeChunk(lmp, narg, arg), list(nullptr), nlayers(nullptr), chunk_dim(nullptr),
+    delta(nullptr), values_local(nullptr), values_global(nullptr), density_local(nullptr),
+    density_global(nullptr), momentum_local(nullptr), momentum_global(nullptr)
 {
   if (narg < 7) utils::missing_cmd_args(FLERR, "compute continuum/chunk", error);
 
@@ -167,15 +166,15 @@ ComputeContinuumChunk::ComputeContinuumChunk(LAMMPS *lmp, int narg, char **arg) 
   while (iarg < narg) {
     if (strcmp(arg[iarg], "natoms") == 0) {
       no_norm.insert(values.size());
-      values.push_back(std::make_tuple(NATOMS, 0, 0));
-      labels.push_back("natoms");
+      values.emplace_back(std::make_tuple(NATOMS, 0, 0));
+      labels.emplace_back("natoms");
     } else if (strcmp(arg[iarg], "density") == 0) {
-      values.push_back(std::make_tuple(DENSITY, 0, 0));
-      labels.push_back("density");
+      values.emplace_back(std::make_tuple(DENSITY, 0, 0));
+      labels.emplace_back("density");
       index_density = static_cast<int>(values.size()) - 1;
     } else if (strcmp(arg[iarg], "volume/fraction") == 0) {
-      values.push_back(std::make_tuple(VOLFRAC, 0, 0));
-      labels.push_back("volume/fraction");
+      values.emplace_back(std::make_tuple(VOLFRAC, 0, 0));
+      labels.emplace_back("volume/fraction");
       need_radius = 1;
     } else if (utils::strmatch(arg[iarg], "^momentum/.$")) {
       add_vector_component(arg[iarg], MOMENTUM);
@@ -226,8 +225,8 @@ ComputeContinuumChunk::ComputeContinuumChunk(LAMMPS *lmp, int narg, char **arg) 
       calculate_pair = 1;
       need_radius = 1;
     } else if (strcmp(arg[iarg], "temperature") == 0) {
-      values.push_back(std::make_tuple(TEMPERATURE, 0, 0));
-      labels.push_back("temperature");
+      values.emplace_back(std::make_tuple(TEMPERATURE, 0, 0));
+      labels.emplace_back("temperature");
       need_density = 1;
       need_momentum = 1;
       calculate_2_loops = 1;
@@ -240,18 +239,18 @@ ComputeContinuumChunk::ComputeContinuumChunk(LAMMPS *lmp, int narg, char **arg) 
   // Add any necessary intermediate values, won't be saved as output
   nskip = 0;
   if ((need_density) && (index_density == -1)) {
-    values.push_back(std::make_tuple(DENSITY, 0, 0));
+    values.emplace_back(std::make_tuple(DENSITY, 0, 0));
     index_density = static_cast<int>(values.size()) - 1;
-    labels.push_back("density/internal");
+    labels.emplace_back("density/internal");
     nskip += 1;
   }
 
   if (need_momentum) {
     for (int a = 0; a < dim; a++) {
       if (index_momentum[a] == -1) {
-        values.push_back(std::make_tuple(MOMENTUM, 1, a));
+        values.emplace_back(std::make_tuple(MOMENTUM, 1, a));
         index_momentum[a] = static_cast<int>(values.size()) - 1;
-        labels.push_back("momentum/internal");
+        labels.emplace_back("momentum/internal");
         nskip += 1;
       }
     }
@@ -260,9 +259,9 @@ ComputeContinuumChunk::ComputeContinuumChunk(LAMMPS *lmp, int narg, char **arg) 
   if (need_velocity) {
     for (int a = 0; a < dim; a++) {
       if (index_velocity[a] == -1) {
-        values.push_back(std::make_tuple(VELOCITY, 1, a));
+        values.emplace_back(std::make_tuple(VELOCITY, 1, a));
         index_velocity[a] = static_cast<int>(values.size()) - 1;
-        labels.push_back("velocity/internal");
+        labels.emplace_back("velocity/internal");
         nskip += 1;
       }
     }
@@ -273,9 +272,9 @@ ComputeContinuumChunk::ComputeContinuumChunk(LAMMPS *lmp, int narg, char **arg) 
       for (int b = 0; b < 3; b++) {
         if ((dim == 2) && ((b == 2) || (a == 2))) continue;
         if (index_vgrad[a][b] == -1) {
-          values.push_back(std::make_tuple(VGRAD, 2, a * 3 + b));
+          values.emplace_back(std::make_tuple(VGRAD, 2, a * 3 + b));
           index_vgrad[a][b] = static_cast<int>(values.size()) - 1;
-          labels.push_back("vgrad/internal");
+          labels.emplace_back("vgrad/internal");
           nskip += 1;
         }
       }
@@ -393,19 +392,23 @@ void ComputeContinuumChunk::init()
 
   if ((boundaryflag == BOUNDARY_FIX) || (boundaryflag == BOUNDARY_BOTH)) {
     auto wall_fixes = modify->get_fix_by_style("wall/gran");
-    if (wall_fixes.size() == 0)
-      error->all(FLERR, "Could not find any instances of fix wall/gran for boundary corrections");
-    for (auto fix : wall_fixes)
+    if (wall_fixes.empty())
+      error->all(FLERR, Error::NOLASTLINE,
+                 "Could not find any instances of fix wall/gran for boundary corrections");
+    for (auto *fix : wall_fixes)
       if (!fix->peratom_flag)
-        error->all(FLERR, "Must use contacts keyword in fix wall/gran {} for boundary corrections",
+        error->all(FLERR, Error::NOLASTLINE,
+                   "Must use contacts keyword in fix wall/gran {} for boundary corrections",
                    fix->id);
   }
 
   if (calculate_pair) {
     if (force->pair == nullptr)
-      error->all(FLERR, "No pair style is defined for compute continuum/chunk stress calculation");
+      error->all(FLERR, Error::NOLASTLINE,
+                 "No pair style is defined for compute continuum/chunk stress calculation");
     if (force->pair->single_enable == 0)
-      error->all(FLERR, "Pair style does not support compute continuum/chunk stress calculation");
+      error->all(FLERR, Error::NOLASTLINE,
+                 "Pair style does not support compute continuum/chunk stress calculation");
 
     // Find if granular or gran, need to include tangential forces
     if (force->pair_match("^granular", 0) || force->pair_match("^gran/", 0)) pstyle = GRANULAR;
@@ -488,8 +491,8 @@ void ComputeContinuumChunk::compute_array()
     const double offset = cchunk->coord[0][a] - 0.5 * delta[a];
     if (std::fabs(boxlo[idim] - offset) > EPSILON)
       error->warning(FLERR,
-                         "Bins do not start at lower edge of simulation box."
-                         " Results on the boundary may be incorrect");
+                     "Bins do not start at lower edge of simulation box."
+                     " Results on the boundary may be incorrect");
   }
 
   for (m = 0; m < nchunk; m++) {
@@ -502,7 +505,8 @@ void ComputeContinuumChunk::compute_array()
   int itype, style, vtype, component, field_index, iboundary, jboundary;
   double w, wc, massi, voli, volj, rsq_atom_bin, rsq_cont_bin, rsq_pair, r_pair, r_cont;
   double f_norm, w_int_tmp, factor_lj;
-  double xbin0[3], xbinc[3], xbin[3], xbin2[3], xcont[3], f_pair[3], f_wall[3], dx_pair[3], xj_near[3];
+  double xbin0[3], xbinc[3], xbin[3], xbin2[3], xcont[3], f_pair[3], f_wall[3], dx_pair[3],
+      xj_near[3];
   double dx_pair_filtered[3], dx_atom_bin[3], dx_bin_cont[3], dx_atom_cont[3];
   double dx_atom_cont_filtered[3];
   double **array_atom_fix;
@@ -593,7 +597,7 @@ void ComputeContinuumChunk::compute_array()
       // Use custom stencil because a bin may overlap with contact point but not atom i
       //   and the line integral needs to add that contribution
 
-      for (auto wall_fix : wall_fixes) {
+      for (auto *wall_fix : wall_fixes) {
         array_atom_fix = wall_fix->array_atom;
 
         if (array_atom_fix[i][0] < 0.5) continue;
@@ -644,8 +648,7 @@ void ComputeContinuumChunk::compute_array()
               visited_bins.insert(mtmp);
 
               MathExtra::copy3(x[i], xbin2);
-              for (int c = 0; c < chunk_ncoord; ++c)
-                xbin2[cdim[c]] = xbin[cdim[c]];
+              for (int c = 0; c < chunk_ncoord; ++c) xbin2[cdim[c]] = xbin[cdim[c]];
 
               MathExtra::sub3(x[i], xbin2, dx_atom_bin);
               rsq_atom_bin = MathExtra::lensq3(dx_atom_bin);
@@ -1258,8 +1261,8 @@ void ComputeContinuumChunk::add_tensor_component(char *option, int variable)
     for (int a = 0; a < 3; a++) {
       for (int b = 0; b < 3; b++) {
         if ((dim == 2) && ((b == 2) || (a == 2))) continue;
-        values.push_back(std::make_tuple(variable, 2, a * 3 + b));
-        labels.push_back(trimmed_option + suffices[a * 3 + b]);
+        values.emplace_back(std::make_tuple(variable, 2, a * 3 + b));
+        labels.emplace_back(trimmed_option + suffices[a * 3 + b]);
         if (variable == VGRAD) index_vgrad[a][b] = static_cast<int>(values.size()) - 1;
       }
     }
@@ -1296,8 +1299,8 @@ void ComputeContinuumChunk::add_tensor_component(char *option, int variable)
 
     if (dim_error) error->all(FLERR, "Invalid compute continuum/chunk property {} in 2D", option);
 
-    values.push_back(std::make_tuple(variable, 2, index));
-    labels.push_back(option);
+    values.emplace_back(std::make_tuple(variable, 2, index));
+    labels.emplace_back(option);
     if (variable == VGRAD) {
       int a = index / 3;
       int b = index % 3;
@@ -1315,8 +1318,8 @@ void ComputeContinuumChunk::add_vector_component(char *option, int variable)
     std::string trimmed_option = std::string(option);
     trimmed_option = trimmed_option.substr(0, trimmed_option.length() - 1);
     for (int a = 0; a < dim; a++) {
-      values.push_back(std::make_tuple(variable, 1, a));
-      labels.push_back(trimmed_option + suffices[a]);
+      values.emplace_back(std::make_tuple(variable, 1, a));
+      labels.emplace_back(trimmed_option + suffices[a]);
       if (variable == MOMENTUM) index_momentum[a] = static_cast<int>(values.size()) - 1;
       if (variable == VELOCITY) index_velocity[a] = static_cast<int>(values.size()) - 1;
     }
@@ -1333,8 +1336,8 @@ void ComputeContinuumChunk::add_vector_component(char *option, int variable)
       error->all(FLERR, "Invalid compute continuum/chunk property {}", option);
     }
 
-    values.push_back(std::make_tuple(variable, 1, index));
-    labels.push_back(option);
+    values.emplace_back(std::make_tuple(variable, 1, index));
+    labels.emplace_back(option);
     if (variable == MOMENTUM) index_momentum[index] = static_cast<int>(values.size()) - 1;
     if (variable == VELOCITY) index_velocity[index] = static_cast<int>(values.size()) - 1;
   }

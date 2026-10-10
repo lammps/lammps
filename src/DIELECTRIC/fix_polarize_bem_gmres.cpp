@@ -44,6 +44,7 @@
 #include "kspace.h"
 #include "math_const.h"
 #include "memory.h"
+#include "modify.h"
 #include "msm_dielectric.h"
 #include "pair_coul_cut_dielectric.h"
 #include "pair_coul_long_dielectric.h"
@@ -766,6 +767,17 @@ void FixPolarizeBEMGMRES::update_efield()
 
 void FixPolarizeBEMGMRES::force_clear()
 {
+  // with the OPENMP package, the forces of /omp styles are collected in
+  // per-thread arrays, which are only summed up after all styles are computed.
+  // fix omp clears those arrays, so that the forces computed here are
+  // not added to the forces of the following regular force computation.
+
+  auto *fixomp = modify->get_fix_by_id("package_omp");
+  if (fixomp) {
+    fixomp->pre_force(0);
+    return;
+  }
+
   int nbytes = sizeof(double) * atom->nlocal;
   if (force->newton) nbytes += sizeof(double) * atom->nghost;
 

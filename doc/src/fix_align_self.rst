@@ -129,6 +129,7 @@ ellipsoid <atom_style>` command.
 Related commands
 """"""""""""""""
 
+:doc:`fix align/neighbor <fix_align_neighbor>`,
 :doc:`fix propel/self <fix_propel_self>`,
 :doc:`fix brownian <fix_brownian>`,
 :doc:`fix addtorque/group <fix_addtorque_group>`

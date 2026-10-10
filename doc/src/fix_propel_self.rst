@@ -172,6 +172,8 @@ Related commands
 """"""""""""""""
 
 :doc:`fix align/self <fix_align_self>`,
+:doc:`fix propel/ou <fix_propel_ou>`,
+:doc:`fix tumble <fix_tumble>`,
 :doc:`fix efield <fix_efield>`,
 :doc:`fix setforce <fix_setforce>`,
 :doc:`fix addforce <fix_addforce>`

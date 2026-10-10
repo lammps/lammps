@@ -59,9 +59,8 @@ pairwise forces or heat exchanges. By default, an arithmetic averaged is
 used, however, a harmonic mean may improve stability in systems with multiple
 fluid phases with large disparities in viscosities.
 
-No coefficients are defined for each pair of atoms types via the
-:doc:`pair_coeff <pair_coeff>` command as in the examples
-above.
+No coefficients are defined for each pair of atom types via the
+:doc:`pair_coeff <pair_coeff>` command as in the examples above.
 
 ----------
 

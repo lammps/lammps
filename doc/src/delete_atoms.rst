@@ -202,13 +202,13 @@ Restrictions
 """"""""""""
 
 The *overlap* styles requires inter-processor communication to acquire
-ghost atoms and build a neighbor list.  This means that your system
-must be ready to perform a simulation before using this command (force
-fields setup, atom masses set, etc.).  Since a neighbor list is used to
-find overlapping atom pairs, it also means that you must define a
-:doc:`pair style <pair_style>` with the minimum force cutoff distance
-between any pair of atoms types (plus the :doc:`neighbor <neighbor>`
-skin) :math:`\ge` the specified overlap cutoff.
+ghost atoms and build a neighbor list.  This means that your system must
+be ready to perform a simulation before using this command (force fields
+setup, atom masses set, etc.).  Since a neighbor list is used to find
+overlapping atom pairs, it also means that you must define a :doc:`pair
+style <pair_style>` with the minimum force cutoff distance between any
+pair of atom types (plus the :doc:`neighbor <neighbor>` skin)
+:math:`\ge` the specified overlap cutoff.
 
 If the :doc:`special_bonds <special_bonds>` command is used with a
 setting of 0, then a pair of bonded atoms (1--2, 1--3, or 1--4) will not

@@ -196,14 +196,14 @@ The keyword *rates* can modify the swap rate based on the type of atom
 *J*.  Ntype values must be specified, where Ntype = the number of atom
 types in the system.  Each value is used to scale the probability
 weighting given by the equation above.  In the third example command
-above, a simulation has 3 atoms types.  Atom *I*s of type 1 are
-eligible for swapping.  Swaps may occur with atom *J*s of all 3 types.
-Assuming all *J* atoms are equidistant from an atom *I*, *J* atoms of
-type 1 will be 3x more likely to be selected as a swap partner than
-atoms of type 2.  And *J* atoms of type 3 will be 6.5x more likely to
-be selected than atoms of type 2.  If the *rates* keyword is not used,
-all atom types will be treated with the same probability during selection
-of swap attempts.
+above, a simulation has 3 atom types.  Atom *I*s of type 1 are eligible
+for swapping.  Swaps may occur with atom *J*s of all 3 types.  Assuming
+all *J* atoms are equidistant from an atom *I*, *J* atoms of type 1 will
+be 3x more likely to be selected as a swap partner than atoms of type 2.
+And *J* atoms of type 3 will be 6.5x more likely to be selected than
+atoms of type 2.  If the *rates* keyword is not used, all atom types
+will be treated with the same probability during selection of swap
+attempts.
 
 ----------
 

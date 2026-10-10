@@ -96,7 +96,7 @@ pairwise energy, but the last two terms of the formula make a
 contribution to the virial.
 
 For style *dpd*, the following coefficients must be defined for each
-pair of atoms types via the :doc:`pair_coeff <pair_coeff>` command as in
+pair of atom types via the :doc:`pair_coeff <pair_coeff>` command as in
 the examples above, or in the data file or restart files read by the
 :doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
 commands:
@@ -110,8 +110,8 @@ cutoff is used.  Note that sigma is set equal to sqrt(2 T gamma),
 where T is the temperature set by the :doc:`pair_style <pair_style>`
 command so it does not need to be specified.
 
-For style *dpd/tstat*, the coefficients defined for each pair of
-atoms types via the :doc:`pair_coeff <pair_coeff>` command are:
+For style *dpd/tstat*, the coefficients defined for each pair of atom
+types via the :doc:`pair_coeff <pair_coeff>` command are:
 
 * :math:`\gamma` (force/velocity units)
 * cutoff (distance units)

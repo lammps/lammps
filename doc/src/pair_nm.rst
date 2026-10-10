@@ -120,12 +120,11 @@ specified for this style means that pairwise interactions within this
 distance are computed directly; interactions outside that distance are
 computed in reciprocal space.
 
-For all of the *nm* pair styles, the following coefficients must
-be defined for each pair of atoms types
-via the :doc:`pair_coeff <pair_coeff>` command as in the
-examples above, or in the data file or restart files read by the
-:doc:`read_data <read_data>` or :doc:`read_restart <read_restart>`
-commands.
+For all of the *nm* pair styles, the following coefficients must be
+defined for each pair of atom types via the :doc:`pair_coeff
+<pair_coeff>` command as in the examples above, or in the data file or
+restart files read by the :doc:`read_data <read_data>` or
+:doc:`read_restart <read_restart>` commands.
 
 * :math:`E_0` (energy units)
 * :math:`r_0` (distance units)

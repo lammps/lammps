@@ -16,7 +16,7 @@ The following quantities are common to normal models:
 
 Unless otherwise specified, the radius of the contact region
 is given by :math:`\sqrt{\delta R_\text{eff}}` for all models.
-Notable exceptions are *jkr* and *epa_nonlinear*.
+Notable exceptions are *jkr* and *epa/nonlinear*.
 
 .. _hooke_normal_model:
 
@@ -308,7 +308,7 @@ to properly detect existing contacts.
 
 .. _epa_linear_normal_model:
 
-`epa_linear` model
+`epa/linear` model
 ----------------------
 
 *Parameters:* :math:`k_1`, :math:`\eta_{n0}` (or :math:`e`),
@@ -319,10 +319,10 @@ Example:
 .. code-block:: LAMMPS
 
    pair_style granular
-   pair_coeff * * epa_linear 1000.0 50.0 5000.0 200.0 0.5 0.0 tangential linear_history 500.0 1.0 0.4 damping mass_velocity
+   pair_coeff * * epa/linear 1000.0 50.0 5000.0 200.0 0.5 0.0 tangential linear_history 500.0 1.0 0.4 damping mass_velocity
 
 
-The *epa_linear* model is the linear elastic-plastic-adhesive model proposed
+The *epa/linear* model is the linear elastic-plastic-adhesive model proposed
 by :ref:`(Luding) <Luding2008>`, where the force is computed according to:
 
 .. math::
@@ -368,7 +368,7 @@ The critical force for purposes of computing friction is given by
 
 .. _epa_nonlinear_normal_model:
 
-`epa_nonlinear` model
+`epa/nonlinear` model
 ----------------------
 
 Example:
@@ -376,13 +376,13 @@ Example:
 .. code-block:: LAMMPS
 
    pair_style granular
-   pair_coeff * * epa_nonlinear 1.0e8 50.0 0.3 0.5 0.0 1000.0 1.5 1.0 tangential mindlin NULL 1.0 0.4 damping viscoelastic
+   pair_coeff * * epa/nonlinear 1.0e8 50.0 0.3 0.5 0.0 1000.0 1.5 1.0 tangential mindlin NULL 1.0 0.4 damping viscoelastic
 
 
 *Parameters*: :math:`E`, :math:`\eta_{n0}` (or :math:`e`), :math:`\nu`,
    :math:`\lambda_p`, :math:`f_0`, :math:`k_{c}`, :math:`m`, :math:`n`
 
-The *epa_nonlinear* model is very similar to the nonlinear elastic-plastic-adhesive model proposed
+The *epa/nonlinear* model is very similar to the nonlinear elastic-plastic-adhesive model proposed
 by :ref:`Thakur et al <Thakur2014>`, also known as the Edinburgh elasto-plastic adhesive (EEPA) model.
 The force is computed according to:
 

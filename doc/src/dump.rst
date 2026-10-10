@@ -492,9 +492,9 @@ information will be dumped:
 * atomic velocities, which can be disabled with :doc:`dump_modify vel no <dump_modify>`
 * atomic masses, if enabled with :doc:`dump_modify mass yes <dump_modify>`
 
-Dump style *extxyz* requires either that a :doc:`type label map for atoms types
-<labelmap>` is defined or :doc:`dump_modify element <dump_modify>` is used to
-set up an atom type number to atom name mapping.
+Dump style *extxyz* requires either that a :doc:`type label map for atom
+types <labelmap>` is defined or :doc:`dump_modify element <dump_modify>`
+is used to set up an atom type number to atom name mapping.
 
 .. versionadded:: 22Dec2022
 

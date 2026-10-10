@@ -108,10 +108,11 @@ More details about the derivation of these torques/forces are reported in
 :ref:`(Tranchida) <Tranchida3>`.
 
 For the *spin/exchange* and *spin/exchange/biquadratic* pair styles, the
-following coefficients must be defined for each pair of atoms types via the
-:doc:`pair_coeff <pair_coeff>` command as in the examples above, or in the data
-file or restart files read by the :doc:`read_data <read_data>` or
-:doc:`read_restart <read_restart>` commands, and set in the following order:
+following coefficients must be defined for each pair of atom types via
+the :doc:`pair_coeff <pair_coeff>` command as in the examples above, or
+in the data file or restart files read by the :doc:`read_data
+<read_data>` or :doc:`read_restart <read_restart>` commands, and set in
+the following order:
 
 * :math:`R_c` (distance units)
 * :math:`a`  (energy units)

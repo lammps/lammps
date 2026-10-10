@@ -11,7 +11,7 @@ mass            * 1.0
 region          half block -0.1 4.9 0 10 0 10
 set region half type 2
 
-velocity        all create 3.0 87287
+velocity        all create 3.0 87287 loop geom
 
 pair_style      hybrid lj/cut 2.5 python 2.5
 pair_coeff      * * python py_pot.LJCutMelt lj NULL

@@ -59,7 +59,7 @@ distance.  I.e. the actual force cutoff is the sum of :math:`r_c +
 \Delta`.
 
 For all of the *lj/expand* pair styles, the following coefficients must
-be defined for each pair of atoms types via the :doc:`pair_coeff
+be defined for each pair of atom types via the :doc:`pair_coeff
 <pair_coeff>` command as in the examples above, or in the data file or
 restart files read by the :doc:`read_data <read_data>` or
 :doc:`read_restart <read_restart>` commands, or by mixing as described

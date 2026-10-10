@@ -88,7 +88,7 @@ double GranSubModTwistingMarshall::calculate_forces()
   // M_t torque (eq 30)
   magtortwist = -k * history[history_index] - damp * magtwist;
   signtwist = (magtwist > 0) - (magtwist < 0);
-  Mtcrit = mu * Fncrit; // critical torque (eq 44)
+  Mtcrit = mu * Fncrit;    // critical torque (eq 44)
 
   if (fabs(magtortwist) > Mtcrit) {
     history[history_index] = (Mtcrit * signtwist - damp * magtwist) / k;

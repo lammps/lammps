@@ -263,6 +263,11 @@ The following Python packages need to be installed into an activated environment
     source testing-env/bin/activate
     pip install numpy pyyaml
 
+Input scripts that use the LAMMPS python module from inside LAMMPS (e.g. those in
+`examples/python`) get the module from the `python` folder of this source tree, which
+`run_tests.py` prepends to `PYTHONPATH` for the LAMMPS runs.  The module does not need
+to be installed, and an installed copy for a different LAMMPS version cannot interfere.
+
 For all the supported arguments, run:
 
     python3 tools/regression-tests/run_tests.py -h

@@ -49,15 +49,15 @@ normal force for purposes of computing the critical force is given by:
 Where :math:`F_\text{pulloff} = 3\pi \gamma R` for *jkr*,
 :math:`F_\text{pulloff} = 4\pi \gamma R` for *dmt*.
 
-For cohesive models such as *epa_linear* and *epa_nonlinear*, the
+For cohesive models such as *epa/linear* and *epa/nonlinear*, the
 critical force is incremented by the value of the cohesive force, see
 :ref:`Luding2008 <Luding2008>`, `Morrisey2013 <Morrisey2013>`
 .. math::
 
    F_{n0} = \|\mathbf{F}_{ne} + F_\text{cohesive}\|
 
-Where :math:`F_\text{cohesive} = f0 + k_c\delta` for *epa_linear*,
-:math:`F_\text{cohesive} = f0 + k_c\delta^n` for *epa_nonlinear*.
+Where :math:`F_\text{cohesive} = f0 + k_c\delta` for *epa/linear*,
+:math:`F_\text{cohesive} = f0 + k_c\delta^n` for *epa/nonlinear*.
 
 
 

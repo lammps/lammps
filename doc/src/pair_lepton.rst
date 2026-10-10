@@ -120,7 +120,7 @@ representation of the first derivative of this expression with respect
 to "r" and then uses that to compute the force between the pairs of
 particles within the given cutoff.
 
-The following coefficients must be defined for each pair of atoms types
+The following coefficients must be defined for each pair of atom types
 via the :doc:`pair_coeff <pair_coeff>` command as in the examples above,
 or in the data file or restart files read by the :doc:`read_data
 <read_data>` or :doc:`read_restart <read_restart>` commands:

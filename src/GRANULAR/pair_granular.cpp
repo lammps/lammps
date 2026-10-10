@@ -322,6 +322,9 @@ void PairGranular::allocate()
   memory->create(cutsq,n+1,n+1,"pair:cutsq");
   memory->create(cutoff_type,n+1,n+1,"pair:cutoff_type");
   memory->create(types_indices,n+1,n+1,"pair:types_indices");
+  for (int i = 0; i <= n; i++)
+    for (int j = 0; j <= n; j++)
+      types_indices[i][j] = -1;
 
   maxmodels = n * n + 1; // should never need any more space
   models_list = (GranularModel **) memory->smalloc(maxmodels * sizeof(GranularModel *), "pair:models_list");

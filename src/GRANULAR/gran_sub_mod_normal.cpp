@@ -14,11 +14,11 @@
 #include "gran_sub_mod_normal.h"
 
 #include "atom.h"
-#include "error.h"
 #include "citeme.h"
+#include "error.h"
 #include "fix_granular_mdr.h"
-#include "granular_model.h"
 #include "gran_sub_mod_damping.h"
+#include "granular_model.h"
 #include "math_const.h"
 #include "math_special.h"
 #include "modify.h"
@@ -28,34 +28,36 @@
 using namespace LAMMPS_NS;
 using namespace Granular_NS;
 using namespace MathConst;
-using MathSpecial::square;
 using MathSpecial::cube;
 using MathSpecial::powint;
+using MathSpecial::square;
 
-static constexpr double PISQ = 9.8696044010893579923;            // PI^2
-static constexpr double PIINV = 0.318309886183790691216;         // 1/PI
-static constexpr double PI27SQ = 266.479318829412648029;         // 27*PI^2
-static constexpr double PITOFIVETHIRDS = 6.73880859569814116838; // PI^(5/3)
-static constexpr double CBRT2 = 1.25992104989487319067;          // cbrt(2)
-static constexpr double SQRTHALFPI = 1.25331413731550012081;     // sqrt(PI/2)
-static constexpr double CBRTHALFPI = 1.16244735150962652526;     // cbrt(PI/2)
-static constexpr double FOURTHIRDS = 1.33333333333333333333;     // 4/3
-static constexpr double THREEROOT3 = 5.19615242270663202362;     // 3*sqrt(3)
-static constexpr double SIXROOT6 = 14.69693845669906728801;      // 6*sqrt(6)
-static constexpr double INVROOT6 = 0.40824829046386307274;       // 1/sqrt(6)
-static constexpr double JKRPREFIX = 1.2277228507842888;          // cbrt(3*PI**2/16)
+static constexpr double PISQ = 9.8696044010893579923;               // PI^2
+static constexpr double PIINV = 0.318309886183790691216;            // 1/PI
+static constexpr double PI27SQ = 266.479318829412648029;            // 27*PI^2
+static constexpr double PITOFIVETHIRDS = 6.73880859569814116838;    // PI^(5/3)
+static constexpr double CBRT2 = 1.25992104989487319067;             // cbrt(2)
+static constexpr double SQRTHALFPI = 1.25331413731550012081;        // sqrt(PI/2)
+static constexpr double CBRTHALFPI = 1.16244735150962652526;        // cbrt(PI/2)
+static constexpr double FOURTHIRDS = 1.33333333333333333333;        // 4/3
+static constexpr double THREEROOT3 = 5.19615242270663202362;        // 3*sqrt(3)
+static constexpr double SIXROOT6 = 14.69693845669906728801;         // 6*sqrt(6)
+static constexpr double INVROOT6 = 0.40824829046386307274;          // 1/sqrt(6)
+static constexpr double JKRPREFIX = 1.2277228507842888;             // cbrt(3*PI**2/16)
 
-static constexpr int MDR_MAX_IT = 100;                           // Newton-Raphson for MDR
-static constexpr double MDR_EPSILON1 = 1e-10;                    // Newton-Raphson for MDR
-static constexpr double MDR_EPSILON2 = 1e-16;                    // Newton-Raphson for MDR
-static constexpr double MDR_EPSILON3 = 1e-20;                    // For precision checks
-static constexpr double MDR_OVERLAP_LIMIT = 0.95;                // Maximum contact overlap for MDR
+static constexpr int MDR_MAX_IT = 100;               // Newton-Raphson for MDR
+static constexpr double MDR_EPSILON1 = 1e-10;        // Newton-Raphson for MDR
+static constexpr double MDR_EPSILON2 = 1e-16;        // Newton-Raphson for MDR
+static constexpr double MDR_EPSILON3 = 1e-20;        // For precision checks
+static constexpr double MDR_OVERLAP_LIMIT = 0.95;    // Maximum contact overlap for MDR
 
 static const char cite_mdr[] =
-    "MDR contact model command: (i) https://doi.org/10.1016/j.jmps.2023.105492 || (ii) https://doi.org/10.1016/j.jmps.2023.105493 || (iii) https://doi.org/10.31224/4289\n\n"
+    "MDR contact model command: (i) https://doi.org/10.1016/j.jmps.2023.105492 || (ii) "
+    "https://doi.org/10.1016/j.jmps.2023.105493 || (iii) https://doi.org/10.31224/4289\n\n"
     "@Article{zunker2024mechanicallyI,\n"
     " author =  {Zunker, William and Kamrin, Ken},\n"
-    " title =   {A mechanically-derived contact model for adhesive elastic-perfectly plastic particles,\n"
+    " title =   {A mechanically-derived contact model for adhesive elastic-perfectly plastic "
+    "particles,\n"
     "            Part I: Utilizing the method of dimensionality reduction},\n"
     " journal = {Journal of the Mechanics and Physics of Solids},\n"
     " year =    {2024},\n"
@@ -64,7 +66,8 @@ static const char cite_mdr[] =
     "}\n\n"
     "@Article{zunker2024mechanicallyII,\n"
     " author =  {Zunker, William and Kamrin, Ken},\n"
-    " title =   {A mechanically-derived contact model for adhesive elastic-perfectly plastic particles,\n"
+    " title =   {A mechanically-derived contact model for adhesive elastic-perfectly plastic "
+    "particles,\n"
     "            Part II: Contact under high compaction—modeling a bulk elastic response},\n"
     " journal = {Journal of the Mechanics and Physics of Solids},\n"
     " year =    {2024},\n"
@@ -72,7 +75,8 @@ static const char cite_mdr[] =
     " pages =   {105493},\n"
     "}\n\n"
     "@Article{zunker2025experimentally,\n"
-    " author =  {Zunker, William and Dunatunga, Sachith and Thakur, Subhash and Tang, Pingjun and Kamrin, Ken},\n"
+    " author =  {Zunker, William and Dunatunga, Sachith and Thakur, Subhash and Tang, Pingjun and "
+    "Kamrin, Ken},\n"
     " title =   {Experimentally validated DEM for large deformation powder compaction:\n"
     "            mechanically-derived contact model and screening of non-physical contacts},\n"
     " journal = {Powder Technology},\n"
@@ -449,8 +453,7 @@ void GranSubModNormalJKR::set_fncrit()
    Dan Bolintineanu (SNL), Joel Clemmer (SNL)
 ------------------------------------------------------------------------- */
 
-GranSubModNormalMDR::GranSubModNormalMDR(GranularModel *gm, LAMMPS *lmp) :
-    GranSubModNormal(gm, lmp)
+GranSubModNormalMDR::GranSubModNormalMDR(GranularModel *gm, LAMMPS *lmp) : GranSubModNormal(gm, lmp)
 {
   if (lmp->citeme) lmp->citeme->add(cite_mdr);
 
@@ -464,9 +467,7 @@ GranSubModNormalMDR::GranSubModNormalMDR(GranularModel *gm, LAMMPS *lmp) :
 
   nondefault_history_transfer = 1;
   transfer_history_factor = new double[size_history];
-  for (int i = 0; i < size_history; i++) {
-    transfer_history_factor[i] = +1;
-  }
+  for (int i = 0; i < size_history; i++) { transfer_history_factor[i] = +1; }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -481,23 +482,33 @@ GranSubModNormalMDR::~GranSubModNormalMDR()
 
 void GranSubModNormalMDR::coeffs_to_local()
 {
-  Emod = coeffs[0];      // Young's modulus
-  poiss = coeffs[1];     // Poisson's ratio
-  Y = coeffs[2];         // yield stress
-  gamma = coeffs[3];     // effective surface energy
-  psi_b = coeffs[4];     // bulk response trigger based on ratio of remaining free area: A_{free}/A_{total}
-  damp = coeffs[5];      // coefficent of restitution
+  Emod = coeffs[0];     // Young's modulus
+  poiss = coeffs[1];    // Poisson's ratio
+  Y = coeffs[2];        // yield stress
+  gamma = coeffs[3];    // effective surface energy
+  psi_b = coeffs
+      [4];    // bulk response trigger based on ratio of remaining free area: A_{free}/A_{total}
+  damp = coeffs[5];    // coefficent of restitution
 
-  if (Emod <= 0.0) error->all(FLERR, "Illegal MDR normal model, Young's modulus must be greater than 0");
-  if (poiss < 0.0 || poiss > 0.5) error->all(FLERR, "Illegal MDR normal model, Poisson's ratio must be between 0 and 0.5");
-  if (Y < 0.0) error->all(FLERR, "Illegal MDR normal model, yield stress must be greater than or equal to 0");
-  if (gamma < 0.0) error->all(FLERR, "Illegal MDR normal model, effective surface energy must be greater than or equal to 0");
-  if (psi_b < 0.0 || psi_b > 1.0) error->all(FLERR, "Illegal MDR normal model, psi_b must be between 0 and 1.0");
-  if (damp < 0.0) error->all(FLERR, "Illegal MDR normal model, damping coefficent must be greater than or equal to 0");
+  if (Emod <= 0.0)
+    error->all(FLERR, "Illegal MDR normal model, Young's modulus must be greater than 0");
+  if (poiss < 0.0 || poiss > 0.5)
+    error->all(FLERR, "Illegal MDR normal model, Poisson's ratio must be between 0 and 0.5");
+  if (Y < 0.0)
+    error->all(FLERR, "Illegal MDR normal model, yield stress must be greater than or equal to 0");
+  if (gamma < 0.0)
+    error->all(
+        FLERR,
+        "Illegal MDR normal model, effective surface energy must be greater than or equal to 0");
+  if (psi_b < 0.0 || psi_b > 1.0)
+    error->all(FLERR, "Illegal MDR normal model, psi_b must be between 0 and 1.0");
+  if (damp < 0.0)
+    error->all(FLERR,
+               "Illegal MDR normal model, damping coefficent must be greater than or equal to 0");
 
-  G = Emod / (2.0 * (1.0 + poiss));            // shear modulus
-  kappa = Emod / (3.0 * (1.0 - 2.0 * poiss));  // bulk modulus
-  Eeff = Emod / (1.0 - square(poiss));       // composite plane strain modulus
+  G = Emod / (2.0 * (1.0 + poiss));              // shear modulus
+  kappa = Emod / (3.0 * (1.0 - 2.0 * poiss));    // bulk modulus
+  Eeff = Emod / (1.0 - square(poiss));           // composite plane strain modulus
 
   // precomputing factors
 
@@ -530,23 +541,41 @@ void GranSubModNormalMDR::init()
 
   // initialize particle history variables
   int tmp1, tmp2;
-  index_Ro = atom->find_custom("Ro", tmp1, tmp2);                       // initial radius
-  index_Vcaps = atom->find_custom("Vcaps", tmp1, tmp2);                 // spherical cap volume from intersection of apparent radius particle and contact planes
-  index_Vgeo = atom->find_custom("Vgeo", tmp1, tmp2);                   // geometric particle volume of apparent particle after removing spherical cap volume
-  index_Velas = atom->find_custom("Velas", tmp1, tmp2);                 // particle volume from linear elasticity
-  index_eps_bar = atom->find_custom("eps_bar", tmp1, tmp2);             // volume-averaged infinitesimal strain tensor
-  index_dRnumerator = atom->find_custom("dRnumerator", tmp1, tmp2);     // summation of numerator terms in calculation of dR
-  index_dRdenominator = atom->find_custom("dRdenominator", tmp1, tmp2); // summation of denominator terms in calculation of dR
-  index_Acon0 = atom->find_custom("Acon0", tmp1, tmp2);                 // total area involved in contacts: Acon^{n}
-  index_Acon1 = atom->find_custom("Acon1", tmp1, tmp2);                 // total area involved in contacts: Acon^{n+1}
-  index_Atot = atom->find_custom("Atot", tmp1, tmp2);                   // total particle area
-  index_Atot_sum = atom->find_custom("Atot_sum", tmp1, tmp2);           // running sum of contact area minus cap area
-  index_ddelta_bar = atom->find_custom("ddelta_bar", tmp1, tmp2);       // change in mean surface displacement
-  index_psi = atom->find_custom("psi", tmp1, tmp2);                     // ratio of free surface area to total surface area
-  index_sigmaxx = atom->find_custom("sigmaxx", tmp1, tmp2);             // xx-component of the stress tensor, not necessary for force calculation
-  index_sigmayy = atom->find_custom("sigmayy", tmp1, tmp2);             // yy-component of the stress tensor, not necessary for force calculation
-  index_sigmazz = atom->find_custom("sigmazz", tmp1, tmp2);             // zz-component of the stress tensor, not necessary for force calculation
-  index_dRavg = atom->find_custom("dRavg", tmp1, tmp2);                 // radius update increment
+  index_Ro = atom->find_custom("Ro", tmp1, tmp2);    // initial radius
+  index_Vcaps = atom->find_custom(
+      "Vcaps", tmp1,
+      tmp2);    // spherical cap volume from intersection of apparent radius particle and contact planes
+  index_Vgeo = atom->find_custom(
+      "Vgeo", tmp1,
+      tmp2);    // geometric particle volume of apparent particle after removing spherical cap volume
+  index_Velas = atom->find_custom("Velas", tmp1, tmp2);    // particle volume from linear elasticity
+  index_eps_bar =
+      atom->find_custom("eps_bar", tmp1, tmp2);    // volume-averaged infinitesimal strain tensor
+  index_dRnumerator = atom->find_custom(
+      "dRnumerator", tmp1, tmp2);    // summation of numerator terms in calculation of dR
+  index_dRdenominator = atom->find_custom(
+      "dRdenominator", tmp1, tmp2);    // summation of denominator terms in calculation of dR
+  index_Acon0 =
+      atom->find_custom("Acon0", tmp1, tmp2);    // total area involved in contacts: Acon^{n}
+  index_Acon1 =
+      atom->find_custom("Acon1", tmp1, tmp2);    // total area involved in contacts: Acon^{n+1}
+  index_Atot = atom->find_custom("Atot", tmp1, tmp2);    // total particle area
+  index_Atot_sum =
+      atom->find_custom("Atot_sum", tmp1, tmp2);    // running sum of contact area minus cap area
+  index_ddelta_bar =
+      atom->find_custom("ddelta_bar", tmp1, tmp2);    // change in mean surface displacement
+  index_psi =
+      atom->find_custom("psi", tmp1, tmp2);    // ratio of free surface area to total surface area
+  index_sigmaxx = atom->find_custom(
+      "sigmaxx", tmp1,
+      tmp2);    // xx-component of the stress tensor, not necessary for force calculation
+  index_sigmayy = atom->find_custom(
+      "sigmayy", tmp1,
+      tmp2);    // yy-component of the stress tensor, not necessary for force calculation
+  index_sigmazz = atom->find_custom(
+      "sigmazz", tmp1,
+      tmp2);    // zz-component of the stress tensor, not necessary for force calculation
+  index_dRavg = atom->find_custom("dRavg", tmp1, tmp2);    // radius update increment
 }
 
 /* ---------------------------------------------------------------------- */
@@ -586,27 +615,27 @@ double GranSubModNormalMDR::calculate_forces()
   double *sigmayy = atom->dvector[index_sigmayy];
   double *sigmazz = atom->dvector[index_sigmazz];
 
-  const int itag_true = atom->tag[gm->i]; // true i particle tag
-  const int jtag_true = atom->tag[gm->j]; // true j particle tag
-  const int i_true = gm->i;               // true i particle index
-  const int j_true = gm->j;               // true j particle index
-  const double radi_true = gm->radi;      // true i particle initial radius
-  const double radj_true = gm->radj;      // true j particle initial radius
+  const int itag_true = atom->tag[gm->i];    // true i particle tag
+  const int jtag_true = atom->tag[gm->j];    // true j particle tag
+  const int i_true = gm->i;                  // true i particle index
+  const int j_true = gm->j;                  // true j particle index
+  const double radi_true = gm->radi;         // true i particle initial radius
+  const double radj_true = gm->radj;         // true j particle initial radius
 
-  double F = 0.0;                         // average force
-  double F0 = 0.0;                        // force on contact side 0
-  double F1 = 0.0;                        // force on contact side 1
-  double delta = gm->delta;               // apparent overlap
-  double Ac_avg = 0.0;                    // average contact area across both sides
-  double a_damp = 0.0;                    // damping contact radius
+  double F = 0.0;              // average force
+  double F0 = 0.0;             // force on contact side 0
+  double F1 = 0.0;             // force on contact side 1
+  double delta = gm->delta;    // apparent overlap
+  double Ac_avg = 0.0;         // average contact area across both sides
+  double a_damp = 0.0;         // damping contact radius
 
-  double *history = & gm->history[history_index]; // load in all history variables
+  double *history = &gm->history[history_index];    // load in all history variables
   int history_update = gm->history_update;
 
   // Rigid flat placement scheme
-  double *deltamax_offset = & history[DELTA_MAX];
-  double *deltap_offset0 = & history[DELTAP_0];
-  double *deltap_offset1 = & history[DELTAP_1];
+  double *deltamax_offset = &history[DELTA_MAX];
+  double *deltap_offset0 = &history[DELTAP_0];
+  double *deltap_offset1 = &history[DELTAP_1];
   double deltap0 = *deltap_offset0;
   double deltap1 = *deltap_offset1;
 
@@ -627,7 +656,8 @@ double GranSubModNormalMDR::calculate_forces()
 
       // itag and jtag persist after neighbor list builds, use tags to compare to match
       // contact history variables consistently across steps for a particle pair.
-      if ((contactSide == 0 && itag_true > jtag_true) || (contactSide != 0 && itag_true < jtag_true)) {
+      if ((contactSide == 0 && itag_true > jtag_true) ||
+          (contactSide != 0 && itag_true < jtag_true)) {
         gm->i = i_true;
         gm->j = j_true;
         gm->radi = radi_true;
@@ -646,7 +676,7 @@ double GranSubModNormalMDR::calculate_forces()
       double delta_geoOpt2 = deltamax * (deltamax - 2.0 * gm->radi) * denom;
       if (gm->radi < gm->radj) {
         delta_geo = MAX(delta_geoOpt1, delta_geoOpt2);
-        delta_geo_alt = MIN(delta_geoOpt1,delta_geoOpt2);
+        delta_geo_alt = MIN(delta_geoOpt1, delta_geoOpt2);
       } else {
         delta_geo = MIN(delta_geoOpt1, delta_geoOpt2);
         delta_geo_alt = MAX(delta_geoOpt1, delta_geoOpt2);
@@ -688,8 +718,8 @@ double GranSubModNormalMDR::calculate_forces()
     const int i = gm->i;
 
     // geometric property definitions
-    const double Ro = Rinitial[i];              // initial radius
-    const double R = gm->radi;                  // apparent radius
+    const double Ro = Rinitial[i];    // initial radius
+    const double R = gm->radi;        // apparent radius
 
     // kinematics
     const double ddelta = delta - *delta_offset;
@@ -723,12 +753,13 @@ double GranSubModNormalMDR::calculate_forces()
     const double pY = Y * (1.75 * exp(-4.4 * deltamax_MDR / R) + 1.0);
 
     if (*Yflag_offset == 0.0 && delta_MDR >= deltamax_MDR) {
-    const double phertz = 4 * Eeff * sqrt(delta_MDR) / (3 * MY_PI * sqrt(R));
+      const double phertz = 4 * Eeff * sqrt(delta_MDR) / (3 * MY_PI * sqrt(R));
       if (!history_update && warn_flag && deltamaxi == 0 && phertz > pY) {
-        error->warning(FLERR, "The newly inserted particles have pre-existing overlaps that "
-                          "have caused immediate plastic deformation. This could lead to "
-                          "non-physical results in the MDR model, as it handles some aspects "
-                          "related to plastic deformation incrementally.");
+        error->warning(FLERR,
+                       "The newly inserted particles have pre-existing overlaps that "
+                       "have caused immediate plastic deformation. This could lead to "
+                       "non-physical results in the MDR model, as it handles some aspects "
+                       "related to plastic deformation incrementally.");
         warn_flag = 0;
       }
       if (history_update && phertz > pY) {
@@ -740,12 +771,12 @@ double GranSubModNormalMDR::calculate_forces()
 
     // MDR force calculation
     double F_MDR;
-    double A, Ainv;               // height of elliptical indenter
-    double B;                     // width of elliptical indenter
-    double deltae1D;              // transformed elastic displacement
-    double deltaR;                // displacement correction
-    double amax, amaxsq;          // maximum experienced contact radius
-    const double cA = *cA_offset; // contact area intercept
+    double A, Ainv;                  // height of elliptical indenter
+    double B;                        // width of elliptical indenter
+    double deltae1D;                 // transformed elastic displacement
+    double deltaR;                   // displacement correction
+    double amax, amaxsq;             // maximum experienced contact radius
+    const double cA = *cA_offset;    // contact area intercept
 
     if (*Yflag_offset == 0.0) {
       // elastic contact
@@ -772,7 +803,8 @@ double GranSubModNormalMDR::calculate_forces()
       // depth of particle center
       const double zR = R - (deltamax_MDR - deltae1Dmax);
 
-      deltaR = 2 * amaxsq * (-1 + poiss) - (-1 + 2 * poiss) * zR * (-zR + sqrt(amaxsq + square(zR)));
+      deltaR =
+          2 * amaxsq * (-1 + poiss) - (-1 + 2 * poiss) * zR * (-zR + sqrt(amaxsq + square(zR)));
       deltaR *= Fmax / (MY_2PI * amaxsq * G * sqrt(amaxsq + square(zR)));
 
       // transformed elastic displacement
@@ -784,7 +816,7 @@ double GranSubModNormalMDR::calculate_forces()
 
     double a_na;
     double a_fac = 0.99;
-    (deltae1D >= 0.0) ? a_na = B * sqrt(A - deltae1D) * sqrt(deltae1D) * Ainv : a_na = 0.0;
+    (deltae1D >= 0.0) ? a_na = B * sqrt(A - deltae1D) * sqrt(deltae1D) *Ainv : a_na = 0.0;
     double aAdh = *aAdh_offset;
     if (aAdh > a_fac * amax) aAdh = a_fac * amax;
 
@@ -805,9 +837,7 @@ double GranSubModNormalMDR::calculate_forces()
         F_MDR = calculate_nonadhesive_mdr_force(deltae1D, Ainv, Eeff, A, B);
       }
 
-      if (std::isnan(F_MDR)) {
-        error->one(FLERR, "F_MDR is NaN, non-adhesive case");
-      }
+      if (std::isnan(F_MDR)) { error->one(FLERR, "F_MDR is NaN, non-adhesive case"); }
 
       if (history_update) *aAdh_offset = a_na;
     } else {
@@ -824,7 +854,8 @@ double GranSubModNormalMDR::calculate_forces()
         }
 
         if (std::isnan(F_MDR))
-          error->one(FLERR, "F_MDR is NaN, case 1: no tensile springs for atoms {} and {}", itag_true, jtag_true);
+          error->one(FLERR, "F_MDR is NaN, case 1: no tensile springs for atoms {} and {}",
+                     itag_true, jtag_true);
 
         if (history_update) *aAdh_offset = a_fac * a_na;
       } else {
@@ -835,7 +866,8 @@ double GranSubModNormalMDR::calculate_forces()
 
         double tmp = 27 * A4 * B4 * gamma * Eeffinv;
         tmp -= 2 * powint(B, 6) * gamma3 * PISQ * cube(Eeffinv);
-        tmp += sqrt(27) * Asq * B4 * sqrt(27 * A4 * Eeffsq * gammasq - 4 * Bsq * gamma4 * PISQ) * Eeffsqinv;
+        tmp += sqrt(27) * Asq * B4 * sqrt(27 * A4 * Eeffsq * gammasq - 4 * Bsq * gamma4 * PISQ) *
+            Eeffsqinv;
         tmp = cbrt(tmp);
 
         double acrit = -Bsq * gamma * MY_PI * Ainvsq * Eeffinv;
@@ -850,7 +882,8 @@ double GranSubModNormalMDR::calculate_forces()
           const double F_Adhes = 2.0 * Eeff * (deltae1D - deltaeAdh) * aAdh;
           F_MDR = F_na + F_Adhes;
           if (std::isnan(F_MDR))
-            error->one(FLERR, "F_MDR is NaN, case 2: tensile springs, but not exceeding critical length");
+            error->one(FLERR,
+                       "F_MDR is NaN, case 2: tensile springs, but not exceeding critical length");
         } else {
           // case 3: tensile springs exceed critical length --> deltae + lmax - g(aAdhes) = 0
 
@@ -864,19 +897,13 @@ double GranSubModNormalMDR::calculate_forces()
             for (int lv1 = 0; lv1 < MDR_MAX_IT; ++lv1) {
               fa_tmp = deltae1D - A * 0.5 + A * sqrt(Bsq * 0.25 - square(aAdh_tmp)) * Binv;
               fa = fa_tmp + sqrt(MY_2PI * aAdh_tmp * gamma * Eeffinv);
-              if (fabs(fa) < MDR_EPSILON1) {
-                break;
-              }
+              if (fabs(fa) < MDR_EPSILON1) { break; }
               dfda = -aAdh_tmp * A / (B * sqrt(-square(aAdh_tmp) + Bsq * 0.25));
               dfda += gamma * SQRTHALFPI / sqrt(aAdh_tmp * gamma * Eeff);
               aAdh_tmp = aAdh_tmp - fa / dfda;
               fa2 = fa_tmp + sqrt(MY_2PI * aAdh_tmp * gamma * Eeffinv);
-              if (fabs(fa - fa2) < MDR_EPSILON2) {
-                break;
-              }
-              if (lv1 == MDR_MAX_IT - 1) {
-                aAdh_tmp = 0.0;
-              }
+              if (fabs(fa - fa2) < MDR_EPSILON2) { break; }
+              if (lv1 == MDR_MAX_IT - 1) { aAdh_tmp = 0.0; }
             }
             aAdh = aAdh_tmp;
 
@@ -907,7 +934,8 @@ double GranSubModNormalMDR::calculate_forces()
 
     // area related calculations
     double Ac;
-    (*Yflag_offset == 0.0) ? Ac = MY_PI * delta * R : Ac = MY_PI * (2.0 * delta * R - square(delta)) + cA;
+    (*Yflag_offset == 0.0) ? Ac = MY_PI *delta *R
+                           : Ac = MY_PI * (2.0 * delta * R - square(delta)) + cA;
     if (Ac < 0.0) Ac = 0.0;
     if (history_update) {
       Atot_sum[i] += wij * (Ac - MY_2PI * R * (deltamax_MDR + delta_BULK));
@@ -920,7 +948,8 @@ double GranSubModNormalMDR::calculate_forces()
 
     // bulk force calculation
     double F_BULK;
-    (delta_BULK <= 0.0) ? F_BULK = 0.0 : F_BULK = (1.0 / Vgeo[i]) * Acon0[i] * delta_BULK * kappa * Ac;
+    (delta_BULK <= 0.0) ? F_BULK = 0.0
+                        : F_BULK = (1.0 / Vgeo[i]) * Acon0[i] * delta_BULK * kappa * Ac;
 
     // total force calculation
     (contactSide == 0) ? F0 = F_MDR + F_BULK : F1 = F_MDR + F_BULK;
@@ -946,7 +975,8 @@ double GranSubModNormalMDR::calculate_forces()
     if (history_update && delta_MDR == deltamax_MDR && *Yflag_offset > 0.0 && F_MDR > 0.0) {
       const double Vo = FOURTHIRDS * MY_PI * cube(Ro);
       dRnumerator[i] -= Vo * (eps_bar_contact - *eps_bar_offset);
-      dRnumerator[i] -= wij * MY_PI * ddeltao * (2 * deltao * Ro - square(deltao) + square(R) - square(Ro));
+      dRnumerator[i] -=
+          wij * MY_PI * ddeltao * (2 * deltao * Ro - square(deltao) + square(R) - square(Ro));
       dRdenominator[i] += wij * 2.0 * MY_PI * R * (deltao + R - Ro);
     }
 
@@ -973,10 +1003,11 @@ double GranSubModNormalMDR::calculate_forces()
   // assign final force
   double damp_scale;
   if (gm->contact_type != PAIR) {
-    a_damp = a_damp/2.0;
+    a_damp = a_damp / 2.0;
     damp_scale = sqrt(gm->meff * 2.0 * Eeff2particle * a_damp);
     double *deltao_offset = &history[DELTAO_0];
-    const double wfm = std::exp(10.7 * (*deltao_offset) / Rinitial[gm->i] - 10.0) + 1.0; // wall force magnifier
+    const double wfm =
+        std::exp(10.7 * (*deltao_offset) / Rinitial[gm->i] - 10.0) + 1.0;    // wall force magnifier
     F = wij * F0 * wfm;
   } else {
     damp_scale = sqrt(gm->meff * 2.0 * Eeff * a_damp);
@@ -984,7 +1015,7 @@ double GranSubModNormalMDR::calculate_forces()
   }
 
   if (history_update) {
-    double *damp_scale_offset = & history[DAMP_SCALE];
+    double *damp_scale_offset = &history[DAMP_SCALE];
     (a_damp <= 0.0) ? *damp_scale_offset = 0.0 : *damp_scale_offset = damp_scale;
   }
 
@@ -993,7 +1024,8 @@ double GranSubModNormalMDR::calculate_forces()
 
 /* ---------------------------------------------------------------------- */
 
-double GranSubModNormalMDR::calculate_nonadhesive_mdr_force(double delta, double Ainv, double Eeff, double A, double B)
+double GranSubModNormalMDR::calculate_nonadhesive_mdr_force(double delta, double Ainv, double Eeff,
+                                                            double A, double B)
 {
   double F_na = acos(1.0 - 2.0 * delta * Ainv);
   F_na -= (2 - 4 * delta * Ainv) * sqrt(delta * Ainv - square(delta * Ainv));
@@ -1016,7 +1048,8 @@ double GranSubModNormalMDR::round_up_negative_epsilon(double value)
    Elastic-plastic-adhesive, linear
 ------------------------------------------------------------------------- */
 
-GranSubModNormalEPALinear::GranSubModNormalEPALinear(GranularModel *gm, LAMMPS *lmp) : GranSubModNormal(gm, lmp)
+GranSubModNormalEPALinear::GranSubModNormalEPALinear(GranularModel *gm, LAMMPS *lmp) :
+    GranSubModNormal(gm, lmp)
 {
   cohesive_flag = 1;
   num_coeffs = 6;
@@ -1038,7 +1071,8 @@ void GranSubModNormalEPALinear::coeffs_to_local()
   phi_f = coeffs[4];
   f0 = coeffs[5];
 
-  if (k1 < 0.0 || damp < 0.0 || k2_hat < 0.0 || kc < 0 || phi_f < 0 || f0 < 0) error->all(FLERR, "Illegal EPA linear normal model, all coeffs must be positive");
+  if (k1 < 0.0 || damp < 0.0 || k2_hat < 0.0 || kc < 0 || phi_f < 0 || f0 < 0)
+    error->all(FLERR, "Illegal EPA linear normal model, all coeffs must be positive");
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1047,37 +1081,36 @@ double GranSubModNormalEPALinear::calculate_forces()
 {
   double dmax, dmax_star, k2;
   double d0, k1delta, k2_dd0;
-  double *history = & gm->history[history_index];
+  double *history = &gm->history[history_index];
   double delta = gm->delta;
-  double Fne;
+  double Fne = 0.0;
 
   kc_delta = 0;
 
-  dmax_star = k2_hat/(k2_hat-k1)*phi_f*2*gm->Reff;
+  dmax_star = k2_hat / (k2_hat - k1) * phi_f * 2 * gm->Reff;
   dmax = history[0];
-  if (delta > dmax){
+  if (delta > dmax) {
     dmax = delta;
     if (gm->history_update) history[0] = delta;
   }
-  if (dmax > dmax_star){
+  if (dmax > dmax_star) {
     k2 = k2_hat;
+  } else {
+    k2 = k1 + (k2_hat - k1) * dmax / dmax_star;
   }
-  else{
-    k2 = k1+(k2_hat-k1)*dmax/dmax_star;
-  }
-  d0 = (1-k1/k2)*dmax;
-  k1delta = k1*delta;
-  kc_delta = kc*delta;
-  k2_dd0 = k2*(delta-d0);
-  if (k2_dd0 >= k1delta){
+  d0 = (1 - k1 / k2) * dmax;
+  k1delta = k1 * delta;
+  kc_delta = kc * delta;
+  k2_dd0 = k2 * (delta - d0);
+  if (k2_dd0 >= k1delta) {
     Fne = k1delta;
-    kc_delta = 0; //Set to 0 if not adhesive branch, so that kc_delta doesn't contribute to critical force
-  }
-  else if ((k1delta > k2_dd0) && (k2_dd0 > -kc_delta)){
+    kc_delta =
+        0;    //Set to 0 if not adhesive branch, so that kc_delta doesn't contribute to critical force
+  } else if ((k1delta > k2_dd0) && (k2_dd0 > -kc_delta)) {
     Fne = k2_dd0;
-    kc_delta = 0; //Set to 0 if not adhesive branch, so that kc_delta doesn't contribute to critical force
-  }
-  else if (-kc_delta >= k2_dd0){
+    kc_delta =
+        0;    //Set to 0 if not adhesive branch, so that kc_delta doesn't contribute to critical force
+  } else if (-kc_delta >= k2_dd0) {
     Fne = -kc_delta;
   }
   Fne -= f0;
@@ -1091,15 +1124,15 @@ void GranSubModNormalEPALinear::set_fncrit()
   Fncrit = Fne + kc_delta + f0;
 }
 
-
 /* ----------------------------------------------------------------------
    Elastic-plastic-adhesive, non-linear
 ------------------------------------------------------------------------- */
 
-GranSubModNormalEPANonlinear::GranSubModNormalEPANonlinear(GranularModel *gm, LAMMPS *lmp) : GranSubModNormal(gm, lmp)
+GranSubModNormalEPANonlinear::GranSubModNormalEPANonlinear(GranularModel *gm, LAMMPS *lmp) :
+    GranSubModNormal(gm, lmp)
 {
   cohesive_flag = 1;
-  num_coeffs = 8; //E, poiss, damp, lambda_p, f0, kadh, mexp, nexp
+  num_coeffs = 8;    //E, poiss, damp, lambda_p, f0, kadh, mexp, nexp
   size_history = 1;
   contact_radius_flag = 1;
   material_properties = 1;
@@ -1131,14 +1164,13 @@ void GranSubModNormalEPANonlinear::coeffs_to_local()
     }
   }
 
-  if (Emod < 0.0 || damp < 0.0 || lambda_p < 0.0 ||
-      lambda_p >= 1.0 || f0 < 0.0 || kadh < 0.0 ||
+  if (Emod < 0.0 || damp < 0.0 || lambda_p < 0.0 || lambda_p >= 1.0 || f0 < 0.0 || kadh < 0.0 ||
       mexp < 1 || nexp < 1)
-        error->all(FLERR, "Illegal EPA nonlinear normal model");
+    error->all(FLERR, "Illegal EPA nonlinear normal model");
 
-  minv = 1.0/mexp;
+  minv = 1.0 / mexp;
   lp_minv = pow(lambda_p, minv);
-  k2fac = k1/(1-lambda_p);
+  k2fac = k1 / (1 - lambda_p);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1146,9 +1178,7 @@ void GranSubModNormalEPANonlinear::coeffs_to_local()
 void GranSubModNormalEPANonlinear::mix_coeffs(double *icoeffs, double *jcoeffs)
 {
   coeffs[0] = mix_stiffnessE(icoeffs[0], jcoeffs[0], icoeffs[2], jcoeffs[2]);
-  for (int i = 1; i < num_coeffs; i++) {
-    coeffs[i] = mix_geom(icoeffs[i], jcoeffs[i]);
-  }
+  for (int i = 1; i < num_coeffs; i++) { coeffs[i] = mix_geom(icoeffs[i], jcoeffs[i]); }
 
   k1 = FOURTHIRDS * coeffs[0];
   mixed_coefficients = 1;
@@ -1160,17 +1190,17 @@ void GranSubModNormalEPANonlinear::mix_coeffs(double *icoeffs, double *jcoeffs)
 
 double GranSubModNormalEPANonlinear::calculate_contact_radius()
 {
-  double *history = & gm->history[history_index];
+  double *history = &gm->history[history_index];
   double delta_max = history[0];
   double contact_radius;
 
   // Also update delta_max, set delta_p
-  if (gm->delta > delta_max){
+  if (gm->delta > delta_max) {
     delta_max = gm->delta;
     if (gm->history_update) history[0] = gm->delta;
   }
-  delta_p = lp_minv*delta_max;
-  contact_radius = sqrt(2*delta_p*gm->Reff);
+  delta_p = lp_minv * delta_max;
+  contact_radius = sqrt(2 * delta_p * gm->Reff);
   return contact_radius;
 }
 
@@ -1179,36 +1209,33 @@ double GranSubModNormalEPANonlinear::calculate_contact_radius()
 double GranSubModNormalEPANonlinear::calculate_forces()
 {
   double k1r, k2, delta_max;
-  double dm, dn, dpm, dchi, k2_dmdpm, k1_dm, Reff_2m, Reff_2n;
-  double *history = & gm->history[history_index];
+  double dm, dn, dpm, k2_dmdpm, k1_dm, Reff_2m, Reff_2n;
   double delta = gm->delta;
-  double Fmin, Fmin_lim, Fne;
+  double Fne = 0.0;
 
   ka_dn = 0;
 
-  Reff_2m = pow(gm->Reff, 2-mexp);
-  Reff_2n = pow(gm->Reff, 2-nexp);
+  Reff_2m = pow(gm->Reff, 2 - mexp);
+  Reff_2n = pow(gm->Reff, 2 - nexp);
 
-  k1r = k1*Reff_2m;
-  k2 = k2fac*Reff_2m;
+  k1r = k1 * Reff_2m;
+  k2 = k2fac * Reff_2m;
 
   dm = pow(delta, mexp);
   dpm = pow(delta_p, mexp);
 
-  k1_dm = k1r*dm;
-  k2_dmdpm = k2*(dm-dpm);
+  k1_dm = k1r * dm;
+  k2_dmdpm = k2 * (dm - dpm);
 
-  if (k2_dmdpm >= k1_dm){
+  if (k2_dmdpm >= k1_dm) {
     Fne = k1_dm;
-  }
-  else{ //Could be on adhesive branch
+  } else {    //Could be on adhesive branch
     dn = pow(delta, nexp);
-    ka_dn = kadh*Reff_2n*dn;
-    if ((k1_dm > k2_dmdpm) && (k2_dmdpm > -ka_dn)){
+    ka_dn = kadh * Reff_2n * dn;
+    if ((k1_dm > k2_dmdpm) && (k2_dmdpm > -ka_dn)) {
       Fne = k2_dmdpm;
-      ka_dn = 0; //Set to 0 so that critical force is not affected if not on adhesive branch
-    }
-    else if (-ka_dn >= k2_dmdpm){
+      ka_dn = 0;    //Set to 0 so that critical force is not affected if not on adhesive branch
+    } else if (-ka_dn >= k2_dmdpm) {
       Fne = -ka_dn;
     }
   }
@@ -1224,4 +1251,3 @@ void GranSubModNormalEPANonlinear::set_fncrit()
 }
 
 /* ---------------------------------------------------------------------- */
-

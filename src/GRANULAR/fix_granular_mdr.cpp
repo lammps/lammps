@@ -255,8 +255,10 @@ void FixGranularMDR::pre_force(int)
 
     if (psi_b_coeff < psi[i]) {
       double w_confinement;
-      ( psi[i] > 0.1 ) ? w_confinement = 1.0 / (1.0 + exp(-75.0 * (psi[i] - 0.2))) : w_confinement = 0.0;
-      const double dR = MAX(dRnumerator[i] / (dRdenominator[i] - 4.0 * MY_PI * Rsq) * w_confinement, 0.0);
+      (psi[i] > 0.1) ? w_confinement = 1.0 / (1.0 + exp(-75.0 * (psi[i] - 0.2)))
+                     : w_confinement = 0.0;
+      const double dR =
+          MAX(dRnumerator[i] / (dRdenominator[i] - 4.0 * MY_PI * Rsq) * w_confinement, 0.0);
 
       const double N_window = 10.0;
       if (dR > 0.0) dRavg[i] += (dR - dRavg[i]) / N_window;

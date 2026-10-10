@@ -114,8 +114,6 @@ class GranSubModTangentialMindlinStatic : public GranSubModTangentialMindlin {
   void calculate_forces() override;
 
  protected:
-  int mindlin_rescale, mindlin_force;
-  double xt;
   double mu_static, mu_dynamic;
 };
 

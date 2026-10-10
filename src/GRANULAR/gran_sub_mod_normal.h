@@ -180,7 +180,7 @@ class GranSubModNormalEPANonlinear : public GranSubModNormal {
   bool adhesive;
 
  protected:
-  double k1, Emod, poiss, damp, lambda_p, f0, kadh, mexp, nexp, Fne;
+  double k1, lambda_p, f0, kadh, mexp, nexp, Fne;
   double k2fac, delta_p, minv, lp_minv, ka_dn;
   int mixed_coefficients;
 };

@@ -1083,7 +1083,6 @@ double GranSubModNormalEPALinear::calculate_forces()
   double d0, k1delta, k2_dd0;
   double *history = &gm->history[history_index];
   double delta = gm->delta;
-  double Fne = 0.0;
 
   kc_delta = 0;
 
@@ -1110,7 +1109,7 @@ double GranSubModNormalEPALinear::calculate_forces()
     Fne = k2_dd0;
     kc_delta =
         0;    //Set to 0 if not adhesive branch, so that kc_delta doesn't contribute to critical force
-  } else if (-kc_delta >= k2_dd0) {
+  } else {
     Fne = -kc_delta;
   }
   Fne -= f0;
@@ -1208,10 +1207,9 @@ double GranSubModNormalEPANonlinear::calculate_contact_radius()
 
 double GranSubModNormalEPANonlinear::calculate_forces()
 {
-  double k1r, k2, delta_max;
+  double k1r, k2;
   double dm, dn, dpm, k2_dmdpm, k1_dm, Reff_2m, Reff_2n;
   double delta = gm->delta;
-  double Fne = 0.0;
 
   ka_dn = 0;
 
@@ -1235,7 +1233,7 @@ double GranSubModNormalEPANonlinear::calculate_forces()
     if ((k1_dm > k2_dmdpm) && (k2_dmdpm > -ka_dn)) {
       Fne = k2_dmdpm;
       ka_dn = 0;    //Set to 0 so that critical force is not affected if not on adhesive branch
-    } else if (-ka_dn >= k2_dmdpm) {
+    } else {
       Fne = -ka_dn;
     }
   }

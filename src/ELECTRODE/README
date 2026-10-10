@@ -15,3 +15,15 @@ extra build options" for more information.
 The primary people who created this package are Ludwig Ahrens-Iwers, Shern Tee
 (s.tee@griffith.edu.au) and Robert Meißner (robert.meissner@tuhh.de). Contact
 them directly if you have questions.
+
+The source code is organized as follows: The atom charges are set by one of the
+fixes every time step. To find the correct charges, one of the linear charge
+solvers (ElectrodeInv, ElectrodeCG, ElectrodeMatCG) is used. The matrix and
+vectors needed by the solvers are provided by ElectrodeMatrix and
+ElectrodeVector, respectively. These can calculate the short-range term of the
+Coulomb interaction. In this case, a force correction, due to the Gaussian shape
+of electrode charges, is applied in the fix.  Alternatively, the short-range
+interaction can be computed by a custom pair style that implements the abstract
+ElectrodePair class. Long-range interactions are calculated in custom KSpace
+implementations that implement the ElectrodeKSpace class. Corrections for
+non-periodic boundaries are applied by implementations of BoundaryCorrection.

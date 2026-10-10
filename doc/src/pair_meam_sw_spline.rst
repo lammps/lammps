@@ -70,10 +70,9 @@ where N is the number of LAMMPS atom types:
 See the :doc:`pair_coeff <pair_coeff>` page for alternate ways
 to specify the path for the potential file.
 
-As an example, imagine the Ti.meam.sw.spline file has values for Ti.
-If your LAMMPS simulation has 3 atoms types and they are all to be
-treated with this potential, you would use the following pair_coeff
-command:
+As an example, imagine the Ti.meam.sw.spline file has values for Ti.  If
+your LAMMPS simulation has 3 atom types and they are all to be treated
+with this potential, you would use the following pair_coeff command:
 
 .. code-block:: LAMMPS
 

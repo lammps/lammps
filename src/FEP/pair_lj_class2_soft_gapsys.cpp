@@ -32,8 +32,8 @@ using namespace MathConst;
 /* ---------------------------------------------------------------------- */
 
 PairLJClass2SoftGapsys::PairLJClass2SoftGapsys(LAMMPS *lmp) :
-    Pair(lmp), cut(nullptr), epsilon(nullptr), sigma(nullptr), lj1(nullptr), lj2(nullptr),
-    lj3(nullptr), lj4(nullptr), lambda(nullptr), offset(nullptr)
+    Pair(lmp), cut(nullptr), epsilon(nullptr), sigma(nullptr), lambda(nullptr), lj1(nullptr),
+    lj2(nullptr), lj3(nullptr), lj4(nullptr), offset(nullptr)
 {
   writedata = 1;
   allocated = 0;
@@ -134,7 +134,7 @@ void PairLJClass2SoftGapsys::compute(int eflag, int vflag)
         }
 
         if (eflag) {
-          double a3 = 110.0 * epsln * s_ri9 - 84 * epsln * s_ri6;
+          double a3 = 110.0 * epsln * s_ri9 - 84.0 * epsln * s_ri6;
           evdwl = -0.5 * b1 * rsq - b2 * sqrt(rsq) + a3 - offset[itype][jtype];
           evdwl *= factor_lj;
         }

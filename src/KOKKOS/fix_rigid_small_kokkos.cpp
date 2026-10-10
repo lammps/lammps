@@ -157,6 +157,12 @@ void FixRigidSmallKokkos<DeviceType>::init()
 {
   FixRigidSmall::init();
 
+  // the device code does not yet shift the body velocity when a body crosses a
+  // periodic boundary of a box deformed with "remap v", nor remove the streaming
+  // velocity in the Langevin thermostat, so it would change the dynamics silently
+  if (deform_vremap)
+    error->all(FLERR, "Fix {} does not yet support fix deform with remap v", style);
+
   // one setup() per run; see check_second_setup()
   setup_pushes = 0;
   if (utils::strmatch(update->integrate_style,"^respa"))

@@ -153,6 +153,10 @@ int ComputeRigidLocal::compute_rigid(int flag)
   double yprd = domain->yprd;
   double zprd = domain->zprd;
 
+  int triclinic = domain->triclinic;
+  double *h = domain->h;
+  int xbox,ybox,zbox;
+
   tagint *tag = atom->tag;
   tagint *molecule = atom->molecule;
   int *mask = atom->mask;
@@ -190,16 +194,34 @@ int ComputeRigidLocal::compute_rigid(int flag)
           ptr[n] = body->xcm[2];
           break;
         case XU:
-          ptr[n] = body->xcm[0] +
-            ((body->image & IMGMASK) - IMGMAX) * xprd;
+          if (triclinic) {
+            xbox = (body->image & IMGMASK) - IMGMAX;
+            ybox = (body->image >> IMGBITS & IMGMASK) - IMGMAX;
+            zbox = (body->image >> IMG2BITS) - IMGMAX;
+            ptr[n] = body->xcm[0] + h[0]*xbox + h[5]*ybox + h[4]*zbox;
+          } else {
+            ptr[n] = body->xcm[0] +
+              ((body->image & IMGMASK) - IMGMAX) * xprd;
+          }
           break;
         case YU:
-          ptr[n] = body->xcm[1] +
-            ((body->image >> IMGBITS & IMGMASK) - IMGMAX) * yprd;
+          if (triclinic) {
+            ybox = (body->image >> IMGBITS & IMGMASK) - IMGMAX;
+            zbox = (body->image >> IMG2BITS) - IMGMAX;
+            ptr[n] = body->xcm[1] + h[1]*ybox + h[3]*zbox;
+          } else {
+            ptr[n] = body->xcm[1] +
+              ((body->image >> IMGBITS & IMGMASK) - IMGMAX) * yprd;
+          }
           break;
         case ZU:
-          ptr[n] = body->xcm[2] +
-            ((body->image >> IMG2BITS) - IMGMAX) * zprd;
+          if (triclinic) {
+            zbox = (body->image >> IMG2BITS) - IMGMAX;
+            ptr[n] = body->xcm[2] + h[2]*zbox;
+          } else {
+            ptr[n] = body->xcm[2] +
+              ((body->image >> IMG2BITS) - IMGMAX) * zprd;
+          }
           break;
         case VX:
           ptr[n] = body->vcm[0];

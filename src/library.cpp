@@ -6660,7 +6660,9 @@ The :cpp:func:`lammps_version` function returns an integer representing
 the version of the LAMMPS code in the format YYYYMMDD.  This can be used
 to implement backward compatibility in software using the LAMMPS library
 interface.  The specific format guarantees, that this version number is
-growing with every new LAMMPS release.
+growing with every new LAMMPS release.  For a development or maintenance
+version of LAMMPS, the number is one larger than that of the release it
+is based on, so it is not always a valid date.
 
 \endverbatim
  *

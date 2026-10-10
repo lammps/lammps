@@ -71,9 +71,11 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`coul/ctip (o) <pair_coul>`
    * :doc:`coul/cut (gko) <pair_coul>`
    * :doc:`coul/cut/dielectric (o) <pair_dielectric>`
+   * :doc:`coul/cut/functor (o) <pair_coul_cut_functor>`
    * :doc:`coul/cut/global (ko) <pair_coul>`
    * :doc:`coul/cut/soft (ko) <pair_fep_soft>`
    * :doc:`coul/cut/soft/gapsys (o) <pair_fep_soft>`
+   * :doc:`coul/cut/soft/functor (o) <pair_coul_cut_soft_functor>`
    * :doc:`coul/debye (gko) <pair_coul>`
    * :doc:`coul/diel (ko) <pair_coul_diel>`
    * :doc:`coul/dsf (gko) <pair_coul>`
@@ -81,8 +83,11 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`coul/exclude (o) <pair_coul>`
    * :doc:`coul/long (gko) <pair_coul>`
    * :doc:`coul/long/cs (gko) <pair_cs>`
+   * :doc:`coul/long/cs/functor (o) <pair_coul_long_cs_functor>`
    * :doc:`coul/long/dielectric (o) <pair_dielectric>`
+   * :doc:`coul/long/functor (o) <pair_coul_long_functor>`
    * :doc:`coul/long/soft (ko) <pair_fep_soft>`
+   * :doc:`coul/long/soft/functor (o) <pair_coul_long_soft_functor>`
    * :doc:`coul/msm (o) <pair_coul>`
    * :doc:`coul/slater/cut (ko) <pair_coul_slater>`
    * :doc:`coul/slater/long (gko) <pair_coul_slater>`
@@ -149,6 +154,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`lj/charmm/coul/charmm (giko) <pair_charmm>`
    * :doc:`lj/charmm/coul/charmm/implicit (ko) <pair_charmm>`
    * :doc:`lj/charmm/coul/long (gikot) <pair_charmm>`
+   * :doc:`lj/charmm/coul/long/functor (o) <pair_lj_charmm_coul_long_functor>`
    * :doc:`lj/charmm/coul/long/soft (ko) <pair_fep_soft>`
    * :doc:`lj/charmm/coul/msm (o) <pair_charmm>`
    * :doc:`lj/charmmfsw/coul/charmmfsh (ko) <pair_charmm>`
@@ -164,27 +170,34 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`lj/cut (gikot) <pair_lj>`
    * :doc:`lj/cut/coul/cut (gko) <pair_lj_cut_coul>`
    * :doc:`lj/cut/coul/cut/dielectric (o) <pair_dielectric>`
+   * :doc:`lj/cut/coul/cut/functor (o) <pair_lj_cut_coul_cut_functor>`
    * :doc:`lj/cut/coul/cut/soft (gko) <pair_fep_soft>`
+   * :doc:`lj/cut/coul/cut/soft/functor (o) <pair_lj_cut_coul_cut_soft_functor>`
    * :doc:`lj/cut/coul/debye (gko) <pair_lj_cut_coul>`
    * :doc:`lj/cut/coul/debye/dielectric (o) <pair_dielectric>`
    * :doc:`lj/cut/coul/dsf (gko) <pair_lj_cut_coul>`
    * :doc:`lj/cut/coul/esp (o) <pair_lj_cut_coul>`
    * :doc:`lj/cut/coul/long (gikot) <pair_lj_cut_coul>`
    * :doc:`lj/cut/coul/long/cs (ko) <pair_cs>`
+   * :doc:`lj/cut/coul/long/cs/functor (o) <pair_lj_cut_coul_long_cs_functor>`
    * :doc:`lj/cut/coul/long/dielectric (o) <pair_dielectric>`
+   * :doc:`lj/cut/coul/long/functor (o) <pair_lj_cut_coul_long_functor>`
    * :doc:`lj/cut/coul/long/soft (gko) <pair_fep_soft>`
+   * :doc:`lj/cut/coul/long/soft/functor (o) <pair_lj_cut_coul_long_soft_functor>`
    * :doc:`lj/cut/coul/msm (go) <pair_lj_cut_coul>`
    * :doc:`lj/cut/coul/msm/dielectric (o) <pair_dielectric>`
    * :doc:`lj/cut/coul/wolf (ko) <pair_lj_cut_coul>`
    * :doc:`lj/cut/dipole/cut (gko) <pair_dipole>`
    * :doc:`lj/cut/dipole/long (go) <pair_dipole>`
    * :doc:`lj/cut/dipole/sf (go) <pair_dipole>`
+   * :doc:`lj/cut/functor (o) <pair_lj_cut_functor>`
    * :doc:`lj/cut/soft (ko) <pair_fep_soft>`
    * :doc:`lj/cut/soft/gapsys <pair_fep_soft>`
    * :doc:`lj/cut/sphere (ko) <pair_lj_cut_sphere>`
    * :doc:`lj/cut/thole/long (o) <pair_thole>`
    * :doc:`lj/cut/tip4p/cut (ko) <pair_lj_cut_tip4p>`
    * :doc:`lj/cut/tip4p/long (gkot) <pair_lj_cut_tip4p>`
+   * :doc:`lj/cut/tip4p/long/functor (o) <pair_lj_cut_tip4p_long_functor>`
    * :doc:`lj/cut/tip4p/long/soft (o) <pair_fep_soft>`
    * :doc:`lj/expand (gko) <pair_lj_expand>`
    * :doc:`lj/expand/coul/long (gko) <pair_lj_expand>`
@@ -227,6 +240,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`mm3/switch3/coulgauss/long (ko) <pair_lj_switch3_coulgauss_long>`
    * :doc:`momb (ko) <pair_momb>`
    * :doc:`morse (gkot) <pair_morse>`
+   * :doc:`morse/functor (o) <pair_morse_functor>`
    * :doc:`morse/smooth/linear (ko) <pair_morse>`
    * :doc:`morse/soft (ko) <pair_fep_soft>`
    * :doc:`multi/lucy <pair_multi_lucy>`

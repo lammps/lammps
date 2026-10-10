@@ -47,6 +47,7 @@ PairLJCutCoulMSMDielectric::PairLJCutCoulMSMDielectric(LAMMPS *_lmp) :
   cut_respa = nullptr;
 
   nmax = 0;
+  nmax_ftmp = 0;
   ftmp = nullptr;
   efield = nullptr;
   no_virial_fdotr_compute = 1;
@@ -80,12 +81,12 @@ void PairLJCutCoulMSMDielectric::compute(int eflag, int vflag)
                  "Must use 'kspace_modify pressure/scalar no' "
                  "to obtain per-atom virial with kspace_style MSM");
 
-    if (atom->nmax > nmax) {
+    if (atom->nmax > nmax_ftmp) {
       if (ftmp) memory->destroy(ftmp);
-      nmax = atom->nmax;
-      memory->create(ftmp, nmax, 3, "pair:ftmp");
+      nmax_ftmp = atom->nmax;
+      memory->create(ftmp, nmax_ftmp, 3, "pair:ftmp");
     }
-    memset(&ftmp[0][0], 0, nmax * 3 * sizeof(double));
+    memset(&ftmp[0][0], 0, nmax_ftmp * 3 * sizeof(double));
 
     // must switch on global energy computation if not already on
 
@@ -258,7 +259,7 @@ void PairLJCutCoulMSMDielectric::compute(int eflag, int vflag)
 
   if (force->kspace->scalar_pressure_flag && vflag) {
     for (i = 0; i < 3; i++) virial[i] += force->pair->eng_coul / 3.0;
-    for (int i = 0; i < nmax; i++) {
+    for (int i = 0; i < nmax_ftmp; i++) {
       f[i][0] += ftmp[i][0];
       f[i][1] += ftmp[i][1];
       f[i][2] += ftmp[i][2];

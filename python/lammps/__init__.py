@@ -16,7 +16,6 @@ from .data import *
 def get_version_number():
   """Extract LAMMPS version string and convert to number"""
   # pylint: disable=C0415
-  import time
   from os import path
   from sys import version_info
 
@@ -47,8 +46,10 @@ def get_version_number():
   if not vstring:
     return 0
 
-  t = time.strptime(vstring, "%Y.%m.%d")
-  return t.tm_year*10000 + t.tm_mon*100 + t.tm_mday
+  # the day is incremented by one for development and maintenance versions (see setup.py),
+  # so the version string is not always a valid date and must not be parsed as one
+  year, month, day = (int(num) for num in vstring.split('.')[:3])
+  return year*10000 + month*100 + day
 
 __version__ = get_version_number()
 

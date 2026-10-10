@@ -267,7 +267,11 @@ void FixNeighHistoryOMP::pre_exchange_newton()
 
     // perform reverse comm to augment owned npartner counts with ghost counts
 
+#if _OPENMP >= 202011
+#pragma omp masked
+#else
 #pragma omp master
+#endif
 #endif
     {
       commflag = NPARTNER;
@@ -332,7 +336,11 @@ void FixNeighHistoryOMP::pre_exchange_newton()
 #if defined(_OPENMP)
 #pragma omp barrier
 
+#if _OPENMP >= 202011
+#pragma omp masked
+#else
 #pragma omp master
+#endif
 #endif
     {
       // perform reverse comm to augment

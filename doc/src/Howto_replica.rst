@@ -27,7 +27,8 @@ replicas are coupled together by springs to model a system of ring-polymers whic
 can represent the quantum nature of atom cores.
 
 These commands can only be used if LAMMPS was built with the REPLICA
-package.  See the :doc:`Build package <Build_package>` page for more
+package (or the SPIN package in the case of the :doc:`neb/spin
+<neb_spin>` command).  See the :doc:`Build package <Build_package>` page for more
 info.
 
 In all these cases, you must run with one or more processors per

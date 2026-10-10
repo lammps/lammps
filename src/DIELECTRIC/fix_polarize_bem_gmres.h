@@ -70,6 +70,7 @@ class FixPolarizeBEMGMRES : public Fix {
   int torqueflag, extraflag;
 
   void force_clear();
+  void update_efield();
   double vec_dot(const double *, const double *,
                  int);    // dot product between two vectors of length n
 

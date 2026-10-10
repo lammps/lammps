@@ -25,6 +25,8 @@ FixStyle(bond/react,FixBondReact);
 #define LMP_FIX_BOND_REACT_H
 
 #include "fix.h"
+#include "reaction.h"
+#include "topology_matcher.h"
 
 #include <array>
 #include <deque>
@@ -64,18 +66,10 @@ class FixBondReact : public Fix {
 
  private:
   static constexpr double BIG = 1.0e20;
-  static constexpr int MAXGUESS = 20;                      // max # of guesses allowed by superimpose algorithm
-  static constexpr int MAXCONARGS = 14;                    // max # of arguments for any type of constraint + rxnID
-  static constexpr int MAXLINE = 1024;                     // max length of line read from files
-  static constexpr int MAXNAME = 256;                      // max character length of react-ID
-  enum class Status { ACCEPT, REJECT, PROCEED,
-                      CONTINUE, GUESSFAIL, RESTORE };      // values for superimpose algorithm status
   enum class Reset_Mol_IDs { YES, NO, MOLMAP };            // values for reset_mol_ids keyword
-  enum class Molecule_Keys { OFF, INTER, INTRA };          // values for molecule_keyword
   enum class Dedup_Modes { LOCAL, GLOBAL };                // flag for one-proc vs shared reaction sites
 
   int newton_bond;
-  FILE *fp;
   tagint lastcheck;
   FILE *fpout;
   bool outflag;
@@ -85,78 +79,9 @@ class FixBondReact : public Fix {
   Reset_Mol_IDs molid_mode;
   int custom_exclude_flag;
   int rescale_charges_anyflag;                             // indicates if any reactions do charge rescaling
-  int nrxnfunction;
-  std::vector<std::string> rxnfunclist;                    // lists current special rxn function
-  std::vector<int> peratomflag;                            // 1 if special rxn function uses per-atom variable (vs. per-bond)
-  int atoms2bondflag;                                      // 1 if atoms2bond map has been populated on this timestep
-  Status status;
 
-  struct Reaction {
-    int ID;                                                // indexed from 0
-    class Molecule *reactant;                              // pre-reacted molecule template
-    class Molecule *product;                               // post-reacted molecule template
-    std::string name, constraintstr;
-    std::string mapfilename;
-    int nevery, groupbits;
-    int iatomtype, jatomtype;
-    int ibonding, jbonding;
-    int closeneigh;                                        // indicates if bonding atoms of a rxn are 1-2, 1-3, or 1-4 neighbors
-    double rminsq, rmaxsq;
-    double fraction;
-    double mol_total_charge;                               // sum of charges of post-reaction atoms whose charges are updated
-    int reaction_count, reaction_count_total;
-    int local_rxn_count, ghostly_rxn_count;
-    int nlocalkeep, nghostlykeep;
-    int seed, limit_duration;
-    int stabilize_steps_flag;
-    int custom_charges_fragid;
-    int rescale_charges_flag;                              // if nonzero, indicates number of atoms whose charges are updated
-    int create_atoms_flag, modify_create_fragid;
-    double overlapsq;
-    Molecule_Keys molecule_keyword;
-    int v_nevery, v_rmin, v_rmax, v_prob;                  // ID of variable, -1 if static
-    int nnewmolids;                                        // number of unique new molids needed for each reaction
-    std::vector<std::array<tagint, 2>> attempts;           // stores sim atom IDs of initiator atoms
-
-    struct ReactionAtomFlags {
-      int edge;                                            // true if atom in molecule template has incorrect valency
-      int landlocked;                                      // true if atom is at least three bonds away from edge atoms
-      bool wildcard;                                       // true if atom type contains a wildcard
-      int recharged;                                       // true if atom whose charge should be updated
-      int deleted;                                         // true if atom in pre-reacted template to delete
-      int created;                                         // true if atom in post-reacted template to create
-      int newmolid;                                        // for molmap option: mol IDs in post, but not in pre, re-indexed from 1
-      std::array<int, 6> chiral;                           // pre-react chiral atoms. 1) flag 2) orientation 3-4) ordered atom types
-      std::array<int, 2> amap;                             // atom map: clmn 1 = product atom IDs, clmn 2: reactant atom IDs
-      std::array<int, 2> ramap;                            // reverse amap
-    };
-    std::vector<ReactionAtomFlags> atoms;
-
-    struct Constraint {
-      int ID;
-      enum class Type { DISTANCE, ANGLE, DIHEDRAL, ARRHENIUS, RMSD, CUSTOM } type;
-      struct Distance { double rminsq, rmaxsq; } distance;
-      struct Angle { double amin, amax; } angle;
-      struct Dihedral { double amin, amax, amin2, amax2; } dihedral;
-      struct RMSD { double rmsdmax; } rmsd;
-      struct Arrhenius { double A, n, E_a, seed; class RanMars *rrhandom; } arrhenius;
-      struct Custom { std::string str; } custom;
-      enum class IDType { ATOM, FRAG };
-      static constexpr int MAXCONIDS = 4;
-      std::array<int, MAXCONIDS> ids;
-      std::array<IDType, MAXCONIDS> idtypes{};
-      bool satisfied;
-    };
-    std::vector<Constraint> constraints;
-  };
   std::vector<Reaction> rxns;
-
-  int ncustomvars;
-  std::vector<std::string> customvarstrs;
-  int nvvec;
-  double **vvec;                                           // per-atom vector to store custom constraint atom-style variable values
-  class Compute *cperbond;                                 // pointer to 'compute bond/local' used by custom constraint ('rxnbond' function)
-  std::map<std::set<tagint>, int> atoms2bond;              // maps atom pair to index of local bond array
+  TopologyMatcher *topo_matcher;
 
   int nmax;                                                // max num local atoms
   int max_natoms;                                          // max natoms in a molecule template
@@ -184,16 +109,6 @@ class FixBondReact : public Fix {
   int countflag, commflag;
   int nlevels_respa;
 
-  struct Superimpose {
-    int avail_guesses;                                     // num of restore points available
-    std::vector<int> guess_branch;                         // used when there is more than two choices when guessing
-    struct StatePoint {
-      int pion, neigh, trace, glove_counter;
-      std::vector<tagint> glove, pioneer_count, pioneers;
-    } sp;
-  };
-  std::vector<Superimpose::StatePoint> restore_pts;
-
   int **nxspecial;                                         // full number of 1-4 neighbors
   tagint **xspecial;                                       // full 1-4 neighbor list
 
@@ -216,40 +131,9 @@ class FixBondReact : public Fix {
   std::map<tagint, int> vizatoms;  // maps atom IDs to number of steps they have been highlighted
   int vizsteps;                    // number of steps to highlight atoms in reactions
 
-  void validate_variable_keyword(const char *, int);
-  void read_map_file(Reaction &);
-  void EdgeIDs(char *, Reaction &, int);
-  void Equivalences(char *, Reaction &, int);
-  void DeleteAtoms(char *, Reaction &, int);
-  void CreateAtoms(char *, Reaction &, int);
-  void CustomCharges(int, Reaction &);
-  void ChiralCenters(char *, Reaction &, int);
-  void ReadWildcards(char *, Reaction &, int);
-  void ReadConstraints(char *, Reaction &);
-  void readID(char *, Reaction::Constraint &, Reaction &, int);
-
   void superimpose_algorithm();
-  void make_a_guess(Superimpose &, Reaction &);
-  void neighbor_loop(Superimpose &, Reaction &);
-  void check_a_neighbor(Superimpose &, Reaction &);
-  void crosscheck_the_neighbor(Superimpose &, Reaction &);
-  void inner_crosscheck_loop(Superimpose &, Reaction &);
   bool compare_atomtype(int, Reaction &, int);
-  int ring_check(Reaction &, std::vector<tagint> &);
-  int check_constraints(Reaction &, std::vector<tagint> &);
-  void get_IDcoords(Reaction::Constraint::IDType, int, double *, Molecule *, std::vector<tagint> &);
-  double get_temperature(std::vector<tagint> &);
   double get_totalcharge(Reaction &, std::vector<tagint> &);
-  void customvarnames();                                   // get per-atom variables names used by custom constraint
-  void get_customvars();                                   // evaluate local values for variables names used by custom constraint
-  bool custom_constraint(const std::string &, Reaction &, std::vector<tagint> &);
-  double rxnfunction(const std::string &, const std::string &, const std::string &, Molecule *, std::vector<tagint> &);
-  void get_atoms2bond(int);
-  int get_chirality(double[12]);                           // get handedness given an ordered set of coordinates
-
-  void readline(char *);
-  int firstint(char *, const char *);
-  void parse_keyword(int, char *, char *);
 
   void far_partner(Reaction &);
   void close_partner(Reaction &);

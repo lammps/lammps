@@ -52,8 +52,12 @@ degrees of freedom can be calculated using the :doc:`compute temp/drude <compute
 command *comm_modify vel yes*.
 
 Short-range damping of the induced dipole interactions can be achieved
-using Thole functions through the :doc:`pair style thole <pair_thole>` in :doc:`pair_style hybrid/overlay <pair_hybrid>`
-with a Coulomb pair style. It may be useful to use *coul/long/cs* or
+using Thole functions through the :doc:`pair style thole <pair_thole>`
+in :doc:`pair_style hybrid/overlay <pair_hybrid>` with a Coulomb pair
+style, or with the :doc:`pair style lj/cut/thole/long <pair_thole>`,
+which combines Lennard-Jones, long-range Coulomb, and Thole
+interactions.  The :doc:`pair style coul/tt <pair_coul_tt>` provides
+Tang-Toennies damping of the charge-dipole interactions. It may be useful to use *coul/long/cs* or
 similar from the CORESHELL package if the core and Drude particle come
 too close, which can cause numerical issues.
 

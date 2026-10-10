@@ -8,11 +8,22 @@ Syntax
 
 .. code-block:: LAMMPS
 
-   fix ID group-ID tune/kspace N
+   fix ID group-ID tune/kspace N keyword value ...
 
 * ID, group-ID are documented in :doc:`fix <fix>` command
 * tune/kspace = style name of this fix command
 * N = invoke this fix every N steps
+* zero or more keyword/value pairs may be appended
+* keyword = *msm* or *esp*
+
+  .. parsed-literal::
+
+       *msm* value = *yes* or *no*
+         yes = also test kspace style *msm*
+         no = do not test kspace style *msm*
+       *esp* value = *yes* or *no*
+         yes = also test kspace style *esp*
+         no = do not test kspace style *esp*
 
 Examples
 """"""""
@@ -20,14 +31,19 @@ Examples
 .. code-block:: LAMMPS
 
    fix 2 all tune/kspace 100
+   fix 2 all tune/kspace 200 msm yes esp yes
 
 Description
 """""""""""
 
-This fix tests each kspace style (Ewald, PPPM, and MSM), and
-automatically selects the fastest style to use for the remainder
-of the run. If the fastest style is Ewald or PPPM, the fix also
-adjusts the Coulombic cutoff towards optimal speed. Future versions
+.. versionchanged:: TBD
+
+This fix tests several kspace styles (Ewald and PPPM, and optionally
+MSM and ESP), and automatically selects the fastest style to use for
+the remainder of the run. If the fastest style is Ewald, PPPM, or ESP,
+the fix also adjusts the Coulombic cutoff towards optimal speed.
+Previous versions of LAMMPS always tested the MSM style, if a matching
+pair style was available.  Future versions
 of this fix will automatically select other kspace parameters
 to use for maximum simulation speed. The kspace parameters may
 include the style, cutoff, grid points in each direction, order,
@@ -71,6 +87,19 @@ This fix starts with kspace parameters that are set by the user with the
 commands. The prescribed accuracy will be maintained by this fix throughout
 the simulation.
 
+.. versionadded:: TBD
+
+The *msm* and *esp* keywords select whether the :doc:`kspace styles
+<kspace_style>` *msm* and *esp* are tested, too.  Each kspace style is
+only tested if a matching pair style exists, e.g. for a simulation with
+pair style *lj/cut/coul/long* the kspace style *msm* is tested with pair
+style *lj/cut/coul/msm*, and the kspace style *esp* with pair style
+*lj/cut/coul/esp*.  Currently, matching pair styles for the *esp* kspace
+style exist only for *coul/long* and *lj/cut/coul/long*.  By default,
+the kspace style *msm* computes only the scalar pressure (see the
+*pressure/scalar* keyword of the :doc:`kspace_modify <kspace_modify>`
+command), so switching to it would change the computed pressure tensor.
+
 None of the :doc:`fix_modify <fix_modify>` options are relevant to this
 fix.
 
@@ -89,6 +118,9 @@ called.  Reneighboring is required.
 This fix is not compatible with a hybrid pair style, long-range dispersion,
 TIP4P water support, or long-range point dipole support.
 
+The *msm yes* and *esp yes* settings are not (yet) supported in
+combination with the OPENMP package.
+
 Related commands
 """"""""""""""""
 
@@ -98,3 +130,5 @@ Related commands
 
 Default
 """""""
+
+The keyword defaults are msm = no and esp = no.

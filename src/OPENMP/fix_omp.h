@@ -22,6 +22,8 @@ FixStyle(OMP,FixOMP);
 
 #include "fix.h"
 
+#include <string>
+
 namespace LAMMPS_NS {
 
 class ThrData;
@@ -46,9 +48,11 @@ class FixOMP : public Fix {
   void pre_force_respa(int vflag, int, int) override { pre_force(vflag); }
 
   double memory_usage() override;
+  void *extract(const char *, int &) override;
 
  protected:
   ThrData **thr;
+  std::string styles_in_use;    // list of styles that use this fix
   void *last_omp_style;      // pointer to the style that needs
                              // to do the general force reduction
   void *last_pair_hybrid;    // pointer to the pair style that needs

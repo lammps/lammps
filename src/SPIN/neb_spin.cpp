@@ -72,7 +72,8 @@ static constexpr int ATTRIBUTE_PERLINE = 8;
 /* ---------------------------------------------------------------------- */
 
 NEBSpin::NEBSpin(LAMMPS *lmp) :
-    Command(lmp), fp(nullptr), inpfile(nullptr), fneb(nullptr), all(nullptr), rdist(nullptr),
+    Command(lmp), roots(MPI_COMM_NULL), fp(nullptr), inpfile(nullptr), fneb(nullptr),
+    all(nullptr), rdist(nullptr),
     freplica(nullptr), fmaxatomInRepl(nullptr)
 {
   if (lmp->citeme) lmp->citeme->add(cite_neb_spin);
@@ -706,7 +707,9 @@ void NEBSpin::open(char *file)
   compressed = 0;
   if (platform::has_compress_extension(file)) {
     fp = platform::compressed_read(file);
-    if (!fp) error->one(FLERR,"Cannot open compressed file");
+    if (!fp)
+      error->one(FLERR, "Cannot open compressed file {}: {}", file,
+                 platform::compressed_open_error(file));
   } else fp = fopen(file,"r");
 
   if (fp == nullptr)

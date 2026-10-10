@@ -337,6 +337,11 @@ Any dimension (xyz) that has a granular wall must be non-periodic.
 The *wall/gran/kk* style does not support wall positions set by an
 equal-style variable.
 
+.. versionchanged:: 30Sep2026
+
+The *wall/gran/kk* style does not support the *contacts* keyword, and
+stops with an error when it is given.
+
 Related commands
 """"""""""""""""
 

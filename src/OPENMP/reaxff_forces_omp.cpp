@@ -159,7 +159,8 @@ namespace ReaxFF {
                          int step, int N, int numH)
   {
     int comp, Hindex;
-    reax_list *bonds, *hbonds;
+    reax_list *bonds = *lists + BONDS;
+    reax_list *hbonds = *lists + HBONDS;
     double saferzone = system->saferzone;
 
 #if defined(_OPENMP)
@@ -169,8 +170,6 @@ namespace ReaxFF {
 
       /* bond list */
       if (N > 0) {
-        bonds = *lists + BONDS;
-
 #if defined(_OPENMP)
 #pragma omp for schedule(guided)
 #endif
@@ -191,8 +190,6 @@ namespace ReaxFF {
 
       /* hbonds list */
       if (numH > 0) {
-        hbonds = *lists + HBONDS;
-
 #if defined(_OPENMP)
 #pragma omp for schedule(guided)
 #endif
@@ -375,8 +372,6 @@ namespace ReaxFF {
 
       /* hydrogen bond list */
       if (control->hbond_cut > 0) {
-        cutoff = control->hbond_cut;
-
 #if defined(_OPENMP)
 #pragma omp for schedule(dynamic,50) reduction(+ : num_hbonds)
 #endif

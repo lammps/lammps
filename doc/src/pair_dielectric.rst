@@ -1,5 +1,7 @@
 .. index:: pair_style coul/cut/dielectric
+.. index:: pair_style coul/cut/dielectric/omp
 .. index:: pair_style coul/long/dielectric
+.. index:: pair_style coul/long/dielectric/omp
 .. index:: pair_style lj/cut/coul/cut/dielectric
 .. index:: pair_style lj/cut/coul/cut/dielectric/omp
 .. index:: pair_style lj/cut/coul/debye/dielectric
@@ -7,13 +9,18 @@
 .. index:: pair_style lj/cut/coul/long/dielectric
 .. index:: pair_style lj/cut/coul/long/dielectric/omp
 .. index:: pair_style lj/cut/coul/msm/dielectric
+.. index:: pair_style lj/cut/coul/msm/dielectric/omp
 .. index:: pair_style lj/long/coul/long/dielectric
 
 pair_style coul/cut/dielectric command
 ======================================
 
+Accelerator Variants: *coul/cut/dielectric/omp*
+
 pair_style coul/long/dielectric command
 =======================================
+
+Accelerator Variants: *coul/long/dielectric/omp*
 
 pair_style lj/cut/coul/cut/dielectric command
 =============================================
@@ -32,6 +39,8 @@ Accelerator Variants: *lj/cut/coul/long/dielectric/omp*
 
 pair_style lj/cut/coul/msm/dielectric command
 =============================================
+
+Accelerator Variants: *lj/cut/coul/msm/dielectric/omp*
 
 pair_style lj/long/coul/long/dielectric command
 ===============================================

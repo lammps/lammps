@@ -145,7 +145,7 @@ system's virial as part of :doc:`thermodynamic output <thermo_style>`.
 The default is *virial yes* for keywords *dipole* and *quat*.  The
 default is *virial no* for keyword *velocity*.
 
-.. versionchanged:: TBD
+.. versionchanged:: 30Sep2026
 
 The :doc:`fix_modify <fix_modify>` *respa* option is supported by this
 fix.  This allows to set at which level of the :doc:`r-RESPA

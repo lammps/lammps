@@ -100,6 +100,11 @@ void PairCoulTT::compute(int eflag, int vflag)
     jlist = firstneigh[i];
     jnum = numneigh[i];
 
+    if (drudetype[type[i]] == CORE_TYPE) {
+      di = domain->closest_image(i, atom->map(drudeid[i]));
+      if (di < 0) error->one(FLERR, "Drude partner of atom {} not found", atom->tag[i]);
+    }
+
     for (jj = 0; jj < jnum; jj++) {
       j = jlist[jj];
       factor_coul = special_coul[sbmask(j)];
@@ -108,10 +113,20 @@ void PairCoulTT::compute(int eflag, int vflag)
       if (drudetype[type[i]] == drudetype[type[j]] && drudetype[type[j]] != CORE_TYPE)
         continue;
 
+      delx = xtmp - x[j][0];
+      dely = ytmp - x[j][1];
+      delz = ztmp - x[j][2];
+      rsq = delx*delx + dely*dely + delz*delz;
+      jtype = type[j];
+
+      // look up the drude partner of j only within the cutoff, since it
+      // may not be present as a ghost atom for more distant neighbors
+
+      if (rsq >= cutsq[itype][jtype]) continue;
+
       qj = q[j];
 
       if (drudetype[type[i]] == CORE_TYPE) {
-        di = domain->closest_image(i, atom->map(drudeid[i]));
         if (di == j)
           continue;
         switch (drudetype[type[j]]) {
@@ -126,6 +141,7 @@ void PairCoulTT::compute(int eflag, int vflag)
 
       if (drudetype[type[j]] == CORE_TYPE) {
         dj = domain->closest_image(j, atom->map(drudeid[j]));
+        if (dj < 0) error->one(FLERR, "Drude partner of atom {} not found", atom->tag[j]);
         if (dj == i)
           continue;
         switch (drudetype[type[i]]) {
@@ -138,52 +154,44 @@ void PairCoulTT::compute(int eflag, int vflag)
         }
       }
 
-      delx = xtmp - x[j][0];
-      dely = ytmp - x[j][1];
-      delz = ztmp - x[j][2];
-      rsq = delx*delx + dely*dely + delz*delz;
-      jtype = type[j];
+      r2inv = 1.0/rsq;
+      rinv = sqrt(r2inv);
 
-      if (rsq < cutsq[itype][jtype]) {
-        r2inv = 1.0/rsq;
-        rinv = sqrt(r2inv);
-
-        r = sqrt(rsq);
-        beta = c[itype][jtype] * exp(-b[itype][jtype] * r);
-        betaprime = -b[itype][jtype] * beta;
-        gamma = 1.0 + b[itype][jtype] * r;
-        gammaprime = b[itype][jtype];
-        gammatmp = 1.0;
-        for (int k = 2; k <= ntt[itype][jtype]; k++) {
-          gammatmp *= b[itype][jtype] * r / k;
-          gamma += gammatmp * b[itype][jtype] * r;
-          gammaprime += gammatmp * b[itype][jtype] * k;
-        }
-
-        if (drudetype[type[i]] == CORE_TYPE && drudetype[type[j]] == CORE_TYPE)
-          dcoul = qqrd2e * ( -(q[i]+q[di])*q[dj] - q[di]*(q[j]+q[dj]) ) * scale[itype][jtype] * rinv;
-        else
-          dcoul = qqrd2e * qi * qj *scale[itype][jtype] * rinv;
-
-        factor_f = (-beta*gamma + r*betaprime*gamma + r*beta*gammaprime)*factor_coul;
-        if (eflag) factor_e = - beta*gamma*factor_coul;
-        fpair = factor_f * dcoul * r2inv;
-
-        f[i][0] += delx*fpair;
-        f[i][1] += dely*fpair;
-        f[i][2] += delz*fpair;
-        if (newton_pair || j < nlocal) {
-          f[j][0] -= delx*fpair;
-          f[j][1] -= dely*fpair;
-          f[j][2] -= delz*fpair;
-        }
-
-        if (eflag)
-          ecoul = factor_e * dcoul;
-
-        if (evflag) ev_tally(i,j,nlocal,newton_pair,
-                             0.0,ecoul,fpair,delx,dely,delz);
+      r = sqrt(rsq);
+      beta = c[itype][jtype] * exp(-b[itype][jtype] * r);
+      betaprime = -b[itype][jtype] * beta;
+      gamma = 1.0 + b[itype][jtype] * r;
+      gammaprime = b[itype][jtype];
+      gammatmp = 1.0;
+      for (int k = 2; k <= ntt[itype][jtype]; k++) {
+        gammatmp *= b[itype][jtype] * r / k;
+        gamma += gammatmp * b[itype][jtype] * r;
+        gammaprime += gammatmp * b[itype][jtype] * k;
       }
+
+      if (drudetype[type[i]] == CORE_TYPE && drudetype[type[j]] == CORE_TYPE)
+        dcoul = qqrd2e * ( -(q[i]+q[di])*q[dj] - q[di]*(q[j]+q[dj]) ) * scale[itype][jtype] * rinv;
+      else
+        dcoul = qqrd2e * qi * qj *scale[itype][jtype] * rinv;
+
+      factor_f = (-beta*gamma + r*betaprime*gamma + r*beta*gammaprime)*factor_coul;
+      if (eflag) factor_e = - beta*gamma*factor_coul;
+      fpair = factor_f * dcoul * r2inv;
+
+      f[i][0] += delx*fpair;
+      f[i][1] += dely*fpair;
+      f[i][2] += delz*fpair;
+      if (newton_pair || j < nlocal) {
+        f[j][0] -= delx*fpair;
+        f[j][1] -= dely*fpair;
+        f[j][2] -= delz*fpair;
+      }
+
+      if (eflag)
+        ecoul = factor_e * dcoul;
+
+      if (evflag) ev_tally(i,j,nlocal,newton_pair,
+                           0.0,ecoul,fpair,delx,dely,delz);
     }
   }
 

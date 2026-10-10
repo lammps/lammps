@@ -31,7 +31,7 @@ class MLIAPDummyDescriptor : public MLIAPDescriptor, virtual protected Pointers 
   void compute_force_gradients(class MLIAPData *) override;
   void compute_descriptor_gradients(class MLIAPData *) override;
   void init() override;
-  void set_elements(char **, int);
+  virtual void set_elements(char **, int);
 
   PyObject *unified_interface;    // MLIAPUnifiedInterface
   double rcutfac;

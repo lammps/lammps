@@ -24,6 +24,7 @@
 #include "ewald_const.h"
 #include "force.h"
 #include "kokkos.h"
+#include "math_const.h"
 #include "memory_kokkos.h"
 #include "neigh_list.h"
 #include "neigh_request.h"
@@ -33,13 +34,12 @@
 
 #include <cmath>
 #include <cstring>
+#include <type_traits>
 
 using namespace LAMMPS_NS;
 
-// the core/shell Ewald correction uses a longer erfc series than the A1..A5
-// form of the parent style, and a minimal separation so that r = 0
-// core/shell pairs stay finite until the special-bond factor removes them;
-// both are taken verbatim from the CPU style
+// the core/shell Ewald correction uses a longer erfc series than A1..A5,
+// and the exact erf() for excluded pairs
 
 // the B series goes with its own EWALD_P, not the value EwaldConst pairs
 // with A1..A5
@@ -53,10 +53,12 @@ static constexpr double B3 = -8.88822059e-3;
 static constexpr double B4 = -5.80844129e-3;
 static constexpr double B5 =  1.14652755e-1;
 
-static constexpr double EPSILON = 1.0e-20;
-static constexpr double EPS_EWALD = 1.0e-6;
-static constexpr double EPS_EWALD_SQR = 1.0e-12;
+// minimal separation for r = 0 core/shell pairs; 1.0e-20 cancels in single
+// precision, so use 1.0e-4 there, applied as a floor
+
+static constexpr double EPSILON = std::is_same_v<KK_FLOAT, float> ? 1.0e-4 : 1.0e-20;
 using namespace EwaldConst;
+using namespace MathConst;
 
 /* ---------------------------------------------------------------------- */
 
@@ -186,14 +188,18 @@ template<bool STACKPARAMS,  class Specialisation>
 KOKKOS_INLINE_FUNCTION
 KK_FLOAT PairCoulLongCSKokkos<DeviceType>::
 compute_fcoul(const KK_FLOAT& rsq, const int& /*i*/, const int&j,
-              const int& /*itype*/, const int& /*jtype*/,
+              const int& itype, const int& jtype,
               const KK_FLOAT& factor_coul, const KK_FLOAT& qtmp) const {
   const KK_FLOAT g_ewald_kk = static_cast<KK_FLOAT>(g_ewald);
+  const KK_FLOAT scale_kk = (STACKPARAMS && itype<MAX_TYPES_STACKPARAMS+1 && jtype<MAX_TYPES_STACKPARAMS+1) ?
+    m_params[itype][jtype].scale : params(itype,jtype).scale;
   const KK_FLOAT tabinnersq_kk = static_cast<KK_FLOAT>(tabinnersq);
 
-  // r = 0 must stay finite here; the special-bond factor removes the pair
+  // EPSILON keeps r = 0 finite, see above
 
-  const KK_FLOAT rsq_cs = rsq + static_cast<KK_FLOAT>(EPSILON);
+  const KK_FLOAT rsq_cs = std::is_same_v<KK_FLOAT, float> ?
+    ((rsq > static_cast<KK_FLOAT>(EPSILON)) ? rsq : static_cast<KK_FLOAT>(EPSILON)) :
+    rsq + static_cast<KK_FLOAT>(EPSILON);
 
   if (Specialisation::DoTable && rsq_cs > tabinnersq_kk) {
     union_int_float_t rsq_lookup;
@@ -201,10 +207,10 @@ compute_fcoul(const KK_FLOAT& rsq, const int& /*i*/, const int&j,
     const int itable = (rsq_lookup.i & ncoulmask) >> ncoulshiftbits;
     const KK_FLOAT fraction = ((KK_FLOAT)rsq_lookup.f - d_rtable[itable]) * d_drtable[itable];
     const KK_FLOAT table = d_ftable[itable] + fraction*d_dftable[itable];
-    KK_FLOAT forcecoul = qtmp*q[j] * table;
+    KK_FLOAT forcecoul = scale_kk*qtmp*q[j] * table;
     if (factor_coul < static_cast<KK_FLOAT>(1.0)) {
       const KK_FLOAT ctable = d_ctable[itable] + fraction*d_dctable[itable];
-      const KK_FLOAT prefactor = qtmp*q[j] * ctable;
+      const KK_FLOAT prefactor = scale_kk*qtmp*q[j] * ctable;
       forcecoul -= (static_cast<KK_FLOAT>(1.0)-factor_coul)*prefactor;
     }
     return forcecoul/rsq_cs;
@@ -213,23 +219,14 @@ compute_fcoul(const KK_FLOAT& rsq, const int& /*i*/, const int&j,
 
     if (factor_coul < static_cast<KK_FLOAT>(1.0)) {
 
-      // a bonded core/shell pair needs the minimal separation EPS_EWALD added
-      // to both the prefactor and the Ewald argument to keep the approximation
-      // valid, and the 1/r^2 scaling adjusted to match
+      // for excluded pairs the correction nearly cancels the Ewald term: use erf()
 
-      const KK_FLOAT reps = r + static_cast<KK_FLOAT>(EPS_EWALD);
-      const KK_FLOAT grij = g_ewald_kk * reps;
+      const KK_FLOAT grij = g_ewald_kk * r;
       const KK_FLOAT expm2 = Kokkos::exp(-grij*grij);
-      const KK_FLOAT t = static_cast<KK_FLOAT>(1.0) /
-        (static_cast<KK_FLOAT>(1.0) + static_cast<KK_FLOAT>(EWALD_P_CS)*grij);
-      const KK_FLOAT u = static_cast<KK_FLOAT>(1.0) - t;
-      const KK_FLOAT erfc = t * (static_cast<KK_FLOAT>(1.0)+u*(static_cast<KK_FLOAT>(B0)+
-        u*(static_cast<KK_FLOAT>(B1)+u*(static_cast<KK_FLOAT>(B2)+u*(static_cast<KK_FLOAT>(B3)+
-        u*(static_cast<KK_FLOAT>(B4)+u*static_cast<KK_FLOAT>(B5))))))) * expm2;
-      const KK_FLOAT prefactor = qqrd2e * qtmp*q[j] / reps;
-      const KK_FLOAT forcecoul = prefactor * (erfc + static_cast<KK_FLOAT>(EWALD_F)*grij*expm2 -
-                                              (static_cast<KK_FLOAT>(1.0)-factor_coul));
-      return forcecoul / (rsq_cs + static_cast<KK_FLOAT>(EPS_EWALD_SQR));
+      const KK_FLOAT prefactor = qqrd2e * scale_kk*qtmp*q[j] / r;
+      const KK_FLOAT forcecoul = prefactor * (factor_coul - Kokkos::erf(grij) +
+                                              static_cast<KK_FLOAT>(MY_ISPI4)*grij*expm2);
+      return forcecoul / rsq_cs;
 
     } else {
 
@@ -241,7 +238,7 @@ compute_fcoul(const KK_FLOAT& rsq, const int& /*i*/, const int&j,
       const KK_FLOAT erfc = t * (static_cast<KK_FLOAT>(1.0)+u*(static_cast<KK_FLOAT>(B0)+
         u*(static_cast<KK_FLOAT>(B1)+u*(static_cast<KK_FLOAT>(B2)+u*(static_cast<KK_FLOAT>(B3)+
         u*(static_cast<KK_FLOAT>(B4)+u*static_cast<KK_FLOAT>(B5))))))) * expm2;
-      const KK_FLOAT prefactor = qqrd2e * qtmp*q[j] / r;
+      const KK_FLOAT prefactor = qqrd2e * scale_kk*qtmp*q[j] / r;
       const KK_FLOAT forcecoul = prefactor * (erfc + static_cast<KK_FLOAT>(EWALD_F)*grij*expm2);
       return forcecoul / rsq_cs;
     }
@@ -258,12 +255,17 @@ template<bool STACKPARAMS, class Specialisation>
 KOKKOS_INLINE_FUNCTION
 KK_FLOAT PairCoulLongCSKokkos<DeviceType>::
 compute_ecoul(const KK_FLOAT& rsq, const int& /*i*/, const int&j,
-              const int& /*itype*/, const int& /*jtype*/,
+              const int& itype, const int& jtype,
               const KK_FLOAT& factor_coul, const KK_FLOAT& qtmp) const {
   const KK_FLOAT g_ewald_kk = static_cast<KK_FLOAT>(g_ewald);
+  const KK_FLOAT scale_kk = (STACKPARAMS && itype<MAX_TYPES_STACKPARAMS+1 && jtype<MAX_TYPES_STACKPARAMS+1) ?
+    m_params[itype][jtype].scale : params(itype,jtype).scale;
   const KK_FLOAT tabinnersq_kk = static_cast<KK_FLOAT>(tabinnersq);
+  // EPSILON keeps r = 0 finite, see above
 
-  const KK_FLOAT rsq_cs = rsq + static_cast<KK_FLOAT>(EPSILON);
+  const KK_FLOAT rsq_cs = std::is_same_v<KK_FLOAT, float> ?
+    ((rsq > static_cast<KK_FLOAT>(EPSILON)) ? rsq : static_cast<KK_FLOAT>(EPSILON)) :
+    rsq + static_cast<KK_FLOAT>(EPSILON);
 
   if (Specialisation::DoTable && rsq_cs > tabinnersq_kk) {
     union_int_float_t rsq_lookup;
@@ -271,32 +273,31 @@ compute_ecoul(const KK_FLOAT& rsq, const int& /*i*/, const int&j,
     const int itable = (rsq_lookup.i & ncoulmask) >> ncoulshiftbits;
     const KK_FLOAT fraction = ((KK_FLOAT)rsq_lookup.f - d_rtable[itable]) * d_drtable[itable];
     const KK_FLOAT table = d_etable[itable] + fraction*d_detable[itable];
-    KK_FLOAT ecoul = qtmp*q[j] * table;
+    KK_FLOAT ecoul = scale_kk*qtmp*q[j] * table;
     if (factor_coul < static_cast<KK_FLOAT>(1.0)) {
       const KK_FLOAT ctable = d_ctable[itable] + fraction*d_dctable[itable];
-      const KK_FLOAT prefactor = qtmp*q[j] * ctable;
+      const KK_FLOAT prefactor = scale_kk*qtmp*q[j] * ctable;
       ecoul -= (static_cast<KK_FLOAT>(1.0)-factor_coul)*prefactor;
     }
     return ecoul;
   } else {
     const KK_FLOAT r = Kokkos::sqrt(rsq_cs);
-    const KK_FLOAT reps = (factor_coul < static_cast<KK_FLOAT>(1.0)) ?
-      r + static_cast<KK_FLOAT>(EPS_EWALD) : r;
-    {
-      const KK_FLOAT grij = g_ewald_kk * reps;
-      const KK_FLOAT expm2 = Kokkos::exp(-grij*grij);
-      const KK_FLOAT t = static_cast<KK_FLOAT>(1.0) /
-        (static_cast<KK_FLOAT>(1.0) + static_cast<KK_FLOAT>(EWALD_P_CS)*grij);
-      const KK_FLOAT u = static_cast<KK_FLOAT>(1.0) - t;
-      const KK_FLOAT erfc = t * (static_cast<KK_FLOAT>(1.0)+u*(static_cast<KK_FLOAT>(B0)+
-        u*(static_cast<KK_FLOAT>(B1)+u*(static_cast<KK_FLOAT>(B2)+u*(static_cast<KK_FLOAT>(B3)+
-        u*(static_cast<KK_FLOAT>(B4)+u*static_cast<KK_FLOAT>(B5))))))) * expm2;
-      const KK_FLOAT prefactor = qqrd2e * qtmp*q[j] / reps;
-      KK_FLOAT ecoul = prefactor * erfc;
-      if (factor_coul < static_cast<KK_FLOAT>(1.0))
-        ecoul -= (static_cast<KK_FLOAT>(1.0)-factor_coul)*prefactor;
-      return ecoul;
-    }
+    const KK_FLOAT grij = g_ewald_kk * r;
+    const KK_FLOAT prefactor = qqrd2e * scale_kk*qtmp*q[j] / r;
+
+    // exact erf() for excluded pairs, consistent with compute_fcoul()
+
+    if (factor_coul < static_cast<KK_FLOAT>(1.0))
+      return prefactor * (factor_coul - Kokkos::erf(grij));
+
+    const KK_FLOAT expm2 = Kokkos::exp(-grij*grij);
+    const KK_FLOAT t = static_cast<KK_FLOAT>(1.0) /
+      (static_cast<KK_FLOAT>(1.0) + static_cast<KK_FLOAT>(EWALD_P_CS)*grij);
+    const KK_FLOAT u = static_cast<KK_FLOAT>(1.0) - t;
+    const KK_FLOAT erfc = t * (static_cast<KK_FLOAT>(1.0)+u*(static_cast<KK_FLOAT>(B0)+
+      u*(static_cast<KK_FLOAT>(B1)+u*(static_cast<KK_FLOAT>(B2)+u*(static_cast<KK_FLOAT>(B3)+
+      u*(static_cast<KK_FLOAT>(B4)+u*static_cast<KK_FLOAT>(B5))))))) * expm2;
+    return prefactor * erfc;
   }
 }
 
@@ -467,6 +468,7 @@ double PairCoulLongCSKokkos<DeviceType>::init_one(int i, int j)
   double cutone = PairCoulLongCS::init_one(i,j);
 
   k_params.view_host()(i,j).cut_coulsq = static_cast<KK_FLOAT>(cut_coulsq);
+  k_params.view_host()(i,j).scale = static_cast<KK_FLOAT>(scale[i][j]);
 
   k_params.view_host()(j,i) = k_params.view_host()(i,j);
   if (i<MAX_TYPES_STACKPARAMS+1 && j<MAX_TYPES_STACKPARAMS+1) {

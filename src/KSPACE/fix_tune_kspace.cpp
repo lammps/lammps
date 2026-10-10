@@ -27,6 +27,7 @@
 #include "modify.h"
 #include "neighbor.h"
 #include "pair.h"
+#include "suffix.h"
 #include "timer.h"
 #include "update.h"
 
@@ -46,8 +47,6 @@ using namespace FixConst;
 FixTuneKspace::FixTuneKspace(LAMMPS *lmp, int narg, char **arg) :
   Fix(lmp, narg, arg)
 {
-  if (narg < 3) error->all(FLERR,"Illegal fix tune/kspace command");
-
   global_freq = 1;
   firststep = 0;
   niter = 0;
@@ -57,12 +56,27 @@ FixTuneKspace::FixTuneKspace(LAMMPS *lmp, int narg, char **arg) :
   converged = false;
   need_fd2_brent = false;
 
-  ewald_time = pppm_time = msm_time = 0.0;
-
   // parse arguments
 
+  if (narg < 4) utils::missing_cmd_args(FLERR, "fix tune/kspace", error);
   nevery = utils::inumeric(FLERR,arg[3],false,lmp);
-  if (nevery <= 0) error->all(FLERR,"Illegal fix tune/kspace command");
+  if (nevery <= 0) error->all(FLERR, 3, "Illegal fix tune/kspace interval {}", nevery);
+
+  msmflag = espflag = 0;
+  int iarg = 4;
+  while (iarg < narg) {
+    if (strcmp(arg[iarg], "msm") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix tune/kspace msm", error);
+      msmflag = utils::logical(FLERR, arg[iarg+1], false, lmp);
+      iarg += 2;
+    } else if (strcmp(arg[iarg], "esp") == 0) {
+      if (iarg + 2 > narg) utils::missing_cmd_args(FLERR, "fix tune/kspace esp", error);
+      espflag = utils::logical(FLERR, arg[iarg+1], false, lmp);
+      iarg += 2;
+    } else {
+      error->all(FLERR, iarg, "Unknown fix tune/kspace keyword: {}", arg[iarg]);
+    }
+  }
 
   // set up reneighboring
 
@@ -97,6 +111,20 @@ void FixTuneKspace::init()
   if (force->kspace->dipoleflag)
     error->all(FLERR,"Cannot use fix tune/kspace with dipole long-range solver");
 
+  // the MSM and ESP styles are not (yet) supported in combination with the OPENMP package
+
+  if (msmflag || espflag) {
+    bool ompflag = (force->pair->suffix_flag & Suffix::OMP) != 0;
+    if (lmp->suffix_enable) {
+      if (lmp->suffix && (strcmp(lmp->suffix, "omp") == 0)) ompflag = true;
+      if (lmp->suffix2 && (strcmp(lmp->suffix2, "omp") == 0)) ompflag = true;
+    }
+    if (ompflag && msmflag)
+      error->all(FLERR, "Fix tune/kspace keyword 'msm yes' is not supported with the OPENMP package");
+    if (ompflag && espflag)
+      error->all(FLERR, "Fix tune/kspace keyword 'esp yes' is not supported with the OPENMP package");
+  }
+
   store_old_kspace_settings();
   double old_acc = force->kspace->accuracy/force->kspace->two_charge_force;
   acc_str = std::to_string(old_acc);
@@ -118,52 +146,37 @@ void FixTuneKspace::pre_exchange()
   if (next_reneighbor != update->ntimestep) return;
   next_reneighbor = update->ntimestep + nevery;
 
-  auto *info = new Info(lmp);
-  bool has_msm = info->has_style("pair", base_pair_style + "/msm");
-  delete info;
-
   double time = get_timing_info();
-
-  if (utils::strmatch(force->kspace_style,"^ewald")) ewald_time = time;
-  if (utils::strmatch(force->kspace_style,"^pppm")) pppm_time = time;
-  if (utils::strmatch(force->kspace_style,"^msm")) msm_time = time;
-
   niter++;
+
+  // determine the kspace styles to test.  Ewald and PPPM use the same pair style,
+  // MSM and ESP are only tested if requested and if a matching pair style exists.
+
   if (niter == 1) {
-    // test Ewald
     store_old_kspace_settings();
-    pair_style = base_pair_style + "/long";
-    update_pair_style(pair_style,pair_cut_coul);
-    update_kspace_style("ewald",acc_str);
-  } else if (niter == 2) {
-    // test PPPM
-    store_old_kspace_settings();
-    pair_style = base_pair_style + "/long";
-    update_pair_style(pair_style,pair_cut_coul);
-    update_kspace_style("pppm",acc_str);
-  } else if (has_msm && (niter == 3)) {
-    // test MSM
-    store_old_kspace_settings();
-    pair_style = base_pair_style + "/msm";
-    update_pair_style(pair_style,pair_cut_coul);
-    update_kspace_style("msm",acc_str);
-  } else if (niter == 4) {
-    store_old_kspace_settings();
-    if (comm->me == 0)
-      utils::logmesg(lmp,"ewald_time = {}\npppm_time = {}\nmsm_time = {}\n",
-                     ewald_time, pppm_time, msm_time);
-    // switch to fastest one
-    if (msm_time == 0.0) msm_time = 1.0e300;
-    kspace_style = "ewald";
-    pair_style = base_pair_style + "/long";
-    if (pppm_time < ewald_time && pppm_time < msm_time)
-      kspace_style = "pppm";
-    else if (msm_time < pppm_time && msm_time < ewald_time) {
-      kspace_style = "msm";
-      pair_style = base_pair_style + "/msm";
+    test_styles = {"ewald", "pppm"};
+    Info info(lmp);
+    if (msmflag && info.has_style("pair", base_pair_style + "/msm")) test_styles.emplace_back("msm");
+    if (espflag && info.has_style("pair", base_pair_style + "/esp")) test_styles.emplace_back("esp");
+    test_times.assign(test_styles.size(), 0.0);
+  }
+
+  // the timing is for the style that was tested since the previous invocation
+
+  const int ntest = test_styles.size();
+  if ((niter > 1) && (niter <= ntest + 1)) test_times[niter - 2] = time;
+
+  if (niter <= ntest) {
+    // test the next kspace style
+    switch_kspace_style(test_styles[niter - 1]);
+  } else if (niter == ntest + 1) {
+    // switch to the fastest kspace style
+    int best = 0;
+    for (int i = 0; i < ntest; ++i) {
+      if (comm->me == 0) utils::logmesg(lmp, "{}_time = {}\n", test_styles[i], test_times[i]);
+      if (test_times[i] < test_times[best]) best = i;
     }
-    update_pair_style(pair_style,pair_cut_coul);
-    update_kspace_style(kspace_style,acc_str);
+    switch_kspace_style(test_styles[best]);
   } else {
     adjust_rcut(time);
   }
@@ -205,19 +218,42 @@ double FixTuneKspace::get_timing_info()
 
 void FixTuneKspace::store_old_kspace_settings()
 {
-  kspace_style = force->kspace_style;
-  pair_style = force->pair_style;
+  // store the style names without accelerator suffix, since the
+  // styles are re-created with the suffix applied, if needed
+
+  kspace_style = utils::strip_style_suffix(force->kspace_style, lmp);
+  pair_style = utils::strip_style_suffix(force->pair_style, lmp);
 
   std::size_t found;
   if (std::string::npos != (found = pair_style.rfind("/long")))
     base_pair_style = pair_style.substr(0,found);
   else if (std::string::npos != (found = pair_style.rfind("/msm")))
     base_pair_style = pair_style.substr(0,found);
+  else if (std::string::npos != (found = pair_style.rfind("/esp")))
+    base_pair_style = pair_style.substr(0,found);
   else base_pair_style = pair_style;
 
   old_differentiation_flag = force->kspace->differentiation_flag;
   old_slabflag = force->kspace->slabflag;
   old_slab_volfactor = force->kspace->slab_volfactor;
+}
+
+/* ----------------------------------------------------------------------
+   switch to the given kspace style and the matching pair style
+------------------------------------------------------------------------- */
+
+void FixTuneKspace::switch_kspace_style(const std::string &new_kspace_style)
+{
+  store_old_kspace_settings();
+  if (new_kspace_style == "msm")
+    pair_style = base_pair_style + "/msm";
+  else if (new_kspace_style == "esp")
+    pair_style = base_pair_style + "/esp";
+  else
+    pair_style = base_pair_style + "/long";
+  kspace_style = new_kspace_style;
+  update_pair_style(pair_style, pair_cut_coul);
+  update_kspace_style(kspace_style, acc_str);
 }
 
 /* ----------------------------------------------------------------------
@@ -232,7 +268,10 @@ void FixTuneKspace::update_pair_style(const std::string &new_pair_style,
   *p_cutoff = pair_cut_coul;
 
   // check to see if we need to change pair styles
-  if (new_pair_style == force->pair_style) return;
+  // the current style name may include an accelerator suffix
+  if (utils::strip_style_suffix(new_pair_style, lmp) ==
+      utils::strip_style_suffix(force->pair_style, lmp))
+    return;
 
   // create a temporary file to store current pair settings
   FILE *p_pair_settings_file;
@@ -280,6 +319,11 @@ void FixTuneKspace::update_kspace_style(const std::string &new_kspace_style,
   // set up grid
 
   force->kspace->reset_grid();
+
+  // the force styles have been replaced, so fix omp must update
+  // its pointer to the style that does the force reduction
+
+  for (auto &ifix : modify->get_fix_by_style("^OMP$")) ifix->init();
 
   // re-init neighbor list
   // probably only needed when redefining the pair style

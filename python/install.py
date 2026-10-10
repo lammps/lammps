@@ -87,8 +87,10 @@ for wheel in glob.glob('lammps-*.whl'):
   print("deleting " + wheel)
   os.remove(wheel)
 
-# copy python tree to build folder
-builddir = shutil.copytree(pythondir, os.path.join(olddir, 'build-python'))
+# copy python tree to build folder. leave out wheels and build folders that may be
+# left over in the python folder, so that only the newly built wheel is installed
+builddir = shutil.copytree(pythondir, os.path.join(olddir, 'build-python'),
+                           ignore=shutil.ignore_patterns('*.whl', 'buildwheel', 'build-python'))
 os.chdir(builddir)
 
 # copy shared object to the current folder so that
@@ -110,6 +112,8 @@ except subprocess.CalledProcessError as err:
 os.system(sys.executable + ' makewheel.py')
 
 # copy wheel to final location
+if not glob.glob('lammps-*.whl'):
+  sys.exit("Failed to build the binary wheel for the LAMMPS python module")
 for wheel in glob.glob('lammps-*.whl'):
   if args.wheeldir:
     shutil.copy(wheel, args.wheeldir)
@@ -155,7 +159,7 @@ try:
   sys.exit(0)
 except subprocess.CalledProcessError as err:
   errmsg = err.output.decode('UTF-8')
-  if errmsg.find("distutils installed"):
+  if errmsg.find("distutils installed") >= 0:
     sys.exit(errmsg + "You need to uninstall the LAMMPS python module manually first.\n")
 try:
   print('Installing wheel into system site-packages folder failed. Trying user folder now')

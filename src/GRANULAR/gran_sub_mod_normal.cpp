@@ -18,6 +18,7 @@
 #include "citeme.h"
 #include "fix_granular_mdr.h"
 #include "granular_model.h"
+#include "gran_sub_mod_damping.h"
 #include "math_const.h"
 #include "math_special.h"
 #include "modify.h"
@@ -524,6 +525,9 @@ void GranSubModNormalMDR::init()
     fix_mdr_flag = 1;
   }
 
+  if (gm->damping_model->name != "mdr")
+    error->all(FLERR, "Only damping mdr may be used with the mdr normal model");
+
   // initialize particle history variables
   int tmp1, tmp2;
   index_Ro = atom->find_custom("Ro", tmp1, tmp2);                       // initial radius
@@ -1007,3 +1011,217 @@ double GranSubModNormalMDR::round_up_negative_epsilon(double value)
   if (value < 0.0 && value > -MDR_EPSILON3) value = 0.0;
   return value;
 }
+
+/* ----------------------------------------------------------------------
+   Elastic-plastic-adhesive, linear
+------------------------------------------------------------------------- */
+
+GranSubModNormalEPALinear::GranSubModNormalEPALinear(GranularModel *gm, LAMMPS *lmp) : GranSubModNormal(gm, lmp)
+{
+  cohesive_flag = 1;
+  num_coeffs = 6;
+  size_history = 1;
+  contact_radius_flag = 1;
+  nondefault_history_transfer = 1;
+  transfer_history_factor = new double[size_history];
+  transfer_history_factor[0] = +1;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void GranSubModNormalEPALinear::coeffs_to_local()
+{
+  k1 = coeffs[0];
+  damp = coeffs[1];
+  k2_hat = coeffs[2];
+  kc = coeffs[3];
+  phi_f = coeffs[4];
+  f0 = coeffs[5];
+
+  if (k1 < 0.0 || damp < 0.0 || k2_hat < 0.0 || kc < 0 || phi_f < 0 || f0 < 0) error->all(FLERR, "Illegal EPA linear normal model, all coeffs must be positive");
+}
+
+/* ---------------------------------------------------------------------- */
+
+double GranSubModNormalEPALinear::calculate_forces()
+{
+  double dmax, dmax_star, k2;
+  double d0, k1delta, k2_dd0;
+  double *history = & gm->history[history_index];
+  double delta = gm->delta;
+  double Fne;
+
+  kc_delta = 0;
+
+  dmax_star = k2_hat/(k2_hat-k1)*phi_f*2*gm->Reff;
+  dmax = history[0];
+  if (delta > dmax){
+    dmax = delta;
+    if (gm->history_update) history[0] = delta;
+  }
+  if (dmax > dmax_star){
+    k2 = k2_hat;
+  }
+  else{
+    k2 = k1+(k2_hat-k1)*dmax/dmax_star;
+  }
+  d0 = (1-k1/k2)*dmax;
+  k1delta = k1*delta;
+  kc_delta = kc*delta;
+  k2_dd0 = k2*(delta-d0);
+  if (k2_dd0 >= k1delta){
+    Fne = k1delta;
+    kc_delta = 0; //Set to 0 if not adhesive branch, so that kc_delta doesn't contribute to critical force
+  }
+  else if ((k1delta > k2_dd0) && (k2_dd0 > -kc_delta)){
+    Fne = k2_dd0;
+    kc_delta = 0; //Set to 0 if not adhesive branch, so that kc_delta doesn't contribute to critical force
+  }
+  else if (-kc_delta >= k2_dd0){
+    Fne = -kc_delta;
+  }
+  Fne -= f0;
+  return Fne;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void GranSubModNormalEPALinear::set_fncrit()
+{
+  Fncrit = Fne + kc_delta + f0;
+}
+
+
+/* ----------------------------------------------------------------------
+   Elastic-plastic-adhesive, non-linear
+------------------------------------------------------------------------- */
+
+GranSubModNormalEPANonlinear::GranSubModNormalEPANonlinear(GranularModel *gm, LAMMPS *lmp) : GranSubModNormal(gm, lmp)
+{
+  cohesive_flag = 1;
+  num_coeffs = 8; //E, poiss, damp, lambda_p, f0, kadh, mexp, nexp
+  size_history = 1;
+  contact_radius_flag = 1;
+  material_properties = 1;
+  mixed_coefficients = 0;
+
+  nondefault_history_transfer = 1;
+  transfer_history_factor = new double[size_history];
+  transfer_history_factor[0] = +1;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void GranSubModNormalEPANonlinear::coeffs_to_local()
+{
+  Emod = coeffs[0];
+  damp = coeffs[1];
+  poiss = coeffs[2];
+  lambda_p = coeffs[3];
+  f0 = coeffs[4];
+  kadh = coeffs[5];
+  mexp = coeffs[6];
+  nexp = coeffs[7];
+
+  if (!mixed_coefficients) {
+    if (gm->contact_type == PAIR) {
+      k1 = FOURTHIRDS * mix_stiffnessE(Emod, Emod, poiss, poiss);
+    } else {
+      k1 = FOURTHIRDS * mix_stiffnessE_wall(Emod, poiss);
+    }
+  }
+
+  if (Emod < 0.0 || damp < 0.0 || lambda_p < 0.0 ||
+      lambda_p >= 1.0 || f0 < 0.0 || kadh < 0.0 ||
+      mexp < 1 || nexp < 1)
+        error->all(FLERR, "Illegal EPA nonlinear normal model");
+
+  minv = 1.0/mexp;
+  lp_minv = pow(lambda_p, minv);
+  k2fac = k1/(1-lambda_p);
+}
+
+/* ---------------------------------------------------------------------- */
+
+void GranSubModNormalEPANonlinear::mix_coeffs(double *icoeffs, double *jcoeffs)
+{
+  coeffs[0] = mix_stiffnessE(icoeffs[0], jcoeffs[0], icoeffs[2], jcoeffs[2]);
+  for (int i = 1; i < num_coeffs; i++) {
+    coeffs[i] = mix_geom(icoeffs[i], jcoeffs[i]);
+  }
+
+  k1 = FOURTHIRDS * coeffs[0];
+  mixed_coefficients = 1;
+
+  coeffs_to_local();
+}
+
+/* ---------------------------------------------------------------------- */
+
+double GranSubModNormalEPANonlinear::calculate_contact_radius()
+{
+  double *history = & gm->history[history_index];
+  double delta_max = history[0];
+  double contact_radius;
+
+  // Also update delta_max, set delta_p
+  if (gm->delta > delta_max){
+    delta_max = gm->delta;
+    if (gm->history_update) history[0] = gm->delta;
+  }
+  delta_p = lp_minv*delta_max;
+  contact_radius = sqrt(2*delta_p*gm->Reff);
+  return contact_radius;
+}
+
+/* ---------------------------------------------------------------------- */
+
+double GranSubModNormalEPANonlinear::calculate_forces()
+{
+  double k1r, k2, delta_max;
+  double dm, dn, dpm, dchi, k2_dmdpm, k1_dm, Reff_2m, Reff_2n;
+  double *history = & gm->history[history_index];
+  double delta = gm->delta;
+  double Fmin, Fmin_lim, Fne;
+
+  ka_dn = 0;
+
+  Reff_2m = pow(gm->Reff, 2-mexp);
+  Reff_2n = pow(gm->Reff, 2-nexp);
+
+  k1r = k1*Reff_2m;
+  k2 = k2fac*Reff_2m;
+
+  dm = pow(delta, mexp);
+  dpm = pow(delta_p, mexp);
+
+  k1_dm = k1r*dm;
+  k2_dmdpm = k2*(dm-dpm);
+
+  if (k2_dmdpm >= k1_dm){
+    Fne = k1_dm;
+  }
+  else{ //Could be on adhesive branch
+    dn = pow(delta, nexp);
+    ka_dn = kadh*Reff_2n*dn;
+    if ((k1_dm > k2_dmdpm) && (k2_dmdpm > -ka_dn)){
+      Fne = k2_dmdpm;
+      ka_dn = 0; //Set to 0 so that critical force is not affected if not on adhesive branch
+    }
+    else if (-ka_dn >= k2_dmdpm){
+      Fne = -ka_dn;
+    }
+  }
+  Fne -= f0;
+  return Fne;
+}
+
+/* ---------------------------------------------------------------------- */
+
+void GranSubModNormalEPANonlinear::set_fncrit()
+{
+  Fncrit = Fne + ka_dn + f0;
+}
+
+/* ---------------------------------------------------------------------- */
+

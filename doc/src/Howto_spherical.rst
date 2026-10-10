@@ -17,9 +17,10 @@ particles.  The following aspects are discussed in turn:
 * computes, thermodynamics, and dump output
 * rigid bodies composed of finite-size particles
 
-Example input scripts for these kinds of models are in the body,
-colloid, dipole, ellipse, line, peri, pour, and tri directories of the
-:doc:`examples directory <Examples>` in the LAMMPS distribution.
+Example input scripts for these kinds of models are in the ASPHERE
+(with line and tri sub-directories), body, bpm, colloid, dipole,
+ellipse, granular, peri, and pour directories of the :doc:`examples
+directory <Examples>` in the LAMMPS distribution.
 
 Atom styles
 -----------
@@ -108,10 +109,15 @@ integrators and temperature computations for each class of particles.
 See the doc pages for various commands for details.
 
 Also note that for :doc:`2d simulations <dimension>`, atom styles sphere
-and ellipsoid still use 3d particles, rather than as circular disks or
-ellipses.  This means they have the same moment of inertia as the 3d
-object.  When temperature is computed, the correct degrees of freedom
-are used for rotation in a 2d versus 3d system.
+and ellipsoid by default still use 3d particles, rather than circular
+disks or ellipses.  This means they have the same moment of inertia as
+the 3d object.  When temperature is computed, the correct degrees of
+freedom are used for rotation in a 2d versus 3d system.  Spherical
+particles can be modeled as 2d discs with the :doc:`set density/disc
+<set>` command and the *disc* option of the :doc:`fix nve/sphere
+<fix_nve_sphere>`, :doc:`fix nvt/sphere <fix_nvt_sphere>`, :doc:`fix
+nph/sphere <fix_nph_sphere>`, and :doc:`fix npt/sphere
+<fix_npt_sphere>` commands (see also :doc:`Howto_2d`).
 
 Pair potentials
 ---------------
@@ -125,23 +131,32 @@ such interactions.  These are the various :doc:`pair styles <pair_style>` that g
 * :doc:`pair_style gran/hooke/history <pair_gran>`
 * :doc:`pair_style gran/hertz/history <pair_gran>`
 * :doc:`pair_style granular/superellipsoid <pair_granular_superellipsoid>`
-* :doc:`pair_style dipole/cut <pair_dipole>`
+* :doc:`pair_style lj/cut/dipole/cut <pair_dipole>`
+* :doc:`pair_style lj/sf/dipole/sf <pair_dipole>`
+* :doc:`pair_style lj/cut/dipole/long <pair_dipole>`
+* :doc:`pair_style lj/long/dipole/long <pair_dipole>`
 * :doc:`pair_style gayberne <pair_gayberne>`
 * :doc:`pair_style resquared <pair_resquared>`
+* :doc:`pair_style ylz <pair_ylz>`
 * :doc:`pair_style brownian <pair_brownian>`
+* :doc:`pair_style brownian/poly <pair_brownian>`
 * :doc:`pair_style lubricate <pair_lubricate>`
+* :doc:`pair_style lubricate/poly <pair_lubricate>`
+* :doc:`pair_style lubricateU <pair_lubricateU>`
 * :doc:`pair_style line/lj <pair_line_lj>`
 * :doc:`pair_style tri/lj <pair_tri_lj>`
 * :doc:`pair_style body/nparticle <pair_body_nparticle>`
+* :doc:`pair_style body/rounded/polygon <pair_body_rounded_polygon>`
+* :doc:`pair_style body/rounded/polyhedron <pair_body_rounded_polyhedron>`
 
 Most of the granular pair styles are used with spherical particles with
 the exception of the *granular/superellipsoid* pair style which is used
-with superellipsoid particles.  The dipole pair style is used with the
+with superellipsoid particles.  The dipole pair styles are used with the
 dipole atom style, which could be applied to spherical or ellipsoidal
-particles.  The GayBerne and REsquared potentials require ellipsoidal
-particles, though they will also work if the 3 shape parameters are the
-same (a sphere).  The Brownian and lubrication potentials are used with
-spherical particles.  The line, tri, and body potentials are used with
+particles.  The GayBerne, REsquared, and YLZ potentials require
+ellipsoidal particles, though the first two will also work if the 3
+shape parameters are the same (a sphere).  The Brownian and lubrication
+potentials are used with spherical particles.  The line, tri, and body potentials are used with
 line segment, triangular, and body particles respectively.
 
 Time integration
@@ -153,19 +168,24 @@ orientation and angular velocity or angular momentum of the particles:
 
 * :doc:`fix nve/sphere <fix_nve_sphere>`
 * :doc:`fix nvt/sphere <fix_nvt_sphere>`
+* :doc:`fix nph/sphere <fix_nph_sphere>`
 * :doc:`fix npt/sphere <fix_npt_sphere>`
+* :doc:`fix brownian/sphere <fix_brownian>`
 
-Likewise, there are 3 fixes that perform time integration on
+Likewise, there are several fixes that perform time integration on
 ellipsoidal particles:
 
 * :doc:`fix nve/asphere <fix_nve_asphere>`
 * :doc:`fix nvt/asphere <fix_nvt_asphere>`
+* :doc:`fix nph/asphere <fix_nph_asphere>`
 * :doc:`fix npt/asphere <fix_npt_asphere>`
+* :doc:`fix nve/asphere/noforce <fix_nve_asphere_noforce>`
+* :doc:`fix brownian/asphere <fix_brownian>`
 
 The advantage of these fixes is that those which thermostat the
 particles include the rotational degrees of freedom in the temperature
 calculation and thermostatting.  The :doc:`fix langevin <fix_langevin>`
-command can also be used with its *omgea* or *angmom* options to
+command can also be used with its *omega* or *angmom* options to
 thermostat the rotational degrees of freedom for spherical or
 ellipsoidal particles.  Other thermostatting fixes only operate on the
 translational kinetic energy of finite-size particles.

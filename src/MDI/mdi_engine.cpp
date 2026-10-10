@@ -954,6 +954,11 @@ void MDIEngine::evaluate()
     pe->addstep(update->ntimestep);
     press->addstep(update->ntimestep);
 
+    // setup_minimal() calls the setup_pre_force() functions of fixes only during a run.
+    // those are required, e.g. for clearing forces with the OPENMP package.
+
+    update->whichflag = 1;
+
     int nflag = neighbor->decide();
 
     if (nflag == 0) {
@@ -976,6 +981,7 @@ void MDIEngine::evaluate()
       output->thermo->compute(1);
     }
 
+    update->whichflag = 0;
     modify->addstep_compute(update->ntimestep + 1);
   }
 

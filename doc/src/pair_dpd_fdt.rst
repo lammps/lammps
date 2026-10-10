@@ -1,9 +1,12 @@
 .. index:: pair_style dpd/fdt
+.. index:: pair_style dpd/fdt/omp
 .. index:: pair_style dpd/fdt/energy
 .. index:: pair_style dpd/fdt/energy/kk
 
 pair_style dpd/fdt command
 ==========================
+
+Accelerator Variants: *dpd/fdt/omp*
 
 pair_style dpd/fdt/energy command
 =================================

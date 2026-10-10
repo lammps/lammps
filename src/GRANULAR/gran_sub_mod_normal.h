@@ -72,7 +72,7 @@ namespace LAMMPS_NS::Granular_NS {
     void coeffs_to_local() override;
     double calculate_forces() override;
 
-   protected:
+  protected:
     double k;
   };
 
@@ -109,11 +109,11 @@ namespace LAMMPS_NS::Granular_NS {
    public:
     GranSubModNormalJKR(class GranularModel *, class LAMMPS *);
     void coeffs_to_local() override;
-    void mix_coeffs(double *, double *) override;
+    void mix_coeffs(double*, double*) override;
     bool touch() override;
     double pulloff_distance(double, double) override;
     double calculate_contact_radius() override;
-    double calculate_forces() override;
+    double calculate_forces();
     void set_fncrit() override;
 
    protected:
@@ -122,7 +122,7 @@ namespace LAMMPS_NS::Granular_NS {
     int mixed_coefficients;
   };
 
-  /* ---------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
 
   class GranSubModNormalMDR : public GranSubModNormal {
    public:
@@ -152,7 +152,39 @@ namespace LAMMPS_NS::Granular_NS {
     inline double round_up_negative_epsilon(double);
   };
 
-} // namespace LAMMPS_NS::Granular_NS
+/* ---------------------------------------------------------------------- */
 
+  class GranSubModNormalEPALinear : public GranSubModNormal {
+   public:
+    GranSubModNormalEPALinear(class GranularModel *, class LAMMPS *);
+    void coeffs_to_local() override;
+    double calculate_forces() override;
+    void set_fncrit() override;
+    bool adhesive;
+
+   protected:
+    double k1, k2_hat, kc, kc_delta, phi_f, f0, Fne;
+    int mixed_coefficients;
+  };
+
+/* ---------------------------------------------------------------------- */
+
+  class GranSubModNormalEPANonlinear : public GranSubModNormal {
+   public:
+    GranSubModNormalEPANonlinear(class GranularModel *, class LAMMPS *);
+    void coeffs_to_local() override;
+    void mix_coeffs(double *, double *) override;
+    double calculate_forces() override;
+    double calculate_contact_radius() override;
+    void set_fncrit() override;
+    bool adhesive;
+
+ protected:
+  double k1, Emod, poiss, damp, lambda_p, f0, kadh, mexp, nexp, Fne;
+  double k2fac, delta_p, minv, lp_minv, ka_dn;
+  int mixed_coefficients;
+};
+
+}    // namespace LAMMPS_NS::Granular_NS
 
 #endif /*GRAN_SUB_MOD_NORMAL_H */

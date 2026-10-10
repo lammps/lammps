@@ -143,7 +143,7 @@ molecule IDs, the :doc:`fix surface/global <fix_surface_global>` and
 :doc:`fix surface/local <fix_surface_local>` commands specify the type
 and molecule ID that will be assigned to the read-in triangles.  The
 :doc:`fix surface/global <fix_surface_global>` command also allows use
-of the :doc:`fix_modify type/region <fix_modify>` command to assign
+of the :doc:`fix_modify type/region <fix_surface_global>` command to assign
 types based on a geometric region.  Since local surfaces are effectively
 particles, the :doc:`set <set>` command can be used to alter the *type*
 or *molecule ID* of any triangle or line.
@@ -230,7 +230,7 @@ As an example of a valid intersection, consider a 2d simulation which
 mixes a container of granular particles.  *Global* line segments are
 used to define both the box-shaped container and the mixer in the
 center.  The 4 mixer blades are in the shape of a large X and are made
-to rotate using the :doc:`fix_modify <fix_modify>` command (see below).
+to rotate using the :doc:`fix_modify move <fix_surface_global>` command (see below).
 
 .. figure:: img/gransurf_mixer.png
             :figwidth: 50%
@@ -356,16 +356,16 @@ However, triangles/lines can be made to move in a prescribed manner.
 E.g. the rotation of 2d mixer blades in the example described above.
 These two commands can be used for that purpose:
 
-* :doc:`fix_modify move <fix_modify>` for *global* surfaces
+* :doc:`fix_modify move <fix_surface_global>` for *global* surfaces
 * :doc:`fix move <fix_move>` for *local* surfaces
 
-For *global* surfaces, the :doc:`fix_modify move <fix_modify>` command
+For *global* surfaces, the :doc:`fix_modify move <fix_surface_global>` command
 can move a specified subset of the triangles/lines in various ways
 (translation, rotation, etc).  Which triangles move is specified based
 on the *molecule ID* of each triangle.  Molecule IDs are specified when
 surfaces are defined by the :doc:`fix surface/global
 <fix_surface_global>` command.  They can also be defined by the
-:doc:`fix_modify mol/region <fix_modify>` command.
+:doc:`fix_modify mol/region <fix_surface_global>` command.
 
 For *local* surfaces, the :doc:`fix move <fix_move>` command can move a
 specified subset of the triangles/lines in various ways (translation,

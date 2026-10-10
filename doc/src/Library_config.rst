@@ -28,7 +28,8 @@ This section documents the following functions:
 --------------------
 
 These library functions can be used to query the LAMMPS library for
-compile time settings and included packages and styles.  This enables
+compile time settings, available external programs, and included
+packages and styles.  This enables
 programs that use the library interface to determine whether the
 linked LAMMPS library is compatible with the requirements of the
 application without crashing during the LAMMPS functions (e.g. due to

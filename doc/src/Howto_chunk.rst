@@ -8,13 +8,14 @@ and the assignment of chunk IDs to atoms can be static or change over
 time.  Examples of "chunks" are molecules or spatial bins or atoms
 with similar values (e.g. coordination number or potential energy).
 
-The per-atom chunk IDs can be used as input to two other kinds of
+The per-atom chunk IDs can be used as input to several other kinds of
 commands, to calculate various properties of a system:
 
 * :doc:`fix ave/chunk <fix_ave_chunk>`
 * any of the :doc:`compute \*/chunk <compute>` commands
+* a few other chunk commands (see below)
 
-Here a brief overview for each of the 4 kinds of chunk-related commands
+Here a brief overview for each of these kinds of chunk-related commands
 is provided.  Then some examples are given of how to compute different
 properties with chunk commands.
 
@@ -87,22 +88,30 @@ Compute \*/chunk commands:
 --------------------------
 
 The following computes operate on chunks of atoms to produce per-chunk
-values.  Any compute whose style name ends in "/chunk" is in this
-category:
+values.  Except for compute reduce/chunk (see below), any compute whose
+style name ends in "/chunk" is in this category:
 
+* :doc:`compute angmom/chunk <compute_angmom_chunk>`
 * :doc:`compute com/chunk <compute_com_chunk>`
+* :doc:`compute continuum/chunk <compute_continuum_chunk>`
+* :doc:`compute dipole/chunk <compute_dipole_chunk>`
 * :doc:`compute gyration/chunk <compute_gyration_chunk>`
+* :doc:`compute gyration/shape/chunk <compute_gyration_shape_chunk>`
 * :doc:`compute inertia/chunk <compute_inertia_chunk>`
 * :doc:`compute msd/chunk <compute_msd_chunk>`
+* :doc:`compute omega/chunk <compute_omega_chunk>`
 * :doc:`compute property/chunk <compute_property_chunk>`
 * :doc:`compute temp/chunk <compute_temp_chunk>`
 * :doc:`compute torque/chunk <compute_torque_chunk>`
+* :doc:`compute vacf/chunk <compute_vacf_chunk>`
 * :doc:`compute vcm/chunk <compute_vcm_chunk>`
 
 They each take the ID of a :doc:`compute chunk/atom
 <compute_chunk_atom>` command as input.  As their names indicate, they
-calculate the center-of-mass, radius of gyration, moments of inertia,
-mean-squared displacement, temperature, torque, and velocity of
+calculate the angular momentum, center-of-mass, dipole moment, radius of
+gyration, gyration tensor eigenvalues and shape parameters, moments of
+inertia, mean-squared displacement, angular velocity, temperature,
+torque, velocity auto-correlation function, and velocity of
 center-of-mass for each chunk of atoms.  The :doc:`compute
 property/chunk <compute_property_chunk>` command can tally the count of
 atoms in each chunk and extract other per-chunk properties.
@@ -133,6 +142,9 @@ Other chunk commands:
 
 * :doc:`compute chunk/spread/atom <compute_chunk_spread_atom>`
 * :doc:`compute reduce/chunk <compute_reduce_chunk>`
+* :doc:`fix momentum/chunk <fix_momentum>`
+* :doc:`fix spring/chunk <fix_spring_chunk>`
+* :doc:`fix graphics/chunk <fix_graphics_chunk>`
 
 The :doc:`compute chunk/spread/atom <compute_chunk_spread_atom>` command
 spreads per-chunk values to each atom in the chunk, producing per-atom
@@ -148,6 +160,13 @@ chunk.  When used with the :doc:`compute chunk/spread/atom
 <compute_chunk_spread_atom>` command it can create peratom values that
 induce a new set of chunks with a second :doc:`compute chunk/atom
 <compute_chunk_atom>` command.
+
+The :doc:`fix momentum/chunk <fix_momentum>` command zeroes the linear
+and/or angular momentum of each chunk of atoms, the :doc:`fix
+spring/chunk <fix_spring_chunk>` command applies a spring force to the
+center-of-mass of each chunk, and the :doc:`fix graphics/chunk
+<fix_graphics_chunk>` command creates graphics objects from chunks of
+atoms for visualization with :doc:`dump image <dump_image>`.
 
 Example calculations with chunks
 --------------------------------

@@ -158,8 +158,8 @@ lose contact.
 `mdr` normal model
 -------------------
 
-*Parameters:* :math:`k_1`, :math:`\eta_{n0}` (or :math:`e`),
-:math:`\hat{k}_2`, :math:`k_c`, :math:`\phi_f`, :math:`f_0`
+*Parameters:* :math:`E`, :math:`\nu`, :math:`Y`, :math:`\Delta\gamma`,
+:math:`\psi_b`, :math:`\eta_{n0}`
 
 Example:
 

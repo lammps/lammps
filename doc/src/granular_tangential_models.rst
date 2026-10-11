@@ -176,7 +176,7 @@ gran/hooke* style. The tangential force :math:`\mathbf{F}_t` is given by:
 
 .. math::
 
-   \mathbf{F}_t =  -\min(\mu_t F_{n0}, \|\mathbf{F}_\mathrm{t,damp}\|) \mathbf{t}
+   \mathbf{F}_t =  \min(\mu_t F_{n0}, \|\mathbf{F}_\mathrm{t,damp}\|) \mathbf{t}
 
 .. _linear_history_tangential_model:
 
@@ -196,7 +196,7 @@ For *tangential linear_history*, the tangential force is given by:
 
 .. math::
 
-   \mathbf{F}_t =  -\min(\mu_t F_{n0}, \|-k_t\mathbf{\xi} + \mathbf{F}_\mathrm{t,damp}\|) \mathbf{t}
+   \mathbf{F}_t =  \min(\mu_t F_{n0}, \|-k_t\mathbf{\xi} + \mathbf{F}_\mathrm{t,damp}\|) \mathbf{t}
 
 
 .. _mindlin_tangential_model:
@@ -220,7 +220,7 @@ of :math:`a`, the radius of the contact region. The tangential force is given by
 
 .. math::
 
-   \mathbf{F}_t =  -\min(\mu_t F_{n0}, \|-k_t a \mathbf{\xi} + \mathbf{F}_\mathrm{t,damp}\|) \mathbf{t}
+   \mathbf{F}_t =  \min(\mu_t F_{n0}, \|-k_t a \mathbf{\xi} + \mathbf{F}_\mathrm{t,damp}\|) \mathbf{t}
 
 
 Here, :math:`a` is the radius of the contact region, given by :math:`a =\sqrt{R\delta}`
@@ -271,7 +271,7 @@ model. The tangential force is given by:
 
 .. math::
 
-   \mathbf{F}_t =  -\min(\mu_t F_{n0}, \|\mathbf{F}_{te} + \mathbf{F}_\mathrm{t,damp}\|) \mathbf{t}
+   \mathbf{F}_t =  \min(\mu_t F_{n0}, \|\mathbf{F}_{te} + \mathbf{F}_\mathrm{t,damp}\|) \mathbf{t}
 
 The increment of the elastic component of the tangential force
 :math:`\mathbf{F}_{te}` is given by:
@@ -289,7 +289,7 @@ the critical force:
 
 .. math::
 
-   \mathbf{F}_{te} = - \mu_t F_{n0}\mathbf{t} + \mathbf{F}_{t,damp}
+   \mathbf{F}_{te} = \mu_t F_{n0}\mathbf{t} - \mathbf{F}_{t,damp}
 
 The same rules as those described for *mindlin* apply regarding the tangential
 stiffness and mixing of the shear modulus for different particle types.

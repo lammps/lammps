@@ -148,7 +148,7 @@ FixQEqReaxFF::FixQEqReaxFF(LAMMPS *lmp, int narg, char **arg) :
   // perform initial allocation of atom-based arrays
   // register with Atom class
 
-  reaxff = dynamic_cast<PairReaxFF *>(force->pair_match("^reaxff",0));
+  reaxff = nullptr;
   reaxflag = 0;
   nlevels_respa = 1;
 
@@ -416,6 +416,19 @@ void FixQEqReaxFF::init()
 
   if (group->count(igroup) == 0)
     error->all(FLERR, Error::NOLASTLINE, "Fix {} group has no atoms", style);
+
+  // look up pair reaxff and its parameters here and not in the constructor,
+  // since the pair style may have been redefined in the meantime
+
+  if (reaxflag) pertype_parameters(pertype_option);
+
+  // this fix borrows the neighbor list of pair reaxff when it can, to avoid
+  // building a second one.  The KOKKOS version of pair reaxff builds its list
+  // on the device, where the plain ilist, numneigh and firstneigh are not
+  // filled in, so use the list this fix requests for itself instead.
+
+  reaxff = dynamic_cast<PairReaxFF *>(force->pair_match("^reaxff",0));
+  if (reaxff && reaxff->kokkosable) reaxff = nullptr;
 
   // compute net charge and print warning if too large
 

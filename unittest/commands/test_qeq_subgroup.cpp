@@ -188,7 +188,13 @@ protected:
                 EXPECT_NEAR(q[i], ref[idx], prec_tol(ref[idx], tol)) << info << " atom " << tag[i];
                 qsum += q[i];
             } else {
-                EXPECT_DOUBLE_EQ(q[i], qfixed[idx]) << info << " atom " << tag[i];
+                // the charges are only stored with reduced precision on the device
+                // with the mixed or single precision KOKKOS package
+                if (kokkos_reduced_precision())
+                    EXPECT_NEAR(q[i], qfixed[idx], prec_tol(qfixed[idx], 1.0e-15))
+                        << info << " atom " << tag[i];
+                else
+                    EXPECT_DOUBLE_EQ(q[i], qfixed[idx]) << info << " atom " << tag[i];
             }
         }
         // the fix group is constrained to be charge neutral

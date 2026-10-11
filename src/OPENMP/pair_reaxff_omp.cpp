@@ -420,7 +420,10 @@ int PairReaxFFOMP::write_reax_lists()
     auto *jlist = firstneigh[i];
     Set_Start_Index(i, num_nbrs_offset[i], far_nbrs);
 
-    if (i < inum)
+    // the first inum entries of ilist are the local atoms, the rest are ghosts.
+    // with a skip list (pair_style hybrid) ilist is not the identity mapping.
+
+    if (itr_i < inum)
       cutoff_sqr = SQR(api->control->nonb_cut);
     else
       cutoff_sqr = SQR(api->control->bond_cut);

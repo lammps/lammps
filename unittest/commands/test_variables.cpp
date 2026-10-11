@@ -626,39 +626,47 @@ TEST_F(VariableTest, IfCommand)
     text = END_CAPTURE_OUTPUT();
     ASSERT_THAT(text, ContainsRegex(".*bingo!.*"));
 
-    TEST_FAILURE(".*ERROR: Invalid Boolean syntax in if command.*",
+    TEST_FAILURE(".*ERROR: Invalid boolean syntax in '' of if command.*",
                  command("if () then 'print \"bingo!\"'"););
-    TEST_FAILURE(".*ERROR: Invalid Boolean syntax in if command.*",
+    TEST_FAILURE(".*ERROR: Invalid boolean syntax in '1 1' of if command.*",
                  command("if \"1 1\" then 'print \"bingo!\"'"););
-    TEST_FAILURE(".*ERROR: Invalid Boolean syntax in if command.*",
+    TEST_FAILURE(".*ERROR: Invalid boolean syntax in '1a' of if command.*",
                  command("if 1a then 'print \"bingo!\"'"););
-    TEST_FAILURE(".*ERROR: Invalid Boolean syntax in if command.*",
+    TEST_FAILURE(".*ERROR: Invalid boolean syntax in '1=<2' of if command.*",
                  command("if 1=<2 then 'print \"bingo!\"'"););
-    TEST_FAILURE(".*ERROR: If command boolean is comparing string to number.*",
+    TEST_FAILURE(".*ERROR: If command boolean in '1!=a' is comparing string to number.*",
                  command("if 1!=a then 'print \"bingo!\"'"););
-    TEST_FAILURE(".*ERROR: If command boolean can only operate on numbers.*",
+    TEST_FAILURE(".*ERROR: If command boolean not in '!a' cannot operate on string.*",
+                 command("if !a then 'print \"bingo!\"'"););
+    TEST_FAILURE(".*ERROR: If command boolean in 'a<b' can only operate on numbers.*",
                  command("if a<b then 'print \"bingo!\"'"););
-    TEST_FAILURE(".*ERROR: If command boolean can only operate on numbers.*",
+    TEST_FAILURE(".*ERROR: If command boolean in 'a>b' can only operate on numbers.*",
                  command("if a>b then 'print \"bingo!\"'"););
-    TEST_FAILURE(".*ERROR: If command boolean can only operate on numbers.*",
+    TEST_FAILURE(".*ERROR: If command boolean in 'a<=b' can only operate on numbers.*",
                  command("if a<=b then 'print \"bingo!\"'"););
-    TEST_FAILURE(".*ERROR: If command boolean can only operate on numbers.*",
-                 command("if a<=b then 'print \"bingo!\"'"););
-    TEST_FAILURE(".*ERROR: Invalid Boolean syntax in if command.*",
+    TEST_FAILURE(".*ERROR: If command boolean in 'a>=b' can only operate on numbers.*",
+                 command("if a>=b then 'print \"bingo!\"'"););
+    TEST_FAILURE(".*ERROR: If command boolean in 'a&&b' can only operate on numbers.*",
+                 command("if a&&b then 'print \"bingo!\"'"););
+    TEST_FAILURE(".*ERROR: If command boolean in 'a\\|\\|b' can only operate on numbers.*",
+                 command("if a||b then 'print \"bingo!\"'"););
+    TEST_FAILURE(".*ERROR: If command boolean in 'a\\|\\^b' can only operate on numbers.*",
+                 command("if a|^b then 'print \"bingo!\"'"););
+    TEST_FAILURE(".*ERROR: Invalid boolean syntax in '1&<2' of if command.*",
                  command("if 1&<2 then 'print \"bingo!\"'"););
-    TEST_FAILURE(".*ERROR: Invalid Boolean syntax in if command.*",
+    TEST_FAILURE(".*ERROR: Invalid boolean syntax in '1\\|<2' of if command.*",
                  command("if 1|<2 then 'print \"bingo!\"'"););
-    TEST_FAILURE(".*ERROR: Invalid Boolean syntax in if command.*",
+    TEST_FAILURE(".*ERROR: Invalid boolean syntax in '\\(1\\)\\(' of if command.*",
                  command("if (1)( then 'print \"bingo!\"'"););
-    TEST_FAILURE(".*ERROR: Invalid Boolean syntax in if command.*",
+    TEST_FAILURE(".*ERROR: Invalid boolean syntax in '\\(1\\)1' of if command.*",
                  command("if (1)1 then 'print \"bingo!\"'"););
-    TEST_FAILURE(".*ERROR: If command boolean is comparing string to number.*",
+    TEST_FAILURE(".*ERROR: If command boolean in 'v_one==1.0' is comparing string to number.*",
                  command("if (v_one==1.0)&&(2>=1) then 'print \"bingo!\"'"););
-    TEST_FAILURE(".*ERROR: If command boolean cannot be single string.*",
+    TEST_FAILURE(".*ERROR: If command boolean in 'something' cannot be single string.*",
                  command("if (something) then 'print \"bingo!\"'"););
-    TEST_FAILURE(".*ERROR: If command boolean cannot be single string.*",
+    TEST_FAILURE(".*ERROR: If command boolean in 'v_one' cannot be single string.*",
                  command("if (v_one) then 'print \"bingo!\"'"););
-    TEST_FAILURE(".*ERROR: If command boolean cannot be single string.*",
+    TEST_FAILURE(".*ERROR: If command boolean in 'xx' cannot be single string.*",
                  command("if (${two}) then 'print \"bingo!\"'"););
 }
 

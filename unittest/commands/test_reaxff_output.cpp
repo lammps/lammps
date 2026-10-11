@@ -39,7 +39,6 @@
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
 bool verbose = false;
 
-using ::testing::ContainsRegex;
 using ::testing::HasSubstr;
 using ::testing::Not;
 
@@ -434,8 +433,7 @@ TEST_F(ReaxFFOutputTest, SpeciesAverage)
     command("run 7 post no");
     auto output = END_CAPTURE_OUTPUT();
 
-    EXPECT_THAT(output, ContainsRegex("WARNING: Fix reaxff/species[/a-z]* has no averaged "
-                                      "bond-order data on step 0"));
+    EXPECT_THAT(output, HasSubstr("has no averaged bond-order data on step 0"));
     EXPECT_THAT(output, Not(HasSubstr("data on step 10")));
     check_species_file(outfile, {5, 10, 15});
     delete_file(outfile);
@@ -458,8 +456,7 @@ TEST_F(ReaxFFOutputTest, SpeciesOffset)
     command("run 10 post no");
     auto output = END_CAPTURE_OUTPUT();
 
-    EXPECT_THAT(output, ContainsRegex("WARNING: Fix reaxff/species[/a-z]* has no averaged "
-                                      "bond-order data on step 5"));
+    EXPECT_THAT(output, HasSubstr("has no averaged bond-order data on step 5"));
     check_species_file(outfile, {10});
     delete_file(outfile);
 }

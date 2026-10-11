@@ -297,6 +297,12 @@ The "fix reaxff/species" requires that :doc:`pair_style reaxff <pair_reaxff>` is
 This fix is part of the REAXFF package.  It is only enabled if LAMMPS was built with that
 package.  See the :doc:`Build package <Build_package>` page for more info.
 
+.. versionchanged:: TBD
+
+The species analysis is skipped with a warning on timesteps for which no
+bond-order data averaged over all *Nrepeat* samples is available yet,
+e.g. on the first timestep of the first run when *Nrepeat* > 1.
+
 To write compressed species files, you must compile LAMMPS with the
 ``-DLAMMPS_GZIP`` option.  See the :doc:`Build settings <Build_settings>`
 doc page for details.

@@ -83,13 +83,14 @@ support the following standard and custom regex elements:
 
 .. parsed-literal::
 
-      '.'        Dot, matches any character
-      '^'        Start anchor, matches beginning of string
-      '$'        End anchor, matches end of string
+      '.'        Dot, matches any character except newline and carriage return
+      '^'        Start anchor, matches beginning of string (only as first character)
+      '$'        End anchor, matches end of string (only as last character)
       '*'        Asterisk, match zero or more (greedy)
       '+'        Plus, match one or more (greedy)
       '?'        Question, match zero or one (non-greedy)
       '[abc]'    Character class, match if one of {'a', 'b', 'c'}
+      '[^abc]'   Inverted class, match if NOT one of {'a', 'b', 'c'}
       '[a-zA-Z]' Character ranges, the character set of the ranges { a-z | A-Z }
       '\\s'       Whitespace, \\t \\f \\r \\n \\v and spaces
       '\\S'       Non-whitespace
@@ -101,14 +102,22 @@ support the following standard and custom regex elements:
       '\\I'       Non-integers
       '\\f'       Floating point number chars, [0-9], '.', 'e', 'E', '+' and '-'
       '\\F'       Non-floats
+      '\\.'       Backslash with any other character matches that character, e.g. \\. \\* \\[
 
 They do **not** support:
 
 .. parsed-literal::
 
-   '[^abc]'   Inverted class
    'a|b'      Branches
    '(abc)+'   Groups
+   'a{2,3}'   Repetition counts
+
+The backslash sequences may also be used inside a character class, and a
+'-' that is the first or last character of a class matches a '-'.
+Patterns that are incomplete (e.g. ending in a single backslash or
+missing the closing bracket of a character class) or that exceed the
+internal size limits (255 elements in total and about 250 characters
+for all character classes combined) never match.
 
 Please note that regular expressions are different from
 `globbing <https://en.wikipedia.org/wiki/Glob_(programming)>`_.
@@ -2587,9 +2596,7 @@ int matchfloat(char c);
 int matchalpha(char c);
 int matchwhitespace(char c);
 int matchmetachar(char c, const char *str);
-int matchrange(char c, const char *str);
 int matchdot(char c);
-int ismetachar(char c);
 
 /* Semi-public functions: */
 int re_matchp(const char *text, re_t pattern, int *matchlen)
@@ -2604,11 +2611,7 @@ int re_matchp(const char *text, re_t pattern, int *matchlen)
       do {
         idx += 1;
 
-        if (matchpattern(pattern, text, matchlen)) {
-          if (text[0] == '\0') return -1;
-
-          return idx;
-        }
+        if (matchpattern(pattern, text, matchlen)) return idx;
       } while (*text++ != '\0');
     }
   }
@@ -2694,8 +2697,10 @@ re_t re_compile(re_ctx_t context, const char *pattern)
               re_compiled[j].u.ch = pattern[i];
             } break;
           }
+        } else {
+          /* '\\' as last char in pattern -> invalid regular expression. */
+          return nullptr;
         }
-        /* '\\' as last char in pattern -> invalid regular expression. */
       } break;
 
         /* Character class: */
@@ -2752,6 +2757,9 @@ re_t re_compile(re_ctx_t context, const char *pattern)
     i += 1;
     j += 1;
   }
+  /* pattern too long -> reject instead of matching a truncated pattern */
+  if (pattern[i] != '\0') return nullptr;
+
   /* 'RX_UNUSED' is a sentinel used to indicate end-of-pattern */
   re_compiled[j].type = RX_UNUSED;
 
@@ -2761,7 +2769,7 @@ re_t re_compile(re_ctx_t context, const char *pattern)
 /* Private functions: */
 int matchdigit(char c)
 {
-  return isdigit(c);
+  return isdigit((unsigned char) c);
 }
 
 int matchint(char c)
@@ -2776,23 +2784,17 @@ int matchfloat(char c)
 
 int matchalpha(char c)
 {
-  return isalpha(c);
+  return isalpha((unsigned char) c);
 }
 
 int matchwhitespace(char c)
 {
-  return isspace(c);
+  return isspace((unsigned char) c);
 }
 
 int matchalphanum(char c)
 {
   return ((c == '_') || matchalpha(c) || matchdigit(c));
-}
-
-int matchrange(char c, const char *str)
-{
-  return ((c != '-') && (str[0] != '\0') && (str[0] != '-') && (str[1] == '-') &&
-          (str[1] != '\0') && (str[2] != '\0') && ((c >= str[0]) && (c <= str[2])));
 }
 
 int matchdot(char c)
@@ -2803,11 +2805,6 @@ int matchdot(char c)
 #else
   return c != '\n' && c != '\r';
 #endif
-}
-
-int ismetachar(char c)
-{
-  return ((c == 's') || (c == 'S') || (c == 'w') || (c == 'W') || (c == 'd') || (c == 'D'));
 }
 
 int matchmetachar(char c, const char *str)
@@ -2840,26 +2837,22 @@ int matchmetachar(char c, const char *str)
 
 int matchcharclass(char c, const char *str)
 {
-  do {
-    if (matchrange(c, str)) {
-      return 1;
-    } else if (str[0] == '\\') {
-      /* Escape-char: increment str-ptr and match on next char */
-      str += 1;
-      if (matchmetachar(c, str)) {
+  while (str[0] != '\0') {
+    if (str[0] == '\\') {
+      /* escaped meta-character or literal character. re_compile() ensures a char follows */
+      if (matchmetachar(c, str + 1)) return 1;
+      str += 2;
+    } else if ((str[1] == '-') && (str[2] != '\0') && (str[2] != '\\')) {
+      /* character range. a '-' as first or last char in the class is a literal '-' */
+      if (((unsigned char) c >= (unsigned char) str[0]) &&
+          ((unsigned char) c <= (unsigned char) str[2]))
         return 1;
-      } else if ((c == str[0]) && !ismetachar(c)) {
-        return 1;
-      }
-    } else if (c == str[0]) {
-      if (c == '-') {
-        return ((str[-1] == '\0') || (str[1] == '\0'));
-      } else {
-        return 1;
-      }
+      str += 3;
+    } else {
+      if (c == str[0]) return 1;
+      ++str;
     }
-  } while (*str++ != '\0');
-
+  }
   return 0;
 }
 
@@ -2892,8 +2885,11 @@ int matchone(regex_t p, char c)
       return matchwhitespace(c);
     case RX_NOT_WHITESPACE:
       return !matchwhitespace(c);
-    default:
+    case RX_CHAR:
       return (p.u.ch == (unsigned char) c);
+    default:
+      /* anchors or quantifiers in places where they cannot match */
+      return 0;
   }
 }
 
@@ -2945,15 +2941,20 @@ int matchquestion(regex_t p, regex_t *pattern, const char *text, int *matchlen)
 int matchpattern(regex_t *pattern, const char *text, int *matchlen)
 {
   int pre = *matchlen;
+  /* every failed match must restore the original match length */
   do {
     if ((pattern[0].type == RX_UNUSED) || (pattern[1].type == RX_QUESTIONMARK)) {
-      return matchquestion(pattern[0], &pattern[2], text, matchlen);
+      if (matchquestion(pattern[0], &pattern[2], text, matchlen)) return 1;
+      break;
     } else if (pattern[1].type == RX_STAR) {
-      return matchstar(pattern[0], &pattern[2], text, matchlen);
+      if (matchstar(pattern[0], &pattern[2], text, matchlen)) return 1;
+      break;
     } else if (pattern[1].type == RX_PLUS) {
-      return matchplus(pattern[0], &pattern[2], text, matchlen);
-    } else if ((pattern[0].type == RX_END) && pattern[1].type == RX_UNUSED) {
-      return (text[0] == '\0');
+      if (matchplus(pattern[0], &pattern[2], text, matchlen)) return 1;
+      break;
+    } else if ((pattern[0].type == RX_END) && (pattern[1].type == RX_UNUSED)) {
+      if (text[0] == '\0') return 1;
+      break;
     }
     (*matchlen)++;
   } while ((text[0] != '\0') && matchone(*pattern++, *text++));

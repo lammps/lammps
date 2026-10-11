@@ -943,6 +943,110 @@ TEST(Utils, strmatch_range)
     ASSERT_FALSE(utils::strmatch("1*2d", "^\\d*\\*\\d*$"));
 }
 
+TEST(Utils, strmatch_class_minus)
+{
+    // a '-' as first or last character in a class is a literal '-'
+    ASSERT_TRUE(utils::strmatch("-5", "^[-+]?\\d+$"));
+    ASSERT_TRUE(utils::strmatch("+5", "^[-+]?\\d+$"));
+    ASSERT_TRUE(utils::strmatch("5", "^[-+]?\\d+$"));
+    ASSERT_FALSE(utils::strmatch("*5", "^[-+]?\\d+$"));
+    ASSERT_TRUE(utils::strmatch("-5", "^[+-]?\\d+$"));
+    ASSERT_TRUE(utils::strmatch("a-b", "^[a-z-]+$"));
+    ASSERT_TRUE(utils::strmatch("-", "^[a-z-]$"));
+    ASSERT_TRUE(utils::strmatch("123-", "^[1-5-]+$"));
+    ASSERT_TRUE(utils::strmatch("-1", "^[0-9\\-]+$"));
+    ASSERT_TRUE(utils::strmatch("-1", "^[0-9\\i]+$"));
+
+    // a '-' following a range is a literal '-' and does not start another range
+    ASSERT_TRUE(utils::strmatch("-", "^[0-9-a]$"));
+    ASSERT_TRUE(utils::strmatch("a", "^[0-9-a]$"));
+    ASSERT_TRUE(utils::strmatch("5", "^[0-9-a]$"));
+    ASSERT_FALSE(utils::strmatch("@", "^[0-9-a]$"));
+}
+
+TEST(Utils, strmatch_class_backslash)
+{
+    // backslash sequences in a class match the same characters as outside
+    ASSERT_TRUE(utils::strmatch("1", "^[\\f]$"));
+    ASSERT_TRUE(utils::strmatch("e", "^[\\f]$"));
+    ASSERT_FALSE(utils::strmatch("f", "^[\\f]$"));
+    ASSERT_TRUE(utils::strmatch("+", "^[\\i]$"));
+    ASSERT_FALSE(utils::strmatch("i", "^[\\i]$"));
+    ASSERT_FALSE(utils::strmatch("d", "^[\\d]$"));
+    ASSERT_TRUE(utils::strmatch(" ", "^[\\s]$"));
+    ASSERT_TRUE(utils::strmatch("*.", "^[\\.\\*]+$"));
+    ASSERT_FALSE(utils::strmatch("x", "^[\\.\\*]+$"));
+    ASSERT_TRUE(utils::strmatch("]", "^[\\]]$"));
+    ASSERT_FALSE(utils::strmatch("[=]", "[=][\\[].*[\\]]"));
+    ASSERT_TRUE(utils::strmatch("x=[1]", "[=][\\[].*[\\]]"));
+}
+
+TEST(Utils, strmatch_dot_newline)
+{
+    ASSERT_TRUE(utils::strmatch("a b", "^a.b$"));
+    ASSERT_FALSE(utils::strmatch("a\nb", "^a.b$"));
+    ASSERT_FALSE(utils::strmatch("a\rb", "^a.b$"));
+}
+
+TEST(Utils, strmatch_empty)
+{
+    ASSERT_TRUE(utils::strmatch("", ""));
+    ASSERT_TRUE(utils::strmatch("abc", ""));
+    ASSERT_TRUE(utils::strmatch("", "^$"));
+    ASSERT_TRUE(utils::strmatch("", "x*"));
+    ASSERT_TRUE(utils::strmatch("", "\\s*"));
+    ASSERT_TRUE(utils::strmatch("abc", "$"));
+    ASSERT_TRUE(utils::strmatch("abc", "\\s*$"));
+    ASSERT_FALSE(utils::strmatch("", "x"));
+    ASSERT_FALSE(utils::strmatch("", "x+"));
+    ASSERT_FALSE(utils::strmatch("abc", "^$"));
+}
+
+TEST(Utils, strmatch_invalid)
+{
+    // incomplete patterns never match
+    ASSERT_FALSE(utils::strmatch("abc\\", "abc\\"));
+    ASSERT_FALSE(utils::strmatch("abcd", "abc\\"));
+    ASSERT_FALSE(utils::strmatch("\\", "\\"));
+    ASSERT_FALSE(utils::strmatch("a", "[abc"));
+    ASSERT_FALSE(utils::strmatch("[abc", "[abc"));
+    ASSERT_FALSE(utils::strmatch("a", "[^"));
+
+    // anchors and quantifiers in places where they cannot apply never match
+    ASSERT_FALSE(utils::strmatch("ab", "a^b"));
+    ASSERT_FALSE(utils::strmatch("a^b", "a^b"));
+    ASSERT_FALSE(utils::strmatch("ab", "a$b"));
+    ASSERT_FALSE(utils::strmatch("a$b", "a$b"));
+    ASSERT_FALSE(utils::strmatch("a", "*a"));
+    ASSERT_FALSE(utils::strmatch("*a", "*a"));
+    ASSERT_FALSE(utils::strmatch("+", "+"));
+    ASSERT_FALSE(utils::strmatch("?", "?"));
+    ASSERT_FALSE(utils::strmatch("a", "a**"));
+    ASSERT_FALSE(utils::strmatch("a", "a+*"));
+
+    // patterns that exceed the size limits never match
+    const std::string maxlen(255, 'a');
+    const std::string toolong(256, 'a');
+    ASSERT_TRUE(utils::strmatch(maxlen, maxlen));
+    ASSERT_FALSE(utils::strmatch(toolong, toolong));
+    ASSERT_FALSE(utils::strmatch(maxlen + "b", maxlen + "$"));
+    ASSERT_TRUE(utils::strmatch("a", "[" + std::string(200, 'a') + "]"));
+    ASSERT_FALSE(utils::strmatch("a", "[" + std::string(300, 'a') + "]"));
+}
+
+TEST(Utils, strmatch_non_ascii)
+{
+    // UTF-8 encoded text: bytes outside of 7-bit ASCII are neither letters, digits, nor spaces
+    const std::string text = "Gr\xc3\xbc\xc3\x9f"
+                             "e Gott";
+    ASSERT_TRUE(utils::strmatch(text, "^\\S+\\s+\\w+$"));
+    ASSERT_FALSE(utils::strmatch(text, "^\\w+\\s"));
+    ASSERT_TRUE(utils::strmatch("\xc3\xbc", "^\\W\\W$"));
+    ASSERT_TRUE(utils::strmatch("\xc3\xbc", "^\\D\\S$"));
+    ASSERT_FALSE(utils::strmatch("\xc3\xbc", "\\d"));
+    ASSERT_FALSE(utils::strmatch("\xc3\xbc", "\\s"));
+}
+
 TEST(Utils, strfind_beg)
 {
     ASSERT_THAT(utils::strfind("rigid/small/omp", "^rigid"), StrEq("rigid"));
@@ -1028,6 +1132,24 @@ TEST(Utils, strfind_kim)
     ASSERT_THAT(utils::strfind("VanDuinChakraborty_2003_CHNO__SM_107643900657_000",
                                "[MS][MO]_\\d\\d\\d+_\\d\\d\\d"),
                 StrEq("SM_107643900657_000"));
+}
+
+TEST(Utils, strfind_after_partial_match)
+{
+    // the length of the match must not include characters from failed partial matches
+    ASSERT_THAT(utils::strfind("table football", "l$"), StrEq("l"));
+    ASSERT_THAT(utils::strfind("x1 x22", "x\\d+$"), StrEq("x22"));
+    ASSERT_THAT(utils::strfind("aa", ".*a.*a"), StrEq("aa"));
+    ASSERT_THAT(utils::strfind("{{FW}_TEST", "{\\w+}"), StrEq("{FW}"));
+    ASSERT_THAT(utils::strfind("units = , units = real # comment", "units = \\w+"),
+                StrEq("units = real"));
+}
+
+TEST(Utils, strfind_class_minus)
+{
+    ASSERT_THAT(utils::strfind("x: -12.5e-3,", "[-+0-9.eE]+"), StrEq("-12.5e-3"));
+    ASSERT_THAT(utils::strfind("x: -12.5e-3,", "[0-9.eE+-]+"), StrEq("-12.5e-3"));
+    ASSERT_THAT(utils::strfind("x: -12.5e-3,", "[0-9\\-.eE+]+"), StrEq("-12.5e-3"));
 }
 
 TEST(Utils, bounds_case1)

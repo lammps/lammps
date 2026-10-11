@@ -378,12 +378,12 @@ void FixACKS2ReaxFF::init_matvec()
   int ii, i;
 
   for (ii = 0; ii < nn; ++ii) {
-    if (X_diag[ii] == 0.0)
-      Xdia_inv[ii] = 1.0;
-    else
-      Xdia_inv[ii] = 1.0 / X_diag[ii];
-
     i = ilist[ii];
+    if (X_diag[i] == 0.0)
+      Xdia_inv[i] = 1.0;
+    else
+      Xdia_inv[i] = 1.0 / X_diag[i];
+
     if (atom->mask[i] & groupbit) {
 
       /* init pre-conditioner for H and init solution vectors */
@@ -395,6 +395,11 @@ void FixACKS2ReaxFF::init_matvec()
       /* cubic extrapolation for s from previous solutions */
       s[i] = 4*(s_hist[i][0]+s_hist[i][2])-(6*s_hist[i][1]+s_hist[i][3]);
       s[NN+i] = 4*(s_hist_X[i][0]+s_hist_X[i][2])-(6*s_hist_X[i][1]+s_hist_X[i][3]);
+    } else {
+
+      /* atoms outside the group only contribute their fixed charge */
+      s[i] = atom->q[i];
+      s[NN+i] = 0.0;
     }
   }
 
@@ -460,7 +465,8 @@ void FixACKS2ReaxFF::compute_X() // NOLINT
           }
         }
 
-        if (flag) {
+        // the X matrix only couples atoms in the group
+        if (flag && (mask[j] & groupbit)) {
           double bcutoff = bcut[type[i]][type[j]];
           double bcutoff2 = bcutoff*bcutoff;
           if (r_sqr <= bcutoff2) {
@@ -537,12 +543,14 @@ int FixACKS2ReaxFF::BiCGStab(double *b, double *x)
       vector_copy(p, r, nn);
     }
 
-    // pre-conditioning
+    // pre-conditioning; atoms outside the group have fixed charges
     for (jj = 0; jj < nn; ++jj) {
       j = ilist[jj];
       if (atom->mask[j] & groupbit) {
         d[j] = p[j] * Hdia_inv[j];
         d[NN+j] = p[NN+j] * Xdia_inv[j];
+      } else {
+        d[j] = d[NN+j] = 0.0;
       }
     }
     // last two rows
@@ -572,12 +580,14 @@ int FixACKS2ReaxFF::BiCGStab(double *b, double *x)
       break;
     }
 
-    // pre-conditioning
+    // pre-conditioning; atoms outside the group have fixed charges
     for (jj = 0; jj < nn; ++jj) {
       j = ilist[jj];
       if (atom->mask[j] & groupbit) {
         q_hat[j] = q[j] * Hdia_inv[j];
         q_hat[NN+j] = q[NN+j] * Xdia_inv[j];
+      } else {
+        q_hat[j] = q_hat[NN+j] = 0.0;
       }
     }
     // last two rows
@@ -632,14 +642,14 @@ void FixACKS2ReaxFF::sparse_matvec_acks2(sparse_matrix *H, sparse_matrix *X, dou
     if (atom->mask[i] & groupbit) {
       b[i] = eta[atom->type[i]] * x[i];
       b[NN + i] = X_diag[i] * x[NN + i];
+    } else {
+      b[i] = b[NN + i] = 0.0;
     }
   }
 
   for (i = atom->nlocal; i < NN; ++i) {
-    if (atom->mask[i] & groupbit) {
-      b[i] = 0;
-      b[NN + i] = 0;
-    }
+    b[i] = 0;
+    b[NN + i] = 0;
   }
   // last two rows
   b[2*NN] = 0;
@@ -647,14 +657,15 @@ void FixACKS2ReaxFF::sparse_matvec_acks2(sparse_matrix *H, sparse_matrix *X, dou
 
   for (ii = 0; ii < nn; ++ii) {
     i = ilist[ii];
-    if (atom->mask[i] & groupbit) {
-      // H Matrix
-      for (itr_j=H->firstnbr[i]; itr_j<H->firstnbr[i]+H->numnbrs[i]; itr_j++) {
-        j = H->jlist[itr_j];
-        b[i] += H->val[itr_j] * x[j];
-        b[j] += H->val[itr_j] * x[i];
-      }
 
+    // H Matrix: the rows of atoms outside the group only contain neighbors in the group
+    for (itr_j=H->firstnbr[i]; itr_j<H->firstnbr[i]+H->numnbrs[i]; itr_j++) {
+      j = H->jlist[itr_j];
+      b[i] += H->val[itr_j] * x[j];
+      b[j] += H->val[itr_j] * x[i];
+    }
+
+    if (atom->mask[i] & groupbit) {
       // X Matrix
       for (itr_j=X->firstnbr[i]; itr_j<X->firstnbr[i]+X->numnbrs[i]; itr_j++) {
         j = X->jlist[itr_j];

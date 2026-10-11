@@ -1764,6 +1764,7 @@ std::string utils::utf8_subst(const std::string &line)
   std::string out;
 
   for (int i = 0; i < len; ++i) {
+    const int start = i;
 
     // UTF-8 2-byte character
     if ((in[i] & 0xe0U) == 0xc0U) {
@@ -1823,11 +1824,11 @@ std::string utils::utf8_subst(const std::string &line)
         // ZERO WIDTH NO-BREAK SPACE (U+FEFF)
         if ((in[i] == 0xefU) && (in[i + 1] == 0xbbU) && (in[i + 2] == 0xbfU)) out += ' ', i += 2;
       }
-      // UTF-8 4-byte character
-    } else if ((in[i] & 0xf8U) == 0xf0U) {
-      if ((i + 3) < len) { ; }
-    } else
-      out += in[i];
+    }
+
+    // no replacement: copy byte unchanged. this keeps ASCII characters and also UTF-8
+    // characters without ASCII equivalent intact, since their remaining bytes are copied, too.
+    if (i == start) out += in[i];
   }
   return out;
 }

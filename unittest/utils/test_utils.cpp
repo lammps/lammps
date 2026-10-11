@@ -153,6 +153,24 @@ TEST(Utils, utf8_subst)
     auto ascii                = utils::utf8_subst(ascii_string);
     auto utf8                 = utils::utf8_subst(utf8_string);
     ASSERT_TRUE(ascii == utf8);
+
+    // known lookalikes encoded with 2 and 3 bytes
+    ASSERT_THAT(utils::utf8_subst("x\xc2\xa0y\xcb\x97z"), StrEq("x y-z"));
+    ASSERT_THAT(utils::utf8_subst("\xef\xbb\xbfx\xe2\x80\x9cy\xe2\x80\x9dz\xe2\x88\x92"),
+                StrEq(" x\"y\"z-"));
+
+    // characters without ASCII equivalent encoded with 2, 3, and 4 bytes are kept unchanged
+    ASSERT_THAT(utils::utf8_subst("M\xc3\xbcller"), StrEq("M\xc3\xbcller"));
+    ASSERT_THAT(utils::utf8_subst("\xc2\xb5m \xe2\x84\xab"), StrEq("\xc2\xb5m \xe2\x84\xab"));
+    ASSERT_THAT(utils::utf8_subst("x\xf0\x9f\x98\x80y"), StrEq("x\xf0\x9f\x98\x80y"));
+    ASSERT_THAT(utils::utf8_subst("\xc2\xa0\xc3\xbc\xc2\xa0\xe2\x84\xab\xe2\x80\x89"),
+                StrEq(" \xc3\xbc \xe2\x84\xab "));
+
+    // incomplete or invalid byte sequences are kept unchanged
+    ASSERT_THAT(utils::utf8_subst("x\xc3"), StrEq("x\xc3"));
+    ASSERT_THAT(utils::utf8_subst("x\xe2\x80"), StrEq("x\xe2\x80"));
+    ASSERT_THAT(utils::utf8_subst("x\xbcy"), StrEq("x\xbcy"));
+    ASSERT_THAT(utils::utf8_subst("\xe2x\xf0y"), StrEq("\xe2x\xf0y"));
 }
 
 TEST(Utils, count_words)

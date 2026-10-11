@@ -446,6 +446,11 @@ int FixQEqReaxFFKokkos<DeviceType>::cg_solve()
   b_norm.v[0] = sqrt(norm_sqr.v[0]);
   b_norm.v[1] = sqrt(norm_sqr.v[1]);
 
+  // use the absolute residual when the right-hand side vanishes, e.g. for
+  // QTPIE with only one element.  the relative residual is undefined then.
+  if (b_norm.v[0] == 0.0) b_norm.v[0] = 1.0;
+  if (b_norm.v[1] == 0.0) b_norm.v[1] = 1.0;
+
   // sig_new = parallel_dot(r, d, nn);
   KK_double2 my_dot;
   Kokkos::parallel_reduce(Kokkos::RangePolicy<DeviceType,TagQEqDot1>(0,nn),*this,my_dot);

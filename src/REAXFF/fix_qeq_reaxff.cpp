@@ -814,6 +814,10 @@ int FixQEqReaxFF::CG(double *b, double *x)
   }
 
   b_norm = parallel_norm(b, nn);
+
+  // use the absolute residual when the right-hand side vanishes, e.g. for
+  // QTPIE with only one element.  the relative residual is undefined then.
+  if (b_norm == 0.0) b_norm = 1.0;
   sig_new = parallel_dot(r, d, nn);
 
   for (i = 1; i < imax && sqrt(sig_new) / b_norm > tolerance; ++i) {

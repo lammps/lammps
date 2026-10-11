@@ -318,6 +318,9 @@ int FixQEqReaxFFOMP::CG(double *b, double *x)
   MPI_Allreduce(&my_buf, &buf, 2, MPI_DOUBLE, MPI_SUM, world);
 
   b_norm = sqrt(buf[0]);
+
+  // use the absolute residual when the right-hand side vanishes
+  if (b_norm == 0.0) b_norm = 1.0;
   sig_new = buf[1];
 
   for (i = 1; i < imax && sqrt(sig_new) / b_norm > tolerance; ++i) {
@@ -596,6 +599,10 @@ int FixQEqReaxFFOMP::dual_CG(double *b1, double *b2, double *x1, double *x2)
 
   b_norm_s = sqrt(buf[0]);
   b_norm_t = sqrt(buf[1]);
+
+  // use the absolute residual when the right-hand side vanishes
+  if (b_norm_s == 0.0) b_norm_s = 1.0;
+  if (b_norm_t == 0.0) b_norm_t = 1.0;
 
   sig_new_s = buf[2];
   sig_new_t = buf[3];

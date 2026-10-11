@@ -109,8 +109,13 @@ void FixReaxFFBonds::init()
 {
   reaxff = dynamic_cast<PairReaxFF *>(force->pair_match("^reax..",0));
   if (reaxff == nullptr)
-    error->all(FLERR, Error::NOLASTLINE, "Cannot use fix reaxff/bonds without "
-               "pair_style reaxff, reaxff/kk, or reaxff/omp");
+    error->all(FLERR, Error::NOLASTLINE, "Cannot use fix {} without "
+               "pair_style reaxff, reaxff/kk, or reaxff/omp", style);
+
+  // the KOKKOS version of pair reaxff keeps its bond lists on the device
+  if (reaxff->kokkosable && !kokkosable)
+    error->all(FLERR, Error::NOLASTLINE, "Cannot use fix reaxff/bonds with "
+               "pair_style reaxff/kk. Use fix reaxff/bonds/kk instead.");
 }
 
 /* ---------------------------------------------------------------------- */

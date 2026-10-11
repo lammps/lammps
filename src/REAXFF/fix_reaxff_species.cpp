@@ -407,6 +407,11 @@ void FixReaxFFSpecies::init()
     error->all(FLERR, Error::NOLASTLINE,
                "Cannot use fix reaxff/species without a reaxff pair_style");
 
+  // the KOKKOS version of pair reaxff keeps its neighbor and bond lists on the device
+  if (reaxff->kokkosable && !utils::strmatch(style, "/kk"))
+    error->all(FLERR, Error::NOLASTLINE, "Cannot use fix reaxff/species with "
+               "pair_style reaxff/kk. Use fix reaxff/species/kk instead.");
+
   reaxff->fixspecies_flag = 1;
 
   if (!setupflag) {

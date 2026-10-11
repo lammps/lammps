@@ -1046,7 +1046,8 @@ void FixBondReact::superimpose_algorithm()
   std::vector<tagint> outglove;
   for (auto &rxn : rxns) {
     for (auto &rxn_attempt : rxn.attempts) {
-      if ( topo_matcher->match_topology(outglove, rxn, rxn_attempt) ) {
+      auto err_msg = topo_matcher->match_topology(outglove, rxn, rxn_attempt);
+      if (err_msg == "SUCCESS") { // magic string for successful topology match
         if (rxn.fraction < 1.0 && random[rxn.ID]->uniform() >= rxn.fraction) continue;
         my_mega_glove[0][my_num_mega] = (double) rxn.ID;
         if (rxn.rescale_charges_flag) my_mega_glove[1][my_num_mega] = get_totalcharge(rxn, outglove);
@@ -1054,6 +1055,8 @@ void FixBondReact::superimpose_algorithm()
           my_mega_glove[i+cuff][my_num_mega] = (double) outglove[i];
         }
         my_num_mega++;
+      } else if (!err_msg.empty()) {
+        error->one(FLERR, fmt::format("Fix bond/react: {}", err_msg));
       }
     }
   }

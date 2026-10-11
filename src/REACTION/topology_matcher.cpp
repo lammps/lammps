@@ -44,6 +44,8 @@ TopologyMatcher::~TopologyMatcher()
     super: structure to hold global indices needed for subroutines
     rxn: reaction instance to be matched (or not)
     rxn_attempt: atom IDs of two simulation particles corresponding to initiator atoms
+  Output: magic string "SUCCESS" for successful topology match,
+          else empty string for no topology match, else error message
   Overall summary:
   Set up global variables. Loop through all pairs; loop through Pioneers
   until Superimpose Algorithm is completed for each pair.
@@ -56,7 +58,7 @@ TopologyMatcher::~TopologyMatcher()
     RESTORE: restore mode, load most recent restore point
 ------------------------------------------------------------------------- */
 
-bool TopologyMatcher::match_topology(std::vector<tagint> &outglove, Reaction &rxn, std::array<tagint, 2> rxn_attempt)
+std::string TopologyMatcher::match_topology(std::vector<tagint> &outglove, Reaction &rxn, std::array<tagint, 2> rxn_attempt)
 {
   // full special lists - may need correction for unusual special bond settings
   int **nxspecial = atom->nspecial;
@@ -67,7 +69,7 @@ bool TopologyMatcher::match_topology(std::vector<tagint> &outglove, Reaction &rx
   // quick description of important global indices you'll see floating about:
   // pion: the pioneer loop index
   // neigh: in the first neighbor index
-  // trace: retraces the first nieghbors. once you choose a first neighbor, you then check for other nieghbors of same type
+  // trace: retraces the first neighbors. once you choose a first neighbor, you then check for other neighbors of same type
   // pioneers: during Superimpose Algorithm, atoms which have been assigned, but whose first neighbors haven't
   // glove: global IDs. index indicates is pre-reaction ID-1, value is mapped sim atom ID
   // glove_counter: used to determine when to terminate Superimpose Algorithm
@@ -155,7 +157,8 @@ bool TopologyMatcher::match_topology(std::vector<tagint> &outglove, Reaction &rx
     // due to use of restore points, 'pion' index can change in loop
     for (sp.pion = 0; sp.pion < rxn.reactant->natoms; sp.pion++) {
       if (sp.pioneers[sp.pion] || status == Status::GUESSFAIL) {
-        make_a_guess(super, rxn);
+        auto err_msg = make_a_guess(super, rxn);
+        if (!err_msg.empty()) return err_msg;
         if (status == Status::ACCEPT || status == Status::REJECT) break;
       }
     }
@@ -164,15 +167,15 @@ bool TopologyMatcher::match_topology(std::vector<tagint> &outglove, Reaction &rx
     // let's go ahead and catch the simplest of hangs
     //if (hang_catch > rxn.reactant->natoms*4)
     if (hang_catch > atom->nlocal*30) {
-      error->one(FLERR,"Fix bond/react: Excessive iteration of superimpose algorithm. "
+      return "Excessive iteration of superimpose algorithm. "
           "Please check that all pre-reaction template atoms are linked to an initiator atom, "
-          "via at least one path that does not involve edge atoms.");
+          "via at least one path that does not involve edge atoms.";
     }
   }
   if (status == Status::ACCEPT) {
     outglove = sp.glove;
-    return true;
-  } return false;
+    return "SUCCESS";
+  } return {};
 }
 
 /* ----------------------------------------------------------------------
@@ -180,7 +183,7 @@ bool TopologyMatcher::match_topology(std::vector<tagint> &outglove, Reaction &rx
   has failed: check for available restore points.
 ------------------------------------------------------------------------- */
 
-void TopologyMatcher::make_a_guess(Superimpose &super, Reaction &rxn)
+std::string TopologyMatcher::make_a_guess(Superimpose &super, Reaction &rxn)
 {
   // full special lists - may need correction for unusual special bond settings
   int **nxspecial = atom->nspecial;
@@ -199,7 +202,7 @@ void TopologyMatcher::make_a_guess(Superimpose &super, Reaction &rxn)
 
   if (status == Status::GUESSFAIL && avail_guesses == 0) {
     status = Status::REJECT;
-    return;
+    return {};
   }
 
   if (status == Status::GUESSFAIL && avail_guesses > 0) {
@@ -214,8 +217,9 @@ void TopologyMatcher::make_a_guess(Superimpose &super, Reaction &rxn)
     sp.trace = restore_pts[avail_guesses-1].trace;
     sp.glove_counter = restore_pts[avail_guesses-1].glove_counter;
     status = Status::RESTORE;
-    neighbor_loop(super, rxn);
-    if (status != Status::PROCEED) return;
+    auto err_msg = neighbor_loop(super, rxn);
+    if (!err_msg.empty()) return err_msg;
+    if (status != Status::PROCEED) return {};
   }
 
   nfirst_neighs = rxn.reactant->nspecial[sp.pion][0];
@@ -228,18 +232,18 @@ void TopologyMatcher::make_a_guess(Superimpose &super, Reaction &rxn)
 
   for (int i = 0; i < nxspecial[atom->map(sp.glove[sp.pion])][0]; i++) {
     if (atom->map(xspecial[atom->map(sp.glove[sp.pion])][i]) < 0) {
-      error->one(FLERR,"Fix bond/react: Fix bond/react needs ghost atoms from further away"); // parallel issues.
+      return "Superimpose algorithm needs ghost atoms from further away"; // parallel issues.
     }
     if (i_limit_tags[(int)atom->map(xspecial[atom->map(sp.glove[sp.pion])][i])] != 0) {
       status = Status::GUESSFAIL;
-      return;
+      return {};
     }
   }
 
   // check for same number of neighbors between unreacted mol and simulation
   if (nfirst_neighs != nxspecial[atom->map(sp.glove[sp.pion])][0]) {
     status = Status::GUESSFAIL;
-    return;
+    return {};
   }
 
   // check if all neigh atom types are the same between simulation and unreacted mol
@@ -252,11 +256,13 @@ void TopologyMatcher::make_a_guess(Superimpose &super, Reaction &rxn)
 
   if (!std::includes(lcl_types.begin(), lcl_types.end(), mol_types.begin(), mol_types.end())) {
     status = Status::GUESSFAIL;
-    return;
+    return {};
   }
 
   // okay everything seems to be in order. let's assign some ID pairs!!!
-  neighbor_loop(super, rxn);
+  auto err_msg = neighbor_loop(super, rxn);
+  if (!err_msg.empty()) return err_msg;
+  return {};
 }
 
 /* ----------------------------------------------------------------------
@@ -264,22 +270,25 @@ void TopologyMatcher::make_a_guess(Superimpose &super, Reaction &rxn)
   Prepare appropriately if we are in Restore Mode.
 ------------------------------------------------------------------------- */
 
-void TopologyMatcher::neighbor_loop(Superimpose &super, Reaction &rxn)
+std::string TopologyMatcher::neighbor_loop(Superimpose &super, Reaction &rxn)
 {
   Superimpose::StatePoint &sp = super.sp;
 
   int nfirst_neighs = rxn.reactant->nspecial[sp.pion][0];
 
   if (status == Status::RESTORE) {
-    check_a_neighbor(super, rxn);
-    return;
+    auto err_msg = check_a_neighbor(super, rxn);
+    if (!err_msg.empty()) return err_msg;
+    return {};
   }
 
   for (sp.neigh = 0; sp.neigh < nfirst_neighs; sp.neigh++) {
     if (sp.glove[(int)rxn.reactant->special[sp.pion][sp.neigh]-1] == 0) {
-      check_a_neighbor(super, rxn);
+      auto err_msg = check_a_neighbor(super, rxn);
+      if (!err_msg.empty()) return err_msg;
     }
   }
+  return {};
   // status should still = PROCEED
 }
 
@@ -288,7 +297,7 @@ void TopologyMatcher::neighbor_loop(Superimpose &super, Reaction &rxn)
   without guessing. If so, do it! If not, call crosscheck_the_nieghbor().
 ------------------------------------------------------------------------- */
 
-void TopologyMatcher::check_a_neighbor(Superimpose &super, Reaction &rxn)
+std::string TopologyMatcher::check_a_neighbor(Superimpose &super, Reaction &rxn)
 {
   // full special lists - may need correction for unusual special bond settings
   int **nxspecial = atom->nspecial;
@@ -323,7 +332,7 @@ void TopologyMatcher::check_a_neighbor(Superimpose &super, Reaction &rxn)
 
             //another check for ghost atoms. perhaps remove the one in make_a_guess
             if (atom->map(sp.glove[(int)rxn.reactant->special[sp.pion][sp.neigh]-1]) < 0) {
-              error->one(FLERR,"Fix bond/react: Fix bond/react needs ghost atoms from further away");
+              return "Superimpose algorithm needs ghost atoms from further away";
             }
 
             for (int j = 0; j < rxn.reactant->nspecial[rxn.reactant->special[sp.pion][sp.neigh]-1][0]; j++) {
@@ -334,16 +343,16 @@ void TopologyMatcher::check_a_neighbor(Superimpose &super, Reaction &rxn)
             if (sp.glove_counter == rxn.reactant->natoms) {
               if (ring_check(rxn, sp.glove) && rxn_constraints->check(rxn, sp.glove)) status = Status::ACCEPT;
               else status = Status::GUESSFAIL;
-              return;
+              return {};
             }
             // status should still == PROCEED
-            return;
+            return {};
           }
         }
       }
       // we are here if no matching atom found
       status = Status::GUESSFAIL;
-      return;
+      return {};
     }
   }
 
@@ -351,7 +360,7 @@ void TopologyMatcher::check_a_neighbor(Superimpose &super, Reaction &rxn)
   if (status != Status::PROCEED) {
     if (status == Status::CONTINUE)
       status = Status::PROCEED;
-    return;
+    return {};
   }
 
   // finally ready to match non-duplicate, non-edge atom IDs!!
@@ -376,7 +385,7 @@ void TopologyMatcher::check_a_neighbor(Superimpose &super, Reaction &rxn)
 
         //another check for ghost atoms. perhaps remove the one in make_a_guess
         if (atom->map(sp.glove[(int)rxn.reactant->special[sp.pion][sp.neigh]-1]) < 0) {
-          error->one(FLERR,"Fix bond/react: Fix bond/react needs ghost atoms from further away");
+          return "Superimpose algorithm needs ghost atoms from further away";
         }
 
         for (int ii = 0; ii < rxn.reactant->nspecial[rxn.reactant->special[sp.pion][sp.neigh]-1][0]; ii++) {
@@ -387,15 +396,16 @@ void TopologyMatcher::check_a_neighbor(Superimpose &super, Reaction &rxn)
         if (sp.glove_counter == rxn.reactant->natoms) {
           if (ring_check(rxn, sp.glove) && rxn_constraints->check(rxn, sp.glove)) status = Status::ACCEPT;
           else status = Status::GUESSFAIL;
-          return;
+          return {};
           // will never complete here when there are edge atoms
           // ...actually that could be wrong if people get creative...shouldn't affect anything
         }
         // status should still = PROCEED
-        return;
+        return {};
       }
     }
   }
+  return {};
   // status is still 'PROCEED' if we are here!
 }
 
@@ -404,7 +414,7 @@ void TopologyMatcher::check_a_neighbor(Superimpose &super, Reaction &rxn)
   guess by recording a restore point.
 ------------------------------------------------------------------------- */
 
-void TopologyMatcher::crosscheck_the_neighbor(Superimpose &super, Reaction &rxn)
+std::string TopologyMatcher::crosscheck_the_neighbor(Superimpose &super, Reaction &rxn)
 {
   Superimpose::StatePoint &sp = super.sp;
   int &avail_guesses = super.avail_guesses;
@@ -413,7 +423,7 @@ void TopologyMatcher::crosscheck_the_neighbor(Superimpose &super, Reaction &rxn)
 
   if (status == Status::RESTORE) {
     inner_crosscheck_loop(super, rxn);
-    return;
+    return {};
   }
 
   for (sp.trace = 0; sp.trace < nfirst_neighs; sp.trace++) {
@@ -425,9 +435,9 @@ void TopologyMatcher::crosscheck_the_neighbor(Superimpose &super, Reaction &rxn)
         sp.glove[rxn.reactant->special[sp.pion][sp.trace]-1] == 0) {
 
       if (avail_guesses == MAXGUESS) {
-        error->warning(FLERR,"Fix bond/react: Fix bond/react failed because MAXGUESS set too small. ask developer for info");
+        error->warning(FLERR,"Superimpose algorithm failed because MAXGUESS set too small. ask developer for info");
         status = Status::GUESSFAIL;
-        return;
+        return {};
       }
       avail_guesses++;
       for (int i = 0; i < rxn.reactant->natoms; i++) {
@@ -441,9 +451,10 @@ void TopologyMatcher::crosscheck_the_neighbor(Superimpose &super, Reaction &rxn)
       restore_pts[avail_guesses-1].glove_counter = sp.glove_counter;
 
       inner_crosscheck_loop(super, rxn);
-      return;
+      return {};
     }
   }
+  return {};
   // status is still 'PROCEED' if we are here!
 }
 
@@ -452,7 +463,7 @@ void TopologyMatcher::crosscheck_the_neighbor(Superimpose &super, Reaction &rxn)
   for this guess, keep track of these.
 ------------------------------------------------------------------------- */
 
-void TopologyMatcher::inner_crosscheck_loop(Superimpose &super, Reaction &rxn)
+std::string TopologyMatcher::inner_crosscheck_loop(Superimpose &super, Reaction &rxn)
 {
   // full special lists - may need correction for unusual special bond settings
   int **nxspecial = atom->nspecial;
@@ -474,7 +485,7 @@ void TopologyMatcher::inner_crosscheck_loop(Superimpose &super, Reaction &rxn)
     if (compare_atomtype(checktype, rxn, reactant_atom)) {
       if (num_choices == 5) { // here failed because too many identical first neighbors. but really no limit if situation arises
         status = Status::GUESSFAIL;
-        return;
+        return {};
       }
       tag_choices[num_choices++] = xspecial[atom->map(sp.glove[sp.pion])][i];
     }
@@ -507,7 +518,7 @@ void TopologyMatcher::inner_crosscheck_loop(Superimpose &super, Reaction &rxn)
       guess_branch[avail_guesses-1]--;
       if (guess_branch[avail_guesses-1] == 0) {
         status = Status::REJECT;
-        return;
+        return {};
       }
     } else {
       sp.glove[rxn.reactant->special[sp.pion][sp.neigh]-1] = tag_choices[i];
@@ -518,7 +529,7 @@ void TopologyMatcher::inner_crosscheck_loop(Superimpose &super, Reaction &rxn)
 
   //another check for ghost atoms. perhaps remove the one in make_a_guess
   if (atom->map(sp.glove[(int)rxn.reactant->special[sp.pion][sp.neigh]-1]) < 0) {
-    error->one(FLERR,"Fix bond/react: Fix bond/react needs ghost atoms from further away");
+    return "Superimpose algorithm needs ghost atoms from further away";
   }
 
   if (guess_branch[avail_guesses-1] == 0) avail_guesses--;
@@ -530,9 +541,10 @@ void TopologyMatcher::inner_crosscheck_loop(Superimpose &super, Reaction &rxn)
   if (sp.glove_counter == rxn.reactant->natoms) {
     if (ring_check(rxn, sp.glove) && rxn_constraints->check(rxn, sp.glove)) status = Status::ACCEPT;
     else status = Status::GUESSFAIL;
-    return;
+    return {};
   }
   status = Status::CONTINUE;
+  return {};
 }
 
 /* ----------------------------------------------------------------------

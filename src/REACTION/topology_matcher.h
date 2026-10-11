@@ -33,7 +33,7 @@ public:
 
   ReactionConstraints *rxn_constraints;
 
-  bool match_topology(std::vector<tagint> &, Reaction &, std::array<tagint, 2>);
+  std::string match_topology(std::vector<tagint> &, Reaction &, std::array<tagint, 2>);
 
 private:
   static constexpr int MAXGUESS = 20;                      // max # of guesses allowed by superimpose algorithm
@@ -52,11 +52,11 @@ private:
   };
   std::vector<Superimpose::StatePoint> restore_pts;
 
-  void make_a_guess(Superimpose &, Reaction &rxn);
-  void neighbor_loop(Superimpose &, Reaction &rxn);
-  void check_a_neighbor(Superimpose &, Reaction &rxn);
-  void crosscheck_the_neighbor(Superimpose &, Reaction &rxn);
-  void inner_crosscheck_loop(Superimpose &, Reaction &rxn);
+  std::string make_a_guess(Superimpose &, Reaction &rxn);
+  std::string neighbor_loop(Superimpose &, Reaction &rxn);
+  std::string check_a_neighbor(Superimpose &, Reaction &rxn);
+  std::string crosscheck_the_neighbor(Superimpose &, Reaction &rxn);
+  std::string inner_crosscheck_loop(Superimpose &, Reaction &rxn);
   int ring_check(Reaction &rxn, const std::vector<tagint> &);
   bool compare_atomtype(int, Reaction &rxn, int);
 };

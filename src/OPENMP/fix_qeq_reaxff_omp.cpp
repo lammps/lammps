@@ -45,6 +45,7 @@
 #include "reaxff_defs.h"
 
 #include <cmath>
+#include <cstring>
 
 #if defined(_OPENMP)
 #include <omp.h>
@@ -119,8 +120,8 @@ void FixQEqReaxFFOMP::compute_H()
 
   if (m_fill >= H.m)
     error->one(FLERR,  Error::NOLASTLINE,
-               "Fix qeq/reaxff: H matrix size has been exceeded: m_fill={} H.m={}\n",
-               m_fill, H.m);
+               "Fix {}: H matrix size has been exceeded: m_fill={} H.m={}\n",
+               style, m_fill, H.m);
 
   // fill in the H matrix
 
@@ -186,15 +187,14 @@ void FixQEqReaxFFOMP::compute_H()
 
 void FixQEqReaxFFOMP::init_storage()
 {
-  if (efield) get_chi_field();
+  update_chi();
 
 #if defined(_OPENMP)
 #pragma omp parallel for schedule(static)
 #endif
   for (int i = 0; i < nn; i++) {
     Hdia_inv[i] = 1. / eta[atom->type[i]];
-    b_s[i] = -chi[atom->type[i]];
-    if (efield) b_s[i] -= chi_field[i];
+    b_s[i] = rhs_s(i);
     b_t[i] = -1.0;
     b_prc[i] = 0;
     b_prm[i] = 0;
@@ -204,42 +204,47 @@ void FixQEqReaxFFOMP::init_storage()
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEqReaxFFOMP::pre_force(int /* vflag */)
+void FixQEqReaxFFOMP::solve_st()
 {
-  if (update->ntimestep % nevery) return;
-
-  if (reaxff) {
-    nn = reaxff->list->inum;
-    ilist = reaxff->list->ilist;
-    numneigh = reaxff->list->numneigh;
-    firstneigh = reaxff->list->firstneigh;
-  } else {
-    nn = list->inum;
-    ilist = list->ilist;
-    numneigh = list->numneigh;
-    firstneigh = list->firstneigh;
-  }
-
-  // grow arrays if necessary
-  // need to be atom->nmax in length
-
-  if (atom->nmax > nmax) reallocate_storage();
-  if (atom->nlocal > n_cap*DANGER_ZONE || m_fill > m_cap*DANGER_ZONE)
-    reallocate_matrix();
-
-  if (efield) get_chi_field();
-
-  init_matvec();
-
   if (dual_enabled) {
     matvecs = dual_CG(b_s, b_t, s, t);
   } else {
-    matvecs_s = CG(b_s, s);     // CG on s - parallel
-    matvecs_t = CG(b_t, t);     // CG on t - parallel
-    matvecs = matvecs_s + matvecs_t;
-  } // if (dual_enabled)
+    FixQEqReaxFF::solve_st();
+  }
+}
 
-  calculate_Q();
+/* ----------------------------------------------------------------------
+   threaded version of FixQEqReaxFF::calc_chi_eff()
+------------------------------------------------------------------------- */
+
+void FixQEqReaxFFOMP::calc_chi_eff()
+{
+  memset(&chi_eff[0],0,atom->nmax*sizeof(double));
+
+  const int inum = list_olap->inum;
+  const int *const ilist_olap = list_olap->ilist;
+
+  if ((chi_mode == QEQREL) && !efield) {
+    const int *const type = atom->type;
+#if defined(_OPENMP)
+#pragma omp parallel for schedule(static)
+#endif
+    for (int ii = 0; ii < inum; ++ii) {
+      const int i = ilist_olap[ii];
+      chi_eff[i] = chi[type[i]];
+    }
+    return;
+  }
+
+  prepare_efield_phi();
+
+#if defined(_OPENMP)
+#pragma omp parallel for schedule(dynamic,50)
+#endif
+  for (int ii = 0; ii < inum; ++ii) {
+    const int i = ilist_olap[ii];
+    chi_eff[i] = chi_eff_one(i);
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -260,8 +265,7 @@ void FixQEqReaxFFOMP::init_matvec()
 
       /* init pre-conditioner for H and init solution vectors */
       Hdia_inv[i] = 1. / eta[atom->type[i]];
-      b_s[i]      = -chi[atom->type[i]];
-      if (efield) b_s[i] -= chi_field[i];
+      b_s[i]      = rhs_s(i);
       b_t[i]      = -1.0;
 
       /* quadratic extrapolation for t and cubic extrapolation for s from previous solutions */

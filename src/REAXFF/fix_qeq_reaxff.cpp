@@ -785,12 +785,7 @@ void FixQEqReaxFF::init_storage()
     int i = ilist[ii];
     if (atom->mask[i] & groupbit) {
       Hdia_inv[i] = 1. / eta[atom->type[i]];
-      if (chi_mode == QEQ) {
-        b_s[i] = -chi[atom->type[i]];
-        if (efield) b_s[i] -= chi_field[i];
-      } else {
-        b_s[i] = -chi_eff[i];
-      }
+      b_s[i] = rhs_s(i);
       b_t[i] = -1.0;
       b_prc[i] = 0;
       b_prm[i] = 0;
@@ -830,11 +825,31 @@ void FixQEqReaxFF::pre_force(int /*vflag*/)
 
   init_matvec();
 
+  solve_st();
+
+  calculate_Q();
+}
+
+/* ----------------------------------------------------------------------
+   solve the linear equations for the s and t vectors
+------------------------------------------------------------------------- */
+
+void FixQEqReaxFF::solve_st()
+{
   matvecs_s = CG(b_s, s);       // CG on s - parallel
   matvecs_t = CG(b_t, t);       // CG on t - parallel
   matvecs = matvecs_s + matvecs_t;
+}
 
-  calculate_Q();
+/* ----------------------------------------------------------------------
+   right-hand side of the equations for s: the negative electronegativity
+------------------------------------------------------------------------- */
+
+double FixQEqReaxFF::rhs_s(int i) const
+{
+  if (chi_mode != QEQ) return -chi_eff[i];
+  if (efield) return -chi[atom->type[i]] - chi_field[i];
+  return -chi[atom->type[i]];
 }
 
 /* ---------------------------------------------------------------------- */
@@ -866,12 +881,7 @@ void FixQEqReaxFF::init_matvec()
 
       /* init pre-conditioner for H and init solution vectors */
       Hdia_inv[i] = 1. / eta[atom->type[i]];
-      if (chi_mode == QEQ) {
-        b_s[i]    = -chi[atom->type[i]];
-        if (efield) b_s[i] -= chi_field[i];
-      } else {
-        b_s[i]    = -chi_eff[i];
-      }
+      b_s[i]      = rhs_s(i);
       b_t[i]      = -1.0;
 
       /* quadratic extrapolation for s & t from previous solutions */
@@ -1450,84 +1460,104 @@ void FixQEqReaxFF::calc_chi_eff()
 {
   memset(&chi_eff[0],0,atom->nmax*sizeof(double));
 
-  const auto *const x = (const double * const *)atom->x;
-  const int *type = atom->type;
   const int inum = list_olap->inum;
   const int *const ilist_olap = list_olap->ilist;
-  const int *const numneigh_olap = list_olap->numneigh;
-  const int *const *const firstneigh_olap = list_olap->firstneigh;
 
   if ((chi_mode == QEQREL) && !efield) {
     for (int ii = 0; ii < inum; ++ii) {
       const int i = ilist_olap[ii];
-      chi_eff[i] = chi[type[i]];
+      chi_eff[i] = chi[atom->type[i]];
     }
     return;
   }
 
-  // electric potential of the external field in eV.  the potential from an
-  // atom-style variable is only available for local atoms, so it is
-  // communicated to the ghost atoms.  otherwise it is computed from the
-  // positions, so that the potential differences are continuous across
-  // periodic boundaries.
-
-  const double factor = 1.0/force->qe2f;
-  double ex = 0.0, ey = 0.0, ez = 0.0;
-  bool atomstyle = false;
-  if (efield) {
-    if (efield->varflag != FixEfield::CONSTANT) efield->update_efield_variables();
-    ex = efield->ex;
-    ey = efield->ey;
-    ez = efield->ez;
-    if (efield->varflag == FixEfield::ATOM) {
-      atomstyle = true;
-      for (int i = 0; i < atom->nlocal; ++i) chi_field[i] = efield->efield[i][3];
-      pack_flag = 6;
-      comm->forward_comm(this);
-    }
-  }
-  auto phi = [&](int i) {
-    return atomstyle ? chi_field[i] : -factor * (x[i][0] * ex + x[i][1] * ey + x[i][2] * ez);
-  };
+  prepare_efield_phi();
 
   for (int ii = 0; ii < inum; ++ii) {
     const int i = ilist_olap[ii];
-    const int itype = type[i];
-    const double chia = chi[itype];
-    const double phia = efield ? phi(i) : 0.0;
-
-    // overlap integral of the orbital with itself
-    double sum_d = prefactor[itype][itype];
-    double sum_n = (chi_mode == QEQREL) ? phia * sum_d : 0.0;
-
-    const int *const jlist_olap = firstneigh_olap[i];
-    const int jnum = numneigh_olap[i];
-    for (int jj = 0; jj < jnum; ++jj) {
-      const int j = jlist_olap[jj] & NEIGHMASK;
-      const double dx = x[i][0] - x[j][0];
-      const double dy = x[i][1] - x[j][1];
-      const double dz = x[i][2] - x[j][2];
-      const double dist_sq = dx*dx + dy*dy + dz*dz;
-
-      if (dist_sq < dist_cutoff_sq) {
-        const int jtype = type[j];
-
-        // overlap integral of two normalised 1s Gaussian type orbitals
-        const double overlap = prefactor[itype][jtype] * exp(-expfactor[itype][jtype] * dist_sq);
-
-        if (chi_mode == QEQREL)
-          sum_n += phi(j) * overlap;
-        else if (efield)
-          sum_n += (chia - chi[jtype] + scale * (phia - phi(j))) * overlap;
-        else
-          sum_n += (chia - chi[jtype]) * overlap;
-        sum_d += overlap;
-      }
-    }
-
-    if (chi_mode == QEQREL)
-      chi_eff[i] = chia + scale * (phia - sum_n / sum_d);
-    else
-      chi_eff[i] = sum_n / sum_d;
+    chi_eff[i] = chi_eff_one(i);
   }
+}
+
+/* ----------------------------------------------------------------------
+   electric potential of the external field in eV.  the potential from an
+   atom-style variable is only available for local atoms, so it is
+   communicated to the ghost atoms.  otherwise it is computed from the
+   positions, so that the potential differences are continuous across
+   periodic boundaries.
+------------------------------------------------------------------------- */
+
+void FixQEqReaxFF::prepare_efield_phi()
+{
+  phi_ex = phi_ey = phi_ez = 0.0;
+  phi_atomstyle = false;
+  if (!efield) return;
+
+  if (efield->varflag != FixEfield::CONSTANT) efield->update_efield_variables();
+  phi_ex = efield->ex;
+  phi_ey = efield->ey;
+  phi_ez = efield->ez;
+  if (efield->varflag == FixEfield::ATOM) {
+    phi_atomstyle = true;
+    for (int i = 0; i < atom->nlocal; ++i) chi_field[i] = efield->efield[i][3];
+    pack_flag = 6;
+    comm->forward_comm(this);
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+
+double FixQEqReaxFF::efield_phi(int i) const
+{
+  if (phi_atomstyle) return chi_field[i];
+  // efield energy is in real units of kcal/mol, factor needed for conversion to eV
+  const double factor = 1.0/force->qe2f;
+  const double *const xi = atom->x[i];
+  return -factor * (xi[0] * phi_ex + xi[1] * phi_ey + xi[2] * phi_ez);
+}
+
+/* ----------------------------------------------------------------------
+   effective electronegativity of local atom i.  the sums include the
+   overlap of the orbital of the atom with itself.
+------------------------------------------------------------------------- */
+
+double FixQEqReaxFF::chi_eff_one(int i) const
+{
+  const auto *const x = (const double * const *)atom->x;
+  const int *type = atom->type;
+  const int itype = type[i];
+  const double chia = chi[itype];
+  const double phia = efield ? efield_phi(i) : 0.0;
+
+  // overlap integral of the orbital with itself
+  double sum_d = prefactor[itype][itype];
+  double sum_n = (chi_mode == QEQREL) ? phia * sum_d : 0.0;
+
+  const int *const jlist_olap = list_olap->firstneigh[i];
+  const int jnum = list_olap->numneigh[i];
+  for (int jj = 0; jj < jnum; ++jj) {
+    const int j = jlist_olap[jj] & NEIGHMASK;
+    const double dx = x[i][0] - x[j][0];
+    const double dy = x[i][1] - x[j][1];
+    const double dz = x[i][2] - x[j][2];
+    const double dist_sq = dx*dx + dy*dy + dz*dz;
+
+    if (dist_sq < dist_cutoff_sq) {
+      const int jtype = type[j];
+
+      // overlap integral of two normalised 1s Gaussian type orbitals
+      const double overlap = prefactor[itype][jtype] * exp(-expfactor[itype][jtype] * dist_sq);
+
+      if (chi_mode == QEQREL)
+        sum_n += efield_phi(j) * overlap;
+      else if (efield)
+        sum_n += (chia - chi[jtype] + scale * (phia - efield_phi(j))) * overlap;
+      else
+        sum_n += (chia - chi[jtype]) * overlap;
+      sum_d += overlap;
+    }
+  }
+
+  if (chi_mode == QEQREL) return chia + scale * (phia - sum_n / sum_d);
+  return sum_n / sum_d;
 }

@@ -145,6 +145,9 @@ class FixQEqReaxFF : public Fix {
 
   virtual int CG(double *, double *);
   virtual void sparse_matvec(sparse_matrix *, double *, double *);
+  virtual void solve_st();
+
+  double rhs_s(int) const;
 
  public:
   int pack_forward_comm(int, int *, double *, int, int *) override;
@@ -169,6 +172,13 @@ class FixQEqReaxFF : public Fix {
   virtual void get_chi_field();
   virtual void update_chi();
   virtual void calc_chi_eff();
+  void prepare_efield_phi();
+  double efield_phi(int) const;
+  double chi_eff_one(int) const;
+
+  // settings of the external electric potential for the effective electronegativities
+  double phi_ex, phi_ey, phi_ez;
+  bool phi_atomstyle;
 
   // dual CG support
   int dual_enabled;            // 0: Original, separate s & t optimization; 1: dual optimization

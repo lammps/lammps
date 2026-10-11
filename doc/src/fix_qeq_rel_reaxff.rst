@@ -1,7 +1,10 @@
 .. index:: fix qeq/rel/reaxff
+.. index:: fix qeq/rel/reaxff/omp
 
 fix qeq/rel/reaxff command
 ==========================
+
+Accelerator Variants: *qeq/rel/reaxff/omp*
 
 Syntax
 """"""
@@ -21,8 +24,9 @@ Syntax
 
   .. parsed-literal::
 
-     keyword = *scale* or *maxiter* or *nowarn*
+     keyword = *scale* or *dual* or *maxiter* or *nowarn*
        *scale* beta = set value of scaling factor *beta* (determines strength of electric polarization)
+       *dual* = process S and T matrix in parallel (only for qeq/rel/reaxff/omp)
        *maxiter* N = limit the number of iterations to *N*
        *nowarn* = do not print a warning message if the maximum number of iterations is reached
 
@@ -131,6 +135,12 @@ the :doc:`comm_modify cutoff <comm_modify>` command.
 The optional *scale* keyword sets the value of :math:`\beta` in the
 equation for :math:`\chi_{\mathrm{r}i}`. The default value is 1.0.
 
+.. versionadded:: TBD
+
+The optional *dual* keyword allows to perform the optimization of the S
+and T matrices in parallel.  This is only supported for the
+*qeq/rel/reaxff/omp* style.  Otherwise they are processed separately.
+
 The optional *maxiter* keyword allows changing the max number of
 iterations in the linear solver. The default value is 200.
 
@@ -168,6 +178,12 @@ No parameter of this fix can be used with the *start/stop* keywords of
 the :doc:`run <run>` command.
 
 This fix is invoked during :doc:`energy minimization <minimize>`.
+
+----------
+
+.. include:: accel_styles.rst
+
+----------
 
 Restrictions
 """"""""""""

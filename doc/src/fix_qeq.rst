@@ -359,9 +359,10 @@ makes long simulations (more than a few thousand steps) unstable, so
 *xldamp* 0 is mainly useful for validation studies.  With the default
 settings the energy conservation was close to that of fully converged
 solves in our tests.  Reducing *xlcg* to 1 reproduces the setting of
-:ref:`(Nomura) <Nomura2015>` and further reduces the cost, but odd
-values of *xlcg* (1, 3, ...) were much less stable than even values in
-our tests.
+:ref:`(Nomura) <Nomura2015>` and further reduces the cost, but in our
+tests *xlcg* values of 1 and 3 were much less stable than the default.
+Values of 4 or 5 were more stable than the default and conserved the
+energy better, at a higher cost per step.
 
 Even with the default settings, the extended-Lagrangian propagation
 occasionally becomes unstable: within a few dozen steps the charges

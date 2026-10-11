@@ -114,7 +114,7 @@ void FixReaxFFSpeciesKokkos::FindMolecule()
         for (jj = 0; jj < MAXSPECBOND; jj++) {
           j = reaxff->tmpid[i][jj];
 
-          if ((j == 0) && (j < i)) continue;
+          if ((j == 0) || (j < i)) continue;
           if (!(mask[j] & groupbit)) continue;
 
           if (clusterID[i] == clusterID[j]

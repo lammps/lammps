@@ -31,7 +31,7 @@ class ReactionParser : protected Pointers {
 public:
   ReactionParser(LAMMPS *lmp) : Pointers(lmp) {}
 
-  void parse_reaction(char **, int, int, Reaction &);
+  void parse_reaction(Reaction &);
   int get_chirality(double[12]);                           // get handedness given an ordered set of coordinates
 
 private:
@@ -40,7 +40,6 @@ private:
 
   FILE *fp;
 
-  void validate_variable_keyword(const char *, int);
   void read_map_file(Reaction &);
   void EdgeIDs(char *, Reaction &, int);
   void Equivalences(char *, Reaction &, int);

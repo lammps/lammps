@@ -131,6 +131,7 @@ class FixBondReact : public Fix {
   std::map<tagint, int> vizatoms;  // maps atom IDs to number of steps they have been highlighted
   int vizsteps;                    // number of steps to highlight atoms in reactions
 
+  void validate_variable_keyword(const char *, int);
   void superimpose_algorithm();
   bool compare_atomtype(int, Reaction &, int);
   double get_totalcharge(Reaction &, std::vector<tagint> &);

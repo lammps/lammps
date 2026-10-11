@@ -102,7 +102,6 @@ PACKAGE = \
 	mesont \
 	mgpt \
 	misc \
-	ml-rann \
 	ml-snap \
 	ml-uf3 \
 	mofff \

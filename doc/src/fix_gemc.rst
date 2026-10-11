@@ -145,7 +145,7 @@ uninterrupted fashion.
 None of the :doc:`fix_modify <fix_modify>` options are relevant to this
 fix.
 
-This fix computes a global vector of length 8, which can be accessed by
+This fix computes a global vector of length 6, which can be accessed by
 various :doc:`output commands <Howto_output>`.  The vector values are
 the following global cumulative quantities:
 
@@ -173,7 +173,8 @@ Do not set :doc:`neigh_modify once yes <neigh_modify>` or else this fix
 will never be called.  Reneighboring is **required**.
 
 *Fix gemc* currently **only** supports MC moves and exchanges on
-individual atoms.
+individual atoms.  Triclinic boxes and long-range solvers
+(:doc:`kspace_style <kspace_style>`) are not supported.
 
 Use of multiple *fix gemc* commands in the same input script can be
 problematic.

@@ -20,9 +20,25 @@
 #include "kspace.h"
 #include "kokkos.h"
 
+#include <cmath>
+#include <limits>
+
 using namespace LAMMPS_NS;
 
 static constexpr double BIG = 1.0e20;
+
+/* ----------------------------------------------------------------------
+   round a box bound up to the nearest KK_FLOAT not below it, so atoms that
+   pbc() keeps are inside the box for Comm::exchange()
+------------------------------------------------------------------------- */
+
+static inline KK_FLOAT bound_up(double d)
+{
+  KK_FLOAT f = static_cast<KK_FLOAT>(d);
+  if (static_cast<double>(f) < d)
+    f = std::nextafter(f,std::numeric_limits<KK_FLOAT>::infinity());
+  return f;
+}
 
 /* ---------------------------------------------------------------------- */
 
@@ -36,6 +52,7 @@ DomainKokkos::DomainKokkos(LAMMPS *lmp) : Domain(lmp) {
    for triclinic, atoms must be in lamda coords (0-1) before reset_box is called
 ------------------------------------------------------------------------- */
 
+namespace {
 template<class DeviceType>
 struct DomainResetBoxFunctor{
 public:
@@ -80,6 +97,7 @@ public:
     dst.value[2][1] = MAX(dst.value[2][1],static_cast<double>(x(i,2)));
   }
 };
+}    // namespace
 
 void DomainKokkos::reset_box()
 {
@@ -218,11 +236,16 @@ void DomainKokkos::reset_box()
 
 /* ---------------------------------------------------------------------- */
 
+namespace {
 template<class DeviceType, int PERIODIC, int DEFORM_VREMAP>
 struct DomainPBCFunctor {
   typedef DeviceType device_type;
   typedef ArrayTypes<DeviceType> AT;
-  double lo[3],hi[3],period[3];
+  double period[3];
+
+  // box bounds rounded with bound_up()
+
+  KK_FLOAT lo_kk[3],hi_kk[3];
   typename AT::t_kkfloat_1d_3_lr x;
   typename AT::t_kkfloat_1d_3 v;
   typename AT::t_int_1d mask;
@@ -240,8 +263,10 @@ struct DomainPBCFunctor {
     mask(_mask.view<DeviceType>()), image(_image.view<DeviceType>()),
     deform_groupbit(_deform_groupbit),
     xperiodic(_xperiodic), yperiodic(_yperiodic), zperiodic(_zperiodic) {
-    lo[0]=_lo[0]; lo[1]=_lo[1]; lo[2]=_lo[2];
-    hi[0]=_hi[0]; hi[1]=_hi[1]; hi[2]=_hi[2];
+    for (int d = 0; d < 3; d++) {
+      lo_kk[d] = bound_up(_lo[d]);
+      hi_kk[d] = bound_up(_hi[d]);
+    }
     period[0]=_period[0]; period[1]=_period[1]; period[2]=_period[2];
     h_rate[0]=_h_rate[0]; h_rate[1]=_h_rate[1]; h_rate[2]=_h_rate[2];
     h_rate[3]=_h_rate[3]; h_rate[4]=_h_rate[4]; h_rate[5]=_h_rate[5];
@@ -251,7 +276,7 @@ struct DomainPBCFunctor {
   KOKKOS_INLINE_FUNCTION
   void operator() (const int &i) const {
     if (PERIODIC && xperiodic) {
-      if (x(i,0) < static_cast<KK_FLOAT>(lo[0])) {
+      if (x(i,0) < lo_kk[0]) {
         x(i,0) += static_cast<KK_FLOAT>(period[0]);
         if (DEFORM_VREMAP && (mask[i] & deform_groupbit)) v(i,0) += static_cast<KK_FLOAT>(h_rate[0]);
         imageint idim = image[i] & IMGMASK;
@@ -260,9 +285,9 @@ struct DomainPBCFunctor {
         idim &= IMGMASK;
         image[i] = otherdims | idim;
       }
-      if (x(i,0) >= static_cast<KK_FLOAT>(hi[0])) {
+      if (x(i,0) >= hi_kk[0]) {
         x(i,0) -= static_cast<KK_FLOAT>(period[0]);
-        x(i,0) = MAX(x(i,0),static_cast<KK_FLOAT>(lo[0]));
+        x(i,0) = MAX(x(i,0),lo_kk[0]);
         if (DEFORM_VREMAP && (mask[i] & deform_groupbit)) v(i,0) -= static_cast<KK_FLOAT>(h_rate[0]);
         imageint idim = image[i] & IMGMASK;
         const imageint otherdims = image[i] ^ idim;
@@ -273,7 +298,7 @@ struct DomainPBCFunctor {
     }
 
     if (PERIODIC && yperiodic) {
-      if (x(i,1) < static_cast<KK_FLOAT>(lo[1])) {
+      if (x(i,1) < lo_kk[1]) {
         x(i,1) += static_cast<KK_FLOAT>(period[1]);
         if (DEFORM_VREMAP && (mask[i] & deform_groupbit)) {
           v(i,0) += static_cast<KK_FLOAT>(h_rate[5]);
@@ -285,9 +310,9 @@ struct DomainPBCFunctor {
         idim &= IMGMASK;
         image[i] = otherdims | (idim << IMGBITS);
       }
-      if (x(i,1) >= static_cast<KK_FLOAT>(hi[1])) {
+      if (x(i,1) >= hi_kk[1]) {
         x(i,1) -= static_cast<KK_FLOAT>(period[1]);
-        x(i,1) = MAX(x(i,1),static_cast<KK_FLOAT>(lo[1]));
+        x(i,1) = MAX(x(i,1),lo_kk[1]);
         if (DEFORM_VREMAP && (mask[i] & deform_groupbit)) {
           v(i,0) -= static_cast<KK_FLOAT>(h_rate[5]);
           v(i,1) -= static_cast<KK_FLOAT>(h_rate[1]);
@@ -301,7 +326,7 @@ struct DomainPBCFunctor {
     }
 
     if (PERIODIC && zperiodic) {
-      if (x(i,2) < static_cast<KK_FLOAT>(lo[2])) {
+      if (x(i,2) < lo_kk[2]) {
         x(i,2) += static_cast<KK_FLOAT>(period[2]);
         if (DEFORM_VREMAP && (mask[i] & deform_groupbit)) {
           v(i,0) += static_cast<KK_FLOAT>(h_rate[4]);
@@ -314,9 +339,9 @@ struct DomainPBCFunctor {
         idim &= IMGMASK;
         image[i] = otherdims | (idim << IMG2BITS);
       }
-      if (x(i,2) >= static_cast<KK_FLOAT>(hi[2])) {
+      if (x(i,2) >= hi_kk[2]) {
         x(i,2) -= static_cast<KK_FLOAT>(period[2]);
-        x(i,2) = MAX(x(i,2),static_cast<KK_FLOAT>(lo[2]));
+        x(i,2) = MAX(x(i,2),lo_kk[2]);
         if (DEFORM_VREMAP && (mask[i] & deform_groupbit)) {
           v(i,0) -= static_cast<KK_FLOAT>(h_rate[4]);
           v(i,1) -= static_cast<KK_FLOAT>(h_rate[3]);
@@ -331,6 +356,7 @@ struct DomainPBCFunctor {
     }
   }
 };
+}    // namespace
 
 /* ----------------------------------------------------------------------
    check whether atom->x still points to the Kokkos managed atom positions
@@ -459,16 +485,18 @@ void DomainKokkos::remap_all()
   image = atomKK->k_image.view_device();
   int nlocal = atomKK->nlocal;
 
+  // round the bounds up, as in pbc()
+
   if (triclinic == 0) {
     for (int i=0; i<3; i++) {
-      lo[i] = static_cast<KK_FLOAT>(boxlo[i]);
-      hi[i] = static_cast<KK_FLOAT>(boxhi[i]);
+      lo[i] = bound_up(boxlo[i]);
+      hi[i] = bound_up(boxhi[i]);
       period[i] = static_cast<KK_FLOAT>(prd[i]);
     }
   } else {
     for (int i=0; i<3; i++) {
-      lo[i] = static_cast<KK_FLOAT>(boxlo_lamda[i]);
-      hi[i] = static_cast<KK_FLOAT>(boxhi_lamda[i]);
+      lo[i] = bound_up(boxlo_lamda[i]);
+      hi[i] = bound_up(boxhi_lamda[i]);
       period[i] = static_cast<KK_FLOAT>(prd_lamda[i]);
     }
     x2lamda(nlocal);

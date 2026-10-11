@@ -12,7 +12,14 @@ RSTDIR         = $(BUILDDIR)/src
 VENV           = $(BUILDDIR)/docenv
 SPHINXCONFIG   = $(BUILDDIR)/utils/sphinx-config
 MATHJAX        = $(SPHINXCONFIG)/_static/mathjax
+# keep in sync with the MathJax download settings in cmake/Modules/Documentation.cmake
 MATHJAXTAG     = 4.1.3
+MATHJAXSUM     = f487c39d2913f371eb42dab078559a902da69acca38a9ebec7640a6581535ba3
+# the fonts are distributed separately. their version must match the MathJax version
+MATHJAXFONT    = $(MATHJAX)/mathjax-newcm-font
+MATHJAXFONTTGZ = mathjax-newcm-font-$(MATHJAXTAG).tgz
+MATHJAXFONTSUM = 87d7b869c6a2a6169d9a53acc4eab6c846a9cbe11752738226461bb5070c8b88
+THIRDPARTYURL  = https://download.lammps.org/thirdparty
 
 PYTHON         = $(word 3,$(shell type python3))
 DOXYGEN        = $(word 3,$(shell type doxygen))
@@ -102,7 +109,7 @@ $(SPHINXCONFIG)/conf.py: $(SPHINXCONFIG)/conf.py.in
 globbed-tocs:
 	$(PYTHON) $(BUILDDIR)/utils/make-globbed-tocs.py -d $(RSTDIR)
 
-html: xmlgen globbed-tocs $(VENV) $(SPHINXCONFIG)/conf.py $(MATHJAX)
+html: xmlgen globbed-tocs $(VENV) $(SPHINXCONFIG)/conf.py $(MATHJAX) $(MATHJAXFONT)
 	@if [ "$(HAS_BASH)" == "NO" ] ; then echo "bash was not found at $(OSHELL)! Please use: $(MAKE) SHELL=/path/to/bash" 1>&2; exit 1; fi
 	@if [ "$(WEB_SEARCH)" == "YES" ] ; then \
 		cp -v utils/sphinx-config/_themes/lammps_theme/google_search.html \
@@ -326,5 +333,12 @@ $(VENV):
 	)
 
 $(MATHJAX):
-	@git clone -b $(MATHJAXTAG) -c advice.detachedHead=0 --depth 1 https://github.com/mathjax/MathJax.git $@
+	@$(PYTHON) $(BUILDDIR)/utils/fetch-archive.py -s $(MATHJAXSUM) -d $@ \
+		-u https://github.com/mathjax/MathJax/archive/$(MATHJAXTAG).tar.gz \
+		-u $(THIRDPARTYURL)/mathjax-$(MATHJAXTAG).tar.gz
 	@test -e es5 || ln -sf . es5
+
+$(MATHJAXFONT): | $(MATHJAX)
+	@$(PYTHON) $(BUILDDIR)/utils/fetch-archive.py -s $(MATHJAXFONTSUM) -d $@ -k chtml -k package.json \
+		-u https://registry.npmjs.org/@mathjax/mathjax-newcm-font/-/$(MATHJAXFONTTGZ) \
+		-u $(THIRDPARTYURL)/$(MATHJAXFONTTGZ)

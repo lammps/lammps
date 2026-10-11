@@ -99,7 +99,7 @@ import torch
 torch_model = 'Ta06A.mliap.pytorch.model.pt'
 if not os.path.exists(torch_model):
     raise FileNotFoundError(f"Generate {torch_model} with convert_mliap_Ta06A.py")
-model = torch.load(torch_model)
+model = torch.load(torch_model, weights_only=False)
 
 # Connect the PyTorch model to the mliap pair style.
 lammps.mliap.load_model(model)

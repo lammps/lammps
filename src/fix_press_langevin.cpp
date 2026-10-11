@@ -42,9 +42,6 @@ static constexpr double TILTMAX = 1.5;
 enum { NONE, XYZ, XY, YZ, XZ };
 enum { ISO, ANISO, TRICLINIC };
 
-// size of the Marsaglia RNG state vector (see RanMars::get_state())
-static constexpr int PRNGSIZE = 98 + 2 + 3;
-
 /* ---------------------------------------------------------------------- */
 
 FixPressLangevin::FixPressLangevin(LAMMPS *lmp, int narg, char **arg) :
@@ -194,7 +191,7 @@ FixPressLangevin::FixPressLangevin(LAMMPS *lmp, int narg, char **arg) :
       p_flag[4] = 1;
       iarg += 4;
       if (dimension == 2)
-        error->all(FLERR, iarg, "Fix press/langevin zz option not allowed for a 2d simulation");
+        error->all(FLERR, iarg, "Fix press/langevin xz option not allowed for a 2d simulation");
 
     } else if (strcmp(arg[iarg], "xy") == 0) {
       if (iarg + 4 > narg) utils::missing_cmd_args(FLERR, "fix press/langevin xy", error);
@@ -596,9 +593,13 @@ void FixPressLangevin::couple_pressure()
     p_current[1] = tensor[1];
     p_current[2] = tensor[2];
   }
-  p_current[3] = tensor[3];
+
+  // the pressure tensor is ordered xx,yy,zz,xy,xz,yz
+  // the off-diagonal pistons are ordered yz,xz,xy like in fix nh
+
+  p_current[3] = tensor[5];
   p_current[4] = tensor[4];
-  p_current[5] = tensor[5];
+  p_current[5] = tensor[3];
 }
 /* ---------------------------------------------------------------------- */
 
@@ -697,9 +698,9 @@ void FixPressLangevin::remap()
     }
   }
 
-  if (p_flag[3]) domain->xy += dilation[3];
+  if (p_flag[3]) domain->yz += dilation[3];
   if (p_flag[4]) domain->xz += dilation[4];
-  if (p_flag[5]) domain->yz += dilation[5];
+  if (p_flag[5]) domain->xy += dilation[5];
 
   if (domain->yz < -TILTMAX * domain->yprd || domain->yz > TILTMAX * domain->yprd ||
       domain->xz < -TILTMAX * domain->xprd || domain->xz > TILTMAX * domain->xprd ||
@@ -854,8 +855,9 @@ void FixPressLangevin::reset_dt()
 
 void FixPressLangevin::write_restart(FILE *fp)
 {
-  constexpr int NPISTON = 6;                            // f_piston[6]
-  int nsize = PRNGSIZE * comm->nprocs + 1 + NPISTON;    // piston + pRNG per proc + nprocs
+  constexpr int NPISTON = 6;    // f_piston[6]
+  int nsize =
+      RanMars::STATE_SIZE * comm->nprocs + 1 + NPISTON;    // piston + pRNG per proc + nprocs
 
   auto *list = new double[nsize];
 
@@ -864,9 +866,10 @@ void FixPressLangevin::write_restart(FILE *fp)
     for (int i = 0; i < 6; i++) list[1 + i] = f_piston[i];
   }
 
-  double state[PRNGSIZE];
+  double state[RanMars::STATE_SIZE];
   random->get_state(state);
-  MPI_Gather(state, PRNGSIZE, MPI_DOUBLE, list + 1 + NPISTON, PRNGSIZE, MPI_DOUBLE, 0, world);
+  MPI_Gather(state, RanMars::STATE_SIZE, MPI_DOUBLE, list + 1 + NPISTON, RanMars::STATE_SIZE,
+             MPI_DOUBLE, 0, world);
 
   if (comm->me == 0) {
     int size = nsize * sizeof(double);
@@ -891,6 +894,9 @@ void FixPressLangevin::restart(char *buf)
   if (nprocs != comm->nprocs) {
     if (comm->me == 0)
       error->warning(FLERR, "Different number of procs. Cannot restore RNG state.");
-  } else
-    random->set_state(list + 1 + NPISTON + comm->me * PRNGSIZE);
+  } else {
+    // the size of the stored states depends on the version that wrote the restart file
+    const int stride = RanMars::state_size(list + 1 + NPISTON);
+    random->set_state(list + 1 + NPISTON + comm->me * stride);
+  }
 }

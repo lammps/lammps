@@ -302,18 +302,25 @@ the strings that will be printed as the first three lines of the output file,
 assuming the *file* keyword was used.  LAMMPS uses default values for each of
 these, so they do not need to be specified.
 
+.. versionchanged:: TBD
+
 By default, these header lines are as follows:
 
 .. parsed-literal::
 
-   # Time-correlated data for fix ID
+   # Time-correlated data for fix ID ave AVE version VERSION
    # TimeStep Number-of-time-windows
    # Index TimeDelta Ncount valueI\*valueJ valueI\*valueJ ...
 
-In the first line, ID is replaced with the fix-ID.  The second line
+In the first line, ID is replaced with the fix-ID, AVE with the *ave*
+setting (one or running), and VERSION with the LAMMPS version as a
+number (e.g., 20260930 for the 30 September 2026 version).
+Previously, the first line ended after the fix-ID.  The second line
 describes the two values that are printed at the first of each section
 of output.  In the third line the value pairs are replaced with the
-appropriate fields from the fix ave/correlate command.
+appropriate fields from the fix ave/correlate command.  Previously, the
+third line was missing some of the value pairs for *type* = lower and
+*type* = auto/lower.
 
 ----------
 

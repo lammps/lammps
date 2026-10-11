@@ -34,6 +34,9 @@ public:
     void emit_block(const std::string &key, const std::string &value);
 
 private:
+    // write to a temporary file and replace the target when complete
+    std::string outpath;
+    std::string temppath;
     FILE *fp;
     yaml_emitter_t emitter;
     yaml_event_t event;

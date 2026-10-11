@@ -23,6 +23,42 @@ applyTo: "doc/**"
   talking down the old one.  Legacy status belongs only in developer-facing notes and
   test nomenclature (e.g. a `legacy` filename token or tag).
 
+- Do not describe internal build machinery (patches applied to downloaded library
+  sources, timestamp or cache workarounds) in the user manual: the build integration
+  should be transparent, and such notes only create concerns.  Keep these details in
+  CMake comments, commit messages, and pull request notes; document only what users
+  must act on (settings, variables, warnings they may see).
+
+## Command-line conventions
+
+Use one consistent form for command lines in the manual and in README files:
+
+- CMake configuration is a single command from the top-level LAMMPS folder:
+  `cmake -S cmake -B build [-C cmake/presets/NAME.cmake ...] [-D NAME=value ...]`.
+  Do not write `mkdir build`, `cd build`, `cmake [...] ../cmake`; refer to presets
+  as `cmake/presets/...`.  The default build folder is `build`; variants are named
+  `build-<purpose>` (e.g. `build-kokkos`).
+- To change settings of an existing build, repeat the full
+  `cmake -S cmake -B build -D NAME=value` command.  `cmake -B build ...` without
+  `-S` fails for LAMMPS, because the source folder then defaults to the current
+  folder, which has no `CMakeLists.txt`.
+- Write CMake variables as `-D NAME=value` (with a space) and boolean values as
+  `on`/`off`.
+- Compile with a plain `cmake --build build` (`--target NAME` for other targets),
+  install with `cmake --install build`, and run tests with
+  `ctest --test-dir build`.  No bare `make`, `make -j N`, or `make -C build` in
+  CMake instructions (they fail with the Ninja generator).  Parallel compilation
+  (`-j N` / `--parallel N`) is explained once in the CMake build docs instead of
+  being repeated in every example.
+- `-G Ninja` appears only in the section on faster compilation with Ninja and
+  ccache; all other examples stay generator-neutral.  Prefer explicit command-line
+  flags over environment variables or shell-profile settings.
+- The LAMMPS executable is `lmp`.  Use `lmp_<machine>` names only where a legacy
+  make build is the topic (`make mpi` produces `lmp_mpi`), for the
+  `LAMMPS_MACHINE` setting, or for actual binary names of distribution packages.
+- Always pass input files with `-in in.file` (long form).  Use I/O redirection
+  (`lmp < in.file`) only where reading from standard input is the topic.
+
 ## versionadded / versionchanged policy
 
 - New publicly visible commands, styles, and added keywords require
@@ -41,6 +77,8 @@ applyTo: "doc/**"
   commas (`ko`, not `o,k`) -- and add the `/suffix` index entry plus an
   `Accelerator Variants:` line to the per-style `.rst` page.
 - Restrictions and accelerator-variant notes belong in the per-style `.rst` file.
+- When commands or keywords are added or changed, check whether example inputs use
+  them and need updating.
 
 ## Building and validating
 

@@ -42,7 +42,7 @@ class FixMinimize : public Fix {
   virtual void add_vector(int);
   double *request_vector(int);
   void store_box();
-  void reset_coords();
+  virtual void reset_coords();
 
  protected:
   int nvector;

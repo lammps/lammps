@@ -112,13 +112,13 @@ cores.
 .. code-block:: bash
 
    # 1 MPI task uses 1 GPU
-   lmp_machine -sf gpu -pk gpu 1 -in in.script
+   lmp -sf gpu -pk gpu 1 -in in.script
 
    # 12 MPI tasks share 2 GPUs on a single 16-core (or whatever) node
-   mpirun -np 12 lmp_machine -sf gpu -pk gpu 2 -in in.script
+   mpirun -np 12 lmp -sf gpu -pk gpu 2 -in in.script
 
    # ditto on 4 16-core nodes
-   mpirun -np 48 -ppn 12 lmp_machine -sf gpu -pk gpu 2 -in in.script
+   mpirun -np 48 -ppn 12 lmp -sf gpu -pk gpu 2 -in in.script
 
 Note that if the ``-sf gpu`` switch is used, it also issues a default
 :doc:`package gpu 0 <package>` command, which will result in

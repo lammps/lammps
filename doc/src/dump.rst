@@ -1059,9 +1059,9 @@ to effectively specify multiple values.
 Restrictions
 """"""""""""
 
-To write compressed dump files, you must either compile LAMMPS with the
-``-DLAMMPS_GZIP`` option or use the styles from the COMPRESS package.
-See the :doc:`Build settings <Build_settings>` page for details.
+To write compressed dump files, either the corresponding compression
+program must be installed or the styles from the COMPRESS package must
+be used.  See the :ref:`Build settings <gzip>` page for details.
 
 To create images or movies, you must install the GRAPHICS package.
 See the :doc:`Build extras <Build_extras>` page for details.

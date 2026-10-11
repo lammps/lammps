@@ -67,9 +67,9 @@ and storing the output in different log and dump files, for example
    variable a loop 8
    variable t index 0.8 0.85 0.9 0.95 1.0 1.05 1.1 1.15
    log log.$a
-   read data.polymer
+   read_data data.polymer
    velocity all create $t 352839
-   fix 1 all nvt $t $t 100.0
+   fix 1 all nvt temp $t $t 100.0
    dump 1 all atom 1000 dump.$a
    run 100000
    clear

@@ -84,6 +84,7 @@ constexpr int PACE_BATCH_NRB_MAX = 64;    // nradbase
 #define PACE_VECTOR_CLONES
 #endif
 
+#ifndef LMP_KK_DEVICE_COMPILE
 // Force contraction for one batch: the Ylm+dYlm recurrence of the scalar
 // compute_derivative_one turned inside out.  The weights of the shared atom
 // are broadcast scalars; every lane keeps its own force accumulator, so no
@@ -331,7 +332,7 @@ void pace_batched_derivative(const int lmax, const int nradmax, const int nradba
     }
   }
 }
-
+#endif
 }    // namespace
 
 
@@ -990,6 +991,7 @@ void PairPACEKokkos<DeviceType>::allocate()
 
 /* ---------------------------------------------------------------------- */
 
+namespace {
 template<class DeviceType>
 struct FindMaxNumNeighs {
   typedef DeviceType device_type;
@@ -1007,6 +1009,7 @@ struct FindMaxNumNeighs {
     if (maxneigh < num_neighs) maxneigh = num_neighs;
   }
 };
+}    // namespace
 
 /* ---------------------------------------------------------------------- */
 

@@ -82,6 +82,9 @@ conference proceedings.
    may take starting over from scratch several times until the result is
    acceptable.
 
+   More practical suggestions are collected on the :doc:`Working with AI
+   coding agents <Developer_agents>` page.
+
 .. toctree::
    :maxdepth: 1
 
@@ -101,3 +104,4 @@ conference proceedings.
    Developer_utils
    Developer_internal
    Developer_grid
+   Developer_agents

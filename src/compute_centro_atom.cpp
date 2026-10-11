@@ -312,7 +312,7 @@ void ComputeCentroAtom::compute_peratom()
   if (axes_flag)
     for (ii = 0; ii < inum; ii++) {
       i = ilist[ii];
-      if (mask[i] & groupbit) array_atom[i][0] = centro[i];
+      array_atom[i][0] = centro[i];
     }
 }
 

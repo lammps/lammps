@@ -64,7 +64,18 @@ namespace LAMMPS_NS::Granular_NS {
     double xt;
   };
 
-  /* ---------------------------------------------------------------------- */
+/* ---------------------------------------------------------------------- */
+
+class GranSubModTangentialLinearHistoryStatic : public GranSubModTangentialLinearHistory {
+ public:
+  GranSubModTangentialLinearHistoryStatic(class GranularModel *, class LAMMPS *);
+  void coeffs_to_local() override;
+  void calculate_forces();
+ protected:
+  double mu_static, mu_dynamic;
+};
+
+/* ---------------------------------------------------------------------- */
 
   class GranSubModTangentialLinearHistoryClassic : public GranSubModTangentialLinearHistory {
    public:
@@ -93,7 +104,23 @@ namespace LAMMPS_NS::Granular_NS {
     double xt;
   };
 
-  /* ---------------------------------------------------------------------- */
+
+
+/* ---------------------------------------------------------------------- */
+
+class GranSubModTangentialMindlinStatic : public GranSubModTangentialMindlin {
+ public:
+  GranSubModTangentialMindlinStatic(class GranularModel *, class LAMMPS *);
+  void coeffs_to_local() override;
+  void mix_coeffs(double*, double*) override;
+  void calculate_forces() override;
+ protected:
+  int mindlin_rescale, mindlin_force;
+  double xt;
+  double mu_static, mu_dynamic;
+};
+
+/* ---------------------------------------------------------------------- */
 
   class GranSubModTangentialMindlinForce : public GranSubModTangentialMindlin {
    public:

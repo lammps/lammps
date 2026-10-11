@@ -102,14 +102,11 @@ void AngleSPICAKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   k_rminsq.template sync<DeviceType>();
   k_emin.template sync<DeviceType>();
 
+  // sync and claim here too: the MC fixes call this outside run_style verlet/kk
 
-  // "It has to do with overlapping host/device in verlet_kokkos.cpp. For this reason, all topology styles (bond, angle, etc.) must set DATAMASK_READ, DATAMASK_MODIFY in the constructor and must not use atomKK->sync/modified. This is a gotcha that needed to be better documented."
-  // https://matsci.org/t/a-few-kokkos-development-questions/56598
-  //
-  // atomKK->sync(execution_space,datamask_read);
-  // if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
-  // else atomKK->modified(execution_space,F_MASK);
-  //atomKK->k_type.template sync<DeviceType>();
+  atomKK->sync(execution_space,datamask_read);
+  if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
+  else atomKK->modified(execution_space,F_MASK);
 
   x = atomKK->k_x.template view<DeviceType>();
   f = atomKK->k_f.template view<DeviceType>();

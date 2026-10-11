@@ -702,8 +702,10 @@ DIPOLE package
 
 **Contents:**
 
-An atom style and several pair styles for point dipole models with
-short-range or long-range interactions.
+An atom style for particles carrying a point dipole and pair styles for
+short-range or long-range interactions of point dipoles.  It also
+contains a pair style for a coarse-grained membrane model that uses the
+dipole vector only to store the orientation of the particles.
 
 **Supporting info:**
 
@@ -712,8 +714,10 @@ short-range or long-range interactions.
 * :doc:`pair_style lj/cut/dipole/cut <pair_dipole>`
 * :doc:`pair_style lj/cut/dipole/long <pair_dipole>`
 * :doc:`pair_style lj/long/dipole/long <pair_dipole>`
+* :doc:`pair_style mesomem/dipole <pair_mesomem_dipole>`
 * :doc:`angle_style dipole <angle_dipole>`
 * ``examples/dipole``
+* ``examples/PACKAGES/mesomem``
 
 ----------
 
@@ -1113,6 +1117,7 @@ package in ``tools/fep``; see its ``README`` file.
 * ``src/FEP/README``
 * :doc:`fix adapt/fep <fix_adapt_fep>`
 * :doc:`compute fep <compute_fep>`
+* :doc:`compute mbar <compute_mbar>`
 * :doc:`pair_style \*/soft <pair_fep_soft>`
 * :doc:`pair_style coul/cut/soft/gapsys <pair_fep_soft>`
 * :doc:`pair_style lj/cut/soft/gapsys <pair_fep_soft>`

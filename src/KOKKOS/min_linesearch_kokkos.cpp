@@ -71,6 +71,12 @@ void MinLineSearchKokkos::init()
   if (linestyle == QUADRATIC) linemin = &MinLineSearchKokkos::linemin_quadratic;
   else error->all(FLERR,"Kokkos minimize only supports the 'min_modify line "
    "quadratic' option");
+
+  // setup_style() below allocates these again for every minimization
+
+  delete[] gextra;
+  delete[] hextra;
+  gextra = hextra = nullptr;
 }
 
 /* ---------------------------------------------------------------------- */

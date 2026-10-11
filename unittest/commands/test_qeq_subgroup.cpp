@@ -311,8 +311,11 @@ TEST_F(QEqSubgroupTest, qeq_dynamic)
     // fix qeq/dynamic and fix qeq/fire minimize the same energy as fix qeq/point
     for (const auto &sfx : suffixes("qeq/dynamic"))
         check_charges("qeq/dynamic 1 10.0 1.0e-10 100000 " + qeq_file, ref_point, 1.0e-8, sfx);
-    for (const auto &sfx : suffixes("qeq/fire"))
-        check_charges("qeq/fire 1 10.0 1.0e-10 100000 " + qeq_file, ref_point, 1.0e-8, sfx);
+    // fix qeq/fire is not available without the MANYBODY package
+    if (info->has_style("fix", "qeq/fire")) {
+        for (const auto &sfx : suffixes("qeq/fire"))
+            check_charges("qeq/fire 1 10.0 1.0e-10 100000 " + qeq_file, ref_point, 1.0e-8, sfx);
+    }
 }
 } // namespace LAMMPS_NS
 

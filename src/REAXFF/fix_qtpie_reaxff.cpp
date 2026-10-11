@@ -124,6 +124,10 @@ FixQtpieReaxFF::FixQtpieReaxFF(LAMMPS *lmp, int narg, char **arg) :
   s = nullptr;
   t = nullptr;
   nprev = 4;
+  maxexchange = 2*nprev;
+
+  // initialize the per-atom history of atoms created during a run
+  create_attribute = 1;
 
   Hdia_inv = nullptr;
   b_s = nullptr;
@@ -1058,6 +1062,15 @@ void FixQtpieReaxFF::copy_arrays(int i, int j, int /*delflag*/)
     s_hist[j][m] = s_hist[i][m];
     t_hist[j][m] = t_hist[i][m];
   }
+}
+
+/* ----------------------------------------------------------------------
+   initialize history for an atom created during the run
+------------------------------------------------------------------------- */
+
+void FixQtpieReaxFF::set_arrays(int i)
+{
+  for (int m = 0; m < nprev; m++) s_hist[i][m] = t_hist[i][m] = 0.0;
 }
 
 /* ----------------------------------------------------------------------

@@ -130,6 +130,7 @@ FixQEq::FixQEq(LAMMPS *lmp, int narg, char **arg) :
   xl_nseed = 0;
   xl_bypass = 0;
   xl_laststep = -1;
+  xl_natoms = -1;
 
   // check for sane arguments
   if ((nevery <= 0) || (cutoff <= 0.0) || (tolerance <= 0.0) || (maxiter <= 0))
@@ -152,6 +153,9 @@ FixQEq::FixQEq(LAMMPS *lmp, int narg, char **arg) :
   t = nullptr;
   nprev = 5;
   maxexchange = 2*nprev;
+
+  // initialize the per-atom history of atoms created during a run
+  create_attribute = 1;
 
   Hdia_inv = nullptr;
   b_s = nullptr;
@@ -733,7 +737,8 @@ int FixQEq::solve_st()
 bool FixQEq::xl_ready() const
 {
   return xl_flag && !xl_bypass && (update->whichflag == 1) &&
-    (xl_nseed >= xl_nhist) && (update->ntimestep == xl_laststep + 1);
+    (xl_nseed >= xl_nhist) && (update->ntimestep == xl_laststep + 1) &&
+    (atom->natoms == xl_natoms);
 }
 
 /* ----------------------------------------------------------------------
@@ -798,10 +803,13 @@ void FixQEq::xl_update(bool active)
 
   } else {
 
-    // a valid history consists of converged solutions from consecutive steps.
-    // otherwise restart the warm-up by filling all slots with the current one
+    // a valid history consists of converged solutions from consecutive steps
+    // for the same set of atoms. otherwise restart the warm-up by filling all
+    // slots with the current one. atoms created during the run have no usable
+    // history, and the restart decision must be the same on all MPI ranks.
 
-    const bool restart = (xl_nseed == 0) || (update->ntimestep != xl_laststep + 1);
+    const bool restart = (xl_nseed == 0) || (update->ntimestep != xl_laststep + 1) ||
+      (atom->natoms != xl_natoms);
 
     for (int ii = 0; ii < inum; ++ii) {
       const int i = ilist[ii];
@@ -825,6 +833,7 @@ void FixQEq::xl_update(bool active)
   }
 
   xl_laststep = update->ntimestep;
+  xl_natoms = atom->natoms;
 }
 
 /* ---------------------------------------------------------------------- */

@@ -886,6 +886,15 @@ void FixACKS2ReaxFF::copy_arrays(int i, int j, int /*delflag*/)
 }
 
 /* ----------------------------------------------------------------------
+   initialize history for an atom created during the run
+------------------------------------------------------------------------- */
+
+void FixACKS2ReaxFF::set_arrays(int i)
+{
+  for (int m = 0; m < nprev; m++) s_hist[i][m] = s_hist_X[i][m] = 0.0;
+}
+
+/* ----------------------------------------------------------------------
    pack values in local atom-based array for exchange with another proc
 ------------------------------------------------------------------------- */
 

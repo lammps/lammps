@@ -92,6 +92,7 @@ class FixQEq : public Fix {
   int xl_nseed;                  // consecutive converged solves seeding the history
   int xl_bypass;                 // force a fully converged solve when set
   bigint xl_laststep;            // last step the auxiliary history was advanced
+  bigint xl_natoms;              // number of atoms when the history was advanced
   int imax;                      // CG iteration bound for the current solve
   double **xls_hist, **xlt_hist; // auxiliary variable trajectories, newest first
 

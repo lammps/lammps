@@ -68,7 +68,7 @@ FixQEqCTIP::FixQEqCTIP(LAMMPS *lmp, int narg, char **arg) :
       error->all(FLERR, iarg, "Unknown fix qeq/ctip keyword: {}", arg[iarg]);
   }
 
-  extract_ctip();
+  if (ctip_flag) extract_ctip();
 }
 
 FixQEqCTIP::~FixQEqCTIP()

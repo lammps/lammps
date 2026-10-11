@@ -67,7 +67,7 @@ FixQEqCTIP::FixQEqCTIP(LAMMPS *lmp, int narg, char **arg) :
     }
   }
 
-  extract_ctip();
+  if (ctip_flag) extract_ctip();
 }
 
 FixQEqCTIP::~FixQEqCTIP()

@@ -11,6 +11,7 @@
 .. index:: pair_style lj/cut/coul/dsf/kk
 .. index:: pair_style lj/cut/coul/dsf/omp
 .. index:: pair_style lj/cut/coul/esp
+.. index:: pair_style lj/cut/coul/esp/omp
 .. index:: pair_style lj/cut/coul/long
 .. index:: pair_style lj/cut/coul/long/gpu
 .. index:: pair_style lj/cut/coul/long/kk
@@ -38,6 +39,11 @@ pair_style lj/cut/coul/dsf command
 ==================================
 
 Accelerator Variants: *lj/cut/coul/dsf/gpu*, *lj/cut/coul/dsf/kk*, *lj/cut/coul/dsf/omp*
+
+pair_style lj/cut/coul/esp command
+==================================
+
+Accelerator Variants: *lj/cut/coul/esp/omp*
 
 pair_style lj/cut/coul/long command
 ===================================

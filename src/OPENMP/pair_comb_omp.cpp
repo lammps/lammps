@@ -81,6 +81,8 @@ void PairCombOMP::compute(int eflag, int vflag)
     thr->timer(Timer::PAIR);
     reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
+
+  reduce_cuo_cutoff();
 }
 
 template <int EVFLAG, int EFLAG, int VFLAG_EITHER>
@@ -102,6 +104,9 @@ void PairCombOMP::eval(int iifrom, int iito, ThrData * const thr)
   double potal,fac11,fac11e;
   double vionij,fvionij,sr1,sr2,sr3,Eov,Fov;
   int sht_jnum, *sht_jlist, nj;
+
+  // thread-local Cu-O correction flags, they are class members in the base class
+  int cuo_flag = 0, cuo_flag1 = 0, cuo_flag2 = 0;
 
   evdwl = 0.0;
 
@@ -375,9 +380,13 @@ void PairCombOMP::eval(int iifrom, int iito, ThrData * const thr)
     f[i][1] += fytmp;
     f[i][2] += fztmp;
 
-    if (cuo_flag) params[iparam_i].cutsq *= 0.65;
+    if (cuo_flag) {
+#if defined(_OPENMP)
+#pragma omp atomic
+#endif
+      params[iparam_i].cuo_pending |= 1;
+    }
   }
-  cuo_flag = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -628,8 +637,13 @@ void PairCombOMP::Short_neigh_thr()
       sht_first[i] = neighptrj;
       sht_num[i] = nj;
       ipg.vgot(nj);
-      if (ipg.status())
-        error->one(FLERR, Error::NOLASTLINE, "Neighbor list overflow, boost neigh_modify one" + utils::errorurl(36));
+      if (ipg.status()) {
+        // errors must be deferred until the end of the threaded region
+        check_error_thr(true, tid, FLERR, "Neighbor list overflow, boost neigh_modify one" + utils::errorurl(36));
+        break;
+      }
     }
   }
+
+  error_thr();
 }

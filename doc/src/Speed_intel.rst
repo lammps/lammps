@@ -297,10 +297,10 @@ launching MPI applications):
 .. code-block:: bash
 
    # 2 nodes, 36 MPI tasks/node, $OMP_NUM_THREADS OpenMP Threads
-   mpirun -np 72 -ppn 36 lmp_machine -sf intel -in in.script
+   mpirun -np 72 -ppn 36 lmp -sf intel -in in.script
 
    # use 2 OpenMP threads for each task, use double precision
-   mpirun -np 72 -ppn 36 lmp_machine -sf intel -in in.script \
+   mpirun -np 72 -ppn 36 lmp -sf intel -in in.script \
           -pk intel 0 omp 2 mode double
 
 Or run with the INTEL package by editing an input script

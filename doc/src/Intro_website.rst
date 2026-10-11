@@ -8,7 +8,8 @@ available online are listed below.
 .. _lws: https://www.lammps.org
 
 * `LAMMPS source code repository on GitHub <https://github.com/lammps/lammps>`_
-* `LAMMPS plugins source code repository on GitHub <https://github.com/lammps/lammps-plugins>`_
+* `LAMMPS-GUI source code repository on GitHub <https://github.com/lammps/lammps-gui>`_
+* `All repositories of the LAMMPS project on GitHub <https://github.com/lammps>`_
 * `LAMMPS forum on matsci.org <https://matsci.org/lammps>`_
 
 * `Download info <https://www.lammps.org/download/>`_

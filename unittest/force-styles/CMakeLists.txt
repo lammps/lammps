@@ -156,6 +156,20 @@ foreach(TEST ${ELLIPSOID_PAIR_TESTS})
   set_tests_properties(${TNAME} PROPERTIES LABELS "${TEST_TAGS}")
 endforeach()
 
+# tests for body particles (atom_style body) and related pair styles
+file(GLOB BODY_PAIR_TESTS LIST_DIRECTORIES false CONFIGURE_DEPENDS ${TEST_INPUT_FOLDER}/body-pair-*.yaml)
+foreach(TEST ${BODY_PAIR_TESTS})
+  string(REGEX REPLACE "^.*body-pair-(.*)\.yaml" "BodyPairStyle:\\1" TNAME ${TEST})
+  extract_tags(TEST_TAGS ${TEST})
+  list(FIND TEST_TAGS "no${CMAKE_SYSTEM_NAME}" _SKIPME)
+  if(_SKIPME GREATER_EQUAL 0)
+    continue()
+  endif()
+  add_test(NAME ${TNAME} COMMAND test_pair_style ${TEST})
+  set_tests_properties(${TNAME} PROPERTIES ENVIRONMENT "${FORCE_TEST_ENVIRONMENT}")
+  set_tests_properties(${TNAME} PROPERTIES LABELS "${TEST_TAGS}")
+endforeach()
+
 # tests for magnetic (atom_style spin) systems and related pair styles
 file(GLOB SPIN_PAIR_TESTS LIST_DIRECTORIES false CONFIGURE_DEPENDS ${TEST_INPUT_FOLDER}/spin-pair-*.yaml)
 foreach(TEST ${SPIN_PAIR_TESTS})

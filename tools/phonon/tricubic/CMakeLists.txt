@@ -2,7 +2,7 @@
 
 # Support Linux from Ubuntu 22.04LTS onward, RHEL 9.x (with EPEL),
 # macOS, MSVC 2019 (=Version 16)
-cmake_minimum_required(VERSION 3.20)
+cmake_minimum_required(VERSION 3.27)
 
 # set up project
 project(tricubic VERSION 1.1 DESCRIPTION "Tricubic library" LANGUAGES CXX)

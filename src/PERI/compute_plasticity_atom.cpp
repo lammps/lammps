@@ -1,4 +1,3 @@
-// clang-format off
 /* ----------------------------------------------------------------------
    LAMMPS - Large-scale Atomic/Molecular Massively Parallel Simulator
    https://www.lammps.org/, Sandia National Laboratories
@@ -34,11 +33,10 @@ using namespace LAMMPS_NS;
 ComputePlasticityAtom::ComputePlasticityAtom(LAMMPS *lmp, int narg, char **arg) :
     Compute(lmp, narg, arg), fix_peri_neigh(nullptr)
 {
-  if (narg != 3) error->all(FLERR,"Illegal compute plasticity/atom command");
+  if (narg != 3) error->all(FLERR, "Illegal compute plasticity/atom command");
 
-  if (!force->pair_match("peri/eps",1))
-    error->all(FLERR,"Compute plasticity/atom cannot be used "
-               "with this pair style");
+  if (!force->pair_match("peri/eps", 1))
+    error->all(FLERR, "Compute plasticity/atom cannot be used with this pair style");
 
   peratom_flag = 1;
   size_peratom_cols = 0;
@@ -59,14 +57,15 @@ ComputePlasticityAtom::~ComputePlasticityAtom()
 void ComputePlasticityAtom::init()
 {
   if ((comm->me == 0) && (modify->get_compute_by_style("plasticity/atom").size() > 1))
-    error->warning(FLERR,"More than one compute plasticity/atom");
+    error->warning(FLERR, "More than one compute plasticity/atom");
 
   // find associated PERI_NEIGH fix that must exist
 
   auto fixes = modify->get_fix_by_style("PERI_NEIGH");
   if (fixes.empty())
-    error->all(FLERR,"Compute plasticity/atom requires a peridynamic potential");
-  else fix_peri_neigh = dynamic_cast<FixPeriNeigh *>(fixes.front());
+    error->all(FLERR, "Compute plasticity/atom requires a peridynamic potential");
+  else
+    fix_peri_neigh = dynamic_cast<FixPeriNeigh *>(fixes.front());
 }
 
 /* ---------------------------------------------------------------------- */
@@ -80,7 +79,7 @@ void ComputePlasticityAtom::compute_peratom()
   if (atom->nmax > nmax) {
     memory->destroy(plasticity);
     nmax = atom->nmax;
-    memory->create(plasticity,nmax,"plasticity/atom:plasticity");
+    memory->create(plasticity, nmax, "plasticity/atom:plasticity");
     vector_atom = plasticity;
   }
 
@@ -92,7 +91,10 @@ void ComputePlasticityAtom::compute_peratom()
   int nlocal = atom->nlocal;
 
   for (int i = 0; i < nlocal; i++)
-    if (mask[i] & groupbit) plasticity[i] = lambdaValue[i];
+    if (mask[i] & groupbit)
+      plasticity[i] = lambdaValue[i];
+    else
+      plasticity[i] = 0.0;
 }
 
 /* ----------------------------------------------------------------------
@@ -101,6 +103,6 @@ void ComputePlasticityAtom::compute_peratom()
 
 double ComputePlasticityAtom::memory_usage()
 {
-  double bytes = (double)nmax * sizeof(double);
+  double bytes = (double) nmax * sizeof(double);
   return bytes;
 }

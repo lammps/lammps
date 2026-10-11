@@ -79,7 +79,6 @@ TEST_F(DumpCfgTest, run0)
 
 TEST_F(DumpCfgTest, write_dump)
 {
-    const auto *dump_file = "dump_cfg_run*.melt.cfg";
     const auto *fields    = "mass type xs ys zs id proc procp1 x y z ix iy iz vx vy vz fx fy fz";
 
     BEGIN_HIDE_OUTPUT();

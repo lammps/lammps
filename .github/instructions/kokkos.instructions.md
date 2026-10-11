@@ -132,6 +132,27 @@ CPU base's bare helper creation -- prefer that pattern for new styles.
   (`template class <Name>Kokkos<LMPDeviceType>;` plus the `LMPHostType` line under
   `#ifdef LMP_KOKKOS_GPU`).
 - Not rebuilding with `make purge` after switching between Make and CMake builds.
+- Overflow-prone `exp()` with a positive argument in `KK_FLOAT` code: in mixed/single
+  precision the float overload returns inf above ~88.7 and the forces turn to NaN
+  (seen only on GPU-mixed builds; host-mixed happened to stay below).  Promote the
+  ARGUMENT to double (`exp((double) (...))`); promoting only the result variable is
+  not enough.  Find NaN forces with per-atom dumps, not `compute reduce max/min`
+  (comparisons with NaN are false, so reductions mask it).
+- A host-side write (e.g. by inherited CPU code) to a DualView that an earlier device
+  operation left marked device-modified must be followed immediately by
+  `clear_sync_state()` + `modify_host()`; otherwise a later `sync<Device>()` or device
+  sort silently uses the stale device copy (four GPU-only rigid/small/kk bugs).
+- A non-kokkosable (host) style called inside a KOKKOS run must be wrapped with
+  `kokkos->auto_sync = 1` (save and restore the previous value), so that every
+  `sync()`/`modified()` it triggers writes through to the legacy host arrays.
+  Pattern: fix hooks in `ModifyKokkos`, force computes in `VerletKokkos::run()`.
+- Pair styles switch from stack arrays to device views for parameters when
+  `ntypes > MAX_TYPES_STACKPARAMS` (12).  Cover that path with a test system of more
+  than 12 atom types (`mol-pair-coul_long_manytypes.yaml`); an unallocated view on
+  that path crashed `coul/long/kk` unnoticed for years.
+- A `parallel_scan` functor must write its output only when the `final` flag is set;
+  writing in the non-final pass packs wrong data (a `pack_exchange` bug that only
+  showed with multiple MPI ranks).
 
 ## Deep dives
 

@@ -73,26 +73,32 @@ LMP_REGISTRY_CONST GranSubModInfo gran_sub_mod_table[] = {
   { "dmt",                    &creator<GranSubModNormalDMT>,                    NORMAL },
   { "jkr",                    &creator<GranSubModNormalJKR>,                    NORMAL },
   { "mdr",                    &creator<GranSubModNormalMDR>,                    NORMAL },
+  { "epa/linear",             &creator<GranSubModNormalEPALinear>,              NORMAL },
+  { "epa/nonlinear",          &creator<GranSubModNormalEPANonlinear>,           NORMAL },
+
 
   // damping models
   { "none",                   &creator<GranSubModDampingNone>,                  DAMPING },
   { "velocity",               &creator<GranSubModDampingVelocity>,              DAMPING },
   { "mass_velocity",          &creator<GranSubModDampingMassVelocity>,          DAMPING },
   { "viscoelastic",           &creator<GranSubModDampingViscoelastic>,          DAMPING },
-  { "tsuji",                  &creator<GranSubModDampingTsuji>,                  DAMPING },
+  { "tsuji",                  &creator<GranSubModDampingTsuji>,                 DAMPING },
   { "coeff_restitution",      &creator<GranSubModDampingCoeffRestitution>,      DAMPING },
-  { "mdr",                    &creator<GranSubModDampingMDR>,                    DAMPING },
+  { "mdr",                    &creator<GranSubModDampingMDR>,                   DAMPING },
 
   // tangential models
   { "none",                   &creator<GranSubModTangentialNone>,               TANGENTIAL },
   { "linear_nohistory",       &creator<GranSubModTangentialLinearNoHistory>,    TANGENTIAL },
   { "linear_history",         &creator<GranSubModTangentialLinearHistory>,      TANGENTIAL },
+  { "linear_history/static",  &creator<GranSubModTangentialLinearHistoryStatic>, TANGENTIAL },
   { "linear_history_classic", &creator<GranSubModTangentialLinearHistoryClassic>, TANGENTIAL },
   { "mindlin_classic",        &creator<GranSubModTangentialMindlinClassic>,     TANGENTIAL },
   { "mindlin",                &creator<GranSubModTangentialMindlin>,            TANGENTIAL },
   { "mindlin/force",          &creator<GranSubModTangentialMindlinForce>,       TANGENTIAL },
   { "mindlin_rescale",        &creator<GranSubModTangentialMindlinRescale>,     TANGENTIAL },
   { "mindlin_rescale/force",  &creator<GranSubModTangentialMindlinRescaleForce>, TANGENTIAL },
+  { "mindlin_rescale/force",  &creator<GranSubModTangentialMindlinRescaleForce>, TANGENTIAL },
+  { "mindlin/static",         &creator<GranSubModTangentialMindlinStatic>,       TANGENTIAL },
 
   // rolling models
   { "none",                   &creator<GranSubModRollingNone>,                  ROLLING },

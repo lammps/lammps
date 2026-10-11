@@ -54,7 +54,7 @@ relates the ensemble average of the auto-correlation of the heat flux
 to :math:`\kappa`.  The heat flux can be calculated from the fluctuations of
 per-atom potential and kinetic energies and per-atom stress tensor in
 a steady-state equilibrated simulation.  This is in contrast to the
-two preceding non-equilibrium methods, where energy flows continuously
+three preceding non-equilibrium methods, where energy flows continuously
 between hot and cold regions of the simulation box.
 
 The :doc:`compute heat/flux <compute_heat_flux>` command can calculate

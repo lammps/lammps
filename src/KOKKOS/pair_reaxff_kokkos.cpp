@@ -174,11 +174,11 @@ void PairReaxFFKokkos<DeviceType>::init_style()
     if (!ifix->kokkosable)
       error->all(FLERR,"Must use Kokkos version of acks2/reaxff with pair reaxff/kk");
     if (ifix->execution_space == HostKK) {
-      auto k_s = ((FixACKS2ReaxFFKokkos<LMPHostType>*) ifix)->get_s();
+      auto k_s = ((FixACKS2ReaxFFKokkos<LMPHostType>*) ifix)->get_k_s();
       k_s.sync<DeviceType>();
       d_s = k_s.view<DeviceType>();
     } else {
-      auto k_s = ((FixACKS2ReaxFFKokkos<LMPDeviceType>*) ifix)->get_s();
+      auto k_s = ((FixACKS2ReaxFFKokkos<LMPDeviceType>*) ifix)->get_k_s();
       k_s.sync<DeviceType>();
       d_s = k_s.view<DeviceType>();
     }
@@ -746,11 +746,11 @@ void PairReaxFFKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   if (acks2_flag) {
     auto ifix = modify->get_fix_by_style("^acks2/reax").front();
     if (ifix->execution_space == HostKK) {
-      auto k_s = ((FixACKS2ReaxFFKokkos<LMPHostType>*) ifix)->get_s();
+      auto k_s = ((FixACKS2ReaxFFKokkos<LMPHostType>*) ifix)->get_k_s();
       k_s.sync<DeviceType>();
       d_s = k_s.view<DeviceType>();
     } else {
-      auto k_s = ((FixACKS2ReaxFFKokkos<LMPDeviceType>*) ifix)->get_s();
+      auto k_s = ((FixACKS2ReaxFFKokkos<LMPDeviceType>*) ifix)->get_k_s();
       k_s.sync<DeviceType>();
       d_s = k_s.view<DeviceType>();
     }

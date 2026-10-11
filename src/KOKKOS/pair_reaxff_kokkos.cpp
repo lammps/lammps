@@ -508,6 +508,10 @@ int PairReaxFFKokkos<DeviceType>::Init_Lookup_Tables()
 
   for (i = 1; i <= num_atom_types; ++i) {
     for (j = i; j <= num_atom_types; ++j) {
+
+      // skip atom types that are not handled by this pair style (NULL in pair_coeff)
+      if ((map[i] == -1) || (map[j] == -1)) continue;
+
       LR[i][j].xmin = 0;
       LR[i][j].xmax = api->control->nonb_cut;
       LR[i][j].n = api->control->tabulate + 2;

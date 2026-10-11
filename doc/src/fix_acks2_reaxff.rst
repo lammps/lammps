@@ -85,6 +85,15 @@ when the maximum number of iterations was reached.  This can be
 useful for simulations where the iteration limit is set
 intentionally low.
 
+.. versionchanged:: TBD
+
+If the fix group does not contain all atoms, only the charges of the
+atoms in the fix group are equilibrated.  The charges of all other atoms
+are not changed, but they still contribute to the electrostatic
+potential at the atoms in the fix group, i.e. they act as fixed external
+charges.  All accelerated variants of this fix follow the same
+convention.
+
 .. note::
 
    In order to solve the self-consistent equations for electronegativity
@@ -124,9 +133,17 @@ which is typically :math:`10~\AA` for ReaxFF simulations.
 
 This fix may be used in combination with :doc:`fix efield <fix_efield>`
 and will apply the external electric field during charge equilibration,
-but there may be only one fix efield instance used, it may only use a
-constant electric field, and the electric field vector may only have
-components in non-periodic directions.
+but there may be only one fix efield instance used and the electric field
+vector may only have components in non-periodic directions. Equal-style
+variables can be used for electric field vector components without any further
+settings. Atom-style variables can be used for spatially-varying electric field
+vector components, but the resulting electric potential must be specified
+as an atom-style variable using the *potential* keyword for `fix efield`.
+
+The KOKKOS package version of this fix (*acks2/reaxff/kk*) requires
+that the KOKKOS package is compiled for double precision
+(``-D KOKKOS_PREC=double``, which is the default setting), since the
+linear solver does not reliably converge with reduced precision.
 
 Related commands
 """"""""""""""""

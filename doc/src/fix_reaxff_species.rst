@@ -20,7 +20,7 @@ Syntax
 * Nfreq = calculate average bond-order every this many timesteps
 * filename = name of output file
 * zero or more keyword/value pairs may be appended
-* keyword = *cutoff* or *element* or *position* or *delete* or *delete_rate_limit*
+* keyword = *cutoff* or *element* or *position* or *delete* or *delete_rate_limit* or *delete_subgroup*
 
   .. parsed-literal::
 

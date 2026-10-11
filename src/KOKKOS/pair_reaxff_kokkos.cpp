@@ -4365,14 +4365,13 @@ void PairReaxFFKokkos<DeviceType>::FindBondSpecies()
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagPairReaxFindBondSpecies>(0,nlocal),*this);
   copymode = 0;
 
-  // NOTE: Could improve performance if a Kokkos version of ComputeSpecAtom is added
+  // fix reaxff/species/kk copies the bonds to the host only on the steps
+  // when it needs them, see sync_species_host()
 
   k_tmpbo.modify<DeviceType>();
   k_tmpid.modify<DeviceType>();
   k_error_flag.modify<DeviceType>();
 
-  k_tmpbo.sync_host();
-  k_tmpid.sync_host();
   k_error_flag.sync_host();
 
   if (k_error_flag.view_host()())

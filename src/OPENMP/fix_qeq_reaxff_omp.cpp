@@ -59,14 +59,7 @@ FixQEqReaxFFOMP::FixQEqReaxFFOMP(LAMMPS *lmp, int narg, char **arg) :
   FixQEqReaxFF(lmp, narg, arg)
 {
   b_temp = nullptr;
-
-  // ASPC: Kolafa, J. Comp. Chem., 25(3), 335 (2003)
-  do_aspc = 0;
-  aspc_order = 1;
-  // Must be consistent with nprev to store history: nprev = aspc_order + 2
-  aspc_order_max = nprev - 2;
-  aspc_omega = 0.0;
-  aspc_b = nullptr;
+  dual_supported = 1;
 }
 
 FixQEqReaxFFOMP::~FixQEqReaxFFOMP()
@@ -74,17 +67,6 @@ FixQEqReaxFFOMP::~FixQEqReaxFFOMP()
   memory->destroy(b_temp);
 }
 
-/* ---------------------------------------------------------------------- */
-
-void FixQEqReaxFFOMP::post_constructor()
-{
-  grow_arrays(atom->nmax);
-  for (int i = 0; i < atom->nmax; i++)
-    for (int j = 0; j < nprev; ++j)
-      s_hist[i][j] = t_hist[i][j] = 0;
-
-  pertype_parameters(pertype_option);
-}
 
 /* ---------------------------------------------------------------------- */
 
@@ -105,41 +87,6 @@ void FixQEqReaxFFOMP::deallocate_storage()
   memory->destroy(b_temp);
 
   FixQEqReaxFF::deallocate_storage();
-}
-
-/* ---------------------------------------------------------------------- */
-
-void FixQEqReaxFFOMP::init()
-{
-  FixQEqReaxFF::init();
-
-  // APSC setup
-  if (do_aspc) {
-    memory->create(aspc_b, aspc_order_max+2, "qeq/reaxff/aspc_b");
-
-    // Calculate damping factor
-    auto  o = double(aspc_order);
-    aspc_omega = (o+2.0) / (2*o+3.0);
-
-    // Calculate B coefficients
-    double c = (4.0 * o + 6.0) / (o + 3.0);
-    aspc_b[0] = c;
-
-    double n =  1.0;
-    double d =  4.0;
-    double s = -1.0;
-    double f =  2.0;
-
-    for (int i=1; i<aspc_order_max+2; i++) {
-      c*= (o + n) / (o + d);
-      aspc_b[i] = s * f * c;
-
-      s *= -1.0;
-      f += 1.0;
-      n -= 1.0;
-      d += 1.0;
-    }
-  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -304,75 +251,25 @@ void FixQEqReaxFFOMP::init_matvec()
 
   int i;
 
-  // Should really be more careful with initialization and first (aspc_order+2) MD steps
-  if (do_aspc) {
-
-    double m_aspc_omega = 1.0 - aspc_omega;
 #if defined(_OPENMP)
 #pragma omp parallel for schedule(dynamic,50) private(i)
-#endif
-    for (int ii = 0; ii < nn; ++ii) {
-      i = ilist[ii];
-      if (atom->mask[i] & groupbit) {
-
-        /* init pre-conditioner for H and init solution vectors */
-        Hdia_inv[i] = 1. / eta[atom->type[i]];
-        b_s[i]      = -chi[atom->type[i]];
-        if (efield) b_s[i] -= chi_field[i];
-        b_t[i]      = -1.0;
-
-        // Predictor Step
-        double tp = 0.0;
-        double sp = 0.0;
-        for (int j=0; j<aspc_order+2; j++) {
-          tp+= aspc_b[j] * t_hist[i][j];
-          sp+= aspc_b[j] * s_hist[i][j];
-        }
-
-        // Corrector Step
-        t[i] = aspc_omega * t_hist[i][0] + m_aspc_omega * tp;
-        s[i] = aspc_omega * s_hist[i][0] + m_aspc_omega * sp;
-      }
-    }
-
-  } else {
-
-#if defined(_OPENMP)
-#pragma omp parallel for schedule(dynamic,50) private(i)
-#endif
-    for (int ii = 0; ii < nn; ++ii) {
-      i = ilist[ii];
-      if (atom->mask[i] & groupbit) {
-
-        /* init pre-conditioner for H and init solution vectors */
-        Hdia_inv[i] = 1. / eta[atom->type[i]];
-        b_s[i]      = -chi[atom->type[i]];
-        if (efield) b_s[i] -= chi_field[i];
-        b_t[i]      = -1.0;
-
-        /* linear extrapolation for s & t from previous solutions */
-        //s[i] = 2 * s_hist[i][0] - s_hist[i][1];
-        //t[i] = 2 * t_hist[i][0] - t_hist[i][1];
-
-        /* quadratic extrapolation for s & t from previous solutions */
-        //s[i] = s_hist[i][2] + 3 * (s_hist[i][0] - s_hist[i][1]);
-        t[i] = t_hist[i][2] + 3 * (t_hist[i][0] - t_hist[i][1]);
-
-        /* cubic extrapolation for s & t from previous solutions */
-        s[i] = 4*(s_hist[i][0]+s_hist[i][2])-(6*s_hist[i][1]+s_hist[i][3]);
-        //t[i] = 4*(t_hist[i][0]+t_hist[i][2])-(6*t_hist[i][1]+t_hist[i][3]);
-      }
-    }
-  }
-
-  // atoms outside the group act as fixed charges on the s-solution only
-
-#if defined(_OPENMP)
-#pragma omp parallel for schedule(static) private(i)
 #endif
   for (int ii = 0; ii < nn; ++ii) {
     i = ilist[ii];
-    if (!(atom->mask[i] & groupbit)) {
+    if (atom->mask[i] & groupbit) {
+
+      /* init pre-conditioner for H and init solution vectors */
+      Hdia_inv[i] = 1. / eta[atom->type[i]];
+      b_s[i]      = -chi[atom->type[i]];
+      if (efield) b_s[i] -= chi_field[i];
+      b_t[i]      = -1.0;
+
+      /* quadratic extrapolation for t and cubic extrapolation for s from previous solutions */
+      t[i] = t_hist[i][2] + 3 * (t_hist[i][0] - t_hist[i][1]);
+      s[i] = 4*(s_hist[i][0]+s_hist[i][2])-(6*s_hist[i][1]+s_hist[i][3]);
+    } else {
+
+      /* atoms outside the group act as fixed charges on the s-solution only */
       s[i] = atom->q[i];
       t[i] = 0.0;
     }

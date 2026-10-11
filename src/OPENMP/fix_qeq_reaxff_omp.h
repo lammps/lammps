@@ -30,19 +30,12 @@ class FixQEqReaxFFOMP : public FixQEqReaxFF {
  public:
   FixQEqReaxFFOMP(class LAMMPS *, int, char **);
   ~FixQEqReaxFFOMP() override;
-  void init() override;
   void init_storage() override;
   void pre_force(int) override;
-  void post_constructor() override;
   double memory_usage() override;
 
  protected:
   double **b_temp;
-
-  int do_aspc;
-  int aspc_order, aspc_order_max;
-  double aspc_omega;
-  double *aspc_b;
 
   void allocate_storage() override;
   void deallocate_storage() override;

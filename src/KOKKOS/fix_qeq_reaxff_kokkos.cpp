@@ -79,7 +79,7 @@ FixQEqReaxFFKokkos(LAMMPS *lmp, int narg, char **arg) :
   converged = 0;
 
   if (comm->me == 0 && matrix_free)
-    utils::logmesg(lmp, "Using matrix-free form for fix qeq/reax/kk\n");
+    utils::logmesg(lmp, "Using matrix-free form for fix {}\n", style);
 }
 
 /* ---------------------------------------------------------------------- */

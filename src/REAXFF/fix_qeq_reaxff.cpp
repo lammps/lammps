@@ -89,7 +89,7 @@ FixQEqReaxFF::FixQEqReaxFF(LAMMPS *lmp, int narg, char **arg) :
   // dual CG support only available for OPENMP variant
   // check for compatibility is in Fix::post_constructor()
 
-  dual_enabled = 0;
+  dual_enabled = dual_supported = 0;
   matvecs_s = matvecs_t = 0;
 
   // matrix-free support only available for Kokkos backend
@@ -200,8 +200,10 @@ void FixQEqReaxFF::post_constructor()
       s_hist[i][j] = t_hist[i][j] = 0;
 
   pertype_parameters(pertype_option);
-  if (dual_enabled)
+  if (dual_enabled && !dual_supported)
     error->all(FLERR, Error::NOLASTLINE, "Dual keyword only supported with fix qeq/reaxff/omp");
+  if (matrix_free && !kokkosable && (comm->me == 0))
+    error->warning(FLERR, "Keyword matfree is only supported by fix qeq/reaxff/kk and is ignored");
 }
 
 /* ---------------------------------------------------------------------- */

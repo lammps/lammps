@@ -120,7 +120,7 @@ FixBondReact::FixBondReact(LAMMPS *lmp, int narg, char **arg) :
   nxspecial = nullptr;
   xspecial = nullptr;
 
-  topo_matcher = new TopologyMatcher(lmp);
+  topo_matcher = new TopologyMatcher(lmp, true);
 
   // these group names are reserved for use exclusively by bond/react
   master_group = "bond_react_MASTER_group";

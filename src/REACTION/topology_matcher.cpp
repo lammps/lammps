@@ -25,18 +25,20 @@ Contributing Author: Jacob Gissinger (jgissing@stevens.edu)
 
 using namespace LAMMPS_NS;
 
-TopologyMatcher::TopologyMatcher(LAMMPS *lmp) : Pointers(lmp) {
+TopologyMatcher::TopologyMatcher(LAMMPS *lmp, bool constraints_flag) :
+  Pointers(lmp), constraints_flag(constraints_flag)
+{
 
   // checking reaction constraints inside topology_matcher
 
-  rxn_constraints = new ReactionConstraints(lmp);
+  if (constraints_flag) rxn_constraints = new ReactionConstraints(lmp);
 
   status = Status::PROCEED;
 }
 
 TopologyMatcher::~TopologyMatcher()
 {
-  delete rxn_constraints;
+  if (constraints_flag) delete rxn_constraints;
 }
 
 /* ----------------------------------------------------------------------
@@ -109,7 +111,7 @@ std::string TopologyMatcher::match_topology(std::vector<tagint> &outglove, React
           nxspecial[local_atom2][0] == nxspecial[local_atom1][0]) &&
          (nxspecial[local_atom1][0] == 0 ||
           xspecial[local_atom1][0] == atom->tag[local_atom2]) &&
-         rxn_constraints->check(rxn, sp.glove) ) status = Status::ACCEPT;
+         constraints_check(rxn, sp.glove) ) status = Status::ACCEPT;
     else status = Status::REJECT;
   }
 
@@ -341,7 +343,7 @@ std::string TopologyMatcher::check_a_neighbor(Superimpose &super, Reaction &rxn)
 
             sp.glove_counter++;
             if (sp.glove_counter == rxn.reactant->natoms) {
-              if (ring_check(rxn, sp.glove) && rxn_constraints->check(rxn, sp.glove)) status = Status::ACCEPT;
+              if (ring_check(rxn, sp.glove) && constraints_check(rxn, sp.glove)) status = Status::ACCEPT;
               else status = Status::GUESSFAIL;
               return {};
             }
@@ -394,7 +396,7 @@ std::string TopologyMatcher::check_a_neighbor(Superimpose &super, Reaction &rxn)
 
         sp.glove_counter++;
         if (sp.glove_counter == rxn.reactant->natoms) {
-          if (ring_check(rxn, sp.glove) && rxn_constraints->check(rxn, sp.glove)) status = Status::ACCEPT;
+          if (ring_check(rxn, sp.glove) && constraints_check(rxn, sp.glove)) status = Status::ACCEPT;
           else status = Status::GUESSFAIL;
           return {};
           // will never complete here when there are edge atoms
@@ -539,7 +541,7 @@ std::string TopologyMatcher::inner_crosscheck_loop(Superimpose &super, Reaction 
   }
   sp.glove_counter++;
   if (sp.glove_counter == rxn.reactant->natoms) {
-    if (ring_check(rxn, sp.glove) && rxn_constraints->check(rxn, sp.glove)) status = Status::ACCEPT;
+    if (ring_check(rxn, sp.glove) && constraints_check(rxn, sp.glove)) status = Status::ACCEPT;
     else status = Status::GUESSFAIL;
     return {};
   }
@@ -548,11 +550,21 @@ std::string TopologyMatcher::inner_crosscheck_loop(Superimpose &super, Reaction 
 }
 
 /* ----------------------------------------------------------------------
+  Check constraints if check_constraint flag is true
+------------------------------------------------------------------------- */
+
+bool TopologyMatcher::constraints_check(Reaction &rxn, const std::vector<tagint> &glove)
+{
+  if (!constraints_flag) return true;
+  else return rxn_constraints->check(rxn, glove);
+}
+
+/* ----------------------------------------------------------------------
   Check that newly assigned atoms have correct bonds
   Necessary for certain ringed structures
 ------------------------------------------------------------------------- */
 
-int TopologyMatcher::ring_check(Reaction &rxn, const std::vector<tagint> &glove)
+bool TopologyMatcher::ring_check(Reaction &rxn, const std::vector<tagint> &glove)
 {
   // full special lists - may need correction for unusual special bond settings
   int **nxspecial = atom->nspecial;
@@ -566,7 +578,7 @@ int TopologyMatcher::ring_check(Reaction &rxn, const std::vector<tagint> &glove)
   for (int i = 0; i < rxn.reactant->natoms; i++)
     if (rxn.atoms[i].edge == 0 &&
         rxn.reactant->nspecial[i][0] != nxspecial[atom->map(glove[i])][0])
-      return 0;
+      return false;
 
   for (int i = 0; i < rxn.reactant->natoms; i++) {
     for (int j = 0; j < rxn.reactant->nspecial[i][0]; j++) {
@@ -574,14 +586,14 @@ int TopologyMatcher::ring_check(Reaction &rxn, const std::vector<tagint> &glove)
       int ispecial = rxn.reactant->special[i][j];
       for (int k = 0; k < nxspecial[atom->map(glove[i])][0]; k++) {
         if (xspecial[atom->map(glove[i])][k] == glove[ispecial-1]) {
-          ring_fail = 0;
+          ring_fail = false;
           break;
         }
       }
-      if (ring_fail == 1) return 0;
+      if (ring_fail == 1) return false;
     }
   }
-  return 1;
+  return true;
 }
 
 /* ----------------------------------------------------------------------

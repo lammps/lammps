@@ -34,7 +34,7 @@ public:
   ReactionConstraints(LAMMPS *lmp);
   ~ReactionConstraints();
 
-  int check(Reaction &, std::vector<tagint> &);
+  int check(Reaction &, const std::vector<tagint> &);
   void customvarnames(std::vector<Reaction> &);                     // get per-atom variables names used by custom constraint
   double get_temperature(std::vector<tagint> &);
   void get_customvars(int);                                // evaluate local values for variables names used by custom constraint
@@ -54,9 +54,9 @@ private:
   std::map<std::set<tagint>, int> atoms2bond;              // maps atom pair to index of local bond array
   class Compute *cperbond;                                 // pointer to 'compute bond/local' used by custom constraint ('rxnbond' function)
 
-  void get_IDcoords(Reaction::Constraint::IDType, int, double *, Molecule *, std::vector<tagint> &);
-  bool custom_constraint(const std::string &, Reaction &, std::vector<tagint> &);
-  double rxnfunction(const std::string &, const std::string &, const std::string &, Molecule *, std::vector<tagint> &);
+  void get_IDcoords(Reaction::Constraint::IDType, int, double *, Molecule *, const std::vector<tagint> &);
+  bool custom_constraint(const std::string &, Reaction &, const std::vector<tagint> &);
+  double rxnfunction(const std::string &, const std::string &, const std::string &, Molecule *, const std::vector<tagint> &);
   void get_atoms2bond(int);
 };
 

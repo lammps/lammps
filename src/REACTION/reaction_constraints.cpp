@@ -61,7 +61,7 @@ ReactionConstraints::~ReactionConstraints()
  if (vvec != nullptr) memory->destroy(vvec);
 }
 
-int ReactionConstraints::check(Reaction &rxn, std::vector<tagint> &glove)
+int ReactionConstraints::check(Reaction &rxn, const std::vector<tagint> &glove)
 {
   double x1[3],x2[3],x3[3],x4[3];
   double delx,dely,delz,rsq;
@@ -285,7 +285,7 @@ fragment: given pre-reacted molID (reactant) and fragID,
 ------------------------------------------------------------------------- */
 
 void ReactionConstraints::get_IDcoords(Reaction::Constraint::IDType idtype, int myID,
-                                double *center, Molecule *mol, std::vector<tagint> &glove)
+                                double *center, Molecule *mol, const std::vector<tagint> &glove)
 {
   double **x = atom->x;
   if (idtype == Reaction::Constraint::IDType::ATOM) {
@@ -354,7 +354,7 @@ double ReactionConstraints::get_temperature(std::vector<tagint> &glove)
 evaulate expression for variable constraint
 ------------------------------------------------------------------------- */
 
-bool ReactionConstraints::custom_constraint(const std::string &varstr, Reaction &rxn, std::vector<tagint> &glove)
+bool ReactionConstraints::custom_constraint(const std::string &varstr, Reaction &rxn, const std::vector<tagint> &glove)
 {
   std::size_t pos,pos1,pos2,pos3;
   int irxnfunc;
@@ -403,7 +403,7 @@ currently three 'rxn' functions: rxnsum, rxnave, and rxnbond
 ------------------------------------------------------------------------- */
 
 double ReactionConstraints::rxnfunction(const std::string& rxnfunc, const std::string& varid,
-                                 const std::string& fragid, Molecule *mol, std::vector<tagint> &glove)
+                                 const std::string& fragid, Molecule *mol, const std::vector<tagint> &glove)
 {
   int ifrag = -1;
   if (fragid != "all") {

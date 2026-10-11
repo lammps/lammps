@@ -413,7 +413,7 @@ void FixACKS2ReaxFFKokkos<DeviceType>::pre_force(int /*vflag*/)
 
   // bicgstab solve over b_s, s
 
-  bicgstab_solve();
+  matvecs = bicgstab_solve();
 
   calculate_Q();
 
@@ -1384,7 +1384,7 @@ int FixACKS2ReaxFFKokkos<DeviceType>::bicgstab_solve()
     if (omega == 0 || rho == 0) {
       error->warning(FLERR,"Fix acks2/reaxff/kk BiCGStab numerical breakdown, omega = {:.8}, rho = {:.8}",
                       omega,rho);
-    } else if (i >= imax) {
+    } else if ((i >= imax) && maxwarn) {
       error->warning(FLERR,"Fix acks2/reaxff/kk BiCGStab convergence failed after {} iterations "
                            "at step {}", i, update->ntimestep);
     }

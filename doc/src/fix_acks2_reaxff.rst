@@ -23,8 +23,9 @@ Syntax
 
   .. parsed-literal::
 
-     keyword = *maxiter*
+     keyword = *maxiter* or *nowarn*
        *maxiter* N = limit the number of iterations to *N*
+       *nowarn* = do not print a warning message if the maximum number of iterations was reached
 
 Examples
 """"""""
@@ -76,6 +77,13 @@ electronic charge.
 
 The optional *maxiter* keyword allows changing the max number
 of iterations in the linear solver. The default value is 200.
+
+.. versionchanged:: TBD
+
+The optional *nowarn* keyword silences the warning message printed
+when the maximum number of iterations was reached.  This can be
+useful for simulations where the iteration limit is set
+intentionally low.
 
 .. note::
 

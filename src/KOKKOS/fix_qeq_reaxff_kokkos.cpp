@@ -508,11 +508,10 @@ int FixQEqReaxFFKokkos<DeviceType>::cg_solve()
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagQEqSum1>(0,nn),*this);
   }
 
-  if (loop >= imax && comm->me == 0)
-    error->warning(FLERR,fmt::format("Fix qeq/reaxff/kk cg_solve convergence "
-                                     "failed after {} iterations at step {}: "
-                                     "({}, {})", loop, update->ntimestep,
-                                     (sqrt(sig_new.v[0])/b_norm.v[0]), (sqrt(sig_new.v[1])/b_norm.v[1])));
+  if ((loop >= imax) && maxwarn && (comm->me == 0))
+    error->warning(FLERR, "Fix {} cg_solve convergence failed after {} iterations at step {}: "
+                   "({}, {})", style, loop, update->ntimestep,
+                   (sqrt(sig_new.v[0])/b_norm.v[0]), (sqrt(sig_new.v[1])/b_norm.v[1]));
 
   return loop;
 }

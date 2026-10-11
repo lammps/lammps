@@ -603,7 +603,7 @@ int FixACKS2ReaxFF::BiCGStab(double *b, double *x)
     if (omega == 0 || rho == 0) {
       error->warning(FLERR,"Fix acks2/reaxff BiCGStab numerical breakdown, omega = {:.8}, rho = {:.8}",
                       omega,rho);
-    } else if (i >= imax) {
+    } else if ((i >= imax) && maxwarn) {
       error->warning(FLERR,"Fix acks2/reaxff BiCGStab convergence failed after {} iterations "
                            "at step {}", i, update->ntimestep);
     }
@@ -842,6 +842,15 @@ void FixACKS2ReaxFF::more_reverse_comm(double *vec)
     MPI_Reduce(MPI_IN_PLACE,&vec[2*NN],2,MPI_DOUBLE,MPI_SUM,last_rows_rank,world);
   else
     MPI_Reduce(&vec[2*NN],nullptr,2,MPI_DOUBLE,MPI_SUM,last_rows_rank,world);
+}
+
+/* ----------------------------------------------------------------------
+   number of BiCGStab iterations in the last solve
+------------------------------------------------------------------------- */
+
+double FixACKS2ReaxFF::compute_scalar()
+{
+  return matvecs;
 }
 
 /* ----------------------------------------------------------------------

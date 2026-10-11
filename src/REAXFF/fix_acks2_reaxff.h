@@ -33,6 +33,7 @@ class FixACKS2ReaxFF : public FixQEqReaxFF {
   void init() override;
   void init_storage() override;
   void pre_force(int) override;
+  double compute_scalar() override;
   double memory_usage() override;
 
   double *get_s() { return s; }

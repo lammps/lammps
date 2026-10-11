@@ -1977,6 +1977,22 @@ void FixACKS2ReaxFFKokkos<DeviceType>::copy_arrays(int i, int j, int delflag)
 }
 
 /* ----------------------------------------------------------------------
+   initialize history for an atom created during the run
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixACKS2ReaxFFKokkos<DeviceType>::set_arrays(int i)
+{
+  k_s_hist.sync_host();
+  k_s_hist_X.sync_host();
+
+  FixACKS2ReaxFF::set_arrays(i);
+
+  k_s_hist.modify_host();
+  k_s_hist_X.modify_host();
+}
+
+/* ----------------------------------------------------------------------
    sort local atom-based arrays
 ------------------------------------------------------------------------- */
 

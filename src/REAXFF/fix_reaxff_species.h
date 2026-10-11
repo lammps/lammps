@@ -89,7 +89,8 @@ class FixReaxFFSpecies : public Fix {
   void OpenPos();
   void WritePos(int, int);
 
-  bigint nvalid;
+  bigint lastanalysis;    // timestep of the last species analysis
+  int insetup;            // 1 while called from setup()
 
   class NeighList *list;
   class FixAveAtom *f_SPECBOND;

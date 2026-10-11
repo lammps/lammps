@@ -39,6 +39,10 @@
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
 bool verbose = false;
 
+using ::testing::ContainsRegex;
+using ::testing::HasSubstr;
+using ::testing::Not;
+
 namespace LAMMPS_NS {
 
 // the fixes reaxff/bonds and reaxff/species of the REAXFF package do not
@@ -127,6 +131,68 @@ protected:
             total += count;
         }
         return total;
+    }
+
+    // parse the output file of fix reaxff/species and check that it contains
+    // one snapshot for each of the given timesteps and that each snapshot
+    // lists the four water and the two hydrogen molecules.  each snapshot
+    // consists of a header line naming the species found and a data line with
+    // the timestep, the number of molecules, the number of species, and the
+    // number of molecules of each species
+    void check_species_file(const std::string &outfile, const std::vector<bigint> &steps)
+    {
+        const int natoms = (int)lmp->atom->natoms;
+        ASSERT_EQ(natoms, 3 * num_water + 2 * num_hydrogen);
+
+        ASSERT_FILE_EXISTS(outfile);
+        auto lines = read_lines(outfile);
+        ASSERT_EQ(lines.size(), 2 * steps.size());
+
+        for (std::size_t n = 0; n < steps.size(); ++n) {
+            auto head = utils::split_words(lines[2 * n]);
+            auto data = utils::split_words(lines[2 * n + 1]);
+
+            ASSERT_GE((int)head.size(), 4);
+            EXPECT_EQ(head[0], "#");
+            EXPECT_EQ(head[1], "Timestep");
+            EXPECT_EQ(head[2], "No_Moles");
+            EXPECT_EQ(head[3], "No_Specs");
+
+            ASSERT_GE((int)data.size(), 3);
+            EXPECT_EQ(std::stoll(data[0]), steps[n]);
+            const int nmole = std::stoi(data[1]);
+            const int nspec = std::stoi(data[2]);
+
+            // one column with the number of molecules for each species
+            ASSERT_EQ((int)head.size(), 4 + nspec);
+            ASSERT_EQ((int)data.size(), 3 + nspec);
+
+            std::map<std::string, int> species;
+            int summole = 0;
+            int sumatom = 0;
+            for (int k = 0; k < nspec; ++k) {
+                const std::string name = head[4 + k];
+                const int count        = std::stoi(data[3 + k]);
+                EXPECT_GT(count, 0);
+                const int size = formula_atoms(name);
+                EXPECT_GT(size, 0) << "not a valid chemical formula: " << name;
+                summole += count;
+                sumatom += count * size;
+                species[name] = count;
+            }
+
+            // the molecule counts of the individual species add up to the total
+            // number of molecules and the atoms of all molecules to all atoms
+            EXPECT_EQ(summole, nmole);
+            EXPECT_EQ(sumatom, natoms);
+
+            // the four water molecules and the two hydrogen molecules must be
+            // recognized as such and stay intact for the duration of the run
+            EXPECT_EQ(nspec, 2);
+            EXPECT_EQ(nmole, num_water + num_hydrogen);
+            EXPECT_EQ(species["H2O"], num_water);
+            EXPECT_EQ(species["H2"], num_hydrogen);
+        }
     }
 
     // one atom record of the fix reaxff/bonds output file:
@@ -341,69 +407,60 @@ TEST_F(ReaxFFOutputTest, Species)
     const std::string outfile = "test_reaxff_species.tmp";
     delete_file(outfile);
 
+    // without averaging (Nrepeat = 1) the analysis includes the first step
     BEGIN_HIDE_OUTPUT();
     command("fix species all reaxff/species 1 1 5 " + outfile);
     command("run 10 post no");
     END_HIDE_OUTPUT();
 
-    const int natoms = (int)lmp->atom->natoms;
-    ASSERT_EQ(natoms, 3 * num_water + 2 * num_hydrogen);
+    check_species_file(outfile, {0, 5, 10});
+    delete_file(outfile);
+}
 
-    ASSERT_FILE_EXISTS(outfile);
-    auto lines = read_lines(outfile);
+TEST_F(ReaxFFOutputTest, SpeciesAverage)
+{
+    if (!info->has_style("pair", "reaxff")) GTEST_SKIP();
+    if (!info->has_style("fix", "reaxff/species")) GTEST_SKIP();
 
-    // each snapshot consists of a header line naming the species found and a
-    // data line with the timestep, the number of molecules, the number of
-    // species, and the number of molecules of each species
-    ASSERT_EQ((int)lines.size(), 6);
+    const std::string outfile = "test_reaxff_species_ave.tmp";
+    delete_file(outfile);
 
-    const bigint expected_steps[3] = {0, 5, 10};
-    for (int n = 0; n < 3; ++n) {
-        auto head = utils::split_words(lines[2 * n]);
-        auto data = utils::split_words(lines[2 * n + 1]);
+    // with Nrepeat > 1 there is no averaged bond-order data on the first step
+    // of the first run, so the analysis is skipped with a warning.  the second
+    // run must not repeat the analysis of the last step of the first run.
+    BEGIN_CAPTURE_OUTPUT();
+    command("fix species all reaxff/species 1 5 5 " + outfile);
+    command("run 10 post no");
+    command("run 7 post no");
+    auto output = END_CAPTURE_OUTPUT();
 
-        ASSERT_GE((int)head.size(), 4);
-        EXPECT_EQ(head[0], "#");
-        EXPECT_EQ(head[1], "Timestep");
-        EXPECT_EQ(head[2], "No_Moles");
-        EXPECT_EQ(head[3], "No_Specs");
+    EXPECT_THAT(output, ContainsRegex("WARNING: Fix reaxff/species[/a-z]* has no averaged "
+                                      "bond-order data on step 0"));
+    EXPECT_THAT(output, Not(HasSubstr("data on step 10")));
+    check_species_file(outfile, {5, 10, 15});
+    delete_file(outfile);
+}
 
-        ASSERT_GE((int)data.size(), 3);
-        EXPECT_EQ(std::stoll(data[0]), expected_steps[n]);
-        const int nmole = std::stoi(data[1]);
-        const int nspec = std::stoi(data[2]);
+TEST_F(ReaxFFOutputTest, SpeciesOffset)
+{
+    if (!info->has_style("pair", "reaxff")) GTEST_SKIP();
+    if (!info->has_style("fix", "reaxff/species")) GTEST_SKIP();
 
-        // one column with the number of molecules for each species
-        ASSERT_EQ((int)head.size(), 4 + nspec);
-        ASSERT_EQ((int)data.size(), 3 + nspec);
+    const std::string outfile = "test_reaxff_species_off.tmp";
+    delete_file(outfile);
 
-        std::map<std::string, int> species;
-        int summole = 0;
-        int sumatom = 0;
-        for (int k = 0; k < nspec; ++k) {
-            const std::string name = head[4 + k];
-            const int count        = std::stoi(data[3 + k]);
-            EXPECT_GT(count, 0);
-            const int size = formula_atoms(name);
-            EXPECT_GT(size, 0) << "not a valid chemical formula: " << name;
-            summole += count;
-            sumatom += count * size;
-            species[name] = count;
-        }
+    // when the run does not start on a multiple of Nfreq, the analysis must
+    // still happen only on multiples of Nfreq and only with complete averages:
+    // the averaging starts on step 6, so step 5 has no data and step 10 does.
+    BEGIN_CAPTURE_OUTPUT();
+    command("reset_timestep 3");
+    command("fix species all reaxff/species 1 5 5 " + outfile);
+    command("run 10 post no");
+    auto output = END_CAPTURE_OUTPUT();
 
-        // the molecule counts of the individual species add up to the total
-        // number of molecules and the atoms of all molecules to all atoms
-        EXPECT_EQ(summole, nmole);
-        EXPECT_EQ(sumatom, natoms);
-
-        // the four water molecules and the two hydrogen molecules must be
-        // recognized as such and stay intact for the duration of the run
-        EXPECT_EQ(nspec, 2);
-        EXPECT_EQ(nmole, num_water + num_hydrogen);
-        EXPECT_EQ(species["H2O"], num_water);
-        EXPECT_EQ(species["H2"], num_hydrogen);
-    }
-
+    EXPECT_THAT(output, ContainsRegex("WARNING: Fix reaxff/species[/a-z]* has no averaged "
+                                      "bond-order data on step 5"));
+    check_species_file(outfile, {10});
     delete_file(outfile);
 }
 

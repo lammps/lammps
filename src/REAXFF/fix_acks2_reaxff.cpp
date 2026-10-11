@@ -84,7 +84,9 @@ FixACKS2ReaxFF::FixACKS2ReaxFF(LAMMPS *lmp, int narg, char **arg) :
   if (lmp->citeme) lmp->citeme->add(cite_fix_acks2_reax);
 
   if (dual_enabled)
-    error->all(FLERR, Error::NOLASTLINE, "Dual keyword only supported with fix qeq/reax/omp");
+    error->all(FLERR, Error::NOLASTLINE, "Dual keyword is not supported by fix {}", style);
+  if (matrix_free && (comm->me == 0))
+    error->warning(FLERR, "Keyword matfree is not supported by fix {} and is ignored", style);
 }
 
 /* ---------------------------------------------------------------------- */

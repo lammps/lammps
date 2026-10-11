@@ -425,79 +425,91 @@ void FixACKS2ReaxFF::init_matvec()
 
 void FixACKS2ReaxFF::compute_X() // NOLINT
 {
-  int jnum;
-  int i, j, ii, jj, flag;
-  double dx, dy, dz, r_sqr;
-  constexpr double SMALL = 0.0001;
-
-  int *type = atom->type;
-  tagint *tag = atom->tag;
-  double **x = atom->x;
-  int *mask = atom->mask;
-
   memset(X_diag,0,atom->nmax*sizeof(double));
 
-  // fill in the X matrix
-  m_fill = 0;
-  r_sqr = 0;
-  for (ii = 0; ii < nn; ii++) {
-    i = ilist[ii];
-    if (mask[i] & groupbit) {
-      jlist = firstneigh[i];
-      jnum = numneigh[i];
-      X.firstnbr[i] = m_fill;
+  compute_X_offsets();
+  for (int ii = 0; ii < nn; ii++) compute_X_row(ii, X_diag);
+}
 
-      for (jj = 0; jj < jnum; jj++) {
-        j = jlist[jj];
-        j &= NEIGHMASK;
+/* ----------------------------------------------------------------------
+   the rows of the X matrix start at the same offsets as those of the H
+   matrix, so that they can be filled independently from each other
+------------------------------------------------------------------------- */
 
-        dx = x[j][0] - x[i][0];
-        dy = x[j][1] - x[i][1];
-        dz = x[j][2] - x[i][2];
-        r_sqr = SQR(dx) + SQR(dy) + SQR(dz);
+void FixACKS2ReaxFF::compute_X_offsets()
+{
+  int offset = 0;
+  for (int ii = 0; ii < nn; ii++) {
+    const int i = ilist[ii];
+    X.firstnbr[i] = offset;
+    offset += numneigh[i];
+  }
+  if (offset >= X.m)
+    error->one(FLERR, Error::NOLASTLINE,
+               "Fix {} has insufficient ACKS2 X matrix size: m_fill={} X.m={}\n",
+               style, offset, X.m);
+}
 
-        flag = 0;
-        if (r_sqr <= SQR(swb)) {
-          if (j < atom->nlocal) flag = 1;
-          else if (tag[i] < tag[j]) flag = 1;
-          else if (tag[i] == tag[j]) {
-            if (dz > SMALL) flag = 1;
-            else if (fabs(dz) < SMALL) {
-              if (dy > SMALL) flag = 1;
-              else if (fabs(dy) < SMALL && dx > SMALL)
-                flag = 1;
-            }
-          }
-        }
+/* ----------------------------------------------------------------------
+   fill in the row of the X matrix for atom ilist[ii] and accumulate its
+   contributions to the diagonal of the X matrix in xdiag.  the X matrix
+   only couples atoms in the fix group.
+------------------------------------------------------------------------- */
 
-        // the X matrix only couples atoms in the group
-        if (flag && (mask[j] & groupbit)) {
-          double bcutoff = bcut[type[i]][type[j]];
-          double bcutoff2 = bcutoff*bcutoff;
-          if (r_sqr <= bcutoff2) {
-            // check before writing past the end of the matrix
-            if (m_fill >= X.m)
-              error->one(FLERR, Error::NOLASTLINE,
-                         "Fix {} has insufficient ACKS2 X matrix size: m_fill={} X.m={}\n",
-                         style, m_fill, X.m);
-            X.jlist[m_fill] = j;
-            double X_val = calculate_X(sqrt(r_sqr), bcutoff);
-            X.val[m_fill] = X_val;
-            X_diag[i] -= X_val;
-            X_diag[j] -= X_val;
-            m_fill++;
+void FixACKS2ReaxFF::compute_X_row(int ii, double *xdiag)
+{
+  constexpr double SMALL = 0.0001;
+
+  const int *type = atom->type;
+  const tagint *tag = atom->tag;
+  const double *const *x = atom->x;
+  const int *mask = atom->mask;
+  const int nlocal = atom->nlocal;
+
+  const int i = ilist[ii];
+  int mfill = X.firstnbr[i];
+
+  if (mask[i] & groupbit) {
+    const int *jlist_i = firstneigh[i];
+    const int jnum = numneigh[i];
+
+    for (int jj = 0; jj < jnum; jj++) {
+      const int j = jlist_i[jj] & NEIGHMASK;
+
+      const double dx = x[j][0] - x[i][0];
+      const double dy = x[j][1] - x[i][1];
+      const double dz = x[j][2] - x[i][2];
+      const double r_sqr = SQR(dx) + SQR(dy) + SQR(dz);
+
+      int flag = 0;
+      if (r_sqr <= SQR(swb)) {
+        if (j < nlocal) flag = 1;
+        else if (tag[i] < tag[j]) flag = 1;
+        else if (tag[i] == tag[j]) {
+          if (dz > SMALL) flag = 1;
+          else if (fabs(dz) < SMALL) {
+            if (dy > SMALL) flag = 1;
+            else if (fabs(dy) < SMALL && dx > SMALL)
+              flag = 1;
           }
         }
       }
 
-      X.numnbrs[i] = m_fill - X.firstnbr[i];
+      if (flag && (mask[j] & groupbit)) {
+        double bcutoff = bcut[type[i]][type[j]];
+        double bcutoff2 = bcutoff*bcutoff;
+        if (r_sqr <= bcutoff2) {
+          X.jlist[mfill] = j;
+          double X_val = calculate_X(sqrt(r_sqr), bcutoff);
+          X.val[mfill] = X_val;
+          xdiag[i] -= X_val;
+          xdiag[j] -= X_val;
+          mfill++;
+        }
+      }
     }
   }
-
-  if (m_fill >= X.m)
-    error->one(FLERR, Error::NOLASTLINE,
-               "Fix {} has insufficient ACKS2 X matrix size: m_fill={} X.m={}\n",
-               style, m_fill, X.m);
+  X.numnbrs[i] = mfill - X.firstnbr[i];
 }
 
 /* ---------------------------------------------------------------------- */

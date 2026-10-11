@@ -73,6 +73,8 @@ class FixACKS2ReaxFF : public FixQEqReaxFF {
 
   void init_matvec() override;
   void compute_X();    // NOLINT
+  void compute_X_offsets();
+  void compute_X_row(int, double *);
   double calculate_X(double, double);
   void calculate_Q() override;
 

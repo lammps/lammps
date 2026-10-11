@@ -148,6 +148,8 @@ class FixQEqReaxFF : public Fix {
   virtual void init_matvec();
   void init_H();
   virtual void compute_H();
+  void compute_H_offsets();
+  void compute_H_row(int);
   double calculate_H(double, double);
   virtual void calculate_Q();
 

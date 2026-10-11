@@ -1001,72 +1001,88 @@ void FixQEqReaxFF::init_matvec()
 
 void FixQEqReaxFF::compute_H()
 {
-  int jnum;
-  int i, j, ii, jj, flag;
-  double dx, dy, dz, r_sqr;
+  compute_H_offsets();
+  for (int ii = 0; ii < nn; ii++) compute_H_row(ii);
+}
+
+/* ----------------------------------------------------------------------
+   the rows of the H matrix start at offsets from the number of neighbors,
+   so that they can be filled independently from each other.  reallocate
+   the matrix when the neighbor lists have grown beyond its capacity.
+------------------------------------------------------------------------- */
+
+void FixQEqReaxFF::compute_H_offsets()
+{
+  bigint total = 0;
+  for (int ii = 0; ii < nn; ii++) total += numneigh[ilist[ii]];
+  if (total >= H.m) reallocate_matrix();
+  if (total >= H.m)
+    error->one(FLERR, Error::NOLASTLINE, "Fix {} H matrix size has been exceeded: m_fill={} H.m={}\n",
+               style, total, H.m);
+
+  int offset = 0;
+  for (int ii = 0; ii < nn; ii++) {
+    const int i = ilist[ii];
+    H.firstnbr[i] = offset;
+    offset += numneigh[i];
+  }
+  m_fill = offset;
+}
+
+/* ----------------------------------------------------------------------
+   fill in the row of the H matrix for atom ilist[ii].  atoms outside the fix
+   group keep their charge, but contribute to the electrostatic potential at
+   the atoms in the group.  with a half neighbor list, a pair of a group atom
+   and a non-group atom may be listed with either one, so rows are also built
+   for non-group atoms, but only with their neighbors in the group.
+------------------------------------------------------------------------- */
+
+void FixQEqReaxFF::compute_H_row(int ii)
+{
   constexpr double EPSILON = 0.0001;
 
-  int *type = atom->type;
-  tagint *tag = atom->tag;
-  double **x = atom->x;
-  int *mask = atom->mask;
+  const int *type = atom->type;
+  const tagint *tag = atom->tag;
+  const double *const *x = atom->x;
+  const int *mask = atom->mask;
+  const int nlocal = atom->nlocal;
 
-  // fill in the H matrix.  atoms outside the fix group keep their charge, but
-  // contribute to the electrostatic potential at the atoms in the group.  with
-  // a half neighbor list, a pair of a group atom and a non-group atom may be
-  // listed with either one, so rows are also built for non-group atoms, but
-  // only with their neighbors in the group.
+  const int i = ilist[ii];
+  const bool igroup = mask[i] & groupbit;
+  const int *jlist_i = firstneigh[i];
+  const int jnum = numneigh[i];
+  int mfill = H.firstnbr[i];
 
-  m_fill = 0;
-  r_sqr = 0;
-  for (ii = 0; ii < nn; ii++) {
-    i = ilist[ii];
-    const bool igroup = mask[i] & groupbit;
-    jlist = firstneigh[i];
-    jnum = numneigh[i];
-    H.firstnbr[i] = m_fill;
+  for (int jj = 0; jj < jnum; jj++) {
+    const int j = jlist_i[jj] & NEIGHMASK;
+    if (!igroup && !(mask[j] & groupbit)) continue;
 
-    for (jj = 0; jj < jnum; jj++) {
-      j = jlist[jj];
-      j &= NEIGHMASK;
-      if (!igroup && !(mask[j] & groupbit)) continue;
+    const double dx = x[j][0] - x[i][0];
+    const double dy = x[j][1] - x[i][1];
+    const double dz = x[j][2] - x[i][2];
+    const double r_sqr = SQR(dx) + SQR(dy) + SQR(dz);
 
-      dx = x[j][0] - x[i][0];
-      dy = x[j][1] - x[i][1];
-      dz = x[j][2] - x[i][2];
-      r_sqr = SQR(dx) + SQR(dy) + SQR(dz);
-
-      flag = 0;
-      if (r_sqr <= SQR(swb)) {
-        if (j < atom->nlocal) flag = 1;
-        else if (tag[i] < tag[j]) flag = 1;
-        else if (tag[i] == tag[j]) {
-          if (dz > EPSILON) flag = 1;
-          else if (fabs(dz) < EPSILON) {
-            if (dy > EPSILON) flag = 1;
-            else if (fabs(dy) < EPSILON && dx > EPSILON)
-              flag = 1;
-          }
+    int flag = 0;
+    if (r_sqr <= SQR(swb)) {
+      if (j < nlocal) flag = 1;
+      else if (tag[i] < tag[j]) flag = 1;
+      else if (tag[i] == tag[j]) {
+        if (dz > EPSILON) flag = 1;
+        else if (fabs(dz) < EPSILON) {
+          if (dy > EPSILON) flag = 1;
+          else if (fabs(dy) < EPSILON && dx > EPSILON)
+            flag = 1;
         }
       }
-
-      if (flag) {
-        // check before writing past the end of the matrix
-        if (m_fill >= H.m)
-          error->one(FLERR, Error::NOLASTLINE,
-                     "Fix {} H matrix size has been exceeded: m_fill={} H.m={}\n",
-                     style, m_fill, H.m);
-        H.jlist[m_fill] = j;
-        H.val[m_fill] = calculate_H(sqrt(r_sqr), shld[type[i]][type[j]]);
-        m_fill++;
-      }
     }
-    H.numnbrs[i] = m_fill - H.firstnbr[i];
-  }
 
-  if (m_fill >= H.m)
-    error->one(FLERR, Error::NOLASTLINE, "Fix {} H matrix size has been exceeded: m_fill={} H.m={}\n",
-               style, m_fill, H.m);
+    if (flag) {
+      H.jlist[mfill] = j;
+      H.val[mfill] = calculate_H(sqrt(r_sqr), shld[type[i]][type[j]]);
+      mfill++;
+    }
+  }
+  H.numnbrs[i] = mfill - H.firstnbr[i];
 }
 
 /* ---------------------------------------------------------------------- */

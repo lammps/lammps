@@ -94,93 +94,12 @@ void FixQEqReaxFFOMP::deallocate_storage()
 
 void FixQEqReaxFFOMP::compute_H()
 {
-  double SMALL = 0.0001;
-
-  int *type = atom->type;
-  tagint * tag = atom->tag;
-  double **x = atom->x;
-  int *mask = atom->mask;
-
-  int ai, num_nbrs;
-
-  // sumscan of the number of neighbors per atom to determine the offsets
-  // most likely, we are overallocating. desirable to work on this part
-  // to reduce the memory footprint of the far_nbrs list.
-
-  num_nbrs = 0;
-
-  for (int itr_i = 0; itr_i < nn; ++itr_i) {
-    ai = ilist[itr_i];
-    H.firstnbr[ai] = num_nbrs;
-    num_nbrs += numneigh[ai];
-  }
-  m_fill = num_nbrs;
-
-  // check before filling the matrix to avoid writing past its end
-
-  if (m_fill >= H.m)
-    error->one(FLERR,  Error::NOLASTLINE,
-               "Fix {}: H matrix size has been exceeded: m_fill={} H.m={}\n",
-               style, m_fill, H.m);
-
-  // fill in the H matrix
+  compute_H_offsets();
 
 #if defined(_OPENMP)
-#pragma omp parallel default(shared)
+#pragma omp parallel for schedule(guided)
 #endif
-  {
-    int  mfill, jnum, flag;
-    int *jlist;
-    double dx, dy, dz, r_sqr;
-
-    mfill = 0;
-
-#if defined(_OPENMP)
-#pragma omp for schedule(guided)
-#endif
-    for (int ii = 0; ii < nn; ii++) {
-      int i = ilist[ii];
-      const bool igroup = mask[i] & groupbit;
-      jlist = firstneigh[i];
-      jnum = numneigh[i];
-      mfill = H.firstnbr[i];
-
-      // atoms outside the fix group act as fixed charges and only need
-      // the matrix elements with their neighbors in the group
-
-      for (int jj = 0; jj < jnum; jj++) {
-        int j = jlist[jj];
-        j &= NEIGHMASK;
-        if (!igroup && !(mask[j] & groupbit)) continue;
-
-        dx = x[j][0] - x[i][0];
-        dy = x[j][1] - x[i][1];
-        dz = x[j][2] - x[i][2];
-        r_sqr = SQR(dx) + SQR(dy) + SQR(dz);
-
-        flag = 0;
-        if (r_sqr <= SQR(swb)) {
-          if (j < atom->nlocal) flag = 1;
-          else if (tag[i] < tag[j]) flag = 1;
-          else if (tag[i] == tag[j]) {
-            if (dz > SMALL) flag = 1;
-            else if (fabs(dz) < SMALL) {
-              if (dy > SMALL) flag = 1;
-              else if (fabs(dy) < SMALL && dx > SMALL) flag = 1;
-            }
-          }
-        }
-
-        if (flag) {
-          H.jlist[mfill] = j;
-          H.val[mfill] = calculate_H(sqrt(r_sqr), shld[type[i]][type[j]]);
-          mfill++;
-        }
-      }
-
-      H.numnbrs[i] = mfill - H.firstnbr[i];
-    }
-  } // omp
+  for (int ii = 0; ii < nn; ii++) compute_H_row(ii);
 }
 
 /* ---------------------------------------------------------------------- */

@@ -363,7 +363,7 @@ void PairReaxFFKokkos<DeviceType>::setup()
   // bond order cutoffs
   bo_cut = static_cast<KK_FLOAT>(0.01 * gp[29]);
   thb_cut = static_cast<KK_FLOAT>(api->control->thb_cut);
-  thb_cutsq = static_cast<KK_FLOAT>(0.000010); //thb_cut*thb_cut;
+  thb_cutsq = static_cast<KK_FLOAT>(api->control->thb_cutsq);
 
   // misc precision conversions
   C_ele_reduced = static_cast<KK_FLOAT>(C_ele);

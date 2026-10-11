@@ -40,6 +40,7 @@
 #include "citeme.h"
 #include "comm.h"
 #include "error.h"
+#include "fix_acks2_reaxff.h"
 #include "fix_reaxff.h"
 #include "force.h"
 #include "memory.h"
@@ -121,7 +122,7 @@ void PairReaxFFOMP::init_style()
 
   api->system->acks2_flag = acks2_fixes.size();
   if (api->system->acks2_flag)
-    error->all(FLERR, Error::NOLASTLINE, "Cannot (yet) use ACKS2 with OPENMP ReaxFF");
+    api->workspace->s = (dynamic_cast<FixACKS2ReaxFF *>(acks2_fixes.front()))->get_s();
 
   api->system->n = atom->nlocal; // my atoms
   api->system->N = atom->nlocal + atom->nghost; // mine + ghosts
@@ -238,6 +239,11 @@ void PairReaxFFOMP::compute(int eflag, int vflag)
   api->system->n = atom->nlocal; // my atoms
   api->system->N = atom->nlocal + atom->nghost; // mine + ghosts
   const int nall = api->system->N;
+
+  if (api->system->acks2_flag) {
+    auto *ifix = modify->get_fix_by_style("^acks2/reax").front();
+    api->workspace->s = (dynamic_cast<FixACKS2ReaxFF*>(ifix))->get_s();
+  }
 
 #if defined(_OPENMP)
 #pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(eflag,vflag)

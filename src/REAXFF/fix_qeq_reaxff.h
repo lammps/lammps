@@ -183,6 +183,8 @@ class FixQEqReaxFF : public Fix {
   virtual void update_chi();
   virtual void calc_chi_eff();
   void prepare_efield_phi();
+  void set_efield_phi();
+  bool efield_has_variables() const;
   double efield_phi(int) const;
   double chi_eff_one(int) const;
 

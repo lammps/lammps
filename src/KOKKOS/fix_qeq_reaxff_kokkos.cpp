@@ -71,6 +71,9 @@ FixQEqReaxFFKokkos(LAMMPS *lmp, int narg, char **arg) :
   nexchange = 2*nprev + 2*xl.nhist;
   maxexchange = nexchange;
   xl_restart = 0;
+  chi_eff_flag = (chi_mode != QEQ) ? 1 : 0;
+  efield_flag = 0;
+  phi_factor = 0.0;
 
   memory->destroy(s_hist);
   memory->destroy(t_hist);
@@ -96,6 +99,7 @@ FixQEqReaxFFKokkos<DeviceType>::~FixQEqReaxFFKokkos()
   memoryKK->destroy_kokkos(k_xls_hist,xls_hist);
   memoryKK->destroy_kokkos(k_xlt_hist,xlt_hist);
   memoryKK->destroy_kokkos(k_chi_field,chi_field);
+  memoryKK->destroy_kokkos(k_chi_eff,chi_eff);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -115,6 +119,32 @@ void FixQEqReaxFFKokkos<DeviceType>::init()
                            !std::is_same_v<DeviceType,LMPDeviceType>);
   request->set_kokkos_device(std::is_same_v<DeviceType,LMPDeviceType>);
   if (neighflag == FULL) request->enable_full();
+
+  // the full neighbor list for the overlap integrals of the QTPIE and QEQREL
+  // modes and the overlap integral factors on the device
+
+  if (chi_eff_flag) {
+    auto request_olap = neighbor->find_request(this, 1);
+    request_olap->set_kokkos_host(std::is_same_v<DeviceType,LMPHostType> &&
+                                  !std::is_same_v<DeviceType,LMPDeviceType>);
+    request_olap->set_kokkos_device(std::is_same_v<DeviceType,LMPDeviceType>);
+
+    const int ntypes = atom->ntypes;
+    k_olap_pre = DAT::tdual_double_2d("qeq/kk:olap_pre",ntypes+1,ntypes+1);
+    k_olap_exp = DAT::tdual_double_2d("qeq/kk:olap_exp",ntypes+1,ntypes+1);
+    for (int i = 1; i <= ntypes; i++) {
+      for (int j = 1; j <= ntypes; j++) {
+        k_olap_pre.view_host()(i,j) = prefactor[i][j];
+        k_olap_exp.view_host()(i,j) = expfactor[i][j];
+      }
+    }
+    k_olap_pre.modify_host();
+    k_olap_exp.modify_host();
+    k_olap_pre.template sync<DeviceType>();
+    k_olap_exp.template sync<DeviceType>();
+    d_olap_pre = k_olap_pre.template view<DeviceType>();
+    d_olap_exp = k_olap_exp.template view<DeviceType>();
+  }
 
   int ntypes = atom->ntypes;
   k_params = Kokkos::DualView<params_qeq*,Kokkos::LayoutRight,DeviceType>
@@ -285,7 +315,7 @@ void FixQEqReaxFFKokkos<DeviceType>::pre_force(int /*vflag*/)
 
   // init_matvec
 
-  if (efield) get_chi_field();
+  update_chi_kokkos();
 
   // in extended-Lagrangian mode, solve with a fixed small number of CG
   // iterations seeded from the auxiliary variables, once they are available
@@ -406,11 +436,17 @@ void FixQEqReaxFFKokkos<DeviceType>::allocate_array()
 
     memoryKK->create_kokkos(k_chi_field,chi_field,nmax,"qeq/kk:chi_field");
     d_chi_field = k_chi_field.template view<DeviceType>();
+
+    if (chi_eff_flag) {
+      memoryKK->grow_kokkos(k_chi_eff,chi_eff,nmax,"qeq/kk:chi_eff");
+      d_chi_eff = k_chi_eff.template view<DeviceType>();
+      vector_atom = chi_eff;
+    }
   }
 
   // init_storage
 
-  if (efield) get_chi_field();
+  update_chi_kokkos();
 
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagQEqZero>(0,nn),*this);
 }
@@ -427,7 +463,8 @@ void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqZero, const int &ii) const
 
   if (mask[i] & groupbit) {
     d_Hdia_inv[i] = static_cast<KK_FLOAT>(1.0) / params(itype).eta;
-    d_b_st(i,0) = -params(itype).chi - d_chi_field[i];
+    if (chi_eff_flag) d_b_st(i,0) = static_cast<KK_FLOAT>(-d_chi_eff[i]);
+    else d_b_st(i,0) = -params(itype).chi - d_chi_field[i];
     d_b_st(i,1) = -1.0;
     d_st(i,0) = 0.0;
     d_st(i,1) = 0.0;
@@ -454,7 +491,8 @@ void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqInitMatvec, const int &ii)
 
   if (mask[i] & groupbit) {
     d_Hdia_inv[i] = static_cast<KK_FLOAT>(1.0) / params(itype).eta;
-    d_b_st(i,0) = -params(itype).chi - d_chi_field[i];
+    if (chi_eff_flag) d_b_st(i,0) = static_cast<KK_FLOAT>(-d_chi_eff[i]);
+    else d_b_st(i,0) = -params(itype).chi - d_chi_field[i];
     d_b_st(i,1) = -1.0;
     if (xl_active) {
       // initial guess from the auxiliary variables of the XL propagation
@@ -1139,7 +1177,7 @@ int FixQEqReaxFFKokkos<DeviceType>::pack_forward_comm_kokkos(int n, DAT::tdual_i
   d_sendlist = k_sendlist.view<DeviceType>();
   d_buf = k_buf.view<DeviceType>();
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType, TagQEqPackForwardComm>(0,n),*this);
-  if (pack_flag == 3) return n;
+  if ((pack_flag == 3) || (pack_flag == 6)) return n;
   else return n*2;
 }
 
@@ -1161,6 +1199,8 @@ void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqPackForwardComm, const int
     d_buf[i*2+1] = static_cast<double>(d_st(j,1));
   } else if (pack_flag == 3)
     d_buf[i] = static_cast<double>(q[j]);
+  else if (pack_flag == 6)
+    d_buf[i] = static_cast<double>(d_chi_field[j]);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1190,6 +1230,8 @@ void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqUnpackForwardComm, const i
     d_st(i+first,1) = static_cast<KK_FLOAT>(d_buf[i*2+1]);
   } else if (pack_flag == 3)
     q[i + first] = static_cast<KK_FLOAT>(d_buf[i]);
+  else if (pack_flag == 6)
+    d_chi_field[i + first] = static_cast<KK_FLOAT>(d_buf[i]);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1218,9 +1260,12 @@ int FixQEqReaxFFKokkos<DeviceType>::pack_forward_comm(int n, int *list, double *
   } else if (pack_flag == 3) {
     atomKK->sync(Host,Q_MASK);
     for (m = 0; m < n; m++) buf[m] = atom->q[list[m]];
+  } else if (pack_flag == 6) {
+    k_chi_field.sync_host();
+    for (m = 0; m < n; m++) buf[m] = chi_field[list[m]];
   }
 
-  if (pack_flag == 3) return n;
+  if ((pack_flag == 3) || (pack_flag == 6)) return n;
   else return n*2;
 }
 
@@ -1251,6 +1296,10 @@ void FixQEqReaxFFKokkos<DeviceType>::unpack_forward_comm(int n, int first, doubl
     atomKK->sync(Host,Q_MASK);
     for (m = 0, i = first; m < n; m++, i++) atom->q[i] = buf[m];
     atomKK->modified(Host,Q_MASK);
+  } else if (pack_flag == 6) {
+    k_chi_field.sync_host();
+    for (m = 0, i = first; m < n; m++, i++) chi_field[i] = buf[m];
+    k_chi_field.modify_host();
   }
 }
 
@@ -1652,6 +1701,128 @@ int FixQEqReaxFFKokkos<DeviceType>::unpack_exchange(int nlocal, double *buf)
   }
 
   return n;
+}
+
+/* ---------------------------------------------------------------------- */
+
+/* ----------------------------------------------------------------------
+   update the electronegativity contributions for the current step
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixQEqReaxFFKokkos<DeviceType>::update_chi_kokkos()
+{
+  if (chi_mode == QEQ) {
+    if (efield) get_chi_field();
+  } else {
+    calc_chi_eff();
+  }
+}
+
+/* ----------------------------------------------------------------------
+   compute the effective electronegativities of the QTPIE and QEQREL modes
+   on the device, see FixQEqReaxFF::calc_chi_eff()
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+void FixQEqReaxFFKokkos<DeviceType>::calc_chi_eff()
+{
+  auto *k_list_olap = static_cast<NeighListKokkos<DeviceType>*>(list_olap);
+  d_numneigh_olap = k_list_olap->d_numneigh;
+  d_neighbors_olap = k_list_olap->d_neighbors;
+  d_ilist_olap = k_list_olap->d_ilist;
+  const int inum_olap = list_olap->inum;
+
+  // settings of the external electric potential.  atom-style variables are
+  // evaluated on the host, and the values of the ghost atoms are communicated
+
+  efield_flag = efield ? 1 : 0;
+  phi_factor = 1.0/force->qe2f;
+  if (efield_has_variables()) atomKK->sync(Host,X_MASK|MASK_MASK|TYPE_MASK|IMAGE_MASK|Q_MASK);
+  k_chi_field.sync_host();
+  set_efield_phi();
+  if (phi_atomstyle) {
+    k_chi_field.modify_host();
+    k_chi_field.template sync<DeviceType>();
+    pack_flag = 6;
+    k_chi_field.template modify<DeviceType>();
+    comm->forward_comm(this);
+    k_chi_field.template sync<DeviceType>();
+  }
+
+  // called from pre_force(), where copymode is already set
+
+  Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagQEqChiEff>(0,inum_olap),*this);
+
+  // the effective electronegativities are also a per-atom output on the host
+
+  k_chi_eff.template modify<DeviceType>();
+  k_chi_eff.sync_host();
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+// NOLINTNEXTLINE
+KOKKOS_INLINE_FUNCTION
+double FixQEqReaxFFKokkos<DeviceType>::efield_phi_k(int i) const
+{
+  if (phi_atomstyle) return static_cast<double>(d_chi_field[i]);
+  return -phi_factor * (static_cast<double>(x(i,0)) * phi_ex + static_cast<double>(x(i,1)) * phi_ey
+                        + static_cast<double>(x(i,2)) * phi_ez);
+}
+
+/* ---------------------------------------------------------------------- */
+
+template<class DeviceType>
+// NOLINTNEXTLINE
+KOKKOS_INLINE_FUNCTION
+void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqChiEff, const int &ii) const
+{
+  const int i = d_ilist_olap[ii];
+  const int itype = type(i);
+  const double chia = static_cast<double>(params(itype).chi);
+
+  if ((chi_mode == QEQREL) && !efield_flag) {
+    d_chi_eff[i] = chia;
+    return;
+  }
+
+  const double phia = efield_flag ? efield_phi_k(i) : 0.0;
+
+  // overlap integral of the orbital with itself
+  double sum_d = d_olap_pre(itype,itype);
+  double sum_n = (chi_mode == QEQREL) ? phia * sum_d : 0.0;
+
+  const double xi = static_cast<double>(x(i,0));
+  const double yi = static_cast<double>(x(i,1));
+  const double zi = static_cast<double>(x(i,2));
+  const int jnum = d_numneigh_olap[i];
+  for (int jj = 0; jj < jnum; ++jj) {
+    const int j = d_neighbors_olap(i,jj) & NEIGHMASK;
+    const double dx = xi - static_cast<double>(x(j,0));
+    const double dy = yi - static_cast<double>(x(j,1));
+    const double dz = zi - static_cast<double>(x(j,2));
+    const double dist_sq = dx*dx + dy*dy + dz*dz;
+
+    if (dist_sq < dist_cutoff_sq) {
+      const int jtype = type(j);
+
+      // overlap integral of two normalised 1s Gaussian type orbitals
+      const double overlap = d_olap_pre(itype,jtype) * exp(-d_olap_exp(itype,jtype) * dist_sq);
+
+      if (chi_mode == QEQREL)
+        sum_n += efield_phi_k(j) * overlap;
+      else if (efield_flag)
+        sum_n += (chia - static_cast<double>(params(jtype).chi) + scale * (phia - efield_phi_k(j))) * overlap;
+      else
+        sum_n += (chia - static_cast<double>(params(jtype).chi)) * overlap;
+      sum_d += overlap;
+    }
+  }
+
+  if (chi_mode == QEQREL) d_chi_eff[i] = chia + scale * (phia - sum_n / sum_d);
+  else d_chi_eff[i] = sum_n / sum_d;
 }
 
 /* ---------------------------------------------------------------------- */

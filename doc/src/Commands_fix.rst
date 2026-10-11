@@ -206,7 +206,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`qeq/point (o) <fix_qeq>`
    * :doc:`qeq/point/xlmd (o) <fix_qeq>`
    * :doc:`qeq/reaxff (ko) <fix_qeq_reaxff>`
-   * :doc:`qeq/rel/reaxff (o) <fix_qeq_rel_reaxff>`
+   * :doc:`qeq/rel/reaxff (ko) <fix_qeq_rel_reaxff>`
    * :doc:`qeq/shielded (o) <fix_qeq>`
    * :doc:`qeq/shielded/xlmd (o) <fix_qeq>`
    * :doc:`qeq/slater (o) <fix_qeq>`
@@ -214,7 +214,7 @@ parenthesis: g = GPU, i = INTEL, k = KOKKOS, o = OPENMP, t = OPT.
    * :doc:`qmmm <fix_qmmm>`
    * :doc:`qmmm/xtb <fix_qmmm_xtb>`
    * :doc:`qtb <fix_qtb>`
-   * :doc:`qtpie/reaxff (o) <fix_qtpie_reaxff>`
+   * :doc:`qtpie/reaxff (ko) <fix_qtpie_reaxff>`
    * :doc:`rattle <fix_shake>`
    * :doc:`reaxff/bonds (k) <fix_reaxff_bonds>`
    * :doc:`reaxff/species (k) <fix_reaxff_species>`

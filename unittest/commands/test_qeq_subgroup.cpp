@@ -261,10 +261,9 @@ TEST_F(QEqSubgroupTest, qtpie_reaxff)
         check_charges("qtpie/reaxff 1 0.0 10.0 1.0e-12 " + equal_file + " " + gauss_file +
                           " maxiter 1000",
                       ref_equalchi, 1.0e-10, sfx);
-        if (!using_accelerator())
-            check_charges("qtpie/reaxff 1 0.0 10.0 1.0e-12 " + equal_file + " " + gauss_file +
-                              " maxiter 1000 xlmd yes",
-                          ref_equalchi, 1.0e-10, sfx, 10);
+        check_charges("qtpie/reaxff 1 0.0 10.0 1.0e-12 " + equal_file + " " + gauss_file +
+                          " maxiter 1000 xlmd yes",
+                      ref_equalchi, 1.0e-10, sfx, 10);
     }
 }
 

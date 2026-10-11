@@ -1,10 +1,11 @@
 .. index:: fix qeq/rel/reaxff
+.. index:: fix qeq/rel/reaxff/kk
 .. index:: fix qeq/rel/reaxff/omp
 
 fix qeq/rel/reaxff command
 ==========================
 
-Accelerator Variants: *qeq/rel/reaxff/omp*
+Accelerator Variants: *qeq/rel/reaxff/kk*, *qeq/rel/reaxff/omp*
 
 Syntax
 """"""
@@ -24,11 +25,12 @@ Syntax
 
   .. parsed-literal::
 
-     keyword = *scale* or *dual* or *maxiter* or *nowarn* or *xlmd* or *xlcg* or *xldamp* or *xlkappa*
+     keyword = *scale* or *dual* or *maxiter* or *nowarn* or *matfree* or *xlmd* or *xlcg* or *xldamp* or *xlkappa*
        *scale* beta = set value of scaling factor *beta* (determines strength of electric polarization)
        *dual* = process S and T matrix in parallel (only for qeq/rel/reaxff/omp)
        *maxiter* N = limit the number of iterations to *N*
        *nowarn* = do not print a warning message if the maximum number of iterations is reached
+       *matfree* = use a matrix-free approach for applying the H matrix (only for qeq/rel/reaxff/kk)
        *xlmd* value = *yes* or *no* = whether or not to use the extended-Lagrangian propagation of the charges
        *xlcg*, *xldamp*, *xlkappa* = settings of the extended-Lagrangian propagation, see :doc:`fix qeq/reaxff <fix_qeq_reaxff>`
 
@@ -151,6 +153,14 @@ the maximum number of iterations is reached.  This can be useful for
 comparing serial and parallel results where having the same fixed number
 of iterations is desired, which can be achieved by using a very small
 tolerance and setting *maxiter* to the desired number of iterations.
+
+.. versionadded:: TBD
+
+The optional *matfree* keyword replaces the explicit construction of
+the H matrix with a matrix-free approach, where the matrix elements are
+computed again each time the matrix is applied.  This reduces the memory
+requirements at the cost of performance.  This is only supported for
+the *qeq/rel/reaxff/kk* style.
 
 .. versionadded:: TBD
 

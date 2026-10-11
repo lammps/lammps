@@ -1619,6 +1619,20 @@ void FixQEqReaxFF::calc_chi_eff()
 
 void FixQEqReaxFF::prepare_efield_phi()
 {
+  set_efield_phi();
+  if (phi_atomstyle) {
+    pack_flag = 6;
+    comm->forward_comm(this);
+  }
+}
+
+/* ----------------------------------------------------------------------
+   update the external electric field and store the potential of the local
+   atoms, if it is given by an atom-style variable
+------------------------------------------------------------------------- */
+
+void FixQEqReaxFF::set_efield_phi()
+{
   phi_ex = phi_ey = phi_ez = 0.0;
   phi_atomstyle = false;
   if (!efield) return;
@@ -1630,9 +1644,17 @@ void FixQEqReaxFF::prepare_efield_phi()
   if (efield->varflag == FixEfield::ATOM) {
     phi_atomstyle = true;
     for (int i = 0; i < atom->nlocal; ++i) chi_field[i] = efield->efield[i][3];
-    pack_flag = 6;
-    comm->forward_comm(this);
   }
+}
+
+/* ----------------------------------------------------------------------
+   true if the external electric field is given by variables, which are
+   evaluated with the per-atom data on the host
+------------------------------------------------------------------------- */
+
+bool FixQEqReaxFF::efield_has_variables() const
+{
+  return efield && (efield->varflag != FixEfield::CONSTANT);
 }
 
 /* ---------------------------------------------------------------------- */

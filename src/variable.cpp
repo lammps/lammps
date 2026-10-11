@@ -5601,7 +5601,7 @@ double Variable::evaluate_boolean(char *str)
 
   int i = 0;
   int expect = ARG;
-  auto errmsg = fmt::format(R"(Invalid boolean syntax in 'if "{}"' command)", str);
+  auto errmsg = fmt::format("Invalid boolean syntax in '{}' of if command", str);
 
   while (true) {
     onechar = str[i];
@@ -5770,7 +5770,7 @@ double Variable::evaluate_boolean(char *str)
         } else if (opprevious == NE) {
           if (flag1 != flag2)
             error->all(FLERR, Error::NOLASTLINE,
-                       "If command boolean is in '{}' comparing string to number", str);
+                       "If command boolean in '{}' is comparing string to number", str);
           if (flag2 == 0) {
             if (value1 != value2) argstack[nargstack].value = 1.0;
             else argstack[nargstack].value = 0.0;
@@ -5809,7 +5809,7 @@ double Variable::evaluate_boolean(char *str)
         } else if (opprevious == AND) {
           if (flag1 || flag2)
             error->all(FLERR, Error::NOLASTLINE,
-                       "If command boolean in '{}' an only operate on numbers", str);
+                       "If command boolean in '{}' can only operate on numbers", str);
           if (value1 != 0.0 && value2 != 0.0) argstack[nargstack].value = 1.0;
           else argstack[nargstack].value = 0.0;
         } else if (opprevious == OR) {
@@ -5849,7 +5849,7 @@ double Variable::evaluate_boolean(char *str)
   // error b/c invalid, only single number with no operator is allowed
 
   if (argstack[0].flag == 1)
-    error->all(FLERR, Error::NOLASTLINE, "If command boolean in 'if {}' cannot be single string", str);
+    error->all(FLERR, Error::NOLASTLINE, "If command boolean in '{}' cannot be single string", str);
 
   return argstack[0].value;
 }

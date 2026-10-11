@@ -110,7 +110,7 @@ void PairLJClass2SoftGapsys::compute(int eflag, int vflag)
       rsq = delx * delx + dely * dely + delz * delz;
       jtype = type[j];
 
-      cut_inner = alphalj * pow(26.0 * lambda[itype][jtype] / 7.0, 1.0 / 6.0) * sigma[itype][jtype];
+      cut_inner = alphalj * pow(100.0 * lambda[itype][jtype] / 49.0, 1.0 / 6.0) * sigma[itype][jtype];
 
       if (rsq < cut_inner * cut_inner) {
 
@@ -441,7 +441,7 @@ double PairLJClass2SoftGapsys::single(int /*i*/, int /*j*/, int itype, int jtype
   double r2inv, rinv, r3inv, r6inv, forcelj, philj;
 
   double cut_inner;
-  cut_inner = alphalj * pow(26.0 * lambda[itype][jtype] / 7.0, 1.0 / 6.0) * sigma[itype][jtype];
+  cut_inner = alphalj * pow(100.0 * lambda[itype][jtype] / 49.0, 1.0 / 6.0) * sigma[itype][jtype];
 
   if (rsq > cut_inner * cut_inner) {
 

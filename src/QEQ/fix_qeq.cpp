@@ -467,6 +467,9 @@ int FixQEq::CG(double *b, double *x)
   }
 
   b_norm = parallel_norm(b, inum);
+
+  // use the absolute residual when the right-hand side vanishes
+  if (b_norm == 0.0) b_norm = 1.0;
   sig_new = parallel_dot(r, d, inum);
 
   for (loop = 1; loop < imax && sqrt(sig_new)/b_norm > tolerance; ++loop) {

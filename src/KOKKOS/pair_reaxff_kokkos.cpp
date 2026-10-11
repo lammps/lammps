@@ -4372,7 +4372,9 @@ void PairReaxFFKokkos<DeviceType>::FindBondSpecies()
   k_error_flag.sync_host();
 
   if (k_error_flag.view_host()())
-    error->all(FLERR,"Increase MAXSPECBOND in reaxff_defs.h");
+    error->one(FLERR, Error::NOLASTLINE,
+               "Atom(s) with more than {} bonds for ReaxFF species analysis; "
+               "increase MAXSPECBOND in reaxff_defs.h", MAXSPECBOND);
 }
 
 template<class DeviceType>
@@ -4400,10 +4402,13 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxFindBondSpecies, const 
     KK_FLOAT bo_tmp = d_BO(i, j_index);
 
     if (bo_tmp >= 0.10) { // Why is this a hardcoded value?
+      if (nj >= MAXSPECBOND) {
+        k_error_flag.view<DeviceType>()() = 1;
+        return;
+      }
       d_tmpid(i,nj) = j;
       d_tmpbo(i,nj) = bo_tmp;
       nj++;
-      if (nj > MAXSPECBOND) k_error_flag.view<DeviceType>()() = 1;
     }
   }
 }

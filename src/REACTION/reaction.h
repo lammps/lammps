@@ -28,32 +28,22 @@ namespace LAMMPS_NS {
 static constexpr int MAXNAME = 256;                      // max character length of react-ID
 
 enum class Molecule_Keys { OFF, INTER, INTRA };          // values for molecule_keyword
-struct Reaction {
-  int ID;                                                // indexed from 0
+
+struct ReactionTemplate {
+  std::string name;                                      // name of reaction template
   class Molecule *reactant;                              // pre-reacted molecule template
   class Molecule *product;                               // post-reacted molecule template
-  std::string name, constraintstr;
-  std::string mapfilename;
-  int nevery, groupbits;
-  int iatomtype, jatomtype;
-  int ibonding, jbonding;
-  int closeneigh;                                        // indicates if bonding atoms of a rxn are 1-2, 1-3, or 1-4 neighbors
-  double rminsq, rmaxsq;
-  double fraction;
-  double mol_total_charge;                               // sum of charges of post-reaction atoms whose charges are updated
-  int reaction_count, reaction_count_total;
-  int local_rxn_count, ghostly_rxn_count;
-  int nlocalkeep, nghostlykeep;
-  int seed, limit_duration;
-  int stabilize_steps_flag;
-  int custom_charges_fragid;
+  int iatomtype, jatomtype;                              // initiator atom types
+  int ibonding, jbonding;                                // initiator atom IDs
+  int closeneigh;                                        // indicates if initiator atoms are 1-2, 1-3, or 1-4 neighbors
+  std::string constraintstr;                             // boolean logic for multiple constraints
+  std::string mapfilename;                               // name of the map file
+  int custom_charges_fragid;                             // molecule fragment defining which atomic charges to update
   int rescale_charges_flag;                              // if nonzero, indicates number of atoms whose charges are updated
-  int create_atoms_flag, modify_create_fragid;
-  double overlapsq;
-  Molecule_Keys molecule_keyword;
-  int v_nevery, v_rmin, v_rmax, v_prob;                  // ID of variable, -1 if static
+  double mol_total_charge;                               // sum of charges of post-reaction atoms whose charges are updated
   int nnewmolids;                                        // number of unique new molids needed for each reaction
-  std::vector<std::array<tagint, 2>> attempts;           // stores sim atom IDs of initiator atoms
+  int create_atoms_flag, modify_create_fragid;           // molecule fragment defining which atoms are created
+  double overlapsq;                                      // squared distance for overlap detection during atom creation
 
   struct ReactionAtomFlags {
     int edge;                                            // true if atom in molecule template has incorrect valency
@@ -85,7 +75,21 @@ struct Reaction {
     bool satisfied;
   };
   std::vector<Constraint> constraints;
+};
 
+struct Reaction : public ReactionTemplate {
+  int ID;                                                // indexed from 0
+  int nevery, groupbits;
+  double rminsq, rmaxsq;
+  double fraction;
+  int reaction_count, reaction_count_total;
+  int local_rxn_count, ghostly_rxn_count;
+  int nlocalkeep, nghostlykeep;
+  int seed, limit_duration;
+  int stabilize_steps_flag;
+  Molecule_Keys molecule_keyword;
+  int v_nevery, v_rmin, v_rmax, v_prob;                  // ID of variable, -1 if static
+  std::vector<std::array<tagint, 2>> attempts;           // stores sim atom IDs of initiator atoms
 };
 
 }    // namespace LAMMPS_NS

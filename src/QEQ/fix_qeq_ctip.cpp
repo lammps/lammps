@@ -260,6 +260,10 @@ void FixQEqCTIP::init_matvec()
       b_t[i]      = -1.0;
       t[i] = t_hist[i][2] + 3 * (t_hist[i][0] - t_hist[i][1]);
       s[i] = 4*(s_hist[i][0]+s_hist[i][2])-(6*s_hist[i][1]+s_hist[i][3]);
+    } else {
+      // atoms outside the group act as fixed charges on the s-solution only
+      s[i] = atom->q[i];
+      t[i] = 0.0;
     }
   }
 
@@ -287,37 +291,40 @@ void FixQEqCTIP::compute_H()
   numneigh = list->numneigh;
   firstneigh = list->firstneigh;
 
-  // fill in the H matrix
+  // fill in the H matrix.  atoms outside the fix group keep their charge, but
+  // contribute to the electrostatic potential at the atoms in the group.  each
+  // pair is stored with both atoms with half the matrix element, so rows are
+  // also built for non-group atoms, but only with their neighbors in the group.
   m_fill = 0;
   for (ii = 0; ii < inum; ii++) {
     i = ilist[ii];
-    if (mask[i] & groupbit) {
-      jlist = firstneigh[i];
-      jnum = numneigh[i];
-      H.firstnbr[i] = m_fill;
+    const bool igroup = mask[i] & groupbit;
+    jlist = firstneigh[i];
+    jnum = numneigh[i];
+    H.firstnbr[i] = m_fill;
 
-      for (jj = 0; jj < jnum; jj++) {
-        j = jlist[jj];
-        j &= NEIGHMASK;
+    for (jj = 0; jj < jnum; jj++) {
+      j = jlist[jj];
+      j &= NEIGHMASK;
+      if (!igroup && !(mask[j] & groupbit)) continue;
 
-        dx = x[j][0] - x[i][0];
-        dy = x[j][1] - x[i][1];
-        dz = x[j][2] - x[i][2];
-        r_sqr = dx*dx + dy*dy + dz*dz;
+      dx = x[j][0] - x[i][0];
+      dy = x[j][1] - x[i][1];
+      dz = x[j][2] - x[i][2];
+      r_sqr = dx*dx + dy*dy + dz*dz;
 
-        if (r_sqr <= cutoff_sq) {
-          H.jlist[m_fill] = j;
-          r = sqrt(r_sqr);
-          reff = cbrt(r_sqr * r + 1 / shieldcu[type[i]-1][type[j]-1]);
-          erfcd = exp(-cdamp * cdamp * r_sqr);
-          t = 1.0 / (1.0 + EWALD_P * cdamp * r);
-          erfcc = t * (A1 + t * (A2 + t * (A3 + t * (A4 + t * A5)))) * erfcd;
-          H.val[m_fill] = 0.5*force->qqr2e*(erfcc/r+1/reff-1/r-e_shift[type[i]-1][type[j]-1]+f_shift[type[i]-1][type[j]-1]*(r-cutoff)-s2d_shift[type[i]-1][type[j]-1]*0.5*(r-cutoff)*(r-cutoff));
-          m_fill++;
-        }
+      if (r_sqr <= cutoff_sq) {
+        H.jlist[m_fill] = j;
+        r = sqrt(r_sqr);
+        reff = cbrt(r_sqr * r + 1 / shieldcu[type[i]-1][type[j]-1]);
+        erfcd = exp(-cdamp * cdamp * r_sqr);
+        t = 1.0 / (1.0 + EWALD_P * cdamp * r);
+        erfcc = t * (A1 + t * (A2 + t * (A3 + t * (A4 + t * A5)))) * erfcd;
+        H.val[m_fill] = 0.5*force->qqr2e*(erfcc/r+1/reff-1/r-e_shift[type[i]-1][type[j]-1]+f_shift[type[i]-1][type[j]-1]*(r-cutoff)-s2d_shift[type[i]-1][type[j]-1]*0.5*(r-cutoff)*(r-cutoff));
+        m_fill++;
       }
-      H.numnbrs[i] = m_fill - H.firstnbr[i];
     }
+    H.numnbrs[i] = m_fill - H.firstnbr[i];
   }
 
   if (m_fill >= H.m)
@@ -346,21 +353,21 @@ void FixQEqCTIP::sparse_matvec(sparse_matrix *A, double *x, double *b)
       } else {
         b[i] = (eta[type[i]]+2*omega[type[i]]-s2d_self[type[i]-1])*x[i];
       }
+    } else {
+      b[i] = 0.0;
     }
   }
 
   for (i = nlocal; i < nall; ++i) {
-    if (atom->mask[i] & groupbit)
-      b[i] = 0;
+    b[i] = 0.0;
   }
 
   for (i = 0; i < nlocal; ++i) {
-    if (atom->mask[i] & groupbit) {
-      for (itr_j=A->firstnbr[i]; itr_j<A->firstnbr[i]+A->numnbrs[i]; itr_j++) {
-        j = A->jlist[itr_j];
-        b[i] += A->val[itr_j] * x[j];
-        b[j] += A->val[itr_j] * x[i];
-      }
+    // include the rows of atoms outside the group for their fixed charges
+    for (itr_j=A->firstnbr[i]; itr_j<A->firstnbr[i]+A->numnbrs[i]; itr_j++) {
+      j = A->jlist[itr_j];
+      b[i] += A->val[itr_j] * x[j];
+      b[j] += A->val[itr_j] * x[i];
     }
   }
 

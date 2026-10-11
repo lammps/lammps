@@ -17,6 +17,14 @@
    (now at Lawrence Berkeley National Laboratory, hmaktulga@lbl.gov)
 
      Hybrid and sub-group capabilities: Ray Shan (Sandia)
+
+     QTPIE (fix qtpie/reaxff):
+       Efstratios M Kritikos, California Institute of Technology
+       (Implemented original version in LAMMMPS Aug 2019)
+       Navraj S Lalli, Imperial College London (navrajsinghlalli@gmail.com)
+       (Reimplemented QTPIE as a new fix in LAMMPS Aug 2024 and extended functionality)
+     QEq with relative electric potentials (fix qeq/rel/reaxff):
+       Navraj S Lalli, Imperial College London (navrajsinghlalli@gmail.com)
 ------------------------------------------------------------------------- */
 
 #include "fix_qeq_reaxff.h"
@@ -52,6 +60,7 @@ using namespace FixConst;
 static constexpr double EV_TO_KCAL_PER_MOL = 14.4;
 static constexpr double SMALL = 1.0e-14;
 static constexpr double QSUMSMALL = 0.00001;
+static constexpr double ANGSTROM_TO_BOHRRADIUS_SQ = 3.571064831;
 
 static const char cite_fix_qeq_reaxff[] =
   "fix qeq/reaxff command: https://doi.org/10.1016/j.parco.2011.08.005\n\n"
@@ -64,27 +73,61 @@ static const char cite_fix_qeq_reaxff[] =
   " pages =   {245--259}\n"
   "}\n\n";
 
+static const char cite_fix_qtpie_reaxff[] =
+  "fix qtpie/reaxff command: \n\n"
+  "@Article{Kritikos20,\n"
+  " author = {E. Kritikos and A. Giusti},\n"
+  " title = {Reactive Molecular Dynamics Investigation of Toluene Oxidation under Electrostatic Fields: Effect of the Modeling of Local Charge Distribution},\n"
+  " journal = {The Journal of Physical Chemistry A},\n"
+  " volume = {124},\n"
+  " number = {51},\n"
+  " pages = {10705--10716},\n"
+  " year = {2020},\n"
+  " publisher = {ACS Publications}\n"
+  "}\n\n";
+
 /* ---------------------------------------------------------------------- */
 
 FixQEqReaxFF::FixQEqReaxFF(LAMMPS *lmp, int narg, char **arg) :
     Fix(lmp, narg, arg), matvecs(0), list(nullptr), efield(nullptr), ilist(nullptr),
     numneigh(nullptr), firstneigh(nullptr), chi(nullptr), eta(nullptr), gamma(nullptr),
-    pertype_option(nullptr)
+    chi_eff(nullptr), pertype_option(nullptr), gauss_file(nullptr), gauss_exp(nullptr),
+    prefactor(nullptr), expfactor(nullptr)
 {
   scalar_flag = 1;
   extscalar = 0;
   imax = 200;
   maxwarn = 1;
+  scale = 1.0;
+  dist_cutoff_sq = 0.0;
 
-  if ((narg < 8) || (narg > 12)) error->all(FLERR,"Illegal fix qeq/reaxff command");
+  // the fix style selects how the electronegativities are determined.  the
+  // QTPIE and QEQREL modes need a file with gaussian orbital exponents and
+  // provide the effective electronegativities as a per-atom vector
+
+  if (utils::strmatch(style, "^qtpie/reax"))
+    chi_mode = QTPIE;
+  else if (utils::strmatch(style, "^qeq/rel/reax"))
+    chi_mode = QEQREL;
+  else
+    chi_mode = QEQ;
+  const int nfixed = (chi_mode == QEQ) ? 8 : 9;
+
+  if (narg < nfixed) utils::missing_cmd_args(FLERR, std::string("fix ") + style, error);
 
   nevery = utils::inumeric(FLERR,arg[3],false,lmp);
-  if (nevery <= 0) error->all(FLERR,"Illegal fix qeq/reaxff command");
+  if (nevery <= 0) error->all(FLERR, 3, "Illegal fix {} command", style);
 
   swa = utils::numeric(FLERR,arg[4],false,lmp);
   swb = utils::numeric(FLERR,arg[5],false,lmp);
   tolerance = utils::numeric(FLERR,arg[6],false,lmp);
   pertype_option = utils::strdup(arg[7]);
+
+  if (chi_mode != QEQ) {
+    gauss_file = utils::strdup(arg[8]);
+    peratom_flag = 1;
+    size_peratom_cols = 0;
+  }
 
   // dual CG support only available for OPENMP variant
   // check for compatibility is in Fix::post_constructor()
@@ -95,7 +138,7 @@ FixQEqReaxFF::FixQEqReaxFF(LAMMPS *lmp, int narg, char **arg) :
   // matrix-free support only available for Kokkos backend
   matrix_free = 0; // default to false
 
-  int iarg = 8;
+  int iarg = nfixed;
   while (iarg < narg) {
     if (strcmp(arg[iarg],"dual") == 0) dual_enabled = 1;
     else if (strcmp(arg[iarg],"nowarn") == 0) maxwarn = 0;
@@ -105,12 +148,17 @@ FixQEqReaxFF::FixQEqReaxFF(LAMMPS *lmp, int narg, char **arg) :
         error->all(FLERR, iarg, "Illegal fix {} command", style);
       imax = utils::inumeric(FLERR,arg[iarg+1],false,lmp);
       iarg++;
+    } else if ((chi_mode != QEQ) && (strcmp(arg[iarg],"scale") == 0)) {
+      if (iarg+1 > narg-1)
+        error->all(FLERR, iarg, "Illegal fix {} command", style);
+      scale = utils::numeric(FLERR,arg[iarg+1],false,lmp);
+      iarg++;
     } else error->all(FLERR, iarg, "Illegal fix {} command", style);
     iarg++;
   }
   shld = nullptr;
 
-  nn = n_cap = 0;
+  nn = nt = n_cap = 0;
   nmax = 0;
   m_fill = m_cap = 0;
   pack_flag = 0;
@@ -172,6 +220,7 @@ FixQEqReaxFF::~FixQEqReaxFF()
   if (copymode) return;
 
   delete[] pertype_option;
+  delete[] gauss_file;
 
   // unregister callbacks to this fix from Atom class
 
@@ -184,6 +233,9 @@ FixQEqReaxFF::~FixQEqReaxFF()
   FixQEqReaxFF::deallocate_matrix();
 
   memory->destroy(shld);
+  memory->destroy(gauss_exp);
+  memory->destroy(prefactor);
+  memory->destroy(expfactor);
 
   if (!reaxflag) {
     memory->destroy(chi);
@@ -196,13 +248,17 @@ FixQEqReaxFF::~FixQEqReaxFF()
 
 void FixQEqReaxFF::post_constructor()
 {
-  if (lmp->citeme) lmp->citeme->add(cite_fix_qeq_reaxff);
+  if (lmp->citeme) {
+    if (chi_mode == QEQ) lmp->citeme->add(cite_fix_qeq_reaxff);
+    else if (chi_mode == QTPIE) lmp->citeme->add(cite_fix_qtpie_reaxff);
+  }
 
   grow_arrays(atom->nmax);
   for (int i = 0; i < atom->nmax; i++)
     for (int j = 0; j < nprev; ++j)
       s_hist[i][j] = t_hist[i][j] = 0;
 
+  if (chi_mode != QEQ) read_gauss_file();
   pertype_parameters(pertype_option);
   if (dual_enabled && !dual_supported)
     error->all(FLERR, Error::NOLASTLINE, "Dual keyword only supported with fix qeq/reaxff/omp");
@@ -232,7 +288,7 @@ void FixQEqReaxFF::pertype_parameters(char *arg)
   if (utils::strmatch(arg,"^reaxff")) {
     reaxflag = 1;
     Pair *pair = force->pair_match("^reaxff",0);
-    if (!pair) error->all(FLERR, Error::NOLASTLINE, "No reaxff pair style for fix qeq/reaxff");
+    if (!pair) error->all(FLERR, Error::NOLASTLINE, "No reaxff pair style for fix {}", style);
 
     int tmp, tmp_all;
     chi = (double *) pair->extract("chi",tmp);
@@ -240,7 +296,7 @@ void FixQEqReaxFF::pertype_parameters(char *arg)
     gamma = (double *) pair->extract("gamma",tmp);
     if ((chi == nullptr) || (eta == nullptr) || (gamma == nullptr))
       error->all(FLERR, Error::NOLASTLINE,
-                 "Fix qeq/reaxff could not extract all QEq parameters from pair reaxff");
+                 "Fix {} could not extract all QEq parameters from pair reaxff", style);
     tmp = tmp_all = 0;
     for (int i = 0; i < nlocal; ++i) {
       if (mask[i] & groupbit) {
@@ -253,11 +309,12 @@ void FixQEqReaxFF::pertype_parameters(char *arg)
       error->all(FLERR, Error::NOLASTLINE, "No QEq parameters for atom type {} provided by pair reaxff", tmp_all);
     return;
   } else if (utils::strmatch(arg,"^reax/c")) {
-    error->all(FLERR, Error::NOLASTLINE, "Fix qeq/reaxff keyword 'reax/c' is obsolete; please use 'reaxff'");
+    error->all(FLERR, Error::NOLASTLINE, "Fix {} keyword 'reax/c' is obsolete; please use 'reaxff'",
+               style);
   } else if (platform::file_is_readable(arg)) {
     ; // arg is readable file. will read below
   } else {
-    error->all(FLERR, "Unknown fix qeq/reaxff keyword {}", arg);
+    error->all(FLERR, "Unknown fix {} keyword {}", style, arg);
   }
 
   reaxflag = 0;
@@ -270,20 +327,20 @@ void FixQEqReaxFF::pertype_parameters(char *arg)
   if (comm->me == 0) {
     chi[0] = eta[0] = gamma[0] = 0.0;
     try {
-      TextFileReader reader(arg,"qeq/reaxff parameter");
+      TextFileReader reader(arg, fmt::format("{} parameter", style));
       reader.ignore_comments = false;
       for (int i = 1; i <= ntypes; i++) {
         const char *line = reader.next_line();
         if (!line)
-          throw TokenizerException("Fix qeq/reaxff: Invalid param file format","");
+          throw TokenizerException(fmt::format("Fix {}: Invalid param file format", style), "");
         ValueTokenizer values(line);
 
         if (values.count() != 4)
-          throw TokenizerException("Fix qeq/reaxff: Incorrect format of param file","");
+          throw TokenizerException(fmt::format("Fix {}: Incorrect format of param file", style), "");
 
         int itype = values.next_int();
         if ((itype < 1) || (itype > ntypes))
-          throw TokenizerException("Fix qeq/reaxff: invalid atom type in param file",
+          throw TokenizerException(fmt::format("Fix {}: invalid atom type in param file", style),
                                    std::to_string(itype));
 
         chi[itype] = values.next_double();
@@ -300,6 +357,66 @@ void FixQEqReaxFF::pertype_parameters(char *arg)
   MPI_Bcast(gamma,ntypes+1,MPI_DOUBLE,0,world);
 }
 
+/* ----------------------------------------------------------------------
+   read the gaussian orbital exponents for the QTPIE and QEQREL modes
+------------------------------------------------------------------------- */
+
+void FixQEqReaxFF::read_gauss_file()
+{
+  const int ntypes = atom->ntypes;
+
+  memory->create(gauss_exp,ntypes+1,"qeq/reaxff:gauss_exp");
+  if (comm->me == 0) {
+    gauss_exp[0] = 0.0;
+    try {
+      FILE *fp = utils::open_potential(gauss_file, lmp, nullptr);
+      if (!fp)
+        throw TokenizerException(fmt::format("Fix {}: could not open gauss file", style),
+                                 gauss_file);
+      TextFileReader reader(fp, fmt::format("{} gaussian exponents", style));
+      reader.ignore_comments = true;
+      for (int i = 1; i <= ntypes; i++) {
+        const char *line = reader.next_line();
+        if (!line)
+          throw TokenizerException(
+              fmt::format("Fix {}: Incorrect number of atom types in gauss file", style), "");
+        ValueTokenizer values(line);
+
+        if (values.count() != 2)
+          throw TokenizerException(
+              fmt::format("Fix {}: Incorrect number of values per line in gauss file", style),
+              std::to_string(values.count()));
+
+        int itype = values.next_int();
+        if ((itype < 1) || (itype > ntypes))
+          throw TokenizerException(fmt::format("Fix {}: Invalid atom type in gauss file", style),
+                                   std::to_string(itype));
+
+        double exp = values.next_double();
+        if (exp < 0)
+          throw TokenizerException(
+              fmt::format("Fix {}: Invalid orbital exponent in gauss file", style),
+              std::to_string(exp));
+        gauss_exp[itype] = exp * ANGSTROM_TO_BOHRRADIUS_SQ;
+      }
+      fclose(fp);
+    } catch (std::exception &e) {
+      error->one(FLERR, Error::NOLASTLINE, e.what());
+    }
+  }
+
+  MPI_Bcast(gauss_exp,ntypes+1,MPI_DOUBLE,0,world);
+
+  // calculate a cutoff distance to neglect overlap integrals in calc_chi_eff()
+  // when less than pow(10, -olap_cut)
+
+  double exp_min = gauss_exp[1];
+  for (int i = 2; i <= ntypes; i++)
+    if (gauss_exp[i] < exp_min) exp_min = gauss_exp[i];
+  const int olap_cut = 10;
+  dist_cutoff_sq = 2 * olap_cut * log(10.0) / exp_min;
+}
+
 /* ---------------------------------------------------------------------- */
 
 void FixQEqReaxFF::allocate_storage()
@@ -312,6 +429,10 @@ void FixQEqReaxFF::allocate_storage()
   memory->create(Hdia_inv,nmax,"qeq:Hdia_inv");
   memory->create(b_s,nmax,"qeq:b_s");
   memory->create(chi_field,nmax,"qeq:chi_field");
+  if (chi_mode != QEQ) {
+    memory->create(chi_eff,nmax,"qeq:chi_eff");
+    vector_atom = chi_eff;
+  }
   memory->create(b_t,nmax,"qeq:b_t");
   memory->create(b_prc,nmax,"qeq:b_prc");
   memory->create(b_prm,nmax,"qeq:b_prm");
@@ -339,6 +460,7 @@ void FixQEqReaxFF::deallocate_storage()
   memory->destroy(b_prc);
   memory->destroy(b_prm);
   memory->destroy(chi_field);
+  memory->destroy(chi_eff);
 
   memory->destroy(p);
   memory->destroy(q);
@@ -465,16 +587,29 @@ void FixQEqReaxFF::init()
     if (efield->varflag == FixEfield::ATOM && efield->pstyle != FixEfield::ATOM)
       error->all(FLERR, Error::NOLASTLINE, "Atom-style external electric field requires atom-style "
                  "potential variable when used with fix {}", style);
-    if (((efield->xstyle != FixEfield::CONSTANT) && domain->xperiodic) ||
-         ((efield->ystyle != FixEfield::CONSTANT) && domain->yperiodic) ||
-         ((efield->zstyle != FixEfield::CONSTANT) && domain->zperiodic))
-      error->all(FLERR, Error::NOLASTLINE, "Must not have electric field component in direction of periodic "
-                       "boundary when using charge equilibration with ReaxFF.");
-    if (((fabs(efield->ex) > SMALL) && domain->xperiodic) ||
-         ((fabs(efield->ey) > SMALL) && domain->yperiodic) ||
-         ((fabs(efield->ez) > SMALL) && domain->zperiodic))
-      error->all(FLERR, Error::NOLASTLINE, "Must not have electric field component in direction of periodic "
-                       "boundary when using charge equilibration with ReaxFF.");
+
+    if (chi_mode == QEQ) {
+      if (((efield->xstyle != FixEfield::CONSTANT) && domain->xperiodic) ||
+           ((efield->ystyle != FixEfield::CONSTANT) && domain->yperiodic) ||
+           ((efield->zstyle != FixEfield::CONSTANT) && domain->zperiodic))
+        error->all(FLERR, Error::NOLASTLINE, "Must not have electric field component in direction of periodic "
+                         "boundary when using charge equilibration with ReaxFF.");
+      if (((fabs(efield->ex) > SMALL) && domain->xperiodic) ||
+           ((fabs(efield->ey) > SMALL) && domain->yperiodic) ||
+           ((fabs(efield->ez) > SMALL) && domain->zperiodic))
+        error->all(FLERR, Error::NOLASTLINE, "Must not have electric field component in direction of periodic "
+                         "boundary when using charge equilibration with ReaxFF.");
+    } else {
+
+      // the effective electronegativities need the electric potential of all atoms
+
+      if (efield->groupbit != 1)
+        error->all(FLERR, Error::NOLASTLINE, "Must use group id all for fix efield when using fix {}", style);
+      if (efield->region)
+        error->all(FLERR, Error::NOLASTLINE, "Keyword region not supported for fix efield when using fix {}", style);
+    }
+  } else if ((chi_mode == QEQREL) && (comm->me == 0)) {
+    error->warning(FLERR, "Use fix qeq/reaxff instead of fix {} when not using fix efield\n", style);
   }
 
   // we need a half neighbor list w/ Newton off
@@ -484,6 +619,7 @@ void FixQEqReaxFF::init()
 
   init_shielding();
   init_taper();
+  if (chi_mode != QEQ) init_olap();
 
   if (utils::strmatch(update->integrate_style,"^respa"))
     nlevels_respa = (dynamic_cast<Respa *>(update->integrate))->nlevels;
@@ -526,11 +662,11 @@ void FixQEqReaxFF::init_taper()
   double d7, swa2, swa3, swb2, swb3;
 
   if (fabs(swa) > 0.01 && comm->me == 0)
-    error->warning(FLERR,"Fix qeq/reaxff has non-zero lower Taper radius cutoff");
+    error->warning(FLERR,"Fix {} has non-zero lower Taper radius cutoff", style);
   if (swb < 0)
-    error->all(FLERR, Error::NOLASTLINE, "Fix qeq/reaxff has negative upper Taper radius cutoff");
+    error->all(FLERR, Error::NOLASTLINE, "Fix {} has negative upper Taper radius cutoff", style);
   else if (swb < 5 && comm->me == 0)
-    error->warning(FLERR,"Fix qeq/reaxff has very low Taper radius cutoff");
+    error->warning(FLERR,"Fix {} has very low Taper radius cutoff", style);
 
   d7 = pow(swb - swa, 7);
   swa2 = SQR(swa);
@@ -549,17 +685,46 @@ void FixQEqReaxFF::init_taper()
             7.0*swa*swb3*swb3 + swb3*swb3*swb) / d7;
 }
 
+/* ----------------------------------------------------------------------
+   factors for the overlap integrals of normalized 1s gaussian orbitals
+------------------------------------------------------------------------- */
+
+void FixQEqReaxFF::init_olap()
+{
+  int i,j;
+  int ntypes;
+  double expa,expb,expsum,expnorm;
+
+  ntypes = atom->ntypes;
+  if (prefactor == nullptr)
+    memory->create(prefactor,ntypes+1,ntypes+1,"qeq/reaxff:overlap_prefactor");
+  if (expfactor == nullptr)
+    memory->create(expfactor,ntypes+1,ntypes+1,"qeq/reaxff:overlap_expfactor");
+
+  for (i = 1; i <= ntypes; ++i)
+    for (j = 1; j <= ntypes; ++j) {
+      expa = gauss_exp[i];
+      expb = gauss_exp[j];
+      expsum = expa + expb;
+      expnorm = expa * expb / expsum;
+      prefactor[i][j] = pow((4.0 * expnorm / expsum), 0.75);
+      expfactor[i][j] = expnorm;
+    }
+}
+
 /* ---------------------------------------------------------------------- */
 
 void FixQEqReaxFF::setup_pre_force(int vflag)
 {
   if (reaxff) {
     nn = reaxff->list->inum;
+    nt = reaxff->list->inum + reaxff->list->gnum;
     ilist = reaxff->list->ilist;
     numneigh = reaxff->list->numneigh;
     firstneigh = reaxff->list->firstneigh;
   } else {
     nn = list->inum;
+    nt = list->inum + list->gnum;
     ilist = list->ilist;
     numneigh = list->numneigh;
     firstneigh = list->firstneigh;
@@ -595,14 +760,18 @@ void FixQEqReaxFF::min_setup_pre_force(int vflag)
 
 void FixQEqReaxFF::init_storage()
 {
-  if (efield) get_chi_field();
+  update_chi();
 
   for (int ii = 0; ii < nn; ii++) {
     int i = ilist[ii];
     if (atom->mask[i] & groupbit) {
       Hdia_inv[i] = 1. / eta[atom->type[i]];
-      b_s[i] = -chi[atom->type[i]];
-      if (efield) b_s[i] -= chi_field[i];
+      if (chi_mode == QEQ) {
+        b_s[i] = -chi[atom->type[i]];
+        if (efield) b_s[i] -= chi_field[i];
+      } else {
+        b_s[i] = -chi_eff[i];
+      }
       b_t[i] = -1.0;
       b_prc[i] = 0;
       b_prm[i] = 0;
@@ -621,11 +790,13 @@ void FixQEqReaxFF::pre_force(int /*vflag*/)
 
   if (reaxff) {
     nn = reaxff->list->inum;
+    nt = reaxff->list->inum + reaxff->list->gnum;
     ilist = reaxff->list->ilist;
     numneigh = reaxff->list->numneigh;
     firstneigh = reaxff->list->firstneigh;
   } else {
     nn = list->inum;
+    nt = list->inum + list->gnum;
     ilist = list->ilist;
     numneigh = list->numneigh;
     firstneigh = list->firstneigh;
@@ -638,7 +809,7 @@ void FixQEqReaxFF::pre_force(int /*vflag*/)
   if (n > n_cap*DANGER_ZONE || m_fill > m_cap*DANGER_ZONE)
     reallocate_matrix();
 
-  if (efield) get_chi_field();
+  update_chi();
 
   init_matvec();
 
@@ -678,8 +849,12 @@ void FixQEqReaxFF::init_matvec()
 
       /* init pre-conditioner for H and init solution vectors */
       Hdia_inv[i] = 1. / eta[atom->type[i]];
-      b_s[i]      = -chi[atom->type[i]];
-      if (efield) b_s[i] -= chi_field[i];
+      if (chi_mode == QEQ) {
+        b_s[i]    = -chi[atom->type[i]];
+        if (efield) b_s[i] -= chi_field[i];
+      } else {
+        b_s[i]    = -chi_eff[i];
+      }
       b_t[i]      = -1.0;
 
       /* quadratic extrapolation for s & t from previous solutions */
@@ -758,8 +933,8 @@ void FixQEqReaxFF::compute_H()
         // check before writing past the end of the matrix
         if (m_fill >= H.m)
           error->one(FLERR, Error::NOLASTLINE,
-                     "Fix qeq/reaxff H matrix size has been exceeded: m_fill={} H.m={}\n",
-                     m_fill, H.m);
+                     "Fix {} H matrix size has been exceeded: m_fill={} H.m={}\n",
+                     style, m_fill, H.m);
         H.jlist[m_fill] = j;
         H.val[m_fill] = calculate_H(sqrt(r_sqr), shld[type[i]][type[j]]);
         m_fill++;
@@ -769,8 +944,8 @@ void FixQEqReaxFF::compute_H()
   }
 
   if (m_fill >= H.m)
-    error->one(FLERR, Error::NOLASTLINE, "Fix qeq/reaxff H matrix size has been exceeded: m_fill={} H.m={}\n",
-               m_fill, H.m);
+    error->one(FLERR, Error::NOLASTLINE, "Fix {} H matrix size has been exceeded: m_fill={} H.m={}\n",
+               style, m_fill, H.m);
 }
 
 /* ---------------------------------------------------------------------- */
@@ -846,8 +1021,8 @@ int FixQEqReaxFF::CG(double *b, double *x)
   }
 
   if ((i >= imax) && maxwarn && (comm->me == 0))
-    error->warning(FLERR, "Fix qeq/reaxff CG convergence failed after {} iterations at step {}",
-                   i,update->ntimestep);
+    error->warning(FLERR, "Fix {} CG convergence failed after {} iterations at step {}",
+                   style, i, update->ntimestep);
   return i;
 }
 
@@ -1225,5 +1400,147 @@ void FixQEqReaxFF::get_chi_field()
         chi_field[i] = efield->efield[i][3];
       }
     }
+  }
+}
+
+/* ----------------------------------------------------------------------
+   update the electronegativity contributions for the current step
+------------------------------------------------------------------------- */
+
+void FixQEqReaxFF::update_chi()
+{
+  if (chi_mode == QEQ) {
+    if (efield) get_chi_field();
+  } else {
+    calc_chi_eff();
+  }
+}
+
+/* ----------------------------------------------------------------------
+   compute the effective electronegativities of the local atoms from
+   averages over neighboring atoms weighted by the overlap integrals of
+   their gaussian orbitals: of the electronegativity differences and the
+   relative potential of an external electric field (QTPIE), or of the
+   relative potential of the external electric field only (QEQREL)
+------------------------------------------------------------------------- */
+
+void FixQEqReaxFF::calc_chi_eff()
+{
+  memset(&chi_eff[0],0,atom->nmax*sizeof(double));
+
+  const auto *const x = (const double * const *)atom->x;
+  const int *type = atom->type;
+
+  double dx,dy,dz,dist_sq,overlap,sum_n,sum_d,chia,chib,phia,phib;
+  int i,j;
+
+  // check ghost atoms are stored up to the distance cutoff for overlap integrals
+  const double comm_cutoff = MAX(neighbor->cutneighmax,comm->cutghostuser);
+  if (comm_cutoff*comm_cutoff < dist_cutoff_sq) {
+    error->all(FLERR, Error::NOLASTLINE,
+               "Comm cutoff {} is smaller than distance cutoff {} for overlap integrals in fix {}. "
+               "Increase accordingly using comm_modify cutoff",
+               comm_cutoff, sqrt(dist_cutoff_sq), style);
+  }
+
+  // efield energy is in real units of kcal/mol, factor needed for conversion to eV
+  const double qe2f = force->qe2f;
+  const double factor = 1.0/qe2f;
+
+  if (chi_mode == QEQREL) {
+    if (efield) {
+      if (efield->varflag != FixEfield::CONSTANT) efield->update_efield_variables();
+
+      // compute chi_eff for each local atom
+      for (i = 0; i < nn; i++) {
+        chia = chi[type[i]];
+        if (efield->varflag != FixEfield::ATOM) {
+          phia = -factor * (x[i][0] * efield->ex + x[i][1] * efield->ey + x[i][2] * efield->ez);
+        } else {    // atom-style potential from FixEfield
+          phia = efield->efield[i][3];
+        }
+
+        sum_n = 0.0;
+        sum_d = 0.0;
+
+        for (j = 0; j < nt; j++) {
+          dx = x[i][0] - x[j][0];
+          dy = x[i][1] - x[j][1];
+          dz = x[i][2] - x[j][2];
+          dist_sq = (dx*dx + dy*dy + dz*dz);
+
+          if (dist_sq < dist_cutoff_sq) {
+
+            // overlap integral of two normalised 1s Gaussian type orbitals
+            overlap = prefactor[type[i]][type[j]] * exp(-expfactor[type[i]][type[j]] * dist_sq);
+
+            if (efield->varflag != FixEfield::ATOM) {
+              phib = -factor * (x[j][0] * efield->ex + x[j][1] * efield->ey + x[j][2] * efield->ez);
+            } else {    // atom-style potential from FixEfield
+              phib = efield->efield[j][3];
+            }
+            sum_n += phib * overlap;
+            sum_d += overlap;
+          }
+        }
+        if (sum_d != 0.0)
+          chi_eff[i] = chia + scale * (phia - sum_n / sum_d);
+        else
+          chi_eff[i] = chia;
+      }
+    } else {
+      for (i = 0; i < nn; i++) { chi_eff[i] = chi[type[i]]; }
+    }
+    return;
+  }
+
+  // QTPIE
+
+  if (efield) {
+    if (efield->varflag != FixEfield::CONSTANT)
+      efield->update_efield_variables();
+  }
+
+  // compute chi_eff for each local atom
+  for (i = 0; i < nn; i++) {
+    chia = chi[type[i]];
+    if (efield) {
+      if (efield->varflag != FixEfield::ATOM) {
+        phia = -factor*(x[i][0]*efield->ex  + x[i][1]*efield->ey + x[i][2]*efield->ez);
+      } else { // atom-style potential from FixEfield
+        phia = efield->efield[i][3];
+      }
+    }
+
+    sum_n = 0.0;
+    sum_d = 0.0;
+
+    for (j = 0; j < nt; j++) {
+      dx = x[i][0] - x[j][0];
+      dy = x[i][1] - x[j][1];
+      dz = x[i][2] - x[j][2];
+      dist_sq = (dx*dx + dy*dy + dz*dz);
+
+      if (dist_sq < dist_cutoff_sq) {
+        chib = chi[type[j]];
+
+        // overlap integral of two normalised 1s Gaussian type orbitals
+        overlap = prefactor[type[i]][type[j]] * exp(-expfactor[type[i]][type[j]] * dist_sq);
+
+        if (efield) {
+          if (efield->varflag != FixEfield::ATOM) {
+            phib = -factor*(x[j][0]*efield->ex  + x[j][1]*efield->ey + x[j][2]*efield->ez);
+          } else { // atom-style potential from FixEfield
+            phib = efield->efield[j][3];
+          }
+          sum_n += (chia - chib + scale * (phia - phib)) * overlap;
+        } else {
+          sum_n += (chia - chib) * overlap;
+        }
+        sum_d += overlap;
+      }
+    }
+
+    chi_eff[i] = sum_n / sum_d;
   }
 }

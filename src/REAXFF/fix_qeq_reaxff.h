@@ -20,12 +20,18 @@
    H. M. Aktulga, J. C. Fogarty, S. A. Pandit, A. Y. Grama,
    "Parallel Reactive Molecular Dynamics: Numerical Methods and
    Algorithmic Techniques", Parallel Computing, in press.
+
+   QTPIE and QEq with relative electric potentials (fix qtpie/reaxff and
+   fix qeq/rel/reaxff): Efstratios M Kritikos (Caltech) and
+   Navraj S Lalli (Imperial College London)
 ------------------------------------------------------------------------- */
 
 #ifdef FIX_CLASS
 // clang-format off
 FixStyle(qeq/reaxff,FixQEqReaxFF);
 FixStyle(qeq/reax,FixQEqReaxFF);
+FixStyle(qtpie/reaxff,FixQEqReaxFF);
+FixStyle(qeq/rel/reaxff,FixQEqReaxFF);
 // clang-format on
 #else
 
@@ -57,9 +63,16 @@ class FixQEqReaxFF : public Fix {
   double compute_scalar() override;
 
  protected:
+  // how the electronegativities in the charge equilibration are determined:
+  // per atom type (qeq/reaxff), or as effective electronegativities from
+  // overlap-weighted averages (qtpie/reaxff), or with relative potentials of
+  // an external electric field (qeq/rel/reaxff)
+  enum { QEQ, QTPIE, QEQREL };
+  int chi_mode;
+
   int nevery, reaxflag;
   int matvecs;
-  int nn, m_fill;
+  int nn, nt, m_fill;
   int n_cap, nmax, m_cap;
   int pack_flag;
   int nlevels_respa;
@@ -97,13 +110,23 @@ class FixQEqReaxFF : public Fix {
   double *b_s, *b_t;
   double *b_prc, *b_prm;
   double *chi_field;
+  double *chi_eff;    // effective electronegativities for the QTPIE and QEQREL modes
 
   //CG storage
   double *p, *q, *r, *d;
   int imax, maxwarn;
 
   char *pertype_option;    // argument to determine how per-type info is obtained
+  char *gauss_file;        // file with gaussian orbital exponents (QTPIE and QEQREL modes)
+  double *gauss_exp;       // gaussian orbital exponents for each atom type
+  double **prefactor;      // factor used in computation of overlap integrals
+  double **expfactor;      // factor used in exponential term of overlap integrals
+  double dist_cutoff_sq;   // squared distance beyond which overlap integrals are neglected
+  double scale;            // scaling factor for electric polarization effects
+
   virtual void pertype_parameters(char *);
+  void read_gauss_file();
+  void init_olap();
   void init_shielding();
   void init_taper();
   virtual void allocate_storage();
@@ -143,6 +166,8 @@ class FixQEqReaxFF : public Fix {
   virtual void vector_add(double *, double, double *, int);
 
   virtual void get_chi_field();
+  virtual void update_chi();
+  virtual void calc_chi_eff();
 
   // dual CG support
   int dual_enabled;            // 0: Original, separate s & t optimization; 1: dual optimization

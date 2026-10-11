@@ -28,7 +28,7 @@ namespace LAMMPS_NS {
 
 class TopologyMatcher : protected Pointers {
 public:
-  TopologyMatcher(class LAMMPS *, bool);
+  TopologyMatcher(class LAMMPS *, /*constraints_flag*/bool, /*limit_tags_flag*/bool);
   ~TopologyMatcher();
 
   ReactionConstraints *rxn_constraints;
@@ -57,7 +57,7 @@ private:
   std::string check_a_neighbor(Superimpose &, Reaction &rxn);
   std::string crosscheck_the_neighbor(Superimpose &, Reaction &rxn);
   std::string inner_crosscheck_loop(Superimpose &, Reaction &rxn);
-  bool constraints_flag;
+  bool constraints_flag, limit_tags_flag;
   bool constraints_check(Reaction &rxn, const std::vector<tagint> &);
   bool ring_check(Reaction &rxn, const std::vector<tagint> &);
   bool compare_atomtype(int, Reaction &rxn, int);

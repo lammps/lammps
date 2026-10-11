@@ -25,8 +25,8 @@ Contributing Author: Jacob Gissinger (jgissing@stevens.edu)
 
 using namespace LAMMPS_NS;
 
-TopologyMatcher::TopologyMatcher(LAMMPS *lmp, bool constraints_flag) :
-  Pointers(lmp), constraints_flag(constraints_flag)
+TopologyMatcher::TopologyMatcher(LAMMPS *lmp, bool constraints_flag, bool limit_tags_flag) :
+  Pointers(lmp), constraints_flag(constraints_flag), limit_tags_flag(limit_tags_flag)
 {
 
   // checking reaction constraints inside topology_matcher
@@ -198,9 +198,12 @@ std::string TopologyMatcher::make_a_guess(Superimpose &super, Reaction &rxn)
   int nfirst_neighs = rxn.reactant->nspecial[sp.pion][0];
 
   // per-atom property indicating if in bond/react master group
-  int flag,cols;
-  int index1 = atom->find_custom("limit_tags",flag,cols); // TODO: this needs to be an input
-  int *i_limit_tags = atom->ivector[index1];
+  int *i_limit_tags;
+  if (limit_tags_flag) {
+    int flag,cols;
+    int index1 = atom->find_custom("limit_tags",flag,cols); // TODO: this needs to be an input
+    i_limit_tags = atom->ivector[index1];
+  }
 
   if (status == Status::GUESSFAIL && avail_guesses == 0) {
     status = Status::REJECT;
@@ -236,7 +239,7 @@ std::string TopologyMatcher::make_a_guess(Superimpose &super, Reaction &rxn)
     if (atom->map(xspecial[atom->map(sp.glove[sp.pion])][i]) < 0) {
       return "Superimpose algorithm needs ghost atoms from further away"; // parallel issues.
     }
-    if (i_limit_tags[(int)atom->map(xspecial[atom->map(sp.glove[sp.pion])][i])] != 0) {
+    if (limit_tags_flag && i_limit_tags[(int)atom->map(xspecial[atom->map(sp.glove[sp.pion])][i])] != 0) {
       status = Status::GUESSFAIL;
       return {};
     }

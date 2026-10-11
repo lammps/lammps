@@ -463,6 +463,11 @@ void FixACKS2ReaxFF::compute_X() // NOLINT
           double bcutoff = bcut[type[i]][type[j]];
           double bcutoff2 = bcutoff*bcutoff;
           if (r_sqr <= bcutoff2) {
+            // check before writing past the end of the matrix
+            if (m_fill >= X.m)
+              error->one(FLERR, Error::NOLASTLINE,
+                         "Fix {} has insufficient ACKS2 X matrix size: m_fill={} X.m={}\n",
+                         style, m_fill, X.m);
             X.jlist[m_fill] = j;
             double X_val = calculate_X(sqrt(r_sqr), bcutoff);
             X.val[m_fill] = X_val;
@@ -478,7 +483,9 @@ void FixACKS2ReaxFF::compute_X() // NOLINT
   }
 
   if (m_fill >= X.m)
-    error->all(FLERR,"Fix acks2/reaxff has insufficient ACKS2 X matrix size: m_fill={} X.m={}\n",m_fill,X.m);
+    error->one(FLERR, Error::NOLASTLINE,
+               "Fix {} has insufficient ACKS2 X matrix size: m_fill={} X.m={}\n",
+               style, m_fill, X.m);
 }
 
 /* ---------------------------------------------------------------------- */

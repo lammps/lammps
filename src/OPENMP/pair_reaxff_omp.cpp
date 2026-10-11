@@ -467,9 +467,12 @@ void PairReaxFFOMP::read_reax_forces(int /* vflag */)
 void PairReaxFFOMP::FindBond()
 {
   const double bo_cut = 0.10;
+  int overflow = 0;
+
+  // errors cannot be raised inside a parallel region; count atoms with too many bonds instead
 
 #if defined(_OPENMP)
-#pragma omp parallel for schedule(static) default(shared)
+#pragma omp parallel for schedule(static) default(shared) reduction(+:overflow)
 #endif
   for (int i = 0; i < api->system->n; i++) {
     int j, pj, nj;
@@ -485,11 +488,19 @@ void PairReaxFFOMP::FindBond()
       bo_tmp = bo_ij->bo_data.BO;
 
       if (bo_tmp >= bo_cut) {
+        if (nj >= MAXSPECBOND) {
+          ++overflow;
+          break;
+        }
         tmpid[i][nj] = j;
         tmpbo[i][nj] = bo_tmp;
         nj ++;
-        if (nj > MAXSPECBOND) error->all(FLERR,"Increase MAXSPECBOND in fix_reaxff_species.h");
       }
     }
   }
+
+  if (overflow)
+    error->one(FLERR, Error::NOLASTLINE,
+               "{} atom(s) have more than {} bonds for ReaxFF species analysis; "
+               "increase MAXSPECBOND in reaxff_defs.h", overflow, MAXSPECBOND);
 }

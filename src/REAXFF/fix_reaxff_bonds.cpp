@@ -197,6 +197,10 @@ int FixReaxFFBonds::FindBond()
       bo_tmp = bo_ij->bo_data.BO;
 
       if (bo_tmp > bo_cut) {
+        if (nj >= MAXREAXBOND)
+          error->one(FLERR, Error::NOLASTLINE,
+                     "Atom {} has more than {} bonds for fix {}; increase MAXREAXBOND "
+                     "in reaxff_defs.h", tag[i], MAXREAXBOND, style);
         neighid[i][nj] = jtag;
         abo[i][nj] = bo_tmp;
         nj ++;

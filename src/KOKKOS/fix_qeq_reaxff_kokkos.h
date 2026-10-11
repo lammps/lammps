@@ -59,6 +59,7 @@ struct TagQEqDot3{};
 struct TagQEqSum1{};
 struct TagQEqSum2{};
 struct TagQEqCalculateQ{};
+struct TagQEqXLUpdate{};
 struct TagQEqPackForwardComm{};
 struct TagQEqUnpackForwardComm{};
 struct TagQEqPackReverseComm{};
@@ -146,6 +147,10 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
   void operator()(TagQEqCalculateQ, const int&) const;
+
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagQEqXLUpdate, const int&) const;
 
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
@@ -295,6 +300,12 @@ class FixQEqReaxFFKokkos : public FixQEqReaxFF, public KokkosBase {
   typename AT::t_kkfloat_2d d_s_hist, d_t_hist;
   HAT::t_double_2d_lr h_s_hist, h_t_hist;
   typename AT::t_kkfloat_2d_randomread r_s_hist, r_t_hist;
+
+  // auxiliary variables of the extended-Lagrangian propagation, always in double precision
+  DAT::tdual_double_2d_lr k_xls_hist, k_xlt_hist;
+  typename AT::t_double_2d_lr d_xls_hist, d_xlt_hist;
+  int xl_restart;      // 1 if the XL history is re-seeded in the current step
+  int nexchange;       // number of values per atom in the exchange buffer
 
   DAT::tdual_kkfloat_2d k_shield;
   typename AT::t_kkfloat_2d d_shield;

@@ -56,8 +56,6 @@ FixQEqReaxFFKokkos(LAMMPS *lmp, int narg, char **arg) :
   FixQEqReaxFF(lmp, narg, arg)
 {
   kokkosable = 1;
-  if (xl.flag)
-    error->all(FLERR, "Fix {} does not (yet) support extended-Lagrangian charge propagation", style);
   comm_forward = comm_reverse = 2; // fused
   forward_comm_device = reverse_comm_device = exchange_comm_device = sort_device = 1;
   atomKK = (AtomKokkos *) atom;
@@ -70,7 +68,9 @@ FixQEqReaxFFKokkos(LAMMPS *lmp, int narg, char **arg) :
   m_cap_big = 0;
   allocated_flag = 0;
   nprev = 4;
-  maxexchange = nprev*2;
+  nexchange = 2*nprev + 2*xl.nhist;
+  maxexchange = nexchange;
+  xl_restart = 0;
 
   memory->destroy(s_hist);
   memory->destroy(t_hist);
@@ -93,6 +93,8 @@ FixQEqReaxFFKokkos<DeviceType>::~FixQEqReaxFFKokkos()
 
   memoryKK->destroy_kokkos(k_s_hist,s_hist);
   memoryKK->destroy_kokkos(k_t_hist,t_hist);
+  memoryKK->destroy_kokkos(k_xls_hist,xls_hist);
+  memoryKK->destroy_kokkos(k_xlt_hist,xlt_hist);
   memoryKK->destroy_kokkos(k_chi_field,chi_field);
 }
 
@@ -175,6 +177,18 @@ void FixQEqReaxFFKokkos<DeviceType>::init_hist()
 
   k_s_hist.template modify<DeviceType>();
   k_t_hist.template modify<DeviceType>();
+
+  // the XL history is filled with converged solutions during the warm-up,
+  // so the initial values only need to be defined
+
+  if (xl.nhist) {
+    k_xls_hist.clear_sync_state();
+    k_xlt_hist.clear_sync_state();
+    Kokkos::deep_copy(d_xls_hist,0.0);
+    Kokkos::deep_copy(d_xlt_hist,0.0);
+    k_xls_hist.template modify<DeviceType>();
+    k_xlt_hist.template modify<DeviceType>();
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -182,7 +196,12 @@ void FixQEqReaxFFKokkos<DeviceType>::init_hist()
 template<class DeviceType>
 void FixQEqReaxFFKokkos<DeviceType>::setup_pre_force(int vflag)
 {
+  // restart the extended-Lagrangian warm-up at the beginning of every run
+
+  xl.nseed = 0;
+  xl.bypass = 1;
   pre_force(vflag);
+  xl.bypass = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -268,8 +287,17 @@ void FixQEqReaxFFKokkos<DeviceType>::pre_force(int /*vflag*/)
 
   if (efield) get_chi_field();
 
+  // in extended-Lagrangian mode, solve with a fixed small number of CG
+  // iterations seeded from the auxiliary variables, once they are available
+
+  xl_active = xl.ready(lmp) ? 1 : 0;
+
   k_s_hist.template sync<DeviceType>();
   k_t_hist.template sync<DeviceType>();
+  if (xl.flag) {
+    k_xls_hist.template sync<DeviceType>();
+    k_xlt_hist.template sync<DeviceType>();
+  }
 
   Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagQEqInitMatvec>(0,nn),*this);
 
@@ -289,7 +317,27 @@ void FixQEqReaxFFKokkos<DeviceType>::pre_force(int /*vflag*/)
   // one fused iteration does a matvec on each of s and t, and the base class
   // reports half of the count, so count two per iteration
 
-  matvecs = 2*cg_solve();
+  if (xl_active) {
+    const int imax_save = imax;
+    const int maxwarn_save = maxwarn;
+    imax = xl.ncg + 1;
+    maxwarn = 0;
+    matvecs = 2*cg_solve();
+    imax = imax_save;
+    maxwarn = maxwarn_save;
+  } else {
+    matvecs = 2*cg_solve();
+  }
+
+  // advance or (re-)seed the auxiliary variables of the XL propagation
+
+  if (xl.flag) {
+    xl_restart = (!xl_active && xl.restart(lmp)) ? 1 : 0;
+    Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagQEqXLUpdate>(0,nn),*this);
+    k_xls_hist.template modify<DeviceType>();
+    k_xlt_hist.template modify<DeviceType>();
+    xl.advance(lmp, xl_active, xl_restart);
+  }
 
   k_s_hist.template sync<DeviceType>();
   k_t_hist.template sync<DeviceType>();
@@ -408,8 +456,14 @@ void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqInitMatvec, const int &ii)
     d_Hdia_inv[i] = static_cast<KK_FLOAT>(1.0) / params(itype).eta;
     d_b_st(i,0) = -params(itype).chi - d_chi_field[i];
     d_b_st(i,1) = -1.0;
-    d_st(i,0) = 4*(d_s_hist(i,0)+d_s_hist(i,2))-(6*d_s_hist(i,1)+d_s_hist(i,3));
-    d_st(i,1) = d_t_hist(i,2) + 3*(d_t_hist(i,0) - d_t_hist(i,1));
+    if (xl_active) {
+      // initial guess from the auxiliary variables of the XL propagation
+      d_st(i,0) = static_cast<KK_FLOAT>(d_xls_hist(i,0));
+      d_st(i,1) = static_cast<KK_FLOAT>(d_xlt_hist(i,0));
+    } else {
+      d_st(i,0) = 4*(d_s_hist(i,0)+d_s_hist(i,2))-(6*d_s_hist(i,1)+d_s_hist(i,3));
+      d_st(i,1) = d_t_hist(i,2) + 3*(d_t_hist(i,0) - d_t_hist(i,1));
+    }
   } else {
     // atoms outside the group act as fixed charges on the s-solution only
     d_st(i,0) = q(i);
@@ -1025,6 +1079,51 @@ void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqCalculateQ, const int &ii)
   }
 }
 
+/* ----------------------------------------------------------------------
+   advance the auxiliary variables with the time-reversible (dissipative)
+   Verlet propagation during the XL solves, otherwise (re-)seed the history
+   from the fully converged solution.  same as XLQEq::propagate(),
+   XLQEq::push(), and XLQEq::fill(), which cannot be called on the device
+------------------------------------------------------------------------- */
+
+template<class DeviceType>
+// NOLINTNEXTLINE
+KOKKOS_INLINE_FUNCTION
+void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqXLUpdate, const int &ii) const
+{
+  const int i = d_ilist[ii];
+  if (!(mask[i] & groupbit)) return;
+
+  const int nhist = xl.nhist;
+  double xs = static_cast<double>(d_st(i,0));
+  double xt = static_cast<double>(d_st(i,1));
+
+  if (xl_active) {
+    double ths = 2.0 * d_xls_hist(i,0) - d_xls_hist(i,1) + xl.kappa * (xs - d_xls_hist(i,0));
+    double tht = 2.0 * d_xlt_hist(i,0) - d_xlt_hist(i,1) + xl.kappa * (xt - d_xlt_hist(i,0));
+    if (xl.kdis) {
+      for (int k = 0; k <= xl.kdis; ++k) {
+        ths += xl.alpha * xl.c[k] * d_xls_hist(i,k);
+        tht += xl.alpha * xl.c[k] * d_xlt_hist(i,k);
+      }
+    }
+    xs = ths;
+    xt = tht;
+  } else if (xl_restart) {
+    for (int k = 0; k < nhist; ++k) {
+      d_xls_hist(i,k) = xs;
+      d_xlt_hist(i,k) = xt;
+    }
+    return;
+  }
+  for (int k = nhist-1; k > 0; --k) {
+    d_xls_hist(i,k) = d_xls_hist(i,k-1);
+    d_xlt_hist(i,k) = d_xlt_hist(i,k-1);
+  }
+  d_xls_hist(i,0) = xs;
+  d_xlt_hist(i,0) = xt;
+}
+
 /* ---------------------------------------------------------------------- */
 
 template<class DeviceType>
@@ -1237,6 +1336,7 @@ double FixQEqReaxFFKokkos<DeviceType>::memory_usage()
   double bytes;
 
   bytes = atom->nmax*nprev*2 * sizeof(KK_FLOAT); // s_hist & t_hist
+  bytes += (double)atom->nmax*xl.nhist*2 * sizeof(double); // xls_hist & xlt_hist
   bytes += (double)atom->nmax*8 * sizeof(KK_FLOAT); // storage
   bytes += (double)n_cap*2 * sizeof(int); // matrix...
   bytes += (double)m_cap_big * sizeof(int);
@@ -1263,6 +1363,19 @@ void FixQEqReaxFFKokkos<DeviceType>::grow_arrays(int nmax)
 
   d_s_hist = k_s_hist.template view<DeviceType>();
   d_t_hist = k_t_hist.template view<DeviceType>();
+
+  if (xl.nhist) {
+    k_xls_hist.sync_host();
+    k_xlt_hist.sync_host();
+    k_xls_hist.modify_host();
+    k_xlt_hist.modify_host();
+
+    memoryKK->grow_kokkos(k_xls_hist,xls_hist,nmax,xl.nhist,"qeq:xls_hist");
+    memoryKK->grow_kokkos(k_xlt_hist,xlt_hist,nmax,xl.nhist,"qeq:xlt_hist");
+
+    d_xls_hist = k_xls_hist.template view<DeviceType>();
+    d_xlt_hist = k_xlt_hist.template view<DeviceType>();
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -1282,6 +1395,19 @@ void FixQEqReaxFFKokkos<DeviceType>::copy_arrays(int i, int j, int /*delflag*/)
 
   k_s_hist.modify_host();
   k_t_hist.modify_host();
+
+  if (xl.nhist) {
+    k_xls_hist.sync_host();
+    k_xlt_hist.sync_host();
+
+    for (int m = 0; m < xl.nhist; m++) {
+      xls_hist[j][m] = xls_hist[i][m];
+      xlt_hist[j][m] = xlt_hist[i][m];
+    }
+
+    k_xls_hist.modify_host();
+    k_xlt_hist.modify_host();
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -1293,11 +1419,19 @@ void FixQEqReaxFFKokkos<DeviceType>::set_arrays(int i)
 {
   k_s_hist.sync_host();
   k_t_hist.sync_host();
+  if (xl.nhist) {
+    k_xls_hist.sync_host();
+    k_xlt_hist.sync_host();
+  }
 
   FixQEqReaxFF::set_arrays(i);
 
   k_s_hist.modify_host();
   k_t_hist.modify_host();
+  if (xl.nhist) {
+    k_xls_hist.modify_host();
+    k_xlt_hist.modify_host();
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -1317,6 +1451,17 @@ void FixQEqReaxFFKokkos<DeviceType>::sort_kokkos(Kokkos::BinSort<KeyViewType, Bi
 
   k_s_hist.modify_device();
   k_t_hist.modify_device();
+
+  if (xl.nhist) {
+    k_xls_hist.sync_device();
+    k_xlt_hist.sync_device();
+
+    Sorter.sort(LMPDeviceType(), k_xls_hist.view_device());
+    Sorter.sort(LMPDeviceType(), k_xlt_hist.view_device());
+
+    k_xls_hist.modify_device();
+    k_xlt_hist.modify_device();
+  }
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1328,13 +1473,22 @@ void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqPackExchange, const int &m
 
   const int i = d_exchange_sendlist(mysend);
   const int j = d_copylist(mysend);
+  const int nhist = xl.nhist;
+  int n = mysend*nexchange;
 
-  for (int m = 0; m < nprev; m++) {
-    d_buf(mysend*nprev*2 + m) = static_cast<double>(d_s_hist(i,m));
-    d_buf(mysend*nprev*2 + nprev+m) = static_cast<double>(d_t_hist(i,m));
-    if (j > -1) {
+  for (int m = 0; m < nprev; m++) d_buf(n++) = static_cast<double>(d_s_hist(i,m));
+  for (int m = 0; m < nprev; m++) d_buf(n++) = static_cast<double>(d_t_hist(i,m));
+  for (int m = 0; m < nhist; m++) d_buf(n++) = d_xls_hist(i,m);
+  for (int m = 0; m < nhist; m++) d_buf(n++) = d_xlt_hist(i,m);
+
+  if (j > -1) {
+    for (int m = 0; m < nprev; m++) {
       d_s_hist(i,m) = d_s_hist(j,m);
       d_t_hist(i,m) = d_t_hist(j,m);
+    }
+    for (int m = 0; m < nhist; m++) {
+      d_xls_hist(i,m) = d_xls_hist(j,m);
+      d_xlt_hist(i,m) = d_xlt_hist(j,m);
     }
   }
 }
@@ -1360,6 +1514,10 @@ int FixQEqReaxFFKokkos<DeviceType>::pack_exchange_kokkos(
 
   k_s_hist.template sync<DeviceType>();
   k_t_hist.template sync<DeviceType>();
+  if (xl.nhist) {
+    k_xls_hist.template sync<DeviceType>();
+    k_xlt_hist.template sync<DeviceType>();
+  }
 
   copymode = 1;
 
@@ -1375,8 +1533,12 @@ int FixQEqReaxFFKokkos<DeviceType>::pack_exchange_kokkos(
 
   k_s_hist.template modify<DeviceType>();
   k_t_hist.template modify<DeviceType>();
+  if (xl.nhist) {
+    k_xls_hist.template modify<DeviceType>();
+    k_xlt_hist.template modify<DeviceType>();
+  }
 
-  return nsend*nprev*2;
+  return nsend*nexchange;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -1389,8 +1551,12 @@ void FixQEqReaxFFKokkos<DeviceType>::operator()(TagQEqUnpackExchange, const int 
   int index = d_indices(i);
 
   if (index > -1) {
-    for (int m = 0; m < nprev; m++) d_s_hist(index,m) = static_cast<KK_FLOAT>(d_buf(i*nprev*2 + m));
-    for (int m = 0; m < nprev; m++) d_t_hist(index,m) = static_cast<KK_FLOAT>(d_buf(i*nprev*2 + nprev+m));
+    const int nhist = xl.nhist;
+    int n = i*nexchange;
+    for (int m = 0; m < nprev; m++) d_s_hist(index,m) = static_cast<KK_FLOAT>(d_buf(n++));
+    for (int m = 0; m < nprev; m++) d_t_hist(index,m) = static_cast<KK_FLOAT>(d_buf(n++));
+    for (int m = 0; m < nhist; m++) d_xls_hist(index,m) = d_buf(n++);
+    for (int m = 0; m < nhist; m++) d_xlt_hist(index,m) = d_buf(n++);
   }
 }
 
@@ -1412,6 +1578,10 @@ void FixQEqReaxFFKokkos<DeviceType>::unpack_exchange_kokkos(
 
   k_s_hist.template sync<DeviceType>();
   k_t_hist.template sync<DeviceType>();
+  if (xl.nhist) {
+    k_xls_hist.template sync<DeviceType>();
+    k_xlt_hist.template sync<DeviceType>();
+  }
 
   copymode = 1;
 
@@ -1421,6 +1591,10 @@ void FixQEqReaxFFKokkos<DeviceType>::unpack_exchange_kokkos(
 
   k_s_hist.template modify<DeviceType>();
   k_t_hist.template modify<DeviceType>();
+  if (xl.nhist) {
+    k_xls_hist.template modify<DeviceType>();
+    k_xlt_hist.template modify<DeviceType>();
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -1432,14 +1606,21 @@ int FixQEqReaxFFKokkos<DeviceType>::pack_exchange(int i, double *buf)
 {
   k_s_hist.sync_host();
   k_t_hist.sync_host();
+  if (xl.nhist) {
+    k_xls_hist.sync_host();
+    k_xlt_hist.sync_host();
+  }
 
-  for (int m = 0; m < nprev; m++) buf[m] = s_hist[i][m];
-  for (int m = 0; m < nprev; m++) buf[nprev+m] = t_hist[i][m];
+  const int n = FixQEqReaxFF::pack_exchange(i, buf);
 
   k_s_hist.modify_host();
   k_t_hist.modify_host();
+  if (xl.nhist) {
+    k_xls_hist.modify_host();
+    k_xlt_hist.modify_host();
+  }
 
-  return nprev*2;
+  return n;
 }
 
 /* ----------------------------------------------------------------------
@@ -1451,14 +1632,21 @@ int FixQEqReaxFFKokkos<DeviceType>::unpack_exchange(int nlocal, double *buf)
 {
   k_s_hist.sync_host();
   k_t_hist.sync_host();
+  if (xl.nhist) {
+    k_xls_hist.sync_host();
+    k_xlt_hist.sync_host();
+  }
 
-  for (int m = 0; m < nprev; m++) s_hist[nlocal][m] = buf[m];
-  for (int m = 0; m < nprev; m++) t_hist[nlocal][m] = buf[nprev+m];
+  const int n = FixQEqReaxFF::unpack_exchange(nlocal, buf);
 
   k_s_hist.modify_host();
   k_t_hist.modify_host();
+  if (xl.nhist) {
+    k_xls_hist.modify_host();
+    k_xlt_hist.modify_host();
+  }
 
-  return nprev*2;
+  return n;
 }
 
 /* ---------------------------------------------------------------------- */

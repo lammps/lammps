@@ -214,16 +214,13 @@ TEST_F(QEqSubgroupTest, qeq_reaxff)
                       ref_shielded, 1.0e-10, "omp");
 
     // check the extended-Lagrangian propagation after the warm-up
-    if (!using_accelerator()) {
-        for (const auto &sfx : suffixes("qeq/reaxff"))
-            check_charges("qeq/reaxff 1 0.0 10.0 1.0e-12 " + param_file +
-                              " maxiter 1000 xlmd yes xldamp 3",
-                          ref_shielded, 1.0e-10, sfx, 10);
-        if (Info::has_package("OPENMP"))
-            check_charges("qeq/reaxff 1 0.0 10.0 1.0e-12 " + param_file +
-                              " maxiter 1000 dual xlmd yes",
-                          ref_shielded, 1.0e-10, "omp", 10);
-    }
+    for (const auto &sfx : suffixes("qeq/reaxff"))
+        check_charges("qeq/reaxff 1 0.0 10.0 1.0e-12 " + param_file +
+                          " maxiter 1000 xlmd yes xldamp 3",
+                      ref_shielded, 1.0e-10, sfx, 10);
+    if (!using_accelerator() && Info::has_package("OPENMP"))
+        check_charges("qeq/reaxff 1 0.0 10.0 1.0e-12 " + param_file + " maxiter 1000 dual xlmd yes",
+                      ref_shielded, 1.0e-10, "omp", 10);
 
     // check both neighbor list settings and the matrix-free option of fix qeq/reaxff/kk
     if (using_accelerator() && Info::has_package("KOKKOS")) {
@@ -233,6 +230,9 @@ TEST_F(QEqSubgroupTest, qeq_reaxff)
                           ref_shielded, 1.0e-10, "");
             check_charges("qeq/reaxff 1 0.0 10.0 1.0e-12 " + param_file + " maxiter 1000 matfree",
                           ref_shielded, 1.0e-10, "");
+            check_charges("qeq/reaxff 1 0.0 10.0 1.0e-12 " + param_file +
+                              " maxiter 1000 matfree xlmd yes",
+                          ref_shielded, 1.0e-10, "", 10);
         }
     }
 }

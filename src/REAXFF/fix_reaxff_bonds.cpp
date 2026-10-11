@@ -399,12 +399,12 @@ int FixReaxFFBonds::image(int *&objs, double **&parms)
   const int *mask = atom->mask;
   const double * const * const x = atom->x;
 
-  int inum = reaxff->list->inum;
-  int *ilist = reaxff->list->ilist;
+  // loop over the local atoms instead of the neighbor list of pair reaxff,
+  // which only exists on the device with the KOKKOS version
 
+  const int nlocal = atom->nlocal;
   int n = 0;
-  for (int ii = 0; ii < inum; ++ii) {
-    int i = ilist[ii];
+  for (int i = 0; i < nlocal; ++i) {
     if (mask[i] & groupbit) {
       for (int jj = 0; jj < numneigh[i]; ++jj) {
         int j = atom->map(neighid[i][jj]);

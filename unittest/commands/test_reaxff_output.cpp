@@ -15,9 +15,13 @@
 #include "../testing/utils.h"
 
 #include "atom.h"
+#include "fix.h"
+#include "graphics.h"
 #include "info.h"
 #include "lammps.h"
 #include "library.h"
+#include "modify.h"
+#include "platform.h"
 #include "utils.h"
 
 #include "gmock/gmock.h"
@@ -290,6 +294,43 @@ TEST_F(ReaxFFOutputTest, Bonds)
     EXPECT_GT(first.at(13).bondorder[0], first.at(1).bondorder[0]);
 
     delete_file(outfile);
+}
+
+TEST_F(ReaxFFOutputTest, BondsImage)
+{
+    if (!info->has_style("pair", "reaxff")) GTEST_SKIP();
+    if (!info->has_style("fix", "reaxff/bonds")) GTEST_SKIP();
+
+    // with the file name NULL no file is written, but the bonds are still
+    // available as graphics objects for dump image
+    delete_file("NULL");
+
+    BEGIN_HIDE_OUTPUT();
+    command("fix bonds all reaxff/bonds 5 NULL");
+    command("run 5 post no");
+    END_HIDE_OUTPUT();
+
+    EXPECT_FALSE(platform::file_is_readable("NULL"));
+
+    int *objs      = nullptr;
+    double **parms = nullptr;
+    auto *fix      = lmp->modify->get_fix_by_id("bonds");
+    ASSERT_NE(fix, nullptr);
+    const int nobjs = fix->image(objs, parms);
+
+    // each bond is listed for both of its atoms: two bonds per water molecule
+    // and one per hydrogen molecule
+    ASSERT_EQ(nobjs, 2 * (2 * num_water + num_hydrogen));
+    for (int n = 0; n < nobjs; ++n) {
+        EXPECT_EQ(objs[n], Graphics::BOND);
+        const double dx = parms[n][5] - parms[n][2];
+        const double dy = parms[n][6] - parms[n][3];
+        const double dz = parms[n][7] - parms[n][4];
+        const double r  = sqrt(dx * dx + dy * dy + dz * dz);
+        EXPECT_GT(r, 0.5);
+        EXPECT_LT(r, 1.2);
+    }
+    delete_file("NULL");
 }
 
 TEST_F(ReaxFFOutputTest, Species)

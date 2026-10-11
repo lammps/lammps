@@ -198,6 +198,7 @@ void FixACKS2ReaxFF::pertype_parameters(char *arg)
   MPI_Bcast(eta,ntypes+1,MPI_DOUBLE,0,world);
   MPI_Bcast(gamma,ntypes+1,MPI_DOUBLE,0,world);
   MPI_Bcast(bcut_acks2,ntypes+1,MPI_DOUBLE,0,world);
+  MPI_Bcast(&bond_softness,1,MPI_DOUBLE,0,world);
 }
 
 /* ---------------------------------------------------------------------- */

@@ -40,8 +40,10 @@ namespace LAMMPS_NS {
 // when a charge equilibration fix is applied to a subset of the atoms, the
 // atoms outside the fix group keep their charges and contribute to the
 // electrostatic potential felt by the atoms inside the group.  the tests below
-// use a small cluster of six atoms in a non-periodic box: atoms 1-3 are in the
-// fix group, atoms 4-6 carry fixed charges.  the cluster is small enough that
+// use a small cluster of six atoms in a non-periodic box: atoms 1, 3, and 5 are
+// in the fix group, atoms 2, 4, and 6 carry fixed charges.  the alternating
+// order makes half neighbor lists store pairs of atoms inside and outside of
+// the group with either of the two atoms.  the cluster is small enough that
 // the charges can be obtained by solving the linear equations of each method
 // directly; the reference values below were computed that way (with numpy),
 // independent of the LAMMPS implementation.  each fix style is run in its
@@ -68,7 +70,7 @@ protected:
     static constexpr double ref_equalchi[3] = {0.0487818013561279, -0.154416759025177,
                                                0.105634957669049};
     // fix acks2/reaxff with bond softness 5.0 and bond cutoff 4.0 for both types.
-    // atoms 2 and 4 are within the bond cutoff: the X matrix only couples atoms
+    // atoms 2 and 3 are within the bond cutoff: the X matrix only couples atoms
     // in the fix group.
     static constexpr double ref_acks2[3] = {-0.00183602052443018, -0.00943151375913459,
                                             0.0112675342835647};
@@ -113,15 +115,15 @@ protected:
         command("region box block -20 20 -20 20 -20 20");
         command("create_box 2 box");
         command("create_atoms 1 single  0.0  0.0  0.0 units box");
-        command("create_atoms 2 single  1.6  0.3 -0.2 units box");
-        command("create_atoms 1 single -1.1  1.4  0.5 units box");
         command("create_atoms 2 single  3.9 -2.1  1.0 units box");
+        command("create_atoms 2 single  1.6  0.3 -0.2 units box");
         command("create_atoms 1 single -4.0 -1.5  2.2 units box");
+        command("create_atoms 1 single -1.1  1.4  0.5 units box");
         command("create_atoms 2 single  2.0  4.5 -3.0 units box");
         command("mass * 1.0");
         for (int i = 0; i < nfixed; ++i)
-            command(fmt::format("set atom {} charge {}", i + 4, qfixed[i]));
-        command("group fixed id 4 5 6");
+            command(fmt::format("set atom {} charge {}", 2 * i + 2, qfixed[i]));
+        command("group fixed id 2 4 6");
         command("group active subtract all fixed");
         command("pair_style zero 12.0");
         command("pair_coeff * *");
@@ -179,12 +181,12 @@ protected:
         const std::string info = fmt::format("fix {} ({})", fixargs, style);
         double qsum            = 0.0;
         for (int i = 0; i < nlocal; ++i) {
-            const int idx = tag[i] - 1;
-            if (idx < 3) {
+            const int idx = (tag[i] - 1) / 2;
+            if (tag[i] % 2) {
                 EXPECT_NEAR(q[i], ref[idx], prec_tol(ref[idx], tol)) << info << " atom " << tag[i];
                 qsum += q[i];
             } else {
-                EXPECT_DOUBLE_EQ(q[i], qfixed[idx - 3]) << info << " atom " << tag[i];
+                EXPECT_DOUBLE_EQ(q[i], qfixed[idx]) << info << " atom " << tag[i];
             }
         }
         // the fix group is constrained to be charge neutral
@@ -281,6 +283,17 @@ TEST_F(QEqSubgroupTest, qeq_point)
         check_charges("qeq/point 1 10.0 1.0e-12 1000 " + qeq_file, ref_point, 1.0e-10, sfx);
         check_charges("qeq/point/xlmd 1 10.0 1.0e-12 1000 " + qeq_file, ref_point, 1.0e-10, sfx);
     }
+}
+
+TEST_F(QEqSubgroupTest, qeq_dynamic)
+{
+    if (!info->has_style("fix", "qeq/dynamic")) GTEST_SKIP() << "fix qeq/dynamic is not available";
+
+    // fix qeq/dynamic and fix qeq/fire minimize the same energy as fix qeq/point
+    for (const auto &sfx : suffixes("qeq/dynamic"))
+        check_charges("qeq/dynamic 1 10.0 1.0e-10 100000 " + qeq_file, ref_point, 1.0e-8, sfx);
+    for (const auto &sfx : suffixes("qeq/fire"))
+        check_charges("qeq/fire 1 10.0 1.0e-10 100000 " + qeq_file, ref_point, 1.0e-8, sfx);
 }
 } // namespace LAMMPS_NS
 

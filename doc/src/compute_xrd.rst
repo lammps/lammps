@@ -105,14 +105,14 @@ diffraction intensity due to Compton scattering.  Compute xrd uses
 analytical approximations of the atomic scattering factors that vary
 for each atom type (type1 type2 ... typeN) and angle of diffraction.
 The analytic approximation is computed using the formula
-:ref:`(Colliex) <Colliex>`:
+:ref:`(Brown) <Brown>`:
 
 .. math::
 
    f_j\left ( \frac{\sin(\theta)}{\lambda} \right )=\sum_{i=1}^{4}
    a_i \exp\left ( -b_i \frac{\sin^{2}(\theta)}{\lambda^{2}} \right )+c
 
-Coefficients parameterized by :ref:`(Peng) <Peng>` are assigned for each
+Coefficients parameterized by :ref:`(Fox) <Fox>` are assigned for each
 atom type designating the chemical symbol and charge of each atom
 type. Valid chemical symbols for compute xrd are:
 
@@ -139,7 +139,7 @@ type. Valid chemical symbols for compute xrd are:
 +------+------+------+-------+------+
 | Fe   | Fe2+ | Fe3+ | Co    | Co2+ |
 +------+------+------+-------+------+
-| Co   | Ni   | Ni2+ | Ni3+  | Cu   |
+| Co3+ | Ni   | Ni2+ | Ni3+  | Cu   |
 +------+------+------+-------+------+
 | Cu1+ | Cu2+ | Zn   | Zn2+  | Ga   |
 +------+------+------+-------+------+
@@ -202,6 +202,16 @@ type. Valid chemical symbols for compute xrd are:
 | Pu6+ | Am   | Cm   | Bk    | Cf   |
 +------+------+------+-------+------+
 
+.. versionchanged:: 30Sep2026-backport
+
+The table above listed *Co* twice, in the second and in the third of the three
+cobalt entries, and the lookup returned the last match.  The coefficients of the
+third entry are those of Co\ :math:`^{3+}`, so *Co* selected the
+Co\ :math:`^{3+}` scattering factors and Co\ :math:`^{3+}` itself could not be
+selected at all.  The third entry is now spelled *Co3+*, so *Co* selects neutral
+cobalt.  Diffraction intensities of simulations that used *Co* change
+accordingly.
+
 If the *echo* keyword is specified, compute xrd will provide extra
 reporting information to the screen.
 
@@ -249,12 +259,12 @@ no manual flag, no echo flag.
 **(Coleman)** Coleman, Spearot, Capolungo, MSMSE, 21, 055020
 (2013).
 
-.. _Colliex:
+.. _Brown:
 
-**(Colliex)** Colliex et al. International Tables for Crystallography
-Volume C: Mathematical and Chemical Tables, 249-429 (2004).
+**(Brown)** Brown et al. International Tables for Crystallography
+Volume C: Mathematical and Chemical Tables, 554-95 (2004).
 
-.. _Peng:
+.. _Fox:
 
-**(Peng)** Peng, Ren, Dudarev, Whelan, Acta Crystallogr. A, 52, 257-76
-(1996).
+**(Fox)** Fox, O'Keefe, Tabbernor, Acta Crystallogr. A, 45, 786-93
+(1989).

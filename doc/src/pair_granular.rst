@@ -848,7 +848,7 @@ then truncated according to:
 
 .. math::
 
-   \tau_{twist} = \min(\mu_{twist} F_{n,0}, \tau_{twist,0})
+   \tau_{twist} = \min\left(\mu_{twist} F_{n,0}, |\tau_{twist,0}|\right)\operatorname{sgn}(\tau_{twist,0})
 
 Similar to the sliding and rolling displacement, the angular
 displacement is rescaled so that it corresponds to the critical value if
@@ -1037,7 +1037,7 @@ The single() function of this pair style returns 0.0 for the energy of a
 pairwise interaction, since energy is not conserved in these dissipative
 potentials.  It also returns only the normal component of the pairwise
 interaction force.  However, the single() function also calculates at
-least 13 extra pairwise quantities.  The first 3 are the components of
+least 12 extra pairwise quantities.  The first 3 are the components of
 the tangential force between particles I and J, acting on particle I.
 The fourth is the magnitude of this tangential force.  The next 3 (5-7)
 are the components of the rolling torque acting on particle I.  The next

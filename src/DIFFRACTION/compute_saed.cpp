@@ -56,7 +56,7 @@ ComputeSAED::ComputeSAED(LAMMPS *lmp, int narg, char **arg) :
   if (lmp->citeme) lmp->citeme->add(cite_compute_saed_c);
 
   ntypes = atom->ntypes;
-  int natoms = group->count(igroup);
+  bigint natoms = group->count(igroup);
   int dimension = domain->dimension;
   int *periodicity = domain->periodicity;
   int triclinic = domain->triclinic;
@@ -75,7 +75,7 @@ ComputeSAED::ComputeSAED(LAMMPS *lmp, int narg, char **arg) :
 
   // Store radiation wavelength
   lambda = utils::numeric(FLERR,arg[3],false,lmp);
-  if (lambda < 0)
+  if (lambda <= 0)
     error->all(FLERR,"Compute SAED: Wavelength must be greater than zero");
 
   // Define atom types for atomic scattering factor coefficients
@@ -88,6 +88,7 @@ ComputeSAED::ComputeSAED(LAMMPS *lmp, int narg, char **arg) :
      for (int j = 0; j < SAEDmaxType; j++) {
        if (utils::lowercase(arg[iarg]) == utils::lowercase(SAEDtypeList[j])) {
          ztype[i] = j;
+         break;
        }
      }
      if (ztype[i] == SAEDmaxType + 1)
@@ -126,7 +127,7 @@ ComputeSAED::ComputeSAED(LAMMPS *lmp, int narg, char **arg) :
       c[0] = utils::numeric(FLERR,arg[iarg+1],false,lmp);
       c[1] = utils::numeric(FLERR,arg[iarg+2],false,lmp);
       c[2] = utils::numeric(FLERR,arg[iarg+3],false,lmp);
-      if (c[0] < 0 || c[1] < 0 || c[2] < 0)
+      if ((c[0] <= 0.0) || (c[1] <= 0.0) || (c[2] <= 0.0))
         error->all(FLERR,"Compute SAED: dKs must be greater than 0");
       iarg += 4;
 
@@ -211,7 +212,7 @@ ComputeSAED::ComputeSAED(LAMMPS *lmp, int narg, char **arg) :
   }
 
   // Finding the intersection of the reciprocal space and Ewald sphere
-  int n = 0;
+  bigint n = 0;
   double dinv2, r2, EmdR2, EpdR2;
   double K[3];
 
@@ -255,6 +256,12 @@ ComputeSAED::ComputeSAED(LAMMPS *lmp, int narg, char **arg) :
     utils::logmesg(lmp,"-----\nCompute SAED id:{}, # of atoms:{}, # of relp:{}\n"
                    "Reciprocal point spacing in k1,k2,k3 = {:.8} {:.8} {:.8}\n-----\n",
                    id,natoms,n,dK[0],dK[1],dK[2]);
+
+  // store_tmp holds three integers per row, so that product must stay in range too
+
+  if (3*n > MAXSMALLINT)
+    error->all(FLERR,"Compute SAED: too many reciprocal lattice nodes ({}); reduce Kmax "
+               "or increase the c values",n);
 
   nRows = n;
   size_vector = n;
@@ -355,7 +362,8 @@ void ComputeSAED::compute_vector()
   ntypes = atom->ntypes;
   int nlocal = atom->nlocal;
   int *type  = atom->type;
-  int natoms = group->count(igroup);
+  bigint natoms = group->count(igroup);
+  if (natoms == 0) natoms = 1;    // an empty group scatters nothing, rather than NaN
   int *mask = atom->mask;
 
   nlocalgroup = 0;
@@ -379,13 +387,6 @@ void ComputeSAED::compute_vector()
     }
   }
 
- // determining parameter set to use based on maximum S = sin(theta)/lambda
-  double Smax = Kmax / 2;
-
-  int offset = 0;                 // offset the ASFSAED matrix for appropriate value
-  if (Smax <= 2) offset = 0;
-  if (Smax > 2)  offset = 10;
-
   // Setting up OMP
 #if defined(_OPENMP)
   if (me == 0 && echo) utils::logmesg(lmp," using {} OMP thread(s)\n",comm->nthreads);
@@ -397,7 +398,7 @@ void ComputeSAED::compute_vector()
   double frac = 0.1;
 
 #if defined(_OPENMP)
-#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(offset,ASFSAED,typelocal,xlocal,Fvec,m,frac)
+#pragma omp parallel LMP_DEFAULT_NONE LMP_SHARED(ASFSAED,typelocal,xlocal,Fvec,m,frac)
 #endif
   {
     auto *f = new double[ntypes];    // atomic structure factor by type
@@ -429,7 +430,12 @@ void ComputeSAED::compute_vector()
       Fatom2 = 0.0;
 
       // Calculate the atomic structure factor by type
-      // determining parameter set to use based on S = sin(theta)/lambda <> 2
+      // ASFSAED holds one set of coefficients fitted for sin(theta)/lambda < 2
+      // and a second one fitted for 2 < sin(theta)/lambda < 6, so the set has
+      // to be chosen from the value at this node
+
+      int offset = (SinTheta_lambda > 2.0) ? 10 : 0;
+
       for (int ii = 0; ii < ntypes; ii++) {
         f[ii] = 0;
         for (int C = 0; C < 5; C++) {

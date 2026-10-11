@@ -76,6 +76,7 @@ class PairGranular : public Pair {
 
   void allocate();
   void prune_models();
+  void set_heat_flag();
 
   int size_history;
   int heat_flag;

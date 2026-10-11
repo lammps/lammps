@@ -1724,7 +1724,9 @@ pre-compiled version already present on your system.
       .. code-block:: bash
 
          -D RUNNER_LIB_DIR=path      # Directory containing the RuNNer library.
-                                     # (default: $HOME/.local/lib)
+                                     # (default: empty, search the folders in
+                                     # LD_LIBRARY_PATH, LIBRARY_PATH, and the
+                                     # standard system library folders)
          -D RUNNER_LIB_NAME=name     # Filename of the library (without extension).
                                      # (default: libRuNNer_mpi)
 
@@ -1757,8 +1759,10 @@ pre-compiled version already present on your system.
      - Download and build RuNNer from source
      - ``yes``
    * - ``RUNNER_LIB_DIR``
-     - Path to a pre-installed RuNNer library
-     - ``$HOME/.local/lib``
+     - Path to a pre-installed RuNNer library; if empty, the folders in
+       ``LD_LIBRARY_PATH`` and ``LIBRARY_PATH`` and the standard system
+       library folders are searched
+     - (empty)
    * - ``RUNNER_LIB_NAME``
      - Name of the RuNNer library file without extension
      - ``libRuNNer_mpi``

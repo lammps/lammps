@@ -103,7 +103,7 @@ void FixQEqSlater::init()
 
 void FixQEqSlater::extract_streitz()
 {
-  Pair *pair = force->pair_match("coul/streitz", 1);
+  Pair *pair = force->pair_match("^coul/streitz", 0);
   if (pair == nullptr) error->all(FLERR, "No pair style coul/streitz for fix qeq/slater");
   int tmp;
   chi = (double *) pair->extract("chi", tmp);

@@ -487,20 +487,20 @@ void FixQEq::sparse_matvec(sparse_matrix *A, double *x, double *b)
   for (i = 0; i < nlocal; ++i) {
     if (atom->mask[i] & groupbit)
       b[i] = eta[atom->type[i]] * x[i];
+    else
+      b[i] = 0.0;
   }
 
   for (i = nlocal; i < nall; ++i) {
-    if (atom->mask[i] & groupbit)
-      b[i] = 0;
+    b[i] = 0.0;
   }
 
   for (i = 0; i < nlocal; ++i) {
-    if (atom->mask[i] & groupbit) {
-      for (itr_j=A->firstnbr[i]; itr_j<A->firstnbr[i]+A->numnbrs[i]; itr_j++) {
-        j = A->jlist[itr_j];
-        b[i] += A->val[itr_j] * x[j];
-        b[j] += A->val[itr_j] * x[i];
-      }
+    // include the rows of atoms outside the group for their fixed charges
+    for (itr_j=A->firstnbr[i]; itr_j<A->firstnbr[i]+A->numnbrs[i]; itr_j++) {
+      j = A->jlist[itr_j];
+      b[i] += A->val[itr_j] * x[j];
+      b[j] += A->val[itr_j] * x[i];
     }
   }
 

@@ -214,6 +214,38 @@ void FixQEqReaxFFOMP::solve_st()
 }
 
 /* ----------------------------------------------------------------------
+   threaded version of FixQEqReaxFF::xl_update()
+------------------------------------------------------------------------- */
+
+void FixQEqReaxFFOMP::xl_update()
+{
+  const int *mask = atom->mask;
+  const bool restart = !xl_active && xl.restart(lmp);
+
+#if defined(_OPENMP)
+#pragma omp parallel for schedule(static)
+#endif
+  for (int ii = 0; ii < nn; ++ii) {
+    const int i = ilist[ii];
+    if (mask[i] & groupbit) {
+      if (xl_active) {
+        const double ths = xl.propagate(s[i], xls_hist[i]);
+        const double tht = xl.propagate(t[i], xlt_hist[i]);
+        xl.push(xls_hist[i], ths);
+        xl.push(xlt_hist[i], tht);
+      } else if (restart) {
+        xl.fill(xls_hist[i], s[i]);
+        xl.fill(xlt_hist[i], t[i]);
+      } else {
+        xl.push(xls_hist[i], s[i]);
+        xl.push(xlt_hist[i], t[i]);
+      }
+    }
+  }
+  xl.advance(lmp, xl_active, restart);
+}
+
+/* ----------------------------------------------------------------------
    threaded version of FixQEqReaxFF::calc_chi_eff()
 ------------------------------------------------------------------------- */
 
@@ -268,9 +300,17 @@ void FixQEqReaxFFOMP::init_matvec()
       b_s[i]      = rhs_s(i);
       b_t[i]      = -1.0;
 
-      /* quadratic extrapolation for t and cubic extrapolation for s from previous solutions */
-      t[i] = t_hist[i][2] + 3 * (t_hist[i][0] - t_hist[i][1]);
-      s[i] = 4*(s_hist[i][0]+s_hist[i][2])-(6*s_hist[i][1]+s_hist[i][3]);
+      if (xl_active) {
+
+        /* initial guess from the auxiliary variables of the XL propagation */
+        s[i] = xls_hist[i][0];
+        t[i] = xlt_hist[i][0];
+      } else {
+
+        /* quadratic extrapolation for t and cubic extrapolation for s from previous solutions */
+        t[i] = t_hist[i][2] + 3 * (t_hist[i][0] - t_hist[i][1]);
+        s[i] = 4*(s_hist[i][0]+s_hist[i][2])-(6*s_hist[i][1]+s_hist[i][3]);
+      }
     } else {
 
       /* atoms outside the group act as fixed charges on the s-solution only */

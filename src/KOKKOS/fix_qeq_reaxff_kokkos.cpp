@@ -56,6 +56,8 @@ FixQEqReaxFFKokkos(LAMMPS *lmp, int narg, char **arg) :
   FixQEqReaxFF(lmp, narg, arg)
 {
   kokkosable = 1;
+  if (xl.flag)
+    error->all(FLERR, "Fix {} does not (yet) support extended-Lagrangian charge propagation", style);
   comm_forward = comm_reverse = 2; // fused
   forward_comm_device = reverse_comm_device = exchange_comm_device = sort_device = 1;
   atomKK = (AtomKokkos *) atom;

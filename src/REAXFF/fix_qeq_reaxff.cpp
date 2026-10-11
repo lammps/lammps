@@ -140,8 +140,19 @@ FixQEqReaxFF::FixQEqReaxFF(LAMMPS *lmp, int narg, char **arg) :
   matrix_free = 0; // default to false
 
   int iarg = nfixed;
+  int xl_keyword = 0;
   while (iarg < narg) {
+    int n = 0;
     if (strcmp(arg[iarg],"dual") == 0) dual_enabled = 1;
+    else if (strcmp(arg[iarg],"xlmd") == 0) {
+      if (iarg+1 > narg-1)
+        utils::missing_cmd_args(FLERR, std::string("fix ") + style + " xlmd", error);
+      xl.flag = utils::logical(FLERR,arg[iarg+1],false,lmp);
+      iarg++;
+    } else if ((n = xl.parse_keyword(lmp, style, narg, arg, iarg)) > 0) {
+      xl_keyword = 1;
+      iarg += n-1;
+    }
     else if (strcmp(arg[iarg],"nowarn") == 0) maxwarn = 0;
     else if (strcmp(arg[iarg],"matfree") == 0) matrix_free = 1;
     else if (strcmp(arg[iarg],"maxiter") == 0) {
@@ -159,6 +170,14 @@ FixQEqReaxFF::FixQEqReaxFF(LAMMPS *lmp, int narg, char **arg) :
   }
   shld = nullptr;
 
+  // extended-Lagrangian propagation of the fictitious charges
+
+  if (xl_keyword && !xl.flag)
+    error->all(FLERR, "Fix {} keywords xlcg, xldamp, and xlkappa require xlmd yes", style);
+  if (xl.flag) xl.finalize(lmp, style, nevery);
+  xl_active = 0;
+  xls_hist = xlt_hist = nullptr;
+
   nn = n_cap = 0;
   nmax = 0;
   m_fill = m_cap = 0;
@@ -166,7 +185,7 @@ FixQEqReaxFF::FixQEqReaxFF(LAMMPS *lmp, int narg, char **arg) :
   s = nullptr;
   t = nullptr;
   nprev = 4;
-  maxexchange = 2*nprev;
+  maxexchange = 2*nprev + 2*xl.nhist;
 
   // initialize the per-atom history of atoms created during a run
   create_attribute = 1;
@@ -229,6 +248,8 @@ FixQEqReaxFF::~FixQEqReaxFF()
 
   memory->destroy(s_hist);
   memory->destroy(t_hist);
+  memory->destroy(xls_hist);
+  memory->destroy(xlt_hist);
 
   FixQEqReaxFF::deallocate_storage();
   FixQEqReaxFF::deallocate_matrix();
@@ -258,6 +279,16 @@ void FixQEqReaxFF::post_constructor()
   for (int i = 0; i < atom->nmax; i++)
     for (int j = 0; j < nprev; ++j)
       s_hist[i][j] = t_hist[i][j] = 0;
+
+  // the XL history is filled with converged solutions during the warm-up,
+  // so the initial values only need to be defined
+
+  if (xl.flag) {
+    for (int i = 0; i < atom->nmax; i++) {
+      xl.fill(xls_hist[i], atom->q[i]);
+      xl.fill(xlt_hist[i], 0.0);
+    }
+  }
 
   if (chi_mode != QEQ) read_gauss_file();
   pertype_parameters(pertype_option);
@@ -757,7 +788,14 @@ void FixQEqReaxFF::setup_pre_force(int vflag)
   deallocate_matrix();
   allocate_matrix();
 
+  // restart the extended-Lagrangian warm-up at the beginning of every run, so
+  // that stale or uninitialized auxiliary history (after read_restart, minimize,
+  // replicate, delete_atoms, ...) is never used for the charge propagation
+
+  xl.nseed = 0;
+  xl.bypass = 1;
   pre_force(vflag);
+  xl.bypass = 0;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -823,11 +861,59 @@ void FixQEqReaxFF::pre_force(int /*vflag*/)
 
   update_chi();
 
+  // in extended-Lagrangian mode, solve with a fixed small number of CG
+  // iterations seeded from the auxiliary variables, once they are available
+
+  xl_active = xl.ready(lmp) ? 1 : 0;
+
   init_matvec();
 
-  solve_st();
+  if (xl_active) {
+    const int imax_save = imax;
+    const int maxwarn_save = maxwarn;
+    imax = xl.ncg + 1;
+    maxwarn = 0;
+    solve_st();
+    imax = imax_save;
+    maxwarn = maxwarn_save;
+  } else {
+    solve_st();
+  }
+  if (xl.flag) xl_update();
 
   calculate_Q();
+}
+
+/* ----------------------------------------------------------------------
+   advance the auxiliary variables theta_s and theta_t with the time-reversible
+   (dissipative) Verlet propagation following Nomura et al., CPC 192, 91 (2015)
+   and Niklasson et al., JCP 130, 214109 (2009) during the XL solves, otherwise
+   (re-)seed the history from the fully converged solution
+------------------------------------------------------------------------- */
+
+void FixQEqReaxFF::xl_update()
+{
+  const int *mask = atom->mask;
+  const bool restart = !xl_active && xl.restart(lmp);
+
+  for (int ii = 0; ii < nn; ++ii) {
+    const int i = ilist[ii];
+    if (mask[i] & groupbit) {
+      if (xl_active) {
+        const double ths = xl.propagate(s[i], xls_hist[i]);
+        const double tht = xl.propagate(t[i], xlt_hist[i]);
+        xl.push(xls_hist[i], ths);
+        xl.push(xlt_hist[i], tht);
+      } else if (restart) {
+        xl.fill(xls_hist[i], s[i]);
+        xl.fill(xlt_hist[i], t[i]);
+      } else {
+        xl.push(xls_hist[i], s[i]);
+        xl.push(xlt_hist[i], t[i]);
+      }
+    }
+  }
+  xl.advance(lmp, xl_active, restart);
 }
 
 /* ----------------------------------------------------------------------
@@ -884,11 +970,19 @@ void FixQEqReaxFF::init_matvec()
       b_s[i]      = rhs_s(i);
       b_t[i]      = -1.0;
 
-      /* quadratic extrapolation for s & t from previous solutions */
-      t[i] = t_hist[i][2] + 3 * (t_hist[i][0] - t_hist[i][1]);
+      if (xl_active) {
 
-      /* cubic extrapolation for s & t from previous solutions */
-      s[i] = 4*(s_hist[i][0]+s_hist[i][2])-(6*s_hist[i][1]+s_hist[i][3]);
+        /* initial guess from the auxiliary variables of the XL propagation */
+        s[i] = xls_hist[i][0];
+        t[i] = xlt_hist[i][0];
+      } else {
+
+        /* quadratic extrapolation for s & t from previous solutions */
+        t[i] = t_hist[i][2] + 3 * (t_hist[i][0] - t_hist[i][1]);
+
+        /* cubic extrapolation for s & t from previous solutions */
+        s[i] = 4*(s_hist[i][0]+s_hist[i][2])-(6*s_hist[i][1]+s_hist[i][3]);
+      }
     } else {
 
       /* atoms outside the group act as fixed charges on the s-solution only */
@@ -1227,6 +1321,7 @@ double FixQEqReaxFF::memory_usage()
 
   if (dual_enabled)
     bytes += (double)atom->nmax*4 * sizeof(double); // double size for q, d, r, and p
+  bytes += (double)atom->nmax*xl.nhist*2 * sizeof(double); // xls_hist & xlt_hist
 
   return bytes;
 }
@@ -1239,6 +1334,10 @@ void FixQEqReaxFF::grow_arrays(int nmax)
 {
   memory->grow(s_hist,nmax,nprev,"qeq:s_hist");
   memory->grow(t_hist,nmax,nprev,"qeq:t_hist");
+  if (xl.nhist) {
+    memory->grow(xls_hist,nmax,xl.nhist,"qeq:xls_hist");
+    memory->grow(xlt_hist,nmax,xl.nhist,"qeq:xlt_hist");
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -1251,6 +1350,10 @@ void FixQEqReaxFF::copy_arrays(int i, int j, int /*delflag*/)
     s_hist[j][m] = s_hist[i][m];
     t_hist[j][m] = t_hist[i][m];
   }
+  for (int m = 0; m < xl.nhist; m++) {
+    xls_hist[j][m] = xls_hist[i][m];
+    xlt_hist[j][m] = xlt_hist[i][m];
+  }
 }
 
 /* ----------------------------------------------------------------------
@@ -1262,6 +1365,7 @@ void FixQEqReaxFF::copy_arrays(int i, int j, int /*delflag*/)
 void FixQEqReaxFF::set_arrays(int i)
 {
   for (int m = 0; m < nprev; m++) s_hist[i][m] = t_hist[i][m] = 0.0;
+  for (int m = 0; m < xl.nhist; m++) xls_hist[i][m] = xlt_hist[i][m] = 0.0;
 }
 
 /* ----------------------------------------------------------------------
@@ -1270,9 +1374,12 @@ void FixQEqReaxFF::set_arrays(int i)
 
 int FixQEqReaxFF::pack_exchange(int i, double *buf)
 {
-  for (int m = 0; m < nprev; m++) buf[m] = s_hist[i][m];
-  for (int m = 0; m < nprev; m++) buf[nprev+m] = t_hist[i][m];
-  return nprev*2;
+  int n = 0;
+  for (int m = 0; m < nprev; m++) buf[n++] = s_hist[i][m];
+  for (int m = 0; m < nprev; m++) buf[n++] = t_hist[i][m];
+  for (int m = 0; m < xl.nhist; m++) buf[n++] = xls_hist[i][m];
+  for (int m = 0; m < xl.nhist; m++) buf[n++] = xlt_hist[i][m];
+  return n;
 }
 
 /* ----------------------------------------------------------------------
@@ -1281,9 +1388,12 @@ int FixQEqReaxFF::pack_exchange(int i, double *buf)
 
 int FixQEqReaxFF::unpack_exchange(int nlocal, double *buf)
 {
-  for (int m = 0; m < nprev; m++) s_hist[nlocal][m] = buf[m];
-  for (int m = 0; m < nprev; m++) t_hist[nlocal][m] = buf[nprev+m];
-  return nprev*2;
+  int n = 0;
+  for (int m = 0; m < nprev; m++) s_hist[nlocal][m] = buf[n++];
+  for (int m = 0; m < nprev; m++) t_hist[nlocal][m] = buf[n++];
+  for (int m = 0; m < xl.nhist; m++) xls_hist[nlocal][m] = buf[n++];
+  for (int m = 0; m < xl.nhist; m++) xlt_hist[nlocal][m] = buf[n++];
+  return n;
 }
 
 /* ---------------------------------------------------------------------- */

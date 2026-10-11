@@ -48,6 +48,7 @@ class FixQEqReaxFFOMP : public FixQEqReaxFF {
   void solve_st() override;
   void calculate_Q() override;
   void calc_chi_eff() override;
+  void xl_update() override;
 
   void vector_sum(double *, double, double *, double, double *, int) override;
   void vector_add(double *, double, double *, int) override;

@@ -149,17 +149,19 @@ protected:
 
     // run charge equilibration with the given fix command for the atoms in the
     // group and compare the charges with the reference.  the charges of the atoms
-    // outside the group must not change.
+    // outside the group must not change.  the atoms do not move, so a run with
+    // more steps must keep the charges, e.g. with the extended-Lagrangian
+    // propagation, which only starts after a few steps.
 
     void check_charges(const std::string &fixargs, const double *ref, double tol,
-                       const std::string &suffix)
+                       const std::string &suffix, int nsteps = 0)
     {
         BEGIN_HIDE_OUTPUT();
         command("set group active charge 0.0");
         if (!suffix.empty()) command("suffix " + suffix);
         command("fix qeq active " + fixargs);
         if (!suffix.empty()) command("suffix off");
-        command("run 0 post no");
+        command(fmt::format("run {} post no", nsteps));
         END_HIDE_OUTPUT();
 
         // make certain the intended variant of the fix was tested
@@ -211,6 +213,18 @@ TEST_F(QEqSubgroupTest, qeq_reaxff)
         check_charges("qeq/reaxff 1 0.0 10.0 1.0e-12 " + param_file + " maxiter 1000 dual",
                       ref_shielded, 1.0e-10, "omp");
 
+    // check the extended-Lagrangian propagation after the warm-up
+    if (!using_accelerator()) {
+        for (const auto &sfx : suffixes("qeq/reaxff"))
+            check_charges("qeq/reaxff 1 0.0 10.0 1.0e-12 " + param_file +
+                              " maxiter 1000 xlmd yes xldamp 3",
+                          ref_shielded, 1.0e-10, sfx, 10);
+        if (Info::has_package("OPENMP"))
+            check_charges("qeq/reaxff 1 0.0 10.0 1.0e-12 " + param_file +
+                              " maxiter 1000 dual xlmd yes",
+                          ref_shielded, 1.0e-10, "omp", 10);
+    }
+
     // check both neighbor list settings and the matrix-free option of fix qeq/reaxff/kk
     if (using_accelerator() && Info::has_package("KOKKOS")) {
         for (const auto &neigh : {"half", "full"}) {
@@ -243,10 +257,15 @@ TEST_F(QEqSubgroupTest, qtpie_reaxff)
     for (const auto &sfx : suffixes("qeq/reaxff"))
         check_charges("qeq/reaxff 1 0.0 10.0 1.0e-12 " + equal_file + " maxiter 1000", ref_equalchi,
                       1.0e-10, sfx);
-    for (const auto &sfx : suffixes("qtpie/reaxff"))
+    for (const auto &sfx : suffixes("qtpie/reaxff")) {
         check_charges("qtpie/reaxff 1 0.0 10.0 1.0e-12 " + equal_file + " " + gauss_file +
                           " maxiter 1000",
                       ref_equalchi, 1.0e-10, sfx);
+        if (!using_accelerator())
+            check_charges("qtpie/reaxff 1 0.0 10.0 1.0e-12 " + equal_file + " " + gauss_file +
+                              " maxiter 1000 xlmd yes",
+                          ref_equalchi, 1.0e-10, sfx, 10);
+    }
 }
 
 TEST_F(QEqSubgroupTest, acks2_reaxff)

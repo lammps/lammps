@@ -78,6 +78,9 @@ FixACKS2ReaxFF::FixACKS2ReaxFF(LAMMPS *lmp, int narg, char **arg) :
 
   s_hist_X = s_hist_last = nullptr;
 
+  if (xl.flag)
+    error->all(FLERR, "Fix {} does not support extended-Lagrangian charge propagation", style);
+
   last_rows_rank = 0;
   last_rows_flag = (comm->me == last_rows_rank);
 

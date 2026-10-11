@@ -24,11 +24,13 @@ Syntax
 
   .. parsed-literal::
 
-     keyword = *scale* or *dual* or *maxiter* or *nowarn*
+     keyword = *scale* or *dual* or *maxiter* or *nowarn* or *xlmd* or *xlcg* or *xldamp* or *xlkappa*
        *scale* beta = set value of scaling factor *beta* (determines strength of electric polarization)
        *dual* = process S and T matrix in parallel (only for qtpie/reaxff/omp)
        *maxiter* N = limit the number of iterations to *N*
        *nowarn* = do not print a warning message if the maximum number of iterations is reached
+       *xlmd* value = *yes* or *no* = whether or not to use the extended-Lagrangian propagation of the charges
+       *xlcg*, *xldamp*, *xlkappa* = settings of the extended-Lagrangian propagation, see :doc:`fix qeq/reaxff <fix_qeq_reaxff>`
 
 Examples
 """"""""
@@ -160,6 +162,13 @@ same fixed number of iterations is desired, which can be achieved
 by using a very small tolerance and setting *maxiter* to the desired
 number of iterations.
 
+.. versionadded:: TBD
+
+The optional *xlmd*, *xlcg*, *xldamp*, and *xlkappa* keywords enable
+and control the extended-Lagrangian propagation of the charges, which
+reduces the cost of the charge equilibration several-fold.  They work
+the same way as for :doc:`fix qeq/reaxff <fix_qeq_reaxff>`.
+
 .. versionchanged:: TBD
 
 If the fix group does not contain all atoms, only the charges of the
@@ -228,7 +237,7 @@ Related commands
 Default
 """""""
 
-scale = 1.0 and maxiter = 200
+scale = 1.0, maxiter = 200, and xlmd = no
 
 ----------
 

@@ -39,6 +39,7 @@ FixStyle(qeq/rel/reaxff,FixQEqReaxFF);
 #define LMP_FIX_QEQ_REAXFF_H
 
 #include "fix.h"
+#include "xl_qeq.h"
 
 namespace LAMMPS_NS {
 
@@ -95,6 +96,13 @@ class FixQEqReaxFF : public Fix {
   double *s, *t;
   double **s_hist, **t_hist;
   int nprev;
+
+  // extended-Lagrangian (XL) propagation of the fictitious charges
+
+  XLQEq xl;                         // settings and warm-up state
+  int xl_active;                    // 1 if the current solve is seeded from the XL history
+  double **xls_hist, **xlt_hist;    // auxiliary variable trajectories, newest first
+  virtual void xl_update();
 
   // NOLINTBEGIN
   typedef struct {

@@ -24,11 +24,15 @@ Syntax
 
   .. parsed-literal::
 
-     keyword = *dual* or *maxiter* or *nowarn* or *matfree*
+     keyword = *dual* or *maxiter* or *nowarn* or *matfree* or *xlmd* or *xlcg* or *xldamp* or *xlkappa*
        *dual* = process S and T matrix in parallel (only for qeq/reaxff/omp)
        *maxiter* N = limit the number of iterations to *N*
        *nowarn* = do not print a warning message if the maximum number of iterations was reached
        *matfree* = use a matrix-free approach for applying the H matrix (only for qeq/reaxff/kk)
+       *xlmd* value = *yes* or *no* = whether or not to use the extended-Lagrangian propagation of the charges
+       *xlcg* value = number of conjugate gradient iterations per step (requires *xlmd yes*)
+       *xldamp* value = order of the dissipation term for the auxiliary variables, 0 or 3 to 9 (requires *xlmd yes*)
+       *xlkappa* value = coupling constant :math:`\kappa = \omega^2 \delta t^2` of the undamped propagation (requires *xlmd yes*)
 
 Examples
 """"""""
@@ -37,6 +41,7 @@ Examples
 
    fix 1 all qeq/reaxff 1 0.0 10.0 1.0e-6 reaxff
    fix 1 all qeq/reaxff 1 0.0 10.0 1.0e-6 param.qeq maxiter 500
+   fix 1 all qeq/reaxff 1 0.0 10.0 1.0e-6 reaxff xlmd yes
 
 Description
 """""""""""
@@ -51,18 +56,6 @@ defines and uses charges on each atom.  The :doc:`fix qeq/comb
 with the :doc:`COMB potential <pair_comb>`.  For more technical details
 about the charge equilibration performed by fix qeq/reaxff, see the
 :ref:`(Aktulga) <qeq-Aktulga>` paper.
-
-.. versionadded:: TBD
-
-The :doc:`fix qeq/shielded <fix_qeq>` command from the QEQ package
-performs the same charge equilibration as this fix and also supports an
-extended-Lagrangian variant, :doc:`fix qeq/shielded/xlmd <fix_qeq>`,
-which reduces the cost of the charge equilibration several-fold by
-replacing the iteration to self-consistency with time-reversibly
-propagated auxiliary charge variables and a fixed small number of
-solver iterations.  Note that, unlike fix qeq/reaxff, the QEQ package
-fixes ignore :doc:`fix efield <fix_efield>`, so simulations with an
-external electric field must continue to use fix qeq/reaxff.
 
 The QEq method minimizes the electrostatic energy of the system by
 adjusting the partial charge on individual atoms based on interactions
@@ -102,6 +95,30 @@ useful for comparing serial and parallel results where having the
 same fixed number of QEq iterations is desired, which can be achieved
 by using a very small tolerance and setting *maxiter* to the desired
 number of iterations.
+
+.. versionadded:: TBD
+
+The optional *xlmd* keyword with the value *yes* enables the
+extended-Lagrangian propagation of the charges, which is explained in
+more detail for the :doc:`fix qeq/shielded/xlmd <fix_qeq>` command.
+Auxiliary per-atom variables are propagated time-reversibly alongside
+the atoms and provide the initial guess for the iterative solver, which
+then applies only a small, fixed number of conjugate gradient iterations
+(keyword *xlcg*, default 2) instead of iterating to *tolerance*.  This
+reduces the cost of the charge equilibration several-fold, while the
+energy conservation remains close to that of fully converged solves.
+The *xldamp* and *xlkappa* keywords set the dissipation and the coupling
+of the auxiliary variables in the same way as for fix qeq/shielded/xlmd
+(default: dissipation of order 5).  At the beginning of every run, after
+the number of atoms changed, and during :doc:`energy minimization
+<minimize>`, the charges are equilibrated to *tolerance* until a valid
+history of solutions from consecutive steps is available.  The
+extended-Lagrangian propagation requires *Nevery* = 1.  It is available
+for all variants of this fix and for the :doc:`fix qtpie/reaxff
+<fix_qtpie_reaxff>` and :doc:`fix qeq/rel/reaxff <fix_qeq_rel_reaxff>`
+commands, but not for :doc:`fix acks2/reaxff <fix_acks2_reaxff>`.  It is
+recommended to verify the energy conservation of a simulation against a
+run with fully converged charges.
 
 The optional *matfree* keyword replaces the sequence of
 explicitly constructing the H matrix, then (repeatedly) applying it
@@ -176,7 +193,7 @@ Related commands
 Default
 """""""
 
-maxiter 200
+maxiter 200, xlmd no.  With *xlmd yes*: xlcg 2, xldamp 5
 
 ----------
 

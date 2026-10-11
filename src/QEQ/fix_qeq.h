@@ -15,6 +15,7 @@
 #define LMP_FIX_QEQ_H
 
 #include "fix.h"
+#include "xl_qeq.h"
 
 namespace LAMMPS_NS {
 
@@ -81,18 +82,7 @@ class FixQEq : public Fix {
 
   // extended-Lagrangian (XL) charge propagation for qeq/*/xlmd styles
 
-  int xl_flag;                   // 1 if this is an xlmd fix style
-  int xl_ncg;                    // CG iterations per solve in XL mode
-  int xl_kdis;                   // dissipation order (0 = plain Verlet)
-  int xl_kappa_set;              // 1 if xlkappa keyword was used
-  double xl_kappa;               // coupling constant kappa = omega^2 * dt^2
-  double xl_alpha;               // dissipation prefactor alpha
-  double xl_c[10];               // dissipation coefficients c_0 ... c_kdis
-  int xl_nhist;                  // auxiliary history depth; 0 unless xlmd style
-  int xl_nseed;                  // consecutive converged solves seeding the history
-  int xl_bypass;                 // force a fully converged solve when set
-  bigint xl_laststep;            // last step the auxiliary history was advanced
-  bigint xl_natoms;              // number of atoms when the history was advanced
+  XLQEq xl;                      // settings and warm-up state
   int imax;                      // CG iteration bound for the current solve
   double **xls_hist, **xlt_hist; // auxiliary variable trajectories, newest first
 
@@ -130,7 +120,6 @@ class FixQEq : public Fix {
   int parse_common_keyword(int, char **, int);
   void finalize_xl();
   int solve_st();
-  [[nodiscard]] bool xl_ready() const;
   void xl_predict();
   void xl_update(bool);
 

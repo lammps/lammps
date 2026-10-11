@@ -456,9 +456,9 @@ void PairReaxFFOMP::read_reax_forces(int /* vflag */)
     api->system->my_atoms[i].f[1] = api->workspace->f[i][1];
     api->system->my_atoms[i].f[2] = api->workspace->f[i][2];
 
-    atom->f[i][0] = -api->workspace->f[i][0];
-    atom->f[i][1] = -api->workspace->f[i][1];
-    atom->f[i][2] = -api->workspace->f[i][2];
+    atom->f[i][0] += -api->workspace->f[i][0];
+    atom->f[i][1] += -api->workspace->f[i][1];
+    atom->f[i][2] += -api->workspace->f[i][2];
   }
 }
 

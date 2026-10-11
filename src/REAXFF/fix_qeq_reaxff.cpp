@@ -99,6 +99,7 @@ FixQEqReaxFF::FixQEqReaxFF(LAMMPS *lmp, int narg, char **arg) :
   extscalar = 0;
   imax = 200;
   maxwarn = 1;
+  cg_resid = xl_resid = 0.0;
   scale = 1.0;
   dist_cutoff_sq = 0.0;
 
@@ -876,6 +877,22 @@ void FixQEqReaxFF::pre_force(int /*vflag*/)
     solve_st();
     imax = imax_save;
     maxwarn = maxwarn_save;
+
+    // complete the solve from the current solution and restart the propagation
+    // when the truncated solve indicates that it became unstable
+
+    if (xl.unstable(xl_resid)) {
+      const double resid = xl_resid;
+      const int matvecs_xl = matvecs;
+      pack_flag = 2;
+      comm->forward_comm(this);
+      pack_flag = 3;
+      comm->forward_comm(this);
+      solve_st();
+      matvecs += matvecs_xl;
+      xl.fallback(lmp, style, resid, maxwarn);
+      xl_active = 0;
+    }
   } else {
     solve_st();
   }
@@ -923,7 +940,9 @@ void FixQEqReaxFF::xl_update()
 void FixQEqReaxFF::solve_st()
 {
   matvecs_s = CG(b_s, s);       // CG on s - parallel
+  xl_resid = cg_resid;
   matvecs_t = CG(b_t, t);       // CG on t - parallel
+  xl_resid = MAX(xl_resid, cg_resid);
   matvecs = matvecs_s + matvecs_t;
 }
 
@@ -1161,6 +1180,7 @@ int FixQEqReaxFF::CG(double *b, double *x)
     vector_sum(d, 1., p, beta, d, nn);
   }
 
+  cg_resid = sqrt(sig_new) / b_norm;
   if ((i >= imax) && maxwarn && (comm->me == 0))
     error->warning(FLERR, "Fix {} CG convergence failed after {} iterations at step {}",
                    style, i, update->ntimestep);

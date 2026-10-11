@@ -73,6 +73,7 @@ FixQEq::FixQEq(LAMMPS *lmp, int narg, char **arg) :
   maxwarn = 1;
   matvecs = 0;
   imax = maxiter;
+  cg_resid = 0.0;
 
   // extended-Lagrangian charge propagation is selected via the fix style name
 
@@ -496,6 +497,8 @@ int FixQEq::CG(double *b, double *x)
     vector_sum(d, 1., p, beta, d, inum);
   }
 
+  cg_resid = sqrt(sig_new)/b_norm;
+
   // no warning for a deliberately truncated solve in extended-Lagrangian mode
 
   if ((comm->me == 0) && maxwarn && (imax == maxiter) && (loop >= imax))
@@ -622,13 +625,30 @@ void FixQEq::finalize_xl()
 
 int FixQEq::solve_st()
 {
-  const bool active = xl.ready(lmp);
+  bool active = xl.ready(lmp);
 
   if (active) xl_predict();
   imax = active ? xl.ncg + 1 : maxiter;
   int nsolve = CG(b_s,s);
+  double resid = cg_resid;
   nsolve += CG(b_t,t);
+  resid = MAX(resid, cg_resid);
   imax = maxiter;
+
+  // complete the solve from the current solution and restart the propagation
+  // when the truncated solve indicates that it became unstable
+
+  if (active && xl.unstable(resid)) {
+    pack_flag = 2;
+    comm->forward_comm(this);
+    pack_flag = 3;
+    comm->forward_comm(this);
+    nsolve += CG(b_s,s);
+    nsolve += CG(b_t,t);
+    xl.fallback(lmp, style, resid, maxwarn);
+    active = false;
+  }
+
   if (xl.flag) xl_update(active);
   return nsolve/2;
 }

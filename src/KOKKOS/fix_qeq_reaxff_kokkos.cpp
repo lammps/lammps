@@ -355,6 +355,20 @@ void FixQEqReaxFFKokkos<DeviceType>::pre_force(int /*vflag*/)
     matvecs = 2*cg_solve();
     imax = imax_save;
     maxwarn = maxwarn_save;
+
+    // complete the solve from the current solution and restart the propagation
+    // when the truncated solve indicates that it became unstable
+
+    if (xl.unstable(xl_resid)) {
+      const double resid = xl_resid;
+      pack_flag = 2;
+      k_st.template modify<DeviceType>();
+      comm->forward_comm(this);
+      k_st.template sync<DeviceType>();
+      matvecs += 2*cg_solve();
+      xl.fallback(lmp, style, resid, maxwarn);
+      xl_active = 0;
+    }
   } else {
     matvecs = 2*cg_solve();
   }
@@ -610,6 +624,13 @@ int FixQEqReaxFFKokkos<DeviceType>::cg_solve()
     // vector_sum(d, 1., p, beta, d, nn);
     Kokkos::parallel_for(Kokkos::RangePolicy<DeviceType,TagQEqSum1>(0,nn),*this);
   }
+
+  // relative residuals at the end of the solve, used to detect an unstable
+  // extended-Lagrangian propagation
+
+  if (!(converged & 1)) residual[0] = sqrt(sig_new.v[0]) / b_norm.v[0];
+  if (!(converged & 2)) residual[1] = sqrt(sig_new.v[1]) / b_norm.v[1];
+  xl_resid = MAX(residual[0], residual[1]);
 
   if ((loop >= imax) && maxwarn && (comm->me == 0))
     error->warning(FLERR, "Fix {} cg_solve convergence failed after {} iterations at step {}: "

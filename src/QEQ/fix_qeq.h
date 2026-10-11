@@ -84,6 +84,7 @@ class FixQEq : public Fix {
 
   XLQEq xl;                      // settings and warm-up state
   int imax;                      // CG iteration bound for the current solve
+  double cg_resid;               // relative residual at the end of the last CG solve
   double **xls_hist, **xlt_hist; // auxiliary variable trajectories, newest first
 
   // NOLINTBEGIN

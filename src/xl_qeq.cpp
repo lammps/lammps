@@ -15,6 +15,7 @@
 
 #include "atom.h"
 #include "citeme.h"
+#include "comm.h"
 #include "error.h"
 #include "lammps.h"
 #include "update.h"
@@ -86,6 +87,12 @@ int XLQEq::parse_keyword(LAMMPS *lmp, const char *style, int narg, char **arg, i
     if ((kappa <= 0.0) || (kappa > 2.0))
       lmp->error->all(FLERR, iarg + 1, "Fix {} xlkappa value {} must be > 0 and <= 2", style,
                       kappa);
+    return 2;
+  }
+  if (strcmp(arg[iarg], "xlguard") == 0) {
+    if (iarg + 2 > narg)
+      utils::missing_cmd_args(FLERR, std::string("fix ") + style + " xlguard", lmp->error);
+    guard = utils::numeric(FLERR, arg[iarg + 1], false, lmp);
     return 2;
   }
   if (strcmp(arg[iarg], "xldamp") == 0) {
@@ -170,4 +177,22 @@ void XLQEq::advance(const LAMMPS *lmp, bool active, bool restart)
   }
   laststep = lmp->update->ntimestep;
   natoms = lmp->atom->natoms;
+}
+
+/* ----------------------------------------------------------------------
+   a large residual after the truncated solve indicates that the auxiliary
+   variables no longer follow the converged solution.  the caller has
+   completed the solve to convergence; the history is seeded again from it
+------------------------------------------------------------------------- */
+
+void XLQEq::fallback(LAMMPS *lmp, const char *style, double resid, int warn)
+{
+  nseed = 0;
+  ++nfallback;
+  if (warn && (lmp->comm->me == 0))
+    lmp->error->warning(FLERR,
+                        "Fix {} extended-Lagrangian charge propagation became unstable on step "
+                        "{} (residual {:.3g} > xlguard {:.3g}). Restarting it from fully "
+                        "converged charges",
+                        style, lmp->update->ntimestep, resid, guard);
 }

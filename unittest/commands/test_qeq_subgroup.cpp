@@ -35,6 +35,9 @@
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
 bool verbose = false;
 
+using ::testing::HasSubstr;
+using ::testing::Not;
+
 namespace LAMMPS_NS {
 
 // when a charge equilibration fix is applied to a subset of the atoms, the
@@ -228,6 +231,16 @@ TEST_F(QEqSubgroupTest, qeq_reaxff)
         check_charges("qeq/reaxff 1 0.0 10.0 1.0e-12 " + param_file + " maxiter 1000 dual xlmd yes",
                       ref_shielded, 1.0e-10, "omp", 10);
 
+    // a tiny xlguard threshold completes every truncated solve to convergence
+    for (const auto &sfx : suffixes("qeq/reaxff"))
+        check_charges("qeq/reaxff 1 0.0 10.0 1.0e-12 " + param_file +
+                          " maxiter 1000 nowarn xlmd yes xldamp 3 xlguard 1.0e-30",
+                      ref_shielded, 1.0e-10, sfx, 10);
+    if (!using_accelerator() && Info::has_package("OPENMP"))
+        check_charges("qeq/reaxff 1 0.0 10.0 1.0e-12 " + param_file +
+                          " maxiter 1000 nowarn dual xlmd yes xldamp 3 xlguard 1.0e-30",
+                      ref_shielded, 1.0e-10, "omp", 10);
+
     // check both neighbor list settings and the matrix-free option of fix qeq/reaxff/kk
     if (using_accelerator() && Info::has_package("KOKKOS")) {
         for (const auto &neigh : {"half", "full"}) {
@@ -238,6 +251,9 @@ TEST_F(QEqSubgroupTest, qeq_reaxff)
                           ref_shielded, 1.0e-10, "");
             check_charges("qeq/reaxff 1 0.0 10.0 1.0e-12 " + param_file +
                               " maxiter 1000 matfree xlmd yes",
+                          ref_shielded, 1.0e-10, "", 10);
+            check_charges("qeq/reaxff 1 0.0 10.0 1.0e-12 " + param_file +
+                              " maxiter 1000 nowarn matfree xlmd yes xldamp 3 xlguard 1.0e-30",
                           ref_shielded, 1.0e-10, "", 10);
         }
     }
@@ -270,6 +286,9 @@ TEST_F(QEqSubgroupTest, qtpie_reaxff)
         check_charges("qtpie/reaxff 1 0.0 10.0 1.0e-12 " + equal_file + " " + gauss_file +
                           " maxiter 1000 xlmd yes",
                       ref_equalchi, 1.0e-10, sfx, 10);
+        check_charges("qtpie/reaxff 1 0.0 10.0 1.0e-12 " + equal_file + " " + gauss_file +
+                          " maxiter 1000 nowarn xlmd yes xldamp 3 xlguard 1.0e-30",
+                      ref_equalchi, 1.0e-10, sfx, 10);
     }
 }
 
@@ -296,6 +315,11 @@ TEST_F(QEqSubgroupTest, qeq_shielded)
         check_charges("qeq/shielded 1 10.0 1.0e-12 1000 " + qeq_file, ref_shielded, 1.0e-10, sfx);
         check_charges("qeq/shielded/xlmd 1 10.0 1.0e-12 1000 " + qeq_file, ref_shielded, 1.0e-10,
                       sfx);
+        check_charges("qeq/shielded/xlmd 1 10.0 1.0e-12 1000 " + qeq_file + " xldamp 3",
+                      ref_shielded, 1.0e-10, sfx, 10);
+        check_charges("qeq/shielded/xlmd 1 10.0 1.0e-12 1000 " + qeq_file +
+                          " warn no xldamp 3 xlguard 1.0e-30",
+                      ref_shielded, 1.0e-10, sfx, 10);
     }
 }
 
@@ -306,6 +330,40 @@ TEST_F(QEqSubgroupTest, qeq_point)
     for (const auto &sfx : suffixes("qeq/point")) {
         check_charges("qeq/point 1 10.0 1.0e-12 1000 " + qeq_file, ref_point, 1.0e-10, sfx);
         check_charges("qeq/point/xlmd 1 10.0 1.0e-12 1000 " + qeq_file, ref_point, 1.0e-10, sfx);
+        check_charges("qeq/point/xlmd 1 10.0 1.0e-12 1000 " + qeq_file +
+                          " warn no xldamp 3 xlguard 1.0e-30",
+                      ref_point, 1.0e-10, sfx, 10);
+    }
+}
+
+TEST_F(QEqSubgroupTest, xl_guard)
+{
+    if (!info->has_style("fix", "qeq/reaxff")) GTEST_SKIP() << "fix qeq/reaxff is not available";
+
+    // the default threshold does not trigger for the converged charges of
+    // atoms at rest, a tiny threshold triggers on every truncated solve
+    BEGIN_CAPTURE_OUTPUT();
+    command("fix qeq active qeq/reaxff 1 0.0 10.0 1.0e-12 " + param_file +
+            " maxiter 1000 xlmd yes xldamp 3");
+    command("run 10 post no");
+    auto output = END_CAPTURE_OUTPUT();
+    EXPECT_THAT(output, Not(HasSubstr("charge propagation became unstable")));
+
+    BEGIN_CAPTURE_OUTPUT();
+    command("fix qeq active qeq/reaxff 1 0.0 10.0 1.0e-12 " + param_file +
+            " maxiter 1000 xlmd yes xldamp 3 xlguard 1.0e-30");
+    command("run 10 post no");
+    output = END_CAPTURE_OUTPUT();
+    EXPECT_THAT(output, HasSubstr("charge propagation became unstable"));
+
+    if (info->has_style("fix", "qeq/shielded/xlmd")) {
+        BEGIN_CAPTURE_OUTPUT();
+        command("unfix qeq");
+        command("fix qeq active qeq/shielded/xlmd 1 10.0 1.0e-12 1000 " + qeq_file +
+                " xldamp 3 xlguard 1.0e-30");
+        command("run 10 post no");
+        output = END_CAPTURE_OUTPUT();
+        EXPECT_THAT(output, HasSubstr("charge propagation became unstable"));
     }
 }
 

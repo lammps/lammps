@@ -353,6 +353,7 @@ int FixQEqReaxFFOMP::CG(double *b, double *x)
     }
   }
 
+  cg_resid = sqrt(sig_new) / b_norm;
   if ((i >= imax) && maxwarn && (comm->me == 0))
     error->warning(FLERR,"Fix qeq/reaxff/omp CG convergence failed after {} iterations at step {}",
                    i,update->ntimestep);
@@ -669,9 +670,11 @@ int FixQEqReaxFFOMP::dual_CG(double *b1, double *b2, double *x1, double *x2)
   }
 
   matvecs_s = matvecs_t = i;
+  double resid_s = sqrt(sig_new_s)/b_norm_s;
+  double resid_t = sqrt(sig_new_t)/b_norm_t;
 
   // If only one was converged and there are still iterations left, converge other system
-  if ((matvecs_s < imax) && (sqrt(sig_new_s)/b_norm_s > tolerance)) {
+  if ((matvecs_s < imax) && (resid_s > tolerance)) {
     pack_flag = 2;
     comm->forward_comm(this); // x1 => s
 
@@ -679,14 +682,17 @@ int FixQEqReaxFFOMP::dual_CG(double *b1, double *b2, double *x1, double *x2)
     imax -= matvecs_s;
     matvecs_s += CG(b1, x1);
     imax = saved_imax;
-  } else if ((matvecs_t < imax) && (sqrt(sig_new_t)/b_norm_t > tolerance)) {
+    resid_s = cg_resid;
+  } else if ((matvecs_t < imax) && (resid_t > tolerance)) {
     pack_flag = 3;
     comm->forward_comm(this); // x2 => t
     int saved_imax = imax;
     imax -= matvecs_t;
     matvecs_t += CG(b2, x2);
     imax = saved_imax;
+    resid_t = cg_resid;
   }
+  xl_resid = MAX(resid_s, resid_t);
 
   if ((i >= imax) && maxwarn && (comm->me == 0))
     error->warning(FLERR,"Fix qeq/reaxff/omp CG convergence failed after {} iterations at step {}",

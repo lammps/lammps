@@ -24,7 +24,7 @@ Syntax
 
   .. parsed-literal::
 
-     keyword = *dual* or *maxiter* or *nowarn* or *matfree* or *xlmd* or *xlcg* or *xldamp* or *xlkappa*
+     keyword = *dual* or *maxiter* or *nowarn* or *matfree* or *xlmd* or *xlcg* or *xldamp* or *xlkappa* or *xlguard*
        *dual* = process S and T matrix in parallel (only for qeq/reaxff/omp)
        *maxiter* N = limit the number of iterations to *N*
        *nowarn* = do not print a warning message if the maximum number of iterations was reached
@@ -33,6 +33,7 @@ Syntax
        *xlcg* value = number of conjugate gradient iterations per step (requires *xlmd yes*)
        *xldamp* value = order of the dissipation term for the auxiliary variables, 0 or 3 to 9 (requires *xlmd yes*)
        *xlkappa* value = coupling constant :math:`\kappa = \omega^2 \delta t^2` of the undamped propagation (requires *xlmd yes*)
+       *xlguard* value = relative residual of the truncated solves above which the extended-Lagrangian propagation is restarted, <= 0 disables (requires *xlmd yes*)
 
 Examples
 """"""""
@@ -106,11 +107,18 @@ the atoms and provide the initial guess for the iterative solver, which
 then applies only a small, fixed number of conjugate gradient iterations
 (keyword *xlcg*, default 2) instead of iterating to *tolerance*.  This
 reduces the cost of the charge equilibration several-fold, while the
-energy conservation remains close to that of fully converged solves.
-The *xldamp* and *xlkappa* keywords set the dissipation and the coupling
-of the auxiliary variables in the same way as for fix qeq/shielded/xlmd
-(default: dissipation of order 5).  At the beginning of every run, after
-the number of atoms changed, and during :doc:`energy minimization
+energy conservation usually remains close to that of fully converged
+solves.  The *xldamp* and *xlkappa* keywords set the dissipation and the
+coupling of the auxiliary variables in the same way as for fix
+qeq/shielded/xlmd (default: dissipation of order 5).  The *xlguard*
+keyword sets the threshold of a safeguard against occasional
+instabilities of the propagation, which is also explained there: when
+the relative residual of a truncated solve exceeds this value (default
+1.0e-3), the solve is completed to *tolerance*, a warning is printed
+(unless the *nowarn* keyword is used), and the propagation is restarted
+from the converged charges.  A value <= 0 disables the safeguard.  At
+the beginning of every run, after the number of atoms changed, and
+during :doc:`energy minimization
 <minimize>`, the charges are equilibrated to *tolerance* until a valid
 history of solutions from consecutive steps is available.  The
 extended-Lagrangian propagation requires *Nevery* = 1.  It is available
@@ -193,7 +201,7 @@ Related commands
 Default
 """""""
 
-maxiter 200, xlmd no.  With *xlmd yes*: xlcg 2, xldamp 5
+maxiter 200, xlmd no.  With *xlmd yes*: xlcg 2, xldamp 5, xlguard 1.0e-3
 
 ----------
 

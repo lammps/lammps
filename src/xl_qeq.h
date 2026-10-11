@@ -32,7 +32,7 @@ struct XLQEq {
   int flag = 0;                 // 1 if the XL propagation is enabled
   int ncg = 2;                  // CG iterations per solve in XL mode: 2 keep the energy
                                 // conservation close to converged solves, 1 reproduces
-                                // the original publication with a reduced stability margin
+                                // the original publication. odd values were less stable
   int kdis = -1;                // dissipation order (0 = plain Verlet, -1 = not set)
   int kappa_set = 0;            // 1 if the xlkappa keyword was used
   double kappa = 2.0;           // coupling constant kappa = omega^2 * dt^2
@@ -43,8 +43,11 @@ struct XLQEq {
   int bypass = 0;               // force a fully converged solve when set
   bigint laststep = -1;         // last step the auxiliary history was advanced
   bigint natoms = -1;           // number of atoms when the history was advanced
+  double guard = 1.0e-3;        // relative residual of a truncated solve above which the
+                                // solve is completed and the propagation restarted, <= 0: off
+  bigint nfallback = 0;         // number of such restarts
 
-  // parse keywords xlcg, xldamp, and xlkappa: return the number of consumed arguments or 0
+  // parse keywords xlcg, xldamp, xlkappa, and xlguard: return the number of consumed arguments or 0
   int parse_keyword(LAMMPS *lmp, const char *style, int narg, char **arg, int iarg);
 
   // check the settings, apply defaults, set the coefficients and history depth
@@ -58,6 +61,13 @@ struct XLQEq {
 
   // update the warm-up state after the history was propagated (active) or seeded
   void advance(const LAMMPS *lmp, bool active, bool restart);
+
+  // true if the relative residual of a truncated solve indicates that the
+  // propagation became unstable and the solve must be completed to convergence
+  [[nodiscard]] bool unstable(double resid) const { return (guard > 0.0) && (resid > guard); }
+
+  // restart the warm-up after a truncated solve was completed to convergence
+  void fallback(LAMMPS *lmp, const char *style, double resid, int warn);
 
   // time-reversible (dissipative) Verlet propagation of one auxiliary variable:
   //   theta(n+1) = 2*theta(n) - theta(n-1) + kappa*(x(n) - theta(n))

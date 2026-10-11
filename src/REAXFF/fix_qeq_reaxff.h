@@ -196,6 +196,8 @@ class FixQEqReaxFF : public Fix {
   int dual_enabled;            // 0: Original, separate s & t optimization; 1: dual optimization
   int dual_supported;          // 1 if this variant supports the dual CG optimization
   int matvecs_s, matvecs_t;    // Iteration count for each system
+  double cg_resid;             // relative residual at the end of the last CG solve
+  double xl_resid;             // larger relative residual of the last s and t solves
 };
 
 }    // namespace LAMMPS_NS

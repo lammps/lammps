@@ -72,14 +72,14 @@ class FixACKS2ReaxFF : public FixQEqReaxFF {
   void deallocate_matrix() override;
 
   void init_matvec() override;
-  void compute_X();    // NOLINT
+  virtual void compute_X();    // NOLINT
   void compute_X_offsets();
   void compute_X_row(int, double *);
   double calculate_X(double, double);
   void calculate_Q() override;
 
   int BiCGStab(double *, double *);
-  void sparse_matvec_acks2(sparse_matrix *, sparse_matrix *, double *, double *);
+  virtual void sparse_matvec_acks2(sparse_matrix *, sparse_matrix *, double *, double *);
 
   void more_forward_comm(double *);
   void more_reverse_comm(double *);
@@ -90,7 +90,7 @@ class FixACKS2ReaxFF : public FixQEqReaxFF {
 
   void vector_sum(double *, double, double *, double, double *, int) override;
   void vector_add(double *, double, double *, int) override;
-  void vector_copy(double *, double *, int);
+  virtual void vector_copy(double *, double *, int);
 };
 
 }    // namespace LAMMPS_NS

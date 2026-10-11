@@ -291,6 +291,7 @@ class FixACKS2ReaxFFKokkos : public FixACKS2ReaxFF, public KokkosBase {
 
   void get_chi_field() override;
 
+  using FixACKS2ReaxFF::sparse_matvec_acks2;
   void sparse_matvec_acks2(typename AT::t_kkfloat_1d &, typename AT::t_kkfloat_1d &);
 };
 

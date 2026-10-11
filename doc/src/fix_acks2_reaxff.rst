@@ -1,10 +1,11 @@
 .. index:: fix acks2/reaxff
 .. index:: fix acks2/reaxff/kk
+.. index:: fix acks2/reaxff/omp
 
 fix acks2/reaxff command
 ========================
 
-Accelerator Variants: *acks2/reaxff/kk*
+Accelerator Variants: *acks2/reaxff/kk*, *acks2/reaxff/omp*
 
 Syntax
 """"""

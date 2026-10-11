@@ -15,6 +15,7 @@
 #include "../testing/systems/melt.h"
 #include "../testing/utils.h"
 #include "fmt/format.h"
+#include "library.h"
 #include "utils.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
@@ -78,7 +79,6 @@ TEST_F(DumpCfgTest, run0)
 
 TEST_F(DumpCfgTest, write_dump)
 {
-    const auto *dump_file = "dump_cfg_run*.melt.cfg";
     const auto *fields    = "mass type xs ys zs id proc procp1 x y z ix iy iz vx vy vz fx fy fz";
 
     BEGIN_HIDE_OUTPUT();
@@ -164,6 +164,13 @@ int main(int argc, char **argv)
     if ((argc > 1) && (strcmp(argv[1], "-v") == 0)) verbose = true;
 
     int rv = RUN_ALL_TESTS();
+
+    // finalize the KOKKOS package explicitly: otherwise Kokkos is torn down by
+    // static destructors at program exit, leading to segfaults in some cases
+    // same workaround as the force-style and FFT3d test drivers
+
+    lammps_kokkos_finalize();
+
     MPI_Finalize();
     return rv;
 }

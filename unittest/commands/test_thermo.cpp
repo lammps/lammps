@@ -20,11 +20,14 @@
 #include "error.h"
 #include "info.h"
 #include "input.h"
+#include "library.h"
 #include "output.h"
 #include "thermo.h"
 #include "utils.h"
 
 #include "../testing/core.h"
+#include <algorithm>
+#include <cmath>
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
@@ -95,6 +98,11 @@ protected:
 
 TEST_F(ThermoTest, Styles)
 {
+    // the expected pattern has fields that are printed as exactly zero, which
+    // the rounding of a reduced precision KOKKOS build does not reproduce
+    if (kokkos_reduced_precision())
+        GTEST_SKIP() << "thermo output of a reduced precision KOKKOS build differs";
+
     // default style "one"
     auto output = run0();
     ASSERT_MATCH(output, "Step +Temp +E_pair +E_mol +TotEng +Press *\n");
@@ -191,7 +199,8 @@ TEST_F(ThermoTest, Custom)
                       " +v_eq +v_vec\\[2\\]");
 
     // consistency checks through the variable interface of the thermo keywords
-    ASSERT_NEAR(get_variable_value("eq"), 2.0 * lmp->input->variable->compute_equal("temp"), 1e-12);
+    ASSERT_NEAR(get_variable_value("eq"), 2.0 * lmp->input->variable->compute_equal("temp"),
+                prec_tol(get_variable_value("eq"), 1e-12));
     HIDE_OUTPUT([&] {
         command("variable natoms equal atoms");
         command("variable step equal step");
@@ -240,16 +249,23 @@ TEST_F(ThermoTest, Custom)
                 1e-12);
     // with norm yes (lj units) the ke keyword is per atom, while a compute reference in a
     // variable always returns the unnormalized value
-    ASSERT_NEAR(get_variable_value("ke"), get_variable_value("cke") / 32.0, 1e-12);
-    ASSERT_NEAR(get_variable_value("evdwl"), get_variable_value("epair"), 1e-12);
-    ASSERT_NEAR(get_variable_value("press"), get_variable_value("ptrace"), 1e-10);
+    ASSERT_NEAR(get_variable_value("ke"), get_variable_value("cke") / 32.0,
+                prec_tol(get_variable_value("ke"), 1e-12));
+    ASSERT_NEAR(get_variable_value("evdwl"), get_variable_value("epair"),
+                prec_tol(get_variable_value("evdwl"), 1e-12));
+    ASSERT_NEAR(get_variable_value("press"), get_variable_value("ptrace"),
+                prec_tol(get_variable_value("press"), 1e-10));
     ASSERT_EQ(get_variable_value("nbonds"), 0.0);
-    ASSERT_NEAR(get_variable_value("fave"), get_variable_value("cke"), 1e-12);
-    ASSERT_NEAR(get_variable_value("fave1"), get_variable_value("cke"), 1e-12);
-    ASSERT_NEAR(get_variable_value("fave2"), get_variable_value("crdc2"), 1e-12);
+    ASSERT_NEAR(get_variable_value("fave"), get_variable_value("cke"),
+                prec_tol(get_variable_value("fave"), 1e-12));
+    ASSERT_NEAR(get_variable_value("fave1"), get_variable_value("cke"),
+                prec_tol(get_variable_value("fave1"), 1e-12));
+    ASSERT_NEAR(get_variable_value("fave2"), get_variable_value("crdc2"),
+                prec_tol(get_variable_value("fave2"), 1e-12));
     ASSERT_EQ(get_variable_value("vvec2"), 2.5);
     ASSERT_EQ(get_variable_value("ecouple"), 0.0);
-    ASSERT_NEAR(get_variable_value("econserve"), get_variable_value("etot"), 1e-12);
+    ASSERT_NEAR(get_variable_value("econserve"), get_variable_value("etot"),
+                prec_tol(get_variable_value("econserve"), 1e-12));
 
     // errors for invalid custom keywords and references
     TEST_FAILURE(".*ERROR: Unknown keyword 'xxx' in thermo_style custom command.*",
@@ -299,13 +315,13 @@ TEST_F(ThermoTest, Modify)
     });
     ASSERT_EQ(th->normflag, 0);
     ASSERT_EQ(th->modified, 1);
-    ASSERT_NEAR(get_variable_value("pe"), 32.0 * pe_norm, 1e-10);
+    ASSERT_NEAR(get_variable_value("pe"), 32.0 * pe_norm, prec_tol(32.0 * pe_norm, 1e-10));
     HIDE_OUTPUT([&] {
         command("thermo_modify norm yes");
         command("run 0 post no");
     });
     ASSERT_EQ(th->normflag, 1);
-    ASSERT_NEAR(get_variable_value("pe"), pe_norm, 1e-12);
+    ASSERT_NEAR(get_variable_value("pe"), pe_norm, prec_tol(pe_norm, 1e-12));
     TEST_FAILURE(".*ERROR: Illegal thermo_modify norm command: missing argument.*",
                  command("thermo_modify norm"););
 
@@ -370,11 +386,18 @@ TEST_F(ThermoTest, Modify)
 
 TEST_F(ThermoTest, Format)
 {
+    // the default format prints the temperature of the fixture as exactly "1" only
+    // when the velocities are kept in double precision.  a reduced precision KOKKOS
+    // build rounds them to single precision on the device and thus prints a value
+    // like "0.99999998" instead; the explicitly formatted columns below round that
+    // away and are checked exactly in either case
+    const std::string temp = kokkos_reduced_precision() ? "[01]\\.?[0-9]*" : "1";
+
     HIDE_OUTPUT([&] {
         command("thermo_style custom step atoms temp pe");
     });
     auto output = run0();
-    ASSERT_MATCH(output, "\n +0 +32 +1 +-[0-9.]+ *\n");
+    ASSERT_MATCH(output, "\n +0 +32 +" + temp + " +-[0-9.]+ *\n");
 
     // format line: one format per column
     HIDE_OUTPUT([&] {
@@ -402,14 +425,14 @@ TEST_F(ThermoTest, Format)
         command("thermo_modify format none");
     });
     output = run0();
-    ASSERT_MATCH(output, "\n +0 +32 +1 +-[0-9.]+ *\n");
+    ASSERT_MATCH(output, "\n +0 +32 +" + temp + " +-[0-9.]+ *\n");
 
     // integer format for a bigint column gets the correct conversion specifier
     HIDE_OUTPUT([&] {
         command("thermo_modify format int %3d");
     });
     output = run0();
-    ASSERT_MATCH(output, "\n +0 +32 +1 +-[0-9.]+ *\n");
+    ASSERT_MATCH(output, "\n +0 +32 +" + temp + " +-[0-9.]+ *\n");
 
     TEST_FAILURE(".*ERROR: Illegal thermo_modify format command: missing argument.*",
                  command("thermo_modify format"););
@@ -518,8 +541,8 @@ TEST_F(ThermoTest, TempPress)
         command("run 0 post no");
     });
     ASSERT_THAT(output, Not(HasSubstr("WARNING")));
-    ASSERT_NEAR(get_variable_value("temp"), temp, 1e-12);
-    ASSERT_NEAR(get_variable_value("press"), press, 1e-12);
+    ASSERT_NEAR(get_variable_value("temp"), temp, prec_tol(temp, 1e-12));
+    ASSERT_NEAR(get_variable_value("press"), press, prec_tol(press, 1e-12));
 
     // a temperature compute for a subset of atoms is flagged and changes the pressure
     output = CAPTURE_OUTPUT([&] {
@@ -535,7 +558,7 @@ TEST_F(ThermoTest, TempPress)
         command("run 0 post no");
     });
     ASSERT_THAT(output, Not(HasSubstr("WARNING")));
-    ASSERT_NEAR(get_variable_value("press"), press, 1e-12);
+    ASSERT_NEAR(get_variable_value("press"), press, prec_tol(press, 1e-12));
 
     TEST_FAILURE(".*ERROR: Could not find thermo_modify temperature compute xxx.*",
                  command("thermo_modify temp xxx"););
@@ -684,8 +707,9 @@ TEST_F(ThermoTest, TriclinicGeneral)
     for (int i = 0; i < 6; ++i)
         p[i] = get_variable_value(names[i]);
     double press = get_variable_value("press");
-    ASSERT_NEAR(press, (p[0] + p[1] + p[2]) / 3.0, 1e-10);
-    ASSERT_NEAR(get_variable_value("avecx"), lmp->domain->xprd, 1e-12);
+    ASSERT_NEAR(press, (p[0] + p[1] + p[2]) / 3.0, prec_tol(press, 1e-10));
+    ASSERT_NEAR(get_variable_value("avecx"), lmp->domain->xprd,
+                prec_tol(lmp->domain->xprd, 1e-12));
     ASSERT_EQ(get_variable_value("avecy"), 0.0);
     ASSERT_NEAR(get_variable_value("bvecx"), lmp->domain->xy, 1e-12);
     ASSERT_NEAR(get_variable_value("cvecz"), lmp->domain->zprd, 1e-12);
@@ -704,16 +728,18 @@ TEST_F(ThermoTest, TriclinicGeneral)
     // rotation about z: different in-plane components, same invariants, same zz component
     ASSERT_GT(fabs(q[0] - p[0]), 0.1);
     ASSERT_GT(fabs(q[3] - p[3]), 0.1);
-    ASSERT_NEAR(get_variable_value("press"), press, 1e-10);
-    ASSERT_NEAR(q[0] + q[1] + q[2], p[0] + p[1] + p[2], 1e-9);
-    ASSERT_NEAR(q[2], p[2], 1e-9);
-    ASSERT_NEAR(q[4] * q[4] + q[5] * q[5], p[4] * p[4] + p[5] * p[5], 1e-8);
+    ASSERT_NEAR(get_variable_value("press"), press, prec_tol(press, 1e-10));
+    ASSERT_NEAR(q[0] + q[1] + q[2], p[0] + p[1] + p[2],
+                prec_tol(p[0] + p[1] + p[2], 1e-9));
+    ASSERT_NEAR(q[2], p[2], prec_tol(p[2], 1e-9));
+    ASSERT_NEAR(q[4] * q[4] + q[5] * q[5], p[4] * p[4] + p[5] * p[5],
+                prec_tol(p[4] * p[4] + p[5] * p[5], 1e-8));
     double fp = 0.0, fq = 0.0;
     for (int i = 0; i < 3; ++i) {
         fp += p[i] * p[i] + 2.0 * p[i + 3] * p[i + 3];
         fq += q[i] * q[i] + 2.0 * q[i + 3] * q[i + 3];
     }
-    ASSERT_NEAR(fq, fp, 1e-7);
+    ASSERT_NEAR(fq, fp, prec_tol(fp, 1e-7));
     // box edge vectors are reported in the general frame
     ASSERT_NEAR(get_variable_value("avecx"), 0.8 * 3.0, 1e-12);
     ASSERT_NEAR(get_variable_value("avecy"), 0.6 * 3.0, 1e-12);
@@ -727,8 +753,9 @@ TEST_F(ThermoTest, TriclinicGeneral)
     });
     run0();
     for (int i = 0; i < 6; ++i)
-        ASSERT_NEAR(get_variable_value(names[i]), p[i], 1e-12);
-    ASSERT_NEAR(get_variable_value("avecx"), lmp->domain->xprd, 1e-12);
+        ASSERT_NEAR(get_variable_value(names[i]), p[i], prec_tol(p[i], 1e-12));
+    ASSERT_NEAR(get_variable_value("avecx"), lmp->domain->xprd,
+                prec_tol(lmp->domain->xprd, 1e-12));
 }
 } // namespace LAMMPS_NS
 
@@ -750,6 +777,13 @@ int main(int argc, char **argv)
     if ((argc > 1) && (strcmp(argv[1], "-v") == 0)) verbose = true;
 
     int rv = RUN_ALL_TESTS();
+
+    // finalize the KOKKOS package explicitly: otherwise Kokkos is torn down by
+    // static destructors at program exit, leading to segfaults in some cases
+    // same workaround as the force-style and FFT3d test drivers
+
+    lammps_kokkos_finalize();
+
     MPI_Finalize();
     return rv;
 }

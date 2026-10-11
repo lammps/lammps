@@ -53,7 +53,18 @@ void ModifyKokkos::setup(int vflag)
     }
   }
 
-  for (int i = 0; i < ncompute; i++) compute[i]->setup();
+  // the computes get the same treatment as the fixes above: several of them
+  // read the per-atom arrays in setup(), through the plain pointers when they
+  // have no KOKKOS version, and were reaching them without a transfer
+
+  for (int i = 0; i < ncompute; i++) {
+    atomKK->sync(compute[i]->execution_space,compute[i]->datamask_read);
+    int prev_auto_sync = lmp->kokkos->auto_sync;
+    if (!compute[i]->kokkosable) lmp->kokkos->auto_sync = 1;
+    compute[i]->setup();
+    lmp->kokkos->auto_sync = prev_auto_sync;
+    atomKK->modified(compute[i]->execution_space,compute[i]->datamask_modify);
+  }
 
   if (update->whichflag == 1)
     for (int i = 0; i < nfix; i++) {
@@ -451,6 +462,8 @@ double ModifyKokkos::energy_couple()
 {
   double energy = 0.0;
   for (int i = 0; i < n_energy_couple; i++) {
+    atomKK->sync(fix[list_energy_couple[i]]->execution_space,
+                 fix[list_energy_couple[i]]->datamask_read);
     int prev_auto_sync = lmp->kokkos->auto_sync;
     if (!fix[list_energy_couple[i]]->kokkosable) lmp->kokkos->auto_sync = 1;
     energy += fix[list_energy_couple[i]]->compute_scalar();
@@ -471,6 +484,8 @@ double ModifyKokkos::energy_global()
 {
   double energy = 0.0;
   for (int i = 0; i < n_energy_global; i++) {
+    atomKK->sync(fix[list_energy_global[i]]->execution_space,
+                 fix[list_energy_global[i]]->datamask_read);
     int prev_auto_sync = lmp->kokkos->auto_sync;
     if (!fix[list_energy_global[i]]->kokkosable) lmp->kokkos->auto_sync = 1;
     energy += fix[list_energy_global[i]]->compute_scalar();
@@ -525,15 +540,15 @@ void ModifyKokkos::post_run()
 
 void ModifyKokkos::setup_pre_force_respa(int vflag, int ilevel)
 {
-  for (int i = 0; i < n_pre_force; i++) {
-    atomKK->sync(fix[list_pre_force[i]]->execution_space,
-                 fix[list_pre_force[i]]->datamask_read);
+  for (int i = 0; i < n_pre_force_respa; i++) {
+    atomKK->sync(fix[list_pre_force_respa[i]]->execution_space,
+                 fix[list_pre_force_respa[i]]->datamask_read);
     int prev_auto_sync = lmp->kokkos->auto_sync;
-    if (!fix[list_pre_force[i]]->kokkosable) lmp->kokkos->auto_sync = 1;
-    fix[list_pre_force[i]]->setup_pre_force_respa(vflag,ilevel);
+    if (!fix[list_pre_force_respa[i]]->kokkosable) lmp->kokkos->auto_sync = 1;
+    fix[list_pre_force_respa[i]]->setup_pre_force_respa(vflag,ilevel);
     lmp->kokkos->auto_sync = prev_auto_sync;
-    atomKK->modified(fix[list_pre_force[i]]->execution_space,
-                     fix[list_pre_force[i]]->datamask_modify);
+    atomKK->modified(fix[list_pre_force_respa[i]]->execution_space,
+                     fix[list_pre_force_respa[i]]->datamask_modify);
   }
 }
 
@@ -598,6 +613,19 @@ void ModifyKokkos::pre_force_respa(int vflag, int ilevel, int iloop)
 
 void ModifyKokkos::post_force_respa(int vflag, int ilevel, int iloop)
 {
+  // GROUP fixes first, as in post_force()
+
+  for (int i = 0; i < n_post_force_group; i++) {
+    atomKK->sync(fix[list_post_force_group[i]]->execution_space,
+                 fix[list_post_force_group[i]]->datamask_read);
+    int prev_auto_sync = lmp->kokkos->auto_sync;
+    if (!fix[list_post_force_group[i]]->kokkosable) lmp->kokkos->auto_sync = 1;
+    fix[list_post_force_group[i]]->post_force_respa(vflag,ilevel,iloop);
+    lmp->kokkos->auto_sync = prev_auto_sync;
+    atomKK->modified(fix[list_post_force_group[i]]->execution_space,
+                     fix[list_post_force_group[i]]->datamask_modify);
+  }
+
   for (int i = 0; i < n_post_force_respa; i++) {
     atomKK->sync(fix[list_post_force_respa[i]]->execution_space,
                  fix[list_post_force_respa[i]]->datamask_read);

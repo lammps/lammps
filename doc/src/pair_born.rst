@@ -13,6 +13,7 @@
 .. index:: pair_style born/coul/wolf/kk
 .. index:: pair_style born/coul/wolf/omp
 .. index:: pair_style born/coul/dsf
+.. index:: pair_style born/coul/dsf/kk
 .. index:: pair_style born/coul/dsf/omp
 
 pair_style born command
@@ -38,7 +39,7 @@ Accelerator Variants: *born/coul/wolf/gpu*, *born/coul/wolf/kk*, *born/coul/wolf
 pair_style born/coul/dsf command
 ================================
 
-Accelerator Variants: *born/coul/dsf/omp*
+Accelerator Variants: *born/coul/dsf/kk*, *born/coul/dsf/omp*
 
 Syntax
 """"""

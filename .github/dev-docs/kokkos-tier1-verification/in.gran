@@ -1,0 +1,26 @@
+variable        ps index gran/hooke
+atom_style      sphere
+atom_modify     map array
+boundary        f f f
+newton          off
+comm_modify     vel yes
+units           lj
+region          reg block -5 5 -5 5 -5 5 units box
+create_box      1 reg
+create_atoms    1 single -1.2  0.12 0.0 units box
+create_atoms    1 single  1.2 -0.12 0.0 units box
+create_atoms    1 single  0.0  2.00 0.10 units box
+create_atoms    1 single  0.0 -2.00 -0.10 units box
+set             group all diameter 1.0 density 1.0
+velocity        all set  2.0  0.1  0.05 units box
+group           right id 2 4
+velocity        right set -2.0 -0.1 -0.05 units box
+pair_style      ${ps} 2000.0 NULL 20.0 NULL 0.5 1
+pair_coeff      * *
+neighbor        0.5 bin
+neigh_modify    delay 0 every 1 check yes
+timestep        0.0005
+fix             1 all nve/sphere
+thermo_style    custom step ke pe press
+thermo          100
+run             1000 post no

@@ -5,7 +5,7 @@
 #define KOKKOS_STD_ALGORITHMS_FILL_HPP
 
 #include "impl/Kokkos_FillFillN.hpp"
-#include "Kokkos_BeginEnd.hpp"
+#include <Kokkos_Iterator.hpp>
 
 namespace Kokkos {
 namespace Experimental {

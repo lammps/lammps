@@ -22,17 +22,6 @@
 
 namespace LAMMPS_NS::MathSpecialKokkos {
 
-  /*! Fast tabulated factorial function
-   *
-   *  This function looks up pre-computed factorial values for arguments of n = 0
-   *  to a maximum of 167, which is the maximal value representable by a double
-   *  precision floating point number.  For other values of n a NaN value is returned.
-   *
-   *  \param   n  argument (valid: 0 <= n <= 167)
-   *  \return  value of n! as double precision number or NaN */
-
-  extern double factorial(const int n);
-
   /* optimizer friendly implementation of exp2(x).
    *
    * strategy:
@@ -282,6 +271,20 @@ namespace LAMMPS_NS::MathSpecialKokkos {
   static T dot3(const T *v1, const T *v2)
   {
     return v1[0] * v2[0] + v1[1] * v2[1] + v1[2] * v2[2];
+  }
+
+  /* ----------------------------------------------------------------------
+    ans = v1 cross v2
+  ------------------------------------------------------------------------- */
+
+  template<typename T>
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  static void cross3(const T *v1, const T *v2, T *ans)
+  {
+    ans[0] = v1[1] * v2[2] - v1[2] * v2[1];
+    ans[1] = v1[2] * v2[0] - v1[0] * v2[2];
+    ans[2] = v1[0] * v2[1] - v1[1] * v2[0];
   }
 
 } // namespace LAMMPS_NS::MathSpecialKokkos

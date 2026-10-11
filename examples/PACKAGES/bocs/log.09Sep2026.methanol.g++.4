@@ -1,0 +1,161 @@
+LAMMPS (2 Sep 2026)
+units		real
+dimension	3
+boundary	p p p
+atom_style      atomic
+
+newton		on
+timestep	1.0
+
+read_data	methanol.data
+Reading data file ...
+  orthogonal box = (0 0 0) to (40.4635 40.4635 40.4635)
+  1 by 2 by 2 MPI processor grid
+  reading atoms ...
+  968 atoms
+  read_data CPU = 0.001 seconds
+
+velocity	all create 300.0 16802 dist gaussian
+
+pair_style	table spline 15000
+
+pair_coeff	1 1 lammps_nb_MET-MET.table nb_METMET 12.0
+WARNING: 78 of 2500 force values in table nb_METMET are inconsistent with -dE/dr.
+WARNING:  Should only be flagged at inflection points (src/pair_table.cpp:469)
+
+neigh_modify	delay 0 every 1 check yes one 10000
+neighbor	12.0 bin
+
+thermo		500
+thermo_style	custom step temp pe etotal press vol
+
+variable STEP equal step
+variable TEMP equal temp
+## volume from cubic angstroms to cubic nm
+variable VOL equal vol/1000.0
+## pressure from atm to bar
+variable PRESS equal press*1.01325
+variable PXX equal pxx*1.01325
+variable PYY equal pyy*1.01325
+variable PZZ equal pzz*1.01325
+variable PXY equal pxy*1.01325
+variable PXZ equal pxz*1.01325
+variable PYZ equal pyz*1.01325
+## energy from kcal/mol to kJ/mol
+variable KE equal ke*4.184
+variable PE equal pe*4.184
+variable UVDW equal evdwl*4.184
+
+
+#####     SPECIAL COMMANDS FOR FIX_BOCS     #####
+#       ID group-ID style_name thermostat T_init T_end T_couple barostat P_start P_end  P_couple pmatch_basis avg_vol     N_sites N_coeffs coeff1      coeff2
+fix 	1  all      bocs       temp       300.0  300.0 100.0    cgiso    0.986   0.986  1000.0   analytic     66476.015   968     2        245030.10   8962.20
+
+# Report the modified pressure
+thermo_modify 	press 1_press
+
+
+
+## Uncomment to save some data from simulation to files
+#fix             print_temp all print 500 "${STEP} ${TEMP}" file temp.dat screen no
+#fix             print_vol all print 500 "${STEP} ${VOL}" file vol.dat screen no
+#fix             print_press all print 500 "${STEP} ${PRESS}" file press.dat screen no
+#fix             print_ke all print 500 "${STEP} ${KE}" file kinetic_E.dat screen no
+#fix             print_pe all print 500 "${STEP} ${PE}" file potential_E.dat screen no
+#fix             print_ve all print 500 "${STEP} ${UVDW}" file vdw_E.dat screen no
+#fix             print_press_tens all print 500 "${STEP} ${PXX} ${PYY} ${PZZ} ${PXY} ${PXZ} ${PYZ}" file press_tens.dat screen no
+#fix		print_PV_eos all print 500 "${VOL} ${PRESS}" file pv_eos.dat screen no
+
+## Prints a configuration to dump.txt every 500 steps
+#dump		1 all custom 500 dump.txt id type x y z fx fy fz
+
+# Write restart files to continue simulations
+#restart 10000 state1.restart state2.restart
+
+## Run for this many steps
+run_style       verlet
+run 10000
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Your simulation uses code contributions which should be cited:
+
+- BOCS package: https://doi.org/10.1021/acs.jpcb.7b09993
+
+@Article{Dunn2018,
+ author = {N. J. H. Dunn and K. M. Lebold and M. R. {DeLyser} and
+    J. F. Rudzinski and W. G. Noid},
+ title = {{BOCS}: Bottom-Up Open-Source Coarse-Graining Software},
+ journal = {J.~Phys.\ Chem.~B},
+ year =    2018,
+ volume =  122,
+ number =  13,
+ pages =   {3363--3377}
+}
+
+CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE-CITE
+
+Generated 0 of 0 mixed pair_coeff terms from geometric mixing rule
+Neighbor list info ...
+  update: every = 1 steps, delay = 0 steps, check = yes
+  max neighbors/atom: 10000, page size: 100000
+  master list distance cutoff = 24
+  ghost atom cutoff = 24
+  binsize = 12, bins = 4 4 4
+  1 neighbor lists, perpetual/occasional/extra = 1 0 0
+  (1) pair table, perpetual
+      attributes: half, newton on
+      pair build: half/bin/atomonly/newton
+      stencil: half/bin/3d
+      bin: standard
+Per MPI rank memory allocation (min/avg/max) = 4.408 | 4.408 | 4.408 Mbytes
+   Step          Temp          PotEng         TotEng         Press          Volume    
+         0   300            1061.5961      1926.3291      107.006        66250.679    
+       500   314.54625      1034.106       1940.7677      194.43172      65660.46     
+      1000   301.46281      1030.7498      1899.6993     -91.160927      66263.839    
+      1500   298.77799      1015.7215      1876.9321     -77.07881       67028.771    
+      2000   298.99093      1035.6109      1897.4352     -18.476652      66583.098    
+      2500   300.05242      1057.3009      1922.185       160.1169       65850.943    
+      3000   303.40883      1023.5439      1898.1027     -8.8422146      66423.519    
+      3500   303.79463      1049.6726      1925.3434      157.44778      66311.53     
+      4000   308.9393       1026.7676      1917.2676      47.467164      66663.827    
+      4500   289.35932      1019.4833      1853.5452     -154.9841       66987.293    
+      5000   286.47577      1047.6998      1873.4499      51.559847      65970.146    
+      5500   287.666        1035.2679      1864.4488     -149.02926      66369.92     
+      6000   292.31525      1004.5206      1847.1028     -151.94482      67325.402    
+      6500   295.03893      1064.2795      1914.7125      109.24266      65576.564    
+      7000   305.605        1015.7762      1896.6653     -81.02902       66286.777    
+      7500   298.62142      1001.2899      1862.0492     -256.07357      66500.206    
+      8000   307.88459      1029.3256      1916.7854      71.328054      66785.535    
+      8500   288.00881      1058.1237      1888.2927      155.00735      66628.263    
+      9000   304.82055      1005.2375      1883.8654     -80.177555      65946.273    
+      9500   291.06195      1046.0183      1884.9879     -55.101333      66679.723    
+     10000   301.86953      1013.1916      1883.3134     -103.78458      66535.538    
+Loop time of 3.46566 on 4 procs for 10000 steps with 968 atoms
+
+Performance: 249.303 ns/day, 0.096 hours/ns, 2885.450 timesteps/s, 2.793 Matom-step/s
+99.1% CPU use with 4 MPI tasks x no OpenMP threads
+
+MPI task timing breakdown:
+Section |  min time  |  avg time  |  max time  |%varavg| %total
+---------------------------------------------------------------
+Pair    | 2.4892     | 2.7911     | 3.0538     |  12.0 | 80.54
+Neigh   | 0.017362   | 0.017762   | 0.018215   |   0.3 |  0.51
+Comm    | 0.31323    | 0.57603    | 0.87799    |  26.5 | 16.62
+Output  | 0.0001497  | 0.00017904 | 0.00025538 |   0.0 |  0.01
+Modify  | 0.061503   | 0.061774   | 0.062393   |   0.1 |  1.78
+Other   |            | 0.01883    |            |       |  0.54
+
+Nlocal:            242 ave         247 max         237 min
+Histogram: 1 1 0 0 0 0 0 0 0 2
+Nghost:           5735 ave        5786 max        5688 min
+Histogram: 1 1 0 0 0 0 0 1 0 1
+Neighs:         102236 ave      108426 max       92496 min
+Histogram: 1 0 0 0 1 0 0 0 0 2
+
+Total # of neighbors = 408943
+Ave neighs/atom = 422.46178
+Neighbor list builds = 13
+Dangerous builds = 0
+
+Total wall time: 0:00:03

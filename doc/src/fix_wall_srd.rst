@@ -48,7 +48,7 @@ Description
 """""""""""
 
 Bound the simulation with one or more walls which interact with
-stochastic reaction dynamics (SRD) particles as slip (smooth) or
+stochastic rotation dynamics (SRD) particles as slip (smooth) or
 no-slip (rough) flat surfaces.  The wall interaction is actually
 invoked via the :doc:`fix srd <fix_srd>` command, only on the group of
 SRD particles it defines, so the group setting for the fix wall/srd

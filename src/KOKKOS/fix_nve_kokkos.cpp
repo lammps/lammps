@@ -84,12 +84,12 @@ void FixNVEKokkos<DeviceType>::initial_integrate_item(int i) const
   const KK_FLOAT dtv_kk = static_cast<KK_FLOAT>(dtv);
   if (mask[i] & groupbit) {
     const KK_FLOAT dtfm = dtf_kk / mass[type[i]];
-    v(i,0) += dtfm * static_cast<KK_FLOAT>(f(i,0));
-    v(i,1) += dtfm * static_cast<KK_FLOAT>(f(i,1));
-    v(i,2) += dtfm * static_cast<KK_FLOAT>(f(i,2));
-    x(i,0) += dtv_kk * v(i,0);
-    x(i,1) += dtv_kk * v(i,1);
-    x(i,2) += dtv_kk * v(i,2);
+    v(i,0) = Kokkos::fma(dtfm, static_cast<KK_FLOAT>(f(i,0)), v(i,0));
+    v(i,1) = Kokkos::fma(dtfm, static_cast<KK_FLOAT>(f(i,1)), v(i,1));
+    v(i,2) = Kokkos::fma(dtfm, static_cast<KK_FLOAT>(f(i,2)), v(i,2));
+    x(i,0) = Kokkos::fma(dtv_kk, v(i,0), x(i,0));
+    x(i,1) = Kokkos::fma(dtv_kk, v(i,1), x(i,1));
+    x(i,2) = Kokkos::fma(dtv_kk, v(i,2), x(i,2));
   }
 }
 
@@ -102,12 +102,12 @@ void FixNVEKokkos<DeviceType>::initial_integrate_rmass_item(int i) const
   const KK_FLOAT dtv_kk = static_cast<KK_FLOAT>(dtv);
   if (mask[i] & groupbit) {
     const KK_FLOAT dtfm = dtf_kk / rmass[i];
-    v(i,0) += dtfm * static_cast<KK_FLOAT>(f(i,0));
-    v(i,1) += dtfm * static_cast<KK_FLOAT>(f(i,1));
-    v(i,2) += dtfm * static_cast<KK_FLOAT>(f(i,2));
-    x(i,0) += dtv_kk * v(i,0);
-    x(i,1) += dtv_kk * v(i,1);
-    x(i,2) += dtv_kk * v(i,2);
+    v(i,0) = Kokkos::fma(dtfm, static_cast<KK_FLOAT>(f(i,0)), v(i,0));
+    v(i,1) = Kokkos::fma(dtfm, static_cast<KK_FLOAT>(f(i,1)), v(i,1));
+    v(i,2) = Kokkos::fma(dtfm, static_cast<KK_FLOAT>(f(i,2)), v(i,2));
+    x(i,0) = Kokkos::fma(dtv_kk, v(i,0), x(i,0));
+    x(i,1) = Kokkos::fma(dtv_kk, v(i,1), x(i,1));
+    x(i,2) = Kokkos::fma(dtv_kk, v(i,2), x(i,2));
   }
 }
 
@@ -148,9 +148,9 @@ void FixNVEKokkos<DeviceType>::final_integrate_item(int i) const
   const KK_FLOAT dtf_kk = static_cast<KK_FLOAT>(dtf);
   if (mask[i] & groupbit) {
     const KK_FLOAT dtfm = dtf_kk / mass[type[i]];
-    v(i,0) += dtfm * static_cast<KK_FLOAT>(f(i,0));
-    v(i,1) += dtfm * static_cast<KK_FLOAT>(f(i,1));
-    v(i,2) += dtfm * static_cast<KK_FLOAT>(f(i,2));
+    v(i,0) = Kokkos::fma(dtfm, static_cast<KK_FLOAT>(f(i,0)), v(i,0));
+    v(i,1) = Kokkos::fma(dtfm, static_cast<KK_FLOAT>(f(i,1)), v(i,1));
+    v(i,2) = Kokkos::fma(dtfm, static_cast<KK_FLOAT>(f(i,2)), v(i,2));
   }
 }
 
@@ -162,9 +162,9 @@ void FixNVEKokkos<DeviceType>::final_integrate_rmass_item(int i) const
   const KK_FLOAT dtf_kk = static_cast<KK_FLOAT>(dtf);
   if (mask[i] & groupbit) {
     const KK_FLOAT dtfm = dtf_kk / rmass[i];
-    v(i,0) += dtfm * static_cast<KK_FLOAT>(f(i,0));
-    v(i,1) += dtfm * static_cast<KK_FLOAT>(f(i,1));
-    v(i,2) += dtfm * static_cast<KK_FLOAT>(f(i,2));
+    v(i,0) = Kokkos::fma(dtfm, static_cast<KK_FLOAT>(f(i,0)), v(i,0));
+    v(i,1) = Kokkos::fma(dtfm, static_cast<KK_FLOAT>(f(i,1)), v(i,1));
+    v(i,2) = Kokkos::fma(dtfm, static_cast<KK_FLOAT>(f(i,2)), v(i,2));
   }
 }
 
@@ -207,12 +207,12 @@ void FixNVEKokkos<DeviceType>::fused_integrate_item(int i) const
   const KK_FLOAT dtv_kk = static_cast<KK_FLOAT>(dtv);
   if (mask[i] & groupbit) {
     const KK_FLOAT dtfm = static_cast<KK_FLOAT>(2.0) * dtf_kk / mass[type[i]];
-    v(i,0) += dtfm * static_cast<KK_FLOAT>(f(i,0));
-    v(i,1) += dtfm * static_cast<KK_FLOAT>(f(i,1));
-    v(i,2) += dtfm * static_cast<KK_FLOAT>(f(i,2));
-    x(i,0) += dtv_kk * v(i,0);
-    x(i,1) += dtv_kk * v(i,1);
-    x(i,2) += dtv_kk * v(i,2);
+    v(i,0) = Kokkos::fma(dtfm, static_cast<KK_FLOAT>(f(i,0)), v(i,0));
+    v(i,1) = Kokkos::fma(dtfm, static_cast<KK_FLOAT>(f(i,1)), v(i,1));
+    v(i,2) = Kokkos::fma(dtfm, static_cast<KK_FLOAT>(f(i,2)), v(i,2));
+    x(i,0) = Kokkos::fma(dtv_kk, v(i,0), x(i,0));
+    x(i,1) = Kokkos::fma(dtv_kk, v(i,1), x(i,1));
+    x(i,2) = Kokkos::fma(dtv_kk, v(i,2), x(i,2));
   }
 }
 
@@ -225,12 +225,12 @@ void FixNVEKokkos<DeviceType>::fused_integrate_rmass_item(int i) const
   const KK_FLOAT dtv_kk = static_cast<KK_FLOAT>(dtv);
   if (mask[i] & groupbit) {
     const KK_FLOAT dtfm = static_cast<KK_FLOAT>(2.0) * dtf_kk / rmass[i];
-    v(i,0) += dtfm * static_cast<KK_FLOAT>(f(i,0));
-    v(i,1) += dtfm * static_cast<KK_FLOAT>(f(i,1));
-    v(i,2) += dtfm * static_cast<KK_FLOAT>(f(i,2));
-    x(i,0) += dtv_kk * v(i,0);
-    x(i,1) += dtv_kk * v(i,1);
-    x(i,2) += dtv_kk * v(i,2);
+    v(i,0) = Kokkos::fma(dtfm, static_cast<KK_FLOAT>(f(i,0)), v(i,0));
+    v(i,1) = Kokkos::fma(dtfm, static_cast<KK_FLOAT>(f(i,1)), v(i,1));
+    v(i,2) = Kokkos::fma(dtfm, static_cast<KK_FLOAT>(f(i,2)), v(i,2));
+    x(i,0) = Kokkos::fma(dtv_kk, v(i,0), x(i,0));
+    x(i,1) = Kokkos::fma(dtv_kk, v(i,1), x(i,1));
+    x(i,2) = Kokkos::fma(dtv_kk, v(i,2), x(i,2));
   }
 }
 

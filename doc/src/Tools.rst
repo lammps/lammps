@@ -15,7 +15,7 @@ Sandia which provides tools for doing setup, analysis, plotting, and
 visualization for LAMMPS simulations.
 
 .. _lws: https://www.lammps.org
-.. _pizza: https://lammps.github.io/pizza/
+.. _pizza: https://sjplimp.github.io/pizza/
 .. _python: https://www.python.org
 
 Additional tools included in the LAMMPS distribution are described on
@@ -534,7 +534,7 @@ LAMMPS-GUI is a graphical text editor customized for editing LAMMPS
 input files that is linked to the :ref:`LAMMPS C-library
 <lammps_c_api>`.  It used to be included with LAMMPS in the
 ``tools/lammps-gui`` folder, but it is now hosted in its own git
-repository at https://github.com/akohlmey/lammps-gui/ and the online
+repository at https://github.com/lammps/lammps-gui/ and the online
 documentation is at https://lammps-gui.lammps.org/
 
 It is still possible to compile :ref:`LAMMPS-GUI together with LAMMPS <tools>`.
@@ -776,10 +776,10 @@ dependencies and redirects the download to the local cache.
    # export LAMMPS_CACHING_DIR=path/to/folder
    source tools/offline/use_caches.sh
 
-   mkdir build
-   cd build
-   cmake -D LAMMPS_DOWNLOADS_URL=${HTTP_CACHE_URL} -C "${LAMMPS_HTTP_CACHE_CONFIG}" -C ../cmake/presets/most.cmake -D DOWNLOAD_POTENTIALS=off ../cmake
-   make -j 8
+   cmake -S cmake -B build -D LAMMPS_DOWNLOADS_URL=${HTTP_CACHE_URL} \
+         -C "${LAMMPS_HTTP_CACHE_CONFIG}" -C cmake/presets/most.cmake \
+         -D DOWNLOAD_POTENTIALS=off
+   cmake --build build
 
    deactivate_caches
 

@@ -62,10 +62,6 @@ struct PairExp6ParamDataTypeKokkosVect
                            nTotal, fractionOFAold, fractionOld1, fractionOld2,
                            nMoleculesOFAold, nMoleculesOld1, nMoleculesOld2,
                            nTotalold;
-
-   // Default constructor -- nullify everything.
-   PairExp6ParamDataTypeKokkosVect()
-   {}
 };
 
 struct TagPairExp6rxZeroMixingWeights{};
@@ -92,6 +88,7 @@ class PairExp6rxKokkos : public PairExp6rx {
   void compute(int, int) override;
   void coeff(int, char **) override;
   void init_style() override;
+  double init_one(int, int) override;
 
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION
@@ -145,6 +142,8 @@ class PairExp6rxKokkos : public PairExp6rx {
   KOKKOS_INLINE_FUNCTION
   int sbmask(const int& j) const;
 
+  void setup() override;
+
  protected:
   int eflag,vflag;
   int nlocal,newton_pair,neighflag;
@@ -196,7 +195,6 @@ class PairExp6rxKokkos : public PairExp6rx {
 
   void initialize_exp6_params_array() override;
   void grow_exp6_params_array(int old_size, int new_size) override;
-  void setup() override;
 
 // NOLINTNEXTLINE
   KOKKOS_INLINE_FUNCTION

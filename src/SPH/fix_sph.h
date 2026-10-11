@@ -34,6 +34,8 @@ class FixSPH : public Fix {
   void initial_integrate(int) override;
   void final_integrate() override;
   void reset_dt() override;
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
 
  private:
   class NeighList *list;

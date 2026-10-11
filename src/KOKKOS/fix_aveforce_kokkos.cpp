@@ -69,11 +69,11 @@ void FixAveForceKokkos<DeviceType>::post_force(int /*vflag*/)
   // update region if necessary
 
   if (region) {
-    if (!(utils::strmatch(region->style, "^block") || utils::strmatch(region->style, "^sphere")))
-      error->all(FLERR, "Cannot (yet) use {}-style region with fix aveforce/kk", region->style);
+    KokkosBase *regionKKBase = dynamic_cast<KokkosBase *>(region);
+    if (!regionKKBase)
+      error->all(FLERR, "Cannot use fix aveforce/kk with region style {} that has no KOKKOS support", region->style);
     region->prematch();
     DAT::tdual_int_1d k_match = DAT::tdual_int_1d("aveforce:k_match", atom->nlocal);
-    KokkosBase *regionKKBase = dynamic_cast<KokkosBase *>(region);
     regionKKBase->match_all_kokkos(groupbit, k_match);
     k_match.template sync<DeviceType>();
     d_match = k_match.template view<DeviceType>();

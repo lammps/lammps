@@ -24,6 +24,7 @@
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
+#include <algorithm>
 #include <cstring>
 #include <ctime>
 #include <iostream>
@@ -227,6 +228,20 @@ void write_yaml_header(YamlWriter *writer, TestConfig *cfg, const char *version)
 
     // input_coeffs (only used by the fix-timestep tester; omitted when unset)
     if (!cfg->input_coeffs.empty()) writer->emit("input_coeffs", cfg->input_coeffs);
+}
+
+// avoid false positives on tiny stress components (e.g. from floating-point noise
+// in components that are zero by symmetry) by forcing them to zero instead.
+// the noise scales with the magnitude of the stress tensor, so the threshold is
+// relative to its largest component, but it is never smaller than 1.0e-13.
+void zero_small_stress(double *stress)
+{
+    double maxval = 1.0;
+    for (int i = 0; i < 6; ++i)
+        maxval = std::max(maxval, fabs(stress[i]));
+    const double small = 1.0e-13 * maxval;
+    for (int i = 0; i < 6; ++i)
+        if (fabs(stress[i]) < small) stress[i] = 0.0;
 }
 
 // need to be defined in unit test body

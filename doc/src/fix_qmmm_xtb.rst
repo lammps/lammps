@@ -45,7 +45,7 @@ Examples
 Description
 """""""""""
 
-.. versionadded:: TBD
+.. versionadded:: 2Sep2026
 
 This fix performs a non-covalent, electrostatically embedded GFN1-xTB or
 GFN2-xTB QM/MM calculation in a three-dimensional periodic cell.  The

@@ -31,7 +31,7 @@ class FixWallPiston : public Fix {
   void post_integrate() override;
   void initial_integrate(int) override;
 
- private:
+ protected:
   int xloflag, xhiflag, yloflag, yhiflag, zloflag, zhiflag;
   int scaleflag, roughflag, rampflag, rampNL1flag, rampNL2flag, rampNL3flag, rampNL4flag,
       rampNL5flag;

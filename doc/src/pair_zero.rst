@@ -56,7 +56,7 @@ In this case, only the global cutoff will be used.
 The optional *full* flag builds a full neighbor list instead of the default
 half neighbor list.
 
-.. versionadded:: TBD
+.. versionadded:: 2Sep2026
 
 Pair style *zero/coul* behaves exactly like pair style *zero*, but
 additionally presents itself as a Coulombic pair style: it declares

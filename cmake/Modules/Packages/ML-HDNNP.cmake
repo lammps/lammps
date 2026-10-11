@@ -13,10 +13,9 @@ else()
 endif()
 option(DOWNLOAD_N2P2 "Download n2p2 library instead of using an already installed one)" ${DOWNLOAD_N2P2_DEFAULT})
 if(DOWNLOAD_N2P2)
-  set(N2P2_URL "https://github.com/CompPhysVienna/n2p2/archive/v2.2.0.tar.gz" CACHE STRING "URL for n2p2 tarball")
-  set(N2P2_SHA256 "4acaa255632a7b9811d7530fd52ac7dd0bb3a8e3a3cf8512beadd29b62c1bfef" CACHE STRING "SHA256 checksum of N2P2 tarball")
-  mark_as_advanced(N2P2_URL)
-  mark_as_advanced(N2P2_SHA256)
+  SetDownloadSettings(N2P2 "n2p2"
+    "https://github.com/CompPhysVienna/n2p2/archive/v2.2.0.tar.gz"
+    "4acaa255632a7b9811d7530fd52ac7dd0bb3a8e3a3cf8512beadd29b62c1bfef")
   GetFallbackURL(N2P2_URL N2P2_FALLBACK)
 
   # adjust settings from detected compiler to compiler platform in n2p2 library

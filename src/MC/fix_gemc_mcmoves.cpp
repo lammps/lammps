@@ -32,6 +32,7 @@
 #include "random_park.h"
 #include "universe.h"
 
+#include <cmath>
 #include <cstring>
 
 using namespace LAMMPS_NS;
@@ -76,7 +77,7 @@ void FixGEMC::attempt_volume_change_full()
 
   // convert to lamda coords so they get scaled
 
-  domain->x2lamda(natom_total);
+  domain->x2lamda(atom->nlocal);
   for (auto &ifix : rfix) ifix->deform(0);
 
   // shrink box toward lower corner
@@ -96,10 +97,12 @@ void FixGEMC::attempt_volume_change_full()
 
   domain->set_global_box();
   domain->set_local_box();    // reassigns sub domains
+  comm->setup();
+  if (neighbor->style) neighbor->setup_bins();
 
   // positions are scaled now
 
-  domain->lamda2x(natom_total);
+  domain->lamda2x(atom->nlocal);
   for (auto &ifix : rfix) ifix->deform(1);
 
   // remap call
@@ -124,13 +127,19 @@ void FixGEMC::attempt_volume_change_full()
 
   // sum change in full energy across both boxes
 
-  double dU, idU, jdU;
+  // both boxes must reach the same decision, so the energy change and
+  // the overflow flag of both boxes are combined
+
+  double dU = 0.0;
   if (me == 0) {
-    idU = energy_after - energy_before - dU_volume;
-    MPI_Sendrecv(&idU, 1, MPI_DOUBLE, 1 - myworld, 0,
-                 &jdU, 1, MPI_DOUBLE, 1 - myworld, 0,
+    double mine[2] = {energy_after - energy_before - dU_volume,
+                      (energy_after < MAXENERGYTEST) ? 0.0 : 1.0};
+    double other[2];
+    MPI_Sendrecv(mine, 2, MPI_DOUBLE, 1 - myworld, 0,
+                 other, 2, MPI_DOUBLE, 1 - myworld, 0,
                  comm_replica, MPI_STATUS_IGNORE);
-    dU = idU + jdU;
+    dU = mine[0] + other[0];
+    if ((mine[1] != 0.0) || (other[1] != 0.0) || std::isnan(dU)) dU = INFINITY;
   }
 
   // bcast potential change to rest of my world
@@ -144,9 +153,9 @@ void FixGEMC::attempt_volume_change_full()
 
   // volume change rejected -> revert atom positions
 
-  if (prob < rf || energy_after >= MAXENERGYTEST) {
+  if (prob < rf) {
 
-    domain->x2lamda(natom_total);
+    domain->x2lamda(atom->nlocal);
     for (auto &ifix : rfix) ifix->deform(0);
 
     domain->boxhi[0] = xhi;
@@ -157,8 +166,10 @@ void FixGEMC::attempt_volume_change_full()
 
     domain->set_global_box();
     domain->set_local_box();    // reassigns sub domains
+    comm->setup();
+    if (neighbor->style) neighbor->setup_bins();
 
-    domain->lamda2x(natom_total);
+    domain->lamda2x(atom->nlocal);
     for (auto &ifix : rfix) ifix->deform(1);
 
     // remap call (may lose atoms if no remap)
@@ -221,6 +232,10 @@ void FixGEMC::attempt_atomic_exchange_full()
     else
       sender = 1;
 
+  // number of group atoms in my box before the exchange
+
+  int nold = natom_total;
+
   // atom to delete/insert
 
   int iatom = -1;
@@ -254,6 +269,7 @@ void FixGEMC::attempt_atomic_exchange_full()
   // pick random proc to place atom in
 
   int proc_flag = 0;
+  tagint newtag = 0;
   if (!sender) {
 
     // sample random point in box
@@ -315,10 +331,25 @@ void FixGEMC::attempt_atomic_exchange_full()
     }
 
     atom->natoms++;
+
+    // the new atom has overwritten a ghost atom, ghost atoms are rebuilt later
+
+    atom->nghost = 0;
     if (atom->tag_enable) {
       atom->tag_extend();
+      tagint mytag = proc_flag ? atom->tag[atom->nlocal - 1] : 0;
+      MPI_Allreduce(&mytag, &newtag, 1, MPI_LMP_TAGINT, MPI_MAX, world);
       if (atom->map_style != Atom::MAP_NONE) atom->map_init();
     }
+  }
+
+  // the tail correction must not count the atom to be deleted,
+  // so its type is negated while the tail correction is updated
+
+  if (force->pair->tail_flag) {
+    if (iatom >= 0) atom->type[iatom] = -atom->type[iatom];
+    force->pair->reinit();
+    if (iatom >= 0) atom->type[iatom] = -atom->type[iatom];
   }
 
   update_gas_atoms_list();
@@ -344,19 +375,39 @@ void FixGEMC::attempt_atomic_exchange_full()
     double volume = (xhi - xlo) * (yhi - ylo) * (zhi - zlo);
     double logVN;
 
-    if (sender) logVN = -log(volume / natom_total);
-    else logVN = log(volume / natom_total);
+    // the donor box uses its number of atoms before the removal,
+    // the receiving box its number of atoms after the insertion
+
+    int overflow = (energy_after < MAXENERGYTEST) ? 0 : 1;
+    if (sender) {
+      if (nold > 0) {
+        logVN = -log(volume / nold);
+      } else {
+        logVN = 0.0;
+        overflow = 1;
+      }
+    } else {
+      logVN = log(volume / natom_total);
+    }
     idU += -box_temp * force->boltz * logVN;
-    MPI_Sendrecv(&idU, 1, MPI_DOUBLE, 1 - myworld, 0,
-                 &jdU, 1, MPI_DOUBLE, 1 - myworld, 0,
+    double mine[2] = {idU, (double) overflow};
+    double other[2];
+    MPI_Sendrecv(mine, 2, MPI_DOUBLE, 1 - myworld, 0,
+                 other, 2, MPI_DOUBLE, 1 - myworld, 0,
                  comm_replica, MPI_STATUS_IGNORE);
+    jdU = other[0];
     all_dU = idU + jdU;
-    prob = MIN(exp(-beta * all_dU), 1.0);
+    if ((overflow != 0) || (other[1] != 0.0) || std::isnan(all_dU))
+      prob = 0.0;
+    else
+      prob = MIN(exp(-beta * all_dU), 1.0);
 
   }
 
+  // both boxes draw the same random number and reach the same decision
+
   MPI_Bcast(&prob, 1, MPI_DOUBLE, 0, world);
-  if (prob > random_universe->uniform() && energy_after < MAXENERGYTEST)
+  if (prob > random_universe->uniform())
     success = 1;
   else
     success = 0;
@@ -372,6 +423,7 @@ void FixGEMC::attempt_atomic_exchange_full()
       }
       atom->natoms--;
       if (atom->map_style != Atom::MAP_NONE) atom->map_init();
+      if (force->pair->tail_flag) force->pair->reinit();
       energy_stored = energy_after;
 
     } else {
@@ -388,7 +440,16 @@ void FixGEMC::attempt_atomic_exchange_full()
       energy_stored = energy_after;
     } else {
       atom->natoms--;
-      if (proc_flag) atom->nlocal--;
+      if (newtag) {
+        for (int k = 0; k < atom->nlocal; k++) {
+          if (atom->tag[k] == newtag) {
+            atom->avec->copy(atom->nlocal - 1, k, 1);
+            atom->nlocal--;
+            break;
+          }
+        }
+        if (atom->map_style != Atom::MAP_NONE) atom->map_init();
+      } else if (proc_flag) atom->nlocal--;
       if (force->kspace) force->kspace->qsum_qsq();
       if (force->pair->tail_flag) force->pair->reinit();
       energy_stored = energy_before;
@@ -420,6 +481,7 @@ void FixGEMC::attempt_atomic_translation_full()
   xtmp[0] = xtmp[1] = xtmp[2] = 0.0;
 
   tagint tmptag = -1;
+  imageint tmpimage = 0;
 
   if (i >= 0) {
 
@@ -446,6 +508,7 @@ void FixGEMC::attempt_atomic_translation_full()
     x[i][2] = coord[2];
 
     tmptag = atom->tag[i];
+    tmpimage = atom->image[i];
   }
 
   double energy_after = energy_full();
@@ -462,12 +525,19 @@ void FixGEMC::attempt_atomic_translation_full()
 
     double xtmp_all[3];
     MPI_Allreduce(&xtmp, &xtmp_all, 3, MPI_DOUBLE, MPI_SUM, world);
+    imageint tmpimage_all;
+    MPI_Allreduce(&tmpimage, &tmpimage_all, 1, MPI_LMP_IMAGEINT, MPI_SUM, world);
 
+    // energy_full() may have reallocated the per-atom arrays,
+    // and may have wrapped the atom around a periodic boundary
+
+    x = atom->x;
     for (int i = 0; i < atom->nlocal; i++) {
       if (tmptag_all == atom->tag[i]) {
         x[i][0] = xtmp_all[0];
         x[i][1] = xtmp_all[1];
         x[i][2] = xtmp_all[2];
+        atom->image[i] = tmpimage_all;
       }
     }
 
@@ -496,7 +566,7 @@ int FixGEMC::pick_random_gas_atom()
   int i = -1;
   int iwhichglobal = static_cast<int>(natom_total * random_world->uniform());
   if ((iwhichglobal >= natom_lower) && (iwhichglobal < natom_lower + natom_local)) {
-    i = iwhichglobal - natom_lower;
+    i = local_gas_list[iwhichglobal - natom_lower];
   }
 
   return i;

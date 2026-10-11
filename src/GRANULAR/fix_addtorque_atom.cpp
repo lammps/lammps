@@ -104,6 +104,8 @@ FixAddTorqueAtom::FixAddTorqueAtom(LAMMPS *lmp, int narg, char **arg) :
 
 FixAddTorqueAtom::~FixAddTorqueAtom()
 {
+  if (copymode) return;
+
   delete[] xstr;
   delete[] ystr;
   delete[] zstr;

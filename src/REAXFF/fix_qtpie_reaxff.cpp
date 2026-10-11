@@ -155,6 +155,15 @@ FixQtpieReaxFF::FixQtpieReaxFF(LAMMPS *lmp, int narg, char **arg) :
   // register with Atom class
 
   reaxff = dynamic_cast<PairReaxFF *>(force->pair_match("^reaxff",0));
+
+  // this fix borrows the pair style's neighbor list when it can, to avoid
+  // building a second one.  The KOKKOS version of pair reaxff builds its list
+  // on the device, where the plain ilist, numneigh and firstneigh below are
+  // not filled in, so fall back to the list this fix requests for itself --
+  // the same one it uses when there is no reaxff pair style at all.
+
+  if (reaxff && reaxff->kokkosable) reaxff = nullptr;
+
   reaxflag = 0;
   nlevels_respa = 1;
 

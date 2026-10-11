@@ -41,7 +41,7 @@ class ComputeTempRamp : public Compute {
   void restore_bias_all() override;
   double memory_usage() override;
 
- private:
+ protected:
   int coord_dim;
   double coord_lo, coord_hi;
   int v_dim;

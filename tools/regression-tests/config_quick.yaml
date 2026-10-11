@@ -35,6 +35,7 @@
       in.disp,
       in.disp2,
       in.dos,
+      in.dsring2,
       in.*_imd*,
       in.bucky-plus-cnt*,
       in.gREM,

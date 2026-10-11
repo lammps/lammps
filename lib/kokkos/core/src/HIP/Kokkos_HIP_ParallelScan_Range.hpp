@@ -249,6 +249,7 @@ class ParallelScanHIPBase {
 
       const typename Analysis::Reducer& final_reducer =
           m_functor_reducer.get_reducer();
+
       m_scratch_space =
           reinterpret_cast<word_size_type*>(Impl::hip_internal_scratch_space(
               m_policy.space(), final_reducer.value_size() * m_grid_x));
@@ -300,6 +301,12 @@ class ParallelScan<FunctorType, Kokkos::RangePolicy<Traits...>, HIP>
                       "valid execution configuration."));
     }
 
+    // Only let one instance at a time resize the instance's scratch memory
+    // allocations.
+    std::scoped_lock<std::mutex> scratch_buffers_lock(
+        Base::m_policy.space()
+            .impl_internal_space_instance()
+            ->m_mutexScratchSpace);
     Base::impl_execute(block_size);
   }
 
@@ -342,6 +349,13 @@ class ParallelScanWithTotal<FunctorType, Kokkos::RangePolicy<Traits...>,
           std::string("Kokkos::Impl::ParallelScan< HIP > could not find a "
                       "valid execution configuration."));
     }
+
+    // Only let one instance at a time resize the instance's scratch memory
+    // allocations.
+    std::scoped_lock<std::mutex> scratch_buffers_lock(
+        Base::m_policy.space()
+            .impl_internal_space_instance()
+            ->m_mutexScratchSpace);
 
     Base::impl_execute(block_size);
 

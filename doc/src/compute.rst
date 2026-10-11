@@ -210,6 +210,7 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`com/chunk <compute_com_chunk>` - center of mass for each chunk
 * :doc:`composition/atom <compute_composition_atom>` - local composition for each atom
 * :doc:`contact/atom <compute_contact_atom>` - contact count for each spherical particle
+* :doc:`continuum/chunk <compute_continuum_chunk>` - coarse-grained continuum fields for each chunk
 * :doc:`coord/atom <compute_coord_atom>` - coordination number for each atom
 * :doc:`count/type <compute_count_type>` - count of atoms or bonds by type
 * :doc:`damage/atom <compute_damage_atom>` - Peridynamic damage for each atom
@@ -235,6 +236,7 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`fabric <compute_fabric>` - calculates fabric tensors from pair interactions
 * :doc:`fep <compute_fep>` - compute free energies for alchemical transformation from perturbation theory
 * :doc:`fep/ta <compute_fep_ta>` - compute free energies for a test area perturbation
+* :doc:`frenkel <compute_frenkel>` - identify point defects by Wigner-Seitz analysis
 * :doc:`force/tally <compute_tally>` - force between two groups of atoms via the tally callback mechanism
 * :doc:`fragment/atom <compute_cluster_atom>` - fragment ID for each atom
 * :doc:`gaussian/grid/local <compute_gaussian_grid_local>` - local array of Gaussian atomic contributions on a regular grid
@@ -259,6 +261,7 @@ The individual style names on the :doc:`Commands compute <Commands_compute>` pag
 * :doc:`ke/atom/eff <compute_ke_atom_eff>` - per-atom translational and radial kinetic energy in the electron force field model
 * :doc:`ke/eff <compute_ke_eff>` - kinetic energy of a group of nuclei and electrons in the electron force field model
 * :doc:`ke/rigid <compute_ke_rigid>` - translational kinetic energy of rigid bodies
+* :doc:`mbar <compute_mbar>` - reduced potential energies at a series of lambda states for the MBAR free-energy method
 * :doc:`mliap <compute_mliap>` - gradients of energy and forces with respect to model parameters and related quantities for training machine learning interatomic potentials
 * :doc:`momentum <compute_momentum>` - translational momentum
 * :doc:`msd <compute_msd>` - mean-squared displacement of group of atoms

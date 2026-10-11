@@ -250,9 +250,9 @@ double PairCoulDebyeKokkos<DeviceType>::init_one(int i, int j)
   }
   k_cutsq.view_host()(i,j) = cutone*cutone;
   k_cutsq.modify_host();
-  k_cut_ljsq.view_host()(i,j) = static_cast<KK_FLOAT>(cutone*cutone);
+  k_cut_ljsq.view_host()(i,j) = k_cut_ljsq.view_host()(j,i) = static_cast<KK_FLOAT>(cutone*cutone);
   k_cut_ljsq.modify_host();
-  k_cut_coulsq.view_host()(i,j) = static_cast<KK_FLOAT>(cutone*cutone);
+  k_cut_coulsq.view_host()(i,j) = k_cut_coulsq.view_host()(j,i) = static_cast<KK_FLOAT>(cutone*cutone);
   k_cut_coulsq.modify_host();
   k_params.modify_host();
 

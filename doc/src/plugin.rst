@@ -79,7 +79,7 @@ The *clear* command will unload all currently loaded plugins.
 
 .. versionadded:: 12Jun2025
 
-.. versionchanged:: TBD
+.. versionchanged:: 2Sep2026
 
 The *restore* command is no longer required and does nothing: loaded plugins
 are now kept in a process-global style registry that persists across the

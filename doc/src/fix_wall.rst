@@ -8,6 +8,7 @@
 .. index:: fix wall/harmonic
 .. index:: fix wall/harmonic/kk
 .. index:: fix wall/harmonic/outside
+.. index:: fix wall/harmonic/outside/kk
 .. index:: fix wall/lepton
 .. index:: fix wall/morse
 .. index:: fix wall/morse/kk
@@ -38,6 +39,8 @@ Accelerator Variants: *wall/harmonic/kk*
 
 fix wall/harmonic/outside command
 =================================
+
+Accelerator Variants: *wall/harmonic/outside/kk*
 
 fix wall/lepton command
 =========================
@@ -207,6 +210,7 @@ For style *wall/harmonic/outside*,
 the energy E is given by an attractive-only harmonic
 spring potential for selected atoms group passing outside
 the wall placed at :math:`w_0` up to a cutoff distance :math:`r_c`:
+
 .. math::
 
  E = \epsilon \quad (r - w_0)^2 \qquad r < r_c

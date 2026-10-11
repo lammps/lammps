@@ -38,7 +38,7 @@ class LddPotential;
 // except in a GPU-enabled Kokkos build where the host-only factory function
 // pointers must not be shadowed into device memory.
 
-typedef LddIndicator *(*IndicatorCreator)(LAMMPS *);
+using IndicatorCreator = LddIndicator *(*) (LAMMPS *);
 struct LddIndicatorInfo {
   const char *name;
   IndicatorCreator creator;
@@ -46,7 +46,7 @@ struct LddIndicatorInfo {
 extern LMP_REGISTRY_CONST LddIndicatorInfo ldd_indicator_table[];
 extern LMP_REGISTRY_CONST int num_ldd_indicator;
 
-typedef LddPotential *(*PotentialCreator)(LAMMPS *);
+using PotentialCreator = LddPotential *(*) (LAMMPS *);
 struct LddPotentialInfo {
   const char *name;
   PotentialCreator creator;
@@ -109,7 +109,6 @@ class PairLdd : public Pair {
   void ErrorDoubleKeyword(const char *);
   void ErrorNumKeywordArgs(const char *, const char *);
   void read_file(char *filename);    // reads ldd potential file, executes coeff_ldd per entry
-
 };
 
 }    // namespace LAMMPS_NS

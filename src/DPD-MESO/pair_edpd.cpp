@@ -282,10 +282,12 @@ void PairEDPD::settings(int narg, char **arg)
   if (seed <= 0)
     error->all(FLERR,"Invalid random number seed");
 
+  // keep the processor-unique seeds within the valid range of RanMars
+
   delete random;
-  random = new RanMars(lmp,(seed + comm->me) % 900000000);
+  random = new RanMars(lmp, (int) (((bigint) seed + comm->me - 1) % 900000000 + 1));
   delete randomT;
-  randomT = new RanMars(lmp,(2*seed + comm->me) % 900000000);
+  randomT = new RanMars(lmp, (int) ((2 * (bigint) seed + comm->me - 1) % 900000000 + 1));
 
   // reset cutoffs that have been explicitly set
 
@@ -536,9 +538,9 @@ void PairEDPD::read_restart_settings(FILE *fp)
   // same seed that pair_style command initially specified
 
   delete random;
-  random = new RanMars(lmp,seed + comm->me);
+  random = new RanMars(lmp, (int) (((bigint) seed + comm->me - 1) % 900000000 + 1));
   delete randomT;
-  randomT = new RanMars(lmp,seed + comm->me);
+  randomT = new RanMars(lmp, (int) (((bigint) seed + comm->me - 1) % 900000000 + 1));
 }
 
 /* ----------------------------------------------------------------------

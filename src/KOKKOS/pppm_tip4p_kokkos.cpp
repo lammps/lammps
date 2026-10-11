@@ -100,8 +100,11 @@ void PPPMTIP4PKokkos<DeviceType>::compute_newsites()
 
   k_tip4p_flag.template modify<DeviceType>();
   k_tip4p_flag.sync_host();
-  if (k_tip4p_flag.view_host()())
+  const int tip4p_flag = k_tip4p_flag.view_host()();
+  if (tip4p_flag == 1)
     this->error->one(FLERR,"TIP4P hydrogen is missing");
+  else if (tip4p_flag == 2)
+    this->error->one(FLERR,"TIP4P hydrogen has incorrect atom type");
 }
 
 template<class DeviceType>
@@ -114,6 +117,16 @@ void PPPMTIP4PKokkos<DeviceType>::operator()(TagPPPMTIP4P_findM, const int &i) c
     int iH2 = AtomKokkos::map_kokkos<DeviceType>(d_tag(i)+2,map_style,k_map_array,k_map_hash);
     if (iH1 < 0 || iH2 < 0) {
       k_tip4p_flag.template view<DeviceType>()() = 1;
+      d_iH1(i) = i; d_iH2(i) = i;
+      d_xM(i,0) = x(i,0); d_xM(i,1) = x(i,1); d_xM(i,2) = x(i,2);
+      return;
+    }
+
+    // the two atoms following the oxygen must really be the hydrogens,
+    // the same check PPPMTIP4P::find_M() makes
+
+    if (d_type(iH1) != typeH_kk || d_type(iH2) != typeH_kk) {
+      k_tip4p_flag.template view<DeviceType>()() = 2;
       d_iH1(i) = i; d_iH2(i) = i;
       d_xM(i,0) = x(i,0); d_xM(i,1) = x(i,1); d_xM(i,2) = x(i,2);
       return;

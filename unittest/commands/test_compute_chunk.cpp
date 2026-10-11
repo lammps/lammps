@@ -26,7 +26,27 @@
 bool verbose = false;
 
 // we compare floating point numbers with 8 digits precision after the decimal point
-static constexpr double EPSILON = 1.0e-8;
+// the KOKKOS package keeps the per-atom data in single precision in mixed and
+// single precision builds, so the chunk averages only reproduce the double
+// precision reference values to about 7 decimal digits
+static double chunk_epsilon()
+{
+    if (!kokkos_reduced_precision()) return 1.0e-8;
+    return (kokkos_precision() == "single") ? 1.0e-4 : 1.0e-5;
+}
+
+static const double EPSILON = chunk_epsilon();
+
+// the torque of a chunk is a sum of cross products, and the cancellation
+// between the contributions amplifies the error of the single precision
+// positions and forces well beyond that of the other per-chunk quantities
+static double chunk_torque_epsilon()
+{
+    if (!kokkos_reduced_precision()) return 1.0e-8;
+    return (kokkos_precision() == "single") ? 1.0e-2 : 1.0e-3;
+}
+
+static const double TORQUE_EPSILON = chunk_torque_epsilon();
 
 namespace LAMMPS_NS {
 
@@ -283,12 +303,12 @@ TEST_F(ComputeChunkTest, ChunkComputes)
     EXPECT_NEAR(comg[5][0], 0.00437315, EPSILON);
     EXPECT_NEAR(comg[5][1], 0.00029335, EPSILON);
     EXPECT_NEAR(comg[5][2], 0.00268517, EPSILON);
-    EXPECT_NEAR(ctrq[4][0], -0.94086086, EPSILON);
-    EXPECT_NEAR(ctrq[4][1], 0.56227336, EPSILON);
-    EXPECT_NEAR(ctrq[4][2], 0.75139995, EPSILON);
-    EXPECT_NEAR(ctrq[5][0], -0.07066910, EPSILON);
-    EXPECT_NEAR(ctrq[5][1], -0.58556032, EPSILON);
-    EXPECT_NEAR(ctrq[5][2], -0.81513604, EPSILON);
+    EXPECT_NEAR(ctrq[4][0], -0.94086086, TORQUE_EPSILON);
+    EXPECT_NEAR(ctrq[4][1], 0.56227336, TORQUE_EPSILON);
+    EXPECT_NEAR(ctrq[4][2], 0.75139995, TORQUE_EPSILON);
+    EXPECT_NEAR(ctrq[5][0], -0.07066910, TORQUE_EPSILON);
+    EXPECT_NEAR(ctrq[5][1], -0.58556032, TORQUE_EPSILON);
+    EXPECT_NEAR(ctrq[5][2], -0.81513604, TORQUE_EPSILON);
     EXPECT_NEAR(cvcm[0][0], -0.00011274, EPSILON);
     EXPECT_NEAR(cvcm[0][1], 0.00071452, EPSILON);
     EXPECT_NEAR(cvcm[0][2], -0.00017908, EPSILON);
@@ -481,6 +501,8 @@ TEST_F(ComputeInertiaChunkTest, Sphere)
 
 TEST_F(ComputeInertiaChunkTest, Superellipsoid)
 {
+    // atom style ellipsoid/kk does not support the superellipsoid option
+    if (lmp->suffix_enable) GTEST_SKIP() << "superellipsoid is not supported with an accelerator suffix";
     if (!info->has_style("atom", "ellipsoid")) GTEST_SKIP();
 
     // same as Ellipsoid, but with atom_style "ellipsoid superellipsoid".
@@ -519,6 +541,11 @@ TEST_F(ComputeInertiaChunkTest, Superellipsoid)
 TEST_F(ComputeInertiaChunkTest, Body)
 {
     if (!lammps_config_has_package("BODY")) GTEST_SKIP();
+
+    // the KOKKOS package requires a Kokkos-enabled atom style, and there is
+    // no accelerated version of atom style body
+    if (lmp->kokkos && !info->has_style("atom", "body/kk"))
+        GTEST_SKIP() << "atom style body has no KOKKOS version";
 
     // single body/nparticle at the origin with a known diagonal inertia
     // tensor (2,3,4); a single chunk must return it unchanged
@@ -697,6 +724,13 @@ int main(int argc, char **argv)
     if ((argc > 1) && (strcmp(argv[1], "-v") == 0)) verbose = true;
 
     int rv = RUN_ALL_TESTS();
+
+    // finalize the KOKKOS package explicitly: otherwise Kokkos is torn down by
+    // static destructors at program exit, leading to segfaults in some cases
+    // same workaround as the force-style and FFT3d test drivers
+
+    lammps_kokkos_finalize();
+
     MPI_Finalize();
     return rv;
 }

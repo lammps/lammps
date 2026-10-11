@@ -2,8 +2,8 @@ CHARMM, AMBER, COMPASS, ClassII-xe, DREIDING, and OPLS force fields
 ===================================================================
 
 Here we only discuss formulas implemented in LAMMPS that correspond to
-formulas commonly used in the CHARMM, AMBER, COMPASS, and DREIDING force
-fields.  Setting coefficients is done either from special sections in an
+formulas commonly used in the CHARMM, AMBER, COMPASS, ClassII-xe,
+DREIDING, and OPLS force fields.  Setting coefficients is done either from special sections in an
 input data file via the :doc:`read_data <read_data>` command or in the
 input script with commands like :doc:`pair_coeff <pair_coeff>` or
 :doc:`bond_coeff <bond_coeff>` and so on.  See the :doc:`Tools <Tools>`
@@ -52,13 +52,16 @@ command's documentation for the formula it computes.
 
 * :doc:`bond_style harmonic <bond_harmonic>`
 * :doc:`angle_style charmm <angle_charmm>`
-* :doc:`dihedral_style charmmfsh <dihedral_charmm>`
+* :doc:`angle_style harmonic <angle_harmonic>`
+* :doc:`dihedral_style charmmfsw <dihedral_charmm>`
 * :doc:`dihedral_style charmm <dihedral_charmm>`
+* :doc:`dihedral_style fourier <dihedral_fourier>`
 * :doc:`pair_style lj/charmmfsw/coul/charmmfsh <pair_charmm>`
 * :doc:`pair_style lj/charmmfsw/coul/long <pair_charmm>`
 * :doc:`pair_style lj/charmm/coul/charmm <pair_charmm>`
 * :doc:`pair_style lj/charmm/coul/charmm/implicit <pair_charmm>`
 * :doc:`pair_style lj/charmm/coul/long <pair_charmm>`
+* :doc:`pair_style lj/cut/coul/long <pair_lj_cut_coul>`
 * :doc:`special_bonds charmm <special_bonds>`
 * :doc:`special_bonds amber <special_bonds>`
 
@@ -277,7 +280,7 @@ DREIDING
 --------
 
 DREIDING is a generic force field developed by the `Goddard group
-<http://www.wag.caltech.edu>`_ at Caltech and is useful for predicting
+<https://www.wag.caltech.edu>`_ at Caltech and is useful for predicting
 structures and dynamics of organic, biological and main-group inorganic
 molecules.  The philosophy in DREIDING is to use general force constants
 and geometry parameters based on simple hybridization considerations,

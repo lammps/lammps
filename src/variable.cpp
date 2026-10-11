@@ -43,6 +43,8 @@
 #include <cctype>
 #include <cmath>
 #include <cstring>
+#include <memory>
+#include <vector>
 #include <exception>
 #include <functional>
 #include <limits>
@@ -1284,10 +1286,12 @@ double Variable::compute_equal(int ivar)
 
 double Variable::compute_equal(const std::string &str)
 {
-  char *ptr = utils::strdup(str);
-  double val = evaluate(ptr,nullptr,-1);
+  // evaluate() takes a writable string and raises errors on a bad formula,
+  // which would step over a delete[] of a buffer held in a raw pointer
+  std::vector<char> buf(str.begin(), str.end());
+  buf.push_back('\0');
+  double val = evaluate(buf.data(),nullptr,-1);
   if (fabs(val) < std::numeric_limits<double>::min()) val = 0.0;
-  delete[] ptr;
   return val;
 }
 
@@ -1638,7 +1642,12 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
       int istop = i-1;
 
       int n = istop - istart + 1;
-      auto *word = new char[n+1];
+      // the keyword handling below raises errors from many places, and an
+      // error unwinds out of evaluate(), so let the holder own the buffer
+      // rather than the delete[] at the end of this branch, which is only
+      // reached when nothing went wrong
+      std::unique_ptr<char[]> word_holder(new char[n+1]);
+      char *word = word_holder.get();
       strncpy(word,&str[istart],n);
       word[n] = '\0';
 
@@ -2565,7 +2574,6 @@ double Variable::evaluate(char *str, Tree **tree, int ivar)
         }
       }
 
-      delete[] word;
 
     // ----------------
     // math operator, including end-of-string

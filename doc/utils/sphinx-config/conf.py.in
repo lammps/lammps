@@ -324,6 +324,15 @@ else:
 # html tree and the manual becomes readable when offline
 mathjax_path = 'mathjax/tex-mml-chtml.js'
 
+# also load the MathJax fonts from the html tree instead of from the internet.
+# this setting is called mathjax4_config since Sphinx 9.0 and mathjax3_config before
+import sphinx
+mathjax_font_config = {'loader': {'paths': {'mathjax-newcm': '[mathjax]/mathjax-newcm-font'}}}
+if sphinx.version_info >= (9, 0):
+  mathjax4_config = mathjax_font_config
+else:
+  mathjax3_config = mathjax_font_config
+
 # hack to enable use of \AA in :math:
 # add :lammps: role for inline LAMMPS code highlight
 rst_prolog = r"""

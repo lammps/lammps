@@ -285,8 +285,12 @@ void FixAdaptFEP::init()
       anypair = 1;
       Pair *pair = nullptr;
 
-      if (lmp->suffix_enable)
-        pair = force->pair_match(std::string(ad->pstyle)+"/"+lmp->suffix,1);
+      if (lmp->suffix_enable) {
+        if (lmp->suffix)
+          pair = force->pair_match(std::string(ad->pstyle)+"/"+lmp->suffix,1);
+        if ((pair == nullptr) && lmp->suffix2)
+          pair = force->pair_match(std::string(ad->pstyle)+"/"+lmp->suffix2,1);
+      }
 
       if (pair == nullptr) pair = force->pair_match(ad->pstyle,1);
       if (pair == nullptr)

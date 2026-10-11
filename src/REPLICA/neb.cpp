@@ -46,8 +46,8 @@ enum { DEFAULT, TERSE, VERBOSE };
 /* ---------------------------------------------------------------------- */
 
 NEB::NEB(LAMMPS *lmp) :
-    Command(lmp), fp(nullptr), inpfile(nullptr), fneb(nullptr), all(nullptr), rdist(nullptr),
-    freplica(nullptr), fmaxatomInRepl(nullptr)
+    Command(lmp), roots(MPI_COMM_NULL), fp(nullptr), inpfile(nullptr), fneb(nullptr), all(nullptr),
+    rdist(nullptr), freplica(nullptr), fmaxatomInRepl(nullptr)
 {
   print_mode = DEFAULT;
 
@@ -602,7 +602,9 @@ void NEB::open(char *file)
   if (platform::has_compress_extension(file)) {
     compressed = 1;
     fp = platform::compressed_read(file);
-    if (!fp) error->one(FLERR, "Cannot open compressed file {}: {}", file, utils::getsyserror());
+    if (!fp)
+      error->one(FLERR, "Cannot open compressed file {}: {}", file,
+                 platform::compressed_open_error(file));
   } else
     fp = fopen(file, "r");
 

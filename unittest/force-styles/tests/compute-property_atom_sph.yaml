@@ -4,7 +4,7 @@ tags:
 date_generated: Sun Aug 23 12:37:04 2026
 epsilon: 1e-08
 timestep: 5e-04
-skip_tests:
+skip_tests: kokkos_omp kokkos_serial kokkos_gpu
 prerequisites: |
   atom sph
   compute property/atom

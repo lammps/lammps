@@ -198,7 +198,7 @@ ComputeReduce::ComputeReduce(LAMMPS *lmp, int narg, char **arg) :
 
   // optional args
 
-  nvalues = values.size();
+  nvalues = (int)values.size();
   replace = new int[nvalues];
   for (int i = 0; i < nvalues; ++i) replace[i] = -1;
   input_mode = PERATOM;

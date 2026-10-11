@@ -22,6 +22,9 @@ FixStyle(tune/kspace,FixTuneKspace);
 
 #include "fix.h"
 
+#include <string>
+#include <vector>
+
 namespace LAMMPS_NS {
 
 class FixTuneKspace : public Fix {
@@ -35,6 +38,7 @@ class FixTuneKspace : public Fix {
   void store_old_kspace_settings();
   void update_pair_style(const std::string &, double);
   void update_kspace_style(const std::string &, const std::string &);
+  void switch_kspace_style(const std::string &);
   void adjust_rcut(double);
   void mnbrak();
   void brent0();
@@ -49,7 +53,10 @@ class FixTuneKspace : public Fix {
   int firststep;        // 0 if this is the first time timing info is collected
   int niter;            // number of kspace switches
 
-  double ewald_time, pppm_time, msm_time;
+  int msmflag;                            // 1 if MSM should be tested
+  int espflag;                            // 1 if ESP should be tested
+  std::vector<std::string> test_styles;   // kspace styles to test
+  std::vector<double> test_times;         // time per step for each tested kspace style
   double pair_cut_coul;
   std::string acc_str;
   std::string kspace_style;

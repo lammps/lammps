@@ -93,9 +93,12 @@ void FixEfieldKokkos<DeviceType>::post_force(int vflag)
 
   // virial setup
 
-  v_init(vflag);
+  // the per-atom virial is accumulated into a dual view, so the plain
+  // base-class vatom array must not be allocated here (alloc = 0)
 
-  // reallocate per-atom arrays if necessary
+  v_init(vflag,0);
+
+  // reallocate the per-atom virial dual view if necessary
 
   if (vflag_atom) {
     memoryKK->destroy_kokkos(k_vatom,vatom);
@@ -106,19 +109,21 @@ void FixEfieldKokkos<DeviceType>::post_force(int vflag)
   // update region if necessary
 
   if (region) {
-    if (!(utils::strmatch(region->style, "^block") || utils::strmatch(region->style, "^sphere")))
-      error->all(FLERR,"Cannot (yet) use {}-style region with fix efield/kk",region->style);
+    KokkosBase* regionKKBase = dynamic_cast<KokkosBase*>(region);
+    if (!regionKKBase)
+      error->all(FLERR,"Cannot use fix efield/kk with region style {} that has no KOKKOS support",region->style);
     region->prematch();
     DAT::tdual_int_1d k_match = DAT::tdual_int_1d("efield:k_match",nlocal);
-    KokkosBase* regionKKBase = dynamic_cast<KokkosBase*>(region);
     regionKKBase->match_all_kokkos(groupbit,k_match);
     k_match.template sync<DeviceType>();
     d_match = k_match.template view<DeviceType>();
   }
 
-  // reallocate sforce array if necessary
+  // reallocate efield array if necessary
+  // an atom-style energy or potential variable writes into efield[i][3],
+  // so the array is needed for those as well, not only for varflag == ATOM
 
-  if (varflag == ATOM && atom->nmax > maxatom) {
+  if (((varflag == ATOM) || (estyle == ATOM) || (pstyle == ATOM)) && atom->nmax > maxatom) {
     maxatom = atom->nmax;
     memoryKK->destroy_kokkos(k_efield,efield);
     memoryKK->create_kokkos(k_efield,efield,maxatom,4,"efield:efield");
@@ -150,13 +155,20 @@ void FixEfieldKokkos<DeviceType>::post_force(int vflag)
 
   } else {
 
+    // the variables are evaluated on the host through atom->x, atom->v, ...
+    // so the host copies have to be up to date before the base class runs
+
+    atomKK->sync(Host, ALL_MASK);
+
     FixEfield::update_efield_variables();
 
     // atom-style variables are evaluated on the host, so the result has to be
     // copied to the device for the kernel below.  this is a real copy, not a
     // stale flag: it can only go away if variables are evaluated on the device.
+    // an atom-style energy or potential variable writes into efield[i][3], so
+    // it needs the copy as well
 
-    if (varflag == ATOM) {
+    if ((varflag == ATOM) || (estyle == ATOM) || (pstyle == ATOM)) {
       k_efield.modify_host();
       k_efield.sync<DeviceType>();
     }

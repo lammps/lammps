@@ -1,9 +1,12 @@
 .. index:: pair_style thole
+.. index:: pair_style thole/omp
 .. index:: pair_style lj/cut/thole/long
 .. index:: pair_style lj/cut/thole/long/omp
 
 pair_style thole command
 ========================
+
+Accelerator Variants: *thole/omp*
 
 pair_style lj/cut/thole/long command
 ====================================

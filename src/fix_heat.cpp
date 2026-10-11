@@ -35,8 +35,6 @@
 using namespace LAMMPS_NS;
 using namespace FixConst;
 
-enum { CONSTANT, EQUAL, ATOM };
-
 /* ---------------------------------------------------------------------- */
 
 FixHeat::FixHeat(LAMMPS *lmp, int narg, char **arg) :
@@ -86,6 +84,7 @@ FixHeat::FixHeat(LAMMPS *lmp, int narg, char **arg) :
 
 FixHeat::~FixHeat()
 {
+  if (copymode) return;
   delete[] hstr;
   delete[] idregion;
   memory->destroy(vheat);

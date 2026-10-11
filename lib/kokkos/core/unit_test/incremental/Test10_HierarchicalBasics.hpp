@@ -48,7 +48,7 @@ struct HierarchicalBasics {
           }
         });
     Kokkos::fence();
-    auto h_v = Kokkos::create_mirror_view_and_copy(Kokkos::HostSpace(), v);
+    auto h_v = Kokkos::create_mirror_view_and_copy(v);
 
     int check = 0;
     int ref   = nP * nT;

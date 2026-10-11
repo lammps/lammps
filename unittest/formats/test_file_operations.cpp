@@ -16,14 +16,17 @@
 #include "atom.h"
 #include "domain.h"
 #include "error.h"
+#include "library.h"
 #include "update.h"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 
 #include <algorithm>
+#include <cstdlib>
 #include <cstring>
 #include <fstream>
 #include <iterator>
+#include <string>
 #include <vector>
 
 using namespace LAMMPS_NS;
@@ -667,6 +670,79 @@ TEST_F(FileOperationsTest, read_data_fix)
     delete_file("test_mol_id.data");
 }
 
+// temporarily replace the PATH environment variable
+class ReplacePath {
+public:
+    explicit ReplacePath(const std::string &newpath)
+    {
+        const char *ptr = getenv("PATH");
+        had_path        = (ptr != nullptr);
+        if (had_path) oldpath = ptr;
+        platform::putenv("PATH=" + newpath);
+    }
+    ~ReplacePath()
+    {
+        if (had_path)
+            platform::putenv("PATH=" + oldpath);
+        else
+            platform::unsetenv("PATH");
+    }
+
+private:
+    std::string oldpath;
+    bool had_path;
+};
+
+TEST_F(FileOperationsTest, missing_programs)
+{
+    BEGIN_HIDE_OUTPUT();
+    command("region box block -2 2 -2 2 -2 2");
+    command("create_box 1 box");
+    command("create_atoms 1 single 0.5 0.0 0.0");
+    command("mass * 1.0");
+    command("variable gzip equal is_available(feature,gzip)");
+    command("variable ffmpeg equal is_available(feature,ffmpeg)");
+    END_HIDE_OUTPUT();
+
+    // hide all external programs by only searching an empty folder
+    const std::string emptydir = "missing_programs_test_dir";
+    platform::mkdir(emptydir);
+    {
+        ReplacePath newpath(emptydir);
+        EXPECT_EQ(get_variable_value("gzip"), 0.0);
+        EXPECT_EQ(get_variable_value("ffmpeg"), 0.0);
+        TEST_FAILURE(".*ERROR on proc 0: Cannot open data file test.data.gz: Program 'gzip' "
+                     "required for '.gz' files was not found.*",
+                     command("write_data test.data.gz"););
+        // read_data checks first whether the file exists
+        FILE *fp = fopen("test.data.gz", "w");
+        ASSERT_NE(fp, nullptr);
+        fputs("not a compressed file\n", fp);
+        fclose(fp);
+        TEST_FAILURE(".*ERROR on proc 0: Cannot open compressed file test.data.gz: Program 'gzip' "
+                     "required for '.gz' files was not found.*",
+                     command("read_data test.data.gz add append"););
+        delete_file("test.data.gz");
+        if (Info::has_package("GRAPHICS")) {
+            TEST_FAILURE(".*ERROR: Dump movie requires the 'ffmpeg' program, but it was not found.*",
+                         command("dump 1 all movie 1 test.mp4 type type"););
+        }
+    }
+    platform::rmdir(emptydir);
+
+    // with the original PATH compressed files must work if gzip can be found
+    if (!platform::find_exe_path("gzip").empty()) {
+        EXPECT_EQ(get_variable_value("gzip"), 1.0);
+        BEGIN_HIDE_OUTPUT();
+        command("write_data test.data.gz");
+        command("clear");
+        command("read_data test.data.gz");
+        END_HIDE_OUTPUT();
+        EXPECT_EQ(lmp->atom->natoms, 1);
+        delete_file("test.data.gz");
+    }
+}
+
 int main(int argc, char **argv)
 {
     MPI_Init(&argc, &argv);
@@ -685,6 +761,13 @@ int main(int argc, char **argv)
     if ((argc > 1) && (strcmp(argv[1], "-v") == 0)) verbose = true;
 
     int rv = RUN_ALL_TESTS();
+
+    // finalize the KOKKOS package explicitly: otherwise Kokkos is torn down by
+    // static destructors at program exit, leading to segfaults in some cases
+    // same workaround as the force-style and FFT3d test drivers
+
+    lammps_kokkos_finalize();
+
     MPI_Finalize();
     return rv;
 }

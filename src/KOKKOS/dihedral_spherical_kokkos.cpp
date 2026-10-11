@@ -42,7 +42,7 @@ DihedralSphericalKokkos<DeviceType>::DihedralSphericalKokkos(LAMMPS *lmp) : Dihe
   atomKK = (AtomKokkos *) atom;
   neighborKK = (NeighborKokkos *) neighbor;
   execution_space = ExecutionSpaceFromDevice<DeviceType>::space;
-  datamask_read = X_MASK | F_MASK | Q_MASK | ENERGY_MASK | VIRIAL_MASK;
+  datamask_read = X_MASK | F_MASK | ENERGY_MASK | VIRIAL_MASK;
   datamask_modify = F_MASK | ENERGY_MASK | VIRIAL_MASK;
 
   k_warning_flag = DAT::tdual_int_scalar("Dihedral:warning_flag");
@@ -103,6 +103,12 @@ void DihedralSphericalKokkos<DeviceType>::compute(int eflag_in, int vflag_in)
   k_theta2_mult.template sync<DeviceType>();
   k_theta2_shift.template sync<DeviceType>();
   k_theta2_offset.template sync<DeviceType>();
+
+  // sync and claim here too: the MC fixes call this outside run_style verlet/kk
+
+  atomKK->sync(execution_space,datamask_read);
+  if (eflag || vflag) atomKK->modified(execution_space,datamask_modify);
+  else atomKK->modified(execution_space,F_MASK);
 
   x = atomKK->k_x.view<DeviceType>();
   f = atomKK->k_f.view<DeviceType>();

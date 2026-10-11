@@ -1,7 +1,10 @@
 .. index:: fix nvk
+.. index:: fix nvk/kk
 
 fix nvk command
 ===============
+
+Accelerator Variants: *nvk/kk*
 
 Syntax
 """"""
@@ -36,6 +39,10 @@ The kinetic energy will be held constant at its value given when fix
 nvk is initiated. If a different kinetic energy is desired, the
 :doc:`velocity <velocity>` command should be used to change the kinetic
 energy prior to this fix.
+
+----------
+
+.. include:: accel_styles.rst
 
 ----------
 

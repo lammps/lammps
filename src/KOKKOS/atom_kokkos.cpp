@@ -165,7 +165,8 @@ void AtomKokkos::update_property_atom()
   std::vector<Fix *> prop_atom_fixes;
   for (auto &ifix : modify->get_fix_by_style("^property/atom")) {
     if (!ifix->kokkosable)
-      error->all(FLERR, "KOKKOS package requires a Kokkos-enabled version of fix property/atom");
+      error->all(FLERR, "Fix property/atom {} must use the Kokkos-enabled style "
+                 "property/atom/kk when running with the KOKKOS package", ifix->id);
 
     ++nprop_atom;
     prop_atom_fixes.push_back(ifix);
@@ -240,6 +241,14 @@ void *AtomKokkos::extract(const char *name)
 
 void AtomKokkos::sync(const ExecutionSpace space, uint64_t mask)
 {
+  // before the early return below; readers never name MASS_MASK
+  sync_mass(space, MASS_MASK);
+
+  // skip arrays excluded by an overlapping force region
+
+  mask &= ~datamask_exclude;
+  if (!mask) return;
+
   if ((space == Device || space == HostKK) && lmp->kokkos->auto_sync) {
 
     // sync HostKK -> Host if needed
@@ -255,12 +264,34 @@ void AtomKokkos::sync(const ExecutionSpace space, uint64_t mask)
   for (int n = 0; n < nprop_atom; n++) fix_prop_atom[n]->sync(space, mask);
 }
 
+/* ----------------------------------------------------------------------
+   the per-type masses are only written on the host; sync() calls this every
+   time, modified() only when MASS_MASK is named
+------------------------------------------------------------------------- */
+
+void AtomKokkos::sync_mass(const ExecutionSpace space, uint64_t mask)
+{
+  if (!(mask & MASS_MASK) || !mass) return;
+
+  if (space == Host) k_mass.sync_host();
+  else if (space == HostKK) k_mass.sync_hostkk();
+  else k_mass.sync_device();
+}
+
 /* ---------------------------------------------------------------------- */
 
 void AtomKokkos::modified(const ExecutionSpace space, uint64_t mask)
 {
+  // skip arrays excluded by an overlapping force region
+
+  mask &= ~datamask_exclude;
+  if (!mask) return;
+
   avecKK->modified(space, mask);
   for (int n = 0; n < nprop_atom; n++) fix_prop_atom[n]->modified(space, mask);
+
+  // only the host writes the per-type masses
+  if ((mask & MASS_MASK) && mass && (space == Host)) k_mass.modify_host();
 
   if ((space == Device || space == HostKK) && lmp->kokkos->auto_sync) {
     avecKK->sync(Host, mask);
@@ -275,6 +306,36 @@ void AtomKokkos::sync_pinned(const ExecutionSpace space, uint64_t mask, int asyn
   avecKK->sync_pinned(space, mask, async_flag);
   for (int n = 0; n < nprop_atom; n++) fix_prop_atom[n]->sync_pinned(space, mask, async_flag);
 }
+/* ----------------------------------------------------------------------
+   the four ways of setting the per-type masses all write the plain host
+   array, so claim that write for the device copy
+------------------------------------------------------------------------- */
+
+void AtomKokkos::set_mass(const char *file, int line, const char *str,
+                          int type_offset, int labelflag, int *ilabel)
+{
+  Atom::set_mass(file, line, str, type_offset, labelflag, ilabel);
+  k_mass.modify_host();
+}
+
+void AtomKokkos::set_mass(const char *file, int line, int itype, double value)
+{
+  Atom::set_mass(file, line, itype, value);
+  k_mass.modify_host();
+}
+
+void AtomKokkos::set_mass(const char *file, int line, int narg, char **arg)
+{
+  Atom::set_mass(file, line, narg, arg);
+  k_mass.modify_host();
+}
+
+void AtomKokkos::set_mass(double *values)
+{
+  Atom::set_mass(values);
+  k_mass.modify_host();
+}
+
 /* ---------------------------------------------------------------------- */
 
 void AtomKokkos::allocate_type_arrays()

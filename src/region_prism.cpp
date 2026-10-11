@@ -361,6 +361,8 @@ RegPrism::RegPrism(LAMMPS *lmp, int narg, char **arg) : Region(lmp, narg, arg),
 
 RegPrism::~RegPrism()
 {
+  if (copymode) return;
+
   delete[] xlostr;
   delete[] ylostr;
   delete[] zlostr;

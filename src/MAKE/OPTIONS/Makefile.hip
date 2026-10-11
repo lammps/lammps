@@ -29,7 +29,7 @@ SHLIBFLAGS =	-shared
 # LAMMPS ifdef settings
 # see possible settings in Section 3.5 of the manual
 
-LMP_INC =	-DLAMMPS_GZIP -DLAMMPS_MEMALIGN=64
+LMP_INC =	-DLAMMPS_MEMALIGN=64
 
 # MPI library
 # see discussion in Section 3.4 of the manual

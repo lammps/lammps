@@ -1,7 +1,10 @@
 .. index:: compute temp/profile
+.. index:: compute temp/profile/kk
 
 compute temp/profile command
 ============================
+
+Accelerator Variants: *temp/profile/kk*
 
 Syntax
 """"""
@@ -197,6 +200,10 @@ The scalar value us in temperature :doc:`units <units>`.  The vector
 values are in energy :doc:`units <units>`.  The first column of array
 values are counts; the values in the second column will be in
 temperature :doc:`units <units>`.
+
+----------
+
+.. include:: accel_styles.rst
 
 Restrictions
 """"""""""""

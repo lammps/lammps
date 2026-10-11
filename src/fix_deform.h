@@ -37,6 +37,10 @@ class FixDeform : public Fix {
   int setmask() override;
   void init() override;
   void pre_exchange() override;
+
+  // the atom migration is a separate step so that an accelerator version can
+  // move the per-atom data to the side this runs on and back
+  virtual void migrate_atoms();
   void end_of_step() override;
   void write_restart(FILE *) override;
   void restart(char *buf) override;

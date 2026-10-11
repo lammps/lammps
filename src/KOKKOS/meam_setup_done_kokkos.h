@@ -12,7 +12,12 @@
    See the README file in the top-level LAMMPS directory.
 ------------------------------------------------------------------------- */
 
+#ifndef LMP_MEAM_SETUP_DONE_KOKKOS_H
+#define LMP_MEAM_SETUP_DONE_KOKKOS_H
+
 #include "meam_kokkos.h"
+
+namespace LAMMPS_NS {
 
 template<class DeviceType>
 void MEAMKokkos<DeviceType>::meam_setup_done(double* cutmax)
@@ -58,3 +63,7 @@ void MEAMKokkos<DeviceType>::meam_setup_done(double* cutmax)
   Kokkos::deep_copy(d_phirar5,h_phirar5);
   Kokkos::deep_copy(d_phirar6,h_phirar6);
 }
+
+}    // namespace LAMMPS_NS
+
+#endif

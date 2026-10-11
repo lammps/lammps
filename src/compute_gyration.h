@@ -32,7 +32,7 @@ class ComputeGyration : public Compute {
   double compute_scalar() override;
   void compute_vector() override;
 
- private:
+ protected:
   double masstotal;
 };
 

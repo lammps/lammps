@@ -1,7 +1,10 @@
 .. index:: compute temp/ramp
+.. index:: compute temp/ramp/kk
 
 compute temp/ramp command
 =========================
+
+Accelerator Variant: *temp/ramp/kk*
 
 Syntax
 """"""
@@ -116,6 +119,10 @@ vector values are "extensive".
 
 The scalar value is in temperature :doc:`units <units>`.  The vector
 values are in energy :doc:`units <units>`.
+
+----------
+
+.. include:: accel_styles.rst
 
 Restrictions
 """"""""""""

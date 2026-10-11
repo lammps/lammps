@@ -61,7 +61,6 @@ class PairBondValVecKokkos : public PairBondValVec, public KokkosBase {
   ~PairBondValVecKokkos() override;
   void compute(int, int) override;
   void allocate() override;
-  void settings(int, char **) override;
   void init_style() override;
   double init_one(int, int) override;
 

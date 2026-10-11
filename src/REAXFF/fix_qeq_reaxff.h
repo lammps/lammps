@@ -72,12 +72,13 @@ class FixQEqReaxFF : public Fix {
 
   int nevery, reaxflag;
   int matvecs;
-  int nn, nt, m_fill;
+  int nn, m_fill;
   int n_cap, nmax, m_cap;
   int pack_flag;
   int nlevels_respa;
   int matrix_free;    // kokkos backend; whether or not to use the matrix-free form
   class NeighList *list;
+  class NeighList *list_olap;    // full list for the overlap integrals (QTPIE and QEQREL)
   class PairReaxFF *reaxff;
   class FixEfield *efield;
   int *ilist, *jlist, *numneigh, **firstneigh;

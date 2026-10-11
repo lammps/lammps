@@ -40,6 +40,7 @@
 #include "memory.h"
 #include "modify.h"
 #include "neigh_list.h"
+#include "neigh_request.h"
 #include "neighbor.h"
 #include "pair.h"
 #include "region.h"
@@ -89,7 +90,7 @@ static const char cite_fix_qtpie_reaxff[] =
 /* ---------------------------------------------------------------------- */
 
 FixQEqReaxFF::FixQEqReaxFF(LAMMPS *lmp, int narg, char **arg) :
-    Fix(lmp, narg, arg), matvecs(0), list(nullptr), efield(nullptr), ilist(nullptr),
+    Fix(lmp, narg, arg), matvecs(0), list(nullptr), list_olap(nullptr), efield(nullptr), ilist(nullptr),
     numneigh(nullptr), firstneigh(nullptr), chi(nullptr), eta(nullptr), gamma(nullptr),
     chi_eff(nullptr), pertype_option(nullptr), gauss_file(nullptr), gauss_exp(nullptr),
     prefactor(nullptr), expfactor(nullptr)
@@ -158,7 +159,7 @@ FixQEqReaxFF::FixQEqReaxFF(LAMMPS *lmp, int narg, char **arg) :
   }
   shld = nullptr;
 
-  nn = nt = n_cap = 0;
+  nn = n_cap = 0;
   nmax = 0;
   m_fill = m_cap = 0;
   pack_flag = 0;
@@ -617,6 +618,25 @@ void FixQEqReaxFF::init()
 
   neighbor->add_request(this, NeighConst::REQ_NEWTON_OFF);
 
+  // the effective electronegativities need a full neighbor list of all atoms
+  // with non-negligible overlap integrals.  check that the ghost atoms cover
+  // that distance including the neighbor list skin, so the generic error
+  // about the neighbor list cutoff is avoided
+
+  if (chi_mode != QEQ) {
+    const double cut_olap = sqrt(dist_cutoff_sq);
+    double cutghost = comm->cutghostuser;
+    if (force->pair) cutghost = MAX(cutghost, force->pair->cutforce + neighbor->skin);
+    if (cutghost < cut_olap + neighbor->skin)
+      error->all(FLERR, Error::NOLASTLINE,
+                 "Fix {} needs a communication cutoff of at least {:.8} for the overlap "
+                 "integrals, but it is {:.8}.  Increase it with comm_modify cutoff", style,
+                 cut_olap + neighbor->skin, cutghost);
+    auto *req = neighbor->add_request(this, NeighConst::REQ_FULL);
+    req->set_id(1);
+    req->set_cutoff_fixed(cut_olap);
+  }
+
   init_shielding();
   init_taper();
   if (chi_mode != QEQ) init_olap();
@@ -634,9 +654,10 @@ double FixQEqReaxFF::compute_scalar()
 
 /* ---------------------------------------------------------------------- */
 
-void FixQEqReaxFF::init_list(int /*id*/, NeighList *ptr)
+void FixQEqReaxFF::init_list(int id, NeighList *ptr)
 {
-  list = ptr;
+  if (id == 1) list_olap = ptr;
+  else list = ptr;
 }
 
 /* ---------------------------------------------------------------------- */
@@ -718,13 +739,11 @@ void FixQEqReaxFF::setup_pre_force(int vflag)
 {
   if (reaxff) {
     nn = reaxff->list->inum;
-    nt = reaxff->list->inum + reaxff->list->gnum;
     ilist = reaxff->list->ilist;
     numneigh = reaxff->list->numneigh;
     firstneigh = reaxff->list->firstneigh;
   } else {
     nn = list->inum;
-    nt = list->inum + list->gnum;
     ilist = list->ilist;
     numneigh = list->numneigh;
     firstneigh = list->firstneigh;
@@ -790,13 +809,11 @@ void FixQEqReaxFF::pre_force(int /*vflag*/)
 
   if (reaxff) {
     nn = reaxff->list->inum;
-    nt = reaxff->list->inum + reaxff->list->gnum;
     ilist = reaxff->list->ilist;
     numneigh = reaxff->list->numneigh;
     firstneigh = reaxff->list->firstneigh;
   } else {
     nn = list->inum;
-    nt = list->inum + list->gnum;
     ilist = list->ilist;
     numneigh = list->numneigh;
     firstneigh = list->firstneigh;
@@ -1107,6 +1124,8 @@ int FixQEqReaxFF::pack_forward_comm(int n, int *list, double *buf,
     for (m = 0; m < n; m++) buf[m] = t[list[m]];
   else if (pack_flag == 4)
     for (m = 0; m < n; m++) buf[m] = atom->q[list[m]];
+  else if (pack_flag == 6)
+    for (m = 0; m < n; m++) buf[m] = chi_field[list[m]];
   else if (pack_flag == 5) {
     m = 0;
     for (int i = 0; i < n; i++) {
@@ -1133,6 +1152,8 @@ void FixQEqReaxFF::unpack_forward_comm(int n, int first, double *buf)
     for (m = 0, i = first; m < n; m++, i++) t[i] = buf[m];
   else if (pack_flag == 4)
     for (m = 0, i = first; m < n; m++, i++) atom->q[i] = buf[m];
+  else if (pack_flag == 6)
+    for (m = 0, i = first; m < n; m++, i++) chi_field[i] = buf[m];
   else if (pack_flag == 5) {
     int last = first + n;
     m = 0;
@@ -1421,7 +1442,8 @@ void FixQEqReaxFF::update_chi()
    averages over neighboring atoms weighted by the overlap integrals of
    their gaussian orbitals: of the electronegativity differences and the
    relative potential of an external electric field (QTPIE), or of the
-   relative potential of the external electric field only (QEQREL)
+   relative potential of the external electric field only (QEQREL).
+   the sums include the overlap of the orbital of an atom with itself.
 ------------------------------------------------------------------------- */
 
 void FixQEqReaxFF::calc_chi_eff()
@@ -1430,117 +1452,82 @@ void FixQEqReaxFF::calc_chi_eff()
 
   const auto *const x = (const double * const *)atom->x;
   const int *type = atom->type;
+  const int inum = list_olap->inum;
+  const int *const ilist_olap = list_olap->ilist;
+  const int *const numneigh_olap = list_olap->numneigh;
+  const int *const *const firstneigh_olap = list_olap->firstneigh;
 
-  double dx,dy,dz,dist_sq,overlap,sum_n,sum_d,chia,chib,phia,phib;
-  int i,j;
-
-  // check ghost atoms are stored up to the distance cutoff for overlap integrals
-  const double comm_cutoff = MAX(neighbor->cutneighmax,comm->cutghostuser);
-  if (comm_cutoff*comm_cutoff < dist_cutoff_sq) {
-    error->all(FLERR, Error::NOLASTLINE,
-               "Comm cutoff {} is smaller than distance cutoff {} for overlap integrals in fix {}. "
-               "Increase accordingly using comm_modify cutoff",
-               comm_cutoff, sqrt(dist_cutoff_sq), style);
-  }
-
-  // efield energy is in real units of kcal/mol, factor needed for conversion to eV
-  const double qe2f = force->qe2f;
-  const double factor = 1.0/qe2f;
-
-  if (chi_mode == QEQREL) {
-    if (efield) {
-      if (efield->varflag != FixEfield::CONSTANT) efield->update_efield_variables();
-
-      // compute chi_eff for each local atom
-      for (i = 0; i < nn; i++) {
-        chia = chi[type[i]];
-        if (efield->varflag != FixEfield::ATOM) {
-          phia = -factor * (x[i][0] * efield->ex + x[i][1] * efield->ey + x[i][2] * efield->ez);
-        } else {    // atom-style potential from FixEfield
-          phia = efield->efield[i][3];
-        }
-
-        sum_n = 0.0;
-        sum_d = 0.0;
-
-        for (j = 0; j < nt; j++) {
-          dx = x[i][0] - x[j][0];
-          dy = x[i][1] - x[j][1];
-          dz = x[i][2] - x[j][2];
-          dist_sq = (dx*dx + dy*dy + dz*dz);
-
-          if (dist_sq < dist_cutoff_sq) {
-
-            // overlap integral of two normalised 1s Gaussian type orbitals
-            overlap = prefactor[type[i]][type[j]] * exp(-expfactor[type[i]][type[j]] * dist_sq);
-
-            if (efield->varflag != FixEfield::ATOM) {
-              phib = -factor * (x[j][0] * efield->ex + x[j][1] * efield->ey + x[j][2] * efield->ez);
-            } else {    // atom-style potential from FixEfield
-              phib = efield->efield[j][3];
-            }
-            sum_n += phib * overlap;
-            sum_d += overlap;
-          }
-        }
-        if (sum_d != 0.0)
-          chi_eff[i] = chia + scale * (phia - sum_n / sum_d);
-        else
-          chi_eff[i] = chia;
-      }
-    } else {
-      for (i = 0; i < nn; i++) { chi_eff[i] = chi[type[i]]; }
+  if ((chi_mode == QEQREL) && !efield) {
+    for (int ii = 0; ii < inum; ++ii) {
+      const int i = ilist_olap[ii];
+      chi_eff[i] = chi[type[i]];
     }
     return;
   }
 
-  // QTPIE
+  // electric potential of the external field in eV.  the potential from an
+  // atom-style variable is only available for local atoms, so it is
+  // communicated to the ghost atoms.  otherwise it is computed from the
+  // positions, so that the potential differences are continuous across
+  // periodic boundaries.
 
+  const double factor = 1.0/force->qe2f;
+  double ex = 0.0, ey = 0.0, ez = 0.0;
+  bool atomstyle = false;
   if (efield) {
-    if (efield->varflag != FixEfield::CONSTANT)
-      efield->update_efield_variables();
-  }
-
-  // compute chi_eff for each local atom
-  for (i = 0; i < nn; i++) {
-    chia = chi[type[i]];
-    if (efield) {
-      if (efield->varflag != FixEfield::ATOM) {
-        phia = -factor*(x[i][0]*efield->ex  + x[i][1]*efield->ey + x[i][2]*efield->ez);
-      } else { // atom-style potential from FixEfield
-        phia = efield->efield[i][3];
-      }
+    if (efield->varflag != FixEfield::CONSTANT) efield->update_efield_variables();
+    ex = efield->ex;
+    ey = efield->ey;
+    ez = efield->ez;
+    if (efield->varflag == FixEfield::ATOM) {
+      atomstyle = true;
+      for (int i = 0; i < atom->nlocal; ++i) chi_field[i] = efield->efield[i][3];
+      pack_flag = 6;
+      comm->forward_comm(this);
     }
+  }
+  auto phi = [&](int i) {
+    return atomstyle ? chi_field[i] : -factor * (x[i][0] * ex + x[i][1] * ey + x[i][2] * ez);
+  };
 
-    sum_n = 0.0;
-    sum_d = 0.0;
+  for (int ii = 0; ii < inum; ++ii) {
+    const int i = ilist_olap[ii];
+    const int itype = type[i];
+    const double chia = chi[itype];
+    const double phia = efield ? phi(i) : 0.0;
 
-    for (j = 0; j < nt; j++) {
-      dx = x[i][0] - x[j][0];
-      dy = x[i][1] - x[j][1];
-      dz = x[i][2] - x[j][2];
-      dist_sq = (dx*dx + dy*dy + dz*dz);
+    // overlap integral of the orbital with itself
+    double sum_d = prefactor[itype][itype];
+    double sum_n = (chi_mode == QEQREL) ? phia * sum_d : 0.0;
+
+    const int *const jlist_olap = firstneigh_olap[i];
+    const int jnum = numneigh_olap[i];
+    for (int jj = 0; jj < jnum; ++jj) {
+      const int j = jlist_olap[jj] & NEIGHMASK;
+      const double dx = x[i][0] - x[j][0];
+      const double dy = x[i][1] - x[j][1];
+      const double dz = x[i][2] - x[j][2];
+      const double dist_sq = dx*dx + dy*dy + dz*dz;
 
       if (dist_sq < dist_cutoff_sq) {
-        chib = chi[type[j]];
+        const int jtype = type[j];
 
         // overlap integral of two normalised 1s Gaussian type orbitals
-        overlap = prefactor[type[i]][type[j]] * exp(-expfactor[type[i]][type[j]] * dist_sq);
+        const double overlap = prefactor[itype][jtype] * exp(-expfactor[itype][jtype] * dist_sq);
 
-        if (efield) {
-          if (efield->varflag != FixEfield::ATOM) {
-            phib = -factor*(x[j][0]*efield->ex  + x[j][1]*efield->ey + x[j][2]*efield->ez);
-          } else { // atom-style potential from FixEfield
-            phib = efield->efield[j][3];
-          }
-          sum_n += (chia - chib + scale * (phia - phib)) * overlap;
-        } else {
-          sum_n += (chia - chib) * overlap;
-        }
+        if (chi_mode == QEQREL)
+          sum_n += phi(j) * overlap;
+        else if (efield)
+          sum_n += (chia - chi[jtype] + scale * (phia - phi(j))) * overlap;
+        else
+          sum_n += (chia - chi[jtype]) * overlap;
         sum_d += overlap;
       }
     }
 
-    chi_eff[i] = sum_n / sum_d;
+    if (chi_mode == QEQREL)
+      chi_eff[i] = chia + scale * (phia - sum_n / sum_d);
+    else
+      chi_eff[i] = sum_n / sum_d;
   }
 }

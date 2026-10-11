@@ -117,6 +117,17 @@ example *gfile* for a system with two atom types is
     1  0.2240  # O
     2  0.5434  # H
 
+.. versionchanged:: TBD
+
+Overlap integrals smaller than :math:`10^{-10}` are neglected.  This
+corresponds to a maximum distance that is determined by the smallest
+Gaussian orbital exponent.  The overlap integrals are computed from a
+neighbor list with this cutoff, so the communication cutoff must be at
+least this distance plus the neighbor list skin distance (see the
+:doc:`neighbor <neighbor>` command).  Otherwise, LAMMPS stops with an
+error message that gives the required value, which can then be set with
+the :doc:`comm_modify cutoff <comm_modify>` command.
+
 The optional *scale* keyword sets the value of :math:`\beta` in the
 equation for :math:`\chi_{\mathrm{r}i}`. The default value is 1.0.
 

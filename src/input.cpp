@@ -1058,7 +1058,8 @@ void Input::include()
 
     infile = fopen(line,"r");
     if (infile == nullptr)
-      error->one(FLERR, Error::ARGZERO, "Cannot open input script {}: {}", line, utils::getsyserror());
+      error->one(FLERR, Error::NOLASTLINE, "Cannot open input script in 'include {}' command: {}",
+                 line, utils::getsyserror());
 
     infiles[nfile++] = infile;
   }

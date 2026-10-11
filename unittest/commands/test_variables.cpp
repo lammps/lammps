@@ -214,6 +214,14 @@ TEST_F(VariableTest, CreateDelete)
     ASSERT_THAT(variable->retrieve("eight"), StrEq("2"));
     ASSERT_THAT(variable->retrieve("three"), StrEq("four four"));
 
+    // non-ASCII lookalikes are replaced, all other UTF-8 encoded characters are kept
+    BEGIN_HIDE_OUTPUT();
+    command(
+        "variable utf8 string \"M\xc3\xbcller\xc2\xa0\xc2\xb5m \xe2\x84\xab \xf0\x9f\x98\x80\"");
+    END_HIDE_OUTPUT();
+    ASSERT_THAT(variable->retrieve("utf8"),
+                StrEq("M\xc3\xbcller \xc2\xb5m \xe2\x84\xab \xf0\x9f\x98\x80"));
+
     ASSERT_EQ(variable->equalstyle(variable->find("one")), 0);
     ASSERT_EQ(variable->equalstyle(variable->find("two")), 1);
     ASSERT_EQ(variable->equalstyle(variable->find("ten")), 1);

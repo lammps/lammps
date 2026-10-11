@@ -56,6 +56,10 @@ struct TagACKS2Precon2{};
 struct TagACKS2Add{};
 struct TagACKS2ZeroQGhosts{};
 struct TagACKS2CalculateQ{};
+struct TagACKS2PackForwardComm{};
+struct TagACKS2UnpackForwardComm{};
+struct TagACKS2PackReverseComm{};
+struct TagACKS2UnpackReverseComm{};
 
 template<class DeviceType>
 class FixACKS2ReaxFFKokkos : public FixACKS2ReaxFF, public KokkosBase {
@@ -204,6 +208,37 @@ class FixACKS2ReaxFFKokkos : public FixACKS2ReaxFF, public KokkosBase {
   void sort_kokkos(Kokkos::BinSort<KeyViewType, BinOp> &Sorter) override;
   int pack_exchange(int, double *) override;
   int unpack_exchange(int, double *) override;
+
+  // communication of the vectors of the BiCGStab solver on the device
+
+  int pack_forward_comm_kokkos(int, DAT::tdual_int_1d, DAT::tdual_double_1d&,
+                               int, int *) override;
+  void unpack_forward_comm_kokkos(int, int, DAT::tdual_double_1d&) override;
+  int pack_reverse_comm_kokkos(int, int, DAT::tdual_double_1d&) override;
+  void unpack_reverse_comm_kokkos(int, DAT::tdual_int_1d, DAT::tdual_double_1d&) override;
+
+  // the host versions are used for acks2/reaxff/kk/host
+
+  int pack_forward_comm(int, int *, double *, int, int *) override;
+  void unpack_forward_comm(int, int, double *) override;
+  int pack_reverse_comm(int, int, double *) override;
+  void unpack_reverse_comm(int, int *, double *) override;
+
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagACKS2PackForwardComm, const int&) const;
+
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagACKS2UnpackForwardComm, const int&) const;
+
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagACKS2PackReverseComm, const int&) const;
+
+// NOLINTNEXTLINE
+  KOKKOS_INLINE_FUNCTION
+  void operator()(TagACKS2UnpackReverseComm, const int&) const;
   double memory_usage() override;
 
  private:
@@ -288,6 +323,13 @@ class FixACKS2ReaxFFKokkos : public FixACKS2ReaxFF, public KokkosBase {
   int first;
   typename AT::t_int_1d d_sendlist;
   typename AT::t_double_1d_um v_buf;
+
+  typename AT::t_double_1d d_commbuf;
+  typename AT::t_kkfloat_1d d_commvec;
+  DAT::ttransform_kkfloat_1d *comm_vector(int, int);
+  void forward_comm_vector(DAT::ttransform_kkfloat_1d &, int);
+  void reverse_comm_vector(DAT::ttransform_kkfloat_1d &, int);
+  void last_rows_comm(DAT::ttransform_kkfloat_1d &, int);
 
   void get_chi_field() override;
 

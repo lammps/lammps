@@ -53,6 +53,23 @@ namespace LAMMPS_NS {
 using namespace MathConst;
 using namespace MathSpecial;
 
+/* ----------------------------------------------------------------------
+   sine of the angle between two vectors from the norm of their cross
+   product, with ab = |a| |b|.  in single precision, the cosine computed
+   from the dot product rounds to -1 or 1 when the angle is within about
+   0.02 degrees of 180 or 0 degrees, so sin(acos(cos_theta)) is useless
+   there, while the cross product stays accurate
+------------------------------------------------------------------------- */
+
+KOKKOS_INLINE_FUNCTION
+static KK_FLOAT sin_angle(const KK_FLOAT *a, const KK_FLOAT *b, const KK_FLOAT ab)
+{
+  const KK_FLOAT c0 = a[1]*b[2] - a[2]*b[1];
+  const KK_FLOAT c1 = a[2]*b[0] - a[0]*b[2];
+  const KK_FLOAT c2 = a[0]*b[1] - a[1]*b[0];
+  return sqrt(c0*c0 + c1*c1 + c2*c2) / ab;
+}
+
 template<class DeviceType>
 PairReaxFFKokkos<DeviceType>::PairReaxFFKokkos(LAMMPS *lmp) : PairReaxFF(lmp)
 {
@@ -2801,7 +2818,8 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeAngularPreproces
   cos_theta = (delij[0]*delik[0]+delij[1]*delik[1]+delij[2]*delik[2])/(rij*rik);
   if (cos_theta > 1.0) cos_theta  = 1.0;
   if (cos_theta < -1.0) cos_theta  = -1.0;
-  theta = acos(cos_theta);
+  sin_theta = sin_angle(delij, delik, rij*rik);
+  theta = atan2(sin_theta, cos_theta);
 
   const KK_FLOAT inv_dists = 1.0 / (rij * rik);
   const KK_FLOAT Cdot_inv3 = cos_theta * inv_dists * inv_dists;
@@ -2812,7 +2830,6 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeAngularPreproces
     dcos_theta_dk[t] = delij[t] * inv_dists - Cdot_inv3 * rsqij * delik[t];
   }
 
-  sin_theta = sin(theta);
   if (sin_theta < 1.0e-5) sin_theta = 1.0e-5;
   p_val1 = paramsthbp(jtype,itype,ktype).p_val1;
 
@@ -2972,7 +2989,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsionPreproces
   // FP64 to prevent overflow in single precision
   double exp_tor2_ij, exp_tor2_ik, exp_tor2_jl, exp_tor1, exp_tor3_DiDj, exp_tor4_DiDj, exp_tor34_inv;
   double exp_cot2_ij, exp_cot2_ik, exp_cot2_jl, fn10, f11_DiDj, dfn11, fn12;
-  KK_FLOAT theta_ijk, theta_jil, sin_ijk, sin_jil, cos_ijk, cos_jil, tan_ijk_i, tan_jil_i;
+  KK_FLOAT sin_ijk, sin_jil, cos_ijk, cos_jil, tan_ijk_i, tan_jil_i;
   KK_FLOAT cos_omega, cos2omega, cos3omega;
   KK_FLOAT CV, cmn, CEtors1, CEtors2, CEtors3, CEtors4;
   KK_FLOAT CEtors5, CEtors6, CEtors7, CEtors8, CEtors9;
@@ -3037,7 +3054,6 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsionPreproces
   cos_ijk = (delij[0]*delik[0]+delij[1]*delik[1]+delij[2]*delik[2])/(rij*rik);
   if (cos_ijk > 1.0) cos_ijk  = 1.0;
   if (cos_ijk < -1.0) cos_ijk  = -1.0;
-  theta_ijk = acos(cos_ijk);
 
   // dcos_ijk
   const KK_FLOAT inv_dists = 1.0 / (rij * rik);
@@ -3049,7 +3065,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsionPreproces
     dcos_ijk_dk[d] = delij[d] * inv_dists - cos_ijk_tmp * rsqij * delik[d];
   }
 
-  sin_ijk = sin(theta_ijk);
+  sin_ijk = sin_angle(delij, delik, rij*rik);
   if (sin_ijk >= 0 && sin_ijk <= MIN_SINE)
     tan_ijk_i = cos_ijk / MIN_SINE;
   else if (sin_ijk <= 0 && sin_ijk >= -MIN_SINE)
@@ -3071,7 +3087,6 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsionPreproces
   cos_jil = -(delij[0]*deljl[0]+delij[1]*deljl[1]+delij[2]*deljl[2])/(rij*rjl);
   if (cos_jil > 1.0) cos_jil  = 1.0;
   if (cos_jil < -1.0) cos_jil  = -1.0;
-  theta_jil = acos(cos_jil);
 
   // dcos_jil
   const KK_FLOAT inv_distjl = 1.0 / (rij * rjl);
@@ -3083,7 +3098,7 @@ void PairReaxFFKokkos<DeviceType>::operator()(TagPairReaxComputeTorsionPreproces
     dcos_jil_dk[d] = -delij[d] * inv_distjl - cos_jil_tmp * rsqij * deljl[d];
   }
 
-  sin_jil = sin(theta_jil);
+  sin_jil = sin_angle(delij, deljl, rij*rjl);
   if (sin_jil >= 0 && sin_jil <= MIN_SINE)
     tan_jil_i = cos_jil / MIN_SINE;
   else if (sin_jil <= 0 && sin_jil >= -MIN_SINE)

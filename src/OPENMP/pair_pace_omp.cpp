@@ -56,8 +56,6 @@ PairPACEOMP::PairPACEOMP(LAMMPS *lmp) :
 
 PairPACEOMP::~PairPACEOMP()
 {
-  // ASK WHAT THIS IS FOR
-  // if (copymode) return;
 
   // Clean up resources PairPACEOMP owns
   for (ACERecursiveEvaluator *ptr : ace_thr) {
@@ -206,11 +204,6 @@ void PairPACEOMP::compute(int eflag, int vflag)
           error->one(FLERR, e.what());
         }
 
-//        printf(
-//        "DEBUG PACE/OMP: tid=%d i=%d energy=%g\n",
-//        tid, i, scale[itype][itype] * ace->e_atom
-//        );
-
         if (flag_corerep_factor)
           corerep_factor[i] = 1 - ace->ace_fcut;
 
@@ -232,11 +225,6 @@ void PairPACEOMP::compute(int eflag, int vflag)
           f_thr[j][1] -= fij[1];
           f_thr[j][2] -= fij[2];
 
-//          printf(
-//          "DEBUG PACE/OMP: tid=%d i=%d j=%d fij=(%g,%g,%g)\n",
-//          tid, i, j, fij[0], fij[1], fij[2]
-//          );
-
         // tally per-atom virial contribution
         if (vflag_either)
             ev_tally_xyz_thr(this, i, j, nlocal, newton_pair, 0.0, 0.0, fij[0], fij[1], fij[2], -delx, -dely, -delz, thr);
@@ -250,24 +238,11 @@ void PairPACEOMP::compute(int eflag, int vflag)
         }
       } // loop over ii
 
-      // if (vflag_fdotr) virial_fdotr_compute();
-
-//      if (tid == 0){
-//      printf(
-//        "DEBUG PACE/OMP: tid=%d i=%d f_thr[i]=(%g,%g,%g)\n",
-//        tid, 0, f_thr[0][0], f_thr[0][1], f_thr[0][2]
-//        );
-//      }
-
       // reduce thread's contributions into global arrays
       thr->timer(Timer::PAIR);
       reduce_thr(this, eflag, vflag, thr);
   } // end of omp parallel region
 
-//  printf(
-//  "DEBUG PACE/OMP: f_thr[0]=(%g,%g,%g)\n",
-//  atom->f[0][0], atom->f[0][1], atom->f[0][2]
-//  );
 }
 
 /* ---------------------------------------------------------------------- */

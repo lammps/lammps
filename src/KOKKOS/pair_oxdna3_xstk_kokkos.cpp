@@ -41,13 +41,11 @@ using MathConst::MY_PI;
 // Live Register Usage.
 // fma (Kokkos::fma) fuses multiply-add operations: Kokkos::fma(x,y,z) = x*y + z,
 // but with only one FP rounding error and one instruction instead of two.
-// Additionally, we can use:
-// sin^2(theta) = 1 - cos^2(theta) to rejig into fma format.
 // Copilot (AI) was most definitly used to sweep through and apply the majoirty of
 // these changes, vastly cutting down on my own errors/recompiling, as well as oversights
 // I could easily miss - same applies to the bool terms I pull out for the sake of
 // Live Register Usage.
-// Local .sh regression tests have been ran (full FP64) to confirm numerics aren't altered.
+// Local .sh regression tests have been ran (full FP64 and mixed) to confirm numerics aren't altered.
 
 /* ---------------------------------------------------------------------- */
 
@@ -375,12 +373,6 @@ bool PairOxdna3XstkKokkos<DeviceType>::xstk_radial_terms(const int &atype, const
 
   if (f2_33 == static_cast<KK_FLOAT>(0.0) && f2_55 == static_cast<KK_FLOAT>(0.0)) return false;
 
-  // df2_33 = DF2_KK(r_hb, l_k_xst, l_cut_xst_0, l_cut_xst_lc, l_cut_xst_hc,
-  //                 l_cut_xst_lo, l_cut_xst_hi, l_b_xst_lo, l_b_xst_hi);
-
-  // df2_55 = DF2_KK(r_hb, l_k_xst, l_cut_xst_0, l_cut_xst_lc, p_55.cut_xst_hc,
-  //                 p_55.cut_xst_lo, p_55.cut_xst_hi, l_b_xst_lo, l_b_xst_hi);
-
   return true;
 }
 
@@ -416,8 +408,7 @@ bool PairOxdna3XstkKokkos<DeviceType>::xstk_theta1_terms(const int &atype, const
   // its other force terms
   const KK_FLOAT rsin1 = (sin1_sq > static_cast<KK_FLOAT>(0.0)) ?
     static_cast<KK_FLOAT>(Kokkos::rsqrt(sin1_sq)) : static_cast<KK_FLOAT>(0.0);
-  // df4t1 = DF4_KK(theta1, l_a_xst1, l_theta_xst1_0, l_dtheta_xst1_ast,
-  //                l_b_xst1, l_dtheta_xst1_c) * rsin1;
+
   df4t1 *= rsin1;
 
   return true;
@@ -455,8 +446,7 @@ bool PairOxdna3XstkKokkos<DeviceType>::xstk_theta2_terms(const int &atype, const
   // its other force terms
   const KK_FLOAT rsin2 = (sin2_sq > static_cast<KK_FLOAT>(0.0)) ?
     static_cast<KK_FLOAT>(Kokkos::rsqrt(sin2_sq)) : static_cast<KK_FLOAT>(0.0);
-  // df4t2 = DF4_KK(theta2, l_a_xst2, l_theta_xst2_0,
-  //                l_dtheta_xst2_ast, l_b_xst2, l_dtheta_xst2_c) * rsin2;
+
   df4t2 *= rsin2;
 
   return true;
@@ -494,8 +484,7 @@ bool PairOxdna3XstkKokkos<DeviceType>::xstk_theta3_terms(const int &atype, const
   // its other force terms
   const KK_FLOAT rsin3 = (sin3_sq > static_cast<KK_FLOAT>(0.0)) ?
     static_cast<KK_FLOAT>(Kokkos::rsqrt(sin3_sq)) : static_cast<KK_FLOAT>(0.0);
-  // df4t3 = DF4_KK(theta3, l_a_xst3, l_theta_xst3_0,
-  //                l_dtheta_xst3_ast, l_b_xst3, l_dtheta_xst3_c) * rsin3;
+
   df4t3 *= rsin3;
 
   return true;
@@ -544,8 +533,6 @@ bool PairOxdna3XstkKokkos<DeviceType>::xstk_theta4_terms(const int &atype, const
   const KK_FLOAT rsin4 = (sin4_sq > static_cast<KK_FLOAT>(0.0)) ?
     static_cast<KK_FLOAT>(Kokkos::rsqrt(sin4_sq)) : static_cast<KK_FLOAT>(0.0);
 
-  // df4t4_33 = DF4_KK(theta4, l_a_xst4_33, l_theta_xst4_0_33, l_dtheta_xst4_ast_33, l_b_xst4_33, l_dtheta_xst4_c_33) * rsin4;
-  // df4t4_55 = DF4_KK(theta4, l_a_xst4_55, l_theta_xst4_0_55, l_dtheta_xst4_ast_55, l_b_xst4_55, l_dtheta_xst4_c_55) * rsin4;
   df4t4_33 *= rsin4;
   df4t4_55 *= rsin4;
 
@@ -588,8 +575,6 @@ bool PairOxdna3XstkKokkos<DeviceType>::xstk_theta7_terms(const int &atype, const
   const KK_FLOAT rsin7 = (sin7_sq > static_cast<KK_FLOAT>(0.0)) ?
     static_cast<KK_FLOAT>(Kokkos::rsqrt(sin7_sq)) : static_cast<KK_FLOAT>(0.0);
 
-  // df4t7_33 = DF4_KK(theta7, l_a_xst7, l_theta_xst7_0_33, l_dtheta_xst7_ast, l_b_xst7, l_dtheta_xst7_c) * rsin7;
-  // df4t7_55 = DF4_KK(theta7, l_a_xst7, l_theta_xst7_0_55, l_dtheta_xst7_ast, l_b_xst7, l_dtheta_xst7_c) * rsin7;
   df4t7_33 *= rsin7;
   df4t7_55 *= rsin7;
 
@@ -632,8 +617,6 @@ bool PairOxdna3XstkKokkos<DeviceType>::xstk_theta8_terms(const int &atype, const
   const KK_FLOAT rsin8 = (sin8_sq > static_cast<KK_FLOAT>(0.0)) ?
     static_cast<KK_FLOAT>(Kokkos::rsqrt(sin8_sq)) : static_cast<KK_FLOAT>(0.0);
 
-  // df4t8_33 = DF4_KK(theta8, l_a_xst8, l_theta_xst8_0_33, l_dtheta_xst8_ast, l_b_xst8, l_dtheta_xst8_c) * rsin8;
-  // df4t8_55 = DF4_KK(theta8, l_a_xst8, l_theta_xst8_0_55, l_dtheta_xst8_ast, l_b_xst8, l_dtheta_xst8_c) * rsin8;
   df4t8_33 *= rsin8;
   df4t8_55 *= rsin8;
 

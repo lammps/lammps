@@ -306,7 +306,7 @@ body particles with a wall.
 The *rounded/polyhedron* body style represents body particles as a 3d
 polyhedron with a variable number of N vertices, E edges and F faces.
 This style can only be used for 3d models; see the
-:doc:`boundary <boundary>` command.  See the "pair_style
+:doc:`dimension <dimension>` command.  See the "pair_style
 body/rounded/polygon" page for a diagram of a two 2d squares with
 rounded circles at the vertices.  A 3d cube with rounded spheres at
 the 8 vertices and 12 rounded edges would be similar.  Special cases
@@ -467,7 +467,7 @@ within the general triclinic box.
 The :doc:`pair_style body/rounded/polyhedron
 <pair_body_rounded_polyhedron>` command can be used with this body
 style to compute body/body interactions.  The :doc:`fix
-wall/body/polyhedron <fix_wall_body_polygon>` command can be used with
+wall/body/polyhedron <fix_wall_body_polyhedron>` command can be used with
 this body style to compute the interaction of body particles with a
 wall.
 
@@ -519,8 +519,8 @@ Note that for both the *rounded/polygon* and *rounded/polyhedron*
 styles, line segments are drawn between the pairs of vertices.
 Depending on the diameters of the line segments this may be slightly
 different than the physical extent of the body as calculated by the
-:doc:`pair_style rounded/polygon <pair_body_rounded_polygon>` or
-:doc:`pair_style rounded/polyhedron <pair_body_rounded_polyhedron>`
+:doc:`pair_style body/rounded/polygon <pair_body_rounded_polygon>` or
+:doc:`pair_style body/rounded/polyhedron <pair_body_rounded_polyhedron>`
 commands.  Conceptually, the pair styles define the surface of a 2d or
 3d body by lines or planes that are tangent to the finite-size spheres
 of specified diameter which are placed on each vertex position.

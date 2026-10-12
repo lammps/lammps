@@ -16,73 +16,65 @@ which has both LAMMPS and its Python package installed:
    $ cd lammps
    ```
 
-2. Create a build folder
+2. Create a virtual environment for Python (here inside the future build folder)
 
    ```shell
-   $ mkdir build
-   $ cd build
+   $ python3 -m venv build/myenv
    ```
 
-3. Create a virtual environment for Python
-
-   ```shell
-   $ python3 -m venv myenv
-   ```
-
-4. Extend `LD_LIBRARY_PATH` (Unix/Linux) or `DYLD_LIBRARY_PATH` (MacOS)
+3. Extend `LD_LIBRARY_PATH` (Unix/Linux) or `DYLD_LIBRARY_PATH` (MacOS)
 
    On Unix/Linux:
    ```shell
-   $ echo 'export LD_LIBRARY_PATH=$VIRTUAL_ENV/lib:$LD_LIBRARY_PATH' >> myenv/bin/activate
+   $ echo 'export LD_LIBRARY_PATH=$VIRTUAL_ENV/lib:$LD_LIBRARY_PATH' >> build/myenv/bin/activate
    ```
 
    On MacOS:
    ```shell
-   echo 'export DYLD_LIBRARY_PATH=$VIRTUAL_ENV/lib:$DYLD_LIBRARY_PATH' >> myenv/bin/activate
+   echo 'export DYLD_LIBRARY_PATH=$VIRTUAL_ENV/lib:$DYLD_LIBRARY_PATH' >> build/myenv/bin/activate
    ```
 
-5. Activate the virtual environment
+4. Activate the virtual environment
 
    ```shell
-   $ source myenv/bin/activate
+   $ source build/myenv/bin/activate
    (myenv)$
    ```
 
-6. Configure LAMMPS compilation (CMake)
+5. Configure LAMMPS compilation (CMake)
 
    ```shell
-   (myenv)$ cmake -C ../cmake/presets/basic.cmake \
+   (myenv)$ cmake -S cmake -B build -C cmake/presets/basic.cmake \
                   -D BUILD_SHARED_LIBS=on \
                   -D PKG_PYTHON=on \
-                  -D CMAKE_INSTALL_PREFIX=$VIRTUAL_ENV \
-                  ../cmake
+                  -D CMAKE_INSTALL_PREFIX=$VIRTUAL_ENV
    ```
 
-7. Compile LAMMPS
+6. Compile LAMMPS
 
    ```shell
-   (myenv)$ cmake --build .
+   (myenv)$ cmake --build build
    ```
 
-8. Install LAMMPS and Python package into virtual environment
+7. Install LAMMPS and Python package into virtual environment
 
    ```shell
-   (myenv)$ make install-python
+   (myenv)$ cmake --build build --target install-python
    ```
 
-9. Install other Python packages into virtual environment
+8. Install other Python packages into virtual environment
 
    ```shell
    (myenv)$ pip install jupyter matplotlib pandas mpi4py
    ```
 
-10. Navigate to ipython examples folder
+9. Navigate to ipython examples folder
 
-    ```shell
-    (myenv)$ cd ../python/examples/ipython
-    ```
+   ```shell
+   (myenv)$ cd python/examples/ipython
+   ```
 
-11. Launch Jupyter and work inside browser
+10. Launch Jupyter and work inside browser
 
     ```shell
     (myenv)$ jupyter notebook

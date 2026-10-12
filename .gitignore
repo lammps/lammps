@@ -15,6 +15,7 @@
 *.whl
 a.out
 __pycache__
+.ipynb_checkpoints
 
 Obj_*
 log.lammps

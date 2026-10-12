@@ -302,6 +302,16 @@ This fix is part of the MC package.  It is only enabled if LAMMPS was
 built with that package.  See the :doc:`Build package <Build_package>`
 doc page for more info.
 
+.. versionchanged:: TBD
+
+When this fix creates impropers, it assumes that the first atom of an improper
+is its central atom, bonded to the other three atoms.  Thus it cannot
+be used with :doc:`improper styles <improper_style>` that have a
+different central atom, e.g. *amoeba*, *class2*, *distharm*, *ring*,
+and *sqdistharm*.  This also applies to those styles as sub-styles of
+improper style *hybrid*.  Please see the documentation of each improper
+style about which of its atoms is the central atom (or "atom of symmetry").
+
 Related commands
 """"""""""""""""
 

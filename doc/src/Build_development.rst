@@ -9,6 +9,148 @@ useful during development, testing or debugging.
 
 ----------
 
+.. _ninja_ccache:
+
+Faster compilation with Ninja and ccache (CMake only)
+-----------------------------------------------------
+
+LAMMPS is a large software package, and compiling it with many packages
+enabled can take a long time.  During development, LAMMPS is typically
+re-compiled many times: after small changes, after switching between
+branches, or in multiple build folders with different settings.  Two
+tools can reduce the time spent waiting for the compilation
+considerably: the `Ninja build tool <https://ninja-build.org/>`_ and the
+`ccache compiler cache <https://ccache.dev/>`_.  Both are available as
+packages for all common Linux distributions and for macOS, e.g.:
+
+.. code-block:: bash
+
+   sudo dnf install ninja-build ccache    # Fedora (RHEL and compatible: with EPEL)
+   sudo apt install ninja-build ccache    # Debian, Ubuntu, and compatible
+   brew install ninja ccache              # macOS with Homebrew
+
+Ninja is also available for Windows.  It is included with Visual Studio,
+and building LAMMPS with CMake inside Visual Studio uses it (see
+:doc:`Build_windows`).
+
+The Ninja build tool
+^^^^^^^^^^^^^^^^^^^^
+
+By default, CMake on Linux and macOS generates build files for the
+``make`` program.  With the ``-G Ninja`` flag, CMake generates build
+files for Ninja instead.  The build command remains the same:
+
+.. code-block:: bash
+
+   cmake -S cmake -B build -G Ninja -C cmake/presets/most.cmake
+   cmake --build build
+
+Ninja is designed for speed: it determines much faster than ``make``
+which files need to be re-compiled, which is particularly noticeable
+when only a few files have changed, and it automatically runs as many
+compilation tasks in parallel as there are CPU cores available.  The
+number of parallel tasks can be limited with ``cmake --build build -j
+N``, e.g. when compiling source files that require a lot of memory (like
+KOKKOS package styles for GPUs) on a machine with limited RAM.
+
+The generator is selected when a build folder is configured for the
+first time and cannot be changed afterwards.  To switch an existing
+build folder to Ninja, either use a new folder or add the ``--fresh``
+flag, which discards all previous settings, so that all options have to
+be provided again:
+
+.. code-block:: bash
+
+   cmake --fresh -S cmake -B build -G Ninja -C cmake/presets/most.cmake
+
+The ccache compiler cache
+^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The ccache program stores the result of each compilation in a cache.
+When the same source file is compiled again with the same compiler and
+the same settings, the stored result is used instead of running the
+compiler again, which takes only a small fraction of the time.  This
+happens frequently during development, e.g. after switching to a
+different branch and back, during a ``git bisect`` session, after
+deleting a build folder, or when compiling in a second build folder with
+the same settings.  For example, on a machine with 16 CPU cores,
+compiling LAMMPS with the ``most`` preset in a new build folder took
+about 4 minutes with an empty cache, but only 11 seconds when all
+results were already in the cache.
+
+There are several ways to make CMake use ccache:
+
+- Set the compiler launcher variables on the CMake command line
+  (recommended):
+
+  .. code-block:: bash
+
+     cmake -S cmake -B build -D CMAKE_CXX_COMPILER_LAUNCHER=ccache \
+           -D CMAKE_C_COMPILER_LAUNCHER=ccache [more options]
+
+  When compiling packages with Fortran code, also add ``-D
+  CMAKE_Fortran_COMPILER_LAUNCHER=ccache``.
+
+- Put the same settings into a small preset file, e.g. ``ccache.cmake``,
+  and load it with ``-C ccache.cmake``, optionally together with other
+  preset files:
+
+  .. code-block:: cmake
+
+     set(CMAKE_CXX_COMPILER_LAUNCHER ccache CACHE STRING "" FORCE)
+     set(CMAKE_C_COMPILER_LAUNCHER ccache CACHE STRING "" FORCE)
+     set(CMAKE_Fortran_COMPILER_LAUNCHER ccache CACHE STRING "" FORCE)
+
+- Set environment variables with the same names, e.g. ``export
+  CMAKE_CXX_COMPILER_LAUNCHER=ccache``.  CMake uses them as defaults
+  when a build folder is configured for the first time.
+
+- Place the folder with the ccache compiler wrappers first in the
+  ``PATH`` environment variable.  This folder contains links named like
+  compilers (``gcc``, ``g++``, ``cc``, ``c++``, and so on) that call
+  ccache.  On Fedora, this is set up automatically for all users when
+  ccache is installed, using the folder ``/usr/lib64/ccache``.  On
+  Debian and Ubuntu, the folder ``/usr/lib/ccache`` has to be added to
+  ``PATH`` manually.  CMake then reports the compiler as, e.g.,
+  ``/usr/lib64/ccache/c++``.  Since CMake remembers the compiler path,
+  this has to be set up *before* a build folder is configured.
+
+The command ``ccache -s`` shows statistics, including how many
+compilations were taken from the cache ("hits").  With ``ccache -z``
+the statistics are reset, e.g. to see the effect for a single build.
+
+The default settings of ccache can be adjusted for a project of the size
+of LAMMPS (all settings are remembered in the ccache configuration file,
+``ccache --show-config`` displays them):
+
+- **Increase the cache size**: by default, ccache limits the cache size
+  to 5 GB and removes the oldest entries when this limit is reached.  A
+  single build with the ``most`` preset uses about 0.25 GB of cache
+  storage, and with the KOKKOS package (OpenMP) added, it is about 0.85
+  GB.  However, the cache accumulates results from multiple
+  configurations (serial, MPI, debug, KOKKOS, different compilers) and
+  from different branches, so a limit of 20 GB or more is recommended:
+  ``ccache --max-size=20G``.
+
+- **Use fast local storage**: by default, the cache is stored in your
+  home folder.  Placing it on a fast SSD speeds up storing and
+  retrieving results.  On HPC clusters, home folders are usually on
+  network file systems, so a local or scratch file system is the better
+  choice: ``ccache --set-config=cache_dir=/path/to/fast/storage/ccache``.
+
+- **Share results between multiple checkouts**: CMake uses absolute
+  paths, so compilations from different LAMMPS source folders (e.g.
+  multiple clones, or folders created with ``git worktree``) cannot use
+  each other's results by default.  Setting the ``base_dir`` option to a
+  common parent folder, e.g. ``ccache --set-config=base_dir=$HOME``,
+  makes ccache use relative paths for files inside that folder, so that
+  results can be shared.
+
+Please see the `ccache documentation <https://ccache.dev/documentation.html>`_
+for more details.
+
+----------
+
 .. _compilation:
 
 Monitor compilation flags (CMake only)
@@ -20,14 +162,14 @@ compilation you can use the following option.
 
 .. code-block:: bash
 
-   -D CMAKE_VERBOSE_MAKEFILE=value    # value = no (default) or yes
+   -D CMAKE_VERBOSE_MAKEFILE=value    # value = off (default) or on
 
-Another way of doing this without reconfiguration is calling make with
-variable VERBOSE set to 1:
+Another way of doing this without reconfiguration is adding the
+``--verbose`` flag to the build command:
 
 .. code-block:: bash
 
-   make VERBOSE=1
+   cmake --build build --verbose
 
 ----------
 
@@ -52,7 +194,7 @@ during CMake configuration.
 
 .. code-block:: bash
 
-   -D ENABLE_IWYU=value    # value = no (default) or yes
+   -D ENABLE_IWYU=value    # value = off (default) or on
 
 This will check if the required binary (include-what-you-use or iwyu)
 and python script (iwyu-tool or iwyu_tool or iwyu_tool.py) can be found
@@ -60,7 +202,7 @@ in the path.  The analysis can then be started with:
 
 .. code-block:: bash
 
-   make iwyu
+   cmake --build build --target iwyu
 
 This may first run some compilation, as the analysis is dependent
 on recording all commands required to do the compilation.
@@ -542,10 +684,10 @@ unit tests:
 
 .. code-block:: bash
 
-   make gen_coverage_html   # generate coverage report in HTML format
-   make gen_coverage_xml    # generate coverage report in XML format
-   make clean_coverage_html # delete folder with HTML format coverage report
-   make reset_coverage      # delete all collected coverage data and HTML output
+   cmake --build build --target gen_coverage_html   # generate coverage report in HTML format
+   cmake --build build --target gen_coverage_xml    # generate coverage report in XML format
+   cmake --build build --target clean_coverage_html # delete folder with HTML format coverage report
+   cmake --build build --target reset_coverage      # delete all collected coverage data and HTML output
 
 These reports require `GCOVR <https://gcovr.com/>`_ to be installed. The easiest way
 to do this to install it via pip:
@@ -612,10 +754,11 @@ Coding style utilities
 ----------------------
 
 To aid with enforcing some of the coding style conventions in LAMMPS
-some additional build targets have been added. These require Python 3.5
-or later and will only work properly on Unix-like operating and file systems.
+some additional build targets have been added to the makefile in the
+``src`` folder.  These require Python 3.5 or later and will only work
+properly on Unix-like operating and file systems.
 
-The following options are available.
+The following options are available (to be run in the ``src`` folder):
 
 .. code-block:: bash
 
@@ -630,6 +773,10 @@ The following options are available.
    make check-docs          # search for several issues in the manual
    make check-version       # list files with pending release version tags
    make check               # run all check targets from above
+
+The whitespace, homepage, and permission checks and fixes are also
+available as targets of the CMake build, e.g. ``cmake --build build
+--target check-whitespace``.
 
 These should help to make source and documentation files conforming
 to some the coding style preferences of the LAMMPS developers.

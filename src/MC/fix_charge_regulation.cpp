@@ -255,16 +255,18 @@ void FixChargeRegulation::init() {
     neighbor->modify_params(fmt::format("exclude group {} {}",group_id,group_id));
   }
 
-  // check that no deletable atoms are in atom->firstgroup
-  // deleting such an atom would not leave firstgroup atoms first
+  // check that no free ions are in atom->firstgroup
+  // they can be deleted, and deleting such an atom would not leave firstgroup atoms first
 
   if (atom->firstgroup >= 0) {
     int *mask = atom->mask;
+    int *type = atom->type;
     int firstgroupbit = group->bitmask[atom->firstgroup];
 
     int flag = 0;
     for (int i = 0; i < atom->nlocal; i++)
-      if ((mask[i] == groupbit) && (mask[i] && firstgroupbit)) flag = 1;
+      if (((type[i] == cation_type) || (type[i] == anion_type)) && (mask[i] & firstgroupbit))
+        flag = 1;
 
     int flagall;
     MPI_Allreduce(&flag, &flagall, 1, MPI_INT, MPI_SUM, world);

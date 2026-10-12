@@ -279,7 +279,11 @@ void FixWallGranRegion::post_force(int /*vflag*/)
       add3(f[i], forces, f[i]);
 
       add3(torque[i], torquesi, torque[i]);
-      if (heat_flag) heatflow[i] += model->dq;
+      double dq = 0;
+      if (heat_flag) {
+        heatflow[i] += model->dq;
+        dq = model->dq;
+      }
 
       // store contact info
       if (peratom_flag) {

@@ -38,6 +38,7 @@
 #include <functional>
 #include <mpi.h>
 #include <string>
+#include <utility>
 #include <vector>
 
 // whether to print verbose output (i.e. not capturing LAMMPS screen output).
@@ -349,27 +350,35 @@ TEST_F(PeriTest, omp_consistency)
 {
     {
         create();
-        bool have = has_pair("peri/pmb/omp");
+        bool have = has_pair("peri/pmb/omp") && has_pair("peri/lps/omp");
         destroy();
-        if (!have) GTEST_SKIP() << "peri/pmb/omp not available";
+        if (!have) GTEST_SKIP() << "peri/pmb/omp or peri/lps/omp not available";
     }
 
     const double s00_bulk = 0.1, s00_weak = 0.001, alpha = 0.0, strain = 0.01;
 
-    create();
-    build_bar(pmb(s00_bulk, s00_weak, alpha), strain);
-    PeriData base = extract();
+    // peri/lps/omp also checks that fix PERI_NEIGH recognizes the suffixed
+    // style name and computes the weighted volume needed by the LPS model
+    const std::vector<std::pair<std::string, std::function<void(double)>>> models = {
+        {"peri/pmb", pmb(s00_bulk, s00_weak, alpha)}, {"peri/lps", lps(s00_bulk, s00_weak, alpha)}};
 
-    create({"-sf", "omp", "-pk", "omp", "1"});
-    build_bar(pmb(s00_bulk, s00_weak, alpha), strain);
-    PeriData omp = extract();
+    for (const auto &model : models) {
+        SCOPED_TRACE(model.first);
+        create();
+        build_bar(model.second, strain);
+        PeriData base = extract();
 
-    ASSERT_EQ(base.natoms, omp.natoms);
-    for (int t = 0; t < base.natoms; ++t) {
-        EXPECT_NEAR(base.fx[t], omp.fx[t], 1.0e-10);
-        EXPECT_NEAR(base.fy[t], omp.fy[t], 1.0e-10);
-        EXPECT_NEAR(base.fz[t], omp.fz[t], 1.0e-10);
-        EXPECT_DOUBLE_EQ(base.damage[t], omp.damage[t]);
+        create({"-sf", "omp", "-pk", "omp", "4"});
+        build_bar(model.second, strain);
+        PeriData omp = extract();
+
+        ASSERT_EQ(base.natoms, omp.natoms);
+        for (int t = 0; t < base.natoms; ++t) {
+            EXPECT_NEAR(base.fx[t], omp.fx[t], 1.0e-10);
+            EXPECT_NEAR(base.fy[t], omp.fy[t], 1.0e-10);
+            EXPECT_NEAR(base.fz[t], omp.fz[t], 1.0e-10);
+            EXPECT_DOUBLE_EQ(base.damage[t], omp.damage[t]);
+        }
     }
 }
 

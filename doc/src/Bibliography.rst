@@ -1183,6 +1183,11 @@ Bibliography
 **(Morris)**
    Morris, Fox, Zhu, J Comp Physics, 136, 214-226 (1997).
 
+**(Morrisey thesis)**
+   Morrisey, J. P. (2013). Discrete Element Modelling of
+   Iron Ore Pellets to Include the Effects of Moisture and Fines.
+   PhD thesis, Edinburgh, Scotland: University of Edinburgh.
+
 **(Morse)**
    Morse, Physical review, 34, 57 (1929). https://doi.org/10.1103/PhysRev.34.57
 
@@ -1582,6 +1587,9 @@ Bibliography
 **(Silbert, 2001)**
    Silbert, L. E., Ertas, D., Grest, G. S., Halsey, T. C., Levine, D., & Plimpton, S. J. (2001).  Granular flow down an inclined plane: Bagnold scaling and rheology. Physical Review E, 64(5), 051302.
 
+**(Sillano)**
+   Sillano, Marrink, Idema, Phys. Rev. E, 114, 034412 (2026).
+
 **(Silling 2000)**
    Silling, J Mech Phys Solids, 48, 175-209 (2000).
 
@@ -1731,6 +1739,12 @@ Bibliography
 
 **(Tersoff_2)**
    J.\  Tersoff, Phys Rev B, 38, 9902 (1988).
+
+**(Thakur et al, 2014)**
+   Thakur, Subhash C., et al. (2014).
+   Micromechanical analysis of cohesive granular materials using
+   the discrete element method with an adhesive  elasto-plastic contact
+   model. Granular Matter 16, 383-400.
 
 **(Theodorou)**
    Theodorou, Suter, Macromolecules, 18, 1206 (1985).

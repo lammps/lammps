@@ -36,8 +36,8 @@ using namespace MathConst;
 
 PairLJCutCoulCutSoftGapsys::PairLJCutCoulCutSoftGapsys(LAMMPS *lmp) :
     Pair(lmp), cut_lj(nullptr), cut_ljsq(nullptr), cut_coul(nullptr), cut_coulsq(nullptr),
-    epsilon(nullptr), sigma(nullptr), lj1(nullptr), lj2(nullptr), lj3(nullptr), lj4(nullptr),
-    offset(nullptr), lambda(nullptr)
+    epsilon(nullptr), sigma(nullptr), lambda(nullptr), lj1(nullptr), lj2(nullptr), lj3(nullptr),
+    lj4(nullptr), offset(nullptr)
 {
   writedata = 1;
   allocated = 0;
@@ -129,13 +129,24 @@ void PairLJCutCoulCutSoftGapsys::compute(int eflag, int vflag)
         cut_inner_q = (1.0 + sigmaq * fabs(qtmp * q[j])) * alphaq * pow(lambda[itype][jtype], 1.0 / 6.0);
         cut_inner_lj = alphalj * pow(26.0 * lambda[itype][jtype] / 7.0, 1.0 / 6.0) * sigma[itype][jtype];
 
+        // forcecoul and forcelj do not include the special bond factors.
+        // those are applied once, when fpair, ecoul, and evdwl are assembled
+
+        ecoul = evdwl = 0.0;
         if (rsq < cut_inner_q * cut_inner_q) {
-          forcecoul = factor_coul * qqrd2e * qtmp * q[j];
-          forcecoul *= rsq * (- 2.0 / pow(cut_inner_q, 3) + 3.0 / (pow(cut_inner_q, 2) * sqrt(rsq)));
-        } else if (rsq < cut_coulsq[itype][jtype])
+          forcecoul = qqrd2e * qtmp * q[j];
+          forcecoul *= rsq * (-2.0 / pow(cut_inner_q, 3) + 3.0 / (pow(cut_inner_q, 2) * sqrt(rsq)));
+          if (eflag) {
+            ecoul = factor_coul * qqrd2e * qtmp * q[j];
+            ecoul *= rsq / pow(cut_inner_q, 3) - 3.0 * sqrt(rsq) / pow(cut_inner_q, 2) +
+                3.0 / cut_inner_q;
+          }
+        } else if (rsq < cut_coulsq[itype][jtype]) {
           forcecoul = qqrd2e * qtmp * q[j] * sqrt(r2inv);
-        else
+          if (eflag) ecoul = factor_coul * qqrd2e * qtmp * q[j] * sqrt(r2inv);
+        } else {
           forcecoul = 0.0;
+        }
 
         if (rsq < cut_inner_lj * cut_inner_lj) {
           double epsln = epsilon[itype][jtype];
@@ -143,12 +154,25 @@ void PairLJCutCoulCutSoftGapsys::compute(int eflag, int vflag)
           double s_ri12 = s_ri6 * s_ri6;
           double b1 = -24.0 * epsln * (26.0 * s_ri12 - 7.0 * s_ri6) / (cut_inner_lj * cut_inner_lj);
           double b2 = 96.0 * epsln * (7.0 * s_ri12 - 2.0 * s_ri6) / cut_inner_lj;
-          forcelj = rsq  * (b1 + b2 / sqrt(rsq));
+          forcelj = rsq * (b1 + b2 / sqrt(rsq));
+          if (eflag) {
+            double a1 =
+                12.0 * epsln * (26.0 * s_ri12 - 7.0 * s_ri6) / (cut_inner_lj * cut_inner_lj);
+            double a2 = -96.0 * epsln * (7.0 * s_ri12 - 2.0 * s_ri6) / cut_inner_lj;
+            double a3 = 28.0 * epsln * (13.0 * s_ri12 - 4.0 * s_ri6);
+            evdwl = a1 * rsq + a2 * sqrt(rsq) + a3 - offset[itype][jtype];
+            evdwl *= factor_lj;
+          }
         } else if (rsq < cut_ljsq[itype][jtype]) {
           r6inv = r2inv * r2inv * r2inv;
           forcelj = r6inv * (lj1[itype][jtype] * r6inv - lj2[itype][jtype]);
-        } else
+          if (eflag) {
+            evdwl = r6inv * (lj3[itype][jtype] * r6inv - lj4[itype][jtype]) - offset[itype][jtype];
+            evdwl *= factor_lj;
+          }
+        } else {
           forcelj = 0.0;
+        }
 
         fpair = (factor_coul * forcecoul + factor_lj * forcelj) * r2inv;
 
@@ -159,32 +183,6 @@ void PairLJCutCoulCutSoftGapsys::compute(int eflag, int vflag)
           f[j][0] -= delx * fpair;
           f[j][1] -= dely * fpair;
           f[j][2] -= delz * fpair;
-        }
-
-        if (eflag) {
-          if (rsq < cut_inner_q * cut_inner_q) {
-            ecoul = factor_coul * qqrd2e * qtmp * q[j];
-            ecoul *= rsq / pow(cut_inner_q, 3) - 3 * sqrt(rsq) / pow(cut_inner_q, 2) + 3 / cut_inner_q;
-          } else if (rsq < cut_coulsq[itype][jtype])
-            ecoul = factor_coul * qqrd2e * qtmp * q[j] * sqrt(r2inv);
-          else
-            ecoul = 0.0;
-          if (rsq < cut_inner_lj * cut_inner_lj) {
-            double epsln = epsilon[itype][jtype];
-
-            double s_ri6 = pow(sigma[itype][jtype] / cut_inner_lj, 6);
-            double s_ri12 = s_ri6 * s_ri6;
-
-            double a1 = 12.0 * epsln * (26.0 * s_ri12 - 7.0 * s_ri6) / (cut_inner_lj * cut_inner_lj);
-            double a2 = -96.0 * epsln * (7.0 * s_ri12 - 2.0 * s_ri6) / cut_inner_lj;
-            double a3 = 28.0 * epsln * (13.0 * s_ri12 - 4.0 * s_ri6);
-            evdwl = a1 * rsq + a2 * sqrt(rsq) + a3 - offset[itype][jtype];
-            evdwl *= factor_lj;
-          } else if (rsq < cut_ljsq[itype][jtype]) {
-            evdwl = r6inv * (lj3[itype][jtype] * r6inv - lj4[itype][jtype]) - offset[itype][jtype];
-            evdwl *= factor_lj;
-          } else
-            evdwl = 0.0;
         }
 
         if (evflag) ev_tally(i, j, nlocal, newton_pair, evdwl, ecoul, fpair, delx, dely, delz);
@@ -523,9 +521,14 @@ double PairLJCutCoulCutSoftGapsys::single(int i, int j, int itype, int jtype, do
 
   if (rsq < cut_inner_q * cut_inner_q) {
     forcecoul = force->qqrd2e * atom->q[i] * atom->q[j];
-    forcecoul *= - 2.0 / pow(cut_inner_q, 3) + 3.0 / (pow(cut_inner_q, 2) * sqrt(rsq));
-  } else if (rsq < cut_coulsq[itype][jtype])
-    forcecoul = force->qqrd2e * atom->q[i] * atom->q[j] * sqrt(r2inv) * r2inv;
+    forcecoul *= -2.0 / pow(cut_inner_q, 3) + 3.0 / (pow(cut_inner_q, 2) * sqrt(rsq));
+    phicoul = force->qqrd2e * atom->q[i] * atom->q[j];
+    phicoul *=
+        rsq / pow(cut_inner_q, 3) - 3.0 * sqrt(rsq) / pow(cut_inner_q, 2) + 3.0 / cut_inner_q;
+  } else if (rsq < cut_coulsq[itype][jtype]) {
+    phicoul = force->qqrd2e * atom->q[i] * atom->q[j] * sqrt(r2inv);
+    forcecoul = phicoul * r2inv;
+  }
 
   if (rsq < cut_inner_lj * cut_inner_lj) {
     double epsln = epsilon[itype][jtype];
@@ -533,39 +536,19 @@ double PairLJCutCoulCutSoftGapsys::single(int i, int j, int itype, int jtype, do
     double s_ri12 = s_ri6 * s_ri6;
     double b1 = -24.0 * epsln * (26.0 * s_ri12 - 7.0 * s_ri6) / (cut_inner_lj * cut_inner_lj);
     double b2 = 96.0 * epsln * (7.0 * s_ri12 - 2.0 * s_ri6) / cut_inner_lj;
-    forcelj = b1 + b2 / sqrt(rsq);
-  } else if (rsq < cut_ljsq[itype][jtype]) {
-    r6inv = r2inv * r2inv * r2inv;
-    forcelj = r6inv * (lj1[itype][jtype] * r6inv - lj2[itype][jtype]) * r2inv;
-  }
-
-  fforce = factor_coul * forcecoul + factor_lj * forcelj;
-
-  double eng = 0.0;
-  if (rsq < cut_inner_q * cut_inner_q) {
-    phicoul = force->qqrd2e * atom->q[i] * atom->q[j];
-    phicoul *= rsq / pow(cut_inner_q, 3) - 3 * sqrt(rsq) / pow(cut_inner_q, 2) + 3 / cut_inner_q;
-  } else if (rsq < cut_coulsq[itype][jtype]) {
-    phicoul = force->qqrd2e * atom->q[i] * atom->q[j] * sqrt(r2inv);
-  }
-  eng = factor_coul * phicoul;
-
-  if (rsq < cut_inner_lj * cut_inner_lj) {
-    double epsln = epsilon[itype][jtype];
-
-    double s_ri6 = pow(sigma[itype][jtype] / cut_inner_lj, 6);
-    double s_ri12 = s_ri6 * s_ri6;
-
     double a1 = 12.0 * epsln * (26.0 * s_ri12 - 7.0 * s_ri6) / (cut_inner_lj * cut_inner_lj);
     double a2 = -96.0 * epsln * (7.0 * s_ri12 - 2.0 * s_ri6) / cut_inner_lj;
     double a3 = 28.0 * epsln * (13.0 * s_ri12 - 4.0 * s_ri6);
+    forcelj = b1 + b2 / sqrt(rsq);
     philj = a1 * rsq + a2 * sqrt(rsq) + a3 - offset[itype][jtype];
   } else if (rsq < cut_ljsq[itype][jtype]) {
+    r6inv = r2inv * r2inv * r2inv;
+    forcelj = r6inv * (lj1[itype][jtype] * r6inv - lj2[itype][jtype]) * r2inv;
     philj = r6inv * (lj3[itype][jtype] * r6inv - lj4[itype][jtype]) - offset[itype][jtype];
   }
-  eng += factor_lj * philj;
 
-  return eng;
+  fforce = factor_coul * forcecoul + factor_lj * forcelj;
+  return factor_coul * phicoul + factor_lj * philj;
 }
 
 /* ---------------------------------------------------------------------- */
